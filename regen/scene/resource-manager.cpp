@@ -17,7 +17,6 @@ void ResourceManager::loadResources(SceneParser *parser, const std::string &id)
   fonts_.getResource(parser,id);
   lights_.getResource(parser,id);
   meshes_.getResource(parser,id);
-  shadowMaps_.getResource(parser,id);
   textures_.getResource(parser,id);
 }
 
@@ -45,11 +44,6 @@ ref_ptr<Texture> ResourceManager::getTexture(SceneParser *parser, const std::str
 {
   loadResources(parser,id);
   return textures_.getResource(parser,id);
-}
-ref_ptr<ShadowMap> ResourceManager::getShadowMap(SceneParser *parser, const std::string &id)
-{
-  loadResources(parser,id);
-  return shadowMaps_.getResource(parser,id);
 }
 ref_ptr<MeshVector> ResourceManager::getMesh(SceneParser *parser, const std::string &id)
 {
@@ -81,10 +75,6 @@ void ResourceManager::putFBO(const std::string &id, const ref_ptr<FBO> &fbo)
 void ResourceManager::putTexture(const std::string &id, const ref_ptr<Texture> &texture)
 {
   textures_.putResource(id,texture);
-}
-void ResourceManager::putShadowMap(const std::string &id, const ref_ptr<ShadowMap> &shadowMap)
-{
-  shadowMaps_.putResource(id,shadowMap);
 }
 void ResourceManager::putMesh(const std::string &id, const ref_ptr<MeshVector> &meshes)
 {

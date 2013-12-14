@@ -58,7 +58,6 @@
 	position="16.0,4.5,7.0"
 	direction="-4.0,0.0,0.0" />
 <camera id="reflection-camera"
-	type="reflection"
 	camera="main-camera"
 	reflector-normal="0,1,0"
 	reflector-point="0,0,0" />

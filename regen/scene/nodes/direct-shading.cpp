@@ -11,6 +11,7 @@ using namespace regen;
 
 #include <regen/scene/nodes/scene-node.h>
 #include <regen/scene/resource-manager.h>
+#include <regen/scene/states/texture.h>
 
 #define REGEN_DIRECT_SHADING_NODE_CATEGORY "direct-shading"
 
@@ -60,22 +61,25 @@ void DirectShadingNodeProvider::processInput(
       continue;
     }
 
-    ShadowMap::FilterMode shadowFiltering =
-        n->getValue<ShadowMap::FilterMode>("shadow-filter",ShadowMap::FILTERING_NONE);
-
-    if(n->hasAttribute("shadow-map")) {
-      const string shadowMapID(n->getValue("shadow-map"));
-      ref_ptr<ShadowMap> shadowMap = parser->getResources()->getShadowMap(parser,shadowMapID);
+    ShadowFilterMode shadowFiltering =
+        n->getValue<ShadowFilterMode>("shadow-filter",SHADOW_FILTERING_NONE);
+    ref_ptr<Texture> shadowMap;
+    ref_ptr<LightCamera> shadowCamera;
+    if(n->hasAttribute("shadow-camera")) {
+      shadowCamera = ref_ptr<LightCamera>::upCast(
+          parser->getResources()->getCamera(parser,n->getValue("shadow-camera")));
+      if(shadowCamera.get()==NULL) {
+        REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");
+      }
+    }
+    if(n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-texture")) {
+      shadowMap = TextureStateProvider::getTexture(parser, *n.get(),
+              "shadow-texture", "shadow-buffer", "shadow-attachment");
       if(shadowMap.get()==NULL) {
-        shadingState->addLight(light);
-      }
-      else {
-        shadingState->addLight(light,shadowMap,shadowFiltering);
+        REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
       }
     }
-    else {
-      shadingState->addLight(light);
-    }
+    shadingState->addLight(light,shadowCamera,shadowMap,shadowFiltering);
   }
 
   // parse passNode

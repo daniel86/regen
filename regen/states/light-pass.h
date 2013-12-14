@@ -11,7 +11,6 @@
 #include <regen/states/state.h>
 #include <regen/states/shader-state.h>
 #include <regen/meshes/mesh-state.h>
-#include <regen/states/shadow-map.h>
 
 namespace regen {
   /**
@@ -38,7 +37,8 @@ namespace regen {
      */
     void addLight(
         const ref_ptr<Light> &l,
-        const ref_ptr<ShadowMap> &sm,
+        const ref_ptr<LightCamera> &lightCamera,
+        const ref_ptr<Texture> &shadowTexture,
         const list< ref_ptr<ShaderInput> > &inputs);
     /**
      * @param l a previously added light.
@@ -57,11 +57,7 @@ namespace regen {
     /**
      * @param mode the shadow filtering mode.
      */
-    void setShadowFiltering(ShadowMap::FilterMode mode);
-    /**
-     * @param numLayer number of shadow texture layers.
-     */
-    void setShadowLayer(GLuint numLayer);
+    void setShadowFiltering(ShadowFilterMode mode);
 
     // override
     void enable(RenderState *rs);
@@ -69,7 +65,8 @@ namespace regen {
   protected:
     struct LightPassLight {
       ref_ptr<Light> light;
-      ref_ptr<ShadowMap> sm;
+      ref_ptr<LightCamera> camera;
+      ref_ptr<Texture> shadow;
       list< ref_ptr<ShaderInput> > inputs;
       list< ShaderInputLocation > inputLocations;
     };
@@ -84,7 +81,7 @@ namespace regen {
     map< Light*, list<LightPassLight>::iterator > lightIterators_;
 
     GLint shadowMapLoc_;
-    ShadowMap::FilterMode shadowFiltering_;
+    ShadowFilterMode shadowFiltering_;
     GLuint numShadowLayer_;
 
     void addInputLocation(LightPassLight &l,

@@ -50,9 +50,77 @@ ref_ptr<Camera> CameraResource::createResource(
     SceneParser *parser,
     SceneInputNode &input)
 {
-  const string &type = input.getValue<string>("type", "default");
+  if(input.hasAttribute("reflector") ||
+     input.hasAttribute("reflector-normal") ||
+     input.hasAttribute("reflector-point"))
+  {
+    ref_ptr<Camera> userCamera =
+        parser->getResources()->getCamera(parser, input.getValue("camera"));
+    if(userCamera.get()==NULL) {
+      REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    ref_ptr<ReflectionCamera> cam;
 
-  if(type == "default") {
+    if(input.hasAttribute("reflector")) {
+      ref_ptr<MeshVector> mesh =
+          parser->getResources()->getMesh(parser, input.getValue("reflector"));
+      if(mesh.get()==NULL || mesh->empty()) {
+        REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
+        return ref_ptr<Camera>();
+      }
+      const vector< ref_ptr<Mesh> > &vec = *mesh.get();
+      cam = ref_ptr<ReflectionCamera>::alloc(
+          userCamera,vec[0],input.getValue<GLuint>("vertex-index",0u));
+    }
+    else if(input.hasAttribute("reflector-normal")) {
+      Vec3f normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f,1.0f,0.0f));
+      Vec3f position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f,0.0f,0.0f));
+      cam = ref_ptr<ReflectionCamera>::alloc(userCamera,normal,position);
+    }
+    if(userCamera.get()==NULL) {
+      REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    parser->putState(input.getName(),cam);
+    return cam;
+  }
+  else if(input.hasAttribute("light")) {
+    ref_ptr<Camera> userCamera =
+        parser->getResources()->getCamera(parser, input.getValue("camera"));
+    if(userCamera.get()==NULL) {
+      REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    ref_ptr<Light> light =
+        parser->getResources()->getLight(parser, input.getValue("light"));
+    if(light.get()==NULL) {
+      REGEN_WARN("Unable to find Light for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    GLuint numLayer = input.getValue<GLuint>("num-layer", 1u);
+    GLdouble splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
+    GLdouble near = input.getValue<GLdouble>("near", 0.1);
+    GLdouble far = input.getValue<GLdouble>("far", 200.0);
+    ref_ptr<LightCamera> cam = ref_ptr<LightCamera>::alloc(
+        light,userCamera,Vec2f(near,far),numLayer,splitWeight);
+
+    // Hide cube shadow map faces.
+    if(input.hasAttribute("hide-faces")) {
+      const string val = input.getValue<string>("hide-faces","");
+      vector<string> faces;
+      boost::split(faces,val,boost::is_any_of(","));
+      for(vector<string>::iterator it=faces.begin();
+          it!=faces.end(); ++it) {
+        int faceIndex = atoi(it->c_str());
+        cam->set_isCubeFaceVisible(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, GL_FALSE);
+      }
+    }
+
+    return cam;
+  }
+  else {
     ref_ptr<Camera> cam = ref_ptr<Camera>::alloc();
     cam->set_isAudioListener(
         input.getValue<bool>("audio-listener", false));
@@ -75,41 +143,4 @@ ref_ptr<Camera> CameraResource::createResource(
 
     return cam;
   }
-  else if(type == "reflection") {
-    ref_ptr<Camera> userCamera =
-        parser->getResources()->getCamera(parser, input.getValue("camera"));
-    if(userCamera.get()==NULL) {
-      REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-      return ref_ptr<Camera>();
-    }
-    ref_ptr<ReflectionCamera> cam;
-
-    if(input.hasAttribute("mesh")) {
-      ref_ptr<MeshVector> mesh =
-          parser->getResources()->getMesh(parser, input.getValue("mesh"));
-      if(mesh.get()==NULL || mesh->empty()) {
-        REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
-        return ref_ptr<Camera>();
-      }
-      const vector< ref_ptr<Mesh> > &vec = *mesh.get();
-      cam = ref_ptr<ReflectionCamera>::alloc(
-          userCamera,vec[0],input.getValue<GLuint>("vertex-index",0u));
-    }
-    else if(input.hasAttribute("reflector-normal")) {
-      Vec3f normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f,1.0f,0.0f));
-      Vec3f position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f,0.0f,0.0f));
-      cam = ref_ptr<ReflectionCamera>::alloc(userCamera,normal,position);
-    }
-    if(userCamera.get()==NULL) {
-      REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
-      return ref_ptr<Camera>();
-    }
-    parser->putState(input.getName(),cam);
-    return cam;
-  }
-  else {
-    REGEN_WARN("Ignoring Camera '" << input.getDescription() << "' with unknown type.");
-    return ref_ptr<Camera>();
-  }
-
 }

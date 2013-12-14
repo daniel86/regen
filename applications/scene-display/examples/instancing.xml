@@ -20,6 +20,15 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
+<fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 target="TEXTURE_2D_ARRAY"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DArrayShadow" />
+</fbo>
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
 <texture id="random-normal" file="res/textures/random_normals.png" />
@@ -35,15 +44,11 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="1.0,2.0,-50.0"
 	direction="0.0,0.0,1.0" />
-<!-- Shadow Maps -->
-<shadow-map id="sun-shadow"
-	    light="earth-sky"
-	    camera="main-camera"
-	    size="1024"
-	    pixel-size="24"
-	    pixel-type="FLOAT"
-	    num-layer="3"
-	    split-weight="0.9" />
+<camera id="sun-camera"
+	light="earth-sky"
+	camera="main-camera"
+	num-layer="3"
+	split-weight="0.9" />
 <!-- Some asset files. Assets can contain lights,materials and meshes. -->
 <asset id="animation-asset"
        type="asset"
@@ -97,18 +102,25 @@
       use-tangent="1"
       center="1"
       usage="STATIC" />
-<mesh id="dwarf-axe"
+<mesh id="dwarf"
       type="asset"
       asset="animation-asset"
-      asset-indices="0"
-      asset-material="0"
-      asset-animation="1" />
-<mesh id="dwarf-body"
-      type="asset"
-      asset="animation-asset"
-      asset-indices="1"
-      asset-material="0"
-      asset-animation="1" />
+      asset-indices="*"
+      asset-animation="1"
+      num-instances="100">
+  <transform is-instanced="1" >
+    <set mode="fade" target="scale"
+	 start="1.0,1.0,1.0" stop="1.25,1.25,1.25"
+	 random-indices="30" />
+    <set mode="row" target="translate"
+	 x-step="8.0,0.0,0.0" x-count="10"
+	 z-step="0.0,0.0,8.0" />
+    <translate value="-40.0,-2.0,-40.0" />
+  </transform>
+  <input type="int" name="boneOffset" is-instanced="1">
+    <set mode="random" min="0" max="49"/>
+  </input>
+</mesh>
 <mesh id="logo-widget"
       type="rectangle"
       lod="0"
@@ -134,38 +146,7 @@
     <depth test="1" write="1" />
     <fbo id="g-buffer" draw-buffers="0,2,3" />
     
-    <node id="dwarf-node" num-instances="100" >
-      <transform is-instanced="1" >
-	<set mode="fade" target="scale"
-	       start="1.0,1.0,1.0" stop="1.25,1.25,1.25"
-	       random-indices="75" />
-	<set mode="row" target="translate"
-	       x-step="8.0,0.0,0.0" x-count="10"
-	       z-step="0.0,0.0,8.0" />
-	<translate value="-40.0,-2.0,-40.0" />
-      </transform>
-      <input type="int" name="boneOffset" is-instanced="1">
-	<set mode="random" min="0" max="49"/>
-      </input>
-      
-      <node id="dwarf-axe" shadow-maps="*" >
-	<material asset="animation-asset" asset-index="0" />
-	<!-- Overwrite src blending defines from imported material. -->
-	<define key="TEX_BLEND_KEY3" value="regen.utility.blending.add" />
-	<define key="TEX_BLEND_NAME3" value="blend_add" />
-	<!-- Make some axes green. -->
-	<input type="vec3" name="matDiffuse" is-instanced="1">
-	  <set mode="constant" value="0.0,1.0,0.0" random-indices="20" />
-	  <set mode="constant" value="1.0,0.0,0.0" random-indices="20" />
-	</input>
-	<mesh id="dwarf-axe" shader="regen.meshes.mesh" />
-      </node>
-      
-      <node id="dwarf-body" shadow-maps="*" >
-	<material asset="animation-asset" asset-index="1" />
-	<mesh id="dwarf-body" shader="regen.meshes.mesh" />
-      </node>
-    </node>
+    <node import="shadow-caster" />
     
     <node id="ground">
       <input type="float" name="parallaxBias" value="0.015" />
@@ -195,6 +176,23 @@
   </node>
 </node>
 
+<node id="shadow-pass">
+  <cull mode="FRONT" />
+  <define key="OUTPUT_TYPE" value="DEPTH" />
+  
+  <node id="sun-shadow-pass">
+    <fbo id="sun-shadow" clear-depth="1" />
+    <camera id="sun-camera" />
+    <node import="shadow-caster" />
+  </node>
+</node>
+
+<node id="shadow-caster">
+  <node id="dwarf-node" >
+    <mesh id="dwarf" shader="regen.meshes.mesh" />
+  </node>
+</node>
+
 <node id="shading-pass">
   <blend mode="add" />
   <depth test="0" write="0" />
@@ -210,10 +208,10 @@
 
     <light-pass type="DIRECTIONAL"
 		shader="regen.shading.deferred.directional"
-		use-shadows="1"
-		shadow-filter="NONE"
-		shadow-layer="3">
-      <light id="earth-sky" shadow-map="sun-shadow" />
+		shadow-filter="NONE">
+      <light id="earth-sky"
+	     shadow-buffer="sun-shadow" shadow-attachment="depth"
+	     shadow-camera="sun-camera" />
     </light-pass>
   </node>
   
@@ -334,13 +332,19 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-  <camera id="main-camera" />
+  <node id="pre-render">
+    <node import="shadow-pass" />
+  </node>
   
-  <node import="main-pass" />
-  <node import="post-pass" />
-  <node import="gui-pass" />
-  <node>
-    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+  <node id="render">
+    <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
+    <camera id="main-camera" />
+    
+    <node import="main-pass" />
+    <node import="post-pass" />
+    <node import="gui-pass" />
+    <node>
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </node>
   </node>
 </node>

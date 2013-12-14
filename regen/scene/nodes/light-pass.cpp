@@ -11,6 +11,7 @@ using namespace regen;
 
 #include <regen/states/state-configurer.h>
 #include <regen/scene/states/input.h>
+#include <regen/scene/states/texture.h>
 #include <regen/scene/resource-manager.h>
 
 #define REGEN_LIGHT_PASS_NODE_CATEGORY "light-pass"
@@ -33,12 +34,9 @@ void LightPassNodeProvider::processInput(
       input.getValue("shader"));
   parent->state()->joinStates(x);
 
-  bool useShadows = input.getValue<bool>("use-shadows", true);
-  if(useShadows) {
-    x->setShadowFiltering(input.getValue<ShadowMap::FilterMode>(
-        "shadow-filter", ShadowMap::FILTERING_NONE));
-    x->setShadowLayer(input.getValue<GLuint>("shadow-layer",1));
-  }
+  x->setShadowFiltering(input.getValue<ShadowFilterMode>(
+      "shadow-filter", SHADOW_FILTERING_NONE));
+  bool useShadows = false, toggle = true;
 
   const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
   for(list< ref_ptr<SceneInputNode> >::const_iterator
@@ -51,22 +49,29 @@ void LightPassNodeProvider::processInput(
       continue;
     }
     list< ref_ptr<ShaderInput> > inputs;
-    ref_ptr<ShadowMap> shadowMap;
 
-    if(n->hasAttribute("shadow-map")) {
-      if(!useShadows) {
-        REGEN_WARN(input.getDescription() <<
-            " has no use-shadows attribute but child " << n->getDescription() << " has.");
-      }
-      else {
-        shadowMap = parser->getResources()->getShadowMap(parser,n->getValue("shadow-map"));
-        if(shadowMap.get()==NULL) {
-          REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
-        }
+    ref_ptr<Texture> shadowMap;
+    ref_ptr<LightCamera> shadowCamera;
+    if(n->hasAttribute("shadow-camera")) {
+      shadowCamera = ref_ptr<LightCamera>::upCast(
+          parser->getResources()->getCamera(parser,n->getValue("shadow-camera")));
+      if(shadowCamera.get()==NULL) {
+        REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");
       }
     }
-    else if(useShadows) {
-      REGEN_WARN(n->getDescription() << "' has no associated shadow.");
+    if(n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-texture")) {
+      shadowMap = TextureStateProvider::getTexture(parser, *n.get(),
+              "shadow-texture", "shadow-buffer", "shadow-attachment");
+      if(shadowMap.get()==NULL) {
+        REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
+      }
+    }
+    if(toggle) {
+      useShadows = (shadowMap.get()!=NULL);
+      toggle = false;
+    }
+    else if((shadowMap.get()!=NULL) != useShadows) {
+      REGEN_WARN("Ignoring " << input.getDescription() << ".");
       continue;
     }
 
@@ -84,7 +89,7 @@ void LightPassNodeProvider::processInput(
       }
     }
 
-    x->addLight(light,shadowMap,inputs);
+    x->addLight(light,shadowCamera,shadowMap,inputs);
   }
 
   StateConfigurer shaderConfigurer;

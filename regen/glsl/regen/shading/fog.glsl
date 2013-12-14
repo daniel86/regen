@@ -106,23 +106,15 @@ uniform vec2 in_lightRadius;
 uniform vec3 in_lightDiffuse;
 #ifdef USE_SHADOW_MAP
 // shadow input
-uniform float in_shadowFar;
-uniform float in_shadowNear;
-uniform float in_shadowInverseSize;
+uniform float in_lightFar;
+uniform float in_lightNear;
+uniform vec2 in_shadowInverseSize;
 #ifdef IS_SPOT_LIGHT
-  #ifdef USE_SHADOW_SAMPLER
 uniform sampler2DShadow in_shadowTexture;
-  #else
-uniform sampler2D in_shadowTexture;
-  #endif
-uniform mat4 in_shadowMatrix;
+uniform mat4 in_lightMatrix;
 #else // !IS_SPOT_LIGHT
-  #ifdef USE_SHADOW_SAMPLER
 uniform samplerCubeShadow in_shadowTexture;
-  #else
-uniform samplerCube in_shadowTexture;
-  #endif
-uniform mat4 in_shadowMatrix[6];
+uniform mat4 in_lightMatrix[6];
 #endif // !IS_SPOT_LIGHT
 const float in_shadowSampleStep = 0.025;
 const float in_shadowSampleThreshold = 0.075;
@@ -220,15 +212,15 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
     lightVec = in_lightPosition - p;
 #ifdef IS_POINT_LIGHT
     shadowDepth = (vec4(lightVec,1.0)*
-      in_shadowMatrix[computeCubeLayer(lightVec)]).z;
+      in_lightMatrix[computeCubeLayer(lightVec)]).z;
     shadow += pointShadowSingle(
       in_shadowTexture, lightVec, shadowDepth,
-      in_shadowNear, in_shadowFar, in_shadowInverseSize);
+      in_lightNear, in_lightFar, in_shadowInverseSize.x);
 #endif
 #ifdef IS_SPOT_LIGHT
     shadow += spotShadowSingle(
-      in_shadowTexture, in_shadowMatrix*vec4(p,1.0),
-      lightVec, in_shadowNear, in_shadowFar);
+      in_shadowTexture, in_lightMatrix*vec4(p,1.0),
+      lightVec, in_lightNear, in_lightFar);
 #endif
     p += stepRay;
   }

@@ -20,6 +20,14 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
+<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DShadow" />
+</fbo>
 <fbo id="t-buffer" size-mode="rel" size="1.0,1.0" >
   <!-- Note: some transparency modes require float texture. -->
   <texture id="color"
@@ -52,21 +60,17 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="3.0,0.5,-5.0"
 	direction="-0.5,0.0,1.0" />
+<camera id="spot-camera"
+	light="spot-light"
+	camera="main-camera" />
 <!-- Lights -->
-<light id="spot-light0"
+<light id="spot-light"
        type="SPOT"
        position="3.0,8.0,-4.0"
        direction="-0.37,-0.95,0.46"
        diffuse="0.58,0.58,0.58"
        radius="10.0,21.0"
        cone-angles="11.5,25.5" />
-<!-- Shadow Maps -->
-<shadow-map id="spot-shadow0"
-	    light="spot-light0"
-	    camera="main-camera"
-	    size="1024"
-	    pixel-size="24"
-	    pixel-type="FLOAT" />
 <!-- Some asset files. Assets can contain lights,materials and meshes. -->
 <asset id="venus-asset"
        type="asset"
@@ -150,8 +154,70 @@
   <blend mode="src" />
   <depth test="1" write="1" />
   <fbo id="g-buffer" draw-buffers="0,2,3" />
+  <node import="shadow-caster" />
+</node>
+
+<node id="shadow-pass">
+  <cull mode="FRONT" />
   
-  <node id="platform" shadow-maps="*" >
+  <node id="spot-shadow-pass">
+    <define key="OUTPUT_TYPE" value="DEPTH" />
+    <fbo id="spot-shadow" clear-depth="1" />
+    <camera id="spot-camera" />
+    
+    <node import="shadow-caster" />
+    <!-- TODO: transparent shadows -->
+    <node import="shadow-caster-transparent" />
+  </node>
+</node>
+
+<node id="shading-pass">
+  <blend mode="add" />
+  <depth test="0" write="0" />
+  
+  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+  <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
+  <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
+  <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+    
+  <node>
+    <fullscreen-pass shader="regen.shading.deferred.ambient" />
+    
+    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth"
+	     shadow-camera="spot-camera" />
+    </light-pass>
+  </node>
+</node>
+
+<node id="transparency-pass">
+  <fbo id="t-buffer"
+       clear-buffers="*"
+       clear-depth="1"
+       draw-buffers="*" />
+  <depth test="1" write="0" />
+  
+  <direct-shading ambient="0.3,0.3,0.3" >
+    <!-- Define lights used for direct shading. -->
+    <direct-lights>
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth" />
+    </direct-lights>
+    
+    <direct-pass>
+      <toggle key="CULL_FACE" value="0" />
+      <blend mode="add" />
+      <define key="USE_SUM_ALPHA" value="TRUE" />
+      <node import="shadow-caster-transparent"
+	    sort="-1" sort-camera="main-camera" />
+    </direct-pass>
+  </direct-shading>
+</node>
+
+<node id="shadow-caster">
+  <node id="platform">
     <material preset="silver" />
     <define key="HAS_modelMatrix" value="TRUE" />
     <define key="HAS_nor" value="TRUE" />
@@ -183,97 +249,8 @@
   </node>
 </node>
 
-<node id="shading-pass">
-  <blend mode="add" />
-  <depth test="0" write="0" />
-  
-  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-  <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-  <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-  <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
-    
-  <node>
-    <fullscreen-pass shader="regen.shading.deferred.ambient" />
-    
-    <light-pass type="SPOT"
-		shader="regen.shading.deferred.spot"
-		use-shadows="1"
-		shadow-filter="NONE">
-      <light id="spot-light0" shadow-map="spot-shadow0" />
-    </light-pass>
-  </node>
-</node>
-
-<node id="background-pass">
-  <depth test="1" write="0" />
-</node>
-
-<!--**************************-->
-<!--**************************-->
-
-<node id="transparency-pass">
-  <fbo id="t-buffer"
-       clear-buffers="*"
-       clear-depth="1"
-       draw-buffers="*" />
-  <depth test="1" write="0" />
-  
-  <direct-shading ambient="0.3,0.3,0.3" >
-    <!-- Define lights used for direct shading. -->
-    <direct-lights>
-      <light id="spot-light0"
-	     shadow-map="spot-shadow0"
-	     shadow-filter="NONE" />
-    </direct-lights>
-    
-    <direct-pass>
-      <node import="transparency-pass-sum" />
-    </direct-pass>
-  </direct-shading>
-</node>
-
-<!-- Simple sum mode. -->
-<node id="transparency-pass-sum">
-  <toggle key="CULL_FACE" value="0" />
-  <blend mode="add" />
-  <define key="USE_SUM_ALPHA" value="TRUE" />
-  <node import="transparency-geometry" />
-</node>
-
-<!-- Average sum mode. -->
-<node id="transparency-pass-avg-sum">
-  <toggle key="CULL_FACE" value="0" />
-  <blend mode="add" />
-  <define key="USE_AVG_SUM_ALPHA" value="TRUE" />
-  <node import="transparency-geometry" />
-  
-  <node id="transparency-accumulate">
-    <depth test="0" write="0" />
-    <blend mode="alpha" />
-    <texture name="tColorTexture" fbo="t-buffer" attachment="0" />
-    <texture name="tCounterTexture" fbo="t-buffer" attachment="1" />
-    <fullscreen-pass shader="regen.shading.transparency.avgSum" />
-  </node>
-</node>
-
-<!-- Front-To-Back blending mode. -->
-<node id="transparency-pass-front-to-back" >
-  <blend mode="src_alpha" />
-  <define key="USE_FRONT_TO_BACK_ALPHA" value="TRUE" />
-  <node import="transparency-geometry" />
-</node>
-
-<!-- Back-To-Front blending mode. -->
-<node id="transparency-pass-back-to-front" >
-  <blend mode="dst_alpha" />
-  <define key="USE_BACK_TO_FRONT_ALPHA" value="TRUE" />
-  <node import="transparency-geometry" />
-</node>
-
-<node id="transparency-geometry"
-      sort="-1" sort-camera="main-camera" >
-  <node id="venus0" shadow-maps="*" >
+<node id="shadow-caster-transparent" >
+  <node id="venus0" >
     <material preset="ruby" alpha="0.7" />
     <transform>
       <rotate value="3.14,0.0,0.0" />
@@ -282,7 +259,7 @@
     <mesh id="venus-mesh" shader="regen.meshes.transparent-mesh" />
   </node>
   
-  <node id="sphere0" shadow-maps="*" >
+  <node id="sphere0" >
     <material preset="chrome" alpha="0.5" />
     <transform>
       <translate value="1.5,-0.05,0.0" />
@@ -290,13 +267,17 @@
     <mesh id="sphere-mesh" shader="regen.meshes.transparent-mesh" />
   </node>
   
-  <node id="sphere1" shadow-maps="*" >
+  <node id="sphere1" >
     <material preset="jade" alpha="0.85" />
     <transform>
       <translate value="-1.5,-0.05,0.0" />
     </transform>
     <mesh id="sphere-mesh" shader="regen.meshes.transparent-mesh" />
   </node>
+</node>
+
+<node id="background-pass">
+  <depth test="1" write="0" />
 </node>
 
 <!--**************************-->
@@ -310,9 +291,8 @@
     
     <direct-shading ambient="0.3,0.3,0.3" >
       <direct-lights>
-	<light id="spot-light0"
-	      shadow-map="spot-shadow0"
-	      shadow-filter="NONE" />
+	<light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth" />
       </direct-lights>
       
       <direct-pass>
@@ -415,16 +395,22 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer"
-       clear-buffers="0,1,2,3"
-       clear-depth="1" />
-  <camera id="main-camera" />
+  <node id="pre-render">
+    <node import="shadow-pass" />
+  </node>
   
-  <node import="main-pass" />
-  <node import="particle-pass" />
-  <node import="post-pass" />
-  <node import="gui-pass" />
-  <node>
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+  <node id="render">
+    <fbo id="g-buffer"
+	clear-buffers="0,1,2,3"
+	clear-depth="1" />
+    <camera id="main-camera" />
+    
+    <node import="particle-pass" />
+    <node import="main-pass" />
+    <node import="post-pass" />
+    <node import="gui-pass" />
+    <node>
+      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </node>
   </node>
 </node>

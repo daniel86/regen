@@ -9,6 +9,23 @@ uniform float in_matRefractionIndex;
 uniform float in_matAlpha;
 #endif
 
+-- camera
+#if RENDER_TARGET == CUBE
+uniform mat4 in_viewMatrix[6];
+uniform mat4 in_projectionMatrix;
+uniform mat4 in_viewProjectionMatrix[6];
+#elif RENDER_TARGET == 2D_ARRAY
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix[${RENDER_LAYER}];
+uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
+#else
+uniform mat4 in_viewMatrix;
+uniform mat4 in_projectionMatrix;
+uniform mat4 in_viewProjectionMatrix;
+#endif
+// TODO: layered, direction
+uniform vec3 in_cameraPosition;
+
 -- defines
 #ifdef HAS_nor && HAS_tan
 #define HAS_TANGENT_SPACE
@@ -20,6 +37,19 @@ uniform float in_matAlpha;
 #endif
 #ifndef PI
 #define PI 3.14159265
+#endif
+#endif
+#ifndef RENDER_LAYER
+#define RENDER_LAYER 1
+#endif
+#endif
+#ifndef RENDER_TARGET
+#define RENDER_TARGET 2D
+#endif
+#if RENDER_TARGET == 2D
+#ifndef HAS_TESSELATION
+#define VS_CAMERA_TRANSFORM
+#endif
 #endif
 
 -- boneTransformation
@@ -73,10 +103,9 @@ void boneTransformation(vec4 v, vec4 nor,
   posBone = boneTransformation(v);
   norBone = boneTransformation(nor);
 }
-
 #endif
 
--- transformation
+-- model-transformation
 #include regen.meshes.mesh.boneTransformation
 
 vec4 toWorldSpace(vec4 pos) {
@@ -108,17 +137,29 @@ void toWorldSpace(vec3 pos, vec3 nor,
     norWorld = normalize(nor_ws.xyz);
 }
 
-vec4 posEyeSpace(vec4 ws) {
+-- camera-transformation
+vec4 posEyeSpace(vec4 ws, mat4 view) {
 #ifdef IGNORE_VIEW_ROTATION
-    return vec4(in_viewMatrix[3].xyz,0.0) + ws;
+    return vec4(view[3].xyz,0.0) + ws;
 #elif IGNORE_VIEW_TRANSLATION
-    return mat4(
-        in_viewMatrix[0],
-        in_viewMatrix[1],
-        in_viewMatrix[2],
-        vec3(0.0), 1.0) * ws;
+    return mat4(view[0], view[1], view[2], vec3(0.0), 1.0) * ws;
 #else
-    return in_viewMatrix * ws;
+    return view * ws;
+#endif
+}
+vec4 posEyeSpace(vec4 ws, int layer) {
+#if RENDER_TARGET == CUBE
+  return posEyeSpace(ws, in_viewMatrix[layer]);
+#else
+  return posEyeSpace(ws, in_viewMatrix);
+#endif
+}
+
+vec4 posScreenSpace(vec4 es, int layer) {
+#if RENDER_TARGET == 2D_ARRAY
+  return in_projectionMatrix[layer] * es;
+#else
+  return in_projectionMatrix * es;
 #endif
 }
 
@@ -136,10 +177,10 @@ vec4 posEyeSpace(vec4 ws) {
 out vec3 out_tangent;
 out vec3 out_binormal;
 #endif
-#ifndef HAS_TESSELATION
+#ifdef VS_CAMERA_TRANSFORM
 out vec3 out_posWorld;
 out vec3 out_posEye;
-#endif // !HAS_TESSELATION
+#endif
 #ifdef HAS_nor
 out vec3 out_norWorld;
 #endif
@@ -175,16 +216,16 @@ uniform mat4 in_boneMatrices[NUM_BONES];
 uniform int in_numBoneWeights;
 #endif
 
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 
+#include regen.meshes.mesh.camera
+#include regen.meshes.mesh.model-transformation
+#ifdef VS_CAMERA_TRANSFORM
+#include regen.meshes.mesh.camera-transformation
+#endif
 #include regen.utility.textures.input
-
-#include regen.meshes.mesh.transformation
-
 #include regen.utility.textures.mapToVertex
 
 #define HANDLE_IO(i)
@@ -203,7 +244,6 @@ void main() {
     out_binormal = normalize( cross(out_norWorld.xyz, out_tangent.xyz) * in_tan.w );
 #endif
 
-    // position transformation
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
   #ifdef HAS_nor
@@ -211,13 +251,16 @@ void main() {
   #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
   #endif
-    out_posWorld = posWorld.xyz;
-    vec4 posEye = posEyeSpace(posWorld);
-    out_posEye = posEye.xyz;
-    gl_Position = in_projectionMatrix * posEye;
-#else // !HAS_TESSELATION
-    gl_Position = posWorld; // let TES do the transformations
 #endif // HAS_TESSELATION
+
+#ifdef VS_CAMERA_TRANSFORM
+    vec4 posEye  = posEyeSpace(posWorld,0);
+    gl_Position  = posScreenSpace(posEye,0);
+    out_posWorld = posWorld.xyz;
+    out_posEye   = posEye.xyz;
+#else
+    gl_Position = posWorld;
+#endif
 
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID;
@@ -236,9 +279,7 @@ layout(vertices=TESS_NUM_VERTICES) out;
 #define ID gl_InvocationID
 
 uniform vec2 in_viewport;
-uniform mat4 in_viewProjectionMatrix;
-uniform vec3 in_cameraPosition;
-
+#include regen.meshes.mesh.camera
 #include regen.utility.tesselation.tcs
 
 #define HANDLE_IO(i)
@@ -258,10 +299,16 @@ void main() {
 #include regen.meshes.mesh.defines
 #include regen.utility.textures.defines
 
+#if RENDER_LAYER == 1
+#define TES_CAMERA_TRANSFORM
+#endif
+
 layout(triangles, ccw, fractional_odd_spacing) in;
 
+#ifdef TES_CAMERA_TRANSFORM
 out vec3 out_posWorld;
 out vec3 out_posEye;
+#endif
 #ifdef HAS_nor
 out vec3 out_norWorld;
 #endif
@@ -276,15 +323,14 @@ in int in_instanceID[ ];
 in vec3 in_norWorld[ ];
 #endif
 
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
+#include regen.meshes.mesh.camera
 
 #include regen.utility.textures.input
 #include regen.utility.tesselation.interpolate
-#include regen.meshes.mesh.transformation
+#include regen.meshes.mesh.camera-transformation
 #include regen.utility.textures.mapToVertex
 
 #define HANDLE_IO(i)
@@ -298,11 +344,14 @@ void main() {
   #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
   #endif
+  
+#ifdef TES_CAMERA_TRANSFORM
+    vec4 posEye = posEyeSpace(posWorld,0);
+    gl_Position = posScreenSpace(posEye,0);
     out_posWorld = posWorld.xyz;
-    vec4 posEye;
-    posEye = posEyeSpace(posWorld);
     out_posEye = posEye.xyz;
-    gl_Position = in_projectionMatrix * posEye;
+#endif
+    
 #ifdef HAS_INSTANCES
     out_instanceID = in_instanceID[0];
 #endif
@@ -311,7 +360,116 @@ void main() {
 #endif
 #endif
 
+-- gs
+#if RENDER_LAYER > 1
+#extension GL_EXT_geometry_shader4 : enable
+
+layout(triangles) in;
+#if RENDER_TARGET == CUBE
+layout(triangle_strip, max_vertices=18) out;
+#elif RENDER_TARGET == 2D_ARRAY
+// TODO: use ${RENDER_LAYER}*3
+layout(triangle_strip, max_vertices=9) out;
+#else
+layout(triangle_strip, max_vertices=9) out;
+#endif
+
+#include regen.meshes.mesh.defines
+#include regen.meshes.mesh.camera
+
+out vec3 out_posWorld;
+out vec3 out_posEye;
+
+#define HANDLE_IO(i)
+
+#include regen.meshes.mesh.camera-transformation
+
+void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int layer) {
+  vec4 posEye = posEyeSpace(posWorld, view);
+  out_posWorld = posWorld.xyz;
+  out_posEye = posEye.xyz;
+  gl_Position = proj * posEye;
+  HANDLE_IO(layer);
+  
+  EmitVertex();
+}
+
+void main() {
+  mat4 view, proj;
+  
+#for LAYER to ${RENDER_LAYER}
+#ifndef SKIP_LAYER${LAYER}
+  // select framebuffer layer
+  gl_Layer = ${LAYER};
+#if RENDER_TARGET == CUBE
+  view = in_viewMatrix[${LAYER}];
+  proj = in_projectionMatrix;
+#elif RENDER_TARGET == 2D_ARRAY
+  view = in_viewMatrix;
+  proj = in_projectionMatrix[${LAYER}];
+#endif
+  emitVertex(gl_PositionIn[0], view, proj, ${LAYER});
+  emitVertex(gl_PositionIn[1], view, proj, ${LAYER});
+  emitVertex(gl_PositionIn[2], view, proj, ${LAYER});
+  EndPrimitive();
+#endif
+#endfor
+}
+
+#endif
+
 -- fs
+#if OUTPUT_TYPE == DEPTH
+#include regen.meshes.mesh.fs-depth
+#elif OUTPUT_TYPE == COLOR
+#define SHADING NONE
+#include regen.meshes.mesh.fs-color
+#elif OUTPUT_TYPE == VARIANCE
+#include regen.meshes.mesh.fs-variance
+#else
+#include regen.meshes.mesh.fs-deferred
+#endif
+
+-- fs-depth
+// nothing to do in the fragment shader.
+// TODO: texture mapping methods modifying depth
+void main() {}
+
+-- fs-moments
+out vec4 out_color;
+
+#if RENDER_TARGET != 2D_ARRAY
+uniform float in_lightFar;
+uniform float in_lightNear;
+
+float linearizeDepth(float expDepth, float n, float f) {
+    float z_n = 2.0*expDepth - 1.0;
+    return (2.0*n)/(f+n - z_n*(f-n));
+}
+#endif
+
+void main()
+{
+    float depth = gl_FragDepth;
+#if RENDER_TARGET == 2D_ARRAY
+    // no need to linearize for ortho projection
+
+#else
+    // Perspective projection saves depth none linear.
+    // Linearize it for shadow comparison.
+    depth = clamp( linearizeDepth(
+        depth, in_lightNear, in_lightFar), 0.0, 1.0 );
+#endif
+
+    // Rate of depth change in texture space.
+    // This will actually compare local depth with the depth calculated for
+    // neighbor texels.
+    float dx = dFdx(depth);
+    float dy = dFdy(depth);
+    out_color = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
+}
+
+-- fs-deferred
 #include regen.meshes.mesh.defines
 #include regen.utility.textures.defines
 
@@ -355,6 +513,7 @@ uniform mat4 in_viewProjectionMatrix;
 
 void main() {
 #ifdef HAS_clipPlane
+    // TODO: more generic clip support
     if(dot(in_posWorld,in_clipPlane.xyz)-in_clipPlane.w<=0.0) discard;
 #endif
     HANDLE_IO(0);

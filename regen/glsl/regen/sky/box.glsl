@@ -15,13 +15,13 @@ uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 uniform float in_far;
 
-#include regen.meshes.mesh.transformation
+#include regen.meshes.mesh.camera-transformation
 
 #define HANDLE_IO(i)
 
 void main() {
     vec4 posWorld = vec4(in_pos.xyz*in_far*0.99,1.0);
-    vec4 posScreen = in_projectionMatrix * posEyeSpace(posWorld);
+    vec4 posScreen = posScreenSpace(posEyeSpace(posWorld,0),0);
     // push to far plane. needs less or equal check
     posScreen.z = posScreen.w;
     
