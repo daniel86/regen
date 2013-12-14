@@ -62,7 +62,7 @@ ref_ptr<FBO> FBOResource::createResource(
   Vec3i absSize   = TextureResource::getSize(
       parser->getViewport(), sizeMode, relSize);
 
-  ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x,absSize.y);
+  ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x,absSize.y,absSize.z);
   if(sizeMode == "rel") {
     ref_ptr<FBOResizer> resizer = ref_ptr<FBOResizer>::alloc(
           fbo,
@@ -89,13 +89,18 @@ ref_ptr<FBO> FBOResource::createResource(
       GLint depthSize  = n->getValue<GLint>("pixel-size", 16);
       GLenum depthType = glenum::pixelType(
           n->getValue<string>("pixel-type", "UNSIGNED_BYTE"));
+      GLenum textureTarget = glenum::textureTarget(
+          n->getValue<string>("target", "TEXTURE_2D"));
 
       GLenum depthFormat;
       if(depthSize<=16)      depthFormat=GL_DEPTH_COMPONENT16;
       else if(depthSize<=24) depthFormat=GL_DEPTH_COMPONENT24;
       else                   depthFormat=GL_DEPTH_COMPONENT32;
 
-      fbo->createDepthTexture(GL_TEXTURE_2D,depthFormat,depthType);
+      fbo->createDepthTexture(textureTarget,depthFormat,depthType);
+
+      ref_ptr<Texture> tex = fbo->depthTexture();
+      TextureResource::configureTexture(tex, *n.get());
     }
     else {
       REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
@@ -111,6 +116,7 @@ ref_ptr<FBO> FBOResource::createResource(
     RenderState::get()->clearColor().pop();
     fbo->drawBuffers().pop();
   }
+  GL_ERROR_LOG();
 
   return fbo;
 }
