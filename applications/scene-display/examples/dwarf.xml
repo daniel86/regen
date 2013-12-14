@@ -39,6 +39,23 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
+<fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 target="TEXTURE_2D_ARRAY"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DArrayShadow" />
+</fbo>
+<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DShadow" />
+</fbo>
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
@@ -57,32 +74,24 @@
 	position="16.0,2.5,7.0"
 	direction="-4.0,0.0,-1.0" />
 <camera id="reflection-camera"
-	type="reflection"
 	camera="main-camera"
-	mesh="reflector-mesh" />
+	reflector="reflector-mesh" />
+<camera id="sun-camera"
+	light="earth-sky"
+	camera="main-camera"
+	num-layer="3"
+	split-weight="0.9" />
+<camera id="spot-camera"
+	light="spot-light"
+	camera="main-camera" />
 <!-- Lights -->
-<light id="spot-light0"
+<light id="spot-light"
        type="SPOT" 
        position="3.0,8.0,4.0"
        direction="-0.37,-0.95,-0.46"
        diffuse="0.2,0.45,0.435"
        radius="10.0,21.0"
        cone-angles="11.5,25.5" />
-<!-- Shadow Maps -->
-<shadow-map id="sun-shadow"
-	    light="earth-sky"
-	    camera="main-camera"
-	    size="2056"
-	    pixel-size="24"
-	    pixel-type="FLOAT"
-	    num-layer="3"
-	    split-weight="0.9" />
-<shadow-map id="spot-shadow0"
-	    light="spot-light0"
-	    camera="main-camera"
-	    size="1024"
-	    pixel-size="24"
-	    pixel-type="FLOAT" />
 <!-- Some asset files. Assets can contain lights,materials and meshes. -->
 <asset id="animation-asset"
        type="asset"
@@ -275,6 +284,25 @@
   </node>
 </node>
 
+<node id="shadow-pass">
+  <cull mode="FRONT" />
+  <define key="OUTPUT_TYPE" value="DEPTH" />
+  
+  <node id="sun-shadow-pass">
+    <fbo id="sun-shadow" clear-depth="1" />
+    <camera id="sun-camera" />
+    
+    <node import="shadow-caster" />
+  </node>
+  
+  <node id="spot-shadow-pass">
+    <fbo id="spot-shadow" clear-depth="1" />
+    <camera id="spot-camera" />
+    
+    <node import="shadow-caster" />
+  </node>
+</node>
+
 <node id="main-pass">
   <camera id="main-camera" />
   
@@ -283,12 +311,13 @@
     <depth test="1" write="1" />
     <fbo id="g-buffer" draw-buffers="0,2,3" />
     
-    <node import="shadow-caster" shadow-maps="*" />
+    <node import="shadow-caster" />
     <node import="scene-geometry" />
   </node>
   
   <node>
     <fbo id="g-buffer" draw-buffers="1" />
+    
     <node>
       <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
       <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
@@ -296,8 +325,9 @@
       <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
       <node import="shading-pass" />
     </node>
-    <!-- Render background (sky,...) -->
+    
     <node import="background-pass" />
+    
     <node id="reflector">
       <toggle key="CULL_FACE" value="0" />
       <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
@@ -372,7 +402,6 @@
 </node>
 
 <node id="scene-geometry">
-  
   <node id="ground">
     <input type="float" name="reliefScale" value="0.03" />
     <input type="int" name="reliefLinearSteps" value="10" />
@@ -394,19 +423,16 @@
   <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
     
-    <light-pass type="DIRECTIONAL"
-		shader="regen.shading.deferred.directional"
-		use-shadows="1"
-		shadow-filter="NONE"
-		shadow-layer="3">
-      <light id="earth-sky" shadow-map="sun-shadow" />
+    <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+      <light id="earth-sky"
+	     shadow-buffer="sun-shadow" shadow-attachment="depth"
+	     shadow-camera="sun-camera" />
     </light-pass>
     
-    <light-pass type="SPOT"
-		shader="regen.shading.deferred.spot"
-		use-shadows="1"
-		shadow-filter="NONE">
-      <light id="spot-light0" shadow-map="spot-shadow0" />
+    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth"
+	     shadow-camera="spot-camera" />
     </light-pass>
   </node>
 </node>
@@ -427,14 +453,15 @@
   <input type="float" name="shadowSampleStep" value="0.025" />
   <input type="float" name="shadowSampleThreshold" value="0.075" />
   <input type="vec2" name="fogDistance" value="0.0,100.0" />
-  <define key="USE_TBUFFER" value="FALSE" />
       
   <node>
     <light-pass type="SPOT"
 		shader="regen.shading.fog.volumetric.spot"
 		use-shadows="1"
 		shadow-filter="NONE">
-      <light id="spot-light0" shadow-map="spot-shadow0" >
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth"
+	     shadow-camera="spot-camera" >
 	<input type="float" name="fogExposure" value="1.0" />
 	<input type="vec2" name="fogRadiusScale" value="0.44,0.76" />
 	<input type="vec2" name="fogConeScale" value="1.0,1.0" />
@@ -495,15 +522,18 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-  
   <node id="pre-render">
     <node import="reflection-pass" />
+    <node import="shadow-pass" />
   </node>
-  <node import="main-pass" />
-  <node import="gui-pass" />
   
-  <node>
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+  <node id="render">
+    <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
+    <node import="main-pass" />
+    <node import="gui-pass" />
+  
+    <node id="blit">
+      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </node>
   </node>
 </node>

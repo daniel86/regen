@@ -58,14 +58,10 @@ uniform vec3 in_lightDiffuse;
 #endif
 
 #ifdef USE_SHADOW_MAP
-  #ifdef USE_SHADOW_SAMPLER
 uniform sampler2DArrayShadow in_shadowTexture;
-  #else
-uniform sampler2DArray in_shadowTexture;
-  #endif
-uniform float in_shadowInverseSize;
-uniform mat4 in_shadowMatrix[NUM_SHADOW_LAYER];
-uniform float in_shadowFar[NUM_SHADOW_LAYER];
+uniform vec2 in_shadowInverseSize;
+uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
+uniform float in_lightFar[NUM_SHADOW_LAYER];
 #endif
 
 #include regen.utility.utility.texcoToWorldSpace
@@ -99,13 +95,13 @@ void main() {
     // find the texture layer
     int shadowLayer = 0;
     for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
-        if(depth<in_shadowFar[i]) {
+        if(depth<in_lightFar[i]) {
             shadowLayer = i;
             break;
         }
     }
     // compute texture lookup coordinate
-    vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_shadowMatrix[shadowLayer]);
+    vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_lightMatrix[shadowLayer]);
     // compute filtered shadow
     float attenuation = dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
 #else
@@ -165,23 +161,15 @@ uniform vec3 in_lightSpecular;
 
 #ifdef USE_SHADOW_MAP
 // shadow input
-uniform float in_shadowFar;
-uniform float in_shadowNear;
-uniform float in_shadowInverseSize;
+uniform float in_lightFar;
+uniform float in_lightNear;
+uniform vec2 in_shadowInverseSize;
 #ifdef IS_SPOT_LIGHT
-  #ifdef USE_SHADOW_SAMPLER
 uniform sampler2DShadow in_shadowTexture;
-  #else
-uniform sampler2D in_shadowTexture;
-  #endif
-uniform mat4 in_shadowMatrix;
+uniform mat4 in_lightMatrix;
 #else // !IS_SPOT_LIGHT
-  #ifdef USE_SHADOW_SAMPLER
 uniform samplerCubeShadow in_shadowTexture;
-  #else
-uniform samplerCube in_shadowTexture;
-  #endif
-uniform mat4 in_shadowMatrix[6];
+uniform mat4 in_lightMatrix[6];
 #endif // !IS_SPOT_LIGHT
 #endif // USE_SHADOW_MAP
 
@@ -230,21 +218,21 @@ void main() {
 #ifdef IS_SPOT_LIGHT
     attenuation *= spotShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
-        in_shadowMatrix*vec4(P,1.0),
+        in_lightMatrix*vec4(P,1.0),
         lightVec,
-        in_shadowNear,
-        in_shadowFar);
+        in_lightNear,
+        in_lightFar);
 #else
     float shadowDepth = (
-        in_shadowMatrix[computeCubeLayer(lightVec)]*
+        in_lightMatrix[computeCubeLayer(lightVec)]*
         vec4(lightVec,1.0)).z;
     attenuation *= pointShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
         lightVec,
         shadowDepth,
-        in_shadowNear,
-        in_shadowFar,
-        in_shadowInverseSize);
+        in_lightNear,
+        in_lightFar,
+        in_shadowInverseSize.x);
 #endif
 #endif // USE_SHADOW_MAP
     

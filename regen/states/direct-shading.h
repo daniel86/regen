@@ -10,7 +10,7 @@
 
 #include <regen/states/state.h>
 #include <regen/states/light-state.h>
-#include <regen/states/shadow-map.h>
+#include <regen/states/texture-state.h>
 
 namespace regen {
   /**
@@ -31,16 +31,17 @@ namespace regen {
     /**
      * @param l a light.
      */
-    void addLight(const ref_ptr<Light> &l);
+    void addLight(const ref_ptr<Light> &light);
     /**
      * @param l a light.
      * @param sm a shadow map.
      * @param shadowFilter shadow filtering mode that should be used.
      */
     void addLight(
-        const ref_ptr<Light> &l,
-        const ref_ptr<ShadowMap> &sm,
-        ShadowMap::FilterMode shadowFilter);
+        const ref_ptr<Light> &light,
+        const ref_ptr<LightCamera> &lightCamera,
+        const ref_ptr<Texture> &shadow,
+        ShadowFilterMode shadowFilter);
     /**
      * @param l remove previously added light.
      */
@@ -52,9 +53,10 @@ namespace regen {
     struct DirectLight {
       GLuint id_;
       ref_ptr<Light> light_;
-      ref_ptr<ShadowMap> sm_;
+      ref_ptr<LightCamera> camera_;
+      ref_ptr<Texture> shadow_;
       ref_ptr<TextureState> shadowMap_;
-      ShadowMap::FilterMode shadowFilter_;
+      ShadowFilterMode shadowFilter_;
     };
     list<DirectLight> lights_;
     ref_ptr<ShaderInput3f> ambientLight_;

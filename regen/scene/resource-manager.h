@@ -14,7 +14,6 @@
 #include <regen/scene/resources/font.h>
 #include <regen/scene/resources/light.h>
 #include <regen/scene/resources/mesh.h>
-#include <regen/scene/resources/shadow-map.h>
 #include <regen/scene/resources/texture.h>
 
 namespace regen {
@@ -57,12 +56,6 @@ namespace scene {
     /**
      * @param parser The scene parser that contains resources.
      * @param id the resource id.
-     * @return A ShadowMap resource or null reference.
-     */
-    ref_ptr<ShadowMap> getShadowMap(SceneParser *parser, const std::string &id);
-    /**
-     * @param parser The scene parser that contains resources.
-     * @param id the resource id.
      * @return A MeshVector resource or null reference.
      */
     ref_ptr<MeshVector> getMesh(SceneParser *parser, const std::string &id);
@@ -100,11 +93,6 @@ namespace scene {
     void putTexture(const std::string &id, const ref_ptr<Texture> &texture);
     /**
      * @param id the resource id.
-     * @param shadowMap A ShadowMap instance.
-     */
-    void putShadowMap(const std::string &id, const ref_ptr<ShadowMap> &shadowMap);
-    /**
-     * @param id the resource id.
      * @param meshes A MeshVector instance.
      */
     void putMesh(const std::string &id, const ref_ptr<MeshVector> &meshes);
@@ -121,7 +109,6 @@ namespace scene {
     FontResource fonts_;
     LightResource lights_;
     MeshResource meshes_;
-    ShadowMapResource shadowMaps_;
     TextureResource textures_;
 
     void loadResources(SceneParser *parser, const std::string &id);

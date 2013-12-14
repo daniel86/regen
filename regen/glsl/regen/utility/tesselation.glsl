@@ -18,7 +18,12 @@ uniform float in_lodFactor;
 // convert a world space vector to device space
 vec4 worldToDeviceSpace(vec4 vertexWS)
 {
+// TODO: not accurate for cubes! need another metric for cube render targets.
+#if RENDER_LAYER > 1
+    vec4 vertexNDS = in_viewProjectionMatrix[0] * vertexWS;
+#else
     vec4 vertexNDS = in_viewProjectionMatrix * vertexWS;
+#endif
     vertexNDS /= vertexNDS.w;
     return vertexNDS;
 }

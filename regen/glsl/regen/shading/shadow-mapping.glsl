@@ -35,8 +35,8 @@
 out vec4 out_color;
 
 #ifndef IS_ARRAY_SHADOW
-uniform float in_shadowFar;
-uniform float in_shadowNear;
+uniform float in_lightFar;
+uniform float in_lightNear;
 #endif
 
 #ifndef IS_ARRAY_SHADOW
@@ -56,7 +56,7 @@ void main()
     // Perspective projection saves depth none linear.
     // Linearize it for shadow comparison.
     depth = clamp( linearizeDepth(
-        depth, in_shadowNear, in_shadowFar), 0.0, 1.0 );
+        depth, in_lightNear, in_lightFar), 0.0, 1.0 );
 #endif
 
     // Rate of depth change in texture space.
@@ -170,11 +170,11 @@ float shadowGaussian(samplerCubeShadow tex, vec4 coord, float texelSize)
 -- sampling.dir
 #include regen.shading.shadow-mapping.filtering.all
 
-vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 shadowMatrix)
+vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 lightMatrix)
 {
     // transform this fragment's position from world space to scaled light clip space
     // such that the xy coordinates are in [0;1]
-    vec4 shadowCoord = shadowMatrix*vec4(posWorld,1.0);
+    vec4 shadowCoord = lightMatrix*vec4(posWorld,1.0);
     shadowCoord.w = shadowCoord.z;
     // tell glsl in which layer to do the look up
     shadowCoord.z = float(layer);

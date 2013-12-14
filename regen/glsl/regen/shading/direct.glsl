@@ -22,16 +22,12 @@ uniform vec3 in_lightPosition${__ID};
 uniform vec2 in_lightConeAngles${__ID};
 uniform vec3 in_lightDirection${__ID};
 #ifdef USE_SHADOW_MAP${__ID}
-uniform float in_shadowFar${__ID};
-uniform float in_shadowNear${__ID};
-uniform mat4 in_shadowMatrix${__ID};
-uniform float in_shadowInverseSize${__ID};
+uniform float in_lightFar${__ID};
+uniform float in_lightNear${__ID};
+uniform mat4 in_lightMatrix${__ID};
+uniform vec2 in_shadowInverseSize${__ID};
   #ifndef __TEX_shadowTexture${__ID}__
-  #ifdef USE_SHADOW_SAMPLER${__ID}
 uniform sampler2DShadow in_shadowTexture${__ID};
-  #else // USE_SHADOW_SAMPLER${__ID}
-uniform sampler2D in_shadowTexture${__ID};
-  #endif // USE_SHADOW_SAMPLER${__ID}
   #endif
 #endif // USE_SHADOW_MAP${__ID}
 #endif // LIGHT_TYPE${__ID} == SPOT
@@ -40,16 +36,12 @@ uniform sampler2D in_shadowTexture${__ID};
 // point light
 uniform vec3 in_lightPosition${__ID};
 #ifdef USE_SHADOW_MAP${__ID}
-uniform float in_shadowFar${__ID};
-uniform float in_shadowNear${__ID};
-uniform float in_shadowInverseSize${__ID};
-uniform mat4 in_shadowMatrix${__ID}[6];
+uniform float in_lightFar${__ID};
+uniform float in_lightNear${__ID};
+uniform vec2 in_shadowInverseSize${__ID};
+uniform mat4 in_lightMatrix${__ID}[6];
   #ifndef __TEX_shadowTexture${__ID}__
-  #ifdef USE_SHADOW_SAMPLER${__ID}
 uniform samplerCubeShadow in_shadowTexture${__ID};
-  #else // USE_SHADOW_SAMPLER${__ID}
-uniform samplerCube in_shadowTexture${__ID};
-  #endif // USE_SHADOW_SAMPLER${__ID}
   #endif
 #endif // USE_SHADOW_MAP${__ID}
 #endif // LIGHT_TYPE${__ID} == POINT
@@ -58,15 +50,11 @@ uniform samplerCube in_shadowTexture${__ID};
 // directional light
 uniform vec3 in_lightDirection${__ID};
 #ifdef USE_SHADOW_MAP${__ID}
-uniform float in_shadowInverseSize${__ID};
-uniform float in_shadowFar${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-uniform mat4 in_shadowMatrix${__ID}[ NUM_SHADOW_LAYER${__ID} ];
+uniform vec2 in_shadowInverseSize${__ID};
+uniform float in_lightFar${__ID}[ NUM_SHADOW_LAYER${__ID} ];
+uniform mat4 in_lightMatrix${__ID}[ NUM_SHADOW_LAYER${__ID} ];
   #ifndef __TEX_shadowTexture${__ID}__
-  #ifdef USE_SHADOW_SAMPLER${__ID}
 uniform sampler2DArrayShadow in_shadowTexture${__ID};
-  #else // USE_SHADOW_SAMPLER${__ID}
-uniform sampler2DArray in_shadowTexture${__ID};
-  #endif // USE_SHADOW_SAMPLER${__ID}
   #endif
 #endif
 #endif
@@ -136,36 +124,36 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
         // find the texture layer
         int shadowLayer = 0;
         for(int i=0; i<NUM_SHADOW_LAYER${__ID}; ++i) {
-            if(depth<in_shadowFar${__ID}[i]) {
+            if(depth<in_lightFar${__ID}[i]) {
                 shadowLayer = i;
                 break;
             }
         }
         // compute texture lookup coordinate
         vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
-            in_shadowMatrix${__ID}[shadowLayer]);
+            in_lightMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
         float shadowDepth = (
-            in_shadowMatrix${__ID}[computeCubeLayer(lightVec)]*
+            in_lightMatrix${__ID}[computeCubeLayer(lightVec)]*
             vec4(lightVec,1.0)).z;
         attenuation *= pointShadow${SHADOW_MAP_FILTER${__ID}}(
             in_shadowTexture${__ID},
             lightVec,
             shadowDepth,
-            in_shadowNear${__ID},
-            in_shadowFar${__ID},
-            in_shadowInverseSize${__ID});
+            in_lightNear${__ID},
+            in_lightFar${__ID},
+            in_shadowInverseSize${__ID}.x);
   #endif
   #if LIGHT_TYPE${__ID} == SPOT
         attenuation *= spotShadow${SHADOW_MAP_FILTER${__ID}}(
             in_shadowTexture${__ID},
-            in_shadowMatrix${__ID}*vec4(P,1.0),
+            in_lightMatrix${__ID}*vec4(P,1.0),
             lightVec,
-            in_shadowNear${__ID},
-            in_shadowFar${__ID});
+            in_lightNear${__ID},
+            in_lightFar${__ID});
   #endif
 #endif
         s.diffuse += in_lightDiffuse${__ID} * (attenuation * nDotL);
@@ -219,36 +207,36 @@ vec3 getDiffuseLight(vec3 P, float depth)
         // find the texture layer
         int shadowLayer = 0;
         for(int i=0; i<NUM_SHADOW_LAYER${__ID}; ++i) {
-            if(depth<in_shadowFar${__ID}[i]) {
+            if(depth<in_lightFar${__ID}[i]) {
                 shadowLayer = i;
                 break;
             }
         }
         // compute texture lookup coordinate
         vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
-            in_shadowMatrix${__ID}[shadowLayer]);
+            in_lightMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
         float shadowDepth = (
-            in_shadowMatrix${__ID}[computeCubeLayer(lightVec)]*
+            in_lightMatrix${__ID}[computeCubeLayer(lightVec)]*
             vec4(lightVec,1.0)).z;
         attenuation *= pointShadow${SHADOW_MAP_FILTER${__ID}}(
                 in_shadowTexture${__ID},
                 lightVec,
                 shadowDepth,
-                in_shadowNear${__ID},
-                in_shadowFar${__ID},
-                in_shadowInverseSize${__ID});
+                in_lightNear${__ID},
+                in_lightFar${__ID},
+                in_shadowInverseSize${__ID}.x);
   #endif
   #if LIGHT_TYPE${__ID} == SPOT
         attenuation *= spotShadow${SHADOW_MAP_FILTER${__ID}}(
                 in_shadowTexture${__ID},
-                in_shadowMatrix${__ID}*vec4(P,1.0),
+                in_lightMatrix${__ID}*vec4(P,1.0),
                 lightVec,
-                in_shadowNear${__ID},
-                in_shadowFar${__ID});
+                in_lightNear${__ID},
+                in_lightFar${__ID});
   #endif
 #endif
 #endif

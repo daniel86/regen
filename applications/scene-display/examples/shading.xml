@@ -34,16 +34,6 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,0.5,-11.0"
 	direction="0.3,0.0,1.0" />
-<!-- Shadow Maps -->
-<shadow-map id="sun-shadow"
-	    light="earth-sky"
-	    camera="main-camera"
-	    size="1024"
-	    pixel-size="24"
-	    pixel-type="FLOAT"
-	    num-layer="3"
-	    split-weight="0.9"
-	    cull-front-faces="1" />
 <!-- Some meshes -->
 <mesh id="earth-sky"
       type="sky"
@@ -104,7 +94,7 @@
     <depth test="1" write="1" />
     <fbo id="g-buffer" draw-buffers="0,2,3" />
     
-    <node id="sphere0" shadow-maps="*" >
+    <node id="sphere0" >
       <transform shape="sphere"
 		 radius="0.5"
 		 mass="0.5"
@@ -116,7 +106,7 @@
       <mesh id="sphere-mesh0" shader="regen.meshes.mesh" />
     </node>
     
-    <node id="sphere1" shadow-maps="*" >
+    <node id="sphere1" >
       <transform shape="sphere"
 		 radius="0.75"
 		 mass="10.0"
@@ -167,12 +157,8 @@
   <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
 
-    <light-pass type="DIRECTIONAL"
-		shader="regen.shading.deferred.directional"
-		use-shadows="1"
-		shadow-filter="NONE"
-		shadow-layer="3">
-      <light id="earth-sky" shadow-map="sun-shadow" />
+    <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+      <light id="earth-sky" />
     </light-pass>
     
   </node>

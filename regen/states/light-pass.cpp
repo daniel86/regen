@@ -8,7 +8,7 @@
 #include <regen/states/state-configurer.h>
 #include <regen/meshes/cone.h>
 #include <regen/meshes/box.h>
-#include <regen/states/shadow-map.h>
+#include <regen/meshes/rectangle.h>
 
 #include "light-pass.h"
 using namespace regen;
@@ -29,45 +29,34 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
     joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
     break;
   }
-  shadowFiltering_ = ShadowMap::FILTERING_NONE;
+  shadowFiltering_ = SHADOW_FILTERING_NONE;
   numShadowLayer_ = 1;
 
   shader_ = ref_ptr<ShaderState>::alloc();
   joinStates(shader_);
+  setShadowFiltering(SHADOW_FILTERING_NONE);
 }
 
-void LightPass::setShadowFiltering(ShadowMap::FilterMode mode)
+static string shadowFilterMode(ShadowFilterMode f)
 {
-  GLboolean usedMoments = ShadowMap::useShadowMoments(shadowFiltering_);
+  switch(f) {
+  case SHADOW_FILTERING_NONE: return "Single";
+  case SHADOW_FILTERING_PCF_GAUSSIAN: return "Gaussian";
+  case SHADOW_FILTERING_VSM: return "VSM";
+  }
+  return "Single";
+}
 
+void LightPass::setShadowFiltering(ShadowFilterMode mode)
+{
   shadowFiltering_ = mode;
-  shaderDefine("USE_SHADOW_MAP", "TRUE");
-  shaderDefine("USE_SHADOW_SAMPLER", ShadowMap::useShadowSampler(mode) ? "TRUE" : "FALSE");
-  shaderDefine("SHADOW_MAP_FILTER", ShadowMap::shadowFilterMode(mode));
-
-  for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-  {
-    if(!it->sm.get()) continue;
-    if(usedMoments != ShadowMap::useShadowMoments(shadowFiltering_))
-      it->sm->setComputeMoments();
-    it->sm->updateSamplerType(shadowFiltering_, it->light->lightType());
-  }
-}
-
-void LightPass::setShadowLayer(GLuint numLayer)
-{
-  numShadowLayer_ = numLayer;
-  // change number of layers for added lights
-  for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
-  {
-    if(!it->sm.get()) continue;
-    it->sm->set_shadowLayer(numLayer);
-  }
+  shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
 }
 
 void LightPass::addLight(
     const ref_ptr<Light> &l,
-    const ref_ptr<ShadowMap> &sm,
+    const ref_ptr<LightCamera> &lightCamera,
+    const ref_ptr<Texture> &shadowTexture,
     const list< ref_ptr<ShaderInput> > &inputs)
 {
   LightPassLight light;
@@ -78,12 +67,20 @@ void LightPass::addLight(
   lightIterators_[l.get()] = it;
 
   it->light = l;
-  it->sm = sm;
+  it->camera = lightCamera;
+  it->shadow = shadowTexture;
   it->inputs = inputs;
-  if(sm.get()!=NULL) sm->updateSamplerType(shadowFiltering_, l->lightType());
+  if(shadowTexture.get()) {
+    Texture3D* tex3D = dynamic_cast<Texture3D*>(shadowTexture.get());
+    if(tex3D==NULL) {
+      numShadowLayer_ = 1;
+    }
+    else {
+      numShadowLayer_ = tex3D->depth();
+    }
+    shaderDefine("USE_SHADOW_MAP", "TRUE");
+  }
 
-  if(sm.get() && ShadowMap::useShadowMoments(shadowFiltering_))
-  { sm->setComputeMoments(); }
   if(shader_->shader().get())
   { addLightInput(*it); }
 }
@@ -126,11 +123,14 @@ void LightPass::addLightInput(LightPassLight &light)
   }
 
   // add shadow uniforms
-  if(light.sm.get()) {
-    addInputLocation(light,light.sm->shadowInverseSize(), "shadowInverseSize");
-    addInputLocation(light,light.sm->shadowFar(), "shadowFar");
-    addInputLocation(light,light.sm->shadowNear(), "shadowNear");
-    addInputLocation(light,light.sm->shadowMat(), "shadowMatrix");
+  if(light.camera.get()) {
+    addInputLocation(light,light.camera->lightFar(), "lightFar");
+    addInputLocation(light,light.camera->lightNear(), "lightNear");
+    addInputLocation(light,light.camera->lightMatrix(), "lightMatrix");
+  }
+  if(light.shadow.get()) {
+    addInputLocation(light,light.shadow->sizeInverse(), "shadowInverseSize");
+    addInputLocation(light,light.shadow->size(), "shadowSize");
   }
 
   // add light uniforms
@@ -182,16 +182,8 @@ void LightPass::enable(RenderState *rs)
     ref_ptr<Texture> shadowTex;
 
     // activate shadow map if specified
-    if(l.sm.get()) {
-      switch(shadowFiltering_) {
-      case ShadowMap::FILTERING_VSM:
-        shadowTex = l.sm->shadowMoments();
-        break;
-      default:
-        shadowTex = l.sm->shadowDepth();
-        break;
-      }
-      shadowTex->begin(rs,smChannel);
+    if(l.shadow.get()) {
+      l.shadow->begin(rs,smChannel);
       glUniform1i(shadowMapLoc_, smChannel);
     }
     // enable light pass uniforms
@@ -207,8 +199,8 @@ void LightPass::enable(RenderState *rs)
     mesh_->enable(rs);
     mesh_->disable(rs);
 
-    if(shadowTex.get())
-    { shadowTex->end(rs,smChannel); }
+    if(l.shadow.get())
+    { l.shadow->end(rs,smChannel); }
   }
 
   rs->releaseTextureChannel();

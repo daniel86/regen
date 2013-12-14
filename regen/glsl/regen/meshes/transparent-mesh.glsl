@@ -10,6 +10,8 @@
 #include regen.meshes.mesh.tcs
 -- tes
 #include regen.meshes.mesh.tes
+-- gs
+#include regen.meshes.mesh.gs
 -- fs
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.meshes.mesh.defines

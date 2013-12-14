@@ -21,6 +21,16 @@ DirectShading::DirectShading() : State(), idCounter_(0)
   joinShaderInput(ambientLight_);
 }
 
+static string shadowFilterMode(ShadowFilterMode f)
+{
+  switch(f) {
+  case SHADOW_FILTERING_NONE: return "Single";
+  case SHADOW_FILTERING_PCF_GAUSSIAN: return "Gaussian";
+  case SHADOW_FILTERING_VSM: return "VSM";
+  }
+  return "Single";
+}
+
 void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
 {
   shaderDefine(
@@ -42,18 +52,12 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
   shaderDefine(__NAME__("LIGHT_TYPE",l.id_), lightType);
 
   // handle shadow map defined
-  if(l.sm_.get()) {
+  if(l.shadow_.get()) {
     shaderDefine(__NAME__("USE_SHADOW_MAP",l.id_), "TRUE");
-    shaderDefine(__NAME__("SHADOW_MAP_FILTER",l.id_),
-        ShadowMap::shadowFilterMode(l.shadowFilter_));
-    shaderDefine(__NAME__("USE_SHADOW_SAMPLER",l.id_),
-        ShadowMap::useShadowSampler(l.shadowFilter_) ? "TRUE" : "FALSE");
-    l.sm_->updateSamplerType(l.shadowFilter_, l.light_->lightType());
+    shaderDefine(__NAME__("SHADOW_MAP_FILTER",l.id_), shadowFilterMode(l.shadowFilter_));
 
-    const ref_ptr<Texture> &shadowMap = (
-        ShadowMap::useShadowMoments(l.shadowFilter_) ? l.sm_->shadowMoments() : l.sm_->shadowDepth());
-    if(dynamic_cast<Texture3D*>(shadowMap.get())) {
-      Texture3D *tex3d = dynamic_cast<Texture3D*>(shadowMap.get());
+    if(dynamic_cast<Texture3D*>(l.shadow_.get())) {
+      Texture3D *tex3d = dynamic_cast<Texture3D*>(l.shadow_.get());
       shaderDefine(__NAME__("NUM_SHADOW_LAYER",l.id_), REGEN_STRING(tex3d->depth()));
     }
   }
@@ -62,14 +66,16 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
   }
 }
 
-void DirectShading::addLight(const ref_ptr<Light> &l)
+void DirectShading::addLight(const ref_ptr<Light> &light)
 {
-  addLight(l, ref_ptr<ShadowMap>(), ShadowMap::FILTERING_NONE);
+  addLight(light, ref_ptr<LightCamera>(),
+      ref_ptr<Texture>(), SHADOW_FILTERING_NONE);
 }
 void DirectShading::addLight(
-    const ref_ptr<Light> &l,
-    const ref_ptr<ShadowMap> &sm,
-    ShadowMap::FilterMode shadowFilter)
+    const ref_ptr<Light> &light,
+    const ref_ptr<LightCamera> &camera,
+    const ref_ptr<Texture> &shadow,
+    ShadowFilterMode shadowFilter)
 {
   GLuint lightID = ++idCounter_;
   GLuint lightIndex = lights_.size();
@@ -77,8 +83,9 @@ void DirectShading::addLight(
   {
     DirectLight dl;
     dl.id_ = lightID;
-    dl.light_ = l;
-    dl.sm_ = sm;
+    dl.light_ = light;
+    dl.camera_ = camera;
+    dl.shadow_ = shadow;
     dl.shadowFilter_ = shadowFilter;
     lights_.push_back(dl);
   }
@@ -89,19 +96,21 @@ void DirectShading::addLight(
 
   // join light shader inputs using a name override
   {
-    const ShaderInputList &in = l->inputContainer()->inputs();
+    const ShaderInputList &in = light->inputContainer()->inputs();
     for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
     { joinShaderInput(it->in_, __NAME__(it->in_->name(), lightID)); }
   }
-  if(sm.get()) {
-    const ShaderInputList &in = sm->inputContainer()->inputs();
-    for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
-    { joinShaderInput(it->in_, __NAME__(it->in_->name(), lightID)); }
-    // we have to explicitly join the shadow map
-    const ref_ptr<Texture> &shadowMap = (ShadowMap::useShadowMoments(shadowFilter) ?
-        sm->shadowMoments() : sm->shadowDepth());
+
+  if(camera.get()) {
+    joinShaderInput(camera->lightFar(), __NAME__("lightFar", lightID));
+    joinShaderInput(camera->lightNear(), __NAME__("lightNear", lightID));
+    joinShaderInput(camera->lightMatrix(), __NAME__("lightMatrix", lightID));
+  }
+  if(shadow.get()) {
+    joinShaderInput(shadow->sizeInverse(), __NAME__("shadowInverseSize", lightID));
+    joinShaderInput(shadow->size(), __NAME__("shadowSize", lightID));
     directLight.shadowMap_ =
-        ref_ptr<TextureState>::alloc(shadowMap, __NAME__("shadowTexture",lightID));
+        ref_ptr<TextureState>::alloc(shadow, __NAME__("shadowTexture",lightID));
     joinStates(directLight.shadowMap_);
   }
 }
@@ -124,10 +133,14 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
     for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
     { disjoinShaderInput(it->in_); }
   }
-  if(directLight.sm_.get()) {
-    const ShaderInputList &in = directLight.sm_->inputContainer()->inputs();
-    for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
-    { disjoinShaderInput(it->in_); }
+  if(directLight.camera_.get()) {
+    disjoinShaderInput(directLight.camera_->lightFar());
+    disjoinShaderInput(directLight.camera_->lightNear());
+    disjoinShaderInput(directLight.camera_->lightMatrix());
+  }
+  if(directLight.shadow_.get()) {
+    disjoinShaderInput(directLight.shadow_->sizeInverse());
+    disjoinShaderInput(directLight.shadow_->size());
     disjoinStates(directLight.shadowMap_);
   }
   lights_.erase(it);
