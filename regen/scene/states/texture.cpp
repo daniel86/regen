@@ -18,21 +18,24 @@ TextureStateProvider::TextureStateProvider()
 {}
 
 ref_ptr<Texture> TextureStateProvider::getTexture(
-    SceneParser *parser, SceneInputNode &input)
+    SceneParser *parser, SceneInputNode &input,
+    const string &idKey,
+    const string &bufferKey,
+    const string &attachmentKey)
 {
   ref_ptr<Texture> tex;
   // Find the texture resource
-  if(input.hasAttribute("id")) {
-    tex = parser->getResources()->getTexture(parser,input.getValue("id"));
+  if(input.hasAttribute(idKey)) {
+    tex = parser->getResources()->getTexture(parser,input.getValue(idKey));
   }
-  else if(input.hasAttribute("fbo")) {
-    ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser,input.getValue("fbo"));
+  else if(input.hasAttribute(bufferKey)) {
+    ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser,input.getValue(bufferKey));
     if(fbo.get()==NULL) {
-      REGEN_WARN("Unable to find FBO '" << input.getValue("fbo") <<
+      REGEN_WARN("Unable to find FBO '" << input.getValue(bufferKey) <<
           "' for " << input.getDescription() << ".");
       return tex;
     }
-    const string val = input.getValue<string>("attachment", "0");
+    const string val = input.getValue<string>(attachmentKey, "0");
     if(val == "depth") {
       tex = fbo->depthTexture();
     }
