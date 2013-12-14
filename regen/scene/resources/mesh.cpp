@@ -25,6 +25,10 @@ using namespace regen;
 static void processMeshChildren(
     SceneParser *parser, SceneInputNode &input, MeshVector &x)
 {
+  ref_ptr<State> state;
+  if(x.size()>1) state=ref_ptr<State>::alloc();
+  else state = x[0];
+
   const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
   for(list< ref_ptr<SceneInputNode> >::const_iterator
       it=childs.begin(); it!=childs.end(); ++it)
@@ -36,11 +40,13 @@ static void processMeshChildren(
       REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
       continue;
     }
+    processor->processInput(parser,*child,state);
+  }
 
-    for(MeshVector::iterator jt=x.begin(); jt!=x.end(); ++jt)
-    {
+  if(x.size()>1) {
+    for(MeshVector::iterator jt=x.begin(); jt!=x.end(); ++jt) {
       ref_ptr<Mesh> mesh = *jt;
-      processor->processInput(parser,*child,mesh);
+      mesh->joinStates(state);
     }
   }
 }
