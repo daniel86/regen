@@ -87,8 +87,6 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
 
   isHidden_ = GL_FALSE;
 
-  REGEN_INFO("Shader '" << shaderKey << "' compiled.");
-
   return GL_TRUE;
 }
 
