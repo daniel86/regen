@@ -23,7 +23,7 @@ namespace regen {
   class Camera : public HasInputState
   {
   public:
-    Camera();
+    Camera(GLboolean initializeMatrices=GL_TRUE);
 
     /**
      * @return the camera position.
