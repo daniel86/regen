@@ -18,10 +18,16 @@ SceneInputXML::SceneInputXML(const string &xmlFile)
           istreambuf_iterator<char>(xmlInput_)),
           istreambuf_iterator<char>());
   buffer_.push_back('\0');
-  doc_.parse<0>( &buffer_[0] );
-
-  SceneInputNodeXML *nullParent = NULL;
-  rootNode_ = ref_ptr<SceneInputNodeXML>::alloc(nullParent,&doc_);
+  try {
+    doc_.parse<0>( &buffer_[0] );
+    SceneInputNodeXML *nullParent = NULL;
+    rootNode_ = ref_ptr<SceneInputNodeXML>::alloc(nullParent,&doc_);
+  }
+  catch(rapidxml::parse_error &exc) {
+    REGEN_ERROR("Failed to parse XML document.");
+    REGEN_ERROR(exc.what());
+    rootNode_ = ref_ptr<SceneInputNodeXML>::alloc();
+  }
 }
 
 ref_ptr<SceneInputNode> SceneInputXML::getRoot()
@@ -29,6 +35,14 @@ ref_ptr<SceneInputNode> SceneInputXML::getRoot()
 
 ////////////////////
 ////////////////////
+
+SceneInputNodeXML::SceneInputNodeXML()
+: SceneInputNode(NULL),
+  xmlNode_(NULL)
+{
+  category_ = "";
+  name_ = "";
+}
 
 SceneInputNodeXML::SceneInputNodeXML(
     SceneInputNodeXML *parent,
@@ -53,7 +67,7 @@ string SceneInputNodeXML::getName()
 
 const list< ref_ptr<SceneInputNode> >& SceneInputNodeXML::getChildren()
 {
-  if(children_.empty()) {
+  if(!xmlNode_ && children_.empty()) {
     for(rapidxml::xml_node<> *n=xmlNode_->first_node(); n!=NULL; n= n->next_sibling())
     {
       children_.push_back(ref_ptr<SceneInputNodeXML>::alloc(this,n));
@@ -64,7 +78,7 @@ const list< ref_ptr<SceneInputNode> >& SceneInputNodeXML::getChildren()
 
 const map<string,string>& SceneInputNodeXML::getAttributes()
 {
-  if(attributes_.empty()) {
+  if(!xmlNode_ && attributes_.empty()) {
     for(rapidxml::xml_attribute<> *a=xmlNode_->first_attribute(); a!=NULL; a= a->next_attribute())
     {
       attributes_[a->name()] = a->value();

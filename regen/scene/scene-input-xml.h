@@ -53,6 +53,7 @@ namespace scene {
     SceneInputNodeXML(
         SceneInputNodeXML *parent,
         rapidxml::xml_node<> *xmlNode);
+    SceneInputNodeXML();
 
     // Override
     string getCategory();
