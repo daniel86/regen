@@ -8,6 +8,8 @@
 #include "gl-object.h"
 using namespace regen;
 
+#include <regen/gl-types/shader-input.h>
+
 GLObject::GLObject(
     CreateObjectFunc createObjects,
     ReleaseObjectFunc releaseObjects,
@@ -58,17 +60,26 @@ GLRectangle::GLRectangle(
     CreateObjectFunc createObjects,
     ReleaseObjectFunc releaseObjects,
     GLuint numObjects)
-: GLObject(createObjects, releaseObjects, numObjects),
-  width_(2), height_(2)
+: GLObject(createObjects, releaseObjects, numObjects)
 {
+  size_ = ref_ptr<ShaderInput2f>::alloc("rectangleSize");
+  sizeInverse_ = ref_ptr<ShaderInput2f>::alloc("rectangleSizeInverse");
+  size_->setUniformDataUntyped(NULL);
+  sizeInverse_->setUniformDataUntyped(NULL);
+  set_rectangleSize(2,2);
 }
 void GLRectangle::set_rectangleSize(GLuint width, GLuint height)
 {
-  width_ = width;
-  height_ = height;
+  size_->setVertex(0, Vec2f(width,height));
+  sizeInverse_->setVertex(0, Vec2f(1.0/width,1.0/height));
 }
 
+const ref_ptr<ShaderInput2f>& GLRectangle::sizeInverse() const
+{ return sizeInverse_; }
+const ref_ptr<ShaderInput2f>& GLRectangle::size() const
+{ return size_; }
+
 GLuint GLRectangle::width() const
-{ return width_; }
+{ return size_->getVertex(0).x; }
 GLuint GLRectangle::height() const
-{ return height_; }
+{ return size_->getVertex(0).y; }

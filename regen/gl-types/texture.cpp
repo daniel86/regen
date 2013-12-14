@@ -132,11 +132,6 @@ void Texture::set_format(GLenum format)
 GLenum Texture::format() const
 { return format_; }
 
-GLfloat Texture::texelSizeX() const
-{ return 1.0f / ((float)width_); }
-GLfloat Texture::texelSizeY() const
-{ return 1.0f / ((float)height_); }
-
 void Texture::set_data(GLvoid *data)
 { data_ = data; }
 GLvoid* Texture::data() const
@@ -200,7 +195,7 @@ void Texture1D::texImage() const
       texBind_.target_,
       0, // mipmap level
       internalFormat_,
-      width_,
+      width(),
       border_,
       format_,
       pixelType_,
@@ -219,8 +214,8 @@ void Texture2D::texImage() const
   glTexImage2D(texBind_.target_,
                0, // mipmap level
                internalFormat_,
-               width_,
-               height_,
+               width(),
+               height(),
                border_,
                format_,
                pixelType_,
@@ -258,8 +253,8 @@ void Texture2DMultisample::texImage() const
   glTexImage2DMultisample(texBind_.target_,
       numSamples(),
       internalFormat_,
-      width_,
-      height_,
+      width(),
+      height(),
       fixedsamplelocations_);
 }
 
@@ -277,8 +272,8 @@ void Texture2DMultisampleDepth::texImage() const
   glTexImage2DMultisample(texBind_.target_,
       numSamples(),
       internalFormat_,
-      width_,
-      height_,
+      width(),
+      height(),
       fixedsamplelocations_);
 }
 
@@ -312,8 +307,8 @@ void TextureCube::cubeTexImage(CubeSide side) const {
   glTexImage2D(glenum::cubeMapLayer(side),
                0, // mipmap level
                internalFormat_,
-               width_,
-               height_,
+               width(),
+               height(),
                border_,
                format_,
                pixelType_,
@@ -346,8 +341,8 @@ void Texture3D::texImage() const {
   glTexImage3D(texBind_.target_,
       0, // mipmap level
       internalFormat_,
-      width_,
-      height_,
+      width(),
+      height(),
       numTextures_,
       border_,
       format_,
@@ -359,8 +354,8 @@ void Texture3D::texSubImage(GLint layer, GLubyte *subData) const {
       texBind_.target_,
       0, 0, 0, // offset
       layer,
-      width_,
-      height_,
+      width(),
+      height(),
       1,
       format_,
       pixelType_,
