@@ -120,6 +120,9 @@ void TextureStateProvider::processInput(
     texState->set_texcoTransfer(input.getValue<TextureState::TransferTexco>(
         "texco-transfer", TextureState::TRANSFER_TEXCO_RELIEF));
   }
+  if(input.hasAttribute("sampler-type")) {
+    texState->set_samplerType(input.getValue("sampler-type"));
+  }
   const string texcoTransferName = input.getValue("texco-transfer-name");
   if(input.hasAttribute("texco-transfer-key")) {
     texState->set_texcoTransferKey(
