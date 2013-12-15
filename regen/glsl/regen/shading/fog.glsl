@@ -40,7 +40,7 @@ const vec3 in_fogColor = vec3(1.0);
 const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
 
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 #include regen.shading.fog.fogIntensity
 #include regen.utility.utility.texcoToWorldSpace
 
@@ -125,7 +125,7 @@ const float in_shadowSampleStep = 0.025;
 const float in_shadowSampleThreshold = 0.075;
 #endif // USE_SHADOW_MAP
 // camera input
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 // fog input
 uniform float in_fogExposure;
 uniform vec2 in_fogRadiusScale;

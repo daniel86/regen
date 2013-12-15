@@ -20,7 +20,7 @@ uniform sampler2D in_heightTexture;
 uniform sampler2D in_normalTexture;
 uniform sampler2D in_foamTexture;
 // camera input
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 uniform mat4 in_reflectionMatrix;
 
 const float in_heightTextureSize = 256.0;

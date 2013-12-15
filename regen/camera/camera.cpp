@@ -16,6 +16,10 @@ Camera::Camera(GLboolean initializeMatrices)
   fov_->setUniformDataUntyped(NULL);
   setInput(fov_);
 
+  aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
+  aspect_->setUniformDataUntyped(NULL);
+  setInput(aspect_);
+
   near_ = ref_ptr<ShaderInput1f>::alloc("near");
   near_->setUniformDataUntyped(NULL);
   setInput(near_);
@@ -24,9 +28,6 @@ Camera::Camera(GLboolean initializeMatrices)
   far_->setUniformDataUntyped(NULL);
   setInput(far_);
 
-  aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
-  aspect_->setUniformDataUntyped(NULL);
-  setInput(aspect_);
   updateFrustum(8.0/6.0, 45.0, 1.0, 200.0, GL_FALSE);
 
   position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");

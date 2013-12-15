@@ -9,53 +9,6 @@ uniform float in_matRefractionIndex;
 uniform float in_matAlpha;
 #endif
 
--- camera
-// TODO: better place, shading uses this too
-#if RENDER_TARGET == CUBE
-uniform mat4 in_viewMatrix[6];
-uniform mat4 in_inverseViewMatrix[6];
-uniform mat4 in_projectionMatrix;
-uniform mat4 in_inverseProjectionMatrix;
-uniform mat4 in_viewProjectionMatrix[6];
-uniform mat4 in_inverseViewProjectionMatrix[6];
-#if SHADER_STAGE == fs
-#define __VIEW__          in_viewMatrix[in_layer]
-#define __VIEW_INV__      in_inverseViewMatrix[in_layer]
-#define __PROJ__          in_projectionMatrix
-#define __PROJ_INV__      in_inverseProjectionMatrix
-#define __VIEW_PROJ__     in_viewProjectionMatrix[in_layer]
-#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
-#endif
-#elif RENDER_TARGET == 2D_ARRAY
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix[${RENDER_LAYER}];
-uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
-#if SHADER_STAGE == fs
-#define __VIEW__          in_viewMatrix
-#define __VIEW_INV__      in_inverseViewMatrix
-#define __PROJ__          in_projectionMatrix[in_layer]
-#define __PROJ_INV__      in_inverseProjectionMatrix[in_layer]
-#define __VIEW_PROJ__     in_viewProjectionMatrix[in_layer]
-#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
-#endif
-#else
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
-uniform mat4 in_viewProjectionMatrix;
-#if SHADER_STAGE == fs
-#define __VIEW__          in_viewMatrix
-#define __VIEW_INV__      in_inverseViewMatrix
-#define __PROJ__          in_projectionMatrix
-#define __PROJ_INV__      in_inverseProjectionMatrix
-#define __VIEW_PROJ__     in_viewProjectionMatrix
-#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix
-#endif
-#endif
-// TODO: layered, direction
-uniform vec3 in_cameraPosition;
-uniform vec3 in_cameraDirection;
-uniform vec2 in_viewport;
-
 -- defines
 #ifdef HAS_nor && HAS_tan
 #define HAS_TANGENT_SPACE
@@ -167,32 +120,6 @@ void toWorldSpace(vec3 pos, vec3 nor,
     norWorld = normalize(nor_ws.xyz);
 }
 
--- camera-transformation
-vec4 posEyeSpace(vec4 ws, mat4 view) {
-#ifdef IGNORE_VIEW_ROTATION
-    return vec4(view[3].xyz,0.0) + ws;
-#elif IGNORE_VIEW_TRANSLATION
-    return mat4(view[0], view[1], view[2], vec3(0.0), 1.0) * ws;
-#else
-    return view * ws;
-#endif
-}
-vec4 posEyeSpace(vec4 ws, int layer) {
-#if RENDER_TARGET == CUBE
-  return posEyeSpace(ws, in_viewMatrix[layer]);
-#else
-  return posEyeSpace(ws, in_viewMatrix);
-#endif
-}
-
-vec4 posScreenSpace(vec4 es, int layer) {
-#if RENDER_TARGET == 2D_ARRAY
-  return in_projectionMatrix[layer] * es;
-#else
-  return in_projectionMatrix * es;
-#endif
-}
-
 --------------------------------
 --------------------------------
 ----- Render mesh to GBuffer targets ignoring alpha component.
@@ -250,10 +177,11 @@ uniform int in_numBoneWeights;
 uniform mat4 in_modelMatrix;
 #endif
 
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 #include regen.meshes.mesh.model-transformation
 #ifdef VS_CAMERA_TRANSFORM
-#include regen.meshes.mesh.camera-transformation
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 #endif
 #include regen.utility.textures.input
 #include regen.utility.textures.mapToVertex
@@ -284,8 +212,8 @@ void main() {
 #endif // HAS_TESSELATION
 
 #ifdef VS_CAMERA_TRANSFORM
-    vec4 posEye  = posEyeSpace(posWorld,0);
-    gl_Position  = posScreenSpace(posEye,0);
+    vec4 posEye  = transformWorldToEye(posWorld,0);
+    gl_Position  = transformEyeToScreen(posEye,0);
     out_posWorld = posWorld.xyz;
     out_posEye   = posEye.xyz;
 #else
@@ -309,7 +237,7 @@ layout(vertices=TESS_NUM_VERTICES) out;
 #define ID gl_InvocationID
 
 uniform vec2 in_viewport;
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 #include regen.utility.tesselation.tcs
 
 #define HANDLE_IO(i)
@@ -356,11 +284,12 @@ in vec3 in_norWorld[ ];
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 
 #include regen.utility.textures.input
 #include regen.utility.tesselation.interpolate
-#include regen.meshes.mesh.camera-transformation
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 #include regen.utility.textures.mapToVertex
 
 #define HANDLE_IO(i)
@@ -376,8 +305,8 @@ void main() {
   #endif
   
 #ifdef TES_CAMERA_TRANSFORM
-    vec4 posEye = posEyeSpace(posWorld,0);
-    gl_Position = posScreenSpace(posEye,0);
+    vec4 posEye = transformWorldToEye(posWorld,0);
+    gl_Position = transformEyeToScreen(posEye,0);
     out_posWorld = posWorld.xyz;
     out_posEye = posEye.xyz;
 #endif
@@ -405,17 +334,18 @@ layout(triangle_strip, max_vertices=9) out;
 #endif
 
 #include regen.meshes.mesh.defines
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
 
 #define HANDLE_IO(i)
 
-#include regen.meshes.mesh.camera-transformation
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int index) {
-  vec4 posEye = posEyeSpace(posWorld, view);
+  vec4 posEye = transformWorldToEye(posWorld, view);
   out_posWorld = posWorld.xyz;
   out_posEye = posEye.xyz;
   gl_Position = proj * posEye;

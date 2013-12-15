@@ -22,12 +22,13 @@ void main() {
     HANDLE_IO(gl_VertexID);
 }
 #else
-#include regen.meshes.mesh.camera
-#include regen.meshes.mesh.camera-transformation
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 void main() {
     vec4 posWorld = vec4(in_pos.xyz*in_far*0.99,1.0);
-    vec4 posScreen = posScreenSpace(posEyeSpace(posWorld,0),0);
+    vec4 posScreen = transformEyeToScreen(transformWorldToEye(posWorld,0),0);
     // push to far plane. needs less or equal check
     posScreen.z = posScreen.w;
     gl_Position = posScreen;
@@ -44,8 +45,9 @@ layout(triangles) in;
 // TODO: use ${RENDER_LAYER}*3
 layout(triangle_strip, max_vertices=18) out;
 
-#include regen.meshes.mesh.camera
-#include regen.meshes.mesh.camera-transformation
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -53,7 +55,7 @@ out vec3 out_posEye;
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int index) {
-  vec4 posEye = posEyeSpace(posWorld, view);
+  vec4 posEye = transformWorldToEye(posWorld, view);
   out_posWorld = posWorld.xyz;
   out_posEye = posEye.xyz;
   gl_Position = proj * posEye;
