@@ -119,6 +119,15 @@ namespace regen {
     const string& name() const;
 
     /**
+     * @param name the name of this texture in shader programs.
+     */
+    void set_samplerType(const string &samplerType);
+    /**
+     * @return the name of this texture in shader programs.
+     */
+    const string& samplerType() const;
+
+    /**
      * @param channel  the texture coordinate channel.
      */
     void set_texcoChannel(GLuint channel);
@@ -215,6 +224,7 @@ namespace regen {
 
     ref_ptr<Texture> texture_;
     string name_;
+    string samplerType_;
 
     BlendMode blendMode_;
     GLfloat blendFactor_;
