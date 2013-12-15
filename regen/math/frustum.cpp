@@ -1,93 +1,72 @@
 /*
  * frustum.cpp
  *
- *  Created on: 26.01.2011
+ *  Created on: Dec 15, 2013
  *      Author: daniel
  */
-
-#include <math.h>
-#include <stdlib.h>
-#include <stdexcept>
-#include <iostream>
 
 #include "frustum.h"
 using namespace regen;
 
-Frustum::Frustum()
+void Frustum::set(GLfloat _aspect, GLfloat _fov, GLfloat _near, GLfloat _far)
 {
-  fov_ = ref_ptr<ShaderInput1f>::alloc("fov");
-  fov_->setUniformData(45.0);
-  near_ = ref_ptr<ShaderInput1f>::alloc("near");
-  near_->setUniformData(1.0f);
-  far_ = ref_ptr<ShaderInput1f>::alloc("far");
-  far_->setUniformData(200.0f);
-  aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
-  aspect_->setUniformData(8.0/6.0);
-}
-
-void Frustum::setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far)
-{
-  if(near>far) throw range_error("near>far");
-  near_->setVertex(0,near);
-  far_->setVertex(0,far);
-  fov_->setVertex(0,fov);
-  aspect_->setVertex(0,aspect);
-
+  fov = _fov;
+  aspect  = _aspect;
+  near = _near;
+  far  = _far;
   // +0.2 is important because we might get artifacts at
   // the screen borders.
-  GLdouble fovR = fov/57.2957795 + 0.2;
-
-  nearPlaneHeight_ = tan( fovR * 0.5) * near;
-  nearPlaneWidth_  = nearPlaneHeight_ * aspect;
-
-  farPlaneHeight_ = tan( fovR * 0.5) * far;
-  farPlaneWidth_  = farPlaneHeight_ * aspect;
+  GLdouble fovR = _fov/57.2957795 + 0.2;
+  nearPlane.y = tan( fovR * 0.5) * near;
+  nearPlane.x = nearPlane.y * aspect;
+  farPlane.y  = tan( fovR * 0.5) * far;
+  farPlane.x  = farPlane.y * aspect;
 }
 
-void Frustum::computePoints(const Vec3f &center, const Vec3f &viewDir)
+void Frustum::update(const Vec3f &pos, const Vec3f &dir)
 {
-  Vec3f right = viewDir.cross( Vec3f::up() );
-  Vec3f fc = center + viewDir*far_->getVertex(0);
-  Vec3f nc = center + viewDir*near_->getVertex(0);
+  Vec3f right = dir.cross( Vec3f::up() );
+  Vec3f fc = pos + dir*far;
+  Vec3f nc = pos + dir*near;
   Vec3f rw, uh, u, buf1, buf2;
 
   right.normalize();
   // up vector must be orthogonal to right/view
-  u = right.cross(viewDir);
+  u = right.cross(dir);
   u.normalize();
 
-  rw = right*nearPlaneWidth_;
-  uh = u*nearPlaneHeight_;
+  rw = right*nearPlane.x;
+  uh = u*nearPlane.y;
   buf1 = uh - rw;
   buf2 = uh + rw;
-  points_[0] = nc - buf1;
-  points_[1] = nc + buf1;
-  points_[2] = nc + buf2;
-  points_[3] = nc - buf2;
+  points[0] = nc - buf1;
+  points[1] = nc + buf1;
+  points[2] = nc + buf2;
+  points[3] = nc - buf2;
 
-  rw = right*farPlaneWidth_;
-  uh = u*farPlaneHeight_;
+  rw = right*farPlane.x;
+  uh = u*farPlane.y;
   buf1 = uh - rw;
   buf2 = uh + rw;
-  points_[4] = fc - buf1;
-  points_[5] = fc + buf1;
-  points_[6] = fc + buf2;
-  points_[7] = fc - buf2;
+  points[4] = fc - buf1;
+  points[5] = fc + buf1;
+  points[6] = fc + buf2;
+  points[7] = fc - buf2;
 }
 
-vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
+vector<Frustum*> Frustum::split(GLuint count, GLdouble splitWeight) const
 {
-  const GLfloat &n = near_->getVertex(0);
-  const GLfloat &f = far_->getVertex(0);
+  const GLfloat &n = near;
+  const GLfloat &f = far;
 
-  vector<Frustum*> frustas(nFrustas);
+  vector<Frustum*> frustas(count);
   GLdouble ratio = f/n;
   GLdouble si, lastn, currf, currn;
 
   lastn = n;
-  for(GLuint i=1; i<nFrustas; ++i)
+  for(GLuint i=1; i<count; ++i)
   {
-    si = i / (GLdouble)nFrustas;
+    si = i / (GLdouble)count;
 
     // C_i = \lambda * C_i^{log} + (1-\lambda) * C_i^{uni}
     currn = splitWeight*(n*( pow( ratio , si ))) +
@@ -95,24 +74,14 @@ vector<Frustum*> Frustum::split(GLuint nFrustas, GLdouble splitWeight) const
     currf = currn * 1.005;
 
     frustas[i-1] = new Frustum;
-    frustas[i-1]->setProjection(fov_->getVertex(0), aspect_->getVertex(0), lastn, currf);
+    frustas[i-1]->set(fov, aspect, lastn, currf);
 
     lastn = currn;
   }
-  frustas[nFrustas-1] = new Frustum;
-  frustas[nFrustas-1]->setProjection(fov_->getVertex(0), aspect_->getVertex(0), lastn, f);
+  frustas[count-1] = new Frustum;
+  frustas[count-1]->set(fov, aspect, lastn, f);
 
   return frustas;
 }
 
-const ref_ptr<ShaderInput1f>& Frustum::fov() const
-{ return fov_; }
-const ref_ptr<ShaderInput1f>& Frustum::near() const
-{ return near_; }
-const ref_ptr<ShaderInput1f>& Frustum::far() const
-{ return far_; }
-const ref_ptr<ShaderInput1f>& Frustum::aspect() const
-{ return aspect_; }
 
-const Vec3f* Frustum::points() const
-{ return points_; }

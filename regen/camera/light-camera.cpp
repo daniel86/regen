@@ -41,9 +41,12 @@ LightCamera::LightCamera(
   userCamera_(userCamera),
   splitWeight_(splitWeight)
 {
+  updateFrustum(90.0,1.0,extends.x,extends.y,GL_FALSE);
+  lightMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightMatrix");
+
+  // TODO use camera far/near...
   lightFar_ = ref_ptr<ShaderInput1f>::alloc("lightFar");
   lightNear_ = ref_ptr<ShaderInput1f>::alloc("lightNear");
-  lightMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightMatrix");
 
   switch(light_->lightType()) {
   case Light::DIRECTIONAL:
@@ -92,16 +95,11 @@ LightCamera::LightCamera(
   lightFar_->setUniformDataUntyped(NULL);
   lightMatrix_->setUniformDataUntyped(NULL);
 
+  // TODO use camera far...
   lightNear_->setVertex(0, extends.x);
   lightFar_->setVertex(0, extends.y);
   setInput(lightFar_);
   setInput(lightMatrix_);
-
-  // XXX: camera baseclass has a frustum, conflicts with light far
-  frustum_->fov()->setVertex(0,90.0);
-  frustum_->aspect()->setVertex(0,1.0);
-  frustum_->near()->setVertex(0,extends.x);
-  frustum_->far()->setVertex(0,extends.y);
 
   lightPosStamp_ = 0;
   lightDirStamp_ = 0;
@@ -138,7 +136,7 @@ void LightCamera::updateDirectional()
     for(vector<Frustum*>::iterator
         it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it)
     { delete *it; }
-    shadowFrusta_ = userCamera_->frustum()->split(numLayer_, splitWeight_);
+    shadowFrusta_ = userCamera_->frustum().split(numLayer_, splitWeight_);
     // update near/far values
     GLfloat *farValues = (GLfloat*)lightFar_->clientDataPtr();
     GLfloat *nearValues = (GLfloat*)lightNear_->clientDataPtr();
@@ -147,13 +145,11 @@ void LightCamera::updateDirectional()
     for(GLuint i=0; i<numLayer_; ++i)
     {
       Frustum *frustum = shadowFrusta_[i];
-      const GLfloat &n = frustum->near()->getVertex(0);
-      const GLfloat &f = frustum->far()->getVertex(0);
       // frustum_->far() is originally in eye space - tell's us how far we can see.
       // Here we compute it in camera homogeneous coordinates. Basically, we calculate
       // proj * (0, 0, far, 1)^t and then normalize to [0; 1]
-      farValues[i]  = 0.5*(-f  * proj(2,2) + proj(3,2)) / f + 0.5;
-      nearValues[i] = 0.5*(-n * proj(2,2) + proj(3,2)) / n + 0.5;
+      farValues[i]  = 0.5*(-frustum->far  * proj(2,2) + proj(3,2)) / frustum->far + 0.5;
+      nearValues[i] = 0.5*(-frustum->near * proj(2,2) + proj(3,2)) / frustum->near + 0.5;
     }
     projectionStamp_ = userCamera_->projection()->stamp();
   }
@@ -182,14 +178,13 @@ void LightCamera::updateDirectional()
   {
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
-    frustum->computePoints(
+    frustum->update(
         userCamera_->position()->getVertex(0),
         userCamera_->direction()->getVertex(0));
-    const Vec3f *frustumPoints = frustum->points();
 
     // get the projection matrix with the new z-bounds
     // note the inversion because the light looks at the neg. z axis
-    Vec2f zRange = findZRange(view_->getVertex(0), frustumPoints);
+    Vec2f zRange = findZRange(view_->getVertex(0), frustum->points);
 
     proj_->setVertex(i, Mat4f::orthogonalMatrix(
         -1.0, 1.0, -1.0, 1.0, -zRange.y, -zRange.x));
@@ -199,7 +194,7 @@ void LightCamera::updateDirectional()
     Mat4f mvpMatrix = (view_->getVertex(0) * proj_->getVertex(i)).transpose();
     for(register GLuint j=0; j<8; ++j)
     {
-        Vec4f transf = mvpMatrix * frustumPoints[j];
+        Vec4f transf = mvpMatrix * frustum->points[j];
         transf.x /= transf.w;
         transf.y /= transf.w;
         if (transf.x > xRange.y) { xRange.y = transf.x; }

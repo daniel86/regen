@@ -1,91 +1,42 @@
 /*
  * frustum.h
  *
- *  Created on: 03.02.2011
+ *  Created on: Dec 15, 2013
  *      Author: daniel
  */
 
-#ifndef _FRUSTUM_H_
-#define _FRUSTUM_H_
+#ifndef FRUSTUM_H_
+#define FRUSTUM_H_
 
-#include <vector>
 using namespace std;
+#include <vector>
 
+#include <GL/glew.h>
 #include <regen/math/vector.h>
-#include <regen/gl-types/shader-input.h>
-
-// Defeat evil windows defines...
-#ifdef far
-#undef far
-#endif
-#ifdef near
-#undef near
-#endif
 
 namespace regen {
-  /**
-   * \brief A portion of a pyramid that lies between two parallel planes cutting it.
-   */
-  class Frustum {
-  public:
-    Frustum();
-    /**
-     * Update projection that defines near and far frustum plane.
-     * @param fov field of view.
-     * @param aspect the aspect ratio.
-     * @param near distance to near plane.
-     * @param far distance to far plane.
-     */
-    void setProjection(GLdouble fov, GLdouble aspect, GLdouble near, GLdouble far);
-    /**
-     * @return specifies the field of view angle, in degrees, in the y direction.
-     */
-    const ref_ptr<ShaderInput1f>& fov() const;
-    /**
-     * @return specifies the distance from the viewer to the near clipping plane (always positive).
-     */
-    const ref_ptr<ShaderInput1f>& near() const;
-    /**
-     * @return specifies the distance from the viewer to the far clipping plane (always positive).
-     */
-    const ref_ptr<ShaderInput1f>& far() const;
-    /**
-     * @return specifies the aspect ratio that determines the field of view in the x direction.
-     */
-    const ref_ptr<ShaderInput1f>& aspect() const;
+  struct Frustum {
+    GLdouble fov;
+    GLdouble aspect;
+    GLdouble near;
+    GLdouble far;
+    Vec2f nearPlane;
+    Vec2f farPlane;
+    Vec3f points[8];
 
     /**
-     * Computes the 8 points forming this Frustum.
-     * @param origin the frustum origin.
-     * @param dir the frustum direction.
+     * Set projection parameters and compute near- and far-plane.
      */
-    void computePoints(const Vec3f &origin, const Vec3f &dir);
+    void set(GLfloat aspect, GLfloat fov, GLfloat near, GLfloat far);
     /**
-     * @return the 8 points forming this Frustum.
+     * Update frustum points based on view point and direction.
      */
-    const Vec3f* points() const;
-
+    void update(const Vec3f &pos, const Vec3f &dir);
     /**
-     * Split this frustum using the Practical Split Scheme.
-     * @param n number of splits.
-     * @param weight the split weight.
-     * @return splitted frusta.
-     * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
+     * Split this frustum along the view ray.
      */
-    vector<Frustum*> split(GLuint n, GLdouble weight) const;
-
-  private:
-    ref_ptr<ShaderInput1f> fov_;
-    ref_ptr<ShaderInput1f> aspect_;
-    ref_ptr<ShaderInput1f> far_;
-    ref_ptr<ShaderInput1f> near_;
-    GLdouble nearPlaneHeight_;
-    GLdouble nearPlaneWidth_;
-    GLdouble farPlaneHeight_;
-    GLdouble farPlaneWidth_;
-
-    Vec3f points_[8];
+    vector<Frustum*> split(GLuint count, GLdouble splitWeight) const;
   };
 } // namespace
 
-#endif /* _FRUSTUM_H_ */
+#endif /* FRUSTUM_H_ */
