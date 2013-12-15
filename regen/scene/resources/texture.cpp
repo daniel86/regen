@@ -79,24 +79,24 @@ TextureResource::TextureResource()
 void TextureResource::configureTexture(
     ref_ptr<Texture> &tex, SceneInputNode &input)
 {
-  if(input.hasAttribute("sampler-type")) {
+  if(!input.getValue("sampler-type").empty()) {
     tex->set_samplerType(input.getValue("sampler-type"));
   }
   tex->begin(RenderState::get(), 0); {
-    if(input.hasAttribute("wrapping")) {
+    if(!input.getValue("wrapping").empty()) {
       tex->wrapping().push(glenum::wrappingMode(
           input.getValue<string>("wrapping","CLAMP_TO_EDGE")));
     }
-    if(input.hasAttribute("aniso")) {
+    if(!input.getValue("aniso").empty()) {
       tex->aniso().push(input.getValue<GLfloat>("aniso",2.0f));
     }
-    if(input.hasAttribute("lod")) {
+    if(!input.getValue("lod").empty()) {
       tex->lod().push(input.getValue<Vec2f>("lod",Vec2f(1.0f)));
     }
-    if(input.hasAttribute("swizzle-r") ||
-       input.hasAttribute("swizzle-g") ||
-       input.hasAttribute("swizzle-b") ||
-       input.hasAttribute("swizzle-a")) {
+    if(!input.getValue("swizzle-r").empty() ||
+       !input.getValue("swizzle-g").empty() ||
+       !input.getValue("swizzle-b").empty() ||
+       !input.getValue("swizzle-a").empty()) {
       GLenum swizzleR = glenum::textureSwizzle(
           input.getValue<string>("swizzle-r","RED"));
       GLenum swizzleG = glenum::textureSwizzle(
@@ -107,23 +107,25 @@ void TextureResource::configureTexture(
           input.getValue<string>("swizzle-a","ALPHA"));
       tex->swizzle().push(Vec4i(swizzleR,swizzleG,swizzleB,swizzleA));
     }
-    if(input.hasAttribute("compare-mode")) {
+    if(!input.getValue("compare-mode").empty()) {
       GLenum function = glenum::compareFunction(
           input.getValue<string>("compare-function","LEQUAL"));
       GLenum mode = glenum::compareMode(
           input.getValue<string>("compare-mode","NONE"));
       tex->compare().push(TextureCompare(mode,function));
     }
-    if(input.hasAttribute("max-level")) {
+    if(!input.getValue("max-level").empty()) {
       tex->maxLevel().push(input.getValue<GLint>("max-level",1000));
     }
 
-    if(input.hasAttribute("min-filter") && input.hasAttribute("mag-filter")) {
+    if(!input.getValue("min-filter").empty() &&
+       !input.getValue("mag-filter").empty()) {
       GLenum min = glenum::filterMode(input.getValue("min-filter"));
       GLenum mag = glenum::filterMode(input.getValue("mag-filter"));
       tex->filter().push(TextureFilter(min,mag));
     }
-    else if(input.hasAttribute("min-filter") || input.hasAttribute("mag-filter")) {
+    else if(!input.getValue("min-filter").empty() ||
+            !input.getValue("mag-filter").empty()) {
       REGEN_WARN("Minifiacation and magnification filters must be specified both." <<
           " One missing for '" << input.getDescription() << "'.");
     }
@@ -265,11 +267,14 @@ ref_ptr<Texture> TextureResource::createResource(
     GLuint pixelComponents = input.getValue<GLuint>("pixel-components", 4);
     GLenum pixelType = glenum::pixelType(
         input.getValue<string>("pixel-type", "UNSIGNED_BYTE"));
+    GLenum textureTarget = glenum::textureTarget(
+        input.getValue<string>("target",  sizeAbs.z>1 ? "TEXTURE_3D" : "TEXTURE_2D"));
+
 
     tex = FBO::createTexture(
         sizeAbs.x,sizeAbs.y,sizeAbs.z,
         texCount,
-        sizeAbs.z>1 ? GL_TEXTURE_3D : GL_TEXTURE_2D,
+        textureTarget,
         glenum::textureFormat(pixelComponents),
         glenum::textureInternalFormat(pixelType,pixelComponents,pixelSize),
         pixelType);
