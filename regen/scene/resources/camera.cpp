@@ -120,6 +120,36 @@ ref_ptr<Camera> CameraResource::createResource(
 
     return cam;
   }
+  else if(input.hasAttribute("cube-mesh")) {
+    ref_ptr<Camera> userCamera =
+        parser->getResources()->getCamera(parser, input.getValue("camera"));
+    if(userCamera.get()==NULL) {
+      REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    ref_ptr<MeshVector> mesh =
+        parser->getResources()->getMesh(parser, input.getValue("cube-mesh"));
+    if(mesh.get()==NULL || mesh->empty()) {
+      REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc((*mesh.get())[0],userCamera);
+
+    // Hide cube shadow map faces.
+    if(input.hasAttribute("hide-faces")) {
+      const string val = input.getValue<string>("hide-faces","");
+      vector<string> faces;
+      boost::split(faces,val,boost::is_any_of(","));
+      for(vector<string>::iterator it=faces.begin();
+          it!=faces.end(); ++it) {
+        int faceIndex = atoi(it->c_str());
+        cam->set_isCubeFaceVisible(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, GL_FALSE);
+      }
+    }
+
+    return cam;
+  }
   else {
     ref_ptr<Camera> cam = ref_ptr<Camera>::alloc();
     cam->set_isAudioListener(
