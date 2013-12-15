@@ -1,7 +1,18 @@
 
+-- defines
+#ifndef RENDER_LAYER
+#define RENDER_LAYER 1
+#endif
+#endif
+#ifndef RENDER_TARGET
+#define RENDER_TARGET 2D
+#endif
+#include regen.shading.deferred.defines
+#include regen.meshes.mesh.camera
+
 -- vsHeader
 in vec3 in_pos;
-#ifdef IS_2D_TEXTURE
+#if RENDER_TARGET == 2D
 out vec2 out_texco;
 #endif
 
@@ -14,7 +25,7 @@ layout(triangle_strip, max_vertices=3) out;
 out vec3 out_texco;
 
 -- gsEmit
-#ifdef IS_CUBE_TEXTURE
+#if RENDER_TARGET == CUBE
 #include regen.utility.utility.computeCubeDirection
 void emitVertex(vec4 P, int layer)
 {
@@ -32,17 +43,18 @@ void emitVertex(vec4 P, int layer)
 #endif
 
 -- fsHeader
-#ifdef IS_2D_TEXTURE
+#include regen.utility.sampling.defines
+#if RENDER_TARGET == 2D
 in vec2 in_texco;
 #else
 in vec3 in_texco;
 #endif
 
-#ifdef IS_ARRAY_TEXTURE
+#if RENDER_TARGET == 2D_ARRAY
 uniform sampler2DArray in_inputTexture;
-#elif IS_CUBE_TEXTURE
+#elif RENDER_TARGET == CUBE
 uniform samplerCube in_inputTexture;
-#else // IS_2D_TEXTURE
+#else // RENDER_TARGET == 2D
 uniform sampler2D in_inputTexture;
 #endif
 
@@ -53,28 +65,24 @@ uniform sampler2D in_inputTexture;
 --------------------------------------
 --------------------------------------
 -- vs
+#include regen.utility.sampling.defines
 #include regen.utility.sampling.vsHeader
 
 void main() {
-#ifdef IS_2D_TEXTURE
+#if RENDER_TARGET == 2D
     out_texco = 0.5*(in_pos.xy+vec2(1.0));
 #endif
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
 }
 
 -- gs
-#ifndef IS_2D_TEXTURE
+#include regen.utility.sampling.defines
+#if RENDER_LAYER > 1
 #include regen.utility.sampling.gsHeader
 #include regen.utility.sampling.gsEmit
 
 void main(void) {
-#ifdef IS_CUBE_TEXTURE
-#define2 __LAYER_COUNT__ 6
-#else
-#define2 __LAYER_COUNT__ ${NUM_TEXTURE_LAYERS}
-#endif
-  
-#for LAYER to ${__LAYER_COUNT__}
+#for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
     // select framebuffer layer
     gl_Layer = ${LAYER};

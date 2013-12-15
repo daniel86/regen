@@ -159,17 +159,19 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
   // use layered geometry shader for 3d textures
   if(dynamic_cast<TextureCube*>(input_.get()))
   {
-    shaderDefine("IS_CUBE_TEXTURE", "TRUE");
+    shaderDefine("RENDER_LAYER", "6");
+    shaderDefine("RENDER_TARGET", "CUBE");
   }
   else if(dynamic_cast<Texture3D*>(input_.get()))
   {
     Texture3D *tex3D = (Texture3D*)input_.get();
-    shaderDefine("NUM_TEXTURE_LAYERS", REGEN_STRING(tex3D->depth()));
-    shaderDefine("IS_ARRAY_TEXTURE", "TRUE");
+    shaderDefine("RENDER_LAYER", REGEN_STRING(tex3D->depth()));
+    shaderDefine("RENDER_TARGET", "2D_ARRAY");
   }
   else
   {
-    shaderDefine("IS_2D_TEXTURE", "TRUE");
+    shaderDefine("RENDER_LAYER", "1");
+    shaderDefine("RENDER_TARGET", "2D");
   }
 }
 void FilterSequence::setClearColor(const Vec4f &clearColor)

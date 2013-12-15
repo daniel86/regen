@@ -20,9 +20,7 @@ uniform sampler2D in_heightTexture;
 uniform sampler2D in_normalTexture;
 uniform sampler2D in_foamTexture;
 // camera input
-uniform vec3 in_cameraPosition;
-uniform vec2 in_inverseViewport;
-uniform mat4 in_inverseViewProjectionMatrix;
+#include regen.meshes.mesh.camera
 uniform mat4 in_reflectionMatrix;
 
 const float in_heightTextureSize = 256.0;

@@ -19,8 +19,12 @@ float fogIntensity(float d)
 #include regen.post-passes.fullscreen.vs
 
 -- distance.fs
+#include regen.shading.deferred.defines
 out vec4 out_color;
 in vec2 in_texco;
+#if RENDER_LAYER > 1
+flat in int in_layer;
+#endif
 
 uniform sampler2D in_gDepthTexture;
 #ifdef USE_TBUFFER
@@ -36,15 +40,12 @@ const vec3 in_fogColor = vec3(1.0);
 const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
 
-uniform vec3 in_cameraPosition;
-uniform mat4 in_viewMatrix;
-uniform mat4 in_inverseViewProjectionMatrix;
-
+#include regen.meshes.mesh.camera
 #include regen.shading.fog.fogIntensity
 #include regen.utility.utility.texcoToWorldSpace
 
 void main() {
-    float d0 = texture(in_gDepthTexture, in_texco).x;
+    float d0 = __TEXTURE__(in_gDepthTexture, in_texco).x;
     if(d0==1.0) discard; // discard background pixels
     vec3 eye0 = texcoToWorldSpace(in_texco, d0) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
@@ -56,7 +57,7 @@ void main() {
 #endif
     
 #ifdef USE_TBUFFER
-    float d1 = texture(in_tDepthTexture, in_texco).x;
+    float d1 = __TEXTURE__(in_tDepthTexture, in_texco).x;
     vec3 eye1 = texcoToWorldSpace(in_texco, d1) - in_cameraPosition;
     
     // use standard fog color from eye to transparent object
@@ -64,7 +65,7 @@ void main() {
     out_color = (factor1*in_fogDensity)*fogColor;
     
     // starting from transparent object to scene depth sample use alpha blended fog color.
-    vec4 tcolor = texture(in_tColorTexture, in_texco).x;
+    vec4 tcolor = __TEXTURE__(in_tColorTexture, in_texco).x;
     vec3 blended = fogColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a;
     // substract intensity from eye to p1
     factor0 -= factor1;
@@ -82,10 +83,14 @@ void main() {
 --------------------------------------
 -- volumetric.fs
 #extension GL_EXT_gpu_shader4 : enable
+#include regen.shading.deferred.defines
 
 out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
 in vec3 in_intersection;
+#endif
+#if RENDER_LAYER > 1
+flat in int in_layer;
 #endif
 
 // G-buffer input
@@ -120,10 +125,7 @@ const float in_shadowSampleStep = 0.025;
 const float in_shadowSampleThreshold = 0.075;
 #endif // USE_SHADOW_MAP
 // camera input
-uniform vec2 in_viewport;
-uniform vec3 in_cameraPosition;
-uniform mat4 in_inverseViewProjectionMatrix;
-uniform mat4 in_viewProjectionMatrix;
+#include regen.meshes.mesh.camera
 // fog input
 uniform float in_fogExposure;
 uniform vec2 in_fogRadiusScale;
@@ -231,7 +233,7 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
 void main()
 {
     vec2 texco = gl_FragCoord.xy/in_viewport;
-    vec3 vertexPos = texcoToWorldSpace(texco, texture(in_gDepthTexture, texco).x);
+    vec3 vertexPos = texcoToWorldSpace(texco, __TEXTURE__(in_gDepthTexture, texco).x);
     vec3 vertexRay = vertexPos-in_cameraPosition;
     // fog volume scales light radius
     vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
@@ -303,10 +305,10 @@ void main()
 
 #ifdef USE_TBUFFER
     // TODO: test
-    vec3 alphaPos = texcoToWorldSpace(texco, texture(in_tDepthTexture, texco).x);
+    vec3 alphaPos = texcoToWorldSpace(texco, __TEXTURE__(in_tDepthTexture, texco).x);
     float dLightAlpha = distance(alphaPos, in_lightPosition);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
-    vec4 tcolor = texture(in_tColorTexture, texco);
+    vec4 tcolor = __TEXTURE__(in_tColorTexture, texco);
 #if 0
     float dz = sqrt(pow(in_radius,2) - pow(dnl,2));
     float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition,alphaPos));
@@ -344,6 +346,8 @@ void main()
 #define IS_POINT_LIGHT
 // #undef IS_SPOT_LIGHT
 #include regen.shading.deferred.point.vs
+-- volumetric.point.gs
+#include regen.shading.deferred.gs
 -- volumetric.point.fs
 #define IS_POINT_LIGHT
 // #undef IS_SPOT_LIGHT
@@ -358,6 +362,8 @@ void main()
 //#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT
 #include regen.shading.deferred.spot.vs
+-- volumetric.spot.gs
+#include regen.shading.deferred.gs
 -- volumetric.spot.fs
 //#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT

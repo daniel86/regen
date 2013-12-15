@@ -6,6 +6,8 @@
 --------------------------------------
 -- vs
 #include regen.utility.sampling.vs
+-- gs
+#include regen.utility.sampling.gs
 -- fs
 #include regen.utility.sampling.fsHeader
 
@@ -48,7 +50,7 @@ float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 
 void main() {
     vec3 N = fetchNormal(in_texco);
-    float depth = texture(in_gDepthTexture, in_texco).r;
+    float depth = __TEXTURE__(in_gDepthTexture, in_texco).r;
     vec3 P = texcoToWorldSpace(in_texco, depth);
     depth = linearizeDepth(depth, in_near, in_far);
     vec2 texelSize = in_inverseViewport*0.5;

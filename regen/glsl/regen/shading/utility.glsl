@@ -1,7 +1,7 @@
 
 -- fetchNormal
 vec3 fetchNormal(vec2 texco) {
-    vec4 N = texture(in_gNorWorldTexture, texco);
+    vec4 N = __TEXTURE__(in_gNorWorldTexture, texco);
     if( N.w==0.0 ) discard;
     return N.xyz*2.0 - vec3(1.0);
 }
@@ -10,8 +10,8 @@ vec3 fetchNormal(vec2 texco) {
 #include regen.utility.utility.texcoToWorldSpace
 
 vec3 fetchPosition(vec2 texco) {
-    float depth = texture(in_gDepthTexture, in_texco).r;
-    return texcoToWorldSpace(in_texco, depth);
+    float depth = __TEXTURE__(in_gDepthTexture, texco).r;
+    return texcoToWorldSpace(texco, depth);
 }
 
 -- radiusAttenuation
