@@ -31,7 +31,7 @@ float linstep(float low, float high, float v) {
 #define __texcoToWorldSpace_included__
 vec3 texcoToWorldSpace(vec2 texco, float depth) {
     vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
-    vec4 D = in_inverseViewProjectionMatrix*vec4(pos0,1.0);
+    vec4 D = __VIEW_PROJ_INV__*vec4(pos0,1.0);
     return D.xyz/D.w;
 }
 #endif
@@ -44,7 +44,7 @@ vec3 texcoToWorldSpace(vec2 texco, float depth) {
 #define __texcoToViewSpace_included__
 vec3 texcoToViewSpace(vec2 texco, float depth) {
     vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
-    vec4 D = in_inverseProjectionMatrix*vec4(pos0,1.0);
+    vec4 D = __PROJ_INV__*vec4(pos0,1.0);
     return D.xyz/D.w;
 }
 #endif
@@ -57,7 +57,7 @@ vec3 texcoToViewSpace(vec2 texco, float depth) {
 #define __worldSpaceToTexco_included__
 vec3 worldSpaceToTexco(vec4 ws)
 {
-    vec4 ss = in_viewProjectionMatrix*ws;
+    vec4 ss = __VIEW_PROJ__*ws;
     return (ss.xyz/ss.w + vec3(1.0))*0.5;
 }
 #endif
@@ -70,7 +70,7 @@ vec3 worldSpaceToTexco(vec4 ws)
 #define __eyeSpaceToTexco_included__
 vec3 eyeSpaceToTexco(vec4 es)
 {
-    vec4 ss = in_projectionMatrix*ws;
+    vec4 ss = __PROJ__*ws;
     return (ss.xyz/ss.w + vec3(1.0))*0.5;
 }
 #endif

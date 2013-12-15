@@ -21,21 +21,20 @@ void incrementalGaussian() {
 --------------------------------------
 --------------------------------------
 -- vs
+#include regen.utility.sampling.defines
 #include regen.utility.sampling.vsHeader
 
 uniform vec2 in_inverseViewport;
 
-#ifdef IS_2D_TEXTURE
+#if RENDER_TARGET == 2D
 flat out vec2 out_blurStep;
 flat out vec3 out_incrementalGaussian;
-#endif
 
-#ifdef IS_2D_TEXTURE
 #include regen.post-passes.blur.incrementalGaussian
 #endif
 
 void main() {
-#ifdef IS_2D_TEXTURE
+#ifdef RENDER_TARGET == 2D
     incrementalGaussian();
     out_texco = 0.5*(in_pos.xy+vec2(1.0));
 #ifdef BLUR_HORIZONTAL
@@ -48,7 +47,8 @@ void main() {
 }
 
 -- gs
-#ifndef IS_2D_TEXTURE
+#include regen.utility.sampling.defines
+#if RENDER_LAYER > 1
 #include regen.utility.sampling.gsHeader
 #include regen.utility.sampling.gsEmit
 
@@ -65,7 +65,7 @@ void main(void) {
     gl_Layer = layer;
 
     incrementalGaussian();
-#ifdef IS_CUBE_TEXTURE
+#if RENDER_TARGET == CUBE
 #ifdef BLUR_HORIZONTAL
     float dx = in_inverseViewport.x;
     vec3 blurStepArray[6] = vec3[](
@@ -108,7 +108,7 @@ void main(void) {
 out vec4 out_color;
 
 const int in_numBlurPixels = 4;
-#ifdef IS_2D_TEXTURE
+#ifdef RENDER_TARGET == 2D
 flat in vec2 in_blurStep;
 #else
 flat in vec3 in_blurStep;
@@ -128,7 +128,7 @@ void main()
     incrementalGaussian.xy *= incrementalGaussian.yz;
 
     for(float i=1.0; i<float(in_numBlurPixels); i++) {
-#ifdef IS_2D_TEXTURE
+#ifdef RENDER_TARGET == 2D
         vec2 offset = i*in_blurStep;
 #else
         vec3 offset = i*in_blurStep;

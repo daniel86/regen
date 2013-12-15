@@ -10,21 +10,51 @@ uniform float in_matAlpha;
 #endif
 
 -- camera
+// TODO: better place, shading uses this too
 #if RENDER_TARGET == CUBE
 uniform mat4 in_viewMatrix[6];
+uniform mat4 in_inverseViewMatrix[6];
 uniform mat4 in_projectionMatrix;
+uniform mat4 in_inverseProjectionMatrix;
 uniform mat4 in_viewProjectionMatrix[6];
+uniform mat4 in_inverseViewProjectionMatrix[6];
+#if SHADER_STAGE == fs
+#define __VIEW__          in_viewMatrix[in_layer]
+#define __VIEW_INV__      in_inverseViewMatrix[in_layer]
+#define __PROJ__          in_projectionMatrix
+#define __PROJ_INV__      in_inverseProjectionMatrix
+#define __VIEW_PROJ__     in_viewProjectionMatrix[in_layer]
+#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
+#endif
 #elif RENDER_TARGET == 2D_ARRAY
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix[${RENDER_LAYER}];
 uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
+#if SHADER_STAGE == fs
+#define __VIEW__          in_viewMatrix
+#define __VIEW_INV__      in_inverseViewMatrix
+#define __PROJ__          in_projectionMatrix[in_layer]
+#define __PROJ_INV__      in_inverseProjectionMatrix[in_layer]
+#define __VIEW_PROJ__     in_viewProjectionMatrix[in_layer]
+#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
+#endif
 #else
 uniform mat4 in_viewMatrix;
 uniform mat4 in_projectionMatrix;
 uniform mat4 in_viewProjectionMatrix;
+#if SHADER_STAGE == fs
+#define __VIEW__          in_viewMatrix
+#define __VIEW_INV__      in_inverseViewMatrix
+#define __PROJ__          in_projectionMatrix
+#define __PROJ_INV__      in_inverseProjectionMatrix
+#define __VIEW_PROJ__     in_viewProjectionMatrix
+#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix
+#endif
 #endif
 // TODO: layered, direction
 uniform vec3 in_cameraPosition;
+uniform vec3 in_cameraDirection;
+uniform vec2 in_viewport;
 
 -- defines
 #ifdef HAS_nor && HAS_tan
@@ -384,12 +414,12 @@ out vec3 out_posEye;
 
 #include regen.meshes.mesh.camera-transformation
 
-void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int layer) {
+void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int index) {
   vec4 posEye = posEyeSpace(posWorld, view);
   out_posWorld = posWorld.xyz;
   out_posEye = posEye.xyz;
   gl_Position = proj * posEye;
-  HANDLE_IO(layer);
+  HANDLE_IO(index);
   
   EmitVertex();
 }
@@ -408,14 +438,13 @@ void main() {
   view = in_viewMatrix;
   proj = in_projectionMatrix[${LAYER}];
 #endif
-  emitVertex(gl_PositionIn[0], view, proj, ${LAYER});
-  emitVertex(gl_PositionIn[1], view, proj, ${LAYER});
-  emitVertex(gl_PositionIn[2], view, proj, ${LAYER});
+  emitVertex(gl_PositionIn[0], view, proj, 0);
+  emitVertex(gl_PositionIn[1], view, proj, 1);
+  emitVertex(gl_PositionIn[2], view, proj, 2);
   EndPrimitive();
 #endif
 #endfor
 }
-
 #endif
 
 -- fs

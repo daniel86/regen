@@ -1,13 +1,13 @@
 
 -- moments.defines
 #ifdef IS_2D_SHADOW
-  #define IS_2D_TEXTURE
+  #define RENDER_TARGET 2D
 #endif
 #ifdef IS_CUBE_SHADOW
-  #define IS_CUBE_TEXTURE
+  #define RENDER_TARGET CUBE
 #endif
 #ifdef IS_ARRAY_SHADOW
-  #define IS_ARRAY_TEXTURE
+  #define RENDER_TARGET 2D_ARRAY
 #endif
 #ifdef NUM_SHADOW_MAP_SLICES
   #define NUM_TEXTURE_LAYERS NUM_SHADOW_MAP_SLICES
