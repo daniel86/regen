@@ -39,14 +39,28 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
-<fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >
-  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-	 target="TEXTURE_2D_ARRAY"
-	 wrapping="REPEAT"
-	 min-filter="NEAREST" mag-filter="NEAREST"
-	 compare-mode="COMPARE_R_TO_TEXTURE"
-	 compare-function="LEQUAL"
-	 sampler-type="sampler2DArrayShadow" />
+<fbo id="cube-reflection-buffer"
+     size-mode="abs" size="256,256,6"
+     wrapping="REPEAT"
+     target="TEXTURE_CUBE_MAP"
+     sampler-type="samplerCube">
+  <texture id="diffuse0"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="diffuse1"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
 </fbo>
 <fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
   <depth id="depth" pixel-size="24" pixel-type="FLOAT"
@@ -71,18 +85,16 @@
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
-	position="16.0,2.5,7.0"
-	direction="-4.0,0.0,-1.0" />
+	position="16.0,2.5,16.0"
+	direction="-1.0,0.0,-1.0" />
 <camera id="reflection-camera"
 	camera="main-camera"
 	reflector="reflector-mesh" />
-<camera id="sun-camera"
-	light="earth-sky"
-	camera="main-camera"
-	num-layer="3"
-	split-weight="0.9" />
 <camera id="spot-camera"
 	light="spot-light"
+	camera="main-camera" />
+<camera id="sphere-camera"
+	cube-mesh="sphere-mesh"
 	camera="main-camera" />
 <!-- Lights -->
 <light id="spot-light"
@@ -175,15 +187,14 @@
 </mesh>
 <mesh id="sphere-mesh"
       type="sphere"
-      lod="4"
-      scaling="2.5,2.5,2.5"
+      lod="3"
+      scaling="4,4,4"
       texco-scaling="1.0,1.0"
       use-normal="1"
       use-tangent="0"
       usage="STATIC">
   <transform>
-    <translate value="-14.0,1.0,0.0" />
-    <rotate value="0.0,0.0,0.0" />
+    <translate value="7.5,-0.45,-8.0" />
   </tranform>
 </mesh>
 <mesh id="logo-widget"
@@ -271,6 +282,7 @@
       <node import="shading-pass" />
     </node>
     <node import="background-pass" />
+    <node import="sphere-reflector" />
   </node>
   
   <node>
@@ -284,16 +296,47 @@
   </node>
 </node>
 
+<node id="sphere-reflection-pass">
+  <camera id="sphere-camera" />
+  <fbo id="cube-reflection-buffer"
+       clear-buffers="0,1,2,3" clear-depth="1" />
+  
+  <node>
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="cube-reflection-buffer" draw-buffers="0,2,3" />
+    
+    <node import="shadow-caster" />
+    <node import="scene-geometry" />
+  </node>
+  
+  <node>
+    <fbo id="cube-reflection-buffer" draw-buffers="1" />
+    <node>
+      <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="cube-reflection-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="cube-reflection-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="cube-reflection-buffer" attachment="3" />
+      <node import="shading-pass" />
+
+    </node>
+    <node import="background-pass" />
+    <node import="planar-reflector" />
+  </node>
+  <node>
+    <depth test="0" write="0" />
+    <node id="volume-fog">
+      <fbo id="cube-reflection-buffer" draw-buffers="1" />
+      <blend mode="add" />
+      <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth" />
+      <node import="volumetric-fog-pass" />
+    </node>
+  </node>
+</node>
+
 <node id="shadow-pass">
   <cull mode="FRONT" />
   <define key="OUTPUT_TYPE" value="DEPTH" />
-  
-  <node id="sun-shadow-pass">
-    <fbo id="sun-shadow" clear-depth="1" />
-    <camera id="sun-camera" />
-    
-    <node import="shadow-caster" />
-  </node>
   
   <node id="spot-shadow-pass">
     <fbo id="spot-shadow" clear-depth="1" />
@@ -327,28 +370,39 @@
     </node>
     
     <node import="background-pass" />
-    
-    <node id="reflector">
-      <toggle key="CULL_FACE" value="0" />
-      <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
-      <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
-	       map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1" />
-      <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL" />
-      <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
-      <define key="SHADING" value="NONE" />
-      <mesh id="reflector-mesh" shader="regen.meshes.mesh" />
-    </node>
+    <node import="planar-reflector" />
+    <node import="sphere-reflector" />
     
     <node import="post-pass" />
+  </node>
+</node>
+
+<node id="planar-reflector">
+  <node id="reflector">
+    <toggle key="CULL_FACE" value="0" />
+    <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
+    <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
+	     map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1" />
+    <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL" />
+    <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
+    <define key="SHADING" value="NONE" />
+    <mesh id="reflector-mesh" shader="regen.meshes.mesh" />
+  </node>
+</node>
+
+<node id="sphere-reflector">
+  <node id="sphere-reflector" >
+    <material preset="chrome" />
+    <texture fbo="cube-reflection-buffer" attachment="1"
+	     map-to="COLOR" blend-mode="SRC" mapping="REFLECTION" />
+    <define key="SHADING" value="NONE" />
+    <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
   </node>
 </node>
 
 <node id="shadow-caster">
   <node id="dwarf-node" >
     <mesh id="animation-mesh" shader="regen.meshes.mesh" />
-  </node>
-  <node id="sphere-node" >
-    <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
   </node>
   
   <node id="box-wall0" >
@@ -424,9 +478,7 @@
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
     
     <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-      <light id="earth-sky"
-	     shadow-buffer="sun-shadow" shadow-attachment="depth"
-	     shadow-camera="sun-camera" />
+      <light id="earth-sky" />
     </light-pass>
     
     <light-pass type="SPOT" shader="regen.shading.deferred.spot">
@@ -524,6 +576,7 @@
 <node id="root">
   <node id="pre-render">
     <node import="reflection-pass" />
+    <node import="sphere-reflection-pass" />
     <node import="shadow-pass" />
   </node>
   
