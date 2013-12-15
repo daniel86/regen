@@ -8,7 +8,7 @@
 #define RENDER_TARGET 2D
 #endif
 #include regen.shading.deferred.defines
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 
 -- vsHeader
 in vec3 in_pos;

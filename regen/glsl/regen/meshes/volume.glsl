@@ -21,13 +21,14 @@ uniform mat4 in_projectionMatrix;
 uniform vec3 in_cameraPosition;
 
 #include regen.meshes.mesh.model-transformation
-#include regen.meshes.mesh.camera-transformation
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 #define HANDLE_IO()
 
 void main() {
     vec4 posWorld = toWorldSpace(vec4(in_pos,1.0));
-    vec4 posEye = posEyeSpace(posWorld,0);
+    vec4 posEye = transformWorldToEye(posWorld,0);
 #ifdef HAS_modelMatrix
     out_rayOrigin = (
         transpose(in_modelMatrix) *
@@ -37,7 +38,7 @@ void main() {
 #endif
     out_rayDirection = in_pos.xyz - out_rayOrigin;
 
-    gl_Position = posScreenSpace(posEye,0);
+    gl_Position = transformEyeToScreen(posEye,0);
 
     HANDLE_IO(gl_VertexID);
 }

@@ -70,7 +70,7 @@ uniform sampler2D in_gDiffuseTexture;
 uniform sampler2D in_gSpecularTexture;
 uniform sampler2D in_gDepthTexture;
 
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 
 uniform vec3 in_lightDirection;
 uniform vec3 in_lightSpecular;
@@ -173,7 +173,7 @@ uniform sampler2D in_gDiffuseTexture;
 uniform sampler2D in_gSpecularTexture;
 uniform sampler2D in_gDepthTexture;
 // camera input
-#include regen.meshes.mesh.camera
+#include regen.states.camera.input
 // light input
 uniform vec3 in_lightPosition;
 uniform vec2 in_lightRadius;
