@@ -10,6 +10,9 @@ using namespace regen::scene;
 using namespace regen;
 
 #include <regen/scene/resource-manager.h>
+#include <regen/camera/cube-camera.h>
+#include <regen/camera/light-camera.h>
+#include <regen/camera/reflection-camera.h>
 
 #define REGEN_CAMERA_CATEGORY "camera"
 

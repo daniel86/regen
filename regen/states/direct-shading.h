@@ -11,6 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/states/light-state.h>
 #include <regen/states/texture-state.h>
+#include <regen/camera/light-camera.h>
 
 namespace regen {
   /**

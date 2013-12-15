@@ -10,7 +10,7 @@
 
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/states/model-transformation.h>
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 #include <regen/math/vector.h>
 #include <regen/meshes/cone.h>
 #include <regen/animations/animation-node.h>

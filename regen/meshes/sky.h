@@ -9,7 +9,7 @@
 #define SKY_BOX_H_
 
 #include <regen/meshes/box.h>
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 #include <regen/states/texture-state.h>
 #include <regen/states/light-state.h>
 #include <regen/states/shader-state.h>

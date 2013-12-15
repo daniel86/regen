@@ -15,7 +15,7 @@
 #include <regen/states/material-state.h>
 #include <regen/animations/animation.h>
 #include <regen/animations/bones.h>
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 
 #include <regen/animations/animation-node.h>
 

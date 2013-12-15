@@ -9,7 +9,7 @@
 #define CAMERA_MANIPULATOR_H_
 
 #include <regen/math/quaternion.h>
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 #include <regen/animations/animation.h>
 
 namespace regen {

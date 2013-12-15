@@ -12,7 +12,7 @@
 #include <regen/scene/scene-input.h>
 #include <regen/scene/input-processors.h>
 
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 
 namespace regen {
 namespace scene {

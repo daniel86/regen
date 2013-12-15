@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/animations/camera-manipulator.h>
+#include <regen/camera/camera-manipulator.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/filesystem.h>
 #include <regen/meshes/texture-mapped-text.h>
