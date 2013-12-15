@@ -149,6 +149,7 @@ TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
 TextureState::TextureState()
 : State(),
   stateID_(++idCounter_),
+  samplerType_("sampler2D"),
   blendFunction_(""),
   blendName_(""),
   mappingFunction_(""),
@@ -168,6 +169,7 @@ TextureState::TextureState()
 void TextureState::set_texture(const ref_ptr<Texture> &tex)
 {
   texture_ = tex;
+  samplerType_ = tex->samplerType();
   if(tex.get()) {
     set_name( REGEN_STRING("Texture" << tex->id()));
     shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), tex->samplerType());
@@ -184,6 +186,11 @@ void TextureState::set_name(const string &name)
 }
 const string& TextureState::name() const
 { return name_; }
+
+void TextureState::set_samplerType(const string &samplerType)
+{ samplerType_ = samplerType; }
+const string& TextureState::samplerType() const
+{ return samplerType_; }
 
 GLuint TextureState::stateID() const
 { return stateID_; }
