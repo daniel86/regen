@@ -24,11 +24,12 @@ ReflectionCamera::ReflectionCamera(
   isFront_(GL_TRUE),
   hasMesh_(GL_TRUE)
 {
-  frustum_->setProjection(
-      userCamera->frustum()->fov()->getVertex(0),
-      userCamera->frustum()->aspect()->getVertex(0),
-      userCamera->frustum()->near()->getVertex(0),
-      userCamera->frustum()->far()->getVertex(0));
+  updateFrustum(
+      userCamera_->fov()->getVertex(0),
+      userCamera_->aspect()->getVertex(0),
+      userCamera_->near()->getVertex(0),
+      userCamera_->far()->getVertex(0),
+      GL_FALSE);
 
   clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
   clipPlane_->setUniformData(Vec4f(0.0f));
@@ -61,11 +62,12 @@ ReflectionCamera::ReflectionCamera(
   isFront_(GL_TRUE),
   hasMesh_(GL_FALSE)
 {
-  frustum_->setProjection(
-      userCamera->frustum()->fov()->getVertex(0),
-      userCamera->frustum()->aspect()->getVertex(0),
-      userCamera->frustum()->near()->getVertex(0),
-      userCamera->frustum()->far()->getVertex(0));
+  updateFrustum(
+      userCamera_->fov()->getVertex(0),
+      userCamera_->aspect()->getVertex(0),
+      userCamera_->near()->getVertex(0),
+      userCamera_->far()->getVertex(0),
+      GL_FALSE);
 
   clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
   clipPlane_->setUniformData(Vec4f(0.0f));

@@ -26,6 +26,35 @@ namespace regen {
     Camera(GLboolean initializeMatrices=GL_TRUE);
 
     /**
+     * Update frustum and projection matrix.
+     * @param aspect the apect ratio.
+     * @param fov field of view.
+     * @param near distance to near plane.
+     * @param far distance to far plane.
+     */
+    void updateFrustum(
+        GLfloat aspect, GLfloat fov, GLfloat near, GLfloat far,
+        GLboolean updateMatrices=GL_TRUE);
+
+    /**
+     * @return specifies the field of view angle, in degrees, in the y direction.
+     */
+    const ref_ptr<ShaderInput1f>& fov() const;
+    /**
+     * @return specifies the aspect ratio that determines the field of view in the x direction.
+     */
+    const ref_ptr<ShaderInput1f>& aspect() const;
+
+    /**
+     * @return specifies the distance from the viewer to the near clipping plane (always positive).
+     */
+    const ref_ptr<ShaderInput1f>& near() const;
+    /**
+     * @return specifies the distance from the viewer to the far clipping plane (always positive).
+     */
+    const ref_ptr<ShaderInput1f>& far() const;
+
+    /**
      * @return the camera position.
      */
     const ref_ptr<ShaderInput3f>& position() const;
@@ -73,15 +102,13 @@ namespace regen {
     const ref_ptr<ShaderInputMat4>& viewProjectionInverse() const;
 
     /**
-     * @return the camera view Frustum.
+     * Computes the 8 points forming the camera frustum.
      */
-    const ref_ptr<Frustum>& frustum() const;
+    void updateFrustumPoints();
     /**
-     * Update frustum and projection matrix.
+     * @return the 8 points forming this Frustum.
      */
-    void updateFrustum(
-        const Vec2i viewport,
-        GLfloat fov, GLfloat near, GLfloat far);
+    const Frustum& frustum() const;
 
     /**
      * @param useAudio true if this camera is the OpenAL audio listener.
@@ -94,12 +121,14 @@ namespace regen {
 
   protected:
     ref_ptr<ShaderInputContainer> inputs_;
-    GLboolean isAudioListener_;
+    ref_ptr<ShaderInput1f> fov_;
+    ref_ptr<ShaderInput1f> aspect_;
+    ref_ptr<ShaderInput1f> far_;
+    ref_ptr<ShaderInput1f> near_;
 
     ref_ptr<ShaderInput3f> position_;
     ref_ptr<ShaderInput3f> direction_;
     ref_ptr<ShaderInput3f> vel_;
-    ref_ptr<Frustum> frustum_;
 
     ref_ptr<ShaderInputMat4> view_;
     ref_ptr<ShaderInputMat4> viewInv_;
@@ -107,6 +136,21 @@ namespace regen {
     ref_ptr<ShaderInputMat4> projInv_;
     ref_ptr<ShaderInputMat4> viewproj_;
     ref_ptr<ShaderInputMat4> viewprojInv_;
+
+    Frustum frustum_;
+    GLboolean isAudioListener_;
+
+    //Vec3f frustumPoints_[8];
+
+
+    /**
+     * Split this frustum using the Practical Split Scheme.
+     * @param n number of splits.
+     * @param weight the split weight.
+     * @return splitted frusta.
+     * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
+     */
+    //vector<Frustum*> splitFrustum(GLuint n, GLdouble weight) const;
   };
 } // namespace
 

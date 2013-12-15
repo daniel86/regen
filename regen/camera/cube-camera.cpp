@@ -16,6 +16,12 @@ CubeCamera::CubeCamera(
 {
   shaderDefine("RENDER_TARGET", "CUBE");
   shaderDefine("RENDER_LAYER", "6");
+  updateFrustum(
+      userCamera_->fov()->getVertex(0),
+      userCamera_->aspect()->getVertex(0),
+      userCamera_->near()->getVertex(0),
+      userCamera_->far()->getVertex(0),
+      GL_FALSE);
 
   view_->set_elementCount(6);
   view_->setUniformDataUntyped(NULL);
@@ -28,18 +34,12 @@ CubeCamera::CubeCamera(
   viewprojInv_->set_elementCount(6);
   viewprojInv_->setUniformDataUntyped(NULL);
 
-  frustum_->setProjection(
-      userCamera_->frustum()->fov()->getVertex(0),
-      userCamera_->frustum()->aspect()->getVertex(0),
-      userCamera_->frustum()->near()->getVertex(0),
-      userCamera_->frustum()->far()->getVertex(0));
-
-  modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(
-      mesh->findShaderInput("modelMatrix"));
-  pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
-
-  positionStamp_ = 0;
+  modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
   matrixStamp_ = 0;
+
+  pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
+  positionStamp_ = 0;
+
   for(GLuint i=0; i<6; ++i) isCubeFaceVisible_[i] = GL_TRUE;
 
   // initially update shadow maps
@@ -64,8 +64,8 @@ void CubeCamera::update()
   // XXX
   direction_->setVertex(0,Vec3f(0.0,0.0,1.0));
 
-  GLfloat near = userCamera_->frustum()->near()->getVertex(0);
-  GLfloat far = userCamera_->frustum()->far()->getVertex(0);
+  GLfloat near = userCamera_->near()->getVertex(0);
+  GLfloat far = userCamera_->far()->getVertex(0);
 
   proj_->setVertex(0, Mat4f::projectionMatrix(90.0f, 1.0f, near, far));
   projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());

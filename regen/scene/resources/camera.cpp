@@ -32,12 +32,12 @@ public:
   : EventHandler(), cam_(cam), windowViewport_(windowViewport) { }
 
   void call(EventObject*, EventData*) {
-    const ref_ptr<Frustum> &frustum = cam_->frustum();
     cam_->updateFrustum(
-        windowViewport_->getVertex(0),
-        frustum->fov()->getVertex(0),
-        frustum->near()->getVertex(0),
-        frustum->far()->getVertex(0));
+        (GLfloat)windowViewport_->getVertex(0).x/
+        (GLfloat)windowViewport_->getVertex(0).y,
+        cam_->fov()->getVertex(0),
+        cam_->near()->getVertex(0),
+        cam_->far()->getVertex(0));
   }
 
 protected:
@@ -165,7 +165,8 @@ ref_ptr<Camera> CameraResource::createResource(
     cam->direction()->setVertex(0, dir);
 
     cam->updateFrustum(
-        parser->getViewport()->getVertex(0),
+        (GLfloat)parser->getViewport()->getVertex(0).x/
+        (GLfloat)parser->getViewport()->getVertex(0).y,
         input.getValue<GLfloat>("fov", 45.0f),
         input.getValue<GLfloat>("near", 0.1f),
         input.getValue<GLfloat>("far", 200.0f));
