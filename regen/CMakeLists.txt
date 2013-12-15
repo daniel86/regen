@@ -29,6 +29,7 @@ set(SOURCE_DIRS
     physics
     textures
     states
+    camera
     meshes
     scene
     external)

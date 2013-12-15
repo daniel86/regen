@@ -11,7 +11,7 @@
 #include <regen/gl-types/render-state.h>
 #include <regen/states/state.h>
 #include <regen/states/model-transformation.h>
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 
 namespace regen {
   /**

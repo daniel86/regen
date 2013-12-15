@@ -8,7 +8,7 @@
 #include <regen/states/texture-state.h>
 #include <regen/states/material-state.h>
 #include <regen/states/model-transformation.h>
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 #include <regen/states/light-pass.h>
 #include <regen/states/direct-shading.h>
 

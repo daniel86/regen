@@ -13,7 +13,7 @@
 #include <QtCore/QString>
 
 #include <regen/physics/bullet-physics.h>
-#include <regen/animations/camera-manipulator.h>
+#include <regen/camera/camera-manipulator.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
 #include <applications/qt/shader-input-widget.h>

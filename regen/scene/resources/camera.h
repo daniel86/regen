@@ -11,7 +11,7 @@
 #include <regen/scene/scene-parser.h>
 #include <regen/scene/resources.h>
 
-#include <regen/states/camera.h>
+#include <regen/camera/camera.h>
 
 namespace regen {
 namespace scene {
