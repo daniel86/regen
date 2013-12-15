@@ -57,7 +57,6 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
   depthAttachmentType_(GL_NONE)
 {
   RenderState *rs = RenderState::get();
-  GL_ERROR_LOG();
   set_rectangleSize(width,height);
   depth_ = depth;
 

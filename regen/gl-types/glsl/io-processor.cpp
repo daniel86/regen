@@ -38,6 +38,7 @@ string IOProcessor::InputOutput::declaration(GLenum stage)
 {
   stringstream ss;
   if(!layout.empty()) { ss << layout << " "; }
+  if(!interpolation.empty()) { ss << interpolation << " "; }
   ss << ioType << " " << dataType << " " << name;
   if(!numElements.empty()) { ss << "[" << numElements << "]"; }
   if(!value.empty()) { ss << " = " << value; }
@@ -191,11 +192,16 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state)
     string nameWithoutPrefix = getNameWithoutPrefix(it->name_);
     if(inputNames_.count(nameWithoutPrefix)) continue;
 
-    Texture *tex = dynamic_cast<Texture*>(in.get());
-    if(tex==NULL) {
-      io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
-    } else {
-      io.dataType = tex->samplerType();
+    if(it->type_.empty()) {
+      Texture *tex = dynamic_cast<Texture*>(in.get());
+      if(tex==NULL) {
+        io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
+      } else {
+        io.dataType = tex->samplerType();
+      }
+    }
+    else {
+      io.dataType = it->type_;
     }
     io.numElements = (in->elementCount()>1 || in->forceArray()) ?
         REGEN_STRING(in->elementCount()) : "";

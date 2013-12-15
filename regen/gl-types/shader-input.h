@@ -12,6 +12,7 @@
 using namespace std;
 
 #include <regen/gl-types/vbo.h>
+#include <regen/gl-types/gl-enum.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
 #include <regen/utility/string-util.h>
@@ -501,12 +502,24 @@ namespace regen {
      * @param in the shader input data.
      * @param name the name overwrite.
      */
-    NamedShaderInput(ref_ptr<ShaderInput> in, const string &name)
-    : in_(in), name_(name) {}
+    NamedShaderInput(ref_ptr<ShaderInput> in,
+        const string &name="",
+        const string &type="")
+    : in_(in), name_(name), type_(type)
+    {
+      if(name_.empty()) {
+        name_ = in->name();
+      }
+      if(type_.empty()) {
+        type_ = glenum::glslDataType(in->dataType(), in->valsPerElement());
+      }
+    }
     /** the shader input data. */
     ref_ptr<ShaderInput> in_;
     /** the name overwrite. */
     string name_;
+    /** the type overwrite. */
+    string type_;
   };
 
   /**

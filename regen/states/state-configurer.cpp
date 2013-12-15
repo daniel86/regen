@@ -59,17 +59,17 @@ void StateConfigurer::addNode(const StateNode *node)
   addState(node->state().get());
 }
 
-void StateConfigurer::addInput(const string &name, const ref_ptr<ShaderInput> &in)
+void StateConfigurer::addInput(const string &name, const ref_ptr<ShaderInput> &in, const string &type)
 {
   map<string, ShaderInputList::iterator>::iterator needle = inputNames_.find(name);
   if(needle == inputNames_.end()) {
-    cfg_.inputs_.push_back(NamedShaderInput(in,name));
+    cfg_.inputs_.push_back(NamedShaderInput(in,name,type));
     ShaderInputList::iterator it = cfg_.inputs_.end();
     --it;
     inputNames_[name] = it;
   }
   else {
-    *needle->second = NamedShaderInput(in,name);
+    *needle->second = NamedShaderInput(in,name,type);
   }
 }
 
@@ -114,7 +114,7 @@ void StateConfigurer::addState(const State *s)
     // remember the number of textures used
     define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()+1));
     cfg_.textures_[x2->name()] = x2->texture();
-    addInput(x2->name(), x2->texture());
+    addInput(x2->name(), x2->texture(), x2->samplerType());
   }
 
   setVersion( s->shaderVersion() );
