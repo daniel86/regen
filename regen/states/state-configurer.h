@@ -52,7 +52,7 @@ namespace regen {
     /**
      * Adds ShaderInput instance to StateConfig.
      */
-    void addInput(const string &name, const ref_ptr<ShaderInput> &in);
+    void addInput(const string &name, const ref_ptr<ShaderInput> &in, const string &type="");
     /**
      * Add each key-value pair from given map to shader defines.
      */
