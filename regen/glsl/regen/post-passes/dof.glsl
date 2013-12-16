@@ -23,7 +23,7 @@ uniform sampler2D in_depthTexture;
 const float in_focalDistance = 0.0;
 const vec2 in_focalWidth = vec2(0.1,0.2);
 
-#include regen.utility.utility.linearizeDepth
+#include regen.states.camera.linearizeDepth
 
 void main() {
     vec4 original = texture(in_inputTexture, in_texco);

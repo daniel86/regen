@@ -40,6 +40,7 @@ uniform float in_lightNear;
 #endif
 
 #ifndef IS_ARRAY_SHADOW
+// TODO: redundant
 float linearizeDepth(float expDepth, float n, float f) {
     float z_n = 2.0*expDepth - 1.0;
     return (2.0*n)/(f+n - z_n*(f-n));

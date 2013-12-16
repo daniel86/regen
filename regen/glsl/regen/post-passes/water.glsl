@@ -79,7 +79,7 @@ const float in_foamHardness = 1.0;
 // smaller "waves" or last to have more bigger "waves"
 const vec4 in_normalModifier = vec4(1.0,2.0,4.0,8.0);
 
-#include regen.utility.utility.texcoToWorldSpace
+#include regen.states.camera.transformTexcoToWorld
 #include regen.utility.textures.texco_planar_reflection
 
 #ifdef USE_RIPPLES
@@ -283,7 +283,7 @@ void main()
 {
   // sample depth at pixel location and compute the position in world space
   float depth = texture(in_depthTexture, in_texco).x;
-  vec3 posWorldSpace = texcoToWorldSpace(in_texco, depth);
+  vec3 posWorldSpace = transformTexcoToWorld(in_texco, depth);
   
   // check if camera is below surface
   if(in_cameraPosition.y<in_surfaceHeight) {

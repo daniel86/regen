@@ -42,12 +42,12 @@ const float in_fogDensity = 1.0;
 
 #include regen.states.camera.input
 #include regen.shading.fog.fogIntensity
-#include regen.utility.utility.texcoToWorldSpace
+#include regen.states.camera.transformTexcoToWorld
 
 void main() {
     float d0 = __TEXTURE__(in_gDepthTexture, in_texco).x;
     if(d0==1.0) discard; // discard background pixels
-    vec3 eye0 = texcoToWorldSpace(in_texco, d0) - in_cameraPosition;
+    vec3 eye0 = transformTexcoToWorld(in_texco, d0) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
     
 #ifdef USE_SKY_COLOR
@@ -58,7 +58,7 @@ void main() {
     
 #ifdef USE_TBUFFER
     float d1 = __TEXTURE__(in_tDepthTexture, in_texco).x;
-    vec3 eye1 = texcoToWorldSpace(in_texco, d1) - in_cameraPosition;
+    vec3 eye1 = transformTexcoToWorld(in_texco, d1) - in_cameraPosition;
     
     // use standard fog color from eye to transparent object
     float factor1 = fogIntensity(length(eye1));
@@ -135,8 +135,7 @@ uniform vec2 in_fogConeScale;
 uniform vec2 in_fogDistance;
 
 #include regen.utility.utility.pointVectorDistance
-#include regen.utility.utility.texcoToWorldSpace
-#include regen.utility.utility.worldSpaceToTexco
+#include regen.states.camera.transformTexcoToWorld
 
 #include regen.shading.utility.radiusAttenuation
 #ifdef IS_SPOT_LIGHT
@@ -233,7 +232,7 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
 void main()
 {
     vec2 texco = gl_FragCoord.xy/in_viewport;
-    vec3 vertexPos = texcoToWorldSpace(texco, __TEXTURE__(in_gDepthTexture, texco).x);
+    vec3 vertexPos = transformTexcoToWorld(texco, __TEXTURE__(in_gDepthTexture, texco).x);
     vec3 vertexRay = vertexPos-in_cameraPosition;
     // fog volume scales light radius
     vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
@@ -305,7 +304,7 @@ void main()
 
 #ifdef USE_TBUFFER
     // TODO: test
-    vec3 alphaPos = texcoToWorldSpace(texco, __TEXTURE__(in_tDepthTexture, texco).x);
+    vec3 alphaPos = transformTexcoToWorld(texco, __TEXTURE__(in_tDepthTexture, texco).x);
     float dLightAlpha = distance(alphaPos, in_lightPosition);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
     vec4 tcolor = __TEXTURE__(in_tColorTexture, texco);

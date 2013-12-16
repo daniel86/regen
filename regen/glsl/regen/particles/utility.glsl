@@ -84,7 +84,7 @@ uniform sampler2D in_depthTexture;
 #endif
 
 #include regen.shading.direct.diffuse
-#include regen.utility.utility.linearizeDepth
+#include regen.states.camera.linearizeDepth
 
 #ifdef USE_SOFT_PARTICLES
 // soft particles fade away where they intersect the scene

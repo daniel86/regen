@@ -24,8 +24,8 @@ const vec2 in_aoAttenuation = vec2(1.0,5.0);
 
 uniform sampler2D in_aoNoiseTexture;
 
-#include regen.utility.utility.texcoToWorldSpace
-#include regen.utility.utility.linearizeDepth
+#include regen.states.camera.transformTexcoToWorld
+#include regen.states.camera.linearizeDepth
 
 #include regen.shading.utility.fetchNormal
 
@@ -36,7 +36,7 @@ uniform sampler2D in_aoNoiseTexture;
 
 float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 {
-    vec3 pos1 = texcoToWorldSpace(texco, texture(in_gDepthTexture,texco).r);
+    vec3 pos1 = transformTexcoToWorld(texco, __TEXTURE__(in_gDepthTexture,texco).r);
     vec3 dir = pos1 - pos0;
     float dist = length(dir);
     // calculate occlusion intensity
@@ -48,7 +48,7 @@ float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 void main() {
     vec3 N = fetchNormal(in_texco);
     float depth = __TEXTURE__(in_gDepthTexture, in_texco).r;
-    vec3 P = texcoToWorldSpace(in_texco, depth);
+    vec3 P = transformTexcoToWorld(in_texco, depth);
     depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
     vec2 texelSize = in_inverseViewport*0.5;
     

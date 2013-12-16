@@ -403,6 +403,7 @@ out vec4 out_color;
 uniform float in_lightFar;
 uniform float in_lightNear;
 
+// TODO: redundant
 float linearizeDepth(float expDepth, float n, float f) {
     float z_n = 2.0*expDepth - 1.0;
     return (2.0*n)/(f+n - z_n*(f-n));

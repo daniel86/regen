@@ -8,47 +8,51 @@
 #define RENDER_TARGET 2D
 #endif
 
-#if RENDER_TARGET == CUBE
 #if SHADER_STAGE == fs
+#if RENDER_TARGET == CUBE
 #define __VIEW__          in_viewMatrix[in_layer]
 #define __VIEW_INV__      in_inverseViewMatrix[in_layer]
-#define __PROJ__          in_projectionMatrix
-#define __PROJ_INV__      in_inverseProjectionMatrix
 #define __VIEW_PROJ__     in_viewProjectionMatrix[in_layer]
 #define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
 #define __CAM_DIR__       in_cameraDirection[in_layer]
-#define __CAM_POS__       in_cameraPosition
-#define __CAM_NEAR__      in_near
-#define __CAM_FAR__       in_far
-#endif
-
 #elif RENDER_TARGET == 2D_ARRAY
-#if SHADER_STAGE == fs
-#define __VIEW__          in_viewMatrix
-#define __VIEW_INV__      in_inverseViewMatrix
 #define __PROJ__          in_projectionMatrix[in_layer]
 #define __PROJ_INV__      in_inverseProjectionMatrix[in_layer]
 #define __VIEW_PROJ__     in_viewProjectionMatrix[in_layer]
 #define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
-#define __CAM_DIR__       in_cameraDirection
-#define __CAM_POS__       in_cameraPosition
 #define __CAM_NEAR__      in_near[in_layer]
 #define __CAM_FAR__       in_far[in_layer]
-#endif
-
-#else // RENDER_TARGET == 2D
-#if SHADER_STAGE == fs
+#endif // RENDER_TARGET == 2D_ARRAY
+#endif // SHADER_STAGE == fs
+#ifndef __VIEW__
 #define __VIEW__          in_viewMatrix
-#define __VIEW_INV__      in_inverseViewMatrix
-#define __PROJ__          in_projectionMatrix
-#define __PROJ_INV__      in_inverseProjectionMatrix
-#define __VIEW_PROJ__     in_viewProjectionMatrix
-#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix
-#define __CAM_DIR__       in_cameraDirection
-#define __CAM_POS__       in_cameraPosition
-#define __CAM_NEAR__      in_near
-#define __CAM_FAR__       in_far
 #endif
+#ifndef __VIEW_INV__
+#define __VIEW_INV__      in_inverseViewMatrix
+#endif
+#ifndef __PROJ__
+#define __PROJ__          in_projectionMatrix
+#endif
+#ifndef __PROJ_INV__
+#define __PROJ_INV__      in_inverseProjectionMatrix
+#endif
+#ifndef __VIEW_PROJ__
+#define __VIEW_PROJ__     in_viewProjectionMatrix
+#endif
+#ifndef __VIEW_PROJ_INV__
+#define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix
+#endif
+#ifndef __CAM_DIR__
+#define __CAM_DIR__       in_cameraDirection
+#endif
+#ifndef __CAM_POS__
+#define __CAM_POS__       in_cameraPosition
+#endif
+#ifndef __CAM_NEAR__
+#define __CAM_NEAR__      in_near
+#endif
+#ifndef __CAM_FAR__
+#define __CAM_FAR__       in_far
 #endif
 
 -- input
@@ -178,4 +182,76 @@ vec4 transformWorldToScreen(vec3 posWorld, int layer) {
   return transformWorldToScreen(vec4(posWorld,1.0),layer);
 }
 
+#endif
+
+-- transformWorldToTexco
+#ifndef __transformWorldToTexco_included__
+#define __transformWorldToTexco_included__
+vec3 transformWorldToTexco(vec4 posWorld)
+{
+    vec4 ss = __VIEW_PROJ__*posWorld;
+    return (ss.xyz/ss.w + vec3(1.0))*0.5;
+}
+#endif
+
+-- transformEyeToTexco
+#ifndef __transformEyeToTexco_included__
+#define __transformEyeToTexco_included__
+vec3 transformEyeToTexco(vec4 posEye)
+{
+    vec4 ss = __PROJ__*posEye;
+    return (ss.xyz/ss.w + vec3(1.0))*0.5;
+}
+#endif
+
+-- transformScreenToTexco
+#ifndef __transformScreenToTexco_included__
+#define __transformScreenToTexco_included__
+vec2 transformScreenToTexco(vec4 posScreen)
+{
+    return (posScreen.xy/posScreen.w + vec2(1.0))*0.5;
+}
+#endif
+
+-- transformTexcoToWorld
+#ifndef __transformTexcoToWorld_included__
+#define __transformTexcoToWorld_included__
+vec3 transformTexcoToWorld(vec2 texco, float depth) {
+    vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
+    vec4 D = __VIEW_PROJ_INV__*vec4(pos0,1.0);
+    return D.xyz/D.w;
+}
+#endif
+
+-- transformTexcoToView
+#ifndef __transformTexcoToView_included__
+#define __transformTexcoToView_included__
+vec3 transformTexcoToView(vec2 texco, float depth) {
+    vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
+    vec4 D = __PROJ_INV__*vec4(pos0,1.0);
+    return D.xyz/D.w;
+}
+#endif
+
+-- linearizeDepth
+#ifndef __linearizeDepth_included__
+#define __linearizeDepth_included__
+//float linearizeDepth(float d, float n, float f)
+//{
+//    float z_n = 2.0*d - 1.0;
+//    return 2.0*n*f/(f+n-z_n*(f-n));
+//}
+float linearizeDepth(float expDepth, float n, float f)
+{
+    return (2.0*n)/(f+n - expDepth*(f-n));
+}
+#endif
+
+-- exponentialDepth
+#ifndef __exponentialDepth_included__
+#define __exponentialDepth_included__
+float exponentialDepth(float linearDepth, float n, float f)
+{
+  return ((f+n)*linearDepth - (2.0*n)) / ((f-n)*linearDepth);
+}
 #endif
