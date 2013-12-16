@@ -26,7 +26,7 @@ out vec3 out_texco;
 
 -- gsEmit
 #if RENDER_TARGET == CUBE
-#include regen.utility.utility.computeCubeDirection
+#include regen.math.computeCubeDirection
 void emitVertex(vec4 P, int layer)
 {
     gl_Position = P;

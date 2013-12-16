@@ -77,7 +77,7 @@ void main()
 -- filtering.vsm
 #ifndef __SM_FILTER_VSM_included__
 #define2 __SM_FILTER_VSM_included__
-#include regen.utility.utility.linstep
+#include regen.math.linstep
 
 float chebyshevUpperBound(float dist, vec2 moments)
 {
@@ -110,7 +110,7 @@ float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
 -- filtering.gaussian
 #ifndef __SM_FILTER_GAUSS_included__
 #define2 __SM_FILTER_GAUSS_included__
-#include regen.utility.utility.computeCubeOffset
+#include regen.math.computeCubeOffset
 
 // Gaussian 3x3 filter
 float shadowGaussian(sampler2DShadow tex, vec4 shadowCoord)
@@ -188,7 +188,7 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 lightMatrix)
 
 -- sampling.point
 #include regen.shading.shadow-mapping.filtering.all
-#include regen.utility.utility.linstep
+#include regen.math.linstep
 
 #define pointShadowSingle(tex,l,d,n,f,s)   shadowCube(tex, vec4(-l,d)).x
 #define pointShadowGaussian(tex,l,d,n,f,s) shadowGaussian(tex, vec4(-l,d), s)
@@ -196,7 +196,7 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 lightMatrix)
 
 -- sampling.spot
 #include regen.shading.shadow-mapping.filtering.all
-#include regen.utility.utility.linstep
+#include regen.math.linstep
 
 #define spotShadowSingle(tex,x,l,n,f)   textureProj(tex,x);
 #define spotShadowGaussian(tex,x,l,n,f) shadowGaussian(tex,x)

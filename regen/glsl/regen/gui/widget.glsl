@@ -34,7 +34,7 @@ void main() {
 }
 
 -- fs
-#include regen.meshes.mesh.material
+#include regen.states.material.input
 
 #include regen.utility.textures.defines
 #include regen.utility.textures.input

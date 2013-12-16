@@ -19,13 +19,12 @@ uniform mat4 in_modelMatrix;
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
-
-#include regen.meshes.mesh.model-transformation
+#include regen.states.model.transformModel
 
 #define HANDLE_IO()
 
 void main() {
-    vec4 posWorld = toWorldSpace(vec4(in_pos,1.0));
+    vec4 posWorld = transformModel(vec4(in_pos,1.0));
     vec4 posEye = transformWorldToEye(posWorld,0);
 #ifdef HAS_modelMatrix
     out_rayOrigin = (

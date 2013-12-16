@@ -1,20 +1,4 @@
 
---------------------------------------
----- Vertex shader for fullscreen rendering pass.
---------------------------------------
--- fullscreen.vs
-in vec3 in_pos;
-out vec2 out_texco;
-#define HANDLE_IO(i)
-void main() {
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-    HANDLE_IO(gl_VertexID);
-}
-
---------------------------------------
----- Linear interpolate between values.
---------------------------------------
 -- linstep
 #ifndef __linstep_included__
 #define __linstep_included__
@@ -22,7 +6,6 @@ float linstep(float low, float high, float v) {
     return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 #endif
-
 
 -- isPointBetween
 #ifndef __isPointBetween_included__
@@ -75,6 +58,7 @@ float pointVectorDistance(vec3 dir, vec3 p)
 }
 #endif
 
+
 -- computeCubeAxis
 #ifndef __computeCubeAxis__included__
 #define2 __computeCubeAxis__included__
@@ -121,7 +105,7 @@ vec3 computeCubeDirection(vec2 uv, int layer)
 -- computeCubeOffset
 #ifndef __computeCubeOffset__included__
 #define2 __computeCubeOffset__included__
-#include regen.utility.utility.computeCubeAxis
+#include regen.math.computeCubeAxis
 void computeCubeOffset(vec3 dir, float x, out vec3 dx, out vec3 dy)
 {
     vec3 offsetsX[3] = vec3[](

@@ -84,7 +84,7 @@ struct Shading {
 #include regen.shading.utility.radiusAttenuation
 #include regen.shading.utility.specularFactor
 #include regen.shading.shadow-mapping.sampling.all
-#include regen.utility.utility.computeCubeLayer
+#include regen.math.computeCubeLayer
 
 Shading shade(vec3 P, vec3 N, float depth, float shininess)
 {
@@ -176,7 +176,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 #include regen.shading.utility.spotConeAttenuation
 #include regen.shading.utility.radiusAttenuation
 #include regen.shading.shadow-mapping.sampling.all
-#include regen.utility.utility.computeCubeLayer
+#include regen.math.computeCubeLayer
 
 vec3 getDiffuseLight(vec3 P, float depth)
 {

@@ -117,7 +117,7 @@ in float in_sphereRadius;
 uniform vec4 in_col;
 #endif
 
-#include regen.meshes.mesh.material
+#include regen.states.material.input
 #include regen.utility.textures.input
 
 #include regen.utility.textures.mapToFragment
