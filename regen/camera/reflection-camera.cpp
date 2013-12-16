@@ -13,7 +13,8 @@ using namespace regen;
 ReflectionCamera::ReflectionCamera(
     const ref_ptr<Camera> &userCamera,
     const ref_ptr<Mesh> &mesh,
-    GLuint vertexIndex)
+    GLuint vertexIndex,
+    GLboolean hasBackFace)
 : Camera(),
   userCamera_(userCamera),
   vertexIndex_(vertexIndex),
@@ -22,7 +23,8 @@ ReflectionCamera::ReflectionCamera(
   camDirStamp_(userCamera->direction()->stamp()-1),
   cameraChanged_(GL_TRUE),
   isFront_(GL_TRUE),
-  hasMesh_(GL_TRUE)
+  hasMesh_(GL_TRUE),
+  hasBackFace_(hasBackFace)
 {
   updateFrustum(
       userCamera_->fov()->getVertex(0),
@@ -52,7 +54,8 @@ ReflectionCamera::ReflectionCamera(
 ReflectionCamera::ReflectionCamera(
     const ref_ptr<Camera> &userCamera,
     const Vec3f &reflectorNormal,
-    const Vec3f &reflectorPoint)
+    const Vec3f &reflectorPoint,
+    GLboolean hasBackFace)
 : Camera(),
   userCamera_(userCamera),
   projStamp_(userCamera->projection()->stamp()-1),
@@ -60,7 +63,8 @@ ReflectionCamera::ReflectionCamera(
   camDirStamp_(userCamera->direction()->stamp()-1),
   cameraChanged_(GL_TRUE),
   isFront_(GL_TRUE),
-  hasMesh_(GL_FALSE)
+  hasMesh_(GL_FALSE),
+  hasBackFace_(hasBackFace)
 {
   updateFrustum(
       userCamera_->fov()->getVertex(0),
@@ -132,13 +136,15 @@ void ReflectionCamera::updateReflection()
   }
 
   // Switch normal if viewer is behind reflector.
-  // TODO: also allow to skip computation in this case.
   const Vec3f &camPos = userCamera_->position()->getVertex(0);
   GLboolean isFront = norWorld_.dot(camPos-posWorld_)>0.0;
   if(isFront != isFront_) {
     isFront_ = isFront;
     reflectorChanged = GL_TRUE;
   }
+  // Skip back faces
+  if(!isFront && !hasBackFace_) return;
+
   // Compute reflection matrix...
   if(reflectorChanged) {
     if(isFront_) {

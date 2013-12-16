@@ -316,7 +316,6 @@ bool IOProcessor::process(PreProcessorState &state, string &line)
   }
 
   // Processing of HANLDE_IO macro.
-  // TODO: do not require this macro. do it automatically.
   it = boost::sregex_iterator(line.begin(), line.end(), handleIORegex_);
   if(it!=NO_REGEX_MATCH) {
     if(!isInputSpecified_) {

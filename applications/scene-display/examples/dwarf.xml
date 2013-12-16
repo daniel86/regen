@@ -89,7 +89,8 @@
 	direction="-1.0,0.0,-1.0" />
 <camera id="reflection-camera"
 	camera="main-camera"
-	reflector="reflector-mesh" />
+	reflector="reflector-mesh"
+	has-back-face="1" />
 <camera id="spot-camera"
 	light="spot-light"
 	camera="main-camera" />
