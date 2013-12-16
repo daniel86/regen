@@ -270,7 +270,7 @@ void LightCamera::updateDirectional()
     }
     proj_->setVertex(i, proj_->getVertex(i)*Mat4f::cropMatrix(
         xRange.x, xRange.y, yRange.x, yRange.y));
-    // TODO slow inverse
+    // TODO slow inverse. multiply special ortho/crop inverse
     projInv_->setVertex(i, proj_->getVertex(i).inverse());
 
     updateViewProjection(i,0);

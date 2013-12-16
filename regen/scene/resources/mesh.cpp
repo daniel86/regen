@@ -167,8 +167,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
       out_ = createAssetMeshes(parser,input,importer);
       out = out_.get();
     }
-    // TODO: ...
-    //parser->putState(input.getName(),out[0]);
+    for(GLuint i=0u; i<out->size(); ++i) {
+      parser->putState(REGEN_STRING(input.getName()<<i),(*out)[i]);
+    }
   }
   else if(meshType == "sky") {
     (*out) = MeshVector(1);
