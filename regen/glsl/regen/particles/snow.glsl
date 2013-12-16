@@ -15,9 +15,7 @@ out vec4 out_posEye;
 out vec4 out_posWorld;
 out vec2 out_spriteTexco;
 
-uniform mat4 in_viewMatrix;
-uniform mat4 in_inverseViewMatrix;
-uniform mat4 in_projectionMatrix;
+#include regen.states.camera.input
 uniform vec2 in_viewport;
 
 #include regen.meshes.sprite.getSpritePoints

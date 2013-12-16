@@ -93,12 +93,7 @@ in vec4 in_Position;
 in vec4 in_lastPosition;
 #endif
 
-#ifdef WORLD_SPACE
-uniform mat4 in_viewProjectionMatrix;
-#else
-#ifdef EYE_SPACE
-uniform mat4 in_projectionMatrix;
-#endif
+#include regen.states.camera.input
 
 void main() {
 #ifdef WORLD_SPACE

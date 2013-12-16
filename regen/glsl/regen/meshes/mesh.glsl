@@ -22,6 +22,7 @@ uniform float in_matAlpha;
 #define PI 3.14159265
 #endif
 #endif
+// TODO redundant
 #ifndef RENDER_LAYER
 #define RENDER_LAYER 1
 #endif
@@ -320,6 +321,7 @@ void main() {
 #endif
 
 -- gs
+// TODO redundant
 #if RENDER_LAYER > 1
 #extension GL_EXT_geometry_shader4 : enable
 
@@ -457,10 +459,7 @@ in vec3 in_norWorld;
 #ifdef HAS_col
 uniform vec4 in_col;
 #endif
-uniform vec3 in_cameraPosition;
-uniform mat4 in_projectionMatrix;
-uniform mat4 in_viewMatrix;
-uniform mat4 in_viewProjectionMatrix;
+#include regen.states.camera.input
 
 #include regen.meshes.mesh.material
 #include regen.utility.textures.input

@@ -34,9 +34,9 @@ void main() {
 layout(points) in;
 layout(triangle_strip, max_vertices=8) out;
 
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
-uniform mat4 in_inverseViewMatrix;
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -51,7 +51,7 @@ out float in_sphereRadius;
 
 void main() {
     vec3 centerWorld = gl_PositionIn[0].xyz;
-    vec4 centerEye = in_viewMatrix * vec4(centerWorld,1.0);
+    vec4 centerEye = transformWorldToEye(centerWorld,0);
     vec3 quadPos[4] = getSpritePoints(
         centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
 #ifdef DEPTH_CORRECT
@@ -61,29 +61,29 @@ void main() {
     out_spriteTexco = vec2(1.0,0.0);
     vec4 posEye = vec4(quadPos[0],1.0);
     out_posEye = posEye.xyz;
-    out_posWorld = (in_inverseViewMatrix * posEye).xyz;
-    gl_Position = in_projectionMatrix * posEye;
+    out_posWorld = (__VIEW_INV__ * posEye).xyz;
+    gl_Position = transformEyeToScreen(posEye,0);
     EmitVertex();
     
     out_spriteTexco = vec2(1.0,1.0);
     posEye = vec4(quadPos[1],1.0);
     out_posEye = posEye.xyz;
-    out_posWorld = (in_inverseViewMatrix * posEye).xyz;
-    gl_Position = in_projectionMatrix * posEye;
+    out_posWorld = (__VIEW_INV__ * posEye).xyz;
+    gl_Position = transformEyeToScreen(posEye);
     EmitVertex();
         
     out_spriteTexco = vec2(0.0,0.0);
     posEye = vec4(quadPos[2],1.0);
     out_posEye = posEye.xyz;
-    out_posWorld = (in_inverseViewMatrix * posEye).xyz;
-    gl_Position = in_projectionMatrix * posEye;
+    out_posWorld = (__VIEW_INV__ * posEye).xyz;
+    gl_Position = transformEyeToScreen(posEye);
     EmitVertex();
         
     out_spriteTexco = vec2(0.0,1.0);
     posEye = vec4(quadPos[3],1.0);
     out_posEye = posEye.xyz;
-    out_posWorld = (in_inverseViewMatrix * posEye).xyz;
-    gl_Position = in_projectionMatrix * posEye;
+    out_posWorld = (__VIEW_INV__ * posEye).xyz;
+    gl_Position = transformEyeToScreen(posEye);
     EmitVertex();
     EndPrimitive();
 }
@@ -104,9 +104,7 @@ layout(location = 1) out vec4 out_specular;
 layout(location = 2) out vec4 out_norWorld;
 #endif
 
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
-uniform mat4 in_inverseViewMatrix;
+#include regen.states.camera.input
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
@@ -118,7 +116,6 @@ in float in_sphereRadius;
 #ifdef HAS_col
 uniform vec4 in_col;
 #endif
-uniform vec3 in_cameraPosition;
 
 #include regen.meshes.mesh.material
 #include regen.utility.textures.input
@@ -130,7 +127,7 @@ uniform vec3 in_cameraPosition;
 void depthCorrection(float depth)
 {
     vec3 pe = in_posEye + depth*normalize(in_posEye);
-    vec4 ps = in_projectionMatrix * vec4(pe,1.0);
+    vec4 ps = __PROJ__ * vec4(pe,1.0);
     gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
 }
 #endif
@@ -143,7 +140,7 @@ void main()
     if(texcoMagnitude>=0.99) discard;
     
     vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
-    vec4 norWorld = normalize(in_inverseViewMatrix * vec4(normal,0.0));
+    vec4 norWorld = normalize(__VIEW_INV__ * vec4(normal,0.0));
 #ifdef DEPTH_CORRECT
     // Note that early depth test is disabled then and this can have
     // bad consequences for performance.

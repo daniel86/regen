@@ -62,20 +62,33 @@ LightCamera::LightCamera(
     lightFar_->set_forceArray(GL_TRUE);
     lightMatrix_->set_elementCount(numLayer_);
     lightMatrix_->set_forceArray(GL_TRUE);
+    position_->setVertex(0, Vec3f(0.0f));
+
     shaderDefine("RENDER_TARGET", "2D_ARRAY");
     break;
 
-  case Light::POINT:
+  case Light::POINT: {
     numLayer_ = 6;
     update_ = &LightCamera::updatePoint;
     view_->set_elementCount(numLayer_);
     viewInv_->set_elementCount(numLayer_);
     viewproj_->set_elementCount(numLayer_);
     viewprojInv_->set_elementCount(numLayer_);
+
+    // Initialize directions
+    direction_->set_elementCount(numLayer_);
+    direction_->setUniformDataUntyped(NULL);
+    const Vec3f *dir = Mat4f::cubeDirectories();
+    for(register GLuint i=0; i<6; ++i) {
+      direction_->setVertex(i, dir[i]);
+    }
+
+    // CubeMap's dont't need transformation matrix, they are accessed by positions
     lightMatrix_->set_elementCount(numLayer_);
     lightMatrix_->set_forceArray(GL_TRUE);
     shaderDefine("RENDER_TARGET", "CUBE");
     break;
+  }
 
   case Light::SPOT:
     numLayer_ = 1;
@@ -123,12 +136,75 @@ const ref_ptr<ShaderInput1f>& LightCamera::lightFar() const
 const ref_ptr<ShaderInput1f>& LightCamera::lightNear() const
 { return lightNear_; }
 
+void LightCamera::updateSpot()
+{
+  if(lightPosStamp_    == light_->position()->stamp() &&
+     lightDirStamp_    == light_->direction()->stamp() &&
+     lightRadiusStamp_ == light_->radius()->stamp())
+  { return; }
+  const Vec3f &pos = light_->position()->getVertex(0);
+  const Vec3f &dir = light_->direction()->getVertex(0);
+  const Vec2f &coneAngle = light_->coneAngle()->getVertex(0);
+  const Vec2f &a = light_->radius()->getVertex(0);
+
+  position_->setVertex(0, pos);
+  direction_->setVertex(0, dir);
+  lightFar_->setVertex(0, a.y);
+
+  // Update view matrix.
+  updateLookAt();
+  // Update projection and recompute view-projection matrix.
+  updateFrustum(
+      1.0f,
+      2.0*acos(coneAngle.y)*RAD_TO_DEGREE,
+      lightNear_->getVertex(0), lightFar_->getVertex(0),
+      GL_TRUE);
+  // Transforms world space coordinates to homogenous light space
+  lightMatrix_->setVertex(0, viewproj_->getVertex(0) * Mat4f::bias());
+
+  lightPosStamp_ = light_->position()->stamp();
+  lightDirStamp_ = light_->direction()->stamp();
+  lightRadiusStamp_ = light_->radius()->stamp();
+}
+
+void LightCamera::updatePoint()
+{
+  if(lightPosStamp_    == light_->position()->stamp() &&
+     lightRadiusStamp_ == light_->radius()->stamp())
+  { return; }
+  const Vec3f &pos = light_->position()->getVertex(0);
+  const GLfloat &far = light_->radius()->getVertex(0).y;
+
+  position_->setVertex(0, light_->position()->getVertex(0));
+  lightFar_->setVertex(0, far);
+
+  // Update projection
+  updateFrustum(
+      1.0f, 90.0f,
+      lightNear_->getVertex(0),
+      lightFar_->getVertex(0),
+      GL_FALSE);
+  updateProjection();
+
+  // Update view and view-projection matrix
+  Mat4f::cubeLookAtMatrices(pos, (Mat4f*)view_->clientDataPtr());
+  for(register GLuint i=0; i<6; ++i) {
+    if(!isCubeFaceVisible_[i]) { continue; }
+    viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
+    updateViewProjection(0,i);
+  }
+
+  lightPosStamp_ = light_->position()->stamp();
+  lightRadiusStamp_ = light_->radius()->stamp();
+  lightMatrix_->nextStamp();
+}
+
 void LightCamera::updateDirectional()
 {
   Mat4f *shadowMatrices = (Mat4f*)lightMatrix_->clientDataPtr();
   lightMatrix_->nextStamp();
 
-  // update near/far values when projection changed
+  // Update near/far values when user camera projection changed
   if(projectionStamp_ != userCamera_->projection()->stamp())
   {
     const Mat4f &proj = userCamera_->projection()->getVertex(0);
@@ -154,7 +230,7 @@ void LightCamera::updateDirectional()
     projectionStamp_ = userCamera_->projection()->stamp();
   }
 
-  // update view matrix when light direction changed
+  // Update view matrix when light direction changed
   if(lightDirStamp_ != light_->direction()->stamp())
   {
     const Vec3f &dir = light_->direction()->getVertex(0);
@@ -170,10 +246,12 @@ void LightCamera::updateDirectional()
         0.0f,              0.0f, 0.0f, 1.0f
     ));
     viewInv_->setVertex(0, view_->getVertex(0).lookAtInverse());
+    direction_->setVertex(0, f);
+
     lightDirStamp_ = light_->direction()->stamp();
   }
 
-  // update view and view-projection matrices
+  // Update projection and view-projection matrix
   for(register GLuint i=0; i<numLayer_; ++i)
   {
     Frustum *frustum = shadowFrusta_[i];
@@ -207,71 +285,10 @@ void LightCamera::updateDirectional()
     // TODO slow inverse
     projInv_->setVertex(i, proj_->getVertex(i).inverse());
 
-    viewproj_->setVertex(i, view_->getVertex(0)*proj_->getVertex(i));
-    viewprojInv_->setVertex(i, projInv_->getVertex(i)*viewInv_->getVertex(0));
+    updateViewProjection(i,0);
     // transforms world space coordinates to homogeneous light space
     shadowMatrices[i] = viewproj_->getVertex(i) * Mat4f::bias();
   }
-}
-
-void LightCamera::updatePoint()
-{
-  if(lightPosStamp_    == light_->position()->stamp() &&
-     lightRadiusStamp_ == light_->radius()->stamp())
-  { return; }
-  lightMatrix_->nextStamp();
-
-  const Vec3f &pos = light_->position()->getVertex(0);
-  GLfloat far = light_->radius()->getVertex(0).y;
-  lightFar_->setVertex(0, far);
-
-  proj_->setVertex(0, Mat4f::projectionMatrix(
-      90.0, 1.0f, lightNear_->getVertex(0), far));
-  projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());
-  Mat4f::cubeLookAtMatrices(pos, (Mat4f*)view_->clientDataPtr());
-
-  for(register GLuint i=0; i<6; ++i) {
-    if(!isCubeFaceVisible_[i]) { continue; }
-    viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
-    viewproj_->setVertex(i, view_->getVertex(i)*proj_->getVertex(0));
-    viewprojInv_->setVertex(i, projInv_->getVertex(0)*viewInv_->getVertex(i));
-  }
-
-  lightPosStamp_ = light_->position()->stamp();
-  lightRadiusStamp_ = light_->radius()->stamp();
-}
-
-void LightCamera::updateSpot()
-{
-  if(lightPosStamp_    == light_->position()->stamp() &&
-     lightDirStamp_    == light_->direction()->stamp() &&
-     lightRadiusStamp_ == light_->radius()->stamp())
-  { return; }
-
-  const Vec3f &pos = light_->position()->getVertex(0);
-  const Vec3f &dir = light_->direction()->getVertex(0);
-  const Vec2f &a = light_->radius()->getVertex(0);
-  lightFar_->setVertex(0, a.y);
-
-  view_->setVertex(0, Mat4f::lookAtMatrix(pos,dir,Vec3f::up()));
-  viewInv_->setVertex(0, view_->getVertex(0).lookAtInverse());
-
-  const Vec2f &coneAngle = light_->coneAngle()->getVertex(0);
-  proj_->setVertex(0, Mat4f::projectionMatrix(
-      2.0*acos(coneAngle.y)*RAD_TO_DEGREE,
-      1.0f,
-      lightNear_->getVertex(0),
-      lightFar_->getVertex(0)));
-  projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());
-
-  viewproj_->setVertex(0,view_->getVertex(0) * proj_->getVertex(0));
-  viewprojInv_->setVertex(0,projInv_->getVertex(0) * viewInv_->getVertex(0));
-  // transforms world space coordinates to homogenous light space
-  lightMatrix_->setVertex(0, viewproj_->getVertex(0) * Mat4f::bias());
-
-  lightPosStamp_ = light_->position()->stamp();
-  lightDirStamp_ = light_->direction()->stamp();
-  lightRadiusStamp_ = light_->radius()->stamp();
 }
 
 void LightCamera::enable(RenderState *rs)

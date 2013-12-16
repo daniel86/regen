@@ -28,8 +28,6 @@ Camera::Camera(GLboolean initializeMatrices)
   far_->setUniformDataUntyped(NULL);
   setInput(far_);
 
-  updateFrustum(8.0/6.0, 45.0, 1.0, 200.0, GL_FALSE);
-
   position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");
   position_->setUniformData(Vec3f( 0.0, 1.0, 4.0 ));
   setInput(position_);
@@ -57,22 +55,47 @@ Camera::Camera(GLboolean initializeMatrices)
   viewprojInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
   setInput(viewprojInv_);
 
+  updateFrustum(8.0/6.0, 45.0, 1.0, 200.0, GL_FALSE);
   if(initializeMatrices) {
-    view_->setUniformData(Mat4f::lookAtMatrix(
-        position_->getVertex(0),
-        direction_->getVertex(0),
-        Vec3f::up()));
-    proj_->setUniformData(Mat4f::projectionMatrix(
-        fov_->getVertex(0),
-        aspect_->getVertex(0),
-        near_->getVertex(0),
-        far_->getVertex(0))
-    );
-    viewInv_->setUniformData(view_->getVertex(0).lookAtInverse());
-    projInv_->setUniformData(proj_->getVertex(0).projectionInverse());
-    viewproj_->setUniformData(view_->getVertex(0) * proj_->getVertex(0));
-    viewprojInv_->setUniformData(projInv_->getVertex(0) * viewInv_->getVertex(0));
+    view_->setUniformDataUntyped(NULL);
+    viewInv_->setUniformDataUntyped(NULL);
+    proj_->setUniformDataUntyped(NULL);
+    projInv_->setUniformDataUntyped(NULL);
+    viewproj_->setUniformDataUntyped(NULL);
+    viewprojInv_->setUniformDataUntyped(NULL);
+
+    updateProjection();
+    updateLookAt();
+    updateViewProjection();
   }
+}
+
+void Camera::updateLookAt()
+{
+  view_->setVertex(0, Mat4f::lookAtMatrix(
+      position_->getVertex(0),
+      direction_->getVertex(0),
+      Vec3f::up()));
+  viewInv_->setVertex(0, view_->getVertex(0).lookAtInverse());
+}
+
+void Camera::updateProjection()
+{
+  proj_->setVertex(0, Mat4f::projectionMatrix(
+      fov_->getVertex(0),
+      aspect_->getVertex(0),
+      near_->getVertex(0),
+      far_->getVertex(0))
+  );
+  projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());
+}
+
+void Camera::updateViewProjection(GLuint i, GLuint j)
+{
+  viewproj_->setVertex((i>j?i:j),
+      view_->getVertex(j) * proj_->getVertex(i));
+  viewprojInv_->setVertex((i>j?i:j),
+      projInv_->getVertex(i) * viewInv_->getVertex(j));
 }
 
 void Camera::updateFrustum(
@@ -89,12 +112,8 @@ void Camera::updateFrustum(
   frustum_.set(aspect,fov,near,far);
 
   if(updateMatrices) {
-    proj_->setVertex(0, Mat4f::projectionMatrix(fov, aspect, near, far));
-    projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());
-    viewproj_->setVertex(0,
-        view_->getVertex(0) * proj_->getVertex(0));
-    viewprojInv_->setVertex(0,
-        projInv_->getVertex(0) * viewInv_->getVertex(0));
+    updateProjection();
+    updateViewProjection();
   }
 }
 

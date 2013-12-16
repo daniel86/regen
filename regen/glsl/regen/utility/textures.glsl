@@ -21,7 +21,7 @@ vec3 eyeVectorTan()
 void depthCorrection(float depth)
 {
     vec3 pe = in_posEye + depth*normalize(in_posEye);
-    vec4 ps = in_projectionMatrix * vec4(pe,1.0);
+    vec4 ps = __PROJ__ * vec4(pe,1.0);
     gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
 }
 #endif
