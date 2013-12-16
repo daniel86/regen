@@ -26,11 +26,13 @@ namespace regen {
      */
     ReflectionCamera(const ref_ptr<Camera> &cam,
         const ref_ptr<Mesh> &mesh,
-        GLuint vertexIndex=0);
+        GLuint vertexIndex=0,
+        GLboolean hasBackFace=GL_FALSE);
     ReflectionCamera(
         const ref_ptr<Camera> &userCamera,
         const Vec3f &reflectorNormal,
-        const Vec3f &reflectorPoint);
+        const Vec3f &reflectorPoint,
+        GLboolean hasBackFace=GL_FALSE);
 
     // Override
     virtual void enable(RenderState *rs);
@@ -55,6 +57,7 @@ namespace regen {
     GLboolean isReflectorValid_;
     GLboolean isFront_;
     GLboolean hasMesh_;
+    GLboolean hasBackFace_;
     Mat4f reflectionMatrix_;
 
     void updateReflection();

@@ -64,6 +64,7 @@ ref_ptr<Camera> CameraResource::createResource(
       return ref_ptr<Camera>();
     }
     ref_ptr<ReflectionCamera> cam;
+    bool hasBackFace = input.getValue<bool>("has-back-face", false);
 
     if(input.hasAttribute("reflector")) {
       ref_ptr<MeshVector> mesh =
@@ -74,14 +75,14 @@ ref_ptr<Camera> CameraResource::createResource(
       }
       const vector< ref_ptr<Mesh> > &vec = *mesh.get();
       cam = ref_ptr<ReflectionCamera>::alloc(
-          userCamera,vec[0],input.getValue<GLuint>("vertex-index",0u));
+          userCamera,vec[0],input.getValue<GLuint>("vertex-index",0u), hasBackFace);
     }
     else if(input.hasAttribute("reflector-normal")) {
       Vec3f normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f,1.0f,0.0f));
       Vec3f position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f,0.0f,0.0f));
-      cam = ref_ptr<ReflectionCamera>::alloc(userCamera,normal,position);
+      cam = ref_ptr<ReflectionCamera>::alloc(userCamera,normal,position,hasBackFace);
     }
-    if(userCamera.get()==NULL) {
+    if(cam.get()==NULL) {
       REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
       return ref_ptr<Camera>();
     }
