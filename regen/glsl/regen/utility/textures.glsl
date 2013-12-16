@@ -450,6 +450,19 @@ vec3 texco_reflection(vec3 P, vec3 N)
 }
 #endif
 
+-- texco_parabolid_reflection
+#ifndef __TEXCO_PARABOLID_REFL__
+#define2 __TEXCO_PARABOLID_REFL__
+#include regen.states.camera
+vec2 texco_parabolid_reflection(vec3 P, vec3 N)
+{
+    vec3 incident = normalize(in_parabolidMatrix * vec4(P,1.0));
+    incident.xy /= (incident.z+1.0);
+    incident.xy  = 0.5*incident.xy + vec2(0.5); // scale and bias in range [0,1]
+    return incident.xy;
+}
+#endif
+
 -- texco_planar_reflection
 #include regen.states.camera.transformScreenToTexco
 
