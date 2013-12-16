@@ -129,6 +129,19 @@ uniform mat4 in_inverseViewProjectionMatrix;
 ////////////////
 #endif
 
+-- transformParabolid
+#ifndef __transformParabolid_INCLUDED
+#define2 __transformParabolid_INCLUDED
+vec4 transformParabolid(vec4 posScreen) {
+  float l = length(posScreen.xyz);
+  vec4 posParabolid;
+  posParabolid.xy  = posScreen.xy / L;
+  posParabolid.xy /= (posParabolid.z+1.0);
+  posParabolid.zw  = vec2((l - in_near)/(in_far - in_near), 1.0);
+  return posParabolid;
+}
+#endif
+
 -- transformWorldToEye
 #ifndef __transformWorldToEye_INCLUDED
 #define2 __transformWorldToEye_INCLUDED
