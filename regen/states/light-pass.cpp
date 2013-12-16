@@ -124,8 +124,8 @@ void LightPass::addLightInput(LightPassLight &light)
 
   // add shadow uniforms
   if(light.camera.get()) {
-    addInputLocation(light,light.camera->lightFar(), "lightFar");
-    addInputLocation(light,light.camera->lightNear(), "lightNear");
+    addInputLocation(light,light.camera->far(), "lightFar");
+    addInputLocation(light,light.camera->near(), "lightNear");
     addInputLocation(light,light.camera->lightMatrix(), "lightMatrix");
   }
   if(light.shadow.get()) {

@@ -32,8 +32,8 @@
 #define __VIEW_PROJ_INV__ in_inverseViewProjectionMatrix[in_layer]
 #define __CAM_DIR__       in_cameraDirection
 #define __CAM_POS__       in_cameraPosition
-#define __CAM_NEAR__      in_near
-#define __CAM_FAR__       in_far
+#define __CAM_NEAR__      in_near[in_layer]
+#define __CAM_FAR__       in_far[in_layer]
 #endif
 
 #else // RENDER_TARGET == 2D
@@ -83,8 +83,8 @@ uniform mat4 in_inverseViewProjectionMatrix[6];
 uniform vec3 in_cameraPosition;
 uniform vec3 in_cameraDirection;
 
-uniform float in_near;
-uniform float in_far;
+uniform float in_near[${RENDER_LAYER}];
+uniform float in_far[${RENDER_LAYER}];
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_inverseViewMatrix;

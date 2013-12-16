@@ -36,14 +36,6 @@ namespace regen {
      *          texture coordinates for shadow mapping.
      */
     const ref_ptr<ShaderInputMat4>& lightMatrix() const;
-    /**
-     * @return Light far planes.
-     */
-    const ref_ptr<ShaderInput1f>& lightFar() const;
-    /**
-     * @return Light near planes.
-     */
-    const ref_ptr<ShaderInput1f>& lightNear() const;
 
     /**
      * Discard specified cube faces.
@@ -59,8 +51,6 @@ namespace regen {
     GLuint numLayer_;
     GLdouble splitWeight_;
 
-    ref_ptr<ShaderInput1f> lightFar_;
-    ref_ptr<ShaderInput1f> lightNear_;
     ref_ptr<ShaderInputMat4> lightMatrix_;
     vector<Frustum*> shadowFrusta_;
 
