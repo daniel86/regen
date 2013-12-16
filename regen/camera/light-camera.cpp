@@ -44,10 +44,6 @@ LightCamera::LightCamera(
   updateFrustum(90.0,1.0,extends.x,extends.y,GL_FALSE);
   lightMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightMatrix");
 
-  // TODO use camera far/near...
-  lightFar_ = ref_ptr<ShaderInput1f>::alloc("lightFar");
-  lightNear_ = ref_ptr<ShaderInput1f>::alloc("lightNear");
-
   switch(light_->lightType()) {
   case Light::DIRECTIONAL:
     numLayer_ = numLayer;
@@ -56,10 +52,10 @@ LightCamera::LightCamera(
     projInv_->set_elementCount(numLayer_);
     viewproj_->set_elementCount(numLayer_);
     viewprojInv_->set_elementCount(numLayer_);
-    lightNear_->set_elementCount(numLayer_);
-    lightNear_->set_forceArray(GL_TRUE);
-    lightFar_->set_elementCount(numLayer_);
-    lightFar_->set_forceArray(GL_TRUE);
+    near_->set_elementCount(numLayer_);
+    near_->set_forceArray(GL_TRUE);
+    far_->set_elementCount(numLayer_);
+    far_->set_forceArray(GL_TRUE);
     lightMatrix_->set_elementCount(numLayer_);
     lightMatrix_->set_forceArray(GL_TRUE);
     position_->setVertex(0, Vec3f(0.0f));
@@ -104,14 +100,13 @@ LightCamera::LightCamera(
   projInv_->setUniformDataUntyped(NULL);
   viewproj_->setUniformDataUntyped(NULL);
   viewprojInv_->setUniformDataUntyped(NULL);
-  lightNear_->setUniformDataUntyped(NULL);
-  lightFar_->setUniformDataUntyped(NULL);
-  lightMatrix_->setUniformDataUntyped(NULL);
 
-  // TODO use camera far...
-  lightNear_->setVertex(0, extends.x);
-  lightFar_->setVertex(0, extends.y);
-  setInput(lightFar_);
+  near_->setUniformDataUntyped(NULL);
+  near_->setVertex(0, extends.x);
+  far_->setUniformDataUntyped(NULL);
+  far_->setVertex(0, extends.y);
+
+  lightMatrix_->setUniformDataUntyped(NULL);
   setInput(lightMatrix_);
 
   lightPosStamp_ = 0;
@@ -131,10 +126,6 @@ void LightCamera::set_isCubeFaceVisible(GLenum face, GLboolean visible)
 
 const ref_ptr<ShaderInputMat4>& LightCamera::lightMatrix() const
 { return lightMatrix_; }
-const ref_ptr<ShaderInput1f>& LightCamera::lightFar() const
-{ return lightFar_; }
-const ref_ptr<ShaderInput1f>& LightCamera::lightNear() const
-{ return lightNear_; }
 
 void LightCamera::updateSpot()
 {
@@ -145,11 +136,10 @@ void LightCamera::updateSpot()
   const Vec3f &pos = light_->position()->getVertex(0);
   const Vec3f &dir = light_->direction()->getVertex(0);
   const Vec2f &coneAngle = light_->coneAngle()->getVertex(0);
-  const Vec2f &a = light_->radius()->getVertex(0);
+  const Vec2f &radius = light_->radius()->getVertex(0);
 
   position_->setVertex(0, pos);
   direction_->setVertex(0, dir);
-  lightFar_->setVertex(0, a.y);
 
   // Update view matrix.
   updateLookAt();
@@ -157,7 +147,7 @@ void LightCamera::updateSpot()
   updateFrustum(
       1.0f,
       2.0*acos(coneAngle.y)*RAD_TO_DEGREE,
-      lightNear_->getVertex(0), lightFar_->getVertex(0),
+      near_->getVertex(0), radius.y,
       GL_TRUE);
   // Transforms world space coordinates to homogenous light space
   lightMatrix_->setVertex(0, viewproj_->getVertex(0) * Mat4f::bias());
@@ -173,16 +163,14 @@ void LightCamera::updatePoint()
      lightRadiusStamp_ == light_->radius()->stamp())
   { return; }
   const Vec3f &pos = light_->position()->getVertex(0);
-  const GLfloat &far = light_->radius()->getVertex(0).y;
+  const Vec2f &radius = light_->radius()->getVertex(0);
 
   position_->setVertex(0, light_->position()->getVertex(0));
-  lightFar_->setVertex(0, far);
 
   // Update projection
   updateFrustum(
       1.0f, 90.0f,
-      lightNear_->getVertex(0),
-      lightFar_->getVertex(0),
+      near_->getVertex(0), radius.y,
       GL_FALSE);
   updateProjection();
 
@@ -214,10 +202,10 @@ void LightCamera::updateDirectional()
     { delete *it; }
     shadowFrusta_ = userCamera_->frustum().split(numLayer_, splitWeight_);
     // update near/far values
-    GLfloat *farValues = (GLfloat*)lightFar_->clientDataPtr();
-    GLfloat *nearValues = (GLfloat*)lightNear_->clientDataPtr();
-    lightFar_->nextStamp();
-    lightNear_->nextStamp();
+    GLfloat *farValues = (GLfloat*)far_->clientDataPtr();
+    GLfloat *nearValues = (GLfloat*)near_->clientDataPtr();
+    far_->nextStamp();
+    near_->nextStamp();
     for(GLuint i=0; i<numLayer_; ++i)
     {
       Frustum *frustum = shadowFrusta_[i];
