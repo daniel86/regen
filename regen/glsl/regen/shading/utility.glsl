@@ -7,11 +7,11 @@ vec3 fetchNormal(vec2 texco) {
 }
 
 -- fetchPosition
-#include regen.utility.utility.texcoToWorldSpace
+#include regen.states.camera.transformTexcoToWorld
 
 vec3 fetchPosition(vec2 texco) {
     float depth = __TEXTURE__(in_gDepthTexture, texco).r;
-    return texcoToWorldSpace(texco, depth);
+    return transformTexcoToWorld(texco, depth);
 }
 
 -- radiusAttenuation

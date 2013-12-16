@@ -87,7 +87,7 @@ uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
 uniform float in_lightFar[NUM_SHADOW_LAYER];
 #endif
 
-#include regen.utility.utility.texcoToWorldSpace
+#include regen.states.camera.transformTexcoToWorld
 #include regen.shading.utility.fetchNormal
 #include regen.shading.utility.specularFactor
 #ifdef USE_SHADOW_MAP
@@ -98,7 +98,7 @@ void main() {
     // fetch from GBuffer
     vec3 N = fetchNormal(in_texco);
     float depth = __TEXTURE__(in_gDepthTexture, in_texco).r;
-    vec3 P = texcoToWorldSpace(in_texco, depth);
+    vec3 P = transformTexcoToWorld(in_texco, depth);
     vec4 spec = __TEXTURE__(in_gSpecularTexture, in_texco);
     vec4 diff = __TEXTURE__(in_gDiffuseTexture, in_texco);
     float shininess = spec.a*256.0; // map from [0,1] to [0,256]
@@ -198,7 +198,7 @@ uniform mat4 in_lightMatrix[6];
 #endif // !IS_SPOT_LIGHT
 #endif // USE_SHADOW_MAP
 
-#include regen.utility.utility.texcoToWorldSpace
+#include regen.states.camera.transformTexcoToWorld
 #include regen.utility.utility.computeCubeLayer
 
 #include regen.shading.utility.radiusAttenuation
@@ -223,7 +223,7 @@ void main() {
     // fetch from GBuffer
     vec3 N = fetchNormal(texco);
     float depth = __TEXTURE__(in_gDepthTexture, texco).r;
-    vec3 P = texcoToWorldSpace(texco, depth);
+    vec3 P = transformTexcoToWorld(texco, depth);
     vec4 spec = __TEXTURE__(in_gSpecularTexture, texco);
     vec4 diff = __TEXTURE__(in_gDiffuseTexture, texco);
     float shininess = spec.a*256.0;

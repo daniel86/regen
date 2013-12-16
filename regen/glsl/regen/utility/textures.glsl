@@ -451,13 +451,13 @@ vec3 texco_reflection(vec3 P, vec3 N)
 #endif
 
 -- texco_planar_reflection
-#include regen.utility.utility.clipSpaceToTexco
+#include regen.states.camera.transformScreenToTexco
 
 #ifndef __TEXCO_PLANE_REFL__
 #define2 __TEXCO_PLANE_REFL__
 vec2 texco_planar_reflection(vec3 P, vec3 N)
 {
-    return clipSpaceToTexco(in_reflectionMatrix * vec4(P,1.0));
+    return transformScreenToTexco(in_reflectionMatrix * vec4(P,1.0));
 }
 #endif
 
