@@ -176,11 +176,7 @@ void ReflectionCamera::updateReflection()
 
   // Compute view matrix
   if(reflectorChanged) {
-    view_->setUniformData(Mat4f::lookAtMatrix(
-        position_->getVertex(0),
-        direction_->getVertex(0),
-        Vec3f::up()));
-    viewInv_->setUniformData(view_->getVertex(0).lookAtInverse());
+    updateLookAt();
     cameraChanged_ = GL_TRUE;
   }
 
@@ -196,10 +192,7 @@ void ReflectionCamera::updateReflection()
 
   // Compute view-projection matrix
   if(cameraChanged_) {
-    viewproj_->setVertex(0,
-        view_->getVertex(0) * proj_->getVertex(0));
-    viewprojInv_->setVertex(0,
-        projInv_->getVertex(0) * viewInv_->getVertex(0));
+    updateViewProjection();
     cameraChanged_ = GL_FALSE;
   }
 }

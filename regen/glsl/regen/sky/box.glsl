@@ -11,18 +11,16 @@
 
 in vec3 in_pos;
 
-uniform float in_far;
+#include regen.states.camera.input
 
 #define HANDLE_IO(i)
 
 #if RENDER_LAYER > 1
 void main() {
-    vec4 posWorld = vec4(in_pos.xyz*in_far*0.99,1.0);
     gl_Position = vec4(in_pos.xyz*in_far*0.99,1.0);
     HANDLE_IO(gl_VertexID);
 }
 #else
-#include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
 
@@ -37,6 +35,7 @@ void main() {
 #endif
 
 -- gs
+// TODO redundant
 #if RENDER_LAYER > 1
 #extension GL_EXT_geometry_shader4 : enable
 #include regen.meshes.mesh.defines

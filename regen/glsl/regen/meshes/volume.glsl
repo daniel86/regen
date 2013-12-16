@@ -16,13 +16,11 @@ out vec3 out_rayDirection;
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
-uniform vec3 in_cameraPosition;
-
-#include regen.meshes.mesh.model-transformation
+#include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
+
+#include regen.meshes.mesh.model-transformation
 
 #define HANDLE_IO()
 

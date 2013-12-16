@@ -140,17 +140,9 @@ namespace regen {
     Frustum frustum_;
     GLboolean isAudioListener_;
 
-    //Vec3f frustumPoints_[8];
-
-
-    /**
-     * Split this frustum using the Practical Split Scheme.
-     * @param n number of splits.
-     * @param weight the split weight.
-     * @return splitted frusta.
-     * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch10.html
-     */
-    //vector<Frustum*> splitFrustum(GLuint n, GLdouble weight) const;
+    void updateProjection();
+    void updateLookAt();
+    void updateViewProjection(GLuint i=0u, GLuint j=0u);
   };
 } // namespace
 

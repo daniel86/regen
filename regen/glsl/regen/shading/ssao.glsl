@@ -16,10 +16,7 @@ out float occlusion;
 uniform sampler2D in_gDepthTexture;
 uniform sampler2D in_gNorWorldTexture;
 
-uniform float in_near;
-uniform float in_far;
-uniform vec2 in_inverseViewport;
-uniform mat4 in_inverseViewProjectionMatrix;
+#include regen.states.camera.input
 
 const float in_aoSamplingRadius = 20.0;
 const float in_aoBias = 0.05;
@@ -52,7 +49,7 @@ void main() {
     vec3 N = fetchNormal(in_texco);
     float depth = __TEXTURE__(in_gDepthTexture, in_texco).r;
     vec3 P = texcoToWorldSpace(in_texco, depth);
-    depth = linearizeDepth(depth, in_near, in_far);
+    depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
     vec2 texelSize = in_inverseViewport*0.5;
     
     vec2 kernel[4] = vec2[](

@@ -17,10 +17,7 @@ out vec4 out_posWorld;
 
 const vec2 in_streakSize = vec2(0.05,0.1);
 
-uniform mat4 in_viewMatrix;
-uniform mat4 in_inverseViewMatrix;
-uniform mat4 in_projectionMatrix;
-
+#include regen.states.camera.input
 #include regen.meshes.sprite.getSpritePoints
 #include regen.meshes.sprite.emit2
 

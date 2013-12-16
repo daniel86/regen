@@ -321,13 +321,12 @@ void main() {
     gl_Position = vec4(posWorld,1.0);
 }
 #else
-uniform mat4 in_viewProjectionMatrix;
-uniform mat4 in_viewMatrix;
-uniform mat4 in_projectionMatrix;
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToScreen
 
 void main() {
     vec3 posWorld = in_lightPosition + in_pos*in_lightRadius.y;
-    gl_Position = in_viewProjectionMatrix*vec4(posWorld,1.0);
+    gl_Position = transformWorldToScreen(posWorld,0);
 }
 #endif
 
@@ -354,11 +353,12 @@ void main() {
     out_intersection = gl_Position.xyz;
 }
 #else
-uniform mat4 in_viewProjectionMatrix;
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToScreen
 
 void main() {
     out_intersection = (in_modelMatrix * vec4(in_pos,1.0)).xyz;
-    gl_Position = in_viewProjectionMatrix*vec4(out_intersection,1.0);
+    gl_Position = transformWorldToScreen(out_intersection,0);
 }
 #endif
 

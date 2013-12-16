@@ -79,8 +79,7 @@ uniform sampler2D in_particleTexture;
 uniform vec3 in_cameraPosition;
 uniform vec2 in_viewport;
 #ifdef USE_SOFT_PARTICLES
-uniform float in_near;
-uniform float in_far;
+#include regen.states.camera.input
 uniform sampler2D in_depthTexture;
 #endif
 
@@ -92,8 +91,10 @@ uniform sampler2D in_depthTexture;
 float softParticleOpacity()
 {
     vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
-    float sceneDepth = linearizeDepth(texture(in_depthTexture, depthTexco).r, in_near, in_far);
-    float fragmentDepth = linearizeDepth(gl_FragCoord.z, in_near, in_far);
+    float sceneDepth = linearizeDepth(
+            texture(in_depthTexture, depthTexco).r,
+            __CAM_NEAR__, __CAM_FAR__);
+    float fragmentDepth = linearizeDepth(gl_FragCoord.z, __CAM_NEAR__, __CAM_FAR__);
     return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
 }
 #endif

@@ -996,6 +996,30 @@ namespace regen {
       cubeLookAtMatrices(pos, views);
       return views;
     }
+    static inline const Vec3f* cubeDirectories()
+    {
+      static const Vec3f dir[6] = {
+          Vec3f( 1.0f, 0.0f, 0.0f),
+          Vec3f(-1.0f, 0.0f, 0.0f),
+          Vec3f( 0.0f, 1.0f, 0.0f),
+          Vec3f( 0.0f,-1.0f, 0.0f),
+          Vec3f( 0.0f, 0.0f, 1.0f),
+          Vec3f( 0.0f, 0.0f,-1.0f)
+      };
+      return dir;
+    }
+    static inline const Vec3f* cubeUpVectors()
+    {
+      static const Vec3f up[6] = {
+          Vec3f( 0.0f, -1.0f, 0.0f),
+          Vec3f( 0.0f, -1.0f, 0.0f),
+          Vec3f( 0.0f, 0.0f,  1.0f),
+          Vec3f( 0.0f, 0.0f, -1.0f),
+          Vec3f( 0.0f, -1.0f, 0.0f),
+          Vec3f( 0.0f, -1.0f, 0.0f)
+      };
+      return up;
+    }
     /**
      * Compute view transformation matrices.
      * @param pos cube center position.
@@ -1005,22 +1029,8 @@ namespace regen {
      */
     static inline void cubeLookAtMatrices(const Vec3f &pos, Mat4f *views)
     {
-      const Vec3f dir[6] = {
-          Vec3f( 1.0f, 0.0f, 0.0f),
-          Vec3f(-1.0f, 0.0f, 0.0f),
-          Vec3f( 0.0f, 1.0f, 0.0f),
-          Vec3f( 0.0f,-1.0f, 0.0f),
-          Vec3f( 0.0f, 0.0f, 1.0f),
-          Vec3f( 0.0f, 0.0f,-1.0f)
-      };
-      const Vec3f up[6] = {
-          Vec3f( 0.0f, -1.0f, 0.0f),
-          Vec3f( 0.0f, -1.0f, 0.0f),
-          Vec3f( 0.0f, 0.0f,  1.0f),
-          Vec3f( 0.0f, 0.0f, -1.0f),
-          Vec3f( 0.0f, -1.0f, 0.0f),
-          Vec3f( 0.0f, -1.0f, 0.0f)
-      };
+      const Vec3f *dir = cubeDirectories();
+      const Vec3f *up = cubeUpVectors();
       for(register GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
     }
     /**

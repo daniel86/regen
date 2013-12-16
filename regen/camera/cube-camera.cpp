@@ -23,21 +23,31 @@ CubeCamera::CubeCamera(
       userCamera_->far()->getVertex(0),
       GL_FALSE);
 
+  // Set matrix array size
   view_->set_elementCount(6);
-  view_->setUniformDataUntyped(NULL);
   viewInv_->set_elementCount(6);
-  viewInv_->setUniformDataUntyped(NULL);
+  viewproj_->set_elementCount(6);
+  viewprojInv_->set_elementCount(6);
+
+  // Allocate matrices
   proj_->setUniformDataUntyped(NULL);
   projInv_->setUniformDataUntyped(NULL);
-  viewproj_->set_elementCount(6);
+  view_->setUniformDataUntyped(NULL);
+  viewInv_->setUniformDataUntyped(NULL);
   viewproj_->setUniformDataUntyped(NULL);
-  viewprojInv_->set_elementCount(6);
   viewprojInv_->setUniformDataUntyped(NULL);
 
-  modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
-  matrixStamp_ = 0;
+  // Initialize directions
+  direction_->set_elementCount(6);
+  direction_->setUniformDataUntyped(NULL);
+  const Vec3f *dir = Mat4f::cubeDirectories();
+  for(register GLuint i=0; i<6; ++i) {
+    direction_->setVertex(i, dir[i]);
+  }
 
+  modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
   pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
+  matrixStamp_ = 0;
   positionStamp_ = 0;
 
   for(GLuint i=0; i<6; ++i) isCubeFaceVisible_[i] = GL_TRUE;
@@ -55,27 +65,26 @@ void CubeCamera::update()
   GLuint matrixStamp = (modelMatrix_.get() == NULL ? 1 : modelMatrix_->stamp());
   if(positionStamp_ == positionStamp && matrixStamp_ == matrixStamp)
   { return; }
+  const GLfloat &near = userCamera_->near()->getVertex(0);
+  const GLfloat &far = userCamera_->far()->getVertex(0);
 
+  // Compute cube center position.
   Vec3f pos = Vec3f::zero();
   if(modelMatrix_.get() != NULL) {
     pos = modelMatrix_->getVertex(0).transpose().transformVector(pos);
   }
   position_->setVertex(0,pos);
-  // XXX
-  direction_->setVertex(0,Vec3f(0.0,0.0,1.0));
 
-  GLfloat near = userCamera_->near()->getVertex(0);
-  GLfloat far = userCamera_->far()->getVertex(0);
+  // Update projection matrix.
+  updateFrustum(1.0f,90.0f,near,far,GL_FALSE);
+  updateProjection();
 
-  proj_->setVertex(0, Mat4f::projectionMatrix(90.0f, 1.0f, near, far));
-  projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());
+  // Update view and view-projection matrix.
   Mat4f::cubeLookAtMatrices(pos, (Mat4f*)view_->clientDataPtr());
-
   for(register GLuint i=0; i<6; ++i) {
     if(!isCubeFaceVisible_[i]) { continue; }
     viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
-    viewproj_->setVertex(i, view_->getVertex(i)*proj_->getVertex(0));
-    viewprojInv_->setVertex(i, projInv_->getVertex(0)*viewInv_->getVertex(i));
+    updateViewProjection(0,i);
   }
 
   positionStamp_ = positionStamp;

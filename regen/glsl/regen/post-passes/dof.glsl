@@ -7,6 +7,8 @@
 --------------------------------------
 -- vs
 #include regen.post-passes.fullscreen.vs
+-- gs
+#include regen.post-passes.fullscreen.gs
 -- fs
 out vec4 out_color;
 in vec2 in_texco;
@@ -14,9 +16,9 @@ in vec2 in_texco;
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
 uniform sampler2D in_depthTexture;
-// camera input
-uniform float in_far;
-uniform float in_near;
+
+#include regen.states.camera.input
+
 // DoF input
 const float in_focalDistance = 0.0;
 const vec2 in_focalWidth = vec2(0.1,0.2);
@@ -28,7 +30,7 @@ void main() {
     vec4 blurred = texture(in_blurTexture, in_texco);
     // get the depth value at this pixel
     float depth = texture(in_depthTexture, in_texco).r;
-    depth = linearizeDepth(depth, in_near, in_far);
+    depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
     // distance to point with max sharpness
     float d = abs(in_focalDistance - depth);
     float focus = smoothstep(in_focalWidth.x, in_focalWidth.y, d);
