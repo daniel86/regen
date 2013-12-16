@@ -135,7 +135,7 @@ uniform mat4 in_inverseViewProjectionMatrix;
 vec4 transformParabolid(vec4 posScreen) {
   float l = length(posScreen.xyz);
   vec4 posParabolid;
-  posParabolid.xy  = posScreen.xy / L;
+  posParabolid.xyz = posScreen.xyz / L;
   posParabolid.xy /= (posParabolid.z+1.0);
   posParabolid.zw  = vec2((l - in_near)/(in_far - in_near), 1.0);
   return posParabolid;
