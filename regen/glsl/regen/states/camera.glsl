@@ -7,6 +7,14 @@
 #ifndef RENDER_TARGET
 #define RENDER_TARGET 2D
 #endif
+#if RENDER_LAYER == 1
+#ifndef HAS_TESSELATION
+#define VS_CAMERA_TRANSFORM
+#endif
+#if SHADER_STAGE == tes
+#define TES_CAMERA_TRANSFORM
+#endif
+#endif // RENDER_LAYER == 1
 
 #if SHADER_STAGE == fs
 #if RENDER_TARGET == CUBE
@@ -124,7 +132,7 @@ uniform mat4 in_inverseViewProjectionMatrix;
 -- transformWorldToEye
 #ifndef __transformWorldToEye_INCLUDED
 #define2 __transformWorldToEye_INCLUDED
-
+#include regen.states.camera.input
 vec4 transformWorldToEye(vec4 posWorld, mat4 view) {
 #ifdef IGNORE_VIEW_ROTATION
     return vec4(view[3].xyz,0.0) + posWorld;
@@ -135,78 +143,77 @@ vec4 transformWorldToEye(vec4 posWorld, mat4 view) {
 #endif
 }
 vec4 transformWorldToEye(vec4 posWorld, int layer) {
+// TODO: more generic
 #if RENDER_TARGET == CUBE
   return transformWorldToEye(posWorld, in_viewMatrix[layer]);
 #else
   return transformWorldToEye(posWorld, in_viewMatrix);
 #endif
 }
-
 vec4 transformWorldToEye(vec3 posWorld, int layer) {
   return transformWorldToEye(vec4(posWorld,1.0),layer);
 }
-
 #endif
 
 -- transformEyeToScreen
 #ifndef __transformEyeToScreen_INCLUDED
 #define2 __transformEyeToScreen_INCLUDED
-
+#include regen.states.camera.input
 vec4 transformEyeToScreen(vec4 posEye, int layer) {
+// TODO: more generic
 #if RENDER_TARGET == 2D_ARRAY
   return in_projectionMatrix[layer] * posEye;
 #else
   return in_projectionMatrix * posEye;
 #endif
 }
-
 vec4 transformEyeToScreen(vec3 posEye, int layer) {
   return transformEyeToScreen(vec4(posEye,1.0),layer);
 }
-
 #endif
 
 -- transformWorldToScreen
 #ifndef __transformEyeToScreen_INCLUDED
 #define2 __transformEyeToScreen_INCLUDED
-
+#include regen.states.camera.input
 vec4 transformWorldToScreen(vec4 posWorld, int layer) {
-#if RENDER_TARGET == 2D_ARRAY
+#if RENDER_LAYER > 1
   return in_viewProjectionMatrix[layer] * posWorld;
 #else
   return in_viewProjectionMatrix * posWorld;
 #endif
 }
-
 vec4 transformWorldToScreen(vec3 posWorld, int layer) {
   return transformWorldToScreen(vec4(posWorld,1.0),layer);
 }
-
 #endif
 
 -- transformWorldToTexco
 #ifndef __transformWorldToTexco_included__
 #define __transformWorldToTexco_included__
+#include regen.states.camera.input
 vec3 transformWorldToTexco(vec4 posWorld)
 {
-    vec4 ss = __VIEW_PROJ__*posWorld;
-    return (ss.xyz/ss.w + vec3(1.0))*0.5;
+    vec4 posScreen = __VIEW_PROJ__*posWorld;
+    return (posScreen.xyz/posScreen.w + vec3(1.0))*0.5;
 }
 #endif
 
 -- transformEyeToTexco
 #ifndef __transformEyeToTexco_included__
 #define __transformEyeToTexco_included__
+#include regen.states.camera.input
 vec3 transformEyeToTexco(vec4 posEye)
 {
-    vec4 ss = __PROJ__*posEye;
-    return (ss.xyz/ss.w + vec3(1.0))*0.5;
+    vec4 posScreen = __PROJ__*posEye;
+    return (posScreen.xyz/posScreen.w + vec3(1.0))*0.5;
 }
 #endif
 
 -- transformScreenToTexco
 #ifndef __transformScreenToTexco_included__
 #define __transformScreenToTexco_included__
+#include regen.states.camera.input
 vec2 transformScreenToTexco(vec4 posScreen)
 {
     return (posScreen.xy/posScreen.w + vec2(1.0))*0.5;
@@ -216,6 +223,7 @@ vec2 transformScreenToTexco(vec4 posScreen)
 -- transformTexcoToWorld
 #ifndef __transformTexcoToWorld_included__
 #define __transformTexcoToWorld_included__
+#include regen.states.camera.input
 vec3 transformTexcoToWorld(vec2 texco, float depth) {
     vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
     vec4 D = __VIEW_PROJ_INV__*vec4(pos0,1.0);
@@ -226,6 +234,7 @@ vec3 transformTexcoToWorld(vec2 texco, float depth) {
 -- transformTexcoToView
 #ifndef __transformTexcoToView_included__
 #define __transformTexcoToView_included__
+#include regen.states.camera.input
 vec3 transformTexcoToView(vec2 texco, float depth) {
     vec3 pos0 = vec3(texco.xy, depth)*2.0 - vec3(1.0);
     vec4 D = __PROJ_INV__*vec4(pos0,1.0);

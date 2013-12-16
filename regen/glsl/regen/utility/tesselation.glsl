@@ -8,11 +8,7 @@
 #define INTERPOLATE_STRUCT(S,V) (gl_TessCoord.z*S[0].V + gl_TessCoord.x*S[1].V + gl_TessCoord.y*S[2].V)
 #endif
 
---------------------------------------
----- A Tesselation-Control shader that supports some
----- LoD metrics. 
---------------------------------------
--- tcs
+-- tesselationControl
 uniform float in_lodFactor;
 
 // convert a world space vector to device space
@@ -141,4 +137,26 @@ void tesselationControl()
   }
 }
 
+-- tcs
+#ifdef HAS_tessellation_shader
+#ifdef TESS_IS_ADAPTIVE
+#include regen.meshes.mesh.defines
+
+layout(vertices=TESS_NUM_VERTICES) out;
+
+#define ID gl_InvocationID
+
+uniform vec2 in_viewport;
+#include regen.states.camera.input
+#include regen.utility.tesselation.tesselationControl
+
+#define HANDLE_IO(i)
+
+void main() {
+    tesselationControl();
+    gl_out[ID].gl_Position = gl_in[ID].gl_Position;
+    HANDLE_IO(gl_InvocationID);
+}
+#endif
+#endif
 

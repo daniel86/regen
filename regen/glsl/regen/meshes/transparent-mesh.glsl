@@ -40,7 +40,7 @@ in vec3 in_norWorld;
 uniform vec4 in_col;
 #endif
 uniform vec3 in_cameraPosition;
-#include regen.meshes.mesh.material
+#include regen.states.material.input
 #if SHADING!=NONE
 #include regen.shading.direct.inputs
 uniform vec3 in_ambientLight;

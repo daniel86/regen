@@ -1,7 +1,7 @@
 
 -- defines
 #if RENDER_TARGET == CUBE
-#include regen.utility.utility.computeCubeDirection
+#include regen.math.computeCubeDirection
 // TODO: compute only once
 #define __CUBE_UV__(uv) 
 #define __TEXTURE__(_tex_,uv) texture(_tex_,computeCubeDirection(vec2(2,-2)*uv + vec2(-1,1),in_layer))
@@ -199,7 +199,7 @@ uniform mat4 in_lightMatrix[6];
 #endif // USE_SHADOW_MAP
 
 #include regen.states.camera.transformTexcoToWorld
-#include regen.utility.utility.computeCubeLayer
+#include regen.math.computeCubeLayer
 
 #include regen.shading.utility.radiusAttenuation
 #include regen.shading.utility.fetchNormal

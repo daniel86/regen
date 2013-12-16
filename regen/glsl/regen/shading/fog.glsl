@@ -134,8 +134,10 @@ uniform vec2 in_fogConeScale;
 #endif
 uniform vec2 in_fogDistance;
 
-#include regen.utility.utility.pointVectorDistance
+#include regen.math.pointVectorDistance
 #include regen.states.camera.transformTexcoToWorld
+
+#include regen.states.clipping.isClipped
 
 #include regen.shading.utility.radiusAttenuation
 #ifdef IS_SPOT_LIGHT
@@ -147,7 +149,7 @@ uniform vec2 in_fogDistance;
     #include regen.shading.shadow-mapping.sampling.spot
   #else
     #include regen.shading.shadow-mapping.sampling.point
-    #include regen.utility.utility.computeCubeLayer
+    #include regen.math.computeCubeLayer
   #endif
 #endif // USE_SHADOW_MAP
 
@@ -270,9 +272,9 @@ void main()
     vec3 start = in_cameraPosition + t.x*ray;
     vec3 stop = in_cameraPosition + t.y*ray;
 #ifdef HAS_clipPlane
-    bool clip0 = dot(in_cameraPosition, in_clipPlane.xyz)-in_clipPlane.w>=0.0;
-    bool clip1 = dot(            start, in_clipPlane.xyz)-in_clipPlane.w>=0.0;
-    bool clip2 = dot(             stop, in_clipPlane.xyz)-in_clipPlane.w>=0.0;
+    bool clip0 = isClipped(in_cameraPosition);
+    bool clip1 = isClipped(start);
+    bool clip2 = isClipped(stop);
     if(clip0==clip1 && clip1==clip2) discard;
 #endif
     // compute distance attenuation.
@@ -282,8 +284,8 @@ void main()
         lightRadius.x, lightRadius.y);
 #else
 #ifdef HAS_clipPlane
-    bool clip0 = dot(in_cameraPosition, in_clipPlane.xyz)-in_clipPlane.w>=0.0;
-    bool clip1 = dot( in_lightPosition, in_clipPlane.xyz)-in_clipPlane.w>=0.0;
+    bool clip0 = isClipped(in_cameraPosition);
+    bool clip1 = isClipped(in_lightPosition);
     if(clip0==clip1) discard;
 #endif
     // compute distance attenuation.
