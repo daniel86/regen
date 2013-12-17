@@ -49,10 +49,10 @@ void main() {
 #include regen.states.camera.defines
 #if RENDER_LAYER > 1
 #extension GL_EXT_geometry_shader4 : enable
+#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
 
 layout(triangles) in;
-// TODO: use ${RENDER_LAYER}*3
-layout(triangle_strip, max_vertices=18) out;
+layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 flat out int out_layer;
 

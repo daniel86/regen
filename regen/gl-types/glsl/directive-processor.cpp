@@ -108,9 +108,30 @@ GLboolean DirectiveProcessor::MacroTree::isDefined(const string &arg)
   return defines_.count(arg)>0;
 }
 
-const string& DirectiveProcessor::MacroTree::define(const string &arg)
+string DirectiveProcessor::MacroTree::define(const string &arg)
 {
-  if(isNumber(arg)) {
+  static const string operatorsPattern = "(.+)[ ]*(\\+|-|\\*|/)[ ]*(.+)";
+  static boost::regex operatorsRegex(operatorsPattern);
+
+  boost::sregex_iterator it(arg.begin(), arg.end(), operatorsRegex);
+  if(it!=NO_REGEX_MATCH) {
+    string arg0_ = (*it)[1]; boost::trim(arg0_);
+    string op    = (*it)[2]; boost::trim(op);
+    string arg1_ = (*it)[3]; boost::trim(arg1_);
+    const string &arg0 = define(arg0_);
+    const string &arg1 = define(arg1_);
+    if(!isNumber(arg0) || !isNumber(arg1)) return arg;
+    GLfloat number0, number1;
+    stringstream(arg0) >> number0;
+    stringstream(arg1) >> number1;
+    if(op == "+") return REGEN_STRING(number0+number1);
+    if(op == "-") return REGEN_STRING(number0-number1);
+    if(op == "/") return REGEN_STRING(number0/number1);
+    if(op == "*") return REGEN_STRING(number0*number1);
+    REGEN_WARN("Unknown operator '" << op << "'.");
+    return arg;
+  }
+  else if(isNumber(arg)) {
     return arg;
   }
   else {
@@ -262,8 +283,8 @@ void DirectiveProcessor::parseVariables(string &line)
   {
     const string &define = *it;
     string name = define.substr(0,define.find_first_of(" "));
-    if(tree_.isDefined(name)) {
-      const string &value = tree_.define(name);
+    const string &value = tree_.define(name);
+    if(value != name) {
       boost::replace_all(line, "${"+name+"}", value);
       replacedSomething = GL_TRUE;
     }
