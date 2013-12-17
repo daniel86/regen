@@ -10,7 +10,6 @@
 #include regen.filter.sampling.gs
 -- fs
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out float occlusion;
 
@@ -27,6 +26,7 @@ uniform sampler2D in_aoNoiseTexture;
 
 #include regen.states.camera.transformTexcoToWorld
 #include regen.states.camera.linearizeDepth
+#include regen.filter.sampling.computeTexco
 
 #include regen.shading.deferred.fetchNormal
 
@@ -37,13 +37,7 @@ uniform sampler2D in_aoNoiseTexture;
 
 float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 {
-#if RENDER_TARGET == CUBE
-    vec3 _texco = computeCubeDirection(vec2(2,-2)*texco + vec2(-1,1),in_layer);
-#elif RENDER_LAYER > 1
-    vec3 _texco = vec3(texco,in_layer);
-#else
-    vec2 _texco = texco;
-#endif
+    vecTexco _texco = computeTexco(texco);
     vec3 pos1 = transformTexcoToWorld(texco, texture(in_gDepthTexture,_texco).r);
     vec3 dir = pos1 - pos0;
     float dist = length(dir);
@@ -54,9 +48,11 @@ float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 }
 
 void main() {
-    vec2 texco_2D = gl_FragCoord.xy/in_viewport;
-    vec3 N = fetchNormal(in_gNorWorldTexture,in_texco);
-    float depth = texture(in_gDepthTexture, in_texco).r;
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
+    vec3 N = fetchNormal(in_gNorWorldTexture,texco);
+    float depth = texture(in_gDepthTexture, texco).r;
     vec3 P = transformTexcoToWorld(texco_2D, depth);
     depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
     vec2 texelSize = in_inverseViewport*0.5;

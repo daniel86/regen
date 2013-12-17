@@ -8,9 +8,10 @@
 --------------------------------------
 -- vs
 #include regen.filter.sampling.vs
+-- gs
+#include regen.filter.sampling.gs
 -- fs
 out vec4 out_color;
-in vec2 in_texco;
 
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_depthTexture;
@@ -28,12 +29,12 @@ uniform mat4 in_inverseViewProjectionMatrix;
 const int in_numMotionBlurSamples = 10;
 const float in_velocityScale = 0.25;
 
+#include regen.filter.sampling.computeTexco
+
 #ifndef USE_VELOCITY_TEXTURE
-void worldPosFromDepth(out vec4 pos0, out vec4 posWorld)
+void worldPosFromDepth(float depth, vec2 texco, out vec4 pos0, out vec4 posWorld)
 {
-    // get the depth value at this pixel
-    float depth = texture(in_depthTexture, in_texco).r;
-    pos0 = vec4(in_texco.x*2 - 1, (1-in_texco.y)*2 - 1, depth, 1);
+    pos0 = vec4(texco.x*2 - 1, (1-texco.y)*2 - 1, depth, 1);
     // Transform viewport position by the view-projection inverse.
     vec4 D = in_inverseViewProjectionMatrix*pos0;
     // Divide by w to get the world position.
@@ -43,16 +44,20 @@ void worldPosFromDepth(out vec4 pos0, out vec4 posWorld)
 
 void main()
 {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
     // Get the initial color at this pixel.
-    out_color = texture(in_inputTexture, in_texco);
+    out_color = texture(in_inputTexture, texco);
 #ifdef USE_VELOCITY_TEXTURE
     // get velocity from texture
-    vec2 velocity = texture(in_velocityTexture, in_texco).xy;
+    vec2 velocity = texture(in_velocityTexture, texco).xy;
     // Early exit
     if(length(velocity) == 0.0) { return; }
 #else
+    float depth = texture(in_depthTexture, texco).x;
     vec4 pos0, posWorld;
-    worldPosFromDepth(pos0, posWorld);
+    worldPosFromDepth(depth, texco, pos0, posWorld);
     // transform by previous frame view-projection matrix
     vec4 pos1 = in_lastViewProjectionMatrix*vec4(posWorld.xyz,1.0);
     // Convert to nonhomogeneous points [-1,1] by dividing by w.
@@ -60,10 +65,10 @@ void main()
     // Use this frame's position and last frame's to compute the pixel velocity.
     vec2 velocity = (in_velocityScale/in_deltaT)*(pos0.xy-pos1.xy);
 #endif
-    vec2 texCoord = in_texco + velocity;
+    vec2 texCoord = texco_2D + velocity;
     for(int i = 1; i < in_numMotionBlurSamples; ++i, texCoord+=velocity) {
       // Sample the color buffer along the velocity vector.
-      vec4 currentColor = texture(in_inputTexture, texCoord);
+      vec4 currentColor = texture(in_inputTexture, computeTexco(texCoord));
       // Add the current color to our color sum.
       out_color += currentColor;
     }
@@ -121,10 +126,11 @@ out float out_color;
 in vec3 in_pos0;
 in vec3 in_pos1;
 
-uniform vec2 in_viewport;
+uniform vec2 in_inverseViewport;
 uniform float in_deltaT;
 #ifdef USE_DEPTH_TEST
 uniform sampler2D in_depthTexture;
+#include regen.filter.sampling.computeTexco
 #endif
 
 void main() {
@@ -133,10 +139,10 @@ void main() {
     // this fragment in the scene depth buffer.
     // gl_FragCoord.xy is in window space, divided by the buffer size
     // we get the range [0,1] that can be used for texture access.
-    vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
+    vec2 depthTexco = gl_FragCoord.xy*in_inverseViewport.xy;
     // depth at this pixel obtained in main pass.
     // this is non linear depth in the range [0,1].
-    float sceneDepth = texture(in_depthTexture, depthTexco).r;
+    float sceneDepth = texture(in_depthTexture, computeTexco(depthTexco)).r;
     // do the depth test against gl_FragCoord.z using a bias.
     // bias is used to avoid flickering
     if( gl_FragCoord.z > sceneDepth+DEPTH_BIAS ) { discard; };

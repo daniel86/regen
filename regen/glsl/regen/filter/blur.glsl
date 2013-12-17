@@ -25,7 +25,6 @@ void incrementalGaussian() {
 
 in vec3 in_pos;
 #if RENDER_TARGET == 2D
-out vec2 out_texco;
 flat out vec2 out_blurStep;
 flat out vec3 out_incrementalGaussian;
 
@@ -37,7 +36,6 @@ uniform vec2 in_inverseViewport;
 void main() {
 #ifdef RENDER_TARGET == 2D
     incrementalGaussian();
-    out_texco = 0.5*(in_pos.xy+vec2(1.0));
 #ifdef BLUR_HORIZONTAL
     out_blurStep = vec2(in_inverseViewport.x, 0.0);
 #else
@@ -56,7 +54,6 @@ layout(triangles) in;
 // TODO: use ${RENDER_LAYER}*3
 layout(triangle_strip, max_vertices=18) out;
 
-out vec3 out_texco;
 flat out int out_layer;
 
 uniform vec2 in_inverseViewport;
@@ -64,21 +61,12 @@ uniform vec2 in_inverseViewport;
 flat out vec3 out_incrementalGaussian;
 flat out vec3 out_blurStep;
 
-#if RENDER_TARGET == CUBE
-#include regen.math.computeCubeDirection
-#endif
 #include regen.filter.blur.incrementalGaussian
 
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-
   gl_Position = posWorld;
-#if RENDER_TARGET == CUBE
-  out_texco = computeCubeDirection(vec2(posWorld.x, -posWorld.y), layer);
-#else
-  out_texco = vec3(0.5*(gl_Position.xy+vec2(1.0)), layer);
-#endif
   HANDLE_IO(index);
   EmitVertex();
 }
@@ -113,13 +101,13 @@ void main() {
   );
 #endif
   out_blurStep = blurStepArray[layer];
-#else
+#else // RENDER_TARGET != CUBE
 #ifdef BLUR_HORIZONTAL
   out_blurStep = vec3(in_inverseViewport.x, 0.0, 0.0);
 #else
   out_blurStep = vec3(0.0, in_inverseViewport.y, 0.0);
 #endif
-#endif
+#endif // RENDER_TARGET != CUBE
 
   emitVertex(gl_PositionIn[0], 0, ${LAYER});
   emitVertex(gl_PositionIn[1], 1, ${LAYER});
@@ -132,8 +120,8 @@ void main() {
 
 -- fs
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
+uniform vec2 in_inverseViewport;
 #if RENDER_TARGET == 2D_ARRAY
 uniform sampler2DArray in_inputTexture;
 #elif RENDER_TARGET == CUBE
@@ -143,34 +131,31 @@ uniform sampler2D in_inputTexture;
 #endif
 out vec4 out_color;
 
+#include regen.filter.sampling.computeTexco
+
 const int in_numBlurPixels = 4;
-#ifdef RENDER_TARGET == 2D
-flat in vec2 in_blurStep;
-#else
-flat in vec3 in_blurStep;
-#endif
+flat in vecTexco in_blurStep;
 flat in vec3 in_incrementalGaussian;
 
 #define SAMPLE(texco) texture(in_inputTexture,texco)*incrementalGaussian.x
 
 void main()
 {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
     float coefficientSum = 0.0;
     vec3 incrementalGaussian = in_incrementalGaussian;
 
     // Take the central sample first...
-    out_color = SAMPLE(in_texco);
+    out_color = SAMPLE(texco);
     coefficientSum += incrementalGaussian.x;
     incrementalGaussian.xy *= incrementalGaussian.yz;
 
     for(float i=1.0; i<float(in_numBlurPixels); i++) {
-#ifdef RENDER_TARGET == 2D
-        vec2 offset = i*in_blurStep;
-#else
-        vec3 offset = i*in_blurStep;
-#endif
-        out_color += SAMPLE( in_texco - offset );         
-        out_color += SAMPLE( in_texco + offset );    
+        vecTexco offset = i*in_blurStep;
+        out_color += SAMPLE( texco - offset );         
+        out_color += SAMPLE( texco + offset );    
         coefficientSum += 2.0 * incrementalGaussian.x;
         incrementalGaussian.xy *= incrementalGaussian.yz;
     }

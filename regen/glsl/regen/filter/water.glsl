@@ -1,5 +1,6 @@
 --------------------------------------
 --------------------------------------
+---- Rendering Water as a Post-process Effect.
 ---- @see http://www.gamedev.net/page/reference/index.html/_/technical/graphics-programming-and-theory/rendering-water-as-a-post-process-effect-r2642
 --------------------------------------
 --------------------------------------
@@ -10,7 +11,6 @@
 -- fs
 #define NUM_HEIGHT_SAMPLES 10
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
 
@@ -20,6 +20,7 @@ uniform sampler2D in_reflectionTexture;
 uniform sampler2D in_heightTexture;
 uniform sampler2D in_normalTexture;
 uniform sampler2D in_foamTexture;
+uniform vec2 in_inverseViewport;
 // camera input
 #include regen.states.camera.input
 uniform mat4 in_reflectionMatrix;
@@ -80,6 +81,7 @@ const float in_foamHardness = 1.0;
 // smaller "waves" or last to have more bigger "waves"
 const vec4 in_normalModifier = vec4(1.0,2.0,4.0,8.0);
 
+#include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
 #include regen.states.textures.texco_planar_reflection
 
@@ -146,7 +148,7 @@ float fresnelTerm(vec3 normal, vec3 eyeVec)
                in_refractionConstant - in_refractionStrength, 0.0, 1.0);
 }
 
-vec4 computeWaterColor(vec3 position, float sceneDepth)
+vec4 computeWaterColor(vec3 position, float sceneDepth, vecTexco texco)
 {
   vec2 uv;
   // Height of water intersecting with view ray.
@@ -214,11 +216,11 @@ vec4 computeWaterColor(vec3 position, float sceneDepth)
 
   // Compute refraction color
 #ifdef USE_REFRACTION
-  uv = in_texco.xy;
+  uv = texco.xy;
   uv += vec2( sin(in_time*0.2 + 3.0 * abs(position.y)) * (in_waveScale.x * min(depth2, 1.0)) );
   vec3 refraction = texture(in_refractionTexture, uv).rgb;
 #else
-  vec3 refraction = texture(in_refractionTexture, in_texco).rgb;;
+  vec3 refraction = texture(in_refractionTexture, texco).rgb;
 #endif
   // compute the water color based on depth and color extinction
   float k = clamp(length(in_sunColor) / in_sunScale, 0.0, 1.0);
@@ -274,27 +276,30 @@ vec4 computeWaterColor(vec3 position, float sceneDepth)
   return vec4(color,1.0);
 }
 
-vec4 computeUnderWaterColor(vec3 position)
+vec4 computeUnderWaterColor(vec3 position, vecTexco texco)
 {
   // TODO
-  return texture(in_refractionTexture, in_texco);
+  return texture(in_refractionTexture, texco);
 }
 
 void main()
 {
+  vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+  vecTexco texco = computeTexco(texco_2D);
+  
   // sample depth at pixel location and compute the position in world space
-  float depth = texture(in_depthTexture, in_texco).x;
-  vec3 posWorldSpace = transformTexcoToWorld(in_texco, depth);
+  float depth = texture(in_depthTexture, texco).x;
+  vec3 posWorldSpace = transformTexcoToWorld(texco_2D, depth);
   
   // check if camera is below surface
   if(in_cameraPosition.y<in_surfaceHeight) {
-    out_color = computeUnderWaterColor(posWorldSpace);
+    out_color = computeUnderWaterColor(posWorldSpace,texco);
   }
   // check if point is above water surface
   else if(posWorldSpace.y>=in_surfaceHeight) {
-    out_color = texture(in_refractionTexture, in_texco);
+    out_color = texture(in_refractionTexture, texco);
   }
   else {
-    out_color = computeWaterColor(posWorldSpace,depth);
+    out_color = computeWaterColor(posWorldSpace,depth,texco);
   }
 }

@@ -21,7 +21,6 @@ float fogIntensity(float d)
 #include regen.filter.sampling.gs
 -- distance.fs
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
 #if RENDER_LAYER > 1
@@ -45,10 +44,13 @@ const float in_fogDensity = 1.0;
 #include regen.states.camera.input
 #include regen.shading.fog.fogIntensity
 #include regen.states.camera.transformTexcoToWorld
+#include regen.filter.sampling.computeTexco
 
 void main() {
-    vec2 texco_2D = gl_FragCoord.xy/in_viewport;
-    float d0 = texture(in_gDepthTexture, in_texco).x;
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco = computeTexco(texco_2D);
+    
+    float d0 = texture(in_gDepthTexture, vecTex).x;
     if(d0==1.0) discard; // discard background pixels
     vec3 eye0 = transformTexcoToWorld(texco_2D, d0) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
@@ -60,7 +62,7 @@ void main() {
 #endif
     
 #ifdef USE_TBUFFER
-    float d1 = texture(in_tDepthTexture, in_texco).x;
+    float d1 = texture(in_tDepthTexture, vecTex).x;
     vec3 eye1 = transformTexcoToWorld(texco_2D, d1) - in_cameraPosition;
     
     // use standard fog color from eye to transparent object
@@ -68,7 +70,7 @@ void main() {
     out_color = (factor1*in_fogDensity)*fogColor;
     
     // starting from transparent object to scene depth sample use alpha blended fog color.
-    vec4 tcolor = texture(in_tColorTexture, in_texco).x;
+    vec4 tcolor = texture(in_tColorTexture, vecTex).x;
     vec3 blended = fogColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a;
     // substract intensity from eye to p1
     factor0 -= factor1;
@@ -87,7 +89,6 @@ void main() {
 -- volumetric.fs
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
@@ -160,6 +161,7 @@ uniform vec2 in_fogDistance;
 #if RENDER_TARGET == CUBE
 #include regen.math.computeCubeDirection
 #endif
+#include regen.filter.sampling.computeTexco
 
 #include regen.shading.fog.fogIntensity
 
@@ -241,14 +243,9 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
 
 void main()
 {
-    vec2 texco_2D = gl_FragCoord.xy/in_viewport;
-#if RENDER_TARGET == CUBE
-    vec3 texco = computeCubeDirection(vec2(2,-2)*texco_2D + vec2(-1,1),in_layer);
-#elif RENDER_LAYER > 1
-    vec3 texco = vec3(texco_2D,in_layer);
-#else
-    vec2 texco = texco_2D;
-#endif
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
     vec3 vertexPos = transformTexcoToWorld(texco_2D, texture(in_gDepthTexture, texco).x);
     vec3 vertexRay = vertexPos-in_cameraPosition;
     // fog volume scales light radius
