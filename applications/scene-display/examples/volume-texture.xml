@@ -101,7 +101,7 @@
       <define key="SWITCH_VOLUME_Y" value="FALSE" />
       
       <transform />
-      <mesh id="box-mesh" shader="regen.meshes.volume" />
+      <mesh id="box-mesh" shader="regen.models.volume" />
     </node>
   </node>
 </node>

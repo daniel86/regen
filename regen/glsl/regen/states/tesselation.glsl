@@ -140,7 +140,7 @@ void tesselationControl()
 -- tcs
 #ifdef HAS_tessellation_shader
 #ifdef TESS_IS_ADAPTIVE
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 
 layout(vertices=TESS_NUM_VERTICES) out;
 

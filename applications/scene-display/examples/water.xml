@@ -267,7 +267,7 @@
     <texture name="heightTexture" id="island-height" map-to="HEIGHT"
 	     blend-mode="ADD" blend-factor="40.0" />
     
-    <mesh id="island-mesh" shader="regen.meshes.mesh" />
+    <mesh id="island-mesh" shader="regen.models.mesh" />
   </node>
 </node>
 

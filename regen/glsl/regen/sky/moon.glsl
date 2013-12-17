@@ -40,8 +40,8 @@ flat out vec3 out_moonColor;
 // look at matrices for each cube face
 uniform mat4 in_mvpMatrices[6];
 
-#include regen.meshes.sprite.getSpritePoints
-#include regen.meshes.sprite.getSpriteLayer
+#include regen.models.sprite.getSpritePoints
+#include regen.models.sprite.getSpriteLayer
 
 void main() {
     vec3 pos = gl_PositionIn[0].xyz;

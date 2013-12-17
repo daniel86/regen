@@ -7,7 +7,7 @@
 --------------------------------
 -- vs
 #extension GL_EXT_gpu_shader4 : enable
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 
 in vec3 in_pos;
 
@@ -38,7 +38,7 @@ void main() {
 // TODO redundant
 #if RENDER_LAYER > 1
 #extension GL_EXT_geometry_shader4 : enable
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 
 layout(triangles) in;
 // TODO: use ${RENDER_LAYER}*3
@@ -87,7 +87,7 @@ void main() {
 #endif
 
 -- fs
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 #include regen.states.textures.defines
 
 out vec4 out_color;

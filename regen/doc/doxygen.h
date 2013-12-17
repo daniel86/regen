@@ -499,11 +499,11 @@ Configure the shader using the hierarchical tree structure.
     stateConfigurer.addNode(meshNode.get());
 @endcode
 
-Finally compile the shader that is used to render the cube. Note that the 'regen.meshes.mesh' shader is used
+Finally compile the shader that is used to render the cube. Note that the 'regen.models.mesh' shader is used
 here. It can be considered as some kind of Uber shader that blanks out a lot of unused functionality using
 the shader configuration generated above.
 @code
-    shaderState->createShader(stateConfigurer.cfg(), "regen.meshes.mesh");
+    shaderState->createShader(stateConfigurer.cfg(), "regen.models.mesh");
 @endcode
 
 @section tut_xml XML Scene

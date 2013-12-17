@@ -6,7 +6,7 @@
 --------------------------------
 --------------------------------
 -- vs
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
@@ -29,7 +29,7 @@ void main() {
 }
 
 -- gs
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 #extension GL_EXT_geometry_shader4 : enable
 
 // TODO: support layered rendering, HANDLE_IO
@@ -50,7 +50,7 @@ in float in_sphereRadius[1];
 out float in_sphereRadius;
 #endif
 
-#include regen.meshes.sprite.getSpritePoints
+#include regen.models.sprite.getSpritePoints
 
 void main() {
   vec3 centerWorld = gl_PositionIn[0].xyz;
@@ -92,9 +92,9 @@ void main() {
 }
 
 -- fs
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 #include regen.states.textures.defines
-#include regen.meshes.mesh.fs-outputs
+#include regen.models.mesh.fs-outputs
 
 in vec3 in_posWorld;
 in vec3 in_posEye;
@@ -116,7 +116,7 @@ uniform vec4 in_col;
 #endif
 #include regen.states.textures.mapToFragment
 #include regen.states.textures.mapToLight
-#include regen.meshes.mesh.writeOutput
+#include regen.models.mesh.writeOutput
 
 void main()
 {

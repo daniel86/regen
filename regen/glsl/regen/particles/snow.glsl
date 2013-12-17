@@ -18,8 +18,8 @@ out vec2 out_spriteTexco;
 #include regen.states.camera.input
 uniform vec2 in_viewport;
 
-#include regen.meshes.sprite.getSpritePoints
-#include regen.meshes.sprite.emit2
+#include regen.models.sprite.getSpritePoints
+#include regen.models.sprite.emit2
 
 void main() {
     if(in_lifetime[0]<=0) { return; }
