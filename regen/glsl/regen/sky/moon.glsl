@@ -41,12 +41,12 @@ flat out vec3 out_moonColor;
 uniform mat4 in_mvpMatrices[6];
 
 #include regen.meshes.sprite.getSpritePoints
-#include regen.math.computeClosestCubeLayer
+#include regen.meshes.sprite.getSpriteLayer
 
 void main() {
     vec3 pos = gl_PositionIn[0].xyz;
     vec3 quadPos[4] = getSpritePoints(pos, vec2(in_moonSize[0]));
-    int quadLayer[3] = computeClosestCubeLayer(pos);
+    int quadLayer[3] = getSpriteLayer(pos);
 
     out_moonIndex = in_moonIndex[0];
     out_sunToMoon = in_sunToMoon[0];

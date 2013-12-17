@@ -1,6 +1,9 @@
 --------------------------------------
 --------------------------------------
----- Tonemapping shader. Based on hdr example from nvidia sdk.
+---- Tone mapping is a technique to map one set of colors
+---- to another in order to approximate the appearance of high dynamic range images
+---- in a medium that has a more limited dynamic range.
+---- Based on HDR example from nvidia SDK.
 --------------------------------------
 --------------------------------------
 -- vs
@@ -9,10 +12,12 @@
 #include regen.filter.sampling.gs
 -- fs
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
+
+out vec4 out_color;
 
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
+uniform vec2 in_inverseViewport;
 
 const float in_blurAmount = 0.5;
 const float in_effectAmount = 0.2;
@@ -28,7 +33,7 @@ const float in_vignetteInner = 0.7;
 const float in_vignetteOuter = 1.5;
 #endif
 
-out vec4 out_color;
+#include regen.filter.sampling.computeTexco
 
 #ifdef USE_VIGNETTE
 float vignette(vec2 pos, float inner, float outer)
@@ -37,46 +42,40 @@ float vignette(vec2 pos, float inner, float outer)
 }
 #endif
 
-#ifdef USE_RADIAL_BLUR
-vec4 radialBlur(sampler2D tex, vec2 texcoord, int samples,
-        float startScale, float scaleMul)
-{
-    vec4 c = vec4(0);
-    float scale = startScale;
-    for(int i=0; i<samples; i++) {
-        vec2 texco = ((texcoord-vec2(0.5))*scale)+vec2(0.5);
-        vec4 s = texture(tex, texco);
-        c += s;
-        scale *= scaleMul;
-    }
-    c /= samples;
-    return c;
-}
-#endif
-
 void main() {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
     // sum original and blurred image
     out_color = mix(
-        texture(in_inputTexture, in_texco),
-        texture(in_blurTexture, in_texco), in_blurAmount
+        texture(in_inputTexture, texco),
+        texture(in_blurTexture, texco), in_blurAmount
     );
 #ifdef USE_RADIAL_BLUR
-    out_color += in_effectAmount * radialBlur(
-            in_blurTexture, in_texco,
-            int(in_radialBlurSamples),
-            in_radialBlurStartScale,
-            in_radialBlurScaleMul);
+    // Radial Blur
+    vec4 blurColor = vec4(0);
+    int blurSamples = int(in_radialBlurSamples);
+    float blurScale = in_radialBlurStartScale;
+    for(int i=0; i<blurSamples; i++) {
+        vec2 texco = ((texco_2D-vec2(0.5))*blurScale)+vec2(0.5);
+        vec4 s = texture(in_blurTexture, computeTexco(texco));
+        blurColor += s;
+        blurScale *= in_radialBlurScaleMul;
+    }
+    blurColor /= blurSamples;
+    out_color += in_effectAmount * blurColor;
 #endif
 #ifdef USE_VIGNETTE
-    // exposure and vignette effect
+    // Exposure and Vignette effect
     out_color *= in_exposure * vignette(
-        in_texco*2.0-vec2(1.0),
+        texco_2D*2.0-vec2(1.0),
         in_vignetteInner,
         in_vignetteOuter);
 #else
+    // Overall Exposure
     out_color *= in_exposure;
 #endif
-    // gamma correction
+    // Gamma Correction
     out_color.rgb = pow(out_color.rgb, vec3(in_gamma));
 }
 

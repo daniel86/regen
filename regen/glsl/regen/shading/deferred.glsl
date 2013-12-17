@@ -36,7 +36,6 @@ vec3 fetchPosition(vec2 texco) {
 #include regen.filter.sampling.gs
 -- ambient.fs
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
 #if RENDER_LAYER > 1
@@ -50,10 +49,14 @@ uniform sampler2D in_gDiffuseTexture;
 uniform vec3 in_lightAmbient;
 
 #include regen.shading.deferred.fetchNormal
+#include regen.filter.sampling.computeTexco
 
 void main() {
-    vec3 N = fetchNormal(in_gNorWorldTexture,in_texco);
-    vec4 diff = texture(in_gDiffuseTexture, in_texco);
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
+    vec3 N = fetchNormal(in_gNorWorldTexture,texco);
+    vec4 diff = texture(in_gDiffuseTexture,texco);
     out_color.rgb = diff.rgb*in_lightAmbient;
     out_color.a = 0.0;
 }
@@ -70,7 +73,6 @@ void main() {
 -- directional.fs
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
 #if RENDER_LAYER > 1
@@ -105,14 +107,18 @@ uniform float in_lightFar[NUM_SHADOW_LAYER];
 #ifdef USE_SHADOW_MAP
 #include regen.shading.shadow-mapping.sampling.dir
 #endif
+#include regen.filter.sampling.computeTexco
 
 void main() {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
     // fetch from GBuffer
-    vec3 N = fetchNormal(in_gNorWorldTexture,in_texco);
-    float depth = texture(in_gDepthTexture, in_texco).r;
-    vec3 P = transformTexcoToWorld(gl_FragCoord.xy/in_viewport, depth);
-    vec4 spec = texture(in_gSpecularTexture, in_texco);
-    vec4 diff = texture(in_gDiffuseTexture, in_texco);
+    vec3 N = fetchNormal(in_gNorWorldTexture,texco);
+    float depth = texture(in_gDepthTexture, texco).r;
+    vec3 P = transformTexcoToWorld(texco_2D, depth);
+    vec4 spec = texture(in_gSpecularTexture, texco);
+    vec4 diff = texture(in_gDiffuseTexture, texco);
     float shininess = spec.a*256.0; // map from [0,1] to [0,256]
     
     vec3 L = normalize(in_lightDirection);
@@ -209,7 +215,6 @@ void main() {
 -- fs
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
-#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
 #if RENDER_LAYER > 1
@@ -252,6 +257,7 @@ uniform mat4 in_lightMatrix[6];
 
 #include regen.states.camera.transformTexcoToWorld
 #include regen.math.computeCubeLayer
+#include regen.filter.sampling.computeTexco
 
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.deferred.fetchNormal
@@ -273,14 +279,9 @@ uniform mat4 in_lightMatrix[6];
 #endif
 
 void main() {
-    vec2 texco_2D = gl_FragCoord.xy/in_viewport;
-#if RENDER_TARGET == CUBE
-    vec3 texco = computeCubeDirection(vec2(2,-2)*texco_2D + vec2(-1,1),in_layer);
-#elif RENDER_LAYER > 1
-    vec3 texco = vec3(texco_2D,in_layer);
-#else
-    vec2 texco = texco_2D;
-#endif
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    
     // fetch from GBuffer
     vec3 N = fetchNormal(in_gNorWorldTexture,texco);
     float depth = texture(in_gDepthTexture, texco).r;
