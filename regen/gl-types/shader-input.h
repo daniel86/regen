@@ -501,6 +501,7 @@ namespace regen {
     /**
      * @param in the shader input data.
      * @param name the name overwrite.
+     * @param type the type overwrite.
      */
     NamedShaderInput(ref_ptr<ShaderInput> in,
         const string &name="",

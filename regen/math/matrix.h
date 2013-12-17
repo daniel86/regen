@@ -996,6 +996,9 @@ namespace regen {
       cubeLookAtMatrices(pos, views);
       return views;
     }
+    /**
+     * @return Array of cube normal vectors.
+     */
     static inline const Vec3f* cubeDirectories()
     {
       static const Vec3f dir[6] = {
@@ -1008,6 +1011,9 @@ namespace regen {
       };
       return dir;
     }
+    /**
+     * @return Array of up vectors in cube map space.
+     */
     static inline const Vec3f* cubeUpVectors()
     {
       static const Vec3f up[6] = {

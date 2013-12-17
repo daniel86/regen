@@ -25,6 +25,9 @@ namespace scene {
      * Find texture identified by SceneInputNode.
      * @param parser The scene parser.
      * @param input The scene input node.
+     * @param idKey ID input key.
+     * @param bufferKey FBO input key.
+     * @param attachmentKey FBO attachment input key.
      * @return A texture or a null reference.
      */
     static ref_ptr<Texture> getTexture(

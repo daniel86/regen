@@ -119,7 +119,13 @@ namespace regen {
      */
     GLuint height() const;
 
+    /**
+     * @return The inverse rectangle size.
+     */
     const ref_ptr<ShaderInput2f>& sizeInverse() const;
+    /**
+     * @return The rectangle size.
+     */
     const ref_ptr<ShaderInput2f>& size() const;
   protected:
     ref_ptr<ShaderInput2f> size_;

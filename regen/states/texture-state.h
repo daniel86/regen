@@ -119,7 +119,7 @@ namespace regen {
     const string& name() const;
 
     /**
-     * @param name the name of this texture in shader programs.
+     * @param samplerType the sampler name of this texture in shader programs.
      */
     void set_samplerType(const string &samplerType);
     /**

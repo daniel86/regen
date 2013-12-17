@@ -23,6 +23,9 @@ namespace regen {
   class Camera : public HasInputState
   {
   public:
+    /**
+     * @param initializeMatrices if false matrix computation is skipped.
+     */
     Camera(GLboolean initializeMatrices=GL_TRUE);
 
     /**
@@ -31,6 +34,8 @@ namespace regen {
      * @param fov field of view.
      * @param near distance to near plane.
      * @param far distance to far plane.
+     * @param near distance to near plane.
+     * @param updateMatrices if false matrix computation is skipped.
      */
     void updateFrustum(
         GLfloat aspect, GLfloat fov, GLfloat near, GLfloat far,

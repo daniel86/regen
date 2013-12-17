@@ -32,12 +32,13 @@ namespace regen {
 
     /**
      * Adds a light to the rendering pass.
-     * @param l the light.
-     * @param sm shadow map associated to light.
+     * @param light the light.
+     * @param lightCamera Light-perspective Camera or null reference.
+     * @param shadowTexture ShadowMap or null reference.
      * @param inputs render pass inputs.
      */
     void addLight(
-        const ref_ptr<Light> &l,
+        const ref_ptr<Light> &light,
         const ref_ptr<LightCamera> &lightCamera,
         const ref_ptr<Texture> &shadowTexture,
         const list< ref_ptr<ShaderInput> > &inputs);

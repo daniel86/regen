@@ -30,12 +30,13 @@ namespace regen {
      */
     const ref_ptr<ShaderInput3f>& ambientLight() const;
     /**
-     * @param l a light.
+     * @param light a light.
      */
     void addLight(const ref_ptr<Light> &light);
     /**
-     * @param l a light.
-     * @param sm a shadow map.
+     * @param light a light.
+     * @param lightCamera Light-perspective Camera or null reference.
+     * @param shadow ShadowMap or null reference.
      * @param shadowFilter shadow filtering mode that should be used.
      */
     void addLight(

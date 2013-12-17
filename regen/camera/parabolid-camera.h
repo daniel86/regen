@@ -13,9 +13,18 @@
 #include <regen/gl-types/shader-input-container.h>
 
 namespace regen {
+  /**
+   * A camera with a parabolid projection
+   * computed in shaders.
+   */
   class ParabolidCamera : public Camera
   {
   public:
+    /**
+     * @param mesh Defines the parabolid center.
+     * @param userCamera The user camera.
+     * @param hasBackFace If true use Dual Parabolid.
+     */
     ParabolidCamera(
         const ref_ptr<Mesh> &mesh,
         const ref_ptr<Camera> &userCamera,
