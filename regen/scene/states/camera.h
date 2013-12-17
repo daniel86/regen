@@ -11,6 +11,9 @@
 #include <regen/scene/scene-parser.h>
 #include <regen/scene/scene-input.h>
 #include <regen/scene/input-processors.h>
+#include <regen/scene/resource-manager.h>
+
+#define REGEN_CAMERA_STATE_CATEGORY "camera"
 
 #include <regen/camera/camera.h>
 
@@ -21,13 +24,23 @@ namespace scene {
    */
   class CameraStateProvider : public StateProcessor {
   public:
-    CameraStateProvider();
+    CameraStateProvider()
+    : StateProcessor(REGEN_CAMERA_STATE_CATEGORY)
+    {}
 
     // Override
     void processInput(
         SceneParser *parser,
         SceneInputNode &input,
-        const ref_ptr<State> &state);
+        const ref_ptr<State> &state)
+    {
+      ref_ptr<Camera> cam = parser->getResources()->getCamera(parser,input.getName());
+      if(cam.get()==NULL) {
+        REGEN_WARN("Unable to load Camera for '" << input.getDescription() << "'.");
+        return;
+      }
+      state->joinStates(cam);
+    }
   };
 }}
 

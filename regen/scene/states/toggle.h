@@ -12,6 +12,8 @@
 #include <regen/scene/scene-input.h>
 #include <regen/scene/input-processors.h>
 
+#define REGEN_TOGGLE_STATE_CATEGORY "toggle"
+
 #include <regen/states/atomic-states.h>
 
 namespace regen {
@@ -21,13 +23,24 @@ namespace regen {
      */
     class ToggleStateProvider : public StateProcessor {
     public:
-      ToggleStateProvider();
+      ToggleStateProvider()
+      : StateProcessor(REGEN_TOGGLE_STATE_CATEGORY)
+      {}
 
       // Override
       void processInput(
           SceneParser *parser,
           SceneInputNode &input,
-          const ref_ptr<State> &state);
+          const ref_ptr<State> &state)
+      {
+        if(!input.hasAttribute("key")) {
+          REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
+          return;
+        }
+        state->joinStates(ref_ptr<ToggleState>::alloc(
+            input.getValue<RenderState::Toggle>("key",RenderState::CULL_FACE),
+            input.getValue<bool>("value",true)));
+      }
     };
   }
 }
