@@ -18,8 +18,36 @@ out vec4 out_posWorld;
 const vec2 in_streakSize = vec2(0.05,0.1);
 
 #include regen.states.camera.input
-#include regen.models.sprite.getSpritePoints
-#include regen.models.sprite.emit2
+#include regen.math.computeSpritePoints
+
+void emitSprite(mat4 invView, mat4 proj, vec3 quadPos[4])
+{
+    out_spriteTexco = vec2(1.0,0.0);
+    out_posEye = vec4(quadPos[0],1.0);
+    out_posWorld = invView * out_posEye;
+    gl_Position = proj * out_posEye;
+    EmitVertex();
+    
+    out_spriteTexco = vec2(1.0,1.0);
+    out_posEye = vec4(quadPos[1],1.0);
+    out_posWorld = invView * out_posEye;
+    gl_Position = proj * out_posEye;
+    EmitVertex();
+    
+    out_spriteTexco = vec2(0.0,0.0);
+    out_posEye = vec4(quadPos[2],1.0);
+    out_posWorld = invView * out_posEye;
+    gl_Position = proj * out_posEye;
+    EmitVertex();
+    
+    out_spriteTexco = vec2(0.0,1.0);
+    out_posEye = vec4(quadPos[3],1.0);
+    out_posWorld = invView * out_posEye;
+    gl_Position = proj * out_posEye;
+    EmitVertex();
+    
+    EndPrimitive();
+}
 
 void main() {
     if(in_lifetime[0]<=0) { return; }
