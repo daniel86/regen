@@ -118,7 +118,7 @@
       <depth function="LEQUAL" />
       <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
       <texture id="hdr-texture" map-to="COLOR" />
-      <mesh id="sky-box" shader="regen.sky.box" />
+      <mesh id="sky-box" shader="regen.models.sky-box" />
     </node>
   </node>
 </node>
