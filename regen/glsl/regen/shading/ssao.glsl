@@ -5,11 +5,12 @@
 --------------------------------------
 --------------------------------------
 -- vs
-#include regen.utility.sampling.vs
+#include regen.filter.sampling.vs
 -- gs
-#include regen.utility.sampling.gs
+#include regen.filter.sampling.gs
 -- fs
-#include regen.utility.sampling.fsHeader
+#include regen.states.camera.defines
+#include regen.filter.sampling.fs-texco
 
 out float occlusion;
 
@@ -27,7 +28,7 @@ uniform sampler2D in_aoNoiseTexture;
 #include regen.states.camera.transformTexcoToWorld
 #include regen.states.camera.linearizeDepth
 
-#include regen.shading.utility.fetchNormal
+#include regen.shading.deferred.fetchNormal
 
 #ifndef SIN_45
 // 45 degrees = sin(PI / 4)
@@ -36,7 +37,14 @@ uniform sampler2D in_aoNoiseTexture;
 
 float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 {
-    vec3 pos1 = transformTexcoToWorld(texco, __TEXTURE__(in_gDepthTexture,texco).r);
+#if RENDER_TARGET == CUBE
+    vec3 _texco = computeCubeDirection(vec2(2,-2)*texco + vec2(-1,1),in_layer);
+#elif RENDER_LAYER > 1
+    vec3 _texco = vec3(texco,in_layer);
+#else
+    vec2 _texco = texco;
+#endif
+    vec3 pos1 = transformTexcoToWorld(texco, texture(in_gDepthTexture,_texco).r);
     vec3 dir = pos1 - pos0;
     float dist = length(dir);
     // calculate occlusion intensity
@@ -46,9 +54,10 @@ float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 }
 
 void main() {
-    vec3 N = fetchNormal(in_texco);
-    float depth = __TEXTURE__(in_gDepthTexture, in_texco).r;
-    vec3 P = transformTexcoToWorld(in_texco, depth);
+    vec2 texco_2D = gl_FragCoord.xy/in_viewport;
+    vec3 N = fetchNormal(in_gNorWorldTexture,in_texco);
+    float depth = texture(in_gDepthTexture, in_texco).r;
+    vec3 P = transformTexcoToWorld(texco_2D, depth);
     depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
     vec2 texelSize = in_inverseViewport*0.5;
     
@@ -58,19 +67,19 @@ void main() {
     );
     vec2 kernelRadius = (in_aoSamplingRadius * (1.0 - depth)) * texelSize;
 
-    vec2 randomVec = texture(in_aoNoiseTexture, in_texco).xy;
+    vec2 randomVec = texture(in_aoNoiseTexture, texco_2D).xy;
     randomVec = normalize(randomVec*2.0 - 1.0);
     
     occlusion = 0.0;
     for (int i=0; i<4; ++i)
     {
         vec2 k = reflect(kernel[i], randomVec)*kernelRadius;
-        occlusion += computeAO(in_texco + k, P, N);
-        occlusion += computeAO(in_texco + k*0.5, P, N);
+        occlusion += computeAO(texco_2D + k, P, N);
+        occlusion += computeAO(texco_2D + k*0.5, P, N);
 
         k = vec2(k.x-k.y, k.x+k.y)*SIN_45;
-        occlusion += computeAO(in_texco + k*0.75, P, N);
-        occlusion += computeAO(in_texco + k*0.25, P, N);
+        occlusion += computeAO(texco_2D + k*0.75, P, N);
+        occlusion += computeAO(texco_2D + k*0.25, P, N);
     }
     occlusion = clamp(occlusion/16.0, 0.0, 1.0);
 }
@@ -81,7 +90,7 @@ void main() {
 --------------------------------------
 --------------------------------------
 -- sample.vs
-#include regen.post-passes.fullscreen.vs
+#include regen.filter.sampling.vs
 
 -- sample.fs
 out vec3 out_color;

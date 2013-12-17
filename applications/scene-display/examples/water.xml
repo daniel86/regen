@@ -169,9 +169,9 @@
     <input type="float" name="blurSigma" value="1.5" />
     
     <filter-sequence id="blurred-reflection" fbo="reflection-buffer" attachment="1" >
-      <filter shader="regen.utility.sampling.downsample" scale="0.5" />
-      <filter shader="regen.post-passes.blur.horizontal" />
-      <filter shader="regen.post-passes.blur.vertical" />
+      <filter shader="regen.filter.sampling" scale="0.5" />
+      <filter shader="regen.filter.blur.horizontal" />
+      <filter shader="regen.filter.blur.vertical" />
     </filter-sequence>
   </node>
 </node>
@@ -245,7 +245,7 @@
       <input type="float" name="foamIntensity" value="0.5" />
       <input type="float" name="foamHardness" value="1.0" />
       
-      <fullscreen-pass shader="regen.post-passes.water" />
+      <fullscreen-pass shader="regen.filter.water" />
     </node>
     
     <node import="post-pass" />
@@ -263,7 +263,7 @@
     <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" fill-mode="fill" />
     <texture name="colorTexture" id="island-color" map-to="COLOR" />
     <texture name="normalTexture" id="island-normal" map-to="NORMAL"
-	     texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
+	     texel-transfer-key="regen.states.textures.normalTBNTransfer" />
     <texture name="heightTexture" id="island-height" map-to="HEIGHT"
 	     blend-mode="ADD" blend-factor="40.0" />
     
@@ -309,9 +309,9 @@
     <input type="float" name="blurSigma" value="2.5" />
     
     <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
-      <filter shader="regen.utility.sampling.downsample" scale="0.5" />
-      <filter shader="regen.post-passes.blur.horizontal" />
-      <filter shader="regen.post-passes.blur.vertical" />
+      <filter shader="regen.filter.sampling" scale="0.5" />
+      <filter shader="regen.filter.blur.horizontal" />
+      <filter shader="regen.filter.blur.vertical" />
     </filter-sequence>
   </node>
   
@@ -323,7 +323,7 @@
     <input type="float" name="reduceMin" value="0.0078125" />
     <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
-    <fullscreen-pass shader="regen.post-passes.fxaa" />
+    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
   
   <node id="tonemap">
@@ -340,7 +340,7 @@
     <input type="float" name="radialBlurStartScale" value="1.0" />
     <input type="float" name="radialBlurScaleMul" value="0.9555" />
     
-    <fullscreen-pass shader="regen.post-passes.tonemap" />
+    <fullscreen-pass shader="regen.filter.tonemap" />
   </node>
 </node>
 

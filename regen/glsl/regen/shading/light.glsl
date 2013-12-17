@@ -1,19 +1,4 @@
 
--- fetchNormal
-vec3 fetchNormal(vec2 texco) {
-    vec4 N = __TEXTURE__(in_gNorWorldTexture, texco);
-    if( N.w==0.0 ) discard;
-    return N.xyz*2.0 - vec3(1.0);
-}
-
--- fetchPosition
-#include regen.states.camera.transformTexcoToWorld
-
-vec3 fetchPosition(vec2 texco) {
-    float depth = __TEXTURE__(in_gDepthTexture, texco).r;
-    return transformTexcoToWorld(texco, depth);
-}
-
 -- radiusAttenuation
 float radiusAttenuation(float d, float innerRadius, float outerRadius) {
     return 1.0 - smoothstep(innerRadius, outerRadius, d);

@@ -219,7 +219,7 @@ void TextureState::set_blendFactor(GLfloat blendFactor)
 void TextureState::set_blendMode(BlendMode blendMode)
 {
   blendMode_ = blendMode;
-  shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  REGEN_STRING("regen.utility.blending." << blendMode_));
+  shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  REGEN_STRING("regen.states.blending." << blendMode_));
   shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), REGEN_STRING("blend_" << blendMode_));
 }
 void TextureState::set_blendFunction(const string &blendFunction, const string &blendName)
@@ -241,7 +241,7 @@ void TextureState::set_mapTo(MapTo id)
 void TextureState::set_mapping(TextureState::Mapping mapping)
 {
   mapping_ = mapping;
-  shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), REGEN_STRING("regen.utility.textures.texco_" << mapping));
+  shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), REGEN_STRING("regen.states.textures.texco_" << mapping));
   shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), REGEN_STRING("texco_" << mapping));
   shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
@@ -302,16 +302,16 @@ void TextureState::set_texcoTransfer(TransferTexco mode)
 {
   switch(mode) {
   case TRANSFER_TEXCO_FISHEYE:
-    set_texcoTransferKey("regen.utility.textures.fisheyeTransfer");
+    set_texcoTransferKey("regen.states.textures.fisheyeTransfer");
     break;
   case TRANSFER_TEXCO_PARALLAX:
-    set_texcoTransferKey("regen.utility.textures.parallaxTransfer");
+    set_texcoTransferKey("regen.states.textures.parallaxTransfer");
     break;
   case TRANSFER_TEXCO_PARALLAX_OCC:
-    set_texcoTransferKey("regen.utility.textures.parallaxOcclusionTransfer");
+    set_texcoTransferKey("regen.states.textures.parallaxOcclusionTransfer");
     break;
   case TRANSFER_TEXCO_RELIEF:
-    set_texcoTransferKey("regen.utility.textures.reliefTransfer");
+    set_texcoTransferKey("regen.states.textures.reliefTransfer");
     break;
   }
 }

@@ -1,8 +1,11 @@
 
 -- defines
 #include regen.states.camera.defines
-#include regen.utility.textures.defines
+#include regen.states.textures.defines
 #include regen.defines.all
+#ifndef OUTPUT_TYPE
+#define OUTPUT_TYPE DEFERRED
+#endif
 
 -- vs
 #extension GL_EXT_gpu_shader4 : enable
@@ -31,7 +34,7 @@ out int out_instanceID;
 #endif
 
 #include regen.states.camera.input
-#include regen.utility.textures.input
+#include regen.states.textures.input
 
 #include regen.states.model.transformModel
 #ifdef VS_CAMERA_TRANSFORM
@@ -39,7 +42,7 @@ out int out_instanceID;
 #include regen.states.camera.transformEyeToScreen
 #endif
 
-#include regen.utility.textures.mapToVertex
+#include regen.states.textures.mapToVertex
 
 #define HANDLE_IO(i)
 
@@ -80,7 +83,7 @@ void main() {
 }
 
 -- tcs
-#include regen.utility.tesselation.tcs
+#include regen.states.tesselation.tcs
 
 -- tes
 #ifdef HAS_tessellation_shader
@@ -108,14 +111,14 @@ out int out_instanceID;
 #endif
 
 #include regen.states.camera.input
-#include regen.utility.textures.input
+#include regen.states.textures.input
 
-#include regen.utility.tesselation.interpolate
+#include regen.states.tesselation.interpolate
 
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
 
-#include regen.utility.textures.mapToVertex
+#include regen.states.textures.mapToVertex
 
 #define HANDLE_IO(i)
 
@@ -147,22 +150,57 @@ void main() {
 -- gs
 #include regen.default.gs-geometry
 
--- fs
-#if OUTPUT_TYPE == DEPTH
-#include regen.meshes.mesh.fs-depth
-#elif OUTPUT_TYPE == COLOR
-#define SHADING NONE
-#include regen.meshes.mesh.fs-color
-#elif OUTPUT_TYPE == VARIANCE
-#include regen.meshes.mesh.fs-variance
+-- fs-outputs
+#ifdef FS_EARLY_FRAGMENT_TEST
+layout(early_fragment_tests) in;
+#endif
+#if OUTPUT_TYPE == DEFERRED
+///// Deferred shading fragment shading
+#if SHADING==NONE
+out vec4 out_diffuse;
 #else
-#include regen.meshes.mesh.fs-deferred
+layout(location = 0) out vec4 out_diffuse;
+layout(location = 1) out vec4 out_specular;
+layout(location = 2) out vec4 out_norWorld;
+#endif
+#endif
+#if OUTPUT_TYPE == TRANSPARENCY
+///// Direct shading fragment shading
+#extension GL_EXT_gpu_shader4 : enable
+layout(location = 0) out vec4 out_color;
+#ifdef USE_AVG_SUM_ALPHA
+layout(location = 1) out vec2 out_counter;
+#endif
+#endif
+#if OUTPUT_TYPE == DIRECT
+///// Direct shading fragment shading
+#extension GL_EXT_gpu_shader4 : enable
+out vec4 out_color;
 #endif
 
--- fs-depth
-// Nothing to do in the fragment shader.
-// TODO: There could be methods modifying gl_FragDepth
+-- fs
+#include regen.meshes.mesh.defines
+#include regen.meshes.mesh.fs-outputs
+
+#if OUTPUT_TYPE == DEPTH
+///// Depth only output
 void main() {}
+#endif
+#if OUTPUT_TYPE == DEFERRED
+#include regen.meshes.mesh.fs-shading
+#endif
+#if OUTPUT_TYPE == TRANSPARENCY
+#include regen.meshes.mesh.fs-shading
+#endif
+#if OUTPUT_TYPE == DIRECT
+#include regen.meshes.mesh.fs-shading
+#endif
+#if OUTPUT_TYPE == MOMENTS
+#include regen.meshes.mesh.fs-moments
+#endif
+#if OUTPUT_TYPE == COLOR
+#include regen.meshes.mesh.fs-color
+#endif
 
 -- fs-moments
 out vec4 out_color;
@@ -193,21 +231,7 @@ void main()
     out_color = vec4(depth, depth*depth + 0.25*(dx*dx+dy*dy), 1.0, 1.0);
 }
 
--- fs-deferred
-#include regen.meshes.mesh.defines
-
-#ifdef FS_EARLY_FRAGMENT_TEST
-layout(early_fragment_tests) in;
-#endif
-
-#if SHADING==NONE
-out vec4 out_diffuse;
-#else
-layout(location = 0) out vec4 out_diffuse;
-layout(location = 1) out vec4 out_specular;
-layout(location = 2) out vec4 out_norWorld;
-#endif
-
+-- fs-shading
 in vec3 in_posWorld;
 in vec3 in_posEye;
 #ifdef HAS_TANGENT_SPACE
@@ -224,63 +248,119 @@ uniform vec4 in_col;
 #include regen.states.camera.input
 #include regen.states.material.input
 #include regen.states.clipping.input
-#include regen.utility.textures.input
+#include regen.states.textures.input
 
 #ifdef HAS_CLIPPING
 #include regen.states.clipping.isClipped
 #endif
+#include regen.states.textures.mapToFragment
+#include regen.states.textures.mapToLight
 
-#include regen.utility.textures.mapToFragment
-#include regen.utility.textures.mapToLight
+#include regen.meshes.mesh.writeOutput
 
 #define HANDLE_IO(i)
 
 void main() {
 #ifdef HAS_CLIPPING
-    if(isClipped(in_posWorld)) discard;
+  if(isClipped(in_posWorld)) discard;
 #endif
-    HANDLE_IO(0);
-    vec3 norWorld;
-#ifdef HAS_nor
-  #ifdef HAS_TWO_SIDES
-    norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
-  #else
-    norWorld = in_norWorld;
-  #endif
+#if HAS_nor && HAS_TWO_SIDES
+  vec3 norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
+#elif HAS_nor
+  vec3 norWorld = in_norWorld;
 #else
-    norWorld = vec3(0.0,0.0,0.0);
-#endif // HAS_NORMAL
-
+  vec3 norWorld = vec3(0.0,0.0,0.0);
+#endif
 #ifdef HAS_col
-    out_diffuse = in_col;
+  vec4 color = in_col;
 #else
-    out_diffuse = vec4(1.0);
+  vec4 color = vec4(1.0);
 #endif 
 #endif // HAS_COL
-    textureMappingFragment(in_posWorld, out_diffuse, norWorld);
+  textureMappingFragment(in_posWorld, color, norWorld);
+  writeOutput(in_posWorld, norWorld, color);
+}
 
-#if SHADING!=NONE
-    // map to [0,1] for rgba buffer
-    out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
-    out_norWorld.w = 1.0;
-  #ifdef HAS_MATERIAL
-    out_diffuse.rgb *= (in_matAmbient + in_matDiffuse);
-    out_specular = vec4(in_matSpecular,0.0);
-    float shininess = in_matShininess;
-  #else
-    out_specular = vec4(0.0);
-    float shininess = 0.0;
-  #endif
-    textureMappingLight(
-        in_posWorld,
-        norWorld,
-        out_diffuse.rgb,
-        out_specular.rgb,
-        shininess);
-  #ifdef HAS_MATERIAL
-    out_specular.a = (in_matShininess * shininess)/256.0;
-  #else
-    out_specular.a = shininess/256.0;
-  #endif
+-----------------------
+-----------------------
+-----------------------
+-- writeOutput
+#if OUTPUT_TYPE == DEFERRED
+#include regen.meshes.mesh.writeOutput-deferred
 #endif
+#if OUTPUT_TYPE == TRANSPARENCY || OUTPUT_TYPE == DIRECT
+#include regen.meshes.mesh.writeOutput-direct
+#endif
+#if OUTPUT_TYPE == DEPTH
+#define writeOutput(posWorld,norWorld,color)
+#endif
+#if OUTPUT_TYPE == COLOR
+#include regen.meshes.mesh.writeOutput-color
+#endif
+
+-- writeOutput-color
+void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
+  out_color = color;
+}
+
+-- writeOutput-direct
+#if SHADING!=NONE
+uniform vec3 in_ambientLight;
+#include regen.shading.direct.inputs
+#include regen.shading.direct.shade
+#endif
+void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
+  vec4 diffuse = color;
+#if SHADING!=NONE
+#ifdef HAS_MATERIAL
+  diffuse.rgb *= in_matDiffuse;
+  vec3 specular = in_matSpecular;
+  float shininess = in_matShininess;
+#else
+  vec3 specular = vec3(0.0);
+  float shininess = 0.0;
+#endif
+  textureMappingLight(posWorld, norWorld,
+      diffuse.rgb, specular, shininess);
+#ifdef HAS_MATERIAL
+  shininess *= in_matShininess;
+#endif
+  Shading shading = shade(posWorld, norWorld, gl_FragCoord.z, shininess);
+  diffuse.rgb *= shading.diffuse +
+      specular*shading.specular +
+      in_ambientLight*in_matAmbient;
+#endif
+#ifdef USE_AVG_SUM_ALPHA
+  out_color = vec4(diffuse.rgb*diffuse.a,diffuse.a);
+  out_counter = vec2(1.0);
+#elif USE_SUM_ALPHA
+  out_color = vec4(diffuse.rgb*diffuse.a,diffuse.a);
+#else
+  out_color = diffuse;
+#endif
+}
+
+-- writeOutput-deferred
+void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
+  out_diffuse = color;
+#if SHADING!=NONE
+  // map to [0,1] for rgba buffer
+  out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
+  out_norWorld.w = 1.0;
+#ifdef HAS_MATERIAL
+  out_diffuse.rgb *= (in_matAmbient + in_matDiffuse);
+  out_specular = vec4(in_matSpecular,0.0);
+  float shininess = in_matShininess;
+#else
+  out_specular = vec4(0.0);
+  float shininess = 0.0;
+#endif // HAS_MATERIAL
+  textureMappingLight(in_posWorld, norWorld,
+      out_diffuse.rgb, out_specular.rgb, shininess);
+#ifdef HAS_MATERIAL
+  out_specular.a = (in_matShininess * shininess)/256.0;
+#else
+  out_specular.a = shininess/256.0;
+#endif // HAS_MATERIAL
+#endif // SHADING!=NONE
 }

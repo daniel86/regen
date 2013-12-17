@@ -123,7 +123,7 @@
       <!-- Set-Up Relief Mapping. -->
       <texture name="colorTexture" id="ground-color" map-to="COLOR" />
       <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
-	       texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
+	       texel-transfer-key="regen.states.textures.normalTBNTransfer" />
       
       <transform shape="wall"
 		 size="20.0,20.0"
@@ -186,7 +186,7 @@
     <input type="float" name="reduceMin" value="0.0078125" />
     <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
-    <fullscreen-pass shader="regen.post-passes.fxaa" />
+    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
 </node>
 

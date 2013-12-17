@@ -8,9 +8,9 @@
 -- vs
 #include regen.gui.widget.vs
 -- fs
-#include regen.utility.textures.defines
-#include regen.utility.textures.input
-#include regen.utility.textures.mapToFragmentUnshaded
+#include regen.states.textures.defines
+#include regen.states.textures.input
+#include regen.states.textures.mapToFragmentUnshaded
 uniform vec4 in_textColor;
 out vec4 out_color;
 
@@ -70,9 +70,9 @@ void main() {
 }
 
 -- outline.fs
-#include regen.utility.textures.defines
-#include regen.utility.textures.input
-#include regen.utility.textures.mapToFragmentUnshaded
+#include regen.states.textures.defines
+#include regen.states.textures.input
+#include regen.states.textures.mapToFragmentUnshaded
 
 out vec4 out_color;
 

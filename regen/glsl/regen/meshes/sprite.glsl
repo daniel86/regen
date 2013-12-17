@@ -15,18 +15,6 @@ vec3[4] getSpritePoints(vec3 p, vec2 size, vec3 upVector)
     );
 }
 
--- getSpriteLayer
-// Calculate cube map layers a sprite could affect.
-// Should be done because a sprite can intersect with 3 cube faces at the same time.
-int[3] getSpriteLayer(vec3 p)
-{
-    return int[](
-        1 - int(sign(p.x)*0.5 + 0.5), //0 or 1
-        3 - int(sign(p.y)*0.5 + 0.5), //2 or 3
-        5 - int(sign(p.z)*0.5 + 0.5)  //4 or 5
-    );
-}
-
 -- emit0
 void emitSprite(mat4 proj, vec3 quadPos[4])
 {

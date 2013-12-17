@@ -362,7 +362,7 @@ void blend_soft(float col1, inout float col2, float factor)
 -- hue
 #ifndef __BLEND_HUE__
 #define2 __BLEND_HUE__
-#include regen.utility.blending.color-space
+#include regen.states.blending.color-space
 
 void blend_hue(vec4 col1, inout vec4 col2, float factor)
 {
@@ -385,7 +385,7 @@ void blend_hue(vec4 col1, inout vec4 col2, float factor)
 -- sat
 #ifndef __BLEND_SAT__
 #define2 __BLEND_SAT__
-#include regen.utility.blending.color-space
+#include regen.states.blending.color-space
 
 void blend_sat( vec4 col1, inout vec4 col2, float factor)
 {
@@ -404,7 +404,7 @@ void blend_sat( vec4 col1, inout vec4 col2, float factor)
 -- val
 #ifndef __BLEND_VAL__
 #define2 __BLEND_VAL__
-#include regen.utility.blending.color-space
+#include regen.states.blending.color-space
 
 void blend_val(vec4 col1, inout vec4 col2, float factor)
 {
@@ -420,7 +420,7 @@ void blend_val(vec4 col1, inout vec4 col2, float factor)
 -- col
 #ifndef __BLEND_COL__
 #define2 __BLEND_COL__
-#include regen.utility.blending.color-space
+#include regen.states.blending.color-space
 
 void blend_col(vec4 col1, inout vec4 col2, float factor)
 {

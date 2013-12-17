@@ -463,7 +463,7 @@
     <input type="int" name="reliefBinarySteps" value="2" />
     <texture name="colorTexture" id="ground-color" map-to="COLOR" texco-transfer="RELIEF" />
     <texture name="normalTexture" id="ground-normal" map-to="NORMAL" texco-transfer="RELIEF"
-	     texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
+	     texel-transfer-key="regen.states.textures.normalTBNTransfer" />
     <texture name="heightTexture" id="ground-height" />
     <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" />
     <mesh id="ground-mesh" shader="regen.meshes.mesh" />
@@ -541,7 +541,7 @@
     <input type="float" name="reduceMin" value="0.0078125" />
     <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
-    <fullscreen-pass shader="regen.post-passes.fxaa" />
+    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
 </node>
 

@@ -15,17 +15,6 @@ vec3 eyeVectorTan()
 }
 #endif
 
--- depthCorrection
-#ifndef __depthCorrection_included__
-#define2 __depthCorrection_included__
-void depthCorrection(float depth)
-{
-    vec3 pe = in_posEye + depth*normalize(in_posEye);
-    vec4 ps = __PROJ__ * vec4(pe,1.0);
-    gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
-}
-#endif
-
 -- defines
 #ifndef __IS_TEX_DEF_DECLARED
 #define2 __IS_TEX_DEF_DECLARED
@@ -56,7 +45,7 @@ void depthCorrection(float depth)
 #ifndef __IS_TEX_INPUT_DECLARED
 #define2 __IS_TEX_INPUT_DECLARED
 
-#include regen.utility.textures.defines
+#include regen.states.textures.defines
 
 #if SHADER_STAGE == tes
 #define __NUM_INPUT_VERTICES TESS_NUM_VERTICES
@@ -100,7 +89,7 @@ in vec${_DIM} in_${_TEXCO};
 #endif // HAS_TEXTURES
 
 -- includes
-#include regen.utility.textures.defines
+#include regen.states.textures.defines
 #ifndef __IS_TEXCO_DECLARED
 #define2 __IS_TEXCO_DECLARED
 
@@ -108,7 +97,7 @@ in vec${_DIM} in_${_TEXCO};
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #define2 _MAPPING ${TEX_MAPPING_KEY${_ID}}
-  #if ${_MAPPING} != regen.utility.textures.texco_texco && TEX_MAPPING_KEY${_ID} != regen.utility.textures.texco_custom
+  #if ${_MAPPING} != regen.states.textures.texco_texco && TEX_MAPPING_KEY${_ID} != regen.states.textures.texco_custom
 #include ${_MAPPING}
   #endif
 #endfor
@@ -161,7 +150,7 @@ in vec${_DIM} in_${_TEXCO};
 #define2 __TEXCO${_ID}__ texco_${_MAPPING_}
 #endif
 
-#else // _MAPPING_==regen.utility.textures.texco_texco
+#else // _MAPPING_==regen.states.textures.texco_texco
 #ifndef __${TEX_TEXCO${_ID}}__
 #define2 __${TEX_TEXCO${_ID}}__
 #if SHADER_STAGE==tes
@@ -184,7 +173,7 @@ in vec${_DIM} in_${_TEXCO};
 #define2 __TEXCO${_ID}__ ${TEX_TEXCO${_ID}}
 #endif
 
-#endif // _MAPPING_==regen.utility.textures.texco_texco
+#endif // _MAPPING_==regen.states.textures.texco_texco
 
 -- sampleTexel
     vec4 texel${INDEX} = texture(in_${TEX_NAME${_ID}}, ${__TEXCO${_ID}__});
@@ -224,7 +213,7 @@ void normalTBNTransfer(inout vec4 texel)
 #ifndef HAS_VERTEX_TEXTURE
 #define textureMappingVertex(P,N)
 #else
-#include regen.utility.textures.includes
+#include regen.states.textures.includes
 
 void textureMappingVertex(inout vec3 P, inout vec3 N)
 {
@@ -232,14 +221,14 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT
-#include regen.utility.textures.computeTexco
+#include regen.states.textures.computeTexco
 #endif // ifVertexMapping
 #endfor
     // sample texels
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT
-#include regen.utility.textures.sampleTexel
+#include regen.states.textures.sampleTexel
 #endif // ifVertexMapping
 #endfor
     // blend texels with existing values
@@ -260,7 +249,7 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
 #ifndef HAS_FRAGMENT_TEXTURE
 #define textureMappingFragment(P,C,N)
 #else
-#include regen.utility.textures.includes
+#include regen.states.textures.includes
 
 void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
 {
@@ -268,14 +257,14 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA || TEX_MAPTO${_ID}==NORMAL
-#include regen.utility.textures.computeTexco
+#include regen.states.textures.computeTexco
 #endif // ifFragmentMapping
 #endfor
     // sample texels
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA || TEX_MAPTO${_ID}==NORMAL
-#include regen.utility.textures.sampleTexel
+#include regen.states.textures.sampleTexel
 #endif // ifFragmentMapping
 #endfor
     // blend texels with existing values
@@ -298,7 +287,7 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
 #ifndef HAS_FRAGMENT_TEXTURE
 #define textureMappingFragmentUnshaded(P,C)
 #else
-#include regen.utility.textures.includes
+#include regen.states.textures.includes
 
 void textureMappingFragmentUnshaded(in vec3 P, inout vec4 C)
 {
@@ -306,14 +295,14 @@ void textureMappingFragmentUnshaded(in vec3 P, inout vec4 C)
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA
-#include regen.utility.textures.computeTexco
+#include regen.states.textures.computeTexco
 #endif // ifFragmentMapping
 #endfor
     // sample texels
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA
-#include regen.utility.textures.sampleTexel
+#include regen.states.textures.sampleTexel
 #endif // ifFragmentMapping
 #endfor
     // blend texels with existing values
@@ -334,7 +323,7 @@ void textureMappingFragmentUnshaded(in vec3 P, inout vec4 C)
 #ifndef HAS_LIGHT_TEXTURE
 #define textureMappingLight(P,N,C,SPEC,SHIN)
 #else
-#include regen.utility.textures.includes
+#include regen.states.textures.includes
 
 void textureMappingLight(
         in vec3 P,
@@ -347,14 +336,14 @@ void textureMappingLight(
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==AMBIENT || TEX_MAPTO${_ID}==DIFFUSE || TEX_MAPTO${_ID}==SPECULAR || TEX_MAPTO${_ID}==EMISSION || TEX_MAPTO${_ID}==LIGHT || TEX_MAPTO${_ID}==SHININESS
-#include regen.utility.textures.computeTexco
+#include regen.states.textures.computeTexco
 #endif // ifLightMapping
 #endfor
     // sample texels
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #if TEX_MAPTO${_ID}==AMBIENT || TEX_MAPTO${_ID}==DIFFUSE || TEX_MAPTO${_ID}==SPECULAR || TEX_MAPTO${_ID}==EMISSION || TEX_MAPTO${_ID}==LIGHT || TEX_MAPTO${_ID}==SHININESS
-#include regen.utility.textures.sampleTexel
+#include regen.states.textures.sampleTexel
 #endif // ifLightMapping
 #endfor
     // blend texels with existing values
@@ -486,9 +475,9 @@ vec2 texco_planar_reflection(vec3 P, vec3 N)
 const float in_parallaxScale = 0.1;
 const float in_parallaxBias = 0.05;
 
-#include regen.utility.textures.eyeVectorTan
+#include regen.states.textures.eyeVectorTan
 #ifdef DEPTH_CORRECT
-  #include regen.utility.textures.depthCorrection
+  #include regen.states.camera.depthCorrection
 #endif
 
 void parallaxTransfer(inout vec2 texco)
@@ -510,9 +499,9 @@ void parallaxTransfer(inout vec2 texco)
 const float in_parallaxScale = 0.1;
 const int in_parallaxSteps = 50;
 
-#include regen.utility.textures.eyeVectorTan
+#include regen.states.textures.eyeVectorTan
 #ifdef DEPTH_CORRECT
-  #include regen.utility.textures.depthCorrection
+  #include regen.states.camera.depthCorrection
 #endif
 
 void parallaxOcclusionTransfer(inout vec2 texco)
@@ -552,8 +541,8 @@ const int in_reliefLinearSteps = 20;
 const int in_reliefBinarySteps = 5;
 const float in_reliefScale = 0.1;
 
-#include regen.utility.textures.eyeVectorTan
-#include regen.utility.textures.depthCorrection
+#include regen.states.textures.eyeVectorTan
+#include regen.states.camera.depthCorrection
 
 void reliefTransfer(inout vec2 texco)
 {

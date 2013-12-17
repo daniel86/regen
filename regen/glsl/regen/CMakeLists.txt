@@ -7,10 +7,10 @@ install(
     DESTINATION ${SHADER_INSTALL_PATH}/glsl/regen
 )
 
+add_subdirectory(filter)
 add_subdirectory(gui)
 add_subdirectory(meshes)
 add_subdirectory(particles)
-add_subdirectory(post-passes)
 add_subdirectory(shading)
 add_subdirectory(sky)
-add_subdirectory(utility)
+add_subdirectory(states)

@@ -1,16 +1,17 @@
 --------------------------------------
 --------------------------------------
----- Deferred water.
 ---- @see http://www.gamedev.net/page/reference/index.html/_/technical/graphics-programming-and-theory/rendering-water-as-a-post-process-effect-r2642
 --------------------------------------
 --------------------------------------
 -- vs
-#include regen.post-passes.fullscreen.vs
+#include regen.filter.sampling.vs
+-- gs
+#include regen.filter.sampling.gs
 -- fs
-
 #define NUM_HEIGHT_SAMPLES 10
+#include regen.states.camera.defines
+#include regen.filter.sampling.fs-texco
 
-in vec2 in_texco;
 out vec4 out_color;
 
 uniform sampler2D in_depthTexture;
@@ -80,7 +81,7 @@ const float in_foamHardness = 1.0;
 const vec4 in_normalModifier = vec4(1.0,2.0,4.0,8.0);
 
 #include regen.states.camera.transformTexcoToWorld
-#include regen.utility.textures.texco_planar_reflection
+#include regen.states.textures.texco_planar_reflection
 
 #ifdef USE_RIPPLES
 mat3 MatrixInverse(in mat3 inMatrix){  

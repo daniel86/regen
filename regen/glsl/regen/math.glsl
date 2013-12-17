@@ -78,10 +78,24 @@ int computeCubeLayer(vec3 dir)
 {
     vec3 absDir = abs(dir);
     float magnitude = max(absDir.x, max(absDir.y, absDir.z));
-    return
-        (1-int(absDir.x<magnitude))*int(1.0 - (sign(dir.x)+1.0)/2.0) +
-        (1-int(absDir.y<magnitude))*int(3.0 - (sign(dir.y)+1.0)/2.0) +
-        (1-int(absDir.z<magnitude))*int(5.0 - (sign(dir.z)+1.0)/2.0);
+    vec3 v0 = vec3(1)     - vec3(lessThanEqual(absDir,vec3(magnitude)));
+    vec3 v1 = vec3(1,2,3) - 0.5*sign(dir);
+    return int(dot(v0,v1));
+}
+#endif
+
+-- computeClosestCubeLayer
+#ifndef __computeClosestCubeLayer__included__
+#define2 __computeClosestCubeLayer__included__
+// Calculate cube map layers a sprite could affect.
+// Should be done because a sprite can intersect with 3 cube faces at the same time.
+int[3] computeClosestCubeLayer(vec3 p)
+{
+    return int[](
+        1 - int(sign(p.x)*0.5 + 0.5), //0 or 1
+        3 - int(sign(p.y)*0.5 + 0.5), //2 or 3
+        5 - int(sign(p.z)*0.5 + 0.5)  //4 or 5
+    );
 }
 #endif
 

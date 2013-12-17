@@ -155,7 +155,7 @@
 	       texco-transfer="PARALLAX" />
       <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
 	       texco-transfer="PARALLAX"
-	       texel-transfer-key="regen.utility.textures.normalTBNTransfer" />
+	       texel-transfer-key="regen.states.textures.normalTBNTransfer" />
       <texture name="heightTexture" id="ground-height" />
       
       <transform>
@@ -231,8 +231,8 @@
 		     pixel-type="BYTE"
 		     bind-input="0" >
       <filter shader="regen.shading.ssao" scale="0.5" />
-      <filter shader="regen.post-passes.blur.horizontal" />
-      <filter shader="regen.post-passes.blur.vertical" />
+      <filter shader="regen.filter.blur.horizontal" />
+      <filter shader="regen.filter.blur.vertical" />
     </filter-sequence>
   </node>
   <node id="ambient-occlusion-sample">
@@ -273,9 +273,9 @@
     <input type="float" name="blurSigma" value="2.0" />
     
     <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
-      <filter shader="regen.utility.sampling.downsample" scale="0.5" />
-      <filter shader="regen.post-passes.blur.horizontal" />
-      <filter shader="regen.post-passes.blur.vertical" />
+      <filter shader="regen.filter.sampling" scale="0.5" />
+      <filter shader="regen.filter.blur.horizontal" />
+      <filter shader="regen.filter.blur.vertical" />
     </filter-sequence>
   </node>
   
@@ -286,7 +286,7 @@
     <texture name="blurTexture" id="blurred-scene" />
     <input type="float" name="focalDistance" value="0.0" />
     <input type="vec2" name="focalWidth" value="0.7,1.0" />
-    <fullscreen-pass shader="regen.post-passes.dof" />
+    <fullscreen-pass shader="regen.filter.dof" />
   </node>
   
   <node id="fxaa">
@@ -297,7 +297,7 @@
     <input type="float" name="reduceMin" value="0.0078125" />
     <input type="vec3" name="luma" value="0.299,0.587,0.114" />
     
-    <fullscreen-pass shader="regen.post-passes.fxaa" />
+    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
 </node>
 

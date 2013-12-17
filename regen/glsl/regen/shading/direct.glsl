@@ -80,9 +80,9 @@ struct Shading {
 };
 
 #include regen.shading.direct.inputs
-#include regen.shading.utility.spotConeAttenuation
-#include regen.shading.utility.radiusAttenuation
-#include regen.shading.utility.specularFactor
+#include regen.shading.light.spotConeAttenuation
+#include regen.shading.light.radiusAttenuation
+#include regen.shading.light.specularFactor
 #include regen.shading.shadow-mapping.sampling.all
 #include regen.math.computeCubeLayer
 
@@ -173,8 +173,8 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 --------------------------------------
 -- diffuse
 #include regen.shading.direct.inputs
-#include regen.shading.utility.spotConeAttenuation
-#include regen.shading.utility.radiusAttenuation
+#include regen.shading.light.spotConeAttenuation
+#include regen.shading.light.radiusAttenuation
 #include regen.shading.shadow-mapping.sampling.all
 #include regen.math.computeCubeLayer
 
