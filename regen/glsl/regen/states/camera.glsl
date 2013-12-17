@@ -19,7 +19,7 @@
 // Macros for Layered Camera access
 #if RENDER_TARGET == CUBE
 #define __VIEW__(layer)          in_viewMatrix[layer]
-#define __VIEW_INV_(layer)       in_inverseViewMatrix[layer]
+#define __VIEW_INV__(layer)       in_inverseViewMatrix[layer]
 #define __VIEW_PROJ__(layer)     in_viewProjectionMatrix[layer]
 #define __VIEW_PROJ_INV__(layer) in_inverseViewProjectionMatrix[layer]
 #define __CAM_DIR__(layer)       in_cameraDirection[layer]

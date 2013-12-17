@@ -60,13 +60,18 @@
       use-tangent="0"
       texco-mode="CUBE_MAP"
       usage="STATIC" />
-<!-- TODO: sprite sphere test case!! -->
-<mesh id="sphere-mesh"
-      type="sphere"
-      lod="4"
-      use-normal="1"
-      use-tangent="0"
-      usage="STATIC" />
+<mesh id="sprite-sphere"
+      type="mesh"
+      primitive="POINTS"
+      usage="STATIC"
+      num-vertices="1" >
+  <input type="float" name="sphereRadius" is-attribute="1">
+    <set mode="constant" value="1.0" index="0" />
+  </input>
+  <input type="vec3" name="pos" is-attribute="1">
+    <set mode="constant" value="0.0,0.0,0.0" index="0" />
+  </input>
+</mesh>
 <mesh id="logo-widget"
       type="rectangle"
       lod="0"
@@ -104,7 +109,7 @@
 	       blend-mode="MIX"
 	       blend-factor="0.35"
 	       mapping="REFLECTION" />
-      <mesh id="sphere-mesh" shader="regen.models.mesh" />
+      <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
     </node>
   </node>
   
