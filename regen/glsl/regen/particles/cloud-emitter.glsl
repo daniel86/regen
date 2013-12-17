@@ -1,5 +1,5 @@
 
--- update.vs
+-- vs
 // planet gravity
 const vec3 in_gravity = vec3(0.0,-9.81,0.0);
 // damping reduces velocity each frame
@@ -30,7 +30,7 @@ in ${_TYPE} in_${_NAME};
 out ${_TYPE} out_${_NAME};
 #endfor
 
-#include regen.particles.utility.randomize
+#include regen.math.variance
 
 bool isParticleDead()
 {

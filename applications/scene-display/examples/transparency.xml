@@ -102,7 +102,7 @@
 <mesh id="particle-mesh"
       type="particles"
       num-vertices="500"
-      update-shader="regen.particles.cloud-particles.update"
+      update-shader="regen.particles.cloud-emitter"
       gravity="-4.0,-9.0,0.0"
       damping-factor="2.0"
       noise-factor="10.0"
@@ -307,7 +307,7 @@
 	  <texture name="particleTexture" id="particle-splat" />
 	  <input type="float" name="softParticleScale" value="100.0" />
 	  <input type="float" name="particleBrightness" value="0.03" />
-	  <mesh id="particle-mesh" shader="regen.particles.snow.draw" />
+	  <mesh id="particle-mesh" shader="regen.models.sprite-particles" />
 	</node>
       </direct-pass>
     </direct-shading>

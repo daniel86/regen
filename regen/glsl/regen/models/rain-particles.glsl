@@ -1,14 +1,18 @@
 
--- draw.vs
-#include regen.particles.utility.vs.passThrough
+-- vs
+#include regen.models.sprite-particles.vs
 
--- draw.gs
+-- gs
 #extension GL_EXT_geometry_shader4 : enable
 
 layout(points) in;
 layout(triangle_strip, max_vertices=4) out;
 
-#include regen.particles.utility.gs.inputs
+#for INDEX to NUM_PARTICLE_ATTRIBUTES
+#define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
+#define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
+in ${_TYPE} in_${_NAME}[1];
+#endfor
 
 out vec2 out_spriteTexco;
 out vec3 out_velocity;
@@ -98,15 +102,37 @@ void main() {
 
 -- draw.fs
 #extension GL_EXT_gpu_shader4 : enable
+#include regen.models.mesh.defines
 
-#include regen.particles.utility.fs.header
+layout(location = 0) out vec4 out_color;
+
+in vec4 in_posEye;
+in vec4 in_posWorld;
+in vec3 in_velocity;
+in vec2 in_spriteTexco;
+
+const float in_softParticleScale = 1.0;
+const float in_particleBrightness = 0.5;
+
+uniform sampler2D in_particleTexture;
+
+uniform vec3 in_cameraPosition;
+uniform vec2 in_viewport;
+#ifdef USE_SOFT_PARTICLES
+#include regen.states.camera.input
+uniform sampler2D in_depthTexture;
+#endif
+
+#include regen.shading.direct.diffuse
+#include regen.states.camera.linearizeDepth
+#include regen.models.sprite-particles.softParticleScale
 
 void main() {
     vec3 P = in_posWorld.xyz;
     float opacity = in_particleBrightness;
 #ifdef USE_SOFT_PARTICLES
     // fade out particles intersecting the world
-    opacity *= softParticleOpacity();
+    opacity *= softParticleScale();
 #endif
 #ifdef USE_NEAR_CAMERA_SOFT_PARTICLES
     // fade out particls near camera
