@@ -88,12 +88,12 @@ void main() {
 
 -- fs
 #include regen.meshes.mesh.defines
-#include regen.utility.textures.defines
+#include regen.states.textures.defines
 
 out vec4 out_color;
 
-#include regen.utility.textures.input
-#include regen.utility.textures.mapToFragmentUnshaded
+#include regen.states.textures.input
+#include regen.states.textures.mapToFragmentUnshaded
 
 void main() {
     textureMappingFragmentUnshaded(gl_FragCoord.xyz, out_color);

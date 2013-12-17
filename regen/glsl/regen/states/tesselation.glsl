@@ -148,7 +148,7 @@ layout(vertices=TESS_NUM_VERTICES) out;
 
 uniform vec2 in_viewport;
 #include regen.states.camera.input
-#include regen.utility.tesselation.tesselationControl
+#include regen.states.tesselation.tesselationControl
 
 #define HANDLE_IO(i)
 

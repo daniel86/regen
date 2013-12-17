@@ -7,7 +7,7 @@
 --------------------------------------
 --------------------------------------
 -- vs
-#include regen.post-passes.fullscreen.vs
+#include regen.filter.sampling.vs
 -- fs
 out vec4 out_color;
 in vec2 in_texco;

@@ -60,6 +60,7 @@
       use-tangent="0"
       texco-mode="CUBE_MAP"
       usage="STATIC" />
+<!-- TODO: sprite sphere test case!! -->
 <mesh id="sphere-mesh"
       type="sphere"
       lod="4"
@@ -133,9 +134,9 @@
     <input type="float" name="blurSigma" value="2.5" />
     
     <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
-      <filter shader="regen.utility.sampling.downsample" scale="0.5" />
-      <filter shader="regen.post-passes.blur.horizontal" />
-      <filter shader="regen.post-passes.blur.vertical" />
+      <filter shader="regen.filter.sampling" scale="0.5" />
+      <filter shader="regen.filter.blur.horizontal" />
+      <filter shader="regen.filter.blur.vertical" />
     </filter-sequence>
   </node>
   
@@ -156,7 +157,7 @@
     <input type="float" name="vignetteInner" value="0.7" />
     <input type="float" name="vignetteOuter" value="1.5" />
     
-    <fullscreen-pass shader="regen.post-passes.tonemap" />
+    <fullscreen-pass shader="regen.filter.tonemap" />
   </node>
 </node>
 

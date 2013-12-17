@@ -36,9 +36,9 @@ void main() {
 -- fs
 #include regen.states.material.input
 
-#include regen.utility.textures.defines
-#include regen.utility.textures.input
-#include regen.utility.textures.mapToFragmentUnshaded
+#include regen.states.textures.defines
+#include regen.states.textures.input
+#include regen.states.textures.mapToFragmentUnshaded
 
 out vec4 out_color;
 

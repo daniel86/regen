@@ -1,19 +1,4 @@
 
---------------------------------------
----- T-buffer output targets depends on the used transparency mode.
---------------------------------------
--- writeOutputs
-void writeOutputs(vec4 color) {
-#ifdef USE_AVG_SUM_ALPHA || USE_SUM_ALPHA
-    out_color = vec4(color.rgb*color.a,color.a);
-#else
-    out_color = color;
-#endif
-#ifdef USE_AVG_SUM_ALPHA
-    // increase counter by 1 for each sample
-    out_counter = vec2(1.0);
-#endif
-}
 
 --------------------------------------
 --------------------------------------

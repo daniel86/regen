@@ -1,18 +1,29 @@
 
--- defines
-#if RENDER_TARGET == CUBE
-#include regen.math.computeCubeDirection
-// TODO: compute only once
-#define __CUBE_UV__(uv) 
-#define __TEXTURE__(_tex_,uv) texture(_tex_,computeCubeDirection(vec2(2,-2)*uv + vec2(-1,1),in_layer))
+-- fetchNormal
+vec3 fetchNormal(sampler2D norWorldTex, vec2 texco) {
+    vec4 N = texture(norWorldTex, texco);
+    if( N.w==0.0 ) discard;
+    return N.xyz*2.0 - vec3(1.0);
+}
+vec3 fetchNormal(sampler2DArray norWorldTex, vec3 texco) {
+    vec4 N = texture(norWorldTex, texco);
+    if( N.w==0.0 ) discard;
+    return N.xyz*2.0 - vec3(1.0);
+}
+vec3 fetchNormal(samplerCube norWorldTex, vec3 texco) {
+    vec4 N = texture(norWorldTex, texco);
+    if( N.w==0.0 ) discard;
+    return N.xyz*2.0 - vec3(1.0);
+}
 
-#elif RENDER_LAYER > 1
-#define __TEXTURE__(x,y) texture(x,vec3(y,in_layer))
+-- fetchPosition
+#include regen.states.camera.transformTexcoToWorld
 
-#else
-#define __TEXTURE__(x,y) texture(x,y)
+vec3 fetchPosition(vec2 texco) {
+    float depth = __TEXTURE__(in_gDepthTexture, texco).r;
+    return transformTexcoToWorld(texco, depth);
+}
 
-#endif
 
 --------------------------------------
 --------------------------------------
@@ -20,13 +31,14 @@
 --------------------------------------
 --------------------------------------
 -- ambient.vs
-#include regen.post-passes.fullscreen.vs
+#include regen.filter.sampling.vs
 -- ambient.gs
-#include regen.post-passes.fullscreen.gs
+#include regen.filter.sampling.gs
 -- ambient.fs
-#include regen.shading.deferred.defines
+#include regen.states.camera.defines
+#include regen.filter.sampling.fs-texco
+
 out vec4 out_color;
-in vec2 in_texco;
 #if RENDER_LAYER > 1
 flat in int in_layer;
 #endif
@@ -37,11 +49,11 @@ uniform sampler2D in_gDiffuseTexture;
 
 uniform vec3 in_lightAmbient;
 
-#include regen.shading.utility.fetchNormal
+#include regen.shading.deferred.fetchNormal
 
 void main() {
-    vec3 N = fetchNormal(in_texco);
-    vec4 diff = __TEXTURE__(in_gDiffuseTexture, in_texco);
+    vec3 N = fetchNormal(in_gNorWorldTexture,in_texco);
+    vec4 diff = texture(in_gDiffuseTexture, in_texco);
     out_color.rgb = diff.rgb*in_lightAmbient;
     out_color.a = 0.0;
 }
@@ -52,15 +64,15 @@ void main() {
 --------------------------------------
 --------------------------------------
 -- directional.vs
-#include regen.post-passes.fullscreen.vs
+#include regen.filter.sampling.vs
 -- directional.gs
-#include regen.post-passes.fullscreen.gs
+#include regen.filter.sampling.gs
 -- directional.fs
 #extension GL_EXT_gpu_shader4 : enable
-#include regen.shading.deferred.defines
+#include regen.states.camera.defines
+#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
-in vec2 in_texco;
 #if RENDER_LAYER > 1
 flat in int in_layer;
 #endif
@@ -88,19 +100,19 @@ uniform float in_lightFar[NUM_SHADOW_LAYER];
 #endif
 
 #include regen.states.camera.transformTexcoToWorld
-#include regen.shading.utility.fetchNormal
-#include regen.shading.utility.specularFactor
+#include regen.shading.deferred.fetchNormal
+#include regen.shading.light.specularFactor
 #ifdef USE_SHADOW_MAP
 #include regen.shading.shadow-mapping.sampling.dir
 #endif
 
 void main() {
     // fetch from GBuffer
-    vec3 N = fetchNormal(in_texco);
-    float depth = __TEXTURE__(in_gDepthTexture, in_texco).r;
-    vec3 P = transformTexcoToWorld(in_texco, depth);
-    vec4 spec = __TEXTURE__(in_gSpecularTexture, in_texco);
-    vec4 diff = __TEXTURE__(in_gDiffuseTexture, in_texco);
+    vec3 N = fetchNormal(in_gNorWorldTexture,in_texco);
+    float depth = texture(in_gDepthTexture, in_texco).r;
+    vec3 P = transformTexcoToWorld(gl_FragCoord.xy/in_viewport, depth);
+    vec4 spec = texture(in_gSpecularTexture, in_texco);
+    vec4 diff = texture(in_gDiffuseTexture, in_texco);
     float shininess = spec.a*256.0; // map from [0,1] to [0,256]
     
     vec3 L = normalize(in_lightDirection);
@@ -154,17 +166,57 @@ void main() {
 }
 
 --------------------------------------
----- Deferred Shading Fragment-Shader.
----- Can be used for point and spot lights.
----- Accumulate multiple lights using add blending.
 --------------------------------------
+--------------------------------------
+--------------------------------------
+
+-- gs
+#include regen.states.camera.defines
+#if RENDER_LAYER > 1
+#extension GL_EXT_geometry_shader4 : enable
+
+layout(triangles) in;
+// TODO: use ${RENDER_LAYER}*3
+layout(triangle_strip, max_vertices=18) out;
+
+flat out int out_layer;
+
+uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
+
+#define HANDLE_IO(i)
+
+void emitVertex(vec4 posWorld, int index, int layer) {
+  gl_Position = in_viewProjectionMatrix[layer]*posWorld;
+  HANDLE_IO(index);
+  EmitVertex();
+}
+
+void main() {
+#for LAYER to ${RENDER_LAYER}
+#ifndef SKIP_LAYER${LAYER}
+  gl_Layer = ${LAYER};
+  out_layer = ${LAYER};
+  emitVertex(gl_PositionIn[0], 0, ${LAYER});
+  emitVertex(gl_PositionIn[1], 1, ${LAYER});
+  emitVertex(gl_PositionIn[2], 2, ${LAYER});
+  EndPrimitive();
+  
+#endif
+#endfor
+}
+#endif
+
 -- fs
 #extension GL_EXT_gpu_shader4 : enable
-#include regen.shading.deferred.defines
+#include regen.states.camera.defines
+#include regen.filter.sampling.fs-texco
 
 out vec4 out_color;
 #if RENDER_LAYER > 1
 flat in int in_layer;
+#endif
+#if RENDER_TARGET == CUBE
+in vec3 in_posWorld;
 #endif
 
 // G-buffer input
@@ -201,11 +253,11 @@ uniform mat4 in_lightMatrix[6];
 #include regen.states.camera.transformTexcoToWorld
 #include regen.math.computeCubeLayer
 
-#include regen.shading.utility.radiusAttenuation
-#include regen.shading.utility.fetchNormal
-#include regen.shading.utility.specularFactor
+#include regen.shading.light.radiusAttenuation
+#include regen.shading.deferred.fetchNormal
+#include regen.shading.light.specularFactor
 #ifdef IS_SPOT_LIGHT
-  #include regen.shading.utility.spotConeAttenuation
+  #include regen.shading.light.spotConeAttenuation
 #endif
 
 #ifdef USE_SHADOW_MAP
@@ -216,16 +268,25 @@ uniform mat4 in_lightMatrix[6];
   #endif
 #endif // USE_SHADOW_MAP
 
+#if RENDER_TARGET == CUBE
+#include regen.math.computeCubeDirection
+#endif
+
 void main() {
-    // TODO: not working with cube map render target
-    vec2 texco = gl_FragCoord.xy/in_viewport;
-      
+    vec2 texco_2D = gl_FragCoord.xy/in_viewport;
+#if RENDER_TARGET == CUBE
+    vec3 texco = computeCubeDirection(vec2(2,-2)*texco_2D + vec2(-1,1),in_layer);
+#elif RENDER_LAYER > 1
+    vec3 texco = vec3(texco_2D,in_layer);
+#else
+    vec2 texco = texco_2D;
+#endif
     // fetch from GBuffer
-    vec3 N = fetchNormal(texco);
-    float depth = __TEXTURE__(in_gDepthTexture, texco).r;
-    vec3 P = transformTexcoToWorld(texco, depth);
-    vec4 spec = __TEXTURE__(in_gSpecularTexture, texco);
-    vec4 diff = __TEXTURE__(in_gDiffuseTexture, texco);
+    vec3 N = fetchNormal(in_gNorWorldTexture,texco);
+    float depth = texture(in_gDepthTexture, texco).r;
+    vec3 P = transformTexcoToWorld(texco_2D, depth);
+    vec4 spec = texture(in_gSpecularTexture, texco);
+    vec4 diff = texture(in_gDiffuseTexture, texco);
     float shininess = spec.a*256.0;
 
     vec3 lightVec = in_lightPosition - P;
@@ -270,67 +331,33 @@ void main() {
         0.0);
 }
 
--- gs
-#if RENDER_LAYER > 1
-#extension GL_EXT_geometry_shader4 : enable
-
-layout(triangles) in;
-// TODO: use ${RENDER_LAYER}*3
-layout(triangle_strip, max_vertices=18) out;
-
-flat out int out_layer;
-uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
-
-#define HANDLE_IO(i)
-
-void emitVertex(vec4 posWorld, int index, int layer) {
-  gl_Position = in_viewProjectionMatrix[layer]*posWorld;
-  HANDLE_IO(index);
-  EmitVertex();
-}
-
-void main() {
-#for LAYER to ${RENDER_LAYER}
-#ifndef SKIP_LAYER${LAYER}
-  gl_Layer = ${LAYER};
-  out_layer = ${LAYER};
-  emitVertex(gl_PositionIn[0], 0, ${LAYER});
-  emitVertex(gl_PositionIn[1], 1, ${LAYER});
-  emitVertex(gl_PositionIn[2], 2, ${LAYER});
-  EndPrimitive();
-  
-#endif
-#endfor
-}
-#endif
-
 --------------------------------------
 --------------------------------------
 ---- Deferred Point Light Shading. Input mesh can be a cube or sphere.
 --------------------------------------
 --------------------------------------
 -- point.vs
+#include regen.states.camera.defines
 in vec3 in_pos;
 
 uniform vec2 in_lightRadius;
 uniform vec3 in_lightPosition;
 
-#if RENDER_LAYER > 1
-void main() {
-    vec3 posWorld = in_lightPosition + in_pos*in_lightRadius.y;
-    gl_Position = vec4(posWorld,1.0);
-}
-#else
+#if RENDER_LAYER == 1
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToScreen
+#endif
 
 void main() {
     vec3 posWorld = in_lightPosition + in_pos*in_lightRadius.y;
+#if RENDER_LAYER > 1
+    gl_Position = vec4(posWorld,1.0);
+#else
     gl_Position = transformWorldToScreen(posWorld,0);
-}
 #endif
+}
 
--- spot.gs
+-- point.gs
 #include regen.shading.deferred.gs
 -- point.fs
 // #define IS_SPOT_LIGHT
@@ -342,26 +369,26 @@ void main() {
 --------------------------------------
 --------------------------------------
 -- spot.vs
+#include regen.states.camera.defines
+
 in vec3 in_pos;
 out vec3 out_intersection;
 
 uniform mat4 in_modelMatrix;
 
-#if RENDER_LAYER > 1
-void main() {
-    gl_Position = in_modelMatrix * vec4(in_pos,1.0);
-    out_intersection = gl_Position.xyz;
-}
-#else
+#if RENDER_LAYER == 1
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToScreen
+#endif
 
 void main() {
     out_intersection = (in_modelMatrix * vec4(in_pos,1.0)).xyz;
+#if RENDER_LAYER > 1
+    gl_Position = vec4(out_intersection,1.0);
+#else
     gl_Position = transformWorldToScreen(out_intersection,0);
-}
 #endif
-
+}
 -- spot.gs
 #include regen.shading.deferred.gs
 -- spot.fs

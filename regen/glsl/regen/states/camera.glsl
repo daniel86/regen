@@ -277,3 +277,15 @@ float exponentialDepth(float linearDepth, float n, float f)
   return ((f+n)*linearDepth - (2.0*n)) / ((f-n)*linearDepth);
 }
 #endif
+
+
+-- depthCorrection
+#ifndef __depthCorrection_Include__
+#define __depthCorrection_Include__
+void depthCorrection(float depth)
+{
+  vec3 pe = in_posEye + depth*normalize(in_posEye);
+  vec4 ps = __PROJ__ * vec4(pe,1.0);
+  gl_FragDepth = (ps.z/ps.w)*0.5 + 0.5;
+}
+#endif

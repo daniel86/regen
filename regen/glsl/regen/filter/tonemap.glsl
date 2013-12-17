@@ -4,9 +4,12 @@
 --------------------------------------
 --------------------------------------
 -- vs
-#include regen.post-passes.fullscreen.vs
+#include regen.filter.sampling.vs
+-- gs
+#include regen.filter.sampling.gs
 -- fs
-in vec2 in_texco;
+#include regen.states.camera.defines
+#include regen.filter.sampling.fs-texco
 
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_blurTexture;
