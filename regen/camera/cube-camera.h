@@ -13,13 +13,25 @@
 #include <regen/gl-types/shader-input-container.h>
 
 namespace regen {
+  /**
+   * A layered camera looking at 6 cube faces.
+   */
   class CubeCamera : public Camera
   {
   public:
+    /**
+     * @param mesh Defines cube center position.
+     * @param userCamera The user camera.
+     */
     CubeCamera(
         const ref_ptr<Mesh> &mesh,
         const ref_ptr<Camera> &userCamera);
 
+    /**
+     * Toggle visibility for a cube face.
+     * @param face the face enumeration.
+     * @param visible if false face is ignored.
+     */
     void set_isCubeFaceVisible(GLenum face, GLboolean visible);
 
     // Override

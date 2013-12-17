@@ -15,9 +15,16 @@ using namespace regen;
 #define REGEN_INPUT_STATE_CATEGORY "input"
 
 // TODO: move somewhere else?
+/**
+ * Sums up the time differences between invocations.
+ */
 class TimerInput : public ShaderInput1f, Animation
 {
 public:
+  /**
+   * @param timeScale scale for dt values.
+   * @param name optional timer name.
+   */
   TimerInput(GLfloat timeScale, const string &name="time")
   : ShaderInput1f(name),
     Animation(GL_TRUE,GL_FALSE,GL_TRUE),

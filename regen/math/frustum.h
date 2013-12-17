@@ -15,13 +15,23 @@ using namespace std;
 #include <regen/math/vector.h>
 
 namespace regen {
+  /**
+   * A portion of a solid pyramid that lies between two parallel planes cutting it.
+   */
   struct Frustum {
+    /** The field of view angle. */
     GLdouble fov;
+    /** The aspect ratio. */
     GLdouble aspect;
+    /** The near plane distance. */
     GLdouble near;
+    /** The far plane distance. */
     GLdouble far;
+    /** Near plane size. */
     Vec2f nearPlane;
+    /** Far plane size. */
     Vec2f farPlane;
+    /** The 8 frustum points. */
     Vec3f points[8];
 
     /**

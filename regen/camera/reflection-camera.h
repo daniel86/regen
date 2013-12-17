@@ -23,11 +23,19 @@ namespace regen {
      * @param cam The user camera to reflect.
      * @param mesh The reflector plane (first vertex and normal taken).
      * @param vertexIndex Index of mesh vertex and normal used for compute the plane equation
+     * @param hasBackFace if true handle reflector back faces.
      */
-    ReflectionCamera(const ref_ptr<Camera> &cam,
+    ReflectionCamera(
+        const ref_ptr<Camera> &cam,
         const ref_ptr<Mesh> &mesh,
         GLuint vertexIndex=0,
         GLboolean hasBackFace=GL_FALSE);
+    /**
+     * @param userCamera The user camera to reflect.
+     * @param reflectorNormal Fixed reflector normal.
+     * @param reflectorPoint Fixed reflector center position.
+     * @param hasBackFace if true handle reflector back faces.
+     */
     ReflectionCamera(
         const ref_ptr<Camera> &userCamera,
         const Vec3f &reflectorNormal,
