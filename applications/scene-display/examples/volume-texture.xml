@@ -84,6 +84,7 @@
     <blend mode="src" />
     <depth test="1" write="1" />
     <fbo id="g-buffer" draw-buffers="0,2,3" />
+    <define key="OUTPUT_TYPE" value="COLOR" />
     
     <node id="box-node" >
       <cull mode="front" />

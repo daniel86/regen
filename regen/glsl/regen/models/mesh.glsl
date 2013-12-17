@@ -155,7 +155,7 @@ void main() {
 layout(early_fragment_tests) in;
 #endif
 #if OUTPUT_TYPE == DEFERRED
-///// Deferred shading fragment shading
+///// Deferred fragment shading
 #if SHADING==NONE
 out vec4 out_diffuse;
 #else
@@ -165,7 +165,7 @@ layout(location = 2) out vec4 out_norWorld;
 #endif
 #endif
 #if OUTPUT_TYPE == TRANSPARENCY
-///// Direct shading fragment shading
+///// Direct fragment shading
 #extension GL_EXT_gpu_shader4 : enable
 layout(location = 0) out vec4 out_color;
 #ifdef USE_AVG_SUM_ALPHA
@@ -173,7 +173,12 @@ layout(location = 1) out vec2 out_counter;
 #endif
 #endif
 #if OUTPUT_TYPE == DIRECT
-///// Direct shading fragment shading
+///// Direct fragment shading
+#extension GL_EXT_gpu_shader4 : enable
+out vec4 out_color;
+#endif
+#if OUTPUT_TYPE == COLOR
+///// Plain color fragment shading
 #extension GL_EXT_gpu_shader4 : enable
 out vec4 out_color;
 #endif
@@ -206,11 +211,7 @@ void main() {}
 out vec4 out_color;
 
 #if RENDER_TARGET != 2D_ARRAY
-// TODO: redundant
-float linearizeDepth(float expDepth, float n, float f) {
-    float z_n = 2.0*expDepth - 1.0;
-    return (2.0*n)/(f+n - z_n*(f-n));
-}
+#include regen.states.camera.linearizeDepth
 #endif
 
 void main()
@@ -221,7 +222,7 @@ void main()
 #else
     // Perspective projection saves depth none linear.
     // Linearize it for shadow comparison.
-    depth = clamp( linearizeDepth(depth, __NEAR__, __FAR__), 0.0, 1.0 );
+    depth = clamp( linearizeDepth(2.0*depth-1.0, __NEAR__, __FAR__), 0.0, 1.0 );
 #endif
     // Rate of depth change in texture space.
     // This will actually compare local depth with the depth calculated for

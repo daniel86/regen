@@ -29,6 +29,11 @@ void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int index) {
 
 void main() {
   mat4 view, proj;
+#if RENDER_TARGET == CUBE
+  proj = in_projectionMatrix;
+#elif RENDER_TARGET == 2D_ARRAY
+  view = in_viewMatrix;
+#endif
   
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
@@ -36,9 +41,7 @@ void main() {
   gl_Layer = ${LAYER};
 #if RENDER_TARGET == CUBE
   view = in_viewMatrix[${LAYER}];
-  proj = in_projectionMatrix;
 #elif RENDER_TARGET == 2D_ARRAY
-  view = in_viewMatrix;
   proj = in_projectionMatrix[${LAYER}];
 #endif
   emitVertex(gl_PositionIn[0], view, proj, 0);

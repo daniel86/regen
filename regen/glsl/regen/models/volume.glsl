@@ -40,18 +40,20 @@ void main() {
     HANDLE_IO(gl_VertexID);
 }
 
+-- tcs
+#include regen.models.mesh.tcs
+-- tes
+#include regen.models.mesh.tes
+-- gs
+#include regen.models.mesh.gs
 -- fs
 #define DRAW_RAY_LENGTH 0
 #define DRAW_RAY_START 0
 #define DRAW_RAY_STOP 0
+#include regen.models.mesh.fs-outputs
 
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
-#endif
-
-layout(location = 0) out vec4 out_color;
-#ifdef USE_AVG_SUM_ALPHA
-layout(location = 1) out vec2 out_counter;
 #endif
 
 in vec3 in_rayOrigin;
@@ -64,8 +66,11 @@ uniform vec3 in_cameraPosition;
 const float in_rayStep=0.02;
 const float in_densityThreshold=0.125;
 const float in_densityScale=2.0;
+const vec3 in_matAmbient = vec3(1.0);
 
-#include regen.shading.transparency.writeOutputs
+#include regen.states.textures.mapToFragment
+#include regen.states.textures.mapToLight
+#include regen.models.mesh.writeOutput
 
 vec4 volumeTransfer(float val)
 {
@@ -149,13 +154,13 @@ void main() {
 #endif
 
 #if DRAW_RAY_LENGTH==1
-    writeOutputs(vec4(vec3(length(ray)), 1.0));
+    writeOutput(pos,vec3(0,1,0),vec4(vec3(length(ray)), 1.0));
 #elif DRAW_RAY_START==1
-    writeOutputs(vec4(rayStart, 1.0));
+    writeOutput(pos,vec3(0,1,0),vec4(rayStart, 1.0));
 #elif DRAW_RAY_STOP==1
-    writeOutputs(vec4(rayStop, 1.0));
+    writeOutput(pos,vec3(0,1,0),vec4(rayStop, 1.0));
 #else
-    writeOutputs(dst);
+    writeOutput(pos,vec3(0,1,0),dst);
 #endif
 }
 

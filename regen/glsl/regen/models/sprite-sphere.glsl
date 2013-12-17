@@ -27,19 +27,22 @@ void main() {
   out_sphereRadius = in_sphereRadius;
   HANDLE_IO(gl_VertexID);
 }
-
+-- tcs
+#include regen.models.mesh.tcs
+-- tes
+#include regen.models.mesh.tes
 -- gs
 #include regen.models.mesh.defines
 #extension GL_EXT_geometry_shader4 : enable
-
-// TODO: support layered rendering, HANDLE_IO
+#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*4}
 
 layout(points) in;
-layout(triangle_strip, max_vertices=8) out;
+layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 #include regen.states.camera.input
-#include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
+#include regen.states.camera.transformEyeToWorld
+#include regen.states.camera.transformWorldToEye
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -52,43 +55,59 @@ out float in_sphereRadius;
 
 #include regen.math.computeSpritePoints
 
-void main() {
-  vec3 centerWorld = gl_PositionIn[0].xyz;
-  vec4 centerEye = transformWorldToEye(centerWorld,0);
+#define HANDLE_IO(i)
+
+void emitVertex(vec4 posEye, mat4 viewInv, mat4 proj) {
+  out_posEye = posEye.xyz;
+  out_posWorld = transformEyeToWorld(posEye,viewInv).xyz;
+  gl_Position = transformEyeToScreen(posEye,proj);
+  EmitVertex();
+  HANDLE_IO(0);
+  
+  EmitVertex();
+}
+
+void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj, int layer) {
+  vec4 centerEye = transformWorldToEye(gl_PositionIn[0].xyz,view);
   vec3 quadPos[4] = computeSpritePoints(
       centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
+
+  out_spriteTexco = vec2(1.0,0.0);
+  emitVertex(vec4(quadPos[0],1.0), viewInv, proj);
+  out_spriteTexco = vec2(1.0,1.0);
+  emitVertex(vec4(quadPos[1],1.0), viewInv, proj);  
+  out_spriteTexco = vec2(0.0,0.0);
+  emitVertex(vec4(quadPos[2],1.0), viewInv, proj); 
+  out_spriteTexco = vec2(0.0,1.0);
+  emitVertex(vec4(quadPos[3],1.0), viewInv, proj);
+  EndPrimitive();
+}
+
+void main() {
+  mat4 view, viewInv, proj;
+#if RENDER_TARGET == CUBE
+  proj = in_projectionMatrix;
+#elif RENDER_TARGET == 2D_ARRAY
+  viewInv = in_viewMatrixInverse;
+  view = in_viewMatrix;
+#endif
 #ifdef DEPTH_CORRECT
   out_sphereRadius = in_sphereRadius[0];
 #endif
-
-  out_spriteTexco = vec2(1.0,0.0);
-  vec4 posEye = vec4(quadPos[0],1.0);
-  out_posEye = posEye.xyz;
-  out_posWorld = (__VIEW_INV__ * posEye).xyz;
-  gl_Position = transformEyeToScreen(posEye,0);
-  EmitVertex();
-    
-  out_spriteTexco = vec2(1.0,1.0);
-  posEye = vec4(quadPos[1],1.0);
-  out_posEye = posEye.xyz;
-  out_posWorld = (__VIEW_INV__ * posEye).xyz;
-  gl_Position = transformEyeToScreen(posEye);
-  EmitVertex();
-        
-  out_spriteTexco = vec2(0.0,0.0);
-  posEye = vec4(quadPos[2],1.0);
-  out_posEye = posEye.xyz;
-  out_posWorld = (__VIEW_INV__ * posEye).xyz;
-  gl_Position = transformEyeToScreen(posEye);
-  EmitVertex();
-        
-  out_spriteTexco = vec2(0.0,1.0);
-  posEye = vec4(quadPos[3],1.0);
-  out_posEye = posEye.xyz;
-  out_posWorld = (__VIEW_INV__ * posEye).xyz;
-  gl_Position = transformEyeToScreen(posEye);
-  EmitVertex();
-  EndPrimitive();
+  
+#for LAYER to ${RENDER_LAYER}
+#ifndef SKIP_LAYER${LAYER}
+  gl_Layer = ${LAYER};
+  out_layer = ${LAYER};
+#if RENDER_TARGET == CUBE
+  viewInv = in_viewMatrixInverse[${LAYER}];
+  view = in_viewMatrix[${LAYER}];
+#elif RENDER_TARGET == 2D_ARRAY
+  proj = in_projectionMatrix[${LAYER}];
+#endif
+  emitSpriteSphere(viewInv, proj, ${LAYER});
+#endif
+#endfor
 }
 
 -- fs
@@ -128,7 +147,7 @@ void main()
   vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
   vec4 norWorld = normalize(__VIEW_INV__ * vec4(normal,0.0));
 #ifdef DEPTH_CORRECT
-  // Note that early depth test is disabled then and this can have
+  // Note that early depth test is disabled with DEPTH_CORRECT defined and this can have
   // bad consequences for performance.
   depthCorrection(in_sphereRadius*(1.0-texcoMagnitude));
 #endif

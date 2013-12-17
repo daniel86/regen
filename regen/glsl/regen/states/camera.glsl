@@ -168,6 +168,27 @@ vec4 transformWorldToEye(vec3 posWorld, int layer) {
 }
 #endif
 
+-- transformEyeToWorld
+#ifndef __transformEyeToWorld_INCLUDED
+#define2 __transformEyeToWorld_INCLUDED
+#include regen.states.camera.input
+vec4 transformEyeToWorld(vec4 posEye, mat4 viewInv) {
+    // TODO IGNORE_VIEW_ROTATION, IGNORE_VIEW_TRANSLATION
+    return viewInv * posEye;
+}
+vec4 transformEyeToWorld(vec4 posEye, int layer) {
+// TODO: more generic
+#if RENDER_TARGET == CUBE
+  return transformEyeToWorld(posEye, in_viewMatrixInverse[layer]);
+#else
+  return transformEyeToWorld(posEye, in_viewMatrixInverse);
+#endif
+}
+vec4 transformEyeToWorld(vec3 posEye, int layer) {
+  return transformEyeToWorld(vec4(posEye,1.0),layer);
+}
+#endif
+
 -- transformEyeToScreen
 #ifndef __transformEyeToScreen_INCLUDED
 #define2 __transformEyeToScreen_INCLUDED
@@ -258,11 +279,6 @@ vec3 transformTexcoToView(vec2 texco, float depth) {
 -- linearizeDepth
 #ifndef __linearizeDepth_included__
 #define __linearizeDepth_included__
-//float linearizeDepth(float d, float n, float f)
-//{
-//    float z_n = 2.0*d - 1.0;
-//    return 2.0*n*f/(f+n-z_n*(f-n));
-//}
 float linearizeDepth(float expDepth, float n, float f)
 {
     return (2.0*n)/(f+n - expDepth*(f-n));
@@ -277,7 +293,6 @@ float exponentialDepth(float linearDepth, float n, float f)
   return ((f+n)*linearDepth - (2.0*n)) / ((f-n)*linearDepth);
 }
 #endif
-
 
 -- depthCorrection
 #ifndef __depthCorrection_Include__
