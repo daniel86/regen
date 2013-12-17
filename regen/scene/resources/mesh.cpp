@@ -86,8 +86,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
     (*out)[0] = ref_ptr<Sphere>::alloc(meshCfg);
     parser->putState(input.getName(),(*out)[0]);
   }
-  // TODO: handle SphereSprite's and use it in example XML
-  //else if(meshType == "sphere-sprite") {}
   else if(meshType == "rectangle") {
     Rectangle::Config meshCfg;
     meshCfg.centerAtOrigin = input.getValue<bool>("center",true);
@@ -183,6 +181,13 @@ ref_ptr<MeshVector> MeshResource::createResource(
     (*out)[0] = createTextMesh(parser,input);
     parser->putState(input.getName(),(*out)[0]);
   }
+  else if(meshType == "mesh") {
+    const VBO::Usage vboUsage = input.getValue<VBO::Usage>("usage",VBO::USAGE_DYNAMIC);
+    GLenum primitive = glenum::primitive(input.getValue<string>("primitive","TRIANGLES"));
+    (*out) = MeshVector(1);
+    (*out)[0] = ref_ptr<Mesh>::alloc(primitive,vboUsage);
+    parser->putState(input.getName(),(*out)[0]);
+  }
   else {
     REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
   }
@@ -195,7 +200,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
   }
 
   // Mesh resources can have State children
-  processMeshChildren(parser,input,*out);
+  if(!out->empty()) processMeshChildren(parser,input,*out);
 
   return out_;
 }

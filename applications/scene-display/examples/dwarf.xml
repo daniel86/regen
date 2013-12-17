@@ -95,7 +95,7 @@
 	light="spot-light"
 	camera="main-camera" />
 <camera id="sphere-camera"
-	cube-mesh="sphere-mesh"
+	cube-mesh="sprite-sphere"
 	camera="main-camera" />
 <!-- Lights -->
 <light id="spot-light"
@@ -186,16 +186,19 @@
     <rotate value="3.14,0.0,0.0" />
   </transform>
 </mesh>
-<mesh id="sphere-mesh"
-      type="sphere"
-      lod="3"
-      scaling="4,4,4"
-      texco-scaling="1.0,1.0"
-      use-normal="1"
-      use-tangent="0"
-      usage="STATIC">
+<mesh id="sprite-sphere"
+      type="mesh"
+      primitive="POINTS"
+      usage="STATIC"
+      num-vertices="1" >
+  <input type="float" name="sphereRadius" is-attribute="1">
+    <set mode="constant" value="4.5" index="0" />
+  </input>
+  <input type="vec3" name="pos" is-attribute="1">
+    <set mode="constant" value="0.0,0.0,0.0" index="0" />
+  </input>
   <transform>
-    <translate value="7.5,-0.45,-8.0" />
+    <translate value="7.5,1.75,-8.0" />
   </tranform>
 </mesh>
 <mesh id="logo-widget"
@@ -397,7 +400,7 @@
     <texture fbo="cube-reflection-buffer" attachment="1"
 	     map-to="COLOR" blend-mode="SRC" mapping="REFLECTION" />
     <define key="SHADING" value="NONE" />
-    <mesh id="sphere-mesh" shader="regen.models.mesh" />
+    <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
   </node>
 </node>
 
@@ -467,6 +470,11 @@
     <texture name="heightTexture" id="ground-height" />
     <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" />
     <mesh id="ground-mesh" shader="regen.models.mesh" />
+  </node>
+  
+  <node id="sprite-sphere" >
+    <material preset="chrome" />
+    <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
   </node>
 </node>
 

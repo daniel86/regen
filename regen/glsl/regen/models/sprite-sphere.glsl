@@ -50,7 +50,10 @@ out vec2 out_spriteTexco;
 
 in float in_sphereRadius[1];
 #ifdef DEPTH_CORRECT
-out float in_sphereRadius;
+out float out_sphereRadius;
+#endif
+#if RENDER_LAYER > 1
+flat out int out_layer;
 #endif
 
 #include regen.math.computeSpritePoints
@@ -60,15 +63,13 @@ out float in_sphereRadius;
 void emitVertex(vec4 posEye, mat4 viewInv, mat4 proj) {
   out_posEye = posEye.xyz;
   out_posWorld = transformEyeToWorld(posEye,viewInv).xyz;
-  gl_Position = transformEyeToScreen(posEye,proj,layer);
-  EmitVertex();
+  gl_Position = transformEyeToScreen(posEye,proj);
   HANDLE_IO(0);
-  
   EmitVertex();
 }
 
-void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj) {
-  vec4 centerEye = transformWorldToEye(gl_PositionIn[0].xyz,view);
+void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj, int layer) {
+  vec4 centerEye = transformWorldToEye(gl_PositionIn[0],view);
   vec3 quadPos[4] = computeSpritePoints(
       centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
 
@@ -89,8 +90,10 @@ void main() {
 #endif
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
+#if RENDER_LAYER > 1
   gl_Layer = ${LAYER};
   out_layer = ${LAYER};
+#endif
   emitSpriteSphere(
     __VIEW__(${LAYER}),
     __VIEW_INV__(${LAYER}),
@@ -105,6 +108,9 @@ void main() {
 #include regen.states.textures.defines
 #include regen.models.mesh.fs-outputs
 
+#if RENDER_LAYER > 1
+flat in int in_layer;
+#endif
 in vec3 in_posWorld;
 in vec3 in_posEye;
 in vec2 in_spriteTexco;
@@ -134,8 +140,9 @@ void main()
   // 0.99 because color at edges was wrong.
   if(texcoMagnitude>=0.99) discard;
   
+  mat4 viewInv = __VIEW_INV__(in_layer);
   vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
-  vec4 norWorld = normalize(__VIEW_INV__(in_layer) * vec4(normal,0.0));
+  vec4 norWorld = normalize(viewInv * vec4(normal,0.0));
 #ifdef DEPTH_CORRECT
   // Note that early depth test is disabled with DEPTH_CORRECT defined and this can have
   // bad consequences for performance.

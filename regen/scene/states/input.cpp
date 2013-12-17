@@ -14,7 +14,6 @@ using namespace regen;
 
 #define REGEN_INPUT_STATE_CATEGORY "input"
 
-// TODO: move somewhere else?
 /**
  * Sums up the time differences between invocations.
  */
@@ -52,8 +51,8 @@ static ref_ptr<U> createShaderInput_(
 
   GLuint numInstances = input.getValue<GLuint>("num-instances",1u);
   GLuint numVertices  = input.getValue<GLuint>("num-vertices",1u);
-  bool isInstanced    = input.getValue<bool>("is-instanced",false) && numInstances>1;
-  bool isAttribute    = input.getValue<bool>("is-attribute",false) && numVertices>1;
+  bool isInstanced    = input.getValue<bool>("is-instanced",false);
+  bool isAttribute    = input.getValue<bool>("is-attribute",false);
   GLuint count=1;
 
   if(isInstanced) {
