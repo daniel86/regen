@@ -36,7 +36,7 @@ void main() {
     vec4 blurred = texture(in_blurTexture, texco);
     // get the depth value at this pixel
     float depth = texture(in_depthTexture, texco).r;
-    depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
+    depth = linearizeDepth(depth, __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
     // distance to point with max sharpness
     float d = abs(in_focalDistance - depth);
     float focus = smoothstep(in_focalWidth.x, in_focalWidth.y, d);

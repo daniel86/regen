@@ -60,14 +60,14 @@ out float in_sphereRadius;
 void emitVertex(vec4 posEye, mat4 viewInv, mat4 proj) {
   out_posEye = posEye.xyz;
   out_posWorld = transformEyeToWorld(posEye,viewInv).xyz;
-  gl_Position = transformEyeToScreen(posEye,proj);
+  gl_Position = transformEyeToScreen(posEye,proj,layer);
   EmitVertex();
   HANDLE_IO(0);
   
   EmitVertex();
 }
 
-void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj, int layer) {
+void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj) {
   vec4 centerEye = transformWorldToEye(gl_PositionIn[0].xyz,view);
   vec3 quadPos[4] = computeSpritePoints(
       centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
@@ -84,28 +84,18 @@ void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj, int layer) {
 }
 
 void main() {
-  mat4 view, viewInv, proj;
-#if RENDER_TARGET == CUBE
-  proj = in_projectionMatrix;
-#elif RENDER_TARGET == 2D_ARRAY
-  viewInv = in_viewMatrixInverse;
-  view = in_viewMatrix;
-#endif
 #ifdef DEPTH_CORRECT
   out_sphereRadius = in_sphereRadius[0];
 #endif
-  
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
   gl_Layer = ${LAYER};
   out_layer = ${LAYER};
-#if RENDER_TARGET == CUBE
-  viewInv = in_viewMatrixInverse[${LAYER}];
-  view = in_viewMatrix[${LAYER}];
-#elif RENDER_TARGET == 2D_ARRAY
-  proj = in_projectionMatrix[${LAYER}];
-#endif
-  emitSpriteSphere(viewInv, proj, ${LAYER});
+  emitSpriteSphere(
+    __VIEW__(${LAYER}),
+    __VIEW_INV__(${LAYER}),
+    __PROJ__(${LAYER}),
+    ${LAYER});
 #endif
 #endfor
 }
@@ -145,11 +135,11 @@ void main()
   if(texcoMagnitude>=0.99) discard;
   
   vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
-  vec4 norWorld = normalize(__VIEW_INV__ * vec4(normal,0.0));
+  vec4 norWorld = normalize(__VIEW_INV__(in_layer) * vec4(normal,0.0));
 #ifdef DEPTH_CORRECT
   // Note that early depth test is disabled with DEPTH_CORRECT defined and this can have
   // bad consequences for performance.
-  depthCorrection(in_sphereRadius*(1.0-texcoMagnitude));
+  depthCorrection(in_sphereRadius*(1.0-texcoMagnitude), in_layer);
 #endif
 #ifdef HAS_col
   vec4 color = in_col;

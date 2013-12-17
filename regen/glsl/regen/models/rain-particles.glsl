@@ -68,33 +68,33 @@ void main() {
     float streakWidth = in_streakSize.x*in_size[0];
     
     // extrude point in velocity direction
-    vec4 centerStartEye = in_viewMatrix * p;
-    vec4 centerEndEye = in_viewMatrix * (p + streakLength*v);
+    vec4 centerStartEye = __VIEW__(0) * p;
+    vec4 centerEndEye = __VIEW__(0) * (p + streakLength*v);
     // sprite z vertex coordinates are the same for each point
     vec4 offset = vec4(0.5*streakWidth,0.0,0.0,0.0);
     
     out_spriteTexco = vec2(1.0,0.0);
     out_posEye = centerStartEye + offset;
-    out_posWorld = in_inverseViewMatrix * out_posEye;
-    gl_Position = in_projectionMatrix * out_posEye;
+    out_posWorld = __VIEW_INV__(0) * out_posEye;
+    gl_Position = __PROJ__(0) * out_posEye;
     EmitVertex();
 
     out_spriteTexco = vec2(1.0,1.0);
     out_posEye = centerStartEye - offset;
-    out_posWorld = in_inverseViewMatrix * out_posEye;
-    gl_Position = in_projectionMatrix * out_posEye;
+    out_posWorld = __VIEW_INV__(0) * out_posEye;
+    gl_Position = __PROJ__(0) * out_posEye;
     EmitVertex();
 
     out_spriteTexco = vec2(0.0,0.0);
     out_posEye = centerEndEye + offset;
-    out_posWorld = in_inverseViewMatrix * out_posEye;
-    gl_Position = in_projectionMatrix * out_posEye;
+    out_posWorld = __VIEW_INV__(0) * out_posEye;
+    gl_Position = __PROJ__(0) * out_posEye;
     EmitVertex();
 
     out_spriteTexco = vec2(0.0,1.0);
     out_posEye = centerEndEye - offset;
-    out_posWorld = in_inverseViewMatrix * out_posEye;
-    gl_Position = in_projectionMatrix * out_posEye;
+    out_posWorld = __VIEW_INV__(0) * out_posEye;
+    gl_Position = __PROJ__(0) * out_posEye;
     EmitVertex();
 
     EndPrimitive();

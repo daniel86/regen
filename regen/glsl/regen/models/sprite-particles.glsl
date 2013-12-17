@@ -8,7 +8,7 @@ float softParticleScale()
     float sceneDepth = linearizeDepth(
             texture(in_depthTexture, depthTexco).r,
             __CAM_NEAR__, __CAM_FAR__);
-    float fragmentDepth = linearizeDepth(gl_FragCoord.z, __CAM_NEAR__, __CAM_FAR__);
+    float fragmentDepth = linearizeDepth(gl_FragCoord.z, __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
     return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
 }
 #else
@@ -86,9 +86,9 @@ void main() {
 
     out_velocity = in_velocity[0];    
     
-    vec4 centerEye = in_viewMatrix * vec4(in_pos[0],1.0);
+    vec4 centerEye = __VIEW__(0) * vec4(in_pos[0],1.0);
     vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, vec2(in_size[0]), vec3(0.0, 1.0, 0.0));
-    emitSprite(in_inverseViewMatrix, in_projectionMatrix, quadPos);
+    emitSprite(__VIEW_INV__(0), __PROJ__(0), quadPos);
 }
 
 -- fs

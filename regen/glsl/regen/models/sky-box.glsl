@@ -21,7 +21,7 @@ in vec3 in_pos;
 #define HANDLE_IO(i)
 
 void main() {
-    vec4 posWorld = vec4(in_pos.xyz*in_far*0.99,1.0);
+    vec4 posWorld = vec4(in_pos.xyz*__CAM_FAR__(0)*0.99,1.0);
 #if RENDER_LAYER > 1
     gl_Position = posWorld;
 #else

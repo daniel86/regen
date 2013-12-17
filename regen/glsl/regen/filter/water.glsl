@@ -270,7 +270,7 @@ vec4 computeWaterColor(vec3 position, float sceneDepth, vecTexco texco)
 
 vec4 computeUnderWaterColor(vec3 position, vecTexco texco)
 {
-  // TODO
+  // TODO: Handle the under water case.
   return texture(in_refractionTexture, texco);
 }
 
@@ -281,7 +281,7 @@ void main()
   
   // sample depth at pixel location and compute the position in world space
   float depth = texture(in_depthTexture, texco).x;
-  vec3 posWorldSpace = transformTexcoToWorld(texco_2D, depth);
+  vec3 posWorldSpace = transformTexcoToWorld(texco_2D, depth, in_layer);
   
   // check if camera is below surface
   if(in_cameraPosition.y<in_surfaceHeight) {
