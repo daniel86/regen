@@ -38,8 +38,6 @@ using namespace regen;
 #include <regen/scene/states/tesselation.h>
 #include <regen/scene/states/state-sequence.h>
 
-// TODO: allow to include other xml files to avoid redundant code.
-
 SceneParser::SceneParser(
     Application *application,
     const ref_ptr<SceneInput> &inputProvider)
