@@ -7,8 +7,9 @@ float softParticleScale()
     vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
     float sceneDepth = linearizeDepth(
             texture(in_depthTexture, depthTexco).r,
-            __CAM_NEAR__, __CAM_FAR__);
-    float fragmentDepth = linearizeDepth(gl_FragCoord.z, __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
+            __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
+    float fragmentDepth = linearizeDepth(gl_FragCoord.z,
+	    __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
     return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
 }
 #else
