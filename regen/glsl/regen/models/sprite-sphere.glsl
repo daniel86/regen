@@ -50,12 +50,12 @@ in float in_sphereRadius[1];
 out float in_sphereRadius;
 #endif
 
-#include regen.models.sprite.getSpritePoints
+#include regen.math.computeSpritePoints
 
 void main() {
   vec3 centerWorld = gl_PositionIn[0].xyz;
   vec4 centerEye = transformWorldToEye(centerWorld,0);
-  vec3 quadPos[4] = getSpritePoints(
+  vec3 quadPos[4] = computeSpritePoints(
       centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
 #ifdef DEPTH_CORRECT
   out_sphereRadius = in_sphereRadius[0];

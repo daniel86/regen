@@ -40,13 +40,13 @@ flat out vec3 out_moonColor;
 // look at matrices for each cube face
 uniform mat4 in_mvpMatrices[6];
 
-#include regen.models.sprite.getSpritePoints
-#include regen.models.sprite.getSpriteLayer
+#include regen.math.computeSpritePoints
+#include regen.math.computeClosestCubeLayer
 
 void main() {
     vec3 pos = gl_PositionIn[0].xyz;
-    vec3 quadPos[4] = getSpritePoints(pos, vec2(in_moonSize[0]));
-    int quadLayer[3] = getSpriteLayer(pos);
+    vec3 quadPos[4] = computeSpritePoints(pos, vec2(in_moonSize[0]));
+    int quadLayer[3] = computeClosestCubeLayer(pos);
 
     out_moonIndex = in_moonIndex[0];
     out_sunToMoon = in_sunToMoon[0];
