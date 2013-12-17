@@ -87,15 +87,18 @@ void main() {
 --------------------------------------
 -- sample.vs
 #include regen.filter.sampling.vs
-
+-- sample.vs
+#include regen.filter.sampling.gs
 -- sample.fs
 out vec3 out_color;
-in vec2 in_texco;
 
 uniform sampler2D in_aoTexture;
 
+#include regen.filter.sampling.computeTexco
+
 void main()
 {
-    out_color = vec3(1.0-texture(in_aoTexture, in_texco).x);
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    out_color = vec3(1.0-texture(in_aoTexture, computeTexco(texco_2D)).x);
 }
 

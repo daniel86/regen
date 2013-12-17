@@ -12,7 +12,7 @@ float fogIntensity(float d)
 
 --------------------------------------
 --------------------------------------
----- Computes fog by distance to camera. Input is a unit-quad mesh.
+---- Computes fog by distance to camera.
 --------------------------------------
 --------------------------------------
 -- distance.vs
@@ -23,9 +23,6 @@ float fogIntensity(float d)
 #include regen.states.camera.defines
 
 out vec4 out_color;
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
 
 uniform sampler2D in_gDepthTexture;
 #ifdef USE_TBUFFER
@@ -41,10 +38,10 @@ const vec3 in_fogColor = vec3(1.0);
 const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
 
+#include regen.filter.sampling.computeTexco
 #include regen.states.camera.input
 #include regen.shading.fog.fogIntensity
 #include regen.states.camera.transformTexcoToWorld
-#include regen.filter.sampling.computeTexco
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
@@ -94,9 +91,6 @@ out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
 in vec3 in_intersection;
 #endif
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
 
 // G-buffer input
 uniform sampler2D in_gDepthTexture;
@@ -106,26 +100,8 @@ uniform sampler2D in_tDepthTexture;
 uniform sampler2D in_tColorTexture;
 #endif
 // light input
-uniform vec3 in_lightPosition;
-#ifdef IS_SPOT_LIGHT
-uniform vec3 in_lightDirection;
-uniform vec2 in_lightConeAngles;
-uniform mat4 in_modelMatrix;
-#endif
-uniform vec2 in_lightRadius;
-uniform vec3 in_lightDiffuse;
+#include regen.shading.light.input.deferred
 #ifdef USE_SHADOW_MAP
-// shadow input
-uniform float in_lightFar;
-uniform float in_lightNear;
-uniform vec2 in_shadowInverseSize;
-#ifdef IS_SPOT_LIGHT
-uniform sampler2DShadow in_shadowTexture;
-uniform mat4 in_lightMatrix;
-#else // !IS_SPOT_LIGHT
-uniform samplerCubeShadow in_shadowTexture;
-uniform mat4 in_lightMatrix[6];
-#endif // !IS_SPOT_LIGHT
 const float in_shadowSampleStep = 0.025;
 const float in_shadowSampleThreshold = 0.075;
 #endif // USE_SHADOW_MAP
@@ -139,6 +115,7 @@ uniform vec2 in_fogConeScale;
 #endif
 uniform vec2 in_fogDistance;
 
+#include regen.filter.sampling.computeTexco
 #include regen.math.pointVectorDistance
 #include regen.states.camera.transformTexcoToWorld
 
@@ -161,7 +138,6 @@ uniform vec2 in_fogDistance;
 #if RENDER_TARGET == CUBE
 #include regen.math.computeCubeDirection
 #endif
-#include regen.filter.sampling.computeTexco
 
 #include regen.shading.fog.fogIntensity
 
@@ -360,7 +336,7 @@ void main()
 // #undef IS_SPOT_LIGHT
 #include regen.shading.deferred.point.vs
 -- volumetric.point.gs
-#include regen.shading.deferred.gs
+#include regen.shading.deferred.point.gs
 -- volumetric.point.fs
 #define IS_POINT_LIGHT
 // #undef IS_SPOT_LIGHT
@@ -376,7 +352,7 @@ void main()
 #define IS_SPOT_LIGHT
 #include regen.shading.deferred.spot.vs
 -- volumetric.spot.gs
-#include regen.shading.deferred.gs
+#include regen.shading.deferred.spot.gs
 -- volumetric.spot.fs
 //#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT

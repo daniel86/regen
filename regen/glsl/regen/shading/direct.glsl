@@ -1,74 +1,5 @@
 
 --------------------------------------
---------------------------------------
----- Direct Lighting
---------------------------------------
---------------------------------------
--- inputs
-#ifndef __light_inputs_included_
-#define2 __light_inputs_included_
-
-#for INDEX to NUM_LIGHTS
-#define2 __ID ${LIGHT${INDEX}_ID}
-uniform vec3 in_lightDiffuse${__ID};
-uniform vec3 in_lightSpecular${__ID};
-#ifdef LIGHT_IS_ATTENUATED${__ID}
-uniform vec2 in_lightRadius${__ID};
-#endif
-
-#if LIGHT_TYPE${__ID} == SPOT
-// spot light
-uniform vec3 in_lightPosition${__ID};
-uniform vec2 in_lightConeAngles${__ID};
-uniform vec3 in_lightDirection${__ID};
-#ifdef USE_SHADOW_MAP${__ID}
-uniform float in_lightFar${__ID};
-uniform float in_lightNear${__ID};
-uniform mat4 in_lightMatrix${__ID};
-uniform vec2 in_shadowInverseSize${__ID};
-  #ifndef __TEX_shadowTexture${__ID}__
-uniform sampler2DShadow in_shadowTexture${__ID};
-  #endif
-#endif // USE_SHADOW_MAP${__ID}
-#endif // LIGHT_TYPE${__ID} == SPOT
-
-#if LIGHT_TYPE${__ID} == POINT
-// point light
-uniform vec3 in_lightPosition${__ID};
-#ifdef USE_SHADOW_MAP${__ID}
-uniform float in_lightFar${__ID};
-uniform float in_lightNear${__ID};
-uniform vec2 in_shadowInverseSize${__ID};
-uniform mat4 in_lightMatrix${__ID}[6];
-  #ifndef __TEX_shadowTexture${__ID}__
-uniform samplerCubeShadow in_shadowTexture${__ID};
-  #endif
-#endif // USE_SHADOW_MAP${__ID}
-#endif // LIGHT_TYPE${__ID} == POINT
-
-#if LIGHT_TYPE${__ID} == DIRECTIONAL
-// directional light
-uniform vec3 in_lightDirection${__ID};
-#ifdef USE_SHADOW_MAP${__ID}
-uniform vec2 in_shadowInverseSize${__ID};
-uniform float in_lightFar${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-uniform mat4 in_lightMatrix${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-  #ifndef __TEX_shadowTexture${__ID}__
-uniform sampler2DArrayShadow in_shadowTexture${__ID};
-  #endif
-#endif
-#endif
-
-#ifdef USE_SHADOW_MAP${__ID}
-  #ifndef __TEX_shadowTexture${__ID}__
-#define __TEX_shadowTexture${__ID}__
-  #endif
-#endif
-
-#endfor
-#endif
-
---------------------------------------
 ------ Shades meshes directly.
 ------ Number of lights is limited by maximum number of uniforms.
 ------ Multiple lights are handled using the for directive.
@@ -79,7 +10,7 @@ struct Shading {
     vec3 specular;
 };
 
-#include regen.shading.direct.inputs
+#include regen.shading.light.input.direct
 #include regen.shading.light.spotConeAttenuation
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.light.specularFactor
@@ -172,7 +103,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 ------ Specular light is ignored.
 --------------------------------------
 -- diffuse
-#include regen.shading.direct.inputs
+#include regen.shading.light.input.direct
 #include regen.shading.light.spotConeAttenuation
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.shadow-mapping.sampling.all

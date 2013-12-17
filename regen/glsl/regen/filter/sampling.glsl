@@ -1,5 +1,10 @@
 
 -- computeTexco
+#ifndef __computeTexco_Included__
+#define2 __computeTexco_Included__
+#if RENDER_LAYER > 1
+flat in int in_layer;
+#endif
 #if RENDER_TARGET == CUBE
 #include regen.math.computeCubeDirection
 vec3 computeTexco(vec2 texco_2D) {
@@ -14,6 +19,7 @@ vec3 computeTexco(vec2 texco_2D) {
 #else
 #define computeTexco(texco_2D) texco_2D
 #define vecTexco vec2
+#endif
 #endif
 
 -- vs

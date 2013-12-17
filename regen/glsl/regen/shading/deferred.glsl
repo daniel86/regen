@@ -38,9 +38,6 @@ vec3 fetchPosition(vec2 texco) {
 #include regen.states.camera.defines
 
 out vec4 out_color;
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
 
 uniform sampler2D in_gDepthTexture;
 uniform sampler2D in_gNorWorldTexture;
@@ -48,8 +45,8 @@ uniform sampler2D in_gDiffuseTexture;
 
 uniform vec3 in_lightAmbient;
 
-#include regen.shading.deferred.fetchNormal
 #include regen.filter.sampling.computeTexco
+#include regen.shading.deferred.fetchNormal
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
@@ -67,17 +64,17 @@ void main() {
 --------------------------------------
 --------------------------------------
 -- directional.vs
+#define IS_DIRECTIONAL_LIGHT
 #include regen.filter.sampling.vs
 -- directional.gs
+#define IS_DIRECTIONAL_LIGHT
 #include regen.filter.sampling.gs
 -- directional.fs
+#define IS_DIRECTIONAL_LIGHT
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
 
 out vec4 out_color;
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
 
 uniform sampler2D in_gNorWorldTexture;
 uniform sampler2D in_gDiffuseTexture;
@@ -85,29 +82,15 @@ uniform sampler2D in_gSpecularTexture;
 uniform sampler2D in_gDepthTexture;
 
 #include regen.states.camera.input
+#include regen.shading.light.input.deferred
 
-uniform vec3 in_lightDirection;
-uniform vec3 in_lightSpecular;
-#ifdef USE_SKY_COLOR
-uniform samplerCube in_skyColorTexture;
-#else
-uniform vec3 in_lightDiffuse;
-#endif
-
-#ifdef USE_SHADOW_MAP
-uniform sampler2DArrayShadow in_shadowTexture;
-uniform vec2 in_shadowInverseSize;
-uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
-uniform float in_lightFar[NUM_SHADOW_LAYER];
-#endif
-
+#include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
 #include regen.shading.deferred.fetchNormal
 #include regen.shading.light.specularFactor
 #ifdef USE_SHADOW_MAP
 #include regen.shading.shadow-mapping.sampling.dir
 #endif
-#include regen.filter.sampling.computeTexco
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
@@ -176,7 +159,7 @@ void main() {
 --------------------------------------
 --------------------------------------
 
--- gs
+-- local.gs
 #include regen.states.camera.defines
 #if RENDER_LAYER > 1
 #extension GL_EXT_geometry_shader4 : enable
@@ -206,23 +189,16 @@ void main() {
   emitVertex(gl_PositionIn[1], 1, ${LAYER});
   emitVertex(gl_PositionIn[2], 2, ${LAYER});
   EndPrimitive();
-  
 #endif
 #endfor
 }
 #endif
 
--- fs
+-- local.fs
 #extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
 
 out vec4 out_color;
-#if RENDER_LAYER > 1
-flat in int in_layer;
-#endif
-#if RENDER_TARGET == CUBE
-in vec3 in_posWorld;
-#endif
 
 // G-buffer input
 uniform sampler2D in_gNorWorldTexture;
@@ -232,32 +208,11 @@ uniform sampler2D in_gDepthTexture;
 // camera input
 #include regen.states.camera.input
 // light input
-uniform vec3 in_lightPosition;
-uniform vec2 in_lightRadius;
-#ifdef IS_SPOT_LIGHT
-uniform vec3 in_lightDirection;
-uniform vec2 in_lightConeAngles;
-#endif
-uniform vec3 in_lightDiffuse;
-uniform vec3 in_lightSpecular;
+#include regen.shading.light.input.deferred
 
-#ifdef USE_SHADOW_MAP
-// shadow input
-uniform float in_lightFar;
-uniform float in_lightNear;
-uniform vec2 in_shadowInverseSize;
-#ifdef IS_SPOT_LIGHT
-uniform sampler2DShadow in_shadowTexture;
-uniform mat4 in_lightMatrix;
-#else // !IS_SPOT_LIGHT
-uniform samplerCubeShadow in_shadowTexture;
-uniform mat4 in_lightMatrix[6];
-#endif // !IS_SPOT_LIGHT
-#endif // USE_SHADOW_MAP
-
+#include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
 #include regen.math.computeCubeLayer
-#include regen.filter.sampling.computeTexco
 
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.deferred.fetchNormal
@@ -359,10 +314,10 @@ void main() {
 }
 
 -- point.gs
-#include regen.shading.deferred.gs
+#include regen.shading.deferred.local.gs
 -- point.fs
 // #define IS_SPOT_LIGHT
-#include regen.shading.deferred.fs
+#include regen.shading.deferred.local.fs
 
 --------------------------------------
 --------------------------------------
@@ -391,7 +346,7 @@ void main() {
 #endif
 }
 -- spot.gs
-#include regen.shading.deferred.gs
+#include regen.shading.deferred.local.gs
 -- spot.fs
 #define IS_SPOT_LIGHT
-#include regen.shading.deferred.fs
+#include regen.shading.deferred.local.fs

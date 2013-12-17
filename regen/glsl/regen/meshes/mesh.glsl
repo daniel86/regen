@@ -306,7 +306,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 -- writeOutput-direct
 #if SHADING!=NONE
 uniform vec3 in_ambientLight;
-#include regen.shading.direct.inputs
 #include regen.shading.direct.shade
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {

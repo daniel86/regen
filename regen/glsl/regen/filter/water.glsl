@@ -84,17 +84,9 @@ const vec4 in_normalModifier = vec4(1.0,2.0,4.0,8.0);
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
 #include regen.states.textures.texco_planar_reflection
+#include regen.math.matrixInverse
 
 #ifdef USE_RIPPLES
-mat3 MatrixInverse(in mat3 inMatrix){  
-    float det = dot(cross(inMatrix[0], inMatrix[1]), inMatrix[2]);
-    mat3 T = transpose(inMatrix);
-    return mat3(
-	cross(T[1], T[2]),
-        cross(T[2], T[0]),
-        cross(T[0], T[1])) / det;
-}
-
 mat3 computeTangentFrame(in vec3 N, in vec3 P, in vec2 UV) {
     vec3 dp1 = dFdx(P);
     vec3 dp2 = dFdy(P);
@@ -103,7 +95,7 @@ mat3 computeTangentFrame(in vec3 N, in vec3 P, in vec2 UV) {
 
     // solve the linear system
     mat3 M = mat3(dp1, dp2, cross(dp1, dp2));
-    mat3 inverseM = MatrixInverse(M);
+    mat3 inverseM = matrixInverse(M);
 
     vec3 T = inverseM * vec3(duv1.x, duv2.x, 0.0);
     vec3 B = inverseM * vec3(duv1.y, duv2.y, 0.0);
@@ -125,10 +117,10 @@ vec3 computeRippledNormal(vec3 pos, vec3 nor, vec3 eyeVecNorm, float t0, float t
 
 vec3 computeNormal(vec2 uv) {
   float duv = 1.0/in_heightTextureSize;
-  float normal1 = texture(in_heightTexture, uv + vec2(-duv,  0.0)).r;
-  float normal2 = texture(in_heightTexture, uv + vec2( duv,  0.0)).r;
-  float normal3 = texture(in_heightTexture, uv + vec2( 0.0, -duv)).r;
-  float normal4 = texture(in_heightTexture, uv + vec2( 0.0,  duv)).r;
+  float normal1 = texture(in_heightTexture, computeTexco(uv + vec2(-duv,  0.0))).r;
+  float normal2 = texture(in_heightTexture, computeTexco(uv + vec2( duv,  0.0))).r;
+  float normal3 = texture(in_heightTexture, computeTexco(uv + vec2( 0.0, -duv))).r;
+  float normal4 = texture(in_heightTexture, computeTexco(uv + vec2( 0.0,  duv))).r;
   return normalize(vec3(
       (normal1 - normal2) * in_maxAmplitude,
       in_normalScale,
@@ -212,15 +204,15 @@ vec4 computeWaterColor(vec3 position, float sceneDepth, vecTexco texco)
   proj.x = proj.x + in_reflectionDisplace * surfaceNormal.x;
   proj.z = proj.z + in_reflectionDisplace * surfaceNormal.z;
   vec2 reflectionTexco = (proj.xy/proj.w + vec2(1.0))*0.5;
-  vec3 reflection = texture(in_reflectionTexture, reflectionTexco).rgb;
+  vec3 reflection = texture(in_reflectionTexture, computeTexco(reflectionTexco)).rgb;
 
   // Compute refraction color
 #ifdef USE_REFRACTION
   uv = texco.xy;
   uv += vec2( sin(in_time*0.2 + 3.0 * abs(position.y)) * (in_waveScale.x * min(depth2, 1.0)) );
-  vec3 refraction = texture(in_refractionTexture, uv).rgb;
+  vec3 refraction = texture(in_refractionTexture, computeTexco(uv)).rgb;
 #else
-  vec3 refraction = texture(in_refractionTexture, texco).rgb;
+  vec3 refraction = texture(in_refractionTexture, computeTexco(texco)).rgb;
 #endif
   // compute the water color based on depth and color extinction
   float k = clamp(length(in_sunColor) / in_sunScale, 0.0, 1.0);
