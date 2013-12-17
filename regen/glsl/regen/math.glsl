@@ -1,4 +1,17 @@
 
+-- matrixInverse
+#ifndef __matrixInverse_included__
+#define __matrixInverse_included__
+mat3 matrixInverse(in mat3 inMatrix){  
+    float det = dot(cross(inMatrix[0], inMatrix[1]), inMatrix[2]);
+    mat3 T = transpose(inMatrix);
+    return mat3(
+	cross(T[1], T[2]),
+        cross(T[2], T[0]),
+        cross(T[0], T[1])) / det;
+}
+#endif
+
 -- linstep
 #ifndef __linstep_included__
 #define __linstep_included__
