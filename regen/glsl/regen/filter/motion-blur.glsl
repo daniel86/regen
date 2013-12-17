@@ -104,12 +104,12 @@ void main() {
 #ifdef WORLD_SPACE
     out_pos0 = in_posWorld.xyz;
     out_pos1 = in_lastPosWorld.xyz;
-    gl_Position = in_viewProjectionMatrix * in_posWorld;
+    gl_Position = __VIEW_PROJ__(0) * in_posWorld;
 #else
 #ifdef EYE_SPACE
     out_pos0 = in_posEye.xyz;
     out_pos1 = in_lastPosEye.xyz;
-    gl_Position = in_projectionMatrix * in_posEye;
+    gl_Position = __PROJ__(0) * in_posEye;
 #else
     out_pos0 = in_Position.xyz;
     out_pos1 = in_lastPosition.xyz;

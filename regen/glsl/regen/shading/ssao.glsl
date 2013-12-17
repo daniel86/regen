@@ -38,7 +38,7 @@ uniform sampler2D in_aoNoiseTexture;
 float computeAO(vec2 texco, vec3 pos0, vec3 nor)
 {
     vecTexco _texco = computeTexco(texco);
-    vec3 pos1 = transformTexcoToWorld(texco, texture(in_gDepthTexture,_texco).r);
+    vec3 pos1 = transformTexcoToWorld(texco, texture(in_gDepthTexture,_texco).r, in_layer);
     vec3 dir = pos1 - pos0;
     float dist = length(dir);
     // calculate occlusion intensity
@@ -53,8 +53,8 @@ void main() {
     
     vec3 N = fetchNormal(in_gNorWorldTexture,texco);
     float depth = texture(in_gDepthTexture, texco).r;
-    vec3 P = transformTexcoToWorld(texco_2D, depth);
-    depth = linearizeDepth(depth, __CAM_NEAR__, __CAM_FAR__);
+    vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
+    depth = linearizeDepth(depth, __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
     vec2 texelSize = in_inverseViewport*0.5;
     
     vec2 kernel[4] = vec2[](

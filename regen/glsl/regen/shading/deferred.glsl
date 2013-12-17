@@ -21,7 +21,7 @@ vec3 fetchNormal(samplerCube norWorldTex, vec3 texco) {
 
 vec3 fetchPosition(vec2 texco) {
     float depth = __TEXTURE__(in_gDepthTexture, texco).r;
-    return transformTexcoToWorld(texco, depth);
+    return transformTexcoToWorld(texco, depth, in_layer);
 }
 
 
@@ -99,7 +99,7 @@ void main() {
     // fetch from GBuffer
     vec3 N = fetchNormal(in_gNorWorldTexture,texco);
     float depth = texture(in_gDepthTexture, texco).r;
-    vec3 P = transformTexcoToWorld(texco_2D, depth);
+    vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
     vec4 spec = texture(in_gSpecularTexture, texco);
     vec4 diff = texture(in_gDiffuseTexture, texco);
     float shininess = spec.a*256.0; // map from [0,1] to [0,256]
@@ -170,12 +170,12 @@ layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 flat out int out_layer;
 
-uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
+#include regen.states.camera.input
 
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  gl_Position = in_viewProjectionMatrix[layer]*posWorld;
+  gl_Position = __VIEW_PROJ__(layer)*posWorld;
   HANDLE_IO(index);
   EmitVertex();
 }
@@ -240,7 +240,7 @@ void main() {
     // fetch from GBuffer
     vec3 N = fetchNormal(in_gNorWorldTexture,texco);
     float depth = texture(in_gDepthTexture, texco).r;
-    vec3 P = transformTexcoToWorld(texco_2D, depth);
+    vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
     vec4 spec = texture(in_gSpecularTexture, texco);
     vec4 diff = texture(in_gDiffuseTexture, texco);
     float shininess = spec.a*256.0;

@@ -49,7 +49,7 @@ void main() {
     
     float d0 = texture(in_gDepthTexture, vecTex).x;
     if(d0==1.0) discard; // discard background pixels
-    vec3 eye0 = transformTexcoToWorld(texco_2D, d0) - in_cameraPosition;
+    vec3 eye0 = transformTexcoToWorld(texco_2D, d0, in_layer) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
     
 #ifdef USE_SKY_COLOR
@@ -60,7 +60,7 @@ void main() {
     
 #ifdef USE_TBUFFER
     float d1 = texture(in_tDepthTexture, vecTex).x;
-    vec3 eye1 = transformTexcoToWorld(texco_2D, d1) - in_cameraPosition;
+    vec3 eye1 = transformTexcoToWorld(texco_2D, d1, in_layer) - in_cameraPosition;
     
     // use standard fog color from eye to transparent object
     float factor1 = fogIntensity(length(eye1));
@@ -222,7 +222,7 @@ void main()
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
     vecTexco texco = computeTexco(texco_2D);
     
-    vec3 vertexPos = transformTexcoToWorld(texco_2D, texture(in_gDepthTexture, texco).x);
+    vec3 vertexPos = transformTexcoToWorld(texco_2D, texture(in_gDepthTexture, texco).x, in_layer);
     vec3 vertexRay = vertexPos-in_cameraPosition;
     // fog volume scales light radius
     vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
@@ -294,7 +294,7 @@ void main()
 
 #ifdef USE_TBUFFER
     // TODO: test
-    vec3 alphaPos = transformTexcoToWorld(texco_2D, texture(in_tDepthTexture, texco).x);
+    vec3 alphaPos = transformTexcoToWorld(texco_2D, texture(in_tDepthTexture, texco).x, in_layer);
     float dLightAlpha = distance(alphaPos, in_lightPosition);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
     vec4 tcolor = texture(in_tColorTexture, texco);

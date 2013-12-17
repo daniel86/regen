@@ -12,7 +12,7 @@ out float out_pickDepth;
 flat in int fs_instanceID[3];
 
 // camera input
-uniform mat4 in_inverseProjectionMatrix;
+#include regen.states.camera.input
 // mouse ray intersecting the view frustum in view space.
 // in ndc the ray starts at (mx,my,0) and ends at (mx,my,-1)
 uniform vec3 in_mousePosVS;
@@ -23,9 +23,9 @@ uniform int in_pickObjectID;
 
 void main()
 {
-    vec3 a = (in_inverseProjectionMatrix * gl_in[0].gl_Position).xyz;
-    vec3 b = (in_inverseProjectionMatrix * gl_in[1].gl_Position).xyz;
-    vec3 c = (in_inverseProjectionMatrix * gl_in[2].gl_Position).xyz;
+    vec3 a = (__PROJ_INV__(0) * gl_in[0].gl_Position).xyz;
+    vec3 b = (__PROJ_INV__(0) * gl_in[1].gl_Position).xyz;
+    vec3 c = (__PROJ_INV__(0) * gl_in[2].gl_Position).xyz;
     // Compute barycentric coordinates
     vec3 v0 = in_mousePosVS - a;
     vec3 v1 = b - a;

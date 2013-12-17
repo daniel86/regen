@@ -177,25 +177,13 @@ void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int index) {
 }
 
 void main() {
-  mat4 view, proj;
-#if RENDER_TARGET == CUBE
-  proj = in_projectionMatrix;
-#elif RENDER_TARGET == 2D_ARRAY
-  view = in_viewMatrix;
-#endif
-  
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
   // select framebuffer layer
   gl_Layer = ${LAYER};
-#if RENDER_TARGET == CUBE
-  view = in_viewMatrix[${LAYER}];
-#elif RENDER_TARGET == 2D_ARRAY
-  proj = in_projectionMatrix[${LAYER}];
-#endif
-  emitVertex(gl_PositionIn[0], view, proj, 0);
-  emitVertex(gl_PositionIn[1], view, proj, 1);
-  emitVertex(gl_PositionIn[2], view, proj, 2);
+  emitVertex(gl_PositionIn[0], __VIEW__(${LAYER}), __PROJ__(${LAYER}), 0);
+  emitVertex(gl_PositionIn[1], __VIEW__(${LAYER}), __PROJ__(${LAYER}), 1);
+  emitVertex(gl_PositionIn[2], __VIEW__(${LAYER}), __PROJ__(${LAYER}), 2);
   EndPrimitive();
 #endif // SKIP_LAYER
 #endfor

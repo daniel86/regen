@@ -488,7 +488,7 @@ void parallaxTransfer(inout vec2 texco)
         in_parallaxScale*texture(in_heightTexture, texco).r;
     texco -= height*offset.xy;
 #ifdef DEPTH_CORRECT
-    depthCorrection(in_parallaxScale*height*2.0);
+    depthCorrection(in_parallaxScale*height*2.0,in_layer);
 #endif
 }
 #endif
@@ -528,7 +528,7 @@ void parallaxOcclusionTransfer(inout vec2 texco)
         sampledHeight = texture(in_heightTexture, texco).r;
     }
 #ifdef DEPTH_CORRECT
-    depthCorrection(-in_parallaxScale*sampledHeight*2.0);
+    depthCorrection(-in_parallaxScale*sampledHeight*2.0,in_layer);
 #endif
 }
 #endif
@@ -564,7 +564,7 @@ void reliefTransfer(inout vec2 texco)
         depth -= (float(sampled<depth)*2.0-1.0)*delta;
     }
 #ifdef DEPTH_CORRECT
-    depthCorrection(in_reliefScale*depth*2.0);
+    depthCorrection(in_reliefScale*depth*2.0,in_layer);
 #endif
     
     texco += ds*depth;
