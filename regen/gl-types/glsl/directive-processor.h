@@ -77,7 +77,7 @@ namespace regen {
       void clear();
 
       GLboolean isDefined(const string &arg);
-      const string& define(const string &arg);
+      string define(const string &arg);
 
       bool evaluateInner(const string &expression);
       bool evaluate(const string &expression);
