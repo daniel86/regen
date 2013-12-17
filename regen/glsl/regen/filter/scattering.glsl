@@ -82,8 +82,8 @@ void main(void)
 {
     vec3 eyedir = normalize(in_pos);
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
-    float eyeExtinction = getEyeExtinction(eyedir);
-    float eyeDepth = getEyeDepth(eyedir);
+    float eyeExtinction = computeEyeExtinction(eyedir);
+    float eyeDepth = computeEyeDepth(eyedir);
 
     float stepLength = eyeDepth/float(stepCount);
 
@@ -94,8 +94,8 @@ void main(void)
     {
         float sampleDistance = stepLength*float(i);
         vec3 position = eyePosition + eyedir*sampleDistance;
-        float sampleExtinction = getHorizonExtinction(position, in_sunDir, surfaceHeight-0.35);
-        float sampleDepth = getAtmosphericDepth(position, in_sunDir);
+        float sampleExtinction = computeHorizonExtinction(position, in_sunDir, surfaceHeight-0.35);
+        float sampleDepth = computeAtmosphericDepth(position, in_sunDir);
         
         vec3 influx = absorb(sampleDepth, vec3(intensity), in_scatterStrength)*sampleExtinction;
         rayleighCollected += absorb(sampleDistance, in_skyAbsorbtion*influx, in_rayleigh.y);
@@ -142,10 +142,11 @@ float computeHorizonExtinction(vec3 position, vec3 dir, float radius)
 -- computeEyeExtinction
 #ifndef __computeEyeExtinction_vec3_INCLUDED
 #define2 __computeEyeExtinction_vec3_INCLUDED
+#include regen.filter.scattering.computeHorizonExtinction
 float computeEyeExtinction(vec3 eyedir)
 {
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
-    return getHorizonExtinction(eyePosition, eyedir, surfaceHeight-0.15);
+    return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight-0.15);
 }
 #endif
 
@@ -168,10 +169,11 @@ float computeAtmosphericDepth(vec3 position, vec3 dir)
 -- computeEyeDepth
 #ifndef __computeEyeDepth_vec3__INCLUDED
 #define2 __computeEyeDepth_vec3__INCLUDED
+#include regen.filter.scattering.computeAtmosphericDepth
 float computeEyeDepth(vec3 eyedir)
 {
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
-    return getAtmosphericDepth(eyePosition, eyedir);
+    return computeAtmosphericDepth(eyePosition, eyedir);
 }
 #endif
 
