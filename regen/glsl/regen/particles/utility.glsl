@@ -62,7 +62,7 @@ in ${_TYPE} in_${_NAME}[1];
 #endfor
 
 -- fs.header
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 
 layout(location = 0) out vec4 out_color;
 

@@ -247,7 +247,7 @@ SphereSprite::Config::Config()
 }
 
 SphereSprite::SphereSprite(const Config &cfg)
-: Mesh(GL_POINTS, cfg.usage), HasShader("regen.meshes.sprite-sphere")
+: Mesh(GL_POINTS, cfg.usage), HasShader("regen.models.sprite-sphere")
 {
   updateAttributes(cfg);
   joinStates(shaderState());

@@ -9,7 +9,7 @@
 
 -- vs
 #extension GL_EXT_gpu_shader4 : enable
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 
 in vec3 in_pos;
 #ifdef HAS_nor
@@ -89,7 +89,7 @@ void main() {
 #ifdef HAS_tessellation_shader
 #ifdef HAS_TESSELATION
 #extension GL_EXT_gpu_shader4 : enable
-#include regen.meshes.mesh.defines
+#include regen.models.mesh.defines
 
 layout(triangles, ccw, fractional_odd_spacing) in;
 
@@ -179,27 +179,27 @@ out vec4 out_color;
 #endif
 
 -- fs
-#include regen.meshes.mesh.defines
-#include regen.meshes.mesh.fs-outputs
+#include regen.models.mesh.defines
+#include regen.models.mesh.fs-outputs
 
 #if OUTPUT_TYPE == DEPTH
 ///// Depth only output
 void main() {}
 #endif
 #if OUTPUT_TYPE == DEFERRED
-#include regen.meshes.mesh.fs-shading
+#include regen.models.mesh.fs-shading
 #endif
 #if OUTPUT_TYPE == TRANSPARENCY
-#include regen.meshes.mesh.fs-shading
+#include regen.models.mesh.fs-shading
 #endif
 #if OUTPUT_TYPE == DIRECT
-#include regen.meshes.mesh.fs-shading
+#include regen.models.mesh.fs-shading
 #endif
 #if OUTPUT_TYPE == MOMENTS
-#include regen.meshes.mesh.fs-moments
+#include regen.models.mesh.fs-moments
 #endif
 #if OUTPUT_TYPE == COLOR
-#include regen.meshes.mesh.fs-color
+#include regen.models.mesh.fs-color
 #endif
 
 -- fs-moments
@@ -256,7 +256,7 @@ uniform vec4 in_col;
 #include regen.states.textures.mapToFragment
 #include regen.states.textures.mapToLight
 
-#include regen.meshes.mesh.writeOutput
+#include regen.models.mesh.writeOutput
 
 #define HANDLE_IO(i)
 
@@ -286,16 +286,16 @@ void main() {
 -----------------------
 -- writeOutput
 #if OUTPUT_TYPE == DEFERRED
-#include regen.meshes.mesh.writeOutput-deferred
+#include regen.models.mesh.writeOutput-deferred
 #endif
 #if OUTPUT_TYPE == TRANSPARENCY || OUTPUT_TYPE == DIRECT
-#include regen.meshes.mesh.writeOutput-direct
+#include regen.models.mesh.writeOutput-direct
 #endif
 #if OUTPUT_TYPE == DEPTH
 #define writeOutput(posWorld,norWorld,color)
 #endif
 #if OUTPUT_TYPE == COLOR
-#include regen.meshes.mesh.writeOutput-color
+#include regen.models.mesh.writeOutput-color
 #endif
 
 -- writeOutput-color

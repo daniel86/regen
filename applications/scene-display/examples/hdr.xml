@@ -104,7 +104,7 @@
 	       blend-mode="MIX"
 	       blend-factor="0.35"
 	       mapping="REFLECTION" />
-      <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
+      <mesh id="sphere-mesh" shader="regen.models.mesh" />
     </node>
   </node>
   

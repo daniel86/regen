@@ -18,8 +18,8 @@ out vec4 out_posWorld;
 const vec2 in_streakSize = vec2(0.05,0.1);
 
 #include regen.states.camera.input
-#include regen.meshes.sprite.getSpritePoints
-#include regen.meshes.sprite.emit2
+#include regen.models.sprite.getSpritePoints
+#include regen.models.sprite.emit2
 
 void main() {
     if(in_lifetime[0]<=0) { return; }

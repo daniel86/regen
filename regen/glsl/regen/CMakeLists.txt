@@ -9,7 +9,7 @@ install(
 
 add_subdirectory(filter)
 add_subdirectory(gui)
-add_subdirectory(meshes)
+add_subdirectory(models)
 add_subdirectory(particles)
 add_subdirectory(shading)
 add_subdirectory(sky)

@@ -221,7 +221,7 @@
     <material preset="silver" />
     <define key="HAS_modelMatrix" value="TRUE" />
     <define key="HAS_nor" value="TRUE" />
-    <shader key="regen.meshes.mesh" />
+    <shader key="regen.models.mesh" />
     
     <node id="platform0" >
       <transform>
@@ -257,7 +257,7 @@
       <rotate value="3.14,0.0,0.0" />
       <translate value="0.0,-0.2,2.25" />
     </transform>
-    <mesh id="venus-mesh" shader="regen.meshes.mesh" />
+    <mesh id="venus-mesh" shader="regen.models.mesh" />
   </node>
   
   <node id="sphere0" >
@@ -265,7 +265,7 @@
     <transform>
       <translate value="1.5,-0.05,0.0" />
     </transform>
-    <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
+    <mesh id="sphere-mesh" shader="regen.models.mesh" />
   </node>
   
   <node id="sphere1" >
@@ -273,7 +273,7 @@
     <transform>
       <translate value="-1.5,-0.05,0.0" />
     </transform>
-    <mesh id="sphere-mesh" shader="regen.meshes.mesh" />
+    <mesh id="sphere-mesh" shader="regen.models.mesh" />
   </node>
 </node>
 
