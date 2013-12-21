@@ -215,24 +215,25 @@ ref_ptr<Texture2DArray> textures::loadArray(
   boost::filesystem::path texturedir(textureDirectory);
   boost::regex pattern(textureNamePattern);
 
-  set<string> accumulator;
+  vector<string> accumulator;
   boost::filesystem::directory_iterator it(texturedir), eod;
   BOOST_FOREACH(const boost::filesystem::path &filePath, make_pair(it, eod))
   {
     string name = filePath.filename().string();
     if(boost::regex_match(name, pattern))
     {
-      accumulator.insert(filePath.string());
+      accumulator.push_back(filePath.string());
       numTextures += 1;
     }
   }
+  std::sort(accumulator.begin(), accumulator.end());
 
   ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::alloc();
   tex->set_depth(numTextures);
   tex->begin(RenderState::get());
 
   GLint arrayIndex = 0;
-  for(set<string>::iterator
+  for(vector<string>::iterator
       it=accumulator.begin(); it!=accumulator.end(); ++it)
   {
     const string &textureFile = *it;
@@ -252,6 +253,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
 
     tex->texSubImage(arrayIndex, (GLubyte*) ilGetData());
     ilDeleteImages(1, &ilID);
+    arrayIndex += 1;
   }
 
   if(mipmapFlag != GL_NONE) {

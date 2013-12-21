@@ -165,7 +165,7 @@ ref_ptr<Texture> TextureResource::createResource(
       else if(input.getValue<bool>("is-array",false)) {
         tex = textures::loadArray(
             filePath,
-            input.getValue<string>("name-pattern","[ ]*"),
+            input.getValue<string>("name-pattern",".*"),
             mipmapFlag,
             forcedInternalFormat,
             forcedFormat,
