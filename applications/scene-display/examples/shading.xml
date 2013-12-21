@@ -77,8 +77,8 @@
       update-shader="regen.particles.rain.update">
   <!-- Add shader input. -->
   <input type="vec3" name="wind" value="-0.8,-4.5,0" />
-  <input type="vec3" name="rainVelocity" value="0.1,0.5,0.1" />
-  <input type="vec2" name="rainBrightness" value="50.0,20.0" />
+  <input type="vec3" name="rainVelocity" value="0.5,0.75,0.5" />
+  <input type="vec2" name="rainBrightness" value="5.0,2.0" />
   <input type="vec2" name="rainCone" value="60.0,30.0" />
   <input name="cameraPosition" state="main-camera" component="cameraPosition" />
   <!-- Add particle attributes. -->
@@ -182,7 +182,6 @@
 	  
 	  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
 	  <texture name="rainDB" id="rain-database" />
-	  <input type="float" name="softParticleScale" value="50.0" />
 	  <input type="vec2" name="particleSize" value="0.07,5.0" />
 	  
 	  <mesh id="rain-particles" shader="regen.particles.rain.draw" />
