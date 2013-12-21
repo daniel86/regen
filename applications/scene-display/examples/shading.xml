@@ -25,6 +25,8 @@
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
 <texture id="ground-height" file="res/textures/brick/height.jpg" />
+<texture id="rain-database" is-array="1"
+	 file="res/textures/rain" name-pattern=".*.png" />
 <!-- Fonts -->
 <font id="obelix"
       file="res/fonts/obelix.ttf"
@@ -69,6 +71,23 @@
       use-normal="1"
       use-tangent="0"
       usage="STATIC" />
+<mesh id="rain-particles"
+      type="particles"
+      num-vertices="50000"
+      update-shader="regen.particles.rain.update">
+  <!-- Add shader input. -->
+  <input type="vec3" name="wind" value="-0.8,-4.5,0" />
+  <input type="vec3" name="rainVelocity" value="0.1,0.5,0.1" />
+  <input type="vec2" name="rainBrightness" value="50.0,20.0" />
+  <input type="vec2" name="rainCone" value="60.0,30.0" />
+  <input name="cameraPosition" state="main-camera" component="cameraPosition" />
+  <!-- Add particle attributes. -->
+  <input type="vec3" name="pos" is-attribute="1" />
+  <input type="vec3" name="velocity" is-attribute="1" />
+  <input type="int" name="type" is-attribute="1" />
+  <input type="float" name="brightness" is-attribute="1" />
+</mesh>
+
 <mesh id="logo-widget"
       type="rectangle"
       lod="0"
@@ -141,7 +160,35 @@
     <node import="shading-pass" />
     <!-- Render background (sky,...) -->
     <node import="background-pass" />
+    <node import="rain-pass" />
   </node>
+  
+  <node>
+  </node>
+</node>
+
+<node id="rain-pass">
+  <direct-shading ambient="0.3,0.3,0.3" >
+    <!-- Define lights used for direct shading. -->
+    <direct-lights>
+      <light id="earth-sky" />
+    </direct-lights>
+    
+    <direct-pass>
+	<node id="particle-draw">
+	  <blend mode="add" />
+	  <depth test="1" write="0" />
+	  <define key="USE_RAIN_DB" value="TRUE" />
+	  
+	  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+	  <texture name="rainDB" id="rain-database" />
+	  <input type="float" name="softParticleScale" value="50.0" />
+	  <input type="vec2" name="particleSize" value="0.07,5.0" />
+	  
+	  <mesh id="rain-particles" shader="regen.particles.rain.draw" />
+	</node>
+    </direct-pass>
+  </direct-shading>
 </node>
 
 <node id="shading-pass">
