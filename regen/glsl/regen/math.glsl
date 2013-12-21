@@ -196,21 +196,45 @@ void computeCubeOffset(vec3 dir, float x, out vec3 dx, out vec3 dy)
 }
 #endif
 
+-- computeSpritePoints2
+#ifndef __computeSpritePoints__included__
+#define2 __computeSpritePoints__included__
+vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 zAxis, vec3 yAxis)
+{
+  vec3 xAxis = normalize(cross(zAxis,yAxis));
+  vec3 x = xAxis*0.5*size.x;
+  vec3 y = yAxis*0.5*size.y;
+  return vec3[](
+      point - x - y,
+      point - x + y,
+      point + x - y,
+      point + x + y
+  );
+}
+vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 yAxis)
+{
+  return computeSpritePoints(point,size,normalize(-point),yAxis);
+}
+#endif
+
 -- computeSpritePoints
 #ifndef __computeSpritePoints__included__
 #define2 __computeSpritePoints__included__
-vec3[4] computeSpritePoints(vec3 p, vec2 size, vec3 upVector)
+vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 zAxis, vec3 upVector)
 {
-    vec3 zAxis = normalize(-p);
-    vec3 xAxis = normalize(cross(zAxis, upVector));
-    vec3 yAxis = normalize(cross(xAxis, zAxis));
-    vec3 x = xAxis*0.5*size.x;
-    vec3 y = yAxis*0.5*size.y;
-    return vec3[](
-        p - x - y,
-        p - x + y,
-        p + x - y,
-        p + x + y
-    );
+  vec3 xAxis = normalize(cross(zAxis, upVector));
+  vec3 yAxis = normalize(cross(xAxis, zAxis));
+  vec3 x = xAxis*0.5*size.x;
+  vec3 y = yAxis*0.5*size.y;
+  return vec3[](
+      point - x - y,
+      point - x + y,
+      point + x - y,
+      point + x + y
+  );
+}
+vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 upVector)
+{
+  return computeSpritePoints(point,size,normalize(-point),upVector);
 }
 #endif

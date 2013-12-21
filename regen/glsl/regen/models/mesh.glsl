@@ -148,7 +148,6 @@ void main() {
 #endif // HAS_tessellation_shader
 
 -- gs
-// TODO: check for redundant geometry shaders.
 #include regen.states.camera.defines
 #include regen.defines.all
 #if RENDER_LAYER > 1

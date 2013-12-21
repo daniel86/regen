@@ -30,7 +30,6 @@ void main() {
 }
 
 -- gs
-// TODO: redundant, nothing special done here
 #include regen.states.camera.defines
 #if RENDER_LAYER > 1
 #extension GL_EXT_geometry_shader4 : enable
