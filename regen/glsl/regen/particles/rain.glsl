@@ -231,6 +231,7 @@ void main() {
 }
 
 
+-- @see http://www1.cs.columbia.edu/CAVE/publications/pdfs/Garg_TOG06.pdf
 -- draw.fs-database
 #include regen.particles.rain.draw.fs-database.input
 #include regen.states.camera.linearizeDepth
