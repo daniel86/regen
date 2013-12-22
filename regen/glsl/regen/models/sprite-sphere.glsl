@@ -40,9 +40,6 @@ layout(points) in;
 layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 #include regen.states.camera.input
-#include regen.states.camera.transformEyeToScreen
-#include regen.states.camera.transformEyeToWorld
-#include regen.states.camera.transformWorldToEye
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
@@ -56,31 +53,34 @@ out float out_sphereRadius;
 flat out int out_layer;
 #endif
 
+#include regen.states.camera.transformEyeToScreen
+#include regen.states.camera.transformEyeToWorld
+#include regen.states.camera.transformWorldToEye
 #include regen.math.computeSpritePoints
 
 #define HANDLE_IO(i)
 
-void emitVertex(vec4 posEye, mat4 viewInv, mat4 proj) {
+void emitVertex(vec4 posEye, int layer) {
   out_posEye = posEye.xyz;
-  out_posWorld = transformEyeToWorld(posEye,viewInv).xyz;
-  gl_Position = transformEyeToScreen(posEye,proj);
+  out_posWorld = transformEyeToWorld(posEye,layer).xyz;
+  gl_Position = transformEyeToScreen(posEye,layer);
   HANDLE_IO(0);
   EmitVertex();
 }
 
-void emitSpriteSphere(mat4 view, mat4 viewInv, mat4 proj, int layer) {
-  vec4 centerEye = transformWorldToEye(gl_PositionIn[0],view);
+void emitSpriteSphere(int layer) {
+  vec4 centerEye = transformWorldToEye(gl_PositionIn[0],layer);
   vec3 quadPos[4] = computeSpritePoints(
       centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
 
   out_spriteTexco = vec2(1.0,0.0);
-  emitVertex(vec4(quadPos[0],1.0), viewInv, proj);
+  emitVertex(vec4(quadPos[0],1.0), layer);
   out_spriteTexco = vec2(1.0,1.0);
-  emitVertex(vec4(quadPos[1],1.0), viewInv, proj);  
+  emitVertex(vec4(quadPos[1],1.0), layer);  
   out_spriteTexco = vec2(0.0,0.0);
-  emitVertex(vec4(quadPos[2],1.0), viewInv, proj); 
+  emitVertex(vec4(quadPos[2],1.0), layer); 
   out_spriteTexco = vec2(0.0,1.0);
-  emitVertex(vec4(quadPos[3],1.0), viewInv, proj);
+  emitVertex(vec4(quadPos[3],1.0), layer);
   EndPrimitive();
 }
 
@@ -94,11 +94,7 @@ void main() {
   gl_Layer = ${LAYER};
   out_layer = ${LAYER};
 #endif
-  emitSpriteSphere(
-    __VIEW__(${LAYER}),
-    __VIEW_INV__(${LAYER}),
-    __PROJ__(${LAYER}),
-    ${LAYER});
+  emitSpriteSphere(${LAYER});
 #endif
 #endfor
 }
@@ -126,6 +122,7 @@ uniform vec4 in_col;
 #include regen.states.material.input
 #include regen.states.textures.input
 
+#include regen.states.camera.transformEyeToWorld
 #ifdef DEPTH_CORRECT
 #include regen.states.camera.depthCorrection
 #endif
@@ -140,9 +137,8 @@ void main()
   // 0.99 because color at edges was wrong.
   if(texcoMagnitude>=0.99) discard;
   
-  mat4 viewInv = __VIEW_INV__(in_layer);
   vec3 normal = vec3(spriteTexco, sqrt(1.0 - dot(spriteTexco,spriteTexco)));
-  vec4 norWorld = normalize(viewInv * vec4(normal,0.0));
+  vec4 norWorld = normalize(transformEyeToWorld(vec4(normal,0.0),in_layer));
 #ifdef DEPTH_CORRECT
   // Note that early depth test is disabled with DEPTH_CORRECT defined and this can have
   // bad consequences for performance.

@@ -176,11 +176,12 @@ layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 flat out int out_layer;
 
 #include regen.states.camera.input
+#include regen.states.camera.transformWorldToScreen 
 
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  gl_Position = __VIEW_PROJ__(layer)*posWorld;
+  gl_Position = transformWorldToScreen(posWorld,layer);
   HANDLE_IO(index);
   EmitVertex();
 }
@@ -326,7 +327,7 @@ void main() {
 #if RENDER_LAYER > 1
     gl_Position = vec4(posWorld,1.0);
 #else
-    gl_Position = transformWorldToScreen(posWorld,0);
+    gl_Position = transformWorldToScreen(vec4(posWorld,1.0),0);
 #endif
 }
 
@@ -359,7 +360,7 @@ void main() {
 #if RENDER_LAYER > 1
     gl_Position = vec4(out_intersection,1.0);
 #else
-    gl_Position = transformWorldToScreen(out_intersection,0);
+    gl_Position = transformWorldToScreen(vec4(out_intersection,1.0),0);
 #endif
 }
 -- spot.gs

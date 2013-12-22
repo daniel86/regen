@@ -103,22 +103,24 @@ uniform vec2 in_viewport;
 uniform vec3 in_wind;
 uniform vec2 in_particleSize;
 
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 #include regen.math.computeSpritePoints2
 
-void emitVertex(mat4 view, mat4 proj, vec2 texco, vec3 posWorld)
+void emitVertex(vec2 texco, vec3 posWorld, int layer)
 {
     out_spriteTexco = texco;
     out_posWorld = vec4(posWorld,1.0);
-    out_posEye = view * out_posWorld;
-    gl_Position = proj * out_posEye;
+    out_posEye = transformWorldToEye(out_posWorld,layer);
+    gl_Position = transformEyeToScreen(out_posEye,layer);
     EmitVertex();
 }
-void emitSprite(mat4 view, mat4 proj, vec3 quadPos[4])
+void emitSprite(vec3 quadPos[4], int layer)
 {
-  emitVertex(view,proj,vec2(1.0,0.0),quadPos[0]);
-  emitVertex(view,proj,vec2(1.0,1.0),quadPos[1]);
-  emitVertex(view,proj,vec2(0.0,0.0),quadPos[2]);
-  emitVertex(view,proj,vec2(0.0,1.0),quadPos[3]);
+  emitVertex(vec2(1.0,0.0),quadPos[0],layer);
+  emitVertex(vec2(1.0,1.0),quadPos[1],layer);
+  emitVertex(vec2(0.0,0.0),quadPos[2],layer);
+  emitVertex(vec2(0.0,1.0),quadPos[3],layer);
   EndPrimitive();
 }
 
@@ -130,7 +132,7 @@ void main() {
   vec3 zAxis = normalize(in_cameraPosition-in_pos[0]);
   vec3 yAxis = normalize(in_velocity[0]+in_wind);
   vec3 quadPos[4] = computeSpritePoints(in_pos[0], in_particleSize, zAxis, yAxis);
-  emitSprite(__VIEW__(0), __PROJ__(0), quadPos);
+  emitSprite(quadPos,out_layer);
 }
 
 -- draw.fs

@@ -99,17 +99,19 @@ in vec4 in_lastPosition;
 #endif
 
 #include regen.states.camera.input
+#include regen.states.camera.transformWorldToScreen
+#include regen.states.camera.transformEyeToScreen
 
 void main() {
 #ifdef WORLD_SPACE
     out_pos0 = in_posWorld.xyz;
     out_pos1 = in_lastPosWorld.xyz;
-    gl_Position = __VIEW_PROJ__(0) * in_posWorld;
+    gl_Position = transformWorldToScreen(in_posWorld,0);
 #else
 #ifdef EYE_SPACE
     out_pos0 = in_posEye.xyz;
     out_pos1 = in_lastPosEye.xyz;
-    gl_Position = __PROJ__(0) * in_posEye;
+    gl_Position = transformEyeToScreen(in_posWorld,0);
 #else
     out_pos0 = in_Position.xyz;
     out_pos1 = in_lastPosition.xyz;

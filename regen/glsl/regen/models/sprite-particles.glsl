@@ -49,34 +49,37 @@ out vec4 out_posWorld;
 out vec2 out_spriteTexco;
 
 #include regen.states.camera.input
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToWorld
+#include regen.states.camera.transformEyeToScreen
 uniform vec2 in_viewport;
 
 #include regen.math.computeSpritePoints
 
-void emitSprite(mat4 invView, mat4 proj, vec3 quadPos[4])
+void emitSprite(vec3 quadPos[4], int layer)
 {
     out_spriteTexco = vec2(1.0,0.0);
     out_posEye = vec4(quadPos[0],1.0);
-    out_posWorld = invView * out_posEye;
-    gl_Position = proj * out_posEye;
+    out_posWorld = transformEyeToWorld(out_posEye,layer);
+    gl_Position = transformEyeToScreen(out_posEye,layer);
     EmitVertex();
     
     out_spriteTexco = vec2(1.0,1.0);
     out_posEye = vec4(quadPos[1],1.0);
-    out_posWorld = invView * out_posEye;
-    gl_Position = proj * out_posEye;
+    out_posWorld = transformEyeToWorld(out_posEye,layer);
+    gl_Position = transformEyeToScreen(out_posEye,layer);
     EmitVertex();
     
     out_spriteTexco = vec2(0.0,0.0);
     out_posEye = vec4(quadPos[2],1.0);
-    out_posWorld = invView * out_posEye;
-    gl_Position = proj * out_posEye;
+    out_posWorld = transformEyeToWorld(out_posEye,layer);
+    gl_Position = transformEyeToScreen(out_posEye,layer);
     EmitVertex();
     
     out_spriteTexco = vec2(0.0,1.0);
     out_posEye = vec4(quadPos[3],1.0);
-    out_posWorld = invView * out_posEye;
-    gl_Position = proj * out_posEye;
+    out_posWorld = transformEyeToWorld(out_posEye,layer);
+    gl_Position = transformEyeToScreen(out_posEye,layer);
     EmitVertex();
     
     EndPrimitive();
@@ -87,9 +90,9 @@ void main() {
 
     out_velocity = in_velocity[0];    
     
-    vec4 centerEye = __VIEW__(0) * vec4(in_pos[0],1.0);
+    vec4 centerEye = transformWorldToEye(vec4(in_pos[0],1.0),0);
     vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, vec2(in_size[0]), vec3(0.0, 1.0, 0.0));
-    emitSprite(__VIEW_INV__(0), __PROJ__(0), quadPos);
+    emitSprite(quadPos,0);
 }
 
 -- fs

@@ -162,14 +162,15 @@ out vec3 out_posEye;
 
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 #define HANDLE_IO(i)
 
-void emitVertex(vec4 posWorld, mat4 view, mat4 proj, int index) {
-  vec4 posEye = transformWorldToEye(posWorld, view);
+void emitVertex(vec4 posWorld, int index, int layer) {
+  vec4 posEye = transformWorldToEye(posWorld,layer);
   out_posWorld = posWorld.xyz;
   out_posEye = posEye.xyz;
-  gl_Position = proj * posEye;
+  gl_Position = transformEyeToScreen(posEye,layer);
   HANDLE_IO(index);
   
   EmitVertex();
@@ -180,9 +181,9 @@ void main() {
 #ifndef SKIP_LAYER${LAYER}
   // select framebuffer layer
   gl_Layer = ${LAYER};
-  emitVertex(gl_PositionIn[0], __VIEW__(${LAYER}), __PROJ__(${LAYER}), 0);
-  emitVertex(gl_PositionIn[1], __VIEW__(${LAYER}), __PROJ__(${LAYER}), 1);
-  emitVertex(gl_PositionIn[2], __VIEW__(${LAYER}), __PROJ__(${LAYER}), 2);
+  emitVertex(gl_PositionIn[0], 0, ${LAYER});
+  emitVertex(gl_PositionIn[1], 1, ${LAYER});
+  emitVertex(gl_PositionIn[2], 2, ${LAYER});
   EndPrimitive();
 #endif // SKIP_LAYER
 #endfor
