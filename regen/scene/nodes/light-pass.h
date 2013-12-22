@@ -79,7 +79,8 @@ namespace scene {
             REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
           }
         }
-        if(n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-color-texture")) {
+        if((n->hasAttribute("shadow-buffer") && n->hasAttribute("shadow-color-attachment")) ||
+            n->hasAttribute("shadow-color-texture")) {
           shadowColorMap = TextureStateProvider::getTexture(parser, *n.get(),
                   "shadow-color-texture", "shadow-buffer", "shadow-color-attachment");
         }

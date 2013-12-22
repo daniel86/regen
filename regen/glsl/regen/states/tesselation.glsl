@@ -9,13 +9,14 @@
 #endif
 
 -- tesselationControl
+#include regen.states.camera.transformWorldToScreen 
 uniform float in_lodFactor;
 
 // convert a world space vector to device space
 vec4 worldToDeviceSpace(vec4 vertexWS)
 {
 // TODO: not accurate for cubes! need another metric for cube render targets.
-    vec4 vertexNDS = __VIEW_PROJ__(0) * vertexWS;
+    vec4 vertexNDS = transformWorldToScreen(vertexWS,0);
     vertexNDS /= vertexNDS.w;
     return vertexNDS;
 }

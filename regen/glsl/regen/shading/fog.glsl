@@ -45,9 +45,9 @@ const float in_fogDensity = 1.0;
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-    vecTexco = computeTexco(texco_2D);
+    vecTexco texco = computeTexco(texco_2D);
     
-    float d0 = texture(in_gDepthTexture, vecTex).x;
+    float d0 = texture(in_gDepthTexture, texco).x;
     if(d0==1.0) discard; // discard background pixels
     vec3 eye0 = transformTexcoToWorld(texco_2D, d0, in_layer) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
@@ -59,7 +59,7 @@ void main() {
 #endif
     
 #ifdef USE_TBUFFER
-    float d1 = texture(in_tDepthTexture, vecTex).x;
+    float d1 = texture(in_tDepthTexture, texco).x;
     vec3 eye1 = transformTexcoToWorld(texco_2D, d1, in_layer) - in_cameraPosition;
     
     // use standard fog color from eye to transparent object
@@ -67,7 +67,7 @@ void main() {
     out_color = (factor1*in_fogDensity)*fogColor;
     
     // starting from transparent object to scene depth sample use alpha blended fog color.
-    vec4 tcolor = texture(in_tColorTexture, vecTex).x;
+    vec4 tcolor = texture(in_tColorTexture, texco).x;
     vec3 blended = fogColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a;
     // substract intensity from eye to p1
     factor0 -= factor1;

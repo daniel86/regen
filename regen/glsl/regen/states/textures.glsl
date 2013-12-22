@@ -459,7 +459,7 @@ vec2 texco_parabolid_reflection(vec3 P, vec3 N)
 #define2 __TEXCO_PLANE_REFL__
 vec2 texco_planar_reflection(vec3 P, vec3 N)
 {
-    return transformScreenToTexco(in_reflectionMatrix * vec4(P,1.0));
+    return transformScreenToTexco(in_reflectionMatrix * vec4(P,1.0)).xy;
 }
 #endif
 
