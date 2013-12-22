@@ -102,6 +102,8 @@ namespace scene {
      */
     void putAsset(const std::string &id, const ref_ptr<AssetImporter> &asset);
 
+    void loadResources(SceneParser *parser, const std::string &id);
+
   protected:
     AssetResource assets_;
     CameraResource cameras_;
@@ -110,8 +112,6 @@ namespace scene {
     LightResource lights_;
     MeshResource meshes_;
     TextureResource textures_;
-
-    void loadResources(SceneParser *parser, const std::string &id);
   };
 }}
 

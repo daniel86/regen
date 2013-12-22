@@ -11,6 +11,7 @@ using namespace regen;
 
 #include <regen/scene/resource-manager.h>
 #include <regen/camera/cube-camera.h>
+#include <regen/camera/parabolid-camera.h>
 #include <regen/camera/light-camera.h>
 #include <regen/camera/reflection-camera.h>
 
@@ -108,6 +109,7 @@ ref_ptr<Camera> CameraResource::createResource(
     GLdouble far = input.getValue<GLdouble>("far", 200.0);
     ref_ptr<LightCamera> cam = ref_ptr<LightCamera>::alloc(
         light,userCamera,Vec2f(near,far),numLayer,splitWeight);
+    parser->putState(input.getName(),cam);
 
     // Hide cube shadow map faces.
     if(input.hasAttribute("hide-faces")) {
@@ -138,6 +140,7 @@ ref_ptr<Camera> CameraResource::createResource(
       return ref_ptr<Camera>();
     }
     ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc((*mesh.get())[0],userCamera);
+    parser->putState(input.getName(),cam);
 
     // Hide cube shadow map faces.
     if(input.hasAttribute("hide-faces")) {
@@ -151,6 +154,27 @@ ref_ptr<Camera> CameraResource::createResource(
             GL_TEXTURE_CUBE_MAP_POSITIVE_X+faceIndex, GL_FALSE);
       }
     }
+
+    return cam;
+  }
+  else if(input.hasAttribute("parabolid-mesh")) {
+    ref_ptr<Camera> userCamera =
+        parser->getResources()->getCamera(parser, input.getValue("camera"));
+    if(userCamera.get()==NULL) {
+      REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    ref_ptr<MeshVector> mesh =
+        parser->getResources()->getMesh(parser, input.getValue("parabolid-mesh"));
+    if(mesh.get()==NULL || mesh->empty()) {
+      REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
+      return ref_ptr<Camera>();
+    }
+    bool hasBackFace = input.getValue<bool>("has-back-face",false);
+
+    ref_ptr<ParabolidCamera> cam = ref_ptr<ParabolidCamera>::alloc(
+        (*mesh.get())[0],userCamera,hasBackFace);
+    parser->putState(input.getName(),cam);
 
     return cam;
   }
