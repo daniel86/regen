@@ -19,6 +19,7 @@ ParabolidCamera::ParabolidCamera(
   GLuint numLayer = (hasBackFace ? 2 : 1);
   shaderDefine("RENDER_TARGET", hasBackFace ? "DUAL_PARABOLID" : "PARABOLID");
   shaderDefine("RENDER_LAYER", REGEN_STRING(numLayer));
+  shaderDefine("USE_PARABOLID_PROJECTION", "TRUE");
   updateFrustum(180.0f, 1.0f,
       userCamera_->near()->getVertex(0),
       userCamera_->far()->getVertex(0),

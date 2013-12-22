@@ -116,16 +116,18 @@ namespace scene {
         // take uniform from state
         ref_ptr<State> state = parser->getState(input.getValue("state"));
         if(state.get()==NULL) {
-          REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
-          return ref_ptr<ShaderInput>();
-        }
-        else {
-          ref_ptr<ShaderInput> ret = state->findShaderInput(input.getValue("component"));
-          if(ret.get()==NULL) {
-            REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
+          parser->getResources()->loadResources(parser, input.getValue("state"));
+          state = parser->getState(input.getValue("state"));
+          if(state.get()==NULL) {
+            REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
+            return ref_ptr<ShaderInput>();
           }
-          return ret;
         }
+        ref_ptr<ShaderInput> ret = state->findShaderInput(input.getValue("component"));
+        if(ret.get()==NULL) {
+          REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
+        }
+        return ret;
       }
 
       const string type = input.getValue<string>("type", "");

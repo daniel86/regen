@@ -14,15 +14,16 @@ namespace regen {
   ostream& operator<<(ostream &out, const TextureState::Mapping &mode)
   {
     switch(mode) {
-    case TextureState::MAPPING_FLAT:              return out << "flat";
-    case TextureState::MAPPING_CUBE:              return out << "cube";
-    case TextureState::MAPPING_TUBE:              return out << "tube";
-    case TextureState::MAPPING_SPHERE:            return out << "sphere";
-    case TextureState::MAPPING_REFLECTION:        return out << "reflection";
-    case TextureState::MAPPING_PLANAR_REFLECTION: return out << "planar_reflection";
-    case TextureState::MAPPING_REFRACTION:        return out << "refraction";
-    case TextureState::MAPPING_CUSTOM:            return out << "custom";
-    case TextureState::MAPPING_TEXCO:             return out << "texco";
+    case TextureState::MAPPING_FLAT:                 return out << "flat";
+    case TextureState::MAPPING_CUBE:                 return out << "cube";
+    case TextureState::MAPPING_TUBE:                 return out << "tube";
+    case TextureState::MAPPING_SPHERE:               return out << "sphere";
+    case TextureState::MAPPING_REFLECTION:           return out << "reflection";
+    case TextureState::MAPPING_PLANAR_REFLECTION:    return out << "planar_reflection";
+    case TextureState::MAPPING_PARABOLID_REFLECTION: return out << "parabolid_reflection";
+    case TextureState::MAPPING_REFRACTION:           return out << "refraction";
+    case TextureState::MAPPING_CUSTOM:               return out << "custom";
+    case TextureState::MAPPING_TEXCO:                return out << "texco";
     }
     return out;
   }
@@ -31,15 +32,16 @@ namespace regen {
     string val;
     in >> val;
     boost::to_lower(val);
-    if(val == "flat")                    mode = TextureState::MAPPING_FLAT;
-    else if(val == "cube")               mode = TextureState::MAPPING_CUBE;
-    else if(val == "tube")               mode = TextureState::MAPPING_TUBE;
-    else if(val == "sphere")             mode = TextureState::MAPPING_SPHERE;
-    else if(val == "reflection")         mode = TextureState::MAPPING_REFLECTION;
-    else if(val == "planar_reflection")  mode = TextureState::MAPPING_PLANAR_REFLECTION;
-    else if(val == "refraction")         mode = TextureState::MAPPING_REFRACTION;
-    else if(val == "texco")              mode = TextureState::MAPPING_TEXCO;
-    else if(val == "custom")             mode = TextureState::MAPPING_CUSTOM;
+    if(val == "flat")                       mode = TextureState::MAPPING_FLAT;
+    else if(val == "cube")                  mode = TextureState::MAPPING_CUBE;
+    else if(val == "tube")                  mode = TextureState::MAPPING_TUBE;
+    else if(val == "sphere")                mode = TextureState::MAPPING_SPHERE;
+    else if(val == "reflection")            mode = TextureState::MAPPING_REFLECTION;
+    else if(val == "planar_reflection")     mode = TextureState::MAPPING_PLANAR_REFLECTION;
+    else if(val == "parabolid_reflection")  mode = TextureState::MAPPING_PARABOLID_REFLECTION;
+    else if(val == "refraction")            mode = TextureState::MAPPING_REFRACTION;
+    else if(val == "texco")                 mode = TextureState::MAPPING_TEXCO;
+    else if(val == "custom")                mode = TextureState::MAPPING_CUSTOM;
     else {
       REGEN_WARN("Unknown Texture Mapping '" << val <<
           "'. Using default CUSTOM Mapping.");

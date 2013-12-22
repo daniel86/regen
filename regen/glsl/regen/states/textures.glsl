@@ -442,13 +442,19 @@ vec3 texco_reflection(vec3 P, vec3 N)
 -- texco_parabolid_reflection
 #ifndef __TEXCO_PARABOLID_REFL__
 #define2 __TEXCO_PARABOLID_REFL__
-#include regen.states.camera
-vec2 texco_parabolid_reflection(vec3 P, vec3 N)
+uniform mat4 in_parabolidMatrix;
+vec3 texco_parabolid_reflection(vec3 P, vec3 N)
 {
-    vec3 incident = normalize(in_parabolidMatrix * vec4(P,1.0));
+    int layer = 0;
+#ifdef IS_PARABOLID_DUAL
+    // TODO: choose layer and index in_parabolidMatrix!
+    vec3 incident = normalize((in_parabolidMatrix[layer] * vec4(P,1.0)).xyz);
+#else
+    vec3 incident = normalize((in_parabolidMatrix * vec4(P,1.0)).xyz);
+#endif
     incident.xy /= (incident.z+1.0);
     incident.xy  = 0.5*incident.xy + vec2(0.5); // scale and bias in range [0,1]
-    return incident.xy;
+    return vec3(incident.xy, layer);
 }
 #endif
 
