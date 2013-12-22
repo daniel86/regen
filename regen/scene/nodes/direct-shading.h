@@ -76,6 +76,7 @@ namespace scene {
         ShadowFilterMode shadowFiltering =
             n->getValue<ShadowFilterMode>("shadow-filter",SHADOW_FILTERING_NONE);
         ref_ptr<Texture> shadowMap;
+        ref_ptr<Texture> shadowColorMap;
         ref_ptr<LightCamera> shadowCamera;
         if(n->hasAttribute("shadow-camera")) {
           shadowCamera = ref_ptr<LightCamera>::upCast(
@@ -91,7 +92,11 @@ namespace scene {
             REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
           }
         }
-        shadingState->addLight(light,shadowCamera,shadowMap,shadowFiltering);
+        if(n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-color-texture")) {
+          shadowColorMap = TextureStateProvider::getTexture(parser, *n.get(),
+              "shadow-color-texture", "shadow-buffer", "shadow-color-attachment");
+        }
+        shadingState->addLight(light,shadowCamera,shadowMap,shadowColorMap,shadowFiltering);
       }
 
       // parse passNode

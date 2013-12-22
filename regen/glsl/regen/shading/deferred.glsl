@@ -128,6 +128,11 @@ void main() {
     vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_lightMatrix[shadowLayer]);
     // compute filtered shadow
     float attenuation = dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
+#ifdef USE_SHADOW_COLOR
+    vec4 shadowColor = shadow2DArray(in_shadowColorTexture,shadowCoord);
+    attenuation += (1.0-shadow)*(1.0-shadowColor.a);
+    diff.rgb += (1.0-shadow)*shadowColor.rgb;
+#endif
 #else
     float attenuation = 1.0;
 #endif
@@ -260,24 +265,36 @@ void main() {
 
 #ifdef USE_SHADOW_MAP
 #ifdef IS_SPOT_LIGHT
-    attenuation *= spotShadow${SHADOW_MAP_FILTER}(
+    vec4 shadowTexco = in_lightMatrix*vec4(P,1.0);
+    float shadow = spotShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
-        in_lightMatrix*vec4(P,1.0),
+        shadowTexco,
         lightVec,
         in_lightNear,
         in_lightFar);
+#ifdef USE_SHADOW_COLOR
+    vec4 shadowColor = textureProj(in_shadowColorTexture,shadowTexco);
+#endif
 #else
     float shadowDepth = (
         in_lightMatrix[computeCubeLayer(lightVec)]*
         vec4(lightVec,1.0)).z;
-    attenuation *= pointShadow${SHADOW_MAP_FILTER}(
+    float shadow = pointShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
         lightVec,
         shadowDepth,
         in_lightNear,
         in_lightFar,
         in_shadowInverseSize.x);
+#ifdef USE_SHADOW_COLOR
+    vec4 shadowColor = shadowCube(in_shadowColorTexture,vec4(-lightVec,shadowDepth));
 #endif
+#endif
+#ifdef USE_SHADOW_COLOR
+    shadow += (1.0-shadow)*(1.0-shadowColor.a);
+    diff.rgb += (1.0-shadow)*shadowColor.rgb;
+#endif
+    attenuation *= shadow;
 #endif // USE_SHADOW_MAP
     
     // apply diffuse and specular light

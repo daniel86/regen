@@ -16,6 +16,9 @@ uniform float in_lightFar;
 uniform float in_lightNear;
 uniform vec2 in_shadowInverseSize;
 uniform sampler2DShadow in_shadowTexture;
+#ifdef USE_SHADOW_COLOR
+uniform sampler2D in_shadowColorTexture;
+#endif
 uniform mat4 in_lightMatrix;
 #endif // USE_SHADOW_MAP
 #endif
@@ -28,6 +31,9 @@ uniform float in_lightFar;
 uniform float in_lightNear;
 uniform vec2 in_shadowInverseSize;
 uniform samplerCubeShadow in_shadowTexture;
+#ifdef USE_SHADOW_COLOR
+uniform samplerCube in_shadowColorTexture;
+#endif
 uniform mat4 in_lightMatrix[6];
 #endif // USE_SHADOW_MAP
 #endif
@@ -39,6 +45,9 @@ uniform samplerCube in_skyColorTexture;
 #endif
 #ifdef USE_SHADOW_MAP
 uniform sampler2DArrayShadow in_shadowTexture;
+#ifdef USE_SHADOW_COLOR
+uniform sampler2DArray in_shadowColorTexture;
+#endif
 uniform vec2 in_shadowInverseSize;
 uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
 uniform float in_lightFar[NUM_SHADOW_LAYER];
@@ -67,9 +76,10 @@ uniform float in_lightFar${__ID};
 uniform float in_lightNear${__ID};
 uniform mat4 in_lightMatrix${__ID};
 uniform vec2 in_shadowInverseSize${__ID};
-  #ifndef __TEX_shadowTexture${__ID}__
 uniform sampler2DShadow in_shadowTexture${__ID};
-  #endif
+#ifdef USE_SHADOW_COLOR
+uniform sampler2D in_shadowColorTexture;
+#endif
 #endif // USE_SHADOW_MAP${__ID}
 #endif // LIGHT_TYPE${__ID} == SPOT
 
@@ -81,9 +91,10 @@ uniform float in_lightFar${__ID};
 uniform float in_lightNear${__ID};
 uniform vec2 in_shadowInverseSize${__ID};
 uniform mat4 in_lightMatrix${__ID}[6];
-  #ifndef __TEX_shadowTexture${__ID}__
 uniform samplerCubeShadow in_shadowTexture${__ID};
-  #endif
+#ifdef USE_SHADOW_COLOR
+uniform samplerCube in_shadowColorTexture;
+#endif
 #endif // USE_SHADOW_MAP${__ID}
 #endif // LIGHT_TYPE${__ID} == POINT
 
@@ -94,9 +105,10 @@ uniform vec3 in_lightDirection${__ID};
 uniform vec2 in_shadowInverseSize${__ID};
 uniform float in_lightFar${__ID}[ NUM_SHADOW_LAYER${__ID} ];
 uniform mat4 in_lightMatrix${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-  #ifndef __TEX_shadowTexture${__ID}__
 uniform sampler2DArrayShadow in_shadowTexture${__ID};
-  #endif
+#ifdef USE_SHADOW_COLOR
+uniform sampler2DArray in_shadowColorTexture;
+#endif
 #endif
 #endif
 

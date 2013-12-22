@@ -41,6 +41,7 @@ namespace regen {
         const ref_ptr<Light> &light,
         const ref_ptr<LightCamera> &lightCamera,
         const ref_ptr<Texture> &shadowTexture,
+        const ref_ptr<Texture> &shadowColorTexture,
         const list< ref_ptr<ShaderInput> > &inputs);
     /**
      * @param l a previously added light.
@@ -69,6 +70,7 @@ namespace regen {
       ref_ptr<Light> light;
       ref_ptr<LightCamera> camera;
       ref_ptr<Texture> shadow;
+      ref_ptr<Texture> shadowColor;
       list< ref_ptr<ShaderInput> > inputs;
       list< ShaderInputLocation > inputLocations;
     };
@@ -83,6 +85,7 @@ namespace regen {
     map< Light*, list<LightPassLight>::iterator > lightIterators_;
 
     GLint shadowMapLoc_;
+    GLint shadowColorLoc_;
     ShadowFilterMode shadowFiltering_;
     GLuint numShadowLayer_;
 

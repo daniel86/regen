@@ -230,6 +230,13 @@ out vec4 out_color;
 ///// Depth only output
 void main() {}
 #endif
+#if OUTPUT_TYPE == BLACK
+///// Output plain black
+out vec4 out_color;
+void main() {
+  out_color = vec4(0.0,0.0,0.0,1.0);
+}
+#endif
 #if OUTPUT_TYPE == DEFERRED
 #include regen.models.mesh.fs-shading
 #endif
@@ -239,11 +246,11 @@ void main() {}
 #if OUTPUT_TYPE == DIRECT
 #include regen.models.mesh.fs-shading
 #endif
+#if OUTPUT_TYPE == COLOR
+#include regen.models.mesh.fs-shading
+#endif
 #if OUTPUT_TYPE == MOMENTS
 #include regen.models.mesh.fs-moments
-#endif
-#if OUTPUT_TYPE == COLOR
-#include regen.models.mesh.fs-color
 #endif
 
 -- fs-moments
@@ -316,6 +323,9 @@ void main() {
 #else
   vec4 color = vec4(1.0);
 #endif 
+#ifdef HAS_MATERIAL
+  color.a *= in_matAlpha;
+#endif
 #endif // HAS_COL
   textureMappingFragment(in_posWorld, color, norWorld);
   writeOutput(in_posWorld, norWorld, color);
@@ -340,7 +350,15 @@ void main() {
 
 -- writeOutput-color
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
-  out_color = color;
+  vec4 diffuse = color;
+  vec3 specular = vec3(0.0);
+  float shininess = 0.0;
+#ifdef HAS_MATERIAL
+  diffuse.rgb *= in_matDiffuse;
+#endif
+  textureMappingLight(posWorld, norWorld,
+      diffuse.rgb, specular, shininess);
+  out_color = diffuse;
 }
 
 -- writeOutput-direct

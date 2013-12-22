@@ -27,20 +27,10 @@
 	 compare-mode="COMPARE_R_TO_TEXTURE"
 	 compare-function="LEQUAL"
 	 sampler-type="sampler2DShadow" />
-</fbo>
-<fbo id="t-buffer" size-mode="rel" size="1.0,1.0" >
-  <!-- Note: some transparency modes require float texture. -->
   <texture id="color"
-	   pixel-type="FLOAT"
 	   pixel-size="16"
-	   pixel-components="4" />
-  <!-- Note: with nvidia i get incomplete attachment error using GL_R16F. -->
-  <!-- Note: Only used for average sum mode. -->
-  <texture id="counter"
-	   pixel-type="FLOAT"
-	   pixel-size="16"
-	   pixel-components="2" />
-  <!-- TODO: bind g-buffer depth! -->
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-components="4"/>
 </fbo>
 <fbo id="particle-buffer" size-mode="abs" size="256.0,256.0" >
   <texture id="color"
@@ -91,14 +81,37 @@
       asset-material="0"
       scaling="0.0006,0.0006,0.0006"
       rotation="0.0,0.0,0.0"
-      translation="0.0,0.0,0.0" />
-<mesh id="sphere-mesh"
+      translation="0.0,0.0,0.0">
+  <material preset="ruby" alpha="0.85" />
+  <transform>
+    <rotate value="3.14,0.0,0.0" />
+    <translate value="0.0,-0.1,2.25" />
+  </transform>
+</mesh>
+<mesh id="sphere-mesh0"
       type="sphere"
       lod="4"
       scaling="1.0,1.0,1.0"
       use-normal="1"
       use-tangent="0"
-      usage="STATIC" />
+      usage="STATIC">
+  <material preset="ruby" alpha="0.5" />
+  <transform>
+    <translate value="1.5,-0.1,0.0" />
+  </transform>
+</mesh>
+<mesh id="sphere-mesh1"
+      type="sphere"
+      lod="4"
+      scaling="1.0,1.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+  <material preset="jade" alpha="0.85" />
+  <transform>
+    <translate value="-1.5,-0.1,0.0" />
+  </transform>
+</mesh>
 <mesh id="particle-mesh"
       type="particles"
       num-vertices="500"
@@ -148,6 +161,8 @@
     <node import="shading-pass" />
     <node import="background-pass" />
   </node>
+  
+  <node import="transparency-pass" />
 </node>
 
 <node id="geometry-pass">
@@ -161,13 +176,17 @@
   <cull mode="FRONT" />
   
   <node id="spot-shadow-pass">
-    <define key="OUTPUT_TYPE" value="DEPTH" />
-    <fbo id="spot-shadow" clear-depth="1" />
+    <fbo id="spot-shadow" clear-depth="1" clear-buffers="0" />
     <camera id="spot-camera" />
     
-    <node import="shadow-caster" />
-    <!-- TODO: transparent shadows -->
-    <node import="shadow-caster-transparent" />
+    <node id="black-output">
+      <define key="OUTPUT_TYPE" value="BLACK" />
+      <node import="shadow-caster" />
+    </node>
+    <node id="color-output">
+      <define key="OUTPUT_TYPE" value="COLOR" />
+      <node import="shadow-caster-transparent" />
+    </node>
   </node>
 </node>
 
@@ -186,32 +205,32 @@
     
     <light-pass type="SPOT" shader="regen.shading.deferred.spot">
       <light id="spot-light"
-	     shadow-buffer="spot-shadow" shadow-attachment="depth"
+	     shadow-buffer="spot-shadow"
+	     shadow-attachment="depth"
+	     shadow-color-attachment="0"
 	     shadow-camera="spot-camera" />
     </light-pass>
   </node>
 </node>
 
 <node id="transparency-pass">
-  <fbo id="t-buffer"
-       clear-buffers="*"
-       clear-depth="1"
-       draw-buffers="*" />
+  <fbo id="g-buffer" draw-buffers="1" />
   <depth test="1" write="0" />
   
   <direct-shading ambient="0.3,0.3,0.3" >
     <!-- Define lights used for direct shading. -->
     <direct-lights>
       <light id="spot-light"
-	     shadow-buffer="spot-shadow" shadow-attachment="depth" />
+	     shadow-buffer="spot-shadow"
+	     shadow-attachment="depth"
+	     shadow-color-attachment="0" />
     </direct-lights>
     
     <direct-pass>
-      <toggle key="CULL_FACE" value="0" />
-      <blend mode="add" />
-      <define key="USE_SUM_ALPHA" value="TRUE" />
+      <define key="OUTPUT_TYPE" value="TRANSPARENCY" />
+      <blend mode="alpha" />
       <node import="shadow-caster-transparent"
-	    sort="-1" sort-camera="main-camera" />
+	    sort="1" sort-camera="main-camera" />
     </direct-pass>
   </direct-shading>
 </node>
@@ -250,30 +269,14 @@
 </node>
 
 <node id="shadow-caster-transparent" >
-  <define key="OUTPUT_TYPE" value="TRANSPARENCY" />
   <node id="venus0" >
-    <material preset="ruby" alpha="0.7" />
-    <transform>
-      <rotate value="3.14,0.0,0.0" />
-      <translate value="0.0,-0.2,2.25" />
-    </transform>
     <mesh id="venus-mesh" shader="regen.models.mesh" />
   </node>
-  
   <node id="sphere0" >
-    <material preset="chrome" alpha="0.5" />
-    <transform>
-      <translate value="1.5,-0.05,0.0" />
-    </transform>
-    <mesh id="sphere-mesh" shader="regen.models.mesh" />
+    <mesh id="sphere-mesh0" shader="regen.models.mesh" />
   </node>
-  
   <node id="sphere1" >
-    <material preset="jade" alpha="0.85" />
-    <transform>
-      <translate value="-1.5,-0.05,0.0" />
-    </transform>
-    <mesh id="sphere-mesh" shader="regen.models.mesh" />
+    <mesh id="sphere-mesh1" shader="regen.models.mesh" />
   </node>
 </node>
 
@@ -331,18 +334,6 @@
 
 <node id="post-pass">
   <depth test="0" write="0" />
-  
-  <node import="transparency-pass" />
-  
-  <node id="sample-transparency">
-    <fbo id="g-buffer" draw-buffers="1" />
-    <blend mode="add" />
-    <depth test="0" write="0" />
-    
-    <texture name="inputTexture" fbo="t-buffer" attachment="0" />
-    <define key="IS_2D_TEXTURE" value="TRUE" />
-    <fullscreen-pass shader="regen.filter.sampling" />
-  </node>
   
   <node id="sample-particles">
     <fbo id="g-buffer" draw-buffers="1" />
