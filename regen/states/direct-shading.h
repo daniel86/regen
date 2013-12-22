@@ -43,6 +43,7 @@ namespace regen {
         const ref_ptr<Light> &light,
         const ref_ptr<LightCamera> &lightCamera,
         const ref_ptr<Texture> &shadow,
+        const ref_ptr<Texture> &shadowColor,
         ShadowFilterMode shadowFilter);
     /**
      * @param l remove previously added light.
@@ -57,7 +58,9 @@ namespace regen {
       ref_ptr<Light> light_;
       ref_ptr<LightCamera> camera_;
       ref_ptr<Texture> shadow_;
+      ref_ptr<Texture> shadowColor_;
       ref_ptr<TextureState> shadowMap_;
+      ref_ptr<TextureState> shadowColorMap_;
       ShadowFilterMode shadowFilter_;
     };
     list<DirectLight> lights_;

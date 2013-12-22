@@ -57,6 +57,7 @@ void LightPass::addLight(
     const ref_ptr<Light> &l,
     const ref_ptr<LightCamera> &lightCamera,
     const ref_ptr<Texture> &shadowTexture,
+    const ref_ptr<Texture> &shadowColorTexture,
     const list< ref_ptr<ShaderInput> > &inputs)
 {
   LightPassLight light;
@@ -69,6 +70,7 @@ void LightPass::addLight(
   it->light = l;
   it->camera = lightCamera;
   it->shadow = shadowTexture;
+  it->shadowColor = shadowColorTexture;
   it->inputs = inputs;
   if(shadowTexture.get()) {
     Texture3D* tex3D = dynamic_cast<Texture3D*>(shadowTexture.get());
@@ -79,6 +81,9 @@ void LightPass::addLight(
       numShadowLayer_ = tex3D->depth();
     }
     shaderDefine("USE_SHADOW_MAP", "TRUE");
+    if(shadowColorTexture.get()) {
+      shaderDefine("USE_SHADOW_COLOR", "TRUE");
+    }
   }
 
   if(shader_->shader().get())
@@ -109,6 +114,7 @@ void LightPass::createShader(const StateConfig &cfg)
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   { addLightInput(*it); }
   shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
+  shadowColorLoc_ = shader_->shader()->uniformLocation("shadowColorTexture");
 }
 
 void LightPass::addLightInput(LightPassLight &light)
@@ -175,6 +181,7 @@ void LightPass::enable(RenderState *rs)
 {
   State::enable(rs);
   GLuint smChannel = rs->reserveTextureChannel();
+  GLuint smColorChannel = rs->reserveTextureChannel();
 
   for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
@@ -185,6 +192,10 @@ void LightPass::enable(RenderState *rs)
     if(l.shadow.get()) {
       l.shadow->begin(rs,smChannel);
       glUniform1i(shadowMapLoc_, smChannel);
+    }
+    if(l.shadowColor.get()) {
+      l.shadowColor->begin(rs,smColorChannel);
+      glUniform1i(shadowColorLoc_, smColorChannel);
     }
     // enable light pass uniforms
     for(list<ShaderInputLocation>::iterator
@@ -201,7 +212,10 @@ void LightPass::enable(RenderState *rs)
 
     if(l.shadow.get())
     { l.shadow->end(rs,smChannel); }
+    if(l.shadowColor.get())
+    { l.shadowColor->end(rs,smColorChannel); }
   }
 
+  rs->releaseTextureChannel();
   rs->releaseTextureChannel();
 }

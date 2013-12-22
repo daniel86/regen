@@ -60,6 +60,9 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
       Texture3D *tex3d = dynamic_cast<Texture3D*>(l.shadow_.get());
       shaderDefine(__NAME__("NUM_SHADOW_LAYER",l.id_), REGEN_STRING(tex3d->depth()));
     }
+    if(l.shadowColor_.get()) {
+      shaderDefine(__NAME__("USE_SHADOW_COLOR",l.id_), "TRUE");
+    }
   }
   else {
     shaderDefine(__NAME__("USE_SHADOW_MAP",l.id_), "FALSE");
@@ -69,12 +72,13 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
 void DirectShading::addLight(const ref_ptr<Light> &light)
 {
   addLight(light, ref_ptr<LightCamera>(),
-      ref_ptr<Texture>(), SHADOW_FILTERING_NONE);
+      ref_ptr<Texture>(), ref_ptr<Texture>(), SHADOW_FILTERING_NONE);
 }
 void DirectShading::addLight(
     const ref_ptr<Light> &light,
     const ref_ptr<LightCamera> &camera,
     const ref_ptr<Texture> &shadow,
+    const ref_ptr<Texture> &shadowColor,
     ShadowFilterMode shadowFilter)
 {
   GLuint lightID = ++idCounter_;
@@ -86,6 +90,7 @@ void DirectShading::addLight(
     dl.light_ = light;
     dl.camera_ = camera;
     dl.shadow_ = shadow;
+    dl.shadowColor_ = shadowColor;
     dl.shadowFilter_ = shadowFilter;
     lights_.push_back(dl);
   }
@@ -112,6 +117,11 @@ void DirectShading::addLight(
     directLight.shadowMap_ =
         ref_ptr<TextureState>::alloc(shadow, __NAME__("shadowTexture",lightID));
     joinStates(directLight.shadowMap_);
+    if(shadowColor.get()) {
+      directLight.shadowColorMap_ =
+          ref_ptr<TextureState>::alloc(shadow, __NAME__("shadowColorTexture",lightID));
+      joinStates(directLight.shadowColorMap_);
+    }
   }
 }
 
@@ -142,6 +152,9 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
     disjoinShaderInput(directLight.shadow_->sizeInverse());
     disjoinShaderInput(directLight.shadow_->size());
     disjoinStates(directLight.shadowMap_);
+    if(directLight.shadowColor_.get()) {
+      disjoinStates(directLight.shadowColorMap_);
+    }
   }
   lights_.erase(it);
 

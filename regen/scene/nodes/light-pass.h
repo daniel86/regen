@@ -63,6 +63,7 @@ namespace scene {
         list< ref_ptr<ShaderInput> > inputs;
 
         ref_ptr<Texture> shadowMap;
+        ref_ptr<Texture> shadowColorMap;
         ref_ptr<LightCamera> shadowCamera;
         if(n->hasAttribute("shadow-camera")) {
           shadowCamera = ref_ptr<LightCamera>::upCast(
@@ -77,6 +78,10 @@ namespace scene {
           if(shadowMap.get()==NULL) {
             REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
           }
+        }
+        if(n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-color-texture")) {
+          shadowColorMap = TextureStateProvider::getTexture(parser, *n.get(),
+                  "shadow-color-texture", "shadow-buffer", "shadow-color-attachment");
         }
         if(toggle) {
           useShadows = (shadowMap.get()!=NULL);
@@ -101,7 +106,7 @@ namespace scene {
           }
         }
 
-        x->addLight(light,shadowCamera,shadowMap,inputs);
+        x->addLight(light,shadowCamera,shadowMap,shadowColorMap,inputs);
       }
 
       StateConfigurer shaderConfigurer;
