@@ -1,14 +1,14 @@
 /*
- * parabolid-camera.cpp
+ * paraboloid-camera.cpp
  *
  *  Created on: Dec 16, 2013
  *      Author: daniel
  */
 
-#include "parabolid-camera.h"
+#include "paraboloid-camera.h"
 using namespace regen;
 
-ParabolidCamera::ParabolidCamera(
+ParaboloidCamera::ParaboloidCamera(
     const ref_ptr<Mesh> &mesh,
     const ref_ptr<Camera> &userCamera,
     GLboolean hasBackFace)
@@ -17,9 +17,9 @@ ParabolidCamera::ParabolidCamera(
   hasBackFace_(hasBackFace)
 {
   GLuint numLayer = (hasBackFace ? 2 : 1);
-  shaderDefine("RENDER_TARGET", hasBackFace ? "DUAL_PARABOLID" : "PARABOLID");
+  shaderDefine("RENDER_TARGET", hasBackFace ? "DUAL_PARABOLOID" : "PARABOLOID");
   shaderDefine("RENDER_LAYER", REGEN_STRING(numLayer));
-  shaderDefine("USE_PARABOLID_PROJECTION", "TRUE");
+  shaderDefine("USE_PARABOLOID_PROJECTION", "TRUE");
   updateFrustum(180.0f, 1.0f,
       userCamera_->near()->getVertex(0),
       userCamera_->far()->getVertex(0),
@@ -44,11 +44,11 @@ ParabolidCamera::ParabolidCamera(
   projInv_->setVertex(0, Mat4f::identity());
 
   // Initialize directions.
-  // For now plane between parabolids is in xy-plane.
+  // For now plane between paraboloids is in xy-plane.
   direction_->set_elementCount(numLayer);
   direction_->setUniformDataUntyped(NULL);
   direction_->setVertex(0, Vec3f(0.0,0.0, 1.0));
-  direction_->setVertex(1, Vec3f(0.0,0.0,-1.0));
+  direction_->setVertex(1, Vec3f(0.0,0.0, 1.0));
 
   modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
   pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
@@ -59,7 +59,7 @@ ParabolidCamera::ParabolidCamera(
   update();
 }
 
-void ParabolidCamera::update()
+void ParaboloidCamera::update()
 {
   GLuint positionStamp = (pos_.get() == NULL ? 1 : pos_->stamp());
   GLuint matrixStamp = (modelMatrix_.get() == NULL ? 1 : modelMatrix_->stamp());
@@ -87,7 +87,7 @@ void ParabolidCamera::update()
   matrixStamp_ = matrixStamp;
 }
 
-void ParabolidCamera::enable(RenderState *rs)
+void ParaboloidCamera::enable(RenderState *rs)
 {
   update();
   Camera::enable(rs);

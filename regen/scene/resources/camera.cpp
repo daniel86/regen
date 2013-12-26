@@ -11,7 +11,7 @@ using namespace regen;
 
 #include <regen/scene/resource-manager.h>
 #include <regen/camera/cube-camera.h>
-#include <regen/camera/parabolid-camera.h>
+#include <regen/camera/paraboloid-camera.h>
 #include <regen/camera/light-camera.h>
 #include <regen/camera/reflection-camera.h>
 
@@ -157,7 +157,7 @@ ref_ptr<Camera> CameraResource::createResource(
 
     return cam;
   }
-  else if(input.hasAttribute("parabolid-mesh")) {
+  else if(input.hasAttribute("paraboloid-mesh")) {
     ref_ptr<Camera> userCamera =
         parser->getResources()->getCamera(parser, input.getValue("camera"));
     if(userCamera.get()==NULL) {
@@ -165,14 +165,14 @@ ref_ptr<Camera> CameraResource::createResource(
       return ref_ptr<Camera>();
     }
     ref_ptr<MeshVector> mesh =
-        parser->getResources()->getMesh(parser, input.getValue("parabolid-mesh"));
+        parser->getResources()->getMesh(parser, input.getValue("paraboloid-mesh"));
     if(mesh.get()==NULL || mesh->empty()) {
       REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
       return ref_ptr<Camera>();
     }
     bool hasBackFace = input.getValue<bool>("has-back-face",false);
 
-    ref_ptr<ParabolidCamera> cam = ref_ptr<ParabolidCamera>::alloc(
+    ref_ptr<ParaboloidCamera> cam = ref_ptr<ParaboloidCamera>::alloc(
         (*mesh.get())[0],userCamera,hasBackFace);
     parser->putState(input.getName(),cam);
 

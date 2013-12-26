@@ -69,7 +69,7 @@ namespace regen {
        *  Requires an uniform named 'reflectionMatrix' that
        *  was used to render the reflected scene (proj*view*reflection). */
       MAPPING_PLANAR_REFLECTION,
-      MAPPING_PARABOLID_REFLECTION,
+      MAPPING_PARABOLOID_REFLECTION,
       /** Refraction mapping. */
       MAPPING_REFRACTION,
       /** User defined mapping. */

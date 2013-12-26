@@ -439,22 +439,23 @@ vec3 texco_reflection(vec3 P, vec3 N)
 }
 #endif
 
--- texco_parabolid_reflection
-#ifndef __TEXCO_PARABOLID_REFL__
-#define2 __TEXCO_PARABOLID_REFL__
-uniform mat4 in_parabolidMatrix;
-vec3 texco_parabolid_reflection(vec3 P, vec3 N)
+-- texco_paraboloid_reflection
+#ifndef __TEXCO_PARABOLOID_REFL__
+#define2 __TEXCO_PARABOLOID_REFL__
+uniform mat4 in_paraboloidMatrix;
+
+vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
 {
-    int layer = 0;
-#ifdef IS_PARABOLID_DUAL
-    // TODO: choose layer and index in_parabolidMatrix!
-    vec3 incident = normalize((in_parabolidMatrix[layer] * vec4(P,1.0)).xyz);
-#else
-    vec3 incident = normalize((in_parabolidMatrix * vec4(P,1.0)).xyz);
-#endif
-    incident.xy /= (incident.z+1.0);
-    incident.xy  = 0.5*incident.xy + vec2(0.5); // scale and bias in range [0,1]
-    return vec3(incident.xy, layer);
+    vec3 incident = normalize(P - in_cameraPosition.xyz);
+    vec3 R = reflect(incident, N);
+    float layer = float(R.z<0.0);
+    
+    R.z *= (1.0 - 2.0*layer);
+    R.x *= (2.0*layer - 1.0);
+    
+    float k = 1.0/(2.0*(1.0 + R.z));
+    vec2 uv = R.xy*k + vec2(0.5);
+    return vec3(uv,layer);
 }
 #endif
 
