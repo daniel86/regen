@@ -3,7 +3,6 @@
 #ifndef RENDER_LAYER
 #define RENDER_LAYER 1
 #endif
-#endif
 #ifndef RENDER_TARGET
 #define RENDER_TARGET 2D
 #endif
@@ -17,7 +16,7 @@
 #define in_layer 0
 #endif // RENDER_LAYER == 1
 // Macros for Layered Camera access
-#if RENDER_TARGET == CUBE || RENDER_TARGET == DUAL_PARABOLID
+#if RENDER_TARGET == CUBE || RENDER_TARGET == DUAL_PARABOLOID
 #define __VIEW__(layer)          in_viewMatrix[layer]
 #define __VIEW_INV__(layer)      in_inverseViewMatrix[layer]
 #define __VIEW_PROJ__(layer)     in_viewProjectionMatrix[layer]
@@ -61,7 +60,7 @@
 #ifndef __CAM_FAR__(layer)
 #define __CAM_FAR__(layer)       in_far
 #endif
-#ifdef USE_PARABOLID_PROJECTION || IGNORE_VIEW_ROTATION || IGNORE_VIEW_TRANSLATION
+#ifdef USE_PARABOLOID_PROJECTION || IGNORE_VIEW_ROTATION || IGNORE_VIEW_TRANSLATION
 #define SEPERATE_VIEW_PROJ
 #endif
 
@@ -183,12 +182,12 @@ vec3 transformWorldToTexco(vec4 posWorld, int layer)
 #ifndef __transformEyeToScreen_INCLUDED
 #define2 __transformEyeToScreen_INCLUDED
 #include regen.states.camera.input
-#ifdef USE_PARABOLID_PROJECTION
-#include regen.states.camera.transformParabolid
+#ifdef USE_PARABOLOID_PROJECTION
+#include regen.states.camera.transformParaboloid
 #endif
 vec4 transformEyeToScreen(vec4 posEye, int layer) {
-#ifdef USE_PARABOLID_PROJECTION
-  return transformParabolid(posEye,layer);
+#ifdef USE_PARABOLOID_PROJECTION
+  return transformParaboloid(posEye,layer);
 #else
   return __PROJ__(layer) * posEye;
 #endif
@@ -234,13 +233,13 @@ vec3 transformScreenToTexco(vec4 posScreen)
 #ifndef __transformScreenToEye_included__
 #define __transformScreenToEye_included__
 #include regen.states.camera.input
-#ifdef USE_PARABOLID_PROJECTION
-#include regen.states.camera.transformParabolidInv
+#ifdef USE_PARABOLOID_PROJECTION
+#include regen.states.camera.transformParaboloidInv
 #endif
 vec3 transformScreenToEye(vec4 posScreen, int layer)
 {
-#ifdef USE_PARABOLID_PROJECTION
-  return transformParabolidInv(posScreen,layer);
+#ifdef USE_PARABOLOID_PROJECTION
+  return transformParaboloidInv(posScreen,layer);
 #else
   vec4 posEye = __PROJ_INV__(layer) * posEye;
   return posEye.xyz/posEye.w;
@@ -297,24 +296,28 @@ vec3 transformTexcoToWorld(vec2 texco, float depth, int layer) {
 }
 #endif
 
--- transformParabolid
-#ifndef __transformParabolid_INCLUDED
-#define2 __transformParabolid_INCLUDED
+-- transformParaboloid
+#ifndef __transformParaboloid_INCLUDED
+#define2 __transformParaboloid_INCLUDED
 #include regen.states.camera.input
-vec4 transformParabolid(vec4 posScreen, int layer) {
-  float l = length(posScreen.xyz);
-  vec4 posParabolid;
-  posParabolid.xy = posScreen.xy/(posScreen.z + l);
-  posParabolid.z  = (l - __CAM_NEAR__(layer))/(__CAM_FAR__(layer) - __CAM_NEAR__(layer));
-  posParabolid.w  = 1.0;
-  return posParabolid;
+vec4 transformParaboloid(vec4 posEye, int layer) {
+  vec3 pos = posEye.xyz/posEye.w;
+  
+  pos.z *= float(layer*2 - 1);
+  pos.x *= float(1 - layer*2);
+  
+  float l = length(pos.xyz);
+  pos.xy = pos.xy/(pos.z + l);
+  pos.z  = (l - __CAM_NEAR__(layer)) / (__CAM_FAR__(layer) - __CAM_NEAR__(layer));
+  
+  return vec4(pos,1.0);
 }
 #endif
--- transformParabolidInv
-#ifndef __transformParabolidInv_INCLUDED
-#define2 __transformParabolidInv_INCLUDED
+-- transformParaboloidInv
+#ifndef __transformParaboloidInv_INCLUDED
+#define2 __transformParaboloidInv_INCLUDED
 #include regen.states.camera.input
-vec3 transformParabolidInv(vec4 pos, int layer) {
+vec3 transformParaboloidInv(vec4 pos, int layer) {
   float l = pos.z*(__CAM_FAR__(layer) - __CAM_NEAR__(layer)) + __CAM_NEAR__(layer);
   float k = dot(pos.xy,pos.xy);
   float z = l*(k-1)/(k+1);

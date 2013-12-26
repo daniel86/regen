@@ -1,12 +1,12 @@
 /*
- * parabolid-camera.h
+ * paraboloid-camera.h
  *
  *  Created on: Dec 16, 2013
  *      Author: daniel
  */
 
-#ifndef PARABOLID_CAMERA_H_
-#define PARABOLID_CAMERA_H_
+#ifndef PARABOLOID_CAMERA_H_
+#define PARABOLOID_CAMERA_H_
 
 #include <regen/camera/camera.h>
 #include <regen/meshes/mesh-state.h>
@@ -17,7 +17,7 @@ namespace regen {
    * A camera with a parabolid projection
    * computed in shaders.
    */
-  class ParabolidCamera : public Camera
+  class ParaboloidCamera : public Camera
   {
   public:
     /**
@@ -25,7 +25,7 @@ namespace regen {
      * @param userCamera The user camera.
      * @param hasBackFace If true use Dual Parabolid.
      */
-    ParabolidCamera(
+    ParaboloidCamera(
         const ref_ptr<Mesh> &mesh,
         const ref_ptr<Camera> &userCamera,
         GLboolean hasBackFace=GL_TRUE);
@@ -46,4 +46,4 @@ namespace regen {
   };
 } // namespace
 
-#endif /* PARABOLID_CAMERA_H_ */
+#endif /* PARABOLOID_CAMERA_H_ */

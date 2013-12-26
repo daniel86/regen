@@ -174,14 +174,17 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 flat out int out_layer;
+out vec4 out_posEye;
 
 #include regen.states.camera.input
-#include regen.states.camera.transformWorldToScreen 
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  gl_Position = transformWorldToScreen(posWorld,layer);
+  out_posEye = transformWorldToEye(posWorld,layer);
+  gl_Position = transformEyeToScreen(out_posEye,layer);
   HANDLE_IO(index);
   EmitVertex();
 }
@@ -205,6 +208,7 @@ void main() {
 #include regen.states.camera.defines
 
 out vec4 out_color;
+in vec4 in_posEye;
 
 // G-buffer input
 uniform sampler2D in_gNorWorldTexture;

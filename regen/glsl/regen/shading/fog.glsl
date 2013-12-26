@@ -91,6 +91,7 @@ out vec3 out_color;
 #ifdef IS_SPOT_LIGHT
 in vec3 in_intersection;
 #endif
+in vec4 in_posEye;
 
 // G-buffer input
 uniform sampler2D in_gDepthTexture;

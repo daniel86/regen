@@ -6,6 +6,12 @@ in vec2 in_viewport;
 uniform mat4 in_modelMatrix;
 #endif
 
+#ifdef UV_TO_ARRAY_TEXCO
+in vec2 in_texco0;
+out vec3 out_texco0;
+const float in_arrayLayer=0.0;
+#endif
+
 #define HANDLE_IO()
 
 void main() {
@@ -26,6 +32,9 @@ void main() {
 #endif
 #ifdef INVERT_X
     pos.x += 2.0;
+#endif
+#ifdef UV_TO_ARRAY_TEXCO
+    out_texco0 = vec3(in_texco0,in_arrayLayer);
 #endif
 
     gl_Position = vec4(pos, 0.0, 1.0);

@@ -44,30 +44,13 @@
      wrapping="REPEAT"
      target="TEXTURE_CUBE_MAP"
      sampler-type="samplerCube">
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
 <!--
 <fbo id="sphere-reflection-buffer"
      size-mode="abs" size="256,256,2"
-     wrapping="REPEAT"
+     wrapping="CLAMP_TO_EDGE"
      target="TEXTURE_2D_ARRAY"
      sampler-type="sampler2DArray">
+-->
   <texture id="diffuse0"
 	   pixel-type="UNSIGNED_BYTE"
 	   pixel-size="16"
@@ -86,7 +69,7 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
--->
+
 <fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
   <depth id="depth" pixel-size="24" pixel-type="FLOAT"
 	 wrapping="REPEAT"
@@ -120,12 +103,12 @@
 	light="spot-light"
 	camera="main-camera" />
 <camera id="sphere-camera"
-	cube-mesh="sprite-sphere"
-	camera="main-camera" />
+	camera="main-camera"
+	cube-mesh="sprite-sphere" />
 <!--
 <camera id="sphere-camera"
-	parabolid-mesh="sprite-sphere"
 	camera="main-camera"
+	paraboloid-mesh="sprite-sphere"
 	has-back-face="1" />
 -->
 <!-- Lights -->
@@ -431,10 +414,10 @@
     <texture fbo="sphere-reflection-buffer" attachment="1"
 	     map-to="COLOR" blend-mode="SRC" mapping="REFLECTION" />
     <!--
-    <define key="IS_PARABOLID_DUAL" value="TRUE" />
-    <input name="parabolidMatrix" state="sphere-camera" component="viewProjectionMatrix" />
-    <texture fbo="sphere-reflection-buffer" attachment="1"
-	     map-to="COLOR" blend-mode="SRC" mapping="PARABOLID_REFLECTION" />
+    <define key="IS_PARABOLOID_DUAL" value="TRUE" />
+    <input name="paraboloidMatrix" state="sphere-camera" component="viewProjectionMatrix" />
+    <texture fbo="sphere-reflection-buffer" attachment="0"
+	     map-to="COLOR" blend-mode="SRC" mapping="PARABOLOID_REFLECTION" />
     -->
     <define key="SHADING" value="NONE" />
     <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
@@ -607,6 +590,13 @@
   <node id="debug-widget">
     <material alpha="1.0" />
     <texture fbo="reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
+    <mesh id="debug-widget" shader="regen.gui.widget" />
+  </node>
+  -->
+  <!--
+  <node id="debug-widget">
+    <material alpha="1.0" />
+    <texture fbo="sphere-reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
     <mesh id="debug-widget" shader="regen.gui.widget" />
   </node>
   -->

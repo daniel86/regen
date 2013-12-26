@@ -159,6 +159,7 @@ layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
+flat out int out_layer;
 
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
@@ -181,6 +182,7 @@ void main() {
 #ifndef SKIP_LAYER${LAYER}
   // select framebuffer layer
   gl_Layer = ${LAYER};
+  out_layer = ${LAYER};
   emitVertex(gl_PositionIn[0], 0, ${LAYER});
   emitVertex(gl_PositionIn[1], 1, ${LAYER});
   emitVertex(gl_PositionIn[2], 2, ${LAYER});
@@ -226,6 +228,12 @@ out vec4 out_color;
 -- fs
 #include regen.models.mesh.defines
 #include regen.models.mesh.fs-outputs
+
+#if RENDER_LAYER > 1
+flat in int in_layer;
+#else
+#define in_layer 0
+#endif
 
 #if OUTPUT_TYPE == DEPTH
 ///// Depth only output
