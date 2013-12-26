@@ -14,6 +14,9 @@ in vec3 in_pos;
 #include regen.states.camera.input
 
 #if RENDER_LAYER == 1
+out vec4 out_posWorld;
+out vec4 out_posEye;
+
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
 #endif
@@ -21,14 +24,13 @@ in vec3 in_pos;
 #define HANDLE_IO(i)
 
 void main() {
-    vec4 posWorld = vec4(in_pos.xyz*__CAM_FAR__(0)*0.99,1.0);
+    vec4 posWorld = vec4(normalize(in_pos.xyz)*__CAM_FAR__(0)*0.99,1.0);
 #if RENDER_LAYER > 1
     gl_Position = posWorld;
 #else
-    vec4 posScreen = transformEyeToScreen(transformWorldToEye(posWorld,0),0);
-    // push to far plane. needs less or equal check
-    posScreen.z = posScreen.w;
-    gl_Position = posScreen;
+    out_posWorld = posWorld;
+    out_posEye = transformWorldToEye(posWorld,0);
+    gl_Position = transformEyeToScreen(out_posEye,0);
 #endif
     HANDLE_IO(gl_VertexID);
 }

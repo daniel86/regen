@@ -442,16 +442,14 @@ vec3 texco_reflection(vec3 P, vec3 N)
 -- texco_paraboloid_reflection
 #ifndef __TEXCO_PARABOLOID_REFL__
 #define2 __TEXCO_PARABOLOID_REFL__
-uniform mat4 in_paraboloidMatrix;
-
 vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
 {
     vec3 incident = normalize(P - in_cameraPosition.xyz);
     vec3 R = reflect(incident, N);
-    float layer = float(R.z<0.0);
+    float layer = float(R.z>0.0);
     
-    R.z *= (1.0 - 2.0*layer);
-    R.x *= (2.0*layer - 1.0);
+    R.z *= -(1.0 - 2.0*layer);
+    R.x *= (1.0 - 2.0*layer);
     
     float k = 1.0/(2.0*(1.0 + R.z));
     vec2 uv = R.xy*k + vec2(0.5);
