@@ -302,14 +302,10 @@ vec3 transformTexcoToWorld(vec2 texco, float depth, int layer) {
 #include regen.states.camera.input
 vec4 transformParaboloid(vec4 posEye, int layer) {
   vec3 pos = posEye.xyz/posEye.w;
-  
-  pos.z *= float(layer*2 - 1);
-  pos.x *= float(1 - layer*2);
-  
   float l = length(pos.xyz);
-  pos.xy = pos.xy/(pos.z + l);
-  pos.z  = (l - __CAM_NEAR__(layer)) / (__CAM_FAR__(layer) - __CAM_NEAR__(layer));
-  
+  pos.xy /= (pos.z + l);
+  pos.x   = -pos.x;
+  pos.z   = (abs(pos.z) - __CAM_NEAR__(layer)) / (__CAM_FAR__(layer) - __CAM_NEAR__(layer));
   return vec4(pos,1.0);
 }
 #endif
@@ -320,7 +316,8 @@ vec4 transformParaboloid(vec4 posEye, int layer) {
 vec3 transformParaboloidInv(vec4 pos, int layer) {
   float l = pos.z*(__CAM_FAR__(layer) - __CAM_NEAR__(layer)) + __CAM_NEAR__(layer);
   float k = dot(pos.xy,pos.xy);
-  float z = l*(k-1)/(k+1);
+  float z = -l*(k-1)/(k+1);
+  pos.x *= -1.0;
   return vec3(pos.xy*(z+l), z);
 }
 #endif

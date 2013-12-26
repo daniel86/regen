@@ -46,7 +46,7 @@
      sampler-type="samplerCube">
 <!--
 <fbo id="sphere-reflection-buffer"
-     size-mode="abs" size="256,256,2"
+     size-mode="abs" size="512,512,2"
      wrapping="CLAMP_TO_EDGE"
      target="TEXTURE_2D_ARRAY"
      sampler-type="sampler2DArray">
@@ -162,7 +162,7 @@
       day-time="0.5" />
 <mesh id="ground-mesh"
       type="rectangle"
-      lod="0"
+      lod="4"
       rotation="0.0,0.0,3.1415"
       scaling="20.0,20.0,20.0"
       texco-scaling="7.0,7.0"
@@ -196,8 +196,8 @@
       asset-indices="*"
       asset-animation="1">
   <transform>
-    <translate value="0.0,-2.0,0.0" />
     <rotate value="3.14,0.0,0.0" />
+    <translate value="0.0,-2.0,0.0" />
   </transform>
 </mesh>
 <mesh id="sprite-sphere"
@@ -212,7 +212,7 @@
     <set mode="constant" value="0.0,0.0,0.0" index="0" />
   </input>
   <transform>
-    <translate value="7.5,1.75,-8.0" />
+    <translate value="0.0,4.75,-8.0" />
   </tranform>
 </mesh>
 <mesh id="logo-widget"
@@ -252,9 +252,6 @@
       center="0">
   <define key="INVERT_Y" value="TRUE" />
   <define key="INVERT_X" value="TRUE" />
-  <transform>
-    <translate value="0.0,-400.0,0.0" />
-  </transform>
 </mesh>
 
 <mesh id="box-wall"
@@ -336,7 +333,6 @@
       <texture name="gSpecularTexture" fbo="sphere-reflection-buffer" attachment="2" />
       <texture name="gNorWorldTexture" fbo="sphere-reflection-buffer" attachment="3" />
       <node import="shading-pass" />
-
     </node>
     <node import="background-pass" />
     <node import="planar-reflector" />
@@ -415,8 +411,7 @@
 	     map-to="COLOR" blend-mode="SRC" mapping="REFLECTION" />
     <!--
     <define key="IS_PARABOLOID_DUAL" value="TRUE" />
-    <input name="paraboloidMatrix" state="sphere-camera" component="viewProjectionMatrix" />
-    <texture fbo="sphere-reflection-buffer" attachment="0"
+    <texture fbo="sphere-reflection-buffer" attachment="1"
 	     map-to="COLOR" blend-mode="SRC" mapping="PARABOLOID_REFLECTION" />
     -->
     <define key="SHADING" value="NONE" />
@@ -592,10 +587,23 @@
     <texture fbo="reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
     <mesh id="debug-widget" shader="regen.gui.widget" />
   </node>
-  -->
-  <!--
-  <node id="debug-widget">
+  <node id="debug-widget0">
+    <define key="UV_TO_ARRAY_TEXCO" value="TRUE" />
     <material alpha="1.0" />
+    <transform>
+      <translate value="0.0,-400.0,0.0" />
+    </transform>
+    <input type="float" name="arrayLayer" value="1.0" />
+    <texture fbo="sphere-reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
+    <mesh id="debug-widget" shader="regen.gui.widget" />
+  </node>
+  <node id="debug-widget1">
+    <define key="UV_TO_ARRAY_TEXCO" value="TRUE" />
+    <material alpha="1.0" />
+    <transform>
+      <translate value="0.0,-800.0,0.0" />
+    </transform>
+    <input type="float" name="arrayLayer" value="0.0" />
     <texture fbo="sphere-reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
     <mesh id="debug-widget" shader="regen.gui.widget" />
   </node>

@@ -48,7 +48,7 @@ ParaboloidCamera::ParaboloidCamera(
   direction_->set_elementCount(numLayer);
   direction_->setUniformDataUntyped(NULL);
   direction_->setVertex(0, Vec3f(0.0,0.0, 1.0));
-  direction_->setVertex(1, Vec3f(0.0,0.0, 1.0));
+  direction_->setVertex(1, Vec3f(0.0,0.0,-1.0));
 
   modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
   pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
