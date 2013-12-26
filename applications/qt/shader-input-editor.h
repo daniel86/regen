@@ -1,13 +1,13 @@
 /********************************************************************************
-** Form generated from reading UI file 'shader-input-editorcl1350.ui'
+** Form generated from reading UI file 'shader-input-editorzU4307.ui'
 **
 ** Created by: Qt User Interface Compiler version 4.8.5
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef SHADER_2D_INPUT_2D_EDITORCL1350_H
-#define SHADER_2D_INPUT_2D_EDITORCL1350_H
+#ifndef SHADER_2D_INPUT_2D_EDITORZU4307_H
+#define SHADER_2D_INPUT_2D_EDITORZU4307_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -61,7 +61,7 @@ public:
     {
         if (shaderInputEditor->objectName().isEmpty())
             shaderInputEditor->setObjectName(QString::fromUtf8("shaderInputEditor"));
-        shaderInputEditor->resize(552, 419);
+        shaderInputEditor->resize(600, 500);
         shaderInputEditor->setStyleSheet(QString::fromUtf8("\n"
 "QWidget#shaderInputEditor {\n"
 "       background-color: #edeceb;\n"
@@ -129,6 +129,9 @@ public:
         treeWidget->setEnabled(true);
         treeWidget->setMaximumSize(QSize(16777215, 16777215));
         treeWidget->setFocusPolicy(Qt::StrongFocus);
+        treeWidget->setStyleSheet(QString::fromUtf8("QTreeWidget::item {\n"
+"    height: 22px;\n"
+"}"));
         treeWidget->setFrameShape(QFrame::StyledPanel);
         treeWidget->setFrameShadow(QFrame::Plain);
         treeWidget->setLineWidth(1);
@@ -344,4 +347,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
-#endif // SHADER_2D_INPUT_2D_EDITORCL1350_H
+#endif // SHADER_2D_INPUT_2D_EDITORZU4307_H

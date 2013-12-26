@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>552</width>
-    <height>419</height>
+    <width>600</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,6 +91,11 @@ QSplitter::handle:vertical { height: 6px; }
       <property name="focusPolicy">
        <enum>Qt::StrongFocus</enum>
       </property>
+      <property name="styleSheet">
+       <string notr="true">QTreeWidget::item {
+    height: 22px;
+}</string>
+      </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -145,6 +150,9 @@ QSplitter::handle:vertical { height: 6px; }
          </property>
          <property name="autoFillBackground">
           <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
          </property>
          <property name="frameShape">
           <enum>QFrame::NoFrame</enum>
