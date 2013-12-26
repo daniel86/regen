@@ -112,6 +112,9 @@
       <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
     </node>
   </node>
+  <view id="Scene -- Sphere">
+    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+  </view>
   
   <node>
     <fbo id="g-buffer" draw-buffers="0" />
@@ -126,6 +129,9 @@
       <mesh id="sky-box" shader="regen.models.sky-box" />
     </node>
   </node>
+  <view id="Scene -- Background">
+    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+  </view>
 </node>
 
 <!--**************************-->
@@ -164,6 +170,10 @@
     
     <fullscreen-pass shader="regen.filter.tonemap" />
   </node>
+  
+  <view id="Scene -- Tonemap">
+    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+  </view>
 </node>
 
 <!--**************************-->
@@ -203,7 +213,7 @@
   <node import="main-pass" />
   <node import="post-pass" />
   <node import="gui-pass" />
-  <node>
+  <view id="Scene -- Result">
     <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-  </node>
+  </view>
 </node>

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>519</width>
+    <width>590</width>
     <height>430</height>
    </rect>
   </property>
@@ -30,8 +30,8 @@ padding: 5px;
 background: qradialgradient(cx: 0.3, cy: -0.4,
 fx: 0.3, fy: -0.4,
 radius: 1.35, stop: 0 #fff, stop: 1 #888);
-min-width: 80px;
 }
+# min-width: 80px;
 
 #buttonBarFrame QPushButton:hover {
 background: qradialgradient(cx: 0.3, cy: -0.4,
@@ -84,6 +84,62 @@ background: white;
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QPushButton" name="prevView">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>48</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="go-previous"/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="nextView">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>48</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="go-next"/>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="buttonSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -98,6 +154,12 @@ background: white;
        </item>
        <item>
         <widget class="QPushButton" name="openButton">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
@@ -119,6 +181,12 @@ background: white;
        </item>
        <item>
         <widget class="QPushButton" name="inputsButton">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
@@ -126,12 +194,20 @@ background: white;
           <string>Inputs</string>
          </property>
          <property name="icon">
-          <iconset theme="document-properties"/>
+          <iconset theme="document-properties">
+           <normaloff/>
+          </iconset>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="exitButton">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
@@ -267,9 +343,43 @@ background: white;
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>nextView</sender>
+   <signal>clicked()</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>nextView()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>86</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>294</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>prevView</sender>
+   <signal>clicked()</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>previousView()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>32</x>
+     <y>24</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>294</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
   <slot>toggleInputsDialog()</slot>
+  <slot>nextView()</slot>
+  <slot>previousView()</slot>
  </slots>
 </ui>

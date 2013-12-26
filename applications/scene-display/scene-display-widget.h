@@ -20,6 +20,12 @@
 #include "scene-display-gui.h"
 using namespace regen;
 
+struct ViewNode {
+  string name;
+  ref_ptr<StateNode> node;
+};
+typedef list<ViewNode> ViewNodeList;
+
 class SceneDisplayWidget : public QMainWindow
 {
 Q_OBJECT
@@ -37,6 +43,8 @@ public slots:
   void openFile();
   void toggleInputsDialog();
   void updateSize();
+  void nextView();
+  void previousView();
 
 protected:
   ref_ptr<CameraManipulator> manipulator_;
@@ -54,6 +62,8 @@ protected:
   vector< ref_ptr<NodeAnimation> > nodeAnimations_;
   Ui_sceneViewer ui_;
   string activeFile_;
+  ViewNodeList viewNodes_;
+  ViewNodeList::iterator activeView_;
 
   void loadScene(const string &sceneFile);
   void loadSceneGraphicsThread(const string &sceneFile);

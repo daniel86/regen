@@ -309,6 +309,10 @@
       <node import="volumetric-fog-pass" />
     </node>
   </node>
+  
+  <view id="Planar Reflection -- Result">
+    <blit src-fbo="reflection-buffer" src-attachment="1" dst-fbo="SCREEN" />
+  </view>
 </node>
 
 <node id="sphere-reflection-pass">
@@ -370,6 +374,15 @@
     
     <node import="shadow-caster" />
     <node import="scene-geometry" />
+    <view id="Scene -- Diffuse">
+      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
+    <view id="Scene -- Specular">
+      <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
+    </view>
+    <view id="Scene -- Normal">
+      <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN" />
+    </view>
   </node>
   
   <node>
@@ -381,11 +394,20 @@
       <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
       <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
       <node import="shading-pass" />
+      <view id="Scene -- Shading">
+	<blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+      </view>
     </node>
     
     <node import="background-pass" />
+    <view id="Scene -- Sky">
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
     <node import="planar-reflector" />
     <node import="sphere-reflector" />
+    <view id="Scene -- Reflections">
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
     
     <node import="post-pass" />
   </node>
@@ -486,11 +508,6 @@
     <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" />
     <mesh id="ground-mesh" shader="regen.models.mesh" />
   </node>
-  
-  <node id="sprite-sphere" >
-    <material preset="chrome" />
-    <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
-  </node>
 </node>
 
 <node id="shading-pass">
@@ -555,6 +572,9 @@
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
     <node import="volumetric-fog-pass" />
   </node>
+  <view id="Scene -- Volumetric Fog">
+    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+  </view>
   
   <node id="fxaa">
     <fbo id="g-buffer" draw-buffers="0" />
@@ -566,6 +586,9 @@
     
     <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
+  <view id="Scene -- Antialiased">
+    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+  </view>
 </node>
 
 <!--**************************-->
@@ -628,9 +651,9 @@
     <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
     <node import="main-pass" />
     <node import="gui-pass" />
-  
-    <node id="blit">
+    
+    <view id="Scene -- Result">
       <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </node>
+    </view>
   </node>
 </node>
