@@ -114,7 +114,7 @@ void StateNode::clear()
 
 void StateNode::traverse(RenderState *rs)
 {
-  if(!state_->isHidden()) {
+  if(!isHidden_ && !state_->isHidden()) {
     state_->enable(rs);
 
     for(list< ref_ptr<StateNode> >::iterator
