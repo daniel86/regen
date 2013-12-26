@@ -100,6 +100,7 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node)
 
   QTreeWidgetItem *item = new QTreeWidgetItem;
   item->setText(0, "Scene Graph");
+  item->setExpanded(true);
   ui_.treeWidget->addTopLevelItem(item);
 
   handleNode(node,item);
@@ -114,11 +115,19 @@ bool ShaderInputWidget::handleNode(
 
   if(handleState(node->state(), parent)) isEmpty = false;
 
+  QTreeWidgetItem *x = parent;
+  GLuint level = 0u;
+  while(x!=NULL) {
+    level += 1u;
+    x = x->parent();
+  }
+
   for(list< ref_ptr<StateNode> >::iterator
       it=node->childs().begin(); it!=node->childs().end(); ++it)
   {
     QTreeWidgetItem *child = new QTreeWidgetItem(parent);
     child->setText(0, QString::fromStdString((*it)->name()));
+    child->setExpanded(level<5);
     if(handleNode(*it, child)) {
       isEmpty = false;
     }
@@ -136,42 +145,10 @@ bool ShaderInputWidget::handleState(
 {
   bool isEmpty = true;
 
-  QTreeWidgetItem *child = new QTreeWidgetItem(parent);
-  if(dynamic_cast<FBOState*>(state.get())) {
-    child->setText(0, "FBOState");
-  }
-  else if(dynamic_cast<ShaderState*>(state.get())) {
-    child->setText(0, "ShaderState");
-  }
-  else if(dynamic_cast<TextureState*>(state.get())) {
-    child->setText(0, "TextureState");
-  }
-  else if(dynamic_cast<Material*>(state.get())) {
-    child->setText(0, "Material");
-  }
-  else if(dynamic_cast<Camera*>(state.get())) {
-    child->setText(0, "Camera");
-  }
-  else if(dynamic_cast<ModelTransformation*>(state.get())) {
-    child->setText(0, "ModelTransformation");
-  }
-  else if(dynamic_cast<StateSequence*>(state.get())) {
-    child->setText(0, "StateSequence");
-  }
-  else if(dynamic_cast<LightPass*>(state.get())) {
-    child->setText(0, "LightPass");
-  }
-  else if(dynamic_cast<DirectShading*>(state.get())) {
-    child->setText(0, "DirectShading");
-  }
-  else {
-    child->setText(0, "State");
-  }
-
-  for(list< ref_ptr<State> >::const_iterator
-      it=state->joined().begin(); it!=state->joined().end(); ++it)
-  {
-    if(handleState(*it, child)) isEmpty = false;
+  if(dynamic_cast<FBOState*>(state.get()) ||
+     dynamic_cast<ModelTransformation*>(state.get()) ||
+     dynamic_cast<Camera*>(state.get())) {
+    return false;
   }
 
   HasInput *hasInput = dynamic_cast<HasInput*>(state.get());
@@ -182,12 +159,19 @@ bool ShaderInputWidget::handleState(
     {
       const NamedShaderInput &namedInput = *it;
       if(namedInput.in_->numVertices()>1) continue;
-      if(handleInput(namedInput,child)) isEmpty = false;
+      if(handleInput(namedInput,parent)) isEmpty = false;
+    }
+  }
+
+  for(list< ref_ptr<State> >::const_iterator
+      it=state->joined().begin(); it!=state->joined().end(); ++it)
+  {
+    if(handleState(*it, parent)) {
+      isEmpty = false;
     }
   }
 
   if(isEmpty) {
-    delete child;
     return false;
   }
   else {

@@ -368,7 +368,7 @@ void SceneDisplayWidget::toggleInputsDialog() {
   if(inputDialog_ == NULL) {
     inputDialog_ = new QDialog(this);
     inputDialog_->setWindowTitle("ShaderInput Editor");
-    inputDialog_->resize(400,600);
+    inputDialog_->resize(600,500);
 
     QGridLayout *gridLayout = new QGridLayout(inputDialog_);
     gridLayout->setContentsMargins(0, 0, 0, 0);
