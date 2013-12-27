@@ -81,8 +81,44 @@ void Rectangle::updateAttributes(Config cfg)
     facesLevel0[1] = TriangleFace( level0[1], level0[2], level0[3] );
     faces = tessellate(cfg.levelOfDetail, facesLevel0);
   }
-  GLuint numVertices = faces->size()*3;
   Mat4f rotMat = Mat4f::rotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
+  GLboolean useIndexBuffer = (cfg.levelOfDetail>1);
+
+  GLuint numVertices;
+  map<GLuint,GLuint> indexMap;
+  set<GLuint> processedIndices;
+
+  ref_ptr<ShaderInput1ui> indices;
+  if(useIndexBuffer) {
+    // Allocate RAM for indices
+    GLuint numIndices = faces->size()*3;
+    indices = ref_ptr<ShaderInput1ui>::alloc("i");
+    indices->setVertexData(numIndices);
+    GLuint *indicesPtr = (GLuint*)indices->clientDataPtr();
+
+    // Set index data and compute vertex count
+    GLuint currIndex = 0;
+    for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
+      TriangleFace &face = (*faces)[faceIndex];
+      TriangleVertex *vertices = (TriangleVertex*)&face;
+
+      for(GLuint i=0; i<3; ++i) {
+        TriangleVertex &vertex = vertices[i];
+        // Find vertex index
+        if(indexMap.count(vertex.i)==0) {
+          indexMap[vertex.i] = currIndex;
+          currIndex += 1;
+        }
+        // Add to indices attribute
+        *indicesPtr = indexMap[vertex.i];
+        indicesPtr += 1;
+      }
+    }
+    numVertices = indexMap.size();
+  }
+  else {
+    numVertices = faces->size()*3;
+  }
 
   if(cfg.isTangentRequired) {
     cfg.isNormalRequired = GL_TRUE;
@@ -107,39 +143,60 @@ void Rectangle::updateAttributes(Config cfg)
     tan_->setVertexData(numVertices);
   }
 
+  GLuint triIndices[3];
+  Vec3f triVertices[3];
+  Vec2f triTexco[3];
+  Vec3f normal = rotMat.transformVector(Vec3f(0.0,-1.0,0.0));
+
   for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
-    GLuint vertexIndex = faceIndex*3;
     TriangleFace &face = (*faces)[faceIndex];
-    TriangleVertex *f = (TriangleVertex*)&face;
+    TriangleVertex *vertices = (TriangleVertex*)&face;
 
-#define _TRANSFORM_(x) (rotMat.transformVector(cfg.posScale*x + startPos) + cfg.translation)
-    for(GLuint i=0; i<3; ++i) pos_->setVertex(vertexIndex+i, _TRANSFORM_(f[i].p));
-#undef _TRANSFORM_
-
-    if(cfg.isNormalRequired) {
-      Vec3f normal = rotMat.transformVector(Vec3f(0.0,-1.0,0.0));
-      for(GLuint i=0; i<3; ++i) nor_->setVertex(vertexIndex+i, normal);
-    }
-
-    if(cfg.isTexcoRequired) {
-#define _TRANSFORM_(x) ( cfg.texcoScale - (cfg.texcoScale*x) )
-      for(GLuint i=0; i<3; ++i) {
-        texco_->setVertex(vertexIndex+i, _TRANSFORM_(Vec2f(f[i].p.x,f[i].p.z)));
+    for(GLuint i=0; i<3; ++i) {
+      GLuint vertexIndex;
+      if(useIndexBuffer) {
+        vertexIndex = indexMap[vertices[i].i];
       }
-#undef _TRANSFORM_
+      else {
+        vertexIndex = faceIndex*3+i;
+      }
+      triIndices[i] = vertexIndex;
+
+      if(processedIndices.count(vertexIndex)>0) {
+        if(cfg.isTangentRequired) {
+          triVertices[i] = pos_->getVertex(vertexIndex);
+          triTexco[i]    = texco_->getVertex(vertexIndex);
+        }
+        continue;
+      }
+      processedIndices.insert(vertexIndex);
+
+      pos_->setVertex(vertexIndex, rotMat.transformVector(
+          cfg.posScale*vertices[i].p + startPos) + cfg.translation);
+      if(cfg.isNormalRequired) {
+        nor_->setVertex(vertexIndex, normal);
+      }
+      if(cfg.isTexcoRequired) {
+        texco_->setVertex(vertexIndex, cfg.texcoScale -
+            (cfg.texcoScale*Vec2f(vertices[i].p.x,vertices[i].p.z)));
+      }
+      if(cfg.isTangentRequired) {
+        triVertices[i] = pos_->getVertex(vertexIndex);
+        triTexco[i] = texco_->getVertex(vertexIndex);
+      }
     }
 
     if(cfg.isTangentRequired) {
-      Vec3f *vertices = ((Vec3f*)pos_->clientDataPtr())+vertexIndex;
-      Vec2f *texcos = ((Vec2f*)texco_->clientDataPtr())+vertexIndex;
-      Vec3f *normals = ((Vec3f*)nor_->clientDataPtr())+vertexIndex;
-      Vec4f tangent = calculateTangent(vertices, texcos, *normals);
-      for(GLuint i=0; i<3; ++i) tan_->setVertex(vertexIndex+i, tangent);
+      Vec4f tangent = calculateTangent(triVertices, triTexco, normal);
+      for(GLuint i=0; i<3; ++i) {
+        tan_->setVertex(triIndices[i], tangent);
+      }
     }
   }
   delete faces;
 
   begin(ShaderInputContainer::INTERLEAVED);
+  if(useIndexBuffer) setIndices(indices, numVertices);
   setInput(pos_);
   if(cfg.isNormalRequired)
     setInput(nor_);
