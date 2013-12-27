@@ -94,13 +94,37 @@ void Box::updateAttributes(const Config &cfg)
       Vec3f(1.0f, 0.0f, 0.0f),  // Right
       Vec3f(-1.0f, 0.0f, 0.0f)  // Left
   };
-  static const GLfloat cubeVertices[] = {
-      -1.0,-1.0, 1.0,   1.0,-1.0, 1.0,   1.0, 1.0, 1.0,  -1.0, 1.0, 1.0, // Front
-      -1.0,-1.0,-1.0,  -1.0, 1.0,-1.0,   1.0, 1.0,-1.0,   1.0,-1.0,-1.0, // Back
-      -1.0, 1.0,-1.0,  -1.0, 1.0, 1.0,   1.0, 1.0, 1.0,   1.0, 1.0,-1.0, // Top
-      -1.0,-1.0,-1.0,   1.0,-1.0,-1.0,   1.0,-1.0, 1.0,  -1.0,-1.0, 1.0, // Bottom
-       1.0,-1.0,-1.0,   1.0, 1.0,-1.0,   1.0, 1.0, 1.0,   1.0,-1.0, 1.0, // Right
-      -1.0,-1.0,-1.0,  -1.0,-1.0, 1.0,  -1.0, 1.0, 1.0,  -1.0, 1.0,-1.0  // Left
+  static const TriangleVertex cubeVertices[] = {
+      // Front
+      TriangleVertex(Vec3f(-1.0,-1.0, 1.0),0),
+      TriangleVertex(Vec3f( 1.0,-1.0, 1.0),1),
+      TriangleVertex(Vec3f( 1.0, 1.0, 1.0),2),
+      TriangleVertex(Vec3f(-1.0, 1.0, 1.0),3),
+      // Back
+      TriangleVertex(Vec3f(-1.0,-1.0,-1.0),0),
+      TriangleVertex(Vec3f(-1.0, 1.0,-1.0),1),
+      TriangleVertex(Vec3f( 1.0, 1.0,-1.0),2),
+      TriangleVertex(Vec3f( 1.0,-1.0,-1.0),3),
+      // Top
+      TriangleVertex(Vec3f(-1.0, 1.0,-1.0),0),
+      TriangleVertex(Vec3f(-1.0, 1.0, 1.0),1),
+      TriangleVertex(Vec3f( 1.0, 1.0, 1.0),2),
+      TriangleVertex(Vec3f( 1.0, 1.0,-1.0),3),
+      // Bottom
+      TriangleVertex(Vec3f(-1.0,-1.0,-1.0),0),
+      TriangleVertex(Vec3f( 1.0,-1.0,-1.0),1),
+      TriangleVertex(Vec3f( 1.0,-1.0, 1.0),2),
+      TriangleVertex(Vec3f(-1.0,-1.0, 1.0),3),
+      // Right
+      TriangleVertex(Vec3f( 1.0,-1.0,-1.0),0),
+      TriangleVertex(Vec3f( 1.0, 1.0,-1.0),1),
+      TriangleVertex(Vec3f( 1.0, 1.0, 1.0),2),
+      TriangleVertex(Vec3f( 1.0,-1.0, 1.0),3),
+      // Left
+      TriangleVertex(Vec3f(-1.0,-1.0,-1.0),0),
+      TriangleVertex(Vec3f(-1.0,-1.0, 1.0),1),
+      TriangleVertex(Vec3f(-1.0, 1.0, 1.0),2),
+      TriangleVertex(Vec3f(-1.0, 1.0,-1.0),3)
   };
   static const GLfloat cubeTexcoords[] = {
       1.0, 1.0,  0.0, 1.0,  0.0, 0.0,  1.0, 0.0, // Front
@@ -140,7 +164,7 @@ void Box::updateAttributes(const Config &cfg)
 
   for(GLuint sideIndex=0; sideIndex<6; ++sideIndex) {
     const Vec3f &normal = cubeNormals[sideIndex];
-    Vec3f *level0 = (Vec3f*)cubeVertices;
+    TriangleVertex *level0 = (TriangleVertex*)cubeVertices;
     Vec2f *uv0 = (Vec2f*)cubeTexcoords;
     level0 += sideIndex*4;
     uv0 += sideIndex*4;
@@ -156,10 +180,10 @@ void Box::updateAttributes(const Config &cfg)
     for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
       GLuint vertexIndex = faceIndex*3 + vertexBase;
       TriangleFace &face = (*faces)[faceIndex];
-      Vec3f *f = (Vec3f*)&face;
+      TriangleVertex *f = (TriangleVertex*)&face;
 
       for(GLuint i=0; i<3; ++i) {
-        pos_->setVertex(vertexIndex+i, cfg.posScale * rotMat.transformVector(f[i]));
+        pos_->setVertex(vertexIndex+i, cfg.posScale * rotMat.transformVector(f[i].p));
       }
       if(cfg.isNormalRequired) {
         for(GLuint i=0; i<3; ++i) nor_->setVertex(vertexIndex+i, normal);
@@ -168,7 +192,7 @@ void Box::updateAttributes(const Config &cfg)
       if(texcoMode == TEXCO_MODE_CUBE_MAP) {
         Vec3f *texco = (Vec3f*) texco_->clientData();
         for(GLuint i=0; i<3; ++i) {
-          Vec3f v = f[i];
+          Vec3f v = f[i].p;
           v.normalize();
           texco[vertexIndex+i] = v;
         }
@@ -178,16 +202,16 @@ void Box::updateAttributes(const Config &cfg)
         for(GLuint i=0; i<3; ++i) {
           // linear interpolate texture coordinates
           const Vec3f &p = pos_->getVertex(vertexIndex+i);
-          GLfloat d0 = (p-level0[0]).length();
-          GLfloat d1 = (p-level0[1]).length();
-          GLfloat d2 = (p-level0[2]).length();
-          GLfloat d3 = (p-level0[3]).length();
+          GLfloat d0 = (p-level0[0].p).length();
+          GLfloat d1 = (p-level0[1].p).length();
+          GLfloat d2 = (p-level0[2].p).length();
+          GLfloat d3 = (p-level0[3].p).length();
           GLfloat f0 = d1/(d0+d1);
           GLfloat f1 = d0/(d0+d1);
           GLfloat f2 = d2/(d2+d3);
           GLfloat f3 = d3/(d2+d3);
-          Vec3f p01 = level0[0]*f0 + level0[1]*f1;
-          Vec3f p23 = level0[2]*f2 + level0[3]*f3;
+          Vec3f p01 = level0[0].p*f0 + level0[1].p*f1;
+          Vec3f p23 = level0[2].p*f2 + level0[3].p*f3;
           Vec2f uv01 = uv0[0]*f0 + uv0[1]*f1;
           Vec2f uv23 = uv0[2]*f2 + uv0[3]*f3;
           GLfloat d01 = (p-p01).length();
