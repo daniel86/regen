@@ -72,7 +72,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
   MeshVector *out = out_.get();
 
   // Primitives
-  if(meshType == "sphere") {
+  if(meshType == "sphere" || meshType == "half-sphere") {
     Sphere::Config meshCfg;
     meshCfg.texcoMode = input.getValue<Sphere::TexcoMode>("texco-mode", Sphere::TEXCO_MODE_UV);
     meshCfg.levelOfDetail = levelOfDetail;
@@ -80,11 +80,11 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.texcoScale = texcoScaling;
     meshCfg.isNormalRequired = useNormal;
     meshCfg.isTangentRequired = useTangent;
+    meshCfg.isHalfSphere = (meshType == "half-sphere");
     meshCfg.usage = vboUsage;
 
     (*out) = MeshVector(1);
     (*out)[0] = ref_ptr<Sphere>::alloc(meshCfg);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "rectangle") {
     Rectangle::Config meshCfg;
@@ -100,7 +100,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
 
     (*out) = MeshVector(1);
     (*out)[0] = ref_ptr<Rectangle>::alloc(meshCfg);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "box") {
     Box::Config meshCfg;
@@ -111,10 +110,10 @@ ref_ptr<MeshVector> MeshResource::createResource(
     meshCfg.isNormalRequired = useNormal;
     meshCfg.isTangentRequired = useTangent;
     meshCfg.usage = vboUsage;
+    meshCfg.levelOfDetail = levelOfDetail;
 
     (*out) = MeshVector(1);
     (*out)[0] = ref_ptr<Box>::alloc(meshCfg);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "cone" || meshType == "cone-closed") {
     ConeClosed::Config meshCfg;
@@ -127,7 +126,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
 
     (*out) = MeshVector(1);
     (*out)[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "cone-opened") {
     ConeOpened::Config meshCfg;
@@ -139,7 +137,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
 
     (*out) = MeshVector(1);
     (*out)[0] = ref_ptr<ConeOpened>::alloc(meshCfg);
-    parser->putState(input.getName(),(*out)[0]);
   }
   // Special meshes
   else if(meshType == "particles") {
@@ -154,7 +151,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
     else {
       (*out) = MeshVector(1);
       (*out)[0] = createParticleMesh(parser,input,numParticles,updateShader);
-      parser->putState(input.getName(),(*out)[0]);
       return out_;
     }
   }
@@ -174,22 +170,25 @@ ref_ptr<MeshVector> MeshResource::createResource(
   else if(meshType == "sky") {
     (*out) = MeshVector(1);
     (*out)[0] = createSkyMesh(parser,input);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "text") {
     (*out) = MeshVector(1);
     (*out)[0] = createTextMesh(parser,input);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else if(meshType == "mesh") {
     const VBO::Usage vboUsage = input.getValue<VBO::Usage>("usage",VBO::USAGE_DYNAMIC);
     GLenum primitive = glenum::primitive(input.getValue<string>("primitive","TRIANGLES"));
     (*out) = MeshVector(1);
     (*out)[0] = ref_ptr<Mesh>::alloc(primitive,vboUsage);
-    parser->putState(input.getName(),(*out)[0]);
   }
   else {
     REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
+  }
+
+  if(out->size()==1) {
+    ref_ptr<Mesh> mesh = (*out)[0];
+    parser->putState(input.getName(),mesh);
+    parser->getResources()->putMesh(input.getName(),out_);
   }
 
   if(input.hasAttribute("primitive")) {
@@ -353,7 +352,8 @@ ref_ptr<SkyScattering> MeshResource::createSkyMesh(
 {
   ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::alloc(
       input.getValue<GLuint>("size", 512),
-      input.getValue<GLuint>("use-float", false));
+      input.getValue<GLuint>("use-float", false),
+      input.getValue<GLuint>("lod",0));
 
   const string preset = input.getValue<string>("preset", "earth");
   if(preset == "earth")       sky->setEarth();

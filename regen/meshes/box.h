@@ -40,6 +40,8 @@ namespace regen {
      * Vertex data configuration.
      */
     struct Config {
+      /** number of surface divisions. */
+      GLuint levelOfDetail;
       /** scaling for the position attribute. */
       Vec3f posScale;
       /** cube xyz rotation. */
@@ -70,6 +72,11 @@ namespace regen {
      * @param cfg vertex data configuration.
      */
     void updateAttributes(const Config &cfg=Config());
+  protected:
+    ref_ptr<ShaderInput3f> pos_;
+    ref_ptr<ShaderInput3f> nor_;
+    ref_ptr<ShaderInput4f> tan_;
+    ref_ptr<ShaderInput> texco_;
   };
 
   ostream& operator<<(ostream &out, const Box::TexcoMode &mode);

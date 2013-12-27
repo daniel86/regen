@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include "tessellation.h"
 #include "sphere.h"
 using namespace regen;
 
@@ -34,54 +35,6 @@ namespace regen {
   }
 }
 
-vector<Sphere::SphereFace>* Sphere::makeSphere(GLuint levelOfDetail)
-{
-  GLuint numFaces_ = pow(4.0,(GLint)levelOfDetail)*8;
-  vector<SphereFace> *faces = new vector<SphereFace>(numFaces_);
-  vector<SphereFace> &f = *faces;
-  GLuint i, j, numFaces=0, numNewFaces;
-  Vec3f pa,pb,pc;
-
-  { // setup initial level
-    GLfloat a = 1.0 / sqrt(2.0) + 0.001;
-    Vec3f p[6] = {
-        Vec3f( 0.0f,0.0f,1.0f),
-        Vec3f( 0.0f,0.0f,-1.0f),
-        Vec3f( -a,-a,0.0f),
-        Vec3f( a,-a,0.0f),
-        Vec3f( a,a,0.0f),
-        Vec3f( -a,a,0.0f)
-    };
-    f[0] = SphereFace( p[0], p[3], p[4] );
-    f[1] = SphereFace( p[0], p[4], p[5] );
-    f[2] = SphereFace( p[0], p[5], p[2] );
-    f[3] = SphereFace( p[0], p[2], p[3] );
-    f[4] = SphereFace( p[1], p[4], p[3] );
-    f[5] = SphereFace( p[1], p[5], p[4] );
-    f[6] = SphereFace( p[1], p[2], p[5] );
-    f[7] = SphereFace( p[1], p[3], p[2] );
-    numFaces = 8;
-  }
-
-  for (j=0; j<levelOfDetail; ++j)
-  {
-    numNewFaces = numFaces;
-    for (i=0; i<numNewFaces; ++i)
-    {
-      pa = (f[i].p1 + f[i].p2)*0.5; pa.normalize();
-      pb = (f[i].p2 + f[i].p3)*0.5; pb.normalize();
-      pc = (f[i].p3 + f[i].p1)*0.5; pc.normalize();
-
-      f[numFaces] = SphereFace( f[i].p1, pa, pc ); ++numFaces;
-      f[numFaces] = SphereFace( pa, f[i].p2, pb ); ++numFaces;
-      f[numFaces] = SphereFace( pb, f[i].p3, pc ); ++numFaces;
-      f[i] = SphereFace( pa, pb, pc );
-    }
-  }
-
-  return faces;
-}
-
 static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t)
 {
   *s = atan2(p.x, p.z) / (2. * M_PI) + 0.5;
@@ -107,22 +60,66 @@ Sphere::Config::Config()
   texcoMode(TEXCO_MODE_UV),
   isNormalRequired(GL_TRUE),
   isTangentRequired(GL_FALSE),
+  isHalfSphere(GL_FALSE),
   usage(VBO::USAGE_DYNAMIC)
 {
 }
 
 void Sphere::updateAttributes(const Config &cfg)
 {
-  vector<SphereFace> *faces = makeSphere(cfg.levelOfDetail);
+  vector<TriangleFace> *faces; {
+    // setup initial level
+    GLfloat a = 1.0 / sqrt(2.0) + 0.001;
+    Vec3f level0[6] = {
+        Vec3f( 0.0f,0.0f,1.0f),
+        Vec3f( 0.0f,0.0f,-1.0f),
+        Vec3f( -a,-a,0.0f),
+        Vec3f( a,-a,0.0f),
+        Vec3f( a,a,0.0f),
+        Vec3f( -a,a,0.0f)
+    };
+    vector<TriangleFace> facesLevel0(8);
+    facesLevel0[0] = TriangleFace( level0[0], level0[3], level0[4] );
+    facesLevel0[1] = TriangleFace( level0[0], level0[4], level0[5] );
+    facesLevel0[2] = TriangleFace( level0[0], level0[5], level0[2] );
+    facesLevel0[3] = TriangleFace( level0[0], level0[2], level0[3] );
+    facesLevel0[4] = TriangleFace( level0[1], level0[4], level0[3] );
+    facesLevel0[5] = TriangleFace( level0[1], level0[5], level0[4] );
+    facesLevel0[6] = TriangleFace( level0[1], level0[2], level0[5] );
+    facesLevel0[7] = TriangleFace( level0[1], level0[3], level0[2] );
+    faces = tessellate(cfg.levelOfDetail, facesLevel0);
+  }
   vector<Vec3f> verts;
   vector<Vec3f> nors;
   vector<Vec2f> texcos;
 
   // generate arrays of attribute data from faces
   GLuint vertexIndex=0u;
-  for(vector<SphereFace>::iterator
+  for(vector<TriangleFace>::iterator
       it = faces->begin(); it != faces->end(); ++it)
   {
+    if(cfg.isHalfSphere) {
+      GLuint counter=0;
+      if(it->p1.y>0) {
+        counter += 1;
+        it->p1.y = 0.0;
+      }
+      if(it->p2.y>0) {
+        counter += 1;
+        it->p2.y = 0.0;
+      }
+      if(it->p3.y>0) {
+        counter += 1;
+        it->p3.y = 0.0;
+      }
+      if(counter==3) {
+        continue;
+      }
+    }
+    it->p1.normalize();
+    it->p2.normalize();
+    it->p3.normalize();
+    // XXX size known in advance
     verts.push_back( it->p1 * 0.5 );
     verts.push_back( it->p2 * 0.5 );
     verts.push_back( it->p3 * 0.5 );
