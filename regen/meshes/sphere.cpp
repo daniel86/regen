@@ -65,19 +65,52 @@ Sphere::Config::Config()
 {
 }
 
+static GLboolean isOnPosYSpherePartially(TriangleVertex *triangle)
+{
+  for(GLuint i=0; i<3; ++i) {
+    if(triangle[i].p.y>0) return GL_TRUE;
+  }
+  return GL_FALSE;
+}
+static GLboolean isOnPosYSphereEntirely(TriangleVertex *triangle)
+{
+  for(GLuint i=0; i<3; ++i) {
+    if(triangle[i].p.y<0) return GL_FALSE;
+  }
+  return GL_TRUE;
+}
+
+static Vec3f computeSphereTangent(const Vec3f &v)
+{
+  Vec3f vAbs = Vec3f(abs(v.x), abs(v.y), abs(v.z));
+  Vec3f v_;
+  if(vAbs.x < vAbs.y && vAbs.x < vAbs.z) {
+    v_ = Vec3f(0.0, -v.z, v.y);
+  }
+  else if (vAbs.y < vAbs.x && vAbs.y < vAbs.z) {
+    v_ = Vec3f(-v.z, 0, v.x);
+  }
+  else {
+    v_ = Vec3f(-v.y, v.x, 0);
+  }
+  v_.normalize();
+  return v.cross(v_);
+}
+
 void Sphere::updateAttributes(const Config &cfg)
 {
   vector<TriangleFace> *faces; {
     // setup initial level
     GLfloat a = 1.0 / sqrt(2.0) + 0.001;
-    Vec3f level0[6] = {
-        Vec3f( 0.0f,0.0f,1.0f),
-        Vec3f( 0.0f,0.0f,-1.0f),
-        Vec3f( -a,-a,0.0f),
-        Vec3f( a,-a,0.0f),
-        Vec3f( a,a,0.0f),
-        Vec3f( -a,a,0.0f)
-    };
+
+    TriangleVertex level0[6];
+    level0[0] = TriangleVertex( Vec3f( 0.0f,0.0f, 1.0f), 0 );
+    level0[1] = TriangleVertex( Vec3f( 0.0f,0.0f,-1.0f), 1 );
+    level0[2] = TriangleVertex( Vec3f(   -a,  -a, 0.0f), 2 );
+    level0[3] = TriangleVertex( Vec3f(    a,  -a, 0.0f), 3 );
+    level0[4] = TriangleVertex( Vec3f(    a,   a, 0.0f), 4 );
+    level0[5] = TriangleVertex( Vec3f(   -a,   a, 0.0f), 5 );
+
     vector<TriangleFace> facesLevel0(8);
     facesLevel0[0] = TriangleFace( level0[0], level0[3], level0[4] );
     facesLevel0[1] = TriangleFace( level0[0], level0[4], level0[5] );
@@ -90,29 +123,50 @@ void Sphere::updateAttributes(const Config &cfg)
     faces = tessellate(cfg.levelOfDetail, facesLevel0);
   }
 
+  // Find out number of triangle faces
   GLuint faceCounter = 0;
   if(cfg.isHalfSphere) {
-    // Count faces of half-sphere.
     for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
       TriangleFace &face = (*faces)[faceIndex];
-      Vec3f *f = (Vec3f*)&face;
-      GLuint counter=0;
+      TriangleVertex *vertices = (TriangleVertex*)&face;
+      if(isOnPosYSphereEntirely(vertices)) continue;
       for(GLuint i=0; i<3; ++i) {
-        if(f[i].y>0) {
-          counter += 1;
-          f[i].y = 0.0;
-        }
-      }
-      if(counter==3) {
-        f[0].y = 1.0;
-        continue;
+        if(vertices[i].p.y>0) vertices[i].p.y = 0.0;
       }
       faceCounter += 1;
     }
   } else {
     faceCounter = faces->size();
   }
-  GLuint numVertices = faceCounter*3;
+  // Allocate RAM for indices
+  GLuint numIndices = faceCounter*3;
+  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
+  indices->setVertexData(numIndices);
+  GLuint *indicesPtr = (GLuint*)indices->clientDataPtr();
+
+  // Set index data and compute vertex count
+  map<GLuint,GLint> indexMap;
+  GLuint currIndex = 0;
+  for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
+    TriangleFace &face = (*faces)[faceIndex];
+    TriangleVertex *vertices = (TriangleVertex*)&face;
+    if(cfg.isHalfSphere && isOnPosYSpherePartially(vertices)) continue;
+
+    for(GLuint i=0; i<3; ++i) {
+      TriangleVertex &vertex = vertices[i];
+      // Find vertex index
+      if(indexMap.count(vertex.i)==0) {
+        indexMap[vertex.i] = currIndex;
+        currIndex += 1;
+      }
+      // Add to indices attribute
+      *indicesPtr = indexMap[vertex.i];
+      indicesPtr += 1;
+    }
+    faceCounter += 1;
+  }
+  // Number of vertices is equal to number of distinctive indices.
+  GLuint numVertices = indexMap.size();
 
   // allocate attributes
   pos_->setVertexData(numVertices);
@@ -136,96 +190,67 @@ void Sphere::updateAttributes(const Config &cfg)
     texco_->setVertexData(numVertices);
   }
 
-  faceCounter = 0;
-  // generate arrays of attribute data from faces
   for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex)
   {
-    GLuint vertexIndex = faceCounter*3;
     TriangleFace &face = (*faces)[faceIndex];
-    Vec3f *f = (Vec3f*)&face;
+    TriangleVertex *vertices = (TriangleVertex*)&face;
+    if(cfg.isHalfSphere && isOnPosYSpherePartially(vertices)) continue;
 
-    if(cfg.isHalfSphere) {
-      // Discard faces where all vertices are on the +y half sphere.
-      GLuint flag=0;
-      for(GLuint i=0; i<3; ++i) {
-        if(f[i].y>0) {
-          flag = 1;
-          break;
-        }
-      }
-      if(flag==1) {
-        continue;
-      }
-    }
-    faceCounter += 1;
-
-    // Compute positions/normals
-    for(GLuint i=0; i<3; ++i) {
-      f[i].normalize();
-      pos_->setVertex(vertexIndex+i, cfg.posScale * f[i]);
-      if(cfg.isNormalRequired) {
-        nor_->setVertex(vertexIndex+i, f[i]);
-      }
-    }
-
-    // Compute texture coordinates
-    if(texcoMode==TEXCO_MODE_UV) {
-      Vec2f *texco = (Vec2f*) texco_->clientData();
-      Vec3f *pos = (Vec3f*) pos_->clientData();
-      for(GLuint i=0; i<3; ++i) {
-        texco[vertexIndex+i] = Vec2f(
-          0.5f + pos[vertexIndex+i].x/cfg.posScale.x,
-          0.5f + pos[vertexIndex+i].y/cfg.posScale.y
-        );
-      }
-    }
-    else if(texcoMode==TEXCO_MODE_SPHERE_MAP) {
-      Vec2f *texco = (Vec2f*) texco_->clientData();
-      GLfloat s1, s2, s3, t1, t2, t3;
-
-      sphereUV(f[0], &s1, &t1);
-      sphereUV(f[1], &s2, &t2);
+    // Compute uv-factors for this face
+    GLfloat s1, s2, s3, t1, t2, t3;
+    if(texcoMode==TEXCO_MODE_SPHERE_MAP) {
+      sphereUV(vertices[0].p, &s1, &t1);
+      sphereUV(vertices[1].p, &s2, &t2);
       if(s2 < 0.75 && s1 > 0.75) {
         s2 += 1.0;
       } else if(s2 > 0.75 && s1 < 0.75) {
         s2 -= 1.0;
       }
 
-      sphereUV(f[2], &s3, &t3);
+      sphereUV(vertices[2].p, &s3, &t3);
       if(s3 < 0.75 && s2 > 0.75) {
         s3 += 1.0;
       } else if(s3 > 0.75 && s2 < 0.75) {
         s3 -= 1.0;
       }
-
-      texco[vertexIndex+0] = Vec2f(s1, t1);
-      texco[vertexIndex+1] = Vec2f(s2, t2);
-      texco[vertexIndex+2] = Vec2f(s3, t3);
     }
 
-    if(cfg.isTangentRequired) {
-      for(GLuint i=0; i<3; ++i) {
-        const Vec3f &v = pos_->getVertex(vertexIndex+i);
-        Vec3f vAbs = Vec3f(abs(v.x), abs(v.y), abs(v.z));
-        Vec3f v_;
-        if(vAbs.x < vAbs.y && vAbs.x < vAbs.z) {
-          v_ = Vec3f(0.0, -v.z, v.y);
-        }
-        else if (vAbs.y < vAbs.x && vAbs.y < vAbs.z) {
-          v_ = Vec3f(-v.z, 0, v.x);
-        }
-        else {
-          v_ = Vec3f(-v.y, v.x, 0);
-        }
-        v_.normalize();
-        Vec3f t = v.cross(v_);
-        tan_->setVertex(i, Vec4f(t.x, t.y, t.z, 1.0) );
+    // Compute index and attribute values
+    for(GLuint i=0; i<3; ++i) {
+      TriangleVertex &vertex = vertices[i];
+      GLint vertexIndex = indexMap[vertex.i];
+      if(vertexIndex==-1) continue;
+      indexMap[vertex.i] = -1;
+
+      vertex.p.normalize();
+      pos_->setVertex(vertexIndex, cfg.posScale * vertex.p * 0.5);
+      if(cfg.isNormalRequired) {
+        nor_->setVertex(vertexIndex, vertex.p);
+      }
+      if(cfg.isTangentRequired) {
+        Vec3f t = computeSphereTangent(pos_->getVertex(vertexIndex));
+        tan_->setVertex(vertexIndex, Vec4f(t.x, t.y, t.z, 1.0) );
+      }
+      if(texcoMode==TEXCO_MODE_UV) {
+        Vec2f *texco = (Vec2f*) texco_->clientData();
+        Vec3f *pos = (Vec3f*) pos_->clientData();
+        texco[vertexIndex] = Vec2f(
+          0.5f + pos[vertexIndex].x/cfg.posScale.x,
+          0.5f + pos[vertexIndex].y/cfg.posScale.y
+        );
+      }
+      else if(texcoMode==TEXCO_MODE_SPHERE_MAP) {
+        Vec2f *texco = (Vec2f*) texco_->clientData();
+        if(i==0)      texco[vertexIndex] = Vec2f(s1, t1);
+        else if(i==1) texco[vertexIndex] = Vec2f(s2, t2);
+        else if(i==2) texco[vertexIndex] = Vec2f(s3, t3);
       }
     }
   }
   delete faces;
 
   begin(ShaderInputContainer::INTERLEAVED);
+  setIndices(indices, numVertices);
   setInput(pos_);
   if(cfg.isNormalRequired) {
     setInput(nor_);

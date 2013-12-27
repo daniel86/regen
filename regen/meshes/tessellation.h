@@ -14,13 +14,22 @@ using namespace std;
 #include <regen/math/vector.h>
 
 namespace regen {
+  struct TriangleVertex {
+    TriangleVertex(const Vec3f &_p, const GLuint &_i) : p(_p), i(_i) {}
+    TriangleVertex() : i(0) {}
+    Vec3f p;
+    GLuint i;
+  };
   struct TriangleFace {
-    TriangleFace(const Vec3f &_p1, const Vec3f &_p2, const Vec3f &_p3)
-          : p1(_p1), p2(_p2), p3(_p3) {}
+    TriangleFace(
+        const TriangleVertex &_v1,
+        const TriangleVertex &_v2,
+        const TriangleVertex &_v3)
+          : v1(_v1), v2(_v2), v3(_v3) {}
     TriangleFace() {}
-    Vec3f p1;
-    Vec3f p2;
-    Vec3f p3;
+    TriangleVertex v1;
+    TriangleVertex v2;
+    TriangleVertex v3;
   };
 
   vector<TriangleFace>* tessellate(GLuint lod, vector<TriangleFace> &inputFaces);
