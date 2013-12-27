@@ -89,146 +89,153 @@ void Sphere::updateAttributes(const Config &cfg)
     facesLevel0[7] = TriangleFace( level0[1], level0[3], level0[2] );
     faces = tessellate(cfg.levelOfDetail, facesLevel0);
   }
-  vector<Vec3f> verts;
-  vector<Vec3f> nors;
-  vector<Vec2f> texcos;
 
-  // generate arrays of attribute data from faces
-  GLuint vertexIndex=0u;
-  for(vector<TriangleFace>::iterator
-      it = faces->begin(); it != faces->end(); ++it)
-  {
-    if(cfg.isHalfSphere) {
+  GLuint faceCounter = 0;
+  if(cfg.isHalfSphere) {
+    // Count faces of half-sphere.
+    for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
+      TriangleFace &face = (*faces)[faceIndex];
+      Vec3f *f = (Vec3f*)&face;
       GLuint counter=0;
-      if(it->p1.y>0) {
-        counter += 1;
-        it->p1.y = 0.0;
-      }
-      if(it->p2.y>0) {
-        counter += 1;
-        it->p2.y = 0.0;
-      }
-      if(it->p3.y>0) {
-        counter += 1;
-        it->p3.y = 0.0;
+      for(GLuint i=0; i<3; ++i) {
+        if(f[i].y>0) {
+          counter += 1;
+          f[i].y = 0.0;
+        }
       }
       if(counter==3) {
+        f[0].y = 1.0;
+        continue;
+      }
+      faceCounter += 1;
+    }
+  } else {
+    faceCounter = faces->size();
+  }
+  GLuint numVertices = faceCounter*3;
+
+  // allocate attributes
+  pos_->setVertexData(numVertices);
+  if(cfg.isNormalRequired) {
+    nor_->setVertexData(numVertices);
+  }
+  if(cfg.isTangentRequired) {
+    tan_->setVertexData(numVertices);
+  }
+
+  TexcoMode texcoMode = cfg.texcoMode;
+  if(cfg.isTangentRequired && cfg.texcoMode==TEXCO_MODE_NONE) {
+    texcoMode = TEXCO_MODE_UV;
+  }
+  if(texcoMode == TEXCO_MODE_SPHERE_MAP) {
+    texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+    texco_->setVertexData(numVertices);
+  }
+  else if(texcoMode == TEXCO_MODE_UV) {
+    texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+    texco_->setVertexData(numVertices);
+  }
+
+  faceCounter = 0;
+  // generate arrays of attribute data from faces
+  for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex)
+  {
+    GLuint vertexIndex = faceCounter*3;
+    TriangleFace &face = (*faces)[faceIndex];
+    Vec3f *f = (Vec3f*)&face;
+
+    if(cfg.isHalfSphere) {
+      // Discard faces where all vertices are on the +y half sphere.
+      GLuint flag=0;
+      for(GLuint i=0; i<3; ++i) {
+        if(f[i].y>0) {
+          flag = 1;
+          break;
+        }
+      }
+      if(flag==1) {
         continue;
       }
     }
-    it->p1.normalize();
-    it->p2.normalize();
-    it->p3.normalize();
-    // XXX size known in advance
-    verts.push_back( it->p1 * 0.5 );
-    verts.push_back( it->p2 * 0.5 );
-    verts.push_back( it->p3 * 0.5 );
-    if(cfg.isNormalRequired)
-    {
-      nors.push_back( it->p1 );
-      nors.push_back( it->p2 );
-      nors.push_back( it->p3 );
+    faceCounter += 1;
+
+    // Compute positions/normals
+    for(GLuint i=0; i<3; ++i) {
+      f[i].normalize();
+      pos_->setVertex(vertexIndex+i, cfg.posScale * f[i]);
+      if(cfg.isNormalRequired) {
+        nor_->setVertex(vertexIndex+i, f[i]);
+      }
     }
 
-    switch(cfg.texcoMode) {
-    case TEXCO_MODE_NONE:
-      break;
-    case TEXCO_MODE_UV:
-      texcos.push_back( Vec2f(
-        0.5f + verts[vertexIndex].x/cfg.posScale.x,
-        0.5f + verts[vertexIndex].y/cfg.posScale.y
-      ) );
-      texcos.push_back( Vec2f(
-        0.5f + verts[vertexIndex+1u].x/cfg.posScale.x,
-        0.5f + verts[vertexIndex+1u].y/cfg.posScale.y
-      ) );
-      texcos.push_back( Vec2f(
-        0.5f + verts[vertexIndex+2u].x/cfg.posScale.x,
-        0.5f + verts[vertexIndex+2u].y/cfg.posScale.y
-      ) );
-      break;
-    case TEXCO_MODE_SPHERE_MAP: {
+    // Compute texture coordinates
+    if(texcoMode==TEXCO_MODE_UV) {
+      Vec2f *texco = (Vec2f*) texco_->clientData();
+      Vec3f *pos = (Vec3f*) pos_->clientData();
+      for(GLuint i=0; i<3; ++i) {
+        texco[vertexIndex+i] = Vec2f(
+          0.5f + pos[vertexIndex+i].x/cfg.posScale.x,
+          0.5f + pos[vertexIndex+i].y/cfg.posScale.y
+        );
+      }
+    }
+    else if(texcoMode==TEXCO_MODE_SPHERE_MAP) {
+      Vec2f *texco = (Vec2f*) texco_->clientData();
       GLfloat s1, s2, s3, t1, t2, t3;
 
-      sphereUV(it->p1, &s1, &t1);
-      sphereUV(it->p2, &s2, &t2);
+      sphereUV(f[0], &s1, &t1);
+      sphereUV(f[1], &s2, &t2);
       if(s2 < 0.75 && s1 > 0.75) {
         s2 += 1.0;
       } else if(s2 > 0.75 && s1 < 0.75) {
         s2 -= 1.0;
       }
 
-      sphereUV(it->p3, &s3, &t3);
+      sphereUV(f[2], &s3, &t3);
       if(s3 < 0.75 && s2 > 0.75) {
         s3 += 1.0;
       } else if(s3 > 0.75 && s2 < 0.75) {
         s3 -= 1.0;
       }
 
-      texcos.push_back( Vec2f(s1, t1) );
-      texcos.push_back( Vec2f(s2, t2) );
-      texcos.push_back( Vec2f(s3, t3) );
+      texco[vertexIndex+0] = Vec2f(s1, t1);
+      texco[vertexIndex+1] = Vec2f(s2, t2);
+      texco[vertexIndex+2] = Vec2f(s3, t3);
+    }
 
-      break;
-    }}
-
-    vertexIndex += 3u;
+    if(cfg.isTangentRequired) {
+      for(GLuint i=0; i<3; ++i) {
+        const Vec3f &v = pos_->getVertex(vertexIndex+i);
+        Vec3f vAbs = Vec3f(abs(v.x), abs(v.y), abs(v.z));
+        Vec3f v_;
+        if(vAbs.x < vAbs.y && vAbs.x < vAbs.z) {
+          v_ = Vec3f(0.0, -v.z, v.y);
+        }
+        else if (vAbs.y < vAbs.x && vAbs.y < vAbs.z) {
+          v_ = Vec3f(-v.z, 0, v.x);
+        }
+        else {
+          v_ = Vec3f(-v.y, v.x, 0);
+        }
+        v_.normalize();
+        Vec3f t = v.cross(v_);
+        tan_->setVertex(i, Vec4f(t.x, t.y, t.z, 1.0) );
+      }
+    }
   }
-
   delete faces;
-
-  // allocate RAM for the data
-  pos_->setVertexData(vertexIndex);
-  if(!nors.empty()) {
-    nor_->setVertexData(vertexIndex);
-  }
-  if(!texcos.empty()) {
-    texco_->setVertexData(vertexIndex);
-  }
-  // copy data from initialed vectors
-  for(GLuint i=0; i<vertexIndex; ++i)
-  {
-    pos_->setVertex(i, cfg.posScale * verts[i] );
-    if(!nors.empty()) {
-      nor_->setVertex(i, nors[i] );
-    }
-    if(!texcos.empty()) {
-      texco_->setVertex(i, cfg.texcoScale * texcos[i] );
-    }
-  }
-
-  if(cfg.isTangentRequired)
-  {
-    tan_->setVertexData(vertexIndex);
-
-    for(GLuint i=0; i<verts.size(); ++i)
-    {
-      Vec3f &v = verts[i];
-      Vec3f vAbs = Vec3f((v.x), (v.y), (v.z));
-      Vec3f v_;
-      if(vAbs.x < vAbs.y && vAbs.x < vAbs.z) {
-        v_ = Vec3f(0.0, -v.z, v.y);
-      }
-      else if (vAbs.y < vAbs.x && vAbs.y < vAbs.z) {
-        v_ = Vec3f(-v.z, 0, v.x);
-      }
-      else {
-        v_ = Vec3f(-v.y, v.x, 0);
-      }
-      v_.normalize();
-      Vec3f t = v.cross(v_);
-      tan_->setVertex(i, Vec4f(t.x, t.y, t.z, 1.0) );
-    }
-  }
 
   begin(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);
-  if(!nors.empty())
+  if(cfg.isNormalRequired) {
     setInput(nor_);
-  if(!texcos.empty())
-    setInput(texco_);
-  if(cfg.isTangentRequired)
+  }
+  if(cfg.isTangentRequired) {
     setInput(tan_);
+  }
+  if(texcoMode != TEXCO_MODE_NONE) {
+    setInput(texco_);
+  }
   end();
 }
 
