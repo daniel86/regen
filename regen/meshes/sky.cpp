@@ -15,18 +15,19 @@
 #include "sky.h"
 using namespace regen;
 
-static Box::Config cubeCfg()
+static Box::Config cubeCfg(GLuint levelOfDetail)
 {
   Box::Config cfg;
   cfg.isNormalRequired = GL_FALSE;
   cfg.isTangentRequired = GL_FALSE;
   cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
   cfg.usage = VBO::USAGE_STATIC;
+  cfg.levelOfDetail = levelOfDetail;
   return cfg;
 }
 
-SkyBox::SkyBox()
-: Box(cubeCfg()), HasShader("regen.models.sky-box")
+SkyBox::SkyBox(GLuint levelOfDetail)
+: Box(cubeCfg(levelOfDetail)), HasShader("regen.models.sky-box")
 {
   joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
 
@@ -58,8 +59,14 @@ const ref_ptr<TextureCube>& SkyBox::cubeMap() const
 ///////////
 ///////////
 
-SkyScattering::SkyScattering(GLuint cubeMapSize, GLboolean useFloatBuffer)
-: SkyBox(), Animation(GL_TRUE,GL_FALSE),  dayTime_(0.4), timeScale_(0.00000004)
+SkyScattering::SkyScattering(
+    GLuint cubeMapSize,
+    GLboolean useFloatBuffer,
+    GLuint levelOfDetail)
+: SkyBox(levelOfDetail),
+  Animation(GL_TRUE,GL_FALSE),
+  dayTime_(0.4),
+  timeScale_(0.00000004)
 {
   dayLength_ = 0.8;
   maxSunElevation_ = 30.0;

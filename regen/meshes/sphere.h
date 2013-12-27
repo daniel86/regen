@@ -50,6 +50,7 @@ namespace regen {
       GLboolean isNormalRequired;
       /** generate tangent attribute */
       GLboolean isTangentRequired;
+      GLboolean isHalfSphere;
       /** VBO usage hint. */
       VBO::Usage usage;
       Config();
@@ -70,17 +71,6 @@ namespace regen {
     ref_ptr<ShaderInput3f> nor_;
     ref_ptr<ShaderInput2f> texco_;
     ref_ptr<ShaderInput4f> tan_;
-
-    struct SphereFace {
-      SphereFace(const Vec3f &_p1, const Vec3f &_p2, const Vec3f &_p3)
-      : p1(_p1), p2(_p2), p3(_p3) {}
-      SphereFace() {}
-
-      Vec3f p1;
-      Vec3f p2;
-      Vec3f p3;
-    };
-    static vector<SphereFace>* makeSphere(GLuint levelOfDetail);
   };
 
   ostream& operator<<(ostream &out, const Sphere::TexcoMode &mode);

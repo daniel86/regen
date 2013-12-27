@@ -22,7 +22,7 @@ namespace regen {
   class SkyBox : public Box, public HasShader
   {
   public:
-    SkyBox();
+    SkyBox(GLuint levelOfDetail=0);
 
     /**
      * @return the cube map texture.
@@ -73,7 +73,9 @@ namespace regen {
       Vec3f absorption;
     };
 
-    SkyScattering(GLuint cubeMapSize=512, GLboolean useFloatBuffer=GL_FALSE);
+    SkyScattering(GLuint cubeMapSize=512,
+        GLboolean useFloatBuffer=GL_FALSE,
+        GLuint levelOfDetail=0);
 
     /**
      * Update the sky map.

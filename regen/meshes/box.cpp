@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include "tessellation.h"
 #include "box.h"
 using namespace regen;
 
@@ -54,13 +55,26 @@ ref_ptr<Box> Box::getUnitCube()
 
 Box::Box(const Config &cfg)
 : Mesh(GL_TRIANGLES, cfg.usage)
-{ updateAttributes(cfg); }
+{
+  pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+  nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
+  tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
+  updateAttributes(cfg);
+}
 Box::Box(const ref_ptr<Box> &other)
 : Mesh(other)
-{}
+{
+  pos_ = ref_ptr<ShaderInput3f>::upCast(
+      inputContainer_->getInput(ATTRIBUTE_NAME_POS));
+  nor_ = ref_ptr<ShaderInput3f>::upCast(
+      inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
+  tan_ = ref_ptr<ShaderInput4f>::upCast(
+      inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
+}
 
 Box::Config::Config()
-: posScale(Vec3f(1.0f)),
+: levelOfDetail(0),
+  posScale(Vec3f(1.0f)),
   rotation(Vec3f(0.0f)),
   texcoScale(Vec2f(1.0f)),
   texcoMode(TEXCO_MODE_UV),
@@ -72,7 +86,15 @@ Box::Config::Config()
 
 void Box::updateAttributes(const Config &cfg)
 {
-  const GLfloat vertices[] = {
+  static const Vec3f cubeNormals[] = {
+      Vec3f(0.0f, 0.0f, 1.0f),  // Front
+      Vec3f(0.0f, 0.0f,-1.0f),  // Back
+      Vec3f(0.0f, 1.0f, 0.0f),  // Top
+      Vec3f(0.0f,-1.0f, 0.0f),  // Bottom
+      Vec3f(1.0f, 0.0f, 0.0f),  // Right
+      Vec3f(-1.0f, 0.0f, 0.0f)  // Left
+  };
+  static const GLfloat cubeVertices[] = {
       -1.0,-1.0, 1.0,   1.0,-1.0, 1.0,   1.0, 1.0, 1.0,  -1.0, 1.0, 1.0, // Front
       -1.0,-1.0,-1.0,  -1.0, 1.0,-1.0,   1.0, 1.0,-1.0,   1.0,-1.0,-1.0, // Back
       -1.0, 1.0,-1.0,  -1.0, 1.0, 1.0,   1.0, 1.0, 1.0,   1.0, 1.0,-1.0, // Top
@@ -80,7 +102,7 @@ void Box::updateAttributes(const Config &cfg)
        1.0,-1.0,-1.0,   1.0, 1.0,-1.0,   1.0, 1.0, 1.0,   1.0,-1.0, 1.0, // Right
       -1.0,-1.0,-1.0,  -1.0,-1.0, 1.0,  -1.0, 1.0, 1.0,  -1.0, 1.0,-1.0  // Left
   };
-  const GLfloat texcoords[] = {
+  static const GLfloat cubeTexcoords[] = {
       1.0, 1.0,  0.0, 1.0,  0.0, 0.0,  1.0, 0.0, // Front
       0.0, 1.0,  0.0, 0.0,  1.0, 0.0,  1.0, 1.0, // Back
       1.0, 0.0,  1.0, 1.0,  0.0, 1.0,  0.0, 0.0, // Top
@@ -88,122 +110,112 @@ void Box::updateAttributes(const Config &cfg)
       0.0, 1.0,  0.0, 0.0,  1.0, 0.0,  1.0, 1.0, // Right
       1.0, 1.0,  0.0, 1.0,  0.0, 0.0,  1.0, 0.0  // Left
   };
-  const GLfloat normals[] = {
-      0.0f, 0.0f, 1.0f, // Front
-      0.0f, 0.0f,-1.0f, // Back
-      0.0f, 1.0f, 0.0f, // Top
-      0.0f,-1.0f, 0.0f, // Bottom
-      1.0f, 0.0f, 0.0f, // Right
-     -1.0f, 0.0f, 0.0f  // Left
-  };
 
+  GLuint vertexBase = 0;
+  GLuint numVertices = pow(4.0,cfg.levelOfDetail)*6*2*3;
   Mat4f rotMat = Mat4f::rotationMatrix(
       cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
 
-  ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
-  indices->setVertexData(6*6);
-  GLuint *faceIndices = (GLuint*) indices->clientDataPtr();
-  GLuint index = 0;
-  for(GLuint i=0; i<6; ++i)
-  {
-    faceIndices[index] = i*4 + 0; ++index;
-    faceIndices[index] = i*4 + 1; ++index;
-    faceIndices[index] = i*4 + 2; ++index;
-    faceIndices[index] = i*4 + 0; ++index;
-    faceIndices[index] = i*4 + 2; ++index;
-    faceIndices[index] = i*4 + 3; ++index;
-  }
-
-  ref_ptr<ShaderInput3f> pos =
-      ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
-  pos->setVertexData(24);
-  for(GLuint i=0; i<24; ++i)
-  {
-    Vec3f &v = ((Vec3f*)vertices)[i];
-    pos->setVertex(i, cfg.posScale * rotMat.transformVector(v) );
-  }
-
-  ref_ptr<ShaderInput3f> nor;
+  // allocate attributes
+  pos_->setVertexData(numVertices);
   if(cfg.isNormalRequired) {
-    nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
-    nor->setVertexData(24);
-
-    GLint index = 0;
-    Vec3f *n = (Vec3f*)normals;
-    for(GLuint i=0; i<6; ++i)
-    {
-      for(GLuint j=0; j<4; ++j)
-      {
-        nor->setVertex(index, *n);
-        ++index;
-      }
-      n += 1;
-    }
+    nor_->setVertexData(numVertices);
+  }
+  if(cfg.isTangentRequired) {
+    tan_->setVertexData(numVertices);
   }
 
-  ref_ptr<ShaderInput> texco;
   TexcoMode texcoMode = cfg.texcoMode;
   if(cfg.isTangentRequired && cfg.texcoMode==TEXCO_MODE_NONE) {
     texcoMode = TEXCO_MODE_UV;
   }
-  switch(texcoMode) {
-  case TEXCO_MODE_NONE:
-    break;
-  case TEXCO_MODE_CUBE_MAP: {
-    Vec3f* vertices = (Vec3f*)pos->clientDataPtr();
-    ref_ptr<ShaderInput3f> texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
-    texco_->setVertexData(24);
-    for(GLuint i=0; i<24; ++i)
-    {
-      Vec3f v = vertices[i];
-      v.normalize();
-      texco_->setVertex(i, v);
-    }
-    texco = texco_;
-    break;
+  if(texcoMode == TEXCO_MODE_CUBE_MAP) {
+    texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
+    texco_->setVertexData(numVertices);
   }
-  case TEXCO_MODE_UV: {
-    ref_ptr<ShaderInput2f> texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
-    texco_->setVertexData(24);
-    for(GLuint i=0; i<24; ++i)
-    {
-      Vec2f &uv = ((Vec2f*)texcoords)[i];
-      texco_->setVertex(i, cfg.texcoScale*uv );
+  else if(texcoMode == TEXCO_MODE_UV) {
+    texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+    texco_->setVertexData(numVertices);
+  }
+
+  for(GLuint sideIndex=0; sideIndex<6; ++sideIndex) {
+    const Vec3f &normal = cubeNormals[sideIndex];
+    Vec3f *level0 = (Vec3f*)cubeVertices;
+    Vec2f *uv0 = (Vec2f*)cubeTexcoords;
+    level0 += sideIndex*4;
+    uv0 += sideIndex*4;
+
+    // Tessellate cube face
+    vector<TriangleFace> *faces; {
+      vector<TriangleFace> facesLevel0(2);
+      facesLevel0[0] = TriangleFace( level0[0], level0[1], level0[3] );
+      facesLevel0[1] = TriangleFace( level0[1], level0[2], level0[3] );
+      faces = tessellate(cfg.levelOfDetail, facesLevel0);
     }
-    texco = texco_;
-    break;
-  }}
 
-  ref_ptr<ShaderInput4f> tan;
-  if(cfg.isTangentRequired) {
-    tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-    tan->setVertexData(24);
+    for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
+      GLuint vertexIndex = faceIndex*3 + vertexBase;
+      TriangleFace &face = (*faces)[faceIndex];
+      Vec3f *f = (Vec3f*)&face;
 
-    // calculate tangent for each face
-    Vec3f *v = (Vec3f*)vertices;
-    Vec3f *n = (Vec3f*)normals;
-    Vec2f *uv = (Vec2f*)texcoords;
-    GLint index = 0;
-    for(GLuint i=0; i<6; ++i)
-    {
-      Vec4f t = calculateTangent(v,uv,*n);
-      for(GLuint j=0; j<4; ++j)
-      {
-        tan->setVertex(index, t);
-        ++index;
+      for(GLuint i=0; i<3; ++i) {
+        pos_->setVertex(vertexIndex+i, cfg.posScale * rotMat.transformVector(f[i]));
       }
-      n += 1; v += 4; uv += 4;
+      if(cfg.isNormalRequired) {
+        for(GLuint i=0; i<3; ++i) nor_->setVertex(vertexIndex+i, normal);
+      }
+
+      if(texcoMode == TEXCO_MODE_CUBE_MAP) {
+        Vec3f *texco = (Vec3f*) texco_->clientData();
+        for(GLuint i=0; i<3; ++i) {
+          Vec3f v = f[i];
+          v.normalize();
+          texco[vertexIndex+i] = v;
+        }
+      }
+      else if(texcoMode == TEXCO_MODE_UV) {
+        Vec2f *texco = (Vec2f*) texco_->clientData();
+        for(GLuint i=0; i<3; ++i) {
+          // linear interpolate texture coordinates
+          const Vec3f &p = pos_->getVertex(vertexIndex+i);
+          GLfloat d0 = (p-level0[0]).length();
+          GLfloat d1 = (p-level0[1]).length();
+          GLfloat d2 = (p-level0[2]).length();
+          GLfloat d3 = (p-level0[3]).length();
+          GLfloat f0 = d1/(d0+d1);
+          GLfloat f1 = d0/(d0+d1);
+          GLfloat f2 = d2/(d2+d3);
+          GLfloat f3 = d3/(d2+d3);
+          Vec3f p01 = level0[0]*f0 + level0[1]*f1;
+          Vec3f p23 = level0[2]*f2 + level0[3]*f3;
+          Vec2f uv01 = uv0[0]*f0 + uv0[1]*f1;
+          Vec2f uv23 = uv0[2]*f2 + uv0[3]*f3;
+          GLfloat d01 = (p-p01).length();
+          GLfloat d23 = (p-p23).length();
+          GLfloat f01 = d23/(d01+d23);
+          GLfloat f23 = d01/(d01+d23);
+          texco[vertexIndex+i] = uv01*f01 + uv23*f23;
+        }
+      }
+
+      if(cfg.isTangentRequired) {
+        Vec3f *vertices = ((Vec3f*)pos_->clientDataPtr())+vertexIndex;
+        Vec2f *texcos = ((Vec2f*)texco_->clientDataPtr())+vertexIndex;
+        Vec3f *normals = ((Vec3f*)nor_->clientDataPtr())+vertexIndex;
+        Vec4f tangent = calculateTangent(vertices, texcos, *normals);
+        for(GLuint i=0; i<3; ++i) tan_->setVertex(vertexIndex+i, tangent);
+      }
     }
+    vertexBase += faces->size()*3;
   }
 
   begin(ShaderInputContainer::INTERLEAVED);
-  setIndices(indices, 23);
-  setInput(pos);
+  setInput(pos_);
   if(cfg.isNormalRequired)
-    setInput(nor);
+    setInput(nor_);
   if(cfg.texcoMode!=TEXCO_MODE_NONE)
-    setInput(texco);
+    setInput(texco_);
   if(cfg.isTangentRequired)
-    setInput(tan);
+    setInput(tan_);
   end();
 }

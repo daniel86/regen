@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include "tessellation.h"
 #include "rectangle.h"
 using namespace regen;
 
@@ -68,108 +69,75 @@ Rectangle::Config::Config()
 
 void Rectangle::updateAttributes(Config cfg)
 {
+  vector<TriangleFace> *faces; {
+    Vec3f level0[4] = {
+        Vec3f(0.0,0.0,0.0),
+        Vec3f(1.0,0.0,0.0),
+        Vec3f(1.0,0.0,1.0),
+        Vec3f(0.0,0.0,1.0)
+    };
+    vector<TriangleFace> facesLevel0(2);
+    facesLevel0[0] = TriangleFace( level0[0], level0[1], level0[3] );
+    facesLevel0[1] = TriangleFace( level0[1], level0[2], level0[3] );
+    faces = tessellate(cfg.levelOfDetail, facesLevel0);
+  }
+  GLuint numVertices = faces->size()*3;
   Mat4f rotMat = Mat4f::rotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
-  GLuint numQuads = pow(4, cfg.levelOfDetail);
-  GLuint numQuadsSide = sqrt(numQuads);
-  GLfloat quadSize = 1.0/numQuadsSide;
 
   if(cfg.isTangentRequired) {
     cfg.isNormalRequired = GL_TRUE;
     cfg.isTexcoRequired = GL_TRUE;
   }
-
-  // allocate attributes
-  pos_->setVertexData(numQuads*6);
-  if(cfg.isNormalRequired) {
-    nor_->setVertexData(numQuads*6);
-  }
-  if(cfg.isTexcoRequired) {
-    texco_->setVertexData(numQuads*6);
-  }
-  if(cfg.isTangentRequired) {
-    tan_->setVertexData(numQuads*6);
-  }
-
   Vec3f startPos;
   if(cfg.centerAtOrigin) {
     startPos = Vec3f(-cfg.posScale.x*0.5f, 0.0f, -cfg.posScale.z*0.5f);
   } else {
     startPos = Vec3f(0.0f, 0.0f, 0.0f);
   }
-  Vec2f texcoPos(0.0f, 1.0f);
-  Vec3f curPos(startPos.x, 0.0f, 0.0f);
-  GLuint vertexIndex = 0;
 
-  for(GLuint x=0; x<numQuadsSide; ++x)
-  {
-    texcoPos.y = 0.0f;
-    curPos.z = startPos.z;
-
-    for(GLuint z=0; z<numQuadsSide; ++z)
-    {
-#define _TRANSFORM_(x) (rotMat.transformVector(cfg.posScale*x + curPos) + cfg.translation)
-      Vec3f v0 = _TRANSFORM_(Vec3f(0.0,0.0,0.0));
-      Vec3f v1 = _TRANSFORM_(Vec3f(quadSize,0.0,0.0));
-      Vec3f v2 = _TRANSFORM_(Vec3f(quadSize,0.0,quadSize));
-      Vec3f v3 = _TRANSFORM_(Vec3f(0.0,0.0,quadSize));
-      pos_->setVertex(vertexIndex + 0, v0);
-      pos_->setVertex(vertexIndex + 1, v1);
-      pos_->setVertex(vertexIndex + 2, v3);
-      pos_->setVertex(vertexIndex + 3, v1);
-      pos_->setVertex(vertexIndex + 4, v2);
-      pos_->setVertex(vertexIndex + 5, v3);
-#undef _TRANSFORM_
-
-      if(cfg.isNormalRequired)
-      {
-#define _TRANSFORM_(x) rotMat.transformVector(x)
-        Vec3f n = _TRANSFORM_(Vec3f(0.0,-1.0,0.0));
-        nor_->setVertex(vertexIndex + 0, n);
-        nor_->setVertex(vertexIndex + 1, n);
-        nor_->setVertex(vertexIndex + 2, n);
-        nor_->setVertex(vertexIndex + 3, n);
-        nor_->setVertex(vertexIndex + 4, n);
-        nor_->setVertex(vertexIndex + 5, n);
-#undef _TRANSFORM_
-      }
-
-      if(cfg.isTexcoRequired)
-      {
-#define _TRANSFORM_(x) ( cfg.texcoScale - (cfg.texcoScale*x + texcoPos) )
-        Vec2f v0 = _TRANSFORM_(Vec2f(0, 0));
-        Vec2f v1 = _TRANSFORM_(Vec2f(quadSize, 0));
-        Vec2f v2 = _TRANSFORM_(Vec2f(quadSize, quadSize));
-        Vec2f v3 = _TRANSFORM_(Vec2f(0, quadSize));
-        texco_->setVertex(vertexIndex + 0, v0);
-        texco_->setVertex(vertexIndex + 1, v1);
-        texco_->setVertex(vertexIndex + 2, v3);
-        texco_->setVertex(vertexIndex + 3, v1);
-        texco_->setVertex(vertexIndex + 4, v2);
-        texco_->setVertex(vertexIndex + 5, v3);
-#undef _TRANSFORM_
-      }
-
-      if(cfg.isTangentRequired)
-      {
-        Vec3f *vertices = ((Vec3f*)pos_->clientDataPtr())+vertexIndex;
-        Vec2f *texcos = ((Vec2f*)texco_->clientDataPtr())+vertexIndex;
-        Vec3f *normals = ((Vec3f*)nor_->clientDataPtr())+vertexIndex;
-        Vec4f tangent = calculateTangent(vertices, texcos, *normals);
-        tan_->setVertex(vertexIndex + 0, tangent);
-        tan_->setVertex(vertexIndex + 1, tangent);
-        tan_->setVertex(vertexIndex + 2, tangent);
-        tan_->setVertex(vertexIndex + 3, tangent);
-        tan_->setVertex(vertexIndex + 4, tangent);
-        tan_->setVertex(vertexIndex + 5, tangent);
-      }
-
-      vertexIndex += 6;
-      curPos.z += cfg.posScale.z*quadSize;
-      texcoPos.y += cfg.texcoScale.y*quadSize;
-    }
-    texcoPos.x += cfg.texcoScale.x*quadSize;
-    curPos.x += cfg.posScale.x*quadSize;
+  // allocate attributes
+  pos_->setVertexData(numVertices);
+  if(cfg.isNormalRequired) {
+    nor_->setVertexData(numVertices);
   }
+  if(cfg.isTexcoRequired) {
+    texco_->setVertexData(numVertices);
+  }
+  if(cfg.isTangentRequired) {
+    tan_->setVertexData(numVertices);
+  }
+
+  for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
+    GLuint vertexIndex = faceIndex*3;
+    TriangleFace &face = (*faces)[faceIndex];
+    Vec3f *f = (Vec3f*)&face;
+
+#define _TRANSFORM_(x) (rotMat.transformVector(cfg.posScale*x + startPos) + cfg.translation)
+    for(GLuint i=0; i<3; ++i) pos_->setVertex(vertexIndex+i, _TRANSFORM_(f[i]));
+#undef _TRANSFORM_
+
+    if(cfg.isNormalRequired) {
+      Vec3f normal = rotMat.transformVector(Vec3f(0.0,-1.0,0.0));
+      for(GLuint i=0; i<3; ++i) nor_->setVertex(vertexIndex+i, normal);
+    }
+
+    if(cfg.isTexcoRequired) {
+#define _TRANSFORM_(x) ( cfg.texcoScale - (cfg.texcoScale*x) )
+      for(GLuint i=0; i<3; ++i) {
+        texco_->setVertex(vertexIndex+i, _TRANSFORM_(Vec2f(f[i].x,f[i].z)));
+      }
+#undef _TRANSFORM_
+    }
+
+    if(cfg.isTangentRequired) {
+      Vec3f *vertices = ((Vec3f*)pos_->clientDataPtr())+vertexIndex;
+      Vec2f *texcos = ((Vec2f*)texco_->clientDataPtr())+vertexIndex;
+      Vec3f *normals = ((Vec3f*)nor_->clientDataPtr())+vertexIndex;
+      Vec4f tangent = calculateTangent(vertices, texcos, *normals);
+      for(GLuint i=0; i<3; ++i) tan_->setVertex(vertexIndex+i, tangent);
+    }
+  }
+  delete faces;
 
   begin(ShaderInputContainer::INTERLEAVED);
   setInput(pos_);

@@ -44,6 +44,7 @@
       max-elevation="20.0"
       min-elevation="-20.0"
       day-time="0.5" />
+<!--
 <mesh id="ground-mesh"
       type="rectangle"
       lod="0"
@@ -54,7 +55,29 @@
       use-texco="1"
       use-tangent="1"
       center="1"
-      usage="STATIC" />
+      usage="STATIC">
+  <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" />
+  <transform shape="wall" size="20.0,20.0" position="0.0,0.0,0.0" rotation="0.0,0.0,0.0" />
+</mesh>
+-->
+<mesh id="bowl"
+      type="half-sphere"
+      lod="4"
+      scaling="10.0,3.0,7.5"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+  <define key="HAS_TWO_SIDES" value="TRUE" />
+  <material preset="jade"/>
+  <transform>
+    <translate value="0.0,-1.0,0.0" />
+  </tranform>
+  <!--
+  <transform shape="triangle-mesh" mesh="bowl" mass="0.0">
+    <translate value="0.0,-1.0,0.0" />
+  </tranform>
+  -->
+</mesh>
 <mesh id="sphere-mesh0"
       type="sphere"
       lod="4"
@@ -62,7 +85,11 @@
       texco-scaling="1.0,1.0"
       use-normal="1"
       use-tangent="0"
-      usage="STATIC" />
+      usage="STATIC">
+  <transform shape="sphere" radius="0.5" mass="0.5" inertia="0.0,0.0,0.0" friction="0.5">
+    <translate value="0.45,1.0,0.0" />
+  </tranform>
+</mesh>
 <mesh id="sphere-mesh1"
       type="sphere"
       lod="4"
@@ -70,7 +97,12 @@
       texco-scaling="1.0,1.0"
       use-normal="1"
       use-tangent="0"
-      usage="STATIC" />
+      usage="STATIC">
+  <material preset="ruby" />
+  <transform shape="sphere" radius="0.75" mass="10.0" inertia="0.0,0.0,0.0" friction="0.5">
+    <translate value="0.0,2.5,0.0" />
+  </tranform>
+</mesh>
 <mesh id="rain-particles"
       type="particles"
       num-vertices="50000"
@@ -114,44 +146,26 @@
     <fbo id="g-buffer" draw-buffers="0,2,3" />
     
     <node id="sphere0" >
-      <transform shape="sphere"
-		 radius="0.5"
-		 mass="0.5"
-		 inertia="0.0,0.0,0.0"
-		 friction="0.5">
-	<translate value="0.45,1.0,0.0" />
-	<rotate value="0.0,0.0,0.0" />
-      </tranform>
       <mesh id="sphere-mesh0" shader="regen.models.mesh" />
     </node>
     
     <node id="sphere1" >
-      <transform shape="sphere"
-		 radius="0.75"
-		 mass="10.0"
-		 inertia="0.0,0.0,0.0"
-		 friction="0.5">
-	<translate value="0.0,2.5,0.0" />
-	<rotate value="0.0,0.0,0.0" />
-      </tranform>
-      <material preset="ruby" />
       <mesh id="sphere-mesh1" shader="regen.models.mesh" />
     </node>
     
+    <node id="bowl" >
+      <toggle key="CULL_FACE" value="0" />
+      <mesh id="bowl" shader="regen.models.mesh" />
+    </node>
+    
+<!--
     <node id="ground">
-      <!-- Set-Up Relief Mapping. -->
       <texture name="colorTexture" id="ground-color" map-to="COLOR" />
       <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
 	       texel-transfer-key="regen.states.textures.normalTBNTransfer" />
-      
-      <transform shape="wall"
-		 size="20.0,20.0"
-		 position="0.0,0.0,0.0"
-		 rotation="0.0,0.0,0.0" />
-      <material ambient="0.3,0.3,0.3"
-		diffuse="0.7,0.7,0.7" />
       <mesh id="ground-mesh" shader="regen.models.mesh" />
     </node>
+-->
   </node>
   
   <node>
