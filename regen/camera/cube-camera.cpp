@@ -40,7 +40,7 @@ CubeCamera::CubeCamera(
   // Initialize directions
   direction_->set_elementCount(6);
   direction_->setUniformDataUntyped(NULL);
-  const Vec3f *dir = Mat4f::cubeDirectories();
+  const Vec3f *dir = Mat4f::cubeDirections();
   for(register GLuint i=0; i<6; ++i) {
     direction_->setVertex(i, dir[i]);
   }
@@ -81,6 +81,8 @@ void CubeCamera::update()
 
   // Update view and view-projection matrix.
   Mat4f::cubeLookAtMatrices(pos, (Mat4f*)view_->clientDataPtr());
+  view_->nextStamp();
+
   for(register GLuint i=0; i<6; ++i) {
     if(!isCubeFaceVisible_[i]) { continue; }
     viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());

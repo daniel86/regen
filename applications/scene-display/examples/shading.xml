@@ -117,8 +117,8 @@
       use-normal="1"
       use-tangent="0"
       usage="STATIC">
-  <transform shape="sphere" radius="1.0" mass="0.0001" inertia="0.0,-1.0,0.0" friction="0.0">
-    <translate value="0.45,1.0,0.0" />
+  <transform shape="sphere" radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0">
+    <translate value="-1.45,3.0,0.0" />
   </tranform>
 </mesh>
 <mesh id="sphere-mesh1"
@@ -130,9 +130,28 @@
       use-tangent="0"
       usage="STATIC">
   <material preset="ruby" />
-  <transform shape="sphere" radius="1.0" mass="0.0001" inertia="0.0,-1.0,0.0" friction="0.0">
-    <translate value="0.0,2.5,0.0" />
+  <transform shape="sphere" radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0">
+    <translate value="2.0,3.5,0.0" />
   </tranform>
+</mesh>
+<mesh id="sphere-mesh2"
+      type="sphere"
+      lod="4"
+      scaling="0.35,0.35,0.35"
+      texco-scaling="1.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC"
+      num-instances="40">
+  <material preset="ruby" />
+  <transform is-instanced="1"
+	     shape="sphere" radius="0.35" mass="0.4"
+	     inertia="0.0,0.0,0.0" friction="0.0">
+    <set mode="row" target="translate"
+	 x-step="0.5,0.0,0.0" x-count="5"
+	 z-step="0.0,0.0,0.5" />
+    <translate value="-2.0,1.5,-1.0" />
+  </transform>
 </mesh>
 <mesh id="rain-particles"
       type="particles"
@@ -281,6 +300,9 @@
 </node>
 
 <node id="scene-geometry">
+  <node id="instanced-spheres" >
+    <mesh id="sphere-mesh2" shader="regen.models.mesh" />
+  </node>
   <node id="bowl" >
     <toggle key="CULL_FACE" value="0" />
     <mesh id="bowl" shader="regen.models.mesh" />
@@ -294,17 +316,6 @@
   <material preset="chrome" />
   <input name="reflectionMatrix" state="paraboloid-camera" component="viewProjectionMatrix" />
   
-  <!--
-  <texture fbo="paraboloid-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="SRC"
-	   mapping="PARABOLOID_REFRACTION" />
-  <texture fbo="paraboloid-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="MIX"
-	   blend-factor="0.35"
-	   mapping="PARABOLOID_REFLECTION" />
-  -->
   <texture fbo="paraboloid-reflection-buffer" attachment="1"
 	   map-to="COLOR"
 	   blend-mode="SRC"
@@ -318,17 +329,6 @@
   
   <material preset="chrome" />
   
-  <!--
-  <texture fbo="cube-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="SRC"
-	   mapping="REFRACTION" />
-  <texture fbo="cube-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="MIX"
-	   blend-factor="0.35"
-	   mapping="REFLECTION" />
-  -->
   <texture fbo="cube-reflection-buffer" attachment="1"
 	   map-to="COLOR"
 	   blend-mode="SRC"

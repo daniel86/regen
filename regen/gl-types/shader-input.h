@@ -16,6 +16,7 @@ using namespace std;
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
 #include <regen/utility/string-util.h>
+#include <regen/animations/animation.h>
 #include <regen/math/matrix.h>
 #include <regen/math/vector.h>
 
@@ -340,6 +341,9 @@ namespace regen {
      */
     void readServerData();
 
+    void writeServerData(RenderState *rs, GLuint index);
+    void writeServerData(RenderState *rs);
+
     /**
      * Returns true if this attribute is allocated in RAM
      * or if it was uploaded to GL already.
@@ -486,6 +490,8 @@ namespace regen {
     GLboolean isConstant_;
     GLboolean forceArray_;
     GLboolean active_;
+
+    ref_ptr<Animation> dataUpload_;
 
     void (ShaderInput::*enableAttribute_)(GLint loc) const;
     void (ShaderInput::*enableUniform_)(GLint loc) const;

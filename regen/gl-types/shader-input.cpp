@@ -11,6 +11,21 @@
 #include "shader-input.h"
 using namespace regen;
 
+class DataUploadAnimation : public Animation {
+public:
+  DataUploadAnimation(ShaderInput *input)
+  : Animation(GL_TRUE,GL_FALSE,GL_FALSE),
+    input_(input)
+  {}
+  // Override
+  void glAnimate(RenderState *rs, GLdouble dt) {
+    input_->writeServerData(rs);
+    stopAnimation();
+  }
+protected:
+  ShaderInput *input_;
+};
+
 ShaderInput::ShaderInput(
     const string &name,
     GLenum dataType,
@@ -45,6 +60,7 @@ ShaderInput::ShaderInput(
   // make data_ stack root
   dataStack_.push(data_);
   enableAttribute_ = &ShaderInput::enableAttributef;
+  dataUpload_ = ref_ptr<DataUploadAnimation>::alloc(this);
 }
 ShaderInput::ShaderInput(const ShaderInput &o)
 : name_(o.name_),
@@ -75,6 +91,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
   dataStack_.push(data_);
   enableAttribute_ = &ShaderInput::enableAttributef;
   enableUniform_ = o.enableUniform_;
+  dataUpload_ = ref_ptr<DataUploadAnimation>::alloc(this);
 }
 ShaderInput::~ShaderInput()
 {
@@ -123,7 +140,12 @@ GLboolean ShaderInput::forceArray() const
 GLuint ShaderInput::stamp() const
 { return stamp_; }
 void ShaderInput::nextStamp()
-{ stamp_ += 1; }
+{
+  stamp_ += 1;
+  if(hasServerData()) {
+    dataUpload_->startAnimation();
+  }
+}
 
 void ShaderInput::set_stride(GLuint stride)
 { stride_ = stride; }
@@ -451,6 +473,43 @@ void ShaderInput::deallocateClientData()
     delete []data_;
     data_ = NULL;
   }
+}
+
+void ShaderInput::writeServerData(RenderState *rs, GLuint index)
+{
+  if(!hasClientData()) return;
+  if(!hasServerData()) return;
+  GLuint offset = offset_ + stride_*index;
+  byte *data = data_ + elementSize_*index;
+
+  rs->copyWriteBuffer().push(buffer_);
+  glBufferSubData(GL_COPY_WRITE_BUFFER, offset, elementSize_, data);
+  rs->copyWriteBuffer().pop();
+}
+
+void ShaderInput::writeServerData(RenderState *rs)
+{
+  if(!hasClientData()) return;
+  if(!hasServerData()) return;
+  if(bufferStamp_ == stamp_) return;
+  GLuint count = max(numVertices_,numInstances_);
+
+  rs->copyWriteBuffer().push(buffer_);
+  if(stride_ == elementSize_) {
+    glBufferSubData(GL_COPY_WRITE_BUFFER, offset_, inputSize_, data_);
+  }
+  else {
+    GLuint offset = offset_;
+    byte *data = data_;
+    for(GLuint i=0; i<count; ++i) {
+      glBufferSubData(GL_COPY_WRITE_BUFFER, offset, elementSize_, data);
+      offset += stride_;
+      data += elementSize_;
+    }
+  }
+  rs->copyWriteBuffer().pop();
+
+  bufferStamp_ = stamp_;
 }
 
 void ShaderInput::readServerData()
