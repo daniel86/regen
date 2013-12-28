@@ -52,11 +52,11 @@ void Animation::startAnimation()
 void Animation::stopAnimation()
 {
   if(!isRunning_) return;
-  isRunning_ = GL_FALSE;
 
   unqueueEmit(ANIMATION_STARTED);
   queueEmit(ANIMATION_STOPPED);
   AnimationManager::get().removeAnimation(this);
+  isRunning_ = GL_FALSE;
 }
 
 GLboolean Animation::isRunning() const

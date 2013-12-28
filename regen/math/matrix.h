@@ -999,7 +999,7 @@ namespace regen {
     /**
      * @return Array of cube normal vectors.
      */
-    static inline const Vec3f* cubeDirectories()
+    static inline const Vec3f* cubeDirections()
     {
       static const Vec3f dir[6] = {
           Vec3f( 1.0f, 0.0f, 0.0f),
@@ -1035,7 +1035,7 @@ namespace regen {
      */
     static inline void cubeLookAtMatrices(const Vec3f &pos, Mat4f *views)
     {
-      const Vec3f *dir = cubeDirectories();
+      const Vec3f *dir = cubeDirections();
       const Vec3f *up = cubeUpVectors();
       for(register GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
     }
