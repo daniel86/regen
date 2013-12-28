@@ -209,8 +209,13 @@ vec3 transformEyeToTexco(vec4 posEye, int layer)
 #define2 __transformEyeToWorld_INCLUDED
 #include regen.states.camera.input
 vec4 transformEyeToWorld(vec4 posEye, mat4 viewInv) {
-  // TODO: ignore rotation/translation ??
+#ifdef IGNORE_VIEW_ROTATION
+  return posWorld - vec4(view[3].xyz,0.0);
+#elif IGNORE_VIEW_TRANSLATION
+  return mat4(viewInv[0], viewInv[1], viewInv[2], vec3(0.0), 1.0) * posEye;
+#else
   return viewInv * posEye;
+#endif
 }
 vec4 transformEyeToWorld(vec4 posEye, int layer) {
   return transformEyeToWorld(posEye, __VIEW_INV__(layer));
