@@ -80,10 +80,18 @@ namespace regen {
     ref_ptr<State> drawBufferCallable_;
   };
 
+  /**
+   * \brief Activation of OpenGL Default Framebuffer.
+   */
   class ScreenState : public State
   {
   public:
-    ScreenState(const ref_ptr<ShaderInput2i> &windowViewport);
+    /**
+     * @param windowViewport The window size (width/height).
+     */
+    ScreenState(
+        const ref_ptr<ShaderInput2i> &windowViewport,
+        const GLenum drawBuffer=GL_FRONT);
 
     // override
     void enable(RenderState*);
@@ -93,6 +101,7 @@ namespace regen {
     ref_ptr<ShaderInput2i> windowViewport_;
     ref_ptr<ShaderInput2f> viewport_;
     ref_ptr<ShaderInput2f> inverseViewport_;
+    GLenum drawBuffer_;
     Vec4ui glViewport_;
   };
 } // namespace

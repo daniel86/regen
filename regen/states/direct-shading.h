@@ -37,6 +37,7 @@ namespace regen {
      * @param light a light.
      * @param lightCamera Light-perspective Camera or null reference.
      * @param shadow ShadowMap or null reference.
+     * @param shadowColor Color-ShadowMap or null reference.
      * @param shadowFilter shadow filtering mode that should be used.
      */
     void addLight(

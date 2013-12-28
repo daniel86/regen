@@ -340,8 +340,16 @@ namespace regen {
      * If not server-side data is available, nothing is done.
      */
     void readServerData();
-
+    /**
+     * Write a single vertex to the GL server.
+     * @param rs The RenderState.
+     * @param index The vertex index.
+     */
     void writeServerData(RenderState *rs, GLuint index);
+    /**
+     * Write this attribute to the GL server.
+     * @param rs The RenderState.
+     */
     void writeServerData(RenderState *rs);
 
     /**

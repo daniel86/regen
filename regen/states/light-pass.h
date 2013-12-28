@@ -35,6 +35,7 @@ namespace regen {
      * @param light the light.
      * @param lightCamera Light-perspective Camera or null reference.
      * @param shadowTexture ShadowMap or null reference.
+     * @param shadowColorTexture Color-ShadowMap or null reference.
      * @param inputs render pass inputs.
      */
     void addLight(

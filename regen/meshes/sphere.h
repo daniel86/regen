@@ -50,6 +50,7 @@ namespace regen {
       GLboolean isNormalRequired;
       /** generate tangent attribute */
       GLboolean isTangentRequired;
+      /** If true only bottom half sphere is used. */
       GLboolean isHalfSphere;
       /** VBO usage hint. */
       VBO::Usage usage;

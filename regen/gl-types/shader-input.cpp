@@ -11,8 +11,14 @@
 #include "shader-input.h"
 using namespace regen;
 
+/**
+ * Writes attribute to GL server on invokation.
+ */
 class DataUploadAnimation : public Animation {
 public:
+  /**
+   * @param input Pointer to attribute.
+   */
   DataUploadAnimation(ShaderInput *input)
   : Animation(GL_TRUE,GL_FALSE,GL_FALSE),
     input_(input)

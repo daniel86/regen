@@ -263,70 +263,12 @@ namespace scene {
                 << "in input node " << input.getDescription() << "'.");
           }
         }
-        // TODO: support meshes without index buffer..
-        /*
-        else if(pos.get()!=NULL) {
-          btTriangleMesh btMesh;
-          btMesh.m_numVertices = pos->numVertices();
-          btMesh.m_vertexStride = pos->elementSize();
-
-          switch(mesh->primitive()) {
-          case GL_TRIANGLES:
-            btMesh.m_triangleIndexStride = 3*indices->elementSize();
-            btMesh.m_numTriangles = indices->numVertices()/3;
-            break;
-          case GL_TRIANGLE_STRIP:
-            btMesh.m_triangleIndexStride = 1*indices->elementSize();
-            btMesh.m_numTriangles = indices->numVertices()-2;
-            break;
-          default:
-            btMesh.m_numTriangles = -1;
-            btMesh.m_triangleIndexStride = -1;
-            break;
-          }
-
-          if(btMesh.m_numTriangles>0) {
-            if(!pos->hasClientData()) pos->readServerData();
-            btMesh.m_vertexBase = pos->clientData();
-
-            PHY_ScalarType indexType;
-            switch(indices->dataType()) {
-            case GL_FLOAT:
-              indexType = PHY_FLOAT;
-              break;
-            case GL_DOUBLE:
-              indexType = PHY_DOUBLE;
-              break;
-            case GL_SHORT:
-              indexType = PHY_SHORT;
-              break;
-            case GL_INT:
-            case GL_UNSIGNED_INT:
-            default:
-              indexType = PHY_INTEGER;
-              break;
-            }
-
-            const bool useQuantizedAabbCompression = true;
-
-            btTriangleVertexArray *btMeshIface = new btTriangleVertexArray;
-            btMeshIface->addMesh(btMesh, indexType);
-            ref_ptr<btBvhTriangleMeshShape> shape =
-                ref_ptr<btBvhTriangleMeshShape>::alloc(btMeshIface,useQuantizedAabbCompression);
-            props = ref_ptr<PhysicalProps>::alloc(motion, shape);
-          }
-          else {
-            REGEN_WARN("Unsupported primitive for btTriangleIndexVertexArray "
-                << "in input node " << input.getDescription() << "'.");
-          }
-        }
-        */
         else if(indices.get()==NULL) {
-          REGEN_WARN("Ignoring physical shape '" << input.getDescription() << "'. No Indices.");
+          REGEN_WARN("Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Indices.");
           return ref_ptr<PhysicalProps>();
         }
         else if(pos.get()==NULL) {
-          REGEN_WARN("Ignoring physical shape '" << input.getDescription() << "'. No Positions.");
+          REGEN_WARN("Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Positions.");
           return ref_ptr<PhysicalProps>();
         }
       }

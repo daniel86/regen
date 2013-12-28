@@ -55,6 +55,12 @@ namespace regen {
      */
     GLenum fillMode(const string &val);
     /**
+     * Specifies the screen draw buffer.
+     * @param val input string.
+     * @return GL_FRONT, GL_BACK or GL_FRONT_AND_BACK.
+     */
+    GLenum drawBuffer(const string &val_);
+    /**
      * Primitives are ways that OpenGL interprets vertex streams,
      * converting them from vertices into triangles, lines, points, and so forth.
      * @param val input string.
