@@ -13,28 +13,9 @@
 	    look-at-interval="10"
 	    />
 
-<!-- Framebuffer Objects -->
-<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
-  <texture id="diffuse0"
-	   pixel-type="FLOAT"
-	   pixel-size="16"
-	   pixel-components="3" />
-  <texture id="diffuse1"
-	   pixel-type="FLOAT"
-	   pixel-size="16"
-	   pixel-components="3" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
+<include xml-file="scene-display/examples/default.xml" />
+
 <!-- Textures -->
-<texture id="regen-logo" file="res/logo.png" />
 <texture id="hdr-texture"
 	 is-cube="1"
 	 cube-flip-back="1"
@@ -44,10 +25,6 @@
 	 wrapping="CLAMP_TO_EDGE"
 	 forced-internal-format="R11F_G11F_B10F"
 	 aniso="2.0" />
-<!-- Fonts -->
-<font id="obelix"
-      file="res/fonts/obelix.ttf"
-      size="16" dpi="96" />
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
@@ -72,21 +49,6 @@
     <set mode="constant" value="0.0,0.0,0.0" index="0" />
   </input>
 </mesh>
-<mesh id="logo-widget"
-      type="rectangle"
-      lod="0"
-      rotation="1.57,0.0,0.0"
-      scaling="90.0,1.0,23.0"
-      texco-scaling="-1.0,1.0"
-      use-normal="0"
-      use-texco="1"
-      use-tangent="0"
-      center="0" />
-<mesh id="fps-widget"
-      type="text"
-      font="obelix"
-      text="0 FPS"
-      text-color="0.97,0.86,0.77,0.95" />
   
 <!--**************************-->
 <!--**************************-->
@@ -95,7 +57,7 @@
   <node id="geometry-pass">
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,2,3" />
+    <fbo id="g-buffer-float" draw-buffers="0,2,3" />
     
     <node id="sphere-node" >
       <transform />
@@ -113,11 +75,11 @@
     </node>
   </node>
   <view id="Scene -- Sphere">
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    <blit src-fbo="g-buffer-float" src-attachment="0" dst-fbo="SCREEN" />
   </view>
   
   <node>
-    <fbo id="g-buffer" draw-buffers="0" />
+    <fbo id="g-buffer-float" draw-buffers="0" />
     <depth test="1" write="0" />
     
     <!-- Render background (sky,...) -->
@@ -130,7 +92,7 @@
     </node>
   </node>
   <view id="Scene -- Background">
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    <blit src-fbo="g-buffer-float" src-attachment="0" dst-fbo="SCREEN" />
   </view>
 </node>
 
@@ -144,7 +106,7 @@
     <input type="int" name="numBlurPixels" value="10" />
     <input type="float" name="blurSigma" value="2.5" />
     
-    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
+    <filter-sequence id="blurred-scene" fbo="g-buffer-float" attachment="0" >
       <filter shader="regen.filter.sampling" scale="0.5" />
       <filter shader="regen.filter.blur.horizontal" />
       <filter shader="regen.filter.blur.vertical" />
@@ -154,8 +116,8 @@
   <node id="tonemap">
     <define key="USE_RADIAL_BLUR" value="TRUE" />
     <define key="USE_VIGNETTE" value="TRUE" />
-    <fbo id="g-buffer" draw-buffers="1" />
-    <texture name="inputTexture" fbo="g-buffer" attachment="0" />
+    <fbo id="g-buffer-float" draw-buffers="1" />
+    <texture name="inputTexture" fbo="g-buffer-float" attachment="0" />
     <texture name="blurTexture" id="blurred-scene" />
     
     <input type="float" name="blurAmount" value="0.5" />
@@ -172,48 +134,26 @@
   </node>
   
   <view id="Scene -- Tonemap">
-    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    <blit src-fbo="g-buffer-float" src-attachment="1" dst-fbo="SCREEN" />
   </view>
 </node>
 
 <!--**************************-->
 <!--**************************-->
 
-<node id="gui-pass">
-  <blend mode="alpha" />
-  <depth test="0" write="0" />
-  <fbo id="g-buffer" draw-buffers="1" />
-  
-  <node id="logo-widget">
-    <transform>
-      <translate value="8.0,-8.0,0.0" />
-    </transform>
-    <material alpha="0.7" />
-    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
-    <define key="INVERT_Y" value="TRUE" />
-    <define key="INVERT_X" value="FALSE" />
-    <mesh id="logo-widget" shader="regen.gui.widget" />
-  </node>
-  
-  <node id="fps-widget">
-    <transform>
-      <translate value="8.0,8.0,0.0" />
-    </transform>
-    <mesh id="fps-widget" />
-  </node>
-</node>
-
-<!--**************************-->
-<!--**************************-->
-
 <node id="root">
-  <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
+  <fbo id="g-buffer-float" clear-buffers="0,1,2,3" clear-depth="1" />
   <camera id="main-camera" />
   
   <node import="main-pass" />
   <node import="post-pass" />
-  <node import="gui-pass" />
+  
+  <node id="GUI">
+    <fbo id="g-buffer-float" draw-buffers="1" />
+    <node import="gui-pass" />
+  </node>
+  
   <view id="Scene -- Result">
-    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    <blit src-fbo="g-buffer-float" src-attachment="1" dst-fbo="SCREEN" />
   </view>
 </node>

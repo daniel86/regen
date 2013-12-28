@@ -1,25 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<include xml-file="scene-display/examples/default.xml" />
+
 <!-- Framebuffer Objects -->
-<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
 <fbo id="reflection-buffer" size-mode="rel" size="0.75,0.75" >
   <texture id="diffuse0"
 	   pixel-type="UNSIGNED_BYTE"
@@ -49,17 +32,12 @@
 	 sampler-type="sampler2DShadow" />
 </fbo>
 <!-- Textures -->
-<texture id="regen-logo" file="res/logo.png" />
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
 <texture id="ground-height" file="res/textures/brick/height.jpg" />
 <texture id="reflector-noise" noise="perlin" size="128.0,128.0,1.0"
 	 baseFrequency="4.0" persistence= "0.5" lacunarity="2.5" octaveCount="4"
          swizzle-g="RED" swizzle-b="RED" />
-<!-- Fonts -->
-<font id="obelix"
-      file="res/fonts/obelix.ttf"
-      size="16" dpi="96" />
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
@@ -113,15 +91,7 @@
   <anim-range name="idle1"       range="292.0,325.0" />
   <anim-range name="idle2"       range="327.0,360.0" />
 </asset>
-<!-- Some meshes. -->
-<mesh id="earth-sky"
-      type="sky"
-      lod="4"
-      preset="earth"
-      day-length="0.8"
-      max-elevation="20.0"
-      min-elevation="-20.0"
-      day-time="0.5" />
+<!-- Meshes -->
 <mesh id="ground-mesh"
       type="rectangle"
       lod="4"
@@ -160,31 +130,6 @@
   <transform>
     <rotate value="3.14,0.0,0.0" />
     <translate value="0.0,-2.0,0.0" />
-  </transform>
-</mesh>
-<mesh id="logo-widget"
-      type="rectangle"
-      lod="0"
-      rotation="1.57,0.0,0.0"
-      scaling="90.0,1.0,23.0"
-      texco-scaling="-1.0,1.0"
-      use-normal="0"
-      use-texco="1"
-      use-tangent="0"
-      center="0">
-  <define key="INVERT_Y" value="TRUE" />
-  <define key="INVERT_X" value="FALSE" />
-  <transform>
-    <translate value="8.0,-8.0,0.0" />
-  </transform>
-</mesh>
-<mesh id="fps-widget"
-      type="text"
-      font="obelix"
-      text="0 FPS"
-      text-color="0.97,0.86,0.77,0.95">
-  <transform>
-    <translate value="8.0,8.0,0.0" />
   </transform>
 </mesh>
 
@@ -475,25 +420,6 @@
 <!--**************************-->
 <!--**************************-->
 
-<node id="gui-pass">
-  <blend mode="alpha" />
-  <depth test="0" write="0" />
-  <fbo id="g-buffer" draw-buffers="0" />
-  
-  <node id="logo-widget">
-    <material alpha="0.7" />
-    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
-    <mesh id="logo-widget" shader="regen.gui.widget" />
-  </node>
-  
-  <node id="fps-widget">
-    <mesh id="fps-widget" />
-  </node>
-</node>
-
-<!--**************************-->
-<!--**************************-->
-
 <node id="root">
   <node id="pre-render">
     <node import="reflection-pass" />
@@ -503,7 +429,11 @@
   <node id="render">
     <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
     <node import="main-pass" />
-    <node import="gui-pass" />
+    
+    <node id="GUI">
+      <fbo id="g-buffer" draw-buffers="0" />
+      <node import="gui-pass" />
+    </node>
     
     <view id="Scene -- Result">
       <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />

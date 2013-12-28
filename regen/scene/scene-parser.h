@@ -57,6 +57,14 @@ namespace scene {
   };
 
   /**
+   * Try to find a valid absolute path for given
+   * relative path.
+   * @param relPath Relative path.
+   * @return Absolute path.
+   */
+  string getResourcePath(const string &relPath);
+
+  /**
    * Allows processing of input resources.
    * Input resources can define resources and a scene graph
    * that references the resources.

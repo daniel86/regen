@@ -28,28 +28,6 @@ namespace scene {
   {
   public:
     /**
-     * Try to find a valid absolute path for given
-     * relative path.
-     * @param relPath Relative path.
-     * @return Absolute path.
-     */
-    static string getResourcePath(const string &relPath)
-    {
-      PathChoice texPaths;
-      texPaths.choices_.push_back(filesystemPath(
-          ".", relPath));
-      texPaths.choices_.push_back(filesystemPath(
-          REGEN_SOURCE_DIR, relPath));
-      texPaths.choices_.push_back(filesystemPath(filesystemPath(
-          REGEN_SOURCE_DIR, "regen"), relPath));
-      texPaths.choices_.push_back(filesystemPath(filesystemPath(
-          REGEN_SOURCE_DIR, "applications"), relPath));
-      texPaths.choices_.push_back(filesystemPath(filesystemPath(
-          REGEN_INSTALL_PREFIX, "share"), relPath));
-      return texPaths.firstValidPath();
-    }
-
-    /**
      * Default constructor.
      * @param category The resource category.
      */

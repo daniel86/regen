@@ -6,6 +6,7 @@
  */
 
 #include "scene-input-xml.h"
+#include "resources.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -70,7 +71,29 @@ const list< ref_ptr<SceneInputNode> >& SceneInputNodeXML::getChildren()
   if(xmlNode_!=NULL && children_.empty()) {
     for(rapidxml::xml_node<> *n=xmlNode_->first_node(); n!=NULL; n= n->next_sibling())
     {
-      children_.push_back(ref_ptr<SceneInputNodeXML>::alloc(this,n));
+      string category(n->name());
+      // Handle include nodes.
+      if(category == "include") {
+        rapidxml::xml_attribute<> *a = n->first_attribute("xml-file");
+        if(a!=NULL) {
+          string fileName(a->value());
+          string filePath = getResourcePath(fileName);
+
+          ref_ptr<SceneInputXML> included =
+              ref_ptr<SceneInputXML>::alloc(filePath);
+          inclusions_.push_back(included);
+
+          const list< ref_ptr<SceneInputNode> > &x = included->getRoot()->getChildren();
+          children_.insert(children_.end(), x.begin(), x.end());
+        }
+        else {
+          REGEN_WARN("Unable to include XML file. Missing 'xml-file' attribute.");
+        }
+      }
+      // Handle other nodes.
+      else {
+        children_.push_back(ref_ptr<SceneInputNodeXML>::alloc(this,n));
+      }
     }
   }
   return children_;
