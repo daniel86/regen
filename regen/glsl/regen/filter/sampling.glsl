@@ -139,6 +139,7 @@ void main() {
     else {                               // -Z face
       layer = 5;
       texcoY = 1.0-texcoY;
+      texcoX = 1.0-texcoX;
     }
     out_color = texture(in_cubeTexture,
 	computeCubeDirection(2.0*vec2(texcoX,texcoY) - vec2(1.0),layer));
@@ -150,14 +151,13 @@ void main() {
     if(diffX <= 0) {
       // -X face
       texcoX = (diffX + 1.5*size)/size;
-      layer = 0;
+      layer = 1;
     }
     else {
       // +X face
       texcoX = (diffX - 0.5*size)/size;
-      layer = 1;
+      layer = 0;
     }
-    texcoX = 1.0 - texcoX;
     out_color = texture(in_cubeTexture,
 	computeCubeDirection(2.0*vec2(texcoX,texcoY) - vec2(1.0),layer));
   }
