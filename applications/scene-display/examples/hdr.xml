@@ -103,12 +103,12 @@
       <texture id="hdr-texture"
 	       map-to="COLOR"
 	       blend-mode="SRC"
-	       mapping="REFRACTION" />
+	       mapping="CUBE_REFRACTION" />
       <texture id="hdr-texture"
 	       map-to="COLOR"
 	       blend-mode="MIX"
 	       blend-factor="0.35"
-	       mapping="REFLECTION" />
+	       mapping="CUBE_REFLECTION" />
       <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
     </node>
   </node>

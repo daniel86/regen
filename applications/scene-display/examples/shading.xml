@@ -332,7 +332,7 @@
   <texture fbo="cube-reflection-buffer" attachment="1"
 	   map-to="COLOR"
 	   blend-mode="SRC"
-	   mapping="REFLECTION" />
+	   mapping="CUBE_REFLECTION" />
   
   <mesh id="sphere-mesh1" shader="regen.models.mesh" />
 </node>
