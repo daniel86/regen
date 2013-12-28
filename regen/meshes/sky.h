@@ -22,6 +22,9 @@ namespace regen {
   class SkyBox : public Box, public HasShader
   {
   public:
+    /**
+     * @param levelOfDetail LoD for Box mesh.
+     */
     SkyBox(GLuint levelOfDetail=0);
 
     /**

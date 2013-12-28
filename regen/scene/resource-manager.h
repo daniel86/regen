@@ -102,6 +102,11 @@ namespace scene {
      */
     void putAsset(const std::string &id, const ref_ptr<AssetImporter> &asset);
 
+    /**
+     * Load all resources with given id.
+     * @param parser the SceneParser instance.
+     * @param id resource id.
+     */
     void loadResources(SceneParser *parser, const std::string &id);
 
   protected:

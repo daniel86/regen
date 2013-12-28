@@ -47,7 +47,10 @@ namespace scene {
         const ref_ptr<State> &state)
     {
       if(input.getName()=="SCREEN") {
-        ref_ptr<ScreenState> screenState = ref_ptr<ScreenState>::alloc(parser->getViewport());
+        GLenum drawBuffer = glenum::drawBuffer(
+            input.getValue<string>("draw-buffer","FRONT"));
+        ref_ptr<ScreenState> screenState =
+            ref_ptr<ScreenState>::alloc(parser->getViewport(),drawBuffer);
 
         state->joinStates(screenState);
       }

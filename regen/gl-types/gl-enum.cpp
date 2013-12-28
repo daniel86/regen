@@ -206,6 +206,16 @@ GLenum glenum::fillMode(const string &val_)
   return GL_FILL;
 }
 
+GLenum glenum::drawBuffer(const string &val_)
+{
+  std::string val = getValue(val_);
+  if(val == "FRONT")               return GL_FRONT;
+  else if(val == "BACK")           return GL_BACK;
+  else if(val == "FRONT_AND_BACK") return GL_FRONT_AND_BACK;
+  REGEN_WARN("Unknown draw buffer '" << val_ << "'. Using default GL_FRONT.");
+  return GL_FILL;
+}
+
 GLenum glenum::primitive(const string &val_)
 {
   std::string val = getValue(val_);

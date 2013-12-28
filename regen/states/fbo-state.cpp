@@ -124,10 +124,12 @@ const ref_ptr<FBO>& FBOState::fbo()
 ///////////////
 ///////////////
 
-// TODO: allow manipulating read/draw buffer ?
-ScreenState::ScreenState(const ref_ptr<ShaderInput2i> &windowViewport)
+ScreenState::ScreenState(
+    const ref_ptr<ShaderInput2i> &windowViewport,
+    GLenum screenBuffer)
 : State(),
-  windowViewport_(windowViewport)
+  windowViewport_(windowViewport),
+  drawBuffer_(screenBuffer)
 {
   glViewport_ = Vec4ui(0u);
 
@@ -150,6 +152,7 @@ void ScreenState::enable(RenderState *state)
       Vec2f(1.0/(GLfloat)winViewport.x, 1.0/(GLfloat)winViewport.y));
 
   state->drawFrameBuffer().push(0);
+  FBO::screen().drawBuffer_.push(drawBuffer_);
   state->viewport().push(glViewport_);
   State::enable(state);
 }
@@ -158,5 +161,6 @@ void ScreenState::disable(RenderState *state)
 {
   State::disable(state);
   state->viewport().pop();
+  FBO::screen().drawBuffer_.pop();
   state->drawFrameBuffer().pop();
 }
