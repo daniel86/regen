@@ -79,6 +79,22 @@ namespace regen {
     ref_ptr<ClearColorState> clearColorCallable_;
     ref_ptr<State> drawBufferCallable_;
   };
+
+  class ScreenState : public State
+  {
+  public:
+    ScreenState(const ref_ptr<ShaderInput2i> &windowViewport);
+
+    // override
+    void enable(RenderState*);
+    void disable(RenderState*);
+
+  protected:
+    ref_ptr<ShaderInput2i> windowViewport_;
+    ref_ptr<ShaderInput2f> viewport_;
+    ref_ptr<ShaderInput2f> inverseViewport_;
+    Vec4ui glViewport_;
+  };
 } // namespace
 
 #endif /* __FBO_STATE_H_ */

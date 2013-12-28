@@ -44,16 +44,18 @@ ParaboloidCamera::ParaboloidCamera(
   projInv_->setVertex(0, Mat4f::identity());
 
   // Initialize directions.
-  // For now plane between paraboloids is in xy-plane.
   direction_->set_elementCount(numLayer);
   direction_->setUniformDataUntyped(NULL);
   direction_->setVertex(0, Vec3f(0.0,0.0, 1.0));
-  direction_->setVertex(1, Vec3f(0.0,0.0,-1.0));
+  if(hasBackFace_)
+    direction_->setVertex(1, Vec3f(0.0,0.0,-1.0));
 
   modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
   pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
+  nor_ = ref_ptr<ShaderInput3f>::upCast(mesh->normals());
   matrixStamp_ = 0;
   positionStamp_ = 0;
+  normalStamp_ = 0;
 
   // initially update shadow maps
   update();
@@ -62,8 +64,11 @@ ParaboloidCamera::ParaboloidCamera(
 void ParaboloidCamera::update()
 {
   GLuint positionStamp = (pos_.get() == NULL ? 1 : pos_->stamp());
+  GLuint normalStamp = (nor_.get() == NULL ? 1 : nor_->stamp());
   GLuint matrixStamp = (modelMatrix_.get() == NULL ? 1 : modelMatrix_->stamp());
-  if(positionStamp_ == positionStamp && matrixStamp_ == matrixStamp)
+  if(positionStamp_ == positionStamp &&
+     normalStamp_ == normalStamp &&
+     matrixStamp_ == matrixStamp)
   { return; }
 
   // Compute cube center position.
@@ -72,6 +77,15 @@ void ParaboloidCamera::update()
     pos = modelMatrix_->getVertex(0).transpose().transformVector(pos);
   }
   position_->setVertex(0,pos);
+
+  if(nor_.get() != NULL) {
+    Vec3f dir = nor_->getVertex(0);
+    if(modelMatrix_.get() != NULL) {
+      dir = modelMatrix_->getVertex(0).transpose().rotateVector(dir);
+    }
+    direction_->setVertex(0, -dir);
+    if(hasBackFace_) direction_->setVertex(1,dir);
+  }
 
   // Update view matrices
   for(int i=0; i<1+hasBackFace_; ++i) {
@@ -84,6 +98,7 @@ void ParaboloidCamera::update()
   }
 
   positionStamp_ = positionStamp;
+  normalStamp_ = normalStamp;
   matrixStamp_ = matrixStamp;
 }
 

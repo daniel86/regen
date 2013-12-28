@@ -263,44 +263,6 @@ namespace scene {
                 << "in input node " << input.getDescription() << "'.");
           }
         }
-        else if(pos.get()!=NULL) {
-          btIndexedMesh btMesh;
-          btMesh.m_numVertices = pos->numVertices();
-          btMesh.m_vertexStride = pos->elementSize();
-
-          switch(mesh->primitive()) {
-          case GL_TRIANGLES:
-            btMesh.m_triangleIndexStride = 3*pos->elementSize();
-            btMesh.m_numTriangles = pos->numVertices()/3;
-            break;
-          case GL_TRIANGLE_STRIP:
-            btMesh.m_triangleIndexStride = 1*pos->elementSize();
-            btMesh.m_numTriangles = pos->numVertices()-2;
-            break;
-          default:
-            btMesh.m_numTriangles = -1;
-            btMesh.m_triangleIndexStride = -1;
-            break;
-          }
-
-          if(btMesh.m_numTriangles>0) {
-            if(!pos->hasClientData()) pos->readServerData();
-            btMesh.m_vertexBase        = pos->clientData();
-            btMesh.m_triangleIndexBase = NULL;
-
-            const bool useQuantizedAabbCompression = true;
-
-            btTriangleIndexVertexArray *btMeshIface = new btTriangleIndexVertexArray;
-            btMeshIface->addIndexedMesh(btMesh);
-            ref_ptr<btBvhTriangleMeshShape> shape =
-                ref_ptr<btBvhTriangleMeshShape>::alloc(btMeshIface,useQuantizedAabbCompression);
-            props = ref_ptr<PhysicalProps>::alloc(motion, shape);
-          }
-          else {
-            REGEN_WARN("Unsupported primitive for btTriangleIndexVertexArray "
-                << "in input node " << input.getDescription() << "'.");
-          }
-        }
         // TODO: support meshes without index buffer..
         /*
         else if(pos.get()!=NULL) {

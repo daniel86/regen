@@ -37,9 +37,11 @@ namespace regen {
     ref_ptr<Camera> userCamera_;
     ref_ptr<ShaderInputMat4> modelMatrix_;
     ref_ptr<ShaderInput3f> pos_;
+    ref_ptr<ShaderInput3f> nor_;
     GLboolean hasBackFace_;
 
     GLuint positionStamp_;
+    GLuint normalStamp_;
     GLuint matrixStamp_;
 
     void update();

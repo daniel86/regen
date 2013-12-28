@@ -14,7 +14,7 @@
 
 namespace regen {
 
-Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal)
+Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal)
 {
   Vec3f tangent, binormal;
   // calculate vertex and uv edges

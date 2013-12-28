@@ -39,52 +39,6 @@
 	   pixel-components="4" />
   <depth id="depth" pixel-size="24" />
 </fbo>
-<fbo id="paraboloid-reflection-buffer"
-     size-mode="abs" size="512,512,2"
-     wrapping="CLAMP_TO_EDGE"
-     target="TEXTURE_2D_ARRAY"
-     sampler-type="sampler2DArray">
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-<fbo id="cube-reflection-buffer"
-     size-mode="abs" size="256,256,6"
-     wrapping="REPEAT"
-     target="TEXTURE_CUBE_MAP"
-     sampler-type="samplerCube">
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
 
 <fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
   <depth id="depth" pixel-size="24" pixel-type="FLOAT"
@@ -109,21 +63,14 @@
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
-	position="20.0,2.5,0.0"
-	direction="-1.0,0.0,0.0" />
-<camera id="reflection-camera"
-	camera="main-camera"
-	reflector="reflector-mesh"
-	has-back-face="1" />
+	position="10.0,2.5,20.0"
+	direction="-1.0,0.0,-1.0" />
 <camera id="spot-camera"
 	light="spot-light"
 	camera="main-camera" />
-<camera id="cube-camera"
+<camera id="reflection-camera"
 	camera="main-camera"
-	cube-mesh="sprite-sphere-cube" />
-<camera id="paraboloid-camera"
-	camera="main-camera"
-	paraboloid-mesh="sprite-sphere-paraboloid"
+	reflector="reflector-mesh"
 	has-back-face="1" />
 <!-- Lights -->
 <light id="spot-light"
@@ -215,36 +162,6 @@
     <translate value="0.0,-2.0,0.0" />
   </transform>
 </mesh>
-<mesh id="sprite-sphere-paraboloid"
-      type="mesh"
-      primitive="POINTS"
-      usage="STATIC"
-      num-vertices="1" >
-  <input type="float" name="sphereRadius" is-attribute="1">
-    <set mode="constant" value="4.5" index="0" />
-  </input>
-  <input type="vec3" name="pos" is-attribute="1">
-    <set mode="constant" value="0.0,0.0,0.0" index="0" />
-  </input>
-  <transform>
-    <translate value="0.0,4.75,-12.0" />
-  </tranform>
-</mesh>
-<mesh id="sprite-sphere-cube"
-      type="mesh"
-      primitive="POINTS"
-      usage="STATIC"
-      num-vertices="1" >
-  <input type="float" name="sphereRadius" is-attribute="1">
-    <set mode="constant" value="4.5" index="0" />
-  </input>
-  <input type="vec3" name="pos" is-attribute="1">
-    <set mode="constant" value="0.0,0.0,0.0" index="0" />
-  </input>
-  <transform>
-    <translate value="0.0,4.75,12.0" />
-  </tranform>
-</mesh>
 <mesh id="logo-widget"
       type="rectangle"
       lod="0"
@@ -269,19 +186,6 @@
   <transform>
     <translate value="8.0,8.0,0.0" />
   </transform>
-</mesh>
-<mesh id="debug-widget"
-      type="rectangle"
-      lod="0"
-      rotation="1.57,0.0,3.1415"
-      scaling="200.0,1.0,200.0"
-      texco-scaling="1.0,1.0"
-      use-normal="0"
-      use-texco="1"
-      use-tangent="0"
-      center="0">
-  <define key="INVERT_Y" value="TRUE" />
-  <define key="INVERT_X" value="TRUE" />
 </mesh>
 
 <mesh id="box-wall"
@@ -327,8 +231,6 @@
       <node import="shading-pass" />
     </node>
     <node import="background-pass" />
-    <node import="paraboloid-reflector" />
-    <node import="cube-reflector" />
   </node>
   
   <node>
@@ -344,82 +246,6 @@
   <view id="Planar Reflection -- Result">
     <blit src-fbo="reflection-buffer" src-attachment="1" dst-fbo="SCREEN" />
   </view>
-</node>
-
-<node id="paraboloid-reflection-pass">
-  <camera id="paraboloid-camera" />
-  <fbo id="paraboloid-reflection-buffer"
-       clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node>
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,2,3" />
-    
-    <node import="shadow-caster" />
-    <node import="scene-geometry" />
-  </node>
-  
-  <node>
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="paraboloid-reflection-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="paraboloid-reflection-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="paraboloid-reflection-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="paraboloid-reflection-buffer" attachment="3" />
-      <node import="shading-pass" />
-    </node>
-    <node import="background-pass" />
-    <node import="planar-reflector" />
-    <node import="cube-reflector" />
-  </node>
-  <node>
-    <depth test="0" write="0" />
-    <node id="volume-fog">
-      <fbo id="paraboloid-reflection-buffer" draw-buffers="1" />
-      <blend mode="add" />
-      <texture name="gDepthTexture" fbo="paraboloid-reflection-buffer" attachment="depth" />
-      <node import="volumetric-fog-pass" />
-    </node>
-  </node>
-</node>
-
-<node id="cube-reflection-pass">
-  <camera id="cube-camera" />
-  <fbo id="cube-reflection-buffer"
-       clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node>
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="cube-reflection-buffer" draw-buffers="0,2,3" />
-    
-    <node import="shadow-caster" />
-    <node import="scene-geometry" />
-  </node>
-  
-  <node>
-    <fbo id="cube-reflection-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="cube-reflection-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="cube-reflection-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="cube-reflection-buffer" attachment="3" />
-      <node import="shading-pass" />
-    </node>
-    <node import="background-pass" />
-    <node import="planar-reflector" />
-    <node import="paraboloid-reflector" />
-  </node>
-  <node>
-    <depth test="0" write="0" />
-    <node id="volume-fog">
-      <fbo id="cube-reflection-buffer" draw-buffers="1" />
-      <blend mode="add" />
-      <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth" />
-      <node import="volumetric-fog-pass" />
-    </node>
-  </node>
 </node>
 
 <node id="shadow-pass">
@@ -473,9 +299,8 @@
     <view id="Scene -- Sky">
       <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
     </view>
+    
     <node import="planar-reflector" />
-    <node import="paraboloid-reflector" />
-    <node import="cube-reflector" />
     <view id="Scene -- Reflections">
       <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
     </view>
@@ -485,37 +310,16 @@
 </node>
 
 <node id="planar-reflector">
-  <node id="reflector">
-    <toggle key="CULL_FACE" value="0" />
-    <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
-    <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
-	     map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1" />
-    <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL" />
-    <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
-    <define key="SHADING" value="NONE" />
-    <mesh id="reflector-mesh" shader="regen.models.mesh" />
-  </node>
-</node>
-
-<node id="paraboloid-reflector">
-  <node id="paraboloid-reflector" >
-    <material preset="chrome" />
-    <define key="IS_PARABOLOID_DUAL" value="TRUE" />
-    <texture fbo="paraboloid-reflection-buffer" attachment="1"
-	     map-to="COLOR" blend-mode="SRC" mapping="PARABOLOID_REFLECTION" />
-    <define key="SHADING" value="NONE" />
-    <mesh id="sprite-sphere-paraboloid" shader="regen.models.sprite-sphere" />
-  </node>
-</node>
-
-<node id="cube-reflector">
-  <node id="cube-reflector" >
-    <material preset="chrome" />
-    <texture fbo="cube-reflection-buffer" attachment="1"
-	     map-to="COLOR" blend-mode="SRC" mapping="REFLECTION" />
-    <define key="SHADING" value="NONE" />
-    <mesh id="sprite-sphere-cube" shader="regen.models.sprite-sphere" />
-  </node>
+  <toggle key="CULL_FACE" value="0" />
+  <define key="SHADING" value="NONE" />
+  
+  <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
+  <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
+	   map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1" />
+  <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL" />
+  <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
+  
+  <mesh id="reflector-mesh" shader="regen.models.mesh" />
 </node>
 
 <node id="shadow-caster">
@@ -681,33 +485,6 @@
     <texture id="regen-logo" map-to="COLOR" blend="SRC" />
     <mesh id="logo-widget" shader="regen.gui.widget" />
   </node>
-  <!--
-  <node id="debug-widget">
-    <material alpha="1.0" />
-    <texture fbo="reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
-    <mesh id="debug-widget" shader="regen.gui.widget" />
-  </node>
-  <node id="debug-widget0">
-    <define key="UV_TO_ARRAY_TEXCO" value="TRUE" />
-    <material alpha="1.0" />
-    <transform>
-      <translate value="0.0,-400.0,0.0" />
-    </transform>
-    <input type="float" name="arrayLayer" value="1.0" />
-    <texture fbo="paraboloid-reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
-    <mesh id="debug-widget" shader="regen.gui.widget" />
-  </node>
-  <node id="debug-widget1">
-    <define key="UV_TO_ARRAY_TEXCO" value="TRUE" />
-    <material alpha="1.0" />
-    <transform>
-      <translate value="0.0,-800.0,0.0" />
-    </transform>
-    <input type="float" name="arrayLayer" value="0.0" />
-    <texture fbo="paraboloid-reflection-buffer" attachment="1" map-to="COLOR" blend="SRC" ignore-alpha="1" />
-    <mesh id="debug-widget" shader="regen.gui.widget" />
-  </node>
-  -->
   
   <node id="fps-widget">
     <mesh id="fps-widget" />
@@ -720,8 +497,6 @@
 <node id="root">
   <node id="pre-render">
     <node import="reflection-pass" />
-    <node import="paraboloid-reflection-pass" />
-    <node import="cube-reflection-pass" />
     <node import="shadow-pass" />
   </node>
   
