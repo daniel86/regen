@@ -1,0 +1,97 @@
+
+<!-- Framebuffer Objects -->
+<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse0"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="diffuse1"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+<fbo id="g-buffer-float" size-mode="rel" size="1.0,1.0" >
+  <texture id="diffuse0"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="3" />
+  <texture id="diffuse1"
+	   pixel-type="FLOAT"
+	   pixel-size="16"
+	   pixel-components="3" />
+  <texture id="specular"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <texture id="normal"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-size="16"
+	   pixel-components="4" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+
+<!-- Textures -->
+<texture id="regen-logo" file="res/logo.png" />
+
+<!-- Fonts -->
+<font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96" />
+
+<!-- Meshes -->
+<mesh id="earth-sky"
+      type="sky"
+      lod="4"
+      preset="earth"
+      day-length="0.8"
+      max-elevation="20.0"
+      min-elevation="-20.0"
+      day-time="0.5" />
+<mesh id="logo-widget"
+      type="rectangle"
+      lod="0"
+      rotation="1.57,0.0,0.0"
+      scaling="90.0,1.0,23.0"
+      texco-scaling="-1.0,1.0"
+      use-normal="0"
+      use-texco="1"
+      use-tangent="0"
+      center="0">
+  <define key="INVERT_Y" value="TRUE" />
+  <define key="INVERT_X" value="FALSE" />
+  <transform>
+    <translate value="8.0,-8.0,0.0" />
+  </transform>
+</mesh>
+<mesh id="fps-widget"
+      type="text"
+      font="obelix"
+      text="0 FPS"
+      text-color="0.97,0.86,0.77,0.95">
+  <transform>
+    <translate value="8.0,8.0,0.0" />
+  </transform>
+</mesh>
+
+<!-- Rendering of GUI widgets -->
+<node id="gui-pass">
+  <blend mode="alpha" />
+  <depth test="0" write="0" />
+  
+  <node id="logo-widget">
+    <material alpha="0.7" />
+    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
+    <mesh id="logo-widget" shader="regen.gui.widget" />
+  </node>
+  
+  <node id="fps-widget">
+    <mesh id="fps-widget" />
+  </node>
+</node>

@@ -65,6 +65,7 @@ namespace scene {
     rapidxml::xml_node<> *xmlNode_;
     list< ref_ptr<SceneInputNode> > children_;
     map<string,string> attributes_;
+    list< ref_ptr<SceneInputXML> > inclusions_;
 
     string category_;
     string name_;
