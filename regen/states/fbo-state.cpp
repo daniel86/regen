@@ -120,3 +120,43 @@ void FBOState::resize(GLuint width, GLuint height)
 
 const ref_ptr<FBO>& FBOState::fbo()
 { return fbo_; }
+
+///////////////
+///////////////
+
+// TODO: allow manipulating read/draw buffer ?
+ScreenState::ScreenState(const ref_ptr<ShaderInput2i> &windowViewport)
+: State(),
+  windowViewport_(windowViewport)
+{
+  glViewport_ = Vec4ui(0u);
+
+  viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
+  viewport_->setUniformData(Vec2f(0.0f));
+  joinShaderInput(viewport_);
+
+  inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
+  inverseViewport_->setUniformData(Vec2f(0.0f));
+  joinShaderInput(inverseViewport_);
+}
+
+void ScreenState::enable(RenderState *state)
+{
+  const Vec2i winViewport = windowViewport_->getVertex(0);
+  glViewport_.z = winViewport.x;
+  glViewport_.w = winViewport.y;
+  viewport_->setVertex(0, Vec2f(winViewport.x, winViewport.y));
+  inverseViewport_->setUniformData(
+      Vec2f(1.0/(GLfloat)winViewport.x, 1.0/(GLfloat)winViewport.y));
+
+  state->drawFrameBuffer().push(0);
+  state->viewport().push(glViewport_);
+  State::enable(state);
+}
+
+void ScreenState::disable(RenderState *state)
+{
+  State::disable(state);
+  state->viewport().pop();
+  state->drawFrameBuffer().pop();
+}

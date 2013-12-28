@@ -434,26 +434,77 @@ vec3 texco_refraction(vec3 P, vec3 N)
 #define2 __TEXCO_REFL__
 vec3 texco_reflection(vec3 P, vec3 N)
 {
-    vec3 incident = normalize(P - in_cameraPosition.xyz );
-    return reflect(incident.xyz, N);
+  vec3 incident = normalize(P - in_cameraPosition.xyz );
+  return reflect(incident.xyz, N);
 }
 #endif
 
 -- texco_paraboloid_reflection
 #ifndef __TEXCO_PARABOLOID_REFL__
 #define2 __TEXCO_PARABOLOID_REFL__
+
+#ifdef IS_PARABOLOID_DUAL
 vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
+#else
+vec2 texco_paraboloid_reflection(vec3 P, vec3 N)
+#endif
 {
-    vec3 incident = normalize(P - in_cameraPosition.xyz);
-    vec3 R = reflect(incident, N);
-    float layer = float(R.z>0.0);
+#ifdef IS_PARABOLOID_DUAL
+  vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
+  vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
+#else
+  vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
+  vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
+#endif
+  vec3 R = normalize( reflect(P_, N_) );
+  float layer = float(R.z>0.0);
     
-    R.z *= -(1.0 - 2.0*layer);
-    R.x *= (1.0 - 2.0*layer);
+  R.z *= (2.0*layer - 1.0);
+  R.x *= (1.0 - 2.0*layer);
+  R.y *= -1.0;
     
-    float k = 1.0/(2.0*(1.0 + R.z));
-    vec2 uv = R.xy*k + vec2(0.5);
-    return vec3(uv,layer);
+  float k = 1.0/(2.0*(1.0 + R.z));
+  vec2 uv = R.xy*k + vec2(0.5);
+#ifdef IS_PARABOLOID_DUAL
+  return vec3(uv,layer);
+#else
+  return uv;
+#endif
+}
+#endif
+
+-- texco_paraboloid_refraction
+#ifndef __TEXCO_PARABOLOID_REFR__
+#define2 __TEXCO_PARABOLOID_REFR__
+
+// TODO: something not working...
+#ifdef IS_PARABOLOID_DUAL
+vec3 texco_paraboloid_refraction(vec3 P, vec3 N)
+#else
+vec2 texco_paraboloid_refraction(vec3 P, vec3 N)
+#endif
+{
+#ifdef IS_PARABOLOID_DUAL
+  vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
+  vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
+#else
+  vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
+  vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
+#endif
+  vec3 R = normalize( refract(P_, N_, in_matRefractionIndex) );
+  float layer = float(R.z>0.0);
+    
+  R.z *= (2.0*layer - 1.0);
+  R.x *= (1.0 - 2.0*layer);
+  R.y *= -1.0;
+    
+  float k = 1.0/(2.0*(1.0 + R.z));
+  vec2 uv = R.xy*k + vec2(0.5);
+#ifdef IS_PARABOLOID_DUAL
+  return vec3(uv,layer);
+#else
+  return uv;
+#endif
 }
 #endif
 

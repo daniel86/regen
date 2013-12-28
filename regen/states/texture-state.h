@@ -70,6 +70,7 @@ namespace regen {
        *  was used to render the reflected scene (proj*view*reflection). */
       MAPPING_PLANAR_REFLECTION,
       MAPPING_PARABOLOID_REFLECTION,
+      MAPPING_PARABOLOID_REFRACTION,
       /** Refraction mapping. */
       MAPPING_REFRACTION,
       /** User defined mapping. */

@@ -46,59 +46,66 @@ namespace scene {
         SceneInputNode &input,
         const ref_ptr<State> &state)
     {
-      ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser,input.getName());
-      if(fbo.get()==NULL) {
-        REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
-        return;
-      }
-      ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
+      if(input.getName()=="SCREEN") {
+        ref_ptr<ScreenState> screenState = ref_ptr<ScreenState>::alloc(parser->getViewport());
 
-      if(input.hasAttribute("clear-depth") &&
-         input.getValue<bool>("clear-depth", true))
-      {
-        fboState->setClearDepth();
+        state->joinStates(screenState);
       }
+      else {
+        ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser,input.getName());
+        if(fbo.get()==NULL) {
+          REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
+          return;
+        }
+        ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 
-      if(input.hasAttribute("clear-buffers")) {
-        vector<string> idVec = getFBOAttachments(input,"clear-buffers");
-        vector<GLenum> buffers(idVec.size());
-        for(GLuint i=0u; i<idVec.size(); ++i) {
-          GLint v;
-          stringstream ss(idVec[i]);
-          ss >> v;
-          buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+        if(input.hasAttribute("clear-depth") &&
+           input.getValue<bool>("clear-depth", true))
+        {
+          fboState->setClearDepth();
         }
 
-        ClearColorState::Data data;
-        data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
-        data.colorBuffers = DrawBuffers(buffers);
-        fboState->setClearColor(data);
-      }
+        if(input.hasAttribute("clear-buffers")) {
+          vector<string> idVec = getFBOAttachments(input,"clear-buffers");
+          vector<GLenum> buffers(idVec.size());
+          for(GLuint i=0u; i<idVec.size(); ++i) {
+            GLint v;
+            stringstream ss(idVec[i]);
+            ss >> v;
+            buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+          }
 
-      if(input.hasAttribute("draw-buffers")) {
-        vector<string> idVec = getFBOAttachments(input,"draw-buffers");
-        vector<GLenum> buffers(idVec.size());
-        for(GLuint i=0u; i<idVec.size(); ++i) {
-          GLint v;
-          stringstream ss(idVec[i]);
-          ss >> v;
-          buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+          ClearColorState::Data data;
+          data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
+          data.colorBuffers = DrawBuffers(buffers);
+          fboState->setClearColor(data);
         }
-        fboState->setDrawBuffers(buffers);
-      }
-      else if(input.hasAttribute("ping-pong-buffers")) {
-        vector<string> idVec = getFBOAttachments(input,"ping-pong-buffers");
-        vector<GLenum> buffers(idVec.size());
-        for(GLuint i=0u; i<idVec.size(); ++i) {
-          GLint v;
-          stringstream ss(idVec[i]);
-          ss >> v;
-          buffers[i] = GL_COLOR_ATTACHMENT0 + v;
-        }
-        fboState->setPingPongBuffers(buffers);
-      }
 
-      state->joinStates(fboState);
+        if(input.hasAttribute("draw-buffers")) {
+          vector<string> idVec = getFBOAttachments(input,"draw-buffers");
+          vector<GLenum> buffers(idVec.size());
+          for(GLuint i=0u; i<idVec.size(); ++i) {
+            GLint v;
+            stringstream ss(idVec[i]);
+            ss >> v;
+            buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+          }
+          fboState->setDrawBuffers(buffers);
+        }
+        else if(input.hasAttribute("ping-pong-buffers")) {
+          vector<string> idVec = getFBOAttachments(input,"ping-pong-buffers");
+          vector<GLenum> buffers(idVec.size());
+          for(GLuint i=0u; i<idVec.size(); ++i) {
+            GLint v;
+            stringstream ss(idVec[i]);
+            ss >> v;
+            buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+          }
+          fboState->setPingPongBuffers(buffers);
+        }
+
+        state->joinStates(fboState);
+      }
     }
   };
 }}

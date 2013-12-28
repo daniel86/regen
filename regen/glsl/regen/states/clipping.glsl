@@ -21,7 +21,8 @@ uniform vec4 in_clipPlane;
 bool isClipped(vec3 posWorld)
 {
 #if RENDER_TARGET == DUAL_PARABOLOID || RENDER_TARGET == PARABOLOID
-  if(in_posEye.z<0.0) return true;
+  // TODO: user specified threshold
+  if(in_posEye.z<-0.1) return true;
 #endif
 #ifdef HAS_clipPlane
   if(dot(posWorld,in_clipPlane.xyz)-in_clipPlane.w<=0.0) return true;

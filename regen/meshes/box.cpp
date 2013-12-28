@@ -87,11 +87,11 @@ Box::Config::Config()
 void Box::updateAttributes(const Config &cfg)
 {
   static const Vec3f cubeNormals[] = {
-      Vec3f(0.0f, 0.0f, 1.0f),  // Front
-      Vec3f(0.0f, 0.0f,-1.0f),  // Back
-      Vec3f(0.0f, 1.0f, 0.0f),  // Top
-      Vec3f(0.0f,-1.0f, 0.0f),  // Bottom
-      Vec3f(1.0f, 0.0f, 0.0f),  // Right
+      Vec3f( 0.0f, 0.0f, 1.0f), // Front
+      Vec3f( 0.0f, 0.0f,-1.0f), // Back
+      Vec3f( 0.0f, 1.0f, 0.0f), // Top
+      Vec3f( 0.0f,-1.0f, 0.0f), // Bottom
+      Vec3f( 1.0f, 0.0f, 0.0f), // Right
       Vec3f(-1.0f, 0.0f, 0.0f)  // Left
   };
   static const TriangleVertex cubeVertices[] = {
@@ -225,8 +225,7 @@ void Box::updateAttributes(const Config &cfg)
       if(cfg.isTangentRequired) {
         Vec3f *vertices = ((Vec3f*)pos_->clientDataPtr())+vertexIndex;
         Vec2f *texcos = ((Vec2f*)texco_->clientDataPtr())+vertexIndex;
-        Vec3f *normals = ((Vec3f*)nor_->clientDataPtr())+vertexIndex;
-        Vec4f tangent = calculateTangent(vertices, texcos, *normals);
+        Vec4f tangent = calculateTangent(vertices, texcos, normal);
         for(GLuint i=0; i<3; ++i) tan_->setVertex(vertexIndex+i, tangent);
       }
     }

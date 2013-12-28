@@ -591,7 +591,7 @@ namespace regen {
   typedef Vec6<GLuint>    Vec6ui;
   typedef Vec6<GLboolean> Vec6b;
 
-  Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, Vec3f &normal);
+  Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal);
 } // namespace
 
 #endif /* ___VECTOR_H_ */

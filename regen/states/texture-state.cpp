@@ -21,6 +21,7 @@ namespace regen {
     case TextureState::MAPPING_REFLECTION:            return out << "reflection";
     case TextureState::MAPPING_PLANAR_REFLECTION:     return out << "planar_reflection";
     case TextureState::MAPPING_PARABOLOID_REFLECTION: return out << "paraboloid_reflection";
+    case TextureState::MAPPING_PARABOLOID_REFRACTION: return out << "paraboloid_refraction";
     case TextureState::MAPPING_REFRACTION:            return out << "refraction";
     case TextureState::MAPPING_CUSTOM:                return out << "custom";
     case TextureState::MAPPING_TEXCO:                 return out << "texco";
@@ -39,6 +40,7 @@ namespace regen {
     else if(val == "reflection")             mode = TextureState::MAPPING_REFLECTION;
     else if(val == "planar_reflection")      mode = TextureState::MAPPING_PLANAR_REFLECTION;
     else if(val == "paraboloid_reflection")  mode = TextureState::MAPPING_PARABOLOID_REFLECTION;
+    else if(val == "paraboloid_refraction")  mode = TextureState::MAPPING_PARABOLOID_REFRACTION;
     else if(val == "refraction")             mode = TextureState::MAPPING_REFRACTION;
     else if(val == "texco")                  mode = TextureState::MAPPING_TEXCO;
     else if(val == "custom")                 mode = TextureState::MAPPING_CUSTOM;
