@@ -22,13 +22,59 @@
   <depth pixel-size="24" />
 </fbo>
 
+<fbo id="back-buffer" size-mode="rel" size="1,1" >
+  <texture id="color" pixel-components="3" />
+</fbo>
+
+<fbo id="back-buffer-float" size-mode="rel" size="1,1"
+     pixel-type="FLOAT" pixel-size="16">
+  <texture id="color" pixel-components="3" />
+</fbo>
+
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
 
 <!-- Fonts -->
 <font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96" />
 
-<!-- Meshes -->
+<!-- Assets -->
+<asset id="dwarf-asset"
+       type="asset"
+       file="res/models/psionic/dwarf/x/dwarf.x"
+       texture-path="res/models/psionic/dwarf/x"
+       use-animation="1"
+       animation-force-states="1"
+       animation-post-state="LINEAR"
+       animation-pre-state="LINEAR"
+       animation-tps="20.0">
+  <!-- Optionally define named animation ranges. -->
+  <anim-range name="complete"    range="0.0,360.0" />
+  <anim-range name="run"         range="16.0,26.0" />
+  <anim-range name="jump"        range="28.0,40.0" />
+  <anim-range name="jumpSpot"    range="42.0,54.0" />
+  <anim-range name="crouch"      range="56.0,59.0" />
+  <anim-range name="crouchLoop"  range="60.0,69.0" />
+  <anim-range name="getUp"       range="70.0,74.0" />
+  <anim-range name="battleIdle1" range="75.0,88.0" />
+  <anim-range name="battleIdle2" range="90.0,110.0" />
+  <anim-range name="attack1"     range="112.0,126.0" />
+  <anim-range name="attack2"     range="128.0,142.0" />
+  <anim-range name="attack3"     range="144.0,160.0" />
+  <anim-range name="attack4"     range="162.0,180.0" />
+  <anim-range name="attack5"     range="182.0,192.0" />
+  <anim-range name="block"       range="194.0,210.0" />
+  <anim-range name="dieFwd"      range="212.0,227.0" />
+  <anim-range name="dieBack"     range="230.0,251.0" />
+  <anim-range name="yes"         range="253.0,272.0" />
+  <anim-range name="no"          range="274.0,290.0" />
+  <anim-range name="idle1"       range="292.0,325.0" />
+  <anim-range name="idle2"       range="327.0,360.0" />
+</asset>
+
+<!--**************************-->
+<!--****** Sky and Sun *******-->
+<!--**************************-->
+
 <mesh id="earth-sky"
       type="sky"
       lod="4"
@@ -37,6 +83,91 @@
       max-elevation="20.0"
       min-elevation="-20.0"
       day-time="0.2" />
+
+<fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 target="TEXTURE_2D_ARRAY"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DArrayShadow" />
+</fbo>
+
+<camera id="sun-camera"
+	light="earth-sky"
+	camera="main-camera"
+	num-layer="3"
+	split-weight="0.9" />
+
+<!--**************************-->
+<!--*** Ambient Occlusion ****-->
+<!--**************************-->
+
+<texture id="random-normal" file="res/textures/random_normals.png" />
+
+<node id="Ambient-Occlusion-Update">
+  <blend mode="src" />
+  <input type="int" name="numBlurPixels" value="3" />
+  <input type="float" name="blurSigma" value="3.0" />
+  <input type="float" name="aoSamplingRadius" value="50.0" />
+  <input type="float" name="aoBias" value="0.28" />
+  <input type="vec2" name="aoAttenuation" value="0.1,0.2" />
+  <texture name="aoNoiseTexture" id="random-normal" />
+    
+  <filter-sequence id="ambient-occlusion"
+		   fbo="g-buffer" attachment="3"
+		   format="RED"
+		   internal-format="R16"
+		   pixel-type="BYTE"
+		   bind-input="0" >
+    <filter shader="regen.shading.ssao" scale="0.5" />
+    <filter shader="regen.filter.blur.horizontal" />
+    <filter shader="regen.filter.blur.vertical" />
+  </filter-sequence>
+</node>
+
+<node id="Ambient-Occlusion-Sample">
+  <blend mode="mul" />
+  <texture name="aoTexture" id="ambient-occlusion" />
+  <fullscreen-pass shader="regen.shading.ssao.sample" />
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="Blurred-Scene">
+  <input type="int" name="numBlurPixels" value="4" />
+  <input type="float" name="blurSigma" value="2.0" />
+    
+  <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
+    <filter shader="regen.filter.sampling" scale="0.5" />
+    <filter shader="regen.filter.blur.horizontal" />
+    <filter shader="regen.filter.blur.vertical" />
+  </filter-sequence>
+</node>
+
+<node id="Depth-of-Field">
+  <fbo id="g-buffer" draw-buffers="0" />
+  <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+  <texture name="blurTexture" id="blurred-scene" />
+  <input type="float" name="focalDistance" value="0.0" />
+  <input type="vec2" name="focalWidth" value="0.7,1.0" />
+  <fullscreen-pass shader="regen.filter.dof" />
+</node>
+
+<node id="Distance-Fog">
+  <blend mode="alpha" />
+  <input type="float" name="fogDensity" value="1.0" />
+  <input type="vec2" name="fogDistance" value="0.0,100.0" />
+  <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
+  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+  <texture name="skyColorTexture" id="earth-sky" />
+  <define key="USE_SKY_COLOR" value="TRUE" />
+    
+  <fullscreen-pass shader="regen.shading.fog.distance" />
+</node>
 
 <node id="FXAA">
   <input type="float" name="spanMax" value="8.0" />

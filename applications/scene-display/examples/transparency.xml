@@ -2,49 +2,17 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
-<!-- Framebuffer Objects -->
-<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
-  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-	 wrapping="REPEAT"
-	 min-filter="NEAREST" mag-filter="NEAREST"
-	 compare-mode="COMPARE_R_TO_TEXTURE"
-	 compare-function="LEQUAL"
-	 sampler-type="sampler2DShadow" />
-  <texture id="color"
-	   pixel-size="16"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-components="4"/>
-</fbo>
-<fbo id="particle-buffer" size-mode="abs" size="256.0,256.0" >
-  <texture id="color"
-	   pixel-type="FLOAT"
-	   pixel-size="16"
-	   pixel-components="4" />
-</fbo>
-<!-- Textures -->
-<texture id="particle-splat" file="res/textures/splats/flare.jpg" />
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
 	position="3.0,0.5,-5.0"
 	direction="-0.5,0.0,1.0" />
-<camera id="spot-camera"
-	light="spot-light"
-	camera="main-camera" />
-<!-- Lights -->
-<light id="spot-light"
-       type="SPOT"
-       position="3.0,8.0,-4.0"
-       direction="-0.37,-0.95,0.46"
-       diffuse="0.58,0.58,0.58"
-       radius="10.0,21.0"
-       cone-angles="11.5,25.5" />
-<!-- Some asset files. Assets can contain lights,materials and meshes. -->
+<!-- Assets -->
 <asset id="venus-asset"
        type="asset"
        file="res/models/venusm.obj"
        use-animation="0" />
-<!-- Some meshes -->
+<!-- Meshes -->
 <mesh id="platform"
       type="box"
       scaling="1.0,100.0,1.0"
@@ -90,77 +58,13 @@
     <translate value="-1.5,-0.1,0.0" />
   </transform>
 </mesh>
-<mesh id="particle-mesh"
-      type="particles"
-      num-vertices="500"
-      update-shader="regen.particles.cloud-emitter"
-      gravity="-4.0,-9.0,0.0"
-      damping-factor="2.0"
-      noise-factor="10.0"
-      max-emits="1">
-  <!-- Add shader defines. -->
-  <define key="CLOUD_POSITION_MODE" value="ABSOLUTE" />
-  <!-- Add shader input. -->
-  <input type="vec2" name="particleMass" value="0.8,0.1" />
-  <input type="vec2" name="particleSize" value="3.0,0.15" />
-  <input type="vec3" name="cloudPosition" value="2.7,6.5,0.0" />
-  <input type="float" name="cloudRadius" value="5.0" />
-  <input type="float" name="surfaceHeight" value="-3.0" />
-  <!-- Add particle attributes. -->
-  <input type="vec3" name="pos" is-attribute="1" />
-  <input type="vec3" name="velocity" is-attribute="1" />
-  <input type="float" name="mass" is-attribute="1" />
-  <input type="float" name="size" is-attribute="1" />
-</mesh>
 
 <!--**************************-->
 <!--**************************-->
 
-<node id="main-pass">
-  <node import="geometry-pass" />
-  
-  <node id="shading-parent">
-    <fbo id="g-buffer" draw-buffers="1" />
-    <node import="shading-pass" />
-    <node import="background-pass" />
-  </node>
-  
-  <node import="transparency-pass" />
-</node>
-
-<node id="geometry-pass">
-  <blend mode="src" />
-  <depth test="1" write="1" />
-  <fbo id="g-buffer" draw-buffers="0,2,3" />
-  <node import="shadow-caster" />
-</node>
-
-<node id="shadow-pass">
-  <cull mode="FRONT" />
-  
-  <node id="spot-shadow-pass">
-    <fbo id="spot-shadow" clear-depth="1" clear-buffers="0" />
-    <camera id="spot-camera" />
-    
-    <node id="black-output">
-      <define key="OUTPUT_TYPE" value="BLACK" />
-      <node import="shadow-caster" />
-    </node>
-    <node id="color-output">
-      <define key="OUTPUT_TYPE" value="COLOR" />
-      <node import="shadow-caster-transparent" />
-    </node>
-  </node>
-</node>
-
-<node id="shading-pass">
+<node id="Shading-Pass">
   <blend mode="add" />
   <depth test="0" write="0" />
-  
-  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-  <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-  <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-  <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
     
   <node>
@@ -176,29 +80,7 @@
   </node>
 </node>
 
-<node id="transparency-pass">
-  <fbo id="g-buffer" draw-buffers="1" />
-  <depth test="1" write="0" />
-  
-  <direct-shading ambient="0.3,0.3,0.3" >
-    <!-- Define lights used for direct shading. -->
-    <direct-lights>
-      <light id="spot-light"
-	     shadow-buffer="spot-shadow"
-	     shadow-attachment="depth"
-	     shadow-color-attachment="0" />
-    </direct-lights>
-    
-    <direct-pass>
-      <define key="OUTPUT_TYPE" value="TRANSPARENCY" />
-      <blend mode="alpha" />
-      <node import="shadow-caster-transparent"
-	    sort="1" sort-camera="main-camera" />
-    </direct-pass>
-  </direct-shading>
-</node>
-
-<node id="shadow-caster">
+<node id="Shadow-Caster">
   <node id="platform">
     <material preset="silver" />
     <define key="HAS_modelMatrix" value="TRUE" />
@@ -231,7 +113,94 @@
   </node>
 </node>
 
-<node id="shadow-caster-transparent" >
+<node id="Scene-Geometry" />
+
+<node id="Background-Pass">
+  <node import="Transparency-Pass" />
+</node>
+
+<node id="Post-Pass">
+  <depth test="0" write="0" />
+  
+  <node import="Fog-Sample" />
+  
+  <node import="FXAA">
+    <fbo id="g-buffer" draw-buffers="0" />
+    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**** Lights & Shadows ****-->
+<!--**************************-->
+
+<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DShadow" />
+  <texture id="color"
+	   pixel-size="16"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-components="4"/>
+</fbo>
+
+<light id="spot-light"
+       type="SPOT"
+       position="3.0,8.0,-4.0"
+       direction="-0.37,-0.95,0.46"
+       diffuse="0.58,0.58,0.58"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5" />
+
+<camera id="spot-camera" light="spot-light" camera="main-camera" />
+
+<node id="Shadow-Pass">
+  <cull mode="FRONT" />
+  
+  <node id="Spot-Shadow-Pass">
+    <fbo id="spot-shadow" clear-depth="1" clear-buffers="0" />
+    <camera id="spot-camera" />
+    
+    <node id="Black-Output">
+      <define key="OUTPUT_TYPE" value="BLACK" />
+      <node import="Shadow-Caster" />
+    </node>
+    <node id="Color-Output">
+      <define key="OUTPUT_TYPE" value="COLOR" />
+      <node import="Shadow-Caster-Transparent" />
+    </node>
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="Transparency-Pass">
+  <fbo id="g-buffer" draw-buffers="1" />
+  <depth test="1" write="0" />
+  
+  <direct-shading ambient="0.3,0.3,0.3" >
+    <!-- Define lights used for direct shading. -->
+    <direct-lights>
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow"
+	     shadow-attachment="depth"
+	     shadow-color-attachment="0" />
+    </direct-lights>
+    
+    <direct-pass>
+      <define key="OUTPUT_TYPE" value="TRANSPARENCY" />
+      <blend mode="alpha" />
+      <node import="Shadow-Caster-Transparent"
+	    sort="1" sort-camera="main-camera" />
+    </direct-pass>
+  </direct-shading>
+</node>
+
+<node id="Shadow-Caster-Transparent" >
   <node id="venus0" >
     <mesh id="venus-mesh" shader="regen.models.mesh" />
   </node>
@@ -243,18 +212,45 @@
   </node>
 </node>
 
-<node id="background-pass">
-  <depth test="1" write="0" />
-</node>
-
 <!--**************************-->
+<!--***** Fog Particles ******-->
 <!--**************************-->
 
-<node id="particle-pass">
+<fbo id="fog-buffer" size-mode="abs" size="256.0,256.0" >
+  <texture id="color"  pixel-type="FLOAT" pixel-size="16" pixel-components="4" />
+</fbo>
+
+<texture id="fog-splat" file="res/textures/splats/flare.jpg" />
+
+<mesh id="fog-mesh"
+      type="particles"
+      num-vertices="500"
+      update-shader="regen.particles.cloud-emitter"
+      gravity="-4.0,-9.0,0.0"
+      damping-factor="2.0"
+      noise-factor="10.0"
+      max-emits="1">
+  <!-- Add shader defines. -->
+  <define key="CLOUD_POSITION_MODE" value="ABSOLUTE" />
+  <!-- Add shader input. -->
+  <input type="vec2" name="particleMass" value="0.8,0.1" />
+  <input type="vec2" name="particleSize" value="3.0,0.15" />
+  <input type="vec3" name="cloudPosition" value="2.7,6.5,0.0" />
+  <input type="float" name="cloudRadius" value="5.0" />
+  <input type="float" name="surfaceHeight" value="-3.0" />
+  <!-- Add particle attributes. -->
+  <input type="vec3" name="pos" is-attribute="1" />
+  <input type="vec3" name="velocity" is-attribute="1" />
+  <input type="float" name="mass" is-attribute="1" />
+  <input type="float" name="size" is-attribute="1" />
+</mesh>
+
+<node id="Fog-Particles">
   <depth test="0" write="0" />
+  <camera id="main-camera" />
   
-  <node id="particle-draw-parent">
-    <fbo id="particle-buffer" clear-buffers="*" draw-buffers="*" />
+  <node id="Fog-Particle-Draw">
+    <fbo id="fog-buffer" clear-buffers="*" draw-buffers="*" />
     
     <direct-shading ambient="0.3,0.3,0.3" >
       <direct-lights>
@@ -263,74 +259,61 @@
       </direct-lights>
       
       <direct-pass>
-	<node id="particle-draw">
+	<node id="Fog-Particle-Draw">
 	  <define key="USE_SOFT_PARTICLES" value="TRUE" />
 	  <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
 	  <define key="IS_SHADOW_RECEIVER" value="FALSE" />
 	  
 	  <blend mode="add" />
 	  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-	  <texture name="particleTexture" id="particle-splat" />
+	  <texture name="particleTexture" id="fog-splat" />
 	  <input type="float" name="softParticleScale" value="100.0" />
 	  <input type="float" name="particleBrightness" value="0.03" />
-	  <mesh id="particle-mesh" shader="regen.models.sprite-particles" />
+	  <mesh id="fog-mesh" shader="regen.models.sprite-particles" />
 	</node>
       </direct-pass>
     </direct-shading>
   </node>
   
-  <node id="particle-filter">
-    <input type="int" name="numBlurPixels" value="9" />
-    <input type="float" name="blurSigma" value="2.3" />
-    
-    <filter-sequence id="particle-filter"
-		     fbo="particle-buffer" attachment="0" >
-      <filter shader="regen.filter.blur.horizontal" />
-      <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-  </node>
+  <node import="Fog-Particle-Filter" />
 </node>
 
+<node id="Fog-Particle-Filter">
+  <input type="int" name="numBlurPixels" value="9" />
+  <input type="float" name="blurSigma" value="2.3" />
+    
+  <filter-sequence id="fog-filter"
+		   fbo="fog-buffer" attachment="0" >
+    <filter shader="regen.filter.blur.horizontal" />
+    <filter shader="regen.filter.blur.vertical" />
+  </filter-sequence>
+</node>
 
-<!--**************************-->
-<!--**************************-->
-
-<node id="post-pass">
+<node id="Fog-Sample">
+  <fbo id="g-buffer" draw-buffers="1" />
+  <blend mode="add" />
   <depth test="0" write="0" />
-  
-  <node id="sample-particles">
-    <fbo id="g-buffer" draw-buffers="1" />
-    <blend mode="add" />
-    <depth test="0" write="0" />
-    <texture name="inputTexture" id="particle-filter" />
-    <define key="IS_2D_TEXTURE" value="TRUE" />
-    <fullscreen-pass shader="regen.filter.sampling" />
-  </node>
-  
-  <node import="FXAA">
-    <fbo id="g-buffer" draw-buffers="0" />
-    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-  </node>
+  <texture name="inputTexture" id="fog-filter" />
+  <define key="IS_2D_TEXTURE" value="TRUE" />
+  <fullscreen-pass shader="regen.filter.sampling" />
 </node>
 
 <!--**************************-->
 <!--**************************-->
 
 <node id="root">
-  <node id="pre-render">
-    <node import="shadow-pass" />
+  <node id="Pre-Render">
+    <node import="Shadow-Pass" />
+    <node import="Fog-Particles" />
   </node>
   
-  <node id="render">
+  <node id="Render">
     <fbo id="g-buffer"
 	clear-buffers="0,1,2,3"
 	clear-depth="1" />
     <camera id="main-camera" />
     
-    <node import="particle-pass" />
-    <node import="main-pass" />
-    <node import="post-pass" />
-    
+    <node import="Default-Pipeline" />
     <node import="GUI-Pass">
       <fbo id="g-buffer" draw-buffers="0" />
     </node>

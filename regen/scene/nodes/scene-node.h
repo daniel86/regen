@@ -71,7 +71,6 @@ namespace scene {
         const ref_ptr<SceneInputNode> &root = parser->getRoot();
         const string importID = input.getValue("import");
 
-        // TODO: Allow importing from external file.
         // TODO: Use previously loaded node. It's problematic because...
         //   - Shaders below the node are configured only for the first context.
         //   - Uniforms above node are joined into shader

@@ -15,8 +15,14 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
+<!-- Framebuffer -->
+<fbo id="buffer-float" size-mode="rel" size="1,1"
+     pixel-type="FLOAT" pixel-size="16">
+  <texture id="color0" pixel-components="3" />
+  <texture id="color1" pixel-components="3" />
+</fbo>
 <!-- Textures -->
-<texture id="hdr-texture"
+<texture id="sky-texture"
 	 is-cube="1"
 	 cube-flip-back="1"
 	 file="res/textures/cube-maps/grace.hdr"
@@ -30,7 +36,7 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,0.0,-2.0"
 	direction="0.0,0.0,1.0" />
-<!-- Some meshes. -->
+<!-- Meshes -->
 <mesh id="sky-box"
       type="box"
       use-normal="0"
@@ -53,106 +59,86 @@
 <!--**************************-->
 <!--**************************-->
 
-<node id="main-pass">
-  <node id="geometry-pass">
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="g-buffer-float" draw-buffers="0,2,3" />
-    
-    <node id="sphere-node" >
-      <transform />
-      <material />
-      <texture id="hdr-texture"
-	       map-to="COLOR"
-	       blend-mode="SRC"
-	       mapping="CUBE_REFRACTION" />
-      <texture id="hdr-texture"
-	       map-to="COLOR"
-	       blend-mode="MIX"
-	       blend-factor="0.35"
-	       mapping="CUBE_REFLECTION" />
-      <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
-    </node>
-  </node>
-  <view id="Scene -- Sphere">
-    <blit src-fbo="g-buffer-float" src-attachment="0" dst-fbo="SCREEN" />
-  </view>
+<node id="Reflection-Sphere">
+    <transform />
+    <material />
+    <texture id="sky-texture" map-to="COLOR"
+	     blend-mode="SRC"
+	     mapping="CUBE_REFRACTION" />
+    <texture id="sky-texture" map-to="COLOR"
+	     blend-mode="MIX" blend-factor="0.35"
+	     mapping="CUBE_REFLECTION" />
+    <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
+</node>
   
-  <node>
-    <fbo id="g-buffer-float" draw-buffers="0" />
-    <depth test="1" write="0" />
-    
-    <!-- Render background (sky,...) -->
-    <node id="sky-node">
-      <cull mode="front" />
-      <depth function="LEQUAL" />
-      <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
-      <texture id="hdr-texture" map-to="COLOR" />
-      <mesh id="sky-box" shader="regen.models.sky-box" />
-    </node>
-  </node>
-  <view id="Scene -- Background">
-    <blit src-fbo="g-buffer-float" src-attachment="0" dst-fbo="SCREEN" />
-  </view>
+<node id="Background">
+  <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
+  
+  <cull mode="front" />
+  <depth function="LEQUAL" />
+  <texture id="sky-texture" map-to="COLOR" />
+  <mesh id="sky-box" shader="regen.models.sky-box" />
 </node>
 
-<!--**************************-->
-<!--**************************-->
+<node id="Scene-Blur">
+  <input type="int" name="numBlurPixels" value="10" />
+  <input type="float" name="blurSigma" value="2.5" />
+    
+  <filter-sequence id="blurred-scene" fbo="buffer-float" attachment="0" >
+    <filter shader="regen.filter.sampling" scale="0.5" />
+    <filter shader="regen.filter.blur.horizontal" />
+    <filter shader="regen.filter.blur.vertical" />
+  </filter-sequence>
+</node>
 
-<node id="post-pass">
-  <depth test="0" write="0" />
-  
-  <node id="blur">
-    <input type="int" name="numBlurPixels" value="10" />
-    <input type="float" name="blurSigma" value="2.5" />
+<node id="Tonemapping">
+  <define key="USE_RADIAL_BLUR" value="TRUE" />
+  <define key="USE_VIGNETTE" value="TRUE" />
+  <fbo id="buffer-float" draw-buffers="1" />
+  <texture name="inputTexture" fbo="buffer-float" attachment="0" />
+  <texture name="blurTexture" id="blurred-scene" />
     
-    <filter-sequence id="blurred-scene" fbo="g-buffer-float" attachment="0" >
-      <filter shader="regen.filter.sampling" scale="0.5" />
-      <filter shader="regen.filter.blur.horizontal" />
-      <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-  </node>
-  
-  <node id="tonemap">
-    <define key="USE_RADIAL_BLUR" value="TRUE" />
-    <define key="USE_VIGNETTE" value="TRUE" />
-    <fbo id="g-buffer-float" draw-buffers="1" />
-    <texture name="inputTexture" fbo="g-buffer-float" attachment="0" />
-    <texture name="blurTexture" id="blurred-scene" />
+  <input type="float" name="blurAmount" value="0.5" />
+  <input type="float" name="effectAmount" value="0.2" />
+  <input type="float" name="exposure" value="16.0" />
+  <input type="float" name="gamma" value="0.5" />
+  <input type="float" name="radialBlurSamples" value="36.0" />
+  <input type="float" name="radialBlurStartScale" value="1.0" />
+  <input type="float" name="radialBlurScaleMul" value="0.9555" />
+  <input type="float" name="vignetteInner" value="0.7" />
+  <input type="float" name="vignetteOuter" value="1.5" />
     
-    <input type="float" name="blurAmount" value="0.5" />
-    <input type="float" name="effectAmount" value="0.2" />
-    <input type="float" name="exposure" value="16.0" />
-    <input type="float" name="gamma" value="0.5" />
-    <input type="float" name="radialBlurSamples" value="36.0" />
-    <input type="float" name="radialBlurStartScale" value="1.0" />
-    <input type="float" name="radialBlurScaleMul" value="0.9555" />
-    <input type="float" name="vignetteInner" value="0.7" />
-    <input type="float" name="vignetteOuter" value="1.5" />
-    
-    <fullscreen-pass shader="regen.filter.tonemap" />
-  </node>
-  
-  <view id="Scene -- Tonemap">
-    <blit src-fbo="g-buffer-float" src-attachment="1" dst-fbo="SCREEN" />
-  </view>
+  <fullscreen-pass shader="regen.filter.tonemap" />
 </node>
 
 <!--**************************-->
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer-float" clear-buffers="0,1,2,3" clear-depth="1" />
+  <fbo id="buffer-float" clear-buffers="0" draw-buffers="0" />
   <camera id="main-camera" />
   
-  <node import="main-pass" />
-  <node import="post-pass" />
+  <node import="Background" />
+  <view id="Scene -- Background">
+    <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN" />
+  </view>
+  
+  <node import="Reflection-Sphere" />
+  <view id="Scene -- Reflection-Sphere">
+    <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN" />
+  </view>
+  
+  <node import="Scene-Blur" />
+  <node import="Tonemapping" />
+  <view id="Scene -- Tonemapping">
+    <blit src-fbo="buffer-float" src-attachment="1" dst-fbo="SCREEN" />
+  </view>
   
   <node import="GUI-Pass">
-    <fbo id="g-buffer-float" draw-buffers="1" />
+    <fbo id="buffer-float" draw-buffers="1" />
   </node>
   
   <view id="Scene -- Result">
-    <blit src-fbo="g-buffer-float" src-attachment="1" dst-fbo="SCREEN" />
+    <blit src-fbo="buffer-float" src-attachment="1" dst-fbo="SCREEN" />
   </view>
 </node>
