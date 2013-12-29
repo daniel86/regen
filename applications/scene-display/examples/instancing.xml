@@ -27,41 +27,7 @@
 	camera="main-camera"
 	num-layer="3"
 	split-weight="0.9" />
-<!-- Some asset files. Assets can contain lights,materials and meshes. -->
-<asset id="animation-asset"
-       type="asset"
-       file="res/models/psionic/dwarf/x/dwarf.x"
-       texture-path="res/models/psionic/dwarf/x"
-       use-animation="1"
-       animation-force-states="1"
-       animation-post-state="LINEAR"
-       animation-pre-state="LINEAR"
-       animation-tps="20.0"
-       animation-instances="50">
-  <!-- Optionally define named animation ranges. -->
-  <anim-range name="complete"    range="0.0,361.0" />
-  <anim-range name="run"         range="16.0,26.0" />
-  <anim-range name="jump"        range="28.0,40.0" />
-  <anim-range name="jumpSpot"    range="42.0,54.0" />
-  <anim-range name="crouch"      range="56.0,59.0" />
-  <anim-range name="crouchLoop"  range="60.0,69.0" />
-  <anim-range name="getUp"       range="70.0,74.0" />
-  <anim-range name="battleIdle1" range="75.0,88.0" />
-  <anim-range name="battleIdle2" range="90.0,110.0" />
-  <anim-range name="attack1"     range="112.0,126.0" />
-  <anim-range name="attack2"     range="128.0,142.0" />
-  <anim-range name="attack3"     range="144.0,160.0" />
-  <anim-range name="attack4"     range="162.0,180.0" />
-  <anim-range name="attack5"     range="182.0,192.0" />
-  <anim-range name="block"       range="194.0,210.0" />
-  <anim-range name="dieFwd"      range="212.0,227.0" />
-  <anim-range name="dieBack"     range="230.0,251.0" />
-  <anim-range name="yes"         range="253.0,272.0" />
-  <anim-range name="no"          range="274.0,290.0" />
-  <anim-range name="idle1"       range="292.0,325.0" />
-  <anim-range name="idle2"       range="327.0,360.0" />
-</asset>
-<!-- Some meshes. -->
+<!-- Meshes -->
 <mesh id="ground-mesh"
       type="rectangle"
       lod="0"
@@ -75,7 +41,7 @@
       usage="STATIC" />
 <mesh id="dwarf"
       type="asset"
-      asset="animation-asset"
+      asset="dwarf-asset"
       asset-indices="*"
       asset-animation="1"
       num-instances="100">
@@ -245,15 +211,9 @@
     <fullscreen-pass shader="regen.filter.dof" />
   </node>
   
-  <node id="fxaa">
+  <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="1" />
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-    <input type="float" name="spanMax" value="8.0" />
-    <input type="float" name="reduceMul" value="0.125" />
-    <input type="float" name="reduceMin" value="0.0078125" />
-    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
-    
-    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
 </node>
 
@@ -272,9 +232,8 @@
     <node import="main-pass" />
     <node import="post-pass" />
     
-    <node id="GUI">
+    <node import="GUI-Pass">
       <fbo id="g-buffer" draw-buffers="1" />
-      <node import="gui-pass" />
     </node>
     
     <node>

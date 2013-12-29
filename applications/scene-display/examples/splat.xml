@@ -8,10 +8,10 @@
   <texture id="color" pixel-components="3" />
 </fbo>
 
-<node id="splat-pass">
+<node id="Splatting">
   <define key="IGNORE_OBSTACLES" value="TRUE" />
   
-  <node>
+  <node id="Circle0">
     <blend mode="alpha" />
     <input type="vec2" name="splatPoint" value="53.0,142.0" />
     <input type="float" name="splatRadius" value="28.0" />
@@ -19,7 +19,7 @@
     <fullscreen-pass shader="fluid.splat.circle" />
   </node>
   
-  <node>
+  <node id="Circle1">
     <blend mode="lighten" />
     <input type="vec2" name="splatPoint" value="64.0,142.0" />
     <input type="float" name="splatRadius" value="19.0" />
@@ -27,7 +27,7 @@
     <fullscreen-pass shader="fluid.splat.circle" />
   </node>
   
-  <node>
+  <node id="Rect0">
     <blend mode="alpha" />
     <input type="vec2" name="splatPoint" value="140.0,142.0" />
     <input type="vec2" name="splatSize" value="20.0,190.0" />
@@ -35,7 +35,7 @@
     <fullscreen-pass shader="fluid.splat.rect" />
   </node>
   
-  <node>
+  <node id="Rect1">
     <blend mode="reverse_Sub" />
     <input type="vec2" name="splatPoint" value="140.0,200.0" />
     <input type="vec2" name="splatSize" value="70.0,20.0" />
@@ -43,7 +43,7 @@
     <fullscreen-pass shader="fluid.splat.rect" />
   </node>
   
-  <node>
+  <node id="Rect2">
     <blend mode="smooth_Add" />
     <input type="vec2" name="splatPoint" value="140.0,150.0" />
     <input type="vec2" name="splatSize" value="70.0,20.0" />
@@ -51,7 +51,7 @@
     <fullscreen-pass shader="fluid.splat.rect" />
   </node>
   
-  <node>
+  <node id="Rect3">
     <blend mode="lighten" />
     <input type="vec2" name="splatPoint" value="140.0,100.0" />
     <input type="vec2" name="splatSize" value="70.0,20.0" />
@@ -65,8 +65,8 @@
   <fbo id="fbo"
        clear-buffers="0" clear-color="0.89,0.82,0.75,1.0"
        draw-buffers="0" />
-  <node import="splat-pass" />
-  <node>
+  <node import="Splatting" />
+  <node id="Blitting">
     <blit src-fbo="fbo" src-attachment="0"
 	  dst-fbo="back-buffer" dst-attachment="0"
 	  keep-aspect="1" />

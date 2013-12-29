@@ -2,54 +2,6 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
-<!-- Framebuffer Objects -->
-<fbo id="paraboloid-reflection-buffer"
-     size-mode="abs" size="512,512,2"
-     wrapping="CLAMP_TO_EDGE"
-     target="TEXTURE_2D_ARRAY"
-     sampler-type="sampler2DArray">
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-<fbo id="cube-reflection-buffer"
-     size-mode="abs" size="256,256,6"
-     wrapping="REPEAT"
-     target="TEXTURE_CUBE_MAP"
-     sampler-type="samplerCube">
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-
 <!-- Textures -->
 <texture id="rain-database" is-array="1"
 	 file="res/textures/rain" name-pattern=".*.png" />
@@ -58,13 +10,6 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,1.5,-8.0"
 	direction="0.0,-0.25,1.0" />
-<camera id="paraboloid-camera"
-	camera="main-camera"
-	paraboloid-mesh="sphere-mesh0"
-	has-back-face="1" />
-<camera id="cube-camera"
-	camera="main-camera"
-	cube-mesh="sphere-mesh1" />
 <!-- Some meshes -->
 <mesh id="bowl"
       type="half-sphere"
@@ -123,6 +68,143 @@
     <translate value="-2.0,1.5,-1.0" />
   </transform>
 </mesh>
+
+<!--**************************-->
+<!--****** Reflections *******-->
+<!--**************************-->
+
+<fbo id="paraboloid-reflection-buffer"
+     size-mode="abs" size="512,512,2"
+     wrapping="CLAMP_TO_EDGE"
+     target="TEXTURE_2D_ARRAY"
+     sampler-type="sampler2DArray"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4">
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth pixel-size="24" />
+</fbo>
+<fbo id="cube-reflection-buffer"
+     size-mode="abs" size="256,256,6"
+     wrapping="REPEAT"
+     target="TEXTURE_CUBE_MAP"
+     sampler-type="samplerCube"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4">
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth pixel-size="24" />
+</fbo>
+
+<camera id="paraboloid-camera"
+	camera="main-camera"
+	paraboloid-mesh="sphere-mesh0"
+	has-back-face="1" />
+<camera id="cube-camera"
+	camera="main-camera"
+	cube-mesh="sphere-mesh1" />
+
+<node id="Paraboloid-Reflection">
+  <camera id="paraboloid-camera" />
+  <fbo id="paraboloid-reflection-buffer"
+       clear-buffers="0,1,2,3" clear-depth="1" />
+  
+  <node>
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,2,3" />
+    
+    <node import="Scene-Geometry" />
+  </node>
+  
+  <node>
+    <fbo id="paraboloid-reflection-buffer" draw-buffers="1" />
+    <node>
+      <texture name="gDepthTexture" fbo="paraboloid-reflection-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="paraboloid-reflection-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="paraboloid-reflection-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="paraboloid-reflection-buffer" attachment="3" />
+      <node import="Shading-Pass" />
+    </node>
+    <node import="Background-Pass0" />
+    <node import="Cube-Reflector" />
+  </node>
+  
+  <view id="Paraboloid Reflection -- Result">
+    <fbo id="SCREEN" />
+    <texture name="arrayTexture" fbo="paraboloid-reflection-buffer" attachment="1" />
+    <input type="int" name="arrayTextureSize" value="2" />
+    <fullscreen-pass shader="regen.filter.sampling.array-row" />
+  </view>
+</node>
+
+<node id="Cube-Reflection">
+  <camera id="cube-camera" />
+  <fbo id="cube-reflection-buffer"
+       clear-buffers="0,1,2,3" clear-depth="1" />
+  
+  <node>
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="cube-reflection-buffer" draw-buffers="0,2,3" />
+    
+    <node import="Scene-Geometry" />
+  </node>
+  
+  <node>
+    <fbo id="cube-reflection-buffer" draw-buffers="1" />
+    <node>
+      <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="cube-reflection-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="cube-reflection-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="cube-reflection-buffer" attachment="3" />
+      <node import="Shading-Pass" />
+    </node>
+    <node import="Background-Pass0" />
+    <node import="Paraboloid-Reflector" />
+  </node>
+  
+  <view id="Cube Reflection -- Result">
+    <fbo id="SCREEN" />
+    <texture name="cubeTexture" fbo="cube-reflection-buffer" attachment="1" />
+    <fullscreen-pass shader="regen.filter.sampling.cube-unfold" />
+  </view>
+</node>
+
+<node id="Paraboloid-Reflector">
+  <define key="IS_PARABOLOID_DUAL" value="TRUE" />
+  <define key="SHADING" value="NONE" />
+  
+  <material preset="chrome" />
+  <input name="reflectionMatrix" state="paraboloid-camera" component="viewProjectionMatrix" />
+  <texture fbo="paraboloid-reflection-buffer" attachment="1"
+	   map-to="COLOR"
+	   blend-mode="SRC"
+	   mapping="PARABOLOID_REFLECTION" />
+  <mesh id="sphere-mesh0" shader="regen.models.mesh" />
+</node>
+
+<node id="Cube-Reflector">
+  <define key="SHADING" value="NONE" />
+  
+  <material preset="chrome" />
+  <texture fbo="cube-reflection-buffer" attachment="1"
+	   map-to="COLOR"
+	   blend-mode="SRC"
+	   mapping="CUBE_REFLECTION" />
+  <mesh id="sphere-mesh1" shader="regen.models.mesh" />
+</node>
+
+<!--**************************-->
+<!--********* Rain ***********-->
+<!--**************************-->
+
 <mesh id="rain-particles"
       type="particles"
       num-vertices="50000"
@@ -140,160 +222,8 @@
   <input type="float" name="brightness" is-attribute="1" />
 </mesh>
 
-<!--**************************-->
-<!--**************************-->
-
-<node id="paraboloid-reflection-pass">
-  <camera id="paraboloid-camera" />
-  <fbo id="paraboloid-reflection-buffer"
-       clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node>
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,2,3" />
-    
-    <node import="scene-geometry" />
-  </node>
-  
-  <node>
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="paraboloid-reflection-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="paraboloid-reflection-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="paraboloid-reflection-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="paraboloid-reflection-buffer" attachment="3" />
-      <node import="shading-pass" />
-    </node>
-    <node import="background-pass" />
-    <node import="cube-reflector" />
-  </node>
-  
-  <view id="Paraboloid Reflection -- Result">
-    <fbo id="SCREEN" />
-    <texture name="arrayTexture" fbo="paraboloid-reflection-buffer" attachment="1" />
-    <input type="int" name="arrayTextureSize" value="2" />
-    <fullscreen-pass shader="regen.filter.sampling.array-row" />
-  </view>
-</node>
-
-<node id="cube-reflection-pass">
-  <camera id="cube-camera" />
-  <fbo id="cube-reflection-buffer"
-       clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node>
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="cube-reflection-buffer" draw-buffers="0,2,3" />
-    
-    <node import="scene-geometry" />
-  </node>
-  
-  <node>
-    <fbo id="cube-reflection-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="cube-reflection-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="cube-reflection-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="cube-reflection-buffer" attachment="3" />
-      <node import="shading-pass" />
-    </node>
-    <node import="background-pass" />
-    <node import="paraboloid-reflector" />
-  </node>
-  
-  <view id="Cube Reflection -- Result">
-    <fbo id="SCREEN" />
-    <texture name="cubeTexture" fbo="cube-reflection-buffer" attachment="1" />
-    <fullscreen-pass shader="regen.filter.sampling.cube-unfold" />
-  </view>
-</node>
-
-<node id="main-pass">
-  <node id="geometry-pass">
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,2,3" />
-    
-    <node import="scene-geometry" />
-  </node>
-  
-  <node>
-    <fbo id="g-buffer" draw-buffers="1" />
-    
-    <node>
-      <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-      <node import="shading-pass" />
-      <view id="Scene -- Shading">
-	<blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-      </view>
-    </node>
-    
-    <node import="background-pass" />
-    <view id="Sky Cube">
-      <fbo id="SCREEN" />
-      <texture name="cubeTexture" id="earth-sky" />
-      <fullscreen-pass shader="regen.filter.sampling.cube-unfold" />
-    </view>
-    <view id="Scene -- Sky">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    
-    <node import="paraboloid-reflector" />
-    <node import="cube-reflector" />
-    <view id="Scene -- Reflections">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    
-    <node import="rain-pass" />
-  </node>
-</node>
-
-<node id="scene-geometry">
-  <node id="instanced-spheres" >
-    <mesh id="sphere-mesh2" shader="regen.models.mesh" />
-  </node>
-  <node id="bowl" >
-    <toggle key="CULL_FACE" value="0" />
-    <mesh id="bowl" shader="regen.models.mesh" />
-  </node>
-</node>
-
-<node id="paraboloid-reflector">
-  <define key="IS_PARABOLOID_DUAL" value="TRUE" />
-  <define key="SHADING" value="NONE" />
-  
-  <material preset="chrome" />
-  <input name="reflectionMatrix" state="paraboloid-camera" component="viewProjectionMatrix" />
-  
-  <texture fbo="paraboloid-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="SRC"
-	   mapping="PARABOLOID_REFLECTION" />
-  
-  <mesh id="sphere-mesh0" shader="regen.models.mesh" />
-</node>
-
-<node id="cube-reflector">
-  <define key="SHADING" value="NONE" />
-  
-  <material preset="chrome" />
-  
-  <texture fbo="cube-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="SRC"
-	   mapping="CUBE_REFLECTION" />
-  
-  <mesh id="sphere-mesh1" shader="regen.models.mesh" />
-</node>
-
-<node id="rain-pass">
+<node id="Rain">
   <direct-shading ambient="0.3,0.3,0.3" >
-    <!-- Define lights used for direct shading. -->
     <direct-lights>
       <light id="earth-sky" />
     </direct-lights>
@@ -314,7 +244,23 @@
   </direct-shading>
 </node>
 
-<node id="shading-pass">
+<!--**************************-->
+<!--**************************-->
+
+<node id="Scene-Geometry">
+  <node id="Instanced-Spheres" >
+    <mesh id="sphere-mesh2" shader="regen.models.mesh" />
+  </node>
+  <node id="Bowl" >
+    <toggle key="CULL_FACE" value="0" />
+    <mesh id="bowl" shader="regen.models.mesh" />
+  </node>
+</node>
+
+<node id="Shadow-Caster">
+</node>
+
+<node id="Shading-Pass">
   <blend mode="add" />
   <depth test="0" write="0" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
@@ -328,29 +274,30 @@
   </node>
 </node>
 
-<node id="background-pass">
+<node id="Sky">
   <depth test="1" write="0" />
-  
-  <node id="sky-node">
-    <mesh id="earth-sky" />
-  </node>
+  <mesh id="earth-sky" />
+</node>
+<node id="Reflectors">
+  <node import="Paraboloid-Reflector" />
+  <node import="Cube-Reflector" />
 </node>
 
-<!--**************************-->
-<!--**************************-->
+<node id="Background-Pass">
+  <node import="Sky" />
+  <node import="Reflectors" />
+  <node import="Rain" />
+</node>
+<node id="Background-Pass0">
+  <node import="Sky" />
+</node>
 
-<node id="post-pass">
+<node id="Post-Pass">
   <depth test="0" write="0" />
   
-  <node id="fxaa">
+  <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="0" />
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-    <input type="float" name="spanMax" value="8.0" />
-    <input type="float" name="reduceMul" value="0.125" />
-    <input type="float" name="reduceMin" value="0.0078125" />
-    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
-    
-    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
   <view id="Scene -- Antialiased">
     <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
@@ -361,21 +308,17 @@
 <!--**************************-->
 
 <node id="root">
-  <node id="pre-render">
-    <node import="paraboloid-reflection-pass" />
-    <node import="cube-reflection-pass" />
+  <node id="Pre-Render">
+    <node import="Paraboloid-Reflection" />
+    <node import="Cube-Reflection" />
   </node>
   
-  <node id="render">
+  <node id="Render">
     <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-    <camera id="main-camera" />
     
-    <node import="main-pass" />
-    <node import="post-pass" />
-    
-    <node id="GUI">
+    <node import="Default-Pipeline" />
+    <node import="GUI-Pass">
       <fbo id="g-buffer" draw-buffers="0" />
-      <node import="gui-pass" />
     </node>
     
     <view id="Scene -- Result">

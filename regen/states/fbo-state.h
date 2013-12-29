@@ -88,6 +88,7 @@ namespace regen {
   public:
     /**
      * @param windowViewport The window size (width/height).
+     * @param drawBuffer GL_FRONT, GL_BACK or GL_FRONT_AND_BACK.
      */
     ScreenState(
         const ref_ptr<ShaderInput2i> &windowViewport,
