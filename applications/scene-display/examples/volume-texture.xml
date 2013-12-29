@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<include xml-file="scene-display/examples/default.xml" />
+
+<!-- Application configuration -->
 <gui-config ego-camera="0"
 	    look-at-camera="1"
 	    look-at="0.0,0.0,0.0"
@@ -12,9 +15,6 @@
 	    look-at-step-y="0.001"
 	    look-at-interval="10"
 	    />
-
-<include xml-file="scene-display/examples/default.xml" />
-
 <!-- Textures -->
 <texture id="bonsain-transfer"
 	 file="res/textures/volumes/bonsai-transfer.png" />
@@ -30,61 +30,48 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,0.0,-2.0"
 	direction="0.0,0.0,1.0" />
-<!-- Some meshes. -->
+<!-- Meshes -->
 <mesh id="box-mesh"
       type="box"
       use-normal="0"
       use-tangent="0"
       texco-mode="NONE"
       usage="STATIC" />
-  
-<!--**************************-->
-<!--**************************-->
-
-<node id="main-pass">
-  <node id="geometry-pass">
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,2,3" />
-    <define key="OUTPUT_TYPE" value="COLOR" />
-    
-    <node id="box-node" >
-      <cull mode="front" />
-
-      <input type="float" name="rayStep" value="0.02" />
-      <input type="float" name="densityThreshold" value="0.125" />
-      <input type="float" name="densityScale" value="1.0" />
-      
-      <texture name="transferTexture" id="bonsain-transfer" />
-      <texture name="volumeTexture" id="bonsain-volume" />
-      
-      <define key="USE_MAX_INTENSITY" value="FALSE" />
-      <define key="USE_FIRST_MAXIMUM" value="FALSE" />
-      <define key="USE_AVERAGE_INTENSITY" value="FALSE" />
-      <define key="SWITCH_VOLUME_Y" value="FALSE" />
-      
-      <transform />
-      <mesh id="box-mesh" shader="regen.models.volume" />
-    </node>
-  </node>
-</node>
 
 <!--**************************-->
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer"
-       clear-buffers="0,1,2,3"
-       clear-depth="1" />
+  <fbo id="back-buffer" clear-buffers="0" />
   <camera id="main-camera" />
   
-  <node import="main-pass" />
+  <node id="Volume-Box">
+    <define key="OUTPUT_TYPE" value="COLOR" />
+    <define key="USE_MAX_INTENSITY" value="FALSE" />
+    <define key="USE_FIRST_MAXIMUM" value="FALSE" />
+    <define key="USE_AVERAGE_INTENSITY" value="FALSE" />
+    <define key="SWITCH_VOLUME_Y" value="FALSE" />
+    
+    <blend mode="src" />
+    <cull mode="front" />
+    <fbo id="back-buffer" draw-buffers="0" />
+    
+    <input type="float" name="rayStep" value="0.02" />
+    <input type="float" name="densityThreshold" value="0.125" />
+    <input type="float" name="densityScale" value="1.0" />
+    <texture name="transferTexture" id="bonsain-transfer" />
+    <texture name="volumeTexture" id="bonsain-volume" />
+      
+      
+    <transform />
+    <mesh id="box-mesh" shader="regen.models.volume" />
+  </node>
     
   <node import="GUI-Pass">
-    <fbo id="g-buffer" draw-buffers="0" />
+    <fbo id="back-buffer" draw-buffers="0" />
   </node>
   
   <node>
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    <blit src-fbo="back-buffer" src-attachment="0" dst-fbo="SCREEN" />
   </node>
 </node>
