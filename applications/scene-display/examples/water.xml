@@ -2,26 +2,6 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
-<!-- Framebuffer Objects -->
-<fbo id="reflection-buffer" size-mode="rel" size="0.5,0.5" >
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
 <!-- Textures -->
 <texture id="island-color" file="res/textures/island/color.png" />
 <texture id="island-normal" file="res/textures/island/normal.png" />
@@ -35,27 +15,7 @@
 	fov="45.0" near="0.1" far="400.0"
 	position="16.0,4.5,7.0"
 	direction="-4.0,0.0,0.0" />
-<camera id="reflection-camera"
-	camera="main-camera"
-	reflector-normal="0,1,0"
-	reflector-point="0,0,0" />
-<!-- Shadow Maps -->
-<shadow-map id="sun-shadow"
-	    light="earth-sky"
-	    camera="main-camera"
-	    size="2056"
-	    pixel-size="24"
-	    pixel-type="FLOAT"
-	    num-layer="3"
-	    split-weight="0.9" />
 <!-- Some meshes. -->
-<mesh id="earth-sky"
-      type="sky"
-      preset="earth"
-      day-length="0.8"
-      max-elevation="20.0"
-      min-elevation="-20.0"
-      day-time="0.2" />
 <mesh id="island-mesh"
       type="rectangle"
       lod="2"
@@ -72,27 +32,28 @@
     <translate value="-200.0,-3.0,0.0" />
   </transform>
 </mesh>
-<mesh id="debug-widget"
-      type="rectangle"
-      lod="0"
-      rotation="1.57,0.0,3.1415"
-      scaling="200.0,1.0,200.0"
-      texco-scaling="1.0,1.0"
-      use-normal="0"
-      use-texco="1"
-      use-tangent="0"
-      center="0">
-  <define key="INVERT_Y" value="TRUE" />
-  <define key="INVERT_X" value="TRUE" />
-  <transform>
-    <translate value="0.0,-400.0,0.0" />
-  </transform>
-</mesh>
   
 <!--**************************-->
+<!--***** Water Rendering ****-->
 <!--**************************-->
 
-<node id="reflection-pass">
+<fbo id="reflection-buffer"
+     size-mode="rel" size="0.5,0.5"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4" >
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+<camera id="reflection-camera"
+	camera="main-camera"
+	reflector-normal="0,1,0"
+	reflector-point="0,0,0" />
+
+<node id="Reflection-Pass">
   <camera id="reflection-camera" />
   <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
   
@@ -101,8 +62,8 @@
     <depth test="1" write="1" />
     <fbo id="reflection-buffer" draw-buffers="0,2,3" />
     
-    <node import="shadow-caster" />
-    <node import="scene-geometry" />
+    <node import="Shadow-Caster" />
+    <node import="Scene-Geometry" />
   </node>
   
   <node>
@@ -112,9 +73,9 @@
       <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0" />
       <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2" />
       <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3" />
-      <node import="shading-pass" />
+      <node import="Shading-Pass" />
     </node>
-    <node import="background-pass" />
+    <node import="Background-Pass" />
   </node>
   
   <node>
@@ -129,87 +90,60 @@
   </node>
 </node>
 
-<node id="main-pass">
-  <camera id="main-camera" />
-  
-  <node id="geometry-pass">
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,2,3" />
-    
-    <node import="shadow-caster" shadow-maps="*" />
-    <node import="scene-geometry" />
-  </node>
-  
-  <node>
-    <fbo id="g-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-      <node import="shading-pass" />
-    </node>
-    <node import="background-pass" />
-  </node>
-  
-  <node>
-    <node id="water">
-      <depth test="0" write="0" />
-      <fbo id="g-buffer" draw-buffers="0" />
-      <blend mode="src" />
+<node id="Water-Rendering">
+  <depth test="0" write="0" />
+  <fbo id="g-buffer" draw-buffers="0" />
+  <blend mode="src" />
       
-      <define key="USE_REFRACTION" value="TRUE" />
-      <define key="USE_FOAM" value="TRUE" />
-      <define key="USE_RIPPLES" value="TRUE" />
-      <define key="USE_SPECULAR" value="TRUE" />
+  <define key="USE_REFRACTION" value="TRUE" />
+  <define key="USE_FOAM" value="TRUE" />
+  <define key="USE_RIPPLES" value="TRUE" />
+  <define key="USE_SPECULAR" value="TRUE" />
       
-      <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-      <texture name="refractionTexture" fbo="g-buffer" attachment="1" />
-      <texture name="reflectionTexture" id="blurred-reflection" />
-      <texture name="normalTexture" id="water-normal" />
-      <texture name="heightTexture" id="water-height" />
-      <texture name="foamTexture" id="water-foam" />
+  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+  <texture name="refractionTexture" fbo="g-buffer" attachment="1" />
+  <texture name="reflectionTexture" id="blurred-reflection" />
+  <texture name="normalTexture" id="water-normal" />
+  <texture name="heightTexture" id="water-height" />
+  <texture name="foamTexture" id="water-foam" />
       
-      <input type="time" name="time" scale="0.003" />
-      <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
-      <input name="sunDirection" state="earth-sky-sun" component="lightDirection" />
-      <input name="sunColor" state="earth-sky-sun" component="lightDiffuse" />
+  <input type="time" name="time" scale="0.003" />
+  <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
+  <input name="sunDirection" state="earth-sky-sun" component="lightDirection" />
+  <input name="sunColor" state="earth-sky-sun" component="lightDiffuse" />
       
-      <input type="float" name="heightTextureSize" value="256.0" />
-      <input type="float" name="surfaceHeight" value="0.0" />
-      <input type="float" name="normalScale" value="3.0" />
-      <input type="float" name="refractionConstant" value="0.25" />
-      <input type="float" name="refractionStrength" value="0.0" />
-      <input type="float" name="shoreHardness" value="0.1" />
-      <input type="vec2"  name="windDirection" value="0.0,-0.9" />
-      <input type="vec2" name="waveScale" value="0.05,0.05" />
-      <input type="float" name="maxAmplitude" value="1.5" />
-      <input type="float" name="reflectionDisplace" value="10.0" />
-      <input type="float" name="sunScale" value="3.0" />
-      <input type="vec3"  name="waterColor" value="0.0078,0.5176,0.7" />
-      <input type="float" name="shininess" value="0.7" />
-      <input type="vec3"  name="deepWaterColor" value="0.0039,0.00196,0.145" />
-      <input type="vec3"  name="colorExtinction" value="7.0,30.0,40.0" />
-      <input type="float" name="fadeSpeed" value="0.1" />
-      <input type="float" name="visibility" value="3.0" />
-      <input type="vec4"  name="normalModifier" value="1.0,2.0,4.0,8.0" />
-      <input type="vec3"  name="foamExistence" value="0.45,1.35,1.25" />
-      <input type="float" name="foamIntensity" value="0.5" />
-      <input type="float" name="foamHardness" value="1.0" />
+  <input type="float" name="heightTextureSize" value="256.0" />
+  <input type="float" name="surfaceHeight" value="0.0" />
+  <input type="float" name="normalScale" value="3.0" />
+  <input type="float" name="refractionConstant" value="0.25" />
+  <input type="float" name="refractionStrength" value="0.0" />
+  <input type="float" name="shoreHardness" value="0.1" />
+  <input type="vec2"  name="windDirection" value="0.0,-0.9" />
+  <input type="vec2" name="waveScale" value="0.05,0.05" />
+  <input type="float" name="maxAmplitude" value="1.5" />
+  <input type="float" name="reflectionDisplace" value="10.0" />
+  <input type="float" name="sunScale" value="3.0" />
+  <input type="vec3"  name="waterColor" value="0.0078,0.5176,0.7" />
+  <input type="float" name="shininess" value="0.7" />
+  <input type="vec3"  name="deepWaterColor" value="0.0039,0.00196,0.145" />
+  <input type="vec3"  name="colorExtinction" value="7.0,30.0,40.0" />
+  <input type="float" name="fadeSpeed" value="0.1" />
+  <input type="float" name="visibility" value="3.0" />
+  <input type="vec4"  name="normalModifier" value="1.0,2.0,4.0,8.0" />
+  <input type="vec3"  name="foamExistence" value="0.45,1.35,1.25" />
+  <input type="float" name="foamIntensity" value="0.5" />
+  <input type="float" name="foamHardness" value="1.0" />
       
-      <fullscreen-pass shader="regen.filter.water" />
-    </node>
-    
-    <node import="post-pass" />
-  </node>
+  <fullscreen-pass shader="regen.filter.water" />
 </node>
+  
+<!--**************************-->
+<!--**************************-->
 
-<node id="shadow-caster">
-</node>
+<node id="Shadow-Caster" />
 
-<node id="scene-geometry">
-  <node id="island-node" >
+<node id="Scene-Geometry">
+  <node id="Island" >
     <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" />
     <tesselation num-patch-vertices="3" lod-factor="2.0" lod-metric="CAMERA_DISTANCE_INVERSE" />
     
@@ -224,7 +158,7 @@
   </node>
 </node>
 
-<node id="shading-pass">
+<node id="Shading-Pass">
   <blend mode="add" />
   <depth test="0" write="0" />
   <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
@@ -242,58 +176,19 @@
   </node>
 </node>
 
-<node id="background-pass">
+<node id="Background-Pass">
   <depth test="1" write="0" />
-  
   <node id="sky-node">
-    <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
     <mesh id="earth-sky" />
   </node>
 </node>
 
-<!--**************************-->
-<!--**************************-->
-
-<node id="post-pass">
+<node id="Post-Pass">
   <depth test="0" write="0" />
-  
-  <node id="blur">
-    <input type="int" name="numBlurPixels" value="10" />
-    <input type="float" name="blurSigma" value="2.5" />
-    
-    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
-      <filter shader="regen.filter.sampling" scale="0.5" />
-      <filter shader="regen.filter.blur.horizontal" />
-      <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-  </node>
-  
-  <node id="fxaa">
+  <node import="Water-Rendering" />
+  <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="1" />
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-    <input type="float" name="spanMax" value="8.0" />
-    <input type="float" name="reduceMul" value="0.125" />
-    <input type="float" name="reduceMin" value="0.0078125" />
-    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
-    
-    <fullscreen-pass shader="regen.filter.fxaa" />
-  </node>
-  
-  <node id="tonemap">
-    <fbo id="g-buffer" draw-buffers="0" />
-    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-    <texture name="blurTexture" id="blurred-scene" />
-    <define key="USE_RADIAL_BLUR" value="TRUE" />
-    
-    <input type="float" name="blurAmount" value="0.5" />
-    <input type="float" name="exposure" value="2.0" />
-    <input type="float" name="gamma" value="1.25" />
-    <input type="float" name="effectAmount" value="0.2" />
-    <input type="float" name="radialBlurSamples" value="36.0" />
-    <input type="float" name="radialBlurStartScale" value="1.0" />
-    <input type="float" name="radialBlurScaleMul" value="0.9555" />
-    
-    <fullscreen-pass shader="regen.filter.tonemap" />
   </node>
 </node>
 
@@ -301,19 +196,20 @@
 <!--**************************-->
 
 <node id="root">
-  <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node id="pre-render">
-    <node import="reflection-pass" />
+  <node id="Pre-Render">
+    <node import="Reflection-Pass" />
   </node>
-  <node import="main-pass" />
+  
+  <node id="Render">
+    <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
     
-  <node id="GUI">
-    <fbo id="g-buffer" draw-buffers="0" />
-    <node import="gui-pass" />
-  </node>
-  
-  <node>
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    <node import="Default-Pipeline" />
+    <node import="GUI-Pass">
+      <fbo id="g-buffer" draw-buffers="1" />
+    </node>
+    
+    <view id="Scene -- Result">
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
   </node>
 </node>

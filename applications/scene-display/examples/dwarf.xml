@@ -2,54 +2,15 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
-<!-- Framebuffer Objects -->
-<fbo id="reflection-buffer" size-mode="rel" size="0.75,0.75" >
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-
-<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
-  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-	 wrapping="REPEAT"
-	 min-filter="NEAREST" mag-filter="NEAREST"
-	 compare-mode="COMPARE_R_TO_TEXTURE"
-	 compare-function="LEQUAL"
-	 sampler-type="sampler2DShadow" />
-</fbo>
 <!-- Textures -->
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
 <texture id="ground-height" file="res/textures/brick/height.jpg" />
-<texture id="reflector-noise" noise="perlin" size="128.0,128.0,1.0"
-	 baseFrequency="4.0" persistence= "0.5" lacunarity="2.5" octaveCount="4"
-         swizzle-g="RED" swizzle-b="RED" />
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
 	position="10.0,2.5,20.0"
 	direction="-1.0,0.0,-1.0" />
-<camera id="spot-camera"
-	light="spot-light"
-	camera="main-camera" />
-<camera id="reflection-camera"
-	camera="main-camera"
-	reflector="reflector-mesh"
-	has-back-face="1" />
 <!-- Lights -->
 <light id="spot-light"
        type="SPOT" 
@@ -107,21 +68,6 @@
     <translate value="0.0,-2.0,0.0" />
   </transform>
 </mesh>
-<mesh id="reflector-mesh"
-      type="rectangle"
-      lod="0"
-      rotation="0.0,0.0,3.1415926"
-      scaling="10.0,1.0,20.0"
-      use-normal="1"
-      use-texco="1"
-      use-tangent="0"
-      center="1"
-      usage="STATIC">
-  <transform>
-    <rotate value="0.0,1.5707963,0.0" />
-    <translate value="-10.0,3.0,0.0" />
-  </transform>
-</mesh>
 <mesh id="animation-mesh"
       type="asset"
       asset="animation-asset"
@@ -151,40 +97,78 @@
 </mesh>
   
 <!--**************************-->
+<!--*** Planar Reflection ****-->
 <!--**************************-->
 
-<node id="reflection-pass">
+<fbo id="reflection-buffer"
+     size-mode="rel" size="0.75,0.75"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4">
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth pixel-size="24" />
+</fbo>
+
+<camera id="reflection-camera"
+	camera="main-camera"
+	reflector="reflector-mesh"
+	has-back-face="1" />
+
+<texture id="reflector-noise" noise="perlin" size="128.0,128.0,1.0"
+	 baseFrequency="4.0" persistence= "0.5" lacunarity="2.5" octaveCount="4"
+         swizzle-g="RED" swizzle-b="RED" />
+
+<mesh id="reflector-mesh"
+      type="rectangle"
+      lod="0"
+      rotation="0.0,0.0,3.1415926"
+      scaling="10.0,1.0,20.0"
+      use-normal="1"
+      use-texco="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+  <transform>
+    <rotate value="0.0,1.5707963,0.0" />
+    <translate value="-10.0,3.0,0.0" />
+  </transform>
+</mesh>
+
+<node id="Reflection-Pass">
   <camera id="reflection-camera" />
   <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
   
-  <node>
+  <node id="Reflection-Geometry">
     <blend mode="src" />
     <depth test="1" write="1" />
     <fbo id="reflection-buffer" draw-buffers="0,2,3" />
     
-    <node import="shadow-caster" />
-    <node import="scene-geometry" />
+    <node import="Shadow-Caster" />
+    <node import="Scene-Geometry" />
   </node>
   
-  <node>
+  <node id="Reflection-Shading">
     <fbo id="reflection-buffer" draw-buffers="1" />
     <node>
       <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth" />
       <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0" />
       <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2" />
       <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3" />
-      <node import="shading-pass" />
+      <node import="Shading-Pass" />
     </node>
-    <node import="background-pass" />
+    <node import="Background-Pass0" />
   </node>
   
-  <node>
+  <node id="Reflection-Fog">
     <depth test="0" write="0" />
     <node id="volume-fog">
       <fbo id="reflection-buffer" draw-buffers="1" />
       <blend mode="add" />
       <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth" />
-      <node import="volumetric-fog-pass" />
+      <node import="Volumetric-Fog-Pass" />
     </node>
   </node>
   
@@ -193,68 +177,7 @@
   </view>
 </node>
 
-<node id="shadow-pass">
-  <cull mode="FRONT" />
-  <define key="OUTPUT_TYPE" value="DEPTH" />
-  
-  <node id="spot-shadow-pass">
-    <fbo id="spot-shadow" clear-depth="1" />
-    <camera id="spot-camera" />
-    
-    <node import="shadow-caster" />
-  </node>
-</node>
-
-<node id="main-pass">
-  <camera id="main-camera" />
-  
-  <node id="geometry-pass">
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,2,3" />
-    
-    <node import="shadow-caster" />
-    <node import="scene-geometry" />
-    <view id="Scene -- Diffuse">
-      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-    <view id="Scene -- Specular">
-      <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
-    </view>
-    <view id="Scene -- Normal">
-      <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN" />
-    </view>
-  </node>
-  
-  <node>
-    <fbo id="g-buffer" draw-buffers="1" />
-    
-    <node>
-      <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-      <node import="shading-pass" />
-      <view id="Scene -- Shading">
-	<blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-      </view>
-    </node>
-    
-    <node import="background-pass" />
-    <view id="Scene -- Sky">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    
-    <node import="planar-reflector" />
-    <view id="Scene -- Reflections">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    
-    <node import="post-pass" />
-  </node>
-</node>
-
-<node id="planar-reflector">
+<node id="Planar-Reflector">
   <toggle key="CULL_FACE" value="0" />
   <define key="SHADING" value="NONE" />
   
@@ -267,8 +190,44 @@
   <mesh id="reflector-mesh" shader="regen.models.mesh" />
 </node>
 
-<node id="shadow-caster">
-  <node id="dwarf-node" >
+<node id="Reflectors">
+  <depth test="1" write="1" />
+  <node import="Planar-Reflector" />
+</node>
+  
+<!--**************************-->
+<!--***** Shadow Mapping *****-->
+<!--**************************-->
+
+<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+  <depth pixel-size="24" pixel-type="FLOAT"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DShadow" />
+</fbo>
+
+<camera id="spot-camera"
+	light="spot-light"
+	camera="main-camera" />
+
+<node id="Shadow-Pass">
+  <cull mode="FRONT" />
+  <define key="OUTPUT_TYPE" value="DEPTH" />
+  
+  <node id="Spot-Shadow">
+    <fbo id="spot-shadow" clear-depth="1" />
+    <camera id="spot-camera" />
+    <node import="Shadow-Caster" />
+  </node>
+</node>
+  
+<!--**************************-->
+<!--**************************-->
+
+<node id="Shadow-Caster">
+  <node id="Dwarf" >
     <mesh id="animation-mesh" shader="regen.models.mesh" />
   </node>
   
@@ -322,8 +281,8 @@
   </node>
 </node>
 
-<node id="scene-geometry">
-  <node id="ground">
+<node id="Scene-Geometry">
+  <node id="Ground">
     <input type="float" name="reliefScale" value="0.03" />
     <input type="int" name="reliefLinearSteps" value="10" />
     <input type="int" name="reliefBinarySteps" value="2" />
@@ -336,7 +295,7 @@
   </node>
 </node>
 
-<node id="shading-pass">
+<node id="Shading-Pass">
   <blend mode="add" />
   <depth test="0" write="0" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
@@ -356,19 +315,24 @@
   </node>
 </node>
 
-<node id="background-pass">
+<node id="Sky">
   <depth test="1" write="0" />
-  
-  <node id="sky-node">
-    <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
-    <mesh id="earth-sky" />
-  </node>
+  <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
+  <mesh id="earth-sky" />
+</node>
+
+<node id="Background-Pass0">
+  <node import="Sky" />
+</node>
+<node id="Background-Pass">
+  <node import="Reflectors" />
+  <node import="Sky" />
 </node>
 
 <!--**************************-->
 <!--**************************-->
 
-<node id="volumetric-fog-pass">
+<node id="Volumetric-Fog-Pass">
   <input type="float" name="shadowSampleStep" value="0.025" />
   <input type="float" name="shadowSampleThreshold" value="0.075" />
   <input type="vec2" name="fogDistance" value="0.0,100.0" />
@@ -389,28 +353,22 @@
   </node>
 </node>
 
-<node id="post-pass">
+<node id="Post-Pass">
   <depth test="0" write="0" />
   
-  <node id="volume-fog">
+  <node id="Volume-Fog">
     <fbo id="g-buffer" draw-buffers="1" />
     <blend mode="add" />
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-    <node import="volumetric-fog-pass" />
+    <node import="Volumetric-Fog-Pass" />
   </node>
   <view id="Scene -- Volumetric Fog">
     <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
   </view>
   
-  <node id="fxaa">
+  <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="0" />
     <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-    <input type="float" name="spanMax" value="8.0" />
-    <input type="float" name="reduceMul" value="0.125" />
-    <input type="float" name="reduceMin" value="0.0078125" />
-    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
-    
-    <fullscreen-pass shader="regen.filter.fxaa" />
   </node>
   <view id="Scene -- Antialiased">
     <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
@@ -421,18 +379,17 @@
 <!--**************************-->
 
 <node id="root">
-  <node id="pre-render">
-    <node import="reflection-pass" />
-    <node import="shadow-pass" />
+  <node id="Pre-Render">
+    <node import="Reflection-Pass" />
+    <node import="Shadow-Pass" />
   </node>
   
-  <node id="render">
+  <node id="Render">
     <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-    <node import="main-pass" />
     
-    <node id="GUI">
+    <node import="Default-Pipeline" />
+    <node import="GUI-Pass">
       <fbo id="g-buffer" draw-buffers="0" />
-      <node import="gui-pass" />
     </node>
     
     <view id="Scene -- Result">

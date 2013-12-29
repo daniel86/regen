@@ -1,42 +1,25 @@
 
 <!-- Framebuffer Objects -->
-<fbo id="g-buffer" size-mode="rel" size="1.0,1.0" >
-  <texture id="diffuse0"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="diffuse1"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
+<fbo id="g-buffer"
+     size-mode="rel" size="1.0,1.0"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4" >
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
   <depth id="depth" pixel-size="24" />
 </fbo>
-<fbo id="g-buffer-float" size-mode="rel" size="1.0,1.0" >
-  <texture id="diffuse0"
-	   pixel-type="FLOAT"
-	   pixel-size="16"
-	   pixel-components="3" />
-  <texture id="diffuse1"
-	   pixel-type="FLOAT"
-	   pixel-size="16"
-	   pixel-components="3" />
-  <texture id="specular"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <texture id="normal"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-size="16"
-	   pixel-components="4" />
-  <depth id="depth" pixel-size="24" />
+
+<fbo id="g-buffer-float"
+     size-mode="rel" size="1.0,1.0"
+     pixel-type="FLOAT" pixel-size="16" >
+  <texture id="diffuse0" pixel-components="3" />
+  <texture id="diffuse1" pixel-components="3" />
+  <texture id="specular" pixel-components="4" />
+  <texture id="normal" pixel-components="4" />
+  <depth pixel-size="24" />
 </fbo>
 
 <!-- Textures -->
@@ -53,7 +36,66 @@
       day-length="0.8"
       max-elevation="20.0"
       min-elevation="-20.0"
-      day-time="0.5" />
+      day-time="0.2" />
+
+<node id="FXAA">
+  <input type="float" name="spanMax" value="8.0" />
+  <input type="float" name="reduceMul" value="0.125" />
+  <input type="float" name="reduceMin" value="0.0078125" />
+  <input type="vec3" name="luma" value="0.299,0.587,0.114" />
+  <fullscreen-pass shader="regen.filter.fxaa" />
+</node>
+
+<node id="Default-Pipeline">
+  <camera id="main-camera" />
+  
+  <node id="Geometry-Pass">
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="g-buffer" draw-buffers="0,2,3" />
+    
+    <node import="Shadow-Caster" />
+    <node import="Scene-Geometry" />
+    <view id="Scene -- Diffuse">
+      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
+    <view id="Scene -- Specular">
+      <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
+    </view>
+    <view id="Scene -- Normal">
+      <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN" />
+    </view>
+  </node>
+  
+  <node id="Shading">
+    <fbo id="g-buffer" draw-buffers="1" />
+    
+    <node id="Light-Pass">
+      <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+      
+      <node import="Shading-Pass" />
+    </node>
+  
+    <view id="Scene -- Shading">
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
+    
+    <node import="Background-Pass" />
+    <view id="Scene -- Background">
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
+    
+    <node import="Post-Pass" />
+  </node>
+</node>
+
+<!-- ************************ -->
+<!-- Rendering of GUI widgets -->
+<!-- ************************ -->
+
 <mesh id="logo-widget"
       type="rectangle"
       lod="0"
@@ -70,6 +112,7 @@
     <translate value="8.0,-8.0,0.0" />
   </transform>
 </mesh>
+
 <mesh id="fps-widget"
       type="text"
       font="obelix"
@@ -80,8 +123,7 @@
   </transform>
 </mesh>
 
-<!-- Rendering of GUI widgets -->
-<node id="gui-pass">
+<node id="GUI-Pass">
   <blend mode="alpha" />
   <depth test="0" write="0" />
   
@@ -95,3 +137,6 @@
     <mesh id="fps-widget" />
   </node>
 </node>
+
+<!-- ************************ -->
+<!-- ************************ -->

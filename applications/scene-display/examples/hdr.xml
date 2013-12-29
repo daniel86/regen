@@ -148,9 +148,8 @@
   <node import="main-pass" />
   <node import="post-pass" />
   
-  <node id="GUI">
+  <node import="GUI-Pass">
     <fbo id="g-buffer-float" draw-buffers="1" />
-    <node import="gui-pass" />
   </node>
   
   <view id="Scene -- Result">

@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<!-- Framebuffer Objects -->
-<fbo id="fbo" size-mode="abs" size="256,256" >
-  <texture id="color" pixel-components="3" />
-</fbo>
-<fbo id="back-buffer" size-mode="rel" size="1,1" >
-  <texture id="color" pixel-components="3" />
-</fbo>
-
-<node id="mandelbrot-pass">
+<node id="root">
+  <fbo id="SCREEN" draw-buffers="0" />
   <blend mode="src" />
   
   <define key="JULIA_SET" value="TRUE" />
@@ -19,17 +12,4 @@
   <input type="vec3" name="outerColor1" value="0.2,0.12,0.82" />
   <input type="vec3" name="outerColor2" value="0.4,0.8,0.1" />
   <fullscreen-pass shader="mandelbrot" />
-</node>
-
-<node id="root">
-  <fbo id="back-buffer" clear-buffers="0" />
-  <fbo id="fbo" draw-buffers="0" />
-  <node import="mandelbrot-pass" />
-  <node>
-    <blit src-fbo="fbo" src-attachment="0"
-	  dst-fbo="back-buffer" dst-attachment="0"
-	  keep-aspect="1" />
-    <blit src-fbo="back-buffer" src-attachment="0"
-	  dst-fbo="SCREEN" />
-  </node>
 </node>

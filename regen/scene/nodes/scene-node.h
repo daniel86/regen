@@ -84,6 +84,7 @@ namespace scene {
           newNode = createNode(parser,*imported.get(),parent);
           handleAttributes(parser,*imported.get(),newNode);
           handleAttributes(parser,input,newNode);
+          handleChildren(parser,input,newNode);
           handleChildren(parser,*imported.get(),newNode);
         }
       }

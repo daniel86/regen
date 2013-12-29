@@ -37,21 +37,6 @@
       use-tangent="0"
       texco-mode="NONE"
       usage="STATIC" />
-<mesh id="logo-widget"
-      type="rectangle"
-      lod="0"
-      rotation="1.57,0.0,0.0"
-      scaling="90.0,1.0,23.0"
-      texco-scaling="-1.0,1.0"
-      use-normal="0"
-      use-texco="1"
-      use-tangent="0"
-      center="0" />
-<mesh id="fps-widget"
-      type="text"
-      font="obelix"
-      text="0 FPS"
-      text-color="0.97,0.86,0.77,0.95" />
   
 <!--**************************-->
 <!--**************************-->
@@ -95,9 +80,8 @@
   
   <node import="main-pass" />
     
-  <node id="GUI">
+  <node import="GUI-Pass">
     <fbo id="g-buffer" draw-buffers="0" />
-    <node import="gui-pass" />
   </node>
   
   <node>
