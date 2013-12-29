@@ -318,8 +318,8 @@
       <fbo id="g-buffer" draw-buffers="0" />
     </node>
     
-    <node>
+    <view id="Scene -- Result">
       <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </node>
+    </view>
   </node>
 </node>
