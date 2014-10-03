@@ -603,6 +603,11 @@ namespace regen {
       ValueType *v = (ValueType*)dataStack_.top();
       return v[vertexIndex];
     }
+    ValueType& getVertexPtr(GLuint vertexIndex) const
+    {
+      ValueType *v = (ValueType*)dataStack_.top();
+      return v[vertexIndex];
+    }
     /**
      * @param data the uniforminput data.
      */

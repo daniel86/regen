@@ -75,14 +75,15 @@
 <!--****** Sky and Sun *******-->
 <!--**************************-->
 
-<mesh id="earth-sky"
-      type="sky"
-      lod="4"
-      preset="earth"
-      day-length="0.8"
-      max-elevation="20.0"
-      min-elevation="-20.0"
-      day-time="0.2" />
+<sky id="earth-sky"
+     camera="main-camera"
+     date="01-03-2014 12:13:00"
+     seconds-per-cycle="30.0" >
+  <atmosphere preset="earth"
+	      lod="4"
+	      blend-mode="SRC"
+	      update-interval="60.0" />
+</sky>
 
 <fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >
   <depth id="depth" pixel-size="24" pixel-type="FLOAT"

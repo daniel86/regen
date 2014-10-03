@@ -11,7 +11,6 @@ using namespace regen;
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/meshes/rectangle.h>
-#include <regen/meshes/sky.h>
 #include <regen/meshes/box.h>
 #include <regen/meshes/sphere.h>
 #include <regen/meshes/texture-mapped-text.h>
@@ -166,10 +165,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
     for(GLuint i=0u; i<out->size(); ++i) {
       parser->putState(REGEN_STRING(input.getName()<<i),(*out)[i]);
     }
-  }
-  else if(meshType == "sky") {
-    (*out) = MeshVector(1);
-    (*out)[0] = createSkyMesh(parser,input);
   }
   else if(meshType == "text") {
     (*out) = MeshVector(1);
@@ -345,67 +340,5 @@ ref_ptr<TextureMappedText> MeshResource::createTextMesh(
   }
 
   return widget;
-}
-
-ref_ptr<SkyScattering> MeshResource::createSkyMesh(
-    SceneParser *parser, SceneInputNode &input)
-{
-  ref_ptr<SkyScattering> sky = ref_ptr<SkyScattering>::alloc(
-      input.getValue<GLuint>("size", 512),
-      input.getValue<GLuint>("use-float", false),
-      input.getValue<GLuint>("lod",0));
-
-  const string preset = input.getValue<string>("preset", "earth");
-  if(preset == "earth")       sky->setEarth();
-  else if(preset == "mars")   sky->setMars();
-  else if(preset == "venus")  sky->setVenus();
-  else if(preset == "uranus") sky->setUranus();
-  else if(preset == "alien")  sky->setAlien();
-  else if(preset == "custom") {
-    const Vec3f absorbtion =
-        input.getValue<Vec3f>("absorbtion", Vec3f(
-            0.18867780436772762,
-            0.4978442963618773,
-            0.6616065586417131));
-    const Vec3f rayleigh =
-        input.getValue<Vec3f>("rayleigh", Vec3f(19.0,359.0,81.0));
-    const Vec4f mie =
-        input.getValue<Vec4f>("mie", Vec4f(44.0,308.0,39.0,74.0));
-    const GLfloat spot =
-        input.getValue<GLfloat>("spot", 373.0);
-    const GLfloat strength =
-        input.getValue<GLfloat>("strength", 54.0);
-
-    sky->setRayleighBrightness(rayleigh.x);
-    sky->setRayleighStrength(rayleigh.y);
-    sky->setRayleighCollect(rayleigh.z);
-    sky->setMieBrightness(mie.x);
-    sky->setMieStrength(mie.y);
-    sky->setMieCollect(mie.z);
-    sky->setMieDistribution(mie.w);
-    sky->setSpotBrightness(spot);
-    sky->setScatterStrength(strength);
-    sky->setAbsorbtion(absorbtion);
-  }
-  else REGEN_WARN("Ignoring unknown sky preset '" << preset <<
-      "' for node " << input.getDescription() << ".");
-
-  sky->setSunElevation(
-      input.getValue<GLdouble>("day-length", 0.8),
-      input.getValue<GLdouble>("max-elevation", 30.0),
-      input.getValue<GLdouble>("min-elevation", -20.0));
-  sky->set_dayTime(
-      input.getValue<GLdouble>("day-time", 0.5));
-  sky->set_timeScale(
-      input.getValue<GLdouble>("time-scale", 0.00000004));
-  sky->set_updateInterval(
-      input.getValue<GLdouble>("update-interval", 4000.0));
-
-  // The Sky also exposes a Light (the sun) and a Texture (the cube map)
-  parser->getResources()->putLight(input.getName(), sky->sun());
-  parser->getResources()->putTexture(input.getName(), sky->cubeMap());
-  parser->putState(input.getName()+"-sun", sky->sun());
-
-  return sky;
 }
 

@@ -285,8 +285,7 @@
 
 <node id="Sky">
   <depth test="1" write="0" />
-  <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
-  <mesh id="earth-sky" />
+  <sky id="earth-sky" />
 </node>
 
 <node id="Background-Pass0">

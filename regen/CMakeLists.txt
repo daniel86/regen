@@ -32,6 +32,7 @@ set(SOURCE_DIRS
     camera
     meshes
     scene
+    sky
     external)
 
 add_subdirectory(glsl)
