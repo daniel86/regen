@@ -55,6 +55,11 @@ ref_ptr<AssetImporter> ResourceManager::getAsset(SceneParser *parser, const std:
   loadResources(parser,id);
   return assets_.getResource(parser,id);
 }
+ref_ptr<State> ResourceManager::getState(SceneParser *parser, const std::string &id)
+{
+  loadResources(parser,id);
+  return states_.getResource(parser,id);
+}
 
 void ResourceManager::putCamera(const std::string &id, const ref_ptr<Camera> &cam)
 {
@@ -83,4 +88,8 @@ void ResourceManager::putMesh(const std::string &id, const ref_ptr<MeshVector> &
 void ResourceManager::putAsset(const std::string &id, const ref_ptr<AssetImporter> &asset)
 {
   assets_.putResource(id,asset);
+}
+void ResourceManager::putState(const std::string &id, const ref_ptr<State> &asset)
+{
+  states_.putResource(id,asset);
 }

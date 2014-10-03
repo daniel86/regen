@@ -15,6 +15,7 @@
 #include <regen/scene/resources/light.h>
 #include <regen/scene/resources/mesh.h>
 #include <regen/scene/resources/texture.h>
+#include <regen/scene/resources/state.h>
 
 namespace regen {
 namespace scene {
@@ -65,6 +66,7 @@ namespace scene {
      * @return A AssetImporter resource or null reference.
      */
     ref_ptr<AssetImporter> getAsset(SceneParser *parser, const std::string &id);
+    ref_ptr<State> getState(SceneParser *parser, const std::string &id);
 
     /**
      * @param id the resource id.
@@ -101,6 +103,7 @@ namespace scene {
      * @param asset A AssetImporter instance.
      */
     void putAsset(const std::string &id, const ref_ptr<AssetImporter> &asset);
+    void putState(const std::string &id, const ref_ptr<State> &state);
 
     /**
      * Load all resources with given id.
@@ -117,6 +120,7 @@ namespace scene {
     LightResource lights_;
     MeshResource meshes_;
     TextureResource textures_;
+    StateResource states_;
   };
 }}
 
