@@ -43,8 +43,6 @@ namespace scene {
     ref_ptr<TextureMappedText> createTextMesh(
         SceneParser *parser,
         SceneInputNode &input);
-    ref_ptr<SkyScattering> createSkyMesh(
-        SceneParser *parser, SceneInputNode &input);
   };
 }}
 

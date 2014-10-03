@@ -15,7 +15,7 @@
 #include <regen/scene/resources/light.h>
 #include <regen/scene/resources/mesh.h>
 #include <regen/scene/resources/texture.h>
-#include <regen/scene/resources/state.h>
+#include <regen/scene/resources/sky.h>
 
 namespace regen {
 namespace scene {
@@ -54,6 +54,7 @@ namespace scene {
      * @return A Texture resource or null reference.
      */
     ref_ptr<Texture> getTexture(SceneParser *parser, const std::string &id);
+    ref_ptr<Sky> getSky(SceneParser *parser, const std::string &id);
     /**
      * @param parser The scene parser that contains resources.
      * @param id the resource id.
@@ -88,6 +89,7 @@ namespace scene {
      * @param fbo A FBO instance.
      */
     void putFBO(const std::string &id, const ref_ptr<FBO> &fbo);
+    void putFBO(const std::string &id, const ref_ptr<Sky> &sky);
     /**
      * @param id the resource id.
      * @param texture A Texture instance.
@@ -103,7 +105,7 @@ namespace scene {
      * @param asset A AssetImporter instance.
      */
     void putAsset(const std::string &id, const ref_ptr<AssetImporter> &asset);
-    void putState(const std::string &id, const ref_ptr<State> &state);
+    void putSky(const std::string &id, const ref_ptr<Sky> &sky);
 
     /**
      * Load all resources with given id.
@@ -119,8 +121,8 @@ namespace scene {
     FontResource fonts_;
     LightResource lights_;
     MeshResource meshes_;
+    SkyResource skies_;
     TextureResource textures_;
-    StateResource states_;
   };
 }}
 

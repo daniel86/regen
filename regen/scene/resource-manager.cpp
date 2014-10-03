@@ -18,6 +18,7 @@ void ResourceManager::loadResources(SceneParser *parser, const std::string &id)
   lights_.getResource(parser,id);
   meshes_.getResource(parser,id);
   textures_.getResource(parser,id);
+  skies_.getResource(parser,id);
 }
 
 ref_ptr<Camera> ResourceManager::getCamera(SceneParser *parser, const std::string &id)
@@ -55,10 +56,10 @@ ref_ptr<AssetImporter> ResourceManager::getAsset(SceneParser *parser, const std:
   loadResources(parser,id);
   return assets_.getResource(parser,id);
 }
-ref_ptr<State> ResourceManager::getState(SceneParser *parser, const std::string &id)
+ref_ptr<Sky> ResourceManager::getSky(SceneParser *parser, const std::string &id)
 {
   loadResources(parser,id);
-  return states_.getResource(parser,id);
+  return skies_.getResource(parser,id);
 }
 
 void ResourceManager::putCamera(const std::string &id, const ref_ptr<Camera> &cam)
@@ -89,7 +90,7 @@ void ResourceManager::putAsset(const std::string &id, const ref_ptr<AssetImporte
 {
   assets_.putResource(id,asset);
 }
-void ResourceManager::putState(const std::string &id, const ref_ptr<State> &asset)
+void ResourceManager::putSky(const std::string &id, const ref_ptr<Sky> &sky)
 {
-  states_.putResource(id,asset);
+  skies_.putResource(id,sky);
 }
