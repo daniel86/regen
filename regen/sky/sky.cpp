@@ -135,6 +135,12 @@ ref_ptr<Camera>& Sky::camera()
 ref_ptr<ShaderInput2i>& Sky::viewport()
 { return viewport_; }
 
+ref_ptr<ShaderInput3f>& Sky::sunPosition()
+{ return sunPosition_; }
+
+ref_ptr<ShaderInput3f>& Sky::sunPositionR()
+{ return sunPositionR_; }
+
 void Sky::updateSeed() {
   Vec4f &v = *((Vec4f*)cmnUniform_->clientDataPtr());
   v.w = rand();

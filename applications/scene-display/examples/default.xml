@@ -89,6 +89,18 @@
 	       wind="0.0,0.0"
 	       color="1.0,1.0,1.0"
 	       update-interval="60.0" />
+  <low-cloud-layer texture-size="2048"
+	       sharpness="0.2"
+	       coverage="0.2"
+	       thickness="0.3"
+	       offset="-0.5"
+	       altitude="2.0"
+	       scale="128.0,128.0"
+	       change="0.1"
+	       wind="0.01,0.0"
+	       top-color="1.0,1.0,1.0"
+	       bottom-color="1.0,1.0,1.0"
+	       update-interval="60.0" />
 </sky>
 
 <fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >

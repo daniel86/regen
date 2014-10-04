@@ -1,31 +1,25 @@
 /*
- * high-clouds.h
+ * cloud-layer.h
  *
  *  Created on: Oct 4, 2014
  *      Author: daniel
  */
 
-#ifndef HIGH_CLOUDS_H_
-#define HIGH_CLOUDS_H_
+#ifndef CLOUD_LAYER_H_
+#define CLOUD_LAYER_H_
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-  /**
-   * \brief High Cloud Layer.
-   * @see https://code.google.com/p/osghimmel/
-   */
-  class HighCloudLayer : public SkyLayer {
+  class CloudLayer : public SkyLayer {
   public:
-    HighCloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize=2048);
+    CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize=2048);
 
     void set_altitude(GLdouble altitude);
 
     const ref_ptr<ShaderInput1f>& altitude() const;
-
-    const float defaultAltitude();
 
     void set_sharpness(GLdouble sharpness);
 
@@ -39,24 +33,16 @@ namespace regen {
 
     const ref_ptr<ShaderInput2f>& scale() const;
 
-    const Vec2f defaultScale();
-
     void set_change(GLdouble change);
 
     const ref_ptr<ShaderInput1f>& change() const;
-
-    GLdouble defaultChange();
 
     void set_wind(const Vec2f &wind);
 
     const ref_ptr<ShaderInput2f>& wind() const;
 
-    void set_color(const Vec3f &color);
-
-    const ref_ptr<ShaderInput3f>& color() const;
-
     // Override
-    void updateSkyLayer(RenderState *rs, GLdouble dt);
+    virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
     ref_ptr<Mesh> getMeshState();
     ref_ptr<HasShader> getShaderState();
 
@@ -71,7 +57,6 @@ namespace regen {
     ref_ptr<ShaderInput1f> sharpness_;
     ref_ptr<ShaderInput1f> change_;
     ref_ptr<ShaderInput2f> wind_;
-    ref_ptr<ShaderInput3f> color_;
     ref_ptr<ShaderInput1f> altitude_;
     ref_ptr<ShaderInput2f> scale_;
 
@@ -83,4 +68,4 @@ namespace regen {
     ref_ptr<Texture3D> noise3_;
   };
 }
-#endif /* HIGH_CLOUDS_H_ */
+#endif /* CLOUD_LAYER_H_ */

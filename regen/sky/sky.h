@@ -64,6 +64,10 @@ namespace regen {
 
     ref_ptr<ShaderInput2i>& viewport();
 
+    ref_ptr<ShaderInput3f>& sunPosition();
+
+    ref_ptr<ShaderInput3f>& sunPositionR();
+
     osgHimmel::AbstractAstronomy& astro();
 
     void set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro);
