@@ -14,7 +14,8 @@ using namespace regen;
 
 #include <regen/sky/sky.h>
 #include <regen/sky/atmosphere.h>
-#include <regen/sky/high-clouds.h>
+#include <regen/sky/cloud-layer-high.h>
+#include <regen/sky/cloud-layer-low.h>
 
 #define REGEN_SKY_CATEGORY "sky"
 
@@ -61,6 +62,9 @@ ref_ptr<Sky> SkyResource::createResource(
     }
     else if(n->getCategory() == "high-cloud-layer") {
       createHighCloudLayer(sky, parser, *n.get());
+    }
+    else if(n->getCategory() == "low-cloud-layer") {
+      createLowCloudLayer(sky, parser, *n.get());
     }
   }
 
@@ -150,6 +154,39 @@ ref_ptr<HighCloudLayer> SkyResource::createHighCloudLayer(const ref_ptr<Sky> &sk
   sky->addLayer(highClouds);
 
   return highClouds;
+}
+
+ref_ptr<LowCloudLayer> SkyResource::createLowCloudLayer(const ref_ptr<Sky> &sky,
+    SceneParser *parser, SceneInputNode &input)
+{
+  ref_ptr<LowCloudLayer> lowClouds = ref_ptr<LowCloudLayer>::alloc(sky,
+      input.getValue<GLuint>("texture-size", 2048));
+  if(input.hasAttribute("altitude"))
+    lowClouds->set_altitude(input.getValue<GLdouble>("altitude", lowClouds->defaultAltitude()));
+  if(input.hasAttribute("sharpness"))
+    lowClouds->set_sharpness(input.getValue<GLdouble>("sharpness", 0.5f));
+  if(input.hasAttribute("coverage"))
+    lowClouds->set_coverage(input.getValue<GLdouble>("coverage", 0.2f));
+  if(input.hasAttribute("change"))
+    lowClouds->set_change(input.getValue<GLdouble>("change", lowClouds->defaultChange()));
+  if(input.hasAttribute("scale"))
+    lowClouds->set_scale(input.getValue<Vec2f>("scale", lowClouds->defaultScale()));
+  if(input.hasAttribute("offset"))
+    lowClouds->set_offset(input.getValue<GLdouble>("offset", -0.5f));
+  if(input.hasAttribute("thickness"))
+    lowClouds->set_thickness(input.getValue<GLdouble>("thickness", 3.0f));
+  if(input.hasAttribute("wind"))
+    lowClouds->set_wind(input.getValue<Vec2f>("wind", Vec2f(0.f, 0.f)));
+  if(input.hasAttribute("top-color"))
+    lowClouds->set_topColor(input.getValue<Vec3f>("top-color", Vec3f(1.f, 1.f, 1.f)));
+  if(input.hasAttribute("bottom-color"))
+    lowClouds->set_bottomColor(input.getValue<Vec3f>("bottom-color", Vec3f(1.f, 1.f, 1.f)));
+
+  lowClouds->set_updateInterval(
+      input.getValue<GLdouble>("update-interval", 4000.0));
+  sky->addLayer(lowClouds);
+
+  return lowClouds;
 }
 
 #if 0

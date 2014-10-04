@@ -1,11 +1,11 @@
 /*
- * low-clouds.cpp
+ * cloud-layer.cpp
  *
  *  Created on: Oct 4, 2014
  *      Author: daniel
  */
 
-#include "low-clouds.h"
+#include "cloud-layer.h"
 
 #include <regen/external/osghimmel/noise.h>
 #include <regen/states/depth-state.h>
@@ -17,7 +17,6 @@ using namespace regen;
 #define _randf(min, max) \
     (static_cast<float>(rand()) / RAND_MAX * ((max) - (min)) + (min))
 
-// TODO: redundant: high clouds
 static GLfloat* createNoiseSlice(GLuint texSize, GLuint octave)
 {
   GLuint size2 = texSize * texSize;
@@ -50,7 +49,6 @@ static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint
     tex->set_internalFormat(GL_LUMINANCE16F_ARB);
     tex->set_pixelType(GL_FLOAT);
 
-    // TODO: need to call texImage before sub image?
     tex->texImage();
     for(unsigned int s = 0; s < slices; ++s) {
       GLfloat *data = createNoiseSlice(texSize, octave);
@@ -66,11 +64,10 @@ static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint
 }
 
 
-LowCloudLayer::LowCloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
+CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 : SkyLayer(sky)
 {
   RenderState *rs = RenderState::get();
-  set_name("LowCloudLayer");
   srand(time(NULL));
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
@@ -80,7 +77,6 @@ LowCloudLayer::LowCloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   state()->joinStates(depth);
   state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-  // TODO: redundant
   cloudTexture_ = ref_ptr<Texture2D>::alloc(1);
   cloudTexture_->begin(rs);
   cloudTexture_->set_rectangleSize(textureSize,textureSize);
@@ -101,62 +97,32 @@ LowCloudLayer::LowCloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cloudTexture_->id(), 0);
   rs->drawFrameBuffer().pop();
 
-  // TODO: unused
-  q_ = ref_ptr<ShaderInput1f>::alloc("q");
-  q_->setUniformData(0.0f);
-  state()->joinShaderInput(q_);
-
-  state()->joinShaderInput(sky->sunPositionR(), "sunPositionR");
-
-  bottomColor_ = ref_ptr<ShaderInput3f>::alloc("bcolor");
-  bottomColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-  state()->joinShaderInput(bottomColor_);
-
-  topColor_ = ref_ptr<ShaderInput3f>::alloc("tcolor");
-  topColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-  state()->joinShaderInput(topColor_);
-
   altitude_ = ref_ptr<ShaderInput1f>::alloc("altitude");
-  altitude_->setUniformData(defaultAltitude());
+  altitude_->setUniformData(8.0f);
   state()->joinShaderInput(altitude_);
 
-  thickness_ = ref_ptr<ShaderInput1f>::alloc("thickness");
-  thickness_->setUniformData(3.0f);
-  state()->joinShaderInput(thickness_);
-
-  offset_ = ref_ptr<ShaderInput1f>::alloc("offset");
-  offset_->setUniformData(-0.5f);
-  state()->joinShaderInput(offset_);
-
   scale_ = ref_ptr<ShaderInput2f>::alloc("scale");
-  scale_->setUniformData(defaultScale());
+  scale_->setUniformData(Vec2f(32.0, 32.0));
   state()->joinShaderInput(scale_);
 
-  shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.low-layer");
-  state()->joinStates(shaderState_->shaderState());
-
-  meshState_ = Rectangle::getUnitQuad();
-  state()->joinStates(meshState_);
-
-  // TODO redundant
   ///////
   /// Update Uniforms
-  ///////
-  coverage_ = ref_ptr<ShaderInput1f>::alloc("coverage");
-  coverage_->setUniformData(0.2f);
-  sharpness_ = ref_ptr<ShaderInput1f>::alloc("sharpness");
-  sharpness_->setUniformData(0.3f);
-  change_ = ref_ptr<ShaderInput1f>::alloc("change");
-  change_->setUniformData(defaultChange());
-  wind_ = ref_ptr<ShaderInput2f>::alloc("wind");
-  wind_->setUniformData(Vec2f(0.f, 0.f));
-  ///////
-  /// Update State
   ///////
   noise0_ = createNoiseArray(1 << 6, 3, 4);
   noise1_ = createNoiseArray(1 << 7, 4, 4);
   noise2_ = createNoiseArray(1 << 8, 5, 4);
   noise3_ = createNoiseArray(1 << 8, 6, 4);
+  coverage_ = ref_ptr<ShaderInput1f>::alloc("coverage");
+  coverage_->setUniformData(0.2f);
+  sharpness_ = ref_ptr<ShaderInput1f>::alloc("sharpness");
+  sharpness_->setUniformData(0.5f);
+  change_ = ref_ptr<ShaderInput1f>::alloc("change");
+  change_->setUniformData(0.1f);
+  wind_ = ref_ptr<ShaderInput2f>::alloc("wind");
+  wind_->setUniformData(Vec2f(0.f, 0.f));
+  ///////
+  /// Update State
+  ///////
   ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
   updateState_ = ref_ptr<State>::alloc();
   updateState_->joinShaderInput(sky->timeUniform());
@@ -182,91 +148,50 @@ LowCloudLayer::LowCloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 }
 
 
-void LowCloudLayer::set_altitude(GLdouble altitude)
+void CloudLayer::set_altitude(GLdouble altitude)
 { altitude_->setVertex(0, altitude); }
 
-const ref_ptr<ShaderInput1f>& LowCloudLayer::altitude() const
+const ref_ptr<ShaderInput1f>& CloudLayer::altitude() const
 { return altitude_; }
 
-const float LowCloudLayer::defaultAltitude()
-{ return 2.0f; }
-
-void LowCloudLayer::set_sharpness(GLdouble sharpness)
+void CloudLayer::set_sharpness(GLdouble sharpness)
 { sharpness_->setVertex(0, sharpness); }
 
-const ref_ptr<ShaderInput1f>& LowCloudLayer::sharpness() const
+const ref_ptr<ShaderInput1f>& CloudLayer::sharpness() const
 { return sharpness_; }
 
-void LowCloudLayer::set_coverage(GLdouble coverage)
+void CloudLayer::set_coverage(GLdouble coverage)
 { coverage_->setVertex(0, coverage); }
 
-const ref_ptr<ShaderInput1f>& LowCloudLayer::coverage() const
+const ref_ptr<ShaderInput1f>& CloudLayer::coverage() const
 { return coverage_; }
 
-void LowCloudLayer::set_scale(const Vec2f &scale)
+void CloudLayer::set_scale(const Vec2f &scale)
 { scale_->setVertex(0, scale); }
 
-const ref_ptr<ShaderInput2f>& LowCloudLayer::scale() const
+const ref_ptr<ShaderInput2f>& CloudLayer::scale() const
 { return scale_; }
 
-const Vec2f LowCloudLayer::defaultScale()
-{ return Vec2f(128.0, 128.0); }
-
-void LowCloudLayer::set_change(GLdouble change)
+void CloudLayer::set_change(GLdouble change)
 { change_->setVertex(0, change); }
 
-const ref_ptr<ShaderInput1f>& LowCloudLayer::change() const
+const ref_ptr<ShaderInput1f>& CloudLayer::change() const
 { return change_; }
 
-GLdouble LowCloudLayer::defaultChange()
-{ return 0.1f; }
-
-void LowCloudLayer::set_wind(const Vec2f &wind)
+void CloudLayer::set_wind(const Vec2f &wind)
 { wind_->setVertex(0, wind); }
 
-const ref_ptr<ShaderInput2f>& LowCloudLayer::wind() const
+const ref_ptr<ShaderInput2f>& CloudLayer::wind() const
 { return wind_; }
 
-void LowCloudLayer::set_bottomColor(const Vec3f &color)
-{ bottomColor_->setVertex(0, color); }
-
-const ref_ptr<ShaderInput3f>& LowCloudLayer::bottomColor() const
-{ return bottomColor_; }
-
-void LowCloudLayer::set_topColor(const Vec3f &color)
-{ topColor_->setVertex(0, color); }
-
-const ref_ptr<ShaderInput3f>& LowCloudLayer::topColor() const
-{ return topColor_; }
-
-void LowCloudLayer::set_thickness(GLdouble thickness)
-{ thickness_->setVertex(0, thickness); }
-
-const ref_ptr<ShaderInput1f>& LowCloudLayer::thickness() const
-{ return thickness_; }
-
-void LowCloudLayer::set_offset(GLdouble offset)
-{ offset_->setVertex(0, offset); }
-
-const ref_ptr<ShaderInput1f>& LowCloudLayer::offset() const
-{ return offset_; }
-
-
-ref_ptr<Mesh> LowCloudLayer::getMeshState()
+ref_ptr<Mesh> CloudLayer::getMeshState()
 { return meshState_; }
 
-ref_ptr<HasShader> LowCloudLayer::getShaderState()
+ref_ptr<HasShader> CloudLayer::getShaderState()
 { return shaderState_; }
 
-#define _rad(deg) ((deg) * M_PI / 180.0L)
-
-void LowCloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt)
+void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt)
 {
-  // TODO: starmap and planets also require this ... - find better place
-  const float fov = sky_->camera()->fov()->getVertex(0); // himmel.getCameraFovHint();
-  const float height = sky_->viewport()->getVertex(0).x;
-  q_->setUniformData(sqrt(2.0) * 2.0 * tan(_rad(fov * 0.5)) / height);
-
   rs->drawFrameBuffer().push(fbo_->id());
   rs->viewport().push(fbo_->glViewport());
 
