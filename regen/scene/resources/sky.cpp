@@ -14,8 +14,7 @@ using namespace regen;
 
 #include <regen/sky/sky.h>
 #include <regen/sky/atmosphere.h>
-#include <regen/sky/cloud-layer-high.h>
-#include <regen/sky/cloud-layer-low.h>
+#include <regen/sky/cloud-layer.h>
 
 #define REGEN_SKY_CATEGORY "sky"
 
@@ -60,11 +59,8 @@ ref_ptr<Sky> SkyResource::createResource(
     if(n->getCategory() == "atmosphere") {
       createAtmosphereLayer(sky, parser, *n.get());
     }
-    else if(n->getCategory() == "high-cloud-layer") {
-      createHighCloudLayer(sky, parser, *n.get());
-    }
-    else if(n->getCategory() == "low-cloud-layer") {
-      createLowCloudLayer(sky, parser, *n.get());
+    else if(n->getCategory() == "cloud-layer") {
+      createCloudLayer(sky, parser, *n.get());
     }
   }
 
@@ -129,64 +125,43 @@ ref_ptr<Atmosphere> SkyResource::createAtmosphereLayer(const ref_ptr<Sky> &sky,
   return atmosphere;
 }
 
-ref_ptr<HighCloudLayer> SkyResource::createHighCloudLayer(const ref_ptr<Sky> &sky,
+ref_ptr<CloudLayer> SkyResource::createCloudLayer(const ref_ptr<Sky> &sky,
     SceneParser *parser, SceneInputNode &input)
 {
-  ref_ptr<HighCloudLayer> highClouds = ref_ptr<HighCloudLayer>::alloc(sky,
+  ref_ptr<CloudLayer> cloudLayer = ref_ptr<CloudLayer>::alloc(sky,
       input.getValue<GLuint>("texture-size", 2048));
+
+  if(input.hasAttribute("use-scatter") && string("TRUE") == (input.getValue("use-scatter")))
+    cloudLayer->state()->shaderDefine("USE_SCATTER", "TRUE");
+
   if(input.hasAttribute("altitude"))
-    highClouds->set_altitude(input.getValue<GLdouble>("altitude", highClouds->defaultAltitude()));
+    cloudLayer->set_altitude(input.getValue<GLdouble>("altitude", cloudLayer->defaultAltitudeHigh()));
   if(input.hasAttribute("sharpness"))
-    highClouds->set_sharpness(input.getValue<GLdouble>("sharpness", 0.5f));
+    cloudLayer->set_sharpness(input.getValue<GLdouble>("sharpness", 0.5f));
   if(input.hasAttribute("coverage"))
-    highClouds->set_coverage(input.getValue<GLdouble>("coverage", 0.2f));
+    cloudLayer->set_coverage(input.getValue<GLdouble>("coverage", 0.2f));
   if(input.hasAttribute("change"))
-    highClouds->set_change(input.getValue<GLdouble>("change", highClouds->defaultChange()));
+    cloudLayer->set_change(input.getValue<GLdouble>("change", cloudLayer->defaultChangeHigh()));
   if(input.hasAttribute("scale"))
-    highClouds->set_scale(input.getValue<Vec2f>("scale", highClouds->defaultScale()));
+    cloudLayer->set_scale(input.getValue<Vec2f>("scale", cloudLayer->defaultScaleHigh()));
   if(input.hasAttribute("wind"))
-    highClouds->set_wind(input.getValue<Vec2f>("wind", Vec2f(0.f, 0.f)));
+    cloudLayer->set_wind(input.getValue<Vec2f>("wind", Vec2f(0.f, 0.f)));
   if(input.hasAttribute("color"))
-    highClouds->set_color(input.getValue<Vec3f>("color", Vec3f(1.f, 1.f, 1.f)));
-
-  highClouds->set_updateInterval(
-      input.getValue<GLdouble>("update-interval", 4000.0));
-  sky->addLayer(highClouds);
-
-  return highClouds;
-}
-
-ref_ptr<LowCloudLayer> SkyResource::createLowCloudLayer(const ref_ptr<Sky> &sky,
-    SceneParser *parser, SceneInputNode &input)
-{
-  ref_ptr<LowCloudLayer> lowClouds = ref_ptr<LowCloudLayer>::alloc(sky,
-      input.getValue<GLuint>("texture-size", 2048));
-  if(input.hasAttribute("altitude"))
-    lowClouds->set_altitude(input.getValue<GLdouble>("altitude", lowClouds->defaultAltitude()));
-  if(input.hasAttribute("sharpness"))
-    lowClouds->set_sharpness(input.getValue<GLdouble>("sharpness", 0.5f));
-  if(input.hasAttribute("coverage"))
-    lowClouds->set_coverage(input.getValue<GLdouble>("coverage", 0.2f));
-  if(input.hasAttribute("change"))
-    lowClouds->set_change(input.getValue<GLdouble>("change", lowClouds->defaultChange()));
-  if(input.hasAttribute("scale"))
-    lowClouds->set_scale(input.getValue<Vec2f>("scale", lowClouds->defaultScale()));
-  if(input.hasAttribute("offset"))
-    lowClouds->set_offset(input.getValue<GLdouble>("offset", -0.5f));
-  if(input.hasAttribute("thickness"))
-    lowClouds->set_thickness(input.getValue<GLdouble>("thickness", 3.0f));
-  if(input.hasAttribute("wind"))
-    lowClouds->set_wind(input.getValue<Vec2f>("wind", Vec2f(0.f, 0.f)));
+    cloudLayer->set_color(input.getValue<Vec3f>("color", Vec3f(1.f, 1.f, 1.f)));
   if(input.hasAttribute("top-color"))
-    lowClouds->set_topColor(input.getValue<Vec3f>("top-color", Vec3f(1.f, 1.f, 1.f)));
+    cloudLayer->set_topColor(input.getValue<Vec3f>("top-color", Vec3f(1.f, 1.f, 1.f)));
   if(input.hasAttribute("bottom-color"))
-    lowClouds->set_bottomColor(input.getValue<Vec3f>("bottom-color", Vec3f(1.f, 1.f, 1.f)));
+    cloudLayer->set_bottomColor(input.getValue<Vec3f>("bottom-color", Vec3f(1.f, 1.f, 1.f)));
+  if(input.hasAttribute("offset"))
+    cloudLayer->set_offset(input.getValue<GLdouble>("offset", -0.5f));
+  if(input.hasAttribute("thickness"))
+    cloudLayer->set_thickness(input.getValue<GLdouble>("thickness", 3.0f));
 
-  lowClouds->set_updateInterval(
+  cloudLayer->set_updateInterval(
       input.getValue<GLdouble>("update-interval", 4000.0));
-  sky->addLayer(lowClouds);
+  sky->addLayer(cloudLayer);
 
-  return lowClouds;
+  return cloudLayer;
 }
 
 #if 0

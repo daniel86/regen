@@ -69,6 +69,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 {
   RenderState *rs = RenderState::get();
   srand(time(NULL));
+  set_name("CloudLayer");
 
   ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
   depth->set_depthFunc(GL_LEQUAL);
@@ -97,6 +98,11 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cloudTexture_->id(), 0);
   rs->drawFrameBuffer().pop();
 
+  // TODO: unused ?
+  q_ = ref_ptr<ShaderInput1f>::alloc("q");
+  q_->setUniformData(0.0f);
+  state()->joinShaderInput(q_);
+
   altitude_ = ref_ptr<ShaderInput1f>::alloc("altitude");
   altitude_->setUniformData(8.0f);
   state()->joinShaderInput(altitude_);
@@ -104,6 +110,34 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   scale_ = ref_ptr<ShaderInput2f>::alloc("scale");
   scale_->setUniformData(Vec2f(32.0, 32.0));
   state()->joinShaderInput(scale_);
+
+  color_ = ref_ptr<ShaderInput3f>::alloc("color");
+  color_->setUniformData(Vec3f(1.f, 1.f, 1.f));
+  state()->joinShaderInput(color_);
+
+  state()->joinShaderInput(sky->sunPositionR(), "sunPositionR");
+
+  bottomColor_ = ref_ptr<ShaderInput3f>::alloc("bcolor");
+  bottomColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
+  state()->joinShaderInput(bottomColor_);
+
+  topColor_ = ref_ptr<ShaderInput3f>::alloc("tcolor");
+  topColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
+  state()->joinShaderInput(topColor_);
+
+  thickness_ = ref_ptr<ShaderInput1f>::alloc("thickness");
+  thickness_->setUniformData(3.0f);
+  state()->joinShaderInput(thickness_);
+
+  offset_ = ref_ptr<ShaderInput1f>::alloc("offset");
+  offset_->setUniformData(-0.5f);
+  state()->joinShaderInput(offset_);
+
+  shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.cloud-layer");
+  state()->joinStates(shaderState_->shaderState());
+
+  meshState_ = Rectangle::getUnitQuad();
+  state()->joinStates(meshState_);
 
   ///////
   /// Update Uniforms
@@ -148,6 +182,27 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 }
 
 
+const float CloudLayer::defaultAltitudeHigh()
+{ return 8.0f; }
+const float CloudLayer::defaultAltitudeLow()
+{ return 2.0f; }
+
+const Vec2f CloudLayer::defaultScaleHigh()
+{ return Vec2f(32.0, 32.0); }
+const Vec2f CloudLayer::defaultScaleLow()
+{ return Vec2f(128.0, 128.0); }
+
+GLdouble CloudLayer::defaultChangeHigh()
+{ return 0.1f; }
+GLdouble CloudLayer::defaultChangeLow()
+{ return 0.1f; }
+
+void CloudLayer::set_color(const Vec3f &color)
+{ color_->setVertex(0, color); }
+
+const ref_ptr<ShaderInput3f>& CloudLayer::color() const
+{ return color_; }
+
 void CloudLayer::set_altitude(GLdouble altitude)
 { altitude_->setVertex(0, altitude); }
 
@@ -184,14 +239,46 @@ void CloudLayer::set_wind(const Vec2f &wind)
 const ref_ptr<ShaderInput2f>& CloudLayer::wind() const
 { return wind_; }
 
+void CloudLayer::set_bottomColor(const Vec3f &color)
+{ bottomColor_->setVertex(0, color); }
+
+const ref_ptr<ShaderInput3f>& CloudLayer::bottomColor() const
+{ return bottomColor_; }
+
+void CloudLayer::set_topColor(const Vec3f &color)
+{ topColor_->setVertex(0, color); }
+
+const ref_ptr<ShaderInput3f>& CloudLayer::topColor() const
+{ return topColor_; }
+
+void CloudLayer::set_thickness(GLdouble thickness)
+{ thickness_->setVertex(0, thickness); }
+
+const ref_ptr<ShaderInput1f>& CloudLayer::thickness() const
+{ return thickness_; }
+
+void CloudLayer::set_offset(GLdouble offset)
+{ offset_->setVertex(0, offset); }
+
+const ref_ptr<ShaderInput1f>& CloudLayer::offset() const
+{ return offset_; }
+
 ref_ptr<Mesh> CloudLayer::getMeshState()
 { return meshState_; }
 
 ref_ptr<HasShader> CloudLayer::getShaderState()
 { return shaderState_; }
 
+// TODO: to math util
+#define _rad(deg) ((deg) * M_PI / 180.0L)
+
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt)
 {
+  // TODO: starmap and planets also require this ... - find better place
+  const float fov = sky_->camera()->fov()->getVertex(0); // himmel.getCameraFovHint();
+  const float height = sky_->viewport()->getVertex(0).x;
+  q_->setUniformData(sqrt(2.0) * 2.0 * tan(_rad(fov * 0.5)) / height);
+
   rs->drawFrameBuffer().push(fbo_->id());
   rs->viewport().push(fbo_->glViewport());
 

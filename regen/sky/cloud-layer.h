@@ -41,6 +41,38 @@ namespace regen {
 
     const ref_ptr<ShaderInput2f>& wind() const;
 
+    void set_color(const Vec3f &color);
+
+    void set_thickness(GLdouble thickness);
+
+    const ref_ptr<ShaderInput1f>& thickness() const;
+
+    void set_offset(GLdouble offset);
+
+    const ref_ptr<ShaderInput1f>& offset() const;
+
+    const ref_ptr<ShaderInput3f>& color() const;
+
+    void set_bottomColor(const Vec3f &color);
+
+    const ref_ptr<ShaderInput3f>& bottomColor() const;
+
+    void set_topColor(const Vec3f &color);
+
+    const ref_ptr<ShaderInput3f>& topColor() const;
+
+    const float defaultAltitudeHigh();
+
+    const float defaultAltitudeLow();
+
+    const Vec2f defaultScaleHigh();
+
+    const Vec2f defaultScaleLow();
+
+    GLdouble defaultChangeHigh();
+
+    GLdouble defaultChangeLow();
+
     // Override
     virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
     ref_ptr<Mesh> getMeshState();
@@ -53,12 +85,18 @@ namespace regen {
     ref_ptr<State> updateState_;
     ref_ptr<ShaderState> updateShader_;
 
+    ref_ptr<ShaderInput1f> q_;
+    ref_ptr<ShaderInput1f> offset_;
+    ref_ptr<ShaderInput1f> thickness_;
+    ref_ptr<ShaderInput3f> topColor_;
+    ref_ptr<ShaderInput3f> bottomColor_;
     ref_ptr<ShaderInput1f> coverage_;
     ref_ptr<ShaderInput1f> sharpness_;
     ref_ptr<ShaderInput1f> change_;
     ref_ptr<ShaderInput2f> wind_;
     ref_ptr<ShaderInput1f> altitude_;
     ref_ptr<ShaderInput2f> scale_;
+    ref_ptr<ShaderInput3f> color_;
 
     ref_ptr<FBO> fbo_;
     ref_ptr<Texture2D> cloudTexture_;
