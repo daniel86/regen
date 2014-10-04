@@ -26,8 +26,6 @@ namespace regen {
     Sky(const ref_ptr<Camera> &cam,
         const ref_ptr<ShaderInput2i> &viewport);
 
-
-
     void set_time(const time_t &time);
 
     void set_timestamp(GLdouble timestamp);
@@ -45,6 +43,8 @@ namespace regen {
      */
     GLdouble timef() const;
 
+    const ref_ptr<ShaderInput1f>& timeUniform() const;
+
 
     void set_altitude(const GLdouble altitude);
 
@@ -60,11 +60,15 @@ namespace regen {
 
     ref_ptr<Light>& sun();
 
+    ref_ptr<Camera>& camera();
+
+    ref_ptr<ShaderInput2i>& viewport();
+
     osgHimmel::AbstractAstronomy& astro();
 
     void set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro);
 
-    void addLayer(const ref_ptr<SkyLayer> &layer, BlendMode blendMode);
+    void addLayer(const ref_ptr<SkyLayer> &layer);
 
     void createShader(RenderState *rs, const StateConfig &stateCfg);
 

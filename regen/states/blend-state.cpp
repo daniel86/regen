@@ -167,6 +167,7 @@ BlendState::BlendState(BlendMode blendMode) : ServerSideState()
 }
 BlendState::BlendState(GLenum sfactor, GLenum dfactor) : ServerSideState()
 {
+  joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, GL_TRUE));
   setBlendFunc(sfactor,dfactor);
 }
 

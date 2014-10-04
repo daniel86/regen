@@ -135,23 +135,12 @@ namespace regen {
 
     const ref_ptr<TextureCube>& cubeMap() const;
 
+    // Override
+    void updateSkyLayer(RenderState *rs, GLdouble dt);
     ref_ptr<Mesh> getMeshState();
-
     ref_ptr<HasShader> getShaderState();
 
-    void set_updateInterval(GLdouble interval);
-
-    GLdouble updateInterval() const;
-
-    // Override
-    void updateSky(RenderState *rs, GLdouble dt);
-
   protected:
-    ref_ptr<Sky> sky_;
-
-    GLdouble updateInterval_;
-    GLdouble dt_;
-
     ref_ptr<FBO> fbo_;
 
     ref_ptr<SkyBox> drawState_;

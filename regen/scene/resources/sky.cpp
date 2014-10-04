@@ -14,6 +14,7 @@ using namespace regen;
 
 #include <regen/sky/sky.h>
 #include <regen/sky/atmosphere.h>
+#include <regen/sky/high-clouds.h>
 
 #define REGEN_SKY_CATEGORY "sky"
 
@@ -57,6 +58,9 @@ ref_ptr<Sky> SkyResource::createResource(
 
     if(n->getCategory() == "atmosphere") {
       createAtmosphereLayer(sky, parser, *n.get());
+    }
+    else if(n->getCategory() == "high-cloud-layer") {
+      createHighCloudLayer(sky, parser, *n.get());
     }
   }
 
@@ -116,9 +120,36 @@ ref_ptr<Atmosphere> SkyResource::createAtmosphereLayer(const ref_ptr<Sky> &sky,
 
   parser->getResources()->putTexture(input.getName(), atmosphere->cubeMap());
 
-  sky->addLayer(atmosphere, input.getValue<BlendMode>("blend-mode", BLEND_MODE_SRC));
+  sky->addLayer(atmosphere);
 
   return atmosphere;
+}
+
+ref_ptr<HighCloudLayer> SkyResource::createHighCloudLayer(const ref_ptr<Sky> &sky,
+    SceneParser *parser, SceneInputNode &input)
+{
+  ref_ptr<HighCloudLayer> highClouds = ref_ptr<HighCloudLayer>::alloc(sky,
+      input.getValue<GLuint>("texture-size", 2048));
+  if(input.hasAttribute("altitude"))
+    highClouds->set_altitude(input.getValue<GLdouble>("altitude", highClouds->defaultAltitude()));
+  if(input.hasAttribute("sharpness"))
+    highClouds->set_sharpness(input.getValue<GLdouble>("sharpness", 0.5f));
+  if(input.hasAttribute("coverage"))
+    highClouds->set_coverage(input.getValue<GLdouble>("coverage", 0.2f));
+  if(input.hasAttribute("change"))
+    highClouds->set_change(input.getValue<GLdouble>("change", highClouds->defaultChange()));
+  if(input.hasAttribute("scale"))
+    highClouds->set_scale(input.getValue<Vec2f>("scale", highClouds->defaultScale()));
+  if(input.hasAttribute("wind"))
+    highClouds->set_wind(input.getValue<Vec2f>("wind", Vec2f(0.f, 0.f)));
+  if(input.hasAttribute("color"))
+    highClouds->set_color(input.getValue<Vec3f>("color", Vec3f(1.f, 1.f, 1.f)));
+
+  highClouds->set_updateInterval(
+      input.getValue<GLdouble>("update-interval", 4000.0));
+  sky->addLayer(highClouds);
+
+  return highClouds;
 }
 
 #if 0

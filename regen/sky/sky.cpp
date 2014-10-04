@@ -73,6 +73,9 @@ std::string Sky::date() const {
 GLdouble Sky::timef() const
 { return timef_->getf(); }
 
+const ref_ptr<ShaderInput1f>& Sky::timeUniform() const
+{ return timeUniform_; }
+
 void Sky::set_time(const time_t &time)
 {
   timef_->sett(time, true);
@@ -126,16 +129,19 @@ void Sky::set_latitude(const GLdouble latitude)
 ref_ptr<Light>& Sky::sun()
 { return sun_; }
 
+ref_ptr<Camera>& Sky::camera()
+{ return cam_; }
+
+ref_ptr<ShaderInput2i>& Sky::viewport()
+{ return viewport_; }
+
 void Sky::updateSeed() {
   Vec4f &v = *((Vec4f*)cmnUniform_->clientDataPtr());
   v.w = rand();
   cmnUniform_->nextStamp();
 }
 
-void Sky::addLayer(const ref_ptr<SkyLayer> &layer, BlendMode blendMode) {
-  //ref_ptr<State> x = ref_ptr<State>::alloc();
-  //x->joinStates(ref_ptr<BlendState>::alloc(blendMode));
-  //x->joinStates(layerState);
+void Sky::addLayer(const ref_ptr<SkyLayer> &layer) {
   addChild(layer);
   this->layer_.push_back(layer);
 }

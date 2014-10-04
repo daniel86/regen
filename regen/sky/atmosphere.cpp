@@ -16,16 +16,12 @@ Atmosphere::Atmosphere(
     GLuint cubeMapSize,
     GLboolean useFloatBuffer,
     GLuint levelOfDetail)
-: SkyLayer(),
-  sky_(sky)
+: SkyLayer(sky)
 {
   RenderState *rs = RenderState::get();
   ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
 
   set_name("Atmosphere");
-
-  updateInterval_ = 4000.0;
-  dt_ = updateInterval_;
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::alloc(1);
   cubeMap->begin(rs);
@@ -226,9 +222,6 @@ void Atmosphere::setProperties(AtmosphereProperties &p)
   setAbsorbtion(p.absorption);
 }
 
-void Atmosphere::set_updateInterval(GLdouble ms)
-{ updateInterval_ = ms; }
-
 const ref_ptr<TextureCube>& Atmosphere::cubeMap() const
 { return drawState_->cubeMap(); }
 
@@ -238,13 +231,8 @@ ref_ptr<Mesh> Atmosphere::getMeshState()
 ref_ptr<HasShader> Atmosphere::getShaderState()
 { return drawState_; }
 
-void Atmosphere::updateSky(RenderState *rs, GLdouble dt)
+void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt)
 {
-  dt_ += dt;
-  if(dt_<updateInterval_) { return; }
-
-  GL_ERROR_LOG();
-
   const Vec3f &sunDir = sky_->sun()->direction()->uniformData();
   GLdouble nightFade = sunDir.y;
   if(nightFade < 0.0) { nightFade = 0.0; }
@@ -262,8 +250,4 @@ void Atmosphere::updateSky(RenderState *rs, GLdouble dt)
 
   rs->viewport().pop();
   rs->drawFrameBuffer().pop();
-
-  GL_ERROR_LOG();
-
-  dt_ = 0.0;
 }
