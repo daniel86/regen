@@ -80,7 +80,7 @@
      date="01-03-2014 12:13:00"
      seconds-per-cycle="30.0" >
   <atmosphere preset="earth" lod="4" update-interval="60.0" />
-  <high-cloud-layer texture-size="2048"
+  <cloud-layer texture-size="2048"
 	       sharpness="0.4"
 	       coverage="0.2"
 	       altitude="8.0"
@@ -88,8 +88,9 @@
 	       change="0.1"
 	       wind="0.0,0.0"
 	       color="1.0,1.0,1.0"
-	       update-interval="60.0" />
-  <low-cloud-layer texture-size="2048"
+	       update-interval="60.0"
+	       use-scatter="FALSE" />
+  <cloud-layer texture-size="2048"
 	       sharpness="0.2"
 	       coverage="0.2"
 	       thickness="0.3"
@@ -100,7 +101,8 @@
 	       wind="0.01,0.0"
 	       top-color="1.0,1.0,1.0"
 	       bottom-color="1.0,1.0,1.0"
-	       update-interval="60.0" />
+	       update-interval="60.0"
+	       use-scatter="TRUE" />
 </sky>
 
 <fbo id="sun-shadow" size-mode="abs" size="2056,2056,3" >

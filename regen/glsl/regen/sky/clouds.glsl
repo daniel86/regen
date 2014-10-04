@@ -104,11 +104,11 @@ void main() {
 --------------------------------------------------------
 // Depth(osg::Depth::LEQUAL, 1.0, 1.0)
 // BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
--- low-layer.vs
+-- cloud-layer.vs
 #include regen.filter.sampling.vs
--- low-layer.gs
+-- cloud-layer.gs
 #include regen.filter.sampling.gs  
--- low-layer.fs
+-- cloud-layer.fs
 out vec4 out_color;
 
 uniform sampler2D in_cloudTexture;
@@ -120,6 +120,7 @@ const float in_offset = -0.5;
 const float in_thickness = 3.0;
 const vec2 in_scale = vec2(128.0);
 
+#ifdef USE_SCATTER
 const vec3 in_tcolor = vec3(1.0);
 const vec3 in_bcolor = vec3(1.0);
 
@@ -127,12 +128,16 @@ const float in_sSteps = 128;
 const float in_sRange =  8;
 const int in_dSteps = 32;
 const float in_dRange = 1.9;
+#else
+const vec3 in_color = vec3(1.0);
+#endif
 
 #include regen.sky.utility.belowHorizon
 #include regen.sky.clouds.layerIntersection
 #include regen.sky.clouds.T
 #include regen.states.camera.transformTexcoToWorld
 
+#ifdef USE_SCATTER
 float density(in vec3 stu0, in vec3 sun, in float aa0) {
     float iSteps = 1.0 / (in_dSteps - 1);
     float iRange = in_dRange * in_thickness * iSteps;
@@ -187,22 +192,27 @@ vec2 scatter(in vec3 eye, in vec3 sun) {
 
     return sd;
 }
+#endif
 
 void main() {
   vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
   vec3 ws = transformTexcoToWorld(texco_2D, 1.0, 0);
   vec3 eye = normalize(vec3(ws.x,ws.z,ws.y));
   if(!belowHorizon(eye)) discard;
-
+  
   float t;
   vec3 o = vec3(0, 0, in_cmn[1] + in_cmn[0]);
   layerIntersection(eye, o, in_altitude, t);
   
+#ifdef USE_SCATTER
   eye = normalize(vec3(ws.x,ws.z,ws.y));
   vec2 sd = scatter(eye, normalize(in_sunPositionR));
   sd.y *= (1.0 - pow(t, 0.8) * 12e-3);
-
+  
   out_color = vec4(mix(in_tcolor, in_bcolor, sd.x) * (1 - sd.x), sd.y);
+#else
+  out_color = vec4(in_color, T(in_cloudTexture, o + t * eye));
+#endif
 }
 
 --------------------------------------------------------
