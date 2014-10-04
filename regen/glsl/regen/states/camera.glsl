@@ -246,7 +246,7 @@ vec3 transformScreenToEye(vec4 posScreen, int layer)
 #ifdef USE_PARABOLOID_PROJECTION
   return transformParaboloidInv(posScreen,layer);
 #else
-  vec4 posEye = __PROJ_INV__(layer) * posEye;
+  vec4 posEye = __PROJ_INV__(layer) * posScreen;
   return posEye.xyz/posEye.w;
 #endif
 }

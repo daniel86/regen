@@ -13,6 +13,7 @@
 
 #include <regen/sky/sky.h>
 #include <regen/sky/atmosphere.h>
+#include <regen/sky/high-clouds.h>
 
 namespace regen {
 namespace scene {
@@ -30,6 +31,9 @@ namespace scene {
   protected:
 
     ref_ptr<Atmosphere> createAtmosphereLayer(
+        const ref_ptr<Sky> &sky,
+        SceneParser *parser, SceneInputNode &input);
+    ref_ptr<HighCloudLayer> createHighCloudLayer(
         const ref_ptr<Sky> &sky,
         SceneParser *parser, SceneInputNode &input);
   };
