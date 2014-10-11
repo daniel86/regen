@@ -6,9 +6,13 @@
 --------------------------------
 --------------------------------
 -- vs
+#include regen.models.mesh.defines
+
 in vec3 in_pos;
+#if RENDER_LAYER <= 1
 out vec4 out_eye;
 out vec4 out_ray;
+#endif
 
 uniform mat4 in_equToHorMatrix;
 
@@ -16,10 +20,55 @@ uniform mat4 in_equToHorMatrix;
 
 void main() {
     vec4 p = vec4(in_pos.xy, 0.0, 1.0);
+    gl_Position = p;
+#if RENDER_LAYER <= 1
     out_eye = in_inverseProjectionMatrix * p * in_viewMatrix;
     out_ray = in_equToHorMatrix * out_eye;
-    gl_Position = p;
+#endif
 }
+
+-- gs
+#include regen.states.camera.defines
+#include regen.defines.all
+#if RENDER_LAYER > 1
+#extension GL_EXT_geometry_shader4 : enable
+#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
+
+out vec4 out_eye;
+out vec4 out_ray;
+flat out int out_layer;
+
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
+
+#define HANDLE_IO(i)
+
+void emitVertex(vec4 posWorld, int index, int layer) {
+  out_eye = __PROJ_INV__(layer) * posWorld * __VIEW__(layer);
+  out_ray = in_equToHorMatrix * out_eye;
+  gl_Position = posWorld;
+  HANDLE_IO(index);
+  EmitVertex();
+}
+
+void main() {
+#for LAYER to ${RENDER_LAYER}
+#ifndef SKIP_LAYER${LAYER}
+  // select framebuffer layer
+  gl_Layer = ${LAYER};
+  out_layer = ${LAYER};
+  emitVertex(gl_PositionIn[0], 0, ${LAYER});
+  emitVertex(gl_PositionIn[1], 1, ${LAYER});
+  emitVertex(gl_PositionIn[2], 2, ${LAYER});
+  EndPrimitive();
+#endif // SKIP_LAYER
+#endfor
+}
+#endif
 
 -- fs
 out vec4 out_color;

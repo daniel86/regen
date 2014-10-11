@@ -65,7 +65,9 @@ void main(void) {
 }
 
 -- gs
+#include regen.models.mesh.defines
 #extension GL_EXT_geometry_shader4 : enable
+#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*4}
 
 layout (points) in;
 layout(triangle_strip, max_vertices=4) out;
@@ -74,6 +76,7 @@ in float in_k[ ];
 in vec3 in_col[ ];
 out vec3 out_col;
 out vec3 out_texco;
+flat out int out_layer;
 
 uniform float in_q;
 
@@ -82,15 +85,13 @@ const float surfaceHeight = 0.99;
 #include regen.states.camera.transformWorldToScreen
 #include regen.sky.utility.computeEyeExtinction
 
-void emitVertex(vec3 posWorld, vec2 texco) {
-  gl_Position = transformWorldToScreen(vec4(posWorld,0.0),0);
+void emitVertex(vec3 posWorld, vec2 texco, int layer) {
+  gl_Position = transformWorldToScreen(vec4(posWorld,0.0),layer);
   gl_Position.z = gl_Position.w;
   out_texco.xy = texco;
   EmitVertex();
 }
-
-void main() {
-  if(in_k[0] > 0) {
+void emitBrightStar(int layer) {
     vec3 p = normalize(gl_PositionIn[0].xyz);
 
     float ext = computeEyeExtinction(p);
@@ -100,11 +101,24 @@ void main() {
     
     vec3 u = cross(p, vec3(0, 0, 1));
     vec3 v = cross(u, p);
-    emitVertex(p - normalize(-u -v) * in_k[0], vec2(-1.0, -1.0));
-    emitVertex(p - normalize(-u +v) * in_k[0], vec2(-1.0,  1.0));
-    emitVertex(p - normalize(+u -v) * in_k[0], vec2( 1.0, -1.0));
-    emitVertex(p - normalize(+u +v) * in_k[0], vec2( 1.0,  1.0));
+    emitVertex(p - normalize(-u -v) * in_k[0], vec2(-1.0, -1.0), layer);
+    emitVertex(p - normalize(-u +v) * in_k[0], vec2(-1.0,  1.0), layer);
+    emitVertex(p - normalize(+u -v) * in_k[0], vec2( 1.0, -1.0), layer);
+    emitVertex(p - normalize(+u +v) * in_k[0], vec2( 1.0,  1.0), layer);
     EndPrimitive();
+}
+
+void main() {
+  if(in_k[0] > 0) {
+#for LAYER to ${RENDER_LAYER}
+#ifndef SKIP_LAYER${LAYER}
+#if RENDER_LAYER > 1
+    gl_Layer = ${LAYER};
+    out_layer = ${LAYER};
+#endif
+    emitBrightStar(${LAYER});
+#endif
+#endfor
   }
 }
 

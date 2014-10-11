@@ -6,6 +6,8 @@
 --------------------------------
 --------------------------------
 -- vs
+#include regen.models.mesh.defines
+
 in vec3 in_pos;
 
 out mat3 out_tangent;
@@ -19,6 +21,8 @@ const float in_scale = 0.1;
 
 #include regen.states.camera.transformWorldToScreen
 
+#define HANDLE_IO(i)
+
 void main(void) {
     vec3 m = in_moonPosition.xzy;
     vec3 u = normalize(cross(vec3(0, 1, 0), m));
@@ -27,9 +31,60 @@ void main(void) {
     out_tangent = mat3(u, v, m);
     out_texco = in_pos.xy;
     
+#if RENDER_LAYER > 1
+    gl_Position = vec4(out_eye,0.0);
+#else
     gl_Position = transformWorldToScreen(vec4(out_eye,0.0),0);
     gl_Position.z = gl_Position.w;
+#endif
+    HANDLE_IO(0);
 }
+
+-- gs
+#include regen.states.camera.defines
+#include regen.defines.all
+#if RENDER_LAYER > 1
+#extension GL_EXT_geometry_shader4 : enable
+#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
+
+out vec3 out_posWorld;
+out vec3 out_posEye;
+flat out int out_layer;
+
+#include regen.states.camera.input
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
+
+#define HANDLE_IO(i)
+
+void emitVertex(vec4 posWorld, int index, int layer) {
+  vec4 posEye = transformWorldToEye(posWorld,layer);
+  out_posWorld = posWorld.xyz;
+  out_posEye = posEye.xyz;
+  gl_Position = transformEyeToScreen(posEye,layer);
+  gl_Position.z = gl_Position.w;
+  HANDLE_IO(index);
+  
+  EmitVertex();
+}
+
+void main() {
+#for LAYER to ${RENDER_LAYER}
+#ifndef SKIP_LAYER${LAYER}
+  // select framebuffer layer
+  gl_Layer = ${LAYER};
+  out_layer = ${LAYER};
+  emitVertex(gl_PositionIn[0], 0, ${LAYER});
+  emitVertex(gl_PositionIn[1], 1, ${LAYER});
+  emitVertex(gl_PositionIn[2], 2, ${LAYER});
+  EndPrimitive();
+#endif // SKIP_LAYER
+#endfor
+}
+#endif
 
 -- fs
 #include regen.models.mesh.defines

@@ -225,7 +225,8 @@
 <node id="Rain">
   <direct-shading ambient="0.3,0.3,0.3" >
     <direct-lights>
-      <light id="earth-sky" />
+      <light id="earth-sky-sun" />
+      <light id="earth-sky-moon" />
     </direct-lights>
     
     <direct-pass>
