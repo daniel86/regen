@@ -38,7 +38,7 @@
 <!--**************************-->
 
 <fbo id="reflection-buffer"
-     size-mode="rel" size="0.5,0.5"
+     size-mode="rel" size="2.0,2.0"
      pixel-type="UNSIGNED_BYTE"
      pixel-size="16"
      pixel-components="4" >

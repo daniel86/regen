@@ -37,9 +37,11 @@ MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const string &moonMapFile)
   sunShine_->setUniformData(Vec4f(defaultSunShineColor(),defaultSunShineIntensity()));
   state()->joinShaderInput(sunShine_);
 
-  earthShine_ = ref_ptr<ShaderInput4f>::alloc("earthShine");
-  earthShine_->setUniformData(Vec4f(defaultEarthShineColor(),defaultEarthShineIntensity()));
+  earthShine_ = ref_ptr<ShaderInput3f>::alloc("earthShine");
+  earthShine_->setUniformData(Vec3f(0.0));
   state()->joinShaderInput(earthShine_);
+  earthShineColor_ = defaultEarthShineColor();
+  earthShineIntensity_ = defaultEarthShineIntensity();
 
   shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.moon");
   //state()->joinStates(shaderState_->shaderState());
@@ -110,13 +112,13 @@ Vec3f MoonLayer::defaultSunShineColor()
 { return Vec3f(0.923, 0.786, 0.636); }
 
 GLdouble MoonLayer::defaultSunShineIntensity()
-{ return 56.0; }
+{ return 128.0; }
 
 Vec3f MoonLayer::defaultEarthShineColor()
 { return Vec3f(0.88, 0.96, 1.00); }
 
 GLdouble MoonLayer::defaultEarthShineIntensity()
-{ return 1.0; }
+{ return 4.0; }
 
 
 void MoonLayer::set_scale(GLdouble scale)
@@ -130,7 +132,7 @@ const ref_ptr<ShaderInput4f>& MoonLayer::sunShine() const
 
 void MoonLayer::set_sunShineColor(const Vec3f &color)
 {
-  GLfloat intensity = earthShine_->getVertexPtr(0).w;
+  GLfloat intensity = sunShine_->getVertexPtr(0).w;
   sunShine_->setVertex(0, Vec4f(color,intensity));
 }
 
@@ -140,20 +142,14 @@ void MoonLayer::set_sunShineIntensity(GLdouble intensity)
   sunShine_->setVertex(0, Vec4f(color,intensity));
 }
 
-const ref_ptr<ShaderInput4f>& MoonLayer::earthShine() const
+const ref_ptr<ShaderInput3f>& MoonLayer::earthShine() const
 { return earthShine_; }
 
 void MoonLayer::set_earthShineColor(const Vec3f &color)
-{
-  GLfloat intensity = earthShine_->getVertexPtr(0).w;
-  earthShine_->setVertex(0, Vec4f(color,intensity));
-}
+{ earthShineColor_ = color; }
 
 void MoonLayer::set_earthShineIntensity(GLdouble intensity)
-{
-  Vec3f &color = earthShine_->getVertexPtr(0).xyz_();
-  earthShine_->setVertex(0, Vec4f(color,intensity));
-}
+{ earthShineIntensity_ = intensity; }
 
 ref_ptr<Mesh> MoonLayer::getMeshState()
 { return meshState_; }
@@ -168,9 +164,8 @@ void MoonLayer::updateSkyLayer(RenderState *rs, GLdouble dt)
 
   moonOrientation_->setVertex(0, sky_->astro().getMoonOrientation());
 
-  Vec4f es = earthShine_->getVertex(0);
-  GLfloat factor = sky_->astro().getEarthShineIntensity() * es.y;
-  earthShine_->setVertex(0, Vec4f(es.xyz_() * factor, es.y));
+  earthShine_->setVertex(0, earthShineColor_ *
+     (sky_->astro().getEarthShineIntensity() * earthShineIntensity_));
 
   // approximate umbra and penumbra size in moon radii
   float e0 = 0, e1 = 0, e2 = 0;

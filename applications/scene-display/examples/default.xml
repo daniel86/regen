@@ -78,7 +78,7 @@
 <sky id="earth-sky"
      camera="main-camera"
      date="01-09-2014 12:13:00"
-     seconds-per-cycle="10.0" >
+     seconds-per-cycle="120.0" >
   <star-map texture="applications/res/sky/milkyway.png"
 	update-interval="60.0" />
   <stars catalog="applications/res/sky/bright-stars.bin"
