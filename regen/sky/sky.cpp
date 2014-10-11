@@ -55,6 +55,10 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
   timeUniform_->setUniformData(0.0f);
   state()->joinShaderInput(timeUniform_);
 
+  // 0: altitude in km
+  // 1: apparent angular radius (not diameter!)
+  // 2: radius up to "end of atm"
+  // 3: seed (for randomness of stuff)
   cmnUniform_ = ref_ptr<ShaderInput4f>::alloc("cmn");
   cmnUniform_->setUniformData(Vec4f(
       0.043,

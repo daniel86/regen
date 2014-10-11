@@ -78,15 +78,28 @@
 <sky id="earth-sky"
      camera="main-camera"
      date="01-09-2014 12:13:00"
-     seconds-per-cycle="120.0" >
+     seconds-per-cycle="60.0"
+     update-interval="200.0" >
   <star-map texture="applications/res/sky/milkyway.png"
-	update-interval="60.0" />
+	    scattering="0.2"
+	    apparent-magnitude="6.5" />
   <stars catalog="applications/res/sky/bright-stars.bin"
-	update-interval="60.0" />
+	 scale="2.0"
+	 scattering="2.0"
+	 scintillation="0.2"
+	 glare-intensity="0.1"
+	 glare-scale="1.2"
+	 color="0.66,0.78,1.0"
+	 color-ratio="0.66"
+	 apparent-magnitude="7.0"/>
   <moon texture="res/sky/moon.png"
-	update-interval="60.0" />
-  <atmosphere preset="earth" lod="4"
-	update-interval="60.0" />
+	scale="0.1"
+	scattering="4.0"
+	sun-shine-color="0.923,0.786,0.636"
+	sun-shine-intensity="128.0"
+	earth-shine-color="0.88,0.96,1.0"
+	earth-shine-intensity="8.0"/>
+  <atmosphere preset="earth" size="256"  />
   <cloud-layer texture-size="2048"
 	       sharpness="0.4"
 	       coverage="0.2"

@@ -1,4 +1,10 @@
 
+--------------------------------
+--------------------------------
+----- Visualization of star map.
+----- Code based on: https://code.google.com/p/osghimmel/
+--------------------------------
+--------------------------------
 -- vs
 in vec3 in_pos;
 out vec4 out_eye;
@@ -26,6 +32,7 @@ uniform vec4 in_cmn;
 uniform vec2 in_inverseViewport;
 
 const float in_deltaM = 1.0;
+const float in_scattering = 1.0;
 const float surfaceHeight = 0.99;
 
 uniform samplerCube in_starmapCube;
@@ -46,7 +53,6 @@ void main(void) {
   // Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
   float b = 1.0 / sqrt(1 + pow(in_sunPosition.z + 1.14, 32));
   
-  ext = smoothstep(0.0, 0.05, ext);
-    
-  out_color = vec4(b * (fc.rgb - scatter(omega)), 1.0) * ext;
+  out_color = smoothstep(0.0, 0.05, ext) * vec4(b * (
+	fc.rgb - in_scattering*scatter(omega)), 1.0);
 }

@@ -17,9 +17,13 @@ namespace regen {
   public:
     MoonLayer(const ref_ptr<Sky> &sky, const string &moonMapFile);
 
-    void set_scale(GLdouble altitude);
+    void set_scale(GLdouble scale);
 
     const ref_ptr<ShaderInput1f>& scale() const;
+
+    void set_scattering(GLdouble scattering);
+
+    const ref_ptr<ShaderInput1f>& scattering() const;
 
     void set_sunShineColor(const Vec3f &color);
 
@@ -34,6 +38,8 @@ namespace regen {
     const ref_ptr<ShaderInput3f>& earthShine() const;
 
     GLdouble defaultScale();
+
+    GLdouble defaultScattering();
 
     Vec3f defaultSunShineColor();
 
@@ -53,18 +59,15 @@ namespace regen {
     ref_ptr<HasShader> shaderState_;
 
     ref_ptr<ShaderInput1f> scale_;
+    ref_ptr<ShaderInput1f> scattering_;
     ref_ptr<ShaderInput4f> sunShine_;
     ref_ptr<ShaderInput3f> earthShine_;
     Vec3f earthShineColor_;
     GLdouble earthShineIntensity_;
 
-    ref_ptr<ShaderInput4f> eclParams_;
     ref_ptr<ShaderInputMat4> moonOrientation_;
 
-    ref_ptr<Texture1D> eclTex_;
-
     void setupMoonTextureCube(const string &cubeMapFilePath);
-    void setupEclipseTexture();
   };
 }
 #endif /* MOON_H_ */

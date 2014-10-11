@@ -33,10 +33,10 @@ namespace scene {
 
   protected:
 
-    ref_ptr<StarMapLayer> createStarMapLayer(
+    ref_ptr<StarMap> createStarMapLayer(
         const ref_ptr<Sky> &sky,
         SceneParser *parser, SceneInputNode &input);
-    ref_ptr<StarsLayer> createStarsLayer(
+    ref_ptr<Stars> createStarsLayer(
         const ref_ptr<Sky> &sky,
         SceneParser *parser, SceneInputNode &input);
     ref_ptr<Atmosphere> createAtmosphereLayer(
