@@ -49,11 +49,11 @@ namespace regen {
     /**
      * Activate this animation.
      */
-    void startAnimation();
+    virtual void startAnimation();
     /**
      * Deactivate this animation.
      */
-    void stopAnimation();
+    virtual void stopAnimation();
 
     /**
      * Mutex lock for data access.
@@ -118,7 +118,7 @@ namespace regen {
      */
     virtual void glAnimate(RenderState *rs, GLdouble dt){}
 
-  private:
+  protected:
     boost::mutex mutex_;
     boost::mutex mutex_gl_;
     GLboolean useGLAnimation_;

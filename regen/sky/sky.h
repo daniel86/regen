@@ -58,15 +58,33 @@ namespace regen {
 
     GLdouble latitude() const;
 
+
     ref_ptr<Light>& sun();
+
+    ref_ptr<Light>& moon();
 
     ref_ptr<Camera>& camera();
 
     ref_ptr<ShaderInput2i>& viewport();
 
-    ref_ptr<ShaderInput3f>& sunPosition();
 
-    ref_ptr<ShaderInput3f>& sunPositionR();
+    const Vec3f& noonColor();
+
+    void set_noonColor(const Vec3f &noonColor);
+
+    const Vec3f& dawnColor();
+
+    void set_dawnColor(const Vec3f &dawnColor);
+
+    GLfloat moonSunLightReflectance();
+
+    void set_moonSunLightReflectance(GLfloat moonSunLightReflectance);
+
+
+    GLfloat computeHorizonExtinction(Vec3f position, Vec3f dir, GLfloat radius);
+
+    GLfloat computeEyeExtinction(Vec3f eyedir);
+
 
     osgHimmel::AbstractAstronomy& astro();
 
@@ -79,8 +97,12 @@ namespace regen {
     // override
     void animate(GLdouble dt);
     void glAnimate(RenderState *rs, GLdouble dt);
+    virtual void startAnimation();
+    virtual void stopAnimation();
 
   protected:
+    friend class SkyView;
+
     ref_ptr<Camera> cam_;
     ref_ptr<ShaderInput2i> viewport_;
 
@@ -90,13 +112,36 @@ namespace regen {
     std::list< ref_ptr<SkyLayer> > layer_;
 
     ref_ptr<Light> sun_;
-    ref_ptr<ShaderInput3f> sunPosition_;
-    ref_ptr<ShaderInput3f> sunPositionR_;
+    ref_ptr<Light> moon_;
     ref_ptr<ShaderInput1f> timeUniform_;
     ref_ptr<ShaderInput4f> cmnUniform_;
+    ref_ptr<ShaderInputMat4> R_;
+    ref_ptr<ShaderInput1f> q_;
+
+    Vec3f noonColor_;
+    Vec3f dawnColor_;
+    GLfloat moonSunLightReflectance_;
 
 
     void updateSeed();
+  };
+
+  class SkyView : public StateNode
+  {
+  public:
+    SkyView(const ref_ptr<Sky> &sky);
+
+    const ref_ptr<Sky>& sky();
+
+    void addLayer(const ref_ptr<SkyLayer> &layer);
+
+    void createShader(RenderState *rs, const StateConfig &stateCfg);
+
+    virtual void traverse(RenderState *rs);
+
+  protected:
+    ref_ptr<Sky> sky_;
+    std::list< ref_ptr<SkyLayerView> > layer_;
   };
 }
 

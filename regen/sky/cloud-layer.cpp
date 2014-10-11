@@ -67,19 +67,10 @@ static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint
 CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 : SkyLayer(sky)
 {
-  RenderState *rs = RenderState::get();
-  srand(time(NULL));
-  set_name("CloudLayer");
-
-  ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
-  depth->set_depthFunc(GL_LEQUAL);
-  depth->set_depthRange(1.0, 1.0);
-  depth->set_useDepthTest(GL_TRUE);
-  state()->joinStates(depth);
-  state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+  state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
 
   cloudTexture_ = ref_ptr<Texture2D>::alloc(1);
-  cloudTexture_->begin(rs);
+  cloudTexture_->begin(RenderState::get());
   cloudTexture_->set_rectangleSize(textureSize,textureSize);
   cloudTexture_->set_format(GL_LUMINANCE);
   cloudTexture_->set_internalFormat(GL_LUMINANCE16F_ARB);
@@ -87,21 +78,16 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   cloudTexture_->filter().push(GL_LINEAR);
   cloudTexture_->wrapping().push(GL_REPEAT);
   cloudTexture_->texImage();
-  cloudTexture_->end(rs);
+  cloudTexture_->end(RenderState::get());
   state()->joinStates(ref_ptr<TextureState>::alloc(cloudTexture_, "cloudTexture"));
 
   // create render target for updating the sky cube map
   fbo_ = ref_ptr<FBO>::alloc(textureSize,textureSize);
-  rs->drawFrameBuffer().push(fbo_->id());
+  RenderState::get()->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   glClear(GL_COLOR_BUFFER_BIT);
   glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cloudTexture_->id(), 0);
-  rs->drawFrameBuffer().pop();
-
-  // TODO: unused ?
-  q_ = ref_ptr<ShaderInput1f>::alloc("q");
-  q_->setUniformData(0.0f);
-  state()->joinShaderInput(q_);
+  RenderState::get()->drawFrameBuffer().pop();
 
   altitude_ = ref_ptr<ShaderInput1f>::alloc("altitude");
   altitude_->setUniformData(8.0f);
@@ -114,8 +100,6 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   color_ = ref_ptr<ShaderInput3f>::alloc("color");
   color_->setUniformData(Vec3f(1.f, 1.f, 1.f));
   state()->joinShaderInput(color_);
-
-  state()->joinShaderInput(sky->sunPositionR(), "sunPositionR");
 
   bottomColor_ = ref_ptr<ShaderInput3f>::alloc("bcolor");
   bottomColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
@@ -134,10 +118,10 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   state()->joinShaderInput(offset_);
 
   shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.cloud-layer");
-  state()->joinStates(shaderState_->shaderState());
+  //state()->joinStates(shaderState_->shaderState());
 
   meshState_ = Rectangle::getUnitQuad();
-  state()->joinStates(meshState_);
+  //state()->joinStates(meshState_);
 
   ///////
   /// Update Uniforms
@@ -178,7 +162,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
   updateShader_->createShader(shaderConfig, "regen.sky.clouds.pre-noise");
-  updateMesh->updateVAO(rs, shaderConfig, updateShader_->shader());
+  updateMesh->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
 }
 
 
@@ -269,16 +253,8 @@ ref_ptr<Mesh> CloudLayer::getMeshState()
 ref_ptr<HasShader> CloudLayer::getShaderState()
 { return shaderState_; }
 
-// TODO: to math util
-#define _rad(deg) ((deg) * M_PI / 180.0L)
-
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt)
 {
-  // TODO: starmap and planets also require this ... - find better place
-  const float fov = sky_->camera()->fov()->getVertex(0); // himmel.getCameraFovHint();
-  const float height = sky_->viewport()->getVertex(0).x;
-  q_->setUniformData(sqrt(2.0) * 2.0 * tan(_rad(fov * 0.5)) / height);
-
   rs->drawFrameBuffer().push(fbo_->id());
   rs->viewport().push(fbo_->glViewport());
 

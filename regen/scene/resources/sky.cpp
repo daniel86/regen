@@ -37,12 +37,18 @@ ref_ptr<Sky> SkyResource::createResource(
 
   ref_ptr<Sky> sky = ref_ptr<Sky>::alloc(cam, parser->getViewport());
 
-  sky->set_altitude(
-      input.getValue<float>("altitude", 0.043));
-  sky->set_longitude(
-      input.getValue<float>("longitude", 13.3611));
-  sky->set_latitude(
-      input.getValue<float>("latitude", 52.5491));
+  if(input.hasAttribute("noon-color"))
+    sky->set_noonColor(input.getValue<Vec3f>("noon-color", Vec3f(0.5)));
+  if(input.hasAttribute("dawn-color"))
+    sky->set_dawnColor(input.getValue<Vec3f>("dawn-color", Vec3f(0.2,0.15,0.15)));
+
+  if(input.hasAttribute("moon-reflectance"))
+    sky->set_moonSunLightReflectance(input.getValue<GLfloat>("moon-reflectance", 0.4));
+
+  sky->set_altitude(input.getValue<GLfloat>("altitude", 0.043));
+  sky->set_longitude(input.getValue<GLfloat>("longitude", 13.3611));
+  sky->set_latitude(input.getValue<GLfloat>("latitude", 52.5491));
+
   if(input.hasAttribute("date"))
     sky->set_date(input.getValue("date"));
   if(input.hasAttribute("timestamp"))
@@ -62,14 +68,92 @@ ref_ptr<Sky> SkyResource::createResource(
     else if(n->getCategory() == "cloud-layer") {
       createCloudLayer(sky, parser, *n.get());
     }
+    else if(n->getCategory() == "moon") {
+      createMoonLayer(sky, parser, *n.get());
+    }
+    else if(n->getCategory() == "star-map") {
+      createStarMapLayer(sky, parser, *n.get());
+    }
+    else if(n->getCategory() == "stars") {
+      createStarsLayer(sky, parser, *n.get());
+    }
   }
 
   // The Sky also exposes a Light (the sun) and a Texture (the cube map)
-  parser->getResources()->putLight(input.getName(), sky->sun());
+  parser->getResources()->putLight(input.getName()+"-sun", sky->sun());
+  parser->getResources()->putLight(input.getName()+"-moon", sky->moon());
   parser->getResources()->putSky(input.getName(), sky);
   parser->putState(input.getName()+"-sun", sky->sun());
+  parser->putState(input.getName()+"-moon", sky->moon());
 
   return sky;
+}
+
+ref_ptr<StarMapLayer> SkyResource::createStarMapLayer(const ref_ptr<Sky> &sky,
+    SceneParser *parser, SceneInputNode &input)
+{
+  ref_ptr<StarMapLayer> starMap = ref_ptr<StarMapLayer>::alloc(sky);
+
+  if(input.hasAttribute("texture"))
+    starMap->set_texture(input.getValue("texture"));
+
+  if(input.hasAttribute("scattering"))
+    starMap->set_scattering(input.getValue<GLdouble>("scattering", starMap->defaultScattering()));
+
+  if(input.hasAttribute("apparentMagnitude"))
+    starMap->set_apparentMagnitude(input.getValue<GLdouble>("apparentMagnitude", starMap->defaultApparentMagnitude()));
+
+  if(input.hasAttribute("colorRatio"))
+    starMap->set_colorRatio(input.getValue<GLdouble>("colorRatio", starMap->defaultColorRatio()));
+
+  if(input.hasAttribute("color"))
+    starMap->set_color(input.getValue<Vec3f>("color", starMap->defaultColor()));
+
+  starMap->set_updateInterval(
+      input.getValue<GLdouble>("update-interval", 4000.0));
+  sky->addLayer(starMap);
+
+  return starMap;
+}
+
+ref_ptr<StarsLayer> SkyResource::createStarsLayer(
+    const ref_ptr<Sky> &sky,
+    SceneParser *parser, SceneInputNode &input)
+{
+  ref_ptr<StarsLayer> stars = ref_ptr<StarsLayer>::alloc(sky);
+
+  if(input.hasAttribute("catalog"))
+    stars->set_brightStarsFile(input.getValue("catalog"));
+
+  if(input.hasAttribute("scattering"))
+    stars->set_scattering(input.getValue<GLfloat>("scattering", stars->defaultScattering()));
+
+  if(input.hasAttribute("apparent-magnitude"))
+    stars->set_apparentMagnitude(input.getValue<GLfloat>("apparent-magnitude", stars->defaultApparentMagnitude()));
+
+  if(input.hasAttribute("color"))
+    stars->set_color(input.getValue<Vec3f>("color", stars->defaultColor()));
+
+  if(input.hasAttribute("color-ratio"))
+    stars->set_colorRatio(input.getValue<GLfloat>("color-ratio", stars->defaultColorRatio()));
+
+  if(input.hasAttribute("glare-intensity"))
+    stars->set_glareIntensity(input.getValue<GLfloat>("glare-intensity", 1.0f));
+
+  if(input.hasAttribute("glare-scale"))
+    stars->set_glareScale(input.getValue<GLfloat>("glare-scale", stars->defaultGlareScale()));
+
+  if(input.hasAttribute("scintillation"))
+    stars->set_scintillation(input.getValue<GLfloat>("scintillation", stars->defaultScintillation()));
+
+  if(input.hasAttribute("scale"))
+    stars->set_scale(input.getValue<GLfloat>("scale", 1.0f));
+
+  stars->set_updateInterval(
+      input.getValue<GLdouble>("update-interval", 4000.0));
+  sky->addLayer(stars);
+
+  return stars;
 }
 
 ref_ptr<Atmosphere> SkyResource::createAtmosphereLayer(const ref_ptr<Sky> &sky,
@@ -162,6 +246,30 @@ ref_ptr<CloudLayer> SkyResource::createCloudLayer(const ref_ptr<Sky> &sky,
   sky->addLayer(cloudLayer);
 
   return cloudLayer;
+}
+
+ref_ptr<MoonLayer> SkyResource::createMoonLayer(const ref_ptr<Sky> &sky,
+    SceneParser *parser, SceneInputNode &input)
+{
+  const string textureFile = getResourcePath(input.getValue("texture"));
+  ref_ptr<MoonLayer> moon = ref_ptr<MoonLayer>::alloc(sky, textureFile);
+
+  if(input.hasAttribute("scale"))
+    moon->set_scale(input.getValue<GLdouble>("scale", moon->defaultScale()));
+  if(input.hasAttribute("sun-shine-color"))
+    moon->set_sunShineColor(input.getValue<Vec3f>("sun-shine-color", moon->defaultSunShineColor()));
+  if(input.hasAttribute("earth-shine-color"))
+    moon->set_earthShineColor(input.getValue<Vec3f>("earth-shine-color", moon->defaultEarthShineColor()));
+  if(input.hasAttribute("sun-shine-intensity"))
+    moon->set_sunShineIntensity(input.getValue<GLfloat>("sun-shine-intensity", moon->defaultSunShineIntensity()));
+  if(input.hasAttribute("earth-shine-intensity"))
+    moon->set_earthShineIntensity(input.getValue<GLfloat>("earth-shine-intensity", moon->defaultEarthShineIntensity()));
+
+  moon->set_updateInterval(
+      input.getValue<GLdouble>("update-interval", 4000.0));
+  sky->addLayer(moon);
+
+  return moon;
 }
 
 #if 0

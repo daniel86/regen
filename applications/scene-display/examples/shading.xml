@@ -269,7 +269,8 @@
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
 
     <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-      <light id="earth-sky" />
+      <light id="earth-sky-sun" resource="earth-sky" />
+      <light id="earth-sky-moon" />
     </light-pass>
   </node>
 </node>
