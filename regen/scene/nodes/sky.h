@@ -38,11 +38,13 @@ namespace scene {
         REGEN_WARN("Unable to load sky for '" << input.getDescription() << "'.");
         return;
       }
+      ref_ptr<SkyView> view = ref_ptr<SkyView>::alloc(skyNode);
 
-      parent->addChild(skyNode);
+      parent->addChild(view);
       StateConfigurer stateConfigurer;
       stateConfigurer.addNode(skyNode.get());
-      skyNode->createShader(RenderState::get(),stateConfigurer.cfg());
+      stateConfigurer.addNode(view.get());
+      view->createShader(RenderState::get(),stateConfigurer.cfg());
     }
   };
 }}

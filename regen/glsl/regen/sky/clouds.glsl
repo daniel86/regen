@@ -1,10 +1,10 @@
 
 -- layerIntersectionOrDiscard
 float layerIntersectionOrDiscard(const vec3 d, const float altitude) {
-  vec3  o = vec3(0.0, 0.0, in_cmn[1] + in_cmn[0]);
+  vec3  o = vec3(0.0, in_cmn[1] + in_cmn[0], 0.0);
   float r = in_cmn[1] + altitude;
   // for now, ignore if altitude is above cloud layer
-  if(o.z > r) discard;
+  if(o.y > r) discard;
   
   float a = dot(d, d);
   float b = 2 * dot(d, o);
@@ -26,7 +26,7 @@ bool layerIntersection(const vec3 d, const vec3 o, const float altitude, out flo
 {
   float r = in_cmn[1] + altitude;
   // for now, ignore if altitude is above cloud layer
-  if(o.z > r) return false;
+  if(o.y > r) return false;
   
   float a = dot(d, d);
   float b = 2 * dot(d, o);
@@ -56,8 +56,8 @@ float T(sampler2D tex, vec2 uv) {
   return texture(tex, uv * in_scale).r;
 }
 float T(sampler2D tex, vec3 stu) {
-  float m = 2.0 * (1.0 + stu.z);
-  vec2 uv = vec2(stu.x / m + 0.5, stu.y / m + 0.5);
+  float m = 2.0 * (1.0 + stu.y);
+  vec2 uv = vec2(stu.x / m + 0.5, stu.z / m + 0.5);
   return T(tex,uv);
 }
 
@@ -66,54 +66,25 @@ float T(sampler2D tex, vec3 stu) {
 --------------------------------------------------------
 // Depth(osg::Depth::LEQUAL, 1.0, 1.0)
 // BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
--- high-layer.vs
-in vec3 in_pos;
-void main() {
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- high-layer.fs
-out vec4 out_color;
-
-uniform sampler2D in_cloudTexture;
-
-const float in_altitude = 8.0;
-const vec2 in_scale = vec2(32.0);
-const vec3 in_color = vec3(1.0);
-
-#include regen.sky.utility.belowHorizon
-#include regen.sky.clouds.layerIntersection
-#include regen.sky.clouds.T
-#include regen.states.camera.transformTexcoToWorld
-
-void main() {
-  vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-  vec3 ws = transformTexcoToWorld(texco_2D, 1.0, 0);
-  vec3 eye = normalize(vec3(ws.x,ws.z,ws.y));
-  if(!belowHorizon(eye)) discard;
-  
-  float t;
-  vec3 o = vec3(0, 0, in_cmn[1] + in_cmn[0]);
-  layerIntersection(eye, o, in_altitude, t);
-  
-  out_color = vec4(in_color, T(in_cloudTexture, o + t * eye));
-}
-
---------------------------------------------------------
---------------------------------------------------------
---------------------------------------------------------
-// Depth(osg::Depth::LEQUAL, 1.0, 1.0)
-// BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 -- cloud-layer.vs
-#include regen.filter.sampling.vs
--- cloud-layer.gs
-#include regen.filter.sampling.gs  
+in vec3 in_pos;
+out vec4 out_ray;
+
+#include regen.states.camera.input
+
+void main() {
+    vec4 p = vec4(in_pos.xy, 0.0, 1.0);
+    out_ray = in_inverseProjectionMatrix * p * in_viewMatrix;
+    gl_Position = p;
+}
+
 -- cloud-layer.fs
 out vec4 out_color;
+in vec4 in_ray;
 
 uniform sampler2D in_cloudTexture;
 
-uniform vec3 in_sunPositionR;
+uniform vec3 in_sunPosition;
 
 const float in_altitude = 2.0;
 const float in_offset = -0.5;
@@ -159,7 +130,7 @@ float density(in vec3 stu0, in vec3 sun, in float aa0) {
 }
 
 vec2 scatter(in vec3 eye, in vec3 sun) {
-    vec3 o0 = vec3(0, 0, in_cmn[1] + in_cmn[0]);
+    vec3 o0 = vec3(0, in_cmn[1] + in_cmn[0], 0);
     // check if intersects with lower cloud sphere    
     float t0, t1;
     float a1 = in_thickness + in_offset;
@@ -195,18 +166,15 @@ vec2 scatter(in vec3 eye, in vec3 sun) {
 #endif
 
 void main() {
-  vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-  vec3 ws = transformTexcoToWorld(texco_2D, 1.0, 0);
-  vec3 eye = normalize(vec3(ws.x,ws.z,ws.y));
-  if(!belowHorizon(eye)) discard;
+  vec3 eye = normalize(in_ray.xyz);
+  if(belowHorizon(eye)) discard;
   
   float t;
-  vec3 o = vec3(0, 0, in_cmn[1] + in_cmn[0]);
+  vec3 o = vec3(0, in_cmn[1] + in_cmn[0], 0);
   layerIntersection(eye, o, in_altitude, t);
-  
+
 #ifdef USE_SCATTER
-  eye = normalize(vec3(ws.x,ws.z,ws.y));
-  vec2 sd = scatter(eye, normalize(in_sunPositionR));
+  vec2 sd = scatter(eye, normalize(in_sunPosition));
   sd.y *= (1.0 - pow(t, 0.8) * 12e-3);
   
   out_color = vec4(mix(in_tcolor, in_bcolor, sd.x) * (1 - sd.x), sd.y);
@@ -222,9 +190,10 @@ void main() {
 // internal:GL_LUMINANCE16F_ARB, format:GL_LUMINANCE
 // clear color: 0.0f, 0.0f, 0.0f, 1.0f
 -- pre-noise.vs
-#include regen.filter.sampling.vs
--- pre-noise.gs
-#include regen.filter.sampling.gs  
+in vec3 in_pos;
+void main() {
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+}
 -- pre-noise.fs
 out vec4 out_color;
 

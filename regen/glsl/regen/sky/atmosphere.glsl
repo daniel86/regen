@@ -1,7 +1,7 @@
 
 --------------------------------
 --------------------------------
------ Computes a sky scattering cube map.
+----- Computes atmosphere cube map.
 ----- Code based on: http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
 --------------------------------
 --------------------------------
@@ -71,12 +71,12 @@ uniform vec3 in_skyAbsorbtion;
 const float surfaceHeight = 0.99;
 const float intensity = 1.8;
 
-#include regen.filter.scattering.computeHorizonExtinction
-#include regen.filter.scattering.computeEyeExtinction
-#include regen.filter.scattering.computeAtmosphericDepth
-#include regen.filter.scattering.computeEyeDepth
-#include regen.filter.scattering.phase
-#include regen.filter.scattering.absorb
+#include regen.sky.utility.computeHorizonExtinction
+#include regen.sky.utility.computeEyeExtinction
+#include regen.sky.utility.computeAtmosphericDepth
+#include regen.sky.utility.computeEyeDepth
+#include regen.sky.utility.phase
+#include regen.sky.utility.absorb
 
 void main(void)
 {
@@ -113,88 +113,3 @@ void main(void)
 
     out_color.a = smoothstep(0.0,0.05,length(out_color.rgb));
 }
-
------------------------------------
------------------------------------
--------------- Utility functions
-
--- computeHorizonExtinction
-#ifndef __computeHorizonExtinction_vec3_vec3_float_INCLUDED
-#define2 __computeHorizonExtinction_vec3_vec3_float_INCLUDED
-float computeHorizonExtinction(vec3 position, vec3 dir, float radius)
-{
-    float u = dot(dir, -position);
-    if(u<0.0){
-        return 1.0;
-    }
-    vec3 near = position + u*dir;
-    if(length(near) < radius){
-        return 0.0;
-    }
-    else{
-        vec3 v2 = normalize(near)*radius - position;
-        float diff = acos(dot(normalize(v2), dir));
-        return smoothstep(0.0, 1.0, pow(diff*2.0, 3.0));
-    }
-}
-#endif
-
--- computeEyeExtinction
-#ifndef __computeEyeExtinction_vec3_INCLUDED
-#define2 __computeEyeExtinction_vec3_INCLUDED
-#include regen.filter.scattering.computeHorizonExtinction
-float computeEyeExtinction(vec3 eyedir)
-{
-    vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
-    return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight-0.15);
-}
-#endif
-
--- computeAtmosphericDepth
-#ifndef __computeAtmosphericDepth_vec3_vec3__INCLUDED
-#define2 __computeAtmosphericDepth_vec3_vec3__INCLUDED
-float computeAtmosphericDepth(vec3 position, vec3 dir)
-{
-    float a = dot(dir, dir);
-    float b = 2.0*dot(dir, position);
-    float c = dot(position, position)-1.0;
-    float det = b*b-4.0*a*c;
-    float detSqrt = sqrt(det);
-    float q = (-b - detSqrt)/2.0;
-    float t1 = c/q;
-    return t1;
-}
-#endif
-
--- computeEyeDepth
-#ifndef __computeEyeDepth_vec3__INCLUDED
-#define2 __computeEyeDepth_vec3__INCLUDED
-#include regen.filter.scattering.computeAtmosphericDepth
-float computeEyeDepth(vec3 eyedir)
-{
-    vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
-    return computeAtmosphericDepth(eyePosition, eyedir);
-}
-#endif
-
--- phase
-#ifndef __phase_float_float__INCLUDED
-#define2 __phase_float_float__INCLUDED
-float phase(float alpha, float g)
-{
-    float a = 3.0*(1.0-g*g);
-    float b = 2.0*(2.0+g*g);
-    float c = 1.0+alpha*alpha;
-    float d = pow(1.0+g*g-2.0*g*alpha, 1.5);
-    return (a/b)*(c/d);
-}
-#endif
-
--- absorb
-#ifndef __absorb_float_vec3_float__INCLUDED
-#define2 __absorb_float_vec3_float__INCLUDED
-vec3 absorb(float dist, vec3 color, float factor)
-{
-    return color-color*pow(in_skyAbsorbtion, vec3(factor/dist));
-}
-#endif

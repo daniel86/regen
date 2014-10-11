@@ -171,7 +171,8 @@
 		use-shadows="1"
 		shadow-filter="NONE"
 		shadow-layer="3">
-      <light id="earth-sky" shadow-map="sun-shadow" />
+      <light id="earth-sky" shadow-map="sun-shadow" resource="earth-sky" />
+      <light id="earth-sky-moon" />
     </light-pass>
   </node>
 </node>

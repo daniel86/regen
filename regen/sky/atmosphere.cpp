@@ -18,13 +18,12 @@ Atmosphere::Atmosphere(
     GLuint levelOfDetail)
 : SkyLayer(sky)
 {
-  RenderState *rs = RenderState::get();
   ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
 
-  set_name("Atmosphere");
+  state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
 
   ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::alloc(1);
-  cubeMap->begin(rs);
+  cubeMap->begin(RenderState::get());
   cubeMap->set_format(GL_RGBA);
   if(useFloatBuffer) {
     cubeMap->set_internalFormat(GL_RGBA16F);
@@ -35,11 +34,11 @@ Atmosphere::Atmosphere(
   cubeMap->set_rectangleSize(cubeMapSize,cubeMapSize);
   cubeMap->wrapping().push(GL_CLAMP_TO_EDGE);
   cubeMap->texImage();
-  cubeMap->end(rs);
+  cubeMap->end(RenderState::get());
 
   // create render target for updating the sky cube map
   fbo_ = ref_ptr<FBO>::alloc(cubeMapSize,cubeMapSize);
-  rs->drawFrameBuffer().push(fbo_->id());
+  RenderState::get()->drawFrameBuffer().push(fbo_->id());
   fbo_->drawBuffers().push(DrawBuffers::attachment0());
   // clear negative y to black, -y cube face is not updated
   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -47,11 +46,11 @@ Atmosphere::Atmosphere(
   glClear(GL_COLOR_BUFFER_BIT);
   // for updating bind all layers to GL_COLOR_ATTACHMENT0
   glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
-  rs->drawFrameBuffer().pop();
+  RenderState::get()->drawFrameBuffer().pop();
 
   drawState_ = ref_ptr<SkyBox>::alloc(levelOfDetail);
   drawState_->setCubeMap(cubeMap);
-  state()->joinStates(drawState_);
+  //state()->joinStates(drawState_);
 
   ///////
   /// Update Uniforms
@@ -84,8 +83,8 @@ Atmosphere::Atmosphere(
   ///////
   StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
   shaderConfig.setVersion(330);
-  updateShader_->createShader(shaderConfig, "regen.filter.scattering");
-  updateMesh->updateVAO(rs, shaderConfig, updateShader_->shader());
+  updateShader_->createShader(shaderConfig, "regen.sky.atmosphere");
+  updateMesh->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
 }
 
 void Atmosphere::setRayleighBrightness(GLfloat v)
@@ -233,15 +232,6 @@ ref_ptr<HasShader> Atmosphere::getShaderState()
 
 void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt)
 {
-  const Vec3f &sunDir = sky_->sun()->direction()->uniformData();
-  GLdouble nightFade = sunDir.y;
-  if(nightFade < 0.0) { nightFade = 0.0; }
-  // linear interpolate between day and night colors
-  const Vec3f &dayColor = skyAbsorbtion_->getVertex(0);
-  Vec3f color = Vec3f(1.0)-dayColor; // night color
-  color = color*(1.0-nightFade) + dayColor*nightFade;
-  sky_->sun()->diffuse()->setVertex(0,color);
-
   rs->drawFrameBuffer().push(fbo_->id());
   rs->viewport().push(fbo_->glViewport());
 
