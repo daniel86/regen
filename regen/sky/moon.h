@@ -31,7 +31,7 @@ namespace regen {
 
     void set_earthShineIntensity(GLdouble sunShineIntensity);
 
-    const ref_ptr<ShaderInput4f>& earthShine() const;
+    const ref_ptr<ShaderInput3f>& earthShine() const;
 
     GLdouble defaultScale();
 
@@ -54,7 +54,9 @@ namespace regen {
 
     ref_ptr<ShaderInput1f> scale_;
     ref_ptr<ShaderInput4f> sunShine_;
-    ref_ptr<ShaderInput4f> earthShine_;
+    ref_ptr<ShaderInput3f> earthShine_;
+    Vec3f earthShineColor_;
+    GLdouble earthShineIntensity_;
 
     ref_ptr<ShaderInput4f> eclParams_;
     ref_ptr<ShaderInputMat4> moonOrientation_;

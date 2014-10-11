@@ -36,7 +36,7 @@ StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
   state()->joinShaderInput(colorRatio_);
 
   glareIntensity_ = ref_ptr<ShaderInput1f>::alloc("glareIntensity");
-  glareIntensity_->setUniformData(0.5);
+  glareIntensity_->setUniformData(0.15);
   state()->joinShaderInput(glareIntensity_);
 
   glareScale_ = ref_ptr<ShaderInput1f>::alloc("glareScale");
@@ -145,7 +145,7 @@ GLfloat StarsLayer::defaultColorRatio()
 { return 0.66f; }
 
 GLfloat StarsLayer::defaultGlareScale()
-{ return 0.04f; }
+{ return 0.94f; }
 
 GLfloat StarsLayer::defaultScintillation()
 { return 20.0f; }

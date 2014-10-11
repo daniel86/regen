@@ -256,12 +256,16 @@ ref_ptr<MoonLayer> SkyResource::createMoonLayer(const ref_ptr<Sky> &sky,
 
   if(input.hasAttribute("scale"))
     moon->set_scale(input.getValue<GLdouble>("scale", moon->defaultScale()));
+
   if(input.hasAttribute("sun-shine-color"))
     moon->set_sunShineColor(input.getValue<Vec3f>("sun-shine-color", moon->defaultSunShineColor()));
+
   if(input.hasAttribute("earth-shine-color"))
     moon->set_earthShineColor(input.getValue<Vec3f>("earth-shine-color", moon->defaultEarthShineColor()));
+
   if(input.hasAttribute("sun-shine-intensity"))
     moon->set_sunShineIntensity(input.getValue<GLfloat>("sun-shine-intensity", moon->defaultSunShineIntensity()));
+
   if(input.hasAttribute("earth-shine-intensity"))
     moon->set_earthShineIntensity(input.getValue<GLfloat>("earth-shine-intensity", moon->defaultEarthShineIntensity()));
 
