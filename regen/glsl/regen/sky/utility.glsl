@@ -21,10 +21,10 @@ const vec3 in_lambda = vec3(0.52, 1.22, 2.98);
 
 float optical(const float theta) {
   float sin_theta = sin(theta);
-  float s = -sin(asin((in_cmn[1] + in_cmn[0]) / in_cmn[2] * sin_theta) - theta);
-  s *= in_cmn[2];
+  float s = -sin(asin((in_cmn.y + in_cmn.x) / in_cmn.z * sin_theta) - theta);
+  s *= in_cmn.z;
   s /= sin_theta;
-  s /= in_cmn[2] - in_cmn[0];
+  s /= in_cmn.z - in_cmn.x;
   return s;
 }
 // theta is the angle between ray and zenith ~ probably acos(ray.z)

@@ -18,7 +18,7 @@
 
 using namespace regen;
 
-StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
+Stars::Stars(const ref_ptr<Sky> &sky)
 : SkyLayer(sky)
 {
   state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
@@ -27,7 +27,7 @@ StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
   apparentMagnitude_->setUniformData(defaultApparentMagnitude());
   state()->joinShaderInput(apparentMagnitude_);
 
-  color_ = ref_ptr<ShaderInput3f>::alloc("color");
+  color_ = ref_ptr<ShaderInput3f>::alloc("starColor");
   color_->setUniformData(defaultColor());
   state()->joinShaderInput(color_);
 
@@ -36,7 +36,7 @@ StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
   state()->joinShaderInput(colorRatio_);
 
   glareIntensity_ = ref_ptr<ShaderInput1f>::alloc("glareIntensity");
-  glareIntensity_->setUniformData(0.15);
+  glareIntensity_->setUniformData(0.1);
   state()->joinShaderInput(glareIntensity_);
 
   glareScale_ = ref_ptr<ShaderInput1f>::alloc("glareScale");
@@ -52,7 +52,7 @@ StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
   state()->joinShaderInput(scattering_);
 
   scale_ = ref_ptr<ShaderInput1f>::alloc("scale");
-  scale_->setUniformData(1.0f);
+  scale_->setUniformData(2.0f);
   state()->joinShaderInput(scale_);
 
 
@@ -61,12 +61,9 @@ StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
   state()->joinStates(noiseTexState_);
 
   shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.bright-stars");
-  //state()->joinStates(shaderState_->shaderState());
-
   meshState_ = ref_ptr<Mesh>::alloc(GL_POINTS, VBO::USAGE_STATIC);
   pos_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_POS);
   col_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_COL0);
-  //state()->joinStates(meshState_);
 }
 
 
@@ -76,7 +73,7 @@ StarsLayer::StarsLayer(const ref_ptr<Sky> &sky)
 #define _rightasc(deg, min, sec) \
     (_rad(_rightascd(deg, min, sec)))
 
-void StarsLayer::set_brightStarsFile(const string &brightStars)
+void Stars::set_brightStarsFile(const string &brightStars)
 {
   osgHimmel::BrightStars bs(brightStars.c_str());
   const osgHimmel::BrightStars::s_BrightStar *stars = bs.stars();
@@ -108,7 +105,7 @@ void StarsLayer::set_brightStarsFile(const string &brightStars)
   meshState_->end();
 }
 
-void StarsLayer::updateNoiseTexture()
+void Stars::updateNoiseTexture()
 {
   const int noiseN = 256;
 
@@ -123,8 +120,8 @@ void StarsLayer::updateNoiseTexture()
   noiseTex_->set_data(noiseMap);
   noiseTex_->begin(RenderState::get());
   noiseTex_->texImage();
-  //noiseTex_->filter().push(GL_LINEAR);
-  //noiseTex_->wrapping().push(GL_REPEAT);
+  noiseTex_->filter().push(GL_LINEAR);
+  noiseTex_->wrapping().push(GL_REPEAT);
   noiseTex_->end(RenderState::get());
   noiseTex_->set_data(NULL);
 
@@ -135,82 +132,82 @@ void StarsLayer::updateNoiseTexture()
 }
 
 
-GLfloat StarsLayer::defaultApparentMagnitude()
+GLfloat Stars::defaultApparentMagnitude()
 { return 7.0f; }
 
-Vec3f StarsLayer::defaultColor()
-{ return Vec3f(0.66, 0.78, 1.00); }
+Vec3f Stars::defaultColor()
+{ return Vec3f(0.66, 0.78, 1.0); }
 
-GLfloat StarsLayer::defaultColorRatio()
+GLfloat Stars::defaultColorRatio()
 { return 0.66f; }
 
-GLfloat StarsLayer::defaultGlareScale()
-{ return 0.94f; }
+GLfloat Stars::defaultGlareScale()
+{ return 1.2f; }
 
-GLfloat StarsLayer::defaultScintillation()
-{ return 20.0f; }
+GLfloat Stars::defaultScintillation()
+{ return 0.2f; }
 
-GLfloat StarsLayer::defaultScattering()
-{ return 4.0f; }
+GLfloat Stars::defaultScattering()
+{ return 2.0f; }
 
 
-void StarsLayer::set_apparentMagnitude(const GLfloat vMag)
+void Stars::set_apparentMagnitude(const GLfloat vMag)
 { apparentMagnitude_->setVertex(0, vMag); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::apparentMagnitude() const
+const ref_ptr<ShaderInput1f>& Stars::apparentMagnitude() const
 { return apparentMagnitude_; }
 
-void StarsLayer::set_color(const Vec3f color)
+void Stars::set_color(const Vec3f color)
 { color_->setVertex(0, color); }
 
-const ref_ptr<ShaderInput3f>& StarsLayer::StarsLayer::color() const
+const ref_ptr<ShaderInput3f>& Stars::Stars::color() const
 { return color_; }
 
-void StarsLayer::set_colorRatio(const GLfloat ratio)
+void Stars::set_colorRatio(const GLfloat ratio)
 { colorRatio_->setVertex(0, ratio); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::colorRatio() const
+const ref_ptr<ShaderInput1f>& Stars::colorRatio() const
 { return colorRatio_; }
 
-void StarsLayer::set_glareIntensity(const GLfloat intensity)
+void Stars::set_glareIntensity(const GLfloat intensity)
 { glareIntensity_->setVertex(0, intensity); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::glareIntensity() const
+const ref_ptr<ShaderInput1f>& Stars::glareIntensity() const
 { return glareIntensity_; }
 
-void StarsLayer::set_glareScale(const GLfloat scale)
+void Stars::set_glareScale(const GLfloat scale)
 { glareScale_->setVertex(0, scale); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::glareScale() const
+const ref_ptr<ShaderInput1f>& Stars::glareScale() const
 { return glareScale_; }
 
-void StarsLayer::set_scintillation(const GLfloat scintillation)
+void Stars::set_scintillation(const GLfloat scintillation)
 { scintillation_->setVertex(0, scintillation); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::scintillation() const
+const ref_ptr<ShaderInput1f>& Stars::scintillation() const
 { return scintillation_; }
 
-void StarsLayer::set_scattering(const GLfloat scattering)
+void Stars::set_scattering(const GLfloat scattering)
 { scattering_->setVertex(0, scattering); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::scattering() const
+const ref_ptr<ShaderInput1f>& Stars::scattering() const
 { return scattering_; }
 
-void StarsLayer::set_scale(const GLfloat scale)
+void Stars::set_scale(const GLfloat scale)
 { scale_->setVertex(0, scale); }
 
-const ref_ptr<ShaderInput1f>& StarsLayer::scale() const
+const ref_ptr<ShaderInput1f>& Stars::scale() const
 { return scale_; }
 
 
-ref_ptr<Mesh> StarsLayer::getMeshState()
+ref_ptr<Mesh> Stars::getMeshState()
 { return meshState_; }
 
-ref_ptr<HasShader> StarsLayer::getShaderState()
+ref_ptr<HasShader> Stars::getShaderState()
 { return shaderState_; }
 
 
-void StarsLayer::updateSkyLayer(RenderState *rs, GLdouble dt)
+void Stars::updateSkyLayer(RenderState *rs, GLdouble dt)
 {
 }
 

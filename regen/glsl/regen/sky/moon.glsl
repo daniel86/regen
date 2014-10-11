@@ -1,11 +1,10 @@
 
-
-// Transforms a quad to the moons position into the canopy. Then 
-// generates a circle with sphere normals (and normals from cube map)
-// representing a perfect sphere in space.
-// Applies lighting from sun - moon phase is always correct and no 
-// separate calculation is required. Correct Moon rotation is currently
-// faked (face towards earth is incorrect due to missing librations etc).
+--------------------------------
+--------------------------------
+----- Visualization of the moon.
+----- Code based on: https://code.google.com/p/osghimmel/
+--------------------------------
+--------------------------------
 -- vs
 in vec3 in_pos;
 
@@ -16,7 +15,7 @@ out vec2 out_texco;
 uniform vec3 in_moonPosition;
 uniform float in_far;
 
-const float in_moonScale = 0.1;
+const float in_scale = 0.1;
 
 #include regen.states.camera.transformWorldToScreen
 
@@ -24,7 +23,7 @@ void main(void) {
     vec3 m = in_moonPosition.xzy;
     vec3 u = normalize(cross(vec3(0, 1, 0), m));
     vec3 v = normalize(cross(m, u));
-    out_eye = m - (in_pos.x*u + in_pos.y*v)*in_moonScale;
+    out_eye = m - (in_pos.x*u + in_pos.y*v)*in_scale;
     out_tangent = mat3(u, v, m);
     out_texco = in_pos.xy;
     
@@ -34,6 +33,9 @@ void main(void) {
 
 -- fs
 #include regen.models.mesh.defines
+#define PI_05 1.5707963267948966
+#define TWO_OVER_THREEPI 0.2122065907891938
+
 out vec4 out_color;
 in mat3 in_tangent;
 in vec3 in_eye;
@@ -42,30 +44,18 @@ in vec2 in_texco;
 uniform samplerCube in_moonmapCube;
 
 uniform vec3 in_sunPosition;
-uniform vec3 in_moonPosition;
-uniform float in_q = 0.0;
+uniform float in_q;
 uniform mat4 in_moonOrientationMatrix;
-// 0: altitude in km
-// 1: apparent angular radius (not diameter!)
-// 2: radius up to "end of atm"
-// 3: seed (for randomness of stuff)
 uniform vec4 in_cmn;
 
 const vec4 in_sunShine = vec4(0.923,0.786,0.636,56.0);
 const vec3 in_earthShine = vec3(0.88,0.96,1.00);
 const float in_surface = 1.0;
-const float in_moonScale = 0.1;
-
-#ifdef USE_ECLIPSE
-uniform sampler1D in_eclCoeffs;
-const vec4 in_eclParams = vec4(0.0,0.0,0.0,-1.0);
-#endif
+const float in_scale = 0.1;
 const float surfaceHeight = 0.99;
 
-#define PI_05 1.5707963267948966
-#define TWO_OVER_THREEPI 0.2122065907891938
-
 #include regen.states.camera.transformTexcoToWorld
+#include regen.sky.utility.computeEyeExtinction
 
 // Hapke-Lommel-Seeliger approximation of the moons reflectance function.
 // i between incident  (+sun) and surface
@@ -94,24 +84,10 @@ float brdf(float cos_r, float cos_i, float cos_p)
     return float(cos_i<=0) * (1.0 - step(0, cos_i)) * F;
 }
 
-#ifdef USE_ECLIPSE
-vec3 eclipse(vec3 m, vec3 s, vec3 n, sampler1D e,
-      float e0, float e1, float e2, float b)
-{
-    if(b <= 0) return vec3(1);
-
-    float Df = length(cross(m - n * e0, s)) / e0;
-    float t;
-    if(Df < e1) t = Df / (2.0 * e1);
-    else        t = 0.5 + (Df - e1) / (2 * (e2 - e1));
-
-    return texture(e, t).rgb * b;
-}
-#endif
-#ifdef USE_SCATTER
+#ifndef SKIP_SCATTER
+const float in_scattering = 4.0;
 #include regen.sky.utility.scatter
 #endif
-#include regen.sky.utility.computeEyeExtinction
 
 void main(void)
 {
@@ -119,7 +95,7 @@ void main(void)
     float zz = 1.0 - in_texco.x * in_texco.x - in_texco.y * in_texco.y;
     
     // fov and size indepentent antialiasing
-    float w  = smoothstep(0.0, 2.828 * in_q / in_moonScale, zz);
+    float w  = smoothstep(0.0, 2.828 * in_q / in_scale, zz);
     float ext = computeEyeExtinction(eye);
     if(ext <= 0.0) discard;
     w *= smoothstep(0.0, 0.05, ext);
@@ -145,20 +121,10 @@ void main(void)
     // Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
     float b = 0.5 / sqrt(1 + pow(in_sunPosition.y + 1.05, 32)) + 0.33;
     
-    vec3 diffuse = in_earthShine.rgb + in_sunShine.rgb * in_sunShine.w * f * b;
-    diffuse *= c.a;
-    
-#ifdef USE_ECLIPSE
-    // accuire lunar eclipse coefficients
-    diffuse *= eclipse(in_moonPosition.xyz,
-	in_sunPosition, hn,
-	in_eclCoeffs,
-	in_eclParams[0], in_eclParams[1],
-	in_eclParams[2], in_eclParams[3]);
-#endif
-#ifdef USE_SCATTER
-    // TODO: make scattering coeff 4 as uniform...
-    diffuse *= (1 - 4 * scatter(acos(eye.z)));
+    vec3 diffuse = (in_earthShine.rgb + in_sunShine.rgb * in_sunShine.w * f * b)*c.a;
+
+#ifndef SKIP_SCATTER
+    diffuse *= (1 - in_scattering * scatter(acos(eye.y)));
 #endif
 
     out_color = w * vec4(diffuse, 1.0);

@@ -13,9 +13,9 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-  class StarsLayer : public SkyLayer {
+  class Stars : public SkyLayer {
   public:
-    StarsLayer(const ref_ptr<Sky> &sky);
+    Stars(const ref_ptr<Sky> &sky);
 
     void set_brightStarsFile(const string &brightStars);
 
