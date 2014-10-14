@@ -120,7 +120,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.cloud-layer");
   //state()->joinStates(shaderState_->shaderState());
 
-  meshState_ = Rectangle::getUnitQuad();
+  meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
   //state()->joinStates(meshState_);
 
   ///////

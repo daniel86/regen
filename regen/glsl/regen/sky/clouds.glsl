@@ -80,7 +80,7 @@ void main() {
     vec4 p = vec4(in_pos.xy, 0.0, 1.0);
     gl_Position = p;
 #if RENDER_LAYER <= 1
-    out_ray = in_inverseProjectionMatrix * p * in_viewMatrix;
+    out_ray = (in_inverseProjectionMatrix * p) * in_viewMatrix;
 #endif
 }
 
@@ -100,11 +100,15 @@ flat out int out_layer;
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
+#include regen.states.camera.transformScreenToEye
 
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  out_ray = __PROJ_INV__(layer) * posWorld * __VIEW__(layer);
+  vec4 pw = vec4(posWorld.xy,0.0,1.0);
+  vec3 s = transformScreenToEye(pw,layer);
+  out_ray = vec4(s,1.0) * __VIEW__(layer);
+  out_ray = normalize(out_ray);
   gl_Position = posWorld;
   HANDLE_IO(index);
   EmitVertex();

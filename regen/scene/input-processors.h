@@ -13,6 +13,7 @@
 
 #include <regen/scene/scene-parser.h>
 #include <regen/scene/scene-input.h>
+#include <regen/scene/resource-manager.h>
 
 namespace regen {
 namespace scene {
@@ -73,6 +74,21 @@ namespace scene {
      */
     StateProcessor(const std::string &category)
     : InputProcessor(category) {}
+  };
+  class ResourceStateProvider : public StateProcessor {
+  public:
+    /**
+     * Default Constructor.
+     * @param category The Processor category.
+     */
+    ResourceStateProvider()
+    : StateProcessor("resource") {}
+    void processInput(
+        SceneParser *parser,
+        SceneInputNode &input,
+        const ref_ptr<State> &parent) {
+      parser->getResources()->loadResources(parser, input.getName());
+    }
   };
 }}
 

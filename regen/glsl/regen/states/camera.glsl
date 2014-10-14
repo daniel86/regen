@@ -306,7 +306,8 @@ vec3 transformTexcoToWorld(vec2 texco, float depth, int layer) {
 #define2 __transformParaboloid_INCLUDED
 #include regen.states.camera.input
 vec4 transformParaboloid(vec4 posEye, int layer) {
-  vec3 pos = posEye.xyz/posEye.w;
+  //vec3 pos = posEye.xyz/posEye.w;
+  vec3 pos = posEye.xyz;
   float l = length(pos.xyz);
   pos.xy /= (pos.z + l);
   pos.x   = -pos.x;

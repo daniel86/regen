@@ -94,6 +94,7 @@ void SceneParser::init()
   setNodeProcessor(ref_ptr<ShaderNodeProvider>::alloc());
   setNodeProcessor(ref_ptr<SceneNodeProcessor>::alloc());
   // add some default state processors
+  setStateProcessor(ref_ptr<ResourceStateProvider>::alloc());
   setStateProcessor(ref_ptr<BlendStateProvider>::alloc());
   setStateProcessor(ref_ptr<BlitStateProvider>::alloc());
   setStateProcessor(ref_ptr<CameraStateProvider>::alloc());

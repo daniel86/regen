@@ -14,6 +14,7 @@
 #include <regen/states/light-state.h>
 #include <regen/sky/sky-layer.h>
 #include <regen/states/blend-state.h>
+#include <regen/meshes/rectangle.h>
 
 #include <regen/external/osghimmel/timef.h>
 #include <regen/external/osghimmel/astronomy.h>
@@ -85,6 +86,8 @@ namespace regen {
 
     GLfloat computeEyeExtinction(Vec3f eyedir);
 
+    const ref_ptr<Rectangle>& skyQuad() const;
+
 
     osgHimmel::AbstractAstronomy& astro();
 
@@ -117,6 +120,7 @@ namespace regen {
     ref_ptr<ShaderInput4f> cmnUniform_;
     ref_ptr<ShaderInputMat4> R_;
     ref_ptr<ShaderInput1f> q_;
+    ref_ptr<Rectangle> skyQuad_;
 
     Vec3f noonColor_;
     Vec3f dawnColor_;

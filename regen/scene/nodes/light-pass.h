@@ -56,9 +56,6 @@ namespace scene {
       {
         ref_ptr<SceneInputNode> n = *it;
 
-        if(n->hasAttribute("resource"))
-          parser->getResources()->loadResources(parser, n->getValue("resource"));
-
         ref_ptr<Light> light = parser->getResources()->getLight(parser,n->getName());
         if(light.get()==NULL) {
           continue;
