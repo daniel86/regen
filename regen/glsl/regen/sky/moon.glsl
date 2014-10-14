@@ -26,7 +26,7 @@ const float in_scale = 0.1;
 void main(void) {
     vec3 m = in_moonPosition.xzy;
     vec3 u = normalize(cross(vec3(0, 1, 0), m));
-    vec3 v = normalize(cross(m, u));
+    vec3 v = normalize(cross(u,m));
     out_eye = m - (in_pos.x*u + in_pos.y*v)*in_scale;
     out_tangent = mat3(u, v, m);
     out_texco = in_pos.xy;

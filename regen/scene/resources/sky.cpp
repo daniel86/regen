@@ -63,7 +63,7 @@ ref_ptr<Sky> SkyResource::createResource(
     ref_ptr<SceneInputNode> n = *it;
 
     if(n->getCategory() == "atmosphere") {
-      createAtmosphereLayer(sky, parser, *n.get());
+      createAtmosphereLayer(sky, parser, *n.get(), input.getName());
     }
     else if(n->getCategory() == "cloud-layer") {
       createCloudLayer(sky, parser, *n.get());
@@ -92,7 +92,7 @@ ref_ptr<Sky> SkyResource::createResource(
 ref_ptr<StarMap> SkyResource::createStarMapLayer(const ref_ptr<Sky> &sky,
     SceneParser *parser, SceneInputNode &input)
 {
-  ref_ptr<StarMap> starMap = ref_ptr<StarMap>::alloc(sky);
+  ref_ptr<StarMap> starMap = ref_ptr<StarMap>::alloc(sky, input.getValue<GLuint>("lod",0));
 
   if(input.hasAttribute("texture"))
     starMap->set_texture(input.getValue("texture"));
@@ -182,7 +182,7 @@ ref_ptr<MoonLayer> SkyResource::createMoonLayer(const ref_ptr<Sky> &sky,
 }
 
 ref_ptr<Atmosphere> SkyResource::createAtmosphereLayer(const ref_ptr<Sky> &sky,
-    SceneParser *parser, SceneInputNode &input)
+    SceneParser *parser, SceneInputNode &input, const string &skyName)
 {
   ref_ptr<Atmosphere> atmosphere = ref_ptr<Atmosphere>::alloc(sky,
       input.getValue<GLuint>("size", 512),
@@ -227,7 +227,7 @@ ref_ptr<Atmosphere> SkyResource::createAtmosphereLayer(const ref_ptr<Sky> &sky,
   atmosphere->set_updateInterval(
       input.getValue<GLdouble>("update-interval", 4000.0));
 
-  parser->getResources()->putTexture(input.getName(), atmosphere->cubeMap());
+  parser->getResources()->putTexture(skyName, atmosphere->cubeMap());
 
   sky->addLayer(atmosphere);
 

@@ -43,7 +43,7 @@ MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const string &moonMapFile)
   earthShineIntensity_ = defaultEarthShineIntensity();
 
   shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.moon");
-  meshState_ = Rectangle::getUnitQuad();
+  meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
 }
 
 void MoonLayer::setupMoonTextureCube(const string &moonMapFile)

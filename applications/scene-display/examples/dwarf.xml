@@ -267,12 +267,13 @@
   <blend mode="add" />
   <depth test="0" write="0" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+  <resource id="earth-sky" />
     
   <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
     
     <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-      <light id="earth-sky-sun" resource="earth-sky" />
+      <light id="earth-sky-sun" />
       <light id="earth-sky-moon" />
     </light-pass>
     

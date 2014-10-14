@@ -82,10 +82,11 @@
      update-interval="200.0" >
   <star-map texture="applications/res/sky/milkyway.png"
 	    scattering="0.2"
-	    apparent-magnitude="6.5" />
+	    apparent-magnitude="6.5"
+	    lod="4" />
   <stars catalog="applications/res/sky/bright-stars.bin"
 	 scale="2.0"
-	 scattering="2.0"
+	 scattering="1.0"
 	 scintillation="0.2"
 	 glare-intensity="0.1"
 	 glare-scale="1.2"
@@ -98,11 +99,11 @@
 	sun-shine-color="0.923,0.786,0.636"
 	sun-shine-intensity="128.0"
 	earth-shine-color="0.88,0.96,1.0"
-	earth-shine-intensity="8.0"/>
-  <atmosphere preset="earth" size="256"  />
+	earth-shine-intensity="8.0" />
+  <atmosphere preset="earth" size="256" lod="4" />
   <cloud-layer texture-size="2048"
 	       sharpness="0.4"
-	       coverage="0.2"
+	       coverage="0.4"
 	       altitude="8.0"
 	       scale="32.0,32.0"
 	       change="0.1"
@@ -138,7 +139,7 @@
 </fbo>
 
 <camera id="sun-camera"
-	light="earth-sky"
+	light="earth-sky-sun"
 	camera="main-camera"
 	num-layer="3"
 	split-weight="0.9" />

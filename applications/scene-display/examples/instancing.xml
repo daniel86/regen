@@ -118,10 +118,12 @@
     <light-pass type="DIRECTIONAL"
 		shader="regen.shading.deferred.directional"
 		shadow-filter="NONE">
-      <light id="earth-sky-sun" resource="earth-sky"
+      <light id="earth-sky-sun"
 	     shadow-buffer="sun-shadow" shadow-attachment="depth"
 	     shadow-camera="sun-camera" />
+      <!--
       <light id="earth-sky-moon" />
+      -->
     </light-pass>
   </node>
   
@@ -162,6 +164,7 @@
 <!--**************************-->
 
 <node id="root">
+  <resource id="earth-sky" />
   <node id="Pre-Render">
     <define key="OUTPUT_TYPE" value="DEPTH" />
     

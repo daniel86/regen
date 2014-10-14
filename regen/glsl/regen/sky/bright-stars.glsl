@@ -65,12 +65,13 @@ void main(void) {
 }
 
 -- gs
-#include regen.models.mesh.defines
+#include regen.states.camera.defines
+#include regen.defines.all
 #extension GL_EXT_geometry_shader4 : enable
 #define2 __MAX_VERTICES__ ${${RENDER_LAYER}*4}
 
 layout (points) in;
-layout(triangle_strip, max_vertices=4) out;
+layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
 
 in float in_k[ ];
 in vec3 in_col[ ];
@@ -83,6 +84,8 @@ uniform float in_q;
 const float surfaceHeight = 0.99;
 
 #include regen.states.camera.transformWorldToScreen
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
 #include regen.sky.utility.computeEyeExtinction
 
 void emitVertex(vec3 posWorld, vec2 texco, int layer) {
@@ -100,7 +103,10 @@ void emitBrightStar(int layer) {
     out_texco.z = in_k[0] / in_q;
     
     vec3 u = cross(p, vec3(0, 0, 1));
-    vec3 v = cross(u, p);
+    vec3 v = cross(p, u);
+    // XXX: Low LoD yields in artifacts for big stars and algorithms which require
+    // good tesselation such as paraboloid mapping.
+    // Tesselate a little bit in the GS? Subdivide tris once or twice
     emitVertex(p - normalize(-u -v) * in_k[0], vec2(-1.0, -1.0), layer);
     emitVertex(p - normalize(-u +v) * in_k[0], vec2(-1.0,  1.0), layer);
     emitVertex(p - normalize(+u -v) * in_k[0], vec2( 1.0, -1.0), layer);

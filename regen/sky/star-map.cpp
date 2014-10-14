@@ -14,14 +14,10 @@
 
 using namespace regen;
 
-StarMap::StarMap(const ref_ptr<Sky> &sky)
+StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 : SkyLayer(sky)
 {
   state()->joinStates(ref_ptr<BlendState>::alloc(GL_ONE, GL_ZERO));
-
-  starMap_ = ref_ptr<TextureState>::alloc();
-  starMap_->set_name("starmapCube");
-  state()->joinStates(starMap_);
 
   scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
   scattering_->setUniformData(defaultScattering());
@@ -33,8 +29,7 @@ StarMap::StarMap(const ref_ptr<Sky> &sky)
 
   set_apparentMagnitude(6.5);
 
-  shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.star-map");
-  meshState_ = Rectangle::getUnitQuad();
+  meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.sky.star-map");
 }
 
 
@@ -43,7 +38,7 @@ const GLdouble StarMap::defaultScattering()
 
 
 void StarMap::set_texture(const string &textureFile)
-{ starMap_->set_texture(textures::loadCube(textureFile)); }
+{ meshState_->setCubeMap(textures::loadCube(textureFile)); }
 
 void StarMap::set_scattering(GLdouble scattering)
 { scattering_->setVertex(0, scattering); }
@@ -64,7 +59,7 @@ ref_ptr<Mesh> StarMap::getMeshState()
 { return meshState_; }
 
 ref_ptr<HasShader> StarMap::getShaderState()
-{ return shaderState_; }
+{ return meshState_; }
 
 
 void StarMap::updateSkyLayer(RenderState *rs, GLdouble dt)

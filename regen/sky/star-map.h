@@ -10,12 +10,13 @@
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
+#include <regen/meshes/sky-box.h>
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
   class StarMap : public SkyLayer {
   public:
-    StarMap(const ref_ptr<Sky> &sky);
+    StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail=4);
 
     void set_texture(const string &textureFile);
 
@@ -33,10 +34,7 @@ namespace regen {
     ref_ptr<HasShader> getShaderState();
 
   protected:
-    ref_ptr<Mesh> meshState_;
-    ref_ptr<HasShader> shaderState_;
-
-    ref_ptr<TextureState> starMap_;
+    ref_ptr<SkyBox> meshState_;
 
     ref_ptr<ShaderInput1f> scattering_;
     ref_ptr<ShaderInput1f> deltaM_;

@@ -33,7 +33,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
   depth->set_useDepthTest(GL_TRUE);
   state()->joinStates(depth);
 
-  state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
+  //state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
   state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
   noonColor_ = Vec3f(0.5,0.5,0.5);
@@ -89,6 +89,23 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
   moon_->diffuse()->setVertex(0,Vec3f(0.0f));
   moon_->direction()->setVertex(0,Vec3f(1.0f));
   state()->joinShaderInput(moon_->direction(), "moonPosition");
+
+  Rectangle::Config cfg;
+  cfg.centerAtOrigin = GL_FALSE;
+  cfg.isNormalRequired = GL_FALSE;
+  cfg.isTangentRequired = GL_FALSE;
+  cfg.isTexcoRequired = GL_FALSE;
+  cfg.levelOfDetail = 4;
+  cfg.posScale = Vec3f(2.0f);
+  cfg.rotation = Vec3f(0.5*M_PI, 0.0f, 0.0f);
+  cfg.texcoScale = Vec2f(1.0);
+  cfg.translation = Vec3f(-1.0f,-1.0f,0.0f);
+  cfg.usage = VBO::USAGE_STATIC;
+  skyQuad_ = ref_ptr<Rectangle>::alloc(cfg);
+}
+
+const ref_ptr<Rectangle>& Sky::skyQuad() const {
+  return skyQuad_;
 }
 
 std::string Sky::date() const {
