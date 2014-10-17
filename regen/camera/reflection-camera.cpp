@@ -15,7 +15,7 @@ ReflectionCamera::ReflectionCamera(
     const ref_ptr<Mesh> &mesh,
     GLuint vertexIndex,
     GLboolean hasBackFace)
-: Camera(),
+: OmniDirectionalCamera(hasBackFace),
   userCamera_(userCamera),
   vertexIndex_(vertexIndex),
   projStamp_(userCamera->projection()->stamp()-1),
@@ -23,8 +23,7 @@ ReflectionCamera::ReflectionCamera(
   camDirStamp_(userCamera->direction()->stamp()-1),
   cameraChanged_(GL_TRUE),
   isFront_(GL_TRUE),
-  hasMesh_(GL_TRUE),
-  hasBackFace_(hasBackFace)
+  hasMesh_(GL_TRUE)
 {
   updateFrustum(
       userCamera_->fov()->getVertex(0),
@@ -56,15 +55,14 @@ ReflectionCamera::ReflectionCamera(
     const Vec3f &reflectorNormal,
     const Vec3f &reflectorPoint,
     GLboolean hasBackFace)
-: Camera(),
+: OmniDirectionalCamera(hasBackFace),
   userCamera_(userCamera),
   projStamp_(userCamera->projection()->stamp()-1),
   camPosStamp_(userCamera->position()->stamp()-1),
   camDirStamp_(userCamera->direction()->stamp()-1),
   cameraChanged_(GL_TRUE),
   isFront_(GL_TRUE),
-  hasMesh_(GL_FALSE),
-  hasBackFace_(hasBackFace)
+  hasMesh_(GL_FALSE)
 {
   updateFrustum(
       userCamera_->fov()->getVertex(0),

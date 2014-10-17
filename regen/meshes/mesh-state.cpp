@@ -18,7 +18,10 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
   primitive_(sourceMesh->primitive_),
   feedbackCount_(0),
   sourceMesh_(sourceMesh),
-  isMeshView_(GL_TRUE)
+  isMeshView_(GL_TRUE),
+  centerPosition_(sourceMesh->centerPosition()),
+  minPosition_(sourceMesh->minPosition()),
+  maxPosition_(sourceMesh->maxPosition())
 {
   vao_ = ref_ptr<VAO>::alloc();
   hasInstances_ = GL_FALSE;
@@ -32,7 +35,10 @@ Mesh::Mesh(GLenum primitive, VBO::Usage usage)
   HasInput(usage),
   primitive_(primitive),
   feedbackCount_(0),
-  isMeshView_(GL_FALSE)
+  isMeshView_(GL_FALSE),
+  centerPosition_(0.0f),
+  minPosition_(-1.0f),
+  maxPosition_(1.0f)
 {
   vao_ = ref_ptr<VAO>::alloc();
   hasInstances_ = GL_FALSE;
@@ -209,6 +215,26 @@ void Mesh::set_primitive(GLenum primitive)
     break;
   }
 }
+
+
+void Mesh::set_centerPosition(const Vec3f &center)
+{ centerPosition_ = center; }
+
+const Vec3f& Mesh::centerPosition()
+{ return centerPosition_; }
+
+void Mesh::set_extends(const Vec3f &minPosition, const Vec3f &maxPosition)
+{
+  minPosition_ = minPosition;
+  maxPosition_ = maxPosition;
+}
+
+const Vec3f& Mesh::minPosition()
+{ return minPosition_; }
+
+const Vec3f& Mesh::maxPosition()
+{ return maxPosition_; }
+
 
 const ref_ptr<FeedbackState>& Mesh::feedbackState()
 {

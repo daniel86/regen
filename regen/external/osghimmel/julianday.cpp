@@ -1,5 +1,5 @@
 
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel Mï¿½ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -50,10 +50,10 @@ const t_julianDay jd(t_aTime aTime)
         aTime.month += 12;
     }
 
-    // TODO: from "A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.
+    //  from "A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.
     // "Local time is GMT with a zone correction. Terrestrial Time (TT)
     // is essentially the time kept by atomic clocks. As it is not corrected
-    // for the slowing of the Earth’s rotation, it gains on GMT by about 
+    // for the slowing of the Earthï¿½s rotation, it gains on GMT by about 
     // a second per year. The current difference T is about 64 sec in 2000.
     // It should be added to s in all equations for precise computation..."
 

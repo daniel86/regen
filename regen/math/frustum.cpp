@@ -5,6 +5,8 @@
  *      Author: daniel
  */
 
+#include <regen/utility/logging.h>
+
 #include "frustum.h"
 using namespace regen;
 
@@ -25,17 +27,17 @@ void Frustum::set(GLfloat _aspect, GLfloat _fov, GLfloat _near, GLfloat _far)
 
 void Frustum::update(const Vec3f &pos, const Vec3f &dir)
 {
-  Vec3f right = dir.cross( Vec3f::up() );
-  Vec3f fc = pos + dir*far;
-  Vec3f nc = pos + dir*near;
+  Vec3f d = dir; d.normalize();
+  Vec3f fc = pos + d*far;
+  Vec3f nc = pos + d*near;
   Vec3f rw, uh, u, buf1, buf2;
 
-  right.normalize();
-  // up vector must be orthogonal to right/view
-  u = right.cross(dir);
+  Vec3f v = d.cross( Vec3f::up() );
+  v.normalize();
+  u = v.cross(d);
   u.normalize();
 
-  rw = right*nearPlane.x;
+  rw = v*nearPlane.x;
   uh = u*nearPlane.y;
   buf1 = uh - rw;
   buf2 = uh + rw;
@@ -44,7 +46,7 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir)
   points[2] = nc + buf2;
   points[3] = nc - buf2;
 
-  rw = right*farPlane.x;
+  rw = v*farPlane.x;
   uh = u*farPlane.y;
   buf1 = uh - rw;
   buf2 = uh + rw;
@@ -52,6 +54,32 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir)
   points[5] = fc + buf1;
   points[6] = fc + buf2;
   points[7] = fc - buf2;
+
+  planes[0].set(points[2], points[1], points[5]);
+  planes[1].set(points[3], points[0], points[4]);
+  planes[2].set(points[1], points[3], points[7]);
+  planes[3].set(points[0], points[2], points[4]);
+  planes[4].set(points[1], points[2], points[0]);
+  planes[5].set(points[6], points[5], points[7]);
+}
+
+GLboolean Frustum::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
+  for(int i=0; i<6; ++i) {
+    if(planes[i].distance(center) < -radius) {
+      return GL_FALSE;
+    }
+  }
+  return GL_TRUE;
+}
+
+GLboolean Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *point) {
+  for(int i=0; i<6; ++i) {
+    for(int j=0; j<8; ++j) {
+      if(planes[i].distance(center + point[j]) < 0)
+        return GL_FALSE;
+    }
+  }
+  return GL_TRUE;
 }
 
 vector<Frustum*> Frustum::split(GLuint count, GLdouble splitWeight) const

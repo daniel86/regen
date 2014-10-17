@@ -17,7 +17,7 @@ namespace regen {
    * A camera with a parabolid projection
    * computed in shaders.
    */
-  class ParaboloidCamera : public Camera
+  class ParaboloidCamera : public OmniDirectionalCamera
   {
   public:
     /**
@@ -38,7 +38,6 @@ namespace regen {
     ref_ptr<ShaderInputMat4> modelMatrix_;
     ref_ptr<ShaderInput3f> pos_;
     ref_ptr<ShaderInput3f> nor_;
-    GLboolean hasBackFace_;
 
     GLuint positionStamp_;
     GLuint normalStamp_;

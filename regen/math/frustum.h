@@ -13,6 +13,7 @@ using namespace std;
 
 #include <GL/glew.h>
 #include <regen/math/vector.h>
+#include <regen/math/plane.h>
 
 namespace regen {
   /**
@@ -33,6 +34,8 @@ namespace regen {
     Vec2f farPlane;
     /** The 8 frustum points. */
     Vec3f points[8];
+    /** The 6 frustum planes. */
+    Plane planes[6];
 
     /**
      * Set projection parameters and compute near- and far-plane.
@@ -46,6 +49,14 @@ namespace regen {
      * Split this frustum along the view ray.
      */
     vector<Frustum*> split(GLuint count, GLdouble splitWeight) const;
+    /**
+     * @return true if the sphere intersects with this frustum.
+     */
+    GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+    /**
+     * @return true if the box intersects with this frustum.
+     */
+    GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
   };
 } // namespace
 

@@ -71,7 +71,7 @@ namespace regen {
     /**
      * @return the model translation aka the world position of the model center.
      */
-    Vec3f translation() const;
+    const Vec3f& translation() const;
 
     /**
      * Scales the model matrix by given factors.

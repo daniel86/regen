@@ -903,16 +903,28 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 
   const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
   // vertex positions
+  Vec3f min_(999999.9);
+  Vec3f max_(-999999.9);
   GLuint numVertices = mesh.mNumVertices;
   {
     pos->setVertexData(numVertices);
     for(GLuint n=0; n<numVertices; ++n)
     {
       aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
-      pos->setVertex(n, *((Vec3f*) &aiv.x));
+      Vec3f & v = *((Vec3f*) &aiv.x);
+      pos->setVertex(n, v);
+      if(min_.x>v.x) min_.x=v.x;
+      if(max_.x<v.x) max_.x=v.x;
+      if(min_.y>v.y) min_.y=v.y;
+      if(max_.y<v.y) max_.y=v.y;
+      if(min_.z>v.z) min_.z=v.z;
+      if(max_.z<v.z) max_.z=v.z;
     }
     meshState->setInput(pos);
   }
+  Vec3f center_ = (max_+min_)*0.5;
+  meshState->set_centerPosition(center_);
+  meshState->set_extends(min_-center_, max_-center_);
 
   // per vertex normals
   if(mesh.HasNormals())

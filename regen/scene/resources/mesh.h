@@ -15,8 +15,6 @@
 
 namespace regen {
 namespace scene {
-  typedef vector< ref_ptr<Mesh> > MeshVector;
-
   /**
    * Provides MeshVector instances from SceneInputNode data.
    */

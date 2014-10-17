@@ -51,6 +51,10 @@ ref_ptr<MeshVector> ResourceManager::getMesh(SceneParser *parser, const std::str
   loadResources(parser,id);
   return meshes_.getResource(parser,id);
 }
+ref_ptr<ModelTransformation> ResourceManager::getTransform(SceneParser *parser, const std::string &id)
+{
+  return transforms_[id];
+}
 ref_ptr<AssetImporter> ResourceManager::getAsset(SceneParser *parser, const std::string &id)
 {
   loadResources(parser,id);
@@ -85,6 +89,10 @@ void ResourceManager::putTexture(const std::string &id, const ref_ptr<Texture> &
 void ResourceManager::putMesh(const std::string &id, const ref_ptr<MeshVector> &meshes)
 {
   meshes_.putResource(id,meshes);
+}
+void ResourceManager::putTransform(const std::string &id, const ref_ptr<ModelTransformation> &transform)
+{
+  transforms_[id] = transform;
 }
 void ResourceManager::putAsset(const std::string &id, const ref_ptr<AssetImporter> &asset)
 {

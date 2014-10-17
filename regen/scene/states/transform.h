@@ -326,10 +326,20 @@ namespace scene {
         SceneInputNode &input,
         const ref_ptr<State> &state)
     {
+      ref_ptr<ModelTransformation> transform = parser->getResources()->getTransform(parser,input.getName());
+      if(transform.get()!=NULL) {
+        state->joinStates(transform);
+        return;
+      }
+      ref_ptr<SceneInputNode> transformNode = parser->getRoot()->getFirstChild(REGEN_TRANSFORM_STATE_CATEGORY,input.getName());
+      if(transformNode.get()!=NULL && transformNode.get()!=&input) {
+        processInput(parser,*transformNode.get(),state);
+        return;
+      }
+
       bool isInstanced    = input.getValue<bool>("is-instanced",false);
       GLuint numInstances = input.getValue<GLuint>("num-instances",1u);
-
-      ref_ptr<ModelTransformation> transform = ref_ptr<ModelTransformation>::alloc();
+      transform = ref_ptr<ModelTransformation>::alloc();
 
       // Handle instanced model matrix
       if(isInstanced && numInstances>1) {
@@ -360,6 +370,7 @@ namespace scene {
       }
 
       state->joinStates(transform);
+      parser->getResources()->putTransform(input.getName(), transform);
     }
   };
 }}

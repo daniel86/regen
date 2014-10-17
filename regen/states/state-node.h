@@ -85,6 +85,8 @@ namespace regen {
      */
     list< ref_ptr<StateNode> >& childs();
 
+    ref_ptr<Camera> getParentCamera();
+
     /**
      * Scene graph traversal.
      */

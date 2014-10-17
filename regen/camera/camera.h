@@ -123,6 +123,17 @@ namespace regen {
      * @return true if this camera is the OpenAL audio listener.
      */
     GLboolean isAudioListener() const;
+    /**
+     * @return true if the sphere intersects with the frustum of this camera.
+     */
+    virtual GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+    /**
+     * @return true if the box intersects with the frustum of this camera.
+     */
+    virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+
+    // Override
+    virtual void enable(RenderState *rs);
 
   protected:
     ref_ptr<ShaderInputContainer> inputs_;
@@ -148,6 +159,21 @@ namespace regen {
     void updateProjection();
     void updateLookAt();
     void updateViewProjection(GLuint i=0u, GLuint j=0u);
+  };
+
+  /**
+   * A camera with 180° field of view or 360° field of view.
+   */
+  class OmniDirectionalCamera : public Camera {
+  public:
+    OmniDirectionalCamera(
+        GLboolean hasBackFace=GL_FALSE,
+        GLboolean updateMatrices=GL_TRUE);
+    // Override
+    virtual GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+    virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+  protected:
+    GLboolean hasBackFace_;
   };
 } // namespace
 

@@ -36,7 +36,7 @@ LightCamera::LightCamera(
     const ref_ptr<Light> &light,
     const ref_ptr<Camera> &userCamera,
     Vec2f extends, GLuint numLayer, GLdouble splitWeight)
-: Camera(GL_FALSE),
+: OmniDirectionalCamera(GL_TRUE,GL_FALSE),
   light_(light),
   userCamera_(userCamera),
   splitWeight_(splitWeight)
@@ -174,6 +174,7 @@ void LightCamera::updatePoint()
       GL_FALSE);
   updateProjection();
 
+  // TODO: support to use parabolid mapping
   // Update view and view-projection matrix
   Mat4f::cubeLookAtMatrices(pos, (Mat4f*)view_->clientDataPtr());
   view_->nextStamp();
@@ -285,5 +286,41 @@ void LightCamera::enable(RenderState *rs)
 {
   (this->*update_)();
   Camera::enable(rs);
+}
+
+GLboolean LightCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius)
+{
+  switch(light_->lightType()) {
+  case Light::DIRECTIONAL:
+    for(register GLuint i=0; i<numLayer_; ++i) {
+      Frustum *frustum = shadowFrusta_[i];
+      if(frustum->hasIntersectionWithSphere(center,radius))
+        return GL_TRUE;
+    }
+    return GL_FALSE;
+  case Light::POINT:
+    return OmniDirectionalCamera::hasIntersectionWithSphere(center,radius);
+  case Light::SPOT:
+    return Camera::hasIntersectionWithSphere(center,radius);
+  }
+  return GL_FALSE;
+}
+
+GLboolean LightCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points)
+{
+  switch(light_->lightType()) {
+  case Light::DIRECTIONAL:
+    for(register GLuint i=0; i<numLayer_; ++i) {
+      Frustum *frustum = shadowFrusta_[i];
+      if(frustum->hasIntersectionWithBox(center,points))
+        return GL_TRUE;
+    }
+    return GL_FALSE;
+  case Light::POINT:
+    return OmniDirectionalCamera::hasIntersectionWithBox(center,points);
+  case Light::SPOT:
+    return Camera::hasIntersectionWithBox(center,points);
+  }
+  return GL_FALSE;
 }
 

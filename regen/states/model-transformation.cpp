@@ -67,10 +67,10 @@ void ModelTransformation::setTranslation(const Vec3f &translation, GLdouble dt)
   updateVelocity(dt);
   if(isAudioSource()) { updateAudioSource(); }
 }
-Vec3f ModelTransformation::translation() const
+const Vec3f& ModelTransformation::translation() const
 {
   const Mat4f &mat = modelMat_->getVertex(0);
-  return Vec3f(mat.x[12], mat.x[13], mat.x[14]);
+  return *((Vec3f*)&mat.x[12]); // (m12,m13,m14)
 }
 
 void ModelTransformation::scale(const Vec3f &scaling, GLdouble dt)
