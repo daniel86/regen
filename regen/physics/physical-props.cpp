@@ -24,7 +24,7 @@ void PhysicalProps::setRestitution(btScalar val)
 void PhysicalProps::setFriction(btScalar val)
 { constructInfo_.m_friction = val; }
 void PhysicalProps::setRollingFriction(btScalar val)
-{ constructInfo_.m_rollingFriction = val; }
+{ /* constructInfo_.m_rollingFriction = val; */ }
 
 void PhysicalProps::setLinearSleepingThreshold(btScalar val)
 { constructInfo_.m_linearSleepingThreshold = val; }

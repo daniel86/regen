@@ -150,7 +150,7 @@ float computeHorizonExtinction(vec3 position, vec3 dir, float radius)
 -- computeEyeExtinction
 #ifndef __computeEyeExtinction_vec3_INCLUDED
 #define2 __computeEyeExtinction_vec3_INCLUDED
-#include regen.filter.scattering.computeHorizonExtinction
+#include regen.sky.utility.computeHorizonExtinction
 float computeEyeExtinction(vec3 eyedir)
 {
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
@@ -177,7 +177,7 @@ float computeAtmosphericDepth(vec3 position, vec3 dir)
 -- computeEyeDepth
 #ifndef __computeEyeDepth_vec3__INCLUDED
 #define2 __computeEyeDepth_vec3__INCLUDED
-#include regen.filter.scattering.computeAtmosphericDepth
+#include regen.sky.utility.computeAtmosphericDepth
 float computeEyeDepth(vec3 eyedir)
 {
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
