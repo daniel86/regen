@@ -294,8 +294,6 @@ void Sky::glAnimate(RenderState *rs, GLdouble dt) {
       sunColor*moonSunLightReflectance_,
       computeEyeExtinction(moon))
   );
-  // TODO: ambient light from stars
-  //Vec3f starsColor = Vec3f(0.2,0.2,0.225);
 
   const float fovHalf = camera()->fov()->getVertex(0) * 0.5 * DEGREE_TO_RAD;
   const float height = viewport()->getVertex(0).y;

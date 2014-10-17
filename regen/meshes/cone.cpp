@@ -66,6 +66,9 @@ void ConeOpened::updateAttributes(const Config &cfg)
   if(cfg.isNormalRequired)
     setInput(nor_);
   end();
+
+  minPosition_ = Vec3f(-cfg.height);
+  maxPosition_ = Vec3f(cfg.height);
 }
 
 static void loadConeData(

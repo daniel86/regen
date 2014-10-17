@@ -8,6 +8,8 @@
 #ifndef __MESH_H_
 #define __MESH_H_
 
+#include <vector>
+
 #include <regen/states/state.h>
 #include <regen/states/feedback-state.h>
 #include <regen/gl-types/shader-input-container.h>
@@ -78,6 +80,15 @@ namespace regen {
     void set_primitive(GLenum primitive);
 
     /**
+     * The center position of this mesh.
+     */
+    void set_centerPosition(const Vec3f &center);
+    /**
+     * Extends relative to center position.
+     */
+    void set_extends(const Vec3f &minPosition, const Vec3f &maxPosition);
+
+    /**
      * @return the position attribute.
      */
     ref_ptr<ShaderInput> positions() const;
@@ -89,6 +100,19 @@ namespace regen {
      * @return the color attribute.
      */
     ref_ptr<ShaderInput> colors() const;
+
+    /**
+     * The center position of this mesh.
+     */
+    const Vec3f& centerPosition();
+    /**
+     * Minimum extends relative to center position.
+     */
+    const Vec3f& minPosition();
+    /**
+     * Maximum extends relative to center position.
+     */
+    const Vec3f& maxPosition();
 
     /**
      * Add attributes to capture to this state.
@@ -121,11 +145,16 @@ namespace regen {
     set<Mesh*> meshViews_;
     GLboolean isMeshView_;
 
+    Vec3f centerPosition_;
+    Vec3f minPosition_;
+    Vec3f maxPosition_;
+
     void (ShaderInputContainer::*draw_)(GLenum);
     void updateDrawFunction();
 
     void addShaderInput(const string &name, const ref_ptr<ShaderInput> &in);
   };
+  typedef std::vector< ref_ptr<Mesh> > MeshVector;
 } // namespace
 
 namespace regen {

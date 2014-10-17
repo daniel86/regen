@@ -12,9 +12,8 @@ ParaboloidCamera::ParaboloidCamera(
     const ref_ptr<Mesh> &mesh,
     const ref_ptr<Camera> &userCamera,
     GLboolean hasBackFace)
-: Camera(GL_FALSE),
-  userCamera_(userCamera),
-  hasBackFace_(hasBackFace)
+: OmniDirectionalCamera(hasBackFace,GL_FALSE),
+  userCamera_(userCamera)
 {
   GLuint numLayer = (hasBackFace ? 2 : 1);
   shaderDefine("RENDER_TARGET", hasBackFace ? "DUAL_PARABOLOID" : "PARABOLOID");

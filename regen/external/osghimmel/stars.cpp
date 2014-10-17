@@ -1,5 +1,5 @@
 
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel Mï¿½ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -132,8 +132,6 @@ const t_equd Stars::apparentPosition(
 
     //const t_longf Da = m + n * sin(_rad(mpa2000)) * tan(_rad(mpd2000));
     //const t_longf Db = n * cos(_rad(mpa2000));
-
-    // TODO
 
     return t_equd();
 }

@@ -340,6 +340,20 @@ namespace regen {
     /** @return z component reference. */
     inline T& z_()
     { return *(((T*)this)+2); }
+    /** @return minimum component reference. */
+    inline const T& min() const
+    {
+      if(x<y && x<z) return x;
+      else if(y<z)   return y;
+      else           return z;
+    }
+    /** @return maximum component reference. */
+    inline const T& max() const
+    {
+      if(x>y && x>z) return x;
+      else if(y>z)   return y;
+      else           return z;
+    }
 
     /**
      * Compares vectors components.

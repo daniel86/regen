@@ -129,6 +129,13 @@ const ref_ptr<ShaderInput1f>& Camera::aspect() const
 const Frustum& Camera::frustum() const
 { return frustum_; }
 
+void Camera::enable(RenderState *rs)
+{
+  // TODO: do this in animation thread
+  frustum_.update(position()->getVertex(0), direction()->getVertex(0));
+  HasInputState::enable(rs);
+}
+
 const ref_ptr<ShaderInput3f>& Camera::position() const
 { return position_; }
 const ref_ptr<ShaderInput3f>& Camera::velocity() const
@@ -151,6 +158,15 @@ const ref_ptr<ShaderInputMat4>& Camera::viewProjection() const
 const ref_ptr<ShaderInputMat4>& Camera::viewProjectionInverse() const
 { return viewprojInv_; }
 
+GLboolean Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius)
+{
+  return frustum_.hasIntersectionWithSphere(center, radius);
+}
+GLboolean Camera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points)
+{
+  return frustum_.hasIntersectionWithBox(center, points);
+}
+
 void Camera::set_isAudioListener(GLboolean isAudioListener)
 {
   isAudioListener_ = isAudioListener;
@@ -162,3 +178,28 @@ void Camera::set_isAudioListener(GLboolean isAudioListener)
 }
 GLboolean Camera::isAudioListener() const
 { return isAudioListener_; }
+
+
+
+OmniDirectionalCamera::OmniDirectionalCamera(GLboolean hasBackFace, GLboolean update)
+: Camera(update),
+  hasBackFace_(hasBackFace)
+{
+}
+GLboolean OmniDirectionalCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius)
+{
+  GLfloat d = Plane(position()->getVertex(0), direction()->getVertex(0)).distance(center);
+  if(hasBackFace_) d = abs(d);
+  return d-radius<far()->getVertex(0) && d+radius>near()->getVertex(0);
+}
+GLboolean OmniDirectionalCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points)
+{
+  Plane p(position()->getVertex(0), direction()->getVertex(0));
+  for(int i=0; i<0; ++i) {
+    GLfloat d = p.distance(center + points[i]);
+    if(hasBackFace_) d = abs(d);
+    if(d > far()->getVertex(0) || d < near()->getVertex(0))
+      return GL_FALSE;
+  }
+  return GL_TRUE;
+}

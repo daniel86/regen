@@ -37,15 +37,16 @@
     <translate value="0.0,-2.0,0.0" />
   </transform>
 </mesh>
+<transform id="dwarf-transform">
+  <rotate value="3.14,0.0,0.0" />
+  <translate value="0.0,-2.0,0.0" />
+</transform>
 <mesh id="dwarf-mesh"
       type="asset"
       asset="dwarf-asset"
       asset-indices="*"
       asset-animation="1">
-  <transform>
-    <rotate value="3.14,0.0,0.0" />
-    <translate value="0.0,-2.0,0.0" />
-  </transform>
+  <transform id="dwarf-transform" />
 </mesh>
 <mesh id="box-wall"
       type="box"
@@ -195,7 +196,7 @@
 <!--**************************-->
 
 <node id="Shadow-Caster">
-  <node id="Dwarf" >
+  <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-transform" shape="sphere" >
     <mesh id="dwarf-mesh" shader="regen.models.mesh" />
   </node>
   

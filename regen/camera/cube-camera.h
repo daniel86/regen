@@ -16,7 +16,7 @@ namespace regen {
   /**
    * A layered camera looking at 6 cube faces.
    */
-  class CubeCamera : public Camera
+  class CubeCamera : public OmniDirectionalCamera
   {
   public:
     /**
@@ -35,7 +35,7 @@ namespace regen {
     void set_isCubeFaceVisible(GLenum face, GLboolean visible);
 
     // Override
-    void enable(RenderState *rs);
+    virtual void enable(RenderState *rs);
   protected:
     ref_ptr<Camera> userCamera_;
     ref_ptr<ShaderInputMat4> modelMatrix_;

@@ -241,4 +241,7 @@ void Box::updateAttributes(const Config &cfg)
   if(cfg.isTangentRequired)
     setInput(tan_);
   end();
+
+  minPosition_ = -cfg.posScale;
+  maxPosition_ = cfg.posScale;
 }

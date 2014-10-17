@@ -16,7 +16,7 @@ namespace regen {
    * A Camera from Light's point of view.
    * To cover the light multiple views may be used.
    */
-  class LightCamera : public Camera {
+  class LightCamera : public OmniDirectionalCamera {
   public:
     /**
      * Default constructor.
@@ -44,6 +44,8 @@ namespace regen {
 
     // Override
     void enable(RenderState *rs);
+    virtual GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+    virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
 
   protected:
     ref_ptr<Light> light_;

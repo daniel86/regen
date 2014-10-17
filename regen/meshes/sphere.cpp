@@ -262,6 +262,9 @@ void Sphere::updateAttributes(const Config &cfg)
     setInput(texco_);
   }
   end();
+
+  minPosition_ = -cfg.posScale;
+  maxPosition_ = cfg.posScale;
 }
 
 ///////////
@@ -290,10 +293,25 @@ void SphereSprite::updateAttributes(const Config &cfg)
   ref_ptr<ShaderInput3f> positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
   positionIn->setVertexData(cfg.sphereCount);
 
+  minPosition_ = Vec3f(999999.0f);
+  maxPosition_ = Vec3f(-999999.0f);
+  Vec3f v;
   for(GLuint i=0; i<cfg.sphereCount; ++i) {
     radiusIn->setVertex(i, cfg.radius[i]);
     positionIn->setVertex(i, cfg.position[i]);
+
+    v = cfg.position[i] - Vec3f(cfg.radius[i]);
+    if(minPosition_.x>v.x) minPosition_.x=v.x;
+    if(minPosition_.y>v.y) minPosition_.y=v.y;
+    if(minPosition_.z>v.z) minPosition_.z=v.z;
+    v = cfg.position[i] + Vec3f(cfg.radius[i]);
+    if(maxPosition_.x<v.x) maxPosition_.x=v.x;
+    if(maxPosition_.y<v.y) maxPosition_.y=v.y;
+    if(maxPosition_.z<v.z) maxPosition_.z=v.z;
   }
+  centerPosition_ = (maxPosition_+minPosition_)*0.5;
+  maxPosition_ -= centerPosition_;
+  minPosition_ -= centerPosition_;
 
   begin(ShaderInputContainer::INTERLEAVED);
   setInput(radiusIn);

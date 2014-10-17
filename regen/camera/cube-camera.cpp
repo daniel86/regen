@@ -11,7 +11,7 @@ using namespace regen;
 CubeCamera::CubeCamera(
     const ref_ptr<Mesh> &mesh,
     const ref_ptr<Camera> &userCamera)
-: Camera(GL_FALSE),
+: OmniDirectionalCamera(GL_TRUE,GL_FALSE),
   userCamera_(userCamera)
 {
   shaderDefine("RENDER_TARGET", "CUBE");

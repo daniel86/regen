@@ -1,5 +1,5 @@
 
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel Mï¿½ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -275,21 +275,5 @@ const float Noise::noise2(
 
     return mix(i.x, i.y, fade(f.y));
 }
-
-// TODO - add tileable variant
-
-//const std::string Noise::fadeGlslSource()
-//{
-//    return glsl_fade();
-//}
-
-
-//const std::string Noise::noise2GlslSource()
-//{
-//    std::string glsl = glsl_noise2();
-//    replace(glsl, "%SIZE%", static_cast<float>(m_size));
-//
-//    return glsl;
-//}
 
 } // namespace osgHimmel

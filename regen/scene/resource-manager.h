@@ -61,6 +61,7 @@ namespace scene {
      * @return A MeshVector resource or null reference.
      */
     ref_ptr<MeshVector> getMesh(SceneParser *parser, const std::string &id);
+    ref_ptr<ModelTransformation> getTransform(SceneParser *parser, const std::string &id);
     /**
      * @param parser The scene parser that contains resources.
      * @param id the resource id.
@@ -100,6 +101,7 @@ namespace scene {
      * @param meshes A MeshVector instance.
      */
     void putMesh(const std::string &id, const ref_ptr<MeshVector> &meshes);
+    void putTransform(const std::string &id, const ref_ptr<ModelTransformation> &transform);
     /**
      * @param id the resource id.
      * @param asset A AssetImporter instance.
@@ -123,6 +125,7 @@ namespace scene {
     MeshResource meshes_;
     SkyResource skies_;
     TextureResource textures_;
+    std::map<std::string, ref_ptr<ModelTransformation> > transforms_;
   };
 }}
 
