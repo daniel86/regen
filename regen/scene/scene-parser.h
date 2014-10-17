@@ -19,7 +19,6 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/xml.h>
 #include <regen/utility/font.h>
-#include <regen/meshes/sky.h>
 #include <regen/application.h>
 
 #include <regen/scene/scene-input.h>
