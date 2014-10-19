@@ -8,6 +8,7 @@
 #include "font.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #define REGEN_FONT_CATEGORY "font"
 

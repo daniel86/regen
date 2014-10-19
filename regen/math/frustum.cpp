@@ -82,12 +82,12 @@ GLboolean Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *poin
   return GL_TRUE;
 }
 
-vector<Frustum*> Frustum::split(GLuint count, GLdouble splitWeight) const
+std::vector<Frustum*> Frustum::split(GLuint count, GLdouble splitWeight) const
 {
   const GLfloat &n = near;
   const GLfloat &f = far;
 
-  vector<Frustum*> frustas(count);
+  std::vector<Frustum*> frustas(count);
   GLdouble ratio = f/n;
   GLdouble si, lastn, currf, currn;
 

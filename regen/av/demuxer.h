@@ -25,12 +25,12 @@ namespace regen {
     /**
      * \brief An error occurred during demuxing.
      */
-    class Error : public runtime_error {
+    class Error : public std::runtime_error {
     public:
       /**
        * @param message the error message.
        */
-      Error(const string &message) : runtime_error(message) {}
+      Error(const std::string &message) : std::runtime_error(message) {}
     };
 
     /**
@@ -42,13 +42,13 @@ namespace regen {
     /**
      * @param file Stream file at given path.
      */
-    Demuxer(const string &file);
+    Demuxer(const std::string &file);
     ~Demuxer();
 
     /**
      * Stream file at given path.
      */
-    void set_file(const string &file);
+    void set_file(const std::string &file);
 
     /**
      * Is the stream currently decoding ?

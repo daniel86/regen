@@ -10,7 +10,6 @@
 
 #include <map>
 #include <set>
-using namespace std;
 
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/texture.h>
@@ -40,7 +39,7 @@ namespace regen {
    */
   struct ShaderTextureLocation
   {
-    string name;    /**< name in shader. **/
+    std::string name;    /**< name in shader. **/
     GLint location; /**< the texture location. */
     ref_ptr<Texture> tex; /**< the texture. */
     GLint uploadChannel; /**< last uploaded channel. */
@@ -49,7 +48,7 @@ namespace regen {
      * @param _tex the texture.
      * @param _location texture location in shader.
      */
-    ShaderTextureLocation(const string &_name, const ref_ptr<Texture> &_tex, GLint _location)
+    ShaderTextureLocation(const std::string &_name, const ref_ptr<Texture> &_tex, GLint _location)
     : name(_name), location(_location), tex(_tex), uploadChannel(-1) {}
     ShaderTextureLocation()
     : name(""), location(-1), uploadChannel(-1) {}
@@ -64,13 +63,13 @@ namespace regen {
      */
     PreProcessorConfig(
         GLuint _version,
-        const map<GLenum,string> &_unprocessed,
-        const map<string, string> &_defines=
-            map<string, string>(),
-        const map<string, string> &_externalFunctions=
-            map<string, string>(),
-        const list<NamedShaderInput> &_specifiedInput=
-            list<NamedShaderInput>())
+        const std::map<GLenum,std::string> &_unprocessed,
+        const std::map<std::string, std::string> &_defines=
+            std::map<std::string, std::string>(),
+        const std::map<std::string, std::string> &_externalFunctions=
+            std::map<std::string, std::string>(),
+        const std::list<NamedShaderInput> &_specifiedInput=
+            std::list<NamedShaderInput>())
     : version(_version),
       unprocessed(_unprocessed),
       defines(_defines),
@@ -79,13 +78,13 @@ namespace regen {
     /** GLSL version. */
     GLuint version;
     /** Input GLSL code. */
-    const map<GLenum,string> &unprocessed;
+    const std::map<GLenum,std::string> &unprocessed;
     /** Shader configuration using macros. */
-    const map<string, string> &defines;
+    const std::map<std::string, std::string> &defines;
     /** External GLSL functions. */
-    const map<string, string> &externalFunctions;
+    const std::map<std::string, std::string> &externalFunctions;
     /** Input data specification. */
-    const list<NamedShaderInput> &specifiedInput;
+    const std::list<NamedShaderInput> &specifiedInput;
   };
 
   /**
@@ -115,7 +114,7 @@ namespace regen {
      * was loaded before.
      */
     static void preProcess(
-        map<GLenum,string> &ret,
+        std::map<GLenum,std::string> &ret,
         const PreProcessorConfig &cfg,
         const ref_ptr<PreProcessor> &preProcessor=defaultPreProcessor());
 
@@ -146,13 +145,13 @@ namespace regen {
      * Note: make sure IO names in stages match each other.
      */
     Shader(
-        const map<GLenum, string> &shaderCode,
-        const map<GLenum, ref_ptr<GLuint> > &shaderObjects);
+        const std::map<GLenum, std::string> &shaderCode,
+        const std::map<GLenum, ref_ptr<GLuint> > &shaderObjects);
     /**
      * Create a new shader with given stage map.
      * compile() and link() must be called to use this shader.
      */
-    Shader(const map<GLenum, string> &shaderNames);
+    Shader(const std::map<GLenum, std::string> &shaderNames);
     ~Shader();
 
     /**
@@ -178,40 +177,40 @@ namespace regen {
     /**
      * Returns true if the given name is a valid vertex attribute name.
      */
-    GLboolean isAttribute(const string &name) const;
+    GLboolean isAttribute(const std::string &name) const;
     /**
      * Returns the locations for a given vertex attribute name or -1 if the name is not known.
      */
-    GLint attributeLocation(const string &name);
+    GLint attributeLocation(const std::string &name);
 
     /**
      * Returns true if the given name is a valid uniform name
      * and the uniform was added to the shader using setInput().
      */
-    GLboolean hasUniform(const string &name) const;
+    GLboolean hasUniform(const std::string &name) const;
     /**
      * Returns the location for a given uniform name or -1 if the name is not known.
      */
-    GLint uniformLocation(const string &name);
+    GLint uniformLocation(const std::string &name);
     /**
      * Returns the location for a given uniform block name or -1 if the name is not known.
      */
-    GLint uniformBlockLocation(const string &name);
+    GLint uniformBlockLocation(const std::string &name);
     /**
      * Returns true if the given name is a valid uniform name and
      * the uniform has some data set (no null pointer data).
      */
-    GLboolean hasUniformData(const string &name) const;
+    GLboolean hasUniformData(const std::string &name) const;
 
     /**
      * Returns true if the given name is a valid sampler name.
      * and the texture was added to the shader using setTexture().
      */
-    GLboolean hasSampler(const string &name) const;
+    GLboolean hasSampler(const std::string &name) const;
     /**
      * Returns the location for a given sampler name or -1 if the name is not known.
      */
-    GLint samplerLocation(const string &name);
+    GLint samplerLocation(const std::string &name);
 
     /**
      * Returns inputs for this shader.
@@ -224,29 +223,29 @@ namespace regen {
     /**
      * @return list of textures attached to this shader.
      */
-    const map<GLint, ShaderTextureLocation>& textures() const;
+    const std::map<GLint, ShaderTextureLocation>& textures() const;
     /**
      * @return list of attributes attached to this shader.
      */
-    const list<ShaderInputLocation>& attributes() const;
+    const std::list<ShaderInputLocation>& attributes() const;
     /**
      * Returns input with given name.
      */
-    ref_ptr<ShaderInput> input(const string &name);
+    ref_ptr<ShaderInput> input(const std::string &name);
     /**
      * Set a single shader input. Inputs are automatically
      * setup when the shader is enabled.
      */
-    void setInput(const ref_ptr<ShaderInput> &in, const string &name="");
+    void setInput(const ref_ptr<ShaderInput> &in, const std::string &name="");
     /**
      * Set a set of shader inputs for this program.
      */
-    void setInputs(const list<NamedShaderInput> &inputs);
+    void setInputs(const std::list<NamedShaderInput> &inputs);
     /**
      * Set a single texture for this program.
      * channel must point to the channel the texture is bound to.
      */
-    GLboolean setTexture(const ref_ptr<Texture> &tex, const string &name);
+    GLboolean setTexture(const ref_ptr<Texture> &tex, const std::string &name);
 
     /**
      * Returns shader stage GL handle from enumeration.
@@ -260,7 +259,7 @@ namespace regen {
      * Enumeration may be GL_VERTEX_SHADER, GL_FRAGMENT_SHADER,
      * GL_GEOMETRY_SHADER, ...
      */
-    const string& stageCode(GLenum stage) const;
+    const std::string& stageCode(GLenum stage) const;
     /**
      * Returns true if the given stage enumeration is used
      * in this program.
@@ -273,7 +272,7 @@ namespace regen {
      * Must be done before linking for transform feedback.
      */
     void setTransformFeedback(
-        const list<string> &transformFeedback,
+        const std::list<std::string> &transformFeedback,
         GLenum attributeLayout,
         GLenum feedbackStage);
 
@@ -282,7 +281,7 @@ namespace regen {
      * @param name the uniform name
      * @return new ShaderInput instance
      */
-    ref_ptr<ShaderInput> createUniform(const string &name);
+    ref_ptr<ShaderInput> createUniform(const std::string &name);
 
     /**
      * Enables states attached to shader.
@@ -294,24 +293,24 @@ namespace regen {
     ref_ptr<GLuint> id_;
 
     // shader codes without replaced input prefix
-    map<GLenum, string> shaderCodes_;
+    std::map<GLenum, std::string> shaderCodes_;
     // compiled shader objects
-    map<GLenum, ref_ptr<GLuint> > shaders_;
+    std:: map<GLenum, ref_ptr<GLuint> > shaders_;
 
     // location maps
-    map<string, GLint> samplerLocations_;
-    map<string, GLint> uniformLocations_;
-    map<string, GLint> uniformBlockLocations_;
-    map<string, GLint> attributeLocations_;
+    std::map<std::string, GLint> samplerLocations_;
+    std::map<std::string, GLint> uniformLocations_;
+    std::map<std::string, GLint> uniformBlockLocations_;
+    std::map<std::string, GLint> attributeLocations_;
 
-    list<ShaderInputLocation> attributes_;
-    list<ShaderInputLocation> uniforms_;
-    map<GLint,ShaderTextureLocation> textures_;
+    std::list<ShaderInputLocation> attributes_;
+    std::list<ShaderInputLocation> uniforms_;
+    std::map<GLint,ShaderTextureLocation> textures_;
     // available inputs
     ShaderInputList inputs_;
-    map<string,ShaderInputList::iterator> inputNames_;
+    std::map<std::string,ShaderInputList::iterator> inputNames_;
 
-    list<string> transformFeedback_;
+    std::list<std::string> transformFeedback_;
     GLenum feedbackLayout_;
     GLenum feedbackStage_;
 

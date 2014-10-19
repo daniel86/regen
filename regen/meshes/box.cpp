@@ -10,7 +10,7 @@
 using namespace regen;
 
 namespace regen {
-  ostream& operator<<(ostream &out, const Box::TexcoMode &mode)
+  std::ostream& operator<<(std::ostream &out, const Box::TexcoMode &mode)
   {
     switch(mode) {
     case Box::TEXCO_MODE_NONE:     return out << "NONE";
@@ -19,9 +19,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, Box::TexcoMode &mode)
+  std::istream& operator>>(std::istream &in, Box::TexcoMode &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "NONE")          mode = Box::TEXCO_MODE_NONE;
@@ -170,8 +170,8 @@ void Box::updateAttributes(const Config &cfg)
     uv0 += sideIndex*4;
 
     // Tessellate cube face
-    vector<TriangleFace> *faces; {
-      vector<TriangleFace> facesLevel0(2);
+    std::vector<TriangleFace> *faces; {
+      std::vector<TriangleFace> facesLevel0(2);
       facesLevel0[0] = TriangleFace( level0[0], level0[1], level0[3] );
       facesLevel0[1] = TriangleFace( level0[1], level0[2], level0[3] );
       faces = tessellate(cfg.levelOfDetail, facesLevel0);

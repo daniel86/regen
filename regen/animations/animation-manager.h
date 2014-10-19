@@ -10,7 +10,6 @@
 
 #include <list>
 #include <set>
-using namespace std;
 
 #include <regen/utility/threading.h>
 #include <regen/animations/animation.h>
@@ -73,8 +72,8 @@ namespace regen {
 
     boost::posix_time::ptime time_;
     boost::posix_time::ptime lastTime_;
-    set<Animation*> animations_;
-    set<Animation*> glAnimations_;
+    std::set<Animation*> animations_;
+    std::set<Animation*> glAnimations_;
 
     boost::thread::id animationThreadID_;
     boost::thread::id glThreadID_;

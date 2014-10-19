@@ -48,7 +48,7 @@ void Demuxer::initAVLibrary()
   }
 }
 
-Demuxer::Demuxer(const string &file)
+Demuxer::Demuxer(const std::string &file)
 : formatCtx_(NULL), pauseFlag_(GL_TRUE), repeatStream_(GL_FALSE)
 {
   initAVLibrary();
@@ -95,7 +95,7 @@ GLboolean Demuxer::hasInput() const
   return formatCtx_!=NULL;
 }
 
-void Demuxer::set_file(const string &file)
+void Demuxer::set_file(const std::string &file)
 {
   // (re)open file
   if(formatCtx_) {
@@ -181,7 +181,7 @@ void Demuxer::setInactive()
 void Demuxer::seekTo(GLdouble p)
 {
   if(!formatCtx_) { return; }
-  p = max(0.0, min(1.0, p));
+  p = std::max(0.0, std::min(1.0, p));
   seek_.isRequired = GL_TRUE;
   seek_.flags &= ~AVSEEK_FLAG_BYTE;
   seek_.rel = 0;

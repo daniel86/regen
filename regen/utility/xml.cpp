@@ -7,13 +7,14 @@
 
 #include "xml.h"
 using namespace regen;
+using namespace std;
 
 void xml::loadShaderConfig(rapidxml::xml_node<> *root, StateConfig &cfg)
 {
   // read shader defines (starting upper case)
   for(rapidxml::xml_attribute<>* attr=root->first_attribute(); attr; attr=attr->next_attribute())
   {
-    string name = attr->name();
+    std::string name = attr->name();
     const char *nameC = name.c_str();
     if(toupper(nameC[0])==nameC[0])
     { cfg.defines_[name] = attr->value(); }

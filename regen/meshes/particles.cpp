@@ -15,7 +15,7 @@ using namespace regen;
 
 ///////////
 
-Particles::Particles(GLuint numParticles, const string &updateShaderKey)
+Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 : Mesh(GL_POINTS,VBO::USAGE_STREAM),
   Animation(GL_TRUE,GL_FALSE),
   updateShaderKey_(updateShaderKey)
@@ -138,7 +138,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
   ref_ptr<VAO> particleVAO = ref_ptr<VAO>::alloc();
   rs->vao().push(particleVAO->id());
   glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
-  for(list<ShaderInputLocation>::const_iterator
+  for(std::list<ShaderInputLocation>::const_iterator
       it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
   { it->input->enableAttribute(it->location); }
 
@@ -158,7 +158,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
 
   // Update particle attribute layout.
   GLuint currOffset = bufferRange_.offset_;
-  for(list<ShaderInputLocation>::const_iterator
+  for(std::list<ShaderInputLocation>::const_iterator
       it=particleAttributes_.begin(); it!=particleAttributes_.end(); ++it)
   {
     it->input->set_buffer(bufferRange_.buffer_, feedbackRef_);
@@ -166,9 +166,9 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt)
     currOffset += it->input->elementSize();
   }
   // And update the VAO so that next drawing uses last feedback result.
-  set<Mesh*> particleMeshes;
+  std::set<Mesh*> particleMeshes;
   getMeshViews(particleMeshes);
-  for(set<Mesh*>::iterator
+  for(std::set<Mesh*>::iterator
       it=particleMeshes.begin(); it!=particleMeshes.end(); ++it)
   { (*it)->updateVAO(rs); }
 

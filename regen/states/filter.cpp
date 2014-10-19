@@ -12,7 +12,7 @@
 #include "filter.h"
 using namespace regen;
 
-Filter::Filter(const string &shaderKey, GLfloat scaleFactor)
+Filter::Filter(const std::string &shaderKey, GLfloat scaleFactor)
 : FullscreenPass(shaderKey), scaleFactor_(scaleFactor)
 {
   format_ = GL_NONE;
@@ -239,7 +239,7 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f)
 
 void FilterSequence::createShader(StateConfig &cfg)
 {
-  for(list< ref_ptr<Filter> >::iterator
+  for(std::list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
     Filter *f = (Filter*) (*it).get();
@@ -257,7 +257,7 @@ void FilterSequence::resize()
   if(width==lastWidth_ && height==lastHeight_) return;
 
   FBO *last = NULL;
-  for(list< ref_ptr<Filter> >::iterator
+  for(std::list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
     Filter *f = (Filter*) (*it).get();
@@ -292,7 +292,7 @@ void FilterSequence::enable(RenderState *rs)
     rs->clearColor().pop();
     rs->drawFrameBuffer().pop();
   }
-  for(list< ref_ptr<Filter> >::iterator
+  for(std::list< ref_ptr<Filter> >::iterator
       it=filterSequence_.begin(); it!=filterSequence_.end(); ++it)
   {
     Filter *f = (Filter*) (*it).get();

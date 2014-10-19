@@ -23,8 +23,8 @@ ref_ptr<AssetImporter> AssetResource::createResource(
     REGEN_WARN("Ignoring Asset '" << input.getDescription() << "' without file.");
     return ref_ptr<AssetImporter>();
   }
-  const string assetPath   = getResourcePath(input.getValue("file"));
-  const string texturePath = getResourcePath(input.getValue("texture-path"));
+  const std::string assetPath   = getResourcePath(input.getValue("file"));
+  const std::string texturePath = getResourcePath(input.getValue("texture-path"));
   GLint assimpFlags = input.getValue<GLint>("import-flags",-1);
 
   AssimpAnimationConfig animConfig;

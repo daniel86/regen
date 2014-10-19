@@ -31,7 +31,7 @@ namespace regen {
     /**
      * @param bones  the bone list
      */
-    void setBones(const list< ref_ptr<AnimationNode> > &bones);
+    void setBones(const std::list< ref_ptr<AnimationNode> > &bones);
 
     /**
      * @return maximum number of weights influencing a single bone.
@@ -42,7 +42,7 @@ namespace regen {
     void glAnimate(RenderState *rs, GLdouble dt);
 
   protected:
-    list< ref_ptr<AnimationNode> > bones_;
+    std::list< ref_ptr<AnimationNode> > bones_;
     ref_ptr<ShaderInput1i> numBoneWeights_;
     GLuint bufferSize_;
 

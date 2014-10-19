@@ -79,8 +79,8 @@ namespace regen {
     ref_ptr<ShaderInput> texco_;
   };
 
-  ostream& operator<<(ostream &out, const Box::TexcoMode &mode);
-  istream& operator>>(istream &in, Box::TexcoMode &mode);
+  std::ostream& operator<<(std::ostream &out, const Box::TexcoMode &mode);
+  std::istream& operator>>(std::istream &in, Box::TexcoMode &mode);
 } // namespace
 
 #endif /* __BOX_H__ */

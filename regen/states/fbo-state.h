@@ -49,7 +49,7 @@ namespace regen {
     /**
      * Clear color buffers to preset values.
      */
-    void setClearColor(const list<ClearColorState::Data> &data);
+    void setClearColor(const std::list<ClearColorState::Data> &data);
 
     /**
      * Add a draw buffer to the list of color buffers to be drawn into.
@@ -59,14 +59,14 @@ namespace regen {
     /**
      * Specify list of color buffers to be drawn into.
      */
-    void setDrawBuffers(const vector<GLenum> &attachments);
+    void setDrawBuffers(const std::vector<GLenum> &attachments);
     /**
      * Specify list of color buffers to be drawn into.
      * Each frame only a single buffer is accessed by index
      * and afterwards the index is incremented by 1.
      * @param attachments list of color buffers.
      */
-    void setPingPongBuffers(const vector<GLenum> &attachments);
+    void setPingPongBuffers(const std::vector<GLenum> &attachments);
 
     // override
     void enable(RenderState*);

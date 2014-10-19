@@ -33,7 +33,7 @@ protected:
 };
 
 ShaderInput::ShaderInput(
-    const string &name,
+    const std::string &name,
     GLenum dataType,
     GLuint dataTypeBytes,
     GLuint valsPerElement,
@@ -112,9 +112,9 @@ GLenum ShaderInput::dataType() const
 GLuint ShaderInput::dataTypeBytes() const
 { return dataTypeBytes_; }
 
-const string& ShaderInput::name() const
+const std::string& ShaderInput::name() const
 { return name_; }
-void ShaderInput::set_name(const string &s)
+void ShaderInput::set_name(const std::string &s)
 { name_ = s; }
 
 GLboolean ShaderInput::active() const
@@ -453,8 +453,8 @@ void ShaderInput::setInstanceData(
     const byte *instanceData)
 {
   isVertexAttribute_ = GL_TRUE;
-  numInstances_ = max(1u,numInstances);
-  divisor_ = max(1u,divisor);
+  numInstances_ = std::max(1u,numInstances);
+  divisor_ = std::max(1u,divisor);
   numVertices_ = 1u;
   GLuint size = elementSize_*numInstances_/divisor_;
   if(inputSize_ != size) {
@@ -498,7 +498,7 @@ void ShaderInput::writeServerData(RenderState *rs)
   if(!hasClientData()) return;
   if(!hasServerData()) return;
   if(bufferStamp_ == stamp_) return;
-  GLuint count = max(numVertices_,numInstances_);
+  GLuint count = std::max(numVertices_,numInstances_);
 
   rs->copyWriteBuffer().push(buffer_);
   if(stride_ == elementSize_) {
@@ -591,7 +591,7 @@ void ShaderInput::popClientData()
 ////////////
 
 ref_ptr<ShaderInput> ShaderInput::create(
-    const string &name, GLenum dataType, GLuint valsPerElement)
+    const std::string &name, GLenum dataType, GLuint valsPerElement)
 {
   switch(dataType) {
   case GL_FLOAT:
@@ -687,7 +687,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 /////////////
 
 ShaderInput1f::ShaderInput1f(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -695,7 +695,7 @@ ShaderInput1f::ShaderInput1f(
   enableUniform_ = &ShaderInput::enableUniform1f;
 }
 ShaderInput2f::ShaderInput2f(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -703,7 +703,7 @@ ShaderInput2f::ShaderInput2f(
   enableUniform_ = &ShaderInput::enableUniform2f;
 }
 ShaderInput3f::ShaderInput3f(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -711,7 +711,7 @@ ShaderInput3f::ShaderInput3f(
   enableUniform_ = &ShaderInput::enableUniform3f;
 }
 ShaderInput4f::ShaderInput4f(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -720,7 +720,7 @@ ShaderInput4f::ShaderInput4f(
 }
 
 ShaderInputMat3::ShaderInputMat3(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -730,7 +730,7 @@ ShaderInputMat3::ShaderInputMat3(
   enableUniform_ = &ShaderInput::enableUniformMat3;
 }
 ShaderInputMat4::ShaderInputMat4(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -741,7 +741,7 @@ ShaderInputMat4::ShaderInputMat4(
 }
 
 ShaderInput1d::ShaderInput1d(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -749,7 +749,7 @@ ShaderInput1d::ShaderInput1d(
   enableUniform_ = &ShaderInput::enableUniform1d;
 }
 ShaderInput2d::ShaderInput2d(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -757,7 +757,7 @@ ShaderInput2d::ShaderInput2d(
   enableUniform_ = &ShaderInput::enableUniform2d;
 }
 ShaderInput3d::ShaderInput3d(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -765,7 +765,7 @@ ShaderInput3d::ShaderInput3d(
   enableUniform_ = &ShaderInput::enableUniform3d;
 }
 ShaderInput4d::ShaderInput4d(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -774,7 +774,7 @@ ShaderInput4d::ShaderInput4d(
 }
 
 ShaderInput1i::ShaderInput1i(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -783,7 +783,7 @@ ShaderInput1i::ShaderInput1i(
   enableUniform_ = &ShaderInput::enableUniform1i;
 }
 ShaderInput2i::ShaderInput2i(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -792,7 +792,7 @@ ShaderInput2i::ShaderInput2i(
   enableUniform_ = &ShaderInput::enableUniform2i;
 }
 ShaderInput3i::ShaderInput3i(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -801,7 +801,7 @@ ShaderInput3i::ShaderInput3i(
   enableUniform_ = &ShaderInput::enableUniform3i;
 }
 ShaderInput4i::ShaderInput4i(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -811,7 +811,7 @@ ShaderInput4i::ShaderInput4i(
 }
 
 ShaderInput1ui::ShaderInput1ui(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -820,7 +820,7 @@ ShaderInput1ui::ShaderInput1ui(
   enableUniform_ = &ShaderInput::enableUniform1ui;
 }
 ShaderInput2ui::ShaderInput2ui(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -829,7 +829,7 @@ ShaderInput2ui::ShaderInput2ui(
   enableUniform_ = &ShaderInput::enableUniform2ui;
 }
 ShaderInput3ui::ShaderInput3ui(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)
@@ -838,7 +838,7 @@ ShaderInput3ui::ShaderInput3ui(
   enableUniform_ = &ShaderInput::enableUniform3ui;
 }
 ShaderInput4ui::ShaderInput4ui(
-    const string &name,
+    const std::string &name,
     GLuint elementCount,
     GLboolean normalize)
 : ShaderInputTyped(name, elementCount, normalize)

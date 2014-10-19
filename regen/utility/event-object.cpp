@@ -9,10 +9,10 @@
 #include "event-object.h"
 using namespace regen;
 
-list<EventObject::QueuedEvent> EventObject::pingQueue_ = list<EventObject::QueuedEvent>();
-list<EventObject::QueuedEvent> EventObject::pongQueue_ = list<EventObject::QueuedEvent>();
-list<EventObject::QueuedEvent> *EventObject::queued_ = &EventObject::pingQueue_;
-list<EventObject::QueuedEvent> *EventObject::processing_ = &EventObject::pongQueue_;
+std::list<EventObject::QueuedEvent> EventObject::pingQueue_ = std::list<EventObject::QueuedEvent>();
+std::list<EventObject::QueuedEvent> EventObject::pongQueue_ = std::list<EventObject::QueuedEvent>();
+std::list<EventObject::QueuedEvent> *EventObject::queued_ = &EventObject::pingQueue_;
+std::list<EventObject::QueuedEvent> *EventObject::processing_ = &EventObject::pongQueue_;
 
 boost::mutex EventObject::eventLock_;
 
@@ -24,9 +24,9 @@ unsigned int &EventObject::numEvents()
   return numEvents_;
 }
 
-map<string,unsigned int> &EventObject::eventIds()
+std::map<std::string,unsigned int> &EventObject::eventIds()
 {
-  static map<string,unsigned int> eventIds_ = map<string,unsigned int>();
+  static std::map<std::string,unsigned int> eventIds_ = std::map<std::string,unsigned int>();
   return eventIds_;
 }
 
@@ -56,7 +56,7 @@ EventObject::~EventObject()
   }
 }
 
-unsigned int EventObject::registerEvent(const string &eventName)
+unsigned int EventObject::registerEvent(const std::string &eventName)
 {
   ++EventObject::numEvents();
   EventObject::eventIds().insert(make_pair(eventName, EventObject::numEvents()));
@@ -83,7 +83,7 @@ unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventHandl
 
   return handlerCounter_;
 }
-unsigned int EventObject::connect(const string &eventName, const ref_ptr<EventHandler> &callable)
+unsigned int EventObject::connect(const std::string &eventName, const ref_ptr<EventHandler> &callable)
 {
   return connect(EventObject::eventIds()[eventName], callable);
 }
@@ -138,7 +138,7 @@ void EventObject::emitEvent(unsigned int eventID, const ref_ptr<EventData> &data
     }
   }
 }
-void EventObject::emitEvent(const string &eventName, const ref_ptr<EventData> &data)
+void EventObject::emitEvent(const std::string &eventName, const ref_ptr<EventData> &data)
 {
   emitEvent(EventObject::eventIds()[eventName], data);
 }
@@ -147,7 +147,7 @@ void EventObject::emitQueued()
 {
   // ping-pong event queue to avoid copy and long locks
   eventLock_.lock(); {
-    list<QueuedEvent> *buf = queued_;
+    std::list<QueuedEvent> *buf = queued_;
     queued_ = processing_;
     processing_ = buf;
   } eventLock_.unlock();
@@ -166,7 +166,7 @@ void EventObject::emitQueued()
 void EventObject::unqueueEmit(unsigned int eventID)
 {
   eventLock_.lock(); {
-    for(list<QueuedEvent>::iterator it=queued_->begin(); it!=queued_->end(); ++it) {
+    for(std::list<QueuedEvent>::iterator it=queued_->begin(); it!=queued_->end(); ++it) {
       const QueuedEvent &ev = *it;
       if(ev.emitter==this && ev.eventID==eventID) {
         queued_->erase(it);
@@ -181,7 +181,7 @@ void EventObject::queueEmit(unsigned int eventID, const ref_ptr<EventData> &data
     queued_->push_back(QueuedEvent(this,data,eventID));
   } eventLock_.unlock();
 }
-void EventObject::queueEmit(const string &eventName, const ref_ptr<EventData> &data)
+void EventObject::queueEmit(const std::string &eventName, const ref_ptr<EventData> &data)
 {
   queueEmit(EventObject::eventIds()[eventName],data);
 }

@@ -8,6 +8,7 @@
 #include "mesh.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/meshes/rectangle.h>

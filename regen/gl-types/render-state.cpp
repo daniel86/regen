@@ -363,7 +363,7 @@ GLenum RenderState::toggleToID(Toggle t)
 };
 
 namespace regen {
-  ostream& operator<<(ostream &out, const RenderState::Toggle &mode)
+  std::ostream& operator<<(std::ostream &out, const RenderState::Toggle &mode)
   {
     switch(mode) {
     case RenderState::BLEND:
@@ -431,9 +431,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, RenderState::Toggle &mode)
+  std::istream& operator>>(std::istream &in, RenderState::Toggle &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "BLEND")

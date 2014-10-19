@@ -417,7 +417,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth)
   }
 
   // resize color attachments
-  for(vector< ref_ptr<Texture> >::iterator
+  for(std::vector< ref_ptr<Texture> >::iterator
       it=colorTextures_.begin(); it!=colorTextures_.end(); ++it)
   {
     ref_ptr<Texture> &tex = *it;
@@ -435,7 +435,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth)
   }
 
   // resize rbo attachments
-  for(vector< ref_ptr<RenderBuffer> >::iterator
+  for(std::vector< ref_ptr<RenderBuffer> >::iterator
       it=renderBuffers_.begin(); it!=renderBuffers_.end(); ++it)
   {
     ref_ptr<RenderBuffer> &rbo = *it;
@@ -461,11 +461,11 @@ GLenum FBO::depthAttachmentFormat() const
 const DrawBuffers& FBO::colorBuffers()
 { return colorBuffers_; }
 
-vector< ref_ptr<Texture> >& FBO::colorTextures()
+std::vector< ref_ptr<Texture> >& FBO::colorTextures()
 { return colorTextures_; }
 const ref_ptr<Texture>& FBO::firstColorTexture() const
 { return colorTextures_.front(); }
-vector< ref_ptr<RenderBuffer> >& FBO::renderBuffers()
+std::vector< ref_ptr<RenderBuffer> >& FBO::renderBuffers()
 { return renderBuffers_; }
 const ref_ptr<Texture>& FBO::depthTexture() const
 { return depthTexture_; }

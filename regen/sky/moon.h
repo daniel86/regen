@@ -15,7 +15,7 @@
 namespace regen {
   class MoonLayer : public SkyLayer {
   public:
-    MoonLayer(const ref_ptr<Sky> &sky, const string &moonMapFile);
+    MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile);
 
     void set_scale(GLdouble scale);
 
@@ -67,7 +67,7 @@ namespace regen {
 
     ref_ptr<ShaderInputMat4> moonOrientation_;
 
-    void setupMoonTextureCube(const string &cubeMapFilePath);
+    void setupMoonTextureCube(const std::string &cubeMapFilePath);
   };
 }
 #endif /* MOON_H_ */

@@ -26,16 +26,16 @@ ShaderState::ShaderState()
 : State() { isHidden_ = GL_TRUE; }
 
 void ShaderState::loadStage(
-    const map<string, string> &shaderConfig,
-    const string &effectName,
-    map<GLenum,string> &code,
+    const std::map<std::string, std::string> &shaderConfig,
+    const std::string &effectName,
+    std::map<GLenum,std::string> &code,
     GLenum stage)
 {
-  string stageName = glenum::glslStageName(stage);
-  string effectKey = REGEN_STRING(effectName << "." << glenum::glslStagePrefix(stage));
-  string ignoreKey = REGEN_STRING("IGNORE_" << stageName);
+  std::string stageName = glenum::glslStageName(stage);
+  std::string effectKey = REGEN_STRING(effectName << "." << glenum::glslStagePrefix(stage));
+  std::string ignoreKey = REGEN_STRING("IGNORE_" << stageName);
 
-  map<string, string>::const_iterator it = shaderConfig.find(ignoreKey);
+  std::map<std::string, std::string>::const_iterator it = shaderConfig.find(ignoreKey);
   if(it!=shaderConfig.end() && it->second=="TRUE") { return; }
 
   code[stage] = Includer::get().include(effectKey);
@@ -43,14 +43,14 @@ void ShaderState::loadStage(
   if(code[stage].empty()) { code.erase(stage); }
 }
 
-GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shaderKey)
+GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &shaderKey)
 {
-  const list<NamedShaderInput> specifiedInput = cfg.inputs_;
-  const map<string, ref_ptr<Texture> > &textures = cfg.textures_;
-  const map<string, string> &shaderConfig = cfg.defines_;
-  const map<string, string> &shaderFunctions = cfg.functions_;
-  map<GLenum,string> unprocessedCode;
-  map<GLenum,string> processedCode;
+  const std::list<NamedShaderInput> specifiedInput = cfg.inputs_;
+  const std::map<std::string, ref_ptr<Texture> > &textures = cfg.textures_;
+  const std::map<std::string, std::string> &shaderConfig = cfg.defines_;
+  const std::map<std::string, std::string> &shaderFunctions = cfg.functions_;
+  std::map<GLenum,std::string> unprocessedCode;
+  std::map<GLenum,std::string> processedCode;
 
   for(GLint i=0; i<glenum::glslStageCount(); ++i)
   {
@@ -79,7 +79,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const string &shader
   }
 
   shader_->setInputs(specifiedInput);
-  for(map<string, ref_ptr<Texture> >::const_iterator
+  for(std::map<std::string, ref_ptr<Texture> >::const_iterator
       it=textures.begin(); it!=textures.end(); ++it)
   {
     shader_->setTexture(it->second, it->first);

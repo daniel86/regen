@@ -17,6 +17,7 @@
 #include <regen/scene/resource-manager.h>
 #include <regen/scene/scene-input-xml.h>
 using namespace regen::scene;
+using namespace std;
 
 #include "scene-display-widget.h"
 

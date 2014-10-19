@@ -9,7 +9,6 @@
 #define __GL_UTIL__
 
 #include <sstream>
-using namespace std;
 
 #include <GL/glew.h>
 #include <regen/utility/string-util.h>
@@ -38,7 +37,7 @@ namespace regen {
    * Query GL error state.
    */
   #ifdef REGEN_DEBUG_BUILD
-  string getGLError();
+  std::string getGLError();
   #else
   #define getGLError()
   #endif
@@ -46,7 +45,7 @@ namespace regen {
    * Query FBO error state.
    */
   #ifdef REGEN_DEBUG_BUILD
-  string getFBOError(GLenum target);
+  std::string getFBOError(GLenum target);
   #else
   #define getFBOError(t)
   #endif
@@ -63,7 +62,7 @@ namespace regen {
    * Query a GL integer attribute.
    * Check for required extension if not supported return default value.
    */
-  GLint getGLInteger(const string &ext, GLenum key, GLint defaultValue);
+  GLint getGLInteger(const std::string &ext, GLenum key, GLint defaultValue);
   /**
    * Query a GL float attribute.
    */

@@ -12,7 +12,6 @@
 #include <regen/gl-types/vbo.h>
 
 #include <set>
-using namespace std;
 
 namespace regen {
   /**
@@ -38,7 +37,7 @@ namespace regen {
      * @param name shader input name overwrite.
      * @param usage VBO usage.
      */
-    ShaderInputContainer(const ref_ptr<ShaderInput> &in, const string &name="",
+    ShaderInputContainer(const ref_ptr<ShaderInput> &in, const std::string &name="",
         VBO::Usage usage=VBO::USAGE_DYNAMIC);
     ~ShaderInputContainer();
 
@@ -87,20 +86,20 @@ namespace regen {
      * @param name the shader input name.
      * @return true if an input data with given name was added before.
      */
-    GLboolean hasInput(const string &name) const;
+    GLboolean hasInput(const std::string &name) const;
 
     /**
      * @param name the shader input name.
      * @return input data with specified name.
      */
-    ref_ptr<ShaderInput> getInput(const string &name) const;
+    ref_ptr<ShaderInput> getInput(const std::string &name) const;
 
     /**
      * @param in the shader input data.
      * @param name the shader input name.
      * @return iterator of data container
      */
-    ShaderInputList::const_iterator setInput(const ref_ptr<ShaderInput> &in, const string &name="");
+    ShaderInputList::const_iterator setInput(const ref_ptr<ShaderInput> &in, const std::string &name="");
     /**
      * Remove previously added shader input.
      */
@@ -153,7 +152,7 @@ namespace regen {
 
   protected:
     ShaderInputList inputs_;
-    set<string> inputMap_;
+    std::set<std::string> inputMap_;
     GLuint numVertices_;
     GLuint numInstances_;
     GLuint numIndices_;
@@ -161,12 +160,12 @@ namespace regen {
     ref_ptr<ShaderInput> indices_;
 
     ShaderInputList uploadInputs_;
-    list< ref_ptr<ShaderInput> > uploadAttributes_;
+    std::list< ref_ptr<ShaderInput> > uploadAttributes_;
     DataLayout uploadLayout_;
 
     ref_ptr<VBO> inputBuffer_;
 
-    void removeInput(const string &name);
+    void removeInput(const std::string &name);
   };
 
   /**
@@ -217,7 +216,7 @@ namespace regen {
      * @return iterator in input container.
      */
     virtual ShaderInputList::const_iterator setInput(
-        const ref_ptr<ShaderInput> &in, const string &name="")
+        const ref_ptr<ShaderInput> &in, const std::string &name="")
     { return inputContainer_->setInput(in, name); }
     /**
      * Sets the index data.

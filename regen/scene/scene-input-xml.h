@@ -27,7 +27,7 @@ namespace scene {
      * Default constructor.
      * @param xmlFile The XML input file path.
      */
-    SceneInputXML(const string &xmlFile);
+    SceneInputXML(const std::string &xmlFile);
 
     // Override
     ref_ptr<SceneInputNode> getRoot();
@@ -35,9 +35,9 @@ namespace scene {
   protected:
     ref_ptr<SceneInputNodeXML> rootNode_;
     rapidxml::xml_document<> doc_;
-    string inputFile_;
-    ifstream xmlInput_;
-    vector<char> buffer_;
+    std::string inputFile_;
+    std::ifstream xmlInput_;
+    std::vector<char> buffer_;
   };
 
   /**
@@ -56,19 +56,19 @@ namespace scene {
     SceneInputNodeXML();
 
     // Override
-    string getCategory();
-    string getName();
-    const list< ref_ptr<SceneInputNode> >& getChildren();
-    const map<string,string>& getAttributes();
+    std::string getCategory();
+    std::string getName();
+    const std::list< ref_ptr<SceneInputNode> >& getChildren();
+    const std::map<std::string,std::string>& getAttributes();
 
   protected:
     rapidxml::xml_node<> *xmlNode_;
-    list< ref_ptr<SceneInputNode> > children_;
-    map<string,string> attributes_;
-    list< ref_ptr<SceneInputXML> > inclusions_;
+    std::list< ref_ptr<SceneInputNode> > children_;
+    std::map<std::string,std::string> attributes_;
+    std::list< ref_ptr<SceneInputXML> > inclusions_;
 
-    string category_;
-    string name_;
+    std::string category_;
+    std::string name_;
   };
 }}
 

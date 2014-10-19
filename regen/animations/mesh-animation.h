@@ -35,22 +35,22 @@ namespace regen {
      * used in the generated shader.
      */
     struct Interpoation {
-      string attributeName; /**< attribute to interpolate. */
-      string interpolationName; /**< name of the interpolation. */
-      string interpolationKey; /**< include path for the interpolation GLSL code. */
+      std::string attributeName; /**< attribute to interpolate. */
+      std::string interpolationName; /**< name of the interpolation. */
+      std::string interpolationKey; /**< include path for the interpolation GLSL code. */
 
       /**
        * @param a_name attribute name.
        * @param i_name interpolation mode name.
        */
-      Interpoation(const string &a_name, const string &i_name)
+      Interpoation(const std::string &a_name, const std::string &i_name)
       : attributeName(a_name), interpolationName(i_name), interpolationKey("") {}
       /**
        * @param a_name attribute name.
        * @param i_name interpolation mode name.
        * @param i_key interpolation include key.
        */
-      Interpoation(const string &a_name, const string &i_name, const string &i_key)
+      Interpoation(const std::string &a_name, const std::string &i_name, const std::string &i_key)
       : attributeName(a_name), interpolationName(i_name), interpolationKey(i_key) {}
     };
 
@@ -58,7 +58,7 @@ namespace regen {
      * @param mesh a mesh.
      * @param interpolations list of interpolation modes for attributes.
      */
-    MeshAnimation(const ref_ptr<Mesh> &mesh, list<Interpoation> &interpolations);
+    MeshAnimation(const ref_ptr<Mesh> &mesh, std::list<Interpoation> &interpolations);
 
     /**
      * @return the shader used for interpolationg beteen frames.
@@ -79,7 +79,7 @@ namespace regen {
      * @param timeInTicks number of ticks for this morph.
      */
     void addFrame(
-        const list< ref_ptr<ShaderInput> > &attributes,
+        const std::list< ref_ptr<ShaderInput> > &attributes,
         GLdouble timeInTicks);
 
     /**
@@ -117,7 +117,7 @@ namespace regen {
 
   protected:
     struct KeyFrame {
-      list< ShaderInputLocation > attributes;
+      std::list< ShaderInputLocation > attributes;
       GLdouble timeInTicks;
       GLdouble startTick;
       GLdouble endTick;
@@ -151,7 +151,7 @@ namespace regen {
     GLint pingFrame_, pongFrame_;
     VBOReference pingIt_;
     VBOReference pongIt_;
-    vector<KeyFrame> frames_;
+    std::vector<KeyFrame> frames_;
 
     // milliseconds from start of animation
     GLdouble elapsedTime_;
@@ -166,12 +166,12 @@ namespace regen {
     GLboolean hasMeshInterleavedAttributes_;
 
     void loadFrame(GLuint frameIndex, GLboolean isPongFrame);
-    ref_ptr<ShaderInput> findLastAttribute(const string &name);
+    ref_ptr<ShaderInput> findLastAttribute(const std::string &name);
 
     static void findFrameAfterTick(
-        GLdouble tick, GLint &frame, vector<KeyFrame> &keys);
+        GLdouble tick, GLint &frame, std::vector<KeyFrame> &keys);
     static void findFrameBeforeTick(
-        GLdouble &tick, GLuint &frame, vector<KeyFrame> &keys);
+        GLdouble &tick, GLuint &frame, std::vector<KeyFrame> &keys);
   };
 } // namespace
 

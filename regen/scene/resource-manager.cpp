@@ -8,6 +8,7 @@
 #include "resource-manager.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 void ResourceManager::loadResources(SceneParser *parser, const std::string &id)
 {

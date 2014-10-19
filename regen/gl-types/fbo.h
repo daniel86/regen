@@ -27,7 +27,7 @@ namespace regen {
      * @param buffers symbolic constants specifying the buffers
      *                into which fragment colors or data values will be written.
      */
-    DrawBuffers(const vector<GLenum> &buffers)
+    DrawBuffers(const std::vector<GLenum> &buffers)
     : buffers_(buffers) {}
     /**
      * Draw into single buffer attachment.
@@ -41,7 +41,7 @@ namespace regen {
      * An array of symbolic constants specifying the buffers
      * into which fragment colors or data values will be written.
      */
-    vector<GLenum> buffers_;
+    std::vector<GLenum> buffers_;
     /**
      * @param b another value.
      * @return false if values are component-wise equal
@@ -209,11 +209,11 @@ namespace regen {
     /**
      * List of attached textures.
      */
-    vector< ref_ptr<Texture> >& colorTextures();
+    std::vector< ref_ptr<Texture> >& colorTextures();
     /**
      * List of attached RenderBuffer's.
      */
-    vector< ref_ptr<RenderBuffer> >& renderBuffers();
+    std::vector< ref_ptr<RenderBuffer> >& renderBuffers();
     /**
      * Returns texture associated to GL_COLOR_ATTACHMENT0.
      */
@@ -341,8 +341,8 @@ namespace regen {
     GLenum depthAttachmentFormat_;
     GLenum depthAttachmentType_;
 
-    vector< ref_ptr<Texture> > colorTextures_;
-    vector< ref_ptr<RenderBuffer> > renderBuffers_;
+    std::vector< ref_ptr<Texture> > colorTextures_;
+    std::vector< ref_ptr<RenderBuffer> > renderBuffers_;
     ref_ptr<Texture> depthTexture_;
     ref_ptr<Texture> stencilTexture_;
     ref_ptr<Texture> depthStencilTexture_;

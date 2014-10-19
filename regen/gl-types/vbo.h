@@ -106,7 +106,7 @@ namespace regen {
       VBO *vbo_;
       VBOPool::Reference poolReference_;
       GLuint allocatedSize_;
-      list< ref_ptr<Reference> >::iterator it_;
+      std::list< ref_ptr<Reference> >::iterator it_;
       ~Reference();
       // no copy allowed
       Reference(const Reference&)
@@ -135,7 +135,7 @@ namespace regen {
      * Calculates the struct size for the attributes in bytes.
      */
     static GLuint attributeSize(
-        const list< ref_ptr<ShaderInput> > &attributes);
+        const std::list< ref_ptr<ShaderInput> > &attributes);
 
     /**
      * Copy the VBO data to another buffer.
@@ -202,14 +202,14 @@ namespace regen {
      * Note that as long as you keep a reference the allocated storage
      * is marked as used.
      */
-    ref_ptr<Reference>& allocInterleaved(const list< ref_ptr<ShaderInput> > &attributes);
+    ref_ptr<Reference>& allocInterleaved(const std::list< ref_ptr<ShaderInput> > &attributes);
     /**
      * Allocate GPU memory for the given attributes.
      * And copy the data from RAM to GPU.
      * Note that as long as you keep a reference the allocated storage
      * is marked as used.
      */
-    ref_ptr<Reference>& allocSequential(const list< ref_ptr<ShaderInput> > &attributes);
+    ref_ptr<Reference>& allocSequential(const std::list< ref_ptr<ShaderInput> > &attributes);
     /**
      * Free previously allocated block of GPU memory.
      * Actually this will mark the space as free so that others
@@ -248,7 +248,7 @@ namespace regen {
   protected:
     static VBOPool *dataPools_;
 
-    list< ref_ptr<Reference> > allocations_;
+    std::list< ref_ptr<Reference> > allocations_;
 
     Usage usage_;
     // sum of allocated blocks
@@ -257,20 +257,20 @@ namespace regen {
     void uploadInterleaved(
         GLuint startByte,
         GLuint endByte,
-        const list< ref_ptr<ShaderInput> > &attributes,
+        const std::list< ref_ptr<ShaderInput> > &attributes,
         ref_ptr<Reference> &ref);
     void uploadSequential(
         GLuint startByte,
         GLuint endByte,
-        const list< ref_ptr<ShaderInput> > &attributes,
+        const std::list< ref_ptr<ShaderInput> > &attributes,
         ref_ptr<Reference> &ref);
 
     ref_ptr<Reference>& createReference(GLuint numBytes);
     ref_ptr<Reference>& nullReference();
   };
 
-  ostream& operator<<(ostream &out, const VBO::Usage &v);
-  istream& operator>>(istream &in, VBO::Usage &v);
+  std::ostream& operator<<(std::ostream &out, const VBO::Usage &v);
+  std::istream& operator>>(std::istream &in, VBO::Usage &v);
 
   typedef ref_ptr<VBO::Reference> VBOReference;
 } // namespace

@@ -22,7 +22,7 @@ FT_Library Font::ftlib_ = FT_Library();
 Font::FontMap Font::fonts_ = FontMap();
 GLboolean Font::isFreetypeInitialized_ = GL_FALSE;
 
-ref_ptr<Font> Font::get(string f, GLuint size, GLuint dpi)
+ref_ptr<Font> Font::get(std::string f, GLuint size, GLuint dpi)
 {
   if(!isFreetypeInitialized_) {
     if(FT_Init_FreeType( &ftlib_ ))
@@ -30,7 +30,7 @@ ref_ptr<Font> Font::get(string f, GLuint size, GLuint dpi)
     isFreetypeInitialized_ = GL_TRUE;
   }
   // unique font identifier
-  string fontKey = REGEN_STRING(f << size << "_" << dpi);
+  std::string fontKey = REGEN_STRING(f << size << "_" << dpi);
   // check for cached font
   FontMap::iterator result = fonts_.find(fontKey);
   if(result != fonts_.end())
@@ -48,7 +48,7 @@ void Font::closeLibrary()
   isFreetypeInitialized_ = GL_FALSE;
 }
 
-Font::Font(const string &fontPath, GLuint size, GLuint dpi)
+Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 : fontPath_(fontPath),
   size_(size),
   dpi_(dpi),

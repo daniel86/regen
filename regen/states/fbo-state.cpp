@@ -47,13 +47,13 @@ void FBOState::setClearColor(const ClearColorState::Data &data)
     joinStates(drawBufferCallable_);
   }
 }
-void FBOState::setClearColor(const list<ClearColorState::Data> &data)
+void FBOState::setClearColor(const std::list<ClearColorState::Data> &data)
 {
   if(clearColorCallable_.get()) {
     disjoinStates(clearColorCallable_);
   }
   clearColorCallable_ = ref_ptr<ClearColorState>::alloc(fbo_);
-  for(list<ClearColorState::Data>::const_iterator
+  for(std::list<ClearColorState::Data>::const_iterator
       it=data.begin(); it!=data.end(); ++it)
   {
     clearColorCallable_->data.push_back(*it);
@@ -77,7 +77,7 @@ void FBOState::addDrawBuffer(GLenum colorAttachment)
   s->colorBuffers.buffers_.push_back(colorAttachment);
 }
 
-void FBOState::setDrawBuffers(const vector<GLenum> &attachments)
+void FBOState::setDrawBuffers(const std::vector<GLenum> &attachments)
 {
   if(drawBufferCallable_.get()!=NULL) {
     disjoinStates(drawBufferCallable_);
@@ -88,7 +88,7 @@ void FBOState::setDrawBuffers(const vector<GLenum> &attachments)
   joinStates(drawBufferCallable_);
 }
 
-void FBOState::setPingPongBuffers(const vector<GLenum> &attachments)
+void FBOState::setPingPongBuffers(const std::vector<GLenum> &attachments)
 {
   if(drawBufferCallable_.get()!=NULL) {
     disjoinStates(drawBufferCallable_);

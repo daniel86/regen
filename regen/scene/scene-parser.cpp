@@ -8,6 +8,7 @@
 #include "scene-parser.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #include <regen/scene/scene-input.h>
 #include <regen/scene/input-processors.h>

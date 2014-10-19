@@ -26,7 +26,7 @@ namespace regen {
      * @param numParticles particle count.
      * @param updateShaderKey shader for updating particles.
      */
-    Particles(GLuint numParticles, const string &updateShaderKey);
+    Particles(GLuint numParticles, const std::string &updateShaderKey);
 
     /**
      * @return gravity constant.
@@ -54,12 +54,12 @@ namespace regen {
     VBOReference end();
 
   protected:
-    const string updateShaderKey_;
+    const std::string updateShaderKey_;
     ref_ptr<VBO> feedbackBuffer_;
     VBOReference feedbackRef_;
     VBOReference particleRef_;
     BufferRange bufferRange_;
-    list<ShaderInputLocation> particleAttributes_;
+    std::list<ShaderInputLocation> particleAttributes_;
 
     ref_ptr<ShaderInput3f> gravity_;
     ref_ptr<ShaderInput1f> dampingFactor_;

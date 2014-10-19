@@ -223,11 +223,11 @@ namespace regen {
     /**
      * GLSL sampler type used for this texture.
      */
-    const string& samplerType() const;
+    const std::string& samplerType() const;
     /**
      * GLSL sampler type used for this texture.
      */
-    void set_samplerType(const string &samplerType);
+    void set_samplerType(const std::string &samplerType);
 
     /**
      * Activates and binds this texture.
@@ -269,7 +269,7 @@ namespace regen {
 
     GLuint numSamples_;
 
-    string samplerType_;
+    std::string samplerType_;
   };
 
   /**

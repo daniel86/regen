@@ -11,7 +11,7 @@
 
 #include "texture-state.h"
 namespace regen {
-  ostream& operator<<(ostream &out, const TextureState::Mapping &mode)
+  std::ostream& operator<<(std::ostream &out, const TextureState::Mapping &mode)
   {
     switch(mode) {
     case TextureState::MAPPING_FLAT:                  return out << "flat";
@@ -27,9 +27,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, TextureState::Mapping &mode)
+  std::istream& operator>>(std::istream &in, TextureState::Mapping &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_lower(val);
     if(val == "flat")                        mode = TextureState::MAPPING_FLAT;
@@ -50,7 +50,7 @@ namespace regen {
     return in;
   }
 
-  ostream& operator<<(ostream &out, const TextureState::MapTo &mode)
+  std::ostream& operator<<(std::ostream &out, const TextureState::MapTo &mode)
   {
     switch(mode) {
     case TextureState::MAP_TO_COLOR:            return out << "COLOR";
@@ -68,9 +68,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, TextureState::MapTo &mode)
+  std::istream& operator>>(std::istream &in, TextureState::MapTo &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "COLOR")              mode = TextureState::MAP_TO_COLOR;
@@ -93,7 +93,7 @@ namespace regen {
     return in;
   }
 
-  ostream& operator<<(ostream &out, const TextureState::TransferTexco &mode)
+  std::ostream& operator<<(std::ostream &out, const TextureState::TransferTexco &mode)
   {
     switch(mode) {
     case TextureState::TRANSFER_TEXCO_PARALLAX:      return out << "PARALLAX";
@@ -103,9 +103,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, TextureState::TransferTexco &mode)
+  std::istream& operator>>(std::istream &in, TextureState::TransferTexco &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "PARALLAX")          mode = TextureState::TRANSFER_TEXCO_PARALLAX;
@@ -126,7 +126,7 @@ using namespace regen;
 
 GLuint TextureState::idCounter_ = 0;
 
-TextureState::TextureState(const ref_ptr<Texture> &texture, const string &name)
+TextureState::TextureState(const ref_ptr<Texture> &texture, const std::string &name)
 : State(),
   stateID_(++idCounter_),
   blendFunction_(""),
@@ -181,17 +181,17 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex)
 const ref_ptr<Texture>& TextureState::texture() const
 { return texture_; }
 
-void TextureState::set_name(const string &name)
+void TextureState::set_name(const std::string &name)
 {
   name_ = name;
   shaderDefine(__TEX_NAME("TEX_NAME"), name_);
 }
-const string& TextureState::name() const
+const std::string& TextureState::name() const
 { return name_; }
 
-void TextureState::set_samplerType(const string &samplerType)
+void TextureState::set_samplerType(const std::string &samplerType)
 { samplerType_ = samplerType; }
-const string& TextureState::samplerType() const
+const std::string& TextureState::samplerType() const
 { return samplerType_; }
 
 GLuint TextureState::stateID() const
@@ -224,7 +224,7 @@ void TextureState::set_blendMode(BlendMode blendMode)
   shaderDefine(__TEX_NAME("TEX_BLEND_KEY"),  REGEN_STRING("regen.states.blending." << blendMode_));
   shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), REGEN_STRING("blend_" << blendMode_));
 }
-void TextureState::set_blendFunction(const string &blendFunction, const string &blendName)
+void TextureState::set_blendFunction(const std::string &blendFunction, const std::string &blendName)
 {
   blendFunction_ = blendFunction;
   blendName_ = blendName;
@@ -247,7 +247,7 @@ void TextureState::set_mapping(TextureState::Mapping mapping)
   shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), REGEN_STRING("texco_" << mapping));
   shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
-void TextureState::set_mappingFunction(const string &mappingFunction, const string &mappingName)
+void TextureState::set_mappingFunction(const std::string &mappingFunction, const std::string &mappingName)
 {
   mappingFunction_ = mappingFunction;
   mappingName_ = mappingName;
@@ -261,7 +261,7 @@ void TextureState::set_mappingFunction(const string &mappingFunction, const stri
 ///////
 
 
-void TextureState::set_texelTransferFunction(const string &transferFunction, const string &transferName)
+void TextureState::set_texelTransferFunction(const std::string &transferFunction, const std::string &transferName)
 {
   transferKey_ = "";
   transferName_ = transferName;
@@ -271,12 +271,12 @@ void TextureState::set_texelTransferFunction(const string &transferFunction, con
   shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
   shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
-void TextureState::set_texelTransferKey(const string &transferKey, const string &transferName)
+void TextureState::set_texelTransferKey(const std::string &transferKey, const std::string &transferName)
 {
   transferFunction_ = "";
   transferKey_ = transferKey;
   if(transferName.empty()) {
-    list<string> path;
+    std::list<std::string> path;
     boost::split(path, transferKey, boost::is_any_of("."));
     transferName_ = *path.rbegin();
   } else {
@@ -289,7 +289,7 @@ void TextureState::set_texelTransferKey(const string &transferKey, const string 
 ///////
 ///////
 
-void TextureState::set_texcoTransferFunction(const string &transferFunction, const string &transferName)
+void TextureState::set_texcoTransferFunction(const std::string &transferFunction, const std::string &transferName)
 {
   transferTexcoKey_ = "";
   transferTexcoName_ = transferName;
@@ -318,12 +318,12 @@ void TextureState::set_texcoTransfer(TransferTexco mode)
   }
 }
 
-void TextureState::set_texcoTransferKey(const string &transferKey, const string &transferName)
+void TextureState::set_texcoTransferKey(const std::string &transferKey, const std::string &transferName)
 {
   transferTexcoFunction_ = "";
   transferTexcoKey_ = transferKey;
   if(transferName.empty()) {
-    list<string> path;
+    std::list<std::string> path;
     boost::split(path, transferKey, boost::is_any_of("."));
     transferTexcoName_ = *path.rbegin();
   } else {

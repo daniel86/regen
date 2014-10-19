@@ -9,7 +9,6 @@
 #define RENDER_STATE_H_
 
 #include <vector>
-using namespace std;
 
 #include <regen/utility/state-stacks.h>
 
@@ -437,7 +436,7 @@ namespace regen {
      * Reserves next texture channel.
      */
     inline GLuint reserveTextureChannel()
-    { return min(textureCounter_++,maxTextureUnits_-1); }
+    { return std::min(textureCounter_++,maxTextureUnits_-1); }
     /**
      * Releases last reserved texture channel.
      */
@@ -738,8 +737,8 @@ namespace regen {
     RenderState();
   };
 
-  ostream& operator<<(ostream &out, const RenderState::Toggle &v);
-  istream& operator>>(istream &in, RenderState::Toggle &v);
+  std::ostream& operator<<(std::ostream &out, const RenderState::Toggle &v);
+  std::istream& operator>>(std::istream &in, RenderState::Toggle &v);
 } // namespace
 
 #endif /* RENDER_STATE_H_ */

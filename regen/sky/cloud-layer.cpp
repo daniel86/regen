@@ -118,10 +118,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
   state()->joinShaderInput(offset_);
 
   shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.cloud-layer");
-  //state()->joinStates(shaderState_->shaderState());
-
   meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
-  //state()->joinStates(meshState_);
 
   ///////
   /// Update Uniforms
@@ -180,6 +177,12 @@ GLdouble CloudLayer::defaultChangeHigh()
 { return 0.1f; }
 GLdouble CloudLayer::defaultChangeLow()
 { return 0.1f; }
+
+const ref_ptr<Texture2D>& CloudLayer::cloudTexture() const
+{ return cloudTexture_; }
+
+const ref_ptr<FBO>& CloudLayer::cloudTextureFBO() const
+{ return fbo_; }
 
 void CloudLayer::set_color(const Vec3f &color)
 { color_->setVertex(0, color); }

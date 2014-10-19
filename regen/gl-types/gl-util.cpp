@@ -12,7 +12,7 @@
 namespace regen {
 
 #ifdef REGEN_DEBUG_BUILD
-string getGLError()
+std::string getGLError()
 {
   GLenum err = glGetError();
   switch(err) {
@@ -35,13 +35,13 @@ string getGLError()
   case GL_INVALID_FRAMEBUFFER_OPERATION:
     return "GL_INVALID_FRAMEBUFFER_OPERATION";
   default:
-    return REGEN_STRING("0x" << hex << err);
+    return REGEN_STRING("0x" << std::hex << err);
   }
 }
 #endif
 
 #ifdef REGEN_DEBUG_BUILD
-string getFBOError(GLenum target)
+std::string getFBOError(GLenum target)
 {
   GLenum err = glCheckFramebufferStatus(target);
   switch(err)
@@ -63,7 +63,7 @@ string getFBOError(GLenum target)
   case GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT:
     return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT";
   default:
-    return REGEN_STRING("0x" << hex << err);
+    return REGEN_STRING("0x" << std::hex << err);
   }
 }
 #endif
@@ -82,7 +82,7 @@ GLint getGLInteger(GLenum e)
   return i;
 }
 
-GLint getGLInteger(const string &ext, GLenum key, GLint defaultValue)
+GLint getGLInteger(const std::string &ext, GLenum key, GLint defaultValue)
 {
   GLint i=defaultValue;
   if(glewIsSupported(ext.c_str()))

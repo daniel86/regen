@@ -10,7 +10,7 @@
 using namespace regen;
 
 namespace regen {
-  ostream& operator<<(ostream &out, const Sphere::TexcoMode &mode)
+  std::ostream& operator<<(std::ostream &out, const Sphere::TexcoMode &mode)
   {
     switch(mode) {
     case Sphere::TEXCO_MODE_NONE:       return out << "NONE";
@@ -19,9 +19,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, Sphere::TexcoMode &mode)
+  std::istream& operator>>(std::istream &in, Sphere::TexcoMode &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "NONE")            mode = Sphere::TEXCO_MODE_NONE;
@@ -99,7 +99,7 @@ static Vec3f computeSphereTangent(const Vec3f &v)
 
 void Sphere::updateAttributes(const Config &cfg)
 {
-  vector<TriangleFace> *faces; {
+  std::vector<TriangleFace> *faces; {
     // setup initial level
     GLfloat a = 1.0 / sqrt(2.0) + 0.001;
 
@@ -111,7 +111,7 @@ void Sphere::updateAttributes(const Config &cfg)
     level0[4] = TriangleVertex( Vec3f(    a,   a, 0.0f), 4 );
     level0[5] = TriangleVertex( Vec3f(   -a,   a, 0.0f), 5 );
 
-    vector<TriangleFace> facesLevel0(8);
+    std::vector<TriangleFace> facesLevel0(8);
     facesLevel0[0] = TriangleFace( level0[0], level0[3], level0[4] );
     facesLevel0[1] = TriangleFace( level0[0], level0[4], level0[5] );
     facesLevel0[2] = TriangleFace( level0[0], level0[5], level0[2] );
@@ -145,7 +145,7 @@ void Sphere::updateAttributes(const Config &cfg)
   GLuint *indicesPtr = (GLuint*)indices->clientDataPtr();
 
   // Set index data and compute vertex count
-  map<GLuint,GLint> indexMap;
+  std::map<GLuint,GLint> indexMap;
   GLuint currIndex = 0;
   for(GLuint faceIndex=0; faceIndex<faces->size(); ++faceIndex) {
     TriangleFace &face = (*faces)[faceIndex];

@@ -26,7 +26,7 @@ static Box::Config cubeCfg(GLuint levelOfDetail)
   return cfg;
 }
 
-SkyBox::SkyBox(GLuint levelOfDetail, const string &shaderKey)
+SkyBox::SkyBox(GLuint levelOfDetail, const std::string &shaderKey)
 : Box(cubeCfg(levelOfDetail)), HasShader(shaderKey)
 {
   joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));

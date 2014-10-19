@@ -45,7 +45,7 @@ void BuddyAllocator::computeMaxSpace(BuddyNode *n)
   // must recompute maxSpace for given node and all parents
   for(BuddyNode *t=n; t!=NULL; t=t->parent)
   {
-    t->maxSpace = max(t->leftChild->maxSpace, t->rightChild->maxSpace);
+    t->maxSpace = std::max(t->leftChild->maxSpace, t->rightChild->maxSpace);
   }
 }
 

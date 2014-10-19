@@ -13,7 +13,6 @@
 #include <set>
 #include <map>
 #include <list>
-using namespace std;
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
@@ -50,20 +49,20 @@ void PreProcessor::removeProcessor(GLSLProcessor *processor)
   }
 }
 
-map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
+std::map<GLenum,std::string> PreProcessor::processStages(const PreProcessorInput &in)
 {
   static boost::regex mainRegex(mainPattern);
-  map<GLenum,string> processed;
-  const string *currentCode=NULL;
+  std::map<GLenum,std::string> processed;
+  const std::string *currentCode=NULL;
 
   // find effect names
-  set<string> effectNames;
-  for(map<GLenum,string>::const_iterator
+  std::set<std::string> effectNames;
+  for(std::map<GLenum,std::string>::const_iterator
       it=in.unprocessed.begin(); it!=in.unprocessed.end(); ++it)
   {
     if(it->second.empty()) { continue; }
     if(Includer::get().isKeyValid(it->second)) {
-      list<string> path;
+      std::list<std::string> path;
       boost::split(path, it->second, boost::is_any_of("."));
       effectNames.insert(*path.begin());
     }
@@ -82,7 +81,7 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
     REGEN_DEBUG("[GLSL] Processing " << glenum::glslStageName(stage) << ".");
 #endif
 
-    map<GLenum,string>::const_iterator it = in.unprocessed.find(stage);
+    std::map<GLenum,std::string>::const_iterator it = in.unprocessed.find(stage);
     if(it!=in.unprocessed.end() && !it->second.empty())
     {
       currentCode = &it->second;
@@ -91,10 +90,10 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
       if(stage==GL_VERTEX_SHADER) {
         // no vertex shader specified. try to find one with
         // specified effect keys.
-        for(set<string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it)
+        for(std::set<std::string>::iterator it=effectNames.begin(); it!=effectNames.end(); ++it)
         {
-          string defaultVSName = REGEN_STRING((*it) << ".vs");
-          const string &vsCode = Includer::get().include(defaultVSName);
+          std::string defaultVSName = REGEN_STRING((*it) << ".vs");
+          const std::string &vsCode = Includer::get().include(defaultVSName);
           if(!vsCode.empty())
           {
             currentCode = &vsCode;
@@ -109,26 +108,26 @@ map<GLenum,string> PreProcessor::processStages(const PreProcessorInput &in)
 
     // fill input stream
     state_.inStream.clear();
-    state_.inStream << "#define SHADER_STAGE " << glenum::glslStagePrefix(stage) << endl;
-    state_.inStream << in.header << endl;
+    state_.inStream << "#define SHADER_STAGE " << glenum::glslStagePrefix(stage) << std::endl;
+    state_.inStream << in.header << std::endl;
     if(Includer::get().isKeyValid(*currentCode))
-    { state_.inStream << "#include " << (*currentCode) << endl; }
+    { state_.inStream << "#include " << (*currentCode) << std::endl; }
     else
-    { state_.inStream << (*currentCode) << endl; }
+    { state_.inStream << (*currentCode) << std::endl; }
     currentCode = NULL;
 
     // execute processor pipeline
-    stringstream out; string line;
+    std::stringstream out; std::string line;
     while(lastProcessor_->getline(state_,line)) {
-      out<<line<<endl;
+      out<<line<<std::endl;
 #ifdef DEBUG_GLSL_PREPROCESSOR
       REGEN_DEBUG("[GLSL] -----------------------");
 #endif
     }
     // post process pipeline output
-    stringstream postProcessed;
+    std::stringstream postProcessed;
     // insert version statement at the top. ATI is strict about this.
-    postProcessed << "#version " << state_.version << endl;
+    postProcessed << "#version " << state_.version << std::endl;
     postProcessed << out.str();
     it = processed.insert(make_pair(stage,postProcessed.str())).first;
 

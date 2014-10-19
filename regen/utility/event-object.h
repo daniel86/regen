@@ -12,7 +12,6 @@
 #include <map>
 #include <set>
 #include <vector>
-using namespace std;
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -58,7 +57,7 @@ namespace regen {
      * @param eventName name of the event, must be unique on the object
      * @return the event id
      */
-    static unsigned int registerEvent(const string &eventName);
+    static unsigned int registerEvent(const std::string &eventName);
 
     /**
      * Connect an event handler.
@@ -69,7 +68,7 @@ namespace regen {
     /**
      * Connect an event handler.
      */
-    unsigned int connect(const string &eventName, const ref_ptr<EventHandler> &callable);
+    unsigned int connect(const std::string &eventName, const ref_ptr<EventHandler> &callable);
 
     /**
      * Disconnect an event handler.
@@ -88,7 +87,7 @@ namespace regen {
     /**
      * Emit an event, call all handlers.
      */
-    void emitEvent(const string &eventName,
+    void emitEvent(const std::string &eventName,
         const ref_ptr<EventData> &data=ref_ptr<EventData>());
 
     /**
@@ -105,7 +104,7 @@ namespace regen {
      * Queue this event for emitting.
      * It will be emitted next time emitQueue() called.
      */
-    void queueEmit(const string &eventName,
+    void queueEmit(const std::string &eventName,
         const ref_ptr<EventData> &data=ref_ptr<EventData>());
 
   protected:
@@ -119,15 +118,15 @@ namespace regen {
       unsigned int eventID;
     };
 
-    typedef pair<ref_ptr<EventHandler>, unsigned int> EventHandlerData;
-    typedef vector< EventHandlerData > EventHandlerList;
-    typedef map< unsigned int, EventHandlerList > EventHandlers;
-    typedef map< unsigned int, unsigned int > EventHandlerIds;
+    typedef std::pair<ref_ptr<EventHandler>, unsigned int> EventHandlerData;
+    typedef std::vector< EventHandlerData > EventHandlerList;
+    typedef std::map< unsigned int, EventHandlerList > EventHandlers;
+    typedef std::map< unsigned int, unsigned int > EventHandlerIds;
 
-    static list<QueuedEvent> pingQueue_;
-    static list<QueuedEvent> pongQueue_;
-    static list<QueuedEvent> *queued_;
-    static list<QueuedEvent> *processing_;
+    static std::list<QueuedEvent> pingQueue_;
+    static std::list<QueuedEvent> pongQueue_;
+    static std::list<QueuedEvent> *queued_;
+    static std::list<QueuedEvent> *processing_;
     static boost::mutex eventLock_;
 
   private:
@@ -139,7 +138,7 @@ namespace regen {
     EventObject(const EventObject&);
     EventObject& operator=(const EventObject &other);
 
-    static map<string,unsigned int> &eventIds();
+    static std::map<std::string,unsigned int> &eventIds();
     static unsigned int &numEvents();
 
   };

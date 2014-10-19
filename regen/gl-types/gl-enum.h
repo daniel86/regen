@@ -10,7 +10,6 @@
 
 #include <GL/glew.h>
 
-using namespace std;
 #include <string>
 
 namespace regen {
@@ -21,45 +20,45 @@ namespace regen {
      * @return GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL,
      *         GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, or GL_ALWAYS.
      */
-    GLenum compareFunction(const string &val);
+    GLenum compareFunction(const std::string &val);
     /**
      * Specifies the texture comparison mode for currently bound depth textures.
      * That is, a texture whose internal format is GL_DEPTH_COMPONENT_*
      */
-    GLenum compareMode(const string &val_);
+    GLenum compareMode(const std::string &val_);
     /**
      * Specifies how source and destination colors are combined.
      * It must be GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, GL_MIN, GL_MAX.
      * Initially, both the RGB blend equation and the alpha blend equation are set to GL_FUNC_ADD.
      */
-    GLenum blendFunction(const string &val_);
+    GLenum blendFunction(const std::string &val_);
 
     /**
      * The cull face specifies whether front- or back-facing facets are candidates for culling.
      * @param val input string.
      * @return GL_FRONT, GL_BACK, or GL_FRONT_AND_BACK.
      */
-    GLenum cullFace(const string &val);
+    GLenum cullFace(const std::string &val);
     /**
      * Specifies the orientation of front-facing polygons.
      * The default value is "CCW".
      * @param val "CW" and "CCW" are accepted.
      * @return GL_CW or GL_CCW.
      */
-    GLenum frontFace(const string &val);
+    GLenum frontFace(const std::string &val);
 
     /**
      * Fill mode selects a polygon rasterization mode.
      * @param val input string.
      * @return GL_FILL, L_LINE or GL_POINT.
      */
-    GLenum fillMode(const string &val);
+    GLenum fillMode(const std::string &val);
     /**
      * Specifies the screen draw buffer.
      * @param val input string.
      * @return GL_FRONT, GL_BACK or GL_FRONT_AND_BACK.
      */
-    GLenum drawBuffer(const string &val_);
+    GLenum drawBuffer(const std::string &val_);
     /**
      * Primitives are ways that OpenGL interprets vertex streams,
      * converting them from vertices into triangles, lines, points, and so forth.
@@ -69,7 +68,7 @@ namespace regen {
      *          GL_TRIANGLES, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
      *          GL_TRIANGLES_ADJACENCY or GL_TRIANGLE_STRIP_ADJACENCY
      */
-    GLenum primitive(const string &val);
+    GLenum primitive(const std::string &val);
 
     /**
      * The filter mode is used whenever the level-of-detail function
@@ -80,7 +79,7 @@ namespace regen {
      *         GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR,
      *         GL_LINEAR_MIPMAP_NEAREST or GL_LINEAR_MIPMAP_LINEAR.
      */
-    GLenum filterMode(const string &val);
+    GLenum filterMode(const std::string &val);
 
     /**
      * The wrap parameter for texture coordinates.
@@ -88,7 +87,7 @@ namespace regen {
      * @return GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE,
      *         GL_MIRRORED_REPEAT or GL_REPEAT.
      */
-    GLenum wrappingMode(const string &val);
+    GLenum wrappingMode(const std::string &val);
 
     /**
      * Defines base type of texel data.
@@ -97,7 +96,7 @@ namespace regen {
      *         GL_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_INT,
      *         GL_UNSIGNED_INT or GL_DOUBLE.
      */
-    GLenum pixelType(const string &val);
+    GLenum pixelType(const std::string &val);
 
     /**
      * Defines the format of texel data that is visible to the outside.
@@ -110,7 +109,7 @@ namespace regen {
      * @param val the type string.
      * @return One of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
      */
-    GLenum textureFormat(const string &val);
+    GLenum textureFormat(const std::string &val);
     /**
      * Defines the texture type.
      * @param val the texture target string.
@@ -118,12 +117,12 @@ namespace regen {
      *         GL_TEXTURE_2D_ARRAY,GL_TEXTURE_2D_MULTISAMPLE,GL_TEXTURE_3D,
      *         GL_TEXTURE_CUBE_MAP,GL_TEXTURE_DEPTH,GL_TEXTURE_SHADOW constants.
      */
-    GLenum textureTarget(const string &val);
+    GLenum textureTarget(const std::string &val);
     /**
      * Sets the swizzle that will be applied to the rgba components of a texel before it is returned to the shader.
      * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
      */
-    GLenum textureSwizzle(const string &val_);
+    GLenum textureSwizzle(const std::string &val_);
 
     /**
      * Defines the format of texel data that is used texture intern.
@@ -138,7 +137,7 @@ namespace regen {
      * @param val the type string.
      * @return On of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
      */
-    GLenum textureInternalFormat(const string &val);
+    GLenum textureInternalFormat(const std::string &val);
 
     /**
      * Maps [0,5] to cube map layer enum.
@@ -156,15 +155,15 @@ namespace regen {
     /**
      * Maps stage enum to name representation.
      */
-    string glslStageName(GLenum stage);
+    std::string glslStageName(GLenum stage);
     /**
      * Maps stage enum to prefix for input variables in GLSL code.
      */
-    string glslStagePrefix(GLenum stage);
+    std::string glslStagePrefix(GLenum stage);
     /**
      * Maps pixel type and values per element to the GLSL data type.
      */
-    string glslDataType(GLenum pixelType, GLuint valsPerElement);
+    std::string glslDataType(GLenum pixelType, GLuint valsPerElement);
   }
 } // namespace
 

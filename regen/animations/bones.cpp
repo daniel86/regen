@@ -32,7 +32,7 @@ Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 GLint Bones::numBoneWeights() const
 { return numBoneWeights_->getVertex(0); }
 
-void Bones::setBones(const list< ref_ptr<AnimationNode> > &bones)
+void Bones::setBones(const std::list< ref_ptr<AnimationNode> > &bones)
 {
   GL_ERROR_LOG();
   RenderState *rs = RenderState::get();
@@ -81,7 +81,7 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
   Mat4f* boneMatrixData_ = (Mat4f*)boneMatrices_->clientDataPtr();
 
   register GLuint i=0;
-  for(list< ref_ptr<AnimationNode> >::const_iterator
+  for(std::list< ref_ptr<AnimationNode> >::const_iterator
       it=bones_.begin(); it!=bones_.end(); ++it)
   {
     // the bone matrix is actually calculated in the animation thread

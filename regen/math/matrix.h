@@ -1053,10 +1053,10 @@ namespace regen {
     }
   };
 
-  istream& operator>>(istream& in, Mat3f &v);
-  istream& operator>>(istream& in, Mat4f &v);
-  ostream& operator<<(ostream& os, const Mat3f& m);
-  ostream& operator<<(ostream& os, const Mat4f& m);
+  std::istream& operator>>(std::istream& in, Mat3f &v);
+  std::istream& operator>>(std::istream& in, Mat4f &v);
+  std::ostream& operator<<(std::ostream& os, const Mat3f& m);
+  std::ostream& operator<<(std::ostream& os, const Mat4f& m);
 } // namespace
 
 #endif /* _MATRIX_H_ */

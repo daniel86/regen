@@ -16,7 +16,6 @@
 #include <applications/qt/qt-gl-widget.h>
 
 #include <string>
-using namespace std;
 
 namespace regen {
 class QTGLWidget;

@@ -69,7 +69,7 @@ Application::Application(const int &argc, const char** argv)
   srand(time(0));
 }
 
-void Application::addShaderPath(const string &path)
+void Application::addShaderPath(const std::string &path)
 {
   Includer::get().addIncludePath(path);
 }
@@ -104,9 +104,9 @@ void Application::setupLogging()
   Logging::set_verbosity(Logging::V);
 }
 
-void Application::addRequiredExtension(const string &ext)
+void Application::addRequiredExtension(const std::string &ext)
 { requiredExt_.push_back(ext); }
-void Application::addOptionalExtension(const string &ext)
+void Application::addOptionalExtension(const std::string &ext)
 { optionalExt_.push_back(ext); }
 
 void Application::mouseEnter()
@@ -200,7 +200,7 @@ void Application::initGL()
   //glewExperimental=GL_TRUE;
   GLenum err = glewInit();
   if (GLEW_OK != err) {
-    cerr << "Error: " << glewGetErrorString(err) << endl;
+    std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
     exit(1);
   }
   // glewInit may calls glGetString(GL_EXTENSIONS),
@@ -212,7 +212,7 @@ void Application::initGL()
   REGEN_DEBUG("VERSION: " << glGetString(GL_VERSION));
 
   // check for required and optional extensions
-  for(list<string>::iterator it=requiredExt_.begin(); it!=requiredExt_.end(); ++it)
+  for(std::list<std::string>::iterator it=requiredExt_.begin(); it!=requiredExt_.end(); ++it)
   {
     if(!glewIsSupported(it->c_str())) {
       REGEN_ERROR((*it) << " unsupported.");
@@ -221,7 +221,7 @@ void Application::initGL()
     else
     { REGEN_DEBUG((*it) << " supported."); }
   }
-  for(list<string>::iterator it=optionalExt_.begin(); it!=optionalExt_.end(); ++it)
+  for(std::list<std::string>::iterator it=optionalExt_.begin(); it!=optionalExt_.end(); ++it)
   {
     if(!glewIsSupported(it->c_str()))
     { REGEN_DEBUG((*it) << " unsupported."); }

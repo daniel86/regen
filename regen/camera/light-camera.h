@@ -54,7 +54,7 @@ namespace regen {
     GLdouble splitWeight_;
 
     ref_ptr<ShaderInputMat4> lightMatrix_;
-    vector<Frustum*> shadowFrusta_;
+    std::vector<Frustum*> shadowFrusta_;
 
     GLuint lightPosStamp_;
     GLuint lightDirStamp_;

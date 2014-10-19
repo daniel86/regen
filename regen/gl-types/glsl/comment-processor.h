@@ -12,7 +12,6 @@
 #include <regen/gl-types/glsl/glsl-processor.h>
 
 #include <iostream>
-using namespace std;
 
 namespace regen {
   /**
@@ -23,7 +22,7 @@ namespace regen {
     CommentProcessor();
 
     // override
-    bool process(PreProcessorState &state, string &line);
+    bool process(PreProcessorState &state, std::string &line);
     void clear();
   protected:
     bool commentActive_;

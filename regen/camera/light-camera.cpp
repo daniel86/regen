@@ -200,7 +200,7 @@ void LightCamera::updateDirectional()
   {
     const Mat4f &proj = userCamera_->projection()->getVertex(0);
     // update frustum splits
-    for(vector<Frustum*>::iterator
+    for(std::vector<Frustum*>::iterator
         it=shadowFrusta_.begin(); it!=shadowFrusta_.end(); ++it)
     { delete *it; }
     shadowFrusta_ = userCamera_->frustum().split(numLayer_, splitWeight_);

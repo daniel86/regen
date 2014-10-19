@@ -76,8 +76,8 @@ namespace regen {
     ref_ptr<State> tessLevelSetter_;
   };
 
-  ostream& operator<<(ostream &out, const TesselationState::LoDMetric &mode);
-  istream& operator>>(istream &in, TesselationState::LoDMetric &mode);
+  std::ostream& operator<<(std::ostream &out, const TesselationState::LoDMetric &mode);
+  std::istream& operator>>(std::istream &in, TesselationState::LoDMetric &mode);
 } // namespace
 
 #endif /* TESSELATION_STATE_H_ */

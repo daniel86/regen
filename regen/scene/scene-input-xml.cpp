@@ -10,6 +10,7 @@
 
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 SceneInputXML::SceneInputXML(const string &xmlFile)
 {

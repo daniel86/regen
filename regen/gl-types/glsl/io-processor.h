@@ -15,7 +15,6 @@
 #include <iostream>
 #include <list>
 #include <string>
-using namespace std;
 
 namespace regen {
   /**
@@ -39,13 +38,13 @@ namespace regen {
      * \brief IO Varying used in Shader code.
      */
     struct InputOutput {
-      string layout; /**< the layout qualifier. */
-      string interpolation; /**< interpolation qulifier. */
-      string ioType; /**< the IO type (in/out/const/uniform). */
-      string dataType; /**< the data type as used in the Shader. */
-      string name; /**< the name as used in the Shader. */
-      string numElements; /**< number of array elements (name[N]). */
-      string value; /**< for constants this defines the value. */
+      std::string layout; /**< the layout qualifier. */
+      std::string interpolation; /**< interpolation qulifier. */
+      std::string ioType; /**< the IO type (in/out/const/uniform). */
+      std::string dataType; /**< the data type as used in the Shader. */
+      std::string name; /**< the name as used in the Shader. */
+      std::string numElements; /**< number of array elements (name[N]). */
+      std::string value; /**< for constants this defines the value. */
 
       InputOutput();
       /**
@@ -56,14 +55,14 @@ namespace regen {
        * @param stage a shader stage.
        * @return declaration of IO variable.
        */
-      string declaration(GLenum stage);
+      std::string declaration(GLenum stage);
     };
 
     /**
      * Truncate the one of the known prefixes from string
      * if string matches any prefix.
      */
-    static string getNameWithoutPrefix(const string &name);
+    static std::string getNameWithoutPrefix(const std::string &name);
 
     /**
      * Default constructor.
@@ -71,22 +70,22 @@ namespace regen {
     IOProcessor();
 
     // Override
-    bool process(PreProcessorState &state, string &line);
+    bool process(PreProcessorState &state, std::string &line);
     void clear();
 
   protected:
-    list<string> lineQueue_;
-    map<GLenum, map<string,InputOutput> > inputs_;
-    map<GLenum, map<string,InputOutput> > outputs_;
-    map<GLenum, map<string,InputOutput> > uniforms_;
-    set<string> inputNames_;
+    std::list<std::string> lineQueue_;
+    std::map<GLenum, std::map<std::string,InputOutput> > inputs_;
+    std::map<GLenum, std::map<std::string,InputOutput> > outputs_;
+    std::map<GLenum, std::map<std::string,InputOutput> > uniforms_;
+    std::set<std::string> inputNames_;
     GLboolean isInputSpecified_;
     GLenum currStage_;
 
     void declareSpecifiedInput(PreProcessorState &state);
     void defineHandleIO(PreProcessorState &state);
-    void parseValue(string &v, string &val);
-    void parseArray(string &v, string &numElements);
+    void parseValue(std::string &v, std::string &val);
+    void parseArray(std::string &v, std::string &numElements);
   };
 } // namespace
 

@@ -8,6 +8,7 @@
 #include "light.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #define REGEN_LIGHT_CATEGORY "light"
 

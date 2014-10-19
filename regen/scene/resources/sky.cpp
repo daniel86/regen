@@ -8,6 +8,7 @@
 #include "sky.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #include <regen/scene/resource-manager.h>
 #include <regen/scene/input-processors.h>
@@ -269,6 +270,9 @@ ref_ptr<CloudLayer> SkyResource::createCloudLayer(const ref_ptr<Sky> &sky,
   cloudLayer->set_updateInterval(
       input.getValue<GLdouble>("update-interval", 4000.0));
   sky->addLayer(cloudLayer);
+
+  parser->getResources()->putFBO(input.getName(), cloudLayer->cloudTextureFBO());
+  parser->getResources()->putTexture(input.getName(), cloudLayer->cloudTexture());
 
   return cloudLayer;
 }

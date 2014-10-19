@@ -95,7 +95,7 @@ namespace regen {
      * @param tex the associates texture.
      * @param name the name of the texture in shader programs.
      */
-    TextureState(const ref_ptr<Texture> &tex, const string &name="");
+    TextureState(const ref_ptr<Texture> &tex, const std::string &name="");
 
     /**
      * @return used to get unique names in shaders.
@@ -114,20 +114,20 @@ namespace regen {
     /**
      * @param name the name of this texture in shader programs.
      */
-    void set_name(const string &name);
+    void set_name(const std::string &name);
     /**
      * @return the name of this texture in shader programs.
      */
-    const string& name() const;
+    const std::string& name() const;
 
     /**
      * @param samplerType the sampler name of this texture in shader programs.
      */
-    void set_samplerType(const string &samplerType);
+    void set_samplerType(const std::string &samplerType);
     /**
      * @return the name of this texture in shader programs.
      */
-    const string& samplerType() const;
+    const std::string& samplerType() const;
 
     /**
      * @param channel  the texture coordinate channel.
@@ -154,7 +154,7 @@ namespace regen {
      * @param blendFunction user defined GLSL function.
      * @param blendName function name of user defined GLSL function.
      */
-    void set_blendFunction(const string &blendFunction, const string &blendName);
+    void set_blendFunction(const std::string &blendFunction, const std::string &blendName);
 
     /**
      * @param mapping Specifies how a texture should be mapped on geometry.
@@ -165,7 +165,7 @@ namespace regen {
      * @param blendFunction user defined GLSL function.
      * @param blendName name of user defined GLSL function.
      */
-    void set_mappingFunction(const string &blendFunction, const string &blendName);
+    void set_mappingFunction(const std::string &blendFunction, const std::string &blendName);
 
     /**
      * @param id Defines what is affected by the texture.
@@ -177,7 +177,7 @@ namespace regen {
      * @param transferKey GLSL include key for transfer function.
      * @param transferName name of the transfer function.
      */
-    void set_texelTransferKey(const string &transferKey, const string &transferName="");
+    void set_texelTransferKey(const std::string &transferKey, const std::string &transferName="");
     /**
      * Specifies how a texture should be sampled.
      * For example to scale each texel by 2.0 you can define following
@@ -185,7 +185,7 @@ namespace regen {
      * @param transferFunction user defined GLSL function.
      * @param transferName name of user defined GLSL function.
      */
-    void set_texelTransferFunction(const string &transferFunction, const string &transferName);
+    void set_texelTransferFunction(const std::string &transferFunction, const std::string &transferName);
 
     /**
      * @param mode Specifies how texture coordinates are transfered before sampling.
@@ -196,13 +196,13 @@ namespace regen {
      * @param transferKey GLSL include key for transfer function.
      * @param transferName name of the transfer function.
      */
-    void set_texcoTransferKey(const string &transferKey, const string &transferName="");
+    void set_texcoTransferKey(const std::string &transferKey, const std::string &transferName="");
     /**
      * Specifies how texture coordinates are transfered before sampling.
      * @param transferFunction user defined GLSL function.
      * @param transferName  name of user defined GLSL function.
      */
-    void set_texcoTransferFunction(const string &transferFunction, const string &transferName);
+    void set_texcoTransferFunction(const std::string &transferFunction, const std::string &transferName);
 
     /**
      * Explicit request to the application to ignore the alpha channel
@@ -225,27 +225,27 @@ namespace regen {
     GLuint stateID_;
 
     ref_ptr<Texture> texture_;
-    string name_;
-    string samplerType_;
+    std::string name_;
+    std::string samplerType_;
 
     BlendMode blendMode_;
     GLfloat blendFactor_;
-    string blendFunction_;
-    string blendName_;
+    std::string blendFunction_;
+    std::string blendName_;
 
     Mapping mapping_;
-    string mappingFunction_;
-    string mappingName_;
+    std::string mappingFunction_;
+    std::string mappingName_;
 
     MapTo mapTo_;
 
-    string transferKey_;
-    string transferFunction_;
-    string transferName_;
+    std::string transferKey_;
+    std::string transferFunction_;
+    std::string transferName_;
 
-    string transferTexcoKey_;
-    string transferTexcoFunction_;
-    string transferTexcoName_;
+    std::string transferTexcoKey_;
+    std::string transferTexcoFunction_;
+    std::string transferTexcoName_;
 
     GLuint texcoChannel_;
     GLint lastTexChannel_;
@@ -253,12 +253,12 @@ namespace regen {
     GLboolean ignoreAlpha_;
   };
 
-  ostream& operator<<(ostream &out, const TextureState::Mapping &v);
-  istream& operator>>(istream &in, TextureState::Mapping &v);
-  ostream& operator<<(ostream &out, const TextureState::MapTo &v);
-  istream& operator>>(istream &in, TextureState::MapTo &v);
-  ostream& operator<<(ostream &out, const TextureState::TransferTexco &v);
-  istream& operator>>(istream &in, TextureState::TransferTexco &v);
+  std::ostream& operator<<(std::ostream &out, const TextureState::Mapping &v);
+  std::istream& operator>>(std::istream &in, TextureState::Mapping &v);
+  std::ostream& operator<<(std::ostream &out, const TextureState::MapTo &v);
+  std::istream& operator>>(std::istream &in, TextureState::MapTo &v);
+  std::ostream& operator<<(std::ostream &out, const TextureState::TransferTexco &v);
+  std::istream& operator>>(std::istream &in, TextureState::TransferTexco &v);
 } // namespace
 
 namespace regen {

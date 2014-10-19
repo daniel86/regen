@@ -15,6 +15,7 @@
 
 #include "includer.h"
 using namespace regen;
+using namespace std;
 
 Includer& Includer::get()
 {

@@ -31,7 +31,7 @@ namespace regen {
 
     void set_timestamp(GLdouble timestamp);
 
-    void set_date(const string &date);
+    void set_date(const std::string &date);
 
     void set_utcOffset(const time_t &offset);
 

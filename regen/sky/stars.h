@@ -17,7 +17,7 @@ namespace regen {
   public:
     Stars(const ref_ptr<Sky> &sky);
 
-    void set_brightStarsFile(const string &brightStars);
+    void set_brightStarsFile(const std::string &brightStars);
 
     void set_apparentMagnitude(const GLfloat vMag);
 

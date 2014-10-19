@@ -13,7 +13,7 @@
 #include "light-pass.h"
 using namespace regen;
 
-LightPass::LightPass(Light::Type type, const string &shaderKey)
+LightPass::LightPass(Light::Type type, const std::string &shaderKey)
 : State(), lightType_(type), shaderKey_(shaderKey)
 {
   switch(lightType_) {
@@ -37,7 +37,7 @@ LightPass::LightPass(Light::Type type, const string &shaderKey)
   setShadowFiltering(SHADOW_FILTERING_NONE);
 }
 
-static string shadowFilterMode(ShadowFilterMode f)
+static std::string shadowFilterMode(ShadowFilterMode f)
 {
   switch(f) {
   case SHADOW_FILTERING_NONE: return "Single";
@@ -58,12 +58,12 @@ void LightPass::addLight(
     const ref_ptr<LightCamera> &lightCamera,
     const ref_ptr<Texture> &shadowTexture,
     const ref_ptr<Texture> &shadowColorTexture,
-    const list< ref_ptr<ShaderInput> > &inputs)
+    const std::list< ref_ptr<ShaderInput> > &inputs)
 {
   LightPassLight light;
   lights_.push_back(light);
 
-  list<LightPassLight>::iterator it = lights_.end();
+  std::list<LightPassLight>::iterator it = lights_.end();
   --it;
   lightIterators_[l.get()] = it;
 
@@ -111,7 +111,7 @@ void LightPass::createShader(const StateConfig &cfg)
   shader_->createShader(_cfg.cfg(), shaderKey_);
   mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
 
-  for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
+  for(std::list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   { addLightInput(*it); }
   shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
   shadowColorLoc_ = shader_->shader()->uniformLocation("shadowColorTexture");
@@ -122,7 +122,7 @@ void LightPass::addLightInput(LightPassLight &light)
   // clear list of uniform loactions
   light.inputLocations.clear();
   // add user specified uniforms
-  for(list< ref_ptr<ShaderInput> >::iterator jt=light.inputs.begin(); jt!=light.inputs.end(); ++jt)
+  for(std::list< ref_ptr<ShaderInput> >::iterator jt=light.inputs.begin(); jt!=light.inputs.end(); ++jt)
   {
     ref_ptr<ShaderInput> &in = *jt;
     addInputLocation(light, in, in->name());
@@ -168,7 +168,7 @@ void LightPass::addLightInput(LightPassLight &light)
 }
 
 void LightPass::addInputLocation(LightPassLight &l,
-    const ref_ptr<ShaderInput> &in, const string &name)
+    const ref_ptr<ShaderInput> &in, const std::string &name)
 {
   Shader *s = shader_->shader().get();
   GLint loc = s->uniformLocation(name);
@@ -183,7 +183,7 @@ void LightPass::enable(RenderState *rs)
   GLuint smChannel = rs->reserveTextureChannel();
   GLuint smColorChannel = rs->reserveTextureChannel();
 
-  for(list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
+  for(std::list<LightPassLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
     LightPassLight &l = *it;
     ref_ptr<Texture> shadowTex;
@@ -198,7 +198,7 @@ void LightPass::enable(RenderState *rs)
       glUniform1i(shadowColorLoc_, smColorChannel);
     }
     // enable light pass uniforms
-    for(list<ShaderInputLocation>::iterator
+    for(std::list<ShaderInputLocation>::iterator
         jt=l.inputLocations.begin(); jt!=l.inputLocations.end(); ++jt)
     {
       if(jt->uploadStamp != jt->input->stamp()) {

@@ -113,8 +113,8 @@ namespace regen {
     void updateConeMatrix();
   };
 
-  ostream& operator<<(ostream &out, const Light::Type &v);
-  istream& operator>>(istream &in, Light::Type &v);
+  std::ostream& operator<<(std::ostream &out, const Light::Type &v);
+  std::istream& operator>>(std::istream &in, Light::Type &v);
 
   /**
    * \brief Animates Light position using an AnimationNode.
@@ -147,8 +147,8 @@ namespace regen {
     SHADOW_FILTERING_PCF_GAUSSIAN,//!< PCF filtering using Gauss kernel
     SHADOW_FILTERING_VSM          //!< VSM filtering
   };
-  ostream& operator<<(ostream &out, const ShadowFilterMode &mode);
-  istream& operator>>(istream &in, ShadowFilterMode &mode);
+  std::ostream& operator<<(std::ostream &out, const ShadowFilterMode &mode);
+  std::istream& operator>>(std::istream &in, ShadowFilterMode &mode);
 } // namespace
 
 #endif /* _LIGHT_H_ */

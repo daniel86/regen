@@ -36,7 +36,7 @@ namespace scene {
         SceneParser *parser,
         SceneInputNode &input,
         const GLuint numParticles,
-        const string &updateShader);
+        const std::string &updateShader);
 
     ref_ptr<TextureMappedText> createTextMesh(
         SceneParser *parser,

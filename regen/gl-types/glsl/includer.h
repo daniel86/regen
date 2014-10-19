@@ -13,7 +13,6 @@
 #include <string>
 #include <map>
 #include <set>
-using namespace std;
 
 namespace regen {
   /**
@@ -34,13 +33,13 @@ namespace regen {
      * @param path the filesystem shader lookpup path.
      * @return true on success.
      */
-    bool addIncludePath(const string &path);
+    bool addIncludePath(const std::string &path);
 
     /**
      * @param key the include key.
      * @return true if key contains known shader file.
      */
-    bool isKeyValid(const string &key);
+    bool isKeyValid(const std::string &key);
     /**
      * Include section from shader file.
      * The include key contains sub directory names relative
@@ -53,23 +52,23 @@ namespace regen {
      * @param key the include key.
      * @return the shader section or empty string.
      */
-    const string& include(const string &key);
+    const std::string& include(const std::string &key);
     /**
      * @return reason for include failure.
      */
-    const string& errorMessage() const;
+    const std::string& errorMessage() const;
 
   protected:
-    list<boost::filesystem::path> includePaths_;
-    set<string> loadedFiles_;
-    map<string,string> sections_;
-    string errorMessage_;
+    std::list<boost::filesystem::path> includePaths_;
+    std::set<std::string> loadedFiles_;
+    std::map<std::string,std::string> sections_;
+    std::string errorMessage_;
 
     bool parseInput(
-        const string &key,
+        const std::string &key,
         boost::filesystem::path &filePathRet,
-        string &fileKeyRet,
-        string &effectKeyRet);
+        std::string &fileKeyRet,
+        std::string &effectKeyRet);
   };
 }
 

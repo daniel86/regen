@@ -27,7 +27,7 @@ static const GLenum glslStages__[] = {
 };
 static const GLint glslStageCount__ = sizeof(glslStages__)/sizeof(GLenum);
 
-static string getValue(const string &in)
+static std::string getValue(const std::string &in)
 {
   std::string val = in;
   boost::to_upper(val);
@@ -42,7 +42,7 @@ const GLenum* glenum::glslStages()
 GLint glenum::glslStageCount()
 { return glslStageCount__; }
 
-string glenum::glslStageName(GLenum stage)
+std::string glenum::glslStageName(GLenum stage)
 {
   switch(stage) {
   case GL_NONE:                   return "NONE";
@@ -62,7 +62,7 @@ string glenum::glslStageName(GLenum stage)
   }
 }
 
-string glenum::glslStagePrefix(GLenum stage)
+std::string glenum::glslStagePrefix(GLenum stage)
 {
   switch(stage) {
   case GL_VERTEX_SHADER:          return "vs";
@@ -81,7 +81,7 @@ string glenum::glslStagePrefix(GLenum stage)
   }
 }
 
-string glenum::glslDataType(GLenum pixelType, GLuint valsPerElement)
+std::string glenum::glslDataType(GLenum pixelType, GLuint valsPerElement)
 {
   switch(pixelType) {
   case GL_BYTE:
@@ -133,7 +133,7 @@ GLenum glenum::cubeMapLayer(GLuint layer)
   return cubeMapLayer[layer];
 }
 
-GLenum glenum::compareFunction(const string &val_)
+GLenum glenum::compareFunction(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "NEVER")            return GL_NEVER;
@@ -149,7 +149,7 @@ GLenum glenum::compareFunction(const string &val_)
   return GL_LEQUAL;
 }
 
-GLenum glenum::compareMode(const string &val_)
+GLenum glenum::compareMode(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "COMPARE_R_TO_TEXTURE") return GL_COMPARE_R_TO_TEXTURE;
@@ -158,7 +158,7 @@ GLenum glenum::compareMode(const string &val_)
   return GL_NONE;
 }
 
-GLenum glenum::cullFace(const string &val_)
+GLenum glenum::cullFace(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "FRONT")                return GL_FRONT;
@@ -169,7 +169,7 @@ GLenum glenum::cullFace(const string &val_)
   return GL_FRONT;
 }
 
-GLenum glenum::frontFace(const string &val_)
+GLenum glenum::frontFace(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "CCW")     return GL_CCW;
@@ -178,7 +178,7 @@ GLenum glenum::frontFace(const string &val_)
   return GL_CCW;
 }
 
-GLenum glenum::pixelType(const string &val_)
+GLenum glenum::pixelType(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "HALF_FLOAT")           return GL_HALF_FLOAT;
@@ -195,7 +195,7 @@ GLenum glenum::pixelType(const string &val_)
   return GL_UNSIGNED_BYTE;
 }
 
-GLenum glenum::fillMode(const string &val_)
+GLenum glenum::fillMode(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "FILL")       return GL_FILL;
@@ -206,7 +206,7 @@ GLenum glenum::fillMode(const string &val_)
   return GL_FILL;
 }
 
-GLenum glenum::drawBuffer(const string &val_)
+GLenum glenum::drawBuffer(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "FRONT")               return GL_FRONT;
@@ -216,7 +216,7 @@ GLenum glenum::drawBuffer(const string &val_)
   return GL_FILL;
 }
 
-GLenum glenum::primitive(const string &val_)
+GLenum glenum::primitive(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "PATCHES")                        return GL_PATCHES;
@@ -235,7 +235,7 @@ GLenum glenum::primitive(const string &val_)
   return GL_TRIANGLES;
 }
 
-GLenum glenum::blendFunction(const string &val_)
+GLenum glenum::blendFunction(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "ADD")                    return GL_FUNC_ADD;
@@ -248,7 +248,7 @@ GLenum glenum::blendFunction(const string &val_)
   return GL_FUNC_ADD;
 }
 
-GLenum glenum::filterMode(const string &val_)
+GLenum glenum::filterMode(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "NEAREST")                      return GL_NEAREST;
@@ -262,7 +262,7 @@ GLenum glenum::filterMode(const string &val_)
   return GL_LINEAR;
 }
 
-GLenum glenum::wrappingMode(const string &val_)
+GLenum glenum::wrappingMode(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "CLAMP")                return GL_CLAMP;
@@ -275,7 +275,7 @@ GLenum glenum::wrappingMode(const string &val_)
   return GL_CLAMP;
 }
 
-GLenum glenum::textureFormat(const string &val_)
+GLenum glenum::textureFormat(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "RED")       return GL_RED;
@@ -287,7 +287,7 @@ GLenum glenum::textureFormat(const string &val_)
   return GL_RGBA;
 }
 
-GLenum glenum::textureTarget(const string &val_)
+GLenum glenum::textureTarget(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "TEXTURE_1D")                   return GL_TEXTURE_1D;
@@ -305,7 +305,7 @@ GLenum glenum::textureTarget(const string &val_)
   return GL_TEXTURE_2D;
 }
 
-GLenum glenum::textureSwizzle(const string &val_)
+GLenum glenum::textureSwizzle(const std::string &val_)
 {
   std::string val = getValue(val_);
   if(val == "RED")        return GL_RED;
@@ -319,7 +319,7 @@ GLenum glenum::textureSwizzle(const string &val_)
   return GL_RGBA;
 }
 
-GLenum glenum::textureInternalFormat(const string &val_)
+GLenum glenum::textureInternalFormat(const std::string &val_)
 {
   std::string val = getValue(val_);
 

@@ -21,7 +21,7 @@ ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
   inputBuffer_ = ref_ptr<VBO>::alloc(usage);
 }
 ShaderInputContainer::ShaderInputContainer(
-    const ref_ptr<ShaderInput> &in, const string &name, VBO::Usage usage)
+    const ref_ptr<ShaderInput> &in, const std::string &name, VBO::Usage usage)
 : numVertices_(0), numInstances_(1), numIndices_(0)
 {
   uploadLayout_ = LAYOUT_LAST;
@@ -47,7 +47,7 @@ GLuint ShaderInputContainer::numInstances() const
 void ShaderInputContainer::set_numInstances(GLuint v)
 { numInstances_ = v; }
 
-ref_ptr<ShaderInput> ShaderInputContainer::getInput(const string &name) const
+ref_ptr<ShaderInput> ShaderInputContainer::getInput(const std::string &name) const
 {
   for(ShaderInputList::const_iterator it=inputs_.begin(); it!=inputs_.end(); ++it)
   {
@@ -56,7 +56,7 @@ ref_ptr<ShaderInput> ShaderInputContainer::getInput(const string &name) const
   return ref_ptr<ShaderInput>();
 }
 
-GLboolean ShaderInputContainer::hasInput(const string &name) const
+GLboolean ShaderInputContainer::hasInput(const std::string &name) const
 { return inputMap_.count(name)>0; }
 const ShaderInputList& ShaderInputContainer::inputs() const
 { return inputs_; }
@@ -83,9 +83,9 @@ VBOReference ShaderInputContainer::end()
 }
 
 ShaderInputList::const_iterator ShaderInputContainer::setInput(
-    const ref_ptr<ShaderInput> &in, const string &name)
+    const ref_ptr<ShaderInput> &in, const std::string &name)
 {
-  const string &inputName = (name.empty() ? in->name() : name);
+  const std::string &inputName = (name.empty() ? in->name() : name);
 
   if(in->isVertexAttribute() && in->numVertices()>numVertices_)
   { numVertices_ = in->numVertices(); }
@@ -133,7 +133,7 @@ void ShaderInputContainer::removeInput(const ref_ptr<ShaderInput> &in)
   removeInput(in->name());
 }
 
-void ShaderInputContainer::removeInput(const string &name)
+void ShaderInputContainer::removeInput(const std::string &name)
 {
   ShaderInputList::iterator it;
   for(it=inputs_.begin(); it!=inputs_.end(); ++it) {

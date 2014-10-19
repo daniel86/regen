@@ -10,7 +10,6 @@
 
 #include <map>
 #include <sstream>
-using namespace std;
 
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/logging.h>
@@ -24,10 +23,10 @@ namespace regen {
      * Default-Constructor.
      */
     PreProcessorInput(
-        const string &_header,
-        const map<GLenum, string> &_unprocessed,
-        const map<string, string> &_externFunctions,
-        const list<NamedShaderInput> &_specifiedInput)
+        const std::string &_header,
+        const std::map<GLenum, std::string> &_unprocessed,
+        const std::map<std::string, std::string> &_externFunctions,
+        const std::list<NamedShaderInput> &_specifiedInput)
     : header(_header),
       unprocessed(_unprocessed),
       externFunctions(_externFunctions),
@@ -43,13 +42,13 @@ namespace regen {
       specifiedInput(other.specifiedInput)
     {}
     /** Header is prepended to input stream. */
-    const string &header;
+    const std::string &header;
     /** Unprocessed GLSL code. */
-    const map<GLenum, string> &unprocessed;
+    const std::map<GLenum, std::string> &unprocessed;
     /** Extern function definitions. */
-    const map<string, string> &externFunctions;
+    const std::map<std::string, std::string> &externFunctions;
     /** Input data configuration. */
-    const list<NamedShaderInput> &specifiedInput;
+    const std::list<NamedShaderInput> &specifiedInput;
   };
 }
 
@@ -73,7 +72,7 @@ namespace regen {
     /** The minimum GLSL version */
     GLuint version;
     /** Input stream providing unprocessed GLSL code. */
-    stringstream inStream;
+    std::stringstream inStream;
   };
 }
 
@@ -91,7 +90,7 @@ namespace regen {
      * Default Constructor.
      * @param name The processor name.
      */
-    GLSLProcessor(const string &name) : name_(name) {}
+    GLSLProcessor(const std::string &name) : name_(name) {}
     virtual ~GLSLProcessor() {}
 
     /**
@@ -113,7 +112,7 @@ namespace regen {
      * @param line The line output.
      * @return true on success.
      */
-    bool getline(PreProcessorState &state, string &line)
+    bool getline(PreProcessorState &state, std::string &line)
     {
       bool success = process(state,line);
 #ifdef DEBUG_GLSL_PREPROCESSOR
@@ -127,16 +126,16 @@ namespace regen {
      * @param line the line return.
      * @return true on success
      */
-    virtual bool process(PreProcessorState &state, string &line)=0;
+    virtual bool process(PreProcessorState &state, std::string &line)=0;
     /**
      * Clear is called to reset the processor to initial state.
      */
     virtual void clear() {}
   protected:
     ref_ptr<GLSLProcessor> parent_;
-    const string name_;
+    const std::string name_;
 
-    bool getlineParent(PreProcessorState &state, string &line)
+    bool getlineParent(PreProcessorState &state, std::string &line)
     {
       if(parent_.get()) {
         return parent_->getline(state, line);
@@ -158,7 +157,7 @@ namespace regen {
     InputProviderProcessor() : GLSLProcessor("InputProvider") {}
 
     // override
-    bool process(PreProcessorState &state, string &line)
+    bool process(PreProcessorState &state, std::string &line)
     { return std::getline(state.inStream, line); }
   };
 }
@@ -173,7 +172,7 @@ namespace regen {
     WhiteSpaceProcessor() : GLSLProcessor("WhiteSpace") {}
 
     // override
-    bool process(PreProcessorState &state, string &line)
+    bool process(PreProcessorState &state, std::string &line)
     {
       if(!getlineParent(state, line)) return false;
 
@@ -202,20 +201,20 @@ namespace regen {
      * Constructor that fills the stringstream with initial data.
      * @param v the initial string data.
      */
-    StreamProcessor(const string &v) : GLSLProcessor("Stream"), ss_(v) {}
+    StreamProcessor(const std::string &v) : GLSLProcessor("Stream"), ss_(v) {}
 
     /**
      * @return the attached stringstream.
      */
-    stringstream& stream()
+    std::stringstream& stream()
     { return ss_; }
 
     // override
-    bool process(PreProcessorState &state, string &line)
+    bool process(PreProcessorState &state, std::string &line)
     { return std::getline(ss_, line); }
 
   protected:
-    stringstream ss_;
+    std::stringstream ss_;
   };
 }
 

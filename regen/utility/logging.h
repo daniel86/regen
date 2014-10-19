@@ -14,7 +14,6 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-using namespace std;
 #include <regen/config.h>
 
 // Defeat evil windows defines...
@@ -37,7 +36,7 @@ namespace regen {
    * Note: you can provide data separated by '<<' as second argument.
    */
   #define REGEN_LOG(level, ...) {\
-    stringstream ss;\
+    std::stringstream ss;\
     ss << __VA_ARGS__;\
     Logging::log(level, ss.str(), __FILE__, __LINE__);\
   }
@@ -116,7 +115,7 @@ namespace regen {
      * Log a message with a specified logging level.
      */
     static void log(Logging::LogLevel level,
-        const string &message, const char *file, int line);
+        const std::string &message, const char *file, int line);
     /**
      * Add a logger to the logging framework.
      */
@@ -127,7 +126,7 @@ namespace regen {
     static void removeLogger(Logger *logger);
 
   private:
-    static list<Logger*> loggers_[LAST_LEVEL];
+    static std::list<Logger*> loggers_[LAST_LEVEL];
     static Verbosity verbosity_;
   };
 } // namespace
@@ -179,14 +178,14 @@ namespace regen {
     /**
      * Log a message.
      */
-    void log(const string &message,
-        const string file, int line);
+    void log(const std::string &message,
+        const std::string file, int line);
 
     /**
      * Set the format for log messages.
      * You can use the key constants specified in this class.
      */
-    void set_format(const string &format);
+    void set_format(const std::string &format);
 
     /**
      * @return the logger level
@@ -196,32 +195,32 @@ namespace regen {
     /**
      * Sets flags for stream outout.
      */
-    void set_flag(ios_base::fmtflags flags);
+    void set_flag(std::ios_base::fmtflags flags);
     /**
      * Sets flags for stream outout.
      */
-    void set_flag(ios_base::fmtflags flags, ios_base::fmtflags mask);
+    void set_flag(std::ios_base::fmtflags flags, std::ios_base::fmtflags mask);
     /**
      * Sets precision of float values.
      */
-    void set_precisin(streamsize precision);
+    void set_precisin(std::streamsize precision);
     /**
      * Sets width of output.
      */
-    void set_width(streamsize width);
+    void set_width(std::streamsize width);
 
     /**
      * Return the associated stream.
      */
-    virtual ostream& stream() = 0;
+    virtual std::ostream& stream() = 0;
 
   protected:
     Logging::LogLevel level_;
-    ios_base::fmtflags loggerFlags_, originalFlags_;
-    streamsize loggerPrecision_, originalPrecision_;
-    streamsize loggerWidth_, originalWidth_;
+    std::ios_base::fmtflags loggerFlags_, originalFlags_;
+    std::streamsize loggerPrecision_, originalPrecision_;
+    std::streamsize loggerWidth_, originalWidth_;
 
-    string format_;
+    std::string format_;
 
     void updateOS();
   };
@@ -238,13 +237,13 @@ namespace regen {
      * @param mode output file open mode.
      */
     FileLogger(Logging::LogLevel level,
-        const string &path, ios::openmode mode=ios::out);
+        const std::string &path, std::ios::openmode mode=std::ios::out);
     virtual ~FileLogger();
     // override
-    ostream& stream();
+    std::ostream& stream();
 
   protected:
-    ofstream *file_;
+    std::ofstream *file_;
   };
 
   /**
@@ -258,7 +257,7 @@ namespace regen {
     CoutLogger(Logging::LogLevel level);
     virtual ~CoutLogger() {}
     // override
-    ostream& stream();
+    std::ostream& stream();
   };
 
   /**
@@ -272,7 +271,7 @@ namespace regen {
     CerrLogger(Logging::LogLevel level);
     virtual ~CerrLogger() {}
     // override
-    ostream& stream();
+    std::ostream& stream();
   };
 } // namespace
 

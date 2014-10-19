@@ -74,8 +74,8 @@ namespace regen {
     ref_ptr<ShaderInput4f> tan_;
   };
 
-  ostream& operator<<(ostream &out, const Sphere::TexcoMode &mode);
-  istream& operator>>(istream &in, Sphere::TexcoMode &mode);
+  std::ostream& operator<<(std::ostream &out, const Sphere::TexcoMode &mode);
+  std::istream& operator>>(std::istream &in, Sphere::TexcoMode &mode);
 
   /**
    * \brief A sprite that generates sphere normals.

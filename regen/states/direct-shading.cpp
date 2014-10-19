@@ -21,7 +21,7 @@ DirectShading::DirectShading() : State(), idCounter_(0)
   joinShaderInput(ambientLight_);
 }
 
-static string shadowFilterMode(ShadowFilterMode f)
+static std::string shadowFilterMode(ShadowFilterMode f)
 {
   switch(f) {
   case SHADOW_FILTERING_NONE: return "Single";
@@ -40,7 +40,7 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex)
       __NAME__("LIGHT_IS_ATTENUATED",l.id_),
       l.light_->isAttenuated() ? "TRUE" : "FALSE");
 
-  string lightType = "UNKNOWN";
+  std::string lightType = "UNKNOWN";
   switch(l.light_->lightType()) {
   case Light::DIRECTIONAL:
     lightType = "DIRECTIONAL"; break;
@@ -127,7 +127,7 @@ void DirectShading::addLight(
 
 void DirectShading::removeLight(const ref_ptr<Light> &l)
 {
-  list<DirectLight>::iterator it;
+  std::list<DirectLight>::iterator it;
   for(it=lights_.begin(); it!=lights_.end(); ++it)
   {
     ref_ptr<Light> &x = it->light_;
@@ -161,7 +161,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l)
   GLuint numLights = lights_.size(), lightIndex=0;
   // update shader defines
   shaderDefine("NUM_LIGHTS", REGEN_STRING(numLights));
-  for(list<DirectLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
+  for(std::list<DirectLight>::iterator it=lights_.begin(); it!=lights_.end(); ++it)
   {
     updateDefine(*it, lightIndex);
     ++lightIndex;

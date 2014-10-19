@@ -6,7 +6,6 @@
  */
 
 #include <iostream>
-using namespace std;
 
 #include "video-player-widget.h"
 
@@ -37,6 +36,8 @@ extern "C" {
 
 #include <regen/utility/string-util.h>
 #include <regen/animations/animation-manager.h>
+
+using namespace std;
 
 static QString formatTime(GLfloat elapsedSeconds)
 {

@@ -14,7 +14,6 @@
 #include <cmath>
 #include <cassert>
 #include <list>
-using namespace std;
 
 #include <regen/utility/string-util.h>
 #include <regen/math/math.h>
@@ -125,6 +124,19 @@ namespace regen {
     inline void operator/=(const T &b)
     { x/=b; y/=b; }
 
+    /** @return minimum component reference. */
+    inline const T& min() const
+    {
+      if(x<y) return x;
+      else    return y;
+    }
+    /** @return maximum component reference. */
+    inline const T& max() const
+    {
+      if(x>y) return x;
+      else    return y;
+    }
+
     /**
      * @return vector length.
      */
@@ -138,10 +150,10 @@ namespace regen {
   };
 
   // writing vector to output stream
-  template<typename T> ostream& operator<<(ostream& os, const Vec2<T>& v)
+  template<typename T> std::ostream& operator<<(std::ostream& os, const Vec2<T>& v)
   { return os << v.x << "," << v.y; }
   // reading vector from input stream
-  template<typename T> istream& operator>>(istream& in, Vec2<T> &v)
+  template<typename T> std::istream& operator>>(std::istream& in, Vec2<T> &v)
   {
     readValue(in,v.x);
     readValue(in,v.y);
@@ -391,10 +403,10 @@ namespace regen {
   };
 
   // writing vector to output stream
-  template<typename T> ostream& operator<<(ostream& os, const Vec3<T>& v)
+  template<typename T> std::ostream& operator<<(std::ostream& os, const Vec3<T>& v)
   { return os << v.x << "," << v.y << "," << v.z; }
   // reading vector from input stream
-  template<typename T> istream& operator>>(istream& in, Vec3<T> &v)
+  template<typename T> std::istream& operator>>(std::istream& in, Vec3<T> &v)
   {
     readValue(in,v.x);
     readValue(in,v.y);
@@ -565,10 +577,10 @@ namespace regen {
   };
 
   // writing vector to output stream
-  template<typename T> ostream& operator<<(ostream& os, const Vec4<T>& v)
+  template<typename T> std::ostream& operator<<(std::ostream& os, const Vec4<T>& v)
   { return os << v.x << "," << v.y << "," << v.z << "," << v.w; }
   // reading vector from input stream
-  template<typename T> istream& operator>>(istream& in, Vec4<T> &v)
+  template<typename T> std::istream& operator>>(std::istream& in, Vec4<T> &v)
   {
     readValue(in,v.x);
     readValue(in,v.y);

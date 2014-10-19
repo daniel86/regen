@@ -120,16 +120,16 @@ public:
    * @param path the include path
    * @return true on success
    */
-  void addShaderPath(const string &path);
+  void addShaderPath(const std::string &path);
 
   /**
    * @param ext a required extension that will be checked when GL is initialized.
    */
-  void addRequiredExtension(const string &ext);
+  void addRequiredExtension(const std::string &ext);
   /**
    * @param ext an optional extension that will be checked when GL is initialized.
    */
-  void addOptionalExtension(const string &ext);
+  void addOptionalExtension(const std::string &ext);
 
   /**
    * @return the application render tree.
@@ -194,8 +194,8 @@ protected:
   ref_ptr<RootNode> renderTree_;
   RenderState* renderState_;
 
-  list<string> requiredExt_;
-  list<string> optionalExt_;
+  std::list<std::string> requiredExt_;
+  std::list<std::string> optionalExt_;
 
   ref_ptr<ShaderInput2i> windowViewport_;
 

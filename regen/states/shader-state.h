@@ -32,7 +32,7 @@ namespace regen {
      * @param shaderKey the shader include key.
      * @return GL_TRUE on success.
      */
-    GLboolean createShader(const StateConfig &cfg, const string &shaderKey);
+    GLboolean createShader(const StateConfig &cfg, const std::string &shaderKey);
 
     /**
      * @return the shader object.
@@ -51,9 +51,9 @@ namespace regen {
     ref_ptr<Shader> shader_;
 
     void loadStage(
-        const map<string, string> &shaderConfig,
-        const string &effectName,
-        map<GLenum,string> &code,
+        const std::map<std::string, std::string> &shaderConfig,
+        const std::string &effectName,
+        std::map<GLenum,std::string> &code,
         GLenum stage);
   };
 } // namespace
@@ -67,7 +67,7 @@ namespace regen {
     /**
      * @param shaderKey the shader include key
      */
-    HasShader(const string &shaderKey)
+    HasShader(const std::string &shaderKey)
     : shaderKey_(shaderKey)
     { shaderState_ = ref_ptr<ShaderState>::alloc(); }
     virtual ~HasShader() {}
@@ -86,12 +86,12 @@ namespace regen {
     /**
      * @return the shader include key.
      */
-    const string& shaderKey() const
+    const std::string& shaderKey() const
     { return shaderKey_; }
 
   protected:
     ref_ptr<ShaderState> shaderState_;
-    string shaderKey_;
+    std::string shaderKey_;
   };
 } // namespace
 

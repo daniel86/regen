@@ -45,7 +45,7 @@
    the white point. */
 
 struct colourSystem {
-    string name;                    /* Colour system name */
+  std::string name;                    /* Colour system name */
     double xRed, yRed,              /* Red x, y */
            xGreen, yGreen,          /* Green x, y */
            xBlue, yBlue,            /* Blue x, y */

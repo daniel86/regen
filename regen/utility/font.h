@@ -22,7 +22,6 @@ extern "C" {
 #include <vector>
 #include <string>
 #include <map>
-using namespace std;
 
 #include <regen/gl-types/texture.h>
 #include <regen/math/vector.h>
@@ -38,12 +37,12 @@ namespace regen {
     /**
      * \brief A font related error occurred.
      */
-    class Error : public runtime_error {
+    class Error : public std::runtime_error {
     public:
       /**
        * @param msg the error message.
        */
-      Error(const string& msg) : runtime_error(msg) {}
+      Error(const std::string& msg) : std::runtime_error(msg) {}
     };
     /**
      * Defines a glyph face.
@@ -71,7 +70,7 @@ namespace regen {
      * @param size font size, as usual
      * @param dpi dots per inch for font
      */
-    static ref_ptr<Font> get(string filename, GLuint size, GLuint dpi=96);
+    static ref_ptr<Font> get(std::string filename, GLuint size, GLuint dpi=96);
     /**
      * Call when you are done using fonts.
      */
@@ -83,7 +82,7 @@ namespace regen {
      * @param size font size, as usual
      * @param dpi dots per inch for font
      */
-    Font(const string &filename, GLuint size, GLuint dpi=96);
+    Font(const std::string &filename, GLuint size, GLuint dpi=96);
     virtual ~Font();
 
     /**
@@ -105,12 +104,12 @@ namespace regen {
     const FaceData& faceData(GLushort ch) const;
 
   private:
-    typedef map<string, ref_ptr<Font> > FontMap;
+    typedef std::map<std::string, ref_ptr<Font> > FontMap;
     static FT_Library ftlib_;
     static FontMap fonts_;
     static GLboolean isFreetypeInitialized_;
 
-    const string fontPath_;
+    const std::string fontPath_;
     const GLuint size_;
     const GLuint dpi_;
     ref_ptr<Texture2DArray> arrayTexture_;

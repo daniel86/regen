@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <string>
 #include <climits>
-using namespace std;
 
 extern "C" {
   #include <libavformat/avformat.h>
@@ -105,7 +104,7 @@ void VideoTexture::stopDecodingThread()
   decodingThread_.join();
 }
 
-void VideoTexture::set_file(const string &file)
+void VideoTexture::set_file(const std::string &file)
 {
   // exit decoding thread
   stopDecodingThread();
@@ -181,7 +180,7 @@ void VideoTexture::animate(GLdouble animateDT)
       // set timeout interval to time difference to last frame plus a correction
       // value because the last timeout call was not exactly the wanted interval
       GLfloat dt = (*t)-elapsedSeconds_;
-      intervalMili_ = max(0.0f,dt*1000.0f - diff);
+      intervalMili_ = std::max(0.0f,dt*1000.0f - diff);
     }
     else {
       seeked_ = GL_FALSE;

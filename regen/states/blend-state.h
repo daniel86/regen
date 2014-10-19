@@ -104,8 +104,8 @@ namespace regen {
     ref_ptr<State> blendEquation_;
   };
 
-  ostream& operator<<(ostream &out, const BlendMode &v);
-  istream& operator>>(istream &in, BlendMode &v);
+  std::ostream& operator<<(std::ostream &out, const BlendMode &v);
+  std::istream& operator>>(std::istream &in, BlendMode &v);
 
 } // namespace
 

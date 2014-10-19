@@ -35,11 +35,11 @@ protected:
   ref_ptr<Animation> setValueCallback_;
   GLboolean ignoreValueChanges_;
 
-  map<ShaderInput*,byte*> initialValue_;
-  map<ShaderInput*,GLuint> initialValueStamp_;
-  map<ShaderInput*,GLuint> valueStamp_;
+  std::map<ShaderInput*,byte*> initialValue_;
+  std::map<ShaderInput*,GLuint> initialValueStamp_;
+  std::map<ShaderInput*,GLuint> valueStamp_;
 
-  map<QTreeWidgetItem*, ref_ptr<ShaderInput> > inputs_;
+  std::map<QTreeWidgetItem*, ref_ptr<ShaderInput> > inputs_;
 
   bool handleState(
       const ref_ptr<State> &state,

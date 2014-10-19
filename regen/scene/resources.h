@@ -17,7 +17,6 @@
 
 #include <string>
 #include <map>
-using namespace std;
 
 namespace regen {
 namespace scene {
@@ -46,7 +45,7 @@ namespace scene {
      * @param name The resource name.
      * @param resource The resource instance.
      */
-    void putResource(const string &name, const ref_ptr<T> &resource)
+    void putResource(const std::string &name, const ref_ptr<T> &resource)
     { resources_[name] = resource; }
 
     /**
@@ -56,7 +55,7 @@ namespace scene {
      * @param resourceName The name of the resource.
      * @return the resource or null.
      */
-    ref_ptr<T> getResource(SceneParser *parser, const string &resourceName)
+    ref_ptr<T> getResource(SceneParser *parser, const std::string &resourceName)
     {
       if(resources_.count(resourceName)>0) {
         return resources_[resourceName];
@@ -85,8 +84,8 @@ namespace scene {
         SceneParser *parser, SceneInputNode &input) = 0;
 
   protected:
-    map<string, ref_ptr<T> > resources_;
-    string category_;
+    std::map<std::string, ref_ptr<T> > resources_;
+    std::string category_;
   };
 }}
 

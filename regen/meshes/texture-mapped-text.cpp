@@ -46,17 +46,17 @@ void TextureMappedText::set_color(const Vec4f &color)
 void TextureMappedText::set_height(GLfloat height)
 { height_ = height; }
 
-const list<wstring>& TextureMappedText::value() const
+const std::list<std::wstring>& TextureMappedText::value() const
 { return value_; }
 
 void TextureMappedText::set_value(
-    const list<wstring> &value,
+    const std::list<std::wstring> &value,
     Alignment alignment,
     GLfloat maxLineWidth)
 {
   value_ = value;
   numCharacters_ = 0;
-  for(list<wstring>::const_iterator
+  for(std::list<std::wstring>::const_iterator
       it = value.begin(); it != value.end(); ++it)
   {
     numCharacters_ += it->size();
@@ -64,11 +64,11 @@ void TextureMappedText::set_value(
   updateAttributes(alignment, maxLineWidth);
 }
 void TextureMappedText::set_value(
-    const wstring &value,
+    const std::wstring &value,
     Alignment alignment,
     GLfloat maxLineWidth)
 {
-  list<wstring> v;
+  std::list<std::wstring> v;
   boost::split(v, value, boost::is_any_of("\n"));
   set_value(v, alignment, maxLineWidth);
 }
@@ -87,7 +87,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
   translation = Vec3f(0.0,0.0,0.0);
   glyphTranslation = Vec3f(0.0,0.0,0.0);
 
-  for(list<wstring>::iterator
+  for(std::list<std::wstring>::iterator
       it = value_.begin(); it != value_.end(); ++it)
   {
     translation.y -= font_->lineHeight()*height_;
@@ -112,7 +112,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
         // insert the rest after current iterator
         // it cannot be placed in one line with
         // the words before lastSpaceIndex
-        list<wstring>::iterator nextIt = it;
+        std::list<std::wstring>::iterator nextIt = it;
         nextIt++;
         value_.insert(nextIt, it->substr(lastSpaceIndex+1,
                         it->size()-lastSpaceIndex-1));
