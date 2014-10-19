@@ -43,7 +43,7 @@ namespace regen {
      * @param out Set of meshes using the ShaderInputcontainer of this mesh
      *          (meshes created by copy constructor).
      */
-    void getMeshViews(set<Mesh*> &out);
+    void getMeshViews(std::set<Mesh*> &out);
 
     /**
      * Update VAO that is used to render from array data.
@@ -129,11 +129,11 @@ namespace regen {
 
     ref_ptr<VAO> vao_;
 
-    list<ShaderInputLocation> vaoAttributes_;
-    map<GLint,list<ShaderInputLocation>::iterator> vaoLocations_;
+    std::list<ShaderInputLocation> vaoAttributes_;
+    std::map<GLint,std::list<ShaderInputLocation>::iterator> vaoLocations_;
 
     ref_ptr<Shader> meshShader_;
-    map<GLint, ShaderInputLocation> meshUniforms_;
+    std::map<GLint, ShaderInputLocation> meshUniforms_;
 
     GLboolean hasInstances_;
 
@@ -142,7 +142,7 @@ namespace regen {
     GLuint feedbackCount_;
 
     ref_ptr<Mesh> sourceMesh_;
-    set<Mesh*> meshViews_;
+    std::set<Mesh*> meshViews_;
     GLboolean isMeshView_;
 
     Vec3f centerPosition_;
@@ -152,7 +152,7 @@ namespace regen {
     void (ShaderInputContainer::*draw_)(GLenum);
     void updateDrawFunction();
 
-    void addShaderInput(const string &name, const ref_ptr<ShaderInput> &in);
+    void addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in);
   };
   typedef std::vector< ref_ptr<Mesh> > MeshVector;
 } // namespace

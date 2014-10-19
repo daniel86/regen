@@ -27,7 +27,7 @@ void CommentProcessor::clear()
   commentActive_ = false;
 }
 
-bool CommentProcessor::process(PreProcessorState &state, string &line)
+bool CommentProcessor::process(PreProcessorState &state, std::string &line)
 {
   if(!getlineParent(state, line)) return false;
 
@@ -45,11 +45,11 @@ bool CommentProcessor::process(PreProcessorState &state, string &line)
       return true;
     }
   }
-  stringstream lineStream;
+  std::stringstream lineStream;
 
   for ( ; it!=rend; ++it)
   {
-    const string &comment = (*it)[1];
+    const std::string &comment = (*it)[1];
 
     if(commentActive_) {
       if(comment == "*/") {

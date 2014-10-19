@@ -59,9 +59,9 @@ void StateConfigurer::addNode(const StateNode *node)
   addState(node->state().get());
 }
 
-void StateConfigurer::addInput(const string &name, const ref_ptr<ShaderInput> &in, const string &type)
+void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type)
 {
-  map<string, ShaderInputList::iterator>::iterator needle = inputNames_.find(name);
+  std::map<std::string, ShaderInputList::iterator>::iterator needle = inputNames_.find(name);
   if(needle == inputNames_.end()) {
     cfg_.inputs_.push_back(NamedShaderInput(in,name,type));
     ShaderInputList::iterator it = cfg_.inputs_.end();
@@ -99,7 +99,7 @@ void StateConfigurer::addState(const State *s)
   {
     cfg_.feedbackMode_ = x1->feedbackMode();
     cfg_.feedbackStage_ = x1->feedbackStage();
-    for(list< ref_ptr<ShaderInput> >::const_iterator
+    for(std::list< ref_ptr<ShaderInput> >::const_iterator
         it=x1->feedbackAttributes().begin(); it!=x1->feedbackAttributes().end(); ++it)
     {
       cfg_.feedbackAttributes_.push_back((*it)->name());
@@ -127,25 +127,25 @@ void StateConfigurer::addState(const State *s)
     // do not add joined states of sequences
     return;
   }
-  for(list< ref_ptr<State> >::const_iterator
+  for(std::list< ref_ptr<State> >::const_iterator
       it=s->joined().begin(); it!=s->joined().end(); ++it)
   {
     addState(it->get());
   }
 }
 
-void StateConfigurer::addDefines(const map<string,string> &defines)
+void StateConfigurer::addDefines(const std::map<std::string,std::string> &defines)
 {
-  for(map<string,string>::const_iterator it=defines.begin(); it!=defines.end(); ++it)
+  for(std::map<std::string,std::string>::const_iterator it=defines.begin(); it!=defines.end(); ++it)
     define(it->first,it->second);
 }
-void StateConfigurer::addFunctions(const map<string,string> &functions)
+void StateConfigurer::addFunctions(const std::map<std::string,std::string> &functions)
 {
-  for(map<string,string>::const_iterator it=functions.begin(); it!=functions.end(); ++it)
+  for(std::map<std::string,std::string>::const_iterator it=functions.begin(); it!=functions.end(); ++it)
     defineFunction(it->first,it->second);
 }
 
-void StateConfigurer::define(const string &name, const string &value)
+void StateConfigurer::define(const std::string &name, const std::string &value)
 { cfg_.defines_[name] = value; }
-void StateConfigurer::defineFunction(const string &name, const string &value)
+void StateConfigurer::defineFunction(const std::string &name, const std::string &value)
 { cfg_.functions_[name] = value; }

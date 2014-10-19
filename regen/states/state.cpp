@@ -35,14 +35,14 @@ void State::setShaderVersion(GLuint version)
   if(version>shaderVersion_) shaderVersion_=version;
 }
 
-void State::shaderDefine(const string &name, const string &value)
+void State::shaderDefine(const std::string &name, const std::string &value)
 { shaderDefines_[name] = value; }
-const map<string,string>& State::shaderDefines() const
+const std::map<std::string,std::string>& State::shaderDefines() const
 { return shaderDefines_; }
 
-void State::shaderFunction(const string &name, const string &value)
+void State::shaderFunction(const std::string &name, const std::string &value)
 { shaderFunctions_[name] = value; }
-const map<string,string>& State::shaderFunctions() const
+const std::map<std::string,std::string>& State::shaderFunctions() const
 { return shaderFunctions_; }
 
 GLboolean State::isHidden() const
@@ -58,7 +58,7 @@ static void setConstantUniforms_(State *s, GLboolean isConstant)
     for(ShaderInputList::const_iterator it=in.begin(); it!=in.end(); ++it)
     { it->in_->set_isConstant(isConstant); }
   }
-  for(list< ref_ptr<State> >::const_iterator
+  for(std::list< ref_ptr<State> >::const_iterator
       it=s->joined().begin(); it!=s->joined().end(); ++it)
   {
     setConstantUniforms_(it->get(), isConstant);
@@ -69,12 +69,12 @@ void State::setConstantUniforms(GLboolean isConstant)
   setConstantUniforms_(this, isConstant);
 }
 
-const list< ref_ptr<State> >& State::joined() const
+const std::list< ref_ptr<State> >& State::joined() const
 { return joined_; }
 
 void State::enable(RenderState *state)
 {
-  for(list< ref_ptr<State> >::iterator
+  for(std::list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
     if(!(*it)->isHidden()) (*it)->enable(state);
@@ -82,7 +82,7 @@ void State::enable(RenderState *state)
 }
 void State::disable(RenderState *state)
 {
-  for(list< ref_ptr<State> >::reverse_iterator
+  for(std::list< ref_ptr<State> >::reverse_iterator
       it=joined_.rbegin(); it!=joined_.rend(); ++it)
   {
     if(!(*it)->isHidden()) (*it)->disable(state);
@@ -96,7 +96,7 @@ void State::joinStatesFront(const ref_ptr<State> &state)
 
 void State::disjoinStates(const ref_ptr<State> &state)
 {
-  for(list< ref_ptr<State> >::iterator
+  for(std::list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
     if(it->get() == state.get())
@@ -107,7 +107,7 @@ void State::disjoinStates(const ref_ptr<State> &state)
   }
 }
 
-void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name)
+void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const std::string &name)
 {
   HasInput *inState = dynamic_cast<HasInput*>(this);
   if(inputStateBuddy_.get())
@@ -137,12 +137,12 @@ void State::collectShaderInput(ShaderInputList &out)
     out.insert(out.end(), container->inputs().begin(), container->inputs().end());
   }
 
-  for(list< ref_ptr<State> >::iterator
+  for(std::list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   { (*it)->collectShaderInput(out); }
 }
 
-ref_ptr<ShaderInput> State::findShaderInput(const string &name)
+ref_ptr<ShaderInput> State::findShaderInput(const std::string &name)
 {
   ref_ptr<ShaderInput> ret;
 
@@ -157,7 +157,7 @@ ref_ptr<ShaderInput> State::findShaderInput(const string &name)
     }
   }
 
-  for(list< ref_ptr<State> >::const_iterator
+  for(std::list< ref_ptr<State> >::const_iterator
       it=joined().begin(); it!=joined().end(); ++it) {
     ret = (*it)->findShaderInput(name);
     if(ret.get()!=NULL) break;
@@ -182,7 +182,7 @@ const ref_ptr<State>& StateSequence::globalState() const
 void StateSequence::enable(RenderState *state)
 {
   globalState_->enable(state);
-  for(list< ref_ptr<State> >::iterator
+  for(std::list< ref_ptr<State> >::iterator
       it=joined_.begin(); it!=joined_.end(); ++it)
   {
     (*it)->enable(state);

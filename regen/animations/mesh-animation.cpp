@@ -16,7 +16,7 @@ using namespace regen;
 void MeshAnimation::findFrameAfterTick(
     GLdouble tick,
     GLint &frame,
-    vector<KeyFrame> &keys)
+    std::vector<KeyFrame> &keys)
 {
   while(frame < (GLint) (keys.size()-1))
   {
@@ -30,7 +30,7 @@ void MeshAnimation::findFrameAfterTick(
 void MeshAnimation::findFrameBeforeTick(
     GLdouble &tick,
     GLuint &frame,
-    vector<KeyFrame> &keys)
+    std::vector<KeyFrame> &keys)
 {
   for (frame=keys.size()-1; frame>0;)
   {
@@ -43,7 +43,7 @@ void MeshAnimation::findFrameBeforeTick(
 
 MeshAnimation::MeshAnimation(
     const ref_ptr<Mesh> &mesh,
-    list<Interpoation> &interpolations)
+    std::list<Interpoation> &interpolations)
 : Animation(GL_TRUE,GL_FALSE),
   mesh_(mesh),
   meshBufferOffset_(-1),
@@ -60,10 +60,10 @@ MeshAnimation::MeshAnimation(
 {
   const ref_ptr<ShaderInputContainer> &inputContainer = mesh->inputContainer();
   const ShaderInputList &inputs = inputContainer->inputs();
-  map<GLenum,string> shaderNames;
-  map<string,string> shaderConfig;
-  map<string,string> functions;
-  list<string> transformFeedback;
+  std::map<GLenum,std::string> shaderNames;
+  std::map<std::string,std::string> shaderConfig;
+  std::map<std::string,std::string> functions;
+  std::list<std::string> transformFeedback;
 
   hasMeshInterleavedAttributes_ = GL_FALSE;
 
@@ -79,9 +79,9 @@ MeshAnimation::MeshAnimation(
     bufferSize_ += in->inputSize();
     transformFeedback.push_back(in->name());
 
-    string interpolationName = "interpolate_linear";
-    string interpolationKey = "";
-    for(list<Interpoation>::const_iterator
+    std::string interpolationName = "interpolate_linear";
+    std::string interpolationKey = "";
+    for(std::list<Interpoation>::const_iterator
         it=interpolations.begin(); it!=interpolations.end(); ++it)
     {
       if(it->attributeName == in->name()) {
@@ -116,7 +116,7 @@ MeshAnimation::MeshAnimation(
 
   // init interpolation shader
   {
-    map<GLenum,string> preProcessed;
+    std::map<GLenum,std::string> preProcessed;
     Shader::preProcess(preProcessed,
         PreProcessorConfig(330,shaderNames,shaderConfig));
     interpolationShader_ = ref_ptr<Shader>::alloc(preProcessed);
@@ -163,7 +163,7 @@ void MeshAnimation::setTickRange(const Vec2d &forcedTickRange)
   if( forcedTickRange.x < 0.0f || forcedTickRange.y < 0.0f ) {
     tickRange_.x = 0.0;
     tickRange_.y = 0.0;
-    for(vector<MeshAnimation::KeyFrame>::iterator
+    for(std::vector<MeshAnimation::KeyFrame>::iterator
         it=frames_.begin(); it!=frames_.end(); ++it)
     {
       tickRange_.y += it->timeInTicks;
@@ -192,8 +192,8 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame)
 {
   MeshAnimation::KeyFrame& frame = frames_[frameIndex];
 
-  list< ref_ptr<ShaderInput> > atts;
-  for(list<ShaderInputLocation>::iterator
+  std::list< ref_ptr<ShaderInput> > atts;
+  for(std::list<ShaderInputLocation>::iterator
       it=frame.attributes.begin(); it!=frame.attributes.end(); ++it)
   {
     atts.push_back(it->input);
@@ -233,7 +233,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   // so we lookup the offset here.
   const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
   const ShaderInputList &inputs = inputContainer->inputs();
-  list<ContiguousBlock> blocks;
+  std::list<ContiguousBlock> blocks;
 
   if(hasMeshInterleavedAttributes_) {
     meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
@@ -305,7 +305,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     framesChanged = GL_TRUE;
   }
   if(lastFrame!=lastFrame_) {
-    for(list<ShaderInputLocation>::iterator
+    for(std::list<ShaderInputLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
     {
       it->location = interpolationShader_->attributeLocation("next_"+it->input->name());
@@ -319,7 +319,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
     framesChanged = GL_TRUE;
   }
   if(frame!=nextFrame_) {
-    for(list<ShaderInputLocation>::iterator
+    for(std::list<ShaderInputLocation>::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
     {
       it->location = interpolationShader_->attributeLocation("last_"+it->input->name());
@@ -333,11 +333,11 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 
     // setup attributes
     glBindBuffer(GL_ARRAY_BUFFER, frame0.ref->bufferID());
-    for(list<ShaderInputLocation>::iterator
+    for(std::list<ShaderInputLocation>::iterator
         it=frame0.attributes.begin(); it!=frame0.attributes.end(); ++it)
     { it->input->enableAttribute(it->location); }
     glBindBuffer(GL_ARRAY_BUFFER, frame1.ref->bufferID());
-    for(list<ShaderInputLocation>::iterator
+    for(std::list<ShaderInputLocation>::iterator
         it=frame1.attributes.begin(); it!=frame1.attributes.end(); ++it)
     { it->input->enableAttribute(it->location); }
 
@@ -409,7 +409,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
   }
   else {
     GLuint feedbackBufferOffset = 0;
-    for(list<ContiguousBlock>::iterator
+    for(std::list<ContiguousBlock>::iterator
         it=blocks.begin(); it!=blocks.end(); ++it)
     {
       ContiguousBlock &block = *it;
@@ -429,7 +429,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt)
 ////////
 
 void MeshAnimation::addFrame(
-    const list< ref_ptr<ShaderInput> > &attributes,
+    const std::list< ref_ptr<ShaderInput> > &attributes,
     GLdouble timeInTicks)
 {
   const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
@@ -439,7 +439,7 @@ void MeshAnimation::addFrame(
 
   frame.timeInTicks = timeInTicks;
   frame.startTick = 0.0;
-  for(vector<MeshAnimation::KeyFrame>::reverse_iterator it=frames_.rbegin(); it!=frames_.rend(); ++it)
+  for(std::vector<MeshAnimation::KeyFrame>::reverse_iterator it=frames_.rbegin(); it!=frames_.rend(); ++it)
   {
     MeshAnimation::KeyFrame &parentFrame = *it;
     frame.startTick += parentFrame.timeInTicks;
@@ -453,7 +453,7 @@ void MeshAnimation::addFrame(
     if(!in0->isVertexAttribute()) continue;
     ref_ptr<ShaderInput> att;
     // find specified attribute
-    for(list< ref_ptr<ShaderInput> >::const_iterator
+    for(std::list< ref_ptr<ShaderInput> >::const_iterator
         jt=attributes.begin(); jt!=attributes.end(); ++jt)
     {
       const ref_ptr<ShaderInput> &in1 = *jt;
@@ -479,7 +479,7 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
   const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
   const ShaderInputList &inputs = inputContainer->inputs();
 
-  list< ref_ptr<ShaderInput> > meshAttributes;
+  std::list< ref_ptr<ShaderInput> > meshAttributes;
   for(ShaderInputList::const_iterator it=inputs.begin(); it!=inputs.end(); ++it)
   {
     if(!it->in_->isVertexAttribute()) continue;
@@ -488,13 +488,13 @@ void MeshAnimation::addMeshFrame(GLdouble timeInTicks)
   addFrame(meshAttributes, timeInTicks);
 }
 
-ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const string &name)
+ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const std::string &name)
 {
-  for(vector<MeshAnimation::KeyFrame>::reverse_iterator
+  for(std::vector<MeshAnimation::KeyFrame>::reverse_iterator
       it=frames_.rbegin(); it!=frames_.rend(); ++it)
   {
     MeshAnimation::KeyFrame &f = *it;
-    for(list<ShaderInputLocation>::const_iterator
+    for(std::list<ShaderInputLocation>::const_iterator
         jt=f.attributes.begin(); jt!=f.attributes.end(); ++jt)
     {
       const ref_ptr<ShaderInput> &att = jt->input;
@@ -554,7 +554,7 @@ void MeshAnimation::addSphereAttributes(
     sphereNor->setVertex(i, n);
   }
 
-  list< ref_ptr<ShaderInput> > attributes;
+  std::list< ref_ptr<ShaderInput> > attributes;
   attributes.push_back(spherePos);
   attributes.push_back(sphereNor);
   addFrame(attributes, timeInTicks);
@@ -767,7 +767,7 @@ void MeshAnimation::addBoxAttributes(
     // delete component of face direction (-n*0.5f , 0.5f because thats the sphere radius)
     vCopy += -r*(factor*0.5f-h)/h - n*0.5f;
 
-    GLdouble maxDim = max(max(abs(vCopy.x),abs(vCopy.y)),abs(vCopy.z));
+    GLdouble maxDim = std::max(std::max(abs(vCopy.x),abs(vCopy.y)),abs(vCopy.z));
     // we divide by maxDim, so it is not allowed to be zero,
     // this happens for vCopy with only a single component not zero.
     if(maxDim!=0.0f) {
@@ -787,7 +787,7 @@ void MeshAnimation::addBoxAttributes(
     boxNor->setVertex(i, n);
   }
 
-  list< ref_ptr<ShaderInput> > attributes;
+  std::list< ref_ptr<ShaderInput> > attributes;
   attributes.push_back(boxPos);
   attributes.push_back(boxNor);
   addFrame(attributes, timeInTicks);

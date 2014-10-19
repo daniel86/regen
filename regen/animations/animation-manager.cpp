@@ -201,11 +201,11 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt)
   // Set processing flags, so that other threads can wait
   // for the completion of this loop
   glInProgress_ = GL_TRUE;
-  set<Animation*> processed;
+  std::set<Animation*> processed;
   GLboolean animsRemaining = GL_TRUE;
   while(animsRemaining && !pauseFlag_) {
     animsRemaining = GL_FALSE;
-    for(set<Animation*>::iterator
+    for(std::set<Animation*>::iterator
         it=glAnimations_.begin(); it!=glAnimations_.end(); ++it)
     {
       Animation *anim = *it;
@@ -250,10 +250,10 @@ void AnimationManager::run()
 
       animInProgress_ = GL_TRUE;
       GLboolean animsRemaining = GL_TRUE;
-      set<Animation*> processed;
+      std::set<Animation*> processed;
       while(animsRemaining) {
         animsRemaining = GL_FALSE;
-        for(set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
+        for(std::set<Animation*>::iterator it=animations_.begin(); it!=animations_.end(); ++it)
         {
           Animation *anim = *it;
           processed.insert(anim);

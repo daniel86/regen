@@ -14,6 +14,7 @@
 
 #include "shader-input-widget.h"
 using namespace regen;
+using namespace std;
 
 static const string __typeString(GLenum dataType) {
   switch(dataType) {

@@ -15,7 +15,6 @@
 
 #include <map>
 #include <vector>
-using namespace std;
 
 namespace regen {
   /**
@@ -28,12 +27,12 @@ namespace regen {
      * @param name the node name.
      * @param parent the parent node.
      */
-    AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent);
+    AnimationNode(const std::string &name, const ref_ptr<AnimationNode> &parent);
 
     /**
      * @return The node name.
      */
-    const string& name() const;
+    const std::string& name() const;
 
     /**
      * @return The parent node.
@@ -48,7 +47,7 @@ namespace regen {
     /**
      * @return node children.
      */
-    vector< ref_ptr<AnimationNode> >& children();
+    std::vector< ref_ptr<AnimationNode> >& children();
 
     /**
      * Sets the currently active animation channel
@@ -93,7 +92,7 @@ namespace regen {
      * Recursively updates the internal node transformations from the given matrix array.
      * @param transforms transformation matrices.
      */
-    void updateTransforms(const vector<Mat4f> &transforms);
+    void updateTransforms(const std::vector<Mat4f> &transforms);
     /**
      * Concatenates all parent transforms to get the global transform for this node.
      */
@@ -107,10 +106,10 @@ namespace regen {
     ref_ptr<AnimationNode> copy();
 
   protected:
-    string name_;
+    std::string name_;
 
     ref_ptr<AnimationNode> parentNode_;
-    vector< ref_ptr<AnimationNode> > nodeChilds_;
+    std::vector< ref_ptr<AnimationNode> > nodeChilds_;
 
     Mat4f localTransform_;
     Mat4f globalTransform_;
@@ -175,7 +174,7 @@ namespace regen {
        * The name of the node affected by this animation. The node
        * must exist and it must be unique.
        */
-      string nodeName_;
+      std::string nodeName_;
       /**
        * Defines how the animation behaves after the last key was processed.
        * The default value is ANIM_BEHAVIOR_DEFAULT
@@ -188,9 +187,9 @@ namespace regen {
        * (the original transformation matrix of the affected node is used).
        */
       Behavior preState;
-      ref_ptr< vector<KeyFrame3f> > scalingKeys_; /**< Scaling key frames. */
-      ref_ptr< vector<KeyFrame3f> > positionKeys_; /**< Position key frames. */
-      ref_ptr< vector<KeyFrameQuaternion> > rotationKeys_; /**< Rotation key frames. */
+      ref_ptr< std::vector<KeyFrame3f> > scalingKeys_; /**< Scaling key frames. */
+      ref_ptr< std::vector<KeyFrame3f> > positionKeys_; /**< Position key frames. */
+      ref_ptr< std::vector<KeyFrameQuaternion> > rotationKeys_; /**< Rotation key frames. */
     };
 
     /**
@@ -214,8 +213,8 @@ namespace regen {
      * @return the animation index.
      */
     GLint addChannels(
-        const string &animationName,
-        ref_ptr< vector<Channel> > &channels,
+        const std::string &animationName,
+        ref_ptr< std::vector<Channel> > &channels,
         GLdouble duration,
         GLdouble ticksPerSecond
         );
@@ -225,7 +224,7 @@ namespace regen {
      * @param name the animation name.
      * @param tickRange the tick range.
      */
-    void setAnimationActive(const string &name, const Vec2d &tickRange);
+    void setAnimationActive(const std::string &name, const Vec2d &tickRange);
     /**
      * Sets animation tick range.
      * @param index the animation index.
@@ -254,7 +253,7 @@ namespace regen {
      * @param name the node name.
      * @return the node or a null reference.
      */
-    ref_ptr<AnimationNode> findNode(const string &name);
+    ref_ptr<AnimationNode> findNode(const std::string &name);
 
     // override
     void animate(GLdouble dt);
@@ -263,7 +262,7 @@ namespace regen {
     // forward declaration
     struct Data {
       // string identifier for animation
-      string animationName_;
+      std::string animationName_;
       // flag indicating if this animation is active
       GLboolean active_;
       // milliseconds from start of animation
@@ -273,20 +272,20 @@ namespace regen {
       // Duration of the animation in ticks.
       GLdouble duration_;
       // local node transformation
-      vector<Mat4f> transforms_;
+      std::vector<Mat4f> transforms_;
       // remember last frame for interpolation
-      vector<Vec3ui> lastFramePosition_;
-      vector<Vec3ui> startFramePosition_;
-      ref_ptr< vector<NodeAnimation::Channel> > channels_;
+      std::vector<Vec3ui> lastFramePosition_;
+      std::vector<Vec3ui> startFramePosition_;
+      ref_ptr< std::vector<NodeAnimation::Channel> > channels_;
     };
 
     ref_ptr<AnimationNode> rootNode_;
 
     GLint animationIndex_;
-    vector< ref_ptr<NodeAnimation::Data> > animData_;
+    std::vector< ref_ptr<NodeAnimation::Data> > animData_;
 
-    map<string,AnimationNode*> nameToNode_;
-    map<string,GLint> animNameToIndex_;
+    std::map<std::string,AnimationNode*> nameToNode_;
+    std::map<std::string,GLint> animNameToIndex_;
 
     // config for currently active anim
     GLdouble startTick_;
@@ -310,14 +309,14 @@ namespace regen {
         GLdouble timeInTicks,
         GLuint i);
 
-    ref_ptr<AnimationNode> findNode(ref_ptr<AnimationNode> &n, const string &name);
+    ref_ptr<AnimationNode> findNode(ref_ptr<AnimationNode> &n, const std::string &name);
 
     void deallocateAnimationAtIndex(GLint animationIndex);
     void stopNodeAnimation(NodeAnimation::Data &anim);
   };
 
-  ostream& operator<<(ostream &out, const NodeAnimation::Behavior &v);
-  istream& operator>>(istream &in, NodeAnimation::Behavior &v);
+  std::ostream& operator<<(std::ostream &out, const NodeAnimation::Behavior &v);
+  std::istream& operator>>(std::istream &in, NodeAnimation::Behavior &v);
 } // namespace
 
 #endif /* ANIMATION_NODE_H_ */

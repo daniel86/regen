@@ -64,7 +64,7 @@ namespace regen {
       ref_ptr<TextureState> shadowColorMap_;
       ShadowFilterMode shadowFilter_;
     };
-    list<DirectLight> lights_;
+    std::list<DirectLight> lights_;
     ref_ptr<ShaderInput3f> ambientLight_;
 
     void updateDefine(DirectLight &l, GLuint lightIndex);

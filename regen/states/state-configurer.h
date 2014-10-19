@@ -52,24 +52,24 @@ namespace regen {
     /**
      * Adds ShaderInput instance to StateConfig.
      */
-    void addInput(const string &name, const ref_ptr<ShaderInput> &in, const string &type="");
+    void addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type="");
     /**
      * Add each key-value pair from given map to shader defines.
      */
-    void addDefines(const map<string,string> &defines);
+    void addDefines(const std::map<std::string,std::string> &defines);
     /**
      * Add function declarations from given map.
      */
-    void addFunctions(const map<string,string> &functions);
+    void addFunctions(const std::map<std::string,std::string> &functions);
 
     /**
      * Add key-value pair to shader defines.
      */
-    void define(const string &name, const string &value);
+    void define(const std::string &name, const std::string &value);
     /**
      * Add a function declaration.
      */
-    void defineFunction(const string &name, const string &value);
+    void defineFunction(const std::string &name, const std::string &value);
 
     /**
      * @return the shader configuration.
@@ -78,7 +78,7 @@ namespace regen {
 
   protected:
     StateConfig cfg_;
-    map<string,ShaderInputList::iterator> inputNames_;
+    std::map<std::string,ShaderInputList::iterator> inputNames_;
     GLuint numLights_;
   };
 } // namespace

@@ -384,7 +384,7 @@ namespace regen {
       DrawBuffers colorBuffers;
     };
     /** list of color buffers to be cleared. */
-    list<Data> data;
+    std::list<Data> data;
 
     /** @param fbo the framebuffer */
     ClearColorState(const ref_ptr<FBO> &fbo)
@@ -392,7 +392,7 @@ namespace regen {
 
     // override
     void enable(RenderState *rs) {
-      for(list<Data>::iterator it=data.begin(); it!=data.end(); ++it)
+      for(std::list<Data>::iterator it=data.begin(); it!=data.end(); ++it)
       {
         if(!rs->drawFrameBuffer().isLocked()) {
           fbo_->drawBuffers().push(it->colorBuffers);

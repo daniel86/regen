@@ -58,7 +58,7 @@ SphereCulling::SphereCulling(
 : GeometricCulling(camera,mesh,transform)
 {
   // XXX: must be updated when mesh attributes updated!
-  radius_ = max(abs(min_.min()), max_.max());
+  radius_ = Vec2f(abs(min_.min()), max_.max()).max();
 }
 SphereCulling::SphereCulling(
     const ref_ptr<Camera> &camera,

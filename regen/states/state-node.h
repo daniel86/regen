@@ -30,11 +30,11 @@ namespace regen {
     /**
      * @return Node name. Has no semantics.
      */
-    const string &name() const;
+    const std::string &name() const;
     /**
      * @param name Node name. Has no semantics.
      */
-    void set_name(const string &name);
+    void set_name(const std::string &name);
 
     /**
      * Removes all children.
@@ -83,7 +83,7 @@ namespace regen {
     /**
      * @return list of all child nodes.
      */
-    list< ref_ptr<StateNode> >& childs();
+    std::list< ref_ptr<StateNode> >& childs();
 
     ref_ptr<Camera> getParentCamera();
 
@@ -95,9 +95,9 @@ namespace regen {
   protected:
     ref_ptr<State> state_;
     StateNode *parent_;
-    list< ref_ptr<StateNode> > childs_;
+    std::list< ref_ptr<StateNode> > childs_;
     GLboolean isHidden_;
-    string name_;
+    std::string name_;
   };
 } // namespace
 

@@ -9,7 +9,6 @@
 #define TESSELLATION_H_
 
 #include <vector>
-using namespace std;
 
 #include <regen/math/vector.h>
 
@@ -60,7 +59,7 @@ namespace regen {
    * @param inputFaces input triangles.
    * @return tessellated faces.
    */
-  vector<TriangleFace>* tessellate(GLuint lod, vector<TriangleFace> &inputFaces);
+  std::vector<TriangleFace>* tessellate(GLuint lod, std::vector<TriangleFace> &inputFaces);
   /**
    * Tessellation input triangle.
    * Each tessellation step divides each triangle face in
@@ -69,7 +68,7 @@ namespace regen {
    * @param inputFace input triangle.
    * @return tessellated face.
    */
-  vector<TriangleFace>* tessellate(GLuint lod, TriangleFace &inputFace);
+  std::vector<TriangleFace>* tessellate(GLuint lod, TriangleFace &inputFace);
 }
 
 #endif /* TESSELATION_H_ */

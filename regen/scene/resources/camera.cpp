@@ -8,6 +8,7 @@
 #include "camera.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #include <regen/scene/resource-manager.h>
 #include <regen/camera/cube-camera.h>

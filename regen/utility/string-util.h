@@ -11,41 +11,40 @@
 #include <boost/algorithm/string.hpp>
 #include <sstream>
 #include <string>
-using namespace std;
 
 namespace regen {
   /**
    * Formats a string using the << operator.
    */
   #define REGEN_STRING(...)\
-    ( ( dynamic_cast<ostringstream &> (\
-           ostringstream() . seekp( 0, ios_base::cur ) << __VA_ARGS__ )\
+    ( ( dynamic_cast<std::ostringstream &> (\
+    		std::ostringstream() . seekp( 0, std::ios_base::cur ) << __VA_ARGS__ )\
       ) . str() )
 
   /**
    * True if string starts with given prefix.
    */
-  bool hasPrefix(const string &s, const string &prefix);
+  bool hasPrefix(const std::string &s, const std::string &prefix);
   /**
    * Removes given prefix from string.
    */
-  string truncPrefix(const string &s, const string &prefix);
+  std::string truncPrefix(const std::string &s, const std::string &prefix);
 
   /**
    * @param s input string
    * @return true if given string is a int number
    */
-  bool isInteger(const string & s);
+  bool isInteger(const std::string & s);
   /**
    * @param s
    * @return true if given string is a float number
    */
-  bool isFloat(const string & s);
+  bool isFloat(const std::string & s);
   /**
    * @param s input string
    * @return true if given string is a number
    */
-  bool isNumber(const string & s);
+  bool isNumber(const std::string & s);
 
   /**
    * Reads a typed value from the input stream.
@@ -53,13 +52,13 @@ namespace regen {
    * @param in the input stream
    * @param v the value output
    */
-  template<typename T> void readValue(istream& in, T &v, const char separator=',')
+  template<typename T> void readValue(std::istream& in, T &v, const char separator=',')
   {
     if(!in.good()) return;
-    string val;
+    std::string val;
     std::getline(in, val, separator);
     boost::algorithm::trim(val);
-    stringstream ss(val);
+    std::stringstream ss(val);
     ss >> v;
   }
 } // namespace

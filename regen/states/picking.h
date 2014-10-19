@@ -122,8 +122,8 @@ namespace regen {
     GLuint bufferSize_;
     GLuint countQuery_;
 
-    map<GLint,PickMesh> meshes_;
-    map<Mesh*,GLint> meshToID_;
+    std::map<GLint,PickMesh> meshes_;
+    std::map<Mesh*,GLint> meshToID_;
     // object id shader input
     ref_ptr<ShaderInput1i> pickObjectID_;
     // contains last associated id
@@ -139,7 +139,7 @@ namespace regen {
     GLdouble pickInterval_;
 
     // GLSL picker code
-    string pickerCode_;
+    std::string pickerCode_;
     // picker geometry shader handle
     GLuint pickerShader_;
 

@@ -18,7 +18,7 @@
 using namespace regen;
 
 namespace regen {
-  ostream& operator<<(ostream &out, const VBO::Usage &mode)
+  std::ostream& operator<<(std::ostream &out, const VBO::Usage &mode)
   {
     switch(mode) {
     case VBO::USAGE_DYNAMIC:  return out << "DYNAMIC";
@@ -31,9 +31,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, VBO::Usage &mode)
+  std::istream& operator>>(std::istream &in, VBO::Usage &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "DYNAMIC")        mode = VBO::USAGE_DYNAMIC;
@@ -56,11 +56,11 @@ namespace regen {
 VBO::VBOPool* VBO::dataPools_=NULL;
 
 GLuint VBO::attributeSize(
-    const list< ref_ptr<ShaderInput> > &attributes)
+    const std::list< ref_ptr<ShaderInput> > &attributes)
 {
   if(attributes.size()>0) {
     GLuint structSize = 0;
-    for(list< ref_ptr<ShaderInput> >::const_iterator
+    for(std::list< ref_ptr<ShaderInput> >::const_iterator
         it = attributes.begin(); it != attributes.end(); ++it)
     {
       structSize += (*it)->inputSize();
@@ -267,13 +267,13 @@ ref_ptr<VBO::Reference>& VBO::alloc(GLuint numBytes)
 
 ref_ptr<VBO::Reference>& VBO::alloc(const ref_ptr<ShaderInput> &att)
 {
-  list< ref_ptr<ShaderInput> > atts;
+  std::list< ref_ptr<ShaderInput> > atts;
   atts.push_back(att);
   return allocSequential(atts);
 }
 
 ref_ptr<VBO::Reference>& VBO::allocInterleaved(
-    const list< ref_ptr<ShaderInput> > &attributes)
+    const std::list< ref_ptr<ShaderInput> > &attributes)
 {
   GLuint numBytes = attributeSize(attributes);
   ref_ptr<Reference> &ref = createReference(numBytes);
@@ -285,7 +285,7 @@ ref_ptr<VBO::Reference>& VBO::allocInterleaved(
 }
 
 ref_ptr<VBO::Reference>& VBO::allocSequential(
-    const list< ref_ptr<ShaderInput> > &attributes)
+    const std::list< ref_ptr<ShaderInput> > &attributes)
 {
   GLuint numBytes = attributeSize(attributes);
   ref_ptr<Reference> &ref = createReference(numBytes);
@@ -308,14 +308,14 @@ void VBO::free(Reference *ref)
 void VBO::uploadSequential(
     GLuint startByte,
     GLuint endByte,
-    const list< ref_ptr<ShaderInput> > &attributes,
+    const std::list< ref_ptr<ShaderInput> > &attributes,
     ref_ptr<Reference> &ref)
 {
   GLuint bufferSize = endByte-startByte;
   GLuint currOffset = 0;
   byte *data = new byte[bufferSize];
 
-  for(list< ref_ptr<ShaderInput> >::const_iterator
+  for(std::list< ref_ptr<ShaderInput> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
     ShaderInput *att = jt->get();
@@ -342,7 +342,7 @@ void VBO::uploadSequential(
 void VBO::uploadInterleaved(
     GLuint startByte,
     GLuint endByte,
-    const list< ref_ptr<ShaderInput> > &attributes,
+    const std::list< ref_ptr<ShaderInput> > &attributes,
     ref_ptr<Reference> &ref)
 {
   GLuint bufferSize = endByte-startByte;
@@ -352,7 +352,7 @@ void VBO::uploadInterleaved(
   GLuint numVertices = attributes.front()->numVertices();
   byte *data = new byte[bufferSize];
 
-  for(list< ref_ptr<ShaderInput> >::const_iterator
+  for(std::list< ref_ptr<ShaderInput> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
     ShaderInput *att = jt->get();
@@ -367,7 +367,7 @@ void VBO::uploadInterleaved(
   }
 
   currOffset = (currOffset-startByte)*numVertices;
-  for(list< ref_ptr<ShaderInput> >::const_iterator
+  for(std::list< ref_ptr<ShaderInput> >::const_iterator
       jt = attributes.begin(); jt != attributes.end(); ++jt)
   {
     ShaderInput *att = jt->get();
@@ -391,7 +391,7 @@ void VBO::uploadInterleaved(
   GLuint count = 0;
   for(GLuint i=0; i<numVertices; ++i)
   {
-    for(list< ref_ptr<ShaderInput> >::const_iterator
+    for(std::list< ref_ptr<ShaderInput> >::const_iterator
         jt = attributes.begin(); jt != attributes.end(); ++jt)
     {
       ShaderInput *att = jt->get();

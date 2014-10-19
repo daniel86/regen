@@ -19,12 +19,12 @@ namespace regen {
     /**
      * \brief An error occurred loading the Texture.
      */
-    class Error : public runtime_error {
+    class Error : public std::runtime_error {
     public:
       /**
        * @param message the error message.
        */
-      Error(const string &message) : runtime_error(message) {}
+      Error(const std::string &message) : std::runtime_error(message) {}
     };
     /**
      * Load a Texture from file. Guess if it is a Texture2D or Texture3D.
@@ -33,7 +33,7 @@ namespace regen {
      * Setup mipmapping after loading the file.
      */
     ref_ptr<Texture> load(
-        const string &file,
+        const std::string &file,
         GLenum mipmapFlag=GL_DONT_CARE,
         GLenum forcedInternalFormat=GL_NONE,
         GLenum forcedFormat=GL_NONE,
@@ -61,8 +61,8 @@ namespace regen {
      * Setup mipmapping after loading the file.
      */
     ref_ptr<Texture2DArray> loadArray(
-        const string &textureDirectory,
-        const string &textureNamePattern,
+        const std::string &textureDirectory,
+        const std::string &textureNamePattern,
         GLenum mipmapFlag=GL_DONT_CARE,
         GLenum forcedInternalFormat=GL_NONE,
         GLenum forcedFormat=GL_NONE,
@@ -77,7 +77,7 @@ namespace regen {
      * Setup mipmapping after loading the file.
      */
     ref_ptr<TextureCube> loadCube(
-        const string &file,
+        const std::string &file,
         GLboolean flipBackFace=GL_FALSE,
         GLenum mipmapFlag=GL_DONT_CARE,
         GLenum forcedInternalFormat=GL_NONE,
@@ -88,7 +88,7 @@ namespace regen {
      * Loads RAW Texture from file.
      */
     ref_ptr<Texture> loadRAW(
-        const string &path,
+        const std::string &path,
         const Vec3ui &size,
         GLuint numComponents,
         GLuint bytesPerComponent);

@@ -53,8 +53,8 @@ PickingGeom::PickingGeom(
   joinStates(depth);
 
   {
-    map<GLenum,string> unprocessed;
-    map<GLenum,string> processed;
+    std::map<GLenum,std::string> unprocessed;
+    std::map<GLenum,std::string> processed;
     unprocessed[GL_GEOMETRY_SHADER] = "#include regen.picking.gs";
     Shader::preProcess(processed,
         PreProcessorConfig(150,unprocessed),
@@ -113,8 +113,8 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
       , GL_TESS_EVALUATION_SHADER
 #endif
   };
-  map< GLenum, string > shaderCode;
-  map< GLenum, ref_ptr<GLuint> > shaders;
+  std::map< GLenum, std::string > shaderCode;
+  std::map< GLenum, ref_ptr<GLuint> > shaders;
 
   // set picking geometry shader
   shaderCode[GL_GEOMETRY_SHADER] = pickerCode_;
@@ -134,7 +134,7 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
 
   ref_ptr<Shader> pickShader = ref_ptr<Shader>::alloc(shaderCode,shaders);
 
-  list<string> tfNames;
+  std::list<std::string> tfNames;
   tfNames.push_back("pickObjectID");
   tfNames.push_back("pickInstanceID");
   tfNames.push_back("pickDepth");
@@ -146,7 +146,7 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader)
   pickShader->setInput(pickObjectID_);
   pickShader->setInput(mousePosVS_);
   pickShader->setInput(mouseDirVS_);
-  for(map<GLint,ShaderTextureLocation>::const_iterator
+  for(std::map<GLint,ShaderTextureLocation>::const_iterator
       it=shader->textures().begin(); it!=shader->textures().end(); ++it)
   { pickShader->setTexture(it->second.tex, it->second.name); }
 
@@ -173,7 +173,7 @@ GLboolean PickingGeom::add(
     stateCfg.addState(meshState.get());
     pickMesh.state_->joinStates(meshState);
   }
-  for(list< ref_ptr<State> >::const_iterator
+  for(std::list< ref_ptr<State> >::const_iterator
       it=mesh->joined().begin(); it!=mesh->joined().end(); ++it)
   {
     if(dynamic_cast<ShaderState*>(it->get()))
@@ -262,7 +262,7 @@ void PickingGeom::update(RenderState *rs)
 
   State::enable(rs);
 
-  for(map<GLint,PickMesh>::iterator
+  for(std::map<GLint,PickMesh>::iterator
       it=meshes_.begin(); it!=meshes_.end(); ++it)
   {
     PickMesh &m = it->second;
@@ -310,7 +310,7 @@ void PickingGeom::update(RenderState *rs)
     }
   }
   else {
-    map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
+    std::map<GLint,PickMesh>::iterator it = meshes_.find(picked.objectID);
     if(it==meshes_.end())
     {
       REGEN_ERROR("Invalid pick object ID " << picked.objectID <<

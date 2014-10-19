@@ -110,7 +110,7 @@ const ref_ptr<Rectangle>& Sky::skyQuad() const {
 
 std::string Sky::date() const {
   const time_t t = timef_->gett();
-  string dateStr(ctime(&t));
+  std::string dateStr(ctime(&t));
   return dateStr.substr(0, dateStr.size()-1);
 }
 
@@ -129,7 +129,7 @@ void Sky::set_time(const time_t &time)
 void Sky::set_timestamp(double seconds)
 { set_time(static_cast<time_t>(seconds)); }
 
-void Sky::set_date(const string &date) {
+void Sky::set_date(const std::string &date) {
   struct tm tm;
   if (strptime(date.c_str(), "%d-%m-%Y %H:%M:%S", &tm)) {
     set_time(mktime(&tm));

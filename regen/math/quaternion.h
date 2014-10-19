@@ -39,7 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define QUATERNION_H_
 
 #include <map>
-using namespace std;
 
 #include <regen/math/matrix.h>
 
@@ -65,7 +64,7 @@ namespace regen {
      * @param os output stream.
      * @return string representation.
      */
-    ostream& operator<<(ostream& os)
+    std::ostream& operator<<(std::ostream& os)
     {
       return os << w << " " << x << " " << y << " " << z;
     }

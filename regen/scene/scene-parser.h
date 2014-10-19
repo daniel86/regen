@@ -26,7 +26,7 @@
 namespace regen {
 namespace scene {
 #ifndef MeshVector
-  typedef vector< ref_ptr<Mesh> > MeshVector;
+  typedef std::vector< ref_ptr<Mesh> > MeshVector;
 #endif
   // forward declaration due to circular dependency.
   class ResourceManager;
@@ -47,10 +47,10 @@ namespace scene {
      * @param n The range name.
      * @param r The range value.
      */
-    AnimRange(const string &n, const Vec2d &r)
+    AnimRange(const std::string &n, const Vec2d &r)
     : name(n), range(r) {}
     /** The range name. */
-    string name;
+    std::string name;
     /** The range value. */
     Vec2d range;
   };
@@ -61,7 +61,7 @@ namespace scene {
    * @param relPath Relative path.
    * @return Absolute path.
    */
-  string getResourcePath(const string &relPath);
+  std::string getResourcePath(const std::string &relPath);
 
   /**
    * Allows processing of input resources.
@@ -117,7 +117,7 @@ namespace scene {
      * Note: Event handlers are not automatically removed.
      * @return list of event handlers used by resources and nodes.
      */
-    const list< ref_ptr<EventHandler> > getEventHandler() const;
+    const std::list< ref_ptr<EventHandler> > getEventHandler() const;
 
     /**
      * Node processors may create physical objects in the physics engine.
@@ -138,8 +138,8 @@ namespace scene {
      */
     void processNode(
         const ref_ptr<StateNode> &parent,
-        const string &nodeName="root",
-        const string &nodeCategory="node");
+        const std::string &nodeName="root",
+        const std::string &nodeCategory="node");
     /**
      * Process input node with given category and name.
      * Only State processors considered.
@@ -149,8 +149,8 @@ namespace scene {
      */
     void processState(
         const ref_ptr<State> &parent,
-        const string &nodeName,
-        const string &nodeCategory);
+        const std::string &nodeName,
+        const std::string &nodeCategory);
 
     /**
      * @param x The StateNode processor to use.
@@ -164,28 +164,28 @@ namespace scene {
     /**
      * @return Category-StateNode processor map.
      */
-    const map<string, ref_ptr<NodeProcessor> >& nodeProcessors() const;
+    const std::map<std::string, ref_ptr<NodeProcessor> >& nodeProcessors() const;
     /**
      * @return Category-State processor map.
      */
-    const map<string, ref_ptr<StateProcessor> >& stateProcessors() const;
+    const std::map<std::string, ref_ptr<StateProcessor> >& stateProcessors() const;
 
     /**
      * @param category The processor category.
      * @return A StateNode processor or a null reference.
      */
-    ref_ptr<NodeProcessor> getNodeProcessor(const string &category);
+    ref_ptr<NodeProcessor> getNodeProcessor(const std::string &category);
     /**
      * @param category The processor category.
      * @return A State processor or a null reference.
      */
-    ref_ptr<StateProcessor> getStateProcessor(const string &category);
+    ref_ptr<StateProcessor> getStateProcessor(const std::string &category);
 
     /**
      * @param assetID the AssetImporter resource id.
      * @return Animation ranges associated to asset.
      */
-    vector<AnimRange> getAnimationRanges(const std::string &assetID);
+    std::vector<AnimRange> getAnimationRanges(const std::string &assetID);
 
     /**
      * @param id The StateNode ID.
@@ -211,14 +211,14 @@ namespace scene {
 
   protected:
     Application *application_;
-    list< ref_ptr<EventHandler> > eventHandler_;
+    std::list< ref_ptr<EventHandler> > eventHandler_;
 
     ref_ptr<SceneInput> inputProvider_;
-    map<string, ref_ptr<NodeProcessor> > nodeProcessors_;
-    map<string, ref_ptr<StateProcessor> > stateProcessors_;
+    std::map<std::string, ref_ptr<NodeProcessor> > nodeProcessors_;
+    std::map<std::string, ref_ptr<StateProcessor> > stateProcessors_;
     ref_ptr<ResourceManager> resources_;
-    std::map< string, ref_ptr<StateNode> > nodes_;
-    std::map< string, ref_ptr<State> > states_;
+    std::map< std::string, ref_ptr<StateNode> > nodes_;
+    std::map< std::string, ref_ptr<State> > states_;
     ref_ptr<BulletPhysics> physics_;
 
     void init();

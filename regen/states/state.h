@@ -70,11 +70,11 @@ namespace regen {
     /**
      * Macro key-value map. Macros are prepended to loaded shaders.
      */
-    map<string,string> defines_;
+    std::map<std::string,std::string> defines_;
     /**
      * User defined GLSL functions for the shader.
      */
-    map<string,string> functions_;
+    std::map<std::string,std::string> functions_;
     /**
      * Specified shader input data.
      */
@@ -82,11 +82,11 @@ namespace regen {
     /**
      * Specified shader textures.
      */
-    map<string, ref_ptr<Texture> > textures_;
+    std::map<std::string, ref_ptr<Texture> > textures_;
     /**
      * List of attribute names to capture using transform feedback.
      */
-    list<string> feedbackAttributes_;
+    std::list<std::string> feedbackAttributes_;
     /**
      * Interleaved or separate ?
      */
@@ -131,7 +131,7 @@ namespace regen {
     /**
      * @return joined states.
      */
-    const list< ref_ptr<State> >& joined() const;
+    const std::list< ref_ptr<State> >& joined() const;
 
     /**
      * Add a state to the end of the list of joined states.
@@ -148,7 +148,7 @@ namespace regen {
      * @param in the shader input data.
      * @param name optional name overwrite.
      */
-    void joinShaderInput(const ref_ptr<ShaderInput> &in, const string &name="");
+    void joinShaderInput(const ref_ptr<ShaderInput> &in, const std::string &name="");
     /**
      * Remove a state from the list of joined states.
      * @param state a previously joined state.
@@ -170,29 +170,29 @@ namespace regen {
      * @param name ShaderInput name.
      * @return The ShaderInput if any or a null reference if not found.
      */
-    ref_ptr<ShaderInput> findShaderInput(const string &name);
+    ref_ptr<ShaderInput> findShaderInput(const std::string &name);
 
     /**
      * Defines a GLSL macro.
      * @param name the macro key.
      * @param value the macro value.
      */
-    void shaderDefine(const string &name, const string &value);
+    void shaderDefine(const std::string &name, const std::string &value);
     /**
      * @return GLSL macros.
      */
-    const map<string,string>& shaderDefines() const;
+    const std::map<std::string,std::string>& shaderDefines() const;
 
     /**
      * Adds a GLSL function to generated shaders.
      * @param name the function name.
      * @param value the GLSL code.
      */
-    void shaderFunction(const string &name, const string &value);
+    void shaderFunction(const std::string &name, const std::string &value);
     /**
      * @return GLSL functions.
      */
-    const map<string,string>& shaderFunctions() const;
+    const std::map<std::string,std::string>& shaderFunctions() const;
 
     /**
      * @return the minimum GLSL version.
@@ -221,10 +221,10 @@ namespace regen {
     virtual void disable(RenderState *rs);
 
   protected:
-    map<string,string> shaderDefines_;
-    map<string,string> shaderFunctions_;
+    std::map<std::string,std::string> shaderDefines_;
+    std::map<std::string,std::string> shaderFunctions_;
 
-    list< ref_ptr<State> > joined_;
+    std::list< ref_ptr<State> > joined_;
     ref_ptr<HasInput> inputStateBuddy_;
     GLboolean isHidden_;
     GLuint shaderVersion_;

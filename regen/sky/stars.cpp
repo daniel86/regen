@@ -73,7 +73,7 @@ Stars::Stars(const ref_ptr<Sky> &sky)
 #define _rightasc(deg, min, sec) \
     (_rad(_rightascd(deg, min, sec)))
 
-void Stars::set_brightStarsFile(const string &brightStars)
+void Stars::set_brightStarsFile(const std::string &brightStars)
 {
   osgHimmel::BrightStars bs(brightStars.c_str());
   const osgHimmel::BrightStars::s_BrightStar *stars = bs.stars();

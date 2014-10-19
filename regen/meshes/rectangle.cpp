@@ -69,14 +69,14 @@ Rectangle::Config::Config()
 
 void Rectangle::updateAttributes(Config cfg)
 {
-  vector<TriangleFace> *faces; {
+  std::vector<TriangleFace> *faces; {
     TriangleVertex level0[4];
     level0[0] = TriangleVertex(Vec3f(0.0,0.0,0.0),0);
     level0[1] = TriangleVertex(Vec3f(1.0,0.0,0.0),1);
     level0[2] = TriangleVertex(Vec3f(1.0,0.0,1.0),2);
     level0[3] = TriangleVertex(Vec3f(0.0,0.0,1.0),3);
 
-    vector<TriangleFace> facesLevel0(2);
+    std::vector<TriangleFace> facesLevel0(2);
     facesLevel0[0] = TriangleFace( level0[0], level0[1], level0[3] );
     facesLevel0[1] = TriangleFace( level0[1], level0[2], level0[3] );
     faces = tessellate(cfg.levelOfDetail, facesLevel0);
@@ -85,8 +85,8 @@ void Rectangle::updateAttributes(Config cfg)
   GLboolean useIndexBuffer = (cfg.levelOfDetail>1);
 
   GLuint numVertices;
-  map<GLuint,GLuint> indexMap;
-  set<GLuint> processedIndices;
+  std::map<GLuint,GLuint> indexMap;
+  std::set<GLuint> processedIndices;
 
   ref_ptr<ShaderInput1ui> indices;
   if(useIndexBuffer) {

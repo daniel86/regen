@@ -46,19 +46,19 @@ namespace regen {
     /**
      * @return text as list of lines.
      */
-    const list<wstring>& value() const;
+    const std::list<std::wstring>& value() const;
     /**
      * Sets the text to be displayed.
      */
     void set_value(
-        const wstring &value,
+        const std::wstring &value,
         Alignment alignment=ALIGNMENT_LEFT,
         GLfloat maxLineWidth=0.0f);
     /**
      * Sets the text to be displayed.
      */
     void set_value(
-        const list<wstring> &lines,
+        const std::list<std::wstring> &lines,
         Alignment alignment=ALIGNMENT_LEFT,
         GLfloat maxLineWidth=0.0f);
 
@@ -69,7 +69,7 @@ namespace regen {
 
   protected:
     ref_ptr<Font> font_;
-    list<wstring> value_;
+    std::list<std::wstring> value_;
     GLfloat height_;
     GLuint numCharacters_;
 

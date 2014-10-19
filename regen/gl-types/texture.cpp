@@ -114,9 +114,9 @@ Texture::~Texture()
 GLint Texture::channel() const
 { return getVertex(0); }
 
-const string& Texture::samplerType() const
+const std::string& Texture::samplerType() const
 { return samplerType_; }
-void Texture::set_samplerType(const string &samplerType)
+void Texture::set_samplerType(const std::string &samplerType)
 { samplerType_ = samplerType; }
 
 GLuint Texture::numComponents() const

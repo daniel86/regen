@@ -23,7 +23,7 @@ namespace regen {
     /**
      * @param shaderKey the key will be imported when createShader is called.
      */
-    FullscreenPass(const string &shaderKey) : State(), HasShader(shaderKey)
+    FullscreenPass(const std::string &shaderKey) : State(), HasShader(shaderKey)
     {
       fullscreenMesh_ = Rectangle::getUnitQuad();
       joinStates(shaderState_);

@@ -70,16 +70,16 @@ namespace regen {
      * @param name name of an attribute.
      * @return true if there is a feedback attribute with given name.
      */
-    GLboolean hasFeedback(const string &name) const;
+    GLboolean hasFeedback(const std::string &name) const;
     /**
      * @param name feedback name
      * @return previously added feedback attribute.
      */
-    ref_ptr<ShaderInput> getFeedback(const string &name);
+    ref_ptr<ShaderInput> getFeedback(const std::string &name);
     /**
      * @return list of captured attributes.
      */
-    const list< ref_ptr<ShaderInput> >& feedbackAttributes() const;
+    const std::list< ref_ptr<ShaderInput> >& feedbackAttributes() const;
     /**
      * @return VBO containing the last feedback data.
      */
@@ -95,7 +95,7 @@ namespace regen {
     void disable(RenderState *rs);
 
   protected:
-    typedef list< ref_ptr<ShaderInput> > FeedbackList;
+    typedef std::list< ref_ptr<ShaderInput> > FeedbackList;
 
     GLenum feedbackPrimitive_;
     GLenum feedbackMode_;
@@ -109,7 +109,7 @@ namespace regen {
     FeedbackList feedbackAttributes_;
     VBOReference vboRef_;
 
-    map<string, FeedbackList::iterator> feedbackAttributeMap_;
+    std::map<std::string, FeedbackList::iterator> feedbackAttributeMap_;
 
     void (FeedbackState::*enable_)(RenderState *rs);
     void enableInterleaved(RenderState *rs);

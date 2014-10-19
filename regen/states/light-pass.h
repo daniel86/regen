@@ -24,7 +24,7 @@ namespace regen {
      * @param type the light type.
      * @param shaderKey the shader key to include.
      */
-    LightPass(Light::Type type, const string &shaderKey);
+    LightPass(Light::Type type, const std::string &shaderKey);
     /**
      * @param cfg the shader configuration.
      */
@@ -43,7 +43,7 @@ namespace regen {
         const ref_ptr<LightCamera> &lightCamera,
         const ref_ptr<Texture> &shadowTexture,
         const ref_ptr<Texture> &shadowColorTexture,
-        const list< ref_ptr<ShaderInput> > &inputs);
+        const std::list< ref_ptr<ShaderInput> > &inputs);
     /**
      * @param l a previously added light.
      */
@@ -72,18 +72,18 @@ namespace regen {
       ref_ptr<LightCamera> camera;
       ref_ptr<Texture> shadow;
       ref_ptr<Texture> shadowColor;
-      list< ref_ptr<ShaderInput> > inputs;
-      list< ShaderInputLocation > inputLocations;
+      std::list< ref_ptr<ShaderInput> > inputs;
+      std::list< ShaderInputLocation > inputLocations;
     };
 
     Light::Type lightType_;
-    const string shaderKey_;
+    const std::string shaderKey_;
 
     ref_ptr<Mesh> mesh_;
     ref_ptr<ShaderState> shader_;
 
-    list<LightPassLight> lights_;
-    map< Light*, list<LightPassLight>::iterator > lightIterators_;
+    std::list<LightPassLight> lights_;
+    std::map< Light*, std::list<LightPassLight>::iterator > lightIterators_;
 
     GLint shadowMapLoc_;
     GLint shadowColorLoc_;
@@ -91,7 +91,7 @@ namespace regen {
     GLuint numShadowLayer_;
 
     void addInputLocation(LightPassLight &l,
-        const ref_ptr<ShaderInput> &in, const string &name);
+        const ref_ptr<ShaderInput> &in, const std::string &name);
     void addLightInput(LightPassLight &light);
   };
 } // namespace

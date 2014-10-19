@@ -21,10 +21,10 @@
 using namespace regen;
 
 struct ViewNode {
-  string name;
+  std::string name;
   ref_ptr<StateNode> node;
 };
-typedef list<ViewNode> ViewNodeList;
+typedef std::list<ViewNode> ViewNodeList;
 
 class SceneDisplayWidget : public QMainWindow
 {
@@ -57,16 +57,16 @@ protected:
   QDialog *inputDialog_;
   ShaderInputWidget *inputWidget_;
   QtApplication *app_;
-  list< ref_ptr<EventHandler> > eventHandler_;
+  std::list< ref_ptr<EventHandler> > eventHandler_;
   ref_ptr<BulletPhysics> physics_;
-  vector< ref_ptr<NodeAnimation> > nodeAnimations_;
+  std::vector< ref_ptr<NodeAnimation> > nodeAnimations_;
   Ui_sceneViewer ui_;
-  string activeFile_;
+  std::string activeFile_;
   ViewNodeList viewNodes_;
   ViewNodeList::iterator activeView_;
 
-  void loadScene(const string &sceneFile);
-  void loadSceneGraphicsThread(const string &sceneFile);
+  void loadScene(const std::string &sceneFile);
+  void loadSceneGraphicsThread(const std::string &sceneFile);
   void resizeEvent(QResizeEvent *event);
 
   friend class SceneLoaderAnimation;

@@ -100,7 +100,7 @@ namespace regen {
   private:
     GLenum fillMode_;
 
-    vector< ref_ptr<Texture> > textures_;
+    std::vector< ref_ptr<Texture> > textures_;
     ref_ptr<ShaderInput3f> materialDiffuse_;
     ref_ptr<ShaderInput3f> materialAmbient_;
     ref_ptr<ShaderInput3f> materialSpecular_;

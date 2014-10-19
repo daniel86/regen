@@ -30,7 +30,7 @@ namespace regen {
     /**
      * Pre-process the specified input.
      */
-    map<GLenum,string> processStages(const PreProcessorInput &in);
+    std::map<GLenum,std::string> processStages(const PreProcessorInput &in);
 
   protected:
     ref_ptr<GLSLProcessor> lastProcessor_;

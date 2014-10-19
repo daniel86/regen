@@ -7,6 +7,7 @@
 
 #include "string-util.h"
 using namespace regen;
+using namespace std;
 
 bool regen::hasPrefix(const string &s, const string &prefix)
 {

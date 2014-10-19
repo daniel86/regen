@@ -9,7 +9,6 @@
 #define __XML_H_
 
 #include <stdexcept>
-using namespace std;
 
 #include <regen/external/rapidxml/rapidxml.hpp>
 #include <regen/external/rapidxml/rapidxml_utils.hpp>
@@ -22,12 +21,12 @@ namespace regen {
     /**
      * \brief A font related error occurred.
      */
-    class Error : public runtime_error {
+    class Error : public std::runtime_error {
     public:
       /**
        * @param msg the error message.
        */
-      Error(const string& msg) : runtime_error(msg) {}
+      Error(const std::string& msg) : std::runtime_error(msg) {}
     };
 
     /**
@@ -44,7 +43,7 @@ namespace regen {
      * @param name the node name.
      * @return the XML node
      */
-    rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *n, const string &name);
+    rapidxml::xml_node<>* loadNode(rapidxml::xml_node<> *n, const std::string &name);
 
     /**
      * Load XML attribute.
@@ -53,7 +52,7 @@ namespace regen {
      * @param name the attribute name.
      * @return the XML attribute
      */
-    rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *n, const string &name);
+    rapidxml::xml_attribute<>* loadAttribute(rapidxml::xml_node<> *n, const std::string &name);
 
     /**
      * Load XML attribute. Also look at parent nodes for the attribute.
@@ -62,7 +61,7 @@ namespace regen {
      * @param name the attribute name.
      * @return the XML attribute or NULL
      */
-    rapidxml::xml_attribute<>* findAttribute(rapidxml::xml_node<> *n, const string &name);
+    rapidxml::xml_attribute<>* findAttribute(rapidxml::xml_node<> *n, const std::string &name);
 
     /**
      * Read attribute value and return in requested type.
@@ -72,7 +71,7 @@ namespace regen {
      * @return the attribute value.
      */
     template<typename T>
-    T readAttribute(rapidxml::xml_node<> *n, const string &name)
+    T readAttribute(rapidxml::xml_node<> *n, const std::string &name)
     {
       rapidxml::xml_attribute<> *att = findAttribute(n,name);
       if(att==NULL) {
@@ -80,7 +79,7 @@ namespace regen {
       }
 
       T attValue;
-      stringstream ss(att->value());
+      std::stringstream ss(att->value());
       ss >> attValue;
       return attValue;
     }
@@ -93,13 +92,13 @@ namespace regen {
      * @return the attribute value.
      */
     template<typename T>
-    T readAttribute(rapidxml::xml_node<> *n, const string &name, const T &defaultValue)
+    T readAttribute(rapidxml::xml_node<> *n, const std::string &name, const T &defaultValue)
     {
       rapidxml::xml_attribute<> *att = findAttribute(n,name);
       if(att==NULL) return defaultValue;
 
       T attValue;
-      stringstream ss(att->value());
+      std::stringstream ss(att->value());
       ss >> attValue;
       return attValue;
     }

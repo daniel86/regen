@@ -10,7 +10,7 @@
 #include "blend-state.h"
 namespace regen {
 
-ostream& operator<<(ostream &out, const BlendMode &mode)
+std::ostream& operator<<(std::ostream &out, const BlendMode &mode)
 {
   switch(mode) {
   case BLEND_MODE_FRONT_TO_BACK:
@@ -42,9 +42,9 @@ ostream& operator<<(ostream &out, const BlendMode &mode)
   }
   return out;
 }
-istream& operator>>(istream &in, BlendMode &mode)
+std::istream& operator>>(std::istream &in, BlendMode &mode)
 {
-  string val;
+  std::string val;
   in >> val;
   boost::to_lower(val);
   if(val == "src")              mode = BLEND_MODE_SRC;

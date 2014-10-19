@@ -18,7 +18,7 @@ namespace regen {
   public:
     StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail=4);
 
-    void set_texture(const string &textureFile);
+    void set_texture(const std::string &textureFile);
 
     void set_apparentMagnitude(GLdouble apparentMagnitude);
 

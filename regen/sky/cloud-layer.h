@@ -61,6 +61,10 @@ namespace regen {
 
     const ref_ptr<ShaderInput3f>& topColor() const;
 
+    const ref_ptr<Texture2D>& cloudTexture() const;
+
+    const ref_ptr<FBO>& cloudTextureFBO() const;
+
     const float defaultAltitudeHigh();
 
     const float defaultAltitudeLow();

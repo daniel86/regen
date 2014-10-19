@@ -9,7 +9,6 @@
 #define SHADER_INPUT_H_
 
 #include <string>
-using namespace std;
 
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/gl-enum.h>
@@ -73,7 +72,7 @@ namespace regen {
      * @return the created ShaderInput.
      */
     static ref_ptr<ShaderInput> create(
-        const string &name, GLenum dataType, GLuint valsPerElement);
+        const std::string &name, GLenum dataType, GLuint valsPerElement);
     /**
      * Copy ShaderInput instance.
      * VBO reference is not copied.
@@ -92,7 +91,7 @@ namespace regen {
      * @param normalize Specifies whether fixed-point data values should be normalized.
      */
     ShaderInput(
-        const string &name,
+        const std::string &name,
         GLenum dataType,
         GLuint dataTypeBytes,
         GLuint valsPerElement,
@@ -103,11 +102,11 @@ namespace regen {
     /**
      * Read ShaderInput.
      */
-    virtual istream& operator<<(istream &in) = 0;
+    virtual std::istream& operator<<(std::istream &in) = 0;
     /**
      * Write ShaderInput.
      */
-    virtual ostream& operator>>(ostream &out) const = 0;
+    virtual std::ostream& operator>>(std::ostream &out) const = 0;
 
     /**
      * no call to glUniform when inactive.
@@ -132,11 +131,11 @@ namespace regen {
     /**
      * Name of this attribute used in shader programs.
      */
-    const string& name() const;
+    const std::string& name() const;
     /**
      * Name of this attribute used in shader programs.
      */
-    void set_name(const string &s);
+    void set_name(const std::string &s);
 
     /**
      * Specifies the data type of each component in the array.
@@ -473,7 +472,7 @@ namespace regen {
     void enableAttributeMat2(GLint location) const;
 
   protected:
-    string name_;
+    std::string name_;
     GLenum dataType_;
     GLuint dataTypeBytes_;
     GLuint stride_;
@@ -518,8 +517,8 @@ namespace regen {
      * @param type the type overwrite.
      */
     NamedShaderInput(ref_ptr<ShaderInput> in,
-        const string &name="",
-        const string &type="")
+        const std::string &name="",
+        const std::string &type="")
     : in_(in), name_(name), type_(type)
     {
       if(name_.empty()) {
@@ -532,16 +531,16 @@ namespace regen {
     /** the shader input data. */
     ref_ptr<ShaderInput> in_;
     /** the name overwrite. */
-    string name_;
+    std::string name_;
     /** the type overwrite. */
-    string type_;
+    std::string type_;
   };
 
   /**
    * ShaderInput container.
    */
-  typedef list<NamedShaderInput> ShaderInputList;
-  typedef list< ref_ptr<ShaderInput> >::const_iterator AttributeIteratorConst;
+  typedef std::list<NamedShaderInput> ShaderInputList;
+  typedef std::list< ref_ptr<ShaderInput> >::const_iterator AttributeIteratorConst;
 
   /**
    * \brief Provides typed input to shader programs.
@@ -558,7 +557,7 @@ namespace regen {
      * @param normalize Specifies whether fixed-point data values should be normalized.
      */
     ShaderInputTyped(
-        const string &name,
+        const std::string &name,
         GLuint elementCount,
         GLboolean normalize)
     : ShaderInput(name,
@@ -570,7 +569,7 @@ namespace regen {
     /**
      * Read ShaderInput.
      */
-    virtual istream& operator<<(istream &in)
+    virtual std::istream& operator<<(std::istream &in)
     {
       ValueType value;
       in >> value;
@@ -580,7 +579,7 @@ namespace regen {
     /**
      * Write ShaderInput.
      */
-    virtual ostream& operator>>(ostream &out) const
+    virtual std::ostream& operator>>(std::ostream &out) const
     { return out << *((ValueType*)data_); }
 
     /**
@@ -634,7 +633,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput1f(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -650,7 +649,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput2f(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -666,7 +665,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput3f(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -682,7 +681,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput4f(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -699,7 +698,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInputMat3(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -715,7 +714,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInputMat4(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -732,7 +731,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput1d(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -748,7 +747,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput2d(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -764,7 +763,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput3d(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -780,7 +779,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput4d(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -797,7 +796,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput1i(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -813,7 +812,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput2i(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -829,7 +828,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput3i(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -845,7 +844,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput4i(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -862,7 +861,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput1ui(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -878,7 +877,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput2ui(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -894,7 +893,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput3ui(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };
@@ -910,7 +909,7 @@ namespace regen {
      * @param normalize should the input be normalized ?
      */
     ShaderInput4ui(
-        const string &name,
+        const std::string &name,
         GLuint elementCount=1,
         GLboolean normalize=GL_FALSE);
   };

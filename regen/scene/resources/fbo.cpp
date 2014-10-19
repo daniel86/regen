@@ -9,6 +9,7 @@
 #include "texture.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #include <regen/gl-types/gl-enum.h>
 #include <regen/scene/resources/texture.h>

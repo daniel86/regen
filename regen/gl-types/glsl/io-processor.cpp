@@ -13,6 +13,7 @@
 #include <regen/gl-types/texture.h>
 #include "io-processor.h"
 using namespace regen;
+using namespace std;
 
 ///////////////////////
 

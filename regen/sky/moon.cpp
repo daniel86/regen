@@ -15,7 +15,7 @@
 using namespace regen;
 
 
-MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const string &moonMapFile)
+MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 : SkyLayer(sky)
 {
   setupMoonTextureCube(moonMapFile);
@@ -46,7 +46,7 @@ MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const string &moonMapFile)
   meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
 }
 
-void MoonLayer::setupMoonTextureCube(const string &moonMapFile)
+void MoonLayer::setupMoonTextureCube(const std::string &moonMapFile)
 {
     ref_ptr<TextureCube> texture = textures::loadCube(moonMapFile);
     state()->joinStates(ref_ptr<TextureState>::alloc(texture, "moonmapCube"));

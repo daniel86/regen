@@ -41,7 +41,7 @@ namespace scene {
         SceneParser *parser, SceneInputNode &input);
     ref_ptr<Atmosphere> createAtmosphereLayer(
         const ref_ptr<Sky> &sky,
-        SceneParser *parser, SceneInputNode &input, const string &skyName);
+        SceneParser *parser, SceneInputNode &input, const std::string &skyName);
     ref_ptr<CloudLayer> createCloudLayer(
         const ref_ptr<Sky> &sky,
         SceneParser *parser, SceneInputNode &input);

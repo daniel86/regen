@@ -12,7 +12,6 @@
 #include <regen/gl-types/glsl/glsl-processor.h>
 
 #include <iostream>
-using namespace std;
 
 namespace regen {
   /**
@@ -43,7 +42,7 @@ namespace regen {
     DirectiveProcessor();
 
     // override
-    bool process(PreProcessorState &state, string &line);
+    bool process(PreProcessorState &state, std::string &line);
     void clear();
 
   protected:
@@ -53,7 +52,7 @@ namespace regen {
     struct MacroBranch {
       bool isDefined_;
       bool isAnyChildDefined_;
-      list<MacroBranch> childs_;
+      std::list<MacroBranch> childs_;
       MacroBranch *parent_;
 
       MacroBranch& getActive();
@@ -71,42 +70,42 @@ namespace regen {
      * and uses MacroBranch to keep track of the context.
      */
     struct MacroTree {
-      map<string,string> defines_;
+      std::map<std::string,std::string> defines_;
       MacroBranch root_;
 
       void clear();
 
-      GLboolean isDefined(const string &arg);
-      string define(const string &arg);
+      GLboolean isDefined(const std::string &arg);
+      std::string define(const std::string &arg);
 
-      bool evaluateInner(const string &expression);
-      bool evaluate(const string &expression);
+      bool evaluateInner(const std::string &expression);
+      bool evaluate(const std::string &expression);
 
-      void _define(const string &s);
-      void _undef(const string &s);
-      void _ifdef(const string &s);
-      void _ifndef(const string &s);
-      void _if(const string &s);
-      void _elif(const string &s);
+      void _define(const std::string &s);
+      void _undef(const std::string &s);
+      void _ifdef(const std::string &s);
+      void _ifndef(const std::string &s);
+      void _if(const std::string &s);
+      void _elif(const std::string &s);
       void _else();
       void _endif();
       bool isDefined();
     };
     struct ForBranch {
-      string variableName;
-      string upToValue;
-      string lines;
+      std::string variableName;
+      std::string upToValue;
+      std::string lines;
     };
 
-    list< ref_ptr<GLSLProcessor> > inputs_;
+    std::list< ref_ptr<GLSLProcessor> > inputs_;
     MacroTree tree_;
-    string continuedLine_;
+    std::string continuedLine_;
 
-    list<ForBranch> forBranches_;
+    std::list<ForBranch> forBranches_;
     GLboolean wasEmpty_;
     GLenum lastStage_;
 
-    void parseVariables(string &line);
+    void parseVariables(std::string &line);
   };
 } // namespace
 

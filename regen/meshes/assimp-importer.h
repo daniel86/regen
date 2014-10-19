@@ -74,12 +74,12 @@ namespace regen {
     /**
      * \brief Something went wrong processing the model file.
      */
-    class Error : public runtime_error {
+    class Error : public std::runtime_error {
     public:
       /**
        * @param message the error message.
        */
-      Error(const string &message) : runtime_error(message) {}
+      Error(const std::string &message) : std::runtime_error(message) {}
     };
 
     /**
@@ -88,8 +88,8 @@ namespace regen {
      * @param animConfig Configuration for node animation defined in Asset file.
      * @param assimpFlags Import flags passed to assimp.
      */
-    AssetImporter(const string &assimpFile,
-        const string &texturePath,
+    AssetImporter(const std::string &assimpFile,
+        const std::string &texturePath,
         const AssimpAnimationConfig &animConfig=AssimpAnimationConfig(),
         GLint assimpFlags=-1);
     ~AssetImporter();
@@ -97,11 +97,11 @@ namespace regen {
     /**
      * @return list of lights defined in the assimp file.
      */
-    vector< ref_ptr<Light> >& lights();
+    std::vector< ref_ptr<Light> >& lights();
     /**
      * @return list of materials defined in the assimp file.
      */
-    vector< ref_ptr<Material> >& materials();
+    std::vector< ref_ptr<Material> >& materials();
     /**
      * @return a node that animates the light position.
      */
@@ -114,7 +114,7 @@ namespace regen {
      * @param usage VBO usage hint for vertec data.
      * @return vector of successfully created meshes.
      */
-    vector< ref_ptr<Mesh> > loadAllMeshes(
+    std::vector< ref_ptr<Mesh> > loadAllMeshes(
         const Mat4f &transform, VBO::Usage usage);
     /**
      * Create Mesh instances from Asset file.
@@ -123,8 +123,8 @@ namespace regen {
      * @param meshIndices Mesh indices in Asset file.
      * @return vector of successfully created meshes.
      */
-    vector< ref_ptr<Mesh> > loadMeshes(
-        const Mat4f &transform, VBO::Usage usage, vector<GLuint> meshIndices);
+    std::vector< ref_ptr<Mesh> > loadMeshes(
+        const Mat4f &transform, VBO::Usage usage, std::vector<GLuint> meshIndices);
 
     /**
      * @return the material associated to a previously loaded meshes.
@@ -133,7 +133,7 @@ namespace regen {
     /**
      * @return list of bone animation nodes associated to given mesh.
      */
-    list< ref_ptr<AnimationNode> > loadMeshBones(Mesh *meshState, NodeAnimation *anim);
+    std::list< ref_ptr<AnimationNode> > loadMeshBones(Mesh *meshState, NodeAnimation *anim);
     /**
      * @return number of weights used for bone animation.
      */
@@ -141,47 +141,47 @@ namespace regen {
     /**
      * @return asset animations.
      */
-    const vector< ref_ptr<NodeAnimation> >& getNodeAnimations();
+    const std::vector< ref_ptr<NodeAnimation> >& getNodeAnimations();
 
   protected:
     const struct aiScene *scene_;
 
-    vector< ref_ptr<NodeAnimation> > nodeAnimations_;
+    std::vector< ref_ptr<NodeAnimation> > nodeAnimations_;
     // name to node map
-    map<string, struct aiNode*> nodes_;
+    std::map<std::string, struct aiNode*> nodes_;
 
     // user specified texture path
-    string texturePath_;
+    std::string texturePath_;
 
     // loaded lights
-    vector< ref_ptr<Light> > lights_;
+    std::vector< ref_ptr<Light> > lights_;
 
     // loaded materials
-    vector< ref_ptr<Material> > materials_;
+    std::vector< ref_ptr<Material> > materials_;
     // mesh to material mapping
-    map< Mesh*, ref_ptr<Material> > meshMaterials_;
-    map< Mesh*, const struct aiMesh* > meshToAiMesh_;
+    std::map< Mesh*, ref_ptr<Material> > meshMaterials_;
+    std::map< Mesh*, const struct aiMesh* > meshToAiMesh_;
 
-    map< Light*, struct aiLight* > lightToAiLight_;
+    std::map< Light*, struct aiLight* > lightToAiLight_;
 
     // root node of skeleton
     ref_ptr<AnimationNode> rootNode_;
     // maps assimp bone nodes to Bone implementation
-    map< struct aiNode*, ref_ptr<AnimationNode> > aiNodeToNode_;
+    std::map< struct aiNode*, ref_ptr<AnimationNode> > aiNodeToNode_;
 
     //////
 
-    vector< ref_ptr<Light> > loadLights();
+    std::vector< ref_ptr<Light> > loadLights();
 
-    vector< ref_ptr<Material> > loadMaterials();
+    std::vector< ref_ptr<Material> > loadMaterials();
 
     void loadMeshes(
         const struct aiNode &node,
         const Mat4f &transform,
         VBO::Usage usage,
-        vector<GLuint> meshIndices,
+        std::vector<GLuint> meshIndices,
         GLuint &currentIndex,
-        vector< ref_ptr<Mesh> > &out);
+        std::vector< ref_ptr<Mesh> > &out);
     ref_ptr<Mesh> loadMesh(
         const struct aiMesh &mesh,
         const Mat4f &transform,

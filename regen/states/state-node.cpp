@@ -29,14 +29,14 @@ ModelTransformation* NodeEyeDepthComparator::findModelTransformation(StateNode *
   ModelTransformation *ret = dynamic_cast<ModelTransformation*>(nodeState);
   if(ret != NULL) { return ret; }
 
-  for(list< ref_ptr<State> >::const_iterator
+  for(std::list< ref_ptr<State> >::const_iterator
       it=nodeState->joined().begin(); it!=nodeState->joined().end(); ++it)
   {
     ModelTransformation *ret = dynamic_cast<ModelTransformation*>(it->get());
     if(ret != NULL) { return ret; }
   }
 
-  for(list< ref_ptr<StateNode> >::iterator
+  for(std::list< ref_ptr<StateNode> >::iterator
       it=n->childs().begin(); it!=n->childs().end(); ++it)
   {
     ret = findModelTransformation(it->get());
@@ -85,9 +85,9 @@ StateNode::StateNode(const ref_ptr<State> &state)
 {
 }
 
-const string& StateNode::name() const
+const std::string& StateNode::name() const
 { return name_; }
-void StateNode::set_name(const string &name)
+void StateNode::set_name(const std::string &name)
 { name_ = name; }
 
 GLboolean StateNode::isHidden() const
@@ -117,7 +117,7 @@ void StateNode::traverse(RenderState *rs)
   if(!isHidden_ && !state_->isHidden()) {
     state_->enable(rs);
 
-    for(list< ref_ptr<StateNode> >::iterator
+    for(std::list< ref_ptr<StateNode> >::iterator
         it=childs_.begin(); it!=childs_.end(); ++it)
     { it->get()->traverse(rs); }
 
@@ -144,7 +144,7 @@ void StateNode::addFirstChild(const ref_ptr<StateNode> &child)
 
 void StateNode::removeChild(StateNode *child)
 {
-  for(list< ref_ptr<StateNode> >::iterator
+  for(std::list< ref_ptr<StateNode> >::iterator
       it=childs_.begin(); it!=childs_.end(); ++it)
   {
     if(it->get() == child)
@@ -156,7 +156,7 @@ void StateNode::removeChild(StateNode *child)
   }
 }
 
-list< ref_ptr<StateNode> >& StateNode::childs()
+std::list< ref_ptr<StateNode> >& StateNode::childs()
 { return childs_; }
 
 static void getStateCamera(const ref_ptr<State> &state, ref_ptr<Camera> *out)
@@ -164,7 +164,7 @@ static void getStateCamera(const ref_ptr<State> &state, ref_ptr<Camera> *out)
   // TODO ref_ptr::dynamicCast
   if(dynamic_cast<Camera*>(state.get()))
     *out = ref_ptr<Camera>::upCast(state);
-  list< ref_ptr<State> >::const_iterator it=state->joined().begin();
+  std::list< ref_ptr<State> >::const_iterator it=state->joined().begin();
 
   while(out->get()==NULL && it!=state->joined().end()) {
     getStateCamera(*it, out);

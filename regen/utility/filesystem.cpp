@@ -16,16 +16,16 @@
 
 #include "filesystem.h"
 
-string regen::PathChoice::firstValidPath()
+std::string regen::PathChoice::firstValidPath()
 {
-  for(list<string>::iterator it=choices_.begin(); it!=choices_.end(); ++it)
+  for(std::list<std::string>::iterator it=choices_.begin(); it!=choices_.end(); ++it)
   {
     if(boost::filesystem::exists(*it)) return *it;
   }
   return *choices_.begin();
 }
 
-string regen::userDirectory()
+std::string regen::userDirectory()
 {
 #ifdef WIN32
   char *userProfile = getenv("USERPROFILE");
@@ -35,31 +35,31 @@ string regen::userDirectory()
   char *homePath = getenv("HOMEPATH");
   if(homeDrive!=NULL) {
     if(homePath!=NULL) {
-      return string(homeDrive) + string(homePath);
+      return std::string(homeDrive) + std::string(homePath);
     } else {
-      return string(homeDrive);
+      return std::string(homeDrive);
     }
   } else {
     return "C:";
   }
 #else
   char *home = getenv("HOME");
-  if(home!=NULL) return string(home);
+  if(home!=NULL) return std::string(home);
 
-  return string( getpwuid(getuid())->pw_dir );
+  return std::string( getpwuid(getuid())->pw_dir );
 #endif
 }
 
-string regen::filesystemPath(
-    const string &baseDirectory,
-    const string &pathString,
-    const string &separators)
+std::string regen::filesystemPath(
+    const std::string &baseDirectory,
+    const std::string &pathString,
+    const std::string &separators)
 {
   boost::filesystem::path p(baseDirectory);
 
-  list<string> pathNames;
+  std::list<std::string> pathNames;
   boost::split(pathNames, pathString, boost::is_any_of(separators));
-  for(list<string>::iterator it=pathNames.begin(); it!=pathNames.end(); ++it)
+  for(std::list<std::string>::iterator it=pathNames.begin(); it!=pathNames.end(); ++it)
   { p /= (*it); }
 
   return p.string();

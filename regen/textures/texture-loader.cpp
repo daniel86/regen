@@ -69,7 +69,7 @@ static void convertImage(GLenum format, GLenum type)
   }
 }
 
-static GLuint loadImage(const string &file)
+static GLuint loadImage(const std::string &file)
 {
   static GLboolean devilInitialized_ = GL_FALSE;
   if(!devilInitialized_) {
@@ -101,7 +101,7 @@ static GLuint loadImage(const string &file)
 }
 
 ref_ptr<Texture> textures::load(
-    const string &file,
+    const std::string &file,
     GLenum mipmapFlag,
     GLenum forcedInternalFormat,
     GLenum forcedFormat,
@@ -201,8 +201,8 @@ ref_ptr<Texture> textures::load(
 }
 
 ref_ptr<Texture2DArray> textures::loadArray(
-    const string &textureDirectory,
-    const string &textureNamePattern,
+    const std::string &textureDirectory,
+    const std::string &textureNamePattern,
     GLenum mipmapFlag,
     GLenum forcedInternalFormat,
     GLenum forcedFormat,
@@ -210,16 +210,16 @@ ref_ptr<Texture2DArray> textures::loadArray(
     const Vec3ui &forcedSize)
 {
   GLuint numTextures=0;
-  list<string> textureFiles;
+  std::list<std::string> textureFiles;
 
   boost::filesystem::path texturedir(textureDirectory);
   boost::regex pattern(textureNamePattern);
 
-  vector<string> accumulator;
+  std::vector<std::string> accumulator;
   boost::filesystem::directory_iterator it(texturedir), eod;
-  BOOST_FOREACH(const boost::filesystem::path &filePath, make_pair(it, eod))
+  BOOST_FOREACH(const boost::filesystem::path &filePath, std::make_pair(it, eod))
   {
-    string name = filePath.filename().string();
+    std::string name = filePath.filename().string();
     if(boost::regex_match(name, pattern))
     {
       accumulator.push_back(filePath.string());
@@ -233,10 +233,10 @@ ref_ptr<Texture2DArray> textures::loadArray(
   tex->begin(RenderState::get());
 
   GLint arrayIndex = 0;
-  for(vector<string>::iterator
+  for(std::vector<std::string>::iterator
       it=accumulator.begin(); it!=accumulator.end(); ++it)
   {
-    const string &textureFile = *it;
+    const std::string &textureFile = *it;
     GLuint ilID = loadImage(textureFile);
     scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
     convertImage(forcedFormat, forcedType);
@@ -271,7 +271,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
 }
 
 ref_ptr<TextureCube> textures::loadCube(
-    const string &file,
+    const std::string &file,
     GLboolean flipBackFace,
     GLenum mipmapFlag,
     GLenum forcedInternalFormat,
@@ -389,16 +389,16 @@ ref_ptr<TextureCube> textures::loadCube(
 }
 
 ref_ptr<Texture> textures::loadRAW(
-    const string &path,
+    const std::string &path,
     const Vec3ui &size,
     GLuint numComponents,
     GLuint bytesPerComponent)
 
 {
-  ifstream f(path.c_str(),
-      ios::in
-      |ios::binary
-      |ios::ate // start at end position
+  std::ifstream f(path.c_str(),
+      std::ios::in
+      |std::ios::binary
+      |std::ios::ate // start at end position
       );
   if (!f.is_open()) {
     throw Error(REGEN_STRING(
@@ -407,7 +407,7 @@ ref_ptr<Texture> textures::loadRAW(
 
   int numBytes = size.x*size.y*size.z*numComponents;
   char* pixels = new char[numBytes];
-  f.seekg (0, ios::beg);
+  f.seekg (0, std::ios::beg);
   f.read(pixels, numBytes);
   f.close();
 

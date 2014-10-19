@@ -11,6 +11,7 @@
 
 #include "logging.h"
 using namespace regen;
+using namespace std;
 
 list<Logger*> Logging::loggers_[] = {
     list<Logger*>(), list<Logger*>(),

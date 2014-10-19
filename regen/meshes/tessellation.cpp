@@ -9,14 +9,14 @@
 #include "tessellation.h"
 
 namespace regen {
-  vector<TriangleFace>* tessellate(GLuint lod, TriangleFace &in)
+  std::vector<TriangleFace>* tessellate(GLuint lod, TriangleFace &in)
   {
-    vector<TriangleFace> in_(1);
+    std::vector<TriangleFace> in_(1);
     in_[0] = in;
     return tessellate(lod,in_);
   }
 
-  vector<TriangleFace>* tessellate(GLuint lod, vector<TriangleFace> &in)
+  std::vector<TriangleFace>* tessellate(GLuint lod, std::vector<TriangleFace> &in)
   {
     GLuint inFaces  = in.size();
     // Each triangle is divided in 4 smaller triangles
@@ -26,8 +26,8 @@ namespace regen {
     TriangleVertex pa,pb,pc;
     GLuint i, j;
 
-    vector<TriangleFace> *out_ = new vector<TriangleFace>(outFaces);
-    vector<TriangleFace> &out = *out_;
+    std::vector<TriangleFace> *out_ = new std::vector<TriangleFace>(outFaces);
+    std::vector<TriangleFace> &out = *out_;
 
     GLuint lastIndex = 0;
     for(i=0; i<inFaces; ++i) {

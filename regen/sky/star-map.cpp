@@ -37,7 +37,7 @@ const GLdouble StarMap::defaultScattering()
 { return 0.2; }
 
 
-void StarMap::set_texture(const string &textureFile)
+void StarMap::set_texture(const std::string &textureFile)
 { meshState_->setCubeMap(textures::loadCube(textureFile)); }
 
 void StarMap::set_scattering(GLdouble scattering)

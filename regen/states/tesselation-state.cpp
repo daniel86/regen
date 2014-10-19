@@ -13,7 +13,7 @@
 using namespace regen;
 
 namespace regen {
-  ostream& operator<<(ostream &out, const TesselationState::LoDMetric &mode)
+  std::ostream& operator<<(std::ostream &out, const TesselationState::LoDMetric &mode)
   {
     switch(mode) {
     case TesselationState::FIXED_FUNCTION:           return out << "FIXED_FUNCTION";
@@ -23,9 +23,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, TesselationState::LoDMetric &mode)
+  std::istream& operator>>(std::istream &in, TesselationState::LoDMetric &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "FIXED_FUNCTION")               mode = TesselationState::FIXED_FUNCTION;

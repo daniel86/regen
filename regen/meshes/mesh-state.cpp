@@ -53,15 +53,15 @@ Mesh::~Mesh()
   }
 }
 
-void Mesh::getMeshViews(set<Mesh*> &out)
+void Mesh::getMeshViews(std::set<Mesh*> &out)
 {
   out.insert(this);
-  for(set<Mesh*>::iterator
+  for(std::set<Mesh*>::iterator
       it=meshViews_.begin(); it!=meshViews_.end(); ++it)
   { (*it)->getMeshViews(out); }
 }
 
-void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
+void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in)
 {
   if(!meshShader_.get()) return;
 
@@ -79,10 +79,10 @@ void Mesh::addShaderInput(const string &name, const ref_ptr<ShaderInput> &in)
       inputContainer_->set_numInstances(in->numInstances());
     }
 
-    map<GLint, list<ShaderInputLocation>::iterator>::iterator needle = vaoLocations_.find(loc);
+    std::map<GLint, std::list<ShaderInputLocation>::iterator>::iterator needle = vaoLocations_.find(loc);
     if(needle == vaoLocations_.end()) {
       vaoAttributes_.push_back(ShaderInputLocation(in,loc));
-      list<ShaderInputLocation>::iterator it = vaoAttributes_.end();
+      std::list<ShaderInputLocation>::iterator it = vaoAttributes_.end();
       --it;
       vaoLocations_[loc] = it;
     }
@@ -133,7 +133,7 @@ void Mesh::updateVAO(
   for(ShaderInputList::const_iterator it=localInputs.begin(); it!=localInputs.end(); ++it)
   { addShaderInput(it->name_, it->in_); }
   // Add Textures
-  for(map<string, ref_ptr<Texture> >::const_iterator
+  for(std::map<std::string, ref_ptr<Texture> >::const_iterator
       it=cfg.textures_.begin(); it!=cfg.textures_.end(); ++it)
   { addShaderInput(it->first, it->second); }
 
@@ -165,7 +165,7 @@ void Mesh::updateVAO(RenderState *rs)
   vao_->resetGL();
   rs->vao().push(vao_->id());
   // Setup attributes
-  for(list<ShaderInputLocation>::const_iterator
+  for(std::list<ShaderInputLocation>::const_iterator
       it=vaoAttributes_.begin(); it!=vaoAttributes_.end(); ++it)
   {
     const ref_ptr<ShaderInput> &in = it->input;
@@ -249,7 +249,7 @@ void Mesh::enable(RenderState *rs)
 {
   State::enable(rs);
 
-  for(map<GLint, ShaderInputLocation>::iterator
+  for(std::map<GLint, ShaderInputLocation>::iterator
       it=meshUniforms_.begin(); it!=meshUniforms_.end(); ++it)
   {
     ShaderInputLocation &x = it->second;

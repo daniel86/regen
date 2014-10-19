@@ -8,7 +8,6 @@
 #ifndef FRUSTUM_H_
 #define FRUSTUM_H_
 
-using namespace std;
 #include <vector>
 
 #include <GL/glew.h>
@@ -48,7 +47,7 @@ namespace regen {
     /**
      * Split this frustum along the view ray.
      */
-    vector<Frustum*> split(GLuint count, GLdouble splitWeight) const;
+    std::vector<Frustum*> split(GLuint count, GLdouble splitWeight) const;
     /**
      * @return true if the sphere intersects with this frustum.
      */

@@ -13,7 +13,6 @@
 #include <regen/utility/ref-ptr.h>
 
 #include <GL/glew.h>
-using namespace std;
 
 namespace regen {
   class ShaderInput2f;

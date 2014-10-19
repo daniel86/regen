@@ -34,12 +34,12 @@ public:
   /**
    * Adds a single item to the playlist.
    */
-  int addPlaylistItem(const string &filePath);
+  int addPlaylistItem(const std::string &filePath);
   /**
    * Recursively adds all video files that are contained
    * within the given file path.
    */
-  void addLocalPath(const string &filePath);
+  void addLocalPath(const std::string &filePath);
 
 public slots:
   void updateSize();
@@ -84,7 +84,7 @@ protected:
   void dragEnterEvent(QDragEnterEvent *event);
   void dropEvent(QDropEvent *event);
 
-  void setVideoFile(const string &filePath);
+  void setVideoFile(const std::string &filePath);
   void activatePlaylistRow(int row);
 };
 

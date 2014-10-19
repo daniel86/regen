@@ -9,7 +9,7 @@
 using namespace regen;
 
 namespace regen {
-  ostream& operator<<(ostream &out, const Light::Type &type)
+  std::ostream& operator<<(std::ostream &out, const Light::Type &type)
   {
     switch(type) {
     case Light::DIRECTIONAL: return out << "DIRECTIONAL";
@@ -18,9 +18,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, Light::Type &type)
+  std::istream& operator>>(std::istream &in, Light::Type &type)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "DIRECTIONAL") type = Light::DIRECTIONAL;
@@ -33,7 +33,7 @@ namespace regen {
     return in;
   }
 
-  ostream& operator<<(ostream &out, const ShadowFilterMode &mode)
+  std::ostream& operator<<(std::ostream &out, const ShadowFilterMode &mode)
   {
     switch(mode) {
     case SHADOW_FILTERING_NONE:         return out << "NONE";
@@ -42,9 +42,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, ShadowFilterMode &mode)
+  std::istream& operator>>(std::istream &in, ShadowFilterMode &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "NONE")              mode = SHADOW_FILTERING_NONE;
@@ -155,8 +155,8 @@ void Light::updateConeMatrix()
 
 void Light::glAnimate(RenderState *rs, GLdouble dt)
 {
-  GLuint stamp = max(lightRadius_->stamp(), max(lightDirection_->stamp(),
-      max(lightConeAngles_->stamp(), lightPosition_->stamp())));
+  GLuint stamp = std::max(lightRadius_->stamp(), std::max(lightDirection_->stamp(),
+      std::max(lightConeAngles_->stamp(), lightPosition_->stamp())));
   if(coneMatrixStamp_ != stamp)
   {
     coneMatrixStamp_ = stamp;

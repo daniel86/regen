@@ -71,7 +71,7 @@ void FeedbackState::addFeedback(const ref_ptr<ShaderInput> &in)
 }
 void FeedbackState::removeFeedback(ShaderInput *in)
 {
-  map<string,FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(in->name());
+  std::map<std::string,FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(in->name());
   if(it == feedbackAttributeMap_.end()) { return; }
 
   ref_ptr<ShaderInput> in_ = *(it->second);
@@ -80,13 +80,13 @@ void FeedbackState::removeFeedback(ShaderInput *in)
   feedbackAttributes_.erase(it->second);
   feedbackAttributeMap_.erase(it);
 }
-ref_ptr<ShaderInput> FeedbackState::getFeedback(const string &name)
+ref_ptr<ShaderInput> FeedbackState::getFeedback(const std::string &name)
 {
-  map<string,FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(name);
+  std::map<std::string,FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(name);
   if(it == feedbackAttributeMap_.end()) { ref_ptr<ShaderInput>(); }
   return *(it->second);
 }
-GLboolean FeedbackState::hasFeedback(const string &name) const
+GLboolean FeedbackState::hasFeedback(const std::string &name) const
 { return feedbackAttributeMap_.count(name)>0; }
 
 void FeedbackState::enable(RenderState *rs)
@@ -166,7 +166,7 @@ void FeedbackState::draw(GLuint numInstances)
       numInstances);
 }
 
-const list< ref_ptr<ShaderInput> >& FeedbackState::feedbackAttributes() const
+const std::list< ref_ptr<ShaderInput> >& FeedbackState::feedbackAttributes() const
 { return feedbackAttributes_; }
 const ref_ptr<VBO>& FeedbackState::feedbackBuffer() const
 { return feedbackBuffer_; }

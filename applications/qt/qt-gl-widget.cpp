@@ -129,7 +129,7 @@ void QTGLWidget::run()
     // adjust interval to hit the desired frame rate if we can
     boost::posix_time::ptime t(
         boost::posix_time::microsec_clock::local_time());
-    dt = max(0,updateInterval_-(GLint)
+    dt = std::max(0,updateInterval_-(GLint)
         (t- app_->lastDisplayTime_).total_microseconds());
     // sleep desired interval
     usleepRegen(dt);

@@ -18,7 +18,6 @@ extern "C" {
 #include <iostream>
 #include <stdexcept>
 #include <queue>
-using namespace std;
 
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
@@ -33,12 +32,12 @@ namespace regen {
     /**
      * \brief An error occurred during stream processing.
      */
-    class Error : public runtime_error {
+    class Error : public std::runtime_error {
     public:
       /**
        * @param message the error message.
        */
-      Error(const string &message) : runtime_error(message) {}
+      Error(const std::string &message) : std::runtime_error(message) {}
     };
 
     /**
@@ -105,8 +104,8 @@ namespace regen {
     AVCodec *codec_;
     GLint index_;
 
-    queue<AVFrame*> decodedFrames_;
-    queue<GLint> frameSizes_;
+    std::queue<AVFrame*> decodedFrames_;
+    std::queue<GLint> frameSizes_;
 
     GLuint cachedBytes_;
     GLuint chachedBytesLimit_;

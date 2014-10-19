@@ -8,7 +8,6 @@
 #ifndef FILESYSTEM_H_
 #define FILESYSTEM_H_
 
-using namespace std;
 #include <string>
 #include <list>
 
@@ -16,7 +15,7 @@ namespace regen {
   /**
    * @return the user base directory.
    */
-  string userDirectory();
+  std::string userDirectory();
 
   /**
    * \brief A choice of multiple paths.
@@ -25,11 +24,11 @@ namespace regen {
     /**
      * The list of paths.
      */
-    list<string> choices_;
+    std::list<std::string> choices_;
     /**
      * @return first path in the choices list that exists or an empty string if none exists.
      */
-    string firstValidPath();
+    std::string firstValidPath();
   };
 
   /**
@@ -39,10 +38,10 @@ namespace regen {
    * @param separators string that contains separator characters.
    * @return the filesystem path.
    */
-  string filesystemPath(
-      const string &baseDirectory,
-      const string &pathString,
-      const string &separators="/");
+  std::string filesystemPath(
+      const std::string &baseDirectory,
+      const std::string &pathString,
+      const std::string &separators="/");
 } // namespace
 
 #endif /* FILESYSTEM_H_ */

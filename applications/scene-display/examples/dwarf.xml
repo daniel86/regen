@@ -362,6 +362,9 @@
       <fbo id="g-buffer" draw-buffers="0" />
     </node>
     
+    <view id="Scene -- Cloud Texture">
+      <blit src-fbo="earth-clouds" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
     <view id="Scene -- Result">
       <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
     </view>

@@ -32,6 +32,7 @@
 
 #include "assimp-importer.h"
 using namespace regen;
+using namespace std;
 
 static unsigned int numTextureTyps = 11;
 static aiTextureType textureTypes[] = {
@@ -43,7 +44,7 @@ static aiTextureType textureTypes[] = {
     aiTextureType_REFLECTION
 };
 
-static bool assimpLog__(string &msg, const string &prefix)
+static bool assimpLog__(std::string &msg, const std::string &prefix)
 {
   if(hasPrefix(msg, prefix)) {
     msg = truncPrefix(msg, prefix);

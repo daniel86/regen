@@ -29,13 +29,13 @@ namespace regen {
     /**
      * \brief An error occurred during video processing.
      */
-    class Error : public runtime_error
+    class Error : public std::runtime_error
     {
     public:
       /**
        * @param message the error message.
        */
-      Error(const string &message) : runtime_error(message) {}
+      Error(const std::string &message) : std::runtime_error(message) {}
     };
 
     VideoTexture();
@@ -49,7 +49,7 @@ namespace regen {
     /**
      * Stream file at given path.
      */
-    void set_file(const string &file);
+    void set_file(const std::string &file);
 
     /**
      * Toggles between play and pause.

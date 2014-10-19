@@ -8,6 +8,7 @@
 #include "scene-input.h"
 using namespace regen::scene;
 using namespace regen;
+using namespace std;
 
 #include <regen/utility/string-util.h>
 

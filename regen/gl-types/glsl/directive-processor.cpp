@@ -22,6 +22,7 @@
 #include "includer.h"
 #include "directive-processor.h"
 using namespace regen;
+using namespace std;
 
 DirectiveProcessor::MacroBranch::MacroBranch()
 : isDefined_(true),

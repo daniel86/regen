@@ -13,7 +13,7 @@ using namespace regen;
 #define INTERPOLATE_QUATERNION_LINEAR
 
 namespace regen {
-  ostream& operator<<(ostream &out, const NodeAnimation::Behavior &mode)
+  std::ostream& operator<<(std::ostream &out, const NodeAnimation::Behavior &mode)
   {
     switch(mode) {
     case NodeAnimation::BEHAVIOR_DEFAULT:   return out << "DEFAULT";
@@ -23,9 +23,9 @@ namespace regen {
     }
     return out;
   }
-  istream& operator>>(istream &in, NodeAnimation::Behavior &mode)
+  std::istream& operator>>(std::istream &in, NodeAnimation::Behavior &mode)
   {
-    string val;
+    std::string val;
     in >> val;
     boost::to_upper(val);
     if(val == "DEFAULT")        mode = NodeAnimation::BEHAVIOR_DEFAULT;
@@ -40,7 +40,7 @@ namespace regen {
   }
 }
 
-AnimationNode::AnimationNode(const string &name, const ref_ptr<AnimationNode> &parent)
+AnimationNode::AnimationNode(const std::string &name, const ref_ptr<AnimationNode> &parent)
 : name_(name),
   parentNode_(parent),
   localTransform_(Mat4f::identity()),
@@ -62,7 +62,7 @@ ref_ptr<AnimationNode> AnimationNode::copy()
   ret->boneTransformationMatrix_ = boneTransformationMatrix_;
   ret->channelIndex_ = channelIndex_;
   ret->isBoneNode_ = isBoneNode_;
-  for(vector< ref_ptr<AnimationNode> >::iterator
+  for(std::vector< ref_ptr<AnimationNode> >::iterator
       it=nodeChilds_.begin(); it!=nodeChilds_.end(); ++it)
   {
     ref_ptr<AnimationNode> child = (*it)->copy();
@@ -72,7 +72,7 @@ ref_ptr<AnimationNode> AnimationNode::copy()
   return ret;
 }
 
-const string& AnimationNode::name() const
+const std::string& AnimationNode::name() const
 { return name_; }
 const ref_ptr<AnimationNode>& AnimationNode::parent() const
 { return parentNode_; }
@@ -103,7 +103,7 @@ void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix)
 
 void AnimationNode::addChild(const ref_ptr<AnimationNode> &child)
 { nodeChilds_.push_back( child ); }
-vector< ref_ptr<AnimationNode> >& AnimationNode::children()
+std::vector< ref_ptr<AnimationNode> >& AnimationNode::children()
 { return nodeChilds_; }
 
 void AnimationNode::calculateGlobalTransform()
@@ -116,7 +116,7 @@ void AnimationNode::calculateGlobalTransform()
 
 void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
 {
-  vector< ref_ptr<AnimationNode> >::iterator it;
+  std::vector< ref_ptr<AnimationNode> >::iterator it;
   Stack<AnimationNode*> nodes;
 
 #if 1
@@ -159,10 +159,10 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f>& transforms)
 
 ////////////////
 
-static void loadNodeNames(AnimationNode *n, map<string,AnimationNode*> &nameToNode_)
+static void loadNodeNames(AnimationNode *n, std::map<std::string,AnimationNode*> &nameToNode_)
 {
   nameToNode_[n->name()] = n;
-  for (vector< ref_ptr<AnimationNode> >::iterator it=n->children().begin();
+  for (std::vector< ref_ptr<AnimationNode> >::iterator it=n->children().begin();
       it!=n->children().end(); ++it)
   {
     loadNodeNames(it->get(), nameToNode_);
@@ -175,7 +175,7 @@ template <class T>
 static void findFrameAfterTick(
     GLdouble tick,
     GLuint &frame,
-    const vector<T> &keys)
+    const std::vector<T> &keys)
 {
   while (frame < keys.size()-1) {
     if (tick-keys[++frame].time < 0.00001) {
@@ -188,7 +188,7 @@ template <class T>
 static void findFrameBeforeTick(
     GLdouble &tick,
     GLuint &frame,
-    vector<T> &keys)
+    std::vector<T> &keys)
 {
   if(keys.size()==0) return;
   for (frame = keys.size()-1; frame > 0;) {
@@ -249,7 +249,7 @@ ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart)
   ref_ptr<AnimationNode> rootNode = rootNode_->copy();
   ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode,autoStart);
 
-  for(vector< ref_ptr<NodeAnimation::Data> >::iterator
+  for(std::vector< ref_ptr<NodeAnimation::Data> >::iterator
       it=animData_.begin(); it!=animData_.end(); ++it)
   {
     ref_ptr<NodeAnimation::Data> &d = *it;
@@ -274,8 +274,8 @@ GLdouble NodeAnimation::timeFactor() const
 { return timeFactor_; }
 
 GLint NodeAnimation::addChannels(
-    const string &animationName,
-    ref_ptr< vector<Channel> > &channels,
+    const std::string &animationName,
+    ref_ptr< std::vector<Channel> > &channels,
     GLdouble duration,
     GLdouble ticksPerSecond
     )
@@ -294,10 +294,10 @@ GLint NodeAnimation::addChannels(
   return animData_.size();
 }
 
-#define ANIM_INDEX(i) min(animationIndex, (GLint)animData_.size()-1)
+#define ANIM_INDEX(i) std::min(animationIndex, (GLint)animData_.size()-1)
 
 void NodeAnimation::setAnimationActive(
-    const string &animationName, const Vec2d &forcedTickRange)
+    const std::string &animationName, const Vec2d &forcedTickRange)
 {
   setAnimationIndexActive( animNameToIndex_[animationName], forcedTickRange );
 }
@@ -329,7 +329,7 @@ void NodeAnimation::setAnimationIndexActive(
   // set matching channel index
   for (GLuint a = 0; a < anim.channels_->size(); a++)
   {
-    const string nodeName = anim.channels_->data()[a].nodeName_;
+    const std::string nodeName = anim.channels_->data()[a].nodeName_;
     nameToNode_[ nodeName ]->set_channelIndex(a);
   }
 
@@ -482,7 +482,7 @@ Vec3f NodeAnimation::nodePosition(
     GLuint i)
 {
   GLuint keyCount = channel.positionKeys_->size();
-  const vector<KeyFrame3f> &keys = *channel.positionKeys_.get();
+  const std::vector<KeyFrame3f> &keys = *channel.positionKeys_.get();
   KeyFrame3f pos;
 
   pos.value = Vec3f(0);
@@ -516,7 +516,7 @@ Quaternion NodeAnimation::nodeRotation(
 {
   KeyFrameQuaternion rot;
   GLuint keyCount = channel.rotationKeys_->size();
-  const vector<KeyFrameQuaternion> &keys = *channel.rotationKeys_.get();
+  const std::vector<KeyFrameQuaternion> &keys = *channel.rotationKeys_.get();
 
   rot.value = Quaternion(1, 0, 0, 0);
 
@@ -551,7 +551,7 @@ Vec3f NodeAnimation::nodeScaling(
     GLdouble timeInTicks,
     GLuint i)
 {
-  const vector<KeyFrame3f> &keys = *channel.scalingKeys_.get();
+  const std::vector<KeyFrame3f> &keys = *channel.scalingKeys_.get();
   KeyFrame3f scale;
 
   // Look for present frame number.
@@ -572,16 +572,16 @@ Vec3f NodeAnimation::nodeScaling(
   return scale.value;
 }
 
-ref_ptr<AnimationNode> NodeAnimation::findNode(const string &name)
+ref_ptr<AnimationNode> NodeAnimation::findNode(const std::string &name)
 {
   return findNode(rootNode_, name);
 }
 
-ref_ptr<AnimationNode> NodeAnimation::findNode(ref_ptr<AnimationNode> &n, const string &name)
+ref_ptr<AnimationNode> NodeAnimation::findNode(ref_ptr<AnimationNode> &n, const std::string &name)
 {
   if(n->name() == name) { return n; }
 
-  for(vector< ref_ptr<AnimationNode> >::iterator
+  for(std::vector< ref_ptr<AnimationNode> >::iterator
       it=n->children().begin(); it!=n->children().end(); ++it)
   {
     ref_ptr<AnimationNode> n_ = findNode(*it, name);
