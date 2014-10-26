@@ -100,7 +100,7 @@ namespace scene {
         {
           ref_ptr<SceneInputNode> m = *it;
           if(m->getCategory()=="input") {
-            inputs.push_back(InputStateProvider::createShaderInput(parser,*m.get()));
+            inputs.push_back(InputStateProvider::createShaderInput(parser,*m.get(),x));
           }
           else {
             REGEN_WARN("Unhandled node " << m->getDescription() << ".");

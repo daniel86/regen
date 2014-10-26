@@ -659,14 +659,5 @@ namespace regen {
 
   Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal);
 } // namespace
-namespace regen {
-  namespace math {
-    /**
-     * linearly interpolate between two values.
-     */
-    static inline Vec3f mix(Vec3f x, Vec3f y, GLdouble a)
-    { return x*(1.0-a) + y*a; }
-  }
-}
 
 #endif /* ___VECTOR_H_ */

@@ -220,11 +220,17 @@ namespace regen {
      */
     virtual void disable(RenderState *rs);
 
+    /**
+     * Keep a reference on event object.
+     */
+    void attach(const ref_ptr<EventObject> &obj);
+
   protected:
     std::map<std::string,std::string> shaderDefines_;
     std::map<std::string,std::string> shaderFunctions_;
 
     std::list< ref_ptr<State> > joined_;
+    std::list< ref_ptr<EventObject> > attached_;
     ref_ptr<HasInput> inputStateBuddy_;
     GLboolean isHidden_;
     GLuint shaderVersion_;

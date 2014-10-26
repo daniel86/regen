@@ -40,62 +40,74 @@ private:
   GLfloat timeScale_;
 };
 
-template<class U, class T>
-static ref_ptr<U> createShaderInput_(
-    SceneInputNode &input, const T &defaultValue)
+template <class T>
+struct KeyFrame {
+  T val;
+  GLdouble dt;
+};
+
+template <class U, class T>
+class KeyFrameAnimation : public Animation
 {
-  if(!input.hasAttribute("name")) {
-    REGEN_WARN("No name specified for " << input.getDescription() << ".");
-    return ref_ptr<U>();
+public:
+  KeyFrameAnimation(const ref_ptr<U> &in)
+  : Animation(GL_TRUE, GL_TRUE),
+    in_(in)
+  {
+    val_ = in_->getVertex(0);
+    it_ = frames_.end();
+    lastFrame_.val = val_;
+    lastFrame_.dt  = 0.0;
+    dt_ = 0.0;
   }
-  ref_ptr<U> v = ref_ptr<U>::alloc(input.getValue("name"));
-  v->set_isConstant(input.getValue<bool>("is-constant", false));
-
-  GLuint numInstances = input.getValue<GLuint>("num-instances",1u);
-  GLuint numVertices  = input.getValue<GLuint>("num-vertices",1u);
-  bool isInstanced    = input.getValue<bool>("is-instanced",false);
-  bool isAttribute    = input.getValue<bool>("is-attribute",false);
-  GLuint count=1;
-
-  if(isInstanced) {
-    v->setInstanceData(numInstances,1,NULL);
-    count = numInstances;
-  }
-  else if(isAttribute) {
-    v->setVertexData(numVertices,NULL);
-    count = numVertices;
-  }
-  else {
-    v->setUniformData(input.getValue<T>("value",defaultValue));
-  }
-
-  // Handle Attribute values.
-  if(isInstanced || isAttribute) {
-    T *values = (T*)v->clientDataPtr();
-    for(GLuint i=0; i<count; i+=1) values[i] = defaultValue;
-
-    const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
-    for(list< ref_ptr<SceneInputNode> >::const_iterator
-        it=childs.begin(); it!=childs.end(); ++it)
-    {
-      ref_ptr<SceneInputNode> child = *it;
-      list<GLuint> indices = child->getIndexSequence(count);
-
-      if(child->getCategory() == "set") {
-        ValueGenerator<T> generator(child.get(),indices.size(),
-            child->getValue<T>("value",T(0)));
-        for(list<GLuint>::iterator it=indices.begin(); it!=indices.end(); ++it) {
-          values[*it] += generator.next();
-        }
-      }
-      else {
-        REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
-      }
+  void push_back(const T &value, GLdouble dt)
+  {
+    KeyFrame<T> f;
+    f.val = value;
+    f.dt = dt;
+    frames_.push_back(f);
+    if(frames_.size()==1) {
+      it_ = frames_.begin();
     }
   }
+  // Override
+  void animate(GLdouble dt)
+  {
+    if(it_ == frames_.end()) {
+      it_ = frames_.begin();
+      dt_ = 0.0;
+    }
+    KeyFrame<T> &currentFrame = *it_;
 
-  return v;
-}
+    dt_ += dt/1000.0;
+    if(dt_ >= currentFrame.dt) {
+      ++it_;
+      lastFrame_ = currentFrame;
+      GLdouble dt__ = dt_-currentFrame.dt;
+      dt_ = 0.0;
+      animate(dt__);
+    }
+    else {
+      GLdouble t = currentFrame.dt>0.0 ? dt_/currentFrame.dt : 1.0;
+      lock(); {
+        val_ = math::mix(lastFrame_.val, currentFrame.val, t);
+      } unlock();
+    }
+  }
+  void glAnimate(RenderState *rs, GLdouble dt)
+  {
+    lock(); {
+      in_->setVertex(0, val_);
+    } unlock();
+  }
+protected:
+  ref_ptr<U> in_;
+  std::list< KeyFrame<T> > frames_;
+  typename std::list< KeyFrame<T> >::iterator it_;
+  KeyFrame<T> lastFrame_;
+  GLdouble dt_;
+  T val_;
+};
 
 #include <regen/gl-types/shader-input.h>
 
@@ -110,73 +122,81 @@ namespace scene {
      * Processes SceneInput and creates ShaderInput.
      * @return The ShaderInput created or a null reference on failure.
      */
-    static ref_ptr<ShaderInput> createShaderInput(SceneParser *parser, SceneInputNode &input)
+    static ref_ptr<ShaderInput> createShaderInput(
+        SceneParser *parser,
+        SceneInputNode &input,
+        const ref_ptr<State> &state)
     {
       if(input.hasAttribute("state")) {
         // take uniform from state
-        ref_ptr<State> state = parser->getState(input.getValue("state"));
-        if(state.get()==NULL) {
+        ref_ptr<State> s = parser->getState(input.getValue("state"));
+        if(s.get()==NULL) {
           parser->getResources()->loadResources(parser, input.getValue("state"));
-          state = parser->getState(input.getValue("state"));
+          s = parser->getState(input.getValue("state"));
           if(state.get()==NULL) {
             REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
             return ref_ptr<ShaderInput>();
           }
         }
-        ref_ptr<ShaderInput> ret = state->findShaderInput(input.getValue("component"));
+        ref_ptr<ShaderInput> ret = s->findShaderInput(input.getValue("component"));
         if(ret.get()==NULL) {
           REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
         }
         return ret;
       }
 
-      const string type = input.getValue<string>("type", "");
-      if(type == "int") {
-        return createShaderInput_<ShaderInput1i,GLint>(input,GLint(0));
+      ref_ptr<ShaderInput> in;
+      const string type = input.getValue<string>("type","");
+      if(type == "time") {
+        GLfloat scale = input.getValue<GLfloat>("scale",1.0f);
+        in = ref_ptr<TimerInput>::alloc(scale);
+      }
+      else if(type == "int") {
+        in = createShaderInputTyped<ShaderInput1i,GLint>(parser,input,state,GLint(0));
       }
       else if(type == "ivec2") {
-        return createShaderInput_<ShaderInput2i,Vec2i>(input,Vec2i(0));
+        in = createShaderInputTyped<ShaderInput2i,Vec2i>(parser,input,state,Vec2i(0));
       }
       else if(type == "ivec3") {
-        return createShaderInput_<ShaderInput3i,Vec3i>(input,Vec3i(0));
+        in = createShaderInputTyped<ShaderInput3i,Vec3i>(parser,input,state,Vec3i(0));
       }
       else if(type == "ivec4") {
-        return createShaderInput_<ShaderInput4i,Vec4i>(input,Vec4i(0));
+        in = createShaderInputTyped<ShaderInput4i,Vec4i>(parser,input,state,Vec4i(0));
       }
       else if(type == "uint") {
-        return createShaderInput_<ShaderInput1ui,GLuint>(input,GLuint(0));
+        in = createShaderInputTyped<ShaderInput1ui,GLuint>(parser,input,state,GLuint(0));
       }
       else if(type == "uvec2") {
-        return createShaderInput_<ShaderInput2ui,Vec2ui>(input,Vec2ui(0));
+        in = createShaderInputTyped<ShaderInput2ui,Vec2ui>(parser,input,state,Vec2ui(0));
       }
       else if(type == "uvec3") {
-        return createShaderInput_<ShaderInput3ui,Vec3ui>(input,Vec3ui(0));
+        in = createShaderInputTyped<ShaderInput3ui,Vec3ui>(parser,input,state,Vec3ui(0));
       }
       else if(type == "uvec4") {
-        return createShaderInput_<ShaderInput4ui,Vec4ui>(input,Vec4ui(0));
+        in = createShaderInputTyped<ShaderInput4ui,Vec4ui>(parser,input,state,Vec4ui(0));
       }
       else if(type == "float") {
-        return createShaderInput_<ShaderInput1f,GLfloat>(input,GLfloat(0));
+        in = createShaderInputTyped<ShaderInput1f,GLfloat>(parser,input,state,GLfloat(0));
       }
       else if(type == "vec2") {
-        return createShaderInput_<ShaderInput2f,Vec2f>(input,Vec2f(0));
+        in = createShaderInputTyped<ShaderInput2f,Vec2f>(parser,input,state,Vec2f(0));
       }
       else if(type == "vec3") {
-        return createShaderInput_<ShaderInput3f,Vec3f>(input,Vec3f(0));
+        in = createShaderInputTyped<ShaderInput3f,Vec3f>(parser,input,state,Vec3f(0));
       }
       else if(type == "vec4") {
-        return createShaderInput_<ShaderInput4f,Vec4f>(input,Vec4f(0));
+        in = createShaderInputTyped<ShaderInput4f,Vec4f>(parser,input,state,Vec4f(0));
       }
       else if(type == "mat3") {
-        return createShaderInput_<ShaderInputMat3,Mat3f>(input,Mat3f::identity());
+        in = createShaderInputTyped<ShaderInputMat3,Mat3f>(parser,input,state,Mat3f::identity());
       }
       else if(type == "mat4") {
-        return createShaderInput_<ShaderInputMat4,Mat4f>(input,Mat4f::identity());
+        in = createShaderInputTyped<ShaderInputMat4,Mat4f>(parser,input,state,Mat4f::identity());
       }
       else {
         REGEN_WARN("Unknown input type '" << type << "'.");
-        return ref_ptr<ShaderInput>();
       }
+      return in;
     }
 
     InputStateProvider()
@@ -188,16 +208,7 @@ namespace scene {
         SceneInputNode &input,
         const ref_ptr<State> &state)
     {
-      const string type = input.getValue<string>("type","");
-      ref_ptr<ShaderInput> in;
-
-      if(type == "time") {
-        GLfloat scale = input.getValue<GLfloat>("scale",1.0f);
-        in = ref_ptr<TimerInput>::alloc(scale);
-      }
-      else {
-        in = createShaderInput(parser,input);
-      }
+      ref_ptr<ShaderInput> in = createShaderInput(parser,input,state);
       if(in.get()==NULL) {
         REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
         return;
@@ -217,6 +228,88 @@ namespace scene {
       else {
         x->setInput(in, input.getValue("name"));
       }
+
+
+    }
+
+    template<class U, class T>
+    static ref_ptr<U> createShaderInputTyped(
+        SceneParser *parser,
+        SceneInputNode &input,
+        const ref_ptr<State> &state,
+        const T &defaultValue)
+    {
+      if(!input.hasAttribute("name")) {
+        REGEN_WARN("No name specified for " << input.getDescription() << ".");
+        return ref_ptr<U>();
+      }
+      ref_ptr<U> v = ref_ptr<U>::alloc(input.getValue("name"));
+      v->set_isConstant(input.getValue<bool>("is-constant", false));
+
+      GLuint numInstances = input.getValue<GLuint>("num-instances",1u);
+      GLuint numVertices  = input.getValue<GLuint>("num-vertices",1u);
+      bool isInstanced    = input.getValue<bool>("is-instanced",false);
+      bool isAttribute    = input.getValue<bool>("is-attribute",false);
+      GLuint count=1;
+
+      if(isInstanced) {
+        v->setInstanceData(numInstances,1,NULL);
+        count = numInstances;
+      }
+      else if(isAttribute) {
+        v->setVertexData(numVertices,NULL);
+        count = numVertices;
+      }
+      else {
+        v->setUniformData(input.getValue<T>("value",defaultValue));
+      }
+
+      // Handle Attribute values.
+      if(isInstanced || isAttribute) {
+        T *values = (T*)v->clientDataPtr();
+        for(GLuint i=0; i<count; i+=1) values[i] = defaultValue;
+
+        const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
+        for(list< ref_ptr<SceneInputNode> >::const_iterator
+            it=childs.begin(); it!=childs.end(); ++it)
+        {
+          ref_ptr<SceneInputNode> child = *it;
+          list<GLuint> indices = child->getIndexSequence(count);
+
+          if(child->getCategory() == "set") {
+            ValueGenerator<T> generator(child.get(),indices.size(),
+                child->getValue<T>("value",T(0)));
+            for(list<GLuint>::iterator it=indices.begin(); it!=indices.end(); ++it) {
+              values[*it] += generator.next();
+            }
+          }
+          else {
+            REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
+          }
+        }
+      }
+
+      // Load animations
+      const list< ref_ptr<SceneInputNode> > &c0 = input.getChildren("key-frame-animation");
+      for(list< ref_ptr<SceneInputNode> >::const_iterator it=c0.begin(); it!=c0.end(); ++it)
+      {
+        ref_ptr<SceneInputNode> n = *it;
+        ref_ptr< KeyFrameAnimation<U,T> > inputAnimation = ref_ptr< KeyFrameAnimation<U,T> >::alloc(v);
+
+        const list< ref_ptr<SceneInputNode> > &c1 = n->getChildren("key-frame");
+        for(list< ref_ptr<SceneInputNode> >::const_iterator jt=c1.begin(); jt!=c1.end(); ++jt)
+        {
+          ref_ptr<SceneInputNode> m = *jt;
+          inputAnimation->push_back(
+              m->getValue<T>("value", defaultValue),
+              m->getValue<GLdouble>("dt", 1.0)
+          );
+        }
+
+        state->attach(inputAnimation);
+      }
+
+      return v;
     }
   };
 }}

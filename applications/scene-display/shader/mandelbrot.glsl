@@ -28,6 +28,8 @@ uniform vec3 in_innerColor;
 uniform vec3 in_outerColor1;
 uniform vec3 in_outerColor2;
 
+const float in_scale = 1.0;
+
 #ifdef JULIA_SET
 uniform vec2 in_juliaConstants;
 #endif
@@ -36,7 +38,7 @@ void main()
 {
     vec2 pos = 2.5*(in_texco-vec2(0.5));
     //vec2 z = pos*in_mouseZoom + in_center + in_mouseOffset;
-    vec2 z = pos + in_center;
+    vec2 z = pos*in_scale + in_center;
 #ifdef JULIA_SET
     vec2 c = in_juliaConstants;
 #else
