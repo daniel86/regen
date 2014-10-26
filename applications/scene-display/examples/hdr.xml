@@ -13,10 +13,17 @@
 	    look-at-interval="10"
 	    />
 <node id="configuration">
-  <camera id="main-camera"
-	  type="first-person"
-	  eye-offset="0.0,0.0,0.0"
-	  eye-orientation="0.0">
+  <camera id="main-camera" type="key-frames" interpolation="quadratic" dt="3.0" >
+    <key-frame pos=" 0.0, 0.0,  2.0" dir=" 0.0,  0.0,-2.0" dt="0.0" />
+    <key-frame pos=" 2.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0" />
+    <key-frame pos=" 0.0, 0.5,-2.0" dir=" 0.0,-0.5, 2.0" />
+    <key-frame pos="-2.0, 0.0,  0.0" dir=" 2.0, 0.0, 0.0" />
+    
+    <key-frame pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0" />
+    <key-frame pos=" 2.0, -0.5, 0.0" dir="-2.0, 0.5, 0.0" />
+    <key-frame pos=" 0.0, -0.5,-2.0" dir=" 0.0, 0.5, 2.0" />
+    <key-frame pos="-2.0,  0.0,  0.0" dir=" 2.0,  0.0, 0.0" />
+    <key-frame pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0" />
   </camera>
 </node>
 

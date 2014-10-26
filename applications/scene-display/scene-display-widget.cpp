@@ -208,6 +208,7 @@ static void handleCameraConfiguration(
     QtApplication *app_,
     scene::SceneParser &sceneParser,
     list< ref_ptr<EventHandler> > &eventHandler,
+    list< ref_ptr<Animation> > &animations,
     const ref_ptr<SceneInputNode> &cameraNode)
 {
   ref_ptr<Camera> cam = sceneParser.getResources()->getCamera(&sceneParser,cameraNode->getName());
@@ -252,6 +253,20 @@ static void handleCameraConfiguration(
     if(mode == string("first-person")) {
       ref_ptr<FirstPersonCameraTransform> fpsCamera = ref_ptr<FirstPersonCameraTransform>::alloc(cam);
       handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+    }
+    else if(mode == string("key-frames")) {
+      ref_ptr<KeyFrameCameraTransform> keyFramesCamera = ref_ptr<KeyFrameCameraTransform>::alloc(cam);
+      const list< ref_ptr<SceneInputNode> > &childs = cameraNode->getChildren("key-frame");
+      for(list< ref_ptr<SceneInputNode> >::const_iterator it=childs.begin(); it!=childs.end(); ++it)
+      {
+        const ref_ptr<SceneInputNode> &x = *it;
+        keyFramesCamera->push_back(
+            x->getValue<Vec3f>("pos", Vec3f(0.0f,0.0f,1.0f)),
+            x->getValue<Vec3f>("dir", Vec3f(0.0f,0.0f,-1.0f)),
+            x->getValue<GLdouble>("dt", 0.0)
+        );
+      }
+      animations.push_back(keyFramesCamera);
     }
   }
 }
@@ -335,6 +350,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
   AnimationManager::get().pause(GL_TRUE);
 
+  animations_.clear();
   viewNodes_.clear();
   physics_ = ref_ptr<BulletPhysics>();
 
@@ -380,7 +396,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
       }
     }
     else if(x->getCategory() == string("camera")) {
-      handleCameraConfiguration(app_, sceneParser, eventHandler_, x);
+      handleCameraConfiguration(app_, sceneParser, eventHandler_, animations_, x);
     }
   }
 
