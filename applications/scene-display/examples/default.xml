@@ -49,7 +49,7 @@
        animation-tps="20.0">
   <!-- Optionally define named animation ranges. -->
   <anim-range name="complete"    range="0.0,360.0" />
-  <anim-range name="walk"         range="1.0,13.0" />
+  <anim-range name="walk"        range="1.0,13.0" />
   <anim-range name="run"         range="15.0,25.0" />
   <anim-range name="jump"        range="27.0,39.0" />
   <anim-range name="jumpSpot"    range="41.0,53.0" />
