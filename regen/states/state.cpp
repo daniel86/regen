@@ -89,6 +89,11 @@ void State::disable(RenderState *state)
   }
 }
 
+void State::attach(const ref_ptr<EventObject> &obj)
+{
+  attached_.push_back(obj);
+}
+
 void State::joinStates(const ref_ptr<State> &state)
 { joined_.push_back(state); }
 void State::joinStatesFront(const ref_ptr<State> &state)

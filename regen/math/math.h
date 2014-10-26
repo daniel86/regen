@@ -30,7 +30,8 @@ namespace regen {
     /**
      * linearly interpolate between two values.
      */
-    static inline GLdouble mix(GLdouble x, GLdouble y, GLdouble a)
+    template <class T>
+    static inline T mix(T x, T y, GLdouble a)
     { return x*(1.0-a) + y*a; }
 
     /**
