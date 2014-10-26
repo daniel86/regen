@@ -266,6 +266,20 @@ namespace regen {
       );
     }
     /**
+     * Transposed Matrix-Vector multiplication.
+     * @param v the vector.
+     * @return transformed vector.
+     */
+    inline Vec4f operator^(const Vec4f &v) const
+    {
+      return Vec4f(
+          v.x*x[0 ] + v.y*x[4 ] + v.z*x[8 ] + v.w*x[12],
+          v.x*x[1 ] + v.y*x[5 ] + v.z*x[9 ] + v.w*x[13],
+          v.x*x[2 ] + v.y*x[6 ] + v.z*x[10] + v.w*x[14],
+          v.x*x[3 ] + v.y*x[7 ] + v.z*x[11] + v.w*x[15]
+      );
+    }
+    /**
      * Matrix-Vector multiplication.
      * @param v the vector.
      * @return transformed vector.
@@ -277,6 +291,20 @@ namespace regen {
           v.x*x[4 ] + v.y*x[5 ] + v.z*x[6 ] + x[7 ],
           v.x*x[8 ] + v.y*x[9 ] + v.z*x[10] + x[11],
           v.x*x[12] + v.y*x[13] + v.z*x[14] + x[15]
+      );
+    }
+    /**
+     * Transposed Matrix-Vector multiplication.
+     * @param v the vector.
+     * @return transformed vector.
+     */
+    inline Vec4f operator^(const Vec3f &v) const
+    {
+      return Vec4f(
+          v.x*x[0 ] + v.y*x[4 ] + v.z*x[8 ] + x[12],
+          v.x*x[1 ] + v.y*x[5 ] + v.z*x[9 ] + x[13],
+          v.x*x[2 ] + v.y*x[6 ] + v.z*x[10] + x[14],
+          v.x*x[3 ] + v.y*x[7 ] + v.z*x[11] + x[15]
       );
     }
     /**
@@ -716,11 +744,15 @@ namespace regen {
      * Set translation component.
      * @param translation the translation vector.
      */
-    inline void setTranslation(const Vec3f &translation)
+    inline void setPosition(const Vec3f &translation)
     {
       x[12] = translation.x;
       x[13] = translation.y;
       x[14] = translation.z;
+    }
+    inline const Vec3f& position() const
+    {
+      return *((Vec3f*)&x[12]);
     }
     /**
      * Computes a translation matrix.
@@ -815,6 +847,27 @@ namespace regen {
            scale.x*cy*sz,   scale.y*(sxsy*sz+cx*cz), -scale.z*(cxsy*sz+sx*cz), translation.y,
              -scale.x*sy,             scale.y*sx*cy,           -scale.z*cx*cy, translation.z,
                     0.0f,                      0.0f,                     0.0f, 1.0f
+      );
+    }
+    /**
+     * Computes a transformation matrix with rotation and translation.
+     * @param rot rotation of x/y/z axis.
+     * @param translation translation vector.
+     * @return the transformation matrix.
+     */
+    static inline Mat4f transformationMatrix(
+        const Vec3f &rot, const Vec3f &translation)
+    {
+      GLfloat cx = cos(rot.x), sx = sin(rot.x);
+      GLfloat cy = cos(rot.y), sy = sin(rot.y);
+      GLfloat cz = cos(rot.z), sz = sin(rot.z);
+      GLfloat sxsy = sx*sy;
+      GLfloat cxsy = cx*sy;
+      return Mat4f(
+          -cy*cz,  -(sxsy*cz+cx*sz),  (cxsy*cz+sx*sz), translation.x,
+           cy*sz,   (sxsy*sz+cx*cz), -(cxsy*sz+sx*cz), translation.y,
+             -sy,             sx*cy,           -cx*cy, translation.z,
+            0.0f,              0.0f,             0.0f, 1.0f
       );
     }
 

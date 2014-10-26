@@ -1,5 +1,5 @@
 /*
- * scene-display-widget.cpp
+* scene-display-widget.cpp
  *
  *  Created on: Oct 26, 2013
  *      Author: daniel
@@ -20,221 +20,11 @@ using namespace regen::scene;
 using namespace std;
 
 #include "scene-display-widget.h"
+#include "view-node.h"
+#include "fps-widget.h"
+#include "animation-events.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
-
-class ViewNodeProcessor : public NodeProcessor {
-public:
-  ViewNodeProcessor(ViewNodeList *viewNodes)
-  : NodeProcessor("view"),
-    viewNodes_(viewNodes)
-  {}
-
-  // Override
-  void processInput(
-      SceneParser *parser,
-      SceneInputNode &input,
-      const ref_ptr<StateNode> &parent)
-  {
-    ref_ptr<State> state = ref_ptr<State>::alloc();
-    ref_ptr<StateNode> newNode = ref_ptr<StateNode>::alloc(state);
-    newNode->set_name(input.getName());
-    newNode->set_isHidden(GL_TRUE);
-    parent->addChild(newNode);
-    parser->putNode(input.getName(), newNode);
-    handleChildren(parser,input,newNode);
-
-    ViewNode viewNode;
-    viewNode.name = input.getName();
-    viewNode.node = newNode;
-    viewNodes_->push_back(viewNode);
-    REGEN_INFO("View: " << viewNode.name);
-  }
-
-protected:
-  ViewNodeList *viewNodes_;
-
-  void handleChildren(
-      SceneParser *parser,
-      SceneInputNode &input,
-      const ref_ptr<StateNode> &newNode)
-  {
-    // Process node children
-    const list< ref_ptr<SceneInputNode> > &childs = input.getChildren();
-    for(list< ref_ptr<SceneInputNode> >::const_iterator
-        it=childs.begin(); it!=childs.end(); ++it)
-    {
-      const ref_ptr<SceneInputNode> &x = *it;
-      // First try node processor
-      ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
-      if(nodeProcessor.get()!=NULL) {
-        nodeProcessor->processInput(parser, *x.get(), newNode);
-        continue;
-      }
-      // Second try state processor
-      ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
-      if(stateProcessor.get()!=NULL) {
-        stateProcessor->processInput(parser, *x.get(), newNode->state());
-        continue;
-      }
-      REGEN_WARN("No processor registered for '" << x->getDescription() << "'.");
-    }
-  }
-};
-
-/////////////////
-////// Camera Event Handler
-/////////////////
-
-class EgoCamMotion : public EventHandler
-{
-public:
-  EgoCamMotion(const ref_ptr<EgoCameraManipulator> &m, const GLboolean &buttonPressed)
-  : EventHandler(),
-    m_(m),
-    buttonPressed_(buttonPressed),
-    sensitivity_(0.0002f) {}
-
-  void call(EventObject *evObject, EventData *data)
-  {
-    if(buttonPressed_) {
-      Application::MouseMotionEvent *ev = (Application::MouseMotionEvent*)data;
-      Vec2f delta((float)ev->dx, (float)ev->dy);
-      m_->lookLeft(delta.x*sensitivity_);
-      m_->lookUp(delta.y*sensitivity_);
-    }
-  }
-
-  ref_ptr<EgoCameraManipulator> m_;
-  const GLboolean &buttonPressed_;
-  GLfloat sensitivity_;
-};
-
-class EgoCamButton : public EventHandler
-{
-public:
-  EgoCamButton(const ref_ptr<EgoCameraManipulator> &m)
-  : EventHandler(), m_(m), buttonPressed_(GL_FALSE) {}
-
-  void call(EventObject *evObject, EventData *data)
-  {
-    Application::ButtonEvent *ev = (Application::ButtonEvent*)data;
-    if(ev->button == 0) buttonPressed_ = ev->pressed;
-  }
-
-  ref_ptr<EgoCameraManipulator> m_;
-  GLboolean buttonPressed_;
-};
-
-class EgoCamKey : public EventHandler
-{
-public:
-  EgoCamKey(const ref_ptr<EgoCameraManipulator> &m)
-  : EventHandler(), m_(m) {}
-
-  void call(EventObject *evObject, EventData *data)
-  {
-    Application::KeyEvent *ev = (Application::KeyEvent*)data;
-    if(ev->key == Qt::Key_W || ev->key == Qt::Key_Up)         m_->moveForward(!ev->isUp);
-    else if(ev->key == Qt::Key_S || ev->key == Qt::Key_Down)  m_->moveBackward(!ev->isUp);
-    else if(ev->key == Qt::Key_A || ev->key == Qt::Key_Left)  m_->moveLeft(!ev->isUp);
-    else if(ev->key == Qt::Key_D || ev->key == Qt::Key_Right) m_->moveRight(!ev->isUp);
-  }
-
-  ref_ptr<EgoCameraManipulator> m_;
-};
-
-class LookAtMotion : public EventHandler
-{
-public:
-  LookAtMotion(
-      const ref_ptr<LookAtCameraManipulator> &m,
-      const GLboolean &buttonPressed)
-  : EventHandler(),
-    m_(m),
-    buttonPressed_(buttonPressed),
-    stepX_(0.1f),
-    stepY_(0.1f) {}
-
-  void call(EventObject *evObject, EventData *data)
-  {
-    Application::MouseMotionEvent *ev = (Application::MouseMotionEvent*)data;
-    if(buttonPressed_) {
-      m_->set_height(m_->height() + ((float)ev->dy)*stepX_, ev->dt );
-      m_->setStepLength( ((float)ev->dx)*stepY_, ev->dt );
-    }
-  }
-  ref_ptr<LookAtCameraManipulator> m_;
-  const GLboolean &buttonPressed_;
-  GLfloat stepX_;
-  GLfloat stepY_;
-};
-
-class LookAtButton : public EventHandler
-{
-public:
-  LookAtButton(const ref_ptr<LookAtCameraManipulator> &m)
-  : EventHandler(),
-    m_(m),
-    buttonPressed_(GL_FALSE),
-    scrollStep_(0.1f){}
-
-  void call(EventObject *evObject, EventData *data)
-  {
-    Application::ButtonEvent *ev = (Application::ButtonEvent*)data;
-
-    if(ev->button == 0) {
-      buttonPressed_ = ev->pressed;
-      if(ev->pressed) {
-        m_->setStepLength( 0.0f );
-      }
-      } else if (ev->button == 4 && !ev->pressed) {
-        m_->set_radius( m_->radius()+scrollStep_ );
-      } else if (ev->button == 3 && !ev->pressed) {
-        m_->set_radius( m_->radius()-scrollStep_ );
-    }
-  }
-  ref_ptr<LookAtCameraManipulator> m_;
-  GLboolean buttonPressed_;
-  GLfloat scrollStep_;
-};
-
-/////////////////
-////// FPS widget update
-/////////////////
-
-class UpdateFPS : public Animation
-{
-public:
-  UpdateFPS(const ref_ptr<TextureMappedText> &widget)
-  : Animation(GL_TRUE,GL_FALSE),
-    widget_(widget),
-    frameCounter_(0),
-    fps_(0),
-    sumDtMiliseconds_(0.0f)
-  {}
-
-  void glAnimate(RenderState *rs, GLdouble dt) {
-    frameCounter_ += 1;
-    sumDtMiliseconds_ += dt;
-
-    if (sumDtMiliseconds_ > 1000.0) {
-      fps_ = (GLint) (frameCounter_*1000.0/sumDtMiliseconds_);
-      sumDtMiliseconds_ = 0;
-      frameCounter_ = 0;
-
-      wstringstream ss;
-      ss << fps_ << " FPS";
-      widget_->set_value(ss.str());
-    }
-  }
-
-private:
-  ref_ptr<TextureMappedText> widget_;
-  GLuint frameCounter_;
-  GLint fps_;
-  GLdouble sumDtMiliseconds_;
-};
 
 /////////////////
 ////// Scene Loader Animation
@@ -253,32 +43,6 @@ public:
   }
   SceneDisplayWidget *widget_;
   const string sceneFile_;
-};
-
-/////////////////
-////// Animation Range Setter
-/////////////////
-
-class AnimationRangeUpdater : public EventHandler
-{
-public:
-  AnimationRangeUpdater(
-      const ref_ptr<NodeAnimation> &anim,
-      const vector<AnimRange> &animRanges)
-  : EventHandler(),
-    anim_(anim),
-    animRanges_(animRanges) {}
-
-  void call(EventObject *ev, EventData *data)
-  {
-    NodeAnimation *anim = (NodeAnimation*)ev;
-    int index = rand() % animRanges_.size();
-    anim->setAnimationIndexActive(0, animRanges_[index].range);
-  }
-
-protected:
-  ref_ptr<NodeAnimation> anim_;
-  vector<AnimRange> animRanges_;
 };
 
 /////////////////
@@ -419,23 +183,161 @@ void SceneDisplayWidget::loadScene(const string &sceneFile) {
   loadAnim_ = ref_ptr<SceneLoaderAnimation>::alloc(this, sceneFile);
 }
 
+/////////////////////////////
+//////// Application Configuration Node
+/////////////////////////////
+
+static void handleFirstPersonCamera(
+    QtApplication *app_,
+    ref_ptr<FirstPersonCameraTransform> fpsCamera,
+    list< ref_ptr<EventHandler> > &eventHandler,
+    const ref_ptr<SceneInputNode> &cameraNode)
+{
+  fpsCamera->set_moveAmount(cameraNode->getValue<GLfloat>("speed",0.01f));
+
+  ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(fpsCamera);
+  cameraEventHandler->set_sensitivity(cameraNode->getValue<GLfloat>("sensitivity",0.005f));
+
+  app_->connect(Application::KEY_EVENT, cameraEventHandler);
+  app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
+  app_->connect(Application::MOUSE_MOTION_EVENT, cameraEventHandler);
+
+  eventHandler.push_back(cameraEventHandler);
+}
+static void handleCameraConfiguration(
+    QtApplication *app_,
+    scene::SceneParser &sceneParser,
+    list< ref_ptr<EventHandler> > &eventHandler,
+    const ref_ptr<SceneInputNode> &cameraNode)
+{
+  ref_ptr<Camera> cam = sceneParser.getResources()->getCamera(&sceneParser,cameraNode->getName());
+  if(cam.get()==NULL) {
+    REGEN_WARN("Unable to find camera for '" << cameraNode->getDescription() << "'.");
+    return;
+  }
+  Vec3f eyeOffset = cameraNode->getValue<Vec3f>("eye-offset",Vec3f(0.0));
+  GLfloat eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation",0.0);
+  string mode = cameraNode->getValue<string>("type","first-person");
+
+  if(cameraNode->hasAttribute("mesh") && cameraNode->hasAttribute("transform")) {
+    ref_ptr<ModelTransformation> transform = sceneParser.getResources()->getTransform(&sceneParser,cameraNode->getValue("transform"));
+    ref_ptr<MeshVector> meshes = sceneParser.getResources()->getMesh(&sceneParser,cameraNode->getValue("mesh"));
+    if(transform.get()==NULL) {
+      REGEN_WARN("Unable to find transform for '" << cameraNode->getDescription() << "'.");
+      return;
+    }
+    if(meshes.get()==NULL || meshes->size()==0) {
+      REGEN_WARN("Unable to find mesh with for '" << cameraNode->getDescription() << "'.");
+      return;
+    }
+    GLuint meshIndex = cameraNode->getValue<GLuint>("mesh-index",0u);
+    if(meshIndex>=meshes->size()) {
+      REGEN_WARN("Invalid mesh index for '" << cameraNode->getDescription() << "'.");
+      meshIndex = 0;
+    }
+    ref_ptr<Mesh> mesh = (*meshes.get())[meshIndex];
+
+    if(mode == string("first-person")) {
+      ref_ptr<FirstPersonCameraTransform> fpsCamera =
+          ref_ptr<FirstPersonCameraTransform>::alloc(cam,mesh,transform,eyeOffset,eyeOrientation);
+      handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+    }
+    else if(mode == string("third-person")) {
+      ref_ptr<ThirdPersonCameraTransform> fpsCamera =
+          ref_ptr<ThirdPersonCameraTransform>::alloc(cam,mesh,transform,eyeOffset,eyeOrientation);
+      handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+    }
+  }
+  else {
+    if(mode == string("first-person")) {
+      ref_ptr<FirstPersonCameraTransform> fpsCamera = ref_ptr<FirstPersonCameraTransform>::alloc(cam);
+      handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+    }
+  }
+}
+
+static void handleAssetAnimationConfiguration(
+    QtApplication *app_,
+    scene::SceneParser &sceneParser,
+    list< ref_ptr<EventHandler> > &eventHandler,
+    const ref_ptr<SceneInputNode> &animationNode) {
+  ref_ptr<AssetImporter> animAsset =
+      sceneParser.getResources()->getAsset(&sceneParser,animationNode->getName());
+  if(animAsset.get()==NULL) {
+    REGEN_WARN("Unable to find animation with name '" << animationNode->getName() << "'.");
+    return;
+  }
+  vector<AnimRange> ranges = sceneParser.getAnimationRanges(animationNode->getName());
+  if(ranges.empty()) {
+    REGEN_WARN("Unable to find animation ranges for animation with name '" << animationNode->getName() << "'.");
+    return;
+  }
+  std::vector< ref_ptr<NodeAnimation> > nodeAnimations_ = animAsset->getNodeAnimations();
+
+  for(GLuint i=0; i<nodeAnimations_.size(); ++i) {
+    const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
+    anim->startAnimation();
+  }
+
+  if(animationNode->getValue("mode") == string("random")) {
+    for(GLuint i=0; i<nodeAnimations_.size(); ++i) {
+      const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
+      ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater>::alloc(anim,ranges);
+      anim->connect(Animation::ANIMATION_STOPPED, animStopped);
+      eventHandler.push_back(animStopped);
+
+      EventData evData;
+      evData.eventID = Animation::ANIMATION_STOPPED;
+      animStopped->call(anim.get(), &evData);
+    }
+  }
+  else {
+    map<string,KeyAnimationMapping> keyMappings;
+    string idleAnimation = animationNode->getValue("idle");
+
+    const list< ref_ptr<SceneInputNode> > &childs = animationNode->getChildren();
+    for(list< ref_ptr<SceneInputNode> >::const_iterator
+        it=childs.begin(); it!=childs.end(); ++it)
+    {
+      const ref_ptr<SceneInputNode> &x = *it;
+      if(x->getCategory() == string("key-mapping")) {
+        KeyAnimationMapping mapping;
+        mapping.key    = x->getValue("key");
+        mapping.press  = x->getValue("press");
+        mapping.toggle = x->getValue<GLboolean>("toggle", GL_FALSE);
+        mapping.interrupt = x->getValue<GLboolean>("interrupt", GL_FALSE);
+        mapping.releaseInterrupt = x->getValue<GLboolean>("release-interrupt", GL_FALSE);
+        mapping.backwards = x->getValue<GLboolean>("backwards", GL_FALSE);
+        mapping.idle = x->getValue("idle");
+        keyMappings[mapping.key] = mapping;
+      }
+    }
+
+    if(!keyMappings.empty()) {
+      for(GLuint i=0; i<nodeAnimations_.size(); ++i) {
+        const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
+        ref_ptr<KeyAnimationRangeUpdater> keyHandler = ref_ptr<KeyAnimationRangeUpdater>::alloc(anim,ranges,keyMappings,idleAnimation);
+        app_->connect(Application::KEY_EVENT, keyHandler);
+        anim->connect(Animation::ANIMATION_STOPPED, keyHandler);
+        eventHandler.push_back(keyHandler);
+      }
+    }
+
+  }
+}
+
+/////////////////////////////
+/////////////////////////////
+/////////////////////////////
+
 void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   REGEN_INFO("Loading XML scene at " << sceneFile << ".");
 
-  if(camKeyHandler_.get()) app_->disconnect(camKeyHandler_);
-  if(camMotionHandler_.get()) app_->disconnect(camMotionHandler_);
-  if(camButtonHandler_.get()) app_->disconnect(camButtonHandler_);
   AnimationManager::get().pause(GL_TRUE);
 
   viewNodes_.clear();
-  manipulator_ = ref_ptr<EgoCameraManipulator>();
-  camKeyHandler_ = ref_ptr<EventHandler>();
-  camMotionHandler_ = ref_ptr<EventHandler>();
-  camButtonHandler_ = ref_ptr<EventHandler>();
   physics_ = ref_ptr<BulletPhysics>();
-  nodeAnimations_.clear();
 
-  list< ref_ptr<EventHandler> > eventHandler_;
   for(list< ref_ptr<EventHandler> >::iterator
       it=eventHandler_.begin(); it!=eventHandler_.end(); ++it)
   {
@@ -458,76 +360,33 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     initializeNode->traverse(RenderState::get());
   }
 
+  /////////////////////////////
+  //////// Application Configuration Node
+  /////////////////////////////
+
   ref_ptr<SceneInputNode> root = sceneParser.getRoot();
-  ref_ptr<SceneInputNode> guiConfigNode = root->getFirstChild("gui-config");
-  if(guiConfigNode.get()==NULL) { guiConfigNode = root; }
+  ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node","configuration");
+  if(configurationNode.get()==NULL) { configurationNode = root; }
 
-  const string cameraID =
-      guiConfigNode->getValue<string>("camera","main-camera");
-  const string assetID =
-      guiConfigNode->getValue<string>("animation-asset","animation-asset");
-
-  // Add camera manipulator for named camera
-  //ref_ptr<Camera> cam = xmlLoader.getCamera(cameraID);
-  ref_ptr<Camera> cam =
-      sceneParser.getResources()->getCamera(&sceneParser,cameraID);
-  if(cam.get()!=NULL) {
-    if(guiConfigNode->getValue<bool>("ego-camera",true)) {
-      ref_ptr<EgoCameraManipulator> egoManipulator =
-          ref_ptr<EgoCameraManipulator>::alloc(cam);
-      egoManipulator->set_moveAmount(
-          guiConfigNode->getValue<GLfloat>("ego-speed",0.01f));
-
-      ref_ptr<EgoCamKey> keyCallable = ref_ptr<EgoCamKey>::alloc(egoManipulator);
-      ref_ptr<EgoCamButton> buttonCallable = ref_ptr<EgoCamButton>::alloc(egoManipulator);
-      ref_ptr<EgoCamMotion> motionCallable =
-          ref_ptr<EgoCamMotion>::alloc(egoManipulator, buttonCallable->buttonPressed_);
-      motionCallable->sensitivity_ =
-          guiConfigNode->getValue<GLfloat>("ego-sensitivity",0.005f);
-
-      camKeyHandler_ = keyCallable;
-      camButtonHandler_ = buttonCallable;
-      camMotionHandler_ = motionCallable;
-      manipulator_ = egoManipulator;
-
-      app_->connect(Application::KEY_EVENT, camKeyHandler_);
-      app_->connect(Application::BUTTON_EVENT, camButtonHandler_);
-      app_->connect(Application::MOUSE_MOTION_EVENT, camMotionHandler_);
+  // Process node children
+  const list< ref_ptr<SceneInputNode> > &childs = configurationNode->getChildren();
+  for(list< ref_ptr<SceneInputNode> >::const_iterator
+      it=childs.begin(); it!=childs.end(); ++it)
+  {
+    const ref_ptr<SceneInputNode> &x = *it;
+    if(x->getCategory() == string("animation")) {
+      if(x->getValue("type") == string("asset")) {
+        handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x);
+      }
     }
-    else if(guiConfigNode->getValue<bool>("look-at-camera",true)) {
-      GLuint interval =
-          guiConfigNode->getValue<GLuint>("look-at-interval",10);
-      ref_ptr<LookAtCameraManipulator> manipulator =
-          ref_ptr<LookAtCameraManipulator>::alloc(cam,interval);
-      manipulator->set_height(
-          guiConfigNode->getValue<GLfloat>("look-at-height",0.0f));
-      manipulator->set_lookAt(
-          guiConfigNode->getValue<Vec3f>("look-at",Vec3f(0.0f)));
-      manipulator->set_radius(
-          guiConfigNode->getValue<GLfloat>("look-at-radius",5.0f));
-      manipulator->set_degree(
-          guiConfigNode->getValue<GLfloat>("look-at-degree",0.0f));
-      manipulator->setStepLength(
-          guiConfigNode->getValue<GLfloat>("look-at-step",0.0f));
-
-      ref_ptr<LookAtButton> buttonCallable = ref_ptr<LookAtButton>::alloc(manipulator);
-      ref_ptr<LookAtMotion> motionCallable = ref_ptr<LookAtMotion>::alloc(
-          manipulator, buttonCallable->buttonPressed_);
-      buttonCallable->scrollStep_ =
-          guiConfigNode->getValue<GLfloat>("look-at-scroll-step",2.0f);
-      motionCallable->stepX_ =
-          guiConfigNode->getValue<GLfloat>("look-at-step-x",0.02f);
-      motionCallable->stepY_ =
-          guiConfigNode->getValue<GLfloat>("look-at-step-y",0.001f);
-
-      camButtonHandler_ = buttonCallable;
-      camMotionHandler_ = motionCallable;
-      manipulator_ = manipulator;
-
-      app_->connect(Application::BUTTON_EVENT, buttonCallable);
-      app_->connect(Application::MOUSE_MOTION_EVENT, motionCallable);
+    else if(x->getCategory() == string("camera")) {
+      handleCameraConfiguration(app_, sceneParser, eventHandler_, x);
     }
   }
+
+  /////////////////////////////
+  /////////////////////////////
+  /////////////////////////////
 
   // Update view...
   if(viewNodes_.size()>0) {
@@ -543,7 +402,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
       sceneParser.getResources()->getMesh(&sceneParser,"fps-widget");
   if(fpsWidget.get()!=NULL && !fpsWidget->empty()) {
     ref_ptr<TextureMappedText> text =
-        ref_ptr<TextureMappedText>::upCast(*fpsWidget->begin());
+        ref_ptr<TextureMappedText>::dynamicCast(*fpsWidget->begin());
     if(text.get()!=NULL) {
       fbsWidgetUpdater_ = ref_ptr<UpdateFPS>::alloc(text);
       REGEN_INFO("FPS widget found.");
@@ -554,28 +413,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   } else {
     fbsWidgetUpdater_ = ref_ptr<Animation>();
     REGEN_INFO("Unable to find FPS widget.");
-  }
-
-  // handle animations
-  //ref_ptr<AssetImporter> animAsset = xmlLoader.getAsset(assetID);
-  ref_ptr<AssetImporter> animAsset =
-      sceneParser.getResources()->getAsset(&sceneParser,assetID);
-  if(animAsset.get()) {
-    vector<AnimRange> ranges = sceneParser.getAnimationRanges(assetID);
-    nodeAnimations_ = animAsset->getNodeAnimations();
-
-    if(!nodeAnimations_.empty() && !ranges.empty()) {
-      for(GLuint i=0; i<nodeAnimations_.size(); ++i) {
-        const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
-        ref_ptr<EventHandler> animStopped = ref_ptr<AnimationRangeUpdater>::alloc(anim,ranges);
-        anim->connect(Animation::ANIMATION_STOPPED, animStopped);
-        anim->startAnimation();
-
-        EventData evData;
-        evData.eventID = Animation::ANIMATION_STOPPED;
-        animStopped->call(anim.get(), &evData);
-      }
-    }
   }
 
   loadAnim_ = ref_ptr<Animation>();

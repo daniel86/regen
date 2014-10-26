@@ -16,6 +16,7 @@
 #include <regen/camera/camera-manipulator.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
+#include <applications/qt/qt-camera-events.h>
 #include <applications/qt/shader-input-widget.h>
 #include "scene-display-gui.h"
 using namespace regen;
@@ -47,19 +48,14 @@ public slots:
   void previousView();
 
 protected:
-  ref_ptr<CameraManipulator> manipulator_;
+  std::list< ref_ptr<EventHandler> > eventHandler_;
   ref_ptr<Animation> fbsWidgetUpdater_;
   ref_ptr<Animation> loadAnim_;
-  ref_ptr<EventHandler> camKeyHandler_;
-  ref_ptr<EventHandler> camMotionHandler_;
-  ref_ptr<EventHandler> camButtonHandler_;
 
   QDialog *inputDialog_;
   ShaderInputWidget *inputWidget_;
   QtApplication *app_;
-  std::list< ref_ptr<EventHandler> > eventHandler_;
   ref_ptr<BulletPhysics> physics_;
-  std::vector< ref_ptr<NodeAnimation> > nodeAnimations_;
   Ui_sceneViewer ui_;
   std::string activeFile_;
   ViewNodeList viewNodes_;

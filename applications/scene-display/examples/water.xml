@@ -2,6 +2,14 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
+<node id="configuration">
+  <camera id="main-camera"
+	  type="first-person"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="0.0">
+  </camera>
+</node>
+
 <!-- Textures -->
 <texture id="island-color" file="res/textures/island/color.png" />
 <texture id="island-normal" file="res/textures/island/normal.png" />

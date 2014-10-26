@@ -71,7 +71,7 @@ SphereCulling::SphereCulling(
 }
 void SphereCulling::traverse(RenderState *rs)
 {
-  if(camera_->hasIntersectionWithSphere(transform_->translation()+center_, radius_))
+  if(camera_->hasIntersectionWithSphere(transform_->get()->getVertex(0).position()+center_, radius_))
   {
     StateNode::traverse(rs);
   }
@@ -107,7 +107,7 @@ BoxCulling::BoxCulling(
 }
 void BoxCulling::traverse(RenderState *rs)
 {
-  if(camera_->hasIntersectionWithBox(transform_->translation(), points_))
+  if(camera_->hasIntersectionWithBox(transform_->get()->getVertex(0).position(), points_))
   {
     StateNode::traverse(rs);
   }

@@ -18,15 +18,33 @@ namespace regen {
   {
   public:
     /**
-     * Up-casting using static_cast.
+     * static_cast conversion.
+     * @see http://en.cppreference.com/w/cpp/language/static_cast
      * @param v a reference pointer.
-     * @return up-casted reference.
+     * @return casted reference.
      */
     template<typename K>
-    static ref_ptr<T> upCast(ref_ptr<K> v)
+    static ref_ptr<T> staticCast(ref_ptr<K> v)
     {
       ref_ptr<T> casted;
       casted.ptr_ = static_cast<T*>(v.get());
+      casted.refCount_ = v.refCount();
+      if(casted.ptr_ != NULL) {
+        casted.ref();
+      }
+      return casted;
+    }
+    /**
+     * dynamic_cast conversion.
+     * @see http://en.cppreference.com/w/cpp/language/static_cast
+     * @param v a reference pointer.
+     * @return casted reference.
+     */
+    template<typename K>
+    static ref_ptr<T> dynamicCast(ref_ptr<K> v)
+    {
+      ref_ptr<T> casted;
+      casted.ptr_ = dynamic_cast<T*>(v.get());
       casted.refCount_ = v.refCount();
       if(casted.ptr_ != NULL) {
         casted.ref();

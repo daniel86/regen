@@ -2,6 +2,14 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
+<node id="configuration">
+  <camera id="main-camera"
+	  type="first-person"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="0.0">
+  </camera>
+</node>
+
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"

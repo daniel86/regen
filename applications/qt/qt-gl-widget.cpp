@@ -205,6 +205,10 @@ void QTGLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void QTGLWidget::keyPressEvent(QKeyEvent* event)
 {
+  if(event->isAutoRepeat() ) {
+    event->ignore();
+    return;
+  }
   const Vec2f &mousePos = app_->mousePosition()->getVertex(0);
   Application::KeyEvent ev;
   ev.key = event->key();
@@ -215,6 +219,10 @@ void QTGLWidget::keyPressEvent(QKeyEvent* event)
 }
 void QTGLWidget::keyReleaseEvent(QKeyEvent *event)
 {
+  if(event->isAutoRepeat() ) {
+    event->ignore();
+    return;
+  }
   switch(event->key()) {
   case Qt::Key_Escape:
     app_->exitMainLoop(0);

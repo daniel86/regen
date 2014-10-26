@@ -131,7 +131,7 @@ void Light::updateConeMatrix()
   GLfloat angleCos = dir.dot(Vec3f(0.0,0.0,1.0));
 
   if(math::isApprox( abs(angleCos), 1.0 )) {
-    coneMatrix_->set_modelMat(Mat4f::identity(), 0.0);
+    coneMatrix_->get()->setVertex(0, Mat4f::identity());
   }
   else {
     const GLfloat &radius = lightRadius_->getVertex(0).y;
@@ -148,8 +148,8 @@ void Light::updateConeMatrix()
 
     Mat4f val = q.calculateMatrix();
     val.scale(Vec3f(x,x,radius));
-    coneMatrix_->set_modelMat(val, 0.0);
-    coneMatrix_->translate(pos, 0.0);
+    val.translate(pos);
+    coneMatrix_->get()->setVertex(0, val);
   }
 }
 
@@ -177,7 +177,7 @@ const ref_ptr<ShaderInput3f>& Light::diffuse() const
 const ref_ptr<ShaderInput3f>& Light::specular() const
 { return lightSpecular_; }
 const ref_ptr<ShaderInputMat4>& Light::coneMatrix()
-{ return coneMatrix_->modelMat(); }
+{ return coneMatrix_->get(); }
 
 //////////
 //////////

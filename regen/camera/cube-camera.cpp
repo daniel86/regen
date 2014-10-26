@@ -45,8 +45,8 @@ CubeCamera::CubeCamera(
     direction_->setVertex(i, dir[i]);
   }
 
-  modelMatrix_ = ref_ptr<ShaderInputMat4>::upCast(mesh->findShaderInput("modelMatrix"));
-  pos_ = ref_ptr<ShaderInput3f>::upCast(mesh->positions());
+  modelMatrix_ = ref_ptr<ShaderInputMat4>::dynamicCast(mesh->findShaderInput("modelMatrix"));
+  pos_ = ref_ptr<ShaderInput3f>::dynamicCast(mesh->positions());
   matrixStamp_ = 0;
   positionStamp_ = 0;
 
@@ -71,7 +71,7 @@ void CubeCamera::update()
   // Compute cube center position.
   Vec3f pos = Vec3f::zero();
   if(modelMatrix_.get() != NULL) {
-    pos = modelMatrix_->getVertex(0).transpose().transformVector(pos);
+    pos = (modelMatrix_->getVertex(0) ^ Vec4f(pos,1.0f)).xyz_();
   }
   position_->setVertex(0,pos);
 

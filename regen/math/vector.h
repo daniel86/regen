@@ -400,6 +400,46 @@ namespace regen {
       static Vec3 up_(0,1,0);
       return up_;
     }
+    /**
+     * @return static down vector.
+     */
+    static const Vec3& down()
+    {
+      static Vec3 up_(0,-1,0);
+      return up_;
+    }
+    /**
+     * @return static front vector.
+     */
+    static const Vec3& front()
+    {
+      static Vec3 up_(0,0,1);
+      return up_;
+    }
+    /**
+     * @return static back vector.
+     */
+    static const Vec3& back()
+    {
+      static Vec3 up_(0,0,-1);
+      return up_;
+    }
+    /**
+     * @return static right vector.
+     */
+    static const Vec3& right()
+    {
+      static Vec3 up_(1,0,0);
+      return up_;
+    }
+    /**
+     * @return static left vector.
+     */
+    static const Vec3& left()
+    {
+      static Vec3 up_(-1,0,0);
+      return up_;
+    }
   };
 
   // writing vector to output stream

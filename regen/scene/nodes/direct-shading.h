@@ -79,7 +79,7 @@ namespace scene {
         ref_ptr<Texture> shadowColorMap;
         ref_ptr<LightCamera> shadowCamera;
         if(n->hasAttribute("shadow-camera")) {
-          shadowCamera = ref_ptr<LightCamera>::upCast(
+          shadowCamera = ref_ptr<LightCamera>::dynamicCast(
               parser->getResources()->getCamera(parser,n->getValue("shadow-camera")));
           if(shadowCamera.get()==NULL) {
             REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");

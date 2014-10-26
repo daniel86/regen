@@ -79,6 +79,7 @@ unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventHandl
     eventHandlers_[eventId] = newList;
   }
 
+  // XXX: problems for handlers that are connected multiple times
   callable->set_handlerID(handlerCounter_);
 
   return handlerCounter_;

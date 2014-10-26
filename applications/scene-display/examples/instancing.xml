@@ -4,6 +4,14 @@
 
 <gui-config animation-asset="dwarf-asset-instanced" />
 
+<node id="configuration">
+  <camera id="main-camera"
+	  type="first-person"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="0.0">
+  </camera>
+</node>
+
 <!-- Textures -->
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />

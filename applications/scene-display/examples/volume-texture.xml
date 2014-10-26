@@ -15,6 +15,14 @@
 	    look-at-step-y="0.001"
 	    look-at-interval="10"
 	    />
+<node id="configuration">
+  <camera id="main-camera"
+	  type="first-person"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="0.0">
+  </camera>
+</node>
+
 <!-- Textures -->
 <texture id="bonsain-transfer"
 	 file="res/textures/volumes/bonsai-transfer.png" />

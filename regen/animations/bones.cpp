@@ -74,6 +74,9 @@ void Bones::setBones(const std::list< ref_ptr<AnimationNode> > &bones)
   glAnimate(rs, 0.0f);
 }
 
+Mat4f* Bones::bones()
+{ return (Mat4f*)boneMatrices_->clientDataPtr(); }
+
 void Bones::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();

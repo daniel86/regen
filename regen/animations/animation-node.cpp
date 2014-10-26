@@ -188,7 +188,7 @@ template <class T>
 static void findFrameBeforeTick(
     GLdouble &tick,
     GLuint &frame,
-    std::vector<T> &keys)
+    const std::vector<T> &keys)
 {
   if(keys.size()==0) return;
   for (frame = keys.size()-1; frame > 0;) {
@@ -313,7 +313,6 @@ void NodeAnimation::setAnimationIndexActive(
   if(animationIndex_ > 0) {
     animData_[ animationIndex_ ]->active_ = false;
   }
-
   animationIndex_ = ANIM_INDEX(animationIndex);
   if(animationIndex_ < 0) return;
 
@@ -388,7 +387,7 @@ void NodeAnimation::setTickRange(const Vec2d &forcedTickRange)
 
   // set start tick and duration in ticks
   startTick_ = tickRange_.x;
-  duration_ = tickRange_.y - tickRange_.x;
+  duration_ = abs(tickRange_.y - tickRange_.x);
 }
 
 void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex)
@@ -403,14 +402,14 @@ void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex)
 
 void NodeAnimation::stopNodeAnimation(NodeAnimation::Data &anim)
 {
-  GLuint currIndex = animationIndex_;
+  GLint currIndex = animationIndex_;
   animationIndex_ = -1;
   emitEvent(ANIMATION_STOPPED);
 
   anim.elapsedTime_ = 0.0;
   anim.lastTime_ = 0;
 
-  if (animationIndex_ == (int)currIndex) {
+  if (animationIndex_ == currIndex) {
     // repeat, signal handler set animationIndex_=currIndex again
   }
   else {
@@ -436,6 +435,10 @@ void NodeAnimation::animate(GLdouble milliSeconds)
     //timeInTicks = fmod(timeInTicks, duration_);
     stopNodeAnimation(anim);
     return;
+  }
+  // Time runs backwards when start tick is higher then stop tick
+  if(tickRange_.x > tickRange_.y) {
+    timeInTicks = -timeInTicks;
   }
   timeInTicks += startTick_;
 
@@ -489,15 +492,20 @@ Vec3f NodeAnimation::nodePosition(
 
   // Look for present frame number.
   GLuint lastFrame = anim.lastFramePosition_[i].x;
-  GLuint frame = (timeInTicks >= anim.lastTime_ ?
-      lastFrame : anim.startFramePosition_[i].x);
-  findFrameAfterTick(timeInTicks, frame, keys);
+  GLuint frame;
+  if(tickRange_.x > tickRange_.y) {
+    frame = (timeInTicks <= anim.lastTime_ ? lastFrame : anim.startFramePosition_[i].x);
+    findFrameBeforeTick(timeInTicks, frame, keys);
+  }
+  else {
+    frame = (timeInTicks >= anim.lastTime_ ? lastFrame : anim.startFramePosition_[i].x);
+    findFrameAfterTick(timeInTicks, frame, keys);
+  }
   anim.lastFramePosition_[i].x = frame;
   // lookup nearest two keys
   const KeyFrame3f& key = keys[frame];
   // interpolate between this frame's value and next frame's value
-  if( !handleFrameLoop( pos,
-        frame, lastFrame, channel, key, keys[0]) )
+  if( !handleFrameLoop( pos, frame, lastFrame, channel, key, keys[0]) )
   {
     const KeyFrame3f& nextKey = keys[ (frame + 1) % keyCount ];
     GLfloat fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
@@ -522,15 +530,20 @@ Quaternion NodeAnimation::nodeRotation(
 
   // Look for present frame number.
   GLuint lastFrame = anim.lastFramePosition_[i].y;
-  GLuint frame = (timeInTicks >= anim.lastTime_ ? lastFrame :
-      anim.startFramePosition_[i].y);
-  findFrameAfterTick(timeInTicks, frame, keys);
+  GLuint frame;
+  if(tickRange_.x > tickRange_.y) {
+    frame = (timeInTicks <= anim.lastTime_ ? lastFrame : anim.startFramePosition_[i].y);
+    findFrameBeforeTick(timeInTicks, frame, keys);
+  }
+  else {
+    frame = (timeInTicks >= anim.lastTime_ ? lastFrame : anim.startFramePosition_[i].y);
+    findFrameAfterTick(timeInTicks, frame, keys);
+  }
   anim.lastFramePosition_[i].y = frame;
   // lookup nearest two keys
   const KeyFrameQuaternion& key = keys[frame];
   // interpolate between this frame's value and next frame's value
-  if( !handleFrameLoop( rot,
-        frame, lastFrame, channel, key, keys[0]) )
+  if( !handleFrameLoop( rot, frame, lastFrame, channel, key, keys[0]) )
   {
     const KeyFrameQuaternion& nextKey = keys[ (frame + 1) % keyCount ];
     float fac = interpolationFactor(key, nextKey, timeInTicks, duration_);
@@ -556,15 +569,20 @@ Vec3f NodeAnimation::nodeScaling(
 
   // Look for present frame number.
   GLuint lastFrame = anim.lastFramePosition_[i].z;
-  GLuint frame = (timeInTicks >= anim.lastTime_ ? lastFrame :
-      anim.startFramePosition_[i].z);
-  findFrameAfterTick(timeInTicks, frame, keys);
+  GLuint frame;
+  if(tickRange_.x > tickRange_.y) {
+    frame = (timeInTicks <= anim.lastTime_ ? lastFrame : anim.startFramePosition_[i].z);
+    findFrameBeforeTick(timeInTicks, frame, keys);
+  }
+  else {
+    frame = (timeInTicks >= anim.lastTime_ ? lastFrame : anim.startFramePosition_[i].z);
+    findFrameAfterTick(timeInTicks, frame, keys);
+  }
   anim.lastFramePosition_[i].z = frame;
   // lookup nearest key
   const KeyFrame3f& key = keys[frame];
   // set current value
-  if( !handleFrameLoop( scale,
-        frame, lastFrame, channel, key, keys[0]) )
+  if( !handleFrameLoop( scale, frame, lastFrame, channel, key, keys[0]) )
   {
     scale.value = key.value;
   }

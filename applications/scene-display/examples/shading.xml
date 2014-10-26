@@ -2,6 +2,14 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
+<node id="configuration">
+  <camera id="main-camera"
+	  type="first-person"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="0.0">
+  </camera>
+</node>
+
 <!-- Textures -->
 <texture id="rain-database" is-array="1"
 	 file="res/textures/rain" name-pattern=".*.png" />

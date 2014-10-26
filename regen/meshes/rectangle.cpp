@@ -43,13 +43,13 @@ Rectangle::Rectangle(const Config &cfg)
 Rectangle::Rectangle(const ref_ptr<Rectangle> &other)
 : Mesh(other)
 {
-  pos_ = ref_ptr<ShaderInput3f>::upCast(
+  pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
       inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-  nor_ = ref_ptr<ShaderInput3f>::upCast(
+  nor_ = ref_ptr<ShaderInput3f>::dynamicCast(
       inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
-  texco_ = ref_ptr<ShaderInput2f>::upCast(
+  texco_ = ref_ptr<ShaderInput2f>::dynamicCast(
       inputContainer_->getInput("texco0"));
-  tan_ = ref_ptr<ShaderInput4f>::upCast(
+  tan_ = ref_ptr<ShaderInput4f>::dynamicCast(
       inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
 }
 

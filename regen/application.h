@@ -217,6 +217,7 @@ protected:
   void resizeGL(const Vec2i &size);
   void updateMousePosition();
 };
+
 } // namespace
 
 #endif // ___APPLICATION_H_
