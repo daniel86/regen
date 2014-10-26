@@ -49,6 +49,7 @@ public slots:
 
 protected:
   std::list< ref_ptr<EventHandler> > eventHandler_;
+  std::list< ref_ptr<Animation> > animations_;
   ref_ptr<Animation> fbsWidgetUpdater_;
   ref_ptr<Animation> loadAnim_;
 

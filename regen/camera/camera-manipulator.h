@@ -33,6 +33,41 @@ namespace regen {
     Mat4f viewprojInv_;
     Vec3f velocity_;
     Vec3f lastPosition_;
+
+    void computeMatrices(const Vec3f &pos, const Vec3f &dir);
+  };
+
+  /**
+   * \brief Computes the view matrix of a Camera based on user specified key frames.
+   */
+  class KeyFrameCameraTransform : public Animation, public CameraUpdater
+  {
+  public:
+    KeyFrameCameraTransform(const ref_ptr<Camera> &cam);
+
+    /**
+     * Adds a frame to the list of key frames for camera animation.
+     */
+    void push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
+
+    // override
+    virtual void animate(GLdouble dt);
+    virtual void glAnimate(RenderState *rs, GLdouble dt);
+
+  protected:
+    struct CameraKeyFrame {
+      Vec3f pos;
+      Vec3f dir;
+      GLdouble dt;
+    };
+    std::list<CameraKeyFrame> frames_;
+    std::list<CameraKeyFrame>::iterator it_;
+    CameraKeyFrame lastFrame_;
+    Vec3f camPos_;
+    Vec3f camDir_;
+    GLdouble dt_;
+
+    Vec3f interpolate(const Vec3f &v0, const Vec3f &v1, GLdouble t);
   };
 
   /**
@@ -168,7 +203,6 @@ namespace regen {
     Vec3f meshEyeOffset_;
     GLdouble meshHorizontalOrientation_;
 
-    void computeMatrices();
     virtual void updateCameraPosition();
     virtual void updateCameraOrientation();
   };

@@ -15,6 +15,16 @@ CameraUpdater::CameraUpdater(const ref_ptr<Camera> &cam)
 {
 }
 
+void CameraUpdater::computeMatrices(const Vec3f &pos, const Vec3f &dir)
+{
+  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedClientData();
+  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedClientData();
+  view_ = Mat4f::lookAtMatrix(pos, dir, Vec3f::up());
+  viewInv_ = view_.lookAtInverse();
+  viewproj_ = view_ * proj;
+  viewprojInv_ = projInv * viewInv_;
+}
+
 void CameraUpdater::updateCamera(const Vec3f &pos, const Vec3f &dir, GLdouble dt)
 {
   cam_->position()->setVertex(0, pos);
@@ -34,6 +44,81 @@ void CameraUpdater::updateCamera(const Vec3f &pos, const Vec3f &dir, GLdouble dt
     AudioListener::set3f(AL_VELOCITY, velocity_);
     AudioListener::set6f(AL_ORIENTATION, Vec6f(dir, Vec3f::up()));
   }
+}
+
+////////////////
+////////////////
+////////////////
+
+KeyFrameCameraTransform::KeyFrameCameraTransform(const ref_ptr<Camera> &cam)
+: Animation(GL_TRUE,GL_TRUE),
+  CameraUpdater(cam)
+{
+  camPos_ = cam->position()->getVertex(0);
+  camDir_ = cam->direction()->getVertex(0);
+  it_ = frames_.end();
+  lastFrame_.pos = camPos_;
+  lastFrame_.dir = camDir_;
+  lastFrame_.dt  = 0.0;
+  dt_ = 0.0;
+}
+
+void KeyFrameCameraTransform::push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt)
+{
+  CameraKeyFrame f;
+  f.pos = pos;
+  f.dir = dir;
+  f.dt = dt;
+  frames_.push_back(f);
+  if(frames_.size()==1) {
+    it_ = frames_.begin();
+  }
+}
+
+Vec3f KeyFrameCameraTransform::interpolate(const Vec3f &v0, const Vec3f &v1, GLdouble t)
+{
+  return math::mix(v0,v1,t);
+}
+
+void KeyFrameCameraTransform::animate(GLdouble dt)
+{
+  if(it_ == frames_.end()) {
+    it_ = frames_.begin();
+    dt_ = 0.0;
+  }
+  CameraKeyFrame &currentFrame = *it_;
+
+  dt_ += dt/1000.0;
+  if(dt_ >= currentFrame.dt) {
+    ++it_;
+    lastFrame_ = currentFrame;
+    GLdouble dt__ = dt_-currentFrame.dt;
+    dt_ = 0.0;
+    animate(dt__);
+  }
+  else {
+    Vec3f &pos0 = lastFrame_.pos;
+    Vec3f &pos1 = currentFrame.pos;
+    Vec3f dir0 = lastFrame_.dir;
+    Vec3f dir1 = currentFrame.dir;
+    GLdouble t = currentFrame.dt>0.0 ? dt_/currentFrame.dt : 1.0;
+    dir0.normalize();
+    dir1.normalize();
+
+    lock(); {
+      camPos_ = interpolate(pos0, pos1, t);
+      camDir_ = interpolate(dir0, dir1, t);
+      camDir_.normalize();
+      computeMatrices(camPos_, camDir_);
+    } unlock();
+  }
+}
+
+void KeyFrameCameraTransform::glAnimate(RenderState *rs, GLdouble dt)
+{
+  lock(); {
+    updateCamera(camPos_, camDir_, dt);
+  } unlock();
 }
 
 ////////////////
@@ -149,16 +234,6 @@ FirstPersonCameraTransform::FirstPersonCameraTransform(
   pos_ = cam->position()->getVertex(0);
 }
 
-void FirstPersonCameraTransform::computeMatrices()
-{
-  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedClientData();
-  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedClientData();
-  view_ = Mat4f::lookAtMatrix(camPos_, camDir_, Vec3f::up());
-  viewInv_ = view_.lookAtInverse();
-  viewproj_ = view_ * proj;
-  viewprojInv_ = projInv * viewInv_;
-}
-
 void FirstPersonCameraTransform::updateCameraPosition()
 {
   if(mat_.get()) {
@@ -201,7 +276,7 @@ void FirstPersonCameraTransform::animate(GLdouble dt)
   lock(); {
     updateCameraPosition();
     updateCameraOrientation();
-    computeMatrices();
+    computeMatrices(camPos_, camDir_);
   } unlock();
 }
 
