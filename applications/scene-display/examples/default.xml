@@ -49,26 +49,27 @@
        animation-tps="20.0">
   <!-- Optionally define named animation ranges. -->
   <anim-range name="complete"    range="0.0,360.0" />
-  <anim-range name="run"         range="16.0,26.0" />
-  <anim-range name="jump"        range="28.0,40.0" />
-  <anim-range name="jumpSpot"    range="42.0,54.0" />
-  <anim-range name="crouch"      range="56.0,59.0" />
-  <anim-range name="crouchLoop"  range="60.0,69.0" />
-  <anim-range name="getUp"       range="70.0,74.0" />
-  <anim-range name="battleIdle1" range="75.0,88.0" />
-  <anim-range name="battleIdle2" range="90.0,110.0" />
-  <anim-range name="attack1"     range="112.0,126.0" />
-  <anim-range name="attack2"     range="128.0,142.0" />
-  <anim-range name="attack3"     range="144.0,160.0" />
-  <anim-range name="attack4"     range="162.0,180.0" />
-  <anim-range name="attack5"     range="182.0,192.0" />
-  <anim-range name="block"       range="194.0,210.0" />
-  <anim-range name="dieFwd"      range="212.0,227.0" />
-  <anim-range name="dieBack"     range="230.0,251.0" />
-  <anim-range name="yes"         range="253.0,272.0" />
-  <anim-range name="no"          range="274.0,290.0" />
-  <anim-range name="idle1"       range="292.0,325.0" />
-  <anim-range name="idle2"       range="327.0,360.0" />
+  <anim-range name="walk"         range="1.0,13.0" />
+  <anim-range name="run"         range="15.0,25.0" />
+  <anim-range name="jump"        range="27.0,39.0" />
+  <anim-range name="jumpSpot"    range="41.0,53.0" />
+  <anim-range name="crouch"      range="55.0,58.0" />
+  <anim-range name="crouchLoop"  range="59.0,68.0" />
+  <anim-range name="getUp"       range="69.0,73.0" />
+  <anim-range name="battleIdle1" range="74.0,87.0" />
+  <anim-range name="battleIdle2" range="89.0,109.0" />
+  <anim-range name="attack1"     range="111.0,125.0" />
+  <anim-range name="attack2"     range="127.0,141.0" />
+  <anim-range name="attack3"     range="143.0,159.0" />
+  <anim-range name="attack4"     range="161.0,179.0" />
+  <anim-range name="attack5"     range="181.0,191.0" />
+  <anim-range name="block"       range="193.0,209.0" />
+  <anim-range name="dieFwd"      range="211.0,226.0" />
+  <anim-range name="dieBack"     range="229.0,250.0" />
+  <anim-range name="yes"         range="252.0,271.0" />
+  <anim-range name="no"          range="273.0,289.0" />
+  <anim-range name="idle1"       range="291.0,324.0" />
+  <anim-range name="idle2"       range="326.0,359.0" />
 </asset>
 
 <!--**************************-->

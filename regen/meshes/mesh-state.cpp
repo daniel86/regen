@@ -274,6 +274,10 @@ ref_ptr<ShaderInput> Mesh::normals() const
 { return inputContainer_->getInput(ATTRIBUTE_NAME_NOR); }
 ref_ptr<ShaderInput> Mesh::colors() const
 { return inputContainer_->getInput(ATTRIBUTE_NAME_COL0); }
+ref_ptr<ShaderInput> Mesh::boneWeights() const
+{ return inputContainer_->getInput("boneWeights"); }
+ref_ptr<ShaderInput> Mesh::boneIndices() const
+{ return inputContainer_->getInput("boneIndices"); }
 
 ////////////
 ////////////

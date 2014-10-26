@@ -100,6 +100,14 @@ namespace regen {
      * @return the color attribute.
      */
     ref_ptr<ShaderInput> colors() const;
+    /**
+     * @return the bone indices attribute.
+     */
+    ref_ptr<ShaderInput> boneIndices() const;
+    /**
+     * @return the bone weights attribute.
+     */
+    ref_ptr<ShaderInput> boneWeights() const;
 
     /**
      * The center position of this mesh.

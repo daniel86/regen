@@ -10,210 +10,245 @@
 #include "camera-manipulator.h"
 using namespace regen;
 
-CameraManipulator::CameraManipulator(const ref_ptr<Camera> &cam)
-: Animation(GL_TRUE,GL_TRUE),
-  cam_(cam)
+CameraUpdater::CameraUpdater(const ref_ptr<Camera> &cam)
+: cam_(cam)
 {
-  velocity_ = cam_->velocity()->getVertex(0);
-  position_ = cam_->position()->getVertex(0);
-  direction_ = cam_->direction()->getVertex(0);
 }
 
-void CameraManipulator::glAnimate(RenderState *rs, GLdouble dt)
+void CameraUpdater::updateCamera(const Vec3f &pos, const Vec3f &dir, GLdouble dt)
 {
-  lock(); {
-    cam_->position()->setVertex(0,position_);
-    cam_->direction()->setVertex(0,direction_);
-    cam_->velocity()->setVertex(0,velocity_);
+  cam_->position()->setVertex(0, pos);
+  cam_->direction()->setVertex(0, dir);
 
-    cam_->view()->setVertex(0,view_);
-    cam_->viewInverse()->setVertex(0,viewInv_);
-    cam_->viewProjection()->setVertex(0,viewproj_);
-    cam_->viewProjectionInverse()->setVertex(0,viewprojInv_);
+  velocity_ = (lastPosition_ - pos) / dt;
+  cam_->velocity()->setVertex(0,velocity_);
+  lastPosition_ = pos;
 
-    if(cam_->isAudioListener()) {
-      AudioListener::set3f(AL_POSITION, position_);
-      AudioListener::set3f(AL_VELOCITY, velocity_);
-      AudioListener::set6f(AL_ORIENTATION, Vec6f(direction_, Vec3f::up()));
-    }
-  } unlock();
+  cam_->view()->setVertex(0,view_);
+  cam_->viewInverse()->setVertex(0,viewInv_);
+  cam_->viewProjection()->setVertex(0,viewproj_);
+  cam_->viewProjectionInverse()->setVertex(0,viewprojInv_);
+
+  if(cam_->isAudioListener()) {
+    AudioListener::set3f(AL_POSITION, pos);
+    AudioListener::set3f(AL_VELOCITY, velocity_);
+    AudioListener::set6f(AL_ORIENTATION, Vec6f(dir, Vec3f::up()));
+  }
 }
 
 ////////////////
+////////////////
+////////////////
 
-EgoCameraManipulator::EgoCameraManipulator(const ref_ptr<Camera> &cam)
-: CameraManipulator(cam)
+FirstPersonTransform::FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat)
+: Animation(GL_TRUE,GL_TRUE),
+  mat_(mat)
 {
-  pos_ = position_;
-  dir_ = direction_;
-  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
-  dirXZ_.normalize();
-  dirSidestep_ = dirXZ_.cross(Vec3f::up());
+  horizontalOrientation_ = 0.0;
   moveAmount_ = 1.0;
   moveForward_ = GL_FALSE;
   moveBackward_ = GL_FALSE;
   moveLeft_ = GL_FALSE;
   moveRight_ = GL_FALSE;
+  matVal_ = Mat4f::identity();
 }
 
-void EgoCameraManipulator::set_position(const Vec3f &position)
-{ pos_ = position; }
-void EgoCameraManipulator::set_direction(const Vec3f &direction)
-{ dir_ = direction; }
-
-void EgoCameraManipulator::set_moveAmount(GLfloat moveAmount)
+void FirstPersonTransform::set_moveAmount(GLfloat moveAmount)
 { moveAmount_ = moveAmount; }
 
-void EgoCameraManipulator::moveForward(GLboolean v)
+void FirstPersonTransform::moveForward(GLboolean v)
 { moveForward_ = v; }
-void EgoCameraManipulator::moveBackward(GLboolean v)
+void FirstPersonTransform::moveBackward(GLboolean v)
 { moveBackward_ = v; }
-void EgoCameraManipulator::moveLeft(GLboolean v)
+void FirstPersonTransform::moveLeft(GLboolean v)
 { moveLeft_ = v; }
-void EgoCameraManipulator::moveRight(GLboolean v)
+void FirstPersonTransform::moveRight(GLboolean v)
 { moveRight_ = v; }
 
-void EgoCameraManipulator::stepForward(const GLfloat &v)
+void FirstPersonTransform::stepForward(const GLfloat &v)
 { step(dirXZ_*v); }
-void EgoCameraManipulator::stepBackward(const GLfloat &v)
+void FirstPersonTransform::stepBackward(const GLfloat &v)
 { step(dirXZ_*(-v)); }
-void EgoCameraManipulator::stepLeft(const GLfloat &v)
+void FirstPersonTransform::stepLeft(const GLfloat &v)
 { step(dirSidestep_*(-v)); }
-void EgoCameraManipulator::stepRight(const GLfloat &v)
+void FirstPersonTransform::stepRight(const GLfloat &v)
 { step(dirSidestep_*v); }
-void EgoCameraManipulator::step(const Vec3f &v)
+void FirstPersonTransform::step(const Vec3f &v)
 { pos_ += v; }
 
-void EgoCameraManipulator::lookUp(GLfloat amount)
-{
-  rot_.setAxisAngle(dirSidestep_, amount);
-  dir_ = rot_.rotate(dir_);
+void FirstPersonTransform::lookLeft(GLdouble amount)
+{ horizontalOrientation_ = fmod(horizontalOrientation_+amount, 2.0*M_PI); }
+void FirstPersonTransform::lookRight(GLdouble amount)
+{ horizontalOrientation_ = fmod(horizontalOrientation_-amount, 2.0*M_PI); }
 
-  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
+void FirstPersonTransform::animate(GLdouble dt)
+{
+  rot_.setAxisAngle(Vec3f::up(), horizontalOrientation_);
+  Vec3f d = rot_.rotate(Vec3f::front());
+
+  dirXZ_ = Vec3f(d.x, 0.0f, d.z);
   dirXZ_.normalize();
   dirSidestep_ = dirXZ_.cross(Vec3f::up());
-}
-void EgoCameraManipulator::lookDown(GLfloat amount)
-{
-  rot_.setAxisAngle(dirSidestep_, amount);
-  dir_ = rot_.rotate(dir_);
-
-  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
-  dirXZ_.normalize();
-  dirSidestep_ = dirXZ_.cross(Vec3f::up());
-}
-void EgoCameraManipulator::lookLeft(GLfloat amount)
-{
-  rot_.setAxisAngle(Vec3f::up(), amount);
-  dir_ = rot_.rotate(dir_);
-
-  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
-  dirXZ_.normalize();
-  dirSidestep_ = dirXZ_.cross(Vec3f::up());
-}
-void EgoCameraManipulator::lookRight(GLfloat amount)
-{
-  rot_.setAxisAngle(Vec3f::up(), -amount);
-  dir_ = rot_.rotate(dir_);
-
-  dirXZ_ = Vec3f(dir_.x, 0.0f, dir_.z);
-  dirXZ_.normalize();
-  dirSidestep_ = dirXZ_.cross(Vec3f::up());
-}
-
-void EgoCameraManipulator::animate(GLdouble dt)
-{
-  Mat4f &proj = *(Mat4f*)cam_->projection()->ownedClientData();
-  Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedClientData();
-
-  if(moveForward_)       stepForward(moveAmount_*dt);
-  else if(moveBackward_) stepBackward(moveAmount_*dt);
-  if(moveLeft_)          stepLeft(moveAmount_*dt);
-  else if(moveRight_)    stepRight(moveAmount_*dt);
 
   lock(); {
-    position_ = pos_;
-    direction_ = dir_;
-    // update the camera velocity
-    if(dt > 1e-6) {
-      velocity_ = (lastPosition_ - position_) / dt;
-      lastPosition_ = position_;
-    }
+    if(moveForward_)       stepForward(moveAmount_*dt);
+    else if(moveBackward_) stepBackward(moveAmount_*dt);
+    if(moveLeft_)          stepLeft(moveAmount_*dt);
+    else if(moveRight_)    stepRight(moveAmount_*dt);
+  } unlock();
+}
 
-    view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
-    viewInv_ = view_.lookAtInverse();
-    viewproj_ = view_ * proj;
-    viewprojInv_ = projInv * viewInv_;
+void FirstPersonTransform::glAnimate(RenderState *rs, GLdouble dt)
+{
+  lock(); {
+    // Simple rotation matrix around up vector (0,1,0)
+    GLdouble cy = cos(horizontalOrientation_), sy = sin(horizontalOrientation_);
+    matVal_.x[0 ] =  cy;
+    matVal_.x[2 ] =  sy;
+    matVal_.x[8 ] = -sy;
+    matVal_.x[10] =  cy;
+    // Translate to mesh position
+    const Mat4f &m = mat_->getVertex(0);
+    matVal_.x[12] = m.x[12] - pos_.x;
+    matVal_.x[13] = m.x[13] - pos_.y;
+    matVal_.x[14] = m.x[14] - pos_.z;
+    pos_ = Vec3f(0.0f);
+
+    mat_->setVertex(0, matVal_);
   } unlock();
 }
 
 ////////////////
+////////////////
+////////////////
 
-LookAtCameraManipulator::LookAtCameraManipulator(
+FirstPersonCameraTransform::FirstPersonCameraTransform(
     const ref_ptr<Camera> &cam,
-    GLint intervalMiliseconds)
-: CameraManipulator(cam),
-  lookAt_( Vec3f(0.0f, 0.0f, 0.0f) ),
-  radius_( 4.0f ),
-  height_( 2.0f ),
-  deg_(0.0f),
-  stepLength_(1.0f),
-  intervalMiliseconds_((GLfloat)intervalMiliseconds)
+    const ref_ptr<Mesh> &mesh,
+    const ref_ptr<ModelTransformation> &transform,
+    const Vec3f &meshEyeOffset,
+    GLdouble meshHorizontalOrientation)
+: FirstPersonTransform(transform->get()),
+  CameraUpdater(cam),
+  mesh_(mesh),
+  mat_(transform->get()),
+  meshEyeOffset_(meshEyeOffset)
 {
+  verticalOrientation_ = 0.0;
+  meshHorizontalOrientation_ = meshHorizontalOrientation;
+  pos_ = Vec3f(0.0f);
 }
 
-void LookAtCameraManipulator::set_lookAt(
-    const Vec3f &lookAt, const GLdouble &dt)
-{ lookAt_.setDestination(lookAt, dt); }
-void LookAtCameraManipulator::set_degree(
-    GLfloat degree, const GLdouble &dt)
-{ deg_.setDestination(degree, dt); }
-void LookAtCameraManipulator::set_radius(
-    GLfloat radius, const GLdouble &dt)
-{ radius_.setDestination(radius, dt); }
-
-void LookAtCameraManipulator::set_height(
-    GLfloat height, const GLdouble &dt)
-{ height_.setDestination(height, dt); }
-
-void LookAtCameraManipulator::setStepLength(
-    GLfloat length, const GLdouble &dt)
-{ stepLength_.setDestination(length, dt); }
-
-GLfloat LookAtCameraManipulator::height() const
-{ return height_.value(); }
-GLfloat LookAtCameraManipulator::radius() const
-{ return radius_.value(); }
-
-void LookAtCameraManipulator::animate(GLdouble dt)
+FirstPersonCameraTransform::FirstPersonCameraTransform(
+    const ref_ptr<Camera> &cam)
+: FirstPersonTransform(cam->view()),
+  CameraUpdater(cam)
 {
-  const GLdouble &step = stepLength_.value(dt);
-  const GLdouble &degStep = step*(dt/intervalMiliseconds_);
-  const GLdouble &radius = radius_.value(dt);
-  const GLdouble &height = height_.value(dt);
-  const Vec3f &lookAt = lookAt_.value(dt);
+  verticalOrientation_ = 0.0;
+  meshHorizontalOrientation_ = 0.0;
+  pos_ = cam->position()->getVertex(0);
+}
 
-  deg_.src_ += degStep;
-  deg_.dst_ += degStep;
-  const GLdouble &deg = deg_.value(dt);
-
+void FirstPersonCameraTransform::computeMatrices()
+{
   Mat4f &proj = *(Mat4f*)cam_->projection()->ownedClientData();
   Mat4f &projInv = *(Mat4f*)cam_->projectionInverse()->ownedClientData();
+  view_ = Mat4f::lookAtMatrix(camPos_, camDir_, Vec3f::up());
+  viewInv_ = view_.lookAtInverse();
+  viewproj_ = view_ * proj;
+  viewprojInv_ = projInv * viewInv_;
+}
 
-  lock(); {
-    position_ = lookAt + Vec3f(
-        radius*sin(deg), height, radius*cos(deg));
-    direction_ = (lookAt - position_);
-    direction_.normalize();
-    // update the camera velocity
-    if(dt > 1e-6) {
-      velocity_ = (lastPosition_ - position_) / dt;
-      lastPosition_ = position_;
+void FirstPersonCameraTransform::updateCameraPosition()
+{
+  if(mat_.get()) {
+    camPos_ = meshEyeOffset_;
+    if(mesh_.get()) {
+      camPos_ += mesh_->centerPosition();
     }
+    camPos_ = (mat_->getVertex(0) ^ Vec4f(camPos_,1.0)).xyz_();
+  }
+  else {
+    camPos_ = pos_;
+  }
+}
 
-    view_ = Mat4f::lookAtMatrix(position_, direction_, Vec3f::up());
-    viewInv_ = view_.lookAtInverse();
-    viewproj_ = view_ * proj;
-    viewprojInv_ = projInv * viewInv_;
+void FirstPersonCameraTransform::updateCameraOrientation()
+{
+  rot_.setAxisAngle(Vec3f::up(), horizontalOrientation_+meshHorizontalOrientation_);
+  camDir_ = rot_.rotate(Vec3f::front());
+  rot_.setAxisAngle(dirSidestep_, verticalOrientation_);
+  camDir_ = rot_.rotate(camDir_);
+}
+
+#define __ORIENT_THRESHOLD__ 0.1
+
+void FirstPersonCameraTransform::lookUp(GLdouble amount)
+{ verticalOrientation_ = math::clamp(verticalOrientation_+amount,
+    -0.5*M_PI + __ORIENT_THRESHOLD__, 0.5*M_PI - __ORIENT_THRESHOLD__); }
+void FirstPersonCameraTransform::lookDown(GLdouble amount)
+{ verticalOrientation_ = math::clamp(verticalOrientation_-amount,
+    -0.5*M_PI + __ORIENT_THRESHOLD__, 0.5*M_PI - __ORIENT_THRESHOLD__); }
+
+void FirstPersonCameraTransform::zoomIn(GLdouble amount)
+{  }
+void FirstPersonCameraTransform::zoomOut(GLdouble amount)
+{  }
+
+void FirstPersonCameraTransform::animate(GLdouble dt)
+{
+  FirstPersonTransform::animate(dt);
+  lock(); {
+    updateCameraPosition();
+    updateCameraOrientation();
+    computeMatrices();
   } unlock();
 }
+
+void FirstPersonCameraTransform::glAnimate(RenderState *rs, GLdouble dt)
+{
+  if(mat_.get()) {
+    FirstPersonTransform::glAnimate(rs,dt);
+  }
+  lock(); {
+    updateCamera(camPos_, camDir_, dt);
+  } unlock();
+}
+
+////////////////
+////////////////
+////////////////
+
+ThirdPersonCameraTransform::ThirdPersonCameraTransform(
+    const ref_ptr<Camera> &cam,
+    const ref_ptr<Mesh> &mesh,
+    const ref_ptr<ModelTransformation> &transform,
+    const Vec3f &eyeOffset,
+    GLfloat eyeOrientation)
+: FirstPersonCameraTransform(cam,mesh,transform,eyeOffset,eyeOrientation),
+  meshDistance_(10.0f)
+{
+}
+
+void ThirdPersonCameraTransform::updateCameraPosition()
+{
+  FirstPersonCameraTransform::updateCameraPosition();
+  meshPos_ = camPos_;
+
+  rot_.setAxisAngle(Vec3f::up(), horizontalOrientation_+meshHorizontalOrientation_);
+  Vec3f dir = rot_.rotate(Vec3f::front());
+
+  rot_.setAxisAngle(dir.cross(Vec3f::up()), verticalOrientation_);
+  camPos_ -= rot_.rotate(dir*meshDistance_);
+}
+
+void ThirdPersonCameraTransform::updateCameraOrientation()
+{
+  camDir_ = meshPos_ - camPos_;
+  camDir_.normalize();
+}
+
+void ThirdPersonCameraTransform::zoomIn(GLdouble amount)
+{ meshDistance_ = math::clamp(meshDistance_-amount, 0.0, 100.0); }
+void ThirdPersonCameraTransform::zoomOut(GLdouble amount)
+{ meshDistance_ = math::clamp(meshDistance_+amount, 0.0, 100.0); }

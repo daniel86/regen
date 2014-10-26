@@ -64,11 +64,11 @@ Box::Box(const Config &cfg)
 Box::Box(const ref_ptr<Box> &other)
 : Mesh(other)
 {
-  pos_ = ref_ptr<ShaderInput3f>::upCast(
+  pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
       inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-  nor_ = ref_ptr<ShaderInput3f>::upCast(
+  nor_ = ref_ptr<ShaderInput3f>::dynamicCast(
       inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
-  tan_ = ref_ptr<ShaderInput4f>::upCast(
+  tan_ = ref_ptr<ShaderInput4f>::dynamicCast(
       inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
 }
 

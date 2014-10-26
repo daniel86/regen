@@ -52,8 +52,8 @@ bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNod
   ModelTransformation *modelMat1 = findModelTransformation(n1.get());
   if(modelMat0!=NULL && modelMat1!=NULL) {
     GLfloat diff = mode_ * (
-        getEyeDepth( modelMat0->translation() ) -
-        getEyeDepth( modelMat1->translation() ) );
+        getEyeDepth( modelMat0->get()->getVertex(0).position() ) -
+        getEyeDepth( modelMat1->get()->getVertex(0).position() ) );
     return diff<0;
   }
   else if(modelMat0!=NULL) {
@@ -163,7 +163,7 @@ static void getStateCamera(const ref_ptr<State> &state, ref_ptr<Camera> *out)
 {
   // TODO ref_ptr::dynamicCast
   if(dynamic_cast<Camera*>(state.get()))
-    *out = ref_ptr<Camera>::upCast(state);
+    *out = ref_ptr<Camera>::dynamicCast(state);
   std::list< ref_ptr<State> >::const_iterator it=state->joined().begin();
 
   while(out->get()==NULL && it!=state->joined().end()) {

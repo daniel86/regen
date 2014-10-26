@@ -125,9 +125,9 @@ void ReflectionCamera::updateReflection()
 
       if(transform_.get()!=NULL) {
         if(!transform_->hasClientData()) transform_->readServerData();
-        Mat4f transform = (((Mat4f*)transform_->clientData())[0]).transpose();
-        posWorld_ = transform.transformVector(posWorld_);
-        norWorld_ = transform.rotateVector(norWorld_);
+        const Mat4f &transform = (((Mat4f*)transform_->clientData())[0]);
+        posWorld_ = (transform ^ Vec4f(posWorld_,1.0)).xyz_();
+        norWorld_ = (transform ^ Vec4f(norWorld_,0.0)).xyz_();
         norWorld_.normalize();
       }
     }

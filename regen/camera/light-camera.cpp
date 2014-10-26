@@ -260,10 +260,10 @@ void LightCamera::updateDirectional()
     // find the extends of the frustum slice as projected in light's homogeneous coordinates
     Vec2f xRange(FLT_MAX,FLT_MIN);
     Vec2f yRange(FLT_MAX,FLT_MIN);
-    Mat4f mvpMatrix = (view_->getVertex(0) * proj_->getVertex(i)).transpose();
+    Mat4f mvpMatrix = view_->getVertex(0) * proj_->getVertex(i);
     for(register GLuint j=0; j<8; ++j)
     {
-        Vec4f transf = mvpMatrix * frustum->points[j];
+        Vec4f transf = mvpMatrix ^ frustum->points[j];
         transf.x /= transf.w;
         transf.y /= transf.w;
         if (transf.x > xRange.y) { xRange.y = transf.x; }

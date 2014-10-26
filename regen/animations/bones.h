@@ -34,6 +34,11 @@ namespace regen {
     void setBones(const std::list< ref_ptr<AnimationNode> > &bones);
 
     /**
+     * @return the bone list
+     */
+    Mat4f* bones();
+
+    /**
      * @return maximum number of weights influencing a single bone.
      */
     GLint numBoneWeights() const;

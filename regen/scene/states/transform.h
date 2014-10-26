@@ -128,6 +128,9 @@ namespace scene {
 
       ref_ptr<PhysicalProps> props;
       // Primitives
+      // TODO: Support characters. bullet has something special fo them
+      // where a primitive is attached to a capsule in order to avoid
+      // problems with collisions
       if(shapeName=="sphere") {
         GLfloat radius = input.getValue<GLfloat>("radius",1.0f)*0.5;
         props = ref_ptr<PhysicalProps>::alloc(
@@ -135,6 +138,7 @@ namespace scene {
       }
       else if(shapeName=="wall") {
         Vec2f size = input.getValue<Vec2f>("size",Vec2f(1.0f));
+        // TODO: allow configuration of orientation and position
         btVector3 halfExtend(size.x*0.5, 0.001, size.y*0.5);
         props = ref_ptr<PhysicalProps>::alloc(
             motion, ref_ptr<btBoxShape>::alloc(halfExtend));
@@ -343,15 +347,15 @@ namespace scene {
 
       // Handle instanced model matrix
       if(isInstanced && numInstances>1) {
-        transform->modelMat()->setInstanceData(numInstances,1,NULL);
-        Mat4f* matrices = (Mat4f*)transform->modelMat()->clientDataPtr();
+        transform->get()->setInstanceData(numInstances,1,NULL);
+        Mat4f* matrices = (Mat4f*)transform->get()->clientDataPtr();
         for(GLuint i=0; i<numInstances; i+=1) matrices[i] = Mat4f::identity();
         transformMatrix(input,matrices,numInstances);
         // add data to vbo
-        transform->setInput(transform->modelMat());
+        transform->setInput(transform->get());
       }
       else {
-        Mat4f* matrices = (Mat4f*)transform->modelMat()->clientDataPtr();
+        Mat4f* matrices = (Mat4f*)transform->get()->clientDataPtr();
         transformMatrix(input,matrices,1u);
       }
 
@@ -359,7 +363,7 @@ namespace scene {
         for(GLuint i=0; i<numInstances; ++i) {
           // Synchronize ModelTransformation and physics simulation.
           ref_ptr<ModelMatrixMotion> motion =
-              ref_ptr<ModelMatrixMotion>::alloc(transform->modelMat(),i);
+              ref_ptr<ModelMatrixMotion>::alloc(transform->get(),i);
           ref_ptr<PhysicalProps> props =
               createPhysicalObject(parser,input,motion);
           if(props.get()) {

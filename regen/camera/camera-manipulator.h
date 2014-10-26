@@ -11,47 +11,38 @@
 #include <regen/math/quaternion.h>
 #include <regen/camera/camera.h>
 #include <regen/animations/animation.h>
+#include <regen/animations/bones.h>
 
 namespace regen {
   /**
-   * \brief Manipulates the view matrix of a Camera.
+   * \brief Computes the view matrix of a Camera.
    */
-  class CameraManipulator : public Animation
+  class CameraUpdater
   {
   public:
-    /**
-     * @param cam the camera to manipulate
-     */
-    CameraManipulator(const ref_ptr<Camera> &cam);
+    CameraUpdater(const ref_ptr<Camera> &cam);
 
-    // override
-    void glAnimate(RenderState *rs, GLdouble dt);
+    void updateCamera(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
 
   protected:
     ref_ptr<Camera> cam_;
-
-    Vec3f position_;
-    Vec3f direction_;
-    Vec3f velocity_;
-    Vec3f lastPosition_;
 
     Mat4f view_;
     Mat4f viewInv_;
     Mat4f viewproj_;
     Mat4f viewprojInv_;
+    Vec3f velocity_;
+    Vec3f lastPosition_;
   };
 
   /**
-   * Ego-Perspective camera.
-   * Translation is only done in xz-plane.
+   * Animation that allows to manipulate a transformation matrix
+   * for first person perspective.
    */
-  class EgoCameraManipulator : public CameraManipulator
+  class FirstPersonTransform : public Animation
   {
   public:
-    /**
-     * @param cam the camera to manipulate
-     */
-    EgoCameraManipulator(const ref_ptr<Camera> &cam);
+    FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat);
 
     /**
      * @param v move velocity.
@@ -98,37 +89,25 @@ namespace regen {
     void step(const Vec3f &v);
 
     /**
-     * @param v the amount of camera direction change in up direction.
-     */
-    void lookUp(GLfloat v);
-    /**
-     * @param v the amount of camera direction change in down direction.
-     */
-    void lookDown(GLfloat v);
-    /**
      * @param v the amount of camera direction change in left direction.
      */
-    void lookLeft(GLfloat v);
+    void lookLeft(GLdouble v);
     /**
      * @param v the amount of camera direction change in right direction.
      */
-    void lookRight(GLfloat v);
-
-    /**
-     * @param position the camera position.
-     */
-    void set_position(const Vec3f &position);
-    /**
-     * @param direction the camera direction.
-     */
-    void set_direction(const Vec3f &direction);
+    void lookRight(GLdouble v);
 
     // override
-    void animate(GLdouble dt);
+    virtual void animate(GLdouble dt);
+    virtual void glAnimate(RenderState *rs, GLdouble dt);
 
   protected:
+    ref_ptr<ShaderInputMat4> mat_;
+    Mat4f matVal_;
+
     Vec3f pos_;
-    Vec3f dir_;
+    //Vec3f dir_;
+    GLdouble horizontalOrientation_;
     Vec3f dirXZ_;
     Vec3f dirSidestep_;
     GLfloat moveAmount_;
@@ -141,96 +120,82 @@ namespace regen {
   };
 
   /**
-   * \brief Camera manipulator that looks at a given position.
+   * Animation that allows to manipulate a camera together with a mesh
+   * for a first person perspective.
    */
-  class LookAtCameraManipulator : public CameraManipulator
+  class FirstPersonCameraTransform : public FirstPersonTransform, public CameraUpdater
   {
   public:
-    /**
-     * @param cam a perspective camera.
-     * @param interval update interval.
-     */
-    LookAtCameraManipulator(const ref_ptr<Camera> &cam, GLint interval);
+    FirstPersonCameraTransform(const ref_ptr<Camera> &cam);
+
+    FirstPersonCameraTransform(
+        const ref_ptr<Camera> &cam,
+        const ref_ptr<Mesh> &mesh,
+        const ref_ptr<ModelTransformation> &transform,
+        const Vec3f &meshEyeOffset,
+        GLdouble meshHorizontalOrientation);
 
     /**
-     * @param lookAt the look at position.
-     * @param dt time difference to last call in milliseconds.
+     * @param amount the amount of camera direction change in up direction.
      */
-    void set_lookAt(const Vec3f &lookAt, const GLdouble &dt=0.0);
+    void lookUp(GLdouble amount);
     /**
-     * @param degree degree of rotation around the position.
-     * @param dt time difference to last call in milliseconds.
+     * @param amount the amount of camera direction change in down direction.
      */
-    void set_degree(GLfloat degree, const GLdouble &dt=0.0);
+    void lookDown(GLdouble amount);
     /**
-     * @param radius distance to look at point in xz plane.
-     * @param dt time difference to last call in milliseconds.
+     * @param amount the amount to zoom in.
      */
-    void set_radius(GLfloat radius, const GLdouble &dt=0.0);
-
+    virtual void zoomIn(GLdouble amount);
     /**
-     * @param height distance to look at point y direction.
-     * @param dt time difference to last call in milliseconds.
+     * @param amount the amount to zoom out.
      */
-    void set_height(GLfloat height, const GLdouble &dt=0.0);
-
-    /**
-     * @param length animation step size.
-     * @param dt time difference to last call in milliseconds.
-     */
-    void setStepLength(GLfloat length, const GLdouble &dt=0.0);
-
-    /**
-     * @return the camera height.
-     */
-    GLfloat height() const;
-    /**
-     * @return the camera radius.
-     */
-    GLfloat radius() const;
+    virtual void zoomOut(GLdouble amount);
 
     // override
-    void animate(GLdouble dt);
+    virtual void animate(GLdouble dt);
+    virtual void glAnimate(RenderState *rs, GLdouble dt);
 
   protected:
-    template<class T> class KeyFrame
-    {
-    public:
-      T src_;
-      T dst_;
-      GLdouble dt_;
-      KeyFrame(const T &initialValue)
-      : src_(initialValue), dst_(initialValue), dt_(0.0) {}
+    ref_ptr<Mesh> mesh_;
+    ref_ptr<ShaderInputMat4> mat_;
 
-      void setDestination(const T &dst, const GLdouble &dt)
-      {
-        dst_ = dst;
-        dt_ = dt;
-      }
-      const T& value() const
-      {
-        return src_;
-      }
-      const T& value(const GLdouble &dt)
-      {
-        if(dt > dt_) {
-          dt_ = 0.0;
-          src_ = dst_;
-        } else {
-          GLdouble factor = (dt/dt_);
-          dt_ -= dt;
-          src_ += (dst_-src_)*factor;
-        }
-        return src_;
-      }
-    };
+    Vec3f camPos_;
+    Vec3f camDir_;
 
-    KeyFrame<Vec3f> lookAt_;
-    KeyFrame<GLdouble> radius_;
-    KeyFrame<GLdouble> height_;
-    KeyFrame<GLdouble> deg_;
-    KeyFrame<GLdouble> stepLength_;
-    GLdouble intervalMiliseconds_;
+    GLdouble verticalOrientation_;
+
+    Vec3f meshEyeOffset_;
+    GLdouble meshHorizontalOrientation_;
+
+    void computeMatrices();
+    virtual void updateCameraPosition();
+    virtual void updateCameraOrientation();
+  };
+
+  /**
+   * Animation that allows to manipulate a camera together with a mesh
+   * for a third person perspective.
+   */
+  class ThirdPersonCameraTransform : public FirstPersonCameraTransform
+  {
+  public:
+    ThirdPersonCameraTransform(
+        const ref_ptr<Camera> &cam,
+        const ref_ptr<Mesh> &mesh,
+        const ref_ptr<ModelTransformation> &transform,
+        const Vec3f &eyeOffset,
+        GLfloat eyeOrientation);
+
+    // Override
+    virtual void zoomIn(GLdouble amount);
+    virtual void zoomOut(GLdouble amount);
+  protected:
+    Vec3f meshPos_;
+    GLfloat meshDistance_;
+
+    virtual void updateCameraPosition();
+    virtual void updateCameraOrientation();
   };
 } // namespace
 
