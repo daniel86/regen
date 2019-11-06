@@ -356,7 +356,7 @@ void AudioSource::clearQueue()
 
 void AudioSource::decode(AVPacket *packet)
 {
-  AVFrame *frame = avcodec_alloc_frame();
+  AVFrame *frame = av_frame_alloc();
   // Decode audio frame
 #ifdef HAS_LIBAVRESAMPLE
   int frameFinished = 0;

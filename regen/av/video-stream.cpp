@@ -14,7 +14,7 @@ extern "C" {
 #include "video-stream.h"
 using namespace regen;
 
-#define GL_RGB_PIXEL_FORMAT PIX_FMT_RGB24
+#define GL_RGB_PIXEL_FORMAT AV_PIX_FMT_RGB24
 
 VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit)
 : AudioVideoStream(stream, index, chachedBytesLimit)
@@ -41,7 +41,7 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
       GL_RGB_PIXEL_FORMAT,
       SWS_FAST_BILINEAR,
       NULL, NULL, NULL);
-  currFrame_ = avcodec_alloc_frame();
+  currFrame_ = av_frame_alloc();
 }
 VideoStream::~VideoStream()
 {
@@ -67,7 +67,7 @@ void VideoStream::decode(AVPacket *packet)
   // Did we get a video frame?
   if(!frameFinished) return;
   // YUV to RGB conversation. could be done on GPU with pixel shader. Maybe later....
-  AVFrame *rgb = avcodec_alloc_frame();
+  AVFrame *rgb = av_frame_alloc();
   int numBytes = avpicture_get_size(
       GL_RGB_PIXEL_FORMAT,
       codecCtx_->width,
@@ -75,7 +75,7 @@ void VideoStream::decode(AVPacket *packet)
   if(numBytes < 1) {
     av_free(rgb);
     av_free(currFrame_);
-    currFrame_ = avcodec_alloc_frame();
+    currFrame_ = av_frame_alloc();
     return;
   }
   uint8_t *buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
@@ -89,7 +89,7 @@ void VideoStream::decode(AVPacket *packet)
     av_free(rgb);
     av_free(buffer);
     av_free(currFrame_);
-    currFrame_ = avcodec_alloc_frame();
+    currFrame_ = av_frame_alloc();
     return;
   }
   sws_scale(swsCtx_,
@@ -106,7 +106,7 @@ void VideoStream::decode(AVPacket *packet)
   // free package and put the frame in queue of decoded frames
   av_free_packet(packet);
   av_free(currFrame_);
-  currFrame_ = avcodec_alloc_frame();
+  currFrame_ = av_frame_alloc();
   pushFrame(rgb, numBytes);
 }
 
