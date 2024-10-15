@@ -15,5 +15,5 @@ target_link_libraries(
     ${PROJECT_NAME}-scene-display
     qt-application
     ${PROJECT_NAME}
-    ${QT_LIBRARIES}
+    Qt5::Core Qt5::Gui Qt5::OpenGL
 )
