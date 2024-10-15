@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -34,6 +34,9 @@ set(REGEN_BRIEF_DESCRIPTION "Real-time-Graphics-Engine")
 ############
 #### Compiler configuration
 ###########
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_FLAGS "-fPIC")
 
 # include extra warnings specific to C++ (not on Win, visual studio is much to verbose then)
 if(NOT WIN32)
@@ -137,7 +140,7 @@ set(REGEN_LIBRARIES
     ${Boost_LIBRARIES}
     ${DEVIL_LIBRARIES}
     ${ASSIMP_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
+    ${FREETYPE_LIBRARIES} -lpng -lbrotlidec
     ${OPENAL_LIBRARIES}
     ${ALUT_LIBRARIES}
     ${FFMPEG_LIBRARIES}
