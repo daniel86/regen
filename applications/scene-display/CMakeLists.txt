@@ -1,6 +1,6 @@
 
 SET(_HEADERS scene-display-widget.h)
-QT4_WRAP_CPP(_HEADERS_MOC ${_HEADERS})
+QT5_WRAP_CPP(_HEADERS_MOC ${_HEADERS})
 
 add_executable(
     ${PROJECT_NAME}-scene-display
@@ -8,6 +8,9 @@ add_executable(
     scene-display-widget.cpp
     ${_HEADERS_MOC}
 )
+target_compile_options(
+        ${PROJECT_NAME}-scene-display
+        PRIVATE -fPIC)
 target_link_libraries(
     ${PROJECT_NAME}-scene-display
     qt-application

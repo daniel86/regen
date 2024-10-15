@@ -6,7 +6,7 @@
  */
 
 #include <QDesktopWidget>
-#include <QtGui/QHBoxLayout>
+#include <QtWidgets/QHBoxLayout>
 
 #include <regen/config.h>
 #include <regen/animations/animation-manager.h>
