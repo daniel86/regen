@@ -59,7 +59,6 @@ Application::Application(const int &argc, const char** argv)
   requiredExt_.push_back("GL_ARB_uniform_buffer_object");
   requiredExt_.push_back("GL_ARB_vertex_array_object");
   requiredExt_.push_back("GL_ARB_map_buffer_range");
-  requiredExt_.push_back("GL_EXT_geometry_shader4");
   requiredExt_.push_back("GL_EXT_texture_filter_anisotropic");
 
   optionalExt_.push_back("GL_ARB_seamless_cube_map");
