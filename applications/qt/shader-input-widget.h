@@ -2,12 +2,13 @@
 #ifndef SHADER_INPUT_WIDGET_H
 #define SHADER_INPUT_WIDGET_H
 
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 
 #include <regen/gl-types/shader-input.h>
 #include <regen/animations/animation.h>
 #include <regen/states/state-node.h>
 #include <applications/qt/shader-input-editor.h>
+#include <QTreeWidgetItem>
 
 namespace regen {
 /**

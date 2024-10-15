@@ -11,24 +11,24 @@
 #define VIDEO_2D_PLAYER_2D_GUIWY5824_H
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QGridLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QHeaderView>
-#include <QtGui/QLabel>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QPushButton>
-#include <QtGui/QSlider>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QSplitter>
-#include <QtGui/QStatusBar>
-#include <QtGui/QTableWidget>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QWidget>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSlider>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTableWidget>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
@@ -432,8 +432,8 @@ public:
         menuMedia->addAction(actionQuit);
 
         retranslateUi(mainWindow);
-        QObject::connect(actionQuit, SIGNAL(activated()), mainWindow, SLOT(close()));
-        QObject::connect(actionOpen_File, SIGNAL(activated()), mainWindow, SLOT(openVideoFile()));
+        QObject::connect(actionQuit, SIGNAL(triggered()), mainWindow, SLOT(close()));
+        QObject::connect(actionOpen_File, SIGNAL(triggered()), mainWindow, SLOT(openVideoFile()));
         QObject::connect(fullscreenButton, SIGNAL(clicked()), mainWindow, SLOT(toggleFullscreen()));
         QObject::connect(nextButton, SIGNAL(clicked()), mainWindow, SLOT(nextVideo()));
         QObject::connect(playButton, SIGNAL(clicked()), mainWindow, SLOT(togglePlayVideo()));
@@ -451,56 +451,56 @@ public:
 
     void retranslateUi(QMainWindow *mainWindow)
     {
-        mainWindow->setWindowTitle(QApplication::translate("mainWindow", "OpenGL Video Player", 0, QApplication::UnicodeUTF8));
-        actionOpen_File->setText(QApplication::translate("mainWindow", "Open File", 0, QApplication::UnicodeUTF8));
-        actionQuit->setText(QApplication::translate("mainWindow", "Quit", 0, QApplication::UnicodeUTF8));
-        actionAudio_Track->setText(QApplication::translate("mainWindow", "Audio Track", 0, QApplication::UnicodeUTF8));
-        actionVideo_Track->setText(QApplication::translate("mainWindow", "Video Track", 0, QApplication::UnicodeUTF8));
-        actionPlaylist->setText(QApplication::translate("mainWindow", "Playlist", 0, QApplication::UnicodeUTF8));
+        mainWindow->setWindowTitle(QApplication::translate("mainWindow", "OpenGL Video Player", nullptr));
+        actionOpen_File->setText(QApplication::translate("mainWindow", "Open File", nullptr));
+        actionQuit->setText(QApplication::translate("mainWindow", "Quit", nullptr));
+        actionAudio_Track->setText(QApplication::translate("mainWindow", "Audio Track", nullptr));
+        actionVideo_Track->setText(QApplication::translate("mainWindow", "Video Track", nullptr));
+        actionPlaylist->setText(QApplication::translate("mainWindow", "Playlist", nullptr));
         QTableWidgetItem *___qtablewidgetitem = playlistTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem->setText(QApplication::translate("mainWindow", "Title", 0, QApplication::UnicodeUTF8));
+        ___qtablewidgetitem->setText(QApplication::translate("mainWindow", "Title", nullptr));
         QTableWidgetItem *___qtablewidgetitem1 = playlistTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem1->setText(QApplication::translate("mainWindow", "Length", 0, QApplication::UnicodeUTF8));
+        ___qtablewidgetitem1->setText(QApplication::translate("mainWindow", "Length", nullptr));
 #ifndef QT_NO_TOOLTIP
-        progressLabel->setToolTip(QApplication::translate("mainWindow", "Elapsed time", 0, QApplication::UnicodeUTF8));
+        progressLabel->setToolTip(QApplication::translate("mainWindow", "Elapsed time", nullptr));
 #endif // QT_NO_TOOLTIP
-        progressLabel->setText(QApplication::translate("mainWindow", "00:00", 0, QApplication::UnicodeUTF8));
+        progressLabel->setText(QApplication::translate("mainWindow", "00:00", nullptr));
 #ifndef QT_NO_TOOLTIP
-        movieLengthLabel->setToolTip(QApplication::translate("mainWindow", "Total time", 0, QApplication::UnicodeUTF8));
+        movieLengthLabel->setToolTip(QApplication::translate("mainWindow", "Total time", nullptr));
 #endif // QT_NO_TOOLTIP
-        movieLengthLabel->setText(QApplication::translate("mainWindow", "00:00", 0, QApplication::UnicodeUTF8));
+        movieLengthLabel->setText(QApplication::translate("mainWindow", "00:00", nullptr));
 #ifndef QT_NO_TOOLTIP
-        playButton->setToolTip(QApplication::translate("mainWindow", "Start play back", 0, QApplication::UnicodeUTF8));
+        playButton->setToolTip(QApplication::translate("mainWindow", "Start play back", nullptr));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_STATUSTIP
         playButton->setStatusTip(QString());
 #endif // QT_NO_STATUSTIP
 #ifndef QT_NO_TOOLTIP
-        prevButton->setToolTip(QApplication::translate("mainWindow", "Previous video", 0, QApplication::UnicodeUTF8));
+        prevButton->setToolTip(QApplication::translate("mainWindow", "Previous video", nullptr));
 #endif // QT_NO_TOOLTIP
         prevButton->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        stopButton->setToolTip(QApplication::translate("mainWindow", "Stop playback", 0, QApplication::UnicodeUTF8));
+        stopButton->setToolTip(QApplication::translate("mainWindow", "Stop playback", nullptr));
 #endif // QT_NO_TOOLTIP
         stopButton->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        nextButton->setToolTip(QApplication::translate("mainWindow", "Next video", 0, QApplication::UnicodeUTF8));
+        nextButton->setToolTip(QApplication::translate("mainWindow", "Next video", nullptr));
 #endif // QT_NO_TOOLTIP
         nextButton->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        fullscreenButton->setToolTip(QApplication::translate("mainWindow", "Fullscreen", 0, QApplication::UnicodeUTF8));
+        fullscreenButton->setToolTip(QApplication::translate("mainWindow", "Fullscreen", nullptr));
 #endif // QT_NO_TOOLTIP
         fullscreenButton->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        repeatButton->setToolTip(QApplication::translate("mainWindow", "Repeat", 0, QApplication::UnicodeUTF8));
+        repeatButton->setToolTip(QApplication::translate("mainWindow", "Repeat", nullptr));
 #endif // QT_NO_TOOLTIP
         repeatButton->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        shuffleButton->setToolTip(QApplication::translate("mainWindow", "Shuffle", 0, QApplication::UnicodeUTF8));
+        shuffleButton->setToolTip(QApplication::translate("mainWindow", "Shuffle", nullptr));
 #endif // QT_NO_TOOLTIP
         shuffleButton->setText(QString());
-        volumeLabel->setText(QApplication::translate("mainWindow", "100%", 0, QApplication::UnicodeUTF8));
-        menuMedia->setTitle(QApplication::translate("mainWindow", "Media", 0, QApplication::UnicodeUTF8));
+        volumeLabel->setText(QApplication::translate("mainWindow", "100%", nullptr));
+        menuMedia->setTitle(QApplication::translate("mainWindow", "Media", nullptr));
     } // retranslateUi
 
 };

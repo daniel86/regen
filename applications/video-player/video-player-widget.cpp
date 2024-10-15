@@ -9,7 +9,7 @@
 
 #include "video-player-widget.h"
 
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QResizeEvent>
@@ -322,7 +322,7 @@ void VideoPlayerWidget::openVideoFile()
   QWidget *parent = NULL;
   QFileDialog dialog(parent);
   dialog.setFileMode(QFileDialog::AnyFile);
-  dialog.setFilter("Videos (*.avi *.mpg);;All files (*.*)");
+  dialog.setNameFilters({"Videos (*.avi *.mpg)", "All files (*.*)"});
   dialog.setViewMode(QFileDialog::Detail);
   if(!dialog.exec()) { return; }
 

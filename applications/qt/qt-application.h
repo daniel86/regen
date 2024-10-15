@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 
 #include <QtOpenGL/QGLWidget>
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 #include <regen/application.h>
 #include <applications/qt/qt-gl-widget.h>
 
