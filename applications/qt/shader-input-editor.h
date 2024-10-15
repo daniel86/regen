@@ -10,22 +10,22 @@
 #define SHADER_2D_INPUT_2D_EDITORZU4307_H
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QFormLayout>
-#include <QtGui/QFrame>
-#include <QtGui/QGridLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QHeaderView>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QPushButton>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QSplitter>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QWidget>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QFormLayout>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
@@ -326,17 +326,17 @@ public:
 
     void retranslateUi(QWidget *shaderInputEditor)
     {
-        shaderInputEditor->setWindowTitle(QApplication::translate("shaderInputEditor", "Form", 0, QApplication::UnicodeUTF8));
-        nameLabel->setText(QApplication::translate("shaderInputEditor", "name", 0, QApplication::UnicodeUTF8));
-        nameValue->setText(QApplication::translate("shaderInputEditor", "uniform name", 0, QApplication::UnicodeUTF8));
-        typeLabel->setText(QApplication::translate("shaderInputEditor", "type", 0, QApplication::UnicodeUTF8));
-        typeValue->setText(QApplication::translate("shaderInputEditor", "float", 0, QApplication::UnicodeUTF8));
-        xLabel->setText(QApplication::translate("shaderInputEditor", "x", 0, QApplication::UnicodeUTF8));
-        yLabel->setText(QApplication::translate("shaderInputEditor", "y", 0, QApplication::UnicodeUTF8));
-        zLabel->setText(QApplication::translate("shaderInputEditor", "z", 0, QApplication::UnicodeUTF8));
-        wLabel->setText(QApplication::translate("shaderInputEditor", "w", 0, QApplication::UnicodeUTF8));
-        resetButton->setText(QApplication::translate("shaderInputEditor", "Reset", 0, QApplication::UnicodeUTF8));
-        applyButton->setText(QApplication::translate("shaderInputEditor", "Apply", 0, QApplication::UnicodeUTF8));
+        shaderInputEditor->setWindowTitle(QApplication::translate("shaderInputEditor", "Form", nullptr));
+        nameLabel->setText(QApplication::translate("shaderInputEditor", "name", nullptr));
+        nameValue->setText(QApplication::translate("shaderInputEditor", "uniform name", nullptr));
+        typeLabel->setText(QApplication::translate("shaderInputEditor", "type", nullptr));
+        typeValue->setText(QApplication::translate("shaderInputEditor", "float", nullptr));
+        xLabel->setText(QApplication::translate("shaderInputEditor", "x", nullptr));
+        yLabel->setText(QApplication::translate("shaderInputEditor", "y", nullptr));
+        zLabel->setText(QApplication::translate("shaderInputEditor", "z", nullptr));
+        wLabel->setText(QApplication::translate("shaderInputEditor", "w", nullptr));
+        resetButton->setText(QApplication::translate("shaderInputEditor", "Reset", nullptr));
+        applyButton->setText(QApplication::translate("shaderInputEditor", "Apply", nullptr));
     } // retranslateUi
 
 };

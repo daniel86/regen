@@ -728,7 +728,7 @@
  <connections>
   <connection>
    <sender>actionQuit</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>mainWindow</receiver>
    <slot>close()</slot>
    <hints>
@@ -744,7 +744,7 @@
   </connection>
   <connection>
    <sender>actionOpen_File</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>mainWindow</receiver>
    <slot>openVideoFile()</slot>
    <hints>

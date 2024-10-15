@@ -1,6 +1,6 @@
 
 set(QT_APP_HEADERS qt-gl-widget.h shader-input-widget.h)
-QT4_WRAP_CPP(QT_APP_HEADERS_MOC ${QT_APP_HEADERS})
+QT5_WRAP_CPP(QT_APP_HEADERS_MOC ${QT_APP_HEADERS})
 
 add_library( qt-application STATIC
        qt-gl-widget.cpp

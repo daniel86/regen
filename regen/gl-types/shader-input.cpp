@@ -212,7 +212,7 @@ ref_ptr<VBO::Reference> ShaderInput::bufferIterator()
 
 void ShaderInput::enableAttributef(GLint location) const
 {
-  for(register GLuint i=0; i<elementCount_; ++i) {
+  for(GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
     glEnableVertexAttribArray( loc );
     glVertexAttribPointer(
@@ -229,7 +229,7 @@ void ShaderInput::enableAttributef(GLint location) const
 }
 void ShaderInput::enableAttributei(GLint location) const
 {
-  for(register GLuint i=0; i<elementCount_; ++i) {
+  for(GLuint i=0; i<elementCount_; ++i) {
     GLint loc = location+i;
     glEnableVertexAttribArray( loc );
     // use glVertexAttribIPointer, otherwise OpenGL
@@ -247,7 +247,7 @@ void ShaderInput::enableAttributei(GLint location) const
 }
 void ShaderInput::enableAttributeMat4(GLint location) const
 {
-  for(register GLuint i=0; i<elementCount_*4; i+=4) {
+  for(GLuint i=0; i<elementCount_*4; i+=4) {
     GLint loc0 = location+i;
     GLint loc1 = location+i+1;
     GLint loc2 = location+i+2;
@@ -281,7 +281,7 @@ void ShaderInput::enableAttributeMat4(GLint location) const
 }
 void ShaderInput::enableAttributeMat3(GLint location) const
 {
-  for(register GLuint i=0; i<elementCount_*3; i+=4) {
+  for(GLuint i=0; i<elementCount_*3; i+=4) {
     GLint loc0 = location+i;
     GLint loc1 = location+i+1;
     GLint loc2 = location+i+2;
@@ -309,7 +309,7 @@ void ShaderInput::enableAttributeMat3(GLint location) const
 }
 void ShaderInput::enableAttributeMat2(GLint location) const
 {
-  for(register GLuint i=0; i<elementCount_*2; i+=4) {
+  for(GLuint i=0; i<elementCount_*2; i+=4) {
     GLint loc0 = location+i;
     GLint loc1 = location+i+1;
 

@@ -8,9 +8,9 @@
 #ifndef VIDEO_PLAYER_WIDGET_H_
 #define VIDEO_PLAYER_WIDGET_H_
 
-#include <QtGui/QMainWindow>
-#include <QtGui/QLabel>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 #include <QtCore/QTimer>
 
 #include <regen/av/video-texture.h>

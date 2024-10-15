@@ -459,7 +459,7 @@ namespace regen {
       if(counter_.y>0) {
         // Indexed states only applied with stamp>lastEqStamp
         // Loop over all indexed stacks and compare stamps of top element.
-        for(register GLuint i=0; i<numIndices_; ++i)
+        for(GLuint i=0; i<numIndices_; ++i)
         {
           if(isEmptyi_[i]) { continue; }
           Node *headi = headi_[i];
