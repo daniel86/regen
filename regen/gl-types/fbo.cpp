@@ -28,7 +28,7 @@ static inline void __ReadBuffer(GLenum v)
 static inline void attachTexture(
     const ref_ptr<Texture> &tex, GLenum target)
 {
-  glFramebufferTextureEXT(GL_DRAW_FRAMEBUFFER,
+  glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
       target, tex->id(), 0);
 }
 static inline void attachRenderBuffer(
