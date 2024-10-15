@@ -7,7 +7,7 @@
 #ifdef Q_WS_X11
 #include <X11/Xlib.h>
 #endif
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 #include <QtCore/QString>
 
 #include <regen/utility/filesystem.h>

@@ -10,18 +10,18 @@
 #define SCENE_2D_DISPLAY_2D_GUIFO1010_H
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QFrame>
-#include <QtGui/QGridLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMainWindow>
-#include <QtGui/QPushButton>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QWidget>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QFrame>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
 
@@ -237,12 +237,12 @@ public:
 
     void retranslateUi(QMainWindow *sceneViewer)
     {
-        sceneViewer->setWindowTitle(QApplication::translate("sceneViewer", "Scene Viewer", 0, QApplication::UnicodeUTF8));
+        sceneViewer->setWindowTitle(QApplication::translate("sceneViewer", "Scene Viewer", nullptr));
         prevView->setText(QString());
         nextView->setText(QString());
-        openButton->setText(QApplication::translate("sceneViewer", "Open", 0, QApplication::UnicodeUTF8));
-        inputsButton->setText(QApplication::translate("sceneViewer", "Inputs", 0, QApplication::UnicodeUTF8));
-        exitButton->setText(QApplication::translate("sceneViewer", "Exit", 0, QApplication::UnicodeUTF8));
+        openButton->setText(QApplication::translate("sceneViewer", "Open", nullptr));
+        inputsButton->setText(QApplication::translate("sceneViewer", "Inputs", nullptr));
+        exitButton->setText(QApplication::translate("sceneViewer", "Exit", nullptr));
     } // retranslateUi
 
 };
