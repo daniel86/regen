@@ -1,7 +1,7 @@
 
 -- eyeVectorTan
-#ifndef __eyeVectorTan_included__
-#define2 __eyeVectorTan_included__
+#ifndef REGEN_eyeVectorTan_included_
+#define2 REGEN_eyeVectorTan_included_
 vec3 eyeVectorTan()
 {
     mat3 tbn = mat3(
@@ -16,8 +16,8 @@ vec3 eyeVectorTan()
 #endif
 
 -- defines
-#ifndef __IS_TEX_DEF_DECLARED
-#define2 __IS_TEX_DEF_DECLARED
+#ifndef REGEN_IS_TEX_DEF_DECLARED
+#define2 REGEN_IS_TEX_DEF_DECLARED
 // texture defines
   #ifndef NUM_TEXTURES
 #define NUM_TEXTURES 0
@@ -38,19 +38,19 @@ vec3 eyeVectorTan()
   #ifdef HAS_AMBIENT_MAP || HAS_EMISSION_MAP || HAS_DIFFUSE_MAP || HAS_SPECULAR_MAP || HAS_LIGHT_MAP || HAS_SHININESS_MAP
 #define HAS_LIGHT_TEXTURE
   #endif
-#endif // __IS_TEX_DEF_DECLARED
+#endif // _IS_TEX_DEF_DECLARED
 
 -- input
 #ifdef HAS_TEXTURES
-#ifndef __IS_TEX_INPUT_DECLARED
-#define2 __IS_TEX_INPUT_DECLARED
+#ifndef REGEN_IS_TEX_INPUT_DECLARED
+#define2 REGEN_IS_TEX_INPUT_DECLARED
 
 #include regen.states.textures.defines
 
 #if SHADER_STAGE == tes
-#define __NUM_INPUT_VERTICES TESS_NUM_VERTICES
+#define REGEN_NUM_INPUT_VERTICES TESS_NUM_VERTICES
 #elif SHADER_STAGE == gs
-#define __NUM_INPUT_VERTICES GS_NUM_VERTICES
+#define REGEN_NUM_INPUT_VERTICES GS_NUM_VERTICES
 #endif
 
 // declare texture input
@@ -58,17 +58,17 @@ vec3 eyeVectorTan()
 #define2 _ID ${TEX_ID${INDEX}}
 #define2 _NAME ${TEX_NAME${_ID}}
 
-#ifndef __TEX_${_NAME}__
-#define __TEX_${_NAME}__
+#ifndef REGEN_TEX_${_NAME}_
+#define REGEN_TEX_${_NAME}_
 uniform ${TEX_SAMPLER_TYPE${_ID}} in_${_NAME};
 #endif
 
 #if TEX_MAPPING_NAME${_ID} == texco_texco
   #define2 _TEXCO ${TEX_TEXCO${_ID}}
   #define2 _DIM ${TEX_DIM${_ID}}
-  #ifndef __TEXCO_${_TEXCO}
-#define __TEXCO_${_TEXCO}
-    #ifdef __NUM_INPUT_VERTICES
+  #ifndef REGEN_TEXCO_${_TEXCO}
+#define REGEN_TEXCO_${_TEXCO}
+    #ifdef REGEN_NUM_INPUT_VERTICES
       #if _DIM == 1
 in float in_${_TEXCO}[ ];
       #else
@@ -85,13 +85,13 @@ in vec${_DIM} in_${_TEXCO};
 #endif
 #endfor
 
-#endif // __IS_TEX_INPUT_DECLARED
+#endif // REGEN_IS_TEX_INPUT_DECLARED
 #endif // HAS_TEXTURES
 
 -- includes
 #include regen.states.textures.defines
-#ifndef __IS_TEXCO_DECLARED
-#define2 __IS_TEXCO_DECLARED
+#ifndef REGEN_IS_TEXCO_DECLARED
+#define2 REGEN_IS_TEXCO_DECLARED
 
 // include texture mapping functions
 #for INDEX to NUM_TEXTURES
@@ -120,7 +120,7 @@ in vec${_DIM} in_${_TEXCO};
 #include ${TEXCO_TRANSFER_KEY${_ID}}
   #endif
 #endfor
-#endif // __IS_TEXCO_DECLARED
+#endif // REGEN_IS_TEXCO_DECLARED
 
 -- computeTexco
 #if TEX_DIM${_ID}==1
@@ -131,52 +131,52 @@ in vec${_DIM} in_${_TEXCO};
 #define2 _MAPPING_ ${TEX_MAPPING_NAME${_ID}}
 
 #if _MAPPING_!=texco_texco
-#ifndef __texco_${_MAPPING_}__
-#define2 __texco_${_MAPPING_}__
+#ifndef REGEN_texco_${_MAPPING_}_
+#define2 REGEN_texco_${_MAPPING_}_
     // generate texco
     ${TEXCO_TYPE} texco_${_MAPPING_} = ${_MAPPING_}(P,N);
-#endif // __texco_${_MAPPING_${_ID}}__
+#endif // REGEN_texco_${_MAPPING_${_ID}}_
 
 #ifdef TEXCO_TRANSFER_NAME${_ID}
 #define2 _TRANSFER_ ${TEXCO_TRANSFER_NAME${_ID}}
     // apply transfer function to texco
-#ifndef __texco_${_MAPPING_}_${_TRANSFER_}__
-#define2 __texco_${_MAPPING_}_${_TRANSFER_}__
+#ifndef REGEN_texco_${_MAPPING_}_${_TRANSFER_}_
+#define2 REGEN_texco_${_MAPPING_}_${_TRANSFER_}_
     ${TEXCO_TYPE} texco_${_MAPPING_}_${_TRANSFER_} = texco_${_MAPPING_};
     ${_TRANSFER_}( texco_${_MAPPING_}_${_TRANSFER_} );
-#endif // __texco_${_MAPPING_}_${TEXCO_TRANSFER_NAME${_ID}}__
-#define2 __TEXCO${_ID}__ texco_${_MAPPING_}_${_TRANSFER_}
+#endif // REGEN_texco_${_MAPPING_}_${TEXCO_TRANSFER_NAME${_ID}}_
+#define2 REGEN_TEXCO${_ID}_ texco_${_MAPPING_}_${_TRANSFER_}
 #else
-#define2 __TEXCO${_ID}__ texco_${_MAPPING_}
+#define2 REGEN_TEXCO${_ID}_ texco_${_MAPPING_}
 #endif
 
 #else // _MAPPING_==regen.states.textures.texco_texco
-#ifndef __${TEX_TEXCO${_ID}}__
-#define2 __${TEX_TEXCO${_ID}}__
+#ifndef REGEN_${TEX_TEXCO${_ID}}_
+#define2 REGEN_${TEX_TEXCO${_ID}}_
 #if SHADER_STAGE==tes
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = INTERPOLATE_VALUE(in_${TEX_TEXCO${_ID}});
 #else
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = in_${TEX_TEXCO${_ID}};
 #endif
-#endif // __${TEX_TEXCO${_ID}}__
+#endif // REGEN_${TEX_TEXCO${_ID}}_
 
 #ifdef TEXCO_TRANSFER_NAME${_ID}
 #define2 _TRANSFER_ ${TEXCO_TRANSFER_NAME${_ID}}
     // apply transfer function to texco
-#ifndef __${TEX_TEXCO${_ID}}_${_TRANSFER_}__
-#define2 __${TEX_TEXCO${_ID}}_${_TRANSFER_}__
+#ifndef REGEN_${TEX_TEXCO${_ID}}_${_TRANSFER_}_
+#define2 REGEN_${TEX_TEXCO${_ID}}_${_TRANSFER_}_
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}}_${_TRANSFER_} = ${TEX_TEXCO${_ID}};
     ${_TRANSFER_}( ${TEX_TEXCO${_ID}}_${_TRANSFER_} );
-#endif // __${TEX_TEXCO${_ID}}_${_TRANSFER_}__
-#define2 __TEXCO${_ID}__ ${TEX_TEXCO${_ID}}_${_TRANSFER_}
+#endif // REGEN_${TEX_TEXCO${_ID}}_${_TRANSFER_}_
+#define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}_${_TRANSFER_}
 #else
-#define2 __TEXCO${_ID}__ ${TEX_TEXCO${_ID}}
+#define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}
 #endif
 
 #endif // _MAPPING_==regen.states.textures.texco_texco
 
 -- sampleTexel
-    vec4 texel${INDEX} = texture(in_${TEX_NAME${_ID}}, ${__TEXCO${_ID}__});
+    vec4 texel${INDEX} = texture(in_${TEX_NAME${_ID}}, ${REGEN_TEXCO${_ID}_});
 #ifdef TEX_IGNORE_ALPHA${_ID}
     texel${INDEX}.a = 1.0;
 #endif
@@ -192,8 +192,8 @@ in vec${_DIM} in_${_TEXCO};
 --------------------------------------
 
 -- normalTBNTransfer
-#ifndef __normalTBNTransfer_INCLUDED__
-#define2 __normalTBNTransfer_INCLUDED__
+#ifndef REGEN_normalTBNTransfer_INCLUDED_
+#define2 REGEN_normalTBNTransfer_INCLUDED_
 void normalTBNTransfer(inout vec4 texel)
 {
 #if SHADER_STAGE==fs
@@ -373,8 +373,8 @@ void textureMappingLight(
 --------------------------------------
 
 -- texco_cube
-#ifndef __TEXCO_CUBE__
-#define2 __TEXCO_CUBE__
+#ifndef REGEN_TEXCO_CUBE_
+#define2 REGEN_TEXCO_CUBE_
 vec3 texco_cube(vec3 P, vec3 N)
 {
     return reflect(-P, N);
@@ -382,8 +382,8 @@ vec3 texco_cube(vec3 P, vec3 N)
 #endif
 
 -- texco_sphere
-#ifndef __TEXCO_SPHERE__
-#define2 __TEXCO_SPHERE__
+#ifndef REGEN_TEXCO_SPHERE_
+#define2 REGEN_TEXCO_SPHERE_
 vec2 texco_sphere(vec3 P, vec3 N)
 {
     vec3 incident = normalize(P - in_cameraPosition.xyz );
@@ -394,8 +394,8 @@ vec2 texco_sphere(vec3 P, vec3 N)
 #endif
 
 -- texco_tube
-#ifndef __TEXCO_TUBE__
-#define2 __TEXCO_TUBE__
+#ifndef REGEN_TEXCO_TUBE_
+#define2 REGEN_TEXCO_TUBE_
 vec2 texco_tube(vec3 P, vec3 N)
 {
     float PI = 3.14159265358979323846264;
@@ -410,8 +410,8 @@ vec2 texco_tube(vec3 P, vec3 N)
 #endif
 
 -- texco_flat
-#ifndef __TEXCO_FLAT__
-#define2 __TEXCO_FLAT__
+#ifndef REGEN_TEXCO_FLAT_
+#define2 REGEN_TEXCO_FLAT_
 vec2 texco_flat(vec3 P, vec3 N)
 {
     vec3 r = reflect(normalize(P), N);
@@ -420,8 +420,8 @@ vec2 texco_flat(vec3 P, vec3 N)
 #endif
 
 -- texco_cube_refraction
-#ifndef __TEXCO_CUBE_REFR__
-#define2 __TEXCO_CUBE_REFR__
+#ifndef REGEN_TEXCO_CUBE_REFR_
+#define2 REGEN_TEXCO_CUBE_REFR_
 vec3 texco_cube_refraction(vec3 P, vec3 N)
 {
     vec3 incident = normalize(P - in_cameraPosition.xyz );
@@ -430,8 +430,8 @@ vec3 texco_cube_refraction(vec3 P, vec3 N)
 #endif
 
 -- texco_cube_reflection
-#ifndef __TEXCO_CUBE_REFL__
-#define2 __TEXCO_CUBE_REFL__
+#ifndef REGEN_TEXCO_CUBE_REFL_
+#define2 REGEN_TEXCO_CUBE_REFL_
 vec3 texco_cube_reflection(vec3 P, vec3 N)
 {
   vec3 incident = normalize(P - in_cameraPosition.xyz );
@@ -440,8 +440,8 @@ vec3 texco_cube_reflection(vec3 P, vec3 N)
 #endif
 
 -- texco_paraboloid_reflection
-#ifndef __TEXCO_PARABOLOID_REFL__
-#define2 __TEXCO_PARABOLOID_REFL__
+#ifndef REGEN_TEXCO_PARABOLOID_REFL_
+#define2 REGEN_TEXCO_PARABOLOID_REFL_
 
 #ifdef IS_PARABOLOID_DUAL
 vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
@@ -474,14 +474,14 @@ vec2 texco_paraboloid_reflection(vec3 P, vec3 N)
 #endif
 
 -- texco_paraboloid_refraction
-#ifndef __TEXCO_PARABOLOID_REFR__
-#define2 __TEXCO_PARABOLOID_REFR__
+#ifndef REGEN_TEXCO_PARABOLOID_REFR_
+#define2 REGEN_TEXCO_PARABOLOID_REFR_
 
 -- texco_planar_reflection
 #include regen.states.camera.transformScreenToTexco
 
-#ifndef __TEXCO_PLANE_REFL__
-#define2 __TEXCO_PLANE_REFL__
+#ifndef REGEN_TEXCO_PLANE_REFL_
+#define2 REGEN_TEXCO_PLANE_REFL_
 vec2 texco_planar_reflection(vec3 P, vec3 N)
 {
     return transformScreenToTexco(in_reflectionMatrix * vec4(P,1.0)).xy;
@@ -495,8 +495,8 @@ vec2 texco_planar_reflection(vec3 P, vec3 N)
 --------------------------------------
 
 -- parallaxTransfer
-#ifndef __PARALLAX_TRANSFER__
-#define2 __PARALLAX_TRANSFER__
+#ifndef REGEN_PARALLAX_TRANSFER_
+#define2 REGEN_PARALLAX_TRANSFER_
 const float in_parallaxScale = 0.1;
 const float in_parallaxBias = 0.05;
 
@@ -519,8 +519,8 @@ void parallaxTransfer(inout vec2 texco)
 #endif
 
 -- parallaxOcclusionTransfer
-#ifndef __PARALLAX_OCCLUSION_TRANSFER__
-#define2 __PARALLAX_OCCLUSION_TRANSFER__
+#ifndef REGEN_PARALLAX_OCCLUSION_TRANSFER_
+#define2 REGEN_PARALLAX_OCCLUSION_TRANSFER_
 const float in_parallaxScale = 0.1;
 const int in_parallaxSteps = 50;
 
@@ -559,8 +559,8 @@ void parallaxOcclusionTransfer(inout vec2 texco)
 #endif
 
 -- reliefTransfer
-#ifndef __RELIEF_TRANSFER__
-#define2 __RELIEF_TRANSFER__
+#ifndef REGEN_RELIEF_TRANSFER_
+#define2 REGEN_RELIEF_TRANSFER_
 
 const int in_reliefLinearSteps = 20;
 const int in_reliefBinarySteps = 5;
@@ -597,8 +597,8 @@ void reliefTransfer(inout vec2 texco)
 #endif
 
 -- fisheyeTransfer
-#ifndef __TEXCOTRANSFER_FISHEYE__
-#define2 __TEXCOTRANSFER_FISHEYE__
+#ifndef REGEN_TEXCOTRANSFER_FISHEYE_
+#define2 REGEN_TEXCOTRANSFER_FISHEYE_
 
 const float in_fishEyeTheta=0.5;
 

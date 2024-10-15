@@ -54,7 +54,7 @@ void main() {
     vec3 N = fetchNormal(in_gNorWorldTexture,texco);
     float depth = texture(in_gDepthTexture, texco).r;
     vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
-    depth = linearizeDepth(depth, __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
+    depth = linearizeDepth(depth, REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
     vec2 texelSize = in_inverseViewport*0.5;
     
     vec2 kernel[4] = vec2[](

@@ -1,8 +1,8 @@
 
 -- input
 #ifdef HAS_BONES
-#ifndef __boneInput_Included__
-#define __boneInput_Included__
+#ifndef REGEN_boneInput_Included_
+#define REGEN_boneInput_Included_
 #if NUM_BONE_WEIGHTS==1
 in float in_boneWeights;
 in uint in_boneIndices;
@@ -23,7 +23,7 @@ uniform int in_numBoneWeights;
 #ifdef HAS_boneOffset
 in int in_boneOffset;
 #endif
-#endif // __boneInput_Included__
+#endif // REGEN_boneInput_Included_
 #endif // HAS_BONES
 
 -- fetchBoneMatrixArray
@@ -40,30 +40,30 @@ int boneMatrixIndex(uint i) {
 mat4 fetchBoneMatrix(uint i) {
     int matIndex = boneMatrixIndex(i);
     return mat4(
-        texelFetchBuffer(in_boneMatrices, matIndex),
-        texelFetchBuffer(in_boneMatrices, matIndex+1),
-        texelFetchBuffer(in_boneMatrices, matIndex+2),
-        texelFetchBuffer(in_boneMatrices, matIndex+3)
+        texelFetch(in_boneMatrices, matIndex),
+        texelFetch(in_boneMatrices, matIndex+1),
+        texelFetch(in_boneMatrices, matIndex+2),
+        texelFetch(in_boneMatrices, matIndex+3)
     );
 }
 
 -- fetchBoneMatrix
 #ifdef HAS_BONES
-#ifndef __fetchBoneMatrix_Included__
-#define __fetchBoneMatrix_Included__
+#ifndef REGEN_fetchBoneMatrix_Included_
+#define REGEN_fetchBoneMatrix_Included_
 #include regen.states.bones.input
 #ifdef USE_BONE_TBO
 #include regen.states.bones.fetchBoneMatrixTBO
 #else
 #include regen.states.bones.fetchBoneMatrixArray
 #endif // USE_BONE_TBO
-#endif // __fetchBoneMatrix_Included__
+#endif // REGEN_fetchBoneMatrix_Included_
 #endif // HAS_BONES
 
 -- transformBone
 #ifdef HAS_BONES
-#ifndef __transformBone_Included__
-#define __transformBone_Included__
+#ifndef REGEN_transformBone_Included_
+#define REGEN_transformBone_Included_
 #include regen.states.bones.fetchBoneMatrix
 
 vec4 transformBone(vec4 x) {
@@ -83,5 +83,5 @@ vec4 transformBone(vec4 x) {
            in_boneWeights.w * fetchBoneMatrix(in_boneIndices.w) * x;
 #endif
 }
-#endif // __transformBone_Included__
+#endif // REGEN_transformBone_Included_
 #endif // HAS_BONES

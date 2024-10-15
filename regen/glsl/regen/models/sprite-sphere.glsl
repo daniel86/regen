@@ -33,7 +33,6 @@ void main() {
 #include regen.models.mesh.tes
 -- gs
 #include regen.models.mesh.defines
-#extension GL_EXT_geometry_shader4 : enable
 #define2 __MAX_VERTICES__ ${${RENDER_LAYER}*4}
 
 layout(points) in;
@@ -69,7 +68,7 @@ void emitVertex(vec4 posEye, int layer) {
 }
 
 void emitSpriteSphere(int layer) {
-  vec4 centerEye = transformWorldToEye(gl_PositionIn[0],layer);
+  vec4 centerEye = transformWorldToEye(gl_in[0].gl_Position,layer);
   vec3 quadPos[4] = computeSpritePoints(
       centerEye.xyz, vec2(in_sphereRadius[0]), vec3(0.0,1.0,0.0));
 

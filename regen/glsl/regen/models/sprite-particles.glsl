@@ -7,9 +7,9 @@ float softParticleScale()
     vec2 depthTexco = gl_FragCoord.xy/in_viewport.xy;
     float sceneDepth = linearizeDepth(
             texture(in_depthTexture, depthTexco).r,
-            __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
+            REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
     float fragmentDepth = linearizeDepth(gl_FragCoord.z,
-	    __CAM_NEAR__(in_layer), __CAM_FAR__(in_layer));
+	    REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
     return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
 }
 #else
@@ -32,8 +32,6 @@ void main() {
 }
 
 -- gs
-#extension GL_EXT_geometry_shader4 : enable
-
 layout(points) in;
 layout(triangle_strip, max_vertices=4) out;
 

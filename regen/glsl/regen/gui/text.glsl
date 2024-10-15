@@ -28,8 +28,6 @@ void main() {
 -- outline.vs
 #include regen.gui.widget.vs
 -- outline.gs
-#extension GL_EXT_geometry_shader4 : enable
-
 layout(triangles) in;
 layout(triangle_strip, max_vertices=12) out;
 
@@ -44,25 +42,25 @@ void main() {
     vec2 offset = outlineOffset*in_inverseViewport;
     
     for(i = 0; i < 3; i++) {
-        gl_Position = gl_PositionIn[i] + offset;
+        gl_Position = gl_in[i].gl_Position + offset;
         HANDLE_IO(i);
         EmitVertex();
     }
     EndPrimitive();
     for(i = 0; i < 3; i++) {
-        gl_Position = gl_PositionIn[i] - offset;
+        gl_Position = gl_in[i].gl_Position - offset;
         HANDLE_IO(i);
         EmitVertex();
     }
     EndPrimitive();
     for(i = 0; i < 3; i++) {
-        gl_Position = gl_PositionIn[i] + vec2(offset.x, -offset.y);
+        gl_Position = gl_in[i].gl_Position + vec2(offset.x, -offset.y);
         HANDLE_IO(i);
         EmitVertex();
     }
     EndPrimitive();
     for(i = 0; i < 3; i++) {
-        gl_Position = gl_PositionIn[i] + vec2(-offset.x, offset.y);
+        gl_Position = gl_in[i].gl_Position + vec2(-offset.x, offset.y);
         HANDLE_IO(i);
         EmitVertex();
     }

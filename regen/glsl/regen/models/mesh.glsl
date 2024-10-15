@@ -151,7 +151,6 @@ void main() {
 #include regen.states.camera.defines
 #include regen.defines.all
 #if RENDER_LAYER > 1
-#extension GL_EXT_geometry_shader4 : enable
 #define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
 
 layout(triangles) in;
@@ -183,9 +182,9 @@ void main() {
   // select framebuffer layer
   gl_Layer = ${LAYER};
   out_layer = ${LAYER};
-  emitVertex(gl_PositionIn[0], 0, ${LAYER});
-  emitVertex(gl_PositionIn[1], 1, ${LAYER});
-  emitVertex(gl_PositionIn[2], 2, ${LAYER});
+  emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
+  emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
+  emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
   EndPrimitive();
 #endif // SKIP_LAYER
 #endfor

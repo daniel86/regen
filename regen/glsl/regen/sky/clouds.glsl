@@ -88,7 +88,6 @@ void main() {
 #include regen.states.camera.defines
 #include regen.defines.all
 #if RENDER_LAYER > 1
-#extension GL_EXT_geometry_shader4 : enable
 #define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
 
 layout(triangles) in;
@@ -107,7 +106,7 @@ flat out int out_layer;
 void emitVertex(vec4 posWorld, int index, int layer) {
   vec4 pw = vec4(posWorld.xy,0.0,1.0);
   vec3 s = transformScreenToEye(pw,layer);
-  out_ray = vec4(s,0.0) * __VIEW__(layer);
+  out_ray = vec4(s,0.0) * REGEN_VIEW_(layer);
   out_ray = normalize(out_ray);
   gl_Position = posWorld;
   HANDLE_IO(index);
@@ -120,9 +119,9 @@ void main() {
   // select framebuffer layer
   gl_Layer = ${LAYER};
   out_layer = ${LAYER};
-  emitVertex(gl_PositionIn[0], 0, ${LAYER});
-  emitVertex(gl_PositionIn[1], 1, ${LAYER});
-  emitVertex(gl_PositionIn[2], 2, ${LAYER});
+  emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
+  emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
+  emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
   EndPrimitive();
 #endif // SKIP_LAYER
 #endfor

@@ -67,7 +67,6 @@ void main(void) {
 -- gs
 #include regen.states.camera.defines
 #include regen.defines.all
-#extension GL_EXT_geometry_shader4 : enable
 #define2 __MAX_VERTICES__ ${${RENDER_LAYER}*4}
 
 layout (points) in;
@@ -95,7 +94,7 @@ void emitVertex(vec3 posWorld, vec2 texco, int layer) {
   EmitVertex();
 }
 void emitBrightStar(int layer) {
-    vec3 p = normalize(gl_PositionIn[0].xyz);
+    vec3 p = normalize(gl_in[0].gl_Position.xyz);
 
     float ext = computeEyeExtinction(p);
     if(ext <= 0.0) return;

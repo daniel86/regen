@@ -1,7 +1,7 @@
 
 -- input.deferred
-#ifndef __light_inputs_included_
-#define2 __light_inputs_included_
+#ifndef REGEN_light_inputs_included_
+#define2 REGEN_light_inputs_included_
 uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
 
@@ -53,84 +53,84 @@ uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
 uniform float in_lightFar[NUM_SHADOW_LAYER];
 #endif
 #endif
-#endif // __light_inputs_included_
+#endif // REGEN_light_inputs_included_
 
 -- input.direct
-#ifndef __light_inputs_included_
-#define2 __light_inputs_included_
+#ifndef REGEN_light_inputs_included_
+#define2 REGEN_light_inputs_included_
 #for INDEX to NUM_LIGHTS
-#define2 __ID ${LIGHT${INDEX}_ID}
-uniform vec3 in_lightDiffuse${__ID};
-uniform vec3 in_lightSpecular${__ID};
-#ifdef LIGHT_IS_ATTENUATED${__ID}
-uniform vec2 in_lightRadius${__ID};
+#define2 REGEN_ID ${LIGHT${INDEX}_ID}
+uniform vec3 in_lightDiffuse${REGEN_ID};
+uniform vec3 in_lightSpecular${REGEN_ID};
+#ifdef LIGHT_IS_ATTENUATED${REGEN_ID}
+uniform vec2 in_lightRadius${REGEN_ID};
 #endif
 
-#if LIGHT_TYPE${__ID} == SPOT
+#if LIGHT_TYPE${REGEN_ID} == SPOT
 // spot light
-uniform vec3 in_lightPosition${__ID};
-uniform vec2 in_lightConeAngles${__ID};
-uniform vec3 in_lightDirection${__ID};
-#ifdef USE_SHADOW_MAP${__ID}
-uniform float in_lightFar${__ID};
-uniform float in_lightNear${__ID};
-uniform mat4 in_lightMatrix${__ID};
-uniform vec2 in_shadowInverseSize${__ID};
-uniform sampler2DShadow in_shadowTexture${__ID};
+uniform vec3 in_lightPosition${REGEN_ID};
+uniform vec2 in_lightConeAngles${REGEN_ID};
+uniform vec3 in_lightDirection${REGEN_ID};
+#ifdef USE_SHADOW_MAP${REGEN_ID}
+uniform float in_lightFar${REGEN_ID};
+uniform float in_lightNear${REGEN_ID};
+uniform mat4 in_lightMatrix${REGEN_ID};
+uniform vec2 in_shadowInverseSize${REGEN_ID};
+uniform sampler2DShadow in_shadowTexture${REGEN_ID};
 #ifdef USE_SHADOW_COLOR
 uniform sampler2D in_shadowColorTexture;
 #endif
-#endif // USE_SHADOW_MAP${__ID}
-#endif // LIGHT_TYPE${__ID} == SPOT
+#endif // USE_SHADOW_MAP${REGEN_ID}
+#endif // LIGHT_TYPE${REGEN_ID} == SPOT
 
-#if LIGHT_TYPE${__ID} == POINT
+#if LIGHT_TYPE${REGEN_ID} == POINT
 // point light
-uniform vec3 in_lightPosition${__ID};
-#ifdef USE_SHADOW_MAP${__ID}
-uniform float in_lightFar${__ID};
-uniform float in_lightNear${__ID};
-uniform vec2 in_shadowInverseSize${__ID};
-uniform mat4 in_lightMatrix${__ID}[6];
-uniform samplerCubeShadow in_shadowTexture${__ID};
+uniform vec3 in_lightPosition${REGEN_ID};
+#ifdef USE_SHADOW_MAP${REGEN_ID}
+uniform float in_lightFar${REGEN_ID};
+uniform float in_lightNear${REGEN_ID};
+uniform vec2 in_shadowInverseSize${REGEN_ID};
+uniform mat4 in_lightMatrix${REGEN_ID}[6];
+uniform samplerCubeShadow in_shadowTexture${REGEN_ID};
 #ifdef USE_SHADOW_COLOR
 uniform samplerCube in_shadowColorTexture;
 #endif
-#endif // USE_SHADOW_MAP${__ID}
-#endif // LIGHT_TYPE${__ID} == POINT
+#endif // USE_SHADOW_MAP${REGEN_ID}
+#endif // LIGHT_TYPE${REGEN_ID} == POINT
 
-#if LIGHT_TYPE${__ID} == DIRECTIONAL
+#if LIGHT_TYPE${REGEN_ID} == DIRECTIONAL
 // directional light
-uniform vec3 in_lightDirection${__ID};
-#ifdef USE_SHADOW_MAP${__ID}
-uniform vec2 in_shadowInverseSize${__ID};
-uniform float in_lightFar${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-uniform mat4 in_lightMatrix${__ID}[ NUM_SHADOW_LAYER${__ID} ];
-uniform sampler2DArrayShadow in_shadowTexture${__ID};
+uniform vec3 in_lightDirection${REGEN_ID};
+#ifdef USE_SHADOW_MAP${REGEN_ID}
+uniform vec2 in_shadowInverseSize${REGEN_ID};
+uniform float in_lightFar${REGEN_ID}[ NUM_SHADOW_LAYER${REGEN_ID} ];
+uniform mat4 in_lightMatrix${REGEN_ID}[ NUM_SHADOW_LAYER${REGEN_ID} ];
+uniform sampler2DArrayShadow in_shadowTexture${REGEN_ID};
 #ifdef USE_SHADOW_COLOR
 uniform sampler2DArray in_shadowColorTexture;
 #endif
 #endif
 #endif
 
-#ifdef USE_SHADOW_MAP${__ID}
-  #ifndef __TEX_shadowTexture${__ID}__
-#define __TEX_shadowTexture${__ID}__
+#ifdef USE_SHADOW_MAP${REGEN_ID}
+  #ifndef REGEN_TEX_shadowTexture${REGEN_ID}_
+#define REGEN_TEX_shadowTexture${REGEN_ID}_
   #endif
 #endif
 #endfor
-#endif // __light_inputs_included_
+#endif // REGEN_light_inputs_included_
 
 -- radiusAttenuation
-#ifndef __radiusAttenuation_Included__
-#define2 __radiusAttenuation_Included__
+#ifndef REGEN_radiusAttenuation_Included_
+#define2 REGEN_radiusAttenuation_Included_
 float radiusAttenuation(float d, float innerRadius, float outerRadius) {
     return 1.0 - smoothstep(innerRadius, outerRadius, d);
 }
 #endif
 
 -- spotConeAttenuation
-#ifndef __spotConeAttenuation_Included__
-#define2 __spotConeAttenuation_Included__
+#ifndef REGEN_spotConeAttenuation_Included_
+#define2 REGEN_spotConeAttenuation_Included_
 float spotConeAttenuation(vec3 L, vec3 dir, vec2 coneAngles) {
     float spotEffect = dot( -L, normalize(dir) );
     float spotFade = 1.0 - (spotEffect-coneAngles.x)/(coneAngles.y-coneAngles.x);
@@ -139,8 +139,8 @@ float spotConeAttenuation(vec3 L, vec3 dir, vec2 coneAngles) {
 #endif
 
 -- specularFactor
-#ifndef __specularFactor_Included__
-#define2 __specularFactor_Included__
+#ifndef REGEN_specularFactor_Included_
+#define2 REGEN_specularFactor_Included_
 float specularFactor(vec3 P, vec3 L, vec3 N) {
     return max( dot(
             normalize( reflect( L, -N ) ),
