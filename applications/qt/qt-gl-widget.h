@@ -33,6 +33,8 @@ public:
   void stopRendering();
   void run();
 
+  auto surfaceFormat() const -> QSurfaceFormat const& { return surfaceFormat_; }
+
   /**
    * @param interval update interval in milliseconds.
    */
@@ -51,6 +53,7 @@ protected:
   GLThread renderThread_;
   GLint updateInterval_;
   GLboolean isRunning_;
+  QSurfaceFormat surfaceFormat_;
 
   void initializeGL();
   void paintGL();
