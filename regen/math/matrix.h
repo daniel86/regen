@@ -1090,7 +1090,7 @@ namespace regen {
     {
       const Vec3f *dir = cubeDirections();
       const Vec3f *up = cubeUpVectors();
-      for(register GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
+      for(GLuint i=0; i<6; ++i) views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
     }
     /**
      * Compute view transformation matrices with cube center at origin point (0,0,0).
