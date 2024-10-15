@@ -75,7 +75,7 @@ LightCamera::LightCamera(
     direction_->set_elementCount(numLayer_);
     direction_->setUniformDataUntyped(NULL);
     const Vec3f *dir = Mat4f::cubeDirections();
-    for(register GLuint i=0; i<6; ++i) {
+    for(GLuint i=0; i<6; ++i) {
       direction_->setVertex(i, dir[i]);
     }
 
@@ -179,7 +179,7 @@ void LightCamera::updatePoint()
   Mat4f::cubeLookAtMatrices(pos, (Mat4f*)view_->clientDataPtr());
   view_->nextStamp();
 
-  for(register GLuint i=0; i<6; ++i) {
+  for(GLuint i=0; i<6; ++i) {
     if(!isCubeFaceVisible_[i]) { continue; }
     viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
     updateViewProjection(0,i);
@@ -243,7 +243,7 @@ void LightCamera::updateDirectional()
   }
 
   // Update projection and view-projection matrix
-  for(register GLuint i=0; i<numLayer_; ++i)
+  for(GLuint i=0; i<numLayer_; ++i)
   {
     Frustum *frustum = shadowFrusta_[i];
     // update frustum points in world space
@@ -261,7 +261,7 @@ void LightCamera::updateDirectional()
     Vec2f xRange(FLT_MAX,FLT_MIN);
     Vec2f yRange(FLT_MAX,FLT_MIN);
     Mat4f mvpMatrix = view_->getVertex(0) * proj_->getVertex(i);
-    for(register GLuint j=0; j<8; ++j)
+    for(GLuint j=0; j<8; ++j)
     {
         Vec4f transf = mvpMatrix ^ frustum->points[j];
         transf.x /= transf.w;
@@ -292,7 +292,7 @@ GLboolean LightCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat ra
 {
   switch(light_->lightType()) {
   case Light::DIRECTIONAL:
-    for(register GLuint i=0; i<numLayer_; ++i) {
+    for(GLuint i=0; i<numLayer_; ++i) {
       Frustum *frustum = shadowFrusta_[i];
       if(frustum->hasIntersectionWithSphere(center,radius))
         return GL_TRUE;
@@ -310,7 +310,7 @@ GLboolean LightCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *
 {
   switch(light_->lightType()) {
   case Light::DIRECTIONAL:
-    for(register GLuint i=0; i<numLayer_; ++i) {
+    for(GLuint i=0; i<numLayer_; ++i) {
       Frustum *frustum = shadowFrusta_[i];
       if(frustum->hasIntersectionWithBox(center,points))
         return GL_TRUE;
