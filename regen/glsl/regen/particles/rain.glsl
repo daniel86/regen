@@ -80,8 +80,6 @@ void main() {
 }
 
 -- draw.gs
-#extension GL_EXT_geometry_shader4 : enable
-
 layout(points) in;
 layout(triangle_strip, max_vertices=4) out;
 

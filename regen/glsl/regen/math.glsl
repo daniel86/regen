@@ -1,7 +1,7 @@
 
 -- matrixInverse
-#ifndef __matrixInverse_included__
-#define __matrixInverse_included__
+#ifndef REGEN_matrixInverse_included_
+#define REGEN_matrixInverse_included_
 mat3 matrixInverse(in mat3 inMatrix){  
     float det = dot(cross(inMatrix[0], inMatrix[1]), inMatrix[2]);
     mat3 T = transpose(inMatrix);
@@ -13,16 +13,16 @@ mat3 matrixInverse(in mat3 inMatrix){
 #endif
 
 -- linstep
-#ifndef __linstep_included__
-#define __linstep_included__
+#ifndef REGEN_linstep_included_
+#define REGEN_linstep_included_
 float linstep(float low, float high, float v) {
     return clamp((v-low)/(high-low), 0.0, 1.0);
 }
 #endif
 
 -- isPointBetween
-#ifndef __isPointBetween_included__
-#define __isPointBetween_included__
+#ifndef REGEN_isPointBetween_included_
+#define REGEN_isPointBetween_included_
 bool isPointBetween(vec2 x, vec2 start, vec2 p0, vec2 p1)
 {
     // point to start
@@ -39,8 +39,8 @@ bool isPointBetween(vec2 x, vec2 start, vec2 p0, vec2 p1)
 #endif
 
 -- random
-#ifndef __random_Included
-#define2 __random_Included
+#ifndef REGEN_random_Included
+#define2 REGEN_random_Included
 // return pseudorandom float with values between 0 and 1.
 float random(inout uint seed) {
     seed = (seed * 1103515245u + 12345u);
@@ -57,8 +57,8 @@ vec3 random3(inout uint seed) {
 #endif
 
 -- variance
-#ifndef __variance_Included
-#define2 __variance_Included
+#ifndef REGEN_variance_Included
+#define2 REGEN_variance_Included
 #include regen.math.random
 float variance(float v, inout uint seed) {
     return v*2.0*(random(seed)-0.5);
@@ -84,8 +84,8 @@ vec4 variance(vec4 v, inout uint seed) {
 #endif
 
 -- isPointInCone
-#ifndef __isPointInCone_included__
-#define __isPointInCone_included__
+#ifndef REGEN_isPointInCone_included_
+#define REGEN_isPointInCone_included_
 bool isPointInCone(vec3 x, vec3 apex, vec3 direction, float halfConeAngleCos)
 {
     vec3 pointDirection = normalize(apex-x);
@@ -95,8 +95,8 @@ bool isPointInCone(vec3 x, vec3 apex, vec3 direction, float halfConeAngleCos)
 #endif
 
 -- pointLineDistance
-#ifndef __pointLineDistance_included__
-#define __pointLineDistance_included__
+#ifndef REGEN_pointLineDistance_included_
+#define REGEN_pointLineDistance_included_
 float pointLineDistance(vec3 p, vec3 pl, vec3 dirl)
 {
     return length( cross(dirl, p-pl) ) / length(dirl);
@@ -108,8 +108,8 @@ float pointLineDistance(vec2 p, vec2 pl, vec2 dirl)
 #endif
 
 -- pointVectorDistance
-#ifndef __pointVectorDistance_included__
-#define __pointVectorDistance_included__
+#ifndef REGEN_pointVectorDistance_included_
+#define REGEN_pointVectorDistance_included_
 float pointVectorDistance(vec3 dir, vec3 p)
 {
     return dot(p,dir)/dot(dir,dir);
@@ -118,8 +118,8 @@ float pointVectorDistance(vec3 dir, vec3 p)
 
 
 -- computeCubeAxis
-#ifndef __computeCubeAxis__included__
-#define2 __computeCubeAxis__included__
+#ifndef REGEN_computeCubeAxis_included_
+#define2 REGEN_computeCubeAxis_included_
 int computeCubeAxis(vec3 dir)
 {
     vec3 a = abs(dir);
@@ -130,8 +130,8 @@ int computeCubeAxis(vec3 dir)
 #endif
 
 -- computeCubeLayer
-#ifndef __computeCubeLayer__included__
-#define2 __computeCubeLayer__included__
+#ifndef REGEN_computeCubeLayer_included_
+#define2 REGEN_computeCubeLayer_included_
 int computeCubeLayer(vec3 dir)
 {
     vec3 absDir = abs(dir);
@@ -143,8 +143,8 @@ int computeCubeLayer(vec3 dir)
 #endif
 
 -- computeClosestCubeLayer
-#ifndef __computeClosestCubeLayer__included__
-#define2 __computeClosestCubeLayer__included__
+#ifndef REGEN_computeClosestCubeLayer_included_
+#define2 REGEN_computeClosestCubeLayer_included_
 // Calculate cube map layers a sprite could affect.
 // Should be done because a sprite can intersect with 3 cube faces at the same time.
 int[3] computeClosestCubeLayer(vec3 p)
@@ -158,8 +158,8 @@ int[3] computeClosestCubeLayer(vec3 p)
 #endif
 
 -- computeCubeDirection
-#ifndef __computeCubeDirection__included__
-#define2 __computeCubeDirection__included__
+#ifndef REGEN_computeCubeDirection_included_
+#define2 REGEN_computeCubeDirection_included_
 vec3 computeCubeDirection(vec2 uv, int layer)
 {
     vec3 cubePoints[6] = vec3[](
@@ -175,8 +175,8 @@ vec3 computeCubeDirection(vec2 uv, int layer)
 #endif
 
 -- computeCubeOffset
-#ifndef __computeCubeOffset__included__
-#define2 __computeCubeOffset__included__
+#ifndef REGEN_computeCubeOffset_included_
+#define2 REGEN_computeCubeOffset_included_
 #include regen.math.computeCubeAxis
 void computeCubeOffset(vec3 dir, float x, out vec3 dx, out vec3 dy)
 {
@@ -197,8 +197,8 @@ void computeCubeOffset(vec3 dir, float x, out vec3 dx, out vec3 dy)
 #endif
 
 -- computeSpritePoints2
-#ifndef __computeSpritePoints__included__
-#define2 __computeSpritePoints__included__
+#ifndef REGEN_computeSpritePoints_included_
+#define2 REGEN_computeSpritePoints_included_
 vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 zAxis, vec3 yAxis)
 {
   vec3 xAxis = normalize(cross(zAxis,yAxis));
@@ -218,8 +218,8 @@ vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 yAxis)
 #endif
 
 -- computeSpritePoints
-#ifndef __computeSpritePoints__included__
-#define2 __computeSpritePoints__included__
+#ifndef REGEN_computeSpritePoints_included_
+#define2 REGEN_computeSpritePoints_included_
 vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 zAxis, vec3 upVector)
 {
   vec3 xAxis = normalize(cross(zAxis, upVector));

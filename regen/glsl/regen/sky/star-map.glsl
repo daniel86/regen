@@ -52,9 +52,9 @@ void main() {
 #ifndef SKIP_LAYER${LAYER}
   gl_Layer = ${LAYER};
   out_layer = ${LAYER};
-  emitStarVertex(gl_PositionIn[0].xyz, 0, ${LAYER}); EmitVertex();
-  emitStarVertex(gl_PositionIn[1].xyz, 1, ${LAYER}); EmitVertex();
-  emitStarVertex(gl_PositionIn[2].xyz, 2, ${LAYER}); EmitVertex();
+  emitStarVertex(gl_in[0].gl_Position.xyz, 0, ${LAYER}); EmitVertex();
+  emitStarVertex(gl_in[1].gl_Position.xyz, 1, ${LAYER}); EmitVertex();
+  emitStarVertex(gl_in[2].gl_Position.xyz, 2, ${LAYER}); EmitVertex();
   EndPrimitive();
 #endif // SKIP_LAYER
 #endfor
