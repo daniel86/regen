@@ -14,9 +14,9 @@
 
 #include "shader-input-widget.h"
 using namespace regen;
-using namespace std;
+//using namespace std;
 
-static const string __typeString(GLenum dataType) {
+static const std::string __typeString(GLenum dataType) {
   switch(dataType) {
   case GL_FLOAT: return "float";
   case GL_INT: return "int";
@@ -28,7 +28,7 @@ static const string __typeString(GLenum dataType) {
 class SetValueCallback : public Animation
 {
 public:
-  SetValueCallback(map<ShaderInput*,GLuint> *valueStamps)
+  SetValueCallback(std::map<ShaderInput*,GLuint> *valueStamps)
   : Animation(GL_TRUE,GL_FALSE), valueStamps_(valueStamps) {}
 
   void push(ShaderInput *in, byte *changedData)
@@ -64,7 +64,7 @@ private:
     byte *changedData;
   };
   Stack<ChangedValue> values_;
-  map<ShaderInput*,GLuint> *valueStamps_;
+	std::map<ShaderInput*,GLuint> *valueStamps_;
 
   void setValue(const ChangedValue &v)
   {
@@ -87,7 +87,7 @@ ShaderInputWidget::ShaderInputWidget(QWidget *parent)
 }
 ShaderInputWidget::~ShaderInputWidget()
 {
-  for(map<ShaderInput*,byte*>::iterator
+  for(std::map<ShaderInput*,byte*>::iterator
       it=initialValue_.begin(); it!=initialValue_.end(); ++it)
   {
     delete []it->second;
@@ -123,7 +123,7 @@ bool ShaderInputWidget::handleNode(
     x = x->parent();
   }
 
-  for(list< ref_ptr<StateNode> >::iterator
+  for(std::list< ref_ptr<StateNode> >::iterator
       it=node->childs().begin(); it!=node->childs().end(); ++it)
   {
     QTreeWidgetItem *child = new QTreeWidgetItem(parent);
@@ -164,7 +164,7 @@ bool ShaderInputWidget::handleState(
     }
   }
 
-  for(list< ref_ptr<State> >::const_iterator
+  for(std::list< ref_ptr<State> >::const_iterator
       it=state->joined().begin(); it!=state->joined().end(); ++it)
   {
     if(handleState(*it, parent)) {
@@ -239,7 +239,7 @@ template<class T> byte* createData(
   T *typedData = new T[count];
   for(GLuint i=0u; i<count; ++i) {
     QLineEdit *widget = valueWidgets[i];
-    stringstream ss(widget->text().toStdString());
+	  std::stringstream ss(widget->text().toStdString());
     ss >> typedData[i];
   }
   return (byte*)typedData;
@@ -332,7 +332,7 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
     labelWidgets[i]->show();
     valueWidgets[i]->show();
 
-    string v;
+	  std::string v;
     switch(selectedInput_->dataType()) {
     case GL_FLOAT: {
       v = REGEN_STRING( ((GLfloat*)value)[i] );

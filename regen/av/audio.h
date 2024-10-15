@@ -12,6 +12,7 @@
 
 extern "C" {
   #include <libavcodec/version.h>
+  #include <libavcodec/avcodec.h>
 #ifdef HAS_LIBAVRESAMPLE
   #include <libavresample/avresample.h>
   #include <libavutil/opt.h>
@@ -121,36 +122,36 @@ namespace regen {
     GLdouble elapsedTime() const;
 
     /** Set Source parameter. */
-    void set1i(const ALenum &p, const ALint &v);
+    void set1i(const ALenum &p, const ALint &v) const;
     /** Get Source parameter. */
-    ALint get1i(const ALenum &p);
+    ALint get1i(const ALenum &p) const;
 
     /** Set Source parameter. */
     void set1f(const ALenum &p, const ALfloat &v);
     /** Get Source parameter. */
-    ALfloat get1f(const ALenum &p);
+    ALfloat get1f(const ALenum &p) const;
 
     /** Set Source parameter. */
-    void set3f(const ALenum &p, const Vec3f &v);
+    void set3f(const ALenum &p, const Vec3f &v) const;
     /** Get Source parameter. */
     Vec3f get3f(const ALenum &p);
 
     /**
      * Start playing.
      */
-    void play();
+    void play() const;
     /**
      * Stop playing.
      */
-    void stop();
+    void stop() const;
     /**
      * Pause playing.
      */
-    void pause();
+    void pause() const;
     /**
      * Rewind to start position.
      */
-    void rewind();
+    void rewind() const;
 
     /**
      * This function queues a set of buffers on a source.
