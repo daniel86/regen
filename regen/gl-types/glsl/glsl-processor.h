@@ -158,7 +158,7 @@ namespace regen {
 
     // override
     bool process(PreProcessorState &state, std::string &line)
-    { return std::getline(state.inStream, line); }
+    { std::getline(state.inStream, line); return true; }
   };
 }
 
@@ -211,7 +211,7 @@ namespace regen {
 
     // override
     bool process(PreProcessorState &state, std::string &line)
-    { return std::getline(ss_, line); }
+    { std::getline(ss_, line); return true; }
 
   protected:
     std::stringstream ss_;
