@@ -71,6 +71,7 @@ find_package(GLEW REQUIRED)
 # boost template library
 set(Boost_MIN_VERSION "1.5.0")
 set(BOOST_COMPONENTS thread system date_time filesystem regex)
+add_definitions( -DBOOST_TIMER_ENABLE_DEPRECATED )
 if(WIN32)
     set(Boost_USE_STATIC_LIBS ON)
 	# Note: link error on msvs without this
@@ -142,7 +143,7 @@ set(REGEN_LIBRARIES
     ${Boost_LIBRARIES}
     ${DEVIL_LIBRARIES}
     ${ASSIMP_LIBRARIES}
-    ${FREETYPE_LIBRARIES}
+    ${FREETYPE_LIBRARIES} -lbrotlidec
     ${OPENAL_LIBRARIES}
     ${ALUT_LIBRARIES}
     ${FFMPEG_LIBRARIES}
