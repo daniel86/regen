@@ -154,7 +154,7 @@ void SceneDisplayWidget::toggleInputsDialog() {
 void SceneDisplayWidget::openFile() {
   QFileDialog dialog(this);
   dialog.setFileMode(QFileDialog::AnyFile);
-  dialog.setFilter("XML Files (*.xml);;All files (*.*)");
+  dialog.setNameFilters({"XML Files (*.xml)", "All files (*.*)"});
   dialog.setViewMode(QFileDialog::Detail);
   dialog.selectFile(QString(activeFile_.c_str()));
 

@@ -8,8 +8,8 @@
 #ifndef SCENE_DISPLAY_WIDGET_H_
 #define SCENE_DISPLAY_WIDGET_H_
 
-#include <QtGui/QMainWindow>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QFileDialog>
 #include <QtCore/QString>
 
 #include <regen/physics/bullet-physics.h>
