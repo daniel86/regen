@@ -5,10 +5,13 @@
  *      Author: daniel
  */
 
+#include <GL/glew.h>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QWheelEvent>
+#include <QtGui/QWindow>
+#include <QtGui/QOpenGLContext>
 
 #include <regen/utility/threading.h>
 #include "qt-gl-widget.h"
@@ -35,6 +38,26 @@ static GLint qtToOgleButton(Qt::MouseButton button)
   }
 }
 
+static QSurfaceFormat convertFormat(const QGLFormat &glFormat)
+{
+    QSurfaceFormat surfaceFormat;
+
+    surfaceFormat.setDepthBufferSize(glFormat.depthBufferSize());
+    surfaceFormat.setStencilBufferSize(glFormat.stencilBufferSize());
+    surfaceFormat.setRedBufferSize(glFormat.redBufferSize());
+    surfaceFormat.setGreenBufferSize(glFormat.greenBufferSize());
+    surfaceFormat.setBlueBufferSize(glFormat.blueBufferSize());
+    surfaceFormat.setAlphaBufferSize(glFormat.alphaBufferSize());
+    surfaceFormat.setSamples(glFormat.samples());
+    surfaceFormat.setSwapBehavior(glFormat.doubleBuffer() ? QSurfaceFormat::DoubleBuffer : QSurfaceFormat::SingleBuffer);
+    surfaceFormat.setStereo(glFormat.stereo());
+    surfaceFormat.setVersion(glFormat.majorVersion(), glFormat.minorVersion());
+    surfaceFormat.setProfile(static_cast<QSurfaceFormat::OpenGLContextProfile>(glFormat.profile()));
+    surfaceFormat.setSwapInterval(glFormat.swapInterval());
+
+    return surfaceFormat;
+}
+
 QTGLWidget::QTGLWidget(
     QtApplication *app,
     const QGLFormat &glFormat,
@@ -43,7 +66,8 @@ QTGLWidget::QTGLWidget(
   app_(app),
   renderThread_(this),
   updateInterval_(16000),
-  isRunning_(GL_FALSE)
+  isRunning_(GL_FALSE),
+  surfaceFormat_(convertFormat(glFormat))
 {
   setMouseTracking(true);
   setAutoBufferSwap(false);
@@ -81,7 +105,6 @@ void QTGLWidget::updateGL()
 
 void QTGLWidget::startRendering()
 {
-  doneCurrent();
   renderThread_.start(QThread::HighPriority);
 }
 void QTGLWidget::stopRendering()
@@ -100,7 +123,6 @@ void QTGLWidget::run()
   GLint dt;
 #endif
 
-  makeCurrent();
 #ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
   while(isRunning_)
 #else
@@ -142,7 +164,17 @@ QTGLWidget::GLThread::GLThread(QTGLWidget *glWidget)
 {
 }
 void QTGLWidget::GLThread::run()
-{ glWidget_->run(); }
+{
+	auto context = new QOpenGLContext();
+	context->setFormat(glWidget_->surfaceFormat());
+	context->create();
+	context->makeCurrent(glWidget_->windowHandle());
+
+	glWidget_->run();
+
+	context->doneCurrent();
+	delete context;
+}
 
 void QTGLWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick)
 {
