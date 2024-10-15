@@ -43,15 +43,15 @@ namespace regen {
     /**
      * Format for GL texture to match frame data.
      */
-    GLenum texInternalFormat() const;
+    static GLenum texInternalFormat() ;
     /**
      * Format for GL texture to match frame data.
      */
-    GLenum texFormat() const;
+    static GLenum texFormat() ;
     /**
      * Pixel type for GL texture to match frame data.
      */
-    GLenum texPixelType() const;
+    static GLenum texPixelType() ;
 
     // override
     void decode(AVPacket *packet);

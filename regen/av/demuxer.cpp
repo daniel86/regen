@@ -42,7 +42,6 @@ static void avLogCallback(void*, int level, const char *msg, va_list args)
 void Demuxer::initAVLibrary()
 {
   if(!initialled_) {
-    av_register_all();
     av_log_set_callback(avLogCallback);
     initialled_ = GL_TRUE;
   }
@@ -104,12 +103,12 @@ void Demuxer::set_file(const std::string &file)
   }
   if(avformat_open_input(&formatCtx_, file.c_str(), NULL, NULL) != 0)
   {
-    throw new Error("Couldn't open file");
+    throw Error("Couldn't open file");
   }
 
   // Retrieve stream information
   if(avformat_find_stream_info(formatCtx_, NULL)<0) {
-    throw new Error("Couldn't find stream information");
+    throw Error("Couldn't find stream information");
   }
 
   // Find the first video/audio stream
@@ -117,11 +116,11 @@ void Demuxer::set_file(const std::string &file)
   audioStreamIndex_ = -1;
   for(unsigned int i=0; i<formatCtx_->nb_streams; ++i)
   {
-    if(videoStreamIndex_==-1 &&
-        formatCtx_->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+	  auto stream = formatCtx_->streams[i];
+	  auto codec_type = stream->codecpar->codec_type;
+    if(videoStreamIndex_==-1 && codec_type == AVMEDIA_TYPE_VIDEO)
     { videoStreamIndex_ = i; }
-    else if(audioStreamIndex_==-1 &&
-        formatCtx_->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
+    else if(audioStreamIndex_==-1 && codec_type == AVMEDIA_TYPE_AUDIO)
     { audioStreamIndex_ = i; }
   }
   if(videoStreamIndex_ != -1) {
@@ -219,7 +218,7 @@ GLboolean Demuxer::decode()
     // end of stream reached
     if(repeatStream_) {
       seekTo(0.0);
-      av_free_packet(&packet);
+	  av_packet_unref(&packet);
       return GL_FALSE;
     } else {
       stop();
@@ -239,7 +238,7 @@ GLboolean Demuxer::decode()
   else
   {
     // Free the packet that was allocated by av_read_frame
-    av_free_packet(&packet);
+    av_packet_unref(&packet);
   }
 
   return GL_FALSE;

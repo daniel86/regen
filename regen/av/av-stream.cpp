@@ -45,18 +45,21 @@ void AudioVideoStream::open(AVStream *stream, GLint index, GLboolean initial)
     clearQueue();
   }
   // Get a pointer to the codec context for the video stream
-  codecCtx_ = stream->codec;
+  //codecCtx_ = stream->codecpar->codec;
+  // FIXME: must be freed
+	codecCtx_ = avcodec_alloc_context3(nullptr);
+  	avcodec_parameters_to_context(codecCtx_, stream->codecpar);
 
   // Find the decoder for the video stream
   codec_ = avcodec_find_decoder(codecCtx_->codec_id);
-  if(codec_ == NULL)
+  if(!codec_)
   {
-    throw new Error("Unsupported codec!");
+    throw Error("Unsupported codec!");
   }
   // Open codec
-  if(avcodec_open2(codecCtx_, codec_, NULL) < 0)
+  if(avcodec_open2(codecCtx_, codec_, nullptr) < 0)
   {
-    throw new Error("Could not open codec.");
+    throw Error("Could not open codec.");
   }
   stream_ = stream;
   index_ = index;

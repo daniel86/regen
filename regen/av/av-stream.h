@@ -101,7 +101,7 @@ namespace regen {
     boost::mutex decodingLock_;
     AVStream *stream_;
     AVCodecContext *codecCtx_;
-    AVCodec *codec_;
+    const AVCodec *codec_;
     GLint index_;
 
     std::queue<AVFrame*> decodedFrames_;
