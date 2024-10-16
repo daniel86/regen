@@ -355,9 +355,8 @@ GLboolean Shader::link()
         name = nextStagePrefix + "_" + name;
       }
       if(validNames_.count(name)>0) { continue; }
-      validNames_.insert(name);
-      validNames[validCounter] = name.c_str();
-      ++validCounter;
+      auto needle = validNames_.insert(name);
+      validNames[validCounter++] = needle.first->c_str();
     }
 
     glTransformFeedbackVaryings(id(),
