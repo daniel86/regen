@@ -18,43 +18,45 @@
 #include <string>
 
 namespace regen {
-class QTGLWidget;
-class QtApplication : public Application
-{
-public:
-  QtApplication(
-      const int &argc, const char** argv,
-      const QGLFormat &glFormat,
-      GLuint width=800, GLuint height=600,
-      QWidget *parent=NULL);
+	class QTGLWidget;
 
-  /**
-   * @return topmost parent of GL widget.
-   */
-  QWidget* toplevelWidget();
+	class QtApplication : public Application {
+	public:
+		QtApplication(
+				const int &argc, const char **argv,
+				const QGLFormat &glFormat,
+				GLuint width = 800, GLuint height = 600,
+				QWidget *parent = NULL);
 
-  /**
-   * @return the rendering widget.
-   */
-  QTGLWidget* glWidget();
-  QWidget* glWidgetContainer();
+		/**
+		 * @return topmost parent of GL widget.
+		 */
+		QWidget *toplevelWidget();
 
-  void toggleFullscreen();
+		/**
+		 * @return the rendering widget.
+		 */
+		QTGLWidget *glWidget();
 
-  void show();
+		QWidget *glWidgetContainer();
 
-  int mainLoop();
-  void exitMainLoop(int errorCode);
+		void toggleFullscreen();
 
-protected:
-  QApplication *app_;
-  QWidget *glContainer_;
-  QTGLWidget *glWidget_;
-  GLboolean isMainloopRunning_;
-  GLint exitCode_;
+		void show();
 
-  friend class QTGLWidget;
-};
+		int mainLoop();
+
+		void exitMainLoop(int errorCode);
+
+	protected:
+		QApplication *app_;
+		QWidget *glContainer_;
+		QTGLWidget *glWidget_;
+		GLboolean isMainloopRunning_;
+		GLint exitCode_;
+
+		friend class QTGLWidget;
+	};
 }
 
 #endif /* QT_APPLICATION_H_ */

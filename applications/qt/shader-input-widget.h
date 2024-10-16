@@ -14,46 +14,51 @@ namespace regen {
 /**
  * \brief Allows editing ShaderInput values.
  */
-class ShaderInputWidget : public QWidget
-{
-Q_OBJECT
+	class ShaderInputWidget : public QWidget {
+	Q_OBJECT
 
-public:
-  ShaderInputWidget(QWidget *parent = 0);
-  ~ShaderInputWidget();
+	public:
+		ShaderInputWidget(QWidget *parent = 0);
 
-  void setNode(const ref_ptr<StateNode> &node);
+		~ShaderInputWidget();
 
-public slots:
-  void resetValue();
-  void valueUpdated();
-  void activateValue(QTreeWidgetItem*,QTreeWidgetItem*);
+		void setNode(const ref_ptr<StateNode> &node);
 
-protected:
-  Ui_shaderInputEditor ui_;
-  QTreeWidgetItem *selectedItem_;
-  ShaderInput *selectedInput_;
-  ref_ptr<Animation> setValueCallback_;
-  GLboolean ignoreValueChanges_;
+	public slots:
 
-  std::map<ShaderInput*,byte*> initialValue_;
-  std::map<ShaderInput*,GLuint> initialValueStamp_;
-  std::map<ShaderInput*,GLuint> valueStamp_;
+		void resetValue();
 
-  std::map<QTreeWidgetItem*, ref_ptr<ShaderInput> > inputs_;
+		void valueUpdated();
 
-  bool handleState(
-      const ref_ptr<State> &state,
-      QTreeWidgetItem *parent);
-  bool handleNode(
-      const ref_ptr<StateNode> &node,
-      QTreeWidgetItem *parent);
-  bool handleInput(
-      const NamedShaderInput &input,
-      QTreeWidgetItem *parent);
+		void activateValue(QTreeWidgetItem *, QTreeWidgetItem *);
 
-  void updateInitialValue(ShaderInput *x);
-};
+	protected:
+		Ui_shaderInputEditor ui_;
+		QTreeWidgetItem *selectedItem_;
+		ShaderInput *selectedInput_;
+		ref_ptr<Animation> setValueCallback_;
+		GLboolean ignoreValueChanges_;
+
+		std::map<ShaderInput *, byte *> initialValue_;
+		std::map<ShaderInput *, GLuint> initialValueStamp_;
+		std::map<ShaderInput *, GLuint> valueStamp_;
+
+		std::map<QTreeWidgetItem *, ref_ptr<ShaderInput> > inputs_;
+
+		bool handleState(
+				const ref_ptr<State> &state,
+				QTreeWidgetItem *parent);
+
+		bool handleNode(
+				const ref_ptr<StateNode> &node,
+				QTreeWidgetItem *parent);
+
+		bool handleInput(
+				const NamedShaderInput &input,
+				QTreeWidgetItem *parent);
+
+		void updateInitialValue(ShaderInput *x);
+	};
 }
 
 #endif /* SHADER_INPUT_WIDGET_H */

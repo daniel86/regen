@@ -15,70 +15,83 @@
 
 namespace regen {
 
-class QtApplication; // forward declaration
+	class QtApplication; // forward declaration
 
 /**
  * QT Widget that can be used for OpenGL rendering.
  */
-class QTGLWidget : public QGLWidget
-{
-  Q_OBJECT
+	class QTGLWidget : public QGLWidget {
+	Q_OBJECT
 
-public:
-  QTGLWidget(QtApplication *app,
-      const QGLFormat &glFormat,
-      QWidget *parent=NULL);
+	public:
+		QTGLWidget(QtApplication *app,
+				   const QGLFormat &glFormat,
+				   QWidget *parent = NULL);
 
-  void startRendering();
-  void stopRendering();
-  void run();
+		void startRendering();
 
-  auto surfaceFormat() const -> QSurfaceFormat const& { return surfaceFormat_; }
+		void stopRendering();
 
-  /**
-   * @param interval update interval in milliseconds.
-   */
-  void setUpdateInterval(GLint interval);
+		void run();
 
-protected:
-  class GLThread : public QThread
-  {
-  public:
-      GLThread(QTGLWidget *glWidget);
-      void run();
-  private:
-      QTGLWidget *glWidget_;
-  };
-  QtApplication *app_;
-  GLThread renderThread_;
-  GLint updateInterval_;
-  GLboolean isRunning_;
-  QSurfaceFormat surfaceFormat_;
+		auto surfaceFormat() const -> QSurfaceFormat const & { return surfaceFormat_; }
 
-  void initializeGL();
-  void paintGL();
-  void updateGL();
-  void resizeGL(int width, int height);
+		/**
+		 * @param interval update interval in milliseconds.
+		 */
+		void setUpdateInterval(GLint interval);
 
-  void resizeEvent(QResizeEvent*);
-  void paintEvent(QPaintEvent*);
+	protected:
+		class GLThread : public QThread {
+		public:
+			GLThread(QTGLWidget *glWidget);
 
-  void mousePressEvent(QMouseEvent*);
-  void mouseDoubleClickEvent(QMouseEvent*);
-  void mouseReleaseEvent(QMouseEvent*);
-  void enterEvent(QEvent*);
-  void leaveEvent(QEvent*);
-  void wheelEvent(QWheelEvent*);
+			void run();
 
-  void mouseMoveEvent(QMouseEvent *event);
+		private:
+			QTGLWidget *glWidget_;
+		};
 
-  void keyPressEvent(QKeyEvent *event);
-  void keyReleaseEvent(QKeyEvent *event);
+		QtApplication *app_;
+		GLThread renderThread_;
+		GLint updateInterval_;
+		GLboolean isRunning_;
+		QSurfaceFormat surfaceFormat_;
 
-  bool eventFilter(QObject *obj, QEvent *event);
+		void initializeGL();
 
-  void mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
-};
+		void paintGL();
+
+		void updateGL();
+
+		void resizeGL(int width, int height);
+
+		void resizeEvent(QResizeEvent *);
+
+		void paintEvent(QPaintEvent *);
+
+		void mousePressEvent(QMouseEvent *);
+
+		void mouseDoubleClickEvent(QMouseEvent *);
+
+		void mouseReleaseEvent(QMouseEvent *);
+
+		void enterEvent(QEvent *);
+
+		void leaveEvent(QEvent *);
+
+		void wheelEvent(QWheelEvent *);
+
+		void mouseMoveEvent(QMouseEvent *event);
+
+		void keyPressEvent(QKeyEvent *event);
+
+		void keyReleaseEvent(QKeyEvent *event);
+
+		bool eventFilter(QObject *obj, QEvent *event);
+
+		void mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
+	};
 
 }
 
