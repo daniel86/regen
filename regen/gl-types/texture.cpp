@@ -122,9 +122,9 @@ void Texture::set_samplerType(const std::string &samplerType)
 GLuint Texture::numComponents() const
 { return dim_; }
 
-void Texture::set_internalFormat(GLenum internalFormat)
+void Texture::set_internalFormat(GLint internalFormat)
 { internalFormat_ = internalFormat; }
-GLenum Texture::internalFormat() const
+GLint Texture::internalFormat() const
 { return internalFormat_; }
 
 void Texture::set_format(GLenum format)

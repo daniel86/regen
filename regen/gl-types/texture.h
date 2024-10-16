@@ -96,13 +96,13 @@ namespace regen {
      * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
      * GL_SRGB*, GL_COMPRESSED_*.
      */
-    void set_internalFormat(GLenum internalFormat);
+    void set_internalFormat(GLint internalFormat);
     /**
      * Specifies the number of color components in the texture.
      * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
      * GL_SRGB*, GL_COMPRESSED_*.
      */
-    GLenum internalFormat() const;
+    GLint internalFormat() const;
 
     /**
      * Binds a named texture to a texturing target.
@@ -248,7 +248,7 @@ namespace regen {
     GLuint dim_;
     // format of pixel data
     GLenum format_;
-    GLenum internalFormat_;
+    GLint internalFormat_;
     // type for pixels
     GLenum pixelType_;
     GLint border_;
