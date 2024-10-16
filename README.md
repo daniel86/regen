@@ -117,6 +117,14 @@ Documentation
 =========================
 The documentation is hosted using the [gh-pages branch](http://daniel86.github.com/regen/)
 
+Examples
+=========================
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/Msn6Teot7ZU/0.jpg)](http://www.youtube.com/watch?v=Msn6Teot7ZU "Bullet Physics")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/jaFgTxK6WjU/0.jpg)](http://www.youtube.com/watch?v=jaFgTxK6WjU "HDR")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/Mk0Nc-UMAMM/0.jpg)](http://www.youtube.com/watch?v=Mk0Nc-UMAMM "2D Fluids")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/c2--Anch2WY/0.jpg)](http://www.youtube.com/watch?v=c2--Anch2WY "Volumetric Rendering")
+
 Contact
 =========================
 If you find any bugs or if you have any feature requests
