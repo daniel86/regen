@@ -114,8 +114,8 @@ void Stars::updateNoiseTexture()
 
   noiseTex_ = ref_ptr<Texture1D>::alloc();
   noiseTex_->set_rectangleSize(noiseN,1);
-  noiseTex_->set_format(GL_LUMINANCE);
-  noiseTex_->set_internalFormat(GL_LUMINANCE8);
+  noiseTex_->set_format(GL_RED);
+  noiseTex_->set_internalFormat(GL_R8);
   noiseTex_->set_pixelType(GL_UNSIGNED_BYTE);
   noiseTex_->set_data(noiseMap);
   noiseTex_->begin(RenderState::get());
@@ -124,6 +124,7 @@ void Stars::updateNoiseTexture()
   noiseTex_->wrapping().push(GL_REPEAT);
   noiseTex_->end(RenderState::get());
   noiseTex_->set_data(NULL);
+  GL_ERROR_LOG();
 
   delete []noiseMap;
 
