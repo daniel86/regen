@@ -33,12 +33,12 @@ QtApplication::QtApplication(
 		: Application(argc, argv), isMainloopRunning_(GL_FALSE), exitCode_(0) {
 	app_ = new QApplication(appArgCount, (char **) appArgs);
 
-	glContainer_ = new QWidget(parent);
+	glContainer_ = new QWidget(nullptr);
 	glWidget_ = new QTGLWidget(this, glFormat, glContainer_);
 	glWidget_->setMinimumSize(100, 100);
 	glWidget_->setFocusPolicy(Qt::StrongFocus);
 
-	QHBoxLayout *layout = new QHBoxLayout();
+	auto *layout = new QHBoxLayout();
 	layout->setObjectName(QString::fromUtf8("shaderInputLayout"));
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setMargin(0);

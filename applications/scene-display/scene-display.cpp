@@ -41,8 +41,6 @@ int main(int argc, char** argv)
   // create and show application window
   ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc,(const char**)argv,glFormat);
   app->setupLogging();
-  app->toplevelWidget()->setWindowTitle("Scene Viewer");
-  app->show();
 
   // add a custom path for shader loading
   boost::filesystem::path shaderPath(REGEN_SOURCE_DIR);
@@ -51,9 +49,12 @@ int main(int argc, char** argv)
   shaderPath /= "shader";
   app->addShaderPath(shaderPath.string());
 
-  SceneDisplayWidget *widget = new SceneDisplayWidget(app.get());
+  auto *widget = new SceneDisplayWidget(app.get());
+  app->show();
   widget->show();
   widget->init();
+
+  widget->setWindowTitle("Scene Viewer");
 
   return app->mainLoop();
 }

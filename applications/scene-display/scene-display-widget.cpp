@@ -49,7 +49,7 @@ public:
 /////////////////
 
 SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
-: QMainWindow(), inputDialog_(NULL), inputWidget_(NULL), app_(app)
+: QMainWindow(), inputDialog_(nullptr), inputWidget_(nullptr), app_(app)
 {
   setMouseTracking(true);
 
@@ -69,7 +69,7 @@ void SceneDisplayWidget::init()
 
 SceneDisplayWidget::~SceneDisplayWidget()
 {
-  if(inputDialog_ != NULL) {
+  if(inputDialog_ != nullptr) {
     delete inputDialog_;
     delete inputWidget_;
   }
@@ -130,12 +130,12 @@ void SceneDisplayWidget::previousView() {
 }
 
 void SceneDisplayWidget::toggleInputsDialog() {
-  if(inputDialog_ == NULL) {
+  if(inputDialog_ == nullptr) {
     inputDialog_ = new QDialog(this);
     inputDialog_->setWindowTitle("ShaderInput Editor");
     inputDialog_->resize(600,500);
 
-    QGridLayout *gridLayout = new QGridLayout(inputDialog_);
+    auto *gridLayout = new QGridLayout(inputDialog_);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
 
@@ -177,7 +177,7 @@ void SceneDisplayWidget::updateSize() {
 }
 
 void SceneDisplayWidget::loadScene(const string &sceneFile) {
-  if(inputDialog_!=NULL && inputDialog_->isVisible()) {
+  if(inputDialog_!=nullptr && inputDialog_->isVisible()) {
     inputDialog_->hide();
   }
   loadAnim_ = ref_ptr<SceneLoaderAnimation>::alloc(this, sceneFile);
@@ -202,7 +202,7 @@ static void handleFirstPersonCamera(
   app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
   app_->connect(Application::MOUSE_MOTION_EVENT, cameraEventHandler);
 
-  eventHandler.push_back(cameraEventHandler);
+  eventHandler.emplace_back(cameraEventHandler);
 }
 static void handleCameraConfiguration(
     QtApplication *app_,
@@ -212,26 +212,26 @@ static void handleCameraConfiguration(
     const ref_ptr<SceneInputNode> &cameraNode)
 {
   ref_ptr<Camera> cam = sceneParser.getResources()->getCamera(&sceneParser,cameraNode->getName());
-  if(cam.get()==NULL) {
+  if(cam.get()==nullptr) {
     REGEN_WARN("Unable to find camera for '" << cameraNode->getDescription() << "'.");
     return;
   }
-  Vec3f eyeOffset = cameraNode->getValue<Vec3f>("eye-offset",Vec3f(0.0));
-  GLfloat eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation",0.0);
-  string mode = cameraNode->getValue<string>("type","first-person");
+  auto eyeOffset = cameraNode->getValue<Vec3f>("eye-offset",Vec3f(0.0));
+  auto eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation",0.0);
+  auto mode = cameraNode->getValue<string>("type","first-person");
 
   if(cameraNode->hasAttribute("mesh") && cameraNode->hasAttribute("transform")) {
     ref_ptr<ModelTransformation> transform = sceneParser.getResources()->getTransform(&sceneParser,cameraNode->getValue("transform"));
     ref_ptr<MeshVector> meshes = sceneParser.getResources()->getMesh(&sceneParser,cameraNode->getValue("mesh"));
-    if(transform.get()==NULL) {
+    if(transform.get()==nullptr) {
       REGEN_WARN("Unable to find transform for '" << cameraNode->getDescription() << "'.");
       return;
     }
-    if(meshes.get()==NULL || meshes->size()==0) {
+    if(meshes.get()==nullptr || meshes->empty()) {
       REGEN_WARN("Unable to find mesh with for '" << cameraNode->getDescription() << "'.");
       return;
     }
-    GLuint meshIndex = cameraNode->getValue<GLuint>("mesh-index",0u);
+    auto meshIndex = cameraNode->getValue<GLuint>("mesh-index",0u);
     if(meshIndex>=meshes->size()) {
       REGEN_WARN("Invalid mesh index for '" << cameraNode->getDescription() << "'.");
       meshIndex = 0;
@@ -257,7 +257,7 @@ static void handleCameraConfiguration(
     else if(mode == string("key-frames")) {
       ref_ptr<KeyFrameCameraTransform> keyFramesCamera = ref_ptr<KeyFrameCameraTransform>::alloc(cam);
       const list< ref_ptr<SceneInputNode> > &childs = cameraNode->getChildren("key-frame");
-      for(list< ref_ptr<SceneInputNode> >::const_iterator it=childs.begin(); it!=childs.end(); ++it)
+      for(auto it=childs.begin(); it!=childs.end(); ++it)
       {
         const ref_ptr<SceneInputNode> &x = *it;
         keyFramesCamera->push_back(
@@ -266,7 +266,7 @@ static void handleCameraConfiguration(
             x->getValue<GLdouble>("dt", 0.0)
         );
       }
-      animations.push_back(keyFramesCamera);
+      animations.emplace_back(keyFramesCamera);
     }
   }
 }
@@ -278,7 +278,7 @@ static void handleAssetAnimationConfiguration(
     const ref_ptr<SceneInputNode> &animationNode) {
   ref_ptr<AssetImporter> animAsset =
       sceneParser.getResources()->getAsset(&sceneParser,animationNode->getName());
-  if(animAsset.get()==NULL) {
+  if(animAsset.get()==nullptr) {
     REGEN_WARN("Unable to find animation with name '" << animationNode->getName() << "'.");
     return;
   }
@@ -311,8 +311,7 @@ static void handleAssetAnimationConfiguration(
     string idleAnimation = animationNode->getValue("idle");
 
     const list< ref_ptr<SceneInputNode> > &childs = animationNode->getChildren();
-    for(list< ref_ptr<SceneInputNode> >::const_iterator
-        it=childs.begin(); it!=childs.end(); ++it)
+    for(auto it=childs.begin(); it!=childs.end(); ++it)
     {
       const ref_ptr<SceneInputNode> &x = *it;
       if(x->getCategory() == string("key-mapping")) {
@@ -334,7 +333,7 @@ static void handleAssetAnimationConfiguration(
         ref_ptr<KeyAnimationRangeUpdater> keyHandler = ref_ptr<KeyAnimationRangeUpdater>::alloc(anim,ranges,keyMappings,idleAnimation);
         app_->connect(Application::KEY_EVENT, keyHandler);
         anim->connect(Animation::ANIMATION_STOPPED, keyHandler);
-        eventHandler.push_back(keyHandler);
+        eventHandler.emplace_back(keyHandler);
       }
     }
 
@@ -354,8 +353,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   viewNodes_.clear();
   physics_ = ref_ptr<BulletPhysics>();
 
-  for(list< ref_ptr<EventHandler> >::iterator
-      it=eventHandler_.begin(); it!=eventHandler_.end(); ++it)
+  for(auto it=eventHandler_.begin(); it!=eventHandler_.end(); ++it)
   {
     app_->disconnect(*it);
   }
@@ -370,7 +368,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   physics_ = sceneParser.getPhysics();
   eventHandler_ = sceneParser.getEventHandler();
 
-  if(xmlInput->getRoot()->getFirstChild("node","initialize").get()!=NULL) {
+  if(xmlInput->getRoot()->getFirstChild("node","initialize").get()!=nullptr) {
     ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
     sceneParser.processNode(initializeNode, "initialize", "node");
     initializeNode->traverse(RenderState::get());
@@ -382,12 +380,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
   ref_ptr<SceneInputNode> root = sceneParser.getRoot();
   ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node","configuration");
-  if(configurationNode.get()==NULL) { configurationNode = root; }
+  if(configurationNode.get()==nullptr) { configurationNode = root; }
 
   // Process node children
   const list< ref_ptr<SceneInputNode> > &childs = configurationNode->getChildren();
-  for(list< ref_ptr<SceneInputNode> >::const_iterator
-      it=childs.begin(); it!=childs.end(); ++it)
+  for(auto it=childs.begin(); it!=childs.end(); ++it)
   {
     const ref_ptr<SceneInputNode> &x = *it;
     if(x->getCategory() == string("animation")) {
@@ -416,10 +413,10 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
   // Update text of FPS widget
   ref_ptr<MeshVector> fpsWidget =
       sceneParser.getResources()->getMesh(&sceneParser,"fps-widget");
-  if(fpsWidget.get()!=NULL && !fpsWidget->empty()) {
+  if(fpsWidget.get()!=nullptr && !fpsWidget->empty()) {
     ref_ptr<TextureMappedText> text =
         ref_ptr<TextureMappedText>::dynamicCast(*fpsWidget->begin());
-    if(text.get()!=NULL) {
+    if(text.get()!=nullptr) {
       fbsWidgetUpdater_ = ref_ptr<UpdateFPS>::alloc(text);
       REGEN_INFO("FPS widget found.");
     } else {
