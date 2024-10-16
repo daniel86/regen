@@ -48,18 +48,16 @@ static ALenum avToAlType(AVSampleFormat format) {
 			return AL_FLOAT_SOFT;
 		case AV_SAMPLE_FMT_DBL:  ///< double
 			return AL_DOUBLE_SOFT;
-#ifdef HAS_LIBAVRESAMPLE
-			case AV_SAMPLE_FMT_U8P:  ///< unsigned 8 bits, planar
-			  return AL_UNSIGNED_BYTE_SOFT;
-			case AV_SAMPLE_FMT_S16P: ///< signed 16 bits, planar
-			  return AL_SHORT_SOFT;
-			case AV_SAMPLE_FMT_S32P: ///< signed 32 bits, planar
-			  return AL_INT_SOFT;
-			case AV_SAMPLE_FMT_FLTP: ///< float, planar
-			  return AL_FLOAT_SOFT;
-			case AV_SAMPLE_FMT_DBLP: ///< double, planar
-			  return AL_DOUBLE_SOFT;
-#endif
+		case AV_SAMPLE_FMT_U8P:  ///< unsigned 8 bits, planar
+			return AL_UNSIGNED_BYTE_SOFT;
+		case AV_SAMPLE_FMT_S16P: ///< signed 16 bits, planar
+			return AL_SHORT_SOFT;
+		case AV_SAMPLE_FMT_S32P: ///< signed 32 bits, planar
+			return AL_INT_SOFT;
+		case AV_SAMPLE_FMT_FLTP: ///< float, planar
+			return AL_FLOAT_SOFT;
+		case AV_SAMPLE_FMT_DBLP: ///< double, planar
+			return AL_DOUBLE_SOFT;
 		case AV_SAMPLE_FMT_NONE:
 		default:
 			throw AudioSource::Error(REGEN_STRING(

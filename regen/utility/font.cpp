@@ -32,7 +32,7 @@ ref_ptr<Font> Font::get(std::string f, GLuint size, GLuint dpi)
   // unique font identifier
   std::string fontKey = REGEN_STRING(f << size << "_" << dpi);
   // check for cached font
-  FontMap::iterator result = fonts_.find(fontKey);
+  auto result = fonts_.find(fontKey);
   if(result != fonts_.end())
   { return result->second; }
 
@@ -81,8 +81,8 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
   // for Texture2DArray.
   int pixels_x = ::FT_MulFix((face->bbox.xMax - face->bbox.xMin), face->size->metrics.x_scale );
   int pixels_y = ::FT_MulFix((face->bbox.yMax - face->bbox.yMin), face->size->metrics.y_scale );
-  GLuint textureWidth = (GLuint) ( pixels_x / 64 );
-  GLuint textureHeight = (GLuint)  ( pixels_y / 64 );
+  auto textureWidth = (GLuint) ( pixels_x / 64 );
+  auto textureHeight = (GLuint)  ( pixels_y / 64 );
   // make sure texture dimensions are multiple of 2
   if(textureWidth%2 != 0) textureWidth += 1;
   if(textureHeight%2 != 0) textureHeight += 1;
@@ -116,7 +116,7 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 }
 Font::~Font()
 {
-  FontMap::iterator needle = fonts_.find(
+  auto needle = fonts_.find(
       REGEN_STRING(fontPath_ << size_ << "_" << dpi_));
   if(needle != fonts_.end())
   { fonts_.erase(needle); }
@@ -133,19 +133,18 @@ const Font::FaceData& Font::faceData(GLushort ch) const
 { return faceData_[ch]; }
 
 GLubyte* Font::invertPixmapWithAlpha (
-    const FT_Bitmap& bitmap, GLuint width, GLuint height) const
+    const FT_Bitmap& bitmap, GLuint width, GLuint height)
 {
   const unsigned int arraySize = width * height;
-  GLubyte* inverse = new GLubyte[arraySize];
-  GLubyte* inverse_ptr = inverse;
-  int r,p;
+  auto* inverse = new GLubyte[arraySize];
+  auto* inverse_ptr = inverse;
 
   memset(inverse, 0x0, sizeof(GLubyte)*arraySize);
 
-  for(r = 0; r < bitmap.rows; ++r)
+  for(auto r = 0u; r < bitmap.rows; ++r)
   {
     GLubyte* bitmap_ptr = &bitmap.buffer[bitmap.pitch * r];
-    for(p = 0; p < bitmap.width; ++p)
+    for(auto p = 0u; p < bitmap.width; ++p)
     {
       *inverse_ptr++ = *bitmap_ptr++;
     }
@@ -172,13 +171,13 @@ void Font::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint text
   // Convert the glyph to a bitmap.
   FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );
 
-  FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
+  auto bitmap_glyph = (FT_BitmapGlyph)glyph;
   // This reference will make accessing the bitmap easier
   FT_Bitmap& bitmap = bitmap_glyph->bitmap;
 
   {
-    GLfloat bitmapWith = (GLfloat) bitmap.width;
-    GLfloat bitmapHeight = (GLfloat) bitmap.rows;
+    auto bitmapWith = (GLfloat) bitmap.width;
+    auto bitmapHeight = (GLfloat) bitmap.rows;
     GLfloat sizeFactor = 1.0f / (GLfloat) size();
 
     glyphData.uvX = bitmapWith/((GLfloat)textureWidth);

@@ -124,7 +124,7 @@ namespace regen {
       lineHeight_(0.0f) {}
     Font& operator=(const Font&) { return *this; }
 
-    GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) const;
+    static GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) ;
 
     void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight);
   };

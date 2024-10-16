@@ -44,7 +44,7 @@ static aiTextureType textureTypes[] = {
     aiTextureType_REFLECTION
 };
 
-static bool assimpLog__(std::string &msg, const std::string &prefix)
+static bool assimpLog_(std::string &msg, const std::string &prefix)
 {
   if(hasPrefix(msg, prefix)) {
     msg = truncPrefix(msg, prefix);
@@ -58,13 +58,13 @@ static bool assimpLog__(std::string &msg, const std::string &prefix)
 static void assimpLog(const char *msg_, char*)
 {
   string msg(msg_);
-  if(assimpLog__(msg, "Info,"))
+  if(assimpLog_(msg, "Info,"))
   { REGEN_INFO(msg); }
-  else if(assimpLog__(msg, "Warn,"))
+  else if(assimpLog_(msg, "Warn,"))
   { REGEN_WARN(msg); }
-  else if(assimpLog__(msg, "Error,"))
+  else if(assimpLog_(msg, "Error,"))
   { REGEN_ERROR(msg); }
-  else if(assimpLog__(msg, "Debug,"))
+  else if(assimpLog_(msg, "Debug,"))
   { REGEN_DEBUG(msg); }
   else REGEN_DEBUG(msg);
 }
@@ -80,7 +80,7 @@ static const struct aiScene* importFile(
   static GLboolean isLoggingInitialled = false;
   if(!isLoggingInitialled) {
     stream.callback = assimpLog;
-    stream.user = NULL;
+    stream.user = nullptr;
     aiDetachAllLogStreams();
     aiAttachLogStream(&stream);
     isLoggingInitialled = true;
@@ -123,7 +123,7 @@ AssetImporter::AssetImporter(
 : scene_(importFile(assimpFile, userSpecifiedFlags)),
   texturePath_(texturePath)
 {
-  if(scene_ == NULL) {
+  if(scene_ == nullptr) {
     throw Error(REGEN_STRING("Can not import assimp file '" <<
         assimpFile << "'. " << aiGetErrorString()));
   }
@@ -141,7 +141,7 @@ AssetImporter::AssetImporter(
 
 AssetImporter::~AssetImporter()
 {
-  if(scene_ != NULL) {
+  if(scene_ != nullptr) {
     aiReleaseImport(scene_);
   }
 }
@@ -209,7 +209,7 @@ vector< ref_ptr<Light> > AssetImporter::loadLights()
     case _aiLightSource_Force32Bit:
       break;
     }
-    if(light.get()==NULL) { continue; }
+    if(light.get()==nullptr) { continue; }
 
     lightToAiLight_[light.get()] = assimpLight;
     //light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
@@ -225,13 +225,13 @@ vector< ref_ptr<Light> > AssetImporter::loadLights()
 ref_ptr<LightNode> AssetImporter::loadLightNode(const ref_ptr<Light> &light)
 {
   aiLight *assimpLight = lightToAiLight_[light.get()];
-  if(assimpLight==NULL) { return ref_ptr<LightNode>(); }
+  if(assimpLight==nullptr) { return {}; }
 
   aiNode *node = nodes_[string(assimpLight->mName.data)];
-  if(node==NULL) { return ref_ptr<LightNode>(); }
+  if(node==nullptr) { return {}; }
 
   ref_ptr<AnimationNode> &animNode = aiNodeToNode_[node];
-  if(animNode.get()==NULL) { return ref_ptr<LightNode>(); }
+  if(animNode.get()==nullptr) { return {}; }
 
   return ref_ptr<LightNode>::alloc(light, animNode);
 }
@@ -252,9 +252,7 @@ static void loadTexture(
   GLint intVal;
   GLfloat floatVal;
 
-  if(stringVal.data == NULL) { return; }
-
-  if(aiTexture == NULL) {
+  if(aiTexture == nullptr) {
     if(boost::filesystem::exists(stringVal.data)) {
       filePath = stringVal.data;
     } else {
@@ -288,7 +286,7 @@ static void loadTexture(
         tex = vid;
         vid->startAnimation();
       }
-      catch(VideoTexture::Error ve)
+      catch(VideoTexture::Error &ve)
       {
         REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
         return;
@@ -648,11 +646,11 @@ vector< ref_ptr<Material> > AssetImporter::loadMaterials()
             aiTex = scene_->mTextures[index];
           }
           else {
-            aiTex = NULL;
+            aiTex = nullptr;
           }
         }
         else {
-          aiTex = NULL;
+          aiTex = nullptr;
         }
 
         loadTexture(mat, aiTex, aiMat, stringVal, l, k, texturePath_);
@@ -781,7 +779,7 @@ static GLuint getMeshCount(const struct aiNode* node) {
   for (GLuint n = 0; n < node->mNumChildren; ++n)
   {
     const struct aiNode *child = node->mChildren[n];
-    if(child==NULL) { continue; }
+    if(child==nullptr) { continue; }
     count += getMeshCount(child);
   }
   return count;
@@ -818,7 +816,7 @@ void AssetImporter::loadMeshes(
     GLuint &currentIndex,
     vector< ref_ptr<Mesh> > &out)
 {
-  const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
+  const auto *aiTransform = (const aiMatrix4x4*)&transform.x;
 
   // walk through meshes, add primitive set for each mesh
   for(GLuint n=0; n < node.mNumMeshes; ++n)
@@ -832,7 +830,7 @@ void AssetImporter::loadMeshes(
     }
 
     const struct aiMesh* mesh = scene_->mMeshes[node.mMeshes[n]];
-    if(mesh==NULL) { continue; }
+    if(mesh==nullptr) { continue; }
 
     aiMatrix4x4 meshTransform = (*aiTransform)*node.mTransformation;
     ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f*) &meshTransform.a1), usage);
@@ -846,7 +844,7 @@ void AssetImporter::loadMeshes(
   for (GLuint n = 0; n < node.mNumChildren; ++n)
   {
     const struct aiNode *child = node.mChildren[n];
-    if(child==NULL) { continue; }
+    if(child==nullptr) { continue; }
     loadMeshes(*child,transform,usage,meshIndices,currentIndex,out);
   }
 }
@@ -885,7 +883,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
   {
     ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
     indices->setVertexData(numIndices);
-    GLuint *faceIndices = (GLuint*)indices->clientDataPtr();
+    auto *faceIndices = (GLuint*)indices->clientDataPtr();
     GLuint index = 0, maxIndex=0;
     for (GLuint t = 0u; t < mesh.mNumFaces; ++t)
     {
@@ -902,7 +900,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
     meshState->setIndices(indices, maxIndex);
   }
 
-  const aiMatrix4x4 *aiTransform = (const aiMatrix4x4*)&transform.x;
+  const auto *aiTransform = (const aiMatrix4x4*)&transform.x;
   // vertex positions
   Vec3f min_(999999.9);
   Vec3f max_(-999999.9);
@@ -942,7 +940,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
   // per vertex colors
   for(GLuint t=0; t<AI_MAX_NUMBER_OF_COLOR_SETS; ++t)
   {
-    if(mesh.mColors[t]==NULL) continue;
+    if(mesh.mColors[t]==nullptr) continue;
 
     ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::alloc(REGEN_STRING("col" << t));
     col->setVertexData(numVertices);
@@ -963,7 +961,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
   // load texture coordinates
   for(GLuint t=0; t<AI_MAX_NUMBER_OF_TEXTURECOORDS; ++t)
   {
-    if(mesh.mTextureCoords[t]==NULL) { continue; }
+    if(mesh.mTextureCoords[t]==nullptr) { continue; }
     aiVector3D *aiTexcos = mesh.mTextureCoords[t];
     GLuint texcoComponents = mesh.mNumUVComponents[t];
     string texcoName = REGEN_STRING("texco"<<t);
@@ -982,7 +980,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
       texco = ref_ptr<ShaderInput2f>::alloc(texcoName);
     }
     texco->setVertexData(numVertices);
-    GLfloat *texcoDataPtr = (GLfloat*) texco->clientDataPtr();
+    auto *texcoDataPtr = (GLfloat*) texco->clientDataPtr();
 
     for(GLuint n=0; n<numVertices; ++n)
     {
@@ -1034,7 +1032,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
       for(GLuint t=0; t<assimpBone->mNumWeights; ++t)
       {
         aiVertexWeight &weight = assimpBone->mWeights[t];
-        vertexToWeights[weight.mVertexId].push_back(make_pair(weight.mWeight,boneIndex));
+        vertexToWeights[weight.mVertexId].emplace_back(weight.mWeight,boneIndex);
         maxNumWeights = max(maxNumWeights,
             (GLuint)vertexToWeights[weight.mVertexId].size());
       }
@@ -1067,14 +1065,14 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
       boneWeights->setVertexData(numVertices);
       boneIndices->setVertexData(numVertices);
 
-      GLfloat *weigths = (GLfloat*)boneWeights->clientDataPtr();
-      GLuint *indices = (GLuint*)boneIndices->clientDataPtr();
+      auto *weigths = (GLfloat*)boneWeights->clientDataPtr();
+      auto *indices = (GLuint*)boneIndices->clientDataPtr();
       for (GLuint j=0; j<numVertices; j++)
       {
         WeightList &vWeights = vertexToWeights[j];
 
         GLuint k=0;
-        for(WeightList::iterator it=vWeights.begin(); it!=vWeights.end(); ++it)
+        for(auto it=vWeights.begin(); it!=vWeights.end(); ++it)
         {
           weigths[k] = it->first;
           indices[k] = it->second;
@@ -1107,7 +1105,7 @@ list< ref_ptr<AnimationNode> > AssetImporter::loadMeshBones(
     Mesh *meshState, NodeAnimation *anim)
 {
   const struct aiMesh *mesh = meshToAiMesh_[meshState];
-  if(mesh->mNumBones==0) { return list< ref_ptr<AnimationNode> >(); }
+  if(mesh->mNumBones==0) { return {}; }
 
   list< ref_ptr<AnimationNode> > boneNodes;
   for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
@@ -1131,7 +1129,7 @@ GLuint AssetImporter::numBoneWeights(Mesh *meshState)
   if(mesh->mNumBones==0) { return 0; }
   const ref_ptr<ShaderInputContainer> container = meshState->inputContainer();
 
-  GLuint *counter = new GLuint[container->numVertices()];
+  auto *counter = new GLuint[container->numVertices()];
   GLuint numWeights=1;
   for(GLuint i=0; i<container->numVertices(); ++i) counter[i]=0u;
   for(GLuint boneIndex=0; boneIndex<mesh->mNumBones; ++boneIndex)
@@ -1185,7 +1183,7 @@ ref_ptr<AnimationNode> AssetImporter::loadNodeTree()
       return loadNodeTree(scene_->mRootNode, ref_ptr<AnimationNode>());
     }
   }
-  return ref_ptr<AnimationNode>();
+  return {};
 }
 
 ref_ptr<AnimationNode> AssetImporter::loadNodeTree(aiNode* assimpNode, ref_ptr<AnimationNode> parent)
@@ -1234,8 +1232,7 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
     {
       aiNodeAnim *nodeAnim = assimpAnim->mChannels[j];
 
-      ref_ptr< vector< NodeAnimation::KeyFrame3f > > scalingKeys =
-          ref_ptr< vector<NodeAnimation::KeyFrame3f> >::alloc(nodeAnim->mNumScalingKeys);
+      auto scalingKeys = ref_ptr< vector<NodeAnimation::KeyFrame3f> >::alloc(nodeAnim->mNumScalingKeys);
       vector< NodeAnimation::KeyFrame3f > &scalingKeys_ = *scalingKeys.get();
       GLboolean useScale = false;
       for(GLuint k=0; k<nodeAnim->mNumScalingKeys; ++k)
@@ -1246,7 +1243,7 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
         if(key.time > 0.0001) useScale = true;
       }
 
-      if(!useScale && scalingKeys_.size() > 0)
+      if(!useScale && !scalingKeys_.empty())
       {
         if(scalingKeys_[0].value.isApprox(Vec3f::one(),1e-6))
         {
@@ -1272,7 +1269,7 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
         if(key.time > 0.0001) usePosition = true;
       }
 
-      if(!usePosition && positionKeys_.size() > 0)
+      if(!usePosition && !positionKeys_.empty())
       {
         if(positionKeys_[0].value.isApprox(Vec3f::zero(),1e-6))
         {
@@ -1297,7 +1294,7 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig)
         if(key.time > 0.0001) useRotation = true;
       }
 
-      if(!useRotation && rotationKeyss_.size() > 0)
+      if(!useRotation && !rotationKeyss_.empty())
       {
         if(rotationKeyss_[0].value == Quaternion(1, 0, 0, 0))
         {

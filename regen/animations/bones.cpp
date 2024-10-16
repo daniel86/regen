@@ -42,7 +42,7 @@ void Bones::setBones(const std::list< ref_ptr<AnimationNode> > &bones)
   // create and join bone matrix uniform
   boneMatrices_ = ref_ptr<ShaderInputMat4>::alloc("boneMatrices", bones.size());
   boneMatrices_->set_forceArray(GL_TRUE);
-  boneMatrices_->setUniformDataUntyped(NULL);
+  boneMatrices_->setUniformDataUntyped(nullptr);
 
 #ifdef USE_BONE_TBO
   bufferSize_ = sizeof(GLfloat)*16*bones_.size();
@@ -81,11 +81,10 @@ void Bones::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
   if(bufferSize_<=0) return;
-  Mat4f* boneMatrixData_ = (Mat4f*)boneMatrices_->clientDataPtr();
+  auto* boneMatrixData_ = (Mat4f*)boneMatrices_->clientDataPtr();
 
-  register GLuint i=0;
-  for(std::list< ref_ptr<AnimationNode> >::const_iterator
-      it=bones_.begin(); it!=bones_.end(); ++it)
+  GLuint i=0;
+  for(auto it=bones_.begin(); it!=bones_.end(); ++it)
   {
     // the bone matrix is actually calculated in the animation thread
     // by NodeAnimation.
