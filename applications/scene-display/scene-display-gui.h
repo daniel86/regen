@@ -99,7 +99,7 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(buttonBarFrame->sizePolicy().hasHeightForWidth());
         buttonBarFrame->setSizePolicy(sizePolicy);
-        buttonBarFrame->setMaximumSize(QSize(16777215, 50));
+        buttonBarFrame->setMaximumSize(QSize(16777215, 64));
         buttonBarFrame->setFrameShape(QFrame::StyledPanel);
         buttonBarFrame->setFrameShadow(QFrame::Raised);
         horizontalLayout = new QHBoxLayout(buttonBarFrame);
@@ -138,7 +138,7 @@ public:
 
         openButton = new QPushButton(buttonBarFrame);
         openButton->setObjectName(QString::fromUtf8("openButton"));
-        openButton->setMinimumSize(QSize(80, 0));
+        openButton->setMinimumSize(QSize(80, 32));
         openButton->setFocusPolicy(Qt::NoFocus);
         QIcon icon2;
         QString iconThemeName = QString::fromUtf8("document-open");
@@ -155,7 +155,7 @@ public:
 
         inputsButton = new QPushButton(buttonBarFrame);
         inputsButton->setObjectName(QString::fromUtf8("inputsButton"));
-        inputsButton->setMinimumSize(QSize(80, 0));
+        inputsButton->setMinimumSize(QSize(80, 32));
         inputsButton->setFocusPolicy(Qt::NoFocus);
         QIcon icon3;
         iconThemeName = QString::fromUtf8("document-properties");
@@ -170,7 +170,7 @@ public:
 
         exitButton = new QPushButton(buttonBarFrame);
         exitButton->setObjectName(QString::fromUtf8("exitButton"));
-        exitButton->setMinimumSize(QSize(80, 0));
+        exitButton->setMinimumSize(QSize(80, 32));
         exitButton->setFocusPolicy(Qt::NoFocus);
         QIcon icon4;
         iconThemeName = QString::fromUtf8("application-exit");
