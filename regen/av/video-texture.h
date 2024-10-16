@@ -113,8 +113,8 @@ namespace regen {
 
     ref_ptr<VideoStream> vs_;
     ref_ptr<AudioSource> as_;
-    GLdouble interval_;
     GLdouble idleInterval_;
+    GLdouble interval_;
     GLdouble dt_;
     boost::int64_t intervalMili_;
     AVFrame *lastFrame_;

@@ -235,6 +235,6 @@ void LoopNode::set_numIterations(GLuint numIterations)
 
 void LoopNode::traverse(RenderState *rs)
 {
-  for(register GLuint i=0; i<numIterations_; ++i)
+  for(auto i=0u; i<numIterations_; ++i)
   { StateNode::traverse(rs); }
 }

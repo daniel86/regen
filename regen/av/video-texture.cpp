@@ -31,8 +31,8 @@ VideoTexture::VideoTexture()
   seeked_(GL_FALSE),
   fileToLoaded_(GL_FALSE),
   elapsedSeconds_(0.0),
-  interval_(idleInterval_),
   idleInterval_(IDLE_SLEEP_MS/1000),
+  interval_(idleInterval_),
   dt_(0.0),
   intervalMili_(0),
   lastFrame_(NULL)
