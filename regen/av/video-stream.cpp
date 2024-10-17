@@ -18,8 +18,8 @@ using namespace regen;
 
 #define GL_RGB_PIXEL_FORMAT AV_PIX_FMT_RGB24
 
-VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit)
-		: AudioVideoStream(stream, index, chachedBytesLimit) {
+VideoStream::VideoStream(AVStream *stream, GLint index, GLuint cachedBytesLimit)
+		: AudioVideoStream(stream, index, cachedBytesLimit) {
 	stream_ = stream;
 	width_ = codecCtx_->width;
 	height_ = codecCtx_->height;
@@ -46,17 +46,21 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint chachedBytesLimit
 }
 
 VideoStream::~VideoStream() {
-	clearQueue();
+	doClearQueue();
 	av_free(currFrame_);
 }
 
-void VideoStream::clearQueue() {
+void VideoStream::doClearQueue() {
 	while (!decodedFrames_.empty()) {
 		AVFrame *f = frontFrame();
 		popFrame();
 		delete (float *) f->opaque;
 		av_free(f);
 	}
+}
+
+void VideoStream::clearQueue() {
+	doClearQueue();
 }
 
 void VideoStream::decode(AVPacket *packet) {
@@ -101,10 +105,6 @@ void VideoStream::decode(AVPacket *packet) {
 		auto dt = new float;
 		*dt = packet->dts * av_q2d(stream_->time_base);
 		rgb->opaque = dt;
-
-		// Free packet and put the frame in queue of decoded frames
-		av_packet_unref(packet);
-		pushFrame(rgb, numBytes);
 
 		// free package and put the frame in queue of decoded frames
 		av_packet_unref(packet);
