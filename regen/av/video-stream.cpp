@@ -107,11 +107,11 @@ void VideoStream::decode(AVPacket *packet) {
 		rgb->opaque = dt;
 
 		// free package and put the frame in queue of decoded frames
-		av_packet_unref(packet);
 		av_free(currFrame_);
 		currFrame_ = av_frame_alloc();
 		pushFrame(rgb, numBytes);
 	}
+	av_packet_unref(packet);
 }
 
 GLint VideoStream::width() const { return width_; }
