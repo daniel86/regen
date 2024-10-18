@@ -55,6 +55,7 @@ void VideoStream::doClearQueue() {
 		AVFrame *f = frontFrame();
 		popFrame();
 		delete (float *) f->opaque;
+		av_free(f->data[0]); // free buffer
 		av_free(f);
 	}
 }
@@ -83,10 +84,15 @@ void VideoStream::decode(AVPacket *packet) {
 			av_frame_free(&rgb);
 			return;
 		}
+		auto* buffer = (uint8_t*) av_malloc(numBytes * sizeof(uint8_t));
+		if (!buffer) {
+			av_frame_free(&rgb);
+			return;
+		}
 		av_image_fill_arrays(
 				rgb->data,
 				rgb->linesize,
-				nullptr,
+				buffer,
 				GL_RGB_PIXEL_FORMAT,
 				codecCtx_->width,
 				codecCtx_->height,
