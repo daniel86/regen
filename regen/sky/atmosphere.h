@@ -14,145 +14,162 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-  /**
-   * Defines the look of the sky.
-   */
-  struct AtmosphereProperties {
-    /** nitrogen profile */
-    Vec3f rayleigh;
-    /** aerosol profile */
-    Vec4f mie;
-    /** sun-spotlight */
-    GLfloat spot;
-    /** scattering strength */
-    GLfloat scatterStrength;
-    /** Absorption color */
-    Vec3f absorption;
-  };
+	/**
+	 * Defines the look of the sky.
+	 */
+	struct AtmosphereProperties {
+		/** nitrogen profile */
+		Vec3f rayleigh;
+		/** aerosol profile */
+		Vec4f mie;
+		/** sun-spotlight */
+		GLfloat spot;
+		/** scattering strength */
+		GLfloat scatterStrength;
+		/** Absorption color */
+		Vec3f absorption;
+	};
 
-  /**
-   * \brief Atmospheric scattering.
-   * @see http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
-   * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
-   */
-  class Atmosphere : public SkyLayer {
-  public:
-    Atmosphere(
-        const ref_ptr<Sky> &sky,
-        GLuint cubeMapSize=512,
-        GLboolean useFloatBuffer=GL_FALSE,
-        GLuint levelOfDetail=0);
+	/**
+	 * \brief Atmospheric scattering.
+	 * @see http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
+	 * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
+	 */
+	class Atmosphere : public SkyLayer {
+	public:
+		Atmosphere(
+				const ref_ptr<Sky> &sky,
+				GLuint cubeMapSize = 512,
+				GLboolean useFloatBuffer = GL_FALSE,
+				GLuint levelOfDetail = 0);
 
-    /**
-     * Sets given planet properties.
-     */
-    void setProperties(AtmosphereProperties &p);
-    /**
-     * Approximates planet properties for earth.
-     */
-    void setEarth();
-    /**
-     * Approximates planet properties for mars.
-     */
-    void setMars();
-    /**
-     * Approximates planet properties for uranus.
-     */
-    void setUranus();
-    /**
-     * Approximates planet properties for venus.
-     */
-    void setVenus();
-    /**
-     * Approximates planet properties for imaginary alien planet.
-     */
-    void setAlien();
+		/**
+		 * Sets given planet properties.
+		 */
+		void setProperties(AtmosphereProperties &p);
 
-    /**
-     * Sets brightness for nitrogen profile
-     */
-    void setRayleighBrightness(GLfloat v);
-    /**
-     * Sets strength for nitrogen profile
-     */
-    void setRayleighStrength(GLfloat v);
-    /**
-     * Sets collect amount for nitrogen profile
-     */
-    void setRayleighCollect(GLfloat v);
-    /**
-     * rayleigh profile
-     */
-    ref_ptr<ShaderInput3f>& rayleigh();
+		/**
+		 * Approximates planet properties for earth.
+		 */
+		void setEarth();
 
-    /**
-     * Sets brightness for aerosol profile
-     */
-    void setMieBrightness(GLfloat v);
-    /**
-     * Sets strength for aerosol profile
-     */
-    void setMieStrength(GLfloat v);
-    /**
-     * Sets collect amount for aerosol profile
-     */
-    void setMieCollect(GLfloat v);
-    /**
-     * Sets distribution amount for aerosol profile
-     */
-    void setMieDistribution(GLfloat v);
-    /**
-     * aerosol profile
-     */
-    ref_ptr<ShaderInput4f>& mie();
+		/**
+		 * Approximates planet properties for mars.
+		 */
+		void setMars();
 
-    /**
-     * @param v the spot brightness.
-     */
-    void setSpotBrightness(GLfloat v);
-    /**
-     * @return the spot brightness.
-     */
-    ref_ptr<ShaderInput1f>& spotBrightness();
+		/**
+		 * Approximates planet properties for uranus.
+		 */
+		void setUranus();
 
-    /**
-     * @param v scattering strength.
-     */
-    void setScatterStrength(GLfloat v);
-    /**
-     * @return scattering strength.
-     */
-    ref_ptr<ShaderInput1f>& scatterStrength();
+		/**
+		 * Approximates planet properties for venus.
+		 */
+		void setVenus();
 
-    /**
-     * @param color the absorbtion color.
-     */
-    void setAbsorbtion(const Vec3f &color);
-    /**
-     * @return the absorbtion color.
-     */
-    ref_ptr<ShaderInput3f>& absorbtion();
+		/**
+		 * Approximates planet properties for imaginary alien planet.
+		 */
+		void setAlien();
 
-    const ref_ptr<TextureCube>& cubeMap() const;
+		/**
+		 * Sets brightness for nitrogen profile
+		 */
+		void setRayleighBrightness(GLfloat v);
 
-    // Override
-    void updateSkyLayer(RenderState *rs, GLdouble dt);
-    ref_ptr<Mesh> getMeshState();
-    ref_ptr<HasShader> getShaderState();
+		/**
+		 * Sets strength for nitrogen profile
+		 */
+		void setRayleighStrength(GLfloat v);
 
-  protected:
-    ref_ptr<FBO> fbo_;
+		/**
+		 * Sets collect amount for nitrogen profile
+		 */
+		void setRayleighCollect(GLfloat v);
 
-    ref_ptr<SkyBox> drawState_;
-    ref_ptr<State> updateState_;
-    ref_ptr<ShaderState> updateShader_;
+		/**
+		 * rayleigh profile
+		 */
+		ref_ptr<ShaderInput3f> &rayleigh();
 
-    ref_ptr<ShaderInput3f> rayleigh_;
-    ref_ptr<ShaderInput4f> mie_;
-    ref_ptr<ShaderInput1f> spotBrightness_;
-    ref_ptr<ShaderInput1f> scatterStrength_;
-    ref_ptr<ShaderInput3f> skyAbsorbtion_;
-  };
+		/**
+		 * Sets brightness for aerosol profile
+		 */
+		void setMieBrightness(GLfloat v);
+
+		/**
+		 * Sets strength for aerosol profile
+		 */
+		void setMieStrength(GLfloat v);
+
+		/**
+		 * Sets collect amount for aerosol profile
+		 */
+		void setMieCollect(GLfloat v);
+
+		/**
+		 * Sets distribution amount for aerosol profile
+		 */
+		void setMieDistribution(GLfloat v);
+
+		/**
+		 * aerosol profile
+		 */
+		ref_ptr<ShaderInput4f> &mie();
+
+		/**
+		 * @param v the spot brightness.
+		 */
+		void setSpotBrightness(GLfloat v);
+
+		/**
+		 * @return the spot brightness.
+		 */
+		ref_ptr<ShaderInput1f> &spotBrightness();
+
+		/**
+		 * @param v scattering strength.
+		 */
+		void setScatterStrength(GLfloat v);
+
+		/**
+		 * @return scattering strength.
+		 */
+		ref_ptr<ShaderInput1f> &scatterStrength();
+
+		/**
+		 * @param color the absorbtion color.
+		 */
+		void setAbsorbtion(const Vec3f &color);
+
+		/**
+		 * @return the absorbtion color.
+		 */
+		ref_ptr<ShaderInput3f> &absorbtion();
+
+		const ref_ptr<TextureCube> &cubeMap() const;
+
+		// Override
+		void updateSkyLayer(RenderState *rs, GLdouble dt);
+
+		ref_ptr<Mesh> getMeshState();
+
+		ref_ptr<HasShader> getShaderState();
+
+	protected:
+		ref_ptr<FBO> fbo_;
+
+		ref_ptr<SkyBox> drawState_;
+		ref_ptr<State> updateState_;
+		ref_ptr<ShaderState> updateShader_;
+
+		ref_ptr<ShaderInput3f> rayleigh_;
+		ref_ptr<ShaderInput4f> mie_;
+		ref_ptr<ShaderInput1f> spotBrightness_;
+		ref_ptr<ShaderInput1f> scatterStrength_;
+		ref_ptr<ShaderInput3f> skyAbsorbtion_;
+	};
 }
 
 #endif /* ATMOSPHERE_H_ */

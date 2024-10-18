@@ -15,55 +15,46 @@
 using namespace regen;
 
 StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
-: SkyLayer(sky)
-{
-  state()->joinStates(ref_ptr<BlendState>::alloc(GL_ONE, GL_ZERO));
+		: SkyLayer(sky) {
+	state()->joinStates(ref_ptr<BlendState>::alloc(GL_ONE, GL_ZERO));
 
-  scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
-  scattering_->setUniformData(defaultScattering());
-  state()->joinShaderInput(scattering_);
+	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
+	scattering_->setUniformData(defaultScattering());
+	state()->joinShaderInput(scattering_);
 
-  deltaM_ = ref_ptr<ShaderInput1f>::alloc("deltaM");
-  deltaM_->setUniformData(1.f);
-  state()->joinShaderInput(deltaM_);
+	deltaM_ = ref_ptr<ShaderInput1f>::alloc("deltaM");
+	deltaM_->setUniformData(1.f);
+	state()->joinShaderInput(deltaM_);
 
-  set_apparentMagnitude(6.5);
+	set_apparentMagnitude(6.5);
 
-  meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.sky.star-map");
+	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.sky.star-map");
 }
 
 
-const GLdouble StarMap::defaultScattering()
-{ return 0.2; }
+const GLdouble StarMap::defaultScattering() { return 0.2; }
 
 
-void StarMap::set_texture(const std::string &textureFile)
-{ meshState_->setCubeMap(textures::loadCube(textureFile)); }
+void StarMap::set_texture(const std::string &textureFile) { meshState_->setCubeMap(textures::loadCube(textureFile)); }
 
-void StarMap::set_scattering(GLdouble scattering)
-{ scattering_->setVertex(0, scattering); }
+void StarMap::set_scattering(GLdouble scattering) { scattering_->setVertex(0, scattering); }
 
-const ref_ptr<ShaderInput1f>& StarMap::scattering() const
-{ return scattering_; }
+const ref_ptr<ShaderInput1f> &StarMap::scattering() const { return scattering_; }
 
-void StarMap::set_apparentMagnitude(GLdouble apparentMagnitude)
-{
-  // Precompute brightness based on logarithmic scale.
-  // (Similar to starsgeode vertex shader.)
-  deltaM_->setVertex(0, pow(2.512, apparentMagnitude -
-      static_cast<double>(osgHimmel::Earth::apparentMagnitudeLimit())));
+void StarMap::set_apparentMagnitude(GLdouble apparentMagnitude) {
+	// Precompute brightness based on logarithmic scale.
+	// (Similar to starsgeode vertex shader.)
+	deltaM_->setVertex(0, pow(2.512, apparentMagnitude -
+									 static_cast<double>(osgHimmel::Earth::apparentMagnitudeLimit())));
 }
 
 
-ref_ptr<Mesh> StarMap::getMeshState()
-{ return meshState_; }
+ref_ptr<Mesh> StarMap::getMeshState() { return meshState_; }
 
-ref_ptr<HasShader> StarMap::getShaderState()
-{ return meshState_; }
+ref_ptr<HasShader> StarMap::getShaderState() { return meshState_; }
 
 
-void StarMap::updateSkyLayer(RenderState *rs, GLdouble dt)
-{
+void StarMap::updateSkyLayer(RenderState *rs, GLdouble dt) {
 }
 
 
