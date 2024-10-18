@@ -18,8 +18,7 @@ LightResource::LightResource()
 
 ref_ptr<Light> LightResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
-	Light::Type lightType =
-			input.getValue<Light::Type>("type", Light::SPOT);
+	auto lightType = input.getValue<Light::Type>("type", Light::SPOT);
 	ref_ptr<Light> light = ref_ptr<Light>::alloc(lightType);
 	light->set_isAttenuated(
 			input.getValue<bool>("is-attenuated", lightType != Light::DIRECTIONAL));
@@ -34,7 +33,7 @@ ref_ptr<Light> LightResource::createResource(
 	light->radius()->setVertex(0,
 							   input.getValue<Vec2f>("radius", Vec2f(999999.9f)));
 
-	Vec2f angles = input.getValue<Vec2f>("cone-angles", Vec2f(50.0f, 55.0f));
+	auto angles = input.getValue<Vec2f>("cone-angles", Vec2f(50.0f, 55.0f));
 	light->set_innerConeAngle(angles.x);
 	light->set_outerConeAngle(angles.y);
 	parser->putState(input.getName(), light);

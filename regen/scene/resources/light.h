@@ -24,7 +24,7 @@ namespace regen {
 
 			// Override
 			ref_ptr<Light> createResource(
-					SceneParser *parser, SceneInputNode &input);
+					SceneParser *parser, SceneInputNode &input) override;
 		};
 	}
 }

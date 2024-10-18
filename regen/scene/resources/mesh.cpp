@@ -30,12 +30,11 @@ static void processMeshChildren(
 	else state = x[0];
 
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = childs.begin(); it != childs.end(); ++it) {
+	for (auto it = childs.begin(); it != childs.end(); ++it) {
 		SceneInputNode *child = it->get();
 		ref_ptr<StateProcessor> processor =
 				parser->getStateProcessor(child->getCategory());
-		if (processor.get() == NULL) {
+		if (processor.get() == nullptr) {
 			REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
 			continue;
 		}
@@ -43,7 +42,7 @@ static void processMeshChildren(
 	}
 
 	if (x.size() > 1) {
-		for (MeshVector::iterator jt = x.begin(); jt != x.end(); ++jt) {
+		for (auto jt = x.begin(); jt != x.end(); ++jt) {
 			ref_ptr<Mesh> mesh = *jt;
 			mesh->joinStates(state);
 		}
@@ -56,14 +55,14 @@ MeshResource::MeshResource()
 ref_ptr<MeshVector> MeshResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
 	const string meshType = input.getValue("type");
-	GLuint levelOfDetail = input.getValue<GLuint>("lod", 4);
-	Vec3f scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
-	Vec2f texcoScaling = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
-	Vec3f rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
+	auto levelOfDetail = input.getValue<GLuint>("lod", 4);
+	auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
+	auto texcoScaling = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
+	auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
 	bool useNormal = input.getValue<bool>("use-normal", true);
 	bool useTexco = input.getValue<bool>("use-texco", true);
 	bool useTangent = input.getValue<bool>("use-tangent", false);
-	VBO::Usage vboUsage = input.getValue<VBO::Usage>("usage", VBO::USAGE_DYNAMIC);
+	auto vboUsage = input.getValue<VBO::Usage>("usage", VBO::USAGE_DYNAMIC);
 
 	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
 	MeshVector *out = out_.get();
@@ -133,8 +132,8 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	}
 		// Special meshes
 	else if (meshType == "particles") {
-		const GLuint numParticles = input.getValue<GLuint>("num-vertices", 0u);
-		const string updateShader = input.getValue<string>("update-shader", "");
+		const auto numParticles = input.getValue<GLuint>("num-vertices", 0u);
+		const auto updateShader = input.getValue<string>("update-shader", "");
 		if (numParticles == 0u) {
 			REGEN_WARN("Ignoring " << input.getDescription() << " with num-vertices=0.");
 		} else if (updateShader.empty()) {
@@ -146,7 +145,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		}
 	} else if (meshType == "asset") {
 		ref_ptr<AssetImporter> importer = parser->getResources()->getAsset(parser, input.getValue("asset"));
-		if (importer.get() == NULL) {
+		if (importer.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << " with unknown Asset.");
 		} else {
 			out_ = createAssetMeshes(parser, input, importer);
@@ -190,11 +189,11 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 		SceneParser *parser,
 		SceneInputNode &input,
 		const ref_ptr<AssetImporter> &importer) {
-	const VBO::Usage vboUsage = input.getValue<VBO::Usage>("usage", VBO::USAGE_DYNAMIC);
-	const Vec3f scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
-	const Vec3f rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
-	const Vec3f translation = input.getValue<Vec3f>("translation", Vec3f(0.0f));
-	const string assetIndices = input.getValue<string>("asset-indices", "*");
+	const auto vboUsage = input.getValue<VBO::Usage>("usage", VBO::USAGE_DYNAMIC);
+	const auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
+	const auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
+	const auto translation = input.getValue<Vec3f>("translation", Vec3f(0.0f));
+	const auto assetIndices = input.getValue<string>("asset-indices", "*");
 	bool useAnimation = input.getValue<bool>("asset-animation", false);
 
 	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
@@ -237,14 +236,14 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 	}
 	for (GLuint i = 0u; i < out.size(); ++i) {
 		ref_ptr<Mesh> mesh = out[i];
-		if (mesh.get() == NULL) continue;
+		if (mesh.get() == nullptr) continue;
 
 		// Join in material state.
 		// Can be set to false to allow overwriting material stuff.
 		if (input.getValue<bool>("asset-material", true)) {
 			ref_ptr<Material> material =
 					importer->getMeshMaterial(mesh.get());
-			if (material.get() != NULL) {
+			if (material.get() != nullptr) {
 				mesh->joinStates(material);
 			}
 		}
@@ -255,8 +254,7 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 			GLuint numBones = 0u;
 
 			// Find bones influencing this mesh
-			for (vector<ref_ptr<NodeAnimation> >::const_iterator
-						 it = nodeAnims.begin(); it != nodeAnims.end(); ++it) {
+			for (auto it = nodeAnims.begin(); it != nodeAnims.end(); ++it) {
 				list<ref_ptr<AnimationNode> > ibonNodes =
 						importer->loadMeshBones(mesh.get(), it->get());
 				meshBones.insert(meshBones.end(), ibonNodes.begin(), ibonNodes.end());
@@ -304,9 +302,9 @@ ref_ptr<TextureMappedText> MeshResource::createTextMesh(
 		SceneParser *parser, SceneInputNode &input) {
 	ref_ptr<regen::Font> font =
 			parser->getResources()->getFont(parser, input.getValue("font"));
-	if (font.get() == NULL) {
+	if (font.get() == nullptr) {
 		REGEN_WARN("Unable to load Font for '" << input.getDescription() << "'.");
-		return ref_ptr<TextureMappedText>();
+		return {};
 	}
 
 	ref_ptr<TextureMappedText> widget = ref_ptr<TextureMappedText>::alloc(font,

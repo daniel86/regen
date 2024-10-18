@@ -31,7 +31,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<Camera> cam = parser->getResources()->getCamera(parser, input.getName());
 				if (cam.get() == NULL) {
 					REGEN_WARN("Unable to load Camera for '" << input.getDescription() << "'.");

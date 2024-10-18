@@ -32,17 +32,17 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				const string texName = input.getValue("name");
 
 				ref_ptr<Texture> tex = TextureStateProvider::getTexture(parser, input);
-				if (tex.get() == NULL) {
+				if (tex.get() == nullptr) {
 					REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
 					return;
 				}
 
 				if (input.hasAttribute("value")) {
-					GLuint index = input.getValue<GLuint>("index", 0u);
+					auto index = input.getValue<GLuint>("index", 0u);
 					state->joinStates(ref_ptr<TextureSetIndex>::alloc(tex, index));
 				} else if (input.getValue<bool>("set-next-index", true)) {
 					state->joinStates(ref_ptr<TextureNextIndex>::alloc(tex));

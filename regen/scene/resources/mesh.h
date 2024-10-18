@@ -24,7 +24,7 @@ namespace regen {
 
 			// Override
 			ref_ptr<MeshVector> createResource(
-					SceneParser *parser, SceneInputNode &input);
+					SceneParser *parser, SceneInputNode &input) override;
 
 		protected:
 			ref_ptr<MeshVector> createAssetMeshes(

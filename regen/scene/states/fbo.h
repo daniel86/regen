@@ -17,7 +17,7 @@
 
 static vector<string> getFBOAttachments(SceneInputNode &input, const string &key) {
 	vector<string> out;
-	string attachments = input.getValue<string>(key, "");
+	auto attachments = input.getValue<string>(key, "");
 	if (attachments.empty()) {
 		REGEN_WARN("No attachments specified in " << input.getDescription() << ".");
 	} else {
@@ -42,7 +42,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				if (input.getName() == "SCREEN") {
 					GLenum drawBuffer = glenum::drawBuffer(
 							input.getValue<string>("draw-buffer", "FRONT"));
@@ -52,7 +52,7 @@ namespace regen {
 					state->joinStates(screenState);
 				} else {
 					ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser, input.getName());
-					if (fbo.get() == NULL) {
+					if (fbo.get() == nullptr) {
 						REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
 						return;
 					}

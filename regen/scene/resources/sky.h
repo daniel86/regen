@@ -29,7 +29,7 @@ namespace regen {
 
 			// Override
 			ref_ptr<Sky> createResource(
-					SceneParser *parser, SceneInputNode &input);
+					SceneParser *parser, SceneInputNode &input) override;
 
 		protected:
 

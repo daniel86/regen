@@ -20,7 +20,7 @@ ref_ptr<Font> FontResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
 	if (!input.hasAttribute("file")) {
 		REGEN_WARN("Ignoring Font '" << input.getDescription() << "' without file.");
-		return ref_ptr<Font>();
+		return {};
 	}
 	return regen::Font::get(
 			getResourcePath(input.getValue("file")),

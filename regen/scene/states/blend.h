@@ -30,7 +30,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<BlendState> blend = ref_ptr<BlendState>::alloc(
 						input.getValue<BlendMode>("mode", BLEND_MODE_SRC));
 				if (input.hasAttribute("color")) {

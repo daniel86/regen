@@ -30,17 +30,16 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &parent) {
+					const ref_ptr<State> &parent) override {
 				ref_ptr<StateSequence> seq = ref_ptr<StateSequence>::alloc();
 				parent->joinStates(seq);
 
 				// all states allowed as children
 				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-				for (list<ref_ptr<SceneInputNode> >::const_iterator
-							 it = childs.begin(); it != childs.end(); ++it) {
+				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					ref_ptr<SceneInputNode> n = *it;
 					ref_ptr<StateProcessor> processor = parser->getStateProcessor(n->getCategory());
-					if (processor.get() == NULL) {
+					if (processor.get() == nullptr) {
 						REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
 						return;
 					}

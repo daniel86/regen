@@ -58,9 +58,9 @@ ref_ptr<Camera> CameraResource::createResource(
 		input.hasAttribute("reflector-point")) {
 		ref_ptr<Camera> userCamera =
 				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == NULL) {
+		if (userCamera.get() == nullptr) {
 			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		ref_ptr<ReflectionCamera> cam;
 		bool hasBackFace = input.getValue<bool>("has-back-face", false);
@@ -68,41 +68,41 @@ ref_ptr<Camera> CameraResource::createResource(
 		if (input.hasAttribute("reflector")) {
 			ref_ptr<MeshVector> mesh =
 					parser->getResources()->getMesh(parser, input.getValue("reflector"));
-			if (mesh.get() == NULL || mesh->empty()) {
+			if (mesh.get() == nullptr || mesh->empty()) {
 				REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
-				return ref_ptr<Camera>();
+				return {};
 			}
 			const vector<ref_ptr<Mesh> > &vec = *mesh.get();
 			cam = ref_ptr<ReflectionCamera>::alloc(
 					userCamera, vec[0], input.getValue<GLuint>("vertex-index", 0u), hasBackFace);
 		} else if (input.hasAttribute("reflector-normal")) {
-			Vec3f normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f, 1.0f, 0.0f));
-			Vec3f position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f, 0.0f, 0.0f));
+			auto normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f, 1.0f, 0.0f));
+			auto position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f, 0.0f, 0.0f));
 			cam = ref_ptr<ReflectionCamera>::alloc(userCamera, normal, position, hasBackFace);
 		}
 		if (cam.get() == NULL) {
 			REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		parser->putState(input.getName(), cam);
 		return cam;
 	} else if (input.hasAttribute("light")) {
 		ref_ptr<Camera> userCamera =
 				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == NULL) {
+		if (userCamera.get() == nullptr) {
 			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		ref_ptr<Light> light =
 				parser->getResources()->getLight(parser, input.getValue("light"));
-		if (light.get() == NULL) {
+		if (light.get() == nullptr) {
 			REGEN_WARN("Unable to find Light for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
-		GLuint numLayer = input.getValue<GLuint>("num-layer", 1u);
-		GLdouble splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
-		GLdouble near = input.getValue<GLdouble>("near", 0.1);
-		GLdouble far = input.getValue<GLdouble>("far", 200.0);
+		auto numLayer = input.getValue<GLuint>("num-layer", 1u);
+		auto splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
+		auto near = input.getValue<GLdouble>("near", 0.1);
+		auto far = input.getValue<GLdouble>("far", 200.0);
 		ref_ptr<LightCamera> cam = ref_ptr<LightCamera>::alloc(
 				light, userCamera, Vec2f(near, far), numLayer, splitWeight);
 		parser->putState(input.getName(), cam);
@@ -112,7 +112,7 @@ ref_ptr<Camera> CameraResource::createResource(
 			const string val = input.getValue<string>("hide-faces", "");
 			vector<string> faces;
 			boost::split(faces, val, boost::is_any_of(","));
-			for (vector<string>::iterator it = faces.begin();
+			for (auto it = faces.begin();
 				 it != faces.end(); ++it) {
 				int faceIndex = atoi(it->c_str());
 				cam->set_isCubeFaceVisible(
@@ -124,15 +124,15 @@ ref_ptr<Camera> CameraResource::createResource(
 	} else if (input.hasAttribute("cube-mesh")) {
 		ref_ptr<Camera> userCamera =
 				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == NULL) {
+		if (userCamera.get() == nullptr) {
 			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		ref_ptr<MeshVector> mesh =
 				parser->getResources()->getMesh(parser, input.getValue("cube-mesh"));
-		if (mesh.get() == NULL || mesh->empty()) {
+		if (mesh.get() == nullptr || mesh->empty()) {
 			REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc((*mesh.get())[0], userCamera);
 		parser->putState(input.getName(), cam);
@@ -142,7 +142,7 @@ ref_ptr<Camera> CameraResource::createResource(
 			const string val = input.getValue<string>("hide-faces", "");
 			vector<string> faces;
 			boost::split(faces, val, boost::is_any_of(","));
-			for (vector<string>::iterator it = faces.begin();
+			for (auto it = faces.begin();
 				 it != faces.end(); ++it) {
 				int faceIndex = atoi(it->c_str());
 				cam->set_isCubeFaceVisible(
@@ -154,15 +154,15 @@ ref_ptr<Camera> CameraResource::createResource(
 	} else if (input.hasAttribute("paraboloid-mesh")) {
 		ref_ptr<Camera> userCamera =
 				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == NULL) {
+		if (userCamera.get() == nullptr) {
 			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		ref_ptr<MeshVector> mesh =
 				parser->getResources()->getMesh(parser, input.getValue("paraboloid-mesh"));
-		if (mesh.get() == NULL || mesh->empty()) {
+		if (mesh.get() == nullptr || mesh->empty()) {
 			REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
-			return ref_ptr<Camera>();
+			return {};
 		}
 		bool hasBackFace = input.getValue<bool>("has-back-face", false);
 
@@ -178,7 +178,7 @@ ref_ptr<Camera> CameraResource::createResource(
 		cam->position()->setVertex(0,
 								   input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
 
-		Vec3f dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
+		auto dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
 		dir.normalize();
 		cam->direction()->setVertex(0, dir);
 

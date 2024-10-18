@@ -30,7 +30,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				if (!input.hasAttribute("key")) {
 					REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
 					return;

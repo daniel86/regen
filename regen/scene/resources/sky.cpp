@@ -27,12 +27,12 @@ ref_ptr<Sky> SkyResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
 	if (!input.hasAttribute("camera")) {
 		REGEN_WARN("No user-camera attribute specified for '" << input.getDescription() << "'.");
-		return ref_ptr<Sky>();
+		return {};
 	}
 	ref_ptr<Camera> cam = parser->getResources()->getCamera(parser, input.getValue("camera"));
-	if (cam.get() == NULL) {
+	if (cam.get() == nullptr) {
 		REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
-		return ref_ptr<Sky>();
+		return {};
 	}
 
 	ref_ptr<Sky> sky = ref_ptr<Sky>::alloc(cam, parser->getViewport());
@@ -57,8 +57,7 @@ ref_ptr<Sky> SkyResource::createResource(
 			input.getValue<double>("seconds-per-cycle", 3600.0));
 
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = childs.begin(); it != childs.end(); ++it) {
+	for (auto it = childs.begin(); it != childs.end(); ++it) {
 		ref_ptr<SceneInputNode> n = *it;
 
 		if (n->getCategory() == "atmosphere") {

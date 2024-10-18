@@ -30,14 +30,14 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
 
 				depth->set_useDepthTest(input.getValue<bool>("test", true));
 				depth->set_useDepthWrite(input.getValue<bool>("write", true));
 
 				if (input.hasAttribute("range")) {
-					Vec2f range = input.getValue<Vec2f>("range", Vec2f(0.0f));
+					auto range = input.getValue<Vec2f>("range", Vec2f(0.0f));
 					depth->set_depthRange(range.x, range.y);
 				}
 

@@ -271,7 +271,7 @@ ref_ptr<Texture> TextureResource::createResource(
 		}
 	}
 
-	if (tex.get() == NULL) {
+	if (tex.get() == nullptr) {
 		REGEN_WARN("Failed to create Texture for '" << input.getDescription() << ".");
 		return tex;
 	}

@@ -72,8 +72,7 @@ ref_ptr<FBO> FBOResource::createResource(
 	}
 
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = childs.begin(); it != childs.end(); ++it) {
+	for (auto it = childs.begin(); it != childs.end(); ++it) {
 		ref_ptr<SceneInputNode> n = *it;
 
 		if (n->getCategory() == "texture") {
@@ -83,7 +82,7 @@ ref_ptr<FBO> FBOResource::createResource(
 				tex->nextObject();
 			}
 		} else if (n->getCategory() == "depth") {
-			GLint depthSize = n->getValue<GLint>("pixel-size", 16);
+			auto depthSize = n->getValue<GLint>("pixel-size", 16);
 			GLenum depthType = glenum::pixelType(
 					n->getValue<string>("pixel-type", "UNSIGNED_BYTE"));
 			GLenum textureTarget = glenum::textureTarget(
@@ -104,7 +103,7 @@ ref_ptr<FBO> FBOResource::createResource(
 	}
 
 	if (input.hasAttribute("clear-color")) {
-		Vec4f c = input.getValue<Vec4f>("clear-color", Vec4f(0.0f));
+		auto c = input.getValue<Vec4f>("clear-color", Vec4f(0.0f));
 
 		fbo->drawBuffers().push(fbo->colorBuffers());
 		RenderState::get()->clearColor().push(c);

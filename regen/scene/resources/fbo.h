@@ -24,7 +24,7 @@ namespace regen {
 
 			// Override
 			ref_ptr<FBO> createResource(
-					SceneParser *parser, SceneInputNode &input);
+					SceneParser *parser, SceneInputNode &input) override;
 		};
 	}
 }
