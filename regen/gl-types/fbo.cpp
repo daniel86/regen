@@ -369,42 +369,41 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	rs->activeTexture().push(GL_TEXTURE7);
 
 	// resize depth attachment
-	if (depthTexture_.get() != NULL) {
+	if (depthTexture_.get() != nullptr) {
 		depthTexture_->set_rectangleSize(w, h);
-		Texture3D *tex3D = dynamic_cast<Texture3D *>(depthTexture_.get());
-		if (tex3D != NULL) { tex3D->set_depth(depth); }
+		auto *tex3D = dynamic_cast<Texture3D *>(depthTexture_.get());
+		if (tex3D != nullptr) { tex3D->set_depth(depth); }
 		rs->textures().push(7, depthTexture_->textureBind());
 		depthTexture_->texImage();
 		rs->textures().pop(7);
 	}
 
 	// resize stencil attachment
-	if (stencilTexture_.get() != NULL) {
+	if (stencilTexture_.get() != nullptr) {
 		stencilTexture_->set_rectangleSize(w, h);
-		Texture3D *tex3D = dynamic_cast<Texture3D *>(stencilTexture_.get());
-		if (tex3D != NULL) { tex3D->set_depth(depth); }
+		auto *tex3D = dynamic_cast<Texture3D *>(stencilTexture_.get());
+		if (tex3D != nullptr) { tex3D->set_depth(depth); }
 		rs->textures().push(7, stencilTexture_->textureBind());
 		stencilTexture_->texImage();
 		rs->textures().pop(7);
 	}
 
 	// resize depth stencil attachment
-	if (depthStencilTexture_.get() != NULL) {
+	if (depthStencilTexture_.get() != nullptr) {
 		depthStencilTexture_->set_rectangleSize(w, h);
-		Texture3D *tex3D = dynamic_cast<Texture3D *>(depthStencilTexture_.get());
-		if (tex3D != NULL) { tex3D->set_depth(depth); }
+		auto *tex3D = dynamic_cast<Texture3D *>(depthStencilTexture_.get());
+		if (tex3D != nullptr) { tex3D->set_depth(depth); }
 		rs->textures().push(7, depthStencilTexture_->textureBind());
 		depthStencilTexture_->texImage();
 		rs->textures().pop(7);
 	}
 
 	// resize color attachments
-	for (std::vector<ref_ptr<Texture> >::iterator
-				 it = colorTextures_.begin(); it != colorTextures_.end(); ++it) {
+	for (auto it = colorTextures_.begin(); it != colorTextures_.end(); ++it) {
 		ref_ptr<Texture> &tex = *it;
 		tex->set_rectangleSize(w, h);
-		Texture3D *tex3D = dynamic_cast<Texture3D *>(tex.get());
-		if (tex3D != NULL) { tex3D->set_depth(depth); }
+		auto *tex3D = dynamic_cast<Texture3D *>(tex.get());
+		if (tex3D != nullptr) { tex3D->set_depth(depth); }
 		for (GLuint i = 0; i < tex->numObjects(); ++i) {
 			rs->textures().push(7, tex->textureBind());
 			tex->texImage();
@@ -414,8 +413,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	}
 
 	// resize rbo attachments
-	for (std::vector<ref_ptr<RenderBuffer> >::iterator
-				 it = renderBuffers_.begin(); it != renderBuffers_.end(); ++it) {
+	for (auto it = renderBuffers_.begin(); it != renderBuffers_.end(); ++it) {
 		ref_ptr<RenderBuffer> &rbo = *it;
 		rbo->set_rectangleSize(w, h);
 		for (GLuint i = 0; i < rbo->numObjects(); ++i) {

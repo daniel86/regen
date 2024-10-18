@@ -44,10 +44,10 @@ GLuint ShaderInputContainer::numInstances() const { return numInstances_; }
 void ShaderInputContainer::set_numInstances(GLuint v) { numInstances_ = v; }
 
 ref_ptr<ShaderInput> ShaderInputContainer::getInput(const std::string &name) const {
-	for (ShaderInputList::const_iterator it = inputs_.begin(); it != inputs_.end(); ++it) {
+	for (auto it = inputs_.begin(); it != inputs_.end(); ++it) {
 		if (name.compare(it->name_) == 0) return it->in_;
 	}
-	return ref_ptr<ShaderInput>();
+	return {};
 }
 
 GLboolean ShaderInputContainer::hasInput(const std::string &name) const { return inputMap_.count(name) > 0; }
@@ -85,7 +85,7 @@ ShaderInputList::const_iterator ShaderInputContainer::setInput(
 		inputMap_.insert(inputName);
 	}
 
-	inputs_.push_front(NamedShaderInput(in, inputName));
+	inputs_.emplace_front(in, inputName);
 
 	if (uploadLayout_ != LAYOUT_LAST) {
 		if (in->isVertexAttribute())

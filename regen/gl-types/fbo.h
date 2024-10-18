@@ -27,7 +27,7 @@ namespace regen {
 		 * @param buffers symbolic constants specifying the buffers
 		 *                into which fragment colors or data values will be written.
 		 */
-		DrawBuffers(const std::vector<GLenum> &buffers)
+		explicit DrawBuffers(const std::vector<GLenum> &buffers)
 				: buffers_(buffers) {}
 
 		/**
@@ -35,9 +35,9 @@ namespace regen {
 		 * @param buffer symbolic constant specifying the buffer
 		 *               into which fragment colors or data values will be written.
 		 */
-		DrawBuffers(const GLenum buffer) { buffers_.push_back(buffer); }
+		explicit DrawBuffers(const GLenum buffer) { buffers_.push_back(buffer); }
 
-		DrawBuffers() {}
+		DrawBuffers() = default;
 
 		/**
 		 * An array of symbolic constants specifying the buffers
@@ -99,7 +99,7 @@ namespace regen {
 		/**
 		 * @param numObjects number of GL buffers.
 		 */
-		RenderBuffer(GLuint numObjects = 1);
+		explicit RenderBuffer(GLuint numObjects = 1);
 
 		/**
 		 * Binds this RenderBuffer.

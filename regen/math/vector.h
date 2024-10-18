@@ -34,7 +34,7 @@ namespace regen {
 		Vec2(T _x, T _y) : x(_x), y(_y) {}
 
 		/** @param _x value that is applied to all components. */
-		explicit Vec2(T _x) : x(_x), y(_x) {}
+		Vec2(T _x) : x(_x), y(_x) {}
 
 		/** copy constructor. */
 		Vec2(const Vec2 &b) : x(b.x), y(b.y) {}
@@ -204,7 +204,7 @@ namespace regen {
 		Vec3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
 
 		/** @param _x value that is applied to all components. */
-		explicit Vec3(T _x) : x(_x), y(_x), z(_x) {}
+		Vec3(T _x) : x(_x), y(_x), z(_x) {}
 
 		/** copy constructor. */
 		Vec3(const Vec3 &b) : x(b.x), y(b.y), z(b.z) {}
@@ -525,7 +525,7 @@ namespace regen {
 		Vec4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
 
 		/** @param _x value that is applied to all components. */
-		explicit Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
+		Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
 
 		/** copy constructor. */
 		Vec4(const Vec4 &b) : x(b.x), y(b.y), z(b.z), w(b.w) {}

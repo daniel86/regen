@@ -82,7 +82,7 @@ namespace regen {
 		 * \brief Reference to allocated data.
 		 */
 		struct Reference {
-			Reference() : vbo_(NULL), allocatedSize_(0) {}
+			Reference() : vbo_(nullptr), allocatedSize_(0) {}
 
 			/**
 			 * @return true if this reference is not associated to an allocated block.
@@ -119,7 +119,7 @@ namespace regen {
 
 			// no copy allowed
 			Reference(const Reference &)
-					: vbo_(NULL), allocatedSize_(0) {}
+					: vbo_(nullptr), allocatedSize_(0) {}
 
 			Reference &operator=(const Reference &) { return *this; }
 
@@ -187,7 +187,7 @@ namespace regen {
 		 * Default-Constructor.
 		 * @param usage usage hint.
 		 */
-		VBO(Usage usage);
+		explicit VBO(Usage usage);
 
 		~VBO();
 

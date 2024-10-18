@@ -60,14 +60,13 @@ namespace regen {
 /////////////////////
 /////////////////////
 
-VBO::VBOPool *VBO::dataPools_ = NULL;
+VBO::VBOPool *VBO::dataPools_ = nullptr;
 
 GLuint VBO::attributeSize(
 		const std::list<ref_ptr<ShaderInput> > &attributes) {
 	if (attributes.size() > 0) {
 		GLuint structSize = 0;
-		for (std::list<ref_ptr<ShaderInput> >::const_iterator
-					 it = attributes.begin(); it != attributes.end(); ++it) {
+		for (auto it = attributes.begin(); it != attributes.end(); ++it) {
 			structSize += (*it)->inputSize();
 		}
 		return structSize;
@@ -99,7 +98,7 @@ VBO::VBOPool *VBO::memoryPool(Usage usage) {
 }
 
 void VBO::createMemoryPools() {
-	if (dataPools_ != NULL) return;
+	if (dataPools_ != nullptr) return;
 
 	dataPools_ = new VBOPool[USAGE_LAST];
 	for (int i = 0; i < USAGE_LAST; ++i) { dataPools_[i].set_index(i); }
@@ -122,10 +121,10 @@ void VBO::createMemoryPools() {
 }
 
 void VBO::destroyMemoryPools() {
-	if (dataPools_ == NULL) return;
+	if (dataPools_ == nullptr) return;
 
 	delete[]dataPools_;
-	dataPools_ = NULL;
+	dataPools_ = nullptr;
 }
 
 /////////////////////
@@ -147,10 +146,10 @@ VBO *VBO::Reference::vbo() const { return vbo_; }
 
 VBO::Reference::~Reference() {
 	// memory in pool is marked as free when reference desturctor is called
-	if (dataPools_ && poolReference_.allocatorNode != NULL) {
+	if (dataPools_ && poolReference_.allocatorNode != nullptr) {
 		VBOPool *pool = poolReference_.allocatorNode->pool;
 		pool->free(poolReference_);
-		poolReference_.allocatorNode = NULL;
+		poolReference_.allocatorNode = nullptr;
 	}
 }
 
@@ -166,32 +165,32 @@ GLuint VBO::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size) {
 	switch ((Usage) poolIndex) {
 		case USAGE_DYNAMIC:
 			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 			rs->arrayBuffer().pop();
 			break;
 		case USAGE_STATIC:
 			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STATIC_DRAW);
 			rs->arrayBuffer().pop();
 			break;
 		case USAGE_STREAM:
 			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 			rs->arrayBuffer().pop();
 			break;
 		case USAGE_FEEDBACK:
 			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 			rs->arrayBuffer().pop();
 			break;
 		case USAGE_UNIFORM:
 			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 			rs->arrayBuffer().pop();
 			break;
 		case USAGE_TEXTURE:
 			rs->textureBuffer().push(ref);
-			glBufferData(GL_TEXTURE_BUFFER, size, NULL, GL_DYNAMIC_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 			rs->textureBuffer().pop();
 			break;
 		case USAGE_LAST:
@@ -214,7 +213,7 @@ VBO::VBO(Usage usage)
 VBO::~VBO() {
 	while (!allocations_.empty()) {
 		ref_ptr<Reference> ref = *allocations_.begin();
-		if (dataPools_ && ref->vbo_ != NULL) {
+		if (dataPools_ && ref->vbo_ != nullptr) {
 			free(ref.get());
 		} else {
 			allocations_.erase(allocations_.begin());
@@ -224,11 +223,11 @@ VBO::~VBO() {
 
 ref_ptr<VBO::Reference> &VBO::nullReference() {
 	static ref_ptr<Reference> ref;
-	if (ref.get() == NULL) {
+	if (ref.get() == nullptr) {
 		ref = ref_ptr<Reference>::alloc();
 		ref->allocatedSize_ = 0;
-		ref->vbo_ = NULL;
-		ref->poolReference_.allocatorNode = NULL;
+		ref->vbo_ = nullptr;
+		ref->poolReference_.allocatorNode = nullptr;
 	}
 	return ref;
 }
@@ -237,11 +236,11 @@ ref_ptr<VBO::Reference> &VBO::createReference(GLuint numBytes) {
 	VBOPool *memoryPool_ = memoryPool(usage_);
 	// get an allocator
 	VBOPool::Node *allocator = memoryPool_->chooseAllocator(numBytes);
-	if (allocator == NULL) { allocator = memoryPool_->createAllocator(numBytes); }
+	if (allocator == nullptr) { allocator = memoryPool_->createAllocator(numBytes); }
 
 	ref_ptr<Reference> ref = ref_ptr<Reference>::alloc();
 	ref->poolReference_ = memoryPool_->alloc(allocator, numBytes);
-	if (ref->poolReference_.allocatorNode == NULL) { return nullReference(); }
+	if (ref->poolReference_.allocatorNode == nullptr) { return nullReference(); }
 
 	allocations_.push_front(ref);
 	ref->it_ = allocations_.begin();
@@ -285,10 +284,10 @@ ref_ptr<VBO::Reference> &VBO::allocSequential(
 }
 
 void VBO::free(Reference *ref) {
-	if (dataPools_ && ref->vbo_ != NULL) {
+	if (dataPools_ && ref->vbo_ != nullptr) {
 		ref->vbo_->allocatedSize_ -= ref->allocatedSize_;
 		ref->vbo_->allocations_.erase(ref->it_);
-		ref->vbo_ = NULL;
+		ref->vbo_ = nullptr;
 	}
 }
 
@@ -301,8 +300,7 @@ void VBO::uploadSequential(
 	GLuint currOffset = 0;
 	byte *data = new byte[bufferSize];
 
-	for (std::list<ref_ptr<ShaderInput> >::const_iterator
-				 jt = attributes.begin(); jt != attributes.end(); ++jt) {
+	for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
 		ShaderInput *att = jt->get();
 		att->set_offset(currOffset + startByte);
 		att->set_stride(att->elementSize());
@@ -336,8 +334,7 @@ void VBO::uploadInterleaved(
 	GLuint numVertices = attributes.front()->numVertices();
 	byte *data = new byte[bufferSize];
 
-	for (std::list<ref_ptr<ShaderInput> >::const_iterator
-				 jt = attributes.begin(); jt != attributes.end(); ++jt) {
+	for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
 		ShaderInput *att = jt->get();
 
 		att->set_buffer(ref->bufferID(), ref);
@@ -350,8 +347,7 @@ void VBO::uploadInterleaved(
 	}
 
 	currOffset = (currOffset - startByte) * numVertices;
-	for (std::list<ref_ptr<ShaderInput> >::const_iterator
-				 jt = attributes.begin(); jt != attributes.end(); ++jt) {
+	for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
 		ShaderInput *att = jt->get();
 		if (att->divisor() == 0) {
 			att->set_stride(attributeVertexSize);
@@ -372,8 +368,7 @@ void VBO::uploadInterleaved(
 
 	GLuint count = 0;
 	for (GLuint i = 0; i < numVertices; ++i) {
-		for (std::list<ref_ptr<ShaderInput> >::const_iterator
-					 jt = attributes.begin(); jt != attributes.end(); ++jt) {
+		for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
 			ShaderInput *att = jt->get();
 			if (att->divisor() != 0) { continue; }
 

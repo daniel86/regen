@@ -74,9 +74,9 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture(GLuint numTextures = 1);
+		explicit Texture(GLuint numTextures = 1);
 
-		virtual ~Texture();
+		~Texture() override;
 
 		/**
 		 * @return the texture channel or -1.
@@ -295,10 +295,10 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture1D(GLuint numTextures = 1);
+		explicit Texture1D(GLuint numTextures = 1);
 
 		// override
-		void texImage() const;
+		void texImage() const override;
 	};
 
 	/**
@@ -311,10 +311,10 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture2D(GLuint numTextures = 1);
+		explicit Texture2D(GLuint numTextures = 1);
 
 		// override
-		virtual void texImage() const;
+		void texImage() const override;
 	};
 
 	/**
@@ -329,7 +329,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		TextureRectangle(GLuint numTextures = 1);
+		explicit TextureRectangle(GLuint numTextures = 1);
 	};
 
 	/**
@@ -340,7 +340,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture2DDepth(GLuint numTextures = 1);
+		explicit Texture2DDepth(GLuint numTextures = 1);
 	};
 
 	/**
@@ -356,13 +356,13 @@ namespace regen {
 		 * @param numTextures number of texture images.
 		 * @param fixedLocations use fixed locations.
 		 */
-		Texture2DMultisample(
+		explicit Texture2DMultisample(
 				GLsizei numSamples,
 				GLuint numTextures = 1,
 				GLboolean fixedLocations = GL_FALSE);
 
 		// override
-		void texImage() const;
+		void texImage() const override;
 
 	private:
 		GLboolean fixedsamplelocations_;
@@ -381,10 +381,10 @@ namespace regen {
 		 * @param numSamples number of samples per texel.
 		 * @param fixedLocations use fixed locations.
 		 */
-		Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations = GL_FALSE);
+		explicit Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations = GL_FALSE);
 
 		// override
-		void texImage() const;
+		void texImage() const override;
 
 	private:
 		GLboolean fixedsamplelocations_;
@@ -413,7 +413,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		TextureCube(GLuint numTextures = 1);
+		explicit TextureCube(GLuint numTextures = 1);
 
 		/**
 		 * Sets texture data for a single cube side.
@@ -434,7 +434,7 @@ namespace regen {
 		void **cubeData();
 
 		// override
-		void texImage() const;
+		void texImage() const override;
 
 	protected:
 		void *cubeData_[6];
@@ -449,7 +449,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		TextureCubeDepth(GLuint numTextures = 1);
+		explicit TextureCubeDepth(GLuint numTextures = 1);
 	};
 
 	/**
@@ -460,7 +460,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture3D(GLuint numTextures = 1);
+		explicit Texture3D(GLuint numTextures = 1);
 
 		/**
 		 * @param depth the texture depth.
@@ -480,7 +480,7 @@ namespace regen {
 		virtual void texSubImage(GLint layer, GLubyte *subData) const;
 
 		// override
-		virtual void texImage() const;
+		void texImage() const override;
 
 	protected:
 		GLuint numTextures_;
@@ -494,7 +494,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture3DDepth(GLuint numTextures = 1);
+		explicit Texture3DDepth(GLuint numTextures = 1);
 	};
 
 	/**
@@ -505,7 +505,7 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		Texture2DArray(GLuint numTextures = 1);
+		explicit Texture2DArray(GLuint numTextures = 1);
 	};
 } // namespace
 
@@ -524,7 +524,7 @@ namespace regen {
 		 * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
 		 * GL_SRGB*, GL_COMPRESSED_*.
 		 */
-		TextureBuffer(GLenum texelFormat);
+		explicit TextureBuffer(GLenum texelFormat);
 
 		/**
 		 * Attach VBO to TextureBuffer and keep a reference on the VBO.
@@ -547,7 +547,7 @@ namespace regen {
 		VBOReference attachedVBORef_;
 
 		// override
-		virtual void texImage() const;
+		void texImage() const override;
 	};
 } // namespace
 

@@ -109,17 +109,17 @@ inline void __Toggle(GLuint index, const GLboolean &v) {
 	toggleFunctions[v](toggleID);
 }
 
-RenderState *RenderState::instance_ = NULL;
+RenderState *RenderState::instance_ = nullptr;
 
 RenderState *RenderState::get() {
-	if (instance_ == NULL) {
+	if (instance_ == nullptr) {
 		instance_ = new RenderState();
 	}
 	return instance_;
 }
 
 void RenderState::reset() {
-	if (instance_ != NULL) {
+	if (instance_ != nullptr) {
 		delete instance_;
 		instance_ = new RenderState();
 	}

@@ -55,8 +55,7 @@ void Shader::preProcess(
 	// configure shader using macros
 	std::stringstream header;
 	header << "#version " << cfg.version << std::endl;
-	for (std::map<std::string, std::string>::const_iterator
-				 it = cfg.defines.begin(); it != cfg.defines.end(); ++it) {
+	for (auto it = cfg.defines.begin(); it != cfg.defines.end(); ++it) {
 		const std::string &name = it->first;
 		const std::string &value = it->second;
 		if (value == "TRUE") {
@@ -87,7 +86,7 @@ void Shader::printLog(
 		const char *shaderCode,
 		GLboolean success) {
 	Logging::LogLevel logLevel;
-	if (shaderCode != NULL) {
+	if (shaderCode != nullptr) {
 		std::string shaderName = glenum::glslStageName(shaderType);
 
 		if (success) {
@@ -107,7 +106,7 @@ void Shader::printLog(
 		}
 	}
 
-	if (!success && shaderCode != NULL) {
+	if (!success && shaderCode != nullptr) {
 		std::vector<std::string> codeLines;
 		boost::split(codeLines, shaderCode, boost::is_any_of("\n"));
 		for (GLuint i = 0; i < codeLines.size(); ++i) {
@@ -126,10 +125,10 @@ void Shader::printLog(
 		char *log = new char[length];
 		std::string msgPrefix;
 		if (shaderType == GL_NONE) {
-			glGetProgramInfoLog(shader, length, NULL, log);
+			glGetProgramInfoLog(shader, length, nullptr, log);
 			msgPrefix = "link info: ";
 		} else {
-			glGetShaderInfoLog(shader, length, NULL, log);
+			glGetShaderInfoLog(shader, length, nullptr, log);
 			msgPrefix = "compile info: ";
 		}
 
@@ -169,15 +168,13 @@ Shader::Shader(
 	id_ = ref_ptr<GLuint>::alloc();
 	*(id_.get()) = glCreateProgram();
 
-	for (std::map<GLenum, ref_ptr<GLuint> >::const_iterator
-				 it = shaders_.begin(); it != shaders_.end(); ++it) {
+	for (auto it = shaders_.begin(); it != shaders_.end(); ++it) {
 		glAttachShader(id(), *it->second.get());
 	}
 }
 
 Shader::~Shader() {
-	for (std::map<GLenum, ref_ptr<GLuint> >::iterator
-				 it = shaders_.begin(); it != shaders_.end(); ++it) {
+	for (auto it = shaders_.begin(); it != shaders_.end(); ++it) {
 		ref_ptr<GLuint> &stage = it->second;
 		glDetachShader(id(), *stage.get());
 		if (*stage.refCount() == 1) {
@@ -195,7 +192,7 @@ GLboolean Shader::hasStage(GLenum stage) const {
 }
 
 const std::string &Shader::stageCode(GLenum stage) const {
-	std::map<GLenum, std::string>::const_iterator it = shaderCodes_.find(stage);
+	auto it = shaderCodes_.find(stage);
 	if (it != shaderCodes_.end()) {
 		return it->second;
 	} else {
@@ -205,11 +202,11 @@ const std::string &Shader::stageCode(GLenum stage) const {
 }
 
 ref_ptr<GLuint> Shader::stage(GLenum s) const {
-	std::map<GLenum, ref_ptr<GLuint> >::const_iterator it = shaders_.find(s);
+	auto it = shaders_.find(s);
 	if (it != shaders_.end()) {
 		return it->second;
 	} else {
-		return ref_ptr<GLuint>();
+		return {};
 	}
 }
 
@@ -224,13 +221,13 @@ GLboolean Shader::hasUniform(const std::string &name) const {
 }
 
 GLboolean Shader::hasSampler(const std::string &name) const {
-	std::map<std::string, GLint>::const_iterator it = samplerLocations_.find(name);
+	auto it = samplerLocations_.find(name);
 	if (it == samplerLocations_.end()) return GL_FALSE;
 	return textures_.count(it->second) > 0;
 }
 
 GLboolean Shader::hasUniformData(const std::string &name) const {
-	std::map<std::string, ShaderInputList::iterator>::const_iterator it = inputNames_.find(name);
+	auto it = inputNames_.find(name);
 	if (it == inputNames_.end()) {
 		return GL_FALSE;
 	} else {
@@ -239,31 +236,31 @@ GLboolean Shader::hasUniformData(const std::string &name) const {
 }
 
 ref_ptr<ShaderInput> Shader::input(const std::string &name) {
-	std::map<std::string, ShaderInputList::iterator>::const_iterator it = inputNames_.find(name);
+	auto it = inputNames_.find(name);
 	if (it == inputNames_.end()) {
-		return ref_ptr<ShaderInput>();
+		return {};
 	} else {
 		return it->second->in_;
 	}
 }
 
 GLint Shader::samplerLocation(const std::string &name) {
-	std::map<std::string, GLint>::iterator it = samplerLocations_.find(name);
+	auto it = samplerLocations_.find(name);
 	return (it != samplerLocations_.end()) ? it->second : -1;
 }
 
 GLint Shader::attributeLocation(const std::string &name) {
-	std::map<std::string, GLint>::iterator it = attributeLocations_.find(name);
+	auto it = attributeLocations_.find(name);
 	return (it != attributeLocations_.end()) ? it->second : -1;
 }
 
 GLint Shader::uniformLocation(const std::string &name) {
-	std::map<std::string, GLint>::iterator it = uniformLocations_.find(name);
+	auto it = uniformLocations_.find(name);
 	return (it != uniformLocations_.end()) ? it->second : -1;
 }
 
 GLint Shader::uniformBlockLocation(const std::string &name) {
-	std::map<std::string, GLint>::iterator it = uniformBlockLocations_.find(name);
+	auto it = uniformBlockLocations_.find(name);
 	return (it != uniformBlockLocations_.end()) ? it->second : -1;
 }
 
@@ -272,8 +269,7 @@ GLint Shader::id() const {
 }
 
 GLboolean Shader::compile() {
-	for (std::map<GLenum, std::string>::const_iterator
-				 it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it) {
+	for (auto it = shaderCodes_.begin(); it != shaderCodes_.end(); ++it) {
 		const char *source = it->second.c_str();
 		ref_ptr<GLuint> shaderStage = ref_ptr<GLuint>::alloc();
 		GLuint &stage = *shaderStage.get();
@@ -318,8 +314,7 @@ GLboolean Shader::link() {
 			}
 		}
 
-		for (std::list<std::string>::const_iterator
-					 it = transformFeedback_.begin(); it != transformFeedback_.end(); ++it) {
+		for (auto it = transformFeedback_.begin(); it != transformFeedback_.end(); ++it) {
 			std::string name = IOProcessor::getNameWithoutPrefix(*it);
 			if (name == "Position") {
 				name = "gl_" + name;
@@ -357,7 +352,7 @@ GLboolean Shader::validate() {
 		int length;
 		glGetProgramiv(id(), GL_INFO_LOG_LENGTH, &length);
 		char *log = new char[length];
-		glGetProgramInfoLog(id(), length, NULL, log);
+		glGetProgramInfoLog(id(), length, nullptr, log);
 		REGEN_WARN("validation failed: " << log);
 		delete[]log;
 		return GL_FALSE;
@@ -478,7 +473,7 @@ ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
 	GLint loc = uniformLocation(name);
 	if (loc == -1) {
 		REGEN_WARN("Is not an active uniform '" << name << "' shader=" << id());
-		return ref_ptr<ShaderInput>();
+		return {};
 	}
 
 	GLint arraySize;
@@ -522,10 +517,10 @@ ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
 void Shader::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 	std::string inputName = (name.empty() ? in->name() : name);
 
-	std::map<std::string, ShaderInputList::iterator>::iterator needle = inputNames_.find(inputName);
+	auto needle = inputNames_.find(inputName);
 	if (needle == inputNames_.end()) {
-		inputs_.push_back(NamedShaderInput(in, inputName));
-		ShaderInputList::iterator it = inputs_.end();
+		inputs_.emplace_back(in, inputName);
+		auto it = inputs_.end();
 		--it;
 		inputNames_[inputName] = it;
 	} else {
@@ -533,21 +528,21 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 	}
 
 	if (in->isVertexAttribute()) {
-		std::map<std::string, GLint>::iterator needle = attributeLocations_.find(inputName);
+		auto needle = attributeLocations_.find(inputName);
 		if (!in->hasData()) { return; }
 		if (needle != attributeLocations_.end()) {
-			attributes_.push_back(ShaderInputLocation(in, needle->second));
+			attributes_.emplace_back(in, needle->second);
 		}
 	} else if (!in->isConstant()) {
-		std::map<std::string, GLint>::iterator needle = uniformLocations_.find(inputName);
+		auto needle = uniformLocations_.find(inputName);
 		if (needle != uniformLocations_.end()) {
-			uniforms_.push_back(ShaderInputLocation(in, needle->second));
+			uniforms_.emplace_back(in, needle->second);
 		}
 	}
 }
 
 GLboolean Shader::setTexture(const ref_ptr<Texture> &tex, const std::string &name) {
-	std::map<std::string, GLint>::iterator needle = samplerLocations_.find(name);
+	auto needle = samplerLocations_.find(name);
 	if (needle == samplerLocations_.end()) return GL_FALSE;
 	if (tex.get()) {
 		textures_[needle->second] = ShaderTextureLocation(name, tex, needle->second);
@@ -558,16 +553,14 @@ GLboolean Shader::setTexture(const ref_ptr<Texture> &tex, const std::string &nam
 }
 
 void Shader::setInputs(const std::list<NamedShaderInput> &inputs) {
-	for (std::list<NamedShaderInput>::const_iterator
-				 it = inputs.begin(); it != inputs.end(); ++it) { setInput(it->in_, it->name_); }
+	for (auto it = inputs.begin(); it != inputs.end(); ++it) { setInput(it->in_, it->name_); }
 }
 
 void Shader::setTransformFeedback(const std::list<std::string> &transformFeedback,
 								  GLenum attributeLayout, GLenum feedbackStage) {
 	feedbackLayout_ = attributeLayout;
 	feedbackStage_ = feedbackStage;
-	for (std::list<std::string>::const_iterator
-				 it = transformFeedback.begin(); it != transformFeedback.end(); ++it) {
+	for (auto it = transformFeedback.begin(); it != transformFeedback.end(); ++it) {
 		transformFeedback_.push_back(*it);
 	}
 }
@@ -575,8 +568,7 @@ void Shader::setTransformFeedback(const std::list<std::string> &transformFeedbac
 //////////////
 
 void Shader::enable(RenderState *rs) {
-	for (std::list<ShaderInputLocation>::iterator
-				 it = uniforms_.begin(); it != uniforms_.end(); ++it) {
+	for (auto it = uniforms_.begin(); it != uniforms_.end(); ++it) {
 		if (it->input->stamp() != it->uploadStamp && it->input->active()) {
 			it->input->enableUniform(it->location);
 			it->uploadStamp = it->input->stamp();

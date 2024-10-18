@@ -309,7 +309,7 @@ namespace regen {
 		 */
 		void setVertexData(
 				GLuint numVertices,
-				const byte *vertexData = NULL);
+				const byte *vertexData = nullptr);
 
 		/**
 		 * Allocates RAM for the attribute and does a memcpy
@@ -319,7 +319,7 @@ namespace regen {
 		void setInstanceData(
 				GLuint numInstances,
 				GLuint divisor,
-				const byte *instanceData = NULL);
+				const byte *instanceData = nullptr);
 
 		/**
 		 * @param data the input data.
@@ -647,7 +647,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint vertexIndex, const ValueType &val) {
-			ValueType *v = (ValueType *) dataStack_.top();
+			auto *v = (ValueType *) dataStack_.top();
 			v[vertexIndex] = val;
 			stamp_ += 1;
 		}
@@ -657,12 +657,12 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		const ValueType &getVertex(GLuint vertexIndex) const {
-			ValueType *v = (ValueType *) dataStack_.top();
+			auto *v = (ValueType *) dataStack_.top();
 			return v[vertexIndex];
 		}
 
 		ValueType &getVertexPtr(GLuint vertexIndex) const {
-			ValueType *v = (ValueType *) dataStack_.top();
+			auto *v = (ValueType *) dataStack_.top();
 			return v[vertexIndex];
 		}
 
@@ -689,7 +689,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput1f(
+		explicit ShaderInput1f(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -705,7 +705,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput2f(
+		explicit ShaderInput2f(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -721,7 +721,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput3f(
+		explicit ShaderInput3f(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -737,7 +737,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput4f(
+		explicit ShaderInput4f(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -753,7 +753,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInputMat3(
+		explicit ShaderInputMat3(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -769,7 +769,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInputMat4(
+		explicit ShaderInputMat4(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -785,7 +785,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput1d(
+		explicit ShaderInput1d(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -801,7 +801,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput2d(
+		explicit ShaderInput2d(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -817,7 +817,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput3d(
+		explicit ShaderInput3d(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -833,7 +833,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput4d(
+		explicit ShaderInput4d(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -849,7 +849,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput1i(
+		explicit ShaderInput1i(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -865,7 +865,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput2i(
+		explicit ShaderInput2i(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -881,7 +881,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput3i(
+		explicit ShaderInput3i(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -897,7 +897,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput4i(
+		explicit ShaderInput4i(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -913,7 +913,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput1ui(
+		explicit ShaderInput1ui(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -929,7 +929,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput2ui(
+		explicit ShaderInput2ui(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -945,7 +945,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput3ui(
+		explicit ShaderInput3ui(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
@@ -961,7 +961,7 @@ namespace regen {
 		 * @param elementCount number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
-		ShaderInput4ui(
+		explicit ShaderInput4ui(
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
