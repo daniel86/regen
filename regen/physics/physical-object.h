@@ -8,35 +8,36 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace regen {
-  /**
-   * Object in physics simulation.
-   */
-  class PhysicalObject
-  {
-  public:
-    /**
-     * Default constructor.
-     * @param props Properrties used to create this object.
-     */
-    PhysicalObject(const ref_ptr<PhysicalProps> &props);
+	/**
+	 * Object in physics simulation.
+	 */
+	class PhysicalObject {
+	public:
+		/**
+		 * Default constructor.
+		 * @param props Properrties used to create this object.
+		 */
+		explicit PhysicalObject(const ref_ptr<PhysicalProps> &props);
 
-    /**
-     * @return Rigid body representation.
-     */
-    const ref_ptr<btRigidBody>& rigidBody();
-    /**
-     * @return The collision shape.
-     */
-    const ref_ptr<btCollisionShape>& shape();
-    /**
-     * @return Motion state for transform synchronization.
-     */
-    const ref_ptr<btMotionState>& motionState();
+		/**
+		 * @return Rigid body representation.
+		 */
+		const ref_ptr<btRigidBody> &rigidBody();
 
-  protected:
-    ref_ptr<btRigidBody> rigidBody_;
-    ref_ptr<PhysicalProps> props_;
-  };
+		/**
+		 * @return The collision shape.
+		 */
+		const ref_ptr<btCollisionShape> &shape();
+
+		/**
+		 * @return Motion state for transform synchronization.
+		 */
+		const ref_ptr<btMotionState> &motionState();
+
+	protected:
+		ref_ptr<btRigidBody> rigidBody_;
+		ref_ptr<PhysicalProps> props_;
+	};
 } // namespace
 
 #endif /* PHYSICAL_OBJECT_H_ */

@@ -8,41 +8,42 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace regen {
-  /**
-   * Used to attach a physical object to an
-   * model matrix.
-   */
-  class ModelMatrixMotion : public btMotionState
-  {
-    public:
-      /**
-       * Default Constructor.
-       * Initially sets physical object transform to the
-       * current model matrix.
-       * @param modelMatrix The model matrix.
-       * @param index Instance index or 0.
-       */
-      ModelMatrixMotion(
-          const ref_ptr<ShaderInputMat4> &modelMatrix,
-          GLuint index=0);
-      virtual ~ModelMatrixMotion() {};
+	/**
+	 * Used to attach a physical object to an
+	 * model matrix.
+	 */
+	class ModelMatrixMotion : public btMotionState {
+	public:
+		/**
+		 * Default Constructor.
+		 * Initially sets physical object transform to the
+		 * current model matrix.
+		 * @param modelMatrix The model matrix.
+		 * @param index Instance index or 0.
+		 */
+		explicit ModelMatrixMotion(
+				const ref_ptr<ShaderInputMat4> &modelMatrix,
+				GLuint index = 0);
 
-      /**
-       * Synchronization from regen to physics engine.
-       * @param worldTrans transformation output for physics engine.
-       */
-      virtual void getWorldTransform(btTransform &worldTrans) const;
-      /**
-       * Synchronization from physics engine to regen.
-       * @param worldTrans transformation input from physics engine.
-       */
-      virtual void setWorldTransform(const btTransform &worldTrans);
+		~ModelMatrixMotion() override = default;
 
-    protected:
-      ref_ptr<ShaderInputMat4> modelMatrix_;
-      btTransform transform_;
-      GLuint index_;
-  };
+		/**
+		 * Synchronization from regen to physics engine.
+		 * @param worldTrans transformation output for physics engine.
+		 */
+		void getWorldTransform(btTransform &worldTrans) const override;
+
+		/**
+		 * Synchronization from physics engine to regen.
+		 * @param worldTrans transformation input from physics engine.
+		 */
+		void setWorldTransform(const btTransform &worldTrans) override;
+
+	protected:
+		ref_ptr<ShaderInputMat4> modelMatrix_;
+		btTransform transform_;
+		GLuint index_;
+	};
 } // namespace
 
 #endif /* MODEL_MATRIX_H_ */
