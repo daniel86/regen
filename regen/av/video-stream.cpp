@@ -84,7 +84,7 @@ void VideoStream::decode(AVPacket *packet) {
 			av_frame_free(&rgb);
 			return;
 		}
-		auto* buffer = (uint8_t*) av_malloc(numBytes * sizeof(uint8_t));
+		auto *buffer = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
 		if (!buffer) {
 			av_frame_free(&rgb);
 			return;
