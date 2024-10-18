@@ -192,8 +192,7 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 	GLboolean animsRemaining = GL_TRUE;
 	while (animsRemaining && !pauseFlag_) {
 		animsRemaining = GL_FALSE;
-		for (std::set<Animation *>::iterator
-					 it = glAnimations_.begin(); it != glAnimations_.end(); ++it) {
+		for (auto it = glAnimations_.begin(); it != glAnimations_.end(); ++it) {
 			Animation *anim = *it;
 			processed.insert(anim);
 			if (anim->isRunning()) {
@@ -238,7 +237,7 @@ void AnimationManager::run() {
 			std::set<Animation *> processed;
 			while (animsRemaining) {
 				animsRemaining = GL_FALSE;
-				for (std::set<Animation *>::iterator it = animations_.begin(); it != animations_.end(); ++it) {
+				for (auto it = animations_.begin(); it != animations_.end(); ++it) {
 					Animation *anim = *it;
 					processed.insert(anim);
 					if (anim->isRunning()) {

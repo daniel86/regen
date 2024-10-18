@@ -197,7 +197,7 @@ namespace regen {
 		 * @param rootNode animation tree.
 		 * @param autoStart is true the animation adds itself to the AnimationManager.
 		 */
-		NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart = GL_TRUE);
+		explicit NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart = GL_TRUE);
 
 		/**
 		 * @param autoStart is true the animation adds itself to the AnimationManager.
@@ -259,7 +259,7 @@ namespace regen {
 		ref_ptr<AnimationNode> findNode(const std::string &name);
 
 		// override
-		void animate(GLdouble dt);
+		void animate(GLdouble dt) override;
 
 	protected:
 		// forward declaration
