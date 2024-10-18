@@ -14,31 +14,30 @@
 #include <regen/meshes/rectangle.h>
 
 namespace regen {
-  /**
-   * \brief State that updates each texel of the active render target.
-   */
-  class FullscreenPass : public State, public HasShader
-  {
-  public:
-    /**
-     * @param shaderKey the key will be imported when createShader is called.
-     */
-    explicit FullscreenPass(const std::string &shaderKey) : State(), HasShader(shaderKey)
-    {
-      fullscreenMesh_ = Rectangle::getUnitQuad();
-      joinStates(shaderState_);
-      joinStates(fullscreenMesh_);
-    }
-    /**
-     * @param cfg the shader configuration.
-     */
-    void createShader(const StateConfig &cfg) override
-    {
-      shaderState_->createShader(cfg,shaderKey_);
-      fullscreenMesh_->updateVAO(RenderState::get(), cfg, shaderState_->shader());
-    }
-  protected:
-    ref_ptr<Mesh> fullscreenMesh_;
-  };
+	/**
+	 * \brief State that updates each texel of the active render target.
+	 */
+	class FullscreenPass : public State, public HasShader {
+	public:
+		/**
+		 * @param shaderKey the key will be imported when createShader is called.
+		 */
+		explicit FullscreenPass(const std::string &shaderKey) : State(), HasShader(shaderKey) {
+			fullscreenMesh_ = Rectangle::getUnitQuad();
+			joinStates(shaderState_);
+			joinStates(fullscreenMesh_);
+		}
+
+		/**
+		 * @param cfg the shader configuration.
+		 */
+		void createShader(const StateConfig &cfg) override {
+			shaderState_->createShader(cfg, shaderKey_);
+			fullscreenMesh_->updateVAO(RenderState::get(), cfg, shaderState_->shader());
+		}
+
+	protected:
+		ref_ptr<Mesh> fullscreenMesh_;
+	};
 } // namespace
 #endif /* FULLSCREEN_PASS_H_ */
