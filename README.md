@@ -6,6 +6,7 @@
     <img src="img/sky.gif" width="160" height="100" />
     <img src="img/hdr.gif" width="160" height="100" />
     <img src="img/transparency.gif" width="160" height="100" />
+    <img src="img/instancing.gif" width="160" height="100" />
 </p>
 
 `regen` -- Real-time Graphics Engine -- is a portable OpenGL library written in C++.
