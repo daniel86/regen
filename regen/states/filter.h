@@ -34,7 +34,7 @@ namespace regen {
 		 * \note You have to call setInput() once or add the filter to a
 		 * FilterSequence before using the filter.
 		 */
-		Filter(const std::string &shaderKey, GLfloat scaleFactor = 1.0);
+		explicit Filter(const std::string &shaderKey, GLfloat scaleFactor = 1.0);
 
 		/**
 		 * @param v toggles binding the input texture before filter is executed.
@@ -115,7 +115,7 @@ namespace regen {
 		 * @param input the input texture.
 		 * @param bindInput bind and activate input before filtering.
 		 */
-		FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput = GL_TRUE);
+		explicit FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput = GL_TRUE);
 
 		/**
 		 * Creates filter shaders.
@@ -162,7 +162,7 @@ namespace regen {
 		const ref_ptr<Texture> &output() const;
 
 		// override
-		void enable(RenderState *state);
+		void enable(RenderState *state) override;
 
 	protected:
 		std::list<ref_ptr<Filter> > filterSequence_;

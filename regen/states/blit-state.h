@@ -44,7 +44,7 @@ namespace regen {
 		void set_sourceBuffer(GLenum sourceBuffer = GL_COLOR_BUFFER_BIT);
 
 		// override
-		void enable(RenderState *state);
+		void enable(RenderState *state) override;
 
 	protected:
 		ref_ptr<FBO> src_;
@@ -86,7 +86,7 @@ namespace regen {
 		void set_sourceBuffer(GLenum sourceBuffer = GL_COLOR_BUFFER_BIT);
 
 		// override
-		void enable(RenderState *state);
+		void enable(RenderState *state) override;
 
 	protected:
 		ref_ptr<FBO> fbo_;
@@ -117,7 +117,7 @@ namespace regen {
 				GLenum attachment = GL_COLOR_ATTACHMENT0);
 
 		// override
-		virtual void enable(RenderState *state);
+		void enable(RenderState *state) override;
 
 	protected:
 		ref_ptr<Texture> texture_;

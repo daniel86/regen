@@ -131,19 +131,18 @@ ref_ptr<ShaderState> PickingGeom::createPickShader(Shader *shader) {
 	ref_ptr<Shader> pickShader = ref_ptr<Shader>::alloc(shaderCode, shaders);
 
 	std::list<std::string> tfNames;
-	tfNames.push_back("pickObjectID");
-	tfNames.push_back("pickInstanceID");
-	tfNames.push_back("pickDepth");
+	tfNames.emplace_back("pickObjectID");
+	tfNames.emplace_back("pickInstanceID");
+	tfNames.emplace_back("pickDepth");
 	pickShader->setTransformFeedback(tfNames, GL_INTERLEAVED_ATTRIBS, GL_GEOMETRY_SHADER);
 
-	if (!pickShader->link()) return ref_ptr<ShaderState>();
+	if (!pickShader->link()) return {};
 
 	pickShader->setInputs(shader->inputs());
 	pickShader->setInput(pickObjectID_);
 	pickShader->setInput(mousePosVS_);
 	pickShader->setInput(mouseDirVS_);
-	for (std::map<GLint, ShaderTextureLocation>::const_iterator
-				 it = shader->textures().begin(); it != shader->textures().end(); ++it) {
+	for (auto it = shader->textures().begin(); it != shader->textures().end(); ++it) {
 		pickShader->setTexture(it->second.tex, it->second.name);
 	}
 
@@ -162,15 +161,14 @@ GLboolean PickingGeom::add(
 	} while (pickMesh.id_ == 0 ||
 			 meshes_.count(pickMesh.id_) > 0);
 	pickMesh.pickShader_ = createPickShader(meshShader.get());
-	if (pickMesh.pickShader_.get() == NULL) { return GL_FALSE; }
+	if (pickMesh.pickShader_.get() == nullptr) { return GL_FALSE; }
 
 	StateConfigurer stateCfg;
 	if (meshState.get()) {
 		stateCfg.addState(meshState.get());
 		pickMesh.state_->joinStates(meshState);
 	}
-	for (std::list<ref_ptr<State> >::const_iterator
-				 it = mesh->joined().begin(); it != mesh->joined().end(); ++it) {
+	for (auto it = mesh->joined().begin(); it != mesh->joined().end(); ++it) {
 		if (dynamic_cast<ShaderState *>(it->get())) {}
 		else {
 			pickMesh.state_->joinStates(*it);
@@ -205,15 +203,15 @@ void PickingGeom::glAnimate(RenderState *rs, GLdouble dt) {
 
 void PickingGeom::pick(RenderState *rs, GLuint feedbackCount, PickData &picked) {
 	rs->copyReadBuffer().push(vboRef_->bufferID());
-	PickData *bufferData = (PickData *) glMapBufferRange(
+	auto *bufferData = (PickData *) glMapBufferRange(
 			GL_COPY_READ_BUFFER, vboRef_->address(), bufferSize_,
 			GL_MAP_READ_BIT);
 	// find pick result with max depth (camera looks in negative z direction)
 	PickData *bestPicked = &picked;
 	for (GLuint i = 0; i < feedbackCount; ++i) {
-		PickData &picked = bufferData[i];
-		if (picked.depth > bestPicked->depth) {
-			bestPicked = &picked;
+		PickData &picked_x = bufferData[i];
+		if (picked_x.depth > bestPicked->depth) {
+			bestPicked = &picked_x;
 		}
 	}
 	picked = *bestPicked;
@@ -230,7 +228,7 @@ void PickingGeom::update(RenderState *rs) {
 	}
 #endif
 	GLuint feedbackCount = 0;
-	PickData picked;
+	PickData picked{};
 	picked.depth = -FLT_MAX;
 	picked.objectID = 0;
 	picked.instanceID = 0;
@@ -251,8 +249,7 @@ void PickingGeom::update(RenderState *rs) {
 
 	State::enable(rs);
 
-	for (std::map<GLint, PickMesh>::iterator
-				 it = meshes_.begin(); it != meshes_.end(); ++it) {
+	for (auto it = meshes_.begin(); it != meshes_.end(); ++it) {
 		PickMesh &m = it->second;
 
 		pickObjectID_->setVertex(0, m.id_);
@@ -290,14 +287,14 @@ void PickingGeom::update(RenderState *rs) {
 	State::disable(rs);
 
 	if (picked.objectID == 0) { // no mesh hovered
-		if (pickedMesh_ != NULL) {
-			pickedMesh_ = NULL;
+		if (pickedMesh_ != nullptr) {
+			pickedMesh_ = nullptr;
 			pickedInstance_ = 0;
 			pickedObject_ = 0;
 			emitPickEvent();
 		}
 	} else {
-		std::map<GLint, PickMesh>::iterator it = meshes_.find(picked.objectID);
+		auto it = meshes_.find(picked.objectID);
 		if (it == meshes_.end()) {
 			REGEN_ERROR("Invalid pick object ID " << picked.objectID <<
 												  " count=" << feedbackCount <<

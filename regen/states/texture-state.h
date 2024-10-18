@@ -95,7 +95,7 @@ namespace regen {
 		 * @param tex the associates texture.
 		 * @param name the name of the texture in shader programs.
 		 */
-		TextureState(const ref_ptr<Texture> &tex, const std::string &name = "");
+		explicit TextureState(const ref_ptr<Texture> &tex, const std::string &name = "");
 
 		/**
 		 * @return used to get unique names in shaders.
@@ -227,9 +227,9 @@ namespace regen {
 		GLboolean ignoreAlpha() const;
 
 		// override
-		void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
-		void disable(RenderState *rs);
+		void disable(RenderState *rs) override;
 
 	protected:
 		static GLuint idCounter_;
@@ -292,7 +292,7 @@ namespace regen {
 				: tex_(tex), objectIndex_(objectIndex) {}
 
 		// override
-		void enable(RenderState *rs) { tex_->set_objectIndex(objectIndex_); }
+		void enable(RenderState *rs) override { tex_->set_objectIndex(objectIndex_); }
 
 	protected:
 		ref_ptr<Texture> tex_;
@@ -307,11 +307,10 @@ namespace regen {
 		/**
 		 * @param tex texture reference.
 		 */
-		TextureNextIndex(const ref_ptr<Texture> &tex)
-				: tex_(tex) {}
+		explicit TextureNextIndex(const ref_ptr<Texture> &tex) : tex_(tex) {}
 
 		// override
-		void enable(RenderState *rs) { tex_->nextObject(); }
+		void enable(RenderState *rs) override { tex_->nextObject(); }
 
 	protected:
 		ref_ptr<Texture> tex_;

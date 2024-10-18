@@ -51,7 +51,7 @@ namespace regen {
 				const ref_ptr<ShaderInput2f> &mouseTexco,
 				const ref_ptr<ShaderInputMat4> &inverseProjectionMatrix);
 
-		~PickingGeom();
+		~PickingGeom() override;
 
 		/**
 		 * @param interval defines the frequency the selection is updated
@@ -97,7 +97,7 @@ namespace regen {
 		void update(RenderState *rs);
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		struct PickData {

@@ -146,14 +146,14 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 			1.0 / (GLfloat) input->width(), 1.0 / (GLfloat) input->height()));
 	joinShaderInput(inverseViewport_);
 
-	ref_ptr<ShaderInput2f> inverseViewport_;
+	ref_ptr<ShaderInput2f> inverseViewport;
 
 	// use layered geometry shader for 3d textures
 	if (dynamic_cast<TextureCube *>(input_.get())) {
 		shaderDefine("RENDER_LAYER", "6");
 		shaderDefine("RENDER_TARGET", "CUBE");
 	} else if (dynamic_cast<Texture3D *>(input_.get())) {
-		Texture3D *tex3D = (Texture3D *) input_.get();
+		auto *tex3D = (Texture3D *) input_.get();
 		shaderDefine("RENDER_LAYER", REGEN_STRING(tex3D->depth()));
 		shaderDefine("RENDER_TARGET", "2D_ARRAY");
 	} else {
@@ -219,9 +219,8 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f) {
 }
 
 void FilterSequence::createShader(StateConfig &cfg) {
-	for (std::list<ref_ptr<Filter> >::iterator
-				 it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
-		Filter *f = (Filter *) (*it).get();
+	for (auto it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
+		auto *f = (Filter *) (*it).get();
 		StateConfigurer _cfg(cfg);
 		_cfg.addState(f);
 		f->createShader(_cfg.cfg());
@@ -234,10 +233,9 @@ void FilterSequence::resize() {
 	GLuint height = input_->height();
 	if (width == lastWidth_ && height == lastHeight_) return;
 
-	FBO *last = NULL;
-	for (std::list<ref_ptr<Filter> >::iterator
-				 it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
-		Filter *f = (Filter *) (*it).get();
+	FBO *last = nullptr;
+	for (auto it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
+		auto *f = (Filter *) (*it).get();
 		FBO *fbo = f->output()->fbo_.get();
 
 		if (last != fbo) {
@@ -268,9 +266,8 @@ void FilterSequence::enable(RenderState *rs) {
 		rs->clearColor().pop();
 		rs->drawFrameBuffer().pop();
 	}
-	for (std::list<ref_ptr<Filter> >::iterator
-				 it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
-		Filter *f = (Filter *) (*it).get();
+	for (auto it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
+		auto *f = (Filter *) (*it).get();
 
 		FBO *fbo = f->output()->fbo_.get();
 		rs->drawFrameBuffer().push(fbo->id());

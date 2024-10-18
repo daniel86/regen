@@ -146,20 +146,13 @@ namespace regen {
 }
 using namespace regen;
 
-#define __TEX_NAME(x) REGEN_STRING(x << stateID_)
+#define REGEN_TEX_NAME(x) REGEN_STRING(x << stateID_)
 
 GLuint TextureState::idCounter_ = 0;
 
 TextureState::TextureState(const ref_ptr<Texture> &texture, const std::string &name)
 		: State(),
 		  stateID_(++idCounter_),
-		  blendFunction_(""),
-		  blendName_(""),
-		  mappingFunction_(""),
-		  mappingName_(""),
-		  transferKey_(""),
-		  transferFunction_(""),
-		  transferName_(""),
 		  texcoChannel_(0u),
 		  ignoreAlpha_(GL_FALSE) {
 	set_blendMode(BLEND_MODE_SRC);
@@ -176,13 +169,6 @@ TextureState::TextureState()
 		: State(),
 		  stateID_(++idCounter_),
 		  samplerType_("sampler2D"),
-		  blendFunction_(""),
-		  blendName_(""),
-		  mappingFunction_(""),
-		  mappingName_(""),
-		  transferKey_(""),
-		  transferFunction_(""),
-		  transferName_(""),
 		  texcoChannel_(0u),
 		  ignoreAlpha_(GL_FALSE) {
 	set_blendMode(BLEND_MODE_SRC);
@@ -196,8 +182,8 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex) {
 	samplerType_ = tex->samplerType();
 	if (tex.get()) {
 		set_name(REGEN_STRING("Texture" << tex->id()));
-		shaderDefine(__TEX_NAME("TEX_SAMPLER_TYPE"), tex->samplerType());
-		shaderDefine(__TEX_NAME("TEX_DIM"), REGEN_STRING(tex->numComponents()));
+		shaderDefine(REGEN_TEX_NAME("TEX_SAMPLER_TYPE"), tex->samplerType());
+		shaderDefine(REGEN_TEX_NAME("TEX_DIM"), REGEN_STRING(tex->numComponents()));
 	}
 }
 
@@ -205,7 +191,7 @@ const ref_ptr<Texture> &TextureState::texture() const { return texture_; }
 
 void TextureState::set_name(const std::string &name) {
 	name_ = name;
-	shaderDefine(__TEX_NAME("TEX_NAME"), name_);
+	shaderDefine(REGEN_TEX_NAME("TEX_NAME"), name_);
 }
 
 const std::string &TextureState::name() const { return name_; }
@@ -218,27 +204,27 @@ GLuint TextureState::stateID() const { return stateID_; }
 
 void TextureState::set_texcoChannel(GLuint texcoChannel) {
 	texcoChannel_ = texcoChannel;
-	shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
+	shaderDefine(REGEN_TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 
 GLuint TextureState::texcoChannel() const { return texcoChannel_; }
 
 void TextureState::set_ignoreAlpha(GLboolean v) {
 	ignoreAlpha_ = v;
-	shaderDefine(__TEX_NAME("TEX_IGNORE_ALPHA"), v ? "TRUE" : "FALSE");
+	shaderDefine(REGEN_TEX_NAME("TEX_IGNORE_ALPHA"), v ? "TRUE" : "FALSE");
 }
 
 GLboolean TextureState::ignoreAlpha() const { return ignoreAlpha_; }
 
 void TextureState::set_blendFactor(GLfloat blendFactor) {
 	blendFactor_ = blendFactor;
-	shaderDefine(__TEX_NAME("TEX_BLEND_FACTOR"), REGEN_STRING(blendFactor_));
+	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_FACTOR"), REGEN_STRING(blendFactor_));
 }
 
 void TextureState::set_blendMode(BlendMode blendMode) {
 	blendMode_ = blendMode;
-	shaderDefine(__TEX_NAME("TEX_BLEND_KEY"), REGEN_STRING("regen.states.blending." << blendMode_));
-	shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), REGEN_STRING("blend_" << blendMode_));
+	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_KEY"), REGEN_STRING("regen.states.blending." << blendMode_));
+	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_NAME"), REGEN_STRING("blend_" << blendMode_));
 }
 
 void TextureState::set_blendFunction(const std::string &blendFunction, const std::string &blendName) {
@@ -246,20 +232,20 @@ void TextureState::set_blendFunction(const std::string &blendFunction, const std
 	blendName_ = blendName;
 
 	shaderFunction(blendName_, blendFunction_);
-	shaderDefine(__TEX_NAME("TEX_BLEND_KEY"), blendName_);
-	shaderDefine(__TEX_NAME("TEX_BLEND_NAME"), blendName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_KEY"), blendName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_NAME"), blendName_);
 }
 
 void TextureState::set_mapTo(MapTo id) {
 	mapTo_ = id;
-	shaderDefine(__TEX_NAME("TEX_MAPTO"), REGEN_STRING(mapTo_));
+	shaderDefine(REGEN_TEX_NAME("TEX_MAPTO"), REGEN_STRING(mapTo_));
 }
 
 void TextureState::set_mapping(TextureState::Mapping mapping) {
 	mapping_ = mapping;
-	shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), REGEN_STRING("regen.states.textures.texco_" << mapping));
-	shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), REGEN_STRING("texco_" << mapping));
-	shaderDefine(__TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
+	shaderDefine(REGEN_TEX_NAME("TEX_MAPPING_KEY"), REGEN_STRING("regen.states.textures.texco_" << mapping));
+	shaderDefine(REGEN_TEX_NAME("TEX_MAPPING_NAME"), REGEN_STRING("texco_" << mapping));
+	shaderDefine(REGEN_TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 
 void TextureState::set_mappingFunction(const std::string &mappingFunction, const std::string &mappingName) {
@@ -267,8 +253,8 @@ void TextureState::set_mappingFunction(const std::string &mappingFunction, const
 	mappingName_ = mappingName;
 
 	shaderFunction(mappingName_, mappingFunction_);
-	shaderDefine(__TEX_NAME("TEX_MAPPING_KEY"), mappingName_);
-	shaderDefine(__TEX_NAME("TEX_MAPPING_NAME"), mappingName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_MAPPING_KEY"), mappingName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_MAPPING_NAME"), mappingName_);
 }
 
 ///////
@@ -281,8 +267,8 @@ void TextureState::set_texelTransferFunction(const std::string &transferFunction
 	transferFunction_ = transferFunction;
 
 	shaderFunction(transferName_, transferFunction_);
-	shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
-	shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
 
 void TextureState::set_texelTransferKey(const std::string &transferKey, const std::string &transferName) {
@@ -295,8 +281,8 @@ void TextureState::set_texelTransferKey(const std::string &transferKey, const st
 	} else {
 		transferName_ = transferName;
 	}
-	shaderDefine(__TEX_NAME("TEX_TRANSFER_KEY"), transferKey_);
-	shaderDefine(__TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
+	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_KEY"), transferKey_);
+	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
 
 ///////
@@ -308,8 +294,8 @@ void TextureState::set_texcoTransferFunction(const std::string &transferFunction
 	transferTexcoFunction_ = transferFunction;
 
 	shaderFunction(transferTexcoName_, transferTexcoFunction_);
-	shaderDefine(__TEX_NAME("TEXCO_TRANSFER_KEY"), transferTexcoName_);
-	shaderDefine(__TEX_NAME("TEXCO_TRANSFER_NAME"), transferTexcoName_);
+	shaderDefine(REGEN_TEX_NAME("TEXCO_TRANSFER_KEY"), transferTexcoName_);
+	shaderDefine(REGEN_TEX_NAME("TEXCO_TRANSFER_NAME"), transferTexcoName_);
 }
 
 void TextureState::set_texcoTransfer(TransferTexco mode) {
@@ -339,8 +325,8 @@ void TextureState::set_texcoTransferKey(const std::string &transferKey, const st
 	} else {
 		transferTexcoName_ = transferName;
 	}
-	shaderDefine(__TEX_NAME("TEXCO_TRANSFER_KEY"), transferTexcoKey_);
-	shaderDefine(__TEX_NAME("TEXCO_TRANSFER_NAME"), transferTexcoName_);
+	shaderDefine(REGEN_TEX_NAME("TEXCO_TRANSFER_KEY"), transferTexcoKey_);
+	shaderDefine(REGEN_TEX_NAME("TEXCO_TRANSFER_NAME"), transferTexcoName_);
 }
 
 ///////

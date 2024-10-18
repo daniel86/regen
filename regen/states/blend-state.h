@@ -56,14 +56,14 @@ namespace regen {
 		 * @param sfactor specifies which method is used to scale the source color components.
 		 * @param dfactor specifies which method is used to scale the destination color components.
 		 */
-		BlendState(
+		explicit BlendState(
 				GLenum sfactor = GL_SRC_ALPHA,
 				GLenum dfactor = GL_ONE_MINUS_SRC_ALPHA);
 
 		/**
 		 * @param blendMode blend mode enum.
 		 */
-		BlendState(BlendMode blendMode);
+		explicit BlendState(BlendMode blendMode);
 
 		/**
 		 * Specify pixel arithmetic.

@@ -112,9 +112,9 @@ namespace regen {
 		 * Copy constructor.
 		 * @param other another state.
 		 */
-		State(const ref_ptr<State> &other);
+		explicit State(const ref_ptr<State> &other);
 
-		virtual ~State() {}
+		~State() override = default;
 
 		/**
 		 * @return flag indicating if this state is hidden.
@@ -253,7 +253,7 @@ namespace regen {
 		/**
 		 * @param usage the buffer object usage.
 		 */
-		HasInputState(VBO::Usage usage = VBO::USAGE_DYNAMIC) : State(), HasInput(usage) {}
+		explicit HasInputState(VBO::Usage usage = VBO::USAGE_DYNAMIC) : State(), HasInput(usage) {}
 	};
 } // namespace
 
@@ -282,9 +282,9 @@ namespace regen {
 		const ref_ptr<State> &globalState() const;
 
 		// override
-		virtual void enable(RenderState *);
+		void enable(RenderState *) override;
 
-		virtual void disable(RenderState *);
+		void disable(RenderState *) override;
 
 	protected:
 		ref_ptr<State> globalState_;
@@ -297,7 +297,7 @@ namespace regen {
 	 */
 	class Resizable {
 	public:
-		virtual ~Resizable() {}
+		virtual ~Resizable() = default;
 
 		/**
 		 * Resize buffers / textures.

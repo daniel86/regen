@@ -26,21 +26,21 @@ void FBOState::setClearDepth() {
 	joinStates(clearDepthCallable_);
 
 	// make sure clearing is done before draw buffer configuration
-	if (drawBufferCallable_.get() != NULL) {
+	if (drawBufferCallable_.get() != nullptr) {
 		disjoinStates(drawBufferCallable_);
 		joinStates(drawBufferCallable_);
 	}
 }
 
 void FBOState::setClearColor(const ClearColorState::Data &data) {
-	if (clearColorCallable_.get() == NULL) {
+	if (clearColorCallable_.get() == nullptr) {
 		clearColorCallable_ = ref_ptr<ClearColorState>::alloc(fbo_);
 		joinStates(clearColorCallable_);
 	}
 	clearColorCallable_->data.push_back(data);
 
 	// make sure clearing is done before draw buffer configuration
-	if (drawBufferCallable_.get() != NULL) {
+	if (drawBufferCallable_.get() != nullptr) {
 		disjoinStates(drawBufferCallable_);
 		joinStates(drawBufferCallable_);
 	}
@@ -51,44 +51,43 @@ void FBOState::setClearColor(const std::list<ClearColorState::Data> &data) {
 		disjoinStates(clearColorCallable_);
 	}
 	clearColorCallable_ = ref_ptr<ClearColorState>::alloc(fbo_);
-	for (std::list<ClearColorState::Data>::const_iterator
-				 it = data.begin(); it != data.end(); ++it) {
+	for (auto it = data.begin(); it != data.end(); ++it) {
 		clearColorCallable_->data.push_back(*it);
 	}
 	joinStates(clearColorCallable_);
 
 	// make sure clearing is done before draw buffer configuration
-	if (drawBufferCallable_.get() != NULL) {
+	if (drawBufferCallable_.get() != nullptr) {
 		disjoinStates(drawBufferCallable_);
 		joinStates(drawBufferCallable_);
 	}
 }
 
 void FBOState::addDrawBuffer(GLenum colorAttachment) {
-	if (drawBufferCallable_.get() == NULL) {
+	if (drawBufferCallable_.get() == nullptr) {
 		drawBufferCallable_ = ref_ptr<DrawBufferState>::alloc(fbo_);
 		joinStates(drawBufferCallable_);
 	}
-	DrawBufferState *s = (DrawBufferState *) drawBufferCallable_.get();
+	auto *s = (DrawBufferState *) drawBufferCallable_.get();
 	s->colorBuffers.buffers_.push_back(colorAttachment);
 }
 
 void FBOState::setDrawBuffers(const std::vector<GLenum> &attachments) {
-	if (drawBufferCallable_.get() != NULL) {
+	if (drawBufferCallable_.get() != nullptr) {
 		disjoinStates(drawBufferCallable_);
 	}
 	drawBufferCallable_ = ref_ptr<DrawBufferState>::alloc(fbo_);
-	DrawBufferState *s = (DrawBufferState *) drawBufferCallable_.get();
+	auto *s = (DrawBufferState *) drawBufferCallable_.get();
 	s->colorBuffers.buffers_ = attachments;
 	joinStates(drawBufferCallable_);
 }
 
 void FBOState::setPingPongBuffers(const std::vector<GLenum> &attachments) {
-	if (drawBufferCallable_.get() != NULL) {
+	if (drawBufferCallable_.get() != nullptr) {
 		disjoinStates(drawBufferCallable_);
 	}
 	drawBufferCallable_ = ref_ptr<PingPongBufferState>::alloc(fbo_);
-	PingPongBufferState *s = (PingPongBufferState *) drawBufferCallable_.get();
+	auto *s = (PingPongBufferState *) drawBufferCallable_.get();
 	s->colorBuffers.buffers_ = attachments;
 	joinStates(drawBufferCallable_);
 }
@@ -137,7 +136,7 @@ void ScreenState::enable(RenderState *state) {
 	glViewport_.w = winViewport.y;
 	viewport_->setVertex(0, Vec2f(winViewport.x, winViewport.y));
 	inverseViewport_->setUniformData(
-			Vec2f(1.0 / (GLfloat) winViewport.x, 1.0 / (GLfloat) winViewport.y));
+			Vec2f(1.0f / (GLfloat) winViewport.x, 1.0f / (GLfloat) winViewport.y));
 
 	state->drawFrameBuffer().push(0);
 	FBO::screen().drawBuffer_.push(drawBuffer_);

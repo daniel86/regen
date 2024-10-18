@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef _MATERIAL_H_
-#define _MATERIAL_H_
+#ifndef REGEN_MATERIAL_H_
+#define REGEN_MATERIAL_H_
 
 #include <regen/states/state.h>
 #include <regen/states/texture-state.h>
@@ -131,4 +131,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* _MATERIAL_H_ */
+#endif /* REGEN_MATERIAL_H_ */

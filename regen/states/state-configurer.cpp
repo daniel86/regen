@@ -35,7 +35,7 @@ StateConfigurer::StateConfigurer(const StateConfig &cfg)
 
 StateConfigurer::StateConfigurer()
 		: numLights_(0) {
-	// default is using seperate attributes.
+	// default is using separate attributes.
 	cfg_.feedbackMode_ = GL_SEPARATE_ATTRIBS;
 	cfg_.feedbackStage_ = GL_VERTEX_SHADER;
 	// sets the minimum version
@@ -56,10 +56,10 @@ void StateConfigurer::addNode(const StateNode *node) {
 }
 
 void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type) {
-	std::map<std::string, ShaderInputList::iterator>::iterator needle = inputNames_.find(name);
+	auto needle = inputNames_.find(name);
 	if (needle == inputNames_.end()) {
-		cfg_.inputs_.push_back(NamedShaderInput(in, name, type));
-		ShaderInputList::iterator it = cfg_.inputs_.end();
+		cfg_.inputs_.emplace_back(in, name, type);
+		auto it = cfg_.inputs_.end();
 		--it;
 		inputNames_[name] = it;
 	} else {
@@ -68,17 +68,17 @@ void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInpu
 }
 
 void StateConfigurer::addState(const State *s) {
-	const HasInput *x0 = dynamic_cast<const HasInput *>(s);
-	const FeedbackState *x1 = dynamic_cast<const FeedbackState *>(s);
-	const TextureState *x2 = dynamic_cast<const TextureState *>(s);
-	const StateSequence *x3 = dynamic_cast<const StateSequence *>(s);
+	const auto *x0 = dynamic_cast<const HasInput *>(s);
+	const auto *x1 = dynamic_cast<const FeedbackState *>(s);
+	const auto *x2 = dynamic_cast<const TextureState *>(s);
+	const auto *x3 = dynamic_cast<const StateSequence *>(s);
 
-	if (x0 != NULL) {
+	if (x0 != nullptr) {
 		const ref_ptr<ShaderInputContainer> &container = x0->inputContainer();
 
 		// remember inputs, they will be enabled automatically
 		// when the shader is enabled.
-		for (ShaderInputList::const_iterator it = container->inputs().begin(); it != container->inputs().end(); ++it) {
+		for (auto it = container->inputs().begin(); it != container->inputs().end(); ++it) {
 			addInput(it->name_, it->in_);
 
 			define(REGEN_STRING("HAS_" << it->in_->name()), "TRUE");
@@ -88,8 +88,7 @@ void StateConfigurer::addState(const State *s) {
 	if (x1) {
 		cfg_.feedbackMode_ = x1->feedbackMode();
 		cfg_.feedbackStage_ = x1->feedbackStage();
-		for (std::list<ref_ptr<ShaderInput> >::const_iterator
-					 it = x1->feedbackAttributes().begin(); it != x1->feedbackAttributes().end(); ++it) {
+		for (auto it = x1->feedbackAttributes().begin(); it != x1->feedbackAttributes().end(); ++it) {
 			cfg_.feedbackAttributes_.push_back((*it)->name());
 		}
 	}
@@ -114,19 +113,18 @@ void StateConfigurer::addState(const State *s) {
 		// do not add joined states of sequences
 		return;
 	}
-	for (std::list<ref_ptr<State> >::const_iterator
-				 it = s->joined().begin(); it != s->joined().end(); ++it) {
+	for (auto it = s->joined().begin(); it != s->joined().end(); ++it) {
 		addState(it->get());
 	}
 }
 
 void StateConfigurer::addDefines(const std::map<std::string, std::string> &defines) {
-	for (std::map<std::string, std::string>::const_iterator it = defines.begin(); it != defines.end(); ++it)
+	for (auto it = defines.begin(); it != defines.end(); ++it)
 		define(it->first, it->second);
 }
 
 void StateConfigurer::addFunctions(const std::map<std::string, std::string> &functions) {
-	for (std::map<std::string, std::string>::const_iterator it = functions.begin(); it != functions.end(); ++it)
+	for (auto it = functions.begin(); it != functions.end(); ++it)
 		defineFunction(it->first, it->second);
 }
 

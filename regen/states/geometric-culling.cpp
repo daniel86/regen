@@ -32,7 +32,7 @@ GeometricCulling::GeometricCulling(
 		max_ = Vec3f(-999999.0f);
 
 		Vec3f v;
-		for (MeshVector::iterator it = mesh->begin(); it != mesh->end(); ++it) {
+		for (auto it = mesh->begin(); it != mesh->end(); ++it) {
 			ref_ptr<Mesh> &m = *it;
 			v = m->centerPosition() + m->minPosition();
 			if (min_.x > v.x) min_.x = v.x;

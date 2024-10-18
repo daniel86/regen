@@ -34,7 +34,7 @@ namespace regen {
 		/**
 		 * @param lightType the light type.
 		 */
-		Light(Type lightType);
+		explicit Light(Type lightType);
 
 		/**
 		 * @return the light type.
@@ -99,7 +99,7 @@ namespace regen {
 		const ref_ptr<ShaderInputMat4> &coneMatrix();
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		const Type lightType_;

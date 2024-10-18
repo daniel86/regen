@@ -42,9 +42,9 @@ namespace regen {
 		 */
 		GLboolean toggle() const { return toggle_; }
 
-		void enable(RenderState *rs) { rs->toggles().push(key_, toggle_); }
+		void enable(RenderState *rs) override { rs->toggles().push(key_, toggle_); }
 
-		void disable(RenderState *rs) { rs->toggles().pop(key_); }
+		void disable(RenderState *rs) override { rs->toggles().pop(key_); }
 
 	protected:
 		RenderState::Toggle key_;
@@ -61,12 +61,12 @@ namespace regen {
 		 * GL_NOTEQUAL,GL_GEQUAL,GL_ALWAYS are accepted.
 		 * The initial value is GL_LESS.
 		 */
-		DepthFuncState(GLenum depthFunc)
+		explicit DepthFuncState(GLenum depthFunc)
 				: ServerSideState(), depthFunc_(depthFunc) {}
 
-		void enable(RenderState *rs) { rs->depthFunc().push(depthFunc_); }
+		void enable(RenderState *rs) override { rs->depthFunc().push(depthFunc_); }
 
-		void disable(RenderState *rs) { rs->depthFunc().pop(); }
+		void disable(RenderState *rs) override { rs->depthFunc().pop(); }
 
 	protected:
 		GLenum depthFunc_;
@@ -87,9 +87,9 @@ namespace regen {
 		DepthRangeState(GLdouble nearVal, GLdouble farVal)
 				: ServerSideState(), nearVal_(nearVal), farVal_(farVal) {}
 
-		void enable(RenderState *rs) { rs->depthRange().push(DepthRange(nearVal_, farVal_)); }
+		void enable(RenderState *rs) override { rs->depthRange().push(DepthRange(nearVal_, farVal_)); }
 
-		void disable(RenderState *rs) { rs->depthRange().pop(); }
+		void disable(RenderState *rs) override { rs->depthRange().pop(); }
 
 	protected:
 		GLdouble nearVal_, farVal_;
@@ -104,12 +104,12 @@ namespace regen {
 		 * If flag is GL_FALSE, depth buffer writing is disabled.
 		 * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
 		 */
-		ToggleDepthWriteState(GLboolean toggle)
+		explicit ToggleDepthWriteState(GLboolean toggle)
 				: ServerSideState(), toggle_(toggle) {}
 
-		void enable(RenderState *rs) { rs->depthMask().push(toggle_); }
+		void enable(RenderState *rs) override { rs->depthMask().push(toggle_); }
 
-		void disable(RenderState *rs) { rs->depthMask().pop(); }
+		void disable(RenderState *rs) override { rs->depthMask().pop(); }
 
 	protected:
 		GLboolean toggle_;
@@ -123,11 +123,11 @@ namespace regen {
 		/**
 		 * Initially the GL_BLEND_COLOR is set to (0,0,0,0).
 		 */
-		BlendColorState(const Vec4f &col) : ServerSideState(), col_(col) {}
+		explicit BlendColorState(const Vec4f &col) : ServerSideState(), col_(col) {}
 
-		void enable(RenderState *state) { state->blendColor().push(col_); }
+		void enable(RenderState *state) override { state->blendColor().push(col_); }
 
-		void disable(RenderState *state) { state->blendColor().pop(); }
+		void disable(RenderState *state) override { state->blendColor().pop(); }
 
 	protected:
 		Vec4f col_;
@@ -145,12 +145,12 @@ namespace regen {
 		 * Initially, both the RGB blend equation and the alpha blend equation
 		 * are set to GL_FUNC_ADD.
 		 */
-		BlendEquationState(GLenum equation)
+		explicit BlendEquationState(GLenum equation)
 				: ServerSideState(), equation_(BlendEquation(equation, equation)) {}
 
-		void enable(RenderState *state) { state->blendEquation().push(equation_); }
+		void enable(RenderState *state) override { state->blendEquation().push(equation_); }
 
-		void disable(RenderState *state) { state->blendEquation().pop(); }
+		void disable(RenderState *state) override { state->blendEquation().pop(); }
 
 	protected:
 		BlendEquation equation_;
@@ -183,9 +183,9 @@ namespace regen {
 				GLenum srcAlpha, GLenum dstAlpha)
 				: ServerSideState(), func_(BlendFunction(srcRGB, dstRGB, srcAlpha, dstAlpha)) {}
 
-		void enable(RenderState *state) { state->blendFunction().push(func_); }
+		void enable(RenderState *state) override { state->blendFunction().push(func_); }
 
-		void disable(RenderState *state) { state->blendFunction().pop(); }
+		void disable(RenderState *state) override { state->blendFunction().pop(); }
 
 	protected:
 		BlendFunction func_;
@@ -200,11 +200,11 @@ namespace regen {
 		 * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
 		 * The initial value is GL_BACK.
 		 */
-		CullFaceState(GLenum face) : ServerSideState(), face_(face) {}
+		explicit CullFaceState(GLenum face) : ServerSideState(), face_(face) {}
 
-		void enable(RenderState *rs) { rs->cullFace().push(face_); }
+		void enable(RenderState *rs) override { rs->cullFace().push(face_); }
 
-		void disable(RenderState *rs) { rs->cullFace().pop(); }
+		void disable(RenderState *rs) override { rs->cullFace().pop(); }
 
 	protected:
 		GLenum face_;
@@ -219,12 +219,12 @@ namespace regen {
 		/**
 		 * @param ordering GL_CW and GL_CCW are accepted.
 		 */
-		FrontFaceState(GLenum ordering) : ServerSideState(), ordering_(ordering) {}
+		explicit FrontFaceState(GLenum ordering) : ServerSideState(), ordering_(ordering) {}
 
 		// Override
-		void enable(RenderState *rs) { rs->frontFace().push(ordering_); }
+		void enable(RenderState *rs) override { rs->frontFace().push(ordering_); }
 
-		void disable(RenderState *rs) { rs->frontFace().pop(); }
+		void disable(RenderState *rs) override { rs->frontFace().pop(); }
 
 	protected:
 		GLenum ordering_;
@@ -246,12 +246,12 @@ namespace regen {
 		PolygonOffsetState(GLfloat factor, GLfloat units)
 				: ServerSideState(), factor_(factor), units_(units) {}
 
-		void enable(RenderState *rs) {
+		void enable(RenderState *rs) override {
 			rs->toggles().push(RenderState::POLYGON_OFFSET_FILL, GL_TRUE);
 			rs->polygonOffset().push(Vec2f(factor_, units_));
 		}
 
-		void disable(RenderState *rs) {
+		void disable(RenderState *rs) override {
 			rs->polygonOffset().pop();
 			rs->toggles().pop(RenderState::POLYGON_OFFSET_FILL);
 		}
@@ -269,11 +269,11 @@ namespace regen {
 		 * Accepted values are GL_POINT,GL_LINE,GL_FILL.
 		 * The initial value is GL_FILL for both front- and back-facing polygons.
 		 */
-		FillModeState(GLenum mode) : ServerSideState(), mode_(mode) {}
+		explicit FillModeState(GLenum mode) : ServerSideState(), mode_(mode) {}
 
-		void enable(RenderState *rs) { rs->polygonMode().push(mode_); }
+		void enable(RenderState *rs) override { rs->polygonMode().push(mode_); }
 
-		void disable(RenderState *rs) { rs->polygonMode().pop(); }
+		void disable(RenderState *rs) override { rs->polygonMode().pop(); }
 
 	protected:
 		GLenum mode_;
@@ -289,12 +289,12 @@ namespace regen {
 		 * @param numPatchVertices Specifies the number of vertices that
 		 * will be used to make up a single patch primitive.
 		 */
-		PatchVerticesState(GLuint numPatchVertices)
+		explicit PatchVerticesState(GLuint numPatchVertices)
 				: ServerSideState(), numPatchVertices_(numPatchVertices) {}
 
-		void enable(RenderState *rs) { rs->patchVertices().push(numPatchVertices_); }
+		void enable(RenderState *rs) override { rs->patchVertices().push(numPatchVertices_); }
 
-		void disable(RenderState *rs) { rs->patchVertices().pop(); }
+		void disable(RenderState *rs) override { rs->patchVertices().pop(); }
 
 	protected:
 		GLuint numPatchVertices_;
@@ -315,9 +315,9 @@ namespace regen {
 		PatchLevelState(const ref_ptr<ShaderInput4f> &inner, const ref_ptr<ShaderInput4f> &outer)
 				: ServerSideState(), inner_(inner), outer_(outer) {}
 
-		void enable(RenderState *rs) { rs->patchLevel().push(PatchLevels(inner(), outer())); }
+		void enable(RenderState *rs) override { rs->patchLevel().push(PatchLevels(inner(), outer())); }
 
-		void disable(RenderState *rs) { rs->patchLevel().pop(); }
+		void disable(RenderState *rs) override { rs->patchLevel().pop(); }
 
 		/**
 		 * @return the inner patch level.
@@ -339,7 +339,7 @@ namespace regen {
 	 */
 	class ClearDepthState : public ServerSideState {
 	public:
-		void enable(RenderState *state) { glClear(GL_DEPTH_BUFFER_BIT); }
+		void enable(RenderState *state) override { glClear(GL_DEPTH_BUFFER_BIT); }
 	};
 
 	/**
@@ -360,11 +360,11 @@ namespace regen {
 		std::list<Data> data;
 
 		/** @param fbo the framebuffer */
-		ClearColorState(const ref_ptr<FBO> &fbo)
+		explicit ClearColorState(const ref_ptr<FBO> &fbo)
 				: ServerSideState(), fbo_(fbo) {}
 
 		// override
-		void enable(RenderState *rs) {
+		void enable(RenderState *rs) override {
 			for (std::list<Data>::iterator it = data.begin(); it != data.end(); ++it) {
 				if (!rs->drawFrameBuffer().isLocked()) {
 					fbo_->drawBuffers().push(it->colorBuffers);
@@ -389,13 +389,13 @@ namespace regen {
 		DrawBuffers colorBuffers;
 
 		/** @param fbo the framebuffer */
-		DrawBufferState(const ref_ptr<FBO> &fbo)
+		explicit DrawBufferState(const ref_ptr<FBO> &fbo)
 				: ServerSideState(), fbo_(fbo) {}
 
 		// override
-		void enable(RenderState *rs) { fbo_->drawBuffers().push(colorBuffers); }
+		void enable(RenderState *rs) override { fbo_->drawBuffers().push(colorBuffers); }
 
-		void disable(RenderState *rs) { fbo_->drawBuffers().pop(); }
+		void disable(RenderState *rs) override { fbo_->drawBuffers().pop(); }
 
 	protected:
 		ref_ptr<FBO> fbo_;
@@ -412,17 +412,17 @@ namespace regen {
 		DrawBuffers colorBuffers;
 
 		/** @param fbo the framebuffer */
-		PingPongBufferState(const ref_ptr<FBO> &fbo)
+		explicit PingPongBufferState(const ref_ptr<FBO> &fbo)
 				: ServerSideState(), fbo_(fbo), index_(0u) {}
 
 		// override
-		void enable(RenderState *rs) {
+		void enable(RenderState *rs) override {
 			DrawBuffers v(colorBuffers.buffers_[index_]);
 			fbo_->drawBuffers().push(v);
 			index_ = (index_ + 1) % colorBuffers.buffers_.size();
 		}
 
-		void disable(RenderState *rs) { fbo_->drawBuffers().pop(); }
+		void disable(RenderState *rs) override { fbo_->drawBuffers().pop(); }
 
 	protected:
 		ref_ptr<FBO> fbo_;

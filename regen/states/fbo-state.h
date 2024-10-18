@@ -71,9 +71,9 @@ namespace regen {
 		void setPingPongBuffers(const std::vector<GLenum> &attachments);
 
 		// override
-		void enable(RenderState *);
+		void enable(RenderState *) override;
 
-		void disable(RenderState *);
+		void disable(RenderState *) override;
 
 	protected:
 		ref_ptr<FBO> fbo_;
@@ -92,14 +92,14 @@ namespace regen {
 		 * @param windowViewport The window size (width/height).
 		 * @param drawBuffer GL_FRONT, GL_BACK or GL_FRONT_AND_BACK.
 		 */
-		ScreenState(
+		explicit ScreenState(
 				const ref_ptr<ShaderInput2i> &windowViewport,
 				const GLenum drawBuffer = GL_FRONT);
 
 		// override
-		void enable(RenderState *);
+		void enable(RenderState *) override;
 
-		void disable(RenderState *);
+		void disable(RenderState *) override;
 
 	protected:
 		ref_ptr<ShaderInput2i> windowViewport_;

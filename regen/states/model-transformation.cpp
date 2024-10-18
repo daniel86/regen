@@ -26,7 +26,7 @@ const ref_ptr<ShaderInputMat4> &ModelTransformation::get() const { return modelM
 
 void ModelTransformation::set_audioSource(const ref_ptr<AudioSource> &audioSource) { audioSource_ = audioSource; }
 
-GLboolean ModelTransformation::isAudioSource() const { return audioSource_.get() != NULL; }
+GLboolean ModelTransformation::isAudioSource() const { return audioSource_.get() != nullptr; }
 
 void ModelTransformation::enable(RenderState *rs) {
 	if (isAudioSource()) {

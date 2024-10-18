@@ -61,7 +61,7 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex) {
 		shaderDefine(__NAME__("SHADOW_MAP_FILTER", l.id_), shadowFilterMode(l.shadowFilter_));
 
 		if (dynamic_cast<Texture3D *>(l.shadow_.get())) {
-			Texture3D *tex3d = dynamic_cast<Texture3D *>(l.shadow_.get());
+			auto *tex3d = dynamic_cast<Texture3D *>(l.shadow_.get());
 			shaderDefine(__NAME__("NUM_SHADOW_LAYER", l.id_), REGEN_STRING(tex3d->depth()));
 		}
 		if (l.shadowColor_.get()) {
@@ -104,7 +104,7 @@ void DirectShading::addLight(
 	// join light shader inputs using a name override
 	{
 		const ShaderInputList &in = light->inputContainer()->inputs();
-		for (ShaderInputList::const_iterator it = in.begin(); it != in.end(); ++it) { joinShaderInput(it->in_, __NAME__(
+		for (auto it = in.begin(); it != in.end(); ++it) { joinShaderInput(it->in_, __NAME__(
 					it->in_->name(), lightID));
 		}
 	}
@@ -141,7 +141,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	DirectLight &directLight = *it;
 	{
 		const ShaderInputList &in = l->inputContainer()->inputs();
-		for (ShaderInputList::const_iterator it = in.begin(); it != in.end(); ++it) { disjoinShaderInput(it->in_); }
+		for (auto it = in.begin(); it != in.end(); ++it) { disjoinShaderInput(it->in_); }
 	}
 	if (directLight.camera_.get()) {
 		disjoinShaderInput(directLight.camera_->far());
@@ -161,7 +161,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	GLuint numLights = lights_.size(), lightIndex = 0;
 	// update shader defines
 	shaderDefine("NUM_LIGHTS", REGEN_STRING(numLights));
-	for (std::list<DirectLight>::iterator it = lights_.begin(); it != lights_.end(); ++it) {
+	for (auto it = lights_.begin(); it != lights_.end(); ++it) {
 		updateDefine(*it, lightIndex);
 		++lightIndex;
 	}
