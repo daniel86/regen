@@ -15,119 +15,126 @@
 #include <regen/gl-types/render-state.h>
 
 namespace regen {
-  /**
-   * \brief Abstract base class for animations.
-   */
-  class Animation : public EventObject
-  {
-  public:
-    /**
-     * The animation state switched to active.
-     */
-    static GLuint ANIMATION_STARTED;
-    /**
-     * The animation state switched to inactive.
-     */
-    static GLuint ANIMATION_STOPPED;
+	/**
+	 * \brief Abstract base class for animations.
+	 */
+	class Animation : public EventObject {
+	public:
+		/**
+		 * The animation state switched to active.
+		 */
+		static GLuint ANIMATION_STARTED;
+		/**
+		 * The animation state switched to inactive.
+		 */
+		static GLuint ANIMATION_STOPPED;
 
-    /**
-     * Create an animation.
-     * Note that the animation removes itself from the AnimationManager
-     * in the destructor.
-     * @param useGLAnimation execute with render context.
-     * @param useAnimation execute without render context in separate thread.
-     * @param autoStart is true the animation adds itself to the AnimationManager.
-     */
-    Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart=GL_TRUE);
-    virtual ~Animation();
+		/**
+		 * Create an animation.
+		 * Note that the animation removes itself from the AnimationManager
+		 * in the destructor.
+		 * @param useGLAnimation execute with render context.
+		 * @param useAnimation execute without render context in separate thread.
+		 * @param autoStart is true the animation adds itself to the AnimationManager.
+		 */
+		Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart = GL_TRUE);
 
-    /**
-     * @return true if this animation is active.
-     */
-    GLboolean isRunning() const;
+		virtual ~Animation();
 
-    /**
-     * Activate this animation.
-     */
-    virtual void startAnimation();
-    /**
-     * Deactivate this animation.
-     */
-    virtual void stopAnimation();
+		/**
+		 * @return true if this animation is active.
+		 */
+		GLboolean isRunning() const;
 
-    /**
-     * Mutex lock for data access.
-     * @return false if not successful.
-     */
-    GLboolean try_lock();
-    /**
-     * Mutex lock for data access.
-     * @return false if not successful.
-     */
-    GLboolean try_lock_gl();
+		/**
+		 * Activate this animation.
+		 */
+		virtual void startAnimation();
 
-    /**
-     * Mutex lock for data access.
-     * Blocks until lock can be acquired.
-     */
-    void lock();
-    /**
-     * Mutex lock for data access.
-     * Blocks until lock can be acquired.
-     */
-    void lock_gl();
+		/**
+		 * Deactivate this animation.
+		 */
+		virtual void stopAnimation();
 
-    /**
-     * Mutex lock for data access.
-     * Unlocks a previously acquired lock.
-     */
-    void unlock();
-    /**
-     * Mutex lock for data access.
-     * Unlocks a previously acquired lock.
-     */
-    void unlock_gl();
+		/**
+		 * Mutex lock for data access.
+		 * @return false if not successful.
+		 */
+		GLboolean try_lock();
 
-    /**
-     * Waits for a while.
-     * @param milliseconds number of ms to wait
-     */
-    void wait(GLuint milliseconds);
+		/**
+		 * Mutex lock for data access.
+		 * @return false if not successful.
+		 */
+		GLboolean try_lock_gl();
 
-    /**
-     * @return true if the animation implements glAnimate().
-     */
-    GLboolean useGLAnimation() const;
-    /**
-     * @return true if the animation implements animate().
-     */
-    GLboolean useAnimation() const;
+		/**
+		 * Mutex lock for data access.
+		 * Blocks until lock can be acquired.
+		 */
+		void lock();
 
-    /**
-     * Make the next animation step.
-     * This should be called each frame.
-     * @param dt time difference to last call in milliseconds.
-     */
-    virtual void animate(GLdouble dt){}
-    /**
-     * Upload animation data to GL.
-     * This should be called each frame in a thread
-     * with a GL context.
-     * @param rs the render state.
-     * @param dt time difference to last call in milliseconds.
-     */
-    virtual void glAnimate(RenderState *rs, GLdouble dt){}
+		/**
+		 * Mutex lock for data access.
+		 * Blocks until lock can be acquired.
+		 */
+		void lock_gl();
 
-  protected:
-    boost::mutex mutex_;
-    boost::mutex mutex_gl_;
-    GLboolean useGLAnimation_;
-    GLboolean useAnimation_;
-    GLboolean isRunning_;
+		/**
+		 * Mutex lock for data access.
+		 * Unlocks a previously acquired lock.
+		 */
+		void unlock();
 
-    Animation(const Animation&);
-    void operator=(const Animation&);
-  };
+		/**
+		 * Mutex lock for data access.
+		 * Unlocks a previously acquired lock.
+		 */
+		void unlock_gl();
+
+		/**
+		 * Waits for a while.
+		 * @param milliseconds number of ms to wait
+		 */
+		void wait(GLuint milliseconds);
+
+		/**
+		 * @return true if the animation implements glAnimate().
+		 */
+		GLboolean useGLAnimation() const;
+
+		/**
+		 * @return true if the animation implements animate().
+		 */
+		GLboolean useAnimation() const;
+
+		/**
+		 * Make the next animation step.
+		 * This should be called each frame.
+		 * @param dt time difference to last call in milliseconds.
+		 */
+		virtual void animate(GLdouble dt) {}
+
+		/**
+		 * Upload animation data to GL.
+		 * This should be called each frame in a thread
+		 * with a GL context.
+		 * @param rs the render state.
+		 * @param dt time difference to last call in milliseconds.
+		 */
+		virtual void glAnimate(RenderState *rs, GLdouble dt) {}
+
+	protected:
+		boost::mutex mutex_;
+		boost::mutex mutex_gl_;
+		GLboolean useGLAnimation_;
+		GLboolean useAnimation_;
+		GLboolean isRunning_;
+
+		Animation(const Animation &);
+
+		void operator=(const Animation &);
+	};
 } // namespace
 
 #endif /* GL_ANIMATION_H_ */

@@ -14,51 +14,50 @@
 #include <regen/states/texture-state.h>
 
 namespace regen {
-  /**
-   * \brief Provides bone matrices.
-   *
-   * The data is provided to Shader's using a TextureBuffer.
-   */
-  class Bones : public HasInputState, public Animation
-  {
-  public:
-    /**
-     * @param numBoneWeights maximum number of bone weights.
-     * @param numBones number of bones per mesh.
-     */
-    Bones(GLuint numBoneWeights, GLuint numBones);
+	/**
+	 * \brief Provides bone matrices.
+	 *
+	 * The data is provided to Shader's using a TextureBuffer.
+	 */
+	class Bones : public HasInputState, public Animation {
+	public:
+		/**
+		 * @param numBoneWeights maximum number of bone weights.
+		 * @param numBones number of bones per mesh.
+		 */
+		Bones(GLuint numBoneWeights, GLuint numBones);
 
-    /**
-     * @param bones  the bone list
-     */
-    void setBones(const std::list< ref_ptr<AnimationNode> > &bones);
+		/**
+		 * @param bones  the bone list
+		 */
+		void setBones(const std::list<ref_ptr<AnimationNode> > &bones);
 
-    /**
-     * @return the bone list
-     */
-    Mat4f* bones();
+		/**
+		 * @return the bone list
+		 */
+		Mat4f *bones();
 
-    /**
-     * @return maximum number of weights influencing a single bone.
-     */
-    GLint numBoneWeights() const;
+		/**
+		 * @return maximum number of weights influencing a single bone.
+		 */
+		GLint numBoneWeights() const;
 
-    // override
-    void glAnimate(RenderState *rs, GLdouble dt);
+		// override
+		void glAnimate(RenderState *rs, GLdouble dt);
 
-  protected:
-    std::list< ref_ptr<AnimationNode> > bones_;
-    ref_ptr<ShaderInput1i> numBoneWeights_;
-    GLuint bufferSize_;
+	protected:
+		std::list<ref_ptr<AnimationNode> > bones_;
+		ref_ptr<ShaderInput1i> numBoneWeights_;
+		GLuint bufferSize_;
 
-    ref_ptr<TextureBuffer> boneMatrixTex_;
-    ref_ptr<TextureState> texState_;
-    VBOReference vboRef_;
-    ref_ptr<ShaderInputMat4> boneMatrices_;
+		ref_ptr<TextureBuffer> boneMatrixTex_;
+		ref_ptr<TextureState> texState_;
+		VBOReference vboRef_;
+		ref_ptr<ShaderInputMat4> boneMatrices_;
 
-    GLuint lastBoneWeights_;
-    GLuint lastBoneCount_;
-  };
+		GLuint lastBoneWeights_;
+		GLuint lastBoneCount_;
+	};
 } // namespace
 
 #endif /* __BONES__H_ */
