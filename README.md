@@ -127,13 +127,23 @@ Documentation
 =========================
 The documentation is hosted using the [gh-pages branch](http://daniel86.github.com/regen/)
 
-Examples
+Videos of regen in action
 =========================
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/Msn6Teot7ZU/0.jpg)](http://www.youtube.com/watch?v=Msn6Teot7ZU "Bullet Physics")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/jaFgTxK6WjU/0.jpg)](http://www.youtube.com/watch?v=jaFgTxK6WjU "HDR")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/Mk0Nc-UMAMM/0.jpg)](http://www.youtube.com/watch?v=Mk0Nc-UMAMM "2D Fluids")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/c2--Anch2WY/0.jpg)](http://www.youtube.com/watch?v=c2--Anch2WY "Volumetric Rendering")
+<p align="center">
+    <a href="http://www.youtube.com/watch?v=Msn6Teot7ZU">
+        <img src="http://img.youtube.com/vi/Msn6Teot7ZU/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=jaFgTxK6WjU">
+        <img src="http://img.youtube.com/vi/jaFgTxK6WjU/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=Mk0Nc-UMAMM">
+        <img src="http://img.youtube.com/vi/Mk0Nc-UMAMM/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=c2--Anch2WY">
+        <img src="http://img.youtube.com/vi/c2--Anch2WY/0.jpg"  width="160" height="120" />
+    </a>
+</p>
 
 Contact
 =========================
