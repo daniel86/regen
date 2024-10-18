@@ -31,12 +31,12 @@ ParaboloidCamera::ParaboloidCamera(
 	viewprojInv_->set_elementCount(numLayer);
 
 	// Allocate matrices
-	proj_->setUniformDataUntyped(NULL);
-	projInv_->setUniformDataUntyped(NULL);
-	view_->setUniformDataUntyped(NULL);
-	viewInv_->setUniformDataUntyped(NULL);
-	viewproj_->setUniformDataUntyped(NULL);
-	viewprojInv_->setUniformDataUntyped(NULL);
+	proj_->setUniformDataUntyped(nullptr);
+	projInv_->setUniformDataUntyped(nullptr);
+	view_->setUniformDataUntyped(nullptr);
+	viewInv_->setUniformDataUntyped(nullptr);
+	viewproj_->setUniformDataUntyped(nullptr);
+	viewprojInv_->setUniformDataUntyped(nullptr);
 
 	// Projection is calculated in shaders.
 	proj_->setVertex(0, Mat4f::identity());
@@ -44,7 +44,7 @@ ParaboloidCamera::ParaboloidCamera(
 
 	// Initialize directions.
 	direction_->set_elementCount(numLayer);
-	direction_->setUniformDataUntyped(NULL);
+	direction_->setUniformDataUntyped(nullptr);
 	direction_->setVertex(0, Vec3f(0.0, 0.0, 1.0));
 	if (hasBackFace_)
 		direction_->setVertex(1, Vec3f(0.0, 0.0, -1.0));
@@ -61,23 +61,23 @@ ParaboloidCamera::ParaboloidCamera(
 }
 
 void ParaboloidCamera::update() {
-	GLuint positionStamp = (pos_.get() == NULL ? 1 : pos_->stamp());
-	GLuint normalStamp = (nor_.get() == NULL ? 1 : nor_->stamp());
-	GLuint matrixStamp = (modelMatrix_.get() == NULL ? 1 : modelMatrix_->stamp());
+	GLuint positionStamp = (pos_.get() == nullptr ? 1 : pos_->stamp());
+	GLuint normalStamp = (nor_.get() == nullptr ? 1 : nor_->stamp());
+	GLuint matrixStamp = (modelMatrix_.get() == nullptr ? 1 : modelMatrix_->stamp());
 	if (positionStamp_ == positionStamp &&
 		normalStamp_ == normalStamp &&
 		matrixStamp_ == matrixStamp) { return; }
 
 	// Compute cube center position.
 	Vec3f pos = Vec3f::zero();
-	if (modelMatrix_.get() != NULL) {
+	if (modelMatrix_.get() != nullptr) {
 		pos = (modelMatrix_->getVertex(0) ^ Vec4f(pos, 1.0f)).xyz_();
 	}
 	position_->setVertex(0, pos);
 
-	if (nor_.get() != NULL) {
+	if (nor_.get() != nullptr) {
 		Vec3f dir = nor_->getVertex(0);
-		if (modelMatrix_.get() != NULL) {
+		if (modelMatrix_.get() != nullptr) {
 			dir = (modelMatrix_->getVertex(0) ^ Vec4f(dir, 0.0f)).xyz_();
 		}
 		direction_->setVertex(0, -dir);

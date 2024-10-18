@@ -25,7 +25,7 @@ namespace regen {
 		/**
 		 * @param initializeMatrices if false matrix computation is skipped.
 		 */
-		Camera(GLboolean initializeMatrices = GL_TRUE);
+		explicit Camera(GLboolean initializeMatrices = GL_TRUE);
 
 		/**
 		 * Update frustum and projection matrix.
@@ -142,7 +142,7 @@ namespace regen {
 		virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
 
 		// Override
-		virtual void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
 	protected:
 		ref_ptr<ShaderInputContainer> inputs_;
@@ -177,14 +177,14 @@ namespace regen {
 	 */
 	class OmniDirectionalCamera : public Camera {
 	public:
-		OmniDirectionalCamera(
+		explicit OmniDirectionalCamera(
 				GLboolean hasBackFace = GL_FALSE,
 				GLboolean updateMatrices = GL_TRUE);
 
 		// Override
-		virtual GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+		GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) override;
 
-		virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+		GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) override;
 
 	protected:
 		GLboolean hasBackFace_;

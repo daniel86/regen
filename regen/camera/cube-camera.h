@@ -34,7 +34,7 @@ namespace regen {
 		void set_isCubeFaceVisible(GLenum face, GLboolean visible);
 
 		// Override
-		virtual void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
 	protected:
 		ref_ptr<Camera> userCamera_;

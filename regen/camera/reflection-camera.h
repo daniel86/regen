@@ -43,7 +43,7 @@ namespace regen {
 				GLboolean hasBackFace = GL_FALSE);
 
 		// Override
-		virtual void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
 	protected:
 		ref_ptr<Camera> userCamera_;

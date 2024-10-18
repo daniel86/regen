@@ -38,14 +38,14 @@ ReflectionCamera::ReflectionCamera(
 
 	pos_ = mesh->positions();
 	nor_ = mesh->normals();
-	isReflectorValid_ = (pos_.get() != NULL) && (nor_.get() != NULL);
+	isReflectorValid_ = (pos_.get() != nullptr) && (nor_.get() != nullptr);
 	if (isReflectorValid_) {
 		posStamp_ = pos_->stamp() - 1;
 		norStamp_ = nor_->stamp() - 1;
 	}
 
 	transform_ = mesh->findShaderInput("modelMatrix");
-	if (transform_.get() != NULL) {
+	if (transform_.get() != nullptr) {
 		transformStamp_ = transform_->stamp() - 1;
 	}
 }
@@ -100,7 +100,7 @@ void ReflectionCamera::enable(RenderState *rs) {
 void ReflectionCamera::updateReflection() {
 	GLboolean reflectorChanged = GL_FALSE;
 	if (hasMesh_) {
-		if (transform_.get() != NULL && transform_->stamp() != transformStamp_) {
+		if (transform_.get() != nullptr && transform_->stamp() != transformStamp_) {
 			reflectorChanged = GL_TRUE;
 			transformStamp_ = transform_->stamp();
 		}
@@ -119,7 +119,7 @@ void ReflectionCamera::updateReflection() {
 			posWorld_ = ((Vec3f *) pos_->clientData())[vertexIndex_];
 			norWorld_ = ((Vec3f *) nor_->clientData())[vertexIndex_];
 
-			if (transform_.get() != NULL) {
+			if (transform_.get() != nullptr) {
 				if (!transform_->hasClientData()) transform_->readServerData();
 				const Mat4f &transform = (((Mat4f *) transform_->clientData())[0]);
 				posWorld_ = (transform ^ Vec4f(posWorld_, 1.0)).xyz_();

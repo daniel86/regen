@@ -19,7 +19,7 @@ namespace regen {
 	 */
 	class CameraUpdater {
 	public:
-		CameraUpdater(const ref_ptr<Camera> &cam);
+		explicit CameraUpdater(const ref_ptr<Camera> &cam);
 
 		void updateCamera(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
 
@@ -41,7 +41,7 @@ namespace regen {
 	 */
 	class KeyFrameCameraTransform : public Animation, public CameraUpdater {
 	public:
-		KeyFrameCameraTransform(const ref_ptr<Camera> &cam);
+		explicit KeyFrameCameraTransform(const ref_ptr<Camera> &cam);
 
 		/**
 		 * Adds a frame to the list of key frames for camera animation.
@@ -49,9 +49,9 @@ namespace regen {
 		void push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
 
 		// override
-		virtual void animate(GLdouble dt);
+		void animate(GLdouble dt) override;
 
-		virtual void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		struct CameraKeyFrame {
@@ -75,7 +75,7 @@ namespace regen {
 	 */
 	class FirstPersonTransform : public Animation {
 	public:
-		FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat);
+		explicit FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat);
 
 		/**
 		 * @param v move velocity.
@@ -138,9 +138,9 @@ namespace regen {
 		void lookRight(GLdouble v);
 
 		// override
-		virtual void animate(GLdouble dt);
+		void animate(GLdouble dt) override;
 
-		virtual void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		ref_ptr<ShaderInputMat4> mat_;
@@ -166,7 +166,7 @@ namespace regen {
 	 */
 	class FirstPersonCameraTransform : public FirstPersonTransform, public CameraUpdater {
 	public:
-		FirstPersonCameraTransform(const ref_ptr<Camera> &cam);
+		explicit FirstPersonCameraTransform(const ref_ptr<Camera> &cam);
 
 		FirstPersonCameraTransform(
 				const ref_ptr<Camera> &cam,
@@ -196,9 +196,9 @@ namespace regen {
 		virtual void zoomOut(GLdouble amount);
 
 		// override
-		virtual void animate(GLdouble dt);
+		void animate(GLdouble dt) override;
 
-		virtual void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		ref_ptr<Mesh> mesh_;
@@ -231,17 +231,17 @@ namespace regen {
 				GLfloat eyeOrientation);
 
 		// Override
-		virtual void zoomIn(GLdouble amount);
+		void zoomIn(GLdouble amount) override;
 
-		virtual void zoomOut(GLdouble amount);
+		void zoomOut(GLdouble amount) override;
 
 	protected:
 		Vec3f meshPos_;
 		GLfloat meshDistance_;
 
-		virtual void updateCameraPosition();
+		void updateCameraPosition() override;
 
-		virtual void updateCameraOrientation();
+		void updateCameraOrientation() override;
 	};
 } // namespace
 

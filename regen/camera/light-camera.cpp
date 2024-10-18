@@ -71,7 +71,7 @@ LightCamera::LightCamera(
 
 			// Initialize directions
 			direction_->set_elementCount(numLayer_);
-			direction_->setUniformDataUntyped(NULL);
+			direction_->setUniformDataUntyped(nullptr);
 			const Vec3f *dir = Mat4f::cubeDirections();
 			for (GLuint i = 0; i < 6; ++i) {
 				direction_->setVertex(i, dir[i]);
@@ -92,19 +92,19 @@ LightCamera::LightCamera(
 	}
 	shaderDefine("RENDER_LAYER", REGEN_STRING(numLayer_));
 
-	view_->setUniformDataUntyped(NULL);
-	viewInv_->setUniformDataUntyped(NULL);
-	proj_->setUniformDataUntyped(NULL);
-	projInv_->setUniformDataUntyped(NULL);
-	viewproj_->setUniformDataUntyped(NULL);
-	viewprojInv_->setUniformDataUntyped(NULL);
+	view_->setUniformDataUntyped(nullptr);
+	viewInv_->setUniformDataUntyped(nullptr);
+	proj_->setUniformDataUntyped(nullptr);
+	projInv_->setUniformDataUntyped(nullptr);
+	viewproj_->setUniformDataUntyped(nullptr);
+	viewprojInv_->setUniformDataUntyped(nullptr);
 
-	near_->setUniformDataUntyped(NULL);
+	near_->setUniformDataUntyped(nullptr);
 	near_->setVertex(0, extends.x);
-	far_->setUniformDataUntyped(NULL);
+	far_->setUniformDataUntyped(nullptr);
 	far_->setVertex(0, extends.y);
 
-	lightMatrix_->setUniformDataUntyped(NULL);
+	lightMatrix_->setUniformDataUntyped(nullptr);
 	setInput(lightMatrix_);
 
 	lightPosStamp_ = 0;
@@ -184,19 +184,18 @@ void LightCamera::updatePoint() {
 }
 
 void LightCamera::updateDirectional() {
-	Mat4f *shadowMatrices = (Mat4f *) lightMatrix_->clientDataPtr();
+	auto *shadowMatrices = (Mat4f *) lightMatrix_->clientDataPtr();
 	lightMatrix_->nextStamp();
 
 	// Update near/far values when user camera projection changed
 	if (projectionStamp_ != userCamera_->projection()->stamp()) {
 		const Mat4f &proj = userCamera_->projection()->getVertex(0);
 		// update frustum splits
-		for (std::vector<Frustum *>::iterator
-					 it = shadowFrusta_.begin(); it != shadowFrusta_.end(); ++it) { delete *it; }
+		for (auto it = shadowFrusta_.begin(); it != shadowFrusta_.end(); ++it) { delete *it; }
 		shadowFrusta_ = userCamera_->frustum().split(numLayer_, splitWeight_);
 		// update near/far values
-		GLfloat *farValues = (GLfloat *) far_->clientDataPtr();
-		GLfloat *nearValues = (GLfloat *) near_->clientDataPtr();
+		auto *farValues = (GLfloat *) far_->clientDataPtr();
+		auto *nearValues = (GLfloat *) near_->clientDataPtr();
 		far_->nextStamp();
 		near_->nextStamp();
 		for (GLuint i = 0; i < numLayer_; ++i) {
