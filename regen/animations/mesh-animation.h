@@ -113,7 +113,7 @@ namespace regen {
 				GLdouble timeInTicks);
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		struct KeyFrame {
@@ -125,7 +125,7 @@ namespace regen {
 		};
 
 		struct ContiguousBlock {
-			ContiguousBlock(const ref_ptr<ShaderInput> &in)
+			explicit ContiguousBlock(const ref_ptr<ShaderInput> &in)
 					: buffer(in->buffer()), offset(in->offset()), size(in->inputSize()) {}
 
 			GLuint buffer;

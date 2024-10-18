@@ -43,7 +43,7 @@ namespace regen {
 		GLint numBoneWeights() const;
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 	protected:
 		std::list<ref_ptr<AnimationNode> > bones_;

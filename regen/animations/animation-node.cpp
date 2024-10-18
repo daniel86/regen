@@ -64,8 +64,7 @@ ref_ptr<AnimationNode> AnimationNode::copy() {
 	ret->boneTransformationMatrix_ = boneTransformationMatrix_;
 	ret->channelIndex_ = channelIndex_;
 	ret->isBoneNode_ = isBoneNode_;
-	for (std::vector<ref_ptr<AnimationNode> >::iterator
-				 it = nodeChilds_.begin(); it != nodeChilds_.end(); ++it) {
+	for (auto it = nodeChilds_.begin(); it != nodeChilds_.end(); ++it) {
 		ref_ptr<AnimationNode> child = (*it)->copy();
 		child->parentNode_ = ret;
 		ret->nodeChilds_.push_back(child);
@@ -103,7 +102,7 @@ std::vector<ref_ptr<AnimationNode> > &AnimationNode::children() { return nodeChi
 void AnimationNode::calculateGlobalTransform() {
 	// concatenate all parent transforms to get the global transform for this node
 	globalTransform_ = localTransform_;
-	for (AnimationNode *p = parentNode_.get(); p != NULL; p = p->parentNode_.get()) {
+	for (AnimationNode *p = parentNode_.get(); p != nullptr; p = p->parentNode_.get()) {
 		globalTransform_.multiplyr(p->localTransform_);
 	}
 }
@@ -153,7 +152,7 @@ void AnimationNode::updateTransforms(const std::vector<Mat4f> &transforms) {
 
 static void loadNodeNames(AnimationNode *n, std::map<std::string, AnimationNode *> &nameToNode_) {
 	nameToNode_[n->name()] = n;
-	for (std::vector<ref_ptr<AnimationNode> >::iterator it = n->children().begin();
+	for (auto it = n->children().begin();
 		 it != n->children().end(); ++it) {
 		loadNodeNames(it->get(), nameToNode_);
 	}
@@ -179,7 +178,7 @@ static void findFrameBeforeTick(
 		GLdouble &tick,
 		GLuint &frame,
 		const std::vector<T> &keys) {
-	if (keys.size() == 0) return;
+	if (keys.empty()) return;
 	for (frame = keys.size() - 1; frame > 0;) {
 		if (tick - keys[--frame].time > 0.000001) return;
 	}
@@ -234,8 +233,7 @@ ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart) {
 	ref_ptr<AnimationNode> rootNode = rootNode_->copy();
 	ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode, autoStart);
 
-	for (std::vector<ref_ptr<NodeAnimation::Data> >::iterator
-				 it = animData_.begin(); it != animData_.end(); ++it) {
+	for (auto it = animData_.begin(); it != animData_.end(); ++it) {
 		ref_ptr<NodeAnimation::Data> &d = *it;
 		ref_ptr<NodeAnimation::Data> data = ref_ptr<NodeAnimation::Data>::alloc();
 		data->animationName_ = d->animationName_;
@@ -420,7 +418,7 @@ void NodeAnimation::animate(GLdouble milliSeconds) {
 		const Channel &channel = anim.channels_->data()[i];
 		Mat4f &m = anim.transforms_[i];
 
-		if (channel.rotationKeys_->size() == 0) {
+		if (channel.rotationKeys_->empty()) {
 			m = Mat4f::identity();
 		} else if (channel.rotationKeys_->size() == 1) {
 			m = channel.rotationKeys_->data()[0].value.calculateMatrix();
@@ -428,14 +426,14 @@ void NodeAnimation::animate(GLdouble milliSeconds) {
 			m = nodeRotation(anim, channel, timeInTicks, i).calculateMatrix();
 		}
 
-		if (channel.scalingKeys_->size() == 0) {
+		if (channel.scalingKeys_->empty()) {
 		} else if (channel.scalingKeys_->size() == 1) {
 			m.scale(channel.scalingKeys_->data()[0].value);
 		} else {
 			m.scale(nodeScaling(anim, channel, timeInTicks, i));
 		}
 
-		if (channel.positionKeys_->size() == 0) {
+		if (channel.positionKeys_->empty()) {
 		} else if (channel.positionKeys_->size() == 1) {
 			Vec3f &pos = channel.positionKeys_->data()[0].value;
 			m.x[3] = pos.x;
@@ -564,11 +562,10 @@ ref_ptr<AnimationNode> NodeAnimation::findNode(const std::string &name) {
 ref_ptr<AnimationNode> NodeAnimation::findNode(ref_ptr<AnimationNode> &n, const std::string &name) {
 	if (n->name() == name) { return n; }
 
-	for (std::vector<ref_ptr<AnimationNode> >::iterator
-				 it = n->children().begin(); it != n->children().end(); ++it) {
+	for (auto it = n->children().begin(); it != n->children().end(); ++it) {
 		ref_ptr<AnimationNode> n_ = findNode(*it, name);
 		if (n_.get()) { return n_; }
 	}
 
-	return ref_ptr<AnimationNode>();
+	return {};
 }
