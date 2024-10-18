@@ -13,38 +13,37 @@
 #include <regen/gl-types/shader-input-container.h>
 
 namespace regen {
-  /**
-   * A camera with a parabolid projection
-   * computed in shaders.
-   */
-  class ParaboloidCamera : public OmniDirectionalCamera
-  {
-  public:
-    /**
-     * @param mesh Defines the parabolid center.
-     * @param userCamera The user camera.
-     * @param hasBackFace If true use Dual Parabolid.
-     */
-    ParaboloidCamera(
-        const ref_ptr<Mesh> &mesh,
-        const ref_ptr<Camera> &userCamera,
-        GLboolean hasBackFace=GL_TRUE);
+	/**
+	 * A camera with a parabolid projection
+	 * computed in shaders.
+	 */
+	class ParaboloidCamera : public OmniDirectionalCamera {
+	public:
+		/**
+		 * @param mesh Defines the parabolid center.
+		 * @param userCamera The user camera.
+		 * @param hasBackFace If true use Dual Parabolid.
+		 */
+		ParaboloidCamera(
+				const ref_ptr<Mesh> &mesh,
+				const ref_ptr<Camera> &userCamera,
+				GLboolean hasBackFace = GL_TRUE);
 
-    // Override
-    void enable(RenderState *rs);
+		// Override
+		void enable(RenderState *rs);
 
-  protected:
-    ref_ptr<Camera> userCamera_;
-    ref_ptr<ShaderInputMat4> modelMatrix_;
-    ref_ptr<ShaderInput3f> pos_;
-    ref_ptr<ShaderInput3f> nor_;
+	protected:
+		ref_ptr<Camera> userCamera_;
+		ref_ptr<ShaderInputMat4> modelMatrix_;
+		ref_ptr<ShaderInput3f> pos_;
+		ref_ptr<ShaderInput3f> nor_;
 
-    GLuint positionStamp_;
-    GLuint normalStamp_;
-    GLuint matrixStamp_;
+		GLuint positionStamp_;
+		GLuint normalStamp_;
+		GLuint matrixStamp_;
 
-    void update();
-  };
+		void update();
+	};
 } // namespace
 
 #endif /* PARABOLOID_CAMERA_H_ */
