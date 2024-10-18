@@ -24,7 +24,7 @@ namespace regen {
 			/**
 			 * @param message the error message.
 			 */
-			Error(const std::string &message) : std::runtime_error(message) {}
+			explicit Error(const std::string &message) : std::runtime_error(message) {}
 		};
 
 		/**

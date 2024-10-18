@@ -64,7 +64,7 @@ static ref_ptr<Texture2D> noise2D(
 		GLuint width,
 		GLuint height,
 		GLboolean isSeamless) {
-	GLubyte *data = new GLubyte[width * height];
+	auto *data = new GLubyte[width * height];
 	GLubyte *dataPtr = data;
 	for (GLuint x = 0u; x < width; ++x) {
 		for (GLuint y = 0u; y < height; ++y) {
@@ -84,7 +84,7 @@ static ref_ptr<Texture2D> noise2D(
 	tex->texImage();
 	tex->filter().push(GL_LINEAR);
 	tex->wrapping().push(GL_REPEAT);
-	tex->set_data(NULL);
+	tex->set_data(nullptr);
 	delete[]data;
 	tex->end(RenderState::get());
 
@@ -97,7 +97,7 @@ static ref_ptr<Texture3D> noise3D(
 		GLuint height,
 		GLuint depth,
 		GLboolean isSeamless) {
-	GLubyte *data = new GLubyte[width * height * depth];
+	auto *data = new GLubyte[width * height * depth];
 	GLubyte *dataPtr = data;
 	for (GLuint x = 0u; x < width; ++x) {
 		for (GLuint y = 0u; y < height; ++y) {
@@ -120,7 +120,7 @@ static ref_ptr<Texture3D> noise3D(
 	tex->texImage();
 	tex->filter().push(GL_LINEAR);
 	tex->wrapping().push(GL_REPEAT);
-	tex->set_data(NULL);
+	tex->set_data(nullptr);
 	delete[]data;
 	tex->end(RenderState::get());
 
