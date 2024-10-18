@@ -16,30 +16,30 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-  /**
-   * \brief A special Box that is not translated by camera movement.
-   */
-  class SkyBox : public Box, public HasShader
-  {
-  public:
-    /**
-     * @param levelOfDetail LoD for Box mesh.
-     */
-    SkyBox(GLuint levelOfDetail=0, const std::string &shaderKey="regen.models.sky-box");
+	/**
+	 * \brief A special Box that is not translated by camera movement.
+	 */
+	class SkyBox : public Box, public HasShader {
+	public:
+		/**
+		 * @param levelOfDetail LoD for Box mesh.
+		 */
+		SkyBox(GLuint levelOfDetail = 0, const std::string &shaderKey = "regen.models.sky-box");
 
-    /**
-     * @return the cube map texture.
-     */
-    const ref_ptr<TextureCube>& cubeMap() const;
-    /**
-     * @param cubeMap the cube map texture.
-     */
-    void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
+		/**
+		 * @return the cube map texture.
+		 */
+		const ref_ptr<TextureCube> &cubeMap() const;
 
-  protected:
-    ref_ptr<TextureState> texState_;
-    ref_ptr<TextureCube> cubeMap_;
-  };
+		/**
+		 * @param cubeMap the cube map texture.
+		 */
+		void setCubeMap(const ref_ptr<TextureCube> &cubeMap);
+
+	protected:
+		ref_ptr<TextureState> texState_;
+		ref_ptr<TextureCube> cubeMap_;
+	};
 } // namespace
 
 #endif /* SKY_BOX_H_ */
