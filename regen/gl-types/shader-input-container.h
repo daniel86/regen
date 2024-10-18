@@ -29,7 +29,7 @@ namespace regen {
 		/**
 		 * @param usage VBO usage.
 		 */
-		ShaderInputContainer(
+		explicit ShaderInputContainer(
 				VBO::Usage usage = VBO::USAGE_DYNAMIC);
 
 		/**
@@ -37,7 +37,7 @@ namespace regen {
 		 * @param name shader input name overwrite.
 		 * @param usage VBO usage.
 		 */
-		ShaderInputContainer(const ref_ptr<ShaderInput> &in, const std::string &name = "",
+		explicit ShaderInputContainer(const ref_ptr<ShaderInput> &in, const std::string &name = "",
 							 VBO::Usage usage = VBO::USAGE_DYNAMIC);
 
 		~ShaderInputContainer();
@@ -189,14 +189,14 @@ namespace regen {
 		/**
 		 * @param usage VBO usage hint.
 		 */
-		HasInput(VBO::Usage usage) { inputContainer_ = ref_ptr<ShaderInputContainer>::alloc(usage); }
+		explicit HasInput(VBO::Usage usage) { inputContainer_ = ref_ptr<ShaderInputContainer>::alloc(usage); }
 
 		/**
 		 * @param inputs custom input container.
 		 */
-		HasInput(const ref_ptr<ShaderInputContainer> &inputs) { inputContainer_ = inputs; }
+		explicit HasInput(const ref_ptr<ShaderInputContainer> &inputs) { inputContainer_ = inputs; }
 
-		virtual ~HasInput() {}
+		virtual ~HasInput() = default;
 
 		/**
 		 * Begin recording ShaderInput's.

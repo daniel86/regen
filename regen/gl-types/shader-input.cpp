@@ -20,12 +20,12 @@ public:
 	/**
 	 * @param input Pointer to attribute.
 	 */
-	DataUploadAnimation(ShaderInput *input)
+	explicit DataUploadAnimation(ShaderInput *input)
 			: Animation(GL_TRUE, GL_FALSE, GL_FALSE),
 			  input_(input) {}
 
 	// Override
-	void glAnimate(RenderState *rs, GLdouble dt) {
+	void glAnimate(RenderState *rs, GLdouble dt) override {
 		input_->writeServerData(rs);
 		stopAnimation();
 	}

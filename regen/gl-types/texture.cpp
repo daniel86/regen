@@ -63,7 +63,7 @@ Texture::Texture(GLuint numTextures)
 		  pixelType_(GL_BYTE),
 		  border_(0),
 		  texBind_(GL_TEXTURE_2D, 0),
-		  data_(NULL),
+		  data_(nullptr),
 		  isInTSpace_(GL_FALSE),
 		  numSamples_(1) {
 	filter_ = new TextureParameterStack<TextureFilter> *[numObjects_];
@@ -84,7 +84,7 @@ Texture::Texture(GLuint numTextures)
 	}
 
 	set_rectangleSize(2, 2);
-	data_ = NULL;
+	data_ = nullptr;
 	samplerType_ = "sampler2D";
 	setUniformData(-1);
 }
