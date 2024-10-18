@@ -228,7 +228,7 @@ AudioSource::AudioSource(GLuint cachedBytesLimit)
 		  rate_(0),
 		  elapsedTime_(0)
 #ifdef HAS_LIBSWRESAMPLE
-		  , resampleContext_(nullptr)
+		, resampleContext_(nullptr)
 #endif
 {
 	AudioLibrary::initializeAL();
@@ -244,7 +244,7 @@ AudioSource::AudioSource(AVStream *stream, GLint index, GLuint cachedBytesLimit)
 		  rate_(0),
 		  elapsedTime_(0)
 #ifdef HAS_LIBSWRESAMPLE
-		  , resampleContext_(nullptr)
+		, resampleContext_(nullptr)
 #endif
 {
 	AudioLibrary::initializeAL();
