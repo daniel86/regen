@@ -52,8 +52,7 @@ void TextureMappedText::set_value(
 		GLfloat maxLineWidth) {
 	value_ = value;
 	numCharacters_ = 0;
-	for (std::list<std::wstring>::const_iterator
-				 it = value.begin(); it != value.end(); ++it) {
+	for (auto it = value.begin(); it != value.end(); ++it) {
 		numCharacters_ += it->size();
 	}
 	updateAttributes(alignment, maxLineWidth);
@@ -81,8 +80,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	translation = Vec3f(0.0, 0.0, 0.0);
 	glyphTranslation = Vec3f(0.0, 0.0, 0.0);
 
-	for (std::list<std::wstring>::iterator
-				 it = value_.begin(); it != value_.end(); ++it) {
+	for (auto it = value_.begin(); it != value_.end(); ++it) {
 		translation.y -= font_->lineHeight() * height_;
 
 		GLfloat buf;
@@ -104,7 +102,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 				// insert the rest after current iterator
 				// it cannot be placed in one line with
 				// the words before lastSpaceIndex
-				std::list<std::wstring>::iterator nextIt = it;
+				auto nextIt = it;
 				nextIt++;
 				value_.insert(nextIt, it->substr(lastSpaceIndex + 1,
 												 it->size() - lastSpaceIndex - 1));

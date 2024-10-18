@@ -24,14 +24,14 @@ namespace regen {
 		TriangleVertex pa, pb, pc;
 		GLuint i, j;
 
-		std::vector<TriangleFace> *out_ = new std::vector<TriangleFace>(outFaces);
+		auto *out_ = new std::vector<TriangleFace>(outFaces);
 		std::vector<TriangleFace> &out = *out_;
 
 		GLuint lastIndex = 0;
 		for (i = 0; i < inFaces; ++i) {
 			out[i] = in[i];
 
-			TriangleVertex *vertices = (TriangleVertex *) &in[i];
+			auto *vertices = (TriangleVertex *) &in[i];
 			for (j = 0; j < 3; ++j) {
 				if (lastIndex < vertices[j].i) {
 					lastIndex = vertices[j].i;

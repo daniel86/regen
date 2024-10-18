@@ -30,7 +30,7 @@ namespace regen {
 		 * Vertex data is not copied.
 		 * @param meshResource another mesh that provides vertex data.
 		 */
-		Mesh(const ref_ptr<Mesh> &meshResource);
+		explicit Mesh(const ref_ptr<Mesh> &meshResource);
 
 		/**
 		 * @param primitive Specifies what kind of primitives to render.
@@ -38,7 +38,7 @@ namespace regen {
 		 */
 		Mesh(GLenum primitive, VBO::Usage usage);
 
-		~Mesh();
+		~Mesh() override;
 
 		/**
 		 * @param out Set of meshes using the ShaderInputcontainer of this mesh
@@ -139,9 +139,9 @@ namespace regen {
 		const ref_ptr<FeedbackState> &feedbackState();
 
 		// override
-		virtual void enable(RenderState *);
+		void enable(RenderState *) override;
 
-		virtual void disable(RenderState *);
+		void disable(RenderState *) override;
 
 	protected:
 		GLenum primitive_;

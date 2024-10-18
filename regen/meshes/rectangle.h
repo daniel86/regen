@@ -64,12 +64,12 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		Rectangle(const Config &cfg = Config());
+		explicit Rectangle(const Config &cfg = Config());
 
 		/**
 		 * @param other Another Rectangle.
 		 */
-		Rectangle(const ref_ptr<Rectangle> &other);
+		explicit Rectangle(const ref_ptr<Rectangle> &other);
 
 		/**
 		 * Updates vertex data based on given configuration.

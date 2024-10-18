@@ -46,7 +46,7 @@ namespace regen {
 				const TriangleVertex &_v3)
 				: v1(_v1), v2(_v2), v3(_v3) {}
 
-		TriangleFace() {}
+		TriangleFace() = default;
 
 		/** First face vertex. */
 		TriangleVertex v1;

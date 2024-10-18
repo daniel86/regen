@@ -107,7 +107,7 @@ static void loadConeData(
 
 ref_ptr<ConeClosed> ConeClosed::getBaseCone() {
 	static ref_ptr<ConeClosed> mesh;
-	if (mesh.get() == NULL) {
+	if (mesh.get() == nullptr) {
 		Config cfg;
 		cfg.height = 1.0f;
 		cfg.radius = 0.5;
@@ -168,7 +168,7 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 
 	ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	indices->setVertexData(numIndices);
-	GLuint *faceIndices = (GLuint *) indices->clientDataPtr();
+	auto *faceIndices = (GLuint *) indices->clientDataPtr();
 	GLuint faceIndex = 0;
 	GLint vIndex = cfg.isBaseRequired ? 2 : 1;
 	// cone

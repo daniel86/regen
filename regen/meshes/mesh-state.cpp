@@ -53,8 +53,7 @@ Mesh::~Mesh() {
 
 void Mesh::getMeshViews(std::set<Mesh *> &out) {
 	out.insert(this);
-	for (std::set<Mesh *>::iterator
-				 it = meshViews_.begin(); it != meshViews_.end(); ++it) { (*it)->getMeshViews(out); }
+	for (auto it = meshViews_.begin(); it != meshViews_.end(); ++it) { (*it)->getMeshViews(out); }
 }
 
 void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in) {
@@ -74,10 +73,10 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 			inputContainer_->set_numInstances(in->numInstances());
 		}
 
-		std::map<GLint, std::list<ShaderInputLocation>::iterator>::iterator needle = vaoLocations_.find(loc);
+		auto needle = vaoLocations_.find(loc);
 		if (needle == vaoLocations_.end()) {
-			vaoAttributes_.push_back(ShaderInputLocation(in, loc));
-			std::list<ShaderInputLocation>::iterator it = vaoAttributes_.end();
+			vaoAttributes_.emplace_back(in, loc);
+			auto it = vaoAttributes_.end();
 			--it;
 			vaoLocations_[loc] = it;
 		} else {
@@ -113,17 +112,15 @@ void Mesh::updateVAO(
 	vaoLocations_.clear();
 	meshUniforms_.clear();
 	// and load from Config
-	for (ShaderInputList::const_iterator
-				 it = cfg.inputs_.begin(); it != cfg.inputs_.end(); ++it) { addShaderInput(it->name_, it->in_); }
+	for (auto it = cfg.inputs_.begin(); it != cfg.inputs_.end(); ++it) { addShaderInput(it->name_, it->in_); }
 	// Get input from mesh and joined states (might be handled by StateConfig allready)
 	ShaderInputList localInputs;
 	collectShaderInput(localInputs);
-	for (ShaderInputList::const_iterator it = localInputs.begin(); it != localInputs.end(); ++it) {
+	for (auto it = localInputs.begin(); it != localInputs.end(); ++it) {
 		addShaderInput(it->name_, it->in_);
 	}
 	// Add Textures
-	for (std::map<std::string, ref_ptr<Texture> >::const_iterator
-				 it = cfg.textures_.begin(); it != cfg.textures_.end(); ++it) { addShaderInput(it->first, it->second); }
+	for (auto it = cfg.textures_.begin(); it != cfg.textures_.end(); ++it) { addShaderInput(it->first, it->second); }
 
 	updateVAO(rs);
 	updateDrawFunction();
@@ -150,8 +147,7 @@ void Mesh::updateVAO(RenderState *rs) {
 	vao_->resetGL();
 	rs->vao().push(vao_->id());
 	// Setup attributes
-	for (std::list<ShaderInputLocation>::const_iterator
-				 it = vaoAttributes_.begin(); it != vaoAttributes_.end(); ++it) {
+	for (auto it = vaoAttributes_.begin(); it != vaoAttributes_.end(); ++it) {
 		const ref_ptr<ShaderInput> &in = it->input;
 		if (lastArrayBuffer != in->buffer()) {
 			lastArrayBuffer = in->buffer();
@@ -214,7 +210,7 @@ const Vec3f &Mesh::maxPosition() { return maxPosition_; }
 
 
 const ref_ptr<FeedbackState> &Mesh::feedbackState() {
-	if (feedbackState_.get() == NULL) {
+	if (feedbackState_.get() == nullptr) {
 		feedbackState_ = ref_ptr<FeedbackState>::alloc(feedbackPrimitive_, feedbackCount_);
 		joinStates(feedbackState_);
 	}
@@ -224,8 +220,7 @@ const ref_ptr<FeedbackState> &Mesh::feedbackState() {
 void Mesh::enable(RenderState *rs) {
 	State::enable(rs);
 
-	for (std::map<GLint, ShaderInputLocation>::iterator
-				 it = meshUniforms_.begin(); it != meshUniforms_.end(); ++it) {
+	for (auto it = meshUniforms_.begin(); it != meshUniforms_.end(); ++it) {
 		ShaderInputLocation &x = it->second;
 		// For uniforms below the shader it is expected that
 		// they will be set multiple times during shader lifetime.

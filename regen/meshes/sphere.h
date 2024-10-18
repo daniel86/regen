@@ -61,7 +61,7 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		Sphere(const Config &cfg = Config());
+		explicit Sphere(const Config &cfg = Config());
 
 		/**
 		 * Updates vertex data based on given configuration.
@@ -111,7 +111,7 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		SphereSprite(const Config &cfg);
+		explicit SphereSprite(const Config &cfg);
 
 		/**
 		 * Updates vertex data based on given configuration.

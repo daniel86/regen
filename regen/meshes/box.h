@@ -63,12 +63,12 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		Box(const Config &cfg = Config());
+		explicit Box(const Config &cfg = Config());
 
 		/**
 		 * @param other Another Box.
 		 */
-		Box(const ref_ptr<Box> &other);
+		explicit Box(const ref_ptr<Box> &other);
 
 		/**
 		 * Updates vertex data based on given configuration.

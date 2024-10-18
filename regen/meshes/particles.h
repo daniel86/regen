@@ -48,7 +48,7 @@ namespace regen {
 		const ref_ptr<ShaderInput1i> &maxNumParticleEmits() const;
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
 		/**
 		 * Begin recording ShaderInput's using interleaved layout.
