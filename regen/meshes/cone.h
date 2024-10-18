@@ -42,7 +42,7 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		ConeOpened(const Config &cfg = Config());
+		explicit ConeOpened(const Config &cfg = Config());
 
 		/**
 		 * Updates vertex data based on given configuration.
@@ -95,12 +95,12 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		ConeClosed(const Config &cfg = Config());
+		explicit ConeClosed(const Config &cfg = Config());
 
 		/**
 		 * @param other Another ConeClosed.
 		 */
-		ConeClosed(const ref_ptr<ConeClosed> &other);
+		explicit ConeClosed(const ref_ptr<ConeClosed> &other);
 
 		/**
 		 * Updates vertex data based on given configuration.

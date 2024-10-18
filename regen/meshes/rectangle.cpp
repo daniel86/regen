@@ -12,7 +12,7 @@ using namespace regen;
 
 ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 	static ref_ptr<Rectangle> mesh;
-	if (mesh.get() == NULL) {
+	if (mesh.get() == nullptr) {
 		Config cfg;
 		cfg.centerAtOrigin = GL_FALSE;
 		cfg.isNormalRequired = GL_FALSE;
@@ -92,13 +92,13 @@ void Rectangle::updateAttributes(Config cfg) {
 		GLuint numIndices = faces->size() * 3;
 		indices = ref_ptr<ShaderInput1ui>::alloc("i");
 		indices->setVertexData(numIndices);
-		GLuint *indicesPtr = (GLuint *) indices->clientDataPtr();
+		auto *indicesPtr = (GLuint *) indices->clientDataPtr();
 
 		// Set index data and compute vertex count
 		GLuint currIndex = 0;
 		for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
 			TriangleFace &face = (*faces)[faceIndex];
-			TriangleVertex *vertices = (TriangleVertex *) &face;
+			auto *vertices = (TriangleVertex *) &face;
 
 			for (GLuint i = 0; i < 3; ++i) {
 				TriangleVertex &vertex = vertices[i];
@@ -147,7 +147,7 @@ void Rectangle::updateAttributes(Config cfg) {
 
 	for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
 		TriangleFace &face = (*faces)[faceIndex];
-		TriangleVertex *vertices = (TriangleVertex *) &face;
+		auto *vertices = (TriangleVertex *) &face;
 
 		for (GLuint i = 0; i < 3; ++i) {
 			GLuint vertexIndex;

@@ -124,7 +124,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 	if (cfg.isHalfSphere) {
 		for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
 			TriangleFace &face = (*faces)[faceIndex];
-			TriangleVertex *vertices = (TriangleVertex *) &face;
+			auto *vertices = (TriangleVertex *) &face;
 			if (isOnPosYSphereEntirely(vertices)) continue;
 			for (GLuint i = 0; i < 3; ++i) {
 				if (vertices[i].p.y > 0) vertices[i].p.y = 0.0;
@@ -138,14 +138,14 @@ void Sphere::updateAttributes(const Config &cfg) {
 	GLuint numIndices = faceCounter * 3;
 	ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	indices->setVertexData(numIndices);
-	GLuint *indicesPtr = (GLuint *) indices->clientDataPtr();
+	auto *indicesPtr = (GLuint *) indices->clientDataPtr();
 
 	// Set index data and compute vertex count
 	std::map<GLuint, GLint> indexMap;
 	GLuint currIndex = 0;
 	for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
 		TriangleFace &face = (*faces)[faceIndex];
-		TriangleVertex *vertices = (TriangleVertex *) &face;
+		auto *vertices = (TriangleVertex *) &face;
 		if (cfg.isHalfSphere && isOnPosYSpherePartially(vertices)) continue;
 
 		for (GLuint i = 0; i < 3; ++i) {
@@ -187,7 +187,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 
 	for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
 		TriangleFace &face = (*faces)[faceIndex];
-		TriangleVertex *vertices = (TriangleVertex *) &face;
+		auto *vertices = (TriangleVertex *) &face;
 		if (cfg.isHalfSphere && isOnPosYSpherePartially(vertices)) continue;
 
 		// Compute uv-factors for this face
@@ -226,14 +226,14 @@ void Sphere::updateAttributes(const Config &cfg) {
 				tan_->setVertex(vertexIndex, Vec4f(t.x, t.y, t.z, 1.0));
 			}
 			if (texcoMode == TEXCO_MODE_UV) {
-				Vec2f *texco = (Vec2f *) texco_->clientData();
-				Vec3f *pos = (Vec3f *) pos_->clientData();
+				auto *texco = (Vec2f *) texco_->clientData();
+				auto *pos = (Vec3f *) pos_->clientData();
 				texco[vertexIndex] = Vec2f(
 						0.5f + pos[vertexIndex].x / cfg.posScale.x,
 						0.5f + pos[vertexIndex].y / cfg.posScale.y
 				);
 			} else if (texcoMode == TEXCO_MODE_SPHERE_MAP) {
-				Vec2f *texco = (Vec2f *) texco_->clientData();
+				auto *texco = (Vec2f *) texco_->clientData();
 				if (i == 0) texco[vertexIndex] = Vec2f(s1, t1);
 				else if (i == 1) texco[vertexIndex] = Vec2f(s2, t2);
 				else if (i == 2) texco[vertexIndex] = Vec2f(s3, t3);
@@ -264,8 +264,8 @@ void Sphere::updateAttributes(const Config &cfg) {
 ///////////
 
 SphereSprite::Config::Config()
-		: radius(NULL),
-		  position(NULL),
+		: radius(nullptr),
+		  position(nullptr),
 		  sphereCount(0),
 		  usage(VBO::USAGE_DYNAMIC) {
 }

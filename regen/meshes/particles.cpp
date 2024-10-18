@@ -98,7 +98,7 @@ VBOReference Particles::end() {
 		if (!in->isVertexAttribute()) continue;
 		GLint loc = updateState_->shader()->attributeLocation(it->in_->name());
 		if (loc == -1) continue;
-		particleAttributes_.push_back(ShaderInputLocation(in, loc));
+		particleAttributes_.emplace_back(in, loc);
 	}
 
 	return particleRef_;

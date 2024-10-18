@@ -40,7 +40,7 @@ namespace regen {
 
 ref_ptr<Box> Box::getUnitCube() {
 	static ref_ptr<Box> mesh;
-	if (mesh.get() == NULL) {
+	if (mesh.get() == nullptr) {
 		Config cfg;
 		cfg.posScale = Vec3f(1.0f);
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
@@ -162,8 +162,8 @@ void Box::updateAttributes(const Config &cfg) {
 
 	for (GLuint sideIndex = 0; sideIndex < 6; ++sideIndex) {
 		const Vec3f &normal = cubeNormals[sideIndex];
-		TriangleVertex *level0 = (TriangleVertex *) cubeVertices;
-		Vec2f *uv0 = (Vec2f *) cubeTexcoords;
+		auto *level0 = (TriangleVertex *) cubeVertices;
+		auto *uv0 = (Vec2f *) cubeTexcoords;
 		level0 += sideIndex * 4;
 		uv0 += sideIndex * 4;
 
@@ -179,7 +179,7 @@ void Box::updateAttributes(const Config &cfg) {
 		for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
 			GLuint vertexIndex = faceIndex * 3 + vertexBase;
 			TriangleFace &face = (*faces)[faceIndex];
-			TriangleVertex *f = (TriangleVertex *) &face;
+			auto *f = (TriangleVertex *) &face;
 
 			for (GLuint i = 0; i < 3; ++i) {
 				pos_->setVertex(vertexIndex + i, cfg.posScale * rotMat.transformVector(f[i].p));
@@ -189,14 +189,14 @@ void Box::updateAttributes(const Config &cfg) {
 			}
 
 			if (texcoMode == TEXCO_MODE_CUBE_MAP) {
-				Vec3f *texco = (Vec3f *) texco_->clientData();
+				auto *texco = (Vec3f *) texco_->clientData();
 				for (GLuint i = 0; i < 3; ++i) {
 					Vec3f v = f[i].p;
 					v.normalize();
 					texco[vertexIndex + i] = v;
 				}
 			} else if (texcoMode == TEXCO_MODE_UV) {
-				Vec2f *texco = (Vec2f *) texco_->clientData();
+				auto *texco = (Vec2f *) texco_->clientData();
 				for (GLuint i = 0; i < 3; ++i) {
 					// linear interpolate texture coordinates
 					const Vec3f &p = pos_->getVertex(vertexIndex + i);
