@@ -61,6 +61,8 @@ public slots:
   void changeVolume(int);
   void updateElapsedTime();
 
+  void gl_loadScene();
+
 protected:
   QtApplication *app_;
   QVBoxLayout *fullscreenLayout_;
@@ -74,6 +76,8 @@ protected:
   GLboolean controlsShown_;
   GLboolean wereControlsShown_;
   QList<int> splitterSizes_;
+
+  ref_ptr<Animation> initAnim_;
 
   void mousePressEvent(QMouseEvent *event);
   void mouseDoubleClickEvent(QMouseEvent *event);
