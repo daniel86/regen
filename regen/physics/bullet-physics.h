@@ -9,36 +9,36 @@
 #include <btBulletDynamicsCommon.h>
 
 namespace regen {
-  /**
-   * The physics simulation framework.
-   * Running in regen animation thread.
-   */
-  class BulletPhysics : public Animation
-  {
-  public:
-    /**
-     * Default constructor.
-     */
-    BulletPhysics();
+	/**
+	 * The physics simulation framework.
+	 * Running in regen animation thread.
+	 */
+	class BulletPhysics : public Animation {
+	public:
+		/**
+		 * Default constructor.
+		 */
+		BulletPhysics();
 
-    /**
-     * Adds an object to the physics simulation.
-     * @param object The object.
-     */
-    void addObject(const ref_ptr<PhysicalObject> &object);
+		/**
+		 * Adds an object to the physics simulation.
+		 * @param object The object.
+		 */
+		void addObject(const ref_ptr<PhysicalObject> &object);
 
-    // override
-    void glAnimate(RenderState *rs, GLdouble dt);
-    void animate(GLdouble dt);
+		// override
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
-  protected:
-    std::list< ref_ptr<PhysicalObject> > objects_;
-    ref_ptr<btCollisionDispatcher> dispatcher_;
-    ref_ptr<btDefaultCollisionConfiguration> configuration_;
-    ref_ptr<btSequentialImpulseConstraintSolver> solver_;
-    ref_ptr<btBroadphaseInterface> broadphase_;
-    ref_ptr<btDiscreteDynamicsWorld> dynamicsWorld_;
-  };
+		void animate(GLdouble dt) override;
+
+	protected:
+		std::list<ref_ptr<PhysicalObject> > objects_;
+		ref_ptr<btCollisionDispatcher> dispatcher_;
+		ref_ptr<btDefaultCollisionConfiguration> configuration_;
+		ref_ptr<btSequentialImpulseConstraintSolver> solver_;
+		ref_ptr<btBroadphaseInterface> broadphase_;
+		ref_ptr<btDiscreteDynamicsWorld> dynamicsWorld_;
+	};
 } // namespace
 
 #endif /* BULLET_ANIMATION_H_ */
