@@ -13,40 +13,40 @@
 #include <regen/gl-types/shader-input-container.h>
 
 namespace regen {
-  /**
-   * A layered camera looking at 6 cube faces.
-   */
-  class CubeCamera : public OmniDirectionalCamera
-  {
-  public:
-    /**
-     * @param mesh Defines cube center position.
-     * @param userCamera The user camera.
-     */
-    CubeCamera(
-        const ref_ptr<Mesh> &mesh,
-        const ref_ptr<Camera> &userCamera);
+	/**
+	 * A layered camera looking at 6 cube faces.
+	 */
+	class CubeCamera : public OmniDirectionalCamera {
+	public:
+		/**
+		 * @param mesh Defines cube center position.
+		 * @param userCamera The user camera.
+		 */
+		CubeCamera(
+				const ref_ptr<Mesh> &mesh,
+				const ref_ptr<Camera> &userCamera);
 
-    /**
-     * Toggle visibility for a cube face.
-     * @param face the face enumeration.
-     * @param visible if false face is ignored.
-     */
-    void set_isCubeFaceVisible(GLenum face, GLboolean visible);
+		/**
+		 * Toggle visibility for a cube face.
+		 * @param face the face enumeration.
+		 * @param visible if false face is ignored.
+		 */
+		void set_isCubeFaceVisible(GLenum face, GLboolean visible);
 
-    // Override
-    virtual void enable(RenderState *rs);
-  protected:
-    ref_ptr<Camera> userCamera_;
-    ref_ptr<ShaderInputMat4> modelMatrix_;
-    ref_ptr<ShaderInput3f> pos_;
-    GLboolean isCubeFaceVisible_[6];
+		// Override
+		virtual void enable(RenderState *rs);
 
-    GLuint positionStamp_;
-    GLuint matrixStamp_;
+	protected:
+		ref_ptr<Camera> userCamera_;
+		ref_ptr<ShaderInputMat4> modelMatrix_;
+		ref_ptr<ShaderInput3f> pos_;
+		GLboolean isCubeFaceVisible_[6];
 
-    void update();
-  };
+		GLuint positionStamp_;
+		GLuint matrixStamp_;
+
+		void update();
+	};
 } // namespace
 
 #endif /* CUBE_CAMERA_H_ */
