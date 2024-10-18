@@ -17,32 +17,30 @@
 #include <regen/states/atomic-states.h>
 
 namespace regen {
-  namespace scene {
-    /**
-     * Processes SceneInput and creates ToggleState.
-     */
-    class ToggleStateProvider : public StateProcessor {
-    public:
-      ToggleStateProvider()
-      : StateProcessor(REGEN_TOGGLE_STATE_CATEGORY)
-      {}
+	namespace scene {
+		/**
+		 * Processes SceneInput and creates ToggleState.
+		 */
+		class ToggleStateProvider : public StateProcessor {
+		public:
+			ToggleStateProvider()
+					: StateProcessor(REGEN_TOGGLE_STATE_CATEGORY) {}
 
-      // Override
-      void processInput(
-          SceneParser *parser,
-          SceneInputNode &input,
-          const ref_ptr<State> &state)
-      {
-        if(!input.hasAttribute("key")) {
-          REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
-          return;
-        }
-        state->joinStates(ref_ptr<ToggleState>::alloc(
-            input.getValue<RenderState::Toggle>("key",RenderState::CULL_FACE),
-            input.getValue<bool>("value",true)));
-      }
-    };
-  }
+			// Override
+			void processInput(
+					SceneParser *parser,
+					SceneInputNode &input,
+					const ref_ptr<State> &state) {
+				if (!input.hasAttribute("key")) {
+					REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
+					return;
+				}
+				state->joinStates(ref_ptr<ToggleState>::alloc(
+						input.getValue<RenderState::Toggle>("key", RenderState::CULL_FACE),
+						input.getValue<bool>("value", true)));
+			}
+		};
+	}
 }
 
 #endif /* REGEN_SCENE_TOGGLE_H_ */

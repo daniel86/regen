@@ -18,37 +18,36 @@
 #include <regen/states/fullscreen-pass.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Processes SceneInput and creates FullscreenPass nodes.
-   */
-  class FullscreenPassNodeProvider : public NodeProcessor {
-  public:
-    FullscreenPassNodeProvider()
-    : NodeProcessor(REGEN_FULLSCREEN_PASS_NODE_CATEGORY)
-    {}
+	namespace scene {
+		/**
+		 * Processes SceneInput and creates FullscreenPass nodes.
+		 */
+		class FullscreenPassNodeProvider : public NodeProcessor {
+		public:
+			FullscreenPassNodeProvider()
+					: NodeProcessor(REGEN_FULLSCREEN_PASS_NODE_CATEGORY) {}
 
-    // Override
-    void processInput(
-        SceneParser *parser,
-        SceneInputNode &input,
-        const ref_ptr<StateNode> &parent)
-    {
-      if(!input.hasAttribute("shader")) {
-        REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");
-        return;
-      }
-      const string shaderKey = input.getValue("shader");
+			// Override
+			void processInput(
+					SceneParser *parser,
+					SceneInputNode &input,
+					const ref_ptr<StateNode> &parent) {
+				if (!input.hasAttribute("shader")) {
+					REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");
+					return;
+				}
+				const string shaderKey = input.getValue("shader");
 
-      ref_ptr<FullscreenPass> fs = ref_ptr<FullscreenPass>::alloc(shaderKey);
-      ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fs);
-      parent->addChild(node);
+				ref_ptr<FullscreenPass> fs = ref_ptr<FullscreenPass>::alloc(shaderKey);
+				ref_ptr<StateNode> node = ref_ptr<StateNode>::alloc(fs);
+				parent->addChild(node);
 
-      StateConfigurer shaderConfigurer;
-      shaderConfigurer.addNode(node.get());
-      fs->createShader(shaderConfigurer.cfg());
-    }
-  };
-}}
+				StateConfigurer shaderConfigurer;
+				shaderConfigurer.addNode(node.get());
+				fs->createShader(shaderConfigurer.cfg());
+			}
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_FULLSCREEN_PASS_H_ */

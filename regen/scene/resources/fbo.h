@@ -14,17 +14,19 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Provides FBO instances from SceneInputNode data.
-   */
-  class FBOResource : public ResourceProvider<FBO> {
-  public:
-    FBOResource();
-    // Override
-    ref_ptr<FBO> createResource(
-        SceneParser *parser, SceneInputNode &input);
-  };
-}}
+	namespace scene {
+		/**
+		 * Provides FBO instances from SceneInputNode data.
+		 */
+		class FBOResource : public ResourceProvider<FBO> {
+		public:
+			FBOResource();
+
+			// Override
+			ref_ptr<FBO> createResource(
+					SceneParser *parser, SceneInputNode &input);
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_RESOURCE_FBO_H_ */

@@ -18,30 +18,29 @@
 #include <regen/camera/camera.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Processes SceneInput and creates Camera's.
-   */
-  class CameraStateProvider : public StateProcessor {
-  public:
-    CameraStateProvider()
-    : StateProcessor(REGEN_CAMERA_STATE_CATEGORY)
-    {}
+	namespace scene {
+		/**
+		 * Processes SceneInput and creates Camera's.
+		 */
+		class CameraStateProvider : public StateProcessor {
+		public:
+			CameraStateProvider()
+					: StateProcessor(REGEN_CAMERA_STATE_CATEGORY) {}
 
-    // Override
-    void processInput(
-        SceneParser *parser,
-        SceneInputNode &input,
-        const ref_ptr<State> &state)
-    {
-      ref_ptr<Camera> cam = parser->getResources()->getCamera(parser,input.getName());
-      if(cam.get()==NULL) {
-        REGEN_WARN("Unable to load Camera for '" << input.getDescription() << "'.");
-        return;
-      }
-      state->joinStates(cam);
-    }
-  };
-}}
+			// Override
+			void processInput(
+					SceneParser *parser,
+					SceneInputNode &input,
+					const ref_ptr<State> &state) {
+				ref_ptr<Camera> cam = parser->getResources()->getCamera(parser, input.getName());
+				if (cam.get() == NULL) {
+					REGEN_WARN("Unable to load Camera for '" << input.getDescription() << "'.");
+					return;
+				}
+				state->joinStates(cam);
+			}
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_CAMERA_H_ */
