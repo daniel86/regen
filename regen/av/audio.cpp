@@ -371,10 +371,10 @@ void AudioSource::openAudioStream(AVStream *stream, GLint index, GLboolean initi
 			// Handle allocation error
 		}
 
-		av_opt_set_int(resampleContext_, "in_channel_layout", codecCtx_->channel_layout, 0);
+		av_opt_set_int(resampleContext_, "in_channel_layout", codecCtx_->ch_layout.u.mask, 0);
 		av_opt_set_int(resampleContext_, "in_sample_fmt", codecCtx_->sample_fmt, 0);
 		av_opt_set_int(resampleContext_, "in_sample_rate", codecCtx_->sample_rate, 0);
-		av_opt_set_int(resampleContext_, "out_channel_layout", codecCtx_->channel_layout, 0);
+		av_opt_set_int(resampleContext_, "out_channel_layout", codecCtx_->ch_layout.u.mask, 0);
 		av_opt_set_int(resampleContext_, "out_sample_fmt", out_sample_fmt, 0); // example output format
 		av_opt_set_int(resampleContext_, "out_sample_rate", codecCtx_->sample_rate, 0);
 
