@@ -43,11 +43,11 @@ namespace regen {
 		void set_isCubeFaceVisible(GLenum face, GLboolean visible);
 
 		// Override
-		void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
-		virtual GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+		GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) override;
 
-		virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+		GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) override;
 
 	protected:
 		ref_ptr<Light> light_;

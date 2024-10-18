@@ -57,12 +57,12 @@ Camera::Camera(GLboolean initializeMatrices)
 
 	updateFrustum(8.0 / 6.0, 45.0, 1.0, 200.0, GL_FALSE);
 	if (initializeMatrices) {
-		view_->setUniformDataUntyped(NULL);
-		viewInv_->setUniformDataUntyped(NULL);
-		proj_->setUniformDataUntyped(NULL);
-		projInv_->setUniformDataUntyped(NULL);
-		viewproj_->setUniformDataUntyped(NULL);
-		viewprojInv_->setUniformDataUntyped(NULL);
+		view_->setUniformDataUntyped(nullptr);
+		viewInv_->setUniformDataUntyped(nullptr);
+		proj_->setUniformDataUntyped(nullptr);
+		projInv_->setUniformDataUntyped(nullptr);
+		viewproj_->setUniformDataUntyped(nullptr);
+		viewprojInv_->setUniformDataUntyped(nullptr);
 
 		updateProjection();
 		updateLookAt();
