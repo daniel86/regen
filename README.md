@@ -1,6 +1,3 @@
-regen {#mainpage}
-============
-
 <p align="center">
     <img src="img/fluid-text-white.gif" width="320" height="90" />
 </p>
