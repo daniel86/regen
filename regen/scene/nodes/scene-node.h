@@ -39,7 +39,7 @@ namespace regen {
 					  n_(n),
 					  comparator_(cam, frontToBack) {}
 
-			void enable(RenderState *state) { n_->childs().sort(comparator_); }
+			void enable(RenderState *state) override { n_->childs().sort(comparator_); }
 
 		protected:
 			ref_ptr<StateNode> n_;
@@ -58,7 +58,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				ref_ptr<StateNode> newNode;
 				string nodeType = input.getValue<string>("type", "");
 
@@ -72,7 +72,7 @@ namespace regen {
 					//   - Uniforms above node are joined into shader
 					ref_ptr<SceneInputNode> imported =
 							root->getFirstChild(REGEN_NODE_CATEGORY, importID);
-					if (imported.get() == NULL) {
+					if (imported.get() == nullptr) {
 						REGEN_WARN("Unable to import node '" << importID << "'.");
 					} else {
 						newNode = createNode(parser, *imported.get(), parent);
@@ -83,7 +83,7 @@ namespace regen {
 					}
 				} else if (nodeType == string("cull")) {
 					newNode = createCullNode(parser, input, parent);
-					if (newNode.get() != NULL) {
+					if (newNode.get() != nullptr) {
 						handleAttributes(parser, input, newNode);
 						handleChildren(parser, input, newNode);
 					}
@@ -119,18 +119,17 @@ namespace regen {
 					const ref_ptr<StateNode> &newNode) {
 				// Process node children
 				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-				for (list<ref_ptr<SceneInputNode> >::const_iterator
-							 it = childs.begin(); it != childs.end(); ++it) {
+				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					const ref_ptr<SceneInputNode> &x = *it;
 					// First try node processor
 					ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
-					if (nodeProcessor.get() != NULL) {
+					if (nodeProcessor.get() != nullptr) {
 						nodeProcessor->processInput(parser, *x.get(), newNode);
 						continue;
 					}
 					// Second try state processor
 					ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
-					if (stateProcessor.get() != NULL) {
+					if (stateProcessor.get() != nullptr) {
 						stateProcessor->processInput(parser, *x.get(), newNode->state());
 						continue;
 					}
@@ -168,14 +167,14 @@ namespace regen {
 				ref_ptr<GeometricCulling> cullNode;
 
 				ref_ptr<Camera> cam = parent->getParentCamera();
-				if (cam.get() == NULL) {
+				if (cam.get() == nullptr) {
 					REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
 
 				ref_ptr<MeshVector> cullMesh = parser->getResources()->getMesh(parser,
 																			   input.getValue<string>("mesh", ""));
-				if (cullMesh.get() == NULL) {
+				if (cullMesh.get() == nullptr) {
 					REGEN_WARN("No Mesh can be found for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
@@ -186,7 +185,7 @@ namespace regen {
 				}
 				const string &transformId = input.getValue("transform");
 				ref_ptr<ModelTransformation> transform = parser->getResources()->getTransform(parser, transformId);
-				if (transform.get() == NULL) { // Load transform
+				if (transform.get() == nullptr) { // Load transform
 					ref_ptr<SceneInputNode> transformNode = parser->getRoot()->getFirstChild("transform",
 																							 input.getValue(
 																									 "transform"));
@@ -195,7 +194,7 @@ namespace regen {
 					transformProcessor->processInput(parser, *transformNode.get(), ref_ptr<State>::alloc());
 				}
 				transform = parser->getResources()->getTransform(parser, transformId);
-				if (transform.get() == NULL) {
+				if (transform.get() == nullptr) {
 					REGEN_WARN("Unable to find transform for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
@@ -213,18 +212,17 @@ namespace regen {
 
 				// Process node children
 				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-				for (list<ref_ptr<SceneInputNode> >::const_iterator
-							 it = childs.begin(); it != childs.end(); ++it) {
+				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					const ref_ptr<SceneInputNode> &x = *it;
 					// First try node processor
 					ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
-					if (nodeProcessor.get() != NULL) {
+					if (nodeProcessor.get() != nullptr) {
 						nodeProcessor->processInput(parser, *x.get(), cullNode);
 						continue;
 					}
 					// Second try state processor
 					ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
-					if (stateProcessor.get() != NULL) {
+					if (stateProcessor.get() != nullptr) {
 						stateProcessor->processInput(parser, *x.get(), cullNode->state());
 						continue;
 					}

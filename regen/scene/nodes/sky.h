@@ -30,9 +30,9 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				ref_ptr<Sky> skyNode = parser->getResources()->getSky(parser, input.getName());
-				if (skyNode.get() == NULL) {
+				if (skyNode.get() == nullptr) {
 					REGEN_WARN("Unable to load sky for '" << input.getDescription() << "'.");
 					return;
 				}

@@ -31,7 +31,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				if (!input.hasAttribute("shader")) {
 					REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");
 					return;

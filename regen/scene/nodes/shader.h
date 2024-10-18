@@ -31,19 +31,18 @@ namespace regen {
 			 * @return Shader associated to State or joined States.
 			 */
 			static ref_ptr<Shader> findShader(State *s) {
-				for (list<ref_ptr<State> >::const_reverse_iterator
-							 it = s->joined().rbegin(); it != s->joined().rend(); ++it) {
+				for (auto it = s->joined().rbegin(); it != s->joined().rend(); ++it) {
 					ref_ptr<Shader> out = findShader((*it).get());
-					if (out.get() != NULL) return out;
+					if (out.get() != nullptr) return out;
 				}
 
-				ShaderState *shaderState = dynamic_cast<ShaderState *>(s);
-				if (shaderState != NULL) return shaderState->shader();
+				auto *shaderState = dynamic_cast<ShaderState *>(s);
+				if (shaderState != nullptr) return shaderState->shader();
 
-				HasShader *hasShader = dynamic_cast<HasShader *>(s);
-				if (hasShader != NULL) return hasShader->shaderState()->shader();
+				auto *hasShader = dynamic_cast<HasShader *>(s);
+				if (hasShader != nullptr) return hasShader->shaderState()->shader();
 
-				return ref_ptr<Shader>();
+				return {};
 			}
 
 			/**
@@ -52,7 +51,7 @@ namespace regen {
 			 */
 			static ref_ptr<Shader> findShader(StateNode *n) {
 				ref_ptr<Shader> out = findShader(n->state().get());
-				if (out.get() == NULL && n->hasParent()) {
+				if (out.get() == nullptr && n->hasParent()) {
 					return findShader(n->parent());
 				} else {
 					return out;
@@ -66,7 +65,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				if (!input.hasAttribute("key") && !input.hasAttribute("code")) {
 					REGEN_WARN("Ignoring " << input.getDescription() << " without shader input.");
 					return;

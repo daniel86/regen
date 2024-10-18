@@ -49,12 +49,11 @@ namespace regen {
 				bool useShadows = false, toggle = true;
 
 				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-				for (list<ref_ptr<SceneInputNode> >::const_iterator
-							 it = childs.begin(); it != childs.end(); ++it) {
+				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					ref_ptr<SceneInputNode> n = *it;
 
 					ref_ptr<Light> light = parser->getResources()->getLight(parser, n->getName());
-					if (light.get() == NULL) {
+					if (light.get() == nullptr) {
 						continue;
 					}
 					list<ref_ptr<ShaderInput> > inputs;
@@ -65,7 +64,7 @@ namespace regen {
 					if (n->hasAttribute("shadow-camera")) {
 						shadowCamera = ref_ptr<LightCamera>::dynamicCast(
 								parser->getResources()->getCamera(parser, n->getValue("shadow-camera")));
-						if (shadowCamera.get() == NULL) {
+						if (shadowCamera.get() == nullptr) {
 							REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");
 						}
 					}
@@ -73,7 +72,7 @@ namespace regen {
 						shadowMap = TextureStateProvider::getTexture(parser, *n.get(),
 																	 "shadow-texture", "shadow-buffer",
 																	 "shadow-attachment");
-						if (shadowMap.get() == NULL) {
+						if (shadowMap.get() == nullptr) {
 							REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
 						}
 					}
@@ -84,17 +83,16 @@ namespace regen {
 																		  "shadow-color-attachment");
 					}
 					if (toggle) {
-						useShadows = (shadowMap.get() != NULL);
+						useShadows = (shadowMap.get() != nullptr);
 						toggle = false;
-					} else if ((shadowMap.get() != NULL) != useShadows) {
+					} else if ((shadowMap.get() != nullptr) != useShadows) {
 						REGEN_WARN("Ignoring " << input.getDescription() << ".");
 						continue;
 					}
 
 					// Each light pass can have a set of ShaderInput's
 					const list<ref_ptr<SceneInputNode> > &childs = n->getChildren();
-					for (list<ref_ptr<SceneInputNode> >::const_iterator
-								 it = childs.begin(); it != childs.end(); ++it) {
+					for (auto it = childs.begin(); it != childs.end(); ++it) {
 						ref_ptr<SceneInputNode> m = *it;
 						if (m->getCategory() == "input") {
 							inputs.push_back(InputStateProvider::createShaderInput(parser, *m.get(), x));

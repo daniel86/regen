@@ -20,11 +20,11 @@ ref_ptr<AssetImporter> AssetResource::createResource(
 		SceneInputNode &input) {
 	if (!input.hasAttribute("file")) {
 		REGEN_WARN("Ignoring Asset '" << input.getDescription() << "' without file.");
-		return ref_ptr<AssetImporter>();
+		return {};
 	}
 	const std::string assetPath = getResourcePath(input.getValue("file"));
 	const std::string texturePath = getResourcePath(input.getValue("texture-path"));
-	GLint assimpFlags = input.getValue<GLint>("import-flags", -1);
+	auto assimpFlags = input.getValue<GLint>("import-flags", -1);
 
 	AssimpAnimationConfig animConfig;
 	animConfig.numInstances =
@@ -48,6 +48,6 @@ ref_ptr<AssetImporter> AssetResource::createResource(
 	}
 	catch (AssetImporter::Error &e) {
 		REGEN_WARN("Unable to open Asset file: " << e.what() << ".");
-		return ref_ptr<AssetImporter>();
+		return {};
 	}
 }

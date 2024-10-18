@@ -31,7 +31,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				if (input.hasAttribute("mode")) {
 					state->joinStates(ref_ptr<CullFaceState>::alloc(
 							glenum::cullFace(input.getValue("mode"))));

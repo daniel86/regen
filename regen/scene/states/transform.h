@@ -39,21 +39,20 @@ static void transformMatrix(
 static void transformMatrix(
 		SceneInputNode &input, Mat4f *matrices, GLuint numInstances) {
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = childs.begin(); it != childs.end(); ++it) {
+	for (auto it = childs.begin(); it != childs.end(); ++it) {
 		ref_ptr<SceneInputNode> child = *it;
 		list<GLuint> indices = child->getIndexSequence(numInstances);
 
 		if (child->getCategory() == "set") {
 			ValueGenerator<Vec3f> generator(child.get(), indices.size(),
 											child->getValue<Vec3f>("value", Vec3f(0.0f)));
-			const string target = child->getValue<string>("target", "translate");
+			const auto target = child->getValue<string>("target", "translate");
 
-			for (list<GLuint>::iterator it = indices.begin(); it != indices.end(); ++it) {
+			for (auto it = indices.begin(); it != indices.end(); ++it) {
 				transformMatrix(target, matrices[*it], generator.next());
 			}
 		} else {
-			for (list<GLuint>::iterator it = indices.begin(); it != indices.end(); ++it) {
+			for (auto it = indices.begin(); it != indices.end(); ++it) {
 				transformMatrix(child->getCategory(), matrices[*it],
 								child->getValue<Vec3f>("value", Vec3f(0.0f)));
 			}
@@ -66,7 +65,7 @@ static ref_ptr<ShaderInput> getMeshPositions(
 	ref_ptr<MeshVector> meshes = parser->getResources()->getMesh(parser, input.getValue("mesh"));
 	ref_ptr<ShaderInput> out;
 
-	if (meshes.get() == NULL || meshes->empty()) {
+	if (meshes.get() == nullptr || meshes->empty()) {
 		REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
 	} else if (meshes->size() > 1) {
 		REGEN_WARN("Unable to handle multiple Meshes for '" << input.getDescription() << "'.");
@@ -81,7 +80,7 @@ static ref_ptr<Mesh> getMesh(
 	ref_ptr<MeshVector> meshes = parser->getResources()->getMesh(parser, input.getValue("mesh"));
 	ref_ptr<Mesh> out;
 
-	if (meshes.get() == NULL || meshes->empty()) {
+	if (meshes.get() == nullptr || meshes->empty()) {
 		REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
 	} else if (meshes->size() > 1) {
 		REGEN_WARN("Unable to handle multiple Meshes for '" << input.getDescription() << "'.");
@@ -110,7 +109,7 @@ namespace regen {
 					SceneInputNode &input,
 					const ref_ptr<btMotionState> &motion) {
 				const string shapeName(input.getValue("shape"));
-				GLfloat mass = input.getValue<GLfloat>("mass", 1.0f);
+				auto mass = input.getValue<GLfloat>("mass", 1.0f);
 
 				ref_ptr<PhysicalProps> props;
 				// Primitives
@@ -122,42 +121,42 @@ namespace regen {
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btSphereShape>::alloc(radius));
 				} else if (shapeName == "wall") {
-					Vec2f size = input.getValue<Vec2f>("size", Vec2f(1.0f));
+					auto size = input.getValue<Vec2f>("size", Vec2f(1.0f));
 					// TODO: allow configuration of orientation and position
 					btVector3 halfExtend(size.x * 0.5, 0.001, size.y * 0.5);
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btBoxShape>::alloc(halfExtend));
 					mass = 0.0;
 				} else if (shapeName == "infinite-wall") {
-					Vec3f planeNormal = input.getValue<Vec3f>("normal", Vec3f(0.0f, 1.0f, 0.0f));
-					GLfloat planeConstant = input.getValue<GLfloat>("constant", GLfloat(0.0f));
+					auto planeNormal = input.getValue<Vec3f>("normal", Vec3f(0.0f, 1.0f, 0.0f));
+					auto planeConstant = input.getValue<GLfloat>("constant", GLfloat(0.0f));
 					btVector3 planeNormal_(planeNormal.x, planeNormal.y, planeNormal.z);
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btStaticPlaneShape>::alloc(planeNormal_, planeConstant));
 					mass = 0.0;
 				} else if (shapeName == "box") {
-					Vec3f size = input.getValue<Vec3f>("size", Vec3f(1.0f));
+					auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
 					btVector3 halfExtend(size.x * 0.5, size.y * 0.5, size.z * 0.5);
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btBoxShape>::alloc(halfExtend));
 				} else if (shapeName == "cylinder") {
-					Vec3f size = input.getValue<Vec3f>("size", Vec3f(1.0f));
+					auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
 					btVector3 halfExtend(size.x * 0.5, size.y * 0.5, size.z * 0.5);
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btCylinderShape>::alloc(halfExtend));
 				} else if (shapeName == "capsule") {
-					GLfloat radius = input.getValue<GLfloat>("radius", 1.0f);
-					GLfloat height = input.getValue<GLfloat>("height", 1.0f);
+					auto radius = input.getValue<GLfloat>("radius", 1.0f);
+					auto height = input.getValue<GLfloat>("height", 1.0f);
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btCapsuleShape>::alloc(radius, height));
 				} else if (shapeName == "cone") {
-					GLfloat radius = input.getValue<GLfloat>("radius", 1.0f);
-					GLfloat height = input.getValue<GLfloat>("height", 1.0f);
+					auto radius = input.getValue<GLfloat>("radius", 1.0f);
+					auto height = input.getValue<GLfloat>("height", 1.0f);
 					props = ref_ptr<PhysicalProps>::alloc(
 							motion, ref_ptr<btConeShape>::alloc(radius, height));
 				} else if (shapeName == "convex-hull") {
 					ref_ptr<ShaderInput> pos = getMeshPositions(parser, input);
-					if (pos.get() != NULL) {
+					if (pos.get() != nullptr) {
 						if (!pos->hasClientData() && !pos->hasServerData()) {
 							REGEN_WARN("Mesh '" << input.getValue("mesh") <<
 												"' has no position data available.");
@@ -182,12 +181,12 @@ namespace regen {
 					}
 				} else if (shapeName == "triangle-mesh") {
 					ref_ptr<Mesh> mesh = getMesh(parser, input);
-					ref_ptr<ShaderInput> pos = (mesh.get() == NULL ?
+					ref_ptr<ShaderInput> pos = (mesh.get() == nullptr ?
 												ref_ptr<ShaderInput>() : mesh->positions());
-					ref_ptr<ShaderInput> indices = (mesh.get() == NULL ?
+					ref_ptr<ShaderInput> indices = (mesh.get() == nullptr ?
 													ref_ptr<ShaderInput>() : mesh->inputContainer()->indices());
 
-					if (pos.get() != NULL && indices.get() != NULL) {
+					if (pos.get() != nullptr && indices.get() != nullptr) {
 						btIndexedMesh btMesh;
 						btMesh.m_numVertices = pos->numVertices();
 						btMesh.m_vertexStride = pos->elementSize();
@@ -233,7 +232,7 @@ namespace regen {
 
 							const bool useQuantizedAabbCompression = true;
 
-							btTriangleIndexVertexArray *btMeshIface = new btTriangleIndexVertexArray;
+							auto *btMeshIface = new btTriangleIndexVertexArray;
 							btMeshIface->addIndexedMesh(btMesh, indexType);
 							ref_ptr<btBvhTriangleMeshShape> shape =
 									ref_ptr<btBvhTriangleMeshShape>::alloc(btMeshIface, useQuantizedAabbCompression);
@@ -242,22 +241,22 @@ namespace regen {
 							REGEN_WARN("Unsupported primitive for btTriangleIndexVertexArray "
 											   << "in input node " << input.getDescription() << "'.");
 						}
-					} else if (indices.get() == NULL) {
+					} else if (indices.get() == nullptr) {
 						REGEN_WARN(
 								"Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Indices.");
-						return ref_ptr<PhysicalProps>();
-					} else if (pos.get() == NULL) {
+						return {};
+					} else if (pos.get() == nullptr) {
 						REGEN_WARN("Ignoring physical shape for '" << input.getDescription()
 																   << "'. Mesh has no Positions.");
-						return ref_ptr<PhysicalProps>();
+						return {};
 					}
 				}
-				if (props.get() == NULL) {
+				if (props.get() == nullptr) {
 					REGEN_WARN("Ignoring unknown physical shape '" << input.getDescription() << "'.");
-					return ref_ptr<PhysicalProps>();
+					return {};
 				}
 
-				Vec3f inertia = input.getValue<Vec3f>("inertia", Vec3f(0.0f));
+				auto inertia = input.getValue<Vec3f>("inertia", Vec3f(0.0f));
 				props->setMassProps(mass, btVector3(inertia.x, inertia.x, inertia.z));
 
 				props->setRestitution(
@@ -303,33 +302,33 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<ModelTransformation> transform = parser->getResources()->getTransform(parser, input.getName());
-				if (transform.get() != NULL) {
+				if (transform.get() != nullptr) {
 					state->joinStates(transform);
 					return;
 				}
 				ref_ptr<SceneInputNode> transformNode = parser->getRoot()->getFirstChild(REGEN_TRANSFORM_STATE_CATEGORY,
 																						 input.getName());
-				if (transformNode.get() != NULL && transformNode.get() != &input) {
+				if (transformNode.get() != nullptr && transformNode.get() != &input) {
 					processInput(parser, *transformNode.get(), state);
 					return;
 				}
 
 				bool isInstanced = input.getValue<bool>("is-instanced", false);
-				GLuint numInstances = input.getValue<GLuint>("num-instances", 1u);
+				auto numInstances = input.getValue<GLuint>("num-instances", 1u);
 				transform = ref_ptr<ModelTransformation>::alloc();
 
 				// Handle instanced model matrix
 				if (isInstanced && numInstances > 1) {
-					transform->get()->setInstanceData(numInstances, 1, NULL);
-					Mat4f *matrices = (Mat4f *) transform->get()->clientDataPtr();
+					transform->get()->setInstanceData(numInstances, 1, nullptr);
+					auto *matrices = (Mat4f *) transform->get()->clientDataPtr();
 					for (GLuint i = 0; i < numInstances; i += 1) matrices[i] = Mat4f::identity();
 					transformMatrix(input, matrices, numInstances);
 					// add data to vbo
 					transform->setInput(transform->get());
 				} else {
-					Mat4f *matrices = (Mat4f *) transform->get()->clientDataPtr();
+					auto *matrices = (Mat4f *) transform->get()->clientDataPtr();
 					transformMatrix(input, matrices, 1u);
 				}
 

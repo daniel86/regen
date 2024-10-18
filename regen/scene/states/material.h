@@ -31,17 +31,17 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<Material> mat = ref_ptr<Material>::alloc();
 
 				if (input.hasAttribute("asset")) {
 					ref_ptr<AssetImporter> assetLoader =
 							parser->getResources()->getAsset(parser, input.getValue("asset"));
-					if (assetLoader.get() == NULL) {
+					if (assetLoader.get() == nullptr) {
 						REGEN_WARN("Skipping unknown Asset for '" << input.getDescription() << "'.");
 					} else {
 						const vector<ref_ptr<Material> > materials = assetLoader->materials();
-						GLuint materialIndex = input.getValue<GLuint>("asset-index", 0u);
+						auto materialIndex = input.getValue<GLuint>("asset-index", 0u);
 						if (materialIndex >= materials.size()) {
 							REGEN_WARN("Invalid Material index '" << materialIndex <<
 																  "' for Asset '" << input.getValue("asset") << "'.");

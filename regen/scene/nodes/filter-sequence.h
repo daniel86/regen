@@ -32,7 +32,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				if (!input.hasAttribute("texture") && !input.hasAttribute("fbo")) {
 					REGEN_WARN("Ignoring " << input.getDescription() << " without input texture.");
 					return;
@@ -41,17 +41,17 @@ namespace regen {
 				ref_ptr<Texture> tex;
 				if (input.hasAttribute("texture")) {
 					tex = parser->getResources()->getTexture(parser, input.getValue("texture"));
-					if (tex.get() == NULL) {
+					if (tex.get() == nullptr) {
 						REGEN_WARN("Unable to find Texture for " << input.getDescription() << ".");
 						return;
 					}
 				} else {
 					ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser, input.getValue("fbo"));
-					if (fbo.get() == NULL) {
+					if (fbo.get() == nullptr) {
 						REGEN_WARN("Unable to find FBO for " << input.getDescription() << ".");
 						return;
 					}
-					GLuint attachment = input.getValue<GLuint>("attachment", 0);
+					auto attachment = input.getValue<GLuint>("attachment", 0);
 					vector<ref_ptr<Texture> > textures = fbo->colorTextures();
 					if (attachment >= textures.size()) {
 						REGEN_WARN("FBO " << input.getValue("fbo") <<
@@ -76,8 +76,7 @@ namespace regen {
 				}
 
 				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-				for (list<ref_ptr<SceneInputNode> >::const_iterator
-							 it = childs.begin(); it != childs.end(); ++it) {
+				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					ref_ptr<SceneInputNode> n = *it;
 					if (!n->hasAttribute("shader")) {
 						REGEN_WARN("Ignoring filter '" << n->getDescription() << "' without shader.");

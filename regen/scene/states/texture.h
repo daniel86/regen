@@ -44,12 +44,12 @@ namespace regen {
 					tex = parser->getResources()->getTexture(parser, input.getValue(idKey));
 				} else if (input.hasAttribute(bufferKey)) {
 					ref_ptr<FBO> fbo = parser->getResources()->getFBO(parser, input.getValue(bufferKey));
-					if (fbo.get() == NULL) {
+					if (fbo.get() == nullptr) {
 						REGEN_WARN("Unable to find FBO '" << input.getValue(bufferKey) <<
 														  "' for " << input.getDescription() << ".");
 						return tex;
 					}
-					const string val = input.getValue<string>(attachmentKey, "0");
+					const auto val = input.getValue<string>(attachmentKey, "0");
 					if (val == "depth") {
 						tex = fbo->depthTexture();
 					} else {
@@ -77,9 +77,9 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<Texture> tex = getTexture(parser, input);
-				if (tex.get() == NULL) {
+				if (tex.get() == nullptr) {
 					REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
 					return;
 				}

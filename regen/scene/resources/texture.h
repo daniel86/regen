@@ -46,7 +46,7 @@ namespace regen {
 
 			// Override
 			ref_ptr<Texture> createResource(
-					SceneParser *parser, SceneInputNode &input);
+					SceneParser *parser, SceneInputNode &input) override;
 		};
 	}
 }

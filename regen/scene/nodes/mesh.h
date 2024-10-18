@@ -36,14 +36,14 @@ namespace regen {
 					const ref_ptr<StateNode> &parent) {
 				ref_ptr<MeshVector> meshes =
 						parser->getResources()->getMesh(parser, input.getName());
-				if (meshes.get() == NULL) {
+				if (meshes.get() == nullptr) {
 					REGEN_WARN("Unable to load Mesh for '" << input.getDescription() << "'.");
 					return;
 				}
 
-				for (MeshVector::iterator it = meshes->begin(); it != meshes->end(); ++it) {
+				for (auto it = meshes->begin(); it != meshes->end(); ++it) {
 					ref_ptr<Mesh> meshResource = *it;
-					if (meshResource.get() == NULL) {
+					if (meshResource.get() == nullptr) {
 						REGEN_WARN("null mesh");
 						continue;
 					}
@@ -65,12 +65,12 @@ namespace regen {
 					ref_ptr<Shader> meshShader;
 
 					// Handle shader
-					HasShader *hasShader0 = dynamic_cast<HasShader *>(mesh.get());
-					HasShader *hasShader1 = dynamic_cast<HasShader *>(meshResource.get());
-					if (hasShader0 != NULL) {
+					auto *hasShader0 = dynamic_cast<HasShader *>(mesh.get());
+					auto *hasShader1 = dynamic_cast<HasShader *>(meshResource.get());
+					if (hasShader0 != nullptr) {
 						hasShader0->createShader(stateConfigurer.cfg());
 						meshShader = hasShader0->shaderState()->shader();
-					} else if (hasShader1 != NULL) {
+					} else if (hasShader1 != nullptr) {
 						const string shaderKey = hasShader1->shaderKey();
 						ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
 						mesh->joinStates(shaderState);
@@ -85,12 +85,12 @@ namespace regen {
 						shaderState->createShader(stateConfigurer.cfg(), shaderKey);
 						meshShader = shaderState->shader();
 					}
-					if (meshShader.get() == NULL) {
+					if (meshShader.get() == nullptr) {
 						// Try to find parent shader.
 						meshShader = ShaderNodeProvider::findShader(parent.get());
 					}
 
-					if (meshShader.get() == NULL) {
+					if (meshShader.get() == nullptr) {
 						REGEN_WARN("Unable to find shader for " << input.getDescription() << ".");
 					} else {
 						// Update VAO

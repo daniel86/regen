@@ -31,7 +31,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				if (!input.hasAttribute("src-fbo")) {
 					REGEN_WARN("Ignoring " << input.getDescription() << " without src-fbo attribute.");
 					return;
@@ -45,35 +45,35 @@ namespace regen {
 				ref_ptr<FBO> src, dst;
 				if (srcID != "SCREEN") {
 					src = parser->getResources()->getFBO(parser, srcID);
-					if (src.get() == NULL) {
+					if (src.get() == nullptr) {
 						REGEN_WARN("Unable to find FBO with name '" << srcID << "'.");
 						return;
 					}
 				}
 				if (dstID != "SCREEN") {
 					dst = parser->getResources()->getFBO(parser, dstID);
-					if (dst.get() == NULL) {
+					if (dst.get() == nullptr) {
 						REGEN_WARN("Unable to find FBO with name '" << dstID << "'.");
 						return;
 					}
 				}
 				bool keepAspect = input.getValue<GLuint>("keep-aspect", false);
-				if (src.get() != NULL && dst.get() != NULL) {
-					GLuint srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
-					GLuint dstAttachment = input.getValue<GLuint>("dst-attachment", 0u);
+				if (src.get() != nullptr && dst.get() != nullptr) {
+					auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
+					auto dstAttachment = input.getValue<GLuint>("dst-attachment", 0u);
 					state->joinStates(ref_ptr<BlitToFBO>::alloc(
 							src, dst,
 							GL_COLOR_ATTACHMENT0 + srcAttachment,
 							GL_COLOR_ATTACHMENT0 + dstAttachment,
 							keepAspect));
-				} else if (src.get() != NULL) {
+				} else if (src.get() != nullptr) {
 					// Blit Texture to Screen
-					GLuint srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
+					auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
 					state->joinStates(ref_ptr<BlitToScreen>::alloc(src,
 																   parser->getViewport(),
 																   GL_COLOR_ATTACHMENT0 + srcAttachment,
 																   keepAspect));
-				} else if (dst.get() != NULL) {
+				} else if (dst.get() != nullptr) {
 					REGEN_WARN(input.getDescription() << ", blitting Screen to FBO not supported.");
 				} else {
 					REGEN_WARN("No src or dst FBO specified for " << input.getDescription() << ".");

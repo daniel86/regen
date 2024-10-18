@@ -33,7 +33,7 @@ public:
 	}
 
 	// Override
-	void glAnimate(RenderState *rs, GLdouble dt) {
+	void glAnimate(RenderState *rs, GLdouble dt) override {
 		setVertex(0, getVertex(0) + dt * timeScale_);
 	}
 
@@ -50,7 +50,7 @@ struct KeyFrame {
 template<class U, class T>
 class KeyFrameAnimation : public Animation {
 public:
-	KeyFrameAnimation(const ref_ptr<U> &in)
+	explicit KeyFrameAnimation(const ref_ptr<U> &in)
 			: Animation(GL_TRUE, GL_TRUE),
 			  in_(in) {
 		val_ = in_->getVertex(0);
@@ -71,7 +71,7 @@ public:
 	}
 
 	// Override
-	void animate(GLdouble dt) {
+	void animate(GLdouble dt) override {
 		if (it_ == frames_.end()) {
 			it_ = frames_.begin();
 			dt_ = 0.0;
@@ -95,7 +95,7 @@ public:
 		}
 	}
 
-	void glAnimate(RenderState *rs, GLdouble dt) {
+	void glAnimate(RenderState *rs, GLdouble dt) override {
 		lock();
 		{
 			in_->setVertex(0, val_);
@@ -132,16 +132,16 @@ namespace regen {
 				if (input.hasAttribute("state")) {
 					// take uniform from state
 					ref_ptr<State> s = parser->getState(input.getValue("state"));
-					if (s.get() == NULL) {
+					if (s.get() == nullptr) {
 						parser->getResources()->loadResources(parser, input.getValue("state"));
 						s = parser->getState(input.getValue("state"));
-						if (state.get() == NULL) {
+						if (state.get() == nullptr) {
 							REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
-							return ref_ptr<ShaderInput>();
+							return {};
 						}
 					}
 					ref_ptr<ShaderInput> ret = s->findShaderInput(input.getValue("component"));
-					if (ret.get() == NULL) {
+					if (ret.get() == nullptr) {
 						REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
 					}
 					return ret;
@@ -150,7 +150,7 @@ namespace regen {
 				ref_ptr<ShaderInput> in;
 				const string type = input.getValue<string>("type", "");
 				if (type == "time") {
-					GLfloat scale = input.getValue<GLfloat>("scale", 1.0f);
+					auto scale = input.getValue<GLfloat>("scale", 1.0f);
 					in = ref_ptr<TimerInput>::alloc(scale);
 				} else if (type == "int") {
 					in = createShaderInputTyped<ShaderInput1i, GLint>(parser, input, state, GLint(0));
@@ -193,9 +193,9 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<State> &state) {
+					const ref_ptr<State> &state) override {
 				ref_ptr<ShaderInput> in = createShaderInput(parser, input, state);
-				if (in.get() == NULL) {
+				if (in.get() == nullptr) {
 					REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
 					return;
 				}
@@ -204,9 +204,9 @@ namespace regen {
 				while (!s->joined().empty()) {
 					s = *s->joined().rbegin();
 				}
-				HasInput *x = dynamic_cast<HasInput *>(s.get());
+				auto *x = dynamic_cast<HasInput *>(s.get());
 
-				if (x == NULL) {
+				if (x == nullptr) {
 					ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
 					inputState->setInput(in, input.getValue("name"));
 					state->joinStates(inputState);
@@ -230,17 +230,17 @@ namespace regen {
 				ref_ptr<U> v = ref_ptr<U>::alloc(input.getValue("name"));
 				v->set_isConstant(input.getValue<bool>("is-constant", false));
 
-				GLuint numInstances = input.getValue<GLuint>("num-instances", 1u);
-				GLuint numVertices = input.getValue<GLuint>("num-vertices", 1u);
+				auto numInstances = input.getValue<GLuint>("num-instances", 1u);
+				auto numVertices = input.getValue<GLuint>("num-vertices", 1u);
 				bool isInstanced = input.getValue<bool>("is-instanced", false);
 				bool isAttribute = input.getValue<bool>("is-attribute", false);
 				GLuint count = 1;
 
 				if (isInstanced) {
-					v->setInstanceData(numInstances, 1, NULL);
+					v->setInstanceData(numInstances, 1, nullptr);
 					count = numInstances;
 				} else if (isAttribute) {
-					v->setVertexData(numVertices, NULL);
+					v->setVertexData(numVertices, nullptr);
 					count = numVertices;
 				} else {
 					v->setUniformData(input.getValue<T>("value", defaultValue));
@@ -252,15 +252,14 @@ namespace regen {
 					for (GLuint i = 0; i < count; i += 1) values[i] = defaultValue;
 
 					const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-					for (list<ref_ptr<SceneInputNode> >::const_iterator
-								 it = childs.begin(); it != childs.end(); ++it) {
+					for (auto it = childs.begin(); it != childs.end(); ++it) {
 						ref_ptr<SceneInputNode> child = *it;
 						list<GLuint> indices = child->getIndexSequence(count);
 
 						if (child->getCategory() == "set") {
 							ValueGenerator<T> generator(child.get(), indices.size(),
 														child->getValue<T>("value", T(0)));
-							for (list<GLuint>::iterator it = indices.begin(); it != indices.end(); ++it) {
+							for (auto it = indices.begin(); it != indices.end(); ++it) {
 								values[*it] += generator.next();
 							}
 						} else {
@@ -271,12 +270,12 @@ namespace regen {
 
 				// Load animations
 				const list<ref_ptr<SceneInputNode> > &c0 = input.getChildren("key-frame-animation");
-				for (list<ref_ptr<SceneInputNode> >::const_iterator it = c0.begin(); it != c0.end(); ++it) {
+				for (auto it = c0.begin(); it != c0.end(); ++it) {
 					ref_ptr<SceneInputNode> n = *it;
 					ref_ptr<KeyFrameAnimation<U, T> > inputAnimation = ref_ptr<KeyFrameAnimation<U, T> >::alloc(v);
 
 					const list<ref_ptr<SceneInputNode> > &c1 = n->getChildren("key-frame");
-					for (list<ref_ptr<SceneInputNode> >::const_iterator jt = c1.begin(); jt != c1.end(); ++jt) {
+					for (auto jt = c1.begin(); jt != c1.end(); ++jt) {
 						ref_ptr<SceneInputNode> m = *jt;
 						inputAnimation->push_back(
 								m->getValue<T>("value", defaultValue),

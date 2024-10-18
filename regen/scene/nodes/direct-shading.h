@@ -33,14 +33,14 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				ref_ptr<SceneInputNode> lightNode = input.getFirstChild("direct-lights");
 				ref_ptr<SceneInputNode> passNode = input.getFirstChild("direct-pass");
-				if (lightNode.get() == NULL) {
+				if (lightNode.get() == nullptr) {
 					REGEN_WARN("Missing direct-lights attribute for " << input.getDescription() << ".");
 					return;
 				}
-				if (passNode.get() == NULL) {
+				if (passNode.get() == nullptr) {
 					REGEN_WARN("Missing direct-pass attribute for " << input.getDescription() << ".");
 					return;
 				}
@@ -56,8 +56,7 @@ namespace regen {
 
 				// load lights
 				const list<ref_ptr<SceneInputNode> > &childs = lightNode->getChildren();
-				for (list<ref_ptr<SceneInputNode> >::const_iterator
-							 it = childs.begin(); it != childs.end(); ++it) {
+				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					ref_ptr<SceneInputNode> n = *it;
 					if (n->getCategory() != "light") {
 						REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
@@ -65,12 +64,12 @@ namespace regen {
 					}
 
 					ref_ptr<Light> light = parser->getResources()->getLight(parser, n->getName());
-					if (light.get() == NULL) {
+					if (light.get() == nullptr) {
 						REGEN_WARN("Unable to find Light for '" << n->getDescription() << "'.");
 						continue;
 					}
 
-					ShadowFilterMode shadowFiltering =
+					auto shadowFiltering =
 							n->getValue<ShadowFilterMode>("shadow-filter", SHADOW_FILTERING_NONE);
 					ref_ptr<Texture> shadowMap;
 					ref_ptr<Texture> shadowColorMap;
@@ -78,7 +77,7 @@ namespace regen {
 					if (n->hasAttribute("shadow-camera")) {
 						shadowCamera = ref_ptr<LightCamera>::dynamicCast(
 								parser->getResources()->getCamera(parser, n->getValue("shadow-camera")));
-						if (shadowCamera.get() == NULL) {
+						if (shadowCamera.get() == nullptr) {
 							REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");
 						}
 					}
@@ -86,7 +85,7 @@ namespace regen {
 						shadowMap = TextureStateProvider::getTexture(parser, *n.get(),
 																	 "shadow-texture", "shadow-buffer",
 																	 "shadow-attachment");
-						if (shadowMap.get() == NULL) {
+						if (shadowMap.get() == nullptr) {
 							REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
 						}
 					}
