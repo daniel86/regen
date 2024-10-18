@@ -100,7 +100,6 @@ static ALenum avFormat(ALenum type, ALenum layout) {
 				default:
 					throw AudioSource::Error("unsupported format");
 			}
-			break;
 		case AL_SHORT_SOFT:
 			switch (layout) {
 				case AL_MONO_SOFT:
@@ -116,7 +115,6 @@ static ALenum avFormat(ALenum type, ALenum layout) {
 				default:
 					throw AudioSource::Error("unsupported format");
 			}
-			break;
 		case AL_FLOAT_SOFT:
 			switch (layout) {
 				case AL_MONO_SOFT:
@@ -132,7 +130,6 @@ static ALenum avFormat(ALenum type, ALenum layout) {
 				default:
 					throw AudioSource::Error("unsupported format");
 			}
-			break;
 		case AL_DOUBLE_SOFT:
 			switch (layout) {
 				case AL_MONO_SOFT:
@@ -142,7 +139,6 @@ static ALenum avFormat(ALenum type, ALenum layout) {
 				default:
 					throw AudioSource::Error("unsupported format");
 			}
-			break;
 		default:
 			throw AudioSource::Error("unsupported format");
 	}
@@ -167,16 +163,24 @@ void AudioLibrary::closeAL() {
 	if (isALInitialized_) alutExit();
 }
 
-void AudioLibrary::set_distanceModel(ALenum v) { alDistanceModel(v); }
+void AudioLibrary::set_distanceModel(ALenum v) {
+	alDistanceModel(v);
+}
 
-void AudioLibrary::set_dopplerFactor(ALfloat v) { alDopplerFactor(v); }
+void AudioLibrary::set_dopplerFactor(ALfloat v) {
+	alDopplerFactor(v);
+}
 
-void AudioLibrary::set_speedOfSound(ALfloat v) { alSpeedOfSound(v); }
+void AudioLibrary::set_speedOfSound(ALfloat v) {
+	alSpeedOfSound(v);
+}
 
 ///////////
 ///////////
 
-void AudioListener::set1f(const ALenum &p, const ALfloat &v) { alListenerfv(p, &v); }
+void AudioListener::set1f(const ALenum &p, const ALfloat &v) {
+	alListenerfv(p, &v);
+}
 
 ALfloat AudioListener::get1f(const ALenum &p) {
 	ALfloat v;
@@ -184,7 +188,9 @@ ALfloat AudioListener::get1f(const ALenum &p) {
 	return v;
 }
 
-void AudioListener::set3f(const ALenum &p, const Vec3f &v) { alListenerfv(p, &v.x); }
+void AudioListener::set3f(const ALenum &p, const Vec3f &v) {
+	alListenerfv(p, &v.x);
+}
 
 Vec3f AudioListener::get3f(const ALenum &p) {
 	Vec3f v;
@@ -192,7 +198,9 @@ Vec3f AudioListener::get3f(const ALenum &p) {
 	return v;
 }
 
-void AudioListener::set6f(const ALenum &p, const Vec6f &v) { alListenerfv(p, &v.x0); }
+void AudioListener::set6f(const ALenum &p, const Vec6f &v) {
+	alListenerfv(p, &v.x0);
+}
 
 Vec6f AudioListener::get6f(const ALenum &p) {
 	Vec6f v;
@@ -203,7 +211,7 @@ Vec6f AudioListener::get6f(const ALenum &p) {
 ///////////
 ///////////
 
-AudioSource::AudioBuffer::AudioBuffer() {
+AudioSource::AudioBuffer::AudioBuffer() : id_(0) {
 	alGenBuffers(1, &id_);
 }
 
@@ -211,40 +219,53 @@ AudioSource::AudioBuffer::~AudioBuffer() {
 	alDeleteBuffers(1, &id_);
 }
 
-AudioSource::AudioSource(GLuint chachedBytesLimit)
-		: AudioVideoStream(chachedBytesLimit),
+AudioSource::AudioSource(GLuint cachedBytesLimit)
+		: AudioVideoStream(cachedBytesLimit),
+		  id_(0),
 		  alType_(AL_NONE),
 		  alChannelLayout_(AL_NONE),
 		  alFormat_(AL_NONE),
-		  rate_(0) {
+		  rate_(0),
+		  elapsedTime_(0)
+#ifdef HAS_LIBSWRESAMPLE
+		  , resampleContext_(nullptr)
+#endif
+{
 	AudioLibrary::initializeAL();
 	alGenSources(1, &id_);
 }
 
-AudioSource::AudioSource(AVStream *stream, GLint index, GLuint chachedBytesLimit)
-		: AudioVideoStream(chachedBytesLimit),
+AudioSource::AudioSource(AVStream *stream, GLint index, GLuint cachedBytesLimit)
+		: AudioVideoStream(cachedBytesLimit),
+		  id_(0),
 		  alType_(AL_NONE),
 		  alChannelLayout_(AL_NONE),
 		  alFormat_(AL_NONE),
-		  rate_(0) {
+		  rate_(0),
+		  elapsedTime_(0)
+#ifdef HAS_LIBSWRESAMPLE
+		  , resampleContext_(nullptr)
+#endif
+{
 	AudioLibrary::initializeAL();
 	alGenSources(1, &id_);
 	openAudioStream(stream, index, GL_TRUE);
 }
 
 AudioSource::~AudioSource() {
-#ifdef HAS_LIBAVRESAMPLE
-	if(resampleContext_) avresample_free(&resampleContext_);
+#ifdef HAS_LIBSWRESAMPLE
+	if (resampleContext_) {
+		swr_free(&resampleContext_);
+		resampleContext_ = nullptr;
+	}
 #endif
-	clearQueue();
+	doClearQueue();
 	alDeleteSources(1, &id_);
 }
 
-ALuint AudioSource::id() const { return id_; }
-
-GLdouble AudioSource::elapsedTime() const { return elapsedTime_; }
-
-void AudioSource::set1i(const ALenum &p, const ALint &v) const { alSourcei(id_, p, v); }
+void AudioSource::set1i(const ALenum &p, const ALint &v) const {
+	alSourcei(id_, p, v);
+}
 
 ALint AudioSource::get1i(const ALenum &p) const {
 	ALint v;
@@ -252,7 +273,9 @@ ALint AudioSource::get1i(const ALenum &p) const {
 	return v;
 }
 
-void AudioSource::set1f(const ALenum &p, const ALfloat &v) { alSourcef(id_, p, v); }
+void AudioSource::set1f(const ALenum &p, const ALfloat &v) const {
+	alSourcef(id_, p, v);
+}
 
 ALfloat AudioSource::get1f(const ALenum &p) const {
 	ALfloat v;
@@ -260,21 +283,31 @@ ALfloat AudioSource::get1f(const ALenum &p) const {
 	return v;
 }
 
-void AudioSource::set3f(const ALenum &p, const Vec3f &v) const { alSourcefv(id_, p, &v.x); }
+void AudioSource::set3f(const ALenum &p, const Vec3f &v) const {
+	alSourcefv(id_, p, &v.x);
+}
 
-Vec3f AudioSource::get3f(const ALenum &p) {
+Vec3f AudioSource::get3f(const ALenum &p) const {
 	Vec3f v;
 	alGetSourcef(id_, p, &v.x);
 	return v;
 }
 
-void AudioSource::play() const { alSourcePlay(id_); }
+void AudioSource::play() const {
+	alSourcePlay(id_);
+}
 
-void AudioSource::stop() const { alSourceStop(id_); }
+void AudioSource::stop() const {
+	alSourceStop(id_);
+}
 
-void AudioSource::rewind() const { alSourceRewind(id_); }
+void AudioSource::rewind() const {
+	alSourceRewind(id_);
+}
 
-void AudioSource::pause() const { alSourcePause(id_); }
+void AudioSource::pause() const {
+	alSourcePause(id_);
+}
 
 void AudioSource::push(const ref_ptr<AudioBuffer> &buffer) {
 	queued_.push(buffer);
@@ -292,58 +325,74 @@ void AudioSource::pop() {
 
 void AudioSource::openAudioStream(AVStream *stream, GLint index, GLboolean initial) {
 	if (!initial) {
-#ifdef HAS_LIBAVRESAMPLE
-		if(resampleContext_) avresample_free(&resampleContext_);
+#ifdef HAS_LIBSWRESAMPLE
+		if (resampleContext_) swr_free(&resampleContext_);
 #endif
 		clearQueue();
 	}
 
 	AudioVideoStream::open(stream, index, initial);
 	alType_ = avToAlType(codecCtx_->sample_fmt);
-	alChannelLayout_ = avToAlLayout(codecCtx_->channel_layout);
+	alChannelLayout_ = avToAlLayout(codecCtx_->ch_layout.u.mask);
 	alFormat_ = avFormat(alType_, alChannelLayout_);
 	rate_ = codecCtx_->sample_rate;
 
 	REGEN_DEBUG("init audio stream" <<
 									" AL format=" << alFormat_ <<
 									" sample_fmt=" << codecCtx_->sample_fmt <<
-									" channel_layout=" << codecCtx_->channel_layout <<
+									" channel_layout=" << codecCtx_->ch_layout.u.mask <<
 									" sample_rate=" << codecCtx_->sample_rate <<
 									" bit_rate=" << codecCtx_->bit_rate <<
-									".");
-#ifdef HAS_LIBAVRESAMPLE
+									".")
+#ifdef HAS_LIBSWRESAMPLE
 	// create resample context for planar sample formats
 	if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
-	  int out_sample_fmt;
-	  switch(codecCtx_->sample_fmt) {
-	  case AV_SAMPLE_FMT_U8P:  out_sample_fmt = AV_SAMPLE_FMT_U8; break;
-	  case AV_SAMPLE_FMT_S16P: out_sample_fmt = AV_SAMPLE_FMT_S16; break;
-	  case AV_SAMPLE_FMT_S32P: out_sample_fmt = AV_SAMPLE_FMT_S32; break;
-	  case AV_SAMPLE_FMT_DBLP: out_sample_fmt = AV_SAMPLE_FMT_DBL; break;
-	  case AV_SAMPLE_FMT_FLTP:
-	  default: out_sample_fmt = AV_SAMPLE_FMT_FLT;
-	  }
+		int out_sample_fmt;
+		switch (codecCtx_->sample_fmt) {
+			case AV_SAMPLE_FMT_U8P:
+				out_sample_fmt = AV_SAMPLE_FMT_U8;
+				break;
+			case AV_SAMPLE_FMT_S16P:
+				out_sample_fmt = AV_SAMPLE_FMT_S16;
+				break;
+			case AV_SAMPLE_FMT_S32P:
+				out_sample_fmt = AV_SAMPLE_FMT_S32;
+				break;
+			case AV_SAMPLE_FMT_DBLP:
+				out_sample_fmt = AV_SAMPLE_FMT_DBL;
+				break;
+			case AV_SAMPLE_FMT_FLTP:
+			default:
+				out_sample_fmt = AV_SAMPLE_FMT_FLT;
+		}
 
-	  resampleContext_ = avresample_alloc_context();
-	  av_opt_set_int(resampleContext_,
-		  "in_channel_layout",  codecCtx_->channel_layout, 0);
-	  av_opt_set_int(resampleContext_,
-		  "in_sample_fmt",      codecCtx_->sample_fmt,     0);
-	  av_opt_set_int(resampleContext_,
-		  "in_sample_rate",     codecCtx_->sample_rate,    0);
-	  av_opt_set_int(resampleContext_,
-		  "out_channel_layout", codecCtx_->channel_layout, 0);
-	  av_opt_set_int(resampleContext_,
-		  "out_sample_fmt",     out_sample_fmt,            0);
-	  av_opt_set_int(resampleContext_,
-		  "out_sample_rate",    codecCtx_->sample_rate,    0);
-	  avresample_open(resampleContext_);
-	  REGEN_DEBUG("converting sample format to " << out_sample_fmt << ".");
+		resampleContext_ = swr_alloc();
+		if (!resampleContext_) {
+			// Handle allocation error
+		}
+
+		av_opt_set_int(resampleContext_, "in_channel_layout", codecCtx_->channel_layout, 0);
+		av_opt_set_int(resampleContext_, "in_sample_fmt", codecCtx_->sample_fmt, 0);
+		av_opt_set_int(resampleContext_, "in_sample_rate", codecCtx_->sample_rate, 0);
+		av_opt_set_int(resampleContext_, "out_channel_layout", codecCtx_->channel_layout, 0);
+		av_opt_set_int(resampleContext_, "out_sample_fmt", out_sample_fmt, 0); // example output format
+		av_opt_set_int(resampleContext_, "out_sample_rate", codecCtx_->sample_rate, 0);
+
+		if (swr_init(resampleContext_) < 0) {
+			// Handle initialization error
+			REGEN_ERROR("failed to initialize resample context.")
+			swr_free(&resampleContext_);
+			resampleContext_ = nullptr;
+		}
 	}
 #endif
 }
 
 void AudioSource::clearQueue() {
+	doClearQueue();
+}
+
+void AudioSource::doClearQueue() {
 	stop();
 	alSourcei(id_, AL_BUFFER, 0);
 
@@ -358,20 +407,6 @@ void AudioSource::clearQueue() {
 }
 
 void AudioSource::decode(AVPacket *packet) {
-	// Decode audio frame
-#ifdef HAS_LIBAVRESAMPLE
-	//int frameFinished = 0;
-	//avcodec_decode_audio4(codecCtx_, frame, &frameFinished, packet);
-	//if(!frameFinished) {
-	//  av_free(frame);
-	//  return;
-	//}
-#else
-	//int bytesDecoded = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-	//int16_t *frameData = (int16_t*)av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
-	//avcodec_decode_audio3(codecCtx_, frameData, &bytesDecoded, packet);
-#endif
-
 	// unqueue processed buffers
 	ALint processed;
 	alGetSourcei(id_, AL_BUFFERS_PROCESSED, &processed);
@@ -395,45 +430,61 @@ void AudioSource::decode(AVPacket *packet) {
 			av_free(frame);
 			break;
 		}
+		if (frame->data[0] == nullptr) {
+			av_free(frame);
+			break;
+		}
 
 		// Process the decoded frame
-#ifdef HAS_LIBAVRESAMPLE
-		xxx;
-#else
+		// Get the required buffer size for the given audio parameters.
+		int num_channels = codecCtx_->ch_layout.nb_channels;
+		int linesize;
 		int bytesDecoded = av_samples_get_buffer_size(
-				nullptr, codecCtx_->channels, frame->nb_samples, codecCtx_->sample_fmt, 1);
+				&linesize,
+				num_channels,
+				frame->nb_samples,
+				codecCtx_->sample_fmt,
+				1);
+		if (bytesDecoded <= 0) {
+			av_free(frame);
+			break;
+		}
+
 		auto frameData = (ALbyte *) av_malloc(bytesDecoded);
-		memcpy(frameData, frame->data[0], bytesDecoded);
-#endif
+
+		if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
+			// Planar format: copy data from each channel buffer
+			for (int ch = 0; ch < num_channels; ++ch) {
+				memcpy(frameData + ch * linesize, frame->data[ch], linesize);
+			}
+		} else {
+			// Interleaved format: copy data from the single buffer
+			memcpy(frameData, frame->data[0], bytesDecoded);
+		}
 
 		auto audioFrame = new AudioFrame;
 		audioFrame->avFrame = frame;
 		audioFrame->buffer = ref_ptr<AudioBuffer>::alloc();
 		audioFrame->dts = (packet->pts + packet->duration) * av_q2d(stream_->time_base);
-		// Get the required buffer size for the given audio parameters.
-#ifdef HAS_LIBAVRESAMPLE
-		int linesize;
-		int bytesDecoded = av_samples_get_buffer_size(
-			&linesize,
-			codecCtx_->channels,
-			frame->nb_samples,
-			codecCtx_->sample_fmt, 0);
-		ALbyte *frameData;
-		if(resampleContext_!=NULL) {
-		  frameData = (ALbyte *)av_malloc(bytesDecoded*sizeof(uint8_t));
-		  avresample_convert(
-			  resampleContext_,
-			  (uint8_t **)&frameData,
-			  linesize,
-			  frame->nb_samples,
-			  (uint8_t **)frame->data,
-			  frame->linesize[0],
-			  frame->nb_samples);
-		  audioFrame->convertedFrame = frameData;
-		}
-		else {
-		  frameData = (ALbyte*) frame->data[0];
-		  audioFrame->convertedFrame = NULL;
+
+#ifdef HAS_LIBSWRESAMPLE
+		if (resampleContext_ != nullptr) {
+			int out_samples = swr_convert(
+					resampleContext_,
+					(uint8_t **) &frameData,  // output buffer
+					frame->nb_samples,       // number of samples per channel to output
+					(const uint8_t **) frame->data,  // input buffer
+					frame->nb_samples        // number of samples per channel to input
+			);
+			if (out_samples < 0) {
+				// Handle conversion error
+				REGEN_ERROR("failed to convert audio frame.")
+			}
+			audioFrame->convertedFrame = frameData;
+
+		} else {
+			frameData = (ALbyte *) frame->data[0];
+			audioFrame->convertedFrame = nullptr;
 		}
 #else
 		audioFrame->convertedFrame = (ALbyte *) frameData;
@@ -441,16 +492,18 @@ void AudioSource::decode(AVPacket *packet) {
 
 		// add a audio buffer to the OpenAL audio source
 		alBufferData(audioFrame->buffer->id_,
-					 alFormat_, (ALbyte *) frameData, bytesDecoded, rate_);
+					 alFormat_, (ALbyte *) frameData,
+					 bytesDecoded,
+					 rate_);
 		push(audioFrame->buffer);
 		frame->opaque = audioFrame;
 
 		// (re)start playing. playback may have stop when all frames consumed.
 		if (get1i(AL_SOURCE_STATE) != AL_PLAYING) play();
 
-		av_packet_unref(packet);
 		pushFrame(frame, bytesDecoded);
 	}
+	av_packet_unref(packet);
 }
 
 void AudioSource::AudioFrame::free() {

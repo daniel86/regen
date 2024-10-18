@@ -40,7 +40,7 @@
 #cmakedefine HAS_LIBAVFORMAT
 #cmakedefine HAS_LIBAVCODEC
 #cmakedefine HAS_LIBSWSCALE
-#cmakedefine HAS_LIBAVRESAMPLE
+#cmakedefine HAS_LIBSWRESAMPLE
 
 #endif // __REGEN_CONFIG_H
 
