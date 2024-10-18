@@ -35,11 +35,11 @@ namespace regen {
       /**
        * @param message the error message.
        */
-      Error(const std::string &message) : std::runtime_error(message) {}
+      explicit Error(const std::string &message) : std::runtime_error(message) {}
     };
 
     VideoTexture();
-    ~VideoTexture();
+    ~VideoTexture() override;
 
     /**
      * @return seconds processed in stream.
@@ -96,8 +96,8 @@ namespace regen {
     ref_ptr<AudioSource> audioSource();
 
     // override
-    void animate(GLdouble dt);
-    void glAnimate(RenderState *rs, GLdouble dt);
+    void animate(GLdouble dt) override;
+    void glAnimate(RenderState *rs, GLdouble dt) override;
 
   protected:
     ref_ptr<Demuxer> demuxer_;

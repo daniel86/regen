@@ -13,16 +13,16 @@
 #include "fbo.h"
 using namespace regen;
 
-static inline void __DrawBuffers(const DrawBuffers &v)
+static inline void REGEN_DrawBuffers(const DrawBuffers &v)
 { glDrawBuffers(v.buffers_.size(),&v.buffers_[0]); }
 #ifdef WIN32
-static inline void __DrawBuffer(GLenum v)
+static inline void REGEN_DrawBuffer(GLenum v)
 { glDrawBuffer(v); }
-static inline void __ReadBuffer(GLenum v)
+static inline void REGEN_ReadBuffer(GLenum v)
 { glReadBuffer(v); }
 #else
-#define __DrawBuffer glDrawBuffer
-#define __ReadBuffer glReadBuffer
+#define REGEN_DrawBuffer glDrawBuffer
+#define REGEN_ReadBuffer glReadBuffer
 #endif
 
 static inline void attachTexture(
@@ -39,8 +39,8 @@ static inline void attachRenderBuffer(
 }
 
 FBO::Screen::Screen()
-: drawBuffer_(__DrawBuffer),
-  readBuffer_(__ReadBuffer)
+: drawBuffer_(REGEN_DrawBuffer),
+  readBuffer_(REGEN_ReadBuffer)
 {
   RenderState *rs = RenderState::get();
   rs->drawFrameBuffer().push(0);
@@ -50,8 +50,8 @@ FBO::Screen::Screen()
 
 FBO::FBO(GLuint width, GLuint height, GLuint depth)
 : GLRectangle(glGenFramebuffers, glDeleteFramebuffers),
-  drawBuffers_(__DrawBuffers),
-  readBuffer_(__ReadBuffer),
+  drawBuffers_(REGEN_DrawBuffers),
+  readBuffer_(REGEN_ReadBuffer),
   depthAttachmentTarget_(GL_NONE),
   depthAttachmentFormat_(GL_NONE),
   depthAttachmentType_(GL_NONE)
@@ -164,7 +164,7 @@ ref_ptr<Texture> FBO::createTexture(
     GLuint count,
     GLenum targetType,
     GLenum format,
-    GLenum internalFormat,
+    GLint internalFormat,
     GLenum pixelType)
 {
   RenderState *rs = RenderState::get();
@@ -225,7 +225,7 @@ ref_ptr<Texture> FBO::addTexture(
     GLuint count,
     GLenum targetType,
     GLenum format,
-    GLenum internalFormat,
+    GLint internalFormat,
     GLenum pixelType)
 {
   ref_ptr<Texture> tex = createTexture(width(), height(), depth_,
