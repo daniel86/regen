@@ -14,221 +14,234 @@
 #include <set>
 
 namespace regen {
-  /**
-   * \brief Container for shader input data.
-   */
-  class ShaderInputContainer
-  {
-  public:
-    /**
-     * \brief Vertex array data layout.
-     */
-    enum DataLayout {
-      INTERLEAVED, SEQUENTIAL, LAYOUT_LAST
-    };
+	/**
+	 * \brief Container for shader input data.
+	 */
+	class ShaderInputContainer {
+	public:
+		/**
+		 * \brief Vertex array data layout.
+		 */
+		enum DataLayout {
+			INTERLEAVED, SEQUENTIAL, LAYOUT_LAST
+		};
 
-    /**
-     * @param usage VBO usage.
-     */
-    ShaderInputContainer(
-        VBO::Usage usage=VBO::USAGE_DYNAMIC);
-    /**
-     * @param in shader input data.
-     * @param name shader input name overwrite.
-     * @param usage VBO usage.
-     */
-    ShaderInputContainer(const ref_ptr<ShaderInput> &in, const std::string &name="",
-        VBO::Usage usage=VBO::USAGE_DYNAMIC);
-    ~ShaderInputContainer();
+		/**
+		 * @param usage VBO usage.
+		 */
+		ShaderInputContainer(
+				VBO::Usage usage = VBO::USAGE_DYNAMIC);
 
-    /**
-     * @return VBO that manages the vertex array data.
-     */
-    const ref_ptr<VBO>& inputBuffer() const;
+		/**
+		 * @param in shader input data.
+		 * @param name shader input name overwrite.
+		 * @param usage VBO usage.
+		 */
+		ShaderInputContainer(const ref_ptr<ShaderInput> &in, const std::string &name = "",
+							 VBO::Usage usage = VBO::USAGE_DYNAMIC);
 
-    /**
-     * @return Specifies the number of vertices to be rendered.
-     */
-    GLuint numVertices() const;
-    /**
-     * @param v Specifies the number of vertices to be rendered.
-     */
-    void set_numVertices(GLuint v);
-    /**
-     * @return Number of instances of added input data.
-     */
-    GLuint numInstances() const;
-    /**
-     * @param v Specifies the number of instances to be rendered.
-     */
-    void set_numInstances(GLuint v);
+		~ShaderInputContainer();
 
-    /**
-     * @param layout Start recording added inputs.
-     */
-    void begin(DataLayout layout);
-    /**
-     * Finish previous call to begin(). All recorded inputs are
-     * uploaded to VBO memory.
-     */
-    VBOReference end();
+		/**
+		 * @return VBO that manages the vertex array data.
+		 */
+		const ref_ptr<VBO> &inputBuffer() const;
 
-    /**
-     * @return Previously added shader inputs.
-     */
-    const ShaderInputList& inputs() const;
-    /**
-     * @return inputs recorded during begin() and end().
-     */
-    const ShaderInputList& uploadInputs() const;
+		/**
+		 * @return Specifies the number of vertices to be rendered.
+		 */
+		GLuint numVertices() const;
 
-    /**
-     * @param name the shader input name.
-     * @return true if an input data with given name was added before.
-     */
-    GLboolean hasInput(const std::string &name) const;
+		/**
+		 * @param v Specifies the number of vertices to be rendered.
+		 */
+		void set_numVertices(GLuint v);
 
-    /**
-     * @param name the shader input name.
-     * @return input data with specified name.
-     */
-    ref_ptr<ShaderInput> getInput(const std::string &name) const;
+		/**
+		 * @return Number of instances of added input data.
+		 */
+		GLuint numInstances() const;
 
-    /**
-     * @param in the shader input data.
-     * @param name the shader input name.
-     * @return iterator of data container
-     */
-    ShaderInputList::const_iterator setInput(const ref_ptr<ShaderInput> &in, const std::string &name="");
-    /**
-     * Remove previously added shader input.
-     */
-    void removeInput(const ref_ptr<ShaderInput> &att);
+		/**
+		 * @param v Specifies the number of instances to be rendered.
+		 */
+		void set_numInstances(GLuint v);
 
-    /**
-     * Sets the index attribute.
-     * @param indices the index attribute.
-     * @param maxIndex maximal index in the index array.
-     */
-    void setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex);
-    /**
-     * @return number of indices to vertex data.
-     */
-    GLuint numIndices() const;
-    /**
-     * @return the maximal index in the index buffer.
-     */
-    GLuint maxIndex();
-    /**
-     * @return indexes to the vertex data of this primitive set.
-     */
-    const ref_ptr<ShaderInput>& indices() const;
-    /**
-     * @return index buffer used by this mesh.
-     */
-    GLuint indexBuffer() const;
+		/**
+		 * @param layout Start recording added inputs.
+		 */
+		void begin(DataLayout layout);
 
-    /**
-     * render primitives from array data.
-     * @param primitive Specifies what kind of primitives to render.
-     */
-    void drawArrays(GLenum primitive);
-    /**
-     * draw multiple instances of a range of elements.
-     * @param primitive Specifies what kind of primitives to render.
-     */
-    void drawArraysInstanced(GLenum primitive);
+		/**
+		 * Finish previous call to begin(). All recorded inputs are
+		 * uploaded to VBO memory.
+		 */
+		VBOReference end();
 
-    /**
-     * render primitives from array data.
-     * @param primitive Specifies what kind of primitives to render.
-     */
-    void drawElements(GLenum primitive);
-    /**
-     * draw multiple instances of a set of elements.
-     * @param primitive Specifies what kind of primitives to render.
-     */
-    void drawElementsInstanced(GLenum primitive);
+		/**
+		 * @return Previously added shader inputs.
+		 */
+		const ShaderInputList &inputs() const;
 
-  protected:
-    ShaderInputList inputs_;
-    std::set<std::string> inputMap_;
-    GLuint numVertices_;
-    GLuint numInstances_;
-    GLuint numIndices_;
-    GLuint maxIndex_;
-    ref_ptr<ShaderInput> indices_;
+		/**
+		 * @return inputs recorded during begin() and end().
+		 */
+		const ShaderInputList &uploadInputs() const;
 
-    ShaderInputList uploadInputs_;
-    std::list< ref_ptr<ShaderInput> > uploadAttributes_;
-    DataLayout uploadLayout_;
+		/**
+		 * @param name the shader input name.
+		 * @return true if an input data with given name was added before.
+		 */
+		GLboolean hasInput(const std::string &name) const;
 
-    ref_ptr<VBO> inputBuffer_;
+		/**
+		 * @param name the shader input name.
+		 * @return input data with specified name.
+		 */
+		ref_ptr<ShaderInput> getInput(const std::string &name) const;
 
-    void removeInput(const std::string &name);
-  };
+		/**
+		 * @param in the shader input data.
+		 * @param name the shader input name.
+		 * @return iterator of data container
+		 */
+		ShaderInputList::const_iterator setInput(const ref_ptr<ShaderInput> &in, const std::string &name = "");
 
-  /**
-   * \brief Interface for State's with input.
-   */
-  class HasInput {
-  public:
-    /**
-     * @param usage VBO usage hint.
-     */
-    HasInput(VBO::Usage usage)
-    { inputContainer_ = ref_ptr<ShaderInputContainer>::alloc(usage); }
-    /**
-     * @param inputs custom input container.
-     */
-    HasInput(const ref_ptr<ShaderInputContainer> &inputs)
-    { inputContainer_ = inputs; }
-    virtual ~HasInput() {}
+		/**
+		 * Remove previously added shader input.
+		 */
+		void removeInput(const ref_ptr<ShaderInput> &att);
 
-    /**
-     * Begin recording ShaderInput's.
-     * @param layout Start recording added inputs.
-     */
-    virtual void begin(ShaderInputContainer::DataLayout layout)
-    { inputContainer_->begin(layout); }
-    /**
-     * Finish previous call to begin(). All recorded inputs are
-     * uploaded to VBO memory.
-     */
-    virtual VBOReference end()
-    { return inputContainer_->end(); }
+		/**
+		 * Sets the index attribute.
+		 * @param indices the index attribute.
+		 * @param maxIndex maximal index in the index array.
+		 */
+		void setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex);
 
-    /**
-     * @return the input container.
-     */
-    const ref_ptr<ShaderInputContainer>& inputContainer() const
-    { return inputContainer_; }
-    /**
-     * @param inputContainer the input container.
-     */
-    void set_inputContainer(const ref_ptr<ShaderInputContainer> &inputContainer)
-    { inputContainer_ = inputContainer; }
+		/**
+		 * @return number of indices to vertex data.
+		 */
+		GLuint numIndices() const;
 
-    /**
-     * Adds shader input to the input container.
-     * @param in shader input
-     * @param name name override
-     * @return iterator in input container.
-     */
-    virtual ShaderInputList::const_iterator setInput(
-        const ref_ptr<ShaderInput> &in, const std::string &name="")
-    { return inputContainer_->setInput(in, name); }
-    /**
-     * Sets the index data.
-     * @param in index data input.
-     * @param maxIndex max index in index array.
-     */
-    void setIndices(const ref_ptr<ShaderInput> &in, GLuint maxIndex)
-    { inputContainer_->setIndices(in, maxIndex); }
+		/**
+		 * @return the maximal index in the index buffer.
+		 */
+		GLuint maxIndex();
 
-  protected:
-    ref_ptr<ShaderInputContainer> inputContainer_;
-  };
+		/**
+		 * @return indexes to the vertex data of this primitive set.
+		 */
+		const ref_ptr<ShaderInput> &indices() const;
+
+		/**
+		 * @return index buffer used by this mesh.
+		 */
+		GLuint indexBuffer() const;
+
+		/**
+		 * render primitives from array data.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawArrays(GLenum primitive);
+
+		/**
+		 * draw multiple instances of a range of elements.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawArraysInstanced(GLenum primitive);
+
+		/**
+		 * render primitives from array data.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawElements(GLenum primitive);
+
+		/**
+		 * draw multiple instances of a set of elements.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawElementsInstanced(GLenum primitive);
+
+	protected:
+		ShaderInputList inputs_;
+		std::set<std::string> inputMap_;
+		GLuint numVertices_;
+		GLuint numInstances_;
+		GLuint numIndices_;
+		GLuint maxIndex_;
+		ref_ptr<ShaderInput> indices_;
+
+		ShaderInputList uploadInputs_;
+		std::list<ref_ptr<ShaderInput> > uploadAttributes_;
+		DataLayout uploadLayout_;
+
+		ref_ptr<VBO> inputBuffer_;
+
+		void removeInput(const std::string &name);
+	};
+
+	/**
+	 * \brief Interface for State's with input.
+	 */
+	class HasInput {
+	public:
+		/**
+		 * @param usage VBO usage hint.
+		 */
+		HasInput(VBO::Usage usage) { inputContainer_ = ref_ptr<ShaderInputContainer>::alloc(usage); }
+
+		/**
+		 * @param inputs custom input container.
+		 */
+		HasInput(const ref_ptr<ShaderInputContainer> &inputs) { inputContainer_ = inputs; }
+
+		virtual ~HasInput() {}
+
+		/**
+		 * Begin recording ShaderInput's.
+		 * @param layout Start recording added inputs.
+		 */
+		virtual void begin(ShaderInputContainer::DataLayout layout) { inputContainer_->begin(layout); }
+
+		/**
+		 * Finish previous call to begin(). All recorded inputs are
+		 * uploaded to VBO memory.
+		 */
+		virtual VBOReference end() { return inputContainer_->end(); }
+
+		/**
+		 * @return the input container.
+		 */
+		const ref_ptr<ShaderInputContainer> &inputContainer() const { return inputContainer_; }
+
+		/**
+		 * @param inputContainer the input container.
+		 */
+		void
+		set_inputContainer(const ref_ptr<ShaderInputContainer> &inputContainer) { inputContainer_ = inputContainer; }
+
+		/**
+		 * Adds shader input to the input container.
+		 * @param in shader input
+		 * @param name name override
+		 * @return iterator in input container.
+		 */
+		virtual ShaderInputList::const_iterator setInput(
+				const ref_ptr<ShaderInput> &in, const std::string &name = "") {
+			return inputContainer_->setInput(in, name);
+		}
+
+		/**
+		 * Sets the index data.
+		 * @param in index data input.
+		 * @param maxIndex max index in index array.
+		 */
+		void setIndices(const ref_ptr<ShaderInput> &in, GLuint maxIndex) { inputContainer_->setIndices(in, maxIndex); }
+
+	protected:
+		ref_ptr<ShaderInputContainer> inputContainer_;
+	};
 } // namespace
 
 #endif /* ATTRIBUTE_STATE_H_ */
