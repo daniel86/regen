@@ -37,24 +37,24 @@ namespace regen {
 
 		const ref_ptr<ShaderInput3f> &earthShine() const;
 
-		GLdouble defaultScale();
+		static GLdouble defaultScale();
 
-		GLdouble defaultScattering();
+		static GLdouble defaultScattering();
 
-		Vec3f defaultSunShineColor();
+		static Vec3f defaultSunShineColor();
 
-		GLdouble defaultSunShineIntensity();
+		static GLdouble defaultSunShineIntensity();
 
-		Vec3f defaultEarthShineColor();
+		static Vec3f defaultEarthShineColor();
 
-		GLdouble defaultEarthShineIntensity();
+		static GLdouble defaultEarthShineIntensity();
 
 		// Override
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
+		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState();
+		ref_ptr<Mesh> getMeshState() override;
 
-		ref_ptr<HasShader> getShaderState();
+		ref_ptr<HasShader> getShaderState() override;
 
 	protected:
 		ref_ptr<Mesh> meshState_;

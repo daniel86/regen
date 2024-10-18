@@ -46,15 +46,15 @@ namespace regen {
 		const ref_ptr<ShaderInput1f> &timeUniform() const;
 
 
-		void set_altitude(const GLdouble altitude);
+		void set_altitude(GLdouble altitude);
 
 		GLdouble altitude() const;
 
-		void set_longitude(const GLdouble longitude);
+		void set_longitude(GLdouble longitude);
 
 		GLdouble longitude() const;
 
-		void set_latitude(const GLdouble latitude);
+		void set_latitude(GLdouble latitude);
 
 		GLdouble latitude() const;
 
@@ -81,9 +81,9 @@ namespace regen {
 		void set_moonSunLightReflectance(GLfloat moonSunLightReflectance);
 
 
-		GLfloat computeHorizonExtinction(Vec3f position, Vec3f dir, GLfloat radius);
+		GLfloat computeHorizonExtinction(const Vec3f& position, const Vec3f& dir, GLfloat radius);
 
-		GLfloat computeEyeExtinction(Vec3f eyedir);
+		GLfloat computeEyeExtinction(const Vec3f& eyedir);
 
 		const ref_ptr<Rectangle> &skyQuad() const;
 
@@ -97,13 +97,13 @@ namespace regen {
 		void createShader(RenderState *rs, const StateConfig &stateCfg);
 
 		// override
-		void animate(GLdouble dt);
+		void animate(GLdouble dt) override;
 
-		void glAnimate(RenderState *rs, GLdouble dt);
+		void glAnimate(RenderState *rs, GLdouble dt) override;
 
-		virtual void startAnimation();
+		void startAnimation() override;
 
-		virtual void stopAnimation();
+		void stopAnimation() override;
 
 	protected:
 		friend class SkyView;
@@ -134,7 +134,7 @@ namespace regen {
 
 	class SkyView : public StateNode {
 	public:
-		SkyView(const ref_ptr<Sky> &sky);
+		explicit SkyView(const ref_ptr<Sky> &sky);
 
 		const ref_ptr<Sky> &sky();
 
@@ -142,7 +142,7 @@ namespace regen {
 
 		void createShader(RenderState *rs, const StateConfig &stateCfg);
 
-		virtual void traverse(RenderState *rs);
+		void traverse(RenderState *rs) override;
 
 	protected:
 		ref_ptr<Sky> sky_;

@@ -15,61 +15,61 @@
 namespace regen {
 	class Stars : public SkyLayer {
 	public:
-		Stars(const ref_ptr<Sky> &sky);
+		explicit Stars(const ref_ptr<Sky> &sky);
 
 		void set_brightStarsFile(const std::string &brightStars);
 
-		void set_apparentMagnitude(const GLfloat vMag);
+		void set_apparentMagnitude(GLfloat vMag);
 
 		const ref_ptr<ShaderInput1f> &apparentMagnitude() const;
 
-		void set_color(const Vec3f color);
+		void set_color(const Vec3f& color);
 
 		const ref_ptr<ShaderInput3f> &color() const;
 
-		void set_colorRatio(const GLfloat ratio);
+		void set_colorRatio(GLfloat ratio);
 
 		const ref_ptr<ShaderInput1f> &colorRatio() const;
 
-		void set_glareIntensity(const GLfloat intensity);
+		void set_glareIntensity(GLfloat intensity);
 
 		const ref_ptr<ShaderInput1f> &glareIntensity() const;
 
-		void set_glareScale(const GLfloat scale);
+		void set_glareScale(GLfloat scale);
 
 		const ref_ptr<ShaderInput1f> &glareScale() const;
 
-		void set_scintillation(const GLfloat scintillation);
+		void set_scintillation(GLfloat scintillation);
 
 		const ref_ptr<ShaderInput1f> &scintillation() const;
 
-		void set_scattering(const GLfloat scattering);
+		void set_scattering(GLfloat scattering);
 
 		const ref_ptr<ShaderInput1f> &scattering() const;
 
-		void set_scale(const GLfloat scale);
+		void set_scale(GLfloat scale);
 
 		const ref_ptr<ShaderInput1f> &scale() const;
 
 
-		GLfloat defaultApparentMagnitude();
+		static GLfloat defaultApparentMagnitude();
 
-		Vec3f defaultColor();
+		static Vec3f defaultColor();
 
-		GLfloat defaultColorRatio();
+		static GLfloat defaultColorRatio();
 
-		GLfloat defaultGlareScale();
+		static GLfloat defaultGlareScale();
 
-		GLfloat defaultScintillation();
+		static GLfloat defaultScintillation();
 
-		GLfloat defaultScattering();
+		static GLfloat defaultScattering();
 
 		// Override
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
+		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState();
+		ref_ptr<Mesh> getMeshState() override;
 
-		ref_ptr<HasShader> getShaderState();
+		ref_ptr<HasShader> getShaderState() override;
 
 	protected:
 		ref_ptr<Mesh> meshState_;

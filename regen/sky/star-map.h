@@ -16,7 +16,7 @@
 namespace regen {
 	class StarMap : public SkyLayer {
 	public:
-		StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail = 4);
+		explicit StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail = 4);
 
 		void set_texture(const std::string &textureFile);
 
@@ -26,14 +26,14 @@ namespace regen {
 
 		const ref_ptr<ShaderInput1f> &scattering() const;
 
-		const GLdouble defaultScattering();
+		static GLdouble defaultScattering();
 
 		// Override
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
+		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState();
+		ref_ptr<Mesh> getMeshState() override;
 
-		ref_ptr<HasShader> getShaderState();
+		ref_ptr<HasShader> getShaderState() override;
 
 	protected:
 		ref_ptr<SkyBox> meshState_;

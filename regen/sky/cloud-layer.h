@@ -15,7 +15,7 @@
 namespace regen {
 	class CloudLayer : public SkyLayer {
 	public:
-		CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize = 2048);
+		explicit CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize = 2048);
 
 		void set_altitude(GLdouble altitude);
 
@@ -65,24 +65,24 @@ namespace regen {
 
 		const ref_ptr<FBO> &cloudTextureFBO() const;
 
-		const float defaultAltitudeHigh();
+		static float defaultAltitudeHigh();
 
-		const float defaultAltitudeLow();
+		static float defaultAltitudeLow();
 
-		const Vec2f defaultScaleHigh();
+		static Vec2f defaultScaleHigh();
 
-		const Vec2f defaultScaleLow();
+		static Vec2f defaultScaleLow();
 
-		GLdouble defaultChangeHigh();
+		static GLdouble defaultChangeHigh();
 
-		GLdouble defaultChangeLow();
+		static GLdouble defaultChangeLow();
 
 		// Override
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
+		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState();
+		ref_ptr<Mesh> getMeshState() override;
 
-		ref_ptr<HasShader> getShaderState();
+		ref_ptr<HasShader> getShaderState() override;
 
 	protected:
 		ref_ptr<Mesh> meshState_;

@@ -23,7 +23,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 		  Animation(GL_TRUE, GL_TRUE),
 		  cam_(cam),
 		  viewport_(viewport) {
-	srand(time(NULL));
+	srand(time(nullptr));
 
 	ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
 	depth->set_depthFunc(GL_LEQUAL);
@@ -40,7 +40,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	moonSunLightReflectance_ = 0.4;
 
 	timef_ = ref_ptr<osgHimmel::TimeF>::alloc(
-			time(NULL),       // Current time
+			time(nullptr),       // Current time
 			-3600.0L * 2.0L,  // UTC offset
 			3600.0L           // secondsPerCycle
 	);
@@ -192,8 +192,7 @@ void Sky::addLayer(const ref_ptr<SkyLayer> &layer) {
 }
 
 void Sky::createShader(RenderState *rs, const StateConfig &stateCfg) {
-	for (std::list<ref_ptr<SkyLayer> >::iterator
-				 it = layer_.begin(); it != layer_.end(); ++it) {
+	for (auto  it = layer_.begin(); it != layer_.end(); ++it) {
 		ref_ptr<SkyLayer> layer = *it;
 
 		StateConfigurer cfg(stateCfg);
@@ -224,7 +223,7 @@ void Sky::animate(GLdouble dt) {
 	astro_->update(osgHimmel::t_aTime::fromTimeF(*timef_.get()));
 }
 
-GLfloat Sky::computeHorizonExtinction(Vec3f position, Vec3f dir, GLfloat radius) {
+GLfloat Sky::computeHorizonExtinction(const Vec3f& position, const Vec3f& dir, GLfloat radius) {
 	GLfloat u = dir.dot(-position);
 	if (u < 0.0) {
 		return 1.0;
@@ -241,13 +240,13 @@ GLfloat Sky::computeHorizonExtinction(Vec3f position, Vec3f dir, GLfloat radius)
 	}
 }
 
-GLfloat Sky::computeEyeExtinction(Vec3f eyedir) {
+GLfloat Sky::computeEyeExtinction(const Vec3f& eyedir) {
 	GLfloat surfaceHeight = 0.99;
 	Vec3f eyePosition(0.0, surfaceHeight, 0.0);
 	return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight - 0.15);
 }
 
-static Vec3f computeColor(Vec3f color, GLfloat ext) {
+static Vec3f computeColor(const Vec3f& color, GLfloat ext) {
 	if (ext >= 0.0) {
 		return color;
 	} else {
@@ -281,8 +280,7 @@ void Sky::glAnimate(RenderState *rs, GLdouble dt) {
 	// Update random number in cmn uniform
 	updateSeed();
 
-	for (std::list<ref_ptr<SkyLayer> >::iterator
-				 it = layer_.begin(); it != layer_.end(); ++it) {
+	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
 		(*it)->updateSky(rs, dt);
 	}
 }
@@ -290,8 +288,7 @@ void Sky::glAnimate(RenderState *rs, GLdouble dt) {
 SkyView::SkyView(const ref_ptr<Sky> &sky)
 		: StateNode(),
 		  sky_(sky) {
-	for (std::list<ref_ptr<SkyLayer> >::iterator
-				 it = sky->layer_.begin(); it != sky->layer_.end(); ++it) {
+	for (auto it = sky->layer_.begin(); it != sky->layer_.end(); ++it) {
 		addLayer(*it);
 	}
 }
@@ -313,8 +310,7 @@ void SkyView::traverse(RenderState *rs) {
 const ref_ptr<Sky> &SkyView::sky() { return sky_; }
 
 void SkyView::createShader(RenderState *rs, const StateConfig &stateCfg) {
-	for (std::list<ref_ptr<SkyLayerView> >::iterator
-				 it = layer_.begin(); it != layer_.end(); ++it) {
+	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
 		ref_ptr<SkyLayerView> layer = *it;
 
 		StateConfigurer cfg(stateCfg);
