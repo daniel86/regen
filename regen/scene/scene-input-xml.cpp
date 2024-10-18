@@ -21,7 +21,7 @@ SceneInputXML::SceneInputXML(const string &xmlFile) {
 	buffer_.push_back('\0');
 	try {
 		doc_.parse<0>(&buffer_[0]);
-		SceneInputNodeXML *nullParent = NULL;
+		SceneInputNodeXML *nullParent = nullptr;
 		rootNode_ = ref_ptr<SceneInputNodeXML>::alloc(nullParent, &doc_);
 	}
 	catch (rapidxml::parse_error &exc) {
@@ -37,8 +37,8 @@ ref_ptr<SceneInputNode> SceneInputXML::getRoot() { return rootNode_; }
 ////////////////////
 
 SceneInputNodeXML::SceneInputNodeXML()
-		: SceneInputNode(NULL),
-		  xmlNode_(NULL) {
+		: SceneInputNode(nullptr),
+		  xmlNode_(nullptr) {
 	category_ = "";
 	name_ = "";
 }
@@ -51,7 +51,7 @@ SceneInputNodeXML::SceneInputNodeXML(
 	category_ = xmlNode_->name();
 
 	rapidxml::xml_attribute<> *a = xmlNode_->first_attribute("id");
-	if (a != NULL) {
+	if (a != nullptr) {
 		name_ = a->value();
 	} else {
 		name_ = REGEN_STRING(rand());
@@ -63,13 +63,13 @@ string SceneInputNodeXML::getCategory() { return category_; }
 string SceneInputNodeXML::getName() { return name_; }
 
 const list<ref_ptr<SceneInputNode> > &SceneInputNodeXML::getChildren() {
-	if (xmlNode_ != NULL && children_.empty()) {
-		for (rapidxml::xml_node<> *n = xmlNode_->first_node(); n != NULL; n = n->next_sibling()) {
+	if (xmlNode_ != nullptr && children_.empty()) {
+		for (rapidxml::xml_node<> *n = xmlNode_->first_node(); n != nullptr; n = n->next_sibling()) {
 			string category(n->name());
 			// Handle include nodes.
 			if (category == "include") {
 				rapidxml::xml_attribute<> *a = n->first_attribute("xml-file");
-				if (a != NULL) {
+				if (a != nullptr) {
 					string fileName(a->value());
 					string filePath = getResourcePath(fileName);
 
@@ -85,7 +85,7 @@ const list<ref_ptr<SceneInputNode> > &SceneInputNodeXML::getChildren() {
 			}
 				// Handle other nodes.
 			else {
-				children_.push_back(ref_ptr<SceneInputNodeXML>::alloc(this, n));
+				children_.emplace_back(ref_ptr<SceneInputNodeXML>::alloc(this, n));
 			}
 		}
 	}
@@ -93,8 +93,8 @@ const list<ref_ptr<SceneInputNode> > &SceneInputNodeXML::getChildren() {
 }
 
 const map<string, string> &SceneInputNodeXML::getAttributes() {
-	if (xmlNode_ != NULL && attributes_.empty()) {
-		for (rapidxml::xml_attribute<> *a = xmlNode_->first_attribute(); a != NULL; a = a->next_attribute()) {
+	if (xmlNode_ != nullptr && attributes_.empty()) {
+		for (rapidxml::xml_attribute<> *a = xmlNode_->first_attribute(); a != nullptr; a = a->next_attribute()) {
 			attributes_[a->name()] = a->value();
 		}
 	}

@@ -27,7 +27,7 @@ namespace regen {
 			 * Default constructor.
 			 * @param xmlFile The XML input file path.
 			 */
-			SceneInputXML(const std::string &xmlFile);
+			explicit SceneInputXML(const std::string &xmlFile);
 
 			// Override
 			ref_ptr<SceneInputNode> getRoot();
@@ -57,13 +57,13 @@ namespace regen {
 			SceneInputNodeXML();
 
 			// Override
-			std::string getCategory();
+			std::string getCategory() override;
 
-			std::string getName();
+			std::string getName() override;
 
-			const std::list<ref_ptr<SceneInputNode> > &getChildren();
+			const std::list<ref_ptr<SceneInputNode> > &getChildren() override;
 
-			const std::map<std::string, std::string> &getAttributes();
+			const std::map<std::string, std::string> &getAttributes() override;
 
 		protected:
 			rapidxml::xml_node<> *xmlNode_;

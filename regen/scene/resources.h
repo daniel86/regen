@@ -30,10 +30,10 @@ namespace regen {
 			 * Default constructor.
 			 * @param category The resource category.
 			 */
-			ResourceProvider(const std::string &category)
+			explicit ResourceProvider(const std::string &category)
 					: category_(category) {}
 
-			virtual ~ResourceProvider() {}
+			virtual ~ResourceProvider() = default;
 
 			/**
 			 * @return The resource category identifier.
