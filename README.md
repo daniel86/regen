@@ -1,15 +1,15 @@
 regen {#mainpage}
 ============
 
-<center>
-<img src="img/fluid-text.gif" width="320" height="240" />
-</center>
+<p align="center">
+    <img src="img/fluid-text.gif" width="320" height="240" />
+</p>
 
-<center>
-<img src="img/sky.gif" width="160" height="120" />
-<img src="img/hdr.gif" width="160" height="120" />
-<img src="img/transparency.gif" width="160" height="120" />
-</center>
+<p align="center">
+    <img src="img/sky.gif" width="160" height="120" />
+    <img src="img/hdr.gif" width="160" height="120" />
+    <img src="img/transparency.gif" width="160" height="120" />
+</p>
 
 `regen` -- Real-time Graphics Engine -- is a portable OpenGL library written in C++.
 The purpose of this library is to help creating
