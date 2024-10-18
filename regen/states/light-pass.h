@@ -14,86 +14,90 @@
 #include <regen/camera/light-camera.h>
 
 namespace regen {
-  /**
-   * \brief Deferred shading pass.
-   */
-  class LightPass : public State
-  {
-  public:
-    /**
-     * @param type the light type.
-     * @param shaderKey the shader key to include.
-     */
-    LightPass(Light::Type type, const std::string &shaderKey);
-    /**
-     * @param cfg the shader configuration.
-     */
-    void createShader(const StateConfig &cfg);
+	/**
+	 * \brief Deferred shading pass.
+	 */
+	class LightPass : public State {
+	public:
+		/**
+		 * @param type the light type.
+		 * @param shaderKey the shader key to include.
+		 */
+		LightPass(Light::Type type, const std::string &shaderKey);
 
-    /**
-     * Adds a light to the rendering pass.
-     * @param light the light.
-     * @param lightCamera Light-perspective Camera or null reference.
-     * @param shadowTexture ShadowMap or null reference.
-     * @param shadowColorTexture Color-ShadowMap or null reference.
-     * @param inputs render pass inputs.
-     */
-    void addLight(
-        const ref_ptr<Light> &light,
-        const ref_ptr<LightCamera> &lightCamera,
-        const ref_ptr<Texture> &shadowTexture,
-        const ref_ptr<Texture> &shadowColorTexture,
-        const std::list< ref_ptr<ShaderInput> > &inputs);
-    /**
-     * @param l a previously added light.
-     */
-    void removeLight(Light *l);
-    /**
-     * @return true if no light was added yet.
-     */
-    GLboolean empty() const;
-    /**
-     * @param l a light.
-     * @return true if the light was previously added.
-     */
-    GLboolean hasLight(Light *l) const;
+		/**
+		 * @param cfg the shader configuration.
+		 */
+		void createShader(const StateConfig &cfg);
 
-    /**
-     * @param mode the shadow filtering mode.
-     */
-    void setShadowFiltering(ShadowFilterMode mode);
+		/**
+		 * Adds a light to the rendering pass.
+		 * @param light the light.
+		 * @param lightCamera Light-perspective Camera or null reference.
+		 * @param shadowTexture ShadowMap or null reference.
+		 * @param shadowColorTexture Color-ShadowMap or null reference.
+		 * @param inputs render pass inputs.
+		 */
+		void addLight(
+				const ref_ptr<Light> &light,
+				const ref_ptr<LightCamera> &lightCamera,
+				const ref_ptr<Texture> &shadowTexture,
+				const ref_ptr<Texture> &shadowColorTexture,
+				const std::list<ref_ptr<ShaderInput> > &inputs);
 
-    // override
-    void enable(RenderState *rs);
+		/**
+		 * @param l a previously added light.
+		 */
+		void removeLight(Light *l);
 
-  protected:
-    struct LightPassLight {
-      ref_ptr<Light> light;
-      ref_ptr<LightCamera> camera;
-      ref_ptr<Texture> shadow;
-      ref_ptr<Texture> shadowColor;
-      std::list< ref_ptr<ShaderInput> > inputs;
-      std::list< ShaderInputLocation > inputLocations;
-    };
+		/**
+		 * @return true if no light was added yet.
+		 */
+		GLboolean empty() const;
 
-    Light::Type lightType_;
-    const std::string shaderKey_;
+		/**
+		 * @param l a light.
+		 * @return true if the light was previously added.
+		 */
+		GLboolean hasLight(Light *l) const;
 
-    ref_ptr<Mesh> mesh_;
-    ref_ptr<ShaderState> shader_;
+		/**
+		 * @param mode the shadow filtering mode.
+		 */
+		void setShadowFiltering(ShadowFilterMode mode);
 
-    std::list<LightPassLight> lights_;
-    std::map< Light*, std::list<LightPassLight>::iterator > lightIterators_;
+		// override
+		void enable(RenderState *rs);
 
-    GLint shadowMapLoc_;
-    GLint shadowColorLoc_;
-    ShadowFilterMode shadowFiltering_;
-    GLuint numShadowLayer_;
+	protected:
+		struct LightPassLight {
+			ref_ptr<Light> light;
+			ref_ptr<LightCamera> camera;
+			ref_ptr<Texture> shadow;
+			ref_ptr<Texture> shadowColor;
+			std::list<ref_ptr<ShaderInput> > inputs;
+			std::list<ShaderInputLocation> inputLocations;
+		};
 
-    void addInputLocation(LightPassLight &l,
-        const ref_ptr<ShaderInput> &in, const std::string &name);
-    void addLightInput(LightPassLight &light);
-  };
+		Light::Type lightType_;
+		const std::string shaderKey_;
+
+		ref_ptr<Mesh> mesh_;
+		ref_ptr<ShaderState> shader_;
+
+		std::list<LightPassLight> lights_;
+		std::map<Light *, std::list<LightPassLight>::iterator> lightIterators_;
+
+		GLint shadowMapLoc_;
+		GLint shadowColorLoc_;
+		ShadowFilterMode shadowFiltering_;
+		GLuint numShadowLayer_;
+
+		void addInputLocation(LightPassLight &l,
+							  const ref_ptr<ShaderInput> &in, const std::string &name);
+
+		void addLightInput(LightPassLight &light);
+	};
 } // namespace
 
 #endif /* __LIGHT_PASS_H_ */

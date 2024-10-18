@@ -14,85 +14,85 @@
 #include <regen/gl-types/shader.h>
 
 namespace regen {
-  /**
-   * \brief Binds Shader program to the RenderState.
-   */
-  class ShaderState : public State
-  {
-  public:
-    /**
-     * @param shader the shader object.
-     */
-    ShaderState(const ref_ptr<Shader> &shader);
-    ShaderState();
+	/**
+	 * \brief Binds Shader program to the RenderState.
+	 */
+	class ShaderState : public State {
+	public:
+		/**
+		 * @param shader the shader object.
+		 */
+		ShaderState(const ref_ptr<Shader> &shader);
 
-    /**
-     * Load, compile and link shader with given include key.
-     * @param cfg the shader config.
-     * @param shaderKey the shader include key.
-     * @return GL_TRUE on success.
-     */
-    GLboolean createShader(const StateConfig &cfg, const std::string &shaderKey);
+		ShaderState();
 
-    /**
-     * @return the shader object.
-     */
-    const ref_ptr<Shader>& shader() const;
-    /**
-     * @param shader the shader object.
-     */
-    void set_shader(ref_ptr<Shader> shader);
+		/**
+		 * Load, compile and link shader with given include key.
+		 * @param cfg the shader config.
+		 * @param shaderKey the shader include key.
+		 * @return GL_TRUE on success.
+		 */
+		GLboolean createShader(const StateConfig &cfg, const std::string &shaderKey);
 
-    // overwrite
-    void enable(RenderState*);
-    void disable(RenderState*);
+		/**
+		 * @return the shader object.
+		 */
+		const ref_ptr<Shader> &shader() const;
 
-  protected:
-    ref_ptr<Shader> shader_;
+		/**
+		 * @param shader the shader object.
+		 */
+		void set_shader(ref_ptr<Shader> shader);
 
-    void loadStage(
-        const std::map<std::string, std::string> &shaderConfig,
-        const std::string &effectName,
-        std::map<GLenum,std::string> &code,
-        GLenum stage);
-  };
+		// overwrite
+		void enable(RenderState *);
+
+		void disable(RenderState *);
+
+	protected:
+		ref_ptr<Shader> shader_;
+
+		void loadStage(
+				const std::map<std::string, std::string> &shaderConfig,
+				const std::string &effectName,
+				std::map<GLenum, std::string> &code,
+				GLenum stage);
+	};
 } // namespace
 
 namespace regen {
-  /**
-   * \brief can be used to mix in a shader.
-   */
-  class HasShader {
-  public:
-    /**
-     * @param shaderKey the shader include key
-     */
-    HasShader(const std::string &shaderKey)
-    : shaderKey_(shaderKey)
-    { shaderState_ = ref_ptr<ShaderState>::alloc(); }
-    virtual ~HasShader() {}
+	/**
+	 * \brief can be used to mix in a shader.
+	 */
+	class HasShader {
+	public:
+		/**
+		 * @param shaderKey the shader include key
+		 */
+		HasShader(const std::string &shaderKey)
+				: shaderKey_(shaderKey) { shaderState_ = ref_ptr<ShaderState>::alloc(); }
 
-    /**
-     * @param cfg the shader configuration.
-     */
-    virtual void createShader(const StateConfig &cfg)
-    { shaderState_->createShader(cfg,shaderKey_); }
+		virtual ~HasShader() {}
 
-    /**
-     * @return the shader state.
-     */
-    const ref_ptr<ShaderState>& shaderState() const
-    { return shaderState_; }
-    /**
-     * @return the shader include key.
-     */
-    const std::string& shaderKey() const
-    { return shaderKey_; }
+		/**
+		 * @param cfg the shader configuration.
+		 */
+		virtual void createShader(const StateConfig &cfg) { shaderState_->createShader(cfg, shaderKey_); }
 
-  protected:
-    ref_ptr<ShaderState> shaderState_;
-    std::string shaderKey_;
-  };
+		/**
+		 * @return the shader state.
+		 */
+		const ref_ptr<ShaderState> &shaderState() const { return shaderState_; }
+
+		/**
+		 * @return the shader include key.
+		 */
+		const std::string &shaderKey() const { return shaderKey_; }
+
+	protected:
+		ref_ptr<ShaderState> shaderState_;
+		std::string shaderKey_;
+	};
 } // namespace
 
 #endif /* SHADER_NODE_H_ */

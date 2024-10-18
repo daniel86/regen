@@ -15,72 +15,78 @@
 #include <regen/gl-types/shader-input.h>
 
 namespace regen {
-  /**
-   * \brief Shader configuration based on State's.
-   */
-  class StateConfigurer
-  {
-  public:
-    /**
-     * Load shader configuration based on a given node (and parent nodes).
-     */
-    static StateConfig configure(const StateNode *node);
-    /**
-     * Load shader configuration based on a given state (and joined states).
-     */
-    static StateConfig configure(const State *state);
+	/**
+	 * \brief Shader configuration based on State's.
+	 */
+	class StateConfigurer {
+	public:
+		/**
+		 * Load shader configuration based on a given node (and parent nodes).
+		 */
+		static StateConfig configure(const StateNode *node);
 
-    StateConfigurer();
-    /**
-     * @param cfg the shader configuration.
-     */
-    StateConfigurer(const StateConfig &cfg);
+		/**
+		 * Load shader configuration based on a given state (and joined states).
+		 */
+		static StateConfig configure(const State *state);
 
-    /**
-     * @param version the minimum GLSL version.
-     */
-    void setVersion(GLuint version);
+		StateConfigurer();
 
-    /**
-     * Load shader configuration based on a given node (and parent nodes).
-     */
-    void addNode(const StateNode *node);
-    /**
-     * Load shader configuration based on a given state (and joined states).
-     */
-    void addState(const State *state);
-    /**
-     * Adds ShaderInput instance to StateConfig.
-     */
-    void addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type="");
-    /**
-     * Add each key-value pair from given map to shader defines.
-     */
-    void addDefines(const std::map<std::string,std::string> &defines);
-    /**
-     * Add function declarations from given map.
-     */
-    void addFunctions(const std::map<std::string,std::string> &functions);
+		/**
+		 * @param cfg the shader configuration.
+		 */
+		StateConfigurer(const StateConfig &cfg);
 
-    /**
-     * Add key-value pair to shader defines.
-     */
-    void define(const std::string &name, const std::string &value);
-    /**
-     * Add a function declaration.
-     */
-    void defineFunction(const std::string &name, const std::string &value);
+		/**
+		 * @param version the minimum GLSL version.
+		 */
+		void setVersion(GLuint version);
 
-    /**
-     * @return the shader configuration.
-     */
-    StateConfig& cfg();
+		/**
+		 * Load shader configuration based on a given node (and parent nodes).
+		 */
+		void addNode(const StateNode *node);
 
-  protected:
-    StateConfig cfg_;
-    std::map<std::string,ShaderInputList::iterator> inputNames_;
-    GLuint numLights_;
-  };
+		/**
+		 * Load shader configuration based on a given state (and joined states).
+		 */
+		void addState(const State *state);
+
+		/**
+		 * Adds ShaderInput instance to StateConfig.
+		 */
+		void addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type = "");
+
+		/**
+		 * Add each key-value pair from given map to shader defines.
+		 */
+		void addDefines(const std::map<std::string, std::string> &defines);
+
+		/**
+		 * Add function declarations from given map.
+		 */
+		void addFunctions(const std::map<std::string, std::string> &functions);
+
+		/**
+		 * Add key-value pair to shader defines.
+		 */
+		void define(const std::string &name, const std::string &value);
+
+		/**
+		 * Add a function declaration.
+		 */
+		void defineFunction(const std::string &name, const std::string &value);
+
+		/**
+		 * @return the shader configuration.
+		 */
+		StateConfig &cfg();
+
+	protected:
+		StateConfig cfg_;
+		std::map<std::string, ShaderInputList::iterator> inputNames_;
+		GLuint numLights_;
+	};
 } // namespace
 
 #endif /* STATE_CONFIGURER_H_ */

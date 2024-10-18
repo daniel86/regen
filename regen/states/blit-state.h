@@ -12,115 +12,117 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-  /**
-   * \brief Blits a FBO color attachment to another FBO.
-   */
-  class BlitToFBO : public State
-  {
-  public:
-    /**
-     * @param src Source FBO.
-     * @param dst Destination FBO.
-     * @param srcAttachment Source color attachment.
-     * @param dstAttachment Destination color attachment.
-     * @param keepRatio Preserve aspect ratio of input texture.
-     */
-    BlitToFBO(
-        const ref_ptr<FBO> &src,
-        const ref_ptr<FBO> &dst,
-        GLenum srcAttachment=GL_COLOR_ATTACHMENT0,
-        GLenum dstAttachment=GL_COLOR_ATTACHMENT0,
-        GLboolean keepRatio=GL_FALSE);
+	/**
+	 * \brief Blits a FBO color attachment to another FBO.
+	 */
+	class BlitToFBO : public State {
+	public:
+		/**
+		 * @param src Source FBO.
+		 * @param dst Destination FBO.
+		 * @param srcAttachment Source color attachment.
+		 * @param dstAttachment Destination color attachment.
+		 * @param keepRatio Preserve aspect ratio of input texture.
+		 */
+		BlitToFBO(
+				const ref_ptr<FBO> &src,
+				const ref_ptr<FBO> &dst,
+				GLenum srcAttachment = GL_COLOR_ATTACHMENT0,
+				GLenum dstAttachment = GL_COLOR_ATTACHMENT0,
+				GLboolean keepRatio = GL_FALSE);
 
-    /**
-     * filterMode must be GL_NEAREST or GL_LINEAR.
-     */
-    void set_filterMode(GLenum filterMode=GL_LINEAR);
-    /**
-     * The bitwise OR of the flags indicating which buffers are to be copied.
-     * The allowed flags are  GL_COLOR_BUFFER_BIT,
-     * GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT.
-     */
-    void set_sourceBuffer(GLenum sourceBuffer=GL_COLOR_BUFFER_BIT);
+		/**
+		 * filterMode must be GL_NEAREST or GL_LINEAR.
+		 */
+		void set_filterMode(GLenum filterMode = GL_LINEAR);
 
-    // override
-    void enable(RenderState *state);
-  protected:
-    ref_ptr<FBO> src_;
-    ref_ptr<FBO> dst_;
-    GLenum srcAttachment_;
-    GLenum dstAttachment_;
-    GLenum filterMode_;
-    GLenum sourceBuffer_;
-    GLboolean keepRatio_;
-  };
+		/**
+		 * The bitwise OR of the flags indicating which buffers are to be copied.
+		 * The allowed flags are  GL_COLOR_BUFFER_BIT,
+		 * GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT.
+		 */
+		void set_sourceBuffer(GLenum sourceBuffer = GL_COLOR_BUFFER_BIT);
 
-  /**
-   * \brief Blits a FBO color attachment to screen.
-   */
-  class BlitToScreen : public State
-  {
-  public:
-    /**
-     * @param fbo FBO to blit.
-     * @param viewport the screen viewport.
-     * @param attachment color attachment to blit.
-     * @param keepRatio Preserve aspect ratio of input texture.
-     */
-    BlitToScreen(
-        const ref_ptr<FBO> &fbo,
-        const ref_ptr<ShaderInput2i> &viewport,
-        GLenum attachment=GL_COLOR_ATTACHMENT0,
-        GLboolean keepRatio=GL_FALSE);
+		// override
+		void enable(RenderState *state);
 
-    /**
-     * filterMode must be GL_NEAREST or GL_LINEAR.
-     */
-    void set_filterMode(GLenum filterMode=GL_LINEAR);
-    /**
-     * The bitwise OR of the flags indicating which buffers are to be copied.
-     * The allowed flags are  GL_COLOR_BUFFER_BIT,
-     * GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT.
-     */
-    void set_sourceBuffer(GLenum sourceBuffer=GL_COLOR_BUFFER_BIT);
+	protected:
+		ref_ptr<FBO> src_;
+		ref_ptr<FBO> dst_;
+		GLenum srcAttachment_;
+		GLenum dstAttachment_;
+		GLenum filterMode_;
+		GLenum sourceBuffer_;
+		GLboolean keepRatio_;
+	};
 
-    // override
-    void enable(RenderState *state);
-  protected:
-    ref_ptr<FBO> fbo_;
-    ref_ptr<ShaderInput2i> viewport_;
-    GLenum attachment_;
-    GLenum filterMode_;
-    GLenum sourceBuffer_;
-    GLboolean keepRatio_;
-  };
+	/**
+	 * \brief Blits a FBO color attachment to screen.
+	 */
+	class BlitToScreen : public State {
+	public:
+		/**
+		 * @param fbo FBO to blit.
+		 * @param viewport the screen viewport.
+		 * @param attachment color attachment to blit.
+		 * @param keepRatio Preserve aspect ratio of input texture.
+		 */
+		BlitToScreen(
+				const ref_ptr<FBO> &fbo,
+				const ref_ptr<ShaderInput2i> &viewport,
+				GLenum attachment = GL_COLOR_ATTACHMENT0,
+				GLboolean keepRatio = GL_FALSE);
 
-  /**
-   * \brief Blits a FBO color attachment to screen.
-   *
-   * This is useful for ping-pong textures consisting of 2 images.
-   */
-  class BlitTexToScreen : public BlitToScreen
-  {
-  public:
-    /**
-     * @param fbo a FBO.
-     * @param texture a texture.
-     * @param viewport the screen viewport.
-     * @param attachment the first texture attachment.
-     */
-    BlitTexToScreen(
-        const ref_ptr<FBO> &fbo,
-        const ref_ptr<Texture> &texture,
-        const ref_ptr<ShaderInput2i> &viewport,
-        GLenum attachment=GL_COLOR_ATTACHMENT0);
+		/**
+		 * filterMode must be GL_NEAREST or GL_LINEAR.
+		 */
+		void set_filterMode(GLenum filterMode = GL_LINEAR);
 
-    // override
-    virtual void enable(RenderState *state);
-  protected:
-    ref_ptr<Texture> texture_;
-    GLenum baseAttachment_;
-  };
+		/**
+		 * The bitwise OR of the flags indicating which buffers are to be copied.
+		 * The allowed flags are  GL_COLOR_BUFFER_BIT,
+		 * GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT.
+		 */
+		void set_sourceBuffer(GLenum sourceBuffer = GL_COLOR_BUFFER_BIT);
+
+		// override
+		void enable(RenderState *state);
+
+	protected:
+		ref_ptr<FBO> fbo_;
+		ref_ptr<ShaderInput2i> viewport_;
+		GLenum attachment_;
+		GLenum filterMode_;
+		GLenum sourceBuffer_;
+		GLboolean keepRatio_;
+	};
+
+	/**
+	 * \brief Blits a FBO color attachment to screen.
+	 *
+	 * This is useful for ping-pong textures consisting of 2 images.
+	 */
+	class BlitTexToScreen : public BlitToScreen {
+	public:
+		/**
+		 * @param fbo a FBO.
+		 * @param texture a texture.
+		 * @param viewport the screen viewport.
+		 * @param attachment the first texture attachment.
+		 */
+		BlitTexToScreen(
+				const ref_ptr<FBO> &fbo,
+				const ref_ptr<Texture> &texture,
+				const ref_ptr<ShaderInput2i> &viewport,
+				GLenum attachment = GL_COLOR_ATTACHMENT0);
+
+		// override
+		virtual void enable(RenderState *state);
+
+	protected:
+		ref_ptr<Texture> texture_;
+		GLenum baseAttachment_;
+	};
 } // namespace
 
 #endif /* BLIT_TO_SCREEN_H_ */
