@@ -31,15 +31,16 @@ VideoTexture::VideoTexture()
   seeked_(GL_FALSE),
   fileToLoaded_(GL_FALSE),
   elapsedSeconds_(0.0),
-  idleInterval_(IDLE_SLEEP_MS/1000),
+  idleInterval_(IDLE_SLEEP_MS/1000.0f),
   interval_(idleInterval_),
   dt_(0.0),
   intervalMili_(0),
-  lastFrame_(NULL)
+  lastFrame_(nullptr)
 {
   demuxer_ = ref_ptr<Demuxer>::alloc();
   decodingThread_ = boost::thread(&VideoTexture::decode, this);
 }
+
 VideoTexture::~VideoTexture()
 {
   stopDecodingThread();
@@ -199,13 +200,14 @@ void VideoTexture::animate(GLdouble animateDT)
   }
   dt_ = 0.0;
 }
+
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt)
 {
   GL_ERROR_LOG();
   GLuint channel = rs->reserveTextureChannel();
   begin(rs,channel);
   if(fileToLoaded_) { // setup the texture target
-    set_data(NULL);
+    set_data(nullptr);
     texImage();
     filter().push(GL_LINEAR);
     wrapping().push(GL_REPEAT);

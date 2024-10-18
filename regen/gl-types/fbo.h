@@ -264,7 +264,7 @@ namespace regen {
         GLuint count,
         GLenum targetType,
         GLenum format,
-        GLenum internalFormat,
+        GLint internalFormat,
         GLenum pixelType);
     /**
      * Add n Texture's to the FBO.
@@ -273,7 +273,7 @@ namespace regen {
         GLuint count,
         GLenum targetType,
         GLenum format,
-        GLenum internalFormat,
+        GLint internalFormat,
         GLenum pixelType);
     /**
      * Add a Texture to the FBO.
