@@ -16,59 +16,66 @@
 #include <regen/config.h>
 
 namespace regen {
-  /**
-   * Log the GL error state.
-   */
-  #ifdef REGEN_DEBUG_BUILD
-  #define GL_ERROR_LOG() REGEN_ERROR( getGLError() )
-  #else
-  #define GL_ERROR_LOG()
-  #endif
-  /**
-   * Log the FBO error state.
-   */
-  #ifdef REGEN_DEBUG_BUILD
-  #define FBO_ERROR_LOG() REGEN_ERROR( getFBOError(GL_FRAMEBUFFER) )
-  #else
-  #define FBO_ERROR_LOG()
-  #endif
+	/**
+	 * Log the GL error state.
+	 */
+#ifdef REGEN_DEBUG_BUILD
+#define GL_ERROR_LOG() REGEN_ERROR( getGLError() )
+#else
+#define GL_ERROR_LOG()
+#endif
+	/**
+	 * Log the FBO error state.
+	 */
+#ifdef REGEN_DEBUG_BUILD
+#define FBO_ERROR_LOG() REGEN_ERROR( getFBOError(GL_FRAMEBUFFER) )
+#else
+#define FBO_ERROR_LOG()
+#endif
 
-  /**
-   * Query GL error state.
-   */
-  #ifdef REGEN_DEBUG_BUILD
-  std::string getGLError();
-  #else
-  #define getGLError()
-  #endif
-  /**
-   * Query FBO error state.
-   */
-  #ifdef REGEN_DEBUG_BUILD
-  std::string getFBOError(GLenum target);
-  #else
-  #define getFBOError(t)
-  #endif
+	/**
+	 * Query GL error state.
+	 */
+#ifdef REGEN_DEBUG_BUILD
 
-  /**
-   * Query a GL query result.
-   */
-  GLuint getGLQueryResult(GLuint query);
-  /**
-   * Query a GL integer attribute.
-   */
-  GLint getGLInteger(GLenum e);
-  /**
-   * Query a GL integer attribute.
-   * Check for required extension if not supported return default value.
-   */
-  GLint getGLInteger(const std::string &ext, GLenum key, GLint defaultValue);
-  /**
-   * Query a GL float attribute.
-   */
-  GLfloat getGLFloat(GLenum e);
+	std::string getGLError();
 
-  GLint getGLBufferInteger(GLenum target, GLenum e);
+#else
+#define getGLError()
+#endif
+	/**
+	 * Query FBO error state.
+	 */
+#ifdef REGEN_DEBUG_BUILD
+
+	std::string getFBOError(GLenum target);
+
+#else
+#define getFBOError(t)
+#endif
+
+	/**
+	 * Query a GL query result.
+	 */
+	GLuint getGLQueryResult(GLuint query);
+
+	/**
+	 * Query a GL integer attribute.
+	 */
+	GLint getGLInteger(GLenum e);
+
+	/**
+	 * Query a GL integer attribute.
+	 * Check for required extension if not supported return default value.
+	 */
+	GLint getGLInteger(const std::string &ext, GLenum key, GLint defaultValue);
+
+	/**
+	 * Query a GL float attribute.
+	 */
+	GLfloat getGLFloat(GLenum e);
+
+	GLint getGLBufferInteger(GLenum target, GLenum e);
 
 } // namespace
 
