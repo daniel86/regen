@@ -46,15 +46,14 @@ GLboolean State::isHidden() const { return isHidden_; }
 void State::set_isHidden(GLboolean isHidden) { isHidden_ = isHidden; }
 
 static void setConstantUniforms_(State *s, GLboolean isConstant) {
-	HasInput *inState = dynamic_cast<HasInput *>(s);
+	auto *inState = dynamic_cast<HasInput *>(s);
 	if (inState) {
 		const ShaderInputList &in = inState->inputContainer()->inputs();
-		for (ShaderInputList::const_iterator it = in.begin(); it != in.end(); ++it) {
+		for (auto it = in.begin(); it != in.end(); ++it) {
 			it->in_->set_isConstant(isConstant);
 		}
 	}
-	for (std::list<ref_ptr<State> >::const_iterator
-				 it = s->joined().begin(); it != s->joined().end(); ++it) {
+	for (auto it = s->joined().begin(); it != s->joined().end(); ++it) {
 		setConstantUniforms_(it->get(), isConstant);
 	}
 }
@@ -66,15 +65,13 @@ void State::setConstantUniforms(GLboolean isConstant) {
 const std::list<ref_ptr<State> > &State::joined() const { return joined_; }
 
 void State::enable(RenderState *state) {
-	for (std::list<ref_ptr<State> >::iterator
-				 it = joined_.begin(); it != joined_.end(); ++it) {
+	for (auto it = joined_.begin(); it != joined_.end(); ++it) {
 		if (!(*it)->isHidden()) (*it)->enable(state);
 	}
 }
 
 void State::disable(RenderState *state) {
-	for (std::list<ref_ptr<State> >::reverse_iterator
-				 it = joined_.rbegin(); it != joined_.rend(); ++it) {
+	for (auto it = joined_.rbegin(); it != joined_.rend(); ++it) {
 		if (!(*it)->isHidden()) (*it)->disable(state);
 	}
 }
@@ -88,8 +85,7 @@ void State::joinStates(const ref_ptr<State> &state) { joined_.push_back(state); 
 void State::joinStatesFront(const ref_ptr<State> &state) { joined_.push_front(state); }
 
 void State::disjoinStates(const ref_ptr<State> &state) {
-	for (std::list<ref_ptr<State> >::iterator
-				 it = joined_.begin(); it != joined_.end(); ++it) {
+	for (auto it = joined_.begin(); it != joined_.end(); ++it) {
 		if (it->get() == state.get()) {
 			joined_.erase(it);
 			return;
@@ -98,7 +94,7 @@ void State::disjoinStates(const ref_ptr<State> &state) {
 }
 
 void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
-	HasInput *inState = dynamic_cast<HasInput *>(this);
+	auto *inState = dynamic_cast<HasInput *>(this);
 	if (inputStateBuddy_.get()) { inState = inputStateBuddy_.get(); }
 	else if (!inState) {
 		ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
@@ -110,30 +106,29 @@ void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const std::string &n
 }
 
 void State::disjoinShaderInput(const ref_ptr<ShaderInput> &in) {
-	HasInput *inState = dynamic_cast<HasInput *>(this);
+	auto *inState = dynamic_cast<HasInput *>(this);
 	if (inputStateBuddy_.get()) { inState = inputStateBuddy_.get(); }
 	else if (!inState) return;
 	inState->inputContainer()->removeInput(in);
 }
 
 void State::collectShaderInput(ShaderInputList &out) {
-	HasInput *inState = dynamic_cast<HasInput *>(this);
-	if (inState != NULL) {
+	auto *inState = dynamic_cast<HasInput *>(this);
+	if (inState != nullptr) {
 		const ref_ptr<ShaderInputContainer> &container = inState->inputContainer();
 		out.insert(out.end(), container->inputs().begin(), container->inputs().end());
 	}
 
-	for (std::list<ref_ptr<State> >::iterator
-				 it = joined_.begin(); it != joined_.end(); ++it) { (*it)->collectShaderInput(out); }
+	for (auto it = joined_.begin(); it != joined_.end(); ++it) { (*it)->collectShaderInput(out); }
 }
 
 ref_ptr<ShaderInput> State::findShaderInput(const std::string &name) {
 	ref_ptr<ShaderInput> ret;
 
-	HasInput *inState = dynamic_cast<HasInput *>(this);
-	if (inState != NULL) {
+	auto *inState = dynamic_cast<HasInput *>(this);
+	if (inState != nullptr) {
 		const ShaderInputList &l = inState->inputContainer()->inputs();
-		for (ShaderInputList::const_iterator it = l.begin(); it != l.end(); ++it) {
+		for (auto it = l.begin(); it != l.end(); ++it) {
 			const NamedShaderInput &inNamed = *it;
 			if (name == inNamed.name_ ||
 				name == inNamed.in_->name())
@@ -141,10 +136,9 @@ ref_ptr<ShaderInput> State::findShaderInput(const std::string &name) {
 		}
 	}
 
-	for (std::list<ref_ptr<State> >::const_iterator
-				 it = joined().begin(); it != joined().end(); ++it) {
+	for (auto it = joined().begin(); it != joined().end(); ++it) {
 		ret = (*it)->findShaderInput(name);
-		if (ret.get() != NULL) break;
+		if (ret.get() != nullptr) break;
 	}
 
 	return ret;
@@ -163,8 +157,7 @@ const ref_ptr<State> &StateSequence::globalState() const { return globalState_; 
 
 void StateSequence::enable(RenderState *state) {
 	globalState_->enable(state);
-	for (std::list<ref_ptr<State> >::iterator
-				 it = joined_.begin(); it != joined_.end(); ++it) {
+	for (auto it = joined_.begin(); it != joined_.end(); ++it) {
 		(*it)->enable(state);
 		(*it)->disable(state);
 	}

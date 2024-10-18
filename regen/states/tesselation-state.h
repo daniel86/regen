@@ -37,7 +37,7 @@ namespace regen {
 		 * @param numPatchVertices Specifies the number of vertices that
 		 * will be used to make up a single patch primitive.
 		 */
-		TesselationState(GLuint numPatchVertices);
+		explicit TesselationState(GLuint numPatchVertices);
 
 		/**
 		 * @param metric the metric to compute LoD factor for faces.

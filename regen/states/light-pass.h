@@ -67,7 +67,7 @@ namespace regen {
 		void setShadowFiltering(ShadowFilterMode mode);
 
 		// override
-		void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
 	protected:
 		struct LightPassLight {

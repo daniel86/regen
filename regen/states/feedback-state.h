@@ -97,9 +97,9 @@ namespace regen {
 		void draw(GLuint numInstances);
 
 		// override
-		void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
-		void disable(RenderState *rs);
+		void disable(RenderState *rs) override;
 
 	protected:
 		typedef std::list<ref_ptr<ShaderInput> > FeedbackList;
@@ -126,7 +126,7 @@ namespace regen {
 
 		void (FeedbackState::*disable_)(RenderState *rs);
 
-		void disableInterleaved(RenderState *rs);
+		static void disableInterleaved(RenderState *rs);
 
 		void disableSeparate(RenderState *rs);
 	};

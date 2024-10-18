@@ -35,7 +35,7 @@ namespace regen {
 		/**
 		 * @param cfg the shader configuration.
 		 */
-		StateConfigurer(const StateConfig &cfg);
+		explicit StateConfigurer(const StateConfig &cfg);
 
 		/**
 		 * @param version the minimum GLSL version.

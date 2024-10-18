@@ -22,7 +22,7 @@ namespace regen {
 		/**
 		 * @param shader the shader object.
 		 */
-		ShaderState(const ref_ptr<Shader> &shader);
+		explicit ShaderState(const ref_ptr<Shader> &shader);
 
 		ShaderState();
 
@@ -42,12 +42,12 @@ namespace regen {
 		/**
 		 * @param shader the shader object.
 		 */
-		void set_shader(ref_ptr<Shader> shader);
+		void set_shader(const ref_ptr<Shader>& shader);
 
 		// overwrite
-		void enable(RenderState *);
+		void enable(RenderState *) override;
 
-		void disable(RenderState *);
+		void disable(RenderState *) override;
 
 	protected:
 		ref_ptr<Shader> shader_;
@@ -69,10 +69,10 @@ namespace regen {
 		/**
 		 * @param shaderKey the shader include key
 		 */
-		HasShader(const std::string &shaderKey)
+		explicit HasShader(const std::string &shaderKey)
 				: shaderKey_(shaderKey) { shaderState_ = ref_ptr<ShaderState>::alloc(); }
 
-		virtual ~HasShader() {}
+		virtual ~HasShader() = default;
 
 		/**
 		 * @param cfg the shader configuration.

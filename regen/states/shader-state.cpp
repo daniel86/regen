@@ -21,7 +21,7 @@
 using namespace regen;
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
-		: State(), shader_(shader) { isHidden_ = (shader.get() == NULL); }
+		: State(), shader_(shader) { isHidden_ = (shader.get() == nullptr); }
 
 ShaderState::ShaderState()
 		: State() { isHidden_ = GL_TRUE; }
@@ -35,7 +35,7 @@ void ShaderState::loadStage(
 	std::string effectKey = REGEN_STRING(effectName << "." << glenum::glslStagePrefix(stage));
 	std::string ignoreKey = REGEN_STRING("IGNORE_" << stageName);
 
-	std::map<std::string, std::string>::const_iterator it = shaderConfig.find(ignoreKey);
+	auto it = shaderConfig.find(ignoreKey);
 	if (it != shaderConfig.end() && it->second == "TRUE") { return; }
 
 	code[stage] = Includer::get().include(effectKey);
@@ -76,8 +76,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 	}
 
 	shader_->setInputs(specifiedInput);
-	for (std::map<std::string, ref_ptr<Texture> >::const_iterator
-				 it = textures.begin(); it != textures.end(); ++it) {
+	for (auto it = textures.begin(); it != textures.end(); ++it) {
 		shader_->setTexture(it->second, it->first);
 	}
 
@@ -88,7 +87,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 
 const ref_ptr<Shader> &ShaderState::shader() const { return shader_; }
 
-void ShaderState::set_shader(ref_ptr<Shader> shader) { shader_ = shader; }
+void ShaderState::set_shader(const ref_ptr<Shader>& shader) { shader_ = shader; }
 
 void ShaderState::enable(RenderState *rs) {
 	rs->shader().push(shader_->id());

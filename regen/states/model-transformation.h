@@ -42,7 +42,7 @@ namespace regen {
 		GLboolean isAudioSource() const;
 
 		// Override
-		virtual void enable(RenderState *rs);
+		void enable(RenderState *rs) override;
 
 	protected:
 		ref_ptr<ShaderInputMat4> modelMat_;

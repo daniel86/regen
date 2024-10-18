@@ -74,7 +74,7 @@ void Material::set_twoSided(GLboolean twoSided) {
 	shaderDefine("HAS_TWO_SIDES", twoSided ? "TRUE" : "FALSE");
 }
 
-GLboolean Material::twoSided() const { return twoSidedState_.get() != NULL; }
+GLboolean Material::twoSided() const { return twoSidedState_.get() != nullptr; }
 
 void Material::set_jade() {
 	materialAmbient_->setUniformData(Vec3f(0.14, 0.22, 0.16));

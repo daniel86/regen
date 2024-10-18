@@ -48,7 +48,7 @@ namespace regen {
 				GLfloat radius);
 
 		// Override
-		virtual void traverse(RenderState *rs);
+		void traverse(RenderState *rs) override;
 
 	protected:
 		GLfloat radius_;
@@ -72,7 +72,7 @@ namespace regen {
 				Vec3f *points);
 
 		// Override
-		virtual void traverse(RenderState *rs);
+		void traverse(RenderState *rs) override;
 
 	protected:
 		Vec3f points_[8];

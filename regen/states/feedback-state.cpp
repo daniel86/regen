@@ -65,7 +65,7 @@ void FeedbackState::addFeedback(const ref_ptr<ShaderInput> &in) {
 }
 
 void FeedbackState::removeFeedback(ShaderInput *in) {
-	std::map<std::string, FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(in->name());
+	auto it = feedbackAttributeMap_.find(in->name());
 	if (it == feedbackAttributeMap_.end()) { return; }
 
 	ref_ptr<ShaderInput> in_ = *(it->second);
@@ -76,7 +76,7 @@ void FeedbackState::removeFeedback(ShaderInput *in) {
 }
 
 ref_ptr<ShaderInput> FeedbackState::getFeedback(const std::string &name) {
-	std::map<std::string, FeedbackList::iterator>::iterator it = feedbackAttributeMap_.find(name);
+	auto it = feedbackAttributeMap_.find(name);
 	if (it == feedbackAttributeMap_.end()) { ref_ptr<ShaderInput>(); }
 	return *(it->second);
 }
@@ -122,8 +122,7 @@ void FeedbackState::disableInterleaved(RenderState *rs) {
 void FeedbackState::enableSeparate(RenderState *rs) {
 	if (!rs->isTransformFeedbackAcive()) {
 		GLint bufferIndex = 0;
-		for (FeedbackList::const_iterator
-					 it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it) {
+		for (auto it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it) {
 			const ref_ptr<ShaderInput> &att = *it;
 			bufferRange_.offset_ = att->offset();
 			bufferRange_.size_ = att->inputSize();

@@ -24,9 +24,9 @@ namespace regen {
 		/**
 		 * @param state the state object.
 		 */
-		StateNode(const ref_ptr<State> &state);
+		explicit StateNode(const ref_ptr<State> &state);
 
-		virtual ~StateNode() {}
+		virtual ~StateNode() = default;
 
 		/**
 		 * @return Node name. Has no semantics.
@@ -133,7 +133,7 @@ namespace regen {
 		 * Do something after render call.
 		 * @param dt time difference to last traversal.
 		 */
-		void postRender(GLdouble dt);
+		static void postRender(GLdouble dt);
 
 	protected:
 		ref_ptr<ShaderInput1f> timeDelta_;
@@ -150,7 +150,7 @@ namespace regen {
 		/**
 		 * @param numIterations The number of iterations.
 		 */
-		LoopNode(GLuint numIterations);
+		explicit LoopNode(GLuint numIterations);
 
 		/**
 		 * @param state Associated state.
@@ -169,7 +169,7 @@ namespace regen {
 		void set_numIterations(GLuint numIterations);
 
 		// Override
-		virtual void traverse(RenderState *rs);
+		void traverse(RenderState *rs) override;
 
 	protected:
 		GLuint numIterations_;
