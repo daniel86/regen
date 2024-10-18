@@ -126,7 +126,7 @@ namespace regen {
 
 		void (FeedbackState::*disable_)(RenderState *rs);
 
-		static void disableInterleaved(RenderState *rs);
+		void disableInterleaved(RenderState *rs);
 
 		void disableSeparate(RenderState *rs);
 	};
