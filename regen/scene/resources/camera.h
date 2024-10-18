@@ -14,17 +14,19 @@
 #include <regen/camera/camera.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Provides Camera instances from SceneInputNode data.
-   */
-  class CameraResource : public ResourceProvider<Camera> {
-  public:
-    CameraResource();
-    // Override
-    ref_ptr<Camera> createResource(
-        SceneParser *parser, SceneInputNode &input);
-  };
-}}
+	namespace scene {
+		/**
+		 * Provides Camera instances from SceneInputNode data.
+		 */
+		class CameraResource : public ResourceProvider<Camera> {
+		public:
+			CameraResource();
+
+			// Override
+			ref_ptr<Camera> createResource(
+					SceneParser *parser, SceneInputNode &input);
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_RESOURCE_CAMERA_H_ */

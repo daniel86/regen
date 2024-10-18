@@ -14,17 +14,19 @@
 #include <regen/utility/font.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Provides Font instances from SceneInputNode data.
-   */
-  class FontResource : public ResourceProvider<Font> {
-  public:
-    FontResource();
-    // Override
-    ref_ptr<Font> createResource(
-        SceneParser *parser, SceneInputNode &input);
-  };
-}}
+	namespace scene {
+		/**
+		 * Provides Font instances from SceneInputNode data.
+		 */
+		class FontResource : public ResourceProvider<Font> {
+		public:
+			FontResource();
+
+			// Override
+			ref_ptr<Font> createResource(
+					SceneParser *parser, SceneInputNode &input);
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_RESOURCE_FONT_H_ */

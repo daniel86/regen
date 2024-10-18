@@ -15,39 +15,38 @@
 #define REGEN_DEFINE_STATE_CATEGORY "define"
 
 namespace regen {
-namespace scene {
-  /**
-   * Processes SceneInput and creates defines in last State.
-   */
-  class DefineStateProvider : public StateProcessor {
-  public:
-    DefineStateProvider()
-    : StateProcessor(REGEN_DEFINE_STATE_CATEGORY)
-    {}
+	namespace scene {
+		/**
+		 * Processes SceneInput and creates defines in last State.
+		 */
+		class DefineStateProvider : public StateProcessor {
+		public:
+			DefineStateProvider()
+					: StateProcessor(REGEN_DEFINE_STATE_CATEGORY) {}
 
-    // Override
-    void processInput(
-        SceneParser *parser,
-        SceneInputNode &input,
-        const ref_ptr<State> &state)
-    {
-      if(!input.hasAttribute("key")) {
-        REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
-        return;
-      }
-      if(!input.hasAttribute("value")) {
-        REGEN_WARN("Ignoring " << input.getDescription() << " without value attribute.");
-        return;
-      }
-      ref_ptr<State> s = state;
-      while(!s->joined().empty()) {
-        s = *s->joined().rbegin();
-      }
-      s->shaderDefine(
-          input.getValue("key"),
-          input.getValue("value"));
-    }
-  };
-}}
+			// Override
+			void processInput(
+					SceneParser *parser,
+					SceneInputNode &input,
+					const ref_ptr<State> &state) {
+				if (!input.hasAttribute("key")) {
+					REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
+					return;
+				}
+				if (!input.hasAttribute("value")) {
+					REGEN_WARN("Ignoring " << input.getDescription() << " without value attribute.");
+					return;
+				}
+				ref_ptr<State> s = state;
+				while (!s->joined().empty()) {
+					s = *s->joined().rbegin();
+				}
+				s->shaderDefine(
+						input.getValue("key"),
+						input.getValue("value"));
+			}
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_DEFINE_H_ */

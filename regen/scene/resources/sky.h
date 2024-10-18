@@ -19,37 +19,42 @@
 #include <regen/sky/moon.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Provides MeshVector instances from SceneInputNode data.
-   */
-  class SkyResource : public ResourceProvider<Sky> {
-  public:
-    SkyResource();
+	namespace scene {
+		/**
+		 * Provides MeshVector instances from SceneInputNode data.
+		 */
+		class SkyResource : public ResourceProvider<Sky> {
+		public:
+			SkyResource();
 
-    // Override
-    ref_ptr<Sky> createResource(
-        SceneParser *parser, SceneInputNode &input);
+			// Override
+			ref_ptr<Sky> createResource(
+					SceneParser *parser, SceneInputNode &input);
 
-  protected:
+		protected:
 
-    ref_ptr<StarMap> createStarMapLayer(
-        const ref_ptr<Sky> &sky,
-        SceneParser *parser, SceneInputNode &input);
-    ref_ptr<Stars> createStarsLayer(
-        const ref_ptr<Sky> &sky,
-        SceneParser *parser, SceneInputNode &input);
-    ref_ptr<Atmosphere> createAtmosphereLayer(
-        const ref_ptr<Sky> &sky,
-        SceneParser *parser, SceneInputNode &input, const std::string &skyName);
-    ref_ptr<CloudLayer> createCloudLayer(
-        const ref_ptr<Sky> &sky,
-        SceneParser *parser, SceneInputNode &input);
-    ref_ptr<MoonLayer> createMoonLayer(
-        const ref_ptr<Sky> &sky,
-        SceneParser *parser, SceneInputNode &input);
-  };
-}}
+			ref_ptr<StarMap> createStarMapLayer(
+					const ref_ptr<Sky> &sky,
+					SceneParser *parser, SceneInputNode &input);
+
+			ref_ptr<Stars> createStarsLayer(
+					const ref_ptr<Sky> &sky,
+					SceneParser *parser, SceneInputNode &input);
+
+			ref_ptr<Atmosphere> createAtmosphereLayer(
+					const ref_ptr<Sky> &sky,
+					SceneParser *parser, SceneInputNode &input, const std::string &skyName);
+
+			ref_ptr<CloudLayer> createCloudLayer(
+					const ref_ptr<Sky> &sky,
+					SceneParser *parser, SceneInputNode &input);
+
+			ref_ptr<MoonLayer> createMoonLayer(
+					const ref_ptr<Sky> &sky,
+					SceneParser *parser, SceneInputNode &input);
+		};
+	}
+}
 
 
 #endif /* _XML_RESOURCE_STATE_H_ */

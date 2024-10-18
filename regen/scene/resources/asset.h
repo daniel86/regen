@@ -14,17 +14,19 @@
 #include <regen/meshes/assimp-importer.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Provides AssetImporter instances from SceneInputNode data.
-   */
-  class AssetResource : public ResourceProvider<AssetImporter> {
-  public:
-    AssetResource();
-    // Override
-    ref_ptr<AssetImporter> createResource(
-        SceneParser *parser, SceneInputNode &input);
-  };
-}}
+	namespace scene {
+		/**
+		 * Provides AssetImporter instances from SceneInputNode data.
+		 */
+		class AssetResource : public ResourceProvider<AssetImporter> {
+		public:
+			AssetResource();
+
+			// Override
+			ref_ptr<AssetImporter> createResource(
+					SceneParser *parser, SceneInputNode &input);
+		};
+	}
+}
 
 #endif /* ASSET_H_ */

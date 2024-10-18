@@ -12,64 +12,69 @@
 #include <regen/utility/xml.h>
 
 namespace regen {
-namespace scene {
+	namespace scene {
 
-  class SceneInputNodeXML; // forward declaration
+		class SceneInputNodeXML; // forward declaration
 
-  /**
-   * Provides scene input via rapid XML.
-   * Note that attributes are inherited from parents
-   * to children.
-   */
-  class SceneInputXML : public SceneInput {
-  public:
-    /**
-     * Default constructor.
-     * @param xmlFile The XML input file path.
-     */
-    SceneInputXML(const std::string &xmlFile);
+		/**
+		 * Provides scene input via rapid XML.
+		 * Note that attributes are inherited from parents
+		 * to children.
+		 */
+		class SceneInputXML : public SceneInput {
+		public:
+			/**
+			 * Default constructor.
+			 * @param xmlFile The XML input file path.
+			 */
+			SceneInputXML(const std::string &xmlFile);
 
-    // Override
-    ref_ptr<SceneInputNode> getRoot();
+			// Override
+			ref_ptr<SceneInputNode> getRoot();
 
-  protected:
-    ref_ptr<SceneInputNodeXML> rootNode_;
-    rapidxml::xml_document<> doc_;
-    std::string inputFile_;
-    std::ifstream xmlInput_;
-    std::vector<char> buffer_;
-  };
+		protected:
+			ref_ptr<SceneInputNodeXML> rootNode_;
+			rapidxml::xml_document<> doc_;
+			std::string inputFile_;
+			std::ifstream xmlInput_;
+			std::vector<char> buffer_;
+		};
 
-  /**
-   * Provides scene input via rapid XML.
-   */
-  class SceneInputNodeXML : public SceneInputNode {
-  public:
-    /**
-     * Default constructor.
-     * @param parent Parent of the node or null if this is a root node.
-     * @param xmlNode A node in the XML tree.
-     */
-    SceneInputNodeXML(
-        SceneInputNodeXML *parent,
-        rapidxml::xml_node<> *xmlNode);
-    SceneInputNodeXML();
+		/**
+		 * Provides scene input via rapid XML.
+		 */
+		class SceneInputNodeXML : public SceneInputNode {
+		public:
+			/**
+			 * Default constructor.
+			 * @param parent Parent of the node or null if this is a root node.
+			 * @param xmlNode A node in the XML tree.
+			 */
+			SceneInputNodeXML(
+					SceneInputNodeXML *parent,
+					rapidxml::xml_node<> *xmlNode);
 
-    // Override
-    std::string getCategory();
-    std::string getName();
-    const std::list< ref_ptr<SceneInputNode> >& getChildren();
-    const std::map<std::string,std::string>& getAttributes();
+			SceneInputNodeXML();
 
-  protected:
-    rapidxml::xml_node<> *xmlNode_;
-    std::list< ref_ptr<SceneInputNode> > children_;
-    std::map<std::string,std::string> attributes_;
-    std::list< ref_ptr<SceneInputXML> > inclusions_;
+			// Override
+			std::string getCategory();
 
-    std::string category_;
-    std::string name_;
-  };
-}}
+			std::string getName();
+
+			const std::list<ref_ptr<SceneInputNode> > &getChildren();
+
+			const std::map<std::string, std::string> &getAttributes();
+
+		protected:
+			rapidxml::xml_node<> *xmlNode_;
+			std::list<ref_ptr<SceneInputNode> > children_;
+			std::map<std::string, std::string> attributes_;
+			std::list<ref_ptr<SceneInputXML> > inclusions_;
+
+			std::string category_;
+			std::string name_;
+		};
+	}
+}
 
 #endif /* XML_INPUT_PROVIDER_H_ */

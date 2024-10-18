@@ -14,17 +14,19 @@
 #include <regen/states/light-state.h>
 
 namespace regen {
-namespace scene {
-  /**
-   * Provides Light instances from SceneInputNode data.
-   */
-  class LightResource : public ResourceProvider<Light> {
-  public:
-    LightResource();
-    // Override
-    ref_ptr<Light> createResource(
-        SceneParser *parser, SceneInputNode &input);
-  };
-}}
+	namespace scene {
+		/**
+		 * Provides Light instances from SceneInputNode data.
+		 */
+		class LightResource : public ResourceProvider<Light> {
+		public:
+			LightResource();
+
+			// Override
+			ref_ptr<Light> createResource(
+					SceneParser *parser, SceneInputNode &input);
+		};
+	}
+}
 
 #endif /* REGEN_SCENE_RESOURCE_LIGHT_H_ */
