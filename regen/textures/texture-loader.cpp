@@ -63,7 +63,7 @@ static void convertImage(GLenum format, GLenum type) {
 	GLenum dstFormat = (format == GL_NONE ? srcFormat : format);
 	GLenum dstType = (type == GL_NONE ? srcType : type);
 	if (srcFormat != dstFormat || srcType != dstType) {
-		if (!ilConvertImage(dstFormat, dstType) == IL_FALSE) {
+		if (ilConvertImage(dstFormat, dstType) == IL_FALSE) {
 			throw Error("ilConvertImage failed");
 		}
 	}
@@ -94,7 +94,7 @@ static GLuint loadImage(const std::string &file) {
 							" bpp=" << ilGetInteger(IL_IMAGE_BPP) <<
 							" channels=" << ilGetInteger(IL_IMAGE_CHANNELS) <<
 							" width=" << ilGetInteger(IL_IMAGE_WIDTH) <<
-							" height=" << ilGetInteger(IL_IMAGE_HEIGHT));
+							" height=" << ilGetInteger(IL_IMAGE_HEIGHT))
 
 	return ilID;
 }
@@ -135,7 +135,7 @@ ref_ptr<Texture> textures::load(
 	}
 	tex->wrapping().push(GL_REPEAT);
 	tex->end(RenderState::get());
-	tex->set_data(NULL);
+	tex->set_data(nullptr);
 
 	ilDeleteImages(1, &ilID);
 
@@ -186,7 +186,7 @@ ref_ptr<Texture> textures::load(
 	}
 	tex->wrapping().push(GL_REPEAT);
 	tex->end(RenderState::get());
-	tex->set_data(NULL);
+	tex->set_data(nullptr);
 
 	ilDeleteImages(1, &ilID);
 
@@ -223,9 +223,8 @@ ref_ptr<Texture2DArray> textures::loadArray(
 	tex->begin(RenderState::get());
 
 	GLint arrayIndex = 0;
-	for (std::vector<std::string>::iterator
-				 it = accumulator.begin(); it != accumulator.end(); ++it) {
-		const std::string &textureFile = *it;
+	for (auto jt = accumulator.begin(); jt != accumulator.end(); ++jt) {
+		const std::string &textureFile = *jt;
 		GLuint ilID = loadImage(textureFile);
 		scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
 		convertImage(forcedFormat, forcedType);
@@ -236,7 +235,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
 			tex->set_format(regenImageFormat());
 			tex->set_internalFormat(
 					forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
-			tex->set_data(NULL);
+			tex->set_data(nullptr);
 			tex->texImage();
 		}
 
@@ -309,7 +308,7 @@ ref_ptr<TextureCube> textures::loadCube(
 	tex->set_internalFormat(
 			forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
 
-	GLbyte *imageData = (GLbyte *) ilGetData();
+	auto *imageData = (GLbyte *) ilGetData();
 	ILint index = 0;
 	for (ILint row = 0; row < numRows; ++row) {
 		GLbyte *colData = imageData;
@@ -331,8 +330,8 @@ ref_ptr<TextureCube> textures::loadCube(
 	tex->cubeTexImage(TextureCube::FRONT);
 	if (flipBackFace) {
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-		GLbyte *flippedFace = new GLbyte[faceBytes];
-		GLbyte *faceData = (GLbyte *) tex->cubeData()[TextureCube::BACK];
+		auto *flippedFace = new GLbyte[faceBytes];
+		auto *faceData = (GLbyte *) tex->cubeData()[TextureCube::BACK];
 		GLbyte *dst = flippedFace;
 
 		for (ILint row = faceWidth - 1; row >= 0; --row) {
@@ -421,7 +420,7 @@ ref_ptr<Texture> textures::loadSpectrum(
 		GLdouble t2,
 		GLint numTexels,
 		GLenum mipmapFlag) {
-	unsigned char *data = new unsigned char[numTexels * 4];
+	auto *data = new unsigned char[numTexels * 4];
 	spectrum(t1, t2, numTexels, data);
 
 	ref_ptr<Texture> tex = ref_ptr<Texture1D>::alloc();
@@ -439,7 +438,7 @@ ref_ptr<Texture> textures::loadSpectrum(
 		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(mipmapFlag);
 	}
-	tex->set_data(NULL);
+	tex->set_data(nullptr);
 	delete[]data;
 	tex->end(RenderState::get());
 
