@@ -20,43 +20,43 @@
 #endif
 
 namespace regen {
-  namespace math {
-    /**
-     * Check if floating point values are equal.
-     */
-    static inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta=1e-6)
-    { return abs(a-b)<=delta; }
+	namespace math {
+		/**
+		 * Check if floating point values are equal.
+		 */
+		static inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta = 1e-6) {
+			return abs(a - b) <= delta;
+		}
 
-    /**
-     * linearly interpolate between two values.
-     */
-    template <class T>
-    static inline T mix(T x, T y, GLdouble a)
-    { return x*(1.0-a) + y*a; }
+		/**
+		 * linearly interpolate between two values.
+		 */
+		template<class T>
+		static inline T mix(T x, T y, GLdouble a) { return x * (1.0 - a) + y * a; }
 
-    /**
-     * constrain a value to lie between two further values.
-     */
-    static inline GLfloat clamp(GLfloat x, GLfloat min, GLfloat max) {
-      if(x>max)      return max;
-      else if(x<min) return min;
-      else           return x;
-    }
+		/**
+		 * constrain a value to lie between two further values.
+		 */
+		static inline GLfloat clamp(GLfloat x, GLfloat min, GLfloat max) {
+			if (x > max) return max;
+			else if (x < min) return min;
+			else return x;
+		}
 
-    static inline GLfloat smoothstep(GLfloat edge0, GLfloat edge1, GLfloat x) {
-        // Scale, bias and saturate x to 0..1 range
-        x = clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
-        // Evaluate polynomial
-        return x*x*(3 - 2*x);
-    }
+		static inline GLfloat smoothstep(GLfloat edge0, GLfloat edge1, GLfloat x) {
+			// Scale, bias and saturate x to 0..1 range
+			x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+			// Evaluate polynomial
+			return x * x * (3 - 2 * x);
+		}
 
-    static inline GLfloat smootherstep(GLfloat edge0, GLfloat edge1, GLfloat x) {
-        // Scale, and clamp x to 0..1 range
-        x = clamp((x - edge0)/(edge1 - edge0), 0.0, 1.0);
-        // Evaluate polynomial
-        return x*x*x*(x*(x*6 - 15) + 10);
-    }
-  }
+		static inline GLfloat smootherstep(GLfloat edge0, GLfloat edge1, GLfloat x) {
+			// Scale, and clamp x to 0..1 range
+			x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+			// Evaluate polynomial
+			return x * x * x * (x * (x * 6 - 15) + 10);
+		}
+	}
 } // namespace
 
 #endif /* MATH_H_ */
