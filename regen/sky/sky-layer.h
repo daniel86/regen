@@ -66,15 +66,15 @@ namespace regen {
 			state()->joinStates(mesh_);
 		}
 
-		virtual void set_updateInterval(GLdouble interval_ms) { source_->set_updateInterval(interval_ms); }
+		void set_updateInterval(GLdouble interval_ms) override { source_->set_updateInterval(interval_ms); }
 
-		virtual GLdouble updateInterval() const { return source_->updateInterval(); }
+		GLdouble updateInterval() const override { return source_->updateInterval(); }
 
-		virtual ref_ptr<Mesh> getMeshState() { return mesh_; }
+		ref_ptr<Mesh> getMeshState() override { return mesh_; }
 
-		virtual ref_ptr<HasShader> getShaderState() { return shader_; }
+		ref_ptr<HasShader> getShaderState() override { return shader_; }
 
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) {}
+		void updateSkyLayer(RenderState *rs, GLdouble dt) override {}
 
 	protected:
 		ref_ptr<SkyLayer> source_;

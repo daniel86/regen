@@ -162,13 +162,13 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 }
 
 
-const float CloudLayer::defaultAltitudeHigh() { return 8.0f; }
+float CloudLayer::defaultAltitudeHigh() { return 8.0f; }
 
-const float CloudLayer::defaultAltitudeLow() { return 2.0f; }
+float CloudLayer::defaultAltitudeLow() { return 2.0f; }
 
-const Vec2f CloudLayer::defaultScaleHigh() { return Vec2f(32.0, 32.0); }
+Vec2f CloudLayer::defaultScaleHigh() { return {32.0, 32.0}; }
 
-const Vec2f CloudLayer::defaultScaleLow() { return Vec2f(128.0, 128.0); }
+Vec2f CloudLayer::defaultScaleLow() { return {128.0, 128.0}; }
 
 GLdouble CloudLayer::defaultChangeHigh() { return 0.1f; }
 

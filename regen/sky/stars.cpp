@@ -120,7 +120,7 @@ void Stars::updateNoiseTexture() {
 	noiseTex_->filter().push(GL_LINEAR);
 	noiseTex_->wrapping().push(GL_REPEAT);
 	noiseTex_->end(RenderState::get());
-	noiseTex_->set_data(NULL);
+	noiseTex_->set_data(nullptr);
 	GL_ERROR_LOG();
 
 	delete[]noiseMap;
@@ -132,7 +132,7 @@ void Stars::updateNoiseTexture() {
 
 GLfloat Stars::defaultApparentMagnitude() { return 7.0f; }
 
-Vec3f Stars::defaultColor() { return Vec3f(0.66, 0.78, 1.0); }
+Vec3f Stars::defaultColor() { return {0.66, 0.78, 1.0}; }
 
 GLfloat Stars::defaultColorRatio() { return 0.66f; }
 
@@ -147,7 +147,7 @@ void Stars::set_apparentMagnitude(const GLfloat vMag) { apparentMagnitude_->setV
 
 const ref_ptr<ShaderInput1f> &Stars::apparentMagnitude() const { return apparentMagnitude_; }
 
-void Stars::set_color(const Vec3f color) { color_->setVertex(0, color); }
+void Stars::set_color(const Vec3f& color) { color_->setVertex(0, color); }
 
 const ref_ptr<ShaderInput3f> &Stars::Stars::color() const { return color_; }
 

@@ -151,11 +151,11 @@ namespace regen {
 		const ref_ptr<TextureCube> &cubeMap() const;
 
 		// Override
-		void updateSkyLayer(RenderState *rs, GLdouble dt);
+		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState();
+		ref_ptr<Mesh> getMeshState() override;
 
-		ref_ptr<HasShader> getShaderState();
+		ref_ptr<HasShader> getShaderState() override;
 
 	protected:
 		ref_ptr<FBO> fbo_;

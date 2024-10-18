@@ -32,7 +32,7 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 }
 
 
-const GLdouble StarMap::defaultScattering() { return 0.2; }
+GLdouble StarMap::defaultScattering() { return 0.2; }
 
 
 void StarMap::set_texture(const std::string &textureFile) { meshState_->setCubeMap(textures::loadCube(textureFile)); }

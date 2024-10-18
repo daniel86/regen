@@ -55,11 +55,11 @@ GLdouble MoonLayer::defaultScale() { return 0.1; }
 
 GLdouble MoonLayer::defaultScattering() { return 4.0; }
 
-Vec3f MoonLayer::defaultSunShineColor() { return Vec3f(0.923, 0.786, 0.636); }
+Vec3f MoonLayer::defaultSunShineColor() { return {0.923, 0.786, 0.636}; }
 
 GLdouble MoonLayer::defaultSunShineIntensity() { return 128.0; }
 
-Vec3f MoonLayer::defaultEarthShineColor() { return Vec3f(0.88, 0.96, 1.0); }
+Vec3f MoonLayer::defaultEarthShineColor() { return {0.88, 0.96, 1.0}; }
 
 GLdouble MoonLayer::defaultEarthShineIntensity() { return 4.0; }
 
