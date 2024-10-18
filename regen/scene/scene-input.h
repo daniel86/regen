@@ -51,9 +51,9 @@ namespace regen {
 			 * Default constructor.
 			 * @param parent The parent node or null if this is a root node.
 			 */
-			SceneInputNode(SceneInputNode *parent);
+			explicit SceneInputNode(SceneInputNode *parent);
 
-			virtual ~SceneInputNode() {};
+			virtual ~SceneInputNode() = default;
 
 			/**
 			 * @return Input category identifier.
@@ -141,7 +141,7 @@ namespace regen {
 						return attValue;
 					}
 				} else {
-					if (parent_ != NULL) {
+					if (parent_ != nullptr) {
 						return parent_->getValue<T>(key, defaultValue);
 					} else {
 						return defaultValue;

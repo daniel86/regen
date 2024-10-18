@@ -135,18 +135,18 @@ void SceneParser::setStateProcessor(const ref_ptr<StateProcessor> &x) { statePro
 const map<string, ref_ptr<StateProcessor> > &SceneParser::stateProcessors() const { return stateProcessors_; }
 
 ref_ptr<NodeProcessor> SceneParser::getNodeProcessor(const string &category) {
-	map<string, ref_ptr<NodeProcessor> >::iterator needle = nodeProcessors_.find(category);
+	auto needle = nodeProcessors_.find(category);
 	if (needle == nodeProcessors_.end()) {
-		return ref_ptr<NodeProcessor>();
+		return {};
 	} else {
 		return needle->second;
 	}
 }
 
 ref_ptr<StateProcessor> SceneParser::getStateProcessor(const string &category) {
-	map<string, ref_ptr<StateProcessor> >::iterator needle = stateProcessors_.find(category);
+	auto needle = stateProcessors_.find(category);
 	if (needle == stateProcessors_.end()) {
-		return ref_ptr<StateProcessor>();
+		return {};
 	} else {
 		return needle->second;
 	}
@@ -165,12 +165,12 @@ void SceneParser::processNode(
 		const string &nodeName,
 		const string &nodeCategory) {
 	ref_ptr<NodeProcessor> processor = getNodeProcessor(nodeCategory);
-	if (processor.get() == NULL) {
+	if (processor.get() == nullptr) {
 		REGEN_WARN("No Processor registered for node category '" << nodeCategory << "'.");
 		return;
 	}
 	ref_ptr<SceneInputNode> input = inputProvider_->getRoot()->getFirstChild(nodeCategory, nodeName);
-	if (input.get() == NULL) {
+	if (input.get() == nullptr) {
 		REGEN_WARN("No input for node category '" <<
 												  nodeCategory << "' and node name '" << nodeName << "'.");
 		return;
@@ -183,12 +183,12 @@ void SceneParser::processState(
 		const string &nodeName,
 		const string &nodeCategory) {
 	ref_ptr<StateProcessor> processor = getStateProcessor(nodeCategory);
-	if (processor.get() == NULL) {
+	if (processor.get() == nullptr) {
 		REGEN_WARN("No Processor registered for node category '" << nodeCategory << "'.");
 		return;
 	}
 	ref_ptr<SceneInputNode> input = inputProvider_->getRoot()->getFirstChild(nodeCategory, nodeName);
-	if (input.get() == NULL) {
+	if (input.get() == nullptr) {
 		REGEN_WARN("No input for node category '" <<
 												  nodeCategory << "' and node name '" << nodeName << "'.");
 		return;
@@ -199,23 +199,21 @@ void SceneParser::processState(
 vector<AnimRange> SceneParser::getAnimationRanges(const std::string &assetID) {
 	ref_ptr<SceneInputNode> root = getRoot();
 	ref_ptr<SceneInputNode> importer = root->getFirstChild("asset", assetID);
-	if (importer.get() == NULL) {
+	if (importer.get() == nullptr) {
 		REGEN_WARN("No asset with id '" << assetID << "' known.");
-		return vector<AnimRange>();
+		return {};
 	} else {
 		const list<ref_ptr<SceneInputNode> > &childs = importer->getChildren();
 
 		GLuint animRangeCount = 0u;
-		for (list<ref_ptr<SceneInputNode> >::const_iterator
-					 it = childs.begin(); it != childs.end(); ++it) {
+		for (auto it = childs.begin(); it != childs.end(); ++it) {
 			if ((*it)->getCategory() == "anim-range") animRangeCount += 1;
 		}
 
 		vector<AnimRange> out(animRangeCount);
 		animRangeCount = 0u;
 
-		for (list<ref_ptr<SceneInputNode> >::const_iterator
-					 it = childs.begin(); it != childs.end(); ++it) {
+		for (auto it = childs.begin(); it != childs.end(); ++it) {
 			ref_ptr<SceneInputNode> n = *it;
 			if (n->getCategory() != "anim-range") continue;
 			out[animRangeCount].name = n->getValue("name");

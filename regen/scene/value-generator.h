@@ -60,8 +60,8 @@ namespace regen {
 				const T stepZ = n_->getValue<T>("z-step", T(1));
 				value_ = stepX * counter_.x + stepY * counter_.y + stepZ * counter_.z;
 
-				GLuint xCount = n_->getValue<GLuint>("x-count", numValues_);
-				GLuint yCount = n_->getValue<GLuint>("y-count", 1);
+				auto xCount = n_->getValue<GLuint>("x-count", numValues_);
+				auto yCount = n_->getValue<GLuint>("y-count", 1);
 				counter_.x += 1;
 				if (counter_.x >= xCount) {
 					counter_.x = 0;

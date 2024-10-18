@@ -44,8 +44,7 @@ string SceneInputNode::getDescription() {
 	ss << '<' << getCategory() << ' ';
 	ss << "id=" << getName() << ' ';
 	const map<string, string> &atts = getAttributes();
-	for (map<string, string>::const_iterator
-				 it = atts.begin(); it != atts.end(); ++it) {
+	for (auto it = atts.begin(); it != atts.end(); ++it) {
 		if (it->first == "id") continue;
 		ss << it->first << '=' << it->second << ' ';
 	}
@@ -69,8 +68,7 @@ list<GLuint> SceneInputNode::getIndexSequence(GLuint numIndices) {
 		const string indicesAtt = getValue<string>("indices", "0");
 		vector<string> indicesStr;
 		boost::split(indicesStr, indicesAtt, boost::is_any_of(","));
-		for (vector<string>::iterator
-					 it = indicesStr.begin(); it != indicesStr.end(); ++it)
+		for (auto it = indicesStr.begin(); it != indicesStr.end(); ++it)
 			pushIndexToSequence(numIndices, indices, atoi(it->c_str()));
 	} else if (hasAttribute("random-indices")) {
 		GLuint indexCount = getValue<GLuint>("random-indices", numIndices);
@@ -92,8 +90,7 @@ list<GLuint> SceneInputNode::getIndexSequence(GLuint numIndices) {
 list<ref_ptr<SceneInputNode> > SceneInputNode::getChildren(const std::string &category) {
 	const list<ref_ptr<SceneInputNode> > &children = getChildren();
 	list<ref_ptr<SceneInputNode> > out;
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = children.begin(); it != children.end(); ++it) {
+	for (auto it = children.begin(); it != children.end(); ++it) {
 		ref_ptr<SceneInputNode> n = *it;
 		if (n->getCategory() == category) out.push_back(n);
 	}
@@ -103,8 +100,7 @@ list<ref_ptr<SceneInputNode> > SceneInputNode::getChildren(const std::string &ca
 list<ref_ptr<SceneInputNode> > SceneInputNode::getChildren(const string &category, const string &name) {
 	const list<ref_ptr<SceneInputNode> > &children = getChildren();
 	list<ref_ptr<SceneInputNode> > out;
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = children.begin(); it != children.end(); ++it) {
+	for (auto it = children.begin(); it != children.end(); ++it) {
 		ref_ptr<SceneInputNode> n = *it;
 		if (n->getName() == name &&
 			n->getCategory() == category)
@@ -116,25 +112,23 @@ list<ref_ptr<SceneInputNode> > SceneInputNode::getChildren(const string &categor
 ref_ptr<SceneInputNode> SceneInputNode::getFirstChild(const string &category, const string &name) {
 	const list<ref_ptr<SceneInputNode> > &children = getChildren();
 	list<ref_ptr<SceneInputNode> > out;
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = children.begin(); it != children.end(); ++it) {
+	for (auto it = children.begin(); it != children.end(); ++it) {
 		ref_ptr<SceneInputNode> n = *it;
 		if (n->getName() == name &&
 			n->getCategory() == category)
 			return n;
 	}
-	return ref_ptr<SceneInputNode>();
+	return {};
 }
 
 ref_ptr<SceneInputNode> SceneInputNode::getFirstChild(const string &category) {
 	const list<ref_ptr<SceneInputNode> > &children = getChildren();
 	list<ref_ptr<SceneInputNode> > out;
-	for (list<ref_ptr<SceneInputNode> >::const_iterator
-				 it = children.begin(); it != children.end(); ++it) {
+	for (auto it = children.begin(); it != children.end(); ++it) {
 		ref_ptr<SceneInputNode> n = *it;
 		if (n->getCategory() == category) return n;
 	}
-	return ref_ptr<SceneInputNode>();
+	return {};
 }
 
 bool SceneInputNode::hasAttribute(const string &key) {
@@ -144,7 +138,7 @@ bool SceneInputNode::hasAttribute(const string &key) {
 const string &SceneInputNode::getValue(const string &key) {
 	static string emptyString = "";
 
-	map<string, string>::const_iterator needle = getAttributes().find(key);
+	auto needle = getAttributes().find(key);
 	if (needle != getAttributes().end()) {
 		return needle->second;
 	} else {

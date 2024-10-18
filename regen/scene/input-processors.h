@@ -27,10 +27,10 @@ namespace regen {
 			 * Default Constructor.
 			 * @param category The Processor category.
 			 */
-			InputProcessor(const std::string &category)
+			explicit InputProcessor(const std::string &category)
 					: category_(category) {}
 
-			virtual ~InputProcessor() {}
+			virtual ~InputProcessor() = default;
 
 			/**
 			 * @return The node category of this processor.
@@ -61,7 +61,7 @@ namespace regen {
 			 * Default Constructor.
 			 * @param category The Processor category.
 			 */
-			NodeProcessor(const std::string &category)
+			explicit NodeProcessor(const std::string &category)
 					: InputProcessor(category) {}
 		};
 
@@ -74,7 +74,7 @@ namespace regen {
 			 * Default Constructor.
 			 * @param category The Processor category.
 			 */
-			StateProcessor(const std::string &category)
+			explicit StateProcessor(const std::string &category)
 					: InputProcessor(category) {}
 		};
 
