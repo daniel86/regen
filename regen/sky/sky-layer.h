@@ -14,76 +14,73 @@
 #include <regen/states/shader-state.h>
 
 namespace regen {
-  class Sky;
+	class Sky;
 
-  class SkyLayer : public StateNode {
-  public:
-    explicit SkyLayer(const ref_ptr<Sky> &sky) {
-      sky_ = sky;
-      updateInterval_ = 4000.0;
-      dt_ = updateInterval_;
-    }
-    ~SkyLayer() override = default;
+	class SkyLayer : public StateNode {
+	public:
+		explicit SkyLayer(const ref_ptr<Sky> &sky) {
+			sky_ = sky;
+			updateInterval_ = 4000.0;
+			dt_ = updateInterval_;
+		}
 
-    void updateSky(RenderState *rs, GLdouble dt) {
-      dt_ += dt;
-      if(dt_<updateInterval_) { return; }
+		~SkyLayer() override = default;
 
-      GL_ERROR_LOG();
-      updateSkyLayer(rs,dt_);
-      GL_ERROR_LOG();
+		void updateSky(RenderState *rs, GLdouble dt) {
+			dt_ += dt;
+			if (dt_ < updateInterval_) { return; }
 
-      dt_ = 0.0;
-    }
+			GL_ERROR_LOG();
+			updateSkyLayer(rs, dt_);
+			GL_ERROR_LOG();
 
-    virtual void set_updateInterval(GLdouble interval_ms)
-    { updateInterval_ = interval_ms; }
+			dt_ = 0.0;
+		}
 
-    virtual GLdouble updateInterval() const
-    { return updateInterval_; }
+		virtual void set_updateInterval(GLdouble interval_ms) { updateInterval_ = interval_ms; }
 
-    virtual void updateSkyLayer(RenderState *rs, GLdouble dt) = 0;
-    virtual ref_ptr<Mesh> getMeshState() = 0;
-    virtual ref_ptr<HasShader> getShaderState() = 0;
+		virtual GLdouble updateInterval() const { return updateInterval_; }
 
-  protected:
-    ref_ptr<Sky> sky_;
+		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) = 0;
 
-    GLdouble updateInterval_;
-    GLdouble dt_;
-  };
+		virtual ref_ptr<Mesh> getMeshState() = 0;
 
-  class SkyLayerView : public SkyLayer {
-  public:
-    SkyLayerView(const ref_ptr<Sky> &sky, const ref_ptr<SkyLayer> &source)
-    : SkyLayer(sky) {
-      source_ = source;
-      state()->joinStates(source_->state());
-      shader_ = ref_ptr<HasShader>::alloc(source->getShaderState()->shaderKey());
-      state()->joinStates(shader_->shaderState());
-      mesh_ = ref_ptr<Mesh>::alloc(source->getMeshState());
-      state()->joinStates(mesh_);
-    }
+		virtual ref_ptr<HasShader> getShaderState() = 0;
 
-    virtual void set_updateInterval(GLdouble interval_ms)
-    { source_->set_updateInterval(interval_ms); }
+	protected:
+		ref_ptr<Sky> sky_;
 
-    virtual GLdouble updateInterval() const
-    { return source_->updateInterval(); }
+		GLdouble updateInterval_;
+		GLdouble dt_;
+	};
 
-    virtual ref_ptr<Mesh> getMeshState()
-    { return mesh_; }
+	class SkyLayerView : public SkyLayer {
+	public:
+		SkyLayerView(const ref_ptr<Sky> &sky, const ref_ptr<SkyLayer> &source)
+				: SkyLayer(sky) {
+			source_ = source;
+			state()->joinStates(source_->state());
+			shader_ = ref_ptr<HasShader>::alloc(source->getShaderState()->shaderKey());
+			state()->joinStates(shader_->shaderState());
+			mesh_ = ref_ptr<Mesh>::alloc(source->getMeshState());
+			state()->joinStates(mesh_);
+		}
 
-    virtual ref_ptr<HasShader> getShaderState()
-    { return shader_; }
+		virtual void set_updateInterval(GLdouble interval_ms) { source_->set_updateInterval(interval_ms); }
 
-    virtual void updateSkyLayer(RenderState *rs, GLdouble dt) {}
+		virtual GLdouble updateInterval() const { return source_->updateInterval(); }
 
-  protected:
-    ref_ptr<SkyLayer> source_;
-    ref_ptr<Mesh> mesh_;
-    ref_ptr<HasShader> shader_;
-  };
+		virtual ref_ptr<Mesh> getMeshState() { return mesh_; }
+
+		virtual ref_ptr<HasShader> getShaderState() { return shader_; }
+
+		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) {}
+
+	protected:
+		ref_ptr<SkyLayer> source_;
+		ref_ptr<Mesh> mesh_;
+		ref_ptr<HasShader> shader_;
+	};
 }
 
 #endif /* SKY_LAYER_H_ */

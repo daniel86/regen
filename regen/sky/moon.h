@@ -13,61 +13,63 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
-  class MoonLayer : public SkyLayer {
-  public:
-    MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile);
+	class MoonLayer : public SkyLayer {
+	public:
+		MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile);
 
-    void set_scale(GLdouble scale);
+		void set_scale(GLdouble scale);
 
-    const ref_ptr<ShaderInput1f>& scale() const;
+		const ref_ptr<ShaderInput1f> &scale() const;
 
-    void set_scattering(GLdouble scattering);
+		void set_scattering(GLdouble scattering);
 
-    const ref_ptr<ShaderInput1f>& scattering() const;
+		const ref_ptr<ShaderInput1f> &scattering() const;
 
-    void set_sunShineColor(const Vec3f &color);
+		void set_sunShineColor(const Vec3f &color);
 
-    void set_sunShineIntensity(GLdouble sunShineIntensity);
+		void set_sunShineIntensity(GLdouble sunShineIntensity);
 
-    const ref_ptr<ShaderInput4f>& sunShine() const;
+		const ref_ptr<ShaderInput4f> &sunShine() const;
 
-    void set_earthShineColor(const Vec3f &color);
+		void set_earthShineColor(const Vec3f &color);
 
-    void set_earthShineIntensity(GLdouble sunShineIntensity);
+		void set_earthShineIntensity(GLdouble sunShineIntensity);
 
-    const ref_ptr<ShaderInput3f>& earthShine() const;
+		const ref_ptr<ShaderInput3f> &earthShine() const;
 
-    GLdouble defaultScale();
+		GLdouble defaultScale();
 
-    GLdouble defaultScattering();
+		GLdouble defaultScattering();
 
-    Vec3f defaultSunShineColor();
+		Vec3f defaultSunShineColor();
 
-    GLdouble defaultSunShineIntensity();
+		GLdouble defaultSunShineIntensity();
 
-    Vec3f defaultEarthShineColor();
+		Vec3f defaultEarthShineColor();
 
-    GLdouble defaultEarthShineIntensity();
+		GLdouble defaultEarthShineIntensity();
 
-    // Override
-    virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
-    ref_ptr<Mesh> getMeshState();
-    ref_ptr<HasShader> getShaderState();
+		// Override
+		virtual void updateSkyLayer(RenderState *rs, GLdouble dt);
 
-  protected:
-    ref_ptr<Mesh> meshState_;
-    ref_ptr<HasShader> shaderState_;
+		ref_ptr<Mesh> getMeshState();
 
-    ref_ptr<ShaderInput1f> scale_;
-    ref_ptr<ShaderInput1f> scattering_;
-    ref_ptr<ShaderInput4f> sunShine_;
-    ref_ptr<ShaderInput3f> earthShine_;
-    Vec3f earthShineColor_;
-    GLdouble earthShineIntensity_;
+		ref_ptr<HasShader> getShaderState();
 
-    ref_ptr<ShaderInputMat4> moonOrientation_;
+	protected:
+		ref_ptr<Mesh> meshState_;
+		ref_ptr<HasShader> shaderState_;
 
-    void setupMoonTextureCube(const std::string &cubeMapFilePath);
-  };
+		ref_ptr<ShaderInput1f> scale_;
+		ref_ptr<ShaderInput1f> scattering_;
+		ref_ptr<ShaderInput4f> sunShine_;
+		ref_ptr<ShaderInput3f> earthShine_;
+		Vec3f earthShineColor_;
+		GLdouble earthShineIntensity_;
+
+		ref_ptr<ShaderInputMat4> moonOrientation_;
+
+		void setupMoonTextureCube(const std::string &cubeMapFilePath);
+	};
 }
 #endif /* MOON_H_ */
