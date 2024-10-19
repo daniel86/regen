@@ -428,6 +428,10 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     REGEN_INFO("Unable to find FPS widget.");
   }
 
+  if(xmlInput->getRoot()->getFirstChild("node","animations").get()!=nullptr) {
+  	sceneParser.processNode(tree, "animations", "node");
+  }
+
   loadAnim_ = ref_ptr<Animation>();
   AnimationManager::get().resume();
   REGEN_INFO("XML Scene Loaded.");
