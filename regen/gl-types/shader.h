@@ -155,7 +155,7 @@ namespace regen {
 		 * Create a new shader with given stage map.
 		 * compile() and link() must be called to use this shader.
 		 */
-		Shader(const std::map<GLenum, std::string> &shaderNames);
+		explicit Shader(const std::map<GLenum, std::string> &shaderNames);
 
 		~Shader();
 

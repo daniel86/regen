@@ -43,7 +43,7 @@ static void processMeshChildren(
 
 	if (x.size() > 1) {
 		for (auto jt = x.begin(); jt != x.end(); ++jt) {
-			ref_ptr<Mesh> mesh = *jt;
+			const ref_ptr<Mesh>& mesh = *jt;
 			mesh->joinStates(state);
 		}
 	}

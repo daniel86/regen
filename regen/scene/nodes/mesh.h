@@ -33,7 +33,7 @@ namespace regen {
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) {
+					const ref_ptr<StateNode> &parent) override {
 				ref_ptr<MeshVector> meshes =
 						parser->getResources()->getMesh(parser, input.getName());
 				if (meshes.get() == nullptr) {
