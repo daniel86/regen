@@ -33,7 +33,7 @@ namespace regen {
 		 * This struct is used to select the interpolation mode
 		 * used in the generated shader.
 		 */
-		struct Interpoation {
+		struct Interpolation {
 			std::string attributeName; /**< attribute to interpolate. */
 			std::string interpolationName; /**< name of the interpolation. */
 			std::string interpolationKey; /**< include path for the interpolation GLSL code. */
@@ -42,7 +42,7 @@ namespace regen {
 			 * @param a_name attribute name.
 			 * @param i_name interpolation mode name.
 			 */
-			Interpoation(const std::string &a_name, const std::string &i_name)
+			Interpolation(const std::string &a_name, const std::string &i_name)
 					: attributeName(a_name), interpolationName(i_name), interpolationKey("") {}
 
 			/**
@@ -50,7 +50,7 @@ namespace regen {
 			 * @param i_name interpolation mode name.
 			 * @param i_key interpolation include key.
 			 */
-			Interpoation(const std::string &a_name, const std::string &i_name, const std::string &i_key)
+			Interpolation(const std::string &a_name, const std::string &i_name, const std::string &i_key)
 					: attributeName(a_name), interpolationName(i_name), interpolationKey(i_key) {}
 		};
 
@@ -58,12 +58,12 @@ namespace regen {
 		 * @param mesh a mesh.
 		 * @param interpolations list of interpolation modes for attributes.
 		 */
-		MeshAnimation(const ref_ptr<Mesh> &mesh, std::list<Interpoation> &interpolations);
+		MeshAnimation(const ref_ptr<Mesh> &mesh, const std::list<Interpolation> &interpolations);
 
 		/**
 		 * @return the shader used for interpolationg beteen frames.
 		 */
-		const ref_ptr<Shader> &interpolationShader() const;
+		const ref_ptr<Shader> &interpolationShader() const { return interpolationShader_; }
 
 		/**
 		 * Set the active tick range.
@@ -72,6 +72,16 @@ namespace regen {
 		 * @param tickRange number of ticks for this morph.
 		 */
 		void setTickRange(const Vec2d &tickRange);
+
+		/**
+		 * Set the friction of the animation.
+		 */
+		void setFriction(GLfloat friction);
+
+		/**
+		 * Set the frequency of the animation.
+		 */
+		void setFrequency(GLfloat frequency);
 
 		/**
 		 * Add a custom mesh frame.
@@ -97,7 +107,8 @@ namespace regen {
 		void addSphereAttributes(
 				GLfloat horizontalRadius,
 				GLfloat verticalRadius,
-				GLdouble timeInTicks);
+				GLdouble timeInTicks,
+				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 
 		/**
 		 * Projects each vertex of the mesh to a box.
@@ -110,7 +121,8 @@ namespace regen {
 				GLfloat width,
 				GLfloat height,
 				GLfloat depth,
-				GLdouble timeInTicks);
+				GLdouble timeInTicks,
+				const Vec3f &offset = Vec3f(0.0f, 0.0f, 0.0f));
 
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;
@@ -179,4 +191,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* MESH_ANIMATION_H_ */
+#endif /* MESH_ANIMATION_GPU_H_ */
