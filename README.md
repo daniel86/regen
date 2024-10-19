@@ -11,13 +11,24 @@
 </p>
 
 `regen` -- Real-time Graphics Engine -- is a portable OpenGL library written in C++.
-The purpose of this library is to help creating
-real-time rendering software.
+The purpose of this library is to help creating real-time rendering software.
+Some example renderings created by regen are shown in the GIFs above.
+For each of them you can find an example configuration for regen [here](https://github.com/daniel86/regen/tree/master/applications/scene-display/examples).
 
 A graphics card supporting the OpenGL 3.3 API is required for `regen`.
 Some features from the 4.0 API are also supported but optional for backwards compatibility.
 The engine was tested with proprietary NVIDIA and ATI drivers and should work with
 Unix based operating systems and Windows.
+
+Development
+=========================
+The development is at  the moment mostly in maintanance mode. This includes:
+- Making sure it runs with latest stable Ubuntu
+- Merging pull requests
+
+Additional features are currently only be worked on occasionally to create
+specific scenes, or to explore specific algorithmic challanges in computer graphics.
+
 
 Downloading
 =========================
