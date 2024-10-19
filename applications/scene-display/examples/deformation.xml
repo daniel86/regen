@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<include xml-file="scene-display/examples/default.xml" />
+
+<node id="configuration">
+  <camera id="main-camera"
+	  type="first-person"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="0.0">
+  </camera>
+</node>
+
+<!-- Cameras -->
+<camera id="main-camera"
+	fov="45.0" near="0.1" far="200.0"
+	position="0.25,0.5,-5.0"
+	direction="-0.5,0.0,1.0" />
+<!-- Assets -->
+<asset id="asset-teapot"
+       type="asset"
+       file="res/models/teapot.obj"
+       use-animation="0" />
+<asset id="asset-venus"
+       type="asset"
+       file="res/models/venus.obj"
+       use-animation="0" />
+<asset id="asset-bunny"
+       type="asset"
+       file="res/models/dragon.obj"
+       use-animation="0" />
+<!-- Meshes -->
+<mesh id="platform"
+      type="box"
+      scaling="1.0,100.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+  <material preset="copper" />
+</mesh>
+<mesh id="mesh-teapot"
+      type="asset"
+      asset="asset-teapot"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.06,0.06,0.06"
+      rotation="0.0,0.0,0.0"
+      translation="0.0,0.0,0.0">
+  <material preset="silver" />
+  <transform>
+    <rotate value="3.14,0.0,0.0" />
+    <translate value="0.0,-0.1,2.25" />
+  </transform>
+</mesh>
+<mesh id="mesh-venus"
+      type="asset"
+      asset="asset-venus"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.0005,0.0005,0.0005"
+      rotation="0.0,0.0,0.0"
+      translation="0.0,0.0,0.0">
+  <material preset="jade" />
+  <transform>
+    <rotate value="3.14,0.0,0.0" />
+    <translate value="1.75,-0.175,-0.3" />
+  </transform>
+</mesh>
+<mesh id="mesh-dragon"
+      type="asset"
+      asset="asset-teapot"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.06,0.06,0.06"
+      rotation="0.0,0.0,0.0"
+      translation="0.0,0.0,0.0">
+  <material preset="ruby" />
+  <transform>
+    <rotate value="3.14,0.0,0.0" />
+    <translate value="-1.5,-0.1,0.0" />
+  </transform>
+</mesh>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="Shading-Pass">
+  <blend mode="add" />
+  <depth test="0" write="0" />
+  <input type="vec3" name="lightAmbient" value="0.4,0.4,0.4" />
+    
+  <node>
+    <fullscreen-pass shader="regen.shading.deferred.ambient" />
+    
+    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow"
+	     shadow-attachment="depth"
+	     shadow-color-attachment="0"
+	     shadow-camera="spot-camera" />
+    </light-pass>
+  </node>
+</node>
+
+<node id="Shadow-Caster">
+  <node id="platform">
+    <material preset="silver" />
+    <define key="HAS_modelMatrix" value="TRUE" />
+    <define key="HAS_nor" value="TRUE" />
+    <shader key="regen.models.mesh" />
+    
+    <node id="platform0" >
+      <transform>
+	<rotate value="0.0,0.0,0.0" />
+	<translate value="0.0,-100.6,2.5" />
+      </transform>
+      <mesh id="platform" />
+    </node>
+    
+    <node id="platform1" >
+      <transform>
+	<rotate value="1.0,0.0,0.0" />
+	<translate value="1.5,-100.6,0.0" />
+      </transform>
+      <mesh id="platform" />
+    </node>
+    
+    <node id="platform2" >
+      <transform>
+	<rotate value="-1.0,0.0,0.0" />
+	<translate value="-1.5,-100.6,0.0" />
+      </transform>
+      <mesh id="platform" />
+    </node>
+  </node>
+
+  <node id="teapot" >
+    <mesh id="mesh-teapot" shader="regen.models.mesh" />
+  </node>
+  <node id="venus" >
+    <mesh id="mesh-venus" shader="regen.models.mesh" />
+  </node>
+  <node id="dragon" >
+    <mesh id="mesh-dragon" shader="regen.models.mesh" />
+  </node>
+</node>
+
+<node id="Scene-Geometry" />
+
+<node id="Background-Pass" />
+
+<node id="Post-Pass">
+  <depth test="0" write="0" />
+  
+  <node import="FXAA">
+    <fbo id="g-buffer" draw-buffers="0" />
+    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**** Lights & Shadows ****-->
+<!--**************************-->
+
+<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DShadow" />
+  <texture id="color"
+	   pixel-size="16"
+	   pixel-type="UNSIGNED_BYTE"
+	   pixel-components="4"/>
+</fbo>
+
+<light id="spot-light"
+       type="SPOT"
+       position="3.0,8.0,-4.0"
+       direction="-0.37,-0.95,0.46"
+       diffuse="0.58,0.58,0.58"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5" />
+
+<camera id="spot-camera" light="spot-light" camera="main-camera" />
+
+<node id="Shadow-Pass">
+  <cull mode="FRONT" />
+  
+  <node id="Spot-Shadow-Pass">
+    <fbo id="spot-shadow" clear-depth="1" clear-buffers="0" />
+    <camera id="spot-camera" />
+    
+    <node id="Black-Output">
+      <define key="OUTPUT_TYPE" value="BLACK" />
+      <node import="Shadow-Caster" />
+    </node>
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
+
+<node id="glAnimations">
+  <deformation mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
+    <interpolations>
+        <interpolation target="pos" function="elastic" />
+        <interpolation target="nor" function="elastic" />
+    </interpolations>
+    <frames>
+      <frame duration="3.0" shape="sphere" />
+      <frame duration="3.0" shape="original" />
+      <frame duration="3.0" shape="box" width="0.85" height="0.85" depth="0.85" offset="0.0,-0.075,0.0"/>
+      <frame duration="3.0" shape="original" />
+    </frames>
+  </deformation>
+  <deformation mesh-id="mesh-venus" friction="7.9" frequency="5.0" repeat="true">
+    <interpolations>
+        <interpolation target="pos" function="elastic" />
+        <interpolation target="nor" function="elastic" />
+    </interpolations>
+    <frames>
+      <frame duration="2.5" shape="sphere" offset="0.0,-0.6,0.0" />
+      <frame duration="2.5" shape="original" />
+    </frames>
+  </deformation>
+  <deformation mesh-id="mesh-dragon" friction="7.9" frequency="1.0" repeat="true">
+    <interpolations>
+        <interpolation target="pos" function="elastic" />
+        <interpolation target="nor" function="elastic" />
+    </interpolations>
+    <frames>
+      <frame duration="2.0" shape="sphere" />
+      <frame duration="2.0" shape="original" />
+      <frame duration="2.0" shape="box" width="0.85" height="0.85" depth="0.85" offset="0.0,-0.075,0.0"/>
+      <frame duration="2.0" shape="original" />
+    </frames>
+  </deformation>
+</node>
+
+<node id="root">
+  <node id="Pre-Render">
+    <node import="Shadow-Pass" />
+  </node>
+  
+  <node id="Render">
+    <fbo id="g-buffer"
+	clear-buffers="0,1,2,3"
+	clear-depth="1" />
+    <camera id="main-camera" />
+    
+    <node import="Default-Pipeline" />
+    <node import="GUI-Pass">
+      <fbo id="g-buffer" draw-buffers="0" />
+    </node>
+    
+    <view id="Scene -- Result">
+      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
+  </node>
+</node>
