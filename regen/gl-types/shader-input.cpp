@@ -7,6 +7,7 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
+#include <regen/animations/animation.h>
 
 #include "shader-input.h"
 
