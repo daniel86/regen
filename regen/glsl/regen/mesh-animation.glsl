@@ -8,7 +8,7 @@
 -- interpolate
 #define M_PI 3.141592653589
 
-uniform float frameTimeNormalized;
+uniform float in_frameTimeNormalized;
 uniform float in_friction;
 uniform float in_frequency;
 
@@ -27,8 +27,8 @@ out ${_TYPE} out_${_NAME};
 // nearest
 #define interpolate_nearest(X,Y,T) (T<0.5 ? X : Y)
 // elastic
-#define __ELASTIC(T) abs( exp(-in_friction*T)*cos(in_frequency*T*2.5*M_PI) )
-#define interpolate_elastic(X,Y,T) interpolate_linear(Y,X,__ELASTIC(T))
+#define REGEN_ELASTIC(T) abs( exp(-in_friction*T)*cos(in_frequency*T*2.5*M_PI) )
+#define interpolate_elastic(X,Y,T) interpolate_linear(Y,X,REGEN_ELASTIC(T))
 
 // include interpolation functions
 #for INDEX to NUM_ATTRIBUTES
@@ -44,7 +44,7 @@ void main() {
     out_${_NAME} = ${ATTRIBUTE${INDEX}_INTERPOLATION_NAME}(
         in_last_${_NAME},
         in_next_${_NAME},
-        frameTimeNormalized);
+        in_frameTimeNormalized);
 #endfor
 }
 
