@@ -18,9 +18,9 @@ namespace regen {
 	Q_OBJECT
 
 	public:
-		ShaderInputWidget(QWidget *parent = 0);
+		explicit ShaderInputWidget(QWidget *parent = nullptr);
 
-		~ShaderInputWidget();
+		~ShaderInputWidget() override;
 
 		void setNode(const ref_ptr<StateNode> &node);
 
