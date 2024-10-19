@@ -168,17 +168,14 @@ void Box::updateAttributes(const Config &cfg) {
 		uv0 += sideIndex * 4;
 
 		// Tessellate cube face
-		std::vector<TriangleFace> *faces;
-		{
-			std::vector<TriangleFace> facesLevel0(2);
-			facesLevel0[0] = TriangleFace(level0[0], level0[1], level0[3]);
-			facesLevel0[1] = TriangleFace(level0[1], level0[2], level0[3]);
-			faces = tessellate(cfg.levelOfDetail, facesLevel0);
-		}
+		std::vector<TriangleFace> facesLevel0(2);
+		facesLevel0[0] = TriangleFace(level0[0], level0[1], level0[3]);
+		facesLevel0[1] = TriangleFace(level0[1], level0[2], level0[3]);
+		auto faces = tessellate(cfg.levelOfDetail, facesLevel0);
 
-		for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
+		for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
 			GLuint vertexIndex = faceIndex * 3 + vertexBase;
-			TriangleFace &face = (*faces)[faceIndex];
+			TriangleFace &face = faces[faceIndex];
 			auto *f = (TriangleVertex *) &face;
 
 			for (GLuint i = 0; i < 3; ++i) {
@@ -227,7 +224,7 @@ void Box::updateAttributes(const Config &cfg) {
 				for (GLuint i = 0; i < 3; ++i) tan_->setVertex(vertexIndex + i, tangent);
 			}
 		}
-		vertexBase += faces->size() * 3;
+		vertexBase += faces.size() * 3;
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
