@@ -15,7 +15,6 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
 #include <regen/utility/string-util.h>
-#include <regen/animations/animation.h>
 #include <regen/math/matrix.h>
 #include <regen/math/vector.h>
 
@@ -37,6 +36,7 @@ namespace regen {
 #ifndef byte
 	typedef unsigned char byte;
 #endif
+	class Animation;
 
 	/**
 	 * \brief Provides input to shader programs.
