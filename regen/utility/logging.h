@@ -125,6 +125,11 @@ namespace regen {
      */
     static void removeLogger(Logger *logger);
 
+    /**
+	 * Shutdown the logging framework.
+	 */
+    static void shutdown();
+
   private:
     static std::list<Logger*> loggers_[LAST_LEVEL];
     static Verbosity verbosity_;

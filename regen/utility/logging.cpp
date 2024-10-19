@@ -40,6 +40,14 @@ void Logging::removeLogger(Logger *logger) {
   loggers_[logger->level()].remove(logger);
 }
 
+void Logging::shutdown() {
+  for(int i=0; i<LAST_LEVEL; ++i) {
+	for(auto it=loggers_[i].begin(); it!=loggers_[i].end(); ++it) {
+	  delete *it;
+	}
+	loggers_[i].clear();
+  }
+}
 
 
 void Logging::log(Logging::LogLevel level,
