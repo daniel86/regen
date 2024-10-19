@@ -13,6 +13,7 @@
 
 #include <regen/utility/event-object.h>
 #include <regen/gl-types/render-state.h>
+#include "regen/gl-types/shader.h"
 
 namespace regen {
 	/**
@@ -124,12 +125,24 @@ namespace regen {
 		 */
 		virtual void glAnimate(RenderState *rs, GLdouble dt) {}
 
+		/**
+		 * @return the shader if any.
+		 */
+		const auto& shader() { return shader_; }
+
+		/**
+		 * Set the shader.
+		 * @param shader the shader.
+		 */
+		void setShader(const ref_ptr<Shader> &shader) { shader_ = shader; }
+
 	protected:
 		boost::mutex mutex_;
 		boost::mutex mutex_gl_;
 		GLboolean useGLAnimation_;
 		GLboolean useAnimation_;
 		GLboolean isRunning_;
+		ref_ptr<Shader> shader_;
 
 		Animation(const Animation &);
 
