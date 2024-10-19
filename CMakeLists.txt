@@ -164,6 +164,8 @@ endif ()
 
 # allow includes like <regen/xxx.h> even if the engine is not installed
 include_directories(.)
+# allow include of generated files
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 # build library
 add_subdirectory(regen)
 # build demos
