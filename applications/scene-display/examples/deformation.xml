@@ -204,7 +204,7 @@
 <!--**************************-->
 <!--**************************-->
 
-<node id="glAnimations">
+<node id="animations">
   <deformation mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
     <interpolations>
         <interpolation target="pos" function="elastic" />
