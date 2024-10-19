@@ -16,7 +16,7 @@
 
 namespace regen {
 	/**
-	 * \brief Manages multiple animations in a separate thread.
+	 * \brief Manages multiple glAnimations in a separate thread.
 	 */
 	class AnimationManager : public Thread {
 	public:
@@ -38,7 +38,7 @@ namespace regen {
 		void removeAnimation(Animation *animation);
 
 		/**
-		 * Invoke glAnimate() on added animations.
+		 * Invoke glAnimate() on added glAnimations.
 		 * @param rs the render state.
 		 * @param dt time difference to last call in milliseconds.
 		 */
@@ -61,15 +61,20 @@ namespace regen {
 		void close(GLboolean blocking = GL_FALSE);
 
 		/**
-		 * Pause animations.
+		 * Pause glAnimations.
 		 * Can be resumed by call to resume().
 		 */
 		void pause(GLboolean blocking = GL_FALSE);
 
 		/**
-		 * Resumes previously paused animations.
+		 * Resumes previously paused glAnimations.
 		 */
 		void resume();
+
+		/**
+		 * @return the set of glAnimations.
+		 */
+		auto& glAnimations() { return glAnimations_; }
 
 	private:
 
