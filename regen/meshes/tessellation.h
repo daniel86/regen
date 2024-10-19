@@ -64,7 +64,7 @@ namespace regen {
 	 * @param inputFaces input triangles.
 	 * @return tessellated faces.
 	 */
-	std::vector<TriangleFace> *tessellate(GLuint lod, std::vector<TriangleFace> &inputFaces);
+	std::vector<TriangleFace> tessellate(GLuint lod, std::vector<TriangleFace> &inputFaces);
 
 	/**
 	 * Tessellation input triangle.
@@ -74,7 +74,7 @@ namespace regen {
 	 * @param inputFace input triangle.
 	 * @return tessellated face.
 	 */
-	std::vector<TriangleFace> *tessellate(GLuint lod, TriangleFace &inputFace);
+	std::vector<TriangleFace> tessellate(GLuint lod, TriangleFace &inputFace);
 }
 
 #endif /* TESSELATION_H_ */

@@ -94,7 +94,7 @@ static Vec3f computeSphereTangent(const Vec3f &v) {
 }
 
 void Sphere::updateAttributes(const Config &cfg) {
-	std::vector<TriangleFace> *faces;
+	std::vector<TriangleFace> faces;
 	{
 		// setup initial level
 		GLfloat a = 1.0 / sqrt(2.0) + 0.001;
@@ -122,8 +122,8 @@ void Sphere::updateAttributes(const Config &cfg) {
 	// Find out number of triangle faces
 	GLuint faceCounter = 0;
 	if (cfg.isHalfSphere) {
-		for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
-			TriangleFace &face = (*faces)[faceIndex];
+		for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
+			TriangleFace &face = faces[faceIndex];
 			auto *vertices = (TriangleVertex *) &face;
 			if (isOnPosYSphereEntirely(vertices)) continue;
 			for (GLuint i = 0; i < 3; ++i) {
@@ -132,7 +132,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 			faceCounter += 1;
 		}
 	} else {
-		faceCounter = faces->size();
+		faceCounter = faces.size();
 	}
 	// Allocate RAM for indices
 	GLuint numIndices = faceCounter * 3;
@@ -143,8 +143,8 @@ void Sphere::updateAttributes(const Config &cfg) {
 	// Set index data and compute vertex count
 	std::map<GLuint, GLint> indexMap;
 	GLuint currIndex = 0;
-	for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
-		TriangleFace &face = (*faces)[faceIndex];
+	for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
+		TriangleFace &face = faces[faceIndex];
 		auto *vertices = (TriangleVertex *) &face;
 		if (cfg.isHalfSphere && isOnPosYSpherePartially(vertices)) continue;
 
@@ -185,8 +185,8 @@ void Sphere::updateAttributes(const Config &cfg) {
 		texco_->setVertexData(numVertices);
 	}
 
-	for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
-		TriangleFace &face = (*faces)[faceIndex];
+	for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
+		TriangleFace &face = faces[faceIndex];
 		auto *vertices = (TriangleVertex *) &face;
 		if (cfg.isHalfSphere && isOnPosYSpherePartially(vertices)) continue;
 
@@ -240,7 +240,6 @@ void Sphere::updateAttributes(const Config &cfg) {
 			}
 		}
 	}
-	delete faces;
 
 	begin(ShaderInputContainer::INTERLEAVED);
 	setIndices(indices, numVertices);

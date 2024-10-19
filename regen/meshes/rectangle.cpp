@@ -66,7 +66,7 @@ Rectangle::Config::Config()
 }
 
 void Rectangle::updateAttributes(Config cfg) {
-	std::vector<TriangleFace> *faces;
+	std::vector<TriangleFace> faces;
 	{
 		TriangleVertex level0[4];
 		level0[0] = TriangleVertex(Vec3f(0.0, 0.0, 0.0), 0);
@@ -89,15 +89,15 @@ void Rectangle::updateAttributes(Config cfg) {
 	ref_ptr<ShaderInput1ui> indices;
 	if (useIndexBuffer) {
 		// Allocate RAM for indices
-		GLuint numIndices = faces->size() * 3;
+		GLuint numIndices = faces.size() * 3;
 		indices = ref_ptr<ShaderInput1ui>::alloc("i");
 		indices->setVertexData(numIndices);
 		auto *indicesPtr = (GLuint *) indices->clientDataPtr();
 
 		// Set index data and compute vertex count
 		GLuint currIndex = 0;
-		for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
-			TriangleFace &face = (*faces)[faceIndex];
+		for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
+			TriangleFace &face = faces[faceIndex];
 			auto *vertices = (TriangleVertex *) &face;
 
 			for (GLuint i = 0; i < 3; ++i) {
@@ -114,7 +114,7 @@ void Rectangle::updateAttributes(Config cfg) {
 		}
 		numVertices = indexMap.size();
 	} else {
-		numVertices = faces->size() * 3;
+		numVertices = faces.size() * 3;
 	}
 
 	if (cfg.isTangentRequired) {
@@ -145,8 +145,8 @@ void Rectangle::updateAttributes(Config cfg) {
 	Vec2f triTexco[3];
 	Vec3f normal = rotMat.transformVector(Vec3f(0.0, -1.0, 0.0));
 
-	for (GLuint faceIndex = 0; faceIndex < faces->size(); ++faceIndex) {
-		TriangleFace &face = (*faces)[faceIndex];
+	for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
+		TriangleFace &face = faces[faceIndex];
 		auto *vertices = (TriangleVertex *) &face;
 
 		for (GLuint i = 0; i < 3; ++i) {
@@ -189,7 +189,6 @@ void Rectangle::updateAttributes(Config cfg) {
 			}
 		}
 	}
-	delete faces;
 
 	begin(ShaderInputContainer::INTERLEAVED);
 	if (useIndexBuffer) setIndices(indices, numVertices);
