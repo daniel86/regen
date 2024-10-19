@@ -13,6 +13,7 @@
 #include <regen/states/direct-shading.h>
 
 #include "shader-input-widget.h"
+#include "regen/animations/animation-manager.h"
 
 using namespace regen;
 //using namespace std;
@@ -87,8 +88,7 @@ ShaderInputWidget::ShaderInputWidget(QWidget *parent)
 }
 
 ShaderInputWidget::~ShaderInputWidget() {
-	for (std::map<ShaderInput *, byte *>::iterator
-				 it = initialValue_.begin(); it != initialValue_.end(); ++it) {
+	for (auto it = initialValue_.begin(); it != initialValue_.end(); ++it) {
 		delete[]it->second;
 	}
 	initialValue_.clear();
@@ -97,13 +97,31 @@ ShaderInputWidget::~ShaderInputWidget() {
 void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 	ui_.treeWidget->clear();
 
-	QTreeWidgetItem *item = new QTreeWidgetItem;
+	auto *item = new QTreeWidgetItem;
 	item->setText(0, "Scene Graph");
 	item->setExpanded(true);
 	ui_.treeWidget->addTopLevelItem(item);
 
 	handleNode(node, item);
 	item->setExpanded(true);
+
+	auto *anims = new QTreeWidgetItem(item);
+	anims->setText(0, "animations");
+	int index = 0;
+	for (auto &anim : AnimationManager::get().glAnimations()) {
+		const auto& animShader = anim->shader();
+		if (!animShader.get()) continue;
+		auto shaderInputs = animShader->inputs();
+		auto *animItem = new QTreeWidgetItem(anims);
+		// use index as name for now
+		std::string animName = REGEN_STRING("anim" << (index++));
+		animItem->setText(0, animName.c_str());
+
+		for(const auto& namedInput : shaderInputs) {
+			if (namedInput.in_->numVertices() > 1) continue;
+			handleInput(namedInput, animItem);
+		}
+	}
 }
 
 bool ShaderInputWidget::handleNode(
@@ -115,14 +133,13 @@ bool ShaderInputWidget::handleNode(
 
 	QTreeWidgetItem *x = parent;
 	GLuint level = 0u;
-	while (x != NULL) {
+	while (x != nullptr) {
 		level += 1u;
 		x = x->parent();
 	}
 
-	for (std::list<ref_ptr<StateNode> >::iterator
-				 it = node->childs().begin(); it != node->childs().end(); ++it) {
-		QTreeWidgetItem *child = new QTreeWidgetItem(parent);
+	for (auto it = node->childs().begin(); it != node->childs().end(); ++it) {
+		auto *child = new QTreeWidgetItem(parent);
 		child->setText(0, QString::fromStdString((*it)->name()));
 		child->setExpanded(level < 5);
 		if (handleNode(*it, child)) {
@@ -146,19 +163,18 @@ bool ShaderInputWidget::handleState(
 		return false;
 	}
 
-	HasInput *hasInput = dynamic_cast<HasInput *>(state.get());
-	if (hasInput != NULL) {
+	auto *hasInput = dynamic_cast<HasInput *>(state.get());
+	if (hasInput != nullptr) {
 		ref_ptr<ShaderInputContainer> container = hasInput->inputContainer();
 		const ShaderInputList &inputs = container->inputs();
-		for (ShaderInputList::const_iterator it = inputs.begin(); it != inputs.end(); ++it) {
+		for (auto it = inputs.begin(); it != inputs.end(); ++it) {
 			const NamedShaderInput &namedInput = *it;
 			if (namedInput.in_->numVertices() > 1) continue;
 			if (handleInput(namedInput, parent)) isEmpty = false;
 		}
 	}
 
-	for (std::list<ref_ptr<State> >::const_iterator
-				 it = state->joined().begin(); it != state->joined().end(); ++it) {
+	for (auto it = state->joined().begin(); it != state->joined().end(); ++it) {
 		if (handleState(*it, parent)) {
 			isEmpty = false;
 		}
@@ -188,12 +204,12 @@ bool ShaderInputWidget::handleInput(
 	initialValueStamp_[in.get()] = in->stamp();
 	valueStamp_[in.get()] = 0;
 
-	QTreeWidgetItem *inputItem = new QTreeWidgetItem(parent);
+	auto *inputItem = new QTreeWidgetItem(parent);
 	inputItem->setText(0, QString::fromStdString(namedInput.name_));
 	inputs_[inputItem] = in;
 
-	if (selectedInput_ == NULL) {
-		activateValue(inputItem, NULL);
+	if (selectedInput_ == nullptr) {
+		activateValue(inputItem, nullptr);
 	}
 
 	return true;
@@ -235,7 +251,7 @@ byte *createData(
 
 void ShaderInputWidget::valueUpdated() {
 	if (ignoreValueChanges_) return;
-	if (selectedInput_ == NULL) {
+	if (selectedInput_ == nullptr) {
 		REGEN_WARN("valueUpdated() called but no ShaderInput selected.");
 		return;
 	}
@@ -249,7 +265,7 @@ void ShaderInputWidget::valueUpdated() {
 		return;
 	}
 
-	byte *changedData = NULL;
+	byte *changedData = nullptr;
 	switch (selectedInput_->dataType()) {
 		case GL_FLOAT:
 			changedData = createData<GLfloat>(selectedInput_, valueWidgets, count);
