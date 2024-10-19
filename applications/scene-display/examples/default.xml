@@ -36,6 +36,7 @@
 
 <!-- Fonts -->
 <font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96" />
+<font id="ubuntu" file="res/fonts/ubuntu.ttf" size="16" dpi="96" />
 
 <!-- Assets -->
 <asset id="dwarf-asset"
@@ -292,7 +293,7 @@
 
 <mesh id="fps-widget"
       type="text"
-      font="obelix"
+      font="ubuntu"
       text="0 FPS"
       text-color="0.97,0.86,0.77,0.95">
   <transform>
