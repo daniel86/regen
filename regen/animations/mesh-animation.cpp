@@ -40,7 +40,7 @@ void MeshAnimation::findFrameBeforeTick(
 
 MeshAnimation::MeshAnimation(
 		const ref_ptr<Mesh> &mesh,
-		std::list<Interpoation> &interpolations)
+		const std::list<Interpolation> &interpolations)
 		: Animation(GL_TRUE, GL_FALSE),
 		  mesh_(mesh),
 		  meshBufferOffset_(-1),
@@ -61,9 +61,7 @@ MeshAnimation::MeshAnimation(
 	std::map<std::string, std::string> functions;
 	std::list<std::string> transformFeedback;
 
-	hasMeshInterleavedAttributes_ = GL_FALSE;
-
-	shaderNames[GL_VERTEX_SHADER] = "regen.mesh-animation.interpolateLinear";
+	shaderNames[GL_VERTEX_SHADER] = "regen.mesh-animation.interpolate";
 
 	// find buffer size
 	bufferSize_ = 0u;
@@ -74,12 +72,18 @@ MeshAnimation::MeshAnimation(
 		bufferSize_ += in->inputSize();
 		transformFeedback.push_back(in->name());
 
+		if(in->stride()==0) {
+			hasMeshInterleavedAttributes_ = GL_FALSE;
+		} else {
+			hasMeshInterleavedAttributes_ = GL_TRUE;
+		}
+
 		std::string interpolationName = "interpolate_linear";
-		std::string interpolationKey = "";
-		for (auto it = interpolations.begin(); it != interpolations.end(); ++it) {
-			if (it->attributeName == in->name()) {
-				interpolationName = it->interpolationName;
-				interpolationKey = it->interpolationKey;
+		std::string interpolationKey;
+		for (auto jt = interpolations.begin(); jt != interpolations.end(); ++jt) {
+			if (jt->attributeName == in->name()) {
+				interpolationName = jt->interpolationName;
+				interpolationKey = jt->interpolationKey;
 				break;
 			}
 		}
@@ -123,27 +127,32 @@ MeshAnimation::MeshAnimation(
 	}
 	if (interpolationShader_.get() != nullptr &&
 		interpolationShader_->compile() && interpolationShader_->link()) {
-		ref_ptr<ShaderInput> in = interpolationShader_->input("frameTimeNormalized");
+		ref_ptr<ShaderInput> in = interpolationShader_->createUniform("frameTimeNormalized");
 		frameTimeUniform_ = (ShaderInput1f *) in.get();
 		frameTimeUniform_->setUniformData(0.0f);
 		interpolationShader_->setInput(in);
 
-		in = interpolationShader_->input("friction");
+		in = interpolationShader_->createUniform("friction");
 		frictionUniform_ = (ShaderInput1f *) in.get();
-		frictionUniform_->setUniformData(6.0f);
+		frictionUniform_->setUniformData(8.0f);
 		interpolationShader_->setInput(in);
 
-		in = interpolationShader_->input("frequency");
+		in = interpolationShader_->createUniform("frequency");
 		frequencyUniform_ = (ShaderInput1f *) in.get();
-		frequencyUniform_->setUniformData(3.0f);
+		frequencyUniform_->setUniformData(5.0f);
 		interpolationShader_->setInput(in);
 	} else {
 		interpolationShader_ = ref_ptr<Shader>();
 	}
+	setShader(interpolationShader_);
 }
 
-const ref_ptr<Shader> &MeshAnimation::interpolationShader() const {
-	return interpolationShader_;
+void MeshAnimation::setFriction(GLfloat friction) {
+	frictionUniform_->setUniformData(friction);
+}
+
+void MeshAnimation::setFrequency(GLfloat frequency) {
+	frequencyUniform_->setUniformData(frequency);
 }
 
 void MeshAnimation::setTickRange(const Vec2d &forcedTickRange) {
@@ -256,6 +265,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	const GLdouble duration = tickRange_.y - tickRange_.x;
 	const GLdouble timeInTicks = elapsedTime_ * ticksPerSecond_ / 1000.0;
 	if (timeInTicks > duration) {
+		REGEN_DEBUG("Mesh animation stopped at tick " <<
+				timeInTicks << " (duration: " << duration << ", frame:" << nextFrame_ << ")");
 		elapsedTime_ = 0.0;
 		lastTime_ = 0.0;
 		tickRange_.x = 0.0;
@@ -296,6 +307,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		}
 		nextFrame_ = frame;
 		framesChanged = GL_TRUE;
+		REGEN_DEBUG("Next frame: " << nextFrame_ << " (time: " << timeInTicks << ")");
 	}
 	if (framesChanged) {
 		vao_ = ref_ptr<VAO>::alloc();
@@ -334,11 +346,11 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 			bufferRange_.offset_ = 0;
 			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 				const ref_ptr<ShaderInput> &in = it->in_;
+				index -= 1;
 				if (!in->isVertexAttribute()) continue;
 				bufferRange_.size_ = in->inputSize();
-				rs->feedbackBufferRange().push(index, bufferRange_);
+				rs->feedbackBufferRange().push(index+1, bufferRange_);
 				bufferRange_.offset_ += bufferRange_.size_;
-				index -= 1;
 			}
 		}
 		rs->beginTransformFeedback(GL_POINTS);
@@ -353,9 +365,9 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 			GLint index = inputs.size() - 1;
 			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 				const ref_ptr<ShaderInput> &in = it->in_;
-				if (!in->isVertexAttribute()) continue;
-				rs->feedbackBufferRange().pop(index);
 				index -= 1;
+				if (!in->isVertexAttribute()) continue;
+				rs->feedbackBufferRange().pop(index+1);
 			}
 		}
 		rs->vao().pop();
@@ -387,6 +399,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	}
 
 	lastTime_ = tickRange_.x + timeInTicks;
+	GL_ERROR_LOG()
 }
 
 ////////
@@ -407,6 +420,8 @@ void MeshAnimation::addFrame(
 	}
 	frame.endTick = frame.startTick + frame.timeInTicks;
 
+	REGEN_DEBUG("Adding frame at tick " << frame.startTick << " (duration: " << frame.timeInTicks << ")");
+
 	// add attributes
 	for (auto it = inputs.begin(); it != inputs.end(); ++it) {
 		const ref_ptr<ShaderInput> &in0 = it->in_;
@@ -426,6 +441,8 @@ void MeshAnimation::addFrame(
 		}
 		if (att.get() != nullptr) {
 			frame.attributes.emplace_back(att, -1);
+		} else {
+			REGEN_WARN("No attribute found for '" << in0->name() << "'");
 		}
 	}
 
@@ -460,7 +477,8 @@ ref_ptr<ShaderInput> MeshAnimation::findLastAttribute(const std::string &name) {
 void MeshAnimation::addSphereAttributes(
 		GLfloat horizontalRadius,
 		GLfloat verticalRadius,
-		GLdouble timeInTicks) {
+		GLdouble timeInTicks,
+		const Vec3f &offset) {
 	const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
 
 	if (!inputContainer->hasInput(ATTRIBUTE_NAME_POS)) {
@@ -483,21 +501,36 @@ void MeshAnimation::addSphereAttributes(
 	ref_ptr<ShaderInput3f> sphereNor = ref_ptr<ShaderInput3f>::dynamicCast(
 			ShaderInput::copy(norAtt, GL_FALSE));
 
+	// find the centroid of the mesh
+	Vec3f minPos = posAtt->getVertex(0);
+	Vec3f maxPos = posAtt->getVertex(0);
+	for (GLuint i = 1; i < posAtt->numVertices(); ++i) {
+		Vec3f v = posAtt->getVertex(i);
+		if(minPos.x > v.x) minPos.x = v.x;
+		if(minPos.y > v.y) minPos.y = v.y;
+		if(minPos.z > v.z) minPos.z = v.z;
+		if(maxPos.x < v.x) maxPos.x = v.x;
+		if(maxPos.y < v.y) maxPos.y = v.y;
+		if(maxPos.z < v.z) maxPos.z = v.z;
+	}
+	Vec3f centroid = (minPos + maxPos) * 0.5f + offset;
+
 	// set sphere vertex data
 	for (GLuint i = 0; i < spherePos->numVertices(); ++i) {
 		Vec3f v = posAtt->getVertex(i);
+		Vec3f direction = v - centroid;
 		Vec3f n;
-		GLdouble l = v.length();
+		GLdouble l = direction.length();
 		if (l == 0) {
 			continue;
 		}
 
 		// take normalized direction vector as normal
-		n = v;
+		n = direction;
 		n.normalize();
 		// and scaled normal as sphere position
 		// 1e-1 to avoid fighting
-		v = n * scale * verticalRadius * (1.0f + l * 1e-1);
+		v = centroid + n * verticalRadius * (1.0f + l * 1e-4);
 
 		spherePos->setVertex(i, v);
 		sphereNor->setVertex(i, n);
@@ -627,7 +660,8 @@ void MeshAnimation::addBoxAttributes(
 		GLfloat width,
 		GLfloat height,
 		GLfloat depth,
-		GLdouble timeInTicks) {
+		GLdouble timeInTicks,
+		const Vec3f &offset) {
 	const ref_ptr<ShaderInputContainer> &inputContainer = mesh_->inputContainer();
 
 	if (!inputContainer->hasInput(ATTRIBUTE_NAME_POS)) {
@@ -727,7 +761,7 @@ void MeshAnimation::addBoxAttributes(
 		}
 
 		// -l*1e-6 to avoid fighting
-		v = (vCopy + n * 0.5f) * boxSize * (1.0f + l * 1e-4);
+		v = offset + (vCopy + n * 0.5f) * boxSize * (1.0f + l * 1e-4);
 #endif
 
 		boxPos->setVertex(i, v);
