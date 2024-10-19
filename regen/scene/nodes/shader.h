@@ -73,7 +73,7 @@ namespace regen {
 				ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
 				parent->state()->joinStates(shaderState);
 
-				const string shaderKey = input.hasAttribute("key") ?
+				const std::string shaderKey = input.hasAttribute("key") ?
 										 input.getValue("key") : input.getValue("code");
 				StateConfigurer stateConfigurer;
 				stateConfigurer.addNode(parent.get());
