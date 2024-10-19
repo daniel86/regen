@@ -14,6 +14,9 @@
 The purpose of this library is to help creating
 real-time rendering software.
 
+Some example renderings created by regen are shown in the GIFs above.
+For each of them you can find an example configuration for regen [here](https://github.com/daniel86/regen/tree/master/applications/scene-display/examples).
+
 A graphics card supporting the OpenGL 3.3 API is required for `regen`.
 Some features from the 4.0 API are also supported but optional for backwards compatibility.
 The engine was tested with proprietary NVIDIA and ATI drivers and should work with
