@@ -138,6 +138,13 @@ namespace regen {
 		 */
 		const ref_ptr<FeedbackState> &feedbackState();
 
+		/**
+		 * Add an animation to this mesh.
+		 * The purpose of this is that the mesh holds a reference to the animation.
+		 * @param animation the animation to add.
+		 */
+		void addAnimation(const ref_ptr<Animation> &animation) { animations_.push_back(animation); }
+
 		// override
 		void enable(RenderState *) override;
 
@@ -168,6 +175,8 @@ namespace regen {
 		Vec3f minPosition_;
 		Vec3f maxPosition_;
 
+		std::vector<ref_ptr<Animation> > animations_;
+
 		void (ShaderInputContainer::*draw_)(GLenum);
 
 		void updateDrawFunction();
@@ -191,7 +200,7 @@ namespace regen {
 		/**
 		 * @param numVertices number of vertices used.
 		 */
-		AttributeLessMesh(GLuint numVertices);
+		explicit AttributeLessMesh(GLuint numVertices);
 	};
 } // namespace
 
