@@ -59,7 +59,7 @@ ShaderInput::ShaderInput(
 		  normalize_(normalize),
 		  isVertexAttribute_(GL_TRUE),
 		  transpose_(GL_FALSE),
-		  data_(NULL),
+		  data_(nullptr),
 		  stamp_(1u),
 		  isConstant_(GL_FALSE),
 		  forceArray_(GL_FALSE),
@@ -410,6 +410,9 @@ void ShaderInput::setVertexData(
 	divisor_ = 0u;
 	GLuint size = elementSize_ * numVertices_;
 	if (inputSize_ != size) {
+		if (data_) {
+			delete[] data_;
+		}
 		data_ = new byte[size];
 		inputSize_ = size;
 	}
@@ -432,6 +435,9 @@ void ShaderInput::setInstanceData(
 	numVertices_ = 1u;
 	GLuint size = elementSize_ * numInstances_ / divisor_;
 	if (inputSize_ != size) {
+		if (data_) {
+			delete[] data_;
+		}
 		data_ = new byte[size];
 		inputSize_ = size;
 	}
@@ -447,10 +453,10 @@ void ShaderInput::setInstanceData(
 void ShaderInput::deallocateClientData() {
 	// set null data pointer
 	dataStack_.popBottom();
-	dataStack_.pushBottom(NULL);
-	if (data_ != NULL) {
+	dataStack_.pushBottom(nullptr);
+	if (data_ != nullptr) {
 		delete[]data_;
-		data_ = NULL;
+		data_ = nullptr;
 	}
 }
 
@@ -492,7 +498,7 @@ void ShaderInput::readServerData() {
 	if (!hasServerData()) return;
 
 	RenderState *rs = RenderState::get();
-	if (data_ == NULL) data_ = new byte[inputSize_];
+	if (data_ == nullptr) data_ = new byte[inputSize_];
 
 	rs->arrayBuffer().push(buffer());
 	byte *serverData = (byte *) glMapBufferRange(
@@ -518,7 +524,7 @@ void ShaderInput::readServerData() {
 }
 
 GLboolean ShaderInput::hasClientData() {
-	return data_ != NULL;
+	return data_ != nullptr;
 }
 
 GLboolean ShaderInput::hasServerData() {
@@ -612,7 +618,7 @@ ref_ptr<ShaderInput> ShaderInput::create(
 			}
 			break;
 		default:
-			return ref_ptr<ShaderInput>();
+			return {};
 	}
 }
 
@@ -636,7 +642,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 	cp->forceArray_ = in->forceArray_;
 	cp->data_ = new byte[cp->inputSize_];
 
-	if (copyData && in->data_ != NULL) {
+	if (copyData && in->data_ != nullptr) {
 		std::memcpy(cp->data_, in->data_, cp->inputSize_);
 	}
 	// make data_ stack root
