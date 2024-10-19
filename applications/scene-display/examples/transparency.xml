@@ -18,7 +18,7 @@
 <!-- Assets -->
 <asset id="venus-asset"
        type="asset"
-       file="res/models/venusm.obj"
+       file="res/models/venus.obj"
        use-animation="0" />
 <!-- Meshes -->
 <mesh id="platform"
