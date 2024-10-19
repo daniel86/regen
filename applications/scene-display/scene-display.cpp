@@ -56,5 +56,8 @@ int main(int argc, char **argv) {
 
 	widget->setWindowTitle("Scene Viewer");
 
-	return app->mainLoop();
+	auto exitCode = app->mainLoop();
+	REGEN_INFO("Shutting down application");
+	Logging::shutdown();
+	return exitCode;
 }
