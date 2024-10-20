@@ -224,6 +224,12 @@
   <fullscreen-pass shader="regen.filter.fxaa" />
 </node>
 
+<node id="MotionBlur-Screen">
+  <input type="float" name="velocityScale" value="2.25" />
+  <input type="int" name="numMotionBlurSamples" value="40" />
+  <motion-blur camera="main-camera" />
+</node>
+
 <node id="Default-Pipeline">
   <camera id="main-camera" />
   
