@@ -8,6 +8,7 @@
 #include "scene-parser.h"
 #include "regen/scene/nodes/deformation.h"
 #include "regen/scene/nodes/physics.h"
+#include "regen/scene/nodes/motion-blur.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -95,6 +96,7 @@ void SceneParser::init() {
 	setNodeProcessor(ref_ptr<ShaderNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<SceneNodeProcessor>::alloc());
 	setNodeProcessor(ref_ptr<DeformationNodeProvider>::alloc());
+	setNodeProcessor(ref_ptr<MotionBlurProvider>::alloc());
 	// add some default state processors
 	setStateProcessor(ref_ptr<ResourceStateProvider>::alloc());
 	setStateProcessor(ref_ptr<BlendStateProvider>::alloc());
