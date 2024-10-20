@@ -19,6 +19,10 @@
   </camera>
 </node>
 
+<texture id="reflector-noise" noise="perlin" size="128.0,128.0,1.0"
+	 baseFrequency="4.0" persistence= "0.5" lacunarity="2.5" octaveCount="4"
+         swizzle-g="RED" swizzle-b="RED" />
+
 <!--**************************-->
 <!--* meshes  *-->
 <!--**************************-->
@@ -281,6 +285,7 @@
 <node id="Scene-Geometry">
   <node id="Bowl" >
     <toggle key="CULL_FACE" value="0" />
+    <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL" />
     <mesh id="bowl" shader="regen.models.mesh" />
   </node>
 </node>
@@ -299,6 +304,7 @@
 <!--***** Shadow Mapping *****-->
 <!--**************************-->
 
+<!--
 <light id="spot-light"
        type="SPOT"
        position="3.0,8.0,4.0"
@@ -317,14 +323,23 @@
 	 compare-function="LEQUAL"
 	 sampler-type="sampler2DShadow" />
 </fbo>
+-->
 
 <node id="Shadow-Pass">
   <cull mode="FRONT" />
   <define key="OUTPUT_TYPE" value="DEPTH" />
 
+<!--
   <node id="Spot-Shadow">
     <fbo id="spot-shadow" clear-depth="1" />
     <camera id="spot-camera" />
+    <node import="Shadow-Caster" />
+  </node>
+-->
+
+  <node id="Sun-Shadow">
+    <fbo id="sun-shadow" clear-depth="1" />
+    <camera id="sun-camera" />
     <node import="Shadow-Caster" />
   </node>
 </node>
@@ -341,16 +356,23 @@
   <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
 
-    <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-      <light id="earth-sky-sun" />
+    <light-pass type="DIRECTIONAL"
+		shader="regen.shading.deferred.directional"
+		shadow-filter="PCF_GAUSSIAN">
+      <light id="earth-sky-sun"
+	     shadow-buffer="sun-shadow" shadow-attachment="depth"
+	     shadow-camera="sun-camera" />
+      <!--
       <light id="earth-sky-moon" />
+      -->
     </light-pass>
-
+<!--
     <light-pass type="SPOT" shader="regen.shading.deferred.spot">
       <light id="spot-light"
 	     shadow-buffer="spot-shadow" shadow-attachment="depth"
 	     shadow-camera="spot-camera" />
     </light-pass>
+    -->
   </node>
 </node>
 
@@ -384,6 +406,7 @@
 <!--**************************-->
 
 <node id="root">
+  <resource id="earth-sky" />
   <node id="Pre-Render">
     <node import="Shadow-Pass" />
     <node import="Paraboloid-Reflection-Update" />
