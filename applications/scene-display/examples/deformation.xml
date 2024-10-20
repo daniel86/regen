@@ -13,7 +13,7 @@
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
-	position="0.25,0.5,-5.0"
+	position="0.25,0.5,-9.0"
 	direction="-0.5,0.0,1.0" />
 <!-- Assets -->
 <asset id="asset-teapot"
@@ -151,8 +151,39 @@
 
 <node id="Background-Pass" />
 
+<node id="Volumetric-Fog-Pass">
+  <input type="float" name="shadowSampleStep" value="0.005" />
+  <input type="float" name="shadowSampleThreshold" value="0.075" />
+  <input type="vec2" name="fogDistance" value="0.0,100.0" />
+
+  <node>
+    <light-pass type="SPOT"
+		shader="regen.shading.fog.volumetric.spot"
+		use-shadows="1"
+		shadow-filter="NONE">
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth"
+	     shadow-camera="spot-camera" >
+	<input type="float" name="fogExposure" value="0.6" />
+	<input type="vec2" name="fogRadiusScale" value="0.44,0.76" />
+	<input type="vec2" name="fogConeScale" value="1.0,1.0" />
+      </light>
+    </light-pass>
+  </node>
+</node>
+
 <node id="Post-Pass">
   <depth test="0" write="0" />
+
+  <node id="Volume-Fog">
+    <fbo id="g-buffer" draw-buffers="1" />
+    <blend mode="add" />
+    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+    <node import="Volumetric-Fog-Pass" />
+  </node>
+  <view id="Scene -- Volumetric Fog">
+    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+  </view>
   
   <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="0" />
@@ -164,7 +195,7 @@
 <!--**** Lights & Shadows ****-->
 <!--**************************-->
 
-<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+<fbo id="spot-shadow" size-mode="abs" size="4096,4096,1" >
   <depth id="depth" pixel-size="24" pixel-type="FLOAT"
 	 wrapping="REPEAT"
 	 min-filter="NEAREST" mag-filter="NEAREST"
@@ -181,7 +212,7 @@
        type="SPOT"
        position="3.0,8.0,-4.0"
        direction="-0.37,-0.95,0.46"
-       diffuse="0.58,0.58,0.58"
+       diffuse="0.48,0.48,0.68"
        radius="10.0,21.0"
        cone-angles="11.5,25.5" />
 
