@@ -20,7 +20,9 @@ ModelMatrixMotion::ModelMatrixMotion(
 }
 
 void ModelMatrixMotion::getWorldTransform(btTransform &worldTrans) const {
-	worldTrans = transform_;
+	auto *matrices = (Mat4f *) modelMatrix_->clientDataPtr();
+	auto *mat = &matrices[index_];
+	worldTrans.setFromOpenGLMatrix((btScalar *) mat);
 }
 
 void ModelMatrixMotion::setWorldTransform(const btTransform &worldTrans) {

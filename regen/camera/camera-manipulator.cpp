@@ -121,9 +121,10 @@ void KeyFrameCameraTransform::glAnimate(RenderState *rs, GLdouble dt) {
 ////////////////
 ////////////////
 
-FirstPersonTransform::FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat)
+FirstPersonTransform::FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat, const ref_ptr<Mesh> &mesh)
 		: Animation(GL_TRUE, GL_TRUE),
-		  mat_(mat) {
+		  mat_(mat),
+		  mesh_(mesh) {
 	horizontalOrientation_ = 0.0;
 	moveAmount_ = 1.0;
 	moveForward_ = GL_FALSE;
@@ -153,6 +154,26 @@ void FirstPersonTransform::stepRight(const GLfloat &v) { step(dirSidestep_ * v);
 
 void FirstPersonTransform::step(const Vec3f &v) { pos_ += v; }
 
+void FirstPersonTransform::pushForward(const GLfloat &v) { push(dirXZ_ * v); }
+
+void FirstPersonTransform::pushBackward(const GLfloat &v) { push(dirXZ_ * (-v)); }
+
+void FirstPersonTransform::pushLeft(const GLfloat &v) { push(dirSidestep_ * (-v)); }
+
+void FirstPersonTransform::pushRight(const GLfloat &v) { push(dirSidestep_ * v); }
+
+void FirstPersonTransform::push(const Vec3f &v) {
+	bool hasPhysics = (mesh_.get() && !mesh_->physicalObjects().empty());
+	if (hasPhysics) {
+		auto rigidBody = mesh_->physicalObjects().front()->rigidBody();
+		if (rigidBody.get()) {
+			btVector3 impulse(-v.x, -v.y, -v.z);
+			rigidBody->activate(true);
+			rigidBody->applyCentralImpulse(impulse);
+		}
+	}
+}
+
 void FirstPersonTransform::lookLeft(GLdouble amount) {
 	horizontalOrientation_ = fmod(horizontalOrientation_ + amount, 2.0 * M_PI);
 }
@@ -169,8 +190,16 @@ void FirstPersonTransform::animate(GLdouble dt) {
 	dirXZ_.normalize();
 	dirSidestep_ = dirXZ_.cross(Vec3f::up());
 
+	bool hasPhysics = (mesh_.get() && !mesh_->physicalObjects().empty());
+
 	lock();
-	{
+	if(hasPhysics){
+		if (moveForward_) pushForward(moveAmount_ * dt);
+		else if (moveBackward_) pushBackward(moveAmount_ * dt);
+		if (moveLeft_) pushLeft(moveAmount_ * dt);
+		else if (moveRight_) pushRight(moveAmount_ * dt);
+	}
+	else {
 		if (moveForward_) stepForward(moveAmount_ * dt);
 		else if (moveBackward_) stepBackward(moveAmount_ * dt);
 		if (moveLeft_) stepLeft(moveAmount_ * dt);
@@ -210,7 +239,7 @@ FirstPersonCameraTransform::FirstPersonCameraTransform(
 		const ref_ptr<ModelTransformation> &transform,
 		const Vec3f &meshEyeOffset,
 		GLdouble meshHorizontalOrientation)
-		: FirstPersonTransform(transform->get()),
+		: FirstPersonTransform(transform->get(), mesh),
 		  CameraUpdater(cam),
 		  mesh_(mesh),
 		  mat_(transform->get()),
@@ -222,7 +251,7 @@ FirstPersonCameraTransform::FirstPersonCameraTransform(
 
 FirstPersonCameraTransform::FirstPersonCameraTransform(
 		const ref_ptr<Camera> &cam)
-		: FirstPersonTransform(cam->view()),
+		: FirstPersonTransform(cam->view(), ref_ptr<Mesh>()),
 		  CameraUpdater(cam) {
 	verticalOrientation_ = 0.0;
 	meshHorizontalOrientation_ = 0.0;

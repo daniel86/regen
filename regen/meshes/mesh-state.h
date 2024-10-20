@@ -15,6 +15,7 @@
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/shader.h>
+#include "regen/physics/physical-object.h"
 
 namespace regen {
 	/**
@@ -66,6 +67,16 @@ namespace regen {
 		 * @param rs the render state.
 		 */
 		void updateVAO(RenderState *rs);
+
+		/**
+		 * Set the physical object.
+		 */
+		void addPhysicalObject(const ref_ptr<PhysicalObject> &physicalObject) { physicalObjects_.push_back(physicalObject); }
+
+		/**
+		 * @return the physical object.
+		 */
+		auto &physicalObjects() const { return physicalObjects_; }
 
 		/**
 		 * @return VAO that is used to render from array data.
@@ -174,6 +185,8 @@ namespace regen {
 		Vec3f centerPosition_;
 		Vec3f minPosition_;
 		Vec3f maxPosition_;
+
+		std::vector<ref_ptr<PhysicalObject>> physicalObjects_;
 
 		std::vector<ref_ptr<Animation> > animations_;
 

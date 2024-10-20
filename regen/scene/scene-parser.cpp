@@ -7,6 +7,7 @@
 
 #include "scene-parser.h"
 #include "regen/scene/nodes/deformation.h"
+#include "regen/scene/nodes/physics.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -111,6 +112,7 @@ void SceneParser::init() {
 	setStateProcessor(ref_ptr<TransformStateProvider>::alloc());
 	setStateProcessor(ref_ptr<TesselationStateProvider>::alloc());
 	setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());
+	setStateProcessor(ref_ptr<PhysicsStateProvider>::alloc());
 }
 
 void SceneParser::addEventHandler(GLuint eventID,
