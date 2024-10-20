@@ -22,6 +22,8 @@ namespace regen {
 
 		void set_apparentMagnitude(GLdouble apparentMagnitude);
 
+		void set_deltaMagnitude(GLdouble deltaMagnitude);
+
 		void set_scattering(GLdouble scattering);
 
 		const ref_ptr<ShaderInput1f> &scattering() const;

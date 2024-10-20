@@ -96,6 +96,9 @@ ref_ptr<StarMap> SkyResource::createStarMapLayer(const ref_ptr<Sky> &sky,
 	if (input.hasAttribute("apparent-magnitude"))
 		starMap->set_apparentMagnitude(input.getValue<GLdouble>("apparent-magnitude", 6.0));
 
+	if (input.hasAttribute("delta-magnitude"))
+		starMap->set_deltaMagnitude(input.getValue<GLdouble>("delta-magnitude", 0.5));
+
 	starMap->set_updateInterval(
 			input.getValue<GLdouble>("update-interval", 4000.0));
 	sky->addLayer(starMap);
