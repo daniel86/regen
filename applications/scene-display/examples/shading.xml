@@ -2,23 +2,31 @@
 
 <include xml-file="scene-display/examples/default.xml" />
 
-<node id="configuration">
-  <camera id="main-camera"
-	  type="first-person"
-	  eye-offset="0.0,0.0,0.0"
-	  eye-orientation="0.0">
-  </camera>
-</node>
-
-<!-- Textures -->
-<texture id="rain-database" is-array="1"
-	 file="res/textures/rain" name-pattern=".*.png" />
-<!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,1.5,-8.0"
 	direction="0.0,-0.25,1.0" />
-<!-- Some meshes -->
+
+<node id="configuration">
+  <camera id="main-camera"
+	  type="third-person"
+	  mesh="sphere-mesh0"
+	  transform="sphere0-transform"
+	  eye-offset="0.0,0.0,0.0"
+	  eye-orientation="3.14159265359">
+    <key-mapping key="W" />
+    <key-mapping key="D" />
+  </camera>
+</node>
+
+<!--**************************-->
+<!--* meshes  *-->
+<!--**************************-->
+
+<transform id="bowl-transform">
+  <translate value="0.0,-1.0,0.0" />
+</tranform>
+
 <mesh id="bowl"
       type="half-sphere"
       lod="4"
@@ -28,10 +36,15 @@
       usage="STATIC">
   <define key="HAS_TWO_SIDES" value="TRUE" />
   <material preset="copper"/>
-  <transform shape="triangle-mesh" mesh="bowl" mass="0.0">
-    <translate value="0.0,-1.0,0.0" />
-  </tranform>
+  <transform id="bowl-transform" />
+  <physics mesh-id="bowl" transform-id="bowl-transform"
+           shape="triangle-mesh" mass="0.0" />
 </mesh>
+
+<transform id="sphere0-transform">
+  <translate value="-1.45,3.0,0.0" />
+</tranform>
+
 <mesh id="sphere-mesh0"
       type="sphere"
       lod="4"
@@ -40,10 +53,15 @@
       use-normal="1"
       use-tangent="0"
       usage="STATIC">
-  <transform shape="sphere" radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0">
-    <translate value="-1.45,3.0,0.0" />
-  </tranform>
+  <transform id="sphere0-transform" />
+  <physics mesh-id="sphere-mesh0" transform-id="sphere0-transform"
+           shape="sphere" radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0" />
 </mesh>
+
+<transform id="sphere1-transform">
+  <translate value="2.0,3.5,0.0" />
+</tranform>
+
 <mesh id="sphere-mesh1"
       type="sphere"
       lod="4"
@@ -53,33 +71,39 @@
       use-tangent="0"
       usage="STATIC">
   <material preset="ruby" />
-  <transform shape="sphere" radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0">
-    <translate value="2.0,3.5,0.0" />
-  </tranform>
+  <transform id="sphere1-transform" />
+  <physics mesh-id="sphere-mesh1" transform-id="sphere1-transform"
+           shape="sphere" radius="1.0" mass="20.0" inertia="0.0,-1.0,0.0" friction="0.0" />
 </mesh>
+
+<transform id="sphere2-transform" num-instances="40" is-instanced="1">
+    <set mode="row" target="translate"
+	 x-step="0.5,0.0,0.0" x-count="5"
+	 z-step="0.0,0.0,0.5" />
+    <translate value="-2.0,1.5,-1.0" />
+</tranform>
+
 <mesh id="sphere-mesh2"
       type="sphere"
       lod="4"
-      scaling="0.35,0.35,0.35"
+      scaling="0.5,0.5,0.5"
       texco-scaling="1.0,1.0"
       use-normal="1"
       use-tangent="0"
       usage="STATIC"
       num-instances="40">
   <material preset="ruby" />
-  <transform is-instanced="1"
-	     shape="sphere" radius="0.35" mass="0.4"
-	     inertia="0.0,0.0,0.0" friction="0.0">
-    <set mode="row" target="translate"
-	 x-step="0.5,0.0,0.0" x-count="5"
-	 z-step="0.0,0.0,0.5" />
-    <translate value="-2.0,1.5,-1.0" />
-  </transform>
+  <transform id="sphere2-transform" />
+  <physics mesh-id="sphere-mesh2" transform-id="sphere2-transform"
+           shape="sphere" radius="0.5" mass="0.4" inertia="0.0,0.0,0.0" friction="0.0" />
 </mesh>
 
 <!--**************************-->
-<!--****** Reflections *******-->
+<!--* paraboloid reflection  *-->
 <!--**************************-->
+
+<camera id="paraboloid-camera"
+	camera="main-camera" paraboloid-mesh="sphere-mesh0" has-back-face="1" />
 
 <fbo id="paraboloid-reflection-buffer"
      size-mode="abs" size="512,512,2"
@@ -95,6 +119,55 @@
   <texture id="normal" />
   <depth pixel-size="24" />
 </fbo>
+
+<node id="Paraboloid-Reflector">
+  <define key="IS_PARABOLOID_DUAL" value="TRUE" />
+  <define key="SHADING" value="NONE" />
+  <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
+  <input name="reflectionMatrix" state="paraboloid-camera" component="viewProjectionMatrix" />
+  <texture fbo="paraboloid-reflection-buffer" attachment="1"
+	   map-to="COLOR"
+	   blend-mode="SRC"
+	   mapping="PARABOLOID_REFLECTION" />
+  <mesh id="sphere-mesh0" shader="regen.models.mesh" />
+</node>
+
+<node id="Paraboloid-Reflection-Update">
+  <camera id="paraboloid-camera" />
+  <fbo id="paraboloid-reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
+  <node>
+    <blend mode="src" />
+    <depth test="1" write="1" />
+    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,2,3" />
+    <node import="Shadow-Caster" />
+    <node import="Scene-Geometry" />
+  </node>
+  <node>
+    <fbo id="paraboloid-reflection-buffer" draw-buffers="1" />
+    <node>
+      <texture name="gDepthTexture" fbo="paraboloid-reflection-buffer" attachment="depth" />
+      <texture name="gDiffuseTexture" fbo="paraboloid-reflection-buffer" attachment="0" />
+      <texture name="gSpecularTexture" fbo="paraboloid-reflection-buffer" attachment="2" />
+      <texture name="gNorWorldTexture" fbo="paraboloid-reflection-buffer" attachment="3" />
+      <node import="Shading-Pass" />
+    </node>
+    <node import="Background-Pass0" />
+    <node import="Cube-Reflector" />
+  </node>
+  <view id="Paraboloid Reflection -- Result">
+    <fbo id="SCREEN" />
+    <texture name="arrayTexture" fbo="paraboloid-reflection-buffer" attachment="1" />
+    <input type="int" name="arrayTextureSize" value="2" />
+    <fullscreen-pass shader="regen.filter.sampling.array-row" />
+  </view>
+</node>
+
+<!--**************************-->
+<!--**** Cube reflection *****-->
+<!--**************************-->
+
+<camera id="cube-camera" camera="main-camera" cube-mesh="sphere-mesh1" />
+
 <fbo id="cube-reflection-buffer"
      size-mode="abs" size="256,256,6"
      wrapping="REPEAT"
@@ -110,61 +183,26 @@
   <depth pixel-size="24" />
 </fbo>
 
-<camera id="paraboloid-camera"
-	camera="main-camera"
-	paraboloid-mesh="sphere-mesh0"
-	has-back-face="1" />
-<camera id="cube-camera"
-	camera="main-camera"
-	cube-mesh="sphere-mesh1" />
-
-<node id="Paraboloid-Reflection">
-  <camera id="paraboloid-camera" />
-  <fbo id="paraboloid-reflection-buffer"
-       clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node>
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,2,3" />
-    
-    <node import="Scene-Geometry" />
-  </node>
-  
-  <node>
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="paraboloid-reflection-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="paraboloid-reflection-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="paraboloid-reflection-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="paraboloid-reflection-buffer" attachment="3" />
-      <node import="Shading-Pass" />
-    </node>
-    <node import="Background-Pass0" />
-    <node import="Cube-Reflector" />
-  </node>
-  
-  <view id="Paraboloid Reflection -- Result">
-    <fbo id="SCREEN" />
-    <texture name="arrayTexture" fbo="paraboloid-reflection-buffer" attachment="1" />
-    <input type="int" name="arrayTextureSize" value="2" />
-    <fullscreen-pass shader="regen.filter.sampling.array-row" />
-  </view>
+<node id="Cube-Reflector">
+  <define key="SHADING" value="NONE" />
+  <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" />
+  <texture fbo="cube-reflection-buffer" attachment="1"
+	   map-to="COLOR"
+	   blend-mode="SRC"
+	   mapping="CUBE_REFLECTION" />
+  <mesh id="sphere-mesh1" shader="regen.models.mesh" />
 </node>
 
-<node id="Cube-Reflection">
+<node id="Cube-Reflection-Update">
   <camera id="cube-camera" />
-  <fbo id="cube-reflection-buffer"
-       clear-buffers="0,1,2,3" clear-depth="1" />
-  
+  <fbo id="cube-reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
   <node>
     <blend mode="src" />
     <depth test="1" write="1" />
     <fbo id="cube-reflection-buffer" draw-buffers="0,2,3" />
-    
+    <node import="Shadow-Caster" />
     <node import="Scene-Geometry" />
   </node>
-  
   <node>
     <fbo id="cube-reflection-buffer" draw-buffers="1" />
     <node>
@@ -177,7 +215,6 @@
     <node import="Background-Pass0" />
     <node import="Paraboloid-Reflector" />
   </node>
-  
   <view id="Cube Reflection -- Result">
     <fbo id="SCREEN" />
     <texture name="cubeTexture" fbo="cube-reflection-buffer" attachment="1" />
@@ -185,33 +222,21 @@
   </view>
 </node>
 
-<node id="Paraboloid-Reflector">
-  <define key="IS_PARABOLOID_DUAL" value="TRUE" />
-  <define key="SHADING" value="NONE" />
-  
-  <material preset="chrome" />
-  <input name="reflectionMatrix" state="paraboloid-camera" component="viewProjectionMatrix" />
-  <texture fbo="paraboloid-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="SRC"
-	   mapping="PARABOLOID_REFLECTION" />
-  <mesh id="sphere-mesh0" shader="regen.models.mesh" />
-</node>
+<!--**************************-->
+<!--**************************-->
 
-<node id="Cube-Reflector">
-  <define key="SHADING" value="NONE" />
-  
-  <material preset="chrome" />
-  <texture fbo="cube-reflection-buffer" attachment="1"
-	   map-to="COLOR"
-	   blend-mode="SRC"
-	   mapping="CUBE_REFLECTION" />
-  <mesh id="sphere-mesh1" shader="regen.models.mesh" />
+<node id="Reflectors">
+  <depth test="1" write="1" />
+  <node import="Paraboloid-Reflector" />
+  <node import="Cube-Reflector" />
 </node>
 
 <!--**************************-->
 <!--********* Rain ***********-->
 <!--**************************-->
+
+<texture id="rain-database" is-array="1"
+	 file="res/textures/rain" name-pattern=".*.png" />
 
 <mesh id="rain-particles"
       type="particles"
@@ -236,17 +261,14 @@
       <light id="earth-sky-sun" />
       <light id="earth-sky-moon" />
     </direct-lights>
-    
     <direct-pass>
 	<node id="particle-draw">
 	  <blend mode="add" />
 	  <depth test="1" write="0" />
 	  <define key="USE_RAIN_DB" value="TRUE" />
-	  
 	  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
 	  <texture name="rainDB" id="rain-database" />
 	  <input type="vec2" name="particleSize" value="0.07,5.0" />
-	  
 	  <mesh id="rain-particles" shader="regen.particles.rain.draw" />
 	</node>
     </direct-pass>
@@ -257,9 +279,6 @@
 <!--**************************-->
 
 <node id="Scene-Geometry">
-  <node id="Instanced-Spheres" >
-    <mesh id="sphere-mesh2" shader="regen.models.mesh" />
-  </node>
   <node id="Bowl" >
     <toggle key="CULL_FACE" value="0" />
     <mesh id="bowl" shader="regen.models.mesh" />
@@ -267,12 +286,56 @@
 </node>
 
 <node id="Shadow-Caster">
+  <node id="Instanced-Spheres" >
+    <mesh id="sphere-mesh2" shader="regen.models.mesh" />
+  </node>
+  <!--
+  <mesh id="sphere-mesh0" shader="regen.models.mesh" />
+  <mesh id="sphere-mesh1" shader="regen.models.mesh" />
+  -->
 </node>
+
+<!--**************************-->
+<!--***** Shadow Mapping *****-->
+<!--**************************-->
+
+<light id="spot-light"
+       type="SPOT"
+       position="3.0,8.0,4.0"
+       direction="-0.37,-0.95,-0.46"
+       diffuse="0.2,0.45,0.435"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5" />
+
+<camera id="spot-camera" light="spot-light" camera="main-camera" />
+
+<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+  <depth pixel-size="24" pixel-type="FLOAT"
+	 wrapping="REPEAT"
+	 min-filter="NEAREST" mag-filter="NEAREST"
+	 compare-mode="COMPARE_R_TO_TEXTURE"
+	 compare-function="LEQUAL"
+	 sampler-type="sampler2DShadow" />
+</fbo>
+
+<node id="Shadow-Pass">
+  <cull mode="FRONT" />
+  <define key="OUTPUT_TYPE" value="DEPTH" />
+
+  <node id="Spot-Shadow">
+    <fbo id="spot-shadow" clear-depth="1" />
+    <camera id="spot-camera" />
+    <node import="Shadow-Caster" />
+  </node>
+</node>
+
+<!--**************************-->
+<!--**************************-->
 
 <node id="Shading-Pass">
   <blend mode="add" />
   <depth test="0" write="0" />
-  <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
+  <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
   <resource id="earth-sky" />
     
   <node>
@@ -282,16 +345,18 @@
       <light id="earth-sky-sun" />
       <light id="earth-sky-moon" />
     </light-pass>
+
+    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+      <light id="spot-light"
+	     shadow-buffer="spot-shadow" shadow-attachment="depth"
+	     shadow-camera="spot-camera" />
+    </light-pass>
   </node>
 </node>
 
 <node id="Sky">
   <depth test="1" write="0" />
   <sky id="earth-sky" />
-</node>
-<node id="Reflectors">
-  <node import="Paraboloid-Reflector" />
-  <node import="Cube-Reflector" />
 </node>
 
 <node id="Background-Pass">
@@ -320,8 +385,9 @@
 
 <node id="root">
   <node id="Pre-Render">
-    <node import="Paraboloid-Reflection" />
-    <node import="Cube-Reflection" />
+    <node import="Shadow-Pass" />
+    <node import="Paraboloid-Reflection-Update" />
+    <node import="Cube-Reflection-Update" />
   </node>
   
   <node id="Render">
