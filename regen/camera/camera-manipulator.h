@@ -75,7 +75,7 @@ namespace regen {
 	 */
 	class FirstPersonTransform : public Animation {
 	public:
-		explicit FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat);
+		explicit FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat, const ref_ptr<Mesh> &mesh);
 
 		/**
 		 * @param v move velocity.
@@ -137,6 +137,12 @@ namespace regen {
 		 */
 		void lookRight(GLdouble v);
 
+		void pushForward(const GLfloat &v);
+		void pushBackward(const GLfloat &v);
+		void pushLeft(const GLfloat &v);
+		void pushRight(const GLfloat &v);
+		void push(const Vec3f &v);
+
 		// override
 		void animate(GLdouble dt) override;
 
@@ -144,6 +150,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<ShaderInputMat4> mat_;
+		ref_ptr<Mesh> mesh_;
 		Mat4f matVal_;
 
 		Vec3f pos_;
