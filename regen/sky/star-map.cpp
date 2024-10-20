@@ -23,7 +23,7 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 	state()->joinShaderInput(scattering_);
 
 	deltaM_ = ref_ptr<ShaderInput1f>::alloc("deltaM");
-	deltaM_->setUniformData(1.f);
+	deltaM_->setUniformData(0.5f);
 	state()->joinShaderInput(deltaM_);
 
 	set_apparentMagnitude(6.5);
@@ -46,6 +46,10 @@ void StarMap::set_apparentMagnitude(GLdouble apparentMagnitude) {
 	// (Similar to starsgeode vertex shader.)
 	deltaM_->setVertex(0, pow(2.512, apparentMagnitude -
 									 static_cast<double>(osgHimmel::Earth::apparentMagnitudeLimit())));
+}
+
+void StarMap::set_deltaMagnitude(GLdouble deltaMagnitude) {
+	deltaM_->setVertex(0, deltaMagnitude);
 }
 
 
