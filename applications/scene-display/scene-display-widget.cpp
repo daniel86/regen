@@ -55,7 +55,7 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 
 	ui_.setupUi(this);
 	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
-	resize(1000, 700);
+	resize(1600, 1200);
 	readConfig();
 }
 
