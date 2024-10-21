@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<include xml-file="scene-display/examples/default.xml"/>
+<include xml-file="scene-display/examples/templates/fluid-smoke.xml"/>
+<include xml-file="scene-display/examples/templates/mandelbrot.xml"/>
+
+<node id="configuration">
+    <animation id="dwarf-asset" type="asset" idle="idle2">
+        <key-mapping key=" " press="jump"/>
+        <key-mapping key="C" press="crouch" idle="crouchLoop" toggle="1"/>
+        <key-mapping key="W" press="walk" interrupt="1" release-interrupt="1"/>
+        <key-mapping key="A" press="walk" interrupt="1" release-interrupt="1"/>
+        <key-mapping key="S" press="walk" interrupt="1" release-interrupt="1" backwards="1"/>
+        <key-mapping key="D" press="walk" interrupt="1" release-interrupt="1"/>
+        <mouse-mapping button="1" animation="attack1"/>
+        <mouse-mapping button="2" animation="block"/>
+    </animation>
+    <camera id="main-camera"
+            type="third-person"
+            mesh="dwarf-mesh" mesh-index="1"
+            transform="dwarf-transform"
+            eye-offset="0.0,2.75,0.0"
+            eye-orientation="3.14159265359">
+        <key-mapping key="W"/>
+        <key-mapping key="D"/>
+    </camera>
+</node>
+
+<node id="initialize">
+    <node import="fluid-smoke-initialize" />
+</node>
+
+        <!-- Textures -->
+<texture id="ground-color" file="res/textures/brick/color.jpg"/>
+<texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
+<texture id="ground-height" file="res/textures/brick/height.jpg"/>
+<texture id="wall-color" file="res/textures/brickwall/color.jpg"/>
+<texture id="wall-normal" file="res/textures/brickwall/normal.jpg"/>
+<texture id="wood-color" file="res/textures/materials/wood.png"/>
+        <!-- Cameras -->
+<camera id="main-camera"
+        fov="45.0" near="0.1" far="200.0"
+        position="25.0,2.5,2.0"
+        direction="1.0,0.0,-1.0"/>
+        <!-- Lights -->
+<light id="picture-spot-center"
+       type="SPOT"
+       position="0.0,10.0,14.0"
+       direction="0.0,-0.5,0.5"
+       diffuse="0.5,0.5,0.63"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5"/>
+<light id="picture-spot-right"
+       type="SPOT"
+       position="-10.0,10.0,14.0"
+       direction="0.0,-0.5,0.5"
+       diffuse="0.5,0.5,0.63"
+       radius="10.0,21.0"
+       cone-angles="11.5,25.5"/>
+<light id="picture-spot-left"
+       type="SPOT"
+       position="10.0,10.0,14.0"
+       direction="0.0,-0.5,0.5"
+       diffuse="0.5,0.5,0.63"
+       radius="20.0,31.0"
+       cone-angles="11.5,25.5"/>
+<light id="room-light0"
+       type="POINT"
+       position="-5.0,10.0,0.0"
+       radius="20.0,38.0"
+       direction="0.0,-1.0,0.0"
+       diffuse="0.8,0.9,0.835"
+       ambient="0.6,0.6,0.6"/>
+<light id="room-light1"
+       type="POINT"
+       position="0.0,10.0,0.0"
+       radius="20.0,38.0"
+       direction="0.0,-1.0,0.0"
+       diffuse="0.8,0.9,0.835"
+       ambient="0.2,0.2,0.2"/>
+        <!-- Meshes -->
+<mesh id="ground-mesh"
+      type="rectangle"
+      lod="4"
+      rotation="0.0,0.0,3.1415"
+      scaling="40.0,20.0,40.0"
+      texco-scaling="7.0,7.0"
+      use-normal="1"
+      use-texco="1"
+      use-tangent="1"
+      center="1"
+      usage="STATIC">
+    <transform>
+        <translate value="0.0,-2.0,0.0"/>
+    </transform>
+</mesh>
+<transform id="dwarf-transform">
+    <rotate value="1.5707963,0.0,0.0"/>
+    <translate value="2.0,-2.0,0.0"/>
+</transform>
+<mesh id="dwarf-mesh"
+      type="asset"
+      asset="dwarf-asset"
+      asset-indices="*"
+      asset-animation="1">
+    <transform id="dwarf-transform"/>
+</mesh>
+
+<mesh id="box-wall"
+      type="box"
+      lod="4"
+      scaling="20.0,1.0,0.5"
+      texco-scaling="20.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+    <material preset="silver"/>
+</mesh>
+
+<mesh id="box-wall-1"
+      type="box"
+      scaling="6.0,1.0,0.5"
+      texco-scaling="6.0,1.0"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+    <material preset="silver"/>
+</mesh>
+
+<mesh id="wall"
+      type="rectangle"
+      lod="4"
+      rotation="0.0,0.0,3.1415"
+      scaling="40.0,1.0,10.0"
+      texco-scaling="4.0,1.0"
+      use-normal="1"
+      use-tangent="1"
+      center="1"
+      usage="STATIC">
+    <material preset="silver"/>
+</mesh>
+
+        <!--**************************-->
+        <!--*** Planar Reflection ****-->
+        <!--**************************-->
+
+<fbo id="reflection-buffer"
+     size-mode="rel" size="0.75,0.75"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4">
+    <texture id="diffuse0"/>
+    <texture id="diffuse1"/>
+    <texture id="specular"/>
+    <texture id="normal"/>
+    <depth pixel-size="24"/>
+</fbo>
+
+<camera id="reflection-camera"
+        camera="main-camera"
+        reflector="reflector-mesh"
+        has-back-face="1"/>
+
+<texture id="reflector-noise" noise="perlin" size="128.0,128.0,1.0"
+         baseFrequency="4.0" persistence="0.5" lacunarity="2.5" octaveCount="4"
+         swizzle-g="RED" swizzle-b="RED"/>
+
+<mesh id="reflector-mesh"
+      type="rectangle"
+      lod="0"
+      rotation="0.0,0.0,3.1415926"
+      scaling="10.0,1.0,40.0"
+      use-normal="1"
+      use-texco="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+    <transform>
+        <rotate value="0.0,1.5707963,0.0"/>
+        <translate value="-20.0,3.0,0.0"/>
+    </transform>
+</mesh>
+
+<node id="Reflection-Pass">
+    <camera id="reflection-camera"/>
+    <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+
+    <node id="Reflection-Geometry">
+        <blend mode="src"/>
+        <depth test="1" write="1"/>
+        <fbo id="reflection-buffer" draw-buffers="0,2,3"/>
+        <node import="Shadow-Caster"/>
+        <node import="Scene-Geometry"/>
+    </node>
+
+    <node id="Reflection-Shading">
+        <fbo id="reflection-buffer" draw-buffers="1"/>
+        <node>
+            <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth"/>
+            <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0"/>
+            <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2"/>
+            <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3"/>
+            <node import="Shading-Pass"/>
+        </node>
+        <node import="Background-Pass0"/>
+    </node>
+
+    <node id="Reflection-Fog">
+        <depth test="0" write="0"/>
+        <node id="volume-fog">
+            <fbo id="reflection-buffer" draw-buffers="1"/>
+            <blend mode="add"/>
+            <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth"/>
+            <node import="Volumetric-Fog-Pass"/>
+        </node>
+    </node>
+
+    <view id="Planar Reflection">
+        <blit src-fbo="reflection-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+    </view>
+</node>
+
+<node id="Reflectors">
+    <depth test="1" write="1"/>
+    <define key="SHADING" value="NONE"/>
+    <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+    <node id="Planar-Reflector">
+        <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
+        <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
+                 map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1"/>
+        <mesh id="reflector-mesh" shader="regen.models.mesh"/>
+    </node>
+</node>
+
+        <!--**************************-->
+        <!--** ANIMATED "PAINTINGS" **-->
+        <!--**************************-->
+
+<mesh id="painting-mesh"
+      type="rectangle"
+      lod="0"
+      rotation="0.0,0.0,3.1415926"
+      scaling="4.8,0.1,4.8"
+      texco-scaling="-1.0,1.0"
+      use-normal="1"
+      use-texco="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+</mesh>
+
+<mesh id="painting-frame"
+      type="box"
+      lod="4"
+      scaling="2.8,0.2,2.8"
+      texco-scaling="1.6,1.6"
+      use-normal="1"
+      use-tangent="0"
+      usage="STATIC">
+    <material preset="silver"/>
+</mesh>
+
+<texture id="video-texture" video="res/textures/fluids.avi"/>
+
+<node id="Pictures">
+    <!-- Video Picture -->
+    <node id="video-picture">
+    <node>
+        <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+        <transform>
+            <rotate value="0.0,3.14,1.5707963"/>
+            <translate value="0.0,3.0,20.21"/>
+        </transform>
+        <mesh id="painting-frame" shader="regen.models.mesh"/>
+    </node>
+    <node>
+        <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
+        <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+        <transform>
+            <rotate value="0.0,0.0,1.5707963"/>
+            <translate value="0.0,3.0,20.0"/>
+        </transform>
+        <mesh id="painting-mesh" shader="regen.models.mesh"/>
+    </node>
+    </node>
+    <!-- Fluid Simulation -->
+    <node id="fluid1-picture">
+    <node>
+        <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+        <transform>
+            <rotate value="0.0,3.14,1.5707963"/>
+            <translate value="10.0,3.0,20.21"/>
+        </transform>
+        <mesh id="painting-frame" shader="regen.models.mesh"/>
+    </node>
+    <node>
+        <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
+        <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+        <transform>
+            <rotate value="0.0,0.0,1.5707963"/>
+            <translate value="10.0,3.0,20.0"/>
+        </transform>
+        <mesh id="painting-mesh" shader="regen.models.mesh"/>
+    </node>
+    </node>
+    <!-- Mandelbrot -->
+    <node id="mandelbrot-picture">
+        <node>
+            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+            <transform>
+                <rotate value="0.0,3.14,1.5707963"/>
+                <translate value="-10.0,3.0,20.21"/>
+            </transform>
+            <mesh id="painting-frame" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="COLOR"/>
+            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+            <transform>
+                <rotate value="0.0,0.0,1.5707963"/>
+                <translate value="-10.0,3.0,20.0"/>
+            </transform>
+            <mesh id="painting-mesh" shader="regen.models.mesh"/>
+        </node>
+    </node>
+</node>
+
+<node id="Update-Pictures">
+    <node import="mandelbrot-update"/>
+    <node import="fluid-smoke-update"/>
+</node>
+
+        <!--**************************-->
+        <!--***** Shadow Mapping *****-->
+        <!--**************************-->
+
+<fbo id="room-light-shadow0"
+     target="TEXTURE_CUBE_MAP"
+     sampler-type="samplerCube"
+     size-mode="abs" size="2048,2048,6">
+    <depth pixel-size="24" pixel-type="FLOAT"
+           wrapping="CLAMP_TO_EDGE"
+           min-filter="NEAREST" mag-filter="NEAREST"
+           compare-mode="COMPARE_R_TO_TEXTURE"
+           compare-function="LEQUAL"
+           sampler-type="samplerCubeShadow"/>
+</fbo>
+
+<camera id="room-light-camera0"
+        light="room-light0"
+        camera="main-camera"/>
+
+<node id="Shadow-Pass">
+    <cull mode="FRONT"/>
+    <define key="OUTPUT_TYPE" value="DEPTH"/>
+
+    <node id="Room-Light-Shadow">
+        <node id="Room-Light-Shadow0">
+            <fbo id="room-light-shadow0" clear-depth="1"/>
+            <camera id="room-light-camera0"/>
+            <!-- <polygon offset-fill="1.1,4.0" /> -->
+            <node import="Shadow-Caster"/>
+        </node>
+    </node>
+</node>
+
+        <!--**************************-->
+        <!--**************************-->
+
+<node id="Shadow-Caster">
+    <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-transform" shape="sphere">
+        <polygon offset-fill="1.1,4.0"/>
+        <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
+    </node>
+</node>
+
+<node id="Scene-Geometry">
+    <node id="Ground">
+        <!--
+        <input type="float" name="reliefScale" value="0.03" />
+        <input type="int" name="reliefLinearSteps" value="10" />
+        <input type="int" name="reliefBinarySteps" value="2" />
+        <texture name="colorTexture" id="ground-color" map-to="COLOR" texco-transfer="RELIEF" />
+        <texture name="normalTexture" id="ground-normal" map-to="NORMAL" texco-transfer="RELIEF"
+             texel-transfer-key="regen.states.textures.normalTBNTransfer" />
+        <texture name="heightTexture" id="ground-height" />
+        -->
+        <texture name="colorTexture" id="ground-color" map-to="COLOR"/>
+        <texture name="normalTexture" id="ground-normal" map-to="NORMAL"/>
+        <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7"/>
+        <mesh id="ground-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node import="Pictures"/>
+
+    <node id="Walls">
+        <texture name="colorTexture" id="wall-color" map-to="COLOR"/>
+        <texture name="normalTexture" id="wall-normal" map-to="NORMAL"/>
+        <node id="Wall-East">
+            <transform>
+                <rotate value="0.0,0.0,1.5707963"/>
+                <translate value="0.0,3.0,20.5"/>
+            </transform>
+            <mesh id="wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="Wall-West">
+            <transform>
+                <rotate value="0.0,3.14,1.5707963"/>
+                <translate value="0.0,3.0,-20.5"/>
+            </transform>
+            <mesh id="wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="Wall-North">
+            <transform>
+                <rotate value="0.0,-1.5707963,1.5707963"/>
+                <translate value="20.5,3.0,0.0"/>
+            </transform>
+            <mesh id="wall" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Bars">
+        <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+
+        <node id="box-wall0">
+            <transform>
+                <translate value="0.5,-2.0,20.5"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall1">
+            <transform>
+                <translate value="0.5,-2.0,-20.5"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall2">
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <translate value="20.0,-2.0,0.0"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <translate value="-21.0,-2.0,0.0"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall3">
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="-20.5,8.5,00.0"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall3.1">
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="20.5,8.5,0.0"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall3.2">
+            <transform>
+                <rotate value="1.57079632,0.0,1.57079632"/>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="0.0,8.5,20.0"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall3.3">
+            <transform>
+                <rotate value="1.57079632,0.0,1.57079632"/>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="0.0,8.5,-20.0"/>
+            </transform>
+            <mesh id="box-wall" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall5">
+            <transform>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="-20.5,3.0,20.5"/>
+            </transform>
+            <mesh id="box-wall-1" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall6">
+            <transform>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="-20.5,3.0,-20.5"/>
+            </transform>
+            <mesh id="box-wall-1" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall7">
+            <transform>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="20.5,3.0,20.5"/>
+            </transform>
+            <mesh id="box-wall-1" shader="regen.models.mesh"/>
+        </node>
+        <node id="box-wall7">
+            <transform>
+                <rotate value="0.0,1.57079632,0.0"/>
+                <translate value="20.5,3.0,-20.5"/>
+            </transform>
+            <mesh id="box-wall-1" shader="regen.models.mesh"/>
+        </node>
+    </node>
+</node>
+
+<node id="Shading-Pass">
+    <blend mode="add"/>
+    <depth test="0" write="0"/>
+    <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
+
+    <node>
+        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+
+        <light-pass type="POINT" shader="regen.shading.deferred.point">
+            <light id="room-light0"
+                   shadow-buffer="room-light-shadow0" shadow-attachment="depth"
+                   shadow-camera="room-light-camera0"/>
+        </light-pass>
+
+        <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+            <light id="picture-spot-center"/>
+            <light id="picture-spot-left"/>
+            <light id="picture-spot-right"/>
+        </light-pass>
+    </node>
+
+    <node import="Ambient-Occlusion-Update"/>
+    <node import="Ambient-Occlusion-Sample"/>
+</node>
+
+<node id="Background-Pass0">
+</node>
+<node id="Background-Pass">
+    <node import="Reflectors"/>
+</node>
+
+        <!--**************************-->
+        <!--**************************-->
+
+<node id="Volumetric-Fog-Pass">
+    <input type="float" name="shadowSampleStep" value="0.025"/>
+    <input type="float" name="shadowSampleThreshold" value="0.075"/>
+    <input type="vec2" name="fogDistance" value="0.0,100.0"/>
+
+    <node>
+        <input type="float" name="fogExposure" value="1.0"/>
+        <input type="vec2" name="fogRadiusScale" value="0.44,0.76"/>
+        <input type="vec2" name="fogConeScale" value="1.0,1.0"/>
+        <light-pass type="SPOT" shader="regen.shading.fog.volumetric.spot">
+            <light id="picture-spot-center"/>
+            <light id="picture-spot-left"/>
+            <light id="picture-spot-right"/>
+        </light-pass>
+    </node>
+</node>
+
+<node id="Post-Pass">
+    <depth test="0" write="0"/>
+
+    <node id="Volume-Fog">
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <blend mode="add"/>
+        <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+        <node import="Volumetric-Fog-Pass"/>
+    </node>
+    <view id="Scene with Volumetric Fog">
+        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+    </view>
+
+    <node import="FXAA">
+        <fbo id="g-buffer" draw-buffers="0"/>
+        <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+    </node>
+    <view id="Antialiased Scene">
+        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+    </view>
+</node>
+
+        <!--**************************-->
+        <!--**************************-->
+
+<node id="root">
+    <node id="Pre-Render">
+        <node import="Update-Pictures"/>
+        <node import="Reflection-Pass"/>
+        <node import="Shadow-Pass"/>
+
+        <view id="Shadow-Map">
+            <fbo id="SCREEN"/>
+            <texture name="cubeTexture" fbo="room-light-shadow0" attachment="depth"/>
+            <fullscreen-pass shader="regen.filter.sampling.cube-shadow-unfold"/>
+        </view>
+    </node>
+
+    <node id="Render">
+        <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+
+        <node import="Default-Pipeline"/>
+        <node import="GUI-Pass">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
+
+        <view id="Output Rendering">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+    </node>
+</node>
