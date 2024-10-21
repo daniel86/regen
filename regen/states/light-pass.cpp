@@ -190,7 +190,7 @@ void LightPass::enable(RenderState *rs) {
 		}
 		// enable light pass uniforms
 		for (auto jt = l.inputLocations.begin(); jt != l.inputLocations.end(); ++jt) {
-			if (jt->uploadStamp != jt->input->stamp()) {
+			if (lights_.size()>1 || jt->uploadStamp != jt->input->stamp()) {
 				jt->input->enableUniform(jt->location);
 				jt->uploadStamp = jt->input->stamp();
 			}
