@@ -137,14 +137,14 @@ ref_ptr<Texture> TextureResource::createResource(
 	ref_ptr<Texture> tex;
 
 	if (input.hasAttribute("file")) {
-		GLenum mipmapFlag = GL_DONT_CARE;
-		GLenum forcedType = glenum::pixelType(
+		auto mipmapFlag = GL_DONT_CARE;
+		auto forcedType = glenum::pixelType(
 				input.getValue<string>("forced-type", "NONE"));
-		GLenum forcedInternalFormat = glenum::textureInternalFormat(
+		auto forcedInternalFormat = glenum::textureInternalFormat(
 				input.getValue<string>("forced-internal-format", "NONE"));
-		GLenum forcedFormat = glenum::textureFormat(
+		auto forcedFormat = glenum::textureFormat(
 				input.getValue<string>("forced-format", "NONE"));
-		Vec3ui forcedSize =
+		auto forcedSize =
 				input.getValue<Vec3ui>("forced-size", Vec3ui(0u));
 		const string filePath =
 				getResourcePath(input.getValue("file"));
@@ -188,15 +188,15 @@ ref_ptr<Texture> TextureResource::createResource(
 			REGEN_ERROR("Failed to load Texture at " << filePath << ".");
 		}
 	} else if (input.hasAttribute("video")) {
-		const string filePath = getResourcePath(input.getValue("file"));
+		const string filePath = getResourcePath(input.getValue("video"));
 		ref_ptr<VideoTexture> video = ref_ptr<VideoTexture>::alloc();
 		video->stopAnimation();
 		try {
 			video->set_file(filePath);
 			video->demuxer()->set_repeat(
 					input.getValue<bool>("repeat", 1));
-
 			tex = video;
+			video->play();
 			video->startAnimation();
 		}
 		catch (VideoTexture::Error &ve) {
@@ -205,12 +205,12 @@ ref_ptr<Texture> TextureResource::createResource(
 	} else if (input.hasAttribute("noise")) {
 		const string noiseMode = input.getValue("noise");
 
-		string sizeMode = input.getValue<string>("size-mode", "abs");
-		Vec3f sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-		Vec3i sizeAbs = getSize(parser->getViewport(), sizeMode, sizeRel);
+		auto sizeMode = input.getValue<string>("size-mode", "abs");
+		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
+		auto sizeAbs = getSize(parser->getViewport(), sizeMode, sizeRel);
 
-		GLint randomSeed = input.getValue<GLint>("random-seed", rand());
-		bool isSeamless = input.getValue<bool>("is-seamless", false);
+		auto randomSeed = input.getValue<GLint>("random-seed", rand());
+		auto isSeamless = input.getValue<bool>("is-seamless", false);
 
 		textures::PerlinNoiseConfig perlinCfg;
 		perlinCfg.baseFrequency = input.getValue<GLfloat>("base-frequency", 4.0);
@@ -239,20 +239,20 @@ ref_ptr<Texture> TextureResource::createResource(
 					randomSeed, isSeamless);
 		}
 	} else if (input.hasAttribute("spectrum")) {
-		Vec2d spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));
-		GLuint numTexels = input.getValue<GLuint>("num-texels", 256u);
+		auto spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));
+		auto numTexels = input.getValue<GLuint>("num-texels", 256u);
 		tex = regen::textures::loadSpectrum(spectrum.x, spectrum.y, numTexels);
 	} else {
-		string sizeMode = input.getValue<string>("size-mode", "abs");
-		Vec3f sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
+		auto sizeMode = input.getValue<string>("size-mode", "abs");
+		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
 		Vec3i sizeAbs = getSize(parser->getViewport(), sizeMode, sizeRel);
 
-		GLuint texCount = input.getValue<GLuint>("count", 1);
-		GLuint pixelSize = input.getValue<GLuint>("pixel-size", 16);
-		GLuint pixelComponents = input.getValue<GLuint>("pixel-components", 4);
-		GLenum pixelType = glenum::pixelType(
+		auto texCount = input.getValue<GLuint>("count", 1);
+		auto pixelSize = input.getValue<GLuint>("pixel-size", 16);
+		auto pixelComponents = input.getValue<GLuint>("pixel-components", 4);
+		auto pixelType = glenum::pixelType(
 				input.getValue<string>("pixel-type", "UNSIGNED_BYTE"));
-		GLenum textureTarget = glenum::textureTarget(
+		auto textureTarget = glenum::textureTarget(
 				input.getValue<string>("target", sizeAbs.z > 1 ? "TEXTURE_3D" : "TEXTURE_2D"));
 
 
