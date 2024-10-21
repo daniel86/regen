@@ -164,3 +164,59 @@ void main() {
     out_color = vec4(0);
   }
 }
+
+----------------------------
+----------------------------
+
+-- cube-shadow-unfold.vs
+#include regen.filter.sampling.vs
+-- cube-shadow-unfold.fs
+out vec4 out_color;
+uniform samplerCubeShadow in_cubeTexture;
+
+#include regen.math.computeCubeDirection
+
+void main() {
+  float size = in_viewport.y/4.0;
+  float diffX = gl_FragCoord.x-in_viewport.x*0.5;
+  float diffY = gl_FragCoord.y-in_viewport.y+1.5*size;
+
+  if(abs(diffX) <= 0.5*size) { // middle row
+    // Map in range [0,size] and divide by size to get to range [0,1]
+    float texcoX = (diffX + 0.5*size)/size;
+    float texcoY = mod(gl_FragCoord.y,size)/size;
+    int layer;
+    if(diffY>=0.5*size)       layer = 2; // +Y face
+    else if(diffY>=-0.5*size) layer = 4; // +Z face
+    else if(diffY>=-1.5*size) layer = 3; // -Y face
+    else {                               // -Z face
+      layer = 5;
+      texcoY = 1.0-texcoY;
+      texcoX = 1.0-texcoX;
+    }
+    vec3 dir = computeCubeDirection(2.0*vec2(texcoX,texcoY) - vec2(1.0),layer);
+    float depth = texture(in_cubeTexture, vec4(dir,1.0));
+    out_color = vec4(depth, depth, depth, 1.0);
+  }
+  else if(abs(diffX) < 1.5*size && abs(diffY) < 0.5*size) {
+    float texcoX;
+    float texcoY = mod(gl_FragCoord.y,size)/size;
+    int layer;
+    if(diffX <= 0) {
+      // -X face
+      texcoX = (diffX + 1.5*size)/size;
+      layer = 1;
+    }
+    else {
+      // +X face
+      texcoX = (diffX - 0.5*size)/size;
+      layer = 0;
+    }
+    vec3 dir = computeCubeDirection(2.0*vec2(texcoX,texcoY) - vec2(1.0),layer);
+    float depth = texture(in_cubeTexture, vec4(dir,1.0));
+    out_color = vec4(depth, depth, depth, 1.0);
+  }
+  else {
+    out_color = vec4(0);
+  }
+}
