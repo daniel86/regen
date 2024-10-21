@@ -22,6 +22,10 @@ ref_ptr<Light> LightResource::createResource(
 	ref_ptr<Light> light = ref_ptr<Light>::alloc(lightType);
 	light->set_isAttenuated(
 			input.getValue<bool>("is-attenuated", lightType != Light::DIRECTIONAL));
+
+	auto dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
+	dir.normalize();
+	light->direction()->setVertex(0, dir);
 	light->position()->setVertex(0,
 								 input.getValue<Vec3f>("position", Vec3f(0.0f)));
 	light->direction()->setVertex(0,
