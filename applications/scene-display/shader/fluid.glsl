@@ -1062,7 +1062,7 @@ out vec4 out_color;
 
 void main() {
     vec2 texco = vec2(in_texco.x, 1.0-in_texco.y);
-    float x = in_texelFactor*texture(in_quantity,texco).r;
+    float x = in_texelFactor*texture(in_quantity,in_texco).r;
     if(x>0.0) {
         out_color = vec4(in_colorPositive, x);
     } else {
@@ -1103,7 +1103,7 @@ out vec4 out_color;
 
 void main() {
     vec2 texco = vec2(in_texco.x, 1.0-in_texco.y);
-    out_color.rgb = in_texelFactor*texture(in_quantity,texco).rgb;
+    out_color.rgb = in_texelFactor*texture(in_quantity,in_texco).rgb;
     out_color.a = min(1.0, length(out_color.rgb));
 }
 
