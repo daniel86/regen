@@ -337,7 +337,7 @@ void main() {
 -- point.gs
 #include regen.shading.deferred.local.gs
 -- point.fs
-// #define IS_SPOT_LIGHT
+#define IS_POINT_LIGHT
 #include regen.shading.deferred.local.fs
 
 --------------------------------------
