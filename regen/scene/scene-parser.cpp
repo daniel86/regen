@@ -48,6 +48,7 @@ namespace regen {
 	namespace scene {
 		string getResourcePath(const string &relPath) {
 			PathChoice texPaths;
+			texPaths.choices_.push_back(relPath);
 			texPaths.choices_.push_back(filesystemPath(
 					".", relPath));
 			texPaths.choices_.push_back(filesystemPath(
