@@ -9,6 +9,7 @@
 #include "regen/scene/nodes/deformation.h"
 #include "regen/scene/nodes/physics.h"
 #include "regen/scene/nodes/motion-blur.h"
+#include "regen/scene/states/polygon.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -116,6 +117,7 @@ void SceneParser::init() {
 	setStateProcessor(ref_ptr<TesselationStateProvider>::alloc());
 	setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());
 	setStateProcessor(ref_ptr<PhysicsStateProvider>::alloc());
+	setStateProcessor(ref_ptr<PolygonStateProvider>::alloc());
 }
 
 void SceneParser::addEventHandler(GLuint eventID,
