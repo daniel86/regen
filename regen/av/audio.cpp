@@ -156,7 +156,7 @@ void AudioLibrary::initializeAL() {
 	set_dopplerFactor(1.0f);
 	set_speedOfSound(343.3f);
 	set_distanceModel(AL_LINEAR_DISTANCE);
-	AudioListener::set1f(AL_GAIN, 1.0f);
+	AudioListener::set1f(AL_GAIN, 0.05f);
 }
 
 void AudioLibrary::closeAL() {
