@@ -194,6 +194,31 @@ void Box::updateAttributes(const Config &cfg) {
 				}
 			} else if (texcoMode == TEXCO_MODE_UV) {
 				auto *texco = (Vec2f *) texco_->clientData();
+
+				for (GLuint i = 0; i < 3; ++i) {
+					// Directly assign UV coordinates based on vertex positions
+					Vec3f pos = f[i].p;
+					// Normalize the vertex position to [0, 1]
+					Vec2f uv;
+					switch (sideIndex) {
+						case 0: // Front face
+						case 1: // Back face
+							uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
+							break;
+						case 2: // Top face
+						case 3: // Bottom face
+							uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.z + 1.0f) * 0.5f);
+							break;
+						case 4: // Right face
+						case 5: // Left face
+							uv = Vec2f((pos.z + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
+							break;
+						default:
+							uv = Vec2f(0.0f);
+					}
+					texco[vertexIndex + i] = uv * cfg.texcoScale;
+				}
+				/*
 				for (GLuint i = 0; i < 3; ++i) {
 					// linear interpolate texture coordinates
 					const Vec3f &p = pos_->getVertex(vertexIndex + i);
@@ -213,8 +238,9 @@ void Box::updateAttributes(const Config &cfg) {
 					GLfloat d23 = (p - p23).length();
 					GLfloat f01 = d23 / (d01 + d23);
 					GLfloat f23 = d01 / (d01 + d23);
-					texco[vertexIndex + i] = uv01 * f01 + uv23 * f23;
+					texco[vertexIndex + i] = (uv01 * f01 + uv23 * f23) * cfg.texcoScale;
 				}
+				 */
 			}
 
 			if (cfg.isTangentRequired) {
