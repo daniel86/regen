@@ -277,7 +277,16 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
   #elif _MAPTO == ALPHA
     ${_BLEND}( texel${INDEX}.x, C.a, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == NORMAL
-    ${_BLEND}( texel${INDEX}.rgb, N, ${TEX_BLEND_FACTOR${_ID}} );
+    mat3 tbn${INDEX} = mat3(
+        in_tangent.x, in_binormal.x, in_norWorld.x,
+        in_tangent.y, in_binormal.y, in_norWorld.y,
+        in_tangent.z, in_binormal.z, in_norWorld.z
+    );
+    // Expand the range of the normal value from (0, +1) to (-1, +1).
+    vec3 bump${INDEX} = (texel${INDEX}.rgb * 2.0f) - 1.0f;
+    // Calculate the normal from the data in the normal map.
+    N = normalize(tbn${INDEX} * bump${INDEX});
+    //${_BLEND}( bump${INDEX}, N, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
 #endfor
 }
