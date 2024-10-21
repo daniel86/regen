@@ -91,7 +91,7 @@ void Demuxer::set_file(const std::string &file) {
 		formatCtx_ = nullptr;
 	}
 	if (avformat_open_input(&formatCtx_, file.c_str(), nullptr, nullptr) != 0) {
-		throw Error("Couldn't open file");
+		throw Error(REGEN_STRING("Couldn't open file " << file));
 	}
 
 	// Retrieve stream information
