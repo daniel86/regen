@@ -48,6 +48,7 @@ VideoStream::VideoStream(AVStream *stream, GLint index, GLuint cachedBytesLimit)
 VideoStream::~VideoStream() {
 	doClearQueue();
 	av_free(currFrame_);
+	sws_freeContext(swsCtx_);
 }
 
 void VideoStream::doClearQueue() {
