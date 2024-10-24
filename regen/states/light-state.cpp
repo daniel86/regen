@@ -67,7 +67,9 @@ Light::Light(Light::Type lightType)
 		: State(),
 		  Animation(GL_TRUE, GL_FALSE, lightType == SPOT),
 		  HasInput(VBO::USAGE_DYNAMIC),
-		  lightType_(lightType) {
+		  lightType_(lightType),
+		  isAttenuated_(GL_TRUE),
+		  coneMatrixStamp_(0) {
 	switch (lightType_) {
 		case DIRECTIONAL:
 			set_isAttenuated(GL_FALSE);
