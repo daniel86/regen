@@ -313,10 +313,18 @@ ref_ptr<TextureMappedText> MeshResource::createTextMesh(
 			input.getValue<Vec4f>("text-color", Vec4f(0.97f, 0.86f, 0.77f, 0.95f)));
 
 	if (input.hasAttribute("text")) {
+		auto maxLineWidth = input.getValue<GLfloat>("max-line-width", 0.0f);
+		TextureMappedText::Alignment alignment = TextureMappedText::ALIGNMENT_LEFT;
+		if (input.hasAttribute("alignment")) {
+			string align = input.getValue("alignment");
+			if (align == "center") alignment = TextureMappedText::ALIGNMENT_CENTER;
+			else if (align == "right") alignment = TextureMappedText::ALIGNMENT_RIGHT;
+		}
+
 		string val = input.getValue("text");
 		wstringstream ss;
 		ss << val.c_str();
-		widget->set_value(ss.str());
+		widget->set_value(ss.str(), alignment, maxLineWidth);
 	}
 
 	return widget;
