@@ -32,7 +32,6 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices=12) out;
 
 uniform vec2 in_inverseViewport;
-uniform vec4 in_textColor;
 const float outlineOffset = 2.0;
 
 #define HANDLE_IO
