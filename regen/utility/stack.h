@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef __STACK_H_
-#define __STACK_H_
+#ifndef REGEN_STACK_H_
+#define REGEN_STACK_H_
 
 namespace regen {
   /**
@@ -33,6 +33,13 @@ namespace regen {
     };
 
     Stack() : top_(NULL) {}
+    ~Stack() {
+	  while(top_!=NULL) {
+		Node *buf = top_;
+		top_ = top_->next_;
+		delete buf;
+	  }
+	}
     /**
      * Sets top value.
      */
@@ -130,4 +137,4 @@ namespace regen {
   };
 } // namespace
 
-#endif /* __STACK_H_ */
+#endif /* REGEN_STACK_H_ */
