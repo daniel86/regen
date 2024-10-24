@@ -227,7 +227,7 @@ namespace regen {
 		 * @param name name override
 		 * @return iterator in input container.
 		 */
-		virtual ShaderInputList::const_iterator setInput(
+		ShaderInputList::const_iterator setInput(
 				const ref_ptr<ShaderInput> &in, const std::string &name = "") {
 			return inputContainer_->setInput(in, name);
 		}
