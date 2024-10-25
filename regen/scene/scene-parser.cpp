@@ -161,13 +161,28 @@ ref_ptr<StateProcessor> SceneParser::getStateProcessor(const string &category) {
 	}
 }
 
-void SceneParser::putNode(const std::string &id, const ref_ptr<StateNode> &node) { nodes_[id] = node; }
+void SceneParser::putNode(const std::string &id, const ref_ptr<StateNode> &node) {
+	nodes_[id] = node;
+}
 
-ref_ptr<StateNode> SceneParser::getNode(const std::string &id) { return nodes_[id]; }
+ref_ptr<StateNode> SceneParser::getNode(const std::string &id) {
+	return nodes_[id];
+}
 
-void SceneParser::putState(const std::string &id, const ref_ptr<State> &state) { states_[id] = state; }
+void SceneParser::putState(const std::string &id, const ref_ptr<State> &state) {
+	states_[id] = state;
+}
 
 ref_ptr<State> SceneParser::getState(const std::string &id) { return states_[id]; }
+
+const NamedObject& SceneParser::putNamedObject(const ref_ptr<StateNode> &node) {
+	int nextId = namedObjects_.size();
+	const auto &it = namedObjects_.emplace(node->name(), NamedObject{nextId, node});
+	if (!it.second) {
+		REGEN_WARN("Named object with name '" << node->name() << "' already exists.");
+	}
+	return it.first->second;
+}
 
 void SceneParser::processNode(
 		const ref_ptr<StateNode> &parent,
