@@ -134,11 +134,12 @@ int computeCubeAxis(vec3 dir)
 #define2 REGEN_computeCubeLayer_included_
 int computeCubeLayer(vec3 dir)
 {
-    vec3 absDir = abs(dir);
+    vec3 absDir = abs(normalize(dir));
     float magnitude = max(absDir.x, max(absDir.y, absDir.z));
-    vec3 v0 = vec3(1)     - vec3(lessThanEqual(absDir,vec3(magnitude)));
-    vec3 v1 = vec3(1,2,3) - 0.5*sign(dir);
-    return int(dot(v0,v1));
+    //vec3 isMax = step(magnitude, vec3(absDir));
+    vec3 isMax = vec3(1.0) - vec3(lessThan(absDir,vec3(magnitude)));
+    vec3 layer = vec3(0.5,2.5,4.5) - 0.5*sign(dir);
+    return int(dot(isMax,layer));
 }
 #endif
 
