@@ -35,7 +35,7 @@ ref_ptr<Light> LightResource::createResource(
 	light->specular()->setVertex(0,
 								 input.getValue<Vec3f>("specular", Vec3f(1.0f)));
 	light->radius()->setVertex(0,
-							   input.getValue<Vec2f>("radius", Vec2f(999999.9f)));
+							   input.getValue<Vec2f>("radius", Vec2f(50.0f)));
 
 	auto angles = input.getValue<Vec2f>("cone-angles", Vec2f(50.0f, 55.0f));
 	light->set_innerConeAngle(angles.x);
