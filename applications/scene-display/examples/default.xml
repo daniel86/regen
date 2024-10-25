@@ -301,7 +301,8 @@
       type="text"
       font="ubuntu"
       text="0 FPS"
-      text-color="0.97,0.86,0.77,0.95">
+      text-color="0.97,0.86,0.77,0.95"
+      center="0">
   <transform>
     <translate value="8.0,8.0,0.0" />
   </transform>
@@ -318,7 +319,7 @@
   </node>
   
   <node id="fps-widget">
-    <mesh id="fps-widget" />
+    <mesh id="fps-widget" shader="regen.gui.text" />
   </node>
 </node>
 
