@@ -307,10 +307,12 @@ ref_ptr<TextureMappedText> MeshResource::createTextMesh(
 		return {};
 	}
 
-	ref_ptr<TextureMappedText> widget = ref_ptr<TextureMappedText>::alloc(font,
-																		  input.getValue<GLfloat>("height", 16.0f));
-	widget->set_color(
-			input.getValue<Vec4f>("text-color", Vec4f(0.97f, 0.86f, 0.77f, 0.95f)));
+	auto textHeight = input.getValue<GLfloat>("height", 16.0f);
+	auto textColor = input.getValue<Vec4f>("text-color", Vec4f(0.97f, 0.86f, 0.77f, 0.95f));
+
+	auto widget = ref_ptr<TextureMappedText>::alloc(font, textHeight);
+	widget->set_color(textColor);
+	widget->set_centerAtOrigin(input.getValue<bool>("center", true));
 
 	if (input.hasAttribute("text")) {
 		auto maxLineWidth = input.getValue<GLfloat>("max-line-width", 0.0f);
