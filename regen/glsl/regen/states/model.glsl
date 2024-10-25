@@ -1,15 +1,15 @@
 
 -- input
-#ifndef __modelInput_INCLUDED
-#define2 __modelInput_INCLUDED
+#ifndef REGEN_modelInput_INCLUDED
+#define2 REGEN_modelInput_INCLUDED
 #ifdef HAS_modelMatrix
 uniform mat4 in_modelMatrix;
 #endif
 #endif
 
 -- transformModel
-#ifndef __transformModel_INCLUDED
-#define2 __transformModel_INCLUDED
+#ifndef REGEN_transformModel_INCLUDED
+#define2 REGEN_transformModel_INCLUDED
 #include regen.states.model.input
 #include regen.states.bones.transformBone
 
