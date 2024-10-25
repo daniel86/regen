@@ -420,7 +420,6 @@
 
 <node id="Shadow-Caster">
     <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-transform" shape="sphere">
-        <polygon offset-fill="1.1,4.0"/>
         <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
     </node>
 </node>
