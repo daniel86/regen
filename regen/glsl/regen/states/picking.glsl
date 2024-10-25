@@ -19,7 +19,7 @@ uniform vec3 in_mousePosVS;
 uniform vec3 in_mouseDirVS;
 uniform vec2 in_mouseTexco;
 // mesh id
-uniform int in_pickObjectID;
+uniform int in_objectID;
 
 void main()
 {
@@ -39,7 +39,7 @@ void main()
     // TODO: compare to depth texture to avoid processing all meshes here!
     
     // Write picking output.
-    out_pickObjectID = in_pickObjectID;
+    out_pickObjectID = in_objectID;
     out_pickInstanceID = fs_instanceID[0];
     out_pickDepth = in_mousePosVS.z + t*in_mouseDirVS.z;
     EmitVertex();

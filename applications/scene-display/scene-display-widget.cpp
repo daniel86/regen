@@ -426,6 +426,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 		sceneParser.processNode(tree, "animations", "node");
 	}
 
+	namedObjects_ = sceneParser.namedObjects();
 	loadAnim_ = ref_ptr<Animation>();
 	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");

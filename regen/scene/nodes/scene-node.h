@@ -92,6 +92,13 @@ namespace regen {
 					handleAttributes(parser, input, newNode);
 					handleChildren(parser, input, newNode);
 				}
+				if (newNode.get() != nullptr && input.hasAttribute("name")) {
+					newNode->set_name(input.getValue("name"));
+					const auto &no = parser->putNamedObject(newNode);
+					auto u_objectID = ref_ptr<ShaderInput1i>::alloc("objectID");
+					u_objectID->setUniformData(no.id);
+					newNode->state()->joinShaderInput(u_objectID);
+				}
 			}
 
 		protected:
@@ -101,7 +108,7 @@ namespace regen {
 					const ref_ptr<StateNode> &newNode) {
 				if (input.hasAttribute("sort")) {
 					// Sort node children by model view matrix.
-					GLuint sortMode = input.getValue<GLuint>("sort", 0);
+					auto sortMode = input.getValue<GLuint>("sort", 0);
 					ref_ptr<Camera> sortCam =
 							parser->getResources()->getCamera(parser, input.getValue<string>("sort-camera", ""));
 					if (sortCam.get() == NULL) {

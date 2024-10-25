@@ -223,6 +223,23 @@ namespace regen {
 			 */
 			ref_ptr<State> getState(const std::string &id);
 
+			/**
+			 * @param name The name of the object.
+			 * @param obj The object.
+			 */
+			const NamedObject& putNamedObject(const ref_ptr<StateNode> &obj);
+
+			/**
+			 * @param name The name of the object.
+			 * @return The object or a null reference.
+			 */
+			auto getNamedObject(const std::string &name) const { return namedObjects_.at(name); }
+
+			/**
+			 * @return The named objects.
+			 */
+			auto namedObjects() const { return namedObjects_; }
+
 		protected:
 			Application *application_;
 			std::list<ref_ptr<EventHandler> > eventHandler_;
@@ -234,6 +251,8 @@ namespace regen {
 			std::map<std::string, ref_ptr<StateNode> > nodes_;
 			std::map<std::string, ref_ptr<State> > states_;
 			ref_ptr<BulletPhysics> physics_;
+
+			std::map<std::string, NamedObject> namedObjects_;
 
 			void init();
 		};

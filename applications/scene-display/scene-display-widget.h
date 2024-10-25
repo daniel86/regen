@@ -14,6 +14,7 @@
 
 #include <regen/physics/bullet-physics.h>
 #include <regen/camera/camera-manipulator.h>
+#include <regen/scene/scene-parser.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
 #include <applications/qt/qt-camera-events.h>
@@ -59,6 +60,7 @@ public slots:
 protected:
 	std::list<ref_ptr<EventHandler> > eventHandler_;
 	std::list<ref_ptr<Animation> > animations_;
+	std::map<std::string, NamedObject> namedObjects_;
 	ref_ptr<Animation> fbsWidgetUpdater_;
 	ref_ptr<Animation> loadAnim_;
 

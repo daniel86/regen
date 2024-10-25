@@ -107,6 +107,15 @@ namespace regen {
 		GLboolean isHidden_;
 		std::string name_;
 	};
+
+	/**
+	 * A named object.
+	 */
+	struct NamedObject {
+		int id;
+		ref_ptr<StateNode> node;
+	};
+
 } // namespace
 
 namespace regen {
