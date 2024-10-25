@@ -271,12 +271,20 @@
 
 <texture id="video-texture" video="res/textures/fluids.avi"/>
 
-<mesh id="video-text"
-      type="text"
-      font="ubuntu"
-      text="Fluid Simulation Playground"
-      height="0.2"
-      center="1">
+<mesh id="video-text" type="text" font="ubuntu" height="0.2" center="1"
+      text="Fluid Simulation Playground">
+</mesh>
+
+<mesh id="smoke-text" type="text" font="ubuntu" height="0.2" center="1"
+      text="Smoke Simulation">
+</mesh>
+
+<mesh id="velocity-text" type="text" font="ubuntu" height="0.2" center="1"
+      text="Fluid Velocity Visualization">
+</mesh>
+
+<mesh id="mandelbrot-text" type="text" font="ubuntu" height="0.2" center="1"
+      text="Mandelbrot Visualization">
 </mesh>
 
 <node id="Pictures">
@@ -313,43 +321,65 @@
     </node>
     <!-- Smoke Simulation -->
     <node id="fluid1-picture">
-    <node>
-        <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
-        <transform>
-            <rotate value="0.0,3.14,1.5707963"/>
-            <translate value="5.0,3.0,20.21"/>
-        </transform>
-        <mesh id="painting-frame" shader="regen.models.mesh"/>
-    </node>
-    <node>
-        <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
-        <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-        <transform>
-            <rotate value="0.0,0.0,1.5707963"/>
-            <translate value="5.0,3.0,20.0"/>
-        </transform>
-        <mesh id="painting-mesh" shader="regen.models.mesh"/>
-    </node>
+        <node>
+            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+            <transform>
+                <rotate value="0.0,3.14,1.5707963"/>
+                <translate value="5.0,3.0,20.21"/>
+            </transform>
+            <mesh id="painting-frame" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
+            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+            <transform>
+                <rotate value="0.0,0.0,1.5707963"/>
+                <translate value="5.0,3.0,20.0"/>
+            </transform>
+            <mesh id="painting-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="smoke-picture-text">
+            <depth test="1" write="0"/>
+            <define key="DISCARD_ALPHA" value="1"/>
+            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
+            <blend mode="alpha" />
+            <transform>
+                <rotate value="3.14159265359, 0.0, 0.0"/>
+                <translate value="5.0, 5.75, 19.99"/>
+            </transform>
+            <mesh id="smoke-text" shader="regen.models.mesh"/>
+        </node>
     </node>
     <!-- Fluid Velocity -->
     <node id="fluid2-picture">
-    <node>
-        <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
-        <transform>
-            <rotate value="0.0,3.14,1.5707963"/>
-            <translate value="14.0,3.0,20.21"/>
-        </transform>
-        <mesh id="painting-frame" shader="regen.models.mesh"/>
-    </node>
-    <node>
-        <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
-        <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-        <transform>
-            <rotate value="0.0,0.0,1.5707963"/>
-            <translate value="14.0,3.0,20.0"/>
-        </transform>
-        <mesh id="painting-mesh" shader="regen.models.mesh"/>
-    </node>
+        <node>
+            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+            <transform>
+                <rotate value="0.0,3.14,1.5707963"/>
+                <translate value="14.0,3.0,20.21"/>
+            </transform>
+            <mesh id="painting-frame" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
+            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+            <transform>
+                <rotate value="0.0,0.0,1.5707963"/>
+                <translate value="14.0,3.0,20.0"/>
+            </transform>
+            <mesh id="painting-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="velocity-picture-text">
+            <depth test="1" write="0"/>
+            <define key="DISCARD_ALPHA" value="1"/>
+            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
+            <blend mode="alpha" />
+            <transform>
+                <rotate value="3.14159265359, 0.0, 0.0"/>
+                <translate value="14.0, 5.75, 19.99"/>
+            </transform>
+            <mesh id="velocity-text" shader="regen.models.mesh"/>
+        </node>
     </node>
     <!-- Mandelbrot -->
     <node id="mandelbrot-picture">
@@ -369,6 +399,17 @@
                 <translate value="-13.0,3.0,20.0"/>
             </transform>
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="mandelbrot-picture-text">
+            <depth test="1" write="0"/>
+            <define key="DISCARD_ALPHA" value="1"/>
+            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
+            <blend mode="alpha" />
+            <transform>
+                <rotate value="3.14159265359, 0.0, 0.0"/>
+                <translate value="-13.0, 5.75, 19.99"/>
+            </transform>
+            <mesh id="mandelbrot-text" shader="regen.models.mesh"/>
         </node>
     </node>
 </node>
