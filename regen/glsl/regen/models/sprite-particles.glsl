@@ -94,7 +94,6 @@ void main() {
 }
 
 -- fs
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.models.mesh.defines
 
 layout(location = 0) out vec4 out_color;

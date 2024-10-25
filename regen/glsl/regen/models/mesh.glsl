@@ -8,7 +8,6 @@
 #endif
 
 -- vs
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.models.mesh.defines
 
 in vec3 in_pos;
@@ -88,7 +87,6 @@ void main() {
 -- tes
 #ifdef HAS_tessellation_shader
 #ifdef HAS_TESSELATION
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.models.mesh.defines
 
 layout(triangles, ccw, fractional_odd_spacing) in;
@@ -207,7 +205,6 @@ layout(location = 2) out vec4 out_norWorld;
 #endif
 #if OUTPUT_TYPE == TRANSPARENCY
 ///// Direct fragment shading
-#extension GL_EXT_gpu_shader4 : enable
 layout(location = 0) out vec4 out_color;
 #ifdef USE_AVG_SUM_ALPHA
 layout(location = 1) out vec2 out_counter;
@@ -215,12 +212,10 @@ layout(location = 1) out vec2 out_counter;
 #endif
 #if OUTPUT_TYPE == DIRECT
 ///// Direct fragment shading
-#extension GL_EXT_gpu_shader4 : enable
 out vec4 out_color;
 #endif
 #if OUTPUT_TYPE == COLOR
 ///// Plain color fragment shading
-#extension GL_EXT_gpu_shader4 : enable
 out vec4 out_color;
 #endif
 

@@ -84,7 +84,6 @@ void main() {
 ---- Draw a fog volume. Can be used for spot and point lights.
 --------------------------------------
 -- volumetric.fs
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
 
 out vec3 out_color;
