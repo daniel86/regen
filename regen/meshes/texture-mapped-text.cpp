@@ -16,10 +16,10 @@ using namespace regen;
 
 TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height)
 		: Mesh(GL_TRIANGLES, VBO::USAGE_DYNAMIC),
-		  HasShader("regen.gui.text"),
 		  font_(font),
 		  value_(),
 		  height_(height),
+		  centerAtOrigin_(true),
 		  numCharacters_(0) {
 	textColor_ = ref_ptr<ShaderInput4f>::alloc("textColor");
 	textColor_->setUniformData(Vec4f(1.0));
@@ -30,8 +30,6 @@ TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &h
 	texState->set_mapTo(TextureState::MAP_TO_COLOR);
 	texState->set_blendMode(BLEND_MODE_SRC_ALPHA);
 	joinStates(texState);
-
-	joinStates(shaderState());
 
 	posAttribute_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	norAttribute_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
@@ -153,6 +151,16 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 		}
 
 		translation.x = 0.0;
+	}
+
+	// apply offset to each vertex
+	if(centerAtOrigin_) {
+		GLfloat centerOffset = actualMaxLineWidth*0.5f;
+		for (GLuint i = 0; i < vertexCounter; ++i) {
+			auto pos = posAttribute_->getVertex(i);
+			pos.x -= centerOffset;
+			posAttribute_->setVertex(i, pos);
+		}
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);

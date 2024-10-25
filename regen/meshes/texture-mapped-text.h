@@ -20,7 +20,7 @@ namespace regen {
 	 * The Font is saved in a texture array, the glyphs are
 	 * accessed by the w texture coordinate.
 	 */
-	class TextureMappedText : public Mesh, public HasShader {
+	class TextureMappedText : public Mesh {
 	public:
 		/**
 		 * Defines how text is aligned.
@@ -68,10 +68,16 @@ namespace regen {
 		 */
 		void set_height(GLfloat height);
 
+		/**
+		 * Sets the centerAtOrigin flag.
+		 */
+		void set_centerAtOrigin(GLboolean centerAtOrigin) { centerAtOrigin_ = centerAtOrigin; }
+
 	protected:
 		ref_ptr<Font> font_;
 		std::list<std::wstring> value_;
 		GLfloat height_;
+		GLboolean centerAtOrigin_;
 		GLuint numCharacters_;
 
 		ref_ptr<ShaderInput4f> textColor_;
