@@ -23,9 +23,9 @@ uniform int in_pickObjectID;
 
 void main()
 {
-    vec3 a = (__PROJ_INV__(0) * gl_in[0].gl_Position).xyz;
-    vec3 b = (__PROJ_INV__(0) * gl_in[1].gl_Position).xyz;
-    vec3 c = (__PROJ_INV__(0) * gl_in[2].gl_Position).xyz;
+    vec3 a = (REGEN_PROJ_INV_(0) * gl_in[0].gl_Position).xyz;
+    vec3 b = (REGEN_PROJ_INV_(0) * gl_in[1].gl_Position).xyz;
+    vec3 c = (REGEN_PROJ_INV_(0) * gl_in[2].gl_Position).xyz;
     // Compute barycentric coordinates
     vec3 v0 = in_mousePosVS - a;
     vec3 v1 = b - a;
