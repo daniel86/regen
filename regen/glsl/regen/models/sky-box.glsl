@@ -17,7 +17,6 @@ void emitVertex(vec3 pos, int index, int layer) {
 }
 
 -- vs_include
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.models.mesh.defines
 
 in vec3 in_pos;
