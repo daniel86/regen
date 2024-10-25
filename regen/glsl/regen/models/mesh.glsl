@@ -336,6 +336,9 @@ void main() {
 #endif
 #endif // HAS_COL
   textureMappingFragment(in_posWorld, color, norWorld);
+#ifdef DISCARD_ALPHA
+  if (color.a < 0.01) discard;
+#endif
   writeOutput(in_posWorld, norWorld, color);
 }
 
