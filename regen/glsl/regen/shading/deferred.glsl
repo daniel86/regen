@@ -71,7 +71,6 @@ void main() {
 #include regen.filter.sampling.gs
 -- directional.fs
 #define IS_DIRECTIONAL_LIGHT
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
 
 out vec4 out_color;
@@ -203,7 +202,6 @@ void main() {
 #endif
 
 -- local.fs
-#extension GL_EXT_gpu_shader4 : enable
 #include regen.states.camera.defines
 
 out vec4 out_color;
@@ -285,7 +283,7 @@ void main() {
         vec4(lightVec,1.0)).z;
     float shadow = pointShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
-        lightVec,
+        L,
         shadowDepth,
         in_lightNear,
         in_lightFar,
@@ -314,6 +312,7 @@ void main() {
 --------------------------------------
 --------------------------------------
 -- point.vs
+#define IS_POINT_LIGHT
 #include regen.states.camera.defines
 in vec3 in_pos;
 
@@ -335,6 +334,7 @@ void main() {
 }
 
 -- point.gs
+#define IS_POINT_LIGHT
 #include regen.shading.deferred.local.gs
 -- point.fs
 #define IS_POINT_LIGHT
