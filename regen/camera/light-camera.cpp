@@ -176,6 +176,8 @@ void LightCamera::updatePoint() {
 		if (!isCubeFaceVisible_[i]) { continue; }
 		viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
 		updateViewProjection(0, i);
+        lightMatrix_->setVertex(i,
+        	viewproj_->getVertex(i) * Mat4f::bias());
 	}
 
 	lightPosStamp_ = light_->position()->stamp();
