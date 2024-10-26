@@ -36,6 +36,10 @@
     <node import="fluid-vel-initialize" />
 </node>
 
+
+        <!-- Assets -->
+<asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0" />
+<asset id="asset-teapot" type="asset" file="res/models/teapot.obj" use-animation="0" />
         <!-- Textures -->
 <texture id="ground-color" file="res/textures/brick/color.jpg"/>
 <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
@@ -91,7 +95,9 @@
        direction="0.0,-1.0,0.0"
        diffuse="0.8,0.9,0.835"
        ambient="0.2,0.2,0.2"/>
+
         <!-- Meshes -->
+
 <mesh id="ground-mesh"
       type="rectangle"
       lod="4"
@@ -107,6 +113,7 @@
         <translate value="0.0,-2.0,0.0"/>
     </transform>
 </mesh>
+
 <transform id="dwarf-transform">
     <rotate value="1.5707963,0.0,0.0"/>
     <translate value="2.0,-2.0,0.0"/>
@@ -117,6 +124,38 @@
       asset-indices="*"
       asset-animation="1">
     <transform id="dwarf-transform"/>
+</mesh>
+
+<mesh id="statue-platform"
+      type="box"
+      scaling="0.6,1.5,0.6"
+      use-normal="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+  <material preset="jade" />
+</mesh>
+
+<mesh id="venus-mesh"
+      type="asset"
+      asset="venus-asset"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.0006,0.0006,0.0006"
+      usage="STATIC">
+  <material preset="ruby" />
+</mesh>
+
+<mesh id="mesh-teapot"
+      type="asset"
+      asset="asset-teapot"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.08,0.08,0.08"
+      usage="STATIC">
+  <material preset="silver" />
 </mesh>
 
 <mesh id="box-wall"
@@ -405,7 +444,7 @@
     </node>
     <!-- Mandelbrot -->
     <node id="mandelbrot-picture">
-        <node>
+        <node id="mandelbrot-frame">
             <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
             <transform>
                 <rotate value="0.0,3.14,1.5707963"/>
@@ -514,6 +553,34 @@
     <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-transform" shape="sphere">
         <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
     </node>
+    <node id="Venus">
+        <transform>
+            <rotate value="0.0,0.0,0.0" />
+            <translate value="-5.0,1.4,-11.0" />
+        </transform>
+        <mesh id="venus-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node id="Venus-Statue">
+        <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+            <translate value="-5.0,-0.5,-11.0"/>
+        </transform>
+        <mesh id="statue-platform" shader="regen.models.mesh"/>
+    </node>
+    <node id="Teapot">
+        <transform>
+            <rotate value="0.0,0.0,0.0" />
+            <translate value="5.0,1.4,-6.0" />
+        </transform>
+        <mesh id="mesh-teapot" shader="regen.models.mesh"/>
+    </node>
+    <node id="Teapot-Statue">
+        <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+            <translate value="5.0,-0.5,-6.0"/>
+        </transform>
+        <mesh id="statue-platform" shader="regen.models.mesh"/>
+    </node>
 </node>
 
 <node id="Scene-Geometry">
@@ -533,6 +600,20 @@
         <mesh id="ground-mesh" shader="regen.models.mesh"/>
     </node>
     <node import="Pictures"/>
+    <node id="Venus2">
+        <transform>
+            <rotate value="0.0,0.0,0.0" />
+            <translate value="-12.0,1.4,-11.0" />
+        </transform>
+        <mesh id="venus-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node id="Venus-Statue2">
+        <transform>
+            <rotate value="0.0,0.0,0.0"/>
+            <translate value="-12.0,-0.5,-11.0"/>
+        </transform>
+        <mesh id="statue-platform" shader="regen.models.mesh"/>
+    </node>
 
     <node id="Walls">
         <texture name="colorTexture" id="wall-color" map-to="COLOR"/>
