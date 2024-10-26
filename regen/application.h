@@ -116,7 +116,7 @@ namespace regen {
 		/**
 		 * @return true if GL context is ready to be used.
 		 */
-		GLboolean isGLInitialized() const;
+		auto isGLInitialized() const { return isGLInitialized_; }
 
 		/**
 		 * Initialize default loggers.
@@ -144,22 +144,27 @@ namespace regen {
 		/**
 		 * @return the application render tree.
 		 */
-		const ref_ptr<RootNode> &renderTree() const;
+		auto &renderTree() const { return renderTree_; }
 
 		/**
 		 * @return the window size.
 		 */
-		const ref_ptr<ShaderInput2i> &windowViewport() const;
+		auto &windowViewport() const { return windowViewport_; }
 
 		/**
 		 * @return the current mouse position relative to GL window.
 		 */
-		const ref_ptr<ShaderInput2f> &mousePosition() const;
+		auto &mousePosition() const { return mousePosition_; }
 
 		/**
 		 * @return the current mouse position in range [0,1].
 		 */
-		const ref_ptr<ShaderInput2f> &mouseTexco() const;
+		auto &mouseTexco() const { return mouseTexco_; }
+
+		/**
+		 * @return the current mouse depth in view space.
+		 */
+		auto &mouseDepth() const { return mouseDepth_; }
 
 		/**
 		 * Queue emit MOUSE_LEAVE_EVENT event.
@@ -289,6 +294,7 @@ namespace regen {
 		ref_ptr<ShaderInput1i> isMouseEntered_;
 		ref_ptr<ShaderInput2f> mousePosition_;
 		ref_ptr<ShaderInput2f> mouseTexco_;
+		ref_ptr<ShaderInput1f> mouseDepth_;
 
 		boost::posix_time::ptime lastMotionTime_;
 		boost::posix_time::ptime lastDisplayTime_;

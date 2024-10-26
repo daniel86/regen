@@ -343,7 +343,7 @@ void AudioSource::openAudioStream(AVStream *stream, GLint index, GLboolean initi
 									" channel_layout=" << codecCtx_->ch_layout.u.mask <<
 									" sample_rate=" << codecCtx_->sample_rate <<
 									" bit_rate=" << codecCtx_->bit_rate <<
-									".")
+									".");
 #ifdef HAS_LIBSWRESAMPLE
 	// create resample context for planar sample formats
 	if (av_sample_fmt_is_planar(codecCtx_->sample_fmt)) {
@@ -380,7 +380,7 @@ void AudioSource::openAudioStream(AVStream *stream, GLint index, GLboolean initi
 
 		if (swr_init(resampleContext_) < 0) {
 			// Handle initialization error
-			REGEN_ERROR("failed to initialize resample context.")
+			REGEN_ERROR("failed to initialize resample context.");
 			swr_free(&resampleContext_);
 			resampleContext_ = nullptr;
 		}
@@ -478,7 +478,7 @@ void AudioSource::decode(AVPacket *packet) {
 			);
 			if (out_samples < 0) {
 				// Handle conversion error
-				REGEN_ERROR("failed to convert audio frame.")
+				REGEN_ERROR("failed to convert audio frame.");
 			}
 			audioFrame->convertedFrame = frameData;
 

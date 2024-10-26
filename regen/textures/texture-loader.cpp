@@ -94,7 +94,7 @@ static GLuint loadImage(const std::string &file) {
 							" bpp=" << ilGetInteger(IL_IMAGE_BPP) <<
 							" channels=" << ilGetInteger(IL_IMAGE_CHANNELS) <<
 							" width=" << ilGetInteger(IL_IMAGE_WIDTH) <<
-							" height=" << ilGetInteger(IL_IMAGE_HEIGHT))
+							" height=" << ilGetInteger(IL_IMAGE_HEIGHT));
 
 	return ilID;
 }

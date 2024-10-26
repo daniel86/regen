@@ -55,7 +55,7 @@ void main()
     // Write picking output.
     out_pickObjectID = in_objectID;
     out_pickInstanceID = in_instanceID[0];
-    out_pickDepth = in_mousePosVS.z + t*in_mouseDirVS.z;
+    out_pickDepth = intersectionDepth;
     EmitVertex();
     EndPrimitive();
 }

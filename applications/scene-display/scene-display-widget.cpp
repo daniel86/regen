@@ -26,6 +26,7 @@ using namespace std;
 #include "animation-events.h"
 #include "interaction-manager.h"
 #include "interactions/video-toggle.h"
+#include "interactions/node-activation.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -52,10 +53,10 @@ public:
 ////// Mouse event handler
 /////////////////
 
-class SceneDisplayMouseHandler : public EventHandler {
+class SceneDisplayMouseHandler : public EventHandler, Animation {
 public:
 	explicit SceneDisplayMouseHandler(Application *app)
-		: EventHandler(), app_(app) {
+			: EventHandler(), Animation(GL_TRUE, GL_FALSE), app_(app) {
 	}
 
 	void call(EventObject *evObject, EventData *data) override {
@@ -68,9 +69,8 @@ public:
 				if (timeDiff.total_milliseconds() < 200) {
 					auto interaction = app_->getInteraction(app_->hoveredObject()->name());
 					if (interaction.get() != nullptr) {
-						if(!interaction->interactWith(app_->hoveredObject())) {
-							REGEN_WARN("interaction failed with " << app_->hoveredObject()->name());
-						}
+						boost::lock_guard<boost::mutex> lock(animationLock_);
+						interactionQueue_.emplace(app_->hoveredObject(), interaction);
 					}
 				}
 			}
@@ -83,9 +83,22 @@ public:
 		}
 	}
 
+	void glAnimate(RenderState *rs, GLdouble dt) override {
+		while (!interactionQueue_.empty()) {
+			boost::lock_guard<boost::mutex> lock(animationLock_);
+			auto interaction = interactionQueue_.front();
+			if (!interaction.second->interactWith(interaction.first)) {
+				REGEN_WARN("interaction failed with " << app_->hoveredObject()->name());
+			}
+			interactionQueue_.pop();
+		}
+	}
+
 protected:
 	Application *app_;
 	std::map<int, boost::posix_time::ptime> buttonClickTime_;
+	std::queue<std::pair<ref_ptr<StateNode>, ref_ptr<SceneInteraction> > > interactionQueue_;
+	boost::mutex animationLock_;
 };
 
 /////////////////
@@ -234,7 +247,7 @@ void SceneDisplayWidget::loadScene(const string &sceneFile) {
 
 static void handleFirstPersonCamera(
 		QtApplication *app_,
-		ref_ptr<FirstPersonCameraTransform> fpsCamera,
+		const ref_ptr<FirstPersonCameraTransform> &fpsCamera,
 		list<ref_ptr<EventHandler> > &eventHandler,
 		const ref_ptr<SceneInputNode> &cameraNode) {
 	fpsCamera->set_moveAmount(cameraNode->getValue<GLfloat>("speed", 0.01f));
@@ -304,9 +317,7 @@ static void handleCameraConfiguration(
 			cameraTransform = fpsCamera;
 		} else if (mode == string("key-frames")) {
 			ref_ptr<KeyFrameCameraTransform> keyFramesCamera = ref_ptr<KeyFrameCameraTransform>::alloc(cam);
-			const list<ref_ptr<SceneInputNode> > &childs = cameraNode->getChildren("key-frame");
-			for (auto it = childs.begin(); it != childs.end(); ++it) {
-				const ref_ptr<SceneInputNode> &x = *it;
+			for (const auto &x: cameraNode->getChildren("key-frame")) {
 				keyFramesCamera->push_back(
 						x->getValue<Vec3f>("pos", Vec3f(0.0f, 0.0f, 1.0f)),
 						x->getValue<Vec3f>("dir", Vec3f(0.0f, 0.0f, -1.0f)),
@@ -319,7 +330,7 @@ static void handleCameraConfiguration(
 	}
 
 	// make sure camera transforms are updated in first few frames
-	if(cameraTransform.get() != nullptr) {
+	if (cameraTransform.get() != nullptr) {
 		cameraTransform->animate(0.0);
 		cameraTransform->glAnimate(RenderState::get(), 0.0);
 	}
@@ -343,8 +354,7 @@ static void handleAssetAnimationConfiguration(
 	}
 	std::vector<ref_ptr<NodeAnimation> > nodeAnimations_ = animAsset->getNodeAnimations();
 
-	for (GLuint i = 0; i < nodeAnimations_.size(); ++i) {
-		const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
+	for (const auto &anim: nodeAnimations_) {
 		anim->startAnimation();
 	}
 
@@ -363,9 +373,7 @@ static void handleAssetAnimationConfiguration(
 		map<string, KeyAnimationMapping> keyMappings;
 		string idleAnimation = animationNode->getValue("idle");
 
-		const list<ref_ptr<SceneInputNode> > &childs = animationNode->getChildren();
-		for (auto it = childs.begin(); it != childs.end(); ++it) {
-			const ref_ptr<SceneInputNode> &x = *it;
+		for (const auto &x: animationNode->getChildren()) {
 			if (x->getCategory() == string("key-mapping")) {
 				KeyAnimationMapping mapping;
 				mapping.key = x->getValue("key");
@@ -380,11 +388,9 @@ static void handleAssetAnimationConfiguration(
 		}
 
 		if (!keyMappings.empty()) {
-			for (GLuint i = 0; i < nodeAnimations_.size(); ++i) {
-				const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
-				ref_ptr<KeyAnimationRangeUpdater> keyHandler = ref_ptr<KeyAnimationRangeUpdater>::alloc(anim, ranges,
-																										keyMappings,
-																										idleAnimation);
+			for (const auto &anim: nodeAnimations_) {
+				auto keyHandler = ref_ptr<KeyAnimationRangeUpdater>::alloc(
+						anim, ranges, keyMappings, idleAnimation);
 				app_->connect(Application::KEY_EVENT, keyHandler);
 				anim->connect(Animation::ANIMATION_STOPPED, keyHandler);
 				eventHandler.emplace_back(keyHandler);
@@ -399,20 +405,34 @@ static void handleMouseConfiguration(
 		scene::SceneParser &sceneParser,
 		list<ref_ptr<EventHandler> > &eventHandler,
 		const ref_ptr<SceneInputNode> &mouseNode) {
-	for (auto &child : mouseNode->getChildren()) {
+	for (auto &child: mouseNode->getChildren()) {
 		if (child->getCategory() == string("click")) {
 			auto nodeName = child->getValue("node");
-			auto interactionName = child->getValue("interaction");
-			auto interaction = InteractionManager::getInteraction(interactionName);
-			if (!interaction.get()) {
-				REGEN_WARN("Unable to find interaction with name '" << interactionName << "'.");
-				continue;
-			}
 			if (nodeName.empty()) {
 				REGEN_WARN("No node name specified for mouse interaction.");
 				continue;
 			}
-			app_->registerInteraction(nodeName, interaction);
+
+			auto interactionName = child->getValue("interaction");
+			if (!interactionName.empty()) {
+				auto interaction = InteractionManager::getInteraction(interactionName);
+				if (!interaction.get()) {
+					REGEN_WARN("Unable to find interaction with name '" << interactionName << "'.");
+					continue;
+				}
+				app_->registerInteraction(nodeName, interaction);
+			}
+
+			auto interactionNodeName = child->getValue("interaction-node");
+			if (!interactionNodeName.empty()) {
+				// parse the interaction node
+				auto interactionNode = ref_ptr<StateNode>::alloc();
+				interactionNode->state()->joinStates(app_->renderTree()->state());
+				sceneParser.processNode(interactionNode, interactionNodeName, "node");
+				// create and register the interaction
+				auto interaction = ref_ptr<NodeActivation>::alloc(app_, interactionNode);
+				app_->registerInteraction(nodeName, interaction);
+			}
 		}
 	}
 }
@@ -430,8 +450,8 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	viewNodes_.clear();
 	physics_ = ref_ptr<BulletPhysics>();
 
-	for (auto it = eventHandler_.begin(); it != eventHandler_.end(); ++it) {
-		app_->disconnect(*it);
+	for (auto &it: eventHandler_) {
+		app_->disconnect(it);
 	}
 	app_->clear();
 
@@ -459,9 +479,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	if (configurationNode.get() == nullptr) { configurationNode = root; }
 
 	// Process node children
-	const list<ref_ptr<SceneInputNode> > &childs = configurationNode->getChildren();
-	for (auto it = childs.begin(); it != childs.end(); ++it) {
-		const ref_ptr<SceneInputNode> &x = *it;
+	for (const auto &x: configurationNode->getChildren()) {
 		if (x->getCategory() == string("animation")) {
 			if (x->getValue("type") == string("asset")) {
 				handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x);
@@ -478,7 +496,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	/////////////////////////////
 
 	// Update view...
-	if (viewNodes_.size() > 0) {
+	if (!viewNodes_.empty()) {
 		activeView_ = viewNodes_.end();
 		activeView_--;
 		ViewNode &active = *activeView_;

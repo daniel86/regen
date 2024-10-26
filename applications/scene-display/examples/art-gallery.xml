@@ -27,7 +27,7 @@
     </camera>
     <mouse>
         <click node="video-picture" interaction="video-toggle" />
-        <!-- <click node="smoke-picture" interaction="fluid-splat" /> -->
+        <click node="smoke-picture" interaction-node="smoke-splat-interaction" />
     </mouse>
 </node>
 
@@ -252,7 +252,6 @@
 <mesh id="painting-mesh"
       type="rectangle"
       lod="0"
-      rotation="0.0,0.0,3.1415926"
       scaling="4.8,0.1,4.8"
       texco-scaling="-1.0,1.0"
       use-normal="1"
@@ -283,6 +282,25 @@
       text="Smoke Simulation">
 </mesh>
 
+<transform id="smoke-picture-transform">
+    <rotate value="1.5707963,1.5707963,0.0"/>
+    <rotate value="0.0,1.5707963,0.0"/>
+    <translate value="5.0,3.0,20.0"/>
+</transform>
+
+<node id="smoke-splat-interaction">
+    <blend mode="src" />
+    <fbo id="fluid-smoke-splat" clear-buffers="0" draw-buffers="0" />
+    <texture name="obstaclesBuffer" fbo="fluid-smoke-obstacles" attachment="0" />
+    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+    <camera id="main-camera" />
+    <transform id="smoke-picture-transform" />
+    <input type="float" name="splatRadius" value="12.0" />
+    <input type="vec4" name="splatValue" value="1.0,1.0,1.0,1.0" />
+    <input type="vec2" name="objectSize" value="4.8,4.8" />
+    <fullscreen-pass shader="fluid.splat.mouse" />
+</node>
+
 <mesh id="velocity-text" type="text" font="ubuntu" height="0.2" center="1"
       text="Fluid Velocity Visualization">
 </mesh>
@@ -306,7 +324,8 @@
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform>
-                <rotate value="0.0,0.0,1.5707963"/>
+                <rotate value="1.5707963,1.5707963,0.0"/>
+                <rotate value="0.0,1.5707963,0.0"/>
                 <translate value="-4.0, 3.0, 20.0"/>
             </transform>
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
@@ -336,10 +355,7 @@
         <node>
             <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform>
-                <rotate value="0.0,0.0,1.5707963"/>
-                <translate value="5.0,3.0,20.0"/>
-            </transform>
+            <transform id="smoke-picture-transform" />
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
         </node>
         <node id="smoke-picture-text">
@@ -368,7 +384,8 @@
             <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform>
-                <rotate value="0.0,0.0,1.5707963"/>
+                <rotate value="1.5707963,1.5707963,0.0"/>
+                <rotate value="0.0,1.5707963,0.0"/>
                 <translate value="14.0,3.0,20.0"/>
             </transform>
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
@@ -399,7 +416,8 @@
             <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform>
-                <rotate value="0.0,0.0,1.5707963"/>
+                <rotate value="1.5707963,1.5707963,0.0"/>
+                <rotate value="0.0,1.5707963,0.0"/>
                 <translate value="-13.0,3.0,20.0"/>
             </transform>
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
@@ -469,8 +487,6 @@
     <depth test="0" write="0" />
     <fbo id="SCREEN"/>
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
- <!--   <fbo id="g-buffer" draw-buffers="1"/> -->
-    <!-- todo: add polygon offset -->
     <picking type="geom" camera="main-camera">
         <node name="video-picture">
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
@@ -484,10 +500,7 @@
         <node name="smoke-picture">
             <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform>
-                <rotate value="0.0,0.0,1.5707963"/>
-                <translate value="5.0,3.0,20.0"/>
-            </transform>
+            <transform id="smoke-picture-transform" />
             <mesh id="painting-mesh" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>
     </picking>

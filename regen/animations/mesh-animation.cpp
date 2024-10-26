@@ -399,7 +399,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	}
 
 	lastTime_ = tickRange_.x + timeInTicks;
-	GL_ERROR_LOG()
+	GL_ERROR_LOG();
 }
 
 ////////

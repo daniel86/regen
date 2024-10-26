@@ -35,11 +35,11 @@ namespace regen {
    * Log a message using the logging framework.
    * Note: you can provide data separated by '<<' as second argument.
    */
-  #define REGEN_LOG(level, ...) {\
+  #define REGEN_LOG(level, ...) do {\
     std::stringstream ss;\
     ss << __VA_ARGS__;\
     Logging::log(level, ss.str(), __FILE__, __LINE__);\
-  }
+  } while(0)
 
   /**
    * Information for the user.
