@@ -209,14 +209,15 @@ void QTGLWidget::leaveEvent(QEvent *event) {
 }
 
 void QTGLWidget::wheelEvent(QWheelEvent *event) {
-	GLint x = event->x(), y = event->y();
-	GLint button = event->delta() > 0 ? Application::MOUSE_WHEEL_UP : Application::MOUSE_WHEEL_DOWN;
+	QPointF pos = event->position();
+	auto x = pos.x(), y = pos.y();
+	GLint button = event->angleDelta().y() > 0 ? Application::MOUSE_WHEEL_UP : Application::MOUSE_WHEEL_DOWN;
 	Application::ButtonEvent ev;
 	ev.button = button;
 	ev.isDoubleClick = GL_FALSE;
 	ev.pressed = GL_FALSE;
-	ev.x = x;
-	ev.y = y;
+	ev.x = static_cast<int>(x);
+	ev.y = static_cast<int>(y);
 	app_->mouseButton(ev);
 	event->accept();
 }

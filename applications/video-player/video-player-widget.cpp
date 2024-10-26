@@ -216,7 +216,7 @@ void VideoPlayerWidget::gl_loadScene() {
 	// add the video widget to the root node
 	createVideoWidget(app_, video(), sceneRoot);
 	setBlitToScreen(app_, fbo, GL_COLOR_ATTACHMENT0);
-	GL_ERROR_LOG()
+	GL_ERROR_LOG();
 
 	initAnim_ = ref_ptr<Animation>();
 	AnimationManager::get().resume();

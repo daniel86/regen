@@ -80,7 +80,7 @@
 <sky id="earth-sky"
      camera="main-camera"
      date="01-09-2014 06:13:00"
-     seconds-per-cycle="60.0"
+     seconds-per-cycle="600.0"
      update-interval="200.0" >
   <star-map texture="applications/res/sky/milkyway.png"
 	    scattering="0.02"

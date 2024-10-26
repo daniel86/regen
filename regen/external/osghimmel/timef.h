@@ -34,7 +34,7 @@
 #include "declspec.h"
 #include "typedefs.h"
 
-#include <boost/timer.hpp>
+#include <boost/timer/timer.hpp>
 #include <time.h>
 
 namespace osgHimmel
@@ -130,7 +130,7 @@ protected:
     void initialize();
 
 protected:
-    boost::timer m_timer;
+    boost::timer::cpu_timer m_timer;
 
     time_t m_utcOffset;
 

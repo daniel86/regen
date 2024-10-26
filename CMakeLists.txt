@@ -70,12 +70,9 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 # boost template library
 set(Boost_MIN_VERSION "1.5.0")
-set(BOOST_COMPONENTS thread system date_time filesystem regex)
-add_definitions( -DBOOST_TIMER_ENABLE_DEPRECATED )
+set(BOOST_COMPONENTS thread system date_time filesystem regex timer chrono)
 if(WIN32)
     set(Boost_USE_STATIC_LIBS ON)
-	# Note: link error on msvs without this
-	set(BOOST_COMPONENTS ${BOOST_COMPONENTS} chrono)
 endif()
 find_package(Boost ${Boost_MIN_VERSION}
 	COMPONENTS ${BOOST_COMPONENTS} REQUIRED)

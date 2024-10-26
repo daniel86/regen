@@ -120,8 +120,8 @@ void GeomPicking::traverse(RenderState *rs) {
 		pickableNode->traverse(rs);
 
 		glEndQuery(GL_PRIMITIVES_GENERATED);
-		feedbackCount += getGLQueryResult(feedbackQuery);
-		if (feedbackCount >= maxPickedObjects_) {
+		feedbackCount += static_cast<int>(getGLQueryResult(feedbackQuery));
+		if (feedbackCount >= static_cast<int>(maxPickedObjects_)) {
 			break;
 		}
 	}
@@ -129,7 +129,8 @@ void GeomPicking::traverse(RenderState *rs) {
 	glDeleteQueries(1, &feedbackQuery);
 
 	if (feedbackCount > 0) {
-		pick(rs, (feedbackCount<maxPickedObjects_ ? feedbackCount : maxPickedObjects_));
+		auto numPicks = static_cast<GLuint>(feedbackCount);
+		pick(rs, (numPicks<maxPickedObjects_ ? numPicks : maxPickedObjects_));
 	} else {
 		hasPickedObject_ = false;
 	}
