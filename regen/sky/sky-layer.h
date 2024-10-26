@@ -18,24 +18,11 @@ namespace regen {
 
 	class SkyLayer : public StateNode {
 	public:
-		explicit SkyLayer(const ref_ptr<Sky> &sky) {
-			sky_ = sky;
-			updateInterval_ = 4000.0;
-			dt_ = updateInterval_;
-		}
+		explicit SkyLayer(const ref_ptr<Sky> &sky);
 
-		~SkyLayer() override = default;
+		~SkyLayer() override;
 
-		void updateSky(RenderState *rs, GLdouble dt) {
-			dt_ += dt;
-			if (dt_ < updateInterval_) { return; }
-
-			GL_ERROR_LOG();
-			updateSkyLayer(rs, dt_);
-			GL_ERROR_LOG();
-
-			dt_ = 0.0;
-		}
+		void updateSky(RenderState *rs, GLdouble dt);
 
 		virtual void set_updateInterval(GLdouble interval_ms) { updateInterval_ = interval_ms; }
 
