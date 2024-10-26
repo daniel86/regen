@@ -24,7 +24,7 @@ namespace regen {
 		void set_sensitivity(GLfloat val);
 
 		// Override
-		void call(EventObject *evObject, EventData *data);
+		void call(EventObject *evObject, EventData *data) override;
 
 	protected:
 		ref_ptr<FirstPersonCameraTransform> m_;

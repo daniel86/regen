@@ -69,7 +69,7 @@ void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInpu
 
 void StateConfigurer::addState(const State *s) {
 	const auto *x0 = dynamic_cast<const HasInput *>(s);
-	const auto *x1 = dynamic_cast<const FeedbackState *>(s);
+	const auto *x1 = dynamic_cast<const FeedbackSpecification *>(s);
 	const auto *x2 = dynamic_cast<const TextureState *>(s);
 	const auto *x3 = dynamic_cast<const StateSequence *>(s);
 

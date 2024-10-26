@@ -19,11 +19,12 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/xml.h>
 #include <regen/utility/font.h>
-#include <regen/application.h>
 
 #include <regen/scene/scene-input.h>
 
 namespace regen {
+	class Application;
+
 	namespace scene {
 #ifndef MeshVector
 		typedef std::vector<ref_ptr<Mesh> > MeshVector;
@@ -103,6 +104,11 @@ namespace regen {
 					const ref_ptr<BulletPhysics> &physics);
 
 			/**
+			 * @return The application instance.
+			 */
+			auto* application() const { return application_; }
+
+			/**
 			 * @return The scene graph root node, is never null.
 			 */
 			ref_ptr<SceneInputNode> getRoot() const;
@@ -111,6 +117,11 @@ namespace regen {
 			 * @return The window viewport.
 			 */
 			const ref_ptr<ShaderInput2i> &getViewport() const;
+
+			/**
+			 * @return The mouse position.
+			 */
+			const ref_ptr<ShaderInput2f> &getMouseTexco() const;
 
 			/**
 			 * Add Application event handler.
@@ -124,18 +135,18 @@ namespace regen {
 			 * Note: Event handlers are not automatically removed.
 			 * @return list of event handlers used by resources and nodes.
 			 */
-			const std::list<ref_ptr<EventHandler> > getEventHandler() const;
+			auto& getEventHandler() const { return eventHandler_; }
 
 			/**
 			 * Node processors may create physical objects in the physics engine.
 			 * @return The associated physics framework instance.
 			 */
-			ref_ptr<BulletPhysics> getPhysics();
+			auto& getPhysics() const { return physics_; }
 
 			/**
 			 * @return The ResourceManager instance.
 			 */
-			ref_ptr<ResourceManager> getResources();
+			auto& getResources() const { return resources_; }
 
 			/**
 			 * Process input node with given category and name.
@@ -174,12 +185,12 @@ namespace regen {
 			/**
 			 * @return Category-StateNode processor map.
 			 */
-			const std::map<std::string, ref_ptr<NodeProcessor> > &nodeProcessors() const;
+			auto& nodeProcessors() const { return nodeProcessors_; }
 
 			/**
 			 * @return Category-State processor map.
 			 */
-			const std::map<std::string, ref_ptr<StateProcessor> > &stateProcessors() const;
+			auto& stateProcessors() const { return stateProcessors_; }
 
 			/**
 			 * @param category The processor category.
@@ -221,24 +232,13 @@ namespace regen {
 			 * @param id The State ID.
 			 * @return The State instance or a null reference.
 			 */
-			ref_ptr<State> getState(const std::string &id);
+			ref_ptr<State> getState(const std::string &id) const;
 
 			/**
 			 * @param name The name of the object.
 			 * @param obj The object.
 			 */
-			const NamedObject& putNamedObject(const ref_ptr<StateNode> &obj);
-
-			/**
-			 * @param name The name of the object.
-			 * @return The object or a null reference.
-			 */
-			auto getNamedObject(const std::string &name) const { return namedObjects_.at(name); }
-
-			/**
-			 * @return The named objects.
-			 */
-			auto namedObjects() const { return namedObjects_; }
+			int putNamedObject(const ref_ptr<StateNode> &obj);
 
 		protected:
 			Application *application_;
@@ -251,8 +251,6 @@ namespace regen {
 			std::map<std::string, ref_ptr<StateNode> > nodes_;
 			std::map<std::string, ref_ptr<State> > states_;
 			ref_ptr<BulletPhysics> physics_;
-
-			std::map<std::string, NamedObject> namedObjects_;
 
 			void init();
 		};

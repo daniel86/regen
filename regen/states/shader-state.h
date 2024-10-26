@@ -34,6 +34,8 @@ namespace regen {
 		 */
 		GLboolean createShader(const StateConfig &cfg, const std::string &shaderKey);
 
+		GLboolean createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys);
+
 		/**
 		 * @return the shader object.
 		 */
@@ -51,6 +53,8 @@ namespace regen {
 
 	protected:
 		ref_ptr<Shader> shader_;
+
+		GLboolean createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode);
 
 		void loadStage(
 				const std::map<std::string, std::string> &shaderConfig,

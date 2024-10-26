@@ -11,52 +11,41 @@
 #include <regen/states/state.h>
 
 namespace regen {
-	/**
-	 * \brief Transform feedback state.
-	 *
-	 * The state is supposed to be wrapped around a draw call.
-	 * It will update the transform feedback buffer but it will not do anything with
-	 * the acquired data.
-	 */
-	class FeedbackState : public State {
+	class FeedbackSpecification : public State {
 	public:
-		/**
-		 * @param feedbackPrimitive face primitive type.
-		 * @param feedbackCount number of captured vertices. With 0 each vertex is captured.
-		 */
-		FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount);
+		explicit FeedbackSpecification(GLuint feedbackCount);
 
 		/**
-		 * @return face primitive used for transform feedback.
+		 * @return number of captured vertices.
 		 */
-		GLenum feedbackPrimitive() const;
+		auto feedbackCount() const { return feedbackCount_; }
 
 		/**
-		 * @param feedbackCount number of captured vertices. With 0 each vertex is captured.
+		 * @param mode transform feedback mode.
 		 */
-		void set_feedbackCount(GLuint feedbackCount);
+		void set_feedbackMode(GLenum mode) { feedbackMode_ = mode; }
 
 		/**
 		 * Allowed values are GL_INTERLEAVED_ATTRIBS and
 		 * GL_SEPARATE_ATTRIBS.
 		 * @param mode transform feedback mode.
 		 */
-		void set_feedbackMode(GLenum mode);
-
-		/**
-		 * @return transform feedback mode.
-		 */
-		GLenum feedbackMode() const;
+		auto feedbackMode() const { return feedbackMode_; }
 
 		/**
 		 * @param stage the Shader stage that should be captured.
 		 */
-		void set_feedbackStage(GLenum stage);
+		void set_feedbackStage(GLenum stage) { feedbackStage_ = stage; }
 
 		/**
 		 * @return the Shader stage that should be captured.
 		 */
-		GLenum feedbackStage() const;
+		auto feedbackStage() const { return feedbackStage_; }
+
+		/**
+		 * @return list of captured attributes.
+		 */
+		auto &feedbackAttributes() const { return feedbackAttributes_; }
 
 		/**
 		 * Add an attribute to the list of feedback attributes.
@@ -81,15 +70,48 @@ namespace regen {
 		 */
 		ref_ptr<ShaderInput> getFeedback(const std::string &name);
 
+	protected:
+		typedef std::list<ref_ptr<ShaderInput> > FeedbackList;
+
+		GLuint feedbackCount_;
+		GLenum feedbackMode_;
+		GLenum feedbackStage_;
+		GLuint requiredBufferSize_;
+
+		FeedbackList feedbackAttributes_;
+		std::map<std::string, FeedbackList::iterator> feedbackAttributeMap_;
+	};
+
+
+	/**
+	 * \brief Transform feedback state.
+	 *
+	 * The state is supposed to be wrapped around a draw call.
+	 * It will update the transform feedback buffer but it will not do anything with
+	 * the acquired data.
+	 */
+	class FeedbackState : public FeedbackSpecification {
+	public:
 		/**
-		 * @return list of captured attributes.
+		 * @param feedbackPrimitive face primitive type.
+		 * @param feedbackCount number of captured vertices. With 0 each vertex is captured.
 		 */
-		const std::list<ref_ptr<ShaderInput> > &feedbackAttributes() const;
+		FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount);
 
 		/**
 		 * @return VBO containing the last feedback data.
 		 */
-		const ref_ptr<VBO> &feedbackBuffer() const;
+		auto &feedbackBuffer() const { return feedbackBuffer_; }
+
+		/**
+		 * @return VBO reference.
+		 */
+		auto &vboRef() const { return vboRef_; }
+
+		/**
+		 * @return allocated buffer size.
+		 */
+		auto bufferSize() const { return allocatedBufferSize_; }
 
 		/**
 		 * Render primitives from transform feedback array data.
@@ -102,29 +124,16 @@ namespace regen {
 		void disable(RenderState *rs) override;
 
 	protected:
-		typedef std::list<ref_ptr<ShaderInput> > FeedbackList;
-
 		GLenum feedbackPrimitive_;
-		GLenum feedbackMode_;
-		GLenum feedbackStage_;
-		GLuint feedbackCount_;
 
-		GLuint requiredBufferSize_;
 		GLuint allocatedBufferSize_;
 		ref_ptr<VBO> feedbackBuffer_;
 		BufferRange bufferRange_;
-		FeedbackList feedbackAttributes_;
 		VBOReference vboRef_;
-
-		std::map<std::string, FeedbackList::iterator> feedbackAttributeMap_;
-
-		void (FeedbackState::*enable_)(RenderState *rs);
 
 		void enableInterleaved(RenderState *rs);
 
 		void enableSeparate(RenderState *rs);
-
-		void (FeedbackState::*disable_)(RenderState *rs);
 
 		void disableInterleaved(RenderState *rs);
 
