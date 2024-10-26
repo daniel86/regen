@@ -288,7 +288,7 @@
         <!--** ANIMATED "PAINTINGS" **-->
         <!--**************************-->
 
-<mesh id="painting-mesh"
+<mesh id="picture-canvas"
       type="rectangle"
       lod="0"
       scaling="4.8,0.1,4.8"
@@ -300,15 +300,21 @@
       usage="STATIC">
 </mesh>
 
-<mesh id="painting-frame"
+<mesh id="picture-frame"
       type="box"
       lod="4"
       scaling="2.8,0.2,2.8"
       texco-scaling="1.6,1.6"
       use-normal="1"
       use-tangent="0"
-      usage="STATIC">
+      usage="STATIC"
+      num-instances="4">
     <material preset="silver" specular="0.1,0.1,0.1"/>
+    <transform is-instanced="1" >
+        <rotate value="0.0,3.14,1.5707963"/>
+        <set mode="row" target="translate" x-step="9.0,0.0,0.0" />
+        <translate value="-13.0,3.0,20.21" />
+    </transform>
 </mesh>
 
 <texture id="video-texture" video="res/textures/fluids.avi"/>
@@ -326,6 +332,11 @@
     <rotate value="0.0,0.0,4.7123889803850005"/>
     <rotate value="0.0,4.7123889803850005,0.0"/>
     <translate value="5.0,3.0,20.0"/>
+</transform>
+<transform id="video-picture-transform">
+    <rotate value="0.0, 0.0, -1.5707963"/>
+    <rotate value="0.0, 3.14159265359, 0.0"/>
+    <translate value="-4.0, 3.0, 20.0"/>
 </transform>
 
 <node id="smoke-splat-interaction">
@@ -350,123 +361,70 @@
 </mesh>
 
 <node id="Pictures">
-    <!-- Video Picture -->
-    <node id="video-picture">
-        <node>
-            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
-            <transform>
-                <rotate value="0.0,3.14,1.5707963"/>
-                <translate value="-4.0,3.0,20.21"/>
-            </transform>
-            <mesh id="painting-frame" shader="regen.models.mesh"/>
-        </node>
-        <node>
+    <node id="Picture-Canvas">
+        <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+        <node id="video-picture-canvas">
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform>
-                <rotate value="0.0,0.0,4.7123889803850005"/>
-                <rotate value="0.0,3.14159265359,0.0"/>
-                <translate value="-4.0, 3.0, 20.0"/>
-            </transform>
-            <mesh id="painting-mesh" shader="regen.models.mesh"/>
+            <transform id="video-picture-transform" />
+            <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
+        <node id="smoke-picture-canvas">
+            <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
+            <transform id="smoke-picture-transform" />
+            <mesh id="picture-canvas" shader="regen.models.mesh"/>
+        </node>
+        <node id="velocity-picture-canvas">
+            <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
+            <transform>
+                <rotate value="0.0, 0.0, -1.5707963"/>
+                <rotate value="0.0, 3.14159265359, 0.0"/>
+                <translate value="14.0,3.0,20.0"/>
+            </transform>
+            <mesh id="picture-canvas" shader="regen.models.mesh"/>
+        </node>
+        <node id="mandelbrot-picture-canvas">
+            <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="COLOR"/>
+            <transform>
+                <rotate value="1.5707963,1.5707963,0.0"/>
+                <rotate value="0.0,1.5707963,0.0"/>
+                <translate value="-13.0,3.0,20.0"/>
+            </transform>
+            <mesh id="picture-canvas" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Picture-Frames">
+        <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
+        <mesh id="picture-frame" shader="regen.models.mesh"/>
+    </node>
+
+    <node id="Picture-Titles">
+        <depth test="1" write="0"/>
+        <define key="DISCARD_ALPHA" value="1"/>
+        <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
+        <blend mode="alpha" />
         <node id="video-picture-text">
-            <depth test="1" write="0"/>
-            <define key="DISCARD_ALPHA" value="1"/>
-            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
-            <blend mode="alpha" />
             <transform>
                 <rotate value="3.14159265359, 0.0, 0.0"/>
                 <translate value="-4.0, 5.75, 19.99"/>
             </transform>
             <mesh id="video-text" shader="regen.models.mesh"/>
         </node>
-    </node>
-    <!-- Smoke Simulation -->
-    <node id="fluid1-picture">
-        <node>
-            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
-            <transform>
-                <rotate value="0.0,3.14,1.5707963"/>
-                <translate value="5.0,3.0,20.21"/>
-            </transform>
-            <mesh id="painting-frame" shader="regen.models.mesh"/>
-        </node>
-        <node>
-            <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform id="smoke-picture-transform" />
-            <mesh id="painting-mesh" shader="regen.models.mesh"/>
-        </node>
         <node id="smoke-picture-text">
-            <depth test="1" write="0"/>
-            <define key="DISCARD_ALPHA" value="1"/>
-            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
-            <blend mode="alpha" />
             <transform>
                 <rotate value="3.14159265359, 0.0, 0.0"/>
                 <translate value="5.0, 5.75, 19.99"/>
             </transform>
             <mesh id="smoke-text" shader="regen.models.mesh"/>
         </node>
-    </node>
-    <!-- Fluid Velocity -->
-    <node id="fluid2-picture">
-        <node>
-            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
-            <transform>
-                <rotate value="0.0,3.14,1.5707963"/>
-                <translate value="14.0,3.0,20.21"/>
-            </transform>
-            <mesh id="painting-frame" shader="regen.models.mesh"/>
-        </node>
-        <node>
-            <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform>
-                <rotate value="1.5707963,1.5707963,0.0"/>
-                <rotate value="0.0,4.7123889803850005,0.0"/>
-                <translate value="14.0,3.0,20.0"/>
-            </transform>
-            <mesh id="painting-mesh" shader="regen.models.mesh"/>
-        </node>
         <node id="velocity-picture-text">
-            <depth test="1" write="0"/>
-            <define key="DISCARD_ALPHA" value="1"/>
-            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
-            <blend mode="alpha" />
             <transform>
                 <rotate value="3.14159265359, 0.0, 0.0"/>
                 <translate value="14.0, 5.75, 19.99"/>
             </transform>
             <mesh id="velocity-text" shader="regen.models.mesh"/>
         </node>
-    </node>
-    <!-- Mandelbrot -->
-    <node id="mandelbrot-picture">
-        <node id="mandelbrot-frame">
-            <texture name="colorTexture" id="wood-color" map-to="COLOR"/>
-            <transform>
-                <rotate value="0.0,3.14,1.5707963"/>
-                <translate value="-13.0,3.0,20.21"/>
-            </transform>
-            <mesh id="painting-frame" shader="regen.models.mesh"/>
-        </node>
-        <node>
-            <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="COLOR"/>
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform>
-                <rotate value="1.5707963,1.5707963,0.0"/>
-                <rotate value="0.0,1.5707963,0.0"/>
-                <translate value="-13.0,3.0,20.0"/>
-            </transform>
-            <mesh id="painting-mesh" shader="regen.models.mesh"/>
-        </node>
         <node id="mandelbrot-picture-text">
-            <depth test="1" write="0"/>
-            <define key="DISCARD_ALPHA" value="1"/>
-            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
-            <blend mode="alpha" />
             <transform>
                 <rotate value="3.14159265359, 0.0, 0.0"/>
                 <translate value="-13.0, 5.75, 19.99"/>
@@ -498,11 +456,8 @@
            sampler-type="samplerCubeShadow"/>
 </fbo>
 
-<camera id="room-light-camera0"
-        light="room-light0"
-        camera="main-camera"
-        near="0.04"
-        far="80.0"/>
+<camera id="room-light-camera0" light="room-light0"
+        camera="main-camera" near="0.4" far="40.0"/>
 
 <node id="Shadow-Pass">
     <cull mode="FRONT"/>
@@ -512,7 +467,7 @@
         <node id="Room-Light-Shadow0">
             <fbo id="room-light-shadow0" clear-depth="1"/>
             <camera id="room-light-camera0"/>
-            <!-- <polygon offset-fill="1.1,4.0" /> -->
+            <polygon offset-fill="1.1,4.0" />
             <node import="Shadow-Caster"/>
         </node>
     </node>
@@ -531,17 +486,14 @@
         <node name="video-picture">
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-            <transform>
-                <rotate value="0.0,0.0,1.5707963"/>
-                <translate value="-4.0, 3.0, 20.0"/>
-            </transform>
-            <mesh id="painting-mesh" shader="regen.models.mesh" gs="regen.states.picking.geom" />
+            <transform id="video-picture-transform" />
+            <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>
         <node name="smoke-picture">
             <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform id="smoke-picture-transform" />
-            <mesh id="painting-mesh" shader="regen.models.mesh" gs="regen.states.picking.geom" />
+            <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>
     </picking>
 </node>
