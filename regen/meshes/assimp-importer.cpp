@@ -195,6 +195,10 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 				setLightRadius(assimpLight, light);
 				break;
 			}
+			case aiLightSource_AREA:
+				REGEN_WARN("Area lights are not supported.");
+				break;
+			case aiLightSource_AMBIENT:
 			case aiLightSource_UNDEFINED:
 			case _aiLightSource_Force32Bit:
 				break;
