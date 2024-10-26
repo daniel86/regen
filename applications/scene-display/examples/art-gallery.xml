@@ -25,6 +25,10 @@
         <key-mapping key="W"/>
         <key-mapping key="D"/>
     </camera>
+    <mouse>
+        <click node="video-picture" interaction="video-toggle" />
+        <!-- <click node="smoke-picture" interaction="fluid-splat" /> -->
+    </mouse>
 </node>
 
 <node id="initialize">
@@ -457,6 +461,39 @@
 </node>
 
         <!--**************************-->
+        <!--***** Object Picking *****-->
+        <!--**************************-->
+
+<node id="Picking-Pass">
+    <camera id="main-camera" />
+    <depth test="0" write="0" />
+    <fbo id="SCREEN"/>
+    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+ <!--   <fbo id="g-buffer" draw-buffers="1"/> -->
+    <!-- todo: add polygon offset -->
+    <picking type="geom" camera="main-camera">
+        <node name="video-picture">
+            <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
+            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+            <transform>
+                <rotate value="0.0,0.0,1.5707963"/>
+                <translate value="-4.0, 3.0, 20.0"/>
+            </transform>
+            <mesh id="painting-mesh" shader="regen.models.mesh" gs="regen.states.picking.geom" />
+        </node>
+        <node name="smoke-picture">
+            <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
+            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
+            <transform>
+                <rotate value="0.0,0.0,1.5707963"/>
+                <translate value="5.0,3.0,20.0"/>
+            </transform>
+            <mesh id="painting-mesh" shader="regen.models.mesh" gs="regen.states.picking.geom" />
+        </node>
+    </picking>
+</node>
+
+        <!--**************************-->
         <!--**************************-->
 
 <node id="Shadow-Caster">
@@ -696,6 +733,7 @@
         <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
         <node import="Default-Pipeline"/>
+        <node import="Picking-Pass"/>
         <node import="GUI-Pass">
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>
@@ -704,4 +742,5 @@
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
     </node>
+
 </node>

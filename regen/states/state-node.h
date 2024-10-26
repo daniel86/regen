@@ -95,6 +95,58 @@ namespace regen {
 
 		ref_ptr<Camera> getParentCamera();
 
+		template<typename StateType>
+		StateType* findStateWithType() {
+			auto queue = std::queue<StateNode*>();
+			queue.push(this);
+
+			while (!queue.empty()) {
+				auto node = queue.front();
+				queue.pop();
+
+				auto *thisState = dynamic_cast<StateType *>(node->state_.get());
+				if (thisState) {
+					return thisState;
+				}
+
+				for (auto &child: node->childs_) {
+					queue.push(child.get());
+				}
+			}
+
+			return nullptr;
+		}
+
+		template<typename StateType>
+		void foreachWithType(std::function<bool(StateType&)> const& func) {
+			auto queue = std::queue<StateNode*>();
+			queue.push(this);
+
+			while (!queue.empty()) {
+				auto node = queue.front();
+				queue.pop();
+
+				auto *thisState = dynamic_cast<StateType *>(node->state_.get());
+				if (thisState) {
+					if(func(*thisState)) {
+						return;
+					}
+				}
+				for (auto &joined : node->state_->joined()) {
+					auto *joinedState = dynamic_cast<StateType *>(joined.get());
+					if (joinedState) {
+						if(func(*joinedState)) {
+							return;
+						}
+					}
+				}
+
+				for (auto &child: node->childs_) {
+					queue.push(child.get());
+				}
+			}
+		}
+
 		/**
 		 * Scene graph traversal.
 		 */

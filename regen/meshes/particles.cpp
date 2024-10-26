@@ -136,7 +136,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	bufferRange_.buffer_ = feedbackRef_->bufferID();
 	bufferRange_.offset_ = feedbackRef_->address();
 	rs->feedbackBufferRange().push(0, bufferRange_);
-	rs->beginTransformFeedback(feedbackPrimitive_);
+	rs->beginTransformFeedback(GL_POINTS);
 
 	glDrawArrays(primitive_, 0, inputContainer_->numVertices());
 

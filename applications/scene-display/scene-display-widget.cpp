@@ -24,6 +24,8 @@ using namespace std;
 #include "view-node.h"
 #include "fps-widget.h"
 #include "animation-events.h"
+#include "interaction-manager.h"
+#include "interactions/video-toggle.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -38,7 +40,7 @@ public:
 			  widget_(widget), sceneFile_(sceneFile) {
 	}
 
-	void glAnimate(RenderState *rs, GLdouble dt) {
+	void glAnimate(RenderState *rs, GLdouble dt) override {
 		widget_->loadSceneGraphicsThread(sceneFile_);
 	}
 
@@ -47,11 +49,54 @@ public:
 };
 
 /////////////////
+////// Mouse event handler
+/////////////////
+
+class SceneDisplayMouseHandler : public EventHandler {
+public:
+	explicit SceneDisplayMouseHandler(Application *app)
+		: EventHandler(), app_(app) {
+	}
+
+	void call(EventObject *evObject, EventData *data) override {
+		if (data->eventID == Application::BUTTON_EVENT) {
+			auto *ev = (Application::ButtonEvent *) data;
+			boost::posix_time::ptime evtTime(boost::posix_time::microsec_clock::local_time());
+
+			if (ev->button == Application::MOUSE_BUTTON_LEFT && app_->hasHoveredObject()) {
+				auto timeDiff = evtTime - buttonClickTime_[ev->button];
+				if (timeDiff.total_milliseconds() < 200) {
+					auto interaction = app_->getInteraction(app_->hoveredObject()->name());
+					if (interaction.get() != nullptr) {
+						if(!interaction->interactWith(app_->hoveredObject())) {
+							REGEN_WARN("interaction failed with " << app_->hoveredObject()->name());
+						}
+					}
+				}
+			}
+
+			if (ev->pressed) {
+				buttonClickTime_[ev->button] = evtTime;
+			} else {
+				buttonClickTime_.erase(ev->button);
+			}
+		}
+	}
+
+protected:
+	Application *app_;
+	std::map<int, boost::posix_time::ptime> buttonClickTime_;
+};
+
+/////////////////
 /////////////////
 
 SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 		: QMainWindow(), inputDialog_(nullptr), inputWidget_(nullptr), app_(app) {
 	setMouseTracking(true);
+
+	InteractionManager::registerInteraction(
+			"video-toggle", ref_ptr<VideoToggleInteration>::alloc());
 
 	ui_.setupUi(this);
 	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
@@ -219,6 +264,8 @@ static void handleCameraConfiguration(
 	auto eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation", 0.0);
 	auto mode = cameraNode->getValue<string>("type", "first-person");
 
+	ref_ptr<FirstPersonTransform> cameraTransform;
+
 	if (cameraNode->hasAttribute("mesh") && cameraNode->hasAttribute("transform")) {
 		ref_ptr<ModelTransformation> transform = sceneParser.getResources()->getTransform(&sceneParser,
 																						  cameraNode->getValue(
@@ -243,15 +290,18 @@ static void handleCameraConfiguration(
 			ref_ptr<FirstPersonCameraTransform> fpsCamera =
 					ref_ptr<FirstPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
 			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+			cameraTransform = fpsCamera;
 		} else if (mode == string("third-person")) {
 			ref_ptr<ThirdPersonCameraTransform> fpsCamera =
 					ref_ptr<ThirdPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
 			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+			cameraTransform = fpsCamera;
 		}
 	} else {
 		if (mode == string("first-person")) {
 			ref_ptr<FirstPersonCameraTransform> fpsCamera = ref_ptr<FirstPersonCameraTransform>::alloc(cam);
 			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
+			cameraTransform = fpsCamera;
 		} else if (mode == string("key-frames")) {
 			ref_ptr<KeyFrameCameraTransform> keyFramesCamera = ref_ptr<KeyFrameCameraTransform>::alloc(cam);
 			const list<ref_ptr<SceneInputNode> > &childs = cameraNode->getChildren("key-frame");
@@ -264,7 +314,14 @@ static void handleCameraConfiguration(
 				);
 			}
 			animations.emplace_back(keyFramesCamera);
+			//cameraTransform = keyFramesCamera;
 		}
+	}
+
+	// make sure camera transforms are updated in first few frames
+	if(cameraTransform.get() != nullptr) {
+		cameraTransform->animate(0.0);
+		cameraTransform->glAnimate(RenderState::get(), 0.0);
 	}
 }
 
@@ -337,6 +394,29 @@ static void handleAssetAnimationConfiguration(
 	}
 }
 
+static void handleMouseConfiguration(
+		QtApplication *app_,
+		scene::SceneParser &sceneParser,
+		list<ref_ptr<EventHandler> > &eventHandler,
+		const ref_ptr<SceneInputNode> &mouseNode) {
+	for (auto &child : mouseNode->getChildren()) {
+		if (child->getCategory() == string("click")) {
+			auto nodeName = child->getValue("node");
+			auto interactionName = child->getValue("interaction");
+			auto interaction = InteractionManager::getInteraction(interactionName);
+			if (!interaction.get()) {
+				REGEN_WARN("Unable to find interaction with name '" << interactionName << "'.");
+				continue;
+			}
+			if (nodeName.empty()) {
+				REGEN_WARN("No node name specified for mouse interaction.");
+				continue;
+			}
+			app_->registerInteraction(nodeName, interaction);
+		}
+	}
+}
+
 /////////////////////////////
 /////////////////////////////
 /////////////////////////////
@@ -388,6 +468,8 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 			}
 		} else if (x->getCategory() == string("camera")) {
 			handleCameraConfiguration(app_, sceneParser, eventHandler_, animations_, x);
+		} else if (x->getCategory() == string("mouse")) {
+			handleMouseConfiguration(app_, sceneParser, eventHandler_, x);
 		}
 	}
 
@@ -426,7 +508,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 		sceneParser.processNode(tree, "animations", "node");
 	}
 
-	namedObjects_ = sceneParser.namedObjects();
+	// add mouse event handler
+	auto mouseEventHandler = ref_ptr<SceneDisplayMouseHandler>::alloc(app_);
+	app_->connect(Application::BUTTON_EVENT, mouseEventHandler);
+	eventHandler_.emplace_back(mouseEventHandler);
+
 	loadAnim_ = ref_ptr<Animation>();
 	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");

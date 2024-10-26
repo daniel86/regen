@@ -97,8 +97,6 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 	}
 }
 
-const ref_ptr<VAO> &Mesh::vao() const { return vao_; }
-
 void Mesh::updateVAO(
 		RenderState *rs,
 		const StateConfig &cfg,
@@ -163,58 +161,13 @@ void Mesh::updateVAO(RenderState *rs) {
 	rs->vao().pop();
 }
 
-GLenum Mesh::primitive() const { return primitive_; }
-
-void Mesh::set_primitive(GLenum primitive) {
-	primitive_ = primitive;
-	switch (primitive_) {
-		case GL_PATCHES:
-			feedbackPrimitive_ = GL_TRIANGLES;
-			break;
-		case GL_POINTS:
-			feedbackPrimitive_ = GL_POINTS;
-			break;
-		case GL_LINES:
-		case GL_LINE_LOOP:
-		case GL_LINE_STRIP:
-		case GL_LINES_ADJACENCY:
-		case GL_LINE_STRIP_ADJACENCY:
-			feedbackPrimitive_ = GL_LINES;
-			break;
-		case GL_TRIANGLES:
-		case GL_TRIANGLE_STRIP:
-		case GL_TRIANGLE_FAN:
-		case GL_TRIANGLES_ADJACENCY:
-		case GL_TRIANGLE_STRIP_ADJACENCY:
-			feedbackPrimitive_ = GL_TRIANGLES;
-			break;
-		default:
-			feedbackPrimitive_ = GL_TRIANGLES;
-			break;
-	}
-}
-
-
-void Mesh::set_centerPosition(const Vec3f &center) { centerPosition_ = center; }
-
-const Vec3f &Mesh::centerPosition() { return centerPosition_; }
-
 void Mesh::set_extends(const Vec3f &minPosition, const Vec3f &maxPosition) {
 	minPosition_ = minPosition;
 	maxPosition_ = maxPosition;
 }
 
-const Vec3f &Mesh::minPosition() { return minPosition_; }
-
-const Vec3f &Mesh::maxPosition() { return maxPosition_; }
-
-
-const ref_ptr<FeedbackState> &Mesh::feedbackState() {
-	if (feedbackState_.get() == nullptr) {
-		feedbackState_ = ref_ptr<FeedbackState>::alloc(feedbackPrimitive_, feedbackCount_);
-		joinStates(feedbackState_);
-	}
-	return feedbackState_;
+void Mesh::setFeedbackRange(const ref_ptr<BufferRange> &range) {
+	feedbackRange_ = range;
 }
 
 void Mesh::enable(RenderState *rs) {
@@ -228,24 +181,45 @@ void Mesh::enable(RenderState *rs) {
 		x.input->enableUniform(x.location);
 	}
 
+	if (feedbackRange_.get()) {
+		feedbackCount_ = 0;
+		rs->feedbackBufferRange().push(0, *feedbackRange_.get());
+		rs->beginTransformFeedback(GL_POINTS);
+	}
+
 	rs->vao().push(vao_->id());
 	(inputContainer_.get()->*draw_)(primitive_);
 }
 
 void Mesh::disable(RenderState *rs) {
+	if (feedbackRange_.get()) {
+		rs->endTransformFeedback();
+		rs->feedbackBufferRange().pop(0);
+	}
+
 	rs->vao().pop();
 	State::disable(rs);
 }
 
-ref_ptr<ShaderInput> Mesh::positions() const { return inputContainer_->getInput(ATTRIBUTE_NAME_POS); }
+ref_ptr<ShaderInput> Mesh::positions() const {
+	return inputContainer_->getInput(ATTRIBUTE_NAME_POS);
+}
 
-ref_ptr<ShaderInput> Mesh::normals() const { return inputContainer_->getInput(ATTRIBUTE_NAME_NOR); }
+ref_ptr<ShaderInput> Mesh::normals() const {
+	return inputContainer_->getInput(ATTRIBUTE_NAME_NOR);
+}
 
-ref_ptr<ShaderInput> Mesh::colors() const { return inputContainer_->getInput(ATTRIBUTE_NAME_COL0); }
+ref_ptr<ShaderInput> Mesh::colors() const {
+	return inputContainer_->getInput(ATTRIBUTE_NAME_COL0);
+}
 
-ref_ptr<ShaderInput> Mesh::boneWeights() const { return inputContainer_->getInput("boneWeights"); }
+ref_ptr<ShaderInput> Mesh::boneWeights() const {
+	return inputContainer_->getInput("boneWeights");
+}
 
-ref_ptr<ShaderInput> Mesh::boneIndices() const { return inputContainer_->getInput("boneIndices"); }
+ref_ptr<ShaderInput> Mesh::boneIndices() const {
+	return inputContainer_->getInput("boneIndices");
+}
 
 ////////////
 ////////////

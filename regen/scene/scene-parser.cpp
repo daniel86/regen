@@ -9,6 +9,7 @@
 #include "regen/scene/nodes/deformation.h"
 #include "regen/scene/nodes/physics.h"
 #include "regen/scene/nodes/motion-blur.h"
+#include "regen/scene/nodes/picking.h"
 #include "regen/scene/states/polygon.h"
 
 using namespace regen::scene;
@@ -99,6 +100,7 @@ void SceneParser::init() {
 	setNodeProcessor(ref_ptr<SceneNodeProcessor>::alloc());
 	setNodeProcessor(ref_ptr<DeformationNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<MotionBlurProvider>::alloc());
+	setNodeProcessor(ref_ptr<PickingNodeProvider>::alloc());
 	// add some default state processors
 	setStateProcessor(ref_ptr<ResourceStateProvider>::alloc());
 	setStateProcessor(ref_ptr<BlendStateProvider>::alloc());
@@ -125,23 +127,33 @@ void SceneParser::addEventHandler(GLuint eventID,
 	application_->connect(eventID, eventHandler);
 }
 
-const list<ref_ptr<EventHandler> > SceneParser::getEventHandler() const { return eventHandler_; }
+const ref_ptr<ShaderInput2i> &SceneParser::getViewport() const {
+	return application_->windowViewport();
+}
 
-const ref_ptr<ShaderInput2i> &SceneParser::getViewport() const { return application_->windowViewport(); }
+const ref_ptr<ShaderInput2f> &SceneParser::getMouseTexco() const {
+	return application_->mouseTexco();
+}
 
-ref_ptr<SceneInputNode> SceneParser::getRoot() const { return inputProvider_->getRoot(); }
+ref_ptr<SceneInputNode> SceneParser::getRoot() const {
+	return inputProvider_->getRoot();
+}
 
-ref_ptr<ResourceManager> SceneParser::getResources() { return resources_; }
+void SceneParser::setNodeProcessor(const ref_ptr<NodeProcessor> &x) {
+	nodeProcessors_[x->category()] = x;
+}
 
-ref_ptr<BulletPhysics> SceneParser::getPhysics() { return physics_; }
+void SceneParser::setStateProcessor(const ref_ptr<StateProcessor> &x) {
+	stateProcessors_[x->category()] = x;
+}
 
-void SceneParser::setNodeProcessor(const ref_ptr<NodeProcessor> &x) { nodeProcessors_[x->category()] = x; }
-
-const map<string, ref_ptr<NodeProcessor> > &SceneParser::nodeProcessors() const { return nodeProcessors_; }
-
-void SceneParser::setStateProcessor(const ref_ptr<StateProcessor> &x) { stateProcessors_[x->category()] = x; }
-
-const map<string, ref_ptr<StateProcessor> > &SceneParser::stateProcessors() const { return stateProcessors_; }
+ref_ptr<State> SceneParser::getState(const std::string &id) const {
+	auto needle = states_.find(id);
+	if (needle == states_.end()) {
+		return {};
+	}
+	return needle->second;
+}
 
 ref_ptr<NodeProcessor> SceneParser::getNodeProcessor(const string &category) {
 	auto needle = nodeProcessors_.find(category);
@@ -173,15 +185,8 @@ void SceneParser::putState(const std::string &id, const ref_ptr<State> &state) {
 	states_[id] = state;
 }
 
-ref_ptr<State> SceneParser::getState(const std::string &id) { return states_[id]; }
-
-const NamedObject& SceneParser::putNamedObject(const ref_ptr<StateNode> &node) {
-	int nextId = namedObjects_.size();
-	const auto &it = namedObjects_.emplace(node->name(), NamedObject{nextId, node});
-	if (!it.second) {
-		REGEN_WARN("Named object with name '" << node->name() << "' already exists.");
-	}
-	return it.first->second;
+int SceneParser::putNamedObject(const ref_ptr<StateNode> &obj) {
+	return application_->putNamedObject(obj);
 }
 
 void SceneParser::processNode(

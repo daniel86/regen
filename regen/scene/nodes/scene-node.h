@@ -60,12 +60,12 @@ namespace regen {
 					SceneInputNode &input,
 					const ref_ptr<StateNode> &parent) override {
 				ref_ptr<StateNode> newNode;
-				string nodeType = input.getValue<string>("type", "");
+				auto nodeType = input.getValue<std::string>("type", "");
 
 				if (input.hasAttribute("import")) {
 					// Handle node imports
 					const ref_ptr<SceneInputNode> &root = parser->getRoot();
-					const string importID = input.getValue("import");
+					const std::string importID = input.getValue("import");
 
 					// TODO: Use previously loaded node. It's problematic because...
 					//   - Shaders below the node are configured only for the first context.
@@ -81,7 +81,7 @@ namespace regen {
 						handleChildren(parser, input, newNode);
 						handleChildren(parser, *imported.get(), newNode);
 					}
-				} else if (nodeType == string("cull")) {
+				} else if (nodeType == std::string("cull")) {
 					newNode = createCullNode(parser, input, parent);
 					if (newNode.get() != nullptr) {
 						handleAttributes(parser, input, newNode);
@@ -92,26 +92,25 @@ namespace regen {
 					handleAttributes(parser, input, newNode);
 					handleChildren(parser, input, newNode);
 				}
-				if (newNode.get() != nullptr && input.hasAttribute("name")) {
-					newNode->set_name(input.getValue("name"));
-					const auto &no = parser->putNamedObject(newNode);
-					auto u_objectID = ref_ptr<ShaderInput1i>::alloc("objectID");
-					u_objectID->setUniformData(no.id);
-					newNode->state()->joinShaderInput(u_objectID);
-				}
 			}
 
-		protected:
-			void handleAttributes(
+			static void handleAttributes(
 					SceneParser *parser,
 					SceneInputNode &input,
 					const ref_ptr<StateNode> &newNode) {
+				if (newNode.get() != nullptr && input.hasAttribute("name")) {
+					newNode->set_name(input.getValue("name"));
+					auto newNodeID = parser->putNamedObject(newNode);
+					auto u_objectID = ref_ptr<ShaderInput1i>::alloc("objectID");
+					u_objectID->setUniformData(newNodeID);
+					newNode->state()->joinShaderInput(u_objectID);
+				}
 				if (input.hasAttribute("sort")) {
 					// Sort node children by model view matrix.
 					auto sortMode = input.getValue<GLuint>("sort", 0);
 					ref_ptr<Camera> sortCam =
-							parser->getResources()->getCamera(parser, input.getValue<string>("sort-camera", ""));
-					if (sortCam.get() == NULL) {
+							parser->getResources()->getCamera(parser, input.getValue<std::string>("sort-camera", ""));
+					if (sortCam.get() == nullptr) {
 						REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
 					} else {
 						newNode->state()->joinStatesFront(
@@ -120,12 +119,12 @@ namespace regen {
 				}
 			}
 
-			void handleChildren(
+			static void handleChildren(
 					SceneParser *parser,
 					SceneInputNode &input,
 					const ref_ptr<StateNode> &newNode) {
 				// Process node children
-				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
+				const std::list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
 				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					const ref_ptr<SceneInputNode> &x = *it;
 					// First try node processor
@@ -144,7 +143,7 @@ namespace regen {
 				}
 			}
 
-			ref_ptr<StateNode> createNode(
+			static ref_ptr<StateNode> createNode(
 					SceneParser *parser,
 					SceneInputNode &input,
 					const ref_ptr<StateNode> &parent) {
@@ -167,7 +166,7 @@ namespace regen {
 				return newNode;
 			}
 
-			ref_ptr<StateNode> createCullNode(
+			static ref_ptr<StateNode> createCullNode(
 					SceneParser *parser,
 					SceneInputNode &input,
 					const ref_ptr<StateNode> &parent) {
@@ -180,7 +179,7 @@ namespace regen {
 				}
 
 				ref_ptr<MeshVector> cullMesh = parser->getResources()->getMesh(parser,
-																			   input.getValue<string>("mesh", ""));
+																			   input.getValue<std::string>("mesh", ""));
 				if (cullMesh.get() == nullptr) {
 					REGEN_WARN("No Mesh can be found for '" << input.getDescription() << "'.");
 					return cullNode;
@@ -190,7 +189,7 @@ namespace regen {
 					REGEN_WARN("No 'transform' attribute specified for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
-				const string &transformId = input.getValue("transform");
+				const std::string &transformId = input.getValue("transform");
 				ref_ptr<ModelTransformation> transform = parser->getResources()->getTransform(parser, transformId);
 				if (transform.get() == nullptr) { // Load transform
 					ref_ptr<SceneInputNode> transformNode = parser->getRoot()->getFirstChild("transform",
@@ -206,10 +205,10 @@ namespace regen {
 					return cullNode;
 				}
 
-				const string &shapeType = input.getValue<string>("shape", "sphere");
-				if (shapeType == string("sphere")) {
+				const std::string &shapeType = input.getValue<std::string>("shape", "sphere");
+				if (shapeType == std::string("sphere")) {
 					cullNode = ref_ptr<SphereCulling>::alloc(cam, cullMesh, transform);
-				} else if (shapeType == string("box")) {
+				} else if (shapeType == std::string("box")) {
 					cullNode = ref_ptr<BoxCulling>::alloc(cam, cullMesh, transform);
 					return cullNode;
 				} else {
@@ -218,7 +217,7 @@ namespace regen {
 				}
 
 				// Process node children
-				const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
+				const std::list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
 				for (auto it = childs.begin(); it != childs.end(); ++it) {
 					const ref_ptr<SceneInputNode> &x = *it;
 					// First try node processor

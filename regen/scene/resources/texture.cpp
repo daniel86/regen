@@ -6,6 +6,7 @@
  */
 
 #include "texture.h"
+#include <regen/application.h>
 
 using namespace regen::scene;
 using namespace regen;

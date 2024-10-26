@@ -44,20 +44,35 @@ void ShaderState::loadStage(
 }
 
 GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &shaderKey) {
-	const std::list<NamedShaderInput> specifiedInput = cfg.inputs_;
-	const std::map<std::string, ref_ptr<Texture> > &textures = cfg.textures_;
-	const std::map<std::string, std::string> &shaderConfig = cfg.defines_;
-	const std::map<std::string, std::string> &shaderFunctions = cfg.functions_;
 	std::map<GLenum, std::string> unprocessedCode;
-	std::map<GLenum, std::string> processedCode;
-
 	for (GLint i = 0; i < glenum::glslStageCount(); ++i) {
-		loadStage(shaderConfig, shaderKey, unprocessedCode, glenum::glslStages()[i]);
+		loadStage(cfg.defines_, shaderKey, unprocessedCode, glenum::glslStages()[i]);
 	}
 	if (unprocessedCode.empty()) {
 		REGEN_ERROR("Failed to load shader with key '" << shaderKey << "'");
 		return GL_FALSE;
 	}
+	return createShader(cfg, unprocessedCode);
+}
+
+GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys) {
+	std::map<GLenum, std::string> unprocessedCode;
+	for (GLint i = 0; i < shaderKeys.size(); ++i) {
+		loadStage(cfg.defines_, shaderKeys[i], unprocessedCode, glenum::glslStages()[i]);
+	}
+	if (unprocessedCode.empty()) {
+		REGEN_ERROR("Failed to load shader with key '" << shaderKeys[0] << "'");
+		return GL_FALSE;
+	}
+	return createShader(cfg, unprocessedCode);
+}
+
+GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode) {
+	const std::list<NamedShaderInput> specifiedInput = cfg.inputs_;
+	const std::map<std::string, ref_ptr<Texture> > &textures = cfg.textures_;
+	const std::map<std::string, std::string> &shaderConfig = cfg.defines_;
+	const std::map<std::string, std::string> &shaderFunctions = cfg.functions_;
+	std::map<GLenum, std::string> processedCode;
 
 	PreProcessorConfig preProcessCfg(cfg.version(),
 									 unprocessedCode, shaderConfig,
@@ -68,11 +83,17 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 	shader_->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
 
 	if (!shader_->compile()) {
-		REGEN_ERROR("Shader '" << shaderKey << "' failed to compiled.");
+		REGEN_ERROR("Shader failed to compiled.");
+		for (auto it = processedCode.begin(); it != processedCode.end(); ++it) {
+			REGEN_DEBUG("Shader code failed to compile:\n" << it->second);
+		}
 		return GL_FALSE;
 	}
 	if (!shader_->link()) {
-		REGEN_ERROR("Shader '" << shaderKey << "' failed to link.");
+		REGEN_ERROR("Shader failed to link.");
+		for (auto it = processedCode.begin(); it != processedCode.end(); ++it) {
+			REGEN_DEBUG("Shader code failed to link:\n" << it->second);
+		}
 	}
 
 	shader_->setInputs(specifiedInput);
