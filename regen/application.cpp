@@ -40,6 +40,8 @@ Application::Application(const int &argc, const char **argv)
 	mousePosition_->setUniformData(Vec2f(0.0f));
 	mouseTexco_ = ref_ptr<ShaderInput2f>::alloc("mouseTexco");
 	mouseTexco_->setUniformData(Vec2f(0.0f));
+	mouseDepth_ = ref_ptr<ShaderInput1f>::alloc("mouseDepthVS");
+	mouseDepth_->setUniformData(0.0f);
 
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
@@ -249,6 +251,7 @@ void Application::initGL() {
 	renderTree_->state()->joinShaderInput(windowViewport_);
 	renderTree_->state()->joinShaderInput(mousePosition_);
 	renderTree_->state()->joinShaderInput(mouseTexco_);
+	renderTree_->state()->joinShaderInput(mouseDepth_);
 	renderTree_->state()->joinShaderInput(isMouseEntered_);
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
@@ -291,6 +294,7 @@ int Application::putNamedObject(const ref_ptr<StateNode> &node) {
 void Application::setHoveredObject(const ref_ptr<StateNode> &hoveredObject, const GeomPicking::PickData *pickData) {
 	hoveredObject_ = hoveredObject;
 	hoveredObjectPickData_ = *pickData;
+	mouseDepth_->setVertex(0, pickData->depth);
 }
 
 void Application::unsetHoveredObject() {
@@ -312,13 +316,3 @@ void Application::updateGL() {
 	lastUpdateTime_ = t;
 	renderTree_->postRender(dt);
 }
-
-GLboolean Application::isGLInitialized() const { return isGLInitialized_; }
-
-const ref_ptr<RootNode> &Application::renderTree() const { return renderTree_; }
-
-const ref_ptr<ShaderInput2i> &Application::windowViewport() const { return windowViewport_; }
-
-const ref_ptr<ShaderInput2f> &Application::mousePosition() const { return mousePosition_; }
-
-const ref_ptr<ShaderInput2f> &Application::mouseTexco() const { return mouseTexco_; }

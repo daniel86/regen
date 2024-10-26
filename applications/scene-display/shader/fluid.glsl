@@ -741,6 +741,96 @@ void main() {
 #endif
 }
 
+-- splat.mouse.vs
+#include fluid.vs
+-- splat.mouse.fs
+#include fluid.fs.header
+#include regen.states.camera.defines
+#include regen.states.camera.transformTexcoToWorld
+#include regen.filter.sampling.computeTexco
+
+#ifndef IGNORE_OBSTACLES
+uniform samplerTex in_obstaclesBuffer;
+#endif
+
+uniform float in_splatRadius;
+uniform vec4 in_splatValue;
+
+uniform mat4 in_modelMatrix;
+// Normalized Device Coordinates of the mouse
+uniform vec2 in_mouseTexco;
+// Depth value at the mouse position in view space
+uniform float in_mouseDepthVS;
+uniform vec2 in_objectSize;
+
+uniform texture2D in_gDepthTexture;
+
+out vec4 out_color;
+
+#define AA_PIXELS 2.0
+#define USE_AA
+
+void main() {
+    ivecTex ipos = ifragCoord();
+#ifndef IGNORE_OBSTACLES
+    if( IS_CELL_OCCUPIED(ipos) ) discard;
+#endif
+
+    vec2 fragTexco = gl_FragCoord.xy*in_inverseViewport;
+    vec2 texco = computeTexco(fragTexco);
+
+    vec2 mouseUV = in_mouseTexco;
+    //mouseUV.x = 1.0 - mouseUV.x;
+
+    vec3 mouseWS = transformTexcoToWorld(mouseUV, texture(in_gDepthTexture, mouseUV).x, in_layer);
+    vec4 mouseWorldSpace = vec4(mouseWS, 1.0);
+
+    //float z_ndc = depthBufferValue * 2.0 - 1.0;
+    //float z_view = (2.0 * in_near * in_far) / (in_far + in_near - z_ndc * (in_far - in_near));
+
+/*
+    // in_mouseTexco is in [0,1]x[0,1] with (0,0) in the top left corner
+    // todo: maybe y is switched
+    // Convert mouse UV to NDC, where (0,0) is in the center of the screen
+    // and the screen is in the range [-1,1]x[-1,1]
+    vec2 mouseNDC = mouseUV * 2.0 - vec2(1.0);
+    // in_mouseDepthVS is the intersection depth of the mouse in view space.
+    // We need to convert this to NDC space, i.e. in the range [-1,1].
+    float ndcDepth = (2.0 * in_mouseDepthVS - in_near - in_far) / (in_far - in_near);
+    // mouseClipSpace is the mouse position in clip space
+    vec4 mouseClipSpace = vec4(mouseUV, ndcDepth, 1.0);
+    // Transform from clip space to world space.
+    // This coordinate is the point of intersection of the mouse with the
+    // object in world space.
+    vec4 mouseWorldSpace = REGEN_VIEW_PROJ_INV_(0) * mouseClipSpace;
+    mouseWorldSpace /= mouseWorldSpace.w;
+    */
+    // Transform from world space to local space using the inverse model matrix.
+    // TODO: rather compute model inverse on cpu and hand in
+    vec4 mouseLocalSpace = inverse(in_modelMatrix) * mouseWorldSpace;
+    // Normalize the mouse position to the object size
+    vec2 normalizedMouseLocalSpace = ((mouseLocalSpace.xz + 0.5*in_objectSize) / in_objectSize);
+    normalizedMouseLocalSpace.x = clamp(normalizedMouseLocalSpace.x, 0.0, 1.0);
+    normalizedMouseLocalSpace.y = clamp(normalizedMouseLocalSpace.y, 0.0, 1.0);
+    // Flip y coordinate
+    normalizedMouseLocalSpace.y = 1.0 - normalizedMouseLocalSpace.y;
+    // Compute the distance from the current fragment to the splat point
+    float dist = length(gl_FragCoord.xy - normalizedMouseLocalSpace*in_viewport);
+
+    if (dist > in_splatRadius) discard;
+#ifdef USE_AA
+    float threshold = in_splatRadius - AA_PIXELS;
+    if(dist<threshold) {
+        out_color = in_splatValue;
+    } else {
+        // anti aliasing
+        out_color = in_splatValue * (1.0f - (dist-threshold)/(in_splatRadius-threshold));
+    }
+#else
+    out_color = in_splatValue;
+#endif
+}
+
 -- splat.border.vs
 #include fluid.vs
 -- splat.border.fs
@@ -826,7 +916,7 @@ void main() {
 #ifndef IGNORE_OBSTACLES
     if( IS_CELL_OCCUPIED(ipos) ) discard;
 #endif
-    vec4 val = texture(in_splatTexture, vec2(in_texco.x,-in_texco.y));
+    vec4 val = texture(in_splatTexture, vec2(in_texco.x,in_texco.y));
     if (val.a <= 0.00001) discard;
     out_color = in_texelFactor*val;
 }

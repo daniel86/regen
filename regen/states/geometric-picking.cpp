@@ -97,11 +97,6 @@ void GeomPicking::updateMouse() {
 }
 
 void GeomPicking::traverse(RenderState *rs) {
-	// TODO: rs dt?
-	//dt_ += dt;
-	//if (dt_ < pickInterval_) { return; }
-	//dt_ = 0.0;
-
 	updateMouse();
 	state_->enable(rs);
 
@@ -140,5 +135,5 @@ void GeomPicking::traverse(RenderState *rs) {
 	}
 
 	state_->disable(rs);
-	GL_ERROR_LOG()
+	GL_ERROR_LOG();
 }
