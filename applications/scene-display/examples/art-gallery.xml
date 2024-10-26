@@ -283,8 +283,9 @@
 </mesh>
 
 <transform id="smoke-picture-transform">
-    <rotate value="1.5707963,1.5707963,0.0"/>
-    <rotate value="0.0,1.5707963,0.0"/>
+    <rotate value="1.5707963,0.0,0.0"/>
+    <rotate value="0.0,0.0,4.7123889803850005"/>
+    <rotate value="0.0,4.7123889803850005,0.0"/>
     <translate value="5.0,3.0,20.0"/>
 </transform>
 
@@ -324,8 +325,8 @@
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform>
-                <rotate value="1.5707963,1.5707963,0.0"/>
-                <rotate value="0.0,1.5707963,0.0"/>
+                <rotate value="0.0,0.0,4.7123889803850005"/>
+                <rotate value="0.0,3.14159265359,0.0"/>
                 <translate value="-4.0, 3.0, 20.0"/>
             </transform>
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
@@ -385,7 +386,7 @@
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform>
                 <rotate value="1.5707963,1.5707963,0.0"/>
-                <rotate value="0.0,1.5707963,0.0"/>
+                <rotate value="0.0,4.7123889803850005,0.0"/>
                 <translate value="14.0,3.0,20.0"/>
             </transform>
             <mesh id="painting-mesh" shader="regen.models.mesh"/>
@@ -552,7 +553,8 @@
         </node>
         <node id="Wall-North">
             <transform>
-                <rotate value="0.0,-1.5707963,1.5707963"/>
+                <rotate value="1.5707963,0.0,0.0"/>
+                <rotate value="0.0,-1.5707963,0.0"/>
                 <translate value="20.5,3.0,0.0"/>
             </transform>
             <mesh id="wall" shader="regen.models.mesh"/>

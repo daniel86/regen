@@ -776,35 +776,9 @@ void main() {
     if( IS_CELL_OCCUPIED(ipos) ) discard;
 #endif
 
-    vec2 fragTexco = gl_FragCoord.xy*in_inverseViewport;
-    vec2 texco = computeTexco(fragTexco);
-
     vec2 mouseUV = in_mouseTexco;
-    //mouseUV.x = 1.0 - mouseUV.x;
-
     vec3 mouseWS = transformTexcoToWorld(mouseUV, texture(in_gDepthTexture, mouseUV).x, in_layer);
     vec4 mouseWorldSpace = vec4(mouseWS, 1.0);
-
-    //float z_ndc = depthBufferValue * 2.0 - 1.0;
-    //float z_view = (2.0 * in_near * in_far) / (in_far + in_near - z_ndc * (in_far - in_near));
-
-/*
-    // in_mouseTexco is in [0,1]x[0,1] with (0,0) in the top left corner
-    // todo: maybe y is switched
-    // Convert mouse UV to NDC, where (0,0) is in the center of the screen
-    // and the screen is in the range [-1,1]x[-1,1]
-    vec2 mouseNDC = mouseUV * 2.0 - vec2(1.0);
-    // in_mouseDepthVS is the intersection depth of the mouse in view space.
-    // We need to convert this to NDC space, i.e. in the range [-1,1].
-    float ndcDepth = (2.0 * in_mouseDepthVS - in_near - in_far) / (in_far - in_near);
-    // mouseClipSpace is the mouse position in clip space
-    vec4 mouseClipSpace = vec4(mouseUV, ndcDepth, 1.0);
-    // Transform from clip space to world space.
-    // This coordinate is the point of intersection of the mouse with the
-    // object in world space.
-    vec4 mouseWorldSpace = REGEN_VIEW_PROJ_INV_(0) * mouseClipSpace;
-    mouseWorldSpace /= mouseWorldSpace.w;
-    */
     // Transform from world space to local space using the inverse model matrix.
     // TODO: rather compute model inverse on cpu and hand in
     vec4 mouseLocalSpace = inverse(in_modelMatrix) * mouseWorldSpace;
@@ -812,7 +786,8 @@ void main() {
     vec2 normalizedMouseLocalSpace = ((mouseLocalSpace.xz + 0.5*in_objectSize) / in_objectSize);
     normalizedMouseLocalSpace.x = clamp(normalizedMouseLocalSpace.x, 0.0, 1.0);
     normalizedMouseLocalSpace.y = clamp(normalizedMouseLocalSpace.y, 0.0, 1.0);
-    // Flip y coordinate
+    // Flip coordinates
+    //normalizedMouseLocalSpace.x = 1.0 - normalizedMouseLocalSpace.x;
     normalizedMouseLocalSpace.y = 1.0 - normalizedMouseLocalSpace.y;
     // Compute the distance from the current fragment to the splat point
     float dist = length(gl_FragCoord.xy - normalizedMouseLocalSpace*in_viewport);
@@ -1151,7 +1126,6 @@ uniform vec3 in_colorNegative;
 out vec4 out_color;
 
 void main() {
-    vec2 texco = vec2(in_texco.x, 1.0-in_texco.y);
     float x = in_texelFactor*texture(in_quantity,in_texco).r;
     if(x>0.0) {
         out_color = vec4(in_colorPositive, x);
@@ -1192,7 +1166,6 @@ uniform float in_texelFactor;
 out vec4 out_color;
 
 void main() {
-    vec2 texco = vec2(in_texco.x, 1.0-in_texco.y);
     out_color.rgb = in_texelFactor*texture(in_quantity,in_texco).rgb;
     out_color.a = min(1.0, length(out_color.rgb));
 }

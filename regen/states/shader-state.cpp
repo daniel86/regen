@@ -57,7 +57,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 
 GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys) {
 	std::map<GLenum, std::string> unprocessedCode;
-	for (GLint i = 0; i < shaderKeys.size(); ++i) {
+	for (GLuint i = 0u; i < shaderKeys.size(); ++i) {
 		loadStage(cfg.defines_, shaderKeys[i], unprocessedCode, glenum::glslStages()[i]);
 	}
 	if (unprocessedCode.empty()) {

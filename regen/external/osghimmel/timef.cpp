@@ -33,9 +33,12 @@
 
 #include <math.h>
 
-
 namespace osgHimmel
 {
+double elapsedSeconds(const boost::timer::cpu_timer &timer) {
+    // Convert nanoseconds to seconds
+    return static_cast<double>(timer.elapsed().wall) / 1e9;
+}
 
 const long TimeF::utcOffset()
 {
@@ -79,7 +82,7 @@ TimeF::TimeF(
 
 void TimeF::initialize()
 {
-    m_lastModeChangeTime = m_timer.elapsed();
+    m_lastModeChangeTime = elapsedSeconds(m_timer);
 
     m_timef[0] = 0.f;
     m_timef[1] = 0.f;
@@ -98,7 +101,7 @@ TimeF::~TimeF()
 
 void TimeF::update()
 {
-    const t_longf elapsed(M_Running == m_mode ? m_timer.elapsed() : m_lastModeChangeTime);
+    const t_longf elapsed(M_Running == m_mode ? elapsedSeconds(m_timer) : m_lastModeChangeTime);
 
     const t_longf elapsedTimef(m_secondsPerCycle > 0.f ? elapsed / m_secondsPerCycle : 0.f);
 
@@ -193,7 +196,7 @@ const time_t TimeF::sett(
 const t_longf TimeF::setSecondsPerCycle(const t_longf secondsPerCycle)
 {
     // intepret elapsed seconds within new cycle time
-    const t_longf elapsed(M_Running == m_mode ? m_timer.elapsed() : m_lastModeChangeTime);
+    const t_longf elapsed(M_Running == m_mode ? elapsedSeconds(m_timer) : m_lastModeChangeTime);
 
     if(m_secondsPerCycle > 0.f)
         m_offset += elapsed / m_secondsPerCycle;
@@ -201,7 +204,7 @@ const t_longf TimeF::setSecondsPerCycle(const t_longf secondsPerCycle)
     m_lastModeChangeTime = 0;
 
     m_secondsPerCycle = secondsPerCycle;
-    m_timer.restart();
+    m_timer.start();
 
     return getSecondsPerCycle();
 }
@@ -230,7 +233,7 @@ void TimeF::start(const bool forceUpdate)
     if(M_Pausing != m_mode)
         return;
 
-    const t_longf t(m_timer.elapsed());
+    const t_longf t(elapsedSeconds(m_timer));
 
     if(m_secondsPerCycle > 0.f)
         m_offset -= (t - m_lastModeChangeTime) / m_secondsPerCycle;
@@ -247,7 +250,7 @@ void TimeF::pause(const bool forceUpdate)
     if(M_Running != m_mode)
         return;
 
-    m_lastModeChangeTime = m_timer.elapsed();
+    m_lastModeChangeTime = elapsedSeconds(m_timer);
 
     m_mode = M_Pausing;
 
@@ -262,8 +265,8 @@ void TimeF::reset(const bool forceUpdate)
 
     m_timef[0] = m_timef[2];
     m_time[0] = m_time[2];
-    m_timer.restart();
-    m_lastModeChangeTime = m_timer.elapsed();
+    m_timer.start();
+    m_lastModeChangeTime = elapsedSeconds(m_timer);
 
     if(forceUpdate)
         update();
