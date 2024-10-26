@@ -554,7 +554,8 @@
         <node id="Wall-North">
             <transform>
                 <rotate value="1.5707963,0.0,0.0"/>
-                <rotate value="0.0,-1.5707963,0.0"/>
+                <rotate value="0.0,0.0,3.14"/>
+                <rotate value="0.0,1.5707963,0.0"/>
                 <translate value="20.5,3.0,0.0"/>
             </transform>
             <mesh id="wall" shader="regen.models.mesh"/>
