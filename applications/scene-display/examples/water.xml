@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/default.xml" />
+<include xml-file="scene-display/examples/templates/default.xml" />
 
 <node id="configuration">
   <camera id="main-camera"
@@ -9,6 +9,16 @@
 	  eye-orientation="0.0">
   </camera>
 </node>
+
+<fbo id="g-buffer"
+     size-mode="rel" size="1.0,1.0"
+     pixel-type="FLOAT" pixel-size="16" >
+  <texture id="diffuse0" pixel-components="3" />
+  <texture id="diffuse1" pixel-components="3" />
+  <texture id="specular" pixel-components="4" />
+  <texture id="normal" pixel-components="4" />
+  <depth pixel-size="24" />
+</fbo>
 
 <!-- Textures -->
 <texture id="island-color" file="res/textures/island/color.png" />
@@ -196,14 +206,47 @@
 <node id="Post-Pass">
   <depth test="0" write="0" />
   <node import="Water-Rendering" />
+  <!--
   <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="1" />
     <texture name="inputTexture" fbo="g-buffer" attachment="0" />
   </node>
+  -->
 </node>
 
 <!--**************************-->
 <!--**************************-->
+
+<node id="Scene-Blur">
+  <input type="int" name="numBlurPixels" value="10" />
+  <input type="float" name="blurSigma" value="2.5" />
+
+  <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
+    <filter shader="regen.filter.sampling" scale="0.5" />
+    <filter shader="regen.filter.blur.horizontal" />
+    <filter shader="regen.filter.blur.vertical" />
+  </filter-sequence>
+</node>
+
+<node id="Tonemapping">
+  <define key="USE_RADIAL_BLUR" value="TRUE" />
+  <define key="USE_VIGNETTE" value="TRUE" />
+  <fbo id="g-buffer" draw-buffers="1" />
+  <texture name="inputTexture" fbo="g-buffer" attachment="0" />
+  <texture name="blurTexture" id="blurred-scene" />
+
+  <input type="float" name="blurAmount" value="0.35" />
+  <input type="float" name="effectAmount" value="0.2" />
+  <input type="float" name="exposure" value="4.0" />
+  <input type="float" name="gamma" value="0.95" />
+  <input type="float" name="radialBlurSamples" value="36.0" />
+  <input type="float" name="radialBlurStartScale" value="1.0" />
+  <input type="float" name="radialBlurScaleMul" value="0.9555" />
+  <input type="float" name="vignetteInner" value="0.9" />
+  <input type="float" name="vignetteOuter" value="1.75" />
+
+  <fullscreen-pass shader="regen.filter.tonemap" />
+</node>
 
 <node id="root">
   <node id="Pre-Render">
@@ -214,6 +257,12 @@
     <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
     
     <node import="Default-Pipeline" />
+
+    <node import="Scene-Blur" />
+    <node import="Tonemapping" />
+    <view id="Scene -- Tonemapping">
+        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
     <node import="GUI-Pass">
       <fbo id="g-buffer" draw-buffers="1" />
     </node>

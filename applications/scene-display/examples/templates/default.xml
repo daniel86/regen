@@ -1,27 +1,5 @@
 
 <!-- Framebuffer Objects -->
-<fbo id="g-buffer"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
-  <texture id="diffuse0" />
-  <texture id="diffuse1" />
-  <texture id="specular" />
-  <texture id="normal" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-
-<fbo id="g-buffer-float"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="FLOAT" pixel-size="16" >
-  <texture id="diffuse0" pixel-components="3" />
-  <texture id="diffuse1" pixel-components="3" />
-  <texture id="specular" pixel-components="4" />
-  <texture id="normal" pixel-components="4" />
-  <depth pixel-size="24" />
-</fbo>
-
 <fbo id="back-buffer" size-mode="rel" size="1,1" >
   <texture id="color" pixel-components="3" />
 </fbo>
@@ -72,6 +50,10 @@
   <anim-range name="idle1"       range="291.0,324.0" />
   <anim-range name="idle2"       range="326.0,359.0" />
 </asset>
+<asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0" />
+<asset id="teapot-asset" type="asset" file="res/models/teapot.obj" use-animation="0" />
+<asset id="dragon-asset" type="asset" file="res/models/dragon.obj" use-animation="0" />
+<asset id="bunny-asset" type="asset" file="res/models/bunny.obj" use-animation="0" />
 
 <!--**************************-->
 <!--****** Sky and Sun *******-->

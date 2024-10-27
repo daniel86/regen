@@ -1,16 +1,31 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/default.xml" />
+<include xml-file="scene-display/examples/templates/default.xml" />
 
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,1.5,-8.0"
 	direction="0.0,-0.25,1.0" />
 
+<!-- FBOs -->
+<fbo id="g-buffer"
+     size-mode="rel" size="1.0,1.0"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4" >
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
+
 <node id="configuration">
   <camera id="main-camera"
 	  type="third-person"
 	  mesh="sphere-mesh0"
+      physics-mode="impulse"
+      physics-speed-factor="1.0"
 	  transform="sphere0-transform"
 	  eye-offset="0.0,0.0,0.0"
 	  eye-orientation="3.14159265359">
