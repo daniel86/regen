@@ -131,10 +131,10 @@
   <input name="sunColor" state="earth-sky-sun" component="lightDiffuse" />
       
   <input type="float" name="heightTextureSize" value="256.0" />
-  <input type="float" name="surfaceHeight" value="0.0" />
+  <input type="float" name="surfaceHeight" value="-2.0" />
   <input type="float" name="normalScale" value="3.0" />
   <input type="float" name="refractionConstant" value="0.25" />
-  <input type="float" name="refractionStrength" value="0.0" />
+  <input type="float" name="refractionStrength" value="0.24" />
   <input type="float" name="shoreHardness" value="0.1" />
   <input type="vec2"  name="windDirection" value="0.0,-0.9" />
   <input type="vec2" name="waveScale" value="0.05,0.05" />

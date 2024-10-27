@@ -150,9 +150,10 @@ vec3 getDiffuseLight(vec3 P, float depth)
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
   #endif
   #if LIGHT_TYPE${__ID} == POINT
-        float shadowDepth = (
-            in_lightMatrix${__ID}[computeCubeLayer(lightVec)]*
-            vec4(lightVec,1.0)).z;
+        vec3 absLightVec = abs(lightVec);
+        float shadowDepth = computeDepth(
+            max(absLightVec .x, max(absLightVec .y, absLightVec .z)),
+            in_lightNear, in_lightFar);
         attenuation *= pointShadow${SHADOW_MAP_FILTER${__ID}}(
                 in_shadowTexture${__ID},
                 lightVec,
