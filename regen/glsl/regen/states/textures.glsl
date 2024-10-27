@@ -173,6 +173,14 @@ in vec${_DIM} in_${_TEXCO};
 #define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}
 #endif
 
+#ifdef TEX_FLIPPING_MODE${_ID}
+#define2 _FLIP_ ${TEX_FLIPPING_MODE${_ID}}
+#if _FLIP_==x
+    texco${INDEX}.x = 1.0 - texco${INDEX}.x;
+#endif
+#if _FLIP_==y
+    texco${INDEX}.y = 1.0 - texco${INDEX}.y;
+#endif
 #endif // _MAPPING_==regen.states.textures.texco_texco
 
 -- sampleTexel
