@@ -1,7 +1,7 @@
 
 -- filtering.vsm
-#ifndef __SM_FILTER_VSM_included__
-#define2 __SM_FILTER_VSM_included__
+#ifndef REGEN_SM_FILTER_VSM_included__
+#define2 REGEN_SM_FILTER_VSM_included__
 #include regen.math.linstep
 
 float chebyshevUpperBound(float dist, vec2 moments)
@@ -13,28 +13,28 @@ float chebyshevUpperBound(float dist, vec2 moments)
     return clamp(max(p, p_max), 0.0, 1.0);
 }
 
-float shadowVSM(sampler2D tex, vec4 shadowCoord, float linearDepth)
+float shadowVSM(sampler2DShadow tex, vec4 shadowCoord, float linearDepth)
 {
-    vec2 moments = texture(tex, shadowCoord.xy/shadowCoord.w).xy;
-    return chebyshevUpperBound(linearDepth, moments);
+    float shadow = textureProj(tex, shadowCoord);
+    return chebyshevUpperBound(linearDepth, vec2(shadow));
 }
-float shadowVSM(samplerCube tex, vec4 shadowCoord, float linearDepth)
+float shadowVSM(samplerCubeShadow tex, vec4 shadowCoord, float linearDepth)
 {
-    vec2 moments = texture(tex, shadowCoord.xyz/shadowCoord.w).xy;
-    return chebyshevUpperBound(linearDepth, moments);
+    float shadow = texture(tex, shadowCoord);
+    return chebyshevUpperBound(linearDepth, vec2(shadow));
 }
-float shadowVSM(sampler2DArray tex, vec4 shadowCoord)
+float shadowVSM(sampler2DArrayShadow tex, vec4 shadowCoord)
 {
-    vec2 moments = texture(tex, shadowCoord.xyz).xy;
+    float shadow = texture(tex, shadowCoord);
     // Ortho matrix projects linear depth
     float depth = shadowCoord.w;
-    return chebyshevUpperBound(depth, moments);
+    return chebyshevUpperBound(depth, vec2(shadow));
 }
 #endif
 
 -- filtering.gaussian
-#ifndef __SM_FILTER_GAUSS_included__
-#define2 __SM_FILTER_GAUSS_included__
+#ifndef REGEN_SM_FILTER_GAUSS_included__
+#define2 REGEN_SM_FILTER_GAUSS_included__
 #include regen.math.computeCubeOffset
 
 // Gaussian 3x3 filter
