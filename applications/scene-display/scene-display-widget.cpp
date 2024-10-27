@@ -329,8 +329,20 @@ static void handleCameraConfiguration(
 		}
 	}
 
-	// make sure camera transforms are updated in first few frames
 	if (cameraTransform.get() != nullptr) {
+		auto physicsMode = FirstPersonTransform::IMPULSE;
+		if (cameraNode->hasAttribute("physics-mode")) {
+			auto modeStr = cameraNode->getValue("physics-mode");
+			if (modeStr == "character") {
+				physicsMode = FirstPersonTransform::CHARACTER;
+			}
+		}
+		auto physicsSpeedFactor = cameraNode->getValue<GLfloat>("physics-speed-factor", 80.0f);
+
+		cameraTransform->setPhysicsMode(physicsMode);
+		cameraTransform->setPhysicsSpeedFactor(physicsSpeedFactor);
+
+		// make sure camera transforms are updated in first few frames
 		cameraTransform->animate(0.0);
 		cameraTransform->glAnimate(RenderState::get(), 0.0);
 	}
