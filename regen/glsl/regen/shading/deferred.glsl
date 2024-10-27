@@ -166,10 +166,10 @@ void main() {
 -- local.gs
 #include regen.states.camera.defines
 #if RENDER_LAYER > 1
-#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
+#define2 REGEN_MAX_VERTICES_ ${${RENDER_LAYER}*3}
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
+layout(triangle_strip, max_vertices=${REGEN_MAX_VERTICES_}) out;
 
 flat out int out_layer;
 out vec4 out_posEye;
