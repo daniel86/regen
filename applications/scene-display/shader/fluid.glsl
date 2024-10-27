@@ -787,7 +787,7 @@ void main() {
     normalizedMouseLocalSpace.x = clamp(normalizedMouseLocalSpace.x, 0.0, 1.0);
     normalizedMouseLocalSpace.y = clamp(normalizedMouseLocalSpace.y, 0.0, 1.0);
     // Flip coordinates
-    //normalizedMouseLocalSpace.x = 1.0 - normalizedMouseLocalSpace.x;
+    normalizedMouseLocalSpace.x = 1.0 - normalizedMouseLocalSpace.x;
     normalizedMouseLocalSpace.y = 1.0 - normalizedMouseLocalSpace.y;
     // Compute the distance from the current fragment to the splat point
     float dist = length(gl_FragCoord.xy - normalizedMouseLocalSpace*in_viewport);
