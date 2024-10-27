@@ -93,10 +93,10 @@ VBOReference Particles::end() {
 	shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
 	createUpdateShader(particleInputs);
 
-	for (auto it = particleInputs.begin(); it != particleInputs.end(); ++it) {
-		const ref_ptr<ShaderInput> in = it->in_;
+	for (auto & particleInput : particleInputs) {
+		const ref_ptr<ShaderInput> in = particleInput.in_;
 		if (!in->isVertexAttribute()) continue;
-		GLint loc = updateState_->shader()->attributeLocation(it->in_->name());
+		GLint loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
 		if (loc == -1) continue;
 		particleAttributes_.emplace_back(in, loc);
 	}
@@ -110,9 +110,9 @@ void Particles::createUpdateShader(const ShaderInputList &inputs) {
 
 	StateConfig &shaderCfg = shaderConfigurer.cfg();
 	shaderCfg.feedbackAttributes_.clear();
-	for (auto it = inputs.begin(); it != inputs.end(); ++it) {
-		if (!it->in_->isVertexAttribute()) continue;
-		shaderCfg.feedbackAttributes_.push_back(it->in_->name());
+	for (const auto & input : inputs) {
+		if (!input.in_->isVertexAttribute()) continue;
+		shaderCfg.feedbackAttributes_.push_back(input.in_->name());
 	}
 	shaderCfg.feedbackMode_ = GL_INTERLEAVED_ATTRIBS;
 	shaderCfg.feedbackStage_ = GL_VERTEX_SHADER;
@@ -129,8 +129,8 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	ref_ptr<VAO> particleVAO = ref_ptr<VAO>::alloc();
 	rs->vao().push(particleVAO->id());
 	glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
-	for (auto it = particleAttributes_.begin(); it != particleAttributes_.end(); ++it) {
-		it->input->enableAttribute(it->location);
+	for (auto & particleAttribute : particleAttributes_) {
+		particleAttribute.input->enableAttribute(particleAttribute.location);
 	}
 
 	bufferRange_.buffer_ = feedbackRef_->bufferID();
@@ -149,15 +149,15 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 
 	// Update particle attribute layout.
 	GLuint currOffset = bufferRange_.offset_;
-	for (auto it = particleAttributes_.begin(); it != particleAttributes_.end(); ++it) {
-		it->input->set_buffer(bufferRange_.buffer_, feedbackRef_);
-		it->input->set_offset(currOffset);
-		currOffset += it->input->elementSize();
+	for (auto & particleAttribute : particleAttributes_) {
+		particleAttribute.input->set_buffer(bufferRange_.buffer_, feedbackRef_);
+		particleAttribute.input->set_offset(currOffset);
+		currOffset += particleAttribute.input->elementSize();
 	}
 	// And update the VAO so that next drawing uses last feedback result.
 	std::set<Mesh *> particleMeshes;
 	getMeshViews(particleMeshes);
-	for (auto it = particleMeshes.begin(); it != particleMeshes.end(); ++it) { (*it)->updateVAO(rs); }
+	for (auto particleMesh : particleMeshes) { particleMesh->updateVAO(rs); }
 
 	// Ping-Pong VBO references so that next feedback goes to other buffer.
 	VBOReference buf = particleRef_;

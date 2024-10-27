@@ -16,6 +16,7 @@
 #include <regen/utility/threading.h>
 #include "qt-gl-widget.h"
 #include "qt-application.h"
+#include "regen/animations/animation-manager.h"
 
 using namespace regen;
 
@@ -117,6 +118,7 @@ void QTGLWidget::run() {
 	GLint dt;
 #endif
 
+	AnimationManager::get().resetTime();
 #ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
 	while (isRunning_)
 #else

@@ -6,7 +6,7 @@
   <camera id="main-camera"
 	  type="first-person"
 	  eye-offset="0.0,0.0,0.0"
-	  eye-orientation="0.0">
+	  camera-orientation="1.44">
   </camera>
 </node>
 
@@ -32,7 +32,7 @@
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="400.0"
 	position="16.0,4.5,7.0"
-	direction="-4.0,0.0,0.0" />
+	direction="1.0,0.0,0.0" />
 <!-- Some meshes. -->
 <mesh id="island-mesh"
       type="rectangle"

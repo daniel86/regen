@@ -275,6 +275,7 @@ static void handleCameraConfiguration(
 	}
 	auto eyeOffset = cameraNode->getValue<Vec3f>("eye-offset", Vec3f(0.0));
 	auto eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation", 0.0);
+	auto cameraOrientation = cameraNode->getValue<GLfloat>("camera-orientation", 0.0);
 	auto mode = cameraNode->getValue<string>("type", "first-person");
 
 	ref_ptr<FirstPersonTransform> cameraTransform;
@@ -302,17 +303,20 @@ static void handleCameraConfiguration(
 		if (mode == string("first-person")) {
 			ref_ptr<FirstPersonCameraTransform> fpsCamera =
 					ref_ptr<FirstPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
+			fpsCamera->setCameraOrientation(cameraOrientation);
 			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
 			cameraTransform = fpsCamera;
 		} else if (mode == string("third-person")) {
 			ref_ptr<ThirdPersonCameraTransform> fpsCamera =
 					ref_ptr<ThirdPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
+			fpsCamera->setCameraOrientation(cameraOrientation);
 			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
 			cameraTransform = fpsCamera;
 		}
 	} else {
 		if (mode == string("first-person")) {
 			ref_ptr<FirstPersonCameraTransform> fpsCamera = ref_ptr<FirstPersonCameraTransform>::alloc(cam);
+			fpsCamera->setCameraOrientation(cameraOrientation);
 			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
 			cameraTransform = fpsCamera;
 		} else if (mode == string("key-frames")) {
@@ -544,6 +548,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	eventHandler_.emplace_back(mouseEventHandler);
 
 	loadAnim_ = ref_ptr<Animation>();
+	AnimationManager::get().resetTime();
 	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");
 }

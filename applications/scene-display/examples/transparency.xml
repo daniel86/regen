@@ -25,7 +25,7 @@
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="200.0"
-	position="3.0,0.5,-5.0"
+	position="0.0,0.5,-10.0"
 	direction="-0.5,0.0,1.0" />
 <!-- Assets -->
 <asset id="venus-asset"
@@ -86,11 +86,13 @@
   <blend mode="add" />
   <depth test="0" write="0" />
   <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
-    
+
   <node>
     <fullscreen-pass shader="regen.shading.deferred.ambient" />
-    
-    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+
+    <light-pass type="SPOT"
+        shader="regen.shading.deferred.spot"
+        shadow-filter="PCF_GAUSSIAN">
       <light id="spot-light"
 	     shadow-buffer="spot-shadow"
 	     shadow-attachment="depth"
@@ -154,7 +156,7 @@
 <!--**** Lights & Shadows ****-->
 <!--**************************-->
 
-<fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
+<fbo id="spot-shadow" size-mode="abs" size="2048,2048,1" >
   <depth id="depth" pixel-size="24" pixel-type="FLOAT"
 	 wrapping="REPEAT"
 	 min-filter="NEAREST" mag-filter="NEAREST"

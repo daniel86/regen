@@ -38,15 +38,19 @@ AnimationManager::AnimationManager()
 		  pauseFlag_(GL_TRUE),
 		  hasNextFrame_(GL_FALSE),
 		  hasNextStep_(GL_FALSE) {
-	time_ = boost::posix_time::ptime(
-			boost::posix_time::microsec_clock::local_time());
-	lastTime_ = time_;
+	resetTime();
 }
 
 AnimationManager::~AnimationManager() {
 	closeFlag_ = GL_TRUE;
 	nextFrame();
 	thread_.join();
+}
+
+void AnimationManager::resetTime() {
+	time_ = boost::posix_time::ptime(
+			boost::posix_time::microsec_clock::local_time());
+	lastTime_ = time_;
 }
 
 void AnimationManager::addAnimation(Animation *animation) {
@@ -216,6 +220,7 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 
 void AnimationManager::run() {
 	animationThreadID_ = boost::this_thread::get_id();
+	resetTime();
 
 	while (!closeFlag_) {
 		time_ = boost::posix_time::ptime(
