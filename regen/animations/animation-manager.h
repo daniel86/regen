@@ -72,6 +72,11 @@ namespace regen {
 		void resume();
 
 		/**
+		 * Reset the time of the animation manager.
+		 */
+		void resetTime();
+
+		/**
 		 * @return the set of glAnimations.
 		 */
 		auto& glAnimations() { return glAnimations_; }

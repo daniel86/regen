@@ -254,9 +254,6 @@
 <!--********* Rain ***********-->
 <!--**************************-->
 
-<texture id="rain-database" is-array="1"
-	 file="res/textures/rain" name-pattern=".*.png" />
-
 <mesh id="rain-particles"
       type="particles"
       num-vertices="50000"

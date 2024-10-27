@@ -11,6 +11,7 @@
 
 <!-- Textures -->
 <texture id="regen-logo" file="res/logo.png" />
+<texture id="rain-database" is-array="1" file="res/textures/rain" name-pattern=".*.png" />
 
 <!-- Fonts -->
 <font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96" />

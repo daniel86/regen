@@ -216,6 +216,16 @@ namespace regen {
 		 */
 		virtual void zoomOut(GLdouble amount);
 
+		/**
+		 * @param orientation the amount of camera direction change in up direction.
+		 */
+		void setEyeOrientation(GLdouble orientation) { meshHorizontalOrientation_ = orientation; }
+
+		/**
+		 * @param orientation the amount of camera direction change in up direction.
+		 */
+		void setCameraOrientation(GLdouble orientation) { horizontalOrientation_ = orientation; }
+
 		// override
 		void animate(GLdouble dt) override;
 
