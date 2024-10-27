@@ -280,7 +280,6 @@
       type="rectangle"
       lod="0"
       scaling="4.8,0.1,4.8"
-      texco-scaling="-1.0,1.0"
       use-normal="1"
       use-texco="1"
       use-tangent="0"
@@ -352,7 +351,8 @@
     <node id="Picture-Canvas">
         <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
         <node id="video-picture-canvas">
-            <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
+            <define key="TEXCO_FLIP_X" value="1"/>
+            <texture name="colorTexture" id="video-texture" map-to="COLOR" texco-flipping="x" />
             <transform id="video-picture-transform" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
@@ -606,13 +606,11 @@
     <picking type="geom" camera="main-camera">
         <node name="video-picture">
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform id="video-picture-transform" />
             <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>
         <node name="smoke-picture">
             <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
             <transform id="smoke-picture-transform" />
             <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>

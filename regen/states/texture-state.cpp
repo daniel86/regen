@@ -332,6 +332,23 @@ void TextureState::set_texcoTransferKey(const std::string &transferKey, const st
 ///////
 ///////
 
+void TextureState::set_texcoFlipping(TexcoFlipping mode) {
+	switch (mode) {
+		case TEXCO_FLIP_X:
+			shaderDefine(REGEN_TEX_NAME("TEX_FLIPPING_MODE"), "x");
+			break;
+		case TEXCO_FLIP_Y:
+			shaderDefine(REGEN_TEX_NAME("TEX_FLIPPING_MODE"), "y");
+			break;
+		case TEXCO_FLIP_NONE:
+			shaderDefine(REGEN_TEX_NAME("TEX_FLIPPING_MODE"), "none");
+			break;
+	}
+}
+
+///////
+///////
+
 void TextureState::enable(RenderState *rs) {
 	lastTexChannel_ = texture_->channel();
 	if (lastTexChannel_ == -1) {

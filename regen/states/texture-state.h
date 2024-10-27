@@ -88,6 +88,17 @@ namespace regen {
 			/** fisheye mapping. */
 			TRANSFER_TEXCO_FISHEYE
 		};
+		/**
+		 * \brief Specifies if texture coordinates should be flipped.
+		 */
+		enum TexcoFlipping {
+			/** flip x. */
+			TEXCO_FLIP_X,
+			/** flip y. */
+			TEXCO_FLIP_Y,
+			/** no flipping. */
+			TEXCO_FLIP_NONE
+		};
 
 		TextureState();
 
@@ -213,6 +224,12 @@ namespace regen {
 		 * @param transferName  name of user defined GLSL function.
 		 */
 		void set_texcoTransferFunction(const std::string &transferFunction, const std::string &transferName);
+
+		/**
+		 * Specifies how texture coordinates should be flipped.
+		 * @param mode Specifies how texture coordinates should be flipped.
+		 */
+		void set_texcoFlipping(TexcoFlipping mode);
 
 		/**
 		 * Explicit request to the application to ignore the alpha channel

@@ -134,6 +134,16 @@ namespace regen {
 					texState->set_texcoTransfer(input.getValue<TextureState::TransferTexco>(
 							"texco-transfer", TextureState::TRANSFER_TEXCO_RELIEF));
 				}
+				if (input.hasAttribute("texco-flipping")) {
+					auto flipModeName = input.getValue("texco-flipping");
+					if (flipModeName == "x") {
+						texState->set_texcoFlipping(TextureState::TEXCO_FLIP_X);
+					} else if (flipModeName == "y") {
+						texState->set_texcoFlipping(TextureState::TEXCO_FLIP_Y);
+					} else {
+						texState->set_texcoFlipping(TextureState::TEXCO_FLIP_NONE);
+					}
+				}
 				if (input.hasAttribute("sampler-type")) {
 					texState->set_samplerType(input.getValue("sampler-type"));
 				}
