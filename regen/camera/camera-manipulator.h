@@ -75,6 +75,11 @@ namespace regen {
 	 */
 	class FirstPersonTransform : public Animation {
 	public:
+		enum PhysicsMode {
+			IMPULSE = 0,
+			CHARACTER
+		};
+
 		explicit FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat, const ref_ptr<Mesh> &mesh);
 
 		/**
@@ -137,11 +142,13 @@ namespace regen {
 		 */
 		void lookRight(GLdouble v);
 
-		void pushForward(const GLfloat &v);
-		void pushBackward(const GLfloat &v);
-		void pushLeft(const GLfloat &v);
-		void pushRight(const GLfloat &v);
-		void push(const Vec3f &v);
+		void setPhysicsMode(PhysicsMode mode) { physicsMode_ = mode; }
+
+		auto physicsMode() { return physicsMode_; }
+
+		void setPhysicsSpeedFactor(GLfloat factor) { physicsSpeedFactor_ = factor; }
+
+		auto physicsSpeedFactor() { return physicsSpeedFactor_; }
 
 		// override
 		void animate(GLdouble dt) override;
@@ -154,6 +161,7 @@ namespace regen {
 		Mat4f matVal_;
 
 		Vec3f pos_;
+		Vec3f step_;
 		//Vec3f dir_;
 		GLdouble horizontalOrientation_;
 		Vec3f dirXZ_;
@@ -165,6 +173,12 @@ namespace regen {
 		GLboolean moveBackward_;
 		GLboolean moveLeft_;
 		GLboolean moveRight_;
+		GLboolean isMoving_;
+
+		PhysicsMode physicsMode_;
+		GLfloat physicsSpeedFactor_{};
+
+		void updatePhysicalObject(const ref_ptr<PhysicalObject> &po, GLdouble dt);
 	};
 
 	/**

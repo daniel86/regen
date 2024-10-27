@@ -124,25 +124,50 @@ void KeyFrameCameraTransform::glAnimate(RenderState *rs, GLdouble dt) {
 FirstPersonTransform::FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat, const ref_ptr<Mesh> &mesh)
 		: Animation(GL_TRUE, GL_TRUE),
 		  mat_(mat),
-		  mesh_(mesh) {
+		  mesh_(mesh),
+		  physicsMode_(IMPULSE),
+		  physicsSpeedFactor_(80.0) {
 	horizontalOrientation_ = 0.0;
 	moveAmount_ = 1.0;
 	moveForward_ = GL_FALSE;
 	moveBackward_ = GL_FALSE;
 	moveLeft_ = GL_FALSE;
 	moveRight_ = GL_FALSE;
+	isMoving_ = GL_FALSE;
 	matVal_ = Mat4f::identity();
+
+	auto hasPhysics = (mesh_.get() && !mesh_->physicalObjects().empty());
+	if (hasPhysics) {
+		for (const auto &po: mesh_->physicalObjects()) {
+			auto &motionState = po->motionState();
+			btTransform transform;
+			motionState->getWorldTransform(transform);
+			transform.getOpenGLMatrix((btScalar *) matVal_.x);
+			auto rigidBody = po->rigidBody();
+			rigidBody->setLinearVelocity(btVector3(0, 0, 0));
+		}
+	}
 }
 
-void FirstPersonTransform::set_moveAmount(GLfloat moveAmount) { moveAmount_ = moveAmount; }
+void FirstPersonTransform::set_moveAmount(GLfloat moveAmount) {
+	moveAmount_ = moveAmount;
+}
 
-void FirstPersonTransform::moveForward(GLboolean v) { moveForward_ = v; }
+void FirstPersonTransform::moveForward(GLboolean v) {
+	moveForward_ = v;
+}
 
-void FirstPersonTransform::moveBackward(GLboolean v) { moveBackward_ = v; }
+void FirstPersonTransform::moveBackward(GLboolean v) {
+	moveBackward_ = v;
+}
 
-void FirstPersonTransform::moveLeft(GLboolean v) { moveLeft_ = v; }
+void FirstPersonTransform::moveLeft(GLboolean v) {
+	moveLeft_ = v;
+}
 
-void FirstPersonTransform::moveRight(GLboolean v) { moveRight_ = v; }
+void FirstPersonTransform::moveRight(GLboolean v) {
+	moveRight_ = v;
+}
 
 void FirstPersonTransform::stepForward(const GLfloat &v) { step(dirXZ_ * v); }
 
@@ -152,27 +177,7 @@ void FirstPersonTransform::stepLeft(const GLfloat &v) { step(dirSidestep_ * (-v)
 
 void FirstPersonTransform::stepRight(const GLfloat &v) { step(dirSidestep_ * v); }
 
-void FirstPersonTransform::step(const Vec3f &v) { pos_ += v; }
-
-void FirstPersonTransform::pushForward(const GLfloat &v) { push(dirXZ_ * v); }
-
-void FirstPersonTransform::pushBackward(const GLfloat &v) { push(dirXZ_ * (-v)); }
-
-void FirstPersonTransform::pushLeft(const GLfloat &v) { push(dirSidestep_ * (-v)); }
-
-void FirstPersonTransform::pushRight(const GLfloat &v) { push(dirSidestep_ * v); }
-
-void FirstPersonTransform::push(const Vec3f &v) {
-	bool hasPhysics = (mesh_.get() && !mesh_->physicalObjects().empty());
-	if (hasPhysics) {
-		auto rigidBody = mesh_->physicalObjects().front()->rigidBody();
-		if (rigidBody.get()) {
-			btVector3 impulse(-v.x, -v.y, -v.z);
-			rigidBody->activate(true);
-			rigidBody->applyCentralImpulse(impulse);
-		}
-	}
-}
+void FirstPersonTransform::step(const Vec3f &v) { step_ += v; }
 
 void FirstPersonTransform::lookLeft(GLdouble amount) {
 	horizontalOrientation_ = fmod(horizontalOrientation_ + amount, 2.0 * M_PI);
@@ -180,6 +185,42 @@ void FirstPersonTransform::lookLeft(GLdouble amount) {
 
 void FirstPersonTransform::lookRight(GLdouble amount) {
 	horizontalOrientation_ = fmod(horizontalOrientation_ - amount, 2.0 * M_PI);
+}
+
+void FirstPersonTransform::updatePhysicalObject(const ref_ptr<PhysicalObject> &po, GLdouble dt) {
+	auto rigidBody = po->rigidBody();
+	if (!rigidBody.get()) return;
+
+	bool isMoving = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
+
+	switch (physicsMode_) {
+		case CHARACTER: {
+			btVector3 newVelocity(0, 0, 0);
+			if (isMoving) {
+				newVelocity = btVector3(-step_.x * physicsSpeedFactor_, -step_.y * physicsSpeedFactor_,
+										-step_.z * physicsSpeedFactor_);
+			}
+			rigidBody->activate(true);
+			rigidBody->setLinearVelocity(newVelocity);
+			break;
+		}
+		case IMPULSE: {
+			if (isMoving) {
+				btVector3 impulse(-step_.x * physicsSpeedFactor_, -step_.y * physicsSpeedFactor_,
+								  -step_.z * physicsSpeedFactor_);
+				rigidBody->activate(true);
+				rigidBody->applyCentralImpulse(impulse);
+			}
+			break;
+		}
+	}
+
+	btTransform transform;
+	btQuaternion rotation;
+	rigidBody->getMotionState()->getWorldTransform(transform);
+	rotation.setRotation(btVector3(0, 1, 0), horizontalOrientation_);
+	transform.setRotation(rotation);
+	rigidBody->getMotionState()->setWorldTransform(transform);
 }
 
 void FirstPersonTransform::animate(GLdouble dt) {
@@ -192,20 +233,25 @@ void FirstPersonTransform::animate(GLdouble dt) {
 
 	bool hasPhysics = (mesh_.get() && !mesh_->physicalObjects().empty());
 
-	lock();
-	if(hasPhysics){
-		if (moveForward_) pushForward(moveAmount_ * dt);
-		else if (moveBackward_) pushBackward(moveAmount_ * dt);
-		if (moveLeft_) pushLeft(moveAmount_ * dt);
-		else if (moveRight_) pushRight(moveAmount_ * dt);
+	step_ = Vec3f(0.0f);
+	if (moveForward_) stepForward(moveAmount_ * dt);
+	else if (moveBackward_) stepBackward(moveAmount_ * dt);
+	if (moveLeft_) stepLeft(moveAmount_ * dt);
+	else if (moveRight_) stepRight(moveAmount_ * dt);
+
+	if (hasPhysics) {
+		lock();
+		for (const auto &po: mesh_->physicalObjects()) {
+			updatePhysicalObject(po, dt);
+		}
+		unlock();
+	} else {
+		lock();
+		pos_ += step_;
+		unlock();
 	}
-	else {
-		if (moveForward_) stepForward(moveAmount_ * dt);
-		else if (moveBackward_) stepBackward(moveAmount_ * dt);
-		if (moveLeft_) stepLeft(moveAmount_ * dt);
-		else if (moveRight_) stepRight(moveAmount_ * dt);
-	}
-	unlock();
+
+	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
 }
 
 void FirstPersonTransform::glAnimate(RenderState *rs, GLdouble dt) {
@@ -277,16 +323,16 @@ void FirstPersonCameraTransform::updateCameraOrientation() {
 	camDir_ = rot_.rotate(camDir_);
 }
 
-#define __ORIENT_THRESHOLD__ 0.1
+#define REGEN_ORIENT_THRESHOLD_ 0.1
 
 void FirstPersonCameraTransform::lookUp(GLdouble amount) {
 	verticalOrientation_ = math::clamp(verticalOrientation_ + amount,
-									   -0.5 * M_PI + __ORIENT_THRESHOLD__, 0.5 * M_PI - __ORIENT_THRESHOLD__);
+									   -0.5 * M_PI + REGEN_ORIENT_THRESHOLD_, 0.5 * M_PI - REGEN_ORIENT_THRESHOLD_);
 }
 
 void FirstPersonCameraTransform::lookDown(GLdouble amount) {
 	verticalOrientation_ = math::clamp(verticalOrientation_ - amount,
-									   -0.5 * M_PI + __ORIENT_THRESHOLD__, 0.5 * M_PI - __ORIENT_THRESHOLD__);
+									   -0.5 * M_PI + REGEN_ORIENT_THRESHOLD_, 0.5 * M_PI - REGEN_ORIENT_THRESHOLD_);
 }
 
 void FirstPersonCameraTransform::zoomIn(GLdouble amount) {}

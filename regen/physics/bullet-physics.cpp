@@ -20,8 +20,23 @@ BulletPhysics::BulletPhysics()
 }
 
 void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object) {
+	auto &props = object->props();
 	dynamicsWorld_->addRigidBody(object->rigidBody().get());
+	bool isCharacter = props->characterController().get() != nullptr;
+	if (isCharacter) {
+		dynamicsWorld_->addAction(props->characterController().get());
+	}
+	for (auto &x: props->collisionObjects()) {
+		if (isCharacter) {
+			dynamicsWorld_->addCollisionObject(x.get(),
+											   btBroadphaseProxy::CharacterFilter,
+											   btBroadphaseProxy::StaticFilter | btBroadphaseProxy::DefaultFilter);
+		} else {
+			dynamicsWorld_->addCollisionObject(x.get());
+		}
+	}
 	objects_.push_back(object);
+
 }
 
 void BulletPhysics::glAnimate(RenderState *rs, GLdouble dt) {}

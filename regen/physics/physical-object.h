@@ -15,7 +15,7 @@ namespace regen {
 	public:
 		/**
 		 * Default constructor.
-		 * @param props Properrties used to create this object.
+		 * @param props Properties used to create this object.
 		 */
 		explicit PhysicalObject(const ref_ptr<PhysicalProps> &props);
 
@@ -33,6 +33,11 @@ namespace regen {
 		 * @return Motion state for transform synchronization.
 		 */
 		const ref_ptr<btMotionState> &motionState();
+
+		/**
+		 * @return the physical properties.
+		 */
+		auto &props() const { return props_; }
 
 	protected:
 		ref_ptr<btRigidBody> rigidBody_;
