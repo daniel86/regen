@@ -36,7 +36,7 @@
        type="asset"
        file="res/models/venus.obj"
        use-animation="0" />
-<asset id="asset-bunny"
+<asset id="asset-dragon"
        type="asset"
        file="res/models/dragon.obj"
        use-animation="0" />
@@ -81,17 +81,17 @@
 </mesh>
 <mesh id="mesh-dragon"
       type="asset"
-      asset="asset-teapot"
+      asset="asset-dragon"
       asset-indices="*"
       asset-animation="0"
       asset-material="0"
-      scaling="0.06,0.06,0.06"
+      scaling="0.1,0.1,0.1"
       rotation="0.0,0.0,0.0"
       translation="0.0,0.0,0.0">
   <material preset="ruby" />
   <transform>
     <rotate value="3.14,0.0,0.0" />
-    <translate value="-1.5,-0.1,0.0" />
+    <translate value="-1.5,-0.6,0.0" />
   </transform>
 </mesh>
 
@@ -277,8 +277,6 @@
     </interpolations>
     <frames>
       <frame duration="2.0" shape="sphere" />
-      <frame duration="2.0" shape="original" />
-      <frame duration="2.0" shape="box" width="0.85" height="0.85" depth="0.85" offset="0.0,-0.075,0.0"/>
       <frame duration="2.0" shape="original" />
     </frames>
   </deformation>

@@ -219,7 +219,7 @@ uniform sampler2D in_gDepthTexture;
 
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
-#include regen.math.computeCubeLayer
+#include regen.math.computeDepth
 
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.deferred.fetchNormal
@@ -278,9 +278,10 @@ void main() {
     vec4 shadowColor = textureProj(in_shadowColorTexture,shadowTexco);
 #endif
 #else
-    float shadowDepth = (
-        in_lightMatrix[computeCubeLayer(lightVec)]*
-        vec4(lightVec,1.0)).z;
+    vec3 absLightVec = abs(lightVec);
+    float shadowDepth = computeDepth(
+        max(absLightVec .x, max(absLightVec .y, absLightVec .z)),
+        in_lightNear, in_lightFar);
     float shadow = pointShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
         L,
