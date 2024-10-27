@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/default.xml"/>
+<include xml-file="scene-display/examples/templates/default.xml"/>
 <include xml-file="scene-display/examples/templates/fluid-smoke.xml"/>
 <include xml-file="scene-display/examples/templates/fluid-velocity.xml"/>
 <include xml-file="scene-display/examples/templates/mandelbrot.xml"/>
@@ -36,10 +36,18 @@
     <node import="fluid-vel-initialize" />
 </node>
 
-
-        <!-- Assets -->
-<asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0" />
-<asset id="asset-teapot" type="asset" file="res/models/teapot.obj" use-animation="0" />
+        <!-- FBOs -->
+<fbo id="g-buffer"
+     size-mode="rel" size="1.0,1.0"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4" >
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
         <!-- Textures -->
 <texture id="ground-color" file="res/textures/brick/color.jpg"/>
 <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
@@ -124,27 +132,6 @@
       asset-indices="*"
       asset-animation="1">
     <transform id="dwarf-transform"/>
-</mesh>
-
-<mesh id="statue-platform"
-      type="box"
-      scaling="0.6,1.5,0.6"
-      use-normal="1"
-      use-tangent="0"
-      center="1"
-      usage="STATIC">
-  <material preset="jade" />
-</mesh>
-
-<mesh id="venus-mesh"
-      type="asset"
-      asset="venus-asset"
-      asset-indices="*"
-      asset-animation="0"
-      asset-material="0"
-      scaling="0.0006,0.0006,0.0006"
-      usage="STATIC">
-  <material preset="ruby" />
 </mesh>
 
 <mesh id="mesh-teapot"
@@ -285,7 +272,7 @@
 </node>
 
         <!--**************************-->
-        <!--** ANIMATED "PAINTINGS" **-->
+        <!--** ANIMATED PICTURES **-->
         <!--**************************-->
 
 <mesh id="picture-canvas"
@@ -441,6 +428,139 @@
 </node>
 
         <!--**************************-->
+        <!--***** Statues *****-->
+        <!--**************************-->
+
+<mesh id="venus-mesh"
+      type="asset"
+      asset="venus-asset"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.0006,0.0006,0.0006"
+      usage="STATIC">
+  <material preset="ruby" />
+</mesh>
+
+<mesh id="dragon-mesh"
+      type="asset"
+      asset="dragon-asset"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.15, 0.15, 0.15"
+      usage="STATIC">
+  <material preset="gold" />
+</mesh>
+
+<mesh id="bunny-mesh"
+      type="asset"
+      asset="bunny-asset"
+      asset-indices="*"
+      asset-animation="0"
+      asset-material="0"
+      scaling="0.6, 0.6, 0.6"
+      usage="STATIC">
+  <material preset="jade" />
+</mesh>
+
+<mesh id="statue-platform"
+      type="box"
+      scaling="0.75,1.5,0.75"
+      use-normal="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+  <material preset="copper" />
+</mesh>
+<mesh id="statue-platform-head"
+      type="box"
+      scaling="0.8,0.1,0.8"
+      use-normal="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+  <material preset="pewter" />
+</mesh>
+
+<node id="Statues">
+    <node id="Venus-Statue">
+        <transform>
+            <rotate value="1.57079632,0.0,0.0"/>
+            <translate value="-6.0, 1.4, -13.0" />
+        </transform>
+        <mesh id="venus-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node id="Venus-Platform">
+        <node>
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <translate value="-6.0, -0.5, -13.0"/>
+            </transform>
+            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <translate value="-6.0, 0.901, -13.0"/>
+            </transform>
+            <mesh id="statue-platform-head" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Dragon-Statue">
+        <transform>
+            <rotate value="0.0,0.0,0.0" />
+            <translate value="-0.0, 1.0, -13.0" />
+        </transform>
+        <mesh id="dragon-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node id="Dragon-Platform">
+        <node>
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <translate value="-0.0, -0.5, -13.0"/>
+            </transform>
+            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <transform>
+                <rotate value="1.57079632,0.0,0.0"/>
+                <translate value="-0.0, 0.901, -13.0"/>
+            </transform>
+            <mesh id="statue-platform-head" shader="regen.models.mesh"/>
+        </node>
+    </node>
+</node>
+
+<node id="Statues-No-Shadow">
+    <node id="Bunny">
+        <transform>
+            <rotate value="-1.275, 0.0, 0.0"/>
+            <translate value="-12.1, 1.2, -11.2" />
+        </transform>
+        <mesh id="bunny-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node id="Bunny-Statue">
+        <node>
+            <transform>
+                <rotate value="0.75, 0.0, 0.0"/>
+                <translate value="-12.0,-0.5,-11.0"/>
+            </transform>
+            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <transform>
+                <rotate value="0.75, 0.0, 0.0"/>
+                <translate value="-12.0, 0.901, -11.0"/>
+            </transform>
+            <mesh id="statue-platform-head" shader="regen.models.mesh"/>
+        </node>
+    </node>
+</node>
+
+
+        <!--**************************-->
         <!--***** Shadow Mapping *****-->
         <!--**************************-->
 
@@ -505,34 +625,7 @@
     <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-transform" shape="sphere">
         <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
     </node>
-    <node id="Venus">
-        <transform>
-            <rotate value="0.0,0.0,0.0" />
-            <translate value="-5.0,1.4,-11.0" />
-        </transform>
-        <mesh id="venus-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node id="Venus-Statue">
-        <transform>
-                <rotate value="1.57079632,0.0,0.0"/>
-            <translate value="-5.0,-0.5,-11.0"/>
-        </transform>
-        <mesh id="statue-platform" shader="regen.models.mesh"/>
-    </node>
-    <node id="Teapot">
-        <transform>
-            <rotate value="0.0,0.0,0.0" />
-            <translate value="5.0,1.4,-6.0" />
-        </transform>
-        <mesh id="mesh-teapot" shader="regen.models.mesh"/>
-    </node>
-    <node id="Teapot-Statue">
-        <transform>
-                <rotate value="1.57079632,0.0,0.0"/>
-            <translate value="5.0,-0.5,-6.0"/>
-        </transform>
-        <mesh id="statue-platform" shader="regen.models.mesh"/>
-    </node>
+    <node import="Statues"/>
 </node>
 
 <node id="Scene-Geometry">
@@ -552,20 +645,7 @@
         <mesh id="ground-mesh" shader="regen.models.mesh"/>
     </node>
     <node import="Pictures"/>
-    <node id="Venus2">
-        <transform>
-            <rotate value="0.0,0.0,0.0" />
-            <translate value="-12.0,1.4,-11.0" />
-        </transform>
-        <mesh id="venus-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node id="Venus-Statue2">
-        <transform>
-            <rotate value="0.0,0.0,0.0"/>
-            <translate value="-12.0,-0.5,-11.0"/>
-        </transform>
-        <mesh id="statue-platform" shader="regen.models.mesh"/>
-    </node>
+    <node import="Statues-No-Shadow"/>
 
     <node id="Walls">
         <texture name="colorTexture" id="wall-color" map-to="COLOR"/>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/default.xml" />
+<include xml-file="scene-display/examples/templates/default.xml" />
 
 <!-- Application configuration -->
 <gui-config ego-camera="0"
@@ -23,6 +23,18 @@
   </camera>
 </node>
 
+<!-- FBOs -->
+<fbo id="g-buffer"
+     size-mode="rel" size="1.0,1.0"
+     pixel-type="UNSIGNED_BYTE"
+     pixel-size="16"
+     pixel-components="4" >
+  <texture id="diffuse0" />
+  <texture id="diffuse1" />
+  <texture id="specular" />
+  <texture id="normal" />
+  <depth id="depth" pixel-size="24" />
+</fbo>
 <!-- Textures -->
 <texture id="bonsain-transfer"
 	 file="res/textures/volumes/bonsai-transfer.png" />
