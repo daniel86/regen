@@ -44,6 +44,22 @@ namespace regen {
 		btTransform transform_;
 		GLuint index_;
 	};
+
+	/**
+	 * Attach a physical object to a character model matrix.
+	 */
+	class CharacterMotion : public ModelMatrixMotion {
+	public:
+		explicit CharacterMotion(
+				const ref_ptr<ShaderInputMat4> &modelMatrix,
+				GLuint index = 0);
+
+		~CharacterMotion() override = default;
+
+		void getWorldTransform(btTransform &worldTrans) const override;
+
+		void setWorldTransform(const btTransform &worldTrans) override;
+	};
 } // namespace
 
 #endif /* MODEL_MATRIX_H_ */

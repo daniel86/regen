@@ -2,9 +2,11 @@
 #ifndef PHYSICAL_PROPS_H_
 #define PHYSICAL_PROPS_H_
 
+#include <vector>
 #include <regen/utility/ref-ptr.h>
 
 #include <btBulletDynamicsCommon.h>
+#include <BulletDynamics/Character/btCharacterControllerInterface.h>
 
 namespace regen {
 	/**
@@ -113,11 +115,35 @@ namespace regen {
 		 */
 		const btRigidBody::btRigidBodyConstructionInfo &constructInfo();
 
+		/**
+		 * @param controller The character controller.
+		 */
+		void setCharacterController(
+				const ref_ptr<btCharacterControllerInterface> &controller) { characterController_ = controller; }
+
+		/**
+		 * @return The character controller, if any.
+		 */
+		auto &characterController() const { return characterController_; }
+
+		/**
+		 * Adds a collision object to the list.
+		 * @param object The collision object.
+		 */
+		void addCollisionObject(const ref_ptr<btCollisionObject> &object) { collisionObjects_.push_back(object); }
+
+		/**
+		 * @return The list of collision objects.
+		 */
+		auto &collisionObjects() const { return collisionObjects_; }
+
 	protected:
 		btRigidBody::btRigidBodyConstructionInfo constructInfo_;
 		ref_ptr<btRigidBody> rigidBody_;
 		ref_ptr<btCollisionShape> shape_;
 		ref_ptr<btMotionState> motionState_;
+		ref_ptr<btCharacterControllerInterface> characterController_;
+		std::vector<ref_ptr<btCollisionObject> > collisionObjects_;
 	};
 } // namespace
 
