@@ -169,8 +169,8 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	if (out->size() == 1) {
 		ref_ptr<Mesh> mesh = (*out)[0];
 		parser->putState(input.getName(), mesh);
-		parser->getResources()->putMesh(input.getName(), out_);
 	}
+	parser->getResources()->putMesh(input.getName(), out_);
 
 	if (input.hasAttribute("primitive")) {
 		GLenum primitive = glenum::primitive(input.getValue("primitive"));
