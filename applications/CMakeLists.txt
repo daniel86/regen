@@ -1,4 +1,6 @@
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 if(BUILD_GLUT_APPLICATION)
     add_subdirectory(glut)
 endif()

@@ -44,9 +44,35 @@ namespace regen {
 		explicit KeyFrameCameraTransform(const ref_ptr<Camera> &cam);
 
 		/**
+		 * @return the current camera position.
+		 */
+		auto& cameraPosition() const { return camPos_; }
+
+		/**
+		 * @return the current camera direction.
+		 */
+		auto& cameraDirection() const { return camDir_; }
+
+
+		/**
 		 * Adds a frame to the list of key frames for camera animation.
 		 */
 		void push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
+
+		/**
+		 * @param intensity the intensity of the ease in/out effect.
+		 */
+		void setEaseInOutIntensity(GLdouble intensity) { easeInOutIntensity_ = intensity; }
+
+		/**
+		 * @param pauseTime the pause time between key frames.
+		 */
+		void setPauseBetweenFrames(GLdouble pauseTime) { pauseTime_ = pauseTime; }
+
+		/**
+		 * @param repeat the repeat flag.
+		 */
+		void setRepeat(GLboolean repeat) { repeat_ = repeat; }
 
 		// override
 		void animate(GLdouble dt) override;
@@ -65,8 +91,16 @@ namespace regen {
 		Vec3f camPos_;
 		Vec3f camDir_;
 		GLdouble dt_;
+		GLdouble easeInOutIntensity_;
+		GLboolean repeat_;
+		GLboolean skipFirstFrameOnLoop_;
 
-		Vec3f interpolate(const Vec3f &v0, const Vec3f &v1, GLdouble t);
+		GLdouble pauseTime_;
+		GLdouble currentPauseDuration_;
+		GLboolean isPaused_;
+
+		Vec3f interpolatePosition(const Vec3f &v0, const Vec3f &v1, GLdouble t) const;
+		Vec3f interpolateDirection(const Vec3f &v0, const Vec3f &v1, GLdouble t) const;
 	};
 
 	/**
@@ -81,6 +115,13 @@ namespace regen {
 		};
 
 		explicit FirstPersonTransform(const ref_ptr<ShaderInputMat4> &mat, const ref_ptr<Mesh> &mesh);
+
+		/**
+		 * Initializes the camera with a position and direction.
+		 * @param pos the position of the camera.
+		 * @param dir the direction of the camera.
+		 */
+		void setTransform(const Vec3f &pos, const Vec3f &dir);
 
 		/**
 		 * @param v move velocity.
@@ -142,12 +183,24 @@ namespace regen {
 		 */
 		void lookRight(GLdouble v);
 
+		/**
+		 * @param mode the physics mode.
+		 */
 		void setPhysicsMode(PhysicsMode mode) { physicsMode_ = mode; }
 
+		/**
+		 * @return the physics mode.
+		 */
 		auto physicsMode() { return physicsMode_; }
 
+		/**
+		 * @param factor the physics speed factor.
+		 */
 		void setPhysicsSpeedFactor(GLfloat factor) { physicsSpeedFactor_ = factor; }
 
+		/**
+		 * @return the physics speed factor.
+		 */
 		auto physicsSpeedFactor() { return physicsSpeedFactor_; }
 
 		// override
@@ -164,6 +217,7 @@ namespace regen {
 		Vec3f step_;
 		//Vec3f dir_;
 		GLdouble horizontalOrientation_;
+		GLdouble verticalOrientation_;
 		Vec3f dirXZ_;
 		Vec3f dirSidestep_;
 		GLfloat moveAmount_;
@@ -237,8 +291,6 @@ namespace regen {
 
 		Vec3f camPos_;
 		Vec3f camDir_;
-
-		GLdouble verticalOrientation_;
 
 		Vec3f meshEyeOffset_;
 		GLdouble meshHorizontalOrientation_;

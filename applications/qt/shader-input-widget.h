@@ -7,8 +7,8 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/animations/animation.h>
 #include <regen/states/state-node.h>
-#include <applications/qt/shader-input-editor.h>
 #include <QTreeWidgetItem>
+#include "qt/ui_shader-input-editor.h"
 
 namespace regen {
 /**

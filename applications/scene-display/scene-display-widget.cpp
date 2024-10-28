@@ -105,8 +105,15 @@ protected:
 /////////////////
 
 SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
-		: QMainWindow(), inputDialog_(nullptr), inputWidget_(nullptr), app_(app) {
+		: QMainWindow(),
+		  anchorIndex_(0),
+		  inputDialog_(nullptr),
+		  inputWidget_(nullptr),
+		  app_(app) {
 	setMouseTracking(true);
+	anchorEaseInOutIntensity_ = 1.0;
+	anchorPauseTime_ = 2.0;
+	anchorTimeScale_ = 1.0;
 
 	InteractionManager::registerInteraction(
 			"video-toggle", ref_ptr<VideoToggleInteration>::alloc());
@@ -188,6 +195,90 @@ void SceneDisplayWidget::previousView() {
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 }
 
+void SceneDisplayWidget::toggleOffCameraTransform() {
+	if(cameraTransform_.get()) {
+		cameraTransform_->stopAnimation();
+	}
+}
+
+void SceneDisplayWidget::toggleOnCameraTransform() {
+	if(cameraTransform_.get()) {
+		// update the camera position
+		cameraTransform_->setTransform(
+				mainCamera_->position()->getVertex(0),
+				mainCamera_->direction()->getVertex(0));
+		cameraTransform_->startAnimation();
+		cameraTransform_->animate(0.0);
+	}
+}
+
+double SceneDisplayWidget::getAnchorTime(
+		const Vec3f &fromPosition, const Vec3f &toPosition) {
+    double linearDistance = (fromPosition - toPosition).length();
+    // travel with ~6m per second
+    return std::max(2.0, linearDistance/6.0);
+}
+
+void SceneDisplayWidget::nextAnchor() {
+	if (anchors_.empty()) return;
+	if (!mainCamera_.get()) return;
+	if (anchorAnim_.get()) {
+		anchorAnim_->stopAnimation();
+	}
+	toggleOffCameraTransform();
+
+	anchorIndex_++;
+	if (anchorIndex_ >= anchors_.size()) {
+		anchorIndex_ = 0;
+	}
+	auto &anchor = anchors_[anchorIndex_];
+	auto &camPos = mainCamera_->position()->getVertex(0);
+	auto &camDir = mainCamera_->direction()->getVertex(0);
+    double dt = getAnchorTime(anchor->position(), camPos);
+	anchorAnim_ = ref_ptr<KeyFrameCameraTransform>::alloc(mainCamera_);
+	anchorAnim_->setRepeat(GL_FALSE);
+	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
+	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
+	anchorAnim_->push_back(camPos, camDir, 0.0);
+	anchorAnim_->push_back(anchor->position(), anchor->direction(), dt*anchorTimeScale_);
+	anchorAnim_->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
+			[this](EventObject *emitter, EventData *data) {
+				toggleOnCameraTransform();
+				anchorAnim_ = ref_ptr<KeyFrameCameraTransform>();
+			}));
+	anchorAnim_->startAnimation();
+}
+
+void SceneDisplayWidget::playAnchor() {
+	if (anchors_.empty()) return;
+	if (!mainCamera_.get()) return;
+	auto &camPos = mainCamera_->position()->getVertex(0);
+	auto &camDir = mainCamera_->direction()->getVertex(0);
+	if (anchorAnim_.get()) {
+		anchorAnim_->stopAnimation();
+		anchorAnim_->updateCamera(anchorAnim_->cameraPosition(), anchorAnim_->cameraDirection(), 0.0);
+		anchorAnim_ = ref_ptr<KeyFrameCameraTransform>();
+		toggleOnCameraTransform();
+		return;
+	}
+	toggleOffCameraTransform();
+
+	anchorAnim_ = ref_ptr<KeyFrameCameraTransform>::alloc(mainCamera_);
+	anchorAnim_->setRepeat(GL_TRUE);
+	//anchorAnim_->setSkipFirstFrameOnLoop(GL_TRUE);
+	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
+	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
+	anchorAnim_->push_back(camPos, camDir, 0.0);
+	Vec3f lastPos = camPos;
+	for (auto &anchor : anchors_) {
+		double dt = getAnchorTime(anchor->position(), lastPos);
+		anchorAnim_->push_back(anchor->position(), anchor->direction(), dt*anchorTimeScale_);
+		lastPos = anchor->position();
+	}
+	anchorAnim_->animate(0.0);
+	anchorAnim_->startAnimation();
+}
+
 void SceneDisplayWidget::toggleInputsDialog() {
 	if (inputDialog_ == nullptr) {
 		inputDialog_ = new QDialog(this);
@@ -262,23 +353,25 @@ static void handleFirstPersonCamera(
 	eventHandler.emplace_back(cameraEventHandler);
 }
 
-static void handleCameraConfiguration(
-		QtApplication *app_,
+void SceneDisplayWidget::handleCameraConfiguration(
 		scene::SceneParser &sceneParser,
-		list<ref_ptr<EventHandler> > &eventHandler,
-		list<ref_ptr<Animation> > &animations,
 		const ref_ptr<SceneInputNode> &cameraNode) {
 	ref_ptr<Camera> cam = sceneParser.getResources()->getCamera(&sceneParser, cameraNode->getName());
 	if (cam.get() == nullptr) {
 		REGEN_WARN("Unable to find camera for '" << cameraNode->getDescription() << "'.");
 		return;
 	}
+	mainCamera_ = cam;
+	cameraTransform_ = ref_ptr<FirstPersonTransform>();
+
 	auto eyeOffset = cameraNode->getValue<Vec3f>("eye-offset", Vec3f(0.0));
 	auto eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation", 0.0);
 	auto cameraOrientation = cameraNode->getValue<GLfloat>("camera-orientation", 0.0);
 	auto mode = cameraNode->getValue<string>("type", "first-person");
 
-	ref_ptr<FirstPersonTransform> cameraTransform;
+	anchorEaseInOutIntensity_ = cameraNode->getValue<GLfloat>("ease-in-out-intensity", 1.0);
+	anchorPauseTime_ = cameraNode->getValue<GLfloat>("anchor-pause-time", 0.5);
+	anchorTimeScale_ = cameraNode->getValue<GLfloat>("anchor-time-scale", 1.0);
 
 	if (cameraNode->hasAttribute("mesh") && cameraNode->hasAttribute("transform")) {
 		ref_ptr<ModelTransformation> transform = sceneParser.getResources()->getTransform(&sceneParser,
@@ -304,23 +397,27 @@ static void handleCameraConfiguration(
 			ref_ptr<FirstPersonCameraTransform> fpsCamera =
 					ref_ptr<FirstPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
 			fpsCamera->setCameraOrientation(cameraOrientation);
-			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
-			cameraTransform = fpsCamera;
+			handleFirstPersonCamera(app_, fpsCamera, eventHandler_, cameraNode);
+			cameraTransform_ = fpsCamera;
 		} else if (mode == string("third-person")) {
 			ref_ptr<ThirdPersonCameraTransform> fpsCamera =
 					ref_ptr<ThirdPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
 			fpsCamera->setCameraOrientation(cameraOrientation);
-			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
-			cameraTransform = fpsCamera;
+			handleFirstPersonCamera(app_, fpsCamera, eventHandler_, cameraNode);
+			cameraTransform_ = fpsCamera;
 		}
 	} else {
 		if (mode == string("first-person")) {
 			ref_ptr<FirstPersonCameraTransform> fpsCamera = ref_ptr<FirstPersonCameraTransform>::alloc(cam);
 			fpsCamera->setCameraOrientation(cameraOrientation);
-			handleFirstPersonCamera(app_, fpsCamera, eventHandler, cameraNode);
-			cameraTransform = fpsCamera;
+			handleFirstPersonCamera(app_, fpsCamera, eventHandler_, cameraNode);
+			cameraTransform_ = fpsCamera;
 		} else if (mode == string("key-frames")) {
 			ref_ptr<KeyFrameCameraTransform> keyFramesCamera = ref_ptr<KeyFrameCameraTransform>::alloc(cam);
+			if (cameraNode->hasAttribute("ease-in-out-intensity")) {
+				keyFramesCamera->setEaseInOutIntensity(
+						cameraNode->getValue<GLdouble>("ease-in-out-intensity", 1.0));
+			}
 			for (const auto &x: cameraNode->getChildren("key-frame")) {
 				keyFramesCamera->push_back(
 						x->getValue<Vec3f>("pos", Vec3f(0.0f, 0.0f, 1.0f)),
@@ -328,12 +425,12 @@ static void handleCameraConfiguration(
 						x->getValue<GLdouble>("dt", 0.0)
 				);
 			}
-			animations.emplace_back(keyFramesCamera);
+			animations_.emplace_back(keyFramesCamera);
 			//cameraTransform = keyFramesCamera;
 		}
 	}
 
-	if (cameraTransform.get() != nullptr) {
+	if (cameraTransform_.get() != nullptr) {
 		auto physicsMode = FirstPersonTransform::IMPULSE;
 		if (cameraNode->hasAttribute("physics-mode")) {
 			auto modeStr = cameraNode->getValue("physics-mode");
@@ -343,12 +440,38 @@ static void handleCameraConfiguration(
 		}
 		auto physicsSpeedFactor = cameraNode->getValue<GLfloat>("physics-speed-factor", 80.0f);
 
-		cameraTransform->setPhysicsMode(physicsMode);
-		cameraTransform->setPhysicsSpeedFactor(physicsSpeedFactor);
+		cameraTransform_->setPhysicsMode(physicsMode);
+		cameraTransform_->setPhysicsSpeedFactor(physicsSpeedFactor);
 
 		// make sure camera transforms are updated in first few frames
-		cameraTransform->animate(0.0);
-		cameraTransform->glAnimate(RenderState::get(), 0.0);
+		cameraTransform_->animate(0.0);
+		cameraTransform_->glAnimate(RenderState::get(), 0.0);
+	}
+
+	// read anchor points
+	for (const auto &x: cameraNode->getChildren("anchor")) {
+		if (x->hasAttribute("transform")) {
+			auto transform = sceneParser.getResources()->getTransform(&sceneParser, x->getValue("transform"));
+			if (transform.get() == nullptr) {
+				REGEN_WARN("Unable to find transform for anchor.");
+				continue;
+			}
+			auto anchor = ref_ptr<TransformCameraAnchor>::alloc(transform);
+			auto anchorOffset = x->getValue<Vec3f>("offset", Vec3f(1.0f));
+			anchor->setOffset(anchorOffset);
+			auto anchorMode = x->getValue("look-at");
+			if (anchorMode == "back") {
+				anchor->setMode(TransformCameraAnchor::LOOK_AT_BACK);
+			} else {
+				anchor->setMode(TransformCameraAnchor::LOOK_AT_FRONT);
+			}
+			anchors_.emplace_back(anchor);
+		} else {
+			auto pos = x->getValue<Vec3f>("pos", Vec3f(0.0));
+			auto dir = x->getValue<Vec3f>("dir", Vec3f(0.0));
+			auto anchor = ref_ptr<FixedCameraAnchor>::alloc(pos, dir);
+			anchors_.emplace_back(anchor);
+		}
 	}
 }
 
@@ -375,8 +498,7 @@ static void handleAssetAnimationConfiguration(
 	}
 
 	if (animationNode->getValue("mode") == string("random")) {
-		for (GLuint i = 0; i < nodeAnimations_.size(); ++i) {
-			const ref_ptr<NodeAnimation> &anim = nodeAnimations_[i];
+		for (const auto & anim : nodeAnimations_) {
 			ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater>::alloc(anim, ranges);
 			anim->connect(Animation::ANIMATION_STOPPED, animStopped);
 			eventHandler.push_back(animStopped);
@@ -464,7 +586,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
 	animations_.clear();
 	viewNodes_.clear();
+	anchors_.clear();
 	physics_ = ref_ptr<BulletPhysics>();
+	mainCamera_ = ref_ptr<Camera>();
+	anchorAnim_ = ref_ptr<KeyFrameCameraTransform>();
+	anchorIndex_ = 0;
 
 	for (auto &it: eventHandler_) {
 		app_->disconnect(it);
@@ -501,7 +627,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 				handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x);
 			}
 		} else if (x->getCategory() == string("camera")) {
-			handleCameraConfiguration(app_, sceneParser, eventHandler_, animations_, x);
+			handleCameraConfiguration(sceneParser, x);
 		} else if (x->getCategory() == string("mouse")) {
 			handleMouseConfiguration(app_, sceneParser, eventHandler_, x);
 		}
@@ -540,6 +666,14 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
 	if (xmlInput->getRoot()->getFirstChild("node", "animations").get() != nullptr) {
 		sceneParser.processNode(tree, "animations", "node");
+	}
+
+	if (anchors_.empty()) {
+		ui_.playAnchor->setEnabled(false);
+		ui_.nextAnchor->setEnabled(false);
+	} else {
+		ui_.playAnchor->setEnabled(true);
+		ui_.nextAnchor->setEnabled(true);
 	}
 
 	// add mouse event handler

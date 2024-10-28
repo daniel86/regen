@@ -6,7 +6,35 @@
 <include xml-file="scene-display/examples/templates/mandelbrot.xml"/>
 
 <node id="configuration">
-    <camera id="main-camera" type="first-person" eye-offset="0.0,0.0,0.0" camera-orientation="1.58"/>
+    <camera id="main-camera"
+            type="first-person"
+            eye-offset="0.0,0.0,0.0"
+            ease-in-out="1.4"
+            anchor-pause-time="0.5"
+            anchor-time-scale="0.6"
+            camera-orientation="1.58">
+        <!-- anchors can be cycled through in the GUI -->
+        <anchor type="look-at" transform="dragon-tf" offset="0.0, 2.0, 14.0" />
+        <anchor type="look-at" transform="dragon-tf" offset="0.0, 2.0, 4.0" />
+        <anchor type="look-at" transform="venus-tf"  offset="0.0, 2.0, 18.0" />
+        <anchor type="look-at" transform="bunny-tf"  offset="8.0, 2.0, 10.0" />
+        <anchor type="look-at" transform="reflector-tf" offset="44.0, 0.0, 0.0" />
+        <anchor type="look-at" transform="velocity-picture-tf" offset="0.0, 2.0, -8.0" />
+        <anchor type="look-at" transform="smoke-picture-tf" offset="0.0, 2.0, -14.0" />
+        <anchor type="look-at" transform="video-picture-tf" offset="0.0, 2.0, -14.0" />
+        <anchor type="look-at" transform="video-picture-tf" offset="0.0, 12.0, -18.0" />
+        <anchor type="look-at" transform="mandelbrot-picture-tf" offset="0.0, 2.0, -14.0" />
+        <anchor type="look-at" transform="reflector-tf" offset="52.0, 30.0, 0.0" />
+        <!--
+        <anchor pos=" 2.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0" />
+        <anchor pos=" 0.0, 0.5,-2.0" dir=" 0.0,-0.5, 2.0" />
+        <anchor pos="-2.0, 0.0,  0.0" dir=" 2.0, 0.0, 0.0" />
+        <anchor pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0" />
+        <anchor pos=" 2.0, -0.5, 0.0" dir="-2.0, 0.5, 0.0" />
+        <anchor pos=" 0.0, -0.5,-2.0" dir=" 0.0, 0.5, 2.0" />
+        <anchor pos="-2.0,  0.0,  0.0" dir=" 2.0,  0.0, 0.0" />
+        -->
+    </camera>
     <mouse>
         <click node="video-picture" interaction="video-toggle" />
         <click node="smoke-picture" interaction-node="smoke-splat-interaction" />
@@ -104,17 +132,6 @@
     </transform>
 </mesh>
 
-<mesh id="mesh-teapot"
-      type="asset"
-      asset="asset-teapot"
-      asset-indices="*"
-      asset-animation="0"
-      asset-material="0"
-      scaling="0.08,0.08,0.08"
-      usage="STATIC">
-  <material preset="silver" />
-</mesh>
-
 <mesh id="box-wall"
       type="box"
       lod="4"
@@ -184,11 +201,12 @@
       use-tangent="0"
       center="1"
       usage="STATIC">
-    <transform>
-        <rotate value="0.0,1.5707963,0.0"/>
-        <translate value="-20.0,3.0,0.0"/>
-    </transform>
+    <transform id="reflector-tf" />
 </mesh>
+<transform id="reflector-tf">
+    <rotate value="0.0,1.5707963,0.0"/>
+    <translate value="-20.0,3.0,0.0"/>
+</transform>
 
 <node id="Reflection-Pass">
     <camera id="reflection-camera"/>
@@ -283,16 +301,26 @@
       text="Smoke Simulation">
 </mesh>
 
-<transform id="smoke-picture-transform">
+<transform id="smoke-picture-tf">
     <rotate value="1.5707963,0.0,0.0"/>
     <rotate value="0.0,0.0,4.7123889803850005"/>
     <rotate value="0.0,4.7123889803850005,0.0"/>
     <translate value="5.0,3.0,20.0"/>
 </transform>
-<transform id="video-picture-transform">
+<transform id="video-picture-tf">
     <rotate value="0.0, 0.0, -1.5707963"/>
     <rotate value="0.0, 3.14159265359, 0.0"/>
     <translate value="-4.0, 3.0, 20.0"/>
+</transform>
+<transform id="velocity-picture-tf">
+    <rotate value="0.0, 0.0, -1.5707963"/>
+    <rotate value="0.0, 3.14159265359, 0.0"/>
+    <translate value="14.0,3.0,20.0"/>
+</transform>
+<transform id="mandelbrot-picture-tf">
+    <rotate value="1.5707963,1.5707963,0.0"/>
+    <rotate value="0.0,1.5707963,0.0"/>
+    <translate value="-13.0,3.0,20.0"/>
 </transform>
 
 <node id="smoke-splat-interaction">
@@ -301,7 +329,7 @@
     <texture name="obstaclesBuffer" fbo="fluid-smoke-obstacles" attachment="0" />
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
     <camera id="main-camera" />
-    <transform id="smoke-picture-transform" />
+    <transform id="smoke-picture-tf" />
     <input type="float" name="splatRadius" value="12.0" />
     <input type="vec4" name="splatValue" value="1.0,1.0,1.0,1.0" />
     <input type="vec2" name="objectSize" value="4.8,4.8" />
@@ -322,30 +350,22 @@
         <node id="video-picture-canvas">
             <define key="TEXCO_FLIP_X" value="1"/>
             <texture name="colorTexture" id="video-texture" map-to="COLOR" texco-flipping="x" />
-            <transform id="video-picture-transform" />
+            <transform id="video-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
         <node id="smoke-picture-canvas">
             <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
-            <transform id="smoke-picture-transform" />
+            <transform id="smoke-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
         <node id="velocity-picture-canvas">
             <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
-            <transform>
-                <rotate value="0.0, 0.0, -1.5707963"/>
-                <rotate value="0.0, 3.14159265359, 0.0"/>
-                <translate value="14.0,3.0,20.0"/>
-            </transform>
+            <transform id="velocity-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
         <node id="mandelbrot-picture-canvas">
             <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="COLOR"/>
-            <transform>
-                <rotate value="1.5707963,1.5707963,0.0"/>
-                <rotate value="0.0,1.5707963,0.0"/>
-                <translate value="-13.0,3.0,20.0"/>
-            </transform>
+            <transform id="mandelbrot-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -411,6 +431,9 @@
       usage="STATIC">
   <material preset="ruby" />
 </mesh>
+<transform id="venus-tf">
+    <translate value="-6.0, 1.4, -13.0" />
+</transform>
 
 <mesh id="dragon-mesh"
       type="asset"
@@ -422,6 +445,10 @@
       usage="STATIC">
   <material preset="gold" />
 </mesh>
+<transform id="dragon-tf">
+    <rotate value="0.0,0.0,0.0" />
+    <translate value="-0.0, 1.0, -13.0" />
+</transform>
 
 <mesh id="bunny-mesh"
       type="asset"
@@ -433,6 +460,10 @@
       usage="STATIC">
   <material preset="jade" />
 </mesh>
+<transform id="bunny-tf">
+    <rotate value="-1.275, 0.0, 0.0"/>
+    <translate value="-12.1, 1.2, -11.2" />
+</transform>
 
 <mesh id="statue-platform"
       type="box"
@@ -455,9 +486,7 @@
 
 <node id="Statues">
     <node id="Venus-Statue">
-        <transform>
-            <translate value="-6.0, 1.4, -13.0" />
-        </transform>
+        <transform id="venus-tf" />
         <mesh id="venus-mesh" shader="regen.models.mesh"/>
     </node>
     <node id="Venus-Platform">
@@ -478,10 +507,7 @@
     </node>
 
     <node id="Dragon-Statue">
-        <transform>
-            <rotate value="0.0,0.0,0.0" />
-            <translate value="-0.0, 1.0, -13.0" />
-        </transform>
+        <transform id="dragon-tf" />
         <mesh id="dragon-mesh" shader="regen.models.mesh"/>
     </node>
     <node id="Dragon-Platform">
@@ -502,10 +528,7 @@
     </node>
 
     <node id="Bunny">
-        <transform>
-            <rotate value="-1.275, 0.0, 0.0"/>
-            <translate value="-12.1, 1.2, -11.2" />
-        </transform>
+        <transform id="bunny-tf" />
         <mesh id="bunny-mesh" shader="regen.models.mesh"/>
     </node>
     <node id="Bunny-Statue">
@@ -572,12 +595,12 @@
     <picking type="geom" camera="main-camera">
         <node name="video-picture">
             <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
-            <transform id="video-picture-transform" />
+            <transform id="video-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>
         <node name="smoke-picture">
             <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
-            <transform id="smoke-picture-transform" />
+            <transform id="smoke-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" />
         </node>
     </picking>

@@ -14,12 +14,14 @@
 
 #include <regen/physics/bullet-physics.h>
 #include <regen/camera/camera-manipulator.h>
+#include <regen/camera/camera-anchor.h>
 #include <regen/scene/scene-parser.h>
+#include <regen/scene/scene-input.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
 #include <applications/qt/qt-camera-events.h>
 #include <applications/qt/shader-input-widget.h>
-#include "scene-display-gui.h"
+#include "ui_scene-display-gui.h"
 
 using namespace regen;
 
@@ -45,6 +47,10 @@ public:
 
 	void init();
 
+	void toggleOffCameraTransform();
+
+	void toggleOnCameraTransform();
+
 public slots:
 
 	void openFile();
@@ -57,12 +63,26 @@ public slots:
 
 	void previousView();
 
+	void nextAnchor();
+
+	void playAnchor();
+
 protected:
 	std::list<ref_ptr<EventHandler> > eventHandler_;
 	std::list<ref_ptr<Animation> > animations_;
 	std::map<std::string, NamedObject> namedObjects_;
 	ref_ptr<Animation> fbsWidgetUpdater_;
 	ref_ptr<Animation> loadAnim_;
+
+	ref_ptr<Camera> mainCamera_;
+	ref_ptr<FirstPersonTransform> cameraTransform_;
+
+	ref_ptr<KeyFrameCameraTransform> anchorAnim_;
+	std::vector<ref_ptr<CameraAnchor>> anchors_;
+	GLuint anchorIndex_;
+	GLdouble anchorEaseInOutIntensity_;
+	GLdouble anchorPauseTime_;
+	GLdouble anchorTimeScale_;
 
 	QDialog *inputDialog_;
 	ShaderInputWidget *inputWidget_;
@@ -78,6 +98,12 @@ protected:
 	void loadSceneGraphicsThread(const std::string &sceneFile);
 
 	void resizeEvent(QResizeEvent *event);
+
+	static double getAnchorTime(const Vec3f &fromPosition, const Vec3f &toPosition);
+
+	void handleCameraConfiguration(
+		scene::SceneParser &sceneParser,
+		const ref_ptr<regen::scene::SceneInputNode> &cameraNode);
 
 	friend class SceneLoaderAnimation;
 };
