@@ -138,9 +138,9 @@
 
 <node id="Ambient-Occlusion-Update">
   <blend mode="src" />
-  <input type="int" name="numBlurPixels" value="3" />
-  <input type="float" name="blurSigma" value="3.0" />
-  <input type="float" name="aoSamplingRadius" value="50.0" />
+  <input type="int" name="numBlurPixels" value="20" />
+  <input type="float" name="blurSigma" value="3.2" />
+  <input type="float" name="aoSamplingRadius" value="30.0" />
   <input type="float" name="aoBias" value="0.28" />
   <input type="vec2" name="aoAttenuation" value="0.1,0.2" />
   <texture name="aoNoiseTexture" id="random-normal" />

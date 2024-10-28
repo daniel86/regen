@@ -13,59 +13,6 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">
-QWidget#shaderInputEditor {
-	background-color: #edeceb;
-}
-
-QFrame#titleLabel,#treeWidget,#valueFrame,#buttonContainer {
-	background-color: #edeceb;
-}
-QFrame#titleLabel {
-	border-top-color: transparent;
-	border-top-left-radius: 0px;
-	border-top-right-radius: 0px;
-}
-QFrame#treeWidget {
-	border-top-color: transparent;
-	border-bottom-color: transparent;
-}
-QFrame#valueFrame {
-	border-bottom-left-radius: 0px;
-	border-bottom-right-radius: 0px;
-	border-bottom-color: transparent;
-}
-
-/*******************************
- ******** QLabel ***************
- *******************************/
-
-QLabel#nameLabel,#typeLabel {
-	background-color: #edeceb;
-	border-radius: 4px;
-	border: 1px solid #8a8b8e;
-}
-QLabel#nameValue,#typeValue {
-	background-color: #fdfcfb;
-	border-radius: 4px;
-	border: 1px solid #8a8b8e;
-}
-QLabel#descriptionLabel {
-	color: #010203;
-	background-color: #fafbfe;
-	border: 1px solid #8a8b8e;
-	border-radius: 0px;
-}
-
-/*******************************
- ******** QSplitter *************
- *******************************/
-QSplitter::handle:horizontal { width: 6px; }
-QSplitter::handle:vertical { height: 6px; }
-
-</string>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
     <number>0</number>
