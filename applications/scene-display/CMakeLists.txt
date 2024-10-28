@@ -2,11 +2,17 @@
 SET(_HEADERS scene-display-widget.h)
 QT5_WRAP_CPP(_HEADERS_MOC ${_HEADERS})
 
+QT5_WRAP_UI(UI_HEADERS scene-display-gui.ui)
+
+message(STATUS "UI_HEADERS: ${UI_HEADERS}")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(
     ${PROJECT_NAME}-scene-display
     scene-display.cpp
     scene-display-widget.cpp
     ${_HEADERS_MOC}
+    ${UI_HEADERS}
 )
 target_compile_options(
         ${PROJECT_NAME}-scene-display
