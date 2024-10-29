@@ -113,7 +113,7 @@ namespace regen {
 		/**
 		 * @return Rigid body construct info.
 		 */
-		const btRigidBody::btRigidBodyConstructionInfo &constructInfo();
+		btRigidBody::btRigidBodyConstructionInfo &constructInfo();
 
 		/**
 		 * @param controller The character controller.
@@ -133,17 +133,25 @@ namespace regen {
 		void addCollisionObject(const ref_ptr<btCollisionObject> &object) { collisionObjects_.push_back(object); }
 
 		/**
+		 * Adds a collision shape to the list.
+		 * This is used such that the PhysicalProps object owns a reference on it.
+		 * @param object The non-collision object.
+		 */
+		void addCollisionShape(const ref_ptr<btCollisionShape> &object) { collisionShapes_.push_back(object); }
+
+		/**
 		 * @return The list of collision objects.
 		 */
 		auto &collisionObjects() const { return collisionObjects_; }
 
 	protected:
+		ref_ptr<btCollisionShape> shape_;
 		btRigidBody::btRigidBodyConstructionInfo constructInfo_;
 		ref_ptr<btRigidBody> rigidBody_;
-		ref_ptr<btCollisionShape> shape_;
 		ref_ptr<btMotionState> motionState_;
 		ref_ptr<btCharacterControllerInterface> characterController_;
 		std::vector<ref_ptr<btCollisionObject> > collisionObjects_;
+		std::vector<ref_ptr<btCollisionShape> > collisionShapes_;
 	};
 } // namespace
 

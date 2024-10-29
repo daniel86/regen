@@ -9,6 +9,7 @@
 #include <regen/scene/nodes/shader.h>
 
 #define REGEN_PHYSICS_STATE_CATEGORY "physics"
+#define REGEN_BULLET_DEBUGGER_STATE_CATEGORY "bullet-debugger"
 
 namespace regen {
 	namespace scene {
@@ -25,6 +26,23 @@ namespace regen {
 					SceneParser *parser,
 					SceneInputNode &input,
 					const ref_ptr<State> &parent) override;
+		};
+	}
+
+	namespace scene {
+		/**
+		 * Processes SceneInput and creates animations.
+		 */
+		class BulletDebuggerProvider : public NodeProcessor {
+		public:
+			BulletDebuggerProvider()
+					: NodeProcessor(REGEN_BULLET_DEBUGGER_STATE_CATEGORY) {}
+
+			// Override
+			void processInput(
+					SceneParser *parser,
+					SceneInputNode &input,
+					const ref_ptr<StateNode> &parent) override;
 		};
 	}
 }

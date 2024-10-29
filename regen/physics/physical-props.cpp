@@ -6,8 +6,8 @@ using namespace regen;
 PhysicalProps::PhysicalProps(
 		const ref_ptr<btMotionState> &motionState,
 		const ref_ptr<btCollisionShape> &shape)
-		: constructInfo_(0, motionState.get(), shape.get()),
-		  shape_(shape),
+		: shape_(shape),
+		  constructInfo_(0, motionState.get(), shape.get()),
 		  motionState_(motionState) {
 	constructInfo_.m_restitution = 0;
 	constructInfo_.m_friction = 1.5;
@@ -51,7 +51,7 @@ void PhysicalProps::calculateLocalInertia() {
 			constructInfo_.m_localInertia);
 }
 
-const btRigidBody::btRigidBodyConstructionInfo &PhysicalProps::constructInfo() { return constructInfo_; }
+btRigidBody::btRigidBodyConstructionInfo &PhysicalProps::constructInfo() { return constructInfo_; }
 
 const ref_ptr<btCollisionShape> &PhysicalProps::shape() { return shape_; }
 

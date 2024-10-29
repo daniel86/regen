@@ -1,4 +1,6 @@
 #include "physics.h"
+#include "regen/physics/bullet-debug-drawer.h"
+#include "regen/physics/character-controller.h"
 #include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <bullet/BulletDynamics/Character/btKinematicCharacterController.h>
 
@@ -100,7 +102,7 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 		ghostObject->setCollisionShape(capsuleShape.get());
 		ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
 		// Create the character controller
-		ref_ptr<btKinematicCharacterController> characterController = ref_ptr<btKinematicCharacterController>::alloc(
+		auto characterController = ref_ptr<CharacterController>::alloc(
 				ghostObject.get(), capsuleShape.get(), stepHeight);
 		// Set gravity for the character controller
 		characterController->setGravity(btVector3(0, -9.81, 0));
@@ -109,8 +111,8 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 		characterController->setAngularVelocity(btVector3(0, 0, 0));
 		// Create PhysicalProps for the character
 		props = ref_ptr<PhysicalProps>::alloc(motion, capsuleShape);
-		props->setCharacterController(characterController);
-		props->addCollisionObject(ghostObject);
+		//props->setCharacterController(characterController);
+		//props->addCollisionObject(ghostObject);
 	} else if (shapeName == "convex-hull") {
 		ref_ptr<ShaderInput> pos = getMeshPositions(parser, input);
 		if (pos.get() != nullptr) {
@@ -289,5 +291,20 @@ void PhysicsStateProvider::processInput(
 		mesh->addPhysicalObject(physicalObject);
 		parser->getPhysics()->addObject(physicalObject);
 	}
+}
+
+void BulletDebuggerProvider::processInput(
+		SceneParser *parser,
+		SceneInputNode &input,
+		const ref_ptr<StateNode> &parent) {
+	auto &physics = parser->getPhysics();
+	auto debugDrawer = ref_ptr<BulletDebugDrawer>::alloc(physics);
+	debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+	physics->dynamicsWorld()->setDebugDrawer(debugDrawer.get());
+	parent->addChild(debugDrawer);
+
+	StateConfig shaderConfig = StateConfigurer::configure(debugDrawer.get());
+	shaderConfig.setVersion(330);
+	debugDrawer->createShader(shaderConfig);
 }
 
