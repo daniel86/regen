@@ -202,13 +202,13 @@ namespace regen {
 		 * Begin recording ShaderInput's.
 		 * @param layout Start recording added inputs.
 		 */
-		virtual void begin(ShaderInputContainer::DataLayout layout) { inputContainer_->begin(layout); }
+		void begin(ShaderInputContainer::DataLayout layout) { inputContainer_->begin(layout); }
 
 		/**
 		 * Finish previous call to begin(). All recorded inputs are
 		 * uploaded to VBO memory.
 		 */
-		virtual VBOReference end() { return inputContainer_->end(); }
+		VBOReference end() { return inputContainer_->end(); }
 
 		/**
 		 * @return the input container.
