@@ -101,6 +101,7 @@ void SceneParser::init() {
 	setNodeProcessor(ref_ptr<DeformationNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<MotionBlurProvider>::alloc());
 	setNodeProcessor(ref_ptr<PickingNodeProvider>::alloc());
+	setNodeProcessor(ref_ptr<BulletDebuggerProvider>::alloc());
 	// add some default state processors
 	setStateProcessor(ref_ptr<ResourceStateProvider>::alloc());
 	setStateProcessor(ref_ptr<BlendStateProvider>::alloc());

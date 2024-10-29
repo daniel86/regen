@@ -21,11 +21,8 @@ BulletPhysics::BulletPhysics()
 
 void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object) {
 	auto &props = object->props();
-	dynamicsWorld_->addRigidBody(object->rigidBody().get());
 	bool isCharacter = props->characterController().get() != nullptr;
-	if (isCharacter) {
-		dynamicsWorld_->addAction(props->characterController().get());
-	}
+	dynamicsWorld_->addRigidBody(object->rigidBody().get());
 	for (auto &x: props->collisionObjects()) {
 		if (isCharacter) {
 			dynamicsWorld_->addCollisionObject(x.get(),
@@ -34,6 +31,9 @@ void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object) {
 		} else {
 			dynamicsWorld_->addCollisionObject(x.get());
 		}
+	}
+	if (isCharacter) {
+		dynamicsWorld_->addAction(props->characterController().get());
 	}
 	objects_.push_back(object);
 

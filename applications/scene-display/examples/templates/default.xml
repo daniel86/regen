@@ -260,6 +260,17 @@
 </node>
 
 <!-- ************************ -->
+<!-- Debug Rendering -->
+<!-- ************************ -->
+
+<node id="bullet-debug">
+    <camera id="main-camera"/>
+    <depth test="1" write="0" function="LEQUAL"/>
+    <polygon offset-fill="1.1,4.0" />
+    <bullet-debugger />
+</node>
+
+<!-- ************************ -->
 <!-- Rendering of GUI widgets -->
 <!-- ************************ -->
 

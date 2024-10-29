@@ -26,6 +26,8 @@ namespace regen {
 		 */
 		void addObject(const ref_ptr<PhysicalObject> &object);
 
+		auto &dynamicsWorld() { return dynamicsWorld_; }
+
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;
 
