@@ -418,23 +418,30 @@
 <!--**************************-->
 
 <node id="root">
-  <resource id="earth-sky" />
-  <node id="Pre-Render">
-    <node import="Shadow-Pass" />
-    <node import="Paraboloid-Reflection-Update" />
-    <node import="Cube-Reflection-Update" />
-  </node>
-  
-  <node id="Render">
-    <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-    
-    <node import="Default-Pipeline" />
-    <node import="GUI-Pass">
-      <fbo id="g-buffer" draw-buffers="0" />
+    <resource id="earth-sky" />
+    <node id="Pre-Render">
+        <node import="Shadow-Pass" />
+        <node import="Paraboloid-Reflection-Update" />
+        <node import="Cube-Reflection-Update" />
     </node>
-    
-    <view id="Scene -- Result">
-      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-  </node>
+  
+    <node id="Render">
+        <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
+        <node import="Default-Pipeline" />
+
+        <view id="Bullet-Debug">
+            <node import="bullet-debug">
+                <fbo id="g-buffer" draw-buffers="0"/>
+            </node>
+            <node>
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </node>
+        </view>
+        <node import="GUI-Pass">
+            <fbo id="g-buffer" draw-buffers="0" />
+        </node>
+        <view id="Scene -- Result">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+        </view>
+    </node>
 </node>
