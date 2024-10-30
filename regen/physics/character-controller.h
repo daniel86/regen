@@ -48,12 +48,25 @@ namespace regen {
 		auto collisionRadius() const { return btCollisionRadius_; }
 
 		/**
+		 * @param force The gravity force.
+		 */
+		void setGravityForce(GLfloat force) { btGravityForce_ = force; }
+
+		/**
+		 * @param velocity The jump velocity.
+		 */
+		void setJumpVelocity(GLfloat velocity) { btJumpVelocity_ = velocity; }
+
+		/**
 		 * @param height The step height.
 		 */
 		void setStepHeight(GLfloat height) { btStepHeight_ = height; }
 
 		// override CameraController
 		void applyStep(const Vec3f &offset) override;
+
+		// override CameraController
+		void jump() override;
 
 		// override Animation
 		void animate(GLdouble dt) override;
@@ -67,6 +80,8 @@ namespace regen {
 		GLfloat btCollisionHeight_;
 		GLfloat btCollisionRadius_;
 		GLfloat btStepHeight_;
+		GLfloat btGravityForce_;
+		GLfloat btJumpVelocity_;
 
 		bool initializePhysics();
 	};

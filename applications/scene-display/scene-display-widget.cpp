@@ -409,7 +409,10 @@ void SceneDisplayWidget::handleCameraConfiguration(
 				cameraNode->getValue<GLfloat>("collision-radius", 0.8));
 		characterController->setStepHeight(
 				cameraNode->getValue<GLfloat>("step-height", 0.35));
-        // speed-factor="80.0"
+		characterController->setGravityForce(
+				cameraNode->getValue<GLfloat>("gravity-force", 30.0));
+		characterController->setJumpVelocity(
+				cameraNode->getValue<GLfloat>("jump-velocity", 16.0f));
 		cameraController_ = characterController;
 	}
 	// KEY-FRAME CONTROLLER
@@ -456,7 +459,21 @@ void SceneDisplayWidget::handleCameraConfiguration(
 			cameraController_->setAttachedTo(transform->get(), mesh);
 		}
 
-		ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(cameraController_);
+		std::vector<CameraCommandMapping> keyMappings;
+		for (const auto &x: cameraNode->getChildren()) {
+			if (x->getCategory() == string("key-mapping")) {
+				CameraCommandMapping mapping;
+				mapping.key = x->getValue("key");
+				mapping.command = x->getValue<CameraCommand>("command", CameraCommand::NONE);
+				if (mapping.command == CameraCommand::NONE) {
+					REGEN_WARN("Invalid camera command for key mapping for key '" << mapping.key << "'.");
+					continue;
+				}
+				keyMappings.push_back(mapping);
+			}
+		}
+
+		ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(cameraController_, keyMappings);
 		cameraEventHandler->set_sensitivity(cameraNode->getValue<GLfloat>("sensitivity", 0.005f));
 		app_->connect(Application::KEY_EVENT, cameraEventHandler);
 		app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
