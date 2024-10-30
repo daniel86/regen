@@ -77,12 +77,12 @@ void AnimationManager::addAnimation(Animation *animation) {
 		if (animInProgress_ && addThreadID_ == animationThreadID_) {
 			// Called from animate().
 			animChangedDuringLoop_ = GL_TRUE;
-			animations_.insert(animation);
+			animations_.emplace_back(animation);
 		} else {
 			// Wait for the current loop to finish.
 			while (animInProgress_) usleepRegen(1000);
 			// save to remove from set
-			animations_.insert(animation);
+			animations_.emplace_back(animation);
 		}
 	}
 
@@ -113,12 +113,20 @@ void AnimationManager::removeAnimation(Animation *animation) {
 		if (animInProgress_ && removeThreadID_ == animationThreadID_) {
 			// Called from animate().
 			animChangedDuringLoop_ = GL_TRUE;
-			animations_.erase(animation);
 		} else {
 			// Wait for the current loop to finish.
 			while (animInProgress_) usleepRegen(1000);
 			// save to remove from set
-			animations_.erase(animation);
+		}
+
+		// remove from list
+		auto it = animations_.begin();
+		while (it != animations_.end()) {
+			if (*it == animation) {
+				animations_.erase(it);
+				break;
+			}
+			++it;
 		}
 	}
 
@@ -226,7 +234,7 @@ void AnimationManager::run() {
 		time_ = boost::posix_time::ptime(
 				boost::posix_time::microsec_clock::local_time());
 
-		if (pauseFlag_ || animations_.size() == 0) {
+		if (pauseFlag_ || animations_.empty()) {
 #ifndef SYNCHRONIZE_THREADS
 			usleepRegen(IDLE_SLEEP);
 #endif // SYNCHRONIZE_THREADS
@@ -242,8 +250,7 @@ void AnimationManager::run() {
 			std::set<Animation *> processed;
 			while (animsRemaining) {
 				animsRemaining = GL_FALSE;
-				for (auto it = animations_.begin(); it != animations_.end(); ++it) {
-					Animation *anim = *it;
+				for (auto anim : animations_) {
 					processed.insert(anim);
 					if (anim->isRunning()) {
 						anim->animate(dt);

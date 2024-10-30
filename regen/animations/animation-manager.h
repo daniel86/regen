@@ -85,7 +85,7 @@ namespace regen {
 
 		boost::posix_time::ptime time_;
 		boost::posix_time::ptime lastTime_;
-		std::set<Animation *> animations_;
+		std::vector<Animation *> animations_;
 		std::set<Animation *> glAnimations_;
 
 		boost::thread::id animationThreadID_;

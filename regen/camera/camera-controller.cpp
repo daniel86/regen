@@ -128,6 +128,24 @@ void CameraController::updateCameraOrientation() {
 	}
 }
 
+void CameraController::updateModel() {
+	if (attachedToTransform_.get()) {
+		// Simple rotation matrix around up vector (0,1,0)
+		GLfloat cy = cos(horizontalOrientation_), sy = sin(horizontalOrientation_);
+		matVal_.x[0] = cy;
+		matVal_.x[2] = sy;
+		matVal_.x[8] = -sy;
+		matVal_.x[10] = cy;
+		// Translate to mesh position
+		const Mat4f &m = attachedToTransform_->getVertex(0);
+		matVal_.x[12] = m.x[12] - pos_.x;
+		matVal_.x[13] = m.x[13] - pos_.y;
+		matVal_.x[14] = m.x[14] - pos_.z;
+		pos_ = Vec3f(0.0f);
+		attachedToTransform_->setVertex(0, matVal_);
+	}
+}
+
 void CameraController::applyStep(const Vec3f &offset) {
 	pos_ += offset;
 }
@@ -171,21 +189,7 @@ void CameraController::animate(GLdouble dt) {
 
 void CameraController::glAnimate(RenderState *rs, GLdouble dt) {
 	lock();
-	if (attachedToTransform_.get()) {
-		// Simple rotation matrix around up vector (0,1,0)
-		GLfloat cy = cos(horizontalOrientation_), sy = sin(horizontalOrientation_);
-		matVal_.x[0] = cy;
-		matVal_.x[2] = sy;
-		matVal_.x[8] = -sy;
-		matVal_.x[10] = cy;
-		// Translate to mesh position
-		const Mat4f &m = attachedToTransform_->getVertex(0);
-		matVal_.x[12] = m.x[12] - pos_.x;
-		matVal_.x[13] = m.x[13] - pos_.y;
-		matVal_.x[14] = m.x[14] - pos_.z;
-		pos_ = Vec3f(0.0f);
-		attachedToTransform_->setVertex(0, matVal_);
-	}
+	updateModel();
 	updateCamera(camPos_, camDir_, dt);
 	unlock();
 }
