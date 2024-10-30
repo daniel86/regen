@@ -35,6 +35,143 @@ static ref_ptr<Mesh> getMesh(
 	return out;
 }
 
+static ref_ptr<btCollisionShape> createSphere([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	auto radius = input.getValue<GLfloat>("radius", 1.0f) * 0.5;
+	return ref_ptr<btSphereShape>::alloc(radius);
+}
+
+static ref_ptr<btCollisionShape> createWall([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	auto size = input.getValue<Vec2f>("size", Vec2f(1.0f));
+	// TODO: allow configuration of orientation and position
+	btVector3 halfExtend(size.x * 0.5f, 0.001f, size.y * 0.5f);
+	return ref_ptr<btBoxShape>::alloc(halfExtend);
+}
+
+static ref_ptr<btCollisionShape> createInfiniteWall([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	auto planeNormal = input.getValue<Vec3f>("normal", Vec3f(0.0f, 1.0f, 0.0f));
+	auto planeConstant = input.getValue<GLfloat>("constant", GLfloat(0.0f));
+	return ref_ptr<btStaticPlaneShape>::alloc(
+			btVector3(planeNormal.x, planeNormal.y, planeNormal.z),
+			planeConstant);
+}
+
+static ref_ptr<btCollisionShape> createBox([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
+	btVector3 halfExtend(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+	return ref_ptr<btBoxShape>::alloc(halfExtend);
+}
+
+static ref_ptr<btCollisionShape> createCylinder([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
+	btVector3 halfExtend(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+	return ref_ptr<btCylinderShape>::alloc(halfExtend);
+}
+
+static ref_ptr<btCollisionShape> createCapsule([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	return ref_ptr<btCapsuleShape>::alloc(
+			input.getValue<GLfloat>("radius", 1.0f),
+			input.getValue<GLfloat>("height", 1.0f));
+}
+
+static ref_ptr<btCollisionShape> createCone([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
+	return ref_ptr<btConeShape>::alloc(
+			input.getValue<GLfloat>("radius", 1.0f),
+			input.getValue<GLfloat>("height", 1.0f));
+}
+
+static ref_ptr<btCollisionShape> createConvexHull(SceneParser *parser, SceneInputNode &input) {
+	ref_ptr<ShaderInput> pos = getMeshPositions(parser, input);
+	if (pos.get() == nullptr) return {};
+	if (!pos->hasClientData() && !pos->hasServerData()) {
+		REGEN_WARN("Mesh '" << input.getValue("mesh") <<
+							"' has no position data available.");
+		return {};
+	}
+	bool loadServerData = !pos->hasClientData();
+	if (loadServerData) pos->readServerData();
+
+	auto *points = (const btScalar *) pos->clientData();
+	//create a hull approximation
+	//btShapeHull* hull = new btShapeHull(originalConvexShape);
+	//btScalar margin = originalConvexShape->getMargin();
+	//hull->buildHull(margin);
+	//btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer(),hull->numVertices());
+
+	auto shape = ref_ptr<btConvexHullShape>::alloc(points, pos->numVertices());
+	if (loadServerData) pos->deallocateClientData();
+	return shape;
+
+}
+
+static ref_ptr<btCollisionShape> createTriangleMesh(SceneParser *parser, SceneInputNode &input) {
+	auto mesh = getMesh(parser, input);
+	auto pos = (mesh.get() == nullptr ? ref_ptr<ShaderInput>() : mesh->positions());
+	auto indices = (mesh.get() == nullptr ? ref_ptr<ShaderInput>() : mesh->inputContainer()->indices());
+
+	if (indices.get() == nullptr) {
+		REGEN_WARN("Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Indices.");
+		return {};
+	}
+	if (pos.get() == nullptr) {
+		REGEN_WARN("Ignoring physical shape for '" << input.getDescription()  << "'. Mesh has no Positions.");
+		return {};
+	}
+	btIndexedMesh btMesh;
+	btMesh.m_numVertices = static_cast<int>(pos->numVertices());
+	btMesh.m_vertexStride = static_cast<int>(pos->elementSize());
+
+	switch (mesh->primitive()) {
+		case GL_TRIANGLES:
+			btMesh.m_triangleIndexStride = 3 * static_cast<int>(indices->elementSize());
+			btMesh.m_numTriangles = static_cast<int>(indices->numVertices()) / 3;
+			break;
+		case GL_TRIANGLE_STRIP:
+			btMesh.m_triangleIndexStride = 1 * static_cast<int>(indices->elementSize());
+			btMesh.m_numTriangles = static_cast<int>(indices->numVertices() - 2);
+			break;
+		default:
+			btMesh.m_numTriangles = -1;
+			btMesh.m_triangleIndexStride = -1;
+			break;
+	}
+
+	if (btMesh.m_numTriangles <= 0) {
+		REGEN_WARN("Unsupported primitive for btTriangleIndexVertexArray "
+						   << "in input node " << input.getDescription() << "'.");
+		return {};
+	}
+
+	if (!pos->hasClientData()) pos->readServerData();
+	if (!indices->hasClientData()) indices->readServerData();
+	btMesh.m_vertexBase = pos->clientData();
+	btMesh.m_triangleIndexBase = indices->clientData();
+
+	PHY_ScalarType indexType;
+	switch (indices->dataType()) {
+		case GL_FLOAT:
+			indexType = PHY_FLOAT;
+			break;
+		case GL_DOUBLE:
+			indexType = PHY_DOUBLE;
+			break;
+		case GL_SHORT:
+			indexType = PHY_SHORT;
+			break;
+		case GL_INT:
+		case GL_UNSIGNED_INT:
+		default:
+			indexType = PHY_INTEGER;
+			break;
+	}
+
+	const bool useQuantizedAabbCompression = true;
+
+	auto *btMeshIface = new btTriangleIndexVertexArray;
+	btMeshIface->addIndexedMesh(btMesh, indexType);
+	return ref_ptr<btBvhTriangleMeshShape>::alloc(btMeshIface, useQuantizedAabbCompression);
+}
+
+
 static ref_ptr<PhysicalProps> createPhysicalProps(
 		SceneParser *parser,
 		SceneInputNode &input,
@@ -43,151 +180,38 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 	const std::string shapeName(input.getValue("shape"));
 	auto mass = input.getValue<GLfloat>("mass", 1.0f);
 
-	ref_ptr<PhysicalProps> props;
-	// Primitives
-	// TODO: Support characters. bullet has something special fo them
-	// where a primitive is attached to a capsule in order to avoid
-	// problems with collisions
+	// create a collision shape
+	ref_ptr<btCollisionShape> shape;
 	if (shapeName == "sphere") {
-		GLfloat radius = input.getValue<GLfloat>("radius", 1.0f) * 0.5;
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btSphereShape>::alloc(radius));
+		shape = createSphere(parser, input);
 	} else if (shapeName == "wall") {
-		auto size = input.getValue<Vec2f>("size", Vec2f(1.0f));
-		// TODO: allow configuration of orientation and position
-		btVector3 halfExtend(size.x * 0.5, 0.001, size.y * 0.5);
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btBoxShape>::alloc(halfExtend));
+		shape = createWall(parser, input);
 		mass = 0.0;
 	} else if (shapeName == "infinite-wall") {
-		auto planeNormal = input.getValue<Vec3f>("normal", Vec3f(0.0f, 1.0f, 0.0f));
-		auto planeConstant = input.getValue<GLfloat>("constant", GLfloat(0.0f));
-		btVector3 planeNormal_(planeNormal.x, planeNormal.y, planeNormal.z);
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btStaticPlaneShape>::alloc(planeNormal_, planeConstant));
+		shape = createInfiniteWall(parser, input);
 		mass = 0.0;
 	} else if (shapeName == "box") {
-		auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
-		btVector3 halfExtend(size.x * 0.5, size.y * 0.5, size.z * 0.5);
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btBoxShape>::alloc(halfExtend));
+		shape = createBox(parser, input);
 	} else if (shapeName == "cylinder") {
-		auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
-		btVector3 halfExtend(size.x * 0.5, size.y * 0.5, size.z * 0.5);
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btCylinderShape>::alloc(halfExtend));
+		shape = createCylinder(parser, input);
 	} else if (shapeName == "capsule") {
-		auto radius = input.getValue<GLfloat>("radius", 1.0f);
-		auto height = input.getValue<GLfloat>("height", 1.0f);
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btCapsuleShape>::alloc(radius, height));
+		shape = createCapsule(parser, input);
 	} else if (shapeName == "cone") {
-		auto radius = input.getValue<GLfloat>("radius", 1.0f);
-		auto height = input.getValue<GLfloat>("height", 1.0f);
-		props = ref_ptr<PhysicalProps>::alloc(
-				motion, ref_ptr<btConeShape>::alloc(radius, height));
+		shape = createCone(parser, input);
 	} else if (shapeName == "convex-hull") {
-		ref_ptr<ShaderInput> pos = getMeshPositions(parser, input);
-		if (pos.get() != nullptr) {
-			if (!pos->hasClientData() && !pos->hasServerData()) {
-				REGEN_WARN("Mesh '" << input.getValue("mesh") <<
-									"' has no position data available.");
-			} else {
-				bool loadServerData = !pos->hasClientData();
-				if (loadServerData) pos->readServerData();
-
-				const btScalar *points = (const btScalar *) pos->clientData();
-				//create a hull approximation
-				/*
-				btShapeHull* hull = new btShapeHull(originalConvexShape);
-				btScalar margin = originalConvexShape->getMargin();
-				hull->buildHull(margin);
-				btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer(),hull->numVertices());
-				*/
-
-				props = ref_ptr<PhysicalProps>::alloc(
-						motion, ref_ptr<btConvexHullShape>::alloc(points, pos->numVertices()));
-
-				if (loadServerData) pos->deallocateClientData();
-			}
-		}
+		shape = createConvexHull(parser, input);
 	} else if (shapeName == "triangle-mesh") {
-		ref_ptr<Mesh> mesh = getMesh(parser, input);
-		ref_ptr<ShaderInput> pos = (mesh.get() == nullptr ?
-									ref_ptr<ShaderInput>() : mesh->positions());
-		ref_ptr<ShaderInput> indices = (mesh.get() == nullptr ?
-										ref_ptr<ShaderInput>() : mesh->inputContainer()->indices());
-
-		if (pos.get() != nullptr && indices.get() != nullptr) {
-			btIndexedMesh btMesh;
-			btMesh.m_numVertices = pos->numVertices();
-			btMesh.m_vertexStride = pos->elementSize();
-
-			switch (mesh->primitive()) {
-				case GL_TRIANGLES:
-					btMesh.m_triangleIndexStride = 3 * indices->elementSize();
-					btMesh.m_numTriangles = indices->numVertices() / 3;
-					break;
-				case GL_TRIANGLE_STRIP:
-					btMesh.m_triangleIndexStride = 1 * indices->elementSize();
-					btMesh.m_numTriangles = indices->numVertices() - 2;
-					break;
-				default:
-					btMesh.m_numTriangles = -1;
-					btMesh.m_triangleIndexStride = -1;
-					break;
-			}
-
-			if (btMesh.m_numTriangles > 0) {
-				if (!pos->hasClientData()) pos->readServerData();
-				if (!indices->hasClientData()) indices->readServerData();
-				btMesh.m_vertexBase = pos->clientData();
-				btMesh.m_triangleIndexBase = indices->clientData();
-
-				PHY_ScalarType indexType;
-				switch (indices->dataType()) {
-					case GL_FLOAT:
-						indexType = PHY_FLOAT;
-						break;
-					case GL_DOUBLE:
-						indexType = PHY_DOUBLE;
-						break;
-					case GL_SHORT:
-						indexType = PHY_SHORT;
-						break;
-					case GL_INT:
-					case GL_UNSIGNED_INT:
-					default:
-						indexType = PHY_INTEGER;
-						break;
-				}
-
-				const bool useQuantizedAabbCompression = true;
-
-				auto *btMeshIface = new btTriangleIndexVertexArray;
-				btMeshIface->addIndexedMesh(btMesh, indexType);
-				ref_ptr<btBvhTriangleMeshShape> shape =
-						ref_ptr<btBvhTriangleMeshShape>::alloc(btMeshIface, useQuantizedAabbCompression);
-				props = ref_ptr<PhysicalProps>::alloc(motion, shape);
-			} else {
-				REGEN_WARN("Unsupported primitive for btTriangleIndexVertexArray "
-								   << "in input node " << input.getDescription() << "'.");
-			}
-		} else if (indices.get() == nullptr) {
-			REGEN_WARN(
-					"Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Indices.");
-			return {};
-		} else if (pos.get() == nullptr) {
-			REGEN_WARN("Ignoring physical shape for '" << input.getDescription()
-													   << "'. Mesh has no Positions.");
-			return {};
-		}
-	}
-	if (props.get() == nullptr) {
+		shape = createTriangleMesh(parser, input);
+	} else {
 		REGEN_WARN("Ignoring unknown physical shape '" << input.getDescription() << "'.");
 		return {};
 	}
+	if (shape.get() == nullptr) {
+		REGEN_WARN("Failed to create shape '" << input.getDescription() << "'.");
+		return {};
+	}
 
+	auto props = ref_ptr<PhysicalProps>::alloc(motion, shape);
 	auto inertia = input.getValue<Vec3f>("inertia", Vec3f(0.0f));
 	props->setMassProps(mass, btVector3(inertia.x, inertia.x, inertia.z));
 
