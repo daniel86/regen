@@ -22,10 +22,11 @@
 
 <node id="configuration">
   <camera id="main-camera"
-	  type="third-person"
+	  mode="third-person"
+	  type="impulse"
 	  mesh="sphere-mesh0"
-      physics-mode="impulse"
-      physics-speed-factor="1.0"
+	  mesh-distance="10.0"
+	  vertical-orientation="0.4"
 	  transform="sphere0-transform"
 	  eye-offset="0.0,0.0,0.0"
 	  eye-orientation="3.14159265359">

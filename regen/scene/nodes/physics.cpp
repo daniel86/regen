@@ -1,7 +1,5 @@
 #include "physics.h"
 #include "regen/physics/bullet-debug-drawer.h"
-#include "regen/physics/character-controller.h"
-#include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <bullet/BulletDynamics/Character/btKinematicCharacterController.h>
 
 using namespace regen::scene;
@@ -88,31 +86,6 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 		auto height = input.getValue<GLfloat>("height", 1.0f);
 		props = ref_ptr<PhysicalProps>::alloc(
 				motion, ref_ptr<btConeShape>::alloc(radius, height));
-	} else if (shapeName == "character") {
-		auto radius = input.getValue<GLfloat>("radius", 1.0f);
-		auto height = input.getValue<GLfloat>("height", 1.0f);
-		auto stepHeight = input.getValue<GLfloat>("step-height", 0.35f);
-		// Create the capsule shape
-		ref_ptr<btCapsuleShape> capsuleShape = ref_ptr<btCapsuleShape>::alloc(radius, height);
-		// Create the ghost object
-		ref_ptr<btPairCachingGhostObject> ghostObject = ref_ptr<btPairCachingGhostObject>::alloc();
-		ghostObject->setWorldTransform(btTransform(
-				btQuaternion(0, 0, 0, 1),
-				btVector3(0, 0, 0)));
-		ghostObject->setCollisionShape(capsuleShape.get());
-		ghostObject->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
-		// Create the character controller
-		auto characterController = ref_ptr<CharacterController>::alloc(
-				ghostObject.get(), capsuleShape.get(), stepHeight);
-		// Set gravity for the character controller
-		characterController->setGravity(btVector3(0, -9.81, 0));
-		// Ensure no unintended forces
-		characterController->setLinearVelocity(btVector3(0, 0, 0));
-		characterController->setAngularVelocity(btVector3(0, 0, 0));
-		// Create PhysicalProps for the character
-		props = ref_ptr<PhysicalProps>::alloc(motion, capsuleShape);
-		//props->setCharacterController(characterController);
-		//props->addCollisionObject(ghostObject);
 	} else if (shapeName == "convex-hull") {
 		ref_ptr<ShaderInput> pos = getMeshPositions(parser, input);
 		if (pos.get() != nullptr) {
@@ -279,15 +252,9 @@ void PhysicsStateProvider::processInput(
 
 	auto numInstances = input.getValue<GLuint>("num-instances", 1u);
 	for (GLuint i = 0; i < numInstances; ++i) {
-		ref_ptr<ModelMatrixMotion> motion;
-		if (shapeName == "character") {
-			motion = ref_ptr<CharacterMotion>::alloc(transform->get(), i);
-		} else {
-			motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), i);
-		}
+		auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), i);
 		auto physicalProps = createPhysicalProps(parser, input, motion, transform);
 		auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
-
 		mesh->addPhysicalObject(physicalObject);
 		parser->getPhysics()->addObject(physicalObject);
 	}

@@ -8,7 +8,7 @@
 #ifndef QT_CAMERA_EVENTS_H_
 #define QT_CAMERA_EVENTS_H_
 
-#include <regen/camera/camera-manipulator.h>
+#include <regen/camera/camera-controller.h>
 
 namespace regen {
 	/**
@@ -16,7 +16,7 @@ namespace regen {
 	 */
 	class QtFirstPersonEventHandler : public EventHandler {
 	public:
-		QtFirstPersonEventHandler(const ref_ptr<FirstPersonCameraTransform> &m);
+		explicit QtFirstPersonEventHandler(const ref_ptr<CameraController> &m);
 
 		/**
 		 * @param val the camera sensitivity
@@ -27,7 +27,7 @@ namespace regen {
 		void call(EventObject *evObject, EventData *data) override;
 
 	protected:
-		ref_ptr<FirstPersonCameraTransform> m_;
+		ref_ptr<CameraController> m_;
 		GLboolean buttonPressed_;
 		GLfloat sensitivity_;
 	};

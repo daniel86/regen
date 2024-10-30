@@ -5,7 +5,7 @@
 <node id="configuration">
   <animation id="dwarf-asset-instanced" type="asset" mode="random" />
   <camera id="main-camera"
-	  type="first-person"
+	  mode="first-person"
 	  eye-offset="0.0,1.0,0.0"
 	  eye-orientation="0.0">
   </camera>
