@@ -246,6 +246,7 @@ namespace regen {
 
 		void updateCameraPosition();
 		void updateCameraOrientation();
+		void updateModel();
 	};
 } // namespace
 
