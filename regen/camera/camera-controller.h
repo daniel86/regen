@@ -16,6 +16,31 @@
 
 namespace regen {
 	/**
+	 * Camera commands.
+	 */
+	enum CameraCommand {
+		MOVE_FORWARD = 0,
+		MOVE_BACKWARD,
+		MOVE_LEFT,
+		MOVE_RIGHT,
+		JUMP,
+		CROUCH,
+		NONE
+	};
+
+	std::ostream &operator<<(std::ostream &out, const CameraCommand &v);
+
+	std::istream &operator>>(std::istream &in, CameraCommand &v);
+
+	/**
+	 * Mapping of keys to camera commands.
+	 */
+	struct CameraCommandMapping {
+		std::string key;
+		CameraCommand command;
+	};
+
+	/**
 	 * Animation that allows to manipulate a transformation matrix
 	 * for first person or third person perspective.
 	 */
@@ -176,6 +201,11 @@ namespace regen {
 		 * @param offset the offset.
 		 */
 		virtual void applyStep(const Vec3f &offset);
+
+		/**
+		 * Jump.
+		 */
+		virtual void jump();
 
 		// override Animation
 		void animate(GLdouble dt) override;

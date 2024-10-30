@@ -16,7 +16,9 @@ namespace regen {
 	 */
 	class QtFirstPersonEventHandler : public EventHandler {
 	public:
-		explicit QtFirstPersonEventHandler(const ref_ptr<CameraController> &m);
+		explicit QtFirstPersonEventHandler(
+				const ref_ptr<CameraController> &m,
+				const std::vector<CameraCommandMapping> &keyMappings);
 
 		/**
 		 * @param val the camera sensitivity
@@ -28,6 +30,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<CameraController> m_;
+		std::map<std::string, CameraCommandMapping> keyMappings_;
 		GLboolean buttonPressed_;
 		GLfloat sensitivity_;
 	};

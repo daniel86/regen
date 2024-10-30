@@ -52,7 +52,9 @@ CharacterController::CharacterController(
 		bt_(physics),
 		btCollisionHeight_(0.8f),
 		btCollisionRadius_(0.8f),
-		btStepHeight_(0.25f) {
+		btStepHeight_(0.25f),
+		btGravityForce_(30.0f),
+		btJumpVelocity_(16.0f) {
 }
 
 CharacterController::~CharacterController() {
@@ -89,14 +91,10 @@ bool CharacterController::initializePhysics() {
 	// Create the character controller
 	btController_ = ref_ptr<btKinematicCharacterController>::alloc(
 			ghostObject.get(), capsuleShape.get(), btStepHeight_);
-	btController_->setGravity(bt_->dynamicsWorld()->getGravity());
+	btController_->setGravity(btVector3(0, -btGravityForce_, 0));
 
 	btTransform initialTransform;
 	initialTransform.setFromOpenGLMatrix((btScalar *) attachedToTransform_->clientDataPtr());
-	initialTransform.setOrigin(btVector3(
-			initialTransform.getOrigin().getX(),
-			initialTransform.getOrigin().getY() + 2.0,
-			initialTransform.getOrigin().getZ()));
 	btQuaternion rotation;
 	rotation.setRotation(btVector3(0, 1, 0), meshHorizontalOrientation_);
 	initialTransform.setRotation(rotation);
@@ -110,6 +108,12 @@ bool CharacterController::initializePhysics() {
 	bt_->dynamicsWorld()->addAction(btController_.get());
 
 	return true;
+}
+
+void CharacterController::jump() {
+	if (btController_.get()) {
+		btController_->jump(btVector3(0.0, btJumpVelocity_, 0.0));
+	}
 }
 
 void CharacterController::applyStep(const Vec3f &offset) {

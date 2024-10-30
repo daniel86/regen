@@ -132,6 +132,10 @@ void CameraController::applyStep(const Vec3f &offset) {
 	pos_ += offset;
 }
 
+void CameraController::jump() {
+	// do nothing
+}
+
 void CameraController::animate(GLdouble dt) {
 	rot_.setAxisAngle(Vec3f::up(), horizontalOrientation_ + meshHorizontalOrientation_);
 	Vec3f d = rot_.rotate(Vec3f::front());
@@ -141,10 +145,18 @@ void CameraController::animate(GLdouble dt) {
 	dirSidestep_ = dirXZ_.cross(Vec3f::up());
 
 	step_ = Vec3f(0.0f);
-	if (moveForward_) stepForward(moveAmount_ * dt);
-	else if (moveBackward_) stepBackward(moveAmount_ * dt);
-	if (moveLeft_) stepLeft(moveAmount_ * dt);
-	else if (moveRight_) stepRight(moveAmount_ * dt);
+	if (moveForward_) {
+		stepForward(moveAmount_ * dt);
+	}
+	else if (moveBackward_) {
+		stepBackward(moveAmount_ * dt);
+	}
+	if (moveLeft_) {
+		stepLeft(moveAmount_ * dt);
+	}
+	else if (moveRight_) {
+		stepRight(moveAmount_ * dt);
+	}
 	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
 
 	lock();
@@ -176,4 +188,58 @@ void CameraController::glAnimate(RenderState *rs, GLdouble dt) {
 	}
 	updateCamera(camPos_, camDir_, dt);
 	unlock();
+}
+
+
+namespace regen {
+	std::ostream &operator<<(std::ostream &out, const CameraCommand &command) {
+		switch (command) {
+			case CameraCommand::NONE:
+				out << "NONE";
+				break;
+			case CameraCommand::MOVE_FORWARD:
+				out << "MOVE_FORWARD";
+				break;
+			case CameraCommand::MOVE_BACKWARD:
+				out << "MOVE_BACKWARD";
+				break;
+			case CameraCommand::MOVE_LEFT:
+				out << "MOVE_LEFT";
+				break;
+			case CameraCommand::MOVE_RIGHT:
+				out << "MOVE_RIGHT";
+				break;
+			case CameraCommand::JUMP:
+				out << "JUMP";
+				break;
+			case CameraCommand::CROUCH:
+				out << "CROUCH";
+				break;
+		}
+		return out;
+	}
+
+	std::istream &operator>>(std::istream &in, CameraCommand &command) {
+		std::string val;
+		in >> val;
+		boost::to_upper(val);
+
+		if (val == "MOVE_FORWARD") {
+			command = CameraCommand::MOVE_FORWARD;
+		} else if (val == "MOVE_BACKWARD") {
+			command = CameraCommand::MOVE_BACKWARD;
+		} else if (val == "MOVE_LEFT") {
+			command = CameraCommand::MOVE_LEFT;
+		} else if (val == "MOVE_RIGHT") {
+			command = CameraCommand::MOVE_RIGHT;
+		} else if (val == "JUMP") {
+			command = CameraCommand::JUMP;
+		} else if (val == "CROUCH") {
+			command = CameraCommand::CROUCH;
+		} else {
+			command = CameraCommand::NONE;
+		}
+
+		return in;
+	}
 }
