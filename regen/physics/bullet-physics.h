@@ -7,6 +7,7 @@
 #include <regen/physics/model-matrix-motion.h>
 
 #include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
 namespace regen {
 	/**
@@ -19,6 +20,13 @@ namespace regen {
 		 * Default constructor.
 		 */
 		BulletPhysics();
+
+		~BulletPhysics() override;
+
+		/**
+		 * Clears the physics simulation.
+		 */
+		void clear();
 
 		/**
 		 * Adds an object to the physics simulation.
@@ -40,6 +48,7 @@ namespace regen {
 		ref_ptr<btSequentialImpulseConstraintSolver> solver_;
 		ref_ptr<btBroadphaseInterface> broadphase_;
 		ref_ptr<btDiscreteDynamicsWorld> dynamicsWorld_;
+		ref_ptr<btGhostPairCallback> ghostPairCallback_;
 	};
 } // namespace
 

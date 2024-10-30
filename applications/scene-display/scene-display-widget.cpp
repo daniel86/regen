@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/camera/camera-manipulator.h>
+#include <regen/camera/camera-controller.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/filesystem.h>
 #include <regen/meshes/texture-mapped-text.h>
@@ -27,6 +27,8 @@ using namespace std;
 #include "interaction-manager.h"
 #include "interactions/video-toggle.h"
 #include "interactions/node-activation.h"
+#include "regen/physics/impulse-controller.h"
+#include "regen/physics/character-controller.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -196,19 +198,19 @@ void SceneDisplayWidget::previousView() {
 }
 
 void SceneDisplayWidget::toggleOffCameraTransform() {
-	if(cameraTransform_.get()) {
-		cameraTransform_->stopAnimation();
+	if(cameraController_.get()) {
+		cameraController_->stopAnimation();
 	}
 }
 
 void SceneDisplayWidget::toggleOnCameraTransform() {
-	if(cameraTransform_.get()) {
+	if(cameraController_.get()) {
 		// update the camera position
-		cameraTransform_->setTransform(
+		cameraController_->setTransform(
 				mainCamera_->position()->getVertex(0),
 				mainCamera_->direction()->getVertex(0));
-		cameraTransform_->startAnimation();
-		cameraTransform_->animate(0.0);
+		cameraController_->startAnimation();
+		cameraController_->animate(0.0);
 	}
 }
 
@@ -235,7 +237,7 @@ void SceneDisplayWidget::nextAnchor() {
 	auto &camPos = mainCamera_->position()->getVertex(0);
 	auto &camDir = mainCamera_->direction()->getVertex(0);
     double dt = getAnchorTime(anchor->position(), camPos);
-	anchorAnim_ = ref_ptr<KeyFrameCameraTransform>::alloc(mainCamera_);
+	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(mainCamera_);
 	anchorAnim_->setRepeat(GL_FALSE);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
@@ -244,7 +246,7 @@ void SceneDisplayWidget::nextAnchor() {
 	anchorAnim_->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
 			[this](EventObject *emitter, EventData *data) {
 				toggleOnCameraTransform();
-				anchorAnim_ = ref_ptr<KeyFrameCameraTransform>();
+				anchorAnim_ = ref_ptr<KeyFrameController>();
 			}));
 	anchorAnim_->startAnimation();
 }
@@ -257,13 +259,13 @@ void SceneDisplayWidget::playAnchor() {
 	if (anchorAnim_.get()) {
 		anchorAnim_->stopAnimation();
 		anchorAnim_->updateCamera(anchorAnim_->cameraPosition(), anchorAnim_->cameraDirection(), 0.0);
-		anchorAnim_ = ref_ptr<KeyFrameCameraTransform>();
+		anchorAnim_ = ref_ptr<KeyFrameController>();
 		toggleOnCameraTransform();
 		return;
 	}
 	toggleOffCameraTransform();
 
-	anchorAnim_ = ref_ptr<KeyFrameCameraTransform>::alloc(mainCamera_);
+	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(mainCamera_);
 	anchorAnim_->setRepeat(GL_TRUE);
 	//anchorAnim_->setSkipFirstFrameOnLoop(GL_TRUE);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
@@ -336,23 +338,6 @@ void SceneDisplayWidget::loadScene(const string &sceneFile) {
 //////// Application Configuration Node
 /////////////////////////////
 
-static void handleFirstPersonCamera(
-		QtApplication *app_,
-		const ref_ptr<FirstPersonCameraTransform> &fpsCamera,
-		list<ref_ptr<EventHandler> > &eventHandler,
-		const ref_ptr<SceneInputNode> &cameraNode) {
-	fpsCamera->set_moveAmount(cameraNode->getValue<GLfloat>("speed", 0.01f));
-
-	ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(fpsCamera);
-	cameraEventHandler->set_sensitivity(cameraNode->getValue<GLfloat>("sensitivity", 0.005f));
-
-	app_->connect(Application::KEY_EVENT, cameraEventHandler);
-	app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
-	app_->connect(Application::MOUSE_MOTION_EVENT, cameraEventHandler);
-
-	eventHandler.emplace_back(cameraEventHandler);
-}
-
 void SceneDisplayWidget::handleCameraConfiguration(
 		scene::SceneParser &sceneParser,
 		const ref_ptr<SceneInputNode> &cameraNode) {
@@ -361,94 +346,132 @@ void SceneDisplayWidget::handleCameraConfiguration(
 		REGEN_WARN("Unable to find camera for '" << cameraNode->getDescription() << "'.");
 		return;
 	}
-	mainCamera_ = cam;
-	cameraTransform_ = ref_ptr<FirstPersonTransform>();
-
-	auto eyeOffset = cameraNode->getValue<Vec3f>("eye-offset", Vec3f(0.0));
-	auto eyeOrientation = cameraNode->getValue<GLfloat>("eye-orientation", 0.0);
-	auto cameraOrientation = cameraNode->getValue<GLfloat>("camera-orientation", 0.0);
-	auto mode = cameraNode->getValue<string>("type", "first-person");
-
-	anchorEaseInOutIntensity_ = cameraNode->getValue<GLfloat>("ease-in-out-intensity", 1.0);
-	anchorPauseTime_ = cameraNode->getValue<GLfloat>("anchor-pause-time", 0.5);
-	anchorTimeScale_ = cameraNode->getValue<GLfloat>("anchor-time-scale", 1.0);
-
-	if (cameraNode->hasAttribute("mesh") && cameraNode->hasAttribute("transform")) {
-		ref_ptr<ModelTransformation> transform = sceneParser.getResources()->getTransform(&sceneParser,
-																						  cameraNode->getValue(
-																								  "transform"));
-		ref_ptr<MeshVector> meshes = sceneParser.getResources()->getMesh(&sceneParser, cameraNode->getValue("mesh"));
+	ref_ptr<ModelTransformation> transform;
+	if (cameraNode->hasAttribute("transform")) {
+		transform = sceneParser.getResources()->getTransform(
+				&sceneParser, cameraNode->getValue("transform"));
 		if (transform.get() == nullptr) {
 			REGEN_WARN("Unable to find transform for '" << cameraNode->getDescription() << "'.");
 			return;
 		}
-		if (meshes.get() == nullptr || meshes->empty()) {
-			REGEN_WARN("Unable to find mesh with for '" << cameraNode->getDescription() << "'.");
-			return;
-		}
+	}
+	ref_ptr<Mesh> mesh;
+	auto meshes = sceneParser.getResources()->getMesh(&sceneParser, cameraNode->getValue("mesh"));
+	if (meshes.get() != nullptr && !meshes->empty()) {
 		auto meshIndex = cameraNode->getValue<GLuint>("mesh-index", 0u);
 		if (meshIndex >= meshes->size()) {
 			REGEN_WARN("Invalid mesh index for '" << cameraNode->getDescription() << "'.");
 			meshIndex = 0;
 		}
-		ref_ptr<Mesh> mesh = (*meshes.get())[meshIndex];
+		mesh = (*meshes.get())[meshIndex];
+	}
+	mainCamera_ = cam;
+	cameraController_ = ref_ptr<CameraController>();
 
-		if (mode == string("first-person")) {
-			ref_ptr<FirstPersonCameraTransform> fpsCamera =
-					ref_ptr<FirstPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
-			fpsCamera->setCameraOrientation(cameraOrientation);
-			handleFirstPersonCamera(app_, fpsCamera, eventHandler_, cameraNode);
-			cameraTransform_ = fpsCamera;
-		} else if (mode == string("third-person")) {
-			ref_ptr<ThirdPersonCameraTransform> fpsCamera =
-					ref_ptr<ThirdPersonCameraTransform>::alloc(cam, mesh, transform, eyeOffset, eyeOrientation);
-			fpsCamera->setCameraOrientation(cameraOrientation);
-			handleFirstPersonCamera(app_, fpsCamera, eventHandler_, cameraNode);
-			cameraTransform_ = fpsCamera;
+	auto cameraMode = cameraNode->getValue<string>("mode", "first-person");
+	auto cameraType = cameraNode->getValue<string>("type", "default");
+
+	if (cameraType == "default") {
+		cameraController_ = ref_ptr<CameraController>::alloc(cam);
+	}
+	// IMPULSE CONTROLLER
+	else if (cameraType == "impulse") {
+		if (mesh.get() == nullptr) {
+			REGEN_WARN("Impulse controller requires a mesh.");
+			return;
 		}
-	} else {
-		if (mode == string("first-person")) {
-			ref_ptr<FirstPersonCameraTransform> fpsCamera = ref_ptr<FirstPersonCameraTransform>::alloc(cam);
-			fpsCamera->setCameraOrientation(cameraOrientation);
-			handleFirstPersonCamera(app_, fpsCamera, eventHandler_, cameraNode);
-			cameraTransform_ = fpsCamera;
-		} else if (mode == string("key-frames")) {
-			ref_ptr<KeyFrameCameraTransform> keyFramesCamera = ref_ptr<KeyFrameCameraTransform>::alloc(cam);
-			if (cameraNode->hasAttribute("ease-in-out-intensity")) {
-				keyFramesCamera->setEaseInOutIntensity(
-						cameraNode->getValue<GLdouble>("ease-in-out-intensity", 1.0));
-			}
-			for (const auto &x: cameraNode->getChildren("key-frame")) {
-				keyFramesCamera->push_back(
-						x->getValue<Vec3f>("pos", Vec3f(0.0f, 0.0f, 1.0f)),
-						x->getValue<Vec3f>("dir", Vec3f(0.0f, 0.0f, -1.0f)),
-						x->getValue<GLdouble>("dt", 0.0)
-				);
-			}
-			animations_.emplace_back(keyFramesCamera);
-			//cameraTransform = keyFramesCamera;
+		if (transform.get() == nullptr) {
+			REGEN_WARN("Impulse controller requires a transform.");
+			return;
 		}
+		if (mesh->physicalObjects().empty()) {
+			REGEN_WARN("Impulse controller requires a physical object.");
+			return;
+		}
+		auto &physicalObject = mesh->physicalObjects().front();
+		auto impulseController = ref_ptr<ImpulseController>::alloc(cam, physicalObject);
+		cameraController_ = impulseController;
+	}
+	// CHARACTER CONTROLLER
+	else if (cameraType == "physical-character") {
+		if (mesh.get() == nullptr) {
+			REGEN_WARN("Physical character controller requires a mesh.");
+			return;
+		}
+		if (transform.get() == nullptr) {
+			REGEN_WARN("Physical character controller requires a transform.");
+			return;
+		}
+		auto characterController = ref_ptr<CharacterController>::alloc(cam, physics_);
+		characterController->setCollisionHeight(
+				cameraNode->getValue<GLfloat>("collision-height", 0.8));
+		characterController->setCollisionRadius(
+				cameraNode->getValue<GLfloat>("collision-radius", 0.8));
+		characterController->setStepHeight(
+				cameraNode->getValue<GLfloat>("step-height", 0.35));
+        // speed-factor="80.0"
+		cameraController_ = characterController;
+	}
+	// KEY-FRAME CONTROLLER
+	else if (cameraType == "key-frames") {
+		ref_ptr<KeyFrameController> keyFramesCamera = ref_ptr<KeyFrameController>::alloc(cam);
+		if (cameraNode->hasAttribute("ease-in-out-intensity")) {
+			keyFramesCamera->setEaseInOutIntensity(
+					cameraNode->getValue<GLdouble>("ease-in-out-intensity", 1.0));
+		}
+		for (const auto &x: cameraNode->getChildren("key-frame")) {
+			keyFramesCamera->push_back(
+					x->getValue<Vec3f>("pos", Vec3f(0.0f, 0.0f, 1.0f)),
+					x->getValue<Vec3f>("dir", Vec3f(0.0f, 0.0f, -1.0f)),
+					x->getValue<GLdouble>("dt", 0.0)
+			);
+		}
+		animations_.emplace_back(keyFramesCamera);
+	}
+	else {
+		REGEN_WARN("Invalid camera type '" << cameraType << "'.");
+		return;
 	}
 
-	if (cameraTransform_.get() != nullptr) {
-		auto physicsMode = FirstPersonTransform::IMPULSE;
-		if (cameraNode->hasAttribute("physics-mode")) {
-			auto modeStr = cameraNode->getValue("physics-mode");
-			if (modeStr == "character") {
-				physicsMode = FirstPersonTransform::CHARACTER;
-			}
+	if (cameraController_.get()) {
+		cameraController_->setMeshEyeOffset(
+				cameraNode->getValue<Vec3f>("eye-offset", Vec3f(0.0)));
+		cameraController_->set_moveAmount(
+				cameraNode->getValue<GLfloat>("speed", 0.01f));
+		cameraController_->setMeshDistance(
+				cameraNode->getValue<GLfloat>("mesh-distance", 10.0f));
+		cameraController_->setHorizontalOrientation(
+				cameraNode->getValue<GLfloat>("horizontal-orientation", 0.0));
+		cameraController_->setVerticalOrientation(
+				cameraNode->getValue<GLfloat>("vertical-orientation", 0.0));
+		cameraController_->setMeshHorizontalOrientation(
+				cameraNode->getValue<GLfloat>("mesh-horizontal-orientation", 0.0));
+		if (cameraMode == "third-person") {
+			cameraController_->setCameraMode(CameraController::THIRD_PERSON);
+		} else {
+			cameraController_->setCameraMode(CameraController::FIRST_PERSON);
 		}
-		auto physicsSpeedFactor = cameraNode->getValue<GLfloat>("physics-speed-factor", 80.0f);
+		// attach the camera to a transform
+		if (transform.get()) {
+			cameraController_->setAttachedTo(transform->get(), mesh);
+		}
 
-		cameraTransform_->setPhysicsMode(physicsMode);
-		cameraTransform_->setPhysicsSpeedFactor(physicsSpeedFactor);
+		ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(cameraController_);
+		cameraEventHandler->set_sensitivity(cameraNode->getValue<GLfloat>("sensitivity", 0.005f));
+		app_->connect(Application::KEY_EVENT, cameraEventHandler);
+		app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
+		app_->connect(Application::MOUSE_MOTION_EVENT, cameraEventHandler);
+		eventHandler_.emplace_back(cameraEventHandler);
 
 		// make sure camera transforms are updated in first few frames
-		cameraTransform_->animate(0.0);
-		cameraTransform_->glAnimate(RenderState::get(), 0.0);
+		cameraController_->animate(0.0);
+		cameraController_->glAnimate(RenderState::get(), 0.0);
 	}
 
 	// read anchor points
+	anchorEaseInOutIntensity_ = cameraNode->getValue<GLfloat>("ease-in-out-intensity", 1.0);
+	anchorPauseTime_ = cameraNode->getValue<GLfloat>("anchor-pause-time", 0.5);
+	anchorTimeScale_ = cameraNode->getValue<GLfloat>("anchor-time-scale", 1.0);
 	for (const auto &x: cameraNode->getChildren("anchor")) {
 		if (x->hasAttribute("transform")) {
 			auto transform = sceneParser.getResources()->getTransform(&sceneParser, x->getValue("transform"));
@@ -587,9 +610,12 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	animations_.clear();
 	viewNodes_.clear();
 	anchors_.clear();
-	physics_ = ref_ptr<BulletPhysics>();
+	if (physics_.get()) {
+		physics_->clear();
+		physics_ = ref_ptr<BulletPhysics>();
+	}
 	mainCamera_ = ref_ptr<Camera>();
-	anchorAnim_ = ref_ptr<KeyFrameCameraTransform>();
+	anchorAnim_ = ref_ptr<KeyFrameController>();
 	anchorIndex_ = 0;
 
 	for (auto &it: eventHandler_) {

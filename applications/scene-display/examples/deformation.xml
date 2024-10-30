@@ -4,7 +4,7 @@
 
 <node id="configuration">
   <camera id="main-camera"
-	  type="first-person"
+	  mode="first-person"
 	  eye-offset="0.0,0.0,0.0"
 	  eye-orientation="0.0">
   </camera>

@@ -17,26 +17,44 @@ BulletPhysics::BulletPhysics()
 			dispatcher_.get(), broadphase_.get(),
 			solver_.get(), configuration_.get());
 	dynamicsWorld_->setGravity(btVector3(0, -9.81f, 0));
+
+    // Set the internal ghost pair callback
+    ghostPairCallback_ = ref_ptr<btGhostPairCallback>::alloc();
+    dynamicsWorld_->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(ghostPairCallback_.get());
+}
+
+BulletPhysics::~BulletPhysics() {
+	clear();
+}
+
+void BulletPhysics::clear() {
+	for (auto &x: objects_) {
+		dynamicsWorld_->removeRigidBody(x->rigidBody().get());
+		for (auto &y: x->props()->collisionObjects()) {
+			dynamicsWorld_->removeCollisionObject(y.get());
+		}
+	}
+	objects_.clear();
 }
 
 void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object) {
 	auto &props = object->props();
-	bool isCharacter = props->characterController().get() != nullptr;
-	dynamicsWorld_->addRigidBody(object->rigidBody().get());
+	auto rigidBody = object->rigidBody().get();
+
+    // Determine if the object is static or dynamic
+    bool isStatic = (rigidBody->getMass() == 0.0f);
+
+    // Set the appropriate collision filter group and mask
+    short group = isStatic ? btBroadphaseProxy::StaticFilter : btBroadphaseProxy::DefaultFilter;
+    short mask = btBroadphaseProxy::AllFilter;
+
+    // Add the rigid body to the dynamics world with the correct filter group and mask
+    dynamicsWorld_->addRigidBody(rigidBody, group, mask);
+
 	for (auto &x: props->collisionObjects()) {
-		if (isCharacter) {
-			dynamicsWorld_->addCollisionObject(x.get(),
-											   btBroadphaseProxy::CharacterFilter,
-											   btBroadphaseProxy::StaticFilter | btBroadphaseProxy::DefaultFilter);
-		} else {
-			dynamicsWorld_->addCollisionObject(x.get());
-		}
-	}
-	if (isCharacter) {
-		dynamicsWorld_->addAction(props->characterController().get());
+		dynamicsWorld_->addCollisionObject(x.get());
 	}
 	objects_.push_back(object);
-
 }
 
 void BulletPhysics::glAnimate(RenderState *rs, GLdouble dt) {}

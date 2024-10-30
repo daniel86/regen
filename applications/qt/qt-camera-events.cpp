@@ -15,7 +15,7 @@
 using namespace regen;
 
 QtFirstPersonEventHandler::QtFirstPersonEventHandler(
-		const ref_ptr<FirstPersonCameraTransform> &m)
+		const ref_ptr<CameraController> &m)
 		: EventHandler(),
 		  m_(m),
 		  buttonPressed_(GL_FALSE),

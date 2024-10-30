@@ -13,7 +13,8 @@
 #include <QtCore/QString>
 
 #include <regen/physics/bullet-physics.h>
-#include <regen/camera/camera-manipulator.h>
+#include <regen/camera/camera-controller.h>
+#include <regen/camera/key-frame-controller.h>
 #include <regen/camera/camera-anchor.h>
 #include <regen/scene/scene-parser.h>
 #include <regen/scene/scene-input.h>
@@ -75,9 +76,9 @@ protected:
 	ref_ptr<Animation> loadAnim_;
 
 	ref_ptr<Camera> mainCamera_;
-	ref_ptr<FirstPersonTransform> cameraTransform_;
+	ref_ptr<CameraController> cameraController_;
 
-	ref_ptr<KeyFrameCameraTransform> anchorAnim_;
+	ref_ptr<KeyFrameController> anchorAnim_;
 	std::vector<ref_ptr<CameraAnchor>> anchors_;
 	GLuint anchorIndex_;
 	GLdouble anchorEaseInOutIntensity_;
