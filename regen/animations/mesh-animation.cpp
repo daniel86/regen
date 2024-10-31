@@ -187,12 +187,12 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame) {
 	MeshAnimation::KeyFrame &frame = frames_[frameIndex];
 
 	std::list<ref_ptr<ShaderInput> > atts;
-	for (auto it = frame.attributes.begin(); it != frame.attributes.end(); ++it) {
-		atts.push_back(it->input);
+	for (auto & attribute : frame.attributes) {
+		atts.push_back(attribute.input);
 	}
 
 	if (isPongFrame) {
-		if (pongFrame_ != -1) { animationBuffer_->free(pongIt_.get()); }
+		if (pongFrame_ != -1) { regen::VBO::free(pongIt_.get()); }
 		pongFrame_ = frameIndex;
 		if (hasMeshInterleavedAttributes_) {
 			pongIt_ = animationBuffer_->allocInterleaved(atts);
@@ -201,7 +201,7 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame) {
 		}
 		frame.ref = pongIt_;
 	} else {
-		if (pingFrame_ != -1) { animationBuffer_->free(pingIt_.get()); }
+		if (pingFrame_ != -1) { regen::VBO::free(pingIt_.get()); }
 		pingFrame_ = frameIndex;
 		if (hasMeshInterleavedAttributes_) {
 			pingIt_ = animationBuffer_->allocInterleaved(atts);
@@ -290,8 +290,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		framesChanged = GL_TRUE;
 	}
 	if (lastFrame != lastFrame_) {
-		for (auto it = frame0.attributes.begin(); it != frame0.attributes.end(); ++it) {
-			it->location = interpolationShader_->attributeLocation("next_" + it->input->name());
+		for (auto & attribute : frame0.attributes) {
+			attribute.location = interpolationShader_->attributeLocation("next_" + attribute.input->name());
 		}
 		lastFrame_ = lastFrame;
 		framesChanged = GL_TRUE;
@@ -315,12 +315,12 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 
 		// setup attributes
 		glBindBuffer(GL_ARRAY_BUFFER, frame0.ref->bufferID());
-		for (auto it = frame0.attributes.begin(); it != frame0.attributes.end(); ++it) {
-			it->input->enableAttribute(it->location);
+		for (auto & attribute : frame0.attributes) {
+			attribute.input->enableAttribute(attribute.location);
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, frame1.ref->bufferID());
-		for (auto it = frame1.attributes.begin(); it != frame1.attributes.end(); ++it) {
-			it->input->enableAttribute(it->location);
+		for (auto & attribute : frame1.attributes) {
+			attribute.input->enableAttribute(attribute.location);
 		}
 
 		rs->vao().pop();
@@ -386,8 +386,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 				meshBufferOffset_);
 	} else {
 		GLuint feedbackBufferOffset = 0;
-		for (auto it = blocks.begin(); it != blocks.end(); ++it) {
-			ContiguousBlock &block = *it;
+		for (auto & block : blocks) {
 			VBO::copy(
 					feedbackRef_->bufferID(),
 					block.buffer,
@@ -423,14 +422,13 @@ void MeshAnimation::addFrame(
 	REGEN_DEBUG("Adding frame at tick " << frame.startTick << " (duration: " << frame.timeInTicks << ")");
 
 	// add attributes
-	for (auto it = inputs.begin(); it != inputs.end(); ++it) {
-		const ref_ptr<ShaderInput> &in0 = it->in_;
+	for (const auto & input : inputs) {
+		const ref_ptr<ShaderInput> &in0 = input.in_;
 		if (!in0->isVertexAttribute()) continue;
 		ref_ptr<ShaderInput> att;
 		// find specified attribute
-		for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
-			const ref_ptr<ShaderInput> &in1 = *jt;
-			if (in0->name() == in1->name()) {
+		for (const auto & in1 : attributes) {
+				if (in0->name() == in1->name()) {
 				att = in1;
 				break;
 			}
@@ -490,7 +488,7 @@ void MeshAnimation::addSphereAttributes(
 		return;
 	}
 
-	GLdouble radiusScale = horizontalRadius / verticalRadius;
+	GLfloat radiusScale = horizontalRadius / verticalRadius;
 	Vec3f scale(radiusScale, 1.0, radiusScale);
 
 	ref_ptr<ShaderInput3f> posAtt = ref_ptr<ShaderInput3f>::dynamicCast(mesh_->positions());
@@ -727,18 +725,18 @@ void MeshAnimation::addBoxAttributes(
 		GLdouble xAbs = abs(vCopy.x);
 		GLdouble yAbs = abs(vCopy.y);
 		GLdouble zAbs = abs(vCopy.z);
-		GLdouble h, factor;
+		GLfloat h, factor;
 		// set the coordinate for the face to the cube size
 		if (xAbs > yAbs && xAbs > zAbs) { // left/right face
-			factor = (v.x < 0 ? -1 : 1);
+			factor = (v.x < 0.0f ? -1.0f : 1.0f);
 			n = (Vec3f(1, 0, 0)) * factor;
 			h = vCopy.x;
 		} else if (yAbs > zAbs) { // top/bottom face
-			factor = (v.y < 0 ? -1 : 1);
+			factor = (v.y < 0.0f ? -1.0f : 1.0f);
 			n = (Vec3f(0, 1, 0)) * factor;
 			h = vCopy.y;
 		} else { //front/back face
-			factor = (v.z < 0 ? -1 : 1);
+			factor = (v.z < 0.0f ? -1.0f : 1.0f);
 			n = (Vec3f(0, 0, 1)) * factor;
 			h = vCopy.z;
 		}
