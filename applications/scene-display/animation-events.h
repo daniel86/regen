@@ -32,6 +32,12 @@ protected:
 };
 
 struct KeyAnimationMapping {
+	KeyAnimationMapping()
+			: toggle(GL_FALSE),
+			  backwards(GL_FALSE),
+			  interrupt(GL_FALSE),
+			  releaseInterrupt(GL_FALSE) {}
+
 	string key;
 	string press;
 	string idle;
@@ -113,42 +119,52 @@ public:
 	void call(EventObject *evObject, EventData *data) {
 		if (data->eventID == Animation::ANIMATION_STOPPED) {
 			nextAnimation();
-		} else if (data->eventID == Application::KEY_EVENT) {
-			Application::KeyEvent *ev = (Application::KeyEvent *) data;
+			return;
+		}
+		std::string eventKey;
+		GLboolean isUp;
+		if (data->eventID == Application::KEY_EVENT) {
+			auto *ev = (Application::KeyEvent *) data;
 			// TODO: mapping of non-asci keys
-			string key = REGEN_STRING((char) ev->key);
+			eventKey = REGEN_STRING((char) ev->key);
+			isUp = ev->isUp;
+		} else if (data->eventID == Application::BUTTON_EVENT) {
+			auto *ev = (Application::ButtonEvent *) data;
+			eventKey = REGEN_STRING("button" << ev->button);
+			isUp = !ev->pressed;
+		} else {
+			return;
+		}
 
-			if (mappings_.count(key) == 0) return;
-			KeyAnimationMapping &m = mappings_[key];
+		if (mappings_.count(eventKey) == 0) return;
+		KeyAnimationMapping &m = mappings_[eventKey];
 
-			if (ev->isUp) {
-				// Remember that the key was released
-				pressed_.remove(key);
+		if (isUp) {
+			// Remember that the key was released
+			pressed_.remove(eventKey);
 
-				// Interrupt current animation
-				if (m.releaseInterrupt && active_ == key) {
-					nextAnimation();
-				}
-			} else {
-				// Remember that the key was pressed
-				pressed_.remove(key);
-				pressed_.push_front(key);
+			// Interrupt current animation
+			if (m.releaseInterrupt && active_ == eventKey) {
+				nextAnimation();
+			}
+		} else {
+			// Remember that the key was pressed
+			pressed_.remove(eventKey);
+			pressed_.push_front(eventKey);
 
-				if (active_.empty()) {
-					// Start if no animation is active
+			if (active_.empty()) {
+				// Start if no animation is active
+				startAnimation();
+			} else { // Interrupt current animation if allowed
+				KeyAnimationMapping &a = mappings_[active_];
+				if (a.interrupt) {
 					startAnimation();
-				} else { // Interrupt current animation if allowed
-					KeyAnimationMapping &a = mappings_[active_];
-					if (a.interrupt) {
-						startAnimation();
-					}
-				}
-				// Avoid that the toggle turns off automatically
-				if (m.toggle) {
-					pressed_.remove(key);
 				}
 			}
-
+			// Avoid that the toggle turns off automatically
+			if (m.toggle) {
+				pressed_.remove(eventKey);
+			}
 		}
 	}
 
