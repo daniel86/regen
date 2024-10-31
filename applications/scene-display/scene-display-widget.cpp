@@ -552,17 +552,24 @@ static void handleAssetAnimationConfiguration(
 		string idleAnimation = animationNode->getValue("idle");
 
 		for (const auto &x: animationNode->getChildren()) {
+			KeyAnimationMapping mapping;
 			if (x->getCategory() == string("key-mapping")) {
-				KeyAnimationMapping mapping;
 				mapping.key = x->getValue("key");
-				mapping.press = x->getValue("press");
-				mapping.toggle = x->getValue<GLboolean>("toggle", GL_FALSE);
-				mapping.interrupt = x->getValue<GLboolean>("interrupt", GL_FALSE);
-				mapping.releaseInterrupt = x->getValue<GLboolean>("release-interrupt", GL_FALSE);
-				mapping.backwards = x->getValue<GLboolean>("backwards", GL_FALSE);
-				mapping.idle = x->getValue("idle");
-				keyMappings[mapping.key] = mapping;
 			}
+			else if (x->getCategory() == string("mouse-mapping")) {
+				mapping.key = REGEN_STRING("button" << x->getValue<int>("button", 1));
+			}
+			else {
+				REGEN_WARN("Unhandled animation node " << x->getDescription() << ".");
+				continue;
+			}
+			mapping.press = x->getValue("press");
+			mapping.toggle = x->getValue<GLboolean>("toggle", GL_FALSE);
+			mapping.interrupt = x->getValue<GLboolean>("interrupt", GL_FALSE);
+			mapping.releaseInterrupt = x->getValue<GLboolean>("release-interrupt", GL_FALSE);
+			mapping.backwards = x->getValue<GLboolean>("backwards", GL_FALSE);
+			mapping.idle = x->getValue("idle");
+			keyMappings[mapping.key] = mapping;
 		}
 
 		if (!keyMappings.empty()) {
@@ -570,6 +577,7 @@ static void handleAssetAnimationConfiguration(
 				auto keyHandler = ref_ptr<KeyAnimationRangeUpdater>::alloc(
 						anim, ranges, keyMappings, idleAnimation);
 				app_->connect(Application::KEY_EVENT, keyHandler);
+				app_->connect(Application::BUTTON_EVENT, keyHandler);
 				anim->connect(Animation::ANIMATION_STOPPED, keyHandler);
 				eventHandler.emplace_back(keyHandler);
 			}

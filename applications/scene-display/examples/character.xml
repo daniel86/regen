@@ -10,8 +10,8 @@
         <key-mapping key="A" press="walk" interrupt="1" release-interrupt="1"/>
         <key-mapping key="S" press="walk" interrupt="1" release-interrupt="1" backwards="1"/>
         <key-mapping key="D" press="walk" interrupt="1" release-interrupt="1"/>
-        <mouse-mapping button="1" animation="attack1"/>
-        <mouse-mapping button="2" animation="block"/>
+        <mouse-mapping button="1" press="attack1" />
+        <mouse-mapping button="2" press="block" />
     </animation>
     <camera id="main-camera"
             mode="third-person"
