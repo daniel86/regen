@@ -110,13 +110,12 @@
 
 <node id="Scene-Geometry">
   <node id="Ground">
-    <input type="float" name="parallaxBias" value="0.15" />
+    <input type="float" name="parallaxBias" value="0.02" />
     <input type="float" name="parallaxScale" value="0.03" />
     <texture name="colorTexture" id="ground-color" map-to="COLOR"
-	     texco-transfer="PARALLAX" />
+	     texco-transfer="PARALLAX_OCC" />
     <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
-	     texco-transfer="PARALLAX"
-	     texel-transfer-key="regen.states.textures.normalTBNTransfer" />
+	     texco-transfer="PARALLAX_OCC" />
     <texture name="heightTexture" id="ground-height" />
       
     <transform>
