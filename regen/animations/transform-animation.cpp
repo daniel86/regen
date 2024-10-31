@@ -69,7 +69,7 @@ void TransformAnimation::animate(GLdouble dt) {
 				btCurrentVal.setFromOpenGLMatrix((btScalar*)&currentVal_);
 				physicalObject->rigidBody()->setWorldTransform(btCurrentVal);
 				physicalObject->rigidBody()->setLinearVelocity(
-						(btLastVal.getOrigin() - btCurrentVal.getOrigin())*dt/1000.0);
+						(btCurrentVal.getOrigin() - btLastVal.getOrigin()));
 			}
 		}
 		unlock();

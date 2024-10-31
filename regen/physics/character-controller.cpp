@@ -98,11 +98,12 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
 	GLfloat heightAdjust = btCollisionHeight_ * 0.5f + btCollisionRadius_;
 	matVal_.x[13] -= heightAdjust;
 
-	btVector3 walkDirection(0.0, 0.0, 0.0);
+	btVector3 btVelocity = btController_->getLinearVelocity();
+	btVelocity.setX(0.0);
+	btVelocity.setZ(0.0);
 	GLboolean isMoving = isMoving_;
 
 	// Perform a raycast to detect the platform
-	/*
     btVector3 rayStart = btTransform.getOrigin();
     btVector3 rayEnd = rayStart + btVector3(0, -heightAdjust  - 0.1f, 0);
     btCollisionWorld::ClosestRayResultCallback rayCallback(rayStart, rayEnd);
@@ -114,24 +115,23 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
         if (hitBody) {
             auto &bodyVelocity = hitBody->getLinearVelocity();
             if (bodyVelocity.length() > 0.0001) {
-            	// TODO: not sure about this magic number, probably it won't work for all cases
-            	static const GLfloat btWalkDirectionScale = 65.0f;
-				walkDirection -= bodyVelocity * btWalkDirectionScale;
+				btVelocity += bodyVelocity;
 				isMoving = GL_TRUE;
 			}
         }
     }
-    */
 
 	if (!isMoving_) {
 		if (btIsMoving_ || isMoving) {
-			btController_->setWalkDirection(walkDirection);
+			btVelocity.setY(btController_->getLinearVelocity().getY());
+			btController_->setLinearVelocity(btVelocity);
 			btIsMoving_ = GL_FALSE;
 		}
 	} else {
 		// Apply the step to the character controller
-		walkDirection += btVector3(offset.x, offset.y, offset.z);
-		btController_->setWalkDirection(walkDirection);
+		btVelocity += btVector3(offset.x, offset.y, offset.z);
+		btVelocity.setY(btController_->getLinearVelocity().getY());
+		btController_->setLinearVelocity(btVelocity);
 		btIsMoving_ = GL_TRUE;
 	}
 }
