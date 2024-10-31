@@ -135,6 +135,7 @@
         <fullscreen-pass shader="regen.shading.deferred.ambient"/>
     </node>
     <node id="Light-Shading">
+        <!-- <define key="DEBUG_SHADOW_SLICES" value="1" /> -->
         <light-pass type="DIRECTIONAL"
             shader="regen.shading.deferred.directional"
             shadow-filter="NONE">

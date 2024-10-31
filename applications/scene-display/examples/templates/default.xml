@@ -128,7 +128,7 @@
 	light="earth-sky-sun"
 	camera="main-camera"
 	num-layer="3"
-	split-weight="0.9" />
+	split-weight="0.6" />
 
 <!--**************************-->
 <!--*** Ambient Occlusion ****-->
