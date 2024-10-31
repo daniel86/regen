@@ -62,16 +62,13 @@ static void transformMatrix(
 			}
 		}
 		else if (child->getCategory() == "animation") {
-			REGEN_INFO("TransformAnimation");
 			auto transformAnimation = ref_ptr<TransformAnimation>::alloc(matrixInput);
 
 			if (child->hasAttribute("mesh-id")) {
-						REGEN_INFO("TransformAnimation: mesh-id");
 				auto meshID = child->getValue("mesh-id");
 				auto meshIndex = child->getValue<GLuint>("mesh-index", 0u);
 				auto meshVec = parser->getResources()->getMesh(parser, meshID);
 				if (meshVec.get() != nullptr && meshVec->size()>meshIndex) {
-						REGEN_INFO("TransformAnimation: has mesh");
 					auto mesh = (*meshVec.get())[meshIndex];
 					transformAnimation->setMesh(mesh);
 				}
