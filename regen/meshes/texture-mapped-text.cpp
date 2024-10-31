@@ -168,6 +168,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	setInput(norAttribute_);
 	setInput(texcoAttribute_);
 	end();
+	updateVAO(RenderState::get());
 }
 
 void TextureMappedText::makeGlyphGeometry(
