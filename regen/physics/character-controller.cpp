@@ -14,6 +14,7 @@ CharacterController::CharacterController(
 		btStepHeight_(0.25f),
 		btGravityForce_(30.0f),
 		btJumpVelocity_(16.0f),
+		btMaxSlope_(0.8f),
 		btIsMoving_(GL_FALSE) {
 }
 
@@ -37,6 +38,14 @@ void CharacterController::setGravityForce(GLfloat force) {
 	}
 }
 
+
+void CharacterController::setMaxSlope(GLfloat maxSlope) {
+	btMaxSlope_ = maxSlope;
+	if (btController_.get()) {
+		btController_->setMaxSlope(btMaxSlope_);
+	}
+}
+
 bool CharacterController::initializePhysics() {
 	if (!attachedToTransform_.get()) {
 		return false;
@@ -57,6 +66,8 @@ bool CharacterController::initializePhysics() {
 	btController_ = ref_ptr<btKinematicCharacterController>::alloc(
 			ghostObject.get(), capsuleShape.get(), btStepHeight_);
 	setGravityForce(btGravityForce_);
+	setMaxSlope(btMaxSlope_);
+
 
 	btQuaternion rotation;
 	rotation.setRotation(btVector3(0, 1, 0), meshHorizontalOrientation_);

@@ -53,6 +53,11 @@ namespace regen {
 		void setGravityForce(GLfloat force);
 
 		/**
+		 * @param slope The maximum slope.
+		 */
+		void setMaxSlope(GLfloat slope);
+
+		/**
 		 * @param velocity The jump velocity.
 		 */
 		void setJumpVelocity(GLfloat velocity) { btJumpVelocity_ = velocity; }
@@ -78,6 +83,7 @@ namespace regen {
 		GLfloat btStepHeight_;
 		GLfloat btGravityForce_;
 		GLfloat btJumpVelocity_;
+		GLfloat btMaxSlope_;
 		GLboolean btIsMoving_;
 
 		bool initializePhysics();
