@@ -16,7 +16,7 @@
     <camera id="main-camera"
             mode="third-person"
             type="physical-character"
-            step-height="0.6"
+            step-height="0.8"
             collision-radius="0.9"
             collision-height="3.9"
             gravity-force="30.0"
@@ -99,13 +99,13 @@
         <!--**************************-->
 
 <transform id="stairs0-tf">
-    <translate value="16.0,-1.4,16.0"/>
+    <translate value="16.0,-1.6,16.0"/>
 </transform>
 <transform id="stairs1-tf">
-    <translate value="16.0,-0.6,16.0"/>
+    <translate value="16.0,-0.8,16.0"/>
 </transform>
 <transform id="stairs2-tf">
-    <translate value="16.0,0.2,16.0"/>
+    <translate value="16.0,0.0,16.0"/>
 </transform>
 
 <mesh id="stairs0-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
