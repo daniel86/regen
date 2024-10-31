@@ -75,7 +75,7 @@
 </transform>
 <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="2"
       rotation="0.0,0.0,3.1415"
-      scaling="240.0,20.0,240.0">
+      scaling="1000.0,20.0,1000.0">
     <transform id="ground-transform" />
     <material preset="pewter"/>
 </mesh>
