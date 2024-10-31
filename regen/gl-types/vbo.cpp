@@ -64,10 +64,10 @@ VBO::VBOPool *VBO::dataPools_ = nullptr;
 
 GLuint VBO::attributeSize(
 		const std::list<ref_ptr<ShaderInput> > &attributes) {
-	if (attributes.size() > 0) {
+	if (!attributes.empty()) {
 		GLuint structSize = 0;
-		for (auto it = attributes.begin(); it != attributes.end(); ++it) {
-			structSize += (*it)->inputSize();
+		for (const auto &attribute: attributes) {
+			structSize += attribute->inputSize();
 		}
 		return structSize;
 	}
@@ -140,7 +140,9 @@ GLuint VBO::Reference::address() const {
 }
 
 // GL buffer handle is the actual allocator reference
-GLuint VBO::Reference::bufferID() const { return poolReference_.allocatorNode->allocatorRef; }
+GLuint VBO::Reference::bufferID() const {
+	return poolReference_.allocatorNode->allocatorRef;
+}
 
 VBO *VBO::Reference::vbo() const { return vbo_; }
 
@@ -164,6 +166,8 @@ GLuint VBO::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size) {
 	// and allocate GPU memory
 	switch ((Usage) poolIndex) {
 		case USAGE_DYNAMIC:
+		case USAGE_FEEDBACK:
+		case USAGE_UNIFORM:
 			rs->arrayBuffer().push(ref);
 			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 			rs->arrayBuffer().pop();
@@ -176,16 +180,6 @@ GLuint VBO::VBOAllocator::createAllocator(GLuint poolIndex, GLuint size) {
 		case USAGE_STREAM:
 			rs->arrayBuffer().push(ref);
 			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
-			rs->arrayBuffer().pop();
-			break;
-		case USAGE_FEEDBACK:
-			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-			rs->arrayBuffer().pop();
-			break;
-		case USAGE_UNIFORM:
-			rs->arrayBuffer().push(ref);
-			glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
 			rs->arrayBuffer().pop();
 			break;
 		case USAGE_TEXTURE:
@@ -334,8 +328,8 @@ void VBO::uploadInterleaved(
 	GLuint numVertices = attributes.front()->numVertices();
 	byte *data = new byte[bufferSize];
 
-	for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
-		ShaderInput *att = jt->get();
+	for (const auto &attribute: attributes) {
+		ShaderInput *att = attribute.get();
 
 		att->set_buffer(ref->bufferID(), ref);
 		if (att->divisor() == 0) {
@@ -347,8 +341,8 @@ void VBO::uploadInterleaved(
 	}
 
 	currOffset = (currOffset - startByte) * numVertices;
-	for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
-		ShaderInput *att = jt->get();
+	for (const auto &attribute: attributes) {
+		ShaderInput *att = attribute.get();
 		if (att->divisor() == 0) {
 			att->set_stride(attributeVertexSize);
 		} else {
@@ -368,8 +362,8 @@ void VBO::uploadInterleaved(
 
 	GLuint count = 0;
 	for (GLuint i = 0; i < numVertices; ++i) {
-		for (auto jt = attributes.begin(); jt != attributes.end(); ++jt) {
-			ShaderInput *att = jt->get();
+		for (const auto &attribute: attributes) {
+			ShaderInput *att = attribute.get();
 			if (att->divisor() != 0) { continue; }
 
 			// size of a value for a single vertex in bytes

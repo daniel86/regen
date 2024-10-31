@@ -291,7 +291,7 @@ namespace regen {
 
 		ref_ptr<Reference> &createReference(GLuint numBytes);
 
-		ref_ptr<Reference> &nullReference();
+		static ref_ptr<Reference> &nullReference();
 	};
 
 	std::ostream &operator<<(std::ostream &out, const VBO::Usage &v);
