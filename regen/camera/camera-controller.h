@@ -200,7 +200,7 @@ namespace regen {
 		 * Move a step in the direction of the given offset.
 		 * @param offset the offset.
 		 */
-		virtual void applyStep(const Vec3f &offset);
+		virtual void applyStep(GLfloat dt, const Vec3f &offset);
 
 		/**
 		 * Jump.

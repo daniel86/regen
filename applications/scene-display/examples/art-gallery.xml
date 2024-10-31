@@ -756,10 +756,12 @@
 <node id="Shading-Pass">
     <blend mode="add"/>
     <depth test="0" write="0"/>
-    <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
+    <input type="vec3" name="lightAmbient" value="0.06,0.04,0.04"/>
 
-    <node>
+    <node id="Ambient-Shading">
         <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+    </node>
+    <node id="Light-Shading">
 
         <light-pass type="POINT" shader="regen.shading.deferred.point">
             <light id="room-light0"

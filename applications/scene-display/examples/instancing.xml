@@ -128,27 +128,26 @@
 </node>
 
 <node id="Shading-Pass">
-  <blend mode="add" />
-  <depth test="0" write="0" />
-  <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
+    <blend mode="add" />
+    <depth test="0" write="0" />
+    <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
     
-  <node>
-    <fullscreen-pass shader="regen.shading.deferred.ambient" />
-
-    <light-pass type="DIRECTIONAL"
-		shader="regen.shading.deferred.directional"
-		shadow-filter="NONE">
-      <light id="earth-sky-sun"
-	     shadow-buffer="sun-shadow" shadow-attachment="depth"
-	     shadow-camera="sun-camera" />
-      <!--
-      <light id="earth-sky-moon" />
-      -->
-    </light-pass>
-  </node>
-  
-  <node import="Ambient-Occlusion-Update" />
-  <node import="Ambient-Occlusion-Sample" />
+    <node id="Ambient-Shading">
+        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+    </node>
+    <node id="Light-Shading">
+        <light-pass type="DIRECTIONAL"
+            shader="regen.shading.deferred.directional"
+            shadow-filter="NONE">
+            <light id="earth-sky-sun"
+                shadow-buffer="sun-shadow"
+                shadow-attachment="depth"
+                shadow-camera="sun-camera" />
+            <!-- <light id="earth-sky-moon" /> -->
+        </light-pass>
+    </node>
+    <node import="Ambient-Occlusion-Update" />
+    <node import="Ambient-Occlusion-Sample" />
 </node>
 
 <node id="Background-Pass">

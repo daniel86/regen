@@ -145,7 +145,7 @@ void CameraController::updateModel() {
 	}
 }
 
-void CameraController::applyStep(const Vec3f &offset) {
+void CameraController::applyStep(GLfloat dt, const Vec3f &offset) {
 	pos_ += offset;
 }
 
@@ -178,7 +178,7 @@ void CameraController::animate(GLdouble dt) {
 
 	lock();
 	{
-		applyStep(step_);
+		applyStep(dt, step_);
 		updateCameraPosition();
 		updateCameraOrientation();
 		computeMatrices(camPos_, camDir_);

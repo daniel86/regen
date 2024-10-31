@@ -81,7 +81,7 @@ void CharacterController::jump() {
 	}
 }
 
-void CharacterController::applyStep(const Vec3f &offset) {
+void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
 	// Make a step. This is called each frame.
 
 	if (!btController_.get()) {
@@ -95,16 +95,43 @@ void CharacterController::applyStep(const Vec3f &offset) {
 	btTransform.getOpenGLMatrix((btScalar *) &matVal_);
 	// decrease the y position by the collision height, else
 	// the character would float above the ground
-	matVal_.x[13] -= btCollisionHeight_ * 0.5f + btCollisionRadius_;
+	GLfloat heightAdjust = btCollisionHeight_ * 0.5f + btCollisionRadius_;
+	matVal_.x[13] -= heightAdjust;
+
+	btVector3 walkDirection(0.0, 0.0, 0.0);
+	GLboolean isMoving = isMoving_;
+
+	// Perform a raycast to detect the platform
+	/*
+    btVector3 rayStart = btTransform.getOrigin();
+    btVector3 rayEnd = rayStart + btVector3(0, -heightAdjust  - 0.1f, 0);
+    btCollisionWorld::ClosestRayResultCallback rayCallback(rayStart, rayEnd);
+    bt_->dynamicsWorld()->rayTest(rayStart, rayEnd, rayCallback);
+
+    if (rayCallback.hasHit()) {
+        auto hitBody = const_cast<btRigidBody*>(
+        		btRigidBody::upcast(rayCallback.m_collisionObject));
+        if (hitBody) {
+            auto &bodyVelocity = hitBody->getLinearVelocity();
+            if (bodyVelocity.length() > 0.0001) {
+            	// TODO: not sure about this magic number, probably it won't work for all cases
+            	static const GLfloat btWalkDirectionScale = 65.0f;
+				walkDirection -= bodyVelocity * btWalkDirectionScale;
+				isMoving = GL_TRUE;
+			}
+        }
+    }
+    */
 
 	if (!isMoving_) {
-		if (btIsMoving_) {
-			btController_->setWalkDirection(btVector3(0, 0, 0));
+		if (btIsMoving_ || isMoving) {
+			btController_->setWalkDirection(walkDirection);
 			btIsMoving_ = GL_FALSE;
 		}
 	} else {
 		// Apply the step to the character controller
-		btController_->setWalkDirection(btVector3(offset.x, offset.y, offset.z));
+		walkDirection += btVector3(offset.x, offset.y, offset.z);
+		btController_->setWalkDirection(walkDirection);
 		btIsMoving_ = GL_TRUE;
 	}
 }
