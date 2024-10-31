@@ -22,6 +22,7 @@
             collision-height="3.9"
             gravity-force="30.0"
             jump-velocity="16.0"
+            speed="0.0175"
             mesh="dwarf-mesh"
             mesh-index="1"
             mesh-distance="40.0"
