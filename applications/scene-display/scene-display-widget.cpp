@@ -409,6 +409,8 @@ void SceneDisplayWidget::handleCameraConfiguration(
 				cameraNode->getValue<GLfloat>("collision-radius", 0.8));
 		characterController->setStepHeight(
 				cameraNode->getValue<GLfloat>("step-height", 0.35));
+		characterController->setMaxSlope(
+				cameraNode->getValue<GLfloat>("max-slope", 0.8));
 		characterController->setGravityForce(
 				cameraNode->getValue<GLfloat>("gravity-force", 30.0));
 		characterController->setJumpVelocity(
