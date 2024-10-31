@@ -359,31 +359,32 @@
 <!--**************************-->
 
 <node id="Shading-Pass">
-  <blend mode="add" />
-  <depth test="0" write="0" />
-  <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
-  <resource id="earth-sky" />
+    <blend mode="add" />
+    <depth test="0" write="0" />
+    <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
+    <resource id="earth-sky" />
     
-  <node>
-    <fullscreen-pass shader="regen.shading.deferred.ambient" />
-
-    <light-pass type="DIRECTIONAL"
-		shader="regen.shading.deferred.directional"
-		shadow-filter="PCF_GAUSSIAN">
-      <light id="earth-sky-sun"
-	     shadow-buffer="sun-shadow" shadow-attachment="depth"
-	     shadow-camera="sun-camera" />
-      <!--
-      <light id="earth-sky-moon" />
-      -->
-    </light-pass>
+    <node id="Ambient-Shading">
+        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+    </node>
+    <node id="Light-Shading">
+        <light-pass type="DIRECTIONAL"
+            shader="regen.shading.deferred.directional"
+            shadow-filter="PCF_GAUSSIAN">
+            <light id="earth-sky-sun"
+                shadow-buffer="sun-shadow"
+                shadow-attachment="depth"
+                shadow-camera="sun-camera" />
+            <!-- <light id="earth-sky-moon" /> -->
+        </light-pass>
 <!--
-    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
-      <light id="spot-light"
-	     shadow-buffer="spot-shadow" shadow-attachment="depth"
-	     shadow-camera="spot-camera" />
-    </light-pass>
-    -->
+        <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+            <light id="spot-light"
+                shadow-buffer="spot-shadow"
+                shadow-attachment="depth"
+                shadow-camera="spot-camera" />
+         </light-pass>
+-->
   </node>
 </node>
 

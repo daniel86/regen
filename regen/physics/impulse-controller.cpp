@@ -20,7 +20,7 @@ ImpulseController::ImpulseController(
 	physicalObject->rigidBody()->setLinearVelocity(btVector3(0, 0, 0));
 }
 
-void ImpulseController::applyStep(const Vec3f &offset) {
+void ImpulseController::applyStep(GLfloat dt, const Vec3f &offset) {
 	// update orientation of the physical object: set it to the camera orientation
 	btTransform transform;
 	btQuaternion rotation;

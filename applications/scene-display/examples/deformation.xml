@@ -99,21 +99,22 @@
 <!--**************************-->
 
 <node id="Shading-Pass">
-  <blend mode="add" />
-  <depth test="0" write="0" />
-  <input type="vec3" name="lightAmbient" value="0.4,0.4,0.4" />
+    <blend mode="add" />
+    <depth test="0" write="0" />
+    <input type="vec3" name="lightAmbient" value="0.01,0.01,0.01" />
     
-  <node>
-    <fullscreen-pass shader="regen.shading.deferred.ambient" />
-    
-    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
-      <light id="spot-light"
-	     shadow-buffer="spot-shadow"
-	     shadow-attachment="depth"
-	     shadow-color-attachment="0"
-	     shadow-camera="spot-camera" />
-    </light-pass>
-  </node>
+    <node id="Ambient-Shading">
+        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+    </node>
+    <node id="Light-Shading">
+        <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+            <light id="spot-light"
+                shadow-buffer="spot-shadow"
+                shadow-attachment="depth"
+                shadow-color-attachment="0"
+                shadow-camera="spot-camera" />
+        </light-pass>
+    </node>
 </node>
 
 <node id="Shadow-Caster">

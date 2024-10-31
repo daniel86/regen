@@ -15,7 +15,7 @@
 
   <define key="JULIA_SET" value="TRUE" />
   <input type="vec2" name="juliaConstants" >
-    <key-frame-animation dt="6.0">
+    <animation dt="6.0">
       <key-frame value="-1.1,0.05" dt="0.0" />
       <key-frame value="-0.5,0.1" />
       <key-frame value="-0.5,0.6" />
@@ -27,43 +27,43 @@
       <key-frame value="-0.5,0.1"  />
       <key-frame value="-0.5,1.0" />
       <key-frame value="-1.1,0.05" />
-    </key-frame-animation>
+    </animation>
   </input>
   <input type="float" name="maxIterations" value="200" />
   <input type="float" name="scale" >
-    <key-frame-animation type="key-frames" dt="3.0">
+    <animation type="key-frames" dt="3.0">
       <key-frame value="1.0" dt="0.0" />
       <key-frame value="0.5" />
       <key-frame value="1.0" />
-    </key-frame-animation>
+    </animation>
   </input>
   <input type="vec2" name="center" value="0.0,0.0" />
   <input type="vec3" name="innerColor" value="0.2,0.45,0.41">
-    <key-frame-animation type="key-frames" dt="1.0">
+    <animation type="key-frames" dt="1.0">
       <key-frame value="0.6,0.8,0.5" dt="0.0" />
       <key-frame value="0.5,0.7,0.6" />
       <key-frame value="0.4,0.6,0.7" />
       <key-frame value="0.5,0.7,0.6" />
       <key-frame value="0.6,0.8,0.5" />
-    </key-frame-animation>
+    </animation>
   </input>
   <input type="vec3" name="outerColor1" value="0.2,0.12,0.82" >
-    <key-frame-animation type="key-frames" dt="1.0">
+    <animation type="key-frames" dt="1.0">
       <key-frame value="0.2,0.1,0.8" dt="0.0" />
       <key-frame value="0.1,0.2,0.6" />
       <key-frame value="0.3,0.2,0.7" />
       <key-frame value="0.1,0.2,0.6" />
       <key-frame value="0.2,0.1,0.8" />
-    </key-frame-animation>
+    </animation>
   </input>
   <input type="vec3" name="outerColor2" value="0.4,0.8,0.1" >
-    <key-frame-animation type="key-frames" dt="1.0">
+    <animation type="key-frames" dt="1.0">
       <key-frame value="0.4,0.8,0.1" dt="0.0" />
       <key-frame value="0.2,0.7,0.3" />
       <key-frame value="0.3,0.6,0.2" />
       <key-frame value="0.2,0.7,0.3" />
       <key-frame value="0.4,0.8,0.1" />
-    </key-frame-animation>
+    </animation>
   </input>
   <fullscreen-pass shader="mandelbrot" />
 </node>

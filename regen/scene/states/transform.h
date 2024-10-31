@@ -15,6 +15,7 @@
 #include <regen/scene/resource-manager.h>
 
 #include <regen/states/model-transformation.h>
+#include "regen/animations/transform-animation.h"
 
 #define REGEN_TRANSFORM_STATE_CATEGORY "transform"
 
@@ -24,21 +25,29 @@ static void transformMatrix(
 		mat.x[12] += value.x;
 		mat.x[13] += value.y;
 		mat.x[14] += value.z;
-	} else if (target == "scale") {
+	}
+	else if (target == "scale") {
 		mat.scale(value);
-	} else if (target == "rotate") {
+	}
+	else if (target == "rotate") {
 		Quaternion q(0.0, 0.0, 0.0, 1.0);
 		q.setEuler(value.x, value.y, value.z);
 		mat *= q.calculateMatrix();
-	} else if (target == "set") {}
+	}
 	else {
 		REGEN_WARN("Unknown distribute target '" << target << "'.");
 	}
 }
 
 static void transformMatrix(
-		SceneInputNode &input, Mat4f *matrices, GLuint numInstances) {
-	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
+		SceneParser *parser,
+		SceneInputNode &input,
+		const ref_ptr<State> &state,
+		const ref_ptr<ShaderInputMat4> &matrixInput,
+		GLuint numInstances) {
+	auto &childs = input.getChildren();
+	auto *matrices = (Mat4f *) matrixInput->clientDataPtr();
+
 	for (auto it = childs.begin(); it != childs.end(); ++it) {
 		ref_ptr<SceneInputNode> child = *it;
 		list<GLuint> indices = child->getIndexSequence(numInstances);
@@ -51,7 +60,38 @@ static void transformMatrix(
 			for (auto it = indices.begin(); it != indices.end(); ++it) {
 				transformMatrix(target, matrices[*it], generator.next());
 			}
-		} else {
+		}
+		else if (child->getCategory() == "animation") {
+			REGEN_INFO("TransformAnimation");
+			auto transformAnimation = ref_ptr<TransformAnimation>::alloc(matrixInput);
+
+			if (child->hasAttribute("mesh-id")) {
+						REGEN_INFO("TransformAnimation: mesh-id");
+				auto meshID = child->getValue("mesh-id");
+				auto meshIndex = child->getValue<GLuint>("mesh-index", 0u);
+				auto meshVec = parser->getResources()->getMesh(parser, meshID);
+				if (meshVec.get() != nullptr && meshVec->size()>meshIndex) {
+						REGEN_INFO("TransformAnimation: has mesh");
+					auto mesh = (*meshVec.get())[meshIndex];
+					transformAnimation->setMesh(mesh);
+				}
+			}
+
+			for (auto &keyFrameNode : child->getChildren("key-frame")) {
+				std::optional<Vec3f> framePos = nullopt;
+				std::optional<Vec3f> frameDir = nullopt;
+				if (keyFrameNode->hasAttribute("position")) {
+					framePos = keyFrameNode->getValue<Vec3f>("position", Vec3f(0.0f));
+				}
+				if (keyFrameNode->hasAttribute("rotation")) {
+					frameDir = keyFrameNode->getValue<Vec3f>("rotation", Vec3f(0.0f));
+				}
+				auto dt = keyFrameNode->getValue<GLdouble>("dt", 1.0);
+				transformAnimation->push_back(framePos, frameDir, dt);
+			}
+			state->attach(transformAnimation);
+		}
+		else {
 			for (auto it = indices.begin(); it != indices.end(); ++it) {
 				transformMatrix(child->getCategory(), matrices[*it],
 								child->getValue<Vec3f>("value", Vec3f(0.0f)));
@@ -96,12 +136,11 @@ namespace regen {
 					transform->get()->setInstanceData(numInstances, 1, nullptr);
 					auto *matrices = (Mat4f *) transform->get()->clientDataPtr();
 					for (GLuint i = 0; i < numInstances; i += 1) matrices[i] = Mat4f::identity();
-					transformMatrix(input, matrices, numInstances);
+					transformMatrix(parser, input, state, transform->get(), numInstances);
 					// add data to vbo
 					transform->setInput(transform->get());
 				} else {
-					auto *matrices = (Mat4f *) transform->get()->clientDataPtr();
-					transformMatrix(input, matrices, 1u);
+					transformMatrix(parser, input, state, transform->get(), 1u);
 				}
 
 				state->joinStates(transform);

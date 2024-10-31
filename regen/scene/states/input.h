@@ -13,6 +13,7 @@
 #include <regen/scene/input-processors.h>
 #include <regen/scene/value-generator.h>
 #include <regen/scene/resource-manager.h>
+#include <regen/animations/input-animation.h>
 
 #define REGEN_INPUT_STATE_CATEGORY "input"
 
@@ -39,77 +40,6 @@ public:
 
 private:
 	GLfloat timeScale_;
-};
-
-template<class T>
-struct KeyFrame {
-	T val;
-	GLdouble dt;
-};
-
-template<class U, class T>
-class KeyFrameAnimation : public Animation {
-public:
-	explicit KeyFrameAnimation(const ref_ptr<U> &in)
-			: Animation(GL_TRUE, GL_TRUE),
-			  in_(in) {
-		val_ = in_->getVertex(0);
-		it_ = frames_.end();
-		lastFrame_.val = val_;
-		lastFrame_.dt = 0.0;
-		dt_ = 0.0;
-	}
-
-	void push_back(const T &value, GLdouble dt) {
-		KeyFrame<T> f;
-		f.val = value;
-		f.dt = dt;
-		frames_.push_back(f);
-		if (frames_.size() == 1) {
-			it_ = frames_.begin();
-		}
-	}
-
-	// Override
-	void animate(GLdouble dt) override {
-		if (it_ == frames_.end()) {
-			it_ = frames_.begin();
-			dt_ = 0.0;
-		}
-		KeyFrame<T> &currentFrame = *it_;
-
-		dt_ += dt / 1000.0;
-		if (dt_ >= currentFrame.dt) {
-			++it_;
-			lastFrame_ = currentFrame;
-			GLdouble dt__ = dt_ - currentFrame.dt;
-			dt_ = 0.0;
-			animate(dt__);
-		} else {
-			GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
-			lock();
-			{
-				val_ = math::mix(lastFrame_.val, currentFrame.val, t);
-			}
-			unlock();
-		}
-	}
-
-	void glAnimate(RenderState *rs, GLdouble dt) override {
-		lock();
-		{
-			in_->setVertex(0, val_);
-		}
-		unlock();
-	}
-
-protected:
-	ref_ptr<U> in_;
-	std::list<KeyFrame<T> > frames_;
-	typename std::list<KeyFrame<T> >::iterator it_;
-	KeyFrame<T> lastFrame_;
-	GLdouble dt_;
-	T val_;
 };
 
 #include <regen/gl-types/shader-input.h>
@@ -269,10 +199,10 @@ namespace regen {
 				}
 
 				// Load animations
-				const list<ref_ptr<SceneInputNode> > &c0 = input.getChildren("key-frame-animation");
+				const list<ref_ptr<SceneInputNode> > &c0 = input.getChildren("animation");
 				for (auto it = c0.begin(); it != c0.end(); ++it) {
 					ref_ptr<SceneInputNode> n = *it;
-					ref_ptr<KeyFrameAnimation<U, T> > inputAnimation = ref_ptr<KeyFrameAnimation<U, T> >::alloc(v);
+					ref_ptr<InputAnimation<U, T> > inputAnimation = ref_ptr<InputAnimation<U, T> >::alloc(v);
 
 					const list<ref_ptr<SceneInputNode> > &c1 = n->getChildren("key-frame");
 					for (auto jt = c1.begin(); jt != c1.end(); ++jt) {
