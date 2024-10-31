@@ -103,7 +103,7 @@ void CameraController::updateCameraPosition() {
 		if (attachedToMesh_.get()) {
 			camPos_ += attachedToMesh_->centerPosition();
 		}
-		camPos_ = (attachedToTransform_->getVertex(0) ^ Vec4f(camPos_, 1.0)).xyz_();
+		camPos_ = (matVal_ ^ Vec4f(camPos_, 1.0)).xyz_();
 	} else {
 		camPos_ = pos_;
 	}
@@ -136,11 +136,10 @@ void CameraController::updateModel() {
 		matVal_.x[2] = sy;
 		matVal_.x[8] = -sy;
 		matVal_.x[10] = cy;
-		// Translate to mesh position
-		const Mat4f &m = attachedToTransform_->getVertex(0);
-		matVal_.x[12] = m.x[12] - pos_.x;
-		matVal_.x[13] = m.x[13] - pos_.y;
-		matVal_.x[14] = m.x[14] - pos_.z;
+		// Translate to camera position
+		matVal_.x[12] -= pos_.x;
+		matVal_.x[13] -= pos_.y;
+		matVal_.x[14] -= pos_.z;
 		pos_ = Vec3f(0.0f);
 		attachedToTransform_->setVertex(0, matVal_);
 	}
@@ -189,8 +188,10 @@ void CameraController::animate(GLdouble dt) {
 
 void CameraController::glAnimate(RenderState *rs, GLdouble dt) {
 	lock();
-	updateModel();
-	updateCamera(camPos_, camDir_, dt);
+	{
+		updateModel();
+		updateCamera(camPos_, camDir_, dt);
+	}
 	unlock();
 }
 

@@ -7,10 +7,15 @@ PhysicalProps::PhysicalProps(
 		const ref_ptr<btMotionState> &motionState,
 		const ref_ptr<btCollisionShape> &shape)
 		: shape_(shape),
-		  constructInfo_(0, motionState.get(), shape.get()),
-		  motionState_(motionState) {
+		  motionState_(motionState),
+		  constructInfo_(0, motionState.get(), shape.get()) {
 	constructInfo_.m_restitution = 0;
 	constructInfo_.m_friction = 1.5;
+}
+
+void PhysicalProps::setMotionState(const ref_ptr<btMotionState> &motionState) {
+	motionState_ = motionState;
+	constructInfo_.m_motionState = motionState.get();
 }
 
 void PhysicalProps::setMassProps(btScalar mass, const btVector3 &inertia) {
@@ -51,8 +56,3 @@ void PhysicalProps::calculateLocalInertia() {
 			constructInfo_.m_localInertia);
 }
 
-btRigidBody::btRigidBodyConstructionInfo &PhysicalProps::constructInfo() { return constructInfo_; }
-
-const ref_ptr<btCollisionShape> &PhysicalProps::shape() { return shape_; }
-
-const ref_ptr<btMotionState> &PhysicalProps::motionState() { return motionState_; }

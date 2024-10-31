@@ -25,6 +25,7 @@ BulletPhysics::BulletPhysics()
 
 BulletPhysics::~BulletPhysics() {
 	clear();
+	dynamicsWorld_ = {};
 }
 
 void BulletPhysics::clear() {
@@ -63,6 +64,7 @@ void BulletPhysics::animate(GLdouble dt) {
 	auto timeStep = btScalar(dt / 1000.0);
 	auto fixedTimeStep = btScalar(1.0 / 60.0);
 	int maxSubSteps = 5;
+	if (objects_.empty()) return;
 
 	dynamicsWorld_->stepSimulation(timeStep, maxSubSteps, fixedTimeStep);
 }

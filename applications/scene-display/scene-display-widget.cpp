@@ -623,6 +623,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	REGEN_INFO("Loading XML scene at " << sceneFile << ".");
 
 	AnimationManager::get().pause(GL_TRUE);
+	AnimationManager::get().clear();
 
 	animations_.clear();
 	viewNodes_.clear();

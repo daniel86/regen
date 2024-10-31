@@ -50,7 +50,7 @@ namespace regen {
 		/**
 		 * @param force The gravity force.
 		 */
-		void setGravityForce(GLfloat force) { btGravityForce_ = force; }
+		void setGravityForce(GLfloat force);
 
 		/**
 		 * @param velocity The jump velocity.
@@ -68,20 +68,17 @@ namespace regen {
 		// override CameraController
 		void jump() override;
 
-		// override Animation
-		void animate(GLdouble dt) override;
-
 	protected:
 		ref_ptr<BulletPhysics> bt_;
 		ref_ptr<btKinematicCharacterController> btController_;
 		ref_ptr<btCollisionShape> btShape_;
 		ref_ptr<btCollisionObject> btGhostObject_;
-		ref_ptr<btMotionState> btMotionState_;
 		GLfloat btCollisionHeight_;
 		GLfloat btCollisionRadius_;
 		GLfloat btStepHeight_;
 		GLfloat btGravityForce_;
 		GLfloat btJumpVelocity_;
+		GLboolean btIsMoving_;
 
 		bool initializePhysics();
 	};

@@ -283,7 +283,7 @@ void AnimationManager::close(GLboolean blocking) {
 	if (blocking) {
 		boost::thread::id callingThread = boost::this_thread::get_id();
 		if (callingThread != animationThreadID_)
-			while (animInProgress_) usleepRegen(1000);
+			while (animInProgress_) usleepRegen(1000); // TODO: rather use signals
 		if (callingThread != glThreadID_)
 			while (glInProgress_) usleepRegen(1000);
 	}
@@ -298,6 +298,11 @@ void AnimationManager::pause(GLboolean blocking) {
 		if (callingThread != glThreadID_)
 			while (glInProgress_) usleepRegen(1000);
 	}
+}
+
+void AnimationManager::clear() {
+	animations_.clear();
+	glAnimations_.clear();
 }
 
 void AnimationManager::resume() {

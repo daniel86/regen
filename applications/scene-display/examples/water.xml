@@ -6,7 +6,7 @@
   <camera id="main-camera"
 	  mode="first-person"
 	  eye-offset="0.0,0.0,0.0"
-	  camera-orientation="1.44">
+	  horizontal-orientation="1.44">
   </camera>
 </node>
 

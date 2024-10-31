@@ -30,8 +30,6 @@
 	  transform="sphere0-transform"
 	  eye-offset="0.0,0.0,0.0"
 	  eye-orientation="3.14159265359">
-    <key-mapping key="W" />
-    <key-mapping key="D" />
   </camera>
 </node>
 

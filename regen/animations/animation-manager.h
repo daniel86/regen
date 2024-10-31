@@ -67,6 +67,11 @@ namespace regen {
 		void pause(GLboolean blocking = GL_FALSE);
 
 		/**
+		 * Clear all animations.
+		 */
+		void clear();
+
+		/**
 		 * Resumes previously paused glAnimations.
 		 */
 		void resume();
