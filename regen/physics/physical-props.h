@@ -103,17 +103,23 @@ namespace regen {
 		/**
 		 * @return The collision shape.
 		 */
-		const ref_ptr<btCollisionShape> &shape();
+		auto &shape() { return shape_; }
 
 		/**
 		 * @return The motion state.
 		 */
-		const ref_ptr<btMotionState> &motionState();
+		auto &motionState() { return motionState_; }
+
+		/**
+		 * Set the motion state.
+		 * @param motionState The motion state.
+		 */
+		void setMotionState(const ref_ptr<btMotionState> &motionState);
 
 		/**
 		 * @return Rigid body construct info.
 		 */
-		btRigidBody::btRigidBodyConstructionInfo &constructInfo();
+		auto &constructInfo() { return constructInfo_; }
 
 		/**
 		 * Adds a collision object to the list.
@@ -128,8 +134,8 @@ namespace regen {
 
 	protected:
 		ref_ptr<btCollisionShape> shape_;
-		btRigidBody::btRigidBodyConstructionInfo constructInfo_;
 		ref_ptr<btMotionState> motionState_;
+		btRigidBody::btRigidBodyConstructionInfo constructInfo_;
 		std::vector<ref_ptr<btCollisionObject> > collisionObjects_;
 	};
 } // namespace

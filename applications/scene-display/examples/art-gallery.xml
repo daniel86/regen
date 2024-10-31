@@ -9,7 +9,9 @@
     <camera id="main-camera"
             mode="first-person"
             eye-offset="0.0,0.0,0.0"
+            horizontal-orientation="1.5707963"
             ease-in-out="1.4"
+            speed="0.02"
             anchor-pause-time="0.5"
             anchor-time-scale="0.6"
             camera-orientation="1.58">

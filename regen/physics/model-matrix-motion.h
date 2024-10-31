@@ -9,56 +9,43 @@
 
 namespace regen {
 	/**
-	 * Used to attach a physical object to an
-	 * model matrix.
+	 * Used to attach a physical object to an model matrix.
 	 */
 	class ModelMatrixMotion : public btMotionState {
 	public:
 		/**
-		 * Default Constructor.
-		 * Initially sets physical object transform to the
-		 * current model matrix.
 		 * @param modelMatrix The model matrix.
 		 * @param index Instance index or 0.
 		 */
-		explicit ModelMatrixMotion(
-				const ref_ptr<ShaderInputMat4> &modelMatrix,
-				GLuint index = 0);
+		explicit ModelMatrixMotion(const ref_ptr<ShaderInputMat4> &modelMatrix, GLuint index = 0);
 
 		~ModelMatrixMotion() override = default;
-
-		/**
-		 * Synchronization from regen to physics engine.
-		 * @param worldTrans transformation output for physics engine.
-		 */
+		// Override from btMotionState
 		void getWorldTransform(btTransform &worldTrans) const override;
-
-		/**
-		 * Synchronization from physics engine to regen.
-		 * @param worldTrans transformation input from physics engine.
-		 */
+		// Override from btMotionState
 		void setWorldTransform(const btTransform &worldTrans) override;
 
 	protected:
 		ref_ptr<ShaderInputMat4> modelMatrix_;
-		btTransform transform_;
 		GLuint index_;
 	};
 
 	/**
-	 * Attach a physical object to a character model matrix.
+	 * Used to attach a physical object to an model matrix.
 	 */
-	class CharacterMotion : public ModelMatrixMotion {
+	class Mat4fMotion : public btMotionState {
 	public:
-		explicit CharacterMotion(
-				const ref_ptr<ShaderInputMat4> &modelMatrix,
-				GLuint index = 0);
-
-		~CharacterMotion() override = default;
-
+		/**
+		 * @param glModelMatrix The model matrix.
+		 */
+		explicit Mat4fMotion(Mat4f *glModelMatrix);
+		~Mat4fMotion() override = default;
+		// Override from btMotionState
 		void getWorldTransform(btTransform &worldTrans) const override;
-
+		// Override from btMotionState
 		void setWorldTransform(const btTransform &worldTrans) override;
+	protected:
+		Mat4f *glModelMatrix_;
 	};
 } // namespace
 

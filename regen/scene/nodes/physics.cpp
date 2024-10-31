@@ -175,8 +175,7 @@ static ref_ptr<btCollisionShape> createTriangleMesh(SceneParser *parser, SceneIn
 static ref_ptr<PhysicalProps> createPhysicalProps(
 		SceneParser *parser,
 		SceneInputNode &input,
-		const ref_ptr<btMotionState> &motion,
-		const ref_ptr<ModelTransformation> &transform) {
+		const ref_ptr<btMotionState> &motion) {
 	const std::string shapeName(input.getValue("shape"));
 	auto mass = input.getValue<GLfloat>("mass", 1.0f);
 
@@ -268,7 +267,7 @@ void PhysicsStateProvider::processInput(
 		return;
 	}
 
-	auto meshIndex = input.getValue<int>("mesh-index", 0);
+	auto meshIndex = input.getValue<unsigned int>("mesh-index", 0);
 	auto mesh = (*meshVector->begin());
 	if (meshIndex > 0 && meshIndex < meshVector->size()) {
 		mesh = (*meshVector.get())[meshIndex];
@@ -277,7 +276,7 @@ void PhysicsStateProvider::processInput(
 	auto numInstances = input.getValue<GLuint>("num-instances", 1u);
 	for (GLuint i = 0; i < numInstances; ++i) {
 		auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), i);
-		auto physicalProps = createPhysicalProps(parser, input, motion, transform);
+		auto physicalProps = createPhysicalProps(parser, input, motion);
 		auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
 		mesh->addPhysicalObject(physicalObject);
 		parser->getPhysics()->addObject(physicalObject);

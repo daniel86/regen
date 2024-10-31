@@ -22,17 +22,23 @@ namespace regen {
 		/**
 		 * @return Rigid body representation.
 		 */
-		const ref_ptr<btRigidBody> &rigidBody();
+		auto &rigidBody() { return rigidBody_; }
 
 		/**
 		 * @return The collision shape.
 		 */
-		const ref_ptr<btCollisionShape> &shape();
+		auto &shape() { return props_->shape(); }
 
 		/**
 		 * @return Motion state for transform synchronization.
 		 */
-		const ref_ptr<btMotionState> &motionState();
+		auto &motionState() { return props_->motionState(); }
+
+		/**
+		 * Set the motion state.
+		 * @param motionState The motion state.
+		 */
+		void setMotionState(const ref_ptr<btMotionState> &motionState);
 
 		/**
 		 * @return the physical properties.
