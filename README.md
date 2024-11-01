@@ -145,6 +145,21 @@ Videos of regen in action
 =========================
 
 <p align="center">
+    <a href="http://www.youtube.com/watch?v=waBatPmNW9Y">
+        <img src="http://img.youtube.com/vi/waBatPmNW9Y/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=nNI9y0Ey_m8">
+        <img src="http://img.youtube.com/vi/nNI9y0Ey_m8/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=VYKM_JCpGYk">
+        <img src="http://img.youtube.com/vi/VYKM_JCpGYk/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=7nJSMTlSmjo">
+        <img src="http://img.youtube.com/vi/7nJSMTlSmjo/0.jpg"  width="160" height="120" />
+    </a>
+    <a href="http://www.youtube.com/watch?v=-UebG4u5ZBM">
+        <img src="http://img.youtube.com/vi/-UebG4u5ZBM/0.jpg"  width="160" height="120" />
+    </a>
     <a href="http://www.youtube.com/watch?v=Msn6Teot7ZU">
         <img src="http://img.youtube.com/vi/Msn6Teot7ZU/0.jpg"  width="160" height="120" />
     </a>
@@ -153,9 +168,6 @@ Videos of regen in action
     </a>
     <a href="http://www.youtube.com/watch?v=Mk0Nc-UMAMM">
         <img src="http://img.youtube.com/vi/Mk0Nc-UMAMM/0.jpg"  width="160" height="120" />
-    </a>
-    <a href="http://www.youtube.com/watch?v=c2--Anch2WY">
-        <img src="http://img.youtube.com/vi/c2--Anch2WY/0.jpg"  width="160" height="120" />
     </a>
 </p>
 
