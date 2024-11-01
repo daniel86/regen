@@ -51,6 +51,10 @@ Vec3f KeyFrameController::interpolatePosition(const Vec3f &v0, const Vec3f &v1, 
 
 Vec3f KeyFrameController::interpolateDirection(const Vec3f &v0, const Vec3f &v1, GLdouble t) const {
 	GLdouble sample;
+	// skip if the direction is the same
+	if (v0 == v1) {
+		return v0;
+	}
 	if (easeInOutIntensity_ > 0.0) {
 		sample = easeInOutCubic(t, easeInOutIntensity_);
 	} else {
