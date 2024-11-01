@@ -141,7 +141,6 @@ void CameraController::updateModel() {
 		matVal_.x[13] -= pos_.y;
 		matVal_.x[14] -= pos_.z;
 		pos_ = Vec3f(0.0f);
-		attachedToTransform_->setVertex(0, matVal_);
 	}
 }
 
@@ -179,6 +178,7 @@ void CameraController::animate(GLdouble dt) {
 	lock();
 	{
 		applyStep(dt, step_);
+		updateModel();
 		updateCameraPosition();
 		updateCameraOrientation();
 		computeMatrices(camPos_, camDir_);
@@ -189,7 +189,9 @@ void CameraController::animate(GLdouble dt) {
 void CameraController::glAnimate(RenderState *rs, GLdouble dt) {
 	lock();
 	{
-		updateModel();
+		if (attachedToTransform_.get()) {
+			attachedToTransform_->setVertex(0, matVal_);
+		}
 		updateCamera(camPos_, camDir_, dt);
 	}
 	unlock();
