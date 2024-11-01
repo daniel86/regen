@@ -86,6 +86,9 @@ namespace regen {
 		GLfloat btMaxSlope_;
 		GLboolean btIsMoving_;
 
+		ref_ptr<btActionInterface> btRayAction_;
+		btRigidBody *btPlatform_;
+
 		bool initializePhysics();
 	};
 }
