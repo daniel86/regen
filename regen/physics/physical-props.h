@@ -132,11 +132,22 @@ namespace regen {
 		 */
 		auto &collisionObjects() const { return collisionObjects_; }
 
+		/**
+		 * @return The gravity vector.
+		 */
+		auto gravity() const { return gravity_; }
+
+		/**
+		 * @param gravity The gravity vector.
+		 */
+		void setGravity(const btVector3 &gravity) { gravity_ = gravity; }
+
 	protected:
 		ref_ptr<btCollisionShape> shape_;
 		ref_ptr<btMotionState> motionState_;
 		btRigidBody::btRigidBodyConstructionInfo constructInfo_;
 		std::vector<ref_ptr<btCollisionObject> > collisionObjects_;
+		btVector3 gravity_;
 	};
 } // namespace
 

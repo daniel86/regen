@@ -179,7 +179,7 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
     if (btPlatform_) {
 		auto &platformVelocity = btPlatform_->getLinearVelocity();
 		if (platformVelocity.length() > 0.0001) {
-			btVelocity += platformVelocity;
+			btVelocity += platformVelocity / dt;
 			isMoving = GL_TRUE;
 		}
    }

@@ -213,6 +213,8 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 	auto props = ref_ptr<PhysicalProps>::alloc(motion, shape);
 	auto inertia = input.getValue<Vec3f>("inertia", Vec3f(0.0f));
 	props->setMassProps(mass, btVector3(inertia.x, inertia.x, inertia.z));
+	auto gravity = input.getValue<Vec3f>("gravity", Vec3f(0.0f, -9.8f, 0.0f));
+	props->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
 
 	props->setRestitution(
 			input.getValue<GLfloat>("restitution", 0.0f));
