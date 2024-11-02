@@ -325,12 +325,19 @@
 <node id="Post-Pass">
     <depth test="0" write="0"/>
 
+    <node import="Blurred-Scene" />
+
+    <node import="Depth-of-Field" />
+    <view id="Scene -- DoF">
+        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
+
     <node import="FXAA">
-        <fbo id="g-buffer" draw-buffers="0"/>
-        <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
     </node>
     <view id="Antialiased Scene">
-        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
     </view>
 </node>
 
@@ -355,10 +362,10 @@
 
         <view id="Bullet Debug Draw">
             <node import="bullet-debug">
-                <fbo id="g-buffer" draw-buffers="0"/>
+                <fbo id="g-buffer" draw-buffers="1"/>
             </node>
             <node>
-                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
             </node>
         </view>
         <!--
@@ -368,11 +375,11 @@
         -->
 
         <node import="GUI-Pass">
-            <fbo id="g-buffer" draw-buffers="0"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
         </node>
 
         <view id="Output Rendering">
-            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
     </node>
 </node>
