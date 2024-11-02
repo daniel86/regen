@@ -157,8 +157,8 @@ Videos of regen in action
     <a href="http://www.youtube.com/watch?v=7nJSMTlSmjo">
         <img src="http://img.youtube.com/vi/7nJSMTlSmjo/0.jpg"  width="160" height="120" />
     </a>
-    <a href="http://www.youtube.com/watch?v=-UebG4u5ZBM">
-        <img src="http://img.youtube.com/vi/-UebG4u5ZBM/0.jpg"  width="160" height="120" />
+    <a href="http://www.youtube.com/watch?v=kzlMzHjgKpg">
+        <img src="http://img.youtube.com/vi/kzlMzHjgKpg/0.jpg"  width="160" height="120" />
     </a>
     <a href="http://www.youtube.com/watch?v=Msn6Teot7ZU">
         <img src="http://img.youtube.com/vi/Msn6Teot7ZU/0.jpg"  width="160" height="120" />
