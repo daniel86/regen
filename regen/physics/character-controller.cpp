@@ -36,12 +36,14 @@ public:
 				if (platform_ != platform && platform->getMass() == 0.0) {
 					platform_ = platform;
 					callback_(platform_);
+					return;
 				}
-			} else if (platform_) {
-				platform_ = nullptr;
-				callback_(platform_);
 			}
         }
+        if (platform_) {
+			platform_ = nullptr;
+			callback_(platform_);
+		}
     }
 
     void debugDraw(btIDebugDraw* debugDrawer) override {}
@@ -163,8 +165,8 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
 	}
 
 	// synchronize the ghost object's transform with the OpenGL transform
-	btTransform btTransform = btController_->getGhostObject()->getWorldTransform();
-	btTransform.getOpenGLMatrix((btScalar *) &matVal_);
+	btTransform ghostTransform = btController_->getGhostObject()->getWorldTransform();
+	ghostTransform.getOpenGLMatrix((btScalar *) &matVal_);
 	// decrease the y position by the collision height, else
 	// the character would float above the ground
 	GLfloat heightAdjust = btCollisionHeight_ * 0.5f + btCollisionRadius_;
@@ -179,7 +181,7 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
     if (btPlatform_) {
 		auto &platformVelocity = btPlatform_->getLinearVelocity();
 		if (platformVelocity.length() > 0.0001) {
-			btVelocity += platformVelocity / dt;
+			btVelocity += platformVelocity;
 			isMoving = GL_TRUE;
 		}
    }

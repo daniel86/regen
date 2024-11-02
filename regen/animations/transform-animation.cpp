@@ -51,6 +51,19 @@ void TransformAnimation::animate(GLdouble dt) {
 		GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
 		lock();
 		{
+			if (mesh_.get() != nullptr && mesh_->physicalObjects().size() > 0) {
+				// TODO: not sure why, but only if setting here the velocity
+				// so far makes the mesh move exactly with the bullet shape.
+				auto &physicalObject = mesh_->physicalObjects()[0];
+				physicalObject->rigidBody()->setMotionState(nullptr);
+				btTransform btCurrentVal;
+				btTransform btLastVal = physicalObject->rigidBody()->getWorldTransform();
+				btCurrentVal.setFromOpenGLMatrix((btScalar*)&currentVal_);
+				physicalObject->rigidBody()->setLinearVelocity(
+						(btCurrentVal.getOrigin() - btLastVal.getOrigin()));
+				physicalObject->rigidBody()->setWorldTransform(btCurrentVal);
+			}
+
 			if (currentFrame.pos.has_value()) {
 				currentPos_ = math::mix(lastFrame_.pos.value(), currentFrame.pos.value(), t);
 			}
@@ -61,16 +74,6 @@ void TransformAnimation::animate(GLdouble dt) {
 			q.setEuler(currentDir_.x, currentDir_.y, currentDir_.z);
 			currentVal_ = q.calculateMatrix();
 			currentVal_.translate(currentPos_);
-
-			if (mesh_.get() != nullptr && mesh_->physicalObjects().size() > 0) {
-				auto &physicalObject = mesh_->physicalObjects()[0];
-				btTransform btCurrentVal;
-				btTransform btLastVal = physicalObject->rigidBody()->getWorldTransform();
-				btCurrentVal.setFromOpenGLMatrix((btScalar*)&currentVal_);
-				physicalObject->rigidBody()->setWorldTransform(btCurrentVal);
-				physicalObject->rigidBody()->setLinearVelocity(
-						(btCurrentVal.getOrigin() - btLastVal.getOrigin()));
-			}
 		}
 		unlock();
 	}
