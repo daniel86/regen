@@ -32,6 +32,8 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="1.0,6.0,-50.0"
 	direction="0.0,0.0,1.0" />
+<camera id="sun-camera" light="earth-sky-sun" camera="main-camera"
+	num-layer="3" split-weight="0.6" />
 <!-- Assets -->
 <asset id="dwarf-asset-instanced"
        type="asset"

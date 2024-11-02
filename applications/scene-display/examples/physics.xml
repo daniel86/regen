@@ -6,6 +6,8 @@
 	fov="45.0" near="0.1" far="200.0"
 	position="0.0,1.5,-8.0"
 	direction="0.0,-0.25,1.0" />
+<camera id="sun-camera" light="earth-sky-sun" camera="main-camera"
+	num-layer="4" split-weight="0.9" />
 
 <!-- FBOs -->
 <fbo id="g-buffer"
@@ -368,6 +370,7 @@
         <fullscreen-pass shader="regen.shading.deferred.ambient"/>
     </node>
     <node id="Light-Shading">
+        <!-- <define key="DEBUG_SHADOW_SLICES" value="1" /> -->
         <light-pass type="DIRECTIONAL"
             shader="regen.shading.deferred.directional"
             shadow-filter="PCF_GAUSSIAN">

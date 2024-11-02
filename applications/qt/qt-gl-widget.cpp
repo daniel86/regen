@@ -125,6 +125,7 @@ void QTGLWidget::run() {
 		while(app_->isMainloopRunning_)
 #endif
 	{
+		app_->updateGL();
 		app_->drawGL();
 
 		// flush GL draw calls
@@ -142,7 +143,6 @@ void QTGLWidget::run() {
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();
 #endif
-		app_->updateGL();
 #ifdef WAIT_ON_VSYNC
 		// adjust interval to hit the desired frame rate if we can
 		boost::posix_time::ptime t(
