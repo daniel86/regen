@@ -15,9 +15,7 @@ using namespace regen;
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 		: HasInputState(VBO::USAGE_TEXTURE),
-		  Animation(GL_TRUE, GL_FALSE),
-		  lastBoneWeights_(0),
-		  lastBoneCount_(0) {
+		  Animation(GL_TRUE, GL_FALSE) {
 	bufferSize_ = 0u;
 
 	numBoneWeights_ = ref_ptr<ShaderInput1i>::alloc("numBoneWeights");
@@ -28,8 +26,6 @@ Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 	shaderDefine("HAS_BONES", "TRUE");
 	shaderDefine("NUM_BONES_PER_MESH", REGEN_STRING(numBones));
 }
-
-GLint Bones::numBoneWeights() const { return numBoneWeights_->getVertex(0); }
 
 void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	GL_ERROR_LOG();
@@ -71,8 +67,6 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	// initially calculate the bone matrices
 	glAnimate(rs, 0.0f);
 }
-
-Mat4f *Bones::bones() { return (Mat4f *) boneMatrices_->clientDataPtr(); }
 
 void Bones::glAnimate(RenderState *rs, GLdouble dt) {
 	GL_ERROR_LOG();

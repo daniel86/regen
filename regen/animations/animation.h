@@ -40,12 +40,12 @@ namespace regen {
 		 */
 		Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart = GL_TRUE);
 
-		virtual ~Animation();
+		~Animation() override;
 
 		/**
 		 * @return true if this animation is active.
 		 */
-		GLboolean isRunning() const;
+		auto isRunning() const { return isRunning_; }
 
 		/**
 		 * Activate this animation.
@@ -102,12 +102,12 @@ namespace regen {
 		/**
 		 * @return true if the animation implements glAnimate().
 		 */
-		GLboolean useGLAnimation() const;
+		auto useGLAnimation() const { return useGLAnimation_; }
 
 		/**
 		 * @return true if the animation implements animate().
 		 */
-		GLboolean useAnimation() const;
+		auto useAnimation() const { return useAnimation_; }
 
 		/**
 		 * Make the next animation step.

@@ -49,10 +49,6 @@ VideoTexture::~VideoTexture() {
 	}
 }
 
-GLfloat VideoTexture::elapsedSeconds() const {
-	return elapsedSeconds_;
-}
-
 void VideoTexture::play() {
 	boost::lock_guard<boost::mutex> lock(decodingLock_);
 	demuxer_->play();
@@ -219,5 +215,3 @@ ref_ptr<AudioSource> VideoTexture::audioSource() {
 		return ref_ptr<AudioSource>();
 	}
 }
-
-const ref_ptr<Demuxer> &VideoTexture::demuxer() const { return demuxer_; }

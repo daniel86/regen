@@ -13,19 +13,19 @@ Camera::Camera(GLboolean initializeMatrices)
 		: HasInputState(VBO::USAGE_DYNAMIC),
 		  isAudioListener_(GL_FALSE) {
 	fov_ = ref_ptr<ShaderInput1f>::alloc("fov");
-	fov_->setUniformDataUntyped(NULL);
+	fov_->setUniformDataUntyped(nullptr);
 	setInput(fov_);
 
 	aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
-	aspect_->setUniformDataUntyped(NULL);
+	aspect_->setUniformDataUntyped(nullptr);
 	setInput(aspect_);
 
 	near_ = ref_ptr<ShaderInput1f>::alloc("near");
-	near_->setUniformDataUntyped(NULL);
+	near_->setUniformDataUntyped(nullptr);
 	setInput(near_);
 
 	far_ = ref_ptr<ShaderInput1f>::alloc("far");
-	far_->setUniformDataUntyped(NULL);
+	far_->setUniformDataUntyped(nullptr);
 	setInput(far_);
 
 	position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");
@@ -113,39 +113,11 @@ void Camera::updateFrustum(
 	}
 }
 
-const ref_ptr<ShaderInput1f> &Camera::fov() const { return fov_; }
-
-const ref_ptr<ShaderInput1f> &Camera::near() const { return near_; }
-
-const ref_ptr<ShaderInput1f> &Camera::far() const { return far_; }
-
-const ref_ptr<ShaderInput1f> &Camera::aspect() const { return aspect_; }
-
-const Frustum &Camera::frustum() const { return frustum_; }
-
 void Camera::enable(RenderState *rs) {
 	// TODO: do this in animation thread
 	frustum_.update(position()->getVertex(0), direction()->getVertex(0));
 	HasInputState::enable(rs);
 }
-
-const ref_ptr<ShaderInput3f> &Camera::position() const { return position_; }
-
-const ref_ptr<ShaderInput3f> &Camera::velocity() const { return vel_; }
-
-const ref_ptr<ShaderInput3f> &Camera::direction() const { return direction_; }
-
-const ref_ptr<ShaderInputMat4> &Camera::view() const { return view_; }
-
-const ref_ptr<ShaderInputMat4> &Camera::viewInverse() const { return viewInv_; }
-
-const ref_ptr<ShaderInputMat4> &Camera::projection() const { return proj_; }
-
-const ref_ptr<ShaderInputMat4> &Camera::projectionInverse() const { return projInv_; }
-
-const ref_ptr<ShaderInputMat4> &Camera::viewProjection() const { return viewproj_; }
-
-const ref_ptr<ShaderInputMat4> &Camera::viewProjectionInverse() const { return viewprojInv_; }
 
 GLboolean Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
 	return frustum_.hasIntersectionWithSphere(center, radius);
@@ -164,8 +136,6 @@ void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	}
 }
 
-GLboolean Camera::isAudioListener() const { return isAudioListener_; }
-
 
 OmniDirectionalCamera::OmniDirectionalCamera(GLboolean hasBackFace, GLboolean update)
 		: Camera(update),
@@ -180,7 +150,7 @@ GLboolean OmniDirectionalCamera::hasIntersectionWithSphere(const Vec3f &center, 
 
 GLboolean OmniDirectionalCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
 	Plane p(position()->getVertex(0), direction()->getVertex(0));
-	for (int i = 0; i < 0; ++i) {
+	for (int i = 0; i < 8; ++i) {
 		GLfloat d = p.distance(center + points[i]);
 		if (hasBackFace_) d = abs(d);
 		if (d > far()->getVertex(0) || d < near()->getVertex(0))

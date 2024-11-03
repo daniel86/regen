@@ -57,38 +57,20 @@ AnimationNode::AnimationNode(const std::string &name, const ref_ptr<AnimationNod
 
 ref_ptr<AnimationNode> AnimationNode::copy() {
 	ref_ptr<AnimationNode> parent;
-	ref_ptr<AnimationNode> ret = ref_ptr<AnimationNode>::alloc(name_, parent);
+	auto ret = ref_ptr<AnimationNode>::alloc(name_, parent);
 	ret->localTransform_ = localTransform_;
 	ret->globalTransform_ = globalTransform_;
 	ret->offsetMatrix_ = offsetMatrix_;
 	ret->boneTransformationMatrix_ = boneTransformationMatrix_;
 	ret->channelIndex_ = channelIndex_;
 	ret->isBoneNode_ = isBoneNode_;
-	for (auto it = nodeChilds_.begin(); it != nodeChilds_.end(); ++it) {
-		ref_ptr<AnimationNode> child = (*it)->copy();
+	for (auto & nodeChild : nodeChilds_) {
+		ref_ptr<AnimationNode> child = nodeChild->copy();
 		child->parentNode_ = ret;
 		ret->nodeChilds_.push_back(child);
 	}
 	return ret;
 }
-
-const std::string &AnimationNode::name() const { return name_; }
-
-const ref_ptr<AnimationNode> &AnimationNode::parent() const { return parentNode_; }
-
-void AnimationNode::set_channelIndex(GLint channelIndex) { channelIndex_ = channelIndex; }
-
-const Mat4f &AnimationNode::localTransform() const { return localTransform_; }
-
-void AnimationNode::set_localTransform(const Mat4f &v) { localTransform_ = v; }
-
-const Mat4f &AnimationNode::globalTransform() const { return globalTransform_; }
-
-void AnimationNode::set_globalTransform(const Mat4f &v) { globalTransform_ = v; }
-
-const Mat4f &AnimationNode::boneOffsetMatrix() const { return offsetMatrix_; }
-
-const Mat4f &AnimationNode::boneTransformationMatrix() const { return boneTransformationMatrix_; }
 
 void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix) {
 	offsetMatrix_ = offsetMatrix;
@@ -96,8 +78,6 @@ void AnimationNode::set_boneOffsetMatrix(const Mat4f &offsetMatrix) {
 }
 
 void AnimationNode::addChild(const ref_ptr<AnimationNode> &child) { nodeChilds_.push_back(child); }
-
-std::vector<ref_ptr<AnimationNode> > &AnimationNode::children() { return nodeChilds_; }
 
 void AnimationNode::calculateGlobalTransform() {
 	// concatenate all parent transforms to get the global transform for this node
@@ -233,8 +213,7 @@ ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart) {
 	ref_ptr<AnimationNode> rootNode = rootNode_->copy();
 	ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode, autoStart);
 
-	for (auto it = animData_.begin(); it != animData_.end(); ++it) {
-		ref_ptr<NodeAnimation::Data> &d = *it;
+	for (auto & d : animData_) {
 		ref_ptr<NodeAnimation::Data> data = ref_ptr<NodeAnimation::Data>::alloc();
 		data->animationName_ = d->animationName_;
 		data->active_ = d->active_;
@@ -249,10 +228,6 @@ ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart) {
 
 	return ret;
 }
-
-void NodeAnimation::set_timeFactor(GLdouble timeFactor) { timeFactor_ = timeFactor; }
-
-GLdouble NodeAnimation::timeFactor() const { return timeFactor_; }
 
 GLint NodeAnimation::addChannels(
 		const std::string &animationName,

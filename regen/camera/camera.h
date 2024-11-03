@@ -43,83 +43,78 @@ namespace regen {
 		/**
 		 * @return specifies the field of view angle, in degrees, in the y direction.
 		 */
-		const ref_ptr<ShaderInput1f> &fov() const;
+		auto &fov() const { return fov_; }
 
 		/**
 		 * @return specifies the aspect ratio that determines the field of view in the x direction.
 		 */
-		const ref_ptr<ShaderInput1f> &aspect() const;
+		auto &aspect() const { return aspect_; }
 
 		/**
 		 * @return specifies the distance from the viewer to the near clipping plane (always positive).
 		 */
-		const ref_ptr<ShaderInput1f> &near() const;
+		auto &near() const { return near_; }
 
 		/**
 		 * @return specifies the distance from the viewer to the far clipping plane (always positive).
 		 */
-		const ref_ptr<ShaderInput1f> &far() const;
+		auto &far() const { return far_; }
 
 		/**
 		 * @return the camera position.
 		 */
-		const ref_ptr<ShaderInput3f> &position() const;
+		auto &position() const { return position_; }
 
 		/**
 		 * @return the camera direction.
 		 */
-		const ref_ptr<ShaderInput3f> &direction() const;
+		auto &direction() const { return direction_; }
 
 		/**
 		 * @return the camera velocity.
 		 */
-		const ref_ptr<ShaderInput3f> &velocity() const;
+		auto &velocity() const { return vel_; }
 
 		/**
 		 * Transforms world-space to view-space.
 		 * @return the view matrix.
 		 */
-		const ref_ptr<ShaderInputMat4> &view() const;
+		auto &view() const { return view_; }
 
 		/**
 		 * Transforms view-space to world-space.
 		 * @return the inverse view matrix.
 		 */
-		const ref_ptr<ShaderInputMat4> &viewInverse() const;
+		auto &viewInverse() const { return viewInv_; }
 
 		/**
 		 * Transforms view-space to screen-space.
 		 * @return the projection matrix.
 		 */
-		const ref_ptr<ShaderInputMat4> &projection() const;
+		auto &projection() const { return proj_; }
 
 		/**
 		 * Transforms screen-space to view-space.
 		 * @return the inverse projection matrix.
 		 */
-		const ref_ptr<ShaderInputMat4> &projectionInverse() const;
+		auto &projectionInverse() const { return projInv_; }
 
 		/**
 		 * Transforms world-space to screen-space.
 		 * @return the view-projection matrix.
 		 */
-		const ref_ptr<ShaderInputMat4> &viewProjection() const;
+		auto &viewProjection() const { return viewproj_; }
 
 		/**
 		 * Transforms screen-space to world-space.
 		 * @return the inverse view-projection matrix.
 		 */
-		const ref_ptr<ShaderInputMat4> &viewProjectionInverse() const;
-
-		/**
-		 * Computes the 8 points forming the camera frustum.
-		 */
-		void updateFrustumPoints();
+		auto &viewProjectionInverse() const { return viewprojInv_; }
 
 		/**
 		 * @return the 8 points forming this Frustum.
 		 */
-		const Frustum &frustum() const;
+		auto &frustum() const { return frustum_; }
 
 		/**
 		 * @param useAudio true if this camera is the OpenAL audio listener.
@@ -129,7 +124,7 @@ namespace regen {
 		/**
 		 * @return true if this camera is the OpenAL audio listener.
 		 */
-		GLboolean isAudioListener() const;
+		auto isAudioListener() const { return isAudioListener_; }
 
 		/**
 		 * @return true if the sphere intersects with the frustum of this camera.

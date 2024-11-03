@@ -121,12 +121,6 @@ void VideoStream::decode(AVPacket *packet) {
 	av_packet_unref(packet);
 }
 
-GLint VideoStream::width() const { return width_; }
-
-GLint VideoStream::height() const { return height_; }
-
-AVStream *VideoStream::stream() { return stream_; }
-
 GLenum VideoStream::texInternalFormat() { return GL_RGB; }
 
 GLenum VideoStream::texFormat() { return GL_RGB; }

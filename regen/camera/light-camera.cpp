@@ -77,7 +77,7 @@ LightCamera::LightCamera(
 				direction_->setVertex(i, dir[i]);
 			}
 
-			// CubeMap's dont't need transformation matrix, they are accessed by positions
+			// CubeMap's don't need transformation matrix, they are accessed by positions
 			lightMatrix_->set_elementCount(numLayer_);
 			lightMatrix_->set_forceArray(GL_TRUE);
 			shaderDefine("RENDER_TARGET", "CUBE");
@@ -121,8 +121,6 @@ LightCamera::LightCamera(
 void LightCamera::set_isCubeFaceVisible(GLenum face, GLboolean visible) {
 	isCubeFaceVisible_[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X] = visible;
 }
-
-const ref_ptr<ShaderInputMat4> &LightCamera::lightMatrix() const { return lightMatrix_; }
 
 void LightCamera::updateSpot() {
 	if (lightPosStamp_ == light_->position()->stamp() &&
@@ -249,8 +247,8 @@ void LightCamera::updateDirectional() {
 		Vec2f xRange(FLT_MAX, FLT_MIN);
 		Vec2f yRange(FLT_MAX, FLT_MIN);
 		Mat4f mvpMatrix = view_->getVertex(0) * proj_->getVertex(i);
-		for (GLuint j = 0; j < 8; ++j) {
-			Vec4f transf = mvpMatrix ^ frustum->points[j];
+		for (const auto & point : frustum->points) {
+			Vec4f transf = mvpMatrix ^ point;
 			transf.x /= transf.w;
 			transf.y /= transf.w;
 			if (transf.x > xRange.y) { xRange.y = transf.x; }

@@ -29,17 +29,17 @@ namespace regen {
 		/**
 		 * The stream handle as provided to the constructor.
 		 */
-		AVStream *stream();
+		auto *stream() { return stream_; }
 
 		/**
 		 * Video width in pixels.
 		 */
-		GLint width() const;
+		auto width() const { return width_; }
 
 		/**
 		 * Video height in pixels.
 		 */
-		GLint height() const;
+		auto height() const { return height_; }
 
 		/**
 		 * Format for GL texture to match frame data.

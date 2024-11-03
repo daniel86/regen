@@ -43,7 +43,7 @@ namespace regen {
 		/**
 		 * @return seconds processed in stream.
 		 */
-		GLfloat elapsedSeconds() const;
+		auto elapsedSeconds() const { return elapsedSeconds_; }
 
 		/**
 		 * Stream file at given path.
@@ -93,7 +93,7 @@ namespace regen {
 		/**
 		 * @return the demuxer used for decoding packets.
 		 */
-		const ref_ptr<Demuxer> &demuxer() const;
+		auto &demuxer() const { return demuxer_; }
 
 		/**
 		 * The audio source of this media (maybe a null reference).
