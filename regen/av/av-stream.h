@@ -56,12 +56,12 @@ namespace regen {
 		/**
 		 * The stream index as provided to the constructor.
 		 */
-		GLint index() const;
+		auto index() const { return index_; }
 
 		/**
 		 * The codec loaded.
 		 */
-		AVCodecContext *codec() const;
+		auto *codec() const { return codecCtx_; }
 
 		/**
 		 * Push a decoded frame onto queue of frames.
@@ -90,7 +90,7 @@ namespace regen {
 		 * Calling setInactive() will make sure that the stream
 		 * drops out the block so that other media can be loaded.
 		 */
-		void setInactive();
+		void setInactive() { isActive_ = GL_FALSE; }
 
 		/**
 		 * Decodes a single packet.

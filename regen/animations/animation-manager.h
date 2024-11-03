@@ -115,7 +115,7 @@ namespace regen {
 
 		AnimationManager();
 
-		~AnimationManager();
+		~AnimationManager() override;
 
 		void run();
 

@@ -58,8 +58,6 @@ void Animation::stopAnimation() {
 	isRunning_ = GL_FALSE;
 }
 
-GLboolean Animation::isRunning() const { return isRunning_; }
-
 GLboolean Animation::try_lock() { return mutex_.try_lock(); }
 
 void Animation::lock() { mutex_.lock(); }
@@ -75,7 +73,3 @@ void Animation::unlock_gl() { mutex_gl_.unlock(); }
 void Animation::wait(GLuint milliseconds) {
 	usleepRegen(1000 * milliseconds);
 }
-
-GLboolean Animation::useGLAnimation() const { return useGLAnimation_; }
-
-GLboolean Animation::useAnimation() const { return useAnimation_; }

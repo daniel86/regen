@@ -35,7 +35,7 @@ namespace regen {
 		 * @return A matrix used to transform world space points to
 		 *          texture coordinates for shadow mapping.
 		 */
-		const ref_ptr<ShaderInputMat4> &lightMatrix() const;
+		auto &lightMatrix() const { return lightMatrix_; }
 
 		/**
 		 * Discard specified cube faces.

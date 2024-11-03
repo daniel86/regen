@@ -31,12 +31,12 @@ namespace regen {
 		/**
 		 * @return The node name.
 		 */
-		const std::string &name() const;
+		auto &name() const { return name_; }
 
 		/**
 		 * @return The parent node.
 		 */
-		const ref_ptr<AnimationNode> &parent() const;
+		auto &parent() const { return parentNode_; }
 
 		/**
 		 * Add a node child.
@@ -47,44 +47,44 @@ namespace regen {
 		/**
 		 * @return node children.
 		 */
-		std::vector<ref_ptr<AnimationNode> > &children();
+		auto &children() { return nodeChilds_; }
 
 		/**
 		 * Sets the currently active animation channel
 		 * for this node.
 		 * Should be called after animation index changed.
 		 */
-		void set_channelIndex(GLint channelIndex);
+		void set_channelIndex(GLint channelIndex) { channelIndex_ = channelIndex; }
 
 		/**
 		 * @return local transform.
 		 */
-		const Mat4f &localTransform() const;
+		auto &localTransform() const { return localTransform_; }
 
 		/**
 		 * @param v the local transform.
 		 */
-		void set_localTransform(const Mat4f &v);
+		void set_localTransform(const Mat4f &v) { localTransform_ = v; }
 
 		/**
 		 * @return global transform in world space.
 		 */
-		const Mat4f &globalTransform() const;
+		auto &globalTransform() const { return globalTransform_; }
 
 		/**
 		 * @param v the global transform.
 		 */
-		void set_globalTransform(const Mat4f &v);
+		void set_globalTransform(const Mat4f &v) { globalTransform_ = v; }
 
 		/**
 		 * @return offsetMatrix * nodeTransform * inverseTransform
 		 */
-		const Mat4f &boneTransformationMatrix() const;
+		auto &boneTransformationMatrix() const { return boneTransformationMatrix_; }
 
 		/**
 		 * @return Matrix that transforms from mesh space to bone space in bind pose.
 		 */
-		const Mat4f &boneOffsetMatrix() const;
+		auto &boneOffsetMatrix() const { return offsetMatrix_; }
 
 		/**
 		 * @param offsetMatrix Matrix that transforms from mesh space to bone space in bind pose.
@@ -244,12 +244,12 @@ namespace regen {
 		/**
 		 * @param timeFactor the slow down (<1.0) / speed up (>1.0) factor.
 		 */
-		void set_timeFactor(GLdouble timeFactor);
+		void set_timeFactor(GLdouble timeFactor) { timeFactor_ = timeFactor; }
 
 		/**
 		 * @return the slow down (<1.0) / speed up (>1.0) factor.
 		 */
-		GLdouble timeFactor() const;
+		auto timeFactor() const { return timeFactor_; }
 
 		/**
 		 * Find node with given name.

@@ -10,6 +10,9 @@
 #include "regen/states/model-transformation.h"
 
 namespace regen {
+	/**
+	 * A camera anchor is a point in space that defines the position and direction of a camera.
+	 */
 	class CameraAnchor {
 	public:
 		CameraAnchor() = default;
@@ -21,6 +24,9 @@ namespace regen {
 		virtual Vec3f direction() = 0;
 	};
 
+	/**
+	 * A fixed camera anchor.
+	 */
 	class FixedCameraAnchor : public CameraAnchor {
 	public:
 		FixedCameraAnchor(const Vec3f &position, const Vec3f &direction)
@@ -37,6 +43,9 @@ namespace regen {
 		Vec3f direction_;
 	};
 
+	/**
+	 * A camera anchor that is attached to a model transformation.
+	 */
 	class TransformCameraAnchor : public CameraAnchor {
 	public:
 		enum Mode {

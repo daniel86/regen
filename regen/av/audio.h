@@ -110,7 +110,7 @@ namespace regen {
 		/**
 		 * @param chachedBytesLimit limit for pre-loading.
 		 */
-		AudioSource(GLuint chachedBytesLimit);
+		explicit AudioSource(GLuint chachedBytesLimit);
 
 		/**
 		 * @param stream a av stream handle.
@@ -119,7 +119,7 @@ namespace regen {
 		 */
 		AudioSource(AVStream *stream, GLint index, GLuint chachedBytesLimit);
 
-		virtual ~AudioSource();
+		~AudioSource() override;
 
 		/**
 		 * The audio source ID.
@@ -191,9 +191,9 @@ namespace regen {
 							 GLint index, GLboolean initial = GL_FALSE);
 
 		// override
-		virtual void decode(AVPacket *packet);
+		void decode(AVPacket *packet) override;
 
-		virtual void clearQueue();
+		void clearQueue() override;
 
 	protected:
 		struct AudioFrame {

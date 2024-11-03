@@ -35,12 +35,12 @@ namespace regen {
 		/**
 		 * @return the bone list
 		 */
-		Mat4f *bones();
+		auto *bones()  { return (Mat4f *) boneMatrices_->clientDataPtr(); }
 
 		/**
 		 * @return maximum number of weights influencing a single bone.
 		 */
-		GLint numBoneWeights() const;
+		auto numBoneWeights() const  { return numBoneWeights_->getVertex(0); }
 
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;
@@ -54,9 +54,6 @@ namespace regen {
 		ref_ptr<TextureState> texState_;
 		VBOReference vboRef_;
 		ref_ptr<ShaderInputMat4> boneMatrices_;
-
-		GLuint lastBoneWeights_;
-		GLuint lastBoneCount_;
 	};
 } // namespace
 
