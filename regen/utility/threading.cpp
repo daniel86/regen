@@ -8,14 +8,9 @@
 #include <regen/config.h>
 
 #include "threading.h"
+
 using namespace regen;
 
 Thread::Thread()
-: thread_(&Thread::run, this)
-{
-}
-
-void Thread::__run()
-{
-  run();
+		: thread_(&Thread::run, this) {
 }

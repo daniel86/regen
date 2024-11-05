@@ -28,106 +28,112 @@ extern "C" {
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {
-  /**
-   * \brief Freetype2 Font class, using texture mapped glyphs.
-   */
-  class Font
-  {
-  public:
-    /**
-     * \brief A font related error occurred.
-     */
-    class Error : public std::runtime_error {
-    public:
-      /**
-       * @param msg the error message.
-       */
-      Error(const std::string& msg) : std::runtime_error(msg) {}
-    };
-    /**
-     * Defines a glyph face.
-     */
-    typedef struct {
-      /** face width */
-      GLfloat width;
-      /** face height */
-      GLfloat height;
-      /** max uv.x in array texture (min is 0). */
-      GLfloat uvX;
-      /** max uv.y in array texture (min is 0). */
-      GLfloat uvY;
-      /** left margin */
-      GLfloat left;
-      /** top margin */
-      GLfloat top;
-      /** distance to net glyph */
-      GLfloat advanceX;
-    }FaceData;
+	/**
+	 * \brief Freetype2 Font class, using texture mapped glyphs.
+	 */
+	class Font {
+	public:
+		/**
+		 * \brief A font related error occurred.
+		 */
+		class Error : public std::runtime_error {
+		public:
+			/**
+			 * @param msg the error message.
+			 */
+			Error(const std::string &msg) : std::runtime_error(msg) {}
+		};
 
-    /**
-     * Get a font.
-     * @param filename path to font
-     * @param size font size, as usual
-     * @param dpi dots per inch for font
-     */
-    static ref_ptr<Font> get(std::string filename, GLuint size, GLuint dpi=96);
-    /**
-     * Call when you are done using fonts.
-     */
-    static void closeLibrary();
+		/**
+		 * Defines a glyph face.
+		 */
+		typedef struct {
+			/** face width */
+			GLfloat width;
+			/** face height */
+			GLfloat height;
+			/** max uv.x in array texture (min is 0). */
+			GLfloat uvX;
+			/** max uv.y in array texture (min is 0). */
+			GLfloat uvY;
+			/** left margin */
+			GLfloat left;
+			/** top margin */
+			GLfloat top;
+			/** distance to net glyph */
+			GLfloat advanceX;
+		} FaceData;
 
-    /**
-     * Default constructor.
-     * @param filename path to font
-     * @param size font size, as usual
-     * @param dpi dots per inch for font
-     */
-    Font(const std::string &filename, GLuint size, GLuint dpi=96);
-    virtual ~Font();
+		/**
+		 * Get a font.
+		 * @param filename path to font
+		 * @param size font size, as usual
+		 * @param dpi dots per inch for font
+		 */
+		static ref_ptr<Font> get(const std::string& filename, GLuint size, GLuint dpi = 96);
 
-    /**
-     * Height of a line of text. In unit space (maps font size to 1.0).
-     */
-    GLfloat lineHeight() const;
-    /**
-     * The font size. In pixels.
-     */
-    GLuint size() const;
-    /**
-     * The texture used by this font.
-     * You can access the glyphs with the char as index.
-     */
-    const ref_ptr<Texture2DArray>& texture() const;
-    /**
-     * Character to face data.
-     */
-    const FaceData& faceData(GLushort ch) const;
+		/**
+		 * Call when you are done using fonts.
+		 */
+		static void closeLibrary();
 
-  private:
-    typedef std::map<std::string, ref_ptr<Font> > FontMap;
-    static FT_Library ftlib_;
-    static FontMap fonts_;
-    static GLboolean isFreetypeInitialized_;
+		/**
+		 * Default constructor.
+		 * @param filename path to font
+		 * @param size font size, as usual
+		 * @param dpi dots per inch for font
+		 */
+		Font(const std::string &filename, GLuint size, GLuint dpi = 96);
 
-    const std::string fontPath_;
-    const GLuint size_;
-    const GLuint dpi_;
-    ref_ptr<Texture2DArray> arrayTexture_;
-    FaceData *faceData_;
-    GLfloat lineHeight_;
+		virtual ~Font();
 
-    Font(const Font&)
-    : fontPath_(""),
-      size_(0),
-      dpi_(0),
-      faceData_(NULL),
-      lineHeight_(0.0f) {}
-    Font& operator=(const Font&) { return *this; }
+		/**
+		 * Height of a line of text. In unit space (maps font size to 1.0).
+		 */
+		auto lineHeight() const { return lineHeight_; }
 
-    static GLubyte* invertPixmapWithAlpha(const FT_Bitmap& bitmap, GLuint width, GLuint height) ;
+		/**
+		 * The font size. In pixels.
+		 */
+		auto size() const { return size_; }
 
-    void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight);
-  };
+		/**
+		 * The texture used by this font.
+		 * You can access the glyphs with the char as index.
+		 */
+		auto &texture() const  { return arrayTexture_; }
+
+		/**
+		 * Character to face data.
+		 */
+		const FaceData &faceData(GLushort ch) const;
+
+	private:
+		typedef std::map<std::string, ref_ptr<Font> > FontMap;
+		static FT_Library ftlib_;
+		static FontMap fonts_;
+		static GLboolean isFreetypeInitialized_;
+
+		const std::string fontPath_;
+		const GLuint size_;
+		const GLuint dpi_;
+		ref_ptr<Texture2DArray> arrayTexture_;
+		FaceData *faceData_;
+		GLfloat lineHeight_;
+
+		Font(const Font &)
+				: fontPath_(""),
+				  size_(0),
+				  dpi_(0),
+				  faceData_(nullptr),
+				  lineHeight_(0.0f) {}
+
+		Font &operator=(const Font &) { return *this; }
+
+		static GLubyte *invertPixmapWithAlpha(const FT_Bitmap &bitmap, GLuint width, GLuint height);
+
+		void initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight);
+	};
 } // namespace
 
 #endif /* FONT_MANAGER_H_ */

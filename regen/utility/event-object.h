@@ -162,7 +162,7 @@ namespace regen {
 	public:
 		EventHandler() : handlerID_(-1) {}
 
-		virtual ~EventHandler() {}
+		virtual ~EventHandler() = default;
 
 		/**
 		 * Call the event handler.

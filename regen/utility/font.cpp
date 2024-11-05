@@ -13,6 +13,7 @@
 #include <regen/gl-types/render-state.h>
 
 #include "font.h"
+
 using namespace regen;
 
 // number of glyphs that will be loaded for each face
@@ -22,178 +23,162 @@ FT_Library Font::ftlib_ = FT_Library();
 Font::FontMap Font::fonts_ = FontMap();
 GLboolean Font::isFreetypeInitialized_ = GL_FALSE;
 
-ref_ptr<Font> Font::get(std::string f, GLuint size, GLuint dpi)
-{
-  if(!isFreetypeInitialized_) {
-    if(FT_Init_FreeType( &ftlib_ ))
-    { throw Font::Error("FT_Init_FreeType failed."); }
-    isFreetypeInitialized_ = GL_TRUE;
-  }
-  // unique font identifier
-  std::string fontKey = REGEN_STRING(f << size << "_" << dpi);
-  // check for cached font
-  auto result = fonts_.find(fontKey);
-  if(result != fonts_.end())
-  { return result->second; }
+ref_ptr<Font> Font::get(const std::string& f, GLuint size, GLuint dpi) {
+	if (!isFreetypeInitialized_) {
+		if (FT_Init_FreeType(&ftlib_)) { throw Font::Error("FT_Init_FreeType failed."); }
+		isFreetypeInitialized_ = GL_TRUE;
+	}
+	// unique font identifier
+	std::string fontKey = REGEN_STRING(f << size << "_" << dpi);
+	// check for cached font
+	auto result = fonts_.find(fontKey);
+	if (result != fonts_.end()) { return result->second; }
 
-  // create the font
-  ref_ptr<Font> font = ref_ptr<Font>::alloc(f, size, dpi);
-  fonts_[fontKey] = font;
+	// create the font
+	ref_ptr<Font> font = ref_ptr<Font>::alloc(f, size, dpi);
+	fonts_[fontKey] = font;
 
-  return font;
+	return font;
 }
-void Font::closeLibrary()
-{
-  FT_Done_FreeType(ftlib_);
-  isFreetypeInitialized_ = GL_FALSE;
+
+void Font::closeLibrary() {
+	FT_Done_FreeType(ftlib_);
+	isFreetypeInitialized_ = GL_FALSE;
 }
 
 Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
-: fontPath_(fontPath),
-  size_(size),
-  dpi_(dpi),
-  lineHeight_(1.0f/.83f)
-{
-  // The object in which Freetype holds information on a given
-  // font is called a "face".
-  FT_Face face;
+		: fontPath_(fontPath),
+		  size_(size),
+		  dpi_(dpi),
+		  lineHeight_(1.0f / .83f) {
+	// The object in which Freetype holds information on a given
+	// font is called a "face".
+	FT_Face face;
 
-  if (!boost::filesystem::exists(fontPath)) {
-    throw Error(REGEN_STRING(
-        "Unable to font file at '" << fontPath << "'."));
-  }
+	if (!boost::filesystem::exists(fontPath)) {
+		throw Error(REGEN_STRING(
+							"Unable to font file at '" << fontPath << "'."));
+	}
 
-  // This is where we load in the font information from the file.
-  // Of all the places where the code might die, this is the most likely,
-  // as FT_New_Face will die if the font file does not exist or is somehow broken.
-  if (FT_New_Face(ftlib_, fontPath.c_str(), 0, &face )) {
-    throw Error(REGEN_STRING(
-        "FT_New_Face failed. " <<
-        "There is probably a problem with the font file at " << fontPath << "."));
-  }
-  // Freetype measures font size in terms of 1/64ths of pixels.
-  // Thus, to make a font h pixels high, we need to request a size of h*64.
-  // (h << 6 is just a prettier way of writing h*64)
-  FT_Set_Char_Size(face, size << 6, size << 6, dpi, dpi);
+	// This is where we load in the font information from the file.
+	// Of all the places where the code might die, this is the most likely,
+	// as FT_New_Face will die if the font file does not exist or is somehow broken.
+	if (FT_New_Face(ftlib_, fontPath.c_str(), 0, &face)) {
+		throw Error(REGEN_STRING(
+							"FT_New_Face failed. " <<
+												   "There is probably a problem with the font file at " << fontPath
+												   << "."));
+	}
+	// Freetype measures font size in terms of 1/64ths of pixels.
+	// Thus, to make a font h pixels high, we need to request a size of h*64.
+	// (h << 6 is just a prettier way of writing h*64)
+	FT_Set_Char_Size(face, size << 6, size << 6, dpi, dpi);
 
-  // find the bounding box that can hold any glyph of this font,
-  // we need to find this box because all glyph textures must have the same size
-  // for Texture2DArray.
-  int pixels_x = ::FT_MulFix((face->bbox.xMax - face->bbox.xMin), face->size->metrics.x_scale );
-  int pixels_y = ::FT_MulFix((face->bbox.yMax - face->bbox.yMin), face->size->metrics.y_scale );
-  auto textureWidth = (GLuint) ( pixels_x / 64 );
-  auto textureHeight = (GLuint)  ( pixels_y / 64 );
-  // make sure texture dimensions are multiple of 2
-  if(textureWidth%2 != 0) textureWidth += 1;
-  if(textureHeight%2 != 0) textureHeight += 1;
+	// find the bounding box that can hold any glyph of this font,
+	// we need to find this box because all glyph textures must have the same size
+	// for Texture2DArray.
+	int pixels_x = ::FT_MulFix((face->bbox.xMax - face->bbox.xMin), face->size->metrics.x_scale);
+	int pixels_y = ::FT_MulFix((face->bbox.yMax - face->bbox.yMin), face->size->metrics.y_scale);
+	auto textureWidth = (GLuint) (pixels_x / 64);
+	auto textureHeight = (GLuint) (pixels_y / 64);
+	// make sure texture dimensions are multiple of 2
+	if (textureWidth % 2 != 0) textureWidth += 1;
+	if (textureHeight % 2 != 0) textureHeight += 1;
 
-  // remembers some geometry infos about glyphs
-  faceData_ = new FaceData[NUMBER_OF_GLYPHS];
+	// remembers some geometry infos about glyphs
+	faceData_ = new FaceData[NUMBER_OF_GLYPHS];
 
-  // create a array texture for the glyphs
-  arrayTexture_ = ref_ptr<Texture2DArray>::alloc(1);
-  arrayTexture_->set_format(GL_RED);
-  arrayTexture_->set_internalFormat(GL_R8);
-  arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
-  arrayTexture_->set_rectangleSize(textureWidth, textureHeight);
-  arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-  arrayTexture_->begin(RenderState::get());
-  arrayTexture_->wrapping().push(GL_CLAMP_TO_BORDER);
-  arrayTexture_->filter().push(GL_LINEAR);
-  arrayTexture_->swizzle().push(GL_RED);
-  // GL expects 4byte aligned rows
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  arrayTexture_->texImage();
-  for(unsigned short i=0;i<NUMBER_OF_GLYPHS;i++)
-  {
-    initGlyph(face, i, textureWidth, textureHeight);
-  }
-  // reset to default
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-  arrayTexture_->end(RenderState::get());
+	// create a array texture for the glyphs
+	arrayTexture_ = ref_ptr<Texture2DArray>::alloc(1);
+	arrayTexture_->set_format(GL_RED);
+	arrayTexture_->set_internalFormat(GL_R8);
+	arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
+	arrayTexture_->set_rectangleSize(textureWidth, textureHeight);
+	arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
+	arrayTexture_->begin(RenderState::get());
+	arrayTexture_->wrapping().push(GL_CLAMP_TO_BORDER);
+	arrayTexture_->filter().push(GL_LINEAR);
+	arrayTexture_->swizzle().push(GL_RED);
+	// GL expects 4byte aligned rows
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	arrayTexture_->texImage();
+	for (unsigned short i = 0; i < NUMBER_OF_GLYPHS; i++) {
+		initGlyph(face, i, textureWidth, textureHeight);
+	}
+	// reset to default
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	arrayTexture_->end(RenderState::get());
 
-  FT_Done_Face(face);
-}
-Font::~Font()
-{
-  auto needle = fonts_.find(
-      REGEN_STRING(fontPath_ << size_ << "_" << dpi_));
-  if(needle != fonts_.end())
-  { fonts_.erase(needle); }
-  delete [] faceData_;
+	FT_Done_Face(face);
 }
 
-GLfloat Font::lineHeight() const
-{ return lineHeight_; }
-GLuint Font::size() const
-{ return size_; }
-const ref_ptr<Texture2DArray>& Font::texture() const
-{ return arrayTexture_; }
-const Font::FaceData& Font::faceData(GLushort ch) const
-{ return faceData_[ch]; }
-
-GLubyte* Font::invertPixmapWithAlpha (
-    const FT_Bitmap& bitmap, GLuint width, GLuint height)
-{
-  const unsigned int arraySize = width * height;
-  auto* inverse = new GLubyte[arraySize];
-  auto* inverse_ptr = inverse;
-
-  memset(inverse, 0x0, sizeof(GLubyte)*arraySize);
-
-  for(auto r = 0u; r < bitmap.rows; ++r)
-  {
-    GLubyte* bitmap_ptr = &bitmap.buffer[bitmap.pitch * r];
-    for(auto p = 0u; p < bitmap.width; ++p)
-    {
-      *inverse_ptr++ = *bitmap_ptr++;
-    }
-    inverse_ptr += ( width - bitmap.width );
-  }
-
-  return inverse;
+Font::~Font() {
+	auto needle = fonts_.find(
+			REGEN_STRING(fontPath_ << size_ << "_" << dpi_));
+	if (needle != fonts_.end()) { fonts_.erase(needle); }
+	delete[] faceData_;
 }
 
-void Font::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight)
-{
-  FaceData &glyphData = faceData_[ch];
-  FT_Glyph glyph;
-  GLubyte* inverted;
+const Font::FaceData &Font::faceData(GLushort ch) const { return faceData_[ch]; }
 
-  // Load the Glyph for our character.
-  if(FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT )) {
-    throw Error("FT_Load_Glyph failed");
-  }
-  // Move the face's glyph into a Glyph object.
-  if(FT_Get_Glyph( face->glyph, &glyph )) {
-    throw Error("FT_Get_Glyph failed");
-  }
-  // Convert the glyph to a bitmap.
-  FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );
+GLubyte *Font::invertPixmapWithAlpha(
+		const FT_Bitmap &bitmap, GLuint width, GLuint height) {
+	const unsigned int arraySize = width * height;
+	auto *inverse = new GLubyte[arraySize];
+	auto *inverse_ptr = inverse;
 
-  auto bitmap_glyph = (FT_BitmapGlyph)glyph;
-  // This reference will make accessing the bitmap easier
-  FT_Bitmap& bitmap = bitmap_glyph->bitmap;
+	memset(inverse, 0x0, sizeof(GLubyte) * arraySize);
 
-  {
-    auto bitmapWith = (GLfloat) bitmap.width;
-    auto bitmapHeight = (GLfloat) bitmap.rows;
-    GLfloat sizeFactor = 1.0f / (GLfloat) size();
+	for (auto r = 0u; r < bitmap.rows; ++r) {
+		GLubyte *bitmap_ptr = &bitmap.buffer[bitmap.pitch * r];
+		for (auto p = 0u; p < bitmap.width; ++p) {
+			*inverse_ptr++ = *bitmap_ptr++;
+		}
+		inverse_ptr += (width - bitmap.width);
+	}
 
-    glyphData.uvX = bitmapWith/((GLfloat)textureWidth);
-    glyphData.uvY = bitmapHeight/((GLfloat)textureHeight);
-    glyphData.height = bitmapHeight*sizeFactor;
-    glyphData.width = bitmapWith*sizeFactor;
-    glyphData.advanceX = (face->glyph->advance.x >> 6)*sizeFactor;
-    glyphData.left = bitmap_glyph->left*sizeFactor;
-    glyphData.top = bitmap_glyph->top*sizeFactor;
-  }
+	return inverse;
+}
 
-  {
-    inverted = invertPixmapWithAlpha(bitmap, textureWidth, textureHeight);
-    arrayTexture_->texSubImage((int) ch, inverted);
-    delete []inverted;
-  }
+void Font::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint textureHeight) {
+	FaceData &glyphData = faceData_[ch];
+	FT_Glyph glyph;
+	GLubyte *inverted;
 
-  FT_Done_Glyph(glyph);
+	// Load the Glyph for our character.
+	if (FT_Load_Glyph(face, FT_Get_Char_Index(face, ch), FT_LOAD_DEFAULT)) {
+		throw Error("FT_Load_Glyph failed");
+	}
+	// Move the face's glyph into a Glyph object.
+	if (FT_Get_Glyph(face->glyph, &glyph)) {
+		throw Error("FT_Get_Glyph failed");
+	}
+	// Convert the glyph to a bitmap.
+	FT_Glyph_To_Bitmap(&glyph, ft_render_mode_normal, 0, 1);
+
+	auto bitmap_glyph = (FT_BitmapGlyph) glyph;
+	// This reference will make accessing the bitmap easier
+	FT_Bitmap &bitmap = bitmap_glyph->bitmap;
+
+	{
+		auto bitmapWith = (GLfloat) bitmap.width;
+		auto bitmapHeight = (GLfloat) bitmap.rows;
+		GLfloat sizeFactor = 1.0f / (GLfloat) size();
+
+		glyphData.uvX = bitmapWith / ((GLfloat) textureWidth);
+		glyphData.uvY = bitmapHeight / ((GLfloat) textureHeight);
+		glyphData.height = bitmapHeight * sizeFactor;
+		glyphData.width = bitmapWith * sizeFactor;
+		glyphData.advanceX = (face->glyph->advance.x >> 6) * sizeFactor;
+		glyphData.left = bitmap_glyph->left * sizeFactor;
+		glyphData.top = bitmap_glyph->top * sizeFactor;
+	}
+
+	{
+		inverted = invertPixmapWithAlpha(bitmap, textureWidth, textureHeight);
+		arrayTexture_->texSubImage((int) ch, inverted);
+		delete[]inverted;
+	}
+
+	FT_Done_Glyph(glyph);
 }

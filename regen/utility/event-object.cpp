@@ -174,7 +174,7 @@ void EventObject::unqueueEmit(unsigned int eventID) {
 void EventObject::queueEmit(unsigned int eventID, const ref_ptr<EventData> &data) {
 	eventLock_.lock();
 	{
-		queued_->push_back(QueuedEvent(this, data, eventID));
+		queued_->emplace_back(this, data, eventID);
 	}
 	eventLock_.unlock();
 }

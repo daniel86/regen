@@ -17,17 +17,17 @@ BuddyAllocator::BuddyNode::BuddyNode(
 		BuddyNode *_parent)
 		: state(FREE),
 		  address(_address), size(_size), maxSpace(_size),
-		  leftChild(NULL), rightChild(NULL), parent(_parent) {
+		  leftChild(nullptr), rightChild(nullptr), parent(_parent) {
 }
 
 BuddyAllocator::BuddyAllocator(unsigned int size) {
-	buddyTree_ = new BuddyNode(0u, size, NULL);
+	buddyTree_ = new BuddyNode(0u, size, nullptr);
 }
 
 BuddyAllocator::~BuddyAllocator() {
 	if (buddyTree_) {
 		clear(buddyTree_);
-		buddyTree_ = NULL;
+		buddyTree_ = nullptr;
 	}
 }
 
@@ -38,11 +38,11 @@ unsigned int BuddyAllocator::size() const { return buddyTree_->size; }
 unsigned int BuddyAllocator::maxSpace() const { return buddyTree_->maxSpace; }
 
 void BuddyAllocator::computeMaxSpace(BuddyNode *n) {
-	if (n->leftChild != NULL) {
+	if (n->leftChild != nullptr) {
 		n->maxSpace = std::max(n->leftChild->maxSpace, n->rightChild->maxSpace);
 	}
 	// must recompute maxSpace for given node and all parents
-	for (BuddyNode *t = n->parent; t != NULL; t = t->parent) {
+	for (BuddyNode *t = n->parent; t != nullptr; t = t->parent) {
 		t->maxSpace = std::max(t->leftChild->maxSpace, t->rightChild->maxSpace);
 	}
 }
@@ -117,7 +117,7 @@ bool BuddyAllocator::alloc(unsigned int size, unsigned int *x) {
 }
 
 void BuddyAllocator::clear() {
-	BuddyNode *clearedTree = new BuddyNode(0u, buddyTree_->size, NULL);
+	BuddyNode *clearedTree = new BuddyNode(0u, buddyTree_->size, nullptr);
 	clear(buddyTree_);
 	buddyTree_ = clearedTree;
 }
@@ -140,11 +140,11 @@ void BuddyAllocator::free(unsigned int address) {
 	t->maxSpace = t->size;
 	if (t->leftChild) {
 		delete t->leftChild;
-		t->leftChild = NULL;
+		t->leftChild = nullptr;
 	}
 	if (t->rightChild) {
 		delete t->rightChild;
-		t->rightChild = NULL;
+		t->rightChild = nullptr;
 	}
 	// join parents with both childs becoming FREE with this call
 	while (t->parent) {
@@ -153,8 +153,8 @@ void BuddyAllocator::free(unsigned int address) {
 			t = t->parent;
 			delete t->leftChild;
 			delete t->rightChild;
-			t->leftChild = NULL;
-			t->rightChild = NULL;
+			t->leftChild = nullptr;
+			t->rightChild = nullptr;
 			// mark as free space
 			t->state = FREE;
 			t->maxSpace = t->size;
