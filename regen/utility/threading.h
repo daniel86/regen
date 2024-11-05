@@ -12,28 +12,29 @@
 #include <boost/thread/mutex.hpp>
 
 namespace regen {
-  // i have a strange problem with boost::this_thread here.
-  // it just adds 100ms to the interval provided :/
-  #ifdef UNIX
-  #define usleepRegen(v) usleep(v)
-  #else
-  #define usleepRegen(v) boost::this_thread::sleep(boost::posix_time::microseconds(v))
-  #endif
+	// i have a strange problem with boost::this_thread here.
+	// it just adds 100ms to the interval provided :/
+#ifdef UNIX
+#define usleepRegen(v) usleep(v)
+#else
+#define usleepRegen(v) boost::this_thread::sleep(boost::posix_time::microseconds(v))
+#endif
 
-  /**
-   * \brief Simple thread class using boost::thread.
-   */
-  class Thread {
-  public:
-    Thread();
-    virtual ~Thread() {}
-  protected:
-    boost::thread thread_;
-    boost::mutex threadLock_;
+	/**
+	 * \brief Simple thread class using boost::thread.
+	 */
+	class Thread {
+	public:
+		Thread();
 
-    void __run();
-    virtual void run()=0;
-  };
+		virtual ~Thread() = default;
+
+	protected:
+		boost::thread thread_;
+		boost::mutex threadLock_;
+
+		virtual void run() = 0;
+	};
 } // namespace
 
 #endif /* __THREADING_H_ */

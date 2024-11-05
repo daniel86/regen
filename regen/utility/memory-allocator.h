@@ -48,7 +48,7 @@ namespace regen {
 			 * @param size the allocator size.
 			 */
 			Node(AllocatorPool *_pool, unsigned int size)
-					: pool(_pool), allocator(size), prev(NULL), next(NULL) {}
+					: pool(_pool), allocator(size), prev(nullptr), next(nullptr) {}
 
 			AllocatorPool *pool;               //!< the allocator pool
 			VirtualAllocatorType allocator;    //!< the allocator
@@ -66,24 +66,24 @@ namespace regen {
 		};
 
 		AllocatorPool()
-				: allocators_(NULL),
+				: allocators_(nullptr),
 				  minSize_(4u * 1024u * 1024u),
 				  minSizeUnaligned_(minSize_),
 				  alignment_(1),
 				  index_(0) {}
 
 		~AllocatorPool() {
-			for (Node *n = allocators_; n != NULL;) {
+			for (Node *n = allocators_; n != nullptr;) {
 				Node *buf = n;
 				n = n->next;
-				buf->next = NULL;
-				buf->prev = NULL;
-				buf->pool = NULL;
+				buf->next = nullptr;
+				buf->prev = nullptr;
+				buf->pool = nullptr;
 				// free actual memory
 				ActualAllocatorType::deleteAllocator(index_, buf->allocatorRef);
 				delete buf;
 			}
-			allocators_ = NULL;
+			allocators_ = nullptr;
 		}
 
 		/**
@@ -120,7 +120,7 @@ namespace regen {
 		Node *createAllocator(unsigned int size) {
 			unsigned int actualSize = align(size > minSize_ ? size : minSize_);
 			Node *x = new Node(this, actualSize);
-			x->prev = NULL;
+			x->prev = nullptr;
 			x->next = allocators_;
 			// allocate actual memory
 			x->allocatorRef = ActualAllocatorType::createAllocator(index_, actualSize * alignment_);
@@ -138,8 +138,8 @@ namespace regen {
 		Node *chooseAllocator(unsigned int size) {
 			unsigned int actualSize = align(size);
 			// find allocator with smallest maxSpace and maxSpace>size
-			Node *min = NULL;
-			for (Node *n = allocators_; n != NULL && n->allocator.maxSpace() > actualSize; n = n->next) { min = n; }
+			Node *min = nullptr;
+			for (Node *n = allocators_; n != nullptr && n->allocator.maxSpace() > actualSize; n = n->next) { min = n; }
 			return min;
 		}
 
@@ -153,7 +153,7 @@ namespace regen {
 			if (n->next) n->next->prev = n->prev;
 			if (n->prev) n->prev->next = n->next;
 			// sort in front to back
-			n->prev = NULL;
+			n->prev = nullptr;
 			n->next = allocators_;
 			if (allocators_) allocators_->prev = n;
 			allocators_ = n;
@@ -170,13 +170,13 @@ namespace regen {
 			AllocatorPool::Reference ref;
 			// find allocator with smallest maxSpace and maxSpace>size
 			Node *min = chooseAllocator(_size);
-			if (min == NULL) {
-				ref.allocatorNode = NULL;
+			if (min == nullptr) {
+				ref.allocatorNode = nullptr;
 			} else if (min->allocator.alloc(size, &ref.allocatorRef)) {
 				ref.allocatorNode = min;
 				sortInForward(min);
 			} else {
-				ref.allocatorNode = NULL;
+				ref.allocatorNode = nullptr;
 			}
 			return ref;
 		}
@@ -191,12 +191,12 @@ namespace regen {
 			unsigned int size = align(_size);
 			AllocatorPool::Reference ref;
 			if (n->allocator.maxSpace() < size) {
-				ref.allocatorNode = NULL;
+				ref.allocatorNode = nullptr;
 			} else if (n->allocator.alloc(size, &ref.allocatorRef)) {
 				ref.allocatorNode = n;
 				sortInForward(n);
 			} else {
-				ref.allocatorNode = NULL;
+				ref.allocatorNode = nullptr;
 			}
 			return ref;
 		}
@@ -209,7 +209,7 @@ namespace regen {
 			if (ref.allocatorNode) {
 				ref.allocatorNode->allocator.free(ref.allocatorRef);
 				sortInBackward(ref.allocatorNode);
-				ref.allocatorNode = NULL;
+				ref.allocatorNode = nullptr;
 			}
 		}
 
@@ -233,7 +233,7 @@ namespace regen {
 		void sortInForward(Node *resizedNode) {
 			unsigned int space = resizedNode->allocator.maxSpace();
 			for (Node *n = resizedNode->next;
-				 n != NULL && n->allocator.maxSpace() > space;
+				 n != nullptr && n->allocator.maxSpace() > space;
 				 n = n->next) { swap(n->prev, n); }
 			// update head
 			while (allocators_->prev) allocators_ = allocators_->prev;
@@ -242,7 +242,7 @@ namespace regen {
 		void sortInBackward(Node *resizedNode) {
 			unsigned int space = resizedNode->allocator.maxSpace();
 			for (Node *n = resizedNode->prev;
-				 n != NULL && n->allocator.maxSpace() < space;
+				 n != nullptr && n->allocator.maxSpace() < space;
 				 n = n->prev) { swap(n, n->next); }
 			// update head
 			while (allocators_->prev) allocators_ = allocators_->prev;
