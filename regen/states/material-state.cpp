@@ -43,18 +43,6 @@ Material::Material()
 	shaderDefine("HAS_MATERIAL", "TRUE");
 }
 
-const ref_ptr<ShaderInput3f> &Material::ambient() const { return materialAmbient_; }
-
-const ref_ptr<ShaderInput3f> &Material::diffuse() const { return materialDiffuse_; }
-
-const ref_ptr<ShaderInput3f> &Material::specular() const { return materialSpecular_; }
-
-const ref_ptr<ShaderInput1f> &Material::shininess() const { return materialShininess_; }
-
-const ref_ptr<ShaderInput1f> &Material::alpha() const { return materialAlpha_; }
-
-const ref_ptr<ShaderInput1f> &Material::refractionIndex() const { return materialRefractionIndex_; }
-
 void Material::set_fillMode(GLenum fillMode) {
 	if (fillMode == fillMode_) return;
 	disjoinStates(fillModeState_);
@@ -62,8 +50,6 @@ void Material::set_fillMode(GLenum fillMode) {
 	fillModeState_ = ref_ptr<FillModeState>::alloc(fillMode_);
 	joinStates(fillModeState_);
 }
-
-GLenum Material::fillMode() const { return fillMode_; }
 
 void Material::set_twoSided(GLboolean twoSided) {
 	if (twoSidedState_.get()) {

@@ -25,34 +25,34 @@ namespace regen {
 		/**
 		 * @return Ambient material color.
 		 */
-		const ref_ptr<ShaderInput3f> &ambient() const;
+		auto &ambient() const { return materialAmbient_; }
 
 		/**
 		 * @return Diffuse material color.
 		 */
-		const ref_ptr<ShaderInput3f> &diffuse() const;
+		auto &diffuse() const { return materialDiffuse_; }
 
 		/**
 		 * @return Specular material color.
 		 */
-		const ref_ptr<ShaderInput3f> &specular() const;
+		auto &specular() const { return materialSpecular_; }
 
 		/**
 		 * @return The shininess exponent.
 		 */
-		const ref_ptr<ShaderInput1f> &shininess() const;
+		auto &shininess() const { return materialShininess_; }
 
 		/**
 		 * @return The material alpha.
 		 */
-		const ref_ptr<ShaderInput1f> &alpha() const;
+		auto &alpha() const { return materialAlpha_; }
 
 		/**
 		 * Index of refraction of the material. This is used by some shading models,
 		 * e.g. Cook-Torrance. The value is the ratio of the speed of light in a
 		 * vacuum to the speed of light in the material (always >= 1.0 in the real world).
 		 */
-		const ref_ptr<ShaderInput1f> &refractionIndex() const;
+		auto &refractionIndex() const { return materialRefractionIndex_; }
 
 		/**
 		 * Defines how faces are shaded (FILL/LINE/POINT).
@@ -62,7 +62,7 @@ namespace regen {
 		/**
 		 * Defines how faces are shaded (FILL/LINE/POINT).
 		 */
-		GLenum fillMode() const;
+		auto fillMode() const { return fillMode_; }
 
 		/**
 		 * Indicates if the material should be rendered two-sided.
