@@ -30,22 +30,17 @@ namespace regen {
 		/**
 		 * @return gravity constant.
 		 */
-		const ref_ptr<ShaderInput3f> &gravity() const;
+		auto &gravity() const { return gravity_; }
 
 		/**
 		 * @return damping factor.
 		 */
-		const ref_ptr<ShaderInput1f> &dampingFactor() const;
+		auto &dampingFactor() const { return dampingFactor_; }
 
 		/**
 		 * @return noise factor.
 		 */
-		const ref_ptr<ShaderInput1f> &noiseFactor() const;
-
-		/**
-		 * @return number of maximum particle emits per frame.
-		 */
-		const ref_ptr<ShaderInput1i> &maxNumParticleEmits() const;
+		auto &noiseFactor() const { return noiseFactor_; }
 
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;

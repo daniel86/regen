@@ -44,33 +44,33 @@ namespace regen {
 		/**
 		 * @param v target format.
 		 */
-		void set_format(GLenum v);
+		void set_format(GLenum v) { format_ = v; }
 
 		/**
 		 * @param v target internal format.
 		 */
-		void set_internalFormat(GLenum v);
+		void set_internalFormat(GLenum v) { internalFormat_ = v; }
 
 		/**
 		 * @param v target pixel type.
 		 */
-		void set_pixelType(GLenum v);
+		void set_pixelType(GLenum v) { pixelType_ = v; }
 
 		/**
 		 * Scale factor that is applied to the input texture when
 		 * filtering.
 		 */
-		GLfloat scaleFactor() const;
+		GLfloat scaleFactor() const { return scaleFactor_; }
 
 		/**
 		 * Filter render target with ping-pong attachment points.
 		 */
-		const ref_ptr<Output> &output() const;
+		auto &output() const { return out_; }
 
 		/**
 		 * The color attachment point for the filter result texture.
 		 */
-		GLenum outputAttachment() const;
+		auto outputAttachment() const { return outputAttachment_; }
 
 		/**
 		 * Set input texture and create a framebuffer for this filter.
@@ -133,17 +133,17 @@ namespace regen {
 		/**
 		 * @param v target format.
 		 */
-		void set_format(GLenum v);
+		void set_format(GLenum v) { format_ = v; }
 
 		/**
 		 * @param v target internal format.
 		 */
-		void set_internalFormat(GLenum v);
+		void set_internalFormat(GLenum v) { internalFormat_ = v; }
 
 		/**
 		 * @param v target pixel type.
 		 */
-		void set_pixelType(GLenum v);
+		void set_pixelType(GLenum v) { pixelType_ = v; }
 
 		/**
 		 * Adds a filter to the sequence of filters.
@@ -154,7 +154,7 @@ namespace regen {
 		/**
 		 * @return the input texture.
 		 */
-		const ref_ptr<Texture> &input() const;
+		auto &input() const { return input_; }
 
 		/**
 		 * @return the output texture.

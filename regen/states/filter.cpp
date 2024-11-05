@@ -25,18 +25,6 @@ Filter::Filter(const std::string &shaderKey, GLfloat scaleFactor)
 	joinStatesFront(inputState_);
 }
 
-const ref_ptr<Filter::Output> &Filter::output() const { return out_; }
-
-GLenum Filter::outputAttachment() const { return outputAttachment_; }
-
-GLfloat Filter::scaleFactor() const { return scaleFactor_; }
-
-void Filter::set_format(GLenum v) { format_ = v; }
-
-void Filter::set_internalFormat(GLenum v) { internalFormat_ = v; }
-
-void Filter::set_pixelType(GLenum v) { pixelType_ = v; }
-
 void Filter::set_bindInput(GLboolean v) {
 	if (v == bindInput_) { return; }
 	bindInput_ = v;
@@ -143,7 +131,7 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
 	inverseViewport_->setUniformData(Vec2f(
-			1.0 / (GLfloat) input->width(), 1.0 / (GLfloat) input->height()));
+			1.0f / (GLfloat) input->width(), 1.0f / (GLfloat) input->height()));
 	joinShaderInput(inverseViewport_);
 
 	ref_ptr<ShaderInput2f> inverseViewport;
@@ -166,14 +154,6 @@ void FilterSequence::setClearColor(const Vec4f &clearColor) {
 	clearFirstFilter_ = GL_TRUE;
 	clearColor_ = clearColor;
 }
-
-void FilterSequence::set_format(GLenum v) { format_ = v; }
-
-void FilterSequence::set_internalFormat(GLenum v) { internalFormat_ = v; }
-
-void FilterSequence::set_pixelType(GLenum v) { pixelType_ = v; }
-
-const ref_ptr<Texture> &FilterSequence::input() const { return input_; }
 
 const ref_ptr<Texture> &FilterSequence::output() const {
 	if (filterSequence_.empty()) {
@@ -219,8 +199,8 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f) {
 }
 
 void FilterSequence::createShader(StateConfig &cfg) {
-	for (auto it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
-		auto *f = (Filter *) (*it).get();
+	for (auto & it : filterSequence_) {
+		auto *f = (Filter *) it.get();
 		StateConfigurer _cfg(cfg);
 		_cfg.addState(f);
 		f->createShader(_cfg.cfg());
@@ -234,8 +214,8 @@ void FilterSequence::resize() {
 	if (width == lastWidth_ && height == lastHeight_) return;
 
 	FBO *last = nullptr;
-	for (auto it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
-		auto *f = (Filter *) (*it).get();
+	for (auto & it : filterSequence_) {
+		auto *f = (Filter *) it.get();
 		FBO *fbo = f->output()->fbo_.get();
 
 		if (last != fbo) {
@@ -266,8 +246,8 @@ void FilterSequence::enable(RenderState *rs) {
 		rs->clearColor().pop();
 		rs->drawFrameBuffer().pop();
 	}
-	for (auto it = filterSequence_.begin(); it != filterSequence_.end(); ++it) {
-		auto *f = (Filter *) (*it).get();
+	for (auto & it : filterSequence_) {
+		auto *f = (Filter *) it.get();
 
 		FBO *fbo = f->output()->fbo_.get();
 		rs->drawFrameBuffer().push(fbo->id());
