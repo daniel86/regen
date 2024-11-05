@@ -10,6 +10,7 @@
 #include <regen/states/depth-state.h>
 #include <regen/states/state-configurer.h>
 #include <regen/gl-types/gl-enum.h>
+#include <random>
 #include "particles.h"
 
 using namespace regen;
@@ -51,12 +52,16 @@ void Particles::begin(ShaderInputContainer::DataLayout layout) {
 
 	GLuint numParticles = inputContainer()->numVertices();
 
-	srand(time(0));
+	// Initialize the random number generator and distribution
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(0, std::numeric_limits<int>::max());
+
 	// get a random seed for each particle
 	ref_ptr<ShaderInput1ui> randomSeed_ = ref_ptr<ShaderInput1ui>::alloc("randomSeed");
 	randomSeed_->setVertexData(numParticles, nullptr);
 	for (GLuint i = 0u; i < numParticles; ++i) {
-		randomSeed_->setVertex(i, rand());
+		randomSeed_->setVertex(i, dis(gen));
 	}
 	setInput(randomSeed_);
 
@@ -166,9 +171,3 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 
 	GL_ERROR_LOG();
 }
-
-const ref_ptr<ShaderInput3f> &Particles::gravity() const { return gravity_; }
-
-const ref_ptr<ShaderInput1f> &Particles::dampingFactor() const { return dampingFactor_; }
-
-const ref_ptr<ShaderInput1f> &Particles::noiseFactor() const { return noiseFactor_; }
