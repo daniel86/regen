@@ -51,9 +51,8 @@
         <!-- FBOs -->
 <fbo id="g-buffer"
      size-mode="rel" size="1.0,1.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
+     pixel-components="4"
+     pixel-type="FLOAT" pixel-size="16" >
   <texture id="diffuse0" />
   <texture id="diffuse1" />
   <texture id="specular" />
@@ -790,6 +789,23 @@
         <!--**************************-->
         <!--**************************-->
 
+<texture id="bloom-texture" type="bloom" num-mips="4" input-fbo="g-buffer" />
+
+<node id="Bloom-Pass">
+    <node id="Bloom-Update">
+        <input type="float" name="filterRadius" value="0.01" />
+        <bloom fbo="g-buffer" attachment="1" bloom-texture="bloom-texture" />
+    </node>
+    <view id="Bloom-Texture">
+        <fbo id="SCREEN"/>
+        <texture name="inputTexture1" id="bloom-texture" mip-level="0" />
+        <texture name="inputTexture2" id="bloom-texture" mip-level="1" />
+        <texture name="inputTexture3" id="bloom-texture" mip-level="2" />
+        <texture name="inputTexture4" id="bloom-texture" mip-level="3" />
+        <fullscreen-pass shader="regen.filter.sampling.x4"/>
+    </view>
+</node>
+
 <node id="Volumetric-Fog-Pass">
     <input type="float" name="shadowSampleStep" value="0.025"/>
     <input type="float" name="shadowSampleThreshold" value="0.075"/>
@@ -811,6 +827,8 @@
 <node id="Post-Pass">
     <depth test="0" write="0"/>
 
+    <node import="Bloom-Pass" />
+
     <node id="Volume-Fog">
         <fbo id="g-buffer" draw-buffers="1"/>
         <blend mode="add"/>
@@ -821,12 +839,38 @@
         <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
     </view>
 
+    <node id="Tonemapping">
+        <fbo id="g-buffer" draw-buffers="0" />
+        <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+        <input type="float" name="exposure" value="0.6" />
+        <input type="float" name="gamma" value="1.5" />
+        <!-- mix scene with blur texture -->
+        <input type="float" name="blurAmount" value="0.34" />
+        <texture name="blurTexture" id="bloom-texture" />
+        <!-- apply a radial blur effect -->
+        <!--
+        <define key="USE_RADIAL_BLUR" value="TRUE" />
+        <input type="float" name="radialBlurSamples" value="36.0" />
+        <input type="float" name="radialBlurStartScale" value="1.0" />
+        <input type="float" name="radialBlurScaleMul" value="0.9555" />
+        <input type="float" name="effectAmount" value="0.2" />
+        -->
+        <!-- apply a vignette effect -->
+        <define key="USE_VIGNETTE" value="TRUE" />
+        <input type="float" name="vignetteInner" value="0.9" />
+        <input type="float" name="vignetteOuter" value="1.75" />
+        <fullscreen-pass shader="regen.filter.tonemap" />
+    </node>
+    <view id="Tonemapping">
+        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+    </view>
+
     <node import="FXAA">
-        <fbo id="g-buffer" draw-buffers="0"/>
-        <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
     </node>
     <view id="Antialiased Scene">
-        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
     </view>
 </node>
 
@@ -880,11 +924,11 @@
         <node import="Default-Pipeline"/>
         <node import="Picking-Pass"/>
         <node import="GUI-Pass">
-            <fbo id="g-buffer" draw-buffers="0"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
         </node>
 
         <view id="Output Rendering">
-            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
     </node>
 

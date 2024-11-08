@@ -16,17 +16,19 @@
 out vec4 out_color;
 
 uniform sampler2D in_inputTexture;
-uniform sampler2D in_blurTexture;
 uniform vec2 in_inverseViewport;
-
-const float in_blurAmount = 0.5;
-const float in_effectAmount = 0.2;
 const float in_exposure = 16.0;
 const float in_gamma = 0.5;
+
+#ifdef HAS_blurTexture
+uniform sampler2D in_blurTexture;
+const float in_blurAmount = 0.5;
+#endif
 #ifdef USE_RADIAL_BLUR
 const float in_radialBlurSamples = 30.0;
 const float in_radialBlurStartScale = 1.0;
 const float in_radialBlurScaleMul = 0.9;
+const float in_effectAmount = 0.2;
 #endif
 #ifdef USE_VIGNETTE
 const float in_vignetteInner = 0.7;
@@ -47,10 +49,12 @@ void main() {
     vecTexco texco = computeTexco(texco_2D);
     
     // sum original and blurred image
-    out_color = mix(
-        texture(in_inputTexture, texco),
-        texture(in_blurTexture, texco), in_blurAmount
-    );
+    out_color = texture(in_inputTexture, texco);
+#ifdef HAS_blurTexture
+    out_color.rgb = mix(out_color.rgb,
+        texture(in_blurTexture, texco).rgb,
+        in_blurAmount);
+#endif
 #ifdef USE_RADIAL_BLUR
     // Radial Blur
     vec4 blurColor = vec4(0);
@@ -73,7 +77,8 @@ void main() {
         in_vignetteOuter);
 #else
     // Overall Exposure
-    out_color *= in_exposure;
+    //out_color *= in_exposure;
+    out_color.rgb = vec3(1.0) - exp(-out_color.rgb * in_exposure);
 #endif
     // Gamma Correction
     out_color.rgb = pow(out_color.rgb, vec3(in_gamma));

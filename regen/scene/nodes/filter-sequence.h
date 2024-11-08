@@ -14,7 +14,7 @@
 #include <regen/states/state-configurer.h>
 #include <regen/scene/resource-manager.h>
 
-#include <regen/states/filter.h>
+#include <regen/effects/filter.h>
 
 #define REGEN_FILTER_SEQUENCE_NODE_CATEGORY "filter-sequence"
 

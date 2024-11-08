@@ -17,7 +17,7 @@
 
 #define REGEN_SHADER_NODE_CATEGORY "shader"
 
-#include <regen/states/filter.h>
+#include <regen/effects/filter.h>
 
 namespace regen {
 	namespace scene {

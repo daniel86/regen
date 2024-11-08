@@ -7,7 +7,7 @@
 #include <regen/states/state-configurer.h>
 #include <regen/scene/resource-manager.h>
 #include <regen/scene/nodes/shader.h>
-#include "regen/states/motion-blur.h"
+#include "regen/effects/motion-blur.h"
 
 #define REGEN_MOTION_BLUR_STATE_CATEGORY "motion-blur"
 

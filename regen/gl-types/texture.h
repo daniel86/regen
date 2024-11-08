@@ -318,6 +318,28 @@ namespace regen {
 	};
 
 	/**
+	 * \brief A texture with multiple mipmap textures.
+	 *
+	 * Note this is not using the GL mipmapping feature,
+	 * downscaling must be done manually.
+	 */
+	class TextureMips2D : public Texture2D {
+	public:
+		explicit TextureMips2D(GLuint numMips = 4);
+
+		auto &mipTextures() { return mipTextures_; }
+
+		auto &mipRefs() { return mipRefs_; }
+
+		auto numMips() const { return numMips_; }
+
+	protected:
+		std::vector<Texture*> mipTextures_;
+		std::vector<ref_ptr<Texture2D>> mipRefs_;
+		GLuint numMips_;
+	};
+
+	/**
 	 * \brief The image in this texture (only one image. No mipmapping)
 	 * is 2-dimensional.
 	 *

@@ -83,6 +83,20 @@ namespace regen {
 					REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
 					return;
 				}
+				if (input.hasAttribute("mip-level") && input.getValue<int>("mip-level",0) > 0) {
+					auto mipLevel = input.getValue<int>("mip-level",1);
+					auto mipTex = dynamic_cast<TextureMips2D *>(tex.get());
+					if (mipTex) {
+						auto maxLevel = mipTex->numMips();
+						if (mipLevel < maxLevel) {
+							tex = mipTex->mipRefs()[mipLevel-1];
+						} else {
+							REGEN_WARN("Mip level " << mipLevel << " is out of range for texture '" << tex->name() << "'.");
+						}
+					} else {
+						REGEN_WARN("Texture '" << tex->name() << "' is not a mip texture.");
+					}
+				}
 
 				// Set-Up the texture state
 				ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(
