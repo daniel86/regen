@@ -208,6 +208,17 @@ void Texture2D::texImage() const {
 				 data_);
 }
 
+TextureMips2D::TextureMips2D(GLuint numMips) : Texture2D(), numMips_(numMips) {
+	mipTextures_.resize(numMips);
+	mipRefs_.resize(numMips-1);
+
+	mipTextures_[0] = this;
+	for (auto i = 1u; i < numMips; ++i) {
+		mipRefs_[i-1] = ref_ptr<Texture2D>::alloc();
+		mipTextures_[i] = mipRefs_[i-1].get();
+	}
+}
+
 TextureRectangle::TextureRectangle(GLuint numTextures)
 		: Texture2D(numTextures) {
 	texBind_.target_ = GL_TEXTURE_RECTANGLE;

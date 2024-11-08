@@ -192,6 +192,7 @@ const ref_ptr<Texture> &TextureState::texture() const { return texture_; }
 void TextureState::set_name(const std::string &name) {
 	name_ = name;
 	shaderDefine(REGEN_TEX_NAME("TEX_NAME"), name_);
+	shaderDefine("HAS_" + name_, "TRUE");
 }
 
 const std::string &TextureState::name() const { return name_; }

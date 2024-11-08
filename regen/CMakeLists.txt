@@ -31,6 +31,7 @@ set(SOURCE_DIRS
     states
     camera
     meshes
+    effects
     scene
     sky
     external)

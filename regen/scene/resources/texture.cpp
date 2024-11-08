@@ -6,6 +6,7 @@
  */
 
 #include "texture.h"
+#include "regen/effects/bloom-texture.h"
 #include <regen/application.h>
 
 using namespace regen::scene;
@@ -39,7 +40,7 @@ public:
 			  windowViewport_(windowViewport),
 			  wScale_(wScale), hScale_(hScale) {}
 
-	void call(EventObject *, EventData *) {
+	void call(EventObject *, EventData *) override {
 		const Vec2i &winSize = windowViewport_->getVertex(0);
 
 		tex_->set_rectangleSize(winSize.x * wScale_, winSize.y * hScale_);
@@ -53,6 +54,30 @@ protected:
 	ref_ptr<ShaderInput2i> windowViewport_;
 	GLfloat wScale_, hScale_;
 };
+
+// TODO: unify with above
+template <class T>
+class TextureResizer2 : public EventHandler {
+public:
+	TextureResizer2(const ref_ptr<T> &tex,
+				   const ref_ptr<ShaderInput2i> &windowViewport,
+				   GLfloat wScale, GLfloat hScale)
+			: EventHandler(),
+			  tex_(tex),
+			  windowViewport_(windowViewport),
+			  wScale_(wScale), hScale_(hScale) {}
+
+	void call(EventObject *, EventData *) override {
+		const Vec2i &winSize = windowViewport_->getVertex(0);
+		tex_->resize(winSize.x * wScale_, winSize.y * hScale_);
+	}
+
+protected:
+	ref_ptr<T> tex_;
+	ref_ptr<ShaderInput2i> windowViewport_;
+	GLfloat wScale_, hScale_;
+};
+
 
 Vec3i TextureResource::getSize(
 		const ref_ptr<ShaderInput2i> &viewport,
@@ -243,6 +268,27 @@ ref_ptr<Texture> TextureResource::createResource(
 		auto spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));
 		auto numTexels = input.getValue<GLuint>("num-texels", 256u);
 		tex = regen::textures::loadSpectrum(spectrum.x, spectrum.y, numTexels);
+	} else if (input.hasAttribute("type")) {
+		const string typeName = input.getValue("type");
+		if (typeName == "bloom") {
+			auto numMips = input.getValue<GLuint>("num-mips", 5u);
+			auto bloomTexture = ref_ptr<BloomTexture>::alloc(numMips);
+
+			auto inputFBO = parser->getResources()->getFBO(parser, input.getValue("input-fbo"));
+			if (inputFBO.get() == nullptr) {
+				REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
+			}
+			else {
+				auto resizer = ref_ptr<TextureResizer2<BloomTexture>>::alloc(
+						bloomTexture, parser->getViewport(), 1.0, 1.0);
+				parser->addEventHandler(Application::RESIZE_EVENT, resizer);
+				tex = bloomTexture;
+				bloomTexture->resize(inputFBO->width(), inputFBO->height());
+			}
+		}
+		else {
+			REGEN_WARN("Unknown texture type '" << typeName << "'.");
+		}
 	} else {
 		auto sizeMode = input.getValue<string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));

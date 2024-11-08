@@ -85,7 +85,47 @@ void main()
 
 ----------------------------
 ----------------------------
+-- x4.vs
+#include regen.filter.sampling.vs
+-- x4.fs
+#include regen.states.camera.defines
 
+out vec4 out_color;
+
+uniform vec2 in_inverseViewport;
+uniform sampler2D in_inputTexture1;
+uniform sampler2D in_inputTexture2;
+uniform sampler2D in_inputTexture3;
+uniform sampler2D in_inputTexture4;
+
+void main()
+{
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+
+    if (texco_2D.x > 0.5)
+    {
+        if (texco_2D.y > 0.5)
+        {
+            out_color = texture(in_inputTexture3, (texco_2D-vec2(0.5))*2.0);
+        }
+        else
+        {
+            out_color = texture(in_inputTexture1, (texco_2D-vec2(0.5,0.0))*2.0);
+        }
+    } else {
+        if (texco_2D.y > 0.5)
+        {
+            out_color = texture(in_inputTexture4, (texco_2D-vec2(0.0,0.5))*2.0);
+        }
+        else
+        {
+            out_color = texture(in_inputTexture2, texco_2D*2.0);
+        }
+    }
+}
+
+----------------------------
+----------------------------
 -- array-row.vs
 #include regen.filter.sampling.vs
 -- array-row.fs
