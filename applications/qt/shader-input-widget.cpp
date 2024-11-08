@@ -238,13 +238,17 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x) {
 template<class T>
 byte *createData(
 		ShaderInput *in,
-		QLineEdit **valueWidgets,
+		QSlider **valueWidgets,
+		QLabel **valueTexts,
 		GLuint count) {
 	T *typedData = new T[count];
 	for (GLuint i = 0u; i < count; ++i) {
-		QLineEdit *widget = valueWidgets[i];
-		std::stringstream ss(widget->text().toStdString());
+		QSlider *widget = valueWidgets[i];
+		std::stringstream ss;
+		ss << static_cast<float>(widget->value()) / 1000.0f;
 		ss >> typedData[i];
+
+		valueTexts[i]->setText(QString::number(typedData[i]));
 	}
 	return (byte *) typedData;
 }
@@ -256,8 +260,10 @@ void ShaderInputWidget::valueUpdated() {
 		return;
 	}
 
-	QLineEdit *valueWidgets[4] =
+	QSlider *valueWidgets[4] =
 			{ui_.xValueEdit, ui_.yValueEdit, ui_.zValueEdit, ui_.wValueEdit};
+	QLabel *valueTexts[4] =
+			{ui_.xValueText, ui_.yValueText, ui_.zValueText, ui_.wValueText};
 
 	GLuint count = selectedInput_->valsPerElement();
 	if (count > 4) {
@@ -268,19 +274,43 @@ void ShaderInputWidget::valueUpdated() {
 	byte *changedData = nullptr;
 	switch (selectedInput_->dataType()) {
 		case GL_FLOAT:
-			changedData = createData<GLfloat>(selectedInput_, valueWidgets, count);
+			changedData = createData<GLfloat>(selectedInput_, valueWidgets, valueTexts, count);
 			break;
 		case GL_INT:
-			changedData = createData<GLint>(selectedInput_, valueWidgets, count);
+			changedData = createData<GLint>(selectedInput_, valueWidgets, valueTexts, count);
 			break;
 		case GL_UNSIGNED_INT:
-			changedData = createData<GLuint>(selectedInput_, valueWidgets, count);
+			changedData = createData<GLuint>(selectedInput_, valueWidgets, valueTexts, count);
 			break;
 		default: REGEN_WARN("Unknown data type " << selectedInput_->dataType());
 			break;
 	}
 
 	((SetValueCallback *) setValueCallback_.get())->push(selectedInput_, changedData);
+}
+
+void ShaderInputWidget::maxUpdated() {
+	if (selectedInput_ == nullptr) {
+		REGEN_WARN("maxUpdated() called but no ShaderInput selected.");
+		return;
+	}
+	QSlider *valueWidgets[4] =
+			{ui_.xValueEdit, ui_.yValueEdit, ui_.zValueEdit, ui_.wValueEdit};
+	GLuint count = selectedInput_->valsPerElement();
+	if (count > 4) {
+		REGEN_WARN("More then 4 components unsupported.");
+		return;
+	}
+	GLfloat maxVal = ui_.maxValue->text().toFloat();
+	GLboolean hasNegative = ui_.negativeValueToggle->isChecked();
+	for (GLuint i = 0; i < count; ++i) {
+		valueWidgets[i]->setMaximum(static_cast<int>(maxVal*1000.0f));
+		if (hasNegative) {
+			valueWidgets[i]->setMinimum(-static_cast<int>(maxVal*1000.0f));
+		} else {
+			valueWidgets[i]->setMinimum(0);
+		}
+	}
 }
 
 void ShaderInputWidget::resetValue() {
@@ -304,20 +334,22 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
 	// remember selection
 	selectedItem_ = selected;
 	selectedInput_ = inputs_[selectedItem_].get();
-	REGEN_INFO("activateValue " << selectedInput_->name());
 
 	ui_.nameValue->setText(selectedInput_->name().c_str());
 	ui_.typeValue->setText(__typeString(selectedInput_->dataType()).c_str());
 
 	QLabel *labelWidgets[4] =
 			{ui_.xLabel, ui_.yLabel, ui_.zLabel, ui_.wLabel};
-	QLineEdit *valueWidgets[4] =
+	QSlider *valueWidgets[4] =
 			{ui_.xValueEdit, ui_.yValueEdit, ui_.zValueEdit, ui_.wValueEdit};
+	QLabel *valueTexts[4] =
+			{ui_.xValueText, ui_.yValueText, ui_.zValueText, ui_.wValueText};
 
 	// hide component widgets
 	for (i = 0; i < 4; ++i) {
 		labelWidgets[i]->hide();
 		valueWidgets[i]->hide();
+		valueTexts[i]->hide();
 	}
 
 	GLuint count = selectedInput_->valsPerElement();
@@ -327,29 +359,48 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
 	}
 	byte *value = selectedInput_->clientDataPtr();
 
+	GLfloat maxVal = 0.0f;
+	GLboolean hasNegative = ui_.negativeValueToggle->isChecked();
 	// show and set active components
 	for (i = 0; i < count; ++i) {
 		labelWidgets[i]->show();
 		valueWidgets[i]->show();
+		valueTexts[i]->show();
+		valueWidgets[i]->setMaximum(999999999);
 
-		std::string v;
+		GLfloat x = 0.0f;
 		switch (selectedInput_->dataType()) {
 			case GL_FLOAT: {
-				v = REGEN_STRING(((GLfloat *) value)[i]);
+				x = ((GLfloat *) value)[i];
 				break;
 			}
 			case GL_INT: {
-				v = REGEN_STRING(((GLint *) value)[i]);
+				x = static_cast<GLfloat>((((GLint *) value)[i]));
 				break;
 			}
 			case GL_UNSIGNED_INT: {
-				v = REGEN_STRING(((GLuint *) value)[i]);
+				x = static_cast<GLfloat>((((GLuint *) value)[i]));
 				break;
 			}
 			default: REGEN_WARN("Unknown data type " << selectedInput_->dataType());
 				break;
 		}
-		valueWidgets[i]->setText(QString::fromStdString(v));
+		if (x < 0.0f) hasNegative = GL_TRUE;
+		valueWidgets[i]->setValue(static_cast<int>(x*1000.0f));
+		valueTexts[i]->setText(QString::number(x));
+		if (fabs(x) > maxVal) maxVal = fabs(x);
+	}
+
+	maxVal *= 2.0f;
+	if (maxVal < 1.0f) maxVal = 1.0f;
+	ui_.maxValue->setText(QString::number(maxVal));
+	for (i = 0; i < count; ++i) {
+		valueWidgets[i]->setMaximum(static_cast<int>(maxVal*1000.0f));
+		if (hasNegative) {
+			valueWidgets[i]->setMinimum(-static_cast<int>(maxVal*1000.0f));
+		} else {
+			valueWidgets[i]->setMinimum(0);
+		}
 	}
 
 	ignoreValueChanges_ = GL_FALSE;
