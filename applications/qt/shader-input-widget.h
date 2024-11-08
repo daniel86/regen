@@ -30,6 +30,8 @@ namespace regen {
 
 		void valueUpdated();
 
+		void maxUpdated();
+
 		void activateValue(QTreeWidgetItem *, QTreeWidgetItem *);
 
 	protected:
