@@ -443,6 +443,7 @@ vec2 texco_flat(vec3 P, vec3 N)
 vec2 texco_refraction(vec3 P, vec3 N)
 {
     vec2 uv = transformScreenToTexco(vec4(P,1.0)).xy;
+    //N = (N.xyz * 2.0f) - 1.0f;
     return uv + N.xy * in_refractionScale;
 }
 #endif
