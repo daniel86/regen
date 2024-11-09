@@ -43,6 +43,9 @@ Application::Application(const int &argc, const char **argv)
 	mouseDepth_ = ref_ptr<ShaderInput1f>::alloc("mouseDepthVS");
 	mouseDepth_->setUniformData(0.0f);
 
+	timeSeconds_ = ref_ptr<ShaderInput1f>::alloc("time");
+	timeSeconds_->setUniformData(0.0f);
+
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
 
@@ -253,6 +256,7 @@ void Application::initGL() {
 	renderTree_->state()->joinShaderInput(mouseTexco_);
 	renderTree_->state()->joinShaderInput(mouseDepth_);
 	renderTree_->state()->joinShaderInput(isMouseEntered_);
+	renderTree_->state()->joinShaderInput(timeSeconds_);
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");
@@ -306,6 +310,7 @@ void Application::drawGL() {
 			boost::posix_time::microsec_clock::local_time());
 	GLdouble dt = (GLdouble) (t - lastDisplayTime_).total_milliseconds();
 	lastDisplayTime_ = t;
+	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1000000.0);
 	renderTree_->render(dt);
 }
 
@@ -314,5 +319,6 @@ void Application::updateGL() {
 			boost::posix_time::microsec_clock::local_time());
 	GLdouble dt = (GLdouble) (t - lastUpdateTime_).total_milliseconds();
 	lastUpdateTime_ = t;
+	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1000000.0);
 	renderTree_->postRender(dt);
 }
