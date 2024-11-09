@@ -295,6 +295,7 @@ namespace regen {
 		ref_ptr<ShaderInput2f> mousePosition_;
 		ref_ptr<ShaderInput2f> mouseTexco_;
 		ref_ptr<ShaderInput1f> mouseDepth_;
+		ref_ptr<ShaderInput1f> timeSeconds_;
 
 		boost::posix_time::ptime lastMotionTime_;
 		boost::posix_time::ptime lastDisplayTime_;
