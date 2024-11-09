@@ -304,7 +304,7 @@
 	  <texture name="particleTexture" id="fog-splat" />
 	  <input type="float" name="softParticleScale" value="100.0" />
 	  <input type="float" name="particleBrightness" value="0.03" />
-	  <mesh id="fog-mesh" shader="regen.models.sprite-particles" />
+	  <mesh id="fog-mesh" shader="regen.particles.sprite" />
 	</node>
       </direct-pass>
     </direct-shading>

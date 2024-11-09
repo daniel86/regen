@@ -152,7 +152,7 @@ in vec2 in_spriteTexco;
 -- draw.fs-single-texture
 #include regen.shading.direct.diffuse
 #include regen.states.camera.linearizeDepth
-#include regen.models.sprite-particles.softParticleScale
+#include regen.particles.sprite.softParticleScale
 
 uniform sampler2D in_rainTexture;
 
@@ -215,7 +215,7 @@ const float in_rainNormalization[370] = float[](
 #include regen.particles.rain.draw.fs-database.input
 #include regen.shading.direct.diffuse
 #include regen.states.camera.linearizeDepth
-#include regen.models.sprite-particles.softParticleScale
+#include regen.particles.sprite.softParticleScale
 
 void main() {
   int index = in_type;
@@ -234,7 +234,7 @@ void main() {
 -- draw.fs-database
 #include regen.particles.rain.draw.fs-database.input
 #include regen.states.camera.linearizeDepth
-#include regen.models.sprite-particles.softParticleScale
+#include regen.particles.sprite.softParticleScale
 
 #define MAX_VIDX 4
 #define MAX_HIDX 8

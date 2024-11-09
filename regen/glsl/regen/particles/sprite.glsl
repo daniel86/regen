@@ -89,7 +89,7 @@ uniform sampler2D in_depthTexture;
 
 #include regen.shading.direct.diffuse
 #include regen.states.camera.linearizeDepth
-#include regen.models.sprite-particles.softParticleScale
+#include regen.particles.sprite.softParticleScale
 
 void main() {
     vec3 P = in_posWorld.xyz;
