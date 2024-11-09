@@ -236,15 +236,15 @@
 </node>
 
 <node id="Shadow-Caster-Transparent" >
-  <node id="venus0" >
-    <mesh id="venus-mesh" shader="regen.models.mesh" />
-  </node>
-  <node id="sphere0" >
-    <mesh id="sphere-mesh0" shader="regen.models.mesh" />
-  </node>
-  <node id="sphere1" >
-    <mesh id="sphere-mesh1" shader="regen.models.mesh" />
-  </node>
+    <node id="venus0" >
+        <mesh id="venus-mesh" shader="regen.models.mesh" />
+    </node>
+    <node id="sphere0" >
+        <mesh id="sphere-mesh0" shader="regen.models.mesh" />
+    </node>
+    <node id="sphere1" >
+        <mesh id="sphere-mesh1" shader="regen.models.mesh" />
+    </node>
 </node>
 
 <!--**************************-->
