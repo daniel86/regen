@@ -6,6 +6,7 @@
  */
 
 #include "mesh.h"
+#include "regen/meshes/point.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -143,7 +144,12 @@ ref_ptr<MeshVector> MeshResource::createResource(
 			(*out)[0] = createParticleMesh(parser, input, numParticles, updateShader);
 			return out_;
 		}
-	} else if (meshType == "asset") {
+	}
+	else if (meshType == "point") {
+		(*out) = MeshVector(1);
+		(*out)[0] = ref_ptr<Point>::alloc();
+	}
+	else if (meshType == "asset") {
 		ref_ptr<AssetImporter> importer = parser->getResources()->getAsset(parser, input.getValue("asset"));
 		if (importer.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << " with unknown Asset.");
