@@ -53,35 +53,7 @@ out vec2 out_spriteTexco;
 uniform vec2 in_viewport;
 
 #include regen.math.computeSpritePoints
-
-void emitSprite(vec3 quadPos[4], int layer)
-{
-    out_spriteTexco = vec2(1.0,0.0);
-    out_posEye = vec4(quadPos[0],1.0);
-    out_posWorld = transformEyeToWorld(out_posEye,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
-    EmitVertex();
-    
-    out_spriteTexco = vec2(1.0,1.0);
-    out_posEye = vec4(quadPos[1],1.0);
-    out_posWorld = transformEyeToWorld(out_posEye,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
-    EmitVertex();
-    
-    out_spriteTexco = vec2(0.0,0.0);
-    out_posEye = vec4(quadPos[2],1.0);
-    out_posWorld = transformEyeToWorld(out_posEye,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
-    EmitVertex();
-    
-    out_spriteTexco = vec2(0.0,1.0);
-    out_posEye = vec4(quadPos[3],1.0);
-    out_posWorld = transformEyeToWorld(out_posEye,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
-    EmitVertex();
-    
-    EndPrimitive();
-}
+#include regen.models.sprite.emitSprite
 
 void main() {
     if(in_lifetime[0]<=0) { return; }
