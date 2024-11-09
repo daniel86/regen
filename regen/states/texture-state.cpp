@@ -24,6 +24,8 @@ namespace regen {
 				return out << "sphere";
 			case TextureState::MAPPING_CUBE_REFLECTION:
 				return out << "cube_reflection";
+			case TextureState::MAPPING_REFRACTION:
+				return out << "refraction";
 			case TextureState::MAPPING_CUBE_REFRACTION:
 				return out << "cube_refraction";
 			case TextureState::MAPPING_PLANAR_REFLECTION:
@@ -48,6 +50,7 @@ namespace regen {
 		else if (val == "sphere") mode = TextureState::MAPPING_SPHERE;
 		else if (val == "cube_reflection") mode = TextureState::MAPPING_CUBE_REFLECTION;
 		else if (val == "cube_refraction") mode = TextureState::MAPPING_CUBE_REFRACTION;
+		else if (val == "refraction") mode = TextureState::MAPPING_REFRACTION;
 		else if (val == "planar_reflection") mode = TextureState::MAPPING_PLANAR_REFLECTION;
 		else if (val == "paraboloid_reflection") mode = TextureState::MAPPING_PARABOLOID_REFLECTION;
 		else if (val == "texco") mode = TextureState::MAPPING_TEXCO;

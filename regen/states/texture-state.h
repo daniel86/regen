@@ -71,6 +71,7 @@ namespace regen {
 			/** Reflection mapping (for Paraboloid Maps). */
 			MAPPING_PARABOLOID_REFLECTION,
 			/** Refraction mapping. */
+			MAPPING_REFRACTION,
 			MAPPING_CUBE_REFRACTION,
 			/** User defined mapping. */
 			MAPPING_CUSTOM
