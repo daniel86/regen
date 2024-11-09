@@ -42,9 +42,9 @@ in ${_TYPE} in_${_NAME}[1];
 #endfor
 
 out vec3 out_velocity;
-out vec4 out_posEye;
-out vec4 out_posWorld;
-out vec2 out_spriteTexco;
+out vec3 out_posEye;
+out vec3 out_posWorld;
+out vec2 out_texco0;
 
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
@@ -70,10 +70,10 @@ void main() {
 
 layout(location = 0) out vec4 out_color;
 
-in vec4 in_posEye;
-in vec4 in_posWorld;
+in vec3 in_posEye;
+in vec3 in_posWorld;
 in vec3 in_velocity;
-in vec2 in_spriteTexco;
+in vec2 in_texco0;
 
 const float in_softParticleScale = 1.0;
 const float in_particleBrightness = 0.5;
@@ -104,7 +104,7 @@ void main() {
     opacity *= smoothstep(0.0, 5.0, distance(P, in_cameraPosition));
 #endif
     // fade out based on texture intensity
-    opacity *= texture(in_particleTexture, in_spriteTexco).x;
+    opacity *= texture(in_particleTexture, in_texco0).x;
     if(opacity<0.0001) discard;
     
     vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
