@@ -122,8 +122,15 @@ ref_ptr<Texture> textures::load(
 	tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
 	tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
 	tex->set_format(regenImageFormat());
-	tex->set_internalFormat(
-			forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
+	if (forcedInternalFormat == GL_NONE) {
+		forcedInternalFormat = tex->format();
+	}
+	if (forcedInternalFormat == GL_BGRA) {
+		forcedInternalFormat = GL_RGBA;
+	} else if (forcedInternalFormat == GL_BGR) {
+		forcedInternalFormat = GL_RGB;
+	}
+	tex->set_internalFormat(forcedInternalFormat);
 	tex->set_data((GLubyte *) ilGetData());
 	tex->begin(RenderState::get());
 	tex->texImage();
@@ -138,6 +145,7 @@ ref_ptr<Texture> textures::load(
 	tex->set_data(nullptr);
 
 	ilDeleteImages(1, &ilID);
+	GL_ERROR_LOG();
 
 	return tex;
 }
@@ -189,6 +197,7 @@ ref_ptr<Texture> textures::load(
 	tex->set_data(nullptr);
 
 	ilDeleteImages(1, &ilID);
+	GL_ERROR_LOG();
 
 	return tex;
 }
@@ -253,6 +262,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
 	tex->wrapping().push(GL_REPEAT);
 
 	tex->end(RenderState::get());
+	GL_ERROR_LOG();
 
 	return tex;
 }
@@ -362,6 +372,7 @@ ref_ptr<TextureCube> textures::loadCube(
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 	ilDeleteImages(1, &ilID);
+	GL_ERROR_LOG();
 
 	return tex;
 }
