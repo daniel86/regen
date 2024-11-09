@@ -436,6 +436,17 @@ vec2 texco_flat(vec3 P, vec3 N)
 }
 #endif
 
+-- texco_refraction
+#ifndef REGEN_TEXCO_REFR_
+#define2 REGEN_TEXCO_REFR_
+#include regen.states.camera.transformScreenToTexco
+vec2 texco_refraction(vec3 P, vec3 N)
+{
+    vec2 uv = transformScreenToTexco(vec4(P,1.0)).xy;
+    return uv + N.xy * in_refractionScale;
+}
+#endif
+
 -- texco_cube_refraction
 #ifndef REGEN_TEXCO_CUBE_REFR_
 #define2 REGEN_TEXCO_CUBE_REFR_
