@@ -35,8 +35,7 @@ namespace regen {
 			ref_ptr<Particles> createParticleMesh(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const GLuint numParticles,
-					const std::string &updateShader);
+					const GLuint numParticles);
 
 			ref_ptr<TextureMappedText> createTextMesh(
 					SceneParser *parser,

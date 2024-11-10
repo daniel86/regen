@@ -134,14 +134,11 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		// Special meshes
 	else if (meshType == "particles") {
 		const auto numParticles = input.getValue<GLuint>("num-vertices", 0u);
-		const auto updateShader = input.getValue<string>("update-shader", "");
 		if (numParticles == 0u) {
 			REGEN_WARN("Ignoring " << input.getDescription() << " with num-vertices=0.");
-		} else if (updateShader.empty()) {
-			REGEN_WARN("Ignoring " << input.getDescription() << " without update-shader.");
 		} else {
 			(*out) = MeshVector(1);
-			(*out)[0] = createParticleMesh(parser, input, numParticles, updateShader);
+			(*out)[0] = createParticleMesh(parser, input, numParticles);
 			return out_;
 		}
 	}
@@ -283,17 +280,14 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 ref_ptr<Particles> MeshResource::createParticleMesh(
 		SceneParser *parser,
 		SceneInputNode &input,
-		const GLuint numParticles,
-		const string &updateShader) {
-	ref_ptr<Particles> particles = ref_ptr<Particles>::alloc(numParticles, updateShader);
-
-	particles->gravity()->setVertex(0,
-									input.getValue<Vec3f>("gravity", Vec3f(0.0, -9.81, 0.0)));
-	particles->dampingFactor()->setVertex(0,
-										  input.getValue<GLfloat>("damping-factor", 2.0));
-	particles->noiseFactor()->setVertex(0,
-										input.getValue<GLfloat>("noise-factor", 100.0));
-
+		const GLuint numParticles) {
+	ref_ptr<Particles> particles;
+	if (input.hasAttribute("update-shader")) {
+		const auto updateShader = input.getValue("update-shader");
+		particles = ref_ptr<Particles>::alloc(numParticles, updateShader);
+	} else {
+		particles = ref_ptr<Particles>::alloc(numParticles);
+	}
 	particles->begin();
 	// Mesh resources can have State children
 	MeshVector x = MeshVector(1);
