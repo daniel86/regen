@@ -157,7 +157,7 @@
 <node id="Post-Pass">
   <depth test="0" write="0" />
   
-  <node import="Fog-Sample" />
+  <node import="Fog-Draw" />
   
   <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="0" />
@@ -251,86 +251,84 @@
 <!--***** Fog Particles ******-->
 <!--**************************-->
 
+<!-- A FBO with blurred fog particles. -->
 <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0" >
-  <texture id="color"  pixel-type="FLOAT" pixel-size="16" pixel-components="4" />
+    <texture id="color"  pixel-type="FLOAT" pixel-size="16" pixel-components="4" />
 </fbo>
-
+<!-- A texture for the fog particles. -->
 <texture id="fog-splat" file="res/textures/splats/flare.jpg" />
-
-<mesh id="fog-mesh"
-      type="particles"
-      num-vertices="500"
-      update-shader="regen.particles.cloud-emitter"
-      gravity="-4.0,-9.0,0.0"
-      damping-factor="2.0"
-      noise-factor="10.0"
-      max-emits="1">
-  <!-- Add shader defines. -->
-  <define key="CLOUD_POSITION_MODE" value="ABSOLUTE" />
-  <!-- Add shader input. -->
-  <input type="vec2" name="particleMass" value="0.8,0.1" />
-  <input type="vec2" name="particleSize" value="3.0,0.15" />
-  <input type="vec3" name="cloudPosition" value="2.7,6.5,0.0" />
-  <input type="float" name="cloudRadius" value="5.0" />
-  <input type="float" name="surfaceHeight" value="-3.0" />
-  <!-- Add particle attributes. -->
-  <input type="vec3" name="pos" is-attribute="1" />
-  <input type="vec3" name="velocity" is-attribute="1" />
-  <input type="float" name="mass" is-attribute="1" />
-  <input type="float" name="size" is-attribute="1" />
+<!-- The mesh uses point sprites for the fog particles. -->
+<mesh id="fog-mesh" type="particles" num-vertices="500">
+    <!-- Add shader defines. -->
+    <define key="EMITTER_POSITION_MODE" value="ABSOLUTE" />
+    <define key="PARTICLE_EMITTER_MODE" value="INOUT" />
+    <define key="PARTICLE_EMITTER_SHAPE" value="DISC" />
+    <!-- Add shader input. -->
+    <input type="vec3" name="gravity" value="-4.0,-9.0,0.0" />
+    <input type="float" name="dampingFactor" value="2.0" />
+    <input type="float" name="noiseFactor" value="10.0" />
+    <input type="vec3" name="emitterPosition" value="2.7, 6.5, 0.0" />
+    <input type="float" name="emitterSize" value="10.0" />
+    <input type="int" name="maxNumEmits" value="20" />
+    <input type="float" name="maxLifetime" value="10.0" />
+    <input type="float" name="surfaceHeight" value="-6.0" />
+    <input type="vec2" name="massVariance" value="0.8,0.1" />
+    <input type="vec2" name="sizeVariance" value="3.0,0.15" />
+    <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
+    <!-- Add particle attributes. -->
+    <input type="vec3" name="pos" is-attribute="1" />
+    <input type="vec3" name="velocity" is-attribute="1" />
+    <input type="float" name="mass" is-attribute="1" />
+    <input type="float" name="size" is-attribute="1" />
 </mesh>
 
-<node id="Fog-Particles">
-  <depth test="0" write="0" />
-  <camera id="main-camera" />
-  
-  <node id="Fog-Particle-Draw">
-    <fbo id="fog-buffer" clear-buffers="*" draw-buffers="*" />
-    
-    <direct-shading ambient="0.3,0.3,0.3" >
-      <direct-lights>
-	<light id="spot-light"
-	     shadow-buffer="spot-shadow" shadow-attachment="depth" />
-      </direct-lights>
-      
-      <direct-pass>
-	<node id="Fog-Particle-Draw">
-	  <define key="USE_SOFT_PARTICLES" value="TRUE" />
-	  <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
-	  <define key="IS_SHADOW_RECEIVER" value="FALSE" />
-	  
-	  <blend mode="add" />
-	  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-	  <texture name="particleTexture" id="fog-splat" />
-	  <input type="float" name="softParticleScale" value="100.0" />
-	  <input type="float" name="particleBrightness" value="0.03" />
-	  <mesh id="fog-mesh" shader="regen.particles.sprite" />
-	</node>
-      </direct-pass>
-    </direct-shading>
-  </node>
-  
-  <node import="Fog-Particle-Filter" />
+<node id="Fog-Update">
+    <!-- Update the fog FBO. -->
+    <depth test="0" write="0" />
+    <camera id="main-camera" />
+
+    <!-- First, render fog particles into fog-buffer. -->
+    <node id="Fog-Particle-Draw">
+        <fbo id="fog-buffer" clear-buffers="*" draw-buffers="*" />
+        <direct-shading ambient="0.3,0.3,0.3" >
+            <direct-lights>
+                <light id="spot-light" shadow-buffer="spot-shadow" shadow-attachment="depth" />
+            </direct-lights>
+            <direct-pass>
+                <node id="Fog-Particle-Draw">
+                    <define key="USE_SOFT_PARTICLES" value="TRUE" />
+                    <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
+                    <define key="IS_SHADOW_RECEIVER" value="FALSE" />
+                    <blend mode="add" />
+                    <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+                    <texture name="particleTexture" id="fog-splat" />
+                    <input type="float" name="softParticleScale" value="100.0" />
+                    <input type="float" name="particleBrightness" value="0.1" />
+                    <mesh id="fog-mesh" shader="regen.particles.sprite" />
+                </node>
+            </direct-pass>
+        </direct-shading>
+    </node>
+
+    <!-- Next, create a blurred version. -->
+    <node id="Fog-Particle-Filter">
+        <input type="int" name="numBlurPixels" value="9" />
+        <input type="float" name="blurSigma" value="2.3" />
+        <filter-sequence id="fog-filter" fbo="fog-buffer" attachment="0" >
+            <filter shader="regen.filter.blur.horizontal" />
+            <filter shader="regen.filter.blur.vertical" />
+        </filter-sequence>
+    </node>
 </node>
 
-<node id="Fog-Particle-Filter">
-  <input type="int" name="numBlurPixels" value="9" />
-  <input type="float" name="blurSigma" value="2.3" />
-    
-  <filter-sequence id="fog-filter"
-		   fbo="fog-buffer" attachment="0" >
-    <filter shader="regen.filter.blur.horizontal" />
-    <filter shader="regen.filter.blur.vertical" />
-  </filter-sequence>
-</node>
-
-<node id="Fog-Sample">
-  <fbo id="g-buffer" draw-buffers="1" />
-  <blend mode="add" />
-  <depth test="0" write="0" />
-  <texture name="inputTexture" id="fog-filter" />
-  <define key="IS_2D_TEXTURE" value="TRUE" />
-  <fullscreen-pass shader="regen.filter.sampling" />
+<node id="Fog-Draw">
+    <!-- Blend the fog particles into the scene. They are rendered into fog-filter before.  -->
+    <fbo id="g-buffer" draw-buffers="1" />
+    <blend mode="add" />
+    <depth test="0" write="0" />
+    <texture name="inputTexture" id="fog-filter" />
+    <define key="IS_2D_TEXTURE" value="TRUE" />
+    <fullscreen-pass shader="regen.filter.sampling" />
 </node>
 
 <!--**************************-->
@@ -339,7 +337,7 @@
 <node id="root">
   <node id="Pre-Render">
     <node import="Shadow-Pass" />
-    <node import="Fog-Particles" />
+    <node import="Fog-Update" />
   </node>
   
   <node id="Render">

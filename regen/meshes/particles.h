@@ -25,22 +25,8 @@ namespace regen {
 		 * @param numParticles particle count.
 		 * @param updateShaderKey shader for updating particles.
 		 */
-		Particles(GLuint numParticles, const std::string &updateShaderKey);
-
-		/**
-		 * @return gravity constant.
-		 */
-		auto &gravity() const { return gravity_; }
-
-		/**
-		 * @return damping factor.
-		 */
-		auto &dampingFactor() const { return dampingFactor_; }
-
-		/**
-		 * @return noise factor.
-		 */
-		auto &noiseFactor() const { return noiseFactor_; }
+		explicit Particles(GLuint numParticles,
+			const std::string &updateShaderKey="regen.particles.emitter");
 
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;
@@ -59,10 +45,6 @@ namespace regen {
 		VBOReference particleRef_;
 		BufferRange bufferRange_;
 		std::list<ShaderInputLocation> particleAttributes_;
-
-		ref_ptr<ShaderInput3f> gravity_;
-		ref_ptr<ShaderInput1f> dampingFactor_;
-		ref_ptr<ShaderInput1f> noiseFactor_;
 
 		ref_ptr<ShaderInput1f> deltaT_;
 		ref_ptr<ShaderState> updateState_;

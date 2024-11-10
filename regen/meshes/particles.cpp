@@ -28,18 +28,6 @@ Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 	deltaT_->setUniformData(0.0);
 	setInput(deltaT_);
 
-	gravity_ = ref_ptr<ShaderInput3f>::alloc("gravity");
-	gravity_->setUniformData(Vec3f(0.0, -9.81, 0.0));
-	setInput(gravity_);
-
-	dampingFactor_ = ref_ptr<ShaderInput1f>::alloc("dampingFactor");
-	dampingFactor_->setUniformData(2.5);
-	setInput(dampingFactor_);
-
-	noiseFactor_ = ref_ptr<ShaderInput1f>::alloc("noiseFactor");
-	noiseFactor_->setUniformData(0.5);
-	setInput(noiseFactor_);
-
 	updateState_ = ref_ptr<ShaderState>::alloc();
 }
 

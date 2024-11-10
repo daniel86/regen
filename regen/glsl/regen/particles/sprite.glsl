@@ -45,6 +45,7 @@ out vec3 out_velocity;
 out vec3 out_posEye;
 out vec3 out_posWorld;
 out vec2 out_texco0;
+out float out_lifetime;
 
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
@@ -58,7 +59,8 @@ uniform vec2 in_viewport;
 void main() {
     if(in_lifetime[0]<=0) { return; }
 
-    out_velocity = in_velocity[0];    
+    out_velocity = in_velocity[0];
+    out_lifetime = in_lifetime[0];
     
     vec4 centerEye = transformWorldToEye(vec4(in_pos[0],1.0),0);
     vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, vec2(in_size[0]), vec3(0.0, 1.0, 0.0));
@@ -74,6 +76,7 @@ in vec3 in_posEye;
 in vec3 in_posWorld;
 in vec3 in_velocity;
 in vec2 in_texco0;
+in float in_lifetime;
 
 const float in_softParticleScale = 1.0;
 const float in_particleBrightness = 0.5;
@@ -105,6 +108,9 @@ void main() {
 #endif
     // fade out based on texture intensity
     opacity *= texture(in_particleTexture, in_texco0).x;
+    // fade out based on lifetime
+    // TODO: take other conditions of death into account, like below surface
+    opacity *= smoothstep(0.0, 1.0, in_lifetime/20.0);
     if(opacity<0.0001) discard;
     
     vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);

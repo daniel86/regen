@@ -1,24 +1,9 @@
 
 -- update.vs
 #include regen.states.camera.defines
-
-in float in_lifetime;
-in uint in_randomSeed;
-in vec3 in_pos;
-in vec3 in_velocity;
-in int in_type;
-in float in_brightness;
-
-out float out_lifetime;
-out uint out_randomSeed;
-out vec3 out_pos;
-out vec3 out_velocity;
-out int out_type;
-out float out_brightness;
-
-const float in_deltaT = 0.1;
-
 #include regen.states.camera.input
+#include regen.particles.emitter.inputs
+#include regen.particles.emitter.defines
 
 const vec3 in_wind = vec3(-0.05,-0.5,0);
 const vec3 in_rainVelocity = vec3(0.001,0.001,0.01);
@@ -51,7 +36,7 @@ void main() {
       out_velocity = in_velocity;
       out_type = in_type;
       out_brightness = in_brightness;
-      out_lifetime = in_lifetime+1.0;
+      out_lifetime = in_lifetime+dt;
     }
     out_randomSeed = seed;
 }
