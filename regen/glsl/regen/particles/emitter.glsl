@@ -8,6 +8,9 @@ const int in_maxNumEmits = 20;
 const vec3 in_emitterPosition = vec3(0.0, 10.0, 0.0);
 // the size of the emitter shape
 const float in_emitterSize = 20.0;
+// the opening of the cone in which particles are emitted relative
+// to their starting position on the emitter shape
+const float in_emitterOpening = 1.0;
 // damping reduces velocity each frame
 const float in_dampingFactor = 0.1;
 // xy-velocity noise for emitting
@@ -80,16 +83,17 @@ void particleUpdate(float dt, inout uint seed)
 void particleOffset(inout uint seed, out vec3 pos, out vec3 dir)
 {
 #if ${PARTICLE_EMITTER_SHAPE} == DISC
-    vec2 randomPos = vec2(
-            0.5*in_emitterSize*(random(seed)-0.5),
-            0.5*in_emitterSize*(random(seed)-0.5));
-    pos = vec3(randomPos.x,0.0,randomPos.y);
+    pos = (0.5*in_emitterSize*random(seed))*normalize(vec3(
+                random(seed)-0.5,
+                0.0,
+                random(seed)-0.5));
     dir = vec3(0.0,1.0,0.0);
-#elif ${PARTICLE_EMITTER_SHAPE} == CUBE
+#else
+#if ${PARTICLE_EMITTER_SHAPE} == CUBE
     // first choose a random face
     float face = random(seed)*6.0;
     // then choose a random position on that face
-    float randomPos = vec3(
+    vec3 randomPos = vec3(
                 0.5*in_emitterSize*(random(seed)-0.5),
                 0.5*in_emitterSize*(random(seed)-0.5),
                 0.5*in_emitterSize);
@@ -113,8 +117,18 @@ void particleOffset(inout uint seed, out vec3 pos, out vec3 dir)
         dir = vec3(-1.0,0.0,0.0);
     }
 #else
-    dir = normalize(vec3(random(seed),random(seed),random(seed)));
+#if ${PARTICLE_EMITTER_SHAPE} == SPHERE
+    dir = normalize(vec3(random(seed)-0.5,random(seed)-0.5,random(seed)-0.5));
     pos = 0.5*in_emitterSize*dir;
+#endif
+#endif
+#endif
+
+#if ${PARTICLE_EMITTER_MODE} == INOUT
+    dir = dir * (random(seed)>0.5 ? 1.0 : -1.0);
+#endif
+#if ${PARTICLE_EMITTER_MODE} == IN
+    dir = -dir;
 #endif
 }
 #endif
@@ -146,10 +160,9 @@ void particlePosition(inout uint seed, inout vec3 pos)
 #define2 REGEN_particleVelocity_defined_
 vec3 particleVelocity(inout uint seed, in vec3 dir)
 {
-/*
     // Generate a random point within a circle in the XY plane
     float angle = 2.0 * M_PI * random(seed);
-    float radius = 0.5 * sqrt(random(seed));
+    float radius = in_emitterOpening * sqrt(random(seed));
     float x = radius * cos(angle);
     float y = radius * sin(angle);
     // Create a random offset vector in the XY plane
@@ -162,12 +175,16 @@ vec3 particleVelocity(inout uint seed, in vec3 dir)
     // Rotate the offset vector to be perpendicular to dir
     vec3 randomOffset = perpDir * offset.x + cross(perpDir, dir) * offset.y;
     // Add the random offset to the direction vector
-    return in_noiseFactor * normalize(dir + randomOffset);
-        */
-    return in_noiseFactor*vec3(
-        2.0*(random(seed)-0.5),
-        2.0*(random(seed)-0.5),
-        0.0);
+#ifdef HAS_velocityFactorMinMax
+    float velocityFactor = in_velocityFactorMinMax.x + random(seed) * (in_velocityFactorMinMax.y - in_velocityFactorMinMax.x);
+#else
+    #ifdef HAS_velocityFactor
+    float velocityFactor = in_velocityFactor;
+    #else
+    float velocityFactor = 1.0;
+    #endif
+#endif
+    return velocityFactor * normalize(dir + 2.0*randomOffset);
 }
 #endif
 
@@ -175,9 +192,21 @@ vec3 particleVelocity(inout uint seed, in vec3 dir)
 #ifndef REGEN_particleValue_defined_
 #define2 REGEN_particleValue_defined_
 #include regen.math.variance
-float particleValue(vec2 fuzzyValue, inout uint seed)
+float particleValue(float value, float maxVariance, inout uint seed)
 {
-    return fuzzyValue.x + variance(fuzzyValue.y, seed);
+    return value + variance(maxVariance, seed);
+}
+vec2 particleValue(vec2 value, vec2 maxVariance, inout uint seed)
+{
+    return value + variance(maxVariance, seed);
+}
+vec3 particleValue(vec3 value, vec3 maxVariance, inout uint seed)
+{
+    return value + variance(maxVariance, seed);
+}
+vec4 particleValue(vec4 value, vec4 maxVariance, inout uint seed)
+{
+    return value + variance(maxVariance, seed);
 }
 #endif
 
@@ -191,24 +220,26 @@ float particleValue(vec2 fuzzyValue, inout uint seed)
 
 void particleEmit(inout uint seed)
 {
-#ifdef HAS_maxLifetime
-    out_lifetime = in_maxLifetime;
-#else
-    out_lifetime = 20.0;
-#endif
     vec3 direction;
     particleOffset(seed, out_pos, direction);
     out_velocity = particleVelocity(seed, direction);
     particlePosition(seed, out_pos);
+    // set lifetime to default value, but can be randomized below!
+    out_lifetime = 20.0;
 
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
-#ifdef HAS_${_NAME}Value
-    out_${_NAME} = in_${_NAME}Value;
-#else
-    #ifdef HAS_${_NAME}Variance
-    out_${_NAME} = particleValue(in_${_NAME}Variance, seed);
+#define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
+#ifdef HAS_${_NAME}Variance
+    #if ${_TYPE} == float || ${_TYPE} == int
+    out_${_NAME} = particleValue(in_${_NAME}Variance.x, in_${_NAME}Variance.y, seed);
+    #elif ${_TYPE} == vec2 || ${_TYPE} == ivec2
+    out_${_NAME} = particleValue(in_${_NAME}Variance.xy, in_${_NAME}Variance.zw, seed);
+    #else
+    out_${_NAME} = particleValue(in_${_NAME}Default, in_${_NAME}Variance, seed);
     #endif
+#elif HAS_${_NAME}Value
+    out_${_NAME} = in_${_NAME}Value;
 #endif
 #endfor
 }
@@ -233,11 +264,10 @@ bool isParticleDead()
 }
 
 void main() {
-    // FIXME: how should this work? we will always only emit one particle per vertex,
-    //    so we cannot use in_maxNumParticleEmits like intended here.
-    //    could be done in GS if instancing is used though.
-    // TODO: could have a jumping window that moves each frame to emit particles
-    //       only in this window
+    // NOTE: maxNumEmits per frame cannot be handled here!
+    // --> We could have a jumping window that moves each frame to emit particles
+    //       only in this window by testing if vertex index lies within,
+    //       but seems randomizing lifetime is enough for now.
     //int remainingEmits = in_maxNumEmits;
 
     // init outputs to input values
@@ -245,7 +275,6 @@ void main() {
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
     out_${_NAME} = in_${_NAME};
 #endfor
-
     if (isParticleDead()) {
         particleEmit(out_randomSeed);
     } else {
