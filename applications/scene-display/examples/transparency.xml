@@ -263,14 +263,15 @@
     <define key="EMITTER_POSITION_MODE" value="ABSOLUTE" />
     <define key="PARTICLE_EMITTER_MODE" value="INOUT" />
     <define key="PARTICLE_EMITTER_SHAPE" value="DISC" />
+    <define key="OPACITY_WEIGHTED_COLOR" value="TRUE" />
     <!-- Add shader input. -->
     <input type="vec3" name="gravity" value="-4.0,-9.0,0.0" />
     <input type="float" name="dampingFactor" value="2.0" />
-    <input type="float" name="noiseFactor" value="10.0" />
+    <input type="vec2" name="velocityFactorMinMax" value="4.0, 10.0" />
     <input type="vec3" name="emitterPosition" value="2.7, 6.5, 0.0" />
     <input type="float" name="emitterSize" value="10.0" />
     <input type="int" name="maxNumEmits" value="20" />
-    <input type="float" name="maxLifetime" value="10.0" />
+    <input type="vec2" name="lifetimeVariance" value="4.0, 1.0" />
     <input type="float" name="surfaceHeight" value="-6.0" />
     <input type="vec2" name="massVariance" value="0.8,0.1" />
     <input type="vec2" name="sizeVariance" value="3.0,0.15" />
@@ -301,7 +302,7 @@
                     <define key="IS_SHADOW_RECEIVER" value="FALSE" />
                     <blend mode="add" />
                     <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-                    <texture name="particleTexture" id="fog-splat" />
+                    <texture name="colorTexture" id="fog-splat" map-to="COLOR" blend="SRC" />
                     <input type="float" name="softParticleScale" value="100.0" />
                     <input type="float" name="particleBrightness" value="0.1" />
                     <mesh id="fog-mesh" shader="regen.particles.sprite" />
