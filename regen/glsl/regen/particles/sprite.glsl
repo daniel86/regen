@@ -69,6 +69,7 @@ void main() {
 #endif
     
     vec4 centerEye = transformWorldToEye(vec4(in_pos[0],1.0),0);
+    // TODO: consider supporting to stretch particles along their velocity.
     vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, vec2(in_size[0]), vec3(0.0, 1.0, 0.0));
     emitSprite(quadPos,0);
 }

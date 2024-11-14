@@ -112,7 +112,7 @@ void fireTransfer1(inout vec2 texco)
         vec2(0.0, in_time * in_fireScrollSpeeds.y)).rr;
     vec2 noise3 = texture(in_fireNoiseTexture, (texco * in_fireScales.z) -
         vec2(0.0, in_time * in_fireScrollSpeeds.z)).rr;
-    // Move to range [-1, +1] range, and distort the noise.
+    // Move to range [-1, +1], and distort the noise.
     noise1 = (noise1 - 0.5f) * 2.0f * in_fireDistortion1;
     noise2 = (noise2 - 0.5f) * 2.0f * in_fireDistortion2;
     noise3 = (noise3 - 0.5f) * 2.0f * in_fireDistortion3;
