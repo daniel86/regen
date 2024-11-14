@@ -217,17 +217,17 @@
     <define key="PARTICLE_EMITTER_SHAPE" value="DISC" />
     <define key="OPACITY_WEIGHTED_COLOR" value="TRUE" />
     <!-- Add shader input. -->
-    <input type="vec3" name="gravity" value="0.0,0.0,0.0" />
+    <input type="vec3" name="gravity" value="0.0,-9.81,0.0" />
     <input type="float" name="dampingFactor" value="2.0" />
     <input type="vec2" name="velocityFactorMinMax" value="10.0, 20.0" />
     <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0" />
     <input type="float" name="emitterSize" value="2.0" />
-    <input type="float" name="emitterOpening" value="0.9" />
+    <input type="float" name="emitterOpening" value="0.5" />
     <input type="int" name="maxNumEmits" value="20" />
     <input type="float" name="surfaceHeight" value="-1.0" />
     <input type="vec2" name="lifetimeVariance" value="1.5, 1.0" />
-    <input type="vec2" name="massVariance" value="1.4,0.4" />
-    <input type="vec2" name="sizeVariance" value="0.5,0.3" />
+    <input type="vec2" name="massVariance" value="1.4, 0.4" />
+    <input type="vec2" name="sizeVariance" value="0.5, 0.3" />
     <input type="vec3" name="colorDefault" value="0.1, 0.3, 0.6" />
     <input type="vec3" name="colorVariance" value="0.0, 0.1, 0.3" />
     <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
@@ -249,7 +249,6 @@
     <define key="USE_SOFT_PARTICLES" value="TRUE" />
     <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
     <define key="IS_SHADOW_RECEIVER" value="FALSE" />
-    <blend mode="add" />
     <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
     <texture name="splatTexture" id="fog-splat" map-to="COLOR" blend-mode="MUL" />
     <input type="vec3" name="particleColor" value="0.9, 0.4, 0.1" />
