@@ -28,7 +28,7 @@
             mesh-distance="40.0"
             mesh-horizontal-orientation="3.14159265359"
             vertical-orientation="0.6"
-            transform="dwarf-transform"
+            transform="dwarf-tf"
             eye-offset="0.0,2.75,0.0">
         <key-mapping key="W" command="move_forward" />
         <key-mapping key="A" command="move_left" />
@@ -45,11 +45,11 @@
      pixel-type="UNSIGNED_BYTE"
      pixel-size="16"
      pixel-components="4" >
-  <texture id="diffuse0" />
-  <texture id="diffuse1" />
-  <texture id="specular" />
-  <texture id="normal" />
-  <depth id="depth" pixel-size="24" />
+    <texture id="diffuse0" />
+    <texture id="diffuse1" />
+    <texture id="specular" />
+    <texture id="normal" />
+    <depth id="depth" pixel-size="24" />
 </fbo>
         <!-- Textures -->
 <texture id="ground-color" file="res/textures/brick/color.jpg"/>
@@ -62,75 +62,67 @@
         fov="45.0" near="0.1" far="200.0"
         position="25.0,2.5,2.0"
         direction="1.0,0.0,-1.0"/>
-        <!-- Lights -->
-<light id="room-light0"
-       type="POINT"
-       position="-5.0,16.0,0.0"
-       radius="30.0,48.0"
-       direction="0.0,-1.0,0.0"
-       diffuse="0.8,0.9,0.835"
-       ambient="0.6,0.6,0.6"/>
-        <!-- Meshes -->
 
-<transform id="ground-transform">
-        <translate value="0.0,-2.0,0.0"/>
-</transform>
+        <!--**************************-->
+        <!--******* Character ********-->
+        <!--**************************-->
+
+<mesh id="dwarf-mesh" type="asset" asset="dwarf-asset" asset-indices="*" asset-animation="1">
+    <transform id="dwarf-tf">
+        <rotate value="1.5707963,0.0,0.0"/>
+        <translate value="2.0,0.0,0.0"/>
+    </transform>
+</mesh>
+
+        <!--**************************-->
+        <!--********* Ground *********-->
+        <!--**************************-->
+
 <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="2"
       rotation="0.0,0.0,3.1415"
       scaling="1000.0,20.0,1000.0">
-    <transform id="ground-transform" />
+    <transform id="ground-tf">
+            <translate value="0.0,-2.0,0.0"/>
+    </transform>
     <material preset="pewter"/>
-</mesh>
-
-<transform id="dwarf-transform">
-    <rotate value="1.5707963,0.0,0.0"/>
-    <translate value="2.0,0.0,0.0"/>
-</transform>
-<mesh id="dwarf-mesh" type="asset" asset="dwarf-asset" asset-indices="*" asset-animation="1">
-    <transform id="dwarf-transform"/>
 </mesh>
 
         <!--**************************-->
         <!--********* Stairs *********-->
         <!--**************************-->
 
-<transform id="stairs0-tf">
-    <translate value="16.0,-1.6,16.0"/>
-</transform>
-<transform id="stairs1-tf">
-    <translate value="16.0,-0.8,16.0"/>
-</transform>
-<transform id="stairs2-tf">
-    <translate value="16.0,0.0,16.0"/>
-</transform>
-
 <mesh id="stairs0-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
-    <transform id="stairs0-tf" />
+    <transform id="stairs0-tf">
+        <translate value="16.0,-1.6,16.0"/>
+    </transform>
+    <physics mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
     <material preset="copper"/>
 </mesh>
+
 <mesh id="stairs1-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="6.0,0.4,4.0">
-    <transform id="stairs1-tf" />
+    <transform id="stairs1-tf">
+        <translate value="16.0,-0.8,16.0"/>
+    </transform>
+    <physics mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
     <material preset="copper"/>
 </mesh>
+
 <mesh id="stairs2-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="4.0,0.4,4.0">
-    <transform id="stairs2-tf" />
+    <transform id="stairs2-tf">
+        <translate value="16.0,0.0,16.0"/>
+    </transform>
+    <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
     <material preset="copper"/>
 </mesh>
 
 <node id="Stairs">
     <node id="stairs0">
-        <physics mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0"
-             size="16.0,0.8,8.0"/>
         <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
     </node>
     <node id="stairs1">
-        <physics mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0"
-             size="12.0,0.8,8.0"/>
         <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
     </node>
     <node id="stairs2">
-        <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0"
-             size="8.0,0.8,8.0"/>
         <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
     </node>
 </node>
@@ -139,42 +131,34 @@
         <!--******** Platforms *******-->
         <!--**************************-->
 
-<transform id="platform0-tf">
-    <translate value="16.0,3.0,-16.0"/>
-    <animation type="key-frames" mesh-id="platform0-mesh" dt="2.5">
-        <key-frame position="16.0,3.0,8.0"/>
-        <key-frame position="16.0,3.0,-16.0"/>
-    </animation>
-</transform>
-<transform id="platform1-tf">
-    <translate value="8.0,7.0,-16.0"/>
-    <animation type="key-frames" mesh-id="platform1-mesh" dt="2.5">
-        <key-frame position="-20.0,7.0,-16.0"/>
-        <key-frame position="8.0,7.0,-16.0"/>
-    </animation>
-</transform>
-
 <mesh id="platform0-mesh" type="box" use-normal="1" center="1" usage="STATIC"
         scaling="4.0,0.4,4.0">
-    <transform id="platform0-tf" />
-    <material preset="copper"/>
+    <transform id="platform0-tf">
+        <translate value="16.0,3.0,-16.0"/>
+        <animation type="key-frames" mesh-id="platform0-mesh" dt="2.5">
+            <key-frame position="16.0,3.0,8.0"/>
+            <key-frame position="16.0,3.0,-16.0"/>
+        </animation>
+    </transform>
     <physics mesh-id="platform0-mesh" transform-id="platform0-tf"
-             shape="box"
-             mass="0.0"
-             gravity="0.0, 0.0, 0.0"
-             friction="20.0"
+             shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
              size="8.0,0.8,8.0"/>
+    <material preset="copper"/>
 </mesh>
+
 <mesh id="platform1-mesh" type="box" use-normal="1" center="1" usage="STATIC"
         scaling="4.0,0.4,4.0">
-    <transform id="platform1-tf" />
-    <material preset="copper"/>
+    <transform id="platform1-tf">
+        <translate value="8.0,7.0,-16.0"/>
+        <animation type="key-frames" mesh-id="platform1-mesh" dt="2.5">
+            <key-frame position="-20.0,7.0,-16.0"/>
+            <key-frame position="8.0,7.0,-16.0"/>
+        </animation>
+    </transform>
     <physics mesh-id="platform1-mesh" transform-id="platform1-tf"
-             shape="box"
-             mass="0.0"
-             gravity="0.0, 0.0, 0.0"
-             friction="20.0"
+             shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
              size="8.0,0.8,8.0"/>
+    <material preset="copper"/>
 </mesh>
 
 <node id="Platforms">
@@ -185,6 +169,48 @@
         <mesh id="platform1-mesh" shader="regen.models.mesh"/>
     </node>
 </node>
+
+        <!--**************************-->
+        <!--**************************-->
+
+<mesh id="statue-platform"
+      type="box"
+      scaling="3.5,5.0,3.5"
+      use-normal="1"
+      use-tangent="0"
+      center="1"
+      usage="STATIC">
+    <transform id="statue-platform-tf">
+        <rotate value="1.57079632,0.0,0.0"/>
+        <translate value="-16.0, 3.0, -3.0"/>
+    </transform>
+    <physics mesh-id="statue-platform" transform-id="statue-platform-tf"
+        shape="box" size="7.0, 10.0, 7.0" mass="0.0" />
+    <material preset="copper" />
+</mesh>
+
+<node id="Statues">
+    <node id="statue-platform">
+        <mesh id="statue-platform" shader="regen.models.mesh"/>
+    </node>
+    <node id="statue-slope">
+        <mesh id="slope-mesh" shader="regen.models.mesh"/>
+    </node>
+</node>
+
+        <!--**************************-->
+        <!--***** Slope *****-->
+        <!--**************************-->
+
+<mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" center="1"
+      usage="STATIC" lod="2" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0">
+    <transform id="slope-tf">
+        <rotate value="0,0, -0.6, 0.0"/>
+        <translate value="-16.0, 3.0, 7.9"/>
+    </transform>
+    <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0" />
+    <material preset="copper"/>
+</mesh>
 
         <!--**************************-->
         <!--***** Particles etc. *****-->
@@ -259,59 +285,25 @@
 </node>
 
         <!--**************************-->
+        <!--********* Shading ********-->
         <!--**************************-->
 
-<mesh id="statue-platform"
-      type="box"
-      scaling="3.5,5.0,3.5"
-      use-normal="1"
-      use-tangent="0"
-      center="1"
-      usage="STATIC">
-  <material preset="copper" />
-  <physics mesh-id="statue-platform" transform-id="statue-platform-tf"
-        shape="box" size="7.0, 10.0, 7.0" mass="0.0" />
-</mesh>
+<light id="room-light0"
+       type="POINT"
+       position="-5.0,16.0,0.0"
+       radius="30.0,48.0"
+       direction="0.0,-1.0,0.0"
+       diffuse="0.8,0.9,0.835"
+       ambient="0.6,0.6,0.6"/>
 
-<transform id="statue-platform-tf">
-    <rotate value="1.57079632,0.0,0.0"/>
-    <translate value="-16.0, 3.0, -3.0"/>
-</transform>
-
-<node id="Statues">
-    <node id="statue-platform">
-        <transform id="statue-platform-tf" />
-        <mesh id="statue-platform" shader="regen.models.mesh"/>
-    </node>
-    <node id="statue-slope">
-        <mesh id="slope-mesh" shader="regen.models.mesh"/>
-    </node>
-</node>
-
-        <!--**************************-->
-        <!--***** Slope *****-->
-        <!--**************************-->
-
-<transform id="slope-tf">
-    <rotate value="0,0, -0.6, 0.0"/>
-    <translate value="-16.0, 3.0, 7.9"/>
-</transform>
-<mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="2"
-      rotation="0.0,0.0,0.0"
-      scaling="3.5,0.04,9.0">
-    <transform id="slope-tf" />
-    <material preset="copper"/>
-    <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0" />
-</mesh>
-
-        <!--**************************-->
-        <!--***** Shadow Mapping *****-->
-        <!--**************************-->
+<camera id="room-light-camera0"
+        light="room-light0"
+        camera="main-camera"/>
 
 <fbo id="room-light-shadow0"
      target="TEXTURE_CUBE_MAP"
      sampler-type="samplerCube"
-     size-mode="abs" size="2048,2048,6">
+     size-mode="abs" size="1024,1024,6">
     <depth pixel-size="24" pixel-type="FLOAT"
            wrapping="CLAMP_TO_EDGE"
            min-filter="NEAREST" mag-filter="NEAREST"
@@ -319,10 +311,6 @@
            compare-function="LEQUAL"
            sampler-type="samplerCubeShadow"/>
 </fbo>
-
-<camera id="room-light-camera0"
-        light="room-light0"
-        camera="main-camera"/>
 
 <node id="Shadow-Pass">
     <cull mode="FRONT"/>
@@ -336,31 +324,6 @@
             <node import="Shadow-Caster"/>
         </node>
     </node>
-</node>
-
-        <!--**************************-->
-        <!--**************************-->
-
-<node id="Shadow-Caster">
-    <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-transform" shape="sphere">
-        <polygon offset-fill="1.1,4.0"/>
-        <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node import="Scene-Shadow-Caster"/>
-</node>
-
-<node id="Scene-Shadow-Caster">
-    <node import="Statues"/>
-    <node import="Stairs"/>
-    <node import="Platforms"/>
-</node>
-
-<node id="Scene-Geometry">
-    <node id="Ground">
-        <physics mesh-id="ground-mesh" transform-id="ground-transform" shape="triangle-mesh" mass="0.0" />
-        <mesh id="ground-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node import="Scene-Shadow-Caster" />
 </node>
 
 <node id="Shading-Pass">
@@ -384,13 +347,31 @@
     </node>
 </node>
 
-<node id="Sky">
-    <depth test="1" write="0" />
-    <sky id="earth-sky" />
+        <!--**************************-->
+        <!--********* Objects ********-->
+        <!--**************************-->
+
+<node id="Shadow-Caster">
+    <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere">
+        <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
+    </node>
+    <node import="Statues"/>
+    <node import="Stairs"/>
+    <node import="Platforms"/>
 </node>
 
-<node id="Background-Pass">
-    <node import="Sky" />
+<node id="Non-Shadow-Caster">
+    <node id="Ground">
+        <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0" />
+        <mesh id="ground-mesh" shader="regen.models.mesh"/>
+    </node>
+</node>
+
+<node id="Background-Objects">
+    <node id="Sky">
+        <depth test="1" write="0" />
+        <sky id="earth-sky" />
+    </node>
     <node import="Fire" />
 </node>
 
@@ -399,17 +380,19 @@
 
 <node id="Post-Pass">
     <depth test="0" write="0"/>
-
-    <!-- FIXME: depth of field does not use blurred scene here! -->
-    <node import="Blurred-Scene" />
-
-    <node import="Depth-of-Field" />
-    <view id="Scene -- DoF">
+    <!-- blur the g-buffer attachment 1, the output is a named texture "blurred-scene" -->
+    <node import="G-Buffer-Blur1"/>
+    <!-- apply depth of field effect by mixing the blurred scene with the original scene -->
+    <node import="Depth-of-Field">
+        <fbo id="g-buffer" draw-buffers="0" />
+        <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+    </node>
+    <view id="Depth of Field">
         <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
     </view>
-
+    <!-- render particles -->
     <node import="Particle-Draw" />
-
+    <!-- apply anti-aliasing effect -->
     <node import="FXAA">
         <fbo id="g-buffer" draw-buffers="1"/>
         <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
@@ -419,13 +402,12 @@
     </view>
 </node>
 
-        <!--**************************-->
-        <!--**************************-->
-
 <node id="root">
     <node id="Pre-Render">
-        <node import="Shadow-Pass"/>
-
+        <!-- Render shadow maps such that they can be used in the shading pass -->
+        <node import="Shadow-Pass">
+            <!-- <polygon offset-fill="1.1,4.0"/> -->
+        </node>
         <view id="Shadow-Map">
             <fbo id="SCREEN"/>
             <texture name="cubeTexture" fbo="room-light-shadow0" attachment="depth"/>
@@ -435,10 +417,40 @@
 
     <node id="Render">
         <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+        <camera id="main-camera" />
 
-        <node import="Default-Pipeline"/>
+        <node id="Geometry-Pass">
+            <fbo id="g-buffer" draw-buffers="0,2,3" />
+            <blend mode="src" />
+            <depth test="1" write="1" />
+            <node import="Shadow-Caster" />
+            <node import="Non-Shadow-Caster" />
+            <node import="G-Buffer-Views" />
+        </node>
 
-        <view id="Bullet Debug Draw">
+        <node id="Shading">
+            <fbo id="g-buffer" draw-buffers="1" />
+            <node id="Light-Pass">
+                <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+                <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
+                <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
+                <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+                <node import="Shading-Pass" />
+            </node>
+            <view id="Shaded Scene">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+            </view>
+        </node>
+
+        <node id="Post-Shading">
+            <node import="Background-Objects" />
+            <view id="Scene with Background">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+            </view>
+            <node import="Post-Pass" />
+        </node>
+
+        <view id="Bullet Debug">
             <node import="bullet-debug">
                 <fbo id="g-buffer" draw-buffers="1"/>
             </node>

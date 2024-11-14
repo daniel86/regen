@@ -163,14 +163,16 @@
 </node>
 
 <node id="Post-Pass">
-  <depth test="0" write="0" />
-  
-  <node import="Blurred-Scene" />
-  
-  <node import="Depth-of-Field" />
-  <view id="Scene -- DoF">
-    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-  </view>
+    <depth test="0" write="0" />
+
+    <node import="G-Buffer-Blur1" />
+    <node import="Depth-of-Field">
+        <fbo id="g-buffer" draw-buffers="0" />
+        <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+    </node>
+    <view id="DoF">
+        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
   
   <node import="FXAA">
     <fbo id="g-buffer" draw-buffers="1" />

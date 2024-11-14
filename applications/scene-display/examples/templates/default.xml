@@ -160,11 +160,19 @@
 <!--**************************-->
 <!--**************************-->
 
-<node id="Blurred-Scene">
+<node id="G-Buffer-Blur1">
   <input type="int" name="numBlurPixels" value="4" />
   <input type="float" name="blurSigma" value="2.0" />
-    
   <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
+    <filter shader="regen.filter.sampling" scale="0.5" />
+    <filter shader="regen.filter.blur.horizontal" />
+    <filter shader="regen.filter.blur.vertical" />
+  </filter-sequence>
+</node>
+<node id="G-Buffer-Blur0">
+  <input type="int" name="numBlurPixels" value="4" />
+  <input type="float" name="blurSigma" value="2.0" />
+  <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
     <filter shader="regen.filter.sampling" scale="0.5" />
     <filter shader="regen.filter.blur.horizontal" />
     <filter shader="regen.filter.blur.vertical" />
@@ -172,13 +180,11 @@
 </node>
 
 <node id="Depth-of-Field">
-  <fbo id="g-buffer" draw-buffers="0" />
-  <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-  <texture name="blurTexture" id="blurred-scene" />
-  <input type="float" name="focalDistance" value="0.0" />
-  <input type="vec2" name="focalWidth" value="0.7,1.0" />
-  <fullscreen-pass shader="regen.filter.dof" />
+    <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+    <texture name="blurTexture" id="blurred-scene" />
+    <input type="float" name="focalDistance" value="0.0" />
+    <input type="vec2" name="focalWidth" value="0.7,1.0" />
+    <fullscreen-pass shader="regen.filter.dof" />
 </node>
 
 <node id="Distance-Fog">
@@ -205,6 +211,18 @@
   <input type="float" name="velocityScale" value="2.25" />
   <input type="int" name="numMotionBlurSamples" value="40" />
   <motion-blur camera="main-camera" />
+</node>
+
+<node id="G-Buffer-Views">
+    <view id="G-Buffer: Diffuse">
+        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
+    <view id="G-Buffer: Specular">
+        <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
+    </view>
+    <view id="G-Buffer: Normal">
+        <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN" />
+    </view>
 </node>
 
 <node id="Default-Pipeline">
