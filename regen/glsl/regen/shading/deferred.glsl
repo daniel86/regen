@@ -90,7 +90,8 @@ void main() {
 #else
     out_color.rgb = col1;
 #endif
-    out_color.a = 0.0;
+    // need to provide an alpha value for blending
+    out_color.a = (out_color.r+out_color.g+out_color.b)/3.0;
 }
 
 --------------------------------------

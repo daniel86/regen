@@ -53,6 +53,7 @@
     <depth id="depth" pixel-size="24" />
 </fbo>
         <!-- Textures -->
+<texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer" />
 <texture id="ground-color" file="res/textures/brick/color.jpg"/>
 <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
 <texture id="ground-height" file="res/textures/brick/height.jpg"/>
@@ -145,7 +146,7 @@
     <physics mesh-id="platform0-mesh" transform-id="platform0-tf"
              shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
              size="8.0,0.8,8.0"/>
-    <material preset="copper" />
+    <material preset="copper" emission="0.3,0.1,0.1" />
 </mesh>
 
 <mesh id="platform1-mesh" type="box" use-normal="1" center="1" usage="STATIC"
@@ -272,9 +273,6 @@
 </mesh>
 
 <node id="Particle-Draw">
-    <fbo id="g-buffer" draw-buffers="0" />
-    <blend mode="add" />
-    <depth test="1" write="0" />
     <define key="USE_SOFT_PARTICLES" value="TRUE" />
     <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
     <define key="IS_SHADOW_RECEIVER" value="FALSE" />
@@ -348,10 +346,6 @@
                    shadow-camera="room-light-camera0"/>
         </light-pass>
     </node>
-    <node id="Material-Emission">
-        <!-- TODO: probably better to apply in post pass, switch to float buffer and use tonemapping I guess. -->
-        <fullscreen-pass shader="regen.shading.deferred.emission"/>
-    </node>
 </node>
 
         <!--**************************-->
@@ -376,7 +370,6 @@
 
 <node id="Background-Objects">
     <node id="Sky">
-        <depth test="1" write="0" />
         <sky id="earth-sky" />
     </node>
     <node import="Fire" />
@@ -397,8 +390,24 @@
     <view id="Depth of Field">
         <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
     </view>
-    <!-- render particles -->
-    <node import="Particle-Draw" />
+    <!-- render transparent objects -->
+    <node id="Transparent-Pass">
+        <fbo id="g-buffer" draw-buffers="0" />
+        <blend mode="add" />
+        <depth test="1" write="0" />
+        <!-- render emission light -->
+        <node id="Material-Emission">
+            <texture name="gEmissionTexture" fbo="g-buffer" attachment="4" />
+            <texture name="gEmissionBlurred" id="emission-map-bloom" />
+            <!-- <texture name="gEmissionBlurred" id="emission-map-blur" /> -->
+            <fullscreen-pass shader="regen.shading.deferred.emission"/>
+        </node>
+        <!-- render particles -->
+        <node import="Particle-Draw" />
+        <view id="Transparent Objects">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+    </node>
     <!-- apply anti-aliasing effect -->
     <node import="FXAA">
         <fbo id="g-buffer" draw-buffers="1"/>
@@ -439,15 +448,29 @@
         </node>
 
         <node id="Post-Geometry">
+            <node id="Emission-Update">
+                <input type="float" name="filterRadius" value="0.01" />
+                <bloom fbo="g-buffer" attachment="4" bloom-texture="emission-map-bloom" />
+            </node>
+            <view id="Emission Mips">
+                <fbo id="SCREEN"/>
+                <texture name="inputTexture1" id="emission-map-bloom" mip-level="0" />
+                <texture name="inputTexture2" id="emission-map-bloom" mip-level="1" />
+                <texture name="inputTexture3" id="emission-map-bloom" mip-level="2" />
+                <texture name="inputTexture4" id="emission-map-bloom" mip-level="3" />
+                <fullscreen-pass shader="regen.filter.sampling.x4"/>
+            </view>
+            <!--
             <node id="Emission-Blur">
                 <input type="int" name="numBlurPixels" value="4" />
                 <input type="float" name="blurSigma" value="2.0" />
-                <filter-sequence id="blurred-emission" fbo="g-buffer" attachment="4" >
+                <filter-sequence id="emission-map-blur" fbo="g-buffer" attachment="4" >
                     <filter shader="regen.filter.sampling" scale="0.5" />
                     <filter shader="regen.filter.blur.horizontal" />
                     <filter shader="regen.filter.blur.vertical" />
                 </filter-sequence>
             </node>
+            -->
         </node>
 
         <node id="Shading">
@@ -457,8 +480,6 @@
                 <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
                 <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
                 <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-                <texture name="gEmissionTexture" fbo="g-buffer" attachment="4" />
-                <texture name="gEmissionBlurred" id="blurred-emission" />
                 <node import="Shading-Pass" />
             </node>
             <view id="Shaded Scene">
