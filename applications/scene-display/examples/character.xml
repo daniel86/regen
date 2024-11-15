@@ -145,7 +145,7 @@
     <physics mesh-id="platform0-mesh" transform-id="platform0-tf"
              shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
              size="8.0,0.8,8.0"/>
-    <material preset="copper"/>
+    <material preset="copper" />
 </mesh>
 
 <mesh id="platform1-mesh" type="box" use-normal="1" center="1" usage="STATIC"
@@ -160,11 +160,11 @@
     <physics mesh-id="platform1-mesh" transform-id="platform1-tf"
              shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
              size="8.0,0.8,8.0"/>
-    <material preset="copper"/>
+    <material preset="copper" emission="0.3,0.1,0.1" />
 </mesh>
 
 <node id="Platforms">
-    <texture id="glow-map" map-to="emission" blend="SRC" />
+    <texture id="glow-map" map-to="emission" blend-mode="ADD" />
     <node id="platform0">
         <mesh id="platform0-mesh" shader="regen.models.mesh"/>
     </node>
@@ -457,8 +457,8 @@
                 <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
                 <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
                 <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-                <!-- <texture name="gEmissionTexture" fbo="g-buffer" attachment="4" /> -->
-                <texture name="gEmissionTexture" id="blurred-emission" />
+                <texture name="gEmissionTexture" fbo="g-buffer" attachment="4" />
+                <texture name="gEmissionBlurred" id="blurred-emission" />
                 <node import="Shading-Pass" />
             </node>
             <view id="Shaded Scene">

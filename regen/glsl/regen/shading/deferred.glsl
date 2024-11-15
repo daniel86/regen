@@ -74,13 +74,22 @@ void main() {
 out vec4 out_color;
 
 uniform sampler2D in_gEmissionTexture;
+#ifdef HAS_gEmissionBlurred
+uniform sampler2D in_gEmissionBlurred;
+#endif
 
 #include regen.filter.sampling.computeTexco
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
     vecTexco texco = computeTexco(texco_2D);
-    out_color.rgb = texture(in_gEmissionTexture,texco).rgb;
+    vec3 col1 = texture(in_gEmissionTexture,texco).rgb;
+#ifdef HAS_gEmissionBlurred
+    vec3 col2 = texture(in_gEmissionBlurred,texco).rgb;
+    out_color.rgb = col1 + col2;
+#else
+    out_color.rgb = col1;
+#endif
     out_color.a = 0.0;
 }
 
