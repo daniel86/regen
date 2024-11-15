@@ -338,16 +338,16 @@ void textureMappingFragmentUnshaded(in vec3 P, inout vec4 C)
 
 -- mapToLight
 #ifndef HAS_LIGHT_TEXTURE
-#define textureMappingLight(P,N,C,SPEC,SHIN)
+#define textureMappingLight(P,N,Material)
+#include regen.states.material.type
 #else
 #include regen.states.textures.includes
+#include regen.states.material.type
 
 void textureMappingLight(
         in vec3 P,
         in vec3 N,
-        inout vec3 color,
-        inout vec3 specular,
-        inout float shininess)
+        inout Material mat)
 {
     // compute texco
 #for INDEX to NUM_TEXTURES
@@ -369,15 +369,22 @@ void textureMappingLight(
 #define2 _BLEND ${TEX_BLEND_NAME${_ID}}
 #define2 _MAPTO ${TEX_MAPTO${_ID}}
   #if _MAPTO == AMBIENT
-    ${_BLEND}( texel${INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
+    // The texture is combined with the result of the ambient lighting equation.
+    ${_BLEND}( texel${INDEX}.rgb, mat.ambient, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == DIFFUSE
-    ${_BLEND}( texel${INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
+    // The texture is combined with the result of the diffuse lighting equation.
+    ${_BLEND}( texel${INDEX}.rgb, mat.diffuse, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == LIGHT
-    ${_BLEND}( texel${INDEX}.rgb, color, ${TEX_BLEND_FACTOR${_ID}} );
+    // Lightmap texture (aka Ambient Occlusion)
+    ${_BLEND}( texel${INDEX}.rgb, mat.occlusion, ${TEX_BLEND_FACTOR${_ID}} );
+  #elif _MAPTO == EMISSION
+    // The texture is added to the result of the lighting calculation.
+    ${_BLEND}( texel${INDEX}.rgb, mat.emission, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == SPECULAR
-    ${_BLEND}( texel${INDEX}.rgb, specular, ${TEX_BLEND_FACTOR${_ID}} );
+    // The texture is combined with the result of the specular lighting equation.
+    ${_BLEND}( texel${INDEX}.rgb, mat.specular, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == SHININESS
-    ${_BLEND}( texel${INDEX}.r, shininess, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.r, mat.shininess, ${TEX_BLEND_FACTOR${_ID}} );
   #endif
 #endfor
 }

@@ -201,6 +201,9 @@ out vec4 out_diffuse;
 layout(location = 0) out vec4 out_diffuse;
 layout(location = 1) out vec4 out_specular;
 layout(location = 2) out vec4 out_norWorld;
+#ifdef FBO_ATTACHMENT_emission
+layout(location = 3) out vec3 out_emission;
+#endif
 #endif
 #endif
 #if OUTPUT_TYPE == TRANSPARENCY
@@ -299,6 +302,7 @@ uniform vec4 in_col;
 #include regen.states.material.input
 #include regen.states.clipping.input
 #include regen.states.textures.input
+#include regen.states.material.defines
 
 #ifdef HAS_CLIPPING
 #include regen.states.clipping.isClipped
@@ -356,15 +360,16 @@ void main() {
 
 -- writeOutput-color
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
-  vec4 diffuse = color;
-  vec3 specular = vec3(0.0);
-  float shininess = 0.0;
+    Material mat;
+    mat.diffuse = color.rgb;
 #ifdef HAS_MATERIAL
-  diffuse.rgb *= in_matDiffuse;
+    mat.diffuse.rgb *= in_matDiffuse;
 #endif
-  textureMappingLight(posWorld, norWorld,
-      diffuse.rgb, specular, shininess);
-  out_color = diffuse;
+    mat.specular = vec3(0.0);
+    mat.shininess = 0.0;
+    textureMappingLight(posWorld, norWorld, mat);
+    out_color.rgb = mat.diffuse;
+    out_color.a = color.a;
 }
 
 -- writeOutput-direct
@@ -373,57 +378,83 @@ uniform vec3 in_ambientLight;
 #include regen.shading.direct.shade
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
-  vec4 diffuse = color;
+    Material mat;
+    mat.occlusion = 0.0;
 #if SHADING!=NONE
 #ifdef HAS_MATERIAL
-  diffuse.rgb *= in_matDiffuse;
-  vec3 specular = in_matSpecular;
-  float shininess = in_matShininess;
+    mat.ambient = in_matAmbient;
+    mat.diffuse = color.rgb * in_matDiffuse;
+    mat.specular = in_matSpecular;
+    mat.shininess = in_matShininess;
 #else
-  vec3 specular = vec3(0.0);
-  float shininess = 0.0;
+    mat.ambient = vec3(0.0);
+    mat.diffuse = color.rgb;
+    mat.specular = vec3(0.0);
+    mat.shininess = 0.0;
 #endif
-  textureMappingLight(posWorld, norWorld,
-      diffuse.rgb, specular, shininess);
-#ifdef HAS_MATERIAL
-  shininess *= in_matShininess;
-#endif
-  Shading shading = shade(posWorld, norWorld, gl_FragCoord.z, shininess);
-  diffuse.rgb *= shading.diffuse +
-      specular*shading.specular +
-      in_ambientLight*in_matAmbient;
+    textureMappingLight(posWorld, norWorld, mat);
+
+    Shading shading = shade(posWorld, norWorld, gl_FragCoord.z, mat.shininess);
+    vec3 shadedColor =
+        mat.diffuse*shading.diffuse.rgb +
+        mat.specular*shading.specular.rgb +
+        mat.ambient*in_ambientLight;
 #endif
 #ifdef USE_AVG_SUM_ALPHA
-  out_color = vec4(diffuse.rgb*diffuse.a,diffuse.a);
-  out_counter = vec2(1.0);
+    out_color = vec4(shadedColor*color.a, color.a);
+    out_counter = vec2(1.0);
 #elif USE_SUM_ALPHA
-  out_color = vec4(diffuse.rgb*diffuse.a,diffuse.a);
+    out_color = vec4(shadedColor*color.a, color.a);
 #else
-  out_color = diffuse;
+    out_color = vec4(shadedColor, color.a);
 #endif
 }
 
 -- writeOutput-deferred
+#if SHADING==NONE
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
-  out_diffuse = color;
-#if SHADING!=NONE
-  // map to [0,1] for rgba buffer
-  out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
-  out_norWorld.w = 1.0;
-#ifdef HAS_MATERIAL
-  out_diffuse.rgb *= (in_matAmbient + in_matDiffuse);
-  out_specular = vec4(in_matSpecular,0.0);
-  float shininess = in_matShininess;
-#else
-  out_specular = vec4(0.0);
-  float shininess = 0.0;
-#endif // HAS_MATERIAL
-  textureMappingLight(in_posWorld, norWorld,
-      out_diffuse.rgb, out_specular.rgb, shininess);
-#ifdef HAS_MATERIAL
-  out_specular.a = (in_matShininess * shininess)/256.0;
-#else
-  out_specular.a = shininess/256.0;
-#endif // HAS_MATERIAL
-#endif // SHADING!=NONE
+    out_diffuse = color;
 }
+#else
+void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
+    // map to [0,1] for rgba buffer
+    out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
+    out_norWorld.w = 1.0;
+
+    Material mat;
+    mat.occlusion = 0.0;
+    mat.diffuse = color.rgb;
+#ifdef HAS_MATERIAL
+    // TODO: handling of ambient component not correct, but having ambient attachment seems wasteful.
+    mat.diffuse *= (in_matAmbient + in_matDiffuse);
+    mat.specular = in_matSpecular;
+    mat.shininess = in_matShininess;
+    #ifdef HAS_MATERIAL_EMISSION
+    #ifdef HAS_matEmission
+    mat.emission = in_matEmission;
+    #else
+    mat.emission = vec3(0,0,0);
+    #endif
+    #endif
+#else
+    mat.specular = vec3(0.0);
+    mat.shininess = 0.0;
+    #ifdef HAS_MATERIAL_EMISSION
+    mat.emission = vec3(0,0,0);
+    #endif
+#endif // HAS_MATERIAL
+    textureMappingLight(in_posWorld, norWorld, mat);
+
+    out_diffuse.rgb = mat.diffuse.rgb;
+    out_diffuse.a = color.a;
+    out_specular.rgb = mat.specular;
+    out_specular.a = mat.shininess/256.0;
+    #ifdef FBO_ATTACHMENT_emission
+    #ifdef HAS_MATERIAL_EMISSION
+    out_emission = mat.emission;
+    #endif
+    #endif
+    // TODO: handle the occlusion value. It might be best to encode it in the g-buffer,
+    //       then use this info in deferred shading.
+}
+#endif // SHADING!=NONE

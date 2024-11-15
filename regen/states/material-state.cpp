@@ -43,6 +43,14 @@ Material::Material()
 	shaderDefine("HAS_MATERIAL", "TRUE");
 }
 
+void Material::set_emission(const Vec3f &emission) {
+	if (materialEmission_.get() == nullptr) {
+		materialEmission_ = ref_ptr<ShaderInput3f>::alloc("matEmission");
+		setInput(materialEmission_);
+	}
+	materialEmission_->setUniformData(emission);
+}
+
 void Material::set_fillMode(GLenum fillMode) {
 	if (fillMode == fillMode_) return;
 	disjoinStates(fillModeState_);

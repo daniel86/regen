@@ -161,22 +161,22 @@
 <!--**************************-->
 
 <node id="G-Buffer-Blur1">
-  <input type="int" name="numBlurPixels" value="4" />
-  <input type="float" name="blurSigma" value="2.0" />
-  <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
-    <filter shader="regen.filter.sampling" scale="0.5" />
-    <filter shader="regen.filter.blur.horizontal" />
-    <filter shader="regen.filter.blur.vertical" />
-  </filter-sequence>
+    <input type="int" name="numBlurPixels" value="4" />
+    <input type="float" name="blurSigma" value="2.0" />
+    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
+        <filter shader="regen.filter.sampling" scale="0.5" />
+        <filter shader="regen.filter.blur.horizontal" />
+        <filter shader="regen.filter.blur.vertical" />
+    </filter-sequence>
 </node>
 <node id="G-Buffer-Blur0">
-  <input type="int" name="numBlurPixels" value="4" />
-  <input type="float" name="blurSigma" value="2.0" />
-  <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
-    <filter shader="regen.filter.sampling" scale="0.5" />
-    <filter shader="regen.filter.blur.horizontal" />
-    <filter shader="regen.filter.blur.vertical" />
-  </filter-sequence>
+    <input type="int" name="numBlurPixels" value="4" />
+    <input type="float" name="blurSigma" value="2.0" />
+    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
+        <filter shader="regen.filter.sampling" scale="0.5" />
+        <filter shader="regen.filter.blur.horizontal" />
+        <filter shader="regen.filter.blur.vertical" />
+    </filter-sequence>
 </node>
 
 <node id="Depth-of-Field">

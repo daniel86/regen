@@ -322,6 +322,7 @@ ref_ptr<Texture> TextureResource::createResource(
 		REGEN_WARN("Failed to create Texture for '" << input.getDescription() << ".");
 		return tex;
 	}
+	tex->set_name(input.getName());
 	configureTexture(tex, input);
 
 	return tex;

@@ -58,6 +58,32 @@ void main() {
     out_color.a = 0.0;
 }
 
+
+--------------------------------------
+--------------------------------------
+---- Material Emission Light. Input mesh should be a unit-quad.
+--------------------------------------
+--------------------------------------
+-- emission.vs
+#include regen.filter.sampling.vs
+-- emission.gs
+#include regen.filter.sampling.gs
+-- emission.fs
+#include regen.states.camera.defines
+
+out vec4 out_color;
+
+uniform sampler2D in_gEmissionTexture;
+
+#include regen.filter.sampling.computeTexco
+
+void main() {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    out_color.rgb = texture(in_gEmissionTexture,texco).rgb;
+    out_color.a = 0.0;
+}
+
 --------------------------------------
 --------------------------------------
 ---- Deferred Directional Light Shading. Input mesh should be a unit-quad.

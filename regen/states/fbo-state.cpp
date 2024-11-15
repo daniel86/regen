@@ -16,6 +16,9 @@ FBOState::FBOState(const ref_ptr<FBO> &fbo)
 		: State(), fbo_(fbo) {
 	joinShaderInput(fbo->viewport());
 	joinShaderInput(fbo->inverseViewport());
+	for (auto &attachment : fbo->colorTextures()) {
+		shaderDefine(REGEN_STRING("FBO_ATTACHMENT_" << attachment->name()), "TRUE");
+	}
 }
 
 void FBOState::setClearDepth() {

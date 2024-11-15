@@ -43,6 +43,11 @@ namespace regen {
 		auto &shininess() const { return materialShininess_; }
 
 		/**
+		 * @return The emission color.
+		 */
+		auto &emission() const { return materialEmission_; }
+
+		/**
 		 * @return The material alpha.
 		 */
 		auto &alpha() const { return materialAlpha_; }
@@ -53,6 +58,12 @@ namespace regen {
 		 * vacuum to the speed of light in the material (always >= 1.0 in the real world).
 		 */
 		auto &refractionIndex() const { return materialRefractionIndex_; }
+
+		/**
+		 * Sets the emission color.
+		 * @param emission The emission color.
+		 */
+		void set_emission(const Vec3f &emission);
 
 		/**
 		 * Defines how faces are shaded (FILL/LINE/POINT).
@@ -117,6 +128,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> materialAmbient_;
 		ref_ptr<ShaderInput3f> materialSpecular_;
 		ref_ptr<ShaderInput1f> materialShininess_;
+		ref_ptr<ShaderInput3f> materialEmission_;
 		ref_ptr<ShaderInput1f> materialRefractionIndex_;
 		ref_ptr<ShaderInput1f> materialAlpha_;
 
