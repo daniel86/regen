@@ -217,6 +217,9 @@
     <view id="G-Buffer: Diffuse">
         <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
     </view>
+    <view id="G-Buffer: Ambient">
+        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
+    </view>
     <view id="G-Buffer: Specular">
         <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
     </view>
@@ -231,12 +234,15 @@
   <node id="Geometry-Pass">
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,2,3" />
+    <fbo id="g-buffer" draw-buffers="0,1,2,3" />
     
     <node import="Shadow-Caster" />
     <node import="Scene-Geometry" />
     <view id="Scene -- Diffuse">
       <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
+    </view>
+    <view id="Scene -- Ambient">
+      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
     </view>
     <view id="Scene -- Specular">
       <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />

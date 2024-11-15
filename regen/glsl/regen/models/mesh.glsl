@@ -199,10 +199,11 @@ layout(early_fragment_tests) in;
 out vec4 out_diffuse;
 #else
 layout(location = 0) out vec4 out_diffuse;
-layout(location = 1) out vec4 out_specular;
-layout(location = 2) out vec4 out_norWorld;
+layout(location = 1) out vec4 out_ambient;
+layout(location = 2) out vec4 out_specular;
+layout(location = 3) out vec4 out_norWorld;
 #ifdef FBO_ATTACHMENT_emission
-layout(location = 3) out vec3 out_emission;
+layout(location = 4) out vec3 out_emission;
 #endif
 #endif
 #endif
@@ -316,29 +317,29 @@ uniform vec4 in_col;
 
 void main() {
 #ifdef HAS_CLIPPING
-  if(isClipped(in_posWorld)) discard;
+    if(isClipped(in_posWorld)) discard;
 #endif
 #if HAS_nor && HAS_TWO_SIDES
-  vec3 norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
+    vec3 norWorld = (gl_FrontFacing ? in_norWorld : -in_norWorld);
 #elif HAS_nor
-  vec3 norWorld = in_norWorld;
+    vec3 norWorld = in_norWorld;
 #else
-  vec3 norWorld = vec3(0.0,0.0,0.0);
+    vec3 norWorld = vec3(0.0,0.0,0.0);
 #endif
 #ifdef HAS_col
-  vec4 color = in_col;
+    vec4 color = in_col;
 #else
-  vec4 color = vec4(1.0);
+    vec4 color = vec4(1.0);
 #endif 
 #ifdef HAS_MATERIAL
-  color.a *= in_matAlpha;
+    color.a *= in_matAlpha;
 #endif
 #endif // HAS_COL
-  textureMappingFragment(in_posWorld, color, norWorld);
+    textureMappingFragment(in_posWorld, color, norWorld);
 #ifdef DISCARD_ALPHA
-  if (color.a < 0.01) discard;
+    if (color.a < 0.01) discard;
 #endif
-  writeOutput(in_posWorld, norWorld, color);
+    writeOutput(in_posWorld, norWorld, color);
 }
 
 -----------------------
@@ -425,8 +426,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     mat.occlusion = 0.0;
     mat.diffuse = color.rgb;
 #ifdef HAS_MATERIAL
-    // TODO: handling of ambient component not correct, but having ambient attachment seems wasteful.
-    mat.diffuse *= (in_matAmbient + in_matDiffuse);
+    mat.ambient = in_matAmbient;
+    mat.diffuse *= in_matDiffuse;
     mat.specular = in_matSpecular;
     mat.shininess = in_matShininess;
     #ifdef HAS_MATERIAL_EMISSION
@@ -437,6 +438,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #endif
     #endif
 #else
+    mat.ambient = vec3(0.0);
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
     #ifdef HAS_MATERIAL_EMISSION
@@ -445,6 +447,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #endif // HAS_MATERIAL
     textureMappingLight(in_posWorld, norWorld, mat);
 
+    out_ambient = vec4(mat.ambient,0.0);
     out_diffuse.rgb = mat.diffuse.rgb;
     out_diffuse.a = color.a;
     out_specular.rgb = mat.specular;
@@ -456,5 +459,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #endif
     // TODO: handle the occlusion value. It might be best to encode it in the g-buffer,
     //       then use this info in deferred shading.
+    //out_norWorld.w = mat.occlusion;
 }
 #endif // SHADING!=NONE
