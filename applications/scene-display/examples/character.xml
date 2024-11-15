@@ -427,7 +427,7 @@
         <camera id="main-camera" />
 
         <node id="Geometry-Pass">
-            <fbo id="g-buffer" draw-buffers="0,2,3,4" />
+            <fbo id="g-buffer" draw-buffers="0,1,2,3,4" />
             <blend mode="src" />
             <depth test="1" write="1" />
             <node import="Shadow-Caster" />
