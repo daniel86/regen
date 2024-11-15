@@ -76,6 +76,8 @@ namespace regen {
 				if (input.hasAttribute("shininess"))
 					mat->shininess()->setVertex(0,
 												input.getValue<GLfloat>("shininess", 1.0f));
+				if (input.hasAttribute("emission"))
+					mat->set_emission(input.getValue<Vec3f>("emission", Vec3f(0.0f)));
 
 				mat->alpha()->setVertex(0,
 										input.getValue<GLfloat>("alpha", 1.0f));

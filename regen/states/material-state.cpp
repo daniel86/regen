@@ -46,9 +46,11 @@ Material::Material()
 void Material::set_emission(const Vec3f &emission) {
 	if (materialEmission_.get() == nullptr) {
 		materialEmission_ = ref_ptr<ShaderInput3f>::alloc("matEmission");
+		materialEmission_->setUniformData(emission);
 		setInput(materialEmission_);
+	} else {
+		materialEmission_->setUniformData(emission);
 	}
-	materialEmission_->setUniformData(emission);
 }
 
 void Material::set_fillMode(GLenum fillMode) {
@@ -101,7 +103,7 @@ void Material::set_gold() {
 void Material::set_copper() {
 	materialAmbient_->setUniformData(Vec3f(0.19, 0.07, 0.02));
 	materialDiffuse_->setUniformData(Vec3f(0.70, 0.27, 0.08));
-	specular()->setUniformData(Vec3f(0.26, 0.14, 0.09));
+	materialSpecular_->setUniformData(Vec3f(0.26, 0.14, 0.09));
 	materialShininess_->setUniformData(12.8);
 }
 
