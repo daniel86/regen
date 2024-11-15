@@ -39,7 +39,7 @@ namespace regen {
 			MAP_TO_LIGHT,
 			/** The texture defines per-pixel opacity. */
 			MAP_TO_ALPHA,
-			/** The texture is a normal map.. */
+			/** The texture is a normal map. */
 			MAP_TO_NORMAL,
 			/** The texture is a height map.. */
 			MAP_TO_HEIGHT,
