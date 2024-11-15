@@ -418,6 +418,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 }
 #else
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
+    // TODO: only normalize when not using FLOAT textures!
     // map to [0,1] for rgba buffer
     out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
     out_norWorld.w = 1.0;
@@ -451,7 +452,9 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     out_diffuse.rgb = mat.diffuse.rgb;
     out_diffuse.a = color.a;
     out_specular.rgb = mat.specular;
-    out_specular.a = mat.shininess/256.0;
+    // normalize shininess to [0,1]
+    // TODO: only normalize when not using FLOAT textures!
+    out_specular.a = clamp(mat.shininess/256.0, 0.0, 1.0);
     #ifdef FBO_ATTACHMENT_emission
     #ifdef HAS_MATERIAL_EMISSION
     out_emission = mat.emission;
