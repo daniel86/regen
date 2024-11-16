@@ -19,6 +19,7 @@ endif()
 
 if(BUILD_TESTS)
     add_subdirectory(scene-display)
+    add_subdirectory(noise-gui)
 endif()
 
 if(BUILD_VIDEO_PLAYER)

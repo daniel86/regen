@@ -238,31 +238,27 @@ ref_ptr<Texture> TextureResource::createResource(
 		auto randomSeed = input.getValue<GLint>("random-seed", rand());
 		auto isSeamless = input.getValue<bool>("is-seamless", false);
 
-		textures::PerlinNoiseConfig perlinCfg;
-		perlinCfg.baseFrequency = input.getValue<GLfloat>("base-frequency", 4.0);
-		perlinCfg.persistence = input.getValue<GLfloat>("persistence", 0.5);
-		perlinCfg.lacunarity = input.getValue<GLfloat>("lacunarity", 2.5);
-		perlinCfg.octaveCount = input.getValue<GLuint>("octave-count", 4);
-
+		// TODO: allow configuration of noise parameters
 		if (noiseMode == "cloud") {
-			tex = regen::textures::clouds2D(
-					sizeAbs.x, sizeAbs.y, randomSeed, isSeamless);
+			auto noise = ref_ptr<NoiseTexture2D>::alloc(sizeAbs.x, sizeAbs.y, isSeamless);
+			noise->setNoiseGenerator(NoiseGenerator::preset_clouds(randomSeed));
+			tex = noise;
 		} else if (noiseMode == "wood") {
-			tex = regen::textures::wood(
-					sizeAbs.x, sizeAbs.y, randomSeed, isSeamless);
+			auto noise = ref_ptr<NoiseTexture2D>::alloc(sizeAbs.x, sizeAbs.y, isSeamless);
+			noise->setNoiseGenerator(NoiseGenerator::preset_wood(randomSeed));
+			tex = noise;
 		} else if (noiseMode == "granite") {
-			tex = regen::textures::granite(
-					sizeAbs.x, sizeAbs.y, randomSeed, isSeamless);
+			auto noise = ref_ptr<NoiseTexture2D>::alloc(sizeAbs.x, sizeAbs.y, isSeamless);
+			noise->setNoiseGenerator(NoiseGenerator::preset_granite(randomSeed));
+			tex = noise;
 		} else if (noiseMode == "perlin-2d" || noiseMode == "perlin") {
-			tex = regen::textures::perlin2D(
-					sizeAbs.x, sizeAbs.y,
-					perlinCfg,
-					randomSeed, isSeamless);
+			auto noise = ref_ptr<NoiseTexture2D>::alloc(sizeAbs.x, sizeAbs.y, isSeamless);
+			noise->setNoiseGenerator(NoiseGenerator::preset_perlin(randomSeed));
+			tex = noise;
 		} else if (noiseMode == "perlin-3d") {
-			tex = regen::textures::perlin3D(
-					sizeAbs.x, sizeAbs.y, sizeAbs.z,
-					perlinCfg,
-					randomSeed, isSeamless);
+			auto noise = ref_ptr<NoiseTexture3D>::alloc(sizeAbs.x, sizeAbs.y, sizeAbs.z, isSeamless);
+			noise->setNoiseGenerator(NoiseGenerator::preset_perlin(randomSeed));
+			tex = noise;
 		}
 	} else if (input.hasAttribute("spectrum")) {
 		auto spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));
