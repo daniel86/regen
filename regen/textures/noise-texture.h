@@ -10,75 +10,145 @@
 
 #include <regen/gl-types/texture.h>
 #include <regen/utility/ref-ptr.h>
+#include <regen/external/libnoise/src/noise/module/module.h>
 
 namespace regen {
-	namespace textures {
+	/**
+	 * A noise generator.
+	 */
+	class NoiseGenerator {
+	public:
 		/**
-		 * Configures Perlin noise function for generating coherent noise.
+		 * @param name the name of the noise generator.
+		 * @param handle the noise module handle.
 		 */
-		struct PerlinNoiseConfig {
-			/**
-			 * Sets the frequency of the first octave.
-			 */
-			GLdouble baseFrequency;
-			/**
-			 * The persistence value controls the roughness of the Perlin noise.
-			 * For best results, set the persistence to a number between 0.0 and 1.0.
-			 */
-			GLdouble persistence;
-			/**
-			 * The lacunarity is the frequency multiplier between successive octaves.
-			 * For best results, set the lacunarity to a number between 1.5 and 3.5.
-			 */
-			GLdouble lacunarity;
-			/**
-			 * The number of octaves controls the amount of detail in the Perlin noise.
-			 * The larger the number of octaves, the more time required to calculate the Perlin-noise value.
-			 */
-			GLuint octaveCount;
+		NoiseGenerator(std::string_view name, const ref_ptr<noise::module::Module> &handle);
 
-			PerlinNoiseConfig();
-		};
+		virtual ~NoiseGenerator() = default;
 
 		/**
-		 * 2D Image of Perlin noise.
+		 * @return the noise module handle.
 		 */
-		ref_ptr<Texture2D> perlin2D(
-				GLuint width, GLuint height,
-				const PerlinNoiseConfig &cfg,
-				GLint randomSeed = 0,
-				GLboolean isSeamless = GL_FALSE);
+		auto &handle() const { return handle_; }
 
 		/**
-		 * 3D Image of Perlin noise.
+		 * @return the name of the noise generator.
 		 */
-		ref_ptr<Texture3D> perlin3D(
-				GLuint width, GLuint height, GLuint depth,
-				const PerlinNoiseConfig &cfg,
-				GLint randomSeed = 0,
-				GLboolean isSeamless = GL_FALSE);
+		auto &name() const { return name_; }
 
 		/**
-		 * Generates 2D texture map consisting of clouds of varying density.
+		 * @param source the noise generator.
 		 */
-		ref_ptr<Texture2D> clouds2D(
-				GLuint width, GLuint height,
-				GLint randomSeed, GLboolean isSeamless);
+		void addSource(const ref_ptr<NoiseGenerator> &source);
 
 		/**
-		 * Generates 2D texture map consisting of stained oak-like wood.
+		 * @return the noise sources.
 		 */
-		ref_ptr<Texture2D> wood(
-				GLuint width, GLuint height,
-				GLint randomSeed, GLboolean isSeamless);
+		auto &sources() const { return sources_; }
 
 		/**
-		 * Generates 2D texture map consisting of granite.
+		 * @param source the noise generator.
 		 */
-		ref_ptr<Texture2D> granite(
-				GLuint width, GLuint height,
-				GLint randomSeed, GLboolean isSeamless);
+		void removeSource(const ref_ptr<NoiseGenerator> &source);
+
+		/**
+		 * @param x the x coordinate.
+		 * @param y the y coordinate.
+		 * @param z the z coordinate.
+		 * @return the noise value.
+		 */
+		GLdouble GetValue(GLdouble x, GLdouble y, GLdouble z) const;
+
+		/**
+		 * @param randomSeed the random seed.
+		 */
+		static ref_ptr<NoiseGenerator> preset_perlin(GLint randomSeed);
+
+		/**
+		 * @param randomSeed the random seed.
+		 */
+		static ref_ptr<NoiseGenerator> preset_wood(GLint randomSeed);
+
+		/**
+		 * @param randomSeed the random seed.
+		 */
+		static ref_ptr<NoiseGenerator> preset_granite(GLint randomSeed);
+
+		/**
+		 * @param randomSeed the random seed.
+		 */
+		static ref_ptr<NoiseGenerator> preset_clouds(GLint randomSeed);
+
+	protected:
+		std::string name_;
+		ref_ptr<noise::module::Module> handle_;
+		std::list<ref_ptr<NoiseGenerator>> sources_;
 	};
+
+	/**
+	 * Base class for noise textures.
+	 */
+	class NoiseTexture {
+	public:
+		/**
+		 * @param isSeamless true if the texture should be seamless.
+		 */
+		explicit NoiseTexture(GLboolean isSeamless) : isSeamless_(isSeamless) {}
+
+		virtual ~NoiseTexture() = default;
+
+		/**
+		 * @param generator the noise generator.
+		 */
+		void setNoiseGenerator(const ref_ptr<NoiseGenerator> &generator);
+
+		/**
+		 * @return the noise generator.
+		 */
+		auto &noiseGenerator() const { return generator_; }
+
+		virtual void updateNoise() = 0;
+
+	protected:
+		ref_ptr<NoiseGenerator> generator_;
+		GLboolean isSeamless_;
+	};
+
+	/**
+	 * 2D noise texture.
+	 */
+	class NoiseTexture2D : public Texture2D, public NoiseTexture {
+	public:
+		/**
+		 * @param width the width of the texture.
+		 * @param height the height of the texture.
+		 * @param isSeamless true if the texture should be seamless.
+		 */
+		NoiseTexture2D(GLuint width, GLuint height, GLboolean isSeamless = GL_FALSE);
+
+		~NoiseTexture2D() override = default;
+
+		void updateNoise() override;
+	};
+
+	/**
+	 * 3D noise texture.
+	 */
+	class NoiseTexture3D : public Texture3D, public NoiseTexture {
+	public:
+		/**
+		 * @param width the width of the texture.
+		 * @param height the height of the texture.
+		 * @param depth the depth of the texture.
+		 * @param isSeamless true if the texture should be seamless.
+		 */
+		NoiseTexture3D(GLuint width, GLuint height, GLuint depth, GLboolean isSeamless = GL_FALSE);
+
+		~NoiseTexture3D() override = default;
+
+		void updateNoise() override;
+	};
+
 } // namespace
 
 #endif /* NOISE_TEXTURE_H_ */
