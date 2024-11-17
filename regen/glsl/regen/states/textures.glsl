@@ -264,16 +264,30 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
-#if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA || TEX_MAPTO${_ID}==NORMAL
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+    #if _MAPTO == COLOR
 #include regen.states.textures.computeTexco
-#endif // ifFragmentMapping
+    #elif _MAPTO == ALPHA
+#include regen.states.textures.computeTexco
+    #elif _MAPTO == NORMAL
+        #ifndef FS_NO_OUTPUT
+#include regen.states.textures.computeTexco
+        #endif
+    #endif
 #endfor
     // sample texels
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
-#if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA || TEX_MAPTO${_ID}==NORMAL
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+    #if _MAPTO == COLOR
 #include regen.states.textures.sampleTexel
-#endif // ifFragmentMapping
+    #elif _MAPTO == ALPHA
+#include regen.states.textures.sampleTexel
+    #elif _MAPTO == NORMAL
+        #ifndef FS_NO_OUTPUT
+#include regen.states.textures.sampleTexel
+        #endif
+    #endif
 #endfor
     // blend texels with existing values
 #for INDEX to NUM_TEXTURES
@@ -285,6 +299,7 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
   #elif _MAPTO == ALPHA
     ${_BLEND}( texel${INDEX}.x, C.a, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == NORMAL
+    #ifndef FS_NO_OUTPUT
     mat3 tbn${INDEX} = mat3(
         in_tangent.x, in_binormal.x, in_norWorld.x,
         in_tangent.y, in_binormal.y, in_norWorld.y,
@@ -295,6 +310,7 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
     // Calculate the normal from the data in the normal map.
     bump${INDEX} = normalize(tbn${INDEX} * bump${INDEX});
     ${_BLEND}( bump${INDEX}, N, ${TEX_BLEND_FACTOR${_ID}} );
+    #endif
   #endif
 #endfor
 }

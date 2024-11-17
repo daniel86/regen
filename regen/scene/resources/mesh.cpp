@@ -7,6 +7,7 @@
 
 #include "mesh.h"
 #include "regen/meshes/point.h"
+#include "regen/meshes/proc-tree.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -157,10 +158,83 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		for (GLuint i = 0u; i < out->size(); ++i) {
 			parser->putState(REGEN_STRING(input.getName() << i), (*out)[i]);
 		}
-	} else if (meshType == "text") {
+	}
+	else if (meshType == "proctree") {
+		auto procTree = ref_ptr<ProcTree>::alloc();
+		if (input.hasAttribute("seed")) {
+			procTree->properties().mSeed = input.getValue<GLint>("seed", 0);
+		}
+		if (input.hasAttribute("segments")) {
+			procTree->properties().mSegments = input.getValue<GLint>("segments", 8);
+		}
+		if (input.hasAttribute("levels")) {
+			procTree->properties().mLevels = input.getValue<GLint>("levels", 5);
+		}
+		if (input.hasAttribute("v-multiplier")) {
+			procTree->properties().mVMultiplier = input.getValue<GLfloat>("v-multiplier", 1.0f);
+		}
+		if (input.hasAttribute("branch-length")) {
+			procTree->properties().mInitialBranchLength = input.getValue<GLfloat>("branch-length", 0.5f);
+		}
+		if (input.hasAttribute("branch-factor")) {
+			procTree->properties().mBranchFactor = input.getValue<GLfloat>("branch-factor", 2.2f);
+		}
+		if (input.hasAttribute("drop-amount")) {
+			procTree->properties().mDropAmount = input.getValue<GLfloat>("drop-amount", 0.24f);
+		}
+		if (input.hasAttribute("grow-amount")) {
+			procTree->properties().mGrowAmount = input.getValue<GLfloat>("grow-amount", 0.044f);
+		}
+		if (input.hasAttribute("sweep-amount")) {
+			procTree->properties().mSweepAmount = input.getValue<GLfloat>("sweep-amount", 0.0f);
+		}
+		if (input.hasAttribute("max-radius")) {
+			procTree->properties().mMaxRadius = input.getValue<GLfloat>("max-radius", 0.096f);
+		}
+		if (input.hasAttribute("climb-rate")) {
+			procTree->properties().mClimbRate = input.getValue<GLfloat>("climb-rate", 0.39f);
+		}
+		if (input.hasAttribute("trunk-kink")) {
+			procTree->properties().mTrunkKink = input.getValue<GLfloat>("trunk-kink", 0.0f);
+		}
+		if (input.hasAttribute("tree-steps")) {
+			procTree->properties().mTreeSteps = input.getValue<GLint>("tree-steps", 5);
+		}
+		if (input.hasAttribute("taper-rate")) {
+			procTree->properties().mTaperRate = input.getValue<GLfloat>("taper-rate", 0.958f);
+		}
+		if (input.hasAttribute("radius-falloff-rate")) {
+			procTree->properties().mRadiusFalloffRate = input.getValue<GLfloat>("radius-falloff-rate", 0.71f);
+		}
+		if (input.hasAttribute("twist-rate")) {
+			procTree->properties().mTwistRate = input.getValue<GLfloat>("twist-rate", 2.97f);
+		}
+		if (input.hasAttribute("trunk-length")) {
+			procTree->properties().mTrunkLength = input.getValue<GLfloat>("trunk-length", 1.95f);
+		}
+		if (input.hasAttribute("twig-scale")) {
+			procTree->properties().mTwigScale = input.getValue<GLfloat>("twig-scale", 0.28f);
+		}
+		if (input.hasAttribute("falloff")) {
+			auto falloff = input.getValue<Vec2f>("falloff", Vec2f(0.98f, 1.08f));
+			procTree->properties().mLengthFalloffFactor = falloff.x;
+			procTree->properties().mLengthFalloffPower = falloff.y;
+		}
+		if (input.hasAttribute("clump")) {
+			auto clump = input.getValue<Vec2f>("clump", Vec2f(0.414f, 0.282f));
+			procTree->properties().mClumpMax = clump.x;
+			procTree->properties().mClumpMin = clump.y;
+		}
+		procTree->update();
+		(*out) = MeshVector(2);
+		(*out)[0] = procTree->trunkMesh();
+		(*out)[1] = procTree->twigMesh();
+	}
+	else if (meshType == "text") {
 		(*out) = MeshVector(1);
 		(*out)[0] = createTextMesh(parser, input);
-	} else if (meshType == "mesh") {
+	}
+	else if (meshType == "mesh") {
 		const VBO::Usage vboUsage = input.getValue<VBO::Usage>("usage", VBO::USAGE_DYNAMIC);
 		GLenum primitive = glenum::primitive(input.getValue<string>("primitive", "TRIANGLES"));
 		(*out) = MeshVector(1);
