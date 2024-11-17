@@ -216,7 +216,7 @@
     <node id="Reflection-Geometry">
         <blend mode="src"/>
         <depth test="1" write="1"/>
-        <fbo id="reflection-buffer" draw-buffers="0,2,3"/>
+        <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
         <node import="Shadow-Caster"/>
         <node import="Scene-Geometry"/>
     </node>
@@ -350,22 +350,22 @@
         <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
         <node id="video-picture-canvas">
             <define key="TEXCO_FLIP_X" value="1"/>
-            <texture name="colorTexture" id="video-texture" map-to="COLOR" texco-flipping="x" />
+            <texture name="colorTexture" id="video-texture" map-to="AMBIENT" texco-flipping="x" />
             <transform id="video-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
         <node id="smoke-picture-canvas">
-            <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
+            <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="AMBIENT"/>
             <transform id="smoke-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
         <node id="velocity-picture-canvas">
-            <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="COLOR"/>
+            <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="AMBIENT"/>
             <transform id="velocity-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
         <node id="mandelbrot-picture-canvas">
-            <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="COLOR"/>
+            <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="AMBIENT"/>
             <transform id="mandelbrot-picture-tf" />
             <mesh id="picture-canvas" shader="regen.models.mesh"/>
         </node>
@@ -873,34 +873,6 @@
         <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
     </view>
 </node>
-
-        <!--**************************-->
-        <!--**************************-->
-
-<!--
-<node id="animations">
-  <deformation mesh-id="venus-mesh" friction="7.9" frequency="5.0" repeat="true">
-    <interpolations>
-        <interpolation target="pos" function="elastic" />
-        <interpolation target="nor" function="elastic" />
-    </interpolations>
-    <frames>
-      <frame duration="2.5" shape="sphere" offset="0.0,-0.8,0.0" />
-      <frame duration="2.5" shape="original" />
-    </frames>
-  </deformation>
-  <deformation mesh-id="dragon-mesh" friction="7.9" frequency="1.0" repeat="true">
-    <interpolations>
-        <interpolation target="pos" function="elastic" />
-        <interpolation target="nor" function="elastic" />
-    </interpolations>
-    <frames>
-      <frame duration="2.0" shape="sphere" offset="0.0,-0.2,0.0" />
-      <frame duration="2.0" shape="original" />
-    </frames>
-  </deformation>
-</node>
--->
 
         <!--**************************-->
         <!--**************************-->

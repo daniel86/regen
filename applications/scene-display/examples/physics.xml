@@ -158,7 +158,7 @@
   <node>
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,2,3" />
+    <fbo id="paraboloid-reflection-buffer" draw-buffers="0,1,2,3" />
     <node import="Shadow-Caster" />
     <node import="Scene-Geometry" />
   </node>
@@ -219,7 +219,7 @@
   <node>
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="cube-reflection-buffer" draw-buffers="0,2,3" />
+    <fbo id="cube-reflection-buffer" draw-buffers="0,1,2,3" />
     <node import="Shadow-Caster" />
     <node import="Scene-Geometry" />
   </node>
