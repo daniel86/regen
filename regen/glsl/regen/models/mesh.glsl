@@ -235,7 +235,12 @@ flat in int in_layer;
 
 #if OUTPUT_TYPE == DEPTH
 ///// Depth only output
+    #ifdef DISCARD_ALPHA
+#define FS_NO_OUTPUT
+#include regen.models.mesh.fs-shading
+    #else
 void main() {}
+    #endif
 #endif
 #if OUTPUT_TYPE == BLACK
 ///// Output plain black
@@ -303,15 +308,18 @@ uniform vec4 in_col;
 #include regen.states.material.input
 #include regen.states.clipping.input
 #include regen.states.textures.input
+#ifndef FS_NO_OUTPUT
 #include regen.states.material.defines
+#endif
 
 #ifdef HAS_CLIPPING
 #include regen.states.clipping.isClipped
 #endif
 #include regen.states.textures.mapToFragment
+#ifndef FS_NO_OUTPUT
 #include regen.states.textures.mapToLight
-
 #include regen.models.mesh.writeOutput
+#endif
 
 #define HANDLE_IO(i)
 
@@ -339,7 +347,9 @@ void main() {
 #ifdef DISCARD_ALPHA
     if (color.a < 0.01) discard;
 #endif
+#ifndef FS_NO_OUTPUT
     writeOutput(in_posWorld, norWorld, color);
+#endif
 }
 
 -----------------------

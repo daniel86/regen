@@ -13,9 +13,46 @@ void MeshNodeProvider::processInput(
 		REGEN_WARN("Unable to load Mesh for '" << input.getDescription() << "'.");
 		return;
 	}
+	auto meshIndex = input.getValue<int>("mesh-index", -1);
 
-	for (auto it = meshes->begin(); it != meshes->end(); ++it) {
-		ref_ptr<Mesh> &meshResource = *it;
+	std::queue<ref_ptr<Mesh>> meshQueue;
+	if (meshIndex>=0 && meshIndex < meshes->size()) {
+		meshQueue.push((*meshes.get())[meshIndex]);
+	}
+	else if(input.hasAttribute("mesh-indices")) {
+		auto meshIndices = input.getValue("mesh-indices");
+		std::vector<std::string> indices;
+		boost::split(indices, meshIndices, boost::is_any_of(","));
+		for (auto &index : indices) {
+			int i = std::stoi(index);
+			if (i >= 0 && i < meshes->size()) {
+				meshQueue.push((*meshes.get())[i]);
+			}
+		}
+	}
+	else if(input.hasAttribute("mesh-index-range")) {
+		auto meshIndexRange = input.getValue("mesh-index-range");
+		std::vector<std::string> range;
+		boost::split(range, meshIndexRange, boost::is_any_of("-"));
+		if (range.size() == 2) {
+			int start = range[0].empty() ? 0 : std::stoi(range[0]);
+			int end = range[1].empty() ? meshes->size() - 1 : std::stoi(range[1]);
+			for (int i = start; i <= end; ++i) {
+				if (i >= 0 && i < meshes->size()) {
+					meshQueue.push((*meshes.get())[i]);
+				}
+			}
+		}
+	}
+	if (meshQueue.empty()) {
+		for (auto it = meshes->begin(); it != meshes->end(); ++it) {
+			meshQueue.push(*it);
+		}
+	}
+
+	while (!meshQueue.empty()) {
+		ref_ptr<Mesh> meshResource = meshQueue.front();
+		meshQueue.pop();
 		if (meshResource.get() == nullptr) {
 			REGEN_WARN("null mesh");
 			continue;

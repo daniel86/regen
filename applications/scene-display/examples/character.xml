@@ -73,7 +73,7 @@
     <mesh id="dwarf-mesh" type="asset" asset="dwarf-asset" asset-indices="*" asset-animation="1">
         <transform id="dwarf-tf">
             <rotate value="1.5707963,0.0,0.0"/>
-            <translate value="2.0,0.0,0.0"/>
+            <translate value="2.0,0.1,16.0"/>
         </transform>
     </mesh>
 
@@ -89,6 +89,64 @@
         </transform>
         <material preset="pewter"/>
     </mesh>
+
+    <!--**************************-->
+    <!--********* Trees *********-->
+    <!--**************************-->
+
+    <texture id="trunk-color" file="res/textures/tree/trunk/pattern_230/diffuse.tga"/>
+    <texture id="trunk-normal" file="res/textures/tree/trunk/pattern_230/normal.tga"/>
+    <texture id="trunk-specular" file="res/textures/tree/trunk/pattern_230/specular.tga"/>
+    <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga"/>
+    <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga"/>
+    <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga"/>
+
+    <mesh id="tree-mesh" type="proctree"
+            seed="499" segments="8" levels="5"
+            v-multiplier="1"
+            branch-length="0.5"
+            branch-factor="2.2"
+            drop-amount="0.24"
+            grow-amount="0.044"
+            sweep-amount="0"
+            max-radius="0.096"
+            climb-rate="0.39"
+            trunk-kink="0"
+            tree-steps="5"
+            taper-rate="0.958"
+            radius-falloff-rate="0.71"
+            twist-rate="2.97"
+            trunk-length="1.95"
+            twig-scale="0.28"
+            falloff="0.98f, 1.08f"
+            clump="0.414, 0.282">
+        <transform id="tree-tf">
+            <scale value="4.0, 4.0, 4.0"/>
+            <rotate value="1.5707963,0.0,0.0"/>
+            <translate value="8.0,-2.0, -8.0"/>
+        </transform>
+        <physics mesh-id="tree-mesh" transform-id="tree-tf" shape="box" mass="0.0" size="0.6, 6.0, 0.6"/>
+    </mesh>
+
+    <node id="Trees">
+        <node id="tree1-trunk">
+            <material emission="0.01,0.01,0.01"/>
+            <texture id="trunk-color" map-to="color" />
+            <texture id="trunk-normal" map-to="normal" />
+            <!-- <texture id="trunk-specular" map-to="specular" /> -->
+            <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
+        </node>
+        <node id="tree1-twig">
+            <define key="IS_SHADOW_RECEIVER" value="FALSE"/>
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <material emission="0.05,0.1,0.05"/>
+            <toggle key="CULL_FACE" value="0" />
+            <texture id="twig-color" map-to="color" blend="src" texco-flipping="y"/>
+            <texture id="twig-normal" map-to="normal" />
+            <!-- <texture id="twig-specular" map-to="specular" /> -->
+            <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh"/>
+        </node>
+    </node>
 
     <!--**************************-->
     <!--********* Stairs *********-->
@@ -350,11 +408,19 @@
     <!--**************************-->
 
     <node id="Shadow-Caster">
-        <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere">
-            <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
+        <!-- <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere"> -->
+        <node id="Dwarf">
+            <node id="dwarf-body">
+                <mesh id="dwarf-mesh" mesh-index-range="1-" shader="regen.models.mesh"/>
+            </node>
+            <node id="dwarf-axe">
+                <material emission="0.1,0.1,0.1"/>
+                <mesh id="dwarf-mesh" mesh-index="0" shader="regen.models.mesh"/>
+            </node>
         </node>
         <node import="Stairs"/>
         <node import="Statues"/>
+        <node import="Trees"/>
         <node import="Platforms"/>
     </node>
 
