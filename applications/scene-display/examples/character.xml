@@ -177,13 +177,7 @@
         <!--**************************-->
         <!--**************************-->
 
-<mesh id="statue-platform"
-      type="box"
-      scaling="3.5,5.0,3.5"
-      use-normal="1"
-      use-tangent="0"
-      center="1"
-      usage="STATIC">
+<mesh id="statue-platform" type="box" use-normal="1" use-tangent="0" center="1" usage="STATIC" scaling="3.5,5.0,3.5">
     <transform id="statue-platform-tf">
         <rotate value="1.57079632,0.0,0.0"/>
         <translate value="-16.0, 3.0, -3.0"/>
@@ -356,8 +350,8 @@
     <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere">
         <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
     </node>
-    <node import="Statues"/>
     <node import="Stairs"/>
+    <node import="Statues"/>
     <node import="Platforms"/>
 </node>
 
