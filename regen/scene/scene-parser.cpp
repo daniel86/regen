@@ -6,7 +6,7 @@
  */
 
 #include "scene-parser.h"
-#include "regen/scene/nodes/deformation.h"
+#include "regen/scene/states/deformation.h"
 #include "regen/scene/nodes/physics.h"
 #include "regen/scene/nodes/motion-blur.h"
 #include "regen/scene/nodes/picking.h"
