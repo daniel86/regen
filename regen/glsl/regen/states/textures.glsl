@@ -175,11 +175,12 @@ in vec${_DIM} in_${_TEXCO};
 
 #ifdef TEX_FLIPPING_MODE${_ID}
 #define2 _FLIP_ ${TEX_FLIPPING_MODE${_ID}}
+#define2 _TEXCO_ ${REGEN_TEXCO${_ID}_}
 #if _FLIP_==x
-    texco${INDEX}.x = 1.0 - texco${INDEX}.x;
+    ${_TEXCO_}.x = 1.0 - ${_TEXCO_}.x;
 #endif
 #if _FLIP_==y
-    texco${INDEX}.y = 1.0 - texco${INDEX}.y;
+    ${_TEXCO_}.y = 1.0 - ${_TEXCO_}.y;
 #endif
 #endif // _MAPPING_==regen.states.textures.texco_texco
 
@@ -661,5 +662,29 @@ void fisheyeTransfer(inout vec2 texco)
     float a = 1.0 / (z * tan(in_fishEyeTheta * 0.5));
     //float a = (z * tan(in_fishEyeTheta * 0.5)) / 1.0; // reverse lens
     texco = 2.0*a*uv;
+}
+#endif
+
+-- wavingTransfer
+#ifndef REGEN_TEXCOTRANSFER_WAVING_
+#define2 REGEN_TEXCOTRANSFER_WAVING_
+#include regen.states.model.transformModel
+
+const float in_wavingFrequency = 1.0;
+const float in_wavingAmplitude = 0.2;
+const float in_wavingSpeed = 1.0;
+const vec2 in_waveBase = vec2(0.5, 1.0);
+
+void wavingTransfer(inout vec2 texco)
+{
+    float time = in_time * in_wavingSpeed;
+    float wave_x = sin(texco.y * in_wavingFrequency + time) * in_wavingAmplitude;
+    //float wave_y = sin(texco.x * in_wavingFrequency + time) * in_wavingAmplitude;
+#ifdef HAS_waveBase
+    wave_x *= length(texco - in_waveBase);
+    //wave_y *= length(texco - in_waveBase);
+#endif
+    texco.x += wave_x;
+    //texco.y += wave_y;
 }
 #endif
