@@ -100,6 +100,7 @@
     <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga"/>
     <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga"/>
     <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga"/>
+    <texture id="sand" file="res/textures/materials/sand.jpg"/>
 
     <mesh id="tree-mesh" type="proctree"
             seed="499" segments="8" levels="5"
@@ -128,6 +129,23 @@
         <physics mesh-id="tree-mesh" transform-id="tree-tf" shape="box" mass="0.0" size="0.6, 6.0, 0.6"/>
     </mesh>
 
+    <mesh id="tree-pot" type="torus" lod="2" use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
+            texco-scaling="3.0, 1.0"
+            ring-radius="1.0" tube-radius="0.2">
+        <transform id="tree-pot-tf">
+            <translate value="8.0, -1.4, -8.0"/>
+        </transform>
+        <physics mesh-id="tree-pot" transform-id="tree-pot-tf" shape="cylinder" mass="0.0" size="7.0,1.0,7.0"/>
+        <material preset="copper" emission="0.1,0.0,0.0"/>
+    </mesh>
+
+    <mesh id="tree-disc" type="disc" lod="2" use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
+            texco-scaling="0.1, 0.1" disc-radius="1.0">
+        <transform id="tree-disc-tf">
+            <translate value="8.0, -1.0, -8.0"/>
+        </transform>
+    </mesh>
+
     <node id="Trees">
         <node id="tree1-trunk">
             <material emission="0.01,0.01,0.01"/>
@@ -137,7 +155,6 @@
             <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
         <node id="tree1-twig">
-            <define key="IS_SHADOW_RECEIVER" value="FALSE"/>
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <material emission="0.05,0.1,0.05"/>
             <toggle key="CULL_FACE" value="0" />
@@ -145,6 +162,13 @@
             <texture id="twig-normal" map-to="normal" />
             <!-- <texture id="twig-specular" map-to="specular" /> -->
             <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh"/>
+        </node>
+        <node id="tree1-pot">
+            <mesh id="tree-pot" shader="regen.models.mesh"/>
+        </node>
+        <node id="tree1-pot-disc">
+            <texture id="sand" map-to="color" blend-mode="SRC"/>
+            <mesh id="tree-disc" shader="regen.models.mesh"/>
         </node>
     </node>
 
