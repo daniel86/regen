@@ -59,8 +59,6 @@
     <texture id="ground-color" file="res/textures/brick/color.jpg"/>
     <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
     <texture id="ground-height" file="res/textures/brick/height.jpg"/>
-    <texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
-    <texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
     <!-- Cameras -->
     <camera id="main-camera"
@@ -217,6 +215,10 @@
     <!--***** Particles etc. *****-->
     <!--**************************-->
 
+    <!--
+    <texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
+    <texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
+
     <mesh id="fire-sprite" type="point" usage="STATIC">
         <transform>
             <translate value="42.0, 2.0, -42.0"/>
@@ -224,39 +226,39 @@
     </mesh>
 
     <node id="Fire">
-        <node>
-            <blend mode="alpha"/>
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <input type="vec2" name="spriteSize" value="8.0, 8.0"/>
-            <texture id="fire-noise" name="fireNoiseTexture"/>
-            <texture id="fire-color" map-to="COLOR" blend="SRC"
-                     texco-transfer-key="regen.models.sprite.fireTransfer1"/>
-            <mesh id="fire-sprite" shader="regen.models.sprite"/>
-        </node>
+        <blend mode="alpha"/>
+        <define key="DISCARD_ALPHA" value="TRUE"/>
+        <input type="vec2" name="spriteSize" value="8.0, 8.0"/>
+        <texture id="fire-noise" name="fireNoiseTexture"/>
+        <texture id="fire-color" map-to="COLOR" blend="SRC"
+            texco-transfer-key="regen.models.sprite.fireTransfer1"/>
+        <mesh id="fire-sprite" shader="regen.models.sprite"/>
     </node>
+    -->
 
     <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
 
     <mesh id="test-particles" type="particles" num-vertices="500">
         <!-- Add shader defines. -->
         <define key="EMITTER_POSITION_MODE" value="ABSOLUTE"/>
-        <define key="PARTICLE_EMITTER_MODE" value="OUT"/>
+        <define key="PARTICLE_EMITTER_MODE" value="IN"/>
         <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
         <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
         <!-- Add shader input. -->
         <input type="vec3" name="gravity" value="0.0,-9.81,0.0"/>
-        <input type="float" name="dampingFactor" value="2.0"/>
+        <input type="float" name="dampingFactor" value="4.0"/>
         <input type="vec2" name="velocityFactorMinMax" value="10.0, 20.0"/>
-        <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0"/>
-        <input type="float" name="emitterSize" value="2.0"/>
+        <!-- <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0"/> -->
+        <input type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
+        <input type="float" name="emitterSize" value="9.0"/>
         <input type="float" name="emitterOpening" value="0.5"/>
         <input type="int" name="maxNumEmits" value="20"/>
         <input type="float" name="surfaceHeight" value="-1.0"/>
-        <input type="vec2" name="lifetimeVariance" value="1.5, 1.0"/>
+        <input type="vec2" name="lifetimeVariance" value="0.5, 0.25"/>
         <input type="vec2" name="massVariance" value="1.4, 0.4"/>
-        <input type="vec2" name="sizeVariance" value="0.5, 0.3"/>
-        <input type="vec3" name="colorDefault" value="0.1, 0.3, 0.6"/>
-        <input type="vec3" name="colorVariance" value="0.0, 0.1, 0.3"/>
+        <input type="vec2" name="sizeVariance" value="0.75, 0.3"/>
+        <input type="vec3" name="colorDefault" value="0.6, 0.4, 0.2"/>
+        <input type="vec3" name="colorVariance" value="0.2, 0.2, 0.0"/>
         <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
@@ -264,9 +266,7 @@
         <input type="vec3" name="color" is-attribute="1"/>
         <input type="float" name="mass" is-attribute="1"/>
         <input type="float" name="size" is-attribute="1"/>
-        <transform>
-            <translate value="0.0, 0.0, 0.0"/>
-        </transform>
+        <transform id="platform1-tf" />
     </mesh>
 
     <node id="Particle-Draw">
@@ -369,7 +369,6 @@
         <node id="Sky">
             <sky id="earth-sky"/>
         </node>
-        <node import="Fire"/>
     </node>
 
     <!--**************************-->
