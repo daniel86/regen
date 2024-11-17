@@ -1,514 +1,518 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/templates/default.xml"/>
+<node>
 
-<node id="configuration">
-    <animation id="dwarf-asset" type="asset" idle="idle2">
-        <key-mapping key=" " press="jumpSpot"/>
-        <key-mapping key="C" press="crouch" idle="crouchLoop" toggle="1"/>
-        <key-mapping key="W" press="walk" interrupt="1" release-interrupt="1"/>
-        <key-mapping key="A" press="walk" interrupt="1" release-interrupt="1"/>
-        <key-mapping key="S" press="walk" interrupt="1" release-interrupt="1" backwards="1"/>
-        <key-mapping key="D" press="walk" interrupt="1" release-interrupt="1"/>
-        <mouse-mapping button="1" press="attack1" />
-        <mouse-mapping button="2" press="block" />
-    </animation>
+    <include xml-file="scene-display/examples/templates/default.xml"/>
+
+    <node id="configuration">
+        <animation id="dwarf-asset" type="asset" idle="idle2">
+            <key-mapping key=" " press="jumpSpot"/>
+            <key-mapping key="C" press="crouch" idle="crouchLoop" toggle="1"/>
+            <key-mapping key="W" press="walk" interrupt="1" release-interrupt="1"/>
+            <key-mapping key="A" press="walk" interrupt="1" release-interrupt="1"/>
+            <key-mapping key="S" press="walk" interrupt="1" release-interrupt="1" backwards="1"/>
+            <key-mapping key="D" press="walk" interrupt="1" release-interrupt="1"/>
+            <mouse-mapping button="1" press="attack1"/>
+            <mouse-mapping button="2" press="block"/>
+        </animation>
+        <camera id="main-camera"
+                mode="third-person"
+                type="physical-character"
+                step-height="0.8"
+                max-slope="0.8"
+                collision-radius="0.9"
+                collision-height="3.9"
+                gravity-force="50.0"
+                jump-velocity="26.0"
+                speed="0.0175"
+                mesh="dwarf-mesh"
+                mesh-index="1"
+                mesh-distance="40.0"
+                mesh-horizontal-orientation="3.14159265359"
+                vertical-orientation="0.6"
+                transform="dwarf-tf"
+                eye-offset="0.0,2.75,0.0">
+            <key-mapping key="W" command="move_forward"/>
+            <key-mapping key="A" command="move_left"/>
+            <key-mapping key="S" command="move_backward"/>
+            <key-mapping key="D" command="move_right"/>
+            <key-mapping key=" " command="jump"/>
+            <key-mapping key="C" command="crouch"/>
+        </camera>
+    </node>
+
+    <!-- FBOs -->
+    <fbo id="g-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="emission" pixel-components="3"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <!-- Textures -->
+    <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
+    <texture id="ground-color" file="res/textures/brick/color.jpg"/>
+    <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
+    <texture id="ground-height" file="res/textures/brick/height.jpg"/>
+    <texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
+    <texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
+    <!-- Cameras -->
     <camera id="main-camera"
-            mode="third-person"
-            type="physical-character"
-            step-height="0.8"
-            max-slope="0.8"
-            collision-radius="0.9"
-            collision-height="3.9"
-            gravity-force="50.0"
-            jump-velocity="26.0"
-            speed="0.0175"
-            mesh="dwarf-mesh"
-            mesh-index="1"
-            mesh-distance="40.0"
-            mesh-horizontal-orientation="3.14159265359"
-            vertical-orientation="0.6"
-            transform="dwarf-tf"
-            eye-offset="0.0,2.75,0.0">
-        <key-mapping key="W" command="move_forward" />
-        <key-mapping key="A" command="move_left" />
-        <key-mapping key="S" command="move_backward" />
-        <key-mapping key="D" command="move_right" />
-        <key-mapping key=" " command="jump" />
-        <key-mapping key="C" command="crouch" />
-    </camera>
-</node>
+            fov="45.0" near="0.1" far="200.0"
+            position="25.0,2.5,2.0"
+            direction="1.0,0.0,-1.0"/>
 
-        <!-- FBOs -->
-<fbo id="g-buffer"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
-    <texture id="diffuse0" />
-    <texture id="diffuse1" />
-    <texture id="specular" />
-    <texture id="emission" pixel-components="3" />
-    <texture id="normal" />
-    <depth id="depth" pixel-size="24" />
-</fbo>
-        <!-- Textures -->
-<texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer" />
-<texture id="ground-color" file="res/textures/brick/color.jpg"/>
-<texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
-<texture id="ground-height" file="res/textures/brick/height.jpg"/>
-<texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
-<texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
-<texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
-        <!-- Cameras -->
-<camera id="main-camera"
-        fov="45.0" near="0.1" far="200.0"
-        position="25.0,2.5,2.0"
-        direction="1.0,0.0,-1.0"/>
+    <!--**************************-->
+    <!--******* Character ********-->
+    <!--**************************-->
 
-        <!--**************************-->
-        <!--******* Character ********-->
-        <!--**************************-->
+    <mesh id="dwarf-mesh" type="asset" asset="dwarf-asset" asset-indices="*" asset-animation="1">
+        <transform id="dwarf-tf">
+            <rotate value="1.5707963,0.0,0.0"/>
+            <translate value="2.0,0.0,0.0"/>
+        </transform>
+    </mesh>
 
-<mesh id="dwarf-mesh" type="asset" asset="dwarf-asset" asset-indices="*" asset-animation="1">
-    <transform id="dwarf-tf">
-        <rotate value="1.5707963,0.0,0.0"/>
-        <translate value="2.0,0.0,0.0"/>
-    </transform>
-</mesh>
+    <!--**************************-->
+    <!--********* Ground *********-->
+    <!--**************************-->
 
-        <!--**************************-->
-        <!--********* Ground *********-->
-        <!--**************************-->
-
-<mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="2"
-      rotation="0.0,0.0,3.1415"
-      scaling="1000.0,20.0,1000.0">
-    <transform id="ground-tf">
+    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="2"
+          rotation="0.0,0.0,3.1415"
+          scaling="1000.0,20.0,1000.0">
+        <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
-    </transform>
-    <material preset="pewter"/>
-</mesh>
+        </transform>
+        <material preset="pewter"/>
+    </mesh>
 
-        <!--**************************-->
-        <!--********* Stairs *********-->
-        <!--**************************-->
+    <!--**************************-->
+    <!--********* Stairs *********-->
+    <!--**************************-->
 
-<mesh id="stairs0-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
-    <transform id="stairs0-tf">
-        <translate value="16.0,-1.6,16.0"/>
-    </transform>
-    <physics mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
-    <material preset="copper"/>
-</mesh>
+    <mesh id="stairs0-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
+        <transform id="stairs0-tf">
+            <translate value="16.0,-1.6,16.0"/>
+        </transform>
+        <physics mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
+        <material preset="copper"/>
+    </mesh>
 
-<mesh id="stairs1-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="6.0,0.4,4.0">
-    <transform id="stairs1-tf">
-        <translate value="16.0,-0.8,16.0"/>
-    </transform>
-    <physics mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
-    <material preset="copper"/>
-</mesh>
+    <mesh id="stairs1-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="6.0,0.4,4.0">
+        <transform id="stairs1-tf">
+            <translate value="16.0,-0.8,16.0"/>
+        </transform>
+        <physics mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
+        <material preset="copper"/>
+    </mesh>
 
-<mesh id="stairs2-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="4.0,0.4,4.0">
-    <transform id="stairs2-tf">
-        <translate value="16.0,0.0,16.0"/>
-    </transform>
-    <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
-    <material preset="copper"/>
-</mesh>
+    <mesh id="stairs2-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="4.0,0.4,4.0">
+        <transform id="stairs2-tf">
+            <translate value="16.0,0.0,16.0"/>
+        </transform>
+        <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
+        <material preset="copper"/>
+    </mesh>
 
-<node id="Stairs">
-    <node id="stairs0">
-        <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node id="stairs1">
-        <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node id="stairs2">
-        <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
-    </node>
-</node>
-
-        <!--**************************-->
-        <!--******** Platforms *******-->
-        <!--**************************-->
-
-<mesh id="platform0-mesh" type="box" use-normal="1" center="1" usage="STATIC"
-        scaling="4.0,0.4,4.0">
-    <transform id="platform0-tf">
-        <translate value="16.0,3.0,-16.0"/>
-        <animation type="key-frames" mesh-id="platform0-mesh" dt="2.5">
-            <key-frame position="16.0,3.0,8.0"/>
-            <key-frame position="16.0,3.0,-16.0"/>
-        </animation>
-    </transform>
-    <physics mesh-id="platform0-mesh" transform-id="platform0-tf"
-             shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
-             size="8.0,0.8,8.0"/>
-    <material preset="copper" emission="0.3,0.1,0.1" />
-</mesh>
-
-<mesh id="platform1-mesh" type="box" use-normal="1" center="1" usage="STATIC"
-        scaling="4.0,0.4,4.0">
-    <transform id="platform1-tf">
-        <translate value="8.0,7.0,-16.0"/>
-        <animation type="key-frames" mesh-id="platform1-mesh" dt="2.5">
-            <key-frame position="-20.0,7.0,-16.0"/>
-            <key-frame position="8.0,7.0,-16.0"/>
-        </animation>
-    </transform>
-    <physics mesh-id="platform1-mesh" transform-id="platform1-tf"
-             shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
-             size="8.0,0.8,8.0"/>
-    <material preset="copper" emission="0.3,0.1,0.1" />
-</mesh>
-
-<node id="Platforms">
-    <texture id="glow-map" map-to="emission" blend-mode="ADD" />
-    <node id="platform0">
-        <mesh id="platform0-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node id="platform1">
-        <mesh id="platform1-mesh" shader="regen.models.mesh"/>
-    </node>
-</node>
-
-        <!--**************************-->
-        <!--**************************-->
-
-<mesh id="statue-platform" type="box" use-normal="1" use-tangent="0" center="1" usage="STATIC" scaling="3.5,5.0,3.5">
-    <transform id="statue-platform-tf">
-        <rotate value="1.57079632,0.0,0.0"/>
-        <translate value="-16.0, 3.0, -3.0"/>
-    </transform>
-    <physics mesh-id="statue-platform" transform-id="statue-platform-tf"
-        shape="box" size="7.0, 10.0, 7.0" mass="0.0" />
-    <material preset="copper" />
-</mesh>
-
-<node id="Statues">
-    <node id="statue-platform">
-        <mesh id="statue-platform" shader="regen.models.mesh"/>
-    </node>
-    <node id="statue-slope">
-        <mesh id="slope-mesh" shader="regen.models.mesh"/>
-    </node>
-</node>
-
-        <!--**************************-->
-        <!--***** Slope *****-->
-        <!--**************************-->
-
-<mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" center="1"
-      usage="STATIC" lod="2" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0">
-    <transform id="slope-tf">
-        <rotate value="0,0, -0.6, 0.0"/>
-        <translate value="-16.0, 3.0, 7.9"/>
-    </transform>
-    <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0" />
-    <material preset="copper"/>
-</mesh>
-
-        <!--**************************-->
-        <!--***** Particles etc. *****-->
-        <!--**************************-->
-
-<mesh id="fire-sprite" type="point" usage="STATIC">
-    <transform>
-        <translate value="42.0, 2.0, -42.0"/>
-    </transform>
-</mesh>
-
-<node id="Fire">
-    <node>
-        <blend mode="alpha" />
-        <define key="DISCARD_ALPHA" value="TRUE" />
-        <input type="vec2" name="spriteSize" value="8.0, 8.0"/>
-        <texture id="fire-noise" name="fireNoiseTexture" />
-        <texture id="fire-color" map-to="COLOR" blend="SRC"
-            texco-transfer-key="regen.models.sprite.fireTransfer1"/>
-        <mesh id="fire-sprite" shader="regen.models.sprite"/>
-    </node>
-</node>
-
-<texture id="fog-splat" file="res/textures/splats/flare.jpg" />
-
-<mesh id="test-particles" type="particles" num-vertices="500">
-    <!-- Add shader defines. -->
-    <define key="EMITTER_POSITION_MODE" value="ABSOLUTE" />
-    <define key="PARTICLE_EMITTER_MODE" value="OUT" />
-    <define key="PARTICLE_EMITTER_SHAPE" value="DISC" />
-    <define key="OPACITY_WEIGHTED_COLOR" value="TRUE" />
-    <!-- Add shader input. -->
-    <input type="vec3" name="gravity" value="0.0,-9.81,0.0" />
-    <input type="float" name="dampingFactor" value="2.0" />
-    <input type="vec2" name="velocityFactorMinMax" value="10.0, 20.0" />
-    <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0" />
-    <input type="float" name="emitterSize" value="2.0" />
-    <input type="float" name="emitterOpening" value="0.5" />
-    <input type="int" name="maxNumEmits" value="20" />
-    <input type="float" name="surfaceHeight" value="-1.0" />
-    <input type="vec2" name="lifetimeVariance" value="1.5, 1.0" />
-    <input type="vec2" name="massVariance" value="1.4, 0.4" />
-    <input type="vec2" name="sizeVariance" value="0.5, 0.3" />
-    <input type="vec3" name="colorDefault" value="0.1, 0.3, 0.6" />
-    <input type="vec3" name="colorVariance" value="0.0, 0.1, 0.3" />
-    <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
-    <!-- Add particle attributes. -->
-    <input type="vec3" name="pos" is-attribute="1" />
-    <input type="vec3" name="velocity" is-attribute="1" />
-    <input type="vec3" name="color" is-attribute="1" />
-    <input type="float" name="mass" is-attribute="1" />
-    <input type="float" name="size" is-attribute="1" />
-    <transform>
-        <translate value="0.0, 0.0, 0.0"/>
-    </transform>
-</mesh>
-
-<node id="Particle-Draw">
-    <define key="USE_SOFT_PARTICLES" value="TRUE" />
-    <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
-    <define key="IS_SHADOW_RECEIVER" value="FALSE" />
-    <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-    <texture name="splatTexture" id="fog-splat" map-to="COLOR" blend-mode="MUL" />
-    <input type="vec3" name="particleColor" value="0.9, 0.4, 0.1" />
-    <input type="float" name="softParticleScale" value="30.0" />
-    <input type="float" name="particleBrightness" value="1.0" />
-    <input type="float" name="lifetimeSmoothstep" value="1.0" />
-    <mesh id="test-particles" shader="regen.particles.sprite" />
-</node>
-
-        <!--**************************-->
-        <!--********* Shading ********-->
-        <!--**************************-->
-
-<light id="room-light0"
-       type="POINT"
-       position="-5.0,16.0,0.0"
-       radius="30.0,48.0"
-       direction="0.0,-1.0,0.0"
-       diffuse="0.8,0.9,0.835"
-       ambient="0.6,0.6,0.6"/>
-
-<camera id="room-light-camera0"
-        light="room-light0"
-        camera="main-camera"/>
-
-<fbo id="room-light-shadow0"
-     target="TEXTURE_CUBE_MAP"
-     sampler-type="samplerCube"
-     size-mode="abs" size="1024,1024,6">
-    <depth pixel-size="24" pixel-type="FLOAT"
-           wrapping="CLAMP_TO_EDGE"
-           min-filter="NEAREST" mag-filter="NEAREST"
-           compare-mode="COMPARE_R_TO_TEXTURE"
-           compare-function="LEQUAL"
-           sampler-type="samplerCubeShadow"/>
-</fbo>
-
-<node id="Shadow-Pass">
-    <cull mode="FRONT"/>
-    <define key="OUTPUT_TYPE" value="DEPTH"/>
-
-    <node id="Room-Light-Shadow">
-        <node id="Room-Light-Shadow0">
-            <fbo id="room-light-shadow0" clear-depth="1"/>
-            <camera id="room-light-camera0"/>
-            <!-- <polygon offset-fill="1.1,4.0" /> -->
-            <node import="Shadow-Caster"/>
+    <node id="Stairs">
+        <node id="stairs0">
+            <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="stairs1">
+            <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="stairs2">
+            <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
-</node>
 
-<node id="Shading-Pass">
-    <blend mode="add"/>
-    <depth test="0" write="0"/>
-    <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
-    <resource id="earth-sky" />
+    <!--**************************-->
+    <!--******** Platforms *******-->
+    <!--**************************-->
 
-    <node id="Ambient-Shading">
-        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-    </node>
-    <node id="Light-Shading">
-        <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-            <light id="earth-sky-sun" />
-        </light-pass>
-        <light-pass type="POINT" shader="regen.shading.deferred.point">
-            <light id="room-light0"
-                   shadow-buffer="room-light-shadow0" shadow-attachment="depth"
-                   shadow-camera="room-light-camera0"/>
-        </light-pass>
-    </node>
-</node>
+    <mesh id="platform0-mesh" type="box" use-normal="1" center="1" usage="STATIC"
+          scaling="4.0,0.4,4.0">
+        <transform id="platform0-tf">
+            <translate value="16.0,3.0,-16.0"/>
+            <animation type="key-frames" mesh-id="platform0-mesh" dt="2.5">
+                <key-frame position="16.0,3.0,8.0"/>
+                <key-frame position="16.0,3.0,-16.0"/>
+            </animation>
+        </transform>
+        <physics mesh-id="platform0-mesh" transform-id="platform0-tf"
+                 shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
+                 size="8.0,0.8,8.0"/>
+        <material preset="copper" emission="0.3,0.1,0.1"/>
+    </mesh>
 
-        <!--**************************-->
-        <!--********* Objects ********-->
-        <!--**************************-->
+    <mesh id="platform1-mesh" type="box" use-normal="1" center="1" usage="STATIC"
+          scaling="4.0,0.4,4.0">
+        <transform id="platform1-tf">
+            <translate value="8.0,7.0,-16.0"/>
+            <animation type="key-frames" mesh-id="platform1-mesh" dt="2.5">
+                <key-frame position="-20.0,7.0,-16.0"/>
+                <key-frame position="8.0,7.0,-16.0"/>
+            </animation>
+        </transform>
+        <physics mesh-id="platform1-mesh" transform-id="platform1-tf"
+                 shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
+                 size="8.0,0.8,8.0"/>
+        <material preset="copper" emission="0.3,0.1,0.1"/>
+    </mesh>
 
-<node id="Shadow-Caster">
-    <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere">
-        <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
-    </node>
-    <node import="Stairs"/>
-    <node import="Statues"/>
-    <node import="Platforms"/>
-</node>
-
-<node id="Non-Shadow-Caster">
-    <node id="Ground">
-        <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0" />
-        <mesh id="ground-mesh" shader="regen.models.mesh"/>
-    </node>
-</node>
-
-<node id="Background-Objects">
-    <node id="Sky">
-        <sky id="earth-sky" />
-    </node>
-    <node import="Fire" />
-</node>
-
-        <!--**************************-->
-        <!--**************************-->
-
-<node id="Post-Pass">
-    <depth test="0" write="0"/>
-    <!-- blur the g-buffer attachment 1, the output is a named texture "blurred-scene" -->
-    <node import="G-Buffer-Blur1"/>
-    <!-- apply depth of field effect by mixing the blurred scene with the original scene -->
-    <node import="Depth-of-Field">
-        <fbo id="g-buffer" draw-buffers="0" />
-        <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-    </node>
-    <view id="Depth of Field">
-        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-    <!-- render transparent objects -->
-    <node id="Transparent-Pass">
-        <fbo id="g-buffer" draw-buffers="0" />
-        <blend mode="add" />
-        <depth test="1" write="0" />
-        <!-- render emission light -->
-        <node id="Material-Emission">
-            <texture name="gEmissionTexture" fbo="g-buffer" attachment="4" />
-            <texture name="gEmissionBlurred" id="emission-map-bloom" />
-            <!-- <texture name="gEmissionBlurred" id="emission-map-blur" /> -->
-            <fullscreen-pass shader="regen.shading.deferred.emission"/>
+    <node id="Platforms">
+        <texture id="glow-map" map-to="emission" blend-mode="ADD"/>
+        <node id="platform0">
+            <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
-        <!-- render particles -->
-        <node import="Particle-Draw" />
-        <view id="Transparent Objects">
+        <node id="platform1">
+            <mesh id="platform1-mesh" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <mesh id="statue-platform" type="box" use-normal="1" use-tangent="0" center="1" usage="STATIC"
+          scaling="3.5,5.0,3.5">
+        <transform id="statue-platform-tf">
+            <rotate value="1.57079632,0.0,0.0"/>
+            <translate value="-16.0, 3.0, -3.0"/>
+        </transform>
+        <physics mesh-id="statue-platform" transform-id="statue-platform-tf"
+                 shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
+        <material preset="copper"/>
+    </mesh>
+
+    <node id="Statues">
+        <node id="statue-platform">
+            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        </node>
+        <node id="statue-slope">
+            <mesh id="slope-mesh" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--***** Slope *****-->
+    <!--**************************-->
+
+    <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" center="1"
+          usage="STATIC" lod="2" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0">
+        <transform id="slope-tf">
+            <rotate value="0,0, -0.6, 0.0"/>
+            <translate value="-16.0, 3.0, 7.9"/>
+        </transform>
+        <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
+        <material preset="copper"/>
+    </mesh>
+
+    <!--**************************-->
+    <!--***** Particles etc. *****-->
+    <!--**************************-->
+
+    <mesh id="fire-sprite" type="point" usage="STATIC">
+        <transform>
+            <translate value="42.0, 2.0, -42.0"/>
+        </transform>
+    </mesh>
+
+    <node id="Fire">
+        <node>
+            <blend mode="alpha"/>
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <input type="vec2" name="spriteSize" value="8.0, 8.0"/>
+            <texture id="fire-noise" name="fireNoiseTexture"/>
+            <texture id="fire-color" map-to="COLOR" blend="SRC"
+                     texco-transfer-key="regen.models.sprite.fireTransfer1"/>
+            <mesh id="fire-sprite" shader="regen.models.sprite"/>
+        </node>
+    </node>
+
+    <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
+
+    <mesh id="test-particles" type="particles" num-vertices="500">
+        <!-- Add shader defines. -->
+        <define key="EMITTER_POSITION_MODE" value="ABSOLUTE"/>
+        <define key="PARTICLE_EMITTER_MODE" value="OUT"/>
+        <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
+        <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
+        <!-- Add shader input. -->
+        <input type="vec3" name="gravity" value="0.0,-9.81,0.0"/>
+        <input type="float" name="dampingFactor" value="2.0"/>
+        <input type="vec2" name="velocityFactorMinMax" value="10.0, 20.0"/>
+        <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0"/>
+        <input type="float" name="emitterSize" value="2.0"/>
+        <input type="float" name="emitterOpening" value="0.5"/>
+        <input type="int" name="maxNumEmits" value="20"/>
+        <input type="float" name="surfaceHeight" value="-1.0"/>
+        <input type="vec2" name="lifetimeVariance" value="1.5, 1.0"/>
+        <input type="vec2" name="massVariance" value="1.4, 0.4"/>
+        <input type="vec2" name="sizeVariance" value="0.5, 0.3"/>
+        <input type="vec3" name="colorDefault" value="0.1, 0.3, 0.6"/>
+        <input type="vec3" name="colorVariance" value="0.0, 0.1, 0.3"/>
+        <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
+        <!-- Add particle attributes. -->
+        <input type="vec3" name="pos" is-attribute="1"/>
+        <input type="vec3" name="velocity" is-attribute="1"/>
+        <input type="vec3" name="color" is-attribute="1"/>
+        <input type="float" name="mass" is-attribute="1"/>
+        <input type="float" name="size" is-attribute="1"/>
+        <transform>
+            <translate value="0.0, 0.0, 0.0"/>
+        </transform>
+    </mesh>
+
+    <node id="Particle-Draw">
+        <define key="USE_SOFT_PARTICLES" value="TRUE"/>
+        <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
+        <define key="IS_SHADOW_RECEIVER" value="FALSE"/>
+        <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+        <texture name="splatTexture" id="fog-splat" map-to="COLOR" blend-mode="MUL"/>
+        <input type="vec3" name="particleColor" value="0.9, 0.4, 0.1"/>
+        <input type="float" name="softParticleScale" value="30.0"/>
+        <input type="float" name="particleBrightness" value="1.0"/>
+        <input type="float" name="lifetimeSmoothstep" value="1.0"/>
+        <mesh id="test-particles" shader="regen.particles.sprite"/>
+    </node>
+
+    <!--**************************-->
+    <!--********* Shading ********-->
+    <!--**************************-->
+
+    <light id="room-light0"
+           type="POINT"
+           position="-5.0,16.0,0.0"
+           radius="30.0,48.0"
+           direction="0.0,-1.0,0.0"
+           diffuse="0.8,0.9,0.835"
+           ambient="0.6,0.6,0.6"/>
+
+    <camera id="room-light-camera0"
+            light="room-light0"
+            camera="main-camera"/>
+
+    <fbo id="room-light-shadow0"
+         target="TEXTURE_CUBE_MAP"
+         sampler-type="samplerCube"
+         size-mode="abs" size="1024,1024,6">
+        <depth pixel-size="24" pixel-type="FLOAT"
+               wrapping="CLAMP_TO_EDGE"
+               min-filter="NEAREST" mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="samplerCubeShadow"/>
+    </fbo>
+
+    <node id="Shadow-Pass">
+        <cull mode="FRONT"/>
+        <define key="OUTPUT_TYPE" value="DEPTH"/>
+
+        <node id="Room-Light-Shadow">
+            <node id="Room-Light-Shadow0">
+                <fbo id="room-light-shadow0" clear-depth="1"/>
+                <camera id="room-light-camera0"/>
+                <!-- <polygon offset-fill="1.1,4.0" /> -->
+                <node import="Shadow-Caster"/>
+            </node>
+        </node>
+    </node>
+
+    <node id="Shading-Pass">
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
+        <resource id="earth-sky"/>
+
+        <node id="Ambient-Shading">
+            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+        </node>
+        <node id="Light-Shading">
+            <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+                <light id="earth-sky-sun"/>
+            </light-pass>
+            <light-pass type="POINT" shader="regen.shading.deferred.point">
+                <light id="room-light0"
+                       shadow-buffer="room-light-shadow0" shadow-attachment="depth"
+                       shadow-camera="room-light-camera0"/>
+            </light-pass>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--********* Objects ********-->
+    <!--**************************-->
+
+    <node id="Shadow-Caster">
+        <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere">
+            <mesh id="dwarf-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node import="Stairs"/>
+        <node import="Statues"/>
+        <node import="Platforms"/>
+    </node>
+
+    <node id="Non-Shadow-Caster">
+        <node id="Ground">
+            <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
+            <mesh id="ground-mesh" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Background-Objects">
+        <node id="Sky">
+            <sky id="earth-sky"/>
+        </node>
+        <node import="Fire"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="Post-Pass">
+        <depth test="0" write="0"/>
+        <!-- blur the g-buffer attachment 1, the output is a named texture "blurred-scene" -->
+        <node import="G-Buffer-Blur1"/>
+        <!-- apply depth of field effect by mixing the blurred scene with the original scene -->
+        <node import="Depth-of-Field">
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+        </node>
+        <view id="Depth of Field">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
-    </node>
-    <!-- apply anti-aliasing effect -->
-    <node import="FXAA">
-        <fbo id="g-buffer" draw-buffers="1"/>
-        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
-    </node>
-    <view id="Antialiased Scene">
-        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
-    </view>
-</node>
-
-<node id="root">
-    <node id="Pre-Render">
-        <!-- Render shadow maps such that they can be used in the shading pass -->
-        <node import="Shadow-Pass">
-            <!-- <polygon offset-fill="1.1,4.0"/> -->
-        </node>
-        <view id="Shadow-Map">
-            <fbo id="SCREEN"/>
-            <texture name="cubeTexture" fbo="room-light-shadow0" attachment="depth"/>
-            <fullscreen-pass shader="regen.filter.sampling.cube-shadow-unfold"/>
-        </view>
-    </node>
-
-    <node id="Render">
-        <fbo id="g-buffer" clear-buffers="0,1,2,3,4" clear-depth="1"/>
-        <camera id="main-camera" />
-
-        <node id="Geometry-Pass">
-            <fbo id="g-buffer" draw-buffers="0,1,2,3,4" />
-            <blend mode="src" />
-            <depth test="1" write="1" />
-            <node import="Shadow-Caster" />
-            <node import="Non-Shadow-Caster" />
-            <view id="G-Buffer: Emission">
-                <blit src-fbo="g-buffer" src-attachment="4" dst-fbo="SCREEN" />
-            </view>
-            <node import="G-Buffer-Views" />
-        </node>
-
-        <node id="Post-Geometry">
-            <node id="Emission-Update">
-                <input type="float" name="filterRadius" value="0.01" />
-                <bloom fbo="g-buffer" attachment="4" bloom-texture="emission-map-bloom" />
-            </node>
-            <view id="Emission Mips">
-                <fbo id="SCREEN"/>
-                <texture name="inputTexture1" id="emission-map-bloom" mip-level="0" />
-                <texture name="inputTexture2" id="emission-map-bloom" mip-level="1" />
-                <texture name="inputTexture3" id="emission-map-bloom" mip-level="2" />
-                <texture name="inputTexture4" id="emission-map-bloom" mip-level="3" />
-                <fullscreen-pass shader="regen.filter.sampling.x4"/>
-            </view>
-            <!--
-            <node id="Emission-Blur">
-                <input type="int" name="numBlurPixels" value="4" />
-                <input type="float" name="blurSigma" value="2.0" />
-                <filter-sequence id="emission-map-blur" fbo="g-buffer" attachment="4" >
-                    <filter shader="regen.filter.sampling" scale="0.5" />
-                    <filter shader="regen.filter.blur.horizontal" />
-                    <filter shader="regen.filter.blur.vertical" />
-                </filter-sequence>
-            </node>
-            -->
-        </node>
-
-        <node id="Shading">
-            <fbo id="g-buffer" draw-buffers="1" />
-            <node id="Light-Pass">
-                <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-                <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-                <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-                <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-                <node import="Shading-Pass" />
-            </node>
-            <view id="Shaded Scene">
-                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-            </view>
-        </node>
-
-        <node id="Post-Shading">
-            <node import="Background-Objects" />
-            <view id="Scene with Background">
-                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-            </view>
-            <node import="Post-Pass" />
-        </node>
-
-        <view id="Bullet Debug">
-            <node import="bullet-debug">
-                <fbo id="g-buffer" draw-buffers="1"/>
-            </node>
-            <node>
-                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
-            </node>
-        </view>
-        <!--
-        <node import="bullet-debug">
+        <!-- render transparent objects -->
+        <node id="Transparent-Pass">
             <fbo id="g-buffer" draw-buffers="0"/>
+            <blend mode="add"/>
+            <depth test="1" write="0"/>
+            <!-- render emission light -->
+            <node id="Material-Emission">
+                <texture name="gEmissionTexture" fbo="g-buffer" attachment="4"/>
+                <texture name="gEmissionBlurred" id="emission-map-bloom"/>
+                <!-- <texture name="gEmissionBlurred" id="emission-map-blur" /> -->
+                <fullscreen-pass shader="regen.shading.deferred.emission"/>
+            </node>
+            <!-- render particles -->
+            <node import="Particle-Draw"/>
+            <view id="Transparent Objects">
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </view>
         </node>
-        -->
-
-        <node import="GUI-Pass">
+        <!-- apply anti-aliasing effect -->
+        <node import="FXAA">
             <fbo id="g-buffer" draw-buffers="1"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
         </node>
-
-        <view id="Output Rendering">
+        <view id="Antialiased Scene">
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
+    </node>
+
+    <node id="root">
+        <node id="Pre-Render">
+            <!-- Render shadow maps such that they can be used in the shading pass -->
+            <node import="Shadow-Pass">
+                <!-- <polygon offset-fill="1.1,4.0"/> -->
+            </node>
+            <view id="Shadow-Map">
+                <fbo id="SCREEN"/>
+                <texture name="cubeTexture" fbo="room-light-shadow0" attachment="depth"/>
+                <fullscreen-pass shader="regen.filter.sampling.cube-shadow-unfold"/>
+            </view>
+        </node>
+
+        <node id="Render">
+            <fbo id="g-buffer" clear-buffers="0,1,2,3,4" clear-depth="1"/>
+            <camera id="main-camera"/>
+
+            <node id="Geometry-Pass">
+                <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
+                <blend mode="src"/>
+                <depth test="1" write="1"/>
+                <node import="Shadow-Caster"/>
+                <node import="Non-Shadow-Caster"/>
+                <view id="G-Buffer: Emission">
+                    <blit src-fbo="g-buffer" src-attachment="4" dst-fbo="SCREEN"/>
+                </view>
+                <node import="G-Buffer-Views"/>
+            </node>
+
+            <node id="Post-Geometry">
+                <node id="Emission-Update">
+                    <input type="float" name="filterRadius" value="0.01"/>
+                    <bloom fbo="g-buffer" attachment="4" bloom-texture="emission-map-bloom"/>
+                </node>
+                <view id="Emission Mips">
+                    <fbo id="SCREEN"/>
+                    <texture name="inputTexture1" id="emission-map-bloom" mip-level="0"/>
+                    <texture name="inputTexture2" id="emission-map-bloom" mip-level="1"/>
+                    <texture name="inputTexture3" id="emission-map-bloom" mip-level="2"/>
+                    <texture name="inputTexture4" id="emission-map-bloom" mip-level="3"/>
+                    <fullscreen-pass shader="regen.filter.sampling.x4"/>
+                </view>
+                <!--
+                <node id="Emission-Blur">
+                    <input type="int" name="numBlurPixels" value="4" />
+                    <input type="float" name="blurSigma" value="2.0" />
+                    <filter-sequence id="emission-map-blur" fbo="g-buffer" attachment="4" >
+                        <filter shader="regen.filter.sampling" scale="0.5" />
+                        <filter shader="regen.filter.blur.horizontal" />
+                        <filter shader="regen.filter.blur.vertical" />
+                    </filter-sequence>
+                </node>
+                -->
+            </node>
+
+            <node id="Shading">
+                <fbo id="g-buffer" draw-buffers="1"/>
+                <node id="Light-Pass">
+                    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+                    <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
+                    <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
+                    <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+                    <node import="Shading-Pass"/>
+                </node>
+                <view id="Shaded Scene">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+            </node>
+
+            <node id="Post-Shading">
+                <node import="Background-Objects"/>
+                <view id="Scene with Background">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+                <node import="Post-Pass"/>
+            </node>
+
+            <view id="Bullet Debug">
+                <node import="bullet-debug">
+                    <fbo id="g-buffer" draw-buffers="1"/>
+                </node>
+                <node>
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </node>
+            </view>
+            <!--
+            <node import="bullet-debug">
+                <fbo id="g-buffer" draw-buffers="0"/>
+            </node>
+            -->
+
+            <node import="GUI-Pass">
+                <fbo id="g-buffer" draw-buffers="1"/>
+            </node>
+
+            <view id="Output Rendering">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+        </node>
     </node>
 </node>
