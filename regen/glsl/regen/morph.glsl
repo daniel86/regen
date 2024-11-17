@@ -1,5 +1,27 @@
 
 --------------
+-----
+--------------
+-- posWavingTransfer
+#ifndef REGEN_POS_TRANSFER_WAVING_
+#define2 REGEN_POS_TRANSFER_WAVING_
+
+const float in_wavingSpeed = 14.0;
+const float in_wavingShakeStrength = 0.05;
+const vec2 in_waveBase = vec2(0.5, 1.0);
+const vec3 in_wind = vec3(1.0, 0.0, 0.0);
+
+void posWavingTransfer(inout vec3 pos)
+{
+    float time = in_time * in_wavingSpeed + float(gl_VertexID) * 0.1;
+    vec2 texco = in_texco0;
+    float wave = sin(texco.y + time);
+    float attenuation = pow(abs(texco.y - in_waveBase.y), 2.0);
+    pos += in_wind*attenuation + normalize(in_wind)*wave*in_wavingShakeStrength*attenuation;
+}
+#endif // REGEN_POS_TRANSFER_WAVING_
+
+--------------
 ----- Simpe mesh animation shader that takes two key frames as input
 ----- and interpolates between these values with an user defined
 ----- function.
@@ -19,7 +41,7 @@ in ${_TYPE} in_last_${_NAME};
 in ${_TYPE} in_next_${_NAME};
 out ${_TYPE} out_${_NAME};
 #endfor
-
+mesh-animation
 // flat
 #define interpolate_flat(X,Y,T) (X)
 // linear

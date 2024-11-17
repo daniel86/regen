@@ -61,7 +61,7 @@ MeshAnimation::MeshAnimation(
 	std::map<std::string, std::string> functions;
 	std::list<std::string> transformFeedback;
 
-	shaderNames[GL_VERTEX_SHADER] = "regen.mesh-animation.interpolate";
+	shaderNames[GL_VERTEX_SHADER] = "regen.morph.interpolate";
 
 	// find buffer size
 	bufferSize_ = 0u;

@@ -668,7 +668,6 @@ void fisheyeTransfer(inout vec2 texco)
 -- wavingTransfer
 #ifndef REGEN_TEXCOTRANSFER_WAVING_
 #define2 REGEN_TEXCOTRANSFER_WAVING_
-#include regen.states.model.transformModel
 
 const float in_wavingFrequency = 1.0;
 const float in_wavingAmplitude = 0.2;

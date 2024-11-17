@@ -162,9 +162,24 @@
             <material emission="0.05,0.1,0.05"/>
             <toggle key="CULL_FACE" value="0" />
             <define key="HAS_TWO_SIDES" value="TRUE" />
+            <input name="wind" type="vec3">
+                <animation >
+                    <key-frame value="-1.0, 0.0, 0.0" dt="0.0" />
+                    <key-frame value="-1.4, 0.0, 0.0" dt="0.4"/>
+                    <key-frame value="-1.4, 0.0, 0.0" dt="6.0" />
+                    <key-frame value="-1.4, 0.0, 0.0" dt="0.4" />
+                    <key-frame value="-1.0, 0.0, 0.0" dt="0.4" />
+                    <key-frame value="-1.01, 0.0, 0.0" dt="2.0" />
+                </animation>
+            </input>
             <input name="waveBase" type="vec2" value="0.5, 1.0"/>
+            <!--
+            <define key="POS_TRANSFER_KEY" value="regen.morph.posWavingTransfer" />
+            <define key="POS_TRANSFER_NAME" value="posWavingTransfer" />
+            <texture id="twig-color" map-to="color" blend="src" texco-flipping="y" />
+            -->
             <texture id="twig-color" map-to="color" blend="src" texco-flipping="y"
-                texco-transfer-key="regen.states.textures.wavingTransfer" />
+                texco-transfer-key="regen.states.textures.wavingTransfer"/>
             <!-- <texture id="twig-normal" map-to="normal" /> -->
             <!-- <texture id="twig-specular" map-to="specular" /> -->
             <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh"/>

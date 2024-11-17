@@ -40,6 +40,9 @@ out int out_instanceID;
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
 #endif
+#ifdef POS_TRANSFER_KEY
+#include ${POS_TRANSFER_KEY}
+#endif // HAS_pos_transfer
 
 #include regen.states.textures.mapToVertex
 
@@ -58,12 +61,16 @@ void main() {
 
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
-  #ifdef HAS_nor
+    #ifdef HAS_nor
     textureMappingVertex(posWorld.xyz,out_norWorld);
-  #else
+    #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
-  #endif
+    #endif
 #endif // HAS_TESSELATION
+
+#ifdef POS_TRANSFER_NAME
+    ${POS_TRANSFER_NAME}(posWorld.xyz);
+#endif // HAS_pos_transfer
 
 #ifdef VS_CAMERA_TRANSFORM
     vec4 posEye  = transformWorldToEye(posWorld,0);
@@ -149,10 +156,13 @@ void main() {
 #include regen.states.camera.defines
 #include regen.defines.all
 #if RENDER_LAYER > 1
-#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
+#define USE_GEOMETRY_SHADER
+#endif
 
+#ifdef USE_GEOMETRY_SHADER
+#define2 GS_MAX_VERTICES ${${RENDER_LAYER}*3}
 layout(triangles) in;
-layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
+layout(triangle_strip, max_vertices=${GS_MAX_VERTICES}) out;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
