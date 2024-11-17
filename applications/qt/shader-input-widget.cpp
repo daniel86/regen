@@ -174,6 +174,15 @@ bool ShaderInputWidget::handleState(
 		}
 	}
 
+	auto *lightPass = dynamic_cast<LightPass *>(state.get());
+	if (lightPass != nullptr) {
+		for (auto &light : lightPass->lights()) {
+			if(handleState(light.light, parent)) {
+				isEmpty = false;
+			}
+		}
+	}
+
 	for (auto it = state->joined().begin(); it != state->joined().end(); ++it) {
 		if (handleState(*it, parent)) {
 			isEmpty = false;

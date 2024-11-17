@@ -62,6 +62,11 @@ namespace regen {
 		GLboolean hasLight(Light *l) const;
 
 		/**
+		 * @return the lights.
+		 */
+		auto &lights() { return lights_; }
+
+		/**
 		 * @param mode the shadow filtering mode.
 		 */
 		void setShadowFiltering(ShadowFilterMode mode);
