@@ -13,7 +13,7 @@
 	    look-at-interval="10"
 	    />
 <node id="configuration">
-  <camera id="main-camera" type="key-frames" interpolation="quadratic" dt="3.0" >
+  <camera id="main-camera" type="key-frames" interpolation="quadratic" dt="3.0" ease-in-out-intensity="0.0" >
     <key-frame pos=" 0.0, 0.0,  2.0" dir=" 0.0,  0.0,-2.0" dt="0.0" />
     <key-frame pos=" 2.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0" />
     <key-frame pos=" 0.0, 0.5,-2.0" dir=" 0.0,-0.5, 2.0" />
@@ -106,8 +106,8 @@
 </node>
 
 <node id="Scene-Blur">
-  <input type="int" name="numBlurPixels" value="10" />
-  <input type="float" name="blurSigma" value="2.5" />
+  <input type="int" name="numBlurPixels" value="20" />
+  <input type="float" name="blurSigma" value="5.0" />
     
   <filter-sequence id="blurred-scene" fbo="buffer-float" attachment="0" >
     <filter shader="regen.filter.sampling" scale="0.5" />
