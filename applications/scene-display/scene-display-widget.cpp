@@ -660,7 +660,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	physics_ = sceneParser.getPhysics();
 	eventHandler_ = sceneParser.getEventHandler();
 
-	if (xmlInput->getRoot()->getFirstChild("node", "initialize").get() != nullptr) {
+	if (sceneParser.getRoot()->getFirstChild("node", "initialize").get() != nullptr) {
 		ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
 		sceneParser.processNode(initializeNode, "initialize", "node");
 		initializeNode->traverse(RenderState::get());
@@ -718,7 +718,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 		REGEN_INFO("Unable to find FPS widget.");
 	}
 
-	if (xmlInput->getRoot()->getFirstChild("node", "animations").get() != nullptr) {
+	if (sceneParser.getRoot()->getFirstChild("node", "animations").get() != nullptr) {
 		sceneParser.processNode(tree, "animations", "node");
 	}
 

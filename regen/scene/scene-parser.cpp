@@ -99,7 +99,6 @@ void SceneParser::init() {
 	setNodeProcessor(ref_ptr<SkyNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<ShaderNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<SceneNodeProcessor>::alloc());
-	setNodeProcessor(ref_ptr<DeformationNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<MotionBlurProvider>::alloc());
 	setNodeProcessor(ref_ptr<PickingNodeProvider>::alloc());
 	setNodeProcessor(ref_ptr<BulletDebuggerProvider>::alloc());
@@ -123,6 +122,7 @@ void SceneParser::init() {
 	setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());
 	setStateProcessor(ref_ptr<PhysicsStateProvider>::alloc());
 	setStateProcessor(ref_ptr<PolygonStateProvider>::alloc());
+	setStateProcessor(ref_ptr<DeformationNodeProvider>::alloc());
 }
 
 void SceneParser::addEventHandler(GLuint eventID,
@@ -139,7 +139,12 @@ const ref_ptr<ShaderInput2f> &SceneParser::getMouseTexco() const {
 }
 
 ref_ptr<SceneInputNode> SceneParser::getRoot() const {
-	return inputProvider_->getRoot();
+	auto root = inputProvider_->getRoot();
+	if (root->getChildren().size()==1) {
+		return *root->getChildren().begin();
+	} else {
+		return root;
+	}
 }
 
 void SceneParser::setNodeProcessor(const ref_ptr<NodeProcessor> &x) {
@@ -201,7 +206,7 @@ void SceneParser::processNode(
 		REGEN_WARN("No Processor registered for node category '" << nodeCategory << "'.");
 		return;
 	}
-	ref_ptr<SceneInputNode> input = inputProvider_->getRoot()->getFirstChild(nodeCategory, nodeName);
+	ref_ptr<SceneInputNode> input = getRoot()->getFirstChild(nodeCategory, nodeName);
 	if (input.get() == nullptr) {
 		REGEN_WARN("No input for node category '" <<
 												  nodeCategory << "' and node name '" << nodeName << "'.");
@@ -219,7 +224,7 @@ void SceneParser::processState(
 		REGEN_WARN("No Processor registered for node category '" << nodeCategory << "'.");
 		return;
 	}
-	ref_ptr<SceneInputNode> input = inputProvider_->getRoot()->getFirstChild(nodeCategory, nodeName);
+	ref_ptr<SceneInputNode> input = getRoot()->getFirstChild(nodeCategory, nodeName);
 	if (input.get() == nullptr) {
 		REGEN_WARN("No input for node category '" <<
 												  nodeCategory << "' and node name '" << nodeName << "'.");

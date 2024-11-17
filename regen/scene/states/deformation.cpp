@@ -22,7 +22,7 @@ protected:
 void DeformationNodeProvider::processInput(
 		SceneParser *parser,
 		SceneInputNode &input,
-		const ref_ptr<StateNode> &parent) {
+		const ref_ptr<State> &parent) {
 	auto meshID = input.getValue("mesh-id");
 	auto repeat = input.getValue<std::string>("repeat", "true") == "true";
 	auto friction = input.getValue<float>("friction", 8.0f);

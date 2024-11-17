@@ -15,16 +15,16 @@ namespace regen {
 		/**
 		 * Processes SceneInput and creates animations.
 		 */
-		class DeformationNodeProvider : public NodeProcessor {
+		class DeformationNodeProvider : public StateProcessor {
 		public:
 			DeformationNodeProvider()
-					: NodeProcessor(REGEN_DEFORMATION_NODE_CATEGORY) {}
+					: StateProcessor(REGEN_DEFORMATION_NODE_CATEGORY) {}
 
 			// Override
 			void processInput(
 					SceneParser *parser,
 					SceneInputNode &input,
-					const ref_ptr<StateNode> &parent) override;
+					const ref_ptr<State> &parent) override;
 		};
 	}
 }
