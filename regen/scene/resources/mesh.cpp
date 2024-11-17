@@ -8,6 +8,8 @@
 #include "mesh.h"
 #include "regen/meshes/point.h"
 #include "regen/meshes/proc-tree.h"
+#include "regen/meshes/torus.h"
+#include "regen/meshes/disc.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -110,6 +112,35 @@ ref_ptr<MeshVector> MeshResource::createResource(
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Box>::alloc(meshCfg);
+	} else if (meshType == "torus") {
+		Torus::Config meshCfg;
+		meshCfg.texcoMode = input.getValue<Torus::TexcoMode>("texco-mode", Torus::TEXCO_MODE_UV);
+		meshCfg.posScale = scaling;
+		meshCfg.rotation = rotation;
+		meshCfg.texcoScale = texcoScaling;
+		meshCfg.isNormalRequired = useNormal;
+		meshCfg.isTangentRequired = useTangent;
+		meshCfg.usage = vboUsage;
+		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.ringRadius = input.getValue<GLfloat>("ring-radius", 1.0f);
+		meshCfg.tubeRadius = input.getValue<GLfloat>("tube-radius", 0.5f);
+
+		(*out) = MeshVector(1);
+		(*out)[0] = ref_ptr<Torus>::alloc(meshCfg);
+	} else if (meshType == "disc") {
+		Disc::Config meshCfg;
+		meshCfg.texcoMode = input.getValue<Disc::TexcoMode>("texco-mode", Disc::TEXCO_MODE_UV);
+		meshCfg.posScale = scaling;
+		meshCfg.rotation = rotation;
+		meshCfg.texcoScale = texcoScaling;
+		meshCfg.isNormalRequired = useNormal;
+		meshCfg.isTangentRequired = useTangent;
+		meshCfg.usage = vboUsage;
+		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.discRadius = input.getValue<GLfloat>("radius", 1.0f);
+
+		(*out) = MeshVector(1);
+		(*out)[0] = ref_ptr<Disc>::alloc(meshCfg);
 	} else if (meshType == "cone" || meshType == "cone-closed") {
 		ConeClosed::Config meshCfg;
 		meshCfg.levelOfDetail = levelOfDetail;
