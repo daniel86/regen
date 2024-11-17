@@ -97,9 +97,12 @@
     <texture id="trunk-color" file="res/textures/tree/trunk/pattern_230/diffuse.tga"/>
     <texture id="trunk-normal" file="res/textures/tree/trunk/pattern_230/normal.tga"/>
     <texture id="trunk-specular" file="res/textures/tree/trunk/pattern_230/specular.tga"/>
-    <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga"/>
-    <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga"/>
-    <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga"/>
+    <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga"
+            wrapping="CLAMP_TO_EDGE"/>
+    <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga"
+            wrapping="CLAMP_TO_EDGE"/>
+    <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga"
+            wrapping="CLAMP_TO_EDGE"/>
     <texture id="sand" file="res/textures/materials/sand.jpg"/>
 
     <mesh id="tree-mesh" type="proctree"
@@ -136,7 +139,7 @@
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
         <physics mesh-id="tree-pot" transform-id="tree-pot-tf" shape="cylinder" mass="0.0" size="7.0,1.0,7.0"/>
-        <material preset="copper" emission="0.1,0.0,0.0"/>
+        <material preset="gold" emission="0.04, 0.04, 0.04"/>
     </mesh>
 
     <mesh id="tree-disc" type="disc" lod="2" use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
@@ -158,8 +161,11 @@
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <material emission="0.05,0.1,0.05"/>
             <toggle key="CULL_FACE" value="0" />
-            <texture id="twig-color" map-to="color" blend="src" texco-flipping="y"/>
-            <texture id="twig-normal" map-to="normal" />
+            <define key="HAS_TWO_SIDES" value="TRUE" />
+            <input name="waveBase" type="vec2" value="0.5, 1.0"/>
+            <texture id="twig-color" map-to="color" blend="src" texco-flipping="y"
+                texco-transfer-key="regen.states.textures.wavingTransfer" />
+            <!-- <texture id="twig-normal" map-to="normal" /> -->
             <!-- <texture id="twig-specular" map-to="specular" /> -->
             <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh"/>
         </node>
