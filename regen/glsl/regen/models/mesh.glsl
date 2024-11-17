@@ -458,6 +458,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #ifdef FBO_ATTACHMENT_emission
     #ifdef HAS_MATERIAL_EMISSION
     out_emission = mat.emission;
+    #else
+    out_emission = vec3(0,0,0);
     #endif
     #endif
     // TODO: handle the occlusion value. It might be best to encode it in the g-buffer,

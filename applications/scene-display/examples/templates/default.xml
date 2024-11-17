@@ -1,12 +1,10 @@
 
 <!-- Framebuffer Objects -->
 <fbo id="back-buffer" size-mode="rel" size="1,1" >
-  <texture id="color" pixel-components="3" />
+    <texture id="color" pixel-components="3" />
 </fbo>
-
-<fbo id="back-buffer-float" size-mode="rel" size="1,1"
-     pixel-type="FLOAT" pixel-size="16">
-  <texture id="color" pixel-components="3" />
+<fbo id="back-buffer-float" size-mode="rel" size="1,1" pixel-type="FLOAT" pixel-size="16">
+    <texture id="color" pixel-components="3" />
 </fbo>
 
 <!-- Textures -->
@@ -27,29 +25,29 @@
        animation-post-state="LINEAR"
        animation-pre-state="LINEAR"
        animation-tps="20.0">
-  <!-- Optionally define named animation ranges. -->
-  <anim-range name="complete"    range="0.0,360.0" />
-  <anim-range name="walk"        range="1.0,13.0" />
-  <anim-range name="run"         range="15.0,25.0" />
-  <anim-range name="jump"        range="27.0,39.0" />
-  <anim-range name="jumpSpot"    range="41.0,53.0" />
-  <anim-range name="crouch"      range="55.0,58.0" />
-  <anim-range name="crouchLoop"  range="59.0,68.0" />
-  <anim-range name="getUp"       range="69.0,73.0" />
-  <anim-range name="battleIdle1" range="74.0,87.0" />
-  <anim-range name="battleIdle2" range="89.0,109.0" />
-  <anim-range name="attack1"     range="111.0,125.0" />
-  <anim-range name="attack2"     range="127.0,141.0" />
-  <anim-range name="attack3"     range="143.0,159.0" />
-  <anim-range name="attack4"     range="161.0,179.0" />
-  <anim-range name="attack5"     range="181.0,191.0" />
-  <anim-range name="block"       range="193.0,209.0" />
-  <anim-range name="dieFwd"      range="211.0,226.0" />
-  <anim-range name="dieBack"     range="229.0,250.0" />
-  <anim-range name="yes"         range="252.0,271.0" />
-  <anim-range name="no"          range="273.0,289.0" />
-  <anim-range name="idle1"       range="291.0,324.0" />
-  <anim-range name="idle2"       range="326.0,359.0" />
+    <!-- define named animation ranges. -->
+    <anim-range name="complete"    range="0.0,360.0" />
+    <anim-range name="walk"        range="1.0,13.0" />
+    <anim-range name="run"         range="15.0,25.0" />
+    <anim-range name="jump"        range="27.0,39.0" />
+    <anim-range name="jumpSpot"    range="41.0,53.0" />
+    <anim-range name="crouch"      range="55.0,58.0" />
+    <anim-range name="crouchLoop"  range="59.0,68.0" />
+    <anim-range name="getUp"       range="69.0,73.0" />
+    <anim-range name="battleIdle1" range="74.0,87.0" />
+    <anim-range name="battleIdle2" range="89.0,109.0" />
+    <anim-range name="attack1"     range="111.0,125.0" />
+    <anim-range name="attack2"     range="127.0,141.0" />
+    <anim-range name="attack3"     range="143.0,159.0" />
+    <anim-range name="attack4"     range="161.0,179.0" />
+    <anim-range name="attack5"     range="181.0,191.0" />
+    <anim-range name="block"       range="193.0,209.0" />
+    <anim-range name="dieFwd"      range="211.0,226.0" />
+    <anim-range name="dieBack"     range="229.0,250.0" />
+    <anim-range name="yes"         range="252.0,271.0" />
+    <anim-range name="no"          range="273.0,289.0" />
+    <anim-range name="idle1"       range="291.0,324.0" />
+    <anim-range name="idle2"       range="326.0,359.0" />
 </asset>
 <asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0" />
 <asset id="teapot-asset" type="asset" file="res/models/teapot.obj" use-animation="0" />
@@ -115,13 +113,13 @@
 </sky>
 
 <fbo id="sun-shadow" size-mode="abs" size="4096,4096,3" >
-  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-	 target="TEXTURE_2D_ARRAY"
-	 wrapping="REPEAT"
-	 min-filter="NEAREST" mag-filter="NEAREST"
-	 compare-mode="COMPARE_R_TO_TEXTURE"
-	 compare-function="LEQUAL"
-	 sampler-type="sampler2DArrayShadow" />
+    <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+        target="TEXTURE_2D_ARRAY"
+        wrapping="REPEAT"
+        min-filter="NEAREST" mag-filter="NEAREST"
+        compare-mode="COMPARE_R_TO_TEXTURE"
+        compare-function="LEQUAL"
+        sampler-type="sampler2DArrayShadow" />
 </fbo>
 
 <!--**************************-->
@@ -131,30 +129,29 @@
 <texture id="random-normal" file="res/textures/random_normals.png" />
 
 <node id="Ambient-Occlusion-Update">
-  <blend mode="src" />
-  <input type="int" name="numBlurPixels" value="20" />
-  <input type="float" name="blurSigma" value="3.2" />
-  <input type="float" name="aoSamplingRadius" value="30.0" />
-  <input type="float" name="aoBias" value="0.28" />
-  <input type="vec2" name="aoAttenuation" value="0.1,0.2" />
-  <texture name="aoNoiseTexture" id="random-normal" />
-    
-  <filter-sequence id="ambient-occlusion"
+    <blend mode="src" />
+    <input type="int" name="numBlurPixels" value="20" />
+    <input type="float" name="blurSigma" value="3.2" />
+    <input type="float" name="aoSamplingRadius" value="30.0" />
+    <input type="float" name="aoBias" value="0.28" />
+    <input type="vec2" name="aoAttenuation" value="0.1,0.2" />
+    <texture name="aoNoiseTexture" id="random-normal" />
+    <filter-sequence id="ambient-occlusion"
 		   fbo="g-buffer" attachment="3"
 		   format="RED"
 		   internal-format="R16"
 		   pixel-type="BYTE"
 		   bind-input="0" >
-    <filter shader="regen.shading.ssao" scale="0.5" />
-    <filter shader="regen.filter.blur.horizontal" />
-    <filter shader="regen.filter.blur.vertical" />
-  </filter-sequence>
+        <filter shader="regen.shading.ssao" scale="0.5" />
+        <filter shader="regen.filter.blur.horizontal" />
+        <filter shader="regen.filter.blur.vertical" />
+    </filter-sequence>
 </node>
 
 <node id="Ambient-Occlusion-Sample">
-  <blend mode="mul" />
-  <texture name="aoTexture" id="ambient-occlusion" />
-  <fullscreen-pass shader="regen.shading.ssao.sample" />
+    <blend mode="mul" />
+    <texture name="aoTexture" id="ambient-occlusion" />
+    <fullscreen-pass shader="regen.shading.ssao.sample" />
 </node>
 
 <!--**************************-->
@@ -188,23 +185,22 @@
 </node>
 
 <node id="Distance-Fog">
-  <blend mode="alpha" />
-  <input type="float" name="fogDensity" value="1.0" />
-  <input type="vec2" name="fogDistance" value="0.0,100.0" />
-  <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
-  <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-  <texture name="skyColorTexture" id="earth-sky" />
-  <define key="USE_SKY_COLOR" value="TRUE" />
-    
-  <fullscreen-pass shader="regen.shading.fog.distance" />
+    <blend mode="alpha" />
+    <input type="float" name="fogDensity" value="1.0" />
+    <input type="vec2" name="fogDistance" value="0.0,100.0" />
+    <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
+    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+    <texture name="skyColorTexture" id="earth-sky" />
+    <define key="USE_SKY_COLOR" value="TRUE" />
+    <fullscreen-pass shader="regen.shading.fog.distance" />
 </node>
 
 <node id="FXAA">
-  <input type="float" name="spanMax" value="8.0" />
-  <input type="float" name="reduceMul" value="0.125" />
-  <input type="float" name="reduceMin" value="0.0078125" />
-  <input type="vec3" name="luma" value="0.299,0.587,0.114" />
-  <fullscreen-pass shader="regen.filter.fxaa" />
+    <input type="float" name="spanMax" value="8.0" />
+    <input type="float" name="reduceMul" value="0.125" />
+    <input type="float" name="reduceMin" value="0.0078125" />
+    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
+    <fullscreen-pass shader="regen.filter.fxaa" />
 </node>
 
 <node id="MotionBlur-Screen">
@@ -292,47 +288,33 @@
 <!-- Rendering of GUI widgets -->
 <!-- ************************ -->
 
-<mesh id="logo-widget"
-      type="rectangle"
-      lod="0"
-      rotation="1.57,0.0,0.0"
-      scaling="90.0,1.0,23.0"
-      texco-scaling="-1.0,1.0"
-      use-normal="0"
-      use-texco="1"
-      use-tangent="0"
-      center="0">
-  <define key="INVERT_Y" value="TRUE" />
-  <define key="INVERT_X" value="FALSE" />
-  <transform>
-    <translate value="8.0,-8.0,0.0" />
-  </transform>
+<mesh id="logo-widget" type="rectangle" use-normal="0" use-texco="1" use-tangent="0"
+      lod="0" rotation="1.57,0.0,0.0" scaling="90.0,1.0,23.0" texco-scaling="-1.0,1.0" center="0">
+    <define key="INVERT_Y" value="TRUE" />
+    <define key="INVERT_X" value="FALSE" />
+    <transform>
+        <translate value="8.0,-8.0,0.0" />
+    </transform>
 </mesh>
 
-<mesh id="fps-widget"
-      type="text"
-      font="ubuntu"
-      text="0 FPS"
-      text-color="0.97,0.86,0.77,0.95"
-      center="0">
-  <transform>
-    <translate value="8.0,8.0,0.0" />
-  </transform>
+<mesh id="fps-widget" type="text" center="0"
+      font="ubuntu" text="0 FPS" text-color="0.97,0.86,0.77,0.95">
+    <transform>
+        <translate value="8.0,8.0,0.0" />
+    </transform>
 </mesh>
 
 <node id="GUI-Pass">
-  <blend mode="alpha" />
-  <depth test="0" write="0" />
-  
-  <node id="logo-widget">
-    <material alpha="0.7" />
-    <texture id="regen-logo" map-to="COLOR" blend="SRC" />
-    <mesh id="logo-widget" shader="regen.gui.widget" />
-  </node>
-  
-  <node id="fps-widget">
-    <mesh id="fps-widget" shader="regen.gui.text" />
-  </node>
+    <blend mode="alpha" />
+    <depth test="0" write="0" />
+    <node id="logo-widget">
+        <material alpha="0.7" />
+        <texture id="regen-logo" map-to="COLOR" blend="SRC" />
+        <mesh id="logo-widget" shader="regen.gui.widget" />
+    </node>
+    <node id="fps-widget">
+        <mesh id="fps-widget" shader="regen.gui.text" />
+    </node>
 </node>
 
 <!-- ************************ -->
