@@ -78,7 +78,7 @@
   <node>
     <blend mode="src" />
     <depth test="1" write="1" />
-    <fbo id="reflection-buffer" draw-buffers="0,2,3" />
+    <fbo id="reflection-buffer" draw-buffers="0,1,2,3" />
     
     <node import="Shadow-Caster" />
     <node import="Scene-Geometry" />
@@ -165,7 +165,7 @@
     <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" />
     <tesselation num-patch-vertices="3" lod-factor="2.0" lod-metric="CAMERA_DISTANCE_INVERSE" />
     
-    <material ambient="0.3,0.3,0.3" diffuse="0.7,0.7,0.7" fill-mode="fill" />
+    <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill" />
     <texture name="colorTexture" id="island-color" map-to="COLOR" />
     <texture name="normalTexture" id="island-normal" map-to="NORMAL"
 	     texel-transfer-key="regen.states.textures.normalTBNTransfer" />
