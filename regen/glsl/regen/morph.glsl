@@ -41,7 +41,7 @@ in ${_TYPE} in_last_${_NAME};
 in ${_TYPE} in_next_${_NAME};
 out ${_TYPE} out_${_NAME};
 #endfor
-mesh-animation
+
 // flat
 #define interpolate_flat(X,Y,T) (X)
 // linear
