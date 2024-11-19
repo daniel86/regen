@@ -167,8 +167,7 @@ bool ShaderInputWidget::handleState(
 	if (hasInput != nullptr) {
 		ref_ptr<ShaderInputContainer> container = hasInput->inputContainer();
 		const ShaderInputList &inputs = container->inputs();
-		for (auto it = inputs.begin(); it != inputs.end(); ++it) {
-			const NamedShaderInput &namedInput = *it;
+		for (const auto & namedInput : inputs) {
 			if (namedInput.in_->numVertices() > 1) continue;
 			if (handleInput(namedInput, parent)) isEmpty = false;
 		}
@@ -179,6 +178,11 @@ bool ShaderInputWidget::handleState(
 		for (auto &light : lightPass->lights()) {
 			if(handleState(light.light, parent)) {
 				isEmpty = false;
+			}
+			for (auto &input : light.inputs) {
+				if (handleInput(input, parent)) {
+					isEmpty = false;
+				}
 			}
 		}
 	}

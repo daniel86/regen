@@ -40,7 +40,7 @@
     <asset id="asset-dragon" type="asset" file="res/models/dragon.obj" use-animation="0"/>
     <!-- Meshes -->
     <mesh id="platform" type="box" use-normal="1" use-tangent="0" usage="STATIC" scaling="1.0,100.0,1.0">
-        <material preset="copper"/>
+        <material preset="copper" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0"/>
     </mesh>
     <mesh id="mesh-teapot" type="asset" asset="asset-teapot"
           asset-indices="*" asset-animation="0" asset-material="0"
@@ -192,7 +192,7 @@
                        shadow-buffer="spot-shadow" shadow-attachment="depth"
                        shadow-camera="spot-camera">
                     <input type="float" name="fogExposure" value="0.6"/>
-                    <input type="vec2" name="fogRadiusScale" value="0.44,0.76"/>
+                    <input type="vec2" name="fogRadiusScale" value="0.44,1.2"/>
                     <input type="vec2" name="fogConeScale" value="1.0,1.0"/>
                 </light>
             </light-pass>
@@ -207,7 +207,7 @@
             <blend mode="alpha"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-            <input type="float" name="outlineWidth" value="1.2"/>
+            <input type="float" name="outlineWidth" value="1.0"/>
             <input type="vec3" name="outlineColor" value="0.0, 0.0, 0.0"/>
             <input type="float" name="outlineThresholdNor" value="1.0"/>
             <input type="float" name="outlineThresholdDepth" value="1.6"/>
@@ -250,8 +250,8 @@
     </fbo>
 
     <light id="spot-light" type="SPOT"
-           position="3.0,8.0,-4.0"
-           direction="-0.37,-0.95,0.46"
+           position="3.0,8.0,-8.0"
+           direction="-0.37,-0.95,0.8"
            diffuse="0.48,0.48,0.68"
            specular="0.8, 0.8, 0.8"
            radius="10.0,21.0"
