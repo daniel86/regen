@@ -43,8 +43,15 @@ void main()
     float outline = 0.0;
 #ifdef HAS_gDepthTexture
     // adjust the outline width based on the depth, make outlines thinner in the distance.
-    float closeness = 1.0-pow(depthSample(texco),4);
-    vec2 step = in_inverseViewport * in_outlineWidth * closeness;
+    // also clamp away the far distance, as we only want to transition the outline width
+    // in the near distance, also make sure the outline does not disappear too early.
+    const float outlineFarCutoff = 0.7;
+    const float outlineMinWidth = 0.1;
+    // linearizedDepth is in the range [0, 1], 0 is near, 1 is far
+    float linearizedDepth = clamp(depthSample(texco), 0.0, outlineFarCutoff)/outlineFarCutoff;
+    // closenessFactor is in the range [outlineMinWidth, 1.0], 1.0 is near, outlineMinWidth is far
+    float closenessFactor = (1.0-linearizedDepth)*(1.0-outlineMinWidth) + outlineMinWidth;
+    vec2 step = in_inverseViewport * in_outlineWidth * closenessFactor;
 #else
     vec2 step = in_inverseViewport * in_outlineWidth;
 #endif
