@@ -514,6 +514,10 @@ void MeshAnimation::addSphereAttributes(
 	Vec3f centroid = (minPos + maxPos) * 0.5f + offset;
 
 	// set sphere vertex data
+	// Note: this is a very simple sphere mapping, it is not perfect.
+	//       There might be artifacts caused by faces that are flipped.
+	//       Also make sure to use polygon offset to avoid shadow map fighting.
+	// TODO: it should be possible to do this with less artifacts by taking the faces into account.
 	for (GLuint i = 0; i < spherePos->numVertices(); ++i) {
 		Vec3f v = posAtt->getVertex(i);
 		Vec3f direction = v - centroid;
@@ -528,7 +532,7 @@ void MeshAnimation::addSphereAttributes(
 		n.normalize();
 		// and scaled normal as sphere position
 		// 1e-1 to avoid fighting
-		v = centroid + n * verticalRadius * (1.0f + l * 1e-4);
+		v = centroid + n * verticalRadius * (1.0f + l * 1e-6);
 
 		spherePos->setVertex(i, v);
 		sphereNor->setVertex(i, n);

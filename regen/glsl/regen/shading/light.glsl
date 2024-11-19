@@ -1,4 +1,9 @@
 
+-- defines
+#ifndef SHADING_MODEL
+#define SHADING_MODEL PHONG
+#endif
+
 -- input.deferred
 #ifndef REGEN_light_inputs_included_
 #define2 REGEN_light_inputs_included_
@@ -142,8 +147,8 @@ float spotConeAttenuation(vec3 L, vec3 dir, vec2 coneAngles) {
 #ifndef REGEN_specularFactor_Included_
 #define2 REGEN_specularFactor_Included_
 float specularFactor(vec3 P, vec3 L, vec3 N) {
-    return max( dot(
-            normalize( reflect( L, -N ) ),
+    return max(
+            dot( reflect( L, -N ) ,
             normalize( P - in_cameraPosition ) ), 0.0);
 }
 #endif

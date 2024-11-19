@@ -101,6 +101,10 @@
             </frames>
         </deformation>
     </mesh>
+    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" usage="STATIC"
+            scaling="100.0,100.0,100.0">
+        <material preset="pewter" />
+    </mesh>
 
     <!--**************************-->
     <!--**************************-->
@@ -164,9 +168,17 @@
         </node>
     </node>
 
-    <node id="Scene-Geometry"/>
+    <node id="Scene-Geometry">
+    </node>
 
-    <node id="Background-Pass"/>
+    <node id="Background-Pass">
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <depth test="1" write="0"/>
+        <cull mode="FRONT" />
+        <node id="bg-box">
+            <mesh id="bg-box" shader="regen.models.mesh" />
+        </node>
+    </node>
 
     <node id="Volumetric-Fog-Pass">
         <input type="float" name="shadowSampleStep" value="0.005"/>
@@ -190,13 +202,31 @@
 
     <node id="Post-Pass">
         <depth test="0" write="0"/>
+
+        <node id="Outlines">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <blend mode="alpha"/>
+            <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+            <input type="float" name="outlineWidth" value="1.2"/>
+            <input type="vec3" name="outlineColor" value="0.0, 0.0, 0.0"/>
+            <input type="float" name="norOutlineThreshold" value="1.0"/>
+            <input type="float" name="norOutlineScale" value="1.0"/>
+            <input type="float" name="depthOutlineThreshold" value="0.004"/>
+            <input type="float" name="depthOutlineScale" value="0.5"/>
+            <fullscreen-pass shader="regen.filter.outlines"/>
+        </node>
+        <view id="Outlines">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+
         <node id="Volume-Fog">
             <fbo id="g-buffer" draw-buffers="1"/>
             <blend mode="add"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <node import="Volumetric-Fog-Pass"/>
         </node>
-        <view id="Scene -- Volumetric Fog">
+        <view id="Volumetric Fog">
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
         <node import="FXAA">
@@ -234,6 +264,8 @@
 
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
+        <!-- Note: front face culling not enough, as deformation may messes up face orientation -->
+        <polygon offset-fill="1.1,4.0" />
 
         <node id="Spot-Shadow-Pass">
             <fbo id="spot-shadow" clear-depth="1" clear-buffers="0"/>
@@ -250,6 +282,7 @@
     <!--**************************-->
 
     <node id="root">
+        <define key="SHADING_MODEL" value="TOON"/>
         <node id="Pre-Render">
             <node import="Shadow-Pass"/>
         </node>

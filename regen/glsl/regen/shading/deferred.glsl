@@ -24,6 +24,27 @@ vec3 fetchPosition(vec2 texco) {
     return transformTexcoToWorld(texco, depth, in_layer);
 }
 
+-- phong
+#ifndef REGEN_phong_Included_
+#define2 REGEN_phong_Included_
+vec3 phong(vec3 diff, vec3 spec, float nDotL, float sf, float shininess) {
+    return diff*nDotL + spec*pow(sf, shininess);
+}
+#endif
+
+-- toon
+#ifndef REGEN_toon_Included_
+#define2 REGEN_toon_Included_
+vec3 toon(vec3 diff, vec3 spec, float nDotL, float sf, float shininess) {
+    float df = nDotL;
+    if (df < 0.25) df = 0.0;
+    else if (df < 0.5) df = 0.5;
+    else if (df < 0.75) df = 0.75;
+    else df = 0.9;
+    return df*diff +
+        step(0.5, pow(sf, shininess))*spec;
+}
+#endif
 
 --------------------------------------
 --------------------------------------
@@ -107,6 +128,7 @@ void main() {
 #include regen.filter.sampling.gs
 -- directional.fs
 #define IS_DIRECTIONAL_LIGHT
+#include regen.shading.light.defines
 #include regen.states.camera.defines
 
 out vec4 out_color;
@@ -123,8 +145,13 @@ uniform sampler2D in_gDepthTexture;
 #include regen.states.camera.transformTexcoToWorld
 #include regen.shading.deferred.fetchNormal
 #include regen.shading.light.specularFactor
+#if SHADING_MODEL == PHONG
+    #include regen.shading.deferred.phong
+#elif SHADING_MODEL == TOON
+    #include regen.shading.deferred.toon
+#endif
 #ifdef USE_SHADOW_MAP
-#include regen.shading.shadow-mapping.sampling.dir
+    #include regen.shading.shadow-mapping.sampling.dir
 #endif
 
 void main() {
@@ -137,11 +164,11 @@ void main() {
     vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
     vec4 spec = texture(in_gSpecularTexture, texco);
     vec4 diff = texture(in_gDiffuseTexture, texco);
-    float shininess = spec.a*256.0; // map from [0,1] to [0,256]
-    
+
     vec3 L = normalize(in_lightDirection);
     float nDotL = dot( N, L );
     if(nDotL<=0.0) discard;
+    out_color = vec4(0.0);
     
 #ifdef USE_SKY_COLOR
     vec3 lightDiffuse = texture(in_skyColorTexture, N ).rgb;
@@ -171,12 +198,22 @@ void main() {
 #else
     float attenuation = 1.0;
 #endif
-    
-    // apply ambient and diffuse light
-    out_color = vec4(
-        diff.rgb*lightDiffuse*(attenuation*nDotL) +
-        spec.rgb*lightSpecular*(attenuation*specularFactor(P,L,N)),
-        0.0);
+
+    // Note: shininess stored in specular buffer in the range [0,1].
+    //       We map it back to [0,256] to get the shininess value.
+    float sf = specularFactor(P,L,N);
+    float shininess = spec.a*256.0; // map from [0,1] to [0,256]
+    // multiple diffuse and specular material color with light color
+    diff.rgb *= in_lightDiffuse;
+    spec.rgb *= in_lightSpecular;
+    // add diffuse and specular light (ambient is already added)
+#if SHADING_MODEL == PHONG
+    out_color.rgb += attenuation *
+            phong(diff.rgb, spec.rgb, nDotL, sf, shininess);
+#elif SHADING_MODEL == TOON
+    out_color.rgb += attenuation *
+            toon(diff.rgb, spec.rgb, nDotL, sf, shininess);
+#endif
     
 #ifdef USE_SHADOW_MAP
 #ifdef DEBUG_SHADOW_SLICES
@@ -217,27 +254,28 @@ out vec4 out_posEye;
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  out_posEye = transformWorldToEye(posWorld,layer);
-  gl_Position = transformEyeToScreen(out_posEye,layer);
-  HANDLE_IO(index);
-  EmitVertex();
+    out_posEye = transformWorldToEye(posWorld,layer);
+    gl_Position = transformEyeToScreen(out_posEye,layer);
+    HANDLE_IO(index);
+    EmitVertex();
 }
 
 void main() {
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
-  gl_Layer = ${LAYER};
-  out_layer = ${LAYER};
-  emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-  emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-  emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-  EndPrimitive();
+    gl_Layer = ${LAYER};
+    out_layer = ${LAYER};
+    emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
+    emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
+    emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
+    EndPrimitive();
 #endif
 #endfor
 }
 #endif
 
 -- local.fs
+#include regen.shading.light.defines
 #include regen.states.camera.defines
 
 out vec4 out_color;
@@ -255,7 +293,9 @@ uniform sampler2D in_gDepthTexture;
 
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
+#ifdef USE_SHADOW_MAP
 #include regen.math.computeDepth
+#endif
 
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.deferred.fetchNormal
@@ -263,7 +303,11 @@ uniform sampler2D in_gDepthTexture;
 #ifdef IS_SPOT_LIGHT
   #include regen.shading.light.spotConeAttenuation
 #endif
-
+#if SHADING_MODEL == PHONG
+    #include regen.shading.deferred.phong
+#elif SHADING_MODEL == TOON
+    #include regen.shading.deferred.toon
+#endif
 #ifdef USE_SHADOW_MAP
   #ifdef IS_SPOT_LIGHT
     #include regen.shading.shadow-mapping.sampling.spot
@@ -282,15 +326,13 @@ void main() {
     
     // fetch from GBuffer
     vec3 N = fetchNormal(in_gNorWorldTexture,texco);
-    float depth = texture(in_gDepthTexture, texco).r;
-    vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
+    vec3 P = transformTexcoToWorld(texco_2D,
+            texture(in_gDepthTexture, texco).r,
+            in_layer);
     vec4 spec = texture(in_gSpecularTexture, texco);
     vec4 diff = texture(in_gDiffuseTexture, texco);
-    float shininess = spec.a*256.0;
-
     vec3 lightVec = in_lightPosition - P;
     vec3 L = normalize(lightVec);
-    float nDotL = dot( N, L );
     
     // calculate attenuation
     float attenuation = radiusAttenuation(
@@ -298,11 +340,13 @@ void main() {
 #ifdef IS_SPOT_LIGHT
     attenuation *= spotConeAttenuation(L,in_lightDirection,in_lightConeAngles);
 #endif
+    float nDotL = dot( N, L );
     // discard if facing away
-    if(attenuation*nDotL<0.001) discard;
+    if(attenuation*nDotL<0.0) discard;
+    out_color = vec4(0.0);
 
 #ifdef USE_SHADOW_MAP
-#ifdef IS_SPOT_LIGHT
+    #ifdef IS_SPOT_LIGHT
     vec4 shadowTexco = in_lightMatrix*vec4(P,1.0);
     float shadow = spotShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
@@ -310,10 +354,10 @@ void main() {
         lightVec,
         in_lightNear,
         in_lightFar);
-#ifdef USE_SHADOW_COLOR
+        #ifdef USE_SHADOW_COLOR
     vec4 shadowColor = textureProj(in_shadowColorTexture,shadowTexco);
-#endif
-#else
+        #endif
+    #else // IS_POINT_LIGHT
     vec3 absLightVec = abs(lightVec);
     float shadowDepth = computeDepth(
         max(absLightVec .x, max(absLightVec .y, absLightVec .z)),
@@ -325,22 +369,33 @@ void main() {
         in_lightNear,
         in_lightFar,
         in_shadowInverseSize.x);
-#ifdef USE_SHADOW_COLOR
+        #ifdef USE_SHADOW_COLOR
     vec4 shadowColor = shadowCube(in_shadowColorTexture,vec4(-lightVec,shadowDepth));
-#endif
-#endif
-#ifdef USE_SHADOW_COLOR
+        #endif
+    #endif // IS_POINT_LIGHT
+    #ifdef USE_SHADOW_COLOR
     shadow += (1.0-shadow)*(1.0-shadowColor.a);
     diff.rgb += (1.0-shadow)*shadowColor.rgb;
-#endif
+    #endif
     attenuation *= shadow;
 #endif // USE_SHADOW_MAP
-    
-    // apply diffuse and specular light
-    out_color = vec4(
-        diff.rgb*in_lightDiffuse*(attenuation*nDotL) +
-        spec.rgb*in_lightSpecular*(attenuation*specularFactor(P,L,N)),
-        0.0);
+
+    // Note: shininess stored in specular buffer in the range [0,1].
+    //       We map it back to [0,256] to get the shininess value.
+    float sf = specularFactor(P,L,N);
+    float shininess = spec.a*256.0; // map from [0,1] to [0,256]
+    //shininess = 1.0;
+    // multiple diffuse and specular material color with light color
+    diff.rgb *= in_lightDiffuse;
+    spec.rgb *= in_lightSpecular;
+    // add diffuse and specular light (ambient is already added)
+#if SHADING_MODEL == PHONG
+    out_color.rgb += attenuation *
+            phong(diff.rgb, spec.rgb, nDotL, sf, shininess);
+#elif SHADING_MODEL == TOON
+    out_color.rgb += attenuation *
+            toon(diff.rgb, spec.rgb, nDotL, sf, shininess);
+#endif
 }
 
 --------------------------------------
