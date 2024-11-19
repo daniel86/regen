@@ -37,41 +37,67 @@ out int out_instanceID;
 
 #include regen.states.model.transformModel
 #ifdef VS_CAMERA_TRANSFORM
-#include regen.states.camera.transformWorldToEye
-#include regen.states.camera.transformEyeToScreen
+    #include regen.states.camera.transformWorldToEye
+    #include regen.states.camera.transformEyeToScreen
 #endif
-#ifdef POS_TRANSFER_KEY
-#include ${POS_TRANSFER_KEY}
-#endif // HAS_pos_transfer
+#ifdef POS_MODEL_TRANSFER_KEY
+    #include ${POS_MODEL_TRANSFER_KEY}
+#endif
+#ifdef POS_WORLD_TRANSFER_KEY
+    #include ${POS_WORLD_TRANSFER_KEY}
+#endif
+#ifdef HAS_nor
+    #ifdef NOR_MODEL_TRANSFER_KEY
+        #include ${NOR_MODEL_TRANSFER_KEY}
+    #endif
+    #ifdef NOR_WORLD_TRANSFER_KEY
+        #include ${NOR_WORLD_TRANSFER_KEY}
+    #endif
+#endif
 
 #include regen.states.textures.mapToVertex
 
 #define HANDLE_IO(i)
 
 void main() {
-    vec4 posWorld = transformModel(vec4(in_pos.xyz,1.0));
+    vec3 posModel = in_pos.xyz;
 #ifdef HAS_nor
-    out_norWorld = normalize(transformModel(vec4(in_nor.xyz,0.0)).xyz);
+    vec3 norModel = in_nor.xyz;
 #endif
-#ifdef HAS_TANGENT_SPACE
-    vec4 tanw = transformModel( vec4(in_tan.xyz,0.0) );
-    out_tangent = normalize( tanw.xyz );
-    out_binormal = normalize( cross(out_norWorld.xyz, out_tangent.xyz) * in_tan.w );
+    // let custom functions modify position/normal in model space
+#ifdef POS_MODEL_TRANSFER_NAME
+    ${POS_MODEL_TRANSFER_NAME}(posModel);
+#endif // POS_MODEL_TRANSFER_NAME
+#ifdef NOR_MODEL_TRANSFER_NAME
+    #ifdef HAS_nor
+    ${NOR_MODEL_TRANSFER_NAME}(norModel);
+    #endif
+#endif // NOR_MODEL_TRANSFER_NAME
+    // transform position and normal to world space
+    vec4 posWorld = transformModel(vec4(posModel,1.0));
+#ifdef HAS_nor
+    vec3 norWorld = normalize(transformModel(vec4(norModel,0.0)).xyz);
 #endif
-
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
     #ifdef HAS_nor
-    textureMappingVertex(posWorld.xyz,out_norWorld);
+    textureMappingVertex(posWorld.xyz,norWorld);
     #else
     textureMappingVertex(posWorld.xyz,vec3(0,1,0));
     #endif
 #endif // HAS_TESSELATION
 
-#ifdef POS_TRANSFER_NAME
-    ${POS_TRANSFER_NAME}(posWorld.xyz);
-#endif // HAS_pos_transfer
+    // let custom functions modify position/normal in world space
+#ifdef POS_WORLD_TRANSFER_NAME
+    ${POS_WORLD_TRANSFER_NAME}(posModel);
+#endif // POS_WORLD_TRANSFER_NAME
+#ifdef NOR_WORLD_TRANSFER_NAME
+    ${NOR_WORLD_TRANSFER_NAME}(norModel);
+#endif // NOR_WORLD_TRANSFER_NAME
 
+#ifdef HAS_nor
+    out_norWorld = norWorld;
+#endif
 #ifdef VS_CAMERA_TRANSFORM
     vec4 posEye  = transformWorldToEye(posWorld,0);
     gl_Position  = transformEyeToScreen(posEye,0);
@@ -79,6 +105,11 @@ void main() {
     out_posEye   = posEye.xyz;
 #else
     gl_Position = posWorld;
+#endif
+#ifdef HAS_TANGENT_SPACE
+    vec4 tanw = transformModel( vec4(in_tan.xyz,0.0) );
+    out_tangent = normalize( tanw.xyz );
+    out_binormal = normalize( cross(out_norWorld.xyz, out_tangent.xyz) * in_tan.w );
 #endif
 
 #ifdef HAS_INSTANCES

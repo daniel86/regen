@@ -1,5 +1,28 @@
 
 --------------
+----- Twist the mesh around the Y axis
+--------------
+-- twist
+#ifndef REGEN_TRANSFER_TWIST_
+#define2 REGEN_TRANSFER_TWIST_
+
+const float in_twistSpeed = 0.3;
+const float in_twistStrength = 1.0;
+const float in_twistHeight = 0.5;
+const float in_twistAngle = 3.1415;
+
+void twist(inout vec3 pos)
+{
+	float angle = (pos.y/in_twistHeight) * in_twistAngle * sin(in_time);
+	float st = sin(angle * in_twistSpeed) * in_twistStrength;
+	float ct = cos(angle * in_twistSpeed) * in_twistStrength;
+    pos.xz = vec2(
+	    pos.x*ct - pos.z*st,
+        pos.x*st + pos.z*ct);
+}
+#endif // REGEN_TRANSFER_TWIST_
+
+--------------
 -----
 --------------
 -- posWavingTransfer
