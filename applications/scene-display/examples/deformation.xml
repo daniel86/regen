@@ -102,8 +102,8 @@
         </deformation>
     </mesh>
     <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" usage="STATIC"
-            scaling="100.0,100.0,100.0">
-        <material preset="pewter" />
+            scaling="80.0,80.0,80.0">
+        <material preset="silver" />
     </mesh>
 
     <!--**************************-->
@@ -169,15 +169,14 @@
     </node>
 
     <node id="Scene-Geometry">
-    </node>
-
-    <node id="Background-Pass">
-        <fbo id="g-buffer" draw-buffers="1"/>
-        <depth test="1" write="0"/>
+        <depth test="1" write="1"/>
         <cull mode="FRONT" />
         <node id="bg-box">
             <mesh id="bg-box" shader="regen.models.mesh" />
         </node>
+    </node>
+
+    <node id="Background-Pass">
     </node>
 
     <node id="Volumetric-Fog-Pass">
