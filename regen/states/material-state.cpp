@@ -29,7 +29,7 @@ Material::Material()
 	setInput(materialSpecular_);
 
 	materialShininess_ = ref_ptr<ShaderInput1f>::alloc("matShininess");
-	materialShininess_->setUniformData(0.0f);
+	materialShininess_->setUniformData(128.0f);
 	setInput(materialShininess_);
 
 	materialAlpha_ = ref_ptr<ShaderInput1f>::alloc("matAlpha");
