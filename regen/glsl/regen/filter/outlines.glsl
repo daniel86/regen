@@ -40,8 +40,14 @@ const vec3 in_outlineColor = vec3(0.0, 0.0, 0.0);
 void main()
 {
     vecTexco texco = computeTexco(gl_FragCoord.xy*in_inverseViewport);
-    vec2 step = in_inverseViewport * in_outlineWidth;
     float outline = 0.0;
+#ifdef HAS_gDepthTexture
+    // adjust the outline width based on the depth, make outlines thinner in the distance.
+    float closeness = 1.0-pow(depthSample(texco),4);
+    vec2 step = in_inverseViewport * in_outlineWidth * closeness;
+#else
+    vec2 step = in_inverseViewport * in_outlineWidth;
+#endif
 
 #ifdef OUTLINE_MODE_DEPTH
 	outline = max(outline, outline_depth(texco, step));
@@ -64,8 +70,7 @@ void main()
 #ifndef REGEN_outline_depth_defs_Included_
 #define2 REGEN_outline_depth_defs_Included_
 uniform sampler2D in_gDepthTexture;
-const float in_depthOutlineThreshold = 0.004;
-const float in_depthOutlineScale = 1.0;
+const float in_outlineThresholdDepth = 0.4;
 // depth is stored non-linearly, need to convert to linear
 #include regen.states.camera.linearizeDepth
 #define depthSample(uv) linearizeDepth(\
@@ -77,8 +82,7 @@ const float in_depthOutlineScale = 1.0;
 #define2 REGEN_outline_depth_simple_Included_
 #include regen.filter.outlines.outline_depth.defs
 
-float outline_depth(vec2 texco, vec2 offset0) {
-    vec2 offset = in_depthOutlineScale*offset0;
+float outline_depth(vec2 texco, vec2 offset) {
     // fetch depth values from 4 neighboring pixels, and linearize them
     float d0 = depthSample(texco - offset);
     float d1 = depthSample(texco + offset);
@@ -87,7 +91,7 @@ float outline_depth(vec2 texco, vec2 offset0) {
     // compute the "Roberts cross" edge detection, and compare with threshold
     return float(
         sqrt(pow(d1 - d0, 2) + pow(d3 - d2, 2)) >
-        in_depthOutlineThreshold);
+        in_outlineThresholdDepth / 100.0);
 }
 #endif
 
@@ -95,8 +99,7 @@ float outline_depth(vec2 texco, vec2 offset0) {
 #ifndef REGEN_outline_nor_defs_Included_
 #define2 REGEN_outline_nor_defs_Included_
 uniform sampler2D in_gNorWorldTexture;
-const float in_norOutlineThreshold = 0.04;
-const float in_norOutlineScale = 1.0;
+const float in_outlineThresholdNor = 0.04;
 // normal is stored in the range [0, 1], need to convert to [-1, 1]
 #define norSample(uv) 2.0*texture(in_gNorWorldTexture, uv).rgb - vec3(1.0)
 #endif
@@ -106,8 +109,7 @@ const float in_norOutlineScale = 1.0;
 #define2 REGEN_outline_nor_simple_Included_
 #include regen.filter.outlines.outline_nor.defs
 
-float outline_nor(vec2 texco, vec2 offset0) {
-    vec2 offset = in_norOutlineScale*offset0;
+float outline_nor(vec2 texco, vec2 offset) {
     // fetch normal values from 4 neighboring pixels, and linearize them
     vec3 n0 = norSample(texco - offset);
     vec3 n1 = norSample(texco + offset);
@@ -116,7 +118,7 @@ float outline_nor(vec2 texco, vec2 offset0) {
     vec3 dn0 = n1 - n0;
     vec3 dn1 = n3 - n2;
     float edgeNormal = sqrt(dot(dn0, dn0) + dot(dn1, dn1));
-    return float(edgeNormal > in_norOutlineThreshold);
+    return float(edgeNormal > in_outlineThresholdNor);
 }
 #endif
 

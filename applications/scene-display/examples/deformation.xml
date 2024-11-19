@@ -210,10 +210,8 @@
             <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
             <input type="float" name="outlineWidth" value="1.2"/>
             <input type="vec3" name="outlineColor" value="0.0, 0.0, 0.0"/>
-            <input type="float" name="norOutlineThreshold" value="1.0"/>
-            <input type="float" name="norOutlineScale" value="1.0"/>
-            <input type="float" name="depthOutlineThreshold" value="0.004"/>
-            <input type="float" name="depthOutlineScale" value="0.5"/>
+            <input type="float" name="outlineThresholdNor" value="1.0"/>
+            <input type="float" name="outlineThresholdDepth" value="1.6"/>
             <fullscreen-pass shader="regen.filter.outlines"/>
         </node>
         <view id="Outlines">
