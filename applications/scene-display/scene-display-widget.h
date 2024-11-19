@@ -68,6 +68,8 @@ public slots:
 
 	void playAnchor();
 
+	void toggleWireframe();
+
 protected:
 	std::list<ref_ptr<EventHandler> > eventHandler_;
 	std::list<ref_ptr<Animation> > animations_;
@@ -93,6 +95,8 @@ protected:
 	std::string activeFile_;
 	ViewNodeList viewNodes_;
 	ViewNodeList::iterator activeView_;
+
+	ref_ptr<State> wireframeState_;
 
 	void loadScene(const std::string &sceneFile);
 

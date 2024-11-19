@@ -130,7 +130,8 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset theme="media-playback-start"/>
+          <iconset theme="media-playback-start">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -157,6 +158,34 @@
          <property name="icon">
           <iconset theme="media-skip-forward">
            <normaloff>.</normaloff>.</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="wireframeToggle">
+         <property name="minimumSize">
+          <size>
+           <width>48</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="utilities-system-monitor"/>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -338,8 +367,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>673</x>
-     <y>36</y>
+     <x>789</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>259</x>
@@ -354,8 +383,8 @@
    <slot>openFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>501</x>
-     <y>27</y>
+     <x>617</x>
+     <y>37</y>
     </hint>
     <hint type="destinationlabel">
      <x>259</x>
@@ -370,8 +399,8 @@
    <slot>toggleInputsDialog()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>587</x>
-     <y>33</y>
+     <x>703</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>259</x>
@@ -443,6 +472,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>wireframeToggle</sender>
+   <signal>clicked()</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>toggleWireframe()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>267</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>440</x>
+     <y>621</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
@@ -451,5 +496,6 @@
   <slot>previousView()</slot>
   <slot>nextAnchor()</slot>
   <slot>playAnchor()</slot>
+  <slot>toggleWireframe()</slot>
  </slots>
 </ui>

@@ -302,6 +302,20 @@ void SceneDisplayWidget::toggleInputsDialog() {
 	}
 }
 
+void SceneDisplayWidget::toggleWireframe() {
+	bool toggleState = ui_.wireframeToggle->isChecked();
+	if (toggleState) {
+		if(wireframeState_.get() == nullptr) {
+			wireframeState_ = ref_ptr<FillModeState>::alloc(GL_LINE);
+			app_->renderTree()->state()->joinStates(wireframeState_);
+		}
+	}
+	else if (wireframeState_.get() != nullptr) {
+		app_->renderTree()->state()->disjoinStates(wireframeState_);
+		wireframeState_ = ref_ptr<State>();
+	}
+}
+
 void SceneDisplayWidget::openFile() {
 	QFileDialog dialog(this);
 	dialog.setFileMode(QFileDialog::AnyFile);

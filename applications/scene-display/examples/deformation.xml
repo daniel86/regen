@@ -39,7 +39,7 @@
     <asset id="asset-venus" type="asset" file="res/models/venus.obj" use-animation="0"/>
     <asset id="asset-dragon" type="asset" file="res/models/dragon.obj" use-animation="0"/>
     <!-- Meshes -->
-    <mesh id="platform" type="box" use-normal="1" use-tangent="0" usage="STATIC" scaling="1.0,100.0,1.0">
+    <mesh id="platform" type="box" use-normal="1" use-tangent="0" usage="STATIC" lod="0" scaling="1.0,60.0,1.0">
         <material preset="copper" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0"/>
     </mesh>
     <mesh id="mesh-teapot" type="asset" asset="asset-teapot"
@@ -101,7 +101,7 @@
             </frames>
         </deformation>
     </mesh>
-    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" usage="STATIC"
+    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" lod="0" usage="STATIC"
             scaling="80.0,80.0,80.0">
         <material preset="silver" />
     </mesh>
@@ -139,21 +139,21 @@
             <node id="platform0">
                 <transform>
                     <rotate value="0.0,0.0,0.0"/>
-                    <translate value="0.0,-100.6,2.5"/>
+                    <translate value="0.0,-60.6,2.5"/>
                 </transform>
                 <mesh id="platform"/>
             </node>
             <node id="platform1">
                 <transform>
                     <rotate value="1.0,0.0,0.0"/>
-                    <translate value="1.5,-100.6,0.0"/>
+                    <translate value="1.5,-60.6,0.0"/>
                 </transform>
                 <mesh id="platform"/>
             </node>
             <node id="platform2">
                 <transform>
                     <rotate value="-1.0,0.0,0.0"/>
-                    <translate value="-1.5,-100.6,0.0"/>
+                    <translate value="-1.5,-60.6,0.0"/>
                 </transform>
                 <mesh id="platform"/>
             </node>
