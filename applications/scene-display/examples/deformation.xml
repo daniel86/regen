@@ -118,6 +118,8 @@
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
         <node id="Light-Shading">
+            <input type="float" name="toonThreshold1" value="0.3"/>
+            <input type="float" name="toonThreshold2" value="0.6"/>
             <light-pass type="SPOT" shader="regen.shading.deferred.spot">
                 <light id="spot-light"
                        shadow-buffer="spot-shadow"

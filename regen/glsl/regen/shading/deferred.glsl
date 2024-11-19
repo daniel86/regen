@@ -35,12 +35,24 @@ vec3 phong(vec3 diff, vec3 spec, float nDotL, float sf, float shininess) {
 -- toon
 #ifndef REGEN_toon_Included_
 #define2 REGEN_toon_Included_
+
+const float in_toonThreshold0 = 0.05;
+const float in_toonThreshold1 = 0.3;
+const float in_toonThreshold2 = 0.6;
+const float in_toonThreshold3 = 0.9;
+
 vec3 toon(vec3 diff, vec3 spec, float nDotL, float sf, float shininess) {
     float df = nDotL;
-    if (df < 0.25) df = 0.0;
-    else if (df < 0.5) df = 0.5;
-    else if (df < 0.75) df = 0.75;
-    else df = 0.9;
+    if (df < in_toonThreshold0) df = 0.0;
+    else if (df < in_toonThreshold1) df = in_toonThreshold1;
+#ifdef HAS_toonThreshold2
+    else if (df < in_toonThreshold2) df = in_toonThreshold2;
+#endif
+#ifdef HAS_toonThreshold3
+    else if (df < in_toonThreshold3) df = in_toonThreshold3;
+#endif
+    else df = 1.0;
+
     return df*diff +
         step(0.5, pow(sf, shininess))*spec;
 }
