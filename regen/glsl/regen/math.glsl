@@ -1,4 +1,34 @@
 
+-- rotateXZ
+#ifndef REGEN_rotateXZ_included_
+#define REGEN_rotateXZ_included_
+vec3 rotateXZ(vec3 v, float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    return vec3(v.x * c - v.z * s, v.y, v.x * s + v.z * c);
+}
+#endif
+
+-- rotateXY
+#ifndef REGEN_rotateXY_included_
+#define REGEN_rotateXY_included_
+vec3 rotateXY(vec3 v, float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    return vec3(v.x * c - v.y * s, v.x * s + v.y * c, v.z);
+}
+#endif
+
+-- rotateYZ
+#ifndef REGEN_rotateYZ_included_
+#define REGEN_rotateYZ_included_
+vec3 rotateYZ(vec3 v, float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    return vec3(v.x, v.y * c - v.z * s, v.y * s + v.z * c);
+}
+#endif
+
 -- matrixInverse
 #ifndef REGEN_matrixInverse_included_
 #define REGEN_matrixInverse_included_
@@ -231,21 +261,26 @@ vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 yAxis)
 -- computeSpritePoints
 #ifndef REGEN_computeSpritePoints_included_
 #define2 REGEN_computeSpritePoints_included_
+void computeSpritePoints(vec3 point, vec2 size, vec3 zAxis, vec3 upVector, out vec3[4] spritePoints)
+{
+    vec3 xAxis = normalize(cross(zAxis, upVector));
+    vec3 yAxis = normalize(cross(xAxis, zAxis));
+    vec3 x = xAxis*0.5*size.x;
+    vec3 y = yAxis*0.5*size.y;
+    spritePoints[0] = point - x - y;
+    spritePoints[1] = point - x + y;
+    spritePoints[2] = point + x - y;
+    spritePoints[3] = point + x + y;
+}
 vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 zAxis, vec3 upVector)
 {
-  vec3 xAxis = normalize(cross(zAxis, upVector));
-  vec3 yAxis = normalize(cross(xAxis, zAxis));
-  vec3 x = xAxis*0.5*size.x;
-  vec3 y = yAxis*0.5*size.y;
-  return vec3[](
-      point - x - y,
-      point - x + y,
-      point + x - y,
-      point + x + y
-  );
+    vec3 spritePoints[4];
+    computeSpritePoints(point, size, zAxis, upVector, spritePoints);
+    return spritePoints;
 }
 vec3[4] computeSpritePoints(vec3 point, vec2 size, vec3 upVector)
 {
-  return computeSpritePoints(point,size,normalize(-point),upVector);
+    // billboard sprite
+    return computeSpritePoints(point,size,normalize(-point),upVector);
 }
 #endif

@@ -57,7 +57,7 @@ out vec3 out_color;
 uniform vec2 in_viewport;
 
 #include regen.math.computeSpritePoints
-#include regen.models.sprite.emitSprite
+#include regen.models.sprite.emitQuad_eye
 
 void main() {
     if(in_lifetime[0]<=0) { return; }
@@ -71,7 +71,7 @@ void main() {
     vec4 centerEye = transformWorldToEye(vec4(in_pos[0],1.0),0);
     // TODO: consider supporting to stretch particles along their velocity.
     vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, vec2(in_size[0]), vec3(0.0, 1.0, 0.0));
-    emitSprite(quadPos,0);
+    emitQuad_eye(quadPos,0);
 }
 
 -- fs

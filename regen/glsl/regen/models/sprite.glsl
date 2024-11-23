@@ -1,36 +1,71 @@
 
--- emitSprite
-#ifndef REGEN_emitSprite_defined_
-#define2 REGEN_emitSprite_defined_
+-- applyForce
+#ifndef REGEN_applyForce_defined_
+#define2 REGEN_applyForce_defined_
+
+void applyForce(inout vec3 quadPos[4], vec2 force) {
+    // Calculate the rotation axis and angle
+    vec3 axis = normalize(vec3(force.y, 0.0, -force.x)); // = normalize(cross(UP, vec3(force.x, 0.0, force.y)));
+    float angle = min(1.0, length(force)) * 1.5707963267948966;
+
+    // Calculate the rotation matrix
+    float sa = sin(angle);
+    float ca = cos(angle);
+    mat3 rotationMatrix = mat3(
+        ca + axis.x * axis.x * (1.0 - ca),      -axis.z * sa,       axis.x * axis.z * (1.0 - ca),
+        axis.z * sa,                            ca,                 -axis.x * sa,
+        axis.z * axis.x * (1.0 - ca),           axis.x * sa,        ca + axis.z * axis.z * (1.0 - ca)
+    );
+
+    // Apply the rotation to the top points using the bottom points as the pivot
+    quadPos[1] = quadPos[0] + rotationMatrix * (quadPos[1] - quadPos[0]);
+    quadPos[3] = quadPos[2] + rotationMatrix * (quadPos[3] - quadPos[2]);
+}
+#endif
+
+-- emitQuad_eye
+#ifndef REGEN_emitQuad_eye_defined_
+#define2 REGEN_emitQuad_eye_defined_
 
 #include regen.states.camera.transformEyeToWorld
 #include regen.states.camera.transformEyeToScreen
 
-void emitSprite(vec3 quadPos[4], int layer)
+void emitQuad_eye(vec3 quadPos[4], int layer)
 {
+#ifdef HAS_QUAD_NORMAL
+    vec3 norEye = normalize(cross(quadPos[1]-quadPos[0],quadPos[2]-quadPos[0]));
+    out_norWorld = normalize(transformEyeToWorld(vec4(norEye,0.0),layer).xyz);
+#endif
+#ifdef HAS_UPWARDS_NORMAL
+    out_norWorld = normalize(transformEyeToWorld(vec4(quadPos[1] - quadPos[0], 0.0),layer).xyz);
+#endif
+
     vec4 posEye;
-    out_texco0 = vec2(1.0,0.0);
+    out_texco0 = vec2(1.0,1.0);
     posEye = vec4(quadPos[0],1.0);
     out_posEye = posEye.xyz;
     out_posWorld = transformEyeToWorld(posEye,layer).xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
     EmitVertex();
 
-    out_texco0 = vec2(1.0,1.0);
+    out_texco0 = vec2(1.0,0.0);
     posEye = vec4(quadPos[1],1.0);
     out_posEye = posEye.xyz;
     out_posWorld = transformEyeToWorld(posEye,layer).xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
     EmitVertex();
 
-    out_texco0 = vec2(0.0,0.0);
+#ifdef HAS_UPWARDS_NORMAL
+    out_norWorld = normalize(transformEyeToWorld(vec4(quadPos[3] - quadPos[2], 0.0),layer).xyz);
+#endif
+    out_texco0 = vec2(0.0,1.0);
     posEye = vec4(quadPos[2],1.0);
     out_posEye = posEye.xyz;
     out_posWorld = transformEyeToWorld(posEye,layer).xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
     EmitVertex();
 
-    out_texco0 = vec2(0.0,1.0);
+    out_texco0 = vec2(0.0,0.0);
     posEye = vec4(quadPos[3],1.0);
     out_posEye = posEye.xyz;
     out_posWorld = transformEyeToWorld(posEye,layer).xyz;
@@ -38,6 +73,124 @@ void emitSprite(vec3 quadPos[4], int layer)
     EmitVertex();
 
     EndPrimitive();
+}
+#endif
+
+-- emitQuad_world
+#ifndef REGEN_emitQuad_world_defined_
+#define2 REGEN_emitQuad_world_defined_
+
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
+
+void emitQuad_world(vec3 quadPos[4], int layer)
+{
+#ifdef HAS_QUAD_NORMAL
+    out_norWorld = normalize(cross(quadPos[1]-quadPos[0],quadPos[2]-quadPos[0]));
+#endif
+#ifdef HAS_UPWARDS_NORMAL
+    out_norWorld = normalize(quadPos[1] - quadPos[0]);
+#endif
+
+    vec4 posEye;
+    out_texco0 = vec2(1.0, 1.0);
+    out_posWorld = quadPos[0];
+    posEye = transformWorldToEye(vec4(quadPos[0],1.0), 0);
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+    EmitVertex();
+
+    out_texco0 = vec2(1.0, 0.0);
+    out_posWorld = quadPos[1];
+    posEye = transformWorldToEye(vec4(quadPos[1],1.0), 0);
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+    EmitVertex();
+
+#ifdef HAS_UPWARDS_NORMAL
+    out_norWorld = normalize(quadPos[3] - quadPos[2]);
+#endif
+    out_texco0 = vec2(0.0, 1.0);
+    out_posWorld = quadPos[2];
+    posEye = transformWorldToEye(vec4(quadPos[2],1.0), 0);
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+    EmitVertex();
+
+    out_texco0 = vec2(0.0, 0.0);
+    out_posWorld = quadPos[3];
+    posEye = transformWorldToEye(vec4(quadPos[3],1.0), 0);
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+    EmitVertex();
+
+    EndPrimitive();
+}
+#endif
+
+-- emitBillboard
+#ifndef REGEN_emitBillboard_defined_
+#define2 REGEN_emitBillboard_defined_
+
+#include regen.math.computeSpritePoints
+#include regen.models.sprite.emitQuad_eye
+
+void emitBillboard(vec3 center, vec2 size
+#ifdef USE_FORCE
+        , vec2 force
+#endif
+        ) {
+    vec4 centerEye = transformWorldToEye(vec4(center, 1.0),0);
+    vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, size, vec3(0.0, 1.0, 0.0));
+#ifdef USE_FORCE
+    applyForce(quadPos, force);
+#endif
+    emitQuad_eye(quadPos,0);
+}
+#endif
+
+-- emitSpriteCross
+#ifndef REGEN_emitSpriteCross_defined_
+#define2 REGEN_emitSpriteCross_defined_
+
+#include regen.math.rotateXZ
+#include regen.math.computeSpritePoints
+#include regen.models.sprite.emitQuad_world
+#ifdef USE_FORCE
+    #include regen.models.sprite.applyForce
+#endif
+
+void emitSpriteCross(vec3 center
+        , vec2 size
+        , float orientation
+#ifdef USE_FORCE
+        , vec2 force
+#endif
+        ) {
+    const vec3 up = vec3(0.0, 1.0, 0.0);
+    const vec3 front = vec3(0.0, 0.0, 1.0);
+    vec3 quadPos[4];
+    // first quad
+    vec3 dir = rotateXZ(front, orientation);
+    computeSpritePoints(center, size, dir, up, quadPos);
+#ifdef USE_FORCE
+    applyForce(quadPos, force);
+#endif
+    emitQuad_world(quadPos,0);
+    // second quad
+    dir = rotateXZ(front, orientation - 2.356194);
+    computeSpritePoints(center, size, dir, up, quadPos);
+#ifdef USE_FORCE
+    applyForce(quadPos, force);
+#endif
+    emitQuad_world(quadPos,0);
+    // third quad
+    dir = rotateXZ(front, orientation - 3.92699);
+    computeSpritePoints(center, size, dir, up, quadPos);
+#ifdef USE_FORCE
+    applyForce(quadPos, force);
+#endif
+    emitQuad_world(quadPos,0);
 }
 #endif
 
@@ -73,14 +226,10 @@ out vec2 out_texco0;
 uniform vec2 in_viewport;
 const vec2 in_spriteSize = vec2(4.0, 4.0);
 
-#include regen.states.camera.transformWorldToEye
-#include regen.math.computeSpritePoints
-#include regen.models.sprite.emitSprite
+#include regen.models.sprite.billboard
 
 void main() {
-    vec4 centerEye = transformWorldToEye(vec4(in_pos[0],1.0),0);
-    vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, in_spriteSize, vec3(0.0, 1.0, 0.0));
-    emitSprite(quadPos,0);
+    billboard(in_pos[0], in_spriteSize);
 }
 
 -- fs
