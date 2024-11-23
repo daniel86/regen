@@ -817,6 +817,20 @@ namespace regen {
 		}
 
 		/**
+		 * Computes a translation matrix.
+		 * @param v translation value.
+		 * @return the translation matrix.
+		 */
+		static inline Mat4f translationMatrix_transposed(const Vec3f &v) {
+			return Mat4f(
+					1.0, 0.0, 0.0, v.x,
+					0.0, 1.0, 0.0, v.y,
+					0.0, 0.0, 1.0, v.z,
+					0.0, 0.0, 0.0, 1.0
+			);
+		}
+
+		/**
 		 * Scale this matrix.
 		 * @param scale the scale factors.
 		 */

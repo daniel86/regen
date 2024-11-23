@@ -10,6 +10,7 @@
 #include "regen/meshes/proc-tree.h"
 #include "regen/meshes/torus.h"
 #include "regen/meshes/disc.h"
+#include "regen/meshes/frame.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -112,6 +113,20 @@ ref_ptr<MeshVector> MeshResource::createResource(
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Box>::alloc(meshCfg);
+	} else if (meshType == "frame") {
+		FrameMesh::Config meshCfg;
+		meshCfg.texcoMode = input.getValue<FrameMesh::TexcoMode>("texco-mode", FrameMesh::TEXCO_MODE_NONE);
+		meshCfg.borderSize = input.getValue<GLfloat>("border-size", 0.1f);
+		meshCfg.posScale = scaling;
+		meshCfg.rotation = rotation;
+		meshCfg.texcoScale = texcoScaling;
+		meshCfg.isNormalRequired = useNormal;
+		meshCfg.isTangentRequired = useTangent;
+		meshCfg.usage = vboUsage;
+		meshCfg.levelOfDetail = levelOfDetail;
+
+		(*out) = MeshVector(1);
+		(*out)[0] = ref_ptr<FrameMesh>::alloc(meshCfg);
 	} else if (meshType == "torus") {
 		Torus::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<Torus::TexcoMode>("texco-mode", Torus::TEXCO_MODE_UV);
@@ -175,8 +190,9 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		}
 	}
 	else if (meshType == "point") {
+		const auto numVertices = input.getValue<GLuint>("num-vertices", 1u);
 		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Point>::alloc();
+		(*out)[0] = ref_ptr<Point>::alloc(numVertices);
 	}
 	else if (meshType == "asset") {
 		ref_ptr<AssetImporter> importer = parser->getResources()->getAsset(parser, input.getValue("asset"));

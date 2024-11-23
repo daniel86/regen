@@ -274,6 +274,12 @@ flat in int in_layer;
 #define in_layer 0
 #endif
 
+#ifdef DISCARD_ALPHA
+    #ifndef DISARD_ALPHA_THRESHOLD
+#define DISARD_ALPHA_THRESHOLD 0.01
+    #endif
+#endif
+
 #if OUTPUT_TYPE == DEPTH
 ///// Depth only output
     #ifdef DISCARD_ALPHA
@@ -386,7 +392,7 @@ void main() {
 #endif // HAS_COL
     textureMappingFragment(in_posWorld, color, norWorld);
 #ifdef DISCARD_ALPHA
-    if (color.a < 0.01) discard;
+    if (color.a < DISARD_ALPHA_THRESHOLD) discard;
 #endif
 #ifndef FS_NO_OUTPUT
     writeOutput(in_posWorld, norWorld, color);

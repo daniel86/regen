@@ -58,7 +58,13 @@ namespace regen {
 				const T stepX = n_->getValue<T>("x-step", T(1));
 				const T stepY = n_->getValue<T>("y-step", T(1));
 				const T stepZ = n_->getValue<T>("z-step", T(1));
-				value_ = stepX * counter_.x + stepY * counter_.y + stepZ * counter_.z;
+				const auto varianceX = n_->getValue<float>("x-variance", 0.0f);
+				const auto varianceY = n_->getValue<float>("y-variance", 0.0f);
+				const auto varianceZ = n_->getValue<float>("z-variance", 0.0f);
+				value_ =
+					stepX * (counter_.x + random()*varianceX) +
+					stepY * (counter_.y + random()*varianceY) +
+					stepZ * (counter_.z + random()*varianceZ);
 
 				auto xCount = n_->getValue<GLuint>("x-count", numValues_);
 				auto yCount = n_->getValue<GLuint>("y-count", 1);
@@ -77,7 +83,7 @@ namespace regen {
 			T nextRandom() {
 				const T min = n_->getValue<T>("min", T(0));
 				const T max = n_->getValue<T>("max", T(1));
-				value_ = min + (max - min) * ((rand() % 10000) / 10000.0);
+				value_ = min + (max - min) * random();
 				counter_.x += 1;
 				return value_;
 			}
@@ -89,6 +95,10 @@ namespace regen {
 				value_ = start + (stop - start) * progress;
 				counter_.x += 1;
 				return value_;
+			}
+
+			auto random() {
+				return (rand() % 10000) / 10000.0;
 			}
 		};
 	}

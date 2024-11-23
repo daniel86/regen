@@ -56,7 +56,7 @@
     </fbo>
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
-    <texture id="ground-color" file="res/textures/brick/color.jpg"/>
+    <texture id="ground-color" file="res/textures/materials/sand.jpg"/>
     <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
     <texture id="ground-height" file="res/textures/brick/height.jpg"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
@@ -83,11 +83,14 @@
 
     <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="2"
           rotation="0.0,0.0,3.1415"
-          scaling="1000.0,20.0,1000.0">
+          scaling="1000.0,20.0,1000.0"
+          texco-scaling="100.0,100.0">
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
-        <material preset="pewter"/>
+        <material preset="pewter"
+            specular="0,0,0"
+            ambient="0.06, 0.14, 0.06"/>
     </mesh>
 
     <!--**************************-->
@@ -190,6 +193,69 @@
         <node id="tree1-pot-disc">
             <texture id="sand" map-to="color" blend-mode="SRC"/>
             <mesh id="tree-disc" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--********* Grass *********-->
+    <!--**************************-->
+
+    <texture id="grass-color" file="res/textures/grass/grass0.png" />
+    <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
+
+    <mesh id="grass-frame" type="frame" lod="0"
+            scaling="87.0, 0.8, 85.0" border-size="1.0"
+            use-normal="1" center="1" usage="STATIC" >
+        <transform id="grass-frame-tf">
+            <translate value="2.2, -1.6, 2.0"/>
+        </transform>
+        <material preset="copper"/>
+    </mesh>
+
+    <mesh id="grass-mesh0" type="point" num-vertices="19600">
+        <transform id="grass-tf0">
+            <translate value="-40.0, -2.2, -40.0"/>
+        </transform>
+        <input type="vec3" name="pos" is-attribute="1">
+            <set mode="row" target="translate"
+                x-step="0.6,0.0,0.0" x-count="140" x-variance="0.8"
+                z-step="0.0,0.0,0.6" z-variance="0.8" />
+        </input>
+        <material
+            ambient="0.1, 0.1, 0.1"
+            specular="0.0, 0.0, 0.0"
+            shininess="256.0"
+            emission="0.0, 0.02, 0.0"/>
+    </mesh>
+
+    <node id="Grass-Frame">
+        <node id="grass-frame">
+            <mesh id="grass-frame" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Grass">
+        <node id="grass0">
+            <!-- <toggle key="MULTISAMPLE" value="1" /> -->
+            <blend mode="SRC"/>
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <!--
+            <blend mode="ALPHA"/>
+            -->
+            <!--
+            <define key="HAS_TWO_SIDES" value="TRUE"/>
+            <toggle key="CULL_FACE" value="0" />
+            -->
+            <texture id="grass-color" map-to="color" blend-mode="mul" />
+            <texture name="windFlow" id="wind-flowmap" />
+            <input name="windFlowScale" type="float" value="100.0"/>
+            <input name="windFlowTime" type="float" value="0.2"/>
+            <input name="wind" type="vec2" value="0.6, 0.6"/>
+            <input name="quadSize" type="vec2" value="1.4, 0.3"/>
+            <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix" />
+            <input name="colliderRadius" type="float" value="2.4"/>
+            <input name="colliderStrength" type="float" value="1.0"/>
+            <mesh id="grass-mesh0" shader="regen.models.grass"/>
         </node>
     </node>
 
@@ -463,17 +529,20 @@
                 <mesh id="dwarf-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
         </node>
-        <node import="Stairs"/>
         <node import="Statues"/>
         <node import="Trees"/>
+        <node import="Stairs"/>
         <node import="Platforms"/>
+        <node import="Grass-Frame"/>
     </node>
 
     <node id="Non-Shadow-Caster">
         <node id="Ground">
             <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
+            <texture id="sand" map-to="color" blend-mode="SRC"/>
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>
+        <node import="Grass"/>
     </node>
 
     <node id="Background-Objects">

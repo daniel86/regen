@@ -63,9 +63,12 @@ namespace regen {
 					// take uniform from state
 					ref_ptr<State> s = parser->getState(input.getValue("state"));
 					if (s.get() == nullptr) {
+						s = parser->getResources()->getTransform(parser, input.getValue("state"));
+					}
+					if (s.get() == nullptr) {
 						parser->getResources()->loadResources(parser, input.getValue("state"));
 						s = parser->getState(input.getValue("state"));
-						if (state.get() == nullptr) {
+						if (s.get() == nullptr) {
 							REGEN_WARN("No State found for for '" << input.getDescription() << "'.");
 							return {};
 						}
