@@ -2,6 +2,12 @@
 -- vs
 #include regen.models.sprite.vs
 
+-- tcs
+#include regen.models.mesh.tcs
+
+-- tes
+#include regen.models.mesh.tes
+
 -- gs
 layout(points) in;
 layout(triangle_strip, max_vertices=12) out;
@@ -21,6 +27,7 @@ const vec2 in_quadSize = vec2(2.0, 0.3);
     #define USE_FORCE
 #endif
 #define HAS_UPWARDS_NORMAL
+#define HAS_UV_FADED_COLOR
 //#define USE_SPRITE_LOD
 
 #include regen.models.sprite.emitSpriteCross
@@ -44,7 +51,8 @@ void main() {
     // align at the bottom
     vec3 center = vec3(in_pos[0].x, in_pos[0].y + 0.5*size, in_pos[0].z);
 
-    out_col = vec4(vec3(random(in_pos[0].xz)*0.3 + 0.7), 1.0);
+    vec3 vColor = vec3(random(in_pos[0].xz)*0.3 + 0.7);
+    out_col = vec4(vColor, 1.0);
     //out_norWorld = vec3(0,1,0);
 
 #ifdef USE_FORCE
@@ -91,6 +99,6 @@ void main() {
 -- fs
 #define HAS_nor
 #define HAS_col
-#define DISARD_ALPHA_THRESHOLD 0.25
+#define DISCARD_ALPHA_THRESHOLD 0.25
 in vec4 in_col;
 #include regen.models.sprite.fs
