@@ -8,7 +8,9 @@
 #endif
 #if RENDER_LAYER == 1
 #ifndef HAS_TESSELATION
+    #ifndef HAS_GS_TRANSFORM
 #define VS_CAMERA_TRANSFORM
+    #endif
 #endif
 #if SHADER_STAGE == tes
 #define TES_CAMERA_TRANSFORM

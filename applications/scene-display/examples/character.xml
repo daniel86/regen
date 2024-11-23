@@ -162,30 +162,19 @@
         </node>
         <node id="tree1-twig">
             <define key="DISCARD_ALPHA" value="TRUE"/>
+            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <define key="HAS_GS_TRANSFORM" value="TRUE"/>
             <material emission="0.05,0.1,0.05"/>
             <toggle key="CULL_FACE" value="0" />
             <define key="HAS_TWO_SIDES" value="TRUE" />
-            <input name="wind" type="vec3">
-                <animation >
-                    <key-frame value="-1.0, 0.0, 0.0" dt="0.0" />
-                    <key-frame value="-1.4, 0.0, 0.0" dt="0.4"/>
-                    <key-frame value="-1.4, 0.0, 0.0" dt="6.0" />
-                    <key-frame value="-1.4, 0.0, 0.0" dt="0.4" />
-                    <key-frame value="-1.0, 0.0, 0.0" dt="0.4" />
-                    <key-frame value="-1.01, 0.0, 0.0" dt="2.0" />
-                </animation>
-            </input>
-            <input name="waveBase" type="vec2" value="0.5, 1.0"/>
-            <!--
-            <define key="POS_TRANSFER_KEY" value="regen.morph.posWavingTransfer" />
-            <define key="POS_TRANSFER_NAME" value="posWavingTransfer" />
+            <texture name="windFlow" id="wind-flowmap" />
+            <input name="stiffness" type="float" value="0.5"/>
             <texture id="twig-color" map-to="color" blend="src" texco-flipping="y" />
-            -->
-            <texture id="twig-color" map-to="color" blend="src" texco-flipping="y"
-                texco-transfer-key="regen.states.textures.wavingTransfer"/>
             <!-- <texture id="twig-normal" map-to="normal" /> -->
             <!-- <texture id="twig-specular" map-to="specular" /> -->
-            <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh"/>
+            <mesh id="tree-mesh" mesh-index="1"
+                    shader="regen.models.mesh"
+                    gs="regen.states.wind.wavingQuad"/>
         </node>
         <node id="tree1-pot">
             <mesh id="tree-pot" shader="regen.models.mesh"/>
@@ -248,13 +237,12 @@
             -->
             <texture id="grass-color" map-to="color" blend-mode="mul" />
             <texture name="windFlow" id="wind-flowmap" />
-            <input name="windFlowScale" type="float" value="100.0"/>
-            <input name="windFlowTime" type="float" value="0.2"/>
-            <input name="wind" type="vec2" value="0.6, 0.6"/>
             <input name="quadSize" type="vec2" value="1.4, 0.3"/>
             <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix" />
             <input name="colliderRadius" type="float" value="2.4"/>
             <input name="colliderStrength" type="float" value="1.0"/>
+            <input name="stiffness" type="float" value="1.0"/>
+            <input name="uvDarken" type="float" value="0.5"/>
             <mesh id="grass-mesh0" shader="regen.models.grass"/>
         </node>
     </node>
@@ -263,7 +251,7 @@
     <!--********* Stairs *********-->
     <!--**************************-->
 
-    <mesh id="stairs0-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
+    <mesh id="stairs0-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
         <transform id="stairs0-tf">
             <translate value="16.0,-1.6,16.0"/>
         </transform>
@@ -271,7 +259,7 @@
         <material preset="copper"/>
     </mesh>
 
-    <mesh id="stairs1-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="6.0,0.4,4.0">
+    <mesh id="stairs1-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC" scaling="6.0,0.4,4.0">
         <transform id="stairs1-tf">
             <translate value="16.0,-0.8,16.0"/>
         </transform>
@@ -279,7 +267,7 @@
         <material preset="copper"/>
     </mesh>
 
-    <mesh id="stairs2-mesh" type="box" use-normal="1" center="1" usage="STATIC" scaling="4.0,0.4,4.0">
+    <mesh id="stairs2-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC" scaling="4.0,0.4,4.0">
         <transform id="stairs2-tf">
             <translate value="16.0,0.0,16.0"/>
         </transform>
@@ -303,7 +291,7 @@
     <!--******** Platforms *******-->
     <!--**************************-->
 
-    <mesh id="platform0-mesh" type="box" use-normal="1" center="1" usage="STATIC"
+    <mesh id="platform0-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC"
           scaling="4.0,0.4,4.0">
         <transform id="platform0-tf">
             <translate value="16.0,3.0,-16.0"/>
@@ -318,7 +306,7 @@
         <material preset="copper" emission="0.3,0.1,0.1"/>
     </mesh>
 
-    <mesh id="platform1-mesh" type="box" use-normal="1" center="1" usage="STATIC"
+    <mesh id="platform1-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC"
           scaling="4.0,0.4,4.0">
         <transform id="platform1-tf">
             <translate value="8.0,7.0,-16.0"/>
@@ -346,7 +334,7 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="statue-platform" type="box" use-normal="1" use-tangent="0" center="1" usage="STATIC"
+    <mesh id="statue-platform" type="box" lod="0" use-normal="1" use-tangent="0" center="1" usage="STATIC"
           scaling="3.5,5.0,3.5">
         <transform id="statue-platform-tf">
             <rotate value="1.57079632,0.0,0.0"/>
@@ -371,7 +359,7 @@
     <!--**************************-->
 
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" center="1"
-          usage="STATIC" lod="2" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0">
+          usage="STATIC" lod="0" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0">
         <transform id="slope-tf">
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
@@ -595,6 +583,20 @@
     </node>
 
     <node id="root">
+        <input name="wind" type="vec2" value="0.6, 0.6"/>
+            <!--
+        <input name="wind" type="vec2">
+            <animation >
+                <key-frame value="0.6, 0.6" dt="0.0" />
+                <key-frame value="0.8, 0.8" dt="6.0" />
+                <key-frame value="0.6, 0.6" dt="6.0" />
+                <key-frame value="0.61, 0.6" dt="2.0" />
+            </animation>
+        </input>
+            -->
+        <input name="windFlowScale" type="float" value="100.0"/>
+        <input name="windFlowTime" type="float" value="0.2"/>
+
         <node id="Pre-Render">
             <!-- Render shadow maps such that they can be used in the shading pass -->
             <node import="Shadow-Pass">

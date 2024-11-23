@@ -3,10 +3,12 @@
 #ifndef REGEN_applyForce_defined_
 #define2 REGEN_applyForce_defined_
 
+const float in_stiffness = 1.0;
+
 void applyForce(inout vec3 quadPos[4], vec2 force) {
     // Calculate the rotation axis and angle
     vec3 axis = normalize(vec3(force.y, 0.0, -force.x)); // = normalize(cross(UP, vec3(force.x, 0.0, force.y)));
-    float angle = min(1.0, length(force)) * 1.5707963267948966;
+    float angle = min(1.0, length(force)) * 1.5707963267948966 * in_stiffness;
 
     // Calculate the rotation matrix
     float sa = sin(angle);
@@ -83,6 +85,10 @@ void emitQuad_eye(vec3 quadPos[4], int layer)
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
 
+#ifdef HAS_UV_FADED_COLOR
+const float in_uvDarken = 0.5;
+#endif
+
 void emitQuad_world(vec3 quadPos[4], int layer)
 {
 #ifdef HAS_QUAD_NORMAL
@@ -95,6 +101,10 @@ void emitQuad_world(vec3 quadPos[4], int layer)
     vec4 posEye;
     out_texco0 = vec2(1.0, 1.0);
     out_posWorld = quadPos[0];
+#ifdef HAS_UV_FADED_COLOR
+    vec3 col = out_col.xyz;
+    out_col.xyz = col*in_uvDarken;
+#endif
     posEye = transformWorldToEye(vec4(quadPos[0],1.0), 0);
     out_posEye = posEye.xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
@@ -102,6 +112,9 @@ void emitQuad_world(vec3 quadPos[4], int layer)
 
     out_texco0 = vec2(1.0, 0.0);
     out_posWorld = quadPos[1];
+#ifdef HAS_UV_FADED_COLOR
+    out_col.xyz = col;
+#endif
     posEye = transformWorldToEye(vec4(quadPos[1],1.0), 0);
     out_posEye = posEye.xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
@@ -112,6 +125,9 @@ void emitQuad_world(vec3 quadPos[4], int layer)
 #endif
     out_texco0 = vec2(0.0, 1.0);
     out_posWorld = quadPos[2];
+#ifdef HAS_UV_FADED_COLOR
+    out_col.xyz = col*in_uvDarken;
+#endif
     posEye = transformWorldToEye(vec4(quadPos[2],1.0), 0);
     out_posEye = posEye.xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
@@ -119,6 +135,9 @@ void emitQuad_world(vec3 quadPos[4], int layer)
 
     out_texco0 = vec2(0.0, 0.0);
     out_posWorld = quadPos[3];
+#ifdef HAS_UV_FADED_COLOR
+    out_col.xyz = col;
+#endif
     posEye = transformWorldToEye(vec4(quadPos[3],1.0), 0);
     out_posEye = posEye.xyz;
     gl_Position = transformEyeToScreen(posEye,layer);

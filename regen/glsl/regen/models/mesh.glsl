@@ -206,25 +206,24 @@ flat out int out_layer;
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  vec4 posEye = transformWorldToEye(posWorld,layer);
-  out_posWorld = posWorld.xyz;
-  out_posEye = posEye.xyz;
-  gl_Position = transformEyeToScreen(posEye,layer);
-  HANDLE_IO(index);
-  
-  EmitVertex();
+    vec4 posEye = transformWorldToEye(posWorld,layer);
+    out_posWorld = posWorld.xyz;
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+    HANDLE_IO(index);
+    EmitVertex();
 }
 
 void main() {
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
-  // select framebuffer layer
-  gl_Layer = ${LAYER};
-  out_layer = ${LAYER};
-  emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-  emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-  emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-  EndPrimitive();
+    // select framebuffer layer
+    gl_Layer = ${LAYER};
+    out_layer = ${LAYER};
+    emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
+    emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
+    emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
+    EndPrimitive();
 #endif // SKIP_LAYER
 #endfor
 }
@@ -275,8 +274,8 @@ flat in int in_layer;
 #endif
 
 #ifdef DISCARD_ALPHA
-    #ifndef DISARD_ALPHA_THRESHOLD
-#define DISARD_ALPHA_THRESHOLD 0.01
+    #ifndef DISCARD_ALPHA_THRESHOLD
+#define DISCARD_ALPHA_THRESHOLD 0.01
     #endif
 #endif
 
@@ -392,7 +391,7 @@ void main() {
 #endif // HAS_COL
     textureMappingFragment(in_posWorld, color, norWorld);
 #ifdef DISCARD_ALPHA
-    if (color.a < DISARD_ALPHA_THRESHOLD) discard;
+    if (color.a < DISCARD_ALPHA_THRESHOLD) discard;
 #endif
 #ifndef FS_NO_OUTPUT
     writeOutput(in_posWorld, norWorld, color);
