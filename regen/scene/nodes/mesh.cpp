@@ -66,6 +66,9 @@ void MeshNodeProvider::processInput(
 		} else {
 			mesh = ref_ptr<Mesh>::alloc(meshResource);
 		}
+		if (input.hasAttribute("primitive")) {
+			mesh->set_primitive(glenum::primitive(input.getValue("primitive")));
+		}
 
 		ref_ptr<StateNode> meshNode = ref_ptr<StateNode>::alloc(mesh);
 		parent->addChild(meshNode);
