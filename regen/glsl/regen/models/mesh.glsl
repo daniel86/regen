@@ -126,8 +126,11 @@ void main() {
 #ifdef HAS_tessellation_shader
 #ifdef HAS_TESSELATION
 #include regen.models.mesh.defines
+#ifndef TES_SPACING
+    #define TES_SPACING equal_spacing
+#endif
 
-layout(triangles, ccw, fractional_odd_spacing) in;
+layout(triangles, ccw, TES_SPACING) in;
 
 #ifdef HAS_INSTANCES
 in int in_instanceID[ ];

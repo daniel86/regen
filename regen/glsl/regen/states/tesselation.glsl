@@ -8,6 +8,42 @@
 #define INTERPOLATE_STRUCT(S,V) (gl_TessCoord.z*S[0].V + gl_TessCoord.x*S[1].V + gl_TessCoord.y*S[2].V)
 #endif
 
+-- metricSreenDistance
+#ifndef REGEN_metricSreenDistance_defined_
+#define2 REGEN_metricSreenDistance_defined_
+float metricSreenDistance(vec2 v0, vec2 v1, float factor)
+{
+     const float min = 7.0;
+     float max = in_viewport.x*0.2;
+     float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
+     return clamp( d*64.0*factor, 1, 64);
+}
+#endif
+
+-- metricDeviceDistance
+#ifndef REGEN_metricDeviceDistance_defined_
+#define2 REGEN_metricDeviceDistance_defined_
+float metricDeviceDistance(vec2 v0, vec2 v1, float factor)
+{
+     const float min = 0.025;
+     const float max = 0.05;
+     float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
+     return clamp( d*64.0*factor, 1, 64);
+}
+#endif
+
+-- metricCameraDistance
+#ifndef REGEN_metricCameraDistance_defined_
+#define2 REGEN_metricCameraDistance_defined_
+float metricCameraDistance(vec3 v, float factor)
+{
+     const float min = 0.0;
+     const float max = 300.0;
+     float d = (max - clamp(distance(v,in_cameraPosition), min, max))/(max-min);
+     return clamp( d*64.0*factor, 1, 64);
+}
+#endif
+
 -- tesselationControl
 #include regen.states.camera.transformWorldToScreen 
 uniform float in_lodFactor;
@@ -27,111 +63,87 @@ vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen)
 }
 
 // test a vertex in device normal space against the view frustum
-bool isOffscreenNDC(vec4 v)
+void offscreenNDC(vec4 v, inout ivec3 offscreen)
 {
-    return v.x<-1.0 || v.y<-1.0 || v.z<-1.0 || v.x>1.0 || v.y>1.0 || v.z>1.0;
+    offscreen.x += int(v.x > 1.0) - int(v.x < -1.0);
+    offscreen.y += int(v.y > 1.0) - int(v.y < -1.0);
+    offscreen.z += int(v.z > 1.0) - int(v.z < -1.0);
 }
 
 #if TESS_LOD == EDGE_SCREEN_DISTANCE
-float metricSreenDistance(vec2 v0, vec2 v1, float factor)
-{
-     const float min = 7.0;
-     float max = in_viewport.x*0.2;
-     float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
-     return clamp( d*64.0*factor, 1, 64);
-}
+    #include regen.states.tesselation.metricSreenDistance
 #endif
 #if TESS_LOD == EDGE_DEVICE_DISTANCE
-float metricDeviceDistance(vec2 v0, vec2 v1, float factor)
-{
-     const float min = 0.025;
-     const float max = 0.2;
-     float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
-     return clamp( d*64.0*factor, 1, 64);
-}
+    #include regen.states.tesselation.metricDeviceDistance
 #endif
 #if TESS_LOD == CAMERA_DISTANCE_INVERSE
-float metricCameraDistance(vec3 v, float factor)
-{
-     const float min = 0.0;
-     const float max = 500.0;
-     float d = (max - clamp(distance(v,in_cameraPosition), min, max))/(max-min);
-     return clamp( d*64.0*factor, 1, 64);
-}
+    #include regen.states.tesselation.metricCameraDistance
 #endif
 
 void tesselationControl()
 {
-  if(gl_InvocationID != 0) return;
-  vec4 ws0 = gl_in[0].gl_Position;
-  vec4 ws1 = gl_in[1].gl_Position;
-  vec4 ws2 = gl_in[2].gl_Position;
-#if TESS_PRIMITVE==quads
-  vec4 ws3 = gl_in[3].gl_Position;
-#endif
-  vec4 nds0 = worldToDeviceSpace(ws0);
-  vec4 nds1 = worldToDeviceSpace(ws1);
-  vec4 nds2 = worldToDeviceSpace(ws2);
-#if TESS_PRIMITVE==quads
-  vec4 nds3 = worldToDeviceSpace(ws3);
-#endif
-  if(isOffscreenNDC(nds0)
-        && isOffscreenNDC(nds1)
-        && isOffscreenNDC(nds2)
-#if TESS_PRIMITVE==quads
-        && isOffscreenNDC(nds3)
-#endif
-  ){
+    if(gl_InvocationID != 0) return;
+#for INDEX to TESS_NUM_VERTICES
+    vec4 ws${INDEX} = gl_in[${INDEX}].gl_Position;
+#endfor
+#for INDEX to TESS_NUM_VERTICES
+    vec4 nds${INDEX} = worldToDeviceSpace(ws${INDEX});
+#endfor
+    ivec3 offscreen = ivec3(0);
+#for INDEX to TESS_NUM_VERTICES
+    offscreenNDC(nds${INDEX}, offscreen);
+#endfor
+    offscreen = abs(offscreen);
+
+    // we require here that all vertices are offscreen at the same side.
+    if(max(offscreen.x, max(offscreen.y, offscreen.z)) == 3) {
     // if the patch is not visible on screen do not tesselate
 #if TESS_PRIMITVE==quads
-    gl_TessLevelInner[0] = gl_TessLevelInner[1] = 0;
+        gl_TessLevelInner[0] = gl_TessLevelInner[1] = 0;
 #else
-    gl_TessLevelInner[0] = 0;
-#endif
-    gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
-  } else{
+        gl_TessLevelInner[0] = 0;
+#endif // TESS_PRIMITVE==quads
+        gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
+    }
+    else {
 #if TESS_LOD == EDGE_SCREEN_DISTANCE
-    vec2 ss0 = deviceToScreenSpace(nds0, in_viewport);
-    vec2 ss1 = deviceToScreenSpace(nds1, in_viewport);
-    vec2 ss2 = deviceToScreenSpace(nds2, in_viewport);
-  #if TESS_PRIMITVE==quads
-    vec2 ss3 = deviceToScreenSpace(nds3, in_viewport);
-  #endif
-    float e0 = metricSreenDistance(ss1.xy, ss2.xy, in_lodFactor);
-    float e1 = metricSreenDistance(ss0.xy, ss1.xy, in_lodFactor);
-  #if TESS_PRIMITVE==quads
-    float e2 = metricSreenDistance(ss3.xy, ss0.xy, in_lodFactor);
-    float e3 = metricSreenDistance(ss2.xy, ss3.xy, in_lodFactor);
-  #else
-    float e2 = metricSreenDistance(ss2.xy, ss0.xy, in_lodFactor);
-  #endif
+    #for INDEX to TESS_NUM_VERTICES
+        float ss${INDEX} = deviceToScreenSpace(nds${INDEX}.xy, in_viewport);
+    #endfor
+        float e0 = metricSreenDistance(ss1.xy, ss2.xy, in_lodFactor);
+        float e1 = metricSreenDistance(ss0.xy, ss1.xy, in_lodFactor);
+    #if TESS_PRIMITVE==quads
+        float e2 = metricSreenDistance(ss3.xy, ss0.xy, in_lodFactor);
+        float e3 = metricSreenDistance(ss2.xy, ss3.xy, in_lodFactor);
+    #else
+        float e2 = metricSreenDistance(ss2.xy, ss0.xy, in_lodFactor);
+    #endif
 
 #elif TESS_LOD == EDGE_DEVICE_DISTANCE
-    float e0 = metricDeviceDistance(nds1.xy, nds2.xy, in_lodFactor);
-    float e1 = metricDeviceDistance(nds0.xy, nds1.xy, in_lodFactor);
-    float e2 = metricDeviceDistance(nds2.xy, nds0.xy, in_lodFactor);
-  #if TESS_PRIMITVE==quads
-    float e2 = metricDeviceDistance(nds3.xy, nds0.xy, in_lodFactor);
-    float e3 = metricDeviceDistance(nds2.xy, nds3.xy, in_lodFactor);
-  #endif
+        float e0 = metricDeviceDistance(nds1.xy, nds2.xy, in_lodFactor);
+        float e1 = metricDeviceDistance(nds0.xy, nds1.xy, in_lodFactor);
+    #if TESS_PRIMITVE==quads
+        float e2 = metricDeviceDistance(nds3.xy, nds0.xy, in_lodFactor);
+        float e3 = metricDeviceDistance(nds2.xy, nds3.xy, in_lodFactor);
+    #else
+        float e2 = metricDeviceDistance(nds2.xy, nds0.xy, in_lodFactor);
+    #endif
 
 #else
-    float e0 = metricCameraDistance(ws0.xyz, in_lodFactor);
-    float e1 = metricCameraDistance(ws1.xyz, in_lodFactor);
-    float e2 = metricCameraDistance(ws2.xyz, in_lodFactor);
-  #if TESS_PRIMITVE==quads
-    float e3 = metricCameraDistance(ws3.xyz, in_lodFactor);
-  #endif
+    #for INDEX to TESS_NUM_VERTICES
+        float e${INDEX} = metricCameraDistance(ws${INDEX}.xyz, in_lodFactor);
+    #endfor
 #endif
+
 #if TESS_PRIMITVE==quads
-    gl_TessLevelInner[0] = mix(e1, e2, 0.5);
-    gl_TessLevelInner[1] = mix(e0, e3, 0.5);
-    gl_TessLevelOuter = float[4]( e0, e1, e2, e3 );
+        gl_TessLevelInner[0] = mix(e1, e2, 0.5);
+        gl_TessLevelInner[1] = mix(e0, e3, 0.5);
+        gl_TessLevelOuter = float[4]( e0, e1, e2, e3 );
 #else
-    gl_TessLevelInner[0] = (e0 + e1 + e2);
-    gl_TessLevelOuter = float[4]( e0, e1, e2, 1 );
+        gl_TessLevelInner[0] = (e0 + e1 + e2);
+        gl_TessLevelOuter = float[4]( e0, e1, e2, 1 );
 #endif
-  }
+    }
 }
 
 -- tcs
