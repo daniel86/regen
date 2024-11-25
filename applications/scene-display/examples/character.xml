@@ -27,9 +27,9 @@
                 speed="0.0175"
                 mesh="dwarf-mesh"
                 mesh-index="1"
-                mesh-distance="40.0"
+                mesh-distance="20.0"
                 mesh-horizontal-orientation="3.14159265359"
-                vertical-orientation="0.6"
+                vertical-orientation="0.4"
                 transform="dwarf-tf"
                 eye-offset="0.0,2.75,0.0">
             <key-mapping key="W" command="move_forward"/>
@@ -88,9 +88,6 @@
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
-        <material preset="pewter"
-            specular="0,0,0"
-            ambient="0.06, 0.14, 0.06"/>
     </mesh>
 
     <!--**************************-->
@@ -191,6 +188,13 @@
 
     <texture id="grass-color" file="res/textures/grass/grass0.png" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
+    <!--
+    <texture id="wind-noise" noise="perlin" size="128.0,128.0,1.0"
+         baseFrequency="30.0" persistence="0.5" lacunarity="2.5" octaveCount="4"
+         swizzle-g="RED" swizzle-b="RED"/>
+         -->
+    <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0"
+         swizzle-g="RED" swizzle-b="RED"/>
 
     <mesh id="grass-frame" type="frame" lod="0"
             scaling="87.0, 0.8, 85.0" border-size="1.0"
@@ -203,7 +207,7 @@
 
     <mesh id="grass-mesh0" type="point" num-vertices="19600">
         <transform id="grass-tf0">
-            <translate value="-40.0, -2.2, -40.0"/>
+            <translate value="-40.0, -2.0, -40.0"/>
         </transform>
         <input type="vec3" name="pos" is-attribute="1">
             <set mode="row" target="translate"
@@ -254,18 +258,31 @@
             <blend mode="SRC"/>
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <define key="TES_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3"
-                    lod-factor="0.5"
+            <tesselation num-patch-vertices="3" lod-factor="0.5"
                     lod-metric="EDGE_DEVICE_DISTANCE" />
+            <input name="lodMinDD" type="float" value="0.2"/>
+            <input name="lodMaxDD" type="float" value="0.5"/>
+            <!-- size and position -->
+            <input name="quadSize" type="vec2" value="1.2, 0.2"/>
+            <input name="posVariation" type="float" value="0.4"/>
+            <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
+            <!-- color -->
             <texture id="grass-color" map-to="color" blend-mode="mul" />
+            <input name="uvDarken" type="float" value="0.75"/>
+            <!-- wind -->
             <texture name="windFlow" id="wind-flowmap" />
-            <input name="quadSize" type="vec2" value="1.4, 0.3"/>
             <input name="stiffness" type="float" value="1.0"/>
-            <input name="uvDarken" type="float" value="0.5"/>
+            <!-- small-scale wind details -->
+            <texture name="windNoise" id="wind-noise" />
+            <input name="windNoiseScale" type="float" value="100.0"/>
+            <input name="windNoiseSpeed" type="float" value="1.0"/>
+            <input name="windNoiseStrength" type="float" value="0.1"/>
+            <!-- collision with player -->
             <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix" />
-            <input name="colliderRadius" type="float" value="3.4"/>
-            <input name="colliderStrength" type="float" value="1.0"/>
+            <input name="colliderRadius" type="float" value="4.4"/>
+            <input name="colliderStrength" type="float" value="0.7"/>
             <material
+                diffuse="1.5, 1.5, 1.5"
                 ambient="0.1, 0.1, 0.1"
                 specular="0.0, 0.0, 0.0"
                 shininess="256.0"
@@ -420,9 +437,9 @@
     </node>
     -->
 
-    <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
+    <texture id="fog-splat" file="res/textures/splats/smoke1.jpg"/>
 
-    <mesh id="test-particles" type="particles" num-vertices="500">
+    <mesh id="test-particles" type="particles" num-vertices="800">
         <!-- Add shader defines. -->
         <define key="EMITTER_POSITION_MODE" value="ABSOLUTE"/>
         <define key="PARTICLE_EMITTER_MODE" value="IN"/>
@@ -441,8 +458,12 @@
         <input type="vec2" name="lifetimeVariance" value="0.5, 0.25"/>
         <input type="vec2" name="massVariance" value="1.4, 0.4"/>
         <input type="vec2" name="sizeVariance" value="0.75, 0.3"/>
+        <!--
         <input type="vec3" name="colorDefault" value="0.6, 0.4, 0.2"/>
         <input type="vec3" name="colorVariance" value="0.2, 0.2, 0.0"/>
+        -->
+        <input type="vec3" name="colorDefault" value="0.1, 0.1, 0.1"/>
+        <input type="vec3" name="colorVariance" value="0.0, 0.0, 0.0"/>
         <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
@@ -456,7 +477,6 @@
     <node id="Particle-Draw">
         <define key="USE_SOFT_PARTICLES" value="TRUE"/>
         <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
-        <define key="IS_SHADOW_RECEIVER" value="FALSE"/>
         <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
         <texture name="splatTexture" id="fog-splat" map-to="COLOR" blend-mode="MUL"/>
         <input type="vec3" name="particleColor" value="0.9, 0.4, 0.1"/>
@@ -494,6 +514,10 @@
                sampler-type="samplerCubeShadow"/>
     </fbo>
 
+    <mesh id="light-bulb-point" type="point" usage="STATIC" num-vertices="1" >
+        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+    </mesh>
+
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
         <define key="OUTPUT_TYPE" value="DEPTH"/>
@@ -502,7 +526,6 @@
             <node id="Room-Light-Shadow0">
                 <fbo id="room-light-shadow0" clear-depth="1"/>
                 <camera id="room-light-camera0"/>
-                <!-- <polygon offset-fill="1.1,4.0" /> -->
                 <node import="Shadow-Caster"/>
             </node>
         </node>
@@ -555,7 +578,20 @@
         <node id="Ground">
             <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
             <texture id="sand" map-to="color" blend-mode="SRC"/>
+            <material preset="pewter" specular="0,0,0" ambient="0.06, 0.14, 0.06"/>
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="Light-Bulbs">
+            <!-- TODO: for some reason this is not defined! -->
+            <define key="HAS_modelOffset" value="TRUE"/>
+            <define key="HAS_matEmission" value="TRUE"/>
+
+            <node id="Light-Bulb0">
+                <input name="sphereRadius" type="float" value="1.0" />
+                <input name="modelOffset" state="room-light0" component="lightPosition" />
+                <input name="matEmission" state="room-light0" component="lightDiffuse" />
+                <mesh id="light-bulb-point" shader="regen.models.sprite-sphere" />
+            </node>
         </node>
         <node import="Grass"/>
     </node>
@@ -621,7 +657,7 @@
             </animation>
         </input>
             -->
-        <input name="windFlowScale" type="float" value="100.0"/>
+        <input name="windFlowScale" type="float" value="150.0"/>
         <input name="windFlowTime" type="float" value="0.2"/>
 
         <node id="Pre-Render">

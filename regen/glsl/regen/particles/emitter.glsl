@@ -191,7 +191,7 @@ vec3 particleVelocity(inout uint seed, in vec3 dir)
 -- particleValue
 #ifndef REGEN_particleValue_defined_
 #define2 REGEN_particleValue_defined_
-#include regen.math.variance
+#include regen.noise.variance
 float particleValue(float value, float maxVariance, inout uint seed)
 {
     return value + variance(maxVariance, seed);

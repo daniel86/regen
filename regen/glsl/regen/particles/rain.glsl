@@ -10,7 +10,7 @@ const vec3 in_rainVelocity = vec3(0.001,0.001,0.01);
 const vec2 in_rainCone = vec3(50.0,20.0);
 const vec2 in_rainBrightness = vec2(0.9,0.2);
 
-#include regen.math.variance
+#include regen.noise.variance
 
 bool isRespawnRequired()
 {

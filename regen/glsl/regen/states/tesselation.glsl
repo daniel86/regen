@@ -11,11 +11,12 @@
 -- metricSreenDistance
 #ifndef REGEN_metricSreenDistance_defined_
 #define2 REGEN_metricSreenDistance_defined_
+const float in_lodMinSD = 7.0;
+const float in_lodMaxSD = 0.2;
 float metricSreenDistance(vec2 v0, vec2 v1, float factor)
 {
-     const float min = 7.0;
-     float max = in_viewport.x*0.2;
-     float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
+     float max = in_viewport.x*in_lodMaxSD;
+     float d = (clamp(distance(v0,v1), in_lodMinSD, max) - min)/(max-in_lodMinSD);
      return clamp( d*64.0*factor, 1, 64);
 }
 #endif
@@ -23,11 +24,11 @@ float metricSreenDistance(vec2 v0, vec2 v1, float factor)
 -- metricDeviceDistance
 #ifndef REGEN_metricDeviceDistance_defined_
 #define2 REGEN_metricDeviceDistance_defined_
+const float in_lodMinDD = 0.025;
+const float in_lodMaxDD = 0.05;
 float metricDeviceDistance(vec2 v0, vec2 v1, float factor)
 {
-     const float min = 0.025;
-     const float max = 0.05;
-     float d = (clamp(distance(v0,v1), min, max) - min)/(max-min);
+     float d = (clamp(distance(v0,v1), in_lodMinDD, in_lodMaxDD) - in_lodMinDD)/(in_lodMaxDD-in_lodMinDD);
      return clamp( d*64.0*factor, 1, 64);
 }
 #endif
@@ -35,11 +36,11 @@ float metricDeviceDistance(vec2 v0, vec2 v1, float factor)
 -- metricCameraDistance
 #ifndef REGEN_metricCameraDistance_defined_
 #define2 REGEN_metricCameraDistance_defined_
+const float in_lodMinCD = 0.0;
+const float in_lodMaxCD = 300.0;
 float metricCameraDistance(vec3 v, float factor)
 {
-     const float min = 0.0;
-     const float max = 300.0;
-     float d = (max - clamp(distance(v,in_cameraPosition), min, max))/(max-min);
+     float d = (in_lodMaxCD - clamp(distance(v,in_cameraPosition), in_lodMinCD, in_lodMaxCD))/(in_lodMaxCD-in_lodMinCD);
      return clamp( d*64.0*factor, 1, 64);
 }
 #endif

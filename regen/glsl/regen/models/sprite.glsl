@@ -103,7 +103,7 @@ void emitQuad_world(vec3 quadPos[4], int layer)
     out_posWorld = quadPos[0];
 #ifdef HAS_UV_FADED_COLOR
     vec3 col = out_col.xyz;
-    out_col.xyz = col*in_uvDarken;
+    out_col.xyz *= in_uvDarken;
 #endif
     posEye = transformWorldToEye(vec4(quadPos[0],1.0), 0);
     out_posEye = posEye.xyz;
