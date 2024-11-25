@@ -85,6 +85,10 @@ void main() {
 #endif
 #ifdef HAS_colliderRadius
     // TODO: support 2d collision map too.
+    //  - if rendering as post-effect, the depth buffer could be used! but then
+    //     no shadows in usual pipeline.
+    //  - maybe ping-pong depth buffer could get desired effect
+    //  - one could render a 2d collision map in a separate pass.
     vec4 collision = collisionAtPosition(center);
     force = mix(force,
         normalize(collision.xyz).xz * in_colliderStrength,

@@ -60,6 +60,7 @@
     <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
     <texture id="ground-height" file="res/textures/brick/height.jpg"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="sand" file="res/textures/materials/sand.jpg"/>
     <!-- Cameras -->
     <camera id="main-camera"
             fov="45.0" near="0.1" far="200.0"
@@ -97,13 +98,9 @@
     <texture id="trunk-color" file="res/textures/tree/trunk/pattern_230/diffuse.tga"/>
     <texture id="trunk-normal" file="res/textures/tree/trunk/pattern_230/normal.tga"/>
     <texture id="trunk-specular" file="res/textures/tree/trunk/pattern_230/specular.tga"/>
-    <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga"
-            wrapping="CLAMP_TO_EDGE"/>
-    <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga"
-            wrapping="CLAMP_TO_EDGE"/>
-    <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga"
-            wrapping="CLAMP_TO_EDGE"/>
-    <texture id="sand" file="res/textures/materials/sand.jpg"/>
+    <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga" wrapping="CLAMP_TO_EDGE"/>
 
     <mesh id="tree-mesh" type="proctree"
             seed="499" segments="8" levels="5"
@@ -160,18 +157,16 @@
         <node id="tree1-twig">
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-            <define key="HAS_GS_TRANSFORM" value="TRUE"/>
             <material emission="0.05,0.1,0.05"/>
-            <toggle key="CULL_FACE" value="0" />
-            <define key="HAS_TWO_SIDES" value="TRUE" />
-            <texture name="windFlow" id="wind-flowmap" />
-            <input name="stiffness" type="float" value="0.5"/>
             <texture id="twig-color" map-to="color" blend="src" texco-flipping="y" />
             <!-- <texture id="twig-normal" map-to="normal" /> -->
             <!-- <texture id="twig-specular" map-to="specular" /> -->
-            <mesh id="tree-mesh" mesh-index="1"
-                    shader="regen.models.mesh"
-                    gs="regen.states.wind.wavingQuad"/>
+            <!-- transform mesh in geometry shader -->
+            <define key="HAS_GS_TRANSFORM" value="TRUE"/>
+            <texture name="windFlow" id="wind-flowmap" />
+            <input name="stiffness" type="float" value="0.5"/>
+            <!-- draw the mesh -->
+            <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
         </node>
         <node id="tree1-pot">
             <mesh id="tree-pot" shader="regen.models.mesh"/>
@@ -188,73 +183,13 @@
 
     <texture id="grass-color" file="res/textures/grass/grass0.png" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
-    <!--
-    <texture id="wind-noise" noise="perlin" size="128.0,128.0,1.0"
-         baseFrequency="30.0" persistence="0.5" lacunarity="2.5" octaveCount="4"
-         swizzle-g="RED" swizzle-b="RED"/>
-         -->
-    <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0"
-         swizzle-g="RED" swizzle-b="RED"/>
-
-    <mesh id="grass-frame" type="frame" lod="0"
-            scaling="87.0, 0.8, 85.0" border-size="1.0"
-            use-normal="1" center="1" usage="STATIC" >
-        <transform id="grass-frame-tf">
-            <translate value="2.2, -1.6, 2.0"/>
-        </transform>
-        <material preset="copper"/>
-    </mesh>
-
-    <mesh id="grass-mesh0" type="point" num-vertices="19600">
-        <transform id="grass-tf0">
-            <translate value="-40.0, -2.0, -40.0"/>
-        </transform>
-        <input type="vec3" name="pos" is-attribute="1">
-            <set mode="row" target="translate"
-                x-step="0.6,0.0,0.0" x-count="140" x-variance="0.8"
-                z-step="0.0,0.0,0.6" z-variance="0.8" />
-        </input>
-        <material
-            ambient="0.1, 0.1, 0.1"
-            specular="0.0, 0.0, 0.0"
-            shininess="256.0"
-            emission="0.0, 0.02, 0.0"/>
-    </mesh>
-
-    <node id="Grass-Frame">
-    <!--
-        <node id="grass-frame">
-            <mesh id="grass-frame" shader="regen.models.mesh"/>
-        </node>
-        -->
-    </node>
+    <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
 
     <node id="Grass">
-    <!--
-        <node id="grass0" hidden="true">
-            <blend mode="SRC"/>
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <texture id="grass-color" map-to="color" blend-mode="mul" />
-            <texture name="windFlow" id="wind-flowmap" />
-            <input name="quadSize" type="vec2" value="1.4, 0.3"/>
-            <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix" />
-            <input name="colliderRadius" type="float" value="2.4"/>
-            <input name="colliderStrength" type="float" value="1.0"/>
-            <input name="stiffness" type="float" value="1.0"/>
-            <input name="uvDarken" type="float" value="0.5"/>
-            <mesh id="grass-mesh0" shader="regen.models.grass"/>
-        </node>
-        -->
         <node id="grass1" hidden="true">
             <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" /> -->
             <!-- <toggle key="MULTISAMPLE" value="1" /> -->
-            <!--
-            <blend mode="ALPHA"/>
-            -->
-            <!--
-            <define key="HAS_TWO_SIDES" value="TRUE"/>
-            <toggle key="CULL_FACE" value="0" />
-            -->
+            <!-- <blend mode="ALPHA"/> -->
             <blend mode="SRC"/>
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <define key="TES_SPACING" value="equal_spacing"/>
@@ -263,7 +198,7 @@
             <input name="lodMinDD" type="float" value="0.2"/>
             <input name="lodMaxDD" type="float" value="0.5"/>
             <!-- size and position -->
-            <input name="quadSize" type="vec2" value="1.2, 0.2"/>
+            <input name="quadSize" type="vec2" value="1.15, 0.2"/>
             <input name="posVariation" type="float" value="0.4"/>
             <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
             <!-- color -->
@@ -297,7 +232,7 @@
 
     <mesh id="stairs0-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC" scaling="8.0,0.4,4.0">
         <transform id="stairs0-tf">
-            <translate value="16.0,-1.6,16.0"/>
+            <translate value="16.0,-1.47,16.0"/>
         </transform>
         <physics mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
         <material preset="copper"/>
@@ -305,7 +240,7 @@
 
     <mesh id="stairs1-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC" scaling="6.0,0.4,4.0">
         <transform id="stairs1-tf">
-            <translate value="16.0,-0.8,16.0"/>
+            <translate value="16.0,-0.67,16.0"/>
         </transform>
         <physics mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
         <material preset="copper"/>
@@ -313,7 +248,7 @@
 
     <mesh id="stairs2-mesh" type="box" lod="0" use-normal="1" center="1" usage="STATIC" scaling="4.0,0.4,4.0">
         <transform id="stairs2-tf">
-            <translate value="16.0,0.0,16.0"/>
+            <translate value="16.0,0.13,16.0"/>
         </transform>
         <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
         <material preset="copper"/>
@@ -571,7 +506,6 @@
         <node import="Trees"/>
         <node import="Stairs"/>
         <node import="Platforms"/>
-        <node import="Grass-Frame"/>
     </node>
 
     <node id="Non-Shadow-Caster">
@@ -659,7 +593,9 @@
         <node id="Pre-Render">
             <!-- Render shadow maps such that they can be used in the shading pass -->
             <node import="Shadow-Pass">
-                <!-- <polygon offset-fill="1.1,4.0"/> -->
+                <!-- the leafs of the tree have opposing faces very close to each other,
+                     so to avoid z-fighting we apply a small offset to all shadow caster. -->
+                <polygon offset-fill="1.1,4.0"/>
             </node>
             <view id="Shadow-Map">
                 <fbo id="SCREEN"/>
