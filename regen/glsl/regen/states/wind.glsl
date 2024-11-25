@@ -25,7 +25,9 @@ vec2 windAtPosition(vec3 posWorld)
     vec2 windSample = texture(in_windFlow, windFlow_uv).xy;
     vec2 wind = (2.0*windSample - vec2(1.0)) * length(in_wind);
 #else
-    vec2 wind = in_wind;
+    vec2 wind = 0.1*in_wind;
+    wind.x -= 0.1*sin(in_time * in_windFlowTime * 10.0 + posWorld.x/in_windFlowScale);
+    wind.y -= 0.1*cos(in_time * in_windFlowTime * 10.0 + posWorld.z/in_windFlowScale);
 #endif
 #ifdef HAS_windNoise
     float scaledTime = in_time*0.01*in_windNoiseSpeed;
@@ -44,7 +46,7 @@ vec2 windAtPosition(vec3 posWorld)
 -- wavingQuad.gs
 #include regen.states.camera.defines
 #include regen.defines.all
-#define2 GS_MAX_VERTICES 3
+#define2 GS_MAX_VERTICES ${${RENDER_LAYER}*3}
 layout(triangles) in;
 layout(triangle_strip, max_vertices=${GS_MAX_VERTICES}) out;
 
@@ -86,9 +88,7 @@ int addPoint(inout vec3 quadPos[4], int vIndex) {
     return quadIndex;
 }
 
-void main() {
-    out_layer = 0;
-
+void wavingQuad(int layer) {
     // A list of quad points. We assume here that the "bottom" points
     // of the quad are indicated by a uv coordinate of (_,0).
     // Below we need to figure out if v1,..,v3 are the bottom points
@@ -111,8 +111,19 @@ void main() {
     vec2 wind = windAtPosition(bottomCenter);
     applyForce(quadPos, wind);
 
-    emitVertex(quadPos[vIndex0], 0, 0);
-    emitVertex(quadPos[vIndex1], 1, 0);
-    emitVertex(quadPos[vIndex2], 2, 0);
+    emitVertex(quadPos[vIndex0], 0, layer);
+    emitVertex(quadPos[vIndex1], 1, layer);
+    emitVertex(quadPos[vIndex2], 2, layer);
     EndPrimitive();
+}
+
+void main() {
+#for LAYER to ${RENDER_LAYER}
+    #ifndef SKIP_LAYER${LAYER}
+    // select framebuffer layer
+    gl_Layer = ${LAYER};
+    out_layer = ${LAYER};
+    wavingQuad(${LAYER});
+    #endif // SKIP_LAYER
+#endfor
 }
