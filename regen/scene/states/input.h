@@ -139,6 +139,13 @@ namespace regen {
 				}
 				auto *x = dynamic_cast<HasInput *>(s.get());
 
+				if (in->name() != input.getValue("name")) {
+					// TODO: there is a problem with renaming of inputs, as state configurer
+					//   uses the name. We can avoid problems in shader generation by adding some macros here manually.
+					//   but this case of inserting inputs with different names should be handled better IMO.
+					s->shaderDefine(REGEN_STRING("HAS_"<<input.getValue("name")), "TRUE");
+				}
+
 				if (x == nullptr) {
 					ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
 					inputState->setInput(in, input.getValue("name"));

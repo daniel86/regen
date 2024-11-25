@@ -582,10 +582,6 @@
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>
         <node id="Light-Bulbs">
-            <!-- TODO: for some reason this is not defined! -->
-            <define key="HAS_modelOffset" value="TRUE"/>
-            <define key="HAS_matEmission" value="TRUE"/>
-
             <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="1.0" />
                 <input name="modelOffset" state="room-light0" component="lightPosition" />
