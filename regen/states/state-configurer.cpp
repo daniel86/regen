@@ -82,7 +82,12 @@ void StateConfigurer::addState(const State *s) {
 			addInput(it->name_, it->in_);
 
 			define(REGEN_STRING("HAS_" << it->in_->name()), "TRUE");
-			if (it->in_->numInstances() > 1) { define("HAS_INSTANCES", "TRUE"); }
+			if (it->in_->isVertexAttribute()) {
+				define(REGEN_STRING("HAS_VERTEX_" << it->in_->name()), "TRUE");
+			}
+			if (it->in_->numInstances() > 1) {
+				define("HAS_INSTANCES", "TRUE");
+			}
 		}
 	}
 	if (x1) {

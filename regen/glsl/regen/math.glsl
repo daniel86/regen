@@ -68,51 +68,6 @@ bool isPointBetween(vec2 x, vec2 start, vec2 p0, vec2 p1)
 }
 #endif
 
--- random
-#ifndef REGEN_random_Included
-#define2 REGEN_random_Included
-// return pseudorandom float with values between 0 and 1.
-float random(inout uint seed) {
-    seed = (seed * 1103515245u + 12345u);
-    return float(seed) / 4294967296.0;
-}
-// return pseudorandom vec3 with values between -1 and 1.
-vec3 random3(inout uint seed) {
-    vec3 result;
-    seed = (seed * 1103515245u + 12345u); result.x = float(seed);
-    seed = (seed * 1103515245u + 12345u); result.y = float(seed);
-    seed = (seed * 1103515245u + 12345u); result.z = float(seed);
-    return (result / 2147483648.0) - vec3(1,1,1);
-}
-#endif
-
--- variance
-#ifndef REGEN_variance_Included
-#define2 REGEN_variance_Included
-#include regen.math.random
-float variance(float v, inout uint seed) {
-    return v*2.0*(random(seed)-0.5);
-}
-vec2 variance(vec2 v, inout uint seed) {
-    return vec2(
-        variance(v.x,seed),
-        variance(v.y,seed));
-}
-vec3 variance(vec3 v, inout uint seed) {
-    return vec3(
-        variance(v.x,seed),
-        variance(v.y,seed),
-        variance(v.z,seed));
-}
-vec4 variance(vec4 v, inout uint seed) {
-    return vec4(
-        variance(v.x,seed),
-        variance(v.y,seed),
-        variance(v.z,seed),
-        variance(v.w,seed));
-}
-#endif
-
 -- isPointInCone
 #ifndef REGEN_isPointInCone_included_
 #define REGEN_isPointInCone_included_
