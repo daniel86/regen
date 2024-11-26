@@ -47,26 +47,6 @@ using namespace std;
 #include <regen/scene/states/tesselation.h>
 #include <regen/scene/states/state-sequence.h>
 
-namespace regen {
-	namespace scene {
-		string getResourcePath(const string &relPath) {
-			PathChoice texPaths;
-			texPaths.choices_.push_back(relPath);
-			texPaths.choices_.push_back(filesystemPath(
-					".", relPath));
-			texPaths.choices_.push_back(filesystemPath(
-					REGEN_SOURCE_DIR, relPath));
-			texPaths.choices_.push_back(filesystemPath(filesystemPath(
-					REGEN_SOURCE_DIR, "regen"), relPath));
-			texPaths.choices_.push_back(filesystemPath(filesystemPath(
-					REGEN_SOURCE_DIR, "applications"), relPath));
-			texPaths.choices_.push_back(filesystemPath(filesystemPath(
-					REGEN_INSTALL_PREFIX, "share"), relPath));
-			return texPaths.firstValidPath();
-		}
-	}
-}
-
 SceneParser::SceneParser(
 		Application *application,
 		const ref_ptr<SceneInput> &inputProvider)

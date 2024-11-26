@@ -71,7 +71,7 @@ const list<ref_ptr<SceneInputNode> > &SceneInputNodeXML::getChildren() {
 				rapidxml::xml_attribute<> *a = n->first_attribute("xml-file");
 				if (a != nullptr) {
 					string fileName(a->value());
-					string filePath = getResourcePath(fileName);
+					string filePath = resourcePath(fileName);
 
 					ref_ptr<SceneInputXML> included =
 							ref_ptr<SceneInputXML>::alloc(filePath);

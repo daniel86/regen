@@ -60,7 +60,7 @@ MeshResource::MeshResource()
 ref_ptr<MeshVector> MeshResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
 	const string meshType = input.getValue("type");
-	auto levelOfDetail = input.getValue<GLuint>("lod", 4);
+	auto levelOfDetail = input.getValue<GLuint>("lod", 0);
 	auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
 	auto texcoScaling = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
 	auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));

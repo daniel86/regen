@@ -18,9 +18,10 @@
 #include <iostream>
 
 #include "filesystem.h"
+#include "regen/config.h"
 
 std::string regen::PathChoice::firstValidPath() {
-	for (auto & choice : choices_) {
+	for (auto &choice: choices_) {
 		if (boost::filesystem::exists(choice)) return choice;
 	}
 	return *choices_.begin();
@@ -58,7 +59,23 @@ std::string regen::filesystemPath(
 
 	std::list<std::string> pathNames;
 	boost::split(pathNames, pathString, boost::is_any_of(separators));
-	for (auto & pathName : pathNames) { p /= pathName; }
+	for (auto &pathName: pathNames) { p /= pathName; }
 
 	return p.string();
+}
+
+std::string regen::resourcePath(const std::string &relPath) {
+	PathChoice texPaths;
+	texPaths.choices_.push_back(relPath);
+	texPaths.choices_.push_back(filesystemPath(
+			".", relPath));
+	texPaths.choices_.push_back(filesystemPath(
+			REGEN_SOURCE_DIR, relPath));
+	texPaths.choices_.push_back(filesystemPath(filesystemPath(
+			REGEN_SOURCE_DIR, "regen"), relPath));
+	texPaths.choices_.push_back(filesystemPath(filesystemPath(
+			REGEN_SOURCE_DIR, "applications"), relPath));
+	texPaths.choices_.push_back(filesystemPath(filesystemPath(
+			REGEN_INSTALL_PREFIX, "share"), relPath));
+	return texPaths.firstValidPath();
 }

@@ -147,7 +147,7 @@ ref_ptr<Stars> SkyResource::createStarsLayer(
 
 ref_ptr<MoonLayer> SkyResource::createMoonLayer(const ref_ptr<Sky> &sky,
 												SceneParser *parser, SceneInputNode &input) {
-	const string textureFile = getResourcePath(input.getValue("texture"));
+	const string textureFile = resourcePath(input.getValue("texture"));
 	ref_ptr<MoonLayer> moon = ref_ptr<MoonLayer>::alloc(sky, textureFile);
 
 	if (input.hasAttribute("scale"))
