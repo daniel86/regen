@@ -11,6 +11,7 @@
 #include <string>
 
 #include "vector.h"
+#include "regen/utility/logging.h"
 
 namespace regen {
 
@@ -18,13 +19,9 @@ namespace regen {
 		Vec3f tangent, binormal;
 		// calculate vertex and uv edges
 		Vec3f edge1 = vertices[1] - vertices[0];
-		edge1.normalize();
 		Vec3f edge2 = vertices[2] - vertices[0];
-		edge2.normalize();
 		Vec2f texEdge1 = texco[1] - texco[0];
-		texEdge1.normalize();
 		Vec2f texEdge2 = texco[2] - texco[0];
-		texEdge2.normalize();
 		GLfloat det = texEdge1.x * texEdge2.y - texEdge2.x * texEdge1.y;
 
 		if (math::isApprox(det, 0.0)) {
@@ -54,5 +51,4 @@ namespace regen {
 
 		return {tangent.x, tangent.y, tangent.z, handedness};
 	}
-
 }

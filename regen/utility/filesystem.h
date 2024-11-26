@@ -43,6 +43,13 @@ namespace regen {
 			const std::string &baseDirectory,
 			const std::string &pathString,
 			const std::string &separators = "/");
+
+	/**
+	 * Get the absolute path of a resource.
+	 * @param relPath the relative path.
+	 * @return the absolute path.
+	 */
+	std::string resourcePath(const std::string &relPath);
 } // namespace
 
 #endif /* FILESYSTEM_H_ */

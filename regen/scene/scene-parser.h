@@ -62,14 +62,6 @@ namespace regen {
 		};
 
 		/**
-		 * Try to find a valid absolute path for given
-		 * relative path.
-		 * @param relPath Relative path.
-		 * @return Absolute path.
-		 */
-		std::string getResourcePath(const std::string &relPath);
-
-		/**
 		 * Allows processing of input resources.
 		 * Input resources can define resources and a scene graph
 		 * that references the resources.

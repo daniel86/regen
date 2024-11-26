@@ -4,14 +4,8 @@
 #define2 REGEN_eyeVectorTan_included_
 vec3 eyeVectorTan()
 {
-    mat3 tbn = mat3(
-        in_tangent.x, in_binormal.x, in_norWorld.x,
-        in_tangent.y, in_binormal.y, in_norWorld.y,
-        in_tangent.z, in_binormal.z, in_norWorld.z
-    );
-    vec3 offset = normalize( tbn * (in_cameraPosition-in_posWorld) );
-    offset.y *= -1;
-    return offset;
+    mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);
+    return normalize( tbn * (in_cameraPosition-in_posWorld) );
 }
 #endif
 
@@ -124,64 +118,64 @@ in vec${_DIM} in_${_TEXCO};
 
 -- computeTexco
 #if TEX_DIM${_ID}==1
-#define2 TEXCO_TYPE float
+    #define2 TEXCO_TYPE float
 #else
-#define2 TEXCO_TYPE vec${TEX_DIM${_ID}}
+    #define2 TEXCO_TYPE vec${TEX_DIM${_ID}}
 #endif
 #define2 _MAPPING_ ${TEX_MAPPING_NAME${_ID}}
 
 #if _MAPPING_!=texco_texco
-#ifndef REGEN_texco_${_MAPPING_}_
-#define2 REGEN_texco_${_MAPPING_}_
+    #ifndef REGEN_texco_${_TEXCO_CTX}_${_MAPPING_}_
+        #define2 REGEN_texco_${_TEXCO_CTX}_${_MAPPING_}_
     // generate texco
     ${TEXCO_TYPE} texco_${_MAPPING_} = ${_MAPPING_}(P,N);
-#endif // REGEN_texco_${_MAPPING_${_ID}}_
+    #endif // REGEN_texco_${_MAPPING_${_ID}}_
 
-#ifdef TEXCO_TRANSFER_NAME${_ID}
-#define2 _TRANSFER_ ${TEXCO_TRANSFER_NAME${_ID}}
+    #ifdef TEXCO_TRANSFER_NAME${_ID}
+        #define2 _TRANSFER_ ${TEXCO_TRANSFER_NAME${_ID}}
     // apply transfer function to texco
-#ifndef REGEN_texco_${_MAPPING_}_${_TRANSFER_}_
-#define2 REGEN_texco_${_MAPPING_}_${_TRANSFER_}_
+        #ifndef REGEN_texco_${_MAPPING_}_${_TEXCO_CTX}_${_TRANSFER_}_
+            #define2 REGEN_texco_${_MAPPING_}_${_TEXCO_CTX}_${_TRANSFER_}_
     ${TEXCO_TYPE} texco_${_MAPPING_}_${_TRANSFER_} = texco_${_MAPPING_};
     ${_TRANSFER_}( texco_${_MAPPING_}_${_TRANSFER_} );
-#endif // REGEN_texco_${_MAPPING_}_${TEXCO_TRANSFER_NAME${_ID}}_
-#define2 REGEN_TEXCO${_ID}_ texco_${_MAPPING_}_${_TRANSFER_}
-#else
-#define2 REGEN_TEXCO${_ID}_ texco_${_MAPPING_}
-#endif
+        #endif // REGEN_texco_${_MAPPING_}_${_TEXCO_CTX}_${TEXCO_TRANSFER_NAME${_ID}}_
+        #define2 REGEN_TEXCO${_ID}_ texco_${_MAPPING_}_${_TRANSFER_}
+    #else
+        #define2 REGEN_TEXCO${_ID}_ texco_${_MAPPING_}
+    #endif
 
-#else // _MAPPING_==regen.states.textures.texco_texco
-#ifndef REGEN_${TEX_TEXCO${_ID}}_
-#define2 REGEN_${TEX_TEXCO${_ID}}_
-#if SHADER_STAGE==tes
+#else // _MAPPING_!=texco_texco
+    #ifndef REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_
+        #define2 REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_
+        #if SHADER_STAGE==tes
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = INTERPOLATE_VALUE(in_${TEX_TEXCO${_ID}});
-#else
+        #else
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = in_${TEX_TEXCO${_ID}};
-#endif
-#endif // REGEN_${TEX_TEXCO${_ID}}_
+        #endif
+    #endif // REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_
 
-#ifdef TEXCO_TRANSFER_NAME${_ID}
-#define2 _TRANSFER_ ${TEXCO_TRANSFER_NAME${_ID}}
+    #ifdef TEXCO_TRANSFER_NAME${_ID}
+        #define2 _TRANSFER_ ${TEXCO_TRANSFER_NAME${_ID}}
     // apply transfer function to texco
-#ifndef REGEN_${TEX_TEXCO${_ID}}_${_TRANSFER_}_
-#define2 REGEN_${TEX_TEXCO${_ID}}_${_TRANSFER_}_
+        #ifndef REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_${_TRANSFER_}_
+            #define2 REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_${_TRANSFER_}_
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}}_${_TRANSFER_} = ${TEX_TEXCO${_ID}};
     ${_TRANSFER_}( ${TEX_TEXCO${_ID}}_${_TRANSFER_} );
-#endif // REGEN_${TEX_TEXCO${_ID}}_${_TRANSFER_}_
-#define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}_${_TRANSFER_}
-#else
-#define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}
-#endif
+        #endif // REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_${_TRANSFER_}_
+        #define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}_${_TRANSFER_}
+    #else
+        #define2 REGEN_TEXCO${_ID}_ ${TEX_TEXCO${_ID}}
+    #endif
 
 #ifdef TEX_FLIPPING_MODE${_ID}
-#define2 _FLIP_ ${TEX_FLIPPING_MODE${_ID}}
-#define2 _TEXCO_ ${REGEN_TEXCO${_ID}_}
-#if _FLIP_==x
+    #define2 _FLIP_ ${TEX_FLIPPING_MODE${_ID}}
+    #define2 _TEXCO_ ${REGEN_TEXCO${_ID}_}
+    #if _FLIP_==x
     ${_TEXCO_}.x = 1.0 - ${_TEXCO_}.x;
-#endif
-#if _FLIP_==y
+    #endif
+    #if _FLIP_==y
     ${_TEXCO_}.y = 1.0 - ${_TEXCO_}.y;
-#endif
+    #endif
 #endif // _MAPPING_==regen.states.textures.texco_texco
 
 -- sampleTexel
@@ -193,6 +187,21 @@ in vec${_DIM} in_${_TEXCO};
     // use a custom transfer function for the texel
     ${TEX_TRANSFER_NAME${_ID}}(texel${INDEX});
 #endif // TEX_TRANSFER_NAME${_ID}
+
+-- sampleHeight
+#ifndef REGEN_SAMPLE_HEIGHT_INCLUDED_
+#define2 REGEN_SAMPLE_HEIGHT_INCLUDED_
+float sampleHeight(vec2 uv) {
+    float accumulatedHeight = 0.0;
+#for INDEX to NUM_TEXTURES
+    #define2 _ID ${TEX_ID${INDEX}}
+    #if TEX_MAPTO${_ID}==HEIGHT
+    accumulatedHeight += texture(in_${TEX_NAME${_ID}}, uv).r;
+    #endif
+#endfor
+    return accumulatedHeight;
+}
+#endif
 
 --------------------------------------
 --------------------------------------
@@ -229,6 +238,7 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
+#define2 _TEXCO_CTX textureMappingVertex
 #if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT
 #include regen.states.textures.computeTexco
 #endif // ifVertexMapping
@@ -265,6 +275,7 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
+#define2 _TEXCO_CTX textureMappingFragment
 #define2 _MAPTO ${TEX_MAPTO${_ID}}
     #if _MAPTO == COLOR
 #include regen.states.textures.computeTexco
@@ -301,11 +312,7 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
     ${_BLEND}( texel${INDEX}.x, C.a, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == NORMAL
     #ifndef FS_NO_OUTPUT
-    mat3 tbn${INDEX} = mat3(
-        in_tangent.x, in_binormal.x, in_norWorld.x,
-        in_tangent.y, in_binormal.y, in_norWorld.y,
-        in_tangent.z, in_binormal.z, in_norWorld.z
-    );
+    mat3 tbn${INDEX} = mat3(in_tangent,in_binormal,in_norWorld);
     // Expand the range of the normal value from (0, +1) to (-1, +1).
     vec3 bump${INDEX} = (texel${INDEX}.rgb * 2.0f) - 1.0f;
     // Calculate the normal from the data in the normal map.
@@ -328,6 +335,7 @@ void textureMappingFragmentUnshaded(in vec3 P, inout vec4 C)
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
+#define2 _TEXCO_CTX textureMappingFragmentUnshaded
 #if TEX_MAPTO${_ID}==COLOR || TEX_MAPTO${_ID}==ALPHA
 #include regen.states.textures.computeTexco
 #endif // ifFragmentMapping
@@ -369,6 +377,7 @@ void textureMappingLight(
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
+#define2 _TEXCO_CTX textureMappingLight
 #if TEX_MAPTO${_ID}==AMBIENT || TEX_MAPTO${_ID}==DIFFUSE || TEX_MAPTO${_ID}==SPECULAR || TEX_MAPTO${_ID}==EMISSION || TEX_MAPTO${_ID}==LIGHT || TEX_MAPTO${_ID}==SHININESS
 #include regen.states.textures.computeTexco
 #endif // ifLightMapping
@@ -393,7 +402,7 @@ void textureMappingLight(
     ${_BLEND}( texel${INDEX}.rgb, mat.diffuse, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == LIGHT
     // Lightmap texture (aka Ambient Occlusion)
-    ${_BLEND}( texel${INDEX}.rgb, mat.occlusion, ${TEX_BLEND_FACTOR${_ID}} );
+    ${_BLEND}( texel${INDEX}.r, mat.occlusion, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == EMISSION
     // The texture is added to the result of the lighting calculation.
     ${_BLEND}( texel${INDEX}.rgb, mat.emission, ${TEX_BLEND_FACTOR${_ID}} );
@@ -557,17 +566,20 @@ const float in_parallaxBias = 0.05;
 #ifdef DEPTH_CORRECT
   #include regen.states.camera.depthCorrection
 #endif
+#include regen.states.textures.sampleHeight
 
 void parallaxTransfer(inout vec2 texco)
 {
     vec3 offset = eyeVectorTan();
     // parallax mapping with offset limiting
-    float height = in_parallaxBias -
-        in_parallaxScale*texture(in_heightTexture, texco).r;
-    texco -= height*offset.xy;
+    float height = in_parallaxBias - in_parallaxScale*sampleHeight(texco);
+    texco -= height*offset.xy / offset.z;
 #ifdef DEPTH_CORRECT
     depthCorrection(in_parallaxScale*height*2.0,in_layer);
 #endif
+    //if(texco.x > 1.0 || texco.y > 1.0 || texco.x < 0.0 || texco.y < 0.0) {
+    //    discard;
+    //}
 }
 #endif
 
@@ -581,6 +593,7 @@ const int in_parallaxSteps = 50;
 #ifdef DEPTH_CORRECT
   #include regen.states.camera.depthCorrection
 #endif
+#include regen.states.textures.sampleHeight
 
 void parallaxOcclusionTransfer(inout vec2 texco)
 {
@@ -593,17 +606,17 @@ void parallaxOcclusionTransfer(inout vec2 texco)
     float dh = 1.0/float(in_parallaxSteps);
 #endif
     // step in tbn space each step
-    vec2 ds = -offset.xy*in_parallaxScale*dh/offset.z;
+    vec2 ds = -offset.xy*in_parallaxScale*dh;
     // start at height=1.0
     float height = 1.0;
     // sample current height
-    float sampledHeight = texture(in_heightTexture, texco).r;
+    float sampledHeight = sampleHeight(texco);
     // cast a ray, comparing heights
     while(sampledHeight < height)
     {
         height -= dh;
         texco += ds;
-        sampledHeight = texture(in_heightTexture, texco).r;
+        sampledHeight = sampleHeight(texco);
     }
 #ifdef DEPTH_CORRECT
     depthCorrection(-in_parallaxScale*sampledHeight*2.0,in_layer);
@@ -617,10 +630,13 @@ void parallaxOcclusionTransfer(inout vec2 texco)
 
 const int in_reliefLinearSteps = 20;
 const int in_reliefBinarySteps = 5;
-const float in_reliefScale = 0.1;
+const float in_reliefScale = 0.01;
 
 #include regen.states.textures.eyeVectorTan
-#include regen.states.camera.depthCorrection
+#ifdef DEPTH_CORRECT
+    #include regen.states.camera.depthCorrection
+#endif
+#include regen.states.textures.sampleHeight
 
 void reliefTransfer(inout vec2 texco)
 {
@@ -632,13 +648,13 @@ void reliefTransfer(inout vec2 texco)
     // linear search
     while(sampled > depth) {
         depth += delta;
-        sampled = 1.0-texture(in_heightTexture, texco + ds*depth).x;
+        sampled = 1.0-sampleHeight(texco + ds*depth);
     }
     // binary search
     for(int i=0; i<in_reliefBinarySteps; ++i)
     {
         delta *= 0.5;
-        sampled = 1.0-texture(in_heightTexture, texco + ds*depth).x;
+        sampled = 1.0-sampleHeight(texco + ds*depth);
         depth -= (float(sampled<depth)*2.0-1.0)*delta;
     }
 #ifdef DEPTH_CORRECT
@@ -685,5 +701,17 @@ void wavingTransfer(inout vec2 texco)
 #endif
     texco.x += wave_x;
     //texco.y += wave_y;
+}
+#endif
+
+-- displacementTransfer
+#ifndef REGEN_TEXCOTRANSFER_DISPLACEMENT_
+#define2 REGEN_TEXCOTRANSFER_DISPLACEMENT_
+
+const float in_displacementScale = 0.1;
+
+float displacementTransfer(inout vec3 p)
+{
+    return 0.30*p.x + 0.59*p.y + 0.11*p.z;
 }
 #endif

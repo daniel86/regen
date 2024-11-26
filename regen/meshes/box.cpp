@@ -126,12 +126,18 @@ void Box::updateAttributes(const Config &cfg) {
 			TriangleVertex(Vec3f(-1.0, 1.0, -1.0), 3)
 	};
 	static const GLfloat cubeTexcoords[] = {
-			1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, // Front
-			0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, // Back
-			1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, // Top
-			0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, // Bottom
-			0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, // Right
-			1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0  // Left
+		// Front
+		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
+		// Back
+		1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+		// Top
+		0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
+		// Bottom
+		1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
+		// Right
+		1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+		// Left
+		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
 	};
 
 	GLuint vertexBase = 0;
@@ -196,27 +202,44 @@ void Box::updateAttributes(const Config &cfg) {
 				auto *texco = (Vec2f *) texco_->clientData();
 
 				for (GLuint i = 0; i < 3; ++i) {
-					// Directly assign UV coordinates based on vertex positions
 					Vec3f pos = f[i].p;
-					// Normalize the vertex position to [0, 1]
 					Vec2f uv;
-					switch (sideIndex) {
-						case 0: // Front face
-						case 1: // Back face
-							uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
-							break;
-						case 2: // Top face
-						case 3: // Bottom face
-							uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.z + 1.0f) * 0.5f);
-							break;
-						case 4: // Right face
-						case 5: // Left face
-							uv = Vec2f((pos.z + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
-							break;
-						default:
-							uv = Vec2f(0.0f);
-					}
-					texco[vertexIndex + i] = uv * cfg.texcoScale;
+                    switch (sideIndex) {
+                        case 0: // Front face
+                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
+                            uv.x *= cfg.posScale.x;
+                            uv.y *= cfg.posScale.y;
+                            break;
+                        case 1: // Back face
+                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
+                            uv.x *= cfg.posScale.x;
+                            uv.y *= cfg.posScale.y;
+                            break;
+                        case 2: // Top face
+                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.z + 1.0f) * 0.5f);
+                            uv.x *= cfg.posScale.x;
+                            uv.y *= cfg.posScale.z;
+                            break;
+                        case 3: // Bottom face
+                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.z + 1.0f) * 0.5f);
+                            uv.x *= cfg.posScale.x;
+                            uv.y *= cfg.posScale.z;
+                            break;
+                        case 4: // Right face
+                            uv = Vec2f((pos.z + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
+                            uv.x *= cfg.posScale.z;
+                            uv.y *= cfg.posScale.y;
+                            break;
+                        case 5: // Left face
+                            uv = Vec2f((1.0f - pos.z) * 0.5f, (pos.y + 1.0f) * 0.5f);
+                            uv.x *= cfg.posScale.z;
+                            uv.y *= cfg.posScale.y;
+                            break;
+                        default:
+                            uv = Vec2f(0.0f);
+                    }
+                    uv *= cfg.texcoScale;
+					texco[vertexIndex + i] = uv;
 				}
 				/*
 				for (GLuint i = 0; i < 3; ++i) {

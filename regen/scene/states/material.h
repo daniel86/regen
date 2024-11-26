@@ -34,6 +34,14 @@ namespace regen {
 					const ref_ptr<State> &state) override {
 				ref_ptr<Material> mat = ref_ptr<Material>::alloc();
 
+				if (input.hasAttribute("max-offset")) {
+					mat->set_maxOffset(input.getValue<GLfloat>("max-offset", 0.1f));
+				}
+				if (input.hasAttribute("height-map-mode")) {
+					mat->set_heightMapMode(input.getValue<Material::HeightMapMode>("height-map-mode",
+																				  Material::HEIGHT_MAP_VERTEX));
+				}
+
 				if (input.hasAttribute("asset")) {
 					ref_ptr<AssetImporter> assetLoader =
 							parser->getResources()->getAsset(parser, input.getValue("asset"));
@@ -51,13 +59,19 @@ namespace regen {
 					}
 				} else if (input.hasAttribute("preset")) {
 					string presetVal(input.getValue("preset"));
-					if (presetVal == "jade") mat->set_jade();
-					else if (presetVal == "ruby") mat->set_ruby();
-					else if (presetVal == "chrome") mat->set_chrome();
-					else if (presetVal == "gold") mat->set_gold();
-					else if (presetVal == "copper") mat->set_copper();
-					else if (presetVal == "silver") mat->set_silver();
-					else if (presetVal == "pewter") mat->set_pewter();
+					auto variant = input.getValue<Material::Variant>("variant", 0);
+					if (presetVal == "jade") mat->set_jade(variant);
+					else if (presetVal == "ruby") mat->set_ruby(variant);
+					else if (presetVal == "chrome") mat->set_chrome(variant);
+					else if (presetVal == "gold") mat->set_gold(variant);
+					else if (presetVal == "copper") mat->set_copper(variant);
+					else if (presetVal == "silver") mat->set_silver(variant);
+					else if (presetVal == "pewter") mat->set_pewter(variant);
+					else if (presetVal == "iron") mat->set_iron(variant);
+					else if (presetVal == "steel") mat->set_steel(variant);
+					else if (presetVal == "metal") mat->set_metal(variant);
+					else if (presetVal == "leather") mat->set_leather(variant);
+					else if (presetVal == "stone") mat->set_stone(variant);
 					else {
 						REGEN_WARN("Unknown Material preset '" << presetVal <<
 															   "' for node '" << input.getDescription() << "'.");
@@ -78,6 +92,11 @@ namespace regen {
 												input.getValue<GLfloat>("shininess", 1.0f));
 				if (input.hasAttribute("emission"))
 					mat->set_emission(input.getValue<Vec3f>("emission", Vec3f(0.0f)));
+				if (input.hasAttribute("textures")) {
+					mat->set_textures(
+						input.getValue("textures"),
+						input.getValue<Material::Variant>("variant", 0));
+				}
 
 				mat->alpha()->setVertex(0,
 										input.getValue<GLfloat>("alpha", 1.0f));

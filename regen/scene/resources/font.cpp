@@ -23,7 +23,7 @@ ref_ptr<Font> FontResource::createResource(
 		return {};
 	}
 	return regen::Font::get(
-			getResourcePath(input.getValue("file")),
+			resourcePath(input.getValue("file")),
 			input.getValue<GLuint>("size", 16u),
 			input.getValue<GLuint>("dpi", 96u));
 }

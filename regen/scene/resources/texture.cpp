@@ -173,7 +173,7 @@ ref_ptr<Texture> TextureResource::createResource(
 		auto forcedSize =
 				input.getValue<Vec3ui>("forced-size", Vec3ui(0u));
 		const string filePath =
-				getResourcePath(input.getValue("file"));
+				resourcePath(input.getValue("file"));
 
 		try {
 			if (input.getValue<bool>("is-cube", false)) {
@@ -214,7 +214,7 @@ ref_ptr<Texture> TextureResource::createResource(
 			REGEN_ERROR("Failed to load Texture at " << filePath << ".");
 		}
 	} else if (input.hasAttribute("video")) {
-		const string filePath = getResourcePath(input.getValue("video"));
+		const string filePath = resourcePath(input.getValue("video"));
 		ref_ptr<VideoTexture> video = ref_ptr<VideoTexture>::alloc();
 		video->stopAnimation();
 		try {

@@ -119,7 +119,7 @@
 
 <mesh id="ground-mesh"
       type="rectangle"
-      lod="4"
+      lod="0"
       rotation="0.0,0.0,3.1415"
       scaling="40.0,20.0,40.0"
       texco-scaling="7.0,7.0"
@@ -135,7 +135,7 @@
 
 <mesh id="box-wall"
       type="box"
-      lod="4"
+      lod="0"
       scaling="20.0,1.0,0.5"
       texco-scaling="20.0,1.0"
       use-normal="1"
@@ -156,7 +156,7 @@
 
 <mesh id="wall"
       type="rectangle"
-      lod="4"
+      lod="0"
       rotation="0.0,0.0,3.1415"
       scaling="40.0,1.0,10.0"
       texco-scaling="4.0,1.0"
@@ -277,7 +277,7 @@
 
 <mesh id="picture-frame"
       type="box"
-      lod="4"
+      lod="0"
       scaling="2.8,0.2,2.8"
       texco-scaling="1.6,1.6"
       use-normal="1"
