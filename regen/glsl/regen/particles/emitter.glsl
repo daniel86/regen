@@ -40,7 +40,13 @@ out ${_TYPE} out_${_NAME};
     #ifdef PARTICLE_ATTRIBUTE${INDEX}_ADVANCE_KEY
 #include ${PARTICLE_ATTRIBUTE${INDEX}_ADVANCE_KEY}
     #endif
+    #ifdef PARTICLE_ATTRIBUTE${INDEX}_RAMP_KEY
+#include ${PARTICLE_ATTRIBUTE${INDEX}_RAMP_KEY}
+    #endif
 #endfor
+#ifdef HAS_wind || HAS_windFlow
+    #include regen.states.wind.windAtPosition
+#endif
 
 void particleUpdateVelocity(float dt)
 {
@@ -51,6 +57,9 @@ void particleUpdateVelocity(float dt)
     #ifdef HAS_gravity
     velocityChange += in_gravity;
     #endif
+#endif
+#ifdef HAS_wind || HAS_windFlow
+    velocityChange.xz += windAtPosition(in_pos) * dt;
 #endif
 #ifdef HAS_dampingFactor
     velocityChange -= out_velocity * in_dampingFactor;
@@ -67,13 +76,97 @@ void particleUpdate(float dt, inout uint seed)
     particleUpdateVelocity(dt_ms);
     // allow attributes to configure their advance function
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
-    #ifdef PARTICLE_ATTRIBUTE${INDEX}_ADVANCE
-    #define2 _ADVANCE ${PARTICLE_ATTRIBUTE${INDEX}_ADVANCE}
+    #ifdef PARTICLE_ATTRIBUTE${INDEX}_ADVANCE_FUNCTION
+    #define2 _ADVANCE ${PARTICLE_ATTRIBUTE${INDEX}_ADVANCE_FUNCTION}
+    #define2 _FACTOR ${PARTICLE_ATTRIBUTE${INDEX}_ADVANCE_FACTOR}
     #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
-    ${_ADVANCE}( out_${_NAME}, dt_ms, seed );
+    #define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
+    #ifdef HAS_${_NAME}Ramp
+        #define2 _RAMP ${PARTICLE_ATTRIBUTE${INDEX}_RAMP_FUNCTION}
+        #define2 _TEXEL_SIZE ${PARTICLE_ATTRIBUTE${INDEX}_TEXEL_SIZE}
+        #ifdef HAS_${_NAME}RampMax
+        vec2 rampUV${INDEX} = ${_RAMP}(in_${_NAME}RampMax, ${_TEXEL_SIZE});
+        #else
+        vec2 rampUV${INDEX} = ${_RAMP}(1.0, 0.015625);
+        #endif
+        #if ${_TYPE} == float
+    ${_TYPE} C${INDEX} = texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}).r;
+        #elif ${_TYPE} == vec2
+    ${_TYPE} C${INDEX} = texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}).rg;
+        #elif ${_TYPE} == vec3
+    ${_TYPE} C${INDEX} = texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}).rgb;
+        #elif ${_TYPE} == vec4
+    ${_TYPE} C${INDEX} = texture(in_${_NAME}AdvanceRamp, rampUV${INDEX});
+        #elif ${_TYPE} == int
+    ${_TYPE} C${INDEX} = int(texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}).r);
+        #elif ${_TYPE} == ivec2
+    ${_TYPE} C${INDEX} = ivec2(texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}).rg);
+        #elif ${_TYPE} == ivec3
+    ${_TYPE} C${INDEX} = ivec3(texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}).rgb);
+        #elif ${_TYPE} == ivec4
+    ${_TYPE} C${INDEX} = ivec4(texture(in_${_NAME}AdvanceRamp, rampUV${INDEX}));
+        #endif
+    #else
+        #ifdef HAS_${_NAME}AdvanceConstant
+    ${_TYPE} C${INDEX} = in_${_NAME}AdvanceConstant*dt_ms;
+        #else
+    ${_TYPE} C${INDEX} = ${_TYPE}(1);
+        #endif
+    #endif
+    ${_ADVANCE}( C${INDEX}, out_${_NAME}, ${_FACTOR} );
     #endif
 #endfor
     out_pos += out_velocity * dt_ms;
+}
+#endif
+
+-- ramp.time
+#ifndef REGEN_ramp_time_defined_
+#define2 REGEN_ramp_time_defined_
+#include regen.states.textures.rampCoordinate
+vec2 ramp_lifetime(float max)
+{
+    return rampCoordinate(in_time / max);
+}
+#endif
+
+-- ramp.lifetime
+#ifndef REGEN_ramp_lifetime_defined_
+#define2 REGEN_ramp_lifetime_defined_
+#include regen.states.textures.rampCoordinate
+vec2 ramp_lifetime(float max)
+{
+    return rampCoordinate(1.0 - out_lifetime / max);
+}
+#endif
+
+-- ramp.velocity
+#ifndef REGEN_ramp_velocity_defined_
+#define2 REGEN_ramp_velocity_defined_
+#include regen.states.textures.rampCoordinate
+float ramp_velocity(float max)
+{
+    return rampCoordinate(length(out_velocity) / max);
+}
+#endif
+
+-- ramp.emitterDistance
+#ifndef REGEN_ramp_emitterDistance_defined_
+#define2 REGEN_ramp_emitterDistance_defined_
+#include regen.states.textures.rampCoordinate
+float ramp_emitterDistance(float max)
+{
+    return rampCoordinate(length(out_pos - in_emitterPosition) / max);
+}
+#endif
+
+-- ramp.cameraDistance
+#ifndef REGEN_ramp_cameraDistance_defined_
+#define2 REGEN_ramp_cameraDistance_defined_
+#include regen.states.textures.rampCoordinate
+float ramp_cameraDistance(float max)
+{
+    return rampCoordinate(length(out_pos - in_cameraPosition) / max);
 }
 #endif
 
@@ -218,6 +311,8 @@ vec4 particleValue(vec4 value, vec4 maxVariance, inout uint seed)
 #include regen.particles.emitter.particlePosition
 #include regen.particles.emitter.particleVelocity
 
+const float lifetimeFallback = 20;
+
 void particleEmit(inout uint seed)
 {
     vec3 direction;
@@ -225,19 +320,15 @@ void particleEmit(inout uint seed)
     out_velocity = particleVelocity(seed, direction);
     particlePosition(seed, out_pos);
     // set lifetime to default value, but can be randomized below!
-    out_lifetime = 20.0;
+    out_lifetime = lifetimeFallback;
 
 #for INDEX to NUM_PARTICLE_ATTRIBUTES
 #define2 _NAME ${PARTICLE_ATTRIBUTE${INDEX}_NAME}
 #define2 _TYPE ${PARTICLE_ATTRIBUTE${INDEX}_TYPE}
 #ifdef HAS_${_NAME}Variance
-    #if ${_TYPE} == float || ${_TYPE} == int
-    out_${_NAME} = particleValue(in_${_NAME}Variance.x, in_${_NAME}Variance.y, seed);
-    #elif ${_TYPE} == vec2 || ${_TYPE} == ivec2
-    out_${_NAME} = particleValue(in_${_NAME}Variance.xy, in_${_NAME}Variance.zw, seed);
-    #else
     out_${_NAME} = particleValue(in_${_NAME}Default, in_${_NAME}Variance, seed);
-    #endif
+#elif HAS_${_NAME}Default
+    out_${_NAME} = in_${_NAME}Default;
 #elif HAS_${_NAME}Value
     out_${_NAME} = in_${_NAME}Value;
 #endif

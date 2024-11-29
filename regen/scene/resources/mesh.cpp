@@ -398,6 +398,71 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 	return out_;
 }
 
+template <class InputType, class ValueType>
+static void configureParticleAttribute(
+		SceneParser *parser,
+		const ref_ptr<Particles> &particles,
+		SceneInputNode &input) {
+	const std::string name = input.getValue("name");
+	if (input.hasAttribute("default")) {
+		auto optional = input.getValue<ValueType>("default");
+		if (optional.has_value()) {
+			particles->setDefault<InputType,ValueType>(name, optional.value());
+		} else {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to parse default value.");
+		}
+	}
+	if (input.hasAttribute("variance")) {
+		auto optional = input.getValue<ValueType>("variance");
+		if (optional.has_value()) {
+			particles->setVariance<InputType,ValueType>(name, optional.value());
+		} else {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to parse variance value.");
+		}
+	}
+	if (input.hasAttribute("advance-mode")) {
+		auto optional = input.getValue<Particles::AdvanceMode>("advance-mode");
+		if (optional.has_value()) {
+			particles->setAdvanceMode(name, optional.value());
+		} else {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to parse advance mode.");
+		}
+	}
+	if (input.hasAttribute("advance-function")) {
+		auto optional = input.getValue<string>("advance-function");
+		if (optional.has_value()) {
+			particles->setAdvanceFunction(name, optional.value());
+		} else {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to parse advance function.");
+		}
+	}
+	if (input.hasAttribute("advance-factor")) {
+		auto optional = input.getValue<GLfloat>("advance-factor");
+		if (optional.has_value()) {
+			particles->setAdvanceFactor(name, optional.value());
+		} else {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to parse advance factor.");
+		}
+	}
+	if (input.hasAttribute("advance-constant")) {
+		auto optional = input.getValue<ValueType>("advance-constant");
+		if (optional.has_value()) {
+			particles->setAdvanceConstant<InputType,ValueType>(name, optional.value());
+		} else {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to parse advance constant.");
+		}
+	}
+	if (input.hasAttribute("advance-ramp")) {
+		auto rampMode = input.getValue<Particles::RampMode>("advance-ramp-mode", Particles::RAMP_MODE_LIFETIME);
+		auto rampTexture = parser->getResources()->getTexture(parser, input.getValue("advance-ramp"));
+		if (rampTexture.get() == nullptr) {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load advance ramp texture.");
+		} else {
+			particles->setAdvanceRamp(name, rampTexture, rampMode);
+		}
+	}
+}
+
 ref_ptr<Particles> MeshResource::createParticleMesh(
 		SceneParser *parser,
 		SceneInputNode &input,
@@ -409,6 +474,35 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 	} else {
 		particles = ref_ptr<Particles>::alloc(numParticles);
 	}
+	// the attributes of particles may have special attributes in the scene file that determine default, variance, etc.
+	// these are ignored by processMeshChildren, so we need to process them here.
+	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
+	for (const auto & it : childs) {
+		auto &child = *it.get();
+		if (child.getCategory() == "input" && child.getValue<bool>("is-attribute", false)) {
+			const string type = child.getValue("type");
+			if (type == "float") {
+				configureParticleAttribute<ShaderInput1f, GLfloat>(parser, particles, child);
+			} else if (type == "vec2") {
+				configureParticleAttribute<ShaderInput2f, Vec2f>(parser, particles, child);
+			} else if (type == "vec3") {
+				configureParticleAttribute<ShaderInput3f, Vec3f>(parser, particles, child);
+			} else if (type == "vec4") {
+				configureParticleAttribute<ShaderInput4f, Vec4f>(parser, particles, child);
+			} else if (type == "int") {
+				configureParticleAttribute<ShaderInput1i, GLint>(parser, particles, child);
+			} else if (type == "ivec2") {
+				configureParticleAttribute<ShaderInput2i, Vec2i>(parser, particles, child);
+			} else if (type == "ivec3") {
+				configureParticleAttribute<ShaderInput3i, Vec3i>(parser, particles, child);
+			} else if (type == "ivec4") {
+				configureParticleAttribute<ShaderInput4i, Vec4i>(parser, particles, child);
+			} else {
+				REGEN_WARN("Ignoring " << child.getDescription() << ", unknown attribute type '" << type << "'.");
+			}
+		}
+	}
+
 	particles->begin();
 	// Mesh resources can have State children
 	MeshVector x = MeshVector(1);

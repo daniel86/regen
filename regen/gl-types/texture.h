@@ -5,15 +5,15 @@
  *      Author: daniel
  */
 
-#ifndef _TEXTURE_H_
-#define _TEXTURE_H_
+#ifndef REGEN_TEXTURE_H_
+#define REGEN_TEXTURE_H_
 
 #include <string>
 #include <set>
 #include <map>
 #include <list>
 
-#include <regen/gl-types/gl-object.h>
+#include <regen/gl-types/gl-rectangle.h>
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/vbo.h>
@@ -159,13 +159,13 @@ namespace regen {
 		 * Specifies a pointer to the image data in memory.
 		 * Initially NULL.
 		 */
-		void set_data(GLvoid *data);
+		void set_data(const GLvoid *data);
 
 		/**
 		 * Specifies a pointer to the image data in memory.
 		 * Initially NULL.
 		 */
-		GLvoid *data() const;
+		const GLvoid *data() const;
 
 		/**
 		 * Sets magnification and minifying parameters.
@@ -276,7 +276,7 @@ namespace regen {
 		TextureParameterStack<TextureAniso> **aniso_;
 
 		// pixel data, or null for empty texture
-		GLvoid *data_;
+		const GLvoid *data_;
 		// true if texture encodes data in tangent space.
 		GLboolean isInTSpace_;
 
@@ -573,4 +573,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* _TEXTURE_H_ */
+#endif /* REGEN_TEXTURE_H_ */

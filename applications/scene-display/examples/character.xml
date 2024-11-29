@@ -376,6 +376,16 @@
     -->
 
     <texture id="fog-splat" file="res/textures/splats/smoke1.jpg"/>
+    <!--
+    <texture id="fog-ramp" ramp="inline" format="LUMINANCE">
+        <texel v="0"/>
+        <texel v="255"/>
+    </texture>
+    <texture id="fog-ramp" ramp="gradient">
+        <value type="byte">0</value>
+        <value type="byte">255</value>
+    </texture>
+    -->
 
     <mesh id="test-particles" type="particles" num-vertices="800">
         <!-- Add shader defines. -->
@@ -383,32 +393,36 @@
         <define key="PARTICLE_EMITTER_MODE" value="IN"/>
         <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
         <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
+        <!-- TODO: redundant with root node -->
+        <!--
+        <input name="wind" type="vec2" value="0.6, 0.6"/>
+        <input name="windFlowScale" type="float" value="150.0"/>
+        <input name="windFlowTime" type="float" value="0.2"/>
+        <texture name="windFlow" id="wind-flowmap" />
+        -->
         <!-- Add shader input. -->
-        <input type="vec3" name="gravity" value="0.0,-9.81,0.0"/>
-        <input type="float" name="dampingFactor" value="4.0"/>
-        <input type="vec2" name="velocityFactorMinMax" value="10.0, 20.0"/>
+        <input type="vec3" name="gravity" value="0.0,9.81,0.0"/>
+        <input type="float" name="dampingFactor" value="1.0"/>
+        <input type="vec2" name="velocityFactorMinMax" value="5.0, 10.0"/>
         <!-- <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0"/> -->
         <input type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
         <input type="float" name="emitterSize" value="9.0"/>
         <input type="float" name="emitterOpening" value="0.5"/>
         <input type="int" name="maxNumEmits" value="20"/>
         <input type="float" name="surfaceHeight" value="-1.0"/>
-        <input type="vec2" name="lifetimeVariance" value="0.5, 0.25"/>
-        <input type="vec2" name="massVariance" value="1.4, 0.4"/>
-        <input type="vec2" name="sizeVariance" value="0.75, 0.3"/>
-        <!--
-        <input type="vec3" name="colorDefault" value="0.6, 0.4, 0.2"/>
-        <input type="vec3" name="colorVariance" value="0.2, 0.2, 0.0"/>
-        -->
-        <input type="vec3" name="colorDefault" value="0.1, 0.1, 0.1"/>
-        <input type="vec3" name="colorVariance" value="0.0, 0.0, 0.0"/>
+        <input type="float" name="lifetimeDefault" value="0.8"/>
+        <input type="float" name="lifetimeVariance" value="0.5"/>
         <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="vec3" name="color" is-attribute="1"/>
-        <input type="float" name="mass" is-attribute="1"/>
-        <input type="float" name="size" is-attribute="1"/>
+        <input type="vec3" name="color" is-attribute="1"
+                default="0.5, 0.25, 0.1" variance="0.0, 0.0, 0.45"/>
+        <input type="float" name="mass" is-attribute="1"
+                default="1.4" variance="0.4"/>
+        <input type="float" name="size" is-attribute="1"
+                default="0.1" variance="0.05"
+                advance-mode="ADD" advance-constant="2.0"/>
         <transform id="platform1-tf" />
     </mesh>
 

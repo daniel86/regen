@@ -715,3 +715,24 @@ float displacementTransfer(inout vec3 p)
     return 0.30*p.x + 0.59*p.y + 0.11*p.z;
 }
 #endif
+
+-- rampCoordinate
+#ifndef REGEN_RAMP_COORDINATE_INCLUDED_
+#define2 REGEN_RAMP_COORDINATE_INCLUDED_
+
+vec2 rampCoordinate(float rampPosition)
+{
+    return vec2(rampPosition, 0.5);
+}
+vec2 rampCoordinate(float rampPosition, float texelSize)
+{
+    float adjusted =
+        // skip first half texel
+        0.5*texelSize +
+        // scale from [0,1] to [0,1-texelSize]
+        (rampPosition % 1.0) / (1.0 - texelSize) +
+        // add floor of rampPosition
+        floor(rampPosition);
+    return vec2(adjusted, 0.5);
+}
+#endif

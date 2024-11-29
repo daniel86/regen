@@ -276,6 +276,8 @@ namespace regen {
 		 */
 		void clear();
 
+		void setTime();
+
 	protected:
 		ref_ptr<RootNode> renderTree_;
 		std::map<std::string, NamedObject> namedToObject_;

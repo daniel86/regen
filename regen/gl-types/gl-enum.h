@@ -104,6 +104,13 @@ namespace regen {
 		GLenum pixelType(const std::string &val);
 
 		/**
+		 * Defines the number of components per texel.
+		 * @param val the type string.
+		 * @return 1, 2, 3 or 4.
+		 */
+		GLuint pixelComponents(GLenum format);
+
+		/**
 		 * Defines the format of texel data that is visible to the outside.
 		 * @param numComponents Number of components per texel.
 		 * @return On of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
