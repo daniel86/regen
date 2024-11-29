@@ -7,6 +7,7 @@
 
 #include "texture.h"
 #include "regen/effects/bloom-texture.h"
+#include "regen/textures/ramp-texture.h"
 #include <regen/application.h>
 
 using namespace regen::scene;
@@ -158,6 +159,35 @@ void TextureResource::configureTexture(
 	GL_ERROR_LOG();
 }
 
+static std::vector<GLuint> readTextureData(SceneInputNode &input, GLenum format) {
+	std::vector<GLuint> data;
+	auto numPixelComponents = glenum::pixelComponents(format);
+	// iterate over all "texel" children
+	for (auto &child : input.getChildren()) {
+		if (child->getName() == "texel" && child->hasAttribute("v")) {
+			if (numPixelComponents == 1) {
+				data.push_back(child->getValue<GLuint>("v",0u));
+			} else if (numPixelComponents == 2) {
+				auto v = child->getValue<Vec2ui>("v",Vec2ui(0u));
+				data.push_back(v.x);
+				data.push_back(v.y);
+			} else if (numPixelComponents == 3) {
+				auto v = child->getValue<Vec3ui>("v",Vec3ui(0u));
+				data.push_back(v.x);
+				data.push_back(v.y);
+				data.push_back(v.z);
+			} else if (numPixelComponents == 4) {
+				auto v = child->getValue<Vec4ui>("v",Vec4ui(0u));
+				data.push_back(v.x);
+				data.push_back(v.y);
+				data.push_back(v.z);
+				data.push_back(v.w);
+			}
+		}
+	}
+	return data;
+}
+
 ref_ptr<Texture> TextureResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
 	ref_ptr<Texture> tex;
@@ -259,6 +289,38 @@ ref_ptr<Texture> TextureResource::createResource(
 			auto noise = ref_ptr<NoiseTexture3D>::alloc(sizeAbs.x, sizeAbs.y, sizeAbs.z, isSeamless);
 			noise->setNoiseGenerator(NoiseGenerator::preset_perlin(randomSeed));
 			tex = noise;
+		}
+	} else if (input.hasAttribute("ramp")) {
+		auto ramp = input.getValue("ramp");
+		if (ramp == "dark-white") {
+			tex = RampTexture::darkWhite();
+		} else if (ramp == "dark-white-skewed") {
+			tex = RampTexture::darkWhiteSkewed();
+		} else if (ramp == "normal") {
+			tex = RampTexture::normal();
+		} else if (ramp == "three-step") {
+			tex = RampTexture::threeStep();
+		} else if (ramp == "four-step") {
+			tex = RampTexture::fourStep();
+		} else if (ramp == "four-step-skewed") {
+			tex = RampTexture::fourStepSkewed();
+		} else if (ramp == "black-white-black") {
+			tex = RampTexture::blackWhiteBlack();
+		} else if (ramp == "stripes") {
+			tex = RampTexture::stripes();
+		} else if (ramp == "stripe") {
+			tex = RampTexture::stripe();
+		} else if (ramp == "rgb") {
+			tex = RampTexture::rgb();
+		} else if (ramp == "inline") {
+			auto format = glenum::textureFormat(
+					input.getValue<string>("format", "LUMINANCE"));
+			auto internalFormat = glenum::textureInternalFormat(
+					input.getValue<string>("internal-format", "LUMINANCE"));
+			auto data = readTextureData(input, format);
+			tex = ref_ptr<RampTexture>::alloc(format, internalFormat, data);
+		} else {
+			REGEN_WARN("Unknown ramp type '" << ramp << "'.");
 		}
 	} else if (input.hasAttribute("spectrum")) {
 		auto spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));

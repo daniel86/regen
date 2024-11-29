@@ -124,9 +124,9 @@ void Texture::set_format(GLenum format) { format_ = format; }
 
 GLenum Texture::format() const { return format_; }
 
-void Texture::set_data(GLvoid *data) { data_ = data; }
+void Texture::set_data(const GLvoid *data) { data_ = data; }
 
-GLvoid *Texture::data() const { return data_; }
+const GLvoid *Texture::data() const { return data_; }
 
 GLenum Texture::targetType() const { return texBind_.target_; }
 

@@ -13,6 +13,7 @@
 #include <regen/gl-types/gl-enum.h>
 #include <string>
 #include <list>
+#include <optional>
 #include <vector>
 #include <map>
 
@@ -128,7 +129,7 @@ namespace regen {
 			 * @return Get the typed attribute value or the default value if attribute
 			 *          not found.
 			 */
-			template<class T>
+			template<typename T>
 			T getValue(const std::string &key, const T &defaultValue) {
 				if (hasAttribute(key)) {
 					T attValue;
@@ -145,6 +146,30 @@ namespace regen {
 						return parent_->getValue<T>(key, defaultValue);
 					} else {
 						return defaultValue;
+					}
+				}
+			}
+
+			/**
+			 * @param key the attribute key.
+			 * @return Get the typed attribute value or std::nullopt if attribute
+			 *          not found.
+			 */
+			template<typename T>
+			std::optional<T> getValue(const std::string &key) {
+				if (hasAttribute(key)) {
+					T attValue;
+					std::stringstream ss(getValue(key));
+					if ((ss >> attValue).fail()) {
+						return std::nullopt;
+					} else {
+						return attValue;
+					}
+				} else {
+					if (parent_ != nullptr) {
+						return parent_->getValue<T>(key);
+					} else {
+						return std::nullopt;
 					}
 				}
 			}

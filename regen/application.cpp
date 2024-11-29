@@ -49,10 +49,7 @@ Application::Application(const int &argc, const char **argv)
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
 
-	lastMotionTime_ = boost::posix_time::ptime(
-			boost::posix_time::microsec_clock::local_time());
-	lastDisplayTime_ = lastMotionTime_;
-	lastUpdateTime_ = lastMotionTime_;
+	setTime();
 
 	requiredExt_.push_back("GL_VERSION_3_3");
 	requiredExt_.push_back("GL_ARB_copy_buffer");
@@ -260,6 +257,13 @@ void Application::initGL() {
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");
+}
+
+void Application::setTime() {
+	lastMotionTime_ = boost::posix_time::ptime(
+			boost::posix_time::microsec_clock::local_time());
+	lastDisplayTime_ = lastMotionTime_;
+	lastUpdateTime_ = lastMotionTime_;
 }
 
 void Application::clear() {

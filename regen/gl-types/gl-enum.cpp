@@ -213,6 +213,27 @@ GLenum glenum::pixelType(const std::string &val_) {
 	return GL_UNSIGNED_BYTE;
 }
 
+GLuint glenum::pixelComponents(GLenum format) {
+	switch (format) {
+		case GL_RED:
+		case GL_GREEN:
+		case GL_BLUE:
+		case GL_ALPHA:
+		case GL_LUMINANCE:
+		case GL_DEPTH_COMPONENT:
+			return 1;
+		case GL_RG:
+		case GL_LUMINANCE_ALPHA:
+			return 2;
+		case GL_RGB:
+			return 3;
+		case GL_RGBA:
+			return 4;
+		default:
+			return 1;
+	}
+}
+
 GLenum glenum::fillMode(const std::string &val_) {
 	std::string val = getValue(val_);
 	if (val == "FILL") return GL_FILL;

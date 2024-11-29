@@ -271,16 +271,15 @@
     <input type="vec3" name="emitterPosition" value="2.7, 6.5, 0.0" />
     <input type="float" name="emitterSize" value="10.0" />
     <input type="int" name="maxNumEmits" value="20" />
-    <input type="vec2" name="lifetimeVariance" value="4.0, 1.0" />
     <input type="float" name="surfaceHeight" value="-6.0" />
-    <input type="vec2" name="massVariance" value="0.8,0.1" />
-    <input type="vec2" name="sizeVariance" value="3.0,0.15" />
+    <input type="float" name="lifetimeDefault" value="4.0" />
+    <input type="float" name="lifetimeVariance" value="4.0" />
     <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
     <!-- Add particle attributes. -->
     <input type="vec3" name="pos" is-attribute="1" />
     <input type="vec3" name="velocity" is-attribute="1" />
-    <input type="float" name="mass" is-attribute="1" />
-    <input type="float" name="size" is-attribute="1" />
+    <input type="float" name="mass" is-attribute="1" default="0.8" variance="0.1"/>
+    <input type="float" name="size" is-attribute="1" default="3.0" variance="0.15"/>
 </mesh>
 
 <node id="Fog-Update">
