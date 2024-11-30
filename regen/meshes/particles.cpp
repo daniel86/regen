@@ -94,7 +94,7 @@ VBOReference Particles::end() {
 		particleAttributes_.emplace_back(in, loc);
 	}
 	// start with zero emitted particles
-	inputContainer_->set_numVertices(0);
+	//inputContainer_->set_numVertices(0);
 
 	return particleRef_;
 }
@@ -274,6 +274,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	rs->feedbackBufferRange().push(0, bufferRange_);
 	rs->beginTransformFeedback(GL_POINTS);
 
+	/*
 	// only emit a limited number of particles per frame
 	if (inputContainer_->numVertices() < numParticles_) {
 		GLuint nextNumParticles = inputContainer_->numVertices() + maxEmits_;
@@ -283,6 +284,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 			inputContainer_->set_numVertices(nextNumParticles);
 		}
 	}
+	*/
 	glDrawArrays(primitive_, 0, inputContainer_->numVertices());
 
 	rs->endTransformFeedback();

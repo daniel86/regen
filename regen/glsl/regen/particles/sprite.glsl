@@ -10,7 +10,7 @@ float softParticleScale()
             REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
     float fragmentDepth = linearizeDepth(gl_FragCoord.z,
 	    REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
-    return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);	
+    return clamp(in_softParticleScale*(sceneDepth - fragmentDepth), 0.0, 1.0);
 }
 #else
 #define softParticleScale()
@@ -130,7 +130,7 @@ void main() {
 #endif
     // fade out based on lifetime
     opacity *= smoothstep(0.0, in_lifetimeSmoothstep, in_lifetime);
-    if(opacity<0.0001) discard;
+    if(opacity<0.1) discard;
 
 #ifdef HAS_color
     out_color = vec4(in_color.rgb, 1.0);
@@ -147,6 +147,9 @@ void main() {
     out_color.rgb *= diffuseColor;
 #endif
     // apply the brightness of the particle
+    // TODO: this is not super useful with ADD blending, low values make the particle disappear
+    //        so this is actually more of a density threshold than a brightness.
+    //        not sure what the best strategy is here....
     out_color.rgb *= in_particleBrightness;
     out_color.a *= opacity;
 #ifdef OPACITY_WEIGHTED_COLOR
