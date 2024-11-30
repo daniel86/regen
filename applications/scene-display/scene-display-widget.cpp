@@ -648,6 +648,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
 	AnimationManager::get().pause(GL_TRUE);
 	AnimationManager::get().clear();
+	AnimationManager::get().setRootState(app_->renderTree()->state());
 
 	animations_.clear();
 	viewNodes_.clear();

@@ -53,6 +53,13 @@ void AnimationManager::resetTime() {
 	lastTime_ = time_;
 }
 
+void AnimationManager::setRootState(const ref_ptr<State> &rootState) {
+	rootState_ = rootState;
+	for (auto &anim : animations_) {
+		anim->setRootState(rootState);
+	}
+}
+
 void AnimationManager::addAnimation(Animation *animation) {
 	// Don't add while removing
 	while (removeInProgress_) usleepRegen(1000);
@@ -71,6 +78,7 @@ void AnimationManager::addAnimation(Animation *animation) {
 			// save to remove from set
 			glAnimations_.insert(animation);
 		}
+		animation->setRootState(rootState_);
 	}
 
 	if (animation->useAnimation()) {

@@ -276,7 +276,10 @@ namespace regen {
 		 */
 		void clear();
 
-		void setTime();
+		/**
+		 * Updates the time.
+		 */
+		void updateTime();
 
 	protected:
 		ref_ptr<RootNode> renderTree_;
@@ -298,14 +301,17 @@ namespace regen {
 		ref_ptr<ShaderInput2f> mouseTexco_;
 		ref_ptr<ShaderInput1f> mouseDepth_;
 		ref_ptr<ShaderInput1f> timeSeconds_;
+		ref_ptr<ShaderInput1f> timeDelta_;
 
 		boost::posix_time::ptime lastMotionTime_;
-		boost::posix_time::ptime lastDisplayTime_;
-		boost::posix_time::ptime lastUpdateTime_;
+		boost::posix_time::ptime lastTime_;
 
 		GLboolean isGLInitialized_;
+		GLboolean isTimeInitialized_;
 
 		void setupShaderLoading();
+
+		void setTime();
 
 		void initGL();
 

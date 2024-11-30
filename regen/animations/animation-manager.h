@@ -86,12 +86,19 @@ namespace regen {
 		 */
 		auto& glAnimations() { return glAnimations_; }
 
+		/**
+		 * Set the root state.
+		 * @param rootState the root state.
+		 */
+		void setRootState(const ref_ptr<State> &rootState);
+
 	private:
 
 		boost::posix_time::ptime time_;
 		boost::posix_time::ptime lastTime_;
 		std::vector<Animation *> animations_;
 		std::set<Animation *> glAnimations_;
+		ref_ptr<State> rootState_;
 
 		boost::thread::id animationThreadID_;
 		boost::thread::id glThreadID_;

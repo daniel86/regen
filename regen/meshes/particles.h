@@ -71,6 +71,13 @@ namespace regen {
 			const std::string &updateShaderKey="regen.particles.emitter");
 
 		/**
+		 * Set the maximum number of particles to emit per frame.
+		 * This has only an effect initially.
+		 * @param maxEmits maximum number of particles to emit.
+		 */
+		void setMaxEmits(GLuint maxEmits) { maxEmits_ = maxEmits; }
+
+		/**
 		 * Set the default value for a particle attribute when it is emitted.
 		 * @param attributeName name of the attribute.
 		 * @param value default value.
@@ -165,10 +172,10 @@ namespace regen {
 		VBOReference particleRef_;
 		BufferRange bufferRange_;
 		std::list<ShaderInputLocation> particleAttributes_;
-
-		ref_ptr<ShaderInput1f> deltaT_;
-		ref_ptr<ShaderInput1f> timeSeconds_;
 		ref_ptr<ShaderState> updateState_;
+
+		GLuint numParticles_;
+		GLuint maxEmits_;
 
 		std::map<std::string, AdvanceMode> advanceModes_;
 		std::map<std::string, std::string> advanceFunctions_;

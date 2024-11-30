@@ -125,6 +125,7 @@ void QTGLWidget::run() {
 		while(app_->isMainloopRunning_)
 #endif
 	{
+		app_->updateTime();
 		app_->updateGL();
 		app_->drawGL();
 
@@ -148,7 +149,7 @@ void QTGLWidget::run() {
 		boost::posix_time::ptime t(
 				boost::posix_time::microsec_clock::local_time());
 		dt = std::max(0, updateInterval_ - (GLint)
-				(t - app_->lastDisplayTime_).total_microseconds());
+				(t - app_->lastTime_).total_microseconds());
 		// sleep desired interval
 		usleepRegen(dt);
 #endif

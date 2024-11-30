@@ -159,17 +159,13 @@ ref_ptr<Camera> StateNode::getParentCamera() {
 //////////////
 
 RootNode::RootNode() : StateNode() {
-	timeDelta_ = ref_ptr<ShaderInput1f>::alloc("deltaT");
-	timeDelta_->setUniformData(0.0f);
 }
 
 void RootNode::init() {
-	state_->joinShaderInput(timeDelta_);
 }
 
 void RootNode::render(GLdouble dt) {
 	GL_ERROR_LOG();
-	timeDelta_->setVertex(0, dt);
 	traverse(RenderState::get());
 	GL_ERROR_LOG();
 }

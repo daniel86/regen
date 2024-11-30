@@ -32,7 +32,8 @@ Application::Application(const int &argc, const char **argv)
 		: EventObject(),
 		  renderTree_(ref_ptr<RootNode>::alloc()),
 		  renderState_(NULL),
-		  isGLInitialized_(GL_FALSE) {
+		  isGLInitialized_(GL_FALSE),
+		  isTimeInitialized_(GL_FALSE) {
 	windowViewport_ = ref_ptr<ShaderInput2i>::alloc("windowViewport");
 	windowViewport_->setUniformData(Vec2i(2, 2));
 
@@ -45,11 +46,11 @@ Application::Application(const int &argc, const char **argv)
 
 	timeSeconds_ = ref_ptr<ShaderInput1f>::alloc("time");
 	timeSeconds_->setUniformData(0.0f);
+	timeDelta_ = ref_ptr<ShaderInput1f>::alloc("timeDeltaMS");
+	timeDelta_->setUniformData(0.0f);
 
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
-
-	setTime();
 
 	requiredExt_.push_back("GL_VERSION_3_3");
 	requiredExt_.push_back("GL_ARB_copy_buffer");
@@ -254,22 +255,24 @@ void Application::initGL() {
 	renderTree_->state()->joinShaderInput(mouseDepth_);
 	renderTree_->state()->joinShaderInput(isMouseEntered_);
 	renderTree_->state()->joinShaderInput(timeSeconds_);
+	renderTree_->state()->joinShaderInput(timeDelta_);
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");
 }
 
 void Application::setTime() {
-	lastMotionTime_ = boost::posix_time::ptime(
+	lastTime_ = boost::posix_time::ptime(
 			boost::posix_time::microsec_clock::local_time());
-	lastDisplayTime_ = lastMotionTime_;
-	lastUpdateTime_ = lastMotionTime_;
+	lastMotionTime_ = lastTime_;
+	isTimeInitialized_ = GL_TRUE;
 }
 
 void Application::clear() {
 	renderTree_->clear();
 	namedToObject_.clear();
 	idToObject_.clear();
+	isTimeInitialized_ = GL_FALSE;
 	RenderState::reset();
 }
 
@@ -309,20 +312,20 @@ void Application::unsetHoveredObject() {
 	hoveredObject_ = {};
 }
 
+void Application::updateTime() {
+	if (!isTimeInitialized_) {
+		setTime();
+	}
+	boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
+	timeDelta_->setUniformData((GLdouble) (t - lastTime_).total_milliseconds());
+	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1e+6);
+	lastTime_ = t;
+}
+
 void Application::drawGL() {
-	boost::posix_time::ptime t(
-			boost::posix_time::microsec_clock::local_time());
-	GLdouble dt = (GLdouble) (t - lastDisplayTime_).total_milliseconds();
-	lastDisplayTime_ = t;
-	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1000000.0);
-	renderTree_->render(dt);
+	renderTree_->render(timeDelta_->getVertex(0));
 }
 
 void Application::updateGL() {
-	boost::posix_time::ptime t(
-			boost::posix_time::microsec_clock::local_time());
-	GLdouble dt = (GLdouble) (t - lastUpdateTime_).total_milliseconds();
-	lastUpdateTime_ = t;
-	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1000000.0);
-	renderTree_->postRender(dt);
+	renderTree_->postRender(timeDelta_->getVertex(0));
 }

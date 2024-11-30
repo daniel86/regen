@@ -13,7 +13,8 @@
 
 #include <regen/utility/event-object.h>
 #include <regen/gl-types/render-state.h>
-#include "regen/gl-types/shader.h"
+#include <regen/gl-types/shader.h>
+#include <regen/states/state.h>
 
 namespace regen {
 	/**
@@ -136,6 +137,17 @@ namespace regen {
 		 */
 		void setShader(const ref_ptr<Shader> &shader) { shader_ = shader; }
 
+		/**
+		 * @return the root state.
+		 */
+		const auto& rootState() { return rootState_; }
+
+		/**
+		 * Set the root state.
+		 * @param rootState the root state.
+		 */
+		void setRootState(const ref_ptr<State> &rootState) { rootState_ = rootState; }
+
 	protected:
 		boost::mutex mutex_;
 		boost::mutex mutex_gl_;
@@ -143,6 +155,7 @@ namespace regen {
 		GLboolean useAnimation_;
 		GLboolean isRunning_;
 		ref_ptr<Shader> shader_;
+		ref_ptr<State> rootState_;
 
 		Animation(const Animation &);
 

@@ -195,9 +195,6 @@ namespace regen {
 		 * @param dt time difference to last traversal.
 		 */
 		static void postRender(GLdouble dt);
-
-	protected:
-		ref_ptr<ShaderInput1f> timeDelta_;
 	};
 } // namespace
 

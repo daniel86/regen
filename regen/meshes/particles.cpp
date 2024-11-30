@@ -20,20 +20,12 @@ using namespace regen;
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 		: Mesh(GL_POINTS, VBO::USAGE_STREAM),
 		  Animation(GL_TRUE, GL_FALSE),
-		  updateShaderKey_(updateShaderKey) {
+		  updateShaderKey_(updateShaderKey),
+		  maxEmits_(100u) {
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
 	inputContainer_->set_numVertices(numParticles);
-
-	deltaT_ = ref_ptr<ShaderInput1f>::alloc("deltaT");
-	deltaT_->setUniformData(0.0);
-	setInput(deltaT_);
-
-	// FIXME: redundant, application also has this
-	timeSeconds_ = ref_ptr<ShaderInput1f>::alloc("time");
-	timeSeconds_->setUniformData(0.0);
-	setInput(timeSeconds_);
-
 	updateState_ = ref_ptr<ShaderState>::alloc();
+	numParticles_ = numParticles;
 }
 
 void Particles::begin() {
@@ -66,6 +58,45 @@ void Particles::begin(ShaderInputContainer::DataLayout layout) {
 		lifetimeInput_->setVertex(i, -1.0);
 	}
 	setInput(lifetimeInput_);
+}
+
+VBOReference Particles::end() {
+	ShaderInputList particleInputs = inputContainer()->uploadInputs();
+
+	particleRef_ = HasInput::end();
+	feedbackRef_ = feedbackBuffer_->alloc(particleRef_->allocatedSize());
+	bufferRange_.size_ = particleRef_->allocatedSize();
+
+	// Create shader defines.
+	GLuint counter = 0;
+	for (auto it = particleInputs.begin(); it != particleInputs.end(); ++it) {
+		if (!it->in_->isVertexAttribute()) continue;
+		shaderDefine(
+				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_TYPE"),
+				glenum::glslDataType(it->in_->dataType(), it->in_->valsPerElement()));
+		shaderDefine(
+				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_NAME"),
+				it->in_->name());
+		if (advanceModes_.find(it->in_->name()) != advanceModes_.end()) {
+			configureAdvancing(it->in_, counter, advanceModes_[it->in_->name()]);
+		}
+		counter += 1;
+		REGEN_DEBUG("Particle attribute '" << it->in_->name() << "' added.");
+	}
+	shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
+	createUpdateShader(particleInputs);
+
+	for (auto & particleInput : particleInputs) {
+		const ref_ptr<ShaderInput> in = particleInput.in_;
+		if (!in->isVertexAttribute()) continue;
+		GLint loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
+		if (loc == -1) continue;
+		particleAttributes_.emplace_back(in, loc);
+	}
+	// start with zero emitted particles
+	inputContainer_->set_numVertices(0);
+
+	return particleRef_;
 }
 
 void Particles::setAdvanceFunction(const std::string &attributeName, const std::string &shaderFunction) {
@@ -208,45 +239,11 @@ void Particles::configureAdvancing(
 	}
 }
 
-VBOReference Particles::end() {
-	ShaderInputList particleInputs = inputContainer()->uploadInputs();
-
-	particleRef_ = HasInput::end();
-	feedbackRef_ = feedbackBuffer_->alloc(particleRef_->allocatedSize());
-	bufferRange_.size_ = particleRef_->allocatedSize();
-
-	// Create shader defines.
-	GLuint counter = 0;
-	for (auto it = particleInputs.begin(); it != particleInputs.end(); ++it) {
-		if (!it->in_->isVertexAttribute()) continue;
-		shaderDefine(
-				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_TYPE"),
-				glenum::glslDataType(it->in_->dataType(), it->in_->valsPerElement()));
-		shaderDefine(
-				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_NAME"),
-				it->in_->name());
-		if (advanceModes_.find(it->in_->name()) != advanceModes_.end()) {
-			configureAdvancing(it->in_, counter, advanceModes_[it->in_->name()]);
-		}
-		counter += 1;
-		REGEN_DEBUG("Particle attribute '" << it->in_->name() << "' added.");
-	}
-	shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
-	createUpdateShader(particleInputs);
-
-	for (auto & particleInput : particleInputs) {
-		const ref_ptr<ShaderInput> in = particleInput.in_;
-		if (!in->isVertexAttribute()) continue;
-		GLint loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
-		if (loc == -1) continue;
-		particleAttributes_.emplace_back(in, loc);
-	}
-
-	return particleRef_;
-}
-
 void Particles::createUpdateShader(const ShaderInputList &inputs) {
 	StateConfigurer shaderConfigurer;
+	if (rootState_.get()) {
+		shaderConfigurer.addState(rootState_.get());
+	}
 	shaderConfigurer.addState(this);
 
 	StateConfig &shaderCfg = shaderConfigurer.cfg();
@@ -262,12 +259,6 @@ void Particles::createUpdateShader(const ShaderInputList &inputs) {
 }
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt) {
-	deltaT_->setVertex(0, dt);
-
-	boost::posix_time::ptime t(
-			boost::posix_time::microsec_clock::local_time());
-	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1000000.0);
-
 	rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
 	updateState_->enable(rs);
 
@@ -283,6 +274,15 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	rs->feedbackBufferRange().push(0, bufferRange_);
 	rs->beginTransformFeedback(GL_POINTS);
 
+	// only emit a limited number of particles per frame
+	if (inputContainer_->numVertices() < numParticles_) {
+		GLuint nextNumParticles = inputContainer_->numVertices() + maxEmits_;
+		if (nextNumParticles > numParticles_) {
+			inputContainer_->set_numVertices(numParticles_);
+		} else {
+			inputContainer_->set_numVertices(nextNumParticles);
+		}
+	}
 	glDrawArrays(primitive_, 0, inputContainer_->numVertices());
 
 	rs->endTransformFeedback();

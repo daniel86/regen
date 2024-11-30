@@ -16,7 +16,7 @@ out vec4 out_color;
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_depthTexture;
 
-uniform float in_deltaT;
+uniform float in_timeDeltaMS;
 
 #ifdef USE_VELOCITY_TEXTURE
 // Per-Pixel-Motion-Blur input
@@ -63,7 +63,7 @@ void main()
     // Convert to nonhomogeneous points [-1,1] by dividing by w.
     pos1 /= pos1.w;
     // Use this frame's position and last frame's to compute the pixel velocity.
-    vec2 velocity = (in_velocityScale/in_deltaT)*(pos0.xy-pos1.xy);
+    vec2 velocity = (in_velocityScale/in_timeDeltaMS)*(pos0.xy-pos1.xy);
 #endif
     vec2 texCoord = texco_2D + velocity;
     for(int i = 1; i < in_numMotionBlurSamples; ++i, texCoord+=velocity) {
@@ -129,7 +129,7 @@ in vec3 in_pos0;
 in vec3 in_pos1;
 
 uniform vec2 in_inverseViewport;
-uniform float in_deltaT;
+uniform float in_timeDeltaMS;
 #ifdef USE_DEPTH_TEST
 uniform sampler2D in_depthTexture;
 #include regen.filter.sampling.computeTexco
@@ -149,6 +149,6 @@ void main() {
     // bias is used to avoid flickering
     if( gl_FragCoord.z > sceneDepth+DEPTH_BIAS ) { discard; };
 #endif
-    out_color = length( (in_pos0 - in_pos1)/in_deltaT );
+    out_color = length( (in_pos0 - in_pos1)/in_timeDeltaMS );
 }
 
