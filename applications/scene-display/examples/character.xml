@@ -387,7 +387,7 @@
     </texture>
     -->
 
-    <mesh id="test-particles" type="particles" num-vertices="800">
+    <mesh id="test-particles" type="particles" num-vertices="800" max-emits="10">
         <!-- Add shader defines. -->
         <define key="EMITTER_POSITION_MODE" value="ABSOLUTE"/>
         <define key="PARTICLE_EMITTER_MODE" value="IN"/>
@@ -408,7 +408,6 @@
         <input type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
         <input type="float" name="emitterSize" value="9.0"/>
         <input type="float" name="emitterOpening" value="0.5"/>
-        <input type="int" name="maxNumEmits" value="20"/>
         <input type="float" name="surfaceHeight" value="-1.0"/>
         <input type="float" name="lifetimeDefault" value="0.8"/>
         <input type="float" name="lifetimeVariance" value="0.5"/>

@@ -31,7 +31,7 @@ void main() {
       out_lifetime = 1.0;
     }
     else {
-      float dt = in_deltaT*0.01;
+      float dt = in_timeDeltaMS*0.01;
       out_pos = in_pos + (in_velocity+in_wind)*dt;
       out_velocity = in_velocity;
       out_type = in_type;

@@ -474,6 +474,10 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 	} else {
 		particles = ref_ptr<Particles>::alloc(numParticles);
 	}
+	if (input.hasAttribute("max-emits")) {
+		particles->setMaxEmits(input.getValue<GLuint>("max-emits", 100u));
+	}
+
 	// the attributes of particles may have special attributes in the scene file that determine default, variance, etc.
 	// these are ignored by processMeshChildren, so we need to process them here.
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();

@@ -1,7 +1,7 @@
 
 -- defines
 #define M_PI 3.1415926535897932384626433832795
-const float in_deltaT = 0.1;
+const float in_timeDeltaMS = 0.1;
 // limit for born particles per frame
 const int in_maxNumEmits = 20;
 // emitter position
@@ -369,6 +369,6 @@ void main() {
     if (isParticleDead()) {
         particleEmit(out_randomSeed);
     } else {
-        particleUpdate(in_deltaT, out_randomSeed);
+        particleUpdate(in_timeDeltaMS, out_randomSeed);
     }
 }
