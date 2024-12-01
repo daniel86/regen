@@ -272,10 +272,14 @@ void FBO::blitCopy(
 	RenderState *rs = RenderState::get();
 	// read from this
 	rs->readFrameBuffer().push(id());
-	readBuffer_.push(readAttachment);
+	if(readAttachment != GL_DEPTH_ATTACHMENT) {
+		readBuffer_.push(readAttachment);
+	}
 	// write to dst
 	rs->drawFrameBuffer().push(dst.id());
-	dst.drawBuffers().push(writeAttachment);
+	if(writeAttachment != GL_DEPTH_ATTACHMENT) {
+		dst.drawBuffers().push(writeAttachment);
+	}
 
 	if (keepRatio) {
 		GLuint dstWidth = dst.width();
@@ -303,9 +307,13 @@ void FBO::blitCopy(
 				mask, filter);
 	}
 
-	dst.drawBuffers().pop();
+	if(writeAttachment != GL_DEPTH_ATTACHMENT) {
+		dst.drawBuffers().pop();
+	}
 	rs->drawFrameBuffer().pop();
-	readBuffer_.pop();
+	if(readAttachment != GL_DEPTH_ATTACHMENT) {
+		readBuffer_.pop();
+	}
 	rs->readFrameBuffer().pop();
 }
 
