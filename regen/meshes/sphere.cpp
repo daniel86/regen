@@ -17,6 +17,8 @@ namespace regen {
 				return out << "NONE";
 			case Sphere::TEXCO_MODE_UV:
 				return out << "UV";
+			case Sphere::TEXCO_MODE_SPHERICAL:
+				return out << "SPHERICAL";
 			case Sphere::TEXCO_MODE_SPHERE_MAP:
 				return out << "SPHERE_MAP";
 		}
@@ -29,6 +31,7 @@ namespace regen {
 		boost::to_upper(val);
 		if (val == "NONE") mode = Sphere::TEXCO_MODE_NONE;
 		else if (val == "UV") mode = Sphere::TEXCO_MODE_UV;
+		else if (val == "SPHERICAL") mode = Sphere::TEXCO_MODE_SPHERICAL;
 		else if (val == "SPHERE_MAP") mode = Sphere::TEXCO_MODE_SPHERE_MAP;
 		else {
 			REGEN_WARN("Unknown sphere texco mode '" << val << "'. Using NONE texco.");
@@ -58,7 +61,7 @@ Sphere::Config::Config()
 		: posScale(Vec3f(1.0f)),
 		  texcoScale(Vec2f(1.0f)),
 		  levelOfDetail(4),
-		  texcoMode(TEXCO_MODE_UV),
+		  texcoMode(TEXCO_MODE_SPHERICAL),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
 		  isHalfSphere(GL_FALSE),
@@ -180,7 +183,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 	if (texcoMode == TEXCO_MODE_SPHERE_MAP) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
-	} else if (texcoMode == TEXCO_MODE_UV) {
+	} else if (texcoMode == TEXCO_MODE_UV || texcoMode == TEXCO_MODE_SPHERICAL) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
@@ -225,7 +228,14 @@ void Sphere::updateAttributes(const Config &cfg) {
 				Vec3f t = computeSphereTangent(pos_->getVertex(vertexIndex));
 				tan_->setVertex(vertexIndex, Vec4f(t.x, t.y, t.z, 1.0));
 			}
-			if (texcoMode == TEXCO_MODE_UV) {
+			if (texcoMode == TEXCO_MODE_SPHERICAL) {
+				auto *texco = (Vec2f *) texco_->clientData();
+				texco[vertexIndex].x = (0.5 + (atan2(vertex.p.z, vertex.p.x) / (2.0 * M_PI)));
+				texco[vertexIndex].y = (0.5 - (asin(vertex.p.y) / M_PI));
+				// Ensure UV coordinates wrap around correctly
+				if (texco[vertexIndex].x < 0.0f) texco[vertexIndex].x += 1.0f;
+				if (texco[vertexIndex].x >= 1.0f) texco[vertexIndex].x -= 1.0f;
+			} else if (texcoMode == TEXCO_MODE_UV) {
 				auto *texco = (Vec2f *) texco_->clientData();
 				auto *pos = (Vec3f *) pos_->clientData();
 				texco[vertexIndex] = Vec2f(
