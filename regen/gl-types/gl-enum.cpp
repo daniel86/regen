@@ -403,7 +403,12 @@ GLenum glenum::textureInternalFormat(const std::string &val_) {
 	else if (val == "RGB16") return GL_RGB16;
 	else if (val == "RGBA16") return GL_RGBA16;
 
-	REGEN_WARN("Unknown internal texture format mode '" << val_ << "'. Using default GL_FILL.");
+	else if (val == "LUMINANCE") return GL_LUMINANCE;
+	else if (val == "LUMINANCE_ALPHA") return GL_LUMINANCE_ALPHA;
+	else if (val == "DEPTH_COMPONENT") return GL_DEPTH_COMPONENT;
+	else if (val == "DEPTH_STENCIL") return GL_DEPTH_STENCIL;
+
+	REGEN_WARN("Unknown internal texture format mode '" << val_ << "'. Using default GL_RGBA.");
 	return GL_RGBA;
 }
 

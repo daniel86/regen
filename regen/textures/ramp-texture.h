@@ -23,7 +23,7 @@ namespace regen {
 		 * @param format the texture format.
 		 * @param data the texture data.
 		 */
-		RampTexture(GLenum format, const std::vector<GLuint> &data);
+		RampTexture(GLenum format, const std::vector<GLubyte> &data);
 
 		/**
 		 * Creates a ramp texture with the given format, internal format and data.
@@ -31,7 +31,7 @@ namespace regen {
 		 * @param internalFormat the texture internal format.
 		 * @param data the texture data.
 		 */
-		RampTexture(GLenum format, GLenum internalFormat, const std::vector<GLuint> &data);
+		RampTexture(GLenum format, GLenum internalFormat, const std::vector<GLubyte> &data);
 
 		~RampTexture() override = default;
 

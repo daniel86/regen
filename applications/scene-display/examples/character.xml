@@ -392,17 +392,28 @@
     </node>
     -->
 
-    <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
-    <!--
-    <texture id="fog-ramp" ramp="inline" format="LUMINANCE">
-        <texel v="0"/>
-        <texel v="255"/>
+    <!-- A FBO with density and color attachments. -->
+    <fbo id="particle-fbo" size-mode="abs" size="256.0,256.0"
+            pixel-type="FLOAT" pixel-size="24">
+        <texture id="density" pixel-components="1" />
+        <texture id="color" pixel-components="4" />
+    </fbo>
+    <fbo id="particle-depth" size-mode="abs" size="256.0,256.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <depth id="depth" pixel-size="24" />
+    </fbo>
+
+    <texture id="particle-splat" file="res/textures/splats/flare.jpg"/>
+    <texture id="particle-color-ramp" ramp="inline" format="RGB">
+        <texel v="255, 255, 20"/>
+        <texel v="250, 60, 20"/>
+        <texel v="230, 40, 20"/>
+        <texel v="160, 20, 8"/>
+        <texel v="0, 0, 0"/>
+        <texel v="0, 0, 0"/>
     </texture>
-    <texture id="fog-ramp" ramp="gradient">
-        <value type="byte">0</value>
-        <value type="byte">255</value>
-    </texture>
-    -->
 
     <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10">
         <!-- Add shader defines. -->
@@ -431,7 +442,6 @@
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="vec3" name="color" is-attribute="1" default="0.5, 0.25, 0.1" variance="0.0, 0.0, 0.45"/>
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
         <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD" advance-constant="2.0"/>
         <transform id="platform1-tf" />
@@ -462,33 +472,97 @@
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
-        <input type="vec3" name="color" is-attribute="1" default="0.5, 0.25, 0.1" variance="0.0, 0.0, 0.45"/>
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
         <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD" advance-constant="2.0"/>
         <transform id="platform0-tf" />
     </mesh>
 
-    <node id="Particle-Draw">
+    <node id="Particle-Update-Depth">
+        <!-- FIXME: something not working here! -->
+        <!--
+        <node id="Particle-Depth-Downsample">
+            <fbo id="particle-depth" clear-depth="1"/>
+            <depth test="0" write="1" />
+            <texture name="inputTexture" fbo="g-buffer" attachment="depth" />
+            <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
+        </node>
+        <view id="Particle-Depth">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" fbo="particle-depth" attachment="depth" />
+            <fullscreen-pass shader="regen.filter.sampling.depth"/>
+        </view>
+        -->
+    </node>
+
+    <node id="Particle-Update-FBO">
         <define key="USE_SOFT_PARTICLES" value="TRUE"/>
         <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
-        <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
-        <texture name="splatTexture" id="fog-splat" map-to="COLOR" blend-mode="MUL"/>
+        <depth test="0" write="0" />
 
-        <node id="Particle-Draw0">
-            <input type="vec3" name="particleColor" value="0.9, 0.4, 0.1"/>
+        <node id="Particle-Density">
+            <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0" />
+            <!-- FIXME: need to use downsampled depth to avoid halos -->
+            <!--
+            <texture name="depthTexture" fbo="particle-depth" attachment="depth"/>
+            -->
+            <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="splatTexture" id="particle-splat" map-to="ALPHA" blend-mode="MUL"/>
+            <blend mode="add"/>
             <input type="float" name="softParticleScale" value="30.0"/>
-            <input type="float" name="particleBrightness" value="1.0"/>
             <input type="float" name="lifetimeSmoothstep" value="1.0"/>
-            <mesh id="test-particles0" shader="regen.particles.sprite"/>
+            <node id="Particle-Density0">
+                <mesh id="test-particles0" shader="regen.particles.sprite.density"/>
+            </node>
+            <node id="Particle-Density1">
+                <mesh id="test-particles1" shader="regen.particles.sprite.density"/>
+            </node>
         </node>
 
-        <node id="Particle-Draw1">
-            <input type="vec3" name="particleColor" value="0.9, 0.4, 0.1"/>
-            <input type="float" name="softParticleScale" value="30.0"/>
-            <input type="float" name="particleBrightness" value="1.0"/>
-            <input type="float" name="lifetimeSmoothstep" value="1.0"/>
-            <mesh id="test-particles1" shader="regen.particles.sprite"/>
+        <node id="Particle-Color">
+            <define key="DISCARD_DENSITY_THRESHOLD" value="0.01"/>
+            <fbo id="particle-fbo" clear-buffers="1" draw-buffers="1" />
+            <blend mode="alpha" />
+            <texture name="densityTexture" fbo="particle-fbo" attachment="0" />
+            <texture name="colorRamp" id="particle-color-ramp" blend-mode="MUL" />
+            <input type="float" name="gamma" value="1.0"/>
+            <input type="float" name="exposure" value="1.0"/>
+            <input type="vec4" name="color" value="1.0, 1.0, 1.0, 1.0" />
+            <fullscreen-pass shader="regen.particles.sprite.densityColor" />
         </node>
+        <view id="Particle-Density">
+            <blit src-fbo="particle-fbo" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Particle-Color">
+            <blit src-fbo="particle-fbo" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Particle-Ramp">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="particle-color-ramp" />
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+
+        <!-- Finally, create a blurred version. -->
+        <node id="Particle-Blur">
+            <input type="int" name="numBlurPixels" value="9" />
+            <input type="float" name="blurSigma" value="2.3" />
+            <filter-sequence id="particle-color" fbo="particle-fbo" attachment="1" >
+                <filter shader="regen.filter.blur.horizontal" />
+                <filter shader="regen.filter.blur.vertical" />
+            </filter-sequence>
+        </node>
+        <view id="Particle-Blur">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="particle-color" />
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+    </node>
+
+    <node id="Particle-Draw">
+        <blend mode="alpha" />
+        <depth test="0" write="0" />
+        <texture name="inputTexture" id="particle-color" />
+        <define key="IS_2D_TEXTURE" value="TRUE" />
+        <fullscreen-pass shader="regen.filter.sampling" />
     </node>
 
     <!--**************************-->
@@ -620,6 +694,9 @@
         <view id="Depth of Field">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
+        <!-- render particles into a separate buffer -->
+        <node import="Particle-Update-Depth"/>
+        <node import="Particle-Update-FBO"/>
         <!-- render transparent objects -->
         <node id="Transparent-Pass">
             <fbo id="g-buffer" draw-buffers="0"/>

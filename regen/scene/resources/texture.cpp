@@ -57,12 +57,12 @@ protected:
 };
 
 // TODO: unify with above
-template <class T>
+template<class T>
 class TextureResizer2 : public EventHandler {
 public:
 	TextureResizer2(const ref_ptr<T> &tex,
-				   const ref_ptr<ShaderInput2i> &windowViewport,
-				   GLfloat wScale, GLfloat hScale)
+					const ref_ptr<ShaderInput2i> &windowViewport,
+					GLfloat wScale, GLfloat hScale)
 			: EventHandler(),
 			  tex_(tex),
 			  windowViewport_(windowViewport),
@@ -159,25 +159,30 @@ void TextureResource::configureTexture(
 	GL_ERROR_LOG();
 }
 
-static std::vector<GLuint> readTextureData(SceneInputNode &input, GLenum format) {
-	std::vector<GLuint> data;
+static std::vector<GLubyte> readTextureData(SceneInputNode &input, GLenum format) {
+	std::vector<GLubyte> data;
 	auto numPixelComponents = glenum::pixelComponents(format);
 	// iterate over all "texel" children
-	for (auto &child : input.getChildren()) {
-		if (child->getName() == "texel" && child->hasAttribute("v")) {
+	for (auto &child: input.getChildren("texel")) {
+		if (!child->hasAttribute("v")) {
+			REGEN_WARN("No 'v' attribute found for texel child '" << child->getName() << "'.");
+			continue;
+		}
+		int texelWidth = child->getValue<int>("width", 1);
+		for (int i = 0; i < texelWidth; ++i) {
 			if (numPixelComponents == 1) {
-				data.push_back(child->getValue<GLuint>("v",0u));
+				data.push_back(child->getValue<GLuint>("v", 0u));
 			} else if (numPixelComponents == 2) {
-				auto v = child->getValue<Vec2ui>("v",Vec2ui(0u));
+				auto v = child->getValue<Vec2ui>("v", Vec2ui(0u));
 				data.push_back(v.x);
 				data.push_back(v.y);
 			} else if (numPixelComponents == 3) {
-				auto v = child->getValue<Vec3ui>("v",Vec3ui(0u));
+				auto v = child->getValue<Vec3ui>("v", Vec3ui(0u));
 				data.push_back(v.x);
 				data.push_back(v.y);
 				data.push_back(v.z);
 			} else if (numPixelComponents == 4) {
-				auto v = child->getValue<Vec4ui>("v",Vec4ui(0u));
+				auto v = child->getValue<Vec4ui>("v", Vec4ui(0u));
 				data.push_back(v.x);
 				data.push_back(v.y);
 				data.push_back(v.z);
@@ -315,8 +320,11 @@ ref_ptr<Texture> TextureResource::createResource(
 		} else if (ramp == "inline") {
 			auto format = glenum::textureFormat(
 					input.getValue<string>("format", "LUMINANCE"));
-			auto internalFormat = glenum::textureInternalFormat(
-					input.getValue<string>("internal-format", "LUMINANCE"));
+			auto internalFormat = format;
+			if (input.hasAttribute("internal-format")) {
+				internalFormat = glenum::textureInternalFormat(
+						input.getValue<string>("internal-format", "LUMINANCE"));
+			}
 			auto data = readTextureData(input, format);
 			tex = ref_ptr<RampTexture>::alloc(format, internalFormat, data);
 		} else {
@@ -335,16 +343,14 @@ ref_ptr<Texture> TextureResource::createResource(
 			auto inputFBO = parser->getResources()->getFBO(parser, input.getValue("input-fbo"));
 			if (inputFBO.get() == nullptr) {
 				REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
-			}
-			else {
+			} else {
 				auto resizer = ref_ptr<TextureResizer2<BloomTexture>>::alloc(
 						bloomTexture, parser->getViewport(), 1.0, 1.0);
 				parser->addEventHandler(Application::RESIZE_EVENT, resizer);
 				tex = bloomTexture;
 				bloomTexture->resize(inputFBO->width(), inputFBO->height());
 			}
-		}
-		else {
+		} else {
 			REGEN_WARN("Unknown texture type '" << typeName << "'.");
 		}
 	} else {

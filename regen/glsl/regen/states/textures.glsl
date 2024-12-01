@@ -730,7 +730,7 @@ vec2 rampCoordinate(float rampPosition, float texelSize)
         // skip first half texel
         0.5*texelSize +
         // scale from [0,1] to [0,1-texelSize]
-        (rampPosition % 1.0) / (1.0 - texelSize) +
+        mod(rampPosition, 1.0) / (1.0 - texelSize) +
         // add floor of rampPosition
         floor(rampPosition);
     return vec2(adjusted, 0.5);

@@ -187,6 +187,10 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex) {
 		set_name(REGEN_STRING("Texture" << tex->id()));
 		shaderDefine(REGEN_TEX_NAME("TEX_SAMPLER_TYPE"), tex->samplerType());
 		shaderDefine(REGEN_TEX_NAME("TEX_DIM"), REGEN_STRING(tex->numComponents()));
+		shaderDefine(REGEN_TEX_NAME("TEX_TEXEL_X"), REGEN_STRING(1.0 / tex->width()));
+		shaderDefine(REGEN_TEX_NAME("TEX_TEXEL_Y"), REGEN_STRING(1.0 / tex->height()));
+		shaderDefine(REGEN_TEX_NAME("TEX_WIDTH"), REGEN_STRING(tex->width()));
+		shaderDefine(REGEN_TEX_NAME("TEX_HEIGHT"), REGEN_STRING(tex->height()));
 	}
 }
 
