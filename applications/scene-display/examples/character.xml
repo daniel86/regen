@@ -95,12 +95,12 @@
     <!--********* Trees *********-->
     <!--**************************-->
 
-    <texture id="trunk-color" file="res/textures/tree/trunk/pattern_230/diffuse.tga"/>
-    <texture id="trunk-normal" file="res/textures/tree/trunk/pattern_230/normal.tga"/>
-    <texture id="trunk-specular" file="res/textures/tree/trunk/pattern_230/specular.tga"/>
-    <texture id="twig-color" file="res/textures/tree/twig/#32/diffuse.tga" wrapping="CLAMP_TO_EDGE"/>
-    <texture id="twig-normal" file="res/textures/tree/twig/#32/normal.tga" wrapping="CLAMP_TO_EDGE"/>
-    <texture id="twig-specular" file="res/textures/tree/twig/#32/specular.tga" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="trunk-color" file="res/textures/materials/tree-trunk/0/diffuse.tga"/>
+    <texture id="trunk-normal" file="res/textures/materials/tree-trunk/0/normal.tga"/>
+    <texture id="trunk-specular" file="res/textures/materials/tree-trunk/0/specular.tga"/>
+    <texture id="twig-color" file="res/textures/materials/tree-twig/0/diffuse.tga" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="twig-normal" file="res/textures/materials/tree-twig/0/normal.tga" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="twig-specular" file="res/textures/materials/tree-twig/0/specular.tga" wrapping="CLAMP_TO_EDGE"/>
 
     <mesh id="tree-mesh" type="proctree"
             seed="499" segments="8" levels="5"
@@ -129,14 +129,14 @@
         <physics mesh-id="tree-mesh" transform-id="tree-tf" shape="box" mass="0.0" size="0.6, 6.0, 0.6"/>
     </mesh>
 
-    <mesh id="tree-pot" type="torus" lod="1" use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
-            texco-scaling="3.0, 1.0"
+    <mesh id="tree-pot" type="torus" lod="1" use-normal="1" use-tangent="1" center="1"
+            usage="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
             ring-radius="1.0" tube-radius="0.2">
         <transform id="tree-pot-tf">
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
         <physics mesh-id="tree-pot" transform-id="tree-pot-tf" shape="cylinder" mass="0.0" size="7.0,1.0,7.0"/>
-        <material preset="gold" emission="0.04, 0.04, 0.04"/>
+        <material preset="stone" color-blend-mode="MUL" emission="0.04, 0.04, 0.04"/>
     </mesh>
 
     <mesh id="tree-disc" type="disc" lod="2" use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
@@ -227,12 +227,16 @@
     </node>
 
     <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC"
-            texco-mode="spherical" lod="4" scaling="3.0,2.0,3.0">
-        <transform id="stone0-tf">
-            <translate value="6.5, -0.6, -16.0" />
+            texco-mode="spherical" lod="4" scaling="1.5,3.0,3.0"
+            num-instances="20">
+        <transform id="stone0-tf" num-instances="20" is-instanced="1">
+            <rotate value="0.0, 1.57079632, 0.0" />
+            <translate value="0.0, -0.6, 0.0" />
+            <set mode="circle" target="translate" radius="42.0" variance="0.8"
+                dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
         </transform>
         <material preset="stone" variant="0" max-offset="0.2" />
-        <physics mesh-id="stone0" transform-id="stone0-tf" shape="sphere" radius="2.2" mass="2.0" />
+        <physics mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0" />
     </mesh>
 
     <node id="Garden-Items">
@@ -530,6 +534,7 @@
             <texture name="colorRamp" id="particle-color-ramp" blend-mode="MUL" />
             <input type="float" name="gamma" value="1.0"/>
             <input type="float" name="exposure" value="1.0"/>
+            <input type="float" name="brightness" value="1.0"/>
             <input type="vec4" name="color" value="1.0, 1.0, 1.0, 1.0" />
             <fullscreen-pass shader="regen.particles.sprite.densityColor" />
         </node>
@@ -604,6 +609,8 @@
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
         <define key="OUTPUT_TYPE" value="DEPTH"/>
+        <!-- skip rendering top face of the cube -->
+        <define key="SKIP_LAYER5" value="TRUE"/>
 
         <node id="Room-Light-Shadow">
             <node id="Room-Light-Shadow0">

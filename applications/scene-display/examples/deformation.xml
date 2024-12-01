@@ -190,6 +190,36 @@
     </node>
 
     <node id="Volumetric-Fog-Pass">
+        <!-- TODO: probably better to render to a small FBO and then blend with the scene -->
+        <input type="float" name="shadowSampleStep" value="0.005"/>
+        <input type="float" name="shadowSampleThreshold" value="0.075"/>
+        <input type="vec2" name="fogDistance" value="0.0,100.0"/>
+        <node>
+            <light-pass type="SPOT"
+                        shader="regen.shading.fog.volumetric.spot"
+                        use-shadows="1"
+                        shadow-filter="NONE">
+                <light id="spot-light"
+                       shadow-buffer="spot-shadow" shadow-attachment="depth"
+                       shadow-camera="spot-camera">
+                    <input type="float" name="fogExposure" value="0.6"/>
+                    <input type="vec2" name="fogRadiusScale" value="0.44,1.2"/>
+                    <input type="vec2" name="fogConeScale" value="1.0,1.0"/>
+                </light>
+            </light-pass>
+        </node>
+    </node>
+
+    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0"
+            pixel-type="FLOAT" pixel-size="24">
+        <texture id="color" pixel-components="4" />
+    </fbo>
+
+    <node id="Volumetric-Fog-Update">
+        <fbo id="fog-buffer" clear-buffers="*" draw-buffers="0"/>
+        <blend mode="add"/>
+        <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+
         <input type="float" name="shadowSampleStep" value="0.005"/>
         <input type="float" name="shadowSampleThreshold" value="0.075"/>
         <input type="vec2" name="fogDistance" value="0.0,100.0"/>
@@ -227,12 +257,24 @@
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
 
+        <node import="Volumetric-Fog-Update"/>
+        <node id="Volume-Fog">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <blend mode="add"/>
+            <texture name="inputTexture" fbo="fog-buffer" attachment="0"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </node>
+        <view id="Volumetric Fog Buffer">
+            <blit src-fbo="fog-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <!--
         <node id="Volume-Fog">
             <fbo id="g-buffer" draw-buffers="1"/>
             <blend mode="add"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <node import="Volumetric-Fog-Pass"/>
         </node>
+        -->
         <view id="Volumetric Fog">
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
