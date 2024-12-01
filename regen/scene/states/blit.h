@@ -59,13 +59,25 @@ namespace regen {
 				}
 				bool keepAspect = input.getValue<GLuint>("keep-aspect", false);
 				if (src.get() != nullptr && dst.get() != nullptr) {
-					auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
-					auto dstAttachment = input.getValue<GLuint>("dst-attachment", 0u);
-					state->joinStates(ref_ptr<BlitToFBO>::alloc(
-							src, dst,
-							GL_COLOR_ATTACHMENT0 + srcAttachment,
-							GL_COLOR_ATTACHMENT0 + dstAttachment,
-							keepAspect));
+					if (input.getValue("src-attachment") == "depth" || input.getValue("dst-attachment") == "depth") {
+						auto blit = ref_ptr<BlitToFBO>::alloc(
+								src, dst,
+								GL_DEPTH_ATTACHMENT,
+								GL_DEPTH_ATTACHMENT,
+								keepAspect);
+						blit->set_sourceBuffer(GL_DEPTH_BUFFER_BIT);
+						blit->set_filterMode(GL_NEAREST);
+						state->joinStates(blit);
+						return;
+					} else {
+						auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
+						auto dstAttachment = input.getValue<GLuint>("dst-attachment", 0u);
+						state->joinStates(ref_ptr<BlitToFBO>::alloc(
+								src, dst,
+								GL_COLOR_ATTACHMENT0 + srcAttachment,
+								GL_COLOR_ATTACHMENT0 + dstAttachment,
+								keepAspect));
+					}
 				} else if (src.get() != nullptr) {
 					// Blit Texture to Screen
 					auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);

@@ -126,7 +126,6 @@ uniform sampler2D in_inputTexture;
 void main()
 {
     vec2 texCoord = gl_FragCoord.xy*in_inverseViewport;
-    texCoord = computeTexco(texCoord);
     gl_FragDepth = texture(in_inputTexture, texCoord).r;
 }
 

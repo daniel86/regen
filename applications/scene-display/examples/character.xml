@@ -398,10 +398,7 @@
         <texture id="density" pixel-components="1" />
         <texture id="color" pixel-components="4" />
     </fbo>
-    <fbo id="particle-depth" size-mode="abs" size="256.0,256.0"
-         pixel-type="UNSIGNED_BYTE"
-         pixel-size="16"
-         pixel-components="4">
+    <fbo id="particle-depth" size-mode="abs" size="256.0,256.0" pixel-type="UNSIGNED_BYTE">
         <depth id="depth" pixel-size="24" />
     </fbo>
 
@@ -478,6 +475,13 @@
     </mesh>
 
     <node id="Particle-Update-Depth">
+    </node>
+
+    <node id="Particle-Update-FBO">
+        <define key="USE_SOFT_PARTICLES" value="TRUE"/>
+        <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
+        <depth test="0" write="0" />
+
         <!-- FIXME: something not working here! -->
         <!--
         <node id="Particle-Depth-Downsample">
@@ -486,22 +490,22 @@
             <texture name="inputTexture" fbo="g-buffer" attachment="depth" />
             <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
         </node>
+        -->
+        <!--
+        <node id="Particle-Depth-Downsample">
+            <blit src-fbo="g-buffer" src-attachment="depth"
+                  dst-fbo="particle-depth" dst-attachment="depth"/>
+        </node>
         <view id="Particle-Depth">
             <fbo id="SCREEN"/>
             <texture name="inputTexture" fbo="particle-depth" attachment="depth" />
             <fullscreen-pass shader="regen.filter.sampling.depth"/>
         </view>
         -->
-    </node>
-
-    <node id="Particle-Update-FBO">
-        <define key="USE_SOFT_PARTICLES" value="TRUE"/>
-        <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
-        <depth test="0" write="0" />
 
         <node id="Particle-Density">
             <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0" />
-            <!-- FIXME: need to use downsampled depth to avoid halos -->
+            <!-- TODO: there is a halo around objects, maybe it can be avoided with downsamled depeth -->
             <!--
             <texture name="depthTexture" fbo="particle-depth" attachment="depth"/>
             -->
