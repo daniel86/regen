@@ -28,6 +28,8 @@ namespace regen {
 		enum TexcoMode {
 			/** do not generate texture coordinates */
 			TEXCO_MODE_NONE,
+			/** generate spherical 2D uv coordinates */
+			TEXCO_MODE_SPHERICAL,
 			/** generate 2D uv coordinates */
 			TEXCO_MODE_UV,
 			/** generate 3D coordinates for cube mapping */

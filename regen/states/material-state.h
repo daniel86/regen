@@ -97,6 +97,18 @@ namespace regen {
 		void set_twoSided(GLboolean v);
 
 		/**
+		 * Sets the blending mode for color and diffuse maps
+		 * added to this material.
+		 */
+		void set_colorBlendMode(BlendMode mode) { colorBlendMode_ = mode; }
+
+		/**
+		 * Sets the blending factor for color and diffuse maps
+		 * added to this material.
+		 */
+		void set_colorBlendFactor(GLfloat factor) { colorBlendFactor_ = factor; }
+
+		/**
 		 * Sets the maximum height offset for height and displacement maps.
 		 */
 		void set_maxOffset(GLfloat offset);
@@ -172,6 +184,16 @@ namespace regen {
 		void set_metal(Variant variant=0);
 
 		/**
+		 * Sets default material colors for wood.
+		 */
+		void set_wood(Variant variant=0);
+
+		/**
+		 * Sets default material colors for marble.
+		 */
+		void set_marble(Variant variant=0);
+
+		/**
 		 * Loads textures for the given material name and variant.
 		 * @param materialName a material name.
 		 * @param variant a variant.
@@ -197,6 +219,8 @@ namespace regen {
 		Vec3ui forcedSize_;
 		GLfloat maxOffset_;
 		HeightMapMode heightMapMode_;
+		BlendMode colorBlendMode_;
+		GLfloat colorBlendFactor_;
 
 		ref_ptr<State> twoSidedState_;
 		ref_ptr<State> fillModeState_;

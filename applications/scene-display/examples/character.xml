@@ -178,7 +178,7 @@
     </node>
 
     <!--**************************-->
-    <!--********* Grass *********-->
+    <!--********* Garden Stuff *********-->
     <!--**************************-->
 
     <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
@@ -226,12 +226,28 @@
         </node>
     </node>
 
+    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC"
+            texco-mode="spherical" lod="4" scaling="3.0,2.0,3.0">
+        <transform id="stone0-tf">
+            <translate value="6.5, -0.6, -16.0" />
+        </transform>
+        <material preset="stone" variant="0" max-offset="0.2" />
+        <physics mesh-id="stone0" transform-id="stone0-tf" shape="sphere" radius="2.2" mass="2.0" />
+    </mesh>
+
+    <node id="Garden-Items">
+        <node import="Trees"/>
+        <node id="Stone1">
+            <mesh id="stone0" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
     <!--**************************-->
     <!--********* Stairs *********-->
     <!--**************************-->
 
     <mesh id="stairs0-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-        scaling="8.0,0.4,4.0" texco-scaling="0.125,0.125">
+        scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
         </transform>
@@ -239,7 +255,7 @@
     </mesh>
 
     <mesh id="stairs1-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-        scaling="6.0,0.4,4.0" texco-scaling="0.125,0.125">
+        scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
         </transform>
@@ -247,7 +263,7 @@
     </mesh>
 
     <mesh id="stairs2-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-        scaling="4.0,0.4,4.0" texco-scaling="0.125,0.125">
+        scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
         </transform>
@@ -255,7 +271,7 @@
     </mesh>
 
     <node id="Stairs">
-        <material preset="copper"/>
+        <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
         <node id="stairs0">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
@@ -274,7 +290,7 @@
 
     <mesh id="platform0-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
           scaling="4.0,0.4,4.0"
-          texco-scaling="0.25,0.25">
+          texco-scaling="0.5,0.5">
         <transform id="platform0-tf">
             <translate value="16.0,3.0,-16.0"/>
             <animation type="key-frames" mesh-id="platform0-mesh" dt="2.5">
@@ -289,7 +305,7 @@
 
     <mesh id="platform1-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
           scaling="4.0,0.4,4.0"
-          texco-scaling="0.25,0.25">
+          texco-scaling="0.5,0.5">
         <transform id="platform1-tf">
             <translate value="8.0,7.0,-16.0"/>
             <animation type="key-frames" mesh-id="platform1-mesh" dt="2.5">
@@ -304,7 +320,6 @@
 
     <node id="Platforms">
         <material preset="iron" emission="0.05,0.07,0.07" />
-        <!-- <texture id="glow-map" map-to="emission" blend-mode="ADD"/> -->
         <node id="platform0">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
@@ -316,15 +331,16 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="statue-platform" type="box" lod="0" use-normal="1" use-tangent="0" center="1" usage="STATIC"
-          scaling="3.5,5.0,3.5">
+    <mesh id="statue-platform" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
+          scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
         <transform id="statue-platform-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
         </transform>
         <physics mesh-id="statue-platform" transform-id="statue-platform-tf"
                  shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
-        <material preset="copper"/>
+        <material preset="wood" variant="1" color-blend-mode="mul"
+            diffuse="0.9, 0.8, 0.7"/>
     </mesh>
 
     <node id="Statues">
@@ -332,6 +348,7 @@
             <mesh id="statue-platform" shader="regen.models.mesh"/>
         </node>
         <node id="statue-slope">
+            <define key="CRASH" value="TRUE"/>
             <mesh id="slope-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -340,14 +357,14 @@
     <!--***** Slope *****-->
     <!--**************************-->
 
-    <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" center="1"
-          usage="STATIC" lod="0" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0">
+    <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
+          usage="STATIC" lod="0" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
         <transform id="slope-tf">
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
         </transform>
         <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
-        <material preset="copper"/>
+        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75" />
     </mesh>
 
     <!--**************************-->
@@ -556,7 +573,7 @@
             </node>
         </node>
         <node import="Statues"/>
-        <node import="Trees"/>
+        <node import="Garden-Items"/>
         <node import="Stairs"/>
         <node import="Platforms"/>
     </node>

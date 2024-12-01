@@ -24,7 +24,9 @@ Material::Material()
 		  forcedFormat_(GL_NONE),
 		  forcedSize_(0u),
 		  maxOffset_(0.1f),
-		  heightMapMode_(HEIGHT_MAP_VERTEX) {
+		  heightMapMode_(HEIGHT_MAP_VERTEX),
+		  colorBlendMode_(BLEND_MODE_SRC),
+		  colorBlendFactor_(1.0f) {
 	materialAmbient_ = ref_ptr<ShaderInput3f>::alloc("matAmbient");
 	materialAmbient_->setUniformData(Vec3f(0.0f));
 	setInput(materialAmbient_);
@@ -108,6 +110,12 @@ void Material::set_texture(const ref_ptr<TextureState> &texState, TextureState::
 			texState->set_blendMode(BLEND_MODE_ADD);
 			// map height map values from [0,1] to [0,maxOffset]
 			texState->set_blendFactor(maxOffset_);
+			break;
+		case TextureState::MAP_TO_COLOR:
+		case TextureState::MAP_TO_DIFFUSE:
+			texState->set_blendMode(colorBlendMode_);
+			texState->set_blendFactor(colorBlendFactor_);
+			texState->set_mapTo(mapTo);
 			break;
 		default:
 			texState->set_blendMode(BLEND_MODE_SRC);
@@ -273,10 +281,26 @@ void Material::set_leather(Variant variant) {
 
 void Material::set_stone(Variant variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.57647, 0.572549, 0.592157));
-	materialAmbient_->setUniformData(Vec3f(0.1647, 0.1647, 0.1647));
+	materialAmbient_->setUniformData(Vec3f(0.0647, 0.0647, 0.0647));
 	materialSpecular_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialShininess_->setUniformData(52.2);
 	set_textures("stone", variant);
+}
+
+void Material::set_marble(Variant variant) {
+    materialAmbient_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
+    materialDiffuse_->setUniformData(Vec3f(0.8f, 0.8f, 0.8f));
+    materialSpecular_->setUniformData(Vec3f(0.9f, 0.9f, 0.9f));
+    materialShininess_->setUniformData(80.0f);
+	set_textures("marble", variant);
+}
+
+void Material::set_wood(Variant variant) {
+    materialAmbient_->setUniformData(Vec3f(0.2f, 0.1f, 0.05f)); // Dark brown ambient color
+    materialDiffuse_->setUniformData(Vec3f(0.6f, 0.3f, 0.1f));  // Brown diffuse color
+    materialSpecular_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
+    materialShininess_->setUniformData(25.0f);
+	set_textures("wood", variant);
 }
 
 void Material::set_jade(Variant variant) {

@@ -386,7 +386,11 @@ void main() {
 #ifdef HAS_col
     vec4 color = in_col;
 #else
+    #ifdef HAS_matDiffuse
+    vec4 color = vec4(in_matDiffuse, 1.0);
+    #else
     vec4 color = vec4(1.0);
+    #endif
 #endif 
 #ifdef HAS_MATERIAL
     color.a *= in_matAlpha;
@@ -422,9 +426,6 @@ void main() {
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.diffuse = color.rgb;
-#ifdef HAS_MATERIAL
-    mat.diffuse.rgb *= in_matDiffuse;
-#endif
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
     textureMappingLight(posWorld, norWorld, mat);
@@ -443,7 +444,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #if SHADING!=NONE
 #ifdef HAS_MATERIAL
     mat.ambient = in_matAmbient;
-    mat.diffuse = color.rgb * in_matDiffuse;
+    mat.diffuse = color.rgb;
     mat.specular = in_matSpecular;
     mat.shininess = in_matShininess;
 #else
@@ -487,7 +488,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     mat.diffuse = color.rgb;
 #ifdef HAS_MATERIAL
     mat.ambient = in_matAmbient;
-    mat.diffuse *= in_matDiffuse;
     mat.specular = in_matSpecular;
     mat.shininess = in_matShininess;
     #ifdef HAS_MATERIAL_EMISSION

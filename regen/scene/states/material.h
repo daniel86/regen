@@ -41,6 +41,13 @@ namespace regen {
 					mat->set_heightMapMode(input.getValue<Material::HeightMapMode>("height-map-mode",
 																				  Material::HEIGHT_MAP_VERTEX));
 				}
+				if (input.hasAttribute("color-blend-mode")) {
+					mat->set_colorBlendMode(input.getValue<BlendMode>("color-blend-mode", BLEND_MODE_SRC));
+				}
+				if (input.hasAttribute("color-blend-factor")) {
+					mat->set_colorBlendFactor(input.getValue<GLfloat>("color-blending-factor", 1.0f));
+				}
+
 
 				if (input.hasAttribute("asset")) {
 					ref_ptr<AssetImporter> assetLoader =
@@ -72,6 +79,8 @@ namespace regen {
 					else if (presetVal == "metal") mat->set_metal(variant);
 					else if (presetVal == "leather") mat->set_leather(variant);
 					else if (presetVal == "stone") mat->set_stone(variant);
+					else if (presetVal == "wood") mat->set_wood(variant);
+					else if (presetVal == "marble") mat->set_marble(variant);
 					else {
 						REGEN_WARN("Unknown Material preset '" << presetVal <<
 															   "' for node '" << input.getDescription() << "'.");
