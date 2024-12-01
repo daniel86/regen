@@ -17,13 +17,13 @@ RampTexture::RampTexture(
 	end(RenderState::get());
 }
 
-RampTexture::RampTexture(GLenum format, const std::vector<GLuint> &data)
+RampTexture::RampTexture(GLenum format, const std::vector<GLubyte> &data)
 		: RampTexture(format, format, data) {}
 
 RampTexture::RampTexture(
 			GLenum format,
 			GLenum internalFormat,
-			const std::vector<GLuint> &data)
+			const std::vector<GLubyte> &data)
 		: Texture1D() {
 	auto elementsPerTexel = glenum::pixelComponents(format);
 	auto width = data.size() / elementsPerTexel;
@@ -41,35 +41,35 @@ RampTexture::RampTexture(
 }
 
 ref_ptr<RampTexture> RampTexture::darkWhite() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{80, 255});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{80, 255});
 }
 
 ref_ptr<RampTexture> RampTexture::darkWhiteSkewed() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{80, 80, 80, 255, 255});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{80, 80, 80, 255, 255});
 }
 
 ref_ptr<RampTexture> RampTexture::normal() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{0, 255});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{0, 255});
 }
 
 ref_ptr<RampTexture> RampTexture::threeStep() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{80, 160, 255});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{80, 160, 255});
 }
 
 ref_ptr<RampTexture> RampTexture::fourStep() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{80, 140, 200, 255});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{80, 140, 200, 255});
 }
 
 ref_ptr<RampTexture> RampTexture::fourStepSkewed() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{80, 80, 80, 80, 140, 200, 255});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{80, 80, 80, 80, 140, 200, 255});
 }
 
 ref_ptr<RampTexture> RampTexture::blackWhiteBlack() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{80, 255, 80});
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{80, 255, 80});
 }
 
 ref_ptr<RampTexture> RampTexture::stripes() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{
 			80, 255, 80, 255, 80, 255, 80, 255,
 			80, 255, 80, 255, 80, 255, 80, 255,
 			80, 255, 80, 255, 80, 255, 80, 255,
@@ -78,7 +78,7 @@ ref_ptr<RampTexture> RampTexture::stripes() {
 }
 
 ref_ptr<RampTexture> RampTexture::stripe() {
-	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLuint>{
+	return ref_ptr<RampTexture>::alloc(GL_LUMINANCE, std::vector<GLubyte>{
 			80, 80, 80, 80,
 			80, 80, 80, 80,
 			80, 80, 80, 80,
@@ -90,7 +90,7 @@ ref_ptr<RampTexture> RampTexture::stripe() {
 }
 
 ref_ptr<RampTexture> RampTexture::rgb() {
-	return ref_ptr<RampTexture>::alloc(GL_RGB, std::vector<GLuint>{
+	return ref_ptr<RampTexture>::alloc(GL_RGB, std::vector<GLubyte>{
 			255,	0,		0,
 			0,		255,	0,
 			0,		0,		255

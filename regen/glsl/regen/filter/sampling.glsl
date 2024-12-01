@@ -1,26 +1,32 @@
 
 -- computeTexco
-#ifndef __computeTexco_Included__
-#define2 __computeTexco_Included__
+#ifndef sampling_computeTexco_Included
+#define2 sampling_computeTexco_Included
 #if RENDER_LAYER > 1
 flat in int in_layer;
 #endif
 #if RENDER_TARGET == CUBE
-#include regen.math.computeCubeDirection
-vec3 computeTexco(vec2 texco_2D) {
-  return computeCubeDirection(vec2(2,-2)*texco_2D + vec2(-1,1),in_layer);
-}
 #define vecTexco vec3
+    #include regen.math.computeCubeDirection
+vec3 computeTexco(vec2 texco_2D) {
+    return computeCubeDirection(vec2(2,-2)*texco_2D + vec2(-1,1),in_layer);
+}
 #elif RENDER_LAYER > 1
-vec3 computeTexco(vec2 texco_2D) {
-  return vec3(texco_2D,in_layer);
-}
 #define vecTexco vec3
+vec3 computeTexco(vec2 texco_2D) {
+    return vec3(texco_2D,in_layer);
+}
 #else
-#define computeTexco(texco_2D) texco_2D
+    #define2 _TEX_ID ${TEX_ID_inputTexture}
+    #define2 _TEX_DIM ${TEX_DIM${_TEX_ID}}
+    #if ${_TEX_DIM} == 1
+#define vecTexco float
+#define computeTexco(texco_2D) texco_2D.x
+    #else
 #define vecTexco vec2
-#endif
-#endif
+#define computeTexco(texco_2D) texco_2D
+    #endif // ${_TEX_DIM} == 1
+#endif // sampling_computeTexco_Included
 
 -- vs
 in vec3 in_pos;
@@ -68,13 +74,7 @@ void main() {
 out vec4 out_color;
 
 uniform vec2 in_inverseViewport;
-#if RENDER_TARGET == 2D_ARRAY
-uniform sampler2DArray in_inputTexture;
-#elif RENDER_TARGET == CUBE
-uniform samplerCube in_inputTexture;
-#else // RENDER_TARGET == 2D
 uniform sampler2D in_inputTexture;
-#endif
 #include regen.filter.sampling.computeTexco
 
 void main()
@@ -82,6 +82,68 @@ void main()
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
     out_color = texture(in_inputTexture, computeTexco(texco_2D));
 }
+
+----------------------------
+----------------------------
+-- depth.vs
+#include regen.filter.sampling.vs
+-- depth.gs
+#include regen.filter.sampling.gs
+-- depth.fs
+#include regen.states.camera.defines
+
+out vec4 out_color;
+
+uniform vec2 in_inverseViewport;
+uniform sampler2D in_inputTexture;
+#include regen.filter.sampling.computeTexco
+#include regen.states.camera.linearizeDepth
+
+void main()
+{
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    float depth = texture(in_inputTexture, computeTexco(texco_2D)).r;
+    depth = linearizeDepth(depth, REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
+    out_color = vec4(depth, depth, depth, 1.0);
+}
+
+----------------------------
+----------------------------
+-- downsample.depth.vs
+#define OUTPUT_TYPE DEPTH
+#include regen.filter.sampling.vs
+-- downsample.depth.gs
+#define OUTPUT_TYPE DEPTH
+#include regen.filter.sampling.gs
+-- downsample.depth.fs
+#define OUTPUT_TYPE DEPTH
+#include regen.states.camera.defines
+
+uniform vec2 in_inverseViewport;
+uniform sampler2D in_inputTexture;
+#include regen.filter.sampling.computeTexco
+
+void main()
+{
+    vec2 texCoord = gl_FragCoord.xy*in_inverseViewport;
+    texCoord = computeTexco(texCoord);
+    gl_FragDepth = texture(in_inputTexture, texCoord).r;
+}
+
+-- downsample.depth.average.2x2
+#ifndef downsample_depth_average_2x2_Included
+#define2 downsample_depth_average_2x2_Included
+float downsample(vec2 texCoord, sampler2D depthTexture, float texelSize) {
+    float depth = 0.0;
+    for (int x = 0; x < 2; ++x) {
+        for (int y = 0; y < 2; ++y) {
+            vec2 offset = vec2(x, y) * texelSize;
+            depth += texture(depthTexture, texCoord + offset).r;
+        }
+    }
+    return depth / 4.0;
+}
+#endif
 
 ----------------------------
 ----------------------------

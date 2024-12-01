@@ -102,6 +102,9 @@ void StateConfigurer::addState(const State *s) {
 		define(
 				REGEN_STRING("TEX_ID" << cfg_.textures_.size()),
 				REGEN_STRING(x2->stateID()));
+		define(
+				REGEN_STRING("TEX_ID_" << x2->name()),
+				REGEN_STRING(x2->stateID()));
 		// remember the number of textures used
 		define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size() + 1));
 		cfg_.textures_[x2->name()] = x2->texture();

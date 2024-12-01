@@ -78,18 +78,25 @@ void main() {
 #include regen.models.mesh.defines
 #include regen.states.textures.defines
 
+#ifdef HAS_DENSITY_OUTPUT
+layout(location = 0) out float out_density;
+#else
 layout(location = 0) out vec4 out_color;
+#endif
 
 in vec3 in_posEye;
 in vec3 in_posWorld;
 in vec3 in_velocity;
 in vec2 in_texco0;
 in float in_lifetime;
-#ifdef HAS_color
+
+#ifndef HAS_DENSITY_OUTPUT
+    #ifdef HAS_color
 in vec3 in_color;
+    #endif
+const float in_particleBrightness = 0.5;
 #endif
 
-const float in_particleBrightness = 0.5;
 const float in_lifetimeSmoothstep = 1.0;
 #ifdef USE_NEAR_CAMERA_SOFT_PARTICLES
 const float in_cameraSmoothstep = 5.0;
@@ -109,8 +116,10 @@ uniform sampler2D in_depthTexture;
 const float in_softParticleScale = 1.0;
 #endif
 
-#if ${NUM_LIGHTS} > 0
+#ifndef HAS_DENSITY_OUTPUT
+    #if ${NUM_LIGHTS} > 0
     #include regen.shading.direct.diffuse
+    #endif
 #endif
 #ifdef HAS_FRAGMENT_TEXTURE
     #include regen.states.textures.mapToFragmentUnshaded
@@ -132,27 +141,107 @@ void main() {
     opacity *= smoothstep(0.0, in_lifetimeSmoothstep, in_lifetime);
     if(opacity<0.1) discard;
 
-#ifdef HAS_color
+#ifdef HAS_DENSITY_OUTPUT
+    #ifdef HAS_FRAGMENT_TEXTURE
+    vec4 color = vec4(1.0);
+    textureMappingFragmentUnshaded(P, color);
+    opacity *= color.a;
+    #endif
+    out_density = opacity;
+#else // HAS_DENSITY_OUTPUT
+    #ifdef HAS_color
     out_color = vec4(in_color.rgb, 1.0);
-#elif HAS_particleColor
+    #elif HAS_particleColor
     out_color = vec4(in_particleColor.rgb, 1.0);
-#else
+    #else
     out_color = vec4(1.0, 1.0, 1.0, 1.0);
-#endif
-#ifdef HAS_FRAGMENT_TEXTURE
+    #endif
+    #ifdef HAS_FRAGMENT_TEXTURE
     textureMappingFragmentUnshaded(P, out_color);
-#endif
-#if ${NUM_LIGHTS} > 0
+    #endif
+    #if ${NUM_LIGHTS} > 0
     vec3 diffuseColor = getDiffuseLight(P, gl_FragCoord.z);
     out_color.rgb *= diffuseColor;
-#endif
+    #endif
     // apply the brightness of the particle
     // TODO: this is not super useful with ADD blending, low values make the particle disappear
     //        so this is actually more of a density threshold than a brightness.
     //        not sure what the best strategy is here....
     out_color.rgb *= in_particleBrightness;
     out_color.a *= opacity;
-#ifdef OPACITY_WEIGHTED_COLOR
+    #ifdef OPACITY_WEIGHTED_COLOR
     out_color.rgb *= opacity; // opacity weighted color
+    #endif
+#endif // HAS_DENSITY_OUTPUT
+}
+
+-- density.vs
+#include regen.particles.sprite.vs
+-- density.gs
+#include regen.particles.sprite.gs
+-- density.fs
+#define HAS_DENSITY_OUTPUT
+#include regen.particles.sprite.fs
+
+-- densityColor.vs
+#include regen.filter.sampling.vs
+-- densityColor.gs
+#include regen.filter.sampling.gs
+-- densityColor.fs
+#include regen.states.camera.defines
+
+out vec4 out_color;
+
+uniform vec2 in_inverseViewport;
+uniform sampler2D in_densityTexture;
+
+const float in_gamma = 2.2;
+const float in_exposure = 1.0;
+
+#include regen.filter.sampling.computeTexco
+#ifdef HAS_colorRamp
+    #define2 _RAMP_ID ${TEX_ID_colorRamp}
+    #include regen.states.textures.rampCoordinate
+    #include ${TEX_BLEND_KEY${_RAMP_ID}}
+    #ifdef TEX_TRANSFER_KEY${_RAMP_ID}
+        #include ${TEX_TRANSFER_KEY${_RAMP_ID}}
+    #endif
 #endif
+
+#include regen.colors.tonemap
+
+void main()
+{
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    // Sample the density texture. This gives a float value between 0 and MAX_FLOAT
+    // created by particles rendered using ADD blending.
+    // If we would use the density value directly, the result would be too bright.
+    // Hence we apply a tonemapping function to make the density value more visually pleasing.
+    float density = texture(in_densityTexture, computeTexco(texco_2D)).r;
+    density = pow(tonemap(in_exposure * density), 1.0/in_gamma);
+#ifdef DISCARD_DENSITY_THRESHOLD
+    // Discard fragments with low density values
+    if (density < DISCARD_DENSITY_THRESHOLD) discard;
+#endif
+
+#ifdef HAS_color
+    vec4 color = in_color;
+#else
+    vec4 color = vec4(1.0);
+#endif
+#ifdef HAS_colorRamp
+    #define2 _RAMP_ID ${TEX_ID_colorRamp}
+    float ramped = rampCoordinate(1.0 - density, ${TEX_TEXEL_X${_RAMP_ID}}).x;
+    vec4 rampColor = texture(in_colorRamp, ramped);
+    #ifdef TEX_TRANSFER_NAME${_RAMP_ID}
+    // use a custom transfer function for the texel
+    ${TEX_TRANSFER_NAME${_RAMP_ID}}(rampColor);
+    #endif
+    ${TEX_BLEND_NAME${_RAMP_ID}}(rampColor, color, ${TEX_BLEND_FACTOR${_ID}});
+#endif
+    color.a *= density;
+#ifdef HAS_brightness
+    color.rgb *= in_brightness;
+#endif
+    out_color = color;
 }
