@@ -75,7 +75,7 @@
       lod="0"
       rotation="0.0,0.0,3.1415"
       scaling="1000.0,1000.0,1000.0"
-      texco-scaling="100.0,100.0"
+      texco-scaling="400.0,400.0"
       use-normal="1"
       use-texco="1"
       use-tangent="1"
@@ -111,21 +111,22 @@
 </node>
 
 <node id="Scene-Geometry">
-  <node id="Ground">
-    <input type="float" name="parallaxBias" value="0.02" />
-    <input type="float" name="parallaxScale" value="0.03" />
+    <node id="Ground">
+        <input type="float" name="parallaxBias" value="0.02" />
+        <input type="float" name="parallaxScale" value="0.03" />
+        <!--
     <texture name="colorTexture" id="ground-color" map-to="COLOR"
 	     texco-transfer="PARALLAX_OCC" />
     <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
 	     texco-transfer="PARALLAX_OCC" />
     <texture name="heightTexture" id="ground-height" />
-      
-    <transform>
-      <translate value="0.0,-2.0,0.0" />
-    </transform>
-    <material ambient="0.1,0.1,0.1" diffuse="0.7,0.7,0.7" />
-    <mesh id="ground-mesh" shader="regen.models.mesh" />
-  </node>
+    -->
+        <transform>
+            <translate value="0.0,-2.0,0.0" />
+        </transform>
+        <material preset="ground/stone" variant="4" />
+        <mesh id="ground-mesh" shader="regen.models.mesh" />
+    </node>
 </node>
 
 <node id="Shading-Pass">

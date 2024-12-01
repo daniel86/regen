@@ -82,9 +82,7 @@ namespace regen {
 					else if (presetVal == "wood") mat->set_wood(variant);
 					else if (presetVal == "marble") mat->set_marble(variant);
 					else {
-						REGEN_WARN("Unknown Material preset '" << presetVal <<
-															   "' for node '" << input.getDescription() << "'.");
-						mat->set_copper();
+						mat->set_textures(presetVal, variant);
 					}
 				}
 				if (input.hasAttribute("ambient"))

@@ -40,6 +40,7 @@ namespace regen {
 			 */
 			T next() {
 				if (mode_ == "row") return nextRow();
+				else if (mode_ == "circle") return nextCircle();
 				else if (mode_ == "fade") return nextFade();
 				else if (mode_ == "random") return nextRandom();
 				else if (mode_ == "constant") return value_;
@@ -77,6 +78,24 @@ namespace regen {
 						counter_.z += 1;
 					}
 				}
+				return value_;
+			}
+
+			T nextCircle() {
+				const T dirX = n_->getValue<T>("dir-x", T(1));
+				const T dirY = n_->getValue<T>("dir-z", T(1));
+				const auto radius = n_->getValue<float>("radius", 1.0f);
+				const auto variance = n_->getValue<float>("variance", 0.0f);
+				// evenly distribute points on a circle
+				double position = counter_.x / (double) numValues_;
+				// scale to 0..2PI
+				position = position * 2 * M_PI;
+				const double x = radius * cos(position);
+				const double y = radius * sin(position);
+				value_ =
+					dirX * (x + random()*variance) +
+					dirY * (y + random()*variance);
+				counter_.x += 1;
 				return value_;
 			}
 

@@ -182,6 +182,10 @@ bool Material::set_textures(std::string_view materialName, Variant variant) {
 	auto basePath0 = REGEN_STRING("res/textures/materials/" << materialName << "/" << variant);
 	basePath0 = resourcePath(basePath0);
 	if (!boost::filesystem::exists(basePath0)) {
+		basePath0 = REGEN_STRING("res/textures/" << materialName << "/" << variant);
+		basePath0 = resourcePath(basePath0);
+	}
+	if (!boost::filesystem::exists(basePath0)) {
 		return false;
 	}
 
