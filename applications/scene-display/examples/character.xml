@@ -84,8 +84,8 @@
 
     <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="4"
           rotation="0.0,0.0,3.1415"
-          scaling="600.0,20.0,600.0"
-          texco-scaling="60.0,60.0">
+          scaling="400.0,20.0,400.0"
+          texco-scaling="40.0,40.0">
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
@@ -186,17 +186,18 @@
     <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
 
     <node id="Grass">
-        <node id="grass1" hidden="true">
+        <node id="grass1">
             <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" /> -->
             <!-- <toggle key="MULTISAMPLE" value="1" /> -->
             <!-- <blend mode="ALPHA"/> -->
             <blend mode="SRC"/>
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <define key="TES_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.5"
-                    lod-metric="EDGE_DEVICE_DISTANCE" />
-            <input name="lodMinDD" type="float" value="0.2"/>
-            <input name="lodMaxDD" type="float" value="0.5"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE" />
+            <input name="lodMinDeviceDistance" type="float" value="0.1"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.25"/>
+            <input name="minTessLevel" type="float" value="1.0"/>
+            <input name="maxTessLevel" type="float" value="60.0"/>
             <!-- size and position -->
             <input name="quadSize" type="vec2" value="1.15, 0.3"/>
             <input name="posVariation" type="float" value="0.4"/>

@@ -41,7 +41,7 @@ namespace regen {
 				tess->lodFactor()->setVertex(0,
 											 input.getValue<GLfloat>("lod-factor", 4.0f));
 				tess->set_lodMetric(input.getValue<TesselationState::LoDMetric>(
-						"lod-metric", TesselationState::CAMERA_DISTANCE_INVERSE));
+						"lod-metric", TesselationState::CAMERA_DISTANCE));
 
 				state->joinStates(tess);
 			}

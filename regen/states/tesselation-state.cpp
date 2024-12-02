@@ -22,8 +22,8 @@ namespace regen {
 				return out << "EDGE_SCREEN_DISTANCE";
 			case TesselationState::EDGE_DEVICE_DISTANCE:
 				return out << "EDGE_DEVICE_DISTANCE";
-			case TesselationState::CAMERA_DISTANCE_INVERSE:
-				return out << "CAMERA_DISTANCE_INVERSE";
+			case TesselationState::CAMERA_DISTANCE:
+				return out << "CAMERA_DISTANCE";
 		}
 		return out;
 	}
@@ -35,10 +35,10 @@ namespace regen {
 		if (val == "FIXED_FUNCTION") mode = TesselationState::FIXED_FUNCTION;
 		else if (val == "EDGE_SCREEN_DISTANCE") mode = TesselationState::EDGE_SCREEN_DISTANCE;
 		else if (val == "EDGE_DEVICE_DISTANCE") mode = TesselationState::EDGE_DEVICE_DISTANCE;
-		else if (val == "CAMERA_DISTANCE_INVERSE") mode = TesselationState::CAMERA_DISTANCE_INVERSE;
+		else if (val == "CAMERA_DISTANCE") mode = TesselationState::CAMERA_DISTANCE;
 		else {
-			REGEN_WARN("Unknown tesselation metric '" << val << "'. Using default CAMERA_DISTANCE_INVERSE blending.");
-			mode = TesselationState::CAMERA_DISTANCE_INVERSE;
+			REGEN_WARN("Unknown tesselation metric '" << val << "'. Using default CAMERA_DISTANCE blending.");
+			mode = TesselationState::CAMERA_DISTANCE;
 		}
 		return in;
 	}
@@ -46,7 +46,7 @@ namespace regen {
 
 TesselationState::TesselationState(GLuint numPatchVertices)
 		: State(),
-		  lodMetric_(CAMERA_DISTANCE_INVERSE),
+		  lodMetric_(CAMERA_DISTANCE),
 		  numPatchVertices_(numPatchVertices) {
 #ifdef GL_VERSION_4_0
 	shaderDefine("TESS_NUM_VERTICES", REGEN_STRING(numPatchVertices));
@@ -58,11 +58,9 @@ TesselationState::TesselationState(GLuint numPatchVertices)
 
 	innerLevel_ = ref_ptr<ShaderInput4f>::alloc("tessInnerLevel");
 	innerLevel_->setUniformData(Vec4f(8.0f));
-	joinShaderInput(innerLevel_);
 
 	outerLevel_ = ref_ptr<ShaderInput4f>::alloc("tessOuterLevel");
 	outerLevel_->setUniformData(Vec4f(8.0f));
-	joinShaderInput(outerLevel_);
 
 	lodFactor_ = ref_ptr<ShaderInput1f>::alloc("lodFactor");
 	lodFactor_->setUniformData(4.0f);
@@ -93,8 +91,8 @@ void TesselationState::set_lodMetric(LoDMetric metric) {
 		case EDGE_DEVICE_DISTANCE:
 			shaderDefine("TESS_LOD", "EDGE_DEVICE_DISTANCE");
 			break;
-		case CAMERA_DISTANCE_INVERSE:
-			shaderDefine("TESS_LOD", "CAMERA_DISTANCE_INVERSE");
+		case CAMERA_DISTANCE:
+			shaderDefine("TESS_LOD", "CAMERA_DISTANCE");
 			break;
 	}
 }
