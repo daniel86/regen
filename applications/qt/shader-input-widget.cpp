@@ -109,18 +109,18 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 	anims->setText(0, "animations");
 	int index = 0;
 	for (auto &anim : AnimationManager::get().glAnimations()) {
-		const auto& animShader = anim->shader();
-		if (!animShader.get()) continue;
-		auto shaderInputs = animShader->inputs();
+		if (anim == setValueCallback_.get()) continue;
+
 		auto *animItem = new QTreeWidgetItem(anims);
 		// use index as name for now
-		std::string animName = REGEN_STRING("anim" << (index++));
-		animItem->setText(0, animName.c_str());
-
-		for(const auto& namedInput : shaderInputs) {
-			if (namedInput.in_->numVertices() > 1) continue;
-			handleInput(namedInput, animItem);
+		std::string animName;
+		if (anim->hasAnimationName()) {
+			animName = anim->animationName();
+		} else {
+			animName = REGEN_STRING("animation-" << (index++));
 		}
+		animItem->setText(0, QString::fromStdString(animName));
+		handleState(anim->animationState(), animItem);
 	}
 }
 

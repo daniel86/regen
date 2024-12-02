@@ -35,6 +35,7 @@ namespace regen {
 		 * Create an animation.
 		 * Note that the animation removes itself from the AnimationManager
 		 * in the destructor.
+		 * @param a user readable name, must not be unique.
 		 * @param useGLAnimation execute with render context.
 		 * @param useAnimation execute without render context in separate thread.
 		 * @param autoStart is true the animation adds itself to the AnimationManager.
@@ -42,6 +43,24 @@ namespace regen {
 		Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart = GL_TRUE);
 
 		~Animation() override;
+
+		Animation(const Animation &) = delete;
+
+		/**
+		 * @return the name of the animation.
+		 */
+		auto &animationName() const { return animationName_; }
+
+		/**
+		 * Set the name of the animation.
+		 * @param name the name.
+		 */
+		void setAnimationName(std::string_view name) { animationName_ = name; }
+
+		/**
+		 * @return true if this animation has a name.
+		 */
+		bool hasAnimationName() const { return !animationName_.empty(); }
 
 		/**
 		 * @return true if this animation is active.
@@ -127,37 +146,30 @@ namespace regen {
 		virtual void glAnimate(RenderState *rs, GLdouble dt) {}
 
 		/**
-		 * @return the shader if any.
-		 */
-		const auto& shader() { return shader_; }
-
-		/**
-		 * Set the shader.
-		 * @param shader the shader.
-		 */
-		void setShader(const ref_ptr<Shader> &shader) { shader_ = shader; }
-
-		/**
 		 * @return the root state.
 		 */
-		const auto& rootState() { return rootState_; }
+		auto& animationState() { return animationState_; }
 
 		/**
 		 * Set the root state.
 		 * @param rootState the root state.
 		 */
-		void setRootState(const ref_ptr<State> &rootState) { rootState_ = rootState; }
+		void joinAnimationState(const ref_ptr<State> &state);
+
+		/**
+		 * Remove the root state.
+		 * @param rootState the root state.
+		 */
+		void disjoinAnimationState(const ref_ptr<State> &state);
 
 	protected:
 		boost::mutex mutex_;
 		boost::mutex mutex_gl_;
+		std::string animationName_;
 		GLboolean useGLAnimation_;
 		GLboolean useAnimation_;
 		GLboolean isRunning_;
-		ref_ptr<Shader> shader_;
-		ref_ptr<State> rootState_;
-
-		Animation(const Animation &);
+		ref_ptr<State> animationState_;
 
 		void operator=(const Animation &);
 	};

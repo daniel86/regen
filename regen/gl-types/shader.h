@@ -244,6 +244,11 @@ namespace regen {
 		const std::list<ShaderInputLocation> &attributes() const;
 
 		/**
+		 * @return list of uniforms attached to this shader.
+		 */
+		auto &uniforms() const { return uniforms_; }
+
+		/**
 		 * Returns input with given name.
 		 */
 		ref_ptr<ShaderInput> input(const std::string &name);

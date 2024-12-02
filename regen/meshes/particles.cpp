@@ -22,6 +22,7 @@ Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 		  Animation(GL_TRUE, GL_FALSE),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
+	setAnimationName("particles");
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(VBO::USAGE_FEEDBACK);
 	inputContainer_->set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
@@ -241,9 +242,7 @@ void Particles::configureAdvancing(
 
 void Particles::createUpdateShader(const ShaderInputList &inputs) {
 	StateConfigurer shaderConfigurer;
-	if (rootState_.get()) {
-		shaderConfigurer.addState(rootState_.get());
-	}
+	shaderConfigurer.addState(animationState_.get());
 	shaderConfigurer.addState(this);
 
 	StateConfig &shaderCfg = shaderConfigurer.cfg();

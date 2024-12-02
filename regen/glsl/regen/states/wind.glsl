@@ -9,6 +9,9 @@ const float in_windNoiseScale = 100.0;
 const float in_windNoiseSpeed = 1.0;
 const float in_windNoiseStrength = 0.1;
 #endif
+const vec2 in_wind = vec2(1.0, 0.0);
+
+uniform sampler2D in_windFlow;
 
 vec2 windAtPosition(vec3 posWorld)
 {
@@ -25,9 +28,9 @@ vec2 windAtPosition(vec3 posWorld)
     vec2 windSample = texture(in_windFlow, windFlow_uv).xy;
     vec2 wind = (2.0*windSample - vec2(1.0)) * length(in_wind);
 #else
-    vec2 wind = 0.1*in_wind;
-    wind.x -= 0.1*sin(in_time * in_windFlowTime * 10.0 + posWorld.x/in_windFlowScale);
-    wind.y -= 0.1*cos(in_time * in_windFlowTime * 10.0 + posWorld.z/in_windFlowScale);
+    vec2 wind = in_wind;
+    //wind.x -= 0.1*sin(in_time * in_windFlowTime * 10.0 + posWorld.x/in_windFlowScale);
+    //wind.y -= 0.1*cos(in_time * in_windFlowTime * 10.0 + posWorld.z/in_windFlowScale);
 #endif
 #ifdef HAS_windNoise
     float scaledTime = in_time*0.01*in_windNoiseSpeed;

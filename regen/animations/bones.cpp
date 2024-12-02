@@ -17,6 +17,7 @@ Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 		: HasInputState(VBO::USAGE_TEXTURE),
 		  Animation(GL_TRUE, GL_FALSE) {
 	bufferSize_ = 0u;
+	setAnimationName("bones");
 
 	numBoneWeights_ = ref_ptr<ShaderInput1i>::alloc("numBoneWeights");
 	numBoneWeights_->setUniformData(numBoneWeights);

@@ -101,6 +101,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
 	cfg.usage = VBO::USAGE_STATIC;
 	skyQuad_ = ref_ptr<Rectangle>::alloc(cfg);
+
+	// mae some parts of the sky configurable from the GUI.
+	// TODO: need to add the whole node here I guess.
+	setAnimationName("sky");
+	joinAnimationState(state());
 }
 
 const ref_ptr<Rectangle> &Sky::skyQuad() const {

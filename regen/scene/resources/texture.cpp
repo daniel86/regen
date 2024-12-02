@@ -254,6 +254,8 @@ ref_ptr<Texture> TextureResource::createResource(
 		video->stopAnimation();
 		try {
 			video->set_file(filePath);
+			auto filename = filePath.substr(filePath.find_last_of('/') + 1);
+			video->setAnimationName(REGEN_STRING("Video" << filename));
 			video->demuxer()->set_repeat(
 					input.getValue<bool>("repeat", 1));
 			tex = video;
