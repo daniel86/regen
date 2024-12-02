@@ -46,6 +46,7 @@ out ${_TYPE} out_${_NAME};
 #endfor
 #ifdef HAS_wind || HAS_windFlow
     #include regen.states.wind.windAtPosition
+const float in_windStrength = 1.0;
 #endif
 
 void particleUpdateVelocity(float dt)
@@ -59,7 +60,7 @@ void particleUpdateVelocity(float dt)
     #endif
 #endif
 #ifdef HAS_wind || HAS_windFlow
-    velocityChange.xz += windAtPosition(in_pos) * dt;
+    velocityChange.xz += windAtPosition(in_pos) * in_windStrength;
 #endif
 #ifdef HAS_dampingFactor
     velocityChange -= out_velocity * in_dampingFactor;

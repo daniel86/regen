@@ -55,7 +55,7 @@ public:
 ////// Mouse event handler
 /////////////////
 
-class SceneDisplayMouseHandler : public EventHandler, Animation {
+class SceneDisplayMouseHandler : public EventHandler, public Animation {
 public:
 	explicit SceneDisplayMouseHandler(Application *app)
 			: EventHandler(), Animation(GL_TRUE, GL_FALSE), app_(app) {
@@ -747,6 +747,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
 	// add mouse event handler
 	auto mouseEventHandler = ref_ptr<SceneDisplayMouseHandler>::alloc(app_);
+	mouseEventHandler->setAnimationName("mouse");
 	app_->connect(Application::BUTTON_EVENT, mouseEventHandler);
 	eventHandler_.emplace_back(mouseEventHandler);
 

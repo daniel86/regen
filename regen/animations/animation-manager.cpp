@@ -54,9 +54,16 @@ void AnimationManager::resetTime() {
 }
 
 void AnimationManager::setRootState(const ref_ptr<State> &rootState) {
+	if (rootState_.get()) {
+		for (auto &anim : animations_) {
+			anim->disjoinAnimationState(rootState_);
+		}
+	}
 	rootState_ = rootState;
-	for (auto &anim : animations_) {
-		anim->setRootState(rootState);
+	if (rootState_.get()) {
+		for (auto &anim : animations_) {
+			anim->joinAnimationState(rootState);
+		}
 	}
 }
 
@@ -68,6 +75,9 @@ void AnimationManager::addAnimation(Animation *animation) {
 	addInProgress_ = GL_TRUE;
 
 	if (animation->useGLAnimation()) {
+		if (rootState_.get() != nullptr) {
+			animation->joinAnimationState(rootState_);
+		}
 		if (glInProgress_ && addThreadID_ == glThreadID_) {
 			// Called from glAnimate().
 			glChangedDuringLoop_ = GL_TRUE;
@@ -78,7 +88,6 @@ void AnimationManager::addAnimation(Animation *animation) {
 			// save to remove from set
 			glAnimations_.insert(animation);
 		}
-		animation->setRootState(rootState_);
 	}
 
 	if (animation->useAnimation()) {
@@ -216,7 +225,10 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 			Animation *anim = *it;
 			processed.insert(anim);
 			if (anim->isRunning()) {
+				auto animState = anim->animationState();
+				animState->enable(RenderState::get());
 				anim->glAnimate(RenderState::get(), dt);
+				animState->disable(RenderState::get());
 				// Animation was removed in glAnimate call.
 				// We have to restart the loop because iterator is invalid.
 				if (glChangedDuringLoop_) {

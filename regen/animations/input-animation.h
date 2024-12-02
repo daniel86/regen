@@ -30,6 +30,7 @@ namespace regen {
 			lastFrame_.val = val_;
 			lastFrame_.dt = 0.0;
 			dt_ = 0.0;
+			setAnimationName(REGEN_STRING("animation-" << in->name()));
 		}
 
 		void push_back(const T &value, GLdouble dt) {

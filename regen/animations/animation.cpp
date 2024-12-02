@@ -17,12 +17,12 @@ using namespace regen;
 GLuint Animation::ANIMATION_STARTED = EventObject::registerEvent("animationStarted");
 GLuint Animation::ANIMATION_STOPPED = EventObject::registerEvent("animationStopped");
 
-Animation::Animation(GLboolean useGLAnimation,
-					 GLboolean useAnimation, GLboolean autoStart)
+Animation::Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart)
 		: EventObject(),
 		  useGLAnimation_(useGLAnimation),
 		  useAnimation_(useAnimation),
 		  isRunning_(GL_FALSE) {
+	animationState_ = ref_ptr<State>::alloc();
 	if (autoStart) startAnimation();
 }
 
@@ -72,4 +72,12 @@ void Animation::unlock_gl() { mutex_gl_.unlock(); }
 
 void Animation::wait(GLuint milliseconds) {
 	usleepRegen(1000 * milliseconds);
+}
+
+void Animation::joinAnimationState(const ref_ptr<State> &state) {
+	animationState_->joinStates(state);
+}
+
+void Animation::disjoinAnimationState(const ref_ptr<State> &rootState) {
+	animationState_->disjoinStates(rootState);
 }

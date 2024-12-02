@@ -150,6 +150,7 @@ namespace regen {
 		ShaderInput1f *frameTimeUniform_;
 		ShaderInput1f *frictionUniform_;
 		ShaderInput1f *frequencyUniform_;
+		ref_ptr<State> meshAnimState_;
 
 		ref_ptr<Mesh> mesh_;
 		GLuint meshBufferOffset_;

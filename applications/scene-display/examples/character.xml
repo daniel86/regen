@@ -416,19 +416,10 @@
         <texel v="0, 0, 0"/>
     </texture>
 
-    <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10">
-        <!-- Add shader defines. -->
+    <node id="Particle-Config">
         <define key="PARTICLE_EMITTER_MODE" value="IN"/>
         <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
         <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
-        <!-- TODO: redundant with root node -->
-        <!--
-        <input name="wind" type="vec2" value="0.6, 0.6"/>
-        <input name="windFlowScale" type="float" value="150.0"/>
-        <input name="windFlowTime" type="float" value="0.2"/>
-        <texture name="windFlow" id="wind-flowmap" />
-        -->
-        <!-- Add shader input. -->
         <input type="vec3" name="gravity" value="0.0,9.81,0.0"/>
         <input type="float" name="dampingFactor" value="1.0"/>
         <input type="vec2" name="velocityFactorMinMax" value="5.0, 10.0"/>
@@ -438,8 +429,25 @@
         <input type="float" name="surfaceHeight" value="-1.0"/>
         <input type="float" name="lifetimeDefault" value="0.8"/>
         <input type="float" name="lifetimeVariance" value="0.5"/>
+        <!-- TODO: redundant with root node. would be good to avoid -->
+        <input name="wind" type="vec2" value="0.6, 0.6"/>
+        <input name="windFlowScale" type="float" value="150.0"/>
+        <input name="windFlowTime" type="float" value="0.2"/>
+        <input name="windStrength" type="float" value="1.0"/>
+        <!-- FIXME: adding texture here causes an error, but at least HAS_windFlow must be defined here. -->
+        <!-- FIXME: not certain if the texture is actually picked up by the shader, it is compiled
+              without the context of scene graph so could be that the texture is not found. -->
+        <!--
+        <define key="HAS_windFlow" value="TRUE"/>
+        -->
+        <!--
+        <texture name="windFlow" id="wind-flowmap" />
+        -->
         <!-- <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0"/> -->
         <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
+    </node>
+
+    <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
@@ -448,28 +456,7 @@
         <transform id="platform1-tf" />
     </mesh>
 
-    <mesh id="test-particles0" type="particles" num-vertices="800" max-emits="10">
-        <!-- Add shader defines. -->
-        <define key="PARTICLE_EMITTER_MODE" value="IN"/>
-        <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
-        <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
-        <!-- TODO: redundant with root node -->
-        <!--
-        <input name="wind" type="vec2" value="0.6, 0.6"/>
-        <input name="windFlowScale" type="float" value="150.0"/>
-        <input name="windFlowTime" type="float" value="0.2"/>
-        <texture name="windFlow" id="wind-flowmap" />
-        -->
-        <!-- Add shader input. -->
-        <input type="vec3" name="gravity" value="0.0,9.81,0.0"/>
-        <input type="float" name="dampingFactor" value="1.0"/>
-        <input type="vec2" name="velocityFactorMinMax" value="5.0, 10.0"/>
-        <input type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
-        <input type="float" name="emitterSize" value="9.0"/>
-        <input type="float" name="emitterOpening" value="0.5"/>
-        <input type="float" name="surfaceHeight" value="-1.0"/>
-        <input type="float" name="lifetimeDefault" value="0.8"/>
-        <input type="float" name="lifetimeVariance" value="0.5"/>
+    <mesh id="test-particles0" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
@@ -477,9 +464,6 @@
         <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD" advance-constant="2.0"/>
         <transform id="platform0-tf" />
     </mesh>
-
-    <node id="Particle-Update-Depth">
-    </node>
 
     <node id="Particle-Update-FBO">
         <define key="USE_SOFT_PARTICLES" value="TRUE"/>
@@ -532,6 +516,8 @@
             <blend mode="alpha" />
             <texture name="densityTexture" fbo="particle-fbo" attachment="0" />
             <texture name="colorRamp" id="particle-color-ramp" blend-mode="MUL" />
+            <!-- TODO: redundant with root node -->
+            <texture name="windFlow" id="wind-flowmap" />
             <input type="float" name="gamma" value="1.0"/>
             <input type="float" name="exposure" value="1.0"/>
             <input type="float" name="brightness" value="1.0"/>
@@ -706,7 +692,6 @@
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
         <!-- render particles into a separate buffer -->
-        <node import="Particle-Update-Depth"/>
         <node import="Particle-Update-FBO"/>
         <!-- render transparent objects -->
         <node id="Transparent-Pass">

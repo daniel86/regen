@@ -47,6 +47,9 @@ void DeformationNodeProvider::processInput(
 		auto animation = ref_ptr<MeshAnimation>::alloc(mesh, interpolations);
 		animation->setFriction(friction);
 		animation->setFrequency(frequency);
+		if (!input.getName().empty()) {
+			animation->setAnimationName(input.getName());
+		}
 
 		// configure key frames
 		double animationTime = 0.0;

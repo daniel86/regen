@@ -131,20 +131,26 @@ MeshAnimation::MeshAnimation(
 		frameTimeUniform_ = (ShaderInput1f *) in.get();
 		frameTimeUniform_->setUniformData(0.0f);
 		interpolationShader_->setInput(in);
+		// join shader uniforms into animation state such that they can be
+		// configured from the outside
+		meshAnimState_ = ref_ptr<State>::alloc();
 
 		in = interpolationShader_->createUniform("friction");
 		frictionUniform_ = (ShaderInput1f *) in.get();
 		frictionUniform_->setUniformData(8.0f);
 		interpolationShader_->setInput(in);
+		meshAnimState_->joinShaderInput(in, in->name());
 
 		in = interpolationShader_->createUniform("frequency");
 		frequencyUniform_ = (ShaderInput1f *) in.get();
 		frequencyUniform_->setUniformData(5.0f);
 		interpolationShader_->setInput(in);
+		meshAnimState_->joinShaderInput(in, in->name());
+
+		joinAnimationState(meshAnimState_);
 	} else {
 		interpolationShader_ = ref_ptr<Shader>();
 	}
-	setShader(interpolationShader_);
 }
 
 void MeshAnimation::setFriction(GLfloat friction) {

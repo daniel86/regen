@@ -5,6 +5,7 @@ using namespace regen;
 
 BulletPhysics::BulletPhysics()
 		: Animation(GL_FALSE, GL_TRUE) {
+	setAnimationName("physics");
 	// Build the broadphase
 	broadphase_ = ref_ptr<btDbvtBroadphase>::alloc();
 	// Set up the collision configuration and dispatcher

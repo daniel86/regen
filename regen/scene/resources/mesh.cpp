@@ -390,6 +390,7 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 			if (!meshBones.empty()) {
 				ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights, numBones);
 				bonesState->setBones(meshBones);
+				bonesState->setAnimationName(REGEN_STRING("bones-" << input.getName()));
 				mesh->joinStates(bonesState);
 			}
 		}
@@ -474,8 +475,35 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 	} else {
 		particles = ref_ptr<Particles>::alloc(numParticles);
 	}
+	particles->setAnimationName(input.getName());
+
 	if (input.hasAttribute("max-emits")) {
 		particles->setMaxEmits(input.getValue<GLuint>("max-emits", 100u));
+	}
+	if (input.hasAttribute("animation-state")) {
+		auto animNodeName = input.getValue("animation-state");
+		auto animState = parser->getState(animNodeName);
+		if (animState.get() == nullptr) {
+			// Try to load the animation node
+			auto animNodeInput = parser->getRoot()->getFirstChild("node", animNodeName);
+			if (animNodeInput.get() != nullptr) {
+				auto animNode = ref_ptr<StateNode>::alloc();
+				animNode->set_name(animNodeName);
+				parser->processNode(animNode, animNodeName);
+				if (animNode->childs().empty()) {
+					animState = animNode->state();
+				} else {
+					animState = animNode->childs().front()->state();
+				}
+				parser->putState(animNodeName, animState);
+			}
+		}
+		if (animState.get() == nullptr) {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", unknown animation-node.");
+		}
+		else {
+			particles->joinAnimationState(animState);
+		}
 	}
 
 	// the attributes of particles may have special attributes in the scene file that determine default, variance, etc.

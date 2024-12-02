@@ -10,6 +10,7 @@ KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
 		  pauseTime_(0.0),
 		  currentPauseDuration_(0.0),
 		  isPaused_(GL_FALSE) {
+	setAnimationName("controller");
 	camPos_ = cam->position()->getVertex(0);
 	camDir_ = cam->direction()->getVertex(0);
 	it_ = frames_.end();

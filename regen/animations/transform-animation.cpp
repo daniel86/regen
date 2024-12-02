@@ -15,6 +15,7 @@ TransformAnimation::TransformAnimation(const ref_ptr<ShaderInputMat4> &in)
 	lastFrame_.rotation = currentDir_;
 	lastFrame_.dt = 0.0;
 	dt_ = 0.0;
+	setAnimationName(REGEN_STRING("animation-"<<in->name()));
 }
 
 void TransformAnimation::push_back(const std::optional<Vec3f> &pos,

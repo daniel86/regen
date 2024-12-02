@@ -50,7 +50,7 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="0.0,-0.1,2.25"/>
         </transform>
-        <deformation mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
+        <deformation id="teapot-deformation" mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
             <interpolations>
                 <interpolation target="pos" function="elastic"/>
                 <interpolation target="nor" function="elastic"/>
@@ -92,7 +92,7 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="-1.5,-0.6,0.0"/>
         </transform>
-        <deformation mesh-id="mesh-dragon" friction="7.9" frequency="1.0" repeat="true">
+        <deformation id="dragon-deformation" mesh-id="mesh-dragon" friction="7.9" frequency="1.0" repeat="true">
             <interpolations>
                 <interpolation target="pos" function="elastic"/>
                 <interpolation target="nor" function="elastic"/>
