@@ -316,6 +316,14 @@ void SceneDisplayWidget::toggleWireframe() {
 	}
 }
 
+void SceneDisplayWidget::toggleVSync() {
+	if (ui_.vsyncButton->isChecked()) {
+		app_->setVSyncEnabled(true);
+	} else {
+		app_->setVSyncEnabled(false);
+	}
+}
+
 void SceneDisplayWidget::openFile() {
 	QFileDialog dialog(this);
 	dialog.setFileMode(QFileDialog::AnyFile);

@@ -144,15 +144,15 @@ void QTGLWidget::run() {
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();
 #endif
-#ifdef WAIT_ON_VSYNC
-		// adjust interval to hit the desired frame rate if we can
-		boost::posix_time::ptime t(
-				boost::posix_time::microsec_clock::local_time());
-		dt = std::max(0, updateInterval_ - (GLint)
-				(t - app_->lastTime_).total_microseconds());
-		// sleep desired interval
-		usleepRegen(dt);
-#endif
+		if (app_->isVSyncEnabled()) {
+			// adjust interval to hit the desired frame rate if we can
+			boost::posix_time::ptime t(
+					boost::posix_time::microsec_clock::local_time());
+			dt = std::max(0, updateInterval_ - (GLint)
+					(t - app_->lastTime_).total_microseconds());
+			// sleep desired interval
+			usleepRegen(dt);
+		}
 	}
 }
 
