@@ -119,6 +119,16 @@ namespace regen {
 		auto isGLInitialized() const { return isGLInitialized_; }
 
 		/**
+		 * @return true if vsync is enabled.
+		 */
+		auto isVSyncEnabled() const { return isVSyncEnabled_; }
+
+		/**
+		 * @param enabled enable/disable vsync.
+		 */
+		auto setVSyncEnabled(const GLboolean &enabled) { isVSyncEnabled_ = enabled; }
+
+		/**
 		 * Initialize default loggers.
 		 */
 		void setupLogging();
@@ -308,6 +318,7 @@ namespace regen {
 
 		GLboolean isGLInitialized_;
 		GLboolean isTimeInitialized_;
+		GLboolean isVSyncEnabled_;
 
 		void setupShaderLoading();
 

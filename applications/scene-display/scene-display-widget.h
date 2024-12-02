@@ -70,6 +70,8 @@ public slots:
 
 	void toggleWireframe();
 
+	void toggleVSync();
+
 protected:
 	std::list<ref_ptr<EventHandler> > eventHandler_;
 	std::list<ref_ptr<Animation> > animations_;

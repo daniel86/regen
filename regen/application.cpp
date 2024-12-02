@@ -33,7 +33,8 @@ Application::Application(const int &argc, const char **argv)
 		  renderTree_(ref_ptr<RootNode>::alloc()),
 		  renderState_(NULL),
 		  isGLInitialized_(GL_FALSE),
-		  isTimeInitialized_(GL_FALSE) {
+		  isTimeInitialized_(GL_FALSE),
+		  isVSyncEnabled_(GL_TRUE) {
 	windowViewport_ = ref_ptr<ShaderInput2i>::alloc("windowViewport");
 	windowViewport_->setUniformData(Vec2i(2, 2));
 

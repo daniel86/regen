@@ -179,13 +179,42 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset theme="utilities-system-monitor"/>
+          <iconset theme="utilities-system-monitor">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="checkable">
           <bool>true</bool>
          </property>
          <property name="flat">
           <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="vsyncButton">
+         <property name="minimumSize">
+          <size>
+           <width>48</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset theme="view-refresh"/>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -488,6 +517,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>vsyncButton</sender>
+   <signal>clicked()</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>toggleVSync()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>29</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>339</x>
+     <y>606</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>openFile()</slot>
@@ -497,5 +542,6 @@
   <slot>nextAnchor()</slot>
   <slot>playAnchor()</slot>
   <slot>toggleWireframe()</slot>
+  <slot>toggleVSync()</slot>
  </slots>
 </ui>
