@@ -429,22 +429,13 @@
         <input type="float" name="surfaceHeight" value="-1.0"/>
         <input type="float" name="lifetimeDefault" value="0.8"/>
         <input type="float" name="lifetimeVariance" value="0.5"/>
-        <!-- TODO: redundant with root node. would be good to avoid -->
+        <!-- TODO: redundant with root node. would be good to have shared parameter.
+                   but first get it right with the wind I guess -->
         <input name="wind" type="vec2" value="0.6, 0.6"/>
         <input name="windFlowScale" type="float" value="150.0"/>
         <input name="windFlowTime" type="float" value="0.2"/>
         <input name="windStrength" type="float" value="1.0"/>
-        <!-- FIXME: adding texture here causes an error, but at least HAS_windFlow must be defined here. -->
-        <!-- FIXME: not certain if the texture is actually picked up by the shader, it is compiled
-              without the context of scene graph so could be that the texture is not found. -->
-        <!--
-        <define key="HAS_windFlow" value="TRUE"/>
-        -->
-        <!--
         <texture name="windFlow" id="wind-flowmap" />
-        -->
-        <!-- <input type="vec3" name="emitterPosition" value="-16.0, 8.0, -3.0"/> -->
-        <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
     </node>
 
     <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
