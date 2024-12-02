@@ -30,7 +30,7 @@ namespace regen {
 			/** LoD as function of device space edge size */
 			EDGE_DEVICE_DISTANCE,
 			/** LoD as function of distance to the camera */
-			CAMERA_DISTANCE_INVERSE
+			CAMERA_DISTANCE
 		};
 
 		/**
