@@ -24,7 +24,7 @@
                 collision-height="3.9"
                 gravity-force="50.0"
                 jump-velocity="26.0"
-                speed="0.0175"
+                speed="0.4"
                 mesh="dwarf-mesh"
                 mesh-index="1"
                 mesh-distance="20.0"
@@ -85,7 +85,7 @@
     <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="4"
           rotation="0.0,0.0,3.1415"
           scaling="400.0,20.0,400.0"
-          texco-scaling="400.0,400.0">
+          texco-scaling="20.0,20.0">
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
@@ -593,7 +593,7 @@
         <cull mode="FRONT"/>
         <define key="OUTPUT_TYPE" value="DEPTH"/>
         <!-- skip rendering top face of the cube -->
-        <define key="SKIP_LAYER5" value="TRUE"/>
+        <define key="SKIP_LAYER2" value="TRUE"/>
 
         <node id="Room-Light-Shadow">
             <node id="Room-Light-Shadow0">
@@ -647,11 +647,13 @@
     </node>
 
     <node id="Non-Shadow-Caster">
+        <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
+
+        <node import="Grass"/>
         <node id="Ground">
-            <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
-            <texture id="ground-color" map-to="color" blend-mode="SRC"/>
+            <texture id="ground-color" map-to="color" blend-mode="SRC" wrapping="REPEAT"/>
             <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
-            <mesh id="ground-mesh" shader="regen.models.mesh"/>
+            <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
         <node id="Light-Bulbs">
             <node id="Light-Bulb0">
@@ -661,7 +663,6 @@
                 <mesh id="light-bulb-point" shader="regen.models.sprite-sphere" />
             </node>
         </node>
-        <node import="Grass"/>
     </node>
 
     <node id="Background-Objects">

@@ -194,7 +194,7 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
 		}
 	} else {
 		// Apply the step to the character controller
-		btVelocity += btVector3(offset.x, offset.y, offset.z);
+		btVelocity += btVector3(offset.x, offset.y, offset.z)/dt;
 		btVelocity.setY(btController_->getLinearVelocity().getY());
 		btController_->setLinearVelocity(btVelocity);
 		btIsMoving_ = GL_TRUE;
