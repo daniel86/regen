@@ -56,7 +56,7 @@
     </fbo>
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
-    <texture id="ground-color" file="res/textures/materials/sand.jpg"/>
+    <texture id="ground-color" file="res/textures/materials/grass/0/ground.png"/>
     <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
     <texture id="ground-height" file="res/textures/brick/height.jpg"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
@@ -85,7 +85,7 @@
     <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="4"
           rotation="0.0,0.0,3.1415"
           scaling="400.0,20.0,400.0"
-          texco-scaling="40.0,40.0">
+          texco-scaling="400.0,400.0">
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
@@ -190,14 +190,20 @@
             <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" /> -->
             <!-- <toggle key="MULTISAMPLE" value="1" /> -->
             <!-- <blend mode="ALPHA"/> -->
-            <blend mode="SRC"/>
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <define key="TES_SPACING" value="equal_spacing"/>
+            <blend mode="SRC"/>
             <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE" />
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
             <input name="lodMaxDeviceDistance" type="float" value="0.25"/>
             <input name="minTessLevel" type="float" value="1.0"/>
             <input name="maxTessLevel" type="float" value="60.0"/>
+            <!-- use more complex geometry in close range. -->
+            <define key="USE_SPRITE_LOD" value="TRUE"/>
+            <input name="lodGeomLevel0" type="float" value="60.0"/>
+            <input name="lodGeomLevel1" type="float" value="160.0"/>
+            <input name="lodGeomBrightness0" type="float" value="1.7"/>
+            <input name="lodGeomVariance" type="float" value="6.0"/>
             <!-- size and position -->
             <input name="quadSize" type="vec2" value="1.15, 0.3"/>
             <input name="posVariation" type="float" value="0.4"/>
@@ -228,8 +234,7 @@
     </node>
 
     <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC"
-            texco-mode="spherical" lod="4" scaling="1.5,3.0,3.0"
-            num-instances="20">
+            lod="4" scaling="1.5,3.0,3.0" num-instances="20">
         <transform id="stone0-tf" num-instances="20" is-instanced="1">
             <rotate value="0.0, 1.57079632, 0.0" />
             <translate value="0.0, -0.6, 0.0" />
@@ -644,11 +649,8 @@
     <node id="Non-Shadow-Caster">
         <node id="Ground">
             <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
-            <texture id="sand" map-to="color" blend-mode="SRC"/>
-            <material
-                specular="0, 0, 0"
-                diffuse="0.7, 0.8, 0.7"
-                ambient="0.12, 0.28, 0.12"/>
+            <texture id="ground-color" map-to="color" blend-mode="SRC"/>
+            <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>
         <node id="Light-Bulbs">

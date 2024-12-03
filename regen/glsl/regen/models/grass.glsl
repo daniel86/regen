@@ -25,6 +25,12 @@ out vec2 out_texco0;
 uniform vec2 in_viewport;
 const vec2 in_quadSize = vec2(2.0, 0.3);
 const float in_posVariation = 0.2;
+#ifdef USE_SPRITE_LOD
+const float in_lodGeomLevel0 = 60.0;
+const float in_lodGeomLevel1 = 120.0;
+const float in_lodGeomBrightness0 = 1.7;
+const float in_lodGeomVariance = 0.2;
+#endif
 
 #ifdef HAS_windFlow || HAS_colliderRadius
     #define USE_FORCE
@@ -97,18 +103,20 @@ void main() {
 #endif
 
 #ifdef USE_SPRITE_LOD
-    const float LOD1 = 80.0f;
-    const float LOD2 = 260.0f;
-    // FIXME: emitSpriteCross is darker than emitBillboard due to three quads with some black at edges.
-    float cameraDistance = length(in_cameraPosition - center);
-    if (cameraDistance < LOD1) {
+    vec3 lodPos = center;
+    lodPos.xz += in_lodGeomVariance*
+        vec2(2.0*random(seed)-1.0, 2.0*random(seed)-1.0);
+    float cameraDistance = length(in_cameraPosition - lodPos);
+
+    if (cameraDistance < in_lodGeomLevel0) {
+        out_col.rgb *= in_lodGeomBrightness0;
     #ifdef USE_FORCE
         emitSpriteCross(center, vec2(size), orientation, force);
     #else
         emitSpriteCross(center, vec2(size), orientation);
     #endif
     }
-    else if (cameraDistance < LOD2) {
+    else if (cameraDistance < in_lodGeomLevel1) {
     #ifdef USE_FORCE
         emitBillboard(center, vec2(size), force);
     #else
