@@ -129,6 +129,9 @@ bool CharacterController::initializePhysics() {
 		btCollisionHeight_ * 0.5f + btCollisionRadius_,
 		[this](btRigidBody *btPlatform) {
 			btPlatform_ = btPlatform;
+			if (btPlatform) {
+				previousPlatformPos_ = btPlatform->getWorldTransform().getOrigin();
+			}
 		});
 
 	btQuaternion rotation;
@@ -158,6 +161,10 @@ void CharacterController::jump() {
 void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
 	// Make a step. This is called each frame.
 
+	if (dt <= std::numeric_limits<float>::epsilon()) {
+		return;
+	}
+
 	if (!btController_.get()) {
 		if (!initializePhysics()) {
 			return;
@@ -179,11 +186,15 @@ void CharacterController::applyStep(GLfloat dt, const Vec3f &offset) {
 
 	// Apply the platform velocity to the character controller
     if (btPlatform_) {
-		auto &platformVelocity = btPlatform_->getLinearVelocity();
+		btVector3 currentPlatformPos = btPlatform_->getWorldTransform().getOrigin();
+		btVector3 platformVelocity = currentPlatformPos - previousPlatformPos_;
 		if (platformVelocity.length() > 0.0001) {
-			btVelocity += platformVelocity;
+			// not sure about the magic number 16.8, might
+			// be related to some hacks in the kinematics controller :/
+			btVelocity += 16.8 * platformVelocity / dt;
 			isMoving = GL_TRUE;
 		}
+		previousPlatformPos_ = currentPlatformPos;
    }
 
 	if (!isMoving_) {
