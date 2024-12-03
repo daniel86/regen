@@ -88,6 +88,7 @@ namespace regen {
 
 		ref_ptr<btActionInterface> btRayAction_;
 		btRigidBody *btPlatform_;
+		btVector3 previousPlatformPos_;
 
 		bool initializePhysics();
 	};

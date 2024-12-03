@@ -37,7 +37,7 @@ void CameraController::setAttachedTo(
 		const ref_ptr<Mesh> &mesh) {
 	attachedToTransform_ = target;
 	attachedToMesh_ = mesh;
-	pos_ = Vec3f(0.0f);
+	pos_ = target->getVertex(0).position();
 }
 
 void CameraController::stepForward(const GLfloat &v) {
