@@ -467,19 +467,15 @@
         <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
         <depth test="0" write="0" />
 
-        <!-- FIXME: something not working here! -->
+        <!-- downsample g-buffer depth to particle-fbo size.
+             note: we can also test against g-buffer depth, but
+             there might be halos around objects with particles. -->
         <!--
         <node id="Particle-Depth-Downsample">
-            <fbo id="particle-depth" clear-depth="1"/>
-            <depth test="0" write="1" />
+            <depth test="1" write="1" />
+            <fbo id="particle-depth" clear-depth="1" />
             <texture name="inputTexture" fbo="g-buffer" attachment="depth" />
             <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
-        </node>
-        -->
-        <!--
-        <node id="Particle-Depth-Downsample">
-            <blit src-fbo="g-buffer" src-attachment="depth"
-                  dst-fbo="particle-depth" dst-attachment="depth"/>
         </node>
         <view id="Particle-Depth">
             <fbo id="SCREEN"/>
@@ -490,7 +486,8 @@
 
         <node id="Particle-Density">
             <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0" />
-            <!-- TODO: there is a halo around objects, maybe it can be avoided with downsamled depeth -->
+            <!-- TODO: there is a halo around objects, maybe it can be avoided with downsamled depth
+                       but first attempt did not have an effect for some reason. -->
             <!--
             <texture name="depthTexture" fbo="particle-depth" attachment="depth"/>
             -->
