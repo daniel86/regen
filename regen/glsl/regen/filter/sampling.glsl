@@ -122,17 +122,18 @@ void main()
 uniform vec2 in_inverseViewport;
 uniform sampler2D in_inputTexture;
 #include regen.filter.sampling.computeTexco
+#include regen.filter.sampling.downsample.depth.average.2x2
 
 void main()
 {
-    vec2 texCoord = gl_FragCoord.xy*in_inverseViewport;
-    gl_FragDepth = texture(in_inputTexture, texCoord).r;
+    vec2 texCoord = computeTexco(gl_FragCoord.xy*in_inverseViewport);
+    gl_FragDepth = downsample(texCoord, in_inputTexture, in_inverseViewport);
 }
 
 -- downsample.depth.average.2x2
 #ifndef downsample_depth_average_2x2_Included
 #define2 downsample_depth_average_2x2_Included
-float downsample(vec2 texCoord, sampler2D depthTexture, float texelSize) {
+float downsample(vec2 texCoord, sampler2D depthTexture, vec2 texelSize) {
     float depth = 0.0;
     for (int x = 0; x < 2; ++x) {
         for (int y = 0; y < 2; ++y) {
