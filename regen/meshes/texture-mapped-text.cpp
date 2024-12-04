@@ -74,6 +74,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	posAttribute_->setVertexData(numCharacters_ * 6);
 	texcoAttribute_->setVertexData(numCharacters_ * 6);
 	norAttribute_->setVertexData(numCharacters_ * 6);
+	inputContainer_->set_numVertices(numCharacters_ * 6);
 
 	translation = Vec3f(0.0, 0.0, 0.0);
 	glyphTranslation = Vec3f(0.0, 0.0, 0.0);

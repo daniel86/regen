@@ -153,6 +153,7 @@ void emitQuad_world(vec3 quadPos[4], int layer)
 
 #include regen.math.computeSpritePoints
 #include regen.models.sprite.emitQuad_eye
+#include regen.states.camera.transformWorldToEye
 
 void emitBillboard(vec3 center, vec2 size
 #ifdef USE_FORCE
@@ -245,10 +246,10 @@ out vec2 out_texco0;
 uniform vec2 in_viewport;
 const vec2 in_spriteSize = vec2(4.0, 4.0);
 
-#include regen.models.sprite.billboard
+#include regen.models.sprite.emitBillboard
 
 void main() {
-    billboard(in_pos[0], in_spriteSize);
+    emitBillboard(in_pos[0], in_spriteSize);
 }
 
 -- fs
@@ -273,6 +274,7 @@ uniform sampler2D in_fireNoiseTexture;
 
 void fireTransfer1(inout vec2 texco)
 {
+    texco.y = 1.0 - texco.y;
     // Sample the noise using coordinatesthat change over time.
     vec2 noise1 = texture(in_fireNoiseTexture, (texco * in_fireScales.x) -
         vec2(0.0, in_time * in_fireScrollSpeeds.x)).rr;
