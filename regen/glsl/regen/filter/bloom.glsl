@@ -73,12 +73,10 @@ uniform vec2 in_inverseViewport;
 void main()
 {
     vec2 texCoord = gl_FragCoord.xy*in_inverseViewport;
-
-    // The filter kernel is applied with a radius, specified in texture
-    // coordinates, so that the radius will vary across mip resolutions.
-    const float aspectRatio = in_inverseViewport.y / in_inverseViewport.x;
-    float x = in_filterRadius;
-    float y = in_filterRadius * aspectRatio;
+    // At the moment, the viewport changes for each mip level,
+    // so in_inverseViewport is the texel size in the current mip level.
+    float x = in_inverseViewport.x * in_filterRadius;
+    float y = in_inverseViewport.y * in_filterRadius;
 
     // Take 9 samples around current texel:
     vec3 a = texture(in_inputTexture, vec2(texCoord.x - x, texCoord.y + y)).rgb;
