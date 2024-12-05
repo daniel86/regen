@@ -31,7 +31,7 @@ namespace regen {
 		/**
 		 * @return Minimum distance between this plane and a point.
 		 */
-		GLfloat distance(const Vec3f &p);
+		GLfloat distance(const Vec3f &p) const;
 	};
 }
 

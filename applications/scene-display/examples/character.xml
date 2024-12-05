@@ -168,12 +168,15 @@
             <!-- draw the mesh -->
             <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
         </node>
-        <node id="tree1-pot">
-            <mesh id="tree-pot" shader="regen.models.mesh"/>
-        </node>
-        <node id="tree1-pot-disc">
-            <texture id="sand" map-to="color" blend-mode="SRC"/>
-            <mesh id="tree-disc" shader="regen.models.mesh"/>
+        <node id="tree-pot"
+                cull-shape="box" cull-mesh="tree-pot" cull-tf="tree-pot-tf">
+            <node id="tree1-pot">
+                <mesh id="tree-pot" shader="regen.models.mesh"/>
+            </node>
+            <node id="tree1-pot-disc">
+                <texture id="sand" map-to="color" blend-mode="SRC"/>
+                <mesh id="tree-disc" shader="regen.models.mesh"/>
+            </node>
         </node>
     </node>
 
@@ -280,16 +283,16 @@
         <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
     </mesh>
 
-    <node id="Stairs">
+    <node id="Stairs" cull-shape="box">
         <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
-        <node id="stairs0">
+        <node id="stairs0" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs1">
+        <node id="stairs1" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
             <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs2">
+        <node id="stairs2" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
             <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -328,12 +331,12 @@
                  size="8.0,0.8,8.0"/>
     </mesh>
 
-    <node id="Platforms">
+    <node id="Platforms" cull-shape="box">
         <material preset="iron" emission="0.05,0.07,0.07" />
-        <node id="platform0">
+        <node id="platform0" cull-mesh="platform0-mesh" cull-tf="platform0-tf">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="platform1">
+        <node id="platform1" cull-mesh="platform1-mesh" cull-tf="platform1-tf">
             <mesh id="platform1-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -353,20 +356,6 @@
             diffuse="0.9, 0.8, 0.7"/>
     </mesh>
 
-    <node id="Statues">
-        <node id="statue-platform">
-            <mesh id="statue-platform" shader="regen.models.mesh"/>
-        </node>
-        <node id="statue-slope">
-            <define key="CRASH" value="TRUE"/>
-            <mesh id="slope-mesh" shader="regen.models.mesh"/>
-        </node>
-    </node>
-
-    <!--**************************-->
-    <!--***** Slope *****-->
-    <!--**************************-->
-
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
           usage="STATIC" lod="0" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
         <transform id="slope-tf">
@@ -376,6 +365,15 @@
         <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
         <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75" />
     </mesh>
+
+    <node id="Statues" cull-shape="box">
+        <node id="statue-platform" cull-mesh="statue-platform" cull-tf="statue-platform-tf">
+            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        </node>
+        <node id="statue-slope" cull-mesh="slope-mesh" cull-tf="slope-tf">
+            <mesh id="slope-mesh" shader="regen.models.mesh"/>
+        </node>
+    </node>
 
     <!--**************************-->
     <!--***** Particles etc. *****-->
@@ -653,7 +651,8 @@
             <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
-        <node id="Light-Bulbs">
+        <node id="Light-Bulbs" cull-shape="sphere">
+            <!-- TODO: cull node. -->
             <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="0.5" />
                 <input name="modelOffset" state="room-light0" component="lightPosition" />

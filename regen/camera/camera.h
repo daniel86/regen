@@ -28,6 +28,11 @@ namespace regen {
 		explicit Camera(GLboolean initializeMatrices = GL_TRUE);
 
 		/**
+		 * @return the stamp when the camera was last updated.
+		 */
+		GLuint stamp() const { return camStamp_; }
+
+		/**
 		 * Update frustum and projection matrix.
 		 * @param aspect the apect ratio.
 		 * @param fov field of view.
@@ -136,6 +141,16 @@ namespace regen {
 		 */
 		virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
 
+		/**
+		 * @return true if the sphere intersects with the frustum of this camera.
+		 */
+		GLboolean hasSpotIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+
+		/**
+		 * @return true if the box intersects with the frustum of this camera.
+		 */
+		GLboolean hasSpotIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+
 		// Override
 		void enable(RenderState *rs) override;
 
@@ -159,6 +174,9 @@ namespace regen {
 
 		Frustum frustum_;
 		GLboolean isAudioListener_;
+		GLuint camStamp_;
+		GLuint posStamp_;
+		GLuint dirStamp_;
 
 		void updateProjection();
 
@@ -175,6 +193,10 @@ namespace regen {
 		explicit OmniDirectionalCamera(
 				GLboolean hasBackFace = GL_FALSE,
 				GLboolean updateMatrices = GL_TRUE);
+
+		GLboolean hasOmniIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+
+		GLboolean hasOmniIntersectionWithBox(const Vec3f &center, const Vec3f *points);
 
 		// Override
 		GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) override;

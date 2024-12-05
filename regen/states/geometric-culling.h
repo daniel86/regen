@@ -21,6 +21,11 @@ namespace regen {
 				const ref_ptr<MeshVector> &mesh,
 				const ref_ptr<ModelTransformation> &transform);
 
+		~GeometricCulling() override = default;
+
+		void traverse(RenderState *rs) override;
+
+		virtual bool isCulled() const = 0;
 	protected:
 		ref_ptr<Camera> camera_;
 		ref_ptr<MeshVector> mesh_;
@@ -28,6 +33,9 @@ namespace regen {
 		Vec3f center_;
 		Vec3f min_;
 		Vec3f max_;
+		GLuint tfStamp_;
+		GLuint camStamp_;
+		GLboolean isCulled_;
 	};
 
 	/**
@@ -48,7 +56,7 @@ namespace regen {
 				GLfloat radius);
 
 		// Override
-		void traverse(RenderState *rs) override;
+		bool isCulled() const override;
 
 	protected:
 		GLfloat radius_;
@@ -72,7 +80,7 @@ namespace regen {
 				Vec3f *points);
 
 		// Override
-		void traverse(RenderState *rs) override;
+		bool isCulled() const override;
 
 	protected:
 		Vec3f points_[8];

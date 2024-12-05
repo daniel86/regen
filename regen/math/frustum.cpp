@@ -73,13 +73,21 @@ GLboolean Frustum::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius
 }
 
 GLboolean Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *point) {
-	for (int i = 0; i < 6; ++i) {
-		for (int j = 0; j < 8; ++j) {
-			if (planes[i].distance(center + point[j]) < 0)
-				return GL_FALSE;
-		}
-	}
-	return GL_TRUE;
+	// Add a small margin to the frustum planes
+    const GLfloat margin = 0.1f;
+    for (int i = 0; i < 6; ++i) {
+        GLboolean allOutside = true;
+        for (int j = 0; j < 8; ++j) {
+            if (planes[i].distance(center + point[j]) >= -margin) {
+                allOutside = false;
+                break;
+            }
+        }
+        if (allOutside) {
+            return GL_FALSE;
+        }
+    }
+    return GL_TRUE;
 }
 
 std::vector<Frustum *> Frustum::split(GLuint count, GLdouble splitWeight) const {

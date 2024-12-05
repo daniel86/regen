@@ -42,6 +42,20 @@ namespace regen {
 		 */
 		void set_isCubeFaceVisible(GLenum face, GLboolean visible);
 
+		/**
+		 * @param center the center of the sphere.
+		 * @param radius the radius of the sphere.
+		 * @return True if the sphere is in reach of the light.
+		 */
+		GLboolean isSphereInReach(const Vec3f &center, GLfloat radius);
+
+		/**
+		 * @param center the center of the box.
+		 * @param points the 8 points of the box.
+		 * @return True if the box is in reach of the light.
+		 */
+		GLboolean isBoxInReach(const Vec3f &center, const Vec3f *points);
+
 		// Override
 		void enable(RenderState *rs) override;
 
