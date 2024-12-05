@@ -63,8 +63,7 @@ namespace regen {
 	};
 
 	/**
-	 * Frustum culling based on intersection of a box
-	 * with the frustum.
+	 * Frustum culling based on intersection of a box with the frustum.
 	 */
 	class BoxCulling : public GeometricCulling {
 	public:
@@ -84,6 +83,36 @@ namespace regen {
 
 	protected:
 		Vec3f points_[8];
+	};
+
+	/**
+	 * Frustum culling based on intersection of an AABB
+	 * (axis-aligned bounding box) with the frustum.
+	 */
+	class AABBCulling : public BoxCulling {
+	public:
+		AABBCulling(
+				const ref_ptr<Camera> &camera,
+				const ref_ptr<MeshVector> &mesh,
+				const ref_ptr<ModelTransformation> &transform);
+
+	protected:
+		void updateAABB();
+	};
+
+	/**
+	 * Frustum culling based on intersection of an OBB
+	 * (oriented bounding box) with the frustum.
+	 */
+	class OBBCulling : public BoxCulling {
+	public:
+		OBBCulling(
+				const ref_ptr<Camera> &camera,
+				const ref_ptr<MeshVector> &mesh,
+				const ref_ptr<ModelTransformation> &transform);
+
+	protected:
+		void updateOBB();
 	};
 }
 

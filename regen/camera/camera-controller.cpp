@@ -156,21 +156,20 @@ void CameraController::jump() {
 }
 
 void CameraController::animate(GLdouble dt) {
+	step_ = Vec3f(0.0f);
 	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
 	auto orientation = horizontalOrientation_ + meshHorizontalOrientation_;
-	if (!isMoving_ && orientation == lastOrientation_) {
-		return;
+	auto hasOrientationChanged = orientation != lastOrientation_;
+
+	if (hasOrientationChanged) {
+		rot_.setAxisAngle(Vec3f::up(), orientation);
+		Vec3f d = rot_.rotate(Vec3f::front());
+
+		dirXZ_ = Vec3f(d.x, 0.0f, d.z);
+		dirXZ_.normalize();
+		dirSidestep_ = dirXZ_.cross(Vec3f::up());
 	}
-	lastOrientation_ = orientation;
 
-	rot_.setAxisAngle(Vec3f::up(), horizontalOrientation_ + meshHorizontalOrientation_);
-	Vec3f d = rot_.rotate(Vec3f::front());
-
-	dirXZ_ = Vec3f(d.x, 0.0f, d.z);
-	dirXZ_.normalize();
-	dirSidestep_ = dirXZ_.cross(Vec3f::up());
-
-	step_ = Vec3f(0.0f);
 	if (moveForward_) {
 		stepForward(moveAmount_ * dt);
 	}
@@ -186,6 +185,10 @@ void CameraController::animate(GLdouble dt) {
 
 	lock();
 	{
+		// TODO: allow setting hasUpdated_ to false to avoid unnecessary culling computations
+		//         but the kinematic controller may change camera position in applyStep below though
+		//         e.g. character stands on a moving platform.
+		//if (hasOrientationChanged || isMoving_)
 		hasUpdated_ = true;
 		applyStep(dt, step_);
 		updateModel();
@@ -194,6 +197,7 @@ void CameraController::animate(GLdouble dt) {
 		computeMatrices(camPos_, camDir_);
 	}
 	unlock();
+	lastOrientation_ = orientation;
 }
 
 void CameraController::glAnimate(RenderState *rs, GLdouble dt) {

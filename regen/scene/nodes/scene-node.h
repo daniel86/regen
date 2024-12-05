@@ -212,30 +212,13 @@ namespace regen {
 				const std::string &shapeType = input.getValue<std::string>("cull-shape", "sphere");
 				if (shapeType == std::string("sphere")) {
 					cullNode = ref_ptr<SphereCulling>::alloc(cam, cullMesh, transform);
-				} else if (shapeType == std::string("box")) {
-					cullNode = ref_ptr<BoxCulling>::alloc(cam, cullMesh, transform);
+				} else if (shapeType == std::string("aabb")) {
+					cullNode = ref_ptr<AABBCulling>::alloc(cam, cullMesh, transform);
+				} else if (shapeType == std::string("obb")) {
+					cullNode = ref_ptr<OBBCulling>::alloc(cam, cullMesh, transform);
 				} else {
 					REGEN_WARN("Unknown bounding shape type for '" << input.getDescription() << "'.");
 					return cullNode;
-				}
-
-				// Process node children
-				const std::list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-				for (auto it = childs.begin(); it != childs.end(); ++it) {
-					const ref_ptr<SceneInputNode> &x = *it;
-					// First try node processor
-					ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
-					if (nodeProcessor.get() != nullptr) {
-						nodeProcessor->processInput(parser, *x.get(), cullNode);
-						continue;
-					}
-					// Second try state processor
-					ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
-					if (stateProcessor.get() != nullptr) {
-						stateProcessor->processInput(parser, *x.get(), cullNode->state());
-						continue;
-					}
-					REGEN_WARN("No processor registered for '" << x->getDescription() << "'.");
 				}
 
 				cullNode->set_name(input.getName());
