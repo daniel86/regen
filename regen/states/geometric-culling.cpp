@@ -71,6 +71,10 @@ void GeometricCulling::traverse(RenderState *rs) {
 	}
 }
 
+/**********************/
+/* SphereCulling      */
+/**********************/
+
 SphereCulling::SphereCulling(
 		const ref_ptr<Camera> &camera,
 		const ref_ptr<MeshVector> &mesh,
@@ -93,22 +97,15 @@ bool SphereCulling::isCulled() const {
 	return !camera_->hasIntersectionWithSphere(tf + center_, radius_);
 }
 
+/**********************/
+/* BoxCulling        */
+/**********************/
+
 BoxCulling::BoxCulling(
 		const ref_ptr<Camera> &camera,
 		const ref_ptr<MeshVector> &mesh,
 		const ref_ptr<ModelTransformation> &transform)
 		: GeometricCulling(camera, mesh, transform) {
-	// XXX: must be updated when mesh attributes updated!
-	const Vec3f &a = center_ + min_;
-	const Vec3f &b = center_ + max_;
-	points_[0] = Vec3f(a.x, a.y, a.z);
-	points_[1] = Vec3f(a.x, a.y, b.z);
-	points_[2] = Vec3f(a.x, b.y, a.z);
-	points_[3] = Vec3f(a.x, b.y, b.z);
-	points_[4] = Vec3f(b.x, a.y, a.z);
-	points_[5] = Vec3f(b.x, a.y, b.z);
-	points_[6] = Vec3f(b.x, b.y, a.z);
-	points_[7] = Vec3f(b.x, b.y, b.z);
 }
 
 BoxCulling::BoxCulling(
@@ -124,4 +121,58 @@ BoxCulling::BoxCulling(
 bool BoxCulling::isCulled() const {
 	auto &tf = transform_->get()->getVertex(0).position();
 	return !camera_->hasIntersectionWithBox(tf, points_);
+}
+
+/**********************/
+/* AABBCulling        */
+/**********************/
+
+AABBCulling::AABBCulling(
+		const ref_ptr<Camera> &camera,
+		const ref_ptr<MeshVector> &mesh,
+		const ref_ptr<ModelTransformation> &transform)
+		: BoxCulling(camera, mesh, transform) {
+	// FIXME: need to update AABB if the mesh changes, or the rotation of transform changes
+	updateAABB();
+}
+
+void AABBCulling::updateAABB() {
+	const auto &tf = transform_->get()->getVertex(0);
+	const Vec3f &a = tf.rotateVector(center_ + min_);
+	const Vec3f &b = tf.rotateVector(center_ + max_);
+	points_[0] = Vec3f(a.x, a.y, a.z);
+	points_[1] = Vec3f(a.x, a.y, b.z);
+	points_[2] = Vec3f(a.x, b.y, a.z);
+	points_[3] = Vec3f(a.x, b.y, b.z);
+	points_[4] = Vec3f(b.x, a.y, a.z);
+	points_[5] = Vec3f(b.x, a.y, b.z);
+	points_[6] = Vec3f(b.x, b.y, a.z);
+	points_[7] = Vec3f(b.x, b.y, b.z);
+}
+
+/**********************/
+/* OBBCulling        */
+/**********************/
+
+OBBCulling::OBBCulling(
+		const ref_ptr<Camera> &camera,
+		const ref_ptr<MeshVector> &mesh,
+		const ref_ptr<ModelTransformation> &transform)
+		: BoxCulling(camera, mesh, transform) {
+	// FIXME: need to update AABB if the mesh changes, or the rotation of transform changes
+	updateOBB();
+}
+
+void OBBCulling::updateOBB() {
+	const auto &tf = transform_->get()->getVertex(0);
+	const auto &a = center_ + min_;
+	const auto &b = center_ + max_;
+	points_[0] = tf.rotateVector(Vec3f(a.x, a.y, a.z));
+	points_[1] = tf.rotateVector(Vec3f(a.x, a.y, b.z));
+	points_[2] = tf.rotateVector(Vec3f(a.x, b.y, a.z));
+	points_[3] = tf.rotateVector(Vec3f(a.x, b.y, b.z));
+	points_[4] = tf.rotateVector(Vec3f(b.x, a.y, a.z));
+	points_[5] = tf.rotateVector(Vec3f(b.x, a.y, b.z));
+	points_[6] = tf.rotateVector(Vec3f(b.x, b.y, a.z));
+	points_[7] = tf.rotateVector(Vec3f(b.x, b.y, b.z));
 }

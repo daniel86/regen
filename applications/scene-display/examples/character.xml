@@ -147,29 +147,30 @@
     </mesh>
 
     <node id="Trees">
-        <node id="tree1-trunk">
-            <material emission="0.01,0.01,0.01"/>
-            <texture id="trunk-color" map-to="color" />
-            <texture id="trunk-normal" map-to="normal" />
-            <!-- <texture id="trunk-specular" map-to="specular" /> -->
-            <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
+        <node id="tree1" cull-shape="aabb" cull-mesh="tree-mesh" cull-tf="tree-tf">
+            <node id="tree1-trunk">
+                <material emission="0.01,0.01,0.01"/>
+                <texture id="trunk-color" map-to="color" />
+                <texture id="trunk-normal" map-to="normal" />
+                <!-- <texture id="trunk-specular" map-to="specular" /> -->
+                <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
+            </node>
+            <node id="tree1-twig">
+                <define key="DISCARD_ALPHA" value="TRUE"/>
+                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                <material emission="0.05,0.1,0.05"/>
+                <texture id="twig-color" map-to="color" blend="src" texco-flipping="y" />
+                <!-- <texture id="twig-normal" map-to="normal" /> -->
+                <!-- <texture id="twig-specular" map-to="specular" /> -->
+                <!-- transform mesh in geometry shader -->
+                <define key="HAS_GS_TRANSFORM" value="TRUE"/>
+                <texture name="windFlow" id="wind-flowmap" />
+                <input name="stiffness" type="float" value="0.5"/>
+                <!-- draw the mesh -->
+                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
+            </node>
         </node>
-        <node id="tree1-twig">
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-            <material emission="0.05,0.1,0.05"/>
-            <texture id="twig-color" map-to="color" blend="src" texco-flipping="y" />
-            <!-- <texture id="twig-normal" map-to="normal" /> -->
-            <!-- <texture id="twig-specular" map-to="specular" /> -->
-            <!-- transform mesh in geometry shader -->
-            <define key="HAS_GS_TRANSFORM" value="TRUE"/>
-            <texture name="windFlow" id="wind-flowmap" />
-            <input name="stiffness" type="float" value="0.5"/>
-            <!-- draw the mesh -->
-            <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
-        </node>
-        <node id="tree-pot"
-                cull-shape="box" cull-mesh="tree-pot" cull-tf="tree-pot-tf">
+        <node id="tree1-pot" cull-shape="aabb" cull-mesh="tree-pot" cull-tf="tree-pot-tf">
             <node id="tree1-pot">
                 <mesh id="tree-pot" shader="regen.models.mesh"/>
             </node>
@@ -181,7 +182,7 @@
     </node>
 
     <!--**************************-->
-    <!--********* Garden Stuff *********-->
+    <!--********* Other Garden Stuff *********-->
     <!--**************************-->
 
     <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
@@ -194,7 +195,7 @@
             <!-- <toggle key="MULTISAMPLE" value="1" /> -->
             <!-- <blend mode="ALPHA"/> -->
             <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="TES_SPACING" value="equal_spacing"/>
+            <define key="TESS_SPACING" value="equal_spacing"/>
             <blend mode="SRC"/>
             <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE" />
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
@@ -251,6 +252,7 @@
     <node id="Garden-Items">
         <node import="Trees"/>
         <node id="Stone1">
+            <!-- TODO: setup culling of stones instances -->
             <mesh id="stone0" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -283,7 +285,7 @@
         <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
     </mesh>
 
-    <node id="Stairs" cull-shape="box">
+    <node id="Stairs" cull-shape="aabb">
         <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
         <node id="stairs0" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
@@ -331,7 +333,7 @@
                  size="8.0,0.8,8.0"/>
     </mesh>
 
-    <node id="Platforms" cull-shape="box">
+    <node id="Platforms" cull-shape="aabb">
         <material preset="iron" emission="0.05,0.07,0.07" />
         <node id="platform0" cull-mesh="platform0-mesh" cull-tf="platform0-tf">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
@@ -366,7 +368,7 @@
         <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75" />
     </mesh>
 
-    <node id="Statues" cull-shape="box">
+    <node id="Statues" cull-shape="aabb">
         <node id="statue-platform" cull-mesh="statue-platform" cull-tf="statue-platform-tf">
             <mesh id="statue-platform" shader="regen.models.mesh"/>
         </node>
@@ -588,11 +590,11 @@
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
         <define key="OUTPUT_TYPE" value="DEPTH"/>
-        <!-- skip rendering top face of the cube -->
-        <define key="SKIP_LAYER2" value="TRUE"/>
 
         <node id="Room-Light-Shadow">
             <node id="Room-Light-Shadow0">
+                <!-- skip rendering top face of the cube -->
+                <define key="SKIP_LAYER2" value="TRUE"/>
                 <fbo id="room-light-shadow0" clear-depth="1"/>
                 <camera id="room-light-camera0"/>
                 <node import="Shadow-Caster"/>
@@ -626,7 +628,6 @@
     <!--**************************-->
 
     <node id="Shadow-Caster">
-        <!-- <node id="Dwarf" type="cull" mesh="dwarf-mesh" transform="dwarf-tf" shape="sphere"> -->
         <node id="Dwarf">
             <node id="dwarf-body">
                 <mesh id="dwarf-mesh" mesh-index-range="1-" shader="regen.models.mesh"/>
@@ -652,7 +653,7 @@
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
         <node id="Light-Bulbs" cull-shape="sphere">
-            <!-- TODO: cull node. -->
+            <!-- TODO: light bulb node, but it uses modelOffset instead of modelMatrix -->
             <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="0.5" />
                 <input name="modelOffset" state="room-light0" component="lightPosition" />
