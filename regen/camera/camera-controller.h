@@ -240,9 +240,11 @@ namespace regen {
 		GLboolean moveLeft_;
 		GLboolean moveRight_;
 		GLboolean isMoving_;
+		GLdouble lastOrientation_;
 
 		Vec3f meshEyeOffset_;
 		GLdouble meshHorizontalOrientation_;
+		GLboolean hasUpdated_;
 
 		void updateCameraPosition();
 		void updateCameraOrientation();

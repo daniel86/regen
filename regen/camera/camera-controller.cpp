@@ -15,7 +15,9 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 		: Animation(GL_TRUE, GL_TRUE),
 		  CameraControllerBase(cam),
 		  cameraMode_(FIRST_PERSON),
-		  meshDistance_(10.0f) {
+		  meshDistance_(10.0f),
+		  lastOrientation_(0.0),
+		  hasUpdated_(GL_FALSE) {
 	setAnimationName("controller");
 	horizontalOrientation_ = 0.0;
 	verticalOrientation_ = 0.0;
@@ -154,6 +156,13 @@ void CameraController::jump() {
 }
 
 void CameraController::animate(GLdouble dt) {
+	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
+	auto orientation = horizontalOrientation_ + meshHorizontalOrientation_;
+	if (!isMoving_ && orientation == lastOrientation_) {
+		return;
+	}
+	lastOrientation_ = orientation;
+
 	rot_.setAxisAngle(Vec3f::up(), horizontalOrientation_ + meshHorizontalOrientation_);
 	Vec3f d = rot_.rotate(Vec3f::front());
 
@@ -174,10 +183,10 @@ void CameraController::animate(GLdouble dt) {
 	else if (moveRight_) {
 		stepRight(moveAmount_ * dt);
 	}
-	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
 
 	lock();
 	{
+		hasUpdated_ = true;
 		applyStep(dt, step_);
 		updateModel();
 		updateCameraPosition();
@@ -188,8 +197,10 @@ void CameraController::animate(GLdouble dt) {
 }
 
 void CameraController::glAnimate(RenderState *rs, GLdouble dt) {
+	if(!hasUpdated_) return;
 	lock();
 	{
+		hasUpdated_ = false;
 		if (attachedToTransform_.get()) {
 			attachedToTransform_->setVertex(0, matVal_);
 		}

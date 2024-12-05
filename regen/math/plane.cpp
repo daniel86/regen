@@ -22,6 +22,6 @@ void Plane::set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) {
 	normal.normalize();
 }
 
-GLfloat Plane::distance(const Vec3f &p) {
+GLfloat Plane::distance(const Vec3f &p) const {
 	return normal.dot(point - p);
 }

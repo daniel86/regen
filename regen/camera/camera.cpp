@@ -11,7 +11,8 @@ using namespace regen;
 
 Camera::Camera(GLboolean initializeMatrices)
 		: HasInputState(VBO::USAGE_DYNAMIC),
-		  isAudioListener_(GL_FALSE) {
+		  isAudioListener_(GL_FALSE),
+		  camStamp_(0) {
 	fov_ = ref_ptr<ShaderInput1f>::alloc("fov");
 	fov_->setUniformDataUntyped(nullptr);
 	setInput(fov_);
@@ -115,16 +116,31 @@ void Camera::updateFrustum(
 
 void Camera::enable(RenderState *rs) {
 	// TODO: do this in animation thread
-	frustum_.update(position()->getVertex(0), direction()->getVertex(0));
+	auto posStamp = position_->stamp();
+	auto dirStamp = direction_->stamp();
+	if (posStamp != posStamp_ || dirStamp != dirStamp_) {
+		posStamp_ = posStamp;
+		dirStamp_ = dirStamp;
+		frustum_.update(position()->getVertex(0), direction()->getVertex(0));
+		camStamp_ += 1;
+	}
 	HasInputState::enable(rs);
 }
 
-GLboolean Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
+GLboolean Camera::hasSpotIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
 	return frustum_.hasIntersectionWithSphere(center, radius);
 }
 
-GLboolean Camera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
+GLboolean Camera::hasSpotIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
 	return frustum_.hasIntersectionWithBox(center, points);
+}
+
+GLboolean Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
+	return hasSpotIntersectionWithSphere(center, radius);
+}
+
+GLboolean Camera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
+	return hasSpotIntersectionWithBox(center, points);
 }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener) {
@@ -142,13 +158,13 @@ OmniDirectionalCamera::OmniDirectionalCamera(GLboolean hasBackFace, GLboolean up
 		  hasBackFace_(hasBackFace) {
 }
 
-GLboolean OmniDirectionalCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
+GLboolean OmniDirectionalCamera::hasOmniIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
 	GLfloat d = Plane(position()->getVertex(0), direction()->getVertex(0)).distance(center);
 	if (hasBackFace_) d = abs(d);
 	return d - radius < far()->getVertex(0) && d + radius > near()->getVertex(0);
 }
 
-GLboolean OmniDirectionalCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
+GLboolean OmniDirectionalCamera::hasOmniIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
 	Plane p(position()->getVertex(0), direction()->getVertex(0));
 	for (int i = 0; i < 8; ++i) {
 		GLfloat d = p.distance(center + points[i]);
@@ -157,4 +173,12 @@ GLboolean OmniDirectionalCamera::hasIntersectionWithBox(const Vec3f &center, con
 			return GL_FALSE;
 	}
 	return GL_TRUE;
+}
+
+GLboolean OmniDirectionalCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
+	return hasOmniIntersectionWithSphere(center, radius);
+}
+
+GLboolean OmniDirectionalCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
+	return hasOmniIntersectionWithBox(center, points);
 }

@@ -148,6 +148,7 @@ void LightCamera::updateSpot() {
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
 	lightRadiusStamp_ = light_->radius()->stamp();
+	camStamp_ += 1;
 }
 
 void LightCamera::updatePoint() {
@@ -181,6 +182,7 @@ void LightCamera::updatePoint() {
 	lightPosStamp_ = light_->position()->stamp();
 	lightRadiusStamp_ = light_->radius()->stamp();
 	lightMatrix_->nextStamp();
+	camStamp_ += 1;
 }
 
 void LightCamera::updateDirectional() {
@@ -207,6 +209,7 @@ void LightCamera::updateDirectional() {
 			nearValues[i] = 0.5 * (-frustum->near * proj(2, 2) + proj(3, 2)) / frustum->near + 0.5;
 		}
 		projectionStamp_ = userCamera_->projection()->stamp();
+		camStamp_ += 1;
 	}
 
 	// Update view matrix when light direction changed
@@ -227,6 +230,7 @@ void LightCamera::updateDirectional() {
 		direction_->setVertex(0, f);
 
 		lightDirStamp_ = light_->direction()->stamp();
+		camStamp_ += 1;
 	}
 
 	// Update projection and view-projection matrix
@@ -272,7 +276,44 @@ void LightCamera::enable(RenderState *rs) {
 	Camera::enable(rs);
 }
 
+GLboolean LightCamera::isSphereInReach(const Vec3f &center, GLfloat radius) {
+    const GLfloat margin = 0.1f;
+	switch (light_->lightType()) {
+		case Light::DIRECTIONAL:
+			return GL_TRUE;
+		case Light::POINT:
+		case Light::SPOT: {
+			auto &lightRadius = light_->radius()->getVertex(0);
+			auto &lightPos = light_->position()->getVertex(0);
+			return (center - lightPos).length() < lightRadius.y + radius + margin;
+		}
+	}
+	return GL_FALSE;
+}
+
+GLboolean LightCamera::isBoxInReach(const Vec3f &center, const Vec3f *points) {
+	const GLfloat margin = 0.1f;
+	switch (light_->lightType()) {
+		case Light::DIRECTIONAL:
+			return GL_TRUE;
+		case Light::POINT:
+		case Light::SPOT: {
+			auto &lightRadius = light_->radius()->getVertex(0);
+			auto &lightPos = light_->position()->getVertex(0);
+			GLfloat maxDist = 0.0f;
+			for (GLuint i = 0; i < 8; ++i) {
+				GLfloat dist = (center + points[i] - lightPos).length();
+				if (dist > maxDist) { maxDist = dist; }
+			}
+			return maxDist < lightRadius.y + margin;
+		}
+	}
+}
+
 GLboolean LightCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
+	if (!isSphereInReach(center, radius)) {
+		return GL_FALSE;
+	}
 	switch (light_->lightType()) {
 		case Light::DIRECTIONAL:
 			for (GLuint i = 0; i < numLayer_; ++i) {
@@ -282,14 +323,18 @@ GLboolean LightCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat ra
 			}
 			return GL_FALSE;
 		case Light::POINT:
-			return OmniDirectionalCamera::hasIntersectionWithSphere(center, radius);
+			// TODO: cull if on a hidden cube face
+			return GL_TRUE;
 		case Light::SPOT:
-			return Camera::hasIntersectionWithSphere(center, radius);
+			return hasSpotIntersectionWithSphere(center, radius);
 	}
 	return GL_FALSE;
 }
 
 GLboolean LightCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
+	if (!isBoxInReach(center, points)) {
+		return GL_FALSE;
+	}
 	switch (light_->lightType()) {
 		case Light::DIRECTIONAL:
 			for (GLuint i = 0; i < numLayer_; ++i) {
@@ -299,9 +344,10 @@ GLboolean LightCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *
 			}
 			return GL_FALSE;
 		case Light::POINT:
-			return OmniDirectionalCamera::hasIntersectionWithBox(center, points);
+			// TODO: cull if on a hidden cube face
+			return GL_TRUE;
 		case Light::SPOT:
-			return Camera::hasIntersectionWithBox(center, points);
+			return hasSpotIntersectionWithBox(center, points);
 	}
 	return GL_FALSE;
 }

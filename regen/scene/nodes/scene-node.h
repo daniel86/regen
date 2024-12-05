@@ -81,13 +81,17 @@ namespace regen {
 						handleChildren(parser, input, newNode);
 						handleChildren(parser, *imported.get(), newNode);
 					}
-				} else if (nodeType == std::string("cull")) {
+				}
+				if (input.hasAttribute("cull-mesh")) {
 					newNode = createCullNode(parser, input, parent);
 					if (newNode.get() != nullptr) {
 						handleAttributes(parser, input, newNode);
 						handleChildren(parser, input, newNode);
+					} else {
+						REGEN_WARN("Unable to create culling node for '" << input.getDescription() << "'.");
 					}
-				} else {
+				}
+				else {
 					newNode = createNode(parser, input, parent);
 					handleAttributes(parser, input, newNode);
 					handleChildren(parser, input, newNode);
@@ -171,31 +175,31 @@ namespace regen {
 					SceneInputNode &input,
 					const ref_ptr<StateNode> &parent) {
 				ref_ptr<GeometricCulling> cullNode;
-
-				ref_ptr<Camera> cam = parent->getParentCamera();
+				// get the parent camera. Note that this will be the light camera in case
+				// updating the shadow map.
+				auto cam = parent->getParentCamera();
 				if (cam.get() == nullptr) {
 					REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
 
-				ref_ptr<MeshVector> cullMesh = parser->getResources()->getMesh(parser,
-																			   input.getValue<std::string>("mesh", ""));
+				auto meshName = input.getValue<std::string>("cull-mesh", "");
+				auto cullMesh = parser->getResources()->getMesh(parser, meshName);
 				if (cullMesh.get() == nullptr) {
 					REGEN_WARN("No Mesh can be found for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
 
-				if (!input.hasAttribute("transform")) {
+				if (!input.hasAttribute("cull-tf")) {
 					REGEN_WARN("No 'transform' attribute specified for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
-				const std::string &transformId = input.getValue("transform");
-				ref_ptr<ModelTransformation> transform = parser->getResources()->getTransform(parser, transformId);
+				auto &transformId = input.getValue("cull-tf");
+				auto transform = parser->getResources()->getTransform(parser, transformId);
 				if (transform.get() == nullptr) { // Load transform
-					ref_ptr<SceneInputNode> transformNode = parser->getRoot()->getFirstChild("transform",
-																							 input.getValue(
-																									 "transform"));
-					ref_ptr<StateProcessor> transformProcessor = parser->getStateProcessor(
+					auto transformNode =
+						parser->getRoot()->getFirstChild("transform", input.getValue("cull-tf"));
+					auto transformProcessor = parser->getStateProcessor(
 							transformNode->getCategory());
 					transformProcessor->processInput(parser, *transformNode.get(), ref_ptr<State>::alloc());
 				}
@@ -205,12 +209,11 @@ namespace regen {
 					return cullNode;
 				}
 
-				const std::string &shapeType = input.getValue<std::string>("shape", "sphere");
+				const std::string &shapeType = input.getValue<std::string>("cull-shape", "sphere");
 				if (shapeType == std::string("sphere")) {
 					cullNode = ref_ptr<SphereCulling>::alloc(cam, cullMesh, transform);
 				} else if (shapeType == std::string("box")) {
 					cullNode = ref_ptr<BoxCulling>::alloc(cam, cullMesh, transform);
-					return cullNode;
 				} else {
 					REGEN_WARN("Unknown bounding shape type for '" << input.getDescription() << "'.");
 					return cullNode;

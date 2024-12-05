@@ -20,8 +20,10 @@ GeometricCulling::GeometricCulling(
 		: StateNode(),
 		  camera_(camera),
 		  mesh_(mesh),
-		  transform_(transform) {
-	// XXX: must be updated when mesh attributes updated!
+		  transform_(transform),
+		  tfStamp_(0),
+		  camStamp_(0),
+		  isCulled_(false) {
 	if (mesh->size() == 1) {
 		ref_ptr<Mesh> &m = *mesh->begin();
 		center_ = m->centerPosition();
@@ -49,12 +51,31 @@ GeometricCulling::GeometricCulling(
 	}
 }
 
+void GeometricCulling::traverse(RenderState *rs) {
+	auto tfStamp = transform_->get()->stamp();
+	auto camStamp = camera_->stamp();
+	if (tfStamp==tfStamp_ && camStamp==camStamp_) {
+		// camera and TF did not change, no need to recompute
+		if (!isCulled_) {
+			StateNode::traverse(rs);
+		}
+	} else {
+		if (isCulled()) {
+			isCulled_ = true;
+		} else {
+			StateNode::traverse(rs);
+			isCulled_ = false;
+		}
+		tfStamp_ = tfStamp;
+		camStamp_ = camStamp;
+	}
+}
+
 SphereCulling::SphereCulling(
 		const ref_ptr<Camera> &camera,
 		const ref_ptr<MeshVector> &mesh,
 		const ref_ptr<ModelTransformation> &transform)
 		: GeometricCulling(camera, mesh, transform) {
-	// XXX: must be updated when mesh attributes updated!
 	radius_ = Vec2f(abs(min_.min()), max_.max()).max();
 }
 
@@ -67,10 +88,9 @@ SphereCulling::SphereCulling(
 		  radius_(radius) {
 }
 
-void SphereCulling::traverse(RenderState *rs) {
-	if (camera_->hasIntersectionWithSphere(transform_->get()->getVertex(0).position() + center_, radius_)) {
-		StateNode::traverse(rs);
-	}
+bool SphereCulling::isCulled() const {
+	auto &tf = transform_->get()->getVertex(0).position();
+	return !camera_->hasIntersectionWithSphere(tf + center_, radius_);
 }
 
 BoxCulling::BoxCulling(
@@ -101,8 +121,7 @@ BoxCulling::BoxCulling(
 		points_[i] = points[i];
 }
 
-void BoxCulling::traverse(RenderState *rs) {
-	if (camera_->hasIntersectionWithBox(transform_->get()->getVertex(0).position(), points_)) {
-		StateNode::traverse(rs);
-	}
+bool BoxCulling::isCulled() const {
+	auto &tf = transform_->get()->getVertex(0).position();
+	return !camera_->hasIntersectionWithBox(tf, points_);
 }
