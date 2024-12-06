@@ -45,27 +45,47 @@ namespace regen {
 		/**
 		 * @return VBO that manages the vertex array data.
 		 */
-		const ref_ptr<VBO> &inputBuffer() const;
+		auto &inputBuffer() const { return inputBuffer_; }
 
 		/**
 		 * @return Specifies the number of vertices to be rendered.
 		 */
-		GLuint numVertices() const;
+		auto numVertices() const { return numVertices_; }
 
 		/**
 		 * @param v Specifies the number of vertices to be rendered.
 		 */
-		void set_numVertices(GLuint v);
+		void set_numVertices(GLuint v) { numVertices_ = v; }
+
+		/**
+		 * @return Specifies the number of vertices to be rendered.
+		 */
+		void set_vertexOffset(GLuint v) { vertexOffset_ = v; }
+
+		/**
+		 * @return Specifies the number of vertices to be rendered.
+		 */
+		auto vertexOffset() const { return vertexOffset_; }
+
+		/**
+		 * @return Specifies the number of indices to be rendered.
+		 */
+		void set_numIndices(GLuint v) { numIndices_ = v; }
+
+		/**
+		 * @return Specifies the offset to the index buffer in bytes.
+		 */
+		void set_indexOffset(GLuint v);
 
 		/**
 		 * @return Number of instances of added input data.
 		 */
-		GLuint numInstances() const;
+		auto numInstances() const { return numInstances_; }
 
 		/**
 		 * @param v Specifies the number of instances to be rendered.
 		 */
-		void set_numInstances(GLuint v);
+		void set_numInstances(GLuint v) { numInstances_ = v; }
 
 		/**
 		 * @param layout Start recording added inputs.
@@ -81,12 +101,12 @@ namespace regen {
 		/**
 		 * @return Previously added shader inputs.
 		 */
-		const ShaderInputList &inputs() const;
+		auto &inputs() const { return inputs_; }
 
 		/**
 		 * @return inputs recorded during begin() and end().
 		 */
-		const ShaderInputList &uploadInputs() const;
+		auto &uploadInputs() const { return uploadInputs_; }
 
 		/**
 		 * @param name the shader input name.
@@ -117,22 +137,22 @@ namespace regen {
 		 * @param indices the index attribute.
 		 * @param maxIndex maximal index in the index array.
 		 */
-		void setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex);
+		ref_ptr<VBO::Reference> setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex);
 
 		/**
 		 * @return number of indices to vertex data.
 		 */
-		GLuint numIndices() const;
+		auto numIndices() const { return numIndices_; }
 
 		/**
 		 * @return the maximal index in the index buffer.
 		 */
-		GLuint maxIndex();
+		auto maxIndex() const { return maxIndex_; }
 
 		/**
 		 * @return indexes to the vertex data of this primitive set.
 		 */
-		const ref_ptr<ShaderInput> &indices() const;
+		auto &indices() const { return indices_; }
 
 		/**
 		 * @return index buffer used by this mesh.
@@ -166,9 +186,10 @@ namespace regen {
 	protected:
 		ShaderInputList inputs_;
 		std::set<std::string> inputMap_;
-		GLuint numVertices_;
-		GLuint numInstances_;
-		GLuint numIndices_;
+		GLint numVertices_;
+		GLint vertexOffset_;
+		GLint numInstances_;
+		GLint numIndices_;
 		GLuint maxIndex_;
 		ref_ptr<ShaderInput> indices_;
 
@@ -237,11 +258,13 @@ namespace regen {
 		 * @param in index data input.
 		 * @param maxIndex max index in index array.
 		 */
-		void setIndices(const ref_ptr<ShaderInput> &in, GLuint maxIndex) { inputContainer_->setIndices(in, maxIndex); }
+		ref_ptr<VBO::Reference> setIndices(const ref_ptr<ShaderInput> &in, GLuint maxIndex) {
+			return inputContainer_->setIndices(in, maxIndex);
+		}
 
 	protected:
 		ref_ptr<ShaderInputContainer> inputContainer_;
 	};
 } // namespace
 
-#endif /* ATTRIBUTE_STATE_H_ */
+#endif /* SHADER_INPUT_CONTAINER_H_ */

@@ -60,7 +60,6 @@ MeshResource::MeshResource()
 ref_ptr<MeshVector> MeshResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
 	const string meshType = input.getValue("type");
-	auto levelOfDetail = input.getValue<GLuint>("lod", 0);
 	auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
 	auto texcoScaling = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
 	auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
@@ -72,11 +71,24 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
 	MeshVector *out = out_.get();
 
+	std::vector<GLuint> lodLevels(3);
+	if (input.hasAttribute("lod-levels")) {
+		auto lodVec = input.getValue<Vec3ui>("lod-levels", Vec3ui(0));
+		lodLevels[0] = lodVec.x;
+		lodLevels[1] = lodVec.y;
+		lodLevels[2] = lodVec.z;
+	}
+	else {
+		lodLevels[0] = input.getValue<GLuint>("lod", 0);
+		lodLevels[1] = lodLevels[0];
+		lodLevels[2] = lodLevels[0];
+	}
+
 	// Primitives
 	if (meshType == "sphere" || meshType == "half-sphere") {
 		Sphere::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<Sphere::TexcoMode>("texco-mode", Sphere::TEXCO_MODE_UV);
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 		meshCfg.posScale = scaling;
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.isNormalRequired = useNormal;
@@ -89,7 +101,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	} else if (meshType == "rectangle") {
 		Rectangle::Config meshCfg;
 		meshCfg.centerAtOrigin = input.getValue<bool>("center", true);
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 		meshCfg.posScale = scaling;
 		meshCfg.rotation = rotation;
 		meshCfg.texcoScale = texcoScaling;
@@ -109,7 +121,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.usage = vboUsage;
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Box>::alloc(meshCfg);
@@ -123,7 +135,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.usage = vboUsage;
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<FrameMesh>::alloc(meshCfg);
@@ -136,7 +148,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.usage = vboUsage;
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.ringRadius = input.getValue<GLfloat>("ring-radius", 1.0f);
 		meshCfg.tubeRadius = input.getValue<GLfloat>("tube-radius", 0.5f);
 
@@ -151,14 +163,14 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.usage = vboUsage;
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 		meshCfg.discRadius = input.getValue<GLfloat>("radius", 1.0f);
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Disc>::alloc(meshCfg);
 	} else if (meshType == "cone" || meshType == "cone-closed") {
 		ConeClosed::Config meshCfg;
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 		meshCfg.radius = input.getValue<GLfloat>("radius", 1.0f);
 		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
 		meshCfg.isBaseRequired = input.getValue<bool>("use-base", true);
@@ -169,7 +181,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		(*out)[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
 	} else if (meshType == "cone-opened") {
 		ConeOpened::Config meshCfg;
-		meshCfg.levelOfDetail = levelOfDetail;
+		meshCfg.levelOfDetail = lodLevels[0];
 		meshCfg.cosAngle = input.getValue<GLfloat>("angle", 0.5f);
 		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
 		meshCfg.isNormalRequired = useNormal;

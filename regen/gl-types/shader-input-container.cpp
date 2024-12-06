@@ -14,6 +14,7 @@ using namespace regen;
 
 ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
 		: numVertices_(0),
+		  vertexOffset_(0),
 		  numInstances_(1),
 		  numIndices_(0),
 		  maxIndex_(0) {
@@ -23,7 +24,10 @@ ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
 
 ShaderInputContainer::ShaderInputContainer(
 		const ref_ptr<ShaderInput> &in, const std::string &name, VBO::Usage usage)
-		: numVertices_(0), numInstances_(1), numIndices_(0) {
+		: numVertices_(0),
+		  vertexOffset_(0),
+		  numInstances_(1),
+		  numIndices_(0) {
 	uploadLayout_ = LAYOUT_LAST;
 	inputBuffer_ = ref_ptr<VBO>::alloc(usage);
 	setInput(in, name);
@@ -33,16 +37,6 @@ ShaderInputContainer::~ShaderInputContainer() {
 	while (!inputs_.empty()) { removeInput(inputs_.begin()->name_); }
 }
 
-const ref_ptr<VBO> &ShaderInputContainer::inputBuffer() const { return inputBuffer_; }
-
-GLuint ShaderInputContainer::numVertices() const { return numVertices_; }
-
-void ShaderInputContainer::set_numVertices(GLuint v) { numVertices_ = v; }
-
-GLuint ShaderInputContainer::numInstances() const { return numInstances_; }
-
-void ShaderInputContainer::set_numInstances(GLuint v) { numInstances_ = v; }
-
 ref_ptr<ShaderInput> ShaderInputContainer::getInput(const std::string &name) const {
 	for (auto it = inputs_.begin(); it != inputs_.end(); ++it) {
 		if (name.compare(it->name_) == 0) return it->in_;
@@ -51,10 +45,6 @@ ref_ptr<ShaderInput> ShaderInputContainer::getInput(const std::string &name) con
 }
 
 GLboolean ShaderInputContainer::hasInput(const std::string &name) const { return inputMap_.count(name) > 0; }
-
-const ShaderInputList &ShaderInputContainer::inputs() const { return inputs_; }
-
-const ShaderInputList &ShaderInputContainer::uploadInputs() const { return uploadInputs_; }
 
 void ShaderInputContainer::begin(DataLayout layout) {
 	uploadLayout_ = layout;
@@ -96,18 +86,16 @@ ShaderInputList::const_iterator ShaderInputContainer::setInput(
 	return inputs_.begin();
 }
 
-void ShaderInputContainer::setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex) {
+ref_ptr<VBO::Reference> ShaderInputContainer::setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex) {
 	indices_ = indices;
 	numIndices_ = indices_->numVertices();
 	maxIndex_ = maxIndex;
-	inputBuffer_->alloc(indices_);
+	return inputBuffer_->alloc(indices_);
 }
 
-GLuint ShaderInputContainer::numIndices() const { return numIndices_; }
-
-GLuint ShaderInputContainer::maxIndex() { return maxIndex_; }
-
-const ref_ptr<ShaderInput> &ShaderInputContainer::indices() const { return indices_; }
+void ShaderInputContainer::set_indexOffset(GLuint v) {
+	if (indices_.get()) { indices_->set_offset(v); }
+}
 
 GLuint ShaderInputContainer::indexBuffer() const { return indices_.get() ? indices_->buffer() : 0; }
 
@@ -135,13 +123,13 @@ void ShaderInputContainer::removeInput(const std::string &name) {
 }
 
 void ShaderInputContainer::drawArrays(GLenum primitive) {
-	glDrawArrays(primitive, 0, numVertices_);
+	glDrawArrays(primitive, vertexOffset_, numVertices_);
 }
 
 void ShaderInputContainer::drawArraysInstanced(GLenum primitive) {
 	glDrawArraysInstancedEXT(
 			primitive,
-			0,
+			vertexOffset_,
 			numVertices_,
 			numInstances_);
 }

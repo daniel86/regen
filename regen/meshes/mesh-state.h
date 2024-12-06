@@ -27,6 +27,13 @@ namespace regen {
 	 */
 	class Mesh : public State, public HasInput {
 	public:
+		struct MeshLOD {
+			GLuint numVertices;
+			GLuint vertexOffset;
+			GLuint numIndices;
+			GLuint indexOffset;
+		};
+
 		/**
 		 * Shallow copy constructor.
 		 * Vertex data is not copied.
@@ -68,6 +75,23 @@ namespace regen {
 		 * @param rs the render state.
 		 */
 		void updateVAO(RenderState *rs);
+
+		/**
+		 * Activate given LOD level.
+		 */
+		void activateLOD(GLuint lodLevel);
+
+		/**
+		 * All LODs are stored in the same buffer, so each LOD level is simply expressed
+		 * as offset into the buffer.
+		 * @return set of LODs of this mesh.
+		 */
+		auto &meshLODs() { return meshLODs_; }
+
+		/**
+		 * @return number of LODs.
+		 */
+		auto numLODs() const { return meshLODs_.size(); }
 
 		/**
 		 * Set the physical object.
@@ -170,6 +194,7 @@ namespace regen {
 		GLenum primitive_;
 
 		ref_ptr<VAO> vao_;
+		std::vector<MeshLOD> meshLODs_;
 
 		std::list<ShaderInputLocation> vaoAttributes_;
 		std::map<GLint, std::list<ShaderInputLocation>::iterator> vaoLocations_;
