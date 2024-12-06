@@ -28,6 +28,7 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 	draw_ = sourceMesh_->draw_;
 	set_primitive(primitive_);
 	sourceMesh_->meshViews_.insert(this);
+	meshLODs_ = sourceMesh_->meshLODs_;
 }
 
 Mesh::Mesh(GLenum primitive, VBO::Usage usage)
@@ -159,6 +160,21 @@ void Mesh::updateVAO(RenderState *rs) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inputContainer_->indexBuffer());
 	}
 	rs->vao().pop();
+}
+
+void Mesh::activateLOD(GLuint lodLevel) {
+	if (meshLODs_.size() <= lodLevel) {
+		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << meshLODs_.size());
+		return;
+	}
+	MeshLOD &lod = meshLODs_[lodLevel];
+	if (inputContainer_->indexBuffer() > 0) {
+		inputContainer_->set_numIndices(lod.numIndices);
+		inputContainer_->set_indexOffset(lod.indexOffset);
+	} else {
+		inputContainer_->set_numVertices(lod.numVertices);
+		inputContainer_->set_vertexOffset(lod.vertexOffset);
+	}
 }
 
 void Mesh::set_extends(const Vec3f &minPosition, const Vec3f &maxPosition) {

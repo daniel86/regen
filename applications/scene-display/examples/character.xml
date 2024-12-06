@@ -129,7 +129,9 @@
         <physics mesh-id="tree-mesh" transform-id="tree-tf" shape="box" mass="0.0" size="0.6, 6.0, 0.6"/>
     </mesh>
 
-    <mesh id="tree-pot" type="torus" lod="1" use-normal="1" use-tangent="1" center="1"
+    <mesh id="tree-pot" type="torus"
+            lod-levels="3, 2, 1"
+            use-normal="1" use-tangent="1" center="1"
             usage="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
             ring-radius="1.0" tube-radius="0.2">
         <transform id="tree-pot-tf">
@@ -172,7 +174,9 @@
         </node>
         <node id="tree1-pot" cull-shape="aabb" cull-mesh="tree-pot" cull-tf="tree-pot-tf">
             <node id="tree1-pot">
-                <mesh id="tree-pot" shader="regen.models.mesh"/>
+                <mesh id="tree-pot" shader="regen.models.mesh"
+                    lod-metric="CAMERA_DISTANCE" lod-tf="tree-pot-tf"
+                    lod-close-distance="40.0" lod-medium-distance="100.0" />
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
@@ -253,6 +257,7 @@
         <node import="Trees"/>
         <node id="Stone1">
             <!-- TODO: setup culling of stones instances -->
+            <!-- TODO: setup dynamic LOD for stones -->
             <mesh id="stone0" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -288,10 +293,10 @@
     <node id="Stairs" cull-shape="aabb">
         <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
-        <node id="stairs0" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
+        <node id="stairs0" cull-mesh="stairs0-mesh" cull-tf="stairs0-tf">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs1" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
+        <node id="stairs1" cull-mesh="stairs1-mesh" cull-tf="stairs1-tf">
             <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
         </node>
         <node id="stairs2" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
@@ -653,7 +658,7 @@
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
         <node id="Light-Bulbs" cull-shape="sphere">
-            <!-- TODO: light bulb node, but it uses modelOffset instead of modelMatrix -->
+            <!-- TODO: cull light bulb node, but it uses modelOffset instead of modelMatrix -->
             <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="0.5" />
                 <input name="modelOffset" state="room-light0" component="lightPosition" />

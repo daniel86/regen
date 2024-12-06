@@ -1,5 +1,5 @@
-#ifndef REGEN_Torus_H__
-#define REGEN_Torus_H__
+#ifndef REGEN_Torus_H
+#define REGEN_Torus_H
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/math/vector.h>
@@ -34,7 +34,7 @@ namespace regen {
 		 */
 		struct Config {
 			/** number of surface divisions. */
-			GLuint levelOfDetail;
+			std::vector<GLuint> levelOfDetails;
 			/** scaling for the position attribute. */
 			Vec3f posScale;
 			/** cube xyz rotation. */
@@ -79,6 +79,11 @@ namespace regen {
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput> texco_;
 		ref_ptr<ShaderInput1ui> indices_;
+
+		void generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const Torus::TexcoMode &mode);
@@ -86,4 +91,4 @@ namespace regen {
 	std::istream &operator>>(std::istream &in, Torus::TexcoMode &mode);
 } // namespace
 
-#endif /* REGEN_BOX_H__ */
+#endif /* REGEN_Torus_H */
