@@ -69,7 +69,5 @@ void UBO::update(bool forceUpdate) {
 }
 
 void UBO::bindBufferBase(GLuint bindingPoint) const {
-	// TODO: does this need to be called each frame or only once when shader
-	//         is active?
 	glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id());
 }
