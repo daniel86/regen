@@ -35,45 +35,25 @@ namespace regen {
 	}
 }
 
-static void sphereUV(const Vec3f &p, GLfloat *s, GLfloat *t) {
-	*s = atan2(p.x, p.z) / (2. * M_PI) + 0.5;
-	*t = asin(p.y) / M_PI + 0.5;
-}
-
-
 Sphere::Sphere(const Config &cfg)
 		: Mesh(GL_TRIANGLES, cfg.usage) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-
+	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	updateAttributes(cfg);
 }
 
 Sphere::Config::Config()
 		: posScale(Vec3f(1.0f)),
 		  texcoScale(Vec2f(1.0f)),
-		  levelOfDetail(4),
+		  levelOfDetails({4}),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
 		  isHalfSphere(GL_FALSE),
 		  usage(VBO::USAGE_DYNAMIC) {
-}
-
-static GLboolean isOnPosYSpherePartially(TriangleVertex *triangle) {
-	for (GLuint i = 0; i < 3; ++i) {
-		if (triangle[i].p.y > 0) return GL_TRUE;
-	}
-	return GL_FALSE;
-}
-
-static GLboolean isOnPosYSphereEntirely(TriangleVertex *triangle) {
-	for (GLuint i = 0; i < 3; ++i) {
-		if (triangle[i].p.y < 0) return GL_FALSE;
-	}
-	return GL_TRUE;
 }
 
 static Vec3f computeSphereTangent(const Vec3f &v) {
@@ -118,43 +98,16 @@ void Sphere::pushVertex(GLuint vertexIndex, GLdouble u, GLdouble v, const Config
 	positions[vertexIndex] *= cfg.posScale * 0.5;
 }
 
-void Sphere::updateAttributes(const Config &cfg) {
-	GLuint stepSize = 4 + cfg.levelOfDetail * cfg.levelOfDetail;
-	GLuint numFaces;
-	if(cfg.isHalfSphere) {
-		numFaces = stepSize * stepSize;
-	} else {
-		numFaces = 2 * stepSize * stepSize;
-	}
-	GLuint numVertices = numFaces * 2;
+void Sphere::generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset) {
+	auto *indicesPtr = (GLuint *) indices_->clientDataPtr();
+	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
+	GLuint vertexIndex = vertexOffset, faceIndex = indexOffset/6;
 
-	// allocate attributes
-	pos_->setVertexData(numVertices);
-	if (cfg.isNormalRequired) {
-		nor_->setVertexData(numVertices);
-	}
-	if (cfg.isTangentRequired) {
-		tan_->setVertexData(numVertices);
-	}
-	TexcoMode texcoMode = cfg.texcoMode;
-	if (cfg.isTangentRequired && cfg.texcoMode == TEXCO_MODE_NONE) {
-		texcoMode = TEXCO_MODE_UV;
-	}
-	if (texcoMode == TEXCO_MODE_UV) {
-		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
-		texco_->setVertexData(numVertices);
-	}
-
-	// Allocate RAM for indices
-	GLuint numIndices = numFaces * 3;
-	ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
-	indices->setVertexData(numIndices);
-	auto *indicesPtr = (GLuint *) indices->clientDataPtr();
-
-	GLdouble stepSizeInv = 1.0 / (GLdouble) stepSize;
-	GLuint vertexIndex = 0, faceIndex = 0;
-	for (GLuint i=0; i<stepSize; i++) {
-		for (GLuint j=0; j<stepSize; j++) {
+	for (GLuint i=0; i<lodLevel; i++) {
+		for (GLuint j=0; j<lodLevel; j++) {
             GLdouble u0 = (GLdouble)i * stepSizeInv;
             GLdouble u1 = (GLdouble)(i + 1) * stepSizeInv;
             GLdouble v0 = (GLdouble)j * stepSizeInv;
@@ -178,9 +131,59 @@ void Sphere::updateAttributes(const Config &cfg) {
             pushVertex(vertexIndex++, u0, v0, cfg);
 		}
 	}
+}
+
+void Sphere::updateAttributes(const Config &cfg) {
+    std::vector<GLuint> LODs;
+    GLuint vertexOffset = 0;
+    GLuint indexOffset = 0;
+    for (auto &lod : cfg.levelOfDetails) {
+    	GLuint lodLevel = 4 + lod * lod;
+		LODs.push_back(lodLevel);
+		GLuint numFaces;
+		if(cfg.isHalfSphere) {
+			numFaces = lodLevel * lodLevel;
+		} else {
+			numFaces = 2 * lodLevel * lodLevel;
+		}
+		auto &x = meshLODs_.emplace_back();
+		x.numVertices = numFaces * 2;
+		x.numIndices = numFaces * 3;
+		x.vertexOffset = vertexOffset;
+		x.indexOffset = indexOffset;
+		vertexOffset += x.numVertices;
+		indexOffset += x.numIndices;
+	}
+	GLuint numVertices = vertexOffset;
+	GLuint numIndices = indexOffset;
+
+	// allocate attributes
+	pos_->setVertexData(numVertices);
+	if (cfg.isNormalRequired) {
+		nor_->setVertexData(numVertices);
+	}
+	if (cfg.isTangentRequired) {
+		tan_->setVertexData(numVertices);
+	}
+	TexcoMode texcoMode = cfg.texcoMode;
+	if (cfg.isTangentRequired && cfg.texcoMode == TEXCO_MODE_NONE) {
+		texcoMode = TEXCO_MODE_UV;
+	}
+	if (texcoMode == TEXCO_MODE_UV) {
+		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+		texco_->setVertexData(numVertices);
+	}
+    indices_->setVertexData(numIndices);
+
+    for (auto i=0u; i<LODs.size(); ++i) {
+    	generateLODLevel(cfg,
+    			LODs[i],
+    			meshLODs_[i].vertexOffset,
+    			meshLODs_[i].indexOffset);
+	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
-	setIndices(indices, numVertices);
+	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired) {
 		setInput(nor_);
@@ -193,6 +196,12 @@ void Sphere::updateAttributes(const Config &cfg) {
 	}
 	end();
 
+    for (auto &x : meshLODs_) {
+    	// add the index buffer offset (in number of bytes)
+    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	}
+    inputContainer_->set_numIndices(meshLODs_[0].numIndices);
+    indices_->set_offset(meshLODs_[0].indexOffset);
 	minPosition_ = -cfg.posScale;
 	maxPosition_ = cfg.posScale;
 }

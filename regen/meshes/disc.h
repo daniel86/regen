@@ -31,7 +31,7 @@ namespace regen {
 		 */
 		struct Config {
 			/** number of surface divisions. */
-			GLuint levelOfDetail;
+			std::vector<GLuint> levelOfDetails;
 			/** scaling for the position attribute. */
 			Vec3f posScale;
 			/** cube xyz rotation. */
@@ -74,6 +74,11 @@ namespace regen {
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput> texco_;
 		ref_ptr<ShaderInput1ui> indices_;
+
+		void generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const Disc::TexcoMode &mode);

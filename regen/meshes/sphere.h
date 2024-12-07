@@ -41,7 +41,7 @@ namespace regen {
 			/** scaling vector for TEXCO_MODE_UV */
 			Vec2f texcoScale;
 			/** number of surface divisions */
-			GLuint levelOfDetail;
+			std::vector<GLuint> levelOfDetails;
 			/** texture coordinate mode */
 			TexcoMode texcoMode;
 			/** generate normal attribute */
@@ -74,6 +74,12 @@ namespace regen {
 		ref_ptr<ShaderInput3f> nor_;
 		ref_ptr<ShaderInput2f> texco_;
 		ref_ptr<ShaderInput4f> tan_;
+		ref_ptr<ShaderInput1ui> indices_;
+
+		void generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const Sphere::TexcoMode &mode);

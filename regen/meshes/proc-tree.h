@@ -33,6 +33,9 @@ namespace regen {
 		 */
 		void update();
 
+		ref_ptr<ProcTree> computeMediumDetailTree();
+		ref_ptr<ProcTree> computeLowDetailTree();
+
 	protected:
 		Proctree::Tree handle;
 		struct TreeMesh {

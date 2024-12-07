@@ -141,7 +141,9 @@
         <material preset="stone" color-blend-mode="MUL" emission="0.04, 0.04, 0.04"/>
     </mesh>
 
-    <mesh id="tree-disc" type="disc" lod="2" use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
+    <mesh id="tree-disc" type="disc"
+            lod-levels="2, 1, 0"
+            use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
             texco-scaling="0.1, 0.1" disc-radius="1.0">
         <transform id="tree-disc-tf">
             <translate value="8.0, -1.0, -8.0"/>
@@ -172,15 +174,20 @@
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
             </node>
         </node>
-        <node id="tree1-pot" cull-shape="aabb" cull-mesh="tree-pot" cull-tf="tree-pot-tf">
+        <node id="tree1-pot"
+                cull-shape="aabb"
+                cull-mesh="tree-pot"
+                cull-tf="tree-pot-tf"
+                lod-metric="CAMERA_DISTANCE"
+                lod-close-distance="40.0"
+                lod-medium-distance="100.0">
             <node id="tree1-pot">
-                <mesh id="tree-pot" shader="regen.models.mesh"
-                    lod-metric="CAMERA_DISTANCE" lod-tf="tree-pot-tf"
-                    lod-close-distance="40.0" lod-medium-distance="100.0" />
+                <mesh id="tree-pot" shader="regen.models.mesh" lod-tf="tree-pot-tf"/>
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
-                <mesh id="tree-disc" shader="regen.models.mesh"/>
+                <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0"/>
+                <mesh id="tree-disc" shader="regen.models.mesh" lod-tf="tree-disc-tf" />
             </node>
         </node>
     </node>
@@ -351,8 +358,9 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="statue-platform" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-          scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
+    <mesh id="statue-platform" type="box" lod-levels="3, 2, 0"
+            use-normal="1" use-tangent="1" center="1" usage="STATIC"
+            scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
         <transform id="statue-platform-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
@@ -374,8 +382,10 @@
     </mesh>
 
     <node id="Statues" cull-shape="aabb">
-        <node id="statue-platform" cull-mesh="statue-platform" cull-tf="statue-platform-tf">
-            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        <node id="statue-platform"
+                cull-mesh="statue-platform" cull-tf="statue-platform-tf">
+            <mesh id="statue-platform" shader="regen.models.mesh"
+                lod-close-distance="40.0" lod-medium-distance="100.0"  lod-tf="statue-platform-tf" />
         </node>
         <node id="statue-slope" cull-mesh="slope-mesh" cull-tf="slope-tf">
             <mesh id="slope-mesh" shader="regen.models.mesh"/>

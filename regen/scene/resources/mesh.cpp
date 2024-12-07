@@ -71,24 +71,23 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
 	MeshVector *out = out_.get();
 
-	std::vector<GLuint> lodLevels(3);
+	std::vector<GLuint> lodLevels;
 	if (input.hasAttribute("lod-levels")) {
 		auto lodVec = input.getValue<Vec3ui>("lod-levels", Vec3ui(0));
+		lodLevels.resize(3);
 		lodLevels[0] = lodVec.x;
 		lodLevels[1] = lodVec.y;
 		lodLevels[2] = lodVec.z;
 	}
 	else {
-		lodLevels[0] = input.getValue<GLuint>("lod", 0);
-		lodLevels[1] = lodLevels[0];
-		lodLevels[2] = lodLevels[0];
+		lodLevels.push_back(input.getValue<GLuint>("lod", 0));
 	}
 
 	// Primitives
 	if (meshType == "sphere" || meshType == "half-sphere") {
 		Sphere::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<Sphere::TexcoMode>("texco-mode", Sphere::TEXCO_MODE_UV);
-		meshCfg.levelOfDetail = lodLevels[0];
+		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.posScale = scaling;
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.isNormalRequired = useNormal;
@@ -121,7 +120,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.usage = vboUsage;
-		meshCfg.levelOfDetail = lodLevels[0];
+		meshCfg.levelOfDetails = lodLevels;
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Box>::alloc(meshCfg);
@@ -163,14 +162,14 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.usage = vboUsage;
-		meshCfg.levelOfDetail = lodLevels[0];
+		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.discRadius = input.getValue<GLfloat>("radius", 1.0f);
 
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Disc>::alloc(meshCfg);
 	} else if (meshType == "cone" || meshType == "cone-closed") {
 		ConeClosed::Config meshCfg;
-		meshCfg.levelOfDetail = lodLevels[0];
+		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.radius = input.getValue<GLfloat>("radius", 1.0f);
 		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
 		meshCfg.isBaseRequired = input.getValue<bool>("use-base", true);
@@ -181,7 +180,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		(*out)[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
 	} else if (meshType == "cone-opened") {
 		ConeOpened::Config meshCfg;
-		meshCfg.levelOfDetail = lodLevels[0];
+		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.cosAngle = input.getValue<GLfloat>("angle", 0.5f);
 		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
 		meshCfg.isNormalRequired = useNormal;

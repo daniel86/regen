@@ -122,7 +122,7 @@ void MeshNodeProvider::processInput(
 			mesh->updateVAO(RenderState::get(),
 							stateConfigurer.cfg(), meshShader);
 			// configure mesh LOD
-			if (input.hasAttribute("lod-metric")) {
+			if (input.hasAttribute("lod-tf")) {
 				auto metric = input.getValue<LODMetric>("lod-metric", LOD_CAMERA_DISTANCE);
 				auto tf = parser->getResources()->getTransform(parser, input.getValue("lod-tf"));
 				if (tf.get() == nullptr) {

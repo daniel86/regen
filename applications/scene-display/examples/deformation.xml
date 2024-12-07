@@ -190,7 +190,6 @@
     </node>
 
     <node id="Volumetric-Fog-Pass">
-        <!-- TODO: probably better to render to a small FBO and then blend with the scene -->
         <input type="float" name="shadowSampleStep" value="0.005"/>
         <input type="float" name="shadowSampleThreshold" value="0.075"/>
         <input type="vec2" name="fogDistance" value="0.0,100.0"/>
