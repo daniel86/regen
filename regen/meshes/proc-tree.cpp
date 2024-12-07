@@ -2,6 +2,8 @@
 
 using namespace regen;
 
+// TODO: load tree in different levels of detail
+
 ProcTree::ProcTree() {
 	trunk.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, regen::VBO::USAGE_STATIC);
 	trunk.indices = ref_ptr<ShaderInput1ui>::alloc("i");
@@ -16,6 +18,32 @@ ProcTree::ProcTree() {
 	twig.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	twig.tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	twig.texco = ref_ptr<ShaderInput2f>::alloc("texco0");
+}
+
+ref_ptr<ProcTree> ProcTree::computeMediumDetailTree() {
+	auto medTree = ref_ptr<ProcTree>::alloc();
+	medTree->handle.mProperties = handle.mProperties;
+	auto &medProps = medTree->handle.mProperties;
+	auto &highProps = handle.mProperties;
+    medProps.mSegments = std::max(4, highProps.mSegments / 2);
+    medProps.mLevels = std::max(2, highProps.mLevels - 1);
+    medProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.9f;
+    medProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.9f;
+    medProps.mTwigScale = highProps.mTwigScale * 0.75f;
+	return medTree;
+}
+
+ref_ptr<ProcTree> ProcTree::computeLowDetailTree() {
+	auto lowTree = ref_ptr<ProcTree>::alloc();
+	lowTree->handle.mProperties = handle.mProperties;
+	auto &lowProps = lowTree->handle.mProperties;
+	auto &highProps = handle.mProperties;
+	lowProps.mSegments = std::max(2, highProps.mSegments / 4);
+	lowProps.mLevels = std::max(1, highProps.mLevels - 2);
+	lowProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.8f;
+	lowProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.8f;
+	lowProps.mTwigScale = highProps.mTwigScale * 0.5f;
+	return lowTree;
 }
 
 void ProcTree::updateAttributes(TreeMesh &treeMesh,

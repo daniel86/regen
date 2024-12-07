@@ -68,7 +68,7 @@ Disc::Disc(const ref_ptr<Disc> &other)
 }
 
 Disc::Config::Config()
-		: levelOfDetail(0),
+		: levelOfDetails({0}),
 		  posScale(Vec3f(1.0f)),
 		  rotation(Vec3f(0.0f)),
 		  texcoScale(Vec2f(1.0f)),
@@ -79,27 +79,14 @@ Disc::Config::Config()
 		  discRadius(1.0f) {
 }
 
-void Disc::updateAttributes(const Config &cfg) {
-	// Generate disc vertices
-	const GLuint levelOfDetail = pow(4u, 1 + cfg.levelOfDetail);
-	const GLuint numVertices = levelOfDetail + 1;
-	const GLuint numIndices = levelOfDetail * 3;
-	pos_->setVertexData(numVertices);
-	if (cfg.isNormalRequired) {
-		nor_->setVertexData(numVertices);
-	}
-	if (cfg.isTangentRequired) {
-		tan_->setVertexData(numVertices);
-	}
-	if (cfg.texcoMode == TEXCO_MODE_UV) {
-		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
-		texco_->setVertexData(numVertices);
-	}
+void Disc::generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset) {
+	const float angleStep = 2.0f * M_PI / lodLevel;
 
-	const float angleStep = 2.0f * M_PI / levelOfDetail;
-
-	GLuint vertexIndex = 0;
-	for (GLuint i = 0; i <= levelOfDetail; ++i) {
+	GLuint vertexIndex = vertexOffset;
+	for (GLuint i = 0; i <= lodLevel; ++i) {
 		float angle = i * angleStep;
 		float cosAngle = cos(angle);
 		float sinAngle = sin(angle);
@@ -126,18 +113,56 @@ void Disc::updateAttributes(const Config &cfg) {
 	}
 
 	// Generate indices
-	indices_->setVertexData(numIndices);
 	auto *indices = (GLuint *) indices_->clientDataPtr();
-	GLuint index = 0;
-	for (GLuint i = 0; i < levelOfDetail; ++i) {
-		indices[index++] = levelOfDetail;
-		indices[index++] = i + 1;
-		indices[index++] = i;
+	GLuint index = indexOffset;
+	for (GLuint i = 0; i < lodLevel; ++i) {
+		indices[index++] = vertexOffset + lodLevel;
+		indices[index++] = vertexOffset + i + 1;
+		indices[index++] = vertexOffset + i;
+	}
+}
+
+void Disc::updateAttributes(const Config &cfg) {
+    std::vector<GLuint> LODs;
+    GLuint vertexOffset = 0;
+    GLuint indexOffset = 0;
+    for (auto &lod : cfg.levelOfDetails) {
+    	GLuint lodLevel = 4u * pow(2u, lod);
+		LODs.push_back(lodLevel);
+		auto &x = meshLODs_.emplace_back();
+		x.numVertices = lodLevel + 1;
+		x.numIndices = lodLevel * 3;
+		x.vertexOffset = vertexOffset;
+		x.indexOffset = indexOffset;
+		vertexOffset += x.numVertices;
+		indexOffset += x.numIndices;
+	}
+	GLuint numVertices = vertexOffset;
+	GLuint numIndices = indexOffset;
+
+	pos_->setVertexData(numVertices);
+	if (cfg.isNormalRequired) {
+		nor_->setVertexData(numVertices);
+	}
+	if (cfg.isTangentRequired) {
+		tan_->setVertexData(numVertices);
+	}
+	if (cfg.texcoMode == TEXCO_MODE_UV) {
+		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+		texco_->setVertexData(numVertices);
+	}
+    indices_->setVertexData(numIndices);
+
+    for (auto i=0u; i<LODs.size(); ++i) {
+    	generateLODLevel(cfg,
+    			LODs[i],
+    			meshLODs_[i].vertexOffset,
+    			meshLODs_[i].indexOffset);
 	}
 
 	// Set up the vertex attributes
 	begin(ShaderInputContainer::INTERLEAVED);
-	setIndices(indices_, numVertices);
+	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired) {
 		setInput(nor_);
@@ -150,6 +175,12 @@ void Disc::updateAttributes(const Config &cfg) {
 	}
 	end();
 
+    for (auto &x : meshLODs_) {
+    	// add the index buffer offset (in number of bytes)
+    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	}
+    inputContainer_->set_numIndices(meshLODs_[0].numIndices);
+    indices_->set_offset(meshLODs_[0].indexOffset);
 	minPosition_ = -cfg.posScale;
 	maxPosition_ = cfg.posScale;
 }

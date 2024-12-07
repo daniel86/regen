@@ -48,6 +48,7 @@ ref_ptr<Box> Box::getUnitCube() {
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
 		cfg.usage = VBO::USAGE_STATIC;
+		cfg.levelOfDetails = {0};
 		mesh = ref_ptr<Box>::alloc(cfg);
 		return mesh;
 	} else {
@@ -74,7 +75,7 @@ Box::Box(const ref_ptr<Box> &other)
 }
 
 Box::Config::Config()
-		: levelOfDetail(0),
+		: levelOfDetails({0}),
 		  posScale(Vec3f(1.0f)),
 		  rotation(Vec3f(0.0f)),
 		  texcoScale(Vec2f(1.0f)),
@@ -84,7 +85,12 @@ Box::Config::Config()
 		  usage(VBO::USAGE_DYNAMIC) {
 }
 
-void Box::updateAttributes(const Config &cfg) {
+void Box::generateLODLevel(const Config &cfg,
+				TexcoMode texcoMode,
+				const Mat4f &rotMat,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset) {
 	static const Vec3f cubeNormals[] = {
 			Vec3f(0.0f, 0.0f, 1.0f), // Front
 			Vec3f(0.0f, 0.0f, -1.0f), // Back
@@ -140,31 +146,7 @@ void Box::updateAttributes(const Config &cfg) {
 		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
 	};
 
-	GLuint vertexBase = 0;
-	GLuint numVertices = pow(4.0, cfg.levelOfDetail) * 6 * 2 * 3;
-	Mat4f rotMat = Mat4f::rotationMatrix(
-			cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
-
-	// allocate attributes
-	pos_->setVertexData(numVertices);
-	if (cfg.isNormalRequired) {
-		nor_->setVertexData(numVertices);
-	}
-	if (cfg.isTangentRequired) {
-		tan_->setVertexData(numVertices);
-	}
-
-	TexcoMode texcoMode = cfg.texcoMode;
-	if (cfg.isTangentRequired && cfg.texcoMode == TEXCO_MODE_NONE) {
-		texcoMode = TEXCO_MODE_UV;
-	}
-	if (texcoMode == TEXCO_MODE_CUBE_MAP) {
-		texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
-		texco_->setVertexData(numVertices);
-	} else if (texcoMode == TEXCO_MODE_UV) {
-		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
-		texco_->setVertexData(numVertices);
-	}
+	GLuint vertexBase = vertexOffset;
 
 	for (GLuint sideIndex = 0; sideIndex < 6; ++sideIndex) {
 		const Vec3f &normal = cubeNormals[sideIndex];
@@ -177,7 +159,7 @@ void Box::updateAttributes(const Config &cfg) {
 		std::vector<TriangleFace> facesLevel0(2);
 		facesLevel0[0] = TriangleFace(level0[0], level0[1], level0[3]);
 		facesLevel0[1] = TriangleFace(level0[1], level0[2], level0[3]);
-		auto faces = tessellate(cfg.levelOfDetail, facesLevel0);
+		auto faces = tessellate(lodLevel, facesLevel0);
 
 		for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
 			GLuint vertexIndex = faceIndex * 3 + vertexBase;
@@ -275,6 +257,50 @@ void Box::updateAttributes(const Config &cfg) {
 		}
 		vertexBase += faces.size() * 3;
 	}
+}
+
+void Box::updateAttributes(const Config &cfg) {
+    std::vector<GLuint> LODs;
+    GLuint vertexOffset = 0;
+    for (auto &lod : cfg.levelOfDetails) {
+		LODs.push_back(lod);
+		auto &x = meshLODs_.emplace_back();
+
+		GLuint numTrisPerFace = pow(4.0, lod) * 2;
+		x.numVertices = numTrisPerFace * 3 * 6;
+		x.vertexOffset = vertexOffset;
+		vertexOffset += x.numVertices;
+	}
+	GLuint numVertices = vertexOffset;
+	Mat4f rotMat = Mat4f::rotationMatrix(
+			cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
+
+	// allocate attributes
+	pos_->setVertexData(numVertices);
+	if (cfg.isNormalRequired) {
+		nor_->setVertexData(numVertices);
+	}
+	if (cfg.isTangentRequired) {
+		tan_->setVertexData(numVertices);
+	}
+	TexcoMode texcoMode = cfg.texcoMode;
+	if (cfg.isTangentRequired && cfg.texcoMode == TEXCO_MODE_NONE) {
+		texcoMode = TEXCO_MODE_UV;
+	}
+	if (texcoMode == TEXCO_MODE_CUBE_MAP) {
+		texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
+		texco_->setVertexData(numVertices);
+	} else if (texcoMode == TEXCO_MODE_UV) {
+		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+		texco_->setVertexData(numVertices);
+	}
+
+    for (auto i=0u; i<LODs.size(); ++i) {
+    	generateLODLevel(cfg, texcoMode, rotMat,
+    			LODs[i],
+    			meshLODs_[i].vertexOffset,
+    			meshLODs_[i].indexOffset);
+	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
 	setInput(pos_);
@@ -284,8 +310,13 @@ void Box::updateAttributes(const Config &cfg) {
 		setInput(texco_);
 	if (cfg.isTangentRequired)
 		setInput(tan_);
-	end();
+	auto vertexRef = end();
 
+    for (auto &x : meshLODs_) {
+    	// add the index buffer offset (in number of bytes)
+    	//x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	}
+	activateLOD(0);
 	minPosition_ = -cfg.posScale;
 	maxPosition_ = cfg.posScale;
 }

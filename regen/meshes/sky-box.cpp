@@ -22,7 +22,7 @@ static Box::Config cubeCfg(GLuint levelOfDetail) {
 	cfg.isTangentRequired = GL_FALSE;
 	cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
 	cfg.usage = VBO::USAGE_STATIC;
-	cfg.levelOfDetail = levelOfDetail;
+	cfg.levelOfDetails = {levelOfDetail};
 	return cfg;
 }
 

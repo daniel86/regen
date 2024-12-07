@@ -3,6 +3,8 @@
 
 using namespace regen;
 
+// TODO: load frame in different levels of detail
+
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const FrameMesh::TexcoMode &mode) {
 		switch (mode) {

@@ -34,8 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define M_PI 3.1415926535897932384626433832795f
 #endif
 
-// TODO: I think it would be good to push apart the opposing faces of a leaf to avoid z-fighting.
-
 namespace Proctree {
 	float length(fvec3 a) {
 		return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);

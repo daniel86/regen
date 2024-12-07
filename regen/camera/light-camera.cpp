@@ -308,6 +308,7 @@ GLboolean LightCamera::isBoxInReach(const Vec3f &center, const Vec3f *points) {
 			return maxDist < lightRadius.y + margin;
 		}
 	}
+	return GL_FALSE;
 }
 
 GLboolean LightCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {

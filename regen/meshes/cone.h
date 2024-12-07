@@ -5,13 +5,21 @@
  *      Author: daniel
  */
 
-#ifndef CONE_H_
-#define CONE_H_
+#ifndef REGEN_MESH_CONE_H_
+#define REGEN_MESH_CONE_H_
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/math/vector.h>
 
 namespace regen {
+	class Cone : public Mesh {
+	public:
+		Cone(GLenum primitive, VBO::Usage usage);
+
+	protected:
+		ref_ptr<ShaderInput3f> nor_;
+		ref_ptr<ShaderInput3f> pos_;
+	};
 	/**
 	 * \brief A cone is an n-dimensional geometric shape that tapers smoothly from a base
 	 * to a point called the apex.
@@ -19,7 +27,7 @@ namespace regen {
 	 * The base has a circle shape.
 	 * OpenedCone does not handle the base geometry, it is defined using GL_TRIANGLE_FAN.
 	 */
-	class ConeOpened : public Mesh {
+	class ConeOpened : public Cone {
 	public:
 		/**
 		 * Vertex data configuration.
@@ -32,7 +40,7 @@ namespace regen {
 			/** generate normal attribute ? */
 			GLboolean isNormalRequired;
 			/** subdivisions = 4*levelOfDetail^2 */
-			GLint levelOfDetail;
+			std::vector<GLuint> levelOfDetails;
 			/** VBO usage hint. */
 			VBO::Usage usage;
 
@@ -51,8 +59,10 @@ namespace regen {
 		void updateAttributes(const Config &cfg = Config());
 
 	protected:
-		ref_ptr<ShaderInput3f> nor_;
-		ref_ptr<ShaderInput3f> pos_;
+		void generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset);
 	};
 
 	/**
@@ -62,7 +72,7 @@ namespace regen {
 	 * The base has a circle shape.
 	 * ClosedCone does handle the base geometry, it is defined using GL_TRIANGLES.
 	 */
-	class ConeClosed : public Mesh {
+	class ConeClosed : public Cone {
 	public:
 		/**
 		 * The 'base' cone has apex=(0,0,0) and opens
@@ -70,7 +80,7 @@ namespace regen {
 		 * distance is 1.0.
 		 * @return the base cone.
 		 */
-		static ref_ptr<ConeClosed> getBaseCone();
+		static ref_ptr<Mesh> getBaseCone();
 
 		/**
 		 * Vertex data configuration.
@@ -85,7 +95,7 @@ namespace regen {
 			/** generate cone base geometry */
 			GLboolean isBaseRequired;
 			/** level of detail for base circle */
-			GLint levelOfDetail;
+			std::vector<GLuint> levelOfDetails;
 			/** VBO usage hint. */
 			VBO::Usage usage;
 
@@ -98,20 +108,19 @@ namespace regen {
 		explicit ConeClosed(const Config &cfg = Config());
 
 		/**
-		 * @param other Another ConeClosed.
-		 */
-		explicit ConeClosed(const ref_ptr<ConeClosed> &other);
-
-		/**
 		 * Updates vertex data based on given configuration.
 		 * @param cfg vertex data configuration.
 		 */
 		void updateAttributes(const Config &cfg = Config());
 
 	protected:
-		ref_ptr<ShaderInput> nor_;
-		ref_ptr<ShaderInput> pos_;
+		ref_ptr<ShaderInput1ui> indices_;
+
+		void generateLODLevel(const Config &cfg,
+				GLuint lodLevel,
+				GLuint vertexOffset,
+				GLuint indexOffset);
 	};
 } // namespace
 
-#endif /* CONE_H_ */
+#endif /* REGEN_MESH_CONE_H_ */
