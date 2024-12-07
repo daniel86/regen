@@ -8,7 +8,8 @@ using namespace regen;
 UBO::UBO() :
 	GLObject(glGenBuffers, glDeleteBuffers),
 	allocatedSize_(0),
-	requiredSize_(0) {
+	requiredSize_(0),
+	stamp_(0) {
 }
 
 void UBO::addUniform(const ref_ptr<ShaderInput> &input) {
@@ -21,19 +22,28 @@ void UBO::addUniform(const ref_ptr<ShaderInput> &input) {
 	requiredSize_ += input->inputSize();
 }
 
-void UBO::update(bool forceUpdate) {
-	if (requiredSize_ != allocatedSize_) { forceUpdate = true; }
-	bool needUpdate = forceUpdate;
-	if (!needUpdate) {
-		for (auto & uniform : uniformMap_) {
-			UBO_Input &input = uniform.second;
-			if (input.input->stamp() != input.lastStamp) {
-				needUpdate = true;
-				break;
-			}
+GLboolean UBO::needsUpdate() const {
+	if (requiredSize_ != allocatedSize_) { return GL_TRUE; }
+	for (auto & uniform : uniformMap_) {
+		const UBO_Input &input = uniform.second;
+		if (input.input->stamp() != input.lastStamp) {
+			return GL_TRUE;
 		}
 	}
-	if (!needUpdate) { return; }
+	return GL_FALSE;
+}
+
+GLuint UBO::stamp() const {
+	if (needsUpdate()) {
+		return stamp_ + 1;
+	} else {
+		return stamp_;
+	}
+}
+
+void UBO::update(bool forceUpdate) {
+	//bool needUpdate = forceUpdate || needsUpdate();
+	//if (!needUpdate) { return; }
 
     glBindBuffer(GL_UNIFORM_BUFFER, id());
 	if (requiredSize_ != allocatedSize_) {
@@ -55,8 +65,11 @@ void UBO::update(bool forceUpdate) {
 		}
 	}
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	stamp_ += 1;
 }
 
 void UBO::bindBufferBase(GLuint bindingPoint) const {
+	// TODO: does this need to be called each frame or only once when shader
+	//         is active?
 	glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id());
 }

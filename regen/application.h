@@ -312,6 +312,7 @@ namespace regen {
 		ref_ptr<ShaderInput1f> mouseDepth_;
 		ref_ptr<ShaderInput1f> timeSeconds_;
 		ref_ptr<ShaderInput1f> timeDelta_;
+		ref_ptr<UniformBlock> globalUniforms_;
 
 		boost::posix_time::ptime lastMotionTime_;
 		boost::posix_time::ptime lastTime_;

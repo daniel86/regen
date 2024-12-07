@@ -259,11 +259,6 @@ GLint Shader::uniformLocation(const std::string &name) {
 	return (it != uniformLocations_.end()) ? it->second : -1;
 }
 
-GLint Shader::uniformBlockLocation(const std::string &name) {
-	auto it = uniformBlockLocations_.find(name);
-	return (it != uniformBlockLocations_.end()) ? it->second : -1;
-}
-
 GLint Shader::id() const {
 	return *(id_.get());
 }
@@ -437,10 +432,10 @@ void Shader::setupInputLocations() {
 	for (GLint loc_ = 0; loc_ < count; ++loc_) {
 		// Note: uniforms inside a uniform block do not have individual uniform locations
 		glGetActiveUniformBlockName(id(), loc_, 320, &arraySize, nameC);
-		std::string blockName(nameC);
-		uniformBlockLocations_[blockName] = loc_;
-		uniformBlockLocations_[REGEN_STRING("u_" << blockName)] = loc_;
-		uniformBlockLocations_[REGEN_STRING("in_" << blockName)] = loc_;
+		std::string blockName(truncPrefix(nameC, "in_"));
+		uniformLocations_[blockName] = loc_;
+		uniformLocations_[REGEN_STRING("u_" << blockName)] = loc_;
+		uniformLocations_[REGEN_STRING("in_" << blockName)] = loc_;
 	}
 
 	glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);

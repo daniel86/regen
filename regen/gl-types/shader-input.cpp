@@ -10,6 +10,7 @@
 #include <regen/animations/animation.h>
 
 #include "shader-input.h"
+#include "ubo.h"
 
 using namespace regen;
 
@@ -34,6 +35,18 @@ public:
 protected:
 	ShaderInput *input_;
 };
+
+NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
+						 const std::string &name,
+						 const std::string &type)
+				: in_(in), name_(name), type_(type) {
+	if (name_.empty()) {
+		name_ = in->name();
+	}
+	if (type_.empty()) {
+		type_ = glenum::glslDataType(in->dataType(), in->valsPerElement());
+	}
+}
 
 ShaderInput::ShaderInput(
 		const std::string &name,
@@ -62,6 +75,7 @@ ShaderInput::ShaderInput(
 		  data_(nullptr),
 		  stamp_(1u),
 		  isConstant_(GL_FALSE),
+		  isUniformBlock_(GL_FALSE),
 		  forceArray_(GL_FALSE),
 		  active_(GL_TRUE) {
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * elementCount_;
@@ -92,6 +106,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  data_(o.data_),
 		  stamp_(o.stamp_),
 		  isConstant_(o.isConstant_),
+		  isUniformBlock_(o.isUniformBlock_),
 		  forceArray_(o.forceArray_),
 		  active_(o.active_) {
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * elementCount_;
@@ -112,10 +127,6 @@ ShaderInput::~ShaderInput() {
 GLenum ShaderInput::dataType() const { return dataType_; }
 
 GLuint ShaderInput::dataTypeBytes() const { return dataTypeBytes_; }
-
-const std::string &ShaderInput::name() const { return name_; }
-
-void ShaderInput::set_name(const std::string &s) { name_ = s; }
 
 GLboolean ShaderInput::active() const { return active_; }
 
@@ -389,7 +400,7 @@ void ShaderInput::enableUniform4ui(GLint loc) const {
 }
 
 void ShaderInput::enableUniform(GLint loc) const {
-	(this->*(this->enableUniform_))(loc);
+	enableUniform_(loc);
 }
 
 /////////////
@@ -561,8 +572,20 @@ void ShaderInput::popClientData() {
 /////////////
 ////////////
 
-ref_ptr<ShaderInput> ShaderInput::create(
-		const std::string &name, GLenum dataType, GLuint valsPerElement) {
+ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
+	if (in->isUniformBlock()) {
+		auto newBlock = ref_ptr<UniformBlock>::alloc(in->name());
+		auto oldBlock = (UniformBlock *)(in.get());
+		for (auto &uniform : oldBlock->uniforms()) {
+			newBlock->addUniform(create(uniform));
+		}
+		return newBlock;
+	}
+
+	const std::string &name = in->name();
+	GLenum dataType = in->dataType();
+	GLuint valsPerElement = in->valsPerElement();
+
 	switch (dataType) {
 		case GL_FLOAT:
 			switch (valsPerElement) {
@@ -623,7 +646,7 @@ ref_ptr<ShaderInput> ShaderInput::create(
 }
 
 ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean copyData) {
-	ref_ptr<ShaderInput> cp = create(in->name(), in->dataType(), in->valsPerElement());
+	ref_ptr<ShaderInput> cp = create(in);
 	cp->stride_ = in->stride_;
 	cp->offset_ = in->offset_;
 	cp->inputSize_ = in->inputSize_;
@@ -636,6 +659,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 	cp->bufferStamp_ = 0;
 	cp->normalize_ = in->normalize_;
 	cp->isVertexAttribute_ = in->isVertexAttribute_;
+	cp->isUniformBlock_ = in->isUniformBlock_;
 	cp->isConstant_ = in->isConstant_;
 	cp->transpose_ = in->transpose_;
 	cp->stamp_ = in->stamp_;
@@ -660,7 +684,7 @@ ShaderInput1f::ShaderInput1f(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform1f;
+	enableUniform_ = [this](GLint loc) { enableUniform1f(loc); };
 }
 
 ShaderInput2f::ShaderInput2f(
@@ -668,7 +692,7 @@ ShaderInput2f::ShaderInput2f(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform2f;
+	enableUniform_ = [this](GLint loc) { enableUniform2f(loc); };
 }
 
 ShaderInput3f::ShaderInput3f(
@@ -676,7 +700,7 @@ ShaderInput3f::ShaderInput3f(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform3f;
+	enableUniform_ = [this](GLint loc) { enableUniform3f(loc); };
 }
 
 ShaderInput4f::ShaderInput4f(
@@ -684,7 +708,7 @@ ShaderInput4f::ShaderInput4f(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform4f;
+	enableUniform_ = [this](GLint loc) { enableUniform4f(loc); };
 }
 
 ShaderInputMat3::ShaderInputMat3(
@@ -694,7 +718,7 @@ ShaderInputMat3::ShaderInputMat3(
 		: ShaderInputTyped(name, elementCount, normalize) {
 	transpose_ = GL_FALSE;
 	enableAttribute_ = &ShaderInput::enableAttributeMat3;
-	enableUniform_ = &ShaderInput::enableUniformMat3;
+	enableUniform_ = [this](GLint loc) { enableUniformMat3(loc); };
 }
 
 ShaderInputMat4::ShaderInputMat4(
@@ -704,7 +728,7 @@ ShaderInputMat4::ShaderInputMat4(
 		: ShaderInputTyped(name, elementCount, normalize) {
 	transpose_ = GL_FALSE;
 	enableAttribute_ = &ShaderInput::enableAttributeMat4;
-	enableUniform_ = &ShaderInput::enableUniformMat4;
+	enableUniform_ = [this](GLint loc) { enableUniformMat4(loc); };
 }
 
 ShaderInput1d::ShaderInput1d(
@@ -712,7 +736,7 @@ ShaderInput1d::ShaderInput1d(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform1d;
+	enableUniform_ = [this](GLint loc) { enableUniform1d(loc); };
 }
 
 ShaderInput2d::ShaderInput2d(
@@ -720,7 +744,7 @@ ShaderInput2d::ShaderInput2d(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform2d;
+	enableUniform_ = [this](GLint loc) { enableUniform2d(loc); };
 }
 
 ShaderInput3d::ShaderInput3d(
@@ -728,7 +752,7 @@ ShaderInput3d::ShaderInput3d(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform3d;
+	enableUniform_ = [this](GLint loc) { enableUniform3d(loc); };
 }
 
 ShaderInput4d::ShaderInput4d(
@@ -736,7 +760,7 @@ ShaderInput4d::ShaderInput4d(
 		GLuint elementCount,
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
-	enableUniform_ = &ShaderInput::enableUniform4d;
+	enableUniform_ = [this](GLint loc) { enableUniform4d(loc); };
 }
 
 ShaderInput1i::ShaderInput1i(
@@ -745,7 +769,7 @@ ShaderInput1i::ShaderInput1i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform1i;
+	enableUniform_ = [this](GLint loc) { enableUniform1i(loc); };
 }
 
 ShaderInput2i::ShaderInput2i(
@@ -754,7 +778,7 @@ ShaderInput2i::ShaderInput2i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform2i;
+	enableUniform_ = [this](GLint loc) { enableUniform2i(loc); };
 }
 
 ShaderInput3i::ShaderInput3i(
@@ -763,7 +787,7 @@ ShaderInput3i::ShaderInput3i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform3i;
+	enableUniform_ = [this](GLint loc) { enableUniform3i(loc); };
 }
 
 ShaderInput4i::ShaderInput4i(
@@ -772,7 +796,7 @@ ShaderInput4i::ShaderInput4i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform4i;
+	enableUniform_ = [this](GLint loc) { enableUniform4i(loc); };
 }
 
 ShaderInput1ui::ShaderInput1ui(
@@ -781,7 +805,7 @@ ShaderInput1ui::ShaderInput1ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform1ui;
+	enableUniform_ = [this](GLint loc) { enableUniform1ui(loc); };
 }
 
 ShaderInput2ui::ShaderInput2ui(
@@ -790,7 +814,7 @@ ShaderInput2ui::ShaderInput2ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform2ui;
+	enableUniform_ = [this](GLint loc) { enableUniform2ui(loc); };
 }
 
 ShaderInput3ui::ShaderInput3ui(
@@ -799,7 +823,7 @@ ShaderInput3ui::ShaderInput3ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform3ui;
+	enableUniform_ = [this](GLint loc) { enableUniform3ui(loc); };
 }
 
 ShaderInput4ui::ShaderInput4ui(
@@ -808,7 +832,56 @@ ShaderInput4ui::ShaderInput4ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, elementCount, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = &ShaderInput::enableUniform4ui;
+	enableUniform_ = [this](GLint loc) { enableUniform4ui(loc); };
+}
+
+/////////////
+/////////////
+/////////////
+
+// declare the private struct
+struct UniformBlock::UniformBlockData {
+	ref_ptr<UBO> ubo;
+};
+
+UniformBlock::UniformBlock(const std::string &name) :
+	ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, GL_FALSE){
+	enableUniform_ = [this](GLint loc) { enableUniformBlock(loc); };
+	isUniformBlock_ = GL_TRUE;
+	isVertexAttribute_ = GL_FALSE;
+	isVertexAttribute_ = GL_FALSE;
+	priv_ = new UniformBlockData();
+	priv_->ubo = ref_ptr<UBO>::alloc();
+}
+
+UniformBlock::~UniformBlock() {
+	delete priv_;
+}
+
+GLuint UniformBlock::stamp() const {
+	return priv_->ubo->stamp();
+}
+
+void UniformBlock::enableUniformBlock(GLint loc) const {
+	priv_->ubo->update();
+	priv_->ubo->bindBufferBase(loc);
+}
+
+const std::vector<ref_ptr<ShaderInput>> &UniformBlock::uniforms() const {
+	return priv_->ubo->uniforms();
+}
+
+void UniformBlock::addUniform(const ref_ptr<ShaderInput> &input) {
+	priv_->ubo->addUniform(input);
+}
+
+void UniformBlock::update(bool forceUpdate) {
+	priv_->ubo->update(forceUpdate);
+}
+
+void UniformBlock::write(std::ostream &out) const {
+	out << "uniform " << name() << " {\n";
+	out << "};";
 }
 
 /////////////

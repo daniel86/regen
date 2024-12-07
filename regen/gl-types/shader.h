@@ -203,11 +203,6 @@ namespace regen {
 		GLint uniformLocation(const std::string &name);
 
 		/**
-		 * Returns the location for a given uniform block name or -1 if the name is not known.
-		 */
-		GLint uniformBlockLocation(const std::string &name);
-
-		/**
 		 * Returns true if the given name is a valid uniform name and
 		 * the uniform has some data set (no null pointer data).
 		 */
@@ -325,7 +320,6 @@ namespace regen {
 		// location maps
 		std::map<std::string, GLint> samplerLocations_;
 		std::map<std::string, GLint> uniformLocations_;
-		std::map<std::string, GLint> uniformBlockLocations_;
 		std::map<std::string, GLint> attributeLocations_;
 
 		std::list<ShaderInputLocation> attributes_;

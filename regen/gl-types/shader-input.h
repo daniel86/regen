@@ -70,8 +70,7 @@ namespace regen {
 		 * @param valsPerElement number of values per element.
 		 * @return the created ShaderInput.
 		 */
-		static ref_ptr<ShaderInput> create(
-				const std::string &name, GLenum dataType, GLuint valsPerElement);
+		static ref_ptr<ShaderInput> create(const ref_ptr<ShaderInput> &in);
 
 		/**
 		 * Copy ShaderInput instance.
@@ -101,14 +100,19 @@ namespace regen {
 		virtual ~ShaderInput();
 
 		/**
-		 * Read ShaderInput.
-		 */
-		virtual std::istream &operator<<(std::istream &in) = 0;
-
-		/**
 		 * Write ShaderInput.
 		 */
-		virtual std::ostream &operator>>(std::ostream &out) const = 0;
+		virtual void write(std::ostream &out) const = 0;
+
+		/**
+		 * Name of this attribute used in shader programs.
+		 */
+		auto &name() const { return name_; }
+
+		/**
+		 * Name of this attribute used in shader programs.
+		 */
+		void set_name(const std::string &s) { name_ = s; }
 
 		/**
 		 * no call to glUniform when inactive.
@@ -125,22 +129,12 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		GLuint stamp() const;
+		virtual GLuint stamp() const;
 
 		/**
 		 * Sets a new stamp value.
 		 */
 		void nextStamp();
-
-		/**
-		 * Name of this attribute used in shader programs.
-		 */
-		const std::string &name() const;
-
-		/**
-		 * Name of this attribute used in shader programs.
-		 */
-		void set_name(const std::string &s);
 
 		/**
 		 * Specifies the data type of each component in the array.
@@ -287,6 +281,8 @@ namespace regen {
 		 * of the shader program.
 		 */
 		GLboolean isConstant() const;
+
+		auto isUniformBlock() const { return isUniformBlock_; }
 
 		/**
 		 * Uniforms with a single array element will appear
@@ -554,6 +550,7 @@ namespace regen {
 		GLuint stamp_;
 
 		GLboolean isConstant_;
+		GLboolean isUniformBlock_;
 		GLboolean forceArray_;
 		GLboolean active_;
 
@@ -561,7 +558,8 @@ namespace regen {
 
 		void (ShaderInput::*enableAttribute_)(GLint loc) const;
 
-		void (ShaderInput::*enableUniform_)(GLint loc) const;
+		//void (ShaderInput::*enableUniform_)(GLint loc) const;
+		std::function<void(GLint)> enableUniform_;
 
 		ShaderInput(const ShaderInput &);
 
@@ -577,17 +575,9 @@ namespace regen {
 		 * @param name the name overwrite.
 		 * @param type the type overwrite.
 		 */
-		NamedShaderInput(ref_ptr<ShaderInput> in,
+		NamedShaderInput(const ref_ptr<ShaderInput> &in,
 						 const std::string &name = "",
-						 const std::string &type = "")
-				: in_(in), name_(name), type_(type) {
-			if (name_.empty()) {
-				name_ = in->name();
-			}
-			if (type_.empty()) {
-				type_ = glenum::glslDataType(in->dataType(), in->valsPerElement());
-			}
-		}
+						 const std::string &type = "");
 
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
@@ -640,6 +630,8 @@ namespace regen {
 		 * Write ShaderInput.
 		 */
 		virtual std::ostream &operator>>(std::ostream &out) const { return out << *((ValueType *) data_); }
+
+		void write(std::ostream &out) const override { out << *((ValueType *) data_); }
 
 		/**
 		 * Set a value for the active stack data.
@@ -965,6 +957,46 @@ namespace regen {
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
+	};
+
+	/**
+	 * \brief Provides input data via a Uniform Buffer Object (UBO).
+	 */
+	class UniformBlock : public ShaderInput {
+	public:
+		/**
+		 * @param name the uniform block name.
+		 */
+		explicit UniformBlock(const std::string &name);
+
+		~UniformBlock() override;
+
+		UniformBlock(const UniformBlock &) = delete;
+
+		GLuint stamp() const override;
+
+		/**
+		 * @return the list of uniforms.
+		 */
+		const std::vector<ref_ptr<ShaderInput>> &uniforms() const;
+
+		/**
+		 * @param input the uniform to add.
+		 */
+		void addUniform(const ref_ptr<ShaderInput> &input);
+
+		/**
+		 * @param forceUpdate force update.
+		 */
+		void update(bool forceUpdate = false);
+
+		void enableUniformBlock(GLint loc) const;
+
+		void write(std::ostream &out) const override;
+
+	protected:
+		struct UniformBlockData;
+		UniformBlockData *priv_;
 	};
 } // namespace
 

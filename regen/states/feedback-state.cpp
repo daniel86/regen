@@ -25,8 +25,7 @@ void FeedbackSpecification::addFeedback(const ref_ptr<ShaderInput> &in) {
 	feedbackCount_ = feedbackCount;
 
 	// create feedback attribute
-	ref_ptr<ShaderInput> feedback = ShaderInput::create(
-			in->name(), in->dataType(), in->valsPerElement());
+	ref_ptr<ShaderInput> feedback = ShaderInput::create(in);
 	feedback->set_inputSize(feedbackCount * feedback->elementSize());
 	feedback->set_numVertices(feedbackCount);
 	feedbackAttributes_.push_front(feedback);
