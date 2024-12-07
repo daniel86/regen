@@ -57,21 +57,26 @@ ref_ptr<Box> Box::getUnitCube() {
 }
 
 Box::Box(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.usage) {
+		: Mesh(GL_TRIANGLES, cfg.usage),
+		  texcoMode_(cfg.texcoMode) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
+	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	updateAttributes(cfg);
 }
 
 Box::Box(const ref_ptr<Box> &other)
-		: Mesh(other) {
+		: Mesh(other),
+		  texcoMode_(other->texcoMode_) {
 	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
 			inputContainer_->getInput(ATTRIBUTE_NAME_POS));
 	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(
 			inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
 	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(
 			inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
+	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(
+			inputContainer_->getInput("i"));
 }
 
 Box::Config::Config()
@@ -85,195 +90,155 @@ Box::Config::Config()
 		  usage(VBO::USAGE_DYNAMIC) {
 }
 
-void Box::generateLODLevel(const Config &cfg,
-				TexcoMode texcoMode,
-				const Mat4f &rotMat,
-				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset) {
-	static const Vec3f cubeNormals[] = {
-			Vec3f(0.0f, 0.0f, 1.0f), // Front
-			Vec3f(0.0f, 0.0f, -1.0f), // Back
-			Vec3f(0.0f, 1.0f, 0.0f), // Top
-			Vec3f(0.0f, -1.0f, 0.0f), // Bottom
-			Vec3f(1.0f, 0.0f, 0.0f), // Right
-			Vec3f(-1.0f, 0.0f, 0.0f)  // Left
-	};
-	static const TriangleVertex cubeVertices[] = {
-			// Front
-			TriangleVertex(Vec3f(-1.0, -1.0, 1.0), 0),
-			TriangleVertex(Vec3f(1.0, -1.0, 1.0), 1),
-			TriangleVertex(Vec3f(1.0, 1.0, 1.0), 2),
-			TriangleVertex(Vec3f(-1.0, 1.0, 1.0), 3),
-			// Back
-			TriangleVertex(Vec3f(-1.0, -1.0, -1.0), 0),
-			TriangleVertex(Vec3f(-1.0, 1.0, -1.0), 1),
-			TriangleVertex(Vec3f(1.0, 1.0, -1.0), 2),
-			TriangleVertex(Vec3f(1.0, -1.0, -1.0), 3),
-			// Top
-			TriangleVertex(Vec3f(-1.0, 1.0, -1.0), 0),
-			TriangleVertex(Vec3f(-1.0, 1.0, 1.0), 1),
-			TriangleVertex(Vec3f(1.0, 1.0, 1.0), 2),
-			TriangleVertex(Vec3f(1.0, 1.0, -1.0), 3),
-			// Bottom
-			TriangleVertex(Vec3f(-1.0, -1.0, -1.0), 0),
-			TriangleVertex(Vec3f(1.0, -1.0, -1.0), 1),
-			TriangleVertex(Vec3f(1.0, -1.0, 1.0), 2),
-			TriangleVertex(Vec3f(-1.0, -1.0, 1.0), 3),
-			// Right
-			TriangleVertex(Vec3f(1.0, -1.0, -1.0), 0),
-			TriangleVertex(Vec3f(1.0, 1.0, -1.0), 1),
-			TriangleVertex(Vec3f(1.0, 1.0, 1.0), 2),
-			TriangleVertex(Vec3f(1.0, -1.0, 1.0), 3),
-			// Left
-			TriangleVertex(Vec3f(-1.0, -1.0, -1.0), 0),
-			TriangleVertex(Vec3f(-1.0, -1.0, 1.0), 1),
-			TriangleVertex(Vec3f(-1.0, 1.0, 1.0), 2),
-			TriangleVertex(Vec3f(-1.0, 1.0, -1.0), 3)
-	};
-	static const GLfloat cubeTexcoords[] = {
-		// Front
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
-		// Back
-		1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-		// Top
-		0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0,
-		// Bottom
-		1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0,
-		// Right
-		1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0,
-		// Left
-		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0
-	};
+void Box::generateLODLevel(
+		const Config &cfg,
+		GLuint sideIndex,
+		GLuint lodLevel,
+		const std::vector<Tessellation> &tessellations) {
+    static const Vec3f cubeNormals[] = {
+        Vec3f(0.0f, 0.0f, 1.0f), // Front
+        Vec3f(0.0f, 0.0f, -1.0f), // Back
+        Vec3f(0.0f, 1.0f, 0.0f), // Top
+        Vec3f(0.0f, -1.0f, 0.0f), // Bottom
+        Vec3f(1.0f, 0.0f, 0.0f), // Right
+        Vec3f(-1.0f, 0.0f, 0.0f)  // Left
+    };
+    static const Mat4f faceRotations[] = {
+        Mat4f::identity(), // Front
+        Mat4f::rotationMatrix(0.0f, M_PI, 0.0f), // Back
+        Mat4f::rotationMatrix(M_PI_2, 0.0f, 0.0f), // Top
+        Mat4f::rotationMatrix(-M_PI_2, 0.0f, 0.0f), // Bottom
+        Mat4f::rotationMatrix(0.0f, -M_PI_2, 0.0f), // Right
+        Mat4f::rotationMatrix(0.0f, M_PI_2, 0.0f)  // Left
+    };
 
-	GLuint vertexBase = vertexOffset;
+    auto &tessellation = tessellations[lodLevel];
+    auto vertexOffset = meshLODs_[lodLevel].vertexOffset + sideIndex * tessellation.vertices.size();
+    auto indexOffset = meshLODs_[lodLevel].indexOffset + sideIndex * tessellation.outputFaces.size() * 3;
+    const Vec3f &normal = cubeNormals[sideIndex];
+    const Mat4f &faceRotMat = faceRotations[sideIndex];
+    auto *indicesPtr = (GLuint *) indices_->clientDataPtr();
+    GLuint nextIndex = indexOffset;
 
-	for (GLuint sideIndex = 0; sideIndex < 6; ++sideIndex) {
-		const Vec3f &normal = cubeNormals[sideIndex];
-		auto *level0 = (TriangleVertex *) cubeVertices;
-		auto *uv0 = (Vec2f *) cubeTexcoords;
-		level0 += sideIndex * 4;
-		uv0 += sideIndex * 4;
+    for (const auto &tessFace : tessellation.outputFaces) {
+        indicesPtr[nextIndex++] = vertexOffset + tessFace.v1;
+        indicesPtr[nextIndex++] = vertexOffset + tessFace.v2;
+        indicesPtr[nextIndex++] = vertexOffset + tessFace.v3;
+    }
 
-		// Tessellate cube face
-		std::vector<TriangleFace> facesLevel0(2);
-		facesLevel0[0] = TriangleFace(level0[0], level0[1], level0[3]);
-		facesLevel0[1] = TriangleFace(level0[1], level0[2], level0[3]);
-		auto faces = tessellate(lodLevel, facesLevel0);
+    GLuint triIndices[3];
+    Vec3f triVertices[3];
+    Vec2f triTexco[3];
 
-		for (GLuint faceIndex = 0; faceIndex < faces.size(); ++faceIndex) {
-			GLuint vertexIndex = faceIndex * 3 + vertexBase;
-			TriangleFace &face = faces[faceIndex];
-			auto *f = (TriangleVertex *) &face;
+    for (GLuint faceIndex = 0; faceIndex < tessellation.outputFaces.size(); ++faceIndex) {
+        const auto &face = tessellation.outputFaces[faceIndex];
+        GLuint faceVertIndex = 0;
 
-			for (GLuint i = 0; i < 3; ++i) {
-				pos_->setVertex(vertexIndex + i, cfg.posScale * rotMat.transformVector(f[i].p));
-			}
-			if (cfg.isNormalRequired) {
-				for (GLuint i = 0; i < 3; ++i) nor_->setVertex(vertexIndex + i, normal);
-			}
+        for (const auto &tessIndex : {face.v1, face.v2, face.v3}) {
+            const auto &vertex = tessellation.vertices[tessIndex];
+            auto vertexIndex = vertexOffset + tessIndex;
+            triIndices[faceVertIndex] = vertexIndex;
 
-			if (texcoMode == TEXCO_MODE_CUBE_MAP) {
-				auto *texco = (Vec3f *) texco_->clientData();
-				for (GLuint i = 0; i < 3; ++i) {
-					Vec3f v = f[i].p;
-					v.normalize();
-					texco[vertexIndex + i] = v;
-				}
-			} else if (texcoMode == TEXCO_MODE_UV) {
-				auto *texco = (Vec2f *) texco_->clientData();
+            Vec3f faceVertex = faceRotMat.transformVector(vertex) + normal;
+            pos_->setVertex(vertexIndex, cfg.posScale * modelRotation_.transformVector(faceVertex));
+            if (cfg.isNormalRequired) {
+                nor_->setVertex(vertexIndex, normal);
+            }
+            if (texcoMode_ == TEXCO_MODE_CUBE_MAP) {
+                auto *texco = (Vec3f *) texco_->clientData();
+                Vec3f v = faceVertex;
+                v.normalize();
+                texco[vertexIndex] = v;
+                triTexco[faceVertIndex] = Vec2f(vertex.x, vertex.y)*0.5f + Vec2f(0.5f);
+            } else if (texcoMode_ == TEXCO_MODE_UV) {
+                auto *texco = (Vec2f *) texco_->clientData();
+                Vec2f uv;
+                switch (sideIndex) {
+                    case 0: // Front face
+                        uv = Vec2f((faceVertex.x + 1.0f) * 0.5f, (faceVertex.y + 1.0f) * 0.5f);
+                        uv.x *= cfg.posScale.x;
+                        uv.y *= cfg.posScale.y;
+                        break;
+                    case 1: // Back face
+                        uv = Vec2f((faceVertex.x + 1.0f) * 0.5f, (faceVertex.y + 1.0f) * 0.5f);
+                        uv.x *= cfg.posScale.x;
+                        uv.y *= cfg.posScale.y;
+                        break;
+                    case 2: // Top face
+                        uv = Vec2f((faceVertex.x + 1.0f) * 0.5f, (faceVertex.z + 1.0f) * 0.5f);
+                        uv.x *= cfg.posScale.x;
+                        uv.y *= cfg.posScale.z;
+                        break;
+                    case 3: // Bottom face
+                        uv = Vec2f((faceVertex.x + 1.0f) * 0.5f, (faceVertex.z + 1.0f) * 0.5f);
+						uv.x *= cfg.posScale.x;
+						uv.y *= cfg.posScale.z;
+                        break;
+                    case 4: // Right face
+                        uv = Vec2f((faceVertex.z + 1.0f) * 0.5f, (faceVertex.y + 1.0f) * 0.5f);
+						uv.x *= cfg.posScale.z;
+						uv.y *= cfg.posScale.y;
+                        break;
+                    case 5: // Left face
+                        uv = Vec2f((1.0f - faceVertex.z) * 0.5f, (faceVertex.y + 1.0f) * 0.5f);
+						uv.x *= cfg.posScale.z;
+						uv.y *= cfg.posScale.y;
+                        break;
+                    default:
+                        uv = Vec2f(0.0f);
+                }
+                uv *= cfg.texcoScale;
+                texco[vertexIndex] = uv;
+                triTexco[faceVertIndex] = uv;
+            }
+            if (cfg.isTangentRequired) {
+                triVertices[faceVertIndex] = pos_->getVertex(vertexIndex);
+            }
+            faceVertIndex += 1;
+        }
 
-				for (GLuint i = 0; i < 3; ++i) {
-					Vec3f pos = f[i].p;
-					Vec2f uv;
-                    switch (sideIndex) {
-                        case 0: // Front face
-                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
-                            uv.x *= cfg.posScale.x;
-                            uv.y *= cfg.posScale.y;
-                            break;
-                        case 1: // Back face
-                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
-                            uv.x *= cfg.posScale.x;
-                            uv.y *= cfg.posScale.y;
-                            break;
-                        case 2: // Top face
-                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.z + 1.0f) * 0.5f);
-                            uv.x *= cfg.posScale.x;
-                            uv.y *= cfg.posScale.z;
-                            break;
-                        case 3: // Bottom face
-                            uv = Vec2f((pos.x + 1.0f) * 0.5f, (pos.z + 1.0f) * 0.5f);
-                            uv.x *= cfg.posScale.x;
-                            uv.y *= cfg.posScale.z;
-                            break;
-                        case 4: // Right face
-                            uv = Vec2f((pos.z + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
-                            uv.x *= cfg.posScale.z;
-                            uv.y *= cfg.posScale.y;
-                            break;
-                        case 5: // Left face
-                            uv = Vec2f((1.0f - pos.z) * 0.5f, (pos.y + 1.0f) * 0.5f);
-                            uv.x *= cfg.posScale.z;
-                            uv.y *= cfg.posScale.y;
-                            break;
-                        default:
-                            uv = Vec2f(0.0f);
-                    }
-                    uv *= cfg.texcoScale;
-					texco[vertexIndex + i] = uv;
-				}
-				/*
-				for (GLuint i = 0; i < 3; ++i) {
-					// linear interpolate texture coordinates
-					const Vec3f &p = pos_->getVertex(vertexIndex + i);
-					GLfloat d0 = (p - level0[0].p).length();
-					GLfloat d1 = (p - level0[1].p).length();
-					GLfloat d2 = (p - level0[2].p).length();
-					GLfloat d3 = (p - level0[3].p).length();
-					GLfloat f0 = d1 / (d0 + d1);
-					GLfloat f1 = d0 / (d0 + d1);
-					GLfloat f2 = d2 / (d2 + d3);
-					GLfloat f3 = d3 / (d2 + d3);
-					Vec3f p01 = level0[0].p * f0 + level0[1].p * f1;
-					Vec3f p23 = level0[2].p * f2 + level0[3].p * f3;
-					Vec2f uv01 = uv0[0] * f0 + uv0[1] * f1;
-					Vec2f uv23 = uv0[2] * f2 + uv0[3] * f3;
-					GLfloat d01 = (p - p01).length();
-					GLfloat d23 = (p - p23).length();
-					GLfloat f01 = d23 / (d01 + d23);
-					GLfloat f23 = d01 / (d01 + d23);
-					texco[vertexIndex + i] = (uv01 * f01 + uv23 * f23) * cfg.texcoScale;
-				}
-				 */
-			}
-
-			if (cfg.isTangentRequired) {
-				Vec3f *vertices = ((Vec3f *) pos_->clientDataPtr()) + vertexIndex;
-				Vec2f *texcos = ((Vec2f *) texco_->clientDataPtr()) + vertexIndex;
-				Vec4f tangent = calculateTangent(vertices, texcos, normal);
-				for (GLuint i = 0; i < 3; ++i) tan_->setVertex(vertexIndex + i, tangent);
-			}
-		}
-		vertexBase += faces.size() * 3;
-	}
+        if (cfg.isTangentRequired) {
+            Vec4f tangent = calculateTangent(triVertices, triTexco, normal);
+            for (GLuint i = 0; i < 3; ++i) {
+                tan_->setVertex(triIndices[i], tangent);
+            }
+        }
+    }
 }
 
 void Box::updateAttributes(const Config &cfg) {
-    std::vector<GLuint> LODs;
-    GLuint vertexOffset = 0;
-    for (auto &lod : cfg.levelOfDetails) {
-		LODs.push_back(lod);
-		auto &x = meshLODs_.emplace_back();
+    std::vector<Tessellation> tessellations;
+    GLuint numVertices = 0;
+    GLuint numIndices = 0;
 
-		GLuint numTrisPerFace = pow(4.0, lod) * 2;
-		x.numVertices = numTrisPerFace * 3 * 6;
-		x.vertexOffset = vertexOffset;
-		vertexOffset += x.numVertices;
-	}
-	GLuint numVertices = vertexOffset;
-	Mat4f rotMat = Mat4f::rotationMatrix(
-			cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
+    // Generate base tessellation for a single face (front face)
+    Tessellation baseTess;
+    baseTess.vertices.resize(4);
+    baseTess.vertices[0] = Vec3f(-1.0, -1.0, 0.0);
+    baseTess.vertices[1] = Vec3f(1.0, -1.0, 0.0);
+    baseTess.vertices[2] = Vec3f(1.0, 1.0, 0.0);
+    baseTess.vertices[3] = Vec3f(-1.0, 1.0, 0.0);
+    baseTess.inputFaces.resize(2);
+    baseTess.inputFaces[0] = TessellationFace(0, 1, 3);
+    baseTess.inputFaces[1] = TessellationFace(1, 2, 3);
+
+    // Generate tessellations for each LOD level
+    for (GLuint lodLevel : cfg.levelOfDetails) {
+        auto &lodTess = tessellations.emplace_back();
+        lodTess.vertices = baseTess.vertices;
+        lodTess.inputFaces = baseTess.inputFaces;
+        tessellate(lodLevel, lodTess);
+
+        auto &x = meshLODs_.emplace_back();
+        x.numVertices = lodTess.vertices.size() * 6; // 6 faces
+        x.numIndices = lodTess.outputFaces.size() * 3 * 6; // 6 faces
+        x.vertexOffset = numVertices;
+        x.indexOffset = numIndices;
+        numVertices += x.numVertices;
+        numIndices += x.numIndices;
+    }
+
+	modelRotation_ = Mat4f::rotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
 
 	// allocate attributes
 	pos_->setVertexData(numVertices);
@@ -294,15 +259,16 @@ void Box::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
+    indices_->setVertexData(numIndices);
 
-    for (auto i=0u; i<LODs.size(); ++i) {
-    	generateLODLevel(cfg, texcoMode, rotMat,
-    			LODs[i],
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
-	}
+    for (auto lodLevel = 0u; lodLevel < tessellations.size(); ++lodLevel) {
+        for (GLuint sideIndex = 0; sideIndex < 6; ++sideIndex) {
+            generateLODLevel(cfg, sideIndex, lodLevel, tessellations);
+        }
+    }
 
 	begin(ShaderInputContainer::INTERLEAVED);
+	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
 		setInput(nor_);
@@ -314,7 +280,7 @@ void Box::updateAttributes(const Config &cfg) {
 
     for (auto &x : meshLODs_) {
     	// add the index buffer offset (in number of bytes)
-    	//x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 	minPosition_ = -cfg.posScale;

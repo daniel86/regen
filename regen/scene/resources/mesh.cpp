@@ -100,7 +100,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	} else if (meshType == "rectangle") {
 		Rectangle::Config meshCfg;
 		meshCfg.centerAtOrigin = input.getValue<bool>("center", true);
-		meshCfg.levelOfDetail = lodLevels[0];
+		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.posScale = scaling;
 		meshCfg.rotation = rotation;
 		meshCfg.texcoScale = texcoScaling;

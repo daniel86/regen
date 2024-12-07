@@ -10,6 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/math/vector.h>
+#include <regen/meshes/tessellation.h>
 
 namespace regen {
 	/**
@@ -77,17 +78,19 @@ namespace regen {
 		void updateAttributes(const Config &cfg = Config());
 
 	protected:
+		ref_ptr<ShaderInput1ui> indices_;
 		ref_ptr<ShaderInput3f> pos_;
 		ref_ptr<ShaderInput3f> nor_;
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput> texco_;
+		TexcoMode texcoMode_;
+		Mat4f modelRotation_;
 
-		void generateLODLevel(const Config &cfg,
-				TexcoMode texcoMode,
-				const Mat4f &rotMat,
+		void generateLODLevel(
+				const Config &cfg,
+				GLuint sideIndex,
 				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset);
+				const std::vector<Tessellation> &tessellations);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const Box::TexcoMode &mode);

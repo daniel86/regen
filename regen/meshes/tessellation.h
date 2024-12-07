@@ -56,6 +56,33 @@ namespace regen {
 		TriangleVertex v3;
 	};
 
+	struct TessellationFace {
+		TessellationFace() = default;
+		TessellationFace(const GLuint &_v1, const GLuint &_v2, const GLuint &_v3)
+				: v1(_v1), v2(_v2), v3(_v3) {}
+		GLuint v1;
+		GLuint v2;
+		GLuint v3;
+	};
+
+	/**
+	 * Tessellation data.
+	 */
+	struct Tessellation {
+		std::vector<Vec3f> vertices;
+		std::vector<TessellationFace> inputFaces;
+		std::vector<TessellationFace> outputFaces;
+	};
+
+	/**
+	 * Tessellate input triangles.
+	 * Each tessellation step divides each triangle face in
+	 * 4 smaller triangles.
+	 * @param lod Number of tessellation steps.
+	 * @param tessellation tessellation data.
+	 */
+	void tessellate(GLuint lod, Tessellation &tessellation);
+
 	/**
 	 * Tessellation input triangles.
 	 * Each tessellation step divides each triangle face in
