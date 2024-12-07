@@ -358,14 +358,14 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="statue-platform" type="box" lod-levels="3, 2, 0"
+    <mesh id="pedestal-mesh" type="box" lod-levels="3, 2, 0"
             use-normal="1" use-tangent="1" center="1" usage="STATIC"
             scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
-        <transform id="statue-platform-tf">
+        <transform id="pedestal-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
         </transform>
-        <physics mesh-id="statue-platform" transform-id="statue-platform-tf"
+        <physics mesh-id="pedestal-mesh" transform-id="pedestal-tf"
                  shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
         <material preset="wood" variant="1" color-blend-mode="mul"
             diffuse="0.9, 0.8, 0.7"/>
@@ -381,11 +381,11 @@
         <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75" />
     </mesh>
 
-    <node id="Statues" cull-shape="aabb">
-        <node id="statue-platform"
-                cull-mesh="statue-platform" cull-tf="statue-platform-tf">
-            <mesh id="statue-platform" shader="regen.models.mesh"
-                lod-close-distance="40.0" lod-medium-distance="100.0"  lod-tf="statue-platform-tf" />
+    <node id="Pedestal" cull-shape="aabb">
+        <node id="pedestal"
+                cull-mesh="pedestal-mesh" cull-tf="pedestal-tf">
+            <mesh id="pedestal-mesh" shader="regen.models.mesh"
+                lod-close-distance="40.0" lod-medium-distance="100.0"  lod-tf="pedestal-tf" />
         </node>
         <node id="statue-slope" cull-mesh="slope-mesh" cull-tf="slope-tf">
             <mesh id="slope-mesh" shader="regen.models.mesh"/>
@@ -652,7 +652,7 @@
                 <mesh id="dwarf-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
         </node>
-        <node import="Statues"/>
+        <node import="Pedestal"/>
         <node import="Garden-Items"/>
         <node import="Stairs"/>
         <node import="Platforms"/>
