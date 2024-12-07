@@ -200,8 +200,7 @@ void Sphere::updateAttributes(const Config &cfg) {
     	// add the index buffer offset (in number of bytes)
     	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
-    inputContainer_->set_numIndices(meshLODs_[0].numIndices);
-    indices_->set_offset(meshLODs_[0].indexOffset);
+	activateLOD(0);
 	minPosition_ = -cfg.posScale;
 	maxPosition_ = cfg.posScale;
 }
