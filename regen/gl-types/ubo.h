@@ -10,6 +10,7 @@
 
 #include <map>
 #include <regen/gl-types/gl-object.h>
+#include <regen/gl-types/shader-input.h>
 
 namespace regen {
 	/**
@@ -21,6 +22,11 @@ namespace regen {
 	class UBO : public GLObject {
 	public:
 		UBO();
+
+		/**
+		 * @return the stamp.
+		 */
+		GLuint stamp() const;
 
 		/**
 		 * Add a uniform to the UBO.
@@ -57,6 +63,9 @@ namespace regen {
 		std::vector<ref_ptr<ShaderInput>> uniforms_;
 		GLuint allocatedSize_;
 		GLuint requiredSize_;
+		GLuint stamp_;
+
+		GLboolean needsUpdate() const;
 	};
 } // namespace
 

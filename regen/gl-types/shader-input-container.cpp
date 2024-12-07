@@ -53,8 +53,12 @@ void ShaderInputContainer::begin(DataLayout layout) {
 VBOReference ShaderInputContainer::end() {
 	VBOReference ref;
 	if (!uploadAttributes_.empty()) {
-		if (uploadLayout_ == SEQUENTIAL) { ref = inputBuffer_->allocSequential(uploadAttributes_); }
-		else if (uploadLayout_ == INTERLEAVED) { ref = inputBuffer_->allocInterleaved(uploadAttributes_); }
+		if (uploadLayout_ == SEQUENTIAL) {
+			ref = inputBuffer_->allocSequential(uploadAttributes_);
+		}
+		else if (uploadLayout_ == INTERLEAVED) {
+			ref = inputBuffer_->allocInterleaved(uploadAttributes_);
+		}
 		uploadAttributes_.clear();
 	}
 	uploadInputs_.clear();
