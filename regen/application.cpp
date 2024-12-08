@@ -251,6 +251,7 @@ void Application::initGL() {
 	VBO::createMemoryPools();
 	renderTree_->init();
 
+#if 0
 	globalUniforms_ = ref_ptr<UniformBlock>::alloc("GlobalUniforms");
 	globalUniforms_->addUniform(windowViewport_);
 	globalUniforms_->addUniform(mousePosition_);
@@ -261,6 +262,15 @@ void Application::initGL() {
 	globalUniforms_->addUniform(isMouseEntered_);
 	globalUniforms_->update();
 	renderTree_->state()->joinShaderInput(globalUniforms_);
+#else
+	renderTree_->state()->joinShaderInput(windowViewport_);
+	renderTree_->state()->joinShaderInput(mousePosition_);
+	renderTree_->state()->joinShaderInput(mouseTexco_);
+	renderTree_->state()->joinShaderInput(mouseDepth_);
+	renderTree_->state()->joinShaderInput(timeSeconds_);
+	renderTree_->state()->joinShaderInput(timeDelta_);
+	renderTree_->state()->joinShaderInput(isMouseEntered_);
+#endif
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");

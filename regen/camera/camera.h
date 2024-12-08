@@ -156,6 +156,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<ShaderInputContainer> inputs_;
+		ref_ptr<UniformBlock> cameraBlock_;
 		ref_ptr<ShaderInput1f> fov_;
 		ref_ptr<ShaderInput1f> aspect_;
 		ref_ptr<ShaderInput1f> far_;
