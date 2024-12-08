@@ -429,13 +429,16 @@ void Shader::setupInputLocations() {
 	}
 
 	glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
+	GLuint bindingPoint = 0;
 	for (GLint loc_ = 0; loc_ < count; ++loc_) {
 		// Note: uniforms inside a uniform block do not have individual uniform locations
 		glGetActiveUniformBlockName(id(), loc_, 320, &arraySize, nameC);
 		std::string blockName(truncPrefix(nameC, "in_"));
-		uniformLocations_[blockName] = loc_;
-		uniformLocations_[REGEN_STRING("u_" << blockName)] = loc_;
-		uniformLocations_[REGEN_STRING("in_" << blockName)] = loc_;
+		uniformLocations_[blockName] = bindingPoint;
+		uniformLocations_[REGEN_STRING("u_" << blockName)] = bindingPoint;
+		uniformLocations_[REGEN_STRING("in_" << blockName)] = bindingPoint;
+		glUniformBlockBinding(id(), loc_, bindingPoint);
+		++bindingPoint;
 	}
 
 	glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);

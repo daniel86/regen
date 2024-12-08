@@ -269,7 +269,9 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.value = "";
 			io.dataType = "";
 			for (auto &uniform: uniformBlock->uniforms()) {
-				io.block.push_back(getUniformIO(uniform).declaration());
+				auto memberIO = getUniformIO(uniform);
+				memberIO.ioType = "";
+				io.block.push_back(memberIO.declaration());
 				inputNames_.insert(getNameWithoutPrefix(uniform->name()));
 			}
 			uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix, io));

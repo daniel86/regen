@@ -13,48 +13,36 @@ Camera::Camera(GLboolean initializeMatrices)
 		: HasInputState(VBO::USAGE_DYNAMIC),
 		  isAudioListener_(GL_FALSE),
 		  camStamp_(0) {
+
 	fov_ = ref_ptr<ShaderInput1f>::alloc("fov");
 	fov_->setUniformDataUntyped(nullptr);
-	setInput(fov_);
 
 	aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
 	aspect_->setUniformDataUntyped(nullptr);
-	setInput(aspect_);
 
 	near_ = ref_ptr<ShaderInput1f>::alloc("near");
 	near_->setUniformDataUntyped(nullptr);
-	setInput(near_);
 
 	far_ = ref_ptr<ShaderInput1f>::alloc("far");
 	far_->setUniformDataUntyped(nullptr);
-	setInput(far_);
 
 	position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");
 	position_->setUniformData(Vec3f(0.0, 1.0, 4.0));
-	setInput(position_);
 
 	direction_ = ref_ptr<ShaderInput3f>::alloc("cameraDirection");
 	direction_->setUniformData(Vec3f(0, 0, -1));
-	setInput(direction_);
 
 	vel_ = ref_ptr<ShaderInput3f>::alloc("cameraVelocity");
 	vel_->setUniformData(Vec3f(0.0f));
-	setInput(vel_);
 
 	view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
-	setInput(view_);
 	viewInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewMatrix");
-	setInput(viewInv_);
 
 	proj_ = ref_ptr<ShaderInputMat4>::alloc("projectionMatrix");
-	setInput(proj_);
 	projInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseProjectionMatrix");
-	setInput(projInv_);
 
 	viewproj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
-	setInput(viewproj_);
 	viewprojInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
-	setInput(viewprojInv_);
 
 	updateFrustum(8.0 / 6.0, 45.0, 1.0, 200.0, GL_FALSE);
 	if (initializeMatrices) {
@@ -69,6 +57,38 @@ Camera::Camera(GLboolean initializeMatrices)
 		updateLookAt();
 		updateViewProjection();
 	}
+
+#if 0
+	cameraBlock_ = ref_ptr<UniformBlock>::alloc("Camera");
+	cameraBlock_->addUniform(fov_);
+	cameraBlock_->addUniform(aspect_);
+	cameraBlock_->addUniform(near_);
+	cameraBlock_->addUniform(far_);
+	cameraBlock_->addUniform(position_);
+	cameraBlock_->addUniform(direction_);
+	cameraBlock_->addUniform(vel_);
+	cameraBlock_->addUniform(view_);
+	cameraBlock_->addUniform(viewInv_);
+	cameraBlock_->addUniform(proj_);
+	cameraBlock_->addUniform(projInv_);
+	cameraBlock_->addUniform(viewproj_);
+	cameraBlock_->addUniform(viewprojInv_);
+	setInput(cameraBlock_);
+#else
+	setInput(fov_);
+	setInput(aspect_);
+	setInput(near_);
+	setInput(far_);
+	setInput(position_);
+	setInput(direction_);
+	setInput(vel_);
+	setInput(view_);
+	setInput(viewInv_);
+	setInput(proj_);
+	setInput(projInv_);
+	setInput(viewproj_);
+	setInput(viewprojInv_);
+#endif
 }
 
 void Camera::updateLookAt() {
