@@ -44,7 +44,7 @@ namespace regen {
 				ReleaseObjectFunc releaseObjects,
 				GLuint numObjects = 1);
 
-		~GLObject();
+		virtual ~GLObject();
 
 		/**
 		 * Releases and allocates resources again.

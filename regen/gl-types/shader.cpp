@@ -430,14 +430,18 @@ void Shader::setupInputLocations() {
 
 	glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
 	GLuint bindingPoint = 0;
-	for (GLint loc_ = 0; loc_ < count; ++loc_) {
-		// Note: uniforms inside a uniform block do not have individual uniform locations
-		glGetActiveUniformBlockName(id(), loc_, 320, &arraySize, nameC);
+	for (GLint blockIndex = 0; blockIndex < count; ++blockIndex) {
+		// Note: uniforms inside a uniform block do not have individual uniform locations,
+		// but each block has an index within the shader program.
+		glGetActiveUniformBlockName(id(), blockIndex, 320, &arraySize, nameC);
 		std::string blockName(truncPrefix(nameC, "in_"));
 		uniformLocations_[blockName] = bindingPoint;
 		uniformLocations_[REGEN_STRING("u_" << blockName)] = bindingPoint;
 		uniformLocations_[REGEN_STRING("in_" << blockName)] = bindingPoint;
-		glUniformBlockBinding(id(), loc_, bindingPoint);
+		// To bind data to a uniform block, we need to bind the uniform buffer object to a "binding point".
+		// We can choose which one but must make sure that the uniform buffer object is bound to the same binding point
+		// when the shader is used.
+		glUniformBlockBinding(id(), blockIndex, bindingPoint);
 		++bindingPoint;
 	}
 
@@ -567,7 +571,17 @@ void Shader::setTransformFeedback(const std::list<std::string> &transformFeedbac
 
 void Shader::enable(RenderState *rs) {
 	for (auto it = uniforms_.begin(); it != uniforms_.end(); ++it) {
-		if (it->input->stamp() != it->uploadStamp && it->input->active()) {
+		if (it->input->isUniformBlock()) {
+			auto *block = (UniformBlock *) it->input.get();
+			block->update();
+		}
+	}
+	for (auto it = uniforms_.begin(); it != uniforms_.end(); ++it) {
+		if (it->input->isUniformBlock()) {
+			auto *block = (UniformBlock *) it->input.get();
+			block->enable(it->location);
+		}
+		else if (it->input->stamp() != it->uploadStamp && it->input->active()) {
 			it->input->enableUniform(it->location);
 			it->uploadStamp = it->input->stamp();
 		}

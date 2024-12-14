@@ -1,10 +1,3 @@
-/*
- * fbo.h
- *
- *  Created on: 04.02.2011
- *      Author: daniel
- */
-
 #ifndef REGEN_UBO_H_
 #define REGEN_UBO_H_
 
@@ -22,6 +15,10 @@ namespace regen {
 	class UBO : public GLObject {
 	public:
 		UBO();
+
+		~UBO() override = default;
+
+		UBO(const UBO &) = delete;
 
 		/**
 		 * @return the stamp.
@@ -63,9 +60,12 @@ namespace regen {
 		std::vector<ref_ptr<ShaderInput>> uniforms_;
 		GLuint allocatedSize_;
 		GLuint requiredSize_;
+		GLboolean requiresResize_;
 		GLuint stamp_;
 
 		GLboolean needsUpdate() const;
+
+		void computePaddedSize();
 	};
 } // namespace
 

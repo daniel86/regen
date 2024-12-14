@@ -862,6 +862,10 @@ GLuint UniformBlock::stamp() const {
 	return priv_->ubo->stamp();
 }
 
+void UniformBlock::enable(GLint loc) const {
+	priv_->ubo->bindBufferBase(loc);
+}
+
 void UniformBlock::enableUniformBlock(GLint loc) const {
 	priv_->ubo->update();
 	priv_->ubo->bindBufferBase(loc);

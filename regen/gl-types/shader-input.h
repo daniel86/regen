@@ -992,6 +992,8 @@ namespace regen {
 
 		void enableUniformBlock(GLint loc) const;
 
+		void enable(GLint loc) const;
+
 		void write(std::ostream &out) const override;
 
 	protected:
