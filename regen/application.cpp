@@ -203,15 +203,15 @@ void Application::initGL() {
 	REGEN_DEBUG("VERSION: " << glGetString(GL_VERSION));
 
 	// check for required and optional extensions
-	for (std::list<std::string>::iterator it = requiredExt_.begin(); it != requiredExt_.end(); ++it) {
-		if (!glewIsSupported(it->c_str())) {
-			REGEN_ERROR((*it) << " unsupported.");
+	for (auto & it : requiredExt_) {
+		if (!glewIsSupported(it.c_str())) {
+			REGEN_ERROR(it << " unsupported.");
 			exit(0);
-		} else {REGEN_DEBUG((*it) << " supported."); }
+		} else {REGEN_DEBUG(it << " supported."); }
 	}
-	for (std::list<std::string>::iterator it = optionalExt_.begin(); it != optionalExt_.end(); ++it) {
-		if (!glewIsSupported(it->c_str())) {REGEN_DEBUG((*it) << " unsupported."); }
-		else {REGEN_DEBUG((*it) << " supported."); }
+	for (auto & it : optionalExt_) {
+		if (!glewIsSupported(it.c_str())) {REGEN_DEBUG(it << " unsupported."); }
+		else {REGEN_DEBUG(it << " supported."); }
 	}
 
 #define DEBUG_GLi(dname, pname) { \
@@ -250,27 +250,6 @@ void Application::initGL() {
 
 	VBO::createMemoryPools();
 	renderTree_->init();
-
-#if 0
-	globalUniforms_ = ref_ptr<UniformBlock>::alloc("GlobalUniforms");
-	globalUniforms_->addUniform(windowViewport_);
-	globalUniforms_->addUniform(mousePosition_);
-	globalUniforms_->addUniform(mouseTexco_);
-	globalUniforms_->addUniform(mouseDepth_);
-	globalUniforms_->addUniform(timeSeconds_);
-	globalUniforms_->addUniform(timeDelta_);
-	globalUniforms_->addUniform(isMouseEntered_);
-	globalUniforms_->update();
-	renderTree_->state()->joinShaderInput(globalUniforms_);
-#else
-	renderTree_->state()->joinShaderInput(windowViewport_);
-	renderTree_->state()->joinShaderInput(mousePosition_);
-	renderTree_->state()->joinShaderInput(mouseTexco_);
-	renderTree_->state()->joinShaderInput(mouseDepth_);
-	renderTree_->state()->joinShaderInput(timeSeconds_);
-	renderTree_->state()->joinShaderInput(timeDelta_);
-	renderTree_->state()->joinShaderInput(isMouseEntered_);
-#endif
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");
@@ -289,6 +268,19 @@ void Application::clear() {
 	idToObject_.clear();
 	isTimeInitialized_ = GL_FALSE;
 	RenderState::reset();
+
+	// TODO: for some reason UBO cannot be created in initGL above.
+	//       well it can gets ID 1, but the first UBO in the loaded scene
+	//       gets ID 1 too, then there is flickering. Not sure why.
+	globalUniforms_ = ref_ptr<UniformBlock>::alloc("GlobalUniforms");
+	globalUniforms_->addUniform(windowViewport_);
+	globalUniforms_->addUniform(mousePosition_);
+	globalUniforms_->addUniform(mouseTexco_);
+	globalUniforms_->addUniform(mouseDepth_);
+	globalUniforms_->addUniform(timeSeconds_);
+	globalUniforms_->addUniform(timeDelta_);
+	globalUniforms_->addUniform(isMouseEntered_);
+	renderTree_->state()->joinShaderInput(globalUniforms_);
 }
 
 void Application::registerInteraction(const std::string &name, const ref_ptr<SceneInteraction> &interaction) {

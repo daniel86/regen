@@ -58,37 +58,21 @@ Camera::Camera(GLboolean initializeMatrices)
 		updateViewProjection();
 	}
 
-#if 0
 	cameraBlock_ = ref_ptr<UniformBlock>::alloc("Camera");
-	cameraBlock_->addUniform(fov_);
-	cameraBlock_->addUniform(aspect_);
-	cameraBlock_->addUniform(near_);
-	cameraBlock_->addUniform(far_);
-	cameraBlock_->addUniform(position_);
-	cameraBlock_->addUniform(direction_);
-	cameraBlock_->addUniform(vel_);
 	cameraBlock_->addUniform(view_);
 	cameraBlock_->addUniform(viewInv_);
 	cameraBlock_->addUniform(proj_);
 	cameraBlock_->addUniform(projInv_);
 	cameraBlock_->addUniform(viewproj_);
 	cameraBlock_->addUniform(viewprojInv_);
+	cameraBlock_->addUniform(position_);
+	cameraBlock_->addUniform(fov_);
+	cameraBlock_->addUniform(direction_);
+	cameraBlock_->addUniform(aspect_);
+	cameraBlock_->addUniform(vel_);
+	cameraBlock_->addUniform(near_);
+	cameraBlock_->addUniform(far_);
 	setInput(cameraBlock_);
-#else
-	setInput(fov_);
-	setInput(aspect_);
-	setInput(near_);
-	setInput(far_);
-	setInput(position_);
-	setInput(direction_);
-	setInput(vel_);
-	setInput(view_);
-	setInput(viewInv_);
-	setInput(proj_);
-	setInput(projInv_);
-	setInput(viewproj_);
-	setInput(viewprojInv_);
-#endif
 }
 
 void Camera::updateLookAt() {
