@@ -175,6 +175,8 @@ namespace regen {
 		 */
 		FBO(GLuint width, GLuint height, GLuint depth = 1);
 
+		FBO(const FBO &) = delete;
+
 		/**
 		 * Specifies a list of color buffers to be drawn into.
 		 */
@@ -204,6 +206,11 @@ namespace regen {
 		 * @return the target texel size.
 		 */
 		const ref_ptr<ShaderInput2f> &inverseViewport() const;
+
+		/**
+		 * @return the uniforms.
+		 */
+		auto &uniforms() const { return uniforms_; }
 
 		/**
 		 * @return depth of attachment textures.
@@ -381,6 +388,7 @@ namespace regen {
 
 		ref_ptr<ShaderInput2f> viewport_;
 		ref_ptr<ShaderInput2f> inverseViewport_;
+		ref_ptr<UniformBlock> uniforms_;
 		Vec4ui glViewport_;
 	};
 } // namespace

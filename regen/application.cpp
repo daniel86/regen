@@ -269,18 +269,20 @@ void Application::clear() {
 	isTimeInitialized_ = GL_FALSE;
 	RenderState::reset();
 
-	// TODO: for some reason UBO cannot be created in initGL above.
-	//       well it can gets ID 1, but the first UBO in the loaded scene
-	//       gets ID 1 too, then there is flickering. Not sure why.
-	globalUniforms_ = ref_ptr<UniformBlock>::alloc("GlobalUniforms");
-	globalUniforms_->addUniform(windowViewport_);
-	globalUniforms_->addUniform(mousePosition_);
-	globalUniforms_->addUniform(mouseTexco_);
-	globalUniforms_->addUniform(mouseDepth_);
-	globalUniforms_->addUniform(timeSeconds_);
-	globalUniforms_->addUniform(timeDelta_);
-	globalUniforms_->addUniform(isMouseEntered_);
-	renderTree_->state()->joinShaderInput(globalUniforms_);
+	if (!globalUniforms_.get()) {
+		// TODO: for some reason UBO cannot be created in initGL above.
+		//       well it can gets ID 1, but the first UBO in the loaded scene
+		//       gets ID 1 too, then there is flickering. Not sure why.
+		globalUniforms_ = ref_ptr<UniformBlock>::alloc("GlobalUniforms");
+		globalUniforms_->addUniform(windowViewport_);
+		globalUniforms_->addUniform(mousePosition_);
+		globalUniforms_->addUniform(mouseTexco_);
+		globalUniforms_->addUniform(mouseDepth_);
+		globalUniforms_->addUniform(timeSeconds_);
+		globalUniforms_->addUniform(timeDelta_);
+		globalUniforms_->addUniform(isMouseEntered_);
+		renderTree_->state()->joinShaderInput(globalUniforms_);
+	}
 }
 
 void Application::registerInteraction(const std::string &name, const ref_ptr<SceneInteraction> &interaction) {

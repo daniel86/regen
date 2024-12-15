@@ -169,6 +169,7 @@ namespace regen {
 		ref_ptr<Texture> input_;
 		ref_ptr<ShaderInput2f> viewport_;
 		ref_ptr<ShaderInput2f> inverseViewport_;
+		ref_ptr<UniformBlock> uniforms_;
 
 		GLboolean clearFirstFilter_;
 		Vec4f clearColor_;

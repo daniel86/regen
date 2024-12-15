@@ -70,6 +70,11 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
 	readBuffer_.push(GL_COLOR_ATTACHMENT0);
 	rs->readFrameBuffer().pop();
 	GL_ERROR_LOG();
+
+	uniforms_ = ref_ptr<UniformBlock>::alloc("FBO");
+	uniforms_->addUniform(viewport_);
+	uniforms_->addUniform(inverseViewport_);
+	GL_ERROR_LOG();
 }
 
 void FBO::set_depthAttachment(const ref_ptr<Texture> &tex) {

@@ -211,6 +211,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> materialEmission_;
 		ref_ptr<ShaderInput1f> materialRefractionIndex_;
 		ref_ptr<ShaderInput1f> materialAlpha_;
+		ref_ptr<UniformBlock> materialUniforms_;
 
 		GLenum mipmapFlag_;
 		GLenum forcedType_;
