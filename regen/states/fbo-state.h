@@ -25,7 +25,7 @@ namespace regen {
 		/**
 		 * @param fbo FBO instance.
 		 */
-		FBOState(const ref_ptr<FBO> &fbo);
+		explicit FBOState(const ref_ptr<FBO> &fbo);
 
 		/**
 		 * @return the FBO instance.

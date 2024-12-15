@@ -127,12 +127,20 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 	viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
 	viewport_->setUniformData(Vec2f(
 			(GLfloat) input->width(), (GLfloat) input->height()));
-	joinShaderInput(viewport_);
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
 	inverseViewport_->setUniformData(Vec2f(
 			1.0f / (GLfloat) input->width(), 1.0f / (GLfloat) input->height()));
+
+#ifdef USE_FBO_UBO
+	uniforms_ = ref_ptr<UniformBlock>::alloc("FBO");
+	uniforms_->addUniform(viewport_);
+	uniforms_->addUniform(inverseViewport_);
+	joinShaderInput(uniforms_);
+#else
+	joinShaderInput(viewport_);
 	joinShaderInput(inverseViewport_);
+#endif
 
 	ref_ptr<ShaderInput2f> inverseViewport;
 
