@@ -13,41 +13,33 @@ UBO::UBO() :
 	stamp_(0) {
 }
 
-void UBO::addUniform(const ref_ptr<ShaderInput> &input) {
-	UBO_Input uboInput;
+void UBO::addUniform(const ref_ptr<ShaderInput> &input, const std::string &name) {
+	auto &uboInput = uboInputs_.emplace_back();
 	uboInput.input = input;
 	uboInput.offset = requiredSize_;
 	uboInput.lastStamp = 0;
-	uniformMap_[input->name()] = uboInput;
-	uniforms_.push_back(input);
+	uniforms_.emplace_back(input, name);
 	requiredSize_ += input->inputSize();
 	requiresResize_ = GL_TRUE;
 }
 
 GLboolean UBO::needsUpdate() const {
 	if (requiresResize_) { return GL_TRUE; }
-	for (auto & uniform : uniformMap_) {
-		const UBO_Input &input = uniform.second;
-		if (input.input->stamp() != input.lastStamp) {
+	for (auto & uboInput : uboInputs_) {
+		if (uboInput.input->stamp() != uboInput.lastStamp) {
 			return GL_TRUE;
 		}
 	}
 	return GL_FALSE;
 }
 
-GLuint UBO::stamp() const {
-	if (needsUpdate()) {
-		return stamp_ + 1;
-	} else {
-		return stamp_;
-	}
-}
-
 void UBO::computePaddedSize() {
 	requiredSize_ = 0;
-	for (auto &uniform : uniforms_) {
+	for (auto &uboInput : uboInputs_) {
+		auto &uniform = uboInput.input;
 		// note we need to compute the "aligned" offset for std140 layout
-		GLuint baseSize = uniform->inputSize() / uniform->elementCount();
+		GLuint numElements = uniform->elementCount() * uniform->numInstances();
+		GLuint baseSize = uniform->inputSize() / numElements;
 
 		// Compute the alignment based on the type
 		GLuint baseAlignment = baseSize;
@@ -63,7 +55,7 @@ void UBO::computePaddedSize() {
 			baseAlignment = 16;
 			alignmentCount = 4;
 		}
-		else if (uniform->elementCount() > 1) {
+		else if (numElements > 1) {
 			baseAlignment = 16;
 		}
 
@@ -71,9 +63,9 @@ void UBO::computePaddedSize() {
 		if (requiredSize_ % baseAlignment != 0) {
 			requiredSize_ += baseAlignment - (requiredSize_ % baseAlignment);
 		}
-		uniformMap_[uniform->name()].offset = requiredSize_;
-		if (uniform->elementCount() > 1) {
-			requiredSize_ += baseAlignment * alignmentCount * uniform->elementCount();
+		uboInput.offset = requiredSize_;
+		if (numElements > 1) {
+			requiredSize_ += baseAlignment * alignmentCount * numElements;
 		} else {
 			requiredSize_ += uniform->inputSize();
 		}
@@ -91,7 +83,7 @@ void UBO::update(bool forceUpdate) {
 		glBufferData(GL_UNIFORM_BUFFER,
 					 requiredSize_,
 					 nullptr,
-					 GL_DYNAMIC_DRAW);
+					 GL_STATIC_DRAW);
 		allocatedSize_ = requiredSize_;
 		forceUpdate = GL_TRUE;
 		requiresResize_ = GL_FALSE;
@@ -99,22 +91,19 @@ void UBO::update(bool forceUpdate) {
 
 	void* bufferData = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
 	if (bufferData) {
-		for (auto & uniform : uniforms_) {
-			UBO_Input &input = uniformMap_[uniform->name()];
-			if (forceUpdate || input.input->stamp() != input.lastStamp) {
-				if (!input.input->clientData()) {
-					REGEN_WARN("UBO::update: no client data for " << input.input->name());
+		for (auto & uboInput : uboInputs_) {
+			if (forceUpdate || uboInput.input->stamp() != uboInput.lastStamp) {
+				if (!uboInput.input->clientData()) {
 					continue;
 				}
-				memcpy(static_cast<char*>(bufferData) + input.offset,
-					   input.input->clientData(),
-					   input.input->inputSize());
-				/*glBufferSubData(
-						GL_UNIFORM_BUFFER,
-						input.offset,
-						input.input->inputSize(),
-						input.input->clientData());*/
-				input.lastStamp = input.input->stamp();
+				// copy the data to the buffer.
+				// note: the GL specification states that the stride between array elements must be
+				// rounded up to 16 bytes, but for some reason cp operation below works with
+				// vec3's tightly packed.
+				memcpy(static_cast<char*>(bufferData) + uboInput.offset,
+					   uboInput.input->clientData(),
+					   uboInput.input->inputSize());
+				uboInput.lastStamp = uboInput.input->stamp();
 			}
 		}
 		glUnmapBuffer(GL_UNIFORM_BUFFER);
@@ -127,5 +116,5 @@ void UBO::update(bool forceUpdate) {
 }
 
 void UBO::bindBufferBase(GLuint bindingPoint) const {
-	glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id());
+	RenderState::get()->bindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, id());
 }

@@ -88,33 +88,36 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cloudTexture_->id(), 0);
 	RenderState::get()->drawFrameBuffer().pop();
 
-	altitude_ = ref_ptr<ShaderInput1f>::alloc("altitude");
-	altitude_->setUniformData(8.0f);
-	state()->joinShaderInput(altitude_);
-
-	scale_ = ref_ptr<ShaderInput2f>::alloc("scale");
-	scale_->setUniformData(Vec2f(32.0, 32.0));
-	state()->joinShaderInput(scale_);
+	cloudUniforms_ = ref_ptr<UniformBlock>::alloc("DrawClouds");
+	state()->joinShaderInput(cloudUniforms_);
 
 	color_ = ref_ptr<ShaderInput3f>::alloc("color");
 	color_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-	state()->joinShaderInput(color_);
+	cloudUniforms_->addUniform(color_);
+
+	altitude_ = ref_ptr<ShaderInput1f>::alloc("altitude");
+	altitude_->setUniformData(8.0f);
+	cloudUniforms_->addUniform(altitude_);
 
 	bottomColor_ = ref_ptr<ShaderInput3f>::alloc("bcolor");
 	bottomColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-	state()->joinShaderInput(bottomColor_);
-
-	topColor_ = ref_ptr<ShaderInput3f>::alloc("tcolor");
-	topColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-	state()->joinShaderInput(topColor_);
+	cloudUniforms_->addUniform(bottomColor_);
 
 	thickness_ = ref_ptr<ShaderInput1f>::alloc("thickness");
 	thickness_->setUniformData(3.0f);
-	state()->joinShaderInput(thickness_);
+	cloudUniforms_->addUniform(thickness_);
+
+	topColor_ = ref_ptr<ShaderInput3f>::alloc("tcolor");
+	topColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
+	cloudUniforms_->addUniform(topColor_);
 
 	offset_ = ref_ptr<ShaderInput1f>::alloc("offset");
 	offset_->setUniformData(-0.5f);
-	state()->joinShaderInput(offset_);
+	cloudUniforms_->addUniform(offset_);
+
+	scale_ = ref_ptr<ShaderInput2f>::alloc("scale");
+	scale_->setUniformData(Vec2f(32.0, 32.0));
+	cloudUniforms_->addUniform(scale_);
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.cloud-layer");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());

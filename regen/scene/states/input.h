@@ -14,33 +14,36 @@
 #include <regen/scene/value-generator.h>
 #include <regen/scene/resource-manager.h>
 #include <regen/animations/input-animation.h>
+#include <regen/gl-types/render-state.h>
 
 #define REGEN_INPUT_STATE_CATEGORY "input"
 
 /**
  * Sums up the time differences between invocations.
  */
-class TimerInput : public ShaderInput1f, Animation {
-public:
-	/**
-	 * @param timeScale scale for dt values.
-	 * @param name optional timer name.
-	 */
-	TimerInput(GLfloat timeScale, const string &name = "time")
-			: ShaderInput1f(name),
-			  Animation(GL_TRUE, GL_FALSE, GL_TRUE),
-			  timeScale_(timeScale) {
-		setUniformData(0.0f);
-	}
+namespace regen {
+	class TimerInput : public ShaderInput1f, public Animation {
+	public:
+		/**
+		 * @param timeScale scale for dt values.
+		 * @param name optional timer name.
+		 */
+		TimerInput(GLfloat timeScale, const std::string &name = "time")
+				: ShaderInput1f(name),
+				  Animation(GL_TRUE, GL_FALSE, GL_TRUE),
+				  timeScale_(timeScale) {
+			setUniformData(0.0f);
+		}
 
-	// Override
-	void glAnimate(RenderState *rs, GLdouble dt) override {
-		setVertex(0, getVertex(0) + dt * timeScale_);
-	}
+		// Override
+		void glAnimate(RenderState *rs, GLdouble dt) override {
+			setVertex(0, getVertex(0) + dt * timeScale_);
+		}
 
-private:
-	GLfloat timeScale_;
-};
+	private:
+		GLfloat timeScale_;
+	};
+} // namespace
 
 #include <regen/gl-types/shader-input.h>
 
@@ -79,9 +82,17 @@ namespace regen {
 					}
 					return ret;
 				}
+				if (input.hasAttribute("ubo")) {
+					auto ubo = parser->getResources()->getUBO(parser, input.getValue("ubo"));
+					if (ubo.get() == nullptr) {
+						REGEN_WARN("No UBO found for '" << input.getDescription() << "'.");
+						return {};
+					}
+					return ref_ptr<UniformBlock>::alloc(input.getValue("name"), ubo);
+				}
 
 				ref_ptr<ShaderInput> in;
-				const string type = input.getValue<string>("type", "");
+				auto type = input.getValue<std::string>("type", "");
 				if (type == "time") {
 					auto scale = input.getValue<GLfloat>("scale", 1.0f);
 					in = ref_ptr<TimerInput>::alloc(scale);
@@ -191,10 +202,10 @@ namespace regen {
 					T *values = (T *) v->clientDataPtr();
 					for (GLuint i = 0; i < count; i += 1) values[i] = defaultValue;
 
-					const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
+					auto &childs = input.getChildren();
 					for (auto it = childs.begin(); it != childs.end(); ++it) {
 						ref_ptr<SceneInputNode> child = *it;
-						list<GLuint> indices = child->getIndexSequence(count);
+						std::list<GLuint> indices = child->getIndexSequence(count);
 
 						if (child->getCategory() == "set") {
 							ValueGenerator<T> generator(child.get(), indices.size(),
@@ -208,15 +219,10 @@ namespace regen {
 					}
 				}
 
-				// Load animations
-				const list<ref_ptr<SceneInputNode> > &c0 = input.getChildren("animation");
-				for (auto it = c0.begin(); it != c0.end(); ++it) {
-					ref_ptr<SceneInputNode> n = *it;
+				// Load
+				for (const auto& n : input.getChildren("animation")) {
 					ref_ptr<InputAnimation<U, T> > inputAnimation = ref_ptr<InputAnimation<U, T> >::alloc(v);
-
-					const list<ref_ptr<SceneInputNode> > &c1 = n->getChildren("key-frame");
-					for (auto jt = c1.begin(); jt != c1.end(); ++jt) {
-						ref_ptr<SceneInputNode> m = *jt;
+					for (const auto &m : n->getChildren("key-frame")) {
 						inputAnimation->push_back(
 								m->getValue<T>("value", defaultValue),
 								m->getValue<GLdouble>("dt", 1.0)

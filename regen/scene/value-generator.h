@@ -31,7 +31,7 @@ namespace regen {
 					  numValues_(numValues),
 					  counter_(Vec4ui(0u)),
 					  value_(defaultValue) {
-				mode_ = n_->getValue<string>("mode", "constant");
+				mode_ = n_->getValue<std::string>("mode", "constant");
 			}
 
 			/**
@@ -53,7 +53,7 @@ namespace regen {
 			GLuint numValues_;
 			Vec4ui counter_;
 			T value_;
-			string mode_;
+			std::string mode_;
 
 			T nextRow() {
 				const T stepX = n_->getValue<T>("x-step", T(1));

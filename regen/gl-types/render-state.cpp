@@ -46,64 +46,64 @@ using namespace regen;
 #define GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS 0x90DD
 #endif
 
-static inline void __BlendEquation(const BlendEquation &v) { glBlendEquationSeparate(v.x, v.y); }
+static inline void Regen_BlendEquation(const BlendEquation &v) { glBlendEquationSeparate(v.x, v.y); }
 
-static inline void __BlendEquationi(GLuint i, const BlendEquation &v) { glBlendEquationSeparatei(i, v.x, v.y); }
+static inline void Regen_BlendEquationi(GLuint i, const BlendEquation &v) { glBlendEquationSeparatei(i, v.x, v.y); }
 
-static inline void __BlendFunc(const BlendFunction &v) { glBlendFuncSeparate(v.x, v.y, v.z, v.w); }
+static inline void Regen_BlendFunc(const BlendFunction &v) { glBlendFuncSeparate(v.x, v.y, v.z, v.w); }
 
-static inline void __BlendFunci(GLuint i, const BlendFunction &v) { glBlendFuncSeparatei(i, v.x, v.y, v.z, v.w); }
+static inline void Regen_BlendFunci(GLuint i, const BlendFunction &v) { glBlendFuncSeparatei(i, v.x, v.y, v.z, v.w); }
 
-static inline void __ClearColor(const ClearColor &v) { glClearColor(v.x, v.y, v.z, v.w); }
+static inline void Regen_ClearColor(const ClearColor &v) { glClearColor(v.x, v.y, v.z, v.w); }
 
-static inline void __ColorMask(const ColorMask &v) { glColorMask(v.x, v.y, v.z, v.w); }
+static inline void Regen_ColorMask(const ColorMask &v) { glColorMask(v.x, v.y, v.z, v.w); }
 
-static inline void __ColorMaski(GLuint i, const ColorMask &v) { glColorMaski(i, v.x, v.y, v.z, v.w); }
+static inline void Regen_ColorMaski(GLuint i, const ColorMask &v) { glColorMaski(i, v.x, v.y, v.z, v.w); }
 
-static inline void __DepthRange(const DepthRange &v) { glDepthRange(v.x, v.y); }
+static inline void Regen_DepthRange(const DepthRange &v) { glDepthRange(v.x, v.y); }
 
-static inline void __DepthRangei(GLuint i, const DepthRange &v) { glDepthRangeIndexed(i, v.x, v.y); }
+static inline void Regen_DepthRangei(GLuint i, const DepthRange &v) { glDepthRangeIndexed(i, v.x, v.y); }
 
-static inline void __StencilOp(const StencilOp &v) { glStencilOp(v.x, v.y, v.z); }
+static inline void Regen_StencilOp(const StencilOp &v) { glStencilOp(v.x, v.y, v.z); }
 
-static inline void __StencilFunc(const StencilFunc &v) { glStencilFunc(v.func_, v.ref_, v.mask_); }
+static inline void Regen_StencilFunc(const StencilFunc &v) { glStencilFunc(v.func_, v.ref_, v.mask_); }
 
-static inline void __PolygonOffset(const Vec2f &v) { glPolygonOffset(v.x, v.y); }
+static inline void Regen_PolygonOffset(const Vec2f &v) { glPolygonOffset(v.x, v.y); }
 
-static inline void __BlendColor(const Vec4f &v) { glBlendColor(v.x, v.y, v.z, v.w); }
+static inline void Regen_BlendColor(const Vec4f &v) { glBlendColor(v.x, v.y, v.z, v.w); }
 
-static inline void __Scissor(const Scissor &v) { glScissor(v.x, v.y, v.z, v.w); }
+static inline void Regen_Scissor(const Scissor &v) { glScissor(v.x, v.y, v.z, v.w); }
 
-static inline void __Scissori(GLuint i, const Scissor &v) { glScissorIndexed(i, v.x, v.y, v.z, v.w); }
+static inline void Regen_Scissori(GLuint i, const Scissor &v) { glScissorIndexed(i, v.x, v.y, v.z, v.w); }
 
-static inline void __Viewport(const Viewport &v) { glViewport(v.x, v.y, v.z, v.w); }
+static inline void Regen_Viewport(const Viewport &v) { glViewport(v.x, v.y, v.z, v.w); }
 
-static inline void __Texture(GLuint i, const TextureBind &v) { glBindTexture(v.target_, v.id_); }
+static inline void Regen_Texture(GLuint i, const TextureBind &v) { glBindTexture(v.target_, v.id_); }
 
-static inline void __UniformBufferRange(GLuint i, const BufferRange &v) {
+static inline void Regen_UniformBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_UNIFORM_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
 
-static inline void __FeedbackBufferRange(GLuint i, const BufferRange &v) {
+static inline void Regen_FeedbackBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
 
-static inline void __AtomicCounterBufferRange(GLuint i, const BufferRange &v) {
+static inline void Regen_AtomicCounterBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
 
-static inline void __ShaderStorageBufferRange(GLuint i, const BufferRange &v) {
+static inline void Regen_ShaderStorageBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
 
-static inline void __PatchLevel(const PatchLevels &l) {
+static inline void Regen_PatchLevel(const PatchLevels &l) {
 	glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, &l.inner_.x);
 	glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, &l.outer_.x);
 }
 
 typedef void (GLAPIENTRY *ToggleFunc)(GLenum);
 
-inline void __Toggle(GLuint index, const GLboolean &v) {
+inline void Regen_Toggle(GLuint index, const GLboolean &v) {
 	GLenum toggleID = RenderState::toggleToID((RenderState::Toggle) index);
 	static ToggleFunc toggleFunctions[2] = {glDisable, glEnable};
 	toggleFunctions[v](toggleID);
@@ -126,66 +126,69 @@ void RenderState::reset() {
 }
 
 #ifdef WIN32
-template<typename T> void __BindBuffer(GLenum key,T v)
+template<typename T> void Regen_BindBuffer(GLenum key,T v)
 { glBindBuffer(key,v); }
-template<typename T> void __BindRenderbuffer(GLenum key,T v)
+template<typename T, typename U> void Regen_BindBufferBase(GLenum key,T v,U w)
+{ glBindBufferBase(key,v,w); }
+template<typename T> void Regen_BindRenderbuffer(GLenum key,T v)
 { glBindRenderbuffer(key,v); }
-template<typename T> void __BindFramebuffer(GLenum key,T v)
+template<typename T> void Regen_BindFramebuffer(GLenum key,T v)
 { glBindFramebuffer(key,v); }
-template<typename T> void __UseProgram(T v)
+template<typename T> void Regen_UseProgram(T v)
 { glUseProgram(v); }
-template<typename T> void __ActiveTexture(T v)
+template<typename T> void Regen_ActiveTexture(T v)
 { glActiveTexture(v); }
-template<typename T> void __CullFace(T v)
+template<typename T> void Regen_CullFace(T v)
 { glCullFace(v); }
-template<typename T> void __DepthMask(T v)
+template<typename T> void Regen_DepthMask(T v)
 { glDepthMask(v); }
-template<typename T> void __DepthFunc(T v)
+template<typename T> void Regen_DepthFunc(T v)
 { glDepthFunc(v); }
-template<typename T> void __ClearDepth(T v)
+template<typename T> void Regen_ClearDepth(T v)
 { glClearDepth(v); }
-template<typename T> void __StencilMask(T v)
+template<typename T> void Regen_StencilMask(T v)
 { glStencilMask(v); }
-template<typename T> void __PolygonMode(GLenum key,T v)
+template<typename T> void Regen_PolygonMode(GLenum key,T v)
 { glPolygonMode(key,v); }
-template<typename T> void __PointSize(T v)
+template<typename T> void Regen_PointSize(T v)
 { glPointSize(v); }
-template<typename T> void __LineWidth(T v)
+template<typename T> void Regen_LineWidth(T v)
 { glLineWidth(v); }
-template<typename T> void __LogicOp(T v)
+template<typename T> void Regen_LogicOp(T v)
 { glLogicOp(v); }
-template<typename T> void __FrontFace(T v)
+template<typename T> void Regen_FrontFace(T v)
 { glFrontFace(v); }
-template<typename T> void __MinSampleShading(T v)
+template<typename T> void Regen_MinSampleShading(T v)
 { glMinSampleShading(v); }
-template<typename T> void __PointParameterf(GLenum key,T v)
+template<typename T> void Regen_PointParameterf(GLenum key,T v)
 { glPointParameterf(key,v); }
-template<typename T> void __PointParameteri(GLenum key,T v)
+template<typename T> void Regen_PointParameteri(GLenum key,T v)
 { glPointParameteri(key,v); }
-template<typename T> void __VAO(T v)
+template<typename T> void Regen_VAO(T v)
 { glBindVertexArray(v); }
 #else
-#define __BindBuffer glBindBuffer
-#define __BindRenderbuffer glBindRenderbuffer
-#define __BindFramebuffer glBindFramebuffer
-#define __UseProgram glUseProgram
-#define __ActiveTexture glActiveTexture
-#define __CullFace glCullFace
-#define __DepthMask glDepthMask
-#define __DepthFunc glDepthFunc
-#define __ClearDepth glClearDepth
-#define __StencilMask glStencilMask
-#define __PolygonMode glPolygonMode
-#define __PointSize glPointSize
-#define __LineWidth glLineWidth
-#define __LogicOp glLogicOp
-#define __FrontFace glFrontFace
-#define __PointParameterf glPointParameterf
-#define __PointParameteri glPointParameteri
-#define __PatchParameterf glPatchParameterf
-#define __PatchParameteri glPatchParameteri
-#define __MinSampleShading glMinSampleShading
-#define __VAO glBindVertexArray
+#define Regen_BindBuffer glBindBuffer
+#define Regen_BindBufferBase glBindBufferBase
+#define Regen_BindRenderbuffer glBindRenderbuffer
+#define Regen_BindFramebuffer glBindFramebuffer
+#define Regen_UseProgram glUseProgram
+#define Regen_ActiveTexture glActiveTexture
+#define Regen_CullFace glCullFace
+#define Regen_DepthMask glDepthMask
+#define Regen_DepthFunc glDepthFunc
+#define Regen_ClearDepth glClearDepth
+#define Regen_StencilMask glStencilMask
+#define Regen_PolygonMode glPolygonMode
+#define Regen_PointSize glPointSize
+#define Regen_LineWidth glLineWidth
+#define Regen_LogicOp glLogicOp
+#define Regen_FrontFace glFrontFace
+#define Regen_PointParameterf glPointParameterf
+#define Regen_PointParameteri glPointParameteri
+#define Regen_PatchParameterf glPatchParameterf
+#define Regen_PatchParameteri glPatchParameteri
+#define Regen_MinSampleShading glMinSampleShading
+#define Regen_VAO glBindVertexArray
 #endif
 
 RenderState::RenderState()
@@ -201,53 +204,53 @@ RenderState::RenderState()
 		  maxShaderStorageBuffers_(getGLInteger("GL_ARB_shader_storage_buffer_object",
 												GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, 0)),
 		  feedbackCount_(0),
-		  toggles_(TOGGLE_STATE_LAST, regen_lockedValue, __Toggle),
-		  arrayBuffer_(GL_ARRAY_BUFFER, __BindBuffer),
-		  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER, __BindBuffer),
-		  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER, __BindBuffer),
-		  pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER, __BindBuffer),
-		  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER, __BindBuffer),
-		  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER, __BindBuffer),
-		  textureBuffer_(GL_TEXTURE_BUFFER, __BindBuffer),
-		  copyReadBuffer_(GL_COPY_READ_BUFFER, __BindBuffer),
-		  copyWriteBuffer_(GL_COPY_WRITE_BUFFER, __BindBuffer),
-		  renderBuffer_(GL_RENDERBUFFER, __BindRenderbuffer),
-		  vao_(__VAO),
-		  uniformBufferRange_(maxUniformBuffers_, regen_lockedValue, __UniformBufferRange),
-		  feedbackBufferRange_(maxFeedbackBuffers_, regen_lockedValue, __FeedbackBufferRange),
-		  atomicCounterBufferRange_(maxAtomicCounterBuffers_, regen_lockedValue, __AtomicCounterBufferRange),
-		  shaderStorageBufferRange_(maxShaderStorageBuffers_, regen_lockedValue, __ShaderStorageBufferRange),
-		  readFrameBuffer_(GL_READ_FRAMEBUFFER, __BindFramebuffer),
-		  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, __BindFramebuffer),
-		  viewport_(__Viewport),
-		  shader_(__UseProgram),
-		  activeTexture_(__ActiveTexture),
-		  textures_(maxTextureUnits_, regen_lockedValue, __Texture),
-		  scissor_(maxViewports_, __Scissor, __Scissori),
-		  cullFace_(__CullFace),
-		  depthMask_(__DepthMask),
-		  depthFunc_(__DepthFunc),
-		  depthClear_(__ClearDepth),
-		  depthRange_(maxViewports_, __DepthRange, __DepthRangei),
-		  blendColor_(__BlendColor),
-		  blendEquation_(maxDrawBuffers_, __BlendEquation, __BlendEquationi),
-		  blendFunc_(maxDrawBuffers_, __BlendFunc, __BlendFunci),
-		  stencilMask_(__StencilMask),
-		  stencilFunc_(__StencilFunc),
-		  stencilOp_(__StencilOp),
-		  polygonMode_(GL_FRONT_AND_BACK, __PolygonMode),
-		  polygonOffset_(__PolygonOffset),
-		  pointSize_(__PointSize),
-		  pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, __PointParameterf),
-		  pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, __PointParameteri),
-		  patchVertices_(GL_PATCH_VERTICES, __PatchParameteri),
-		  patchLevel_(__PatchLevel),
-		  colorMask_(maxDrawBuffers_, __ColorMask, __ColorMaski),
-		  clearColor_(__ClearColor),
-		  lineWidth_(__LineWidth),
-		  minSampleShading_(__MinSampleShading),
-		  logicOp_(__LogicOp),
-		  frontFace_(__FrontFace) {
+		  toggles_(TOGGLE_STATE_LAST, regen_lockedValue, Regen_Toggle),
+		  arrayBuffer_(GL_ARRAY_BUFFER, Regen_BindBuffer),
+		  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER, Regen_BindBuffer),
+		  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER, Regen_BindBuffer),
+		  pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER, Regen_BindBuffer),
+		  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER, Regen_BindBuffer),
+		  drawIndirectBuffer_(GL_DRAW_INDIRECT_BUFFER, Regen_BindBuffer),
+		  textureBuffer_(GL_TEXTURE_BUFFER, Regen_BindBuffer),
+		  copyReadBuffer_(GL_COPY_READ_BUFFER, Regen_BindBuffer),
+		  copyWriteBuffer_(GL_COPY_WRITE_BUFFER, Regen_BindBuffer),
+		  renderBuffer_(GL_RENDERBUFFER, Regen_BindRenderbuffer),
+		  vao_(Regen_VAO),
+		  uniformBufferRange_(maxUniformBuffers_, regen_lockedValue, Regen_UniformBufferRange),
+		  feedbackBufferRange_(maxFeedbackBuffers_, regen_lockedValue, Regen_FeedbackBufferRange),
+		  atomicCounterBufferRange_(maxAtomicCounterBuffers_, regen_lockedValue, Regen_AtomicCounterBufferRange),
+		  shaderStorageBufferRange_(maxShaderStorageBuffers_, regen_lockedValue, Regen_ShaderStorageBufferRange),
+		  readFrameBuffer_(GL_READ_FRAMEBUFFER, Regen_BindFramebuffer),
+		  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, Regen_BindFramebuffer),
+		  viewport_(Regen_Viewport),
+		  shader_(Regen_UseProgram),
+		  activeTexture_(Regen_ActiveTexture),
+		  textures_(maxTextureUnits_, regen_lockedValue, Regen_Texture),
+		  scissor_(maxViewports_, Regen_Scissor, Regen_Scissori),
+		  cullFace_(Regen_CullFace),
+		  depthMask_(Regen_DepthMask),
+		  depthFunc_(Regen_DepthFunc),
+		  depthClear_(Regen_ClearDepth),
+		  depthRange_(maxViewports_, Regen_DepthRange, Regen_DepthRangei),
+		  blendColor_(Regen_BlendColor),
+		  blendEquation_(maxDrawBuffers_, Regen_BlendEquation, Regen_BlendEquationi),
+		  blendFunc_(maxDrawBuffers_, Regen_BlendFunc, Regen_BlendFunci),
+		  stencilMask_(Regen_StencilMask),
+		  stencilFunc_(Regen_StencilFunc),
+		  stencilOp_(Regen_StencilOp),
+		  polygonMode_(GL_FRONT_AND_BACK, Regen_PolygonMode),
+		  polygonOffset_(Regen_PolygonOffset),
+		  pointSize_(Regen_PointSize),
+		  pointFadeThreshold_(GL_POINT_FADE_THRESHOLD_SIZE, Regen_PointParameterf),
+		  pointSpriteOrigin_(GL_POINT_SPRITE_COORD_ORIGIN, Regen_PointParameteri),
+		  patchVertices_(GL_PATCH_VERTICES, Regen_PatchParameteri),
+		  patchLevel_(Regen_PatchLevel),
+		  colorMask_(maxDrawBuffers_, Regen_ColorMask, Regen_ColorMaski),
+		  clearColor_(Regen_ClearColor),
+		  lineWidth_(Regen_LineWidth),
+		  minSampleShading_(Regen_MinSampleShading),
+		  logicOp_(Regen_LogicOp),
+		  frontFace_(Regen_FrontFace) {
 	REGEN_ASSERT(maxDrawBuffers_ >= 0);
 	REGEN_ASSERT(maxTextureUnits_ >= 0);
 	REGEN_ASSERT(maxViewports_ >= 0);
@@ -298,6 +301,31 @@ RenderState::RenderState()
 	activeTexture_.push(GL_TEXTURE0);
 	textureBuffer_.push(0);
 	GL_ERROR_LOG();
+}
+
+static inline int bufferBaseIndex(GLenum target) {
+	switch (target) {
+		case GL_UNIFORM_BUFFER:
+			return 0;
+		case GL_ATOMIC_COUNTER_BUFFER:
+			return 1;
+		case GL_SHADER_STORAGE_BUFFER:
+			return 2;
+		default: // GL_TRANSFORM_FEEDBACK_BUFFER
+			return 3;
+	}
+}
+
+void RenderState::bindBufferBase(GLenum target, GLuint index, GLuint buffer) {
+	auto arrayIndex = bufferBaseIndex(target);
+	auto &bindings = bufferBaseBindings_[arrayIndex];
+	auto needle = bindings.find(index);
+	if (needle != bindings.end() && needle->second == buffer) {
+		// buffer is already bound
+		return;
+	}
+	bindings[index] = buffer;
+	Regen_BindBufferBase(target, index, buffer);
 }
 
 GLenum RenderState::toggleToID(Toggle t) {

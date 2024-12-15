@@ -9,6 +9,7 @@
 #define SHADER_INPUT_H_
 
 #include <string>
+#include <map>
 
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/gl-enum.h>
@@ -94,7 +95,7 @@ namespace regen {
 				GLenum dataType,
 				GLuint dataTypeBytes,
 				GLuint valsPerElement,
-				GLuint elementCount,
+				GLsizei elementCount,
 				GLboolean normalize);
 
 		virtual ~ShaderInput();
@@ -129,7 +130,7 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		virtual GLuint stamp() const;
+		GLuint stamp() const;
 
 		/**
 		 * Sets a new stamp value.
@@ -534,9 +535,10 @@ namespace regen {
 		GLuint offset_;
 		GLuint inputSize_;
 		GLuint elementSize_;
-		GLuint elementCount_;
+		GLsizei elementCount_;
 		GLuint numVertices_;
 		GLuint numInstances_;
+		GLsizei numElements_;
 		GLuint valsPerElement_;
 		GLuint divisor_;
 		GLuint buffer_;
@@ -959,6 +961,8 @@ namespace regen {
 				GLboolean normalize = GL_FALSE);
 	};
 
+	class UBO;
+
 	/**
 	 * \brief Provides input data via a Uniform Buffer Object (UBO).
 	 */
@@ -969,30 +973,26 @@ namespace regen {
 		 */
 		explicit UniformBlock(const std::string &name);
 
+		UniformBlock(const std::string &name, const ref_ptr<UBO> &ubo);
+
 		~UniformBlock() override;
 
 		UniformBlock(const UniformBlock &) = delete;
 
-		GLuint stamp() const override;
-
 		/**
 		 * @return the list of uniforms.
 		 */
-		const std::vector<ref_ptr<ShaderInput>> &uniforms() const;
+		const std::vector<NamedShaderInput> &uniforms() const;
 
 		/**
 		 * @param input the uniform to add.
 		 */
-		void addUniform(const ref_ptr<ShaderInput> &input);
+		void addUniform(const ref_ptr<ShaderInput> &input, const std::string &name="");
 
 		/**
-		 * @param forceUpdate force update.
+		 * Binds the uniform block to the given shader location.
 		 */
-		void update(bool forceUpdate = false);
-
 		void enableUniformBlock(GLint loc) const;
-
-		void enable(GLint loc) const;
 
 		void write(std::ostream &out) const override;
 

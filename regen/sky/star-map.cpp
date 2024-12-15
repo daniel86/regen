@@ -18,13 +18,16 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 		: SkyLayer(sky) {
 	state()->joinStates(ref_ptr<BlendState>::alloc(GL_ONE, GL_ZERO));
 
+	auto starsUniforms = ref_ptr<UniformBlock>::alloc("StarMap");
+	state()->joinShaderInput(starsUniforms);
+
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
-	state()->joinShaderInput(scattering_);
+	starsUniforms->addUniform(scattering_);
 
 	deltaM_ = ref_ptr<ShaderInput1f>::alloc("deltaM");
 	deltaM_->setUniformData(0.5f);
-	state()->joinShaderInput(deltaM_);
+	starsUniforms->addUniform(deltaM_);
 
 	set_apparentMagnitude(6.5);
 

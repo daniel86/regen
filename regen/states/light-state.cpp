@@ -79,39 +79,37 @@ Light::Light(Light::Type lightType)
 			break;
 	}
 
-	lightPosition_ = ref_ptr<ShaderInput3f>::alloc("lightPosition");
-	lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
-	setInput(lightPosition_);
-
-	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
-	lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
-	setInput(lightDirection_);
-
-	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
-	lightDiffuse_->setUniformData(Vec3f(0.7f));
-	setInput(lightDiffuse_);
-
-	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
-	lightSpecular_->setUniformData(Vec3f(1.0f));
-	setInput(lightSpecular_);
+	auto lightUniforms = ref_ptr<UniformBlock>::alloc("Light");
+	setInput(lightUniforms);
 
 	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
 	lightRadius_->setUniformData(Vec2f(999999.9, 999999.9));
-	setInput(lightRadius_);
+	lightUniforms->addUniform(lightRadius_);
 
 	coneMatrix_ = ref_ptr<ModelTransformation>::alloc();
 	lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
 	lightConeAngles_->setUniformData(Vec2f(0.0f));
-	setInput(lightConeAngles_);
+	lightUniforms->addUniform(lightConeAngles_);
+
+	lightPosition_ = ref_ptr<ShaderInput3f>::alloc("lightPosition");
+	lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
+	lightUniforms->addUniform(lightPosition_);
+
+	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
+	lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
+	lightUniforms->addUniform(lightDirection_);
+
+	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
+	lightDiffuse_->setUniformData(Vec3f(0.7f));
+	lightUniforms->addUniform(lightDiffuse_);
+
+	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
+	lightSpecular_->setUniformData(Vec3f(1.0f));
+	lightUniforms->addUniform(lightSpecular_);
+
 	set_innerConeAngle(50.0f);
 	set_outerConeAngle(55.0f);
 }
-
-Light::Type Light::lightType() const { return lightType_; }
-
-GLboolean Light::isAttenuated() const { return isAttenuated_; }
-
-void Light::set_isAttenuated(GLboolean isAttenuated) { isAttenuated_ = isAttenuated; }
 
 void Light::set_innerConeAngle(GLfloat deg) {
 	Vec2f a = lightConeAngles_->getVertex(0);
@@ -163,18 +161,6 @@ void Light::glAnimate(RenderState *rs, GLdouble dt) {
 		updateConeMatrix();
 	}
 }
-
-const ref_ptr<ShaderInput2f> &Light::radius() const { return lightRadius_; }
-
-const ref_ptr<ShaderInput2f> &Light::coneAngle() const { return lightConeAngles_; }
-
-const ref_ptr<ShaderInput3f> &Light::position() const { return lightPosition_; }
-
-const ref_ptr<ShaderInput3f> &Light::direction() const { return lightDirection_; }
-
-const ref_ptr<ShaderInput3f> &Light::diffuse() const { return lightDiffuse_; }
-
-const ref_ptr<ShaderInput3f> &Light::specular() const { return lightSpecular_; }
 
 const ref_ptr<ShaderInputMat4> &Light::coneMatrix() { return coneMatrix_->get(); }
 

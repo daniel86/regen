@@ -21,15 +21,10 @@ namespace regen {
 		UBO(const UBO &) = delete;
 
 		/**
-		 * @return the stamp.
-		 */
-		GLuint stamp() const;
-
-		/**
 		 * Add a uniform to the UBO.
 		 * @param input the shader input.
 		 */
-		void addUniform(const ref_ptr<ShaderInput> &input);
+		void addUniform(const ref_ptr<ShaderInput> &input, const std::string &name);
 
 		/**
 		 * Update the UBO.
@@ -56,8 +51,8 @@ namespace regen {
 			GLuint offset;
 			GLuint lastStamp;
 		};
-		std::map<std::string, UBO_Input> uniformMap_;
-		std::vector<ref_ptr<ShaderInput>> uniforms_;
+		std::vector<UBO_Input> uboInputs_;
+		std::vector<NamedShaderInput> uniforms_;
 		GLuint allocatedSize_;
 		GLuint requiredSize_;
 		GLboolean requiresResize_;

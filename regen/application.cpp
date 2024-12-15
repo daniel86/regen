@@ -271,7 +271,7 @@ void Application::clear() {
 
 	if (!globalUniforms_.get()) {
 		// TODO: for some reason UBO cannot be created in initGL above.
-		//       well it can gets ID 1, but the first UBO in the loaded scene
+		//       well it gets ID 1, but the first UBO in the loaded scene
 		//       gets ID 1 too, then there is flickering. Not sure why.
 		globalUniforms_ = ref_ptr<UniformBlock>::alloc("GlobalUniforms");
 		globalUniforms_->addUniform(windowViewport_);

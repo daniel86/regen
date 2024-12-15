@@ -11,7 +11,7 @@
 
 using namespace regen;
 
-#define __NAME__(x, id) REGEN_STRING(x << id)
+#define REGEN_LIGHT_NAME(x, id) REGEN_STRING(x << id)
 
 DirectShading::DirectShading() : State(), idCounter_(0) {
 	shaderDefine("NUM_LIGHTS", "0");
@@ -38,7 +38,7 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex) {
 			REGEN_STRING("LIGHT" << lightIndex << "_ID"),
 			REGEN_STRING(l.id_));
 	shaderDefine(
-			__NAME__("LIGHT_IS_ATTENUATED", l.id_),
+			REGEN_LIGHT_NAME("LIGHT_IS_ATTENUATED", l.id_),
 			l.light_->isAttenuated() ? "TRUE" : "FALSE");
 
 	std::string lightType = "UNKNOWN";
@@ -53,22 +53,22 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex) {
 			lightType = "SPOT";
 			break;
 	}
-	shaderDefine(__NAME__("LIGHT_TYPE", l.id_), lightType);
+	shaderDefine(REGEN_LIGHT_NAME("LIGHT_TYPE", l.id_), lightType);
 
 	// handle shadow map defined
 	if (l.shadow_.get()) {
-		shaderDefine(__NAME__("USE_SHADOW_MAP", l.id_), "TRUE");
-		shaderDefine(__NAME__("SHADOW_MAP_FILTER", l.id_), shadowFilterMode(l.shadowFilter_));
+		shaderDefine(REGEN_LIGHT_NAME("USE_SHADOW_MAP", l.id_), "TRUE");
+		shaderDefine(REGEN_LIGHT_NAME("SHADOW_MAP_FILTER", l.id_), shadowFilterMode(l.shadowFilter_));
 
 		if (dynamic_cast<Texture3D *>(l.shadow_.get())) {
 			auto *tex3d = dynamic_cast<Texture3D *>(l.shadow_.get());
-			shaderDefine(__NAME__("NUM_SHADOW_LAYER", l.id_), REGEN_STRING(tex3d->depth()));
+			shaderDefine(REGEN_LIGHT_NAME("NUM_SHADOW_LAYER", l.id_), REGEN_STRING(tex3d->depth()));
 		}
 		if (l.shadowColor_.get()) {
-			shaderDefine(__NAME__("USE_SHADOW_COLOR", l.id_), "TRUE");
+			shaderDefine(REGEN_LIGHT_NAME("USE_SHADOW_COLOR", l.id_), "TRUE");
 		}
 	} else {
-		shaderDefine(__NAME__("USE_SHADOW_MAP", l.id_), "FALSE");
+		shaderDefine(REGEN_LIGHT_NAME("USE_SHADOW_MAP", l.id_), "FALSE");
 	}
 }
 
@@ -104,25 +104,25 @@ void DirectShading::addLight(
 	// join light shader inputs using a name override
 	{
 		const ShaderInputList &in = light->inputContainer()->inputs();
-		for (auto it = in.begin(); it != in.end(); ++it) { joinShaderInput(it->in_, __NAME__(
+		for (auto it = in.begin(); it != in.end(); ++it) { joinShaderInput(it->in_, REGEN_LIGHT_NAME(
 					it->in_->name(), lightID));
 		}
 	}
 
 	if (camera.get()) {
-		joinShaderInput(camera->far(), __NAME__("lightFar", lightID));
-		joinShaderInput(camera->near(), __NAME__("lightNear", lightID));
-		joinShaderInput(camera->lightMatrix(), __NAME__("lightMatrix", lightID));
+		joinShaderInput(camera->far(), REGEN_LIGHT_NAME("lightFar", lightID));
+		joinShaderInput(camera->near(), REGEN_LIGHT_NAME("lightNear", lightID));
+		joinShaderInput(camera->lightMatrix(), REGEN_LIGHT_NAME("lightMatrix", lightID));
 	}
 	if (shadow.get()) {
-		joinShaderInput(shadow->sizeInverse(), __NAME__("shadowInverseSize", lightID));
-		joinShaderInput(shadow->size(), __NAME__("shadowSize", lightID));
+		joinShaderInput(shadow->sizeInverse(), REGEN_LIGHT_NAME("shadowInverseSize", lightID));
+		joinShaderInput(shadow->size(), REGEN_LIGHT_NAME("shadowSize", lightID));
 		directLight.shadowMap_ =
-				ref_ptr<TextureState>::alloc(shadow, __NAME__("shadowTexture", lightID));
+				ref_ptr<TextureState>::alloc(shadow, REGEN_LIGHT_NAME("shadowTexture", lightID));
 		joinStates(directLight.shadowMap_);
 		if (shadowColor.get()) {
 			directLight.shadowColorMap_ =
-					ref_ptr<TextureState>::alloc(shadow, __NAME__("shadowColorTexture", lightID));
+					ref_ptr<TextureState>::alloc(shadow, REGEN_LIGHT_NAME("shadowColorTexture", lightID));
 			joinStates(directLight.shadowColorMap_);
 		}
 	}

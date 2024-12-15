@@ -9,6 +9,7 @@
 #define RENDER_STATE_H_
 
 #include <vector>
+#include <map>
 
 #include <regen/utility/state-stacks.h>
 
@@ -391,6 +392,11 @@ namespace regen {
 		inline ParameterStackAtomic<GLuint> &renderBuffer() { return renderBuffer_; }
 
 		/**
+		 * bind a buffer object to a target.
+		 */
+		void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
+
+		/**
 		 * Vertex Array Objects (VAO) are OpenGL Objects that store the
 		 * set of bindings between Vertex Attributes and the user's source vertex data.
 		 */
@@ -667,6 +673,7 @@ namespace regen {
 
 		IndexedValueStack<GLboolean> toggles_;
 
+		std::map<GLuint,GLuint> bufferBaseBindings_[4];
 		ParameterStackAtomic<GLuint> arrayBuffer_;
 		ParameterStackAtomic<GLuint> elementArrayBuffer_;
 		ParameterStackAtomic<GLuint> pixelPackBuffer_;

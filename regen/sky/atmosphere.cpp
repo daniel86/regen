@@ -69,12 +69,14 @@ Atmosphere::Atmosphere(
 	/// Update State
 	///////
 	updateState_ = ref_ptr<State>::alloc();
-	updateState_->joinShaderInput(sky->sun()->direction(), "sunDir");
-	updateState_->joinShaderInput(rayleigh_);
-	updateState_->joinShaderInput(mie_);
-	updateState_->joinShaderInput(spotBrightness_);
-	updateState_->joinShaderInput(scatterStrength_);
-	updateState_->joinShaderInput(skyAbsorbtion_);
+	auto atmosphereUBO = ref_ptr<UniformBlock>::alloc("Atmosphere");
+	atmosphereUBO->addUniform(sky->sun()->direction(), "sunDir");
+	atmosphereUBO->addUniform(mie_);
+	atmosphereUBO->addUniform(rayleigh_);
+	atmosphereUBO->addUniform(spotBrightness_);
+	atmosphereUBO->addUniform(skyAbsorbtion_);
+	atmosphereUBO->addUniform(scatterStrength_);
+	updateState_->joinShaderInput(atmosphereUBO);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
 	updateState_->joinStates(updateMesh);

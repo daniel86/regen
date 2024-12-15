@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef __GLSL_IO_PROCESSOR_H_
-#define __GLSL_IO_PROCESSOR_H_
+#ifndef REGEN_GLSL_IO_PROCESSOR_H
+#define REGEN_GLSL_IO_PROCESSOR_H
 
 #include <boost/regex.hpp>
 #include <regen/gl-types/shader-input.h>
@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <list>
+#include <map>
 #include <string>
 
 namespace regen {
@@ -93,8 +94,8 @@ namespace regen {
 
 		void parseArray(std::string &v, std::string &numElements);
 
-		InputOutput getUniformIO(const ref_ptr<ShaderInput> &in);
+		InputOutput getUniformIO(const NamedShaderInput &uniform);
 	};
 } // namespace
 
-#endif /* GLSL_IO_PROCESSOR_H_ */
+#endif /* REGEN_GLSL_IO_PROCESSOR_H */

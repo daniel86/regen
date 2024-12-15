@@ -207,6 +207,14 @@ bool ShaderInputWidget::handleInput(
 	if (in->elementCount() > 1) return false;
 	if (in->valsPerElement() > 4) return false;
 
+	if (in->isUniformBlock()) {
+		auto *block = dynamic_cast<UniformBlock *>(in.get());
+		for (auto &uniform : block->uniforms()) {
+			handleInput(uniform, parent);
+		}
+		return true;
+	}
+
 	if (initialValue_.count(in.get()) > 0) {
 		byte *lastValue = initialValue_[in.get()];
 		delete[]lastValue;

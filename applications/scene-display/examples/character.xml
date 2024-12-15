@@ -438,25 +438,31 @@
         <texel v="0, 0, 0"/>
     </texture>
 
+    <ubo id="Particles-UBO">
+        <uniform type="vec3" name="gravity" value="0.0,9.81,0.0"/>
+        <uniform type="float" name="dampingFactor" value="1.0"/>
+        <uniform type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
+        <uniform type="float" name="emitterSize" value="9.0"/>
+        <uniform type="vec2" name="velocityFactorMinMax" value="5.0, 10.0"/>
+        <uniform type="float" name="emitterOpening" value="0.5"/>
+        <uniform type="float" name="surfaceHeight" value="-1.0"/>
+        <uniform type="float" name="lifetimeDefault" value="0.8"/>
+        <uniform type="float" name="lifetimeVariance" value="0.5"/>
+    </ubo>
+
+    <ubo id="Wind-UBO">
+        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
+        <uniform name="windFlowScale" type="float" value="150.0"/>
+        <uniform name="windFlowTime" type="float" value="0.2"/>
+        <uniform name="windStrength" type="float" value="1.0"/>
+    </ubo>
+
     <node id="Particle-Config">
         <define key="PARTICLE_EMITTER_MODE" value="IN"/>
         <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
         <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
-        <input type="vec3" name="gravity" value="0.0,9.81,0.0"/>
-        <input type="float" name="dampingFactor" value="1.0"/>
-        <input type="vec2" name="velocityFactorMinMax" value="5.0, 10.0"/>
-        <input type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
-        <input type="float" name="emitterSize" value="9.0"/>
-        <input type="float" name="emitterOpening" value="0.5"/>
-        <input type="float" name="surfaceHeight" value="-1.0"/>
-        <input type="float" name="lifetimeDefault" value="0.8"/>
-        <input type="float" name="lifetimeVariance" value="0.5"/>
-        <!-- TODO: redundant with root node. would be good to have shared parameter.
-                   but first get it right with the wind I guess -->
-        <input name="wind" type="vec2" value="0.6, 0.6"/>
-        <input name="windFlowScale" type="float" value="150.0"/>
-        <input name="windFlowTime" type="float" value="0.2"/>
-        <input name="windStrength" type="float" value="1.0"/>
+        <input name="Particles" ubo="Particles-UBO"/>
+        <input name="Wind" ubo="Wind-UBO"/>
         <texture name="windFlow" id="wind-flowmap" />
     </node>
 
@@ -526,7 +532,6 @@
             <blend mode="alpha" />
             <texture name="densityTexture" fbo="particle-fbo" attachment="0" />
             <texture name="colorRamp" id="particle-color-ramp" blend-mode="MUL" />
-            <!-- TODO: redundant with root node -->
             <texture name="windFlow" id="wind-flowmap" />
             <input type="float" name="gamma" value="1.0"/>
             <input type="float" name="exposure" value="1.0"/>
@@ -648,7 +653,6 @@
                 <mesh id="dwarf-mesh" mesh-index-range="1-" shader="regen.models.mesh"/>
             </node>
             <node id="dwarf-axe">
-                <material emission="0.1,0.1,0.1"/>
                 <mesh id="dwarf-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
         </node>
@@ -731,19 +735,7 @@
     </node>
 
     <node id="root">
-        <input name="wind" type="vec2" value="0.6, 0.6"/>
-            <!--
-        <input name="wind" type="vec2">
-            <animation >
-                <key-frame value="0.6, 0.6" dt="0.0" />
-                <key-frame value="0.8, 0.8" dt="6.0" />
-                <key-frame value="0.6, 0.6" dt="6.0" />
-                <key-frame value="0.61, 0.6" dt="2.0" />
-            </animation>
-        </input>
-            -->
-        <input name="windFlowScale" type="float" value="150.0"/>
-        <input name="windFlowTime" type="float" value="0.2"/>
+        <input name="Wind" ubo="Wind-UBO"/>
 
         <node id="Pre-Render">
             <!-- Render shadow maps such that they can be used in the shading pass -->
