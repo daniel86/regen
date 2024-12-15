@@ -50,9 +50,13 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	astro_->setLatitude(52.5491);
 	astro_->setLongitude(13.3611);
 
+	// TODO: unify this with the global time uniform of Application
 	timeUniform_ = ref_ptr<ShaderInput1f>::alloc("time");
 	timeUniform_->setUniformData(0.0f);
 	state()->joinShaderInput(timeUniform_);
+
+	auto uniformBlock = ref_ptr<UniformBlock>::alloc("Sky");
+	state()->joinShaderInput(uniformBlock);
 
 	// 0: altitude in km
 	// 1: apparent angular radius (not diameter!)
@@ -64,15 +68,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 			osgHimmel::Earth::meanRadius(),
 			osgHimmel::Earth::meanRadius() + osgHimmel::Earth::atmosphereThicknessNonUniform(),
 			0));
-	state()->joinShaderInput(cmnUniform_);
+	uniformBlock->addUniform(cmnUniform_);
 
 	R_ = ref_ptr<ShaderInputMat4>::alloc("equToHorMatrix");
 	R_->setUniformData(Mat4f::identity());
-	state()->joinShaderInput(R_);
-
-	q_ = ref_ptr<ShaderInput1f>::alloc("q");
-	q_->setUniformData(0.0f);
-	state()->joinShaderInput(q_);
+	uniformBlock->addUniform(R_);
 
 	// directional light that approximates the sun
 	sun_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
@@ -80,21 +80,26 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	sun_->specular()->setVertex(0, Vec3f(0.0f));
 	sun_->diffuse()->setVertex(0, Vec3f(0.0f));
 	sun_->direction()->setVertex(0, Vec3f(1.0f));
-	state()->joinShaderInput(sun_->direction(), "sunPosition");
+	uniformBlock->addUniform(sun_->direction(), "sunPosition");
+
+	q_ = ref_ptr<ShaderInput1f>::alloc("q");
+	q_->setUniformData(0.0f);
+	uniformBlock->addUniform(q_);
+
 	// directional light that approximates the moon
 	moon_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	moon_->set_isAttenuated(GL_FALSE);
 	moon_->specular()->setVertex(0, Vec3f(0.0f));
 	moon_->diffuse()->setVertex(0, Vec3f(0.0f));
 	moon_->direction()->setVertex(0, Vec3f(1.0f));
-	state()->joinShaderInput(moon_->direction(), "moonPosition");
+	uniformBlock->addUniform(moon_->direction(), "moonPosition");
 
 	Rectangle::Config cfg;
 	cfg.centerAtOrigin = GL_FALSE;
 	cfg.isNormalRequired = GL_FALSE;
 	cfg.isTangentRequired = GL_FALSE;
 	cfg.isTexcoRequired = GL_FALSE;
-	cfg.levelOfDetails = {4}; // TODO: why so much?
+	cfg.levelOfDetails = {0}; // TODO: why so much?
 	cfg.posScale = Vec3f(2.0f);
 	cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
 	cfg.texcoScale = Vec2f(1.0);

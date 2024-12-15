@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef _LIGHT_H_
-#define _LIGHT_H_
+#ifndef REGEN_LIGHT_STATE_H
+#define REGEN_LIGHT_STATE_H
 
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/states/model-transformation.h>
@@ -39,49 +39,49 @@ namespace regen {
 		/**
 		 * @return the light type.
 		 */
-		Type lightType() const;
+		auto lightType() const { return lightType_; }
 
 		/**
 		 * Sets whether the light is distance attenuated.
 		 */
-		void set_isAttenuated(GLboolean isAttenuated);
+		void set_isAttenuated(GLboolean isAttenuated) { isAttenuated_ = isAttenuated; }
 
 		/**
 		 * @return is the light distance attenuated.
 		 */
-		GLboolean isAttenuated() const;
+		auto isAttenuated() const { return isAttenuated_; }
 
 		/**
 		 * @return the world space light position.
 		 * @note undefined for directional lights.
 		 */
-		const ref_ptr<ShaderInput3f> &position() const;
+		auto &position() const { return lightPosition_; }
 
 		/**
 		 * @return the light direction.
 		 * @note undefined for point lights.
 		 */
-		const ref_ptr<ShaderInput3f> &direction() const;
+		auto &direction() const { return lightDirection_; }
 
 		/**
 		 * @return diffuse light color.
 		 */
-		const ref_ptr<ShaderInput3f> &diffuse() const;
+		auto &diffuse() const { return lightDiffuse_; }
 
 		/**
 		 * @return specular light color.
 		 */
-		const ref_ptr<ShaderInput3f> &specular() const;
+		auto &specular() const { return lightSpecular_; }
 
 		/**
 		 * @return inner and outer light radius.
 		 */
-		const ref_ptr<ShaderInput2f> &radius() const;
+		auto &radius() const { return lightRadius_; }
 
 		/**
 		 * @return inner and outer cone angles.
 		 */
-		const ref_ptr<ShaderInput2f> &coneAngle() const;
+		auto &coneAngle() const { return lightConeAngles_; }
 
 		/**
 		 * @param deg inner angle in degree.
@@ -160,4 +160,4 @@ namespace regen {
 	std::istream &operator>>(std::istream &in, ShadowFilterMode &mode);
 } // namespace
 
-#endif /* _LIGHT_H_ */
+#endif /* REGEN_LIGHT_STATE_H */

@@ -18,39 +18,39 @@ using namespace regen;
 
 #include "texture.h"
 
-static inline void __TextureFilter(GLenum target, const TextureFilter &v) {
+static inline void Regen_TextureFilter(GLenum target, const TextureFilter &v) {
 	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, v.x);
 	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, v.y);
 }
 
-static inline void __TextureLoD(GLenum target, const TextureLoD &v) {
+static inline void Regen_TextureLoD(GLenum target, const TextureLoD &v) {
 	glTexParameterf(target, GL_TEXTURE_MIN_LOD, v.x);
 	glTexParameterf(target, GL_TEXTURE_MAX_LOD, v.y);
 }
 
-static inline void __TextureSwizzle(GLenum target, const TextureSwizzle &v) {
+static inline void Regen_TextureSwizzle(GLenum target, const TextureSwizzle &v) {
 	glTexParameteri(target, GL_TEXTURE_SWIZZLE_R, v.x);
 	glTexParameteri(target, GL_TEXTURE_SWIZZLE_G, v.y);
 	glTexParameteri(target, GL_TEXTURE_SWIZZLE_B, v.z);
 	glTexParameteri(target, GL_TEXTURE_SWIZZLE_A, v.w);
 }
 
-static inline void __TextureWrapping(GLenum target, const TextureWrapping &v) {
+static inline void Regen_TextureWrapping(GLenum target, const TextureWrapping &v) {
 	glTexParameteri(target, GL_TEXTURE_WRAP_S, v.x);
 	glTexParameteri(target, GL_TEXTURE_WRAP_T, v.y);
 	glTexParameteri(target, GL_TEXTURE_WRAP_R, v.z);
 }
 
-static inline void __TextureCompare(GLenum target, const TextureCompare &v) {
+static inline void Regen_TextureCompare(GLenum target, const TextureCompare &v) {
 	glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, v.x);
 	glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, v.y);
 }
 
-static inline void __TextureMaxLevel(GLenum target, const TextureMaxLevel &v) {
+static inline void Regen_TextureMaxLevel(GLenum target, const TextureMaxLevel &v) {
 	glTexParameteri(target, GL_TEXTURE_MAX_LEVEL, v);
 }
 
-static inline void __TextureAniso(GLenum target, const TextureAniso &v) {
+static inline void Regen_TextureAniso(GLenum target, const TextureAniso &v) {
 	glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
 }
 
@@ -74,13 +74,13 @@ Texture::Texture(GLuint numTextures)
 	maxLevel_ = new TextureParameterStack<TextureMaxLevel> *[numObjects_];
 	aniso_ = new TextureParameterStack<TextureAniso> *[numObjects_];
 	for (GLuint i = 0; i < numObjects_; ++i) {
-		filter_[i] = new TextureParameterStack<TextureFilter>(texBind_, __TextureFilter);
-		lod_[i] = new TextureParameterStack<TextureLoD>(texBind_, __TextureLoD);
-		swizzle_[i] = new TextureParameterStack<TextureSwizzle>(texBind_, __TextureSwizzle);
-		wrapping_[i] = new TextureParameterStack<TextureWrapping>(texBind_, __TextureWrapping);
-		compare_[i] = new TextureParameterStack<TextureCompare>(texBind_, __TextureCompare);
-		maxLevel_[i] = new TextureParameterStack<TextureMaxLevel>(texBind_, __TextureMaxLevel);
-		aniso_[i] = new TextureParameterStack<TextureAniso>(texBind_, __TextureAniso);
+		filter_[i] = new TextureParameterStack<TextureFilter>(texBind_, Regen_TextureFilter);
+		lod_[i] = new TextureParameterStack<TextureLoD>(texBind_, Regen_TextureLoD);
+		swizzle_[i] = new TextureParameterStack<TextureSwizzle>(texBind_, Regen_TextureSwizzle);
+		wrapping_[i] = new TextureParameterStack<TextureWrapping>(texBind_, Regen_TextureWrapping);
+		compare_[i] = new TextureParameterStack<TextureCompare>(texBind_, Regen_TextureCompare);
+		maxLevel_[i] = new TextureParameterStack<TextureMaxLevel>(texBind_, Regen_TextureMaxLevel);
+		aniso_[i] = new TextureParameterStack<TextureAniso>(texBind_, Regen_TextureAniso);
 	}
 
 	set_rectangleSize(2, 2);

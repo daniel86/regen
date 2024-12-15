@@ -15,6 +15,7 @@ void ResourceManager::loadResources(SceneParser *parser, const std::string &id) 
 	assets_.getResource(parser, id);
 	cameras_.getResource(parser, id);
 	fbos_.getResource(parser, id);
+	ubos_.getResource(parser, id);
 	fonts_.getResource(parser, id);
 	lights_.getResource(parser, id);
 	meshes_.getResource(parser, id);
@@ -40,6 +41,11 @@ ref_ptr<regen::Font> ResourceManager::getFont(SceneParser *parser, const std::st
 ref_ptr<FBO> ResourceManager::getFBO(SceneParser *parser, const std::string &id) {
 	loadResources(parser, id);
 	return fbos_.getResource(parser, id);
+}
+
+ref_ptr<UBO> ResourceManager::getUBO(SceneParser *parser, const std::string &id) {
+	loadResources(parser, id);
+	return ubos_.getResource(parser, id);
 }
 
 ref_ptr<Texture> ResourceManager::getTexture(SceneParser *parser, const std::string &id) {
@@ -80,6 +86,10 @@ void ResourceManager::putFont(const std::string &id, const ref_ptr<regen::Font> 
 
 void ResourceManager::putFBO(const std::string &id, const ref_ptr<FBO> &fbo) {
 	fbos_.putResource(id, fbo);
+}
+
+void ResourceManager::putUBO(const std::string &id, const ref_ptr<UBO> &ubo) {
+	ubos_.putResource(id, ubo);
 }
 
 void ResourceManager::putTexture(const std::string &id, const ref_ptr<Texture> &texture) {

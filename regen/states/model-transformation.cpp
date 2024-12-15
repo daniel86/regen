@@ -13,13 +13,16 @@ ModelTransformation::ModelTransformation()
 		: State(),
 		  HasInput(VBO::USAGE_DYNAMIC),
 		  lastPosition_(0.0, 0.0, 0.0) {
-	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
-	velocity_->setUniformData(Vec3f(0.0f));
-	setInput(velocity_);
-
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
 	modelMat_->setUniformData(Mat4f::identity());
-	setInput(modelMat_);
+
+	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
+	velocity_->setUniformData(Vec3f(0.0f));
+
+	auto uniforms = ref_ptr<UniformBlock>::alloc("ModelTransformation");
+	uniforms->addUniform(modelMat_);
+	uniforms->addUniform(velocity_);
+	setInput(uniforms);
 }
 
 const ref_ptr<ShaderInputMat4> &ModelTransformation::get() const { return modelMat_; }

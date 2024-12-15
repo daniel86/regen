@@ -53,7 +53,7 @@ ShaderInput::ShaderInput(
 		GLenum dataType,
 		GLuint dataTypeBytes,
 		GLuint valsPerElement,
-		GLuint elementCount,
+		GLsizei elementCount,
 		GLboolean normalize)
 		: name_(name),
 		  dataType_(dataType),
@@ -64,7 +64,8 @@ ShaderInput::ShaderInput(
 		  elementSize_(0),
 		  elementCount_(elementCount),
 		  numVertices_(0u),
-		  numInstances_(0u),
+		  numInstances_(1u),
+		  numElements_(elementCount),
 		  valsPerElement_(valsPerElement),
 		  divisor_(0),
 		  buffer_(0),
@@ -96,6 +97,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  elementCount_(o.elementCount_),
 		  numVertices_(o.numVertices_),
 		  numInstances_(o.numInstances_),
+		  numElements_(o.numElements_),
 		  valsPerElement_(o.valsPerElement_),
 		  divisor_(o.divisor_),
 		  buffer_(o.buffer_),
@@ -205,7 +207,7 @@ ref_ptr<VBO::Reference> ShaderInput::bufferIterator() { return bufferIterator_; 
 /////////////
 
 void ShaderInput::enableAttributef(GLint location) const {
-	for (GLuint i = 0; i < elementCount_; ++i) {
+	for (GLsizei i = 0; i < elementCount_; ++i) {
 		GLint loc = location + i;
 		glEnableVertexAttribArray(loc);
 		glVertexAttribPointer(
@@ -222,7 +224,7 @@ void ShaderInput::enableAttributef(GLint location) const {
 }
 
 void ShaderInput::enableAttributei(GLint location) const {
-	for (GLuint i = 0; i < elementCount_; ++i) {
+	for (GLsizei i = 0; i < elementCount_; ++i) {
 		GLint loc = location + i;
 		glEnableVertexAttribArray(loc);
 		// use glVertexAttribIPointer, otherwise OpenGL
@@ -240,7 +242,7 @@ void ShaderInput::enableAttributei(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat4(GLint location) const {
-	for (GLuint i = 0; i < elementCount_ * 4; i += 4) {
+	for (GLsizei i = 0; i < elementCount_ * 4; i += 4) {
 		GLint loc0 = location + i;
 		GLint loc1 = location + i + 1;
 		GLint loc2 = location + i + 2;
@@ -274,7 +276,7 @@ void ShaderInput::enableAttributeMat4(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat3(GLint location) const {
-	for (GLuint i = 0; i < elementCount_ * 3; i += 4) {
+	for (GLsizei i = 0; i < elementCount_ * 3; i += 4) {
 		GLint loc0 = location + i;
 		GLint loc1 = location + i + 1;
 		GLint loc2 = location + i + 2;
@@ -302,7 +304,7 @@ void ShaderInput::enableAttributeMat3(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat2(GLint location) const {
-	for (GLuint i = 0; i < elementCount_ * 2; i += 4) {
+	for (GLsizei i = 0; i < elementCount_ * 2; i += 4) {
 		GLint loc0 = location + i;
 		GLint loc1 = location + i + 1;
 
@@ -328,75 +330,75 @@ void ShaderInput::enableAttribute(GLint loc) const {
 }
 
 void ShaderInput::enableUniform1f(GLint loc) const {
-	glUniform1fv(loc, elementCount_, (const GLfloat *) clientData());
+	glUniform1fv(loc, numElements_, (const GLfloat *) clientData());
 }
 
 void ShaderInput::enableUniform2f(GLint loc) const {
-	glUniform2fv(loc, elementCount_, (const GLfloat *) clientData());
+	glUniform2fv(loc, numElements_, (const GLfloat *) clientData());
 }
 
 void ShaderInput::enableUniform3f(GLint loc) const {
-	glUniform3fv(loc, elementCount_, (const GLfloat *) clientData());
+	glUniform3fv(loc, numElements_, (const GLfloat *) clientData());
 }
 
 void ShaderInput::enableUniform4f(GLint loc) const {
-	glUniform4fv(loc, elementCount_, (const GLfloat *) clientData());
+	glUniform4fv(loc, numElements_, (const GLfloat *) clientData());
 }
 
 void ShaderInput::enableUniformMat3(GLint loc) const {
-	glUniformMatrix3fv(loc, elementCount_, transpose_, (const GLfloat *) clientData());
+	glUniformMatrix3fv(loc, numElements_, transpose_, (const GLfloat *) clientData());
 }
 
 void ShaderInput::enableUniformMat4(GLint loc) const {
-	glUniformMatrix4fv(loc, elementCount_, transpose_, (const GLfloat *) clientData());
+	glUniformMatrix4fv(loc, numElements_, transpose_, (const GLfloat *) clientData());
 }
 
 void ShaderInput::enableUniform1d(GLint loc) const {
-	glUniform1dv(loc, elementCount_, (const GLdouble *) clientData());
+	glUniform1dv(loc, numElements_, (const GLdouble *) clientData());
 }
 
 void ShaderInput::enableUniform2d(GLint loc) const {
-	glUniform2dv(loc, elementCount_, (const GLdouble *) clientData());
+	glUniform2dv(loc, numElements_, (const GLdouble *) clientData());
 }
 
 void ShaderInput::enableUniform3d(GLint loc) const {
-	glUniform3dv(loc, elementCount_, (const GLdouble *) clientData());
+	glUniform3dv(loc, numElements_, (const GLdouble *) clientData());
 }
 
 void ShaderInput::enableUniform4d(GLint loc) const {
-	glUniform4dv(loc, elementCount_, (const GLdouble *) clientData());
+	glUniform4dv(loc, numElements_, (const GLdouble *) clientData());
 }
 
 void ShaderInput::enableUniform1i(GLint loc) const {
-	glUniform1iv(loc, elementCount_, (const GLint *) clientData());
+	glUniform1iv(loc, numElements_, (const GLint *) clientData());
 }
 
 void ShaderInput::enableUniform2i(GLint loc) const {
-	glUniform2iv(loc, elementCount_, (const GLint *) clientData());
+	glUniform2iv(loc, numElements_, (const GLint *) clientData());
 }
 
 void ShaderInput::enableUniform3i(GLint loc) const {
-	glUniform3iv(loc, elementCount_, (const GLint *) clientData());
+	glUniform3iv(loc, numElements_, (const GLint *) clientData());
 }
 
 void ShaderInput::enableUniform4i(GLint loc) const {
-	glUniform4iv(loc, elementCount_, (const GLint *) clientData());
+	glUniform4iv(loc, numElements_, (const GLint *) clientData());
 }
 
 void ShaderInput::enableUniform1ui(GLint loc) const {
-	glUniform1uiv(loc, elementCount_, (const GLuint *) clientData());
+	glUniform1uiv(loc, numElements_, (const GLuint *) clientData());
 }
 
 void ShaderInput::enableUniform2ui(GLint loc) const {
-	glUniform2uiv(loc, elementCount_, (const GLuint *) clientData());
+	glUniform2uiv(loc, numElements_, (const GLuint *) clientData());
 }
 
 void ShaderInput::enableUniform3ui(GLint loc) const {
-	glUniform3uiv(loc, elementCount_, (const GLuint *) clientData());
+	glUniform3uiv(loc, numElements_, (const GLuint *) clientData());
 }
 
 void ShaderInput::enableUniform4ui(GLint loc) const {
-	glUniform4uiv(loc, elementCount_, (const GLuint *) clientData());
+	glUniform4uiv(loc, numElements_, (const GLuint *) clientData());
 }
 
 void ShaderInput::enableUniform(GLint loc) const {
@@ -418,6 +420,7 @@ void ShaderInput::setVertexData(
 	isVertexAttribute_ = GL_TRUE;
 	numVertices_ = numVertices;
 	numInstances_ = 1u;
+	numElements_ = elementCount_;
 	divisor_ = 0u;
 	GLuint size = elementSize_ * numVertices_;
 	if (inputSize_ != size) {
@@ -428,9 +431,14 @@ void ShaderInput::setVertexData(
 		inputSize_ = size;
 	}
 	if (vertexData) {
-		std::memcpy(data_, vertexData, inputSize_);
+		// check if the data is already set to avoid changing the stamp
+		if (std::memcmp(data_, vertexData, inputSize_) != 0) {
+			std::memcpy(data_, vertexData, inputSize_);
+			stamp_ += 1;
+		}
+	} else {
+		stamp_ += 1;
 	}
-	stamp_ += 1;
 	// make new data stack root
 	dataStack_.popBottom();
 	dataStack_.pushBottom(data_);
@@ -440,10 +448,11 @@ void ShaderInput::setInstanceData(
 		GLuint numInstances,
 		GLuint divisor,
 		const byte *instanceData) {
-	isVertexAttribute_ = GL_TRUE;
+	isVertexAttribute_ = GL_FALSE;
 	numInstances_ = std::max(1u, numInstances);
 	divisor_ = std::max(1u, divisor);
 	numVertices_ = 1u;
+	numElements_ = elementCount_ * numInstances_;
 	GLuint size = elementSize_ * numInstances_ / divisor_;
 	if (inputSize_ != size) {
 		if (data_) {
@@ -453,9 +462,13 @@ void ShaderInput::setInstanceData(
 		inputSize_ = size;
 	}
 	if (instanceData) {
-		std::memcpy(data_, instanceData, inputSize_);
+		if (numInstances > 1 || std::memcmp(data_, instanceData, inputSize_) != 0) {
+			std::memcpy(data_, instanceData, inputSize_);
+			stamp_ += 1;
+		}
+	} else {
+		stamp_ += 1;
 	}
-	stamp_ += 1;
 	// make new data stack root
 	dataStack_.popBottom();
 	dataStack_.pushBottom(data_);
@@ -576,8 +589,8 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 	if (in->isUniformBlock()) {
 		auto newBlock = ref_ptr<UniformBlock>::alloc(in->name());
 		auto oldBlock = (UniformBlock *)(in.get());
-		for (auto &uniform : oldBlock->uniforms()) {
-			newBlock->addUniform(create(uniform));
+		for (auto &namedUniform : oldBlock->uniforms()) {
+			newBlock->addUniform(create(namedUniform.in_), namedUniform.name_);
 		}
 		return newBlock;
 	}
@@ -845,25 +858,21 @@ struct UniformBlock::UniformBlockData {
 };
 
 UniformBlock::UniformBlock(const std::string &name) :
+	UniformBlock(name, ref_ptr<UBO>::alloc()){
+}
+
+UniformBlock::UniformBlock(const std::string &name, const ref_ptr<UBO> &ubo) :
 	ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, GL_FALSE){
 	enableUniform_ = [this](GLint loc) { enableUniformBlock(loc); };
 	isUniformBlock_ = GL_TRUE;
 	isVertexAttribute_ = GL_FALSE;
 	isVertexAttribute_ = GL_FALSE;
 	priv_ = new UniformBlockData();
-	priv_->ubo = ref_ptr<UBO>::alloc();
+	priv_->ubo = ubo;
 }
 
 UniformBlock::~UniformBlock() {
 	delete priv_;
-}
-
-GLuint UniformBlock::stamp() const {
-	return priv_->ubo->stamp();
-}
-
-void UniformBlock::enable(GLint loc) const {
-	priv_->ubo->bindBufferBase(loc);
 }
 
 void UniformBlock::enableUniformBlock(GLint loc) const {
@@ -871,16 +880,12 @@ void UniformBlock::enableUniformBlock(GLint loc) const {
 	priv_->ubo->bindBufferBase(loc);
 }
 
-const std::vector<ref_ptr<ShaderInput>> &UniformBlock::uniforms() const {
+const std::vector<NamedShaderInput> &UniformBlock::uniforms() const {
 	return priv_->ubo->uniforms();
 }
 
-void UniformBlock::addUniform(const ref_ptr<ShaderInput> &input) {
-	priv_->ubo->addUniform(input);
-}
-
-void UniformBlock::update(bool forceUpdate) {
-	priv_->ubo->update(forceUpdate);
+void UniformBlock::addUniform(const ref_ptr<ShaderInput> &input, const std::string &name) {
+	priv_->ubo->addUniform(input, name);
 }
 
 void UniformBlock::write(std::ostream &out) const {

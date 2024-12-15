@@ -60,6 +60,20 @@ void Mesh::getMeshViews(std::set<Mesh *> &out) {
 void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in) {
 	if (!meshShader_.get()) return;
 
+	if (in->isUniformBlock()) {
+		auto block = (UniformBlock *)(in.get());
+		for (auto &blockUniform : block->uniforms()) {
+			if(blockUniform.in_->numInstances() > 1) {
+				inputContainer_->set_numInstances(blockUniform.in_->numInstances());
+				hasInstances_ = GL_TRUE;
+			}
+		}
+	}
+	if (in->numInstances() > 1) {
+		inputContainer_->set_numInstances(in->numInstances());
+		hasInstances_ = GL_TRUE;
+	}
+
 	if (in->isVertexAttribute()) {
 		GLint loc = meshShader_->attributeLocation(name);
 		if (loc == -1) {
@@ -69,9 +83,6 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 		if (!in->bufferIterator().get()) {
 			// allocate VBO memory if not already allocated
 			inputContainer_->inputBuffer()->alloc(in);
-		}
-		if (in->numInstances() > 1) {
-			inputContainer_->set_numInstances(in->numInstances());
 		}
 
 		auto needle = vaoLocations_.find(loc);

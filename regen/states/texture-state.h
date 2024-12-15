@@ -112,7 +112,7 @@ namespace regen {
 		/**
 		 * @return used to get unique names in shaders.
 		 */
-		GLuint stateID() const;
+		auto stateID() const { return stateID_; }
 
 		/**
 		 * @param tex the associates texture.
@@ -122,7 +122,7 @@ namespace regen {
 		/**
 		 * @return the associates texture.
 		 */
-		const ref_ptr<Texture> &texture() const;
+		auto &texture() const { return texture_; }
 
 		/**
 		 * @param name the name of this texture in shader programs.
@@ -132,17 +132,17 @@ namespace regen {
 		/**
 		 * @return the name of this texture in shader programs.
 		 */
-		const std::string &name() const;
+		auto &name() const { return name_; }
 
 		/**
 		 * @param samplerType the sampler name of this texture in shader programs.
 		 */
-		void set_samplerType(const std::string &samplerType);
+		void set_samplerType(const std::string &samplerType) { samplerType_ = samplerType; }
 
 		/**
 		 * @return the name of this texture in shader programs.
 		 */
-		const std::string &samplerType() const;
+		auto &samplerType() const { return samplerType_; }
 
 		/**
 		 * @param channel  the texture coordinate channel.
@@ -152,7 +152,7 @@ namespace regen {
 		/**
 		 * @return the texture coordinate channel.
 		 */
-		GLuint texcoChannel() const;
+		auto texcoChannel() const { return texcoChannel_; }
 
 		/**
 		 * @param blendMode Specifies how this texture should be mixed with existing
@@ -242,7 +242,7 @@ namespace regen {
 		 * Explicit request to the application to ignore the alpha channel
 		 * of the texture.
 		 */
-		GLboolean ignoreAlpha() const;
+		auto ignoreAlpha() const { return ignoreAlpha_; }
 
 		// override
 		void enable(RenderState *rs) override;

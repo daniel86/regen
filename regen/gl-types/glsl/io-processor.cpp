@@ -66,9 +66,9 @@ IOProcessor::IOProcessor()
 string IOProcessor::getNameWithoutPrefix(const string &name) {
 	static const string prefixes[] = {"in_", "out_", "u_", "c_", "gs_", "fs_", "vs_", "tes_", "tcs_"};
 	static const int numprefixes = sizeof(prefixes) / sizeof(string);
-	for (int i = 0; i < numprefixes; ++i) {
-		if (hasPrefix(name, prefixes[i])) {
-			return truncPrefix(name, prefixes[i]);
+	for (const auto & prefixe : prefixes) {
+		if (hasPrefix(name, prefixe)) {
+			return truncPrefix(name, prefixe);
 		}
 	}
 	return name;
@@ -82,10 +82,9 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 
 	// for each input of the next stage
 	// make sure it is declared at least as output in this stage
-	for (map<string, InputOutput>::const_iterator
-				 it = nextInputs.begin(); it != nextInputs.end(); ++it) {
-		const string &nameWithoutPrefix = it->first;
-		const InputOutput &nextIn = it->second;
+	for (auto & nextInput : nextInputs) {
+		const string &nameWithoutPrefix = nextInput.first;
+		const InputOutput &nextIn = nextInput.second;
 
 		if (outputs.count(nameWithoutPrefix) > 0) { continue; }
 		genOut.push_back(InputOutput(nextIn));
@@ -138,21 +137,20 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 	// declare IO:
 	//    * insert a redefinition of the IO name using the stage prefix
 	//    * just insert the previous declaration again
-	for (list<InputOutput>::iterator it = genIn.begin(); it != genIn.end(); ++it) {
-		lineQueue_.push_back("#define " + (*it).name + " " +
-							 glenum::glslStagePrefix(state.currStage) + "_" + getNameWithoutPrefix((*it).name));
-		lineQueue_.push_back(it->declaration());
+	for (auto & it : genIn) {
+		lineQueue_.push_back("#define " + it.name + " " +
+							 glenum::glslStagePrefix(state.currStage) + "_" + getNameWithoutPrefix(it.name));
+		lineQueue_.push_back(it.declaration());
 	}
-	for (list<InputOutput>::iterator it = genOut.begin(); it != genOut.end(); ++it) {
-		lineQueue_.push_back("#define " + (*it).name + " " +
-							 glenum::glslStagePrefix(state.nextStage) + "_" + getNameWithoutPrefix((*it).name));
-		lineQueue_.push_back(it->declaration());
+	for (auto & it : genOut) {
+		lineQueue_.push_back("#define " + it.name + " " +
+							 glenum::glslStagePrefix(state.nextStage) + "_" + getNameWithoutPrefix(it.name));
+		lineQueue_.push_back(it.declaration());
 	}
 
 	// declare HANDLE_IO() function
 	lineQueue_.push_back("void HANDLE_IO(int i) {");
-	for (list<InputOutput>::iterator it = genOut.begin(); it != genOut.end(); ++it) {
-		InputOutput &io = *it;
+	for (auto & io : genOut) {
 		const string &outName = io.name;
 		string inName = inputs[getNameWithoutPrefix(outName)].name;
 
@@ -181,21 +179,27 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 	lineQueue_.push_back("}");
 }
 
-IOProcessor::InputOutput IOProcessor::getUniformIO(const ref_ptr<ShaderInput> &in) {
-	string nameWithoutPrefix = getNameWithoutPrefix(in->name());
+IOProcessor::InputOutput IOProcessor::getUniformIO(const NamedShaderInput &uniform) {
+	string nameWithoutPrefix = getNameWithoutPrefix(uniform.name_.empty() ?
+			uniform.in_->name() : uniform.name_);
 
 	IOProcessor::InputOutput io;
 	io.layout = "";
 	io.interpolation = "";
 	io.ioType = "uniform";
 	io.value = "";
-	io.numElements = (in->elementCount() > 1 || in->forceArray()) ?
-					 REGEN_STRING(in->elementCount()) : "";
-	io.name = "in_" + nameWithoutPrefix;
+	GLuint numElements = uniform.in_->elementCount() * uniform.in_->numInstances();
+	io.numElements = (numElements > 1 || uniform.in_->forceArray()) ?
+					 REGEN_STRING(numElements) : "";
+	if (uniform.in_->numInstances()>1) {
+		io.name = "instances_" + nameWithoutPrefix;
+	} else {
+		io.name = "in_" + nameWithoutPrefix;
+	}
 
-	Texture *tex = dynamic_cast<Texture *>(in.get());
-	if (tex == NULL) {
-		io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
+	Texture *tex = dynamic_cast<Texture *>(uniform.in_.get());
+	if (tex == nullptr) {
+		io.dataType = glenum::glslDataType(uniform.in_->dataType(), uniform.in_->valsPerElement());
 	} else {
 		io.dataType = tex->samplerType();
 	}
@@ -223,8 +227,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 	specifiedInput.insert(specifiedInput.begin(), uniformBlocks.begin(), uniformBlocks.end());
 
 
-	for (list<NamedShaderInput>::const_iterator
-				 it = specifiedInput.begin(); it != specifiedInput.end(); ++it) {
+	for (auto it = specifiedInput.begin(); it != specifiedInput.end(); ++it) {
 		ref_ptr<ShaderInput> in = it->in_;
 		string nameWithoutPrefix = getNameWithoutPrefix(it->name_);
 		if (inputNames_.count(nameWithoutPrefix)) continue;
@@ -233,7 +236,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 
 		if (it->type_.empty()) {
 			Texture *tex = dynamic_cast<Texture *>(in.get());
-			if (tex == NULL) {
+			if (tex == nullptr) {
 				io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
 			} else {
 				io.dataType = tex->samplerType();
@@ -241,9 +244,16 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		} else {
 			io.dataType = it->type_;
 		}
-		io.numElements = (in->elementCount() > 1 || in->forceArray()) ?
-						 REGEN_STRING(in->elementCount()) : "";
-		io.name = "in_" + nameWithoutPrefix;
+		GLuint numElements = in->elementCount() * in->numInstances();
+		io.numElements = (numElements > 1 || in->forceArray()) ?
+						 REGEN_STRING(numElements) : "";
+		if (in->numInstances() > 1) {
+			io.name = "instances_" + nameWithoutPrefix;
+			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix <<
+					" instances_" << nameWithoutPrefix << "[gl_InstanceID]"));
+		} else {
+			io.name = "in_" + nameWithoutPrefix;
+		}
 
 		if (in->isVertexAttribute()) {
 			if (state.currStage != GL_VERTEX_SHADER) continue;
@@ -268,11 +278,18 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.ioType = "uniform";
 			io.value = "";
 			io.dataType = "";
-			for (auto &uniform: uniformBlock->uniforms()) {
-				auto memberIO = getUniformIO(uniform);
+			for (auto &blockUniform: uniformBlock->uniforms()) {
+				auto memberIO = getUniformIO(blockUniform);
+				auto blockNameWithoutPrefix = getNameWithoutPrefix(blockUniform.name_.empty() ?
+						blockUniform.in_->name() : blockUniform.name_);
 				memberIO.ioType = "";
 				io.block.push_back(memberIO.declaration());
-				inputNames_.insert(getNameWithoutPrefix(uniform->name()));
+				inputNames_.insert(blockNameWithoutPrefix);
+
+				if (blockUniform.in_->numInstances() > 1) {
+					lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix <<
+						" instances_" << blockNameWithoutPrefix << "[gl_InstanceID]"));
+				}
 			}
 			uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix, io));
 		} else {

@@ -55,9 +55,9 @@ void Shader::preProcess(
 	// configure shader using macros
 	std::stringstream header;
 	header << "#version " << cfg.version << std::endl;
-	for (auto it = cfg.defines.begin(); it != cfg.defines.end(); ++it) {
-		const std::string &name = it->first;
-		const std::string &value = it->second;
+	for (const auto & define : cfg.defines) {
+		const std::string &name = define.first;
+		const std::string &value = define.second;
 		if (value == "TRUE") {
 			header << "#define " << name << std::endl;
 		} else if (value == "FALSE") {
@@ -174,8 +174,8 @@ Shader::Shader(
 }
 
 Shader::~Shader() {
-	for (auto it = shaders_.begin(); it != shaders_.end(); ++it) {
-		ref_ptr<GLuint> &stage = it->second;
+	for (auto & shader : shaders_) {
+		ref_ptr<GLuint> &stage = shader.second;
 		glDetachShader(id(), *stage.get());
 		if (*stage.refCount() == 1) {
 			glDeleteShader(*stage.get());
@@ -196,7 +196,7 @@ const std::string &Shader::stageCode(GLenum stage) const {
 	if (it != shaderCodes_.end()) {
 		return it->second;
 	} else {
-		static const std::string empty = "";
+		static const std::string empty;
 		return empty;
 	}
 }
@@ -330,10 +330,10 @@ GLboolean Shader::link() {
 	glGetProgramiv(id(), GL_LINK_STATUS, &status);
 	GL_ERROR_LOG();
 	if (status == GL_FALSE) {
-		printLog(id(), GL_NONE, NULL, false);
+		printLog(id(), GL_NONE, nullptr, false);
 		return GL_FALSE;
 	} else {
-		printLog(id(), GL_NONE, NULL, true);
+		printLog(id(), GL_NONE, nullptr, true);
 		setupInputLocations();
 		return GL_TRUE;
 	}
@@ -367,7 +367,7 @@ void Shader::setupInputLocations() {
 
 	glGetProgramiv(id(), GL_ACTIVE_UNIFORMS, &count);
 	for (GLint loc_ = 0; loc_ < count; ++loc_) {
-		glGetActiveUniform(id(), loc_, 320, NULL, &arraySize, &type, nameC);
+		glGetActiveUniform(id(), loc_, 320, nullptr, &arraySize, &type, nameC);
 		std::string uniformName(nameC);
 		// for arrays..
 		GLint loc = glGetUniformLocation(id(), nameC);
@@ -382,6 +382,9 @@ void Shader::setupInputLocations() {
 			uniformName = truncPrefix(uniformName, "u_");
 		} else if (hasPrefix(attName, "in_")) {
 			uniformName = truncPrefix(uniformName, "in_");
+		}
+		if (hasPrefix(uniformName, "instances_")) {
+			uniformName = truncPrefix(uniformName, "instances_");
 		}
 		uniformLocations_[std::string(nameC)] = loc;
 		uniformLocations_[uniformName] = loc;
@@ -429,7 +432,7 @@ void Shader::setupInputLocations() {
 	}
 
 	glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
-	GLuint bindingPoint = 0;
+	GLint bindingPoint = 0;
 	for (GLint blockIndex = 0; blockIndex < count; ++blockIndex) {
 		// Note: uniforms inside a uniform block do not have individual uniform locations,
 		// but each block has an index within the shader program.
@@ -447,7 +450,7 @@ void Shader::setupInputLocations() {
 
 	glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
 	for (GLint loc_ = 0; loc_ < count; ++loc_) {
-		glGetActiveAttrib(id(), loc_, 320, NULL, &arraySize, &type, nameC);
+		glGetActiveAttrib(id(), loc_, 320, nullptr, &arraySize, &type, nameC);
 		GLint loc = glGetAttribLocation(id(), nameC);
 
 		// remember this attribute location
@@ -481,7 +484,7 @@ ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
 	GLint arraySize;
 	GLenum type;
 	char nameC[320];
-	glGetActiveUniform(id(), loc, 320, NULL, &arraySize, &type, nameC);
+	glGetActiveUniform(id(), loc, 320, nullptr, &arraySize, &type, nameC);
 
 	switch (type) {
 		case GL_FLOAT:
@@ -513,22 +516,22 @@ ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
 		default: REGEN_WARN("Not a known uniform type for '" << name << "' type=" << type);
 			break;
 	}
-	return ref_ptr<ShaderInput>();
+	return {};
 }
 
 void Shader::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 	std::string inputName = (name.empty() ? in->name() : name);
-
-	auto needle = inputNames_.find(inputName);
-	if (needle == inputNames_.end()) {
-		inputs_.emplace_back(in, inputName);
-		auto it = inputs_.end();
-		--it;
-		inputNames_[inputName] = it;
-	} else {
-		*needle->second = NamedShaderInput(in, inputName);
+	{
+		auto needle = inputNames_.find(inputName);
+		if (needle == inputNames_.end()) {
+			inputs_.emplace_back(in, inputName);
+			auto it = inputs_.end();
+			--it;
+			inputNames_[inputName] = it;
+		} else {
+			*needle->second = NamedShaderInput(in, inputName);
+		}
 	}
-
 	if (in->isVertexAttribute()) {
 		auto needle = attributeLocations_.find(inputName);
 		if (!in->hasData()) { return; }
@@ -555,35 +558,31 @@ GLboolean Shader::setTexture(const ref_ptr<Texture> &tex, const std::string &nam
 }
 
 void Shader::setInputs(const std::list<NamedShaderInput> &inputs) {
-	for (auto it = inputs.begin(); it != inputs.end(); ++it) { setInput(it->in_, it->name_); }
+	for (const auto & input : inputs) { setInput(input.in_, input.name_); }
 }
 
 void Shader::setTransformFeedback(const std::list<std::string> &transformFeedback,
 								  GLenum attributeLayout, GLenum feedbackStage) {
 	feedbackLayout_ = attributeLayout;
 	feedbackStage_ = feedbackStage;
-	for (auto it = transformFeedback.begin(); it != transformFeedback.end(); ++it) {
-		transformFeedback_.push_back(*it);
+	for (const auto & it : transformFeedback) {
+		transformFeedback_.push_back(it);
 	}
 }
 
 //////////////
 
 void Shader::enable(RenderState *rs) {
-	for (auto it = uniforms_.begin(); it != uniforms_.end(); ++it) {
-		if (it->input->isUniformBlock()) {
-			auto *block = (UniformBlock *) it->input.get();
-			block->update();
+	for (auto & uniform : uniforms_) {
+		if (!uniform.input->active()) { continue; }
+		if (uniform.input->isUniformBlock()) {
+			// enable uniform block
+			uniform.input->enableUniform(uniform.location);
 		}
-	}
-	for (auto it = uniforms_.begin(); it != uniforms_.end(); ++it) {
-		if (it->input->isUniformBlock()) {
-			auto *block = (UniformBlock *) it->input.get();
-			block->enable(it->location);
-		}
-		else if (it->input->stamp() != it->uploadStamp && it->input->active()) {
-			it->input->enableUniform(it->location);
-			it->uploadStamp = it->input->stamp();
+		else if (uniform.input->stamp() != uniform.uploadStamp) {
+			// enable uniform
+			uniform.input->enableUniform(uniform.location);
+			uniform.uploadStamp = uniform.input->stamp();
 		}
 	}
 }

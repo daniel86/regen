@@ -19,27 +19,30 @@ MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 		: SkyLayer(sky) {
 	setupMoonTextureCube(moonMapFile);
 
+	moonUniforms_ = ref_ptr<UniformBlock>::alloc("Moon");
+	state()->joinShaderInput(moonUniforms_);
+
 	moonOrientation_ = ref_ptr<ShaderInputMat4>::alloc("moonOrientationMatrix");
 	moonOrientation_->setUniformData(Mat4f::identity());
-	state()->joinShaderInput(moonOrientation_);
-
-	scale_ = ref_ptr<ShaderInput1f>::alloc("scale");
-	scale_->setUniformData(defaultScale());
-	state()->joinShaderInput(scale_);
-
-	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
-	scattering_->setUniformData(defaultScattering());
-	state()->joinShaderInput(scattering_);
+	moonUniforms_->addUniform(moonOrientation_);
 
 	sunShine_ = ref_ptr<ShaderInput4f>::alloc("sunShine");
 	sunShine_->setUniformData(Vec4f(defaultSunShineColor(), defaultSunShineIntensity()));
-	state()->joinShaderInput(sunShine_);
+	moonUniforms_->addUniform(sunShine_);
 
 	earthShine_ = ref_ptr<ShaderInput3f>::alloc("earthShine");
 	earthShine_->setUniformData(Vec3f(0.0));
-	state()->joinShaderInput(earthShine_);
+	moonUniforms_->addUniform(earthShine_);
 	earthShineColor_ = defaultEarthShineColor();
 	earthShineIntensity_ = defaultEarthShineIntensity();
+
+	scale_ = ref_ptr<ShaderInput1f>::alloc("scale");
+	scale_->setUniformData(defaultScale());
+	moonUniforms_->addUniform(scale_);
+
+	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
+	scattering_->setUniformData(defaultScattering());
+	moonUniforms_->addUniform(scattering_);
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.moon");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());

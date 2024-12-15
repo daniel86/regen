@@ -194,35 +194,21 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex) {
 	}
 }
 
-const ref_ptr<Texture> &TextureState::texture() const { return texture_; }
-
 void TextureState::set_name(const std::string &name) {
 	name_ = name;
 	shaderDefine(REGEN_TEX_NAME("TEX_NAME"), name_);
 	shaderDefine("HAS_" + name_, "TRUE");
 }
 
-const std::string &TextureState::name() const { return name_; }
-
-void TextureState::set_samplerType(const std::string &samplerType) { samplerType_ = samplerType; }
-
-const std::string &TextureState::samplerType() const { return samplerType_; }
-
-GLuint TextureState::stateID() const { return stateID_; }
-
 void TextureState::set_texcoChannel(GLuint texcoChannel) {
 	texcoChannel_ = texcoChannel;
 	shaderDefine(REGEN_TEX_NAME("TEX_TEXCO"), REGEN_STRING("texco" << texcoChannel_));
 }
 
-GLuint TextureState::texcoChannel() const { return texcoChannel_; }
-
 void TextureState::set_ignoreAlpha(GLboolean v) {
 	ignoreAlpha_ = v;
 	shaderDefine(REGEN_TEX_NAME("TEX_IGNORE_ALPHA"), v ? "TRUE" : "FALSE");
 }
-
-GLboolean TextureState::ignoreAlpha() const { return ignoreAlpha_; }
 
 void TextureState::set_blendFactor(GLfloat blendFactor) {
 	blendFactor_ = blendFactor;

@@ -60,6 +60,7 @@ namespace regen {
 		ref_ptr<Mesh> meshState_;
 		ref_ptr<HasShader> shaderState_;
 
+		ref_ptr<UniformBlock> moonUniforms_;
 		ref_ptr<ShaderInput1f> scale_;
 		ref_ptr<ShaderInput1f> scattering_;
 		ref_ptr<ShaderInput4f> sunShine_;

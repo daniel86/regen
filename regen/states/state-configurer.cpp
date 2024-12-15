@@ -81,12 +81,28 @@ void StateConfigurer::addState(const State *s) {
 		for (auto it = container->inputs().begin(); it != container->inputs().end(); ++it) {
 			addInput(it->name_, it->in_);
 
-			define(REGEN_STRING("HAS_" << it->in_->name()), "TRUE");
-			if (it->in_->isVertexAttribute()) {
-				define(REGEN_STRING("HAS_VERTEX_" << it->in_->name()), "TRUE");
-			}
-			if (it->in_->numInstances() > 1) {
-				define("HAS_INSTANCES", "TRUE");
+			std::queue<std::pair<const std::string&,ShaderInput*>> queue;
+			queue.emplace(it->in_->name(), it->in_.get());
+
+			while (!queue.empty()) {
+				auto [name, in] = queue.front();
+				const auto &inName = name.empty() ? in->name() : name;
+				queue.pop();
+
+				define(REGEN_STRING("HAS_" << inName), "TRUE");
+				if (in->isVertexAttribute()) {
+					define(REGEN_STRING("HAS_VERTEX_" << inName), "TRUE");
+				}
+				if (in->numInstances() > 1) {
+					define("HAS_INSTANCES", "TRUE");
+				}
+
+				if (in->isUniformBlock()) {
+					auto block = (UniformBlock *)(in);
+					for (auto& blockUniform : block->uniforms()) {
+						queue.emplace(blockUniform.name_, blockUniform.in_.get());
+					}
+				}
 			}
 		}
 	}

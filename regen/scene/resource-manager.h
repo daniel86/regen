@@ -16,6 +16,7 @@
 #include <regen/scene/resources/mesh.h>
 #include <regen/scene/resources/texture.h>
 #include <regen/scene/resources/sky.h>
+#include "regen/scene/resources/ubo-resource.h"
 
 namespace regen {
 	namespace scene {
@@ -51,6 +52,13 @@ namespace regen {
 			 * @return A FBO resource or null reference.
 			 */
 			ref_ptr<FBO> getFBO(SceneParser *parser, const std::string &id);
+
+			/**
+			 * @param parser The scene parser that contains resources.
+			 * @param id the resource id.
+			 * @return A UBO resource or null reference.
+			 */
+			ref_ptr<UBO> getUBO(SceneParser *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
@@ -103,7 +111,11 @@ namespace regen {
 			 */
 			void putFBO(const std::string &id, const ref_ptr<FBO> &fbo);
 
-			void putFBO(const std::string &id, const ref_ptr<Sky> &sky);
+			/**
+			 * @param id the resource id.
+			 * @param ubo A UBO instance.
+			 */
+			void putUBO(const std::string &id, const ref_ptr<UBO> &ubo);
 
 			/**
 			 * @param id the resource id.
@@ -138,6 +150,7 @@ namespace regen {
 			AssetResource assets_;
 			CameraResource cameras_;
 			FBOResource fbos_;
+			UBOResource ubos_;
 			FontResource fonts_;
 			LightResource lights_;
 			MeshResource meshes_;

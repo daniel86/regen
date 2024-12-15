@@ -128,11 +128,18 @@ ref_ptr<ShaderInput> State::findShaderInput(const std::string &name) {
 	auto *inState = dynamic_cast<HasInput *>(this);
 	if (inState != nullptr) {
 		const ShaderInputList &l = inState->inputContainer()->inputs();
-		for (auto it = l.begin(); it != l.end(); ++it) {
-			const NamedShaderInput &inNamed = *it;
-			if (name == inNamed.name_ ||
-				name == inNamed.in_->name())
+		for (const auto &inNamed : l) {
+			if (name == inNamed.name_ || name == inNamed.in_->name()) {
 				return inNamed.in_;
+			}
+			if (inNamed.in_->isUniformBlock()) {
+				auto *block = dynamic_cast<UniformBlock *>(inNamed.in_.get());
+				for (auto &blockUniform : block->uniforms()) {
+					if (name == blockUniform.name_ || name == blockUniform.in_->name()) {
+						return blockUniform.in_;
+					}
+				}
+			}
 		}
 	}
 
