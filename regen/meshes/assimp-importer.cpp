@@ -59,11 +59,12 @@ static bool assimpLog_(std::string &msg, const std::string &prefix) {
 
 static void assimpLog(const char *msg_, char *) {
 	string msg(msg_);
-	if (assimpLog_(msg, "Info,")) {REGEN_INFO(msg); }
-	else if (assimpLog_(msg, "Warn,")) {REGEN_WARN(msg); }
-	else if (assimpLog_(msg, "Error,")) {REGEN_ERROR(msg); }
-	else if (assimpLog_(msg, "Debug,")) {REGEN_DEBUG(msg); }
-	else REGEN_DEBUG(msg);
+	if (assimpLog_(msg, "Info,")) { REGEN_INFO(msg); }
+	else if (assimpLog_(msg, "Warn,")) { REGEN_WARN(msg); }
+	else if (assimpLog_(msg, "Error,")) { REGEN_ERROR(msg); }
+	else if (assimpLog_(msg, "Debug,")) { REGEN_DEBUG(msg); }
+	else
+		REGEN_DEBUG(msg);
 }
 
 static const struct aiScene *importFile(
@@ -454,7 +455,8 @@ static void loadTexture(
 			case aiTextureMapMode_Clamp:
 				wrapping_.x = GL_CLAMP;
 				break;
-			case aiTextureMapMode_Decal: REGEN_WARN("ignoring texture map mode decal.");
+			case aiTextureMapMode_Decal:
+				REGEN_WARN("ignoring texture map mode decal.");
 				break;
 			case aiTextureMapMode_Mirror:
 				wrapping_.x = GL_MIRRORED_REPEAT;
@@ -473,7 +475,8 @@ static void loadTexture(
 			case aiTextureMapMode_Clamp:
 				wrapping_.y = GL_CLAMP;
 				break;
-			case aiTextureMapMode_Decal: REGEN_WARN("ignoring texture map mode decal.");
+			case aiTextureMapMode_Decal:
+				REGEN_WARN("ignoring texture map mode decal.");
 				break;
 			case aiTextureMapMode_Mirror:
 				wrapping_.y = GL_MIRRORED_REPEAT;
@@ -640,7 +643,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		}
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_EMISSIVE, &aiCol)) {
-			mat->set_emission( *((Vec3f*) &aiCol) );
+			mat->set_emission(*((Vec3f *) &aiCol));
 		}
 		// Defines the transparent color of the material,
 		// this is the color to be multiplied with the color of translucent light to
@@ -864,18 +867,12 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 			aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
 			Vec3f &v = *((Vec3f *) &aiv.x);
 			pos->setVertex(n, v);
-			if (min_.x > v.x) min_.x = v.x;
-			if (max_.x < v.x) max_.x = v.x;
-			if (min_.y > v.y) min_.y = v.y;
-			if (max_.y < v.y) max_.y = v.y;
-			if (min_.z > v.z) min_.z = v.z;
-			if (max_.z < v.z) max_.z = v.z;
+			min_.setMin(v);
+			max_.setMax(v);
 		}
 		meshState->setInput(pos);
 	}
-	Vec3f center_ = (max_ + min_) * 0.5;
-	meshState->set_centerPosition(center_);
-	meshState->set_extends(min_ - center_, max_ - center_);
+	meshState->set_bounds(min_, max_);
 
 	// per vertex normals
 	if (mesh.HasNormals()) {

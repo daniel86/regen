@@ -281,7 +281,14 @@
     <camera id="main-camera"/>
     <depth test="1" write="0" function="LEQUAL"/>
     <polygon offset-fill="1.1,4.0" />
-    <bullet-debugger />
+    <debugger type="bullet" />
+</node>
+
+<node id="spatial-index-debug">
+    <camera id="main-camera"/>
+    <depth test="1" write="0" function="LEQUAL"/>
+    <polygon offset-fill="1.1,4.0" />
+    <debugger type="spatial-index" resource="main-index" />
 </node>
 
 <!-- ************************ -->

@@ -12,6 +12,8 @@
 #include "regen/scene/nodes/picking.h"
 #include "regen/scene/states/polygon.h"
 #include "regen/scene/nodes/bloom.h"
+#include "regen/scene/states/shape.h"
+#include "regen/scene/nodes/debugger.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -81,7 +83,7 @@ void SceneParser::init() {
 	setNodeProcessor(ref_ptr<SceneNodeProcessor>::alloc());
 	setNodeProcessor(ref_ptr<MotionBlurProvider>::alloc());
 	setNodeProcessor(ref_ptr<PickingNodeProvider>::alloc());
-	setNodeProcessor(ref_ptr<BulletDebuggerProvider>::alloc());
+	setNodeProcessor(ref_ptr<DebuggerProvider>::alloc());
 	setNodeProcessor(ref_ptr<BloomProvider>::alloc());
 	// add some default state processors
 	setStateProcessor(ref_ptr<ResourceStateProvider>::alloc());
@@ -101,6 +103,7 @@ void SceneParser::init() {
 	setStateProcessor(ref_ptr<TesselationStateProvider>::alloc());
 	setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());
 	setStateProcessor(ref_ptr<PhysicsStateProvider>::alloc());
+	setStateProcessor(ref_ptr<ShapeStateProvider>::alloc());
 	setStateProcessor(ref_ptr<PolygonStateProvider>::alloc());
 	setStateProcessor(ref_ptr<DeformationNodeProvider>::alloc());
 }
@@ -120,7 +123,7 @@ const ref_ptr<ShaderInput2f> &SceneParser::getMouseTexco() const {
 
 ref_ptr<SceneInputNode> SceneParser::getRoot() const {
 	auto root = inputProvider_->getRoot();
-	if (root->getChildren().size()==1) {
+	if (root->getChildren().size() == 1) {
 		return *root->getChildren().begin();
 	} else {
 		return root;

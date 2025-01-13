@@ -155,8 +155,8 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	}
 
 	// apply offset to each vertex
-	if(centerAtOrigin_) {
-		GLfloat centerOffset = actualMaxLineWidth*0.5f;
+	if (centerAtOrigin_) {
+		GLfloat centerOffset = actualMaxLineWidth * 0.5f;
 		for (GLuint i = 0; i < vertexCounter; ++i) {
 			auto pos = posAttribute_->getVertex(i);
 			pos.x -= centerOffset;
@@ -170,6 +170,14 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	setInput(texcoAttribute_);
 	end();
 	updateVAO(RenderState::get());
+
+	// set center and extends for bounding box
+	minPosition_ = Vec3f(posAttribute_->getVertex(0));
+	maxPosition_ = Vec3f(posAttribute_->getVertex(0));
+	for (GLuint i = 1; i < vertexCounter; ++i) {
+		minPosition_.setMin(posAttribute_->getVertex(i));
+		maxPosition_.setMax(posAttribute_->getVertex(i));
+	}
 }
 
 void TextureMappedText::makeGlyphGeometry(

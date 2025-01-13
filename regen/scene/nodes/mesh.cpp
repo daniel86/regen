@@ -1,5 +1,4 @@
 #include "mesh.h"
-#include "regen/states/mesh-lod.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -121,30 +120,6 @@ void MeshNodeProvider::processInput(
 			// Update VAO
 			mesh->updateVAO(RenderState::get(),
 							stateConfigurer.cfg(), meshShader);
-			// configure mesh LOD
-			if (input.hasAttribute("lod-tf")) {
-				auto metric = input.getValue<LODMetric>("lod-metric", LOD_CAMERA_DISTANCE);
-				auto tf = parser->getResources()->getTransform(parser, input.getValue("lod-tf"));
-				if (tf.get() == nullptr) {
-					REGEN_WARN("Unable to find lod-tf for " << input.getDescription() << ".");
-				}
-				else if (metric == LOD_CAMERA_DISTANCE) {
-					auto cam = parent->getParentCamera();
-					if (cam.get() == nullptr) {
-						REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
-					}
-					else  {
-						auto lod = ref_ptr<CameraDistanceLOD>::alloc(mesh, tf, cam);
-						if (input.hasAttribute("lod-close-distance")) {
-							lod->set_closeDistance(input.getValue<GLfloat>("lod-close-distance", 40.0f));
-						}
-						if (input.hasAttribute("lod-medium-distance")) {
-							lod->set_mediumDistance(input.getValue<GLfloat>("lod-medium-distance", 100.0f));
-						}
-						mesh->joinStates(lod);
-					}
-				}
-			}
 		}
 	}
 }

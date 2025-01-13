@@ -7,15 +7,18 @@ TransformAnimation::TransformAnimation(const ref_ptr<ShaderInputMat4> &in)
 		: Animation(GL_TRUE, GL_TRUE),
 		  in_(in) {
 	auto &currentTransform = in_->getVertex(0);
+	it_ = frames_.end();
+	dt_ = 0.0;
+	setAnimationName(REGEN_STRING("animation-"<<in->name()));
+	// initialize transform data
 	currentPos_ = currentTransform.position();
 	// TODO: get euler angles
 	currentDir_ = Vec3f(0.0f);
-	it_ = frames_.end();
+	currentVal_ = currentTransform;
+	// set last frame
 	lastFrame_.pos = currentPos_;
 	lastFrame_.rotation = currentDir_;
 	lastFrame_.dt = 0.0;
-	dt_ = 0.0;
-	setAnimationName(REGEN_STRING("animation-"<<in->name()));
 }
 
 void TransformAnimation::push_back(const std::optional<Vec3f> &pos,

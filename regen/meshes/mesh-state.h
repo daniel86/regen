@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef __MESH_H_
-#define __MESH_H_
+#ifndef REGEN_MESH_STATE_H_
+#define REGEN_MESH_STATE_H_
 
 #include <vector>
 
@@ -77,16 +77,39 @@ namespace regen {
 		void updateVAO(RenderState *rs);
 
 		/**
+		 * Update the level of detail based on camera distance.
+		 * @param cameraDistance distance to camera.
+		 */
+		void updateLOD(float cameraDistance);
+
+		/**
+		 * Get the level of detail based on camera distance.
+		 * @param cameraDistance distance to camera.
+		 * @return the level of detail.
+		 */
+		unsigned int getLODLevel(float cameraDistance);
+
+		/**
 		 * Activate given LOD level.
 		 */
 		void activateLOD(GLuint lodLevel);
+
+		/**
+		 * @return the current LOD level.
+		 */
+		auto lodLevel() const { return lodLevel_; }
+
+		/**
+		 * Set the far distance for LOD.
+		 */
+		void setLODFar(float far) { lodFar_ = far; }
 
 		/**
 		 * All LODs are stored in the same buffer, so each LOD level is simply expressed
 		 * as offset into the buffer.
 		 * @return set of LODs of this mesh.
 		 */
-		auto &meshLODs() { return meshLODs_; }
+		auto &meshLODs() const { return meshLODs_; }
 
 		/**
 		 * @return number of LODs.
@@ -96,7 +119,9 @@ namespace regen {
 		/**
 		 * Set the physical object.
 		 */
-		void addPhysicalObject(const ref_ptr<PhysicalObject> &physicalObject) { physicalObjects_.push_back(physicalObject); }
+		void addPhysicalObject(const ref_ptr<PhysicalObject> &physicalObject) {
+			physicalObjects_.push_back(physicalObject);
+		}
 
 		/**
 		 * @return the physical object.
@@ -117,16 +142,6 @@ namespace regen {
 		 * @param primitive face primitive of this mesh.
 		 */
 		void set_primitive(GLenum primitive) { primitive_ = primitive; }
-
-		/**
-		 * The center position of this mesh.
-		 */
-		void set_centerPosition(const Vec3f &center) { centerPosition_ = center; }
-
-		/**
-		 * Extends relative to center position.
-		 */
-		void set_extends(const Vec3f &minPosition, const Vec3f &maxPosition);
 
 		/**
 		 * @return the position attribute.
@@ -156,7 +171,12 @@ namespace regen {
 		/**
 		 * The center position of this mesh.
 		 */
-		const Vec3f &centerPosition()  { return centerPosition_; }
+		Vec3f centerPosition() const;
+
+		/**
+		 * The bounds of this mesh.
+		 */
+		void set_bounds(const Vec3f &min, const Vec3f &max);
 
 		/**
 		 * Minimum extends relative to center position.
@@ -195,6 +215,8 @@ namespace regen {
 
 		ref_ptr<VAO> vao_;
 		std::vector<MeshLOD> meshLODs_;
+		float lodFar_ = 160.0f;
+		unsigned int lodLevel_ = 0;
 
 		std::list<ShaderInputLocation> vaoAttributes_;
 		std::map<GLint, std::list<ShaderInputLocation>::iterator> vaoLocations_;
@@ -211,7 +233,6 @@ namespace regen {
 		std::set<Mesh *> meshViews_;
 		GLboolean isMeshView_;
 
-		Vec3f centerPosition_;
 		Vec3f minPosition_;
 		Vec3f maxPosition_;
 
@@ -246,4 +267,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* __MESH_H_ */
+#endif /* REGEN_MESH_STATE_H_ */

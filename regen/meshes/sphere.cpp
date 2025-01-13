@@ -74,13 +74,13 @@ static Vec3f computeSphereTangent(const Vec3f &v) {
 }
 
 void Sphere::pushVertex(GLuint vertexIndex, GLdouble u, GLdouble v, const Config &cfg) {
-	auto positions = ((Vec3f*) pos_->clientData());
+	auto positions = ((Vec3f *) pos_->clientData());
 
 	GLdouble r = std::sin(M_PI * v);
 	positions[vertexIndex] = Vec3f(
-		static_cast<float>(r * std::cos(2.0 * M_PI * u)),
-		static_cast<float>(r * std::sin(2.0 * M_PI * u)),
-		static_cast<float>(std::cos(M_PI * v))
+			static_cast<float>(r * std::cos(2.0 * M_PI * u)),
+			static_cast<float>(r * std::sin(2.0 * M_PI * u)),
+			static_cast<float>(std::cos(M_PI * v))
 	);
 	if (cfg.isNormalRequired) {
 		nor_->setVertex(vertexIndex, positions[vertexIndex]);
@@ -99,49 +99,49 @@ void Sphere::pushVertex(GLuint vertexIndex, GLdouble u, GLdouble v, const Config
 }
 
 void Sphere::generateLODLevel(const Config &cfg,
-				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset) {
+							  GLuint lodLevel,
+							  GLuint vertexOffset,
+							  GLuint indexOffset) {
 	auto *indicesPtr = (GLuint *) indices_->clientDataPtr();
 	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
-	GLuint vertexIndex = vertexOffset, faceIndex = indexOffset/6;
+	GLuint vertexIndex = vertexOffset, faceIndex = indexOffset / 6;
 
-	for (GLuint i=0; i<lodLevel; i++) {
-		for (GLuint j=0; j<lodLevel; j++) {
-            GLdouble u0 = (GLdouble)i * stepSizeInv;
-            GLdouble u1 = (GLdouble)(i + 1) * stepSizeInv;
-            GLdouble v0 = (GLdouble)j * stepSizeInv;
-            GLdouble v1 = (GLdouble)(j + 1) * stepSizeInv;
+	for (GLuint i = 0; i < lodLevel; i++) {
+		for (GLuint j = 0; j < lodLevel; j++) {
+			GLdouble u0 = (GLdouble) i * stepSizeInv;
+			GLdouble u1 = (GLdouble) (i + 1) * stepSizeInv;
+			GLdouble v0 = (GLdouble) j * stepSizeInv;
+			GLdouble v1 = (GLdouble) (j + 1) * stepSizeInv;
 
-            if (cfg.isHalfSphere && u0 < 0.5) continue;
+			if (cfg.isHalfSphere && u0 < 0.5) continue;
 
-            // create two triangles for each quad
-            GLuint index = (faceIndex++) * 6;
-            indicesPtr[index + 0] = vertexIndex + 0;
-            indicesPtr[index + 1] = vertexIndex + 1;
-            indicesPtr[index + 2] = vertexIndex + 2;
-            indicesPtr[index + 3] = vertexIndex + 2;
-            indicesPtr[index + 4] = vertexIndex + 1;
-            indicesPtr[index + 5] = vertexIndex + 3;
+			// create two triangles for each quad
+			GLuint index = (faceIndex++) * 6;
+			indicesPtr[index + 0] = vertexIndex + 0;
+			indicesPtr[index + 1] = vertexIndex + 1;
+			indicesPtr[index + 2] = vertexIndex + 2;
+			indicesPtr[index + 3] = vertexIndex + 2;
+			indicesPtr[index + 4] = vertexIndex + 1;
+			indicesPtr[index + 5] = vertexIndex + 3;
 
-            // they are made of 4 vertices
-            pushVertex(vertexIndex++, u1, v1, cfg);
-            pushVertex(vertexIndex++, u1, v0, cfg);
-            pushVertex(vertexIndex++, u0, v1, cfg);
-            pushVertex(vertexIndex++, u0, v0, cfg);
+			// they are made of 4 vertices
+			pushVertex(vertexIndex++, u1, v1, cfg);
+			pushVertex(vertexIndex++, u1, v0, cfg);
+			pushVertex(vertexIndex++, u0, v1, cfg);
+			pushVertex(vertexIndex++, u0, v0, cfg);
 		}
 	}
 }
 
 void Sphere::updateAttributes(const Config &cfg) {
-    std::vector<GLuint> LODs;
-    GLuint vertexOffset = 0;
-    GLuint indexOffset = 0;
-    for (auto &lod : cfg.levelOfDetails) {
-    	GLuint lodLevel = 4 + lod * lod;
+	std::vector<GLuint> LODs;
+	GLuint vertexOffset = 0;
+	GLuint indexOffset = 0;
+	for (auto &lod: cfg.levelOfDetails) {
+		GLuint lodLevel = 4 + lod * lod;
 		LODs.push_back(lodLevel);
 		GLuint numFaces;
-		if(cfg.isHalfSphere) {
+		if (cfg.isHalfSphere) {
 			numFaces = lodLevel * lodLevel;
 		} else {
 			numFaces = 2 * lodLevel * lodLevel;
@@ -173,13 +173,13 @@ void Sphere::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
-    indices_->setVertexData(numIndices);
+	indices_->setVertexData(numIndices);
 
-    for (auto i=0u; i<LODs.size(); ++i) {
-    	generateLODLevel(cfg,
-    			LODs[i],
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
+	for (auto i = 0u; i < LODs.size(); ++i) {
+		generateLODLevel(cfg,
+						 LODs[i],
+						 meshLODs_[i].vertexOffset,
+						 meshLODs_[i].indexOffset);
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
@@ -196,13 +196,13 @@ void Sphere::updateAttributes(const Config &cfg) {
 	}
 	end();
 
-    for (auto &x : meshLODs_) {
-    	// add the index buffer offset (in number of bytes)
-    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	for (auto &x: meshLODs_) {
+		// add the index buffer offset (in number of bytes)
+		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
-	minPosition_ = -cfg.posScale;
-	maxPosition_ = cfg.posScale;
+	minPosition_ = -cfg.posScale * 0.5f;
+	maxPosition_ = cfg.posScale * 0.5f;
 }
 
 ///////////
@@ -236,17 +236,10 @@ void SphereSprite::updateAttributes(const Config &cfg) {
 		positionIn->setVertex(i, cfg.position[i]);
 
 		v = cfg.position[i] - Vec3f(cfg.radius[i]);
-		if (minPosition_.x > v.x) minPosition_.x = v.x;
-		if (minPosition_.y > v.y) minPosition_.y = v.y;
-		if (minPosition_.z > v.z) minPosition_.z = v.z;
+		minPosition_.setMin(v);
 		v = cfg.position[i] + Vec3f(cfg.radius[i]);
-		if (maxPosition_.x < v.x) maxPosition_.x = v.x;
-		if (maxPosition_.y < v.y) maxPosition_.y = v.y;
-		if (maxPosition_.z < v.z) maxPosition_.z = v.z;
+		maxPosition_.setMax(v);
 	}
-	centerPosition_ = (maxPosition_ + minPosition_) * 0.5;
-	maxPosition_ -= centerPosition_;
-	minPosition_ -= centerPosition_;
 
 	begin(ShaderInputContainer::INTERLEAVED);
 	setInput(radiusIn);

@@ -11,10 +11,13 @@ Point::Point(GLuint numVertices)
 	pos_ = ref_ptr<ShaderInput3f>::alloc("pos");
 	pos_->setVertexData(numVertices);
 
-	if(numVertices == 1) {
+	if (numVertices == 1) {
 		pos_->setVertex(0, Vec3f(0.0, 0.0, 0.0));
 		begin(ShaderInputContainer::INTERLEAVED);
 		setInput(pos_);
 		end();
 	}
+
+	minPosition_ = Vec3f(0.0f);
+	maxPosition_ = Vec3f(0.0f);
 }

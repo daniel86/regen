@@ -250,7 +250,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		if (in->numInstances() > 1) {
 			io.name = "instances_" + nameWithoutPrefix;
 			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix <<
-					" instances_" << nameWithoutPrefix << "[gl_InstanceID]"));
+					" instances_" << nameWithoutPrefix << "[regen_InstanceID]"));
 		} else {
 			io.name = "in_" + nameWithoutPrefix;
 		}
@@ -288,7 +288,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 
 				if (blockUniform.in_->numInstances() > 1) {
 					lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix <<
-						" instances_" << blockNameWithoutPrefix << "[gl_InstanceID]"));
+						" instances_" << blockNameWithoutPrefix << "[regen_InstanceID]"));
 				}
 			}
 			uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix, io));

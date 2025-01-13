@@ -69,14 +69,13 @@ Rectangle::Config::Config()
 }
 
 void Rectangle::generateLODLevel(const Config &cfg,
-				const Tessellation &tessellation,
-				const Mat4f &rotMat,
-				GLuint vertexOffset,
-				GLuint indexOffset)
-{
+								 const Tessellation &tessellation,
+								 const Mat4f &rotMat,
+								 GLuint vertexOffset,
+								 GLuint indexOffset) {
 	auto *indicesPtr = (GLuint *) indices_->clientDataPtr();
 	GLuint nextIndex = indexOffset;
-	for (auto &tessFace : tessellation.outputFaces) {
+	for (auto &tessFace: tessellation.outputFaces) {
 		indicesPtr[nextIndex++] = vertexOffset + tessFace.v1;
 		indicesPtr[nextIndex++] = vertexOffset + tessFace.v2;
 		indicesPtr[nextIndex++] = vertexOffset + tessFace.v3;
@@ -97,13 +96,16 @@ void Rectangle::generateLODLevel(const Config &cfg,
 		auto &face = tessellation.outputFaces[faceIndex];
 		GLuint faceVertIndex = 0;
 
-		for (auto &tessIndex : {face.v1, face.v2, face.v3 }) {
+		for (auto &tessIndex: {face.v1, face.v2, face.v3}) {
 			auto &vertex = tessellation.vertices[tessIndex];
 			auto vertexIndex = vertexOffset + tessIndex;
 			triIndices[faceVertIndex] = vertexIndex;
 
-			pos_->setVertex(vertexIndex, rotMat.transformVector(
-					cfg.posScale * vertex + startPos) + cfg.translation);
+			Vec3f pos = rotMat.transformVector(
+					cfg.posScale * vertex + startPos) + cfg.translation;
+			pos_->setVertex(vertexIndex, pos);
+			minPosition_.setMin(pos);
+			maxPosition_.setMax(pos);
 			if (cfg.isNormalRequired) {
 				nor_->setVertex(vertexIndex, normal);
 			}
@@ -142,7 +144,7 @@ void Rectangle::updateAttributes(Config cfg) {
 		baseTess.inputFaces[0] = TessellationFace(0, 1, 3);
 		baseTess.inputFaces[1] = TessellationFace(1, 2, 3);
 
-		for (GLuint lodLevel : cfg.levelOfDetails) {
+		for (GLuint lodLevel: cfg.levelOfDetails) {
 			auto &lodTess = tessellations.emplace_back();
 			lodTess.vertices = baseTess.vertices;
 			lodTess.inputFaces = baseTess.inputFaces;
@@ -173,15 +175,18 @@ void Rectangle::updateAttributes(Config cfg) {
 	if (cfg.isTangentRequired) {
 		tan_->setVertexData(numVertices);
 	}
-    indices_->setVertexData(numIndices);
+	indices_->setVertexData(numIndices);
+
+	minPosition_ = Vec3f(0.0);
+	maxPosition_ = Vec3f(0.0);
 
 	Mat4f rotMat = Mat4f::rotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
-    for (auto i=0u; i<tessellations.size(); ++i) {
-    	generateLODLevel(cfg,
-    			tessellations[i],
-    			rotMat,
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
+	for (auto i = 0u; i < tessellations.size(); ++i) {
+		generateLODLevel(cfg,
+						 tessellations[i],
+						 rotMat,
+						 meshLODs_[i].vertexOffset,
+						 meshLODs_[i].indexOffset);
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
@@ -195,11 +200,9 @@ void Rectangle::updateAttributes(Config cfg) {
 		setInput(tan_);
 	end();
 
-    for (auto &x : meshLODs_) {
-    	// add the index buffer offset (in number of bytes)
-    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	for (auto &x: meshLODs_) {
+		// add the index buffer offset (in number of bytes)
+		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
-	minPosition_ = -cfg.posScale;
-	maxPosition_ = cfg.posScale;
 }

@@ -41,6 +41,11 @@ namespace regen {
 			const std::string &category() { return category_; }
 
 			/**
+			 * @return The resource map.
+			 */
+			auto &resources() { return resources_; }
+
+			/**
 			 * Add a named resource.
 			 * @param name The resource name.
 			 * @param resource The resource instance.

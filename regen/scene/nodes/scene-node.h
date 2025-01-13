@@ -82,7 +82,7 @@ namespace regen {
 						handleChildren(parser, *imported.get(), newNode);
 					}
 				}
-				if (input.hasAttribute("cull-mesh")) {
+				if (input.hasAttribute("cull-shape")) {
 					newNode = createCullNode(parser, input, parent);
 					if (newNode.get() != nullptr) {
 						handleAttributes(parser, input, newNode);
@@ -90,8 +90,7 @@ namespace regen {
 					} else {
 						REGEN_WARN("Unable to create culling node for '" << input.getDescription() << "'.");
 					}
-				}
-				else {
+				} else {
 					newNode = createNode(parser, input, parent);
 					handleAttributes(parser, input, newNode);
 					handleChildren(parser, input, newNode);
@@ -170,6 +169,20 @@ namespace regen {
 				return newNode;
 			}
 
+			static ref_ptr<SpatialIndex> getSpatialIndex(SceneParser *parser, SceneInputNode &input) {
+				ref_ptr<SpatialIndex> spatialIndex;
+				if (input.hasAttribute("spatial-index")) {
+					auto spatialIndexID = input.getValue("spatial-index");
+					spatialIndex = parser->getResources()->getIndex(parser, spatialIndexID);
+				} else {
+					auto indexNode = parser->getRoot()->getFirstChild("index");
+					if (indexNode.get()) {
+						spatialIndex = parser->getResources()->getIndex(parser, indexNode->getName());
+					}
+				}
+				return spatialIndex;
+			}
+
 			static ref_ptr<StateNode> createCullNode(
 					SceneParser *parser,
 					SceneInputNode &input,
@@ -182,45 +195,14 @@ namespace regen {
 					REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
-
-				auto meshName = input.getValue<std::string>("cull-mesh", "");
-				auto cullMesh = parser->getResources()->getMesh(parser, meshName);
-				if (cullMesh.get() == nullptr) {
-					REGEN_WARN("No Mesh can be found for '" << input.getDescription() << "'.");
+				auto spatialIndex = getSpatialIndex(parser, input);
+				if (spatialIndex.get() == nullptr) {
+					REGEN_WARN("No SpatialIndex can be found for '" << input.getDescription() << "'.");
 					return cullNode;
 				}
 
-				if (!input.hasAttribute("cull-tf")) {
-					REGEN_WARN("No 'transform' attribute specified for '" << input.getDescription() << "'.");
-					return cullNode;
-				}
-				auto &transformId = input.getValue("cull-tf");
-				auto transform = parser->getResources()->getTransform(parser, transformId);
-				if (transform.get() == nullptr) { // Load transform
-					auto transformNode =
-						parser->getRoot()->getFirstChild("transform", input.getValue("cull-tf"));
-					auto transformProcessor = parser->getStateProcessor(
-							transformNode->getCategory());
-					transformProcessor->processInput(parser, *transformNode.get(), ref_ptr<State>::alloc());
-				}
-				transform = parser->getResources()->getTransform(parser, transformId);
-				if (transform.get() == nullptr) {
-					REGEN_WARN("Unable to find transform for '" << input.getDescription() << "'.");
-					return cullNode;
-				}
-
-				const std::string &shapeType = input.getValue<std::string>("cull-shape", "sphere");
-				if (shapeType == std::string("sphere")) {
-					cullNode = ref_ptr<SphereCulling>::alloc(cam, cullMesh, transform);
-				} else if (shapeType == std::string("aabb")) {
-					cullNode = ref_ptr<AABBCulling>::alloc(cam, cullMesh, transform);
-				} else if (shapeType == std::string("obb")) {
-					cullNode = ref_ptr<OBBCulling>::alloc(cam, cullMesh, transform);
-				} else {
-					REGEN_WARN("Unknown bounding shape type for '" << input.getDescription() << "'.");
-					return cullNode;
-				}
-
+				auto shapeName = input.getValue<std::string>("cull-shape", "");
+				cullNode = ref_ptr<GeometricCulling>::alloc(cam, spatialIndex, shapeName);
 				cullNode->set_name(input.getName());
 				parent->addChild(cullNode);
 				parser->putNode(input.getName(), cullNode);

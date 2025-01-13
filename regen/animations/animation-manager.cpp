@@ -67,6 +67,10 @@ void AnimationManager::setRootState(const ref_ptr<State> &rootState) {
 	}
 }
 
+void AnimationManager::setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices) {
+	spatialIndices_ = indices;
+}
+
 void AnimationManager::addAnimation(Animation *animation) {
 	// Don't add while removing
 	while (removeInProgress_) usleepRegen(1000);
@@ -284,6 +288,9 @@ void AnimationManager::run() {
 					}
 				}
 			}
+			for (auto &index : spatialIndices_) {
+				index.second->update(dt);
+			}
 			animInProgress_ = GL_FALSE;
 #ifndef SYNCHRONIZE_THREADS
 			if(dt<10) usleepRegen((10-dt) * 1000);
@@ -323,6 +330,7 @@ void AnimationManager::pause(GLboolean blocking) {
 void AnimationManager::clear() {
 	animations_.clear();
 	glAnimations_.clear();
+	spatialIndices_.clear();
 }
 
 void AnimationManager::resume() {

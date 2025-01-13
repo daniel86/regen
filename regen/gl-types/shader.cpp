@@ -55,7 +55,7 @@ void Shader::preProcess(
 	// configure shader using macros
 	std::stringstream header;
 	header << "#version " << cfg.version << std::endl;
-	for (const auto & define : cfg.defines) {
+	for (const auto &define: cfg.defines) {
 		const std::string &name = define.first;
 		const std::string &value = define.second;
 		if (value == "TRUE") {
@@ -66,6 +66,7 @@ void Shader::preProcess(
 			header << "#define " << name << " " << value << std::endl;
 		}
 	}
+	header << "#include regen.defines.regen_InstanceID" << std::endl;
 	std::string headerStr = header.str();
 
 	// load the GLSL code.
@@ -174,7 +175,7 @@ Shader::Shader(
 }
 
 Shader::~Shader() {
-	for (auto & shader : shaders_) {
+	for (auto &shader: shaders_) {
 		ref_ptr<GLuint> &stage = shader.second;
 		glDetachShader(id(), *stage.get());
 		if (*stage.refCount() == 1) {
@@ -400,6 +401,7 @@ void Shader::setupInputLocations() {
 			case GL_FLOAT_VEC3:
 			case GL_FLOAT_VEC4:
 			case GL_BOOL:
+			case GL_UNSIGNED_INT:
 			case GL_INT:
 			case GL_BOOL_VEC2:
 			case GL_INT_VEC2:
@@ -425,7 +427,8 @@ void Shader::setupInputLocations() {
 				samplerLocations_[uniformName] = loc;
 				break;
 
-			default: REGEN_WARN("unknown shader type for '" << uniformName << "'");
+			default:
+				REGEN_WARN("unknown shader type for '" << uniformName << "'");
 				break;
 
 		}
@@ -513,7 +516,8 @@ ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
 			return ref_ptr<ShaderInputMat3>::alloc(name, arraySize);
 		case GL_FLOAT_MAT4:
 			return ref_ptr<ShaderInputMat4>::alloc(name, arraySize);
-		default: REGEN_WARN("Not a known uniform type for '" << name << "' type=" << type);
+		default:
+			REGEN_WARN("Not a known uniform type for '" << name << "' type=" << type);
 			break;
 	}
 	return {};
@@ -558,14 +562,14 @@ GLboolean Shader::setTexture(const ref_ptr<Texture> &tex, const std::string &nam
 }
 
 void Shader::setInputs(const std::list<NamedShaderInput> &inputs) {
-	for (const auto & input : inputs) { setInput(input.in_, input.name_); }
+	for (const auto &input: inputs) { setInput(input.in_, input.name_); }
 }
 
 void Shader::setTransformFeedback(const std::list<std::string> &transformFeedback,
 								  GLenum attributeLayout, GLenum feedbackStage) {
 	feedbackLayout_ = attributeLayout;
 	feedbackStage_ = feedbackStage;
-	for (const auto & it : transformFeedback) {
+	for (const auto &it: transformFeedback) {
 		transformFeedback_.push_back(it);
 	}
 }
@@ -573,13 +577,12 @@ void Shader::setTransformFeedback(const std::list<std::string> &transformFeedbac
 //////////////
 
 void Shader::enable(RenderState *rs) {
-	for (auto & uniform : uniforms_) {
+	for (auto &uniform: uniforms_) {
 		if (!uniform.input->active()) { continue; }
 		if (uniform.input->isUniformBlock()) {
 			// enable uniform block
 			uniform.input->enableUniform(uniform.location);
-		}
-		else if (uniform.input->stamp() != uniform.uploadStamp) {
+		} else if (uniform.input->stamp() != uniform.uploadStamp) {
 			// enable uniform
 			uniform.input->enableUniform(uniform.location);
 			uniform.uploadStamp = uniform.input->stamp();

@@ -241,12 +241,10 @@
     </node>
     <node id="spheres">
         <node id="sphere0" >
-            <mesh id="sphere-mesh0" shader="regen.models.mesh" lod-tf="sphere0-tf"
-                lod-close-distance="20.0" lod-medium-distance="60.0"/>
+            <mesh id="sphere-mesh0" shader="regen.models.mesh" />
         </node>
         <node id="sphere1" >
-            <mesh id="sphere-mesh1" shader="regen.models.mesh" lod-tf="sphere1-tf"
-                lod-close-distance="20.0" lod-medium-distance="60.0"/>
+            <mesh id="sphere-mesh1" shader="regen.models.mesh" />
         </node>
     </node>
 </node>

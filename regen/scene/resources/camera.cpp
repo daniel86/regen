@@ -54,6 +54,24 @@ CameraResource::CameraResource()
 ref_ptr<Camera> CameraResource::createResource(
 		SceneParser *parser,
 		SceneInputNode &input) {
+	auto cam = createCamera(parser, input);
+	if (cam.get() == NULL) {
+		REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
+		return {};
+	}
+
+	if (input.hasAttribute("culling-index")) {
+		auto spatialIndex = parser->getResources()->getIndex(
+				parser, input.getValue("culling-index"));
+		spatialIndex->addCamera(cam);
+	}
+
+	return cam;
+}
+
+ref_ptr<Camera> CameraResource::createCamera(
+		SceneParser *parser,
+		SceneInputNode &input) {
 	if (input.hasAttribute("reflector") ||
 		input.hasAttribute("reflector-normal") ||
 		input.hasAttribute("reflector-point")) {
@@ -81,11 +99,9 @@ ref_ptr<Camera> CameraResource::createResource(
 			auto position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f, 0.0f, 0.0f));
 			cam = ref_ptr<ReflectionCamera>::alloc(userCamera, normal, position, hasBackFace);
 		}
-		if (cam.get() == NULL) {
-			REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
-			return {};
+		if (cam.get()) {
+			parser->putState(input.getName(), cam);
 		}
-		parser->putState(input.getName(), cam);
 		return cam;
 	} else if (input.hasAttribute("light")) {
 		ref_ptr<Camera> userCamera =

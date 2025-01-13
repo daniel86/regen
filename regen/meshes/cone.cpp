@@ -32,9 +32,9 @@ ConeOpened::ConeOpened(const Config &cfg)
 }
 
 void ConeOpened::generateLODLevel(const Config &cfg,
-				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset) {
+								  GLuint lodLevel,
+								  GLuint vertexOffset,
+								  GLuint indexOffset) {
 	GLfloat phi = acos(cfg.cosAngle);
 	GLfloat radius = tan(phi) * cfg.height;
 	GLfloat angle = 0.0f;
@@ -50,7 +50,10 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 		angle += angleStep;
 		GLfloat s = sin(angle) * radius;
 		GLfloat c = cos(angle) * radius;
-		pos_->setVertex(i + 1, Vec3f(c, s, cfg.height));
+		Vec3f pos(c, s, cfg.height);
+		pos_->setVertex(i + 1, pos);
+		minPosition_.setMin(pos);
+		maxPosition_.setMax(pos);
 		if (cfg.isNormalRequired) {
 			Vec3f n(c, 0.0, s);
 			n.normalize();
@@ -60,10 +63,10 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 }
 
 void ConeOpened::updateAttributes(const Config &cfg) {
-    std::vector<GLuint> LODs;
-    GLuint vertexOffset = 0;
-    for (auto &lod : cfg.levelOfDetails) {
-    	GLuint lodLevel = 4u * pow(lod, 2);
+	std::vector<GLuint> LODs;
+	GLuint vertexOffset = 0;
+	for (auto &lod: cfg.levelOfDetails) {
+		GLuint lodLevel = 4u * pow(lod, 2);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
 		x.numVertices = lodLevel + 2;
@@ -72,16 +75,18 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 	}
 	GLuint numVertices = vertexOffset;
 
+	minPosition_ = Vec3f(0.0);
+	maxPosition_ = Vec3f(0.0);
 	pos_->setVertexData(numVertices);
 	if (cfg.isNormalRequired) {
 		nor_->setVertexData(numVertices);
 	}
 
-    for (auto i=0u; i<LODs.size(); ++i) {
-    	generateLODLevel(cfg,
-    			LODs[i],
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
+	for (auto i = 0u; i < LODs.size(); ++i) {
+		generateLODLevel(cfg,
+						 LODs[i],
+						 meshLODs_[i].vertexOffset,
+						 meshLODs_[i].indexOffset);
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
@@ -90,8 +95,6 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 		setInput(nor_);
 	end();
 
-	minPosition_ = Vec3f(-cfg.height);
-	maxPosition_ = Vec3f(cfg.height);
 	activateLOD(0);
 }
 
@@ -132,6 +135,8 @@ ConeClosed::ConeClosed(const Config &cfg)
 
 static void loadConeData(
 		Vec3f *pos, Vec3f *nor,
+		Vec3f &min,
+		Vec3f &max,
 		GLboolean useBase,
 		GLuint subdivisions,
 		GLfloat radius,
@@ -147,6 +152,8 @@ static void loadConeData(
 	// base center
 	if (useBase) {
 		pos[i] = Vec3f(0.0f, 0.0f, height);
+		min.setMin(pos[i]);
+		max.setMax(pos[i]);
 		if (nor) nor[i] = Vec3f(0.0f, 0.0f, 1.0f);
 		++i;
 	}
@@ -157,6 +164,8 @@ static void loadConeData(
 		GLfloat s = sin(angle) * radius;
 		GLfloat c = cos(angle) * radius;
 		pos[i] = Vec3f(c, s, height);
+		min.setMin(pos[i]);
+		max.setMax(pos[i]);
 		if (nor) {
 			nor[i] = Vec3f(c, s, 0.0);
 			nor[i].normalize();
@@ -165,16 +174,17 @@ static void loadConeData(
 }
 
 void ConeClosed::generateLODLevel(
-				const Config &cfg,
-				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset) {
+		const Config &cfg,
+		GLuint lodLevel,
+		GLuint vertexOffset,
+		GLuint indexOffset) {
 	// create cone vertex data
 	auto *pos = ((Vec3f *) pos_->clientDataPtr()) + vertexOffset;
 	auto *nor = cfg.isNormalRequired ? ((Vec3f *) nor_->clientDataPtr()) + vertexOffset : nullptr;
 	loadConeData(pos, nor,
-			cfg.isBaseRequired, lodLevel,
-			cfg.radius, cfg.height);
+				 minPosition_, maxPosition_,
+				 cfg.isBaseRequired, lodLevel,
+				 cfg.radius, cfg.height);
 
 	// create cone index data
 	auto *faceIndices = (GLuint *) indices_->clientDataPtr();
@@ -199,11 +209,11 @@ void ConeClosed::generateLODLevel(
 }
 
 void ConeClosed::updateAttributes(const Config &cfg) {
-    std::vector<GLuint> LODs;
-    GLuint vertexOffset = 0;
-    GLuint indexOffset = 0;
-    for (auto &lod : cfg.levelOfDetails) {
-    	GLuint lodLevel = 4u * pow(lod, 2);
+	std::vector<GLuint> LODs;
+	GLuint vertexOffset = 0;
+	GLuint indexOffset = 0;
+	for (auto &lod: cfg.levelOfDetails) {
+		GLuint lodLevel = 4u * pow(lod, 2);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
 		x.numVertices = lodLevel + 1;
@@ -220,17 +230,19 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 	GLuint numVertices = vertexOffset;
 	GLuint numIndices = indexOffset;
 
+	minPosition_ = Vec3f(0.0);
+	maxPosition_ = Vec3f(0.0);
 	pos_->setVertexData(numVertices);
 	if (cfg.isNormalRequired) {
 		nor_->setVertexData(numVertices);
 	}
 	indices_->setVertexData(numIndices);
 
-    for (auto i=0u; i<LODs.size(); ++i) {
-    	generateLODLevel(cfg,
-    			LODs[i],
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
+	for (auto i = 0u; i < LODs.size(); ++i) {
+		generateLODLevel(cfg,
+						 LODs[i],
+						 meshLODs_[i].vertexOffset,
+						 meshLODs_[i].indexOffset);
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);
@@ -240,9 +252,9 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 		setInput(nor_);
 	end();
 
-    for (auto &x : meshLODs_) {
-    	// add the index buffer offset (in number of bytes)
-    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	for (auto &x: meshLODs_) {
+		// add the index buffer offset (in number of bytes)
+		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 }

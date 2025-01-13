@@ -17,6 +17,7 @@ void ResourceManager::loadResources(SceneParser *parser, const std::string &id) 
 	fbos_.getResource(parser, id);
 	ubos_.getResource(parser, id);
 	fonts_.getResource(parser, id);
+	indices_.getResource(parser, id);
 	lights_.getResource(parser, id);
 	meshes_.getResource(parser, id);
 	textures_.getResource(parser, id);
@@ -36,6 +37,11 @@ ref_ptr<Light> ResourceManager::getLight(SceneParser *parser, const std::string 
 ref_ptr<regen::Font> ResourceManager::getFont(SceneParser *parser, const std::string &id) {
 	loadResources(parser, id);
 	return fonts_.getResource(parser, id);
+}
+
+ref_ptr<regen::SpatialIndex> ResourceManager::getIndex(SceneParser *parser, const std::string &id) {
+	loadResources(parser, id);
+	return indices_.getResource(parser, id);
 }
 
 ref_ptr<FBO> ResourceManager::getFBO(SceneParser *parser, const std::string &id) {
@@ -82,6 +88,10 @@ void ResourceManager::putLight(const std::string &id, const ref_ptr<Light> &ligh
 
 void ResourceManager::putFont(const std::string &id, const ref_ptr<regen::Font> &font) {
 	fonts_.putResource(id, font);
+}
+
+void ResourceManager::putIndex(const std::string &id, const ref_ptr<regen::SpatialIndex> &index) {
+	indices_.putResource(id, index);
 }
 
 void ResourceManager::putFBO(const std::string &id, const ref_ptr<FBO> &fbo) {

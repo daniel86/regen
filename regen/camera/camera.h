@@ -11,7 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/math/matrix.h>
-#include <regen/math/frustum.h>
+#include <regen/shapes/frustum.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/model-transformation.h>
 #include <regen/gl-types/shader-input-container.h>

@@ -61,8 +61,11 @@
     <texture id="ground-height" file="res/textures/brick/height.jpg"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
     <texture id="sand" file="res/textures/materials/sand.jpg"/>
+    <!-- Spatial Index -->
+    <index id="main-index" type="quadtree" max-objects-per-node="4"/>
     <!-- Cameras -->
     <camera id="main-camera"
+            culling-index="main-index"
             fov="45.0" near="0.1" far="200.0"
             position="25.0,2.5,2.0"
             direction="1.0,0.0,-1.0"/>
@@ -126,7 +129,13 @@
             <rotate value="1.5707963,0.0,0.0"/>
             <translate value="8.0,-2.0, -8.0"/>
         </transform>
-        <physics mesh-id="tree-mesh" transform-id="tree-tf" shape="box" mass="0.0" size="0.6, 6.0, 0.6"/>
+        <shape id="tree-shape" mode="index" type="aabb"
+            mesh-id="tree-mesh" transform-id="tree-tf" />
+        <!-- FIXME: there is some hack around here, look at bullet shape it is not at correct height.
+                 probably because base of the mesh is at 0.0,0.0,0.0, and not its center.
+                 plus there is a scaling here too. -->
+        <shape id="tree-mesh-physics" mode="physics" shape="box" mass="0.0" size="0.6, 6.0, 0.6"
+            mesh-id="tree-mesh" transform-id="tree-tf"/>
     </mesh>
 
     <mesh id="tree-pot" type="torus"
@@ -137,13 +146,18 @@
         <transform id="tree-pot-tf">
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
-        <physics mesh-id="tree-pot" transform-id="tree-pot-tf" shape="cylinder" mass="0.0" size="7.0,1.0,7.0"/>
+        <shape id="tree-pot-shape" mode="index" type="aabb"
+            mesh-id="tree-pot" transform-id="tree-pot-tf">
+            <has-part mesh-id="tree-disc"/>
+        </shape>
+        <shape id="tree-pot-physics" mode="physics" shape="cylinder" mass="0.0" size="7.2,1.2,7.2"
+            mesh-id="tree-pot" transform-id="tree-pot-tf"/>
         <material preset="stone" color-blend-mode="MUL" emission="0.04, 0.04, 0.04"/>
     </mesh>
 
     <mesh id="tree-disc" type="disc"
             lod-levels="2, 1, 0"
-            use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
+            use-normal="1" center="1" usage="STATIC" scaling="4.0, 3.0, 4.0"
             texco-scaling="0.1, 0.1" disc-radius="1.0">
         <transform id="tree-disc-tf">
             <translate value="8.0, -1.0, -8.0"/>
@@ -151,7 +165,7 @@
     </mesh>
 
     <node id="Trees">
-        <node id="tree1" cull-shape="aabb" cull-mesh="tree-mesh" cull-tf="tree-tf">
+        <node id="tree1" cull-shape="tree-shape">
             <node id="tree1-trunk">
                 <material emission="0.01,0.01,0.01"/>
                 <texture id="trunk-color" map-to="color" />
@@ -174,20 +188,14 @@
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
             </node>
         </node>
-        <node id="tree1-pot"
-                cull-shape="aabb"
-                cull-mesh="tree-pot"
-                cull-tf="tree-pot-tf"
-                lod-metric="CAMERA_DISTANCE"
-                lod-close-distance="40.0"
-                lod-medium-distance="100.0">
+        <node id="tree1-pot" cull-shape="tree-pot-shape">
             <node id="tree1-pot">
-                <mesh id="tree-pot" shader="regen.models.mesh" lod-tf="tree-pot-tf"/>
+                <mesh id="tree-pot" shader="regen.models.mesh" />
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
                 <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0"/>
-                <mesh id="tree-disc" shader="regen.models.mesh" lod-tf="tree-disc-tf" />
+                <mesh id="tree-disc" shader="regen.models.mesh" />
             </node>
         </node>
     </node>
@@ -249,7 +257,7 @@
     </node>
 
     <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC"
-            lod="4" scaling="1.5,3.0,3.0" num-instances="20">
+            lod-levels="4, 3, 2" scaling="1.5,3.0,3.0" num-instances="20">
         <transform id="stone0-tf" num-instances="20" is-instanced="1">
             <rotate value="0.0, 1.57079632, 0.0" />
             <translate value="0.0, -0.6, 0.0" />
@@ -257,14 +265,15 @@
                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
         </transform>
         <material preset="stone" variant="0" max-offset="0.2" />
-        <physics mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0" />
+        <shape id="stone0-shape" mode="index" type="sphere"
+            mesh-id="stone0" transform-id="stone0-tf" radius="1.6" />
+        <shape id="stone0-physics" mode="physics"
+            mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0" />
     </mesh>
 
     <node id="Garden-Items">
         <node import="Trees"/>
-        <node id="Stone1">
-            <!-- TODO: setup culling of stones instances -->
-            <!-- TODO: setup dynamic LOD for stones -->
+        <node id="Stone0" cull-shape="stone0-shape">
             <mesh id="stone0" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -278,7 +287,10 @@
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
         </transform>
-        <physics mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
+        <shape id="stairs0-shape" mode="index" type="aabb"
+            mesh-id="stairs0-mesh" transform-id="stairs0-tf" />
+        <shape id="stairs0-physics" mode="physics"
+            mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
     </mesh>
 
     <mesh id="stairs1-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
@@ -286,7 +298,10 @@
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
         </transform>
-        <physics mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
+        <shape id="stairs1-shape" mode="index" type="aabb"
+            mesh-id="stairs1-mesh" transform-id="stairs1-tf" />
+        <shape id="stairs1-physics" mode="physics"
+            mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
     </mesh>
 
     <mesh id="stairs2-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
@@ -294,19 +309,22 @@
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
         </transform>
-        <physics mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
+        <shape id="stairs2-shape" mode="index" type="aabb"
+            mesh-id="stairs2-mesh" transform-id="stairs2-tf" />
+        <shape id="stairs2-physics" mode="physics"
+            mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
     </mesh>
 
-    <node id="Stairs" cull-shape="aabb">
+    <node id="Stairs">
         <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
-        <node id="stairs0" cull-mesh="stairs0-mesh" cull-tf="stairs0-tf">
+        <node id="stairs0" cull-shape="stairs0-shape">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs1" cull-mesh="stairs1-mesh" cull-tf="stairs1-tf">
+        <node id="stairs1" cull-shape="stairs1-shape">
             <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs2" cull-mesh="stairs2-mesh" cull-tf="stairs2-tf">
+        <node id="stairs2" cull-shape="stairs2-shape">
             <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -325,9 +343,12 @@
                 <key-frame position="16.0,3.0,-16.0"/>
             </animation>
         </transform>
-        <physics mesh-id="platform0-mesh" transform-id="platform0-tf"
-                 shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
-                 size="8.0,0.8,8.0"/>
+        <shape id="platform0-shape" mode="index" type="aabb"
+            mesh-id="platform0-mesh" transform-id="platform0-tf" />
+        <shape id="platform0-physics" mode="physics"
+            mesh-id="platform0-mesh" transform-id="platform0-tf"
+            shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
+            size="8.0,0.8,8.0"/>
     </mesh>
 
     <mesh id="platform1-mesh" type="box" lod="0" use-normal="1" use-tangent="1" center="1" usage="STATIC"
@@ -340,17 +361,20 @@
                 <key-frame position="8.0,7.0,-16.0"/>
             </animation>
         </transform>
-        <physics mesh-id="platform1-mesh" transform-id="platform1-tf"
-                 shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
-                 size="8.0,0.8,8.0"/>
+        <shape id="platform1-shape" mode="index" type="aabb"
+            mesh-id="platform1-mesh" transform-id="platform1-tf" />
+        <shape id="platform1-physics" mode="physics"
+            mesh-id="platform1-mesh" transform-id="platform1-tf"
+            shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
+            size="8.0,0.8,8.0"/>
     </mesh>
 
-    <node id="Platforms" cull-shape="aabb">
+    <node id="Platforms">
         <material preset="iron" emission="0.05,0.07,0.07" />
-        <node id="platform0" cull-mesh="platform0-mesh" cull-tf="platform0-tf">
+        <node id="platform0" cull-shape="platform0-shape">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="platform1" cull-mesh="platform1-mesh" cull-tf="platform1-tf">
+        <node id="platform1" cull-shape="platform1-shape">
             <mesh id="platform1-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -358,15 +382,19 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="pedestal-mesh" type="box" lod-levels="3, 2, 0"
+    <mesh id="pedestal-mesh" type="box"
+            lod-levels="3, 2, 0" lod-far="100.0"
             use-normal="1" use-tangent="1" center="1" usage="STATIC"
             scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
         <transform id="pedestal-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
         </transform>
-        <physics mesh-id="pedestal-mesh" transform-id="pedestal-tf"
-                 shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
+        <shape id="pedestal-shape" mode="index" type="aabb"
+            mesh-id="pedestal-mesh" transform-id="pedestal-tf" />
+        <shape id="pedestal-physics" mode="physics"
+            mesh-id="pedestal-mesh" transform-id="pedestal-tf"
+            shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
         <material preset="wood" variant="1" color-blend-mode="mul"
             diffuse="0.9, 0.8, 0.7"/>
     </mesh>
@@ -377,17 +405,18 @@
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
         </transform>
-        <physics mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
+        <shape id="slope-shape" mode="index" type="obb"
+            mesh-id="slope-mesh" transform-id="slope-tf" />
+        <shape id="slope-physics" mode="physics"
+            mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
         <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75" />
     </mesh>
 
-    <node id="Pedestal" cull-shape="aabb">
-        <node id="pedestal"
-                cull-mesh="pedestal-mesh" cull-tf="pedestal-tf">
-            <mesh id="pedestal-mesh" shader="regen.models.mesh"
-                lod-close-distance="40.0" lod-medium-distance="100.0"  lod-tf="pedestal-tf" />
+    <node id="Pedestal">
+        <node id="pedestal" cull-shape="pedestal-shape">
+            <mesh id="pedestal-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="statue-slope" cull-mesh="slope-mesh" cull-tf="slope-tf">
+        <node id="statue-slope" cull-shape="slope-shape">
             <mesh id="slope-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -588,6 +617,7 @@
            ambient="0.6,0.6,0.6"/>
 
     <camera id="room-light-camera0"
+            culling-index="main-index"
             light="room-light0"
             camera="main-camera"/>
 
@@ -616,7 +646,7 @@
                 <!-- skip rendering top face of the cube -->
                 <define key="SKIP_LAYER2" value="TRUE"/>
                 <fbo id="room-light-shadow0" clear-depth="1"/>
-                <camera id="room-light-camera0"/>
+                <camera id="room-light-camera0" />
                 <node import="Shadow-Caster"/>
             </node>
         </node>
@@ -671,7 +701,7 @@
             <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
-        <node id="Light-Bulbs" cull-shape="sphere">
+        <node id="Light-Bulbs">
             <!-- TODO: cull light bulb node, but it uses modelOffset instead of modelMatrix -->
             <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="0.5" />
@@ -753,7 +783,7 @@
 
         <node id="Render">
             <fbo id="g-buffer" clear-buffers="0,1,2,3,4" clear-depth="1"/>
-            <camera id="main-camera"/>
+            <camera id="main-camera" />
 
             <node id="Geometry-Pass">
                 <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
@@ -828,6 +858,14 @@
                 <fbo id="g-buffer" draw-buffers="0"/>
             </node>
             -->
+            <view id="Spatial Index">
+                <node import="spatial-index-debug">
+                    <fbo id="g-buffer" draw-buffers="1"/>
+                </node>
+                <node>
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </node>
+            </view>
 
             <node import="GUI-Pass">
                 <fbo id="g-buffer" draw-buffers="1"/>

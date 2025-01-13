@@ -11,30 +11,31 @@
 #include <regen/gl-types/glsl/glsl-processor.h>
 
 namespace regen {
-  /**
-   * \brief A sequence of GLSL pre-processors.
-   */
-  class PreProcessor {
-  public:
-    PreProcessor();
+	/**
+	 * \brief A sequence of GLSL pre-processors.
+	 */
+	class PreProcessor {
+	public:
+		PreProcessor();
 
-    /**
-     * Add a pre-processor to the sequence.
-     */
-    void addProcessor(const ref_ptr<GLSLProcessor> &processor);
-    /**
-     * Removes previously added pre-processor.
-     */
-    void removeProcessor(GLSLProcessor *processor);
+		/**
+		 * Add a pre-processor to the sequence.
+		 */
+		void addProcessor(const ref_ptr<GLSLProcessor> &processor);
 
-    /**
-     * Pre-process the specified input.
-     */
-    std::map<GLenum,std::string> processStages(const PreProcessorInput &in);
+		/**
+		 * Removes previously added pre-processor.
+		 */
+		void removeProcessor(GLSLProcessor *processor);
 
-  protected:
-    ref_ptr<GLSLProcessor> lastProcessor_;
-  };
+		/**
+		 * Pre-process the specified input.
+		 */
+		std::map<GLenum, std::string> processStages(const PreProcessorInput &in);
+
+	protected:
+		ref_ptr<GLSLProcessor> lastProcessor_;
+	};
 }
 
 #endif /* PREPROCESSOR_H_ */
