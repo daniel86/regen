@@ -80,9 +80,9 @@ Disc::Config::Config()
 }
 
 void Disc::generateLODLevel(const Config &cfg,
-				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset) {
+							GLuint lodLevel,
+							GLuint vertexOffset,
+							GLuint indexOffset) {
 	const float angleStep = 2.0f * M_PI / lodLevel;
 
 	GLuint vertexIndex = vertexOffset;
@@ -101,8 +101,8 @@ void Disc::generateLODLevel(const Config &cfg,
 		}
 
 		if (cfg.texcoMode == TEXCO_MODE_UV) {
-			Vec2f texco(pos.x/cfg.discRadius + 0.5f, pos.z/cfg.discRadius + 0.5f);
-			((ShaderInput2f*)texco_.get())->setVertex(vertexIndex, texco * cfg.texcoScale);
+			Vec2f texco(pos.x / cfg.discRadius + 0.5f, pos.z / cfg.discRadius + 0.5f);
+			((ShaderInput2f *) texco_.get())->setVertex(vertexIndex, texco * cfg.texcoScale);
 		}
 
 		if (cfg.isTangentRequired) {
@@ -123,11 +123,11 @@ void Disc::generateLODLevel(const Config &cfg,
 }
 
 void Disc::updateAttributes(const Config &cfg) {
-    std::vector<GLuint> LODs;
-    GLuint vertexOffset = 0;
-    GLuint indexOffset = 0;
-    for (auto &lod : cfg.levelOfDetails) {
-    	GLuint lodLevel = 4u * pow(2u, lod);
+	std::vector<GLuint> LODs;
+	GLuint vertexOffset = 0;
+	GLuint indexOffset = 0;
+	for (auto &lod: cfg.levelOfDetails) {
+		GLuint lodLevel = 4u * pow(2u, lod);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
 		x.numVertices = lodLevel + 1;
@@ -151,13 +151,13 @@ void Disc::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
-    indices_->setVertexData(numIndices);
+	indices_->setVertexData(numIndices);
 
-    for (auto i=0u; i<LODs.size(); ++i) {
-    	generateLODLevel(cfg,
-    			LODs[i],
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
+	for (auto i = 0u; i < LODs.size(); ++i) {
+		generateLODLevel(cfg,
+						 LODs[i],
+						 meshLODs_[i].vertexOffset,
+						 meshLODs_[i].indexOffset);
 	}
 
 	// Set up the vertex attributes
@@ -175,11 +175,19 @@ void Disc::updateAttributes(const Config &cfg) {
 	}
 	end();
 
-    for (auto &x : meshLODs_) {
-    	// add the index buffer offset (in number of bytes)
-    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	for (auto &x: meshLODs_) {
+		// add the index buffer offset (in number of bytes)
+		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
-	minPosition_ = -cfg.posScale;
-	maxPosition_ = cfg.posScale;
+
+	maxPosition_ = Vec3f(0.0);
+	maxPosition_.x += cfg.discRadius;
+	maxPosition_.z += cfg.discRadius;
+	maxPosition_ *= cfg.posScale;
+
+	minPosition_ = Vec3f(0.0);
+	minPosition_.x -= cfg.discRadius;
+	minPosition_.z -= cfg.discRadius;
+	minPosition_ *= cfg.posScale;
 }

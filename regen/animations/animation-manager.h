@@ -13,6 +13,7 @@
 
 #include <regen/utility/threading.h>
 #include <regen/animations/animation.h>
+#include "regen/shapes/spatial-index.h"
 
 namespace regen {
 	/**
@@ -92,6 +93,12 @@ namespace regen {
 		 */
 		void setRootState(const ref_ptr<State> &rootState);
 
+		/**
+		 * Set the spatial indices.
+		 * @param indices the spatial indices.
+		 */
+		void setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices);
+
 	private:
 
 		boost::posix_time::ptime time_;
@@ -99,6 +106,7 @@ namespace regen {
 		std::vector<Animation *> animations_;
 		std::set<Animation *> glAnimations_;
 		ref_ptr<State> rootState_;
+		std::map<std::string, ref_ptr<SpatialIndex>> spatialIndices_;
 
 		boost::thread::id animationThreadID_;
 		boost::thread::id glThreadID_;

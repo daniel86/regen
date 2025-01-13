@@ -15,164 +15,93 @@ using namespace regen;
 
 GeometricCulling::GeometricCulling(
 		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform)
+		const ref_ptr<SpatialIndex> &spatialIndex,
+		std::string_view shapeName)
 		: StateNode(),
 		  camera_(camera),
-		  mesh_(mesh),
-		  transform_(transform),
-		  tfStamp_(0),
-		  camStamp_(0),
-		  isCulled_(false) {
-	if (mesh->size() == 1) {
-		ref_ptr<Mesh> &m = *mesh->begin();
-		center_ = m->centerPosition();
-		min_ = m->minPosition();
-		max_ = m->maxPosition();
-	} else {
-		min_ = Vec3f(999999.0f);
-		max_ = Vec3f(-999999.0f);
-
-		Vec3f v;
-		for (auto it = mesh->begin(); it != mesh->end(); ++it) {
-			ref_ptr<Mesh> &m = *it;
-			v = m->centerPosition() + m->minPosition();
-			if (min_.x > v.x) min_.x = v.x;
-			if (min_.y > v.y) min_.y = v.y;
-			if (min_.z > v.z) min_.z = v.z;
-			v = m->centerPosition() + m->maxPosition();
-			if (max_.x < v.x) max_.x = v.x;
-			if (max_.y < v.y) max_.y = v.y;
-			if (max_.z < v.z) max_.z = v.z;
+		  spatialIndex_(spatialIndex),
+		  shapeName_(shapeName) {
+	numInstances_ = spatialIndex_->numInstances(shapeName);
+	mesh_ = spatialIndex_->getMeshOfShape(shapeName);
+	if (numInstances_ > 1) {
+		instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numInstances_);
+		instanceIDMap_->setArrayData(numInstances_);
+		for (GLuint i = 0; i < numInstances_; ++i) {
+			instanceIDMap_->setVertex(i, i);
 		}
-		center_ = (max_ + min_) * 0.5;
-		max_ -= center_;
-		min_ -= center_;
+		state()->joinShaderInput(instanceIDMap_);
+	}
+}
+
+void GeometricCulling::updateMeshLOD() {
+	if (!mesh_.get() || mesh_->numLODs() <= 1) {
+		return;
+	}
+	auto shape = spatialIndex_->getShape(shapeName_);
+	if (!shape.get()) {
+		REGEN_WARN("No shape found in index for " << shapeName_);
+		return;
+	}
+	// set LOD level based on distance
+	auto &camPos = camera_->position()->getVertex(0);
+	auto shapePos = shape->getCenterPosition();
+	auto distance = (shapePos - camPos).length();
+	mesh_->updateLOD(distance);
+	for (auto &part : shape->parts()) {
+		part->updateLOD(distance);
 	}
 }
 
 void GeometricCulling::traverse(RenderState *rs) {
-	auto tfStamp = transform_->get()->stamp();
-	auto camStamp = camera_->stamp();
-	if (tfStamp==tfStamp_ && camStamp==camStamp_) {
-		// camera and TF did not change, no need to recompute
-		if (!isCulled_) {
+	if (numInstances_ <= 1) {
+		if (spatialIndex_->isVisible(*camera_.get(), shapeName_)) {
+			updateMeshLOD();
 			StateNode::traverse(rs);
 		}
+	} else if (!mesh_.get()) {
+		REGEN_WARN("No mesh set for shape " << shapeName_);
+		numInstances_ = 0;
 	} else {
-		if (isCulled()) {
-			isCulled_ = true;
-		} else {
-			StateNode::traverse(rs);
-			isCulled_ = false;
+		auto &visibleInstances = spatialIndex_->getVisibleInstances(*camera_.get(), shapeName_);
+		auto &camPos = camera_->position()->getVertex(0);
+		auto shape = spatialIndex_->getShape(shapeName_);
+		auto &transform = shape->transform();
+
+		// build LOD groups, then traverse each group
+		std::vector<std::vector<GLuint>> lodGroups(mesh_->numLODs());
+		if (transform.get() && mesh_->numLODs() > 1) {
+			auto &tf = transform->get();
+			for (GLuint i = 0; i < visibleInstances.size(); ++i) {
+				auto shapePos = tf->getVertex(visibleInstances[i]).position();
+				auto distance = (shapePos - camPos).length();
+				lodGroups[mesh_->getLODLevel(distance)].push_back(visibleInstances[i]);
+			}
 		}
-		tfStamp_ = tfStamp;
-		camStamp_ = camStamp;
+		else {
+			auto &lodGroup = lodGroups[0];
+			for (GLuint i = 0; i < visibleInstances.size(); ++i) {
+				lodGroup.push_back(visibleInstances[i]);
+			}
+		}
+
+		for (unsigned int lodLevel=0; lodLevel<mesh_->numLODs(); ++lodLevel) {
+			auto &lodGroup = lodGroups[lodLevel];
+			if (lodGroup.empty()) {
+				continue;
+			}
+			// update instanceIDMap_ based on visibility
+			for (GLuint i = 0; i < lodGroup.size(); ++i) {
+				instanceIDMap_->setVertex(i, lodGroup[i]);
+			}
+			// set the LOD level
+			mesh_->activateLOD(lodLevel);
+			// set number of visible instances
+			mesh_->inputContainer()->set_numVisibleInstances(lodGroup.size());
+			StateNode::traverse(rs);
+			// reset number of visible instances
+			mesh_->inputContainer()->set_numVisibleInstances(numInstances_);
+			// reset LOD level
+			mesh_->activateLOD(0);
+		}
 	}
-}
-
-/**********************/
-/* SphereCulling      */
-/**********************/
-
-SphereCulling::SphereCulling(
-		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform)
-		: GeometricCulling(camera, mesh, transform) {
-	radius_ = Vec2f(abs(min_.min()), max_.max()).max();
-}
-
-SphereCulling::SphereCulling(
-		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform,
-		GLfloat radius)
-		: GeometricCulling(camera, mesh, transform),
-		  radius_(radius) {
-}
-
-bool SphereCulling::isCulled() const {
-	auto &tf = transform_->get()->getVertex(0).position();
-	return !camera_->hasIntersectionWithSphere(tf + center_, radius_);
-}
-
-/**********************/
-/* BoxCulling        */
-/**********************/
-
-BoxCulling::BoxCulling(
-		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform)
-		: GeometricCulling(camera, mesh, transform) {
-}
-
-BoxCulling::BoxCulling(
-		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform,
-		Vec3f *points)
-		: GeometricCulling(camera, mesh, transform) {
-	for (int i = 0; i < 8; ++i)
-		points_[i] = points[i];
-}
-
-bool BoxCulling::isCulled() const {
-	auto &tf = transform_->get()->getVertex(0).position();
-	return !camera_->hasIntersectionWithBox(tf, points_);
-}
-
-/**********************/
-/* AABBCulling        */
-/**********************/
-
-AABBCulling::AABBCulling(
-		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform)
-		: BoxCulling(camera, mesh, transform) {
-	// FIXME: need to update AABB if the mesh changes, or the rotation of transform changes
-	updateAABB();
-}
-
-void AABBCulling::updateAABB() {
-	const auto &tf = transform_->get()->getVertex(0);
-	const Vec3f &a = tf.rotateVector(center_ + min_);
-	const Vec3f &b = tf.rotateVector(center_ + max_);
-	points_[0] = Vec3f(a.x, a.y, a.z);
-	points_[1] = Vec3f(a.x, a.y, b.z);
-	points_[2] = Vec3f(a.x, b.y, a.z);
-	points_[3] = Vec3f(a.x, b.y, b.z);
-	points_[4] = Vec3f(b.x, a.y, a.z);
-	points_[5] = Vec3f(b.x, a.y, b.z);
-	points_[6] = Vec3f(b.x, b.y, a.z);
-	points_[7] = Vec3f(b.x, b.y, b.z);
-}
-
-/**********************/
-/* OBBCulling        */
-/**********************/
-
-OBBCulling::OBBCulling(
-		const ref_ptr<Camera> &camera,
-		const ref_ptr<MeshVector> &mesh,
-		const ref_ptr<ModelTransformation> &transform)
-		: BoxCulling(camera, mesh, transform) {
-	// FIXME: need to update AABB if the mesh changes, or the rotation of transform changes
-	updateOBB();
-}
-
-void OBBCulling::updateOBB() {
-	const auto &tf = transform_->get()->getVertex(0);
-	const auto &a = center_ + min_;
-	const auto &b = center_ + max_;
-	points_[0] = tf.rotateVector(Vec3f(a.x, a.y, a.z));
-	points_[1] = tf.rotateVector(Vec3f(a.x, a.y, b.z));
-	points_[2] = tf.rotateVector(Vec3f(a.x, b.y, a.z));
-	points_[3] = tf.rotateVector(Vec3f(a.x, b.y, b.z));
-	points_[4] = tf.rotateVector(Vec3f(b.x, a.y, a.z));
-	points_[5] = tf.rotateVector(Vec3f(b.x, a.y, b.z));
-	points_[6] = tf.rotateVector(Vec3f(b.x, b.y, a.z));
-	points_[7] = tf.rotateVector(Vec3f(b.x, b.y, b.z));
 }

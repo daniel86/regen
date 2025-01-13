@@ -17,6 +17,8 @@
 #include <regen/scene/resources/texture.h>
 #include <regen/scene/resources/sky.h>
 #include "regen/scene/resources/ubo-resource.h"
+#include "regen/shapes/spatial-index.h"
+#include "regen/scene/resources/index-resource.h"
 
 namespace regen {
 	namespace scene {
@@ -38,13 +40,6 @@ namespace regen {
 			 * @return A Light resource or null reference.
 			 */
 			ref_ptr<Light> getLight(SceneParser *parser, const std::string &id);
-
-			/**
-			 * @param parser The scene parser that contains resources.
-			 * @param id the resource id.
-			 * @return A Font resource or null reference.
-			 */
-			ref_ptr<regen::Font> getFont(SceneParser *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
@@ -100,10 +95,32 @@ namespace regen {
 			void putLight(const std::string &id, const ref_ptr<Light> &light);
 
 			/**
+			 * @param parser The scene parser that contains resources.
+			 * @param id the resource id.
+			 * @return A Font resource or null reference.
+			 */
+			ref_ptr<regen::Font> getFont(SceneParser *parser, const std::string &id);
+
+			/**
 			 * @param id the resource id.
 			 * @param font A Font instance.
 			 */
 			void putFont(const std::string &id, const ref_ptr<regen::Font> &font);
+
+			/**
+			 * @param parser The scene parser that contains resources.
+			 * @param id the resource id.
+			 * @return A resource or null reference.
+			 */
+			ref_ptr<regen::SpatialIndex> getIndex(SceneParser *parser, const std::string &id);
+
+			auto &getIndices() { return indices_.resources(); }
+
+			/**
+			 * @param id the resource id.
+			 * @param font A resource instance.
+			 */
+			void putIndex(const std::string &id, const ref_ptr<regen::SpatialIndex> &index);
 
 			/**
 			 * @param id the resource id.
@@ -152,6 +169,7 @@ namespace regen {
 			FBOResource fbos_;
 			UBOResource ubos_;
 			FontResource fonts_;
+			IndexResource indices_;
 			LightResource lights_;
 			MeshResource meshes_;
 			SkyResource skies_;

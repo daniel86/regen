@@ -37,9 +37,9 @@ protected:
 };
 
 NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
-						 const std::string &name,
-						 const std::string &type)
-				: in_(in), name_(name), type_(type) {
+								   const std::string &name,
+								   const std::string &type)
+		: in_(in), name_(name), type_(type) {
 	if (name_.empty()) {
 		name_ = in->name();
 	}
@@ -414,6 +414,13 @@ void ShaderInput::setUniformDataUntyped(byte *data) {
 	isVertexAttribute_ = GL_FALSE;
 }
 
+void ShaderInput::setArrayData(
+		GLuint numArrayElements,
+		const byte *vertexData) {
+	setInstanceData(numArrayElements, 1, vertexData);
+	numInstances_ = 1u;
+}
+
 void ShaderInput::setVertexData(
 		GLuint numVertices,
 		const byte *vertexData) {
@@ -588,8 +595,8 @@ void ShaderInput::popClientData() {
 ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 	if (in->isUniformBlock()) {
 		auto newBlock = ref_ptr<UniformBlock>::alloc(in->name());
-		auto oldBlock = (UniformBlock *)(in.get());
-		for (auto &namedUniform : oldBlock->uniforms()) {
+		auto oldBlock = (UniformBlock *) (in.get());
+		for (auto &namedUniform: oldBlock->uniforms()) {
 			newBlock->addUniform(create(namedUniform.in_), namedUniform.name_);
 		}
 		return newBlock;
@@ -858,11 +865,11 @@ struct UniformBlock::UniformBlockData {
 };
 
 UniformBlock::UniformBlock(const std::string &name) :
-	UniformBlock(name, ref_ptr<UBO>::alloc()){
+		UniformBlock(name, ref_ptr<UBO>::alloc()) {
 }
 
 UniformBlock::UniformBlock(const std::string &name, const ref_ptr<UBO> &ubo) :
-	ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, GL_FALSE){
+		ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, GL_FALSE) {
 	enableUniform_ = [this](GLint loc) { enableUniformBlock(loc); };
 	isUniformBlock_ = GL_TRUE;
 	isVertexAttribute_ = GL_FALSE;

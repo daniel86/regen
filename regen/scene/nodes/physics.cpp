@@ -113,7 +113,7 @@ static ref_ptr<btCollisionShape> createTriangleMesh(SceneParser *parser, SceneIn
 		return {};
 	}
 	if (pos.get() == nullptr) {
-		REGEN_WARN("Ignoring physical shape for '" << input.getDescription()  << "'. Mesh has no Positions.");
+		REGEN_WARN("Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Positions.");
 		return {};
 	}
 	btIndexedMesh btMesh;
@@ -284,19 +284,3 @@ void PhysicsStateProvider::processInput(
 		parser->getPhysics()->addObject(physicalObject);
 	}
 }
-
-void BulletDebuggerProvider::processInput(
-		SceneParser *parser,
-		SceneInputNode &input,
-		const ref_ptr<StateNode> &parent) {
-	auto &physics = parser->getPhysics();
-	auto debugDrawer = ref_ptr<BulletDebugDrawer>::alloc(physics);
-	debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-	physics->dynamicsWorld()->setDebugDrawer(debugDrawer.get());
-	parent->addChild(debugDrawer);
-
-	StateConfig shaderConfig = StateConfigurer::configure(debugDrawer.get());
-	shaderConfig.setVersion(330);
-	debugDrawer->createShader(shaderConfig);
-}
-

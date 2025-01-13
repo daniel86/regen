@@ -83,86 +83,86 @@ Torus::Config::Config()
 }
 
 void Torus::generateLODLevel(const Config &cfg,
-				GLuint lodLevel,
-				GLuint vertexOffset,
-				GLuint indexOffset) {
+							 GLuint lodLevel,
+							 GLuint vertexOffset,
+							 GLuint indexOffset) {
 	GLuint vertexIndex = vertexOffset;
-    const float ringStep = 2.0f * M_PI / lodLevel;
-    const float tubeStep = 2.0f * M_PI / lodLevel;
+	const float ringStep = 2.0f * M_PI / lodLevel;
+	const float tubeStep = 2.0f * M_PI / lodLevel;
 
-    for (GLuint i = 0; i <= lodLevel; ++i) {
-        float theta = i * ringStep;
-        float cosTheta = cos(theta);
-        float sinTheta = sin(theta);
+	for (GLuint i = 0; i <= lodLevel; ++i) {
+		float theta = i * ringStep;
+		float cosTheta = cos(theta);
+		float sinTheta = sin(theta);
 
-        for (GLuint j = 0; j <= lodLevel; ++j) {
-            float phi = j * tubeStep;
-            float cosPhi = cos(phi);
-            float sinPhi = sin(phi);
+		for (GLuint j = 0; j <= lodLevel; ++j) {
+			float phi = j * tubeStep;
+			float cosPhi = cos(phi);
+			float sinPhi = sin(phi);
 
-            Vec3f pos(
-                (cfg.ringRadius + cfg.tubeRadius * cosPhi) * cosTheta,
-                cfg.tubeRadius * sinPhi,
-                (cfg.ringRadius + cfg.tubeRadius * cosPhi) * sinTheta
-            );
+			Vec3f pos(
+					(cfg.ringRadius + cfg.tubeRadius * cosPhi) * cosTheta,
+					cfg.tubeRadius * sinPhi,
+					(cfg.ringRadius + cfg.tubeRadius * cosPhi) * sinTheta
+			);
 
-            pos = cfg.posScale * pos;
+			pos = cfg.posScale * pos;
 
-            pos_->setVertex(vertexIndex, pos);
+			pos_->setVertex(vertexIndex, pos);
 
-            if (cfg.isNormalRequired) {
-                nor_->setVertex(vertexIndex, Vec3f(
-                		cosPhi * cosTheta,
-                		sinPhi,
-                		cosPhi * sinTheta));
-            }
+			if (cfg.isNormalRequired) {
+				nor_->setVertex(vertexIndex, Vec3f(
+						cosPhi * cosTheta,
+						sinPhi,
+						cosPhi * sinTheta));
+			}
 
-            if (cfg.texcoMode == TEXCO_MODE_UV) {
-                Vec2f texco((float)i / lodLevel, (float)j / lodLevel);
-                ((ShaderInput2f*)texco_.get())->setVertex(vertexIndex, texco * cfg.texcoScale);
-            } else if (cfg.texcoMode == TEXCO_MODE_CUBE_MAP) {
-                Vec3f texco = pos;
-                texco.normalize();
-				((ShaderInput3f*)texco_.get())->setVertex(vertexIndex, texco);
-            }
+			if (cfg.texcoMode == TEXCO_MODE_UV) {
+				Vec2f texco((float) i / lodLevel, (float) j / lodLevel);
+				((ShaderInput2f *) texco_.get())->setVertex(vertexIndex, texco * cfg.texcoScale);
+			} else if (cfg.texcoMode == TEXCO_MODE_CUBE_MAP) {
+				Vec3f texco = pos;
+				texco.normalize();
+				((ShaderInput3f *) texco_.get())->setVertex(vertexIndex, texco);
+			}
 
-            if (cfg.isTangentRequired) {
-                tan_->setVertex(vertexIndex, Vec4f(
-                		-sinTheta,
-                		0.0f,
-                		cosTheta, 1.0f));
-            }
+			if (cfg.isTangentRequired) {
+				tan_->setVertex(vertexIndex, Vec4f(
+						-sinTheta,
+						0.0f,
+						cosTheta, 1.0f));
+			}
 
-            ++vertexIndex;
-        }
+			++vertexIndex;
+		}
 	}
 
-    auto *indices = (GLuint *) indices_->clientDataPtr();
-    GLuint iOffset = indexOffset;
-    for (GLuint i = 0; i < lodLevel; ++i) {
-        for (GLuint j = 0; j < lodLevel; ++j) {
-            GLuint first = (i * (lodLevel + 1)) + j;
-            GLuint second = vertexOffset + first + lodLevel + 1;
-            first += vertexOffset;
+	auto *indices = (GLuint *) indices_->clientDataPtr();
+	GLuint iOffset = indexOffset;
+	for (GLuint i = 0; i < lodLevel; ++i) {
+		for (GLuint j = 0; j < lodLevel; ++j) {
+			GLuint first = (i * (lodLevel + 1)) + j;
+			GLuint second = vertexOffset + first + lodLevel + 1;
+			first += vertexOffset;
 
-            indices[iOffset++] = first;
-            indices[iOffset++] = first + 1;
-            indices[iOffset++] = second;
+			indices[iOffset++] = first;
+			indices[iOffset++] = first + 1;
+			indices[iOffset++] = second;
 
-            indices[iOffset++] = second;
-            indices[iOffset++] = first + 1;
-            indices[iOffset++] = second + 1;
-        }
-    }
+			indices[iOffset++] = second;
+			indices[iOffset++] = first + 1;
+			indices[iOffset++] = second + 1;
+		}
+	}
 }
 
 void Torus::updateAttributes(const Config &cfg) {
-    // Generate multiple LOD levels of the torus
-    std::vector<GLuint> LODs;
-    GLuint vertexOffset = 0;
-    GLuint indexOffset = 0;
-    for (auto &lod : cfg.levelOfDetails) {
-    	GLuint lodLevel = 4u * pow(2u, lod);
+	// Generate multiple LOD levels of the torus
+	std::vector<GLuint> LODs;
+	GLuint vertexOffset = 0;
+	GLuint indexOffset = 0;
+	for (auto &lod: cfg.levelOfDetails) {
+		GLuint lodLevel = 4u * pow(2u, lod);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
 		x.numVertices = (lodLevel + 1) * (lodLevel + 1);
@@ -175,49 +175,57 @@ void Torus::updateAttributes(const Config &cfg) {
 	GLuint numVertices = vertexOffset;
 	GLuint numIndices = indexOffset;
 
-    pos_->setVertexData(numVertices);
-    if (cfg.isNormalRequired) {
-        nor_->setVertexData(numVertices);
-    }
-    if (cfg.isTangentRequired) {
-        tan_->setVertexData(numVertices);
-    }
-    if (cfg.texcoMode == TEXCO_MODE_UV) {
-        texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
-        texco_->setVertexData(numVertices);
-    } else if (cfg.texcoMode == TEXCO_MODE_CUBE_MAP) {
-        texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
-        texco_->setVertexData(numVertices);
-    }
-    indices_->setVertexData(numIndices);
+	pos_->setVertexData(numVertices);
+	if (cfg.isNormalRequired) {
+		nor_->setVertexData(numVertices);
+	}
+	if (cfg.isTangentRequired) {
+		tan_->setVertexData(numVertices);
+	}
+	if (cfg.texcoMode == TEXCO_MODE_UV) {
+		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+		texco_->setVertexData(numVertices);
+	} else if (cfg.texcoMode == TEXCO_MODE_CUBE_MAP) {
+		texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
+		texco_->setVertexData(numVertices);
+	}
+	indices_->setVertexData(numIndices);
 
-    for (auto i=0u; i<LODs.size(); ++i) {
-    	generateLODLevel(cfg,
-    			LODs[i],
-    			meshLODs_[i].vertexOffset,
-    			meshLODs_[i].indexOffset);
+	for (auto i = 0u; i < LODs.size(); ++i) {
+		generateLODLevel(cfg,
+						 LODs[i],
+						 meshLODs_[i].vertexOffset,
+						 meshLODs_[i].indexOffset);
 	}
 
-    // Set up the vertex attributes
-    begin(ShaderInputContainer::INTERLEAVED);
+	// Set up the vertex attributes
+	begin(ShaderInputContainer::INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
-    setInput(pos_);
-    if (cfg.isNormalRequired) {
-        setInput(nor_);
-    }
-    if (cfg.texcoMode != TEXCO_MODE_NONE) {
-        setInput(texco_);
-    }
-    if (cfg.isTangentRequired) {
-        setInput(tan_);
-    }
-    end();
+	setInput(pos_);
+	if (cfg.isNormalRequired) {
+		setInput(nor_);
+	}
+	if (cfg.texcoMode != TEXCO_MODE_NONE) {
+		setInput(texco_);
+	}
+	if (cfg.isTangentRequired) {
+		setInput(tan_);
+	}
+	end();
 
-    for (auto &x : meshLODs_) {
-    	// add the index buffer offset (in number of bytes)
-    	x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+	for (auto &x: meshLODs_) {
+		// add the index buffer offset (in number of bytes)
+		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
-    minPosition_ = -cfg.posScale;
-    maxPosition_ = cfg.posScale;
+
+	minPosition_ = Vec3f(-cfg.tubeRadius);
+	minPosition_.x -= cfg.ringRadius;
+	minPosition_.z -= cfg.ringRadius;
+	minPosition_ *= cfg.posScale;
+
+	maxPosition_ = Vec3f(cfg.tubeRadius);
+	maxPosition_.x += cfg.ringRadius;
+	maxPosition_.z += cfg.ringRadius;
+	maxPosition_ *= cfg.posScale;
 }

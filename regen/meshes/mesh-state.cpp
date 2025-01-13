@@ -20,7 +20,6 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  feedbackCount_(0),
 		  sourceMesh_(sourceMesh),
 		  isMeshView_(GL_TRUE),
-		  centerPosition_(sourceMesh->centerPosition()),
 		  minPosition_(sourceMesh->minPosition()),
 		  maxPosition_(sourceMesh->maxPosition()) {
 	vao_ = ref_ptr<VAO>::alloc();
@@ -37,7 +36,6 @@ Mesh::Mesh(GLenum primitive, VBO::Usage usage)
 		  primitive_(primitive),
 		  feedbackCount_(0),
 		  isMeshView_(GL_FALSE),
-		  centerPosition_(0.0f),
 		  minPosition_(-1.0f),
 		  maxPosition_(1.0f) {
 	vao_ = ref_ptr<VAO>::alloc();
@@ -61,9 +59,9 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 	if (!meshShader_.get()) return;
 
 	if (in->isUniformBlock()) {
-		auto block = (UniformBlock *)(in.get());
-		for (auto &blockUniform : block->uniforms()) {
-			if(blockUniform.in_->numInstances() > 1) {
+		auto block = (UniformBlock *) (in.get());
+		for (auto &blockUniform: block->uniforms()) {
+			if (blockUniform.in_->numInstances() > 1) {
 				inputContainer_->set_numInstances(blockUniform.in_->numInstances());
 				hasInstances_ = GL_TRUE;
 			}
@@ -173,12 +171,24 @@ void Mesh::updateVAO(RenderState *rs) {
 	rs->vao().pop();
 }
 
+unsigned int Mesh::getLODLevel(float cameraDistance) {
+	auto normalizedDistance = std::min(cameraDistance / lodFar_, 0.9999f);
+	auto lodLevel = static_cast<float>(meshLODs_.size()) * normalizedDistance;
+	lodLevel = std::trunc(lodLevel);
+	return static_cast<unsigned int>(lodLevel);
+}
+
+void Mesh::updateLOD(float cameraDistance) {
+	activateLOD(getLODLevel(cameraDistance));
+}
+
 void Mesh::activateLOD(GLuint lodLevel) {
 	if (meshLODs_.size() <= lodLevel) {
 		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << meshLODs_.size());
 		return;
 	}
 	MeshLOD &lod = meshLODs_[lodLevel];
+	lodLevel_ = lodLevel;
 	if (inputContainer_->indexBuffer() > 0) {
 		inputContainer_->set_numIndices(lod.numIndices);
 		inputContainer_->set_indexOffset(lod.indexOffset);
@@ -186,11 +196,6 @@ void Mesh::activateLOD(GLuint lodLevel) {
 		inputContainer_->set_numVertices(lod.numVertices);
 		inputContainer_->set_vertexOffset(lod.vertexOffset);
 	}
-}
-
-void Mesh::set_extends(const Vec3f &minPosition, const Vec3f &maxPosition) {
-	minPosition_ = minPosition;
-	maxPosition_ = maxPosition;
 }
 
 void Mesh::setFeedbackRange(const ref_ptr<BufferRange> &range) {
@@ -246,6 +251,15 @@ ref_ptr<ShaderInput> Mesh::boneWeights() const {
 
 ref_ptr<ShaderInput> Mesh::boneIndices() const {
 	return inputContainer_->getInput("boneIndices");
+}
+
+Vec3f Mesh::centerPosition() const {
+	return (maxPosition_ + minPosition_) * 0.5;
+}
+
+void Mesh::set_bounds(const Vec3f &min, const Vec3f &max) {
+	minPosition_ = min;
+	maxPosition_ = max;
 }
 
 ////////////

@@ -130,10 +130,9 @@ namespace regen {
 			y /= b.y;
 		}
 
-		\
-    /**
-     * @param b scalar to multiply.
-     */
+		/**
+		 * @param b scalar to multiply.
+		 */
 		inline void operator*=(const T &b) {
 			x *= b;
 			y *= b;
@@ -168,6 +167,25 @@ namespace regen {
 		 * Normalize this vector.
 		 */
 		inline void normalize() { *this /= length(); }
+
+		/**
+		 * Computes the dot product between two vectors.
+		 * The dot product is equal to the acos of the angle
+		 * between those vectors.
+		 * @param b another vector.
+		 * @return the dot product.
+		 */
+		inline T dot(const Vec2 &b) const {
+			return x * b.x + y * b.y;
+		}
+
+		/**
+		 * @return static zero vector.
+		 */
+		static const Vec2 &zero() {
+			static Vec2 zero_(0);
+			return zero_;
+		}
 	};
 
 	// writing vector to output stream
@@ -414,6 +432,20 @@ namespace regen {
 			if (x > y && x > z) return x;
 			else if (y > z) return y;
 			else return z;
+		}
+
+		/** Set maximum component. */
+		inline void setMax(const Vec3 &b) {
+			x = std::max(x, b.x);
+			y = std::max(y, b.y);
+			z = std::max(z, b.z);
+		}
+
+		/** Set minimum component. */
+		inline void setMin(const Vec3 &b) {
+			x = std::min(x, b.x);
+			y = std::min(y, b.y);
+			z = std::min(z, b.z);
 		}
 
 		/**

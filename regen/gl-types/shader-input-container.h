@@ -38,7 +38,7 @@ namespace regen {
 		 * @param usage VBO usage.
 		 */
 		explicit ShaderInputContainer(const ref_ptr<ShaderInput> &in, const std::string &name = "",
-							 VBO::Usage usage = VBO::USAGE_DYNAMIC);
+									  VBO::Usage usage = VBO::USAGE_DYNAMIC);
 
 		~ShaderInputContainer();
 
@@ -83,9 +83,19 @@ namespace regen {
 		auto numInstances() const { return numInstances_; }
 
 		/**
+		 * @return Number of visible instances of added input data.
+		 */
+		auto numVisibleInstances() const { return numVisibleInstances_; }
+
+		/**
 		 * @param v Specifies the number of instances to be rendered.
 		 */
 		void set_numInstances(GLuint v) { numInstances_ = v; }
+
+		/**
+		 * @param v Specifies the number of instances to be rendered.
+		 */
+		void set_numVisibleInstances(GLuint v) { numVisibleInstances_ = v; }
 
 		/**
 		 * @param layout Start recording added inputs.
@@ -189,6 +199,7 @@ namespace regen {
 		GLint numVertices_;
 		GLint vertexOffset_;
 		GLint numInstances_;
+		GLint numVisibleInstances_;
 		GLint numIndices_;
 		GLuint maxIndex_;
 		ref_ptr<ShaderInput> indices_;

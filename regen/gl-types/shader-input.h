@@ -37,6 +37,7 @@ namespace regen {
 #ifndef byte
 	typedef unsigned char byte;
 #endif
+
 	class Animation;
 
 	/**
@@ -307,6 +308,10 @@ namespace regen {
 		void setVertexData(
 				GLuint numVertices,
 				const byte *vertexData = nullptr);
+
+		void setArrayData(
+				GLuint numArrayElements,
+				const byte *arrayData = nullptr);
 
 		/**
 		 * Allocates RAM for the attribute and does a memcpy
@@ -987,7 +992,7 @@ namespace regen {
 		/**
 		 * @param input the uniform to add.
 		 */
-		void addUniform(const ref_ptr<ShaderInput> &input, const std::string &name="");
+		void addUniform(const ref_ptr<ShaderInput> &input, const std::string &name = "");
 
 		/**
 		 * Binds the uniform block to the given shader location.

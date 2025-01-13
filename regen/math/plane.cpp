@@ -25,3 +25,7 @@ void Plane::set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) {
 GLfloat Plane::distance(const Vec3f &p) const {
 	return normal.dot(point - p);
 }
+
+Vec3f Plane::closestPoint(const Vec3f &p) const {
+	return p - normal * distance(p);
+}

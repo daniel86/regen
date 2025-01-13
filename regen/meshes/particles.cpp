@@ -17,6 +17,8 @@ using namespace regen;
 
 ///////////
 
+// TODO: keep track of bounding box for culling
+
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 		: Mesh(GL_POINTS, VBO::USAGE_STREAM),
 		  Animation(GL_TRUE, GL_FALSE),
@@ -87,7 +89,7 @@ VBOReference Particles::end() {
 	shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
 	createUpdateShader(particleInputs);
 
-	for (auto & particleInput : particleInputs) {
+	for (auto &particleInput: particleInputs) {
 		const ref_ptr<ShaderInput> in = particleInput.in_;
 		if (!in->isVertexAttribute()) continue;
 		GLint loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
@@ -247,7 +249,7 @@ void Particles::createUpdateShader(const ShaderInputList &inputs) {
 
 	StateConfig &shaderCfg = shaderConfigurer.cfg();
 	shaderCfg.feedbackAttributes_.clear();
-	for (const auto & input : inputs) {
+	for (const auto &input: inputs) {
 		if (!input.in_->isVertexAttribute()) continue;
 		shaderCfg.feedbackAttributes_.push_back(input.in_->name());
 	}
@@ -264,7 +266,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	ref_ptr<VAO> particleVAO = ref_ptr<VAO>::alloc();
 	rs->vao().push(particleVAO->id());
 	glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
-	for (auto & particleAttribute : particleAttributes_) {
+	for (auto &particleAttribute: particleAttributes_) {
 		particleAttribute.input->enableAttribute(particleAttribute.location);
 	}
 
@@ -295,7 +297,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 
 	// Update particle attribute layout.
 	GLuint currOffset = bufferRange_.offset_;
-	for (auto & particleAttribute : particleAttributes_) {
+	for (auto &particleAttribute: particleAttributes_) {
 		particleAttribute.input->set_buffer(bufferRange_.buffer_, feedbackRef_);
 		particleAttribute.input->set_offset(currOffset);
 		currOffset += particleAttribute.input->elementSize();
@@ -303,7 +305,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	// And update the VAO so that next drawing uses last feedback result.
 	std::set<Mesh *> particleMeshes;
 	getMeshViews(particleMeshes);
-	for (auto particleMesh : particleMeshes) { particleMesh->updateVAO(rs); }
+	for (auto particleMesh: particleMeshes) { particleMesh->updateVAO(rs); }
 
 	// Ping-Pong VBO references so that next feedback goes to other buffer.
 	VBOReference buf = particleRef_;
@@ -316,17 +318,39 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const Particles::AdvanceMode &mode) {
 		switch (mode) {
-			case Particles::ADVANCE_MODE_CUSTOM: out << "custom"; break;
-			case Particles::ADVANCE_MODE_SRC: out << "src"; break;
-			case Particles::ADVANCE_MODE_ADD: out << "add"; break;
-			case Particles::ADVANCE_MODE_MULTIPLY: out << "multiply"; break;
-			case Particles::ADVANCE_MODE_SMOOTH_ADD: out << "smooth_add"; break;
-			case Particles::ADVANCE_MODE_SUBTRACT: out << "sub"; break;
-			case Particles::ADVANCE_MODE_REVERSE_SUBTRACT: out << "reverse_sub"; break;
-			case Particles::ADVANCE_MODE_DIFFERENCE: out << "diff"; break;
-			case Particles::ADVANCE_MODE_LIGHTEN: out << "lighten"; break;
-			case Particles::ADVANCE_MODE_DARKEN: out << "darken"; break;
-			case Particles::ADVANCE_MODE_MIX: out << "mix"; break;
+			case Particles::ADVANCE_MODE_CUSTOM:
+				out << "custom";
+				break;
+			case Particles::ADVANCE_MODE_SRC:
+				out << "src";
+				break;
+			case Particles::ADVANCE_MODE_ADD:
+				out << "add";
+				break;
+			case Particles::ADVANCE_MODE_MULTIPLY:
+				out << "multiply";
+				break;
+			case Particles::ADVANCE_MODE_SMOOTH_ADD:
+				out << "smooth_add";
+				break;
+			case Particles::ADVANCE_MODE_SUBTRACT:
+				out << "sub";
+				break;
+			case Particles::ADVANCE_MODE_REVERSE_SUBTRACT:
+				out << "reverse_sub";
+				break;
+			case Particles::ADVANCE_MODE_DIFFERENCE:
+				out << "diff";
+				break;
+			case Particles::ADVANCE_MODE_LIGHTEN:
+				out << "lighten";
+				break;
+			case Particles::ADVANCE_MODE_DARKEN:
+				out << "darken";
+				break;
+			case Particles::ADVANCE_MODE_MIX:
+				out << "mix";
+				break;
 		}
 		return out;
 	}
@@ -355,12 +379,24 @@ namespace regen {
 
 	std::ostream &operator<<(std::ostream &out, const Particles::RampMode &mode) {
 		switch (mode) {
-			case Particles::RampMode::RAMP_MODE_CUSTOM: out << "custom"; break;
-			case Particles::RampMode::RAMP_MODE_TIME: out << "time"; break;
-			case Particles::RampMode::RAMP_MODE_LIFETIME: out << "lifetime"; break;
-			case Particles::RampMode::RAMP_MODE_EMITTER_DISTANCE: out << "emitter_distance"; break;
-			case Particles::RampMode::RAMP_MODE_CAMERA_DISTANCE: out << "camera_distance"; break;
-			case Particles::RampMode::RAMP_MODE_VELOCITY: out << "velocity"; break;
+			case Particles::RampMode::RAMP_MODE_CUSTOM:
+				out << "custom";
+				break;
+			case Particles::RampMode::RAMP_MODE_TIME:
+				out << "time";
+				break;
+			case Particles::RampMode::RAMP_MODE_LIFETIME:
+				out << "lifetime";
+				break;
+			case Particles::RampMode::RAMP_MODE_EMITTER_DISTANCE:
+				out << "emitter_distance";
+				break;
+			case Particles::RampMode::RAMP_MODE_CAMERA_DISTANCE:
+				out << "camera_distance";
+				break;
+			case Particles::RampMode::RAMP_MODE_VELOCITY:
+				out << "velocity";
+				break;
 		}
 		return out;
 	}

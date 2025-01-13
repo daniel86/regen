@@ -16,6 +16,7 @@ ShaderInputContainer::ShaderInputContainer(VBO::Usage usage)
 		: numVertices_(0),
 		  vertexOffset_(0),
 		  numInstances_(1),
+		  numVisibleInstances_(1),
 		  numIndices_(0),
 		  maxIndex_(0) {
 	uploadLayout_ = LAYOUT_LAST;
@@ -27,6 +28,7 @@ ShaderInputContainer::ShaderInputContainer(
 		: numVertices_(0),
 		  vertexOffset_(0),
 		  numInstances_(1),
+		  numVisibleInstances_(1),
 		  numIndices_(0) {
 	uploadLayout_ = LAYOUT_LAST;
 	inputBuffer_ = ref_ptr<VBO>::alloc(usage);
@@ -55,8 +57,7 @@ VBOReference ShaderInputContainer::end() {
 	if (!uploadAttributes_.empty()) {
 		if (uploadLayout_ == SEQUENTIAL) {
 			ref = inputBuffer_->allocSequential(uploadAttributes_);
-		}
-		else if (uploadLayout_ == INTERLEAVED) {
+		} else if (uploadLayout_ == INTERLEAVED) {
 			ref = inputBuffer_->allocInterleaved(uploadAttributes_);
 		}
 		uploadAttributes_.clear();
@@ -71,7 +72,10 @@ ShaderInputList::const_iterator ShaderInputContainer::setInput(
 	const std::string &inputName = (name.empty() ? in->name() : name);
 
 	if (in->isVertexAttribute() && in->numVertices() > numVertices_) { numVertices_ = in->numVertices(); }
-	if (in->numInstances() > 1) { numInstances_ = in->numInstances(); }
+	if (in->numInstances() > 1) {
+		numInstances_ = in->numInstances();
+		numVisibleInstances_ = numInstances_;
+	}
 
 	if (inputMap_.count(inputName) > 0) {
 		removeInput(inputName);
@@ -135,7 +139,7 @@ void ShaderInputContainer::drawArraysInstanced(GLenum primitive) {
 			primitive,
 			vertexOffset_,
 			numVertices_,
-			numInstances_);
+			numVisibleInstances_);
 }
 
 void ShaderInputContainer::drawElements(GLenum primitive) {
@@ -152,5 +156,5 @@ void ShaderInputContainer::drawElementsInstanced(GLenum primitive) {
 			numIndices_,
 			indices_->dataType(),
 			BUFFER_OFFSET(indices_->offset()),
-			numInstances_);
+			numVisibleInstances_);
 }

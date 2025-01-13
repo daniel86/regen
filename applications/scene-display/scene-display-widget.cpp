@@ -682,6 +682,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	sceneParser.processNode(tree, "root", "node");
 	physics_ = sceneParser.getPhysics();
 	eventHandler_ = sceneParser.getEventHandler();
+	spatialIndices_ = sceneParser.getResources()->getIndices();
 
 	if (sceneParser.getRoot()->getFirstChild("node", "initialize").get() != nullptr) {
 		ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
@@ -760,6 +761,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	eventHandler_.emplace_back(mouseEventHandler);
 
 	loadAnim_ = ref_ptr<Animation>();
+	AnimationManager::get().setSpatialIndices(spatialIndices_);
 	AnimationManager::get().resetTime();
 	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");

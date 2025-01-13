@@ -25,6 +25,9 @@ namespace regen {
 			// Override
 			ref_ptr<Camera> createResource(
 					SceneParser *parser, SceneInputNode &input) override;
+
+			ref_ptr<Camera> createCamera(
+					SceneParser *parser, SceneInputNode &input);
 		};
 	}
 }

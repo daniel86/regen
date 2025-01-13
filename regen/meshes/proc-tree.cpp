@@ -25,11 +25,11 @@ ref_ptr<ProcTree> ProcTree::computeMediumDetailTree() {
 	medTree->handle.mProperties = handle.mProperties;
 	auto &medProps = medTree->handle.mProperties;
 	auto &highProps = handle.mProperties;
-    medProps.mSegments = std::max(4, highProps.mSegments / 2);
-    medProps.mLevels = std::max(2, highProps.mLevels - 1);
-    medProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.9f;
-    medProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.9f;
-    medProps.mTwigScale = highProps.mTwigScale * 0.75f;
+	medProps.mSegments = std::max(4, highProps.mSegments / 2);
+	medProps.mLevels = std::max(2, highProps.mLevels - 1);
+	medProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.9f;
+	medProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.9f;
+	medProps.mTwigScale = highProps.mTwigScale * 0.75f;
 	return medTree;
 }
 
@@ -47,11 +47,11 @@ ref_ptr<ProcTree> ProcTree::computeLowDetailTree() {
 }
 
 void ProcTree::updateAttributes(TreeMesh &treeMesh,
-			int numVertices, int numFaces,
-			Proctree::fvec3 *vertices,
-			Proctree::fvec3 *normals,
-			Proctree::fvec2 *uvs,
-			Proctree::ivec3 *faces) {
+								int numVertices, int numFaces,
+								Proctree::fvec3 *vertices,
+								Proctree::fvec3 *normals,
+								Proctree::fvec2 *uvs,
+								Proctree::ivec3 *faces) {
 	auto numIndices = numFaces * 3;
 	treeMesh.indices->setVertexData(numIndices, reinterpret_cast<const unsigned char *>(&faces[0].x));
 	treeMesh.pos->setVertexData(numVertices, reinterpret_cast<const unsigned char *>(&vertices[0].x));
@@ -85,6 +85,19 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh,
 	treeMesh.mesh->setInput(treeMesh.tan);
 	treeMesh.mesh->setInput(treeMesh.texco);
 	treeMesh.mesh->end();
+
+	Vec3f min = *((Vec3f *) &vertices[0]);
+	Vec3f max = *((Vec3f *) &vertices[0]);
+	for (int i = 1; i < numVertices; i++) {
+		auto &v = *((Vec3f *) &vertices[i]);
+		min.x = std::min(min.x, v.x);
+		min.y = std::min(min.y, v.y);
+		min.z = std::min(min.z, v.z);
+		max.x = std::max(max.x, v.x);
+		max.y = std::max(max.y, v.y);
+		max.z = std::max(max.z, v.z);
+	}
+	treeMesh.mesh->set_bounds(min, max);
 }
 
 void ProcTree::updateTrunkAttributes() {

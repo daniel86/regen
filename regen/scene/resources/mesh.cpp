@@ -301,6 +301,14 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
 	}
 
+	// configure mesh LOD
+	if (input.hasAttribute("lod-far")) {
+		auto lodFar = input.getValue<GLfloat>("lod-far", 160.0f);
+		for (GLuint i = 0u; i < out->size(); ++i) {
+			(*out)[i]->setLODFar(lodFar);
+		}
+	}
+
 	if (out->size() == 1) {
 		ref_ptr<Mesh> mesh = (*out)[0];
 		parser->putState(input.getName(), mesh);
