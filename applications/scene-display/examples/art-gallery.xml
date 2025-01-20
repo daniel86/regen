@@ -476,6 +476,25 @@
   <material preset="pewter" />
 </mesh>
 
+<texture id="bonsai-transfer"
+	 file="res/textures/volumes/bonsai-transfer.png" />
+<texture id="bonsai-volume"
+	 file="res/textures/volumes/bonsai.raw"
+	 is-raw="1"
+	 raw-size="256,256,256"
+	 raw-components="1"
+	 raw-bytes="8"
+	 wrapping="CLAMP_TO_EDGE" />
+<mesh id="bonsai-mesh"
+      type="box"
+      scaling="0.8,0.8,0.8"
+      use-normal="0"
+      use-tangent="0"
+      texco-mode="NONE"
+      usage="STATIC">
+    <material emission="0.05,0.1,0.05"/>
+</mesh>
+
 <node id="Statues">
     <node id="Venus-Statue">
         <transform id="venus-tf" />
@@ -535,6 +554,42 @@
             <transform>
                 <rotate value="0.75, 0.0, 0.0"/>
                 <translate value="-12.0, 0.901, -11.0"/>
+            </transform>
+            <mesh id="statue-platform-head" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Bonsai">
+        <transform>
+            <rotate value="3.86, 0.0, 0.0"/>
+            <translate value="5.8, 1.82, -10.8"/>
+        </transform>
+        <!-- <define key="DEPTH_CORRECT" value="TRUE"/> -->
+        <define key="DISCARD_ALPHA" value="TRUE"/>
+        <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+        <define key="RAY_CASTING_MODE" value="FIRST_MAXIMUM" />
+        <define key="SWITCH_VOLUME_Y" value="FALSE" />
+        <cull mode="front" />
+        <input type="float" name="rayStep" value="0.01" />
+        <input type="float" name="densityThreshold" value="0.175" />
+        <input type="float" name="densityScale" value="1.0" />
+        <input type="vec3" name="halfVolumeSize" value="0.8, 0.8, 0.8" />
+        <texture name="transferTexture" id="bonsai-transfer" />
+        <texture name="volumeTexture" id="bonsai-volume" />
+        <mesh id="bonsai-mesh" shader="regen.models.volume" />
+    </node>
+    <node id="Bonsai-Statue">
+        <node>
+            <transform>
+                <rotate value="0.75, 0.0, 0.0"/>
+                <translate value="6.0,-0.5,-11.0"/>
+            </transform>
+            <mesh id="statue-platform" shader="regen.models.mesh"/>
+        </node>
+        <node>
+            <transform>
+                <rotate value="0.75, 0.0, 0.0"/>
+                <translate value="6.0, 0.901, -11.0"/>
             </transform>
             <mesh id="statue-platform-head" shader="regen.models.mesh"/>
         </node>
@@ -867,7 +922,11 @@
     <node id="Pre-Render">
         <node import="Update-Pictures"/>
         <node import="Reflection-Pass"/>
-        <node import="Shadow-Pass"/>
+        <node import="Shadow-Pass">
+            <!-- the leafs of the tree have opposing faces very close to each other,
+                 so to avoid z-fighting we apply a small offset to all shadow caster. -->
+            <polygon offset-fill="1.1,4.0"/>
+        </node>
 
         <view id="Shadow-Map">
             <fbo id="SCREEN"/>
