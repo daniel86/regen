@@ -210,15 +210,21 @@
 
     <node id="Grass">
         <node id="grass1">
+            <!-- TODO: the grass alpha discard is super slow!
+                some ideas to improve:
+                - use better texture without much alpha.
+                - make patches and sort them by distance to camera,
+                  that should reduce overdraw.
+                - maybe see if tessellation can produce sorted results.
+            -->
             <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" /> -->
             <!-- <toggle key="MULTISAMPLE" value="1" /> -->
-            <!-- <blend mode="ALPHA"/> -->
             <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="TESS_SPACING" value="equal_spacing"/>
             <blend mode="SRC"/>
+            <define key="TESS_SPACING" value="equal_spacing"/>
             <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE" />
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
-            <input name="lodMaxDeviceDistance" type="float" value="0.25"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
             <input name="minTessLevel" type="float" value="1.0"/>
             <input name="maxTessLevel" type="float" value="60.0"/>
             <!-- use more complex geometry in close range. -->
@@ -863,7 +869,6 @@
                 <fbo id="g-buffer" draw-buffers="1"/>
             </node>
             -->
-            <!--
             <view id="Spatial Index">
                 <node import="spatial-index-debug">
                     <fbo id="g-buffer" draw-buffers="1"/>
@@ -872,10 +877,11 @@
                     <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
                 </node>
             </view>
-            -->
+            <!--
             <node import="spatial-index-debug">
                 <fbo id="g-buffer" draw-buffers="1"/>
             </node>
+            -->
 
             <node import="GUI-Pass">
                 <fbo id="g-buffer" draw-buffers="1"/>
