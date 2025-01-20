@@ -46,7 +46,14 @@ ref_ptr<ShaderInput> ShaderInputContainer::getInput(const std::string &name) con
 	return {};
 }
 
-GLboolean ShaderInputContainer::hasInput(const std::string &name) const { return inputMap_.count(name) > 0; }
+GLboolean ShaderInputContainer::hasInput(const std::string &name) const {
+	return inputMap_.count(name) > 0;
+}
+
+void ShaderInputContainer::set_numInstances(GLuint v) {
+	numInstances_ = v;
+	numVisibleInstances_ = v;
+}
 
 void ShaderInputContainer::begin(DataLayout layout) {
 	uploadLayout_ = layout;
