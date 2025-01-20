@@ -44,7 +44,7 @@ float metricDeviceDistance(vec2 v0, vec2 v1)
 const float in_lodMaxCameraDistance = 300.0;
 float metricCameraDistance(vec3 v)
 {
-    return clamp(distance(v,in_cameraPosition)/in_lodMaxCD, 0.0, 1.0);
+    return clamp(distance(v,in_cameraPosition)/in_lodMaxCameraDistance, 0.0, 1.0);
 }
 #endif
 
