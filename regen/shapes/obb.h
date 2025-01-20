@@ -12,6 +12,12 @@ namespace regen {
 	public:
 		/**
 		 * @brief Construct a new OBB object
+		 * @param mesh The mesh
+		 */
+		explicit OBB(const ref_ptr<Mesh> &mesh);
+
+		/**
+		 * @brief Construct a new OBB object
 		 * @param halfSize The half size of the OBB
 		 */
 		explicit OBB(const Bounds<Vec3f> &bounds);
@@ -32,7 +38,7 @@ namespace regen {
 		const Vec3f *boxAxes() const final { return boxAxes_; }
 
 		// override BoundingBox::update
-		bool update() final;
+		bool updateTransform(bool forceUpdate) final;
 
 	protected:
 		Vec3f boxAxes_[3];

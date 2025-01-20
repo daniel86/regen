@@ -222,30 +222,19 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 	return props;
 }
 
-static std::optional<float> getRadius(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
+static std::optional<float> getRadius(SceneInputNode &input) {
 	if (input.hasAttribute("radius")) {
 		return input.getValue<GLfloat>("radius", 1.0f);
-	}
-	if (mesh.get()) {
-		// get radius from mesh min/max extents
-		auto &min = mesh->minPosition();
-		auto &max = mesh->maxPosition();
-		auto center = (min + max) * 0.5;
-		auto radius = (max - center).length();
-		return radius;
 	}
 	REGEN_WARN("Ignoring sphere " << input.getDescription() << " without radius or mesh.");
 	return std::nullopt;
 }
 
-static std::optional<Bounds<Vec3f>> getBoxBounds(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
+static std::optional<Bounds<Vec3f>> getBoxBounds(SceneInputNode &input) {
 	if (input.hasAttribute("box-size")) {
 		auto size = input.getValue<Vec3f>("box-size", Vec3f(0.0));
 		auto halfSize = size * 0.5;
-		return Bounds<Vec3f>{mesh->centerPosition() - halfSize, mesh->centerPosition() + halfSize};
-	}
-	if (mesh.get()) {
-		return Bounds<Vec3f>{mesh->minPosition(), mesh->maxPosition()};
+		return Bounds<Vec3f>{-halfSize, halfSize};
 	}
 	REGEN_WARN("Ignoring AABB " << input.getDescription() << " without size or mesh.");
 	return std::nullopt;
@@ -260,21 +249,38 @@ static ref_ptr<BoundingShape> createShape(
 	// create a collision shape
 	ref_ptr<BoundingShape> shape;
 	if (shapeType == "sphere") {
-		auto radius_opt = getRadius(input, mesh);
-		if (radius_opt.has_value()) {
-			shape = ref_ptr<BoundingSphere>::alloc(mesh->centerPosition(), radius_opt.value());
+		if(mesh.get()) {
+			shape = ref_ptr<BoundingSphere>::alloc(mesh);
+		}
+		else if (input.hasAttribute("radius")) {
+			auto radius_opt = getRadius(input);
+			if (radius_opt.has_value()) {
+				auto center = input.getValue<Vec3f>("center", Vec3f(0.0f));
+				shape = ref_ptr<BoundingSphere>::alloc(center, radius_opt.value());
+			}
 		}
 	} else if (shapeType == "aabb") {
-		auto size_opt = getBoxBounds(input, mesh);
-		if (size_opt.has_value()) {
-			shape = ref_ptr<AABB>::alloc(size_opt.value());
+		if (mesh.get()) {
+			shape = ref_ptr<AABB>::alloc(mesh);
+		}
+		else {
+			auto size_opt = getBoxBounds(input);
+			if (size_opt.has_value()) {
+				shape = ref_ptr<AABB>::alloc(size_opt.value());
+			}
 		}
 	} else if (shapeType == "obb") {
-		auto size_opt = getBoxBounds(input, mesh);
-		if (size_opt.has_value()) {
-			shape = ref_ptr<OBB>::alloc(size_opt.value());
+		if (mesh.get()) {
+			shape = ref_ptr<OBB>::alloc(mesh);
 		}
-	} else {
+		else {
+			auto size_opt = getBoxBounds(input);
+			if (size_opt.has_value()) {
+				shape = ref_ptr<OBB>::alloc(size_opt.value());
+			}
+		}
+	}
+	if (!shape.get()) {
 		REGEN_WARN("Ignoring unknown shape '" << input.getDescription() << "'.");
 		return {};
 	}
@@ -329,12 +335,14 @@ void ShapeStateProvider::processInput(
 		const ref_ptr<State> &parent) {
 	auto transformID = input.getValue("transform-id");
 	auto transform = parser->getResources()->getTransform(parser, transformID);
-	if (transform.get() == nullptr) {
-		REGEN_WARN("Skipping physics node with unknown transform ID '" << input.getDescription() << "'.");
-		return;
-	}
 	auto mesh = getMesh(parser, input);
-	auto numInstances = input.getValue<GLuint>("num-instances", transform->get()->numInstances());
+	auto numInstances = 1u;
+	if (transform.get()) {
+		numInstances = transform->get()->numInstances();
+	}
+	if (input.hasAttribute("num-instances")) {
+		numInstances = input.getValue<GLuint>("num-instances", numInstances);
+	}
 	auto shapeMode = input.getValue<std::string>("mode", "index");
 
 	if (shapeMode == "index") {
@@ -349,9 +357,8 @@ void ShapeStateProvider::processInput(
 				}
 				shape->setName(input.getName());
 				shape->setInstanceID(i);
-				shape->setTransform(transform, i);
-				if (mesh.get()) {
-					shape->setMesh(mesh);
+				if (transform.get()) {
+					shape->setTransform(transform, i);
 				}
 				spatialIndex->insert(shape);
 			}

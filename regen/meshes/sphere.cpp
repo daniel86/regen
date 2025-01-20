@@ -42,6 +42,7 @@ Sphere::Sphere(const Config &cfg)
 	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
+	radius_ = 0.5f * cfg.posScale.max();
 	updateAttributes(cfg);
 }
 

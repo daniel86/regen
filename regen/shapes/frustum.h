@@ -90,7 +90,10 @@ namespace regen {
 		Vec3f closestPointOnSurface(const Vec3f &point) const final;
 
 		// override BoundingShape::update
-		bool update() final;
+		bool updateTransform(bool forceUpdate) final;
+
+		// BoundingShape interface
+		void updateBounds(const Vec3f &min, const Vec3f &max) override { }
 
 		// override BoundingShape::getCenterPosition
 		Vec3f getCenterPosition() const override;

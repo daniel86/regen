@@ -33,8 +33,8 @@ void Frustum::set(double _aspect, double _fov, double _near, double _far) {
 	farPlane.x = farPlane.y * aspect;
 }
 
-bool Frustum::update() {
-	if (lastTransformStamp_ == transformStamp() && lastDirectionStamp_ == directionStamp()) {
+bool Frustum::updateTransform(bool forceUpdate) {
+	if (!forceUpdate && lastTransformStamp_ == transformStamp() && lastDirectionStamp_ == directionStamp()) {
 		return false;
 	}
 	lastTransformStamp_ = transformStamp();

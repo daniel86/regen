@@ -62,6 +62,11 @@ namespace regen {
 		explicit Sphere(const Config &cfg = Config());
 
 		/**
+		 * @return the radius of the sphere.
+		 */
+		auto radius() const { return radius_; }
+
+		/**
 		 * Updates vertex data based on given configuration.
 		 * @param cfg vertex data configuration.
 		 */
@@ -75,6 +80,7 @@ namespace regen {
 		ref_ptr<ShaderInput2f> texco_;
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput1ui> indices_;
+		GLfloat radius_;
 
 		void generateLODLevel(const Config &cfg,
 				GLuint lodLevel,

@@ -392,6 +392,11 @@ namespace regen {
 		inline ParameterStackAtomic<GLuint> &renderBuffer() { return renderBuffer_; }
 
 		/**
+		 * bind a named buffer object to GL_ATOMIC_COUNTER_BUFFER target.
+		 */
+		inline ParameterStackAtomic<GLuint> &atomicCounterBuffer() { return atomicCounterBuffer_; }
+
+		/**
 		 * bind a buffer object to a target.
 		 */
 		void bindBufferBase(GLenum target, GLuint index, GLuint buffer);
@@ -684,6 +689,7 @@ namespace regen {
 		ParameterStackAtomic<GLuint> copyReadBuffer_;
 		ParameterStackAtomic<GLuint> copyWriteBuffer_;
 		ParameterStackAtomic<GLuint> renderBuffer_;
+		ParameterStackAtomic<GLuint> atomicCounterBuffer_;
 		ValueStackAtomic<GLuint> vao_;
 
 		IndexedValueStack<BufferRange> uniformBufferRange_;

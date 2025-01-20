@@ -7,6 +7,38 @@
 
 using namespace regen;
 
+BoundingShape::BoundingShape(BoundingShapeType shapeType)
+		: shapeType_(shapeType),
+		  lastGeometryStamp_(0u) {
+}
+
+BoundingShape::BoundingShape(BoundingShapeType shapeType, const ref_ptr<Mesh> &mesh)
+		: shapeType_(shapeType),
+		  mesh_(mesh),
+		  lastGeometryStamp_(mesh_->geometryStamp()) {
+}
+
+bool BoundingShape::updateGeometry() {
+	if (mesh_.get()) {
+		// check if mesh geometry has changed
+		auto meshStamp = mesh_->geometryStamp();
+		if (meshStamp == lastGeometryStamp_) {
+			return false;
+		} else {
+			lastGeometryStamp_ = meshStamp;
+			updateBounds(mesh_->minPosition(), mesh_->maxPosition());
+			return true;
+		}
+	}
+	else if (nextGeometryStamp_ != lastGeometryStamp_) {
+		lastGeometryStamp_ = nextGeometryStamp_;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 GLuint BoundingShape::numInstances() const {
 	if (transform_.get()) {
 		return transform_->get()->numInstances();

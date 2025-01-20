@@ -260,6 +260,7 @@ Vec3f Mesh::centerPosition() const {
 void Mesh::set_bounds(const Vec3f &min, const Vec3f &max) {
 	minPosition_ = min;
 	maxPosition_ = max;
+	geometryStamp_++;
 }
 
 ////////////

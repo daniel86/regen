@@ -21,9 +21,16 @@ namespace regen {
 		/**
 		 * @brief Construct a new Bounding Box object
 		 * @param type The type of the box
+		 * @param mesh The mesh
+		 */
+		BoundingBox(BoundingBoxType type, const ref_ptr<Mesh> &mesh);
+
+		/**
+		 * @brief Construct a new Bounding Box object
+		 * @param type The type of the box
 		 * @param bounds The min/max bounds of the box's vertices (without transformation)
 		 */
-		explicit BoundingBox(BoundingBoxType type, const Bounds<Vec3f> &bounds);
+		BoundingBox(BoundingBoxType type, const Bounds<Vec3f> &bounds);
 
 		~BoundingBox() override = default;
 
@@ -79,6 +86,9 @@ namespace regen {
 
 		// BoundingShape interface
 		Vec3f getCenterPosition() const override;
+
+		// BoundingShape interface
+		void updateBounds(const Vec3f &min, const Vec3f &max) override;
 
 	protected:
 		BoundingBoxType type_;

@@ -556,9 +556,10 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 
 	particles->begin();
 	// Mesh resources can have State children
-	MeshVector x = MeshVector(1);
-	x[0] = particles;
-	processMeshChildren(parser, input, x);
+	auto x = ref_ptr<MeshVector>::alloc(1);
+	(*x.get())[0] = particles;
+	parser->getResources()->putMesh(input.getName(), x);
+	processMeshChildren(parser, input, *x.get());
 	particles->end();
 
 	return particles;
