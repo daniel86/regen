@@ -90,7 +90,7 @@ namespace regen {
 		/**
 		 * @param v Specifies the number of instances to be rendered.
 		 */
-		void set_numInstances(GLuint v) { numInstances_ = v; }
+		void set_numInstances(GLuint v);
 
 		/**
 		 * @param v Specifies the number of instances to be rendered.
