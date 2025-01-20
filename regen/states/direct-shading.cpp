@@ -104,8 +104,22 @@ void DirectShading::addLight(
 	// join light shader inputs using a name override
 	{
 		const ShaderInputList &in = light->inputContainer()->inputs();
-		for (auto it = in.begin(); it != in.end(); ++it) { joinShaderInput(it->in_, REGEN_LIGHT_NAME(
-					it->in_->name(), lightID));
+		for (auto it = in.begin(); it != in.end(); ++it) {
+			if (it->in_->isUniformBlock()) {
+				// if the input is a uniform block, we add all uniforms to the shader
+				// to avoid name clash.
+				// TODO: find a way to use UBO without the name clash
+				auto *block = dynamic_cast<UniformBlock *>(it->in_.get());
+				for (auto &blockUniform : block->uniforms()) {
+					joinShaderInput(
+							blockUniform.in_,
+							REGEN_LIGHT_NAME(blockUniform.name_, lightID));
+				}
+			} else {
+				joinShaderInput(
+						it->in_,
+						REGEN_LIGHT_NAME(it->in_->name(), lightID));
+			}
 		}
 	}
 
