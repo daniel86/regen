@@ -135,29 +135,26 @@
     <node id="Shadow-Caster">
         <node id="platforms">
             <material preset="silver"/>
-            <define key="HAS_modelMatrix" value="TRUE"/>
-            <define key="HAS_nor" value="TRUE"/>
-            <shader key="regen.models.mesh"/>
             <node id="platform0">
                 <transform>
                     <rotate value="0.0,0.0,0.0"/>
                     <translate value="0.0,-60.6,2.5"/>
                 </transform>
-                <mesh id="platform"/>
+                <mesh id="platform" shader="regen.models.mesh"/>
             </node>
             <node id="platform1">
                 <transform>
                     <rotate value="1.0,0.0,0.0"/>
                     <translate value="1.5,-60.6,0.0"/>
                 </transform>
-                <mesh id="platform"/>
+                <mesh id="platform" shader="regen.models.mesh"/>
             </node>
             <node id="platform2">
                 <transform>
                     <rotate value="-1.0,0.0,0.0"/>
                     <translate value="-1.5,-60.6,0.0"/>
                 </transform>
-                <mesh id="platform"/>
+                <mesh id="platform" shader="regen.models.mesh"/>
             </node>
         </node>
 
