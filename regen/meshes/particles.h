@@ -10,6 +10,7 @@
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/shader-state.h>
+#include "regen/gl-types/atomic-counter.h"
 
 namespace regen {
 	/**
@@ -171,6 +172,7 @@ namespace regen {
 		VBOReference feedbackRef_;
 		VBOReference particleRef_;
 		BufferRange bufferRange_;
+		//ref_ptr<BoundingBoxCounter> boundingBoxCounter_;
 		std::list<ShaderInputLocation> particleAttributes_;
 		ref_ptr<ShaderState> updateState_;
 

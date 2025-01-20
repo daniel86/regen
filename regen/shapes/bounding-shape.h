@@ -3,6 +3,7 @@
 
 #include "regen/states/model-transformation.h"
 #include "regen/meshes/mesh-state.h"
+#include "bounds.h"
 
 namespace regen {
 	enum class BoundingShapeType {
@@ -20,7 +21,14 @@ namespace regen {
 		 * @brief Construct a new Bounding Shape object
 		 * @param shapeType The type of the shape
 		 */
-		explicit BoundingShape(BoundingShapeType shapeType) : shapeType_(shapeType) {}
+		explicit BoundingShape(BoundingShapeType shapeType);
+
+		/**
+		 * @brief Construct a new Bounding Shape object
+		 * @param shapeType The type of the shape
+		 * @param mesh The mesh
+		 */
+		BoundingShape(BoundingShapeType shapeType, const ref_ptr<Mesh> &mesh);
 
 		virtual ~BoundingShape() = default;
 
@@ -116,12 +124,6 @@ namespace regen {
 		unsigned int transformStamp() const;
 
 		/**
-		 * @brief Set the mesh of this shape
-		 * @param mesh The mesh
-		 */
-		void setMesh(const ref_ptr<Mesh> &mesh) { mesh_ = mesh; }
-
-		/**
 		 * @brief Get the mesh of this shape
 		 * @return The mesh
 		 */
@@ -140,9 +142,19 @@ namespace regen {
 		void addPart(const ref_ptr<Mesh> &part) { parts_.push_back(part); }
 
 		/**
+		 * @brief Update the transform
+		 */
+		virtual bool updateTransform(bool forceUpdate) = 0;
+
+		/**
 		 * @brief Update the shape
 		 */
-		virtual bool update() = 0;
+		bool updateGeometry();
+
+		/**
+		 * @brief Update the geometry of this shape
+		 */
+		virtual void updateBounds(const Vec3f &min, const Vec3f &max) = 0;
 
 		/**
 		 * @brief Check if this shape has intersection with another shape
@@ -164,10 +176,12 @@ namespace regen {
 		ref_ptr<ShaderInput3f> translation_;
 		ref_ptr<Mesh> mesh_;
 		std::vector<ref_ptr<Mesh>> parts_;
-		GLuint lastTransformStamp_ = 0;
-		GLuint instanceIndex_ = 0;
+		unsigned int lastTransformStamp_ = 0;
+		unsigned int lastGeometryStamp_;
+		unsigned int nextGeometryStamp_ = 0u;
+		unsigned int instanceIndex_ = 0;
 		std::string name_;
-		GLuint instanceID_ = 0;
+		unsigned int instanceID_ = 0;
 	};
 } // namespace
 

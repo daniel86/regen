@@ -236,7 +236,7 @@ void QuadTree::subdivide(Node *node) {
 }
 
 inline ref_ptr<BoundingShape> initShape(const ref_ptr<BoundingShape> &shape) {
-	shape->update();
+	shape->updateTransform(false);
 	return shape;
 }
 
@@ -519,7 +519,10 @@ void QuadTree::update(float dt) {
 	// update returns true if the shape has changed, in this case
 	// the item is removed and reinserted into the tree.
 	for (const auto &item: items_) {
-		if (item->shape->update()) {
+		bool hasChanged = item->shape->updateGeometry();
+		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
+
+		if (hasChanged) {
 			item->projection = OrthogonalProjection(*item->shape.get());
 			// remove/insert item
 			remove(item);
@@ -580,19 +583,14 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 				debug.drawCircle(toVec3(points[0], h), radius, lineColor);
 				break;
 			}
-			case OrthogonalProjection::Type::RECTANGLE: {
-				debug.drawLine(toVec3(points[0], h), toVec3(points[1], h), lineColor);
-				debug.drawLine(toVec3(points[1], h), toVec3(points[2], h), lineColor);
-				debug.drawLine(toVec3(points[2], h), toVec3(points[3], h), lineColor);
-				debug.drawLine(toVec3(points[3], h), toVec3(points[0], h), lineColor);
+			default:
+				for (int i=0; i<points.size(); i++) {
+					debug.drawLine(
+						toVec3(points[i], h),
+						toVec3(points[(i+1)%points.size()], h),
+						lineColor);
+				}
 				break;
-			}
-			case OrthogonalProjection::Type::TRIANGLE: {
-				debug.drawLine(toVec3(points[0], h), toVec3(points[1], h), lineColor);
-				debug.drawLine(toVec3(points[1], h), toVec3(points[2], h), lineColor);
-				debug.drawLine(toVec3(points[2], h), toVec3(points[0], h), lineColor);
-				break;
-			}
 		}
 	}
 }

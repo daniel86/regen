@@ -12,6 +12,19 @@ BoundingBox::BoundingBox(BoundingBoxType type, const Bounds<Vec3f> &bounds)
 		  bounds_(bounds),
 		  basePosition_((bounds.max + bounds.min) * 0.5f) {}
 
+BoundingBox::BoundingBox(BoundingBoxType type, const ref_ptr<Mesh> &mesh)
+		: BoundingShape(BoundingShapeType::BOX, mesh),
+		  type_(type),
+		  bounds_(mesh->minPosition(), mesh->maxPosition()),
+		  basePosition_((bounds_.max + bounds_.min) * 0.5f) {
+}
+
+void BoundingBox::updateBounds(const Vec3f &min, const Vec3f &max) {
+	bounds_.min = mesh_->minPosition();
+	bounds_.max = mesh_->maxPosition();
+	basePosition_ = (bounds_.max + bounds_.min) * 0.5f;
+}
+
 Vec3f BoundingBox::getCenterPosition() const {
 	if (transform_.get()) {
 		return basePosition_ + transform_->get()->getVertex(instanceIndex_).position();

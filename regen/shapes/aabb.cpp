@@ -2,13 +2,18 @@
 
 using namespace regen;
 
+AABB::AABB(const ref_ptr<Mesh> &mesh)
+		: BoundingBox(BoundingBoxType::AABB, mesh) {
+	updateAABB();
+}
+
 AABB::AABB(const Bounds<Vec3f> &bounds)
 		: BoundingBox(BoundingBoxType::AABB, bounds) {
 	updateAABB();
 }
 
-bool AABB::update() {
-	if (transformStamp() == lastTransformStamp_) {
+bool AABB::updateTransform(bool forceUpdate) {
+	if (!forceUpdate && transformStamp() == lastTransformStamp_) {
 		return false;
 	} else {
 		lastTransformStamp_ = transformStamp();

@@ -11,6 +11,12 @@ namespace regen {
 	public:
 		/**
 		 * @brief Construct a new AABB object
+		 * @param mesh The mesh
+		 */
+		explicit AABB(const ref_ptr<Mesh> &mesh);
+
+		/**
+		 * @brief Construct a new AABB object
 		 * @param bounds The min/max of the AABB
 		 */
 		explicit AABB(const Bounds<Vec3f> &bounds);
@@ -28,7 +34,7 @@ namespace regen {
 		Vec3f closestPointOnSurface(const Vec3f &point) const final;
 
 		// override BoundingBox::update
-		bool update() final;
+		bool updateTransform(bool forceUpdate) final;
 
 		// override BoundingBox::axes
 		const Vec3f *boxAxes() const final;

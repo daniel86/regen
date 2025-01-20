@@ -402,6 +402,7 @@ void Shader::setupInputLocations() {
 			case GL_FLOAT_VEC4:
 			case GL_BOOL:
 			case GL_UNSIGNED_INT:
+			case GL_UNSIGNED_INT_ATOMIC_COUNTER:
 			case GL_INT:
 			case GL_BOOL_VEC2:
 			case GL_INT_VEC2:

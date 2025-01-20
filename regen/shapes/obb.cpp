@@ -4,13 +4,18 @@
 
 using namespace regen;
 
+OBB::OBB(const ref_ptr<Mesh> &mesh)
+		: BoundingBox(BoundingBoxType::OBB, mesh) {
+	updateOBB();
+}
+
 OBB::OBB(const Bounds<Vec3f> &bounds)
 		: BoundingBox(BoundingBoxType::OBB, bounds) {
 	updateOBB();
 }
 
-bool OBB::update() {
-	if (transformStamp() == lastTransformStamp_) {
+bool OBB::updateTransform(bool forceUpdate) {
+	if (!forceUpdate && transformStamp() == lastTransformStamp_) {
 		return false;
 	} else {
 		lastTransformStamp_ = transformStamp();

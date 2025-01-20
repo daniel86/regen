@@ -48,12 +48,45 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
 			// frustum projection is a rectangle: we take origin as one point of the rectangle
 			// and use points of far plane as the other 3 points.
 			auto *frustum = dynamic_cast<const Frustum *>(&shape);
-			//auto &originPoint = frustum->basePosition();
 			auto &planePoints = frustum->points;
 
+//#define FRUSTUM_PROJECTION_TRIANGLE
+#ifdef FRUSTUM_PROJECTION_TRIANGLE
+			type = OrthogonalProjection::Type::TRIANGLE;
+			auto &basePoint = frustum->basePosition();
+			// Find the two points closest to the base point
+			std::vector<std::pair<float, Vec3f>> distances;
+			for (const auto &point: planePoints) {
+				float distance = (point - basePoint).lengthSquared();
+				distances.emplace_back(distance, point);
+			}
+			std::sort(distances.begin(), distances.end());
+			Vec3f &nearest1 = distances[0].second;
+			Vec3f &nearest2 = distances[1].second;
+			Vec3f &farthest1 = distances[2].second;
+			Vec3f &farthest2 = distances[3].second;
+			Vec3f farthest_center = (farthest1 + farthest2) * 0.5f;
+			// Compute direction vectors from base to nearest points
+			Vec3f dir1 = nearest1 - basePoint;
+			Vec3f dir2 = nearest2 - basePoint;
+			dir1.normalize();
+			dir2.normalize();
+			// Solve for the lengths
+			// TODO: I do not think below is accurate, the actual length could be different.
+			//       IMO we need to solve equations for finding the length where the direction vectors intersect
+			//       with (farthest_N - farthest_center) line.
+			float length1 = (farthest1 - basePoint).length();
+			float length2 = (farthest2 - basePoint).length();
+			// Normalize direction vectors and scale to the computed lengths
+			dir1 *= length1;
+			dir2 *= length2;
+			// Define the triangle points
+			points.resize(3);
+			points[0] = Vec2f(basePoint.x, basePoint.z);
+			points[1] = Vec2f(basePoint.x + dir1.x, basePoint.z + dir1.z);
+			points[2] = Vec2f(basePoint.x + dir2.x, basePoint.z + dir2.z);
+#else
 			// generate AABB around the frustum
-			// TODO: this is not optimal. Better use the frustum points directly to form
-			//       the rectangle.
 			Vec2f min(planePoints[0].x, planePoints[0].z);
 			Vec2f max(planePoints[0].x, planePoints[0].z);
 			for (int i = 1; i < 8; i++) {
@@ -71,6 +104,7 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
 			points[2] = max;
 			// top-left
 			points[3] = Vec2f(min.x, max.y);
+#endif
 			break;
 		}
 	}

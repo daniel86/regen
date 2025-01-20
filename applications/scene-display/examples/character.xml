@@ -511,6 +511,11 @@
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
         <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD" advance-constant="2.0"/>
         <transform id="platform0-tf" />
+        <!-- TODO: add a bounding shape for particles. -->
+        <!--
+        <shape id="particles0-aabb" mode="index" type="aabb"
+            mesh-id="test-particles0" />
+        -->
     </mesh>
 
     <node id="Particle-Update-FBO">
@@ -855,9 +860,10 @@
             </view>
             <!--
             <node import="bullet-debug">
-                <fbo id="g-buffer" draw-buffers="0"/>
+                <fbo id="g-buffer" draw-buffers="1"/>
             </node>
             -->
+            <!--
             <view id="Spatial Index">
                 <node import="spatial-index-debug">
                     <fbo id="g-buffer" draw-buffers="1"/>
@@ -866,6 +872,10 @@
                     <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
                 </node>
             </view>
+            -->
+            <node import="spatial-index-debug">
+                <fbo id="g-buffer" draw-buffers="1"/>
+            </node>
 
             <node import="GUI-Pass">
                 <fbo id="g-buffer" draw-buffers="1"/>

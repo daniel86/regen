@@ -215,6 +215,7 @@ RenderState::RenderState()
 		  copyReadBuffer_(GL_COPY_READ_BUFFER, Regen_BindBuffer),
 		  copyWriteBuffer_(GL_COPY_WRITE_BUFFER, Regen_BindBuffer),
 		  renderBuffer_(GL_RENDERBUFFER, Regen_BindRenderbuffer),
+		  atomicCounterBuffer_(GL_ATOMIC_COUNTER_BUFFER, Regen_BindBuffer),
 		  vao_(Regen_VAO),
 		  uniformBufferRange_(maxUniformBuffers_, regen_lockedValue, Regen_UniformBufferRange),
 		  feedbackBufferRange_(maxFeedbackBuffers_, regen_lockedValue, Regen_FeedbackBufferRange),

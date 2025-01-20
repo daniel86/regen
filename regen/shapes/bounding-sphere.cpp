@@ -1,4 +1,5 @@
 #include "bounding-sphere.h"
+#include "regen/meshes/sphere.h"
 
 using namespace regen;
 
@@ -7,8 +8,33 @@ BoundingSphere::BoundingSphere(const Vec3f &basePosition, GLfloat radius)
 		  basePosition_(basePosition),
 		  radius_(radius) {}
 
-bool BoundingSphere::update() {
-	if (transformStamp() == lastTransformStamp_) {
+BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh)
+		: BoundingShape(BoundingShapeType::SPHERE, mesh),
+		  basePosition_(mesh->centerPosition()),
+		  radius_(computeRadius(mesh->minPosition(), mesh->maxPosition())) {
+	auto sphereMesh = dynamic_cast<Sphere *>(mesh.get());
+	if (sphereMesh) {
+		radius_ = sphereMesh->radius();
+	}
+}
+
+void BoundingSphere::updateBounds(const Vec3f &min, const Vec3f &max) {
+	basePosition_ = (min + max) * 0.5;
+	auto sphereMesh = dynamic_cast<Sphere *>(mesh_.get());
+	if (sphereMesh) {
+		radius_ = sphereMesh->radius();
+	} else {
+		radius_ = computeRadius(min, max);
+	}
+}
+
+float BoundingSphere::computeRadius(const Vec3f &min, const Vec3f &max) {
+	auto radius = (max - basePosition_).length();
+	return radius;
+}
+
+bool BoundingSphere::updateTransform(bool forceUpdate) {
+	if (!forceUpdate && transformStamp() == lastTransformStamp_) {
 		return false;
 	} else {
 		lastTransformStamp_ = transformStamp();

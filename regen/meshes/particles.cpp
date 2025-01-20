@@ -17,8 +17,6 @@ using namespace regen;
 
 ///////////
 
-// TODO: keep track of bounding box for culling
-
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 		: Mesh(GL_POINTS, VBO::USAGE_STREAM),
 		  Animation(GL_TRUE, GL_FALSE),
@@ -29,6 +27,8 @@ Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 	inputContainer_->set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
 	numParticles_ = numParticles;
+	// create an atomic counter for computing the bounding box
+	//boundingBoxCounter_ = ref_ptr<BoundingBoxCounter>::alloc();
 }
 
 void Particles::begin() {
@@ -274,6 +274,8 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	bufferRange_.offset_ = feedbackRef_->address();
 	rs->feedbackBufferRange().push(0, bufferRange_);
 	rs->beginTransformFeedback(GL_POINTS);
+	// bind the atomic counter for computing the bounding box to fixed location 0
+	//boundingBoxCounter_->bindBufferBase(0);
 
 	/*
 	// only emit a limited number of particles per frame
@@ -311,6 +313,10 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	VBOReference buf = particleRef_;
 	particleRef_ = feedbackRef_;
 	feedbackRef_ = buf;
+
+	// Read atomic counter to get the bounding box of the particles
+	//auto bounds = boundingBoxCounter_->updateBounds();
+	//set_bounds(bounds.min, bounds.max);
 
 	GL_ERROR_LOG();
 }

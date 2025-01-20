@@ -99,7 +99,7 @@ void SpatialIndex::updateVisibility() {
 		// TODO: Support half-spheres for culling
 		BoundingSphere sphereShape(Vec3f::zero(), camera->far()->getVertex(0));
 		sphereShape.setTransform(camera->position());
-		sphereShape.update();
+		sphereShape.updateTransform(true);
 		// update visible shapes
 		updateVisibility(camera, sphereShape);
 	}

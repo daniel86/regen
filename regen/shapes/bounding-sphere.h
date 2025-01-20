@@ -12,9 +12,15 @@ namespace regen {
 	public:
 		/**
 		 * @brief Construct a new Bounding Sphere object
+		 * @param mesh The mesh
+		 */
+		explicit BoundingSphere(const ref_ptr<Mesh> &mesh);
+
+		/**
+		 * @brief Construct a new Bounding Sphere object
 		 * @param radius The radius of the sphere
 		 */
-		explicit BoundingSphere(const Vec3f &basePosition, GLfloat radius);
+		BoundingSphere(const Vec3f &basePosition, GLfloat radius);
 
 		~BoundingSphere() override = default;
 
@@ -41,7 +47,10 @@ namespace regen {
 		Vec3f closestPointOnSurface(const Vec3f &point) const final;
 
 		// override BoundingShape::update
-		bool update() final;
+		bool updateTransform(bool forceUpdate) final;
+
+		// BoundingShape interface
+		void updateBounds(const Vec3f &min, const Vec3f &max) override;
 
 		// override BoundingShape::getCenterPosition
 		Vec3f getCenterPosition() const override;
@@ -49,6 +58,8 @@ namespace regen {
 	protected:
 		Vec3f basePosition_;
 		GLfloat radius_;
+
+		float computeRadius(const Vec3f &min, const Vec3f &max);
 	};
 } // namespace
 

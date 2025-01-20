@@ -189,6 +189,16 @@ namespace regen {
 		const Vec3f &maxPosition() { return maxPosition_; }
 
 		/**
+		 * @return the modification stamp of the geometry.
+		 */
+		auto geometryStamp() const { return geometryStamp_; }
+
+		/**
+		 * Increment the geometry stamp.
+		 */
+		void nextGeometryStamp() { geometryStamp_++; }
+
+		/**
 		 * @param range buffer range to use for transform feedback.
 		 */
 		void setFeedbackRange(const ref_ptr<BufferRange> &range);
@@ -235,6 +245,7 @@ namespace regen {
 
 		Vec3f minPosition_;
 		Vec3f maxPosition_;
+		unsigned int geometryStamp_ = 0u;
 
 		std::vector<ref_ptr<PhysicalObject>> physicalObjects_;
 
