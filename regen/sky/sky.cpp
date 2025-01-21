@@ -9,10 +9,8 @@
 
 #include <ctime>
 
-#include <regen/external/osghimmel/astronomy.h>
 #include <regen/external/osghimmel/earth.h>
 #include <regen/external/osghimmel/moon.h>
-#include <regen/states/blend-state.h>
 #include <regen/states/depth-state.h>
 #include <regen/states/state-configurer.h>
 
@@ -67,7 +65,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 			0.043,
 			osgHimmel::Earth::meanRadius(),
 			osgHimmel::Earth::meanRadius() + osgHimmel::Earth::atmosphereThicknessNonUniform(),
-			0));
+			rand()));
 	uniformBlock->addUniform(cmnUniform_);
 
 	R_ = ref_ptr<ShaderInputMat4>::alloc("equToHorMatrix");
@@ -99,7 +97,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	cfg.isNormalRequired = GL_FALSE;
 	cfg.isTangentRequired = GL_FALSE;
 	cfg.isTexcoRequired = GL_FALSE;
-	cfg.levelOfDetails = {0}; // TODO: why so much?
+	cfg.levelOfDetails = {0};
 	cfg.posScale = Vec3f(2.0f);
 	cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
 	cfg.texcoScale = Vec2f(1.0);
@@ -202,8 +200,8 @@ void Sky::addLayer(const ref_ptr<SkyLayer> &layer) {
 }
 
 void Sky::createShader(RenderState *rs, const StateConfig &stateCfg) {
-	for (auto  it = layer_.begin(); it != layer_.end(); ++it) {
-		ref_ptr<SkyLayer> layer = *it;
+	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
+		ref_ptr<SkyLayer> &layer = *it;
 
 		StateConfigurer cfg(stateCfg);
 		cfg.addNode(layer.get());
@@ -233,7 +231,7 @@ void Sky::animate(GLdouble dt) {
 	astro_->update(osgHimmel::t_aTime::fromTimeF(*timef_.get()));
 }
 
-GLfloat Sky::computeHorizonExtinction(const Vec3f& position, const Vec3f& dir, GLfloat radius) {
+GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius) {
 	GLfloat u = dir.dot(-position);
 	if (u < 0.0) {
 		return 1.0;
@@ -250,17 +248,17 @@ GLfloat Sky::computeHorizonExtinction(const Vec3f& position, const Vec3f& dir, G
 	}
 }
 
-GLfloat Sky::computeEyeExtinction(const Vec3f& eyedir) {
+GLfloat Sky::computeEyeExtinction(const Vec3f &eyedir) {
 	GLfloat surfaceHeight = 0.99;
 	Vec3f eyePosition(0.0, surfaceHeight, 0.0);
 	return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight - 0.15);
 }
 
-static Vec3f computeColor(const Vec3f& color, GLfloat ext) {
+static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
 	if (ext >= 0.0) {
 		return color;
 	} else {
-		return color * (-ext * ext + 1.0);
+		return color * (-ext * ext + 1.0f);
 	}
 }
 
@@ -283,7 +281,7 @@ void Sky::glAnimate(RenderState *rs, GLdouble dt) {
 			computeEyeExtinction(moon))
 	);
 
-	const float fovHalf = camera()->fov()->getVertex(0) * 0.5 * DEGREE_TO_RAD;
+	const float fovHalf = camera()->fov()->getVertex(0) * 0.5f * DEGREE_TO_RAD;
 	const float height = viewport()->getVertex(0).y;
 	q_->setUniformData(sqrt(2.0) * 2.0 * tan(fovHalf) / height);
 	R_->setVertex(0, astro().getEquToHorTransform());
@@ -321,7 +319,7 @@ const ref_ptr<Sky> &SkyView::sky() { return sky_; }
 
 void SkyView::createShader(RenderState *rs, const StateConfig &stateCfg) {
 	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
-		ref_ptr<SkyLayerView> layer = *it;
+		ref_ptr<SkyLayerView> &layer = *it;
 
 		StateConfigurer cfg(stateCfg);
 		cfg.addNode(layer.get());

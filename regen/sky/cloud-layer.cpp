@@ -23,7 +23,7 @@ static GLfloat *createNoiseSlice(GLuint texSize, GLuint octave) {
 
 	osgHimmel::Noise n(1 << (octave + 2), _randf(0.f, 1.f), _randf(0.f, 1.f));
 
-	GLfloat *noise = new float[size2];
+	auto *noise = new float[size2];
 	GLuint o;
 	for (GLuint s = 0; s < texSize; ++s)
 		for (GLuint t = 0; t < texSize; ++t) {
@@ -231,6 +231,7 @@ ref_ptr<HasShader> CloudLayer::getShaderState() { return shaderState_; }
 
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().push(fbo_->id());
+	glClear(GL_COLOR_BUFFER_BIT);
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);
