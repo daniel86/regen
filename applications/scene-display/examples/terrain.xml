@@ -5,6 +5,7 @@
 <node id="configuration">
   <camera id="main-camera"
 	  mode="first-person"
+	  speed="0.1"
 	  eye-offset="0.0,0.0,0.0"
 	  horizontal-orientation="1.44">
   </camera>
@@ -31,14 +32,14 @@
 <!-- Cameras -->
 <camera id="main-camera"
 	fov="45.0" near="0.1" far="400.0"
-	position="16.0,4.5,7.0"
+	position="156.0,26.5,147.0"
 	direction="1.0,0.0,0.0" />
 <!-- Some meshes. -->
 <mesh id="island-mesh"
       type="rectangle"
-      lod="2"
+      lod="4"
       rotation="0.0,0.0,3.1415"
-      scaling="300.0,300.0,300.0"
+      scaling="600.0,1.0,600.0"
       texco-scaling="1.0,1.0"
       use-normal="1"
       use-texco="1"
@@ -162,15 +163,15 @@
 
 <node id="Scene-Geometry">
   <node id="Island" >
-    <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" />
-    <tesselation num-patch-vertices="3" lod-factor="2.0" lod-metric="CAMERA_DISTANCE" />
+    <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5" />
+    <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="EDGE_DEVICE_DISTANCE" />
     
     <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill" />
     <texture name="colorTexture" id="island-color" map-to="COLOR" />
     <texture name="normalTexture" id="island-normal" map-to="NORMAL"
 	     texel-transfer-key="regen.states.textures.normalTBNTransfer" />
     <texture name="heightTexture" id="island-height" map-to="HEIGHT"
-	     blend-mode="ADD" blend-factor="40.0" />
+	     blend-mode="ADD" blend-factor="14.0" />
     
     <mesh id="island-mesh" shader="regen.models.mesh" />
   </node>
@@ -198,10 +199,21 @@
 </node>
 
 <node id="Background-Pass">
-  <depth test="1" write="0" />
-  <node id="sky-node">
-    <sky id="earth-sky" />
-  </node>
+    <depth test="1" write="0" />
+    <node id="sky-node">
+        <sky id="earth-sky" />
+    </node>
+
+    <node id="Distance-Fog">
+        <blend mode="alpha" />
+        <input type="float" name="fogDensity" value="0.9" />
+        <input type="vec2" name="fogDistance" value="100.0,400.0" />
+        <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
+        <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+        <texture name="skyColorTexture" id="earth-sky" />
+        <define key="USE_SKY_COLOR" value="TRUE" />
+        <fullscreen-pass shader="regen.shading.fog.distance" />
+    </node>
 </node>
 
 <node id="Post-Pass">
@@ -236,11 +248,11 @@
   <texture name="inputTexture" fbo="g-buffer" attachment="0" />
   <texture name="blurTexture" id="blurred-scene" />
 
-  <input type="float" name="blurAmount" value="0.35" />
-  <input type="float" name="effectAmount" value="0.2" />
-  <input type="float" name="exposure" value="4.0" />
-  <input type="float" name="gamma" value="0.95" />
-  <input type="float" name="radialBlurSamples" value="36.0" />
+  <input type="float" name="blurAmount" value="0.3" />
+  <input type="float" name="effectAmount" value="0.1" />
+  <input type="float" name="exposure" value="1.7" />
+  <input type="float" name="gamma" value="1.1" />
+  <input type="float" name="radialBlurSamples" value="26.0" />
   <input type="float" name="radialBlurStartScale" value="1.0" />
   <input type="float" name="radialBlurScaleMul" value="0.9555" />
   <input type="float" name="vignetteInner" value="0.9" />

@@ -51,9 +51,9 @@ void main() {
     if(d0==1.0) discard; // discard background pixels
     vec3 eye0 = transformTexcoToWorld(texco_2D, d0, in_layer) - in_cameraPosition;
     float factor0 = fogIntensity(length(eye0));
-    
+
 #ifdef USE_SKY_COLOR
-    vec3 fogColor = texture(in_skyColorTexture, vec3(0.0,1.0,0.0)).rgb;
+    vec3 fogColor = texture(in_skyColorTexture, eye0).rgb;
 #else
     vec3 fogColor = in_fogColor;
 #endif
