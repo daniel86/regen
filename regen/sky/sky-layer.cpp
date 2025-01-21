@@ -15,7 +15,6 @@ void SkyLayer::updateSky(RenderState *rs, GLdouble dt) {
 	dt_ += dt;
 	if (dt_ < updateInterval_) { return; }
 
-	GL_ERROR_LOG();
 	updateSkyLayer(rs, dt_);
 	GL_ERROR_LOG();
 
