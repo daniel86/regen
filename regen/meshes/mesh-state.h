@@ -114,7 +114,7 @@ namespace regen {
 		/**
 		 * @return number of LODs.
 		 */
-		auto numLODs() const { return meshLODs_.size(); }
+		auto numLODs() const { return meshLODs_.empty() ? 1 : meshLODs_.size(); }
 
 		/**
 		 * Set the physical object.

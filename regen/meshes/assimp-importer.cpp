@@ -1057,7 +1057,7 @@ GLuint AssetImporter::numBoneWeights(Mesh *meshState) {
 
 	auto *counter = new GLuint[container->numVertices()];
 	GLuint numWeights = 1;
-	for (GLuint i = 0; i < container->numVertices(); ++i) counter[i] = 0u;
+	for (GLint i = 0; i < container->numVertices(); ++i) counter[i] = 0u;
 	for (GLuint boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
 		aiBone *assimpBone = mesh->mBones[boneIndex];
 		for (GLuint t = 0; t < assimpBone->mNumWeights; ++t) {

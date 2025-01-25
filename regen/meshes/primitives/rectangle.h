@@ -9,7 +9,7 @@
 #define __RECTANGLE_H__
 
 #include <regen/meshes/mesh-state.h>
-#include "tessellation.h"
+#include "../tessellation.h"
 
 namespace regen {
 	/**

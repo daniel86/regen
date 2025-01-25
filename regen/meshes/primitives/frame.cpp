@@ -1,4 +1,4 @@
-#include "tessellation.h"
+#include "../tessellation.h"
 #include "frame.h"
 
 using namespace regen;

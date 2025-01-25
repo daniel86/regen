@@ -182,6 +182,10 @@ bool Material::getMapTo(std::string_view fileName, TextureState::MapTo &mapTo) {
 }
 
 bool Material::set_textures(std::string_view materialName, Variant variant) {
+	return set_textures(materialName, REGEN_STRING(variant));
+}
+
+bool Material::set_textures(std::string_view materialName, std::string_view variant) {
 	// find the base path with the textures
 	auto basePath0 = REGEN_STRING("res/textures/materials/" << materialName << "/" << variant);
 	basePath0 = resourcePath(basePath0);
@@ -212,6 +216,12 @@ bool Material::set_textures(std::string_view materialName, Variant variant) {
 			auto texName = REGEN_STRING("materialTexture" << textures_.size());
 			auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 			textures_[mapTo].push_back(texState);
+
+			if (wrapping_.has_value()) {
+				tex->begin(RenderState::get(), 0);
+				tex->wrapping().push(GL_CLAMP_TO_EDGE);
+				tex->end(RenderState::get());
+			}
 		}
 	}
 

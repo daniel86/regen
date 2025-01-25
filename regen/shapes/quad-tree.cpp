@@ -1,8 +1,12 @@
 #include <stack>
+#include <chrono>
+#include <limits>
 
 #include "quad-tree.h"
 
-#define MAX_SHAPES_PER_NODE 4
+#undef QUAD_TREE_THREADING
+#undef QUAD_TREE_DEBUG
+#define QUAD_TREE_SUBDIVIDE_THRESHOLD 4
 
 using namespace regen;
 
@@ -17,9 +21,13 @@ QuadTree::~QuadTree() {
 		root_ = nullptr;
 	}
 	for (auto item: items_) {
-		delete item;
+		delete item.second;
 	}
 	items_.clear();
+	for (auto item: newItems_) {
+		delete item;
+	}
+	newItems_.clear();
 	while (!nodePool_.empty()) {
 		delete nodePool_.top();
 		nodePool_.pop();
@@ -46,15 +54,6 @@ unsigned int QuadTree::numNodes() const {
 	return count;
 }
 
-namespace regen {
-	enum class ResizeDirection : int {
-		LEFT = 1 << 1,
-		RIGHT = 1 << 2,
-		TOP = 1 << 3,
-		BOTTOM = 1 << 4
-	};
-}
-
 QuadTree::Node *QuadTree::createNode(const Vec2f &min, const Vec2f &max) {
 	if (nodePool_.empty()) {
 		return new Node(min, max);
@@ -79,56 +78,39 @@ void QuadTree::freeNode(Node *node) {
 }
 
 QuadTree::Item* QuadTree::getItem(const ref_ptr<BoundingShape> &shape) {
-	// TODO: make this faster
-	for (auto &item: items_) {
-		if (item->shape.get() == shape.get()) {
-			return item;
-		}
+	auto it = items_.find(shape.get());
+	if (it != items_.end()) {
+		return it->second;
 	}
 	return nullptr;
 }
 
 void QuadTree::insert(const ref_ptr<BoundingShape> &shape) {
-	auto *quadShape = new Item(shape);
-	if (insert(quadShape)) {
-		addToIndex(quadShape->shape);
-		items_.push_back(quadShape);
-	} else {
-		delete quadShape;
-		REGEN_WARN("Failed to insert shape into quad tree. This should not happen!");
-	}
-}
-
-bool QuadTree::insert(Item *quadShape) {
-	// project the shape onto the xz-plane for faster intersection tests
-	// with the quad tree nodes.
-
-	if (!root_) {
-		auto bounds = quadShape->projection.bounds();
-		root_ = createNode(bounds.min, bounds.max);
-	}
-	else {
-		// enlarge the tree if the shape does not fit into it
-		root_->enlarge(quadShape->projection.bounds(),
-					   static_cast<int>(ResizeDirection::LEFT) |
-					   static_cast<int>(ResizeDirection::RIGHT) |
-					   static_cast<int>(ResizeDirection::TOP) |
-					   static_cast<int>(ResizeDirection::BOTTOM));
-	}
-
-	if (insert1(root_, quadShape, true)) {
-		return true;
-	} else {
-		return false;
-	}
+	newItems_.push_back(new Item(shape));
+	addToIndex(shape);
 }
 
 bool QuadTree::insert(Node *node, Item *shape, bool allowSubdivision) { // NOLINT(no-recursion)
 	if (!node->intersects(shape->projection)) {
 		return false;
 	} else {
-		return insert1(node, shape, allowSubdivision);
+		// only subdivide if the node is larger than the shape
+		float nodeSizeX = node->bounds.max.x - node->bounds.min.x;
+		float nodeSizeY = node->bounds.max.y - node->bounds.min.y;
+		float shapeSizeX = shape->projection.bounds().max.x - shape->projection.bounds().min.x;
+		float shapeSizeY = shape->projection.bounds().max.y - shape->projection.bounds().min.y;
+		bool isNodeLargeEnough = (nodeSizeX > 2.0*shapeSizeX && nodeSizeY > 2.0*shapeSizeY);
+
+		return insert1(node, shape, isNodeLargeEnough && allowSubdivision);
 	}
+}
+
+void QuadTree::reinsertShapes(Node *node) {
+	for (const auto &existingShape: node->shapes) {
+		existingShape->removeNode(node);
+		insert1(node, existingShape, false);
+	}
+	node->shapes.clear();
 }
 
 bool QuadTree::insert1(Node *node, Item *shape, bool allowSubdivision) { // NOLINT(no-recursion)
@@ -138,17 +120,15 @@ bool QuadTree::insert1(Node *node, Item *shape, bool allowSubdivision) { // NOLI
 		// 1. the node has still not exceeded the maximum number of shapes per node
 		// 2. the node has reached the minimum size and cannot be subdivided further
 		// 3. the node was just created by subdividing a parent node
-		if (!allowSubdivision || node->shapes.size() < MAX_SHAPES_PER_NODE || node->bounds.size() < minNodeSize_) {
+		if (!allowSubdivision ||
+				node->shapes.size() < QUAD_TREE_SUBDIVIDE_THRESHOLD ||
+				node->bounds.size() < minNodeSize_) {
 			node->shapes.push_back(shape);
 			shape->nodes.push_back(node);
 			return true;
 		} else {
 			subdivide(node);
-			for (const auto &existingShape: node->shapes) {
-				existingShape->removeNode(node);
-				insert1(node, existingShape, false);
-			}
-			node->shapes.clear();
+			reinsertShapes(node);
 			shape->removeNode(node);
 			return insert1(node, shape, false);
 		}
@@ -215,24 +195,24 @@ void QuadTree::collapse(Node *node) {
 
 void QuadTree::subdivide(Node *node) {
 	// Subdivide the node into four children.
-	auto center = (node->bounds.min + node->bounds.max) / 2;
+	auto center = (node->bounds.min + node->bounds.max) * 0.5f;
 	Node *child;
 	// bottom-left
 	child = createNode(node->bounds.min, center);
 	child->parent = node;
-	node->children[static_cast<int>(QuadSegment::BOTTOM_LEFT)] = child;
+	node->children[0] = child;
 	// bottom-right
 	child = createNode(Vec2f(center.x, node->bounds.min.y), Vec2f(node->bounds.max.x, center.y));
 	child->parent = node;
-	node->children[static_cast<int>(QuadSegment::BOTTOM_RIGHT)] = child;
+	node->children[1] = child;
 	// top-right
 	child = createNode(center, node->bounds.max);
 	child->parent = node;
-	node->children[static_cast<int>(QuadSegment::TOP_RIGHT)] = child;
+	node->children[2] = child;
 	// top-left
 	child = createNode(Vec2f(node->bounds.min.x, center.y), Vec2f(center.x, node->bounds.max.y));
 	child->parent = node;
-	node->children[static_cast<int>(QuadSegment::TOP_LEFT)] = child;
+	node->children[3] = child;
 }
 
 inline ref_ptr<BoundingShape> initShape(const ref_ptr<BoundingShape> &shape) {
@@ -271,20 +251,12 @@ bool QuadTree::Node::isLeaf() const {
 
 std::pair<float, float> project(const Bounds<Vec2f> &b, const Vec2f &axis) {
 	std::array<float, 4> projections = {
-			Vec2f(b.min.x, b.min.y).dot(axis),
-			Vec2f(b.max.x, b.min.y).dot(axis),
-			Vec2f(b.min.x, b.max.y).dot(axis),
-			Vec2f(b.max.x, b.max.y).dot(axis)
+		b.min.dot(axis),
+		Vec2f(b.max.x, b.min.y).dot(axis),
+		Vec2f(b.min.x, b.max.y).dot(axis),
+		b.max.dot(axis)
 	};
-	auto [minIt, maxIt] = std::minmax_element(projections.begin(), projections.end());
-	return {*minIt, *maxIt};
-}
 
-std::pair<float, float> project(const std::vector<Vec2f> &points, const Vec2f &axis) {
-	std::vector<float> projections(points.size());
-	std::transform(points.begin(), points.end(), projections.begin(), [&axis](const Vec2f &point) {
-		return point.dot(axis);
-	});
 	auto [minIt, maxIt] = std::minmax_element(projections.begin(), projections.end());
 	return {*minIt, *maxIt};
 }
@@ -308,148 +280,21 @@ bool QuadTree::Node::intersects(const OrthogonalProjection &projection) const {
 			}
 			return sqDist < radiusSqr;
 		}
-		case OrthogonalProjection::Type::RECTANGLE: {
-			// Check for separation along the axes of the rectangle and the axis-aligned quad
-			std::array<Vec2f, 4> axes = {
-					Vec2f(1, 0), Vec2f(0, 1),
-					projection.points[1] - projection.points[0],
-					projection.points[3] - projection.points[0]
-			};
-			for (const auto &axis: axes) {
-				auto [minA, maxA] = project(bounds, axis);
-				auto [minB, maxB] = project(projection.points, axis);
-				if (maxA < minB || maxB < minA) {
+		case OrthogonalProjection::Type::TRIANGLE:
+		case OrthogonalProjection::Type::RECTANGLE:
+			// Check for separation along the axes of the shape and the axis-aligned quad
+			for (const auto &axis: projection.axes) {
+				auto [minA, maxA] = project(bounds, axis.dir);
+				if (maxA < axis.min || axis.max < minA) {
 					return false;
 				}
 			}
 			return true;
-		}
-		case OrthogonalProjection::Type::TRIANGLE: {
-			// Check for separation along the axes of the triangle and the axis-aligned quad
-			std::array<Vec2f, 5> axes = {
-					Vec2f(1, 0), Vec2f(0, 1),
-					projection.points[1] - projection.points[0],
-					projection.points[2] - projection.points[1],
-					projection.points[0] - projection.points[2]
-			};
-			for (const auto &axis: axes) {
-				auto [minA, maxA] = project(bounds, axis);
-				auto [minB, maxB] = project(projection.points, axis);
-				if (maxA < minB || maxB < minA) {
-					return false;
-				}
-			}
-			return true;
-		}
 	}
 	return false;
 }
 
-void QuadTree::Node::enlarge(const Bounds<Vec2f> &b, int resizeMask) {
-	// b: the bounds that need to fit into the tree
-	// resizeMask: a bitmask indicating which sides of the node can be resized
-
-	// calculate the new bounds
-	auto &newMin = bounds.min;
-	auto &newMax = bounds.max;
-	if (resizeMask & static_cast<int>(ResizeDirection::LEFT)) {
-		//newMin.x = std::min(newMin.x, b.min.x);
-		if (b.min.x < newMin.x) {
-			newMin.x = b.min.x;
-		} else {
-			// remove the LEFT flag from the resize mask
-			resizeMask &= ~static_cast<int>(ResizeDirection::LEFT);
-		}
-	}
-	if (resizeMask & static_cast<int>(ResizeDirection::RIGHT)) {
-		//newMax.x = std::max(newMax.x, b.max.x);
-		if (b.max.x > newMax.x) {
-			newMax.x = b.max.x;
-		} else {
-			// remove the RIGHT flag from the resize mask
-			resizeMask &= ~static_cast<int>(ResizeDirection::RIGHT);
-		}
-	}
-	if (resizeMask & static_cast<int>(ResizeDirection::TOP)) {
-		//newMax.y = std::max(newMax.y, b.max.y);
-		if (b.max.y > newMax.y) {
-			newMax.y = b.max.y;
-		} else {
-			// remove the TOP flag from the resize mask
-			resizeMask &= ~static_cast<int>(ResizeDirection::TOP);
-		}
-	}
-	if (resizeMask & static_cast<int>(ResizeDirection::BOTTOM)) {
-		//newMin.y = std::min(newMin.y, b.min.y);
-		if (b.min.y < newMin.y) {
-			newMin.y = b.min.y;
-		} else {
-			// remove the BOTTOM flag from the resize mask
-			resizeMask &= ~static_cast<int>(ResizeDirection::BOTTOM);
-		}
-	}
-	if (resizeMask == 0) {
-		// nothing to do
-		return;
-	}
-
-	// resize the children, and set the resize mask accordingly
-	if (!isLeaf()) {
-		// bottom-left node can only resize to the left and bottom
-		auto &bottomLeft = children[static_cast<int>(QuadSegment::BOTTOM_LEFT)];
-		int childResizeMask = 0;
-		if (resizeMask & static_cast<int>(ResizeDirection::LEFT)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::LEFT);
-		}
-		if (resizeMask & static_cast<int>(ResizeDirection::BOTTOM)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::BOTTOM);
-		}
-		if (childResizeMask != 0) {
-			bottomLeft->enlarge(bounds, childResizeMask);
-		}
-
-		// bottom-right node can only resize to the right and bottom
-		auto &bottomRight = children[static_cast<int>(QuadSegment::BOTTOM_RIGHT)];
-		childResizeMask = 0;
-		if (resizeMask & static_cast<int>(ResizeDirection::RIGHT)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::RIGHT);
-		}
-		if (resizeMask & static_cast<int>(ResizeDirection::BOTTOM)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::BOTTOM);
-		}
-		if (childResizeMask != 0) {
-			bottomRight->enlarge(bounds, childResizeMask);
-		}
-
-		// top-right node can only resize to the right and top
-		auto &topRight = children[static_cast<int>(QuadSegment::TOP_RIGHT)];
-		childResizeMask = 0;
-		if (resizeMask & static_cast<int>(ResizeDirection::RIGHT)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::RIGHT);
-		}
-		if (resizeMask & static_cast<int>(ResizeDirection::TOP)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::TOP);
-		}
-		if (childResizeMask != 0) {
-			topRight->enlarge(bounds, childResizeMask);
-		}
-
-		// top-left node can only resize to the left and top
-		auto &topLeft = children[static_cast<int>(QuadSegment::TOP_LEFT)];
-		childResizeMask = 0;
-		if (resizeMask & static_cast<int>(ResizeDirection::LEFT)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::LEFT);
-		}
-		if (resizeMask & static_cast<int>(ResizeDirection::TOP)) {
-			childResizeMask |= static_cast<int>(ResizeDirection::TOP);
-		}
-		if (childResizeMask != 0) {
-			topLeft->enlarge(bounds, childResizeMask);
-		}
-	}
-}
-
-bool QuadTree::hasIntersection(const BoundingShape &shape) const {
+bool QuadTree::hasIntersection(const BoundingShape &shape) {
 	int count = 0;
 	foreachIntersection(shape, [&count](const BoundingShape &shape) {
 		count++;
@@ -457,7 +302,7 @@ bool QuadTree::hasIntersection(const BoundingShape &shape) const {
 	return count > 0;
 }
 
-int QuadTree::numIntersections(const BoundingShape &shape) const {
+int QuadTree::numIntersections(const BoundingShape &shape) {
 	int count = 0;
 	foreachIntersection(shape, [&count](const BoundingShape &shape) {
 		count++;
@@ -465,18 +310,85 @@ int QuadTree::numIntersections(const BoundingShape &shape) const {
 	return count;
 }
 
+void QuadTree::intersect2D(
+		const BoundingShape &shape,
+		const OrthogonalProjection &projection,
+		const QuadTree::Node *node,
+		std::atomic<unsigned int> &jobCounter,
+		std::set<const Item *> &visited,
+		std::mutex &mutex,
+		const std::function<void(const BoundingShape &)> &callback) {
+	// 2D intersection test with the xz-projection
+	if (!node->intersects(projection)) {
+		return;
+	}
+	if (node->isLeaf()) {
+		// 3D intersection test with the shapes in the node
+		for (const auto &quadShape: node->shapes) {
+			{
+				std::lock_guard<std::mutex> lock(mutex);
+				if (visited.find(quadShape) != visited.end()) {
+					continue;
+				}
+				visited.insert(quadShape);
+			}
+			if (quadShape->shape->hasIntersectionWith(shape)) {
+				callback(*quadShape->shape.get());
+			}
+		}
+	}
+	else {
+		static auto excHandler = [](const std::exception &) {};
+		// Add the children to the stack
+		for (auto &child: node->children) {
+			if (child && (!child->isLeaf() || !child->shapes.empty())) {
+				auto runner = std::make_shared<ThreadPool::LambdaRunner>(
+					[&](const ThreadPool::LambdaRunner::StopChecker&) {
+						intersect2D(shape, projection, child, jobCounter, visited, mutex, callback);
+					});
+				jobCounter += 1;
+				threadPool_.pushWork(runner, excHandler);
+			}
+		}
+	}
+	jobCounter -= 1;
+}
+
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
-		const std::function<void(const BoundingShape &)> &callback) const {
+		const std::function<void(const BoundingShape &)> &callback) {
 	if (!root_) return;
+	if (root_->isLeaf() && root_->shapes.empty()) return;
 
-	std::stack<Node *> stack;
+#ifdef QUAD_TREE_DEBUG
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+    using std::chrono::duration;
+    using std::chrono::milliseconds;
+	GLuint num2DTests = 0;
+	GLuint num3DTests = 0;
+	auto t1 = high_resolution_clock::now();
+#endif
+
 	std::set<const Item *> visited;
-	stack.push(root_);
-
 	// project the shape onto the xz-plane for faster intersection tests
 	// with the quad tree nodes.
 	OrthogonalProjection shape_projection(shape);
+
+#ifdef QUAD_TREE_THREADING
+	std::mutex mutex;
+	std::atomic<unsigned int> jobCounter(1);
+	auto runner = std::make_shared<ThreadPool::LambdaRunner>([&](const ThreadPool::LambdaRunner::StopChecker&) {
+		intersect2D(shape, shape_projection, root_, jobCounter, visited, mutex, callback);
+	});
+	threadPool_.pushWork(runner, [](const std::exception &) {});
+
+	while (jobCounter > 0) {
+		std::this_thread::sleep_for(std::chrono::microseconds (10));
+	}
+#else
+	std::stack<Node *> stack;
+	stack.push(root_);
 
 	while (!stack.empty()) {
 		Node *node = stack.top();
@@ -487,6 +399,9 @@ void QuadTree::foreachIntersection(
 			continue;
 		}
 
+#ifdef QUAD_TREE_DEBUG
+		num2DTests++;
+#endif
 		// 2D intersection test with the xz-projection
 		if (!node->intersects(shape_projection)) {
 			continue;
@@ -499,6 +414,9 @@ void QuadTree::foreachIntersection(
 					continue;
 				}
 				visited.insert(quadShape);
+#ifdef QUAD_TREE_DEBUG
+				num3DTests++;
+#endif
 				if (quadShape->shape->hasIntersectionWith(shape)) {
 					callback(*quadShape->shape.get());
 				}
@@ -512,23 +430,82 @@ void QuadTree::foreachIntersection(
 			}
 		}
 	}
+#endif
+
+#ifdef QUAD_TREE_DEBUG
+	auto t2 = high_resolution_clock::now();
+	duration<double, std::milli> ms_double = t2 - t1;
+	REGEN_INFO("QUAD TREE STATS");
+	REGEN_INFO("     time: " << ms_double.count() << " ms");
+	unsigned int numShapes = 0;
+	for (const auto &x: shapes_) {
+		numShapes += x.second.size();
+	}
+	REGEN_INFO("     #Shapes: " << numShapes);
+	REGEN_INFO("     #Nodes: " << numNodes());
+	REGEN_INFO("     #2D Tests: " << num2DTests);
+	REGEN_INFO("     #3D Tests: " << num3DTests);
+#endif
 }
 
 void QuadTree::update(float dt) {
-	// iterate over all items in the tree, and update them.
-	// update returns true if the shape has changed, in this case
-	// the item is removed and reinserted into the tree.
-	for (const auto &item: items_) {
-		bool hasChanged = item->shape->updateGeometry();
-		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
+	static auto maxFloat = Vec2f(std::numeric_limits<float>::min());
+	static auto minFloat = Vec2f(std::numeric_limits<float>::max());
+	Bounds<Vec2f> newBounds(minFloat, maxFloat);
+	std::vector<Item *> changedItems;
+	bool hasChanged;
 
+	// go through all items and update their geometry and transform, and the new bounds
+	for (const auto &it: items_) {
+		auto &item = it.second;
+		hasChanged = item->shape->updateGeometry();
+		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
 		if (hasChanged) {
 			item->projection = OrthogonalProjection(*item->shape.get());
-			// remove/insert item
-			remove(item);
-			insert(item);
+			changedItems.push_back(item);
+		}
+		newBounds.extend(item->projection.bounds());
+	}
+	// do the same for any additional items added to the tree
+	for (const auto &item: newItems_) {
+		hasChanged = item->shape->updateGeometry();
+		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
+		if (hasChanged) {
+			item->projection = OrthogonalProjection(*item->shape.get());
+		}
+		newBounds.extend(item->projection.bounds());
+	}
+	// if bounds have changed, re-initialize the tree
+	auto reInit = (root_ == nullptr || newBounds != root_->bounds);
+	if (reInit) {
+		// free the root node and start all over
+		if(root_) freeNode(root_);
+		root_ = createNode(newBounds.min, newBounds.max);
+
+		for (auto &it: items_) {
+			auto &item = it.second;
+			item->nodes.clear();
+			insert1(root_, item, true);
 		}
 	}
+	// else remove/insert the changed items
+	else {
+		for (auto item: changedItems) {
+			remove(item);
+			insert1(root_, item, true);
+		}
+	}
+	// finally insert the new items
+	for (auto item: newItems_) {
+		if(insert1(root_, item, true)) {
+			items_[item->shape.get()] = item;
+		} else {
+			delete item;
+			REGEN_WARN("Failed to insert shape into quad tree. This should not happen!");
+		}
+	}
+	newItems_.clear();
+
 	// make the visibility computations
 	updateVisibility();
 }
@@ -540,6 +517,7 @@ inline Vec3f toVec3(const Vec2f &v, float y) {
 void QuadTree::debugDraw(DebugInterface &debug) const {
 	// draw lines around the quad tree nodes
 	if (!root_) return;
+	static const float drawHeight = 0.5f;
 	Vec3f lineColor(1, 0, 0);
 
 	// draw the bounds of nodes
@@ -549,20 +527,20 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 		const Node *node = stack.top();
 		stack.pop();
 		debug.drawLine(
-				Vec3f(node->bounds.min.x, 0, node->bounds.min.y),
-				Vec3f(node->bounds.max.x, 0, node->bounds.min.y),
+				Vec3f(node->bounds.min.x, drawHeight, node->bounds.min.y),
+				Vec3f(node->bounds.max.x, drawHeight, node->bounds.min.y),
 				lineColor);
 		debug.drawLine(
-				Vec3f(node->bounds.max.x, 0, node->bounds.min.y),
-				Vec3f(node->bounds.max.x, 0, node->bounds.max.y),
+				Vec3f(node->bounds.max.x, drawHeight, node->bounds.min.y),
+				Vec3f(node->bounds.max.x, drawHeight, node->bounds.max.y),
 				lineColor);
 		debug.drawLine(
-				Vec3f(node->bounds.max.x, 0, node->bounds.max.y),
-				Vec3f(node->bounds.min.x, 0, node->bounds.max.y),
+				Vec3f(node->bounds.max.x, drawHeight, node->bounds.max.y),
+				Vec3f(node->bounds.min.x, drawHeight, node->bounds.max.y),
 				lineColor);
 		debug.drawLine(
-				Vec3f(node->bounds.min.x, 0, node->bounds.max.y),
-				Vec3f(node->bounds.min.x, 0, node->bounds.min.y),
+				Vec3f(node->bounds.min.x, drawHeight, node->bounds.max.y),
+				Vec3f(node->bounds.min.x, drawHeight, node->bounds.min.y),
 				lineColor);
 		if (!node->isLeaf()) {
 			for (int i = 0; i < 4; i++) {
@@ -575,7 +553,7 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 	lineColor = Vec3f(0, 1, 0);
 	const GLfloat h = 0.1f;
 	for (auto &item: items_) {
-		auto &projection = item->projection;
+		auto &projection = item.second->projection;
 		auto &points = projection.points;
 		switch (projection.type) {
 			case OrthogonalProjection::Type::CIRCLE: {

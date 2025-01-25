@@ -9,17 +9,6 @@
 
 namespace regen {
 	/**
-	 * Quadrant segments of a quad tree node.
-	 * Maps to the indices of the children.
-	 */
-	enum class QuadSegment {
-		BOTTOM_LEFT = 0,
-		BOTTOM_RIGHT,
-		TOP_RIGHT,
-		TOP_LEFT
-	};
-
-	/**
 	 * A quad tree data structure for spatial indexing.
 	 * It fits the scene into a quad which it subdivides at places where
 	 * the number of shapes exceeds a certain threshold.
@@ -60,8 +49,6 @@ namespace regen {
 			bool isLeaf() const;
 
 			bool intersects(const OrthogonalProjection &projection) const;
-
-			void enlarge(const Bounds<Vec2f> &bounds, int resizeMask);
 		};
 
 		QuadTree();
@@ -96,22 +83,23 @@ namespace regen {
 		void update(float dt) override;
 
 		// override SpatialIndex::hasIntersection
-		bool hasIntersection(const BoundingShape &shape) const override;
+		bool hasIntersection(const BoundingShape &shape) override;
 
 		// override SpatialIndex::numIntersections
-		int numIntersections(const BoundingShape &shape) const override;
+		int numIntersections(const BoundingShape &shape) override;
 
 		// override SpatialIndex::foreachIntersection
 		void foreachIntersection(
 				const BoundingShape &shape,
-				const std::function<void(const BoundingShape &)> &callback) const override;
+				const std::function<void(const BoundingShape &)> &callback) override;
 
 		// override SpatialIndex
 		void debugDraw(DebugInterface &debug) const override;
 
 	protected:
 		Node *root_ = nullptr;
-		std::vector<Item *> items_;
+		std::map<BoundingShape*, Item*> items_;
+		std::vector<Item *> newItems_;
 		std::stack<Node *> nodePool_;
 		float minNodeSize_ = 0.1f;
 
@@ -121,11 +109,11 @@ namespace regen {
 
 		void freeNode(Node *node);
 
-		bool insert(Item *shape);
-
 		bool insert(Node *node, Item *shape, bool allowSubdivision);
 
 		bool insert1(Node *node, Item *shape, bool allowSubdivision);
+
+		void reinsertShapes(Node *node);
 
 		void remove(Item *shape);
 
@@ -134,6 +122,15 @@ namespace regen {
 		void collapse(Node *node);
 
 		void subdivide(Node *node);
+
+		void intersect2D(
+			const BoundingShape &shape,
+			const OrthogonalProjection &projection,
+			const QuadTree::Node *node,
+			std::atomic<unsigned int> &jobCounter,
+			std::set<const Item *> &visited,
+			std::mutex &mutex,
+			const std::function<void(const BoundingShape &)> &callback);
 
 		friend class QuadTreeTest;
 	};

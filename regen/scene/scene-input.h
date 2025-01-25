@@ -59,12 +59,12 @@ namespace regen {
 			/**
 			 * @return Input category identifier.
 			 */
-			virtual std::string getCategory() = 0;
+			virtual std::string getCategory() const = 0;
 
 			/**
 			 * @return Input identifier (should be unique for category).
 			 */
-			virtual std::string getName() = 0;
+			virtual std::string getName() const = 0;
 
 			/**
 			 * @return List of node children.

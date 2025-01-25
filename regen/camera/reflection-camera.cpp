@@ -16,7 +16,7 @@ ReflectionCamera::ReflectionCamera(
 		const ref_ptr<Mesh> &mesh,
 		GLuint vertexIndex,
 		GLboolean hasBackFace)
-		: OmniDirectionalCamera(hasBackFace),
+		: Camera(),
 		  userCamera_(userCamera),
 		  vertexIndex_(vertexIndex),
 		  projStamp_(userCamera->projection()->stamp() - 1),
@@ -24,7 +24,8 @@ ReflectionCamera::ReflectionCamera(
 		  camDirStamp_(userCamera->direction()->stamp() - 1),
 		  cameraChanged_(GL_TRUE),
 		  isFront_(GL_TRUE),
-		  hasMesh_(GL_TRUE) {
+		  hasMesh_(GL_TRUE),
+		  hasBackFace_(hasBackFace) {
 	updateFrustum(
 			userCamera_->fov()->getVertex(0),
 			userCamera_->aspect()->getVertex(0),
@@ -55,14 +56,15 @@ ReflectionCamera::ReflectionCamera(
 		const Vec3f &reflectorNormal,
 		const Vec3f &reflectorPoint,
 		GLboolean hasBackFace)
-		: OmniDirectionalCamera(hasBackFace),
+		: Camera(),
 		  userCamera_(userCamera),
 		  projStamp_(userCamera->projection()->stamp() - 1),
 		  camPosStamp_(userCamera->position()->stamp() - 1),
 		  camDirStamp_(userCamera->direction()->stamp() - 1),
 		  cameraChanged_(GL_TRUE),
 		  isFront_(GL_TRUE),
-		  hasMesh_(GL_FALSE) {
+		  hasMesh_(GL_FALSE),
+		  hasBackFace_(hasBackFace) {
 	updateFrustum(
 			userCamera_->fov()->getVertex(0),
 			userCamera_->aspect()->getVertex(0),
@@ -166,8 +168,7 @@ void ReflectionCamera::updateReflection() {
 	// Compute reflection camera position
 	if (reflectorChanged || userCamera_->position()->stamp() != camPosStamp_) {
 		camPosStamp_ = userCamera_->position()->stamp();
-		Vec3f reflected = reflectionMatrix_.transformVector(
-				userCamera_->position()->getVertex(0));
+		Vec3f reflected = camPos - norWorld_ * 2.0f * norWorld_.dot(camPos - posWorld_);
 		position_->setVertex(0, reflected);
 
 		reflectorChanged = GL_TRUE;

@@ -55,7 +55,7 @@ namespace regen {
 					if (assetLoader.get() == nullptr) {
 						REGEN_WARN("Skipping unknown Asset for '" << input.getDescription() << "'.");
 					} else {
-						const vector<ref_ptr<Material> > materials = assetLoader->materials();
+						const std::vector<ref_ptr<Material> > materials = assetLoader->materials();
 						auto materialIndex = input.getValue<GLuint>("asset-index", 0u);
 						if (materialIndex >= materials.size()) {
 							REGEN_WARN("Invalid Material index '" << materialIndex <<
@@ -65,7 +65,7 @@ namespace regen {
 						}
 					}
 				} else if (input.hasAttribute("preset")) {
-					string presetVal(input.getValue("preset"));
+					std::string presetVal(input.getValue("preset"));
 					auto variant = input.getValue<Material::Variant>("variant", 0);
 					if (presetVal == "jade") mat->set_jade(variant);
 					else if (presetVal == "ruby") mat->set_ruby(variant);
@@ -110,7 +110,7 @@ namespace regen {
 				mat->refractionIndex()->setVertex(0,
 												  input.getValue<GLfloat>("refractionIndex", 0.95f));
 				mat->set_fillMode(glenum::fillMode(
-						input.getValue<string>("fill-mode", "FILL")));
+						input.getValue<std::string>("fill-mode", "FILL")));
 				if (input.getValue<bool>("two-sided", false)) {
 					// this conflicts with shadow mapping front face culling.
 					mat->set_twoSided(true);

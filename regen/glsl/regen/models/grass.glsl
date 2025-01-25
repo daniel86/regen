@@ -3,6 +3,7 @@
 //#define SEPERATE_VIEW_PROJ
 #include regen.states.camera.defines
 #include regen.defines.all
+#include regen.states.textures.defines
 #ifdef HAS_PRIMITIVE_POINTS
 layout(points) in;
 #else
@@ -12,8 +13,14 @@ layout(triangle_strip, max_vertices=12) out;
 
 #ifdef HAS_PRIMITIVE_POINTS
 in vec3 in_posWorld[1];
+    #ifdef HAS_VERTEX_MASK_MAP
+in float in_mask[1];
+    #endif
 #else
 in vec3 in_posWorld[3];
+    #ifdef HAS_VERTEX_MASK_MAP
+in float in_mask[3];
+    #endif
 #endif
 out vec3 out_posEye;
 out vec3 out_posWorld;
@@ -50,8 +57,21 @@ const float in_lodGeomVariance = 0.2;
 #ifdef HAS_colliderRadius
     #include regen.states.collision.collisionAtPosition
 #endif
+#ifdef HAS_VERTEX_MASK_MAP
+const float in_maskThreshold = 0.1;
+#endif
 
 void main() {
+#ifdef HAS_VERTEX_MASK_MAP
+#ifdef HAS_PRIMITIVE_POINTS
+    float mask = in_mask[0];
+#else
+    float mask = (in_mask[0] + in_mask[1] + in_mask[2]) / 3.0;
+#endif
+    if (mask < in_maskThreshold) {
+        return;
+    }
+#endif
 #ifdef HAS_PRIMITIVE_POINTS
     // we can center the sprite at the input point
     vec3 base = in_posWorld[0];
@@ -68,6 +88,9 @@ void main() {
     float orientation = random(seed) * 6.283185;
     // max size - variation
     float size = in_quadSize.x + 2.0 * (random(seed)-0.5) * in_quadSize.y;
+#ifdef HAS_VERTEX_MASK_MAP
+    size *= clamp(mask + 0.5, 0.0, 1.0);
+#endif
     // align at the bottom - variation
     vec3 center = vec3(base.x, base.y + 0.5*size, base.z);
 #ifdef HAS_posVariation
@@ -139,6 +162,8 @@ void main() {
 -- patch.vs
 #include regen.models.mesh.vs
 -- patch.tcs
+// no culling needed as grass comes in small patches
+#define NO_TESS_CULL
 #include regen.models.mesh.tcs
 -- patch.tes
 #include regen.models.mesh.tes
@@ -158,6 +183,8 @@ in vec4 in_col;
 -- vs
 #include regen.models.sprite.vs
 -- tcs
+// no culling needed as grass comes in small patches
+#define NO_TESS_CULL
 #include regen.models.mesh.tcs
 -- tes
 #include regen.models.mesh.tes

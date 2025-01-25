@@ -100,7 +100,7 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 }
 
 Vec3f Frustum::getCenterPosition() const {
-	auto &basePosition = translation_->getVertex(0);
+	auto &basePosition = translation_->getVertex(translationIndex_);
 	auto &dir = direction();
 	return basePosition + dir * (near + (far - near) * 0.5f);
 }
@@ -119,10 +119,9 @@ bool hasIntersection_(
 		const Vec3f &center,
 		const Vec3f *points,
 		unsigned int numPoints) {
-	// Add a small margin to the frustum planes
-	const GLfloat margin = 0.1f;
+	GLboolean allOutside;
 	for (unsigned int i = 0u; i < 6u; ++i) {
-		GLboolean allOutside = true;
+		allOutside = true;
 		for (unsigned int j = 0u; j < numPoints; ++j) {
 			if (planes[i].distance(center + points[j]) >= 0.0) {
 				allOutside = false;
@@ -130,20 +129,19 @@ bool hasIntersection_(
 			}
 		}
 		if (allOutside) {
-			return GL_FALSE;
+			return false;
 		}
 	}
-	return GL_TRUE;
+	return true;
 }
 
 bool hasIntersection_(
 		const Plane *planes,
 		const Vec3f *points,
 		unsigned int numPoints) {
-	// Add a small margin to the frustum planes
-	const GLfloat margin = 0.1f;
+	GLboolean allOutside;
 	for (unsigned int i = 0u; i < 6u; ++i) {
-		GLboolean allOutside = true;
+		allOutside = true;
 		for (unsigned int j = 0u; j < numPoints; ++j) {
 			if (planes[i].distance(points[j]) >= 0.0) {
 				allOutside = false;
@@ -151,10 +149,10 @@ bool hasIntersection_(
 			}
 		}
 		if (allOutside) {
-			return GL_FALSE;
+			return false;
 		}
 	}
-	return GL_TRUE;
+	return true;
 }
 
 bool Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *point) const {

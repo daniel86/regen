@@ -1,4 +1,4 @@
-#include "tessellation.h"
+#include "../tessellation.h"
 #include "disc.h"
 
 using namespace regen;

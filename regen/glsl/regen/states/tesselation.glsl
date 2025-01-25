@@ -16,6 +16,7 @@ const float in_lodMaxSD = 0.2;
 float metricSreenDistance(vec2 v0, vec2 v1)
 {
     float max = in_viewport.x*in_lodMaxSD;
+    float min = in_viewport.x*in_lodMinSD;
     // get the distance clamped to the min and max distance range
     float d = clamp(distance(v0,v1), in_lodMinSD, max);
     // normalize the distance to the range [0,1]
@@ -49,7 +50,7 @@ float metricCameraDistance(vec3 v)
 #endif
 
 -- tesselationControl
-#include regen.states.camera.transformWorldToScreen 
+#include regen.states.camera.transformWorldToScreen
 uniform float in_lodFactor;
 
 // convert a world space vector to device space
@@ -61,9 +62,9 @@ vec4 worldToDeviceSpace(vec4 vertexWS)
     return vertexNDS;
 }
 // convert a device space vector to screen space
-vec2 deviceToScreenSpace(vec4 vertexDS, vec2 screen)
+vec2 deviceToScreenSpace(vec2 vertexDS, vec2 screen)
 {
-    return (vertexDS.xy*0.5 + vec2(0.5))*screen;
+    return (vertexDS*0.5 + vec2(0.5))*screen;
 }
 
 // test a vertex in device normal space against the view frustum
@@ -83,6 +84,10 @@ void offscreenNDC(vec4 v, inout ivec3 offscreen)
 #if TESS_LOD == CAMERA_DISTANCE
     #include regen.states.tesselation.metricCameraDistance
 #endif
+#ifdef HAS_HEIGHT_MAP
+    #include regen.states.textures.input
+    #include regen.states.textures.applyHeightMaps
+#endif
 
 const float in_minTessLevel = 1.0;
 const float in_maxTessLevel = 64.0;
@@ -101,12 +106,28 @@ void tesselationControl()
 #for INDEX to TESS_NUM_VERTICES
     vec4 nds${INDEX} = worldToDeviceSpace(ws${INDEX});
 #endfor
+#ifndef NO_TESS_CULL
     ivec3 offscreen = ivec3(0);
-#for INDEX to TESS_NUM_VERTICES
+#ifdef HAS_HEIGHT_MAP
+    #for INDEX to TESS_NUM_VERTICES
+    vec4 ws_h${INDEX} = gl_in[${INDEX}].gl_Position;
+    applyHeightMaps(ws_h${INDEX}.xyz, in_norWorld[${INDEX}], ${INDEX});
+    #endfor
+    #for INDEX to TESS_NUM_VERTICES
+    vec4 nds_h${INDEX} = worldToDeviceSpace(ws_h${INDEX});
+    #endfor
+    #for INDEX to TESS_NUM_VERTICES
+    offscreenNDC(nds_h${INDEX}, offscreen);
+    #endfor
+#else // no height map
+    #for INDEX to TESS_NUM_VERTICES
     offscreenNDC(nds${INDEX}, offscreen);
-#endfor
+    #endfor
+#endif
     offscreen = abs(offscreen);
+#endif // NO_TESS_CULL
 
+#ifndef NO_TESS_CULL
     // we require here that all vertices are offscreen at the same side.
     if(max(offscreen.x, max(offscreen.y, offscreen.z)) == 3) {
     // if the patch is not visible on screen do not tesselate
@@ -118,9 +139,10 @@ void tesselationControl()
         gl_TessLevelOuter = float[4]( 0, 0, 0, 0 );
     }
     else {
+#endif // NO_TESS_CULL
 #if TESS_LOD == EDGE_SCREEN_DISTANCE
     #for INDEX to TESS_NUM_VERTICES
-        float ss${INDEX} = deviceToScreenSpace(nds${INDEX}.xy, in_viewport);
+        vec2 ss${INDEX} = deviceToScreenSpace(nds${INDEX}.xy, in_viewport);
     #endfor
         float distance0 = metricSreenDistance(ss1.xy, ss2.xy);
         float distance1 = metricSreenDistance(ss0.xy, ss1.xy);
@@ -167,7 +189,9 @@ void tesselationControl()
         gl_TessLevelInner[0] = max(e0, max(e1, e2));
         gl_TessLevelOuter = float[4]( e0, e1, e2, 1 );
 #endif
+#ifndef NO_TESS_CULL
     }
+#endif
 }
 
 -- tcs

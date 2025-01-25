@@ -37,6 +37,8 @@ set(REGEN_BRIEF_DESCRIPTION "Real-time-Graphics-Engine")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_FLAGS "-fPIC")
+set(CMAKE_CXX_FLAGS "-std=c++0x -O2 -pthread ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_STANDARD 17)
 
 # include extra warnings specific to C++ (not on Win, visual studio is much to verbose then)
 if(NOT WIN32)

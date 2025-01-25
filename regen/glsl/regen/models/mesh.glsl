@@ -55,7 +55,9 @@ out int out_instanceID;
     #endif
 #endif
 
-#include regen.states.textures.mapToVertex
+#ifndef HAS_TESSELATION
+    #include regen.states.textures.mapToVertex
+#endif
 
 #define HANDLE_IO(i)
 
@@ -76,15 +78,13 @@ void main() {
     // transform position and normal to world space
     vec4 posWorld = transformModel(vec4(posModel,1.0));
 #ifdef HAS_nor
-    vec3 norWorld = normalize(transformModel(vec4(norModel,0.0)).xyz);
+    vec3 norWorld = normalize(transformModel(norModel));
+#else
+    vec3 norWorld = vec3(0,1,0);
 #endif
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
-    #ifdef HAS_nor
-    textureMappingVertex(posWorld.xyz,norWorld);
-    #else
-    textureMappingVertex(posWorld.xyz,vec3(0,1,0));
-    #endif
+    textureMappingVertex(posWorld.xyz,norWorld,0);
 #endif // HAS_TESSELATION
 
     // let custom functions modify position/normal in world space
@@ -120,7 +120,28 @@ void main() {
 }
 
 -- tcs
-#include regen.states.tesselation.tcs
+#ifdef HAS_tessellation_shader
+#ifdef TESS_IS_ADAPTIVE
+#include regen.models.mesh.defines
+
+layout(vertices=TESS_NUM_VERTICES) out;
+
+#define ID gl_InvocationID
+
+#include regen.states.camera.input
+uniform vec2 in_viewport;
+
+#define HANDLE_IO(i)
+
+#include regen.states.tesselation.tesselationControl
+
+void main() {
+    tesselationControl();
+    gl_out[ID].gl_Position = gl_in[ID].gl_Position;
+    HANDLE_IO(gl_InvocationID);
+}
+#endif
+#endif
 
 -- tes
 #ifdef HAS_tessellation_shader
@@ -148,6 +169,9 @@ out vec3 out_norWorld;
 #ifdef HAS_INSTANCES
 out int out_instanceID;
 #endif
+#ifdef HAS_VERTEX_MASK_MAP
+out float out_mask;
+#endif
 
 #include regen.states.camera.input
 #include regen.states.textures.input
@@ -166,9 +190,10 @@ void main() {
     // allow textures to modify texture/normal
 #ifdef HAS_nor
     out_norWorld = INTERPOLATE_VALUE(in_norWorld);
-    textureMappingVertex(posWorld.xyz,out_norWorld);
+    textureMappingVertex(posWorld.xyz, out_norWorld, 0);
 #else
-    textureMappingVertex(posWorld.xyz,vec3(0,1,0));
+    vec3 norWorld = vec3(0,1,0);
+    textureMappingVertex(posWorld.xyz, norWorld, 0);
 #endif
   
 #ifdef TES_CAMERA_TRANSFORM

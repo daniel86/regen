@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 #include <regen/states/state-configurer.h>
 
 #include "atmosphere.h"

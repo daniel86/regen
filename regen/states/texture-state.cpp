@@ -36,6 +36,8 @@ namespace regen {
 				return out << "custom";
 			case TextureState::MAPPING_TEXCO:
 				return out << "texco";
+			case TextureState::MAPPING_XZ_PLANE:
+				return out << "xz_plane";
 		}
 		return out;
 	}
@@ -55,6 +57,7 @@ namespace regen {
 		else if (val == "paraboloid_reflection") mode = TextureState::MAPPING_PARABOLOID_REFLECTION;
 		else if (val == "texco") mode = TextureState::MAPPING_TEXCO;
 		else if (val == "custom") mode = TextureState::MAPPING_CUSTOM;
+		else if (val == "xz_plane") mode = TextureState::MAPPING_XZ_PLANE;
 		else {
 			REGEN_WARN("Unknown Texture Mapping '" << val <<
 												   "'. Using default CUSTOM Mapping.");
@@ -87,6 +90,8 @@ namespace regen {
 				return out << "HEIGHT";
 			case TextureState::MAP_TO_DISPLACEMENT:
 				return out << "DISPLACEMENT";
+			case TextureState::MAP_TO_VERTEX_MASK:
+				return out << "VERTEX_MASK";
 			case TextureState::MAP_TO_CUSTOM:
 				return out << "CUSTOM";
 		}
@@ -108,6 +113,7 @@ namespace regen {
 		else if (val == "NORMAL") mode = TextureState::MAP_TO_NORMAL;
 		else if (val == "HEIGHT") mode = TextureState::MAP_TO_HEIGHT;
 		else if (val == "DISPLACEMENT") mode = TextureState::MAP_TO_DISPLACEMENT;
+		else if (val == "VERTEX_MASK") mode = TextureState::MAP_TO_VERTEX_MASK;
 		else if (val == "CUSTOM") mode = TextureState::MAP_TO_CUSTOM;
 		else {
 			REGEN_WARN("Unknown Texture Map-To '" << val <<

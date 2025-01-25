@@ -26,12 +26,15 @@ void BoundingBox::updateBounds(const Vec3f &min, const Vec3f &max) {
 }
 
 Vec3f BoundingBox::getCenterPosition() const {
-	if (transform_.get()) {
-		return basePosition_ + transform_->get()->getVertex(instanceIndex_).position();
-	} else if (translation_.get()) {
-		return basePosition_ + translation_->getVertex(instanceIndex_);
+	Vec3f p = basePosition_;
+	if (translation_.get()) {
+		p += translation_->getVertex(translationIndex_);
 	}
-	return basePosition_;
+	if (transform_.get()) {
+		return p + transform_->get()->getVertex(transformIndex_).position();
+	} else {
+		return p;
+	}
 }
 
 std::pair<float, float> BoundingBox::project(const Vec3f &axis) const {

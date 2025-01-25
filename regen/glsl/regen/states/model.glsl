@@ -14,6 +14,9 @@ uniform mat4 in_modelMatrix;
 #include regen.states.bones.transformBone
 
 vec4 transformModel(vec4 posModel) {
+#ifdef HAS_modelOffset
+    posModel.xyz += in_modelOffset;
+#endif
 #if HAS_BONES && HAS_modelMatrix
     return in_modelMatrix * transformBone(posModel);
 #elif HAS_BONES
@@ -22,6 +25,18 @@ vec4 transformModel(vec4 posModel) {
     return in_modelMatrix * posModel;
 #else
     return posModel;
+#endif
+}
+
+vec3 transformModel(vec3 norModel) {
+#if HAS_BONES && HAS_modelMatrix
+    return mat3(in_modelMatrix) * transformBone(norModel);
+#elif HAS_BONES
+    return transformBone(norModel);
+#elif HAS_modelMatrix
+    return mat3(in_modelMatrix) * norModel;
+#else
+    return norModel;
 #endif
 }
 #endif

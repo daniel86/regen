@@ -158,6 +158,18 @@ namespace regen {
 			else return y;
 		}
 
+		/** Set maximum component. */
+		inline void setMax(const Vec2 &b) {
+			if (b.x > x) x = b.x;
+			if (b.y > y) y = b.y;
+		}
+
+		/** Set minimum component. */
+		inline void setMin(const Vec2 &b) {
+			if (b.x < x) x = b.x;
+			if (b.y < y) y = b.y;
+		}
+
 		/**
 		 * @return vector length.
 		 */

@@ -8,7 +8,7 @@
 #ifndef SKY_BOX_H_
 #define SKY_BOX_H_
 
-#include <regen/meshes/box.h>
+#include <regen/meshes/primitives/box.h>
 #include <regen/camera/camera.h>
 #include <regen/states/texture-state.h>
 #include <regen/states/light-state.h>

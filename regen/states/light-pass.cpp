@@ -6,9 +6,9 @@
  */
 
 #include <regen/states/state-configurer.h>
-#include <regen/meshes/cone.h>
-#include <regen/meshes/box.h>
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/cone.h>
+#include <regen/meshes/primitives/box.h>
+#include <regen/meshes/primitives/rectangle.h>
 
 #include "light-pass.h"
 

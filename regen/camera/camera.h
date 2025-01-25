@@ -122,6 +122,11 @@ namespace regen {
 		auto &frustum() const { return frustum_; }
 
 		/**
+		 * @return the 8 points forming this Frustum.
+		 */
+		auto &frustum() { return frustum_; }
+
+		/**
 		 * @param useAudio true if this camera is the OpenAL audio listener.
 		 */
 		void set_isAudioListener(GLboolean useAudio);

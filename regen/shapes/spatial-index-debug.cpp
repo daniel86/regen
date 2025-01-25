@@ -117,21 +117,23 @@ void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 	state()->enable(rs);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 	for (auto &shape: index_->shapes()) {
-		switch (shape->shapeType()) {
-			case BoundingShapeType::BOX: {
-				auto box = dynamic_cast<BoundingBox *>(shape.get());
-				drawBox(*box);
-				break;
+		for (auto &instance : shape.second) {
+			switch (instance->shapeType()) {
+				case BoundingShapeType::BOX: {
+					auto box = dynamic_cast<BoundingBox *>(instance.get());
+					drawBox(*box);
+					break;
+				}
+				case BoundingShapeType::SPHERE: {
+					auto sphere = dynamic_cast<BoundingSphere *>(instance.get());
+					drawSphere(*sphere);
+					break;
+				}
+				case BoundingShapeType::FRUSTUM:
+					auto frustum = dynamic_cast<Frustum *>(instance.get());
+					drawFrustum(*frustum);
+					break;
 			}
-			case BoundingShapeType::SPHERE: {
-				auto sphere = dynamic_cast<BoundingSphere *>(shape.get());
-				drawSphere(*sphere);
-				break;
-			}
-			case BoundingShapeType::FRUSTUM:
-				auto frustum = dynamic_cast<Frustum *>(shape.get());
-				drawFrustum(*frustum);
-				break;
 		}
 	}
 	index_->debugDraw(*this);
