@@ -62,6 +62,8 @@ namespace regen {
 			 */
 			ref_ptr<Texture> getTexture(SceneParser *parser, const std::string &id);
 
+			ref_ptr<Texture2D> getTexture2D(SceneParser *parser, const std::string &id);
+
 			ref_ptr<Sky> getSky(SceneParser *parser, const std::string &id);
 
 			/**

@@ -329,6 +329,26 @@ static ref_ptr<SpatialIndex> getSpatialIndex(SceneParser *parser, SceneInputNode
 	return spatialIndex;
 }
 
+static ref_ptr<ShaderInput3f> getOffset(
+		SceneParser *parser,
+		SceneInputNode &input,
+		const ref_ptr<Mesh> &mesh) {
+	// try to find shader inputs of mesh
+	if (mesh.get() == nullptr) {
+		return {};
+	}
+	auto meshOffset = mesh->inputContainer()->getInput("modelOffset");
+	if (meshOffset.get()) {
+		auto upcasted = ref_ptr<ShaderInput3f>::dynamicCast(meshOffset);
+		if (upcasted.get()) {
+			return upcasted;
+		} else {
+			REGEN_WARN("Ignoring mesh offset with wrong type in node " << input.getDescription() << ".");
+		}
+	}
+	return {};
+}
+
 void ShapeStateProvider::processInput(
 		SceneParser *parser,
 		SceneInputNode &input,
@@ -336,14 +356,19 @@ void ShapeStateProvider::processInput(
 	auto transformID = input.getValue("transform-id");
 	auto transform = parser->getResources()->getTransform(parser, transformID);
 	auto mesh = getMesh(parser, input);
+	auto offset = getOffset(parser, input, mesh);
+	auto shapeMode = input.getValue<std::string>("mode", "index");
+
 	auto numInstances = 1u;
 	if (transform.get()) {
 		numInstances = transform->get()->numInstances();
 	}
+	if (offset.get()) {
+		numInstances = std::max(offset->numInstances(), numInstances);
+	}
 	if (input.hasAttribute("num-instances")) {
 		numInstances = input.getValue<GLuint>("num-instances", numInstances);
 	}
-	auto shapeMode = input.getValue<std::string>("mode", "index");
 
 	if (shapeMode == "index") {
 		// add shape to spatial index
@@ -358,7 +383,10 @@ void ShapeStateProvider::processInput(
 				shape->setName(input.getName());
 				shape->setInstanceID(i);
 				if (transform.get()) {
-					shape->setTransform(transform, i);
+					shape->setTransform(transform, transform->get()->numInstances() > 1 ? i : 0);
+				}
+				if (offset.get()) {
+					shape->setTransform(offset, offset->numInstances() > 1 ? i : 0);
 				}
 				spatialIndex->insert(shape);
 			}

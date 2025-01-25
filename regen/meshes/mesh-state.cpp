@@ -17,17 +17,20 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		: State(sourceMesh),
 		  HasInput(sourceMesh->inputContainer()),
 		  primitive_(sourceMesh->primitive_),
+		  meshLODs_(sourceMesh->meshLODs_),
+		  lodFar_(sourceMesh->lodFar_),
+		  lodLevel_(sourceMesh->lodLevel_),
 		  feedbackCount_(0),
+		  hasInstances_(sourceMesh->hasInstances_),
 		  sourceMesh_(sourceMesh),
 		  isMeshView_(GL_TRUE),
 		  minPosition_(sourceMesh->minPosition()),
-		  maxPosition_(sourceMesh->maxPosition()) {
+		  maxPosition_(sourceMesh->maxPosition()),
+		  geometryStamp_(sourceMesh->geometryStamp_) {
 	vao_ = ref_ptr<VAO>::alloc();
-	hasInstances_ = GL_FALSE;
 	draw_ = sourceMesh_->draw_;
 	set_primitive(primitive_);
 	sourceMesh_->meshViews_.insert(this);
-	meshLODs_ = sourceMesh_->meshLODs_;
 }
 
 Mesh::Mesh(GLenum primitive, VBO::Usage usage)
@@ -183,6 +186,7 @@ void Mesh::updateLOD(float cameraDistance) {
 }
 
 void Mesh::activateLOD(GLuint lodLevel) {
+	if (lodLevel == lodLevel_) return;
 	if (meshLODs_.size() <= lodLevel) {
 		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << meshLODs_.size());
 		return;

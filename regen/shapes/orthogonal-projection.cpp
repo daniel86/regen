@@ -4,6 +4,17 @@
 
 using namespace regen;
 
+template <int Count>
+std::pair<float, float> project(const std::vector<Vec2f> &points, const Vec2f &axis) {
+	std::array<float, Count> projections;
+	std::transform(points.begin(), points.end(), projections.begin(),
+		[&axis](const Vec2f &point) {
+			return point.dot(axis);
+		});
+	auto [minIt, maxIt] = std::minmax_element(projections.begin(), projections.end());
+	return {*minIt, *maxIt};
+}
+
 OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
 		: type(OrthogonalProjection::Type::RECTANGLE) {
 	switch (shape.shapeType()) {
@@ -42,69 +53,55 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
 			points[2] = max;
 			// top-left
 			points[3] = Vec2f(min.x, max.y);
+			// axes of the rectangle (and quad)
+			axes = {
+					Axis(Vec2f(1, 0)),
+					Axis(Vec2f(0, 1)),
+					Axis(points[1] - points[0]),
+					Axis(points[3] - points[0])
+			};
+			for (auto &axis: axes) {
+				auto [axisMin, axisMax] = project<4>(points, axis.dir);
+				axis.min = axisMin;
+				axis.max = axisMax;
+			}
 			break;
 		}
 		case BoundingShapeType::FRUSTUM: {
-			// frustum projection is a rectangle: we take origin as one point of the rectangle
-			// and use points of far plane as the other 3 points.
 			auto *frustum = dynamic_cast<const Frustum *>(&shape);
-			auto &planePoints = frustum->points;
-
-//#define FRUSTUM_PROJECTION_TRIANGLE
-#ifdef FRUSTUM_PROJECTION_TRIANGLE
 			type = OrthogonalProjection::Type::TRIANGLE;
-			auto &basePoint = frustum->basePosition();
-			// Find the two points closest to the base point
-			std::vector<std::pair<float, Vec3f>> distances;
-			for (const auto &point: planePoints) {
-				float distance = (point - basePoint).lengthSquared();
-				distances.emplace_back(distance, point);
-			}
-			std::sort(distances.begin(), distances.end());
-			Vec3f &nearest1 = distances[0].second;
-			Vec3f &nearest2 = distances[1].second;
-			Vec3f &farthest1 = distances[2].second;
-			Vec3f &farthest2 = distances[3].second;
-			Vec3f farthest_center = (farthest1 + farthest2) * 0.5f;
-			// Compute direction vectors from base to nearest points
-			Vec3f dir1 = nearest1 - basePoint;
-			Vec3f dir2 = nearest2 - basePoint;
-			dir1.normalize();
-			dir2.normalize();
-			// Solve for the lengths
-			// TODO: I do not think below is accurate, the actual length could be different.
-			//       IMO we need to solve equations for finding the length where the direction vectors intersect
-			//       with (farthest_N - farthest_center) line.
-			float length1 = (farthest1 - basePoint).length();
-			float length2 = (farthest2 - basePoint).length();
-			// Normalize direction vectors and scale to the computed lengths
-			dir1 *= length1;
-			dir2 *= length2;
-			// Define the triangle points
 			points.resize(3);
+			auto &viewDir = frustum->direction();
+			auto viewDir2D = Vec2f(viewDir.x, viewDir.z);
+			// first point: origin of the frustum
+			auto basePoint = frustum->translation();
 			points[0] = Vec2f(basePoint.x, basePoint.z);
-			points[1] = Vec2f(basePoint.x + dir1.x, basePoint.z + dir1.z);
-			points[2] = Vec2f(basePoint.x + dir2.x, basePoint.z + dir2.z);
-#else
-			// generate AABB around the frustum
-			Vec2f min(planePoints[0].x, planePoints[0].z);
-			Vec2f max(planePoints[0].x, planePoints[0].z);
-			for (int i = 1; i < 8; i++) {
-				min.x = std::min(min.x, planePoints[i].x);
-				min.y = std::min(min.y, planePoints[i].z);
-				max.x = std::max(max.x, planePoints[i].x);
-				max.y = std::max(max.y, planePoints[i].z);
+			// Convert FOV from degrees to radians, and multiply by 0.5 to get the half-angle
+			auto halfFov = static_cast<float>(frustum->fov * 0.00872665);
+			// Project the far plane onto the xz-plane
+			auto far = static_cast<float>(frustum->far) * viewDir2D.length();
+			// Compute the far points by extending the base point in the right and left directions
+			points[1] = points[0] + Vec2f(
+				viewDir.x * cos(halfFov) + viewDir.z * sin(halfFov),
+				-viewDir.x * sin(halfFov) + viewDir.z * cos(halfFov)
+			) * far;
+			points[2] = points[0] + Vec2f(
+				viewDir.x * cos(-halfFov) + viewDir.z * sin(-halfFov),
+				-viewDir.x * sin(-halfFov) + viewDir.z * cos(-halfFov)
+			) * far;
+			// axes of the triangle (and quad)
+			axes = {
+					Axis(Vec2f(1, 0)),
+					Axis(Vec2f(0, 1)),
+					Axis(points[1] - points[0]),
+					Axis(points[2] - points[1]),
+					Axis(points[0] - points[2])
+			};
+			for (auto &axis: axes) {
+				auto [axisMin, axisMax] = project<3>(points, axis.dir);
+				axis.min = axisMin;
+				axis.max = axisMax;
 			}
-			points.resize(4);
-			// bottom-left
-			points[0] = min;
-			// bottom-right
-			points[1] = Vec2f(max.x, min.y);
-			// top-right
-			points[2] = max;
-			// top-left
-			points[3] = Vec2f(min.x, max.y);
-#endif
 			break;
 		}
 	}

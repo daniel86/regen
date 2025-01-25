@@ -40,43 +40,51 @@ bool BoundingShape::updateGeometry() {
 }
 
 GLuint BoundingShape::numInstances() const {
+	GLuint numInstances = 1;
 	if (transform_.get()) {
-		return transform_->get()->numInstances();
-	} else if (translation_.get()) {
-		return translation_->numInstances();
-	} else {
-		return 1;
+		numInstances = std::max(transform_->get()->numInstances(), numInstances);
 	}
+	if (translation_.get()) {
+		numInstances = std::max(translation_->numInstances(), numInstances);
+	}
+	return numInstances;
 }
 
 void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, unsigned int instanceIndex) {
 	transform_ = transform;
-	translation_ = {};
-	instanceIndex_ = instanceIndex;
+	transformIndex_ = instanceIndex;
 }
 
 void BoundingShape::setTransform(const ref_ptr<ShaderInput3f> &center, unsigned int instanceIndex) {
 	translation_ = center;
-	transform_ = {};
-	instanceIndex_ = instanceIndex;
+	translationIndex_ = instanceIndex;
 }
 
 unsigned int BoundingShape::transformStamp() const {
+	unsigned int stamp = 0;
 	if (transform_.get()) {
-		return transform_->get()->stamp();
-	} else if (translation_.get()) {
-		return translation_->stamp();
-	} else {
-		return 0;
+		stamp = transform_->get()->stamp();
 	}
+	if (translation_.get()) {
+		stamp = std::max(stamp, translation_->stamp());
+	}
+	return stamp;
 }
 
-const Vec3f &BoundingShape::translation() const {
+Vec3f BoundingShape::translation() const {
 	if (transform_.get()) {
-		return transform_->get()->getVertex(instanceIndex_).position();
-	} else if (translation_.get()) {
-		return translation_->getVertex(instanceIndex_);
-	} else {
+		auto &p = transform_->get()->getVertex(transformIndex_).position();
+		if (translation_.get()) {
+			return p + translation_->getVertex(translationIndex_);
+		}
+		else {
+			return p;
+		}
+	}
+	else if (translation_.get()) {
+		return translation_->getVertex(translationIndex_);
+	}
+	else {
 		return Vec3f::zero();
 	}
 }

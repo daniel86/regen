@@ -108,7 +108,7 @@ namespace regen {
 		 * @brief Get the translation of this shape
 		 * @return The translation
 		 */
-		const Vec3f &translation() const;
+		Vec3f translation() const;
 
 		/**
 		 * @brief Get the center position of this shape
@@ -179,7 +179,8 @@ namespace regen {
 		unsigned int lastTransformStamp_ = 0;
 		unsigned int lastGeometryStamp_;
 		unsigned int nextGeometryStamp_ = 0u;
-		unsigned int instanceIndex_ = 0;
+		unsigned int transformIndex_ = 0;
+		unsigned int translationIndex_ = 0;
 		std::string name_;
 		unsigned int instanceID_ = 0;
 	};

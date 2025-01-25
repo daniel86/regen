@@ -1,5 +1,5 @@
 #include "bounding-sphere.h"
-#include "regen/meshes/sphere.h"
+#include "regen/meshes/primitives/sphere.h"
 
 using namespace regen;
 
@@ -43,12 +43,14 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 }
 
 Vec3f BoundingSphere::getCenterPosition() const {
-	if (transform_.get()) {
-		return basePosition_ + transform_->get()->getVertex(instanceIndex_).position();
-	} else if (translation_.get()) {
-		return basePosition_ + translation_->getVertex(instanceIndex_);
+	Vec3f p = basePosition_;
+	if (translation_.get()) {
+		p += translation_->getVertex(translationIndex_);
 	}
-	return basePosition_;
+	if (transform_.get()) {
+		p += transform_->get()->getVertex(transformIndex_).position();
+	}
+	return p;
 }
 
 Vec3f BoundingSphere::closestPointOnSurface(const Vec3f &point) const {

@@ -29,19 +29,6 @@
 using namespace regen;
 using namespace regen::textures;
 
-static GLenum regenImageFormat() {
-	GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
-	switch (format) {
-		// handle deprecated formats
-		case GL_LUMINANCE:
-			return GL_RED;
-		case GL_LUMINANCE_ALPHA:
-			return GL_RG;
-		default:
-			return format;
-	}
-}
-
 static void scaleImage(GLuint w, GLuint h, GLuint d) {
 	GLuint width_ = ilGetInteger(IL_IMAGE_WIDTH);
 	// scale image to desired size
@@ -69,7 +56,7 @@ static void convertImage(GLenum format, GLenum type) {
 	}
 }
 
-static GLuint loadImage(const std::string &file) {
+GLuint textures::loadImage(const std::string &file) {
 	static GLboolean devilInitialized_ = GL_FALSE;
 	if (!devilInitialized_) {
 		ilInit();
@@ -97,6 +84,19 @@ static GLuint loadImage(const std::string &file) {
 							" height=" << ilGetInteger(IL_IMAGE_HEIGHT));
 
 	return ilID;
+}
+
+GLenum textures::regenImageFormat() {
+	GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
+	switch (format) {
+		// handle deprecated formats
+		case GL_LUMINANCE:
+			return GL_RED;
+		case GL_LUMINANCE_ALPHA:
+			return GL_RG;
+		default:
+			return format;
+	}
 }
 
 ref_ptr<Texture> textures::load(

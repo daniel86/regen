@@ -16,7 +16,7 @@ namespace regen {
 	 * Virtual camera that reflects another camera along
 	 * an arbitrary plane.
 	 */
-	class ReflectionCamera : public OmniDirectionalCamera {
+	class ReflectionCamera : public Camera {
 	public:
 		/**
 		 * @param cam The user camera to reflect.
@@ -61,10 +61,11 @@ namespace regen {
 		GLuint camPosStamp_;
 		GLuint camDirStamp_;
 		GLuint transformStamp_;
-		GLboolean cameraChanged_;
-		GLboolean isReflectorValid_;
-		GLboolean isFront_;
-		GLboolean hasMesh_;
+		bool cameraChanged_;
+		bool isReflectorValid_;
+		bool isFront_;
+		bool hasMesh_;
+		bool hasBackFace_;
 		Mat4f reflectionMatrix_;
 
 		void updateReflection();

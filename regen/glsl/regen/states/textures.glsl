@@ -23,7 +23,7 @@ vec3 eyeVectorTan()
 #define2 _ID ${TEX_ID${INDEX}}
 #define HAS_${TEX_MAPTO${_ID}}_MAP
 #endfor
-  #ifdef HAS_DISPLACEMENT_MAP || HAS_HEIGHT_MAP
+  #ifdef HAS_DISPLACEMENT_MAP || HAS_HEIGHT_MAP || HAS_VERTEX_MASK_MAP
 #define HAS_VERTEX_TEXTURE
   #endif
   #ifdef HAS_COLOR_MAP || HAS_ALPHA_MAP || HAS_NORMAL_MAP
@@ -42,9 +42,11 @@ vec3 eyeVectorTan()
 #include regen.states.textures.defines
 
 #if SHADER_STAGE == tes
-#define REGEN_NUM_INPUT_VERTICES TESS_NUM_VERTICES
+    #define REGEN_NUM_INPUT_VERTICES TESS_NUM_VERTICES
+#elif SHADER_STAGE == tcs
+    #define REGEN_NUM_INPUT_VERTICES TESS_NUM_VERTICES
 #elif SHADER_STAGE == gs
-#define REGEN_NUM_INPUT_VERTICES GS_NUM_VERTICES
+    #define REGEN_NUM_INPUT_VERTICES GS_NUM_VERTICES
 #endif
 
 // declare texture input
@@ -57,7 +59,7 @@ vec3 eyeVectorTan()
 uniform ${TEX_SAMPLER_TYPE${_ID}} in_${_NAME};
 #endif
 
-#if TEX_MAPPING_NAME${_ID} == texco_texco
+#if TEX_MAPPING_NAME${_ID} == texco_texco && SHADER_STAGE != tcs
   #define2 _TEXCO ${TEX_TEXCO${_ID}}
   #define2 _DIM ${TEX_DIM${_ID}}
   #ifndef REGEN_TEXCO_${_TEXCO}
@@ -149,6 +151,8 @@ in vec${_DIM} in_${_TEXCO};
         #define2 REGEN_${TEX_TEXCO${_ID}}_${_TEXCO_CTX}_
         #if SHADER_STAGE==tes
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = INTERPOLATE_VALUE(in_${TEX_TEXCO${_ID}});
+        #elif SHADER_STAGE==tcs
+    ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = in_${TEX_TEXCO${_ID}}[vertexIndex];
         #else
     ${TEXCO_TYPE} ${TEX_TEXCO${_ID}} = in_${TEX_TEXCO${_ID}};
         #endif
@@ -227,26 +231,60 @@ void normalTBNTransfer(inout vec4 texel)
 --------------------------------------
 --------------------------------------
 
--- mapToVertex
-#ifndef HAS_VERTEX_TEXTURE
-#define textureMappingVertex(P,N)
-#else
+-- applyHeightMaps
+#ifndef REGEN_applyHeightMaps_INCLUDED_
+#define2 REGEN_applyHeightMaps_INCLUDED_
 #include regen.states.textures.includes
-
-void textureMappingVertex(inout vec3 P, inout vec3 N)
+// TODO: redundant with below
+void applyHeightMaps(inout vec3 P, vec3 N, int vertexIndex)
 {
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
 #define2 _TEXCO_CTX textureMappingVertex
-#if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT
+#if TEX_MAPTO${_ID}==HEIGHT
 #include regen.states.textures.computeTexco
 #endif // ifVertexMapping
 #endfor
     // sample texels
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
-#if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT
+#if TEX_MAPTO${_ID}==HEIGHT
+#include regen.states.textures.sampleTexel
+#endif // ifVertexMapping
+#endfor
+    // blend texels with existing values
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#define2 _BLEND ${TEX_BLEND_NAME${_ID}}
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+  #if _MAPTO == HEIGHT
+    ${_BLEND}( N * texel${INDEX}.x * ${TEX_BLEND_FACTOR${_ID}}, P, 1.0 );
+  #endif
+#endfor
+}
+#endif
+
+-- mapToVertex
+#ifndef HAS_VERTEX_TEXTURE
+#define textureMappingVertex(P,N,I)
+#else
+#include regen.states.textures.includes
+
+void textureMappingVertex(inout vec3 P, inout vec3 N, int vertexIndex)
+{
+    // compute texco
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#define2 _TEXCO_CTX textureMappingVertex
+#if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT || TEX_MAPTO${_ID}==VERTEX_MASK
+#include regen.states.textures.computeTexco
+#endif // ifVertexMapping
+#endfor
+    // sample texels
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#if TEX_MAPTO${_ID}==HEIGHT || TEX_MAPTO${_ID}==DISPLACEMENT || TEX_MAPTO${_ID}==VERTEX_MASK
 #include regen.states.textures.sampleTexel
 #endif // ifVertexMapping
 #endfor
@@ -259,6 +297,8 @@ void textureMappingVertex(inout vec3 P, inout vec3 N)
     ${_BLEND}( N * texel${INDEX}.x * ${TEX_BLEND_FACTOR${_ID}}, P, 1.0 );
   #elif _MAPTO == DISPLACEMENT
     ${_BLEND}( texel${INDEX}.xyz, P, ${TEX_BLEND_FACTOR${_ID}} );
+  #elif _MAPTO == VERTEX_MASK
+    out_mask = texel${INDEX}.x;
   #endif
 #endfor
 }
@@ -421,6 +461,21 @@ void textureMappingLight(
 ---- Texture coordinates generators.
 --------------------------------------
 --------------------------------------
+
+-- texco_xz_plane
+#ifndef REGEN_TEXCO_XZ_PLANE_
+#define2 REGEN_TEXCO_XZ_PLANE_
+const vec2 in_planeSize = vec2(10.0,10.0);
+// generate texture coordinates based on the xz components of the position
+vec2 texco_xz_plane(vec3 P)
+{
+    return clamp(P.xz / in_planeSize + vec2(0.5), 0.0, 1.0);
+}
+vec2 texco_xz_plane(vec3 P, vec3 N)
+{
+    return texco_xz_plane(P);
+}
+#endif
 
 -- texco_cube
 #ifndef REGEN_TEXCO_CUBE_

@@ -6,22 +6,23 @@
  */
 
 #include "mesh.h"
-#include "regen/meshes/point.h"
-#include "regen/meshes/proc-tree.h"
-#include "regen/meshes/torus.h"
-#include "regen/meshes/disc.h"
-#include "regen/meshes/frame.h"
 
 using namespace regen::scene;
 using namespace regen;
 using namespace std;
 
 #include <regen/meshes/mesh-state.h>
-#include <regen/meshes/rectangle.h>
-#include <regen/meshes/box.h>
-#include <regen/meshes/sphere.h>
 #include <regen/meshes/texture-mapped-text.h>
 #include <regen/meshes/assimp-importer.h>
+#include "regen/meshes/primitives/point.h"
+#include "regen/meshes/primitives/torus.h"
+#include "regen/meshes/primitives/disc.h"
+#include "regen/meshes/primitives/frame.h"
+#include <regen/meshes/primitives/rectangle.h>
+#include <regen/meshes/primitives/box.h>
+#include <regen/meshes/primitives/sphere.h>
+#include "regen/meshes/proc-tree.h"
+#include "regen/meshes/mask-mesh.h"
 
 #include <regen/scene/resource-manager.h>
 #include <regen/scene/input-processors.h>
@@ -217,73 +218,33 @@ ref_ptr<MeshVector> MeshResource::createResource(
 			parser->putState(REGEN_STRING(input.getName() << i), (*out)[i]);
 		}
 	}
+	else if (meshType == "mask-patch") {
+		MaskMesh::Config meshCfg;
+		meshCfg.quad.centerAtOrigin = true;
+		meshCfg.quad.levelOfDetails = lodLevels;
+		meshCfg.quad.posScale = scaling;
+		meshCfg.quad.rotation = rotation;
+		meshCfg.quad.texcoScale = texcoScaling;
+		meshCfg.quad.isNormalRequired = input.hasAttribute("use-normal") && useNormal;
+		meshCfg.quad.isTangentRequired = input.hasAttribute("use-tangent") && useTangent;
+		meshCfg.quad.isTexcoRequired = input.hasAttribute("use-texco") && useTexco;
+		meshCfg.quad.usage = vboUsage;
+		if (input.hasAttribute("height-map")) {
+			meshCfg.heightMap = parser->getResources()->getTexture2D(parser, input.getValue("height-map"));
+		}
+		meshCfg.height = input.getValue<float>("height", 0.0f);
+		meshCfg.meshSize = input.getValue<Vec2f>("ground-size", Vec2f(10.0f));
+		auto maskTexture = parser->getResources()->getTexture2D(parser, input.getValue("mask"));
+		if (maskTexture.get() == nullptr) {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load mask texture.");
+		} else {
+			(*out) = MeshVector(1);
+			(*out)[0] = ref_ptr<MaskMesh>::alloc(maskTexture, meshCfg);
+		}
+	}
 	else if (meshType == "proctree") {
-		auto procTree = ref_ptr<ProcTree>::alloc();
-		if (input.hasAttribute("seed")) {
-			procTree->properties().mSeed = input.getValue<GLint>("seed", 0);
-		}
-		if (input.hasAttribute("segments")) {
-			procTree->properties().mSegments = input.getValue<GLint>("segments", 8);
-		}
-		if (input.hasAttribute("levels")) {
-			procTree->properties().mLevels = input.getValue<GLint>("levels", 5);
-		}
-		if (input.hasAttribute("v-multiplier")) {
-			procTree->properties().mVMultiplier = input.getValue<GLfloat>("v-multiplier", 1.0f);
-		}
-		if (input.hasAttribute("branch-length")) {
-			procTree->properties().mInitialBranchLength = input.getValue<GLfloat>("branch-length", 0.5f);
-		}
-		if (input.hasAttribute("branch-factor")) {
-			procTree->properties().mBranchFactor = input.getValue<GLfloat>("branch-factor", 2.2f);
-		}
-		if (input.hasAttribute("drop-amount")) {
-			procTree->properties().mDropAmount = input.getValue<GLfloat>("drop-amount", 0.24f);
-		}
-		if (input.hasAttribute("grow-amount")) {
-			procTree->properties().mGrowAmount = input.getValue<GLfloat>("grow-amount", 0.044f);
-		}
-		if (input.hasAttribute("sweep-amount")) {
-			procTree->properties().mSweepAmount = input.getValue<GLfloat>("sweep-amount", 0.0f);
-		}
-		if (input.hasAttribute("max-radius")) {
-			procTree->properties().mMaxRadius = input.getValue<GLfloat>("max-radius", 0.096f);
-		}
-		if (input.hasAttribute("climb-rate")) {
-			procTree->properties().mClimbRate = input.getValue<GLfloat>("climb-rate", 0.39f);
-		}
-		if (input.hasAttribute("trunk-kink")) {
-			procTree->properties().mTrunkKink = input.getValue<GLfloat>("trunk-kink", 0.0f);
-		}
-		if (input.hasAttribute("tree-steps")) {
-			procTree->properties().mTreeSteps = input.getValue<GLint>("tree-steps", 5);
-		}
-		if (input.hasAttribute("taper-rate")) {
-			procTree->properties().mTaperRate = input.getValue<GLfloat>("taper-rate", 0.958f);
-		}
-		if (input.hasAttribute("radius-falloff-rate")) {
-			procTree->properties().mRadiusFalloffRate = input.getValue<GLfloat>("radius-falloff-rate", 0.71f);
-		}
-		if (input.hasAttribute("twist-rate")) {
-			procTree->properties().mTwistRate = input.getValue<GLfloat>("twist-rate", 2.97f);
-		}
-		if (input.hasAttribute("trunk-length")) {
-			procTree->properties().mTrunkLength = input.getValue<GLfloat>("trunk-length", 1.95f);
-		}
-		if (input.hasAttribute("twig-scale")) {
-			procTree->properties().mTwigScale = input.getValue<GLfloat>("twig-scale", 0.28f);
-		}
-		if (input.hasAttribute("falloff")) {
-			auto falloff = input.getValue<Vec2f>("falloff", Vec2f(0.98f, 1.08f));
-			procTree->properties().mLengthFalloffFactor = falloff.x;
-			procTree->properties().mLengthFalloffPower = falloff.y;
-		}
-		if (input.hasAttribute("clump")) {
-			auto clump = input.getValue<Vec2f>("clump", Vec2f(0.414f, 0.282f));
-			procTree->properties().mClumpMax = clump.x;
-			procTree->properties().mClumpMin = clump.y;
-		}
-		procTree->update();
+		auto procTree = ref_ptr<ProcTree>::alloc(input);
+		procTree->update(lodLevels);
 		(*out) = MeshVector(2);
 		(*out)[0] = procTree->trunkMesh();
 		(*out)[1] = procTree->twigMesh();
@@ -293,7 +254,6 @@ ref_ptr<MeshVector> MeshResource::createResource(
 		(*out)[0] = createTextMesh(parser, input);
 	}
 	else if (meshType == "mesh") {
-		const VBO::Usage vboUsage = input.getValue<VBO::Usage>("usage", VBO::USAGE_DYNAMIC);
 		GLenum primitive = glenum::primitive(input.getValue<string>("primitive", "TRIANGLES"));
 		(*out) = MeshVector(1);
 		(*out)[0] = ref_ptr<Mesh>::alloc(primitive, vboUsage);

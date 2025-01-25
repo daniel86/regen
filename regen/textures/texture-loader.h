@@ -27,6 +27,10 @@ namespace regen {
 			explicit Error(const std::string &message) : std::runtime_error(message) {}
 		};
 
+		GLenum regenImageFormat();
+
+		GLuint loadImage(const std::string &file);
+
 		/**
 		 * Load a Texture from file. Guess if it is a Texture2D or Texture3D.
 		 * Force specified internal format.

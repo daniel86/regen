@@ -41,8 +41,13 @@ void AABB::updateAABB() {
 	setVertices(bounds());
 
 	// apply transform
+	if (translation_.get()) {
+		for (int i = 0; i < 8; ++i) {
+			vertices_[i] += translation_->getVertex(translationIndex_);
+		}
+	}
 	if (transform_.get()) {
-		auto &tf = transform_->get()->getVertex(0);
+		auto &tf = transform_->get()->getVertex(transformIndex_);
 		// compute transformed bounds
 		Vec3f transformed;
 		auto transformedMin = getCenterPosition();
@@ -54,11 +59,6 @@ void AABB::updateAABB() {
 		}
 		// set vertices based on transformed bounds
 		setVertices(Bounds<Vec3f>(transformedMin, transformedMax));
-	} else if (translation_.get()) {
-		// apply translation
-		for (int i = 0; i < 8; ++i) {
-			vertices_[i] += translation_->getVertex(0);
-		}
 	}
 }
 

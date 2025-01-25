@@ -23,6 +23,9 @@ GeometricCulling::GeometricCulling(
 		  shapeName_(shapeName) {
 	numInstances_ = spatialIndex_->numInstances(shapeName);
 	mesh_ = spatialIndex_->getMeshOfShape(shapeName);
+	if (!mesh_.get()) {
+		numInstances_ = 1;
+	}
 	if (numInstances_ > 1) {
 		instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numInstances_);
 		instanceIDMap_->setArrayData(numInstances_);
@@ -53,7 +56,11 @@ void GeometricCulling::updateMeshLOD() {
 }
 
 void GeometricCulling::traverse(RenderState *rs) {
-	if (numInstances_ <= 1) {
+	if (!spatialIndex_->hasCamera(*camera_.get())) {
+		updateMeshLOD();
+		StateNode::traverse(rs);
+	}
+	else if (numInstances_ <= 1) {
 		if (spatialIndex_->isVisible(*camera_.get(), shapeName_)) {
 			updateMeshLOD();
 			StateNode::traverse(rs);
@@ -70,6 +77,7 @@ void GeometricCulling::traverse(RenderState *rs) {
 		// build LOD groups, then traverse each group
 		std::vector<std::vector<GLuint>> lodGroups(mesh_->numLODs());
 		if (transform.get() && mesh_->numLODs() > 1) {
+			// FIXME: need to consider offset here too! tf may not be instanced! BUG
 			auto &tf = transform->get();
 			for (GLuint i = 0; i < visibleInstances.size(); ++i) {
 				auto shapePos = tf->getVertex(visibleInstances[i]).position();

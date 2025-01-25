@@ -59,6 +59,10 @@ ref_ptr<Texture> ResourceManager::getTexture(SceneParser *parser, const std::str
 	return textures_.getResource(parser, id);
 }
 
+ref_ptr<Texture2D> ResourceManager::getTexture2D(SceneParser *parser, const std::string &id) {
+	return ref_ptr<Texture2D>::dynamicCast(getTexture(parser, id));
+}
+
 ref_ptr<MeshVector> ResourceManager::getMesh(SceneParser *parser, const std::string &id) {
 	loadResources(parser, id);
 	return meshes_.getResource(parser, id);

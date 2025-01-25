@@ -45,6 +45,8 @@ namespace regen {
 			MAP_TO_HEIGHT,
 			/** Displacement texture. The exact purpose and format is application-dependent.. */
 			MAP_TO_DISPLACEMENT,
+			/** The texture is a mask which is applied to vertices. */
+			MAP_TO_VERTEX_MASK,
 			/** user defined. */
 			MAP_TO_CUSTOM
 		};
@@ -73,6 +75,8 @@ namespace regen {
 			/** Refraction mapping. */
 			MAPPING_REFRACTION,
 			MAPPING_CUBE_REFRACTION,
+			/** Use XZ coordinates for mapping. */
+			MAPPING_XZ_PLANE,
 			/** User defined mapping. */
 			MAPPING_CUSTOM
 		};

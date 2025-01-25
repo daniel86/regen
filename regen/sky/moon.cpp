@@ -9,7 +9,7 @@
 
 #include <regen/external/osghimmel/noise.h>
 #include <regen/states/state-configurer.h>
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 #include <regen/textures/texture-loader.h>
 
 using namespace regen;

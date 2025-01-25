@@ -18,8 +18,36 @@ namespace regen {
 		 */
 		Bounds(const T &min, const T &max) : min(min), max(max) {}
 
+		/**
+		 * @param other The other bounds
+		 * @return true if the bounds are equal
+		 */
+		bool operator==(const Bounds<T> &other) const {
+			return min == other.min && max == other.max;
+		}
+
+		/**
+		 * @param other The other bounds
+		 * @return true if the bounds are not equal
+		 */
+		bool operator!=(const Bounds<T> &other) const {
+			return min != other.min || max != other.max;
+		}
+
+		/**
+		 * @return The size of the bounds
+		 */
 		float size() const {
 			return (max - min).length();
+		}
+
+		/**
+		 * Increase the bounds to include the given other bounds.
+		 * @param other The other bounds
+		 */
+		void extend(const Bounds<T> &other) {
+			min.setMin(other.min);
+			max.setMax(other.max);
 		}
 	};
 }

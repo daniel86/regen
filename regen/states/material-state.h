@@ -97,6 +97,11 @@ namespace regen {
 		void set_twoSided(GLboolean v);
 
 		/**
+		 * Sets the wrapping mode for all textures.
+		 */
+		void set_wrapping(GLenum wrapping) { wrapping_ = wrapping; }
+
+		/**
 		 * Sets the blending mode for color and diffuse maps
 		 * added to this material.
 		 */
@@ -200,6 +205,13 @@ namespace regen {
 		 */
 		bool set_textures(std::string_view materialName, Variant variant);
 
+		/**
+		 * Loads textures for the given material name and variant.
+		 * @param materialName a material name.
+		 * @param variant a variant.
+		 */
+		bool set_textures(std::string_view materialName, std::string_view variant);
+
 	private:
 		GLenum fillMode_;
 
@@ -222,6 +234,7 @@ namespace regen {
 		HeightMapMode heightMapMode_;
 		BlendMode colorBlendMode_;
 		GLfloat colorBlendFactor_;
+		std::optional<GLenum> wrapping_;
 
 		ref_ptr<State> twoSidedState_;
 		ref_ptr<State> fillModeState_;

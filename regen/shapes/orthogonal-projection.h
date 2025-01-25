@@ -29,6 +29,13 @@ namespace regen {
 
 		Type type;
 		std::vector<Vec2f> points;
+		struct Axis {
+			explicit Axis(const Vec2f &dir) : dir(dir) {}
+			Vec2f dir;
+			float min;
+			float max;
+		};
+		std::vector<Axis> axes;
 	};
 }
 

@@ -6,7 +6,7 @@
  */
 
 #include <regen/states/state-configurer.h>
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 #include <regen/utility/string-util.h>
 
 #include "filter.h"

@@ -88,28 +88,28 @@ namespace regen {
 		 * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
 		 * GL_BLUE, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA
 		 */
-		void set_format(GLenum format);
+		void set_format(GLenum format) { format_ = format; }
 
 		/**
 		 * Specifies the format of the pixel data.
 		 * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
 		 * GL_BLUE, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA
 		 */
-		GLenum format() const;
+		auto format() const { return format_; }
 
 		/**
 		 * Specifies the number of color components in the texture.
 		 * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
 		 * GL_SRGB*, GL_COMPRESSED_*.
 		 */
-		void set_internalFormat(GLint internalFormat);
+		void set_internalFormat(GLint internalFormat) { internalFormat_ = internalFormat; }
 
 		/**
 		 * Specifies the number of color components in the texture.
 		 * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
 		 * GL_SRGB*, GL_COMPRESSED_*.
 		 */
-		GLint internalFormat() const;
+		auto internalFormat() const { return internalFormat_; }
 
 		/**
 		 * Binds a named texture to a texturing target.
@@ -133,27 +133,27 @@ namespace regen {
 		/**
 		 * Specifies the data type of the pixel data.
 		 */
-		void set_pixelType(GLuint pixelType);
+		void set_pixelType(GLuint pixelType) { pixelType_ = pixelType; }
 
 		/**
 		 * Specifies the data type of the pixel data.
 		 */
-		GLuint pixelType() const;
+		auto pixelType() const { return pixelType_; }
 
 		/**
 		 * Number of samples used for multisampling
 		 */
-		GLsizei numSamples() const;
+		auto numSamples() const { return numSamples_; }
 
 		/**
 		 * Number of samples used for multisampling
 		 */
-		void set_numSamples(GLsizei v);
+		void set_numSamples(GLsizei v) { numSamples_ = v; }
 
 		/**
 		 * Number of components per texel.
 		 */
-		GLuint numComponents() const;
+		GLuint numComponents() const { return dim_; }
 
 		/**
 		 * Specifies a pointer to the image data in memory.
@@ -166,6 +166,14 @@ namespace regen {
 		 * Initially NULL.
 		 */
 		const GLvoid *data() const;
+
+		/**
+		 * Reads the texture data from the server.
+		 * @param format the format of the pixel data.
+		 * @param type the type of the pixel data.
+		 * @return the pixel data.
+		 */
+		GLvoid* readServerData(GLenum format, GLenum type) const;
 
 		/**
 		 * Sets magnification and minifying parameters.
@@ -184,26 +192,26 @@ namespace regen {
 		 * GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR,
 		 * GL_LINEAR_MIPMAP_LINEAR.
 		 */
-		TextureParameterStack<TextureFilter> &filter() { return *filter_[objectIndex_]; }
+		auto &filter() { return *filter_[objectIndex_]; }
 
 		/**
 		 * Sets the minimum and maximum level-of-detail parameter.  This value limits the
 		 * selection of highest/lowest resolution mipmap. The initial values are -1000/1000.
 		 */
-		TextureParameterStack<TextureLoD> &lod() { return *lod_[objectIndex_]; }
+		auto &lod() { return *lod_[objectIndex_]; }
 
 		/**
 		 * Sets the swizzle that will be applied to the rgba components of a texel before it is returned to the shader.
 		 * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
 		 */
-		TextureParameterStack<TextureSwizzle> &swizzle() { return *swizzle_[objectIndex_]; }
+		auto &swizzle() { return *swizzle_[objectIndex_]; }
 
 		/**
 		 * Sets the wrap parameter for texture coordinates s,t,r to either GL_CLAMP,
 		 * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
 		 * GL_REPEAT.
 		 */
-		TextureParameterStack<TextureWrapping> &wrapping() { return *wrapping_[objectIndex_]; }
+		auto &wrapping() { return *wrapping_[objectIndex_]; }
 
 		/**
 		 * Specifies the texture comparison mode for currently bound depth textures.
@@ -212,17 +220,17 @@ namespace regen {
 		 * And specifies the comparison operator used when
 		 * mode is set to GL_COMPARE_R_TO_TEXTURE.
 		 */
-		TextureParameterStack<TextureCompare> &compare() { return *compare_[objectIndex_]; }
+		auto &compare() { return *compare_[objectIndex_]; }
 
 		/**
 		 * Sets the index of the highest defined mipmap level. The initial value is 1000.
 		 */
-		TextureParameterStack<TextureMaxLevel> &maxLevel() { return *maxLevel_[objectIndex_]; }
+		auto &maxLevel() { return *maxLevel_[objectIndex_]; }
 
 		/**
 		 * Sets GL_TEXTURE_MAX_ANISOTROPY.
 		 */
-		TextureParameterStack<TextureAniso> &aniso() { return *aniso_[objectIndex_]; }
+		auto &aniso() { return *aniso_[objectIndex_]; }
 
 		/**
 		 * Generates mipmaps for the texture.
@@ -234,12 +242,12 @@ namespace regen {
 		/**
 		 * GLSL sampler type used for this texture.
 		 */
-		const std::string &samplerType() const;
+		const std::string &samplerType() const { return samplerType_; }
 
 		/**
 		 * GLSL sampler type used for this texture.
 		 */
-		void set_samplerType(const std::string &samplerType);
+		void set_samplerType(const std::string &samplerType) { samplerType_ = samplerType; }
 
 		/**
 		 * Activates and binds this texture.
@@ -253,9 +261,52 @@ namespace regen {
 		void end(RenderState *rs, GLint channel = 7);
 
 		/**
+		 * Sample a region, and return the average value.
+		 * @param texco texture coordinates.
+		 * @param regionTS region size in texture space.
+		 * @param textureData texture data.
+		 * @param numComponents number of components per texel.
+		 * @return average value.
+		 */
+		float sampleAverage(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const;
+
+		/**
+		 * Sample a region, and return the max value.
+		 * @param texco texture coordinates.
+		 * @param regionTS region size in texture space.
+		 * @param textureData texture data.
+		 * @param numComponents number of components per texel.
+		 * @return max value.
+		 */
+		float sampleMax(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const;
+
+		/**
+		 * Sample the nearest texel.
+		 * @param texco texture coordinates.
+		 * @param textureData texture data.
+		 * @param numComponents number of components per texel.
+		 * @return value.
+		 */
+		float sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const;
+
+		/**
+		 * Sample linearly between closest texels.
+		 * @param texco texture coordinates.
+		 * @param textureData texture data.
+		 * @param numComponents number of components per texel.
+		 * @return value.
+		 */
+		float sampleLinear(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const;
+
+		/**
 		 * Specify the texture image.
 		 */
 		virtual void texImage() const = 0;
+
+		/**
+		 * @return number of texel.
+		 */
+		virtual unsigned int numTexel() const = 0;
 
 	protected:
 		GLuint dim_;
@@ -266,6 +317,8 @@ namespace regen {
 		GLenum pixelType_;
 		GLint border_;
 		TextureBind texBind_;
+		GLuint numSamples_;
+		std::string samplerType_;
 
 		TextureParameterStack<TextureFilter> **filter_;
 		TextureParameterStack<TextureLoD> **lod_;
@@ -275,14 +328,8 @@ namespace regen {
 		TextureParameterStack<TextureMaxLevel> **maxLevel_;
 		TextureParameterStack<TextureAniso> **aniso_;
 
-		// pixel data, or null for empty texture
+		// client data, or null
 		const GLvoid *data_;
-		// true if texture encodes data in tangent space.
-		GLboolean isInTSpace_;
-
-		GLuint numSamples_;
-
-		std::string samplerType_;
 	};
 
 	/**
@@ -299,6 +346,9 @@ namespace regen {
 
 		// override
 		void texImage() const override;
+
+		// override
+		unsigned int numTexel() const override { return width(); }
 	};
 
 	/**
@@ -315,6 +365,9 @@ namespace regen {
 
 		// override
 		void texImage() const override;
+
+		// override
+		unsigned int numTexel() const override { return width() * height(); }
 	};
 
 	/**
@@ -458,6 +511,9 @@ namespace regen {
 		// override
 		void texImage() const override;
 
+		// override
+		unsigned int numTexel() const override { return width() * height() * 6; }
+
 	protected:
 		void *cubeData_[6];
 	};
@@ -492,7 +548,7 @@ namespace regen {
 		/**
 		 * @return the texture depth.
 		 */
-		GLuint depth();
+		GLuint depth() const { return numTextures_; }
 
 		/**
 		 * Specify a single layer of the 3D texture.
@@ -503,6 +559,9 @@ namespace regen {
 
 		// override
 		void texImage() const override;
+
+		// override
+		unsigned int numTexel() const override { return width() * height() * depth(); }
 
 	protected:
 		GLuint numTextures_;
@@ -562,6 +621,10 @@ namespace regen {
 		 * Attach the storage for a buffer object to the active buffer texture.
 		 */
 		void attach(GLuint storage, GLuint offset, GLuint size);
+
+		// override
+		unsigned int numTexel() const override;
+
 
 	private:
 		GLenum texelFormat_;

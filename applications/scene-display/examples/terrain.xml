@@ -1,287 +1,541 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/templates/default.xml" />
-
-<node id="configuration">
-  <camera id="main-camera"
-	  mode="first-person"
-	  speed="0.1"
-	  eye-offset="0.0,0.0,0.0"
-	  horizontal-orientation="1.44">
-  </camera>
-</node>
-
-<fbo id="g-buffer"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="FLOAT" pixel-size="16" >
-  <texture id="diffuse0" pixel-components="3" />
-  <texture id="diffuse1" pixel-components="3" />
-  <texture id="specular" pixel-components="4" />
-  <texture id="normal" pixel-components="4" />
-  <depth pixel-size="24" />
-</fbo>
-
-<!-- Textures -->
-<texture id="island-color" file="res/textures/island/color.png" />
-<texture id="island-normal" file="res/textures/island/normal.png" />
-<texture id="island-height" file="res/textures/island/height.png" />
-<texture id="water-normal" file="res/textures/water/normal.png" wrapping="REPEAT" />
-<texture id="water-height" file="res/textures/water/height.jpg" wrapping="REPEAT" />
-<texture id="water-foam" file="res/textures/water/foam2.jpg" wrapping="REPEAT"
-         swizzle-g="RED" swizzle-b="RED" />
-<!-- Cameras -->
-<camera id="main-camera"
-	fov="45.0" near="0.1" far="400.0"
-	position="156.0,26.5,147.0"
-	direction="1.0,0.0,0.0" />
-<!-- Some meshes. -->
-<mesh id="island-mesh"
-      type="rectangle"
-      lod="4"
-      rotation="0.0,0.0,3.1415"
-      scaling="600.0,1.0,600.0"
-      texco-scaling="1.0,1.0"
-      use-normal="1"
-      use-texco="1"
-      use-tangent="1"
-      center="1"
-      usage="STATIC"
-      primitive="PATCHES" >
-  <transform>
-    <translate value="-200.0,-3.0,0.0" />
-  </transform>
-</mesh>
-  
-<!--**************************-->
-<!--***** Water Rendering ****-->
-<!--**************************-->
-
-<fbo id="reflection-buffer"
-     size-mode="rel" size="2.0,2.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
-  <texture id="diffuse0" />
-  <texture id="diffuse1" />
-  <texture id="specular" />
-  <texture id="normal" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-<camera id="reflection-camera"
-	camera="main-camera"
-	reflector-normal="0,1,0"
-	reflector-point="0,0,0" />
-
-<node id="Reflection-Pass">
-  <camera id="reflection-camera" />
-  <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-  
-  <node>
-    <blend mode="src" />
-    <depth test="1" write="1" />
-    <fbo id="reflection-buffer" draw-buffers="0,1,2,3" />
-    
-    <node import="Shadow-Caster" />
-    <node import="Scene-Geometry" />
-  </node>
-  
-  <node>
-    <fbo id="reflection-buffer" draw-buffers="1" />
-    <node>
-      <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3" />
-      <node import="Shading-Pass" />
-    </node>
-    <node import="Background-Pass" />
-  </node>
-  
-  <node>
-    <input type="int" name="numBlurPixels" value="4" />
-    <input type="float" name="blurSigma" value="1.5" />
-    
-    <filter-sequence id="blurred-reflection" fbo="reflection-buffer" attachment="1" >
-      <filter shader="regen.filter.sampling" scale="0.5" />
-      <filter shader="regen.filter.blur.horizontal" />
-      <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-  </node>
-</node>
-
-<node id="Water-Rendering">
-  <depth test="0" write="0" />
-  <fbo id="g-buffer" draw-buffers="0" />
-  <blend mode="src" />
-      
-  <define key="USE_REFRACTION" value="TRUE" />
-  <define key="USE_FOAM" value="TRUE" />
-  <define key="USE_RIPPLES" value="TRUE" />
-  <define key="USE_SPECULAR" value="TRUE" />
-      
-  <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-  <texture name="refractionTexture" fbo="g-buffer" attachment="1" />
-  <texture name="reflectionTexture" id="blurred-reflection" />
-  <texture name="normalTexture" id="water-normal" />
-  <texture name="heightTexture" id="water-height" />
-  <texture name="foamTexture" id="water-foam" />
-      
-  <input type="time" name="time" scale="0.003" />
-  <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix" />
-  <input name="sunDirection" state="earth-sky-sun" component="lightDirection" />
-  <input name="sunColor" state="earth-sky-sun" component="lightDiffuse" />
-      
-  <input type="float" name="heightTextureSize" value="256.0" />
-  <input type="float" name="surfaceHeight" value="-2.0" />
-  <input type="float" name="normalScale" value="3.0" />
-  <input type="float" name="refractionConstant" value="0.25" />
-  <input type="float" name="refractionStrength" value="0.24" />
-  <input type="float" name="shoreHardness" value="0.1" />
-  <input type="vec2"  name="windDirection" value="0.0,-0.9" />
-  <input type="vec2" name="waveScale" value="0.05,0.05" />
-  <input type="float" name="maxAmplitude" value="1.5" />
-  <input type="float" name="reflectionDisplace" value="10.0" />
-  <input type="float" name="sunScale" value="3.0" />
-  <input type="vec3"  name="waterColor" value="0.0078,0.5176,0.7" />
-  <input type="float" name="shininess" value="0.7" />
-  <input type="vec3"  name="deepWaterColor" value="0.0039,0.00196,0.145" />
-  <input type="vec3"  name="colorExtinction" value="7.0,30.0,40.0" />
-  <input type="float" name="fadeSpeed" value="0.1" />
-  <input type="float" name="visibility" value="3.0" />
-  <input type="vec4"  name="normalModifier" value="1.0,2.0,4.0,8.0" />
-  <input type="vec3"  name="foamExistence" value="0.45,1.35,1.25" />
-  <input type="float" name="foamIntensity" value="0.5" />
-  <input type="float" name="foamHardness" value="1.0" />
-      
-  <fullscreen-pass shader="regen.filter.water" />
-</node>
-  
-<!--**************************-->
-<!--**************************-->
-
-<node id="Shadow-Caster" />
-
-<node id="Scene-Geometry">
-  <node id="Island" >
-    <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5" />
-    <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="EDGE_DEVICE_DISTANCE" />
-    
-    <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill" />
-    <texture name="colorTexture" id="island-color" map-to="COLOR" />
-    <texture name="normalTexture" id="island-normal" map-to="NORMAL"
-	     texel-transfer-key="regen.states.textures.normalTBNTransfer" />
-    <texture name="heightTexture" id="island-height" map-to="HEIGHT"
-	     blend-mode="ADD" blend-factor="14.0" />
-    
-    <mesh id="island-mesh" shader="regen.models.mesh" />
-  </node>
-</node>
-
-<node id="Shading-Pass">
-    <blend mode="add" />
-    <depth test="0" write="0" />
-    <input type="vec3" name="lightAmbient" value="0.2,0.2,0.2" />
-    <resource id="earth-sky" />
-    
-    <node id="Ambient-Shading">
-        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-    </node>
-    <node id="Light-Shading">
-        <light-pass type="DIRECTIONAL"
-            shader="regen.shading.deferred.directional"
-            use-shadows="1"
-            shadow-filter="NONE"
-            shadow-layer="3">
-            <light id="earth-sky" shadow-map="sun-shadow" />
-            <light id="earth-sky-moon" />
-        </light-pass>
-    </node>
-</node>
-
-<node id="Background-Pass">
-    <depth test="1" write="0" />
-    <node id="sky-node">
-        <sky id="earth-sky" />
+<node>
+    <include xml-file="scene-display/examples/templates/default.xml"/>
+    <node id="configuration">
+        <camera id="main-camera"
+                mode="first-person"
+                speed="0.1"
+                eye-offset="0.0,0.0,0.0"
+                horizontal-orientation="4.71225">
+        </camera>
     </node>
 
-    <node id="Distance-Fog">
-        <blend mode="alpha" />
-        <input type="float" name="fogDensity" value="0.9" />
-        <input type="vec2" name="fogDistance" value="100.0,400.0" />
-        <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
-        <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-        <texture name="skyColorTexture" id="earth-sky" />
-        <define key="USE_SKY_COLOR" value="TRUE" />
-        <fullscreen-pass shader="regen.shading.fog.distance" />
+    <!-- FBO for deferred shading -->
+    <fbo id="g-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="FLOAT" pixel-size="16">
+        <texture id="diffuse0" pixel-components="3"/>
+        <texture id="diffuse1" pixel-components="3"/>
+        <texture id="specular" pixel-components="4"/>
+        <texture id="normal" pixel-components="4"/>
+        <depth pixel-size="24"/>
+    </fbo>
+    <!-- Textures -->
+    <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
+    <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
+    <!-- Spatial Index -->
+    <index id="main-index" type="quadtree" max-objects-per-node="4"/>
+    <!-- Cameras -->
+    <camera id="main-camera"
+            culling-index="main-index"
+            fov="45.0" near="0.1" far="200.0"
+            position="-40.0, 14.0, 0.0"/>
+
+    <!--**************************-->
+    <!--****** Ground mesh *******-->
+    <!--**************************-->
+
+    <!--
+    <texture id="ground-color" file="res/textures/island/color.png"/>
+    <texture id="ground-normal" file="res/textures/island/normal.png"/>
+    <texture id="ground-height" file="res/textures/island/height.png"/>
+    -->
+    <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
+    <texture id="ground-normal" file="res/textures/terrain/canyon/normal.png"/>
+    <texture id="ground-height" file="res/textures/terrain/canyon/height.png"/>
+    <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass1.png"/>
+    <texture id="tree-mask" file="res/textures/terrain/canyon/mask-grass1.png"/>
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
+
+    <mesh id="ground-mesh"
+          type="rectangle"
+          lod="4"
+          rotation="0.0,0.0,3.1415"
+          scaling="100.0,1.0,100.0"
+          texco-scaling="1.0,-1.0"
+          use-normal="1"
+          use-texco="1"
+          use-tangent="1"
+          center="1"
+          usage="STATIC"
+          primitive="PATCHES">
+        <transform>
+            <translate value="0.0,-4.0,0.0"/>
+        </transform>
+    </mesh>
+
+    <mesh id="ground-patches"
+          type="rectangle"
+          lod="2"
+          rotation="0.0,0.0,3.1415"
+          scaling="10.0,1.0,10.0"
+          use-normal="1"
+          use-texco="0"
+          use-tangent="1"
+          center="1"
+          usage="STATIC"
+          num-instances="100">
+        <transform id="ground-tf" is-instanced="1" >
+            <set mode="row" target="translate"
+                x-step="10.0,0.0,0.0" x-count="10"
+                z-step="0.0,0.0,10.0" />
+            <translate value="-45.0,-4.0,-45.0" />
+        </transform>
+        <shape id="ground-shape" mode="index" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
+    </mesh>
+
+    <node id="Ground">
+        <input name="planeSize" type="vec2" value="100.0, 100.0"/>
+        <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/> -->
+
+        <node id="Ground-quad">
+            <define key="TESS_SPACING" value="equal_spacing"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <input name="lodMinDeviceDistance" type="float" value="0.15"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
+            <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill"/>
+            <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane" />
+            <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
+            <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
+                     blend-mode="ADD" blend-factor="8.0"/>
+            <mesh id="ground-mesh" shader="regen.models.mesh"/>
+        </node>
+        <!--
+        <node id="Ground-patches" cull-shape="ground-shape">
+            <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/>
+            <input name="planeSize" type="vec2" value="60.0, 60.0"/>
+            <define key="TESS_SPACING" value="fractional_odd_spacing"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.18" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <input name="lodMinDeviceDistance" type="float" value="0.15"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
+            <input name="minTessLevel" type="float" value="1.0"/>
+            <input name="maxTessLevel" type="float" value="72.0"/>
+            <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill"/>
+            <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane" />
+            <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
+            <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
+                     blend-mode="ADD" blend-factor="5.0"/>
+            <mesh id="ground-patches" primitive="patches" shader="regen.models.mesh"/>
+        </node>
+        -->
     </node>
-</node>
 
-<node id="Post-Pass">
-  <depth test="0" write="0" />
-  <node import="Water-Rendering" />
-  <!--
-  <node import="FXAA">
-    <fbo id="g-buffer" draw-buffers="1" />
-    <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-  </node>
-  -->
-</node>
+    <!--**************************-->
+    <!--****** Grass patches *****-->
+    <!--**************************-->
 
-<!--**************************-->
-<!--**************************-->
+    <mesh id="grass-patches"
+          type="mask-patch"
+          mask="grass-mask"
+          lod="0"
+          scaling="2.0,1.0,2.0"
+          ground-size="100.0,100.0"
+          usage="STATIC">
+        <transform id="grass-tf">
+            <translate value="0.0,-4.0,0.0"/>
+        </transform>
+        <shape id="grass-shape" mode="index" type="aabb" mesh-id="grass-patches" transform-id="grass-tf" />
+    </mesh>
 
-<node id="Scene-Blur">
-  <input type="int" name="numBlurPixels" value="10" />
-  <input type="float" name="blurSigma" value="2.5" />
-
-  <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
-    <filter shader="regen.filter.sampling" scale="0.5" />
-    <filter shader="regen.filter.blur.horizontal" />
-    <filter shader="regen.filter.blur.vertical" />
-  </filter-sequence>
-</node>
-
-<node id="Tonemapping">
-  <define key="USE_RADIAL_BLUR" value="TRUE" />
-  <define key="USE_VIGNETTE" value="TRUE" />
-  <fbo id="g-buffer" draw-buffers="1" />
-  <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-  <texture name="blurTexture" id="blurred-scene" />
-
-  <input type="float" name="blurAmount" value="0.3" />
-  <input type="float" name="effectAmount" value="0.1" />
-  <input type="float" name="exposure" value="1.7" />
-  <input type="float" name="gamma" value="1.1" />
-  <input type="float" name="radialBlurSamples" value="26.0" />
-  <input type="float" name="radialBlurStartScale" value="1.0" />
-  <input type="float" name="radialBlurScaleMul" value="0.9555" />
-  <input type="float" name="vignetteInner" value="0.9" />
-  <input type="float" name="vignetteOuter" value="1.75" />
-
-  <fullscreen-pass shader="regen.filter.tonemap" />
-</node>
-
-<node id="root">
-  <node id="Pre-Render">
-    <node import="Reflection-Pass" />
-  </node>
-  
-  <node id="Render">
-    <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-    
-    <node import="Default-Pipeline" />
-
-    <node import="Scene-Blur" />
-    <node import="Tonemapping" />
-    <view id="Scene -- Tonemapping">
-        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    <node import="GUI-Pass">
-      <fbo id="g-buffer" draw-buffers="1" />
+    <node id="Grass">
+        <node cull-shape="grass-shape">
+            <input name="planeSize" type="vec2" value="100.0, 100.0"/>
+            <!-- TODO: get alpha blending to work, and disable discard alpha -->
+            <!-- TODO: enable wind -->
+            <!-- FIXME: I think soe things won't work with translation applied to the geometry -->
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <blend mode="SRC"/>
+            <!--
+            <blend mode="ALPHA"/>
+            -->
+            <define key="TESS_SPACING" value="equal_spacing"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.1" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <input name="lodMinDeviceDistance" type="float" value="0.08"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
+            <input name="minTessLevel" type="float" value="1.0"/>
+            <input name="maxTessLevel" type="float" value="60.0"/>
+            <!-- use more complex geometry in close range. -->
+            <define key="USE_SPRITE_LOD" value="TRUE"/>
+            <input name="lodGeomLevel0" type="float" value="60.0"/>
+            <input name="lodGeomLevel1" type="float" value="160.0"/>
+            <input name="lodGeomBrightness0" type="float" value="1.7"/>
+            <input name="lodGeomVariance" type="float" value="6.0"/>
+            <!-- size and position -->
+            <input name="quadSize" type="vec2" value="1.15, 0.3"/>
+            <input name="posVariation" type="float" value="0.4"/>
+            <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
+            <!-- color -->
+            <texture id="grass-color" map-to="color" blend-mode="mul"/>
+            <input name="uvDarken" type="float" value="0.25"/>
+            <!-- height -->
+            <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
+                     blend-mode="ADD" blend-factor="8.0"/>
+            <material
+                    diffuse="1.5, 1.5, 1.5"
+                    ambient="0.1, 0.1, 0.1"
+                    specular="0.0, 0.0, 0.0"
+                    shininess="256.0"
+                    emission="0.0, 0.02, 0.0"/>
+            <mesh id="grass-patches" primitive="patches" shader="regen.models.grass.patch"/>
+        </node>
     </node>
-    
-    <view id="Scene -- Result">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-  </node>
+
+    <!--**************************-->
+    <!--********* Trees **********-->
+    <!--**************************-->
+
+    <mesh id="tree-mesh" type="proctree" lods="4,2,1" preset="fir">
+        <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
+        <transform id="tree-tf">
+            <set mode="plane"
+                area-mask-texture="tree-mask"
+                area-height-texture="ground-height"
+                area-max-height="8.0"
+                area-size="100.0,100.0"
+                cell-size="5.0,5.0"
+                cell-offset="0.0,-4.0,0.0"
+                obj-min-scale="0.4"
+                obj-max-scale="0.75"
+                obj-pos-variation="0.5"
+                obj-density="3.4"
+                obj-mesh="tree-mesh"
+              />
+        </transform>
+        <!-- TODO: also vary the color, but only for twigs! could use uniform color with mul lending the twig texture
+            I think only needed to make material with instanced color
+        -->
+        <!--
+        <input type="vec3" name="fooColor" is-instanced="1" mesh-index="">
+            <set mode="random" min="0,0,0" max="0,1,0"/>
+        </input>
+        -->
+        <!-- TODO: which index is used by shape?? -->
+        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf" />
+    </mesh>
+
+    <node id="Trees">
+        <node cull-shape="tree-shape">
+            <node id="tree-trunk">
+                <!--
+                <texture id="trunk-color" map-to="color" />
+                <texture id="trunk-normal" map-to="normal" />
+                -->
+                <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
+            </node>
+            <node id="tree-twig">
+                <define key="DISCARD_ALPHA" value="TRUE"/>
+                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                <!--
+                <material emission="0.05,0.1,0.05"/>
+                <define key="HAS_GS_TRANSFORM" value="TRUE"/>
+                <texture name="windFlow" id="wind-flowmap" />
+                <input name="stiffness" type="float" value="0.5"/>
+                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
+                -->
+                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" />
+            </node>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**** Water Reflection ****-->
+    <!--**************************-->
+
+    <fbo id="reflection-buffer"
+         size="512, 512"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <camera id="reflection-camera"
+            culling-index="main-index"
+            camera="main-camera"
+            reflector-normal="0,1,0"
+            reflector-point="0,-1.7,0"/>
+
+    <node id="Reflection-Pass">
+        <!-- need to load the resource before the reflection pass -->
+        <resource id="grass-patches"/>
+        <camera id="reflection-camera"/>
+        <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+
+        <node>
+            <blend mode="src"/>
+            <depth test="1" write="1"/>
+            <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
+
+            <node import="Shadow-Caster"/>
+            <node import="Scene-Geometry"/>
+        </node>
+
+        <node>
+            <fbo id="reflection-buffer" draw-buffers="1"/>
+            <node>
+                <texture name="gDepthTexture" fbo="reflection-buffer" attachment="depth"/>
+                <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0"/>
+                <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2"/>
+                <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3"/>
+                <node import="Shading-Pass"/>
+            </node>
+            <node import="Background-Objects"/>
+        </node>
+
+        <node>
+            <input type="int" name="numBlurPixels" value="4"/>
+            <input type="float" name="blurSigma" value="1.5"/>
+
+            <filter-sequence id="blurred-reflection" fbo="reflection-buffer" attachment="1">
+                <filter shader="regen.filter.sampling" scale="0.5"/>
+                <filter shader="regen.filter.blur.horizontal"/>
+                <filter shader="regen.filter.blur.vertical"/>
+            </filter-sequence>
+        </node>
+
+        <view id="Reflection">
+            <blit src-fbo="reflection-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Blurred Reflection">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="blurred-reflection" />
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+    </node>
+
+    <!--**************************-->
+    <!--***** Water Rendering ****-->
+    <!--**************************-->
+
+    <texture id="water-normal" file="res/textures/water/normal.png" wrapping="REPEAT"/>
+    <texture id="water-height" file="res/textures/water/height.jpg" wrapping="REPEAT"/>
+    <texture id="water-foam" file="res/textures/water/foam2.jpg" wrapping="REPEAT"
+             swizzle-g="RED" swizzle-b="RED"/>
+
+    <node id="Water-Rendering">
+        <depth test="0" write="0"/>
+        <fbo id="g-buffer" draw-buffers="0"/>
+        <blend mode="src"/>
+
+        <define key="USE_REFRACTION" value="TRUE"/>
+        <define key="USE_FOAM" value="TRUE"/>
+        <define key="USE_RIPPLES" value="TRUE"/>
+        <define key="USE_SPECULAR" value="TRUE"/>
+
+        <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+        <texture name="refractionTexture" fbo="g-buffer" attachment="1"/>
+        <texture name="reflectionTexture" id="blurred-reflection"/>
+        <texture name="normalTexture" id="water-normal"/>
+        <texture name="heightTexture" id="water-height"/>
+        <texture name="foamTexture" id="water-foam"/>
+
+        <input type="time" name="time" scale="0.003"/>
+        <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
+        <input name="sunDirection" state="earth-sky-sun" component="lightDirection"/>
+        <input name="sunColor" state="earth-sky-sun" component="lightDiffuse"/>
+
+        <input type="float" name="heightTextureSize" value="256.0"/>
+        <input type="float" name="surfaceHeight" value="-1.7"/>
+        <input type="float" name="normalScale" value="3.0"/>
+        <input type="float" name="refractionConstant" value="0.25"/>
+        <input type="float" name="refractionStrength" value="0.24"/>
+        <input type="float" name="shoreHardness" value="0.1"/>
+        <input type="vec2" name="windDirection" value="0.9,0.0"/>
+        <input type="vec2" name="waveScale" value="0.05,0.05"/>
+        <input type="float" name="maxAmplitude" value="1.5"/>
+        <input type="float" name="reflectionDisplace" value="10.0"/>
+        <input type="float" name="sunScale" value="3.0"/>
+        <input type="vec3" name="waterColor" value="0.0078,0.5176,0.7"/>
+        <input type="vec3" name="deepWaterColor" value="0.0078,0.5176,0.7"/>
+        <input type="float" name="shininess" value="0.7"/>
+        <input type="vec3" name="colorExtinction" value="7.0,30.0,40.0"/>
+        <input type="float" name="fadeSpeed" value="0.1"/>
+        <input type="float" name="visibility" value="1.1"/>
+        <input type="vec4" name="normalModifier" value="1.0,2.0,4.0,8.0"/>
+        <input type="vec3" name="foamExistence" value="0.45,1.35,1.25"/>
+        <input type="float" name="foamIntensity" value="0.5"/>
+        <input type="float" name="foamHardness" value="1.0"/>
+
+        <fullscreen-pass shader="regen.filter.water"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="Shadow-Caster">
+        <node import="Trees"/>
+    </node>
+
+    <node id="Scene-Geometry">
+        <node import="Grass"/>
+        <!--
+        -->
+        <node import="Ground"/>
+    </node>
+
+    <node id="Background-Objects">
+        <node id="Sky">
+            <sky id="earth-sky"/>
+        </node>
+    </node>
+
+    <node id="Shading-Pass">
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <input type="vec3" name="lightAmbient" value="0.2,0.2,0.2"/>
+        <resource id="earth-sky"/>
+
+        <node id="Ambient-Shading">
+            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+        </node>
+        <node id="Light-Shading">
+            <light-pass type="DIRECTIONAL"
+                        shader="regen.shading.deferred.directional">
+                <light id="earth-sky"/>
+                <light id="earth-sky-moon"/>
+            </light-pass>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--** Post shading effects **-->
+    <!--**************************-->
+
+    <node id="Post-Pass">
+        <depth test="0" write="0"/>
+        <node import="Water-Rendering"/>
+
+        <!--
+        <node import="FXAA">
+          <fbo id="g-buffer" draw-buffers="1" />
+          <texture name="inputTexture" fbo="g-buffer" attachment="0" />
+        </node>
+        -->
+
+        <node id="Distance-Fog">
+            <blend mode="alpha"/>
+            <input type="float" name="fogDensity" value="0.9"/>
+            <input type="vec2" name="fogDistance" value="100.0,400.0"/>
+            <input type="vec3" name="fogColor" value="1.0,1.0,1.0"/>
+            <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="skyColorTexture" id="earth-sky"/>
+            <define key="USE_SKY_COLOR" value="TRUE"/>
+            <fullscreen-pass shader="regen.shading.fog.distance"/>
+        </node>
+
+        <node import="Scene-Blur"/>
+        <node import="Tonemapping"/>
+        <view id="Scene -- Tonemapping">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+    </node>
+
+    <node id="Scene-Blur">
+        <input type="int" name="numBlurPixels" value="10"/>
+        <input type="float" name="blurSigma" value="2.5"/>
+
+        <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0">
+            <filter shader="regen.filter.sampling" scale="0.5"/>
+            <filter shader="regen.filter.blur.horizontal"/>
+            <filter shader="regen.filter.blur.vertical"/>
+        </filter-sequence>
+
+        <view id="Blurred Scene">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="blurred-scene" />
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+    </node>
+
+    <node id="Tonemapping">
+        <define key="USE_RADIAL_BLUR" value="TRUE"/>
+        <define key="USE_VIGNETTE" value="TRUE"/>
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+        <texture name="blurTexture" id="blurred-scene"/>
+
+        <input type="float" name="blurAmount" value="0.3"/>
+        <input type="float" name="effectAmount" value="0.1"/>
+        <input type="float" name="exposure" value="1.7"/>
+        <input type="float" name="gamma" value="1.1"/>
+        <input type="float" name="radialBlurSamples" value="26.0"/>
+        <input type="float" name="radialBlurStartScale" value="1.0"/>
+        <input type="float" name="radialBlurScaleMul" value="0.9555"/>
+        <input type="float" name="vignetteInner" value="0.9"/>
+        <input type="float" name="vignetteOuter" value="1.75"/>
+
+        <fullscreen-pass shader="regen.filter.tonemap"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="root">
+        <node id="Pre-Render">
+            <node import="Reflection-Pass"/>
+        </node>
+
+        <node id="Render">
+            <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+            <camera id="main-camera" />
+
+            <node id="Geometry-Pass">
+                <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
+                <blend mode="src"/>
+                <depth test="1" write="1"/>
+                <node import="Shadow-Caster"/>
+                <node import="Scene-Geometry"/>
+                <node import="G-Buffer-Views"/>
+            </node>
+
+            <node id="Post-Geometry">
+                <!--
+                -->
+            </node>
+
+            <node id="Shading">
+                <fbo id="g-buffer" draw-buffers="1"/>
+                <node id="Light-Pass">
+                    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+                    <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
+                    <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
+                    <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+                    <node import="Shading-Pass"/>
+                </node>
+                <view id="Shaded Scene">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+            </node>
+
+            <node id="Post-Shading">
+                <node import="Background-Objects"/>
+                <view id="Scene with Background">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+                <node import="Post-Pass"/>
+            </node>
+
+            <view id="Spatial Index">
+                <node import="spatial-index-debug">
+                    <fbo id="g-buffer" draw-buffers="1"/>
+                </node>
+                <node>
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </node>
+            </view>
+
+            <node import="GUI-Pass">
+                <fbo id="g-buffer" draw-buffers="1"/>
+            </node>
+
+            <view id="Scene -- Result">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+        </node>
+    </node>
+
 </node>

@@ -4,6 +4,7 @@
 #include <regen/shapes/bounding-shape.h>
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
+#include "regen/utility/ThreadPool.h"
 
 namespace regen {
 	/**
@@ -11,7 +12,7 @@ namespace regen {
 	 */
 	class SpatialIndex {
 	public:
-		SpatialIndex() = default;
+		SpatialIndex();
 
 		virtual ~SpatialIndex() = default;
 
@@ -19,7 +20,14 @@ namespace regen {
 		 * @brief Add a camera to the index
 		 * @param camera The camera
 		 */
-		void addCamera(const ref_ptr<Camera> &camera);
+		void addCamera(const ref_ptr<Camera> &camera, bool sortInstances = true);
+
+		/**
+		 * @brief Check if the index has a camera
+		 * @param camera The camera
+		 * @return True if the index has the camera, false otherwise
+		 */
+		bool hasCamera(const Camera &camera) const;
 
 		/**
 		 * @brief Check if a shape is visible
@@ -37,8 +45,8 @@ namespace regen {
 		 * @param shapeID The shape ID
 		 * @return The visible instances
 		 */
-		const std::vector<unsigned int> &
-		getVisibleInstances(const Camera &camera, std::string_view shapeID);
+		const std::vector<unsigned int>&
+		getVisibleInstances(const Camera &camera, std::string_view shapeID) const;
 
 		/**
 		 * @brief Get the number of instances of a shape
@@ -90,14 +98,14 @@ namespace regen {
 		 * @param shape The shape
 		 * @return True if there is an intersection, false otherwise
 		 */
-		virtual bool hasIntersection(const BoundingShape &shape) const = 0;
+		virtual bool hasIntersection(const BoundingShape &shape) = 0;
 
 		/**
 		 * @brief Get the number of intersections with a shape
 		 * @param shape The shape
 		 * @return The number of intersections
 		 */
-		virtual int numIntersections(const BoundingShape &shape) const = 0;
+		virtual int numIntersections(const BoundingShape &shape) = 0;
 
 		/**
 		 * @brief Iterate over all intersections with a shape
@@ -106,7 +114,7 @@ namespace regen {
 		 */
 		virtual void foreachIntersection(
 				const BoundingShape &shape,
-				const std::function<void(const BoundingShape &)> &callback) const = 0;
+				const std::function<void(const BoundingShape &)> &callback) = 0;
 
 		/**
 		 * @brief Draw debug information
@@ -115,15 +123,22 @@ namespace regen {
 		virtual void debugDraw(DebugInterface &debug) const = 0;
 
 	protected:
-		std::vector<ref_ptr<BoundingShape>> shapes_;
-		std::vector<ref_ptr<Camera>> cameras_;
-		std::vector<ref_ptr<Camera>> omniCameras_;
-		std::map<const Camera *, std::set<std::string_view>> visibleShapes_;
-		std::map<const Camera *, std::map<std::string_view, std::vector<unsigned int>>> visibleInstances_;
+		ThreadPool threadPool_;
+		using ShapeIndexMap = std::map<std::string_view, std::vector<unsigned int>>;
+		struct IndexCamera {
+			ref_ptr<Camera> camera;
+			std::set<std::string_view> visibleShapes;
+			ShapeIndexMap visibleInstances;
+			bool sortInstances;
+			bool isOmni;
+		};
+		std::map<std::string_view, std::vector<ref_ptr<BoundingShape>>> shapes_;
+		std::map<const Camera *, IndexCamera> cameras_;
+		std::mutex mutex_;
 
 		void updateVisibility();
 
-		void updateVisibility(const ref_ptr<Camera> &camera, const BoundingShape &shape);
+		void updateVisibility(IndexCamera &camera, const BoundingShape &shape);
 
 		/**
 		 * @brief Add a shape to the index

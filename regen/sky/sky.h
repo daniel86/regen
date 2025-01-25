@@ -14,7 +14,7 @@
 #include <regen/states/light-state.h>
 #include <regen/sky/sky-layer.h>
 #include <regen/states/blend-state.h>
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 
 #include <regen/external/osghimmel/timef.h>
 #include <regen/external/osghimmel/astronomy.h>

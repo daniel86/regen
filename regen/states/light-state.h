@@ -12,7 +12,7 @@
 #include <regen/states/model-transformation.h>
 #include <regen/camera/camera.h>
 #include <regen/math/vector.h>
-#include <regen/meshes/cone.h>
+#include <regen/meshes/primitives/cone.h>
 #include <regen/animations/animation-node.h>
 #include <regen/animations/animation.h>
 

@@ -58,9 +58,9 @@ SceneInputNodeXML::SceneInputNodeXML(
 	}
 }
 
-string SceneInputNodeXML::getCategory() { return category_; }
+string SceneInputNodeXML::getCategory() const { return category_; }
 
-string SceneInputNodeXML::getName() { return name_; }
+string SceneInputNodeXML::getName() const { return name_; }
 
 const list<ref_ptr<SceneInputNode> > &SceneInputNodeXML::getChildren() {
 	if (xmlNode_ != nullptr && children_.empty()) {

@@ -57,9 +57,9 @@ namespace regen {
 			SceneInputNodeXML();
 
 			// Override
-			std::string getCategory() override;
+			std::string getCategory() const override;
 
-			std::string getName() override;
+			std::string getName() const override;
 
 			const std::list<ref_ptr<SceneInputNode> > &getChildren() override;
 

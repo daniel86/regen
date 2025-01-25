@@ -7,7 +7,7 @@
 
 #include <climits>
 
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 #include <regen/states/atomic-states.h>
 #include <regen/states/depth-state.h>
 #include <regen/states/state-configurer.h>

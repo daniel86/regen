@@ -98,39 +98,13 @@
     <!--********* Trees *********-->
     <!--**************************-->
 
-    <texture id="trunk-color" file="res/textures/materials/tree-trunk/0/diffuse.tga"/>
-    <texture id="trunk-normal" file="res/textures/materials/tree-trunk/0/normal.tga"/>
-    <texture id="trunk-specular" file="res/textures/materials/tree-trunk/0/specular.tga"/>
-    <texture id="twig-color" file="res/textures/materials/tree-twig/0/diffuse.tga" wrapping="CLAMP_TO_EDGE"/>
-    <texture id="twig-normal" file="res/textures/materials/tree-twig/0/normal.tga" wrapping="CLAMP_TO_EDGE"/>
-    <texture id="twig-specular" file="res/textures/materials/tree-twig/0/specular.tga" wrapping="CLAMP_TO_EDGE"/>
-
-    <mesh id="tree-mesh" type="proctree"
-            seed="499" segments="8" levels="5"
-            v-multiplier="1"
-            branch-length="0.5"
-            branch-factor="2.2"
-            drop-amount="0.24"
-            grow-amount="0.044"
-            sweep-amount="0"
-            max-radius="0.096"
-            climb-rate="0.39"
-            trunk-kink="0"
-            tree-steps="5"
-            taper-rate="0.958"
-            radius-falloff-rate="0.71"
-            twist-rate="2.97"
-            trunk-length="1.95"
-            twig-scale="0.28"
-            falloff="0.98f, 1.08f"
-            clump="0.414, 0.282">
+    <mesh id="tree-mesh" type="proctree" preset="fir" >
         <transform id="tree-tf">
             <scale value="4.0, 4.0, 4.0"/>
             <rotate value="1.5707963,0.0,0.0"/>
             <translate value="8.0,-2.0, -8.0"/>
         </transform>
-        <shape id="tree-shape" mode="index" type="aabb"
-            mesh-id="tree-mesh" transform-id="tree-tf" />
+        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf" />
         <!-- FIXME: there is some hack around here, look at bullet shape it is not at correct height.
                  probably because base of the mesh is at 0.0,0.0,0.0, and not its center.
                  plus there is a scaling here too. -->
@@ -157,7 +131,7 @@
 
     <mesh id="tree-disc" type="disc"
             lod-levels="2, 1, 0"
-            use-normal="1" center="1" usage="STATIC" scaling="4.0, 3.0, 4.0"
+            use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
             texco-scaling="0.1, 0.1" disc-radius="1.0">
         <transform id="tree-disc-tf">
             <translate value="8.0, -1.0, -8.0"/>
@@ -167,19 +141,13 @@
     <node id="Trees">
         <node id="tree1" cull-shape="tree-shape">
             <node id="tree1-trunk">
-                <material emission="0.01,0.01,0.01"/>
-                <texture id="trunk-color" map-to="color" />
-                <texture id="trunk-normal" map-to="normal" />
-                <!-- <texture id="trunk-specular" map-to="specular" /> -->
+                <input name="matEmission" type="vec3" value="0.01,0.01,0.01"/>
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
             <node id="tree1-twig">
                 <define key="DISCARD_ALPHA" value="TRUE"/>
                 <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-                <material emission="0.05,0.1,0.05"/>
-                <texture id="twig-color" map-to="color" blend="src" texco-flipping="y" />
-                <!-- <texture id="twig-normal" map-to="normal" /> -->
-                <!-- <texture id="twig-specular" map-to="specular" /> -->
+                <input name="matEmission" type="vec3" value="0.01,0.06,0.01"/>
                 <!-- transform mesh in geometry shader -->
                 <define key="HAS_GS_TRANSFORM" value="TRUE"/>
                 <texture name="windFlow" id="wind-flowmap" />

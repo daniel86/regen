@@ -11,7 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/states/state-node.h>
 #include <regen/states/shader-state.h>
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 
 namespace regen {
 	/**

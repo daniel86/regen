@@ -83,5 +83,23 @@ vec4 transformBone(vec4 x) {
            in_boneWeights.w * fetchBoneMatrix(in_boneIndices.w) * x;
 #endif
 }
+
+vec3 transformBone(vec3 x) {
+#if NUM_BONE_WEIGHTS==1
+    return mat3(fetchBoneMatrix(in_boneIndices)) * x;
+#elif NUM_BONE_WEIGHTS==2
+    return in_boneWeights.x * mat3(fetchBoneMatrix(in_boneIndices.x)) * x +
+           in_boneWeights.y * mat3(fetchBoneMatrix(in_boneIndices.y)) * x;
+#elif NUM_BONE_WEIGHTS==3
+    return in_boneWeights.x * mat3(fetchBoneMatrix(in_boneIndices.x)) * x +
+           in_boneWeights.y * mat3(fetchBoneMatrix(in_boneIndices.y)) * x +
+           in_boneWeights.z * mat3(fetchBoneMatrix(in_boneIndices.z)) * x;
+#else
+    return in_boneWeights.x * mat3(fetchBoneMatrix(in_boneIndices.x)) * x +
+           in_boneWeights.y * mat3(fetchBoneMatrix(in_boneIndices.y)) * x +
+           in_boneWeights.z * mat3(fetchBoneMatrix(in_boneIndices.z)) * x +
+           in_boneWeights.w * mat3(fetchBoneMatrix(in_boneIndices.w)) * x;
+#endif
+}
 #endif // REGEN_transformBone_Included_
 #endif // HAS_BONES

@@ -6,8 +6,6 @@
  */
 
 #include <sstream>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-util.h>
@@ -63,9 +61,8 @@ Texture::Texture(GLuint numTextures)
 		  pixelType_(GL_BYTE),
 		  border_(0),
 		  texBind_(GL_TEXTURE_2D, 0),
-		  data_(nullptr),
-		  isInTSpace_(GL_FALSE),
-		  numSamples_(1) {
+		  numSamples_(1),
+		  data_(nullptr) {
 	filter_ = new TextureParameterStack<TextureFilter> *[numObjects_];
 	lod_ = new TextureParameterStack<TextureLoD> *[numObjects_];
 	swizzle_ = new TextureParameterStack<TextureSwizzle> *[numObjects_];
@@ -110,20 +107,6 @@ Texture::~Texture() {
 
 GLint Texture::channel() const { return getVertex(0); }
 
-const std::string &Texture::samplerType() const { return samplerType_; }
-
-void Texture::set_samplerType(const std::string &samplerType) { samplerType_ = samplerType; }
-
-GLuint Texture::numComponents() const { return dim_; }
-
-void Texture::set_internalFormat(GLint internalFormat) { internalFormat_ = internalFormat; }
-
-GLint Texture::internalFormat() const { return internalFormat_; }
-
-void Texture::set_format(GLenum format) { format_ = format; }
-
-GLenum Texture::format() const { return format_; }
-
 void Texture::set_data(const GLvoid *data) { data_ = data; }
 
 const GLvoid *Texture::data() const { return data_; }
@@ -132,22 +115,21 @@ GLenum Texture::targetType() const { return texBind_.target_; }
 
 void Texture::set_targetType(GLenum targetType) { texBind_.target_ = targetType; }
 
-void Texture::set_pixelType(GLuint pixelType) { pixelType_ = pixelType; }
-
-GLuint Texture::pixelType() const { return pixelType_; }
-
-GLsizei Texture::numSamples() const { return numSamples_; }
-
-void Texture::set_numSamples(GLsizei v) { numSamples_ = v; }
-
 const TextureBind &Texture::textureBind() {
 	texBind_.id_ = id();
 	return texBind_;
 }
 
+GLvoid* Texture::readServerData(GLenum format, GLenum type) const {
+	// format: e.g. GL_RGBA, type: e.g. GL_UNSIGNED_BYTE
+	auto* pixels = new GLubyte[numTexel()*glenum::pixelComponents(type)];
+	glGetTexImage(targetType(), 0, format, type, pixels);
+	return pixels;
+}
+
 void Texture::setupMipmaps(GLenum mode) const {
 	// glGenerateMipmap was introduced in opengl3.0
-	// before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but we do not need them ;)
+	// before glBuildMipmaps or GL_GENERATE_MIPMAP was used, but these are not supported here.
 	glGenerateMipmap(texBind_.target_);
 }
 
@@ -166,6 +148,106 @@ void Texture::end(RenderState *rs, GLint x) {
 	// with channel=-1. This flag should avoid calls to glUniform
 	// for this texture.
 	set_active(GL_FALSE);
+}
+
+float Texture::sampleAverage(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const {
+    auto w = static_cast<float>(width());
+    auto h = static_cast<float>(height());
+    auto startX = static_cast<unsigned int>(std::floor(texco.x * w));
+    auto startY = static_cast<unsigned int>(std::floor(texco.y * h));
+    auto endX = static_cast<unsigned int>(std::ceil((texco.x + regionTS.x) * w));
+    auto endY = static_cast<unsigned int>(std::ceil((texco.y + regionTS.y) * h));
+    if (endX >= width()) endX = width()-1;
+    if (endY >= height()) endY = height()-1;
+
+    // Iterate over the region and check for non-black values
+	float avg = 0.0f;
+	int numSamples = 0;
+    for (unsigned int y = startY; y <= endY; ++y) {
+        for (unsigned int x = startX; x <= endX; ++x) {
+            unsigned int index = (y * width() + x);
+            avg += static_cast<float>(textureData[index * numComponents]) / 255.0f;
+            numSamples++;
+        }
+    }
+    if (numSamples > 0) {
+    	return avg / static_cast<float>(numSamples);
+    } else {
+    	return avg;
+    }
+}
+
+float Texture::sampleMax(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const {
+    auto w = static_cast<float>(width());
+    auto h = static_cast<float>(height());
+    auto startX = static_cast<unsigned int>(std::floor(texco.x * w));
+    auto startY = static_cast<unsigned int>(std::floor(texco.y * h));
+    auto endX = static_cast<unsigned int>(std::ceil((texco.x + regionTS.x) * w));
+    auto endY = static_cast<unsigned int>(std::ceil((texco.y + regionTS.y) * h));
+    if (endX >= width()) endX = width()-1;
+    if (endY >= height()) endY = height()-1;
+
+    // Iterate over the region and check for non-black values
+	float maxVal = 0.0f;
+    for (unsigned int y = startY; y <= endY; ++y) {
+        for (unsigned int x = startX; x <= endX; ++x) {
+            unsigned int index = (y * width() + x);
+            maxVal = std::max(maxVal, static_cast<float>(textureData[index * numComponents]) / 255.0f);
+        }
+    }
+	return maxVal;
+}
+
+
+float Texture::sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const {
+	auto x = static_cast<unsigned int>(std::round(texco.x * static_cast<float>(width())));
+	auto y = static_cast<unsigned int>(std::round(texco.y * static_cast<float>(height())));
+	// clamp to texture size
+	switch(wrapping_[objectIndex_]->value().x) {
+		case GL_CLAMP_TO_EDGE:
+			if (x >= width()) x = width()-1;
+			if (y >= height()) y = height()-1;
+			break;
+		case GL_REPEAT:
+			x = x % width();
+			y = y % height();
+			break;
+		case GL_MIRRORED_REPEAT:
+			x = x % (2 * width());
+			y = y % (2 * height());
+			if (x >= width()) x = 2 * width() - x - 1;
+			if (y >= height()) y = 2 * height() - y - 1;
+			break;
+		default:
+			break;
+	}
+	if (x >= width()) x = width()-1;
+	if (y >= height()) y = height()-1;
+	unsigned int index = (y * width() + x);
+	return static_cast<float>(textureData[index * numComponents]) / 255.0f;
+}
+
+float Texture::sampleLinear(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const {
+	auto w = static_cast<float>(width());
+	auto h = static_cast<float>(height());
+	auto x = texco.x * w;
+	auto y = texco.y * h;
+	auto x0 = std::floor(x);
+	auto y0 = std::floor(y);
+	auto x1 = x0 + 1;
+	auto y1 = y0 + 1;
+
+	auto v00 = sampleNearest(Vec2f(x0 / w, y0 / h), textureData, numComponents);
+	auto v01 = sampleNearest(Vec2f(x0 / w, y1 / h), textureData, numComponents);
+	auto v10 = sampleNearest(Vec2f(x1 / w, y0 / h), textureData, numComponents);
+	auto v11 = sampleNearest(Vec2f(x1 / w, y1 / h), textureData, numComponents);
+
+	auto dx = x - x0;
+	auto dy = y - y0;
+	auto v0 = v00 * (1.0f - dx) + v10 * dx;
+	auto v1 = v01 * (1.0f - dx) + v11 * dx;
+
+	return v0 * (1.0f - dy) + v1 * dy;
 }
 
 ///////////////
@@ -271,7 +353,8 @@ void Texture2DMultisampleDepth::texImage() const {
 }
 
 TextureCube::TextureCube(GLuint numTextures)
-		: Texture2D(numTextures) {
+		: Texture2D(numTextures),
+		  cubeData_() {
 	samplerType_ = "samplerCube";
 	texBind_.target_ = GL_TEXTURE_CUBE_MAP;
 	dim_ = 3;
@@ -324,10 +407,6 @@ Texture3D::Texture3D(GLuint numTextures)
 
 void Texture3D::set_depth(GLuint numTextures) {
 	numTextures_ = numTextures;
-}
-
-GLuint Texture3D::depth() {
-	return numTextures_;
 }
 
 void Texture3D::texImage() const {
@@ -409,6 +488,10 @@ void TextureBuffer::attach(GLuint storage, GLuint offset, GLuint size) {
 	glTexBuffer(texBind_.target_, texelFormat_, storage);
 #endif
 	GL_ERROR_LOG();
+}
+
+unsigned int TextureBuffer::numTexel() const {
+	return attachedVBORef_->allocatedSize() / sizeof(GLubyte);
 }
 
 void TextureBuffer::texImage() const {

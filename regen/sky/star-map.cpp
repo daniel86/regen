@@ -7,7 +7,7 @@
 
 #include "star-map.h"
 
-#include <regen/meshes/rectangle.h>
+#include <regen/meshes/primitives/rectangle.h>
 #include <regen/external/osghimmel/earth.h>
 #include <regen/textures/texture-loader.h>
 #include <regen/states/depth-state.h>
