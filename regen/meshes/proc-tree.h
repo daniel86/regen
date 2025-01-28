@@ -28,6 +28,12 @@ namespace regen {
 		explicit ProcTree(scene::SceneInputNode &input);
 
 		/**
+		 * Set whether to use LODs.
+		 * @param useLODs True to use LODs, false otherwise.
+		 */
+		void setUseLODs(bool useLODs) { useLODs_ = useLODs; }
+
+		/**
 		 * Load a preset tree.
 		 * @param preset The preset to load.
 		 */
@@ -52,11 +58,7 @@ namespace regen {
 		/**
 		 * Update the tree meshes, uploading the new data to the GPU.
 		 */
-		void update(const std::vector<GLuint> &lodLevels);
-
-		ref_ptr<ProcTree> computeMediumDetailTree();
-
-		ref_ptr<ProcTree> computeLowDetailTree();
+		void update();
 
 	protected:
 		Proctree::Tree handle;
@@ -68,21 +70,39 @@ namespace regen {
 			ref_ptr<ShaderInput2f> texco;
 			ref_ptr<ShaderInput1ui> indices;
 		};
+		struct ProcMesh {
+			int mVertCount;
+			int mFaceCount;
+			Proctree::fvec3 *mVert;
+			Proctree::fvec3 *mNormal;
+			Proctree::fvec2 *mUV;
+			Proctree::ivec3 *mFace;
+		};
+
 		TreeMesh trunk;
 		TreeMesh twig;
 		ref_ptr<Material> trunkMaterial_;
 		ref_ptr<Material> twigMaterial_;
 
+		bool useLODs_ = true;
+		ref_ptr<Proctree::Tree> lodMedium_;
+		ref_ptr<Proctree::Tree> lodLow_;
+
 		void updateTrunkAttributes();
 
 		void updateTwigAttributes();
 
-		static void updateAttributes(TreeMesh &treeMesh,
-									 int numVertices, int numFaces,
-									 Proctree::fvec3 *vertices,
-									 Proctree::fvec3 *normals,
-									 Proctree::fvec2 *uvs,
-									 Proctree::ivec3 *faces);
+		ref_ptr<Proctree::Tree> computeMediumDetailTree();
+
+		ref_ptr<Proctree::Tree> computeLowDetailTree();
+
+		void updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const;
+
+		static void computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset);
+
+		static ProcTree::ProcMesh trunkProcMesh(Proctree::Tree &x);
+
+		static ProcTree::ProcMesh twigProcMesh(Proctree::Tree &x);
 	};
 }
 

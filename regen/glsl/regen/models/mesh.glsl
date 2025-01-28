@@ -151,7 +151,7 @@ void main() {
     #define TESS_SPACING equal_spacing
 #endif
 
-layout(triangles, ccw, TESS_SPACING) in;
+layout(triangles, TESS_SPACING) in;
 
 #ifdef HAS_INSTANCES
 in int in_instanceID[ ];

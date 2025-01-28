@@ -293,8 +293,19 @@ static ref_ptr<BoundingShape> createShape(
 		if (meshVector.get() == nullptr) {
 			continue;
 		}
-		for (auto &part : *meshVector.get()) {
-			shape->addPart(part);
+		if (child->hasAttribute("mesh-index")) {
+			auto meshIndex = child->getValue<unsigned int>("mesh-index", 0);
+			if (meshIndex < meshVector->size()) {
+				auto &part = (*meshVector.get())[meshIndex];
+				shape->addPart(part);
+			} else {
+				REGEN_WARN("Ignoring part mesh with invalid index in node " << input.getDescription() << ".");
+			}
+		}
+		else {
+			for (auto &part : *meshVector.get()) {
+				shape->addPart(part);
+			}
 		}
 	}
 

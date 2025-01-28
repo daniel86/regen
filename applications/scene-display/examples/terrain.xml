@@ -50,7 +50,7 @@
 
     <mesh id="ground-mesh"
           type="rectangle"
-          lod="4"
+          lod="5"
           rotation="0.0,0.0,3.1415"
           scaling="100.0,1.0,100.0"
           texco-scaling="1.0,-1.0"
@@ -91,9 +91,17 @@
 
         <node id="Ground-quad">
             <define key="TESS_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE"/>
-            <input name="lodMinDeviceDistance" type="float" value="0.15"/>
-            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
+            <!--
+            <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="FIXED_FUNCTION"/>
+            -->
+            <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <input name="lodMinDeviceDistance" type="float" value="0.02"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.6"/>
+            <!--
+            <tesselation num-patch-vertices="3" lod-factor="0.275" lod-metric="EDGE_SCREEN_DISTANCE"/>
+            <input name="lodMinScreenDistance" type="float" value="0.03"/>
+            <input name="lodMaxScreenDistance" type="float" value="0.1"/>
+            -->
             <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill"/>
             <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane" />
             <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
@@ -135,6 +143,12 @@
         <transform id="grass-tf">
             <translate value="0.0,-4.0,0.0"/>
         </transform>
+        <!-- FIXME: bounding boxes of grass patches are not correct for two reasons:
+            1. the max height of grass is not taken into account, the aabb is flat at the moment.
+            2. a height map value is applied to the geometry, but not to the bounding box.
+               easiest way would be to create a box with max height of height map value,
+               or to sample min/max height from the height map when bounding box is updated.
+        -->
         <shape id="grass-shape" mode="index" type="aabb" mesh-id="grass-patches" transform-id="grass-tf" />
     </mesh>
 
@@ -211,23 +225,20 @@
         </input>
         -->
         <!-- TODO: which index is used by shape?? -->
-        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf" />
+        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
+            <has-part mesh-id="tree-mesh" mesh-index="1" />
+        </shape>
     </mesh>
 
     <node id="Trees">
         <node cull-shape="tree-shape">
             <node id="tree-trunk">
-                <!--
-                <texture id="trunk-color" map-to="color" />
-                <texture id="trunk-normal" map-to="normal" />
-                -->
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
             <node id="tree-twig">
                 <define key="DISCARD_ALPHA" value="TRUE"/>
                 <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
                 <!--
-                <material emission="0.05,0.1,0.05"/>
                 <define key="HAS_GS_TRANSFORM" value="TRUE"/>
                 <texture name="windFlow" id="wind-flowmap" />
                 <input name="stiffness" type="float" value="0.5"/>
@@ -372,8 +383,6 @@
 
     <node id="Scene-Geometry">
         <node import="Grass"/>
-        <!--
-        -->
         <node import="Ground"/>
     </node>
 

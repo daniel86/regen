@@ -194,7 +194,7 @@ void ProcTree::loadPreset(Preset preset) {
 			twigMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_SRC);
 			twigMaterial_->set_wrapping(GL_CLAMP_TO_EDGE);
 			twigMaterial_->set_textures("materials/tree-twig",
-				preset == PRESET_OAK_GREEN ? "oak-green" : "oak-red");
+										preset == PRESET_OAK_GREEN ? "oak-green" : "oak-red");
 			break;
 		case PRESET_OLIVE:
 			props.mSeed = 861;
@@ -259,52 +259,40 @@ void ProcTree::loadPreset(Preset preset) {
 	}
 }
 
-ref_ptr<ProcTree> ProcTree::computeMediumDetailTree() {
-	auto medTree = ref_ptr<ProcTree>::alloc();
-	medTree->handle.mProperties = handle.mProperties;
-	auto &medProps = medTree->handle.mProperties;
+ref_ptr<Proctree::Tree> ProcTree::computeMediumDetailTree() {
+	auto medTree = ref_ptr<Proctree::Tree>::alloc();
+	medTree->mProperties = handle.mProperties;
+	auto &medProps = medTree->mProperties;
 	auto &highProps = handle.mProperties;
-	medProps.mSegments = std::max(4, highProps.mSegments / 2);
+	//medProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.9f;
+	//medProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.9f;
+	medProps.mTwigScale = highProps.mTwigScale * 1.25f;
+	// reduce number of small branches
 	medProps.mLevels = std::max(2, highProps.mLevels - 1);
-	medProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.9f;
-	medProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.9f;
-	medProps.mTwigScale = highProps.mTwigScale * 0.75f;
 	return medTree;
 }
 
-ref_ptr<ProcTree> ProcTree::computeLowDetailTree() {
-	auto lowTree = ref_ptr<ProcTree>::alloc();
-	lowTree->handle.mProperties = handle.mProperties;
-	auto &lowProps = lowTree->handle.mProperties;
+ref_ptr<Proctree::Tree> ProcTree::computeLowDetailTree() {
+	auto lowTree = ref_ptr<Proctree::Tree>::alloc();
+	lowTree->mProperties = handle.mProperties;
+	auto &lowProps = lowTree->mProperties;
 	auto &highProps = handle.mProperties;
-	lowProps.mSegments = std::max(2, highProps.mSegments / 4);
-	lowProps.mLevels = std::max(1, highProps.mLevels - 2);
-	lowProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.8f;
-	lowProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.8f;
-	lowProps.mTwigScale = highProps.mTwigScale * 0.5f;
+	//lowProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.8f;
+	//lowProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.8f;
+	lowProps.mTwigScale = highProps.mTwigScale * 1.75f;
+	// reduce number of small branches
+	lowProps.mLevels = std::max(1, highProps.mLevels - 3);
 	return lowTree;
 }
 
-void ProcTree::updateAttributes(TreeMesh &treeMesh,
-								int numVertices, int numFaces,
-								Proctree::fvec3 *vertices,
-								Proctree::fvec3 *normals,
-								Proctree::fvec2 *uvs,
-								Proctree::ivec3 *faces) {
-	auto numIndices = numFaces * 3;
-	treeMesh.indices->setVertexData(numIndices, reinterpret_cast<const unsigned char *>(&faces[0].x));
-	treeMesh.pos->setVertexData(numVertices, reinterpret_cast<const unsigned char *>(&vertices[0].x));
-	treeMesh.nor->setVertexData(numVertices, reinterpret_cast<const unsigned char *>(&normals[0].x));
-	treeMesh.texco->setVertexData(numVertices, reinterpret_cast<const unsigned char *>(&uvs[0].u));
-	treeMesh.tan->setVertexData(numVertices);
-
-	for (int i = 0; i < numFaces; i++) {
-		auto &v0 = *((Vec3f *) &vertices[faces[i].x]);
-		auto &v1 = *((Vec3f *) &vertices[faces[i].y]);
-		auto &v2 = *((Vec3f *) &vertices[faces[i].z]);
-		auto &uv0 = *((Vec2f *) &uvs[faces[i].x]);
-		auto &uv1 = *((Vec2f *) &uvs[faces[i].y]);
-		auto &uv2 = *((Vec2f *) &uvs[faces[i].z]);
+void ProcTree::computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset) {
+	for (int i = 0; i < procMesh.mFaceCount; i++) {
+		auto &v0 = *((Vec3f *) &procMesh.mVert[procMesh.mFace[i].x]);
+		auto &v1 = *((Vec3f *) &procMesh.mVert[procMesh.mFace[i].y]);
+		auto &v2 = *((Vec3f *) &procMesh.mVert[procMesh.mFace[i].z]);
+		auto &uv0 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].x]);
+		auto &uv1 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].y]);
+		auto &uv2 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].z]);
 		auto e1 = v1 - v0;
 		auto e2 = v2 - v0;
 		auto deltaUV1 = uv1 - uv0;
@@ -312,23 +300,88 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh,
 		float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 		Vec3f tangent3 = (e1 * deltaUV2.y - e2 * deltaUV1.y) * f;
 		Vec4f tangent(tangent3.x, tangent3.y, tangent3.z, 1.0f);
-		treeMesh.tan->setVertex(faces[i].x, tangent);
-		treeMesh.tan->setVertex(faces[i].y, tangent);
-		treeMesh.tan->setVertex(faces[i].z, tangent);
+		treeMesh.tan->setVertex(vertexOffset + procMesh.mFace[i].x, tangent);
+		treeMesh.tan->setVertex(vertexOffset + procMesh.mFace[i].y, tangent);
+		treeMesh.tan->setVertex(vertexOffset + procMesh.mFace[i].z, tangent);
+	}
+}
+
+void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const {
+	std::vector<Mesh::MeshLOD> lodLevels;
+	auto &lod0 = procLODs[0];
+	int numVertices = 0, numIndices = 0;
+	for (auto &lod: procLODs) {
+		numVertices += lod.mVertCount;
+		numIndices += lod.mFaceCount * 3;
+	}
+
+	if (!useLODs_) {
+		// use proc tree data directly
+		treeMesh.indices->setVertexData(numIndices,
+										reinterpret_cast<const unsigned char *>(&lod0.mFace[0].x));
+		treeMesh.pos->setVertexData(numVertices,
+									reinterpret_cast<const unsigned char *>(&lod0.mVert[0].x));
+		treeMesh.nor->setVertexData(numVertices,
+									reinterpret_cast<const unsigned char *>(&lod0.mNormal[0].x));
+		treeMesh.texco->setVertexData(numVertices,
+									  reinterpret_cast<const unsigned char *>(&lod0.mUV[0].u));
+		treeMesh.tan->setVertexData(numVertices);
+		computeTan(treeMesh, lod0, 0);
+	} else {
+		// allocate memory then copy each LOD into the vertex data array
+		treeMesh.indices->setVertexData(numIndices);
+		treeMesh.pos->setVertexData(numVertices);
+		treeMesh.nor->setVertexData(numVertices);
+		treeMesh.texco->setVertexData(numVertices);
+		treeMesh.tan->setVertexData(numVertices);
+		auto *indexData = (unsigned int*) treeMesh.indices->ownedClientData();
+		auto *posData = (float*) treeMesh.pos->ownedClientData();
+		auto *norData = (float*) treeMesh.nor->ownedClientData();
+		auto *texcoData = (float*) treeMesh.texco->ownedClientData();
+		// copy data from Proctree to Mesh
+		// also create LOD descriptions on the way.
+		unsigned int vertexOffset = 0u, indexOffset = 0u;
+		for (auto &lod: procLODs) {
+			// create LOD description
+			auto &lodLevel = lodLevels.emplace_back();
+			lodLevel.numVertices = lod.mVertCount;
+			lodLevel.numIndices = lod.mFaceCount * 3;
+			lodLevel.vertexOffset = vertexOffset;
+			lodLevel.indexOffset = indexOffset;
+			// copy data
+			for (int i = 0; i < lod.mFaceCount; i++) {
+				indexData[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
+				indexData[i * 3 + 1] = lod.mFace[i].y + vertexOffset;
+				indexData[i * 3 + 2] = lod.mFace[i].z + vertexOffset;
+			}
+			memcpy(posData, &lod.mVert[0].x, lod.mVertCount * 3 * sizeof(float));
+			memcpy(norData, &lod.mNormal[0].x, lod.mVertCount * 3 * sizeof(float));
+			memcpy(texcoData, &lod.mUV[0].u, lod.mVertCount * 2 * sizeof(float));
+			// compute tangents
+			computeTan(treeMesh, lod, vertexOffset);
+			// increase offsets
+			vertexOffset += lodLevel.numVertices;
+			indexOffset += lodLevel.numIndices;
+			indexData += lodLevel.numIndices;
+			posData += lod.mVertCount * 3;
+			norData += lod.mVertCount * 3;
+			texcoData += lod.mVertCount * 2;
+		}
 	}
 
 	treeMesh.mesh->begin(ShaderInputContainer::INTERLEAVED);
-	treeMesh.mesh->setIndices(treeMesh.indices, numVertices);
+	auto indexRef = treeMesh.mesh->setIndices(treeMesh.indices, numVertices);
 	treeMesh.mesh->setInput(treeMesh.pos);
 	treeMesh.mesh->setInput(treeMesh.nor);
 	treeMesh.mesh->setInput(treeMesh.tan);
 	treeMesh.mesh->setInput(treeMesh.texco);
 	treeMesh.mesh->end();
 
-	Vec3f min = *((Vec3f *) &vertices[0]);
-	Vec3f max = *((Vec3f *) &vertices[0]);
-	for (int i = 1; i < numVertices; i++) {
-		auto &v = *((Vec3f *) &vertices[i]);
+	Vec3f min = *((Vec3f *) &lod0.mVert[0]);
+	Vec3f max = *((Vec3f *) &lod0.mVert[0]);
+	// find bounding box of LOD=0
+	for (int i = 1; i < lod0.mVertCount; i++) {
+		auto &v = *((Vec3f *) &lod0.mVert[i]);
 		min.x = std::min(min.x, v.x);
 		min.y = std::min(min.y, v.y);
 		min.z = std::min(min.z, v.z);
@@ -337,21 +390,85 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh,
 		max.z = std::max(max.z, v.z);
 	}
 	treeMesh.mesh->set_bounds(min, max);
+
+	if (!lodLevels.empty()) {
+		for (auto &x: lodLevels) {
+			// add the index buffer offset (in number of bytes)
+			x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+		}
+		treeMesh.mesh->setMeshLODs(lodLevels);
+		treeMesh.mesh->activateLOD(0);
+	}
+}
+
+ProcTree::ProcMesh ProcTree::trunkProcMesh(Proctree::Tree &x) {
+	return {
+			x.mVertCount,
+			x.mFaceCount,
+			x.mVert,
+			x.mNormal,
+			x.mUV,
+			x.mFace
+	};
+}
+
+ProcTree::ProcMesh ProcTree::twigProcMesh(Proctree::Tree &x) {
+	return {
+			x.mTwigVertCount,
+			x.mTwigFaceCount,
+			x.mTwigVert,
+			x.mTwigNormal,
+			x.mTwigUV,
+			x.mTwigFace
+	};
 }
 
 void ProcTree::updateTrunkAttributes() {
-	updateAttributes(trunk, handle.mVertCount, handle.mFaceCount,
-					 handle.mVert, handle.mNormal, handle.mUV, handle.mFace);
+	if (useLODs_) {
+		// TODO: might be this can be done more efficiently without creating three trees,
+		//       for this it would be needed to iterate over branch hierarchy.
+		updateAttributes(trunk, {
+				trunkProcMesh(handle),
+				trunkProcMesh(*lodMedium_.get()),
+				trunkProcMesh(*lodLow_.get())
+		});
+	} else {
+		updateAttributes(trunk, {trunkProcMesh(handle)});
+	}
 }
 
 void ProcTree::updateTwigAttributes() {
-	updateAttributes(twig, handle.mTwigVertCount, handle.mTwigFaceCount,
-					 handle.mTwigVert, handle.mTwigNormal, handle.mTwigUV, handle.mTwigFace);
+	if (useLODs_) {
+		// NOTE: current LOD approach of reducing branching in the trunk of the tree is fine
+		//       for the look of the tree, but removing the twigs changes shape too much,
+		//       so twig LOD is disabled for now.
+		//       Probably best would be to identify twigs close to the trunk, then remove
+		//       them in LODs starting from the closest to the trunk.
+		//       Best to do this with the LOD 0 vertex data, and only generate an additional
+		//       index buffer per LOD leaving out some of the twigs.
+		//updateAttributes(twig, {
+		//		twigProcMesh(handle),
+		//		twigProcMesh(*lodMedium_.get()),
+		//		twigProcMesh(*lodLow_.get())
+		//});
+		updateAttributes(twig, {twigProcMesh(handle)});
+	} else {
+		updateAttributes(twig, {twigProcMesh(handle)});
+	}
 }
 
-void ProcTree::update(const std::vector<GLuint> &lodLevels) {
-	// TODO: handle LOD levels
+void ProcTree::update() {
 	handle.generate();
+	if (useLODs_) {
+		if (lodMedium_.get() == nullptr) {
+			lodMedium_ = computeMediumDetailTree();
+		}
+		if (lodLow_.get() == nullptr) {
+			lodLow_ = computeLowDetailTree();
+		}
+		lodMedium_->generate();
+		lodLow_->generate();
+	}
 	// update trunk
 	updateTrunkAttributes();
 	if (trunkMaterial_.get() != nullptr) {
@@ -361,5 +478,9 @@ void ProcTree::update(const std::vector<GLuint> &lodLevels) {
 	updateTwigAttributes();
 	if (twigMaterial_.get() != nullptr) {
 		twig.mesh->joinStates(twigMaterial_);
+	}
+	if (useLODs_) {
+		lodMedium_ = {};
+		lodLow_ = {};
 	}
 }

@@ -112,6 +112,11 @@ namespace regen {
 		auto &meshLODs() const { return meshLODs_; }
 
 		/**
+		 * Set the LODs of this mesh.
+		 */
+		void setMeshLODs(const std::vector<MeshLOD> &meshLODs) { meshLODs_ = meshLODs; }
+
+		/**
 		 * @return number of LODs.
 		 */
 		auto numLODs() const { return meshLODs_.empty() ? 1 : meshLODs_.size(); }
