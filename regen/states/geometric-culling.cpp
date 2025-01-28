@@ -51,7 +51,9 @@ void GeometricCulling::updateMeshLOD() {
 	auto distance = (shapePos - camPos).length();
 	mesh_->updateLOD(distance);
 	for (auto &part : shape->parts()) {
-		part->updateLOD(distance);
+		if (part->numLODs()>1) {
+			part->updateLOD(distance);
+		}
 	}
 }
 
@@ -105,11 +107,29 @@ void GeometricCulling::traverse(RenderState *rs) {
 			mesh_->activateLOD(lodLevel);
 			// set number of visible instances
 			mesh_->inputContainer()->set_numVisibleInstances(lodGroup.size());
+			for (auto &part : shape->parts()) {
+				if (mesh_->numLODs() == part->numLODs()) {
+					part->activateLOD(lodLevel);
+				}
+				else if (part->numLODs()>1) {
+					// could be part has different number of LODs, need to compute an adusted
+					// LOD level for each part
+					auto adjustedLODLevel = static_cast<unsigned int>(std::round(
+						static_cast<float>(lodLevel) *
+						static_cast<float>(part->numLODs()) /
+						static_cast<float>(mesh_->numLODs())));
+					part->activateLOD(adjustedLODLevel);
+				}
+				part->inputContainer()->set_numVisibleInstances(lodGroup.size());
+			}
 			StateNode::traverse(rs);
 			// reset number of visible instances
 			mesh_->inputContainer()->set_numVisibleInstances(numInstances_);
-			// reset LOD level
-			mesh_->activateLOD(0);
+			for (auto &part : shape->parts()) {
+				part->inputContainer()->set_numVisibleInstances(numInstances_);
+			}
 		}
+		// reset LOD level
+		mesh_->activateLOD(0);
 	}
 }

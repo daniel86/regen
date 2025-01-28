@@ -244,7 +244,7 @@ ref_ptr<MeshVector> MeshResource::createResource(
 	}
 	else if (meshType == "proctree") {
 		auto procTree = ref_ptr<ProcTree>::alloc(input);
-		procTree->update(lodLevels);
+		procTree->update();
 		(*out) = MeshVector(2);
 		(*out)[0] = procTree->trunkMesh();
 		(*out)[1] = procTree->twigMesh();

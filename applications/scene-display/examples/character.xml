@@ -104,7 +104,9 @@
             <rotate value="1.5707963,0.0,0.0"/>
             <translate value="8.0,-2.0, -8.0"/>
         </transform>
-        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf" />
+        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
+            <has-part mesh-id="tree-mesh" mesh-index="1" />
+        </shape>
         <!-- FIXME: there is some hack around here, look at bullet shape it is not at correct height.
                  probably because base of the mesh is at 0.0,0.0,0.0, and not its center.
                  plus there is a scaling here too. -->

@@ -4,23 +4,23 @@
 #define INTERPOLATE_VALUE(V) mix(mix(V[1], V[0], gl_TessCoord.x), mix(V[2], V[3], gl_TessCoord.x), gl_TessCoord.y)
 #define INTERPOLATE_STRUCT(S,V) mix(mix(S[1].V, S[0].V, gl_TessCoord.x), mix(S[2].V, S[3].V, gl_TessCoord.x), gl_TessCoord.y)
 #else
-#define INTERPOLATE_VALUE(V) (gl_TessCoord.z*V[0] + gl_TessCoord.x*V[1] + gl_TessCoord.y*V[2])
-#define INTERPOLATE_STRUCT(S,V) (gl_TessCoord.z*S[0].V + gl_TessCoord.x*S[1].V + gl_TessCoord.y*S[2].V)
+#define INTERPOLATE_VALUE(V) (gl_TessCoord.x*V[0] + gl_TessCoord.y*V[1] + gl_TessCoord.z*V[2])
+#define INTERPOLATE_STRUCT(S,V) (gl_TessCoord.x*S[0].V + gl_TessCoord.y*S[1].V + gl_TessCoord.z*S[2].V)
 #endif
 
 -- metricSreenDistance
 #ifndef REGEN_metricSreenDistance_defined_
 #define2 REGEN_metricSreenDistance_defined_
-const float in_lodMinSD = 7.0;
-const float in_lodMaxSD = 0.2;
+const float in_lodMinScreenDistance = 0.03;
+const float in_lodMaxScreenDistance = 0.1;
 float metricSreenDistance(vec2 v0, vec2 v1)
 {
-    float max = in_viewport.x*in_lodMaxSD;
-    float min = in_viewport.x*in_lodMinSD;
+    float max = in_viewport.x*in_lodMaxScreenDistance;
+    float min = in_viewport.x*in_lodMinScreenDistance;
     // get the distance clamped to the min and max distance range
-    float d = clamp(distance(v0,v1), in_lodMinSD, max);
+    float d = clamp(distance(v0,v1), in_lodMinScreenDistance, max);
     // normalize the distance to the range [0,1]
-    d = (d - min)/(max-in_lodMinSD);
+    d = (d - min)/(max-in_lodMinScreenDistance);
     return 1.0 - clamp(d, 0.0, 1.0);
 }
 #endif
@@ -96,6 +96,10 @@ float tessLevel(float d0, float d1, float maxTessLevel)
 {
     return mix( maxTessLevel, in_minTessLevel, min(d0, d1) );
 }
+float tessLevel(float d0, float maxTessLevel)
+{
+    return mix( maxTessLevel, in_minTessLevel, d0 );
+}
 
 void tesselationControl()
 {
@@ -144,43 +148,39 @@ void tesselationControl()
     #for INDEX to TESS_NUM_VERTICES
         vec2 ss${INDEX} = deviceToScreenSpace(nds${INDEX}.xy, in_viewport);
     #endfor
-        float distance0 = metricSreenDistance(ss1.xy, ss2.xy);
-        float distance1 = metricSreenDistance(ss0.xy, ss1.xy);
     #if TESS_PRIMITVE==quads
-        float distance2 = metricSreenDistance(ss3.xy, ss0.xy);
-        float distance3 = metricSreenDistance(ss2.xy, ss3.xy);
+        float e0 = metricSreenDistance(ss1.xy, ss2.xy);
+        float e1 = metricSreenDistance(ss2.xy, ss3.xy);
+        float e2 = metricSreenDistance(ss3.xy, ss0.xy);
+        float e3 = metricSreenDistance(ss0.xy, ss1.xy);
     #else
-        float distance2 = metricSreenDistance(ss2.xy, ss0.xy);
+        float e0 = metricSreenDistance(ss1.xy, ss2.xy);
+        float e1 = metricSreenDistance(ss2.xy, ss0.xy);
+        float e2 = metricSreenDistance(ss0.xy, ss1.xy);
     #endif
 
 #elif TESS_LOD == EDGE_DEVICE_DISTANCE
-        float distance0 = metricDeviceDistance(nds1.xy, nds2.xy);
-        float distance1 = metricDeviceDistance(nds0.xy, nds1.xy);
     #if TESS_PRIMITVE==quads
-        float distance2 = metricDeviceDistance(nds3.xy, nds0.xy);
-        float distance3 = metricDeviceDistance(nds2.xy, nds3.xy);
+        float e0 = metricDeviceDistance(nds1.xy, nds2.xy);
+        float e1 = metricDeviceDistance(nds2.xy, nds3.xy);
+        float e2 = metricDeviceDistance(nds3.xy, nds0.xy);
+        float e3 = metricDeviceDistance(nds0.xy, nds1.xy);
     #else
-        float distance2 = metricDeviceDistance(nds2.xy, nds0.xy);
+        float e0 = metricDeviceDistance(nds1.xy, nds2.xy);
+        float e1 = metricDeviceDistance(nds2.xy, nds0.xy);
+        float e2 = metricDeviceDistance(nds0.xy, nds1.xy);
     #endif
 
 #else
     #for INDEX to TESS_NUM_VERTICES
-        float distance${INDEX} = metricCameraDistance(ws${INDEX}.xyz);
+        float e${INDEX} = metricCameraDistance(ws${INDEX}.xyz);
     #endfor
 #endif
 
         float maxTessLevel = clamp(in_maxTessLevel*in_lodFactor, 1.0, 64.0);
-#if TESS_PRIMITVE==quads
-        float e0 = tessLevel(distance2, distance0, maxTessLevel);
-        float e1 = tessLevel(distance0, distance1, maxTessLevel);
-        float e2 = tessLevel(distance1, distance3, maxTessLevel);
-        float e3 = tessLevel(distance3, distance2, maxTessLevel);
-#else
-        float e0 = tessLevel(distance1, distance2, maxTessLevel);
-        float e1 = tessLevel(distance2, distance0, maxTessLevel);
-        float e2 = tessLevel(distance0, distance1, maxTessLevel);
-#endif
-
+#for INDEX to TESS_NUM_VERTICES
+        e${INDEX} = tessLevel(e${INDEX}, maxTessLevel);
+#endfor
 #if TESS_PRIMITVE==quads
         gl_TessLevelInner[0] = max(e1, e3);
         gl_TessLevelInner[1] = max(e0, e2);

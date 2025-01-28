@@ -186,7 +186,6 @@ void Mesh::updateLOD(float cameraDistance) {
 }
 
 void Mesh::activateLOD(GLuint lodLevel) {
-	if (lodLevel == lodLevel_) return;
 	if (meshLODs_.size() <= lodLevel) {
 		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << meshLODs_.size());
 		return;
