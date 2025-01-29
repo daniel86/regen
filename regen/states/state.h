@@ -17,6 +17,8 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/render-state.h>
+#include "regen/gl-types/ubo.h"
+#include "regen/gl-types/uniform-block.h"
 
 namespace regen {
 	/**
@@ -98,6 +100,12 @@ namespace regen {
 } // namespace
 
 namespace regen {
+	struct StateInput {
+		ref_ptr<ShaderInput> in;
+		ref_ptr<UniformBlock> block;
+		ref_ptr<ShaderInputContainer> container;
+	};
+
 	/**
 	 * \brief Base class for states.
 	 *
@@ -173,7 +181,7 @@ namespace regen {
 		 * @param name ShaderInput name.
 		 * @return The ShaderInput if any or a null reference if not found.
 		 */
-		ref_ptr<ShaderInput> findShaderInput(const std::string &name);
+		std::optional<StateInput> findShaderInput(const std::string &name);
 
 		/**
 		 * Defines a GLSL macro.

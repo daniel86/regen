@@ -131,6 +131,14 @@ ProcTree::ProcTree(scene::SceneInputNode &input) : ProcTree() {
 
 void ProcTree::loadPreset(Preset preset) {
 	auto &props = handle.mProperties;
+
+	trunkMaterial_ = ref_ptr<Material>::alloc();
+	trunkMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_MULTIPLY);
+
+	twigMaterial_ = ref_ptr<Material>::alloc();
+	twigMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_MULTIPLY);
+	twigMaterial_->set_wrapping(GL_CLAMP_TO_EDGE);
+
 	switch (preset) {
 		case PRESET_NONE:
 			break;
@@ -157,12 +165,9 @@ void ProcTree::loadPreset(Preset preset) {
 			props.mRadiusFalloffRate = 0.73;
 			props.mTwistRate = 2.06;
 			props.mTrunkLength = 2.45;
-			trunkMaterial_ = ref_ptr<Material>::alloc();
 			trunkMaterial_->set_textures("materials/tree-trunk", 0);
-			twigMaterial_ = ref_ptr<Material>::alloc();
-			twigMaterial_->set_wrapping(GL_CLAMP_TO_EDGE);
-			twigMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_SRC);
 			twigMaterial_->set_textures("materials/tree-twig", "fir");
+			twigMaterial_->diffuse()->setUniformData(Vec3f(1.7f, 1.8f, 1.7f));
 			break;
 		case PRESET_OAK_GREEN:
 		case PRESET_OAK_RED:
@@ -188,11 +193,7 @@ void ProcTree::loadPreset(Preset preset) {
 			props.mRadiusFalloffRate = 0.73;
 			props.mTwistRate = 1.5;
 			props.mTrunkLength = 2.25;
-			trunkMaterial_ = ref_ptr<Material>::alloc();
 			trunkMaterial_->set_textures("materials/tree-trunk", 0);
-			twigMaterial_ = ref_ptr<Material>::alloc();
-			twigMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_SRC);
-			twigMaterial_->set_wrapping(GL_CLAMP_TO_EDGE);
 			twigMaterial_->set_textures("materials/tree-twig",
 										preset == PRESET_OAK_GREEN ? "oak-green" : "oak-red");
 			break;
@@ -219,11 +220,7 @@ void ProcTree::loadPreset(Preset preset) {
 			props.mRadiusFalloffRate = 0.66;
 			props.mTwistRate = 2.7;
 			props.mTrunkLength = 1.55;
-			trunkMaterial_ = ref_ptr<Material>::alloc();
 			trunkMaterial_->set_textures("materials/tree-trunk", 0);
-			twigMaterial_ = ref_ptr<Material>::alloc();
-			twigMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_SRC);
-			twigMaterial_->set_wrapping(GL_CLAMP_TO_EDGE);
 			twigMaterial_->set_textures("materials/tree-twig", "olive");
 			break;
 		case PRESET_PINE:
@@ -249,11 +246,7 @@ void ProcTree::loadPreset(Preset preset) {
 			props.mRadiusFalloffRate = 0.73;
 			props.mTwistRate = 2.06;
 			props.mTrunkLength = 2.45;
-			trunkMaterial_ = ref_ptr<Material>::alloc();
 			trunkMaterial_->set_textures("materials/tree-trunk", 0);
-			twigMaterial_ = ref_ptr<Material>::alloc();
-			twigMaterial_->set_colorBlendMode(BlendMode::BLEND_MODE_SRC);
-			twigMaterial_->set_wrapping(GL_CLAMP_TO_EDGE);
 			twigMaterial_->set_textures("materials/tree-twig", "pine");
 			break;
 	}

@@ -234,7 +234,13 @@ static std::optional<Bounds<Vec3f>> getBoxBounds(SceneInputNode &input) {
 	if (input.hasAttribute("box-size")) {
 		auto size = input.getValue<Vec3f>("box-size", Vec3f(0.0));
 		auto halfSize = size * 0.5;
-		return Bounds<Vec3f>{-halfSize, halfSize};
+		auto bounds = Bounds<Vec3f>{-halfSize, halfSize};
+		if (input.hasAttribute("box-center")) {
+			auto center = input.getValue<Vec3f>("box-center", Vec3f(0.0));
+			bounds.min += center;
+			bounds.max += center;
+		}
+		return bounds;
 	}
 	REGEN_WARN("Ignoring AABB " << input.getDescription() << " without size or mesh.");
 	return std::nullopt;
@@ -243,7 +249,8 @@ static std::optional<Bounds<Vec3f>> getBoxBounds(SceneInputNode &input) {
 static ref_ptr<BoundingShape> createShape(
 		SceneParser *parser,
 		SceneInputNode &input,
-		const ref_ptr<Mesh> &mesh) {
+		const ref_ptr<Mesh> &mesh,
+		const std::vector<ref_ptr<Mesh>> &parts) {
 	auto shapeType = input.getValue<std::string>("type", "aabb");
 
 	// create a collision shape
@@ -287,6 +294,15 @@ static ref_ptr<BoundingShape> createShape(
 
 	// handle input children with tag "has-part" which define additional
 	// meshes to be included in the shape.
+	for (auto &part : parts) {
+		shape->addPart(part);
+	}
+
+	return shape;
+}
+
+static std::vector<ref_ptr<Mesh>> getParts(SceneParser *parser, SceneInputNode &input) {
+	std::vector<ref_ptr<Mesh>> parts;
 	for (auto &child : input.getChildren("has-part")) {
 		auto meshID = child->getValue("mesh-id");
 		auto meshVector = parser->getResources()->getMesh(parser, meshID);
@@ -297,19 +313,18 @@ static ref_ptr<BoundingShape> createShape(
 			auto meshIndex = child->getValue<unsigned int>("mesh-index", 0);
 			if (meshIndex < meshVector->size()) {
 				auto &part = (*meshVector.get())[meshIndex];
-				shape->addPart(part);
+				parts.push_back(part);
 			} else {
 				REGEN_WARN("Ignoring part mesh with invalid index in node " << input.getDescription() << ".");
 			}
 		}
 		else {
 			for (auto &part : *meshVector.get()) {
-				shape->addPart(part);
+				parts.push_back(part);
 			}
 		}
 	}
-
-	return shape;
+	return parts;
 }
 
 static ref_ptr<Mesh> getMesh(SceneParser *parser, SceneInputNode &input) {
@@ -343,12 +358,18 @@ static ref_ptr<SpatialIndex> getSpatialIndex(SceneParser *parser, SceneInputNode
 static ref_ptr<ShaderInput3f> getOffset(
 		SceneParser *parser,
 		SceneInputNode &input,
-		const ref_ptr<Mesh> &mesh) {
+		const ref_ptr<Mesh> &mesh,
+		const std::vector<ref_ptr<Mesh>> &parts) {
 	// try to find shader inputs of mesh
-	if (mesh.get() == nullptr) {
-		return {};
+	ref_ptr<Mesh> m = mesh;
+	if (m.get() == nullptr) {
+		if (!parts.empty()) {
+			m = parts[0];
+		} else {
+			return {};
+		}
 	}
-	auto meshOffset = mesh->inputContainer()->getInput("modelOffset");
+	auto meshOffset = m->inputContainer()->getInput("modelOffset");
 	if (meshOffset.get()) {
 		auto upcasted = ref_ptr<ShaderInput3f>::dynamicCast(meshOffset);
 		if (upcasted.get()) {
@@ -367,7 +388,8 @@ void ShapeStateProvider::processInput(
 	auto transformID = input.getValue("transform-id");
 	auto transform = parser->getResources()->getTransform(parser, transformID);
 	auto mesh = getMesh(parser, input);
-	auto offset = getOffset(parser, input, mesh);
+	auto parts = getParts(parser, input);
+	auto offset = getOffset(parser, input, mesh, parts);
 	auto shapeMode = input.getValue<std::string>("mode", "index");
 
 	auto numInstances = 1u;
@@ -386,7 +408,7 @@ void ShapeStateProvider::processInput(
 		auto spatialIndex = getSpatialIndex(parser, input);
 		if (spatialIndex.get()) {
 			for (GLuint i = 0; i < numInstances; ++i) {
-				auto shape = createShape(parser, input, mesh);
+				auto shape = createShape(parser, input, mesh, parts);
 				if (!shape.get()) {
 					REGEN_WARN("Skipping shape node " << input.getDescription() << " without shape.");
 					continue;

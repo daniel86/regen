@@ -310,49 +310,68 @@ int QuadTree::numIntersections(const BoundingShape &shape) {
 	return count;
 }
 
-void QuadTree::intersect2D(
-		const BoundingShape &shape,
-		const OrthogonalProjection &projection,
-		const QuadTree::Node *node,
-		std::atomic<unsigned int> &jobCounter,
-		std::set<const Item *> &visited,
-		std::mutex &mutex,
-		const std::function<void(const BoundingShape &)> &callback) {
-	// 2D intersection test with the xz-projection
-	if (!node->intersects(projection)) {
-		return;
-	}
-	if (node->isLeaf()) {
-		// 3D intersection test with the shapes in the node
-		for (const auto &quadShape: node->shapes) {
-			{
-				std::lock_guard<std::mutex> lock(mutex);
-				if (visited.find(quadShape) != visited.end()) {
-					continue;
+#ifdef QUAD_TREE_THREADING
+namespace regen {
+	class QuadTreeWorker : public ThreadPool::Runner {
+	public:
+		using Callback = std::function<void(const BoundingShape &)>;
+
+		ThreadPool *threadPool;
+		const BoundingShape *shape;
+		const OrthogonalProjection *projection;
+		const QuadTree::Node *node;
+		std::set<const QuadTree::Item *> *visited;
+		std::mutex *mutex;
+		const Callback &callback;
+		std::vector<std::shared_ptr<QuadTreeWorker>> children_;
+
+		explicit QuadTreeWorker(const Callback &callback)
+				: callback(callback) {
+		}
+
+		~QuadTreeWorker() override = default;
+
+		void run() override {
+			// 2D intersection test with the xz-projection
+			if (!node->intersects(*projection)) {
+				return;
+			}
+			if (node->isLeaf()) {
+				// 3D intersection test with the shapes in the node
+				for (const auto &quadShape: node->shapes) {
+					{
+						std::lock_guard<std::mutex> lock(*mutex);
+						if (visited->find(quadShape) != visited->end()) {
+							continue;
+						}
+						visited->insert(quadShape);
+					}
+					if (quadShape->shape->hasIntersectionWith(*shape)) {
+						callback(*quadShape->shape.get());
+					}
 				}
-				visited.insert(quadShape);
 			}
-			if (quadShape->shape->hasIntersectionWith(shape)) {
-				callback(*quadShape->shape.get());
+			else {
+				static auto excHandler = [](const std::exception &) {};
+				// Add the children to the stack
+				for (auto &child: node->children) {
+					if (child && (!child->isLeaf() || !child->shapes.empty())) {
+						auto childWorker = std::make_shared<QuadTreeWorker>(callback);
+						childWorker->threadPool = threadPool;
+						childWorker->node = child;
+						childWorker->shape = shape;
+						childWorker->projection = projection;
+						childWorker->visited = visited;
+						childWorker->mutex = mutex;
+						threadPool->pushWork(childWorker, excHandler);
+						children_.push_back(childWorker);
+					}
+				}
 			}
 		}
-	}
-	else {
-		static auto excHandler = [](const std::exception &) {};
-		// Add the children to the stack
-		for (auto &child: node->children) {
-			if (child && (!child->isLeaf() || !child->shapes.empty())) {
-				auto runner = std::make_shared<ThreadPool::LambdaRunner>(
-					[&](const ThreadPool::LambdaRunner::StopChecker&) {
-						intersect2D(shape, projection, child, jobCounter, visited, mutex, callback);
-					});
-				jobCounter += 1;
-				threadPool_.pushWork(runner, excHandler);
-			}
-		}
-	}
-	jobCounter -= 1;
+	};
 }
+#endif
 
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
@@ -377,14 +396,31 @@ void QuadTree::foreachIntersection(
 
 #ifdef QUAD_TREE_THREADING
 	std::mutex mutex;
-	std::atomic<unsigned int> jobCounter(1);
-	auto runner = std::make_shared<ThreadPool::LambdaRunner>([&](const ThreadPool::LambdaRunner::StopChecker&) {
-		intersect2D(shape, shape_projection, root_, jobCounter, visited, mutex, callback);
-	});
-	threadPool_.pushWork(runner, [](const std::exception &) {});
+	//std::atomic<unsigned int> jobCounter(1);
+	//auto runner = std::make_shared<ThreadPool::LambdaRunner>([&](const ThreadPool::LambdaRunner::StopChecker&) {
+	//	intersect2D(shape, shape_projection, root_, jobCounter, visited, mutex, callback);
+	//});
+	//threadPool_.pushWork(runner, [](const std::exception &) {});
+	auto firstWorker = std::make_shared<QuadTreeWorker>(callback);
+	firstWorker->threadPool = &threadPool_;
+	firstWorker->node = root_;
+	firstWorker->shape = &shape;
+	firstWorker->projection = &shape_projection;
+	firstWorker->visited = &visited;
+	firstWorker->mutex = &mutex;
+	threadPool_.pushWork(firstWorker, [](const std::exception &) {});
 
-	while (jobCounter > 0) {
-		std::this_thread::sleep_for(std::chrono::microseconds (10));
+	std::stack<QuadTreeWorker*> stack;
+	stack.push(firstWorker.get());
+	while (!stack.empty()) {
+		auto *worker = stack.top();
+		stack.pop();
+		if (!worker->isTerminated()) {
+			worker->join();
+		}
+		for (auto &child: worker->children_) {
+			stack.push(child.get());
+		}
 	}
 #else
 	std::stack<Node *> stack;

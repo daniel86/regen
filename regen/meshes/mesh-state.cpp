@@ -10,6 +10,7 @@
 #include <regen/gl-types/gl-util.h>
 
 #include "mesh-state.h"
+#include "regen/gl-types/uniform-block.h"
 
 using namespace regen;
 

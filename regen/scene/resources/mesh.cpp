@@ -31,10 +31,6 @@ using namespace std;
 
 static void processMeshChildren(
 		SceneParser *parser, SceneInputNode &input, MeshVector &x) {
-	ref_ptr<State> state;
-	if (x.size() > 1) state = ref_ptr<State>::alloc();
-	else state = x[0];
-
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
 	for (auto it = childs.begin(); it != childs.end(); ++it) {
 		SceneInputNode *child = it->get();
@@ -44,10 +40,8 @@ static void processMeshChildren(
 			REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
 			continue;
 		}
+		auto state = ref_ptr<State>::alloc();
 		processor->processInput(parser, *child, state);
-	}
-
-	if (x.size() > 1) {
 		for (auto jt = x.begin(); jt != x.end(); ++jt) {
 			const ref_ptr<Mesh>& mesh = *jt;
 			mesh->joinStates(state);

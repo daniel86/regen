@@ -27,34 +27,34 @@ Material::Material()
 		  heightMapMode_(HEIGHT_MAP_VERTEX),
 		  colorBlendMode_(BLEND_MODE_SRC),
 		  colorBlendFactor_(1.0f) {
-	materialUniforms_ = ref_ptr<UniformBlock>::alloc("Material");
-	setInput(materialUniforms_);
-
 	materialSpecular_ = ref_ptr<ShaderInput3f>::alloc("matSpecular");
 	materialSpecular_->setUniformData(Vec3f(0.0f));
-	materialUniforms_->addUniform(materialSpecular_);
 
 	materialShininess_ = ref_ptr<ShaderInput1f>::alloc("matShininess");
 	materialShininess_->setUniformData(128.0f);
-	materialUniforms_->addUniform(materialShininess_);
 
 	materialDiffuse_ = ref_ptr<ShaderInput3f>::alloc("matDiffuse");
 	materialDiffuse_->setUniformData(Vec3f(1.0f));
-	materialUniforms_->addUniform(materialDiffuse_);
 
 	materialAlpha_ = ref_ptr<ShaderInput1f>::alloc("matAlpha");
 	materialAlpha_->setUniformData(1.0f);
-	materialUniforms_->addUniform(materialAlpha_);
 
 	materialAmbient_ = ref_ptr<ShaderInput3f>::alloc("matAmbient");
 	materialAmbient_->setUniformData(Vec3f(0.0f));
-	materialUniforms_->addUniform(materialAmbient_);
 
 	materialRefractionIndex_ = ref_ptr<ShaderInput1f>::alloc("matRefractionIndex");
 	materialRefractionIndex_->setUniformData(0.95f);
-	materialUniforms_->addUniform(materialRefractionIndex_);
 
 	shaderDefine("HAS_MATERIAL", "TRUE");
+
+	materialUniforms_ = ref_ptr<UniformBlock>::alloc("Material");
+	materialUniforms_->addUniform(materialSpecular_);
+	materialUniforms_->addUniform(materialShininess_);
+	materialUniforms_->addUniform(materialDiffuse_);
+	materialUniforms_->addUniform(materialAlpha_);
+	materialUniforms_->addUniform(materialAmbient_);
+	materialUniforms_->addUniform(materialRefractionIndex_);
+	setInput(materialUniforms_);
 }
 
 void Material::set_emission(const Vec3f &emission) {

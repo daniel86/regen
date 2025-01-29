@@ -45,7 +45,8 @@ ReflectionCamera::ReflectionCamera(
 		norStamp_ = nor_->stamp() - 1;
 	}
 
-	transform_ = mesh->findShaderInput("modelMatrix");
+	auto modelMat = mesh->findShaderInput("modelMatrix");
+	transform_ = modelMat.value().in;
 	if (transform_.get() != nullptr) {
 		transformStamp_ = transform_->stamp() - 1;
 	}

@@ -142,6 +142,11 @@ namespace regen {
 			 */
 			[[nodiscard]] bool isTerminated() const { return isTerminated_; }
 
+			/**
+			 * @return true if the runner is currently running.
+			 */
+			[[nodiscard]] bool isRunning() const { return isRunning_; }
+
 		protected:
 			std::atomic<bool> isTerminated_;
 			std::atomic<bool> isRunning_;

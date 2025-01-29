@@ -9,6 +9,7 @@
 #include <regen/gl-types/gl-util.h>
 
 #include "shader-input-container.h"
+#include "uniform-block.h"
 
 using namespace regen;
 
@@ -82,6 +83,19 @@ ShaderInputList::const_iterator ShaderInputContainer::setInput(
 	if (in->numInstances() > 1) {
 		numInstances_ = in->numInstances();
 		numVisibleInstances_ = numInstances_;
+	}
+	// check for instances of attributes within UBO
+	if (in->isUniformBlock()) {
+		auto *block = dynamic_cast<UniformBlock *>(in.get());
+		for (auto &namedInput : block->uniforms()) {
+			if (namedInput.in_->isVertexAttribute() && namedInput.in_->numVertices() > numVertices_) {
+				numVertices_ = namedInput.in_->numVertices();
+			}
+			if (namedInput.in_->numInstances() > 1) {
+				numInstances_ = namedInput.in_->numInstances();
+				numVisibleInstances_ = numInstances_;
+			}
+		}
 	}
 
 	if (inputMap_.count(inputName) > 0) {

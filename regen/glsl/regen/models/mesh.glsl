@@ -29,7 +29,7 @@ out vec3 out_posEye;
 out vec3 out_norWorld;
 #endif
 #ifdef HAS_INSTANCES
-out int out_instanceID;
+flat out int out_instanceID;
 #endif
 
 #include regen.states.camera.input
@@ -153,9 +153,6 @@ void main() {
 
 layout(triangles, TESS_SPACING) in;
 
-#ifdef HAS_INSTANCES
-in int in_instanceID[ ];
-#endif
 #ifdef HAS_nor
 in vec3 in_norWorld[ ];
 #endif
@@ -165,9 +162,6 @@ out vec3 out_posEye;
 #endif
 #ifdef HAS_nor
 out vec3 out_norWorld;
-#endif
-#ifdef HAS_INSTANCES
-out int out_instanceID;
 #endif
 #ifdef HAS_VERTEX_MASK_MAP
 out float out_mask;
@@ -201,10 +195,6 @@ void main() {
     gl_Position = transformEyeToScreen(posEye,0);
     out_posWorld = posWorld.xyz;
     out_posEye = posEye.xyz;
-#endif
-    
-#ifdef HAS_INSTANCES
-    out_instanceID = in_instanceID[0];
 #endif
     HANDLE_IO(0);
 }
@@ -299,6 +289,9 @@ out vec4 out_color;
 flat in int in_layer;
 #else
 #define in_layer 0
+#endif
+#ifdef HAS_INSTANCES
+flat in int in_instanceID;
 #endif
 
 #ifdef DISCARD_ALPHA

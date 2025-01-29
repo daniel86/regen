@@ -8,7 +8,7 @@
 using namespace regen;
 
 SpatialIndex::SpatialIndex()
-	: threadPool_(std::max(2u, std::max(2u,std::thread::hardware_concurrency()) - 2u)) {
+	: threadPool_(std::max(2u,std::thread::hardware_concurrency()) - 2u) {
 }
 
 void SpatialIndex::addToIndex(const ref_ptr<BoundingShape> &shape) {
@@ -33,6 +33,14 @@ void SpatialIndex::addCamera(const ref_ptr<Camera> &camera, bool sortInstances) 
 
 bool SpatialIndex::hasCamera(const Camera &camera) const {
 	return cameras_.find(&camera) != cameras_.end();
+}
+
+std::vector<const Camera*> SpatialIndex::cameras() const {
+	std::vector<const Camera*> result;
+	for (auto &pair: cameras_) {
+		result.push_back(pair.first);
+	}
+	return result;
 }
 
 bool SpatialIndex::isVisible(const Camera &camera, std::string_view shapeID) {

@@ -40,7 +40,7 @@ namespace regen {
 		 */
 		struct InputOutput {
 			std::string layout; /**< the layout qualifier. */
-			std::string interpolation; /**< interpolation qulifier. */
+			std::string interpolation; /**< interpolation qualifier. */
 			std::string ioType; /**< the IO type (in/out/const/uniform). */
 			std::string dataType; /**< the data type as used in the Shader. */
 			std::string name; /**< the name as used in the Shader. */

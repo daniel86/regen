@@ -143,13 +143,12 @@
         <transform id="grass-tf">
             <translate value="0.0,-4.0,0.0"/>
         </transform>
-        <!-- FIXME: bounding boxes of grass patches are not correct for two reasons:
-            1. the max height of grass is not taken into account, the aabb is flat at the moment.
-            2. a height map value is applied to the geometry, but not to the bounding box.
-               easiest way would be to create a box with max height of height map value,
-               or to sample min/max height from the height map when bounding box is updated.
-        -->
-        <shape id="grass-shape" mode="index" type="aabb" mesh-id="grass-patches" transform-id="grass-tf" />
+        <shape id="grass-shape" mode="index" type="aabb"
+                box-size="2.0, 8.0, 2.0"
+                box-center="0.0, 4.0, 0.0"
+                transform-id="grass-tf">
+            <has-part mesh-id="grass-patches" />
+        </shape>
     </mesh>
 
     <node id="Grass">
@@ -216,14 +215,9 @@
                 obj-mesh="tree-mesh"
               />
         </transform>
-        <!-- TODO: also vary the color, but only for twigs! could use uniform color with mul lending the twig texture
-            I think only needed to make material with instanced color
-        -->
-        <!--
-        <input type="vec3" name="fooColor" is-instanced="1" mesh-index="">
-            <set mode="random" min="0,0,0" max="0,1,0"/>
+        <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
+            <set mode="random" min="1,1,1" max="5,4,2"/>
         </input>
-        -->
         <!-- TODO: which index is used by shape?? -->
         <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1" />

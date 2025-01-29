@@ -27,6 +27,11 @@ namespace regen {
 		void addUniform(const ref_ptr<ShaderInput> &input, const std::string &name);
 
 		/**
+		 * @param input the shader input.
+		 */
+		void updateUniform(const ref_ptr<ShaderInput> &input);
+
+		/**
 		 * Update the UBO.
 		 * Should be called each frame, is a no-op if no data has changed.
 		 * @param forceUpdate force update.
