@@ -2,10 +2,18 @@
 -- regen_InstanceID
 #ifndef regen_InstanceID_defined_
 #define2 regen_InstanceID_defined_
-#ifdef HAS_instanceIDMap
-    #define regen_InstanceID in_instanceIDMap[gl_InstanceID]
+#if SHADER_STAGE==fs
+    #ifdef HAS_instanceIDMap
+#define regen_InstanceID in_instanceIDMap[in_instanceID]
+    #else
+#define regen_InstanceID in_instanceID
+    #endif
 #else
-    #define regen_InstanceID gl_InstanceID
+    #ifdef HAS_instanceIDMap
+#define regen_InstanceID in_instanceIDMap[gl_InstanceID]
+    #else
+#define regen_InstanceID gl_InstanceID
+    #endif
 #endif
 #endif // regen_InstanceID_defined_
 

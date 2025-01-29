@@ -76,6 +76,12 @@ namespace regen {
 		auto &shapes() const { return shapes_; }
 
 		/**
+		 * @brief Get the cameras in the index
+		 * @return The cameras
+		 */
+		std::vector<const Camera*> cameras() const;
+
+		/**
 		 * @brief Update the index
 		 * @param dt The time delta
 		 */

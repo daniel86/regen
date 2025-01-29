@@ -72,23 +72,39 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
 			type = OrthogonalProjection::Type::TRIANGLE;
 			points.resize(3);
 			auto &viewDir = frustum->direction();
-			auto viewDir2D = Vec2f(viewDir.x, viewDir.z);
+			// FIXME: this is not entirely accurate.
 			// first point: origin of the frustum
 			auto basePoint = frustum->translation();
+			auto *farPlanePoints = frustum->points;
 			points[0] = Vec2f(basePoint.x, basePoint.z);
-			// Convert FOV from degrees to radians, and multiply by 0.5 to get the half-angle
-			auto halfFov = static_cast<float>(frustum->fov * 0.00872665);
-			// Project the far plane onto the xz-plane
-			auto far = static_cast<float>(frustum->far) * viewDir2D.length();
-			// Compute the far points by extending the base point in the right and left directions
-			points[1] = points[0] + Vec2f(
-				viewDir.x * cos(halfFov) + viewDir.z * sin(halfFov),
-				-viewDir.x * sin(halfFov) + viewDir.z * cos(halfFov)
-			) * far;
-			points[2] = points[0] + Vec2f(
-				viewDir.x * cos(-halfFov) + viewDir.z * sin(-halfFov),
-				-viewDir.x * sin(-halfFov) + viewDir.z * cos(-halfFov)
-			) * far;
+			// Project far plane points onto the xz plane
+			std::array<Vec2f, 4> farPoints2D;
+			Vec2f farPlaneCenter2D;
+			for (int i = 0; i < 4; ++i) {
+				farPoints2D[i] = Vec2f(farPlanePoints[i + 4].x, farPlanePoints[i + 4].z);
+				farPlaneCenter2D += farPoints2D[i];
+			}
+			farPlaneCenter2D *= 0.25f; // Center of all far frustum points
+			auto baseToCenter = farPlaneCenter2D - points[0];
+			// Compute the angles relative to the center
+			std::array<std::pair<float, int>, 4> angles;
+			for (int i = 0; i < 4; ++i) {
+				auto baseToPt = farPoints2D[i] - points[0];
+				angles[i] = {std::acos(
+					baseToCenter.dot(baseToPt) /
+					(baseToCenter.length() * baseToPt.length())), i};
+			}
+			// Sort the angles to find the maximum
+			std::sort(angles.begin(), angles.end(), [](const auto &a, const auto &b) {
+				return a.first < b.first;
+			});
+			points[1] = farPoints2D[angles[0].second];
+			points[2] = farPoints2D[angles[1].second];
+			if ((points[1] - points[2]).length() < std::numeric_limits<float>::epsilon()) {
+				// If the two points are the same, switch the last two point
+				points[2] = farPoints2D[angles[2].second];
+			}
+
 			// axes of the triangle (and quad)
 			axes = {
 					Axis(Vec2f(1, 0)),

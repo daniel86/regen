@@ -49,7 +49,8 @@ ParaboloidCamera::ParaboloidCamera(
 	if (hasBackFace_)
 		direction_->setVertex(1, Vec3f(0.0, 0.0, -1.0));
 
-	modelMatrix_ = ref_ptr<ShaderInputMat4>::dynamicCast(mesh->findShaderInput("modelMatrix"));
+	auto modelMat = mesh->findShaderInput("modelMatrix");
+	modelMatrix_ = ref_ptr<ShaderInputMat4>::dynamicCast(modelMat.value().in);
 	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(mesh->positions());
 	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(mesh->normals());
 	matrixStamp_ = 0;

@@ -122,33 +122,40 @@ void State::collectShaderInput(ShaderInputList &out) {
 	for (auto it = joined_.begin(); it != joined_.end(); ++it) { (*it)->collectShaderInput(out); }
 }
 
-ref_ptr<ShaderInput> State::findShaderInput(const std::string &name) {
-	ref_ptr<ShaderInput> ret;
+std::optional<StateInput> State::findShaderInput(const std::string &name) {
+	StateInput ret;
 
 	auto *inState = dynamic_cast<HasInput *>(this);
 	if (inState != nullptr) {
-		const ShaderInputList &l = inState->inputContainer()->inputs();
+		ret.container = inState->inputContainer();
+		auto &l = ret.container->inputs();
 		for (const auto &inNamed : l) {
 			if (name == inNamed.name_ || name == inNamed.in_->name()) {
-				return inNamed.in_;
+				ret.in = inNamed.in_;
+				ret.block = {};
+				return ret;
 			}
 			if (inNamed.in_->isUniformBlock()) {
-				auto *block = dynamic_cast<UniformBlock *>(inNamed.in_.get());
+				auto block = ref_ptr<UniformBlock>::dynamicCast(inNamed.in_);
 				for (auto &blockUniform : block->uniforms()) {
 					if (name == blockUniform.name_ || name == blockUniform.in_->name()) {
-						return blockUniform.in_;
+						ret.block = block;
+						ret.in = blockUniform.in_;
+						return ret;
 					}
 				}
 			}
 		}
 	}
 
-	for (auto it = joined().begin(); it != joined().end(); ++it) {
-		ret = (*it)->findShaderInput(name);
-		if (ret.get() != nullptr) break;
+	for (auto  &joined : joined_) {
+		auto joinedRet = joined->findShaderInput(name);
+		if (joinedRet.has_value()) {
+			return joinedRet.value();
+		}
 	}
 
-	return ret;
+	return std::nullopt;
 }
 
 //////////

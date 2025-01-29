@@ -122,7 +122,7 @@ void ThreadPool::Worker::run() {
 	// loop until the application exits
 	while (!hasTerminateRequest_) {
 		// wait for a claim
-		{
+		if (threadPool_->numQueuedWork() == 0) {
 			std::unique_lock<std::mutex> lk(threadPool_->workMutex_);
 			threadPool_->numActiveWorker_ -= 1;
 			if (!hasTerminateRequest_) {
@@ -209,9 +209,12 @@ void ThreadPool::Runner::runInternal() {
 		REGEN_WARN("Unknown worker error.");
 	}
 	// toggle flag
-	isTerminated_ = true;
-	isRunning_ = false;
-	finishedCV_.notify_all();
+    {
+        std::lock_guard<std::mutex> lk(mutex_);
+        isTerminated_ = true;
+        isRunning_ = false;
+		finishedCV_.notify_all();
+    }
 }
 
 void ThreadPool::Runner::stop(bool wait) {

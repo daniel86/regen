@@ -556,10 +556,10 @@ namespace regen {
 		Stack<byte *> dataStack_;
 		GLuint stamp_;
 
-		GLboolean isConstant_;
-		GLboolean isUniformBlock_;
-		GLboolean forceArray_;
-		GLboolean active_;
+		bool isConstant_;
+		bool isUniformBlock_;
+		bool forceArray_;
+		bool active_;
 
 		ref_ptr<Animation> dataUpload_;
 
@@ -964,46 +964,6 @@ namespace regen {
 				const std::string &name,
 				GLuint elementCount = 1,
 				GLboolean normalize = GL_FALSE);
-	};
-
-	class UBO;
-
-	/**
-	 * \brief Provides input data via a Uniform Buffer Object (UBO).
-	 */
-	class UniformBlock : public ShaderInput {
-	public:
-		/**
-		 * @param name the uniform block name.
-		 */
-		explicit UniformBlock(const std::string &name);
-
-		UniformBlock(const std::string &name, const ref_ptr<UBO> &ubo);
-
-		~UniformBlock() override;
-
-		UniformBlock(const UniformBlock &) = delete;
-
-		/**
-		 * @return the list of uniforms.
-		 */
-		const std::vector<NamedShaderInput> &uniforms() const;
-
-		/**
-		 * @param input the uniform to add.
-		 */
-		void addUniform(const ref_ptr<ShaderInput> &input, const std::string &name = "");
-
-		/**
-		 * Binds the uniform block to the given shader location.
-		 */
-		void enableUniformBlock(GLint loc) const;
-
-		void write(std::ostream &out) const override;
-
-	protected:
-		struct UniformBlockData;
-		UniformBlockData *priv_;
 	};
 } // namespace
 

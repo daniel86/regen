@@ -123,15 +123,6 @@ namespace regen {
 
 		void subdivide(Node *node);
 
-		void intersect2D(
-			const BoundingShape &shape,
-			const OrthogonalProjection &projection,
-			const QuadTree::Node *node,
-			std::atomic<unsigned int> &jobCounter,
-			std::set<const Item *> &visited,
-			std::mutex &mutex,
-			const std::function<void(const BoundingShape &)> &callback);
-
 		friend class QuadTreeTest;
 	};
 } // namespace

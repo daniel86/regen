@@ -15,6 +15,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/model-transformation.h>
 #include <regen/gl-types/shader-input-container.h>
+#include "regen/gl-types/uniform-block.h"
 
 namespace regen {
 	/**

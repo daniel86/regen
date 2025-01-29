@@ -1,4 +1,6 @@
 #include "spatial-index-debug.h"
+#include "orthogonal-projection.h"
+#include "regen/camera/reflection-camera.h"
 
 using namespace regen;
 
@@ -110,7 +112,25 @@ void SpatialIndexDebug::drawSphere(const BoundingSphere &sphere) {
 }
 
 void SpatialIndexDebug::drawFrustum(const Frustum &frustum) {
+	auto &vertices = frustum.points;
+	Vec3f color = Vec3f(1.0f, 0.0f, 1.0f);
+	// draw the 12 lines of the frustum
+	drawLine(vertices[0], vertices[1], color);
+	drawLine(vertices[1], vertices[3], color);
+	drawLine(vertices[3], vertices[2], color);
+	drawLine(vertices[2], vertices[0], color);
+	drawLine(vertices[4], vertices[5], color);
+	drawLine(vertices[5], vertices[7], color);
+	drawLine(vertices[7], vertices[6], color);
+	drawLine(vertices[6], vertices[4], color);
+	drawLine(vertices[0], vertices[4], color);
+	drawLine(vertices[1], vertices[5], color);
+	drawLine(vertices[2], vertices[6], color);
+	drawLine(vertices[3], vertices[7], color);
+}
 
+inline Vec3f toVec3(const Vec2f &v, float y) {
+	return {v.x, y, v.y};
 }
 
 void SpatialIndexDebug::traverse(regen::RenderState *rs) {
@@ -134,6 +154,21 @@ void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 					drawFrustum(*frustum);
 					break;
 			}
+		}
+	}
+	for (auto &camera: index_->cameras()) {
+		auto omni = dynamic_cast<const OmniDirectionalCamera *>(camera);
+		auto refl = dynamic_cast<const ReflectionCamera *>(camera);
+		if (!omni && !refl) {
+			auto &frustum = camera->frustum();
+			OrthogonalProjection proj(frustum);
+			auto &vertices = proj.points;
+			Vec3f color = Vec3f(0.0f, 1.0f, 0.0f);
+			// draw lines of the frustum
+			for (int i=0; i<vertices.size()-1; i++) {
+				drawLine(toVec3(vertices[i],2.0), toVec3(vertices[i+1],2.0), color);
+			}
+			drawLine(toVec3(vertices.back(),2.0), toVec3(vertices.front(),2.0), color);
 		}
 	}
 	index_->debugDraw(*this);

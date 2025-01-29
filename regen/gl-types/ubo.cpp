@@ -1,5 +1,6 @@
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/shader-input.h>
+#include <optional>
 
 #include "ubo.h"
 
@@ -21,6 +22,16 @@ void UBO::addUniform(const ref_ptr<ShaderInput> &input, const std::string &name)
 	uniforms_.emplace_back(input, name);
 	requiredSize_ += input->inputSize();
 	requiresResize_ = GL_TRUE;
+}
+
+void UBO::updateUniform(const ref_ptr<ShaderInput> &input) {
+	for (auto &uboInput : uboInputs_) {
+		if (uboInput.input.get() == input.get()) {
+			uboInput.lastStamp = 0;
+			requiresResize_ = GL_TRUE;
+			return;
+		}
+	}
 }
 
 GLboolean UBO::needsUpdate() const {
@@ -72,6 +83,32 @@ void UBO::computePaddedSize() {
 	}
 }
 
+static std::optional<std::pair<const byte*, unsigned int>> alignedData(const ref_ptr<ShaderInput> &in) {
+	// the GL specification states that the stride between array elements must be
+	// rounded up to 16 bytes.
+	// this is quite ugly to do element-wise memcpy below, hence non 16-byte aligned
+	// arrays should be avoided in general.
+	auto numElements = in->elementCount() * in->numInstances();
+	if (numElements == 1) {
+		return std::nullopt;
+	}
+	auto elementSizeUnaligned = in->valsPerElement() * in->dataTypeBytes();
+	if (elementSizeUnaligned % 16 == 0) {
+		return std::nullopt;
+	}
+	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
+	auto dataSizeAligned = elementSizeAligned * numElements;
+	auto *alignedData = new byte[dataSizeAligned];
+	auto *src = in->clientData();
+	auto *dst = alignedData;
+	for (unsigned int i = 0; i < numElements; ++i) {
+		memcpy(dst, src, elementSizeUnaligned);
+		src += elementSizeUnaligned;
+		dst += elementSizeAligned;
+	}
+	return std::make_pair(alignedData, dataSizeAligned);
+}
+
 void UBO::update(bool forceUpdate) {
 	bool needUpdate = forceUpdate || needsUpdate();
 	if (!needUpdate) { return; }
@@ -97,12 +134,16 @@ void UBO::update(bool forceUpdate) {
 					continue;
 				}
 				// copy the data to the buffer.
-				// note: the GL specification states that the stride between array elements must be
-				// rounded up to 16 bytes, but for some reason cp operation below works with
-				// vec3's tightly packed.
-				memcpy(static_cast<char*>(bufferData) + uboInput.offset,
-					   uboInput.input->clientData(),
-					   uboInput.input->inputSize());
+				auto aligned = alignedData(uboInput.input);
+				if (aligned.has_value()) {
+					auto [clientData, inputSize] = aligned.value();
+					memcpy(static_cast<char*>(bufferData) + uboInput.offset, clientData, inputSize);
+					delete[] clientData;
+				} else {
+					memcpy(static_cast<char*>(bufferData) + uboInput.offset,
+						   uboInput.input->clientData(),
+						   uboInput.input->inputSize());
+				}
 				uboInput.lastStamp = uboInput.input->stamp();
 			}
 		}

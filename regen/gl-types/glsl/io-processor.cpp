@@ -12,6 +12,7 @@
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/texture.h>
 #include "io-processor.h"
+#include "regen/gl-types/uniform-block.h"
 
 using namespace regen;
 using namespace std;
@@ -29,7 +30,7 @@ IOProcessor::InputOutput::InputOutput()
 
 IOProcessor::InputOutput::InputOutput(const InputOutput &other)
 		: layout(other.layout),
-		  interpolation(""),
+		  interpolation(other.interpolation),
 		  ioType(other.ioType),
 		  dataType(other.dataType),
 		  name(other.name),
@@ -90,6 +91,7 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 		genOut.push_back(InputOutput(nextIn));
 		genOut.back().name = "out_" + nameWithoutPrefix;
 		genOut.back().ioType = "out";
+		genOut.back().interpolation = nextIn.interpolation;
 		if (state.currStage == GL_GEOMETRY_SHADER) {
 			genOut.back().numElements = "";
 		} else if (state.currStage == GL_VERTEX_SHADER) {
@@ -111,6 +113,7 @@ void IOProcessor::defineHandleIO(PreProcessorState &state) {
 		genIn.push_back(InputOutput(nextIn));
 		genIn.back().name = "in_" + nameWithoutPrefix;
 		genIn.back().ioType = "in";
+		genIn.back().interpolation = nextIn.interpolation;
 		if (state.currStage == GL_GEOMETRY_SHADER) {
 			genIn.back().numElements = " ";
 		} else if (state.currStage == GL_VERTEX_SHADER) {

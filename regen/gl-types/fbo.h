@@ -16,6 +16,7 @@
 #include <regen/gl-types/texture.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
+#include "uniform-block.h"
 
 namespace regen {
 	/**

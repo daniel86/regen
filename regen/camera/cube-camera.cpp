@@ -45,7 +45,8 @@ CubeCamera::CubeCamera(
 		direction_->setVertex(i, dir[i]);
 	}
 
-	modelMatrix_ = ref_ptr<ShaderInputMat4>::dynamicCast(mesh->findShaderInput("modelMatrix"));
+	auto modelMat = mesh->findShaderInput("modelMatrix");
+	modelMatrix_ = ref_ptr<ShaderInputMat4>::dynamicCast(modelMat.value().in);
 	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(mesh->positions());
 	matrixStamp_ = 0;
 	positionStamp_ = 0;

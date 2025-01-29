@@ -6,6 +6,7 @@
  */
 
 #include "model-transformation.h"
+#include "regen/gl-types/uniform-block.h"
 
 using namespace regen;
 

@@ -46,6 +46,7 @@ namespace regen {
 } // namespace
 
 #include <regen/gl-types/shader-input.h>
+#include <stack>
 
 namespace regen {
 	namespace scene {
@@ -54,6 +55,76 @@ namespace regen {
 		 */
 		class InputStateProvider : public StateProcessor {
 		public:
+			template<class T>
+			static void setInput(SceneInputNode &input, T *values, unsigned int count) {
+				for (unsigned int i = 0; i < count; ++i) {
+					values[i] = input.getValue<T>("value", T(1));
+				}
+				for (auto &child : input.getChildren()) {
+					if (child->getCategory() == "set") {
+						std::list<GLuint> indices = child->getIndexSequence(count);
+						ValueGenerator<T> generator(child.get(), indices.size(),
+													child->getValue<T>("value", T(1)));
+						for (auto it = indices.begin(); it != indices.end(); ++it) {
+							values[*it] = generator.next();
+						}
+					} else {
+						REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
+					}
+				}
+			}
+
+			static void setInput(SceneInputNode &input, ref_ptr<ShaderInput> &in, unsigned int count) {
+				if (input.getChildren().empty()) return;
+				in->setInstanceData(count, 1, nullptr);
+				switch (in->dataType()) {
+					case GL_FLOAT:
+						switch (in->valsPerElement()) {
+						case 1: setInput(input, (GLfloat *) in->clientDataPtr(), count); break;
+						case 2: setInput(input, (Vec2f *) in->clientDataPtr(), count); break;
+						case 3: setInput(input, (Vec3f *) in->clientDataPtr(), count); break;
+						case 4: setInput(input, (Vec4f *) in->clientDataPtr(), count); break;
+						}
+						break;
+					case GL_INT:
+						switch (in->valsPerElement()) {
+						case 1: setInput(input, (GLint *) in->clientDataPtr(), count); break;
+						case 2: setInput(input, (Vec2i *) in->clientDataPtr(), count); break;
+						case 3: setInput(input, (Vec3i *) in->clientDataPtr(), count); break;
+						case 4: setInput(input, (Vec4i *) in->clientDataPtr(), count); break;
+						}
+						break;
+					case GL_UNSIGNED_INT:
+						switch (in->valsPerElement()) {
+						case 1: setInput(input, (GLuint *) in->clientDataPtr(), count); break;
+						case 2: setInput(input, (Vec2ui *) in->clientDataPtr(), count); break;
+						case 3: setInput(input, (Vec3ui *) in->clientDataPtr(), count); break;
+						case 4: setInput(input, (Vec4ui *) in->clientDataPtr(), count); break;
+						}
+						break;
+					default:
+						REGEN_WARN("No processor registered for '" << in->name() << "'.");
+				}
+			}
+
+			static int getNumInstances(const ref_ptr<Mesh> &mesh) {
+				int num = mesh->inputContainer()->numInstances();
+				std::stack<ref_ptr<State>> stack;
+				stack.emplace(mesh);
+				while (!stack.empty()) {
+					auto state = stack.top();
+					stack.pop();
+					for (auto &joined : state->joined()) {
+						stack.push(joined);
+					}
+					auto *hasInput = dynamic_cast<HasInput *>(state.get());
+					if (hasInput != nullptr) {
+						num = std::max(num, hasInput->inputContainer()->numInstances());
+					}
+				}
+				return num;
+			}
+
 			/**
 			 * Processes SceneInput and creates ShaderInput.
 			 * @return The ShaderInput created or a null reference on failure.
@@ -62,6 +133,8 @@ namespace regen {
 					SceneParser *parser,
 					SceneInputNode &input,
 					const ref_ptr<State> &state) {
+				ref_ptr<ShaderInput> in;
+
 				if (input.hasAttribute("state")) {
 					// take uniform from state
 					ref_ptr<State> s = parser->getState(input.getValue("state"));
@@ -76,57 +149,80 @@ namespace regen {
 							return {};
 						}
 					}
-					ref_ptr<ShaderInput> ret = s->findShaderInput(input.getValue("component"));
-					if (ret.get() == nullptr) {
+					auto in_opt = s->findShaderInput(input.getValue("component"));
+					if (!in_opt.has_value() || !in_opt.value().in.get()) {
 						REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
+						return {};
 					}
-					return ret;
+					in = in_opt.value().in;
+					auto count = (in->isVertexAttribute() ? in->numVertices() : in->numInstances());
+					setInput(input, in, count);
 				}
-				if (input.hasAttribute("ubo")) {
+				else if (input.hasAttribute("mesh")) {
+					auto meshVec = parser->getResources()->getMesh(parser, input.getValue("mesh"));
+					if (meshVec.get() == nullptr || meshVec->empty()) {
+						REGEN_WARN("No Mesh found for '" << input.getDescription() << "'.");
+						return {};
+					}
+					auto meshIndex = input.getValue<GLuint>("mesh-index", 0);
+					ref_ptr<Mesh> mesh = meshVec->at(0);
+					if (meshVec->size() > meshIndex) {
+						mesh = meshVec->at(meshIndex);
+					}
+					auto in_opt = mesh->findShaderInput(input.getValue("component"));
+					if (!in_opt.has_value() || !in_opt.value().in.get()) {
+						REGEN_WARN("No ShaderInput found for for '" << input.getDescription() << "'.");
+						return {};
+					}
+					in = in_opt.value().in;
+					setInput(input, in, getNumInstances(mesh));
+				}
+				else if (input.hasAttribute("ubo")) {
 					auto ubo = parser->getResources()->getUBO(parser, input.getValue("ubo"));
 					if (ubo.get() == nullptr) {
 						REGEN_WARN("No UBO found for '" << input.getDescription() << "'.");
 						return {};
 					}
-					return ref_ptr<UniformBlock>::alloc(input.getValue("name"), ubo);
+					in = ref_ptr<UniformBlock>::alloc(input.getValue("name"), ubo);
+				}
+				else {
+					auto type = input.getValue<std::string>("type", "");
+					if (type == "time") {
+						auto scale = input.getValue<GLfloat>("scale", 1.0f);
+						in = ref_ptr<TimerInput>::alloc(scale);
+					} else if (type == "int") {
+						in = createShaderInputTyped<ShaderInput1i, GLint>(parser, input, state, GLint(0));
+					} else if (type == "ivec2") {
+						in = createShaderInputTyped<ShaderInput2i, Vec2i>(parser, input, state, Vec2i(0));
+					} else if (type == "ivec3") {
+						in = createShaderInputTyped<ShaderInput3i, Vec3i>(parser, input, state, Vec3i(0));
+					} else if (type == "ivec4") {
+						in = createShaderInputTyped<ShaderInput4i, Vec4i>(parser, input, state, Vec4i(0));
+					} else if (type == "uint") {
+						in = createShaderInputTyped<ShaderInput1ui, GLuint>(parser, input, state, GLuint(0));
+					} else if (type == "uvec2") {
+						in = createShaderInputTyped<ShaderInput2ui, Vec2ui>(parser, input, state, Vec2ui(0));
+					} else if (type == "uvec3") {
+						in = createShaderInputTyped<ShaderInput3ui, Vec3ui>(parser, input, state, Vec3ui(0));
+					} else if (type == "uvec4") {
+						in = createShaderInputTyped<ShaderInput4ui, Vec4ui>(parser, input, state, Vec4ui(0));
+					} else if (type == "float") {
+						in = createShaderInputTyped<ShaderInput1f, GLfloat>(parser, input, state, GLfloat(0));
+					} else if (type == "vec2") {
+						in = createShaderInputTyped<ShaderInput2f, Vec2f>(parser, input, state, Vec2f(0));
+					} else if (type == "vec3") {
+						in = createShaderInputTyped<ShaderInput3f, Vec3f>(parser, input, state, Vec3f(0));
+					} else if (type == "vec4") {
+						in = createShaderInputTyped<ShaderInput4f, Vec4f>(parser, input, state, Vec4f(0));
+					} else if (type == "mat3") {
+						in = createShaderInputTyped<ShaderInputMat3, Mat3f>(parser, input, state, Mat3f::identity());
+					} else if (type == "mat4") {
+						in = createShaderInputTyped<ShaderInputMat4, Mat4f>(parser, input, state, Mat4f::identity());
+					} else {
+						REGEN_WARN("Unknown input type '" << type << "'.");
+					}
 				}
 
-				ref_ptr<ShaderInput> in;
-				auto type = input.getValue<std::string>("type", "");
-				if (type == "time") {
-					auto scale = input.getValue<GLfloat>("scale", 1.0f);
-					in = ref_ptr<TimerInput>::alloc(scale);
-				} else if (type == "int") {
-					in = createShaderInputTyped<ShaderInput1i, GLint>(parser, input, state, GLint(0));
-				} else if (type == "ivec2") {
-					in = createShaderInputTyped<ShaderInput2i, Vec2i>(parser, input, state, Vec2i(0));
-				} else if (type == "ivec3") {
-					in = createShaderInputTyped<ShaderInput3i, Vec3i>(parser, input, state, Vec3i(0));
-				} else if (type == "ivec4") {
-					in = createShaderInputTyped<ShaderInput4i, Vec4i>(parser, input, state, Vec4i(0));
-				} else if (type == "uint") {
-					in = createShaderInputTyped<ShaderInput1ui, GLuint>(parser, input, state, GLuint(0));
-				} else if (type == "uvec2") {
-					in = createShaderInputTyped<ShaderInput2ui, Vec2ui>(parser, input, state, Vec2ui(0));
-				} else if (type == "uvec3") {
-					in = createShaderInputTyped<ShaderInput3ui, Vec3ui>(parser, input, state, Vec3ui(0));
-				} else if (type == "uvec4") {
-					in = createShaderInputTyped<ShaderInput4ui, Vec4ui>(parser, input, state, Vec4ui(0));
-				} else if (type == "float") {
-					in = createShaderInputTyped<ShaderInput1f, GLfloat>(parser, input, state, GLfloat(0));
-				} else if (type == "vec2") {
-					in = createShaderInputTyped<ShaderInput2f, Vec2f>(parser, input, state, Vec2f(0));
-				} else if (type == "vec3") {
-					in = createShaderInputTyped<ShaderInput3f, Vec3f>(parser, input, state, Vec3f(0));
-				} else if (type == "vec4") {
-					in = createShaderInputTyped<ShaderInput4f, Vec4f>(parser, input, state, Vec4f(0));
-				} else if (type == "mat3") {
-					in = createShaderInputTyped<ShaderInputMat3, Mat3f>(parser, input, state, Mat3f::identity());
-				} else if (type == "mat4") {
-					in = createShaderInputTyped<ShaderInputMat4, Mat4f>(parser, input, state, Mat4f::identity());
-				} else {
-					REGEN_WARN("Unknown input type '" << type << "'.");
-				}
 				return in;
 			}
 
@@ -157,15 +253,15 @@ namespace regen {
 					s->shaderDefine(REGEN_STRING("HAS_"<<input.getValue("name")), "TRUE");
 				}
 
-				if (x == nullptr) {
-					ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
-					inputState->setInput(in, input.getValue("name"));
-					state->joinStates(inputState);
-				} else {
-					x->setInput(in, input.getValue("name"));
+				if (input.getValue<bool>("join", true)) {
+					if (x == nullptr) {
+						ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
+						inputState->setInput(in, input.getValue("name"));
+						state->joinStates(inputState);
+					} else {
+						x->setInput(in, input.getValue("name"));
+					}
 				}
-
-
 			}
 
 			template<class U, class T>
@@ -201,22 +297,7 @@ namespace regen {
 				if (isInstanced || isAttribute) {
 					T *values = (T *) v->clientDataPtr();
 					for (GLuint i = 0; i < count; i += 1) values[i] = defaultValue;
-
-					auto &childs = input.getChildren();
-					for (auto it = childs.begin(); it != childs.end(); ++it) {
-						ref_ptr<SceneInputNode> child = *it;
-						std::list<GLuint> indices = child->getIndexSequence(count);
-
-						if (child->getCategory() == "set") {
-							ValueGenerator<T> generator(child.get(), indices.size(),
-														child->getValue<T>("value", T(0)));
-							for (auto it = indices.begin(); it != indices.end(); ++it) {
-								values[*it] += generator.next();
-							}
-						} else {
-							REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
-						}
-					}
+					setInput(input, values, count);
 				}
 
 				// Load

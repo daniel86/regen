@@ -59,11 +59,12 @@ unsigned int Frustum::directionStamp() const {
 }
 
 void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
-	translation_->setUniformData(pos);
-	direction_->setUniformData(dir);
-
 	Vec3f d = dir;
 	d.normalize();
+
+	translation_->setUniformData(pos);
+	direction_->setUniformData(d);
+
 	Vec3f fc = pos + d * far;
 	Vec3f nc = pos + d * near;
 	Vec3f rw, uh, u, buf1, buf2;
