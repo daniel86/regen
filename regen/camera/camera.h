@@ -39,7 +39,6 @@ namespace regen {
 		 * @param fov field of view.
 		 * @param near distance to near plane.
 		 * @param far distance to far plane.
-		 * @param near distance to near plane.
 		 * @param updateMatrices if false matrix computation is skipped.
 		 */
 		void updateFrustum(
@@ -160,6 +159,8 @@ namespace regen {
 		// Override
 		void enable(RenderState *rs) override;
 
+		void updateLookAt();
+
 	protected:
 		ref_ptr<ShaderInputContainer> inputs_;
 		ref_ptr<UniformBlock> cameraBlock_;
@@ -186,8 +187,6 @@ namespace regen {
 		GLuint dirStamp_;
 
 		void updateProjection();
-
-		void updateLookAt();
 
 		void updateViewProjection(GLuint i = 0u, GLuint j = 0u);
 	};

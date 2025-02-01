@@ -22,6 +22,15 @@
         <texture id="normal" pixel-components="4"/>
         <depth pixel-size="24"/>
     </fbo>
+    <fbo id="overview-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="FLOAT" pixel-size="16">
+        <texture id="diffuse0" pixel-components="3"/>
+        <texture id="diffuse1" pixel-components="3"/>
+        <texture id="specular" pixel-components="4"/>
+        <texture id="normal" pixel-components="4"/>
+        <depth pixel-size="24"/>
+    </fbo>
     <!-- Textures -->
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
@@ -32,6 +41,10 @@
             culling-index="main-index"
             fov="45.0" near="0.1" far="200.0"
             position="-40.0, 14.0, 0.0"/>
+    <camera id="overview-camera"
+            fov="45.0" near="0.1" far="1200.0"
+            position="0.0, 50.0, 250.0"
+            direction="0, 0, -1"/>
 
     <!--**************************-->
     <!--****** Ground mesh *******-->
@@ -267,7 +280,6 @@
 
     <node id="Reflection-Pass">
         <!-- need to load the resource before the reflection pass -->
-        <resource id="grass-patches"/>
         <camera id="reflection-camera"/>
         <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
@@ -484,6 +496,29 @@
             <node import="Reflection-Pass"/>
         </node>
 
+        <!--
+        <node id="Debugging">
+            <view id="Overview">
+                <camera id="overview-camera"/>
+                <fbo id="overview-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+                <node>
+                    <blend mode="src"/>
+                    <depth test="1" write="1"/>
+                    <fbo id="overview-buffer" draw-buffers="0,1,2,3"/>
+
+                    <node import="Shadow-Caster"/>
+                    <node import="Scene-Geometry"/>
+                </node>
+                <node import="spatial-index-debug">
+                    <fbo id="overview-buffer" draw-buffers="0"/>
+                </node>
+                <node>
+                    <blit src-fbo="overview-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                </node>
+            </view>
+        </node>
+        -->
+
         <node id="Render">
             <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
             <camera id="main-camera" />
@@ -526,6 +561,7 @@
 
             <view id="Spatial Index">
                 <node import="spatial-index-debug">
+                    <camera id="main-camera"/>
                     <fbo id="g-buffer" draw-buffers="1"/>
                 </node>
                 <node>

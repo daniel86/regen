@@ -164,6 +164,11 @@ namespace regen {
 					const std::string &nodeName,
 					const std::string &nodeCategory);
 
+			void processState(
+					const ref_ptr<State> &parent,
+					const std::string &nodeCategory,
+					const ref_ptr<SceneInputNode> &input);
+
 			/**
 			 * @param x The StateNode processor to use.
 			 */
@@ -245,6 +250,8 @@ namespace regen {
 			ref_ptr<BulletPhysics> physics_;
 
 			void init();
+
+			void loadShapes();
 		};
 	}
 }

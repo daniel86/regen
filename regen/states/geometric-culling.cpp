@@ -6,9 +6,6 @@
  */
 
 #include <regen/states/state-node.h>
-#include <regen/camera/camera.h>
-#include <regen/meshes/mesh-state.h>
-
 #include "geometric-culling.h"
 
 using namespace regen;
