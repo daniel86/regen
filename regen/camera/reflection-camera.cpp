@@ -67,8 +67,8 @@ ReflectionCamera::ReflectionCamera(
 		  hasMesh_(GL_FALSE),
 		  hasBackFace_(hasBackFace) {
 	updateFrustum(
-			userCamera_->fov()->getVertex(0),
 			userCamera_->aspect()->getVertex(0),
+			userCamera_->fov()->getVertex(0),
 			userCamera_->near()->getVertex(0),
 			userCamera_->far()->getVertex(0),
 			GL_FALSE);
