@@ -114,19 +114,26 @@ void SpatialIndexDebug::drawSphere(const BoundingSphere &sphere) {
 void SpatialIndexDebug::drawFrustum(const Frustum &frustum) {
 	auto &vertices = frustum.points;
 	Vec3f color = Vec3f(1.0f, 0.0f, 1.0f);
-	// draw the 12 lines of the frustum
+	// near plane
 	drawLine(vertices[0], vertices[1], color);
+	drawLine(vertices[1], vertices[2], color);
+	drawLine(vertices[2], vertices[3], color);
+	drawLine(vertices[3], vertices[0], color);
 	drawLine(vertices[1], vertices[3], color);
-	drawLine(vertices[3], vertices[2], color);
-	drawLine(vertices[2], vertices[0], color);
+	drawLine(vertices[0], vertices[2], color);
+	// far plane
 	drawLine(vertices[4], vertices[5], color);
+	drawLine(vertices[5], vertices[6], color);
+	drawLine(vertices[6], vertices[7], color);
+	drawLine(vertices[7], vertices[4], color);
 	drawLine(vertices[5], vertices[7], color);
-	drawLine(vertices[7], vertices[6], color);
-	drawLine(vertices[6], vertices[4], color);
+	drawLine(vertices[4], vertices[6], color);
+	// connect near and far plane
 	drawLine(vertices[0], vertices[4], color);
 	drawLine(vertices[1], vertices[5], color);
 	drawLine(vertices[2], vertices[6], color);
 	drawLine(vertices[3], vertices[7], color);
+
 }
 
 inline Vec3f toVec3(const Vec2f &v, float y) {

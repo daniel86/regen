@@ -57,6 +57,7 @@ SceneParser::SceneParser(
 	resources_ = ref_ptr<ResourceManager>::alloc();
 	physics_ = ref_ptr<BulletPhysics>::alloc();
 	init();
+	loadShapes();
 }
 
 SceneParser::SceneParser(
@@ -69,6 +70,7 @@ SceneParser::SceneParser(
 		  resources_(resources),
 		  physics_(physics) {
 	init();
+	loadShapes();
 }
 
 void SceneParser::init() {
@@ -106,6 +108,26 @@ void SceneParser::init() {
 	setStateProcessor(ref_ptr<ShapeStateProvider>::alloc());
 	setStateProcessor(ref_ptr<PolygonStateProvider>::alloc());
 	setStateProcessor(ref_ptr<DeformationNodeProvider>::alloc());
+}
+
+void SceneParser::loadShapes() {
+	auto root = getRoot();
+	auto dummy = ref_ptr<State>::alloc();
+
+	// load shapes that are globally defined
+	auto shapeNodes = root->getChildren("shape");
+	for (auto &shapeNode: shapeNodes) {
+		processState(dummy, "shape", shapeNode);
+	}
+	// load meshes and associated shapes
+	auto meshNodes = root->getChildren("mesh");
+	for (auto &meshNode: meshNodes) {
+		auto meshID = meshNode->getName();
+		auto meshVec = resources_->getMesh(this, meshID);
+		if (!meshVec.get()) {
+			REGEN_WARN("Could not load mesh with id '" << meshID << "'.");
+		}
+	}
 }
 
 void SceneParser::addEventHandler(GLuint eventID,
@@ -202,15 +224,22 @@ void SceneParser::processState(
 		const ref_ptr<State> &parent,
 		const string &nodeName,
 		const string &nodeCategory) {
-	ref_ptr<StateProcessor> processor = getStateProcessor(nodeCategory);
-	if (processor.get() == nullptr) {
-		REGEN_WARN("No Processor registered for node category '" << nodeCategory << "'.");
-		return;
-	}
 	ref_ptr<SceneInputNode> input = getRoot()->getFirstChild(nodeCategory, nodeName);
 	if (input.get() == nullptr) {
 		REGEN_WARN("No input for node category '" <<
 												  nodeCategory << "' and node name '" << nodeName << "'.");
+		return;
+	}
+	processState(parent, nodeCategory, input);
+}
+
+void SceneParser::processState(
+		const ref_ptr<State> &parent,
+		const string &nodeCategory,
+		const ref_ptr<SceneInputNode> &input) {
+	ref_ptr<StateProcessor> processor = getStateProcessor(nodeCategory);
+	if (processor.get() == nullptr) {
+		REGEN_WARN("No Processor registered for node category '" << nodeCategory << "'.");
 		return;
 	}
 	processor->processInput(this, *input.get(), parent);
