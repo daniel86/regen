@@ -169,7 +169,8 @@ void ReflectionCamera::updateReflection() {
 	// Compute reflection camera position
 	if (reflectorChanged || userCamera_->position()->stamp() != camPosStamp_) {
 		camPosStamp_ = userCamera_->position()->stamp();
-		Vec3f reflected = camPos - norWorld_ * 2.0f * norWorld_.dot(camPos - posWorld_);
+		Vec3f reflected = reflectionMatrix_.transformVector(
+			userCamera_->position()->getVertex(0));;
 		position_->setVertex(0, reflected);
 
 		reflectorChanged = GL_TRUE;

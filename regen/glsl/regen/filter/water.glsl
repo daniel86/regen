@@ -18,8 +18,12 @@ uniform sampler2D in_depthTexture;
 uniform sampler2D in_refractionTexture;
 uniform sampler2D in_reflectionTexture;
 uniform sampler2D in_heightTexture;
+#ifdef USE_RIPPLES
 uniform sampler2D in_normalTexture;
+#endif
+#ifdef USE_FOAM
 uniform sampler2D in_foamTexture;
+#endif
 uniform vec2 in_inverseViewport;
 // camera input
 #include regen.states.camera.input
@@ -70,12 +74,14 @@ const float in_fadeSpeed = 0.1;
 // Water transparency along eye vector.
 const float in_visibility = 3.0;
 
+#ifdef USE_FOAM
 // Describes at what depth foam starts to fade out and
 // at what it is completely invisible. The fird value is at
 // what height foam for waves appear (+ waterLevel).
 const vec3 in_foamExistence = vec3(0.45,4.35,1.5);
 const float in_foamIntensity = 0.5;
 const float in_foamHardness = 1.0;
+#endif
 
 // Modifies 4 sampled normals. Increase first values to have more
 // smaller "waves" or last to have more bigger "waves"
@@ -109,22 +115,22 @@ mat3 computeTangentFrame(in vec3 N, in vec3 P, in vec2 UV) {
 }
 
 vec3 computeRippledNormal(vec3 pos, vec3 nor, vec3 eyeVecNorm, float t0, float t1) {
-  vec2 uv = pos.xz * t0 + in_windDirection * in_time * t1;
-  mat3 tangentFrame = computeTangentFrame(nor, eyeVecNorm, uv);
-  return normalize(tangentFrame*(2.0 * texture(in_normalTexture,uv).xyz - 1.0));
+    vec2 uv = pos.xz * t0 + in_windDirection * in_time * t1;
+    mat3 tangentFrame = computeTangentFrame(nor, eyeVecNorm, uv);
+    return normalize(tangentFrame*(2.0 * texture(in_normalTexture,uv).xyz - 1.0));
 }
 #endif
 
 vec3 computeNormal(vec2 uv) {
-  float duv = 1.0/in_heightTextureSize;
-  float normal1 = texture(in_heightTexture, computeTexco(uv + vec2(-duv,  0.0))).r;
-  float normal2 = texture(in_heightTexture, computeTexco(uv + vec2( duv,  0.0))).r;
-  float normal3 = texture(in_heightTexture, computeTexco(uv + vec2( 0.0, -duv))).r;
-  float normal4 = texture(in_heightTexture, computeTexco(uv + vec2( 0.0,  duv))).r;
-  return normalize(vec3(
-      (normal1 - normal2) * in_maxAmplitude,
-      in_normalScale,
-      (normal3 - normal4) * in_maxAmplitude));
+    float duv = 1.0/in_heightTextureSize;
+    float normal1 = texture(in_heightTexture, computeTexco(uv + vec2(-duv,  0.0))).r;
+    float normal2 = texture(in_heightTexture, computeTexco(uv + vec2( duv,  0.0))).r;
+    float normal3 = texture(in_heightTexture, computeTexco(uv + vec2( 0.0, -duv))).r;
+    float normal4 = texture(in_heightTexture, computeTexco(uv + vec2( 0.0,  duv))).r;
+    return normalize(vec3(
+        (normal1 - normal2) * in_maxAmplitude,
+        in_normalScale,
+        (normal3 - normal4) * in_maxAmplitude));
 }
 
 // Function calculating fresnel term.
@@ -132,166 +138,180 @@ vec3 computeNormal(vec2 uv) {
 // - eyeVec - normalized eye vector
 float fresnelTerm(vec3 normal, vec3 eyeVec)
 {
-  float angle = 1.0 - clamp(dot(normal, eyeVec), 0.0, 1.0);
-  float fresnel = angle * angle;
-  fresnel = fresnel * fresnel;
-  fresnel = fresnel * angle;
-  return clamp(fresnel * (1.0 - clamp(in_refractionConstant,0.0,1.0)) +
-               in_refractionConstant - in_refractionStrength, 0.0, 1.0);
+    float angle = 1.0 - clamp(dot(normal, eyeVec), 0.0, 1.0);
+    float fresnel = angle * angle;
+    fresnel = fresnel * fresnel;
+    fresnel = fresnel * angle;
+    return clamp(
+        fresnel * (1.0 - clamp(in_refractionConstant,0.0,1.0)) +
+        in_refractionConstant - in_refractionStrength,
+        0.0, 1.0);
 }
 
-vec4 computeWaterColor(vec3 position, float sceneDepth, vecTexco texco)
+#ifdef HAS_planeSize
+bool inBounds(vec2 p)
 {
-  vec2 uv;
-  // Height of water intersecting with view ray.
-  float level = in_surfaceHeight;
-  // Vector from camera to sampled scene point
-  vec3 eyeVec = position - in_cameraPosition;
-  float diff = level - position.y;
-  float cameraDepth = in_cameraPosition.y - position.y;
+    vec2 planeSizeHalf = 0.5*in_planeSize;
+    return all(lessThan(-planeSizeHalf, p)) && all(lessThan(p, planeSizeHalf));
+}
+#endif
 
-  // Find intersection with water surface
-  vec3 eyeVecNorm = normalize(eyeVec);
-  float t = (level - in_cameraPosition.y) / eyeVecNorm.y;
-  vec3 surfacePoint = in_cameraPosition + eyeVecNorm * t;
-  
-  // Sample height map a few times to find wave amplitude
-  float biasFactor = 1.0/float(${NUM_HEIGHT_SAMPLES});
-  vec2 windOffset = 0.03*in_time*in_windDirection;
+void computeUnderWaterColor(vec3 position, float sceneDepth, vecTexco texco, inout vec4 outColor)
+{
+    // TODO: Handle the under water case.
+    float isAtFarPlane = step(0.99998, sceneDepth);
+    outColor.rgb = mix(outColor.rgb, in_deepWaterColor, 0.5*(1.0 - isAtFarPlane));
+}
+
+void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inout vec4 outColor)
+{
+    vec2 uv;
+    // Height of water intersecting with view ray.
+    float level = in_surfaceHeight;
+    // Vector from camera to sampled scene point
+    vec3 eyeVec = position - in_cameraPosition;
+    float diff = level - position.y;
+    float cameraDepth = in_cameraPosition.y - position.y;
+    float isAtFarPlane = step(0.99998, sceneDepth);
+    // Find intersection with water surface
+    vec3 eyeVecNorm = normalize(eyeVec);
+    float t = (level - in_cameraPosition.y) / eyeVecNorm.y;
+    vec3 surfacePoint = in_cameraPosition + eyeVecNorm * t;
+
+    // Sample height map a few times to find wave amplitude
+    float biasFactor = 1.0/float(${NUM_HEIGHT_SAMPLES});
+    vec2 windOffset = 0.03*in_time*in_windDirection;
 #for INDEX to ${NUM_HEIGHT_SAMPLES}
-  uv = biasFactor * in_waveScale * (surfacePoint.xz + eyeVecNorm.xz) + windOffset;
-  level += biasFactor*in_maxAmplitude * texture(in_heightTexture, uv).r;
-  t = (level - in_cameraPosition.y) / eyeVecNorm.y;
-  surfacePoint = in_cameraPosition + eyeVecNorm * t;
+    uv = biasFactor * in_waveScale * (surfacePoint.xz + eyeVecNorm.xz) + windOffset;
+    level += biasFactor*in_maxAmplitude * texture(in_heightTexture, uv).r;
+    t = (level - in_cameraPosition.y) / eyeVecNorm.y;
+    surfacePoint = in_cameraPosition + eyeVecNorm * t;
 #endfor
-  //surfacePoint.y -= (level - in_surfaceHeight);
-  surfacePoint.y -= in_maxAmplitude;
+    //surfacePoint.y -= (level - in_surfaceHeight);
+    surfacePoint.y -= in_maxAmplitude;
 
-  // Compute eye vector with corrected surface point
-  eyeVecNorm = normalize(in_cameraPosition - surfacePoint);
-  float depth = length(position - surfacePoint);
-  float depth2 = surfacePoint.y - position.y;
+    // Compute eye vector with corrected surface point
+    eyeVecNorm = normalize(in_cameraPosition - surfacePoint);
+    float depth = length(position - surfacePoint);
+    float depth2 = surfacePoint.y - position.y;
 #ifdef USE_FOAM
-  // XXX: HACK ALERT: Increase water depth to infinity if at far plane
-  // Prevents "foam on horizon" issue
-  // For best results, replace the "100.0" below with the
-  // highest value in the m_ColorExtinction vec3
-  float isAtFarPlane = step(0.99998, sceneDepth);
-  depth  += isAtFarPlane * 100.0;
-  depth2 += isAtFarPlane * 100.0;
+    // XXX: HACK ALERT: Increase water depth to infinity if at far plane, Prevents "foam on horizon" issue
+    // For best results, replace the "40.0" below with the highest value in the m_ColorExtinction vec3
+    depth  += isAtFarPlane * 40.0;
+    depth2 += isAtFarPlane * 40.0;
 #endif
-  float depthN = depth * in_fadeSpeed;
-  
+    float depthN = depth * in_fadeSpeed;
+
 #ifdef USE_RIPPLES
-  vec3 surfaceNormal = computeNormal(uv);
-  vec3 n0 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,3.2,1.6);
-  vec3 n1 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,1.6,0.8);
-  vec3 n2 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,0.8,0.4);
-  vec3 n3 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,0.4,0.2);
-  surfaceNormal = normalize(
-      n0 * in_normalModifier.x +
-      n1 * in_normalModifier.y +
-      n2 * in_normalModifier.z +
-      n3 * in_normalModifier.w);
+    vec3 surfaceNormal = computeNormal(uv);
+    vec3 n0 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,3.2,1.6);
+    vec3 n1 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,1.6,0.8);
+    vec3 n2 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,0.8,0.4);
+    vec3 n3 = computeRippledNormal(surfacePoint,surfaceNormal,eyeVecNorm,0.4,0.2);
+    surfaceNormal = normalize(
+        n0 * in_normalModifier.x +
+        n1 * in_normalModifier.y +
+        n2 * in_normalModifier.z +
+        n3 * in_normalModifier.w);
 #else
-  vec3 surfaceNormal = computeNormal(uv);
+    vec3 surfaceNormal = computeNormal(uv);
 #endif
-  
-  // Compute reflection color
-  vec3 waterPosition = surfacePoint.xyz;
-  //waterPosition.y -= (level - in_surfaceHeight);
-  vec4 proj = in_reflectionMatrix * vec4(waterPosition,1.0);
-  proj.x = proj.x + in_reflectionDisplace * surfaceNormal.x;
-  proj.z = proj.z + in_reflectionDisplace * surfaceNormal.z;
-  vec2 reflectionTexco = (proj.xy/proj.w + vec2(1.0))*0.5;
-  vec3 reflection = texture(in_reflectionTexture, computeTexco(reflectionTexco)).rgb;
+
+    // Compute reflection color
+    vec4 proj = in_reflectionMatrix * vec4(surfacePoint.xyz,1.0);
+    proj.x = proj.x + in_reflectionDisplace * surfaceNormal.x;
+    proj.z = proj.z + in_reflectionDisplace * surfaceNormal.z;
+    vec2 reflectionTexco = (proj.xy/proj.w + vec2(1.0))*0.5;
+    vec3 reflection = texture(in_reflectionTexture, computeTexco(reflectionTexco)).rgb;
 
   // Compute refraction color
 #ifdef USE_REFRACTION
-  uv = texco.xy;
-  uv += vec2( sin(in_time*0.2 + 3.0 * abs(position.y)) * (in_waveScale.x * min(depth2, 1.0)) );
-  vec3 refraction = texture(in_refractionTexture, computeTexco(uv)).rgb;
+    uv = texco.xy;
+    uv += vec2(sin(in_time*0.2 + 3.0 * abs(position.y)) * (in_waveScale.x * min(depth2, 1.0)));
+    vec3 refraction = texture(in_refractionTexture, computeTexco(uv)).rgb;
 #else
-  vec3 refraction = texture(in_refractionTexture, computeTexco(texco)).rgb;
+    vec3 refraction = texture(in_refractionTexture, computeTexco(texco)).rgb;
 #endif
-  // compute the water color based on depth and color extinction
-  float k = clamp(length(in_sunColor) / in_sunScale, 0.0, 1.0);
-  vec3 c0 =    mix(refraction,     k*in_waterColor, clamp(depthN/in_visibility, 0.0, 1.0));
-  refraction = mix(        c0, k*in_deepWaterColor, clamp(depth2/in_colorExtinction, 0.0, 1.0));
-  
+    // compute the water color based on depth and color extinction
+    float k = clamp(length(in_sunColor) / in_sunScale, 0.0, 1.0);
+    vec3 c0 = mix(
+        refraction,
+        k*in_waterColor,
+        clamp(depthN/in_visibility, 0.0, 1.0));
+    refraction = mix(
+        c0,
+        k*in_deepWaterColor,
+        clamp(depth2/in_colorExtinction, 0.0, 1.0));
+
 #ifdef USE_FOAM
-  float foam = 0.0;
-  vec2 foam0 = 0.05*(surfacePoint.xz + 0.1*eyeVecNorm.xz);
-  vec2 foam1 = in_time*in_windDirection;
-  uv       = foam0 + 0.05*foam1 + 0.005*sin(0.001*in_time + position.x);
-  vec2 uv2 = foam0 +  0.1*foam1 + 0.005*sin(0.001*in_time + position.z);
-  if(depth2 < in_foamExistence.x){
-    foam = in_foamIntensity*(texture(in_foamTexture,uv).r + texture(in_foamTexture,uv2).r);
-  }
-  else if(depth2 < in_foamExistence.y){
-    foam = mix(
-	in_foamIntensity*(texture(in_foamTexture,uv).x + texture(in_foamTexture,uv2).x),
-	0.0,
-	(depth2 - in_foamExistence.x) / (in_foamExistence.y - in_foamExistence.x));
-  }
-  
-  if(in_maxAmplitude - in_foamExistence.z > 0.0001){
-    float p = clamp((level - (in_surfaceHeight + in_foamExistence.z))/
-                    (in_maxAmplitude - in_foamExistence.z), 0.0, 1.0);
-    foam += in_foamIntensity*in_foamIntensity*p*0.3*
-	(texture(in_foamTexture,uv).r + texture(in_foamTexture,uv2).r);
-  }
+    float foam = 0.0;
+    vec2 foam0 = 0.05*(surfacePoint.xz + 0.1*eyeVecNorm.xz);
+    vec2 foam1 = in_time*in_windDirection;
+    uv       = foam0 + 0.05*foam1 + 0.005*sin(0.001*in_time + position.x);
+    vec2 uv2 = foam0 +  0.1*foam1 + 0.005*sin(0.001*in_time + position.z);
+    if(depth2 < in_foamExistence.x){
+        foam = in_foamIntensity*(texture(in_foamTexture,uv).r + texture(in_foamTexture,uv2).r);
+    }
+    else if(depth2 < in_foamExistence.y){
+        foam = mix(
+            in_foamIntensity*(texture(in_foamTexture,uv).x + texture(in_foamTexture,uv2).x),
+            0.0,
+            (depth2 - in_foamExistence.x) / (in_foamExistence.y - in_foamExistence.x));
+    }
+    if(in_maxAmplitude - in_foamExistence.z > 0.0001){
+        float p = clamp(
+            (level - (in_surfaceHeight + in_foamExistence.z))/
+            (in_maxAmplitude - in_foamExistence.z),
+            0.0, 1.0);
+        foam += in_foamIntensity*in_foamIntensity*p*0.3*(texture(in_foamTexture,uv).r + texture(in_foamTexture,uv2).r);
+    }
 #endif
-  float fresnel = fresnelTerm(surfaceNormal, eyeVecNorm);
+    float fresnel = fresnelTerm(surfaceNormal, eyeVecNorm);
 
 #ifdef USE_SPECULAR
-  vec3 mirrorEye = 2.0*dot(eyeVecNorm, surfaceNormal)*surfaceNormal - eyeVecNorm;
-  float dotSpec = clamp(dot(mirrorEye.xyz, in_sunDirection) * 0.5 + 0.5, 0.0, 1.0);
-  float spec = (1.0-fresnel)*(in_shininess*1.8 + 0.2)*
-    clamp(in_sunDirection.y,0.0,1.0)*pow(dotSpec,512.0);
-  spec += 25.0*spec*clamp(in_shininess - 0.05, 0.0, 1.0);
+    vec3 mirrorEye = 2.0*dot(eyeVecNorm, surfaceNormal)*surfaceNormal - eyeVecNorm;
+    float dotSpec = clamp(dot(mirrorEye.xyz, in_sunDirection) * 0.5 + 0.5, 0.0, 1.0);
+    float spec = (1.0-fresnel)*(in_shininess*1.8 + 0.2)*clamp(in_sunDirection.y,0.0,1.0)*pow(dotSpec,512.0);
+    spec += 25.0*spec*clamp(in_shininess - 0.05, 0.0, 1.0);
 #endif
-  
-  vec3 color = mix(refraction,reflection,fresnel);
+
+    vec3 color = mix(refraction, reflection, fresnel);
 #ifdef USE_FOAM && USE_SPECULAR
-  color += max(spec,foam)*in_sunColor.rgb;
+    color += max(spec,foam)*in_sunColor.rgb;
 #elif USE_FOAM
-  color += foam*in_sunColor.rgb;
+    color += foam*in_sunColor.rgb;
 #elif USE_SPECULAR
-  color += spec*in_sunColor.rgb;
+    color += spec*in_sunColor.rgb;
 #endif
 #ifdef USE_FOAM
-  //color = mix(refraction, color, clamp(depth * in_foamHardness, 0.0, 1.0));
+    //color = mix(refraction, color, clamp(depth * in_foamHardness, 0.0, 1.0));
 #endif
-  color = mix(refraction, color, clamp(depth * in_shoreHardness, 0.0, 1.0));
-  
-  return vec4(color,1.0);
-}
-
-vec4 computeUnderWaterColor(vec3 position, vecTexco texco)
-{
-  // TODO: Handle the under water case.
-  return texture(in_refractionTexture, texco);
+    color = mix(refraction, color, clamp(depth * in_shoreHardness, 0.0, 1.0));
+#ifdef HAS_planeSize
+    // check if surface point lies within boundaries on xz plane
+    outColor.rgb = mix(outColor.rgb, color,
+        0.5*(float(inBounds(surfacePoint.xz))+float(inBounds(position.xz))));
+#else
+    outColor.rgb = color;
+#endif
 }
 
 void main()
 {
-  vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-  vecTexco texco = computeTexco(texco_2D);
-  
-  // sample depth at pixel location and compute the position in world space
-  float depth = texture(in_depthTexture, texco).x;
-  vec3 posWorldSpace = transformTexcoToWorld(texco_2D, depth, in_layer);
-  
-  // check if camera is below surface
-  if(in_cameraPosition.y<in_surfaceHeight) {
-    out_color = computeUnderWaterColor(posWorldSpace,texco);
-  }
-  // check if point is above water surface
-  else if(posWorldSpace.y>=in_surfaceHeight) {
+    // compute G-buffer texco for fragment
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+    // sample depth at pixel location and compute the position in world space
+    float depth = texture(in_depthTexture, texco).x;
+    vec3 posWorldSpace = transformTexcoToWorld(texco_2D, depth, in_layer);
+    // initialize output color to scene color
     out_color = texture(in_refractionTexture, texco);
-  }
-  else {
-    out_color = computeWaterColor(posWorldSpace,depth,texco);
-  }
+    // check if camera is below water surface
+    if(in_cameraPosition.y<in_surfaceHeight) {
+        computeUnderWaterColor(posWorldSpace,depth,texco,out_color);
+    }
+    // check if point is below water surface
+    else if(posWorldSpace.y<in_surfaceHeight) {
+        computeOverWaterColor(posWorldSpace,depth,texco,out_color);
+    }
 }

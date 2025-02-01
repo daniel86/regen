@@ -7,7 +7,8 @@
                 mode="first-person"
                 speed="0.1"
                 eye-offset="0.0,0.0,0.0"
-                horizontal-orientation="4.71225">
+                horizontal-orientation="4.71225"
+                vertical-orientation="0.25">
         </camera>
     </node>
 
@@ -262,7 +263,7 @@
             culling-index="main-index"
             camera="main-camera"
             reflector-normal="0,1,0"
-            reflector-point="0,-1.7,0"/>
+            reflector-point="0,1.7,0"/>
 
     <node id="Reflection-Pass">
         <!-- need to load the resource before the reflection pass -->
@@ -322,12 +323,13 @@
              swizzle-g="RED" swizzle-b="RED"/>
 
     <node id="Water-Rendering">
+        <input name="planeSize" type="vec2" value="100.0, 100.0"/>
         <depth test="0" write="0"/>
         <fbo id="g-buffer" draw-buffers="0"/>
         <blend mode="src"/>
 
         <define key="USE_REFRACTION" value="TRUE"/>
-        <define key="USE_FOAM" value="TRUE"/>
+        <define key="USE_FOAM" value="FALSE"/>
         <define key="USE_RIPPLES" value="TRUE"/>
         <define key="USE_SPECULAR" value="TRUE"/>
 
@@ -344,22 +346,22 @@
         <input name="sunColor" state="earth-sky-sun" component="lightDiffuse"/>
 
         <input type="float" name="heightTextureSize" value="256.0"/>
-        <input type="float" name="surfaceHeight" value="-1.7"/>
+        <input type="float" name="surfaceHeight" value="1.7"/>
         <input type="float" name="normalScale" value="3.0"/>
-        <input type="float" name="refractionConstant" value="0.25"/>
+        <input type="float" name="refractionConstant" value="30.0"/>
         <input type="float" name="refractionStrength" value="0.24"/>
         <input type="float" name="shoreHardness" value="0.1"/>
         <input type="vec2" name="windDirection" value="0.9,0.0"/>
         <input type="vec2" name="waveScale" value="0.05,0.05"/>
         <input type="float" name="maxAmplitude" value="1.5"/>
         <input type="float" name="reflectionDisplace" value="10.0"/>
-        <input type="float" name="sunScale" value="3.0"/>
-        <input type="vec3" name="waterColor" value="0.0078,0.5176,0.7"/>
+        <input type="float" name="sunScale" value="1.5"/>
+        <input type="vec3" name="waterColor" value="0.0078,0.4,0.55"/>
         <input type="vec3" name="deepWaterColor" value="0.0078,0.5176,0.7"/>
-        <input type="float" name="shininess" value="0.7"/>
+        <input type="float" name="shininess" value="0.2"/>
         <input type="vec3" name="colorExtinction" value="7.0,30.0,40.0"/>
         <input type="float" name="fadeSpeed" value="0.1"/>
-        <input type="float" name="visibility" value="1.1"/>
+        <input type="float" name="visibility" value="0.9"/>
         <input type="vec4" name="normalModifier" value="1.0,2.0,4.0,8.0"/>
         <input type="vec3" name="foamExistence" value="0.45,1.35,1.25"/>
         <input type="float" name="foamIntensity" value="0.5"/>
