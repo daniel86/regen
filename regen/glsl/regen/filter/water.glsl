@@ -290,7 +290,7 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
 #ifdef HAS_planeSize
     // check if surface point lies within boundaries on xz plane
     outColor.rgb = mix(outColor.rgb, color,
-        0.5*(float(inBounds(surfacePoint.xz))+float(inBounds(position.xz))));
+        0.5*(float(inBounds(surfacePoint.xz)) + (1.0-isAtFarPlane)*float(inBounds(position.xz))));
 #else
     outColor.rgb = color;
 #endif
