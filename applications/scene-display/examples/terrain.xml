@@ -10,6 +10,9 @@
                 horizontal-orientation="4.71225"
                 vertical-orientation="0.25">
         </camera>
+        <animation id="hyena-asset" type="asset" idle="idle1">
+            <key-mapping key="X" press="smell2"/>
+        </animation>
     </node>
 
     <!-- FBO for deferred shading -->
@@ -32,6 +35,17 @@
         <depth pixel-size="24"/>
     </fbo>
     <!-- Textures -->
+    <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
+    <texture id="ground-normal" file="res/textures/terrain/canyon/normal.png"/>
+    <texture id="ground-height" file="res/textures/terrain/canyon/height.png"/>
+    <!--
+    <texture id="ground-color" file="res/textures/island/color.png"/>
+    <texture id="ground-normal" file="res/textures/island/normal.png"/>
+    <texture id="ground-height" file="res/textures/island/height.png"/>
+    -->
+    <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass.png"/>
+    <texture id="tree-mask" file="res/textures/terrain/canyon/mask-trees.png"/>
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
     <!-- Spatial Index -->
@@ -45,22 +59,55 @@
             fov="45.0" near="0.1" far="1200.0"
             position="0.0, 50.0, 250.0"
             direction="0, 0, -1"/>
+    <!-- Assets -->
+    <asset id="fish-asset"
+           type="asset"
+           file="res/models/fish-puffer/PufferFish.fbx"
+           texture-path="res/models/fish-puffer"
+           use-animation="0">
+    </asset>
+    <asset id="hyena-asset"
+           type="asset"
+           file="res/models/hyena/hyena.fbx"
+           texture-path="res/models/hyena"
+           use-animation="1"
+           animation-force-states="1"
+           animation-post-state="LINEAR"
+           animation-pre-state="LINEAR"
+           animation-tps="60.0">
+        <!-- define named animation ranges. -->
+        <anim-range name="walk" channel="Hyenas_A15_Walk" range="1.0,80.0" />
+        <anim-range name="up" channel="Hyenas_A15_Up" range="1.0,50.0" />
+        <anim-range name="tired" channel="Hyenas_A15_Tired" range="1.0,135.0" />
+        <anim-range name="swim2" channel="Hyenas_A15_Swim2" range="1.0,60.0" />
+        <anim-range name="swim1" channel="Hyenas_A15_Swim" range="1.0,100.0" />
+        <anim-range name="stretch" channel="Hyenas_A15_Stretch" range="1.0,300.0" />
+        <anim-range name="smell2" channel="Hyenas_A15_Smell2" range="1.0,300.0" />
+        <anim-range name="smell1" channel="Hyenas_A15_Smell" range="1.0,185.0" />
+        <anim-range name="sleep2" channel="Hyenas_A15_Sleep2" range="1.0,249.0" />
+        <anim-range name="sleep1" channel="Hyenas_A15_Sleep" range="1.0,60.0" />
+        <anim-range name="sit2" channel="Hyenas_A15_Sit2" range="1.0,430.0" />
+        <anim-range name="sit1" channel="Hyenas_A15_Sit" range="1.0,220.0" />
+        <anim-range name="run" channel="Hyenas_A15_Run" range="1.0,30.0" />
+        <anim-range name="roar3" channel="Hyenas_A15_Roar3" range="1.0,110.0" />
+        <anim-range name="roar2" channel="Hyenas_A15_Roar2" range="1.0,100.0" />
+        <anim-range name="roar1" channel="Hyenas_A15_Roar" range="1.0,130.0" />
+        <anim-range name="jump" channel="Hyenas_A15_jump" range="1.0,125.0" />
+        <anim-range name="idle3" channel="Hyenas_A15_Idle3" range="1.0,140.0" />
+        <anim-range name="idle2" channel="Hyenas_A15_Idle2" range="1.0,120.0" />
+        <anim-range name="idle1" channel="Hyenas_A15_Idle" range="1.0,150.0" />
+        <anim-range name="die" channel="Hyenas_A15_Die" range="1.0,100.0" />
+        <anim-range name="breadth" channel="Hyenas_A15_BreathFast" range="1.0,60.0" />
+        <anim-range name="bark" channel="Hyenas_A15_Bark" range="1.0,160.0" />
+        <anim-range name="lick" channel="Hyenas_A15_Atk4" range="1.0,150.0" />
+        <anim-range name="attack3" channel="Hyenas_A15_Atk3" range="1.0,80.0" />
+        <anim-range name="attack2" channel="Hyenas_A15_Atk2" range="1.0,120.0" />
+        <anim-range name="attack1" channel="Hyenas_A15_Atk" range="1.0,35.0" />
+    </asset>
 
     <!--**************************-->
     <!--****** Ground mesh *******-->
     <!--**************************-->
-
-    <!--
-    <texture id="ground-color" file="res/textures/island/color.png"/>
-    <texture id="ground-normal" file="res/textures/island/normal.png"/>
-    <texture id="ground-height" file="res/textures/island/height.png"/>
-    -->
-    <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
-    <texture id="ground-normal" file="res/textures/terrain/canyon/normal.png"/>
-    <texture id="ground-height" file="res/textures/terrain/canyon/height.png"/>
-    <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass1.png"/>
-    <texture id="tree-mask" file="res/textures/terrain/canyon/mask-grass1.png"/>
-    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
 
     <mesh id="ground-mesh"
           type="rectangle"
@@ -177,11 +224,14 @@
             <blend mode="ALPHA"/>
             -->
             <define key="TESS_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.1" lod-metric="EDGE_DEVICE_DISTANCE"/>
-            <input name="lodMinDeviceDistance" type="float" value="0.08"/>
-            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
+            <define key="TESS_POWER_OF_TWO" value="TRUE"/>
             <input name="minTessLevel" type="float" value="1.0"/>
-            <input name="maxTessLevel" type="float" value="60.0"/>
+            <input name="maxTessLevel" type="float" value="50.0"/>
+
+            <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <input name="lodMinDeviceDistance" type="float" value="0.02"/>
+            <input name="lodMaxDeviceDistance" type="float" value="0.6"/>
+
             <!-- use more complex geometry in close range. -->
             <define key="USE_SPRITE_LOD" value="TRUE"/>
             <input name="lodGeomLevel0" type="float" value="60.0"/>
@@ -189,7 +239,7 @@
             <input name="lodGeomBrightness0" type="float" value="1.7"/>
             <input name="lodGeomVariance" type="float" value="6.0"/>
             <!-- size and position -->
-            <input name="quadSize" type="vec2" value="1.15, 0.3"/>
+            <input name="quadSize" type="vec2" value="0.7, 0.4"/>
             <input name="posVariation" type="float" value="0.4"/>
             <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
             <!-- color -->
@@ -383,6 +433,37 @@
     </node>
 
     <!--**************************-->
+    <!--********* Animals **********-->
+    <!--**************************-->
+
+    <mesh id="fish-mesh" type="asset" asset="fish-asset" asset-indices="*" asset-animation="0">
+        <transform id="fish-tf">
+            <rotate value="1.2, 0.0, 0.0"/>
+            <scale value="0.001, 0.001, 0.001"/>
+            <translate value="0.0, 1.0, 4.0"/>
+        </transform>
+        <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" />
+    </mesh>
+
+    <mesh id="hyena-mesh" type="asset" asset="hyena-asset" asset-indices="*" asset-animation="1">
+        <transform id="hyena-tf">
+            <rotate value="0, 1.57079, 1.57079"/>
+            <scale value="0.005, 0.005, 0.005"/>
+            <translate value="-2, 3.0, -24"/>
+        </transform>
+        <shape id="hyena-shape" mode="index" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
+    </mesh>
+
+    <node id="Animals">
+        <node id="fish0" cull-shape="fish-shape">
+            <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
+        </node>
+        <node id="hyena0" cull-shape="hyena-shape">
+            <mesh id="hyena-mesh" mesh-index="0" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <!--**************************-->
     <!--**************************-->
 
     <node id="Shadow-Caster">
@@ -391,6 +472,7 @@
 
     <node id="Scene-Geometry">
         <node import="Grass"/>
+        <node import="Animals"/>
         <node import="Ground"/>
     </node>
 

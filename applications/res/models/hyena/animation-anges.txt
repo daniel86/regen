@@ -1,0 +1,41 @@
+
+each animation is in a different named channel:
+
+Hyenas_A15_Atk   1-36
+Hyenas_A15_Atk2   1-121
+Hyenas_A15_Atk3   1-81
+Hyenas_A15_Atk4[lick]      1-151
+Hyenas_A15_Bark      1-161
+Hyenas_A15_Die       1-101
+Hyenas_A15_BreathFast   1-61
+Hyenas_A15_Idle      1-151
+Hyenas_A15_Idle2     1-121
+Hyenas_A15_Idle3     1-141
+Hyenas_A15_jump      1-126
+Hyenas_A15_Roar      1-131
+Hyenas_A15_Roar2     1-101
+Hyenas_A15_Roar3     1-111
+Hyenas_A15_Run       1-31
+Hyenas_A15_Sit       1-221
+Hyenas_A15_Sit2      1-431
+Hyenas_A15_Sleep     1-61
+Hyenas_A15_Sleep2    1-249 / 1-991
+Hyenas_A15_Smell     1-185
+Hyenas_A15_Smell2    1-301
+Hyenas_A15_Stretch   1-301
+Hyenas_A15_Swim      1-101
+Hyenas_A15_Swim2     1-61
+Hyenas_A15_Tired     1-136
+Hyenas_A15_Up        1-51
+Hyenas_A15_Walk      1-81
+
+
+
+
+
+
+
+
+
+
+
