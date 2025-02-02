@@ -26,28 +26,28 @@
        animation-pre-state="LINEAR"
        animation-tps="20.0">
     <!-- define named animation ranges. -->
-    <anim-range name="complete"    range="0.0,360.0" />
-    <anim-range name="walk"        range="1.0,13.0" />
-    <anim-range name="run"         range="15.0,25.0" />
-    <anim-range name="jump"        range="27.0,39.0" />
-    <anim-range name="jumpSpot"    range="41.0,53.0" />
-    <anim-range name="crouch"      range="55.0,58.0" />
-    <anim-range name="crouchLoop"  range="59.0,68.0" />
-    <anim-range name="getUp"       range="69.0,73.0" />
-    <anim-range name="battleIdle1" range="74.0,87.0" />
-    <anim-range name="battleIdle2" range="89.0,109.0" />
-    <anim-range name="attack1"     range="111.0,125.0" />
-    <anim-range name="attack2"     range="127.0,141.0" />
-    <anim-range name="attack3"     range="143.0,159.0" />
-    <anim-range name="attack4"     range="161.0,179.0" />
-    <anim-range name="attack5"     range="181.0,191.0" />
-    <anim-range name="block"       range="193.0,209.0" />
-    <anim-range name="dieFwd"      range="211.0,226.0" />
-    <anim-range name="dieBack"     range="229.0,250.0" />
-    <anim-range name="yes"         range="252.0,271.0" />
-    <anim-range name="no"          range="273.0,289.0" />
-    <anim-range name="idle1"       range="291.0,324.0" />
-    <anim-range name="idle2"       range="326.0,359.0" />
+    <anim-range name="complete"    channel="AnimationSet0" range="0.0,360.0" />
+    <anim-range name="walk"        channel="AnimationSet0" range="1.0,13.0" />
+    <anim-range name="run"         channel="AnimationSet0" range="15.0,25.0" />
+    <anim-range name="jump"        channel="AnimationSet0" range="27.0,39.0" />
+    <anim-range name="jumpSpot"    channel="AnimationSet0" range="41.0,53.0" />
+    <anim-range name="crouch"      channel="AnimationSet0" range="55.0,58.0" />
+    <anim-range name="crouchLoop"  channel="AnimationSet0" range="59.0,68.0" />
+    <anim-range name="getUp"       channel="AnimationSet0" range="69.0,73.0" />
+    <anim-range name="battleIdle1" channel="AnimationSet0" range="74.0,87.0" />
+    <anim-range name="battleIdle2" channel="AnimationSet0" range="89.0,109.0" />
+    <anim-range name="attack1"     channel="AnimationSet0" range="111.0,125.0" />
+    <anim-range name="attack2"     channel="AnimationSet0" range="127.0,141.0" />
+    <anim-range name="attack3"     channel="AnimationSet0" range="143.0,159.0" />
+    <anim-range name="attack4"     channel="AnimationSet0" range="161.0,179.0" />
+    <anim-range name="attack5"     channel="AnimationSet0" range="181.0,191.0" />
+    <anim-range name="block"       channel="AnimationSet0" range="193.0,209.0" />
+    <anim-range name="dieFwd"      channel="AnimationSet0" range="211.0,226.0" />
+    <anim-range name="dieBack"     channel="AnimationSet0" range="229.0,250.0" />
+    <anim-range name="yes"         channel="AnimationSet0" range="252.0,271.0" />
+    <anim-range name="no"          channel="AnimationSet0" range="273.0,289.0" />
+    <anim-range name="idle1"       channel="AnimationSet0" range="291.0,324.0" />
+    <anim-range name="idle2"       channel="AnimationSet0" range="326.0,359.0" />
 </asset>
 <asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0" />
 <asset id="teapot-asset" type="asset" file="res/models/teapot.obj" use-animation="0" />

@@ -45,20 +45,34 @@ namespace regen {
 			/**
 			 * Default constructor.
 			 */
-			AnimRange()
-					: name(""), range(Vec2d(0.0, 0.0)) {}
+			AnimRange() : range(Vec2d(0.0, 0.0)) {}
 
 			/**
+			 * Constructor with name and range.
 			 * @param n The range name.
 			 * @param r The range value.
+			 * @param i The animation index.
 			 */
-			AnimRange(const std::string &n, const Vec2d &r)
-					: name(n), range(r) {}
+			AnimRange(std::string_view n, const Vec2d &r, GLuint i = 0)
+					: name(n), range(r), channelIndex(i) {}
+
+			/**
+			 * Constructor with name, range and channel name.
+			 * @param n The range name.
+			 * @param r The range value.
+			 * @param channelName The channel name.
+			 */
+			AnimRange(std::string_view n, const Vec2d &r, std::string_view channelName)
+					: name(n), range(r), channelName(channelName) {}
 
 			/** The range name. */
 			std::string name;
 			/** The range value. */
 			Vec2d range;
+			/** The animation index. */
+			GLuint channelIndex = 0;
+			/** The channel name. */
+			std::string channelName;
 		};
 
 		/**

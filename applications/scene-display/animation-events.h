@@ -11,6 +11,16 @@
 #include <list>
 #include <algorithm>
 
+void setAnimationRangeActive(
+			const ref_ptr<NodeAnimation> &anim,
+			const AnimRange &animRange) {
+	if (animRange.channelName.empty()) {
+		anim->setAnimationIndexActive(animRange.channelIndex, animRange.range);
+	} else {
+		anim->setAnimationActive(animRange.channelName, animRange.range);
+	}
+}
+
 class RandomAnimationRangeUpdater : public EventHandler {
 public:
 	RandomAnimationRangeUpdater(
@@ -21,9 +31,8 @@ public:
 			  animRanges_(animRanges) {}
 
 	void call(EventObject *ev, EventData *data) {
-		NodeAnimation *anim = (NodeAnimation *) ev;
 		int index = rand() % animRanges_.size();
-		anim->setAnimationIndexActive(0, animRanges_[index].range);
+		setAnimationRangeActive(anim_, animRanges_[index]);
 	}
 
 protected:
@@ -69,12 +78,12 @@ public:
 		active_ = "";
 		if (toggles_.empty()) {
 			if (!idleAnimation_.empty()) {
-				anim_->setAnimationIndexActive(0, animRanges_[idleAnimation_].range);
+				setAnimationRangeActive(anim_, animRanges_[idleAnimation_]);
 			}
 		} else {
 			KeyAnimationMapping &m0 = mappings_[*toggles_.begin()];
 			if (!m0.idle.empty()) {
-				anim_->setAnimationIndexActive(0, animRanges_[m0.idle].range);
+				setAnimationRangeActive(anim_, animRanges_[m0.idle]);
 			}
 		}
 	}
@@ -103,7 +112,7 @@ public:
 		} else if (m.backwards) {
 			animRange = Vec2d(animRange.y, animRange.x);
 		}
-		anim_->setAnimationIndexActive(0, animRange);
+		setAnimationRangeActive(anim_, animRanges_[m.press]);
 	}
 
 	void nextAnimation() {

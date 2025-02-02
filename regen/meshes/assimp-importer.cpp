@@ -352,12 +352,7 @@ static void loadTexture(
 	maxElements = 1;
 	if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
 								&floatVal, &maxElements) == AI_SUCCESS) {
-		texState->set_texelTransferFunction(REGEN_STRING(
-													"void transferFactor(inout vec4 texel) {\n"
-													"    texel.rgb = " << floatVal << " * texel.rgb;\n"
-																					  "}"),
-											"transferFactor"
-		);
+		texState->set_blendFactor(floatVal);
 	}
 
 	// Defines the strength the n'th texture on the stack 't'.
@@ -974,46 +969,33 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 		}
 		meshState->shaderDefine("NUM_BONE_WEIGHTS", REGEN_STRING(maxNumWeights));
 
-		if (maxNumWeights > 4 || maxNumWeights < 1) {
+		if (maxNumWeights < 1) {
 			// more then 4 weights not supported yet because we use vec attribute below.
 			// but it would not be to much work to use multiple attributes...
 			REGEN_ERROR("The model has invalid bone weights number " << maxNumWeights << ".");
 		} else {
-			ref_ptr<ShaderInput> boneWeights, boneIndices;
-
-			if (maxNumWeights == 1) {
-				boneWeights = ref_ptr<ShaderInput1f>::alloc("boneWeights");
-				boneIndices = ref_ptr<ShaderInput1ui>::alloc("boneIndices");
-			} else if (maxNumWeights == 2) {
-				boneWeights = ref_ptr<ShaderInput2f>::alloc("boneWeights");
-				boneIndices = ref_ptr<ShaderInput2ui>::alloc("boneIndices");
-			} else if (maxNumWeights == 3) {
-				boneWeights = ref_ptr<ShaderInput3f>::alloc("boneWeights");
-				boneIndices = ref_ptr<ShaderInput3ui>::alloc("boneIndices");
-			} else if (maxNumWeights == 4) {
-				boneWeights = ref_ptr<ShaderInput4f>::alloc("boneWeights");
-				boneIndices = ref_ptr<ShaderInput4ui>::alloc("boneIndices");
-			}
+			// create array of bone weights and indices
+			auto boneWeights = ref_ptr<ShaderInput1f>::alloc("boneWeights", maxNumWeights);
+			auto boneIndices = ref_ptr<ShaderInput1ui>::alloc("boneIndices", maxNumWeights);
 			boneWeights->setVertexData(numVertices);
 			boneIndices->setVertexData(numVertices);
-
-			auto *weigths = (GLfloat *) boneWeights->clientDataPtr();
+			auto *weights = (GLfloat *) boneWeights->clientDataPtr();
 			auto *indices = (GLuint *) boneIndices->clientDataPtr();
 			for (GLuint j = 0; j < numVertices; j++) {
 				WeightList &vWeights = vertexToWeights[j];
 
 				GLuint k = 0;
 				for (auto it = vWeights.begin(); it != vWeights.end(); ++it) {
-					weigths[k] = it->first;
+					weights[k] = it->first;
 					indices[k] = it->second;
 					++k;
 				}
 				for (; k < maxNumWeights; ++k) {
-					weigths[k] = 0.0f;
+					weights[k] = 0.0f;
 					indices[k] = 0u;
 				}
 
-				weigths += maxNumWeights;
+				weights += maxNumWeights;
 				indices += maxNumWeights;
 			}
 
@@ -1139,6 +1121,17 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig) {
 
 	for (GLuint i = 0; i < scene_->mNumAnimations; ++i) {
 		aiAnimation *assimpAnim = scene_->mAnimations[i];
+		// extract ticks per second. Assume default value if not given
+		GLdouble ticksPerSecond = (assimpAnim->mTicksPerSecond != 0.0 ?
+								   assimpAnim->mTicksPerSecond : animConfig.ticksPerSecond);
+
+		auto animName = assimpAnim->mName.C_Str();
+		double duration = assimpAnim->mDuration;
+
+		REGEN_DEBUG("Loading animation " << animName <<
+			" with duration " << duration <<
+			" and ticks per second " << ticksPerSecond <<
+			" duration in seconds " << duration / ticksPerSecond);
 
 		if (assimpAnim->mNumChannels <= 0) continue;
 
@@ -1220,10 +1213,6 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig) {
 			channel.positionKeys_ = positionKeys;
 			channel.rotationKeys_ = rotationKeys;
 		}
-
-		// extract ticks per second. Assume default value if not given
-		GLdouble ticksPerSecond = (assimpAnim->mTicksPerSecond != 0.0 ?
-								   assimpAnim->mTicksPerSecond : animConfig.ticksPerSecond);
 
 		anim->addChannels(
 				string(assimpAnim->mName.data),
