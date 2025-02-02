@@ -40,11 +40,15 @@ static void processMeshChildren(
 			REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
 			continue;
 		}
-		auto state = ref_ptr<State>::alloc();
-		processor->processInput(parser, *child, state);
-		for (auto jt = x.begin(); jt != x.end(); ++jt) {
-			const ref_ptr<Mesh>& mesh = *jt;
-			mesh->joinStates(state);
+		if (x.size() > 1) {
+			auto state = ref_ptr<State>::alloc();
+			processor->processInput(parser, *child, state);
+			for (auto jt = x.begin(); jt != x.end(); ++jt) {
+				const ref_ptr<Mesh>& mesh = *jt;
+				mesh->joinStates(state);
+			}
+		} else {
+			processor->processInput(parser, *child, x[0]);
 		}
 	}
 }

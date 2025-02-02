@@ -176,6 +176,12 @@ void tesselationControl()
         float e${INDEX} = metricCameraDistance(ws${INDEX}.xyz);
     #endfor
 #endif
+#ifdef TESS_POWER_OF_TWO
+    // round each level to the nearest power of two
+    #for INDEX to TESS_NUM_VERTICES
+        e${INDEX} = pow(2.0, floor(log2(e${INDEX})));
+    #endfor
+#endif
 
         float maxTessLevel = clamp(in_maxTessLevel*in_lodFactor, 1.0, 64.0);
 #for INDEX to TESS_NUM_VERTICES
