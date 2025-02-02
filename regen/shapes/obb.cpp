@@ -27,14 +27,17 @@ bool OBB::updateTransform(bool forceUpdate) {
 void OBB::updateOBB() {
 	Vec3f offset = basePosition_;
 	if (translation_.get()) {
-		offset += translation_->getVertex(0);
+		offset += translation_->getVertex(translationIndex_);
 	}
 	// compute axes of the OBB based on the model transformation
+	auto scaling = Vec3f::one();
 	if (transform_.get()) {
-		auto &tf = transform_->get()->getVertex(0);
+		auto &tf = transform_->get()->getVertex(transformIndex_);
 		boxAxes_[0] = (tf ^ Vec4f(Vec3f::right(), 0.0f)).xyz_();
 		boxAxes_[1] = (tf ^ Vec4f(Vec3f::up(), 0.0f)).xyz_();
 		boxAxes_[2] = (tf ^ Vec4f(Vec3f::front(), 0.0f)).xyz_();
+		// transform base position offset
+		offset = (tf ^ Vec4f(offset, 0.0f)).xyz_();
 		offset += tf.position();
 	} else {
 		boxAxes_[0] = Vec3f::right();
@@ -43,7 +46,7 @@ void OBB::updateOBB() {
 	}
 
 	// compute vertices of the OBB
-	auto halfSize = (bounds_.max - bounds_.min) * 0.5f;
+	auto halfSize = (bounds_.max - bounds_.min) * scaling * 0.5f;
 	Vec3f x = boxAxes_[0] * halfSize.x;
 	Vec3f y = boxAxes_[1] * halfSize.y;
 	Vec3f z = boxAxes_[2] * halfSize.z;
