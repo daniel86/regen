@@ -367,7 +367,7 @@ void VBO::uploadInterleaved(
 			if (att->divisor() != 0) { continue; }
 
 			// size of a value for a single vertex in bytes
-			GLuint valueSize = att->valsPerElement() * att->dataTypeBytes();
+			GLuint valueSize = att->valsPerElement() * att->dataTypeBytes() * att->elementCount();
 			// copy data
 			if (att->clientDataPtr()) {
 				std::memcpy(
