@@ -267,6 +267,8 @@ vector<AnimRange> SceneParser::getAnimationRanges(const std::string &assetID) {
 			if (n->getCategory() != "anim-range") continue;
 			out[animRangeCount].name = n->getValue("name");
 			out[animRangeCount].range = n->getValue<Vec2d>("range", Vec2d(0.0));
+			out[animRangeCount].channelName = n->getValue("channel");
+			out[animRangeCount].channelIndex = n->getValue<GLuint>("index", 0u);
 			animRangeCount += 1u;
 		}
 
