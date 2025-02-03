@@ -7,10 +7,46 @@
 
 #include "scene-input-xml.h"
 #include "resources.h"
+#include <regex>
 
 using namespace regen::scene;
 using namespace regen;
 using namespace std;
+
+// Function to replace placeholders with actual values
+string preprocessXML(const string &xmlContent, const map<string, string> &variables) {
+    stringstream input(xmlContent);
+    stringstream output;
+    string line;
+
+    while (getline(input, line)) {
+        for (const auto &var : variables) {
+            string placeholder = "{{" + var.first + "}}";
+            if (line.find(placeholder) != string::npos) {
+                string escapedPlaceholder = regex_replace(placeholder, regex(R"([-[\]{}()*+?.,\^$|#\s])"), R"(\$&)");
+                line = regex_replace(line, regex(escapedPlaceholder), var.second);
+            }
+        }
+        output << line << '\n';
+    }
+
+    return output.str();
+}
+
+// Function to extract global constants from the XML content
+map<string, string> extractGlobalConstants(const string &xmlContent) {
+    map<string, string> variables;
+    regex constantRegex(R"lit(<constant\s+name="([^"]+)"\s+value="([^"]+)"\s*/>)lit");
+    smatch match;
+    string::const_iterator searchStart(xmlContent.cbegin());
+
+    while (regex_search(searchStart, xmlContent.cend(), match, constantRegex)) {
+        variables[match[1].str()] = match[2].str();
+        searchStart = match.suffix().first;
+    }
+
+    return variables;
+}
 
 SceneInputXML::SceneInputXML(const string &xmlFile) {
 	inputFile_ = xmlFile;
@@ -19,6 +55,15 @@ SceneInputXML::SceneInputXML(const string &xmlFile) {
 								   istreambuf_iterator<char>(xmlInput_)),
 						   istreambuf_iterator<char>());
 	buffer_.push_back('\0');
+
+	// Preprocess the XML content
+    string xmlContent(buffer_.begin(), buffer_.end());
+    auto variables = extractGlobalConstants(xmlContent);
+    string preprocessedXML = preprocessXML(xmlContent, variables);
+    // Update buffer with preprocessed XML content
+    buffer_ = vector<char>(preprocessedXML.begin(), preprocessedXML.end());
+    buffer_.push_back('\0');
+
 	try {
 		doc_.parse<0>(&buffer_[0]);
 		SceneInputNodeXML *nullParent = nullptr;

@@ -798,6 +798,9 @@ namespace regen {
 			x[14] = translation.z;
 		}
 
+		/**
+		 * @return the translation vector.
+		 */
 		inline const Vec3f &position() const {
 			return *((Vec3f *) &x[12]);
 		}
@@ -852,6 +855,17 @@ namespace regen {
 		}
 
 		/**
+		 * @return the scaling vector.
+		 */
+		inline Vec3f scaling() const {
+			return {
+					Vec3f(x[0], x[1], x[2]).length(),
+					Vec3f(x[4], x[5], x[6]).length(),
+					Vec3f(x[8], x[9], x[10]).length()
+			};
+		}
+
+		/**
 		 * Computes a scaling matrix.
 		 * @param v scale factor for each dimension.
 		 * @return the scaling matrix.
@@ -884,6 +898,31 @@ namespace regen {
 					sy, -sx * cy, cx * cy, 0.0f,
 					0.0f, 0.0f, 0.0f, 1.0f
 			);
+		}
+
+		/**
+		 * Get the rotation of this matrix as euler angles pitch, yaw, roll
+		 * in radians.
+		 * @return the rotation vector.
+		 */
+		inline Vec3f rotation() const {
+			Vec3f euler;
+			if (x[8] < 1) {
+				if (x[8] > -1) {
+					euler.x = -asin(x[8]);
+					euler.z = atan2(x[9], x[10]);
+					euler.y = atan2(x[4], x[0]);
+				} else {
+					euler.x = -M_PI / 2;
+					euler.z = -atan2(x[6], x[5]);
+					euler.y = 0;
+				}
+			} else {
+				euler.x = M_PI / 2;
+				euler.z = atan2(x[6], x[5]);
+				euler.y = 0;
+			}
+			return euler;
 		}
 
 		/**

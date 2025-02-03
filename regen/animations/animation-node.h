@@ -200,6 +200,11 @@ namespace regen {
 		explicit NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart = GL_TRUE);
 
 		/**
+		 * @return true if the animation is active.
+		 */
+		bool isNodeAnimationActive() const;
+
+		/**
 		 * @param autoStart is true the animation adds itself to the AnimationManager.
 		 * @return a copy of this animation.
 		 */
@@ -257,6 +262,11 @@ namespace regen {
 		 * @return the node or a null reference.
 		 */
 		ref_ptr<AnimationNode> findNode(const std::string &name);
+
+		/**
+		 * Stop the node animation.
+		 */
+		void stopNodeAnimation();
 
 		// override
 		void animate(GLdouble dt) override;

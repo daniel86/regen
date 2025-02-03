@@ -8,6 +8,7 @@
 
 #include <regen/camera/camera-controller-base.h>
 #include <regen/animations/animation.h>
+#include "camera-anchor.h"
 
 namespace regen {
 	/**
@@ -27,11 +28,15 @@ namespace regen {
 		 */
 		auto& cameraDirection() const { return camDir_; }
 
-
 		/**
 		 * Adds a frame to the list of key frames for camera animation.
 		 */
 		void push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt);
+
+		/**
+		 * Adds a frame to the list of key frames for camera animation.
+		 */
+		void push_back(const ref_ptr<CameraAnchor> &anchor, GLdouble dt);
 
 		/**
 		 * @param intensity the intensity of the ease in/out effect.
@@ -55,8 +60,7 @@ namespace regen {
 
 	protected:
 		struct CameraKeyFrame {
-			Vec3f pos;
-			Vec3f dir;
+			ref_ptr<CameraAnchor> anchor;
 			GLdouble dt;
 		};
 		std::list<CameraKeyFrame> frames_;

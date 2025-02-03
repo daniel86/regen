@@ -14,8 +14,7 @@ KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
 	camPos_ = cam->position()->getVertex(0);
 	camDir_ = cam->direction()->getVertex(0);
 	it_ = frames_.end();
-	lastFrame_.pos = camPos_;
-	lastFrame_.dir = camDir_;
+	lastFrame_.anchor = ref_ptr<FixedCameraAnchor>::alloc(camPos_, camDir_);
 	lastFrame_.dt = 0.0;
 	dt_ = 0.0;
 	easeInOutIntensity_ = 1.0;
@@ -23,16 +22,20 @@ KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
 	updateCamera(camPos_, camDir_, 0.0);
 }
 
-void KeyFrameController::push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt) {
+void KeyFrameController::push_back(const ref_ptr<CameraAnchor> &anchor, GLdouble dt) {
 	CameraKeyFrame f;
-	f.pos = pos;
-	f.dir = dir;
+	f.anchor = anchor;
 	f.dt = dt;
 	frames_.push_back(f);
 	if (frames_.size() == 1) {
 		it_ = frames_.begin();
 		lastFrame_ = *it_;
 	}
+}
+
+void KeyFrameController::push_back(const Vec3f &pos, const Vec3f &dir, GLdouble dt) {
+	auto anchor = ref_ptr<FixedCameraAnchor>::alloc(pos, dir);
+	push_back(anchor, dt);
 }
 
 static inline auto easeInOutCubic(GLdouble t, GLdouble intensity) {
@@ -65,9 +68,22 @@ Vec3f KeyFrameController::interpolateDirection(const Vec3f &v0, const Vec3f &v1,
 }
 
 void KeyFrameController::animate(GLdouble dt) {
-	if (it_ == frames_.end()) return; // end reached
-	CameraKeyFrame &currentFrame = *it_;
 	GLdouble dtSeconds = dt / 1000.0;
+
+	if (it_ == frames_.end()) {
+		// end reached
+		if (!frames_.empty() && lastFrame_.anchor->following()) {
+			// we should keep following the last anchor
+			it_ = frames_.end();
+			--it_;
+			// set dt to a very low value as we should have reached the end already
+			it_->dt = dt_ + dtSeconds;
+		}
+		else {
+			return;
+		}
+	}
+	CameraKeyFrame &currentFrame = *it_;
 
 	// handle state where we wait between frames.
 	// dt_ will not be changed in the meantime.
@@ -85,7 +101,7 @@ void KeyFrameController::animate(GLdouble dt) {
 	dt_ += dtSeconds;
 
 	// reached next frame?
-	if (dt_ >= currentFrame.dt) {
+	if (dt_ > currentFrame.dt) {
 		GLdouble dtNewFrame = dt_ - currentFrame.dt;
 		// move to next frame
 		++it_;
@@ -98,6 +114,10 @@ void KeyFrameController::animate(GLdouble dt) {
 					++it_;
 					if (it_ == frames_.end()) return;
 				}
+			} else if (currentFrame.anchor->following()) {
+				dt_ = 0.0;
+				animate(dtNewFrame);
+				return;
 			} else {
 				stopAnimation();
 				return;
@@ -116,10 +136,10 @@ void KeyFrameController::animate(GLdouble dt) {
 		}
 	}
 
-	Vec3f &pos0 = lastFrame_.pos;
-	Vec3f &pos1 = currentFrame.pos;
-	Vec3f dir0 = lastFrame_.dir;
-	Vec3f dir1 = currentFrame.dir;
+	Vec3f pos0 = lastFrame_.anchor->position();
+	Vec3f pos1 = currentFrame.anchor->position();
+	Vec3f dir0 = lastFrame_.anchor->direction();
+	Vec3f dir1 = currentFrame.anchor->direction();
 	GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
 	dir0.normalize();
 	dir1.normalize();

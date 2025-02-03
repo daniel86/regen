@@ -29,6 +29,7 @@ using namespace std;
 #include "interactions/node-activation.h"
 #include "regen/physics/impulse-controller.h"
 #include "regen/physics/character-controller.h"
+#include "regen/animations/animal-controller.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -198,13 +199,13 @@ void SceneDisplayWidget::previousView() {
 }
 
 void SceneDisplayWidget::toggleOffCameraTransform() {
-	if(cameraController_.get()) {
+	if (cameraController_.get()) {
 		cameraController_->stopAnimation();
 	}
 }
 
 void SceneDisplayWidget::toggleOnCameraTransform() {
-	if(cameraController_.get()) {
+	if (cameraController_.get()) {
 		// update the camera position
 		cameraController_->setTransform(
 				mainCamera_->position()->getVertex(0),
@@ -216,9 +217,29 @@ void SceneDisplayWidget::toggleOnCameraTransform() {
 
 double SceneDisplayWidget::getAnchorTime(
 		const Vec3f &fromPosition, const Vec3f &toPosition) {
-    double linearDistance = (fromPosition - toPosition).length();
-    // travel with ~6m per second
-    return std::max(2.0, linearDistance/6.0);
+	double linearDistance = (fromPosition - toPosition).length();
+	// travel with ~6m per second
+	return std::max(2.0, linearDistance / 6.0);
+}
+
+void SceneDisplayWidget::activateAnchor() {
+	auto &anchor = anchors_[anchorIndex_];
+	auto &camPos = mainCamera_->position()->getVertex(0);
+	auto &camDir = mainCamera_->direction()->getVertex(0);
+	auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos, camDir);
+	double dt = getAnchorTime(anchor->position(), camPos);
+	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(mainCamera_);
+	anchorAnim_->setRepeat(GL_FALSE);
+	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
+	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
+	anchorAnim_->push_back(cameraAnchor, 0.0);
+	anchorAnim_->push_back(anchor, dt * anchorTimeScale_);
+	anchorAnim_->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
+			[this](EventObject *emitter, EventData *data) {
+				toggleOnCameraTransform();
+				anchorAnim_ = ref_ptr<KeyFrameController>();
+			}));
+	anchorAnim_->startAnimation();
 }
 
 void SceneDisplayWidget::nextAnchor() {
@@ -233,22 +254,7 @@ void SceneDisplayWidget::nextAnchor() {
 	if (anchorIndex_ >= anchors_.size()) {
 		anchorIndex_ = 0;
 	}
-	auto &anchor = anchors_[anchorIndex_];
-	auto &camPos = mainCamera_->position()->getVertex(0);
-	auto &camDir = mainCamera_->direction()->getVertex(0);
-    double dt = getAnchorTime(anchor->position(), camPos);
-	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(mainCamera_);
-	anchorAnim_->setRepeat(GL_FALSE);
-	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
-	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
-	anchorAnim_->push_back(camPos, camDir, 0.0);
-	anchorAnim_->push_back(anchor->position(), anchor->direction(), dt*anchorTimeScale_);
-	anchorAnim_->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
-			[this](EventObject *emitter, EventData *data) {
-				toggleOnCameraTransform();
-				anchorAnim_ = ref_ptr<KeyFrameController>();
-			}));
-	anchorAnim_->startAnimation();
+	activateAnchor();
 }
 
 void SceneDisplayWidget::playAnchor() {
@@ -272,9 +278,9 @@ void SceneDisplayWidget::playAnchor() {
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
 	anchorAnim_->push_back(camPos, camDir, 0.0);
 	Vec3f lastPos = camPos;
-	for (auto &anchor : anchors_) {
+	for (auto &anchor: anchors_) {
 		double dt = getAnchorTime(anchor->position(), lastPos);
-		anchorAnim_->push_back(anchor->position(), anchor->direction(), dt*anchorTimeScale_);
+		anchorAnim_->push_back(anchor, dt * anchorTimeScale_);
 		lastPos = anchor->position();
 	}
 	anchorAnim_->animate(0.0);
@@ -305,12 +311,11 @@ void SceneDisplayWidget::toggleInputsDialog() {
 void SceneDisplayWidget::toggleWireframe() {
 	bool toggleState = ui_.wireframeToggle->isChecked();
 	if (toggleState) {
-		if(wireframeState_.get() == nullptr) {
+		if (wireframeState_.get() == nullptr) {
 			wireframeState_ = ref_ptr<FillModeState>::alloc(GL_LINE);
 			app_->renderTree()->state()->joinStates(wireframeState_);
 		}
-	}
-	else if (wireframeState_.get() != nullptr) {
+	} else if (wireframeState_.get() != nullptr) {
 		app_->renderTree()->state()->disjoinStates(wireframeState_);
 		wireframeState_ = ref_ptr<State>();
 	}
@@ -497,7 +502,8 @@ void SceneDisplayWidget::handleCameraConfiguration(
 			}
 		}
 
-		ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(cameraController_, keyMappings);
+		ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(
+				cameraController_, keyMappings);
 		cameraEventHandler->set_sensitivity(cameraNode->getValue<GLfloat>("sensitivity", 0.005f));
 		app_->connect(Application::KEY_EVENT, cameraEventHandler);
 		app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
@@ -523,6 +529,7 @@ void SceneDisplayWidget::handleCameraConfiguration(
 			auto anchor = ref_ptr<TransformCameraAnchor>::alloc(transform);
 			auto anchorOffset = x->getValue<Vec3f>("offset", Vec3f(1.0f));
 			anchor->setOffset(anchorOffset);
+			anchor->setFollowing(x->getValue<bool>("follow", false));
 			auto anchorMode = x->getValue("look-at");
 			if (anchorMode == "back") {
 				anchor->setMode(TransformCameraAnchor::LOOK_AT_BACK);
@@ -539,11 +546,65 @@ void SceneDisplayWidget::handleCameraConfiguration(
 	}
 }
 
+static void handleAssetController(
+		scene::SceneParser &sceneParser,
+		const ref_ptr<SceneInputNode> &animationNode,
+		std::list<ref_ptr<Animation> > &animations,
+		const std::vector<ref_ptr<NodeAnimation> > &nodeAnimations,
+		const std::vector<AnimRange> &ranges) {
+	auto controllerType = animationNode->getValue("type");
+	auto tf = sceneParser.getResources()->getTransform(
+			&sceneParser, animationNode->getValue("tf"));
+	auto instanceIndex = animationNode->getValue<int>("instance", 0);
+	ref_ptr<AnimationController> controller;
+
+	if (controllerType == "animal") {
+		auto animalController = ref_ptr<AnimalController>::alloc(
+				tf, nodeAnimations[instanceIndex], ranges);
+		controller = animalController;
+		animalController->setWalkSpeed(animationNode->getValue<float>("walk-speed", 0.05f));
+		animalController->setRunSpeed(animationNode->getValue<float>("run-speed", 0.1f));
+		animalController->setFloorHeight(animationNode->getValue<float>("floor-height", 0.0f));
+		animalController->setLaziness(animationNode->getValue<float>("laziness", 0.5f));
+		animalController->setMaxHeight(animationNode->getValue<float>("max-height", std::numeric_limits<float>::max()));
+		animalController->setMinHeight(animationNode->getValue<float>("min-height", std::numeric_limits<float>::min()));
+		animalController->setTerritoryBounds(
+				animationNode->getValue<Vec2f>("territory-center", Vec2f(0.0)),
+				animationNode->getValue<Vec2f>("territory-size", Vec2f(10.0)));
+
+		if (animationNode->hasAttribute("height-map")) {
+			auto heightMap = sceneParser.getResources()->getTexture2D(
+					&sceneParser, animationNode->getValue("height-map"));
+			if (heightMap.get()) {
+				auto heightMapCenter = animationNode->getValue<Vec2f>("height-map-center", Vec2f(0.0));
+				auto heightMapSize = animationNode->getValue<Vec2f>("height-map-size", Vec2f(10.0));
+				auto heightMapFactor = animationNode->getValue<float>("height-map-factor", 8.0f);
+				animalController->setHeightMap(heightMap, heightMapCenter, heightMapSize, heightMapFactor);
+			} else {
+				REGEN_WARN("Unable to find height map for animal controller.");
+			}
+		}
+
+		for (const auto &x: animationNode->getChildren()) {
+			if (x->getCategory() == string("special")) {
+				animalController->addSpecial(x->getValue("name"));
+			}
+		}
+	} else {
+		REGEN_WARN("Unhandled controller type in '" << animationNode->getDescription() << "'.");
+	}
+
+	if (controller.get()) {
+		animations.emplace_back(controller);
+	}
+}
+
 static void handleAssetAnimationConfiguration(
 		QtApplication *app_,
 		scene::SceneParser &sceneParser,
 		list<ref_ptr<EventHandler> > &eventHandler,
-		const ref_ptr<SceneInputNode> &animationNode) {
+		const ref_ptr<SceneInputNode> &animationNode,
+		std::list<ref_ptr<Animation> > &animations) {
 	ref_ptr<AssetImporter> animAsset =
 			sceneParser.getResources()->getAsset(&sceneParser, animationNode->getName());
 	if (animAsset.get() == nullptr) {
@@ -562,7 +623,7 @@ static void handleAssetAnimationConfiguration(
 	}
 
 	if (animationNode->getValue("mode") == string("random")) {
-		for (const auto & anim : nodeAnimations_) {
+		for (const auto &anim: nodeAnimations_) {
 			ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater>::alloc(anim, ranges);
 			anim->connect(Animation::ANIMATION_STOPPED, animStopped);
 			eventHandler.push_back(animStopped);
@@ -571,6 +632,8 @@ static void handleAssetAnimationConfiguration(
 			evData.eventID = Animation::ANIMATION_STOPPED;
 			animStopped->call(anim.get(), &evData);
 		}
+	} else if (animationNode->getCategory() == "controller") {
+		handleAssetController(sceneParser, animationNode, animations, nodeAnimations_, ranges);
 	} else {
 		map<string, KeyAnimationMapping> keyMappings;
 		string idleAnimation = animationNode->getValue("idle");
@@ -579,11 +642,12 @@ static void handleAssetAnimationConfiguration(
 			KeyAnimationMapping mapping;
 			if (x->getCategory() == string("key-mapping")) {
 				mapping.key = x->getValue("key");
-			}
-			else if (x->getCategory() == string("mouse-mapping")) {
+			} else if (x->getCategory() == string("mouse-mapping")) {
 				mapping.key = REGEN_STRING("button" << x->getValue<int>("button", 1));
-			}
-			else {
+			} else if (x->getCategory() == string("controller")) {
+				handleAssetController(sceneParser, x, animations, nodeAnimations_, ranges);
+				continue;
+			} else {
 				REGEN_WARN("Unhandled animation node " << x->getDescription() << ".");
 				continue;
 			}
@@ -702,7 +766,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	for (const auto &x: configurationNode->getChildren()) {
 		if (x->getCategory() == string("animation")) {
 			if (x->getValue("type") == string("asset")) {
-				handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x);
+				handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x, animations_);
 			}
 		} else if (x->getCategory() == string("camera")) {
 			handleCameraConfiguration(sceneParser, x);
