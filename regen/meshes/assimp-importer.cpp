@@ -526,6 +526,9 @@ static void loadTexture(
 		case aiTextureType_EMISSIVE:
 			// The texture is added to the result of the lighting calculation.
 			texState->set_mapTo(TextureState::MAP_TO_EMISSION);
+			// enforce multiply blending such that matEmission parameter gives easy control over
+			// amount of material emission.
+			texState->set_blendMode(BLEND_MODE_MULTIPLY);
 			break;
 		case aiTextureType_OPACITY:
 			// The texture defines per-pixel opacity.
@@ -662,6 +665,10 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_SHININESS_STRENGTH,
 									&floatVal, &maxElements) == AI_SUCCESS) {
 			//mat->set_shininessStrength( floatVal );
+		}
+		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_EMISSIVE_INTENSITY,
+									&floatVal, &maxElements) == AI_SUCCESS) {
+			//mat->set_colorBlendFactor(floatVal);
 		}
 
 		maxElements = 1;

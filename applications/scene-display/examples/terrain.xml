@@ -4,16 +4,24 @@
     <constant name="map-height" value="8.0"/>
     <constant name="map-height-half" value="4.0"/>
     <constant name="map-y-min" value="-4.0"/>
+    <constant name="map-size" value="100.0"/>
+    <constant name="water-surface-y" value="1.7"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration">
         <camera id="main-camera"
                 mode="first-person"
-                speed="0.1"
+                speed="0.05"
                 eye-offset="0.0,0.0,0.0"
                 horizontal-orientation="4.71225"
                 vertical-orientation="0.25">
+            <anchor type="look-at" transform="grass-tf" offset="-40.0, 14.0, 0.0" />
+            <anchor type="look-at" transform="grass-tf" offset="0.0, 10.0, 40.0" />
+            <anchor type="look-at" transform="grass-tf" offset="0.0, 40.0, 60.0" />
+            <anchor type="look-at" transform="grass-tf" offset="60.0, 40.0, 0.0" />
+            <!-- TODO: why -4.0? something seems wrong?!? -->
             <anchor type="look-at" transform="hyena-tf" offset="0.0, -4.0, 1.0" follow="1" />
+            <anchor type="look-at" transform="fish-tf" offset="10.0, 12.0, 10.0" />
         </camera>
         <animation id="hyena-asset" type="asset" idle="idle1">
             <!-- TODO: handle day time, and switch to sleep1 -->
@@ -22,7 +30,7 @@
                 tf="hyena-tf"
                 height-map="ground-height"
                 height-map-center="0, 0"
-                height-map-size="100.0, 100.0"
+                height-map-size="{{map-size}}, {{map-size}}"
                 height-map-factor="{{map-height}}"
                 floor-height="-3.5"
                 territory-size="57.275, 32.373"
@@ -43,27 +51,15 @@
         <texture id="diffuse0" pixel-components="3"/>
         <texture id="diffuse1" pixel-components="3"/>
         <texture id="specular" pixel-components="4"/>
-        <texture id="normal" pixel-components="4"/>
-        <depth pixel-size="24"/>
-    </fbo>
-    <fbo id="overview-buffer"
-         size-mode="rel" size="1.0,1.0"
-         pixel-type="FLOAT" pixel-size="16">
-        <texture id="diffuse0" pixel-components="3"/>
-        <texture id="diffuse1" pixel-components="3"/>
-        <texture id="specular" pixel-components="4"/>
+        <texture id="emission" pixel-components="3"/>
         <texture id="normal" pixel-components="4"/>
         <depth pixel-size="24"/>
     </fbo>
     <!-- Textures -->
+    <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
     <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
     <texture id="ground-normal" file="res/textures/terrain/canyon/normal.png"/>
     <texture id="ground-height" file="res/textures/terrain/canyon/height.png"/>
-    <!--
-    <texture id="ground-color" file="res/textures/island/color.png"/>
-    <texture id="ground-normal" file="res/textures/island/normal.png"/>
-    <texture id="ground-height" file="res/textures/island/height.png"/>
-    -->
     <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass.png"/>
     <texture id="tree-mask" file="res/textures/terrain/canyon/mask-trees.png"/>
     <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
@@ -76,10 +72,11 @@
             culling-index="main-index"
             fov="45.0" near="0.1" far="200.0"
             position="-40.0, 14.0, 0.0"/>
-    <camera id="overview-camera"
-            fov="45.0" near="0.1" far="1200.0"
-            position="0.0, 50.0, 250.0"
-            direction="0, 0, -1"/>
+    <!-- TODO: culling for directional light camera -->
+    <camera id="sun-camera"
+            light="earth-sky-sun"
+            camera="main-camera"
+            num-layer="3" split-weight="0.6" />
     <!-- Assets -->
     <asset id="fish-asset"
            type="asset"
@@ -125,6 +122,14 @@
         <anim-range name="attack2" channel="Hyenas_A15_Atk2" range="1.0,120.0" />
         <anim-range name="attack1" channel="Hyenas_A15_Atk" range="1.0,35.0" />
     </asset>
+    <!-- UBOs -->
+    <ubo id="Scene-UBO">
+        <uniform name="planeSize" type="vec2" value="{{map-size}}, {{map-size}}"/>
+        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
+        <uniform name="windFlowScale" type="float" value="50.0"/>
+        <uniform name="windFlowTime" type="float" value="0.1"/>
+        <uniform name="windStrength" type="float" value="1.0"/>
+    </ubo>
 
     <!--**************************-->
     <!--****** Ground mesh *******-->
@@ -134,7 +139,7 @@
           type="rectangle"
           lod="5"
           rotation="0.0,0.0,3.1415"
-          scaling="100.0,1.0,100.0"
+          scaling="{{map-size}},1.0,{{map-size}}"
           texco-scaling="1.0,-1.0"
           use-normal="1"
           use-texco="1"
@@ -164,13 +169,11 @@
                 z-step="0.0,0.0,10.0" />
             <translate value="-45.0,{{map-y-min}},-45.0" />
         </transform>
+        <!-- TODO: shape should be defined by other ground mesh too! -->
         <shape id="ground-shape" mode="index" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
     </mesh>
 
     <node id="Ground">
-        <input name="planeSize" type="vec2" value="100.0, 100.0"/>
-        <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/> -->
-
         <node id="Ground-quad">
             <define key="TESS_SPACING" value="equal_spacing"/>
             <!--
@@ -194,7 +197,6 @@
         <!--
         <node id="Ground-patches" cull-shape="ground-shape">
             <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/>
-            <input name="planeSize" type="vec2" value="60.0, 60.0"/>
             <define key="TESS_SPACING" value="fractional_odd_spacing"/>
             <tesselation num-patch-vertices="3" lod-factor="0.18" lod-metric="EDGE_DEVICE_DISTANCE"/>
             <input name="lodMinDeviceDistance" type="float" value="0.15"/>
@@ -220,7 +222,7 @@
           mask="grass-mask"
           lod="0"
           scaling="2.0,1.0,2.0"
-          ground-size="100.0,100.0"
+          ground-size="{{map-size}},{{map-size}}"
           usage="STATIC">
         <transform id="grass-tf">
             <translate value="0.0,{{map-y-min}},0.0"/>
@@ -235,24 +237,19 @@
 
     <node id="Grass">
         <node cull-shape="grass-shape">
-            <input name="planeSize" type="vec2" value="100.0, 100.0"/>
-            <!-- TODO: get alpha blending to work, and disable discard alpha -->
-            <!-- TODO: enable wind -->
-            <!-- FIXME: I think soe things won't work with translation applied to the geometry -->
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <blend mode="SRC"/>
-            <!--
-            <blend mode="ALPHA"/>
-            -->
+            <!-- TODO: Can we use alpha blending instead of discard alpha? it can be much faster. -->
+            <!-- <blend mode="ALPHA"/>  -->
+            <!-- TODO: There is some jittering in the grass with tessellation, maybe we can only switch
+                       between fixed level of LODs and not do this continuously. -->
             <define key="TESS_SPACING" value="equal_spacing"/>
             <define key="TESS_POWER_OF_TWO" value="TRUE"/>
             <input name="minTessLevel" type="float" value="1.0"/>
             <input name="maxTessLevel" type="float" value="50.0"/>
-
-            <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.35" lod-metric="EDGE_DEVICE_DISTANCE"/>
             <input name="lodMinDeviceDistance" type="float" value="0.02"/>
             <input name="lodMaxDeviceDistance" type="float" value="0.6"/>
-
             <!-- use more complex geometry in close range. -->
             <define key="USE_SPRITE_LOD" value="TRUE"/>
             <input name="lodGeomLevel0" type="float" value="60.0"/>
@@ -260,12 +257,20 @@
             <input name="lodGeomBrightness0" type="float" value="1.7"/>
             <input name="lodGeomVariance" type="float" value="6.0"/>
             <!-- size and position -->
-            <input name="quadSize" type="vec2" value="0.7, 0.4"/>
+            <input name="quadSize" type="vec2" value="0.5, 0.15"/>
             <input name="posVariation" type="float" value="0.4"/>
             <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
             <!-- color -->
             <texture id="grass-color" map-to="color" blend-mode="mul"/>
             <input name="uvDarken" type="float" value="0.25"/>
+            <!-- wind -->
+            <texture name="windFlow" id="wind-flowmap" />
+            <input name="stiffness" type="float" value="1.0"/>
+            <!-- small-scale wind details -->
+            <texture name="windNoise" id="wind-noise" />
+            <input name="windNoiseScale" type="float" value="100.0"/>
+            <input name="windNoiseSpeed" type="float" value="1.0"/>
+            <input name="windNoiseStrength" type="float" value="0.1"/>
             <!-- height -->
             <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
                      blend-mode="ADD" blend-factor="{{map-height}}"/>
@@ -290,7 +295,7 @@
                 area-mask-texture="tree-mask"
                 area-height-texture="ground-height"
                 area-max-height="{{map-height}}"
-                area-size="100.0,100.0"
+                area-size="{{map-size}},{{map-size}}"
                 cell-size="5.0,5.0"
                 cell-offset="0.0,{{map-y-min}},0.0"
                 obj-min-scale="0.4"
@@ -303,8 +308,7 @@
         <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
             <set mode="random" min="1,1,1" max="5,4,2"/>
         </input>
-        <!-- TODO: which index is used by shape?? -->
-        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
+        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" mesh-index="0" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1" />
         </shape>
     </mesh>
@@ -317,13 +321,10 @@
             <node id="tree-twig">
                 <define key="DISCARD_ALPHA" value="TRUE"/>
                 <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-                <!--
                 <define key="HAS_GS_TRANSFORM" value="TRUE"/>
                 <texture name="windFlow" id="wind-flowmap" />
                 <input name="stiffness" type="float" value="0.5"/>
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
-                -->
-                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" />
             </node>
         </node>
     </node>
@@ -347,7 +348,7 @@
             culling-index="main-index"
             camera="main-camera"
             reflector-normal="0,1,0"
-            reflector-point="0,1.7,0"/>
+            reflector-point="0,{{water-surface-y}},0"/>
 
     <node id="Reflection-Pass">
         <!-- need to load the resource before the reflection pass -->
@@ -406,7 +407,6 @@
              swizzle-g="RED" swizzle-b="RED"/>
 
     <node id="Water-Rendering">
-        <input name="planeSize" type="vec2" value="100.0, 100.0"/>
         <depth test="0" write="0"/>
         <fbo id="g-buffer" draw-buffers="0"/>
         <blend mode="src"/>
@@ -429,7 +429,7 @@
         <input name="sunColor" state="earth-sky-sun" component="lightDiffuse"/>
 
         <input type="float" name="heightTextureSize" value="256.0"/>
-        <input type="float" name="surfaceHeight" value="1.7"/>
+        <input type="float" name="surfaceHeight" value="{{water-surface-y}}"/>
         <input type="float" name="normalScale" value="3.0"/>
         <input type="float" name="refractionConstant" value="30.0"/>
         <input type="float" name="refractionStrength" value="0.24"/>
@@ -461,7 +461,7 @@
         <transform id="fish-tf">
             <rotate value="1.2, 0.0, 0.0"/>
             <scale value="0.001, 0.001, 0.001"/>
-            <translate value="0.0, 1.0, {{map-height-half}}"/>
+            <translate value="0.0, 1.0, 4.0"/>
         </transform>
         <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" />
     </mesh>
@@ -488,12 +488,12 @@
     <!--**************************-->
 
     <node id="Shadow-Caster">
+        <node import="Animals"/>
         <node import="Trees"/>
     </node>
 
     <node id="Scene-Geometry">
         <node import="Grass"/>
-        <node import="Animals"/>
         <node import="Ground"/>
     </node>
 
@@ -513,11 +513,23 @@
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
         <node id="Light-Shading">
+            <!-- <define key="DEBUG_SHADOW_SLICES" value="1" /> -->
+            <light-pass type="DIRECTIONAL"
+                shader="regen.shading.deferred.directional"
+                shadow-filter="NONE">
+                <light id="earth-sky-sun"
+                    shadow-buffer="sun-shadow"
+                    shadow-attachment="depth"
+                    shadow-camera="sun-camera" />
+                <!-- <light id="earth-sky-moon" /> -->
+            </light-pass>
+            <!--
             <light-pass type="DIRECTIONAL"
                         shader="regen.shading.deferred.directional">
                 <light id="earth-sky"/>
                 <light id="earth-sky-moon"/>
             </light-pass>
+            -->
         </node>
     </node>
 
@@ -529,18 +541,29 @@
         <depth test="0" write="0"/>
         <node import="Water-Rendering"/>
 
-        <!--
-        <node import="FXAA">
-          <fbo id="g-buffer" draw-buffers="1" />
-          <texture name="inputTexture" fbo="g-buffer" attachment="0" />
+        <!-- render transparent objects -->
+        <node id="Transparent-Pass">
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <blend mode="add"/>
+            <depth test="1" write="0"/>
+            <!-- render emission light -->
+            <node id="Material-Emission">
+                <texture name="gEmissionTexture" fbo="g-buffer" attachment="4"/>
+                <texture name="gEmissionBlurred" id="emission-map-bloom"/>
+                <!-- <texture name="gEmissionBlurred" id="emission-map-blur" /> -->
+                <fullscreen-pass shader="regen.shading.deferred.emission"/>
+            </node>
+            <!-- <node import="Fire" /> -->
+            <view id="Transparent Objects">
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </view>
         </node>
-        -->
 
         <node id="Distance-Fog">
             <blend mode="alpha"/>
-            <input type="float" name="fogDensity" value="0.9"/>
-            <input type="vec2" name="fogDistance" value="100.0,400.0"/>
-            <input type="vec3" name="fogColor" value="1.0,1.0,1.0"/>
+            <input type="float" name="fogDensity" value="0.66"/>
+            <input type="vec2" name="fogDistance" value="52.0,86.0"/>
+            <input type="vec3" name="fogColor" value="0.2,0.2,0.2"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <texture name="skyColorTexture" id="earth-sky"/>
             <define key="USE_SKY_COLOR" value="TRUE"/>
@@ -595,32 +618,19 @@
     <!--**************************-->
 
     <node id="root">
+        <input name="Scene" ubo="Scene-UBO"/>
+
         <node id="Pre-Render">
             <node import="Reflection-Pass"/>
-        </node>
 
-        <!--
-        <node id="Debugging">
-            <view id="Overview">
-                <camera id="overview-camera"/>
-                <fbo id="overview-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
-                <node>
-                    <blend mode="src"/>
-                    <depth test="1" write="1"/>
-                    <fbo id="overview-buffer" draw-buffers="0,1,2,3"/>
-
-                    <node import="Shadow-Caster"/>
-                    <node import="Scene-Geometry"/>
-                </node>
-                <node import="spatial-index-debug">
-                    <fbo id="overview-buffer" draw-buffers="0"/>
-                </node>
-                <node>
-                    <blit src-fbo="overview-buffer" src-attachment="0" dst-fbo="SCREEN"/>
-                </node>
-            </view>
+            <node id="Shadow-Pass">
+                <define key="OUTPUT_TYPE" value="DEPTH" />
+                <cull mode="FRONT" />
+                <fbo id="sun-shadow" clear-depth="1" />
+                <camera id="sun-camera" />
+                <node import="Shadow-Caster" />
+            </node>
         </node>
-        -->
 
         <node id="Render">
             <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
@@ -633,11 +643,24 @@
                 <node import="Shadow-Caster"/>
                 <node import="Scene-Geometry"/>
                 <node import="G-Buffer-Views"/>
+                <view id="G-Buffer: Emission">
+                    <blit src-fbo="g-buffer" src-attachment="4" dst-fbo="SCREEN"/>
+                </view>
             </node>
 
             <node id="Post-Geometry">
-                <!--
-                -->
+                <node id="Emission-Update">
+                    <input type="float" name="filterRadius" value="0.01"/>
+                    <bloom fbo="g-buffer" attachment="4" bloom-texture="emission-map-bloom"/>
+                </node>
+                <view id="Emission Mips">
+                    <fbo id="SCREEN"/>
+                    <texture name="inputTexture1" id="emission-map-bloom" mip-level="0"/>
+                    <texture name="inputTexture2" id="emission-map-bloom" mip-level="1"/>
+                    <texture name="inputTexture3" id="emission-map-bloom" mip-level="2"/>
+                    <texture name="inputTexture4" id="emission-map-bloom" mip-level="3"/>
+                    <fullscreen-pass shader="regen.filter.sampling.x4"/>
+                </view>
             </node>
 
             <node id="Shading">
@@ -681,5 +704,4 @@
             </view>
         </node>
     </node>
-
 </node>
