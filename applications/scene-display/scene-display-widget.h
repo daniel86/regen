@@ -52,6 +52,8 @@ public:
 
 	void toggleOnCameraTransform();
 
+	void updateGameTimeWidget();
+
 public slots:
 
 	void openFile();
@@ -71,6 +73,10 @@ public slots:
 	void toggleWireframe();
 
 	void toggleVSync();
+
+	void onWorldTimeChanged();
+
+	void onWorldTimeFactorChanged(double value);
 
 protected:
 	std::list<ref_ptr<EventHandler> > eventHandler_;
@@ -98,6 +104,9 @@ protected:
 	std::string activeFile_;
 	ViewNodeList viewNodes_;
 	ViewNodeList::iterator activeView_;
+
+	ref_ptr<Animation> timeWidgetAnimation_;
+	boost::posix_time::ptime lastUpdateTime_;
 
 	ref_ptr<State> wireframeState_;
 

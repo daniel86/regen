@@ -37,21 +37,9 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	dawnColor_ = Vec3f(0.2, 0.15, 0.15);
 	moonSunLightReflectance_ = 0.4;
 
-	timef_ = ref_ptr<osgHimmel::TimeF>::alloc(
-			time(nullptr),       // Current time
-			-3600.0L * 2.0L,  // UTC offset
-			3600.0L           // secondsPerCycle
-	);
-	timef_->start();
-
 	astro_ = ref_ptr<osgHimmel::Astronomy>::alloc();
 	astro_->setLatitude(52.5491);
 	astro_->setLongitude(13.3611);
-
-	// TODO: unify this with the global time uniform of Application
-	timeUniform_ = ref_ptr<ShaderInput1f>::alloc("time");
-	timeUniform_->setUniformData(0.0f);
-	state()->joinShaderInput(timeUniform_);
 
 	auto uniformBlock = ref_ptr<UniformBlock>::alloc("Sky");
 	state()->joinShaderInput(uniformBlock);
@@ -111,54 +99,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	joinAnimationState(state());
 }
 
-const ref_ptr<Rectangle> &Sky::skyQuad() const {
-	return skyQuad_;
-}
-
-std::string Sky::date() const {
-	const time_t t = timef_->gett();
-	std::string dateStr(ctime(&t));
-	return dateStr.substr(0, dateStr.size() - 1);
-}
-
-GLdouble Sky::timef() const { return timef_->getf(); }
-
-const ref_ptr<ShaderInput1f> &Sky::timeUniform() const { return timeUniform_; }
-
-void Sky::set_time(const time_t &time) {
-	timef_->sett(time, true);
-	REGEN_INFO("Set sky time to: " << date());
-}
-
-void Sky::set_timestamp(double seconds) { set_time(static_cast<time_t>(seconds)); }
-
-void Sky::set_date(const std::string &date) {
-	struct tm tm;
-	if (strptime(date.c_str(), "%d-%m-%Y %H:%M:%S", &tm)) {
-		set_time(mktime(&tm));
-		animate(0.0);
-	} else {
-		REGEN_WARN("Invalid date string: " << date << ".");
-	}
-}
-
-void Sky::set_utcOffset(const time_t &offset) { timef_->setUtcOffset(offset); }
-
-void Sky::set_secondsPerCycle(GLdouble secondsPerCycle) { timef_->setSecondsPerCycle(secondsPerCycle); }
-
 osgHimmel::AbstractAstronomy &Sky::astro() { return *astro_.get(); }
-
-void Sky::set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro) { astro_ = astro; }
-
-const Vec3f &Sky::noonColor() { return noonColor_; }
-
-void Sky::set_noonColor(const Vec3f &noonColor) { noonColor_ = noonColor; }
-
-const Vec3f &Sky::dawnColor() { return dawnColor_; }
-
-void Sky::set_dawnColor(const Vec3f &dawnColor) { dawnColor_ = dawnColor; }
-
-GLfloat Sky::moonSunLightReflectance() { return moonSunLightReflectance_; }
 
 void Sky::set_moonSunLightReflectance(
 		GLfloat moonSunLightReflectance) { moonSunLightReflectance_ = moonSunLightReflectance; }
@@ -179,14 +120,6 @@ void Sky::set_altitude(const GLdouble altitude) {
 void Sky::set_longitude(const GLdouble longitude) { astro_->setLongitude(longitude); }
 
 void Sky::set_latitude(const GLdouble latitude) { astro_->setLatitude(latitude); }
-
-ref_ptr<Light> &Sky::sun() { return sun_; }
-
-ref_ptr<Light> &Sky::moon() { return moon_; }
-
-ref_ptr<Camera> &Sky::camera() { return cam_; }
-
-ref_ptr<ShaderInput2i> &Sky::viewport() { return viewport_; }
 
 void Sky::updateSeed() {
 	Vec4f &v = *((Vec4f *) cmnUniform_->clientDataPtr());
@@ -214,21 +147,26 @@ void Sky::createShader(RenderState *rs, const StateConfig &stateCfg) {
 
 void Sky::startAnimation() {
 	if (isRunning_) return;
-	if (!timef_->isRunning())
-		timef_->start(false);
 	Animation::startAnimation();
 }
 
 void Sky::stopAnimation() {
 	if (!isRunning_) return;
-	if (timef_->isRunning())
-		timef_->stop(false);
 	Animation::stopAnimation();
 }
 
 void Sky::animate(GLdouble dt) {
-	timef_->update();
-	astro_->update(osgHimmel::t_aTime::fromTimeF(*timef_.get()));
+	if (worldTime_) {
+		auto &t_ptime = *worldTime_;
+		// convert to time_t
+		time_t t = boost::posix_time::to_time_t(t_ptime);
+		// get UTC offset
+		struct tm *tm = gmtime(&t);
+		time_t utcOffset = t - mktime(tm);
+		// create timef object
+		osgHimmel::TimeF time_osg(t, utcOffset);
+		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg));
+	}
 }
 
 GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius) {
@@ -263,7 +201,6 @@ static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
 }
 
 void Sky::glAnimate(RenderState *rs, GLdouble dt) {
-	timeUniform_->setVertex(0, timef_->getf());
 	// Compute sun/moon directions
 	Vec3f moon = astro_->getMoonPosition(false);
 	Vec3f sun = astro_->getSunPosition(false);
@@ -314,8 +251,6 @@ void SkyView::traverse(RenderState *rs) {
 		sky_->state()->disable(rs);
 	}
 }
-
-const ref_ptr<Sky> &SkyView::sky() { return sky_; }
 
 void SkyView::createShader(RenderState *rs, const StateConfig &stateCfg) {
 	for (auto it = layer_.begin(); it != layer_.end(); ++it) {

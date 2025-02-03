@@ -53,6 +53,26 @@ public:
 };
 
 /////////////////
+////// Game Time Animation
+/////////////////
+
+class GameTimeAnimation : public Animation {
+public:
+	GameTimeAnimation(SceneDisplayWidget *widget)
+			: Animation(GL_FALSE, GL_TRUE), widget_(widget) {
+	}
+
+	void glAnimate(RenderState *rs, GLdouble dt) override {}
+
+	void animate(GLdouble dt) override {
+		widget_->updateGameTimeWidget();
+	}
+
+protected:
+	SceneDisplayWidget *widget_;
+};
+
+/////////////////
 ////// Mouse event handler
 /////////////////
 
@@ -112,7 +132,8 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 		  anchorIndex_(0),
 		  inputDialog_(nullptr),
 		  inputWidget_(nullptr),
-		  app_(app) {
+		  app_(app),
+		  lastUpdateTime_(boost::posix_time::microsec_clock::local_time()) {
 	setMouseTracking(true);
 	anchorEaseInOutIntensity_ = 1.0;
 	anchorPauseTime_ = 2.0;
@@ -123,6 +144,7 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 
 	ui_.setupUi(this);
 	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
+	ui_.worldTimeFactor->setValue(1.0);
 	resize(1600, 1200);
 	readConfig();
 }
@@ -327,6 +349,33 @@ void SceneDisplayWidget::toggleVSync() {
 	} else {
 		app_->setVSyncEnabled(false);
 	}
+}
+
+void SceneDisplayWidget::updateGameTimeWidget() {
+    auto &t_ptime = app_->worldTime_ptime();
+    auto t_seconds = t_ptime.time_of_day().total_seconds();
+    auto t_hours = t_seconds / 3600;
+    auto t_minutes = (t_seconds % 3600) / 60;
+    auto t_seconds_ = t_seconds % 60;
+    QTime q_time(t_hours, t_minutes, t_seconds_);
+
+    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
+    if ((now - lastUpdateTime_).total_seconds() >= 1) {
+        ui_.worldTime->setTime(q_time);
+        lastUpdateTime_ = now;
+    }
+}
+
+void SceneDisplayWidget::onWorldTimeChanged() {
+	// get time from the time widget
+	auto q_time = ui_.worldTime->time();
+	// convert to time_t
+	time_t t = q_time.hour() * 3600 + q_time.minute() * 60 + q_time.second();
+	app_->setWorldTime(t);
+}
+
+void SceneDisplayWidget::onWorldTimeFactorChanged(double value) {
+	app_->setWorldTimeScale(value);
 }
 
 void SceneDisplayWidget::openFile() {
@@ -727,10 +776,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	anchors_.clear();
 	if (physics_.get()) {
 		physics_->clear();
-		physics_ = ref_ptr<BulletPhysics>();
+		physics_ = {};
 	}
-	mainCamera_ = ref_ptr<Camera>();
-	anchorAnim_ = ref_ptr<KeyFrameController>();
+	mainCamera_ = {};
+	anchorAnim_ = {};
+	timeWidgetAnimation_ = {};
 	anchorIndex_ = 0;
 
 	for (auto &it: eventHandler_) {
@@ -761,6 +811,24 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	ref_ptr<SceneInputNode> root = sceneParser.getRoot();
 	ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
 	if (configurationNode.get() == nullptr) { configurationNode = root; }
+
+	// configure world time
+	if (configurationNode->hasAttribute("date")) {
+		auto dateString = configurationNode->getValue("date");
+		struct tm tm;
+		if (strptime(dateString.c_str(), "%d-%m-%Y %H:%M:%S", &tm)) {
+			app_->setWorldTime(mktime(&tm));
+		} else {
+			REGEN_WARN("Invalid date string: " << dateString << ".");
+		}
+	}
+	if (configurationNode->hasAttribute("time-scale")) {
+		app_->setWorldTimeScale(configurationNode->getValue<double>("time-scale", 1.0));
+	}
+	if (configurationNode->hasAttribute("timestamp")) {
+		auto time_d = configurationNode->getValue<double>("timestamp", 0.0);
+		app_->setWorldTime(static_cast<time_t>(time_d));
+	}
 
 	// Process node children
 	for (const auto &x: configurationNode->getChildren()) {
@@ -824,6 +892,8 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	app_->connect(Application::BUTTON_EVENT, mouseEventHandler);
 	eventHandler_.emplace_back(mouseEventHandler);
 
+	timeWidgetAnimation_ = ref_ptr<GameTimeAnimation>::alloc(this);
+	animations_.emplace_back(timeWidgetAnimation_);
 	loadAnim_ = ref_ptr<Animation>();
 	AnimationManager::get().setSpatialIndices(spatialIndices_);
 	AnimationManager::get().resetTime();

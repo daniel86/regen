@@ -8,7 +8,9 @@
     <constant name="water-surface-y" value="1.7"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
-    <node id="configuration">
+    <node id="configuration"
+            date="01-09-2014 12:13:00"
+            time-scale="600.0">
         <camera id="main-camera"
                 mode="first-person"
                 speed="0.05"

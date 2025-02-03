@@ -26,25 +26,7 @@ namespace regen {
 		Sky(const ref_ptr<Camera> &cam,
 			const ref_ptr<ShaderInput2i> &viewport);
 
-		void set_time(const time_t &time);
-
-		void set_timestamp(GLdouble timestamp);
-
-		void set_date(const std::string &date);
-
-		void set_utcOffset(const time_t &offset);
-
-		void set_secondsPerCycle(GLdouble secondsPerCycle);
-
-		std::string date() const;
-
-		/**
-		 * Float time in the interval [0;1]
-		 */
-		GLdouble timef() const;
-
-		const ref_ptr<ShaderInput1f> &timeUniform() const;
-
+		void setWorldTime(const boost::posix_time::ptime *worldTime) { worldTime_ = worldTime; }
 
 		void set_altitude(GLdouble altitude);
 
@@ -58,39 +40,35 @@ namespace regen {
 
 		GLdouble latitude() const;
 
+		ref_ptr<Light> &sun() { return sun_; }
 
-		ref_ptr<Light> &sun();
+		ref_ptr<Light> &moon() { return moon_; }
 
-		ref_ptr<Light> &moon();
+		ref_ptr<Camera> &camera() { return cam_; }
 
-		ref_ptr<Camera> &camera();
+		ref_ptr<ShaderInput2i> &viewport() { return viewport_; }
 
-		ref_ptr<ShaderInput2i> &viewport();
+		const Vec3f &noonColor() const { return noonColor_; }
 
+		void set_noonColor(const Vec3f &noonColor) { noonColor_ = noonColor; }
 
-		const Vec3f &noonColor();
+		const Vec3f &dawnColor() const { return dawnColor_; }
 
-		void set_noonColor(const Vec3f &noonColor);
+		void set_dawnColor(const Vec3f &dawnColor) { dawnColor_ = dawnColor; }
 
-		const Vec3f &dawnColor();
-
-		void set_dawnColor(const Vec3f &dawnColor);
-
-		GLfloat moonSunLightReflectance();
+		GLfloat moonSunLightReflectance() const { return moonSunLightReflectance_; }
 
 		void set_moonSunLightReflectance(GLfloat moonSunLightReflectance);
-
 
 		GLfloat computeHorizonExtinction(const Vec3f& position, const Vec3f& dir, GLfloat radius);
 
 		GLfloat computeEyeExtinction(const Vec3f& eyedir);
 
-		const ref_ptr<Rectangle> &skyQuad() const;
-
+		const ref_ptr<Rectangle> &skyQuad() const { return skyQuad_; }
 
 		osgHimmel::AbstractAstronomy &astro();
 
-		void set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro);
+		void set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro) { astro_ = astro; }
 
 		void addLayer(const ref_ptr<SkyLayer> &layer);
 
@@ -111,14 +89,13 @@ namespace regen {
 		ref_ptr<Camera> cam_;
 		ref_ptr<ShaderInput2i> viewport_;
 
-		ref_ptr<osgHimmel::TimeF> timef_;
+		const boost::posix_time::ptime *worldTime_ = nullptr;
 		ref_ptr<osgHimmel::AbstractAstronomy> astro_;
 
 		std::list<ref_ptr<SkyLayer> > layer_;
 
 		ref_ptr<Light> sun_;
 		ref_ptr<Light> moon_;
-		ref_ptr<ShaderInput1f> timeUniform_;
 		ref_ptr<ShaderInput4f> cmnUniform_;
 		ref_ptr<ShaderInputMat4> R_;
 		ref_ptr<ShaderInput1f> q_;
@@ -136,7 +113,7 @@ namespace regen {
 	public:
 		explicit SkyView(const ref_ptr<Sky> &sky);
 
-		const ref_ptr<Sky> &sky();
+		const ref_ptr<Sky> &sky() const { return sky_; }
 
 		void addLayer(const ref_ptr<SkyLayer> &layer);
 

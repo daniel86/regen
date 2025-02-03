@@ -49,6 +49,10 @@ Application::Application(const int &argc, const char **argv)
 	timeSeconds_->setUniformData(0.0f);
 	timeDelta_ = ref_ptr<ShaderInput1f>::alloc("timeDeltaMS");
 	timeDelta_->setUniformData(0.0f);
+	// UTC time of the game world
+	worldTime_ = ref_ptr<ShaderInput1f>::alloc("worldTime");
+	worldTime_->setUniformData(0.0f);
+	worldTime_ptime_ = boost::posix_time::microsec_clock::local_time();
 
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
@@ -280,6 +284,7 @@ void Application::clear() {
 		globalUniforms_->addUniform(mouseDepth_);
 		globalUniforms_->addUniform(timeSeconds_);
 		globalUniforms_->addUniform(timeDelta_);
+		globalUniforms_->addUniform(worldTime_);
 		globalUniforms_->addUniform(isMouseEntered_);
 		renderTree_->state()->joinShaderInput(globalUniforms_);
 	}
@@ -326,9 +331,21 @@ void Application::updateTime() {
 		setTime();
 	}
 	boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
-	timeDelta_->setUniformData((GLdouble) (t - lastTime_).total_milliseconds());
+	auto dt = (t - lastTime_).total_milliseconds();
+	timeDelta_->setUniformData((double)dt);
 	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1e+6);
 	lastTime_ = t;
+	worldTime_ptime_ += boost::posix_time::milliseconds(static_cast<long>(dt * worldTimeScale_));
+}
+
+void Application::setWorldTime(const time_t &t) {
+	worldTime_ptime_ = boost::posix_time::from_time_t(t);
+	worldTime_->setUniformData((float)t);
+}
+
+void Application::setWorldTime(float timeInSeconds) {
+	worldTime_->setUniformData(timeInSeconds);
+	worldTime_ptime_ = boost::posix_time::from_time_t((time_t)timeInSeconds);
 }
 
 void Application::drawGL() {
