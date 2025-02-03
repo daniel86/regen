@@ -18,6 +18,7 @@
 
 #include <regen/external/osghimmel/timef.h>
 #include <regen/external/osghimmel/astronomy.h>
+#include "regen/utility/time.h"
 
 namespace regen {
 
@@ -26,7 +27,7 @@ namespace regen {
 		Sky(const ref_ptr<Camera> &cam,
 			const ref_ptr<ShaderInput2i> &viewport);
 
-		void setWorldTime(const boost::posix_time::ptime *worldTime) { worldTime_ = worldTime; }
+		void setWorldTime(const WorldTime *worldTime) { worldTime_ = worldTime; }
 
 		void set_altitude(GLdouble altitude);
 
@@ -89,7 +90,7 @@ namespace regen {
 		ref_ptr<Camera> cam_;
 		ref_ptr<ShaderInput2i> viewport_;
 
-		const boost::posix_time::ptime *worldTime_ = nullptr;
+		const WorldTime *worldTime_ = nullptr;
 		ref_ptr<osgHimmel::AbstractAstronomy> astro_;
 
 		std::list<ref_ptr<SkyLayer> > layer_;

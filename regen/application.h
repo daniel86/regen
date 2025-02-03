@@ -5,12 +5,13 @@
  *      Author: daniel
  */
 
-#ifndef ___APPLICATION_H_
-#define ___APPLICATION_H_
+#ifndef REGEN_APPLICATION_H
+#define REGEN_APPLICATION_H
 
 #include <boost/filesystem.hpp>
 
 #include <regen/utility/event-object.h>
+#include <regen/utility/time.h>
 #include <regen/states/state-node.h>
 #include "regen/states/geometric-picking.h"
 #include "regen/scene/scene-interaction.h"
@@ -297,18 +298,19 @@ namespace regen {
 		auto &worldTime() const { return worldTime_; }
 
 		/**
-		 * @return the world time in ptime.
-		 */
-		auto &worldTime_ptime() const { return worldTime_ptime_; }
-
-		/**
 		 * Sets the world time scale.
 		 * @param scale the scale.
 		 */
-		void setWorldTimeScale(const double &scale) { worldTimeScale_ = scale; }
+		void setWorldTimeScale(const double &scale);
 
+		/**
+		 * Sets the world time.
+		 */
 		void setWorldTime(const time_t &t);
 
+		/**
+		 * Sets the world time.
+		 */
 		void setWorldTime(float t);
 
 	protected:
@@ -332,13 +334,11 @@ namespace regen {
 		ref_ptr<ShaderInput1f> mouseDepth_;
 		ref_ptr<ShaderInput1f> timeSeconds_;
 		ref_ptr<ShaderInput1f> timeDelta_;
-		ref_ptr<ShaderInput1f> worldTime_;
 		ref_ptr<UniformBlock> globalUniforms_;
 
 		boost::posix_time::ptime lastMotionTime_;
 		boost::posix_time::ptime lastTime_;
-		boost::posix_time::ptime worldTime_ptime_;
-		double worldTimeScale_ = 1.0;
+		WorldTime worldTime_;
 
 		GLboolean isGLInitialized_;
 		GLboolean isTimeInitialized_;
@@ -361,5 +361,5 @@ namespace regen {
 
 } // namespace
 
-#endif // ___APPLICATION_H_
+#endif // REGEN_APPLICATION_H
 

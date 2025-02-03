@@ -9,8 +9,8 @@
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
-            date="01-09-2014 12:13:00"
-            time-scale="600.0">
+            date="01-09-2014 06:00:00"
+            time-scale="60.0">
         <camera id="main-camera"
                 mode="first-person"
                 speed="0.05"
@@ -49,12 +49,14 @@
     <!-- FBO for deferred shading -->
     <fbo id="g-buffer"
          size-mode="rel" size="1.0,1.0"
-         pixel-type="FLOAT" pixel-size="16">
-        <texture id="diffuse0" pixel-components="3"/>
-        <texture id="diffuse1" pixel-components="3"/>
-        <texture id="specular" pixel-components="4"/>
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
         <texture id="emission" pixel-components="3"/>
-        <texture id="normal" pixel-components="4"/>
         <depth pixel-size="24"/>
     </fbo>
     <!-- Textures -->
@@ -76,9 +78,10 @@
             position="-40.0, 14.0, 0.0"/>
     <!-- TODO: culling for directional light camera -->
     <camera id="sun-camera"
+            culling-index="main-index"
             light="earth-sky-sun"
             camera="main-camera"
-            num-layer="3" split-weight="0.6" />
+            num-layer="3" split-weight="0.9" />
     <!-- Assets -->
     <asset id="fish-asset"
            type="asset"
@@ -408,9 +411,32 @@
     <texture id="water-foam" file="res/textures/water/foam2.jpg" wrapping="REPEAT"
              swizzle-g="RED" swizzle-b="RED"/>
 
+    <ubo id="Water-UBO">
+        <input type="vec4" name="normalModifier" value="1.0,2.0,4.0,8.0"/>
+        <input type="vec3" name="waterColor" value="0.0078,0.4,0.55"/>
+        <input type="float" name="sunScale" value="1.5"/>
+        <input type="vec3" name="deepWaterColor" value="0.0078,0.5176,0.7"/>
+        <input type="float" name="shininess" value="0.2"/>
+        <input type="vec3" name="colorExtinction" value="7.0,30.0,40.0"/>
+        <input type="float" name="fadeSpeed" value="0.1"/>
+        <input type="vec3" name="foamExistence" value="0.45,1.35,1.25"/>
+        <input type="float" name="foamIntensity" value="0.5"/>
+        <input type="vec2" name="windDirection" value="0.9,0.0"/>
+        <input type="vec2" name="waveScale" value="0.05,0.05"/>
+        <input type="float" name="heightTextureSize" value="256.0"/>
+        <input type="float" name="surfaceHeight" value="{{water-surface-y}}"/>
+        <input type="float" name="normalScale" value="3.0"/>
+        <input type="float" name="refractionConstant" value="30.0"/>
+        <input type="float" name="refractionStrength" value="0.24"/>
+        <input type="float" name="shoreHardness" value="0.1"/>
+        <input type="float" name="maxAmplitude" value="1.5"/>
+        <input type="float" name="reflectionDisplace" value="10.0"/>
+        <input type="float" name="visibility" value="0.9"/>
+        <input type="float" name="foamHardness" value="1.0"/>
+    </ubo>
+
     <node id="Water-Rendering">
         <depth test="0" write="0"/>
-        <fbo id="g-buffer" draw-buffers="0"/>
         <blend mode="src"/>
 
         <define key="USE_REFRACTION" value="TRUE"/>
@@ -418,39 +444,18 @@
         <define key="USE_RIPPLES" value="TRUE"/>
         <define key="USE_SPECULAR" value="TRUE"/>
 
+        <input name="WaterUBO" ubo="Water-UBO"/>
         <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
         <texture name="refractionTexture" fbo="g-buffer" attachment="1"/>
         <texture name="reflectionTexture" id="blurred-reflection"/>
         <texture name="normalTexture" id="water-normal"/>
         <texture name="heightTexture" id="water-height"/>
         <texture name="foamTexture" id="water-foam"/>
-
         <input type="time" name="time" scale="0.003"/>
+        <!-- imported inputs -->
         <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
         <input name="sunDirection" state="earth-sky-sun" component="lightDirection"/>
         <input name="sunColor" state="earth-sky-sun" component="lightDiffuse"/>
-
-        <input type="float" name="heightTextureSize" value="256.0"/>
-        <input type="float" name="surfaceHeight" value="{{water-surface-y}}"/>
-        <input type="float" name="normalScale" value="3.0"/>
-        <input type="float" name="refractionConstant" value="30.0"/>
-        <input type="float" name="refractionStrength" value="0.24"/>
-        <input type="float" name="shoreHardness" value="0.1"/>
-        <input type="vec2" name="windDirection" value="0.9,0.0"/>
-        <input type="vec2" name="waveScale" value="0.05,0.05"/>
-        <input type="float" name="maxAmplitude" value="1.5"/>
-        <input type="float" name="reflectionDisplace" value="10.0"/>
-        <input type="float" name="sunScale" value="1.5"/>
-        <input type="vec3" name="waterColor" value="0.0078,0.4,0.55"/>
-        <input type="vec3" name="deepWaterColor" value="0.0078,0.5176,0.7"/>
-        <input type="float" name="shininess" value="0.2"/>
-        <input type="vec3" name="colorExtinction" value="7.0,30.0,40.0"/>
-        <input type="float" name="fadeSpeed" value="0.1"/>
-        <input type="float" name="visibility" value="0.9"/>
-        <input type="vec4" name="normalModifier" value="1.0,2.0,4.0,8.0"/>
-        <input type="vec3" name="foamExistence" value="0.45,1.35,1.25"/>
-        <input type="float" name="foamIntensity" value="0.5"/>
-        <input type="float" name="foamHardness" value="1.0"/>
 
         <fullscreen-pass shader="regen.filter.water"/>
     </node>
@@ -515,7 +520,7 @@
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
         <node id="Light-Shading">
-            <!-- <define key="DEBUG_SHADOW_SLICES" value="1" /> -->
+            <define key="DEBUG_SHADOW_SLICES" value="1" />
             <light-pass type="DIRECTIONAL"
                 shader="regen.shading.deferred.directional"
                 shadow-filter="NONE">
@@ -541,7 +546,9 @@
 
     <node id="Post-Pass">
         <depth test="0" write="0"/>
-        <node import="Water-Rendering"/>
+        <node import="Water-Rendering">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
 
         <!-- render transparent objects -->
         <node id="Transparent-Pass">
@@ -573,8 +580,10 @@
         </node>
 
         <node import="Scene-Blur"/>
-        <node import="Tonemapping"/>
-        <view id="Scene -- Tonemapping">
+        <node import="ToneMapping">
+            <fbo id="g-buffer" draw-buffers="1"/>
+        </node>
+        <view id="Scene -- ToneMapping">
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
     </node>
@@ -596,13 +605,7 @@
         </view>
     </node>
 
-    <node id="Tonemapping">
-        <define key="USE_RADIAL_BLUR" value="TRUE"/>
-        <define key="USE_VIGNETTE" value="TRUE"/>
-        <fbo id="g-buffer" draw-buffers="1"/>
-        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
-        <texture name="blurTexture" id="blurred-scene"/>
-
+    <ubo id="ToneMapping">
         <input type="float" name="blurAmount" value="0.3"/>
         <input type="float" name="effectAmount" value="0.1"/>
         <input type="float" name="exposure" value="1.7"/>
@@ -612,7 +615,14 @@
         <input type="float" name="radialBlurScaleMul" value="0.9555"/>
         <input type="float" name="vignetteInner" value="0.9"/>
         <input type="float" name="vignetteOuter" value="1.75"/>
+    </ubo>
 
+    <node id="ToneMapping">
+        <define key="USE_RADIAL_BLUR" value="TRUE"/>
+        <define key="USE_VIGNETTE" value="TRUE"/>
+        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+        <texture name="blurTexture" id="blurred-scene"/>
+        <input name="ToneMapping" ubo="ToneMapping"/>
         <fullscreen-pass shader="regen.filter.tonemap"/>
     </node>
 
@@ -635,7 +645,7 @@
         </node>
 
         <node id="Render">
-            <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+            <fbo id="g-buffer" clear-buffers="0,1,2,3,4" clear-depth="1"/>
             <camera id="main-camera" />
 
             <node id="Geometry-Pass">

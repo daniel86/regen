@@ -50,9 +50,10 @@ Application::Application(const int &argc, const char **argv)
 	timeDelta_ = ref_ptr<ShaderInput1f>::alloc("timeDeltaMS");
 	timeDelta_->setUniformData(0.0f);
 	// UTC time of the game world
-	worldTime_ = ref_ptr<ShaderInput1f>::alloc("worldTime");
-	worldTime_->setUniformData(0.0f);
-	worldTime_ptime_ = boost::posix_time::microsec_clock::local_time();
+	worldTime_.in = ref_ptr<ShaderInput1f>::alloc("worldTime");
+	worldTime_.in->setUniformData(0.0f);
+	worldTime_.p_time = boost::posix_time::microsec_clock::local_time();
+	worldTime_.scale = 1.0;
 
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
@@ -284,7 +285,7 @@ void Application::clear() {
 		globalUniforms_->addUniform(mouseDepth_);
 		globalUniforms_->addUniform(timeSeconds_);
 		globalUniforms_->addUniform(timeDelta_);
-		globalUniforms_->addUniform(worldTime_);
+		globalUniforms_->addUniform(worldTime_.in);
 		globalUniforms_->addUniform(isMouseEntered_);
 		renderTree_->state()->joinShaderInput(globalUniforms_);
 	}
@@ -326,6 +327,10 @@ void Application::unsetHoveredObject() {
 	hoveredObject_ = {};
 }
 
+void Application::setWorldTimeScale(const double &scale) {
+	worldTime_.scale = scale;
+}
+
 void Application::updateTime() {
 	if (!isTimeInitialized_) {
 		setTime();
@@ -335,17 +340,17 @@ void Application::updateTime() {
 	timeDelta_->setUniformData((double)dt);
 	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1e+6);
 	lastTime_ = t;
-	worldTime_ptime_ += boost::posix_time::milliseconds(static_cast<long>(dt * worldTimeScale_));
+	worldTime_.p_time += boost::posix_time::milliseconds(static_cast<long>(dt * worldTime_.scale));
 }
 
 void Application::setWorldTime(const time_t &t) {
-	worldTime_ptime_ = boost::posix_time::from_time_t(t);
-	worldTime_->setUniformData((float)t);
+	worldTime_.p_time = boost::posix_time::from_time_t(t);
+	worldTime_.in->setUniformData((float)t);
 }
 
 void Application::setWorldTime(float timeInSeconds) {
-	worldTime_->setUniformData(timeInSeconds);
-	worldTime_ptime_ = boost::posix_time::from_time_t((time_t)timeInSeconds);
+	worldTime_.in->setUniformData(timeInSeconds);
+	worldTime_.p_time = boost::posix_time::from_time_t((time_t)timeInSeconds);
 }
 
 void Application::drawGL() {
