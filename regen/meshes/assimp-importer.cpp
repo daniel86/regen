@@ -318,7 +318,7 @@ static void loadTexture(
 		tex = ref_ptr<Texture2D>::alloc();
 		tex->begin(RenderState::get());
 		tex->set_rectangleSize(aiTexture->mWidth, aiTexture->mHeight);
-		tex->set_data((GLubyte *) aiTexture->pcData);
+		tex->set_textureData((GLubyte *) aiTexture->pcData);
 		tex->set_pixelType(GL_UNSIGNED_BYTE);
 		tex->set_format(GL_RGBA);
 		tex->set_internalFormat(GL_RGBA8);
@@ -326,6 +326,7 @@ static void loadTexture(
 		tex->wrapping().push(GL_REPEAT);
 		tex->texImage();
 		tex->end(RenderState::get());
+		tex->set_textureData(nullptr);
 	}
 
 	ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex);

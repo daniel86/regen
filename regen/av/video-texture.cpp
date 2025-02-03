@@ -158,7 +158,7 @@ void VideoTexture::animate(GLdouble animateDT) {
 				av_free(lastFrame_->data[0]);
 				av_free(lastFrame_);
 			}
-			set_data(frame->data[0]);
+			set_textureData(frame->data[0]);
 		}
 
 		// set next interval
@@ -191,17 +191,17 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt) {
 	GLuint channel = rs->reserveTextureChannel();
 	begin(rs, channel);
 	if (fileToLoaded_) { // setup the texture target
-		set_data(nullptr);
+		set_textureData(nullptr);
 		texImage();
 		filter().push(GL_LINEAR);
 		wrapping().push(GL_REPEAT);
 		fileToLoaded_ = GL_FALSE;
 	}
 	// upload texture data to GL
-	if (data() != NULL) {
+	if (textureData() != NULL) {
 		boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
 		texImage();
-		set_data(NULL);
+		set_textureData(NULL);
 	}
 	end(rs, channel);
 	rs->releaseTextureChannel();

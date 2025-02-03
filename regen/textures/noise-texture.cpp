@@ -87,9 +87,9 @@ void NoiseTexture2D::updateNoise() {
 	}
 
 	begin(RenderState::get());
-	set_data(data);
+	set_textureData(data);
 	texImage();
-	set_data(nullptr);
+	set_textureData(nullptr);
 	delete[]data;
 	end(RenderState::get());
 }
@@ -126,9 +126,9 @@ void NoiseTexture3D::updateNoise() {
 	}
 
 	begin(RenderState::get());
-	set_data(data);
+	set_textureData(data);
 	texImage();
-	set_data(nullptr);
+	set_textureData(nullptr);
 	delete[]data;
 	end(RenderState::get());
 }

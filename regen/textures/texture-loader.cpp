@@ -99,16 +99,38 @@ GLenum textures::regenImageFormat() {
 	}
 }
 
+void unsetData(GLuint ilID, const ref_ptr<Texture> &tex, bool keepData) {
+	if (keepData) {
+		// not sure how one could tell IL we take ownership of the data, so need to memcpy it.
+        // make sure the data tpe is unsigned byte.
+        // TODO: better to support other types than unsigned byte
+        if (ilConvertImage(ilGetInteger(IL_IMAGE_FORMAT), GL_UNSIGNED_BYTE) == IL_FALSE) {
+            throw std::runtime_error("Failed to decompress image");
+        }
+		auto numBytes =
+			ilGetInteger(IL_IMAGE_WIDTH) *
+			ilGetInteger(IL_IMAGE_HEIGHT) *
+			ilGetInteger(IL_IMAGE_BPP);
+		auto *data = new GLubyte[numBytes];
+		memcpy(data, tex->textureData(), numBytes);
+		tex->set_textureData(data, true);
+	}
+	else {
+		tex->set_textureData(nullptr);
+	}
+	ilDeleteImages(1, &ilID);
+}
+
 ref_ptr<Texture> textures::load(
 		const std::string &file,
 		GLenum mipmapFlag,
 		GLenum forcedInternalFormat,
 		GLenum forcedFormat,
-		GLenum forcedType,
-		const Vec3ui &forcedSize) {
+		const Vec3ui &forcedSize,
+		bool keepData) {
 	GLuint ilID = loadImage(file);
 	scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
-	convertImage(forcedFormat, forcedType);
+	convertImage(forcedFormat, GL_NONE);
 	GLint depth = ilGetInteger(IL_IMAGE_DEPTH);
 
 	ref_ptr<Texture> tex;
@@ -131,7 +153,7 @@ ref_ptr<Texture> textures::load(
 		forcedInternalFormat = GL_RGB;
 	}
 	tex->set_internalFormat(forcedInternalFormat);
-	tex->set_data((GLubyte *) ilGetData());
+	tex->set_textureData((GLubyte *) ilGetData(), false);
 	tex->begin(RenderState::get());
 	tex->texImage();
 	if (mipmapFlag != GL_NONE) {
@@ -142,9 +164,7 @@ ref_ptr<Texture> textures::load(
 	}
 	tex->wrapping().push(GL_REPEAT);
 	tex->end(RenderState::get());
-	tex->set_data(nullptr);
-
-	ilDeleteImages(1, &ilID);
+	unsetData(ilID, tex, keepData);
 	GL_ERROR_LOG();
 
 	return tex;
@@ -157,7 +177,6 @@ ref_ptr<Texture> textures::load(
 		GLenum mipmapFlag,
 		GLenum forcedInternalFormat,
 		GLenum forcedFormat,
-		GLenum forcedType,
 		const Vec3ui &forcedSize) {
 	GLuint ilID;
 	ilGenImages(1, &ilID);
@@ -167,7 +186,7 @@ ref_ptr<Texture> textures::load(
 	}
 
 	scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
-	convertImage(forcedFormat, forcedType);
+	convertImage(forcedFormat, GL_NONE);
 	GLint depth = ilGetInteger(IL_IMAGE_DEPTH);
 
 	ref_ptr<Texture> tex;
@@ -183,7 +202,7 @@ ref_ptr<Texture> textures::load(
 	tex->set_format(regenImageFormat());
 	tex->set_internalFormat(
 			forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
-	tex->set_data((GLubyte *) ilGetData());
+	tex->set_textureData((GLubyte *) ilGetData());
 	tex->begin(RenderState::get());
 	tex->texImage();
 	if (mipmapFlag != GL_NONE) {
@@ -194,7 +213,7 @@ ref_ptr<Texture> textures::load(
 	}
 	tex->wrapping().push(GL_REPEAT);
 	tex->end(RenderState::get());
-	tex->set_data(nullptr);
+	tex->set_textureData(nullptr);
 
 	ilDeleteImages(1, &ilID);
 	GL_ERROR_LOG();
@@ -208,7 +227,6 @@ ref_ptr<Texture2DArray> textures::loadArray(
 		GLenum mipmapFlag,
 		GLenum forcedInternalFormat,
 		GLenum forcedFormat,
-		GLenum forcedType,
 		const Vec3ui &forcedSize) {
 	GLuint numTextures = 0;
 	std::list<std::string> textureFiles;
@@ -236,7 +254,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
 		const std::string &textureFile = *jt;
 		GLuint ilID = loadImage(textureFile);
 		scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
-		convertImage(forcedFormat, forcedType);
+		convertImage(forcedFormat, GL_NONE);
 
 		if (arrayIndex == 0) {
 			tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
@@ -244,7 +262,7 @@ ref_ptr<Texture2DArray> textures::loadArray(
 			tex->set_format(regenImageFormat());
 			tex->set_internalFormat(
 					forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
-			tex->set_data(nullptr);
+			tex->set_textureData(nullptr);
 			tex->texImage();
 		}
 
@@ -273,11 +291,10 @@ ref_ptr<TextureCube> textures::loadCube(
 		GLenum mipmapFlag,
 		GLenum forcedInternalFormat,
 		GLenum forcedFormat,
-		GLenum forcedType,
 		const Vec3ui &forcedSize) {
 	GLuint ilID = loadImage(file);
 	scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
-	convertImage(forcedFormat, forcedType);
+	convertImage(forcedFormat, GL_NONE);
 
 	GLint faceWidth, faceHeight;
 	GLint width = ilGetInteger(IL_IMAGE_WIDTH);
@@ -415,11 +432,12 @@ ref_ptr<Texture> textures::loadRAW(
 	tex->set_pixelType(GL_UNSIGNED_BYTE);
 	tex->set_format(format_);
 	tex->set_internalFormat(internalFormat_);
-	tex->set_data((GLubyte *) pixels);
+	tex->set_textureData((GLubyte *) pixels);
 	tex->filter().push(GL_LINEAR);
 	tex->wrapping().push(GL_REPEAT);
 	tex->texImage();
 	tex->end(RenderState::get());
+	tex->set_textureData(nullptr);
 
 	delete[] pixels;
 
@@ -440,7 +458,7 @@ ref_ptr<Texture> textures::loadSpectrum(
 	tex->set_pixelType(GL_UNSIGNED_BYTE);
 	tex->set_format(GL_RGBA);
 	tex->set_internalFormat(GL_RGBA);
-	tex->set_data((GLubyte *) data);
+	tex->set_textureData((GLubyte *) data);
 	tex->texImage();
 	tex->wrapping().push(GL_CLAMP);
 	if (mipmapFlag == GL_NONE) {
@@ -449,7 +467,7 @@ ref_ptr<Texture> textures::loadSpectrum(
 		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(mipmapFlag);
 	}
-	tex->set_data(nullptr);
+	tex->set_textureData(nullptr);
 	delete[]data;
 	tex->end(RenderState::get());
 

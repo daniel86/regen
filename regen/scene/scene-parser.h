@@ -62,7 +62,7 @@ namespace regen {
 			 * @param r The range value.
 			 * @param channelName The channel name.
 			 */
-			AnimRange(std::string_view n, const Vec2d &r, std::string_view channelName)
+			AnimRange(std::string_view n, const Vec2d &r, std::string channelName)
 					: name(n), range(r), channelName(channelName) {}
 
 			/** The range name. */

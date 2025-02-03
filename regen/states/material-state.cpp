@@ -19,7 +19,6 @@ Material::Material()
 		: HasInputState(VBO::USAGE_DYNAMIC),
 		  fillMode_(GL_FILL),
 		  mipmapFlag_(GL_DONT_CARE),
-		  forcedType_(GL_NONE),
 		  forcedInternalFormat_(GL_NONE),
 		  forcedFormat_(GL_NONE),
 		  forcedSize_(0u),
@@ -210,7 +209,6 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 				mipmapFlag_,
 				forcedInternalFormat_,
 				forcedFormat_,
-				forcedType_,
 				forcedSize_);
 		if (tex.get() != nullptr) {
 			auto texName = REGEN_STRING("materialTexture" << textures_.size());

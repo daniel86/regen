@@ -42,8 +42,8 @@ namespace regen {
 				GLenum mipmapFlag = GL_DONT_CARE,
 				GLenum forcedInternalFormat = GL_NONE,
 				GLenum forcedFormat = GL_NONE,
-				GLenum forcedType = GL_NONE,
-				const Vec3ui &forcedSize = Vec3ui(0u));
+				const Vec3ui &forcedSize = Vec3ui(0u),
+				bool keepData = false);
 
 		/**
 		 * Load a Texture from RAW data. Guess if it is a Texture2D or Texture3D.
@@ -58,7 +58,6 @@ namespace regen {
 				GLenum mipmapFlag = GL_DONT_CARE,
 				GLenum forcedInternalFormat = GL_NONE,
 				GLenum forcedFormat = GL_NONE,
-				GLenum forcedType = GL_NONE,
 				const Vec3ui &forcedSize = Vec3ui(0u));
 
 		/**
@@ -73,7 +72,6 @@ namespace regen {
 				GLenum mipmapFlag = GL_DONT_CARE,
 				GLenum forcedInternalFormat = GL_NONE,
 				GLenum forcedFormat = GL_NONE,
-				GLenum forcedType = GL_NONE,
 				const Vec3ui &forcedSize = Vec3ui(0u));
 
 		/**
@@ -90,7 +88,6 @@ namespace regen {
 				GLenum mipmapFlag = GL_DONT_CARE,
 				GLenum forcedInternalFormat = GL_NONE,
 				GLenum forcedFormat = GL_NONE,
-				GLenum forcedType = GL_NONE,
 				const Vec3ui &forcedSize = Vec3ui(0u));
 
 		/**

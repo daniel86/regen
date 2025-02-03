@@ -70,8 +70,8 @@ struct InstancePlaneGenerator {
 	std::vector<Mat4f> instanceData;
 	ref_ptr<Texture2D> maskTexture;
 	ref_ptr<Texture2D> heightMap;
-	GLubyte *maskData = nullptr;
-	GLubyte *heightData = nullptr;
+	const GLubyte *maskData = nullptr;
+	const GLubyte *heightData = nullptr;
 	//
 	PlaneCell *cells;
 	unsigned int cellCountX;
@@ -236,15 +236,21 @@ static GLuint transformMatrixPlane(
 	generator.cellWorldOffset = input.getValue<Vec3f>("cell-offset", Vec3f(0.0f));
 	if (input.hasAttribute("area-mask-texture")) {
 		generator.maskTexture = parser->getResources()->getTexture2D(parser, input.getValue("area-mask-texture"));
-		generator.maskTexture->begin(RenderState::get());
-		generator.maskData = (GLubyte*)generator.maskTexture->readServerData(GL_RED, GL_UNSIGNED_BYTE);
-		generator.maskTexture->end(RenderState::get());
+		if (generator.maskTexture.get()) {
+			generator.maskTexture->ensureTextureData();
+			generator.maskData = generator.maskTexture->textureData();
+		} else {
+			REGEN_WARN("Unable to load mask texture.");
+		}
 	}
 	if (input.hasAttribute("area-height-texture")) {
 		generator.heightMap = parser->getResources()->getTexture2D(parser, input.getValue("area-height-texture"));
-		generator.heightMap->begin(RenderState::get());
-		generator.heightData = (GLubyte*)generator.heightMap->readServerData(GL_RED, GL_UNSIGNED_BYTE);
-		generator.heightMap->end(RenderState::get());
+		if(generator.heightMap.get()) {
+			generator.heightMap->ensureTextureData();
+			generator.heightData = generator.heightMap->textureData();
+		} else {
+			REGEN_WARN("Unable to load height map texture.");
+		}
 	}
 	// get object bounds
 	auto meshes = parser->getResources()->getMesh(parser, input.getValue("obj-mesh"));
@@ -305,8 +311,6 @@ static GLuint transformMatrixPlane(
 		}
 	}
 
-	delete[] generator.maskData;
-	delete[] generator.heightData;
 	delete[] generator.cells;
 
 	if (generator.instanceData.empty()) {
