@@ -142,7 +142,6 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	///////
 	ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
 	updateState_ = ref_ptr<State>::alloc();
-	updateState_->joinShaderInput(sky->timeUniform());
 	updateState_->joinShaderInput(fbo_->inverseViewport());
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise0_, "noise0"));
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise1_, "noise1"));

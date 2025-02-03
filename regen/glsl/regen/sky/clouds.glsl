@@ -255,7 +255,7 @@ uniform sampler3D in_noise1;
 uniform sampler3D in_noise2;
 uniform sampler3D in_noise3;
 
-const float in_time = 0.0;
+const float in_worldTime = 0.0;
 const float in_coverage = 0.2;
 const float in_sharpness = 0.5;
 const float in_change = 0.1;
@@ -263,7 +263,7 @@ const vec2 in_wind = vec2(0.0);
 
 void main() {
    vec2 uv = gl_FragCoord.xy*in_inverseViewport;
-   float t = in_time * 3600.0;
+   float t = in_worldTime * 3600.0;
    vec2 m = t * in_wind;
    t *= in_change;
 

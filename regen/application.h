@@ -291,6 +291,26 @@ namespace regen {
 		 */
 		void updateTime();
 
+		/**
+		 * @return the world time uniform. time in seconds.
+		 */
+		auto &worldTime() const { return worldTime_; }
+
+		/**
+		 * @return the world time in ptime.
+		 */
+		auto &worldTime_ptime() const { return worldTime_ptime_; }
+
+		/**
+		 * Sets the world time scale.
+		 * @param scale the scale.
+		 */
+		void setWorldTimeScale(const double &scale) { worldTimeScale_ = scale; }
+
+		void setWorldTime(const time_t &t);
+
+		void setWorldTime(float t);
+
 	protected:
 		ref_ptr<RootNode> renderTree_;
 		std::map<std::string, NamedObject> namedToObject_;
@@ -312,10 +332,13 @@ namespace regen {
 		ref_ptr<ShaderInput1f> mouseDepth_;
 		ref_ptr<ShaderInput1f> timeSeconds_;
 		ref_ptr<ShaderInput1f> timeDelta_;
+		ref_ptr<ShaderInput1f> worldTime_;
 		ref_ptr<UniformBlock> globalUniforms_;
 
 		boost::posix_time::ptime lastMotionTime_;
 		boost::posix_time::ptime lastTime_;
+		boost::posix_time::ptime worldTime_ptime_;
+		double worldTimeScale_ = 1.0;
 
 		GLboolean isGLInitialized_;
 		GLboolean isTimeInitialized_;

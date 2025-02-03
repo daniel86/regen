@@ -18,6 +18,8 @@ using namespace std;
 #include <regen/sky/atmosphere.h>
 #include <regen/sky/cloud-layer.h>
 
+#include <regen/application.h>
+
 #define REGEN_SKY_CATEGORY "sky"
 
 SkyResource::SkyResource()
@@ -37,6 +39,8 @@ ref_ptr<Sky> SkyResource::createResource(
 
 	ref_ptr<Sky> sky = ref_ptr<Sky>::alloc(cam, parser->getViewport());
 
+	sky->setWorldTime(&parser->application()->worldTime_ptime());
+
 	if (input.hasAttribute("noon-color"))
 		sky->set_noonColor(input.getValue<Vec3f>("noon-color", Vec3f(0.5)));
 	if (input.hasAttribute("dawn-color"))
@@ -48,13 +52,6 @@ ref_ptr<Sky> SkyResource::createResource(
 	sky->set_altitude(input.getValue<GLfloat>("altitude", 0.043));
 	sky->set_longitude(input.getValue<GLfloat>("longitude", 13.3611));
 	sky->set_latitude(input.getValue<GLfloat>("latitude", 52.5491));
-
-	if (input.hasAttribute("date"))
-		sky->set_date(input.getValue("date"));
-	if (input.hasAttribute("timestamp"))
-		sky->set_timestamp(input.getValue<double>("timestamp", 0.0));
-	sky->set_secondsPerCycle(
-			input.getValue<double>("seconds-per-cycle", 3600.0));
 
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
 	for (auto it = childs.begin(); it != childs.end(); ++it) {
