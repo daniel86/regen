@@ -39,7 +39,7 @@ ref_ptr<Sky> SkyResource::createResource(
 
 	ref_ptr<Sky> sky = ref_ptr<Sky>::alloc(cam, parser->getViewport());
 
-	sky->setWorldTime(&parser->application()->worldTime_ptime());
+	sky->setWorldTime(&parser->application()->worldTime());
 
 	if (input.hasAttribute("noon-color"))
 		sky->set_noonColor(input.getValue<Vec3f>("noon-color", Vec3f(0.5)));

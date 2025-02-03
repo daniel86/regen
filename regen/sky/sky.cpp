@@ -157,9 +157,8 @@ void Sky::stopAnimation() {
 
 void Sky::animate(GLdouble dt) {
 	if (worldTime_) {
-		auto &t_ptime = *worldTime_;
 		// convert to time_t
-		time_t t = boost::posix_time::to_time_t(t_ptime);
+		time_t t = boost::posix_time::to_time_t(worldTime_->p_time);
 		// get UTC offset
 		struct tm *tm = gmtime(&t);
 		time_t utcOffset = t - mktime(tm);

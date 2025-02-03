@@ -144,7 +144,7 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
 
 	ui_.setupUi(this);
 	ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);
-	ui_.worldTimeFactor->setValue(1.0);
+	ui_.worldTimeFactor->setValue(app_->worldTime().scale);
 	resize(1600, 1200);
 	readConfig();
 }
@@ -352,7 +352,7 @@ void SceneDisplayWidget::toggleVSync() {
 }
 
 void SceneDisplayWidget::updateGameTimeWidget() {
-    auto &t_ptime = app_->worldTime_ptime();
+    auto &t_ptime = app_->worldTime().p_time;
     auto t_seconds = t_ptime.time_of_day().total_seconds();
     auto t_hours = t_seconds / 3600;
     auto t_minutes = (t_seconds % 3600) / 60;
@@ -371,6 +371,7 @@ void SceneDisplayWidget::onWorldTimeChanged() {
 	auto q_time = ui_.worldTime->time();
 	// convert to time_t
 	time_t t = q_time.hour() * 3600 + q_time.minute() * 60 + q_time.second();
+	// FIXME: potential synchronization issue
 	app_->setWorldTime(t);
 }
 
@@ -798,37 +799,49 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	eventHandler_ = sceneParser.getEventHandler();
 	spatialIndices_ = sceneParser.getResources()->getIndices();
 
-	if (sceneParser.getRoot()->getFirstChild("node", "initialize").get() != nullptr) {
+	ref_ptr<SceneInputNode> root = sceneParser.getRoot();
+	ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
+	if (configurationNode.get() == nullptr) { configurationNode = root; }
+
+	/////////////////////////////
+	//////// Configure World Time
+	/////////////////////////////
+
+	if (configurationNode->hasAttribute("date")) {
+		auto dateString = configurationNode->getValue("date");
+		struct tm tm;
+		if (strptime(dateString.c_str(), "%d-%m-%Y %H:%M:%S", &tm)) {
+            time_t raw_time = mktime(&tm);
+            boost::posix_time::ptime local_time = boost::posix_time::from_time_t(raw_time);
+            boost::posix_time::ptime utc_time = local_time + boost::posix_time::hours(2);
+            app_->setWorldTime(boost::posix_time::to_time_t(utc_time));
+		} else {
+			REGEN_WARN("Invalid date string: " << dateString << ".");
+		}
+	}
+	if (configurationNode->hasAttribute("time-scale")) {
+		auto timeScale = configurationNode->getValue<double>("time-scale", 1.0);
+		app_->setWorldTimeScale(timeScale);
+		ui_.worldTimeFactor->setValue(timeScale);
+	}
+	if (configurationNode->hasAttribute("timestamp")) {
+		auto time_d = configurationNode->getValue<double>("timestamp", 0.0);
+		app_->setWorldTime(static_cast<time_t>(time_d));
+	}
+
+	/////////////////////////////
+	//////// Scene Parsing
+	/////////////////////////////
+
+	if (root->getFirstChild("node", "initialize").get() != nullptr) {
 		ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
 		sceneParser.processNode(initializeNode, "initialize", "node");
 		initializeNode->traverse(RenderState::get());
 	}
 
 	/////////////////////////////
-	//////// Application Configuration Node
+	//////// Configuration Node
 	/////////////////////////////
-
-	ref_ptr<SceneInputNode> root = sceneParser.getRoot();
-	ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
-	if (configurationNode.get() == nullptr) { configurationNode = root; }
-
-	// configure world time
-	if (configurationNode->hasAttribute("date")) {
-		auto dateString = configurationNode->getValue("date");
-		struct tm tm;
-		if (strptime(dateString.c_str(), "%d-%m-%Y %H:%M:%S", &tm)) {
-			app_->setWorldTime(mktime(&tm));
-		} else {
-			REGEN_WARN("Invalid date string: " << dateString << ".");
-		}
-	}
-	if (configurationNode->hasAttribute("time-scale")) {
-		app_->setWorldTimeScale(configurationNode->getValue<double>("time-scale", 1.0));
-	}
-	if (configurationNode->hasAttribute("timestamp")) {
-		auto time_d = configurationNode->getValue<double>("timestamp", 0.0);
-		app_->setWorldTime(static_cast<time_t>(time_d));
-	}
 
 	// Process node children
 	for (const auto &x: configurationNode->getChildren()) {

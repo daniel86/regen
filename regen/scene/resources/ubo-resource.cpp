@@ -15,9 +15,13 @@ ref_ptr<UBO> UBOResource::createResource(
 	auto dummyState = ref_ptr<State>::alloc();
 
 	for (auto &n : input.getChildren()) {
-		if (n->getCategory() == "uniform") {
+		if (n->getCategory() == "uniform" || n->getCategory() == "input") {
 			auto uniform = InputStateProvider::createShaderInput(
 					parser, *n.get(), dummyState);
+			if (uniform->isVertexAttribute()) {
+				REGEN_WARN("UBO cannot contain vertex attributes. In node '" << n->getDescription() << "'.");
+				continue;
+			}
 			auto name = n->getValue("name");
 			ubo->addUniform(uniform, name);
 		} else {

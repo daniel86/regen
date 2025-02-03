@@ -50,8 +50,8 @@
         <texture id="diffuse0"/>
         <texture id="diffuse1"/>
         <texture id="specular"/>
-        <texture id="emission" pixel-components="3"/>
         <texture id="normal"/>
+        <texture id="emission" pixel-components="3"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
     <!-- Textures -->
