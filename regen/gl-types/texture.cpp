@@ -62,7 +62,8 @@ Texture::Texture(GLuint numTextures)
 		  border_(0),
 		  texBind_(GL_TEXTURE_2D, 0),
 		  numSamples_(1),
-		  data_(nullptr) {
+		  textureData_(nullptr),
+		  isTextureDataOwned_(false) {
 	filter_ = new TextureParameterStack<TextureFilter> *[numObjects_];
 	lod_ = new TextureParameterStack<TextureLoD> *[numObjects_];
 	swizzle_ = new TextureParameterStack<TextureSwizzle> *[numObjects_];
@@ -103,13 +104,14 @@ Texture::~Texture() {
 	delete[]compare_;
 	delete[]maxLevel_;
 	delete[]aniso_;
+
+	if (isTextureDataOwned_ && textureData_) {
+		delete[]textureData_;
+		textureData_ = nullptr;
+	}
 }
 
 GLint Texture::channel() const { return getVertex(0); }
-
-void Texture::set_data(const GLvoid *data) { data_ = data; }
-
-const GLvoid *Texture::data() const { return data_; }
 
 GLenum Texture::targetType() const { return texBind_.target_; }
 
@@ -120,11 +122,25 @@ const TextureBind &Texture::textureBind() {
 	return texBind_;
 }
 
-GLvoid* Texture::readServerData(GLenum format, GLenum type) const {
-	// format: e.g. GL_RGBA, type: e.g. GL_UNSIGNED_BYTE
-	auto* pixels = new GLubyte[numTexel()*glenum::pixelComponents(type)];
-	glGetTexImage(targetType(), 0, format, type, pixels);
-	return pixels;
+void Texture::set_textureData(GLubyte *textureData, bool owned) {
+	if (textureData_ && isTextureDataOwned_) {
+		delete[]textureData_;
+	}
+	textureData_ = textureData;
+	isTextureDataOwned_ = owned;
+}
+
+void Texture::readTextureData() {
+	ScopedTextureActivation sta(*this, RenderState::get());
+	auto* pixels = new GLubyte[numTexel()*glenum::pixelComponents(format())];
+	glGetTexImage(targetType(), 0, format(), GL_UNSIGNED_BYTE, pixels);
+	set_textureData(pixels, true);
+}
+
+void Texture::ensureTextureData() {
+	if (!textureData_) {
+		readTextureData();
+	}
 }
 
 void Texture::setupMipmaps(GLenum mode) const {
@@ -268,7 +284,7 @@ void Texture1D::texImage() const {
 			border_,
 			format_,
 			pixelType_,
-			data_);
+			textureData_);
 }
 
 Texture2D::Texture2D(GLuint numTextures)
@@ -287,7 +303,7 @@ void Texture2D::texImage() const {
 				 border_,
 				 format_,
 				 pixelType_,
-				 data_);
+				 textureData_);
 }
 
 TextureMips2D::TextureMips2D(GLuint numMips) : Texture2D(), numMips_(numMips) {
@@ -419,7 +435,7 @@ void Texture3D::texImage() const {
 				 border_,
 				 format_,
 				 pixelType_,
-				 data_);
+				 textureData_);
 }
 
 void Texture3D::texSubImage(GLint layer, GLubyte *subData) const {

@@ -34,9 +34,9 @@ RampTexture::RampTexture(
 	set_internalFormat(internalFormat);
 	filter().push(GL_LINEAR);
 	wrapping().push(GL_CLAMP_TO_EDGE);
-	set_data(data.data());
+	textureData_ = data.data();
 	Texture1D::texImage();
-	set_data(nullptr);
+	textureData_ = nullptr;
 	end(RenderState::get());
 }
 

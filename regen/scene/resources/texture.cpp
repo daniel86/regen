@@ -207,6 +207,7 @@ ref_ptr<Texture> TextureResource::createResource(
 				input.getValue<string>("forced-format", "NONE"));
 		auto forcedSize =
 				input.getValue<Vec3ui>("forced-size", Vec3ui(0u));
+		auto keepData = input.getValue<bool>("keep-data", false);
 		const string filePath =
 				resourcePath(input.getValue("file"));
 
@@ -218,7 +219,6 @@ ref_ptr<Texture> TextureResource::createResource(
 						mipmapFlag,
 						forcedInternalFormat,
 						forcedFormat,
-						forcedType,
 						forcedSize);
 			} else if (input.getValue<bool>("is-array", false)) {
 				tex = textures::loadArray(
@@ -227,7 +227,6 @@ ref_ptr<Texture> TextureResource::createResource(
 						mipmapFlag,
 						forcedInternalFormat,
 						forcedFormat,
-						forcedType,
 						forcedSize);
 			} else if (input.getValue<bool>("is-raw", false)) {
 				tex = textures::loadRAW(
@@ -241,8 +240,8 @@ ref_ptr<Texture> TextureResource::createResource(
 						mipmapFlag,
 						forcedInternalFormat,
 						forcedFormat,
-						forcedType,
-						forcedSize);
+						forcedSize,
+						keepData);
 			}
 		}
 		catch (textures::Error &ie) {

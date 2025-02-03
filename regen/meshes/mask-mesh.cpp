@@ -46,9 +46,8 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	unsigned int numInstances = 0;
 
-	maskTexture_->begin(RenderState::get());
-	auto *serverData = (GLubyte *) maskTexture_->readServerData(GL_RED, GL_UNSIGNED_BYTE);
-	maskTexture_->end(RenderState::get());
+	maskTexture_->ensureTextureData();
+	auto *maskTextureData = maskTexture_->textureData();
 
 	Vec2f maskUV = quadSize_ts * 0.5f;
 
@@ -57,7 +56,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 			float maskDensity = maskTexture_->sampleMax(
 				maskUV,
 				quadSize_ts,
-				serverData,
+				maskTextureData,
 				1
 			);
 			maskUV.x += quadSize_ts.x;
@@ -75,8 +74,6 @@ void MaskMesh::updateMask(const Config &cfg) {
 		maskUV.x = quadSize_ts.x * 0.5f;
 		maskUV.y += quadSize_ts.y;
 	}
-
-	delete[] serverData;
 
 	// update the model offset attribute
 	GLuint instanceDivisor = 1;

@@ -226,7 +226,6 @@ namespace regen {
 		ref_ptr<UniformBlock> materialUniforms_;
 
 		GLenum mipmapFlag_;
-		GLenum forcedType_;
 		GLenum forcedInternalFormat_;
 		GLenum forcedFormat_;
 		Vec3ui forcedSize_;

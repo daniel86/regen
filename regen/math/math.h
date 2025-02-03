@@ -61,16 +61,16 @@ namespace regen {
 		 * linearly interpolate between two values.
 		 */
 		template<class T>
-		static inline T lerp(T x, T y, GLdouble a) { return x * (1.0 - a) + y * a; }
+		static inline T lerp(const T &x, const T &y, GLdouble a) { return x * (1.0 - a) + y * a; }
 
 		/**
 		 * spherical linear interpolation between two vectors.
 		 */
 		template<class T>
-		static inline T slerp(T x, T y, GLdouble a) {
-			GLdouble dot = x.dot(y);
+		static inline T slerp(const T &x, const T &y, double a) {
+			double dot = x.dot(y);
 			dot = clamp(dot, -1.0, 1.0);
-			GLdouble theta = acos(dot) * a;
+			double theta = acos(dot) * a;
 			T relative = y - x * dot;
 			relative.normalize();
 			return x * cos(theta) + relative * sin(theta);

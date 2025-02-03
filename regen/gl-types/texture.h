@@ -20,7 +20,7 @@
 
 namespace regen {
 	template<typename T>
-	void __lockedTextureParameter(GLenum key, const T &v) {}
+	void regen_lockedTextureParameter(GLenum key, const T &v) {}
 
 	/**
 	 * \brief State stack for texture parameters.
@@ -35,7 +35,7 @@ namespace regen {
 		 */
 		TextureParameterStack(const TextureBind &v, void (*apply)(GLenum, const T &))
 				: StateStack<TextureParameterStack, T, void (*)(GLenum, const T &)>(
-				apply, __lockedTextureParameter), v_(v) {}
+				apply, regen_lockedTextureParameter), v_(v) {}
 
 		/**
 		 * @param v the new state value
@@ -77,6 +77,8 @@ namespace regen {
 		explicit Texture(GLuint numTextures = 1);
 
 		~Texture() override;
+
+		Texture(const Texture &) = delete;
 
 		/**
 		 * @return the texture channel or -1.
@@ -158,22 +160,23 @@ namespace regen {
 		/**
 		 * Specifies a pointer to the image data in memory.
 		 * Initially NULL.
+		 * @param data the image data.
+		 * @param owned if true, the texture will take ownership of the data.
 		 */
-		void set_data(const GLvoid *data);
+		void set_textureData(GLubyte *data, bool owned = false);
 
 		/**
 		 * Specifies a pointer to the image data in memory.
 		 * Initially NULL.
 		 */
-		const GLvoid *data() const;
+		auto *textureData() const { return textureData_; }
 
 		/**
 		 * Reads the texture data from the server.
-		 * @param format the format of the pixel data.
-		 * @param type the type of the pixel data.
-		 * @return the pixel data.
 		 */
-		GLvoid* readServerData(GLenum format, GLenum type) const;
+		void readTextureData();
+
+		void ensureTextureData();
 
 		/**
 		 * Sets magnification and minifying parameters.
@@ -329,7 +332,34 @@ namespace regen {
 		TextureParameterStack<TextureAniso> **aniso_;
 
 		// client data, or null
-		const GLvoid *data_;
+		const GLubyte *textureData_;
+		bool isTextureDataOwned_;
+	};
+
+	/**
+	 * \brief Scoped activation of a texture.
+	 */
+	class ScopedTextureActivation {
+	public:
+		ScopedTextureActivation(Texture &tex, RenderState *rs, GLint channel = 7)
+				: tex_(tex), rs_(rs), channel_(channel) {
+			wasActive_ = tex_.active();
+			if (!wasActive_) {
+				tex_.begin(rs_, channel_);
+			}
+		}
+
+		~ScopedTextureActivation() {
+			if (!wasActive_) {
+				tex_.end(rs_, channel_);
+			}
+		}
+
+	private:
+		Texture &tex_;
+		RenderState *rs_;
+		GLint channel_;
+		bool wasActive_;
 	};
 
 	/**
