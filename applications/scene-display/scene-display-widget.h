@@ -109,6 +109,8 @@ protected:
 
 	static double getAnchorTime(const Vec3f &fromPosition, const Vec3f &toPosition);
 
+	void activateAnchor();
+
 	void handleCameraConfiguration(
 		scene::SceneParser &sceneParser,
 		const ref_ptr<regen::scene::SceneInputNode> &cameraNode);

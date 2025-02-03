@@ -8,7 +8,7 @@ TransformCameraAnchor::TransformCameraAnchor(const ref_ptr<ModelTransformation> 
 
 Vec3f TransformCameraAnchor::position() {
     const auto &modelMatrix = transform_->get()->getVertex(0);
-    return modelMatrix.position() + offset_;
+    return modelMatrix.position() + (modelMatrix ^ Vec4f(offset_,0.0)).xyz_() / modelMatrix.scaling();
 }
 
 Vec3f TransformCameraAnchor::direction() {

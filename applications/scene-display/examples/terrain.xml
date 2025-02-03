@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <node>
+    <constant name="map-height" value="8.0"/>
+    <constant name="map-height-half" value="4.0"/>
+    <constant name="map-y-min" value="-4.0"/>
+
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration">
         <camera id="main-camera"
@@ -9,9 +13,26 @@
                 eye-offset="0.0,0.0,0.0"
                 horizontal-orientation="4.71225"
                 vertical-orientation="0.25">
+            <anchor type="look-at" transform="hyena-tf" offset="0.0, -4.0, 1.0" follow="1" />
         </camera>
         <animation id="hyena-asset" type="asset" idle="idle1">
-            <key-mapping key="X" press="smell2"/>
+            <!-- TODO: handle day time, and switch to sleep1 -->
+            <controller id="hyena-controller"
+                type="animal"
+                tf="hyena-tf"
+                height-map="ground-height"
+                height-map-center="0, 0"
+                height-map-size="100.0, 100.0"
+                height-map-factor="{{map-height}}"
+                floor-height="-3.5"
+                territory-size="57.275, 32.373"
+                territory-center="-4.5166,-33.8134"
+                laziness="0.5"
+                run-speed="4.0"
+                walk-speed="1">
+                <special name="bark" />
+                <special name="lick" />
+            </controller>
         </animation>
     </node>
 
@@ -122,7 +143,7 @@
           usage="STATIC"
           primitive="PATCHES">
         <transform>
-            <translate value="0.0,-4.0,0.0"/>
+            <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
     </mesh>
 
@@ -141,7 +162,7 @@
             <set mode="row" target="translate"
                 x-step="10.0,0.0,0.0" x-count="10"
                 z-step="0.0,0.0,10.0" />
-            <translate value="-45.0,-4.0,-45.0" />
+            <translate value="-45.0,{{map-y-min}},-45.0" />
         </transform>
         <shape id="ground-shape" mode="index" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
     </mesh>
@@ -167,7 +188,7 @@
             <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane" />
             <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
             <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
-                     blend-mode="ADD" blend-factor="8.0"/>
+                     blend-mode="ADD" blend-factor="{{map-height}}"/>
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>
         <!--
@@ -202,11 +223,11 @@
           ground-size="100.0,100.0"
           usage="STATIC">
         <transform id="grass-tf">
-            <translate value="0.0,-4.0,0.0"/>
+            <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
         <shape id="grass-shape" mode="index" type="aabb"
-                box-size="2.0, 8.0, 2.0"
-                box-center="0.0, 4.0, 0.0"
+                box-size="2.0, {{map-height}}, 2.0"
+                box-center="0.0, {{map-height-half}}, 0.0"
                 transform-id="grass-tf">
             <has-part mesh-id="grass-patches" />
         </shape>
@@ -247,7 +268,7 @@
             <input name="uvDarken" type="float" value="0.25"/>
             <!-- height -->
             <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
-                     blend-mode="ADD" blend-factor="8.0"/>
+                     blend-mode="ADD" blend-factor="{{map-height}}"/>
             <material
                     diffuse="1.5, 1.5, 1.5"
                     ambient="0.1, 0.1, 0.1"
@@ -268,10 +289,10 @@
             <set mode="plane"
                 area-mask-texture="tree-mask"
                 area-height-texture="ground-height"
-                area-max-height="8.0"
+                area-max-height="{{map-height}}"
                 area-size="100.0,100.0"
                 cell-size="5.0,5.0"
-                cell-offset="0.0,-4.0,0.0"
+                cell-offset="0.0,{{map-y-min}},0.0"
                 obj-min-scale="0.4"
                 obj-max-scale="0.75"
                 obj-pos-variation="0.5"
@@ -440,7 +461,7 @@
         <transform id="fish-tf">
             <rotate value="1.2, 0.0, 0.0"/>
             <scale value="0.001, 0.001, 0.001"/>
-            <translate value="0.0, 1.0, 4.0"/>
+            <translate value="0.0, 1.0, {{map-height-half}}"/>
         </transform>
         <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" />
     </mesh>

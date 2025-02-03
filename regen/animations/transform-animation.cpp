@@ -12,9 +12,15 @@ TransformAnimation::TransformAnimation(const ref_ptr<ShaderInputMat4> &in)
 	setAnimationName(REGEN_STRING("animation-"<<in->name()));
 	// initialize transform data
 	currentPos_ = currentTransform.position();
-	// TODO: get euler angles
-	currentDir_ = Vec3f(0.0f);
 	currentVal_ = currentTransform;
+	initialScale_ = currentTransform.scaling();
+	// remove scaling before computing rotation, else we get faulty results
+	auto tmp = currentTransform;
+	tmp.scale(Vec3f(
+			1.0f / initialScale_.x,
+			1.0f / initialScale_.y,
+			1.0f / initialScale_.z));
+	currentDir_ = tmp.rotation();
 	// set last frame
 	lastFrame_.pos = currentPos_;
 	lastFrame_.rotation = currentDir_;
@@ -31,6 +37,15 @@ void TransformAnimation::push_back(const std::optional<Vec3f> &pos,
 	frames_.push_back(f);
 	if (frames_.size() == 1) {
 		it_ = frames_.begin();
+	}
+}
+
+void TransformAnimation::updatePose(const TransformKeyFrame &currentFrame, double t) {
+	if (currentFrame.pos.has_value()) {
+		currentPos_ = math::mix(lastFrame_.pos.value(), currentFrame.pos.value(), t);
+	}
+	if (currentFrame.rotation.has_value()) {
+		currentDir_ = math::slerp(lastFrame_.rotation.value(), currentFrame.rotation.value(), t);
 	}
 }
 
@@ -68,15 +83,11 @@ void TransformAnimation::animate(GLdouble dt) {
 				physicalObject->rigidBody()->setWorldTransform(btCurrentVal);
 			}
 
-			if (currentFrame.pos.has_value()) {
-				currentPos_ = math::mix(lastFrame_.pos.value(), currentFrame.pos.value(), t);
-			}
-			if (currentFrame.rotation.has_value()) {
-				currentDir_ = math::slerp(lastFrame_.rotation.value(), currentFrame.rotation.value(), t);
-			}
+			updatePose(currentFrame, t);
 			Quaternion q(0.0, 0.0, 0.0, 1.0);
 			q.setEuler(currentDir_.x, currentDir_.y, currentDir_.z);
 			currentVal_ = q.calculateMatrix();
+			currentVal_.scale(initialScale_);
 			currentVal_.translate(currentPos_);
 		}
 		unlock();

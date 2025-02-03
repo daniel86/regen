@@ -46,6 +46,13 @@ namespace regen {
 		// Override Animation
 		void glAnimate(RenderState *rs, GLdouble dt) override;
 
+		/**
+		 * Update the pose.
+		 * @param currentFrame the current frame.
+		 * @param t the time.
+		 */
+		virtual void updatePose(const TransformKeyFrame &currentFrame, double t);
+
 	protected:
 		ref_ptr<ShaderInputMat4> in_;
 		ref_ptr<Mesh> mesh_;
@@ -56,6 +63,7 @@ namespace regen {
 		Vec3f currentPos_;
 		Vec3f currentDir_;
 		Mat4f currentVal_;
+		Vec3f initialScale_;
 	};
 }
 

@@ -349,6 +349,16 @@ void NodeAnimation::deallocateAnimationAtIndex(GLint animationIndex) {
 	anim.lastFramePosition_.resize(0);
 }
 
+bool NodeAnimation::isNodeAnimationActive() const {
+	return animationIndex_ >= 0;
+}
+
+void NodeAnimation::stopNodeAnimation() {
+	if (animationIndex_ < 0) return;
+	NodeAnimation::Data &anim = *animData_[animationIndex_].get();
+	stopNodeAnimation(anim);
+}
+
 void NodeAnimation::stopNodeAnimation(NodeAnimation::Data &anim) {
 	GLint currIndex = animationIndex_;
 	animationIndex_ = -1;

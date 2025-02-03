@@ -22,6 +22,13 @@ namespace regen {
 		virtual Vec3f position() = 0;
 
 		virtual Vec3f direction() = 0;
+
+		void setFollowing(bool follow) { following_ = follow; }
+
+		bool following() const { return following_; }
+
+	protected:
+		bool following_ = false;
 	};
 
 	/**
