@@ -8,6 +8,7 @@
 #include <regen/utility/string-util.h>
 
 #include "direct-shading.h"
+#include "regen/camera/light-camera-parabolic.h"
 
 using namespace regen;
 
@@ -48,6 +49,15 @@ void DirectShading::updateDefine(DirectLight &l, GLuint lightIndex) {
 			break;
 		case Light::POINT:
 			lightType = "POINT";
+			// define POINT_LIGHT_TYPE={CUBE, PARABOLIC} based on type of light camera
+			if (l.camera_.get()) {
+				auto *parabolic = dynamic_cast<ParabolicCamera *>(l.camera_.get());
+				if (parabolic) {
+					shaderDefine(REGEN_LIGHT_NAME("POINT_LIGHT_TYPE", l.id_), "PARABOLIC");
+				} else {
+					shaderDefine(REGEN_LIGHT_NAME("POINT_LIGHT_TYPE", l.id_), "CUBE");
+				}
+			}
 			break;
 		case Light::SPOT:
 			lightType = "SPOT";
@@ -124,8 +134,8 @@ void DirectShading::addLight(
 	}
 
 	if (camera.get()) {
-		joinShaderInput(camera->far(), REGEN_LIGHT_NAME("lightFar", lightID));
-		joinShaderInput(camera->near(), REGEN_LIGHT_NAME("lightNear", lightID));
+		joinShaderInput(camera->lightCamera()->far(), REGEN_LIGHT_NAME("lightFar", lightID));
+		joinShaderInput(camera->lightCamera()->near(), REGEN_LIGHT_NAME("lightNear", lightID));
 		joinShaderInput(camera->lightMatrix(), REGEN_LIGHT_NAME("lightMatrix", lightID));
 	}
 	if (shadow.get()) {
@@ -158,8 +168,8 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 		for (auto it = in.begin(); it != in.end(); ++it) { disjoinShaderInput(it->in_); }
 	}
 	if (directLight.camera_.get()) {
-		disjoinShaderInput(directLight.camera_->far());
-		disjoinShaderInput(directLight.camera_->near());
+		disjoinShaderInput(directLight.camera_->lightCamera()->far());
+		disjoinShaderInput(directLight.camera_->lightCamera()->near());
 		disjoinShaderInput(directLight.camera_->lightMatrix());
 	}
 	if (directLight.shadow_.get()) {

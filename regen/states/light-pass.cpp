@@ -124,8 +124,8 @@ void LightPass::addLightInput(LightPassLight &light) {
 
 	// add shadow uniforms
 	if (light.camera.get()) {
-		addInputLocation(light, light.camera->far(), "lightFar");
-		addInputLocation(light, light.camera->near(), "lightNear");
+		addInputLocation(light, light.camera->lightCamera()->far(), "lightFar");
+		addInputLocation(light, light.camera->lightCamera()->near(), "lightNear");
 		addInputLocation(light, light.camera->lightMatrix(), "lightMatrix");
 	}
 	if (light.shadow.get()) {
@@ -135,13 +135,12 @@ void LightPass::addLightInput(LightPassLight &light) {
 
 	// add light uniforms
 	switch (lightType_) {
-		case Light::DIRECTIONAL: {
+		case Light::DIRECTIONAL:
 			addInputLocation(light, light.light->direction(), "lightDirection");
 			addInputLocation(light, light.light->diffuse(), "lightDiffuse");
 			addInputLocation(light, light.light->specular(), "lightSpecular");
-		}
 			break;
-		case Light::SPOT: {
+		case Light::SPOT:
 			addInputLocation(light, light.light->position(), "lightPosition");
 			addInputLocation(light, light.light->direction(), "lightDirection");
 			addInputLocation(light, light.light->radius(), "lightRadius");
@@ -149,14 +148,13 @@ void LightPass::addLightInput(LightPassLight &light) {
 			addInputLocation(light, light.light->diffuse(), "lightDiffuse");
 			addInputLocation(light, light.light->specular(), "lightSpecular");
 			addInputLocation(light, light.light->coneMatrix(), "modelMatrix");
-		}
 			break;
-		case Light::POINT: {
+		case Light::POINT:
 			addInputLocation(light, light.light->position(), "lightPosition");
+			addInputLocation(light, light.light->direction(), "lightDirection");
 			addInputLocation(light, light.light->radius(), "lightRadius");
 			addInputLocation(light, light.light->diffuse(), "lightDiffuse");
 			addInputLocation(light, light.light->specular(), "lightSpecular");
-		}
 			break;
 	}
 }

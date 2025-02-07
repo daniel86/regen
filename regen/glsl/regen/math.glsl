@@ -165,7 +165,7 @@ vec3 computeCubeDirection(vec2 uv, int layer)
 #define2 REGEN_computeDepth_included_
 float computeDepth(float value, float near, float far) {
     float norm_z_comp = (far + near) /
-        (far - near) - (2 * far * near) / (in_lightFar - near) / value;
+        (far - near) - (2 * far * near) / (far - near) / value;
     return (norm_z_comp + 1.0) * 0.5;
 }
 #endif

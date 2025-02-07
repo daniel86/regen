@@ -9,91 +9,122 @@
 
 using namespace regen;
 
-CubeCamera::CubeCamera(
-		const ref_ptr<Mesh> &mesh,
-		const ref_ptr<Camera> &userCamera)
-		: OmniDirectionalCamera(GL_TRUE, GL_FALSE),
-		  userCamera_(userCamera) {
+CubeCamera::CubeCamera(int hiddenFacesMask)
+		: Camera(6),
+		  hiddenFacesMask_(hiddenFacesMask) {
 	shaderDefine("RENDER_TARGET", "CUBE");
-	shaderDefine("RENDER_LAYER", "6");
-	updateFrustum(
-			userCamera_->fov()->getVertex(0),
-			userCamera_->aspect()->getVertex(0),
-			userCamera_->near()->getVertex(0),
-			userCamera_->far()->getVertex(0),
-			GL_FALSE);
+	// for now always use sphere for intersection tests, else a test is done
+	// for each face, which might be slower in most cases (at least with layered rendering).
+	isOmni_ = true;
+	//isOmni_ = (hiddenFacesMask_ == 0);
 
 	// Set matrix array size
-	view_->set_elementCount(6);
-	viewInv_->set_elementCount(6);
-	viewproj_->set_elementCount(6);
-	viewprojInv_->set_elementCount(6);
+	// NOTE: the matrices are indexed by layer, so even if some faces are hidden,
+	// the matrices are still allocated for all faces. Could change the shaders to
+	// compute index based on layer and face visibility, instead of using gl_Layer directly.
+	view_->set_elementCount(numLayer_);
+	viewInv_->set_elementCount(numLayer_);
+	viewProj_->set_elementCount(numLayer_);
+	viewProjInv_->set_elementCount(numLayer_);
 
 	// Allocate matrices
-	proj_->setUniformDataUntyped(nullptr);
-	projInv_->setUniformDataUntyped(nullptr);
 	view_->setUniformDataUntyped(nullptr);
 	viewInv_->setUniformDataUntyped(nullptr);
-	viewproj_->setUniformDataUntyped(nullptr);
-	viewprojInv_->setUniformDataUntyped(nullptr);
+	viewProj_->setUniformDataUntyped(nullptr);
+	viewProjInv_->setUniformDataUntyped(nullptr);
 
 	// Initialize directions
-	direction_->set_elementCount(6);
+	direction_->set_elementCount(numLayer_);
 	direction_->setUniformDataUntyped(nullptr);
+	for (auto i = 0; i < 6; ++i) {
+		direction_->setVertex(i, Mat4f::cubeDirections()[i]);
+		if (!isCubeFaceVisible(i)) {
+			shaderDefine(REGEN_STRING("SKIP_LAYER" << i), "1");
+		}
+	}
+
+	// TODO: make this configurable
+	setPerspective(1.0f, 90.0f, 0.1f, 100.0f);
+}
+
+bool CubeCamera::isCubeFaceVisible(int face) const {
+	switch (face) {
+		case 0: return !(hiddenFacesMask_ & POS_X);
+		case 1: return !(hiddenFacesMask_ & NEG_X);
+		case 2: return !(hiddenFacesMask_ & POS_Y);
+		case 3: return !(hiddenFacesMask_ & NEG_Y);
+		case 4: return !(hiddenFacesMask_ & POS_Z);
+		case 5: return !(hiddenFacesMask_ & NEG_Z);
+		default: return false;
+	}
+}
+
+bool CubeCamera::updateView() {
+	auto posStamp = position_->stamp();
+	if (posStamp == posStamp_) { return false; }
+	posStamp_ = posStamp;
+
 	const Vec3f *dir = Mat4f::cubeDirections();
-	for (auto i = 0; i < 6; ++i) {
-		direction_->setVertex(i, dir[i]);
+	const Vec3f *up = Mat4f::cubeUpVectors();
+	auto &pos = position_->getVertex(0);
+	auto *views = (Mat4f *) view_->clientDataPtr();
+	for (int i = 0; i < 6; ++i) {
+		if (isCubeFaceVisible(i)) {
+			views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
+			viewInv_->setVertex(i, views[i].lookAtInverse());
+		}
 	}
-
-	auto modelMat = mesh->findShaderInput("modelMatrix");
-	modelMatrix_ = ref_ptr<ShaderInputMat4>::dynamicCast(modelMat.value().in);
-	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(mesh->positions());
-	matrixStamp_ = 0;
-	positionStamp_ = 0;
-
-	for (auto i = 0; i < 6; ++i) isCubeFaceVisible_[i] = GL_TRUE;
-
-	// initially update shadow maps
-	update();
-}
-
-void CubeCamera::set_isCubeFaceVisible(GLenum face, GLboolean visible) {
-	isCubeFaceVisible_[face - GL_TEXTURE_CUBE_MAP_POSITIVE_X] = visible;
-}
-
-void CubeCamera::update() {
-	GLuint positionStamp = (pos_.get() == nullptr ? 1 : pos_->stamp());
-	GLuint matrixStamp = (modelMatrix_.get() == nullptr ? 1 : modelMatrix_->stamp());
-	if (positionStamp_ == positionStamp && matrixStamp_ == matrixStamp) { return; }
-	const GLfloat &near = userCamera_->near()->getVertex(0);
-	const GLfloat &far = userCamera_->far()->getVertex(0);
-
-	// Compute cube center position.
-	Vec3f pos = Vec3f::zero();
-	if (modelMatrix_.get() != nullptr) {
-		pos = (modelMatrix_->getVertex(0) ^ Vec4f(pos, 1.0f)).xyz_();
-	}
-	position_->setVertex(0, pos);
-
-	// Update projection matrix.
-	updateFrustum(1.0f, 90.0f, near, far, GL_FALSE);
-	updateProjection();
-
-	// Update view and view-projection matrix.
-	Mat4f::cubeLookAtMatrices(pos, (Mat4f *) view_->clientDataPtr());
 	view_->nextStamp();
-
-	for (auto i = 0; i < 6; ++i) {
-		if (!isCubeFaceVisible_[i]) { continue; }
-		viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
-		updateViewProjection(0, i);
-	}
-
-	positionStamp_ = positionStamp;
-	matrixStamp_ = matrixStamp;
+	return true;
 }
 
-void CubeCamera::enable(RenderState *rs) {
-	update();
-	Camera::enable(rs);
+void CubeCamera::updateViewProjection1() {
+	for (int i = 0; i < 6; ++i) {
+		if (isCubeFaceVisible(i)) {
+			updateViewProjection(0, i);
+		}
+	}
+}
+
+namespace regen {
+	std::ostream &operator<<(std::ostream &out, const CubeCamera::Face &face) {
+		switch (face) {
+			case CubeCamera::POS_X:
+				return out << "pos_x";
+			case CubeCamera::NEG_X:
+				return out << "neg_x";
+			case CubeCamera::POS_Y:
+				return out << "pos_y";
+			case CubeCamera::NEG_Y:
+				return out << "neg_y";
+			case CubeCamera::POS_Z:
+				return out << "pos_z";
+			case CubeCamera::NEG_Z:
+				return out << "neg_z";
+		}
+		return out;
+	}
+
+	std::istream &operator>>(std::istream &in, CubeCamera::Face &face) {
+		std::string val;
+		in >> val;
+		boost::to_lower(val);
+		if (val == "pos_x") face = CubeCamera::POS_X;
+		else if (val == "neg_x") face = CubeCamera::NEG_X;
+		else if (val == "pos_y") face = CubeCamera::POS_Y;
+		else if (val == "neg_y") face = CubeCamera::NEG_Y;
+		else if (val == "pos_z") face = CubeCamera::POS_Z;
+		else if (val == "neg_z") face = CubeCamera::NEG_Z;
+		else if (val == "left") face = CubeCamera::NEG_X;
+		else if (val == "right") face = CubeCamera::POS_X;
+		else if (val == "top") face = CubeCamera::POS_Y;
+		else if (val == "bottom") face = CubeCamera::NEG_Y;
+		else if (val == "front") face = CubeCamera::POS_Z;
+		else if (val == "back") face = CubeCamera::NEG_Z;
+		else {
+			REGEN_WARN("Unknown cube face '" << val << "'. Using default POS_X.");
+			face = CubeCamera::POS_X;
+		}
+		return in;
+	}
 }

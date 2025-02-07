@@ -51,7 +51,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
 #endif
 #ifdef USE_SHADOW_MAP${__ID}
         // calculate shadow attenuation
-  #if LIGHT_TYPE${__ID} == DIRECTIONAL
+    #if LIGHT_TYPE${__ID} == DIRECTIONAL
         // find the texture layer
         int shadowLayer = 0;
         for(int i=0; i<NUM_SHADOW_LAYER${__ID}; ++i) {
@@ -65,8 +65,31 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
             in_lightMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
-  #endif
-  #if LIGHT_TYPE${__ID} == POINT
+    #endif // LIGHT_TYPE${__ID} == DIRECTIONAL
+    #if LIGHT_TYPE${__ID} == POINT
+        #if POINT_LIGHT_TYPE${__ID} == PARABOLIC
+        /*************************************/
+        /***** PARABOLIC SHADOW MAPPING ******/
+        /*************************************/
+        int parabolicLayer${__ID} = int(dot(lightVec, in_lightDirection${__ID}[0]) > 0.0);
+        vec4 parabolicShadowCoord${__ID} = parabolicShadowCoord(
+            parabolicLayer${__ID},
+            P,
+            in_lightMatrix${__ID}[parabolicLayer${__ID}],
+            in_lightNear${__ID},
+            in_lightFar${__ID});
+        float shadow${__ID} = parabolicShadow${SHADOW_MAP_FILTER${__ID}}(
+            in_shadowTexture${__ID},
+            parabolicShadowCoord${__ID});
+            #if NUM_SHADOW_LAYER${__ID} == 1
+        shadow${__ID} *= float(1 - parabolicLayer);
+            #endif
+        attenuation *= shadow${__ID};
+        #endif
+        #if POINT_LIGHT_TYPE${__ID} == CUBE
+        /*************************************/
+        /******** CUBE SHADOW MAPPING ********/
+        /*************************************/
         float shadowDepth = (
             in_lightMatrix${__ID}[computeCubeLayer(lightVec)]*
             vec4(lightVec,1.0)).z;
@@ -77,15 +100,16 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
             in_lightNear${__ID},
             in_lightFar${__ID},
             in_shadowInverseSize${__ID}.x);
-  #endif
-  #if LIGHT_TYPE${__ID} == SPOT
+        #endif
+    #endif // LIGHT_TYPE${__ID} == POINT
+    #if LIGHT_TYPE${__ID} == SPOT
         attenuation *= spotShadow${SHADOW_MAP_FILTER${__ID}}(
             in_shadowTexture${__ID},
             in_lightMatrix${__ID}*vec4(P,1.0),
             lightVec,
             in_lightNear${__ID},
             in_lightFar${__ID});
-  #endif
+    #endif // LIGHT_TYPE${__ID} == SPOT
 #endif
         s.diffuse += in_lightDiffuse${__ID} * (attenuation * nDotL);
         s.specular += in_lightSpecular${__ID} * (attenuation * specularFactor(P,L,N));
@@ -134,7 +158,7 @@ vec3 getDiffuseLight(vec3 P, float depth)
 #endif
 #ifdef IS_SHADOW_RECEIVER
 #ifdef USE_SHADOW_MAP${__ID}
-  #if LIGHT_TYPE${__ID} == DIRECTIONAL
+    #if LIGHT_TYPE${__ID} == DIRECTIONAL
         // find the texture layer
         int shadowLayer = 0;
         for(int i=0; i<NUM_SHADOW_LAYER${__ID}; ++i) {
@@ -148,8 +172,25 @@ vec3 getDiffuseLight(vec3 P, float depth)
             in_lightMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
         attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
-  #endif
-  #if LIGHT_TYPE${__ID} == POINT
+    #endif // LIGHT_TYPE${__ID} == DIRECTIONAL
+    #if LIGHT_TYPE${__ID} == POINT
+        #if POINT_LIGHT_TYPE${__ID} == PARABOLIC
+        int parabolicLayer${__ID} = int(dot(lightVec, in_lightDirection${__ID}[0]) > 0.0);
+        vec4 parabolicShadowCoord${__ID} = parabolicShadowCoord(
+            parabolicLayer${__ID},
+            P,
+            in_lightMatrix${__ID}[parabolicLayer${__ID}],
+            in_lightNear${__ID},
+            in_lightFar${__ID});
+        float shadow${__ID} = parabolicShadow${SHADOW_MAP_FILTER${__ID}}(
+            in_shadowTexture${__ID},
+            parabolicShadowCoord${__ID});
+            #if NUM_SHADOW_LAYER${__ID} == 1
+        shadow${__ID} *= float(1 - parabolicLayer);
+            #endif
+        attenuation *= shadow${__ID};
+        #endif
+        #if POINT_LIGHT_TYPE${__ID} == CUBE
         vec3 absLightVec = abs(lightVec);
         float shadowDepth = computeDepth(
             max(absLightVec .x, max(absLightVec .y, absLightVec .z)),
@@ -161,15 +202,16 @@ vec3 getDiffuseLight(vec3 P, float depth)
                 in_lightNear${__ID},
                 in_lightFar${__ID},
                 in_shadowInverseSize${__ID}.x);
-  #endif
-  #if LIGHT_TYPE${__ID} == SPOT
+        #endif
+    #endif
+    #if LIGHT_TYPE${__ID} == SPOT
         attenuation *= spotShadow${SHADOW_MAP_FILTER${__ID}}(
                 in_shadowTexture${__ID},
                 in_lightMatrix${__ID}*vec4(P,1.0),
                 lightVec,
                 in_lightNear${__ID},
                 in_lightFar${__ID});
-  #endif
+    #endif
 #endif
 #endif
         diff += in_lightDiffuse${__ID} * attenuation;

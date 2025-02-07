@@ -14,9 +14,9 @@ using namespace regen;
 ReflectionCamera::ReflectionCamera(
 		const ref_ptr<Camera> &userCamera,
 		const ref_ptr<Mesh> &mesh,
-		GLuint vertexIndex,
-		GLboolean hasBackFace)
-		: Camera(),
+		unsigned int vertexIndex,
+		bool hasBackFace)
+		: Camera(1),
 		  userCamera_(userCamera),
 		  vertexIndex_(vertexIndex),
 		  projStamp_(userCamera->projection()->stamp() - 1),
@@ -26,12 +26,11 @@ ReflectionCamera::ReflectionCamera(
 		  isFront_(GL_TRUE),
 		  hasMesh_(GL_TRUE),
 		  hasBackFace_(hasBackFace) {
-	updateFrustum(
+	setPerspective(
 			userCamera_->fov()->getVertex(0),
 			userCamera_->aspect()->getVertex(0),
 			userCamera_->near()->getVertex(0),
-			userCamera_->far()->getVertex(0),
-			GL_FALSE);
+			userCamera_->far()->getVertex(0));
 
 	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	clipPlane_->setUniformData(Vec4f(0.0f));
@@ -56,22 +55,21 @@ ReflectionCamera::ReflectionCamera(
 		const ref_ptr<Camera> &userCamera,
 		const Vec3f &reflectorNormal,
 		const Vec3f &reflectorPoint,
-		GLboolean hasBackFace)
-		: Camera(),
+		bool hasBackFace)
+		: Camera(1),
 		  userCamera_(userCamera),
 		  projStamp_(userCamera->projection()->stamp() - 1),
 		  camPosStamp_(userCamera->position()->stamp() - 1),
 		  camDirStamp_(userCamera->direction()->stamp() - 1),
-		  cameraChanged_(GL_TRUE),
-		  isFront_(GL_TRUE),
-		  hasMesh_(GL_FALSE),
+		  cameraChanged_(true),
+		  isFront_(true),
+		  hasMesh_(false),
 		  hasBackFace_(hasBackFace) {
-	updateFrustum(
+	setPerspective(
 			userCamera_->aspect()->getVertex(0),
 			userCamera_->fov()->getVertex(0),
 			userCamera_->near()->getVertex(0),
-			userCamera_->far()->getVertex(0),
-			GL_FALSE);
+			userCamera_->far()->getVertex(0));
 
 	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	clipPlane_->setUniformData(Vec4f(0.0f));
@@ -83,7 +81,7 @@ ReflectionCamera::ReflectionCamera(
 	norStamp_ = 0;
 	posWorld_ = reflectorPoint;
 	norWorld_ = reflectorNormal;
-	isReflectorValid_ = GL_TRUE;
+	isReflectorValid_ = true;
 
 	clipPlane_->setVertex(0, Vec4f(
 			norWorld_.x, norWorld_.y, norWorld_.z,
@@ -95,8 +93,9 @@ void ReflectionCamera::enable(RenderState *rs) {
 	if (!isReflectorValid_) {
 		REGEN_WARN("Reflector has no position/normal attribute.");
 	} else if (!isHidden()) {
+		// TODO: do with another thread
 		updateReflection();
-		Camera::enable(rs);
+		State::enable(rs);
 	}
 }
 
@@ -178,7 +177,7 @@ void ReflectionCamera::updateReflection() {
 
 	// Compute view matrix
 	if (reflectorChanged) {
-		updateLookAt();
+		updateView();
 		cameraChanged_ = GL_TRUE;
 	}
 
@@ -194,7 +193,7 @@ void ReflectionCamera::updateReflection() {
 
 	// Compute view-projection matrix
 	if (cameraChanged_) {
-		updateViewProjection();
+		updateViewProjection(0u,0u);
 		cameraChanged_ = GL_FALSE;
 	}
 }

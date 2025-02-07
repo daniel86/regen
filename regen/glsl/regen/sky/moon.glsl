@@ -108,7 +108,6 @@ const float in_surface = 1.0;
 const float in_scale = 0.1;
 const float surfaceHeight = 0.99;
 
-#include regen.states.camera.transformTexcoToWorld
 #include regen.sky.utility.computeEyeExtinction
 
 // Hapke-Lommel-Seeliger approximation of the moons reflectance function.

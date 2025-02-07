@@ -560,39 +560,50 @@ vec3 texco_cube_reflection(vec3 P, vec3 N)
 #ifndef REGEN_TEXCO_PARABOLOID_REFL_
 #define2 REGEN_TEXCO_PARABOLOID_REFL_
 
-#ifdef IS_PARABOLOID_DUAL
 vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
-#else
-vec2 texco_paraboloid_reflection(vec3 P, vec3 N)
-#endif
 {
 #ifdef IS_PARABOLOID_DUAL
-  vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
-  vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
+    vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
 #else
-  vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
-  vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
+    vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
 #endif
-  vec3 R = normalize( reflect(P_, N_) );
-  float layer = float(R.z>0.0);
-    
-  R.z *= (2.0*layer - 1.0);
-  R.x *= (1.0 - 2.0*layer);
-  R.y *= -1.0;
-    
-  float k = 1.0/(2.0*(1.0 + R.z));
-  vec2 uv = R.xy*k + vec2(0.5);
-#ifdef IS_PARABOLOID_DUAL
-  return vec3(uv,layer);
-#else
-  return uv;
-#endif
+    vec3 R = normalize( reflect(P_, N_) );
+    float layer = float(R.z>0.0);
+    R.z *= (2.0*layer - 1.0);
+    R.x *= (1.0 - 2.0*layer);
+    R.y *= -1.0;
+    float k = 1.0/(2.0*(1.0 + R.z));
+    vec2 uv = R.xy*k + vec2(0.5);
+    return vec3(uv,layer);
 }
 #endif
 
 -- texco_paraboloid_refraction
 #ifndef REGEN_TEXCO_PARABOLOID_REFR_
 #define2 REGEN_TEXCO_PARABOLOID_REFR_
+
+#ifdef IS_PARABOLOID_DUAL
+vec3 texco_paraboloid_refraction(vec3 P, vec3 N)
+{
+#ifdef IS_PARABOLOID_DUAL
+    vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
+#else
+    vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
+#endif
+    vec3 R = normalize( refract(P_, N_, in_matRefractionIndex) );
+    float layer = float(R.z>0.0);
+    R.z *= (2.0*layer - 1.0);
+    R.x *= (1.0 - 2.0*layer);
+    R.y *= -1.0;
+    float k = 1.0/(2.0*(1.0 + R.z));
+    vec2 uv = R.xy*k + vec2(0.5);
+    return vec3(uv,layer);
+}
+#endif
 
 -- texco_planar_reflection
 #include regen.states.camera.transformScreenToTexco

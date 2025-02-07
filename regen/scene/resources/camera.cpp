@@ -6,6 +6,10 @@
  */
 
 #include "camera.h"
+#include "regen/camera/light-camera-spot.h"
+#include "regen/camera/light-camera-dir.h"
+#include "regen/camera/light-camera-parabolic.h"
+#include "regen/camera/light-camera-cube.h"
 #include <regen/application.h>
 
 using namespace regen::scene;
@@ -14,7 +18,7 @@ using namespace std;
 
 #include <regen/scene/resource-manager.h>
 #include <regen/camera/cube-camera.h>
-#include <regen/camera/paraboloid-camera.h>
+#include <regen/camera/parabolic-camera.h>
 #include <regen/camera/light-camera.h>
 #include <regen/camera/reflection-camera.h>
 
@@ -35,7 +39,7 @@ public:
 			: EventHandler(), cam_(cam), windowViewport_(windowViewport) {}
 
 	void call(EventObject *, EventData *) {
-		cam_->updateFrustum(
+		cam_->setPerspective(
 				(GLfloat) windowViewport_->getVertex(0).x /
 				(GLfloat) windowViewport_->getVertex(0).y,
 				cam_->fov()->getVertex(0),
@@ -55,7 +59,7 @@ ref_ptr<Camera> CameraResource::createResource(
 		SceneParser *parser,
 		SceneInputNode &input) {
 	auto cam = createCamera(parser, input);
-	if (cam.get() == NULL) {
+	if (cam.get() == nullptr) {
 		REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
 		return {};
 	}
@@ -69,9 +73,87 @@ ref_ptr<Camera> CameraResource::createResource(
 	return cam;
 }
 
+int getHiddenFacesMask(SceneInputNode &input) {
+	int hiddenFacesMask = 0;
+	if (input.hasAttribute("hide-faces")) {
+		auto val = input.getValue<std::string>("hide-faces", "");
+		std::vector<std::string> faces;
+		boost::split(faces, val, boost::is_any_of(","));
+		for (auto it = faces.begin(); it != faces.end(); ++it) {
+			CubeCamera::Face face;
+			std::stringstream(*it) >> face;
+			hiddenFacesMask |= face;
+		}
+	}
+	return hiddenFacesMask;
+}
+
+ref_ptr<Camera> createLightCamera(
+		SceneParser *parser,
+		SceneInputNode &input) {
+	ref_ptr<Light> light = parser->getResources()->getLight(parser, input.getValue("light"));
+	if (light.get() == nullptr) {
+		REGEN_WARN("Unable to find Light for '" << input.getDescription() << "'.");
+		return {};
+	}
+	auto numLayer = input.getValue<GLuint>("num-layer", 1u);
+	auto splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
+	auto cameraType = input.getValue<std::string>("camera-type", "spot");
+	auto near = input.getValue<float>("near", 0.1f);
+	ref_ptr<Camera> lightCamera;
+
+	switch (light->lightType()) {
+		case Light::SPOT: {
+			auto spotCam = ref_ptr<LightCamera_Spot>::alloc(light);
+			spotCam->setLightNear(near);
+			lightCamera = spotCam;
+			break;
+		}
+		case Light::DIRECTIONAL: {
+			auto userCamera = parser->getResources()->getCamera(parser, input.getValue("camera"));
+			if (userCamera.get() == nullptr) {
+				REGEN_WARN("Unable to find user camera for '" << input.getDescription() << "'.");
+				return {};
+			}
+			auto dirCam = ref_ptr<LightCamera_Directional>::alloc(light, userCamera, numLayer);
+			dirCam->setSplitWeight(splitWeight);
+			dirCam->setLightNear(near);
+			lightCamera = dirCam;
+			break;
+		}
+		case Light::POINT: {
+			if (cameraType == "parabolic" || cameraType == "paraboloid") {
+				// parabolic camera
+				auto isDualParabolic = input.getValue<bool>("dual-paraboloid", true);
+				auto parabolic = ref_ptr<LightCamera_Parabolic>::alloc(light, isDualParabolic);
+				if (input.hasAttribute("normal")) {
+					parabolic->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
+				}
+				parabolic->setLightNear(near);
+				lightCamera = parabolic;
+			} else {
+				// cube camera
+				auto cube = ref_ptr<LightCamera_Cube>::alloc(light, getHiddenFacesMask(input));
+				cube->setLightNear(near);
+				lightCamera = cube;
+			}
+			break;
+		}
+	}
+	if (lightCamera.get() == nullptr) {
+		REGEN_WARN("Unable to create camera for '" << input.getDescription() << "'.");
+		return {};
+	}
+	parser->putState(input.getName(), lightCamera);
+
+	return lightCamera;
+}
+
 ref_ptr<Camera> CameraResource::createCamera(
 		SceneParser *parser,
 		SceneInputNode &input) {
+	auto camType = input.getValue<string>("type", "spot");
+
 	if (input.hasAttribute("reflector") ||
 		input.hasAttribute("reflector-normal") ||
 		input.hasAttribute("reflector-point")) {
@@ -103,93 +185,37 @@ ref_ptr<Camera> CameraResource::createCamera(
 			parser->putState(input.getName(), cam);
 		}
 		return cam;
-	} else if (input.hasAttribute("light")) {
-		ref_ptr<Camera> userCamera =
-				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == nullptr) {
-			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return {};
-		}
-		ref_ptr<Light> light =
-				parser->getResources()->getLight(parser, input.getValue("light"));
-		if (light.get() == nullptr) {
-			REGEN_WARN("Unable to find Light for '" << input.getDescription() << "'.");
-			return {};
-		}
-		auto numLayer = input.getValue<GLuint>("num-layer", 1u);
-		auto splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
-		auto near = input.getValue<GLdouble>("near", 0.1);
-		auto far = input.getValue<GLdouble>("far", 200.0);
-		ref_ptr<LightCamera> cam = ref_ptr<LightCamera>::alloc(
-				light, userCamera, Vec2f(near, far), numLayer, splitWeight);
-		parser->putState(input.getName(), cam);
-
-		// Hide cube shadow map faces.
-		if (input.hasAttribute("hide-faces")) {
-			const string val = input.getValue<string>("hide-faces", "");
-			vector<string> faces;
-			boost::split(faces, val, boost::is_any_of(","));
-			for (auto it = faces.begin();
-				 it != faces.end(); ++it) {
-				int faceIndex = atoi(it->c_str());
-				cam->set_isCubeFaceVisible(
-						GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, GL_FALSE);
-			}
-		}
-
+	}
+	else if (input.hasAttribute("light")) {
+		auto cam = createLightCamera(parser, input);
 		return cam;
-	} else if (input.hasAttribute("cube-mesh")) {
-		ref_ptr<Camera> userCamera =
-				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == nullptr) {
-			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return {};
+	}
+	else if (camType == "cube") {
+		auto tf = parser->getResources()->getTransform(parser, input.getValue("tf"));
+		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
+		if (tf.get()) {
+			cam->attachToPosition(tf->get());
 		}
-		ref_ptr<MeshVector> mesh =
-				parser->getResources()->getMesh(parser, input.getValue("cube-mesh"));
-		if (mesh.get() == nullptr || mesh->empty()) {
-			REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
-			return {};
-		}
-		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc((*mesh.get())[0], userCamera);
 		parser->putState(input.getName(), cam);
-
-		// Hide cube shadow map faces.
-		if (input.hasAttribute("hide-faces")) {
-			const string val = input.getValue<string>("hide-faces", "");
-			vector<string> faces;
-			boost::split(faces, val, boost::is_any_of(","));
-			for (auto it = faces.begin();
-				 it != faces.end(); ++it) {
-				int faceIndex = atoi(it->c_str());
-				cam->set_isCubeFaceVisible(
-						GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex, GL_FALSE);
-			}
-		}
-
 		return cam;
-	} else if (input.hasAttribute("paraboloid-mesh")) {
-		ref_ptr<Camera> userCamera =
-				parser->getResources()->getCamera(parser, input.getValue("camera"));
-		if (userCamera.get() == nullptr) {
-			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
-			return {};
+	}
+	else if (camType == "parabolic" || camType == "paraboloid") {
+		auto tf = parser->getResources()->getTransform(parser, input.getValue("tf"));
+		bool hasBackFace = input.getValue<bool>("dual-paraboloid", true);
+		auto cam = ref_ptr<ParabolicCamera>::alloc(hasBackFace);
+		if (input.hasAttribute("normal")) {
+			cam->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
 		}
-		ref_ptr<MeshVector> mesh =
-				parser->getResources()->getMesh(parser, input.getValue("paraboloid-mesh"));
-		if (mesh.get() == nullptr || mesh->empty()) {
-			REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
-			return {};
-		}
-		bool hasBackFace = input.getValue<bool>("has-back-face", false);
 
-		ref_ptr<ParaboloidCamera> cam = ref_ptr<ParaboloidCamera>::alloc(
-				(*mesh.get())[0], userCamera, hasBackFace);
+		if (tf.get()) {
+			cam->attachToPosition(tf->get());
+		}
 		parser->putState(input.getName(), cam);
 
 		return cam;
-	} else {
-		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc();
+	}
+	else {
+		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
 		cam->set_isAudioListener(
 				input.getValue<bool>("audio-listener", false));
 		cam->position()->setVertex(0,
@@ -199,12 +225,13 @@ ref_ptr<Camera> CameraResource::createCamera(
 		dir.normalize();
 		cam->direction()->setVertex(0, dir);
 
-		cam->updateFrustum(
+		cam->setPerspective(
 				(GLfloat) parser->getViewport()->getVertex(0).x /
 				(GLfloat) parser->getViewport()->getVertex(0).y,
 				input.getValue<GLfloat>("fov", 45.0f),
 				input.getValue<GLfloat>("near", 0.1f),
 				input.getValue<GLfloat>("far", 200.0f));
+		cam->updateCamera();
 		// Update frustum when window size changes
 		parser->addEventHandler(Application::RESIZE_EVENT,
 								ref_ptr<ProjectionUpdater>::alloc(cam, parser->getViewport()));

@@ -12,25 +12,41 @@
 using namespace regen;
 
 Frustum::Frustum() :
-		BoundingShape(BoundingShapeType::FRUSTUM) {
+		BoundingShape(BoundingShapeType::FRUSTUM),
+		orthoBounds(Vec2f(0), Vec2f(0)) {
 	translation_ = ref_ptr<ShaderInput3f>::alloc("frustumCenter");
 	translation_->setUniformData(Vec3f(0));
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
 }
 
-void Frustum::set(double _aspect, double _fov, double _near, double _far) {
+void Frustum::setPerspective(double _aspect, double _fov, double _near, double _far) {
 	fov = _fov;
 	aspect = _aspect;
 	near = _near;
 	far = _far;
 	// +0.2 is important because we might get artifacts at
 	// the screen borders.
-	double fovR = _fov / 57.2957795 + 0.2;
-	nearPlane.y = tan(fovR * 0.5) * near;
-	nearPlane.x = nearPlane.y * aspect;
-	farPlane.y = tan(fovR * 0.5) * far;
-	farPlane.x = farPlane.y * aspect;
+	// TODO: check if this is still necessary
+	double fovR = _fov / 57.2957795; // + 0.2;
+	nearPlaneSize.y = tan(fovR * 0.5) * near;
+	nearPlaneSize.x = nearPlaneSize.y * aspect;
+	farPlaneSize.y = tan(fovR * 0.5) * far;
+	farPlaneSize.x = farPlaneSize.y * aspect;
+}
+
+void Frustum::setOrtho(double left, double right, double bottom, double top, double _near, double _far) {
+	fov = 0.0;
+	aspect = (right - left) / (top - bottom);
+	near = _near;
+	far = _far;
+	nearPlaneSize.x = (right-left);
+	nearPlaneSize.y = (top-bottom);
+	farPlaneSize = nearPlaneSize;
+	orthoBounds.min.x = left;
+	orthoBounds.min.y = bottom;
+	orthoBounds.max.x = right;
+	orthoBounds.max.y = top;
 }
 
 bool Frustum::updateTransform(bool forceUpdate) {
@@ -61,36 +77,10 @@ unsigned int Frustum::directionStamp() const {
 void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	Vec3f d = dir;
 	d.normalize();
-
 	translation_->setUniformData(pos);
 	direction_->setUniformData(d);
 
-	Vec3f fc = pos + d * far;
-	Vec3f nc = pos + d * near;
-	Vec3f rw, uh, u, buf1, buf2;
-
-	Vec3f v = d.cross(Vec3f::up());
-	v.normalize();
-	u = v.cross(d);
-	u.normalize();
-
-	rw = v * nearPlane.x;
-	uh = u * nearPlane.y;
-	buf1 = uh - rw;
-	buf2 = uh + rw;
-	points[0] = nc - buf1;
-	points[1] = nc + buf1;
-	points[2] = nc + buf2;
-	points[3] = nc - buf2;
-
-	rw = v * farPlane.x;
-	uh = u * farPlane.y;
-	buf1 = uh - rw;
-	buf2 = uh + rw;
-	points[4] = fc - buf1;
-	points[5] = fc + buf1;
-	points[6] = fc + buf2;
-	points[7] = fc - buf2;
+	updatePoints(pos, d);
 
 	planes[0].set(points[2], points[1], points[5]);
 	planes[1].set(points[3], points[0], points[4]);
@@ -98,6 +88,27 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	planes[3].set(points[0], points[2], points[4]);
 	planes[4].set(points[1], points[2], points[0]);
 	planes[5].set(points[6], points[5], points[7]);
+}
+
+void Frustum::updatePoints(const Vec3f &pos, const Vec3f &dir) {
+	auto v = dir.cross(Vec3f::up()).normalize();
+	auto u = v.cross(dir).normalize();
+	// near plane points
+	auto nc = pos + dir * near;
+	auto rw = v * nearPlaneSize.x;
+	auto uh = u * nearPlaneSize.y;
+	points[0] = nc - uh + rw;
+	points[1] = nc + uh - rw;
+	points[2] = nc + uh + rw;
+	points[3] = nc - uh - rw;
+	// far plane points
+	auto fc = pos + dir * far;
+	rw = v * farPlaneSize.x;
+	uh = u * farPlaneSize.y;
+	points[4] = fc - uh + rw;
+	points[5] = fc + uh - rw;
+	points[6] = fc + uh + rw;
+	points[7] = fc - uh - rw;
 }
 
 Vec3f Frustum::getCenterPosition() const {
@@ -184,11 +195,10 @@ bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {
 	return GL_TRUE;
 }
 
-std::vector<Frustum *> Frustum::split(GLuint count, GLdouble splitWeight) const {
+void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) const {
 	const auto &n = near;
 	const auto &f = far;
-
-	std::vector<Frustum *> frustas(count);
+	const auto count = frustumSplit.size();
 	auto ratio = f / n;
 	double si, lastn, currf, currn;
 
@@ -201,15 +211,11 @@ std::vector<Frustum *> Frustum::split(GLuint count, GLdouble splitWeight) const 
 				(1 - splitWeight) * (n + (f - n) * si);
 		currf = currn * 1.005;
 
-		frustas[i - 1] = new Frustum;
-		frustas[i - 1]->set(fov, aspect, lastn, currf);
+		frustumSplit[i - 1].setPerspective(fov, aspect, lastn, currf);
 
 		lastn = currn;
 	}
-	frustas[count - 1] = new Frustum;
-	frustas[count - 1]->set(fov, aspect, lastn, f);
-
-	return frustas;
+	frustumSplit[count - 1].setPerspective(fov, aspect, lastn, f);
 }
 
 Vec3f Frustum::closestPointOnSurface(const Vec3f &point) const {

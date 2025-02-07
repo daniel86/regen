@@ -2,8 +2,6 @@
 #include <algorithm>
 
 #include "spatial-index.h"
-#include "regen/camera/cube-camera.h"
-#include "regen/camera/paraboloid-camera.h"
 
 using namespace regen;
 
@@ -26,9 +24,8 @@ void SpatialIndex::removeFromIndex(const ref_ptr<BoundingShape> &shape) {
 }
 
 void SpatialIndex::addCamera(const ref_ptr<Camera> &camera, bool sortInstances) {
-	bool isOmniCamera = dynamic_cast<OmniDirectionalCamera *>(camera.get()) != nullptr;
 	cameras_.emplace(camera.get(),
-					 IndexCamera{camera, {}, {}, sortInstances, isOmniCamera});
+					 IndexCamera{camera, {}, {}, {}, sortInstances});
 }
 
 bool SpatialIndex::hasCamera(const Camera &camera) const {
@@ -58,8 +55,8 @@ SpatialIndex::getVisibleInstances(const Camera &camera, std::string_view shapeID
 	if (it == cameras_.end()) {
 		return empty;
 	}
-	auto it2 = it->second.visibleInstances.find(shapeID);
-	if (it2 == it->second.visibleInstances.end()) {
+	auto it2 = it->second.visibleInstances_vec.find(shapeID);
+	if (it2 == it->second.visibleInstances_vec.end()) {
 		return empty;
 	}
 	return it2->second;
@@ -89,10 +86,7 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID) const {
 	return {};
 }
 
-void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shape) {
-	ic.visibleShapes.clear();
-	ic.visibleInstances.clear();
-
+void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shape, bool isMultiShape) {
 	if (ic.sortInstances) {
 		auto &camPos = ic.camera->position()->getVertex(0);
 		struct ShapeDistance {
@@ -104,6 +98,12 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shap
 			std::lock_guard<std::mutex> lock(mutex_);
 			ic.visibleShapes.insert(b_shape.name());
 			if (b_shape.numInstances() > 1) {
+				if (isMultiShape) {
+					// make sure we don't add the same instance twice
+					auto &visibleInstances = ic.visibleInstances[b_shape.name()];
+					auto [_,inserted] = visibleInstances.insert(b_shape.instanceID());
+					if (!inserted) return;
+				}
 				float d = (b_shape.getCenterPosition() - camPos).length();
 				instanceDistances[b_shape.name()].push_back({&b_shape, d});
 			}
@@ -113,7 +113,7 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shap
 			std::sort(distances.begin(), distances.end(), [](const ShapeDistance &a, const ShapeDistance &b) {
 				return a.distance < b.distance;
 			});
-			auto &visibleInstances = ic.visibleInstances[pair.first];
+			auto &visibleInstances = ic.visibleInstances_vec[pair.first];
 			visibleInstances.reserve(distances.size());
 			for (auto &distance: distances) {
 				visibleInstances.push_back(distance.shape->instanceID());
@@ -124,7 +124,13 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shap
 			std::lock_guard<std::mutex> lock(mutex_);
 			ic.visibleShapes.insert(b_shape.name());
 			if (b_shape.numInstances() > 1) {
-				auto &visibleInstances = ic.visibleInstances[b_shape.name()];
+				if (isMultiShape) {
+					// make sure we don't add the same instance twice
+					auto &visibleInstances = ic.visibleInstances[b_shape.name()];
+					auto [_,inserted] = visibleInstances.insert(b_shape.instanceID());
+					if (!inserted) return;
+				}
+				auto &visibleInstances = ic.visibleInstances_vec[b_shape.name()];
 				visibleInstances.push_back(b_shape.instanceID());
 			}
 		});
@@ -133,19 +139,26 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shap
 
 void SpatialIndex::updateVisibility() {
 	for (auto &ic: cameras_) {
-		if (ic.second.isOmni) {
+		ic.second.visibleShapes.clear();
+		ic.second.visibleInstances.clear();
+		ic.second.visibleInstances_vec.clear();
+
+		if (ic.second.camera->isOmni()) {
 			// omni camera -> intersection test with bounding sphere
-			// TODO: Support half-spheres for culling
 			BoundingSphere sphereShape(Vec3f::zero(), ic.first->far()->getVertex(0));
 			sphereShape.setTransform(ic.first->position());
 			sphereShape.updateTransform(true);
-			// update visible shapes
-			updateVisibility(ic.second, sphereShape);
-		} else {
+			updateVisibility(ic.second, sphereShape, false);
+		}
+		//else if (ic.second.camera->isSemiOmni()) {
+		//	// TODO: Support half-spheres for culling
+		//}
+		else {
 			// spot camera -> intersection test with view frustum
-			auto &frustumShape = ic.first->frustum();
-			// update visible shapes
-			updateVisibility(ic.second, frustumShape);
+			auto &frustumShapes = ic.first->frustum();
+			for (auto &frustumShape: frustumShapes) {
+				updateVisibility(ic.second, frustumShape, frustumShapes.size() > 1);
+			}
 		}
 	}
 }

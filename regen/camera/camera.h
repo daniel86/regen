@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef _CAMERA_H_
-#define _CAMERA_H_
+#ifndef REGEN_CAMERA_H
+#define REGEN_CAMERA_H
 
 #include <regen/states/state.h>
 #include <regen/utility/ref-ptr.h>
@@ -19,31 +19,82 @@
 
 namespace regen {
 	/**
-	 * \brief Camera with perspective projection.
+	 * \brief Camera with projection and view matrix.
 	 */
 	class Camera : public HasInputState {
 	public:
 		/**
-		 * @param initializeMatrices if false matrix computation is skipped.
+		 * Default constructor.
+		 * @param numLayer the number of layers.
 		 */
-		explicit Camera(GLboolean initializeMatrices = GL_TRUE);
+		explicit Camera(unsigned int numLayer);
 
 		/**
 		 * @return the stamp when the camera was last updated.
 		 */
-		GLuint stamp() const { return camStamp_; }
+		auto stamp() const { return camStamp_; }
 
 		/**
-		 * Update frustum and projection matrix.
-		 * @param aspect the apect ratio.
+		 * @return the number of layers.
+		 */
+		auto numLayer() const { return numLayer_; }
+
+		/**
+		 * @return true if this camera is an omnidirectional camera.
+		 */
+		auto isOmni() const { return isOmni_; }
+
+		/**
+		 * @return true if this camera is an orthographic camera.
+		 */
+		auto isOrtho() const { return isOrtho_; }
+
+		/**
+		 * @return true if this camera is a perspective camera.
+		 */
+		auto isPerspective() const { return !isOrtho_; }
+
+		/**
+		 * Update frustum projection and projection matrix.
+		 * @param aspect the aspect ratio.
 		 * @param fov field of view.
 		 * @param near distance to near plane.
 		 * @param far distance to far plane.
-		 * @param updateMatrices if false matrix computation is skipped.
 		 */
-		void updateFrustum(
-				GLfloat aspect, GLfloat fov, GLfloat near, GLfloat far,
-				GLboolean updateMatrices = GL_TRUE);
+		void setPerspective(float aspect, float fov, float near, float far);
+
+		/**
+		 * Update frustum projection and projection matrix.
+		 * @param aspect the aspect ratio.
+		 * @param fov field of view.
+		 * @param near distance to near plane.
+		 * @param far distance to far plane.
+		 * @param layer the layer index.
+		 */
+		void setPerspective(float aspect, float fov, float near, float far, unsigned int layer);
+
+		/**
+		 * Update frustum projection and projection matrix.
+		 * @param left the left vertical clipping plane.
+		 * @param right the right vertical clipping plane.
+		 * @param bottom the bottom horizontal clipping plane.
+		 * @param top the top horizontal clipping plane.
+		 * @param near distance to near plane.
+		 * @param far distance to far plane.
+		 */
+		void setOrtho(float left, float right, float bottom, float top, float near, float far);
+
+		/**
+		 * Update frustum projection and projection matrix.
+		 * @param left the left vertical clipping plane.
+		 * @param right the right vertical clipping plane.
+		 * @param bottom the bottom horizontal clipping plane.
+		 * @param top the top horizontal clipping plane.
+		 * @param near distance to near plane.
+		 * @param far distance to far plane.
+		 * @param layer the layer index.
+		 */
+		void setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer);
 
 		/**
 		 * @return specifies the field of view angle, in degrees, in the y direction.
@@ -108,13 +159,13 @@ namespace regen {
 		 * Transforms world-space to screen-space.
 		 * @return the view-projection matrix.
 		 */
-		auto &viewProjection() const { return viewproj_; }
+		auto &viewProjection() const { return viewProj_; }
 
 		/**
 		 * Transforms screen-space to world-space.
 		 * @return the inverse view-projection matrix.
 		 */
-		auto &viewProjectionInverse() const { return viewprojInv_; }
+		auto &viewProjectionInverse() const { return viewProjInv_; }
 
 		/**
 		 * @return the 8 points forming this Frustum.
@@ -137,32 +188,83 @@ namespace regen {
 		auto isAudioListener() const { return isAudioListener_; }
 
 		/**
-		 * @return true if the sphere intersects with the frustum of this camera.
+		 * Recompute the camera parameters.
+		 * @return true if the camera was updated.
 		 */
-		virtual GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius);
-
-		/**
-		 * @return true if the box intersects with the frustum of this camera.
-		 */
-		virtual GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+		virtual bool updateCamera();
 
 		/**
 		 * @return true if the sphere intersects with the frustum of this camera.
 		 */
-		GLboolean hasSpotIntersectionWithSphere(const Vec3f &center, GLfloat radius);
+		bool hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const;
 
 		/**
 		 * @return true if the box intersects with the frustum of this camera.
 		 */
-		GLboolean hasSpotIntersectionWithBox(const Vec3f &center, const Vec3f *points);
+		bool hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) const;
 
-		// Override
-		void enable(RenderState *rs) override;
+		/**
+		 * @return true if the sphere intersects with the frustum of this camera.
+		 */
+		bool hasFrustumIntersection(const Vec3f &center, GLfloat radius) const;
 
-		void updateLookAt();
+		/**
+		 * @return true if the box intersects with the frustum of this camera.
+		 */
+		bool hasFrustumIntersection(const Vec3f &center, const Vec3f *points) const;
+
+		/**
+		 * @return true if the sphere intersects with the bounding sphere of this camera.
+		 */
+		bool hasSphereIntersection(const Vec3f &center, GLfloat radius) const;
+
+		/**
+		 * @return true if the box intersects with the bounding sphere of this camera.
+		 */
+		bool hasSphereIntersection(const Vec3f &center, const Vec3f *points) const;
+
+		/**
+		 * @return true if the sphere intersects with the half bounding sphere of this camera.
+		 */
+		bool hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const;
+
+		/**
+		 * @return true if the box intersects with the half bounding sphere of this camera.
+		 */
+		bool hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const;
+
+		/**
+		 * Attach the camera to a transform, updating the camera position and direction.
+		 * @param attachedTransform the transform to attach to.
+		 */
+		void attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform);
+
+		/**
+		 * Attach the camera to a position, updating the camera position.
+		 * @param attachedPosition the position to attach to.
+		 */
+		void attachToPosition(const ref_ptr<ShaderInput3f> &attachedPosition);
+
+		/**
+		 * Attach the camera to a position, updating the camera position.
+		 * @param attachedTransform the transform to attach to.
+		 */
+		void attachToPosition(const ref_ptr<ShaderInputMat4> &attachedTransform);
+
+		/**
+		 * Update the camera pose based on the attached transform, if any.
+		 */
+		void updatePose();
 
 	protected:
-		ref_ptr<ShaderInputContainer> inputs_;
+		unsigned int numLayer_ = 1;
+		bool isOmni_ = false;
+		bool isOrtho_ = false;
+		bool isAudioListener_ = false;
+		unsigned int camStamp_ = 0u;
+
+		std::vector<Frustum> frustum_;
+
 		ref_ptr<UniformBlock> cameraBlock_;
 		ref_ptr<ShaderInput1f> fov_;
 		ref_ptr<ShaderInput1f> aspect_;
@@ -177,41 +279,27 @@ namespace regen {
 		ref_ptr<ShaderInputMat4> viewInv_;
 		ref_ptr<ShaderInputMat4> proj_;
 		ref_ptr<ShaderInputMat4> projInv_;
-		ref_ptr<ShaderInputMat4> viewproj_;
-		ref_ptr<ShaderInputMat4> viewprojInv_;
+		ref_ptr<ShaderInputMat4> viewProj_;
+		ref_ptr<ShaderInputMat4> viewProjInv_;
 
-		Frustum frustum_;
-		GLboolean isAudioListener_;
-		GLuint camStamp_;
-		GLuint posStamp_;
-		GLuint dirStamp_;
+		ref_ptr<Animation> attachedMotion_;
+		ref_ptr<ShaderInputMat4> attachedTransform_;
+		ref_ptr<ShaderInput3f> attachedPosition_;
+		bool isAttachedToPosition_ = false;
+		ref_ptr<Animation> cameraMotion_;
 
-		void updateProjection();
+		virtual bool updateView();
 
-		void updateViewProjection(GLuint i = 0u, GLuint j = 0u);
-	};
+		virtual void updateViewProjection1();
 
-	/**
-	 * A camera with 180° field of view or 360° field of view.
-	 */
-	class OmniDirectionalCamera : public Camera {
-	public:
-		explicit OmniDirectionalCamera(
-				GLboolean hasBackFace = GL_FALSE,
-				GLboolean updateMatrices = GL_TRUE);
+		virtual void updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex);
 
-		GLboolean hasOmniIntersectionWithSphere(const Vec3f &center, GLfloat radius);
-
-		GLboolean hasOmniIntersectionWithBox(const Vec3f &center, const Vec3f *points);
-
-		// Override
-		GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) override;
-
-		GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) override;
-
-	protected:
-		GLboolean hasBackFace_;
+	private:
+		unsigned int projectionStamp_ = 0u;
+		unsigned int posStamp_ = 0u;
+		unsigned int dirStamp_ = 0u;
+		unsigned int poseStamp_ = 0u;
 	};
 } // namespace
 
-#endif /* _CAMERA_H_ */
+#endif /* REGEN_CAMERA_H */

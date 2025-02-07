@@ -3,6 +3,11 @@
 #ifndef SHADING_MODEL
 #define SHADING_MODEL PHONG
 #endif
+#ifdef IS_POINT_LIGHT
+    #ifndef POINT_LIGHT_TYPE
+#define POINT_LIGHT_TYPE CUBE
+    #endif
+#endif
 
 -- input.deferred
 #ifndef REGEN_light_inputs_included_
@@ -29,18 +34,36 @@ uniform mat4 in_lightMatrix;
 #endif
 
 #ifdef IS_POINT_LIGHT
+    #if POINT_LIGHT_TYPE == CUBE
 uniform vec3 in_lightPosition;
 uniform vec2 in_lightRadius;
-#ifdef USE_SHADOW_MAP
+        #ifdef USE_SHADOW_MAP
 uniform float in_lightFar;
 uniform float in_lightNear;
 uniform vec2 in_shadowInverseSize;
 uniform samplerCubeShadow in_shadowTexture;
-#ifdef USE_SHADOW_COLOR
+            #ifdef USE_SHADOW_COLOR
 uniform samplerCube in_shadowColorTexture;
-#endif
+            #endif
 uniform mat4 in_lightMatrix[6];
-#endif // USE_SHADOW_MAP
+        #endif // USE_SHADOW_MAP
+    #endif // POINT_LIGHT_TYPE == CUBE
+
+    #if POINT_LIGHT_TYPE == PARABOLIC
+uniform vec3 in_lightDirection[NUM_SHADOW_LAYER];
+uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
+uniform vec3 in_lightPosition;
+uniform vec2 in_lightRadius;
+        #ifdef USE_SHADOW_MAP
+uniform float in_lightFar;
+uniform float in_lightNear;
+uniform vec2 in_shadowInverseSize;
+uniform sampler2DArrayShadow in_shadowTexture;
+            #ifdef USE_SHADOW_COLOR
+uniform sampler2DArray in_shadowColorTexture;
+            #endif // USE_SHADOW_COLOR
+        #endif // USE_SHADOW_MAP
+    #endif // POINT_LIGHT_TYPE == PARABOLIC
 #endif
 
 #ifdef IS_DIRECTIONAL_LIGHT
@@ -89,18 +112,36 @@ uniform sampler2D in_shadowColorTexture;
 #endif // LIGHT_TYPE${REGEN_ID} == SPOT
 
 #if LIGHT_TYPE${REGEN_ID} == POINT
+    #if POINT_LIGHT_TYPE${REGEN_ID} == CUBE
 // point light
 uniform vec3 in_lightPosition${REGEN_ID};
-#ifdef USE_SHADOW_MAP${REGEN_ID}
+        #ifdef USE_SHADOW_MAP${REGEN_ID}
 uniform float in_lightFar${REGEN_ID};
 uniform float in_lightNear${REGEN_ID};
 uniform vec2 in_shadowInverseSize${REGEN_ID};
 uniform mat4 in_lightMatrix${REGEN_ID}[6];
 uniform samplerCubeShadow in_shadowTexture${REGEN_ID};
-#ifdef USE_SHADOW_COLOR
+            #ifdef USE_SHADOW_COLOR
 uniform samplerCube in_shadowColorTexture;
-#endif
-#endif // USE_SHADOW_MAP${REGEN_ID}
+            #endif
+        #endif // USE_SHADOW_MAP${REGEN_ID}
+    #endif // POINT_LIGHT_TYPE${REGEN_ID} == CUBE
+
+    #if POINT_LIGHT_TYPE${REGEN_ID} == PARABOLIC
+// point light
+uniform vec3 in_lightPosition${REGEN_ID};
+        #ifdef USE_SHADOW_MAP${REGEN_ID}
+uniform float in_lightFar${REGEN_ID};
+uniform float in_lightNear${REGEN_ID};
+uniform vec2 in_shadowInverseSize${REGEN_ID};
+uniform mat4 in_lightMatrix${REGEN_ID}[ NUM_SHADOW_LAYER${REGEN_ID} ];
+uniform vec3 in_lightDirection${REGEN_ID}[ NUM_SHADOW_LAYER${REGEN_ID} ];
+uniform sampler2DArrayShadow in_shadowTexture${REGEN_ID};
+            #ifdef USE_SHADOW_COLOR
+uniform sampler2DArray in_shadowColorTexture;
+            #endif
+        #endif // USE_SHADOW_MAP${REGEN_ID}
+    #endif // LIGHT_TYPE${REGEN_ID} == PARABOLIC
 #endif // LIGHT_TYPE${REGEN_ID} == POINT
 
 #if LIGHT_TYPE${REGEN_ID} == DIRECTIONAL

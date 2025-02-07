@@ -116,11 +116,13 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type) {
 	ref_ptr<Texture> depth;
 	if (target == GL_TEXTURE_CUBE_MAP) {
 		depth = ref_ptr<TextureCubeDepth>::alloc();
-	} else if (depth_ > 1) {
+	}
+	else if (depth_ > 1 || target == GL_TEXTURE_2D_ARRAY) {
 		ref_ptr<Texture3DDepth> depth3D = ref_ptr<Texture3DDepth>::alloc();
 		depth3D->set_depth(depth_);
 		depth = depth3D;
-	} else {
+	}
+	else {
 		depth = ref_ptr<Texture2DDepth>::alloc();
 	}
 	depth->set_targetType(target);

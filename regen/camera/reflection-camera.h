@@ -28,7 +28,7 @@ namespace regen {
 				const ref_ptr<Camera> &cam,
 				const ref_ptr<Mesh> &mesh,
 				GLuint vertexIndex = 0,
-				GLboolean hasBackFace = GL_FALSE);
+				bool hasBackFace = GL_FALSE);
 
 		/**
 		 * @param userCamera The user camera to reflect.
@@ -40,7 +40,7 @@ namespace regen {
 				const ref_ptr<Camera> &userCamera,
 				const Vec3f &reflectorNormal,
 				const Vec3f &reflectorPoint,
-				GLboolean hasBackFace = GL_FALSE);
+				bool hasBackFace = GL_FALSE);
 
 		// Override
 		void enable(RenderState *rs) override;

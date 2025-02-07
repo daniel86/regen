@@ -130,13 +130,14 @@ namespace regen {
 
 	protected:
 		ThreadPool threadPool_;
-		using ShapeIndexMap = std::map<std::string_view, std::vector<unsigned int>>;
+		using ShapeIndexSet = std::map<std::string_view, std::set<unsigned int>>;
+		using ShapeIndexVec = std::map<std::string_view, std::vector<unsigned int>>;
 		struct IndexCamera {
 			ref_ptr<Camera> camera;
 			std::set<std::string_view> visibleShapes;
-			ShapeIndexMap visibleInstances;
+			ShapeIndexSet visibleInstances;
+			ShapeIndexVec visibleInstances_vec;
 			bool sortInstances;
-			bool isOmni;
 		};
 		std::map<std::string_view, std::vector<ref_ptr<BoundingShape>>> shapes_;
 		std::map<const Camera *, IndexCamera> cameras_;
@@ -144,7 +145,7 @@ namespace regen {
 
 		void updateVisibility();
 
-		void updateVisibility(IndexCamera &camera, const BoundingShape &shape);
+		void updateVisibility(IndexCamera &camera, const BoundingShape &shape, bool isMultiShape);
 
 		/**
 		 * @brief Add a shape to the index

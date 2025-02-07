@@ -652,6 +652,15 @@ namespace regen {
 		}
 
 		/**
+		 * Set a value for the active stack data at index or the first vertex if index is out of bounds.
+		 * @param vertexIndex index in data array.
+		 * @param val the new value.
+		 */
+		void setVertexOrFirst(GLuint vertexIndex, const ValueType &val) {
+			setVertex(maybeIndex(vertexIndex), val);
+		}
+
+		/**
 		 * @param vertexIndex index in data array.
 		 * @return data value at given index.
 		 */
@@ -663,6 +672,19 @@ namespace regen {
 		ValueType &getVertexPtr(GLuint vertexIndex) const {
 			auto *v = (ValueType *) dataStack_.top();
 			return v[vertexIndex];
+		}
+
+		/**
+		 * Get vertex at index or the first vertex if index is out of bounds.
+		 * @param vertexIndex index in data array.
+		 * @return data value at given index.
+		 */
+		const ValueType &getVertexOrFirst(GLuint vertexIndex) const {
+			return getVertex(maybeIndex(vertexIndex));
+		}
+
+		unsigned int maybeIndex(unsigned int index) const {
+			return (numVertices_*numElements_) > index ? index : 0;
 		}
 
 		/**

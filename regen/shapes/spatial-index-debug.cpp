@@ -164,10 +164,9 @@ void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 		}
 	}
 	for (auto &camera: index_->cameras()) {
-		auto omni = dynamic_cast<const OmniDirectionalCamera *>(camera);
-		auto refl = dynamic_cast<const ReflectionCamera *>(camera);
-		if (!omni && !refl) {
-			auto &frustum = camera->frustum();
+		for (auto &frustum : camera->frustum()) {
+			drawFrustum(frustum);
+			/*
 			OrthogonalProjection proj(frustum);
 			auto &vertices = proj.points;
 			Vec3f color = Vec3f(0.0f, 1.0f, 0.0f);
@@ -176,6 +175,7 @@ void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 				drawLine(toVec3(vertices[i],2.0), toVec3(vertices[i+1],2.0), color);
 			}
 			drawLine(toVec3(vertices.back(),2.0), toVec3(vertices.front(),2.0), color);
+			 */
 		}
 	}
 	index_->debugDraw(*this);

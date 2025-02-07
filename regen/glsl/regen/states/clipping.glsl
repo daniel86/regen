@@ -1,12 +1,17 @@
 
 -- defines
-#if HAS_clipPlane || RENDER_TARGET == DUAL_PARABOLOID || RENDER_TARGET == PARABOLOID
+#ifdef HAS_clipPlane
 #define HAS_CLIPPING
+#endif
+#ifndef HAS_CLIPPING
+    #if RENDER_TARGET == PARABOLOID || RENDER_TARGET == DUAL_PARABOLOID
+#define HAS_CLIPPING
+    #endif
 #endif
 
 -- input
 #ifndef REGEN_clipInput_Included_
-#define REGEN_clipInput_Included_
+#define2 REGEN_clipInput_Included_
 #include regen.states.clipping.defines
 #ifdef HAS_clipPlane
 uniform vec4 in_clipPlane;
@@ -18,18 +23,18 @@ const float in_paraboloidClipThreshold = 0.1;
 
 -- isClipped
 #ifndef REGEN_isClipped_Included_
-#define REGEN_isClipped_Included_
+#define2 REGEN_isClipped_Included_
 #include regen.states.clipping.input
 #ifdef HAS_CLIPPING
 bool isClipped(vec3 posWorld)
 {
 #if RENDER_TARGET == DUAL_PARABOLOID || RENDER_TARGET == PARABOLOID
-  if(in_posEye.z<-in_paraboloidClipThreshold) return true;
+    if(in_posEye.z<-in_paraboloidClipThreshold) return true;
 #endif
 #ifdef HAS_clipPlane
-  if(dot(posWorld,in_clipPlane.xyz)-in_clipPlane.w<=0.0) return true;
+    if(dot(posWorld,in_clipPlane.xyz)-in_clipPlane.w<=0.0) return true;
 #endif
-  return false;
+    return false;
 }
 #else
 #define isClipped(x) false
