@@ -9,22 +9,38 @@
 
 using namespace regen;
 
-Camera::Camera(GLboolean initializeMatrices)
+namespace regen {
+	class CameraMotion : public Animation {
+	public:
+		explicit CameraMotion(Camera *camera)
+				: Animation(true, false),
+				  camera_(camera) {}
+		// TODO: rather use CPU thread for computation, but it needs synchronization
+		//void animate(double dt) override { camera_->updatePose(); }
+		void glAnimate(RenderState *rs, double dt) override { camera_->updatePose(); }
+	private:
+		Camera *camera_;
+	};
+}
+
+Camera::Camera(unsigned int numLayer)
 		: HasInputState(VBO::USAGE_DYNAMIC),
-		  isAudioListener_(GL_FALSE),
-		  camStamp_(0) {
+		  numLayer_(numLayer),
+		  frustum_(numLayer) {
+	// add shader constants via defines
+	shaderDefine("RENDER_LAYER", REGEN_STRING(numLayer_));
 
 	fov_ = ref_ptr<ShaderInput1f>::alloc("fov");
-	fov_->setUniformDataUntyped(nullptr);
+	fov_->setUniformData(60.0f);
 
 	aspect_ = ref_ptr<ShaderInput1f>::alloc("aspect");
-	aspect_->setUniformDataUntyped(nullptr);
+	aspect_->setUniformData(8.0f / 6.0f);
 
 	near_ = ref_ptr<ShaderInput1f>::alloc("near");
-	near_->setUniformDataUntyped(nullptr);
+	near_->setUniformData(0.1f);
 
 	far_ = ref_ptr<ShaderInput1f>::alloc("far");
-	far_->setUniformDataUntyped(nullptr);
+	far_->setUniformData(100.0f);
 
 	position_ = ref_ptr<ShaderInput3f>::alloc("cameraPosition");
 	position_->setUniformData(Vec3f(0.0, 1.0, 4.0));
@@ -36,35 +52,27 @@ Camera::Camera(GLboolean initializeMatrices)
 	vel_->setUniformData(Vec3f(0.0f));
 
 	view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
+	view_->setUniformData(Mat4f::identity());
 	viewInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewMatrix");
+	viewInv_->setUniformData(Mat4f::identity());
 
 	proj_ = ref_ptr<ShaderInputMat4>::alloc("projectionMatrix");
+	proj_->setUniformData(Mat4f::identity());
 	projInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseProjectionMatrix");
+	projInv_->setUniformData(Mat4f::identity());
 
-	viewproj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
-	viewprojInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
-
-	updateFrustum(8.0 / 6.0, 45.0, 1.0, 200.0, GL_FALSE);
-	if (initializeMatrices) {
-		view_->setUniformDataUntyped(nullptr);
-		viewInv_->setUniformDataUntyped(nullptr);
-		proj_->setUniformDataUntyped(nullptr);
-		projInv_->setUniformDataUntyped(nullptr);
-		viewproj_->setUniformDataUntyped(nullptr);
-		viewprojInv_->setUniformDataUntyped(nullptr);
-
-		updateProjection();
-		updateLookAt();
-		updateViewProjection();
-	}
+	viewProj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
+	viewProj_->setUniformData(Mat4f::identity());
+	viewProjInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
+	viewProjInv_->setUniformData(Mat4f::identity());
 
 	cameraBlock_ = ref_ptr<UniformBlock>::alloc("Camera");
 	cameraBlock_->addUniform(view_);
 	cameraBlock_->addUniform(viewInv_);
 	cameraBlock_->addUniform(proj_);
 	cameraBlock_->addUniform(projInv_);
-	cameraBlock_->addUniform(viewproj_);
-	cameraBlock_->addUniform(viewprojInv_);
+	cameraBlock_->addUniform(viewProj_);
+	cameraBlock_->addUniform(viewProjInv_);
 	cameraBlock_->addUniform(position_);
 	cameraBlock_->addUniform(fov_);
 	cameraBlock_->addUniform(direction_);
@@ -75,76 +83,109 @@ Camera::Camera(GLboolean initializeMatrices)
 	setInput(cameraBlock_);
 }
 
-void Camera::updateLookAt() {
-	view_->setVertex(0, Mat4f::lookAtMatrix(
-			position_->getVertex(0),
-			direction_->getVertex(0),
-			Vec3f::up()));
-	viewInv_->setVertex(0, view_->getVertex(0).lookAtInverse());
-}
-
-void Camera::updateProjection() {
-	proj_->setVertex(0, Mat4f::projectionMatrix(
-			fov_->getVertex(0),
-			aspect_->getVertex(0),
-			near_->getVertex(0),
-			far_->getVertex(0))
-	);
-	projInv_->setVertex(0, proj_->getVertex(0).projectionInverse());
-}
-
-void Camera::updateViewProjection(GLuint i, GLuint j) {
-	viewproj_->setVertex((i > j ? i : j),
-						 view_->getVertex(j) * proj_->getVertex(i));
-	viewprojInv_->setVertex((i > j ? i : j),
-							projInv_->getVertex(i) * viewInv_->getVertex(j));
-}
-
-void Camera::updateFrustum(
-		GLfloat aspect,
-		GLfloat fov,
-		GLfloat near,
-		GLfloat far,
-		GLboolean updateMatrices) {
-	near_->setVertex(0, near);
-	far_->setVertex(0, far);
-	fov_->setVertex(0, fov);
-	aspect_->setVertex(0, aspect);
-	frustum_.set(aspect, fov, near, far);
-
-	if (updateMatrices) {
-		updateProjection();
-		updateViewProjection();
+void Camera::setPerspective(float aspect, float fov, float near, float far) {
+	bool hasLayeredProjection = proj_->elementCount() > 1;
+	if (hasLayeredProjection) {
+		for (unsigned int i = 0; i < numLayer_; ++i) {
+			setPerspective(aspect, fov, near, far, i);
+		}
+	} else {
+		setPerspective(aspect, fov, near, far, 0);
+		for (unsigned int i = 1; i < numLayer_; ++i) {
+			frustum_[i].setPerspective(aspect, fov, near, far);
+		}
 	}
 }
 
-void Camera::enable(RenderState *rs) {
-	// TODO: do this in animation thread
+void Camera::setPerspective(float aspect, float fov, float near, float far, unsigned int layer) {
+	fov_->setVertexOrFirst(layer, fov);
+	aspect_->setVertexOrFirst(layer, aspect);
+	near_->setVertexOrFirst(layer, near);
+	far_->setVertexOrFirst(layer, far);
+	frustum_[layer].setPerspective(aspect, fov, near, far);
+
+	auto projectionMatrix = Mat4f::projectionMatrix(fov, aspect, near, far);
+	proj_->setVertexOrFirst(layer, projectionMatrix);
+	projInv_->setVertexOrFirst(layer, projectionMatrix.projectionInverse());
+	isOrtho_ = false;
+}
+
+void Camera::setOrtho(float left, float right, float bottom, float top, float near, float far) {
+	for (unsigned int i = 0; i < numLayer_; ++i) {
+		setOrtho(left, right, bottom, top, near, far, i);
+	}
+}
+
+void Camera::setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer) {
+	fov_->setVertex(0, 0.0f);
+	aspect_->setVertex(0, 1.0f);
+	near_->setVertexOrFirst(layer, near);
+	far_->setVertexOrFirst(layer, far);
+	frustum_[layer].setOrtho(left, right, bottom, top, near, far);
+	proj_->setVertex(layer, Mat4f::orthogonalMatrix(left, right, bottom, top, near, far));
+	projInv_->setVertex(layer, proj_->getVertex(layer).orthogonalInverse());
+	isOrtho_ = true;
+}
+
+bool Camera::updateCamera() {
+	auto projectionStamp = proj_->stamp();
+	if (updateView() || projectionStamp != projectionStamp_) {
+		updateViewProjection1();
+		projectionStamp_ = projectionStamp;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Camera::updateView() {
 	auto posStamp = position_->stamp();
 	auto dirStamp = direction_->stamp();
-	if (posStamp != posStamp_ || dirStamp != dirStamp_) {
-		posStamp_ = posStamp;
-		dirStamp_ = dirStamp;
-		frustum_.update(position()->getVertex(0), direction()->getVertex(0));
-		camStamp_ += 1;
+	if (posStamp == posStamp_ && dirStamp == dirStamp_) { return false; }
+	posStamp_ = posStamp;
+	dirStamp_ = dirStamp;
+
+	auto numViewLayers = view_->elementCount();
+	for (unsigned int i = 0; i < numViewLayers; ++i) {
+		auto &dir = direction_->getVertexOrFirst(i);
+		if (std::abs(dir.dot(Vec3f::up())) > 0.999f) {
+			auto viewMatrix = Mat4f::lookAtMatrix(
+				position_->getVertexOrFirst(i),
+				dir, Vec3f::right());
+			view_->setVertex(i, viewMatrix);
+			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
+		} else {
+			auto viewMatrix = Mat4f::lookAtMatrix(
+				position_->getVertexOrFirst(i),
+				dir, Vec3f::up());
+			view_->setVertex(i, viewMatrix);
+			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
+		}
 	}
-	HasInputState::enable(rs);
+
+	return true;
 }
 
-GLboolean Camera::hasSpotIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
-	return frustum_.hasIntersectionWithSphere(center, radius);
+void Camera::updateViewProjection1() {
+	auto numViewLayers = view_->elementCount();
+	auto numProjLayers = proj_->elementCount();
+	auto maxIndex = std::max(numViewLayers, numProjLayers);
+	for (unsigned int i = 0; i < maxIndex; ++i) {
+		updateViewProjection(
+			numProjLayers > 1 ? i : 0,
+			numViewLayers > 1 ? i : 0);
+	}
 }
 
-GLboolean Camera::hasSpotIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
-	return frustum_.hasIntersectionWithBox(center, points);
-}
-
-GLboolean Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
-	return hasSpotIntersectionWithSphere(center, radius);
-}
-
-GLboolean Camera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
-	return hasSpotIntersectionWithBox(center, points);
+void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
+	auto maxIndex = std::max(projectionIndex, viewIndex);
+	viewProj_->setVertex(maxIndex,
+		view_->getVertex(viewIndex) * proj_->getVertex(projectionIndex));
+	viewProjInv_->setVertex(maxIndex,
+		projInv_->getVertex(projectionIndex) * viewInv_->getVertex(viewIndex));
+	frustum_[maxIndex].update(
+		position()->getVertexOrFirst(maxIndex),
+		direction()->getVertexOrFirst(maxIndex));
 }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener) {
@@ -156,33 +197,157 @@ void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	}
 }
 
+void Camera::updatePose() {
+	bool updated = false;
+	if (attachedPosition_.get()) {
+		if (poseStamp_ != attachedPosition_->stamp()) {
+			poseStamp_ = attachedPosition_->stamp();
+			position_->setUniformData(attachedPosition_->getVertex(0));
+			updated = true;
+		}
+	}
+	else if (attachedTransform_.get()) {
+		if (poseStamp_ != attachedTransform_->stamp()) {
+			poseStamp_ = attachedTransform_->stamp();
+			auto &m = attachedTransform_->getVertex(0);
+			position_->setVertex(0, m.position());
+			if (!isAttachedToPosition_) {
+				// TODO: change camera orientation based on transform
+				//direction_->setVertex(0, (m ^ Vec4f(Vec3f::front(),0.0)).xyz_());
+			}
+			updated = true;
+		}
+	}
 
-OmniDirectionalCamera::OmniDirectionalCamera(GLboolean hasBackFace, GLboolean update)
-		: Camera(update),
-		  hasBackFace_(hasBackFace) {
+	if (updated) {
+		updateCamera();
+	}
 }
 
-GLboolean OmniDirectionalCamera::hasOmniIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
-	GLfloat d = Plane(position()->getVertex(0), direction()->getVertex(0)).distance(center);
-	if (hasBackFace_) d = abs(d);
-	return d - radius < far()->getVertex(0) && d + radius > near()->getVertex(0);
+void Camera::attachToPosition(const ref_ptr<ShaderInput3f> &attachedPosition) {
+	attachedPosition_ = attachedPosition;
+	attachedTransform_ = {};
+	poseStamp_ = 0;
+	if (!attachedMotion_.get()) {
+		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
+	}
 }
 
-GLboolean OmniDirectionalCamera::hasOmniIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
+void Camera::attachToPosition(const ref_ptr<ShaderInputMat4> &attachedTransform) {
+	attachedPosition_ = {};
+	attachedTransform_ = attachedTransform;
+	poseStamp_ = 0;
+	isAttachedToPosition_ = true;
+	if (!attachedMotion_.get()) {
+		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
+	}
+}
+
+void Camera::attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform) {
+	attachedPosition_ = {};
+	attachedTransform_ = attachedTransform;
+	poseStamp_ = 0;
+	isAttachedToPosition_ = false;
+	if (!attachedMotion_.get()) {
+		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
+	}
+}
+
+bool Camera::hasSphereIntersection(const Vec3f &center, GLfloat radius) const {
+	auto d = Plane(
+		position()->getVertex(0),
+		direction()->getVertex(0)).distance(center);
+	return d - radius < far()->getVertex(0) &&
+	       d + radius > near()->getVertex(0);
+}
+
+bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) const {
 	Plane p(position()->getVertex(0), direction()->getVertex(0));
 	for (int i = 0; i < 8; ++i) {
-		GLfloat d = p.distance(center + points[i]);
-		if (hasBackFace_) d = abs(d);
+		auto d = p.distance(center + points[i]);
 		if (d > far()->getVertex(0) || d < near()->getVertex(0))
-			return GL_FALSE;
+			return false;
 	}
-	return GL_TRUE;
+	return true;
 }
 
-GLboolean OmniDirectionalCamera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) {
-	return hasOmniIntersectionWithSphere(center, radius);
+bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const {
+	// get the distance from the camera to the center of the sphere
+	auto d = Plane(
+		position()->getVertex(0),
+		direction()->getVertex(0)).distance(center);
+	// check if the sphere is outside the far plane
+	if (d - radius > far()->getVertex(0)) return false;
+	// check if the sphere is inside the near plane
+	if (d + radius < near()->getVertex(0)) return false;
+	// check if the sphere is inside the half sphere
+	auto halfSphereRadius = far()->getVertex(0);
+	auto halfSphereNormal = direction()->getVertex(0);
+	auto halfSphereCenter = position()->getVertex(0) + halfSphereNormal * halfSphereRadius;
+	return Plane(halfSphereCenter, halfSphereNormal).distance(center) < radius;
 }
 
-GLboolean OmniDirectionalCamera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) {
-	return hasOmniIntersectionWithBox(center, points);
+bool Camera::hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const {
+	// get the distance from the camera to the center of the sphere
+	auto d = Plane(
+		position()->getVertex(0),
+		direction()->getVertex(0)).distance(center);
+	// check if the sphere is outside the far plane
+	if (d > far()->getVertex(0)) return false;
+	// check if the sphere is inside the near plane
+	if (d < near()->getVertex(0)) return false;
+	// check if the sphere is inside the half sphere
+	auto halfSphereRadius = far()->getVertex(0);
+	auto halfSphereNormal = direction()->getVertex(0);
+	auto halfSphereCenter = position()->getVertex(0) + halfSphereNormal * halfSphereRadius;
+	auto halfSphere = Plane(halfSphereCenter, halfSphereNormal);
+	for (int i = 0; i < 8; ++i) {
+		if (halfSphere.distance(center + points[i]) < 0) {
+			return false;
+		}
+	}
+	return true;
 }
+
+bool Camera::hasFrustumIntersection(const Vec3f &center, GLfloat radius) const {
+	for (auto &f : frustum_) {
+		if (f.hasIntersectionWithSphere(center, radius)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Camera::hasFrustumIntersection(const Vec3f &center, const Vec3f *points) const {
+	for (auto &f : frustum_) {
+		if (f.hasIntersectionWithBox(center, points)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const {
+	if (isOmni_) {
+		return hasSphereIntersection(center, radius);
+	}
+	//else if (isSemiOmni_) {
+	//	return hasHalfSphereIntersection(center, radius);
+	//}
+	else {
+		return hasFrustumIntersection(center, radius);
+	}
+}
+
+bool Camera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) const {
+	if (isOmni_) {
+		return hasSphereIntersection(center, points);
+	}
+	//else if (isSemiOmni_) {
+	//	return hasHalfSphereIntersection(center, points);
+	//}
+	else {
+		return hasFrustumIntersection(center, points);
+	}
+}
+

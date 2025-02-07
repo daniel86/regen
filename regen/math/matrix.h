@@ -1037,12 +1037,26 @@ namespace regen {
 				GLfloat l, GLfloat r,
 				GLfloat b, GLfloat t,
 				GLfloat n, GLfloat f) {
-			return Mat4f(
+			return {
 					2.0f / (r - l), 0.0f, 0.0f, 0.0f,
 					0.0f, 2.0f / (t - b), 0.0f, 0.0f,
 					0.0f, 0.0f, -2.0f / (f - n), 0.0f,
 					-(r + l) / (r - l), -(t + b) / (t - b), -(f + n) / (f - n), 1.0f
-			);
+			};
+		}
+
+		/**
+		 * Compute the inverse of a parallel projection matrix.
+		 * @param m the parallel projection matrix.
+		 * @return the inverse matrix.
+		 */
+		inline Mat4f orthogonalInverse() const {
+			return {
+					1.0f / x[0], 0.0f, 0.0f, 0.0f,
+					0.0f, 1.0f / x[5], 0.0f, 0.0f,
+					0.0f, 0.0f, -1.0f / x[10], 0.0f,
+					0.0f, 0.0f, x[14] / x[10], 1.0f
+			};
 		}
 
 		/**

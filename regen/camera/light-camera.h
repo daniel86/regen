@@ -5,31 +5,25 @@
  *      Author: daniel
  */
 
-#ifndef LIGHT_CAMERA_H_
-#define LIGHT_CAMERA_H_
+#ifndef REGEN_LIGHT_CAMERA_H
+#define REGEN_LIGHT_CAMERA_H
 
 #include <regen/states/light-state.h>
 #include <regen/camera/camera.h>
 
 namespace regen {
 	/**
-	 * A Camera from Light's point of view.
-	 * To cover the light multiple views may be used.
+	 * A camera for a light source.
 	 */
-	class LightCamera : public OmniDirectionalCamera {
+	class LightCamera {
 	public:
 		/**
-		 * Default constructor.
-		 * @param light the Light instance.
-		 * @param userCamera the user camera, maybe used to optimize precision.
-		 * @param extends near and far plane.
-		 * @param numLayer number of shadow map layer.
-		 * @param splitWeight split weight for splitting the view frustum of the user camera.
+		 * @param light the light source.
+		 * @param camera the camera.
 		 */
-		LightCamera(const ref_ptr<Light> &light,
-					const ref_ptr<Camera> &userCamera,
-					Vec2f extends = Vec2f(0.1f, 200.0f),
-					GLuint numLayer = 1, GLdouble splitWeight = 0.9);
+		LightCamera(const ref_ptr<Light> &light, Camera *camera);
+
+		virtual ~LightCamera() = default;
 
 		/**
 		 * @return A matrix used to transform world space points to
@@ -38,55 +32,39 @@ namespace regen {
 		auto &lightMatrix() const { return lightMatrix_; }
 
 		/**
-		 * Discard specified cube faces.
+		 * @return The light camera.
 		 */
-		void set_isCubeFaceVisible(GLenum face, GLboolean visible);
+		auto &lightCamera() const { return camera_; }
 
 		/**
-		 * @param center the center of the sphere.
-		 * @param radius the radius of the sphere.
-		 * @return True if the sphere is in reach of the light.
+		 * @param near the near plane distance.
 		 */
-		GLboolean isSphereInReach(const Vec3f &center, GLfloat radius);
+		void setLightNear(float near) { lightNear_ = near; }
 
 		/**
-		 * @param center the center of the box.
-		 * @param points the 8 points of the box.
-		 * @return True if the box is in reach of the light.
+		 * @return the near plane distance.
 		 */
-		GLboolean isBoxInReach(const Vec3f &center, const Vec3f *points);
+		auto lightNear() const { return lightNear_; }
 
-		// Override
-		void enable(RenderState *rs) override;
-
-		GLboolean hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) override;
-
-		GLboolean hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) override;
+		/**
+		 * Update the light camera.
+		 * @return True if the light camera was updated.
+		 */
+		virtual bool updateLight() = 0;
 
 	protected:
 		ref_ptr<Light> light_;
-		ref_ptr<Camera> userCamera_;
-		GLuint numLayer_;
-		GLdouble splitWeight_;
-
+		Camera *camera_;
 		ref_ptr<ShaderInputMat4> lightMatrix_;
-		std::vector<Frustum *> shadowFrusta_;
+		ref_ptr<Animation> lightCameraAnimation_;
 
-		GLuint lightPosStamp_;
-		GLuint lightDirStamp_;
-		GLuint lightRadiusStamp_;
-		GLuint projectionStamp_;
+		float lightNear_ = 0.1f;
 
-		GLboolean isCubeFaceVisible_[6];
-
-		void (LightCamera::*update_)();
-
-		void updateDirectional();
-
-		void updatePoint();
-
-		void updateSpot();
+		unsigned int lightPosStamp_ = 0u;
+		unsigned int lightDirStamp_ = 0u;
+		unsigned int lightRadiusStamp_ = 0u;
+		unsigned int lightConeStamp_ = 0u;
 	};
 } // namespace
 
-#endif /* LIGHT_CAMERA_H_ */
+#endif /* REGEN_LIGHT_CAMERA_H */

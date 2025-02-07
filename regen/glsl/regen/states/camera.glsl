@@ -308,25 +308,26 @@ vec3 transformTexcoToWorld(vec2 texco, float depth, int layer) {
 #define2 REGEN_transformParaboloid_INCLUDED
 #include regen.states.camera.input
 vec4 transformParaboloid(vec4 posEye, int layer) {
-  //vec3 pos = posEye.xyz/posEye.w;
-  vec3 pos = posEye.xyz;
-  float l = length(pos.xyz);
-  pos.xy /= (pos.z + l);
-  pos.x   = -pos.x;
-  pos.z   = (abs(pos.z) - REGEN_CAM_NEAR_(layer)) / (REGEN_CAM_FAR_(layer) - REGEN_CAM_NEAR_(layer));
-  return vec4(pos,1.0);
+    vec3 pos = posEye.xyz;
+    pos /= posEye.w;
+    float l = length(pos.xyz);
+    pos /= l;
+	pos.xy /= pos.z + 1.0f;
+	pos.x = -pos.x;
+    pos.z = (l - REGEN_CAM_NEAR_(layer)) / (REGEN_CAM_FAR_(layer) - REGEN_CAM_NEAR_(layer));
+    return vec4(pos,1.0);
 }
 #endif
 -- transformParaboloidInv
 #ifndef REGEN_transformParaboloidInv_INCLUDED
 #define2 REGEN_transformParaboloidInv_INCLUDED
 #include regen.states.camera.input
-vec3 transformParaboloidInv(vec4 pos, int layer) {
-  float l = pos.z*(REGEN_CAM_FAR_(layer) - REGEN_CAM_NEAR_(layer)) + REGEN_CAM_NEAR_(layer);
-  float k = dot(pos.xy,pos.xy);
-  float z = -l*(k-1)/(k+1);
-  pos.x *= -1.0;
-  return vec3(pos.xy*(z+l), z);
+vec3 transformParaboloidInv(vec4 posScreen, int layer) {
+    float l = posScreen.z*(REGEN_CAM_FAR_(layer) - REGEN_CAM_NEAR_(layer)) + REGEN_CAM_NEAR_(layer);
+    float k = dot(posScreen.xy,posScreen.xy);
+    float z = -l*(k-1)/(k+1);
+    posScreen.x *= -1.0;
+    return vec3(posScreen.xy*(z+l), z);
 }
 #endif
 

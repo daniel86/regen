@@ -174,6 +174,7 @@ GLenum glenum::compareFunction(const std::string &val_) {
 GLenum glenum::compareMode(const std::string &val_) {
 	std::string val = getValue(val_);
 	if (val == "COMPARE_R_TO_TEXTURE") return GL_COMPARE_R_TO_TEXTURE;
+	else if (val == "COMPARE_REF_TO_TEXTURE") return GL_COMPARE_REF_TO_TEXTURE;
 	else if (val == "NONE") return GL_NONE;
 	REGEN_WARN("Unknown compare mode '" << val_ << "'. Using default NONE.");
 	return GL_NONE;

@@ -3,6 +3,7 @@
 
 #include <regen/shapes/bounds.h>
 #include <regen/shapes/bounding-shape.h>
+#include "frustum.h"
 
 namespace regen {
 	/**
@@ -36,6 +37,10 @@ namespace regen {
 			float max;
 		};
 		std::vector<Axis> axes;
+
+	protected:
+		void makePerspectiveProjection(const Frustum &frustum);
+		void makeParallelProjection(const Frustum &frustum);
 	};
 }
 

@@ -54,6 +54,39 @@
 <asset id="dragon-asset" type="asset" file="res/models/dragon.obj" use-animation="0" />
 <asset id="bunny-asset" type="asset" file="res/models/bunny.obj" use-animation="0" />
 
+    <camera id="overview-camera"
+            fov="45.0" near="0.1" far="1200.0"
+            position="0.0, 800.0, 400.0"
+            direction="0, -2, -1"/>
+    <fbo id="overview-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="FLOAT" pixel-size="16">
+        <texture id="diffuse0" pixel-components="3"/>
+        <texture id="diffuse1" pixel-components="3"/>
+        <texture id="specular" pixel-components="4"/>
+        <texture id="normal" pixel-components="4"/>
+        <depth pixel-size="24"/>
+    </fbo>
+    <node id="overview-node">
+        <view id="Overview">
+            <camera id="overview-camera"/>
+            <fbo id="overview-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+            <node>
+                <blend mode="src"/>
+                <depth test="1" write="1"/>
+                <fbo id="overview-buffer" draw-buffers="0,1,2,3"/>
+                <node import="Shadow-Caster"/>
+                <node import="Scene-Geometry"/>
+            </node>
+            <node import="spatial-index-debug">
+                <fbo id="overview-buffer" draw-buffers="0"/>
+            </node>
+            <node>
+                <blit src-fbo="overview-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </node>
+        </view>
+    </node>
+
 <!--**************************-->
 <!--****** Sky and Sun *******-->
 <!--**************************-->
@@ -109,16 +142,6 @@
 	       use-scatter="TRUE" />
   -->
 </sky>
-
-<fbo id="sun-shadow" size-mode="abs" size="4096,4096,3" >
-    <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-        target="TEXTURE_2D_ARRAY"
-        wrapping="REPEAT"
-        min-filter="NEAREST" mag-filter="NEAREST"
-        compare-mode="COMPARE_R_TO_TEXTURE"
-        compare-function="LEQUAL"
-        sampler-type="sampler2DArrayShadow" />
-</fbo>
 
 <!--**************************-->
 <!--*** Ambient Occlusion ****-->

@@ -111,13 +111,47 @@ vec4 dirShadowCoord(int layer, vec3 posWorld, mat4 lightMatrix)
 #define dirShadowGaussian(tex,x) shadowGaussian(tex, x)
 #define dirShadowVSM(tex,x)      shadowVSM(tex, coord)
 
+-- sampling.point.parabolic
+#include regen.shading.shadow-mapping.filtering.all
+#include regen.math.linstep
+
+vec4 parabolicShadowCoord(int textureLayer, vec3 posWorld, mat4 lightMatrix, float near, float far)
+{
+    // Transform the world space position to light eye space, i.e. as seen from the light perspective
+    vec4 lightSpacePos = lightMatrix * vec4(posWorld, 1.0);
+    vec4 shadowCoord = vec4(normalize(lightSpacePos.xyz), 0.0);
+    // Compute the parabolic coordinates and
+    // adjust the coordinates to fit within the [0, 1] range
+    shadowCoord.xy = shadowCoord.xy * 0.5 / (1.0 + shadowCoord.z) + 0.5;
+    // flip X coordinate
+    shadowCoord.x = 1.0 - shadowCoord.x;
+    // Z coordinate is the index into array texture
+    shadowCoord.z = float(textureLayer);
+    // Calculate the non-linear depth value for the paraboloid projection
+    lightSpacePos.xyz /= lightSpacePos.w;
+    shadowCoord.w = (length(lightSpacePos.xyz) - near) / (far - near);
+    // convert into NDC space
+    shadowCoord.w = (shadowCoord.w + 1.0) * 0.5;
+    // NOTE: could add bias here if self-shadowing occurs
+    //const float bias = 0.1;
+    //shadowCoord.w -= bias;
+    return shadowCoord;
+}
+
+#define parabolicShadowSingle(tex,x)   float(texture(tex, x))
+#define parabolicShadowGaussian(tex,x) shadowGaussian(tex, x)
+#define parabolicShadowVSM(tex,x)      shadowVSM(tex, coord)
+
 -- sampling.point
 #include regen.shading.shadow-mapping.filtering.all
 #include regen.math.linstep
 
 #define pointShadowSingle(tex,l,d,n,f,s)   texture(tex, vec4(-l,d))
 #define pointShadowGaussian(tex,l,d,n,f,s) shadowGaussian(tex, vec4(-l,d), s)
-#define pointShadowVSM(tex,l,d,n,f,s)      shadowVSM(tex,vec4(-l,d), linstep(n,f,length(l)))
+#define pointShadowVSM(tex,l,d,n,f,s)      shadowVSM(tex,vec4(-l,d), linstep(n,f,length(l))
+
+-- sampling.point.cube
+#include regen.shading.shadow-mapping.sampling.point
 
 -- sampling.spot
 #include regen.shading.shadow-mapping.filtering.all

@@ -9,44 +9,49 @@
 #define CUBE_CAMERA_H_
 
 #include <regen/camera/camera.h>
-#include <regen/meshes/mesh-state.h>
-#include <regen/gl-types/shader-input-container.h>
+#include "regen/states/blend-state.h"
 
 namespace regen {
 	/**
-	 * A layered camera looking at 6 cube faces.
+	 * A camera with n layer looking at n cube faces.
 	 */
-	class CubeCamera : public OmniDirectionalCamera {
+	class CubeCamera : public Camera {
 	public:
 		/**
-		 * @param mesh Defines cube center position.
-		 * @param userCamera The user camera.
+		 * Cube face enumeration.
 		 */
-		CubeCamera(
-				const ref_ptr<Mesh> &mesh,
-				const ref_ptr<Camera> &userCamera);
+		enum Face {
+			POS_X = 1 << 0,
+			NEG_X = 1 << 1,
+			POS_Y = 1 << 2,
+			NEG_Y = 1 << 3,
+			POS_Z = 1 << 4,
+			NEG_Z = 1 << 5
+		};
 
 		/**
-		 * Toggle visibility for a cube face.
-		 * @param face the face enumeration.
-		 * @param visible if false face is ignored.
+		 * @param hiddenFacesMask the mask of hidden faces.
 		 */
-		void set_isCubeFaceVisible(GLenum face, GLboolean visible);
+		explicit CubeCamera(int hiddenFacesMask=0);
 
-		// Override
-		void enable(RenderState *rs) override;
+		/**
+		 * @param face a cube face index (0-5).
+		 * @return true if the cube face is visible.
+		 */
+		bool isCubeFaceVisible(int face) const;
 
 	protected:
-		ref_ptr<Camera> userCamera_;
-		ref_ptr<ShaderInputMat4> modelMatrix_;
-		ref_ptr<ShaderInput3f> pos_;
-		GLboolean isCubeFaceVisible_[6];
+		unsigned int posStamp_ = 0;
+		int hiddenFacesMask_;
 
-		GLuint positionStamp_;
-		GLuint matrixStamp_;
+		bool updateView() override;
 
-		void update();
+		void updateViewProjection1() override;
 	};
+
+	std::ostream &operator<<(std::ostream &out, const CubeCamera::Face &v);
+
+	std::istream &operator>>(std::istream &in, CubeCamera::Face &v);
 } // namespace
 
 #endif /* CUBE_CAMERA_H_ */

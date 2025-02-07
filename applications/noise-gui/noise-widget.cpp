@@ -78,7 +78,7 @@ ref_ptr<Mesh> createTextureWidget(
 		const ref_ptr<Texture> &texture,
 		const ref_ptr<StateNode> &root) {
 	Rectangle::Config quadConfig;
-	quadConfig.levelOfDetail = 0;
+	quadConfig.levelOfDetails = {0};
 	quadConfig.isTexcoRequired = GL_TRUE;
 	quadConfig.isNormalRequired = GL_FALSE;
 	quadConfig.isTangentRequired = GL_FALSE;
@@ -86,7 +86,7 @@ ref_ptr<Mesh> createTextureWidget(
 	quadConfig.rotation = Vec3f(0.5 * M_PI, 0.0 * M_PI, 0.0 * M_PI);
 	quadConfig.posScale = Vec3f(1.0f);
 	quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
-	quadConfig.levelOfDetail = 0;
+	quadConfig.levelOfDetails = {0};
 	quadConfig.isTexcoRequired = GL_TRUE;
 	quadConfig.isNormalRequired = GL_FALSE;
 	quadConfig.centerAtOrigin = GL_TRUE;
@@ -130,7 +130,6 @@ void NoiseWidget::gl_loadScene() {
 
 	// add the video widget to the root node
 	texture_ = ref_ptr<NoiseTexture2D>::alloc(256, 256);
-	texture_->set_data(nullptr);
 	createTextureWidget(app_, texture_, sceneRoot);
 	setBlitToScreen(app_, fbo, GL_COLOR_ATTACHMENT0);
 	GL_ERROR_LOG();

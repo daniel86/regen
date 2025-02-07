@@ -30,10 +30,12 @@ namespace regen {
 		/** The far plane distance. */
 		double far;
 		/** Near plane size. */
-		Vec2f nearPlane;
+		Vec2f nearPlaneSize;
 		/** Far plane size. */
-		Vec2f farPlane;
-		/** The 8 frustum points. */
+		Vec2f farPlaneSize;
+		/** Bounds of parallel projection */
+		Bounds<Vec2f> orthoBounds;
+		/** The 8 frustum points. 0-3 are the near plane points, 4-7 far plane. */
 		Vec3f points[8];
 		/** The 6 frustum planes. */
 		Plane planes[6];
@@ -43,7 +45,12 @@ namespace regen {
 		/**
 		 * Set projection parameters and compute near- and far-plane.
 		 */
-		void set(double aspect, double fov, double near, double far);
+		void setPerspective(double aspect, double fov, double near, double far);
+
+		/**
+		 * Set projection parameters and compute near- and far-plane.
+		 */
+		void setOrtho(double left, double right, double bottom, double top, double near, double far);
 
 		/**
 		 * Update frustum points based on view point and direction.
@@ -53,7 +60,7 @@ namespace regen {
 		/**
 		 * Split this frustum along the view ray.
 		 */
-		std::vector<Frustum *> split(GLuint count, GLdouble splitWeight) const;
+		void split(double splitWeight, std::vector<Frustum> &frustumSplit) const;
 
 		/**
 		 * @return true if the sphere intersects with this frustum.
@@ -103,6 +110,8 @@ namespace regen {
 		unsigned int lastDirectionStamp_ = 0;
 
 		unsigned int directionStamp() const;
+
+		void updatePoints(const Vec3f &pos, const Vec3f &dir);
 	};
 } // namespace
 

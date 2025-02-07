@@ -188,33 +188,6 @@ void main()
 
 ----------------------------
 ----------------------------
--- array-row.vs
-#include regen.filter.sampling.vs
--- array-row.fs
-out vec4 out_color;
-uniform sampler2DArray in_arrayTexture;
-uniform int in_arrayTextureSize;
-uniform vec2 in_inverseViewport;
-uniform vec2 in_viewport;
-
-void main() {
-  float size = in_viewport.x/in_arrayTextureSize;
-  float diffY = gl_FragCoord.y-in_viewport.y*0.5;
-  
-  if(abs(diffY) > 0.5*size) {
-    out_color = vec4(0);
-  }
-  else {
-    float arrayIndex = floor(gl_FragCoord.x/size);
-    // Map in range [0,size] and divide by size to get to range [0,1]
-    float texcoX = mod(gl_FragCoord.x,size)/size;
-    float texcoY = (diffY + 0.5*size)/size;
-    out_color = texture(in_arrayTexture, vec3(texcoX,texcoY,arrayIndex));
-  }
-}
-
-----------------------------
-----------------------------
 
 -- cube-unfold.vs
 #include regen.filter.sampling.vs
@@ -320,5 +293,62 @@ void main() {
   }
   else {
     out_color = vec4(0);
+  }
+}
+
+----------------------------
+----------------------------
+-- array-row.vs
+#include regen.filter.sampling.vs
+-- array-row.fs
+out vec4 out_color;
+uniform sampler2DArray in_arrayTexture;
+uniform int in_arrayTextureSize;
+uniform vec2 in_inverseViewport;
+uniform vec2 in_viewport;
+
+void main() {
+  float size = in_viewport.x/in_arrayTextureSize;
+  float diffY = gl_FragCoord.y-in_viewport.y*0.5;
+
+  if(abs(diffY) > 0.5*size) {
+    out_color = vec4(0);
+  }
+  else {
+    float arrayIndex = floor(gl_FragCoord.x/size);
+    // Map in range [0,size] and divide by size to get to range [0,1]
+    float texcoX = mod(gl_FragCoord.x,size)/size;
+    float texcoY = (diffY + 0.5*size)/size;
+    out_color = texture(in_arrayTexture, vec3(texcoX,texcoY,arrayIndex));
+  }
+}
+
+-- array-row-shadow.vs
+#include regen.filter.sampling.vs
+-- array-row-shadow.fs
+out vec4 out_color;
+uniform sampler2DArrayShadow in_arrayTexture;
+uniform int in_arrayTextureSize;
+uniform vec2 in_inverseViewport;
+uniform vec2 in_viewport;
+
+void main() {
+  float size = in_viewport.x/in_arrayTextureSize;
+  float diffY = gl_FragCoord.y-in_viewport.y*0.5;
+
+  if(abs(diffY) > 0.5*size) {
+    out_color = vec4(0);
+  }
+  else {
+    float arrayIndex = floor(gl_FragCoord.x/size);
+    // Map in range [0,size] and divide by size to get to range [0,1]
+    float texcoX = mod(gl_FragCoord.x,size)/size;
+    float texcoY = (diffY + 0.5*size)/size;
+    float depth = texture(in_arrayTexture, vec4(texcoX,texcoY,arrayIndex,1.0));
+    // draw edges at boundaries of array textures
+    if(texcoX < 0.01 || texcoX > 0.99 || texcoY < 0.01 || texcoY > 0.99) {
+      depth = 0.0;
+    }
+    out_color = vec4(depth, depth, depth, 1.0);
   }
 }

@@ -178,7 +178,7 @@ namespace regen {
 		/**
 		 * Normalize this vector.
 		 */
-		inline void normalize() { *this /= length(); }
+		inline const Vec2& normalize() { *this /= length(); return *this; }
 
 		/**
 		 * Computes the dot product between two vectors.
@@ -367,7 +367,7 @@ namespace regen {
 		/**
 		 * Normalize this vector.
 		 */
-		inline void normalize() { *this /= length(); }
+		inline Vec3& normalize() { *this /= length(); return *this; }
 
 		/**
 		 * Computes the cross product between two vectors.

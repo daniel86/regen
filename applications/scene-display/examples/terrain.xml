@@ -6,6 +6,7 @@
     <constant name="map-y-min" value="-4.0"/>
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
+    <constant name="num-cascades" value="5"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -59,6 +60,27 @@
         <texture id="emission" pixel-components="3"/>
         <depth pixel-size="24"/>
     </fbo>
+    <fbo id="reflection-buffer"
+         size="512, 512"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
+        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+            target="TEXTURE_2D_ARRAY"
+            wrapping="REPEAT"
+            min-filter="NEAREST"
+            mag-filter="NEAREST"
+            compare-mode="COMPARE_R_TO_TEXTURE"
+            compare-function="LEQUAL"
+            sampler-type="sampler2DArrayShadow" />
+    </fbo>
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
     <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
@@ -81,7 +103,26 @@
             culling-index="main-index"
             light="earth-sky-sun"
             camera="main-camera"
-            num-layer="3" split-weight="0.9" />
+            num-layer="{{num-cascades}}"
+            split-weight="0.9" />
+    <!--
+    <camera id="sun-camera"
+            light="earth-sky-sun"
+            camera="main-camera"
+            num-layer="{{num-cascades}}"
+            split-weight="0.9" />
+            -->
+    <!--
+    <camera id="reflection-camera"
+            culling-index="main-index"
+            camera="main-camera"
+            reflector-normal="0,1,0"
+            reflector-point="0,{{water-surface-y}},0"/>
+            -->
+    <camera id="reflection-camera"
+            camera="main-camera"
+            reflector-normal="0,1,0"
+            reflector-point="0,{{water-surface-y}},0"/>
     <!-- Assets -->
     <asset id="fish-asset"
            type="asset"
@@ -338,23 +379,6 @@
     <!--**** Water Reflection ****-->
     <!--**************************-->
 
-    <fbo id="reflection-buffer"
-         size="512, 512"
-         pixel-type="UNSIGNED_BYTE"
-         pixel-size="16"
-         pixel-components="4">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
-        <texture id="specular"/>
-        <texture id="normal"/>
-        <depth id="depth" pixel-size="24"/>
-    </fbo>
-    <camera id="reflection-camera"
-            culling-index="main-index"
-            camera="main-camera"
-            reflector-normal="0,1,0"
-            reflector-point="0,{{water-surface-y}},0"/>
-
     <node id="Reflection-Pass">
         <!-- need to load the resource before the reflection pass -->
         <camera id="reflection-camera"/>
@@ -514,13 +538,12 @@
         <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.2,0.2,0.2"/>
-        <resource id="earth-sky"/>
 
         <node id="Ambient-Shading">
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
         <node id="Light-Shading">
-            <define key="DEBUG_SHADOW_SLICES" value="1" />
+            <define key="DEBUG_SHADOW_SLICES" value="0" />
             <light-pass type="DIRECTIONAL"
                 shader="regen.shading.deferred.directional"
                 shadow-filter="NONE">
@@ -528,7 +551,6 @@
                     shadow-buffer="sun-shadow"
                     shadow-attachment="depth"
                     shadow-camera="sun-camera" />
-                <!-- <light id="earth-sky-moon" /> -->
             </light-pass>
             <!--
             <light-pass type="DIRECTIONAL"
@@ -630,18 +652,31 @@
     <!--**************************-->
 
     <node id="root">
+        <resource id="earth-sky" />
         <input name="Scene" ubo="Scene-UBO"/>
 
         <node id="Pre-Render">
             <node import="Reflection-Pass"/>
-
             <node id="Shadow-Pass">
+                <!-- the leafs of the tree have opposing faces very close to each other,
+                     so to avoid z-fighting we apply a small offset to all shadow caster. -->
+                <polygon offset-fill="1.1,4.0"/>
                 <define key="OUTPUT_TYPE" value="DEPTH" />
                 <cull mode="FRONT" />
                 <fbo id="sun-shadow" clear-depth="1" />
                 <camera id="sun-camera" />
                 <node import="Shadow-Caster" />
             </node>
+            <view id="Sun Shadow Map">
+                <fbo id="SCREEN"/>
+                <texture name="arrayTexture" fbo="sun-shadow" attachment="depth"/>
+                <input type="int" name="arrayTextureSize" value="{{num-cascades}}"/>
+                <fullscreen-pass shader="regen.filter.sampling.array-row-shadow"/>
+            </view>
+        </node>
+
+        <node id="Debugging">
+            <node import="overview-node"/>
         </node>
 
         <node id="Render">

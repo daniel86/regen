@@ -123,20 +123,28 @@ uniform vec2 in_fogDistance;
 
 #include regen.shading.light.radiusAttenuation
 #ifdef IS_SPOT_LIGHT
-  #include regen.shading.light.spotConeAttenuation
+    #include regen.shading.light.spotConeAttenuation
 #endif
 
 #ifdef USE_SHADOW_MAP
-  #ifdef IS_SPOT_LIGHT
-    #include regen.shading.shadow-mapping.sampling.spot
-  #else
-    #include regen.shading.shadow-mapping.sampling.point
-    #include regen.math.computeCubeLayer
-  #endif
+    #ifdef IS_SPOT_LIGHT
+        #include regen.shading.shadow-mapping.sampling.spot
+    #else // IS_POINT_LIGHT
+        #if POINT_LIGHT_TYPE == CUBE
+            #include regen.shading.shadow-mapping.sampling.point.cube
+            #include regen.math.computeCubeLayer
+        #endif
+        #if POINT_LIGHT_TYPE == SPHERE
+            #include regen.shading.shadow-mapping.sampling.point.sphere
+        #endif
+        #if POINT_LIGHT_TYPE == PARABOLIC
+            #include regen.shading.shadow-mapping.sampling.point.parabolic
+        #endif
+    #endif
 #endif // USE_SHADOW_MAP
 
 #if RENDER_TARGET == CUBE
-#include regen.math.computeCubeDirection
+    #include regen.math.computeCubeDirection
 #endif
 
 #include regen.shading.fog.fogIntensity
@@ -188,32 +196,54 @@ vec2 computeConeIntersections(
 #ifdef USE_SHADOW_MAP
 float volumeShadow(vec3 start, vec3 stop, float _step)
 {
-  vec3 p = start, lightVec;
-  float shadow = 0.0, shadowDepth;
-  // ray through the light volume
-  vec3 stepRay = stop-start;
-  // scale factor for the ray (clamp to minimum to avoid tight samples)
-  float step = max(_step, in_shadowSampleThreshold/length(stepRay));
-  stepRay *= step;
-  // step through the volume
-  for(float i=step; i<1.0; i+=step)
-  {
-    lightVec = in_lightPosition - p;
-#ifdef IS_POINT_LIGHT
-    shadowDepth = (vec4(lightVec,1.0)*
-      in_lightMatrix[computeCubeLayer(lightVec)]).z;
-    shadow += pointShadowSingle(
-      in_shadowTexture, lightVec, shadowDepth,
-      in_lightNear, in_lightFar, in_shadowInverseSize.x);
-#endif
-#ifdef IS_SPOT_LIGHT
-    shadow += spotShadowSingle(
-      in_shadowTexture, in_lightMatrix*vec4(p,1.0),
-      lightVec, in_lightNear, in_lightFar);
-#endif
-    p += stepRay;
-  }
-  return shadow*step;
+    vec3 p = start, lightVec;
+    float shadow = 0.0, shadowDepth;
+    // ray through the light volume
+    vec3 stepRay = stop-start;
+    // scale factor for the ray (clamp to minimum to avoid tight samples)
+    float step = max(_step, in_shadowSampleThreshold/length(stepRay));
+    stepRay *= step;
+    // step through the volume
+    for(float i=step; i<1.0; i+=step) {
+        lightVec = in_lightPosition - p;
+    #ifdef IS_POINT_LIGHT
+        /*************************************/
+        /***** PARABOLIC SHADOW MAPPING ******/
+        /*************************************/
+        #if POINT_LIGHT_TYPE == PARABOLIC
+        int parabolicLayer = int(dot(lightVec, in_lightDirection[0]) > 0.0);
+        vec4 shadowCoord = parabolicShadowCoord(
+                parabolicLayer,
+                P,
+                in_lightMatrix[parabolicLayer],
+                in_lightNear, in_lightFar);
+        float shadow = parabolicShadowSingle(in_shadowTexture, shadowCoord);
+            #if NUM_SHADOW_LAYER == 1
+        shadow *= float(1 - parabolicLayer);
+            #endif
+        #endif
+        /*************************************/
+        /******** CUBE SHADOW MAPPING ********/
+        /*************************************/
+        #if POINT_LIGHT_TYPE == CUBE
+        shadowDepth = (vec4(lightVec,1.0)*in_lightMatrix[computeCubeLayer(lightVec)]).z;
+        shadow += pointShadowSingle(
+            in_shadowTexture,
+            lightVec,
+            shadowDepth,
+            in_lightNear,
+            in_lightFar,
+            in_shadowInverseSize.x);
+        #endif
+    #endif
+    #ifdef IS_SPOT_LIGHT
+        shadow += spotShadowSingle(
+                in_shadowTexture, in_lightMatrix*vec4(p,1.0),
+                lightVec, in_lightNear, in_lightFar);
+    #endif
+        p += stepRay;
+    }
+    return shadow*step;
 }
 #endif
 
@@ -333,14 +363,32 @@ void main()
 --------------------------------------
 -- volumetric.point.vs
 #define IS_POINT_LIGHT
-// #undef IS_SPOT_LIGHT
 #include regen.shading.deferred.point.vs
 -- volumetric.point.gs
 #include regen.shading.deferred.point.gs
 -- volumetric.point.fs
 #define IS_POINT_LIGHT
-// #undef IS_SPOT_LIGHT
 #include regen.shading.fog.volumetric.fs
+
+-- volumetric.parabolic.vs
+#define POINT_LIGHT_TYPE PARABOLIC
+#include regen.shading.fog.volumetric.point.vs
+-- volumetric.parabolic.gs
+#define POINT_LIGHT_TYPE PARABOLIC
+#include regen.shading.fog.volumetric.point.gs
+-- volumetric.parabolic.fs
+#define POINT_LIGHT_TYPE PARABOLIC
+#include regen.shading.fog.volumetric.point.fs
+
+-- volumetric.cube.vs
+#define POINT_LIGHT_TYPE CUBE
+#include regen.shading.fog.volumetric.point.vs
+-- volumetric.cube.gs
+#define POINT_LIGHT_TYPE CUBE
+#include regen.shading.fog.volumetric.point.gs
+-- volumetric.cube.fs
+#define POINT_LIGHT_TYPE CUBE
+#include regen.shading.fog.volumetric.point.fs
 
 --------------------------------------
 --------------------------------------
@@ -348,13 +396,11 @@ void main()
 --------------------------------------
 --------------------------------------
 -- volumetric.spot.vs
-//#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT
 #include regen.shading.deferred.spot.vs
 -- volumetric.spot.gs
 #include regen.shading.deferred.spot.gs
 -- volumetric.spot.fs
-//#undef IS_POINT_LIGHT
 #define IS_SPOT_LIGHT
 #include regen.shading.fog.volumetric.fs
 

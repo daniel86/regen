@@ -73,21 +73,23 @@ void GeometricCulling::traverse(RenderState *rs) {
 		auto shape = spatialIndex_->getShape(shapeName_);
 		auto &transform = shape->transform();
 
+		//REGEN_INFO("shape " << shapeName_ << " has " << visibleInstances.size() << " visible instances");
+
 		// build LOD groups, then traverse each group
 		std::vector<std::vector<GLuint>> lodGroups(mesh_->numLODs());
 		if (transform.get() && mesh_->numLODs() > 1) {
 			// FIXME: need to consider offset here too! tf may not be instanced! BUG
 			auto &tf = transform->get();
-			for (GLuint i = 0; i < visibleInstances.size(); ++i) {
-				auto shapePos = tf->getVertex(visibleInstances[i]).position();
+			for (auto visibleInstance : visibleInstances) {
+				auto shapePos = tf->getVertex(visibleInstance).position();
 				auto distance = (shapePos - camPos).length();
-				lodGroups[mesh_->getLODLevel(distance)].push_back(visibleInstances[i]);
+				lodGroups[mesh_->getLODLevel(distance)].push_back(visibleInstance);
 			}
 		}
 		else {
 			auto &lodGroup = lodGroups[0];
-			for (GLuint i = 0; i < visibleInstances.size(); ++i) {
-				lodGroup.push_back(visibleInstances[i]);
+			for (auto visibleInstance : visibleInstances) {
+				lodGroup.push_back(visibleInstance);
 			}
 		}
 

@@ -191,6 +191,7 @@ void main() {
 
 #ifdef USE_SHADOW_MAP
     // find the texture layer
+    // TODO: improve layer selection
     int shadowLayer = 0;
     for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
         if(depth<in_lightFar[i]) {
@@ -305,15 +306,17 @@ uniform sampler2D in_gDepthTexture;
 
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
-#ifdef USE_SHADOW_MAP
-#include regen.math.computeDepth
+#ifdef IS_POINT_LIGHT
+    #if POINT_LIGHT_TYPE == CUBE
+        #include regen.math.computeDepth
+    #endif
 #endif
 
 #include regen.shading.light.radiusAttenuation
 #include regen.shading.deferred.fetchNormal
 #include regen.shading.light.specularFactor
 #ifdef IS_SPOT_LIGHT
-  #include regen.shading.light.spotConeAttenuation
+    #include regen.shading.light.spotConeAttenuation
 #endif
 #if SHADING_MODEL == PHONG
     #include regen.shading.deferred.phong
@@ -321,15 +324,23 @@ uniform sampler2D in_gDepthTexture;
     #include regen.shading.deferred.toon
 #endif
 #ifdef USE_SHADOW_MAP
-  #ifdef IS_SPOT_LIGHT
-    #include regen.shading.shadow-mapping.sampling.spot
-  #else
-    #include regen.shading.shadow-mapping.sampling.point
-  #endif
+    #ifdef IS_SPOT_LIGHT
+        #include regen.shading.shadow-mapping.sampling.spot
+    #else // IS_POINT_LIGHT
+        #if POINT_LIGHT_TYPE == CUBE
+            #include regen.shading.shadow-mapping.sampling.point.cube
+        #endif
+        #if POINT_LIGHT_TYPE == SPHERE
+            #include regen.shading.shadow-mapping.sampling.point.sphere
+        #endif
+        #if POINT_LIGHT_TYPE == PARABOLIC
+            #include regen.shading.shadow-mapping.sampling.point.parabolic
+        #endif
+    #endif
 #endif // USE_SHADOW_MAP
 
 #if RENDER_TARGET == CUBE
-#include regen.math.computeCubeDirection
+    #include regen.math.computeCubeDirection
 #endif
 
 void main() {
@@ -354,11 +365,15 @@ void main() {
 #endif
     float nDotL = dot( N, L );
     // discard if facing away
+    // TODO: better don't discard and just multiply in the end?
     if(attenuation*nDotL<0.0) discard;
     out_color = vec4(0.0);
 
 #ifdef USE_SHADOW_MAP
     #ifdef IS_SPOT_LIGHT
+    /*************************************/
+    /***** SPOT SHADOW MAPPING *****/
+    /*************************************/
     vec4 shadowTexco = in_lightMatrix*vec4(P,1.0);
     float shadow = spotShadow${SHADOW_MAP_FILTER}(
         in_shadowTexture,
@@ -370,6 +385,28 @@ void main() {
     vec4 shadowColor = textureProj(in_shadowColorTexture,shadowTexco);
         #endif
     #else // IS_POINT_LIGHT
+        #if POINT_LIGHT_TYPE == PARABOLIC
+    /*************************************/
+    /***** PARABOLIC SHADOW MAPPING ******/
+    /*************************************/
+    int parabolicLayer = int(dot(L, in_lightDirection[0]) > 0.0);
+    vec4 shadowCoord = parabolicShadowCoord(
+            parabolicLayer,
+            P,
+            in_lightMatrix[parabolicLayer],
+            in_lightNear, in_lightFar);
+    float shadow = parabolicShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
+            #if NUM_SHADOW_LAYER == 1
+    shadow *= float(1 - parabolicLayer);
+            #endif
+            #ifdef USE_SHADOW_COLOR
+    vec4 shadowColor = shadow2DArray(in_shadowColorTexture, shadowCoord);
+            #endif
+        #endif // POINT_LIGHT_TYPE == PARABOLIC
+        #if POINT_LIGHT_TYPE == CUBE
+    /*************************************/
+    /******** CUBE SHADOW MAPPING ********/
+    /*************************************/
     vec3 absLightVec = abs(lightVec);
     float shadowDepth = computeDepth(
         max(absLightVec .x, max(absLightVec .y, absLightVec .z)),
@@ -381,10 +418,13 @@ void main() {
         in_lightNear,
         in_lightFar,
         in_shadowInverseSize.x);
-        #ifdef USE_SHADOW_COLOR
+            #ifdef USE_SHADOW_COLOR
     vec4 shadowColor = shadowCube(in_shadowColorTexture,vec4(-lightVec,shadowDepth));
-        #endif
+            #endif
+        #endif // POINT_LIGHT_TYPE == CUBE
     #endif // IS_POINT_LIGHT
+    /*************************************/
+    /*************************************/
     #ifdef USE_SHADOW_COLOR
     shadow += (1.0-shadow)*(1.0-shadowColor.a);
     diff.rgb += (1.0-shadow)*shadowColor.rgb;
@@ -443,6 +483,26 @@ void main() {
 -- point.fs
 #define IS_POINT_LIGHT
 #include regen.shading.deferred.local.fs
+
+-- point.parabolic.vs
+#define POINT_LIGHT_TYPE PARABOLIC
+#include regen.shading.deferred.point.vs
+-- point.parabolic.gs
+#define POINT_LIGHT_TYPE PARABOLIC
+#include regen.shading.deferred.point.gs
+-- point.parabolic.fs
+#define POINT_LIGHT_TYPE PARABOLIC
+#include regen.shading.deferred.point.fs
+
+-- point.cube.vs
+#define POINT_LIGHT_TYPE CUBE
+#include regen.shading.deferred.point.vs
+-- point.cube.gs
+#define POINT_LIGHT_TYPE CUBE
+#include regen.shading.deferred.point.gs
+-- point.cube.fs
+#define POINT_LIGHT_TYPE CUBE
+#include regen.shading.deferred.point.fs
 
 --------------------------------------
 --------------------------------------
