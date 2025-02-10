@@ -338,15 +338,14 @@ static void loadTexture(
 	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
 												AI_MATKEY_TEXFLAGS(textureTypes[l], k - 1), &intVal, &maxElements)) {
 		if (intVal & aiTextureFlags_Invert) {
-			texState->set_texelTransferFunction(
-					"void transferInvert(inout vec4 texel) {\n"
-					"    texel.rgb = vec3(1.0) - texel.rgb;\n"
-					"}",
-					"transferInvert"
-			);
+			texState->set_texelTransferKey("regen.states.textures.transfer.texel_invert");
 		}
-		if (intVal & aiTextureFlags_UseAlpha) {}
-		if (intVal & aiTextureFlags_IgnoreAlpha) { texState->set_ignoreAlpha(GL_TRUE); }
+		if (intVal & aiTextureFlags_UseAlpha) {
+			REGEN_WARN("aiTextureFlags_UseAlpha is not supported.");
+		}
+		if (intVal & aiTextureFlags_IgnoreAlpha) {
+			texState->set_ignoreAlpha(GL_TRUE);
+		}
 	}
 
 	// Defines the height scaling of a bump map (for stuff like Parallax Occlusion Mapping)
@@ -535,6 +534,11 @@ static void loadTexture(
 			// Usually 'white' means opaque and 'black' means 'transparency'.
 			// Or quite the opposite. Have fun.
 			texState->set_mapTo(TextureState::MAP_TO_ALPHA);
+			// TODO: make configurable
+			//		- alpha discard threshold
+			//      - texel invert
+			texState->set_discardAlpha(true, 0.25f);
+			//texState->set_texelTransferKey("regen.states.textures.transfer.texel_invert");
 			break;
 		case aiTextureType_LIGHTMAP:
 			// Lightmap texture (aka Ambient Occlusion). Both 'Lightmaps' and
@@ -566,11 +570,14 @@ static void loadTexture(
 			// Dummy value. No texture, but the value to be used as 'texture semantic'
 			// (aiMaterialProperty::mSemantic) for all material properties *not* related to textures.
 			break;
-		default:
 		case aiTextureType_UNKNOWN:
 			// Unknown texture. A texture reference that does not match any of the definitions
 			// above is considered to be 'unknown'. It is still imported, but is excluded
 			// from any further postprocessing.
+			REGEN_WARN("Unknown texture type '" << stringVal.data << "' in '" << filePath << "'.");
+			break;
+		default:
+			REGEN_WARN("Unhandled texture type '" << stringVal.data << "' in '" << filePath << "'.");
 			break;
 	}
 

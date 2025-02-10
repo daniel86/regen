@@ -27,7 +27,6 @@
             <anchor type="look-at" transform="fish-tf" offset="10.0, 12.0, 10.0" />
         </camera>
         <animation id="hyena-asset" type="asset" idle="idle1">
-            <!-- TODO: handle day time, and switch to sleep1 -->
             <controller id="hyena-controller"
                 type="animal"
                 tf="hyena-tf"
@@ -35,7 +34,7 @@
                 height-map-center="0, 0"
                 height-map-size="{{map-size}}, {{map-size}}"
                 height-map-factor="{{map-height}}"
-                floor-height="-3.5"
+                floor-height="-4.0"
                 territory-size="57.275, 32.373"
                 territory-center="-4.5166,-33.8134"
                 laziness="0.5"
@@ -501,7 +500,7 @@
         <transform id="hyena-tf">
             <rotate value="0, 1.57079, 1.57079"/>
             <scale value="0.005, 0.005, 0.005"/>
-            <translate value="-2, 3.0, -24"/>
+            <translate value="-2, 2.5, -24"/>
         </transform>
         <shape id="hyena-shape" mode="index" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
     </mesh>

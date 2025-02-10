@@ -618,6 +618,104 @@ vec2 texco_planar_reflection(vec3 P, vec3 N)
 
 --------------------------------------
 --------------------------------------
+---- Texel transfer functions.
+--------------------------------------
+--------------------------------------
+
+-- transfer.texel_invert
+#ifndef REGEN_TRANSFER_TEXEL_INVERT_
+#define2 REGEN_TRANSFER_TEXEL_INVERT_
+void texel_invert(inout vec4 texel)
+{
+    texel.rgb = 1.0 - texel.rgb;
+}
+#endif
+
+-- transfer.texel_grayscale
+#ifndef REGEN_TEXEL_TRANSFER_GRAYSCALE_
+#define2 REGEN_TEXEL_TRANSFER_GRAYSCALE_
+void texel_grayscale(inout vec4 texel)
+{
+    float gray = dot(texel.rgb, vec3(0.299, 0.587, 0.114));
+    texel.rgb = vec3(gray);
+}
+#endif
+
+-- transfer.texel_sepia
+#ifndef REGEN_TEXEL_TRANSFER_SEPIA_
+#define2 REGEN_TEXEL_TRANSFER_SEPIA_
+void texel_sepia(inout vec4 texel)
+{
+    vec3 sepia = vec3(
+        dot(texel.rgb, vec3(0.393, 0.769, 0.189)),
+        dot(texel.rgb, vec3(0.349, 0.686, 0.168)),
+        dot(texel.rgb, vec3(0.272, 0.534, 0.131))
+    );
+    texel.rgb = sepia;
+}
+#endif
+
+-- transfer.texel_brightness
+#ifndef REGEN_TEXEL_TRANSFER_BRIGHTNESS_
+#define2 REGEN_TEXEL_TRANSFER_BRIGHTNESS_
+const vec3 in_brightness = vec3(0.0);
+void texel_brightness(inout vec4 texel)
+{
+    texel.rgb += in_brightness;
+}
+#endif
+
+-- transfer.texel_contrast
+#ifndef REGEN_TEXEL_TRANSFER_CONTRAST_
+#define2 REGEN_TEXEL_TRANSFER_CONTRAST_
+const float in_contrast = 1.0;
+void texel_contrast(inout vec4 texel)
+{
+    texel.rgb = (texel.rgb - 0.5) * in_contrast + 0.5;
+}
+#endif
+
+-- transfer.texel_gamma
+#ifndef REGEN_TEXEL_TRANSFER_GAMMA_
+#define2 REGEN_TEXEL_TRANSFER_GAMMA_
+const float in_gamma = 2.2;
+void texel_gamma(inout vec4 texel)
+{
+    texel.rgb = pow(texel.rgb, in_gamma);
+}
+#endif
+
+-- transfer.texel_saturation
+#ifndef REGEN_TEXEL_TRANSFER_SATURATION_
+#define2 REGEN_TEXEL_TRANSFER_SATURATION_
+const float in_saturation = 1.0;
+void texel_saturation(inout vec4 texel)
+{
+    float gray = dot(texel.rgb, vec3(0.299, 0.587, 0.114));
+    texel.rgb = mix(vec3(gray), texel.rgb, in_saturation);
+}
+#endif
+
+-- transfer.texel_hue
+#ifndef REGEN_TEXEL_TRANSFER_HUE_
+#define2 REGEN_TEXEL_TRANSFER_HUE_
+void texel_hue(inout vec4 texel)
+{
+    float angle = in_hue * 3.14159265358979323846264;
+    float s = sin(angle);
+    float c = cos(angle);
+    vec3 k = vec3(0.299, 0.587, 0.114);
+    vec3 y = vec3(dot(k, texel.rgb));
+    vec3 u = vec3(-0.147, -0.289, 0.436);
+    vec3 v = vec3(0.615, -0.515, -0.100);
+    vec3 u1 = vec3(c + s, c - s, 1.0);
+    vec3 v1 = vec3(-s, c, 1.0);
+    texel.rgb = y + u * u1 + v * v1;
+}
+#endif
+
+--------------------------------------
+--------------------------------------
 ---- Texture coordinate transfer functions.
 --------------------------------------
 --------------------------------------
