@@ -612,6 +612,7 @@ static void handleAssetController(
 		auto animalController = ref_ptr<AnimalController>::alloc(
 				tf, nodeAnimations[instanceIndex], ranges);
 		controller = animalController;
+		animalController->setWorldTime(&sceneParser.application()->worldTime());
 		animalController->setWalkSpeed(animationNode->getValue<float>("walk-speed", 0.05f));
 		animalController->setRunSpeed(animationNode->getValue<float>("run-speed", 0.1f));
 		animalController->setFloorHeight(animationNode->getValue<float>("floor-height", 0.0f));

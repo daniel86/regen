@@ -3,6 +3,8 @@
 
 using namespace regen;
 
+#define SMOOTH_HEIGHT
+
 AnimalController::AnimalController(
 			const ref_ptr<ModelTransformation> &tf,
 			const ref_ptr<NodeAnimation> &animation,
@@ -34,13 +36,19 @@ AnimalController::AnimalController(
 		else if (range.name.find("attack") == 0) {
 			behaviorRanges_[BEHAVIOR_ATTACK].push_back(&range);
 		}
+		else if (range.name.find("up") == 0) {
+			behaviorRanges_[BEHAVIOR_STAND_UP].push_back(&range);
+		}
+		else if (range.name.find("sleep") == 0) {
+			behaviorRanges_[BEHAVIOR_SLEEP].push_back(&range);
+		}
 	}
 }
 
 void AnimalController::addSpecial(std::string_view special) {
 	for (auto &x : animationRanges_) {
 		if (x.name == special) {
-			behaviorRanges_[BEHAVIOR_SPECIAL].push_back(&x);
+			//behaviorRanges_[BEHAVIOR_SPECIAL].push_back(&x);
 		}
 	}
 }
@@ -86,19 +94,20 @@ float AnimalController::getHeight(const Vec2f &pos) {
 	if (heightMap_.get()) {
 		auto mapCenter = (heightMapBounds_.max + heightMapBounds_.min) * 0.5f;
 		auto mapSize = heightMapBounds_.max - heightMapBounds_.min;
-		// vector from map center to position
+		// compute UV for height map sampling
 		auto uv = pos - mapCenter;
-		// add half map size to get positive values
-		uv += mapSize * 0.5f;
-		// divide by map size to get normalized coordinates
-		uv /= mapSize;
-		// FIXME: something is not working right here. some values are too low in my example,
-		//        and the transitions are not smooth.
-		//auto texelSize = Vec2f(1.0f / heightMap_->width(), 1.0f / heightMap_->height());
-		//auto regionTS = texelSize*8.0f;
-		//auto mapValue = heightMap_->sampleAverage(uv, regionTS, heightMap_->textureData(), 1);
+		uv /= mapSize * 0.5f;
+		uv += Vec2f(0.5f);
+#ifdef SMOOTH_HEIGHT
+		auto texelSize = Vec2f(1.0f / heightMap_->width(), 1.0f / heightMap_->height());
+		auto regionTS = texelSize*8.0f;
+		auto mapValue = heightMap_->sampleAverage(uv, regionTS, heightMap_->textureData(), 1);
+#else
 		auto mapValue = heightMap_->sampleLinear(uv, heightMap_->textureData(), 1);
+#endif
 		mapValue *= heightMapFactor_;
+		// increase by small bias to avoid intersection with the floor
+		mapValue += 0.02f;
 		height += mapValue;
 	}
 	return height;
@@ -179,8 +188,25 @@ void AnimalController::updatePose(const TransformKeyFrame &currentFrame, double 
 }
 
 AnimalController::Behavior AnimalController::selectNextBehavior() {
+	if (worldTime_) {
+		auto &t_ptime = worldTime_->p_time;
+		auto t_seconds = t_ptime.time_of_day().total_seconds();
+		auto t_hours = t_seconds / 3600;
+		if (t_hours < 6 || t_hours > 18) {
+			return BEHAVIOR_SLEEP;
+		}
+	}
+
 	// pick a random behavior
-	return static_cast<Behavior>(rand() % BEHAVIOR_LAST);
+	static const std::vector<Behavior> randomBehaviors = {
+		BEHAVIOR_RUN,
+		BEHAVIOR_WALK,
+		BEHAVIOR_IDLE,
+		BEHAVIOR_SPECIAL,
+		BEHAVIOR_SMELL,
+		BEHAVIOR_ATTACK
+	};
+	return randomBehaviors[rand() % randomBehaviors.size()];
 }
 
 void AnimalController::updateController(double dt) {
@@ -206,7 +232,18 @@ void AnimalController::updateController(double dt) {
 		return;
 	}
 
+	auto lastBehavior = behavior_;
 	behavior_ = selectNextBehavior();
+	if (lastBehavior == BEHAVIOR_SLEEP) {
+		if (lastBehavior == behavior_) {
+			// remain sleeping
+			return;
+		}
+		else if (behaviorRanges_.count(BEHAVIOR_STAND_UP)>0) {
+			// wake up
+			behavior_ = BEHAVIOR_STAND_UP;
+		}
+	}
 	switch (behavior_) {
 		case BEHAVIOR_RUN:
 		case BEHAVIOR_WALK:

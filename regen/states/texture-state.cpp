@@ -216,6 +216,13 @@ void TextureState::set_ignoreAlpha(GLboolean v) {
 	shaderDefine(REGEN_TEX_NAME("TEX_IGNORE_ALPHA"), v ? "TRUE" : "FALSE");
 }
 
+void TextureState::set_discardAlpha(bool v, float threshold) {
+	if (v) {
+		shaderDefine("DISCARD_ALPHA", "TRUE");
+		shaderDefine("DISCARD_ALPHA_THRESHOLD", REGEN_STRING(threshold));
+	}
+}
+
 void TextureState::set_blendFactor(GLfloat blendFactor) {
 	blendFactor_ = blendFactor;
 	shaderDefine(REGEN_TEX_NAME("TEX_BLEND_FACTOR"), REGEN_STRING(blendFactor_));

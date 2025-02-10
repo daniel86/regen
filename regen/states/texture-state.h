@@ -243,6 +243,11 @@ namespace regen {
 		void set_ignoreAlpha(GLboolean v);
 
 		/**
+		 * @param v the active toggle value
+		 */
+		void set_discardAlpha(bool v, float threshold = 0.5);
+
+		/**
 		 * Explicit request to the application to ignore the alpha channel
 		 * of the texture.
 		 */

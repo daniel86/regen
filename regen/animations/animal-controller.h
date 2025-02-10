@@ -19,12 +19,14 @@ namespace regen {
 		 * The behavior of the animal.
 		 */
 		enum Behavior {
-			BEHAVIOR_WALK = 0,
-			BEHAVIOR_RUN,
+			BEHAVIOR_RUN = 0,
+			BEHAVIOR_WALK,
 			BEHAVIOR_IDLE,
 			BEHAVIOR_SPECIAL,
 			BEHAVIOR_SMELL,
 			BEHAVIOR_ATTACK,
+			BEHAVIOR_STAND_UP,
+			BEHAVIOR_SLEEP,
 			BEHAVIOR_LAST
 		};
 
@@ -38,6 +40,12 @@ namespace regen {
 			const ref_ptr<ModelTransformation> &tf,
 			const ref_ptr<NodeAnimation> &animation,
 			const std::vector<scene::AnimRange> &ranges);
+
+		/**
+		 * Set the world time.
+		 * @param worldTime the world time.
+		 */
+		void setWorldTime(const WorldTime *worldTime) { worldTime_ = worldTime; }
 
 		/**
 		 * Set the walk speed.
@@ -130,9 +138,11 @@ namespace regen {
 		Bounds<Vec2f> heightMapBounds_;
 		float heightMapFactor_ = 8.0f;
 
-		Behavior behavior_ = BEHAVIOR_IDLE;
+		Behavior behavior_ = BEHAVIOR_RUN;
 		std::map<Behavior, std::vector<const scene::AnimRange*> > behaviorRanges_;
 		bool isLastAnimationMovement_ = false;
+
+		const WorldTime *worldTime_ = nullptr;
 
 		void activateRandom();
 

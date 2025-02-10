@@ -220,10 +220,6 @@ float Texture::sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLu
 	auto y = static_cast<unsigned int>(std::round(texco.y * static_cast<float>(height())));
 	// clamp to texture size
 	switch(wrapping_[objectIndex_]->value().x) {
-		case GL_CLAMP_TO_EDGE:
-			if (x >= width()) x = width()-1;
-			if (y >= height()) y = height()-1;
-			break;
 		case GL_REPEAT:
 			x = x % width();
 			y = y % height();
@@ -234,11 +230,11 @@ float Texture::sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLu
 			if (x >= width()) x = 2 * width() - x - 1;
 			if (y >= height()) y = 2 * height() - y - 1;
 			break;
-		default:
+		default: // GL_CLAMP_TO_EDGE:
+			if (x >= width()) x = width()-1;
+			if (y >= height()) y = height()-1;
 			break;
 	}
-	if (x >= width()) x = width()-1;
-	if (y >= height()) y = height()-1;
 	unsigned int index = (y * width() + x);
 	return static_cast<float>(textureData[index * numComponents]) / 255.0f;
 }
