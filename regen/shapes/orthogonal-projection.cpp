@@ -70,7 +70,12 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape) {
 		case BoundingShapeType::FRUSTUM: {
 			auto *frustum = dynamic_cast<const Frustum *>(&shape);
 			if (frustum->fov > 0.0) {
+				// TODO: Make a nicely fitting 2D projection if possible.
+				//       But triangle is not always possible, i.e. for up and down directions.
+				//       Better use a trapazoid as a general solution, then simplify to triangle if two points are equal.
+				//       For now just use a rectangle, which is computed for parallel projections too.
 				makePerspectiveProjection(*frustum);
+				//makeParallelProjection(*frustum);
 			} else {
 				makeParallelProjection(*frustum);
 			}
@@ -129,8 +134,8 @@ void OrthogonalProjection::makeParallelProjection(const Frustum &frustum) {
 	auto edgeLength = std::max(far_d1, centerDistance + (far_d1 + near_d1) * 0.5f);
 	// finally scale the rectangle to include the near plane
 	auto dir = (points[x_i3] - points[x_i1]).normalize();
-	points[x_i3] = points[x_i1] + dir * edgeLength;
-	points[x_i4] = points[x_i2] + dir * edgeLength;
+	points[x_i4] = points[x_i1] + dir * edgeLength;
+	points[x_i3] = points[x_i2] + dir * edgeLength;
 	// axes of the rectangle
 	axes = {
 			Axis(Vec2f(1, 0)),

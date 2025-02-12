@@ -1,5 +1,5 @@
-#ifndef REGEN_DIR_LIGHT_CAMERA_H
-#define REGEN_DIR_LIGHT_CAMERA_H
+#ifndef REGEN_CSM_LIGHT_CAMERA_H
+#define REGEN_CSM_LIGHT_CAMERA_H
 
 #include <regen/camera/light-camera.h>
 #include <regen/camera/camera.h>
@@ -10,14 +10,14 @@ namespace regen {
 	 * It uses multiple frustums in a cascade to increase shadow map resolution.
 	 * Render target is a 2D array texture.
 	 */
-	class LightCamera_Directional : public Camera, public LightCamera {
+	class LightCamera_CSM : public Camera, public LightCamera {
 	public:
 		/**
 		 * @param light the light source.
 		 * @param userCamera the user camera.
 		 * @param numLayer the number of layers.
 		 */
-		LightCamera_Directional(
+		LightCamera_CSM(
 				const ref_ptr<Light> &light,
 				const ref_ptr<Camera> &userCamera,
 				unsigned int numLayer);
@@ -33,6 +33,7 @@ namespace regen {
 	protected:
 		ref_ptr<Camera> userCamera_;
 		std::vector<Frustum> userCameraFrustum_;
+		std::vector<Vec3f> userFrustumCentroids_;
 		double splitWeight_ = 0.9;
 
 		bool updateDirectionalLight();
@@ -40,6 +41,7 @@ namespace regen {
 	private:
 		bool updateLightProjection();
 		bool updateLightView();
+		bool updateFrustumSplit();
 
 		unsigned int userProjectionStamp_ = 0u;
 		unsigned int userPositionStamp_ = 0u;
@@ -48,4 +50,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* REGEN_DIR_LIGHT_CAMERA_H */
+#endif /* REGEN_CSM_LIGHT_CAMERA_H */

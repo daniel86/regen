@@ -25,24 +25,21 @@ void Frustum::setPerspective(double _aspect, double _fov, double _near, double _
 	aspect = _aspect;
 	near = _near;
 	far = _far;
-	// +0.2 is important because we might get artifacts at
-	// the screen borders.
-	// TODO: check if this is still necessary
-	double fovR = _fov / 57.2957795; // + 0.2;
-	nearPlaneSize.y = tan(fovR * 0.5) * near;
-	nearPlaneSize.x = nearPlaneSize.y * aspect;
-	farPlaneSize.y = tan(fovR * 0.5) * far;
-	farPlaneSize.x = farPlaneSize.y * aspect;
+	double fovR = _fov / 57.2957795;
+	nearPlaneHalfSize.y = tan(fovR * 0.5) * near;
+	nearPlaneHalfSize.x = nearPlaneHalfSize.y * aspect;
+	farPlaneHalfSize.y = tan(fovR * 0.5) * far;
+	farPlaneHalfSize.x = farPlaneHalfSize.y * aspect;
 }
 
 void Frustum::setOrtho(double left, double right, double bottom, double top, double _near, double _far) {
 	fov = 0.0;
-	aspect = (right - left) / (top - bottom);
+	aspect = abs((right - left) / (top - bottom));
 	near = _near;
 	far = _far;
-	nearPlaneSize.x = (right-left);
-	nearPlaneSize.y = (top-bottom);
-	farPlaneSize = nearPlaneSize;
+	nearPlaneHalfSize.x = abs(right-left)*0.5;
+	nearPlaneHalfSize.y = abs(top-bottom)*0.5;
+	farPlaneHalfSize = nearPlaneHalfSize;
 	orthoBounds.min.x = left;
 	orthoBounds.min.y = bottom;
 	orthoBounds.max.x = right;
@@ -80,7 +77,11 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	translation_->setUniformData(pos);
 	direction_->setUniformData(d);
 
-	updatePoints(pos, d);
+	if (fov > 0.0) {
+		updatePointsPerspective(pos, d);
+	} else {
+		updatePointsOrthogonal(pos, d);
+	}
 
 	planes[0].set(points[2], points[1], points[5]);
 	planes[1].set(points[3], points[0], points[4]);
@@ -90,25 +91,52 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	planes[5].set(points[6], points[5], points[7]);
 }
 
-void Frustum::updatePoints(const Vec3f &pos, const Vec3f &dir) {
-	auto v = dir.cross(Vec3f::up()).normalize();
-	auto u = v.cross(dir).normalize();
+void Frustum::updatePointsPerspective(const Vec3f &pos, const Vec3f &dir) {
+	auto v = dir.cross(Vec3f::up());
+	v.normalize();
+	auto u = v.cross(dir);
+	u.normalize();
 	// near plane points
 	auto nc = pos + dir * near;
-	auto rw = v * nearPlaneSize.x;
-	auto uh = u * nearPlaneSize.y;
+	auto rw = v * nearPlaneHalfSize.x;
+	auto uh = u * nearPlaneHalfSize.y;
 	points[0] = nc - uh + rw;
 	points[1] = nc + uh - rw;
 	points[2] = nc + uh + rw;
 	points[3] = nc - uh - rw;
 	// far plane points
 	auto fc = pos + dir * far;
-	rw = v * farPlaneSize.x;
-	uh = u * farPlaneSize.y;
+	rw = v * farPlaneHalfSize.x;
+	uh = u * farPlaneHalfSize.y;
 	points[4] = fc - uh + rw;
 	points[5] = fc + uh - rw;
 	points[6] = fc + uh + rw;
 	points[7] = fc - uh - rw;
+}
+
+void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
+	auto v = dir.cross(Vec3f::up());
+	v.normalize();
+	auto u = v.cross(dir);
+	u.normalize();
+	// do not assume that the frustum is centered at the far/near plane centroids!
+	// could be that left/right/top/bottom are not symmetric
+	auto vl = v * orthoBounds.min.x; // left
+	auto vr = v * orthoBounds.max.x; // right
+	auto ub = u * orthoBounds.min.y; // bottom
+	auto ut = u * orthoBounds.max.y; // top
+	// near plane points
+	auto nc = pos + dir * near;
+	points[0] = nc + vr + ub;
+	points[1] = nc + vl + ut;
+	points[2] = nc + vr + ut;
+	points[3] = nc + vl + ub;
+	// far plane points
+	auto fc = pos + dir * far;
+	points[4] = fc + vr + ub;
+	points[5] = fc + vl + ut;
+	points[6] = fc + vr + ut;
+	points[7] = fc + vl + ub;
 }
 
 Vec3f Frustum::getCenterPosition() const {
@@ -211,11 +239,11 @@ void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) cons
 				(1 - splitWeight) * (n + (f - n) * si);
 		currf = currn * 1.005;
 
-		frustumSplit[i - 1].setPerspective(fov, aspect, lastn, currf);
+		frustumSplit[i - 1].setPerspective(aspect, fov, lastn, currf);
 
 		lastn = currn;
 	}
-	frustumSplit[count - 1].setPerspective(fov, aspect, lastn, f);
+	frustumSplit[count - 1].setPerspective(aspect, fov, lastn, f);
 }
 
 Vec3f Frustum::closestPointOnSurface(const Vec3f &point) const {

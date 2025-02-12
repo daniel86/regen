@@ -54,10 +54,16 @@
 <asset id="dragon-asset" type="asset" file="res/models/dragon.obj" use-animation="0" />
 <asset id="bunny-asset" type="asset" file="res/models/bunny.obj" use-animation="0" />
 
+<!--
     <camera id="overview-camera"
-            fov="45.0" near="0.1" far="1200.0"
-            position="0.0, 800.0, 400.0"
-            direction="0, -2, -1"/>
+            fov="45.0" near="0.1" far="300.0"
+            position="0.0, 100.0, 100.0"
+            direction="0, -1, -1"/>
+-->
+    <camera id="overview-camera"
+            fov="45.0" near="0.1" far="300.0"
+            position="0.0, 200.0, 0.0"
+            direction="0, -1, 0"/>
     <fbo id="overview-buffer"
          size-mode="rel" size="1.0,1.0"
          pixel-type="FLOAT" pixel-size="16">

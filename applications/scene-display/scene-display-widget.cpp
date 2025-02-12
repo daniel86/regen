@@ -618,7 +618,7 @@ static void handleAssetController(
 		animalController->setFloorHeight(animationNode->getValue<float>("floor-height", 0.0f));
 		animalController->setLaziness(animationNode->getValue<float>("laziness", 0.5f));
 		animalController->setMaxHeight(animationNode->getValue<float>("max-height", std::numeric_limits<float>::max()));
-		animalController->setMinHeight(animationNode->getValue<float>("min-height", std::numeric_limits<float>::min()));
+		animalController->setMinHeight(animationNode->getValue<float>("min-height", std::numeric_limits<float>::lowest()));
 		animalController->setTerritoryBounds(
 				animationNode->getValue<Vec2f>("territory-center", Vec2f(0.0)),
 				animationNode->getValue<Vec2f>("territory-size", Vec2f(10.0)));

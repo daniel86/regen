@@ -111,9 +111,8 @@ void SpatialIndexDebug::drawSphere(const BoundingSphere &sphere) {
     }
 }
 
-void SpatialIndexDebug::drawFrustum(const Frustum &frustum) {
+void SpatialIndexDebug::drawFrustum(const Frustum &frustum, const Vec3f &color) {
 	auto &vertices = frustum.points;
-	Vec3f color = Vec3f(1.0f, 0.0f, 1.0f);
 	// near plane
 	drawLine(vertices[0], vertices[1], color);
 	drawLine(vertices[1], vertices[2], color);
@@ -138,6 +137,20 @@ void SpatialIndexDebug::drawFrustum(const Frustum &frustum) {
 
 inline Vec3f toVec3(const Vec2f &v, float y) {
 	return {v.x, y, v.y};
+}
+
+void SpatialIndexDebug::debugFrustum(const Frustum &frustum, const Vec3f &color) {
+	//drawFrustum(frustum, color);
+
+	OrthogonalProjection proj(frustum);
+	auto &vertices = proj.points;
+	Vec3f orthoColor = Vec3f(0.0f, 1.0f, 0.0f);
+	const auto h = 6.0f;
+	// draw lines of the frustum
+	for (int i=0; i<vertices.size()-1; i++) {
+		drawLine(toVec3(vertices[i],h), toVec3(vertices[i+1],h), orthoColor);
+	}
+	drawLine(toVec3(vertices.back(),h), toVec3(vertices.front(),h), orthoColor);
 }
 
 void SpatialIndexDebug::traverse(regen::RenderState *rs) {
@@ -165,17 +178,7 @@ void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 	}
 	for (auto &camera: index_->cameras()) {
 		for (auto &frustum : camera->frustum()) {
-			drawFrustum(frustum);
-			/*
-			OrthogonalProjection proj(frustum);
-			auto &vertices = proj.points;
-			Vec3f color = Vec3f(0.0f, 1.0f, 0.0f);
-			// draw lines of the frustum
-			for (int i=0; i<vertices.size()-1; i++) {
-				drawLine(toVec3(vertices[i],2.0), toVec3(vertices[i+1],2.0), color);
-			}
-			drawLine(toVec3(vertices.back(),2.0), toVec3(vertices.front(),2.0), color);
-			 */
+			debugFrustum(frustum, Vec3f(1.0f, 0.0f, 1.0f));
 		}
 	}
 	index_->debugDraw(*this);

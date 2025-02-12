@@ -25,6 +25,8 @@
 #define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix[layer]
 #define REGEN_CAM_DIR_(layer)       in_cameraDirection[layer]
 #elif RENDER_TARGET == 2D_ARRAY
+#define REGEN_VIEW_(layer)          in_viewMatrix[layer]
+#define REGEN_VIEW_INV_(layer)      in_inverseViewMatrix[layer]
 #define REGEN_PROJ_(layer)          in_projectionMatrix[layer]
 #define REGEN_PROJ_INV_(layer)      in_inverseProjectionMatrix[layer]
 #define REGEN_VIEW_PROJ_(layer)     in_viewProjectionMatrix[layer]
@@ -309,12 +311,18 @@ vec3 transformTexcoToWorld(vec2 texco, float depth, int layer) {
 #include regen.states.camera.input
 vec4 transformParaboloid(vec4 posEye, int layer) {
     vec3 pos = posEye.xyz;
+    // normalize incoming vector by its w component
     pos /= posEye.w;
     float l = length(pos.xyz);
     pos /= l;
+    // x/y coordinates of the paraboloid
 	pos.xy /= pos.z + 1.0f;
 	pos.x = -pos.x;
+	// distance from pos to the origin (0,0,0)
     pos.z = (l - REGEN_CAM_NEAR_(layer)) / (REGEN_CAM_FAR_(layer) - REGEN_CAM_NEAR_(layer));
+    // NOTE: could add bias here if self-shadowing occurs
+    //const float zBias = 0.01;
+    //pos.z += zBias;
     return vec4(pos,1.0);
 }
 #endif

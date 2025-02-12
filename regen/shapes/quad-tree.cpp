@@ -485,7 +485,7 @@ void QuadTree::foreachIntersection(
 }
 
 void QuadTree::update(float dt) {
-	static auto maxFloat = Vec2f(std::numeric_limits<float>::min());
+	static auto maxFloat = Vec2f(std::numeric_limits<float>::lowest());
 	static auto minFloat = Vec2f(std::numeric_limits<float>::max());
 	Bounds<Vec2f> newBounds(minFloat, maxFloat);
 	std::vector<Item *> changedItems;
@@ -553,7 +553,7 @@ inline Vec3f toVec3(const Vec2f &v, float y) {
 void QuadTree::debugDraw(DebugInterface &debug) const {
 	// draw lines around the quad tree nodes
 	if (!root_) return;
-	static const float drawHeight = 0.5f;
+	static const float drawHeight = 5.5f;
 	Vec3f lineColor(1, 0, 0);
 
 	// draw the bounds of nodes
@@ -587,7 +587,7 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 
 	// draw 2d projections of the shapes
 	lineColor = Vec3f(0, 1, 0);
-	const GLfloat h = 0.1f;
+	const GLfloat h = 5.1f;
 	for (auto &item: items_) {
 		auto &projection = item.second->projection;
 		auto &points = projection.points;
