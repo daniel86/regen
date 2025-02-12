@@ -15,7 +15,7 @@ AnimalController::AnimalController(
 				  runSpeed_(0.1f),
 				  laziness_(0.5f),
 				  maxHeight_(std::numeric_limits<float>::max()),
-				  minHeight_(std::numeric_limits<float>::min()),
+				  minHeight_(std::numeric_limits<float>::lowest()),
 				  baseOrientation_(M_PI_2),
 				  floorHeight_(0.0f),
 				  heightMapBounds_(Vec2f::zero(), Vec2f::zero())

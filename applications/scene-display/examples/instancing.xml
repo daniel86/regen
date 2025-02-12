@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+    <constant name="num-cascades" value="3"/>
 <include xml-file="scene-display/examples/templates/default.xml" />
 
 <node id="configuration">
@@ -24,6 +25,16 @@
   <texture id="normal" />
   <depth id="depth" pixel-size="24" />
 </fbo>
+    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
+        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+            target="TEXTURE_2D_ARRAY"
+            wrapping="REPEAT"
+            min-filter="NEAREST"
+            mag-filter="NEAREST"
+            compare-mode="COMPARE_R_TO_TEXTURE"
+            compare-function="LEQUAL"
+            sampler-type="sampler2DArrayShadow" />
+    </fbo>
 <!-- Textures -->
 <texture id="ground-color" file="res/textures/brick/color.jpg" />
 <texture id="ground-normal" file="res/textures/brick/normal.jpg" />
@@ -34,7 +45,7 @@
 	position="1.0,6.0,-50.0"
 	direction="0.0,0.0,1.0" />
 <camera id="sun-camera" light="earth-sky-sun" camera="main-camera"
-	num-layer="3" split-weight="0.6" />
+	num-layer="{{num-cascades}}" split-weight="0.6" />
 <!-- Assets -->
 <asset id="dwarf-asset-instanced"
        type="asset"

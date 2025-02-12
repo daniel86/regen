@@ -6,7 +6,7 @@
     <constant name="map-y-min" value="-4.0"/>
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
-    <constant name="num-cascades" value="5"/>
+    <constant name="num-cascades" value="4"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -22,7 +22,6 @@
             <anchor type="look-at" transform="grass-tf" offset="0.0, 10.0, 40.0" />
             <anchor type="look-at" transform="grass-tf" offset="0.0, 40.0, 60.0" />
             <anchor type="look-at" transform="grass-tf" offset="60.0, 40.0, 0.0" />
-            <!-- TODO: why -4.0? something seems wrong?!? -->
             <anchor type="look-at" transform="hyena-tf" offset="0.0, -4.0, 1.0" follow="1" />
             <anchor type="look-at" transform="fish-tf" offset="10.0, 12.0, 10.0" />
         </camera>
@@ -70,7 +69,7 @@
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
-    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
+    <fbo id="sun-shadow" size-mode="abs" size="1024,1024,{{num-cascades}}" >
         <depth id="depth" pixel-size="24" pixel-type="FLOAT"
             target="TEXTURE_2D_ARRAY"
             wrapping="REPEAT"
@@ -97,27 +96,12 @@
             culling-index="main-index"
             fov="45.0" near="0.1" far="200.0"
             position="-40.0, 14.0, 0.0"/>
-    <!-- TODO: culling for directional light camera -->
     <camera id="sun-camera"
             culling-index="main-index"
             light="earth-sky-sun"
             camera="main-camera"
             num-layer="{{num-cascades}}"
-            split-weight="0.9" />
-    <!--
-    <camera id="sun-camera"
-            light="earth-sky-sun"
-            camera="main-camera"
-            num-layer="{{num-cascades}}"
-            split-weight="0.9" />
-            -->
-    <!--
-    <camera id="reflection-camera"
-            culling-index="main-index"
-            camera="main-camera"
-            reflector-normal="0,1,0"
-            reflector-point="0,{{water-surface-y}},0"/>
-            -->
+            split-weight="0.7" />
     <camera id="reflection-camera"
             camera="main-camera"
             reflector-normal="0,1,0"
@@ -324,7 +308,7 @@
                     ambient="0.1, 0.1, 0.1"
                     specular="0.0, 0.0, 0.0"
                     shininess="256.0"
-                    emission="0.0, 0.02, 0.0"/>
+                    emission="0.02, 0.01, 0.0"/>
             <mesh id="grass-patches" primitive="patches" shader="regen.models.grass.patch"/>
         </node>
     </node>
@@ -333,8 +317,8 @@
     <!--********* Trees **********-->
     <!--**************************-->
 
+    <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <mesh id="tree-mesh" type="proctree" lods="4,2,1" preset="fir">
-        <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
         <transform id="tree-tf">
             <set mode="plane"
                 area-mask-texture="tree-mask"
@@ -505,12 +489,15 @@
         <shape id="hyena-shape" mode="index" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
     </mesh>
 
-    <node id="Animals">
-        <node id="fish0" cull-shape="fish-shape">
-            <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
-        </node>
+    <node id="Mammals">
         <node id="hyena0" cull-shape="hyena-shape">
             <mesh id="hyena-mesh" mesh-index="0" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <node id="Fish">
+        <node id="fish0" cull-shape="fish-shape">
+            <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>
 
@@ -518,11 +505,12 @@
     <!--**************************-->
 
     <node id="Shadow-Caster">
-        <node import="Animals"/>
+        <node import="Mammals"/>
         <node import="Trees"/>
     </node>
 
     <node id="Scene-Geometry">
+        <node import="Fish"/>
         <node import="Grass"/>
         <node import="Ground"/>
     </node>
@@ -657,8 +645,6 @@
         <node id="Pre-Render">
             <node import="Reflection-Pass"/>
             <node id="Shadow-Pass">
-                <!-- the leafs of the tree have opposing faces very close to each other,
-                     so to avoid z-fighting we apply a small offset to all shadow caster. -->
                 <polygon offset-fill="1.1,4.0"/>
                 <define key="OUTPUT_TYPE" value="DEPTH" />
                 <cull mode="FRONT" />

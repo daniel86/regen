@@ -7,7 +7,7 @@
 
 #include "camera.h"
 #include "regen/camera/light-camera-spot.h"
-#include "regen/camera/light-camera-dir.h"
+#include "regen/camera/light-camera-csm.h"
 #include "regen/camera/light-camera-parabolic.h"
 #include "regen/camera/light-camera-cube.h"
 #include <regen/application.h>
@@ -39,12 +39,26 @@ public:
 			: EventHandler(), cam_(cam), windowViewport_(windowViewport) {}
 
 	void call(EventObject *, EventData *) {
-		cam_->setPerspective(
-				(GLfloat) windowViewport_->getVertex(0).x /
-				(GLfloat) windowViewport_->getVertex(0).y,
-				cam_->fov()->getVertex(0),
-				cam_->near()->getVertex(0),
-				cam_->far()->getVertex(0));
+		auto windowAspect =
+			(GLfloat) windowViewport_->getVertex(0).x /
+			(GLfloat) windowViewport_->getVertex(0).y;
+		if (cam_->isOrtho()) {
+			// keep the ortho width and adjust height based on aspect ratio
+			auto width = cam_->frustum()[0].nearPlaneHalfSize.x * 2.0f;
+			auto height = width / windowAspect;
+			cam_->setOrtho(
+					-width / 2.0f, width / 2.0f,
+					-height / 2.0f, height / 2.0f,
+					cam_->near()->getVertex(0),
+					cam_->far()->getVertex(0));
+		}
+		else {
+			cam_->setPerspective(
+					windowAspect,
+					cam_->fov()->getVertex(0),
+					cam_->near()->getVertex(0),
+					cam_->far()->getVertex(0));
+		}
 	}
 
 protected:
@@ -115,9 +129,8 @@ ref_ptr<Camera> createLightCamera(
 				REGEN_WARN("Unable to find user camera for '" << input.getDescription() << "'.");
 				return {};
 			}
-			auto dirCam = ref_ptr<LightCamera_Directional>::alloc(light, userCamera, numLayer);
+			auto dirCam = ref_ptr<LightCamera_CSM>::alloc(light, userCamera, numLayer);
 			dirCam->setSplitWeight(splitWeight);
-			dirCam->setLightNear(near);
 			lightCamera = dirCam;
 			break;
 		}
@@ -225,12 +238,22 @@ ref_ptr<Camera> CameraResource::createCamera(
 		dir.normalize();
 		cam->direction()->setVertex(0, dir);
 
-		cam->setPerspective(
-				(GLfloat) parser->getViewport()->getVertex(0).x /
-				(GLfloat) parser->getViewport()->getVertex(0).y,
-				input.getValue<GLfloat>("fov", 45.0f),
-				input.getValue<GLfloat>("near", 0.1f),
-				input.getValue<GLfloat>("far", 200.0f));
+		if (camType == "ortho" || camType == "orthographic") {
+			auto width = input.getValue<GLfloat>("width", 10.0f);
+			auto height = input.getValue<GLfloat>("height", 10.0f);
+			cam->setOrtho(
+					-width / 2.0f, width / 2.0f,
+					-height / 2.0f, height / 2.0f,
+					input.getValue<GLfloat>("near", 0.1f),
+					input.getValue<GLfloat>("far", 200.0f));
+		} else {
+			cam->setPerspective(
+					(GLfloat) parser->getViewport()->getVertex(0).x /
+					(GLfloat) parser->getViewport()->getVertex(0).y,
+					input.getValue<GLfloat>("fov", 45.0f),
+					input.getValue<GLfloat>("near", 0.1f),
+					input.getValue<GLfloat>("far", 200.0f));
+		}
 		cam->updateCamera();
 		// Update frustum when window size changes
 		parser->addEventHandler(Application::RESIZE_EVENT,

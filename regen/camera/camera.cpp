@@ -118,7 +118,7 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 
 void Camera::setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer) {
 	fov_->setVertex(0, 0.0f);
-	aspect_->setVertex(0, 1.0f);
+	aspect_->setVertex(0, abs((right - left) / (top - bottom)));
 	near_->setVertexOrFirst(layer, near);
 	far_->setVertexOrFirst(layer, far);
 	frustum_[layer].setOrtho(left, right, bottom, top, near, far);

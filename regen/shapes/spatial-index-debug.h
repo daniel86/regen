@@ -29,7 +29,7 @@ namespace regen {
 
 		void drawSphere(const BoundingSphere &sphere);
 
-		void drawFrustum(const Frustum &frustum);
+		void drawFrustum(const Frustum &frustum, const Vec3f &color = Vec3f(1.0f, 0.0f, 1.0f));
 
 		// StateNode interface
 		void traverse(regen::RenderState *rs) override;
@@ -40,7 +40,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> lineVertices_;
 		GLint lineLocation_;
 
-		void debugDrawShapes(regen::RenderState *rs);
+		void debugFrustum(const Frustum &frustum, const Vec3f &color = Vec3f(0.0f, 1.0f, 0.0f));
 
 		ref_ptr<VAO> vao_;
 		GLuint vbo_{};

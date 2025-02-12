@@ -30,9 +30,9 @@ namespace regen {
 		/** The far plane distance. */
 		double far;
 		/** Near plane size. */
-		Vec2f nearPlaneSize;
+		Vec2f nearPlaneHalfSize;
 		/** Far plane size. */
-		Vec2f farPlaneSize;
+		Vec2f farPlaneHalfSize;
 		/** Bounds of parallel projection */
 		Bounds<Vec2f> orthoBounds;
 		/** The 8 frustum points. 0-3 are the near plane points, 4-7 far plane. */
@@ -111,7 +111,8 @@ namespace regen {
 
 		unsigned int directionStamp() const;
 
-		void updatePoints(const Vec3f &pos, const Vec3f &dir);
+		void updatePointsPerspective(const Vec3f &pos, const Vec3f &dir);
+		void updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir);
 	};
 } // namespace
 
