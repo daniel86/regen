@@ -73,16 +73,16 @@ unsigned int BoundingShape::transformStamp() const {
 
 Vec3f BoundingShape::translation() const {
 	if (transform_.get()) {
-		auto &p = transform_->get()->getVertex(transformIndex_).position();
+		auto p = transform_->get()->getVertex(transformIndex_);
 		if (translation_.get()) {
-			return p + translation_->getVertex(translationIndex_);
+			return p.r.position() + translation_->getVertex(translationIndex_).r;
 		}
 		else {
-			return p;
+			return p.r.position();
 		}
 	}
 	else if (translation_.get()) {
-		return translation_->getVertex(translationIndex_);
+		return translation_->getVertex(translationIndex_).r;
 	}
 	else {
 		return Vec3f::zero();

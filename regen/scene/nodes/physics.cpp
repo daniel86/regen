@@ -5,6 +5,8 @@
 using namespace regen::scene;
 using namespace regen;
 
+// TODO: this code is redundant with shape.cpp!
+
 static ref_ptr<ShaderInput> getMeshPositions(
 		SceneParser *parser, SceneInputNode &input) {
 	ref_ptr<MeshVector> meshes = parser->getResources()->getMesh(parser, input.getValue("mesh"));
@@ -90,14 +92,14 @@ static ref_ptr<btCollisionShape> createConvexHull(SceneParser *parser, SceneInpu
 	bool loadServerData = !pos->hasClientData();
 	if (loadServerData) pos->readServerData();
 
-	auto *points = (const btScalar *) pos->clientData();
+	auto points = pos->mapClientData<btScalar>(ShaderData::READ);
 	//create a hull approximation
 	//btShapeHull* hull = new btShapeHull(originalConvexShape);
 	//btScalar margin = originalConvexShape->getMargin();
 	//hull->buildHull(margin);
 	//btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer(),hull->numVertices());
 
-	auto shape = ref_ptr<btConvexHullShape>::alloc(points, pos->numVertices());
+	auto shape = ref_ptr<btConvexHullShape>::alloc(points.w, pos->numVertices());
 	if (loadServerData) pos->deallocateClientData();
 	return shape;
 
@@ -143,8 +145,10 @@ static ref_ptr<btCollisionShape> createTriangleMesh(SceneParser *parser, SceneIn
 
 	if (!pos->hasClientData()) pos->readServerData();
 	if (!indices->hasClientData()) indices->readServerData();
-	btMesh.m_vertexBase = pos->clientData();
-	btMesh.m_triangleIndexBase = indices->clientData();
+	auto v_pos = pos->mapClientDataRaw(ShaderData::READ);
+	auto indices_data = indices->mapClientDataRaw(ShaderData::READ);
+	btMesh.m_vertexBase = v_pos.r;
+	btMesh.m_triangleIndexBase = indices_data.r;
 
 	PHY_ScalarType indexType;
 	switch (indices->dataType()) {
@@ -276,11 +280,24 @@ void PhysicsStateProvider::processInput(
 	}
 
 	auto numInstances = input.getValue<GLuint>("num-instances", 1u);
-	for (GLuint i = 0; i < numInstances; ++i) {
-		auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), i);
+
+	// add shape to physics engine
+	if (numInstances == 1) {
+		auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), 0);
 		auto physicalProps = createPhysicalProps(parser, input, motion);
 		auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
 		mesh->addPhysicalObject(physicalObject);
 		parser->getPhysics()->addObject(physicalObject);
+	} else {
+		auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->get());
+		for (GLuint i = 0; i < numInstances; ++i) {
+			auto motion = ref_ptr<Mat4fMotion>::alloc(motionAnim, i);
+			auto physicalProps = createPhysicalProps(parser, input, motion);
+			auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
+			mesh->addPhysicalObject(physicalObject);
+			parser->getPhysics()->addObject(physicalObject);
+		}
+		motionAnim->startAnimation();
+		mesh->addAnimation(motionAnim);
 	}
 }

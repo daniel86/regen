@@ -174,23 +174,30 @@ void QuadTree::collapse(Node *node) {
 		return;
 	}
 	auto *parent = node->parent;
-	bool allEmpty = true;
-	for (auto &child: parent->children) {
-		if (!child) {
-			continue;
+	// Collapse condition: all children contain the same set of shapes.
+	std::set<Item *> shapes;
+	for (auto &shape: parent->children[0]->shapes) {
+		shapes.insert(shape);
+	}
+	for (int i = 1; i < 4; i++) {
+		if (parent->children[i]->shapes.size() != shapes.size()) {
+			// unequal number of shapes -> no collapse
+			return;
 		}
-		if (!child->shapes.empty() && child->isLeaf()) {
-			allEmpty = false;
-			break;
+		for (auto &shape: parent->children[i]->shapes) {
+			if (shapes.find(shape) == shapes.end()) {
+				// shape not found in the set -> no collapse
+				return;
+			}
 		}
 	}
-	if (allEmpty) {
-		for (int i = 0; i < 4; i++) {
-			freeNode(parent->children[i]);
-			parent->children[i] = nullptr;
-		}
-		collapse(parent);
+	// All children contain the same set of shapes -> collapse the node.
+	for (int i = 0; i < 4; i++) {
+		freeNode(parent->children[i]);
+		parent->children[i] = nullptr;
 	}
+	parent->shapes.insert(parent->shapes.end(), shapes.begin(), shapes.end());
+	collapse(parent);
 }
 
 void QuadTree::subdivide(Node *node) {

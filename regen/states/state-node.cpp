@@ -18,8 +18,8 @@ NodeEyeDepthComparator::NodeEyeDepthComparator(
 }
 
 GLfloat NodeEyeDepthComparator::getEyeDepth(const Vec3f &p) const {
-	const Mat4f &mat = cam_->view()->getVertex(0);
-	return mat.x[2] * p.x + mat.x[6] * p.y + mat.x[10] * p.z + mat.x[14];
+	auto mat = cam_->view()->getVertex(0);
+	return mat.r.x[2] * p.x + mat.r.x[6] * p.y + mat.r.x[10] * p.z + mat.r.x[14];
 }
 
 ModelTransformation *NodeEyeDepthComparator::findModelTransformation(StateNode *n) const {
@@ -45,8 +45,8 @@ bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNod
 	ModelTransformation *modelMat1 = findModelTransformation(n1.get());
 	if (modelMat0 != nullptr && modelMat1 != nullptr) {
 		GLfloat diff = mode_ * (
-				getEyeDepth(modelMat0->get()->getVertex(0).position()) -
-				getEyeDepth(modelMat1->get()->getVertex(0).position()));
+				getEyeDepth(modelMat0->get()->getVertex(0).r.position()) -
+				getEyeDepth(modelMat1->get()->getVertex(0).r.position()));
 		return diff < 0;
 	} else if (modelMat0 != nullptr) {
 		return true;

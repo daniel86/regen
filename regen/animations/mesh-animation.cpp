@@ -38,10 +38,12 @@ void MeshAnimation::findFrameBeforeTick(
 	}
 }
 
+// TODO: client data mapping can be improved in this file
+
 MeshAnimation::MeshAnimation(
 		const ref_ptr<Mesh> &mesh,
 		const std::list<Interpolation> &interpolations)
-		: Animation(GL_TRUE, GL_FALSE),
+		: Animation(true, false),
 		  mesh_(mesh),
 		  meshBufferOffset_(-1),
 		  lastFrame_(-1),
@@ -507,16 +509,16 @@ void MeshAnimation::addSphereAttributes(
 			ShaderInput::copy(norAtt, GL_FALSE));
 
 	// find the centroid of the mesh
-	Vec3f minPos = posAtt->getVertex(0);
-	Vec3f maxPos = posAtt->getVertex(0);
+	Vec3f minPos = posAtt->getVertex(0).r;
+	Vec3f maxPos = posAtt->getVertex(0).r;
 	for (GLuint i = 1; i < posAtt->numVertices(); ++i) {
-		Vec3f v = posAtt->getVertex(i);
-		if(minPos.x > v.x) minPos.x = v.x;
-		if(minPos.y > v.y) minPos.y = v.y;
-		if(minPos.z > v.z) minPos.z = v.z;
-		if(maxPos.x < v.x) maxPos.x = v.x;
-		if(maxPos.y < v.y) maxPos.y = v.y;
-		if(maxPos.z < v.z) maxPos.z = v.z;
+		auto v = posAtt->getVertex(i);
+		if(minPos.x > v.r.x) minPos.x = v.r.x;
+		if(minPos.y > v.r.y) minPos.y = v.r.y;
+		if(minPos.z > v.r.z) minPos.z = v.r.z;
+		if(maxPos.x < v.r.x) maxPos.x = v.r.x;
+		if(maxPos.y < v.r.y) maxPos.y = v.r.y;
+		if(maxPos.z < v.r.z) maxPos.z = v.r.z;
 	}
 	Vec3f centroid = (minPos + maxPos) * 0.5f + offset;
 
@@ -526,7 +528,7 @@ void MeshAnimation::addSphereAttributes(
 	//       Also make sure to use polygon offset to avoid shadow map fighting.
 	// TODO: it should be possible to do this with less artifacts by taking the faces into account.
 	for (GLuint i = 0; i < spherePos->numVertices(); ++i) {
-		Vec3f v = posAtt->getVertex(i);
+		Vec3f v = posAtt->getVertex(i).r;
 		Vec3f direction = v - centroid;
 		Vec3f n;
 		GLdouble l = direction.length();
@@ -695,7 +697,7 @@ void MeshAnimation::addBoxAttributes(
 
 	// set cube vertex data
 	for (GLuint i = 0; i < boxPos->numVertices(); ++i) {
-		Vec3f v = posAtt->getVertex(i);
+		Vec3f v = posAtt->getVertex(i).r;
 		Vec3f n;
 		GLdouble l = v.length();
 		if (l == 0) {
@@ -708,7 +710,6 @@ void MeshAnimation::addBoxAttributes(
 		vCopy.normalize();
 
 #if 0
-
 		// check the coordinate values to choose the right face
 		GLdouble xAbs = abs(vCopy.x);
 		GLdouble yAbs = abs(vCopy.y);
@@ -728,7 +729,6 @@ void MeshAnimation::addBoxAttributes(
 
 		cubizePoint(vCopy);
 		v = vCopy * boxSize * 0.5f;
-
 #else
 		vCopy *= radius;
 

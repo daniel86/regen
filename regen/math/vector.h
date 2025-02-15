@@ -531,6 +531,13 @@ namespace regen {
 			static Vec3 up_(-1, 0, 0);
 			return up_;
 		}
+
+		/**
+		 * @return a random vector.
+		 */
+		static Vec3 random() {
+			return Vec3(math::random(), math::random(), math::random());
+		}
 	};
 
 	// writing vector to output stream
@@ -716,29 +723,56 @@ namespace regen {
 		/** @return xyz component reference. */
 		inline Vec3<T> &xyz_() { return *((Vec3<T> *) this); }
 
+		/** @return xyz component reference. */
+		inline const Vec3<T> &xyz_() const { return *((Vec3<T> *) this); }
+
 		/** @return yzw component reference. */
 		inline Vec3<T> &yzw_() { return *((Vec3<T> *) (((T *) this) + 1)); }
+
+		/** @return yzw component reference. */
+		inline const Vec3<T> &yzw_() const { return *((Vec3<T> *) (((T *) this) + 1)); }
 
 		/** @return xy component reference. */
 		inline Vec2<T> &xy_() { return *((Vec2<T> *) this); }
 
+		/** @return xy component reference. */
+		inline const Vec2<T> &xy_() const { return *((Vec2<T> *) this); }
+
 		/** @return yz component reference. */
 		inline Vec2<T> &yz_() { return *((Vec2<T> *) (((T *) this) + 1)); }
+
+		/** @return yz component reference. */
+		inline const Vec2<T> &yz_() const { return *((Vec2<T> *) (((T *) this) + 1)); }
 
 		/** @return zw component reference. */
 		inline Vec2<T> &zw_() { return *((Vec2<T> *) (((T *) this) + 2)); }
 
+		/** @return zw component reference. */
+		inline const Vec2<T> &zw_() const { return *((Vec2<T> *) (((T *) this) + 2)); }
+
 		/** @return x component reference. */
 		inline T &x_() { return *((T *) this); }
+
+		/** @return x component reference. */
+		inline const T &x_() const { return *((T *) this); }
 
 		/** @return y component reference. */
 		inline T &y_() { return *(((T *) this) + 1); }
 
+		/** @return y component reference. */
+		inline const T &y_() const { return *(((T *) this) + 1); }
+
 		/** @return z component reference. */
 		inline T &z_() { return *(((T *) this) + 2); }
 
+		/** @return z component reference. */
+		inline const T &z_() const { return *(((T *) this) + 2); }
+
 		/** @return w component reference. */
 		inline T &w_() { return *(((T *) this) + 3); }
+
+		/** @return w component reference. */
+		inline const T &w_() const { return *(((T *) this) + 3); }
 
 		/**
 		 * Compares vectors components.

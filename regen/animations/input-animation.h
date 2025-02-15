@@ -23,9 +23,9 @@ namespace regen {
 	class InputAnimation : public Animation {
 	public:
 		explicit InputAnimation(const ref_ptr <U> &in)
-				: Animation(GL_TRUE, GL_TRUE),
+				: Animation(false, true),
 				  in_(in) {
-			val_ = in_->getVertex(0);
+			val_ = in_->getVertex(0).r;
 			it_ = frames_.end();
 			lastFrame_.val = val_;
 			lastFrame_.dt = 0.0;
@@ -60,20 +60,9 @@ namespace regen {
 				animate(dt__);
 			} else {
 				GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
-				lock();
-				{
-					val_ = math::mix(lastFrame_.val, currentFrame.val, t);
-				}
-				unlock();
-			}
-		}
-
-		void glAnimate(RenderState *rs, GLdouble dt) override {
-			lock();
-			{
+				val_ = math::mix(lastFrame_.val, currentFrame.val, t);
 				in_->setVertex(0, val_);
 			}
-			unlock();
 		}
 
 	protected:

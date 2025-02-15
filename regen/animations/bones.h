@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef __BONES__H_
-#define __BONES__H_
+#ifndef REGEN_BONES_H
+#define REGEN_BONES_H
 
 #include <regen/states/state.h>
 #include <regen/animations/animation-node.h>
@@ -33,14 +33,12 @@ namespace regen {
 		void setBones(const std::list<ref_ptr<AnimationNode> > &bones);
 
 		/**
-		 * @return the bone list
-		 */
-		auto *bones()  { return (Mat4f *) boneMatrices_->clientDataPtr(); }
-
-		/**
 		 * @return maximum number of weights influencing a single bone.
 		 */
 		auto numBoneWeights() const  { return numBoneWeights_->getVertex(0); }
+
+		// override
+		void animate(GLdouble dt) override;
 
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;
@@ -57,4 +55,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* __BONES__H_ */
+#endif /* REGEN_BONES_H */

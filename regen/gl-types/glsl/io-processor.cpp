@@ -191,7 +191,7 @@ IOProcessor::InputOutput IOProcessor::getUniformIO(const NamedShaderInput &unifo
 	io.interpolation = "";
 	io.ioType = "uniform";
 	io.value = "";
-	GLuint numElements = uniform.in_->elementCount() * uniform.in_->numInstances();
+	GLuint numElements = uniform.in_->numArrayElements() * uniform.in_->numInstances();
 	io.numElements = (numElements > 1 || uniform.in_->forceArray()) ?
 					 REGEN_STRING(numElements) : "";
 	if (uniform.in_->numInstances()>1) {
@@ -247,7 +247,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		} else {
 			io.dataType = it->type_;
 		}
-		GLuint numElements = in->elementCount() * in->numInstances();
+		GLuint numElements = in->numArrayElements() * in->numInstances();
 		io.numElements = (numElements > 1 || in->forceArray()) ?
 						 REGEN_STRING(numElements) : "";
 		if (in->numInstances() > 1) {

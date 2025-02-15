@@ -59,13 +59,13 @@ namespace regen {
 		/**
 		 * Close animation thread.
 		 */
-		void close(GLboolean blocking = GL_FALSE);
+		void close(bool blocking = false);
 
 		/**
 		 * Pause glAnimations.
 		 * Can be resumed by call to resume().
 		 */
-		void pause(GLboolean blocking = GL_FALSE);
+		void pause(bool blocking = false);
 
 		/**
 		 * Clear all animations.
@@ -85,7 +85,17 @@ namespace regen {
 		/**
 		 * @return the set of glAnimations.
 		 */
-		auto& glAnimations() { return glAnimations_; }
+		auto& graphicsAnimations() { return gpuAnimations_; }
+
+		/**
+		 * @return the set of animations.
+		 */
+		auto& synchronizedAnimations() { return synchronizedAnimations_; }
+
+		/**
+		 * @return the set of unsynchronized animations.
+		 */
+		auto& unsynchronizedAnimations() { return unsynchronizedAnimations_; }
 
 		/**
 		 * Set the root state.
@@ -103,8 +113,10 @@ namespace regen {
 
 		boost::posix_time::ptime time_;
 		boost::posix_time::ptime lastTime_;
-		std::vector<Animation *> animations_;
-		std::set<Animation *> glAnimations_;
+		std::vector<Animation *> synchronizedAnimations_;
+		std::vector<Animation *> unsynchronizedAnimations_;
+		std::vector<boost::thread> unsynchronizedThreads_;
+		std::set<Animation *> gpuAnimations_;
 		ref_ptr<State> rootState_;
 		std::map<std::string, ref_ptr<SpatialIndex>> spatialIndices_;
 
@@ -112,27 +124,30 @@ namespace regen {
 		boost::thread::id glThreadID_;
 		boost::thread::id removeThreadID_;
 		boost::thread::id addThreadID_;
-		GLboolean animInProgress_;
-		GLboolean glInProgress_;
-		GLboolean removeInProgress_;
-		GLboolean addInProgress_;
-		GLboolean animChangedDuringLoop_;
-		GLboolean glChangedDuringLoop_;
-		GLboolean closeFlag_;
-		GLboolean pauseFlag_;
+		bool animInProgress_;
+		bool glInProgress_;
+		bool removeInProgress_;
+		bool addInProgress_;
+		bool animChangedDuringLoop_;
+		bool glChangedDuringLoop_;
+		bool closeFlag_;
+		bool pauseFlag_;
 
 		boost::mutex stepMut_;
 		boost::mutex frameMut_;
+		boost::mutex unsynchronizedMut_;
 		boost::condition_variable stepCond_;
 		boost::condition_variable frameCond_;
-		GLboolean hasNextFrame_;
-		GLboolean hasNextStep_;
+		std::atomic<bool> hasNextFrame_ = false;
+		std::atomic<bool> hasNextStep_ = false;
 
 		AnimationManager();
 
 		~AnimationManager() override;
 
 		void run();
+
+		void runUnsynchronized(Animation *animation) const;
 
 		void nextStep();
 

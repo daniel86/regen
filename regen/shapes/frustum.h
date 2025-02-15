@@ -91,7 +91,7 @@ namespace regen {
 		 * @brief Get the direction of this frustum
 		 * @return The direction
 		 */
-		const Vec3f &direction() const;
+		Vec3f direction() const;
 
 		// override BoundingShape::closestPointOnSurface
 		Vec3f closestPointOnSurface(const Vec3f &point) const final;

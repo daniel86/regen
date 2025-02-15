@@ -28,6 +28,6 @@ void MotionBlur::disable(RenderState *rs) {
 	State::disable(rs);
 
     // remember last view projection
-    auto m = camera_->viewProjection();
-    lastViewProjectionMat_->setUniformData(m->getVertex(0));
+    auto m = camera_->viewProjection()->getVertex(0);
+    lastViewProjectionMat_->setVertex(0, m.r);
 }

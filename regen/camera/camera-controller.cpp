@@ -12,7 +12,7 @@
 using namespace regen;
 
 CameraController::CameraController(const ref_ptr<Camera> &cam)
-		: Animation(GL_TRUE, GL_TRUE),
+		: Animation(false, true),
 		  CameraControllerBase(cam),
 		  cameraMode_(FIRST_PERSON),
 		  meshDistance_(10.0f),
@@ -31,7 +31,7 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 	matVal_ = Mat4f::identity();
 	#define REGEN_ORIENT_THRESHOLD_ 0.1
 	orientThreshold_ = 0.5 * M_PI + REGEN_ORIENT_THRESHOLD_;
-	pos_ = cam->position()->getVertex(0);
+	pos_ = cam->position()->getVertex(0).r;
 }
 
 void CameraController::setAttachedTo(
@@ -39,7 +39,7 @@ void CameraController::setAttachedTo(
 		const ref_ptr<Mesh> &mesh) {
 	attachedToTransform_ = target;
 	attachedToMesh_ = mesh;
-	pos_ = target->getVertex(0).position();
+	pos_ = target->getVertex(0).r.position();
 }
 
 void CameraController::stepForward(const GLfloat &v) {
@@ -183,36 +183,23 @@ void CameraController::animate(GLdouble dt) {
 		stepRight(moveAmount_ * dt);
 	}
 
-	lock();
 	{
 		// TODO: allow setting hasUpdated_ to false to avoid unnecessary culling computations
 		//         but the kinematic controller may change camera position in applyStep below though
 		//         e.g. character stands on a moving platform.
 		//if (hasOrientationChanged || isMoving_)
-		hasUpdated_ = true;
 		applyStep(dt, step_);
 		updateModel();
 		updateCameraPosition();
 		updateCameraOrientation();
 		computeMatrices(camPos_, camDir_);
-	}
-	unlock();
-	lastOrientation_ = orientation;
-}
-
-void CameraController::glAnimate(RenderState *rs, GLdouble dt) {
-	if(!hasUpdated_) return;
-	lock();
-	{
-		hasUpdated_ = false;
 		if (attachedToTransform_.get()) {
 			attachedToTransform_->setVertex(0, matVal_);
 		}
 		updateCamera(camPos_, camDir_, dt);
 	}
-	unlock();
+	lastOrientation_ = orientation;
 }
-
 
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const CameraCommand &command) {

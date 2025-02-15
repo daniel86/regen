@@ -6,8 +6,6 @@
  */
 
 #include <regen/states/state-configurer.h>
-#include <regen/meshes/primitives/rectangle.h>
-#include <regen/utility/string-util.h>
 
 #include "filter.h"
 
@@ -260,8 +258,8 @@ void FilterSequence::enable(RenderState *rs) {
 		FBO *fbo = f->output()->fbo_.get();
 		rs->drawFrameBuffer().push(fbo->id());
 		rs->viewport().push(fbo->glViewport());
-		viewport_->setVertex(0, fbo->viewport()->getVertex(0));
-		inverseViewport_->setVertex(0, fbo->inverseViewport()->getVertex(0));
+		viewport_->setVertex(0, fbo->viewport()->getVertex(0).r);
+		inverseViewport_->setVertex(0, fbo->inverseViewport()->getVertex(0).r);
 
 		f->enable(rs);
 		f->disable(rs);

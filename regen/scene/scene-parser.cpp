@@ -56,6 +56,8 @@ SceneParser::SceneParser(
 		  inputProvider_(inputProvider) {
 	resources_ = ref_ptr<ResourceManager>::alloc();
 	physics_ = ref_ptr<BulletPhysics>::alloc();
+	physics_->setAnimationName("BulletPhysics");
+	physics_->startAnimation();
 	init();
 	loadShapes();
 }

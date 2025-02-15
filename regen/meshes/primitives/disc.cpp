@@ -85,6 +85,18 @@ void Disc::generateLODLevel(const Config &cfg,
 							GLuint indexOffset) {
 	const float angleStep = 2.0f * M_PI / lodLevel;
 
+	auto indices = indices_->mapClientData<GLuint>(ShaderData::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_nor = (cfg.isNormalRequired ?
+		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec3f>::nullData());
+	auto v_tan = (cfg.isTangentRequired ?
+		tan_->mapClientData<Vec4f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec4f>::nullData());
+	auto v_texco = (cfg.texcoMode == TEXCO_MODE_UV ?
+		texco_->mapClientData<Vec2f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec2f>::nullData());
+
 	GLuint vertexIndex = vertexOffset;
 	for (GLuint i = 0; i <= lodLevel; ++i) {
 		float angle = i * angleStep;
@@ -93,32 +105,30 @@ void Disc::generateLODLevel(const Config &cfg,
 
 		Vec3f pos(cfg.discRadius * cosAngle, 0.0f, cfg.discRadius * sinAngle);
 		pos = cfg.posScale * pos;
-
-		pos_->setVertex(vertexIndex, pos);
+		v_pos.w[vertexIndex] = pos;
 
 		if (cfg.isNormalRequired) {
-			nor_->setVertex(vertexIndex, Vec3f(0.0f, 1.0f, 0.0f));
+			v_nor.w[vertexIndex] = Vec3f(0.0f, 1.0f, 0.0f);
 		}
 
 		if (cfg.texcoMode == TEXCO_MODE_UV) {
 			Vec2f texco(pos.x / cfg.discRadius + 0.5f, pos.z / cfg.discRadius + 0.5f);
-			((ShaderInput2f *) texco_.get())->setVertex(vertexIndex, texco * cfg.texcoScale);
+			v_texco.w[vertexIndex] = texco * cfg.texcoScale;
 		}
 
 		if (cfg.isTangentRequired) {
-			tan_->setVertex(vertexIndex, Vec4f(-sinAngle, 0.0f, cosAngle, 1.0f));
+			v_tan.w[vertexIndex] = Vec4f(-sinAngle, 0.0f, cosAngle, 1.0f);
 		}
 
 		++vertexIndex;
 	}
 
 	// Generate indices
-	auto *indices = (GLuint *) indices_->clientDataPtr();
 	GLuint index = indexOffset;
 	for (GLuint i = 0; i < lodLevel; ++i) {
-		indices[index++] = vertexOffset + lodLevel;
-		indices[index++] = vertexOffset + i + 1;
-		indices[index++] = vertexOffset + i;
+		indices.w[index++] = vertexOffset + lodLevel;
+		indices.w[index++] = vertexOffset + i + 1;
+		indices.w[index++] = vertexOffset + i;
 	}
 }
 

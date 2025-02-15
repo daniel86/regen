@@ -17,13 +17,12 @@ using namespace regen;
 GLuint Animation::ANIMATION_STARTED = EventObject::registerEvent("animationStarted");
 GLuint Animation::ANIMATION_STOPPED = EventObject::registerEvent("animationStopped");
 
-Animation::Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart)
+Animation::Animation(bool isGPUAnimation, bool isCPUAnimation)
 		: EventObject(),
-		  useGLAnimation_(useGLAnimation),
-		  useAnimation_(useAnimation),
-		  isRunning_(GL_FALSE) {
+		  isGPUAnimation_(isGPUAnimation),
+		  isCPUAnimation_(isCPUAnimation),
+		  isRunning_(false) {
 	animationState_ = ref_ptr<State>::alloc();
-	if (autoStart) startAnimation();
 }
 
 Animation::~Animation() {
@@ -42,7 +41,7 @@ Animation::~Animation() {
 
 void Animation::startAnimation() {
 	if (isRunning_) return;
-	isRunning_ = GL_TRUE;
+	isRunning_ = true;
 
 	unqueueEmit(ANIMATION_STOPPED);
 	queueEmit(ANIMATION_STARTED);
@@ -55,7 +54,7 @@ void Animation::stopAnimation() {
 	unqueueEmit(ANIMATION_STARTED);
 	queueEmit(ANIMATION_STOPPED);
 	AnimationManager::get().removeAnimation(this);
-	isRunning_ = GL_FALSE;
+	isRunning_ = false;
 }
 
 GLboolean Animation::try_lock() { return mutex_.try_lock(); }

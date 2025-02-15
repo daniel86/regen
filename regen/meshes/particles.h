@@ -175,6 +175,7 @@ namespace regen {
 		//ref_ptr<BoundingBoxCounter> boundingBoxCounter_;
 		std::list<ShaderInputLocation> particleAttributes_;
 		ref_ptr<ShaderState> updateState_;
+		VAO particleVAO_;
 
 		GLuint numParticles_;
 		GLuint maxEmits_;

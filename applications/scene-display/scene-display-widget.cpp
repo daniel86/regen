@@ -40,7 +40,7 @@ using namespace std;
 class SceneLoaderAnimation : public Animation {
 public:
 	SceneLoaderAnimation(SceneDisplayWidget *widget, const string &sceneFile)
-			: Animation(GL_TRUE, GL_FALSE),
+			: Animation(true, false),
 			  widget_(widget), sceneFile_(sceneFile) {
 	}
 
@@ -58,16 +58,10 @@ public:
 
 class GameTimeAnimation : public Animation {
 public:
-	GameTimeAnimation(SceneDisplayWidget *widget)
-			: Animation(GL_FALSE, GL_TRUE), widget_(widget) {
-	}
+	explicit GameTimeAnimation(SceneDisplayWidget *widget)
+			: Animation(false, true), widget_(widget) {}
 
-	void glAnimate(RenderState *rs, GLdouble dt) override {}
-
-	void animate(GLdouble dt) override {
-		widget_->updateGameTimeWidget();
-	}
-
+	void animate(GLdouble dt) override { widget_->updateGameTimeWidget(); }
 protected:
 	SceneDisplayWidget *widget_;
 };
@@ -79,7 +73,7 @@ protected:
 class SceneDisplayMouseHandler : public EventHandler, public Animation {
 public:
 	explicit SceneDisplayMouseHandler(Application *app)
-			: EventHandler(), Animation(GL_TRUE, GL_FALSE), app_(app) {
+			: EventHandler(), Animation(true, false), app_(app) {
 	}
 
 	void call(EventObject *evObject, EventData *data) override {
@@ -230,8 +224,8 @@ void SceneDisplayWidget::toggleOnCameraTransform() {
 	if (cameraController_.get()) {
 		// update the camera position
 		cameraController_->setTransform(
-				mainCamera_->position()->getVertex(0),
-				mainCamera_->direction()->getVertex(0));
+				mainCamera_->position()->getVertex(0).r,
+				mainCamera_->direction()->getVertex(0).r);
 		cameraController_->startAnimation();
 		cameraController_->animate(0.0);
 	}
@@ -246,10 +240,13 @@ double SceneDisplayWidget::getAnchorTime(
 
 void SceneDisplayWidget::activateAnchor() {
 	auto &anchor = anchors_[anchorIndex_];
-	auto &camPos = mainCamera_->position()->getVertex(0);
-	auto &camDir = mainCamera_->direction()->getVertex(0);
-	auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos, camDir);
-	double dt = getAnchorTime(anchor->position(), camPos);
+	auto camPos = mainCamera_->position()->getVertex(0);
+	auto camDir = mainCamera_->direction()->getVertex(0);
+	auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos.r, camDir.r);
+	double dt = getAnchorTime(anchor->position(), camPos.r);
+	camPos.unmap();
+	camDir.unmap();
+
 	anchorAnim_ = ref_ptr<KeyFrameController>::alloc(mainCamera_);
 	anchorAnim_->setRepeat(GL_FALSE);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
@@ -282,8 +279,8 @@ void SceneDisplayWidget::nextAnchor() {
 void SceneDisplayWidget::playAnchor() {
 	if (anchors_.empty()) return;
 	if (!mainCamera_.get()) return;
-	auto &camPos = mainCamera_->position()->getVertex(0);
-	auto &camDir = mainCamera_->direction()->getVertex(0);
+	auto camPos = mainCamera_->position()->getVertex(0);
+	auto camDir = mainCamera_->direction()->getVertex(0);
 	if (anchorAnim_.get()) {
 		anchorAnim_->stopAnimation();
 		anchorAnim_->updateCamera(anchorAnim_->cameraPosition(), anchorAnim_->cameraDirection(), 0.0);
@@ -298,13 +295,15 @@ void SceneDisplayWidget::playAnchor() {
 	//anchorAnim_->setSkipFirstFrameOnLoop(GL_TRUE);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
-	anchorAnim_->push_back(camPos, camDir, 0.0);
-	Vec3f lastPos = camPos;
+	anchorAnim_->push_back(camPos.r, camDir.r, 0.0);
+	Vec3f lastPos = camPos.r;
 	for (auto &anchor: anchors_) {
 		double dt = getAnchorTime(anchor->position(), lastPos);
 		anchorAnim_->push_back(anchor, dt * anchorTimeScale_);
 		lastPos = anchor->position();
 	}
+	camPos.unmap();
+	camDir.unmap();
 	anchorAnim_->animate(0.0);
 	anchorAnim_->startAnimation();
 }
@@ -409,6 +408,7 @@ void SceneDisplayWidget::loadScene(const string &sceneFile) {
 		inputDialog_->hide();
 	}
 	loadAnim_ = ref_ptr<SceneLoaderAnimation>::alloc(this, sceneFile);
+	loadAnim_->startAnimation();
 }
 
 /////////////////////////////
@@ -508,6 +508,7 @@ void SceneDisplayWidget::handleCameraConfiguration(
 					x->getValue<GLdouble>("dt", 0.0)
 			);
 		}
+		keyFramesCamera->startAnimation();
 		animations_.emplace_back(keyFramesCamera);
 	}
 	else {
@@ -563,6 +564,7 @@ void SceneDisplayWidget::handleCameraConfiguration(
 		// make sure camera transforms are updated in first few frames
 		cameraController_->animate(0.0);
 		cameraController_->glAnimate(RenderState::get(), 0.0);
+		cameraController_->startAnimation();
 	}
 
 	// read anchor points
@@ -641,6 +643,8 @@ static void handleAssetController(
 				animalController->addSpecial(x->getValue("name"));
 			}
 		}
+
+		animalController->startAnimation();
 	} else {
 		REGEN_WARN("Unhandled controller type in '" << animationNode->getDescription() << "'.");
 	}
@@ -878,6 +882,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 				ref_ptr<TextureMappedText>::dynamicCast(*fpsWidget->begin());
 		if (text.get() != nullptr) {
 			fbsWidgetUpdater_ = ref_ptr<UpdateFPS>::alloc(text);
+			fbsWidgetUpdater_->startAnimation();
 			REGEN_INFO("FPS widget found.");
 		} else {
 			fbsWidgetUpdater_ = ref_ptr<Animation>();
@@ -903,10 +908,12 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	// add mouse event handler
 	auto mouseEventHandler = ref_ptr<SceneDisplayMouseHandler>::alloc(app_);
 	mouseEventHandler->setAnimationName("mouse");
+	mouseEventHandler->startAnimation();
 	app_->connect(Application::BUTTON_EVENT, mouseEventHandler);
 	eventHandler_.emplace_back(mouseEventHandler);
 
 	timeWidgetAnimation_ = ref_ptr<GameTimeAnimation>::alloc(this);
+	timeWidgetAnimation_->startAnimation();
 	animations_.emplace_back(timeWidgetAnimation_);
 	loadAnim_ = ref_ptr<Animation>();
 	AnimationManager::get().setSpatialIndices(spatialIndices_);

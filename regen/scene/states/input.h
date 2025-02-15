@@ -28,16 +28,17 @@ namespace regen {
 		 * @param timeScale scale for dt values.
 		 * @param name optional timer name.
 		 */
-		TimerInput(GLfloat timeScale, const std::string &name = "time")
+		explicit TimerInput(GLfloat timeScale, const std::string &name = "time")
 				: ShaderInput1f(name),
-				  Animation(GL_TRUE, GL_FALSE, GL_TRUE),
+				  Animation(false, true),
 				  timeScale_(timeScale) {
 			setUniformData(0.0f);
 		}
 
 		// Override
-		void glAnimate(RenderState *rs, GLdouble dt) override {
-			setVertex(0, getVertex(0) + dt * timeScale_);
+		void animate(GLdouble dt) override {
+			auto mapped = mapClientVertex<float>(ShaderData::READ | ShaderData::WRITE, 0);
+			mapped.w = mapped.r + static_cast<float>(dt) * timeScale_;
 		}
 
 	private:
@@ -56,9 +57,10 @@ namespace regen {
 		class InputStateProvider : public StateProcessor {
 		public:
 			template<class T>
-			static void setInput(SceneInputNode &input, T *values, unsigned int count) {
+			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
+				auto v_values = shaderInput->mapClientData<T>(ShaderData::WRITE);
 				for (unsigned int i = 0; i < count; ++i) {
-					values[i] = input.getValue<T>("value", T(1));
+					v_values.w[i] = input.getValue<T>("value", T(1));
 				}
 				for (auto &child : input.getChildren()) {
 					if (child->getCategory() == "set") {
@@ -66,7 +68,7 @@ namespace regen {
 						ValueGenerator<T> generator(child.get(), indices.size(),
 													child->getValue<T>("value", T(1)));
 						for (auto it = indices.begin(); it != indices.end(); ++it) {
-							values[*it] = generator.next();
+							v_values.w[*it] = generator.next();
 						}
 					} else {
 						REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
@@ -74,32 +76,31 @@ namespace regen {
 				}
 			}
 
-			static void setInput(SceneInputNode &input, ref_ptr<ShaderInput> &in, unsigned int count) {
+			static void setInput(SceneInputNode &input, ShaderInput *in, unsigned int count) {
 				if (input.getChildren().empty()) return;
-				in->setInstanceData(count, 1, nullptr);
 				switch (in->dataType()) {
 					case GL_FLOAT:
 						switch (in->valsPerElement()) {
-						case 1: setInput(input, (GLfloat *) in->clientDataPtr(), count); break;
-						case 2: setInput(input, (Vec2f *) in->clientDataPtr(), count); break;
-						case 3: setInput(input, (Vec3f *) in->clientDataPtr(), count); break;
-						case 4: setInput(input, (Vec4f *) in->clientDataPtr(), count); break;
+						case 1: setInput<float>(input, in, count); break;
+						case 2: setInput<Vec2f>(input, in, count); break;
+						case 3: setInput<Vec3f>(input, in, count); break;
+						case 4: setInput<Vec4f>(input, in, count); break;
 						}
 						break;
 					case GL_INT:
 						switch (in->valsPerElement()) {
-						case 1: setInput(input, (GLint *) in->clientDataPtr(), count); break;
-						case 2: setInput(input, (Vec2i *) in->clientDataPtr(), count); break;
-						case 3: setInput(input, (Vec3i *) in->clientDataPtr(), count); break;
-						case 4: setInput(input, (Vec4i *) in->clientDataPtr(), count); break;
+						case 1: setInput<int>(input, in, count); break;
+						case 2: setInput<Vec2i>(input, in, count); break;
+						case 3: setInput<Vec3i>(input, in, count); break;
+						case 4: setInput<Vec4i>(input, in, count); break;
 						}
 						break;
 					case GL_UNSIGNED_INT:
 						switch (in->valsPerElement()) {
-						case 1: setInput(input, (GLuint *) in->clientDataPtr(), count); break;
-						case 2: setInput(input, (Vec2ui *) in->clientDataPtr(), count); break;
-						case 3: setInput(input, (Vec3ui *) in->clientDataPtr(), count); break;
-						case 4: setInput(input, (Vec4ui *) in->clientDataPtr(), count); break;
+						case 1: setInput<unsigned int>(input, in, count); break;
+						case 2: setInput<Vec2ui>(input, in, count); break;
+						case 3: setInput<Vec3ui>(input, in, count); break;
+						case 4: setInput<Vec4ui>(input, in, count); break;
 						}
 						break;
 					default:
@@ -155,8 +156,13 @@ namespace regen {
 						return {};
 					}
 					in = in_opt.value().in;
-					auto count = (in->isVertexAttribute() ? in->numVertices() : in->numInstances());
-					setInput(input, in, count);
+					if (in->isVertexAttribute()) {
+						in->setVertexData(in->numVertices(), nullptr);
+						setInput(input, in.get(), in->numVertices());
+					} else {
+						in->setInstanceData(in->numInstances(), 1, nullptr);
+						setInput(input, in.get(), in->numInstances());
+					}
 				}
 				else if (input.hasAttribute("mesh")) {
 					auto meshVec = parser->getResources()->getMesh(parser, input.getValue("mesh"));
@@ -175,7 +181,9 @@ namespace regen {
 						return {};
 					}
 					in = in_opt.value().in;
-					setInput(input, in, getNumInstances(mesh));
+					auto numInstances = getNumInstances(mesh);
+					in->setInstanceData(numInstances, 1, nullptr);
+					setInput(input, in.get(), numInstances);
 				}
 				else if (input.hasAttribute("ubo")) {
 					auto ubo = parser->getResources()->getUBO(parser, input.getValue("ubo"));
@@ -189,7 +197,9 @@ namespace regen {
 					auto type = input.getValue<std::string>("type", "");
 					if (type == "time") {
 						auto scale = input.getValue<GLfloat>("scale", 1.0f);
-						in = ref_ptr<TimerInput>::alloc(scale);
+						auto timer = ref_ptr<TimerInput>::alloc(scale);
+						in = timer;
+						timer->startAnimation();
 					} else if (type == "int") {
 						in = createShaderInputTyped<ShaderInput1i, GLint>(parser, input, state, GLint(0));
 					} else if (type == "ivec2") {
@@ -295,9 +305,11 @@ namespace regen {
 
 				// Handle Attribute values.
 				if (isInstanced || isAttribute) {
-					T *values = (T *) v->clientDataPtr();
-					for (GLuint i = 0; i < count; i += 1) values[i] = defaultValue;
-					setInput(input, values, count);
+					auto values = v->mapClientDataRaw(ShaderData::WRITE);
+					auto typedValues = (T*)values.w;
+					for (GLuint i = 0; i < count; i += 1) typedValues[i] = defaultValue;
+					values.unmap();
+					setInput(input, v.get(), count);
 				}
 
 				// Load
@@ -309,8 +321,8 @@ namespace regen {
 								m->getValue<GLdouble>("dt", 1.0)
 						);
 					}
-
 					state->attach(inputAnimation);
+					inputAnimation->startAnimation();
 				}
 
 				return v;

@@ -7,7 +7,6 @@
 
 #include <GL/glew.h>
 
-#include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
 #include <regen/gl-types/glsl/includer.h>
@@ -58,21 +57,21 @@ Application::Application(const int &argc, const char **argv)
 	isMouseEntered_ = ref_ptr<ShaderInput1i>::alloc("mouseEntered");
 	isMouseEntered_->setUniformData(0);
 
-	requiredExt_.push_back("GL_VERSION_3_3");
-	requiredExt_.push_back("GL_ARB_copy_buffer");
-	requiredExt_.push_back("GL_ARB_framebuffer_object");
-	requiredExt_.push_back("GL_ARB_instanced_arrays");
-	requiredExt_.push_back("GL_ARB_texture_float");
-	requiredExt_.push_back("GL_ARB_texture_multisample");
-	requiredExt_.push_back("GL_ARB_viewport_array");
-	requiredExt_.push_back("GL_ARB_uniform_buffer_object");
-	requiredExt_.push_back("GL_ARB_vertex_array_object");
-	requiredExt_.push_back("GL_ARB_map_buffer_range");
-	requiredExt_.push_back("GL_EXT_texture_filter_anisotropic");
+	requiredExt_.emplace_back("GL_VERSION_3_3");
+	requiredExt_.emplace_back("GL_ARB_copy_buffer");
+	requiredExt_.emplace_back("GL_ARB_framebuffer_object");
+	requiredExt_.emplace_back("GL_ARB_instanced_arrays");
+	requiredExt_.emplace_back("GL_ARB_texture_float");
+	requiredExt_.emplace_back("GL_ARB_texture_multisample");
+	requiredExt_.emplace_back("GL_ARB_viewport_array");
+	requiredExt_.emplace_back("GL_ARB_uniform_buffer_object");
+	requiredExt_.emplace_back("GL_ARB_vertex_array_object");
+	requiredExt_.emplace_back("GL_ARB_map_buffer_range");
+	requiredExt_.emplace_back("GL_EXT_texture_filter_anisotropic");
 
-	optionalExt_.push_back("GL_ARB_seamless_cube_map");
-	optionalExt_.push_back("GL_ARB_tessellation_shader");
-	optionalExt_.push_back("GL_ARB_texture_buffer_range");
+	optionalExt_.emplace_back("GL_ARB_seamless_cube_map");
+	optionalExt_.emplace_back("GL_ARB_tessellation_shader");
+	optionalExt_.emplace_back("GL_ARB_texture_buffer_range");
 
 	srand(time(0));
 }
@@ -127,24 +126,24 @@ void Application::mouseLeave() {
 	queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 
-const ref_ptr<ShaderInput1i> Application::isMouseEntered() const {
+ref_ptr<ShaderInput1i> Application::isMouseEntered() const {
 	return isMouseEntered_;
 }
 
 void Application::updateMousePosition() {
-	const Vec2f &mousePosition = mousePosition_->getVertex(0);
-	const Vec2i &viewport = windowViewport_->getVertex(0);
+	auto mousePosition = mousePosition_->getVertex(0);
+	auto viewport = windowViewport_->getVertex(0);
 	// mouse position in range [0,1] within viewport
 	mouseTexco_->setVertex(0, Vec2f(
-			mousePosition.x / (GLfloat) viewport.x,
-			1.0 - mousePosition.y / (GLfloat) viewport.y));
+			mousePosition.r.x / (GLfloat) viewport.r.x,
+			1.0 - mousePosition.r.y / (GLfloat) viewport.r.y));
 }
 
 void Application::mouseMove(const Vec2i &pos) {
 	boost::posix_time::ptime time(
 			boost::posix_time::microsec_clock::local_time());
-	GLint dx = pos.x - mousePosition_->getVertex(0).x;
-	GLint dy = pos.y - mousePosition_->getVertex(0).y;
+	GLint dx = pos.x - mousePosition_->getVertex(0).r.x;
+	GLint dy = pos.y - mousePosition_->getVertex(0).r.y;
 	mousePosition_->setVertex(0, Vec2f(pos.x, pos.y));
 	updateMousePosition();
 
@@ -337,8 +336,8 @@ void Application::updateTime() {
 	}
 	boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
 	auto dt = (t - lastTime_).total_milliseconds();
-	timeDelta_->setUniformData((double)dt);
-	timeSeconds_->setUniformData(t.time_of_day().total_microseconds()/1e+6);
+	timeDelta_->setVertex(0, (double)dt);
+	timeSeconds_->setVertex(0, t.time_of_day().total_microseconds()/1e+6);
 	lastTime_ = t;
 	worldTime_.p_time += boost::posix_time::milliseconds(static_cast<long>(dt * worldTime_.scale));
 }
@@ -354,9 +353,9 @@ void Application::setWorldTime(float timeInSeconds) {
 }
 
 void Application::drawGL() {
-	renderTree_->render(timeDelta_->getVertex(0));
+	renderTree_->render(timeDelta_->getVertex(0).r);
 }
 
 void Application::updateGL() {
-	renderTree_->postRender(timeDelta_->getVertex(0));
+	renderTree_->postRender(timeDelta_->getVertex(0).r);
 }

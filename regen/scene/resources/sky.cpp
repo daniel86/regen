@@ -77,6 +77,8 @@ ref_ptr<Sky> SkyResource::createResource(
 	parser->putState(input.getName() + "-sun", sky->sun());
 	parser->putState(input.getName() + "-moon", sky->moon());
 
+	sky->startAnimation();
+
 	return sky;
 }
 

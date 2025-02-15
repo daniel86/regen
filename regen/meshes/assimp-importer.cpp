@@ -15,19 +15,9 @@
 #include <regen/animations/animation-manager.h>
 #include <regen/config.h>
 
-#ifdef HAS_OLD_ASSIMP_STRUCTURE
-#include <assimp/assimp.h>
-#include <assimp/aiTypes.h>
-#include <assimp/aiMesh.h>
-#include <assimp/aiScene.h>
-#include <assimp/aiPostProcess.h>
-#else
-
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#endif
 
 #include <IL/il.h>
 #include <IL/ilu.h>
@@ -193,6 +183,7 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 						acos(assimpLight->mAngleOuterCone) * 360.0 / (2.0 * M_PI));
 				light->set_innerConeAngle(
 						acos(assimpLight->mAngleInnerCone) * 360.0 / (2.0 * M_PI));
+				light->startAnimation();
 				setLightRadius(assimpLight, light);
 				break;
 			}
@@ -270,7 +261,6 @@ static void loadTexture(
 		catch (textures::Error &ie) {
 			// try video texture
 			ref_ptr<VideoTexture> vid = ref_ptr<VideoTexture>::alloc();
-			vid->stopAnimation();
 			try {
 				vid->set_file(filePath);
 				tex = vid;
@@ -637,15 +627,15 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_DIFFUSE, &aiCol)) {
-			mat->diffuse()->setUniformData(aiToOgle3f(&aiCol));
+			mat->diffuse()->setVertex(0, aiToOgle3f(&aiCol));
 		}
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_SPECULAR, &aiCol)) {
-			mat->specular()->setUniformData(aiToOgle3f(&aiCol));
+			mat->specular()->setVertex(0, aiToOgle3f(&aiCol));
 		}
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_AMBIENT, &aiCol)) {
-			mat->ambient()->setUniformData(aiToOgle3f(&aiCol));
+			mat->ambient()->setVertex(0, aiToOgle3f(&aiCol));
 		}
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_EMISSIVE, &aiCol)) {
@@ -656,7 +646,8 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		// construct the final 'destination color' for a particular position in the screen buffer.
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_TRANSPARENT, &aiCol)) {
 			// not supposed to be used like this but for now i think this is ok...
-			mat->alpha()->setUniformData(mat->alpha()->getVertex(0) * (aiCol.r + aiCol.g + aiCol.b) / 3.0f);
+			auto alpha = mat->alpha()->getVertex(0).r;
+			mat->alpha()->setVertex(0, alpha * (aiCol.r + aiCol.g + aiCol.b) / 3.0f);
 		}
 
 		maxElements = 1;
@@ -664,7 +655,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		// This is the exponent of the phong shading equation.
 		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_SHININESS,
 									&floatVal, &maxElements) == AI_SUCCESS) {
-			mat->shininess()->setUniformData(floatVal);
+			mat->shininess()->setVertex(0, floatVal);
 		}
 		maxElements = 1;
 		// Defines the strength of the specular highlight.
@@ -682,7 +673,8 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		// Defines the base opacity of the material
 		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_OPACITY,
 									&floatVal, &maxElements) == AI_SUCCESS) {
-			mat->alpha()->setUniformData(mat->alpha()->getVertex(0) * floatVal);
+			auto alpha = mat->alpha()->getVertex(0).r;
+			mat->alpha()->setVertex(0, alpha * floatVal);
 		}
 
 		// Index of refraction of the material. This is used by some shading models,
@@ -692,7 +684,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		maxElements = 1;
 		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_REFRACTI,
 									&floatVal, &maxElements) == AI_SUCCESS) {
-			mat->refractionIndex()->setUniformData(floatVal);
+			mat->refractionIndex()->setVertex(0, floatVal);
 		}
 
 #ifdef AI_MATKEY_COOK_TORRANCE_PARAM
@@ -765,7 +757,7 @@ vector<ref_ptr<Mesh> > AssetImporter::loadAllMeshes(
 }
 
 vector<ref_ptr<Mesh> > AssetImporter::loadMeshes(
-		const Mat4f &transform, VBO::Usage usage, vector<GLuint> meshIndices) {
+		const Mat4f &transform, VBO::Usage usage, const vector<GLuint> &meshIndices) {
 	vector<ref_ptr<Mesh> > out(meshIndices.size());
 	GLuint currentIndex = 0;
 
@@ -778,7 +770,7 @@ void AssetImporter::loadMeshes(
 		const struct aiNode &node,
 		const Mat4f &transform,
 		VBO::Usage usage,
-		vector<GLuint> meshIndices,
+		const vector<GLuint> &meshIndices,
 		GLuint &currentIndex,
 		vector<ref_ptr<Mesh> > &out) {
 	const auto *aiTransform = (const aiMatrix4x4 *) &transform.x;
@@ -812,10 +804,7 @@ void AssetImporter::loadMeshes(
 	}
 }
 
-ref_ptr<Mesh> AssetImporter::loadMesh(
-		const struct aiMesh &mesh, const Mat4f &transform,
-		VBO::Usage usage) {
-	GL_ERROR_LOG();
+ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform, VBO::Usage usage) {
 	ref_ptr<Mesh> meshState = ref_ptr<Mesh>::alloc(GL_TRIANGLES, usage);
 	stringstream s;
 
@@ -852,17 +841,18 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 	{
 		ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
 		indices->setVertexData(numIndices);
-		auto *faceIndices = (GLuint *) indices->clientDataPtr();
+		auto faceIndices = indices->mapClientData<GLuint>(ShaderData::WRITE);
 		GLuint index = 0, maxIndex = 0;
 		for (GLuint t = 0u; t < mesh.mNumFaces; ++t) {
 			const struct aiFace *face = &mesh.mFaces[t];
 			if (face->mNumIndices != numFaceIndices) { continue; }
 			for (GLuint n = 0; n < face->mNumIndices; ++n) {
-				faceIndices[index] = face->mIndices[n];
+				faceIndices.w[index] = face->mIndices[n];
 				if (face->mIndices[n] > maxIndex) { maxIndex = face->mIndices[n]; }
 				index += 1;
 			}
 		}
+		faceIndices.unmap();
 		meshState->setIndices(indices, maxIndex);
 	}
 
@@ -873,13 +863,15 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 	GLuint numVertices = mesh.mNumVertices;
 	{
 		pos->setVertexData(numVertices);
+		auto v_pos = pos->mapClientData<Vec3f>(ShaderData::WRITE);
 		for (GLuint n = 0; n < numVertices; ++n) {
 			aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
 			Vec3f &v = *((Vec3f *) &aiv.x);
-			pos->setVertex(n, v);
+			v_pos.w[n] = v;
 			min_.setMin(v);
 			max_.setMax(v);
 		}
+		v_pos.unmap();
 		meshState->setInput(pos);
 	}
 	meshState->set_bounds(min_, max_);
@@ -887,10 +879,12 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 	// per vertex normals
 	if (mesh.HasNormals()) {
 		nor->setVertexData(numVertices);
+		auto v_nor = nor->mapClientData<Vec3f>(ShaderData::WRITE);
 		for (GLuint n = 0; n < numVertices; ++n) {
 			Vec3f &v = *((Vec3f *) &mesh.mNormals[n].x);
-			nor->setVertex(n, v);
+			v_nor.w[n] = v;
 		}
+		v_nor.unmap();
 		meshState->setInput(nor);
 	}
 
@@ -900,16 +894,15 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 
 		ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::alloc(REGEN_STRING("col" << t));
 		col->setVertexData(numVertices);
-
-		Vec4f colVal;
+		auto v_col = col->mapClientData<Vec4f>(ShaderData::WRITE);
 		for (GLuint n = 0; n < numVertices; ++n) {
-			colVal = Vec4f(
+			v_col.w[n] = Vec4f(
 					mesh.mColors[t][n].r,
 					mesh.mColors[t][n].g,
 					mesh.mColors[t][n].b,
 					mesh.mColors[t][n].a);
-			col->setVertex(n, colVal);
 		}
+		v_col.unmap();
 		meshState->setInput(col);
 	}
 
@@ -931,20 +924,21 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 			texco = ref_ptr<ShaderInput2f>::alloc(texcoName);
 		}
 		texco->setVertexData(numVertices);
-		auto *texcoDataPtr = (GLfloat *) texco->clientDataPtr();
+		auto v_texco = texco->mapClientData<float>(ShaderData::WRITE);
 
 		for (GLuint n = 0; n < numVertices; ++n) {
 			GLfloat *aiTexcoData = &(aiTexcos[n].x);
-			for (GLuint x = 0; x < texcoComponents; ++x) texcoDataPtr[x] = aiTexcoData[x];
-			texcoDataPtr += texcoComponents;
+			for (GLuint x = 0; x < texcoComponents; ++x) v_texco.w[x] = aiTexcoData[x];
+			v_texco.w += texcoComponents;
 		}
-
+		v_texco.unmap();
 		meshState->setInput(texco);
 	}
 
 	// load tangents
 	if (mesh.HasTangentsAndBitangents()) {
 		tan->setVertexData(numVertices);
+		auto v_tan = tan->mapClientData<Vec4f>(ShaderData::WRITE);
 		for (GLuint i = 0; i < numVertices; ++i) {
 			Vec3f &t = *((Vec3f *) &mesh.mTangents[i].x);
 			Vec3f &b = *((Vec3f *) &mesh.mBitangents[i].x);
@@ -956,8 +950,9 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 			} else {
 				handeness = 1.0;
 			}
-			tan->setVertex(i, Vec4f(t.x, t.y, t.z, handeness));
+			v_tan.w[i] = Vec4f(t.x, t.y, t.z, handeness);
 		}
+		v_tan.unmap();
 		meshState->setInput(tan);
 	}
 	GL_ERROR_LOG();
@@ -985,8 +980,6 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 		meshState->shaderDefine("NUM_BONE_WEIGHTS", REGEN_STRING(maxNumWeights));
 
 		if (maxNumWeights < 1) {
-			// more then 4 weights not supported yet because we use vec attribute below.
-			// but it would not be to much work to use multiple attributes...
 			REGEN_ERROR("The model has invalid bone weights number " << maxNumWeights << ".");
 		} else {
 			// create array of bone weights and indices
@@ -994,25 +987,29 @@ ref_ptr<Mesh> AssetImporter::loadMesh(
 			auto boneIndices = ref_ptr<ShaderInput1ui>::alloc("boneIndices", maxNumWeights);
 			boneWeights->setVertexData(numVertices);
 			boneIndices->setVertexData(numVertices);
-			auto *weights = (GLfloat *) boneWeights->clientDataPtr();
-			auto *indices = (GLuint *) boneIndices->clientDataPtr();
+			auto v_weights = boneWeights->mapClientData<GLfloat>(ShaderData::WRITE);
+			auto v_indices = boneIndices->mapClientData<GLuint>(ShaderData::WRITE);
+
 			for (GLuint j = 0; j < numVertices; j++) {
 				WeightList &vWeights = vertexToWeights[j];
 
 				GLuint k = 0;
 				for (auto it = vWeights.begin(); it != vWeights.end(); ++it) {
-					weights[k] = it->first;
-					indices[k] = it->second;
+					v_weights.w[k] = it->first;
+					v_indices.w[k] = it->second;
 					++k;
 				}
 				for (; k < maxNumWeights; ++k) {
-					weights[k] = 0.0f;
-					indices[k] = 0u;
+					v_weights.w[k] = 0.0f;
+					v_indices.w[k] = 0u;
 				}
 
-				weights += maxNumWeights;
-				indices += maxNumWeights;
+				v_weights.w += maxNumWeights;
+				v_indices.w += maxNumWeights;
 			}
+
+			v_weights.unmap();
+			v_indices.unmap();
 
 			if (maxNumWeights > 1) {
 				meshState->setInput(boneWeights);
@@ -1104,7 +1101,7 @@ ref_ptr<AnimationNode> AssetImporter::loadNodeTree() {
 	return {};
 }
 
-ref_ptr<AnimationNode> AssetImporter::loadNodeTree(aiNode *assimpNode, ref_ptr<AnimationNode> parent) {
+ref_ptr<AnimationNode> AssetImporter::loadNodeTree(aiNode *assimpNode, const ref_ptr<AnimationNode> &parent) {
 	ref_ptr<AnimationNode> node = ref_ptr<AnimationNode>::alloc(string(assimpNode->mName.data), parent);
 	aiNodeToNode_[assimpNode] = node;
 	nodes_[string(assimpNode->mName.data)] = assimpNode;
@@ -1128,7 +1125,7 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig) {
 		return;
 	}
 
-	ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::alloc(rootNode_, GL_FALSE);
+	ref_ptr<NodeAnimation> anim = ref_ptr<NodeAnimation>::alloc(rootNode_);
 	ref_ptr<vector<NodeAnimation::Channel> > channels;
 	ref_ptr<vector<NodeAnimation::KeyFrame3f> > scalingKeys;
 	ref_ptr<vector<NodeAnimation::KeyFrame3f> > positionKeys;

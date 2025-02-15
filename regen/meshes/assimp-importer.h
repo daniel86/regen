@@ -127,7 +127,8 @@ namespace regen {
 		 * @return vector of successfully created meshes.
 		 */
 		std::vector<ref_ptr<Mesh> > loadMeshes(
-				const Mat4f &transform, VBO::Usage usage, std::vector<GLuint> meshIndices);
+				const Mat4f &transform, VBO::Usage usage,
+				const std::vector<GLuint> &meshIndices);
 
 		/**
 		 * @return the material associated to a previously loaded meshes.
@@ -185,7 +186,7 @@ namespace regen {
 				const struct aiNode &node,
 				const Mat4f &transform,
 				VBO::Usage usage,
-				std::vector<GLuint> meshIndices,
+				const std::vector<GLuint> &meshIndices,
 				GLuint &currentIndex,
 				std::vector<ref_ptr<Mesh> > &out);
 
@@ -198,8 +199,7 @@ namespace regen {
 
 		ref_ptr<AnimationNode> loadNodeTree();
 
-		ref_ptr<AnimationNode> loadNodeTree(
-				struct aiNode *assimpNode, ref_ptr<AnimationNode> parent);
+		ref_ptr<AnimationNode> loadNodeTree(struct aiNode *assimpNode, const ref_ptr<AnimationNode> &parent);
 	};
 } // namespace
 

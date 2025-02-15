@@ -42,9 +42,9 @@ public:
 			  wScale_(wScale), hScale_(hScale) {}
 
 	void call(EventObject *, EventData *) override {
-		const Vec2i &winSize = windowViewport_->getVertex(0);
-
-		tex_->set_rectangleSize(winSize.x * wScale_, winSize.y * hScale_);
+		auto winSize = windowViewport_->getVertex(0);
+		// FIXME: I do not think this is safe from GUI thread!
+		tex_->set_rectangleSize(winSize.r.x * wScale_, winSize.r.y * hScale_);
 		RenderState::get()->textures().push(7, tex_->textureBind());
 		tex_->texImage();
 		RenderState::get()->textures().pop(7);
@@ -69,8 +69,8 @@ public:
 			  wScale_(wScale), hScale_(hScale) {}
 
 	void call(EventObject *, EventData *) override {
-		const Vec2i &winSize = windowViewport_->getVertex(0);
-		tex_->resize(winSize.x * wScale_, winSize.y * hScale_);
+		auto winSize = windowViewport_->getVertex(0);
+		tex_->resize(winSize.r.x * wScale_, winSize.r.y * hScale_);
 	}
 
 protected:
@@ -87,10 +87,10 @@ Vec3i TextureResource::getSize(
 	if (sizeMode == "abs") {
 		return Vec3i(size.x, size.y, size.z);
 	} else if (sizeMode == "rel") {
-		Vec2i v = viewport->getVertex(0);
+		auto v = viewport->getVertex(0);
 		return Vec3i(
-				(GLint) (size.x * v.x),
-				(GLint) (size.y * v.y), 1);
+				(GLint) (size.x * v.r.x),
+				(GLint) (size.y * v.r.y), 1);
 	} else {
 		REGEN_WARN("Unknown size mode '" << sizeMode << "'.");
 		return Vec3i(size.x, size.y, size.z);
@@ -250,7 +250,6 @@ ref_ptr<Texture> TextureResource::createResource(
 	} else if (input.hasAttribute("video")) {
 		const string filePath = resourcePath(input.getValue("video"));
 		ref_ptr<VideoTexture> video = ref_ptr<VideoTexture>::alloc();
-		video->stopAnimation();
 		try {
 			video->set_file(filePath);
 			auto filename = filePath.substr(filePath.find_last_of('/') + 1);

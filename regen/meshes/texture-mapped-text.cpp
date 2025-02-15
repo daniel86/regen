@@ -75,6 +75,10 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	texcoAttribute_->setVertexData(numCharacters_ * 6);
 	norAttribute_->setVertexData(numCharacters_ * 6);
 	inputContainer_->set_numVertices(numCharacters_ * 6);
+	// map client data for writing
+	auto v_pos = posAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_nor = norAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
 
 	translation = Vec3f(0.0, 0.0, 0.0);
 	glyphTranslation = Vec3f(0.0, 0.0, 0.0);
@@ -144,8 +148,10 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 					data.left * height_, (data.top - data.height) * height_, 0.001 * (i + 1)
 			);
 			makeGlyphGeometry(data, translation + glyphTranslation, (float) ch,
-							  posAttribute_.get(), norAttribute_.get(),
-							  texcoAttribute_.get(), &vertexCounter);
+							  v_pos,
+							  v_nor,
+							  v_texco,
+							  &vertexCounter);
 
 			// move cursor to next glyph
 			translation.x += data.advanceX * height_;
@@ -158,11 +164,13 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	if (centerAtOrigin_) {
 		GLfloat centerOffset = actualMaxLineWidth * 0.5f;
 		for (GLuint i = 0; i < vertexCounter; ++i) {
-			auto pos = posAttribute_->getVertex(i);
-			pos.x -= centerOffset;
-			posAttribute_->setVertex(i, pos);
+			v_pos.w[i].x -= centerOffset;
 		}
 	}
+
+	v_pos.unmap();
+	v_nor.unmap();
+	v_texco.unmap();
 
 	begin(ShaderInputContainer::INTERLEAVED);
 	setInput(posAttribute_);
@@ -172,11 +180,11 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	updateVAO(RenderState::get());
 
 	// set center and extends for bounding box
-	minPosition_ = Vec3f(posAttribute_->getVertex(0));
-	maxPosition_ = Vec3f(posAttribute_->getVertex(0));
+	minPosition_ = v_pos.w[0];
+	maxPosition_ = v_pos.w[0];
 	for (GLuint i = 1; i < vertexCounter; ++i) {
-		minPosition_.setMin(posAttribute_->getVertex(i));
-		maxPosition_.setMax(posAttribute_->getVertex(i));
+		minPosition_.setMin(v_pos.w[i]);
+		maxPosition_.setMax(v_pos.w[i]);
 	}
 }
 
@@ -184,9 +192,9 @@ void TextureMappedText::makeGlyphGeometry(
 		const Font::FaceData &data,
 		const Vec3f &translation,
 		GLfloat layer,
-		ShaderInput3f *posAttribute,
-		ShaderInput3f *norAttribute,
-		ShaderInput3f *texcoAttribute,
+		ShaderData_rw<Vec3f> &posAttribute,
+		ShaderData_rw<Vec3f> &norAttribute,
+		ShaderData_rw<Vec3f> &texcoAttribute,
 		GLuint *vertexCounter) {
 	GLuint &i = *vertexCounter;
 	Vec3f p0 = translation + Vec3f(0.0, data.height * height_, 0.0);
@@ -199,26 +207,26 @@ void TextureMappedText::makeGlyphGeometry(
 	Vec3f texco2(data.uvX, data.uvY, layer);
 	Vec3f texco3(data.uvX, 0.0, layer);
 
-	posAttribute->setVertex(i, p0);
-	posAttribute->setVertex(i + 1, p1);
-	posAttribute->setVertex(i + 2, p2);
-	posAttribute->setVertex(i + 3, p2);
-	posAttribute->setVertex(i + 4, p3);
-	posAttribute->setVertex(i + 5, p0);
+	posAttribute.w[i] = p0;
+	posAttribute.w[i + 1] = p1;
+	posAttribute.w[i + 2] = p2;
+	posAttribute.w[i + 3] = p2;
+	posAttribute.w[i + 4] = p3;
+	posAttribute.w[i + 5] = p0;
 
-	norAttribute->setVertex(i, n);
-	norAttribute->setVertex(i + 1, n);
-	norAttribute->setVertex(i + 2, n);
-	norAttribute->setVertex(i + 3, n);
-	norAttribute->setVertex(i + 4, n);
-	norAttribute->setVertex(i + 5, n);
+	norAttribute.w[i] = n;
+	norAttribute.w[i + 1] = n;
+	norAttribute.w[i + 2] = n;
+	norAttribute.w[i + 3] = n;
+	norAttribute.w[i + 4] = n;
+	norAttribute.w[i + 5] = n;
 
-	texcoAttribute->setVertex(i, texco0);
-	texcoAttribute->setVertex(i + 1, texco1);
-	texcoAttribute->setVertex(i + 2, texco2);
-	texcoAttribute->setVertex(i + 3, texco2);
-	texcoAttribute->setVertex(i + 4, texco3);
-	texcoAttribute->setVertex(i + 5, texco0);
+	texcoAttribute.w[i] = texco0;
+	texcoAttribute.w[i + 1] = texco1;
+	texcoAttribute.w[i + 2] = texco2;
+	texcoAttribute.w[i + 3] = texco2;
+	texcoAttribute.w[i + 4] = texco3;
+	texcoAttribute.w[i + 5] = texco0;
 
 	*vertexCounter += 6;
 }

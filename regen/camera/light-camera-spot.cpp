@@ -21,7 +21,7 @@ bool LightCamera_Spot::updateSpotLight() {
 	if(changed) {
 		updateViewProjection(0, 0);
 		// Transforms world space coordinates to homogenous light space
-		lightMatrix_->setVertex(0, viewProj_->getVertex(0) * Mat4f::bias());
+		lightMatrix_->setVertex(0, viewProj_->getVertex(0).r * Mat4f::bias());
 		camStamp_ += 1;
 		return true;
 	}
@@ -31,13 +31,13 @@ bool LightCamera_Spot::updateSpotLight() {
 bool LightCamera_Spot::updateLightProjection() {
 	if (lightRadiusStamp_ == light_->radius()->stamp() &&
 		lightConeStamp_ == light_->coneAngle()->stamp()) { return false; }
-	const Vec2f &radius = light_->radius()->getVertex(0);
-	const Vec2f &coneAngle = light_->coneAngle()->getVertex(0);
+	auto radius = light_->radius()->getVertex(0);
+	auto coneAngle = light_->coneAngle()->getVertex(0);
 	setPerspective(
 			1.0f,
-			2.0 * acos(coneAngle.y) * RAD_TO_DEGREE,
+			2.0 * acos(coneAngle.r.y) * RAD_TO_DEGREE,
 			lightNear_,
-			radius.y);
+			radius.r.y);
 	lightRadiusStamp_ = light_->radius()->stamp();
 	lightConeStamp_ = light_->coneAngle()->stamp();
 	return true;
@@ -46,11 +46,9 @@ bool LightCamera_Spot::updateLightProjection() {
 bool LightCamera_Spot::updateLightView() {
 	if (lightPosStamp_ == light_->position()->stamp() &&
 		lightDirStamp_ == light_->direction()->stamp()) { return false; }
-	const Vec3f &pos = light_->position()->getVertex(0);
-	const Vec3f &dir = light_->direction()->getVertex(0);
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
-	position_->setVertex(0, pos);
-	direction_->setVertex(0, dir);
+	position_->setVertex(0, light_->position()->getVertex(0).r);
+	direction_->setVertex(0, light_->direction()->getVertex(0).r);
 	return updateView();
 }

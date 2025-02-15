@@ -97,6 +97,11 @@ namespace regen {
 		void setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer);
 
 		/**
+		 * @return the camera uniform block.
+		 */
+		auto &cameraBlock() const { return cameraBlock_; }
+
+		/**
 		 * @return specifies the field of view angle, in degrees, in the y direction.
 		 */
 		auto &fov() const { return fov_; }

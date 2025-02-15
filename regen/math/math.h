@@ -9,6 +9,7 @@
 #define MATH_H_
 
 #include <math.h>
+#include <random>
 
 // = 360.0/(2.0*pi)
 #define RAD_TO_DEGREE 57.29577951308232
@@ -74,6 +75,19 @@ namespace regen {
 			T relative = y - x * dot;
 			relative.normalize();
 			return x * cos(theta) + relative * sin(theta);
+		}
+
+		/**
+		 * Produce a random number between 0 and 1.
+		 */
+		static inline float random() {
+			// Seed for the random number engine
+			static std::random_device rd;
+			// Mersenne Twister engine
+			static std::mt19937 gen(rd());
+			// Uniform distribution between 0 and 1
+			static std::uniform_real_distribution<GLfloat> dis(0.0, 1.0);
+			return dis(gen);
 		}
 	}
 } // namespace

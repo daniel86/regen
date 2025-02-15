@@ -39,9 +39,9 @@ public:
 			: EventHandler(), cam_(cam), windowViewport_(windowViewport) {}
 
 	void call(EventObject *, EventData *) {
+		auto windowViewport = windowViewport_->getVertex(0);
 		auto windowAspect =
-			(GLfloat) windowViewport_->getVertex(0).x /
-			(GLfloat) windowViewport_->getVertex(0).y;
+			(GLfloat) windowViewport.r.x / (GLfloat) windowViewport.r.y;
 		if (cam_->isOrtho()) {
 			// keep the ortho width and adjust height based on aspect ratio
 			auto width = cam_->frustum()[0].nearPlaneHalfSize.x * 2.0f;
@@ -49,15 +49,15 @@ public:
 			cam_->setOrtho(
 					-width / 2.0f, width / 2.0f,
 					-height / 2.0f, height / 2.0f,
-					cam_->near()->getVertex(0),
-					cam_->far()->getVertex(0));
+					cam_->near()->getVertex(0).r,
+					cam_->far()->getVertex(0).r);
 		}
 		else {
 			cam_->setPerspective(
 					windowAspect,
-					cam_->fov()->getVertex(0),
-					cam_->near()->getVertex(0),
-					cam_->far()->getVertex(0));
+					cam_->fov()->getVertex(0).r,
+					cam_->near()->getVertex(0).r,
+					cam_->far()->getVertex(0).r);
 		}
 	}
 
@@ -162,9 +162,7 @@ ref_ptr<Camera> createLightCamera(
 	return lightCamera;
 }
 
-ref_ptr<Camera> CameraResource::createCamera(
-		SceneParser *parser,
-		SceneInputNode &input) {
+ref_ptr<Camera> CameraResource::createCamera(SceneParser *parser, SceneInputNode &input) {
 	auto camType = input.getValue<string>("type", "spot");
 
 	if (input.hasAttribute("reflector") ||
@@ -247,9 +245,9 @@ ref_ptr<Camera> CameraResource::createCamera(
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));
 		} else {
+			auto viewport = parser->getViewport()->getVertex(0);
 			cam->setPerspective(
-					(GLfloat) parser->getViewport()->getVertex(0).x /
-					(GLfloat) parser->getViewport()->getVertex(0).y,
+					(GLfloat) viewport.r.x / (GLfloat) viewport.r.y,
 					input.getValue<GLfloat>("fov", 45.0f),
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));

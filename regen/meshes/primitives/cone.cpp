@@ -35,15 +35,21 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 								  GLuint lodLevel,
 								  GLuint vertexOffset,
 								  GLuint indexOffset) {
+	// map client data for writing
+	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_nor = (cfg.isNormalRequired ?
+		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec3f>::nullData());
+
 	GLfloat phi = acos(cfg.cosAngle);
 	GLfloat radius = tan(phi) * cfg.height;
 	GLfloat angle = 0.0f;
 	GLfloat angleStep = 2.0f * M_PI / (GLfloat) lodLevel;
 	GLuint i = vertexOffset;
 
-	pos_->setVertex(i, Vec3f(0.0f));
+	v_pos.w[i] = Vec3f(0.0f);
 	if (cfg.isNormalRequired) {
-		nor_->setVertex(i, Vec3f(0.0f, -1.0f, 0.0f));
+		v_nor.w[i] = Vec3f(0.0f, -1.0f, 0.0f);
 	}
 
 	for (; i < lodLevel + 1; ++i) {
@@ -51,13 +57,13 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 		GLfloat s = sin(angle) * radius;
 		GLfloat c = cos(angle) * radius;
 		Vec3f pos(c, s, cfg.height);
-		pos_->setVertex(i + 1, pos);
+		v_pos.w[i + 1] = pos;
 		minPosition_.setMin(pos);
 		maxPosition_.setMax(pos);
 		if (cfg.isNormalRequired) {
 			Vec3f n(c, 0.0, s);
 			n.normalize();
-			nor_->setVertex(i + 1, n);
+			v_nor.w[i + 1] = n;
 		}
 	}
 }
@@ -178,32 +184,38 @@ void ConeClosed::generateLODLevel(
 		GLuint lodLevel,
 		GLuint vertexOffset,
 		GLuint indexOffset) {
+	// map client data for writing
+	auto indices = indices_->mapClientData<GLuint>(ShaderData::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_nor = (cfg.isNormalRequired ?
+		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec3f>::nullData());
+
 	// create cone vertex data
-	auto *pos = ((Vec3f *) pos_->clientDataPtr()) + vertexOffset;
-	auto *nor = cfg.isNormalRequired ? ((Vec3f *) nor_->clientDataPtr()) + vertexOffset : nullptr;
-	loadConeData(pos, nor,
-				 minPosition_, maxPosition_,
-				 cfg.isBaseRequired, lodLevel,
-				 cfg.radius, cfg.height);
+	loadConeData(
+			v_pos.w+vertexOffset,
+			(v_nor.w ? v_nor.w+vertexOffset : v_nor.w),
+			minPosition_, maxPosition_,
+			cfg.isBaseRequired, lodLevel,
+			cfg.radius, cfg.height);
 
 	// create cone index data
-	auto *faceIndices = (GLuint *) indices_->clientDataPtr();
 	const GLuint apexIndex = vertexOffset;
 	const GLuint baseCenterIndex = vertexOffset + 1;
 	GLuint faceIndex = indexOffset;
 	GLint vIndex = vertexOffset + cfg.isBaseRequired ? 2 : 1;
 	// cone
 	for (GLuint i = 0; i < lodLevel; ++i) {
-		faceIndices[faceIndex++] = apexIndex;
-		faceIndices[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
-		faceIndices[faceIndex++] = vIndex + i;
+		indices.w[faceIndex++] = apexIndex;
+		indices.w[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
+		indices.w[faceIndex++] = vIndex + i;
 	}
 	// base
 	if (cfg.isBaseRequired) {
 		for (GLuint i = 0; i < lodLevel; ++i) {
-			faceIndices[faceIndex++] = baseCenterIndex;
-			faceIndices[faceIndex++] = vIndex + i;
-			faceIndices[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
+			indices.w[faceIndex++] = baseCenterIndex;
+			indices.w[faceIndex++] = vIndex + i;
+			indices.w[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
 		}
 	}
 }

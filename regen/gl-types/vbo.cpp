@@ -300,10 +300,10 @@ void VBO::uploadSequential(
 		att->set_stride(att->elementSize());
 		att->set_buffer(ref->bufferID(), ref);
 		// copy data
-		if (att->clientDataPtr()) {
+		if (att->hasClientData()) {
 			std::memcpy(
 					data + currOffset,
-					att->clientDataPtr(),
+					att->mapClientDataRaw(ShaderData::READ).r,
 					att->inputSize()
 			);
 		}
@@ -349,10 +349,10 @@ void VBO::uploadInterleaved(
 			// add instanced attributes to the end of the buffer
 			att->set_stride(att->elementSize());
 			att->set_offset(currOffset + startByte);
-			if (att->clientDataPtr()) {
+			if (att->hasClientData()) {
 				std::memcpy(
 						data + currOffset,
-						att->clientDataPtr(),
+						att->mapClientDataRaw(ShaderData::READ).r,
 						att->inputSize()
 				);
 			}
@@ -367,12 +367,12 @@ void VBO::uploadInterleaved(
 			if (att->divisor() != 0) { continue; }
 
 			// size of a value for a single vertex in bytes
-			GLuint valueSize = att->valsPerElement() * att->dataTypeBytes() * att->elementCount();
+			GLuint valueSize = att->valsPerElement() * att->dataTypeBytes() * att->numArrayElements();
 			// copy data
-			if (att->clientDataPtr()) {
+			if (att->hasClientData()) {
 				std::memcpy(
 						data + count,
-						att->clientDataPtr() + i * valueSize,
+						att->mapClientDataRaw(ShaderData::READ).r + i * valueSize,
 						valueSize
 				);
 			}

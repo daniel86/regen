@@ -11,7 +11,7 @@
 class UpdateFPS : public Animation {
 public:
 	UpdateFPS(const ref_ptr<TextureMappedText> &widget)
-			: Animation(GL_TRUE, GL_FALSE),
+			: Animation(true, false),
 			  widget_(widget),
 			  frameCounter_(0),
 			  fps_(0),
@@ -35,9 +35,9 @@ public:
 	}
 
 private:
-	ref_ptr<TextureMappedText> widget_;
-	GLuint frameCounter_;
-	GLint fps_;
+	ref_ptr<TextureMappedText> widget_{};
+	GLuint frameCounter_{};
+	GLint fps_{};
 	GLdouble sumDtMiliseconds_;
 };
 

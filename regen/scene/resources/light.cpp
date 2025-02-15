@@ -42,6 +42,10 @@ ref_ptr<Light> LightResource::createResource(
 	light->set_outerConeAngle(angles.y);
 	parser->putState(input.getName(), light);
 
+	if (lightType == Light::SPOT) {
+		light->startAnimation();
+	}
+
 	return light;
 }
 

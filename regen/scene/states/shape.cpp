@@ -5,6 +5,8 @@
 using namespace regen::scene;
 using namespace regen;
 
+// TODO: this code is redundant with physics.cpp!
+
 static ref_ptr<btCollisionShape> createSphere([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
 	auto radius = input.getValue<GLfloat>("radius", 1.0f) * 0.5;
 	return ref_ptr<btSphereShape>::alloc(radius);
@@ -61,14 +63,14 @@ createConvexHull(SceneParser *parser, SceneInputNode &input, const ref_ptr<Mesh>
 	bool loadServerData = !pos->hasClientData();
 	if (loadServerData) pos->readServerData();
 
-	auto *points = (const btScalar *) pos->clientData();
+	auto v_pos = pos->mapClientData<btScalar>(ShaderData::READ);
 	//create a hull approximation
 	//btShapeHull* hull = new btShapeHull(originalConvexShape);
 	//btScalar margin = originalConvexShape->getMargin();
 	//hull->buildHull(margin);
 	//btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer(),hull->numVertices());
 
-	auto shape = ref_ptr<btConvexHullShape>::alloc(points, pos->numVertices());
+	auto shape = ref_ptr<btConvexHullShape>::alloc(v_pos.r, pos->numVertices());
 	if (loadServerData) pos->deallocateClientData();
 	return shape;
 
@@ -114,8 +116,10 @@ createTriangleMesh(SceneParser *parser, SceneInputNode &input, const ref_ptr<Mes
 
 	if (!pos->hasClientData()) pos->readServerData();
 	if (!indices->hasClientData()) indices->readServerData();
-	btMesh.m_vertexBase = pos->clientData();
-	btMesh.m_triangleIndexBase = indices->clientData();
+	auto v_pos = pos->mapClientDataRaw(ShaderData::READ);
+	auto indices_data = indices->mapClientDataRaw(ShaderData::READ);
+	btMesh.m_vertexBase = v_pos.r;
+	btMesh.m_triangleIndexBase = indices_data.r;
 
 	PHY_ScalarType indexType;
 	switch (indices->dataType()) {
@@ -429,12 +433,24 @@ void ShapeStateProvider::processInput(
 		}
 	} else if (shapeMode == "physics") {
 		// add shape to physics engine
-		for (GLuint i = 0; i < numInstances; ++i) {
-			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), i);
+		if (numInstances == 1) {
+			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), 0);
 			auto physicalProps = createPhysicalProps(parser, input, mesh, motion);
 			auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
 			mesh->addPhysicalObject(physicalObject);
 			parser->getPhysics()->addObject(physicalObject);
+		}
+		else {
+			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->get());
+			for (GLuint i = 0; i < numInstances; ++i) {
+				auto motion = ref_ptr<Mat4fMotion>::alloc(motionAnim, i);
+				auto physicalProps = createPhysicalProps(parser, input, mesh, motion);
+				auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
+				mesh->addPhysicalObject(physicalObject);
+				parser->getPhysics()->addObject(physicalObject);
+			}
+			motionAnim->startAnimation();
+			mesh->addAnimation(motionAnim);
 		}
 	} else {
 		REGEN_WARN("Ignoring unknown shape mode '" << input.getDescription() << "'.");

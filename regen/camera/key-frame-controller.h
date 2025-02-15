@@ -56,8 +56,6 @@ namespace regen {
 		// override
 		void animate(GLdouble dt) override;
 
-		void glAnimate(RenderState *rs, GLdouble dt) override;
-
 	protected:
 		struct CameraKeyFrame {
 			ref_ptr<CameraAnchor> anchor;

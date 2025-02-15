@@ -63,9 +63,10 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer) { sourceBuffer_ = sourc
 
 void BlitToScreen::enable(RenderState *rs) {
 	State::enable(rs);
+	auto viewport = viewport_->getVertex(0);
 	fbo_->blitCopyToScreen(
-			viewport_->getVertex(0).x,
-			viewport_->getVertex(0).y,
+			viewport.r.x,
+			viewport.r.y,
 			attachment_,
 			sourceBuffer_,
 			filterMode_,

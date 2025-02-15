@@ -40,13 +40,13 @@ void ModelTransformation::enable(RenderState *rs) {
 		lastTime_ = time;
 
 		if (dt > 1e-6) {
-			const Mat4f &val = modelMat_->getVertex(0);
-			velocity_->setVertex(0, (val.position() - lastPosition_) / dt);
-			lastPosition_ = val.position();
+			auto val = modelMat_->getVertex(0);
+			velocity_->setVertex(0, (val.r.position() - lastPosition_) / dt);
+			lastPosition_ = val.r.position();
 			if (isAudioSource()) {
-				audioSource_->set3f(AL_VELOCITY, velocity_->getVertex(0));
+				audioSource_->set3f(AL_VELOCITY, velocity_->getVertex(0).r);
 			}
-			audioSource_->set3f(AL_POSITION, modelMat_->getVertex(0).position());
+			audioSource_->set3f(AL_POSITION, val.r.position());
 		}
 	}
 	State::enable(rs);

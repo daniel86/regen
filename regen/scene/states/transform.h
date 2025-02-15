@@ -320,10 +320,10 @@ static GLuint transformMatrixPlane(
 	else {
 		numInstances = generator.instanceData.size();
 		matrixInput->setInstanceData(numInstances, 1, nullptr);
+		auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
 		// TODO: apply previous transform instead of overwriting
-		auto *matrices = (Mat4f *) matrixInput->clientDataPtr();
 		for (GLuint i = 0; i < numInstances; i += 1) {
-			matrices[i] = generator.instanceData[i];
+			matrices.w[i] = generator.instanceData[i];
 		}
 	}
 
@@ -337,7 +337,6 @@ static void transformMatrix(
 		const ref_ptr<ShaderInputMat4> &matrixInput,
 		GLuint numInstances) {
 	for (auto &child : input.getChildren()) {
-		auto *matrices = (Mat4f *) matrixInput->clientDataPtr();
 		// TODO: this seems bad, why create this every loop? why at all?
 		list<GLuint> indices = child->getIndexSequence(numInstances);
 
@@ -347,12 +346,13 @@ static void transformMatrix(
 				numInstances = transformMatrixPlane(parser, *child.get(), matrixInput, numInstances);
 			}
 			else {
+				auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
 				ValueGenerator<Vec3f> generator(child.get(), indices.size(),
 												child->getValue<Vec3f>("value", Vec3f(0.0f)));
 				const auto target = child->getValue<string>("target", "translate");
 
 				for (auto it = indices.begin(); it != indices.end(); ++it) {
-					transformMatrix(target, matrices[*it], generator.next());
+					transformMatrix(target, matrices.w[*it], generator.next());
 				}
 			}
 		}
@@ -384,8 +384,9 @@ static void transformMatrix(
 			state->attach(transformAnimation);
 		}
 		else {
+			auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
 			for (auto it = indices.begin(); it != indices.end(); ++it) {
-				transformMatrix(child->getCategory(), matrices[*it],
+				transformMatrix(child->getCategory(), matrices.w[*it],
 								child->getValue<Vec3f>("value", Vec3f(0.0f)));
 			}
 		}
@@ -426,8 +427,10 @@ namespace regen {
 				// Handle instanced model matrix
 				if (isInstanced && numInstances > 1) {
 					transform->get()->setInstanceData(numInstances, 1, nullptr);
-					auto *matrices = (Mat4f *) transform->get()->clientDataPtr();
-					for (GLuint i = 0; i < numInstances; i += 1) matrices[i] = Mat4f::identity();
+					{
+						auto matrices = transform->get()->mapClientData<Mat4f>(ShaderData::WRITE);
+						for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
+					}
 					transformMatrix(parser, input, state, transform->get(), numInstances);
 					// add data to vbo
 					transform->setInput(transform->get());

@@ -9,15 +9,19 @@
 
 using namespace regen;
 
+// FIXME: camera update currently does not ensure the update being atomic for the GL thread!
+//         meaning it can and will happen that GL has partial data from the camera update.
+//         which will be not super noticeable I think, when changes in the camera per frame are small.
+// FIXME: the indexed setVertex is REALLY NOT GOOD! It might cause a lot of copies, need to rewrite
+//         the camera classes!
+
 namespace regen {
 	class CameraMotion : public Animation {
 	public:
 		explicit CameraMotion(Camera *camera)
-				: Animation(true, false),
+				: Animation(false, true),
 				  camera_(camera) {}
-		// TODO: rather use CPU thread for computation, but it needs synchronization
-		//void animate(double dt) override { camera_->updatePose(); }
-		void glAnimate(RenderState *rs, double dt) override { camera_->updatePose(); }
+		void animate(double dt) override { camera_->updatePose(); }
 	private:
 		Camera *camera_;
 	};
@@ -84,7 +88,7 @@ Camera::Camera(unsigned int numLayer)
 }
 
 void Camera::setPerspective(float aspect, float fov, float near, float far) {
-	bool hasLayeredProjection = proj_->elementCount() > 1;
+	bool hasLayeredProjection = proj_->numArrayElements() > 1;
 	if (hasLayeredProjection) {
 		for (unsigned int i = 0; i < numLayer_; ++i) {
 			setPerspective(aspect, fov, near, far, i);
@@ -98,15 +102,15 @@ void Camera::setPerspective(float aspect, float fov, float near, float far) {
 }
 
 void Camera::setPerspective(float aspect, float fov, float near, float far, unsigned int layer) {
-	fov_->setVertexOrFirst(layer, fov);
-	aspect_->setVertexOrFirst(layer, aspect);
-	near_->setVertexOrFirst(layer, near);
-	far_->setVertexOrFirst(layer, far);
+	fov_->setVertexClamped(layer, fov);
+	aspect_->setVertexClamped(layer, aspect);
+	near_->setVertexClamped(layer, near);
+	far_->setVertexClamped(layer, far);
 	frustum_[layer].setPerspective(aspect, fov, near, far);
 
 	auto projectionMatrix = Mat4f::projectionMatrix(fov, aspect, near, far);
-	proj_->setVertexOrFirst(layer, projectionMatrix);
-	projInv_->setVertexOrFirst(layer, projectionMatrix.projectionInverse());
+	proj_->setVertexClamped(layer, projectionMatrix);
+	projInv_->setVertexClamped(layer, projectionMatrix.projectionInverse());
 	isOrtho_ = false;
 }
 
@@ -119,11 +123,11 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 void Camera::setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer) {
 	fov_->setVertex(0, 0.0f);
 	aspect_->setVertex(0, abs((right - left) / (top - bottom)));
-	near_->setVertexOrFirst(layer, near);
-	far_->setVertexOrFirst(layer, far);
+	near_->setVertexClamped(layer, near);
+	far_->setVertexClamped(layer, far);
 	frustum_[layer].setOrtho(left, right, bottom, top, near, far);
 	proj_->setVertex(layer, Mat4f::orthogonalMatrix(left, right, bottom, top, near, far));
-	projInv_->setVertex(layer, proj_->getVertex(layer).orthogonalInverse());
+	projInv_->setVertex(layer, proj_->getVertex(layer).r.orthogonalInverse());
 	isOrtho_ = true;
 }
 
@@ -145,19 +149,19 @@ bool Camera::updateView() {
 	posStamp_ = posStamp;
 	dirStamp_ = dirStamp;
 
-	auto numViewLayers = view_->elementCount();
+	auto numViewLayers = view_->numArrayElements();
 	for (unsigned int i = 0; i < numViewLayers; ++i) {
-		auto &dir = direction_->getVertexOrFirst(i);
-		if (std::abs(dir.dot(Vec3f::up())) > 0.999f) {
+		auto dir = direction_->getVertexClamped(i);
+		if (std::abs(dir.r.dot(Vec3f::up())) > 0.999f) {
 			auto viewMatrix = Mat4f::lookAtMatrix(
-				position_->getVertexOrFirst(i),
-				dir, Vec3f::right());
+				position_->getVertexClamped(i).r,
+				dir.r, Vec3f::right());
 			view_->setVertex(i, viewMatrix);
 			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
 		} else {
 			auto viewMatrix = Mat4f::lookAtMatrix(
-				position_->getVertexOrFirst(i),
-				dir, Vec3f::up());
+				position_->getVertexClamped(i).r,
+				dir.r, Vec3f::up());
 			view_->setVertex(i, viewMatrix);
 			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
 		}
@@ -167,8 +171,8 @@ bool Camera::updateView() {
 }
 
 void Camera::updateViewProjection1() {
-	auto numViewLayers = view_->elementCount();
-	auto numProjLayers = proj_->elementCount();
+	auto numViewLayers = view_->numArrayElements();
+	auto numProjLayers = proj_->numArrayElements();
 	auto maxIndex = std::max(numViewLayers, numProjLayers);
 	for (unsigned int i = 0; i < maxIndex; ++i) {
 		updateViewProjection(
@@ -180,20 +184,20 @@ void Camera::updateViewProjection1() {
 void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
 	auto maxIndex = std::max(projectionIndex, viewIndex);
 	viewProj_->setVertex(maxIndex,
-		view_->getVertex(viewIndex) * proj_->getVertex(projectionIndex));
+		view_->getVertex(viewIndex).r * proj_->getVertex(projectionIndex).r);
 	viewProjInv_->setVertex(maxIndex,
-		projInv_->getVertex(projectionIndex) * viewInv_->getVertex(viewIndex));
+		projInv_->getVertex(projectionIndex).r * viewInv_->getVertex(viewIndex).r);
 	frustum_[maxIndex].update(
-		position()->getVertexOrFirst(maxIndex),
-		direction()->getVertexOrFirst(maxIndex));
+		position()->getVertexClamped(maxIndex).r,
+		direction()->getVertexClamped(maxIndex).r);
 }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	isAudioListener_ = isAudioListener;
 	if (isAudioListener_) {
-		AudioListener::set3f(AL_POSITION, position_->getVertex(0));
-		AudioListener::set3f(AL_VELOCITY, vel_->getVertex(0));
-		AudioListener::set6f(AL_ORIENTATION, Vec6f(direction_->getVertex(0), Vec3f::up()));
+		AudioListener::set3f(AL_POSITION, position_->getVertex(0).r);
+		AudioListener::set3f(AL_VELOCITY, vel_->getVertex(0).r);
+		AudioListener::set6f(AL_ORIENTATION, Vec6f(direction_->getVertex(0).r, Vec3f::up()));
 	}
 }
 
@@ -202,15 +206,15 @@ void Camera::updatePose() {
 	if (attachedPosition_.get()) {
 		if (poseStamp_ != attachedPosition_->stamp()) {
 			poseStamp_ = attachedPosition_->stamp();
-			position_->setUniformData(attachedPosition_->getVertex(0));
+			position_->setUniformData(attachedPosition_->getVertex(0).r);
 			updated = true;
 		}
 	}
 	else if (attachedTransform_.get()) {
 		if (poseStamp_ != attachedTransform_->stamp()) {
 			poseStamp_ = attachedTransform_->stamp();
-			auto &m = attachedTransform_->getVertex(0);
-			position_->setVertex(0, m.position());
+			auto m = attachedTransform_->getVertex(0);
+			position_->setVertex(0, m.r.position());
 			if (!isAttachedToPosition_) {
 				// TODO: change camera orientation based on transform
 				//direction_->setVertex(0, (m ^ Vec4f(Vec3f::front(),0.0)).xyz_());
@@ -230,6 +234,7 @@ void Camera::attachToPosition(const ref_ptr<ShaderInput3f> &attachedPosition) {
 	poseStamp_ = 0;
 	if (!attachedMotion_.get()) {
 		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
+		attachedMotion_->startAnimation();
 	}
 }
 
@@ -240,6 +245,7 @@ void Camera::attachToPosition(const ref_ptr<ShaderInputMat4> &attachedTransform)
 	isAttachedToPosition_ = true;
 	if (!attachedMotion_.get()) {
 		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
+		attachedMotion_->startAnimation();
 	}
 }
 
@@ -250,22 +256,23 @@ void Camera::attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform
 	isAttachedToPosition_ = false;
 	if (!attachedMotion_.get()) {
 		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
+		attachedMotion_->startAnimation();
 	}
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, GLfloat radius) const {
 	auto d = Plane(
-		position()->getVertex(0),
-		direction()->getVertex(0)).distance(center);
-	return d - radius < far()->getVertex(0) &&
-	       d + radius > near()->getVertex(0);
+		position()->getVertex(0).r,
+		direction()->getVertex(0).r).distance(center);
+	return d - radius < far()->getVertex(0).r &&
+	       d + radius > near()->getVertex(0).r;
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) const {
-	Plane p(position()->getVertex(0), direction()->getVertex(0));
+	Plane p(position()->getVertex(0).r, direction()->getVertex(0).r);
 	for (int i = 0; i < 8; ++i) {
 		auto d = p.distance(center + points[i]);
-		if (d > far()->getVertex(0) || d < near()->getVertex(0))
+		if (d > far()->getVertex(0).r || d < near()->getVertex(0).r)
 			return false;
 	}
 	return true;
@@ -274,33 +281,33 @@ bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) con
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const {
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
-		position()->getVertex(0),
-		direction()->getVertex(0)).distance(center);
+		position()->getVertex(0).r,
+		direction()->getVertex(0).r).distance(center);
 	// check if the sphere is outside the far plane
-	if (d - radius > far()->getVertex(0)) return false;
+	if (d - radius > far()->getVertex(0).r) return false;
 	// check if the sphere is inside the near plane
-	if (d + radius < near()->getVertex(0)) return false;
+	if (d + radius < near()->getVertex(0).r) return false;
 	// check if the sphere is inside the half sphere
 	auto halfSphereRadius = far()->getVertex(0);
 	auto halfSphereNormal = direction()->getVertex(0);
-	auto halfSphereCenter = position()->getVertex(0) + halfSphereNormal * halfSphereRadius;
-	return Plane(halfSphereCenter, halfSphereNormal).distance(center) < radius;
+	auto halfSphereCenter = position()->getVertex(0).r + halfSphereNormal.r * halfSphereRadius.r;
+	return Plane(halfSphereCenter, halfSphereNormal.r).distance(center) < radius;
 }
 
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const {
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
-		position()->getVertex(0),
-		direction()->getVertex(0)).distance(center);
+		position()->getVertex(0).r,
+		direction()->getVertex(0).r).distance(center);
 	// check if the sphere is outside the far plane
-	if (d > far()->getVertex(0)) return false;
+	if (d > far()->getVertex(0).r) return false;
 	// check if the sphere is inside the near plane
-	if (d < near()->getVertex(0)) return false;
+	if (d < near()->getVertex(0).r) return false;
 	// check if the sphere is inside the half sphere
 	auto halfSphereRadius = far()->getVertex(0);
 	auto halfSphereNormal = direction()->getVertex(0);
-	auto halfSphereCenter = position()->getVertex(0) + halfSphereNormal * halfSphereRadius;
-	auto halfSphere = Plane(halfSphereCenter, halfSphereNormal);
+	auto halfSphereCenter = position()->getVertex(0).r + halfSphereNormal.r * halfSphereRadius.r;
+	auto halfSphere = Plane(halfSphereCenter, halfSphereNormal.r);
 	for (int i = 0; i < 8; ++i) {
 		if (halfSphere.distance(center + points[i]) < 0) {
 			return false;

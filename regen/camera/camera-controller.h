@@ -210,9 +210,6 @@ namespace regen {
 		// override Animation
 		void animate(GLdouble dt) override;
 
-		// override Animation
-		void glAnimate(RenderState *rs, GLdouble dt) override;
-
 	protected:
 		Mode cameraMode_;
 		Mat4f matVal_;

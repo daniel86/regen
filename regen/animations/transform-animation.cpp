@@ -4,18 +4,18 @@
 using namespace regen;
 
 TransformAnimation::TransformAnimation(const ref_ptr<ShaderInputMat4> &in)
-		: Animation(GL_TRUE, GL_TRUE),
+		: Animation(false, true),
 		  in_(in) {
-	auto &currentTransform = in_->getVertex(0);
+	auto currentTransform = in_->getVertex(0);
 	it_ = frames_.end();
 	dt_ = 0.0;
 	setAnimationName(REGEN_STRING("animation-"<<in->name()));
 	// initialize transform data
-	currentPos_ = currentTransform.position();
-	currentVal_ = currentTransform;
-	initialScale_ = currentTransform.scaling();
+	currentPos_ = currentTransform.r.position();
+	currentVal_ = currentTransform.r;
+	initialScale_ = currentTransform.r.scaling();
 	// remove scaling before computing rotation, else we get faulty results
-	auto tmp = currentTransform;
+	auto tmp = currentTransform.r;
 	tmp.scale(Vec3f(
 			1.0f / initialScale_.x,
 			1.0f / initialScale_.y,
@@ -68,7 +68,6 @@ void TransformAnimation::animate(GLdouble dt) {
 		animate(dt__);
 	} else {
 		GLdouble t = currentFrame.dt > 0.0 ? dt_ / currentFrame.dt : 1.0;
-		lock();
 		{
 			if (mesh_.get() != nullptr && mesh_->physicalObjects().size() > 0) {
 				// TODO: not sure why, but only if setting here the velocity
@@ -90,14 +89,6 @@ void TransformAnimation::animate(GLdouble dt) {
 			currentVal_.scale(initialScale_);
 			currentVal_.translate(currentPos_);
 		}
-		unlock();
-	}
-}
-
-void TransformAnimation::glAnimate(RenderState *rs, GLdouble dt) {
-	lock();
-	{
 		in_->setVertex(0, currentVal_);
 	}
-	unlock();
 }
