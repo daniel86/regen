@@ -5,12 +5,7 @@
 #include <regen/utility/logging.h>
 #include <regen/states/fbo-state.h>
 #include <regen/states/shader-state.h>
-#include <regen/states/texture-state.h>
-#include <regen/states/material-state.h>
-#include <regen/states/model-transformation.h>
-#include <regen/camera/camera.h>
 #include <regen/states/light-pass.h>
-#include <regen/states/direct-shading.h>
 
 #include "shader-input-widget.h"
 #include "regen/animations/animation-manager.h"
@@ -31,60 +26,13 @@ static const std::string __typeString(GLenum dataType) {
 	}
 }
 
-class SetValueCallback : public Animation {
-public:
-	SetValueCallback(std::map<ShaderInput *, GLuint> *valueStamps)
-			: Animation(GL_TRUE, GL_FALSE), valueStamps_(valueStamps) {}
-
-	void push(ShaderInput *in, byte *changedData) {
-		lock();
-		if (!isRunning()) startAnimation();
-		values_.push(ChangedValue(in, changedData));
-		unlock();
-	}
-
-	void glAnimate(RenderState *rs, GLdouble dt) {
-		while (!values_.isEmpty()) {
-			lock();
-			setValue(values_.top());
-			values_.pop();
-			unlock();
-		}
-
-		lock();
-		// stop anim if value stack is empty right now
-		if (values_.isEmpty()) { stopAnimation(); }
-		unlock();
-	}
-
-private:
-	struct ChangedValue {
-		ChangedValue(ShaderInput *_in, byte *_changedData)
-				: in(_in), changedData(_changedData) {}
-
-		ShaderInput *in;
-		byte *changedData;
-	};
-
-	Stack<ChangedValue> values_;
-	std::map<ShaderInput *, GLuint> *valueStamps_;
-
-	void setValue(const ChangedValue &v) {
-		v.in->setUniformDataUntyped(v.changedData);
-		(*valueStamps_)[v.in] = v.in->stamp();
-		delete[]v.changedData;
-	}
-};
-
 ShaderInputWidget::ShaderInputWidget(QWidget *parent)
 		: QWidget(parent) {
 	ui_.setupUi(this);
 
-	selectedItem_ = NULL;
-	selectedInput_ = NULL;
+	selectedItem_ = nullptr;
+	selectedInput_ = nullptr;
 	ignoreValueChanges_ = GL_FALSE;
-
-	setValueCallback_ = ref_ptr<SetValueCallback>::alloc(&valueStamp_);
 }
 
 ShaderInputWidget::~ShaderInputWidget() {
@@ -108,9 +56,17 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 	auto *anims = new QTreeWidgetItem(item);
 	anims->setText(0, "animations");
 	int index = 0;
-	for (auto &anim : AnimationManager::get().glAnimations()) {
-		if (anim == setValueCallback_.get()) continue;
-
+	std::set<Animation *> allAnimations;
+	for (auto &anim : AnimationManager::get().synchronizedAnimations()) {
+		allAnimations.insert(anim);
+	}
+	for (auto &anim : AnimationManager::get().unsynchronizedAnimations()) {
+		allAnimations.insert(anim);
+	}
+	for (auto &anim : AnimationManager::get().graphicsAnimations()) {
+		allAnimations.insert(anim);
+	}
+	for (auto &anim : allAnimations) {
 		auto *animItem = new QTreeWidgetItem(anims);
 		// use index as name for now
 		std::string animName;
@@ -180,7 +136,7 @@ bool ShaderInputWidget::handleState(
 				isEmpty = false;
 			}
 			for (auto &input : light.inputs) {
-				if (handleInput(input, parent)) {
+				if (handleInput(NamedShaderInput(input), parent)) {
 					isEmpty = false;
 				}
 			}
@@ -204,7 +160,7 @@ bool ShaderInputWidget::handleInput(
 		const NamedShaderInput &namedInput,
 		QTreeWidgetItem *parent) {
 	const ref_ptr<ShaderInput> in = namedInput.in_;
-	if (in->elementCount() > 1) return false;
+	if (in->numArrayElements() > 1) return false;
 	if (in->valsPerElement() > 4) return false;
 
 	if (in->isUniformBlock()) {
@@ -219,8 +175,9 @@ bool ShaderInputWidget::handleInput(
 		byte *lastValue = initialValue_[in.get()];
 		delete[]lastValue;
 	}
+	auto clientData = in->mapClientDataRaw(ShaderData::READ);
 	byte *initialValue = new byte[in->inputSize()];
-	memcpy(initialValue, in->clientData(), in->inputSize());
+	memcpy(initialValue, clientData.r, in->inputSize());
 	initialValue_[in.get()] = initialValue;
 	initialValueStamp_[in.get()] = in->stamp();
 	valueStamp_[in.get()] = 0;
@@ -242,8 +199,9 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x) {
 		stamp != initialValueStamp_[x]) {
 		// last time value was not changed from widget
 		// update initial data
+		auto clientData = x->mapClientDataRaw(ShaderData::READ);
 		byte *initialValue = new byte[x->inputSize()];
-		memcpy(initialValue, x->clientData(), x->inputSize() * sizeof(byte));
+		memcpy(initialValue, clientData.r, x->inputSize() * sizeof(byte));
 
 		byte *oldInitial = initialValue_[x];
 		delete[]oldInitial;
@@ -307,7 +265,7 @@ void ShaderInputWidget::valueUpdated() {
 			break;
 	}
 
-	((SetValueCallback *) setValueCallback_.get())->push(selectedInput_, changedData);
+	selectedInput_->setUniformUntyped(changedData);
 }
 
 void ShaderInputWidget::maxUpdated() {
@@ -341,7 +299,7 @@ void ShaderInputWidget::resetValue() {
 	}
 	updateInitialValue(selectedInput_);
 	byte *initialValue = initialValue_[selectedInput_];
-	selectedInput_->setUniformDataUntyped(initialValue);
+	selectedInput_->setUniformUntyped(initialValue);
 	activateValue(selectedItem_, selectedItem_);
 }
 
@@ -378,7 +336,8 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
 		REGEN_WARN("More then 4 components unsupported.");
 		return;
 	}
-	byte *value = selectedInput_->clientDataPtr();
+	auto mapped = selectedInput_->mapClientDataRaw(ShaderData::READ);
+	const byte *value = mapped.r;
 
 	GLfloat maxVal = 0.0f;
 	GLboolean hasNegative = ui_.negativeValueToggle->isChecked();

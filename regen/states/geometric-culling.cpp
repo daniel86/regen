@@ -24,11 +24,14 @@ GeometricCulling::GeometricCulling(
 		numInstances_ = 1;
 	}
 	if (numInstances_ > 1) {
+		// create array with numInstances_ elements
 		instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numInstances_);
-		instanceIDMap_->setArrayData(numInstances_);
+		instanceIDMap_->setInstanceData(1, 1, nullptr);
+		auto instanceData = instanceIDMap_->mapClientData<GLuint>(ShaderData::WRITE);
 		for (GLuint i = 0; i < numInstances_; ++i) {
-			instanceIDMap_->setVertex(i, i);
+			instanceData.w[i] = i;
 		}
+		instanceData.unmap();
 		state()->joinShaderInput(instanceIDMap_);
 	}
 }
@@ -43,9 +46,9 @@ void GeometricCulling::updateMeshLOD() {
 		return;
 	}
 	// set LOD level based on distance
-	auto &camPos = camera_->position()->getVertex(0);
+	auto camPos = camera_->position()->getVertex(0);
 	auto shapePos = shape->getCenterPosition();
-	auto distance = (shapePos - camPos).length();
+	auto distance = (shapePos - camPos.r).length();
 	mesh_->updateLOD(distance);
 	for (auto &part : shape->parts()) {
 		if (part->numLODs()>1) {
@@ -69,7 +72,6 @@ void GeometricCulling::traverse(RenderState *rs) {
 		numInstances_ = 0;
 	} else {
 		auto &visibleInstances = spatialIndex_->getVisibleInstances(*camera_.get(), shapeName_);
-		auto &camPos = camera_->position()->getVertex(0);
 		auto shape = spatialIndex_->getShape(shapeName_);
 		auto &transform = shape->transform();
 
@@ -79,11 +81,13 @@ void GeometricCulling::traverse(RenderState *rs) {
 		std::vector<std::vector<GLuint>> lodGroups(mesh_->numLODs());
 		if (transform.get() && mesh_->numLODs() > 1) {
 			// FIXME: need to consider offset here too! tf may not be instanced! BUG
-			auto &tf = transform->get();
+			auto camPos = camera_->position()->getVertex(0);
+			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
 			for (auto visibleInstance : visibleInstances) {
-				auto shapePos = tf->getVertex(visibleInstance).position();
-				auto distance = (shapePos - camPos).length();
-				lodGroups[mesh_->getLODLevel(distance)].push_back(visibleInstance);
+				auto &shapePos = tfData.r[visibleInstance].position();
+				auto distance = (shapePos - camPos.r).length();
+				auto lodLevel = mesh_->getLODLevel(distance);
+				lodGroups[lodLevel].push_back(visibleInstance);
 			}
 		}
 		else {
@@ -99,15 +103,19 @@ void GeometricCulling::traverse(RenderState *rs) {
 				continue;
 			}
 			// update instanceIDMap_ based on visibility
+			auto instance_ids = instanceIDMap_->mapClientData<GLuint>(ShaderData::WRITE);
 			for (GLuint i = 0; i < lodGroup.size(); ++i) {
-				instanceIDMap_->setVertex(i, lodGroup[i]);
+				instance_ids.w[i] = lodGroup[i];
 			}
+			instance_ids.unmap();
 			// set the LOD level
-			mesh_->activateLOD(lodLevel);
+			if (lodGroups.size() > 1) {
+				mesh_->activateLOD(lodLevel);
+			}
 			// set number of visible instances
 			mesh_->inputContainer()->set_numVisibleInstances(lodGroup.size());
 			for (auto &part : shape->parts()) {
-				if (mesh_->numLODs() == part->numLODs()) {
+				if (mesh_->numLODs() == part->numLODs() && part->numLODs() > 1) {
 					part->activateLOD(lodLevel);
 				}
 				else if (part->numLODs()>1) {
@@ -129,6 +137,8 @@ void GeometricCulling::traverse(RenderState *rs) {
 			}
 		}
 		// reset LOD level
-		mesh_->activateLOD(0);
+		if (lodGroups.size() > 1) {
+			mesh_->activateLOD(0);
+		}
 	}
 }

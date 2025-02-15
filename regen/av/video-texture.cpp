@@ -27,7 +27,7 @@ using namespace regen;
 
 VideoTexture::VideoTexture()
 		: Texture2D(1),
-		  Animation(GL_TRUE, GL_TRUE),
+		  Animation(true, true),
 		  closeFlag_(GL_FALSE),
 		  seeked_(GL_FALSE),
 		  fileToLoaded_(GL_FALSE),

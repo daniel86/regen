@@ -120,7 +120,7 @@
 	sun-shine-intensity="128.0"
 	earth-shine-color="0.88,0.96,1.0"
 	earth-shine-intensity="8.0" />
-  <atmosphere preset="earth" size="256" />
+  <atmosphere preset="earth" size="256" lod="4" />
   <cloud-layer id="earth-clouds"
 	       texture-size="1028"
 	       sharpness="0.6"

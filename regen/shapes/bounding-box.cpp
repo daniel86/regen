@@ -28,10 +28,10 @@ void BoundingBox::updateBounds(const Vec3f &min, const Vec3f &max) {
 Vec3f BoundingBox::getCenterPosition() const {
 	Vec3f p = basePosition_;
 	if (translation_.get()) {
-		p += translation_->getVertex(translationIndex_);
+		p += translation_->getVertex(translationIndex_).r;
 	}
 	if (transform_.get()) {
-		return p + transform_->get()->getVertex(transformIndex_).position();
+		return p + transform_->get()->getVertex(transformIndex_).r.position();
 	} else {
 		return p;
 	}

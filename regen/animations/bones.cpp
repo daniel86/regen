@@ -15,7 +15,7 @@ using namespace regen;
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 		: HasInputState(VBO::USAGE_TEXTURE),
-		  Animation(GL_TRUE, GL_FALSE) {
+		  Animation(true, true) {
 	bufferSize_ = 0u;
 	setAnimationName("bones");
 
@@ -37,7 +37,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	// create and join bone matrix uniform
 	boneMatrices_ = ref_ptr<ShaderInputMat4>::alloc("boneMatrices", bones.size());
 	boneMatrices_->set_forceArray(GL_TRUE);
-	boneMatrices_->setUniformDataUntyped(nullptr);
+	boneMatrices_->setUniformUntyped();
 
 #ifdef USE_BONE_TBO
 	bufferSize_ = sizeof(GLfloat) * 16 * bones_.size();
@@ -69,24 +69,29 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	glAnimate(rs, 0.0f);
 }
 
-void Bones::glAnimate(RenderState *rs, GLdouble dt) {
-	GL_ERROR_LOG();
+void Bones::animate(GLdouble dt) {
 	if (bufferSize_ <= 0) return;
-	auto *boneMatrixData_ = (Mat4f *) boneMatrices_->clientDataPtr();
+	auto mapped = boneMatrices_->mapClientData<Mat4f>(ShaderData::WRITE);
+	auto *boneMatrixData_ = mapped.w;
 
-	GLuint i = 0;
+	unsigned int i = 0;
 	for (auto it = bones_.begin(); it != bones_.end(); ++it) {
 		// the bone matrix is actually calculated in the animation thread
 		// by NodeAnimation.
 		boneMatrixData_[i] = (*it)->boneTransformationMatrix();
 		i += 1;
 	}
+}
+
+void Bones::glAnimate(RenderState *rs, GLdouble dt) {
+	if (bufferSize_ <= 0) return;
+	auto mapped = boneMatrices_->mapClientData<Mat4f>(ShaderData::READ);
+	auto *boneMatrixData_ = mapped.r;
 
 #ifdef USE_BONE_TBO
 	rs->textureBuffer().push(vboRef_->bufferID());
 	glBufferSubData(GL_TEXTURE_BUFFER,
 					vboRef_->address(), bufferSize_, &boneMatrixData_[0].x);
 	rs->textureBuffer().pop();
-	GL_ERROR_LOG();
 #endif
 }

@@ -38,7 +38,6 @@ namespace regen {
 		Ui_shaderInputEditor ui_;
 		QTreeWidgetItem *selectedItem_;
 		ShaderInput *selectedInput_;
-		ref_ptr<Animation> setValueCallback_;
 		GLboolean ignoreValueChanges_;
 
 		std::map<ShaderInput *, byte *> initialValue_;

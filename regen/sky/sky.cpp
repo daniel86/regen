@@ -18,7 +18,7 @@ using namespace regen;
 
 Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 		: StateNode(),
-		  Animation(GL_TRUE, GL_TRUE),
+		  Animation(true, true),
 		  cam_(cam),
 		  viewport_(viewport) {
 	srand(time(nullptr));
@@ -85,7 +85,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	cfg.isNormalRequired = GL_FALSE;
 	cfg.isTangentRequired = GL_FALSE;
 	cfg.isTexcoRequired = GL_FALSE;
-	cfg.levelOfDetails = {0};
+	cfg.levelOfDetails = {4};
 	cfg.posScale = Vec3f(2.0f);
 	cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
 	cfg.texcoScale = Vec2f(1.0);
@@ -104,27 +104,36 @@ osgHimmel::AbstractAstronomy &Sky::astro() { return *astro_.get(); }
 void Sky::set_moonSunLightReflectance(
 		GLfloat moonSunLightReflectance) { moonSunLightReflectance_ = moonSunLightReflectance; }
 
-GLdouble Sky::altitude() const { return cmnUniform_->getVertex(0).x; }
+GLdouble Sky::altitude() const { return cmnUniform_->getVertex(0).r.x; }
 
 GLdouble Sky::longitude() const { return astro_->getLongitude(); }
 
 GLdouble Sky::latitude() const { return astro_->getLatitude(); }
 
 void Sky::set_altitude(const GLdouble altitude) {
-	Vec4f &v = *((Vec4f *) cmnUniform_->clientDataPtr());
-	// Clamp altitude into non uniform atmosphere. (min alt is 1m)
-	v.x = math::clamp(altitude, 0.001f, osgHimmel::Earth::atmosphereThicknessNonUniform());
-	cmnUniform_->nextStamp();
+	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_cmnUniform.w = Vec4f(
+		math::clamp(altitude, 0.001f, osgHimmel::Earth::atmosphereThicknessNonUniform()),
+		v_cmnUniform.r.y,
+		v_cmnUniform.r.z,
+		v_cmnUniform.r.w);
 }
 
-void Sky::set_longitude(const GLdouble longitude) { astro_->setLongitude(longitude); }
+void Sky::set_longitude(const GLdouble longitude) {
+	astro_->setLongitude(longitude);
+}
 
-void Sky::set_latitude(const GLdouble latitude) { astro_->setLatitude(latitude); }
+void Sky::set_latitude(const GLdouble latitude) {
+	astro_->setLatitude(latitude);
+}
 
 void Sky::updateSeed() {
-	Vec4f &v = *((Vec4f *) cmnUniform_->clientDataPtr());
-	v.w = rand();
-	cmnUniform_->nextStamp();
+	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_cmnUniform.w = Vec4f(
+		v_cmnUniform.r.x,
+		v_cmnUniform.r.y,
+		v_cmnUniform.r.z,
+		rand());
 }
 
 void Sky::addLayer(const ref_ptr<SkyLayer> &layer) {
@@ -153,19 +162,6 @@ void Sky::startAnimation() {
 void Sky::stopAnimation() {
 	if (!isRunning_) return;
 	Animation::stopAnimation();
-}
-
-void Sky::animate(GLdouble dt) {
-	if (worldTime_) {
-		// convert to time_t
-		time_t t = boost::posix_time::to_time_t(worldTime_->p_time);
-		// get UTC offset
-		struct tm *tm = gmtime(&t);
-		time_t utcOffset = t - mktime(tm);
-		// create timef object
-		osgHimmel::TimeF time_osg(t, utcOffset);
-		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg));
-	}
 }
 
 GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius) {
@@ -199,7 +195,18 @@ static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
 	}
 }
 
-void Sky::glAnimate(RenderState *rs, GLdouble dt) {
+void Sky::animate(GLdouble dt) {
+	if (worldTime_) {
+		// convert to time_t
+		time_t t = boost::posix_time::to_time_t(worldTime_->p_time);
+		// get UTC offset
+		struct tm *tm = gmtime(&t);
+		time_t utcOffset = t - mktime(tm);
+		// create timef object
+		osgHimmel::TimeF time_osg(t, utcOffset);
+		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg));
+	}
+
 	// Compute sun/moon directions
 	Vec3f moon = astro_->getMoonPosition(false);
 	Vec3f sun = astro_->getSunPosition(false);
@@ -217,14 +224,17 @@ void Sky::glAnimate(RenderState *rs, GLdouble dt) {
 			computeEyeExtinction(moon))
 	);
 
-	const float fovHalf = camera()->fov()->getVertex(0) * 0.5f * DEGREE_TO_RAD;
-	const float height = viewport()->getVertex(0).y;
-	q_->setUniformData(sqrt(2.0) * 2.0 * tan(fovHalf) / height);
+	const float fovHalf = camera()->fov()->getVertex(0).r * 0.5f * DEGREE_TO_RAD;
+	const float height = viewport()->getVertex(0).r.y;
+	q_->setVertex(0, sqrt(2.0) * 2.0 * tan(fovHalf) / height);
 	R_->setVertex(0, astro().getEquToHorTransform());
 	// Update random number in cmn uniform
 	updateSeed();
+}
 
+void Sky::glAnimate(RenderState *rs, GLdouble dt) {
 	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
+		// TODO: allow sky layer to make updates in GUI thread
 		(*it)->updateSky(rs, dt);
 	}
 }

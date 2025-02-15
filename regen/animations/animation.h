@@ -40,7 +40,7 @@ namespace regen {
 		 * @param useAnimation execute without render context in separate thread.
 		 * @param autoStart is true the animation adds itself to the AnimationManager.
 		 */
-		Animation(GLboolean useGLAnimation, GLboolean useAnimation, GLboolean autoStart = GL_TRUE);
+		Animation(bool isGPUAnimation, bool isCPUAnimation);
 
 		~Animation() override;
 
@@ -66,6 +66,22 @@ namespace regen {
 		 * @return true if this animation is active.
 		 */
 		auto isRunning() const { return isRunning_; }
+
+		/**
+		 * @return true if this animation is synchronized.
+		 */
+		auto isSynchronized() const { return isSynchronized_; }
+
+		/**
+		 * @return the desired frame rate.
+		 */
+		auto desiredFrameRate() const { return desiredFrameRate_; }
+
+		/**
+		 * Set the synchronized flag.
+		 * @param synchronized the synchronized flag.
+		 */
+		void setSynchronized(GLboolean v) { isSynchronized_ = v; }
 
 		/**
 		 * Activate this animation.
@@ -122,12 +138,12 @@ namespace regen {
 		/**
 		 * @return true if the animation implements glAnimate().
 		 */
-		auto useGLAnimation() const { return useGLAnimation_; }
+		auto isGPUAnimation() const { return isGPUAnimation_; }
 
 		/**
 		 * @return true if the animation implements animate().
 		 */
-		auto useAnimation() const { return useAnimation_; }
+		auto isCPUAnimation() const { return isCPUAnimation_; }
 
 		/**
 		 * Make the next animation step.
@@ -166,12 +182,16 @@ namespace regen {
 		boost::mutex mutex_;
 		boost::mutex mutex_gl_;
 		std::string animationName_;
-		GLboolean useGLAnimation_;
-		GLboolean useAnimation_;
-		GLboolean isRunning_;
+		bool isGPUAnimation_;
+		bool isCPUAnimation_;
+		bool isRunning_;
+		bool isSynchronized_ = true;
+		float desiredFrameRate_ = 60.0f;
 		ref_ptr<State> animationState_;
 
-		void operator=(const Animation &);
+		void operator=(const Animation &) = delete;
+
+		friend class AnimationManager;
 	};
 } // namespace
 

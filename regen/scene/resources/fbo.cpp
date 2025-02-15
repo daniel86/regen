@@ -13,9 +13,6 @@ using namespace regen::scene;
 using namespace regen;
 using namespace std;
 
-#include <regen/gl-types/gl-enum.h>
-#include <regen/scene/resources/texture.h>
-
 #define REGEN_FBO_CATEGORY "fbo"
 
 /**
@@ -39,10 +36,11 @@ public:
 			  wScale_(wScale), hScale_(hScale) {}
 
 	void call(EventObject *, EventData *) {
-		const Vec2i &winSize = windowViewport_->getVertex(0);
-		Vec2i fboSize(winSize.x * wScale_, winSize.y * hScale_);
+		auto winSize = windowViewport_->getVertex(0);
+		Vec2i fboSize(winSize.r.x * wScale_, winSize.r.y * hScale_);
 		if (fboSize.x % 2 != 0) fboSize.x += 1;
 		if (fboSize.y % 2 != 0) fboSize.y += 1;
+		winSize.unmap();
 		fbo_->resize(fboSize.x, fboSize.y, 1);
 	}
 
@@ -57,9 +55,9 @@ FBOResource::FBOResource()
 
 ref_ptr<FBO> FBOResource::createResource(
 		SceneParser *parser, SceneInputNode &input) {
-	string sizeMode = input.getValue<string>("size-mode", "abs");
-	Vec3f relSize = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-	Vec3i absSize = TextureResource::getSize(
+	auto sizeMode = input.getValue<string>("size-mode", "abs");
+	auto relSize = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
+	auto absSize = TextureResource::getSize(
 			parser->getViewport(), sizeMode, relSize);
 
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x, absSize.y, absSize.z);
@@ -74,7 +72,7 @@ ref_ptr<FBO> FBOResource::createResource(
 
 	const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
 	for (auto it = childs.begin(); it != childs.end(); ++it) {
-		ref_ptr<SceneInputNode> n = *it;
+		const ref_ptr<SceneInputNode> &n = *it;
 
 		if (n->getCategory() == "texture") {
 			ref_ptr<Texture> tex = TextureResource().createResource(parser, *n.get());

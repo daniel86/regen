@@ -5,9 +5,9 @@ using namespace regen;
 LightCamera_Parabolic::LightCamera_Parabolic(const ref_ptr<Light> &light, bool isDualParabolic)
 		: ParabolicCamera(isDualParabolic),
 		  LightCamera(light,this) {
-	lightMatrix_->set_elementCount(numLayer_);
+	lightMatrix_->set_numArrayElements(numLayer_);
 	lightMatrix_->set_forceArray(true);
-	lightMatrix_->setUniformDataUntyped(nullptr);
+	lightMatrix_->setUniformUntyped();
 	setInput(lightMatrix_);
 	updateParabolicLight();
 }
@@ -20,9 +20,9 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 	if(updateLightProjection() || updateLightView()) {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
-		for (auto i=0; i<lightMatrix_->elementCount(); ++i) {
+		for (auto i=0; i<lightMatrix_->numArrayElements(); ++i) {
 			// note: bias is not applied here, as the projection is done in shaders
-			lightMatrix_->setVertex(i, viewProj_->getVertex(i));
+			lightMatrix_->setVertex(i, viewProj_->getVertex(i).r);
 		}
 		camStamp_ += 1;
 		return true;
@@ -32,23 +32,23 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 
 bool LightCamera_Parabolic::updateLightProjection() {
 	if (lightRadiusStamp_ == light_->radius()->stamp()) { return false; }
-	const Vec2f &radius = light_->radius()->getVertex(0);
+	auto radius = light_->radius()->getVertex(0);
 	lightRadiusStamp_ = light_->radius()->stamp();
-	setPerspective(1.0f, 180.0f, lightNear_, radius.y);
+	setPerspective(1.0f, 180.0f, lightNear_, radius.r.y);
 	return true;
 }
 
 bool LightCamera_Parabolic::updateLightView() {
 	if (lightPosStamp_ == light_->position()->stamp() &&
 		lightDirStamp_ == light_->direction()->stamp()) { return false; }
-	const Vec3f &pos = light_->position()->getVertex(0);
-	const Vec3f &dir = light_->direction()->getVertex(0);
+	auto dir = light_->direction()->getVertex(0);
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
-	position_->setVertex(0, pos);
-	direction_->setVertex(0, -dir);
+	position_->setVertex(0, light_->position()->getVertex(0).r);
+	direction_->setVertex(0, -dir.r);
 	if (hasBackFace_) {
-		direction_->setVertex(1, dir);
+		direction_->setVertex(1, dir.r);
 	}
+	dir.unmap();
 	return updateView();
 }

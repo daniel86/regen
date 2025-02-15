@@ -10,14 +10,17 @@
 
 #include <string>
 #include <map>
+#include <atomic>
 
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/gl-enum.h>
+#include <regen/gl-types/shader-data.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
 #include <regen/utility/string-util.h>
 #include <regen/math/matrix.h>
 #include <regen/math/vector.h>
+#include <condition_variable>
 
 namespace regen {
 	// default attribute names
@@ -33,12 +36,6 @@ namespace regen {
 #ifndef BUFFER_OFFSET
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #endif
-
-#ifndef byte
-	typedef unsigned char byte;
-#endif
-
-	class Animation;
 
 	/**
 	 * \brief Provides input to shader programs.
@@ -88,15 +85,15 @@ namespace regen {
 		 * @param dataType Specifies the data type of each component in the array.
 		 * @param dataTypeBytes Size of a single instance of the data type in bytes.
 		 * @param valsPerElement Specifies the number of components per generic vertex attribute.
-		 * @param elementCount Number of array elements.
+		 * @param numArrayElements Number of array elements.
 		 * @param normalize Specifies whether fixed-point data values should be normalized.
 		 */
 		ShaderInput(
 				const std::string &name,
 				GLenum dataType,
 				GLuint dataTypeBytes,
-				GLuint valsPerElement,
-				GLsizei elementCount,
+				GLint valsPerElement,
+				GLsizei numArrayElements,
 				GLboolean normalize);
 
 		virtual ~ShaderInput();
@@ -120,41 +117,36 @@ namespace regen {
 		 * no call to glUniform when inactive.
 		 * @return the active toggle value
 		 */
-		GLboolean active() const;
+		auto active() const { return active_; }
 
 		/**
 		 * no call to glUniform when inactive.
 		 * @param v the active toggle value
 		 */
-		void set_active(GLboolean v);
+		void set_active(GLboolean v) { active_ = v; }
 
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		GLuint stamp() const;
-
-		/**
-		 * Sets a new stamp value.
-		 */
-		void nextStamp();
+		unsigned int stamp() const;
 
 		/**
 		 * Specifies the data type of each component in the array.
 		 * Symbolic constants GL_FLOAT,GL_DOUBLE,.. accepted.
 		 */
-		GLenum dataType() const;
+		GLenum dataType() const { return dataType_; }
 
 		/**
 		 * Size of a single instance of the data type in bytes.
 		 */
-		GLuint dataTypeBytes() const;
+		auto dataTypeBytes() const { return dataTypeBytes_; }
 
 		/**
 		 * Specifies the byte offset between consecutive generic vertex attributes.
 		 * If stride is 0, the generic vertex attributes are understood to be tightly
 		 * packed in the array. The initial value is 0.
 		 */
-		void set_stride(GLuint stride);
+		void set_stride(GLsizei stride) { stride_ = stride; }
 
 		/**
 		 * VBO that contains this vertex data.
@@ -165,125 +157,128 @@ namespace regen {
 		/**
 		 * VBO that contains this vertex data.
 		 */
-		GLuint buffer() const;
+		auto buffer() const { return buffer_; }
 
 		/**
 		 * data with stamp was uploaded to GL.
 		 */
-		GLuint bufferStamp() const;
+		auto bufferStamp() const { return bufferStamp_; }
 
 		/**
 		 * Iterator to allocated VBO block.
 		 */
-		ref_ptr<VBO::Reference> bufferIterator();
+		auto bufferIterator() const { return bufferIterator_; }
 
 		/**
 		 * Specifies the byte offset between consecutive generic vertex attributes.
 		 * If stride is 0, the generic vertex attributes are understood to be tightly
 		 * packed in the array. The initial value is 0.
 		 */
-		GLuint stride() const;
+		auto stride() const { return stride_; }
 
 		/**
 		 * Attribute size for all vertices.
 		 */
-		GLuint inputSize() const;
+		auto inputSize() const { return inputSize_; }
 
 		/**
 		 * Attribute size for all vertices.
 		 */
-		void set_inputSize(GLuint size);
+		void set_inputSize(GLuint size) { inputSize_ = size; }
 
 		/**
 		 * Attribute size for a single vertex.
 		 */
-		GLuint elementSize() const;
+		auto elementSize() const { return elementSize_; }
 
 		/**
 		 * Offset in the VBO to the first
 		 * attribute element.
 		 */
-		void set_offset(GLuint offset);
+		void set_offset(GLuint offset) { offset_ = offset; }
 
 		/**
 		 * Offset in the VBO to the first
 		 * attribute element.
 		 */
-		GLuint offset() const;
+		auto offset() const { return offset_; }
 
 		/**
 		 * Number of array elements.
 		 * returns 1 if this is not an array attribute.
 		 */
-		GLuint elementCount() const;
+		auto numArrayElements() const { return numArrayElements_; }
 
 		/**
 		 * Number of array elements.
 		 * returns 1 if this is not an array attribute.
 		 */
-		void set_elementCount(GLuint);
+		void set_numArrayElements(GLsizei v);
 
 		/**
 		 * Specifies the number of components per generic vertex attribute.
 		 * Must be 1, 2, 3, or 4.
 		 */
-		GLuint valsPerElement() const;
+		auto valsPerElement() const { return valsPerElement_; }
 
 		/**
 		 * Used for instanced attributes.
 		 */
-		GLuint numInstances() const;
+		auto numInstances() const { return numInstances_; }
 
 		/**
 		 * Specify the number of instances that will pass between updates
 		 * of the generic attribute at slot index.
 		 */
-		GLuint divisor() const;
+		auto divisor() const { return divisor_; }
 
 		/**
 		 * Specifies whether fixed-point data values should be normalized (GL_TRUE)
 		 * or converted directly as fixed-point values (GL_FALSE) when they are accessed.
 		 */
-		GLboolean normalize() const;
+		auto normalize() const { return normalize_; }
 
 		/**
 		 * @param transpose transpose the data.
 		 */
-		void set_transpose(GLboolean transpose);
+		void set_transpose(GLboolean transpose) { transpose_ = transpose; }
 
 		/**
 		 * @return transpose the data.
 		 */
-		GLboolean transpose() const;
+		auto transpose() const { return transpose_; }
 
 		/**
 		 * @return the vertex count.
 		 */
-		GLuint numVertices() const;
+		auto numVertices() const { return numVertices_; }
 
 		/**
 		 * @param numVertices the vertex count.
 		 */
-		void set_numVertices(GLuint numVertices);
+		void set_numVertices(GLuint numVertices) { numVertices_ = numVertices; }
 
 		/**
 		 * Returns true if this input is a vertex attribute or
 		 * an instanced attribute.
 		 */
-		GLboolean isVertexAttribute() const;
+		auto isVertexAttribute() const { return isVertexAttribute_; }
 
 		/**
 		 * Constants can not change the value during the lifetime
 		 * of the shader program.
 		 */
-		void set_isConstant(GLboolean isConstant);
+		void set_isConstant(GLboolean isConstant) { isConstant_ = isConstant; }
 
 		/**
 		 * Constants can not change the value during the lifetime
 		 * of the shader program.
 		 */
-		GLboolean isConstant() const;
+		auto isConstant() const { return isConstant_; }
 
+		/**
+		 * @return true if this input is a uniform block.
+		 */
 		auto isUniformBlock() const { return isUniformBlock_; }
 
 		/**
@@ -291,76 +286,90 @@ namespace regen {
 		 * with [1] in the generated shader if forceArray is true.
 		 * Note: attributes can not be arrays.
 		 */
-		void set_forceArray(GLboolean forceArray);
+		void set_forceArray(GLboolean forceArray) { forceArray_ = forceArray; }
 
 		/**
 		 * Uniforms with a single array element will appear
 		 * with [1] in the generated shader if forceArray is true.
 		 * Note: attributes can not be arrays.
 		 */
-		GLboolean forceArray() const;
+		auto forceArray() const { return forceArray_; }
 
 		/**
 		 * Allocates RAM for the attribute and does a memcpy
 		 * if the data pointer is not null.
 		 * numVertices*elementSize bytes will be allocated.
 		 */
-		void setVertexData(
-				GLuint numVertices,
-				const byte *vertexData = nullptr);
-
-		void setArrayData(
-				GLuint numArrayElements,
-				const byte *arrayData = nullptr);
+		void setVertexData(GLuint numVertices, const byte *vertexData = nullptr);
 
 		/**
 		 * Allocates RAM for the attribute and does a memcpy
 		 * if the data pointer is not null.
 		 * numInstances*elementSize/divisor bytes will be allocated.
 		 */
-		void setInstanceData(
-				GLuint numInstances,
-				GLuint divisor,
-				const byte *instanceData = nullptr);
+		void setInstanceData(GLuint numInstances, GLuint divisor, const byte *instanceData = nullptr);
 
 		/**
 		 * @param data the input data.
 		 */
-		void setUniformDataUntyped(byte *data);
+		void setUniformUntyped(const byte *data = nullptr);
 
 		/**
-		 * Vertex data pointer.
-		 * Returns pointer owned by this instance or the top of the
-		 * data pointer stack.
+		 * Map client data for reading/writing.
+		 * @return the mapped data.
 		 */
-		byte *clientDataPtr();
+		ShaderDataRaw_rw mapClientDataRaw(int mapMode) { return {this, mapMode}; }
 
 		/**
-		 * Vertex data pointer.
-		 * Returns pointer owned by this instance.
+		 * Map client data for reading/writing.
+		 * @return the mapped data.
 		 */
-		byte *ownedClientData();
+		ShaderDataRaw_ro mapClientDataRaw(int mapMode) const { return {this, mapMode}; }
 
 		/**
-		 * Vertex data pointer.
-		 * Returns pointer owned by this instance or the top of the
-		 * data pointer stack.
+		 * Map client data for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @return the mapped data.
 		 */
-		const byte *clientData() const;
+		template<typename T> ShaderData_rw<T> mapClientData(int mapMode) { return {this, mapMode}; }
 
 		/**
-		 * Pushes a data pointer onto the stack without doing a copy.
-		 * Caller have to make sure the pointer stays valid until the data
-		 * is pushed.
+		 * Map client data for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @return the mapped data.
 		 */
-		void pushClientData(byte *data);
+		template<typename T> ShaderData_ro<T> mapClientData(int mapMode) const { return {this, mapMode}; }
 
 		/**
-		 * Pop data pointer you previously pushed.
-		 * This does not delete the data pointer, it's owned by caller.
-		 * Last pop will reset to data pointer owned by this instance.
+		 * Map a single vertex for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @param vertexIndex the vertex index.
+		 * @return the mapped vertex.
 		 */
-		void popClientData();
+		template<typename T> ShaderVertex_rw<T> mapClientVertex(int mapMode, unsigned int vertexIndex)
+		{ return {this, mapMode, vertexIndex}; }
+
+		/**
+		 * Map a single vertex for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @param vertexIndex the vertex index.
+		 * @return the mapped vertex.
+		 */
+		template<typename T> ShaderVertex_ro<T> mapClientVertex(int mapMode, unsigned int vertexIndex) const
+		{ return {this, mapMode, vertexIndex}; }
+
+		/**
+		 * Writes client data at index.
+		 * Note that it is more efficient to map the data and write directly to it
+		 * in case you can write multiple vertices at once.
+		 * @param index vertex index.
+		 * @param data the data, will be copied into the internal data buffer.
+		 */
+		void writeVertex(GLuint index, const byte *data);
 
 		/**
 		 * Deallocates data pointer owned by this instance.
@@ -380,29 +389,29 @@ namespace regen {
 		 * @param rs The RenderState.
 		 * @param index The vertex index.
 		 */
-		void writeServerData(RenderState *rs, GLuint index);
+		void writeServerData(GLuint index) const;
 
 		/**
 		 * Write this attribute to the GL server.
 		 * @param rs The RenderState.
 		 */
-		void writeServerData(RenderState *rs);
+		void writeServerData() const;
 
 		/**
 		 * Returns true if this attribute is allocated in RAM
 		 * or if it was uploaded to GL already.
 		 */
-		GLboolean hasData();
+		GLboolean hasData() const;
 
 		/**
 		 * Returns true if this attribute is allocated in RAM.
 		 */
-		GLboolean hasClientData();
+		GLboolean hasClientData() const;
 
 		/**
 		 * Returns true if this attribute was uploaded to GL already.
 		 */
-		GLboolean hasServerData();
+		GLboolean hasServerData() const;
 
 		/**
 		 * Binds vertex attribute for active buffer to the
@@ -414,96 +423,6 @@ namespace regen {
 		 * Binds uniform to the given shader location.
 		 */
 		void enableUniform(GLint loc) const;
-
-		/**
-		 * Binds float uniform to the given shader location.
-		 */
-		void enableUniform1f(GLint loc) const;
-
-		/**
-		 * Binds vec2f uniform to the given shader location.
-		 */
-		void enableUniform2f(GLint loc) const;
-
-		/**
-		 * Binds vec3f uniform to the given shader location.
-		 */
-		void enableUniform3f(GLint loc) const;
-
-		/**
-		 * Binds vec4f uniform to the given shader location.
-		 */
-		void enableUniform4f(GLint loc) const;
-
-		/**
-		 * Binds int uniform to the given shader location.
-		 */
-		void enableUniform1i(GLint loc) const;
-
-		/**
-		 * Binds vec2i uniform to the given shader location.
-		 */
-		void enableUniform2i(GLint loc) const;
-
-		/**
-		 * Binds vec3i uniform to the given shader location.
-		 */
-		void enableUniform3i(GLint loc) const;
-
-		/**
-		 * Binds vec4i uniform to the given shader location.
-		 */
-		void enableUniform4i(GLint loc) const;
-
-		/**
-		 * Binds double uniform to the given shader location.
-		 */
-		void enableUniform1d(GLint loc) const;
-
-		/**
-		 * Binds vec2d uniform to the given shader location.
-		 */
-		void enableUniform2d(GLint loc) const;
-
-		/**
-		 * Binds vec3d uniform to the given shader location.
-		 */
-		void enableUniform3d(GLint loc) const;
-
-		/**
-		 * Binds vec4d uniform to the given shader location.
-		 */
-		void enableUniform4d(GLint loc) const;
-
-		/**
-		 * Binds unsigned int uniform to the given shader location.
-		 */
-		void enableUniform1ui(GLint loc) const;
-
-		/**
-		 * Binds vec2ui uniform to the given shader location.
-		 */
-		void enableUniform2ui(GLint loc) const;
-
-		/**
-		 * Binds vec3ui uniform to the given shader location.
-		 */
-		void enableUniform3ui(GLint loc) const;
-
-		/**
-		 * Binds vec4ui uniform to the given shader location.
-		 */
-		void enableUniform4ui(GLint loc) const;
-
-		/**
-		 * Binds mat3 uniform to the given shader location.
-		 */
-		void enableUniformMat3(GLint loc) const;
-
-		/**
-		 * Binds mat4 uniform to the given shader location.
-		 */
-		void enableUniformMat4(GLint loc) const;
 
 		/**
 		 * Bind the attribute to the given shader location.
@@ -536,34 +455,80 @@ namespace regen {
 		std::string name_;
 		GLenum dataType_;
 		GLuint dataTypeBytes_;
-		GLuint stride_;
+		GLsizei stride_;
 		GLuint offset_;
 		GLuint inputSize_;
+		// This is the size in bytes of one element in the vertex buffer.
+		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
 		GLuint elementSize_;
-		GLsizei elementCount_;
+		GLuint numArrayElements_;
 		GLuint numVertices_;
 		GLuint numInstances_;
 		GLsizei numElements_;
-		GLuint valsPerElement_;
+		GLint valsPerElement_;
 		GLuint divisor_;
 		GLuint buffer_;
-		GLuint bufferStamp_;
+		mutable GLuint bufferStamp_;
 		ref_ptr<VBO::Reference> bufferIterator_;
-		GLboolean normalize_;
-		GLboolean isVertexAttribute_;
-		GLboolean transpose_;
-		byte *data_;
-		Stack<byte *> dataStack_;
-		GLuint stamp_;
+		bool normalize_;
+		bool isVertexAttribute_;
+		bool transpose_;
+
+		struct SlotLock {
+			std::mutex lock;
+			std::condition_variable readerQ;
+			std::condition_variable writerQ;
+			int activeReaders = 0;
+			int activeWriters = 0;
+			int waitingWriters = 0;
+		};
+		// Note: marked as mutable because client data mapping must be allowed in const functions
+		//       for reading data, but mapping interacts with locks. Hence, locks must be mutable.
+		mutable std::array<byte*,2> dataSlots_;
+		mutable std::array<SlotLock,2> slotLocks_;
+		mutable std::atomic<int> lastDataSlot_ = 0;
+		mutable std::atomic<unsigned int> dataStamp_ = 0;
 
 		bool isConstant_;
 		bool isUniformBlock_;
 		bool forceArray_;
 		bool active_;
-
-		ref_ptr<Animation> dataUpload_;
+		mutable bool requiresReUpload_ = false;
 
 		void (ShaderInput::*enableAttribute_)(GLint loc) const;
+
+		MappedData mapClientData(int mapMode) const;
+
+		void unmapClientData(int mapMode, int slotIndex) const;
+
+		const byte* readLock(int slotIndex) const;
+
+		const byte* readLockTry(int dataSlot) const;
+
+		void readUnlock(int slotIndex) const;
+
+		byte* writeLock(int slotIndex) const;
+
+		byte* writeLockTry(int slotIndex) const;
+
+		void writeUnlock(int slotIndex, bool hasDataChanged) const;
+
+		void writeLockAll() const;
+
+		void writeUnlockAll(bool hasDataChanged) const;
+
+		bool hasTwoSlots() const { return dataSlots_[1] != nullptr; }
+
+		int lastDataSlot() const;
+
+		void allocateSecondSlot() const;
+
+		void reallocateClientData(size_t size);
+
+		bool writeClientData_(const byte *data);
+
+		friend struct ShaderDataRaw_rw;
+		friend struct ShaderDataRaw_ro;
 
 		//void (ShaderInput::*enableUniform_)(GLint loc) const;
 		std::function<void(GLint)> enableUniform_;
@@ -582,9 +547,7 @@ namespace regen {
 		 * @param name the name overwrite.
 		 * @param type the type overwrite.
 		 */
-		NamedShaderInput(const ref_ptr<ShaderInput> &in,
-						 const std::string &name = "",
-						 const std::string &type = "");
+		explicit NamedShaderInput(const ref_ptr<ShaderInput> &in, const std::string &name = "", const std::string &type = "");
 
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
@@ -610,18 +573,18 @@ namespace regen {
 	public:
 		/**
 		 * @param name Name of this attribute used in shader programs.
-		 * @param elementCount Number of array elements.
+		 * @param numArrayElements Number of array elements.
 		 * @param normalize Specifies whether fixed-point data values should be normalized.
 		 */
 		ShaderInputTyped(
 				const std::string &name,
-				GLuint elementCount,
+				GLuint numArrayElements,
 				GLboolean normalize)
 				: ShaderInput(name,
 							  TypeValue,
 							  sizeof(BaseType),
 							  sizeof(ValueType) / sizeof(BaseType),
-							  elementCount, normalize) {}
+							  numArrayElements, normalize) {}
 
 		/**
 		 * Read ShaderInput.
@@ -634,21 +597,31 @@ namespace regen {
 		}
 
 		/**
-		 * Write ShaderInput.
+		 * @param data the uniforminput data.
 		 */
-		virtual std::ostream &operator>>(std::ostream &out) const { return out << *((ValueType *) data_); }
+		void setUniformData(const ValueType &data) { setUniformUntyped((const byte *) &data); }
 
-		void write(std::ostream &out) const override { out << *((ValueType *) data_); }
+		/**
+		 * @return the input data.
+		 */
+		auto uniformData() { return getVertex(0); }
 
 		/**
 		 * Set a value for the active stack data.
 		 * @param vertexIndex index in data array.
 		 * @param val the new value.
 		 */
-		void setVertex(GLuint vertexIndex, const ValueType &val) {
-			auto *v = (ValueType *) dataStack_.top();
-			v[vertexIndex] = val;
-			stamp_ += 1;
+		void setVertex(GLuint i, const ValueType &val) {
+			auto mapped = mapClientData<ValueType>(ShaderData::WRITE | ShaderData::INDEX);
+			mapped.w[i] = val;
+		}
+
+		/**
+		 * @param vertexIndex index in data array.
+		 * @return data value at given index.
+		 */
+		ShaderVertex_ro<ValueType> getVertex(GLuint i) const {
+			return mapClientVertex<ValueType>(ShaderData::READ, i);
 		}
 
 		/**
@@ -656,46 +629,33 @@ namespace regen {
 		 * @param vertexIndex index in data array.
 		 * @param val the new value.
 		 */
-		void setVertexOrFirst(GLuint vertexIndex, const ValueType &val) {
-			setVertex(maybeIndex(vertexIndex), val);
-		}
-
-		/**
-		 * @param vertexIndex index in data array.
-		 * @return data value at given index.
-		 */
-		const ValueType &getVertex(GLuint vertexIndex) const {
-			auto *v = (ValueType *) dataStack_.top();
-			return v[vertexIndex];
-		}
-
-		ValueType &getVertexPtr(GLuint vertexIndex) const {
-			auto *v = (ValueType *) dataStack_.top();
-			return v[vertexIndex];
-		}
+		void setVertexClamped(GLuint i, const ValueType &val) { setVertex(numElements_ > i ? i : 0, val); }
 
 		/**
 		 * Get vertex at index or the first vertex if index is out of bounds.
 		 * @param vertexIndex index in data array.
 		 * @return data value at given index.
 		 */
-		const ValueType &getVertexOrFirst(GLuint vertexIndex) const {
-			return getVertex(maybeIndex(vertexIndex));
-		}
+		auto getVertexClamped(GLuint i) const { return getVertex(numElements_ > i ? i : 0); }
 
-		unsigned int maybeIndex(unsigned int index) const {
-			return (numVertices_*numElements_) > index ? index : 0;
+		/**
+		 * Write ShaderInput.
+		 */
+		virtual std::ostream &operator>>(std::ostream &out) const {
+			auto x = getVertex(0);
+			auto &v = x.r;
+			return out << v;
 		}
 
 		/**
-		 * @param data the uniforminput data.
+		 * Write ShaderInput.
 		 */
-		void setUniformData(const ValueType &data) { setUniformDataUntyped((byte *) &data); }
-
-		/**
-		 * @return the input data.
-		 */
-		const ValueType &uniformData() { return getVertex(0); }
+		void write(std::ostream &out) const override {
+			auto x = getVertex(0);
+			auto &v = x.r;
+			out << v;
+			//out << getVertex(0).v;
+		}
 	};
 
 	/////////////
@@ -707,12 +667,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1f(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -723,12 +683,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2f(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -739,12 +699,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3f(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -755,12 +715,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4f(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -771,12 +731,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInputMat3(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -787,12 +747,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInputMat4(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -803,12 +763,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1d(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -819,12 +779,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2d(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -835,12 +795,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3d(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -851,12 +811,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4d(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -867,12 +827,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1i(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -883,12 +843,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2i(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -899,12 +859,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3i(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -915,12 +875,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4i(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -931,12 +891,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1ui(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -947,12 +907,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2ui(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -963,12 +923,12 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3ui(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
 
@@ -979,38 +939,13 @@ namespace regen {
 	public:
 		/**
 		 * @param name the input name.
-		 * @param elementCount number of input elements.
+		 * @param numArrayElements number of input elements.
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4ui(
 				const std::string &name,
-				GLuint elementCount = 1,
+				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
-	};
-} // namespace
-
-namespace regen {
-	/**
-	 * \brief Vertex Array Objects (VAO) are OpenGL Objects that store the
-	 * set of bindings between Vertex Attributes and the user's source vertex data.
-	 *
-	 * VBOs store the actual vertex and index arrays,
-	 * while VAOs store the settings for interpreting the data in those arrays.
-	 *
-	 * The currently bound vertex array object is used for all commands
-	 * which modify vertex array state, such as VertexAttribPointer and
-	 * EnableVertexAttribArray; all commands which draw from vertex arrays,
-	 * such as DrawArrays and DrawElements; and all queries of vertex
-	 * array state.
-	 */
-	class VAO : public GLObject {
-	public:
-		VAO();
-
-		/**
-		 * Clear the VAO state.
-		 */
-		void resetGL();
 	};
 } // namespace
 

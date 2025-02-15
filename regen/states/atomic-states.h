@@ -315,19 +315,19 @@ namespace regen {
 		PatchLevelState(const ref_ptr<ShaderInput4f> &inner, const ref_ptr<ShaderInput4f> &outer)
 				: ServerSideState(), inner_(inner), outer_(outer) {}
 
-		void enable(RenderState *rs) override { rs->patchLevel().push(PatchLevels(inner(), outer())); }
-
-		void disable(RenderState *rs) override { rs->patchLevel().pop(); }
-
 		/**
 		 * @return the inner patch level.
 		 */
-		const Vec4f &inner() const { return inner_->getVertex(0); }
+		auto inner() const { return inner_->getVertex(0); }
 
 		/**
 		 * @return the outer patch level.
 		 */
-		const Vec4f &outer() const { return outer_->getVertex(0); }
+		auto outer() const { return outer_->getVertex(0); }
+
+		void enable(RenderState *rs) override { rs->patchLevel().push(PatchLevels(inner().r, outer().r)); }
+
+		void disable(RenderState *rs) override { rs->patchLevel().pop(); }
 
 	protected:
 		ref_ptr<ShaderInput4f> inner_;

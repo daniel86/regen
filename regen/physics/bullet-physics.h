@@ -37,8 +37,6 @@ namespace regen {
 		auto &dynamicsWorld() { return dynamicsWorld_; }
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt) override;
-
 		void animate(GLdouble dt) override;
 
 	protected:

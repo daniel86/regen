@@ -197,7 +197,7 @@ namespace regen {
 		 * @param rootNode animation tree.
 		 * @param autoStart is true the animation adds itself to the AnimationManager.
 		 */
-		explicit NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart = GL_TRUE);
+		explicit NodeAnimation(const ref_ptr<AnimationNode> &rootNode);
 
 		/**
 		 * @return true if the animation is active.

@@ -43,9 +43,6 @@ namespace regen {
 		// Override Animation
 		void animate(GLdouble dt) override;
 
-		// Override Animation
-		void glAnimate(RenderState *rs, GLdouble dt) override;
-
 		/**
 		 * Update the pose.
 		 * @param currentFrame the current frame.

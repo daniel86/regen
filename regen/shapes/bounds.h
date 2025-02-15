@@ -42,12 +42,29 @@ namespace regen {
 		}
 
 		/**
+		 * @return The center of the bounds
+		 */
+		T center() const {
+			return (min + max) * 0.5f;
+		}
+
+		/**
 		 * Increase the bounds to include the given other bounds.
 		 * @param other The other bounds
 		 */
 		void extend(const Bounds<T> &other) {
 			min.setMin(other.min);
 			max.setMax(other.max);
+		}
+
+		/**
+		 * Check if the bounds contain the given point.
+		 * @param point The point
+		 * @return true if the bounds contain the point
+		 */
+		bool contains(const T &point) const {
+			return point.x >= min.x && point.x <= max.x &&
+				   point.y >= min.y && point.y <= max.y;
 		}
 	};
 }

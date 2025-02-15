@@ -10,16 +10,16 @@ ParabolicCamera::ParabolicCamera(bool isDualParabolic)
 	isOmni_ = true;
 
 	// Set matrix array size
-	view_->set_elementCount(numLayer_);
-	viewInv_->set_elementCount(numLayer_);
-	viewProj_->set_elementCount(numLayer_);
-	viewProjInv_->set_elementCount(numLayer_);
+	view_->set_numArrayElements(numLayer_);
+	viewInv_->set_numArrayElements(numLayer_);
+	viewProj_->set_numArrayElements(numLayer_);
+	viewProjInv_->set_numArrayElements(numLayer_);
 
 	// Allocate matrices
-	view_->setUniformDataUntyped(nullptr);
-	viewInv_->setUniformDataUntyped(nullptr);
-	viewProj_->setUniformDataUntyped(nullptr);
-	viewProjInv_->setUniformDataUntyped(nullptr);
+	view_->setUniformUntyped();
+	viewInv_->setUniformUntyped();
+	viewProj_->setUniformUntyped();
+	viewProjInv_->setUniformUntyped();
 
 	// Projection is calculated in shaders.
 	proj_->setVertex(0, Mat4f::identity());
@@ -34,8 +34,8 @@ ParabolicCamera::ParabolicCamera(bool isDualParabolic)
 	}
 
 	// Initialize directions.
-	direction_->set_elementCount(numLayer_);
-	direction_->setUniformDataUntyped(nullptr);
+	direction_->set_numArrayElements(numLayer_);
+	direction_->setUniformUntyped();
 	direction_->setVertex(0, Vec3f(0.0, 0.0, 1.0));
 	if (hasBackFace_) {
 		direction_->setVertex(1, Vec3f(0.0, 0.0, -1.0));
@@ -48,9 +48,9 @@ void ParabolicCamera::setNormal(const Vec3f &normal) {
 }
 
 void ParabolicCamera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
-	viewProj_->setVertex(viewIndex, view_->getVertex(viewIndex));
-	viewProjInv_->setVertex(viewIndex, viewInv_->getVertex(viewIndex));
+	viewProj_->setVertex(viewIndex, view_->getVertex(viewIndex).r);
+	viewProjInv_->setVertex(viewIndex, viewInv_->getVertex(viewIndex).r);
 	frustum_[viewIndex].update(
-		position()->getVertex(0),
-		direction()->getVertex(viewIndex));
+		position()->getVertex(0).r,
+		direction()->getVertex(viewIndex).r);
 }

@@ -368,6 +368,7 @@ ref_ptr<MeshVector> MeshResource::createAssetMeshes(
 				ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights, numBones);
 				bonesState->setBones(meshBones);
 				bonesState->setAnimationName(REGEN_STRING("bones-" << input.getName()));
+				bonesState->startAnimation();
 				mesh->joinStates(bonesState);
 			}
 		}
@@ -520,6 +521,7 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 	processMeshChildren(parser, input, *x.get());
 	particles->end();
 
+	particles->startAnimation();
 	return particles;
 }
 

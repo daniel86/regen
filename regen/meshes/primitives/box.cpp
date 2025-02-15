@@ -117,13 +117,22 @@ void Box::generateLODLevel(
 	auto indexOffset = meshLODs_[lodLevel].indexOffset + sideIndex * tessellation.outputFaces.size() * 3;
 	const Vec3f &normal = cubeNormals[sideIndex];
 	const Mat4f &faceRotMat = faceRotations[sideIndex];
-	auto *indicesPtr = (GLuint *) indices_->clientDataPtr();
 	GLuint nextIndex = indexOffset;
 
+	// map client data for writing
+	auto indices = indices_->mapClientData<GLuint>(ShaderData::WRITE);
+	auto pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto nor = (cfg.isNormalRequired ?
+		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec3f>::nullData());
+	auto tan = (cfg.isTangentRequired ?
+		tan_->mapClientData<Vec4f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec4f>::nullData());
+
 	for (const auto &tessFace: tessellation.outputFaces) {
-		indicesPtr[nextIndex++] = vertexOffset + tessFace.v1;
-		indicesPtr[nextIndex++] = vertexOffset + tessFace.v2;
-		indicesPtr[nextIndex++] = vertexOffset + tessFace.v3;
+		indices.w[nextIndex++] = vertexOffset + tessFace.v1;
+		indices.w[nextIndex++] = vertexOffset + tessFace.v2;
+		indices.w[nextIndex++] = vertexOffset + tessFace.v3;
 	}
 
 	GLuint triIndices[3];
@@ -141,20 +150,19 @@ void Box::generateLODLevel(
 
 			Vec3f faceVertex = faceRotMat.transformVector(vertex) + normal;
 			Vec3f transformedVertex = cfg.posScale * modelRotation_.transformVector(faceVertex);
-			pos_->setVertex(vertexIndex, transformedVertex);
+			pos.w[vertexIndex] = transformedVertex;
 			minPosition_.setMin(transformedVertex);
 			maxPosition_.setMax(transformedVertex);
 			if (cfg.isNormalRequired) {
-				nor_->setVertex(vertexIndex, normal);
+				nor.w[vertexIndex] = normal;
 			}
 			if (texcoMode_ == TEXCO_MODE_CUBE_MAP) {
-				auto *texco = (Vec3f *) texco_->clientData();
+				auto texco = texco_->mapClientData<Vec3f>(ShaderData::WRITE);
 				Vec3f v = faceVertex;
 				v.normalize();
-				texco[vertexIndex] = v;
+				texco.w[vertexIndex] = v;
 				triTexco[faceVertIndex] = Vec2f(vertex.x, vertex.y) * 0.5f + Vec2f(0.5f);
 			} else if (texcoMode_ == TEXCO_MODE_UV) {
-				auto *texco = (Vec2f *) texco_->clientData();
 				Vec2f uv;
 				switch (sideIndex) {
 					case 0: // Front face
@@ -191,11 +199,12 @@ void Box::generateLODLevel(
 						uv = Vec2f(0.0f);
 				}
 				uv *= cfg.texcoScale;
-				texco[vertexIndex] = uv;
+				auto texco = texco_->mapClientData<Vec2f>(ShaderData::WRITE);
+				texco.w[vertexIndex] = uv;
 				triTexco[faceVertIndex] = uv;
 			}
 			if (cfg.isTangentRequired) {
-				triVertices[faceVertIndex] = pos_->getVertex(vertexIndex);
+				triVertices[faceVertIndex] = pos.w[vertexIndex];
 			}
 			faceVertIndex += 1;
 		}
@@ -203,7 +212,7 @@ void Box::generateLODLevel(
 		if (cfg.isTangentRequired) {
 			Vec4f tangent = calculateTangent(triVertices, triTexco, normal);
 			for (GLuint i = 0; i < 3; ++i) {
-				tan_->setVertex(triIndices[i], tangent);
+				tan.w[triIndices[i]] = tangent;
 			}
 		}
 	}

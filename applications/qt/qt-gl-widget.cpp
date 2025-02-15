@@ -235,11 +235,11 @@ void QTGLWidget::keyPressEvent(QKeyEvent *event) {
 		event->ignore();
 		return;
 	}
-	const Vec2f &mousePos = app_->mousePosition()->getVertex(0);
+	auto mousePos = app_->mousePosition()->getVertex(0);
 	Application::KeyEvent ev;
 	ev.key = event->key();
-	ev.x = (GLint) mousePos.x;
-	ev.y = (GLint) mousePos.y;
+	ev.x = (GLint) mousePos.r.x;
+	ev.y = (GLint) mousePos.r.y;
 	app_->keyDown(ev);
 	event->accept();
 }
@@ -257,11 +257,11 @@ void QTGLWidget::keyReleaseEvent(QKeyEvent *event) {
 			app_->toggleFullscreen();
 			break;
 		default: {
-			const Vec2f &mousePos = app_->mousePosition()->getVertex(0);
+			auto mousePos = app_->mousePosition()->getVertex(0);
 			Application::KeyEvent ev;
 			ev.key = event->key();
-			ev.x = (GLint) mousePos.x;
-			ev.y = (GLint) mousePos.y;
+			ev.x = (GLint) mousePos.r.x;
+			ev.y = (GLint) mousePos.r.y;
 			app_->keyUp(ev);
 			break;
 		}

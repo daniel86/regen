@@ -4,8 +4,9 @@
 using namespace regen;
 
 BulletPhysics::BulletPhysics()
-		: Animation(GL_FALSE, GL_TRUE) {
+		: Animation(false, true) {
 	setAnimationName("physics");
+	setSynchronized(false);
 	// Build the broadphase
 	broadphase_ = ref_ptr<btDbvtBroadphase>::alloc();
 	// Set up the collision configuration and dispatcher
@@ -58,8 +59,6 @@ void BulletPhysics::addObject(const ref_ptr<PhysicalObject> &object) {
 	}
 	objects_.push_back(object);
 }
-
-void BulletPhysics::glAnimate(RenderState *rs, GLdouble dt) {}
 
 void BulletPhysics::animate(GLdouble dt) {
 	auto timeStep = btScalar(dt / 1000.0);

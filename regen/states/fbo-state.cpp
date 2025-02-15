@@ -143,12 +143,13 @@ ScreenState::ScreenState(
 }
 
 void ScreenState::enable(RenderState *state) {
-	const Vec2i winViewport = windowViewport_->getVertex(0);
-	glViewport_.z = winViewport.x;
-	glViewport_.w = winViewport.y;
-	viewport_->setVertex(0, Vec2f(winViewport.x, winViewport.y));
+	auto winViewport = windowViewport_->getVertex(0);
+	glViewport_.z = winViewport.r.x;
+	glViewport_.w = winViewport.r.y;
+	viewport_->setVertex(0, Vec2f(winViewport.r.x, winViewport.r.y));
 	inverseViewport_->setUniformData(
-			Vec2f(1.0f / (GLfloat) winViewport.x, 1.0f / (GLfloat) winViewport.y));
+			Vec2f(1.0f / (GLfloat) winViewport.r.x, 1.0f / (GLfloat) winViewport.r.y));
+	winViewport.unmap();
 
 	state->drawFrameBuffer().push(0);
 	FBO::screen().drawBuffer_.push(drawBuffer_);

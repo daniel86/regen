@@ -27,10 +27,10 @@ ReflectionCamera::ReflectionCamera(
 		  hasMesh_(GL_TRUE),
 		  hasBackFace_(hasBackFace) {
 	setPerspective(
-			userCamera_->fov()->getVertex(0),
-			userCamera_->aspect()->getVertex(0),
-			userCamera_->near()->getVertex(0),
-			userCamera_->far()->getVertex(0));
+			userCamera_->fov()->getVertex(0).r,
+			userCamera_->aspect()->getVertex(0).r,
+			userCamera_->near()->getVertex(0).r,
+			userCamera_->far()->getVertex(0).r);
 
 	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	clipPlane_->setUniformData(Vec4f(0.0f));
@@ -66,10 +66,10 @@ ReflectionCamera::ReflectionCamera(
 		  hasMesh_(false),
 		  hasBackFace_(hasBackFace) {
 	setPerspective(
-			userCamera_->aspect()->getVertex(0),
-			userCamera_->fov()->getVertex(0),
-			userCamera_->near()->getVertex(0),
-			userCamera_->far()->getVertex(0));
+			userCamera_->aspect()->getVertex(0).r,
+			userCamera_->fov()->getVertex(0).r,
+			userCamera_->near()->getVertex(0).r,
+			userCamera_->far()->getVertex(0).r);
 
 	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	clipPlane_->setUniformData(Vec4f(0.0f));
@@ -118,22 +118,22 @@ void ReflectionCamera::updateReflection() {
 		if (reflectorChanged) {
 			if (!pos_->hasClientData()) pos_->readServerData();
 			if (!nor_->hasClientData()) nor_->readServerData();
-			posWorld_ = ((Vec3f *) pos_->clientData())[vertexIndex_];
-			norWorld_ = ((Vec3f *) nor_->clientData())[vertexIndex_];
+			posWorld_ = pos_->mapClientData<Vec3f>(ShaderData::READ).r[vertexIndex_];
+			norWorld_ = nor_->mapClientData<Vec3f>(ShaderData::READ).r[vertexIndex_];
 
 			if (transform_.get() != nullptr) {
 				if (!transform_->hasClientData()) transform_->readServerData();
-				const Mat4f &transform = (((Mat4f *) transform_->clientData())[0]);
-				posWorld_ = (transform ^ Vec4f(posWorld_, 1.0)).xyz_();
-				norWorld_ = (transform ^ Vec4f(norWorld_, 0.0)).xyz_();
+				auto transform = transform_->mapClientData<Mat4f>(ShaderData::READ);
+				posWorld_ = (transform.r[0] ^ Vec4f(posWorld_, 1.0)).xyz_();
+				norWorld_ = (transform.r[0] ^ Vec4f(norWorld_, 0.0)).xyz_();
 				norWorld_.normalize();
 			}
 		}
 	}
 
 	// Switch normal if viewer is behind reflector.
-	const Vec3f &camPos = userCamera_->position()->getVertex(0);
-	GLboolean isFront = norWorld_.dot(camPos - posWorld_) > 0.0;
+	GLboolean isFront = norWorld_.dot(
+		userCamera_->position()->getVertex(0).r - posWorld_) > 0.0;
 	if (isFront != isFront_) {
 		isFront_ = isFront;
 		reflectorChanged = GL_TRUE;
@@ -159,7 +159,7 @@ void ReflectionCamera::updateReflection() {
 	// Compute reflection camera direction
 	if (reflectorChanged || userCamera_->direction()->stamp() != camDirStamp_) {
 		camDirStamp_ = userCamera_->direction()->stamp();
-		Vec3f dir = reflectionMatrix_.rotateVector(userCamera_->direction()->getVertex(0));
+		Vec3f dir = reflectionMatrix_.rotateVector(userCamera_->direction()->getVertex(0).r);
 		dir.normalize();
 		direction_->setVertex(0, dir);
 
@@ -169,7 +169,7 @@ void ReflectionCamera::updateReflection() {
 	if (reflectorChanged || userCamera_->position()->stamp() != camPosStamp_) {
 		camPosStamp_ = userCamera_->position()->stamp();
 		Vec3f reflected = reflectionMatrix_.transformVector(
-			userCamera_->position()->getVertex(0));;
+			userCamera_->position()->getVertex(0).r);
 		position_->setVertex(0, reflected);
 
 		reflectorChanged = GL_TRUE;
@@ -185,9 +185,9 @@ void ReflectionCamera::updateReflection() {
 	if (userCamera_->projection()->stamp() != projStamp_) {
 		projStamp_ = userCamera_->projection()->stamp();
 		proj_->setUniformData(
-				userCamera_->projection()->getVertex(0));
+				userCamera_->projection()->getVertex(0).r);
 		projInv_->setUniformData(
-				userCamera_->projectionInverse()->getVertex(0));
+				userCamera_->projectionInverse()->getVertex(0).r);
 		cameraChanged_ = GL_TRUE;
 	}
 

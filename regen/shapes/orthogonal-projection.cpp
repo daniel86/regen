@@ -153,7 +153,6 @@ void OrthogonalProjection::makeParallelProjection(const Frustum &frustum) {
 void OrthogonalProjection::makePerspectiveProjection(const Frustum &frustum) {
 	type = OrthogonalProjection::Type::TRIANGLE;
 	points.resize(3);
-	auto &viewDir = frustum.direction();
 	// first point: origin of the frustum
 	auto basePoint = frustum.translation();
 	auto *farPlanePoints = frustum.points;

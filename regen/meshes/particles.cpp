@@ -19,7 +19,7 @@ using namespace regen;
 
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 		: Mesh(GL_POINTS, VBO::USAGE_STREAM),
-		  Animation(GL_TRUE, GL_FALSE),
+		  Animation(true, false),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
 	setAnimationName("particles");
@@ -263,8 +263,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
 	updateState_->enable(rs);
 
-	ref_ptr<VAO> particleVAO = ref_ptr<VAO>::alloc();
-	rs->vao().push(particleVAO->id());
+	rs->vao().push(particleVAO_.id());
 	glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
 	for (auto &particleAttribute: particleAttributes_) {
 		particleAttribute.input->enableAttribute(particleAttribute.location);

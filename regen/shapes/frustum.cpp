@@ -55,9 +55,9 @@ bool Frustum::updateTransform(bool forceUpdate) {
 	return true;
 }
 
-const Vec3f &Frustum::direction() const {
+Vec3f Frustum::direction() const {
 	if (direction_.get()) {
-		return direction_->getVertex(0);
+		return direction_->getVertex(0).r;
 	} else {
 		return Vec3f::front();
 	}
@@ -140,9 +140,13 @@ void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
 }
 
 Vec3f Frustum::getCenterPosition() const {
-	auto &basePosition = translation_->getVertex(translationIndex_);
-	auto &dir = direction();
-	return basePosition + dir * (near + (far - near) * 0.5f);
+	auto basePosition = translation_->getVertex(translationIndex_);
+	if (direction_.get()) {
+		auto dir = direction_->getVertex(0);
+		return basePosition.r + dir.r * (near + (far - near) * 0.5f);
+	} else {
+		return basePosition.r + Vec3f::front() * (near + (far - near) * 0.5f);
+	}
 }
 
 bool Frustum::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const {

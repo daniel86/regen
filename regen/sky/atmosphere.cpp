@@ -90,40 +90,40 @@ Atmosphere::Atmosphere(
 }
 
 void Atmosphere::setRayleighBrightness(GLfloat v) {
-	const Vec3f &rayleigh = rayleigh_->getVertex(0);
-	rayleigh_->setVertex(0, Vec3f(v / 10.0, rayleigh.y, rayleigh.z));
+	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_rayleigh.w = Vec3f(v / 10.0, v_rayleigh.r.y, v_rayleigh.r.z);
 }
 
 void Atmosphere::setRayleighStrength(GLfloat v) {
-	const Vec3f &rayleigh = rayleigh_->getVertex(0);
-	rayleigh_->setVertex(0, Vec3f(rayleigh.x, v / 1000.0, rayleigh.z));
+	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v / 1000.0, v_rayleigh.r.z);
 }
 
 void Atmosphere::setRayleighCollect(GLfloat v) {
-	const Vec3f &rayleigh = rayleigh_->getVertex(0);
-	rayleigh_->setVertex(0, Vec3f(rayleigh.x, rayleigh.y, v / 100.0));
+	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v_rayleigh.r.y, v / 100.0);
 }
 
 ref_ptr<ShaderInput3f> &Atmosphere::rayleigh() { return rayleigh_; }
 
 void Atmosphere::setMieBrightness(GLfloat v) {
-	const Vec4f &mie = mie_->getVertex(0);
-	mie_->setVertex(0, Vec4f(v / 1000.0, mie.y, mie.z, mie.w));
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_mie.w = Vec4f(v / 1000.0, v_mie.r.y, v_mie.r.z, v_mie.r.w);
 }
 
 void Atmosphere::setMieStrength(GLfloat v) {
-	const Vec4f &mie = mie_->getVertex(0);
-	mie_->setVertex(0, Vec4f(mie.x, v / 10000.0, mie.z, mie.w));
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_mie.w = Vec4f(v_mie.r.x, v / 10000.0, v_mie.r.z, v_mie.r.w);
 }
 
 void Atmosphere::setMieCollect(GLfloat v) {
-	const Vec4f &mie = mie_->getVertex(0);
-	mie_->setVertex(0, Vec4f(mie.x, mie.y, v / 100.0, mie.w));
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v / 100.0, v_mie.r.w);
 }
 
 void Atmosphere::setMieDistribution(GLfloat v) {
-	const Vec4f &mie = mie_->getVertex(0);
-	mie_->setVertex(0, Vec4f(mie.x, mie.y, mie.z, v / 100.0));
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v_mie.r.z, v / 100.0);
 }
 
 ref_ptr<ShaderInput4f> &Atmosphere::mie() { return mie_; }

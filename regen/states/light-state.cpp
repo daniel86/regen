@@ -63,9 +63,10 @@ namespace regen {
 	}
 }
 
+// TODO: I think it would be better if spot lights have a animation member.
 Light::Light(Light::Type lightType)
 		: State(),
-		  Animation(GL_TRUE, GL_FALSE, lightType == SPOT),
+		  Animation(false, true),
 		  HasInput(VBO::USAGE_DYNAMIC),
 		  lightType_(lightType),
 		  isAttenuated_(GL_TRUE),
@@ -112,29 +113,28 @@ Light::Light(Light::Type lightType)
 }
 
 void Light::set_innerConeAngle(GLfloat deg) {
-	Vec2f a = lightConeAngles_->getVertex(0);
-	lightConeAngles_->setVertex(0,
-								Vec2f(cos(2.0f * M_PI * deg / 360.0f), a.y));
+	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
+		ShaderData::READ | ShaderData::WRITE, 0);
+	data.w = Vec2f(cos(2.0f * M_PI * deg / 360.0f), data.r.y);
 }
 
 void Light::set_outerConeAngle(GLfloat deg) {
-	Vec2f a = lightConeAngles_->getVertex(0);
-	lightConeAngles_->setVertex(0,
-								Vec2f(a.x, cos(2.0f * M_PI * deg / 360.0f)));
+	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
+		ShaderData::READ | ShaderData::WRITE, 0);
+	data.w = Vec2f(data.r.x, cos(2.0f * M_PI * deg / 360.0f));
 }
 
 void Light::updateConeMatrix() {
-	const Vec3f &pos = lightPosition_->getVertex(0);
 	// Note: cone opens in positive z direction.
-	Vec3f dir = lightDirection_->getVertex(0);
+	Vec3f dir = lightDirection_->getVertex(0).r;
 	dir.normalize();
 	GLfloat angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));
 
 	if (math::isApprox(abs(angleCos), 1.0)) {
 		coneMatrix_->get()->setVertex(0, Mat4f::identity());
 	} else {
-		const GLfloat &radius = lightRadius_->getVertex(0).y;
-		const GLfloat &coneAngle = lightConeAngles_->getVertex(0).y;
+		const GLfloat radius = lightRadius_->getVertex(0).r.y;
+		const GLfloat coneAngle = lightConeAngles_->getVertex(0).r.y;
 
 		// Quaternion rotates view to light direction
 		Quaternion q;
@@ -147,12 +147,12 @@ void Light::updateConeMatrix() {
 
 		Mat4f val = q.calculateMatrix();
 		val.scale(Vec3f(x, x, radius));
-		val.translate(pos);
+		val.translate(lightPosition_->getVertex(0).r);
 		coneMatrix_->get()->setVertex(0, val);
 	}
 }
 
-void Light::glAnimate(RenderState *rs, GLdouble dt) {
+void Light::animate(GLdouble dt) {
 	GLuint stamp = std::max(lightRadius_->stamp(), std::max(lightDirection_->stamp(),
 															std::max(lightConeAngles_->stamp(),
 																	 lightPosition_->stamp())));
@@ -175,6 +175,6 @@ LightNode::LightNode(
 
 void LightNode::update(GLdouble dt) {
 	Vec3f v = animNode_->localTransform().transformVector(
-			light_->position()->getVertex(0));
+			light_->position()->getVertex(0).r);
 	light_->position()->setVertex(0, v);
 }

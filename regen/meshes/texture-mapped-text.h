@@ -92,9 +92,9 @@ namespace regen {
 				const Font::FaceData &data,
 				const Vec3f &translation,
 				GLfloat layer,
-				ShaderInput3f *posAttribute,
-				ShaderInput3f *norAttribute,
-				ShaderInput3f *texcoAttribute,
+				ShaderData_rw<Vec3f> &posAttribute,
+				ShaderData_rw<Vec3f> &norAttribute,
+				ShaderData_rw<Vec3f> &texcoAttribute,
 				GLuint *vertexCounter);
 	};
 } // namespace

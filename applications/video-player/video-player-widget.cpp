@@ -89,7 +89,7 @@ static GLboolean isDirectory(const string &f) {
 class VideoInitAnimation : public Animation {
 public:
 	explicit VideoInitAnimation(VideoPlayerWidget *widget)
-			: Animation(GL_TRUE, GL_FALSE), widget_(widget) {}
+			: Animation(GL_TRUE, GL_FALSE, true), widget_(widget) {}
 
 	void glAnimate(RenderState *rs, GLdouble dt) override { widget_->gl_loadScene(); }
 

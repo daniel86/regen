@@ -9,8 +9,8 @@ GLRectangle::GLRectangle(
 		: GLObject(createObjects, releaseObjects, numObjects) {
 	size_ = ref_ptr<ShaderInput2f>::alloc("rectangleSize");
 	sizeInverse_ = ref_ptr<ShaderInput2f>::alloc("rectangleSizeInverse");
-	size_->setUniformDataUntyped(nullptr);
-	sizeInverse_->setUniformDataUntyped(nullptr);
+	size_->setUniformUntyped();
+	sizeInverse_->setUniformUntyped();
 	set_rectangleSize(2, 2);
 }
 
@@ -23,6 +23,6 @@ const ref_ptr<ShaderInput2f> &GLRectangle::sizeInverse() const { return sizeInve
 
 const ref_ptr<ShaderInput2f> &GLRectangle::size() const { return size_; }
 
-GLuint GLRectangle::width() const { return size_->getVertex(0).x; }
+GLuint GLRectangle::width() const { return size_->getVertex(0).r.x; }
 
-GLuint GLRectangle::height() const { return size_->getVertex(0).y; }
+GLuint GLRectangle::height() const { return size_->getVertex(0).r.y; }

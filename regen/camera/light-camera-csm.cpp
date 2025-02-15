@@ -39,43 +39,43 @@ LightCamera_CSM::LightCamera_CSM(
 
 	// Set matrix array size
 #ifndef CSM_USE_SINGLE_VIEW
-	view_->set_elementCount(numLayer_);
+	view_->set_numArrayElements(static_cast<int>(numLayer_));
 	view_->set_forceArray(true);
-	view_->setUniformDataUntyped(nullptr);
-	viewInv_->set_elementCount(numLayer_);
+	view_->setUniformUntyped();
+	viewInv_->set_numArrayElements(static_cast<int>(numLayer_));
 	viewInv_->set_forceArray(true);
-	viewInv_->setUniformDataUntyped(nullptr);
+	viewInv_->setUniformUntyped();
 #endif
-	proj_->set_elementCount(numLayer_);
+	proj_->set_numArrayElements(static_cast<int>(numLayer_));
 	proj_->set_forceArray(true);
-	proj_->setUniformDataUntyped(nullptr);
-	projInv_->set_elementCount(numLayer_);
+	proj_->setUniformUntyped();
+	projInv_->set_numArrayElements(static_cast<int>(numLayer_));
 	projInv_->set_forceArray(true);
-	projInv_->setUniformDataUntyped(nullptr);
+	projInv_->setUniformUntyped();
 
-	viewProj_->set_elementCount(numLayer_);
+	viewProj_->set_numArrayElements(static_cast<int>(numLayer_));
 	viewProj_->set_forceArray(true);
-	viewProj_->setUniformDataUntyped(nullptr);
-	viewProjInv_->set_elementCount(numLayer_);
+	viewProj_->setUniformUntyped();
+	viewProjInv_->set_numArrayElements(static_cast<int>(numLayer_));
 	viewProjInv_->set_forceArray(true);
-	viewProjInv_->setUniformDataUntyped(nullptr);
+	viewProjInv_->setUniformUntyped();
 
-	near_->set_elementCount(numLayer_);
+	near_->set_numArrayElements(static_cast<int>(numLayer_));
 	near_->set_forceArray(true);
-	near_->setUniformDataUntyped(nullptr);
+	near_->setUniformUntyped();
 
-	far_->set_elementCount(numLayer_);
+	far_->set_numArrayElements(static_cast<int>(numLayer_));
 	far_->set_forceArray(true);
-	far_->setUniformDataUntyped(nullptr);
+	far_->setUniformUntyped();
 
-	position_->set_elementCount(numLayer_);
+	position_->set_numArrayElements(static_cast<int>(numLayer_));
 	position_->set_forceArray(true);
-	position_->setUniformDataUntyped(nullptr);
+	position_->setUniformUntyped();
 	position_->setVertex(0, Vec3f(0.0f));
 
-	lightMatrix_->set_elementCount(numLayer_);
+	lightMatrix_->set_numArrayElements(static_cast<int>(numLayer_));
 	lightMatrix_->set_forceArray(true);
-	lightMatrix_->setUniformDataUntyped(nullptr);
+	lightMatrix_->setUniformUntyped();
 	setInput(lightMatrix_);
 
 	updateDirectionalLight();
@@ -96,8 +96,8 @@ bool LightCamera_CSM::updateDirectionalLight() {
 	if (changed) {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
-		for (int i = 0; i < lightMatrix_->elementCount(); ++i) {
-			lightMatrix_->setVertex(i, viewProj_->getVertex(i) * Mat4f::bias());
+		for (int i = 0; i < lightMatrix_->numArrayElements(); ++i) {
+			lightMatrix_->setVertex(i, viewProj_->getVertex(i).r * Mat4f::bias());
 		}
 		camStamp_ += 1;
 	}
@@ -111,23 +111,21 @@ bool LightCamera_CSM::updateFrustumSplit() {
 	auto userProjStamp = userCamera_->projection()->stamp();
 	if (userProjectionStamp_ != userProjStamp) {
 		userProjectionStamp_ = userProjStamp;
-		const Mat4f &proj = userCamera_->projection()->getVertex(0);
+		auto proj = userCamera_->projection()->getVertex(0);
 		// update frustum splits
 		userCamera_->frustum()[0].split(splitWeight_, userCameraFrustum_);
 		// update near/far values
-		auto *farValues = (GLfloat *) far_->clientDataPtr();
-		auto *nearValues = (GLfloat *) near_->clientDataPtr();
+		auto farValues = far_->mapClientData<GLfloat>(ShaderData::WRITE);
+		auto nearValues = near_->mapClientData<GLfloat>(ShaderData::WRITE);
 		for (int i = 0; i < numLayer_; ++i) {
 			auto &u_frustum = userCameraFrustum_[i];
 			// frustum_->far() is originally in eye space - tell's us how far we can see.
 			// Here we compute it in camera homogeneous coordinates. Basically, we calculate
 			// proj * (0, 0, far, 1)^t and then normalize to [0; 1]
 			// Note: this is used in shaders for computing z coordinate for shadow map lookup
-			farValues[i] = 0.5 * (-u_frustum.far * proj(2, 2) + proj(3, 2)) / u_frustum.far + 0.5;
-			nearValues[i] = 0.5 * (-u_frustum.near * proj(2, 2) + proj(3, 2)) / u_frustum.near + 0.5;
+			farValues.w[i] = 0.5 * (-u_frustum.far * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.far + 0.5;
+			nearValues.w[i] = 0.5 * (-u_frustum.near * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.near + 0.5;
 		}
-		far_->nextStamp();
-		near_->nextStamp();
 		hasChanged = true;
 	}
 
@@ -137,11 +135,11 @@ bool LightCamera_CSM::updateFrustumSplit() {
 	if (hasChanged || userPosStamp != userPositionStamp_ || userDirStamp != userDirectionStamp_) {
 		userPositionStamp_ = userPosStamp;
 		userDirectionStamp_ = userDirStamp;
-		auto &userPos = userCamera_->position()->getVertex(0);
-		auto &userDir = userCamera_->direction()->getVertex(0);
+		auto userPos = userCamera_->position()->getVertex(0);
+		auto userDir = userCamera_->direction()->getVertex(0);
 		for (int i = 0; i < numLayer_; ++i) {
-			userCameraFrustum_[i].update(userPos, userDir);
-			userFrustumCentroids_[i] = userPos + userDir *
+			userCameraFrustum_[i].update(userPos.r, userDir.r);
+			userFrustumCentroids_[i] = userPos.r + userDir.r *
 					((userCameraFrustum_[i].far - userCameraFrustum_[i].near) * 0.5f + userCameraFrustum_[i].near);
 		}
 		hasChanged = true;
@@ -155,7 +153,7 @@ bool LightCamera_CSM::updateLightView() {
 	lightDirStamp_ = light_->direction()->stamp();
 	lightPosStamp_ = userPositionStamp_;
 
-	auto f = -light_->direction()->getVertex(0);
+	auto f = -light_->direction()->getVertex(0).r;
 	f.normalize();
 	direction_->setVertex(0, f);
 #ifdef CSM_USE_SINGLE_VIEW
@@ -194,8 +192,8 @@ bool LightCamera_CSM::updateLightView() {
 		position_->setVertex(i, userFrustumCentroids_[i] - f*userCameraFrustum_[i].far);
 #endif
 		view_->setVertex(i, Mat4f::lookAtMatrix(
-			position_->getVertex(i), f, Vec3f::up()));
-		viewInv_->setVertex(i, view_->getVertex(i).lookAtInverse());
+			position_->getVertex(i).r, f, Vec3f::up()));
+		viewInv_->setVertex(i, view_->getVertex(i).r.lookAtInverse());
 	}
 #endif
 	return true;
@@ -217,7 +215,7 @@ bool LightCamera_CSM::updateLightProjection() {
 			auto point_ls = view_->getVertex(0) ^
 					Vec4f(u_frustum.points[frustumIndex], 1.0f);
 #else
-			auto point_ls = view_->getVertex(layerIndex) ^
+			auto point_ls = view_->getVertex(layerIndex).r ^
 					Vec4f(u_frustum.points[frustumIndex], 1.0f);
 #endif
 			bounds_ls.min.setMin(point_ls.xyz_());
@@ -232,14 +230,14 @@ bool LightCamera_CSM::updateLightProjection() {
 				bounds_ls.min.y, bounds_ls.max.y,
 				bounds_ls.min.z, bounds_ls.max.z));
 		projInv_->setVertex(layerIndex,
-				proj_->getVertex(layerIndex).orthogonalInverse());
+				proj_->getVertex(layerIndex).r.orthogonalInverse());
 		frustum_[layerIndex].setOrtho(
 				bounds_ls.min.x, bounds_ls.max.x,
 				bounds_ls.min.y, bounds_ls.max.y,
 				bounds_ls.min.z, bounds_ls.max.z);
 		frustum_[layerIndex].update(
-			position_->getVertex(layerIndex),
-			direction_->getVertex(0));
+			position_->getVertex(layerIndex).r,
+			direction_->getVertex(0).r);
 	}
 
 	return true;

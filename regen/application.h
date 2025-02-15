@@ -190,7 +190,7 @@ namespace regen {
 		/**
 		 * @return mouse left/entered the window.
 		 */
-		const ref_ptr<ShaderInput1i> isMouseEntered() const;
+		ref_ptr<ShaderInput1i> isMouseEntered() const;
 
 		/**
 		 * Queue mouse-move event.

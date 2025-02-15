@@ -198,8 +198,8 @@ static inline GLboolean handleFrameLoop(
 
 //////
 
-NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean autoStart)
-		: Animation(GL_FALSE, GL_TRUE, autoStart),
+NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode)
+		: Animation(false, true),
 		  rootNode_(rootNode),
 		  animationIndex_(-1),
 		  startTick_(0.0),
@@ -211,7 +211,7 @@ NodeAnimation::NodeAnimation(const ref_ptr<AnimationNode> &rootNode, GLboolean a
 
 ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart) {
 	ref_ptr<AnimationNode> rootNode = rootNode_->copy();
-	ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode, autoStart);
+	ref_ptr<NodeAnimation> ret = ref_ptr<NodeAnimation>::alloc(rootNode);
 
 	for (auto & d : animData_) {
 		ref_ptr<NodeAnimation::Data> data = ref_ptr<NodeAnimation::Data>::alloc();
@@ -225,6 +225,7 @@ ref_ptr<NodeAnimation> NodeAnimation::copy(GLboolean autoStart) {
 		ret->animNameToIndex_[data->animationName_] = (GLint) ret->animData_.size();
 		ret->animData_.push_back(data);
 	}
+	if (autoStart) ret->startAnimation();
 
 	return ret;
 }

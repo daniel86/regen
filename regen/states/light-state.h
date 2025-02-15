@@ -99,7 +99,7 @@ namespace regen {
 		const ref_ptr<ShaderInputMat4> &coneMatrix();
 
 		// override
-		void glAnimate(RenderState *rs, GLdouble dt) override;
+		void animate(GLdouble dt) override;
 
 	protected:
 		const Type lightType_;

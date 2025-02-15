@@ -72,8 +72,6 @@ namespace regen {
 		 */
 		void updateAttributes(const Config &cfg = Config());
 
-		void pushVertex(GLuint vertexIndex, GLdouble u, GLdouble v, const Config &cfg);
-
 	protected:
 		ref_ptr<ShaderInput3f> pos_;
 		ref_ptr<ShaderInput3f> nor_;

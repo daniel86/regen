@@ -49,7 +49,7 @@ void UBO::computePaddedSize() {
 	for (auto &uboInput : uboInputs_) {
 		auto &uniform = uboInput.input;
 		// note we need to compute the "aligned" offset for std140 layout
-		GLuint numElements = uniform->elementCount() * uniform->numInstances();
+		GLuint numElements = uniform->numArrayElements() * uniform->numInstances();
 		GLuint baseSize = uniform->inputSize() / numElements;
 
 		// Compute the alignment based on the type
@@ -88,7 +88,7 @@ static std::optional<std::pair<const byte*, unsigned int>> alignedData(const ref
 	// rounded up to 16 bytes.
 	// this is quite ugly to do element-wise memcpy below, hence non 16-byte aligned
 	// arrays should be avoided in general.
-	auto numElements = in->elementCount() * in->numInstances();
+	auto numElements = in->numArrayElements() * in->numInstances();
 	if (numElements == 1) {
 		return std::nullopt;
 	}
@@ -98,8 +98,10 @@ static std::optional<std::pair<const byte*, unsigned int>> alignedData(const ref
 	}
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
 	auto dataSizeAligned = elementSizeAligned * numElements;
+	// TODO: rather store the array with the input, avoid re-allocating each update
 	auto *alignedData = new byte[dataSizeAligned];
-	auto *src = in->clientData();
+	auto clientData = in->mapClientDataRaw(ShaderData::READ);
+	auto *src = clientData.r;
 	auto *dst = alignedData;
 	for (unsigned int i = 0; i < numElements; ++i) {
 		memcpy(dst, src, elementSizeUnaligned);
@@ -112,6 +114,7 @@ static std::optional<std::pair<const byte*, unsigned int>> alignedData(const ref
 void UBO::update(bool forceUpdate) {
 	bool needUpdate = forceUpdate || needsUpdate();
 	if (!needUpdate) { return; }
+	std::unique_lock<std::mutex> lock(mutex_);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, id());
 
@@ -130,7 +133,7 @@ void UBO::update(bool forceUpdate) {
 	if (bufferData) {
 		for (auto & uboInput : uboInputs_) {
 			if (forceUpdate || uboInput.input->stamp() != uboInput.lastStamp) {
-				if (!uboInput.input->clientData()) {
+				if (!uboInput.input->hasClientData()) {
 					continue;
 				}
 				// copy the data to the buffer.
@@ -140,8 +143,9 @@ void UBO::update(bool forceUpdate) {
 					memcpy(static_cast<char*>(bufferData) + uboInput.offset, clientData, inputSize);
 					delete[] clientData;
 				} else {
+					auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
 					memcpy(static_cast<char*>(bufferData) + uboInput.offset,
-						   uboInput.input->clientData(),
+						   mapped.r,
 						   uboInput.input->inputSize());
 				}
 				uboInput.lastStamp = uboInput.input->stamp();

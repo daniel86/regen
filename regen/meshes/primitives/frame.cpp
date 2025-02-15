@@ -135,7 +135,6 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 	if (cfg.isTangentRequired) {
 		tan_->setVertexData(numVertices);
 	}
-
 	TexcoMode texcoMode = cfg.texcoMode;
 	if (cfg.isTangentRequired && cfg.texcoMode == TEXCO_MODE_NONE) {
 		texcoMode = TEXCO_MODE_UV;
@@ -144,6 +143,18 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
+
+	// map client data for writing
+	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_nor = (cfg.isNormalRequired ?
+		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec3f>::nullData());
+	auto v_tan = (cfg.isTangentRequired ?
+		tan_->mapClientData<Vec4f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec4f>::nullData());
+	auto v_texco = (texcoMode == TEXCO_MODE_UV ?
+		texco_->mapClientData<Vec2f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec2f>::nullData());
 
 	// Define the initial box scale
 	Vec3f initialBoxScale(0.5f * cfg.posScale.x, 0.5f * cfg.posScale.y, 0.5f * cfg.borderSize);
@@ -210,16 +221,16 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 					auto transformedVertex = (transformations[boxIndex] * (initialBoxScale * f[i].p));
 					minPosition_.setMin(transformedVertex.xyz_());
 					maxPosition_.setMax(transformedVertex.xyz_());
-					pos_->setVertex(vertexIndex + i, transformedVertex.xyz_());
+					v_pos.w[vertexIndex + i] = transformedVertex.xyz_();
 				}
 				if (cfg.isNormalRequired) {
 					auto nor = transformations[boxIndex].rotateVector(normal);
-					for (GLuint i = 0; i < 3; ++i) nor_->setVertex(vertexIndex + i, nor);
+					for (GLuint i = 0; i < 3; ++i) {
+						v_nor.w[vertexIndex + i] = nor;
+					}
 				}
 
 				if (texcoMode == TEXCO_MODE_UV) {
-					auto *texco = (Vec2f *) texco_->clientData();
-
 					for (GLuint i = 0; i < 3; ++i) {
 						// Directly assign UV coordinates based on vertex positions
 						Vec3f pos = f[i].p;
@@ -241,19 +252,32 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 							default:
 								uv = Vec2f(0.0f);
 						}
-						texco[vertexIndex + i] = uv * cfg.texcoScale;
+						v_texco.w[vertexIndex + i] = uv * cfg.texcoScale;
 					}
 				}
 
 				if (cfg.isTangentRequired) {
-					Vec3f *vertices = ((Vec3f *) pos_->clientDataPtr()) + vertexIndex;
-					Vec2f *texcos = ((Vec2f *) texco_->clientDataPtr()) + vertexIndex;
+					Vec3f *vertices = v_pos.w + vertexIndex;
+					Vec2f *texcos = v_texco.w + vertexIndex;
 					Vec4f tangent = calculateTangent(vertices, texcos, normal);
-					for (GLuint i = 0; i < 3; ++i) tan_->setVertex(vertexIndex + i, tangent);
+					for (GLuint i = 0; i < 3; ++i) {
+						v_tan.w[vertexIndex + i] = tangent;
+					}
 				}
 			}
 			vertexBase += faces.size() * 3;
 		}
+	}
+
+	v_pos.unmap();
+	if (cfg.isNormalRequired) {
+		v_nor.unmap();
+	}
+	if (cfg.isTangentRequired) {
+		v_tan.unmap();
+	}
+	if (texcoMode == TEXCO_MODE_UV) {
+		v_texco.unmap();
 	}
 
 	begin(ShaderInputContainer::INTERLEAVED);

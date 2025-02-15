@@ -34,7 +34,10 @@ void SpatialIndexDebug::drawLine(const Vec3f &from, const Vec3f &to, const Vec3f
 	lineVertices_->setVertex(0, from);
 	lineVertices_->setVertex(1, to);
 	// update gpu-side vertex data
-	glBufferData(GL_ARRAY_BUFFER, bufferSize_, lineVertices_->clientData(), GL_DYNAMIC_DRAW);
+	{
+		auto mappedClientData = lineVertices_->mapClientDataRaw(ShaderData::READ);
+		glBufferData(GL_ARRAY_BUFFER, bufferSize_, mappedClientData.r, GL_DYNAMIC_DRAW);
+	}
 	// draw the line
 	rs->vao().push(vao_->id());
 	lineVertices_->enableAttribute(0);

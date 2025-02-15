@@ -43,17 +43,17 @@ void AABB::updateAABB() {
 	// apply transform
 	if (translation_.get()) {
 		for (int i = 0; i < 8; ++i) {
-			vertices_[i] += translation_->getVertex(translationIndex_);
+			vertices_[i] += translation_->getVertex(translationIndex_).r;
 		}
 	}
 	if (transform_.get()) {
-		auto &tf = transform_->get()->getVertex(transformIndex_);
+		auto tf = transform_->get()->getVertex(transformIndex_);
 		// compute transformed bounds
 		Vec3f transformed;
 		auto transformedMin = getCenterPosition();
 		auto transformedMax = transformedMin;
 		for (int i = 0; i < 8; ++i) {
-			transformed = (tf ^ vertices_[i]).xyz_();
+			transformed = (tf.r ^ vertices_[i]).xyz_();
 			transformedMin.setMin(transformed);
 			transformedMax.setMax(transformed);
 		}

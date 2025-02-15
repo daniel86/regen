@@ -74,36 +74,53 @@ static Vec3f computeSphereTangent(const Vec3f &v) {
 	return v.cross(v_);
 }
 
-void Sphere::pushVertex(GLuint vertexIndex, GLdouble u, GLdouble v, const Config &cfg) {
-	auto positions = ((Vec3f *) pos_->clientData());
-
+void pushVertex(
+		GLuint vertexIndex,
+		GLdouble u,
+		GLdouble v,
+		const Sphere::Config &cfg,
+		ShaderData_rw<Vec3f> &pos,
+		ShaderData_rw<Vec3f> &nor,
+		ShaderData_rw<Vec4f> &tan,
+		ShaderData_rw<Vec2f> &texco) {
 	GLdouble r = std::sin(M_PI * v);
-	positions[vertexIndex] = Vec3f(
+	pos.w[vertexIndex] = Vec3f(
 			static_cast<float>(r * std::cos(2.0 * M_PI * u)),
 			static_cast<float>(r * std::sin(2.0 * M_PI * u)),
 			static_cast<float>(std::cos(M_PI * v))
 	);
 	if (cfg.isNormalRequired) {
-		nor_->setVertex(vertexIndex, positions[vertexIndex]);
+		nor.w[vertexIndex] = pos.w[vertexIndex];
 	}
 	if (cfg.isTangentRequired) {
-		Vec3f t = computeSphereTangent(positions[vertexIndex]);
-		tan_->setVertex(vertexIndex, Vec4f(t.x, t.y, t.z, 1.0));
+		Vec3f t = computeSphereTangent(pos.w[vertexIndex]);
+		tan.w[vertexIndex] = Vec4f(t.x, t.y, t.z, 1.0);
 	}
-	if (texco_.get()) {
-		auto texco = (Vec2f *) texco_->clientData();
-		texco[vertexIndex] = Vec2f(
+	if (texco.w) {
+		texco.w[vertexIndex] = Vec2f(
 				static_cast<float>(u) * cfg.texcoScale.x,
 				static_cast<float>(v) * cfg.texcoScale.y);
 	}
-	positions[vertexIndex] *= cfg.posScale * 0.5;
+	pos.w[vertexIndex] *= cfg.posScale * 0.5;
 }
 
 void Sphere::generateLODLevel(const Config &cfg,
 							  GLuint lodLevel,
 							  GLuint vertexOffset,
 							  GLuint indexOffset) {
-	auto *indicesPtr = (GLuint *) indices_->clientDataPtr();
+	// map client data for writing
+	auto indices = indices_->mapClientData<GLuint>(ShaderData::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_nor = (cfg.isNormalRequired ?
+		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec3f>::nullData());
+	auto v_tan = (cfg.isTangentRequired ?
+		tan_->mapClientData<Vec4f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec4f>::nullData());
+	auto v_texco = (texco_.get() ?
+		texco_->mapClientData<Vec2f>(ShaderData::WRITE) :
+		ShaderData_rw<Vec2f>::nullData());
+
 	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
 	GLuint vertexIndex = vertexOffset, faceIndex = indexOffset / 6;
 
@@ -118,18 +135,18 @@ void Sphere::generateLODLevel(const Config &cfg,
 
 			// create two triangles for each quad
 			GLuint index = (faceIndex++) * 6;
-			indicesPtr[index + 0] = vertexIndex + 0;
-			indicesPtr[index + 1] = vertexIndex + 1;
-			indicesPtr[index + 2] = vertexIndex + 2;
-			indicesPtr[index + 3] = vertexIndex + 2;
-			indicesPtr[index + 4] = vertexIndex + 1;
-			indicesPtr[index + 5] = vertexIndex + 3;
+			indices.w[index + 0] = vertexIndex + 0;
+			indices.w[index + 1] = vertexIndex + 1;
+			indices.w[index + 2] = vertexIndex + 2;
+			indices.w[index + 3] = vertexIndex + 2;
+			indices.w[index + 4] = vertexIndex + 1;
+			indices.w[index + 5] = vertexIndex + 3;
 
 			// they are made of 4 vertices
-			pushVertex(vertexIndex++, u1, v1, cfg);
-			pushVertex(vertexIndex++, u1, v0, cfg);
-			pushVertex(vertexIndex++, u0, v1, cfg);
-			pushVertex(vertexIndex++, u0, v0, cfg);
+			pushVertex(vertexIndex++, u1, v1, cfg, v_pos, v_nor, v_tan, v_texco);
+			pushVertex(vertexIndex++, u1, v0, cfg, v_pos, v_nor, v_tan, v_texco);
+			pushVertex(vertexIndex++, u0, v1, cfg, v_pos, v_nor, v_tan, v_texco);
+			pushVertex(vertexIndex++, u0, v0, cfg, v_pos, v_nor, v_tan, v_texco);
 		}
 	}
 }
@@ -225,22 +242,27 @@ SphereSprite::SphereSprite(const Config &cfg)
 void SphereSprite::updateAttributes(const Config &cfg) {
 	ref_ptr<ShaderInput1f> radiusIn = ref_ptr<ShaderInput1f>::alloc("sphereRadius");
 	radiusIn->setVertexData(cfg.sphereCount);
+	auto mappedRadius = radiusIn->mapClientData<float>(ShaderData::WRITE);
 
 	ref_ptr<ShaderInput3f> positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	positionIn->setVertexData(cfg.sphereCount);
+	auto mappedPosition = positionIn->mapClientData<Vec3f>(ShaderData::WRITE);
 
 	minPosition_ = Vec3f(999999.0f);
 	maxPosition_ = Vec3f(-999999.0f);
 	Vec3f v;
 	for (GLuint i = 0; i < cfg.sphereCount; ++i) {
-		radiusIn->setVertex(i, cfg.radius[i]);
-		positionIn->setVertex(i, cfg.position[i]);
+		mappedRadius.w[i] = cfg.radius[i];
+		mappedPosition.w[i] = cfg.position[i];
 
 		v = cfg.position[i] - Vec3f(cfg.radius[i]);
 		minPosition_.setMin(v);
 		v = cfg.position[i] + Vec3f(cfg.radius[i]);
 		maxPosition_.setMax(v);
 	}
+
+	mappedRadius.unmap();
+	mappedPosition.unmap();
 
 	begin(ShaderInputContainer::INTERLEAVED);
 	setInput(radiusIn);

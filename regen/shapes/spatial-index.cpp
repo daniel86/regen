@@ -88,7 +88,7 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID) const {
 
 void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shape, bool isMultiShape) {
 	if (ic.sortInstances) {
-		auto &camPos = ic.camera->position()->getVertex(0);
+		auto camPos = ic.camera->position()->getVertex(0);
 		struct ShapeDistance {
 			const BoundingShape *shape;
 			float distance;
@@ -104,7 +104,7 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shap
 					auto [_,inserted] = visibleInstances.insert(b_shape.instanceID());
 					if (!inserted) return;
 				}
-				float d = (b_shape.getCenterPosition() - camPos).length();
+				float d = (b_shape.getCenterPosition() - camPos.r).length();
 				instanceDistances[b_shape.name()].push_back({&b_shape, d});
 			}
 		});
@@ -145,7 +145,7 @@ void SpatialIndex::updateVisibility() {
 
 		if (ic.second.camera->isOmni()) {
 			// omni camera -> intersection test with bounding sphere
-			BoundingSphere sphereShape(Vec3f::zero(), ic.first->far()->getVertex(0));
+			BoundingSphere sphereShape(Vec3f::zero(), ic.first->far()->getVertex(0).r);
 			sphereShape.setTransform(ic.first->position());
 			sphereShape.updateTransform(true);
 			updateVisibility(ic.second, sphereShape, false);

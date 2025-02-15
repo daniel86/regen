@@ -27,9 +27,3 @@ void AnimationController::animate(GLdouble dt) {
 		TransformAnimation::animate(dt);
 	}
 }
-
-void AnimationController::glAnimate(RenderState *rs, GLdouble dt) {
-	if (it_ != frames_.end()) {
-		TransformAnimation::glAnimate(rs, dt);
-	}
-}

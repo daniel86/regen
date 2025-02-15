@@ -82,7 +82,6 @@ Texture::Texture(GLuint numTextures)
 	}
 
 	set_rectangleSize(2, 2);
-	data_ = nullptr;
 	samplerType_ = "sampler2D";
 	setUniformData(-1);
 }
@@ -111,7 +110,7 @@ Texture::~Texture() {
 	}
 }
 
-GLint Texture::channel() const { return getVertex(0); }
+GLint Texture::channel() const { return getVertex(0).r; }
 
 GLenum Texture::targetType() const { return texBind_.target_; }
 

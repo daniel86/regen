@@ -78,13 +78,13 @@ const ref_ptr<ShaderInput1f> &MoonLayer::scattering() const { return scattering_
 const ref_ptr<ShaderInput4f> &MoonLayer::sunShine() const { return sunShine_; }
 
 void MoonLayer::set_sunShineColor(const Vec3f &color) {
-	GLfloat intensity = sunShine_->getVertexPtr(0).w;
-	sunShine_->setVertex(0, Vec4f(color, intensity));
+	auto v_sunShine = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_sunShine.w = Vec4f(color, v_sunShine.r.w);
 }
 
 void MoonLayer::set_sunShineIntensity(GLdouble intensity) {
-	Vec3f &color = sunShine_->getVertexPtr(0).xyz_();
-	sunShine_->setVertex(0, Vec4f(color, intensity));
+	auto v_color = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
+	v_color.w = Vec4f(v_color.r.xyz_(), intensity);
 }
 
 const ref_ptr<ShaderInput3f> &MoonLayer::earthShine() const { return earthShine_; }

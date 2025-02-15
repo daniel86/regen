@@ -45,10 +45,10 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 Vec3f BoundingSphere::getCenterPosition() const {
 	Vec3f p = basePosition_;
 	if (translation_.get()) {
-		p += translation_->getVertex(translationIndex_);
+		p += translation_->getVertex(translationIndex_).r;
 	}
 	if (transform_.get()) {
-		p += transform_->get()->getVertex(transformIndex_).position();
+		p += transform_->get()->getVertex(transformIndex_).r.position();
 	}
 	return p;
 }

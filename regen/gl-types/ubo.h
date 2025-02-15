@@ -50,6 +50,16 @@ namespace regen {
 
 		void bindBufferBase(GLuint bindingPoint) const;
 
+		/**
+		 * Lock the UBO, preventing updates.
+		 */
+		void lock() { mutex_.lock(); }
+
+		/**
+		 * Unlock the UBO, allowing updates.
+		 */
+		void unlock() { mutex_.unlock(); }
+
 	protected:
 		struct UBO_Input {
 			ref_ptr<ShaderInput> input;
@@ -62,6 +72,7 @@ namespace regen {
 		GLuint requiredSize_;
 		GLboolean requiresResize_;
 		GLuint stamp_;
+		std::mutex mutex_;
 
 		GLboolean needsUpdate() const;
 

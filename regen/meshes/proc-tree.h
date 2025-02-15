@@ -98,7 +98,7 @@ namespace regen {
 
 		void updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const;
 
-		static void computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset);
+		static void computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset, Vec4f *tanData);
 
 		static ProcTree::ProcMesh trunkProcMesh(Proctree::Tree &x);
 

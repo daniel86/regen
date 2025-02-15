@@ -22,20 +22,20 @@ CubeCamera::CubeCamera(int hiddenFacesMask)
 	// NOTE: the matrices are indexed by layer, so even if some faces are hidden,
 	// the matrices are still allocated for all faces. Could change the shaders to
 	// compute index based on layer and face visibility, instead of using gl_Layer directly.
-	view_->set_elementCount(numLayer_);
-	viewInv_->set_elementCount(numLayer_);
-	viewProj_->set_elementCount(numLayer_);
-	viewProjInv_->set_elementCount(numLayer_);
+	view_->set_numArrayElements(numLayer_);
+	viewInv_->set_numArrayElements(numLayer_);
+	viewProj_->set_numArrayElements(numLayer_);
+	viewProjInv_->set_numArrayElements(numLayer_);
 
 	// Allocate matrices
-	view_->setUniformDataUntyped(nullptr);
-	viewInv_->setUniformDataUntyped(nullptr);
-	viewProj_->setUniformDataUntyped(nullptr);
-	viewProjInv_->setUniformDataUntyped(nullptr);
+	view_->setUniformUntyped();
+	viewInv_->setUniformUntyped();
+	viewProj_->setUniformUntyped();
+	viewProjInv_->setUniformUntyped();
 
 	// Initialize directions
-	direction_->set_elementCount(numLayer_);
-	direction_->setUniformDataUntyped(nullptr);
+	direction_->set_numArrayElements(numLayer_);
+	direction_->setUniformUntyped();
 	for (auto i = 0; i < 6; ++i) {
 		direction_->setVertex(i, Mat4f::cubeDirections()[i]);
 		if (!isCubeFaceVisible(i)) {
@@ -66,15 +66,15 @@ bool CubeCamera::updateView() {
 
 	const Vec3f *dir = Mat4f::cubeDirections();
 	const Vec3f *up = Mat4f::cubeUpVectors();
-	auto &pos = position_->getVertex(0);
-	auto *views = (Mat4f *) view_->clientDataPtr();
+	auto pos = position_->getVertex(0);
+	auto views = view_->mapClientData<Mat4f>(ShaderData::WRITE);
+	auto viewInv = viewInv_->mapClientData<Mat4f>(ShaderData::WRITE);
 	for (int i = 0; i < 6; ++i) {
 		if (isCubeFaceVisible(i)) {
-			views[i] = Mat4f::lookAtMatrix(pos, dir[i], up[i]);
-			viewInv_->setVertex(i, views[i].lookAtInverse());
+			views.w[i] = Mat4f::lookAtMatrix(pos.r, dir[i], up[i]);
+			viewInv.w[i] = views.w[i].lookAtInverse();
 		}
 	}
-	view_->nextStamp();
 	return true;
 }
 

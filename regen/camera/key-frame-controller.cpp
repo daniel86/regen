@@ -3,7 +3,7 @@
 using namespace regen;
 
 KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
-		: Animation(GL_TRUE, GL_TRUE),
+		: Animation(false, true),
 		  CameraControllerBase(cam),
 		  repeat_(GL_TRUE),
 		  skipFirstFrameOnLoop_(GL_TRUE),
@@ -11,8 +11,8 @@ KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
 		  currentPauseDuration_(0.0),
 		  isPaused_(GL_FALSE) {
 	setAnimationName("controller");
-	camPos_ = cam->position()->getVertex(0);
-	camDir_ = cam->direction()->getVertex(0);
+	camPos_ = cam->position()->getVertex(0).r;
+	camDir_ = cam->direction()->getVertex(0).r;
 	it_ = frames_.end();
 	lastFrame_.anchor = ref_ptr<FixedCameraAnchor>::alloc(camPos_, camDir_);
 	lastFrame_.dt = 0.0;
@@ -144,20 +144,11 @@ void KeyFrameController::animate(GLdouble dt) {
 	dir0.normalize();
 	dir1.normalize();
 
-	lock();
 	{
 		camPos_ = interpolatePosition(pos0, pos1, t);
 		camDir_ = interpolateDirection(dir0, dir1, t);
 		camDir_.normalize();
 		computeMatrices(camPos_, camDir_);
-	}
-	unlock();
-}
-
-void KeyFrameController::glAnimate(RenderState *rs, GLdouble dt) {
-	lock();
-	{
 		updateCamera(camPos_, camDir_, dt);
 	}
-	unlock();
 }
