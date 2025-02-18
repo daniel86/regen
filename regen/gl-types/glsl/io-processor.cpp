@@ -66,10 +66,9 @@ IOProcessor::IOProcessor()
 
 string IOProcessor::getNameWithoutPrefix(const string &name) {
 	static const string prefixes[] = {"in_", "out_", "u_", "c_", "gs_", "fs_", "vs_", "tes_", "tcs_"};
-	static const int numprefixes = sizeof(prefixes) / sizeof(string);
-	for (const auto & prefixe : prefixes) {
-		if (hasPrefix(name, prefixe)) {
-			return truncPrefix(name, prefixe);
+	for (const auto & prefix : prefixes) {
+		if (hasPrefix(name, prefix)) {
+			return truncPrefix(name, prefix);
 		}
 	}
 	return name;

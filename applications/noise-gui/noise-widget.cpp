@@ -56,7 +56,7 @@ public:
 
 	void call(EventObject *evObject, EventData *) {
 		auto *app = (Application *) evObject;
-		const Vec2i &winSize = app->windowViewport()->getVertex(0);
+		auto winSize = app->windowViewport()->getVertex(0).r;
 		fboState_->resize(winSize.x * wScale_, winSize.y * hScale_);
 	}
 
@@ -115,7 +115,7 @@ void NoiseWidget::gl_loadScene() {
 	AnimationManager::get().pause(GL_TRUE);
 
 	// create render target
-	const Vec2i &winSize = app_->windowViewport()->getVertex(0);
+	auto winSize = app_->windowViewport()->getVertex(0).r;
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.x, winSize.y);
 	ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 	ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);

@@ -33,6 +33,8 @@ ModelMatrixUpdater::ModelMatrixUpdater(const ref_ptr<ShaderInputMat4> &modelMatr
 		: Animation(false, true),
 		  modelMatrix_(modelMatrix) {
 	backBuffer_ = new Mat4f[modelMatrix->numInstances()];
+	auto regenData = modelMatrix_->mapClientDataRaw(ShaderData::READ);
+	std::memcpy(backBuffer_, regenData.r, modelMatrix_->inputSize());
 }
 
 ModelMatrixUpdater::~ModelMatrixUpdater() {
@@ -49,20 +51,24 @@ void ModelMatrixUpdater::animate(GLdouble dt) {
 
 Mat4fMotion::Mat4fMotion(const ref_ptr<ModelMatrixUpdater> &modelMatrix, GLuint index)
 		: modelMatrix_(modelMatrix),
-		  glModelMatrix_(modelMatrix->backBuffer() + index) {
+		  glModelMatrix_(modelMatrix->backBuffer() + index),
+		  tfIndex_(index) {
 }
 
 Mat4fMotion::Mat4fMotion(Mat4f *glModelMatrix)
-		: glModelMatrix_(glModelMatrix) {
+		: glModelMatrix_(glModelMatrix),
+		  tfIndex_(0) {
 }
 
 void Mat4fMotion::getWorldTransform(btTransform &worldTrans) const {
-	worldTrans.setFromOpenGLMatrix((const btScalar *) glModelMatrix_);
+	if (modelMatrix_.get()) {
+		auto regenData = modelMatrix_->modelMatrix()->mapClientVertex<Mat4f>(ShaderData::READ, tfIndex_);
+		worldTrans.setFromOpenGLMatrix((const btScalar *) &regenData.r);
+	} else {
+		worldTrans.setFromOpenGLMatrix((const btScalar *) glModelMatrix_);
+	}
 }
 
 void Mat4fMotion::setWorldTransform(const btTransform &worldTrans) {
 	worldTrans.getOpenGLMatrix((btScalar *) glModelMatrix_);
-	if (modelMatrix_.get()) {
-		modelMatrix_->nextStamp();
-	}
 }

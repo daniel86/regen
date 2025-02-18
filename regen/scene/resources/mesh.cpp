@@ -454,6 +454,7 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 		particles = ref_ptr<Particles>::alloc(numParticles);
 	}
 	particles->setAnimationName(input.getName());
+	particles->startAnimation();
 
 	if (input.hasAttribute("max-emits")) {
 		particles->setMaxEmits(input.getValue<GLuint>("max-emits", 100u));
@@ -521,7 +522,6 @@ ref_ptr<Particles> MeshResource::createParticleMesh(
 	processMeshChildren(parser, input, *x.get());
 	particles->end();
 
-	particles->startAnimation();
 	return particles;
 }
 

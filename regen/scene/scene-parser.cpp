@@ -7,7 +7,6 @@
 
 #include "scene-parser.h"
 #include "regen/scene/states/deformation.h"
-#include "regen/scene/nodes/physics.h"
 #include "regen/scene/nodes/motion-blur.h"
 #include "regen/scene/nodes/picking.h"
 #include "regen/scene/states/polygon.h"
@@ -106,7 +105,6 @@ void SceneParser::init() {
 	setStateProcessor(ref_ptr<TransformStateProvider>::alloc());
 	setStateProcessor(ref_ptr<TesselationStateProvider>::alloc());
 	setStateProcessor(ref_ptr<StateSequenceNodeProvider>::alloc());
-	setStateProcessor(ref_ptr<PhysicsStateProvider>::alloc());
 	setStateProcessor(ref_ptr<ShapeStateProvider>::alloc());
 	setStateProcessor(ref_ptr<PolygonStateProvider>::alloc());
 	setStateProcessor(ref_ptr<DeformationNodeProvider>::alloc());

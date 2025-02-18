@@ -655,7 +655,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 void ShaderInput::enableAttributef(GLint location) const {
 	// TODO: I find it a bit odd that we iterate over num array elements below, it is not intuitive.
 	//        check if this is right and add some comments.
-	for (GLsizei i = 0; i < numArrayElements_; ++i) {
+	for (unsigned int i = 0u; i < numArrayElements_; ++i) {
 		GLint loc = location + i;
 		glEnableVertexAttribArray(loc);
 		glVertexAttribPointer(
@@ -672,7 +672,7 @@ void ShaderInput::enableAttributef(GLint location) const {
 }
 
 void ShaderInput::enableAttributei(GLint location) const {
-	for (GLsizei i = 0; i < numArrayElements_; ++i) {
+	for (unsigned int i = 0u; i < numArrayElements_; ++i) {
 		GLint loc = location + i;
 		glEnableVertexAttribArray(loc);
 		// use glVertexAttribIPointer, otherwise OpenGL
@@ -690,7 +690,7 @@ void ShaderInput::enableAttributei(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat4(GLint location) const {
-	for (GLsizei i = 0; i < numArrayElements_ * 4; i += 4) {
+	for (unsigned int i = 0u; i < numArrayElements_ * 4; i += 4) {
 		GLint loc0 = location + i;
 		GLint loc1 = location + i + 1;
 		GLint loc2 = location + i + 2;
@@ -724,7 +724,7 @@ void ShaderInput::enableAttributeMat4(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat3(GLint location) const {
-	for (GLsizei i = 0; i < numArrayElements_ * 3; i += 4) {
+	for (unsigned int i = 0u; i < numArrayElements_ * 3; i += 4) {
 		GLint loc0 = location + i;
 		GLint loc1 = location + i + 1;
 		GLint loc2 = location + i + 2;
@@ -752,7 +752,7 @@ void ShaderInput::enableAttributeMat3(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat2(GLint location) const {
-	for (GLsizei i = 0; i < numArrayElements_ * 2; i += 4) {
+	for (unsigned int i = 0u; i < numArrayElements_ * 2; i += 4) {
 		GLint loc0 = location + i;
 		GLint loc1 = location + i + 1;
 

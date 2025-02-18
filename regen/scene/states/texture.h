@@ -84,7 +84,7 @@ namespace regen {
 					return;
 				}
 				if (input.hasAttribute("mip-level") && input.getValue<int>("mip-level",0) > 0) {
-					auto mipLevel = input.getValue<int>("mip-level",1);
+					auto mipLevel = input.getValue<unsigned int>("mip-level",1);
 					auto mipTex = dynamic_cast<TextureMips2D *>(tex.get());
 					if (mipTex) {
 						auto maxLevel = mipTex->numMips();

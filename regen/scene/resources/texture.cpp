@@ -199,8 +199,6 @@ ref_ptr<Texture> TextureResource::createResource(
 
 	if (input.hasAttribute("file")) {
 		auto mipmapFlag = GL_DONT_CARE;
-		auto forcedType = glenum::pixelType(
-				input.getValue<string>("forced-type", "NONE"));
 		auto forcedInternalFormat = glenum::textureInternalFormat(
 				input.getValue<string>("forced-internal-format", "NONE"));
 		auto forcedFormat = glenum::textureFormat(

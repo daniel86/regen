@@ -231,7 +231,8 @@ GLuint glenum::pixelComponents(GLenum format) {
 		case GL_RGBA:
 			return 4;
 		default:
-			return 1;
+			REGEN_WARN("Unknown pixel format '" << format << "'. Using default 4.");
+			return 4;
 	}
 }
 
