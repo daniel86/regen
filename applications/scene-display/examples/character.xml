@@ -149,6 +149,8 @@
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
+        <shape id="ground-physics" mode="physics" shape="triangle-mesh" mass="0.0"
+            mesh-id="ground-mesh" transform-id="ground-tf"/>
     </mesh>
 
     <!--**************************-->
@@ -706,8 +708,6 @@
     </node>
 
     <node id="Non-Shadow-Caster">
-        <physics mesh-id="ground-mesh" transform-id="ground-tf" shape="triangle-mesh" mass="0.0"/>
-
         <node import="Grass"/>
         <node id="Ground">
             <texture id="ground-color" map-to="color" blend-mode="SRC" wrapping="REPEAT"/>

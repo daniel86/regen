@@ -20,7 +20,7 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 	if(updateLightProjection() || updateLightView()) {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
-		for (auto i=0; i<lightMatrix_->numArrayElements(); ++i) {
+		for (unsigned int i=0; i<lightMatrix_->numArrayElements(); ++i) {
 			// note: bias is not applied here, as the projection is done in shaders
 			lightMatrix_->setVertex(i, viewProj_->getVertex(i).r);
 		}

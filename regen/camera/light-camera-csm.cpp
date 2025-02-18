@@ -96,7 +96,7 @@ bool LightCamera_CSM::updateDirectionalLight() {
 	if (changed) {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
-		for (int i = 0; i < lightMatrix_->numArrayElements(); ++i) {
+		for (unsigned int i = 0; i < lightMatrix_->numArrayElements(); ++i) {
 			lightMatrix_->setVertex(i, viewProj_->getVertex(i).r * Mat4f::bias());
 		}
 		camStamp_ += 1;
@@ -117,7 +117,7 @@ bool LightCamera_CSM::updateFrustumSplit() {
 		// update near/far values
 		auto farValues = far_->mapClientData<GLfloat>(ShaderData::WRITE);
 		auto nearValues = near_->mapClientData<GLfloat>(ShaderData::WRITE);
-		for (int i = 0; i < numLayer_; ++i) {
+		for (unsigned int i = 0; i < numLayer_; ++i) {
 			auto &u_frustum = userCameraFrustum_[i];
 			// frustum_->far() is originally in eye space - tell's us how far we can see.
 			// Here we compute it in camera homogeneous coordinates. Basically, we calculate
@@ -137,7 +137,7 @@ bool LightCamera_CSM::updateFrustumSplit() {
 		userDirectionStamp_ = userDirStamp;
 		auto userPos = userCamera_->position()->getVertex(0);
 		auto userDir = userCamera_->direction()->getVertex(0);
-		for (int i = 0; i < numLayer_; ++i) {
+		for (unsigned int i = 0; i < numLayer_; ++i) {
 			userCameraFrustum_[i].update(userPos.r, userDir.r);
 			userFrustumCentroids_[i] = userPos.r + userDir.r *
 					((userCameraFrustum_[i].far - userCameraFrustum_[i].near) * 0.5f + userCameraFrustum_[i].near);
@@ -176,7 +176,7 @@ bool LightCamera_CSM::updateLightView() {
 		position_->setVertex(i, Vec3f::zero());
 	}
 #else
-	for (int i = 0; i < numLayer_; ++i) {
+	for (unsigned int i = 0; i < numLayer_; ++i) {
 #if 0
 		auto &u_frustum = userCameraFrustum_[i];
 		// compute the z-range of the frustum in light space as if light were positioned at (0,0,0)
@@ -205,7 +205,7 @@ bool LightCamera_CSM::updateLightProjection() {
 	if (viewStamp == viewStamp_) { return false; }
 	viewStamp_ = viewStamp;
 
-	for (int layerIndex = 0; layerIndex < numLayer_; ++layerIndex) {
+	for (unsigned int layerIndex = 0; layerIndex < numLayer_; ++layerIndex) {
 		auto &u_frustum = userCameraFrustum_[layerIndex];
 		Bounds<Vec3f> bounds_ls(
 			std::numeric_limits<float>::max(),

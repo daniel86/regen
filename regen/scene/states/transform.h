@@ -18,6 +18,7 @@
 #include <stack>
 #include <random>
 #include "regen/animations/transform-animation.h"
+#include "regen/animations/boids.h"
 
 #define REGEN_TRANSFORM_STATE_CATEGORY "transform"
 
@@ -27,16 +28,13 @@ static void transformMatrix(
 		mat.x[12] += value.x;
 		mat.x[13] += value.y;
 		mat.x[14] += value.z;
-	}
-	else if (target == "scale") {
+	} else if (target == "scale") {
 		mat.scale(value);
-	}
-	else if (target == "rotate") {
+	} else if (target == "rotate") {
 		Quaternion q(0.0, 0.0, 0.0, 1.0);
 		q.setEuler(value.x, value.y, value.z);
 		mat *= q.calculateMatrix();
-	}
-	else {
+	} else {
 		REGEN_WARN("Unknown distribute target '" << target << "'.");
 	}
 }
@@ -85,8 +83,8 @@ static float badRandom() {
 
 static void makeInstance(InstancePlaneGenerator &generator, const PlaneCell &cell) {
 	if (generator.maskData) {
-		auto density = generator.maskTexture->sampleLinear(
-			cell.uv, generator.maskData, 1);
+		auto density = generator.maskTexture->sampleLinear<float>(
+				cell.uv, generator.maskData);
 		if (density < 0.1f) return;
 	}
 
@@ -116,14 +114,14 @@ static void makeInstance(InstancePlaneGenerator &generator, const PlaneCell &cel
 	instanceMat.x[14] += pos.z;
 	// translate to height map position
 	if (generator.heightData) {
-		instanceMat.x[13] += generator.areaMaxHeight * generator.heightMap->sampleLinear(
-			cell.uv, generator.heightData, 1);
+		instanceMat.x[13] += generator.areaMaxHeight * generator.heightMap->sampleLinear<float>(
+				cell.uv, generator.heightData);
 	}
 }
 
 static void makeInstances(InstancePlaneGenerator &generator,
-		const PlaneCell &rootCell, const PlaneCellWeights &rootWeights) {
-	std::stack<std::pair<PlaneCell,PlaneCellWeights>> stack;
+						  const PlaneCell &rootCell, const PlaneCellWeights &rootWeights) {
+	std::stack<std::pair<PlaneCell, PlaneCellWeights>> stack;
 	stack.emplace(rootCell, rootWeights);
 	auto clampedDensity = clamp(generator.objDensity, 0.1f, generator.objDensity);
 
@@ -146,50 +144,50 @@ static void makeInstances(InstancePlaneGenerator &generator,
 			auto subdividedSize = cell.size * 0.5f;
 			auto halfCellDensity = cell.density * 0.5f;
 			PlaneCell *subdivideCells[4] = {
-				&bottomLeft.first, &bottomRight.first, &topRight.first, &topLeft.first
+					&bottomLeft.first, &bottomRight.first, &topRight.first, &topLeft.first
 			};
 
 			// compute center position of subdivide cells
-			bottomLeft.first.position  = cell.position - cell.size * 0.25f;
-			topRight.first.position    = cell.position + cell.size * 0.25f;
+			bottomLeft.first.position = cell.position - cell.size * 0.25f;
+			topRight.first.position = cell.position + cell.size * 0.25f;
 			bottomRight.first.position = cell.position + Vec2f(cell.size.x * 0.25f, -cell.size.y * 0.25f);
-			topLeft.first.position     = cell.position + Vec2f(-cell.size.x * 0.25f, cell.size.y * 0.25f);
+			topLeft.first.position = cell.position + Vec2f(-cell.size.x * 0.25f, cell.size.y * 0.25f);
 			// compute density at the center
-			bottomLeft.first.density   = halfCellDensity + (weights.bottom + weights.left)*0.25f;
-			bottomRight.first.density  = halfCellDensity + (weights.bottom + weights.right)*0.25f;
-			topRight.first.density     = halfCellDensity + (weights.top + weights.right)*0.25f;
-			topLeft.first.density      = halfCellDensity + (weights.top + weights.left)*0.25f;
+			bottomLeft.first.density = halfCellDensity + (weights.bottom + weights.left) * 0.25f;
+			bottomRight.first.density = halfCellDensity + (weights.bottom + weights.right) * 0.25f;
+			topRight.first.density = halfCellDensity + (weights.top + weights.right) * 0.25f;
+			topLeft.first.density = halfCellDensity + (weights.top + weights.left) * 0.25f;
 			// compute uv coordinate, and set the size to half size of parent cell
-			for (int i=0; i<4; i++) {
+			for (int i = 0; i < 4; i++) {
 				auto &subdivideCell = *subdivideCells[i];
 				subdivideCell.size = subdividedSize;
 			}
 			auto uvOffset = cell.size / generator.areaSize;
-			bottomLeft.first.uv  = cell.uv - Vec2f(0.25f, 0.25f)*uvOffset;
-			bottomRight.first.uv = cell.uv + Vec2f(0.25f, -0.25f)*uvOffset;
-			topRight.first.uv    = cell.uv + Vec2f(0.25f, 0.25f)*uvOffset;
-			topLeft.first.uv     = cell.uv - Vec2f(0.25f, -0.25f)*uvOffset;
+			bottomLeft.first.uv = cell.uv - Vec2f(0.25f, 0.25f) * uvOffset;
+			bottomRight.first.uv = cell.uv + Vec2f(0.25f, -0.25f) * uvOffset;
+			topRight.first.uv = cell.uv + Vec2f(0.25f, 0.25f) * uvOffset;
+			topLeft.first.uv = cell.uv - Vec2f(0.25f, -0.25f) * uvOffset;
 
 			// compute weights for subdivide cells
-			bottomLeft.second.left   = 0.75f*weights.left + 0.25f*weights.bottom;
-			bottomLeft.second.bottom = 0.75f*weights.bottom + 0.25f*weights.left;
-			bottomLeft.second.top    = 0.5f*cell.density + 0.5f*weights.left;
-			bottomLeft.second.right  = 0.5f*cell.density + 0.5f*weights.bottom;
+			bottomLeft.second.left = 0.75f * weights.left + 0.25f * weights.bottom;
+			bottomLeft.second.bottom = 0.75f * weights.bottom + 0.25f * weights.left;
+			bottomLeft.second.top = 0.5f * cell.density + 0.5f * weights.left;
+			bottomLeft.second.right = 0.5f * cell.density + 0.5f * weights.bottom;
 
-			bottomRight.second.right  = 0.75f*weights.right + 0.25f*weights.bottom;
-			bottomRight.second.bottom = 0.75f*weights.bottom + 0.25f*weights.right;
-			bottomRight.second.top    = 0.5f*cell.density + 0.5f*weights.right;
-			bottomRight.second.left   = 0.5f*cell.density + 0.5f*weights.bottom;
+			bottomRight.second.right = 0.75f * weights.right + 0.25f * weights.bottom;
+			bottomRight.second.bottom = 0.75f * weights.bottom + 0.25f * weights.right;
+			bottomRight.second.top = 0.5f * cell.density + 0.5f * weights.right;
+			bottomRight.second.left = 0.5f * cell.density + 0.5f * weights.bottom;
 
-			topRight.second.right  = 0.75f*weights.right + 0.25f*weights.top;
-			topRight.second.top    = 0.75f*weights.top + 0.25f*weights.right;
-			topRight.second.left   = 0.5f*cell.density + 0.5f*weights.right;
-			topRight.second.bottom = 0.5f*cell.density + 0.5f*weights.top;
+			topRight.second.right = 0.75f * weights.right + 0.25f * weights.top;
+			topRight.second.top = 0.75f * weights.top + 0.25f * weights.right;
+			topRight.second.left = 0.5f * cell.density + 0.5f * weights.right;
+			topRight.second.bottom = 0.5f * cell.density + 0.5f * weights.top;
 
-			topLeft.second.left   = 0.75f*weights.left + 0.25f*weights.top;
-			topLeft.second.top    = 0.75f*weights.top + 0.25f*weights.left;
-			topLeft.second.right  = 0.5f*cell.density + 0.5f*weights.left;
-			topLeft.second.bottom = 0.5f*cell.density + 0.5f*weights.top;
+			topLeft.second.left = 0.75f * weights.left + 0.25f * weights.top;
+			topLeft.second.top = 0.75f * weights.top + 0.25f * weights.left;
+			topLeft.second.right = 0.5f * cell.density + 0.5f * weights.left;
+			topLeft.second.bottom = 0.5f * cell.density + 0.5f * weights.top;
 		}
 	}
 }
@@ -245,7 +243,7 @@ static GLuint transformMatrixPlane(
 	}
 	if (input.hasAttribute("area-height-texture")) {
 		generator.heightMap = parser->getResources()->getTexture2D(parser, input.getValue("area-height-texture"));
-		if(generator.heightMap.get()) {
+		if (generator.heightMap.get()) {
 			generator.heightMap->ensureTextureData();
 			generator.heightData = generator.heightMap->textureData();
 		} else {
@@ -254,11 +252,11 @@ static GLuint transformMatrixPlane(
 	}
 	// get object bounds
 	auto meshes = parser->getResources()->getMesh(parser, input.getValue("obj-mesh"));
-	if(meshes.get() && !meshes.get()->empty()) {
+	if (meshes.get() && !meshes.get()->empty()) {
 		auto &meshVec = *meshes.get();
 		auto firstMesh = meshVec[0];
 		Bounds<Vec3f> bounds(firstMesh->minPosition(), firstMesh->maxPosition());
-		for (int i=1; i<meshVec.size(); i++) {
+		for (size_t i = 1; i < meshVec.size(); i++) {
 			auto mesh = meshVec[i];
 			bounds.min.setMin(mesh->minPosition());
 			bounds.max.setMax(mesh->maxPosition());
@@ -283,7 +281,7 @@ static GLuint transformMatrixPlane(
 			auto index = j * generator.cellCountX + i;
 			auto &cell = generator.cells[index];
 			cell.position = Vec2f(static_cast<float>(i), static_cast<float>(j)) *
-				generator.ws_cellSize + generator.cellHalfSize - areaHalfSize;
+							generator.ws_cellSize + generator.cellHalfSize - areaHalfSize;
 			cell.uv = cellUV;
 			cellUV.x += generator.ts_cellSize.x;
 			cell.density = 1.0f;
@@ -297,11 +295,10 @@ static GLuint transformMatrixPlane(
 		// compute cell density based on mask texture
 		for (unsigned int i = 0; i < generator.numCells; i++) {
 			auto &cell = generator.cells[i];
-			cell.density = generator.maskTexture->sampleMax(
-				cell.uv,
-				generator.ts_cellSize,
-				generator.maskData,
-				1);
+			cell.density = generator.maskTexture->sampleMax<float>(
+					cell.uv,
+					generator.ts_cellSize,
+					generator.maskData);
 		}
 	}
 
@@ -316,8 +313,7 @@ static GLuint transformMatrixPlane(
 	if (generator.instanceData.empty()) {
 		REGEN_WARN("No instances created.");
 		return numInstances;
-	}
-	else {
+	} else {
 		numInstances = generator.instanceData.size();
 		matrixInput->setInstanceData(numInstances, 1, nullptr);
 		auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
@@ -330,23 +326,157 @@ static GLuint transformMatrixPlane(
 	return numInstances;
 }
 
+static void transformAnimation(
+		SceneParser *parser,
+		const ref_ptr<SceneInputNode> &child,
+		const ref_ptr<State> &state,
+		const ref_ptr<ModelTransformation> &tf) {
+	auto animType = child->getValue<std::string>("type", "transform");
+
+	if (animType == "boids") {
+		auto boidsAnimation = ref_ptr<BoidsSimulation_CPU>::alloc(tf);
+
+		// set the bounds of the boids simulation
+		if (child->hasAttribute("boids-area") && child->hasAttribute("boids-center")) {
+			auto boidsArea = child->getValue<Vec3f>("boids-area", Vec3f(10.0f));
+			auto boidsCenter = child->getValue<Vec3f>("boids-center", Vec3f(0.0f));
+			Bounds<Vec3f> bounds(boidsCenter - boidsArea * 0.5f, boidsCenter + boidsArea * 0.5f);
+			boidsAnimation->setBounds(bounds);
+		} else {
+			auto boidBounds = Bounds<Vec3f>(
+				 child->getValue<Vec3f>("bounds-min", Vec3f(-5.0f)),
+				 child->getValue<Vec3f>("bounds-max", Vec3f(5.0f))
+			);
+			boidsAnimation->setBounds(boidBounds);
+		}
+
+		if (child->hasAttribute("base-orientation")) {
+			boidsAnimation->setBaseOrientation(child->getValue<float>("base-orientation", 0.0f));
+		}
+		if (child->hasAttribute("look-ahead")) {
+			boidsAnimation->setLookAheadDistance(child->getValue<float>("look-ahead", 1.0f));
+		}
+		if (child->hasAttribute("repulsion")) {
+			boidsAnimation->setRepulsionFactor(child->getValue<float>("repulsion", 1.0f));
+		}
+		if (child->hasAttribute("max-speed")) {
+			boidsAnimation->setMaxBoidSpeed(child->getValue<float>("max-speed", 1.0f));
+		}
+		if (child->hasAttribute("visual-range")) {
+			boidsAnimation->setVisualRange(child->getValue<float>("visual-range", 1.0f));
+		}
+		if (child->hasAttribute("coherence-weight")) {
+			boidsAnimation->setCoherenceWeight(child->getValue<float>("coherence-weight", 0.5f));
+		}
+		if (child->hasAttribute("alignment-weight")) {
+			boidsAnimation->setAlignmentWeight(child->getValue<float>("alignment-weight", 0.5f));
+		}
+		if (child->hasAttribute("avoidance-weight")) {
+			boidsAnimation->setAvoidanceWeight(child->getValue<float>("avoidance-weight", 0.5f));
+		}
+		if (child->hasAttribute("avoidance-distance")) {
+			boidsAnimation->setAvoidanceDistance(child->getValue<float>("avoidance-distance", 1.0f));
+		}
+		if (child->hasAttribute("separation-weight")) {
+			boidsAnimation->setSeparationWeight(child->getValue<float>("separation-weight", 0.5f));
+		}
+
+		if (child->hasAttribute("height-map")) {
+			auto heightMap = parser->getResources()->getTexture2D(
+					parser, child->getValue("height-map"));
+			if (heightMap.get() != nullptr) {
+				heightMap->ensureTextureData();
+				auto heightScale = child->getValue<float>("height-map-factor", 1.0f);
+				auto mapCenter = child->getValue<Vec3f>("map-center", Vec3f(0.0f));
+				auto mapSize = child->getValue<Vec2f>("map-size", Vec2f(10.0f));
+				boidsAnimation->setMap(
+						mapCenter,
+						mapSize,
+						heightMap,
+						heightScale);
+			} else {
+				REGEN_WARN("Ignoring " << child->getDescription() << ", failed to load height map textures.");
+			}
+		}
+
+		for (auto &homePointNode: child->getChildren("home-point")) {
+			boidsAnimation->addHomePoint(
+				homePointNode->getValue<Vec3f>("value", Vec3f(0.0f)));
+		}
+		for (auto &objectNode: child->getChildren("object")) {
+			ref_ptr<ShaderInputMat4> attractorTF;
+			if (objectNode->hasAttribute("tf")) {
+				auto transformID = objectNode->getValue("tf");
+				auto transform = parser->getResources()->getTransform(parser, transformID);
+				if (transform.get() != nullptr) {
+					attractorTF = transform->get();
+				}
+			} else if (objectNode->hasAttribute("point")) {
+				attractorTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");
+				attractorTF->setUniformData(Mat4f::translationMatrix(
+						objectNode->getValue<Vec3f>("point", Vec3f(0.0f))));
+			}
+			auto objectType = objectNode->getValue<std::string>("type", "attractor");
+			if (objectType == "attractor") {
+				boidsAnimation->addAttractor(attractorTF);
+			} else if (objectType == "danger") {
+				boidsAnimation->addDanger(attractorTF);
+			} else {
+				REGEN_WARN("Unknown boid object type '" << objectType << "'.");
+			}
+		}
+
+		state->attach(boidsAnimation);
+		boidsAnimation->startAnimation();
+	}
+	else {
+		auto transformAnimation = ref_ptr<TransformAnimation>::alloc(tf->get());
+
+		if (child->hasAttribute("mesh-id")) {
+			auto meshID = child->getValue("mesh-id");
+			auto meshIndex = child->getValue<GLuint>("mesh-index", 0u);
+			auto meshVec = parser->getResources()->getMesh(parser, meshID);
+			if (meshVec.get() != nullptr && meshVec->size() > meshIndex) {
+				auto mesh = (*meshVec.get())[meshIndex];
+				transformAnimation->setMesh(mesh);
+			}
+		}
+
+		for (auto &keyFrameNode: child->getChildren("key-frame")) {
+			std::optional<Vec3f> framePos = nullopt;
+			std::optional<Vec3f> frameDir = nullopt;
+			if (keyFrameNode->hasAttribute("position")) {
+				framePos = keyFrameNode->getValue<Vec3f>("position", Vec3f(0.0f));
+			}
+			if (keyFrameNode->hasAttribute("rotation")) {
+				frameDir = keyFrameNode->getValue<Vec3f>("rotation", Vec3f(0.0f));
+			}
+			auto dt = keyFrameNode->getValue<GLdouble>("dt", 1.0);
+			transformAnimation->push_back(framePos, frameDir, dt);
+		}
+
+		transformAnimation->setAnimationName(child->getName());
+		transformAnimation->startAnimation();
+		state->attach(transformAnimation);
+	}
+}
+
 static void transformMatrix(
 		SceneParser *parser,
 		SceneInputNode &input,
 		const ref_ptr<State> &state,
-		const ref_ptr<ShaderInputMat4> &matrixInput,
+		const ref_ptr<ModelTransformation> &tf,
 		GLuint numInstances) {
-	for (auto &child : input.getChildren()) {
+	for (auto &child: input.getChildren()) {
 		// TODO: this seems bad, why create this every loop? why at all?
 		list<GLuint> indices = child->getIndexSequence(numInstances);
 
 		if (child->getCategory() == "set") {
 			auto mode = child->getValue("mode");
 			if (mode == "plane") {
-				numInstances = transformMatrixPlane(parser, *child.get(), matrixInput, numInstances);
-			}
-			else {
-				auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
+				numInstances = transformMatrixPlane(parser, *child.get(), tf->get(), numInstances);
+			} else {
+				auto matrices = tf->get()->mapClientData<Mat4f>(ShaderData::WRITE);
 				ValueGenerator<Vec3f> generator(child.get(), indices.size(),
 												child->getValue<Vec3f>("value", Vec3f(0.0f)));
 				const auto target = child->getValue<string>("target", "translate");
@@ -355,36 +485,10 @@ static void transformMatrix(
 					transformMatrix(target, matrices.w[*it], generator.next());
 				}
 			}
-		}
-		else if (child->getCategory() == "animation") {
-			auto transformAnimation = ref_ptr<TransformAnimation>::alloc(matrixInput);
-
-			if (child->hasAttribute("mesh-id")) {
-				auto meshID = child->getValue("mesh-id");
-				auto meshIndex = child->getValue<GLuint>("mesh-index", 0u);
-				auto meshVec = parser->getResources()->getMesh(parser, meshID);
-				if (meshVec.get() != nullptr && meshVec->size()>meshIndex) {
-					auto mesh = (*meshVec.get())[meshIndex];
-					transformAnimation->setMesh(mesh);
-				}
-			}
-
-			for (auto &keyFrameNode : child->getChildren("key-frame")) {
-				std::optional<Vec3f> framePos = nullopt;
-				std::optional<Vec3f> frameDir = nullopt;
-				if (keyFrameNode->hasAttribute("position")) {
-					framePos = keyFrameNode->getValue<Vec3f>("position", Vec3f(0.0f));
-				}
-				if (keyFrameNode->hasAttribute("rotation")) {
-					frameDir = keyFrameNode->getValue<Vec3f>("rotation", Vec3f(0.0f));
-				}
-				auto dt = keyFrameNode->getValue<GLdouble>("dt", 1.0);
-				transformAnimation->push_back(framePos, frameDir, dt);
-			}
-			state->attach(transformAnimation);
-		}
-		else {
-			auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
+		} else if (child->getCategory() == "animation") {
+			transformAnimation(parser, child, state, tf);
+		} else {
+			auto matrices = tf->get()->mapClientData<Mat4f>(ShaderData::WRITE);
 			for (auto it = indices.begin(); it != indices.end(); ++it) {
 				transformMatrix(child->getCategory(), matrices.w[*it],
 								child->getValue<Vec3f>("value", Vec3f(0.0f)));
@@ -431,12 +535,12 @@ namespace regen {
 						auto matrices = transform->get()->mapClientData<Mat4f>(ShaderData::WRITE);
 						for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
 					}
-					transformMatrix(parser, input, state, transform->get(), numInstances);
+					transformMatrix(parser, input, state, transform, numInstances);
 					// add data to vbo
 					transform->setInput(transform->get());
 				} else {
-					transformMatrix(parser, input, state, transform->get(), 1u);
-					if (transform->get()->numInstances()>1) {
+					transformMatrix(parser, input, state, transform, 1u);
+					if (transform->get()->numInstances() > 1) {
 						transform->setInput(transform->get());
 					}
 				}

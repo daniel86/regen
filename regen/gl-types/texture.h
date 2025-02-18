@@ -17,6 +17,7 @@
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/vbo.h>
+#include "regen/shapes/bounds.h"
 
 namespace regen {
 	template<typename T>
@@ -271,7 +272,24 @@ namespace regen {
 		 * @param numComponents number of components per texel.
 		 * @return average value.
 		 */
-		float sampleAverage(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const;
+		template<class T>
+		T sampleAverage(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData) const {
+			auto bounds = getRegion(texco, regionTS);
+			T avg = T(0.0f);
+			int numSamples = 0;
+			for (unsigned int y = bounds.min.y; y <= bounds.max.y; ++y) {
+				for (unsigned int x = bounds.min.x; x <= bounds.max.x; ++x) {
+					unsigned int index = (y * width() + x);
+					avg += sample<T>(index, textureData);
+					numSamples++;
+				}
+			}
+			if (numSamples > 0) {
+				return avg / static_cast<float>(numSamples);
+			} else {
+				return avg;
+			}
+		}
 
 		/**
 		 * Sample a region, and return the max value.
@@ -281,7 +299,18 @@ namespace regen {
 		 * @param numComponents number of components per texel.
 		 * @return max value.
 		 */
-		float sampleMax(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const;
+		template<class T>
+		T sampleMax(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData) const {
+			auto bounds = getRegion(texco, regionTS);
+			T maxVal = T(0.0f);
+			for (unsigned int y = bounds.min.y; y <= bounds.max.y; ++y) {
+				for (unsigned int x = bounds.min.x; x <= bounds.max.x; ++x) {
+					unsigned int index = (y * width() + x);
+					maxVal = std::max(maxVal, sample<T>(index, textureData));
+				}
+			}
+			return maxVal;
+		}
 
 		/**
 		 * Sample the nearest texel.
@@ -290,7 +319,10 @@ namespace regen {
 		 * @param numComponents number of components per texel.
 		 * @return value.
 		 */
-		float sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const;
+		template<class T>
+		T sampleNearest(const Vec2f &texco, const GLubyte *textureData) const {
+			return sample<T>(texelIndex(texco), textureData);
+		}
 
 		/**
 		 * Sample linearly between closest texels.
@@ -299,7 +331,28 @@ namespace regen {
 		 * @param numComponents number of components per texel.
 		 * @return value.
 		 */
-		float sampleLinear(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const;
+		template<class T>
+		T sampleLinear(const Vec2f &texco, const GLubyte *textureData) const {
+			auto w = static_cast<float>(width());
+			auto h = static_cast<float>(height());
+			auto x = texco.x * w;
+			auto y = texco.y * h;
+			auto x0 = std::floor(x);
+			auto y0 = std::floor(y);
+			auto x1 = x0 + 1;
+			auto y1 = y0 + 1;
+
+			T v00 = sampleNearest<T>(Vec2f(x0 / w, y0 / h), textureData);
+			T v01 = sampleNearest<T>(Vec2f(x0 / w, y1 / h), textureData);
+			T v10 = sampleNearest<T>(Vec2f(x1 / w, y0 / h), textureData);
+			T v11 = sampleNearest<T>(Vec2f(x1 / w, y1 / h), textureData);
+
+			auto dx = x - x0;
+			auto dy = y - y0;
+			T v0 = v00 * (1.0f - dx) + v10 * dx;
+			T v1 = v01 * (1.0f - dx) + v11 * dx;
+			return v0 * (1.0f - dy) + v1 * dy;
+		}
 
 		/**
 		 * Specify the texture image.
@@ -334,6 +387,22 @@ namespace regen {
 		// client data, or null
 		const GLubyte *textureData_;
 		bool isTextureDataOwned_;
+
+		Bounds<Vec2ui> getRegion(const Vec2f &texco, const Vec2f &regionTS) const;
+
+		unsigned int texelIndex(const Vec2f &texco) const;
+
+		template<class T>
+		T sample(unsigned int texelIndex, const GLubyte *textureData) const {
+			auto numComponents = glenum::pixelComponents(format());
+			auto *dataOffset = textureData + texelIndex * numComponents;
+			T v(0.0f);
+			auto *typedData = (float *) &v;
+			for (unsigned int i = 0; i < numComponents; ++i) {
+				typedData[i] = static_cast<float>(dataOffset[i]) / 255.0f;
+			}
+			return v;
+		}
 	};
 
 	/**

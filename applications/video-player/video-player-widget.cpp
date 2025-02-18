@@ -89,7 +89,7 @@ static GLboolean isDirectory(const string &f) {
 class VideoInitAnimation : public Animation {
 public:
 	explicit VideoInitAnimation(VideoPlayerWidget *widget)
-			: Animation(GL_TRUE, GL_FALSE, true), widget_(widget) {}
+			: Animation(true, false), widget_(widget) {}
 
 	void glAnimate(RenderState *rs, GLdouble dt) override { widget_->gl_loadScene(); }
 
@@ -135,6 +135,7 @@ VideoPlayerWidget::VideoPlayerWidget(QtApplication *app)
 	srand(time(NULL));
 
 	initAnim_ = ref_ptr<VideoInitAnimation>::alloc(this);
+	initAnim_->startAnimation();
 }
 
 // Resizes Framebuffer texture when the window size changed
@@ -145,8 +146,8 @@ public:
 
 	void call(EventObject *evObject, EventData *) {
 		Application *app = (Application *) evObject;
-		const Vec2i &winSize = app->windowViewport()->getVertex(0);
-		fboState_->resize(winSize.x * wScale_, winSize.y * hScale_);
+		auto winSize = app->windowViewport()->getVertex(0);
+		fboState_->resize(winSize.r.x * wScale_, winSize.r.y * hScale_);
 	}
 
 protected:
@@ -201,8 +202,8 @@ void VideoPlayerWidget::gl_loadScene() {
 	AnimationManager::get().pause(GL_TRUE);
 
 	// create render target
-	const Vec2i &winSize = app_->windowViewport()->getVertex(0);
-	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.x, winSize.y);
+	auto winSize = app_->windowViewport()->getVertex(0);
+	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.r.x, winSize.r.y);
 	ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
 	ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 	fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);

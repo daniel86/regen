@@ -639,7 +639,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		}
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_EMISSIVE, &aiCol)) {
-			mat->set_emission(*((Vec3f *) &aiCol));
+			mat->set_emission(aiToOgle3f(&aiCol));
 		}
 		// Defines the transparent color of the material,
 		// this is the color to be multiplied with the color of translucent light to

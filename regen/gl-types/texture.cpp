@@ -165,56 +165,21 @@ void Texture::end(RenderState *rs, GLint x) {
 	set_active(GL_FALSE);
 }
 
-float Texture::sampleAverage(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const {
-    auto w = static_cast<float>(width());
-    auto h = static_cast<float>(height());
-    auto startX = static_cast<unsigned int>(std::floor(texco.x * w));
-    auto startY = static_cast<unsigned int>(std::floor(texco.y * h));
-    auto endX = static_cast<unsigned int>(std::ceil((texco.x + regionTS.x) * w));
-    auto endY = static_cast<unsigned int>(std::ceil((texco.y + regionTS.y) * h));
-    if (endX >= width()) endX = width()-1;
-    if (endY >= height()) endY = height()-1;
-
-    // Iterate over the region and check for non-black values
-	float avg = 0.0f;
-	int numSamples = 0;
-    for (unsigned int y = startY; y <= endY; ++y) {
-        for (unsigned int x = startX; x <= endX; ++x) {
-            unsigned int index = (y * width() + x);
-            avg += static_cast<float>(textureData[index * numComponents]) / 255.0f;
-            numSamples++;
-        }
-    }
-    if (numSamples > 0) {
-    	return avg / static_cast<float>(numSamples);
-    } else {
-    	return avg;
-    }
+Bounds<Vec2ui> Texture::getRegion(const Vec2f &texco, const Vec2f &regionTS) const {
+	auto w = static_cast<float>(width());
+	auto h = static_cast<float>(height());
+	auto startX = static_cast<unsigned int>(std::floor(texco.x * w));
+	auto startY = static_cast<unsigned int>(std::floor(texco.y * h));
+	auto endX = static_cast<unsigned int>(std::ceil((texco.x + regionTS.x) * w));
+	auto endY = static_cast<unsigned int>(std::ceil((texco.y + regionTS.y) * h));
+	if (endX >= width()) endX = width()-1;
+	if (endY >= height()) endY = height()-1;
+	return {
+		Vec2ui(startX, startY),
+		Vec2ui(endX, endY)};
 }
 
-float Texture::sampleMax(const Vec2f &texco, const Vec2f &regionTS, const GLubyte *textureData, GLuint numComponents) const {
-    auto w = static_cast<float>(width());
-    auto h = static_cast<float>(height());
-    auto startX = static_cast<unsigned int>(std::floor(texco.x * w));
-    auto startY = static_cast<unsigned int>(std::floor(texco.y * h));
-    auto endX = static_cast<unsigned int>(std::ceil((texco.x + regionTS.x) * w));
-    auto endY = static_cast<unsigned int>(std::ceil((texco.y + regionTS.y) * h));
-    if (endX >= width()) endX = width()-1;
-    if (endY >= height()) endY = height()-1;
-
-    // Iterate over the region and check for non-black values
-	float maxVal = 0.0f;
-    for (unsigned int y = startY; y <= endY; ++y) {
-        for (unsigned int x = startX; x <= endX; ++x) {
-            unsigned int index = (y * width() + x);
-            maxVal = std::max(maxVal, static_cast<float>(textureData[index * numComponents]) / 255.0f);
-        }
-    }
-	return maxVal;
-}
-
-
-float Texture::sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const {
+unsigned int Texture::texelIndex(const Vec2f &texco) const {
 	auto x = static_cast<unsigned int>(std::round(texco.x * static_cast<float>(width())));
 	auto y = static_cast<unsigned int>(std::round(texco.y * static_cast<float>(height())));
 	// clamp to texture size
@@ -234,31 +199,7 @@ float Texture::sampleNearest(const Vec2f &texco, const GLubyte *textureData, GLu
 			if (y >= height()) y = height()-1;
 			break;
 	}
-	unsigned int index = (y * width() + x);
-	return static_cast<float>(textureData[index * numComponents]) / 255.0f;
-}
-
-float Texture::sampleLinear(const Vec2f &texco, const GLubyte *textureData, GLuint numComponents) const {
-	auto w = static_cast<float>(width());
-	auto h = static_cast<float>(height());
-	auto x = texco.x * w;
-	auto y = texco.y * h;
-	auto x0 = std::floor(x);
-	auto y0 = std::floor(y);
-	auto x1 = x0 + 1;
-	auto y1 = y0 + 1;
-
-	auto v00 = sampleNearest(Vec2f(x0 / w, y0 / h), textureData, numComponents);
-	auto v01 = sampleNearest(Vec2f(x0 / w, y1 / h), textureData, numComponents);
-	auto v10 = sampleNearest(Vec2f(x1 / w, y0 / h), textureData, numComponents);
-	auto v11 = sampleNearest(Vec2f(x1 / w, y1 / h), textureData, numComponents);
-
-	auto dx = x - x0;
-	auto dy = y - y0;
-	auto v0 = v00 * (1.0f - dx) + v10 * dx;
-	auto v1 = v01 * (1.0f - dx) + v11 * dx;
-
-	return v0 * (1.0f - dy) + v1 * dy;
+	return (y * width() + x);
 }
 
 ///////////////

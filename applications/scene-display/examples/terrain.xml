@@ -471,11 +471,39 @@
     <!--********* Animals **********-->
     <!--**************************-->
 
-    <mesh id="fish-mesh" type="asset" asset="fish-asset" asset-indices="*" asset-animation="0">
-        <transform id="fish-tf">
-            <rotate value="1.2, 0.0, 0.0"/>
+    <mesh id="fish-mesh" type="asset"
+            asset="fish-asset" asset-indices="*" asset-animation="0"
+            num-instances="200">
+        <transform id="fish-tf" num-instances="200" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
-            <translate value="0.0, 1.0, 4.0"/>
+            <translate value="0.0, -0.5, 0.0"/>
+            <set mode="circle" target="translate" radius="1.0" variance="0.8"
+                dir-x="1.0, 0.0, 0.0" dir-z="0.0, 1.0, 1.0"/>
+            <animation type="boids"
+                base-orientation="1.570796"
+                max-speed="4.0"
+                visual-range="1.6"
+                look-ahead="2.0"
+                repulsion="8.0"
+                coherence-weight="10.0"
+                alignment-weight="10.0"
+                avoidance-weight="10.0"
+                avoidance-distance="0.5"
+                separation-weight="10.0"
+                bounds-min="-50.0, {{map-y-min}}, -9.0"
+                bounds-max="50.0, {{water-surface-y}}, 10.8"
+                map-center="0, {{map-y-min}}, 0"
+                map-size="{{map-size}}, {{map-size}}"
+                height-map="ground-height"
+                height-map-factor="{{map-height}}">
+                <home-point value="37.0, -2.0, 6.3" />
+                <home-point value="-38.87, -2.0, 2.44" />
+                <home-point value="-22.31, -2.0, -2.03" />
+                <home-point value="7.35, -2.0, 2.15" />
+                <!-- <object type="danger" tf="hyena-tf" /> -->
+                <!-- <object type="attractor" tf="hyena-tf" /> -->
+            </animation>
+
         </transform>
         <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" />
     </mesh>

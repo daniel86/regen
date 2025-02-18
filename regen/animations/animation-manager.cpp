@@ -118,6 +118,7 @@ void AnimationManager::addAnimation(Animation *animation) {
 		} else {
 			// start a new dedicated thread
 			boost::unique_lock<boost::mutex> lock(unsynchronizedMut_);
+			unsynchronizedAnimations_.emplace_back(animation);
 			unsynchronizedThreads_.emplace_back([this, animation]()
 				{ runUnsynchronized(animation); });
 		}
@@ -170,7 +171,7 @@ void AnimationManager::removeAnimation(Animation *animation) {
 			// remove from list
 			boost::unique_lock<boost::mutex> lock(unsynchronizedMut_);
 			animation->isRunning_ = false;
-			for (int i = 0; i < unsynchronizedAnimations_.size(); i++) {
+			for (size_t i = 0; i < unsynchronizedAnimations_.size(); i++) {
 				if (unsynchronizedAnimations_[i] == animation) {
 					unsynchronizedThreads_[i].join();
 					unsynchronizedAnimations_.erase(unsynchronizedAnimations_.begin() + i);

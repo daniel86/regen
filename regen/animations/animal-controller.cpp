@@ -101,7 +101,7 @@ float AnimalController::getHeight(const Vec2f &pos) {
 #ifdef SMOOTH_HEIGHT
 		auto texelSize = Vec2f(1.0f / heightMap_->width(), 1.0f / heightMap_->height());
 		auto regionTS = texelSize*8.0f;
-		auto mapValue = heightMap_->sampleAverage(uv, regionTS, heightMap_->textureData(), 1);
+		auto mapValue = heightMap_->sampleAverage<float>(uv, regionTS, heightMap_->textureData());
 #else
 		auto mapValue = heightMap_->sampleLinear(uv, heightMap_->textureData(), 1);
 #endif

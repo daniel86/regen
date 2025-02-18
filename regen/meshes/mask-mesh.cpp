@@ -53,12 +53,10 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	for (unsigned int y = 0; y < quadCountY; ++y) {
 		for (unsigned int x = 0; x < quadCountX; ++x) {
-			float maskDensity = maskTexture_->sampleMax(
+			auto maskDensity = maskTexture_->sampleMax<float>(
 				maskUV,
 				quadSize_ts,
-				maskTextureData,
-				1
-			);
+				maskTextureData);
 			maskUV.x += quadSize_ts.x;
 			if (maskDensity > 0.1) {
 				// TODO: generate better fitting quads, but geometry cannot be changed as instancing is used

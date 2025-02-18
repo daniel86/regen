@@ -44,7 +44,7 @@ namespace regen {
 
 		auto backBuffer() { return backBuffer_; }
 
-		void nextStamp() { stamp_++; }
+		auto modelMatrix() { return modelMatrix_; }
 
 		// Override from Animation
 		void animate(GLdouble dt) override;
@@ -52,7 +52,7 @@ namespace regen {
 	protected:
 		ref_ptr<ShaderInputMat4> modelMatrix_;
 		Mat4f *backBuffer_;
-		int stamp_ = 0;
+		unsigned int stamp_ = 0u;
 	};
 
 	/**
@@ -60,7 +60,7 @@ namespace regen {
 	 */
 	class Mat4fMotion : public btMotionState {
 	public:
-		Mat4fMotion(const ref_ptr<ModelMatrixUpdater> &modelMatrix, GLuint index);
+		Mat4fMotion(const ref_ptr<ModelMatrixUpdater> &modelMatrix, unsigned int index);
 
 		explicit Mat4fMotion(Mat4f *glModelMatrix);
 
@@ -73,6 +73,7 @@ namespace regen {
 	protected:
 		ref_ptr<ModelMatrixUpdater> modelMatrix_;
 		Mat4f *glModelMatrix_;
+		unsigned int tfIndex_;
 	};
 } // namespace
 

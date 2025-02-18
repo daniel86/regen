@@ -150,7 +150,7 @@ void SpatialIndexDebug::debugFrustum(const Frustum &frustum, const Vec3f &color)
 	Vec3f orthoColor = Vec3f(0.0f, 1.0f, 0.0f);
 	const auto h = 6.0f;
 	// draw lines of the frustum
-	for (int i=0; i<vertices.size()-1; i++) {
+	for (size_t i=0; i<vertices.size()-1; i++) {
 		drawLine(toVec3(vertices[i],h), toVec3(vertices[i+1],h), orthoColor);
 	}
 	drawLine(toVec3(vertices.back(),h), toVec3(vertices.front(),h), orthoColor);

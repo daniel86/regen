@@ -605,7 +605,7 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 				break;
 			}
 			default:
-				for (int i=0; i<points.size(); i++) {
+				for (size_t i=0; i<points.size(); i++) {
 					debug.drawLine(
 						toVec3(points[i], h),
 						toVec3(points[(i+1)%points.size()], h),
