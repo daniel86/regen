@@ -916,6 +916,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	timeWidgetAnimation_->startAnimation();
 	animations_.emplace_back(timeWidgetAnimation_);
 	loadAnim_ = ref_ptr<Animation>();
+	lightStates_ = sceneParser.getResources()->getLights();
 	AnimationManager::get().setSpatialIndices(spatialIndices_);
 	AnimationManager::get().resetTime();
 	AnimationManager::get().resume();

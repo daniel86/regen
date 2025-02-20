@@ -1,4 +1,5 @@
 #include "boids.h"
+#include "regen/scene/resource-manager.h"
 
 using namespace regen;
 
@@ -14,6 +15,38 @@ BoidsSimulation_CPU::BoidsSimulation_CPU(const ref_ptr<ModelTransformation> &tf)
 		: Animation(false, true),
 		  tf_(tf),
 		  bounds_(-10.0f, 10.0f) {
+	auto tfInput = tf_->get();
+	auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ);
+	boidsScale_ = tfData.r[0].scaling();
+
+	initBoidSimulation(tfInput->numInstances());
+
+	// allocate boids data
+	boidData_.resize(tfInput->numInstances());
+	for (GLuint i = 0; i < tfInput->numInstances(); ++i) {
+		auto &d = boidData_[i];
+		d.position = tfData.r[i].position();
+		d.velocity = Vec3f::zero();
+	}
+}
+
+BoidsSimulation_CPU::BoidsSimulation_CPU(const ref_ptr<ShaderInput3f> &position)
+		: Animation(false, true),
+		  position_(position),
+		  bounds_(-10.0f, 10.0f),
+		  boidsScale_(1.0f) {
+	initBoidSimulation(position_->numInstances());
+	// allocate boids data
+	auto initialPositionData = position_->mapClientData<Vec3f>(ShaderData::READ);
+	boidData_.resize(position_->numInstances());
+	for (GLuint i = 0; i < position_->numInstances(); ++i) {
+		auto &d = boidData_[i];
+		d.position = initialPositionData.r[i];
+		d.velocity = Vec3f::zero();
+	}
+}
+
+void BoidsSimulation_CPU::initBoidSimulation(unsigned int numBoids) {
 	setAnimationName("boids");
 	// use a dedicated thread for the boids simulation which is not synchronized with the graphics thread,
 	// i.e. it can be slower or faster than the graphics thread.
@@ -53,7 +86,7 @@ BoidsSimulation_CPU::BoidsSimulation_CPU(const ref_ptr<ModelTransformation> &tf)
 
 	// compute the maximum number of neighbors, use 100 neighbors as default maximum.
 	// if below, try to use half of the number of boids.
-	auto maxNumNeighbors = tf_->get()->numInstances();
+	auto maxNumNeighbors = numBoids;
 	if (maxNumNeighbors > 10) { maxNumNeighbors /= 2; }
 	maxNumNeighbors = std::max(50u, maxNumNeighbors);
 	maxNumNeighbors_ = ref_ptr<ShaderInput1ui>::alloc("maxNumNeighbors");
@@ -67,16 +100,107 @@ BoidsSimulation_CPU::BoidsSimulation_CPU(const ref_ptr<ModelTransformation> &tf)
 	maxAngularSpeed_ = ref_ptr<ShaderInput1f>::alloc("maxAngularSpeed");
 	maxAngularSpeed_->setUniformData(0.05f);
 	animationState()->joinShaderInput(maxAngularSpeed_);
+}
 
-	auto tfInput = tf_->get();
-	auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ);
-	boidsScale_ = tfData.r[0].scaling();
-	// allocate boids data
-	boidData_.resize(tfInput->numInstances());
-	for (GLuint i = 0; i < tfInput->numInstances(); ++i) {
-		auto &d = boidData_[i];
-		d.position = tfData.r[i].position();
-		d.velocity = Vec3f::zero();
+void BoidsSimulation_CPU::loadSettings(scene::SceneParser *parser, const ref_ptr<scene::SceneInputNode> &node) {
+	// set the bounds of the boids simulation
+	if (node->hasAttribute("boids-area") && node->hasAttribute("boids-center")) {
+		auto boidsArea = node->getValue<Vec3f>("boids-area", Vec3f(10.0f));
+		auto boidsCenter = node->getValue<Vec3f>("boids-center", Vec3f(0.0f));
+		Bounds<Vec3f> bounds(boidsCenter - boidsArea * 0.5f, boidsCenter + boidsArea * 0.5f);
+		setBounds(bounds);
+	} else {
+		auto boidBounds = Bounds<Vec3f>(
+				node->getValue<Vec3f>("bounds-min", Vec3f(-5.0f)),
+				node->getValue<Vec3f>("bounds-max", Vec3f(5.0f))
+		);
+		setBounds(boidBounds);
+	}
+
+	if (node->hasAttribute("base-orientation")) {
+		setBaseOrientation(node->getValue<float>("base-orientation", 0.0f));
+	}
+	if (node->hasAttribute("look-ahead")) {
+		setLookAheadDistance(node->getValue<float>("look-ahead", 1.0f));
+	}
+	if (node->hasAttribute("repulsion")) {
+		setRepulsionFactor(node->getValue<float>("repulsion", 1.0f));
+	}
+	if (node->hasAttribute("max-speed")) {
+		setMaxBoidSpeed(node->getValue<float>("max-speed", 1.0f));
+	}
+	if (node->hasAttribute("visual-range")) {
+		setVisualRange(node->getValue<float>("visual-range", 1.0f));
+	}
+	if (node->hasAttribute("coherence-weight")) {
+		setCoherenceWeight(node->getValue<float>("coherence-weight", 0.5f));
+	}
+	if (node->hasAttribute("alignment-weight")) {
+		setAlignmentWeight(node->getValue<float>("alignment-weight", 0.5f));
+	}
+	if (node->hasAttribute("avoidance-weight")) {
+		setAvoidanceWeight(node->getValue<float>("avoidance-weight", 0.5f));
+	}
+	if (node->hasAttribute("avoidance-distance")) {
+		setAvoidanceDistance(node->getValue<float>("avoidance-distance", 1.0f));
+	}
+	if (node->hasAttribute("separation-weight")) {
+		setSeparationWeight(node->getValue<float>("separation-weight", 0.5f));
+	}
+
+	if (node->hasAttribute("height-map")) {
+		auto heightMap = parser->getResources()->getTexture2D(parser, node->getValue("height-map"));
+		if (heightMap.get() != nullptr) {
+			heightMap->ensureTextureData();
+			auto heightScale = node->getValue<float>("height-map-factor", 1.0f);
+			auto mapCenter = node->getValue<Vec3f>("map-center", Vec3f(0.0f));
+			auto mapSize = node->getValue<Vec2f>("map-size", Vec2f(10.0f));
+			setMap(mapCenter, mapSize, heightMap, heightScale);
+		} else {
+			REGEN_WARN("Ignoring " << node->getDescription() << ", failed to load height map textures.");
+		}
+	}
+
+	for (auto &homePointNode: node->getChildren("home-point")) {
+		addHomePoint(homePointNode->getValue<Vec3f>("value", Vec3f(0.0f)));
+	}
+	for (auto &objectNode: node->getChildren("object")) {
+		ref_ptr<ShaderInputMat4> attractorTF;
+		ref_ptr<ShaderInput3f> attractorPos;
+		if (objectNode->hasAttribute("tf")) {
+			auto transformID = objectNode->getValue("tf");
+			auto transform = parser->getResources()->getTransform(parser, transformID);
+			if (transform.get() != nullptr) {
+				attractorTF = transform->get();
+			}
+		} else if (objectNode->hasAttribute("point")) {
+			attractorTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");
+			attractorTF->setUniformData(Mat4f::translationMatrix(
+					objectNode->getValue<Vec3f>("point", Vec3f(0.0f))));
+		} else if (objectNode->hasAttribute("value")) {
+			auto attractorPosValue = objectNode->getValue<Vec3f>("value", Vec3f(0.0f));
+			attractorPos = ref_ptr<ShaderInput3f>::alloc("attractorPos");
+			attractorPos->setUniformData(attractorPosValue);
+		} else {
+			REGEN_WARN("No position or transform specified for boid object.");
+			continue;
+		}
+		auto objectType = objectNode->getValue<std::string>("type", "attractor");
+		if (objectType == "attractor") {
+			if (attractorTF.get()) {
+				addAttractor(attractorTF);
+			} else if (attractorPos.get()) {
+				addAttractor(attractorPos);
+			}
+		} else if (objectType == "danger") {
+			if (attractorTF.get()) {
+				addDanger(attractorTF);
+			} else if (attractorPos.get()) {
+				addDanger(attractorPos);
+			}
+		} else {
+			REGEN_WARN("Unknown boid object type '" << objectType << "'.");
+		}
 	}
 }
 
@@ -85,10 +209,10 @@ void BoidsSimulation_CPU::setBounds(const Bounds<Vec3f> &bounds) {
 }
 
 void BoidsSimulation_CPU::setMap(
-				const Vec3f &mapCenter,
-				const Vec2f &mapSize,
-				const ref_ptr<Texture2D> &heightMap,
-				float heightMapFactor) {
+		const Vec3f &mapCenter,
+		const Vec2f &mapSize,
+		const ref_ptr<Texture2D> &heightMap,
+		float heightMapFactor) {
 	mapCenter_ = mapCenter;
 	mapSize_ = mapSize;
 	heightMap_ = heightMap;
@@ -107,7 +231,7 @@ void BoidsSimulation_CPU::animate(double dt) {
 	// advance boids simulation
 	simulateBoids(dt_f);
 	// update boids model transformation using the boids data
-	{
+	if (tf_.get()){
 		auto &tfInput = tf_->get();
 		auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ | ShaderData::WRITE);
 		for (GLuint i = 0; i < tfInput->numInstances(); ++i) {
@@ -126,6 +250,13 @@ void BoidsSimulation_CPU::animate(double dt) {
 			} else {
 				tfData.w[i] = tfData.r[i];
 			}
+		}
+	}
+	else if (position_.get()) {
+		auto positionData = position_->mapClientData<Vec3f>(ShaderData::WRITE);
+		// TODO: rather use memcpy
+		for (GLuint i = 0; i < position_->numInstances(); ++i) {
+			positionData.w[i] = boidData_[i].position;
 		}
 	}
 	// recompute neighborhood relationships of all boids
@@ -198,7 +329,7 @@ void BoidsSimulation_CPU::simulateBoid(BoidData &boid, float dt) {
 	// a boid that cannot avoid collisions is considered lost.
 	isBoidLost = !avoidCollisions(boid, dt) || isBoidLost;
 	auto isInDanger = !dangers_.empty() && !avoidDanger(boid);
-	if (!isInDanger && !attractors_.empty()) {
+	if (!isInDanger) {
 		// note: ignore attractors if in danger
 		attract(boid);
 	}
@@ -263,11 +394,34 @@ void BoidsSimulation_CPU::homesickness(BoidData &boid) {
 	boid.force += boidDirection_ * repulsionFactor * 0.1;
 }
 
+void BoidsSimulation_CPU::addAttractor(const ref_ptr<ShaderInputMat4> &tf) {
+	auto &attractor = attractors_.emplace_back();
+	attractor.tf = tf;
+}
+
+void BoidsSimulation_CPU::addAttractor(const ref_ptr<ShaderInput3f> &pos) {
+	auto &attractor = attractors_.emplace_back();
+	attractor.pos = pos;
+}
+
+void BoidsSimulation_CPU::addDanger(const ref_ptr<ShaderInputMat4> &tf) {
+	auto &danger = dangers_.emplace_back();
+	danger.tf = tf;
+}
+
+void BoidsSimulation_CPU::addDanger(const ref_ptr<ShaderInput3f> &pos) {
+	auto &danger = dangers_.emplace_back();
+	danger.pos = pos;
+}
+
 bool BoidsSimulation_CPU::avoidDanger(BoidData &boid) {
 	auto maxDistance = visualRange_->getVertex(0).r;
 	bool isInDanger = false;
 	for (auto &danger: dangers_) {
-		auto dangerDirection = danger.get()->getVertex(0).r.position() - boid.position;
+		auto dangerDirection = (danger.pos.get()) ?
+				danger.pos.get()->getVertex(0).r :
+				danger.tf.get()->getVertex(0).r.position();
+		dangerDirection -= boid.position;
 		auto distance = dangerDirection.length();
 		if (distance < maxDistance) {
 			if (distance < 0.001f) {
@@ -284,10 +438,12 @@ bool BoidsSimulation_CPU::avoidDanger(BoidData &boid) {
 }
 
 void BoidsSimulation_CPU::attract(BoidData &boid) {
-	auto maxDistance = visualRange_->getVertex(0).r;
+	auto maxDistance = visualRange_->getVertex(0).r * 100; // TODO: parameter
 	for (auto &attractor: attractors_) {
-		auto attractorDirection =
-			attractor.get()->getVertex(0).r.position() - boid.position;
+		auto attractorDirection = (attractor.pos.get()) ?
+				attractor.pos.get()->getVertex(0).r :
+				attractor.tf.get()->getVertex(0).r.position();
+		attractorDirection -= boid.position;
 		auto distance = attractorDirection.length();
 		if (distance < maxDistance && distance > 0.001f) {
 			auto attractionFactor = repulsionFactor_->getVertex(0).r * separationWeight_->getVertex(0).r;
@@ -366,7 +522,7 @@ bool BoidsSimulation_CPU::avoidCollisions(BoidData &boid, float dt) {
 			// An easy approach is to push the boid to where it came from:
 			boid.force.x -= nextVelocity.x * repulsionFactor;
 			boid.force.z -= nextVelocity.z * repulsionFactor;
-		 }
+		}
 	}
 
 	return isCollisionFree;

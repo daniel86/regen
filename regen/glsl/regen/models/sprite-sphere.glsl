@@ -12,6 +12,9 @@ uniform mat4 in_modelMatrix;
 #endif
 
 in vec3 in_pos;
+#ifdef HAS_INSTANCES
+flat out int out_instanceID;
+#endif
 
 in float in_sphereRadius;
 out float out_sphereRadius;
@@ -29,6 +32,9 @@ void main() {
 #endif
     gl_Position = pos;
     out_sphereRadius = in_sphereRadius;
+#ifdef HAS_INSTANCES
+    out_instanceID = gl_InstanceID;
+#endif // HAS_INSTANCES
     HANDLE_IO(gl_VertexID);
 }
 -- tcs
@@ -120,6 +126,9 @@ in vec3 in_posEye;
 in vec2 in_texco0;
 #ifdef DEPTH_CORRECT
 in float in_sphereRadius;
+#endif
+#ifdef HAS_INSTANCES
+flat in int in_instanceID;
 #endif
 
 #ifdef HAS_col

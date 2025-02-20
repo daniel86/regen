@@ -104,6 +104,26 @@ void LightPass::createShader(const StateConfig &cfg) {
 	StateConfigurer _cfg(cfg);
 	_cfg.addState(this);
 	_cfg.addState(mesh_.get());
+	bool hasInstancedInputs = false;
+	if (!lights_.empty()) {
+		// add first light to shader to set up shader defines and also instance count
+		auto &firstLight = lights_.front();
+		for (auto &in : firstLight.light->inputContainer()->inputs()) {
+			if (in.in_->isUniformBlock()) {
+				auto *block = dynamic_cast<UniformBlock *>(in.in_.get());
+				for (auto &blockUniform : block->uniforms()) {
+					_cfg.addInput(blockUniform.in_->name(), blockUniform.in_);
+					if (blockUniform.in_->numInstances()>0) { hasInstancedInputs = true; }
+				}
+			} else {
+				_cfg.addInput(in.in_->name(), in.in_);
+				if (in.in_->numInstances()>0) { hasInstancedInputs = true; }
+			}
+		}
+	}
+	if (hasInstancedInputs) {
+		_cfg.define("HAS_INSTANCES", "TRUE");
+	}
 	_cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(numShadowLayer_));
 	shader_->createShader(_cfg.cfg(), shaderKey_);
 	mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
@@ -187,6 +207,7 @@ void LightPass::enable(RenderState *rs) {
 			glUniform1i(shadowColorLoc_, smColorChannel);
 		}
 		// enable light pass uniforms
+		// TODO: what about using UBO here? YES
 		for (auto jt = l.inputLocations.begin(); jt != l.inputLocations.end(); ++jt) {
 			if (lights_.size()>1 || jt->uploadStamp != jt->input->stamp()) {
 				jt->input->enableUniform(jt->location);

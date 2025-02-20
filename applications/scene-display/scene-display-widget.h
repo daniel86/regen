@@ -109,6 +109,7 @@ protected:
 	boost::posix_time::ptime lastUpdateTime_;
 
 	ref_ptr<State> wireframeState_;
+	std::map<std::string, ref_ptr<Light>> lightStates_;
 
 	void loadScene(const std::string &sceneFile);
 

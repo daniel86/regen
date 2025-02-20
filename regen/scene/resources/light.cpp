@@ -6,6 +6,8 @@
  */
 
 #include "light.h"
+#include "regen/scene/states/input.h"
+#include "regen/animations/boids.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -41,6 +43,39 @@ ref_ptr<Light> LightResource::createResource(
 	light->set_innerConeAngle(angles.x);
 	light->set_outerConeAngle(angles.y);
 	parser->putState(input.getName(), light);
+
+	// process light node children
+	for (auto &child : input.getChildren()) {
+		if (child->getCategory() == "set") {
+			// set a given light input. The input key is given by the "target" attribute.
+			auto targetName = child->getValue("target");
+			// find the shader input in the light state
+			auto target_opt = light->findShaderInput(targetName);
+			if (!target_opt) {
+				REGEN_WARN("Cannot find light input for set in node " << child->getDescription());
+				continue;
+			}
+			auto setTarget = target_opt.value().in;
+			auto numInstances = std::max(
+				child->getValue<GLuint>("num-instances", 1u),
+				setTarget->numInstances());
+			// allocate memory for the shader input
+			setTarget->setInstanceData(numInstances, 1, nullptr);
+			InputStateProvider::setInput(*child.get(), setTarget.get(), numInstances);
+		}
+		if (child->getCategory() == "animation") {
+			auto animationType = child->getValue("type");
+			if (animationType == "boids") {
+				// let a boid simulation change the light positions
+				auto boidsAnimation = ref_ptr<BoidsSimulation_CPU>::alloc(light->position());
+				boidsAnimation->loadSettings(parser, child);
+				light->attach(boidsAnimation);
+				boidsAnimation->startAnimation();
+			} else {
+				REGEN_WARN("Unknown animation type '" << animationType << "' in node " << child->getDescription());
+			}
+		}
+	}
 
 	if (lightType == Light::SPOT) {
 		light->startAnimation();

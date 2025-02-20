@@ -10,6 +10,8 @@
 #include "regen/states/model-transformation.h"
 #include "regen/shapes/bounds.h"
 #include "regen/shapes/quad-tree.h"
+#include "regen/scene/scene-input.h"
+#include "regen/scene/scene-parser.h"
 
 namespace regen {
 	/**
@@ -23,10 +25,25 @@ namespace regen {
 	class BoidsSimulation_CPU : public Animation {
 	public:
 		/**
-		 * Default constructor.
+		 * TF constructor.
 		 * @param tf A model transformation, each instance of the model will be a boid.
 		 */
 		explicit BoidsSimulation_CPU(const ref_ptr<ModelTransformation> &tf);
+
+		/**
+		 * Position constructor.
+		 * @param position A shader input with the boid positions.
+		 */
+		explicit BoidsSimulation_CPU(const ref_ptr<ShaderInput3f> &position);
+
+		virtual ~BoidsSimulation_CPU() = default;
+
+		/**
+		 * Load the boids settings from a scene input node.
+		 * @param parser the scene parser.
+		 * @param node the scene input node.
+		 */
+		void loadSettings(scene::SceneParser *parser, const ref_ptr<scene::SceneInputNode> &node);
 
 		/**
 		 * Set the base orientation of the boids.
@@ -51,13 +68,25 @@ namespace regen {
 		 * Add an attractor to the boids.
 		 * @param tf the attractor.
 		 */
-		void addAttractor(const ref_ptr<ShaderInputMat4> &tf) { attractors_.push_back(tf); }
+		void addAttractor(const ref_ptr<ShaderInputMat4> &tf);
+
+		/**
+		 * Add an attractor to the boids.
+		 * @param pos the attractor.
+		 */
+		void addAttractor(const ref_ptr<ShaderInput3f> &pos);
 
 		/**
 		 * Add a danger to the boids.
 		 * @param tf the danger.
 		 */
-		void addDanger(const ref_ptr<ShaderInputMat4> &tf) { dangers_.push_back(tf); }
+		void addDanger(const ref_ptr<ShaderInputMat4> &tf);
+
+		/**
+		 * Add a danger to the boids.
+		 * @param pos the danger.
+		 */
+		void addDanger(const ref_ptr<ShaderInput3f> &pos);
 
 		/**
 		 * Set the visual range of the boids, i.e. how far they can see the neighbors.
@@ -143,12 +172,17 @@ namespace regen {
 
 	protected:
 		ref_ptr<ModelTransformation> tf_;
+		ref_ptr<ShaderInput3f> position_;
 		float baseOrientation_ = 0.0f;
 		Bounds<Vec3f> bounds_;
 		Vec3f boidsScale_;
 		std::vector<Vec3f> homePoints_;
-		std::vector<ref_ptr<ShaderInputMat4>> attractors_;
-		std::vector<ref_ptr<ShaderInputMat4>> dangers_;
+		struct SimulationEntity {
+			ref_ptr<ShaderInputMat4> tf;
+			ref_ptr<ShaderInput3f> pos;
+		};
+		std::vector<SimulationEntity> attractors_;
+		std::vector<SimulationEntity> dangers_;
 
 		ref_ptr<Texture2D> heightMap_;
 		ref_ptr<Texture2D> normalMap_;
@@ -184,6 +218,8 @@ namespace regen {
 		Vec3f separation_ = Vec3f::zero();
 		Vec3f boidDirection_ = Vec3f::front();
 		Quaternion boidRotation_;
+
+		void initBoidSimulation(unsigned int);
 
 		void simulateBoids(float dt);
 

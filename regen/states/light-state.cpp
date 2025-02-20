@@ -126,6 +126,7 @@ void Light::set_outerConeAngle(GLfloat deg) {
 
 void Light::updateConeMatrix() {
 	// Note: cone opens in positive z direction.
+	// TODO: handling of instanced direction and position -> also need instanced cone matrix
 	Vec3f dir = lightDirection_->getVertex(0).r;
 	dir.normalize();
 	GLfloat angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));

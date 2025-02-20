@@ -293,6 +293,9 @@ void main() {
 
 out vec4 out_color;
 in vec4 in_posEye;
+#ifdef HAS_INSTANCES
+flat in int in_instanceID;
+#endif
 
 // G-buffer input
 uniform sampler2D in_gNorWorldTexture;
@@ -389,7 +392,15 @@ void main() {
     /*************************************/
     /***** PARABOLIC SHADOW MAPPING ******/
     /*************************************/
+#ifdef HAS_INSTANCES
+    // FIXME: there is a problem here with how light attributes are used for shadow mapping.
+    //        looks like an array of direction/position etc may be used. which is then conflicting
+    //        with instanced attributes which is also implemented via arrays at the moment.
+    //        find a solution for this!
+    int parabolicLayer = int(dot(L, in_lightDirection) > 0.0);
+#else
     int parabolicLayer = int(dot(L, in_lightDirection[0]) > 0.0);
+#endif
     vec4 shadowCoord = parabolicShadowCoord(
             parabolicLayer,
             P,
@@ -459,6 +470,9 @@ void main() {
 #define IS_POINT_LIGHT
 #include regen.states.camera.defines
 in vec3 in_pos;
+#ifdef HAS_INSTANCES
+flat out int out_instanceID;
+#endif
 
 uniform vec2 in_lightRadius;
 uniform vec3 in_lightPosition;
@@ -475,6 +489,9 @@ void main() {
 #else
     gl_Position = transformWorldToScreen(vec4(posWorld,1.0),0);
 #endif
+#ifdef HAS_INSTANCES
+    out_instanceID = gl_InstanceID;
+#endif // HAS_INSTANCES
 }
 
 -- point.gs
@@ -514,6 +531,9 @@ void main() {
 
 in vec3 in_pos;
 out vec3 out_intersection;
+#ifdef HAS_INSTANCES
+flat in int in_instanceID;
+#endif
 
 uniform mat4 in_modelMatrix;
 
@@ -524,6 +544,9 @@ uniform mat4 in_modelMatrix;
 
 void main() {
     out_intersection = (in_modelMatrix * vec4(in_pos,1.0)).xyz;
+#ifdef HAS_INSTANCES
+    out_instanceID = gl_InstanceID;
+#endif // HAS_INSTANCES
 #if RENDER_LAYER > 1
     gl_Position = vec4(out_intersection,1.0);
 #else
