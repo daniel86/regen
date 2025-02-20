@@ -97,6 +97,11 @@ namespace regen {
 			void putLight(const std::string &id, const ref_ptr<Light> &light);
 
 			/**
+			 * @return the light resources of this scene.
+			 */
+			auto &getLights() { return lights_.resources(); }
+
+			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A Font resource or null reference.

@@ -19,11 +19,11 @@
                 horizontal-orientation="4.71225"
                 vertical-orientation="0.25">
             <anchor type="look-at" transform="grass-tf" offset="-40.0, 14.0, 0.0" />
-            <anchor type="look-at" transform="grass-tf" offset="0.0, 10.0, 40.0" />
             <anchor type="look-at" transform="grass-tf" offset="0.0, 40.0, 60.0" />
-            <anchor type="look-at" transform="grass-tf" offset="60.0, 40.0, 0.0" />
+            <anchor type="look-at" transform="grass-tf" offset="0.0, 20.0, 40.0" />
+            <anchor type="look-at" transform="grass-tf" offset="80.0, 20.0, 0.0" />
+            <anchor type="look-at" transform="grass-tf" offset="80.0, 40.0, 0.0" />
             <anchor type="look-at" transform="hyena-tf" offset="0.0, -4.0, 1.0" follow="1" />
-            <anchor type="look-at" transform="fish-tf" offset="10.0, 12.0, 10.0" />
         </camera>
         <animation id="hyena-asset" type="asset" idle="idle1">
             <controller id="hyena-controller"
@@ -608,7 +608,7 @@
         <node id="Distance-Fog">
             <blend mode="alpha"/>
             <input type="float" name="fogDensity" value="0.66"/>
-            <input type="vec2" name="fogDistance" value="52.0,86.0"/>
+            <input type="vec2" name="fogDistance" value="75.0,105.0"/>
             <input type="vec3" name="fogColor" value="0.2,0.2,0.2"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <texture name="skyColorTexture" id="earth-sky"/>

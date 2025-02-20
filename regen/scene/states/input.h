@@ -58,17 +58,29 @@ namespace regen {
 		public:
 			template<class T>
 			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
-				auto v_values = shaderInput->mapClientData<T>(ShaderData::WRITE);
+				auto v_values = shaderInput->mapClientData<T>(ShaderData::WRITE | ShaderData::READ);
+				auto default_value = input.getValue<T>("value", T(0));
 				for (unsigned int i = 0; i < count; ++i) {
-					v_values.w[i] = input.getValue<T>("value", T(1));
+					v_values.w[i] = default_value;
 				}
 				for (auto &child : input.getChildren()) {
 					if (child->getCategory() == "set") {
 						std::list<GLuint> indices = child->getIndexSequence(count);
+						auto blendMode = child->getValue<BlendMode>("blend-mode", BLEND_MODE_SRC);
 						ValueGenerator<T> generator(child.get(), indices.size(),
 													child->getValue<T>("value", T(1)));
 						for (auto it = indices.begin(); it != indices.end(); ++it) {
-							v_values.w[*it] = generator.next();
+							switch (blendMode) {
+							case BLEND_MODE_ADD:
+								v_values.w[*it] = v_values.r[*it] + v_values.w[*it] + generator.next();
+								break;
+							case BLEND_MODE_MULTIPLY:
+								v_values.w[*it] = v_values.r[*it] * v_values.w[*it] * generator.next();
+								break;
+							default:
+								v_values.w[*it] = generator.next();
+								break;
+							}
 						}
 					} else {
 						REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");

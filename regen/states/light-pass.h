@@ -93,10 +93,10 @@ namespace regen {
 		std::list<LightPassLight> lights_;
 		std::map<Light *, std::list<LightPassLight>::iterator> lightIterators_;
 
-		GLint shadowMapLoc_;
-		GLint shadowColorLoc_;
-		ShadowFilterMode shadowFiltering_;
-		GLuint numShadowLayer_;
+		GLint shadowMapLoc_ = -1;
+		GLint shadowColorLoc_ = -1;
+		ShadowFilterMode shadowFiltering_ = SHADOW_FILTERING_NONE;
+		GLuint numShadowLayer_ = 1;
 
 		void addInputLocation(LightPassLight &l,
 							  const ref_ptr<ShaderInput> &in, const std::string &name);

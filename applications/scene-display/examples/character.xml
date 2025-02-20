@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <node>
+    <constant name="num-fire-flies" value="20"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
@@ -54,19 +55,19 @@
         <texture id="emission" pixel-components="3"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
-            <!--
-    <fbo id="room-light-shadow0"
-         target="TEXTURE_CUBE_MAP"
-         sampler-type="samplerCube"
-         size-mode="abs" size="1024,1024,6">
-        <depth pixel-size="24" pixel-type="FLOAT"
-               wrapping="CLAMP_TO_EDGE"
-               min-filter="NEAREST" mag-filter="NEAREST"
-               compare-mode="COMPARE_R_TO_TEXTURE"
-               compare-function="LEQUAL"
-               sampler-type="samplerCubeShadow"/>
-    </fbo>
-            -->
+    <!--
+<fbo id="room-light-shadow0"
+ target="TEXTURE_CUBE_MAP"
+ sampler-type="samplerCube"
+ size-mode="abs" size="1024,1024,6">
+<depth pixel-size="24" pixel-type="FLOAT"
+       wrapping="CLAMP_TO_EDGE"
+       min-filter="NEAREST" mag-filter="NEAREST"
+       compare-mode="COMPARE_R_TO_TEXTURE"
+       compare-function="LEQUAL"
+       sampler-type="samplerCubeShadow"/>
+</fbo>
+    -->
     <fbo id="room-light-shadow0"
          target="TEXTURE_2D_ARRAY"
          size-mode="abs" size="2048,2048,1">
@@ -78,15 +79,15 @@
                compare-function="LEQUAL"
                sampler-type="sampler2DArrayShadow"/>
     </fbo>
-    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
+    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}">
         <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-            target="TEXTURE_2D_ARRAY"
-            wrapping="REPEAT"
-            min-filter="NEAREST"
-            mag-filter="NEAREST"
-            compare-mode="COMPARE_R_TO_TEXTURE"
-            compare-function="LEQUAL"
-            sampler-type="sampler2DArrayShadow" />
+               target="TEXTURE_2D_ARRAY"
+               wrapping="REPEAT"
+               min-filter="NEAREST"
+               mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="sampler2DArrayShadow"/>
     </fbo>
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
@@ -108,15 +109,15 @@
             light="room-light0"
             camera="main-camera"
             camera-type="paraboloid"
-            dual-paraboloid="0" />
-            <!--
-    <camera id="room-light-camera0"
-            culling-index="main-index"
-            light="room-light0"
-            camera="main-camera"
-            camera-type="cube"
-            hide-faces="top" />
-            -->
+            dual-paraboloid="0"/>
+    <!--
+<camera id="room-light-camera0"
+    culling-index="main-index"
+    light="room-light0"
+    camera="main-camera"
+    camera-type="cube"
+    hide-faces="top" />
+    -->
     <!-- Lights -->
     <light id="room-light0"
            type="POINT"
@@ -125,6 +126,37 @@
            direction="0.0,-1.0,0.0"
            diffuse="0.8,0.9,0.835"
            ambient="0.6,0.6,0.6"/>
+    <light id="fire-flies-light0"
+           num-instances="{{num-fire-flies}}"
+           type="POINT"
+           radius="0.5,0.8"
+           ambient="0.0,0.0,0.0">
+        <set target="lightPosition" value="4.0,12.0,-4.0">
+            <set mode="circle" blend-mode="ADD" radius="5.0" variance="0.1"
+                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
+        </set>
+        <set target="lightDiffuse">
+            <set mode="fade" blend-mode="SRC" start="0.47, 0.45, 0.15" stop="0.47, 0.18. 0.08"/>
+        </set>
+        <animation type="boids"
+                   max-speed="4.0"
+                   visual-range="1.0"
+                   look-ahead="1.0"
+                   repulsion="8.0"
+                   coherence-weight="10.0"
+                   alignment-weight="10.0"
+                   avoidance-weight="10.0"
+                   avoidance-distance="0.5"
+                   separation-weight="10.0"
+                   bounds-min="2.0, 0.0, -14.0"
+                   bounds-max="14.0, 4.0, -2.0">
+            <home-point value="8.0, 4.0, -8.0"/>
+            <object type="attractor" value="8.0, 6.0, -8.0" />
+            <object type="attractor" value="8.0, 4.0, -8.0" />
+            <object type="attractor" value="8.0, 2.0, -8.0" />
+            <object type="attractor" value="8.0, 0.0, -8.0" />
+        </animation>
+    </light>
 
 
     <!--**************************-->
@@ -150,50 +182,50 @@
             <translate value="0.0,-2.0,0.0"/>
         </transform>
         <shape id="ground-physics" mode="physics" shape="triangle-mesh" mass="0.0"
-            mesh-id="ground-mesh" transform-id="ground-tf"/>
+               mesh-id="ground-mesh" transform-id="ground-tf"/>
     </mesh>
 
     <!--**************************-->
     <!--********* Trees *********-->
     <!--**************************-->
 
-    <mesh id="tree-mesh" type="proctree" preset="fir" >
+    <mesh id="tree-mesh" type="proctree" preset="fir">
         <transform id="tree-tf">
             <scale value="4.0, 4.0, 4.0"/>
             <rotate value="1.5707963,0.0,0.0"/>
             <translate value="8.0,-2.0, -8.0"/>
         </transform>
         <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
-            <has-part mesh-id="tree-mesh" mesh-index="1" />
+            <has-part mesh-id="tree-mesh" mesh-index="1"/>
         </shape>
         <!-- FIXME: there is some hack around here, look at bullet shape it is not at correct height.
                  probably because base of the mesh is at 0.0,0.0,0.0, and not its center.
                  plus there is a scaling here too. -->
         <shape id="tree-mesh-physics" mode="physics" shape="box" mass="0.0" size="0.6, 6.0, 0.6"
-            mesh-id="tree-mesh" transform-id="tree-tf"/>
+               mesh-id="tree-mesh" transform-id="tree-tf"/>
     </mesh>
 
     <mesh id="tree-pot" type="torus"
-            lod-levels="3, 2, 1"
-            use-normal="1" use-tangent="1" center="1"
-            usage="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
-            ring-radius="1.0" tube-radius="0.2">
+          lod-levels="3, 2, 1"
+          use-normal="1" use-tangent="1" center="1"
+          usage="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
+          ring-radius="1.0" tube-radius="0.2">
         <transform id="tree-pot-tf">
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
         <shape id="tree-pot-shape" mode="index" type="aabb"
-            mesh-id="tree-pot" transform-id="tree-pot-tf">
+               mesh-id="tree-pot" transform-id="tree-pot-tf">
             <has-part mesh-id="tree-disc"/>
         </shape>
         <shape id="tree-pot-physics" mode="physics" shape="cylinder" mass="0.0" size="7.2,1.2,7.2"
-            mesh-id="tree-pot" transform-id="tree-pot-tf"/>
+               mesh-id="tree-pot" transform-id="tree-pot-tf"/>
         <material preset="stone" color-blend-mode="MUL" emission="0.04, 0.04, 0.04"/>
     </mesh>
 
     <mesh id="tree-disc" type="disc"
-            lod-levels="3, 2, 1"
-            use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
-            texco-scaling="0.1, 0.1" disc-radius="1.0">
+          lod-levels="3, 2, 1"
+          use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
+          texco-scaling="0.1, 0.1" disc-radius="1.0">
         <transform id="tree-disc-tf">
             <translate value="8.0, -1.0, -8.0"/>
         </transform>
@@ -211,7 +243,7 @@
                 <input name="matEmission" type="vec3" value="0.01,0.06,0.01"/>
                 <!-- transform mesh in geometry shader -->
                 <define key="HAS_GS_TRANSFORM" value="TRUE"/>
-                <texture name="windFlow" id="wind-flowmap" />
+                <texture name="windFlow" id="wind-flowmap"/>
                 <input name="stiffness" type="float" value="0.5"/>
                 <!-- draw the mesh -->
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
@@ -219,12 +251,12 @@
         </node>
         <node id="tree1-pot" cull-shape="tree-pot-shape">
             <node id="tree1-pot">
-                <mesh id="tree-pot" shader="regen.models.mesh" />
+                <mesh id="tree-pot" shader="regen.models.mesh"/>
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
                 <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0"/>
-                <mesh id="tree-disc" shader="regen.models.mesh" />
+                <mesh id="tree-disc" shader="regen.models.mesh"/>
             </node>
         </node>
     </node>
@@ -233,7 +265,7 @@
     <!--********* Other Garden Stuff *********-->
     <!--**************************-->
 
-    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE"/>
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
 
@@ -251,7 +283,7 @@
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <blend mode="SRC"/>
             <define key="TESS_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE" />
+            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE"/>
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
             <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
             <input name="minTessLevel" type="float" value="1.0"/>
@@ -267,43 +299,43 @@
             <input name="posVariation" type="float" value="0.4"/>
             <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
             <!-- color -->
-            <texture id="grass-color" map-to="color" blend-mode="mul" />
+            <texture id="grass-color" map-to="color" blend-mode="mul"/>
             <input name="uvDarken" type="float" value="0.25"/>
             <!-- wind -->
-            <texture name="windFlow" id="wind-flowmap" />
+            <texture name="windFlow" id="wind-flowmap"/>
             <input name="stiffness" type="float" value="1.0"/>
             <!-- small-scale wind details -->
-            <texture name="windNoise" id="wind-noise" />
+            <texture name="windNoise" id="wind-noise"/>
             <input name="windNoiseScale" type="float" value="100.0"/>
             <input name="windNoiseSpeed" type="float" value="1.0"/>
             <input name="windNoiseStrength" type="float" value="0.1"/>
             <!-- collision with player -->
-            <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix" />
+            <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix"/>
             <input name="colliderRadius" type="float" value="4.4"/>
             <input name="colliderStrength" type="float" value="0.7"/>
             <material
-                diffuse="1.5, 1.5, 1.5"
-                ambient="0.1, 0.1, 0.1"
-                specular="0.0, 0.0, 0.0"
-                shininess="256.0"
-                emission="0.0, 0.02, 0.0"/>
+                    diffuse="1.5, 1.5, 1.5"
+                    ambient="0.1, 0.1, 0.1"
+                    specular="0.0, 0.0, 0.0"
+                    shininess="256.0"
+                    emission="0.0, 0.02, 0.0"/>
             <mesh id="ground-mesh" primitive="patches" shader="regen.models.grass.patch"/>
         </node>
     </node>
 
     <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC"
-            lod-levels="4, 3, 2" scaling="1.5,3.0,3.0" num-instances="20">
+          lod-levels="4, 3, 2" scaling="1.5,3.0,3.0" num-instances="20">
         <transform id="stone0-tf" num-instances="20" is-instanced="1">
-            <rotate value="0.0, 1.57079632, 0.0" />
-            <translate value="0.0, -0.6, 0.0" />
+            <rotate value="0.0, 1.57079632, 0.0"/>
+            <translate value="0.0, -0.6, 0.0"/>
             <set mode="circle" target="translate" radius="42.0" variance="0.8"
-                dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
+                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
         </transform>
-        <material preset="stone" variant="0" max-offset="0.2" />
+        <material preset="stone" variant="0" max-offset="0.2"/>
         <shape id="stone0-shape" mode="index" type="sphere"
-            mesh-id="stone0" transform-id="stone0-tf" radius="1.6" />
+               mesh-id="stone0" transform-id="stone0-tf" radius="1.6"/>
         <shape id="stone0-physics" mode="physics"
-            mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0" />
+               mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0"/>
     </mesh>
 
     <node id="Garden-Items">
@@ -318,36 +350,36 @@
     <!--**************************-->
 
     <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-        scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5">
+          scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
         </transform>
         <shape id="stairs0-shape" mode="index" type="aabb"
-            mesh-id="stairs0-mesh" transform-id="stairs0-tf" />
+               mesh-id="stairs0-mesh" transform-id="stairs0-tf"/>
         <shape id="stairs0-physics" mode="physics"
-            mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
+               mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
     </mesh>
 
     <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-        scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5">
+          scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
         </transform>
         <shape id="stairs1-shape" mode="index" type="aabb"
-            mesh-id="stairs1-mesh" transform-id="stairs1-tf" />
+               mesh-id="stairs1-mesh" transform-id="stairs1-tf"/>
         <shape id="stairs1-physics" mode="physics"
-            mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
+               mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
     </mesh>
 
     <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
-        scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5">
+          scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
         </transform>
         <shape id="stairs2-shape" mode="index" type="aabb"
-            mesh-id="stairs2-mesh" transform-id="stairs2-tf" />
+               mesh-id="stairs2-mesh" transform-id="stairs2-tf"/>
         <shape id="stairs2-physics" mode="physics"
-            mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
+               mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
     </mesh>
 
     <node id="Stairs">
@@ -379,11 +411,11 @@
             </animation>
         </transform>
         <shape id="platform0-shape" mode="index" type="aabb"
-            mesh-id="platform0-mesh" transform-id="platform0-tf" />
+               mesh-id="platform0-mesh" transform-id="platform0-tf"/>
         <shape id="platform0-physics" mode="physics"
-            mesh-id="platform0-mesh" transform-id="platform0-tf"
-            shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
-            size="8.0,0.8,8.0"/>
+               mesh-id="platform0-mesh" transform-id="platform0-tf"
+               shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
+               size="8.0,0.8,8.0"/>
     </mesh>
 
     <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
@@ -397,15 +429,15 @@
             </animation>
         </transform>
         <shape id="platform1-shape" mode="index" type="aabb"
-            mesh-id="platform1-mesh" transform-id="platform1-tf" />
+               mesh-id="platform1-mesh" transform-id="platform1-tf"/>
         <shape id="platform1-physics" mode="physics"
-            mesh-id="platform1-mesh" transform-id="platform1-tf"
-            shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
-            size="8.0,0.8,8.0"/>
+               mesh-id="platform1-mesh" transform-id="platform1-tf"
+               shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
+               size="8.0,0.8,8.0"/>
     </mesh>
 
     <node id="Platforms">
-        <material preset="iron" emission="0.05,0.07,0.07" />
+        <material preset="iron" emission="0.05,0.07,0.07"/>
         <node id="platform0" cull-shape="platform0-shape">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
@@ -418,20 +450,20 @@
     <!--**************************-->
 
     <mesh id="pedestal-mesh" type="box"
-            lod-levels="3, 2, 1" lod-far="100.0"
-            use-normal="1" use-tangent="1" center="1" usage="STATIC"
-            scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
+          lod-levels="3, 2, 1" lod-far="100.0"
+          use-normal="1" use-tangent="1" center="1" usage="STATIC"
+          scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
         <transform id="pedestal-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
         </transform>
         <shape id="pedestal-shape" mode="index" type="aabb"
-            mesh-id="pedestal-mesh" transform-id="pedestal-tf" />
+               mesh-id="pedestal-mesh" transform-id="pedestal-tf"/>
         <shape id="pedestal-physics" mode="physics"
-            mesh-id="pedestal-mesh" transform-id="pedestal-tf"
-            shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
+               mesh-id="pedestal-mesh" transform-id="pedestal-tf"
+               shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
         <material preset="wood" variant="1" color-blend-mode="mul"
-            diffuse="0.9, 0.8, 0.7"/>
+                  diffuse="0.9, 0.8, 0.7"/>
     </mesh>
 
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
@@ -441,10 +473,10 @@
             <translate value="-16.0, 3.0, 7.9"/>
         </transform>
         <shape id="slope-shape" mode="index" type="obb"
-            mesh-id="slope-mesh" transform-id="slope-tf" />
+               mesh-id="slope-mesh" transform-id="slope-tf"/>
         <shape id="slope-physics" mode="physics"
-            mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
-        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75" />
+               mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
+        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75"/>
     </mesh>
 
     <node id="Pedestal">
@@ -483,13 +515,13 @@
 
     <!-- A FBO with density and color attachments. -->
     <fbo id="particle-fbo" size-mode="rel" size="0.25, 0.25"
-            pixel-type="FLOAT" pixel-size="24">
-        <texture id="density" pixel-components="1" />
-        <texture id="color" pixel-components="4" />
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="density" pixel-components="1"/>
+        <texture id="color" pixel-components="4"/>
     </fbo>
     <fbo id="particle-depth" size-mode="rel" size="0.25, 0.25"
-            pixel-type="UNSIGNED_BYTE">
-        <depth id="depth" pixel-size="24" />
+         pixel-type="UNSIGNED_BYTE">
+        <depth id="depth" pixel-size="24"/>
     </fbo>
 
     <texture id="particle-splat" file="res/textures/splats/flare.jpg"/>
@@ -527,7 +559,7 @@
         <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
         <input name="Particles" ubo="Particles-UBO"/>
         <input name="Wind" ubo="Wind-UBO"/>
-        <texture name="windFlow" id="wind-flowmap" />
+        <texture name="windFlow" id="wind-flowmap"/>
     </node>
 
     <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
@@ -535,8 +567,9 @@
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
-        <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD" advance-constant="2.0"/>
-        <transform id="platform1-tf" />
+        <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
+               advance-constant="2.0"/>
+        <transform id="platform1-tf"/>
     </mesh>
 
     <mesh id="test-particles0" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
@@ -544,8 +577,9 @@
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
-        <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD" advance-constant="2.0"/>
-        <transform id="platform0-tf" />
+        <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
+               advance-constant="2.0"/>
+        <transform id="platform0-tf"/>
         <!-- TODO: add a bounding shape for particles. -->
         <!--
         <shape id="particles0-aabb" mode="index" type="aabb"
@@ -556,7 +590,7 @@
     <node id="Particle-Update-FBO">
         <define key="USE_SOFT_PARTICLES" value="TRUE"/>
         <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
-        <depth test="0" write="0" />
+        <depth test="0" write="0"/>
 
         <!-- downsample g-buffer depth to particle-fbo size.
              note: we can also test against g-buffer depth, but
@@ -576,7 +610,7 @@
         -->
 
         <node id="Particle-Density">
-            <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0" />
+            <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0"/>
             <!-- TODO: there is a halo around objects, maybe it can be avoided with downsamled depth
                        but first attempt did not have an effect for some reason. -->
             <!--
@@ -597,16 +631,16 @@
 
         <node id="Particle-Color">
             <define key="DISCARD_DENSITY_THRESHOLD" value="0.01"/>
-            <fbo id="particle-fbo" clear-buffers="1" draw-buffers="1" />
-            <blend mode="alpha" />
-            <texture name="densityTexture" fbo="particle-fbo" attachment="0" />
-            <texture name="colorRamp" id="particle-color-ramp" blend-mode="MUL" />
-            <texture name="windFlow" id="wind-flowmap" />
+            <fbo id="particle-fbo" clear-buffers="1" draw-buffers="1"/>
+            <blend mode="alpha"/>
+            <texture name="densityTexture" fbo="particle-fbo" attachment="0"/>
+            <texture name="colorRamp" id="particle-color-ramp" blend-mode="MUL"/>
+            <texture name="windFlow" id="wind-flowmap"/>
             <input type="float" name="gamma" value="1.0"/>
             <input type="float" name="exposure" value="1.0"/>
             <input type="float" name="brightness" value="1.0"/>
-            <input type="vec4" name="color" value="1.0, 1.0, 1.0, 1.0" />
-            <fullscreen-pass shader="regen.particles.sprite.densityColor" />
+            <input type="vec4" name="color" value="1.0, 1.0, 1.0, 1.0"/>
+            <fullscreen-pass shader="regen.particles.sprite.densityColor"/>
         </node>
         <view id="Particle-Density">
             <blit src-fbo="particle-fbo" src-attachment="0" dst-fbo="SCREEN"/>
@@ -616,41 +650,37 @@
         </view>
         <view id="Particle-Ramp">
             <fbo id="SCREEN"/>
-            <texture name="inputTexture" id="particle-color-ramp" />
+            <texture name="inputTexture" id="particle-color-ramp"/>
             <fullscreen-pass shader="regen.filter.sampling"/>
         </view>
 
         <!-- Finally, create a blurred version. -->
         <node id="Particle-Blur">
-            <input type="int" name="numBlurPixels" value="9" />
-            <input type="float" name="blurSigma" value="2.3" />
-            <filter-sequence id="particle-color" fbo="particle-fbo" attachment="1" >
-                <filter shader="regen.filter.blur.horizontal" />
-                <filter shader="regen.filter.blur.vertical" />
+            <input type="int" name="numBlurPixels" value="9"/>
+            <input type="float" name="blurSigma" value="2.3"/>
+            <filter-sequence id="particle-color" fbo="particle-fbo" attachment="1">
+                <filter shader="regen.filter.blur.horizontal"/>
+                <filter shader="regen.filter.blur.vertical"/>
             </filter-sequence>
         </node>
         <view id="Particle-Blur">
             <fbo id="SCREEN"/>
-            <texture name="inputTexture" id="particle-color" />
+            <texture name="inputTexture" id="particle-color"/>
             <fullscreen-pass shader="regen.filter.sampling"/>
         </view>
     </node>
 
     <node id="Particle-Draw">
-        <blend mode="alpha" />
-        <depth test="0" write="0" />
-        <texture name="inputTexture" id="particle-color" />
-        <define key="IS_2D_TEXTURE" value="TRUE" />
-        <fullscreen-pass shader="regen.filter.sampling" />
+        <blend mode="alpha"/>
+        <depth test="0" write="0"/>
+        <texture name="inputTexture" id="particle-color"/>
+        <define key="IS_2D_TEXTURE" value="TRUE"/>
+        <fullscreen-pass shader="regen.filter.sampling"/>
     </node>
 
     <!--**************************-->
     <!--********* Shading ********-->
     <!--**************************-->
-
-    <mesh id="light-bulb-point" type="point" usage="STATIC" num-vertices="1" >
-        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
-    </mesh>
 
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
@@ -659,7 +689,7 @@
         <node id="Room-Light-Shadow">
             <node id="Room-Light-Shadow0">
                 <fbo id="room-light-shadow0" clear-depth="1"/>
-                <camera id="room-light-camera0" />
+                <camera id="room-light-camera0"/>
                 <node import="Shadow-Caster"/>
             </node>
         </node>
@@ -674,23 +704,41 @@
         <node id="Ambient-Shading">
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
+        <!-- TODO: seems light-passes must be seperated into different nodes everywhere! I guess because states on
+             same level are joined when building a shader? maybe can also be fixed. -->
         <node id="Light-Shading">
-            <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-                <light id="earth-sky-sun"/>
-            </light-pass>
-            <light-pass type="POINT"
-                        shader="regen.shading.deferred.point.parabolic"
-                        shadow-filter="PCF_GAUSSIAN">
-                <light id="room-light0"
-                       shadow-buffer="room-light-shadow0" shadow-attachment="depth"
-                       shadow-camera="room-light-camera0"/>
-            </light-pass>
+            <node>
+                <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+                    <light id="earth-sky-sun"/>
+                </light-pass>
+            </node>
+            <node>
+                <light-pass type="POINT"
+                            shader="regen.shading.deferred.point.parabolic"
+                            shadow-filter="PCF_GAUSSIAN">
+                    <light id="room-light0"
+                           shadow-buffer="room-light-shadow0" shadow-attachment="depth"
+                           shadow-camera="room-light-camera0"/>
+                </light-pass>
+            </node>
+            <node>
+                <light-pass type="POINT" shader="regen.shading.deferred.point.cube">
+                    <light id="fire-flies-light0"/>
+                </light-pass>
+            </node>
         </node>
     </node>
 
     <!--**************************-->
     <!--********* Objects ********-->
     <!--**************************-->
+
+    <mesh id="light-bulb-point" type="point" usage="STATIC" num-vertices="1">
+        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+    </mesh>
+    <mesh id="fire-flies0" type="point" usage="STATIC" num-vertices="1" num-instances="{{num-fire-flies}}">
+        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+    </mesh>
 
     <node id="Shadow-Caster">
         <node id="Dwarf">
@@ -714,13 +762,20 @@
             <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
+        <node id="Fire-Flies">
+            <!-- TODO: cull fire flies node, but it uses modelOffset instead of modelMatrix -->
+            <input name="sphereRadius" type="float" value="0.1"/>
+            <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
+            <input name="matEmission" state="fire-flies-light0" component="lightDiffuse"/>
+            <mesh id="fire-flies0" shader="regen.models.sprite-sphere"/>
+        </node>
         <node id="Light-Bulbs">
             <!-- TODO: cull light bulb node, but it uses modelOffset instead of modelMatrix -->
             <node id="Light-Bulb0">
-                <input name="sphereRadius" type="float" value="0.5" />
-                <input name="modelOffset" state="room-light0" component="lightPosition" />
-                <input name="matEmission" state="room-light0" component="lightDiffuse" />
-                <mesh id="light-bulb-point" shader="regen.models.sprite-sphere" />
+                <input name="sphereRadius" type="float" value="0.5"/>
+                <input name="modelOffset" state="room-light0" component="lightPosition"/>
+                <input name="matEmission" state="room-light0" component="lightDiffuse"/>
+                <mesh id="light-bulb-point" shader="regen.models.sprite-sphere"/>
             </node>
         </node>
     </node>
@@ -761,7 +816,7 @@
                 <fullscreen-pass shader="regen.shading.deferred.emission"/>
             </node>
             <!-- render particles -->
-            <node import="Particle-Draw" />
+            <node import="Particle-Draw"/>
             <!-- <node import="Fire" /> -->
             <view id="Transparent Objects">
                 <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
@@ -804,7 +859,7 @@
 
         <node id="Render">
             <fbo id="g-buffer" clear-buffers="0,1,2,3,4" clear-depth="1"/>
-            <camera id="main-camera" />
+            <camera id="main-camera"/>
 
             <node id="Geometry-Pass">
                 <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
