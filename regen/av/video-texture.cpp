@@ -188,7 +188,7 @@ void VideoTexture::animate(GLdouble animateDT) {
 
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt) {
 	GL_ERROR_LOG();
-	GLuint channel = rs->reserveTextureChannel();
+	auto channel = rs->reserveTextureChannel();
 	begin(rs, channel);
 	if (fileToLoaded_) { // setup the texture target
 		set_textureData(nullptr);

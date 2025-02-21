@@ -26,8 +26,8 @@ bool OBB::updateTransform(bool forceUpdate) {
 
 void OBB::updateOBB() {
 	Vec3f offset = basePosition_;
-	if (translation_.get()) {
-		offset += translation_->getVertex(translationIndex_).r;
+	if (modelOffset_.get()) {
+		offset += modelOffset_->getVertex(modelOffsetIndex_).r;
 	}
 	// compute axes of the OBB based on the model transformation
 	auto scaling = Vec3f::one();

@@ -455,7 +455,7 @@ namespace regen {
 		/**
 		 * Reserves next texture channel.
 		 */
-		inline GLuint reserveTextureChannel() { return std::min(textureCounter_++, maxTextureUnits_ - 1); }
+		inline GLint reserveTextureChannel() { return std::min(textureCounter_++, maxTextureUnits_ - 1); }
 
 		/**
 		 * Releases last reserved texture channel.

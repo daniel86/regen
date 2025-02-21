@@ -19,7 +19,7 @@ namespace regen {
 	/**
 	 * \brief Manages multiple glAnimations in a separate thread.
 	 */
-	class AnimationManager : public Thread {
+	class AnimationManager {
 	public:
 		/**
 		 * @return animation manager reference.
@@ -110,7 +110,6 @@ namespace regen {
 		void setSpatialIndices(const std::map<std::string, ref_ptr<SpatialIndex>> &indices);
 
 	private:
-
 		boost::posix_time::ptime time_;
 		boost::posix_time::ptime lastTime_;
 		std::vector<Animation *> synchronizedAnimations_;
@@ -124,6 +123,9 @@ namespace regen {
 		boost::thread::id glThreadID_;
 		boost::thread::id removeThreadID_;
 		boost::thread::id addThreadID_;
+		boost::thread thread_;
+		boost::mutex threadLock_;
+
 		bool animInProgress_;
 		bool glInProgress_;
 		bool removeInProgress_;
@@ -143,7 +145,7 @@ namespace regen {
 
 		AnimationManager();
 
-		~AnimationManager() override;
+		~AnimationManager();
 
 		void run();
 

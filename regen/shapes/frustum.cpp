@@ -14,8 +14,8 @@ using namespace regen;
 Frustum::Frustum() :
 		BoundingShape(BoundingShapeType::FRUSTUM),
 		orthoBounds(Vec2f(0), Vec2f(0)) {
-	translation_ = ref_ptr<ShaderInput3f>::alloc("frustumCenter");
-	translation_->setUniformData(Vec3f(0));
+	modelOffset_ = ref_ptr<ShaderInput3f>::alloc("frustumCenter");
+	modelOffset_->setUniformData(Vec3f(0));
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
 }
@@ -74,7 +74,7 @@ unsigned int Frustum::directionStamp() const {
 void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	Vec3f d = dir;
 	d.normalize();
-	translation_->setUniformData(pos);
+	modelOffset_->setUniformData(pos);
 	direction_->setUniformData(d);
 
 	if (fov > 0.0) {
@@ -140,7 +140,7 @@ void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
 }
 
 Vec3f Frustum::getCenterPosition() const {
-	auto basePosition = translation_->getVertex(translationIndex_);
+	auto basePosition = modelOffset_->getVertex(modelOffsetIndex_);
 	if (direction_.get()) {
 		auto dir = direction_->getVertex(0);
 		return basePosition.r + dir.r * (near + (far - near) * 0.5f);

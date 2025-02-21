@@ -10,6 +10,7 @@
 
 #include <regen/states/state-node.h>
 #include <regen/shapes/spatial-index.h>
+#include "regen/camera/sorting.h"
 
 namespace regen {
 	/**
@@ -34,7 +35,7 @@ namespace regen {
 		 * @brief Set the instance sorting
 		 * @param instanceSorting The instance sorting
 		 */
-		void setInstanceSorting(bool instanceSorting) { instanceSorting_ = instanceSorting; }
+		void setInstanceSortMode(SortMode mode) { instanceSortMode_ = mode; }
 
 		void traverse(RenderState *rs) override;
 
@@ -42,13 +43,19 @@ namespace regen {
 		ref_ptr<Camera> camera_;
 		ref_ptr<SpatialIndex> spatialIndex_;
 		std::string shapeName_;
-		bool instanceSorting_ = true;
+		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 
 		GLuint numInstances_;
 		ref_ptr<ShaderInput1ui> instanceIDMap_;
 		ref_ptr<Mesh> mesh_;
+		std::vector<std::vector<GLuint>> lodGroups_;
 
 		void updateMeshLOD();
+
+		void computeLODGroups(
+				const std::vector<GLuint> &visibleInstances,
+				const ref_ptr<BoundingShape> &shape,
+				std::vector<std::vector<GLuint>> &lodGroups);
 	};
 }
 

@@ -14,7 +14,7 @@ namespace regen {
 		 * @brief Construct a new Bounding Sphere object
 		 * @param mesh The mesh
 		 */
-		explicit BoundingSphere(const ref_ptr<Mesh> &mesh);
+		explicit BoundingSphere(const ref_ptr<Mesh> &mesh, float radius = 0.0f);
 
 		/**
 		 * @brief Construct a new Bounding Sphere object

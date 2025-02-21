@@ -50,7 +50,7 @@ uniform mat4 in_lightMatrix[6];
     #endif // POINT_LIGHT_TYPE == CUBE
 
     #if POINT_LIGHT_TYPE == PARABOLIC
-uniform vec3 in_lightDirection[NUM_SHADOW_LAYER];
+uniform vec3 in_lightDirection;
 uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
 uniform vec3 in_lightPosition;
 uniform vec2 in_lightRadius;

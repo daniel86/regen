@@ -44,8 +44,8 @@ GLuint BoundingShape::numInstances() const {
 	if (transform_.get()) {
 		numInstances = std::max(transform_->get()->numInstances(), numInstances);
 	}
-	if (translation_.get()) {
-		numInstances = std::max(translation_->numInstances(), numInstances);
+	if (modelOffset_.get()) {
+		numInstances = std::max(modelOffset_->numInstances(), numInstances);
 	}
 	return numInstances;
 }
@@ -56,8 +56,8 @@ void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, 
 }
 
 void BoundingShape::setTransform(const ref_ptr<ShaderInput3f> &center, unsigned int instanceIndex) {
-	translation_ = center;
-	translationIndex_ = instanceIndex;
+	modelOffset_ = center;
+	modelOffsetIndex_ = instanceIndex;
 }
 
 unsigned int BoundingShape::transformStamp() const {
@@ -65,8 +65,8 @@ unsigned int BoundingShape::transformStamp() const {
 	if (transform_.get()) {
 		stamp = transform_->get()->stamp();
 	}
-	if (translation_.get()) {
-		stamp = std::max(stamp, translation_->stamp());
+	if (modelOffset_.get()) {
+		stamp = std::max(stamp, modelOffset_->stamp());
 	}
 	return stamp;
 }
@@ -74,15 +74,15 @@ unsigned int BoundingShape::transformStamp() const {
 Vec3f BoundingShape::translation() const {
 	if (transform_.get()) {
 		auto p = transform_->get()->getVertex(transformIndex_);
-		if (translation_.get()) {
-			return p.r.position() + translation_->getVertex(translationIndex_).r;
+		if (modelOffset_.get()) {
+			return p.r.position() + modelOffset_->getVertex(modelOffsetIndex_).r;
 		}
 		else {
 			return p.r.position();
 		}
 	}
-	else if (translation_.get()) {
-		return translation_->getVertex(translationIndex_).r;
+	else if (modelOffset_.get()) {
+		return modelOffset_->getVertex(modelOffsetIndex_).r;
 	}
 	else {
 		return Vec3f::zero();
