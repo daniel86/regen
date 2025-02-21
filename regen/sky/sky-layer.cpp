@@ -6,6 +6,7 @@ using namespace regen;
 SkyLayer::SkyLayer(const ref_ptr<Sky> &sky) {
 	sky_ = sky;
 	updateInterval_ = 4000.0;
+	updateState_ = ref_ptr<State>::alloc();
 	dt_ = updateInterval_;
 }
 

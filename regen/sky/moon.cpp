@@ -69,13 +69,7 @@ GLdouble MoonLayer::defaultEarthShineIntensity() { return 4.0; }
 
 void MoonLayer::set_scale(GLdouble scale) { scale_->setVertex(0, scale); }
 
-const ref_ptr<ShaderInput1f> &MoonLayer::scale() const { return scale_; }
-
 void MoonLayer::set_scattering(GLdouble scattering) { scattering_->setVertex(0, scattering); }
-
-const ref_ptr<ShaderInput1f> &MoonLayer::scattering() const { return scattering_; }
-
-const ref_ptr<ShaderInput4f> &MoonLayer::sunShine() const { return sunShine_; }
 
 void MoonLayer::set_sunShineColor(const Vec3f &color) {
 	auto v_sunShine = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
@@ -86,12 +80,6 @@ void MoonLayer::set_sunShineIntensity(GLdouble intensity) {
 	auto v_color = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
 	v_color.w = Vec4f(v_color.r.xyz_(), intensity);
 }
-
-const ref_ptr<ShaderInput3f> &MoonLayer::earthShine() const { return earthShine_; }
-
-void MoonLayer::set_earthShineColor(const Vec3f &color) { earthShineColor_ = color; }
-
-void MoonLayer::set_earthShineIntensity(GLdouble intensity) { earthShineIntensity_ = intensity; }
 
 ref_ptr<Mesh> MoonLayer::getMeshState() { return meshState_; }
 

@@ -37,7 +37,7 @@ namespace regen {
 	 */
 	class Atmosphere : public SkyLayer {
 	public:
-		Atmosphere(
+		explicit Atmosphere(
 				const ref_ptr<Sky> &sky,
 				GLuint cubeMapSize = 512,
 				GLboolean useFloatBuffer = GL_FALSE,
@@ -91,7 +91,7 @@ namespace regen {
 		/**
 		 * rayleigh profile
 		 */
-		ref_ptr<ShaderInput3f> &rayleigh();
+		ref_ptr<ShaderInput3f> &rayleigh() { return rayleigh_; }
 
 		/**
 		 * Sets brightness for aerosol profile
@@ -116,7 +116,7 @@ namespace regen {
 		/**
 		 * aerosol profile
 		 */
-		ref_ptr<ShaderInput4f> &mie();
+		ref_ptr<ShaderInput4f> &mie() { return mie_; }
 
 		/**
 		 * @param v the spot brightness.
@@ -126,7 +126,7 @@ namespace regen {
 		/**
 		 * @return the spot brightness.
 		 */
-		ref_ptr<ShaderInput1f> &spotBrightness();
+		ref_ptr<ShaderInput1f> &spotBrightness() { return spotBrightness_; }
 
 		/**
 		 * @param v scattering strength.
@@ -136,7 +136,7 @@ namespace regen {
 		/**
 		 * @return scattering strength.
 		 */
-		ref_ptr<ShaderInput1f> &scatterStrength();
+		ref_ptr<ShaderInput1f> &scatterStrength() { return scatterStrength_; }
 
 		/**
 		 * @param color the absorbtion color.
@@ -146,22 +146,21 @@ namespace regen {
 		/**
 		 * @return the absorbtion color.
 		 */
-		ref_ptr<ShaderInput3f> &absorbtion();
+		ref_ptr<ShaderInput3f> &absorbtion() { return skyAbsorbtion_; }
 
 		const ref_ptr<TextureCube> &cubeMap() const;
 
 		// Override
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState() override;
+		ref_ptr<Mesh> getMeshState() override { return drawState_; }
 
-		ref_ptr<HasShader> getShaderState() override;
+		ref_ptr<HasShader> getShaderState() override { return drawState_; }
 
 	protected:
 		ref_ptr<FBO> fbo_;
 
 		ref_ptr<SkyBox> drawState_;
-		ref_ptr<State> updateState_;
 		ref_ptr<ShaderState> updateShader_;
 
 		ref_ptr<ShaderInput3f> rayleigh_;

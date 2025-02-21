@@ -9,6 +9,7 @@
 
 #include "shader-input-widget.h"
 #include "regen/animations/animation-manager.h"
+#include "regen/sky/sky.h"
 
 using namespace regen;
 
@@ -49,7 +50,7 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 	item->setExpanded(true);
 	ui_.treeWidget->addTopLevelItem(item);
 
-	handleNode(node, item);
+	handleNode(node.get(), item);
 	item->setExpanded(true);
 
 	auto *anims = new QTreeWidgetItem(item);
@@ -76,11 +77,20 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 		}
 		animItem->setText(0, QString::fromStdString(animName));
 		handleState(anim->animationState(), animItem);
+
+		auto *skyAnim = dynamic_cast<Sky *>(anim);
+		if (skyAnim != nullptr) {
+			for (auto &layer : skyAnim->layer()) {
+				auto *layerItem = new QTreeWidgetItem(animItem);
+				layerItem->setText(0, layer->name().c_str());
+				handleState(layer->updateState(), layerItem);
+			}
+		}
 	}
 }
 
 bool ShaderInputWidget::handleNode(
-		const ref_ptr<StateNode> &node,
+		const StateNode *node,
 		QTreeWidgetItem *parent) {
 	bool isEmpty = true;
 
@@ -97,7 +107,7 @@ bool ShaderInputWidget::handleNode(
 		auto *child = new QTreeWidgetItem(parent);
 		child->setText(0, QString::fromStdString((*it)->name()));
 		child->setExpanded(level < 5);
-		if (handleNode(*it, child)) {
+		if (handleNode(it->get(), child)) {
 			isEmpty = false;
 		} else {
 			delete child;

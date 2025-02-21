@@ -141,7 +141,6 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	/// Update State
 	///////
 	ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
-	updateState_ = ref_ptr<State>::alloc();
 	updateState_->joinShaderInput(fbo_->inverseViewport());
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise0_, "noise0"));
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise1_, "noise1"));
@@ -176,57 +175,27 @@ GLdouble CloudLayer::defaultChangeHigh() { return 0.1f; }
 
 GLdouble CloudLayer::defaultChangeLow() { return 0.1f; }
 
-const ref_ptr<Texture2D> &CloudLayer::cloudTexture() const { return cloudTexture_; }
-
-const ref_ptr<FBO> &CloudLayer::cloudTextureFBO() const { return fbo_; }
-
 void CloudLayer::set_color(const Vec3f &color) { color_->setVertex(0, color); }
-
-const ref_ptr<ShaderInput3f> &CloudLayer::color() const { return color_; }
 
 void CloudLayer::set_altitude(GLdouble altitude) { altitude_->setVertex(0, altitude); }
 
-const ref_ptr<ShaderInput1f> &CloudLayer::altitude() const { return altitude_; }
-
 void CloudLayer::set_sharpness(GLdouble sharpness) { sharpness_->setVertex(0, sharpness); }
-
-const ref_ptr<ShaderInput1f> &CloudLayer::sharpness() const { return sharpness_; }
 
 void CloudLayer::set_coverage(GLdouble coverage) { coverage_->setVertex(0, coverage); }
 
-const ref_ptr<ShaderInput1f> &CloudLayer::coverage() const { return coverage_; }
-
 void CloudLayer::set_scale(const Vec2f &scale) { scale_->setVertex(0, scale); }
-
-const ref_ptr<ShaderInput2f> &CloudLayer::scale() const { return scale_; }
 
 void CloudLayer::set_change(GLdouble change) { change_->setVertex(0, change); }
 
-const ref_ptr<ShaderInput1f> &CloudLayer::change() const { return change_; }
-
 void CloudLayer::set_wind(const Vec2f &wind) { wind_->setVertex(0, wind); }
-
-const ref_ptr<ShaderInput2f> &CloudLayer::wind() const { return wind_; }
 
 void CloudLayer::set_bottomColor(const Vec3f &color) { bottomColor_->setVertex(0, color); }
 
-const ref_ptr<ShaderInput3f> &CloudLayer::bottomColor() const { return bottomColor_; }
-
 void CloudLayer::set_topColor(const Vec3f &color) { topColor_->setVertex(0, color); }
-
-const ref_ptr<ShaderInput3f> &CloudLayer::topColor() const { return topColor_; }
 
 void CloudLayer::set_thickness(GLdouble thickness) { thickness_->setVertex(0, thickness); }
 
-const ref_ptr<ShaderInput1f> &CloudLayer::thickness() const { return thickness_; }
-
 void CloudLayer::set_offset(GLdouble offset) { offset_->setVertex(0, offset); }
-
-const ref_ptr<ShaderInput1f> &CloudLayer::offset() const { return offset_; }
-
-ref_ptr<Mesh> CloudLayer::getMeshState() { return meshState_; }
-
-ref_ptr<HasShader> CloudLayer::getShaderState() { return shaderState_; }
 
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().push(fbo_->id());

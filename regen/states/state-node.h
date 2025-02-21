@@ -91,7 +91,12 @@ namespace regen {
 		/**
 		 * @return list of all child nodes.
 		 */
-		std::list<ref_ptr<StateNode> > &childs();
+		auto &childs() { return childs_; }
+
+		/**
+		 * @return list of all child nodes.
+		 */
+		auto &childs() const { return childs_; }
 
 		ref_ptr<Camera> getParentCamera();
 

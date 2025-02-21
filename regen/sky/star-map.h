@@ -26,16 +26,16 @@ namespace regen {
 
 		void set_scattering(GLdouble scattering);
 
-		const ref_ptr<ShaderInput1f> &scattering() const;
+		const ref_ptr<ShaderInput1f> &scattering() const { return scattering_; }
 
 		static GLdouble defaultScattering();
 
 		// Override
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState() override;
+		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 
-		ref_ptr<HasShader> getShaderState() override;
+		ref_ptr<HasShader> getShaderState() override { return meshState_; }
 
 	protected:
 		ref_ptr<SkyBox> meshState_;
