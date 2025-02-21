@@ -105,6 +105,12 @@ namespace regen {
 		auto &transform() const { return transform_; }
 
 		/**
+		 * @brief Get the model offset of this shape
+		 * @return The model offset
+		 */
+		auto &modelOffset() const { return modelOffset_; }
+
+		/**
 		 * @brief Get the translation of this shape
 		 * @return The translation
 		 */
@@ -173,14 +179,14 @@ namespace regen {
 	protected:
 		const BoundingShapeType shapeType_;
 		ref_ptr<ModelTransformation> transform_;
-		ref_ptr<ShaderInput3f> translation_;
+		ref_ptr<ShaderInput3f> modelOffset_;
 		ref_ptr<Mesh> mesh_;
 		std::vector<ref_ptr<Mesh>> parts_;
 		unsigned int lastTransformStamp_ = 0;
 		unsigned int lastGeometryStamp_;
 		unsigned int nextGeometryStamp_ = 0u;
 		unsigned int transformIndex_ = 0;
-		unsigned int translationIndex_ = 0;
+		unsigned int modelOffsetIndex_ = 0;
 		std::string name_;
 		unsigned int instanceID_ = 0;
 	};

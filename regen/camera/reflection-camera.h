@@ -42,8 +42,10 @@ namespace regen {
 				const Vec3f &reflectorPoint,
 				bool hasBackFace = GL_FALSE);
 
-		// Override
-		void enable(RenderState *rs) override;
+		/**
+		 * Update reflection camera.
+		 */
+		void updateReflection();
 
 	protected:
 		ref_ptr<Camera> userCamera_;
@@ -52,6 +54,7 @@ namespace regen {
 		ref_ptr<ShaderInput> transform_;
 		ref_ptr<ShaderInput4f> clipPlane_;
 		ref_ptr<State> cullState_;
+		ref_ptr<Animation> reflectionUpdater_;
 		Vec3f posWorld_;
 		Vec3f norWorld_;
 		GLuint vertexIndex_;
@@ -67,8 +70,6 @@ namespace regen {
 		bool hasMesh_;
 		bool hasBackFace_;
 		Mat4f reflectionMatrix_;
-
-		void updateReflection();
 	};
 } // namespace
 

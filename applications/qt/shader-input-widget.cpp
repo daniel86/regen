@@ -11,9 +11,8 @@
 #include "regen/animations/animation-manager.h"
 
 using namespace regen;
-//using namespace std;
 
-static const std::string __typeString(GLenum dataType) {
+static std::string regen_typeString(GLenum dataType) {
 	switch (dataType) {
 		case GL_FLOAT:
 			return "float";
@@ -160,7 +159,6 @@ bool ShaderInputWidget::handleInput(
 		const NamedShaderInput &namedInput,
 		QTreeWidgetItem *parent) {
 	const ref_ptr<ShaderInput> in = namedInput.in_;
-	if (in->numArrayElements() > 1) return false;
 	if (in->valsPerElement() > 4) return false;
 
 	if (in->isUniformBlock()) {
@@ -176,8 +174,9 @@ bool ShaderInputWidget::handleInput(
 		delete[]lastValue;
 	}
 	auto clientData = in->mapClientDataRaw(ShaderData::READ);
-	byte *initialValue = new byte[in->inputSize()];
-	memcpy(initialValue, clientData.r, in->inputSize());
+	byte *initialValue = new byte[in->elementSize()];
+	memcpy(initialValue, clientData.r, in->elementSize());
+	clientData.unmap();
 	initialValue_[in.get()] = initialValue;
 	initialValueStamp_[in.get()] = in->stamp();
 	valueStamp_[in.get()] = 0;
@@ -200,8 +199,8 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x) {
 		// last time value was not changed from widget
 		// update initial data
 		auto clientData = x->mapClientDataRaw(ShaderData::READ);
-		byte *initialValue = new byte[x->inputSize()];
-		memcpy(initialValue, clientData.r, x->inputSize() * sizeof(byte));
+		byte *initialValue = new byte[x->elementSize()];
+		memcpy(initialValue, clientData.r, x->elementSize());
 
 		byte *oldInitial = initialValue_[x];
 		delete[]oldInitial;
@@ -265,7 +264,8 @@ void ShaderInputWidget::valueUpdated() {
 			break;
 	}
 
-	selectedInput_->setUniformUntyped(changedData);
+	selectedInput_->writeVertex(0, changedData);
+	delete[] changedData;
 }
 
 void ShaderInputWidget::maxUpdated() {
@@ -297,9 +297,8 @@ void ShaderInputWidget::resetValue() {
 		REGEN_WARN("No initial value set.");
 		return;
 	}
-	updateInitialValue(selectedInput_);
 	byte *initialValue = initialValue_[selectedInput_];
-	selectedInput_->setUniformUntyped(initialValue);
+	selectedInput_->writeVertex(0, initialValue);
 	activateValue(selectedItem_, selectedItem_);
 }
 
@@ -315,7 +314,7 @@ void ShaderInputWidget::activateValue(QTreeWidgetItem *selected, QTreeWidgetItem
 	selectedInput_ = inputs_[selectedItem_].get();
 
 	ui_.nameValue->setText(selectedInput_->name().c_str());
-	ui_.typeValue->setText(__typeString(selectedInput_->dataType()).c_str());
+	ui_.typeValue->setText(regen_typeString(selectedInput_->dataType()).c_str());
 
 	QLabel *labelWidgets[4] =
 			{ui_.xLabel, ui_.yLabel, ui_.zLabel, ui_.wLabel};

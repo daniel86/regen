@@ -6,7 +6,6 @@
  */
 
 #include <regen/states/state-configurer.h>
-#include <regen/meshes/primitives/cone.h>
 #include <regen/meshes/primitives/box.h>
 #include <regen/meshes/primitives/rectangle.h>
 
@@ -111,8 +110,8 @@ void LightPass::createShader(const StateConfig &cfg) {
 		for (auto &in : firstLight.light->inputContainer()->inputs()) {
 			if (in.in_->isUniformBlock()) {
 				auto *block = dynamic_cast<UniformBlock *>(in.in_.get());
+				_cfg.addInput(in.in_->name(), in.in_);
 				for (auto &blockUniform : block->uniforms()) {
-					_cfg.addInput(blockUniform.in_->name(), blockUniform.in_);
 					if (blockUniform.in_->numInstances()>0) { hasInstancedInputs = true; }
 				}
 			} else {
@@ -190,8 +189,8 @@ void LightPass::addInputLocation(LightPassLight &l,
 
 void LightPass::enable(RenderState *rs) {
 	State::enable(rs);
-	GLuint smChannel = rs->reserveTextureChannel();
-	GLuint smColorChannel = rs->reserveTextureChannel();
+	auto smChannel = rs->reserveTextureChannel();
+	auto smColorChannel = rs->reserveTextureChannel();
 
 	for (auto it = lights_.begin(); it != lights_.end(); ++it) {
 		LightPassLight &l = *it;
@@ -207,7 +206,6 @@ void LightPass::enable(RenderState *rs) {
 			glUniform1i(shadowColorLoc_, smColorChannel);
 		}
 		// enable light pass uniforms
-		// TODO: what about using UBO here? YES
 		for (auto jt = l.inputLocations.begin(); jt != l.inputLocations.end(); ++jt) {
 			if (lights_.size()>1 || jt->uploadStamp != jt->input->stamp()) {
 				jt->input->enableUniform(jt->location);

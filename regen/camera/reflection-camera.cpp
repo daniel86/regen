@@ -11,6 +11,18 @@
 
 using namespace regen;
 
+namespace regen {
+	class ReflectionUpdater : public Animation {
+	public:
+		explicit ReflectionUpdater(ReflectionCamera *camera)
+				: Animation(false, true),
+				  camera_(camera) {}
+		void animate(double dt) override { camera_->updateReflection(); }
+	private:
+		ReflectionCamera *camera_;
+	};
+}
+
 ReflectionCamera::ReflectionCamera(
 		const ref_ptr<Camera> &userCamera,
 		const ref_ptr<Mesh> &mesh,
@@ -49,6 +61,9 @@ ReflectionCamera::ReflectionCamera(
 	if (transform_.get() != nullptr) {
 		transformStamp_ = transform_->stamp() - 1;
 	}
+
+	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
+	reflectionUpdater_->startAnimation();
 }
 
 ReflectionCamera::ReflectionCamera(
@@ -87,19 +102,16 @@ ReflectionCamera::ReflectionCamera(
 			norWorld_.x, norWorld_.y, norWorld_.z,
 			norWorld_.dot(posWorld_)));
 	reflectionMatrix_ = Mat4f::reflectionMatrix(posWorld_, norWorld_);
-}
 
-void ReflectionCamera::enable(RenderState *rs) {
-	if (!isReflectorValid_) {
-		REGEN_WARN("Reflector has no position/normal attribute.");
-	} else if (!isHidden()) {
-		// TODO: do with another thread
-		updateReflection();
-		State::enable(rs);
-	}
+	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
+	reflectionUpdater_->startAnimation();
 }
 
 void ReflectionCamera::updateReflection() {
+	if (isHidden() || !isReflectorValid_) {
+		return;
+	}
+
 	GLboolean reflectorChanged = GL_FALSE;
 	if (hasMesh_) {
 		if (transform_.get() != nullptr && transform_->stamp() != transformStamp_) {

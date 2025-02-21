@@ -5,7 +5,6 @@
 
 vec4 collisionAtPosition(vec3 posWorld)
 {
-    // FIXME: why HAS_colliderModelMat not defined?
     vec3 colliderCenter = (in_colliderModelMat * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     vec3 collisionVector = colliderCenter - posWorld;
     return vec4(collisionVector,

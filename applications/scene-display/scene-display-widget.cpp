@@ -370,7 +370,6 @@ void SceneDisplayWidget::onWorldTimeChanged() {
 	auto q_time = ui_.worldTime->time();
 	// convert to time_t
 	time_t t = q_time.hour() * 3600 + q_time.minute() * 60 + q_time.second();
-	// FIXME: potential synchronization issue
 	app_->setWorldTime(t);
 }
 

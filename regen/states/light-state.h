@@ -20,7 +20,7 @@ namespace regen {
 	/**
 	 * \brief A light emitting point in space.
 	 */
-	class Light : public State, public Animation, public HasInput {
+	class Light : public State, public HasInput {
 	public:
 		/**
 		 * \brief defines the light type
@@ -40,6 +40,11 @@ namespace regen {
 		 * @return the light type.
 		 */
 		auto lightType() const { return lightType_; }
+
+		/**
+		 * @return the light uniforms.
+		 */
+		auto &lightUBO() const { return lightUniforms_; }
 
 		/**
 		 * Sets whether the light is distance attenuated.
@@ -98,13 +103,16 @@ namespace regen {
 		 */
 		const ref_ptr<ShaderInputMat4> &coneMatrix();
 
-		// override
-		void animate(GLdouble dt) override;
+		/**
+		 * Updates the cone matrix.
+		 */
+		void updateConeMatrix();
 
 	protected:
 		const Type lightType_;
 		GLboolean isAttenuated_;
 
+		ref_ptr<UniformBlock> lightUniforms_;
 		ref_ptr<ShaderInput3f> lightPosition_;
 		ref_ptr<ShaderInput3f> lightDirection_;
 		ref_ptr<ShaderInput3f> lightDiffuse_;
@@ -112,10 +120,11 @@ namespace regen {
 		ref_ptr<ShaderInput2f> lightConeAngles_;
 		ref_ptr<ShaderInput2f> lightRadius_;
 
+		ref_ptr<Animation> coneAnimation_;
 		ref_ptr<ModelTransformation> coneMatrix_;
 		GLuint coneMatrixStamp_;
 
-		void updateConeMatrix();
+		void updateConeMatrix_();
 	};
 
 	std::ostream &operator<<(std::ostream &out, const Light::Type &v);

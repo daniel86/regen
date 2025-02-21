@@ -81,7 +81,7 @@ ref_ptr<Camera> CameraResource::createResource(
 	if (input.hasAttribute("culling-index")) {
 		auto spatialIndex = parser->getResources()->getIndex(
 				parser, input.getValue("culling-index"));
-		spatialIndex->addCamera(cam);
+		spatialIndex->addCamera(cam, input.getValue<bool>("sort", true));
 	}
 
 	return cam;

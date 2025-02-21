@@ -77,10 +77,6 @@ ref_ptr<Light> LightResource::createResource(
 		}
 	}
 
-	if (lightType == Light::SPOT) {
-		light->startAnimation();
-	}
-
 	return light;
 }
 

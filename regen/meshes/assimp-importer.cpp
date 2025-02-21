@@ -183,7 +183,6 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 						acos(assimpLight->mAngleOuterCone) * 360.0 / (2.0 * M_PI));
 				light->set_innerConeAngle(
 						acos(assimpLight->mAngleInnerCone) * 360.0 / (2.0 * M_PI));
-				light->startAnimation();
 				setLightRadius(assimpLight, light);
 				break;
 			}

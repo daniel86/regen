@@ -8,10 +8,10 @@ BoundingSphere::BoundingSphere(const Vec3f &basePosition, GLfloat radius)
 		  basePosition_(basePosition),
 		  radius_(radius) {}
 
-BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh)
+BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh, float radius)
 		: BoundingShape(BoundingShapeType::SPHERE, mesh),
 		  basePosition_(mesh->centerPosition()),
-		  radius_(computeRadius(mesh->minPosition(), mesh->maxPosition())) {
+		  radius_(radius > 0.0f ? radius : computeRadius(mesh->minPosition(), mesh->maxPosition())) {
 	auto sphereMesh = dynamic_cast<Sphere *>(mesh.get());
 	if (sphereMesh) {
 		radius_ = sphereMesh->radius();
@@ -44,8 +44,8 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 
 Vec3f BoundingSphere::getCenterPosition() const {
 	Vec3f p = basePosition_;
-	if (translation_.get()) {
-		p += translation_->getVertex(translationIndex_).r;
+	if (modelOffset_.get()) {
+		p += modelOffset_->getVertex(modelOffsetIndex_).r;
 	}
 	if (transform_.get()) {
 		p += transform_->get()->getVertex(transformIndex_).r.position();

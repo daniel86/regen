@@ -6,7 +6,7 @@ using namespace regen;
 
 template<int Count>
 std::pair<float, float> project(const std::vector<Vec2f> &points, const Vec2f &axis) {
-	std::array<float, Count> projections;
+	std::array<float, Count> projections{};
 	std::transform(points.begin(), points.end(), projections.begin(),
 				   [&axis](const Vec2f &point) {
 					   return point.dot(axis);
@@ -70,7 +70,7 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape) {
 		case BoundingShapeType::FRUSTUM: {
 			auto *frustum = dynamic_cast<const Frustum *>(&shape);
 			if (frustum->fov > 0.0) {
-				// TODO: Make a nicely fitting 2D projection if possible.
+				// TODO: Make a nicely fitting 2D projection of frustum if possible.
 				//       But triangle is not always possible, i.e. for up and down directions.
 				//       Better use a trapazoid as a general solution, then simplify to triangle if two points are equal.
 				//       For now just use a rectangle, which is computed for parallel projections too.

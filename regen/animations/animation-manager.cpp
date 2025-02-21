@@ -27,8 +27,7 @@ AnimationManager &AnimationManager::get() {
 }
 
 AnimationManager::AnimationManager()
-		: Thread(),
-		  animInProgress_(false),
+		: animInProgress_(false),
 		  glInProgress_(false),
 		  removeInProgress_(false),
 		  addInProgress_(false),
@@ -37,6 +36,7 @@ AnimationManager::AnimationManager()
 		  closeFlag_(false),
 		  pauseFlag_(true) {
 	resetTime();
+	thread_ = boost::thread(&AnimationManager::run, this);
 }
 
 AnimationManager::~AnimationManager() {

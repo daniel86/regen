@@ -232,8 +232,6 @@ void ShaderInput::writeUnlock(int dataSlot, bool hasDataChanged) const {
 			requiresReUpload_ = true;
 		}
 	}
-	// TODO: rather prioritize readers over writers? the reader is potentially the GL thread
-	//       maybe it would be best to prioritize the GL thread instead of the CPU thread?
 	if(slotLock.waitingWriters > 0) {
 		// first notify the next writer if any
 		slotLock.writerQ.notify_one();
@@ -653,8 +651,6 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 /////////////
 
 void ShaderInput::enableAttributef(GLint location) const {
-	// TODO: I find it a bit odd that we iterate over num array elements below, it is not intuitive.
-	//        check if this is right and add some comments.
 	for (unsigned int i = 0u; i < numArrayElements_; ++i) {
 		GLint loc = location + i;
 		glEnableVertexAttribArray(loc);

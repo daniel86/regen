@@ -5,8 +5,6 @@
 using namespace regen::scene;
 using namespace regen;
 
-// TODO: this code is redundant with physics.cpp!
-
 static ref_ptr<btCollisionShape> createSphere([[maybe_unused]] SceneParser *parser, SceneInputNode &input) {
 	auto radius = input.getValue<GLfloat>("radius", 1.0f) * 0.5;
 	return ref_ptr<btSphereShape>::alloc(radius);
@@ -261,7 +259,12 @@ static ref_ptr<BoundingShape> createShape(
 	ref_ptr<BoundingShape> shape;
 	if (shapeType == "sphere") {
 		if(mesh.get()) {
-			shape = ref_ptr<BoundingSphere>::alloc(mesh);
+			if (input.hasAttribute("radius")) {
+				shape = ref_ptr<BoundingSphere>::alloc(mesh, input.getValue<float>("radius", 1.0f));
+			}
+			else {
+				shape = ref_ptr<BoundingSphere>::alloc(mesh);
+			}
 		}
 		else if (input.hasAttribute("radius")) {
 			auto radius_opt = getRadius(input);
@@ -373,9 +376,9 @@ static ref_ptr<ShaderInput3f> getOffset(
 			return {};
 		}
 	}
-	auto meshOffset = m->inputContainer()->getInput("modelOffset");
-	if (meshOffset.get()) {
-		auto upcasted = ref_ptr<ShaderInput3f>::dynamicCast(meshOffset);
+	auto meshOffset = m->findShaderInput("modelOffset");
+	if (meshOffset.has_value()) {
+		auto upcasted = ref_ptr<ShaderInput3f>::dynamicCast(meshOffset.value().in);
 		if (upcasted.get()) {
 			return upcasted;
 		} else {

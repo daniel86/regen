@@ -41,9 +41,9 @@ void AABB::updateAABB() {
 	setVertices(bounds());
 
 	// apply transform
-	if (translation_.get()) {
+	if (modelOffset_.get()) {
 		for (int i = 0; i < 8; ++i) {
-			vertices_[i] += translation_->getVertex(translationIndex_).r;
+			vertices_[i] += modelOffset_->getVertex(modelOffsetIndex_).r;
 		}
 	}
 	if (transform_.get()) {

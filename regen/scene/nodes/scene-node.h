@@ -204,6 +204,9 @@ namespace regen {
 				auto shapeName = input.getValue<std::string>("cull-shape", "");
 				cullNode = ref_ptr<GeometricCulling>::alloc(cam, spatialIndex, shapeName);
 				cullNode->set_name(input.getName());
+				if (input.hasAttribute("sort-mode")) {
+					cullNode->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));
+				}
 				parent->addChild(cullNode);
 				parser->putNode(input.getName(), cullNode);
 

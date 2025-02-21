@@ -191,14 +191,12 @@ void main() {
 
 #ifdef USE_SHADOW_MAP
     // find the texture layer
-    // TODO: improve layer selection
-    int shadowLayer = 0;
-    for(int i=0; i<NUM_SHADOW_LAYER; ++i) {
-        if(depth<in_lightFar[i]) {
-            shadowLayer = i;
-            break;
-        }
-    }
+    int shadowLayer = ${NUM_SHADOW_LAYER};
+    #for S_LAYER to ${NUM_SHADOW_LAYER}
+    shadowLayer = min(shadowLayer, ${NUM_SHADOW_LAYER} -
+            int(depth<in_lightFar[${S_LAYER}])*
+            (${NUM_SHADOW_LAYER} - ${S_LAYER}));
+    #endfor
     // compute texture lookup coordinate
     vec4 shadowCoord = dirShadowCoord(shadowLayer, P, in_lightMatrix[shadowLayer]);
     // compute filtered shadow
@@ -392,15 +390,7 @@ void main() {
     /*************************************/
     /***** PARABOLIC SHADOW MAPPING ******/
     /*************************************/
-#ifdef HAS_INSTANCES
-    // FIXME: there is a problem here with how light attributes are used for shadow mapping.
-    //        looks like an array of direction/position etc may be used. which is then conflicting
-    //        with instanced attributes which is also implemented via arrays at the moment.
-    //        find a solution for this!
     int parabolicLayer = int(dot(L, in_lightDirection) > 0.0);
-#else
-    int parabolicLayer = int(dot(L, in_lightDirection[0]) > 0.0);
-#endif
     vec4 shadowCoord = parabolicShadowCoord(
             parabolicLayer,
             P,

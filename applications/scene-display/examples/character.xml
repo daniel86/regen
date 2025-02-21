@@ -735,9 +735,13 @@
 
     <mesh id="light-bulb-point" type="point" usage="STATIC" num-vertices="1">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+        <input name="modelOffset" state="room-light0" component="lightPosition"/>
+        <shape id="light-bulb-shape" mode="index" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
     <mesh id="fire-flies0" type="point" usage="STATIC" num-vertices="1" num-instances="{{num-fire-flies}}">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+        <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
+        <shape id="fire-flies-shape0" mode="index" type="sphere" radius="0.1" mesh-id="fire-flies0" />
     </mesh>
 
     <node id="Shadow-Caster">
@@ -762,18 +766,14 @@
             <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
-        <node id="Fire-Flies">
-            <!-- TODO: cull fire flies node, but it uses modelOffset instead of modelMatrix -->
+        <node id="Fire-Flies" cull-shape="fire-flies-shape0">
             <input name="sphereRadius" type="float" value="0.1"/>
-            <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
             <input name="matEmission" state="fire-flies-light0" component="lightDiffuse"/>
             <mesh id="fire-flies0" shader="regen.models.sprite-sphere"/>
         </node>
         <node id="Light-Bulbs">
-            <!-- TODO: cull light bulb node, but it uses modelOffset instead of modelMatrix -->
-            <node id="Light-Bulb0">
+            <node id="Light-Bulb0" cull-shape="light-bulb-shape">
                 <input name="sphereRadius" type="float" value="0.5"/>
-                <input name="modelOffset" state="room-light0" component="lightPosition"/>
                 <input name="matEmission" state="room-light0" component="lightDiffuse"/>
                 <mesh id="light-bulb-point" shader="regen.models.sprite-sphere"/>
             </node>

@@ -10,6 +10,132 @@
 using namespace regen;
 
 namespace regen {
+	class SpotConeAnimation : public Animation {
+	public:
+		explicit SpotConeAnimation(Light *light)
+			: Animation(false, true), light_(light) {}
+
+		void animate(GLdouble dt) override {
+			light_->updateConeMatrix();
+		}
+
+		Light *light_;
+	};
+}
+
+Light::Light(Light::Type lightType)
+		: State(),
+		  HasInput(VBO::USAGE_DYNAMIC),
+		  lightType_(lightType),
+		  isAttenuated_(GL_TRUE),
+		  coneMatrixStamp_(0) {
+	switch (lightType_) {
+		case DIRECTIONAL:
+			set_isAttenuated(GL_FALSE);
+			break;
+		default:
+			set_isAttenuated(GL_TRUE);
+			break;
+	}
+
+	lightUniforms_ = ref_ptr<UniformBlock>::alloc("Light");
+	setInput(lightUniforms_);
+
+	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
+	lightRadius_->setUniformData(Vec2f(999999.9, 999999.9));
+	lightUniforms_->addUniform(lightRadius_);
+
+	lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
+	lightConeAngles_->setUniformData(Vec2f(0.0f));
+	lightUniforms_->addUniform(lightConeAngles_);
+
+	lightPosition_ = ref_ptr<ShaderInput3f>::alloc("lightPosition");
+	lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
+	lightUniforms_->addUniform(lightPosition_);
+
+	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
+	lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
+	lightUniforms_->addUniform(lightDirection_);
+
+	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
+	lightDiffuse_->setUniformData(Vec3f(0.7f));
+	lightUniforms_->addUniform(lightDiffuse_);
+
+	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
+	lightSpecular_->setUniformData(Vec3f(1.0f));
+	lightUniforms_->addUniform(lightSpecular_);
+
+	set_innerConeAngle(50.0f);
+	set_outerConeAngle(55.0f);
+
+	coneMatrix_ = ref_ptr<ModelTransformation>::alloc();
+	if (lightType_ == SPOT) {
+		coneAnimation_ = ref_ptr<SpotConeAnimation>::alloc(this);
+		coneAnimation_->setAnimationName("SpotCone");
+		coneAnimation_->startAnimation();
+	}
+}
+
+void Light::set_innerConeAngle(GLfloat deg) {
+	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
+		ShaderData::READ | ShaderData::WRITE, 0);
+	data.w = Vec2f(cos(2.0f * M_PIf * deg / 360.0f), data.r.y);
+}
+
+void Light::set_outerConeAngle(GLfloat deg) {
+	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
+		ShaderData::READ | ShaderData::WRITE, 0);
+	data.w = Vec2f(data.r.x, cos(2.0f * M_PIf * deg / 360.0f));
+}
+
+void Light::updateConeMatrix() {
+	GLuint stamp = std::max(lightRadius_->stamp(), std::max(lightDirection_->stamp(),
+															std::max(lightConeAngles_->stamp(),
+																	 lightPosition_->stamp())));
+	if (coneMatrixStamp_ != stamp) {
+		coneMatrixStamp_ = stamp;
+		updateConeMatrix_();
+	}
+}
+
+void Light::updateConeMatrix_() {
+	// Note: cone opens in positive z direction.
+	auto numInstances = std::max(lightPosition_->numInstances(), lightDirection_->numInstances());
+	if (coneMatrix_->get()->numInstances() != numInstances) {
+		// ensure cone matrix has numInstances
+		coneMatrix_->get()->setInstanceData(numInstances, 1, nullptr);
+	}
+
+	for (unsigned int i = 0; i < numInstances; ++i) {
+		auto dir = lightDirection_->getVertexClamped(i).r;
+		dir.normalize();
+		auto angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));
+
+		if (math::isApprox(abs(angleCos), 1.0)) {
+			coneMatrix_->get()->setVertex(i, Mat4f::identity());
+		} else {
+			const auto radius = lightRadius_->getVertexClamped(i).r.y;
+			const auto coneAngle = lightConeAngles_->getVertexClamped(i).r.y;
+
+			// Quaternion rotates view to light direction
+			Quaternion q;
+			auto axis = dir.cross(Vec3f(0.0, 0.0, 1.0));
+			axis.normalize();
+			q.setAxisAngle(axis, acos(angleCos));
+
+			// scale `unit`-cone, rotate to light direction and finally translate to light position
+			auto x = 2.0f * radius * tan(acos(coneAngle));
+			auto val = q.calculateMatrix();
+			val.scale(Vec3f(x, x, radius));
+			val.translate(lightPosition_->getVertexClamped(i).r);
+			coneMatrix_->get()->setVertex(i, val);
+		}
+	}
+}
+
+const ref_ptr<ShaderInputMat4> &Light::coneMatrix() { return coneMatrix_->get(); }
+
+namespace regen {
 	std::ostream &operator<<(std::ostream &out, const Light::Type &type) {
 		switch (type) {
 			case Light::DIRECTIONAL:
@@ -62,108 +188,6 @@ namespace regen {
 		return in;
 	}
 }
-
-// TODO: I think it would be better if spot lights have a animation member.
-Light::Light(Light::Type lightType)
-		: State(),
-		  Animation(false, true),
-		  HasInput(VBO::USAGE_DYNAMIC),
-		  lightType_(lightType),
-		  isAttenuated_(GL_TRUE),
-		  coneMatrixStamp_(0) {
-	switch (lightType_) {
-		case DIRECTIONAL:
-			set_isAttenuated(GL_FALSE);
-			break;
-		default:
-			set_isAttenuated(GL_TRUE);
-			break;
-	}
-
-	auto lightUniforms = ref_ptr<UniformBlock>::alloc("Light");
-	setInput(lightUniforms);
-
-	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
-	lightRadius_->setUniformData(Vec2f(999999.9, 999999.9));
-	lightUniforms->addUniform(lightRadius_);
-
-	coneMatrix_ = ref_ptr<ModelTransformation>::alloc();
-	lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
-	lightConeAngles_->setUniformData(Vec2f(0.0f));
-	lightUniforms->addUniform(lightConeAngles_);
-
-	lightPosition_ = ref_ptr<ShaderInput3f>::alloc("lightPosition");
-	lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
-	lightUniforms->addUniform(lightPosition_);
-
-	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
-	lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
-	lightUniforms->addUniform(lightDirection_);
-
-	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
-	lightDiffuse_->setUniformData(Vec3f(0.7f));
-	lightUniforms->addUniform(lightDiffuse_);
-
-	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
-	lightSpecular_->setUniformData(Vec3f(1.0f));
-	lightUniforms->addUniform(lightSpecular_);
-
-	set_innerConeAngle(50.0f);
-	set_outerConeAngle(55.0f);
-}
-
-void Light::set_innerConeAngle(GLfloat deg) {
-	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
-		ShaderData::READ | ShaderData::WRITE, 0);
-	data.w = Vec2f(cos(2.0f * M_PI * deg / 360.0f), data.r.y);
-}
-
-void Light::set_outerConeAngle(GLfloat deg) {
-	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
-		ShaderData::READ | ShaderData::WRITE, 0);
-	data.w = Vec2f(data.r.x, cos(2.0f * M_PI * deg / 360.0f));
-}
-
-void Light::updateConeMatrix() {
-	// Note: cone opens in positive z direction.
-	// TODO: handling of instanced direction and position -> also need instanced cone matrix
-	Vec3f dir = lightDirection_->getVertex(0).r;
-	dir.normalize();
-	GLfloat angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));
-
-	if (math::isApprox(abs(angleCos), 1.0)) {
-		coneMatrix_->get()->setVertex(0, Mat4f::identity());
-	} else {
-		const GLfloat radius = lightRadius_->getVertex(0).r.y;
-		const GLfloat coneAngle = lightConeAngles_->getVertex(0).r.y;
-
-		// Quaternion rotates view to light direction
-		Quaternion q;
-		Vec3f axis = dir.cross(Vec3f(0.0, 0.0, 1.0));
-		axis.normalize();
-		q.setAxisAngle(axis, acos(angleCos));
-
-		// scale `unit`-cone, rotate to light direction and finally translate to light position
-		GLfloat x = 2.0f * radius * tan(acos(coneAngle));
-
-		Mat4f val = q.calculateMatrix();
-		val.scale(Vec3f(x, x, radius));
-		val.translate(lightPosition_->getVertex(0).r);
-		coneMatrix_->get()->setVertex(0, val);
-	}
-}
-
-void Light::animate(GLdouble dt) {
-	GLuint stamp = std::max(lightRadius_->stamp(), std::max(lightDirection_->stamp(),
-															std::max(lightConeAngles_->stamp(),
-																	 lightPosition_->stamp())));
-	if (coneMatrixStamp_ != stamp) {
-		coneMatrixStamp_ = stamp;
-		updateConeMatrix();
-	}
-}
-
-const ref_ptr<ShaderInputMat4> &Light::coneMatrix() { return coneMatrix_->get(); }
 
 //////////
 //////////
