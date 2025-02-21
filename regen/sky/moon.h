@@ -19,23 +19,23 @@ namespace regen {
 
 		void set_scale(GLdouble scale);
 
-		const ref_ptr<ShaderInput1f> &scale() const;
+		const ref_ptr<ShaderInput1f> &scale() const { return scale_; }
 
 		void set_scattering(GLdouble scattering);
 
-		const ref_ptr<ShaderInput1f> &scattering() const;
+		const ref_ptr<ShaderInput1f> &scattering() const { return scattering_; }
 
 		void set_sunShineColor(const Vec3f &color);
 
 		void set_sunShineIntensity(GLdouble sunShineIntensity);
 
-		const ref_ptr<ShaderInput4f> &sunShine() const;
+		const ref_ptr<ShaderInput4f> &sunShine() const { return sunShine_; }
 
-		void set_earthShineColor(const Vec3f &color);
+		void set_earthShineColor(const Vec3f &color) { earthShineColor_ = color; }
 
-		void set_earthShineIntensity(GLdouble sunShineIntensity);
+		void set_earthShineIntensity(GLdouble sunShineIntensity) { earthShineIntensity_ = sunShineIntensity; }
 
-		const ref_ptr<ShaderInput3f> &earthShine() const;
+		const ref_ptr<ShaderInput3f> &earthShine() const { return earthShine_; }
 
 		static GLdouble defaultScale();
 

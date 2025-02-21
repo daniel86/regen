@@ -132,7 +132,6 @@ void Stars::updateNoiseTexture() {
 	noiseTexState_->set_name("noiseTexture");
 }
 
-
 GLfloat Stars::defaultApparentMagnitude() { return 7.0f; }
 
 Vec3f Stars::defaultColor() { return {0.66, 0.78, 1.0}; }
@@ -145,46 +144,20 @@ GLfloat Stars::defaultScintillation() { return 0.2f; }
 
 GLfloat Stars::defaultScattering() { return 2.0f; }
 
-
 void Stars::set_apparentMagnitude(const GLfloat vMag) { apparentMagnitude_->setVertex(0, vMag); }
-
-const ref_ptr<ShaderInput1f> &Stars::apparentMagnitude() const { return apparentMagnitude_; }
 
 void Stars::set_color(const Vec3f& color) { color_->setVertex(0, color); }
 
-const ref_ptr<ShaderInput3f> &Stars::Stars::color() const { return color_; }
-
 void Stars::set_colorRatio(const GLfloat ratio) { colorRatio_->setVertex(0, ratio); }
-
-const ref_ptr<ShaderInput1f> &Stars::colorRatio() const { return colorRatio_; }
 
 void Stars::set_glareIntensity(const GLfloat intensity) { glareIntensity_->setVertex(0, intensity); }
 
-const ref_ptr<ShaderInput1f> &Stars::glareIntensity() const { return glareIntensity_; }
-
 void Stars::set_glareScale(const GLfloat scale) { glareScale_->setVertex(0, scale); }
-
-const ref_ptr<ShaderInput1f> &Stars::glareScale() const { return glareScale_; }
 
 void Stars::set_scintillation(const GLfloat scintillation) { scintillation_->setVertex(0, scintillation); }
 
-const ref_ptr<ShaderInput1f> &Stars::scintillation() const { return scintillation_; }
-
 void Stars::set_scattering(const GLfloat scattering) { scattering_->setVertex(0, scattering); }
-
-const ref_ptr<ShaderInput1f> &Stars::scattering() const { return scattering_; }
 
 void Stars::set_scale(const GLfloat scale) { scale_->setVertex(0, scale); }
 
-const ref_ptr<ShaderInput1f> &Stars::scale() const { return scale_; }
-
-
-ref_ptr<Mesh> Stars::getMeshState() { return meshState_; }
-
-ref_ptr<HasShader> Stars::getShaderState() { return shaderState_; }
-
-
-void Stars::updateSkyLayer(RenderState *rs, GLdouble dt) {
-}
-
-
+void Stars::updateSkyLayer(RenderState *rs, GLdouble dt) {}

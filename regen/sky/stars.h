@@ -21,35 +21,35 @@ namespace regen {
 
 		void set_apparentMagnitude(GLfloat vMag);
 
-		const ref_ptr<ShaderInput1f> &apparentMagnitude() const;
+		const ref_ptr<ShaderInput1f> &apparentMagnitude() const { return apparentMagnitude_; }
 
 		void set_color(const Vec3f& color);
 
-		const ref_ptr<ShaderInput3f> &color() const;
+		const ref_ptr<ShaderInput3f> &color() const { return color_; }
 
 		void set_colorRatio(GLfloat ratio);
 
-		const ref_ptr<ShaderInput1f> &colorRatio() const;
+		const ref_ptr<ShaderInput1f> &colorRatio() const { return colorRatio_; }
 
 		void set_glareIntensity(GLfloat intensity);
 
-		const ref_ptr<ShaderInput1f> &glareIntensity() const;
+		const ref_ptr<ShaderInput1f> &glareIntensity() const { return glareIntensity_; }
 
 		void set_glareScale(GLfloat scale);
 
-		const ref_ptr<ShaderInput1f> &glareScale() const;
+		const ref_ptr<ShaderInput1f> &glareScale() const { return glareScale_; }
 
 		void set_scintillation(GLfloat scintillation);
 
-		const ref_ptr<ShaderInput1f> &scintillation() const;
+		const ref_ptr<ShaderInput1f> &scintillation() const { return scintillation_; }
 
 		void set_scattering(GLfloat scattering);
 
-		const ref_ptr<ShaderInput1f> &scattering() const;
+		const ref_ptr<ShaderInput1f> &scattering() const { return scattering_; }
 
 		void set_scale(GLfloat scale);
 
-		const ref_ptr<ShaderInput1f> &scale() const;
+		const ref_ptr<ShaderInput1f> &scale() const { return scale_; }
 
 
 		static GLfloat defaultApparentMagnitude();
@@ -67,9 +67,9 @@ namespace regen {
 		// Override
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState() override;
+		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 
-		ref_ptr<HasShader> getShaderState() override;
+		ref_ptr<HasShader> getShaderState() override { return shaderState_; }
 
 	protected:
 		ref_ptr<Mesh> meshState_;

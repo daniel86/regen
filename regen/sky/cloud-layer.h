@@ -19,51 +19,51 @@ namespace regen {
 
 		void set_altitude(GLdouble altitude);
 
-		const ref_ptr<ShaderInput1f> &altitude() const;
+		const ref_ptr<ShaderInput1f> &altitude() const { return altitude_; }
 
 		void set_sharpness(GLdouble sharpness);
 
-		const ref_ptr<ShaderInput1f> &sharpness() const;
+		const ref_ptr<ShaderInput1f> &sharpness() const { return sharpness_; }
 
 		void set_coverage(GLdouble coverage);
 
-		const ref_ptr<ShaderInput1f> &coverage() const;
+		const ref_ptr<ShaderInput1f> &coverage() const { return coverage_; }
 
 		void set_scale(const Vec2f &scale);
 
-		const ref_ptr<ShaderInput2f> &scale() const;
+		const ref_ptr<ShaderInput2f> &scale() const { return scale_; }
 
 		void set_change(GLdouble change);
 
-		const ref_ptr<ShaderInput1f> &change() const;
+		const ref_ptr<ShaderInput1f> &change() const { return change_; }
 
 		void set_wind(const Vec2f &wind);
 
-		const ref_ptr<ShaderInput2f> &wind() const;
+		const ref_ptr<ShaderInput2f> &wind() const { return wind_; }
 
 		void set_color(const Vec3f &color);
 
 		void set_thickness(GLdouble thickness);
 
-		const ref_ptr<ShaderInput1f> &thickness() const;
+		const ref_ptr<ShaderInput1f> &thickness() const { return thickness_; }
 
 		void set_offset(GLdouble offset);
 
-		const ref_ptr<ShaderInput1f> &offset() const;
+		const ref_ptr<ShaderInput1f> &offset() const { return offset_; }
 
-		const ref_ptr<ShaderInput3f> &color() const;
+		const ref_ptr<ShaderInput3f> &color() const { return color_; }
 
 		void set_bottomColor(const Vec3f &color);
 
-		const ref_ptr<ShaderInput3f> &bottomColor() const;
+		const ref_ptr<ShaderInput3f> &bottomColor() const { return bottomColor_; }
 
 		void set_topColor(const Vec3f &color);
 
-		const ref_ptr<ShaderInput3f> &topColor() const;
+		const ref_ptr<ShaderInput3f> &topColor() const { return topColor_; }
 
-		const ref_ptr<Texture2D> &cloudTexture() const;
+		const ref_ptr<Texture2D> &cloudTexture() const { return cloudTexture_; }
 
-		const ref_ptr<FBO> &cloudTextureFBO() const;
+		const ref_ptr<FBO> &cloudTextureFBO() const { return fbo_; }
 
 		static float defaultAltitudeHigh();
 
@@ -80,15 +80,14 @@ namespace regen {
 		// Override
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
 
-		ref_ptr<Mesh> getMeshState() override;
+		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 
-		ref_ptr<HasShader> getShaderState() override;
+		ref_ptr<HasShader> getShaderState() override { return shaderState_; }
 
 	protected:
 		ref_ptr<Mesh> meshState_;
 		ref_ptr<HasShader> shaderState_;
 
-		ref_ptr<State> updateState_;
 		ref_ptr<ShaderState> updateShader_;
 
 		ref_ptr<UniformBlock> cloudUniforms_;

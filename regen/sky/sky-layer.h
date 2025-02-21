@@ -30,12 +30,15 @@ namespace regen {
 
 		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) = 0;
 
+		ref_ptr<State> updateState() { return updateState_; }
+
 		virtual ref_ptr<Mesh> getMeshState() = 0;
 
 		virtual ref_ptr<HasShader> getShaderState() = 0;
 
 	protected:
 		ref_ptr<Sky> sky_;
+		ref_ptr<State> updateState_;
 
 		GLdouble updateInterval_;
 		GLdouble dt_;

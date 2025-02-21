@@ -34,15 +34,11 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.sky.star-map");
 }
 
-
 GLdouble StarMap::defaultScattering() { return 0.2; }
-
 
 void StarMap::set_texture(const std::string &textureFile) { meshState_->setCubeMap(textures::loadCube(textureFile)); }
 
 void StarMap::set_scattering(GLdouble scattering) { scattering_->setVertex(0, scattering); }
-
-const ref_ptr<ShaderInput1f> &StarMap::scattering() const { return scattering_; }
 
 void StarMap::set_apparentMagnitude(GLdouble apparentMagnitude) {
 	// Precompute brightness based on logarithmic scale.
@@ -55,13 +51,6 @@ void StarMap::set_deltaMagnitude(GLdouble deltaMagnitude) {
 	deltaM_->setVertex(0, deltaMagnitude);
 }
 
-
-ref_ptr<Mesh> StarMap::getMeshState() { return meshState_; }
-
-ref_ptr<HasShader> StarMap::getShaderState() { return meshState_; }
-
-
-void StarMap::updateSkyLayer(RenderState *rs, GLdouble dt) {
-}
+void StarMap::updateSkyLayer(RenderState *rs, GLdouble dt) {}
 
 

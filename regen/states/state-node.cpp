@@ -131,8 +131,6 @@ void StateNode::removeChild(StateNode *child) {
 	}
 }
 
-std::list<ref_ptr<StateNode> > &StateNode::childs() { return childs_; }
-
 static void getStateCamera(const ref_ptr<State> &state, ref_ptr<Camera> *out) {
 	if (dynamic_cast<Camera *>(state.get()))
 		*out = ref_ptr<Camera>::dynamicCast(state);

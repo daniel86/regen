@@ -69,7 +69,7 @@
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
-    <fbo id="sun-shadow" size-mode="abs" size="1024,1024,{{num-cascades}}" >
+    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
         <depth id="depth" pixel-size="24" pixel-type="FLOAT"
             target="TEXTURE_2D_ARRAY"
             wrapping="REPEAT"
@@ -79,6 +79,11 @@
             compare-function="LEQUAL"
             sampler-type="sampler2DArrayShadow" />
     </fbo>
+    <!--
+    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0" >
+        <texture id="color" pixel-type="FLOAT" pixel-size="16" pixel-components="4" />
+    </fbo>
+    -->
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
     <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
@@ -89,6 +94,9 @@
     <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
+    <!--
+    <texture id="fog-splat" file="res/textures/splats/flare.jpg" />
+    -->
     <!-- Spatial Index -->
     <index id="main-index" type="quadtree" max-objects-per-node="4"/>
     <!-- Cameras -->
@@ -103,6 +111,7 @@
             num-layer="{{num-cascades}}"
             split-weight="0.7" />
     <camera id="reflection-camera"
+            culling-index="main-index"
             camera="main-camera"
             reflector-normal="0,1,0"
             reflector-point="0,{{water-surface-y}},0"/>
@@ -181,6 +190,7 @@
         </transform>
     </mesh>
 
+    <!--
     <mesh id="ground-patches"
           type="rectangle"
           lod="2"
@@ -198,9 +208,9 @@
                 z-step="0.0,0.0,10.0" />
             <translate value="-45.0,{{map-y-min}},-45.0" />
         </transform>
-        <!-- TODO: shape should be defined by other ground mesh too! -->
         <shape id="ground-shape" mode="index" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
     </mesh>
+    -->
 
     <node id="Ground">
         <node id="Ground-quad">
@@ -216,11 +226,12 @@
             <input name="lodMinScreenDistance" type="float" value="0.03"/>
             <input name="lodMaxScreenDistance" type="float" value="0.1"/>
             -->
-            <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill"/>
-            <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane" />
+            <material ambient="0.05,0.05,0.05" diffuse="0.5,0.6,0.6" fill-mode="fill"/>
+            <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane"
+                    blend-mode="MUL" />
             <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
             <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
-                     blend-mode="ADD" blend-factor="{{map-height}}"/>
+                    blend-mode="ADD" blend-factor="{{map-height}}"/>
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>
         <!--
@@ -318,7 +329,7 @@
     <!--**************************-->
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
-    <mesh id="tree-mesh" type="proctree" lods="4,2,1" preset="fir">
+    <mesh id="tree-mesh" type="proctree" lods="3,2,1" lod-far="40.0" preset="fir">
         <transform id="tree-tf">
             <set mode="plane"
                 area-mask-texture="tree-mask"
@@ -383,7 +394,7 @@
                 <texture name="gDiffuseTexture" fbo="reflection-buffer" attachment="0"/>
                 <texture name="gSpecularTexture" fbo="reflection-buffer" attachment="2"/>
                 <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3"/>
-                <node import="Shading-Pass"/>
+                <node import="Shading-Pass-No-Shadow"/>
             </node>
             <node import="Background-Objects"/>
         </node>
@@ -530,6 +541,91 @@
     </node>
 
     <!--**************************-->
+    <!--********* Fog **********-->
+    <!--**************************-->
+
+    <!--
+    <mesh id="fog-mesh" type="particles" num-vertices="1000">
+        <define key="EMITTER_POSITION_MODE" value="ABSOLUTE" />
+        <define key="PARTICLE_EMITTER_MODE" value="OUT" />
+        <define key="PARTICLE_EMITTER_SHAPE" value="DISC" />
+        <define key="OPACITY_WEIGHTED_COLOR" value="TRUE" />
+        <input type="vec3" name="gravity" value="0.0,0.0,0.0" />
+        <input type="float" name="dampingFactor" value="2.0" />
+        <input type="vec2" name="velocityFactorMinMax" value="4.0, 10.0" />
+        <input type="vec3" name="emitterPosition" value="0.0, 6.0, 0.0" />
+        <input type="float" name="emitterSize" value="100.0" />
+        <input type="float" name="surfaceHeight" value="1.7" />
+        <input type="float" name="lifetimeDefault" value="40.0" />
+        <input type="float" name="lifetimeVariance" value="4.0" />
+        <input type="vec3" name="pos" is-attribute="1" />
+        <input type="vec3" name="velocity" is-attribute="1" />
+        <input type="float" name="mass" is-attribute="1" default="0.8" variance="0.1"/>
+        <input type="float" name="size" is-attribute="1" default="3.0" variance="0.15"/>
+    </mesh>
+    -->
+
+    <!--
+    <node id="Fog-Update">
+        <depth test="0" write="0" />
+        <camera id="main-camera" />
+
+        <node id="Fog-Particle-Draw">
+            <fbo id="fog-buffer" clear-buffers="*" draw-buffers="*" />
+            <direct-shading ambient="0.3,0.3,0.3" >
+                <direct-lights>
+                    <light id="earth-sky-sun" shadow-buffer="sun-shadow" shadow-attachment="depth" />
+                </direct-lights>
+                <direct-pass>
+                    <node id="Fog-Particle-Draw">
+                        <define key="USE_SOFT_PARTICLES" value="TRUE" />
+                        <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
+                        <define key="IS_SHADOW_RECEIVER" value="FALSE" />
+                        <blend mode="add" />
+                        <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
+                        <texture name="colorTexture" id="fog-splat" map-to="COLOR" blend="SRC" />
+                        <input type="float" name="softParticleScale" value="100.0" />
+                        <input type="float" name="particleBrightness" value="0.1" />
+                        <mesh id="fog-mesh" shader="regen.particles.sprite" />
+                    </node>
+                </direct-pass>
+            </direct-shading>
+        </node>
+
+        <node id="Fog-Particle-Filter">
+            <input type="int" name="numBlurPixels" value="9" />
+            <input type="float" name="blurSigma" value="2.3" />
+            <filter-sequence id="fog-filter" fbo="fog-buffer" attachment="0" >
+                <filter shader="regen.filter.blur.horizontal" />
+                <filter shader="regen.filter.blur.vertical" />
+            </filter-sequence>
+        </node>
+    </node>
+    -->
+
+    <node id="Fog">
+        <node id="Distance-Fog">
+            <blend mode="alpha"/>
+            <input type="float" name="fogDensity" value="0.66"/>
+            <input type="vec2" name="fogDistance" value="75.0,105.0"/>
+            <input type="vec3" name="fogColor" value="0.2,0.2,0.2"/>
+            <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="skyColorTexture" id="earth-sky"/>
+            <define key="USE_SKY_COLOR" value="TRUE"/>
+            <fullscreen-pass shader="regen.shading.fog.distance"/>
+        </node>
+        <!--
+        <node id="Fog-Particles">
+            <blend mode="add" />
+            <depth test="0" write="0" />
+            <texture name="inputTexture" id="fog-filter" />
+            <define key="IS_2D_TEXTURE" value="TRUE" />
+            <fullscreen-pass shader="regen.filter.sampling" />
+        </node>
+        -->
+    </node>
+
+    <!--**************************-->
     <!--**************************-->
 
     <node id="Shadow-Caster">
@@ -559,21 +655,34 @@
         </node>
         <node id="Light-Shading">
             <define key="DEBUG_SHADOW_SLICES" value="0" />
-            <light-pass type="DIRECTIONAL"
-                shader="regen.shading.deferred.directional"
-                shadow-filter="NONE">
-                <light id="earth-sky-sun"
-                    shadow-buffer="sun-shadow"
-                    shadow-attachment="depth"
-                    shadow-camera="sun-camera" />
-            </light-pass>
-            <!--
-            <light-pass type="DIRECTIONAL"
-                        shader="regen.shading.deferred.directional">
-                <light id="earth-sky"/>
-                <light id="earth-sky-moon"/>
-            </light-pass>
-            -->
+            <node>
+                <light-pass type="DIRECTIONAL"
+                    shader="regen.shading.deferred.directional"
+                    shadow-filter="PCF_GAUSSIAN">
+                    <light id="earth-sky-sun"
+                        shadow-buffer="sun-shadow"
+                        shadow-attachment="depth"
+                        shadow-camera="sun-camera" />
+                </light-pass>
+            </node>
+        </node>
+    </node>
+
+    <node id="Shading-Pass-No-Shadow">
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <input type="vec3" name="lightAmbient" value="0.2,0.2,0.2"/>
+
+        <node id="Ambient-Shading">
+            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+        </node>
+        <node id="Light-Shading">
+            <node>
+                <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+                    <light id="earth-sky"/>
+                    <light id="earth-sky-moon"/>
+                </light-pass>
+            </node>
         </node>
     </node>
 
@@ -605,17 +714,7 @@
             </view>
         </node>
 
-        <node id="Distance-Fog">
-            <blend mode="alpha"/>
-            <input type="float" name="fogDensity" value="0.66"/>
-            <input type="vec2" name="fogDistance" value="75.0,105.0"/>
-            <input type="vec3" name="fogColor" value="0.2,0.2,0.2"/>
-            <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
-            <texture name="skyColorTexture" id="earth-sky"/>
-            <define key="USE_SKY_COLOR" value="TRUE"/>
-            <fullscreen-pass shader="regen.shading.fog.distance"/>
-        </node>
-
+        <node import="Fog"/>
         <node import="Scene-Blur"/>
         <node import="ToneMapping">
             <fbo id="g-buffer" draw-buffers="1"/>
@@ -671,7 +770,6 @@
         <input name="Scene" ubo="Scene-UBO"/>
 
         <node id="Pre-Render">
-            <node import="Reflection-Pass"/>
             <node id="Shadow-Pass">
                 <polygon offset-fill="1.1,4.0"/>
                 <define key="OUTPUT_TYPE" value="DEPTH" />
@@ -686,6 +784,15 @@
                 <input type="int" name="arrayTextureSize" value="{{num-cascades}}"/>
                 <fullscreen-pass shader="regen.filter.sampling.array-row-shadow"/>
             </view>
+            <node import="Reflection-Pass"/>
+            <!--
+            <node import="Fog-Update" />
+            <view id="Fog Map">
+                <fbo id="SCREEN"/>
+                <texture name="inputTexture" fbo="fog-buffer" attachment="0" />
+                <fullscreen-pass shader="regen.filter.sampling"/>
+            </view>
+            -->
         </node>
 
         <node id="Debugging">

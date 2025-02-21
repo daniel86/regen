@@ -51,7 +51,7 @@ namespace regen {
 				QTreeWidgetItem *parent);
 
 		bool handleNode(
-				const ref_ptr<StateNode> &node,
+				const StateNode *node,
 				QTreeWidgetItem *parent);
 
 		bool handleInput(

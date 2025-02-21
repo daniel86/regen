@@ -29,6 +29,8 @@ namespace regen {
 
 		void setWorldTime(const WorldTime *worldTime) { worldTime_ = worldTime; }
 
+		auto &worldTime() { return worldTime_; }
+
 		void set_altitude(GLdouble altitude);
 
 		GLdouble altitude() const;
@@ -72,6 +74,8 @@ namespace regen {
 		void set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro) { astro_ = astro; }
 
 		void addLayer(const ref_ptr<SkyLayer> &layer);
+
+		auto &layer() { return layer_; }
 
 		void createShader(RenderState *rs, const StateConfig &stateCfg);
 
