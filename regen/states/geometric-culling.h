@@ -56,6 +56,10 @@ namespace regen {
 				const std::vector<GLuint> &visibleInstances,
 				const ref_ptr<BoundingShape> &shape,
 				std::vector<std::vector<GLuint>> &lodGroups);
+
+		void traverseInstanced(RenderState *rs,
+				const std::vector<unsigned int> &visibleInstances,
+				const ref_ptr<BoundingShape> &shape);
 	};
 }
 
