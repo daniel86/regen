@@ -135,6 +135,26 @@ void GeometricCulling::computeLODGroups(
 	}
 }
 
+void GeometricCulling::traverseInstanced(RenderState *rs,
+		const std::vector<unsigned int> &visibleInstances,
+		const ref_ptr<BoundingShape> &shape) {
+	// update instanceIDMap_ based on visibility
+	auto instance_ids = instanceIDMap_->mapClientData<unsigned int>(ShaderData::WRITE);
+	std::memcpy(instance_ids.w, visibleInstances.data(), visibleInstances.size() * sizeof(unsigned int));
+	instance_ids.unmap();
+	// set number of visible instances
+	mesh_->inputContainer()->set_numVisibleInstances(visibleInstances.size());
+	for (auto &part : shape->parts()) {
+		part->inputContainer()->set_numVisibleInstances(visibleInstances.size());
+	}
+	StateNode::traverse(rs);
+	// reset number of visible instances
+	mesh_->inputContainer()->set_numVisibleInstances(numInstances_);
+	for (auto &part : shape->parts()) {
+		part->inputContainer()->set_numVisibleInstances(numInstances_);
+	}
+}
+
 void GeometricCulling::traverse(RenderState *rs) {
 	if (!spatialIndex_->hasCamera(*camera_.get())) {
 		updateMeshLOD();
@@ -148,56 +168,45 @@ void GeometricCulling::traverse(RenderState *rs) {
 	} else if (!mesh_.get()) {
 		REGEN_WARN("No mesh set for shape " << shapeName_);
 		numInstances_ = 0;
-	} else {
+	}
+	else {
 		auto visibleInstances = spatialIndex_->getVisibleInstances(*camera_.get(), shapeName_);
-		auto shape = spatialIndex_->getShape(shapeName_);
 		//REGEN_INFO("shape " << shapeName_ << " has " << visibleInstances.size() << " visible instances");
+		if (visibleInstances.empty()) { return; }
+		auto shape = spatialIndex_->getShape(shapeName_);
 
-		// build LOD groups, then traverse each group
-		computeLODGroups(visibleInstances, shape, lodGroups_);
-
-		for (unsigned int lodLevel=0; lodLevel<mesh_->numLODs(); ++lodLevel) {
-			auto &lodGroup = lodGroups_[lodLevel];
-			if (lodGroup.empty()) {
-				continue;
-			}
-			// update instanceIDMap_ based on visibility
-			auto instance_ids = instanceIDMap_->mapClientData<GLuint>(ShaderData::WRITE);
-			for (GLuint i = 0; i < lodGroup.size(); ++i) {
-				instance_ids.w[i] = lodGroup[i];
-			}
-			instance_ids.unmap();
-			// set the LOD level
-			if (lodGroups_.size() > 1) {
-				mesh_->activateLOD(lodLevel);
-			}
-			// set number of visible instances
-			mesh_->inputContainer()->set_numVisibleInstances(lodGroup.size());
-			for (auto &part : shape->parts()) {
-				if (mesh_->numLODs() == part->numLODs() && part->numLODs() > 1) {
-					part->activateLOD(lodLevel);
-				}
-				else if (part->numLODs()>1) {
-					// could be part has different number of LODs, need to compute an adusted
-					// LOD level for each part
-					auto adjustedLODLevel = static_cast<unsigned int>(std::round(
-						static_cast<float>(lodLevel) *
-						static_cast<float>(part->numLODs()) /
-						static_cast<float>(mesh_->numLODs())));
-					part->activateLOD(adjustedLODLevel);
-				}
-				part->inputContainer()->set_numVisibleInstances(lodGroup.size());
-			}
-			StateNode::traverse(rs);
-			// reset number of visible instances
-			mesh_->inputContainer()->set_numVisibleInstances(numInstances_);
-			for (auto &part : shape->parts()) {
-				part->inputContainer()->set_numVisibleInstances(numInstances_);
-			}
+		if (lodGroups_.size() < 2) {
+			traverseInstanced(rs, visibleInstances, shape);
 		}
-		// reset LOD level
-		if (lodGroups_.size() > 1) {
-			mesh_->activateLOD(0);
+		else {
+			// build LOD groups, then traverse each group
+			computeLODGroups(visibleInstances, shape, lodGroups_);
+
+			for (unsigned int lodLevel=0; lodLevel<mesh_->numLODs(); ++lodLevel) {
+				auto &lodGroup = lodGroups_[lodLevel];
+				if (lodGroup.empty()) { continue; }
+				// set the LOD level
+				if (lodGroups_.size() > 1) {
+					mesh_->activateLOD(lodLevel);
+				}
+				// set number of visible instances
+				for (auto &part : shape->parts()) {
+					if (mesh_->numLODs() == part->numLODs() && part->numLODs() > 1) {
+						part->activateLOD(lodLevel);
+					}
+					else if (part->numLODs()>1) {
+						// could be part has different number of LODs, need to compute an adjusted
+						// LOD level for each part
+						part->activateLOD(static_cast<unsigned int>(std::round(static_cast<float>(lodLevel) *
+							static_cast<float>(part->numLODs()) / static_cast<float>(mesh_->numLODs()))));
+					}
+				}
+				traverseInstanced(rs, lodGroup, shape);
+			}
+			// reset LOD level
+			if (lodGroups_.size() > 1) {
+				mesh_->activateLOD(0);
+			}
 		}
 	}
 }

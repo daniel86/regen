@@ -103,6 +103,9 @@ namespace regen {
 		std::stack<Node *> nodePool_;
 		float minNodeSize_ = 0.1f;
 
+		Bounds<Vec2f> newBounds_;
+		std::vector<Item *> changedItems_;
+
 		QuadTree::Item* getItem(const ref_ptr<BoundingShape> &shape);
 
 		Node *createNode(const Vec2f &min, const Vec2f &max);
@@ -113,15 +116,15 @@ namespace regen {
 
 		bool insert1(Node *node, Item *shape, bool allowSubdivision);
 
-		void reinsertShapes(Node *node);
+		void removeFromNodes(Item *shape);
 
-		void remove(Item *shape);
-
-		void remove(Node *node, Item *shape);
+		void removeFromNode(Node *node, Item *shape);
 
 		void collapse(Node *node);
 
 		void subdivide(Node *node);
+
+		unsigned int numShapes() const;
 
 		friend class QuadTreeTest;
 	};

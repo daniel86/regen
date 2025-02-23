@@ -6,13 +6,17 @@
 
 #undef QUAD_TREE_THREADING
 #undef QUAD_TREE_DEBUG
+#define QUAD_TREE_EVER_GROWING
+#define QUAD_TREE_SQUARED
 #define QUAD_TREE_SUBDIVIDE_THRESHOLD 4
+#define QUAD_TREE_COLLAPSE_THRESHOLD 2
 
 using namespace regen;
 
 QuadTree::QuadTree()
 		: SpatialIndex(),
-		  root_(nullptr) {
+		  root_(nullptr),
+		  newBounds_(0,0) {
 }
 
 QuadTree::~QuadTree() {
@@ -54,6 +58,28 @@ unsigned int QuadTree::numNodes() const {
 	return count;
 }
 
+unsigned int QuadTree::numShapes() const {
+	if (!root_) {
+		return 0;
+	}
+	std::stack<const Node *> stack;
+	std::set<const BoundingShape *> shapes;
+	stack.push(root_);
+	while (!stack.empty()) {
+		auto *node = stack.top();
+		stack.pop();
+		for (const auto &shape: node->shapes) {
+			shapes.insert(shape->shape.get());
+		}
+		if (!node->isLeaf()) {
+			for (int i = 0; i < 4; i++) {
+				stack.push(node->children[i]);
+			}
+		}
+	}
+	return shapes.size();
+}
+
 QuadTree::Node *QuadTree::createNode(const Vec2f &min, const Vec2f &max) {
 	if (nodePool_.empty()) {
 		return new Node(min, max);
@@ -74,6 +100,7 @@ void QuadTree::freeNode(Node *node) {
 		}
 	}
 	node->shapes.clear();
+	node->parent = nullptr;
 	nodePool_.push(node);
 }
 
@@ -95,25 +122,15 @@ bool QuadTree::insert(Node *node, Item *shape, bool allowSubdivision) { // NOLIN
 		return false;
 	} else {
 		// only subdivide if the node is larger than the shape
-		float nodeSizeX = node->bounds.max.x - node->bounds.min.x;
-		float nodeSizeY = node->bounds.max.y - node->bounds.min.y;
-		float shapeSizeX = shape->projection.bounds().max.x - shape->projection.bounds().min.x;
-		float shapeSizeY = shape->projection.bounds().max.y - shape->projection.bounds().min.y;
-		bool isNodeLargeEnough = (nodeSizeX > 2.0*shapeSizeX && nodeSizeY > 2.0*shapeSizeY);
+		auto nodeSize = node->bounds.max - node->bounds.min;
+		auto shapeSize = shape->projection.bounds().max - shape->projection.bounds().min;
+		bool isNodeLargeEnough = (nodeSize.x > 2.0*shapeSize.x && nodeSize.y > 2.0*shapeSize.y);
 
 		return insert1(node, shape, isNodeLargeEnough && allowSubdivision);
 	}
 }
 
-void QuadTree::reinsertShapes(Node *node) {
-	for (const auto &existingShape: node->shapes) {
-		existingShape->removeNode(node);
-		insert1(node, existingShape, false);
-	}
-	node->shapes.clear();
-}
-
-bool QuadTree::insert1(Node *node, Item *shape, bool allowSubdivision) { // NOLINT(no-recursion)
+bool QuadTree::insert1(Node *node, Item *newShape, bool allowSubdivision) { // NOLINT(no-recursion)
 	if (node->isLeaf()) {
 		// the node does not have child nodes (yet).
 		// the shape can be added to the node in three cases:
@@ -123,14 +140,28 @@ bool QuadTree::insert1(Node *node, Item *shape, bool allowSubdivision) { // NOLI
 		if (!allowSubdivision ||
 				node->shapes.size() < QUAD_TREE_SUBDIVIDE_THRESHOLD ||
 				node->bounds.size() < minNodeSize_) {
-			node->shapes.push_back(shape);
-			shape->nodes.push_back(node);
+			node->shapes.push_back(newShape);
+			newShape->nodes.push_back(node);
 			return true;
 		} else {
+			// split the node into four children
 			subdivide(node);
-			reinsertShapes(node);
-			shape->removeNode(node);
-			return insert1(node, shape, false);
+			bool inserted = false;
+			// remove the subdivided node from the list of nodes of the existing shapes
+			for (const auto &existingShape: node->shapes) {
+				existingShape->removeNode(node);
+			}
+			for (auto &child: node->children) {
+				// reinsert the existing shapes into the new children nodes
+				for (const auto &existingShape: node->shapes) {
+					insert(child, existingShape, true);
+				}
+				// also insert the new shape
+				inserted = insert(child, newShape, true) || inserted;
+			}
+			// subdivided node does not contain shapes anymore
+			node->shapes.clear();
+			return inserted;
 		}
 	} else {
 		// the node has child nodes, must insert into one of them
@@ -138,7 +169,7 @@ bool QuadTree::insert1(Node *node, Item *shape, bool allowSubdivision) { // NOLI
 		//       (at least on the next level)
 		bool inserted = false;
 		for (auto &child: node->children) {
-			inserted = insert(child, shape, allowSubdivision) || inserted;
+			inserted = insert(child, newShape, allowSubdivision) || inserted;
 		}
 		return inserted;
 	}
@@ -150,17 +181,18 @@ void QuadTree::remove(const ref_ptr<BoundingShape> &shape) {
 		REGEN_WARN("Shape not found in quad tree.");
 		return;
 	}
-	remove(item);
+	removeFromNodes(item);
 }
 
-void QuadTree::remove(Item *item) {
-	for (auto &node : item->nodes) {
-		remove(node, item);
+void QuadTree::removeFromNodes(Item *item) {
+	auto nodes = item->nodes;
+	for (auto &node : nodes) {
+		removeFromNode(node, item);
 	}
 	item->nodes.clear();
 }
 
-void QuadTree::remove(Node *node, Item *shape) {
+void QuadTree::removeFromNode(Node *node, Item *shape) {
 	auto it = std::find(node->shapes.begin(), node->shapes.end(), shape);
 	if (it == node->shapes.end()) {
 		return;
@@ -174,29 +206,47 @@ void QuadTree::collapse(Node *node) {
 		return;
 	}
 	auto *parent = node->parent;
-	// Collapse condition: all children contain the same set of shapes.
-	std::set<Item *> shapes;
-	for (auto &shape: parent->children[0]->shapes) {
-		shapes.insert(shape);
+	auto &firstShapes = parent->children[0]->shapes;
+	for (auto &child : parent->children) {
+		if (!child->isLeaf()) {
+			// at least one child is not a leaf -> no collapse
+			return;
+		}
+	}
+	if (parent->children[0]->shapes.size() > QUAD_TREE_COLLAPSE_THRESHOLD) {
+		// no collapse
+		return;
 	}
 	for (int i = 1; i < 4; i++) {
-		if (parent->children[i]->shapes.size() != shapes.size()) {
+		if (parent->children[i]->shapes.size() != firstShapes.size()) {
 			// unequal number of shapes -> no collapse
 			return;
 		}
 		for (auto &shape: parent->children[i]->shapes) {
-			if (shapes.find(shape) == shapes.end()) {
-				// shape not found in the set -> no collapse
+			if (std::find(firstShapes.begin(), firstShapes.end(), shape) == firstShapes.end()) {
+				// not all children contain the same set of shapes -> no collapse
 				return;
 			}
 		}
 	}
-	// All children contain the same set of shapes -> collapse the node.
+	// finally, collapse the node...
+	for (auto &shape: firstShapes) {
+		// remove the children nodes from the shape's list of nodes
+		for (int i = 0; i < 4; i++) {
+			auto it = std::find(shape->nodes.begin(), shape->nodes.end(), parent->children[i]);
+			shape->nodes.erase(it);
+		}
+		// add the parent node to the shape's list of nodes
+		shape->nodes.push_back(parent);
+		// add the shape to the parent node
+		parent->shapes.push_back(shape);
+	}
+	// free all children nodes
 	for (int i = 0; i < 4; i++) {
 		freeNode(parent->children[i]);
 		parent->children[i] = nullptr;
 	}
-	parent->shapes.insert(parent->shapes.end(), shapes.begin(), shapes.end());
+	// continue collapsing the parent node
 	collapse(parent);
 }
 
@@ -494,9 +544,17 @@ void QuadTree::foreachIntersection(
 void QuadTree::update(float dt) {
 	static auto maxFloat = Vec2f(std::numeric_limits<float>::lowest());
 	static auto minFloat = Vec2f(std::numeric_limits<float>::max());
-	Bounds<Vec2f> newBounds(minFloat, maxFloat);
-	std::vector<Item *> changedItems;
 	bool hasChanged;
+
+	changedItems_.clear();
+	newBounds_.min = minFloat;
+	newBounds_.max = maxFloat;
+#ifdef QUAD_TREE_EVER_GROWING
+	if (root_ != nullptr) {
+		// never shrink the root node
+		newBounds_.extend(root_->bounds);
+	}
+#endif
 
 	// go through all items and update their geometry and transform, and the new bounds
 	for (const auto &it: items_) {
@@ -504,10 +562,11 @@ void QuadTree::update(float dt) {
 		hasChanged = item->shape->updateGeometry();
 		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
 		if (hasChanged) {
+			// TODO: rather update the old projection instead of creating a new one
 			item->projection = OrthogonalProjection(*item->shape.get());
-			changedItems.push_back(item);
+			changedItems_.push_back(item);
 		}
-		newBounds.extend(item->projection.bounds());
+		newBounds_.extend(item->projection.bounds());
 	}
 	// do the same for any additional items added to the tree
 	for (const auto &item: newItems_) {
@@ -516,14 +575,21 @@ void QuadTree::update(float dt) {
 		if (hasChanged) {
 			item->projection = OrthogonalProjection(*item->shape.get());
 		}
-		newBounds.extend(item->projection.bounds());
+		newBounds_.extend(item->projection.bounds());
 	}
+#ifdef QUAD_TREE_SQUARED
+	// make the bounds square
+	newBounds_.min.x = std::min(newBounds_.min.x, newBounds_.min.y);
+	newBounds_.min.y = newBounds_.min.x;
+	newBounds_.max.x = std::max(newBounds_.max.x, newBounds_.max.y);
+	newBounds_.max.y = newBounds_.max.x;
+#endif
 	// if bounds have changed, re-initialize the tree
-	auto reInit = (root_ == nullptr || newBounds != root_->bounds);
+	auto reInit = (root_ == nullptr || newBounds_ != root_->bounds);
 	if (reInit) {
 		// free the root node and start all over
 		if(root_) freeNode(root_);
-		root_ = createNode(newBounds.min, newBounds.max);
+		root_ = createNode(newBounds_.min, newBounds_.max);
 
 		for (auto &it: items_) {
 			auto &item = it.second;
@@ -533,8 +599,8 @@ void QuadTree::update(float dt) {
 	}
 	// else remove/insert the changed items
 	else {
-		for (auto item: changedItems) {
-			remove(item);
+		for (auto item: changedItems_) {
+			removeFromNodes(item);
 			insert1(root_, item, true);
 		}
 	}
