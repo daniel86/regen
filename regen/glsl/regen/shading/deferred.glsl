@@ -522,7 +522,7 @@ void main() {
 in vec3 in_pos;
 out vec3 out_intersection;
 #ifdef HAS_INSTANCES
-flat in int in_instanceID;
+flat out int out_instanceID;
 #endif
 
 uniform mat4 in_modelMatrix;

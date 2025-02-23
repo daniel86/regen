@@ -124,6 +124,9 @@ const float in_softParticleScale = 1.0;
 #ifdef HAS_FRAGMENT_TEXTURE
     #include regen.states.textures.mapToFragmentUnshaded
 #endif
+#ifdef HAS_fogDistance
+    #include regen.shading.fog.fogIntensity
+#endif
 
 void main() {
     vec3 P = in_posWorld.xyz;
@@ -146,6 +149,9 @@ void main() {
     vec4 color = vec4(1.0);
     textureMappingFragmentUnshaded(P, color);
     opacity *= color.a;
+    #endif
+    #ifdef HAS_fogDistance
+    opacity *= fogIntensity(distance(P, in_cameraPosition));
     #endif
     out_density = opacity;
 #else // HAS_DENSITY_OUTPUT

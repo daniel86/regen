@@ -50,12 +50,12 @@ out vec3 out_ray;
 void main() {
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
-  gl_Layer = ${LAYER};
-  out_layer = ${LAYER};
-  emitStarVertex(gl_in[0].gl_Position.xyz, 0, ${LAYER}); EmitVertex();
-  emitStarVertex(gl_in[1].gl_Position.xyz, 1, ${LAYER}); EmitVertex();
-  emitStarVertex(gl_in[2].gl_Position.xyz, 2, ${LAYER}); EmitVertex();
-  EndPrimitive();
+    gl_Layer = ${LAYER};
+    out_layer = ${LAYER};
+    emitStarVertex(gl_in[0].gl_Position.xyz, 0, ${LAYER}); EmitVertex();
+    emitStarVertex(gl_in[1].gl_Position.xyz, 1, ${LAYER}); EmitVertex();
+    emitStarVertex(gl_in[2].gl_Position.xyz, 2, ${LAYER}); EmitVertex();
+    EndPrimitive();
 #endif // SKIP_LAYER
 #endfor
 }
@@ -86,20 +86,19 @@ uniform samplerCube in_starmapCube;
 
 #include regen.sky.utility.scatter
 #include regen.sky.utility.computeEyeExtinction
+#include regen.sky.utility.sunIntensity
 
 void main(void) {
-  vec3 eye = in_posWorld.xyz;
-  float ext = computeEyeExtinction(in_posWorld.xyz);
-  if(ext <= 0.0) discard;
-  
-  vec4 fc = texture(in_starmapCube, in_ray);
-  fc *= 3e-2 / sqrt(in_q) * in_deltaM;
-  
-  float omega = acos(eye.y * 0.9998);
-  // Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
-  float b = 1.0 / sqrt(1 + pow(in_sunPosition.z + 1.14, 32));
-  
-  out_color = smoothstep(0.0, 0.05, ext) * vec4(b * (
-	fc.rgb - in_scattering*scatter(omega)), 1.0);
-  //out_color = vec4(in_ray.xyz,1);
+    vec3 eye = in_posWorld.xyz;
+    float ext = computeEyeExtinction(in_posWorld.xyz);
+    if(ext <= 0.0) discard;
+
+    vec4 fc = texture(in_starmapCube, in_ray);
+    fc *= 3e-2 / sqrt(in_q) * in_deltaM;
+
+    float omega = acos(eye.y * 0.9998);
+
+    out_color = smoothstep(0.0, 0.05, ext) *
+        vec4(sunIntensity() * (fc.rgb - in_scattering*scatter(omega)), 1.0);
+    //out_color = vec4(in_ray.xyz,1);
 }

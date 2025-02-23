@@ -53,8 +53,9 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 	handleNode(node.get(), item);
 	item->setExpanded(true);
 
-	auto *anims = new QTreeWidgetItem(item);
-	anims->setText(0, "animations");
+	auto *animWidget = new QTreeWidgetItem(item);
+	animWidget->setText(0, "animations");
+	animWidget->setExpanded(true);
 	int index = 0;
 	std::set<Animation *> allAnimations;
 	for (auto &anim : AnimationManager::get().synchronizedAnimations()) {
@@ -67,7 +68,7 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 		allAnimations.insert(anim);
 	}
 	for (auto &anim : allAnimations) {
-		auto *animItem = new QTreeWidgetItem(anims);
+		auto *animItem = new QTreeWidgetItem(animWidget);
 		// use index as name for now
 		std::string animName;
 		if (anim->hasAnimationName()) {
@@ -76,14 +77,20 @@ void ShaderInputWidget::setNode(const ref_ptr<StateNode> &node) {
 			animName = REGEN_STRING("animation-" << (index++));
 		}
 		animItem->setText(0, QString::fromStdString(animName));
-		handleState(anim->animationState(), animItem);
+		animItem->setExpanded(true);
+		if(!handleState(anim->animationState(), animItem)) {
+			delete animItem;
+			continue;
+		}
 
-		auto *skyAnim = dynamic_cast<Sky *>(anim);
+		auto *skyAnim = dynamic_cast<const Sky *>(anim);
 		if (skyAnim != nullptr) {
 			for (auto &layer : skyAnim->layer()) {
 				auto *layerItem = new QTreeWidgetItem(animItem);
 				layerItem->setText(0, layer->name().c_str());
-				handleState(layer->updateState(), layerItem);
+				if(!handleState(layer->updateState(), layerItem)) {
+					delete layerItem;
+				}
 			}
 		}
 	}
@@ -106,7 +113,7 @@ bool ShaderInputWidget::handleNode(
 	for (auto it = node->childs().begin(); it != node->childs().end(); ++it) {
 		auto *child = new QTreeWidgetItem(parent);
 		child->setText(0, QString::fromStdString((*it)->name()));
-		child->setExpanded(level < 5);
+		child->setExpanded(level < 4);
 		if (handleNode(it->get(), child)) {
 			isEmpty = false;
 		} else {
@@ -173,10 +180,14 @@ bool ShaderInputWidget::handleInput(
 
 	if (in->isUniformBlock()) {
 		auto *block = dynamic_cast<UniformBlock *>(in.get());
-		for (auto &uniform : block->uniforms()) {
-			handleInput(uniform, parent);
+		if (block->name() == "GlobalUniforms") {
+			return false;
 		}
-		return true;
+		bool hasInputs = false;
+		for (auto &uniform : block->uniforms()) {
+			hasInputs = handleInput(uniform, parent) || hasInputs;
+		}
+		return hasInputs;
 	}
 
 	if (initialValue_.count(in.get()) > 0) {

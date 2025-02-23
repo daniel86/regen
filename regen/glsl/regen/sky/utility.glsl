@@ -113,7 +113,16 @@ vec4 fakeSun(const vec3 eye,
   s *= alpha * 0.1 + 0.2;            // Reduce suns' size on low alpha.
   s *= clamp(eye.z + 0.1, 0.0, 0.1); // Disappear in lower hemisphere.
   s  = clamp(clamp(s, 0.0, 2.0) - (1.0 - alpha) * 2.0, 0.0, 2.0);
-  return vec4(coeffs.rgb * s, coeffs.a);\n"
+  return vec4(coeffs.rgb * s, coeffs.a);
+}
+#endif
+
+-- sunIntensity
+#ifndef __sunIntensity_INCLUDED
+#define2 __sunIntensity_INCLUDED
+float sunIntensity() {
+    // Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
+    return 1.0 / sqrt(1 + pow(in_sunPosition.y + 1.14, 32));
 }
 #endif
 
@@ -203,6 +212,6 @@ float phase(float alpha, float g)
 #define2 __absorb_float_vec3_float__INCLUDED
 vec3 absorb(float dist, vec3 color, float factor)
 {
-    return color-color*pow(in_skyAbsorbtion, vec3(factor/dist));
+    return color-color*pow(in_skyAbsorption, vec3(factor/dist));
 }
 #endif

@@ -97,56 +97,21 @@
 <!--****** Sky and Sun *******-->
 <!--**************************-->
 
-<sky id="earth-sky"
-     camera="main-camera"
-     update-interval="200.0" >
-  <star-map texture="applications/res/sky/milkyway.png"
-	    scattering="0.02"
-	    delta-magnitude="0.5"
-	    lod="4" />
-  <stars catalog="applications/res/sky/bright-stars.bin"
-	 scale="1.4"
-	 scattering="1.0"
-	 scintillation="0.2"
-	 glare-intensity="0.04"
-	 glare-scale="0.2"
-	 color="0.66,0.78,1.0"
-	 color-ratio="0.66"
-	 apparent-magnitude="6.0"/>
-  <moon texture="res/sky/moon.png"
-	scale="0.04"
-	scattering="4.0"
-	sun-shine-color="0.923,0.786,0.636"
-	sun-shine-intensity="128.0"
-	earth-shine-color="0.88,0.96,1.0"
-	earth-shine-intensity="8.0" />
-  <atmosphere preset="earth" size="256" lod="4" />
-  <cloud-layer id="earth-clouds"
-	       texture-size="1028"
-	       sharpness="0.6"
-	       coverage="0.2"
-	       altitude="8.0"
-	       scale="32.0,32.0"
-	       change="0.04"
-	       wind="0.0,0.0"
-	       color="1.0,1.0,1.0"
-	       update-interval="60.0"
-	       use-scatter="FALSE" />
-  <!--
-  <cloud-layer texture-size="2048"
-	       sharpness="0.2"
-	       coverage="0.2"
-	       thickness="0.3"
-	       offset="-0.5"
-	       altitude="2.0"
-	       scale="128.0,128.0"
-	       change="0.1"
-	       wind="0.01,0.0"
-	       top-color="1.0,1.0,1.0"
-	       bottom-color="1.0,1.0,1.0"
-	       update-interval="60.0"
-	       use-scatter="TRUE" />
-  -->
+<sky id="earth-sky" camera="main-camera" update-interval="200.0" >
+    <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4" />
+    <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
+        scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+        glare-intensity="0.04" glare-scale="0.2"
+        color="0.66,0.78,1.0" color-ratio="0.66"/>
+    <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
+        sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
+        earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
+    <atmosphere preset="earth" size="256" lod="4" />
+    <!--
+    <cloud-layer id="earth-clouds" texture-size="1028" update-interval="60.0" use-scatter="FALSE"
+        sharpness="0.6" coverage="0.2" altitude="8.0" scale="32.0,32.0"
+        change="0.04" wind="0.0,0.0" color="1.0,1.0,1.0" />
+    -->
 </sky>
 
 <!--**************************-->

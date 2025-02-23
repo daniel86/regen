@@ -31,15 +31,15 @@ namespace regen {
 
 		auto &worldTime() { return worldTime_; }
 
-		void set_altitude(GLdouble altitude);
+		void set_altitude(float altitude);
 
 		GLdouble altitude() const;
 
-		void set_longitude(GLdouble longitude);
+		void set_longitude(float longitude);
 
 		GLdouble longitude() const;
 
-		void set_latitude(GLdouble latitude);
+		void set_latitude(float latitude);
 
 		GLdouble latitude() const;
 
@@ -75,9 +75,9 @@ namespace regen {
 
 		void addLayer(const ref_ptr<SkyLayer> &layer);
 
-		auto &layer() { return layer_; }
+		auto &layer() const { return layer_; }
 
-		void createShader(RenderState *rs, const StateConfig &stateCfg);
+		void createShader();
 
 		// override
 		void animate(GLdouble dt) override;

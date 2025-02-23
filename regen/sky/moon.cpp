@@ -8,12 +8,9 @@
 #include "moon.h"
 
 #include <regen/external/osghimmel/noise.h>
-#include <regen/states/state-configurer.h>
-#include <regen/meshes/primitives/rectangle.h>
 #include <regen/textures/texture-loader.h>
 
 using namespace regen;
-
 
 MoonLayer::MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 		: SkyLayer(sky) {
@@ -53,41 +50,30 @@ void MoonLayer::setupMoonTextureCube(const std::string &moonMapFile) {
 	state()->joinStates(ref_ptr<TextureState>::alloc(texture, "moonmapCube"));
 }
 
+float MoonLayer::defaultScale() { return 0.1; }
 
-GLdouble MoonLayer::defaultScale() { return 0.1; }
-
-GLdouble MoonLayer::defaultScattering() { return 4.0; }
+float MoonLayer::defaultScattering() { return 4.0; }
 
 Vec3f MoonLayer::defaultSunShineColor() { return {0.923, 0.786, 0.636}; }
 
-GLdouble MoonLayer::defaultSunShineIntensity() { return 128.0; }
+float MoonLayer::defaultSunShineIntensity() { return 128.0; }
 
 Vec3f MoonLayer::defaultEarthShineColor() { return {0.88, 0.96, 1.0}; }
 
-GLdouble MoonLayer::defaultEarthShineIntensity() { return 4.0; }
-
-
-void MoonLayer::set_scale(GLdouble scale) { scale_->setVertex(0, scale); }
-
-void MoonLayer::set_scattering(GLdouble scattering) { scattering_->setVertex(0, scattering); }
+float MoonLayer::defaultEarthShineIntensity() { return 4.0; }
 
 void MoonLayer::set_sunShineColor(const Vec3f &color) {
 	auto v_sunShine = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
 	v_sunShine.w = Vec4f(color, v_sunShine.r.w);
 }
 
-void MoonLayer::set_sunShineIntensity(GLdouble intensity) {
+void MoonLayer::set_sunShineIntensity(float intensity) {
 	auto v_color = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
 	v_color.w = Vec4f(v_color.r.xyz_(), intensity);
 }
-
-ref_ptr<Mesh> MoonLayer::getMeshState() { return meshState_; }
-
-ref_ptr<HasShader> MoonLayer::getShaderState() { return shaderState_; }
 
 void MoonLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	moonOrientation_->setVertex(0, sky_->astro().getMoonOrientation());
 	earthShine_->setVertex(0, earthShineColor_ *
 							  (sky_->astro().getEarthShineIntensity() * earthShineIntensity_));
 }
-

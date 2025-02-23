@@ -60,6 +60,8 @@ namespace regen {
 		 */
 		explicit CameraController(const ref_ptr<Camera> &cam);
 
+		~CameraController() override = default;
+
 		/**
 		 * Initializes the camera with a position and direction.
 		 * @param pos the position of the camera.

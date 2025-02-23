@@ -11,6 +11,8 @@ namespace regen {
 	public:
 		explicit CameraControllerBase(const ref_ptr<Camera> &cam);
 
+		virtual ~CameraControllerBase() = default;
+
 		/**
 		 * Computes the transformation matrices of the camera.
 		 * @param pos the camera position.

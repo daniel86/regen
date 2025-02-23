@@ -8,9 +8,7 @@
 #include "cloud-layer.h"
 
 #include <regen/external/osghimmel/noise.h>
-#include <regen/states/depth-state.h>
 #include <regen/states/state-configurer.h>
-#include <regen/meshes/primitives/rectangle.h>
 
 using namespace regen;
 
@@ -77,7 +75,6 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	cloudTexture_->wrapping().push(GL_REPEAT);
 	cloudTexture_->texImage();
 	cloudTexture_->end(RenderState::get());
-	GL_ERROR_LOG();
 	state()->joinStates(ref_ptr<TextureState>::alloc(cloudTexture_, "cloudTexture"));
 
 	// create render target for updating the sky cube map
@@ -140,7 +137,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	///////
 	/// Update State
 	///////
-	ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
+	updateMesh_ = Rectangle::getUnitQuad();
 	updateState_->joinShaderInput(fbo_->inverseViewport());
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise0_, "noise0"));
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise1_, "noise1"));
@@ -150,18 +147,18 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	updateState_->joinShaderInput(sharpness_);
 	updateState_->joinShaderInput(change_);
 	updateState_->joinShaderInput(wind_);
+	updateState_->joinShaderInput(sky->worldTime()->in);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
-	updateState_->joinStates(updateMesh);
-	///////
-	/// Update Shader
-	///////
+	updateState_->joinStates(updateMesh_);
+}
+
+void CloudLayer::createUpdateShader() {
 	StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
 	shaderConfig.setVersion(330);
 	updateShader_->createShader(shaderConfig, "regen.sky.clouds.pre-noise");
-	updateMesh->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
+	updateMesh_->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
 }
-
 
 float CloudLayer::defaultAltitudeHigh() { return 8.0f; }
 
@@ -171,31 +168,9 @@ Vec2f CloudLayer::defaultScaleHigh() { return {32.0, 32.0}; }
 
 Vec2f CloudLayer::defaultScaleLow() { return {128.0, 128.0}; }
 
-GLdouble CloudLayer::defaultChangeHigh() { return 0.1f; }
+float CloudLayer::defaultChangeHigh() { return 0.1f; }
 
-GLdouble CloudLayer::defaultChangeLow() { return 0.1f; }
-
-void CloudLayer::set_color(const Vec3f &color) { color_->setVertex(0, color); }
-
-void CloudLayer::set_altitude(GLdouble altitude) { altitude_->setVertex(0, altitude); }
-
-void CloudLayer::set_sharpness(GLdouble sharpness) { sharpness_->setVertex(0, sharpness); }
-
-void CloudLayer::set_coverage(GLdouble coverage) { coverage_->setVertex(0, coverage); }
-
-void CloudLayer::set_scale(const Vec2f &scale) { scale_->setVertex(0, scale); }
-
-void CloudLayer::set_change(GLdouble change) { change_->setVertex(0, change); }
-
-void CloudLayer::set_wind(const Vec2f &wind) { wind_->setVertex(0, wind); }
-
-void CloudLayer::set_bottomColor(const Vec3f &color) { bottomColor_->setVertex(0, color); }
-
-void CloudLayer::set_topColor(const Vec3f &color) { topColor_->setVertex(0, color); }
-
-void CloudLayer::set_thickness(GLdouble thickness) { thickness_->setVertex(0, thickness); }
-
-void CloudLayer::set_offset(GLdouble offset) { offset_->setVertex(0, offset); }
+float CloudLayer::defaultChangeLow() { return 0.1f; }
 
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().push(fbo_->id());

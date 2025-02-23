@@ -60,26 +60,24 @@ flat out int out_layer;
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posWorld, int index, int layer) {
-  vec4 posEye = transformWorldToEye(posWorld,layer);
-  out_posWorld = posWorld.xyz;
-  out_posEye = posEye.xyz;
-  gl_Position = transformEyeToScreen(posEye,layer);
-  gl_Position.z = gl_Position.w;
-  HANDLE_IO(index);
-  
-  EmitVertex();
+    vec4 posEye = transformWorldToEye(posWorld,layer);
+    out_posWorld = posWorld.xyz;
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+    gl_Position.z = gl_Position.w;
+    HANDLE_IO(index);
+    EmitVertex();
 }
 
 void main() {
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
-  // select framebuffer layer
-  gl_Layer = ${LAYER};
-  out_layer = ${LAYER};
-  emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-  emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-  emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-  EndPrimitive();
+    gl_Layer = ${LAYER};
+    out_layer = ${LAYER};
+    emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
+    emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
+    emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
+    EndPrimitive();
 #endif // SKIP_LAYER
 #endfor
 }
@@ -109,6 +107,7 @@ const float in_scale = 0.1;
 const float surfaceHeight = 0.99;
 
 #include regen.sky.utility.computeEyeExtinction
+#include regen.sky.utility.sunIntensity
 
 // Hapke-Lommel-Seeliger approximation of the moons reflectance function.
 // i between incident  (+sun) and surface
@@ -170,11 +169,8 @@ void main(void)
     float cos_i = dot( in_sunPosition, h_n);
     float cos_r = dot(-eye, h_n);
     float f = brdf(cos_r, cos_i, cos_p);
-
-    // Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
-    float b = 0.5 / sqrt(1 + pow(in_sunPosition.y + 1.05, 32)) + 0.33;
     
-    vec3 diffuse = (in_earthShine.rgb + in_sunShine.rgb * in_sunShine.w * f * b)*c.a;
+    vec3 diffuse = (in_earthShine.rgb + in_sunShine.rgb * in_sunShine.w * f * sunIntensity())*c.a;
 
 #ifndef SKIP_SCATTER
     diffuse *= (1 - in_scattering * scatter(acos(eye.y)));

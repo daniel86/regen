@@ -42,7 +42,6 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	astro_->setLongitude(13.3611);
 
 	auto uniformBlock = ref_ptr<UniformBlock>::alloc("Sky");
-	state()->joinShaderInput(uniformBlock);
 
 	// 0: altitude in km
 	// 1: apparent angular radius (not diameter!)
@@ -93,10 +92,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	cfg.usage = VBO::USAGE_STATIC;
 	skyQuad_ = ref_ptr<Rectangle>::alloc(cfg);
 
+	state()->joinShaderInput(uniformBlock);
 	// mae some parts of the sky configurable from the GUI.
-	// TODO: need to add the whole node here I guess.
 	setAnimationName("sky");
 	joinAnimationState(state());
+	GL_ERROR_LOG();
 }
 
 osgHimmel::AbstractAstronomy &Sky::astro() { return *astro_.get(); }
@@ -110,7 +110,7 @@ GLdouble Sky::longitude() const { return astro_->getLongitude(); }
 
 GLdouble Sky::latitude() const { return astro_->getLatitude(); }
 
-void Sky::set_altitude(const GLdouble altitude) {
+void Sky::set_altitude(const float altitude) {
 	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
 	v_cmnUniform.w = Vec4f(
 		math::clamp(altitude, 0.001f, osgHimmel::Earth::atmosphereThicknessNonUniform()),
@@ -119,11 +119,11 @@ void Sky::set_altitude(const GLdouble altitude) {
 		v_cmnUniform.r.w);
 }
 
-void Sky::set_longitude(const GLdouble longitude) {
+void Sky::set_longitude(const float longitude) {
 	astro_->setLongitude(longitude);
 }
 
-void Sky::set_latitude(const GLdouble latitude) {
+void Sky::set_latitude(const float latitude) {
 	astro_->setLatitude(latitude);
 }
 
@@ -139,18 +139,13 @@ void Sky::updateSeed() {
 void Sky::addLayer(const ref_ptr<SkyLayer> &layer) {
 	addChild(layer);
 	this->layer_.push_back(layer);
+	GL_ERROR_LOG();
 }
 
-void Sky::createShader(RenderState *rs, const StateConfig &stateCfg) {
+void Sky::createShader() {
 	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
 		ref_ptr<SkyLayer> &layer = *it;
-
-		StateConfigurer cfg(stateCfg);
-		cfg.addNode(layer.get());
-
-		layer->getShaderState()->createShader(cfg.cfg());
-		layer->getMeshState()->updateVAO(RenderState::get(), cfg.cfg(),
-										 layer->getShaderState()->shaderState()->shader());
+		layer->createUpdateShader();
 	}
 }
 
@@ -164,7 +159,7 @@ void Sky::stopAnimation() {
 	Animation::stopAnimation();
 }
 
-GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius) {
+GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float radius) {
 	GLfloat u = dir.dot(-position);
 	if (u < 0.0) {
 		return 1.0;
@@ -182,9 +177,9 @@ GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, G
 }
 
 GLfloat Sky::computeEyeExtinction(const Vec3f &eyedir) {
-	GLfloat surfaceHeight = 0.99;
-	Vec3f eyePosition(0.0, surfaceHeight, 0.0);
-	return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight - 0.15);
+	static const float surfaceHeight = 0.99f;
+	static const Vec3f eyePosition(0.0, surfaceHeight, 0.0);
+	return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight - 0.15f);
 }
 
 static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
@@ -225,8 +220,8 @@ void Sky::animate(GLdouble dt) {
 	);
 
 	const float fovHalf = camera()->fov()->getVertex(0).r * 0.5f * DEGREE_TO_RAD;
-	const float height = viewport()->getVertex(0).r.y;
-	q_->setVertex(0, sqrt(2.0) * 2.0 * tan(fovHalf) / height);
+	const float height = static_cast<float>(viewport()->getVertex(0).r.y);
+	q_->setVertex(0, sqrt(2.0f) * 2.0f * tan(fovHalf) / height);
 	R_->setVertex(0, astro().getEquToHorTransform());
 	// Update random number in cmn uniform
 	updateSeed();
@@ -234,7 +229,6 @@ void Sky::animate(GLdouble dt) {
 
 void Sky::glAnimate(RenderState *rs, GLdouble dt) {
 	for (auto it = layer_.begin(); it != layer_.end(); ++it) {
-		// TODO: allow sky layer to make updates in GUI thread
 		(*it)->updateSky(rs, dt);
 	}
 }

@@ -410,6 +410,11 @@ void AnimationManager::clear() {
 	spatialIndices_.clear();
 }
 
-void AnimationManager::resume() {
+void AnimationManager::resume(bool blocking) {
 	pauseFlag_ = false;
+	if (blocking) {
+		auto last_t = lastTime_;
+		nextFrame();
+		while (last_t == lastTime_) usleepRegen(1000);
+	}
 }
