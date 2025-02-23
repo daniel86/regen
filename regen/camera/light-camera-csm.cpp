@@ -36,6 +36,7 @@ LightCamera_CSM::LightCamera_CSM(
 		  userCameraFrustum_(numLayer),
 		  userFrustumCentroids_(numLayer) {
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
+	shaderDefine("RENDER_TARGET_MODE", "CASCADE");
 
 	// Set matrix array size
 #ifndef CSM_USE_SINGLE_VIEW
@@ -77,6 +78,12 @@ LightCamera_CSM::LightCamera_CSM(
 	lightMatrix_->set_forceArray(true);
 	lightMatrix_->setUniformUntyped();
 	setInput(lightMatrix_);
+	// these are needed to compute the CSM layer given a position
+	setInput(near_, "lightNear");
+	setInput(far_, "lightFar");
+	setInput(userCamera_->position(), "userPosition");
+	setInput(userCamera_->direction(), "userDirection");
+	setInput(userCamera_->projection(), "userProjection");
 
 	updateDirectionalLight();
 }

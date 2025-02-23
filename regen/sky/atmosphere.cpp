@@ -14,11 +14,11 @@ using namespace regen;
 
 Atmosphere::Atmosphere(
 		const ref_ptr<Sky> &sky,
-		GLuint cubeMapSize,
-		GLboolean useFloatBuffer,
-		GLuint levelOfDetail)
+		unsigned int cubeMapSize,
+		bool useFloatBuffer,
+		unsigned int levelOfDetail)
 		: SkyLayer(sky) {
-	ref_ptr<Mesh> updateMesh = Rectangle::getUnitQuad();
+	updateMesh_ = Rectangle::getUnitQuad();
 
 	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
 
@@ -63,94 +63,84 @@ Atmosphere::Atmosphere(
 	spotBrightness_->setUniformData(0.0f);
 	scatterStrength_ = ref_ptr<ShaderInput1f>::alloc("scatterStrength");
 	scatterStrength_->setUniformData(0.0f);
-	skyAbsorbtion_ = ref_ptr<ShaderInput3f>::alloc("skyAbsorbtion");
-	skyAbsorbtion_->setUniformData(Vec3f(0.0f));
+	skyAbsorption_ = ref_ptr<ShaderInput3f>::alloc("skyAbsorption");
+	skyAbsorption_->setUniformData(Vec3f(0.0f));
 	///////
 	/// Update State
 	///////
-	updateState_ = ref_ptr<State>::alloc();
 	auto atmosphereUBO = ref_ptr<UniformBlock>::alloc("Atmosphere");
 	atmosphereUBO->addUniform(sky->sun()->direction(), "sunDir");
 	atmosphereUBO->addUniform(mie_);
 	atmosphereUBO->addUniform(rayleigh_);
 	atmosphereUBO->addUniform(spotBrightness_);
-	atmosphereUBO->addUniform(skyAbsorbtion_);
+	atmosphereUBO->addUniform(skyAbsorption_);
 	atmosphereUBO->addUniform(scatterStrength_);
 	updateState_->joinShaderInput(atmosphereUBO);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
-	updateState_->joinStates(updateMesh);
-	///////
-	/// Update Shader
-	///////
+	updateState_->joinStates(updateMesh_);
+	updateState_->joinShaderInput(sky_->worldTime()->in);
+}
+
+void Atmosphere::createUpdateShader() {
 	StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
 	shaderConfig.setVersion(330);
 	updateShader_->createShader(shaderConfig, "regen.sky.atmosphere");
-	updateMesh->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
+	updateMesh_->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
 }
 
-void Atmosphere::setRayleighBrightness(GLfloat v) {
+void Atmosphere::setRayleighBrightness(float v) {
 	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_rayleigh.w = Vec3f(v / 10.0, v_rayleigh.r.y, v_rayleigh.r.z);
+	v_rayleigh.w = Vec3f(v / 10.0f, v_rayleigh.r.y, v_rayleigh.r.z);
 }
 
-void Atmosphere::setRayleighStrength(GLfloat v) {
+void Atmosphere::setRayleighStrength(float v) {
 	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v / 1000.0, v_rayleigh.r.z);
+	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v / 1000.0f, v_rayleigh.r.z);
 }
 
-void Atmosphere::setRayleighCollect(GLfloat v) {
+void Atmosphere::setRayleighCollect(float v) {
 	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v_rayleigh.r.y, v / 100.0);
+	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v_rayleigh.r.y, v / 100.0f);
 }
 
-ref_ptr<ShaderInput3f> &Atmosphere::rayleigh() { return rayleigh_; }
-
-void Atmosphere::setMieBrightness(GLfloat v) {
+void Atmosphere::setMieBrightness(float v) {
 	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_mie.w = Vec4f(v / 1000.0, v_mie.r.y, v_mie.r.z, v_mie.r.w);
+	v_mie.w = Vec4f(v / 1000.0f, v_mie.r.y, v_mie.r.z, v_mie.r.w);
 }
 
-void Atmosphere::setMieStrength(GLfloat v) {
+void Atmosphere::setMieStrength(float v) {
 	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_mie.w = Vec4f(v_mie.r.x, v / 10000.0, v_mie.r.z, v_mie.r.w);
+	v_mie.w = Vec4f(v_mie.r.x, v / 10000.0f, v_mie.r.z, v_mie.r.w);
 }
 
-void Atmosphere::setMieCollect(GLfloat v) {
+void Atmosphere::setMieCollect(float v) {
 	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v / 100.0, v_mie.r.w);
+	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v / 100.0f, v_mie.r.w);
 }
 
-void Atmosphere::setMieDistribution(GLfloat v) {
+void Atmosphere::setMieDistribution(float v) {
 	auto v_mie = mie_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);
-	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v_mie.r.z, v / 100.0);
+	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v_mie.r.z, v / 100.0f);
 }
 
-ref_ptr<ShaderInput4f> &Atmosphere::mie() { return mie_; }
-
-void Atmosphere::setSpotBrightness(GLfloat v) {
+void Atmosphere::setSpotBrightness(float v) {
 	spotBrightness_->setVertex(0, v);
 }
 
-ref_ptr<ShaderInput1f> &Atmosphere::spotBrightness() { return spotBrightness_; }
-
-void Atmosphere::setScatterStrength(GLfloat v) {
-	scatterStrength_->setVertex(0, v / 1000.0);
+void Atmosphere::setScatterStrength(float v) {
+	scatterStrength_->setVertex(0, v / 1000.0f);
 }
 
-ref_ptr<ShaderInput1f> &Atmosphere::scatterStrength() { return scatterStrength_; }
-
-void Atmosphere::setAbsorbtion(const Vec3f &color) {
-	skyAbsorbtion_->setVertex(0, color);
+void Atmosphere::setAbsorption(const Vec3f &color) {
+	skyAbsorption_->setVertex(0, color);
 }
-
-ref_ptr<ShaderInput3f> &Atmosphere::absorbtion() { return skyAbsorbtion_; }
 
 void Atmosphere::setEarth() {
 	AtmosphereProperties prop;
 	prop.rayleigh = Vec3f(19.0, 359.0, 81.0);
 	prop.mie = Vec4f(44.0, 308.0, 39.0, 74.0);
-	prop.spot = 373.0;
+	prop.spot = 8.0;
 	prop.scatterStrength = 54.0;
 	prop.absorption = Vec3f(
 			0.18867780436772762,
@@ -209,14 +199,10 @@ void Atmosphere::setProperties(AtmosphereProperties &p) {
 	setMieDistribution(p.mie.w);
 	setSpotBrightness(p.spot);
 	setScatterStrength(p.scatterStrength);
-	setAbsorbtion(p.absorption);
+	setAbsorption(p.absorption);
 }
 
 const ref_ptr<TextureCube> &Atmosphere::cubeMap() const { return drawState_->cubeMap(); }
-
-ref_ptr<Mesh> Atmosphere::getMeshState() { return drawState_; }
-
-ref_ptr<HasShader> Atmosphere::getShaderState() { return drawState_; }
 
 void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().push(fbo_->id());

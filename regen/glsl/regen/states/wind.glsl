@@ -63,6 +63,7 @@ flat out int out_layer;
 
 #include regen.models.sprite.applyForce
 #include regen.states.wind.windAtPosition
+#include regen.layered.gs.computeVisibleLayers
 
 #define HANDLE_IO(i)
 
@@ -121,12 +122,22 @@ void wavingQuad(int layer) {
 }
 
 void main() {
+#ifdef COMPUTE_LAYER_VISIBILITY
+    bool visibleLayers[RENDER_LAYER];
+    computeVisibleLayers(visibleLayers);
+#endif
 #for LAYER to ${RENDER_LAYER}
     #ifndef SKIP_LAYER${LAYER}
-    // select framebuffer layer
-    gl_Layer = ${LAYER};
-    out_layer = ${LAYER};
-    wavingQuad(${LAYER});
+        #ifdef COMPUTE_LAYER_VISIBILITY
+    if (visibleLayers[${LAYER}]) {
+        #endif // COMPUTE_LAYER_VISIBILITY
+        // select framebuffer layer
+        gl_Layer = ${LAYER};
+        out_layer = ${LAYER};
+        wavingQuad(${LAYER});
+        #ifdef COMPUTE_LAYER_VISIBILITY
+    }
+        #endif // COMPUTE_LAYER_VISIBILITY
     #endif // SKIP_LAYER
 #endfor
 }

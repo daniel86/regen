@@ -279,8 +279,6 @@ void SceneDisplayWidget::nextAnchor() {
 void SceneDisplayWidget::playAnchor() {
 	if (anchors_.empty()) return;
 	if (!mainCamera_.get()) return;
-	auto camPos = mainCamera_->position()->getVertex(0);
-	auto camDir = mainCamera_->direction()->getVertex(0);
 	if (anchorAnim_.get()) {
 		anchorAnim_->stopAnimation();
 		anchorAnim_->updateCamera(anchorAnim_->cameraPosition(), anchorAnim_->cameraDirection(), 0.0);
@@ -295,6 +293,8 @@ void SceneDisplayWidget::playAnchor() {
 	//anchorAnim_->setSkipFirstFrameOnLoop(GL_TRUE);
 	anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
+	auto camPos = mainCamera_->position()->getVertex(0);
+	auto camDir = mainCamera_->direction()->getVertex(0);
 	anchorAnim_->push_back(camPos.r, camDir.r, 0.0);
 	Vec3f lastPos = camPos.r;
 	for (auto &anchor: anchors_) {
@@ -918,7 +918,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	lightStates_ = sceneParser.getResources()->getLights();
 	AnimationManager::get().setSpatialIndices(spatialIndices_);
 	AnimationManager::get().resetTime();
-	AnimationManager::get().resume();
+	AnimationManager::get().resume(true);
 	REGEN_INFO("XML Scene Loaded.");
 }
 

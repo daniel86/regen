@@ -263,7 +263,7 @@ const vec2 in_wind = vec2(0.0);
 
 void main() {
    vec2 uv = gl_FragCoord.xy*in_inverseViewport;
-   float t = in_worldTime * 3600.0;
+   float t = in_worldTime * 0.001;
    vec2 m = t * in_wind;
    t *= in_change;
 

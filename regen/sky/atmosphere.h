@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef ATMOSPHERE_H_
-#define ATMOSPHERE_H_
+#ifndef REGEN_ATMOSPHERE_H_
+#define REGEN_ATMOSPHERE_H_
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
@@ -31,17 +31,25 @@ namespace regen {
 	};
 
 	/**
-	 * \brief Atmospheric scattering.
+	 * \brief Atmospheric scattering, and some simple cloud rendering.
+	 * A cube map is created on updated, and then rendered each frame using a sky cube.
 	 * @see http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
 	 * @see http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html
+	 * @see https://github.com/shff/opengl_sky
 	 */
 	class Atmosphere : public SkyLayer {
 	public:
+		/**
+		 * @param sky the sky object.
+		 * @param cubeMapSize the size of the cube map.
+		 * @param useFloatBuffer use float buffer for cube map?
+		 * @param levelOfDetail the level of detail of draw cube, in most cases 0 will do.
+		 */
 		explicit Atmosphere(
 				const ref_ptr<Sky> &sky,
-				GLuint cubeMapSize = 512,
-				GLboolean useFloatBuffer = GL_FALSE,
-				GLuint levelOfDetail = 0);
+				unsigned int cubeMapSize = 512,
+				bool useFloatBuffer = false,
+				unsigned int levelOfDetail = 0);
 
 		/**
 		 * Sets given planet properties.
@@ -76,17 +84,17 @@ namespace regen {
 		/**
 		 * Sets brightness for nitrogen profile
 		 */
-		void setRayleighBrightness(GLfloat v);
+		void setRayleighBrightness(float v);
 
 		/**
 		 * Sets strength for nitrogen profile
 		 */
-		void setRayleighStrength(GLfloat v);
+		void setRayleighStrength(float v);
 
 		/**
 		 * Sets collect amount for nitrogen profile
 		 */
-		void setRayleighCollect(GLfloat v);
+		void setRayleighCollect(float v);
 
 		/**
 		 * rayleigh profile
@@ -96,22 +104,22 @@ namespace regen {
 		/**
 		 * Sets brightness for aerosol profile
 		 */
-		void setMieBrightness(GLfloat v);
+		void setMieBrightness(float v);
 
 		/**
 		 * Sets strength for aerosol profile
 		 */
-		void setMieStrength(GLfloat v);
+		void setMieStrength(float v);
 
 		/**
 		 * Sets collect amount for aerosol profile
 		 */
-		void setMieCollect(GLfloat v);
+		void setMieCollect(float v);
 
 		/**
 		 * Sets distribution amount for aerosol profile
 		 */
-		void setMieDistribution(GLfloat v);
+		void setMieDistribution(float v);
 
 		/**
 		 * aerosol profile
@@ -121,7 +129,7 @@ namespace regen {
 		/**
 		 * @param v the spot brightness.
 		 */
-		void setSpotBrightness(GLfloat v);
+		void setSpotBrightness(float v);
 
 		/**
 		 * @return the spot brightness.
@@ -131,7 +139,7 @@ namespace regen {
 		/**
 		 * @param v scattering strength.
 		 */
-		void setScatterStrength(GLfloat v);
+		void setScatterStrength(float v);
 
 		/**
 		 * @return scattering strength.
@@ -141,17 +149,20 @@ namespace regen {
 		/**
 		 * @param color the absorbtion color.
 		 */
-		void setAbsorbtion(const Vec3f &color);
+		void setAbsorption(const Vec3f &color);
 
 		/**
 		 * @return the absorbtion color.
 		 */
-		ref_ptr<ShaderInput3f> &absorbtion() { return skyAbsorbtion_; }
+		ref_ptr<ShaderInput3f> &absorption() { return skyAbsorption_; }
 
 		const ref_ptr<TextureCube> &cubeMap() const;
 
-		// Override
+		// Override SkyLayer
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
+
+		// Override SkyLayer
+		void createUpdateShader() override;
 
 		ref_ptr<Mesh> getMeshState() override { return drawState_; }
 
@@ -162,13 +173,14 @@ namespace regen {
 
 		ref_ptr<SkyBox> drawState_;
 		ref_ptr<ShaderState> updateShader_;
+		ref_ptr<Mesh> updateMesh_;
 
 		ref_ptr<ShaderInput3f> rayleigh_;
 		ref_ptr<ShaderInput4f> mie_;
 		ref_ptr<ShaderInput1f> spotBrightness_;
 		ref_ptr<ShaderInput1f> scatterStrength_;
-		ref_ptr<ShaderInput3f> skyAbsorbtion_;
+		ref_ptr<ShaderInput3f> skyAbsorption_;
 	};
 }
 
-#endif /* ATMOSPHERE_H_ */
+#endif /* REGEN_ATMOSPHERE_H_ */

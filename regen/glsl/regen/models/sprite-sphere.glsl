@@ -66,12 +66,16 @@ flat out int out_layer;
 #include regen.states.camera.transformEyeToWorld
 #include regen.states.camera.transformWorldToEye
 #include regen.math.computeSpritePoints
+#include regen.layered.gs.computeVisibleLayers
 
 #define HANDLE_IO(i)
 
 void emitVertex(vec4 posEye, int layer) {
     out_posEye = posEye.xyz;
     out_posWorld = transformEyeToWorld(posEye,layer).xyz;
+#ifdef DEPTH_CORRECT
+    out_sphereRadius = in_sphereRadius[0];
+#endif
     gl_Position = transformEyeToScreen(posEye,layer);
     HANDLE_IO(0);
     EmitVertex();
@@ -99,17 +103,24 @@ void emitSpriteSphere(int layer) {
 }
 
 void main() {
-#ifdef DEPTH_CORRECT
-    out_sphereRadius = in_sphereRadius[0];
+#ifdef COMPUTE_LAYER_VISIBILITY
+    bool visibleLayers[RENDER_LAYER];
+    computeVisibleLayers(visibleLayers);
 #endif
 #for LAYER to ${RENDER_LAYER}
-#ifndef SKIP_LAYER${LAYER}
-#if RENDER_LAYER > 1
-    gl_Layer = ${LAYER};
-    out_layer = ${LAYER};
-#endif
-    emitSpriteSphere(${LAYER});
-#endif
+    #ifndef SKIP_LAYER${LAYER}
+        #ifdef COMPUTE_LAYER_VISIBILITY
+    if (visibleLayers[${LAYER}]) {
+        #endif // COMPUTE_LAYER_VISIBILITY
+        #if RENDER_LAYER > 1
+        gl_Layer = ${LAYER};
+        out_layer = ${LAYER};
+        #endif
+        emitSpriteSphere(${LAYER});
+        #ifdef COMPUTE_LAYER_VISIBILITY
+    }
+        #endif // COMPUTE_LAYER_VISIBILITY
+    #endif
 #endfor
 }
 

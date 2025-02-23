@@ -28,7 +28,9 @@ namespace regen {
 
 		virtual GLdouble updateInterval() const { return updateInterval_; }
 
-		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) = 0;
+		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) {}
+
+		virtual void createUpdateShader() {}
 
 		ref_ptr<State> updateState() { return updateState_; }
 

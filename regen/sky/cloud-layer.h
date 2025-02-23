@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef CLOUD_LAYER_H_
-#define CLOUD_LAYER_H_
+#ifndef REGEN_CLOUD_LAYER_H_
+#define REGEN_CLOUD_LAYER_H_
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
@@ -17,47 +17,47 @@ namespace regen {
 	public:
 		explicit CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize = 2048);
 
-		void set_altitude(GLdouble altitude);
+		void set_altitude(float altitude) { altitude_->setVertex(0, altitude); }
 
 		const ref_ptr<ShaderInput1f> &altitude() const { return altitude_; }
 
-		void set_sharpness(GLdouble sharpness);
+		void set_sharpness(float sharpness) { sharpness_->setVertex(0, sharpness); }
 
 		const ref_ptr<ShaderInput1f> &sharpness() const { return sharpness_; }
 
-		void set_coverage(GLdouble coverage);
+		void set_coverage(float coverage) { coverage_->setVertex(0, coverage); }
 
 		const ref_ptr<ShaderInput1f> &coverage() const { return coverage_; }
 
-		void set_scale(const Vec2f &scale);
+		void set_scale(const Vec2f &scale) { scale_->setVertex(0, scale); }
 
 		const ref_ptr<ShaderInput2f> &scale() const { return scale_; }
 
-		void set_change(GLdouble change);
+		void set_change(float change) { change_->setVertex(0, change); }
 
 		const ref_ptr<ShaderInput1f> &change() const { return change_; }
 
-		void set_wind(const Vec2f &wind);
+		void set_wind(const Vec2f &wind) { wind_->setVertex(0, wind); }
 
 		const ref_ptr<ShaderInput2f> &wind() const { return wind_; }
 
-		void set_color(const Vec3f &color);
+		void set_color(const Vec3f &color) { color_->setVertex(0, color); }
 
-		void set_thickness(GLdouble thickness);
+		void set_thickness(float thickness) { thickness_->setVertex(0, thickness); }
 
 		const ref_ptr<ShaderInput1f> &thickness() const { return thickness_; }
 
-		void set_offset(GLdouble offset);
+		void set_offset(float offset) { offset_->setVertex(0, offset); }
 
 		const ref_ptr<ShaderInput1f> &offset() const { return offset_; }
 
 		const ref_ptr<ShaderInput3f> &color() const { return color_; }
 
-		void set_bottomColor(const Vec3f &color);
+		void set_bottomColor(const Vec3f &color) { bottomColor_->setVertex(0, color); }
 
 		const ref_ptr<ShaderInput3f> &bottomColor() const { return bottomColor_; }
 
-		void set_topColor(const Vec3f &color);
+		void set_topColor(const Vec3f &color) { topColor_->setVertex(0, color); }
 
 		const ref_ptr<ShaderInput3f> &topColor() const { return topColor_; }
 
@@ -73,12 +73,15 @@ namespace regen {
 
 		static Vec2f defaultScaleLow();
 
-		static GLdouble defaultChangeHigh();
+		static float defaultChangeHigh();
 
-		static GLdouble defaultChangeLow();
+		static float defaultChangeLow();
 
 		// Override
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
+
+		// Override SkyLayer
+		void createUpdateShader() override;
 
 		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 
@@ -86,6 +89,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<Mesh> meshState_;
+		ref_ptr<Mesh> updateMesh_;
 		ref_ptr<HasShader> shaderState_;
 
 		ref_ptr<ShaderState> updateShader_;
@@ -111,4 +115,4 @@ namespace regen {
 		ref_ptr<Texture3D> noise3_;
 	};
 }
-#endif /* CLOUD_LAYER_H_ */
+#endif /* REGEN_CLOUD_LAYER_H_ */

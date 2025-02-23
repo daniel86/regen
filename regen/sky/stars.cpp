@@ -7,11 +7,7 @@
 
 #include "stars.h"
 
-#include <regen/meshes/primitives/rectangle.h>
-#include <regen/external/osghimmel/earth.h>
 #include <regen/textures/texture-loader.h>
-#include <regen/states/depth-state.h>
-
 #include <regen/external/osghimmel/brightstars.h>
 #include <regen/external/osghimmel/randommapgenerator.h>
 #include <regen/external/osghimmel/coords.h>
@@ -57,7 +53,6 @@ Stars::Stars(const ref_ptr<Sky> &sky)
 	scale_->setUniformData(2.0f);
 	starsUniforms->addUniform(scale_);
 
-
 	noiseTexState_ = ref_ptr<TextureState>::alloc();
 	updateNoiseTexture();
 	state()->joinStates(noiseTexState_);
@@ -91,12 +86,12 @@ void Stars::set_brightStarsFile(const std::string &brightStars) {
 		equ.right_ascension = _rightascd(stars[i].RA, 0, 0);
 		equ.declination = stars[i].DE;
 
-		pos_->setVertex(i, Vec4f(equ.toEuclidean(), i));
+		pos_->setVertex(i, Vec4f(equ.toEuclidean(), static_cast<float>(i)));
 		col_->setVertex(i, Vec4f(
 				stars[i].sRGB_R,
 				stars[i].sRGB_G,
 				stars[i].sRGB_B,
-				stars[i].Vmag + 0.4 // the 0.4 accounts for magnitude decrease due to the earth's atmosphere
+				stars[i].Vmag + 0.4f // the 0.4 accounts for magnitude decrease due to the earth's atmosphere
 		));
 	}
 
@@ -124,7 +119,6 @@ void Stars::updateNoiseTexture() {
 	noiseTex_->wrapping().push(GL_REPEAT);
 	noiseTex_->end(RenderState::get());
 	noiseTex_->set_textureData(nullptr);
-	GL_ERROR_LOG();
 
 	delete[]noiseMap;
 
@@ -132,32 +126,14 @@ void Stars::updateNoiseTexture() {
 	noiseTexState_->set_name("noiseTexture");
 }
 
-GLfloat Stars::defaultApparentMagnitude() { return 7.0f; }
+float Stars::defaultApparentMagnitude() { return 7.0f; }
 
 Vec3f Stars::defaultColor() { return {0.66, 0.78, 1.0}; }
 
-GLfloat Stars::defaultColorRatio() { return 0.66f; }
+float Stars::defaultColorRatio() { return 0.66f; }
 
-GLfloat Stars::defaultGlareScale() { return 1.2f; }
+float Stars::defaultGlareScale() { return 1.2f; }
 
-GLfloat Stars::defaultScintillation() { return 0.2f; }
+float Stars::defaultScintillation() { return 0.2f; }
 
-GLfloat Stars::defaultScattering() { return 2.0f; }
-
-void Stars::set_apparentMagnitude(const GLfloat vMag) { apparentMagnitude_->setVertex(0, vMag); }
-
-void Stars::set_color(const Vec3f& color) { color_->setVertex(0, color); }
-
-void Stars::set_colorRatio(const GLfloat ratio) { colorRatio_->setVertex(0, ratio); }
-
-void Stars::set_glareIntensity(const GLfloat intensity) { glareIntensity_->setVertex(0, intensity); }
-
-void Stars::set_glareScale(const GLfloat scale) { glareScale_->setVertex(0, scale); }
-
-void Stars::set_scintillation(const GLfloat scintillation) { scintillation_->setVertex(0, scintillation); }
-
-void Stars::set_scattering(const GLfloat scattering) { scattering_->setVertex(0, scattering); }
-
-void Stars::set_scale(const GLfloat scale) { scale_->setVertex(0, scale); }
-
-void Stars::updateSkyLayer(RenderState *rs, GLdouble dt) {}
+float Stars::defaultScattering() { return 2.0f; }

@@ -5,67 +5,66 @@
  *      Author: daniel
  */
 
-#ifndef STARS_LAYER_H_
-#define STARS_LAYER_H_
+#ifndef REGEN_STARS_LAYER_H_
+#define REGEN_STARS_LAYER_H_
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
+	/**
+	 * \brief A sky layer of bright stars.
+	 */
 	class Stars : public SkyLayer {
 	public:
 		explicit Stars(const ref_ptr<Sky> &sky);
 
 		void set_brightStarsFile(const std::string &brightStars);
 
-		void set_apparentMagnitude(GLfloat vMag);
+		void set_apparentMagnitude(float vMag) { apparentMagnitude_->setVertex(0, vMag); }
 
 		const ref_ptr<ShaderInput1f> &apparentMagnitude() const { return apparentMagnitude_; }
 
-		void set_color(const Vec3f& color);
+		void set_color(const Vec3f& color) { color_->setVertex(0, color); }
 
 		const ref_ptr<ShaderInput3f> &color() const { return color_; }
 
-		void set_colorRatio(GLfloat ratio);
+		void set_colorRatio(float ratio) { colorRatio_->setVertex(0, ratio); }
 
 		const ref_ptr<ShaderInput1f> &colorRatio() const { return colorRatio_; }
 
-		void set_glareIntensity(GLfloat intensity);
+		void set_glareIntensity(float intensity) { glareIntensity_->setVertex(0, intensity); }
 
 		const ref_ptr<ShaderInput1f> &glareIntensity() const { return glareIntensity_; }
 
-		void set_glareScale(GLfloat scale);
+		void set_glareScale(float scale) { glareScale_->setVertex(0, scale); }
 
 		const ref_ptr<ShaderInput1f> &glareScale() const { return glareScale_; }
 
-		void set_scintillation(GLfloat scintillation);
+		void set_scintillation(float scintillation) { scintillation_->setVertex(0, scintillation); }
 
 		const ref_ptr<ShaderInput1f> &scintillation() const { return scintillation_; }
 
-		void set_scattering(GLfloat scattering);
+		void set_scattering(float scattering) { scattering_->setVertex(0, scattering); }
 
 		const ref_ptr<ShaderInput1f> &scattering() const { return scattering_; }
 
-		void set_scale(GLfloat scale);
+		void set_scale(float scale) { scale_->setVertex(0, scale); }
 
 		const ref_ptr<ShaderInput1f> &scale() const { return scale_; }
 
-
-		static GLfloat defaultApparentMagnitude();
+		static float defaultApparentMagnitude();
 
 		static Vec3f defaultColor();
 
-		static GLfloat defaultColorRatio();
+		static float defaultColorRatio();
 
-		static GLfloat defaultGlareScale();
+		static float defaultGlareScale();
 
-		static GLfloat defaultScintillation();
+		static float defaultScintillation();
 
-		static GLfloat defaultScattering();
-
-		// Override
-		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
+		static float defaultScattering();
 
 		ref_ptr<Mesh> getMeshState() override { return meshState_; }
 
@@ -94,4 +93,4 @@ namespace regen {
 		void updateNoiseTexture();
 	};
 }
-#endif /* STARS_LAYER_H_ */
+#endif /* REGEN_STARS_LAYER_H_ */

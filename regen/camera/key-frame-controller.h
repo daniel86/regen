@@ -18,6 +18,8 @@ namespace regen {
 	public:
 		explicit KeyFrameController(const ref_ptr<Camera> &cam);
 
+		~KeyFrameController() override = default;
+
 		/**
 		 * @return the current camera position.
 		 */

@@ -33,6 +33,7 @@
 #define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix[layer]
 #define REGEN_CAM_NEAR_(layer)      in_near[layer]
 #define REGEN_CAM_FAR_(layer)       in_far[layer]
+#define REGEN_CAM_POS_(layer)       in_cameraPosition[layer]
 #endif // RENDER_TARGET == 2D_ARRAY
 #ifndef REGEN_VIEW_(layer)
 #define REGEN_VIEW_(layer)          in_viewMatrix
