@@ -55,35 +55,6 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QPushButton" name="prevView">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>48</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>48</width>
-           <height>48</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset theme="go-previous">
-           <normaloff>.</normaloff>.</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="nextView">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -103,12 +74,13 @@
            <height>48</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
-         <property name="icon">
-          <iconset theme="go-next">
-           <normaloff>.</normaloff>.</iconset>
+         <property name="text">
+          <string></string>
          </property>
         </widget>
        </item>
@@ -126,12 +98,13 @@
            <height>48</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
-         <property name="icon">
-          <iconset theme="media-playback-start">
-           <normaloff>.</normaloff>.</iconset>
+         <property name="text">
+          <string></string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -152,12 +125,13 @@
            <height>48</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
-         <property name="icon">
-          <iconset theme="media-skip-forward">
-           <normaloff>.</normaloff>.</iconset>
+         <property name="text">
+          <string></string>
          </property>
         </widget>
        </item>
@@ -175,12 +149,13 @@
            <height>48</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
-         <property name="icon">
-          <iconset theme="utilities-system-monitor">
-           <normaloff>.</normaloff>.</iconset>
+         <property name="text">
+          <string></string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -204,12 +179,13 @@
            <height>48</height>
           </size>
          </property>
-         <property name="text">
-          <string/>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
-         <property name="icon">
-          <iconset theme="view-refresh">
-           <normaloff>.</normaloff>.</iconset>
+         <property name="text">
+          <string></string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -221,6 +197,12 @@
        </item>
        <item>
         <widget class="QTimeEdit" name="worldTime">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>84</width>
@@ -233,8 +215,17 @@
            <height>48</height>
           </size>
          </property>
+         <property name="frame">
+          <bool>true</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
          <property name="displayFormat">
           <string>HH:mm:ss</string>
+         </property>
+         <property name="calendarPopup">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -286,19 +277,26 @@
         <widget class="QPushButton" name="openButton">
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>48</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="text">
-          <string>Open</string>
-         </property>
-         <property name="icon">
-          <iconset theme="document-open">
-           <normaloff>.</normaloff>.</iconset>
+          <string></string>
          </property>
          <property name="checkable">
           <bool>false</bool>
@@ -312,19 +310,50 @@
         <widget class="QPushButton" name="inputsButton">
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>48</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="text">
-          <string>Inputs</string>
+          <string></string>
          </property>
-         <property name="icon">
-          <iconset theme="document-properties">
-           <normaloff>.</normaloff>.</iconset>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="cameraButton">
+         <property name="minimumSize">
+          <size>
+           <width>48</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
+         </property>
+         <property name="text">
+          <string></string>
          </property>
         </widget>
        </item>
@@ -332,19 +361,26 @@
         <widget class="QPushButton" name="exitButton">
          <property name="minimumSize">
           <size>
-           <width>80</width>
+           <width>48</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
          </property>
          <property name="focusPolicy">
           <enum>Qt::NoFocus</enum>
          </property>
          <property name="text">
-          <string>Exit</string>
-         </property>
-         <property name="icon">
-          <iconset theme="application-exit">
-           <normaloff>.</normaloff>.</iconset>
+          <string></string>
          </property>
          <property name="autoDefault">
           <bool>false</bool>
@@ -479,7 +515,7 @@
    <slot>toggleInputsDialog()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>703</x>
+     <x>681</x>
      <y>41</y>
     </hint>
     <hint type="destinationlabel">
@@ -495,24 +531,8 @@
    <slot>nextView()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>86</x>
-     <y>24</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>294</x>
-     <y>214</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>prevView</sender>
-   <signal>clicked()</signal>
-   <receiver>sceneViewer</receiver>
-   <slot>previousView()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>32</x>
-     <y>24</y>
+     <x>57</x>
+     <y>34</y>
     </hint>
     <hint type="destinationlabel">
      <x>294</x>
@@ -527,8 +547,8 @@
    <slot>nextAnchor()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>218</x>
-     <y>34</y>
+     <x>165</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>358</x>
@@ -543,8 +563,8 @@
    <slot>playAnchor()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>131</x>
-     <y>21</y>
+     <x>111</x>
+     <y>31</y>
     </hint>
     <hint type="destinationlabel">
      <x>297</x>
@@ -559,8 +579,8 @@
    <slot>toggleWireframe()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>267</x>
-     <y>29</y>
+     <x>219</x>
+     <y>39</y>
     </hint>
     <hint type="destinationlabel">
      <x>440</x>
@@ -575,8 +595,8 @@
    <slot>toggleVSync()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>309</x>
-     <y>29</y>
+     <x>273</x>
+     <y>39</y>
     </hint>
     <hint type="destinationlabel">
      <x>339</x>
@@ -591,8 +611,8 @@
    <slot>onWorldTimeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>381</x>
-     <y>35</y>
+     <x>363</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>324</x>
@@ -623,8 +643,8 @@
    <slot>onWorldTimeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>402</x>
-     <y>25</y>
+     <x>363</x>
+     <y>35</y>
     </hint>
     <hint type="destinationlabel">
      <x>291</x>
@@ -639,12 +659,28 @@
    <slot>onWorldTimeFactorChanged(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>436</x>
-     <y>24</y>
+     <x>433</x>
+     <y>34</y>
     </hint>
     <hint type="destinationlabel">
      <x>411</x>
      <y>631</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cameraButton</sender>
+   <signal>clicked()</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>toggleCameraPopup()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>702</x>
+     <y>23</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>629</x>
+     <y>604</y>
     </hint>
    </hints>
   </connection>
@@ -660,5 +696,6 @@
   <slot>toggleVSync()</slot>
   <slot>onWorldTimeChanged()</slot>
   <slot>onWorldTimeFactorChanged(double)</slot>
+  <slot>toggleCameraPopup()</slot>
  </slots>
 </ui>

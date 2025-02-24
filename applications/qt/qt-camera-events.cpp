@@ -51,6 +51,8 @@ void QtFirstPersonEventHandler::call(EventObject *evObject, EventData *data) {
 			else if (ev->key == Qt::Key_A || ev->key == Qt::Key_Left) cmd = CameraCommand::MOVE_LEFT;
 			else if (ev->key == Qt::Key_D || ev->key == Qt::Key_Right) cmd = CameraCommand::MOVE_RIGHT;
 			else if (ev->key == Qt::Key_Space) cmd = CameraCommand::JUMP;
+			else if (ev->key == Qt::Key_PageUp) cmd = CameraCommand::MOVE_UP;
+			else if (ev->key == Qt::Key_PageDown) cmd = CameraCommand::MOVE_DOWN;
 		}
 
 		if (cmd != CameraCommand::NONE) {
@@ -58,6 +60,8 @@ void QtFirstPersonEventHandler::call(EventObject *evObject, EventData *data) {
 			else if (cmd == CameraCommand::MOVE_BACKWARD) m_->moveBackward(!ev->isUp);
 			else if (cmd == CameraCommand::MOVE_LEFT) m_->moveLeft(!ev->isUp);
 			else if (cmd == CameraCommand::MOVE_RIGHT) m_->moveRight(!ev->isUp);
+			else if (cmd == CameraCommand::MOVE_UP) m_->moveUp(!ev->isUp);
+			else if (cmd == CameraCommand::MOVE_DOWN) m_->moveDown(!ev->isUp);
 			else if (cmd == CameraCommand::JUMP && !ev->isUp) m_->jump();
 		}
 	}

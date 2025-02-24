@@ -60,6 +60,8 @@ public slots:
 
 	void toggleInputsDialog();
 
+	void toggleCameraPopup();
+
 	void updateSize();
 
 	void nextView();

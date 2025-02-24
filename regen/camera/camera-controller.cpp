@@ -27,6 +27,8 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 	moveBackward_ = GL_FALSE;
 	moveLeft_ = GL_FALSE;
 	moveRight_ = GL_FALSE;
+	moveUp_ = GL_FALSE;
+	moveDown_ = GL_FALSE;
 	isMoving_ = GL_FALSE;
 	matVal_ = Mat4f::identity();
 	#define REGEN_ORIENT_THRESHOLD_ 0.1
@@ -40,6 +42,14 @@ void CameraController::setAttachedTo(
 	attachedToTransform_ = target;
 	attachedToMesh_ = mesh;
 	pos_ = target->getVertex(0).r.position();
+}
+
+void CameraController::stepUp(const GLfloat &v) {
+	step(Vec3f(0.0f, v, 0.0f));
+}
+
+void CameraController::stepDown(const GLfloat &v) {
+	step(Vec3f(0.0f, -v, 0.0f));
 }
 
 void CameraController::stepForward(const GLfloat &v) {
@@ -182,6 +192,12 @@ void CameraController::animate(GLdouble dt) {
 	else if (moveRight_) {
 		stepRight(moveAmount_ * dt);
 	}
+	else if (moveUp_) {
+		stepUp(moveAmount_ * dt * 0.5);
+	}
+	else if (moveDown_) {
+		stepDown(moveAmount_ * dt * 0.5);
+	}
 
 	{
 		// TODO: allow setting hasUpdated_ to false to avoid unnecessary culling computations
@@ -219,6 +235,12 @@ namespace regen {
 			case CameraCommand::MOVE_RIGHT:
 				out << "MOVE_RIGHT";
 				break;
+			case CameraCommand::MOVE_UP:
+				out << "MOVE_UP";
+				break;
+			case CameraCommand::MOVE_DOWN:
+				out << "MOVE_DOWN";
+				break;
 			case CameraCommand::JUMP:
 				out << "JUMP";
 				break;
@@ -242,6 +264,10 @@ namespace regen {
 			command = CameraCommand::MOVE_LEFT;
 		} else if (val == "MOVE_RIGHT") {
 			command = CameraCommand::MOVE_RIGHT;
+		} else if (val == "MOVE_UP") {
+			command = CameraCommand::MOVE_UP;
+		} else if (val == "MOVE_DOWN") {
+			command = CameraCommand::MOVE_DOWN;
 		} else if (val == "JUMP") {
 			command = CameraCommand::JUMP;
 		} else if (val == "CROUCH") {

@@ -329,6 +329,57 @@ void SceneDisplayWidget::toggleInputsDialog() {
 	}
 }
 
+void SceneDisplayWidget::toggleCameraPopup() {
+    if (!mainCamera_.get()) {
+        REGEN_WARN("No main camera available.");
+        return;
+    }
+
+    static QDialog *cameraPopup = nullptr;
+    static QLineEdit *positionLineEdit = nullptr;
+    static QLineEdit *directionLineEdit = nullptr;
+
+    if (cameraPopup && cameraPopup->isVisible()) {
+        cameraPopup->hide();
+        return;
+    }
+
+    if (!cameraPopup) {
+        cameraPopup = new QDialog(this);
+        cameraPopup->setWindowTitle("Camera Properties");
+        cameraPopup->setModal(false);
+        cameraPopup->setAttribute(Qt::WA_DeleteOnClose, false);
+        cameraPopup->setMinimumSize(500, 200); // Set the minimum size of the dialog
+
+        auto *layout = new QVBoxLayout(cameraPopup);
+        layout->setAlignment(Qt::AlignTop); // Align items to the top
+
+        positionLineEdit = new QLineEdit(cameraPopup);
+        positionLineEdit->setTextMargins(4, 4, 4, 4);
+        positionLineEdit->setStyleSheet("font-size: 14px;");
+        positionLineEdit->setReadOnly(true);
+        layout->addWidget(new QLabel("Position:", cameraPopup));
+        layout->addWidget(positionLineEdit);
+
+        directionLineEdit = new QLineEdit(cameraPopup);
+        directionLineEdit->setTextMargins(4, 4, 4, 4);
+        directionLineEdit->setStyleSheet("font-size: 14px;");
+        directionLineEdit->setReadOnly(true);
+        layout->addWidget(new QLabel("Direction:", cameraPopup));
+        layout->addWidget(directionLineEdit);
+
+        cameraPopup->setLayout(layout);
+    }
+
+    Vec3f position = mainCamera_->position()->getVertex(0).r;
+    Vec3f direction = mainCamera_->direction()->getVertex(0).r;
+
+    positionLineEdit->setText(QString("%1, %2, %3").arg(position.x).arg(position.y).arg(position.z));
+    directionLineEdit->setText(QString("%1, %2, %3").arg(direction.x).arg(direction.y).arg(direction.z));
+
+    cameraPopup->show();
+}
+
 void SceneDisplayWidget::toggleWireframe() {
 	bool toggleState = ui_.wireframeToggle->isChecked();
 	if (toggleState) {
