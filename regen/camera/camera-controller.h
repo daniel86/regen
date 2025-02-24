@@ -23,6 +23,8 @@ namespace regen {
 		MOVE_BACKWARD,
 		MOVE_LEFT,
 		MOVE_RIGHT,
+		MOVE_UP,
+		MOVE_DOWN,
 		JUMP,
 		CROUCH,
 		NONE
@@ -117,6 +119,16 @@ namespace regen {
 		void moveRight(GLboolean v) { moveRight_ = v; }
 
 		/**
+		 * @param v moving up toggle.
+		 */
+		void moveUp(GLboolean v) { moveUp_ = v; }
+
+		/**
+		 * @param v moving down toggle.
+		 */
+		void moveDown(GLboolean v) { moveDown_ = v; }
+
+		/**
 		 * @param v the amount to step forward.
 		 */
 		void stepForward(const GLfloat &v);
@@ -135,6 +147,16 @@ namespace regen {
 		 * @param v the amount to step right.
 		 */
 		void stepRight(const GLfloat &v);
+
+		/**
+		 * @param v the amount to step up.
+		 */
+		void stepUp(const GLfloat &v);
+
+		/**
+		 * @param v the amount to step down.
+		 */
+		void stepDown(const GLfloat &v);
 
 		/**
 		 * @param v the amount to change the position.
@@ -238,6 +260,8 @@ namespace regen {
 		GLboolean moveBackward_;
 		GLboolean moveLeft_;
 		GLboolean moveRight_;
+		GLboolean moveUp_;
+		GLboolean moveDown_;
 		GLboolean isMoving_;
 		GLdouble lastOrientation_;
 
