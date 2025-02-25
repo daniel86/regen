@@ -1,228 +1,227 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
+<node>
     <constant name="num-cascades" value="3"/>
-<include xml-file="scene-display/examples/templates/default.xml" />
+    <include xml-file="scene-display/examples/templates/default.xml"/>
 
-<node id="configuration">
-  <animation id="dwarf-asset-instanced" type="asset" mode="random" />
-  <camera id="main-camera"
-	  mode="first-person"
-	  speed="0.04"
-	  eye-offset="0.0,1.0,0.0"
-	  eye-orientation="0.0">
-  </camera>
-</node>
+    <node id="configuration"
+            date="01-09-2014 06:00:00"
+            time-scale="60.0">
+        <animation id="dwarf-asset-instanced" type="asset" mode="random"/>
+        <camera id="main-camera"
+                mode="first-person"
+                speed="0.04"
+                eye-offset="0.0,1.0,0.0"
+                eye-orientation="0.0">
+        </camera>
+    </node>
 
-<!-- FBOs -->
-<fbo id="g-buffer"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
-  <texture id="diffuse0" />
-  <texture id="diffuse1" />
-  <texture id="specular" />
-  <texture id="normal" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
-        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-            target="TEXTURE_2D_ARRAY"
-            wrapping="REPEAT"
-            min-filter="NEAREST"
-            mag-filter="NEAREST"
-            compare-mode="COMPARE_R_TO_TEXTURE"
-            compare-function="LEQUAL"
-            sampler-type="sampler2DArrayShadow" />
+    <!-- FBOs -->
+    <fbo id="g-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
     </fbo>
-<!-- Textures -->
-<texture id="ground-color" file="res/textures/brick/color.jpg" />
-<texture id="ground-normal" file="res/textures/brick/normal.jpg" />
-<texture id="ground-height" file="res/textures/brick/height.jpg" />
-<!-- Cameras -->
-<camera id="main-camera"
-	fov="45.0" near="0.1" far="200.0"
-	position="1.0,6.0,-50.0"
-	direction="0.0,0.0,1.0" />
-<camera id="sun-camera" light="earth-sky-sun" camera="main-camera"
-	num-layer="{{num-cascades}}" split-weight="0.6" />
-<!-- Assets -->
-<asset id="dwarf-asset-instanced"
-       type="asset"
-       file="res/models/psionic/dwarf/x/dwarf.x"
-       texture-path="res/models/psionic/dwarf/x"
-       use-animation="1"
-       animation-force-states="1"
-       animation-post-state="LINEAR"
-       animation-pre-state="LINEAR"
-       animation-tps="20.0"
-       animation-instances="50">
-  <!-- Optionally define named animation ranges. -->
-  <anim-range name="jump"        range="27.0,39.0" />
-  <anim-range name="crouch"      range="55.0,58.0" />
-  <anim-range name="battleIdle1" range="74.0,87.0" />
-  <anim-range name="battleIdle2" range="89.0,109.0" />
-  <anim-range name="attack1"     range="111.0,125.0" />
-  <anim-range name="attack2"     range="127.0,141.0" />
-  <anim-range name="attack3"     range="143.0,159.0" />
-  <anim-range name="attack4"     range="161.0,179.0" />
-  <anim-range name="attack5"     range="181.0,191.0" />
-  <anim-range name="block"       range="193.0,209.0" />
-  <anim-range name="idle1"       range="291.0,324.0" />
-  <anim-range name="idle2"       range="326.0,359.0" />
-  <!--
-  <anim-range name="dieFwd"      range="211.0,226.0" />
-  <anim-range name="dieBack"     range="229.0,250.0" />
-  <anim-range name="crouchLoop"  range="59.0,68.0" />
-  <anim-range name="complete"    range="0.0,360.0" />
-  <anim-range name="jumpSpot"    range="41.0,53.0" />
-  <anim-range name="walk"        range="1.0,13.0" />
-  <anim-range name="run"         range="15.0,25.0" />
-  <anim-range name="yes"         range="252.0,271.0" />
-  <anim-range name="no"          range="273.0,289.0" />
-  <anim-range name="getUp"       range="69.0,73.0" />
-  -->
-</asset>
-<!-- Meshes -->
-<mesh id="ground-mesh"
-      type="rectangle"
-      lod="0"
-      rotation="0.0,0.0,3.1415"
-      scaling="1000.0,1000.0,1000.0"
-      texco-scaling="400.0,400.0"
-      use-normal="1"
-      use-texco="1"
-      use-tangent="1"
-      center="1"
-      usage="STATIC" />
-<mesh id="dwarf"
-      type="asset"
-      asset="dwarf-asset-instanced"
-      asset-indices="*"
-      asset-animation="1"
-      num-instances="100">
-  <transform is-instanced="1" >
-    <set mode="fade" target="scale"
-	 start="1.0,1.0,1.0" stop="1.25,1.25,1.25"
-	 random-indices="30" />
-    <set mode="row" target="translate"
-	 x-step="8.0,0.0,0.0" x-count="10"
-	 z-step="0.0,0.0,8.0" />
-    <translate value="-40.0,-2.0,-40.0" />
-  </transform>
-  <input type="int" name="boneOffset" is-instanced="1">
-    <set mode="random" min="0" max="49"/>
-  </input>
-</mesh>
-  
-<!--**************************-->
-<!--**************************-->
+    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}">
+        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+               target="TEXTURE_2D_ARRAY"
+               wrapping="REPEAT"
+               min-filter="NEAREST"
+               mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="sampler2DArrayShadow"/>
+    </fbo>
+    <!-- Textures -->
+    <!-- Cameras -->
+    <camera id="main-camera"
+            fov="45.0" near="0.1" far="200.0"
+            position="1.0,6.0,-50.0"
+            direction="0.0,0.0,1.0"/>
+    <camera id="sun-camera" light="sky-sun" camera="main-camera"
+            num-layer="{{num-cascades}}" split-weight="0.6"/>
+    <!-- Assets -->
+    <asset id="dwarf-asset-instanced"
+           type="asset"
+           file="res/models/psionic/dwarf/x/dwarf.x"
+           texture-path="res/models/psionic/dwarf/x"
+           use-animation="1"
+           animation-force-states="1"
+           animation-post-state="LINEAR"
+           animation-pre-state="LINEAR"
+           animation-tps="20.0"
+           animation-instances="50">
+        <!-- Optionally define named animation ranges. -->
+        <anim-range name="jump" range="27.0,39.0"/>
+        <anim-range name="crouch" range="55.0,58.0"/>
+        <anim-range name="battleIdle1" range="74.0,87.0"/>
+        <anim-range name="battleIdle2" range="89.0,109.0"/>
+        <anim-range name="attack1" range="111.0,125.0"/>
+        <anim-range name="attack2" range="127.0,141.0"/>
+        <anim-range name="attack3" range="143.0,159.0"/>
+        <anim-range name="attack4" range="161.0,179.0"/>
+        <anim-range name="attack5" range="181.0,191.0"/>
+        <anim-range name="block" range="193.0,209.0"/>
+        <anim-range name="idle1" range="291.0,324.0"/>
+        <anim-range name="idle2" range="326.0,359.0"/>
+    </asset>
+    <!-- Sky -->
+    <sky id="sky" camera="main-camera" update-interval="200.0" >
+        <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="0" />
+        <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
+            scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+            glare-intensity="0.04" glare-scale="0.2"
+            color="0.66,0.78,1.0" color-ratio="0.66"/>
+        <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
+            sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
+            earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
+        <atmosphere preset="earth" size="256" lod="0">
+            <input type="float" name="cirrus" value="0.8" />
+            <input type="float" name="cumulus" value="0.6" />
+            <input type="float" name="dithering" value="0.2" />
+            <input type="float" name="ditheringScale" value="100.0" />
+            <input type="float" name="cloudTimeFactor" value="0.3" />
+        </atmosphere>
+    </sky>
 
-<node id="Shadow-Caster">
-  <node id="dwarf-node" >
-    <mesh id="dwarf" shader="regen.models.mesh" />
-  </node>
-</node>
+    <!--**************************-->
+    <!--**************************-->
 
-<node id="Scene-Geometry">
-    <node id="Ground">
-        <input type="float" name="parallaxBias" value="0.02" />
-        <input type="float" name="parallaxScale" value="0.03" />
-        <!--
-    <texture name="colorTexture" id="ground-color" map-to="COLOR"
-	     texco-transfer="PARALLAX_OCC" />
-    <texture name="normalTexture" id="ground-normal" map-to="NORMAL"
-	     texco-transfer="PARALLAX_OCC" />
-    <texture name="heightTexture" id="ground-height" />
-    -->
+    <mesh id="ground-mesh" type="rectangle" lod="0" center="1" usage="STATIC"
+          use-normal="1" use-texco="1" use-tangent="1"
+          rotation="0.0,0.0,3.1415"
+          scaling="1000.0,1000.0,1000.0"
+          texco-scaling="400.0,400.0">
         <transform>
-            <translate value="0.0,-2.0,0.0" />
+            <translate value="0.0,-2.0,0.0"/>
         </transform>
-        <material preset="ground/stone" variant="4" />
-        <mesh id="ground-mesh" shader="regen.models.mesh" />
+        <material preset="ground/stone" variant="4"/>
+    </mesh>
+
+    <node id="Scene-Geometry">
+        <node id="Ground">
+            <mesh id="ground-mesh" shader="regen.models.mesh"/>
+        </node>
     </node>
-</node>
 
-<node id="Shading-Pass">
-    <blend mode="add" />
-    <depth test="0" write="0" />
-    <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3" />
-    
-    <node id="Ambient-Shading">
-        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+    <!--**************************-->
+    <!--**************************-->
+
+    <mesh id="dwarf"
+          type="asset"
+          asset="dwarf-asset-instanced"
+          asset-indices="*"
+          asset-animation="1"
+          num-instances="100">
+        <transform is-instanced="1">
+            <set mode="fade" target="scale"
+                 start="1.0,1.0,1.0" stop="1.25,1.25,1.25"
+                 random-indices="30"/>
+            <set mode="row" target="translate"
+                 x-step="8.0,0.0,0.0" x-count="10"
+                 z-step="0.0,0.0,8.0"/>
+            <translate value="-40.0,-2.0,-40.0"/>
+        </transform>
+        <input type="int" name="boneOffset" is-instanced="1">
+            <set mode="random" min="0" max="49"/>
+        </input>
+    </mesh>
+
+    <node id="Shadow-Caster">
+        <node id="Dwarf">
+            <mesh id="dwarf" shader="regen.models.mesh"/>
+        </node>
     </node>
-    <node id="Light-Shading">
-        <!-- <define key="DEBUG_SHADOW_SLICES" value="1" /> -->
-        <light-pass type="DIRECTIONAL"
-            shader="regen.shading.deferred.directional"
-            shadow-filter="NONE">
-            <light id="earth-sky-sun"
-                shadow-buffer="sun-shadow"
-                shadow-attachment="depth"
-                shadow-camera="sun-camera" />
-            <!-- <light id="earth-sky-moon" /> -->
-        </light-pass>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="Shading-Pass">
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
+
+        <node id="Ambient-Shading">
+            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+        </node>
+        <node id="Light-Shading">
+            <light-pass type="DIRECTIONAL"
+                        shader="regen.shading.deferred.directional"
+                        shadow-filter="NONE">
+                <light id="sky-sun"
+                       shadow-buffer="sun-shadow"
+                       shadow-attachment="depth"
+                       shadow-camera="sun-camera"/>
+            </light-pass>
+        </node>
+        <node import="Ambient-Occlusion-Update"/>
+        <node import="Ambient-Occlusion-Sample"/>
     </node>
-    <node import="Ambient-Occlusion-Update" />
-    <node import="Ambient-Occlusion-Sample" />
-</node>
 
-<node id="Background-Pass">
-  <depth test="1" write="0" />
-  
-  <node id="sky-node">
-    <sky id="earth-sky" />
-  </node>
-  
-  <node import="Distance-Fog" />
-</node>
+    <node id="Background-Pass">
+        <depth test="1" write="0"/>
 
-<node id="Post-Pass">
-    <depth test="0" write="0" />
+        <node id="sky-node">
+            <sky id="sky"/>
+        </node>
 
-    <node import="G-Buffer-Blur1" />
-    <node import="Depth-of-Field">
-        <fbo id="g-buffer" draw-buffers="0" />
-        <texture name="inputTexture" fbo="g-buffer" attachment="1" />
+        <node import="Distance-Fog"/>
     </node>
-    <view id="DoF">
-        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-  
-  <node import="FXAA">
-    <fbo id="g-buffer" draw-buffers="1" />
-    <texture name="inputTexture" fbo="g-buffer" attachment="0" />
-  </node>
-  <view id="Scene -- Antialiased">
-    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-  </view>
-</node>
 
-<!--**************************-->
-<!--**************************-->
+    <node id="Post-Pass">
+        <depth test="0" write="0"/>
 
-<node id="root">
-  <resource id="earth-sky" />
-  <node id="Pre-Render">
-    <define key="OUTPUT_TYPE" value="DEPTH" />
-    
-    <cull mode="FRONT" />
-    <fbo id="sun-shadow" clear-depth="1" />
-    <camera id="sun-camera" />
-    <node import="Shadow-Caster" />
-  </node>
-  
-  <node id="Render">
-    <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1" />
-    <camera id="main-camera" />
-    
-    <node import="Default-Pipeline" />
-    <node import="GUI-Pass">
-      <fbo id="g-buffer" draw-buffers="1" />
+        <node import="G-Buffer-Blur1"/>
+        <node import="Depth-of-Field">
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+            <input type="vec2" name="focalWidth" value="0.2,0.5" />
+        </node>
+        <view id="DoF">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+
+        <node import="FXAA">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+        </node>
+        <view id="Scene -- Antialiased">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
     </node>
-    
-    <view id="Scene -- Result">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-  </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="root">
+        <resource id="sky"/>
+        <node id="Pre-Render">
+            <define key="OUTPUT_TYPE" value="DEPTH"/>
+
+            <cull mode="FRONT"/>
+            <fbo id="sun-shadow" clear-depth="1"/>
+            <camera id="sun-camera"/>
+            <node import="Shadow-Caster"/>
+        </node>
+
+        <node id="Render">
+            <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
+            <camera id="main-camera"/>
+
+            <node import="Default-Pipeline"/>
+            <node import="GUI-Pass">
+                <fbo id="g-buffer" draw-buffers="1"/>
+            </node>
+
+            <view id="Scene -- Result">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+        </node>
+    </node>
 </node>

@@ -6,7 +6,7 @@
  */
 
 #include <boost/filesystem.hpp>
-#include "texture-state.h"
+#include <regen/textures/texture-state.h>
 #include "atomic-states.h"
 
 #include "material-state.h"

@@ -9,7 +9,7 @@
 #define REGEN_SCENE_RESOURCE_TEXTURE_H_
 
 #include <regen/scene/resources.h>
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 
 namespace regen {
 	namespace scene {

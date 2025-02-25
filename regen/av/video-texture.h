@@ -11,7 +11,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include <regen/gl-types/render-state.h>
 #include <regen/av/demuxer.h>
 #include <regen/animations/animation.h>

@@ -62,9 +62,21 @@ namespace regen {
 
 	protected:
 		struct UBO_Input {
+			UBO_Input() = default;
+			UBO_Input(const UBO_Input &other) {
+				input = other.input;
+				offset = other.offset;
+			}
+			~UBO_Input() {
+				if (alignedData) {
+					delete[] alignedData;
+				}
+			}
 			ref_ptr<ShaderInput> input;
-			GLuint offset;
-			GLuint lastStamp;
+			GLuint offset = 0;
+			GLuint lastStamp = 0;
+			GLuint alignedSize = 0;
+			byte *alignedData = nullptr;
 		};
 		std::vector<UBO_Input> uboInputs_;
 		std::vector<NamedShaderInput> uniforms_;
@@ -77,6 +89,8 @@ namespace regen {
 		GLboolean needsUpdate() const;
 
 		void computePaddedSize();
+
+		static void updateAlignedData(UBO_Input &uboInput);
 	};
 } // namespace
 

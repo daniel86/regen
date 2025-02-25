@@ -88,7 +88,7 @@
             fov="45.0" near="0.1" far="200.0"
             position="0.0,1.5,-8.0"
             direction="0.0,-0.25,1.0"/>
-    <camera id="sun-camera" light="earth-sky-sun"
+    <camera id="sun-camera" light="sky-sun"
             camera="main-camera"
             num-layer="{{num-cascades}}"
             split-weight="0.9"/>
@@ -111,6 +111,24 @@
            radius="10.0,21.0"
            cone-angles="11.5,25.5" />
     -->
+    <!-- Sky -->
+    <sky id="sky" camera="main-camera" update-interval="200.0" >
+        <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4" />
+        <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
+            scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+            glare-intensity="0.04" glare-scale="0.2"
+            color="0.66,0.78,1.0" color-ratio="0.66"/>
+        <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
+            sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
+            earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
+        <atmosphere preset="earth" size="256" lod="4">
+            <input type="float" name="cirrus" value="0.8" />
+            <input type="float" name="cumulus" value="1.0" />
+            <input type="float" name="dithering" value="0.2" />
+            <input type="float" name="ditheringScale" value="100.0" />
+            <input type="float" name="cloudTimeFactor" value="0.3" />
+        </atmosphere>
+    </sky>
 
     <!--**************************-->
     <!--* meshes  *-->
@@ -124,6 +142,7 @@
           type="half-sphere"
           lod="4"
           scaling="10.0,1.5,7.5"
+          texco-scaling="5.0,5.0"
           use-normal="1"
           use-tangent="0"
           usage="STATIC">
@@ -316,8 +335,8 @@
     <node id="Rain">
         <direct-shading ambient="0.3,0.3,0.3">
             <direct-lights>
-                <light id="earth-sky-sun"/>
-                <light id="earth-sky-moon"/>
+                <light id="sky-sun"/>
+                <light id="sky-moon"/>
             </direct-lights>
             <direct-pass>
                 <node id="particle-draw">
@@ -384,7 +403,7 @@
         <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
-        <resource id="earth-sky"/>
+        <resource id="sky"/>
 
         <node id="Ambient-Shading">
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
@@ -394,7 +413,7 @@
             <light-pass type="DIRECTIONAL"
                         shader="regen.shading.deferred.directional"
                         shadow-filter="PCF_GAUSSIAN">
-                <light id="earth-sky-sun"
+                <light id="sky-sun"
                        shadow-buffer="sun-shadow"
                        shadow-attachment="depth"
                        shadow-camera="sun-camera"/>
@@ -410,18 +429,20 @@
         </node>
     </node>
 
-    <node id="Sky">
-        <depth test="1" write="0"/>
-        <sky id="earth-sky"/>
-    </node>
 
     <node id="Background-Pass">
-        <node import="Sky"/>
+        <node id="Sky">
+            <depth test="1" write="0"/>
+            <sky id="sky"/>
+        </node>
         <node import="Reflectors"/>
         <node import="Rain"/>
     </node>
     <node id="Background-Pass0">
-        <node import="Sky"/>
+        <node id="Sky">
+            <depth test="1" write="0"/>
+            <sky id="sky"/>
+        </node>
     </node>
 
     <node id="Post-Pass">
@@ -440,7 +461,7 @@
     <!--**************************-->
 
     <node id="root">
-        <resource id="earth-sky"/>
+        <resource id="sky"/>
         <node id="Pre-Render">
             <node import="Shadow-Pass"/>
             <node import="Paraboloid-Reflection-Update"/>

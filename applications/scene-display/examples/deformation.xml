@@ -32,16 +32,61 @@
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
+    <fbo id="spot-shadow" size-mode="abs" size="4096,4096,1">
+        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+               wrapping="REPEAT"
+               min-filter="NEAREST" mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="sampler2DShadow"/>
+        <texture id="color"
+                 pixel-size="16"
+                 pixel-type="UNSIGNED_BYTE"
+                 pixel-components="4"/>
+    </fbo>
+    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0"
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="color" pixel-components="4"/>
+    </fbo>
+    <!-- Lights -->
+    <light id="spot-light" type="SPOT"
+           position="3.0,8.0,-8.0"
+           direction="-0.37,-0.95,0.8"
+           diffuse="0.48,0.48,0.68"
+           specular="0.8, 0.8, 0.8"
+           radius="10.0,21.0"
+           cone-angles="11.5,25.5"/>
     <!-- Cameras -->
     <camera id="main-camera" fov="45.0" near="0.1" far="200.0" position="0.25,0.5,-9.0" direction="-0.5,0.0,1.0"/>
+    <camera id="spot-camera" light="spot-light" camera="main-camera"/>
     <!-- Assets -->
     <asset id="asset-teapot" type="asset" file="res/models/teapot.obj" use-animation="0"/>
     <asset id="asset-venus" type="asset" file="res/models/venus.obj" use-animation="0"/>
     <asset id="asset-dragon" type="asset" file="res/models/dragon.obj" use-animation="0"/>
-    <!-- Meshes -->
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" lod="0" usage="STATIC"
+          scaling="80.0,80.0,80.0">
+        <material preset="silver"/>
+    </mesh>
+
+    <node id="Scene-Geometry">
+        <depth test="1" write="1"/>
+        <cull mode="FRONT"/>
+        <node id="bg-box">
+            <mesh id="bg-box" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
     <mesh id="platform" type="box" use-normal="1" use-tangent="0" usage="STATIC" lod="0" scaling="1.0,60.0,1.0">
         <material preset="copper" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0"/>
     </mesh>
+
     <mesh id="mesh-teapot" type="asset" asset="asset-teapot"
           asset-indices="*" asset-animation="0" asset-material="0"
           scaling="0.06,0.06,0.06" rotation="0.0,0.0,0.0" translation="0.0,0.0,0.0">
@@ -63,6 +108,7 @@
             </frames>
         </deformation>
     </mesh>
+
     <mesh id="mesh-venus" type="asset" asset="asset-venus"
           asset-indices="*" asset-animation="0" asset-material="0"
           scaling="0.0005,0.0005,0.0005" rotation="0.0,0.0,0.0" translation="0.0,0.0,0.0">
@@ -71,19 +117,8 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="1.75,-0.175,-0.3"/>
         </transform>
-        <!--
-        <deformation mesh-id="mesh-venus" friction="7.9" frequency="5.0" repeat="true">
-            <interpolations>
-                <interpolation target="pos" function="elastic"/>
-                <interpolation target="nor" function="elastic"/>
-            </interpolations>
-            <frames>
-                <frame duration="2.5" shape="sphere" offset="0.0,-0.6,0.0"/>
-                <frame duration="2.5" shape="original"/>
-            </frames>
-        </deformation>
-        -->
     </mesh>
+
     <mesh id="mesh-dragon" type="asset" asset="asset-dragon"
           asset-indices="*" asset-animation="0" asset-material="0"
           scaling="0.1,0.1,0.1" rotation="0.0,0.0,0.0" translation="0.0,0.0,0.0">
@@ -103,34 +138,6 @@
             </frames>
         </deformation>
     </mesh>
-    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" lod="0" usage="STATIC"
-            scaling="80.0,80.0,80.0">
-        <material preset="silver" />
-    </mesh>
-
-    <!--**************************-->
-    <!--**************************-->
-
-    <node id="Shading-Pass">
-        <blend mode="add"/>
-        <depth test="0" write="0"/>
-        <input type="vec3" name="lightAmbient" value="0.01,0.01,0.01"/>
-
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
-        <node id="Light-Shading">
-            <input type="float" name="toonThreshold1" value="0.3"/>
-            <input type="float" name="toonThreshold2" value="0.6"/>
-            <light-pass type="SPOT" shader="regen.shading.deferred.spot">
-                <light id="spot-light"
-                       shadow-buffer="spot-shadow"
-                       shadow-attachment="depth"
-                       shadow-color-attachment="0"
-                       shadow-camera="spot-camera"/>
-            </light-pass>
-        </node>
-    </node>
 
     <node id="Shadow-Caster">
         <node id="platforms">
@@ -161,29 +168,42 @@
         <node id="teapot">
             <mesh id="mesh-teapot" shader="regen.models.mesh"/>
         </node>
+        <node id="dragon">
+            <mesh id="mesh-dragon" shader="regen.models.mesh"/>
+        </node>
         <node id="venus">
-            <define key="POS_MODEL_TRANSFER_KEY" value="regen.morph.twist" />
-            <define key="POS_MODEL_TRANSFER_NAME" value="twist" />
+            <define key="POS_MODEL_TRANSFER_KEY" value="regen.morph.twist"/>
+            <define key="POS_MODEL_TRANSFER_NAME" value="twist"/>
             <input type="float" name="in_twistSpeed" value="2.0"/>
             <input type="float" name="in_twistStrength" value="1.0"/>
             <input type="float" name="in_twistHeight" value="0.5"/>
             <input type="float" name="in_twistAngle" value="3.1415"/>
             <mesh id="mesh-venus" shader="regen.models.mesh"/>
         </node>
-        <node id="dragon">
-            <mesh id="mesh-dragon" shader="regen.models.mesh"/>
-        </node>
     </node>
 
-    <node id="Scene-Geometry">
-        <depth test="1" write="1"/>
-        <cull mode="FRONT" />
-        <node id="bg-box">
-            <mesh id="bg-box" shader="regen.models.mesh" />
-        </node>
-    </node>
+    <!--**************************-->
+    <!--**************************-->
 
-    <node id="Background-Pass">
+    <node id="Shading-Pass">
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <input type="vec3" name="lightAmbient" value="0.01,0.01,0.01"/>
+
+        <node id="Ambient-Shading">
+            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+        </node>
+        <node id="Light-Shading">
+            <input type="float" name="toonThreshold1" value="0.3"/>
+            <input type="float" name="toonThreshold2" value="0.6"/>
+            <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+                <light id="spot-light"
+                       shadow-buffer="spot-shadow"
+                       shadow-attachment="depth"
+                       shadow-color-attachment="0"
+                       shadow-camera="spot-camera"/>
+            </light-pass>
+        </node>
     </node>
 
     <node id="Volumetric-Fog-Pass">
@@ -205,11 +225,6 @@
             </light-pass>
         </node>
     </node>
-
-    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0"
-            pixel-type="FLOAT" pixel-size="24">
-        <texture id="color" pixel-components="4" />
-    </fbo>
 
     <node id="Volumetric-Fog-Update">
         <fbo id="fog-buffer" clear-buffers="*" draw-buffers="0"/>
@@ -235,6 +250,15 @@
         </node>
     </node>
 
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="Background-Pass">
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
     <node id="Post-Pass">
         <depth test="0" write="0"/>
 
@@ -242,7 +266,7 @@
             <fbo id="g-buffer" draw-buffers="1"/>
             <blend mode="alpha"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
-            <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
+            <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
             <input type="float" name="outlineWidth" value="1.0"/>
             <input type="vec3" name="outlineColor" value="0.0, 0.0, 0.0"/>
             <input type="float" name="outlineThresholdNor" value="1.0"/>
@@ -281,36 +305,12 @@
     </node>
 
     <!--**************************-->
-    <!--**** Lights & Shadows ****-->
     <!--**************************-->
-
-    <fbo id="spot-shadow" size-mode="abs" size="4096,4096,1">
-        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-               wrapping="REPEAT"
-               min-filter="NEAREST" mag-filter="NEAREST"
-               compare-mode="COMPARE_R_TO_TEXTURE"
-               compare-function="LEQUAL"
-               sampler-type="sampler2DShadow"/>
-        <texture id="color"
-                 pixel-size="16"
-                 pixel-type="UNSIGNED_BYTE"
-                 pixel-components="4"/>
-    </fbo>
-
-    <light id="spot-light" type="SPOT"
-           position="3.0,8.0,-8.0"
-           direction="-0.37,-0.95,0.8"
-           diffuse="0.48,0.48,0.68"
-           specular="0.8, 0.8, 0.8"
-           radius="10.0,21.0"
-           cone-angles="11.5,25.5"/>
-
-    <camera id="spot-camera" light="spot-light" camera="main-camera"/>
 
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
         <!-- Note: front face culling not enough, as deformation may messes up face orientation -->
-        <polygon offset-fill="1.1,4.0" />
+        <polygon offset-fill="1.1,4.0"/>
 
         <node id="Spot-Shadow-Pass">
             <fbo id="spot-shadow" clear-depth="1" clear-buffers="0"/>

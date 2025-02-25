@@ -308,6 +308,13 @@ void SceneDisplayWidget::playAnchor() {
 	anchorAnim_->startAnimation();
 }
 
+void SceneDisplayWidget::makeVideo(bool isClicked) {
+	if (isClicked) {
+		REGEN_WARN("Video creation not implemented.");
+	} else {
+	}
+}
+
 void SceneDisplayWidget::toggleInputsDialog() {
 	if (inputDialog_ == nullptr) {
 		inputDialog_ = new QDialog(this);

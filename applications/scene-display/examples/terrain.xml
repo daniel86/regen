@@ -17,14 +17,14 @@
                 speed="0.05"
                 eye-offset="0.0,0.0,0.0"
                 horizontal-orientation="4.71225"
-                vertical-orientation="0.25">
+                vertical-orientation="0.25"
+                ease-in-out="1.8"
+                anchor-pause-time="0.7"
+                anchor-time-scale="0.8">
             <anchor type="look-at" transform="grass-tf" offset="-40.0, 14.0, 0.0" />
             <anchor type="look-at" transform="grass-tf" offset="0.0, 40.0, 60.0" />
-            <anchor type="look-at" transform="grass-tf" offset="0.0, 40.0, 60.0" />
-            <anchor type="look-at" transform="grass-tf" offset="0.0, 20.0, 40.0" />
             <anchor type="look-at" transform="grass-tf" offset="0.0, 20.0, 40.0" />
             <anchor type="look-at" transform="grass-tf" offset="80.0, 20.0, 0.0" />
-            <anchor type="look-at" transform="grass-tf" offset="80.0, 40.0, 0.0" />
             <anchor type="look-at" transform="hyena-tf" offset="0.0, -4.0, 1.0" follow="1" />
             <anchor type="look-at" transform="grass-tf" offset="-40.0, 14.0, 0.0" />
         </camera>
@@ -163,6 +163,7 @@
         <uniform name="windFlowTime" type="float" value="0.1"/>
         <uniform name="windStrength" type="float" value="1.0"/>
     </ubo>
+    <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" >
         <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="0" />
         <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
@@ -341,6 +342,7 @@
     <!--**************************-->
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
+    <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
     <mesh id="tree-mesh" type="proctree" lods="3,2,1" lod-far="40.0" preset="fir">
         <transform id="tree-tf">
             <set mode="plane"

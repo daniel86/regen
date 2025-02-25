@@ -10,7 +10,7 @@
 #include <regen/utility/string-util.h>
 #include <regen/states/light-state.h>
 #include <regen/states/material-state.h>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/glsl/directive-processor.h>

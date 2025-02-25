@@ -172,15 +172,14 @@
     <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
     <texture name="blurTexture" id="blurred-scene" />
     <input type="float" name="focalDistance" value="0.0" />
-    <input type="vec2" name="focalWidth" value="0.7,1.0" />
     <fullscreen-pass shader="regen.filter.dof" />
 </node>
 
 <node id="Distance-Fog">
     <blend mode="alpha" />
     <input type="float" name="fogDensity" value="1.0" />
-    <input type="vec2" name="fogDistance" value="0.0,100.0" />
-    <input type="vec3" name="fogColor" value="1.0,1.0,1.0" />
+    <input type="vec2" name="fogDistance" value="50.0,100.0" />
+    <input type="vec3" name="fogColor" value="0.2,0.33,0.3" />
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
     <texture name="skyColorTexture" id="earth-sky" />
     <define key="USE_SKY_COLOR" value="TRUE" />

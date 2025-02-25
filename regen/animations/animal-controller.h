@@ -2,7 +2,7 @@
 #define REGEN_ANIMAL_CONTROLLER_H_
 
 #include <regen/math/vector.h>
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include <regen/animations/animation-controller.h>
 #include "animation-node.h"
 #include "regen/shapes/bounds.h"

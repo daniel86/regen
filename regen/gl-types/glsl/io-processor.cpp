@@ -10,7 +10,7 @@
 #include <regen/utility/logging.h>
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-enum.h>
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include "io-processor.h"
 #include "regen/gl-types/uniform-block.h"
 

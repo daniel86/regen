@@ -14,7 +14,7 @@
 #include <regen/meshes/particles.h>
 #include <regen/meshes/assimp-importer.h>
 #include <regen/meshes/texture-mapped-text.h>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/physics/bullet-physics.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/xml.h>

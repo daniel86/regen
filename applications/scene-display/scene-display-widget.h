@@ -72,6 +72,8 @@ public slots:
 
 	void playAnchor();
 
+	void makeVideo(bool isClicked);
+
 	void toggleWireframe();
 
 	void toggleVSync();
