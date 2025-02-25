@@ -9,7 +9,7 @@
 #define FILTER_H_
 
 #include <regen/states/fullscreen-pass.h>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/states/fbo-state.h>
 
 namespace regen {

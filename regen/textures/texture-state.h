@@ -10,7 +10,7 @@
 
 #include <regen/states/state.h>
 #include <regen/states/blend-state.h>
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 
 namespace regen {
 	/**

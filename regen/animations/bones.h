@@ -11,7 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/animations/animation-node.h>
 #include <regen/gl-types/vbo.h>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 
 namespace regen {
 	/**

@@ -10,7 +10,7 @@
 
 #include <regen/states/state-node.h>
 #include <regen/states/state.h>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/states/shader-state.h>
 #include <regen/gl-types/shader-input.h>
 

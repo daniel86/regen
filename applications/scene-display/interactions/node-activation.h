@@ -1,4 +1,4 @@
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/av/video-texture.h>
 #include <regen/scene/scene-interaction.h>
 #include <regen/application.h>

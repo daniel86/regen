@@ -12,7 +12,7 @@
 
 #include <regen/utility/event-object.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/shader-input-container.h>

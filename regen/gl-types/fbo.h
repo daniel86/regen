@@ -13,7 +13,7 @@
 
 #include <regen/gl-types/gl-object.h>
 #include <regen/gl-types/render-state.h>
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
 #include "uniform-block.h"

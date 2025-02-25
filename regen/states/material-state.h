@@ -9,7 +9,7 @@
 #define REGEN_MATERIAL_H_
 
 #include <regen/states/state.h>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>

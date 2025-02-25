@@ -23,7 +23,7 @@ extern "C" {
 #include <string>
 #include <map>
 
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include <regen/math/vector.h>
 #include <regen/utility/ref-ptr.h>
 

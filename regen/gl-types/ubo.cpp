@@ -83,32 +83,35 @@ void UBO::computePaddedSize() {
 	}
 }
 
-static std::optional<std::pair<const byte*, unsigned int>> alignedData(const ref_ptr<ShaderInput> &in) {
+void UBO::updateAlignedData(UBO_Input &uboInput) {
 	// the GL specification states that the stride between array elements must be
 	// rounded up to 16 bytes.
 	// this is quite ugly to do element-wise memcpy below, hence non 16-byte aligned
 	// arrays should be avoided in general.
+	auto &in = uboInput.input;
 	auto numElements = in->numArrayElements() * in->numInstances();
 	if (numElements == 1) {
-		return std::nullopt;
+		return;
 	}
 	auto elementSizeUnaligned = in->valsPerElement() * in->dataTypeBytes();
 	if (elementSizeUnaligned % 16 == 0) {
-		return std::nullopt;
+		return;
 	}
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
 	auto dataSizeAligned = elementSizeAligned * numElements;
-	// TODO: rather store the array with the input, avoid re-allocating each update
-	auto *alignedData = new byte[dataSizeAligned];
+	if (dataSizeAligned != uboInput.alignedSize) {
+		delete[] uboInput.alignedData;
+		uboInput.alignedSize = dataSizeAligned;
+		uboInput.alignedData = new byte[uboInput.alignedSize];
+	}
 	auto clientData = in->mapClientDataRaw(ShaderData::READ);
 	auto *src = clientData.r;
-	auto *dst = alignedData;
+	auto *dst = uboInput.alignedData;
 	for (unsigned int i = 0; i < numElements; ++i) {
 		memcpy(dst, src, elementSizeUnaligned);
 		src += elementSizeUnaligned;
 		dst += elementSizeAligned;
 	}
-	return std::make_pair(alignedData, dataSizeAligned);
 }
 
 void UBO::update(bool forceUpdate) {
@@ -137,11 +140,10 @@ void UBO::update(bool forceUpdate) {
 					continue;
 				}
 				// copy the data to the buffer.
-				auto aligned = alignedData(uboInput.input);
-				if (aligned.has_value()) {
-					auto [clientData, inputSize] = aligned.value();
-					memcpy(static_cast<char*>(bufferData) + uboInput.offset, clientData, inputSize);
-					delete[] clientData;
+				updateAlignedData(uboInput);
+				if (uboInput.alignedData) {
+					memcpy(static_cast<char*>(bufferData) + uboInput.offset,
+						uboInput.alignedData, uboInput.alignedSize);
 				} else {
 					auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
 					memcpy(static_cast<char*>(bufferData) + uboInput.offset,

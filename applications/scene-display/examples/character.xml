@@ -2,10 +2,11 @@
 
 <node>
     <constant name="num-fire-flies" value="20"/>
-
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
-    <node id="configuration">
+    <node id="configuration"
+            date="01-09-2014 06:00:00"
+            time-scale="60.0">
         <animation id="dwarf-asset" type="asset" idle="idle2">
             <key-mapping key=" " press="jumpSpot"/>
             <key-mapping key="C" press="crouch" idle="crouchLoop" toggle="1"/>
@@ -797,6 +798,7 @@
         <node import="Depth-of-Field">
             <fbo id="g-buffer" draw-buffers="0"/>
             <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+            <input type="vec2" name="focalWidth" value="0.7,1.0" />
         </node>
         <view id="Depth of Field">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>

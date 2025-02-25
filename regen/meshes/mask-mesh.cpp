@@ -1,4 +1,4 @@
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include "mask-mesh.h"
 
 using namespace regen;

@@ -1,7 +1,7 @@
 #ifndef REGEN_RAMP_TEXTURE_H_
 #define REGEN_RAMP_TEXTURE_H_
 
-#include <regen/gl-types/texture.h>
+#include <regen/textures/texture.h>
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {

@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 
 #include <boost/algorithm/string.hpp>
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 
 #include "texture-mapped-text.h"
 
