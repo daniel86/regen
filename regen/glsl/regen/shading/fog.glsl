@@ -33,11 +33,7 @@ uniform sampler2D in_tDepthTexture;
 uniform sampler2D in_tColorTexture;
 #endif
 
-#ifdef USE_SKY_COLOR
-uniform samplerCube in_skyColorTexture;
-#else
 const vec3 in_fogColor = vec3(1.0);
-#endif
 const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
 
@@ -45,6 +41,9 @@ const float in_fogDensity = 1.0;
 #include regen.states.camera.input
 #include regen.shading.fog.fogIntensity
 #include regen.states.camera.transformTexcoToWorld
+#ifdef HAS_sunPosition
+    #include regen.sky.utility.sunIntensity
+#endif
 
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
@@ -56,6 +55,9 @@ void main() {
     float factor0 = float(d0<1.0) * fogIntensity(eye0Length);
 
     vec3 fogColor = in_fogColor;
+#ifdef HAS_sunPosition
+    fogColor *= clamp(sunIntensity(), 0.0, 1.0);
+#endif
 #ifdef HAS_skyColorTexture
     vec3 skyColor = texture(in_skyColorTexture, eye0).rgb;
     fogColor = mix(fogColor, skyColor, factor0);
