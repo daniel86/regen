@@ -3,6 +3,8 @@
 <node>
     <constant name="num-fire-flies" value="20"/>
     <constant name="far-plane" value="100.0"/>
+    <constant name="close-range" value="40.0"/>
+    <constant name="mid-range" value="100.0"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
@@ -67,34 +69,11 @@
          pixel-type="UNSIGNED_BYTE">
         <depth id="depth" pixel-size="24"/>
     </fbo>
-    <!--
-<fbo id="room-light-shadow0"
- target="TEXTURE_CUBE_MAP"
- sampler-type="samplerCube"
- size-mode="abs" size="1024,1024,6">
-<depth pixel-size="24" pixel-type="FLOAT"
-       wrapping="CLAMP_TO_EDGE"
-       min-filter="NEAREST" mag-filter="NEAREST"
-       compare-mode="COMPARE_R_TO_TEXTURE"
-       compare-function="LEQUAL"
-       sampler-type="samplerCubeShadow"/>
-</fbo>
-    -->
     <fbo id="room-light-shadow0"
          target="TEXTURE_2D_ARRAY"
          size-mode="abs" size="2048,2048,1">
         <depth pixel-size="24" pixel-type="FLOAT"
                wrapping="CLAMP_TO_EDGE"
-               min-filter="NEAREST"
-               mag-filter="NEAREST"
-               compare-mode="COMPARE_R_TO_TEXTURE"
-               compare-function="LEQUAL"
-               sampler-type="sampler2DArrayShadow"/>
-    </fbo>
-    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}">
-        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-               target="TEXTURE_2D_ARRAY"
-               wrapping="REPEAT"
                min-filter="NEAREST"
                mag-filter="NEAREST"
                compare-mode="COMPARE_R_TO_TEXTURE"
@@ -173,10 +152,10 @@
                    bounds-min="2.0, 0.0, -14.0"
                    bounds-max="14.0, 4.0, -2.0">
             <home-point value="8.0, 4.0, -8.0"/>
-            <object type="attractor" value="8.0, 6.0, -8.0" />
+            <object type="danger" value="8.0, 10.0, -8.0" />
+            <object type="attractor" value="8.0, 8.0, -8.0" />
+            <object type="danger" value="8.0, 6.0, -8.0" />
             <object type="attractor" value="8.0, 4.0, -8.0" />
-            <object type="attractor" value="8.0, 2.0, -8.0" />
-            <object type="attractor" value="8.0, 0.0, -8.0" />
         </animation>
     </light>
     <!-- Sky -->
@@ -280,7 +259,7 @@
             <node id="tree1-twig">
                 <define key="DISCARD_ALPHA" value="TRUE"/>
                 <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-                <input name="matEmission" type="vec3" value="0.01,0.06,0.01"/>
+                <input name="matEmission" type="vec3" value="0.0,0.02,0.0"/>
                 <!-- transform mesh in geometry shader -->
                 <define key="HAS_GS_TRANSFORM" value="TRUE"/>
                 <texture name="windFlow" id="wind-flowmap"/>
@@ -319,15 +298,15 @@
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <blend mode="SRC"/>
             <define key="TESS_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.5" lod-metric="EDGE_DEVICE_DISTANCE"/>
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
             <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
             <input name="minTessLevel" type="float" value="1.0"/>
             <input name="maxTessLevel" type="float" value="60.0"/>
             <!-- use more complex geometry in close range. -->
             <define key="USE_SPRITE_LOD" value="TRUE"/>
-            <input name="lodGeomLevel0" type="float" value="60.0"/>
-            <input name="lodGeomLevel1" type="float" value="160.0"/>
+            <input name="lodGeomLevel0" type="float" value="{{close-range}}"/>
+            <input name="lodGeomLevel1" type="float" value="{{mid-range}}"/>
             <input name="lodGeomBrightness0" type="float" value="1.7"/>
             <input name="lodGeomVariance" type="float" value="6.0"/>
             <!-- size and position -->
@@ -499,7 +478,7 @@
                mesh-id="pedestal-mesh" transform-id="pedestal-tf"
                shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
         <material preset="wood" variant="1" color-blend-mode="mul"
-                  diffuse="0.9, 0.8, 0.7"/>
+                  diffuse="0.64, 0.41, 0.27"/>
     </mesh>
 
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
@@ -512,7 +491,7 @@
                mesh-id="slope-mesh" transform-id="slope-tf"/>
         <shape id="slope-physics" mode="physics"
                mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
-        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.5, 0.65, 0.75"/>
+        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.35, 0.35, 0.28"/>
     </mesh>
 
     <node id="Pedestal">
@@ -727,14 +706,6 @@
                     <light id="sky-sun"/>
                 </light-pass>
             </node>
-            <!--
-            <node>
-                <light-pass type="POINT"
-                            shader="regen.shading.deferred.point">
-                    <light id="room-light0"/>
-                </light-pass>
-            </node>
-            -->
             <node>
                 <light-pass type="POINT"
                             shader="regen.shading.deferred.point.parabolic"
@@ -821,6 +792,7 @@
             <input type="float" name="fogDensity" value="1.0" />
             <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" />
             <input type="vec3" name="fogColor" value="0.2,0.33,0.3" />
+            <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
             <texture name="skyColorTexture" id="sky" />
             <fullscreen-pass shader="regen.shading.fog.distance" />
