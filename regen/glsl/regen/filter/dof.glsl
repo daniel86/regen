@@ -40,5 +40,5 @@ void main() {
     // distance to point with max sharpness
     float d = abs(in_focalDistance - depth);
     float focus = smoothstep(in_focalWidth.x, in_focalWidth.y, d);
-    out_color = mix(original, blurred, focus);
+    out_color = mix(original, blurred, focus * float(depth < 0.99));
 }

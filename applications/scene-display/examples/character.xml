@@ -2,6 +2,8 @@
 
 <node>
     <constant name="num-fire-flies" value="20"/>
+    <constant name="far-plane" value="100.0"/>
+
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
     <node id="configuration"
@@ -56,6 +58,15 @@
         <texture id="emission" pixel-components="3"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
+    <fbo id="particle-fbo" size-mode="rel" size="0.25, 0.25"
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="density" pixel-components="1"/>
+        <texture id="color" pixel-components="4"/>
+    </fbo>
+    <fbo id="particle-depth" size-mode="rel" size="0.25, 0.25"
+         pixel-type="UNSIGNED_BYTE">
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
     <!--
 <fbo id="room-light-shadow0"
  target="TEXTURE_CUBE_MAP"
@@ -93,16 +104,26 @@
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
     <texture id="ground-color" file="res/textures/materials/grass/0/ground.png"/>
-    <texture id="ground-normal" file="res/textures/brick/normal.jpg"/>
-    <texture id="ground-height" file="res/textures/brick/height.jpg"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
     <texture id="sand" file="res/textures/materials/sand.jpg"/>
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
+    <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
+    <texture id="particle-splat" file="res/textures/splats/flare.jpg"/>
+    <texture id="particle-color-ramp" ramp="inline" format="RGB">
+        <texel v="255, 255, 20"/>
+        <texel v="250, 60, 20"/>
+        <texel v="230, 40, 20"/>
+        <texel v="160, 20, 8"/>
+        <texel v="0, 0, 0"/>
+        <texel v="0, 0, 0"/>
+    </texture>
     <!-- Spatial Index -->
     <index id="main-index" type="quadtree" max-objects-per-node="4"/>
     <!-- Cameras -->
     <camera id="main-camera"
             culling-index="main-index"
-            fov="45.0" near="0.1" far="200.0"
+            fov="45.0" near="0.1" far="{{far-plane}}"
             position="25.0,2.5,2.0"
             direction="1.0,0.0,-1.0"/>
     <camera id="room-light-camera0"
@@ -158,6 +179,24 @@
             <object type="attractor" value="8.0, 0.0, -8.0" />
         </animation>
     </light>
+    <!-- Sky -->
+    <sky id="sky" camera="main-camera" update-interval="200.0" >
+        <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="0" />
+        <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
+            scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+            glare-intensity="0.04" glare-scale="0.2"
+            color="0.66,0.78,1.0" color-ratio="0.66"/>
+        <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
+            sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
+            earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
+        <atmosphere preset="earth" size="256" lod="0">
+            <input type="float" name="cirrus" value="0.8" />
+            <input type="float" name="cumulus" value="0.6" />
+            <input type="float" name="dithering" value="0.2" />
+            <input type="float" name="ditheringScale" value="100.0" />
+            <input type="float" name="cloudTimeFactor" value="0.3" />
+        </atmosphere>
+    </sky>
 
 
     <!--**************************-->
@@ -178,7 +217,7 @@
     <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="4"
           rotation="0.0,0.0,3.1415"
           scaling="400.0,20.0,400.0"
-          texco-scaling="20.0,20.0">
+          texco-scaling="100.0,100.0">
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
@@ -266,10 +305,6 @@
     <!--********* Other Garden Stuff *********-->
     <!--**************************-->
 
-    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE"/>
-    <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
-    <texture id="wind-noise" noise="cloud" size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
-
     <node id="Grass">
         <node id="grass1">
             <!-- TODO: the grass alpha discard is super slow!
@@ -319,7 +354,7 @@
                     ambient="0.1, 0.1, 0.1"
                     specular="0.0, 0.0, 0.0"
                     shininess="256.0"
-                    emission="0.0, 0.02, 0.0"/>
+                    emission="0.0, 0.0, 0.0"/>
             <mesh id="ground-mesh" primitive="patches" shader="regen.models.grass.patch"/>
         </node>
     </node>
@@ -514,27 +549,6 @@
     </node>
     -->
 
-    <!-- A FBO with density and color attachments. -->
-    <fbo id="particle-fbo" size-mode="rel" size="0.25, 0.25"
-         pixel-type="FLOAT" pixel-size="24">
-        <texture id="density" pixel-components="1"/>
-        <texture id="color" pixel-components="4"/>
-    </fbo>
-    <fbo id="particle-depth" size-mode="rel" size="0.25, 0.25"
-         pixel-type="UNSIGNED_BYTE">
-        <depth id="depth" pixel-size="24"/>
-    </fbo>
-
-    <texture id="particle-splat" file="res/textures/splats/flare.jpg"/>
-    <texture id="particle-color-ramp" ramp="inline" format="RGB">
-        <texel v="255, 255, 20"/>
-        <texel v="250, 60, 20"/>
-        <texel v="230, 40, 20"/>
-        <texel v="160, 20, 8"/>
-        <texel v="0, 0, 0"/>
-        <texel v="0, 0, 0"/>
-    </texture>
-
     <ubo id="Particles-UBO">
         <uniform type="vec3" name="gravity" value="0.0,9.81,0.0"/>
         <uniform type="float" name="dampingFactor" value="1.0"/>
@@ -700,19 +714,27 @@
         <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
-        <resource id="earth-sky"/>
+        <resource id="sky"/>
 
         <node id="Ambient-Shading">
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
         <!-- TODO: seems light-passes must be seperated into different nodes everywhere! I guess because states on
-             same level are joined when building a shader? maybe can also be fixed. -->
+             same level are joined when building a shader? -->
         <node id="Light-Shading">
             <node>
                 <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
-                    <light id="earth-sky-sun"/>
+                    <light id="sky-sun"/>
                 </light-pass>
             </node>
+            <!--
+            <node>
+                <light-pass type="POINT"
+                            shader="regen.shading.deferred.point">
+                    <light id="room-light0"/>
+                </light-pass>
+            </node>
+            -->
             <node>
                 <light-pass type="POINT"
                             shader="regen.shading.deferred.point.parabolic"
@@ -764,7 +786,7 @@
         <node import="Grass"/>
         <node id="Ground">
             <texture id="ground-color" map-to="color" blend-mode="SRC" wrapping="REPEAT"/>
-            <material specular="0, 0, 0" ambient="0.06, 0.085, 0.06"/>
+            <material specular="0, 0, 0" ambient="0.05, 0.0, 0.0"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
         <node id="Fire-Flies" cull-shape="fire-flies-shape0">
@@ -783,7 +805,7 @@
 
     <node id="Background-Objects">
         <node id="Sky">
-            <sky id="earth-sky"/>
+            <sky id="sky"/>
         </node>
     </node>
 
@@ -792,7 +814,21 @@
 
     <node id="Post-Pass">
         <depth test="0" write="0"/>
-        <!-- blur the g-buffer attachment 1, the output is a named texture "blurred-scene" -->
+
+        <node id="Distance-Fog">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <blend mode="alpha" />
+            <input type="float" name="fogDensity" value="1.0" />
+            <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" />
+            <input type="vec3" name="fogColor" value="0.2,0.33,0.3" />
+            <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+            <texture name="skyColorTexture" id="sky" />
+            <fullscreen-pass shader="regen.shading.fog.distance" />
+        </node>
+        <view id="Distance Fog">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+        <!-- blur the g-buffer attachment 1 -->
         <node import="G-Buffer-Blur1"/>
         <!-- apply depth of field effect by mixing the blurred scene with the original scene -->
         <node import="Depth-of-Field">
@@ -803,7 +839,15 @@
         <view id="Depth of Field">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
+
         <!-- render particles into a separate buffer -->
+        <!-- FIXME: Depth-Fog is not applied to particles, and emission! difficulty is that depth is not available.
+                    Earlier a demo had a dedicated T-Buffer next to G-buffer that also stored depth, that could
+                    be the approach to fix it.
+                    However, particles use their own buffer, and emission is part of g-buffer.
+                    Also, emission is more difficult: it is generated with blurring from multiple mips.
+                    Will be difficult to get the depth buffer for that.
+        -->
         <node import="Particle-Update-FBO"/>
         <!-- render transparent objects -->
         <node id="Transparent-Pass">
@@ -824,6 +868,7 @@
                 <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
             </view>
         </node>
+
         <!-- apply anti-aliasing effect -->
         <node import="FXAA">
             <fbo id="g-buffer" draw-buffers="1"/>
@@ -840,17 +885,8 @@
         <node id="Pre-Render">
             <!-- Render shadow maps such that they can be used in the shading pass -->
             <node import="Shadow-Pass">
-                <!-- the leafs of the tree have opposing faces very close to each other,
-                     so to avoid z-fighting we apply a small offset to all shadow caster. -->
                 <polygon offset-fill="1.1,4.0"/>
             </node>
-            <!--
-            <view id="Cube Shadow-Map">
-                <fbo id="SCREEN"/>
-                <texture name="cubeTexture" fbo="room-light-shadow0" attachment="depth"/>
-                <fullscreen-pass shader="regen.filter.sampling.cube-shadow-unfold"/>
-            </view>
-            -->
             <view id="Parabolic Shadow-Map">
                 <fbo id="SCREEN"/>
                 <texture name="inputTexture" fbo="room-light-shadow0" attachment="depth"/>
