@@ -22,10 +22,14 @@ LightPass::LightPass(Light::Type type, const std::string &shaderKey)
 		case Light::SPOT:
 			mesh_ = ConeClosed::getBaseCone();
 			joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
+			// enable depth clamping to avoid faces to be clipped away when out of depth range.
+			joinStates(ref_ptr<ToggleState>::alloc(RenderState::DEPTH_CLAMP, GL_TRUE));
 			break;
 		case Light::POINT:
 			mesh_ = Box::getUnitCube();
 			joinStates(ref_ptr<CullFaceState>::alloc(GL_FRONT));
+			// enable depth clamping to avoid faces to be clipped away when out of depth range.
+			joinStates(ref_ptr<ToggleState>::alloc(RenderState::DEPTH_CLAMP, GL_TRUE));
 			break;
 	}
 	shadowFiltering_ = SHADOW_FILTERING_NONE;
