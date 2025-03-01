@@ -463,6 +463,20 @@ void SceneDisplayWidget::toggleVSync() {
 	}
 }
 
+void SceneDisplayWidget::toggleInfo(bool isOn) {
+	if (isOn) {
+		auto guiNode = app_->renderTree()->findNodeWithName("GUI-Pass");
+		if (guiNode) {
+			guiNode->set_isHidden(GL_FALSE);
+		}
+	} else {
+		auto guiNode = app_->renderTree()->findNodeWithName("GUI-Pass");
+		if (guiNode) {
+			guiNode->set_isHidden(GL_TRUE);
+		}
+	}
+}
+
 void SceneDisplayWidget::updateGameTimeWidget() {
     auto &t_ptime = app_->worldTime().p_time;
     auto t_seconds = t_ptime.time_of_day().total_seconds();

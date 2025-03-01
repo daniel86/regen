@@ -5,6 +5,7 @@
  *      Author: daniel
  */
 
+#include <stack>
 #include <regen/animations/animation-manager.h>
 
 #include "state-node.h"
@@ -150,6 +151,26 @@ ref_ptr<Camera> StateNode::getParentCamera() {
 			return parent_->getParentCamera();
 	}
 	return out;
+}
+
+StateNode* StateNode::findNodeWithName(const std::string &name) {
+	std::stack<StateNode *> stack;
+	stack.push(this);
+
+	while (!stack.empty()) {
+		auto node = stack.top();
+		stack.pop();
+
+		if (node->name_ == name) {
+			return node;
+		}
+
+		for (auto &child: node->childs_) {
+			stack.push(child.get());
+		}
+	}
+
+	return nullptr;
 }
 
 //////////////

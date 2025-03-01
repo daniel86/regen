@@ -223,6 +223,36 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="infoButton">
+         <property name="minimumSize">
+          <size>
+           <width>48</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>48</width>
+           <height>48</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <family>FontAwesome</family>
+          </font>
+         </property>
+         <property name="text">
+          <string></string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QTimeEdit" name="worldTime">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -526,7 +556,7 @@
    <slot>openFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>573</x>
+     <x>627</x>
      <y>41</y>
     </hint>
     <hint type="destinationlabel">
@@ -574,7 +604,7 @@
    <slot>nextAnchor()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>165</x>
+     <x>219</x>
      <y>41</y>
     </hint>
     <hint type="destinationlabel">
@@ -590,8 +620,8 @@
    <slot>playAnchor()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>111</x>
-     <y>31</y>
+     <x>165</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>297</x>
@@ -606,8 +636,8 @@
    <slot>toggleWireframe()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>219</x>
-     <y>39</y>
+     <x>273</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>440</x>
@@ -622,8 +652,8 @@
    <slot>toggleVSync()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>273</x>
-     <y>39</y>
+     <x>327</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>339</x>
@@ -638,7 +668,7 @@
    <slot>onWorldTimeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>363</x>
+     <x>471</x>
      <y>41</y>
     </hint>
     <hint type="destinationlabel">
@@ -654,8 +684,8 @@
    <slot>onWorldTimeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>355</x>
-     <y>28</y>
+     <x>471</x>
+     <y>38</y>
     </hint>
     <hint type="destinationlabel">
      <x>378</x>
@@ -670,8 +700,8 @@
    <slot>onWorldTimeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>363</x>
-     <y>35</y>
+     <x>471</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>291</x>
@@ -686,8 +716,8 @@
    <slot>onWorldTimeFactorChanged(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>433</x>
-     <y>34</y>
+     <x>541</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>411</x>
@@ -718,12 +748,28 @@
    <slot>makeVideo(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>608</x>
-     <y>31</y>
+     <x>111</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
      <x>620</x>
      <y>692</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>infoButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>sceneViewer</receiver>
+   <slot>toggleInfo(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>365</x>
+     <y>25</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>594</x>
+     <y>643</y>
     </hint>
    </hints>
   </connection>
@@ -741,5 +787,6 @@
   <slot>onWorldTimeFactorChanged(double)</slot>
   <slot>toggleCameraPopup()</slot>
   <slot>makeVideo(bool)</slot>
+  <slot>toggleInfo(bool)</slot>
  </slots>
 </ui>

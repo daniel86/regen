@@ -79,6 +79,8 @@ public slots:
 
 	void toggleVSync();
 
+	void toggleInfo(bool isOn);
+
 	void onWorldTimeChanged();
 
 	void onWorldTimeFactorChanged(double value);

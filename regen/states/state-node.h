@@ -100,6 +100,11 @@ namespace regen {
 
 		ref_ptr<Camera> getParentCamera();
 
+		/**
+		 * Find a node with a given name.
+		 */
+		StateNode* findNodeWithName(const std::string &name);
+
 		template<typename StateType>
 		StateType* findStateWithType() {
 			auto queue = std::queue<StateNode*>();
