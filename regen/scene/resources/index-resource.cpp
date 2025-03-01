@@ -19,6 +19,7 @@ ref_ptr<SpatialIndex> IndexResource::createResource(
 	if (indexType == "quadtree") {
 		auto quadTree = ref_ptr<QuadTree>::alloc();
 		//quadTree->setMaxObjectsPerNode(input.getValue<GLuint>("max-objects-per-node", 4u));
+		quadTree->setMinNodeSize(input.getValue<float>("min-node-size", 0.1f));
 		index = quadTree;
 	}
 

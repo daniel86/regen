@@ -213,10 +213,10 @@ void QuadTree::collapse(Node *node) {
 			return;
 		}
 	}
-	if (parent->children[0]->shapes.size() > QUAD_TREE_COLLAPSE_THRESHOLD) {
+	//if (parent->children[0]->shapes.size() > QUAD_TREE_COLLAPSE_THRESHOLD) {
 		// no collapse
-		return;
-	}
+		//return;
+	//}
 	for (int i = 1; i < 4; i++) {
 		if (parent->children[i]->shapes.size() != firstShapes.size()) {
 			// unequal number of shapes -> no collapse
@@ -496,6 +496,9 @@ void QuadTree::foreachIntersection(
 		num2DTests++;
 #endif
 		// 2D intersection test with the xz-projection
+		// TODO: I think there might be potential for optimization here.
+		//       - could erase rest of the stack if node fully contains the shape
+		//       - if the node is fully contained in the shape, we could skip the 3D tests (ignoring the height)
 		if (!node->intersects(shape_projection)) {
 			continue;
 		}
