@@ -98,7 +98,9 @@
         <texel v="0, 0, 0"/>
     </texture>
     <!-- Spatial Index -->
-    <index id="main-index" type="quadtree" max-objects-per-node="4"/>
+    <index id="main-index" type="quadtree"
+            min-node-size="2.0"
+            max-objects-per-node="4"/>
     <!-- Cameras -->
     <camera id="main-camera"
             culling-index="main-index"
@@ -556,8 +558,8 @@
         <texture name="windFlow" id="wind-flowmap"/>
     </node>
 
+    <!-- TODO: add a bounding box for the particles. -->
     <mesh id="test-particles1" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
-        <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
@@ -567,18 +569,12 @@
     </mesh>
 
     <mesh id="test-particles0" type="particles" num-vertices="800" max-emits="10" animation-state="Particle-Config">
-        <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>
         <input type="float" name="mass" is-attribute="1" default="1.4" variance="0.4"/>
         <input type="float" name="size" is-attribute="1" default="0.1" variance="0.05" advance-mode="ADD"
                advance-constant="2.0"/>
         <transform id="platform0-tf"/>
-        <!-- TODO: add a bounding shape for particles. -->
-        <!--
-        <shape id="particles0-aabb" mode="index" type="aabb"
-            mesh-id="test-particles0" />
-        -->
     </mesh>
 
     <node id="Particle-Update-FBO">
@@ -605,14 +601,18 @@
 
         <node id="Particle-Density">
             <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0"/>
+            <blend mode="add"/>
             <!-- TODO: there is a halo around objects, maybe it can be avoided with downsamled depth
                        but first attempt did not have an effect for some reason. -->
             <!--
             <texture name="depthTexture" fbo="particle-depth" attachment="depth"/>
             -->
             <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+            <!--
             <texture name="splatTexture" id="particle-splat" map-to="ALPHA" blend-mode="MUL"/>
-            <blend mode="add"/>
+            -->
+            <texture name="splatTexture" id="particle-splat" map-to="ALPHA" blend-mode="MUL" texco-transfer="NOISE"/>
+            <input type="float" name="uvNoiseScale" value="0.5"/>
             <input type="float" name="softParticleScale" value="30.0"/>
             <input type="float" name="lifetimeSmoothstep" value="1.0"/>
             <node id="Particle-Density0">
@@ -662,14 +662,6 @@
             <texture name="inputTexture" id="particle-color"/>
             <fullscreen-pass shader="regen.filter.sampling"/>
         </view>
-    </node>
-
-    <node id="Particle-Draw">
-        <blend mode="alpha"/>
-        <depth test="0" write="0"/>
-        <texture name="inputTexture" id="particle-color"/>
-        <define key="IS_2D_TEXTURE" value="TRUE"/>
-        <fullscreen-pass shader="regen.filter.sampling"/>
     </node>
 
     <!--**************************-->
@@ -834,7 +826,13 @@
                 <fullscreen-pass shader="regen.shading.deferred.emission"/>
             </node>
             <!-- render particles -->
-            <node import="Particle-Draw"/>
+            <node id="Particle-Draw">
+                <blend mode="alpha"/>
+                <depth test="0" write="0"/>
+                <texture name="inputTexture" id="particle-color"/>
+                <define key="IS_2D_TEXTURE" value="TRUE"/>
+                <fullscreen-pass shader="regen.filter.sampling"/>
+            </node>
             <!-- <node import="Fire" /> -->
             <view id="Transparent Objects">
                 <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
