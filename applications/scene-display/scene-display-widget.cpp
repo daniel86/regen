@@ -200,11 +200,13 @@ void SceneDisplayWidget::nextView() {
 	active1.node->set_isHidden(GL_FALSE);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 
-	auto blitState = active1.node->findStateWithType<BlitToScreen>();
-	if (blitState) {
-		app_->withGLContext([&] {
-			videoRecorder_->setFrameBuffer(blitState->fbo(), blitState->attachment());
-		});
+	if (videoRecorder_.get()) {
+		auto blitState = active1.node->findStateWithType<BlitToScreen>();
+		if (blitState) {
+			app_->withGLContext([&] {
+				videoRecorder_->setFrameBuffer(blitState->fbo(), blitState->attachment());
+			});
+		}
 	}
 }
 
@@ -222,11 +224,13 @@ void SceneDisplayWidget::previousView() {
 	active1.node->set_isHidden(GL_FALSE);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
 
-	auto blitState = active1.node->findStateWithType<BlitToScreen>();
-	if (blitState) {
-		app_->withGLContext([&] {
-			videoRecorder_->setFrameBuffer(blitState->fbo(), blitState->attachment());
-		});
+	if (videoRecorder_.get()) {
+		auto blitState = active1.node->findStateWithType<BlitToScreen>();
+		if (blitState) {
+			app_->withGLContext([&] {
+				videoRecorder_->setFrameBuffer(blitState->fbo(), blitState->attachment());
+			});
+		}
 	}
 }
 
