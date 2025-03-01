@@ -113,6 +113,12 @@ namespace regen {
 				if (thisState) {
 					return thisState;
 				}
+				for (auto &joined : node->state_->joined()) {
+					auto *joinedState = dynamic_cast<StateType *>(joined.get());
+					if (joinedState) {
+						return joinedState;
+					}
+				}
 
 				for (auto &child: node->childs_) {
 					queue.push(child.get());

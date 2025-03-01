@@ -30,6 +30,8 @@ using namespace std;
 #include "regen/physics/impulse-controller.h"
 #include "regen/physics/character-controller.h"
 #include "regen/animations/animal-controller.h"
+#include "regen/av/video-recorder.h"
+#include "regen/states/blit-state.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -197,6 +199,13 @@ void SceneDisplayWidget::nextView() {
 	ViewNode &active1 = *activeView_;
 	active1.node->set_isHidden(GL_FALSE);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
+
+	auto blitState = active1.node->findStateWithType<BlitToScreen>();
+	if (blitState) {
+		app_->withGLContext([&] {
+			videoRecorder_->setFrameBuffer(blitState->fbo(), blitState->attachment());
+		});
+	}
 }
 
 void SceneDisplayWidget::previousView() {
@@ -212,6 +221,13 @@ void SceneDisplayWidget::previousView() {
 	ViewNode &active1 = *activeView_;
 	active1.node->set_isHidden(GL_FALSE);
 	app_->toplevelWidget()->setWindowTitle(QString(active1.name.c_str()));
+
+	auto blitState = active1.node->findStateWithType<BlitToScreen>();
+	if (blitState) {
+		app_->withGLContext([&] {
+			videoRecorder_->setFrameBuffer(blitState->fbo(), blitState->attachment());
+		});
+	}
 }
 
 void SceneDisplayWidget::toggleOffCameraTransform() {
@@ -310,8 +326,47 @@ void SceneDisplayWidget::playAnchor() {
 
 void SceneDisplayWidget::makeVideo(bool isClicked) {
 	if (isClicked) {
-		REGEN_WARN("Video creation not implemented.");
+		auto &view = *activeView_;
+		auto blitState = view.node->findStateWithType<BlitToScreen>();
+		if (!blitState) {
+			REGEN_WARN("No FBOState found in view node");
+			return;
+		}
+		auto blitFBO = blitState->fbo();
+		auto &blitTextures = blitFBO->colorTextures();
+		auto blitIndex = blitState->attachment() - GL_COLOR_ATTACHMENT0;
+		if (blitTextures.size() < blitIndex) {
+			REGEN_WARN("FBO has " << blitTextures.size() << " textures, but attachment is " << blitIndex);
+			return;
+		}
+		app_->withGLContext([&] {
+			//videoRecorder_ = ref_ptr<VideoRecorder>::alloc(blitTextures[blitIndex]);
+			videoRecorder_ = ref_ptr<VideoRecorder>::alloc(blitFBO, blitState->attachment());
+			videoRecorder_->initialize();
+			videoRecorder_->startAnimation();
+		});
 	} else {
+		videoRecorder_->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
+				[this](EventObject *emitter, EventData *data) {
+					auto sourceFile = videoRecorder_->filename();
+					videoRecorder_->finalize();
+					videoRecorder_ = {};
+					QMetaObject::invokeMethod(this, [this, sourceFile]() {
+						// show a dialog asking the user where to save the video
+						QString fileName = QFileDialog::getSaveFileName(this,
+								tr("Save Video"),
+								"regen.mp4",
+								tr("Video Files (*.mp4 *.avi)"));
+						if (!fileName.isEmpty()) {
+							// Save the video to the selected file
+							boost::filesystem::copy_file(sourceFile,
+								fileName.toStdString(),
+								boost::filesystem::copy_option::overwrite_if_exists);
+							REGEN_INFO("Video saved to " << fileName.toStdString());
+						}
+					}, Qt::QueuedConnection);
+				}));
+		videoRecorder_->stopAnimation();
 	}
 }
 

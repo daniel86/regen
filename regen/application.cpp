@@ -359,3 +359,33 @@ void Application::drawGL() {
 void Application::updateGL() {
 	renderTree_->postRender(timeDelta_->getVertex(0).r);
 }
+
+namespace regen {
+	class FunctionCallWithGL : public Animation {
+	public:
+		explicit FunctionCallWithGL(std::function<void()> f) : Animation(true, false), f_(f) {}
+
+		void glAnimate(RenderState *rs, GLdouble dt) override {
+			f_();
+			stopAnimation();
+		}
+
+	protected:
+		std::function<void()> f_;
+	};
+}
+
+void Application::withGLContext(std::function<void()> f) {
+	auto anim = ref_ptr<FunctionCallWithGL>::alloc(f);
+	glCalls_.emplace_back(anim);
+	anim->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
+			[this](EventObject *emitter, EventData *data) {
+				for (auto & it : glCalls_) {
+					if (it.get() == emitter) {
+						glCalls_.erase(std::remove(glCalls_.begin(), glCalls_.end(), it), glCalls_.end());
+						break;
+					}
+				}
+			}));
+	anim->startAnimation();
+}

@@ -133,6 +133,8 @@ namespace regen {
 				return out << "RELIEF";
 			case TextureState::TRANSFER_TEXCO_FISHEYE:
 				return out << "FISHEYE";
+			case TextureState::TRANSFER_TEXCO_NOISE:
+				return out << "NOISE";
 		}
 		return out;
 	}
@@ -145,6 +147,7 @@ namespace regen {
 		else if (val == "PARALLAX_OCC") mode = TextureState::TRANSFER_TEXCO_PARALLAX_OCC;
 		else if (val == "RELIEF") mode = TextureState::TRANSFER_TEXCO_RELIEF;
 		else if (val == "FISHEYE") mode = TextureState::TRANSFER_TEXCO_FISHEYE;
+		else if (val == "NOISE") mode = TextureState::TRANSFER_TEXCO_NOISE;
 		else {
 			REGEN_WARN("Unknown Texture Texco-Transfer '" << val <<
 														  "'. Using default PARALLAX Texco-Transfer.");
@@ -307,6 +310,9 @@ void TextureState::set_texcoTransferFunction(const std::string &transferFunction
 
 void TextureState::set_texcoTransfer(TransferTexco mode) {
 	switch (mode) {
+		case TRANSFER_TEXCO_NOISE:
+			set_texcoTransferKey("regen.states.textures.noiseTransfer");
+			break;
 		case TRANSFER_TEXCO_FISHEYE:
 			set_texcoTransferKey("regen.states.textures.fisheyeTransfer");
 			break;

@@ -651,8 +651,8 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 /////////////
 
 void ShaderInput::enableAttributef(GLint location) const {
-	for (unsigned int i = 0u; i < numArrayElements_; ++i) {
-		GLint loc = location + i;
+	for (int i = 0; i < numArrayElements_; ++i) {
+		auto loc = location + i;
 		glEnableVertexAttribArray(loc);
 		glVertexAttribPointer(
 				loc,
@@ -668,8 +668,8 @@ void ShaderInput::enableAttributef(GLint location) const {
 }
 
 void ShaderInput::enableAttributei(GLint location) const {
-	for (unsigned int i = 0u; i < numArrayElements_; ++i) {
-		GLint loc = location + i;
+	for (int i = 0; i < numArrayElements_; ++i) {
+		auto loc = location + i;
 		glEnableVertexAttribArray(loc);
 		// use glVertexAttribIPointer, otherwise OpenGL
 		// would convert integers to float
@@ -686,11 +686,11 @@ void ShaderInput::enableAttributei(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat4(GLint location) const {
-	for (unsigned int i = 0u; i < numArrayElements_ * 4; i += 4) {
-		GLint loc0 = location + i;
-		GLint loc1 = location + i + 1;
-		GLint loc2 = location + i + 2;
-		GLint loc3 = location + i + 3;
+	for (int i = 0; i < numArrayElements_ * 4; i += 4) {
+		auto loc0 = location + i;
+		auto loc1 = location + i + 1;
+		auto loc2 = location + i + 2;
+		auto loc3 = location + i + 3;
 
 		glEnableVertexAttribArray(loc0);
 		glEnableVertexAttribArray(loc1);
@@ -720,10 +720,10 @@ void ShaderInput::enableAttributeMat4(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat3(GLint location) const {
-	for (unsigned int i = 0u; i < numArrayElements_ * 3; i += 4) {
-		GLint loc0 = location + i;
-		GLint loc1 = location + i + 1;
-		GLint loc2 = location + i + 2;
+	for (int i = 0; i < numArrayElements_ * 3; i += 4) {
+		auto loc0 = location + i;
+		auto loc1 = location + i + 1;
+		auto loc2 = location + i + 2;
 
 		glEnableVertexAttribArray(loc0);
 		glEnableVertexAttribArray(loc1);
@@ -748,9 +748,9 @@ void ShaderInput::enableAttributeMat3(GLint location) const {
 }
 
 void ShaderInput::enableAttributeMat2(GLint location) const {
-	for (unsigned int i = 0u; i < numArrayElements_ * 2; i += 4) {
-		GLint loc0 = location + i;
-		GLint loc1 = location + i + 1;
+	for (int i = 0; i < numArrayElements_ * 2; i += 4) {
+		auto loc0 = location + i;
+		auto loc1 = location + i + 1;
 
 		glEnableVertexAttribArray(loc0);
 		glEnableVertexAttribArray(loc1);
