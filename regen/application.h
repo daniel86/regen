@@ -313,6 +313,12 @@ namespace regen {
 		 */
 		void setWorldTime(float t);
 
+		/**
+		 * Run some function with GL context.
+		 * @param f the function to run.
+		 */
+		void withGLContext(std::function<void()> f);
+
 	protected:
 		ref_ptr<RootNode> renderTree_;
 		std::map<std::string, NamedObject> namedToObject_;
@@ -325,6 +331,7 @@ namespace regen {
 
 		std::list<std::string> requiredExt_;
 		std::list<std::string> optionalExt_;
+		std::vector<ref_ptr<Animation>> glCalls_;
 
 		ref_ptr<ShaderInput2i> windowViewport_;
 

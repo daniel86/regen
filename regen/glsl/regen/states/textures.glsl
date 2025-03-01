@@ -720,6 +720,19 @@ void texel_hue(inout vec4 texel)
 --------------------------------------
 --------------------------------------
 
+-- noiseTransfer
+#ifndef REGEN_NOISE_TRANSFER_
+#define2 REGEN_NOISE_TRANSFER_
+const float in_uvNoiseScale = 0.1;
+
+#include regen.noise.random2D.a
+
+void noiseTransfer(inout vec2 texco)
+{
+    texco += in_uvNoiseScale * random2D(texco);
+}
+#endif
+
 -- parallaxTransfer
 #ifndef REGEN_PARALLAX_TRANSFER_
 #define2 REGEN_PARALLAX_TRANSFER_

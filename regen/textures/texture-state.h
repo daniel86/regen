@@ -91,7 +91,9 @@ namespace regen {
 			/** relief mapping. */
 			TRANSFER_TEXCO_RELIEF,
 			/** fisheye mapping. */
-			TRANSFER_TEXCO_FISHEYE
+			TRANSFER_TEXCO_FISHEYE,
+			/** noise mapping. */
+			TRANSFER_TEXCO_NOISE
 		};
 		/**
 		 * \brief Specifies if texture coordinates should be flipped.

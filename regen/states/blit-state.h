@@ -85,6 +85,21 @@ namespace regen {
 		 */
 		void set_sourceBuffer(GLenum sourceBuffer = GL_COLOR_BUFFER_BIT);
 
+		/**
+		 * @return the FBO to blit.
+		 */
+		auto &fbo() { return fbo_; }
+
+		/**
+		 * @return the viewport.
+		 */
+		auto &viewport() { return viewport_; }
+
+		/**
+		 * @return the attachment of the FBO.
+		 */
+		auto &attachment() { return attachment_; }
+
 		// override
 		void enable(RenderState *state) override;
 

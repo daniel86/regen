@@ -23,6 +23,7 @@
 #include <applications/qt/qt-camera-events.h>
 #include <applications/qt/shader-input-widget.h>
 #include "ui_scene-display-gui.h"
+#include "regen/av/video-recorder.h"
 
 using namespace regen;
 
@@ -88,6 +89,7 @@ protected:
 	std::map<std::string, NamedObject> namedObjects_;
 	ref_ptr<Animation> fbsWidgetUpdater_;
 	ref_ptr<Animation> loadAnim_;
+	ref_ptr<VideoRecorder> videoRecorder_;
 
 	ref_ptr<Camera> mainCamera_;
 	ref_ptr<CameraController> cameraController_;

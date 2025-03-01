@@ -13,8 +13,7 @@
 #include <boost/regex.hpp>
 #include <boost/foreach.hpp>
 
-#include <stdio.h>
-#include <string.h>
+#include <cstring>
 #include <fstream>
 
 #include <regen/utility/string-util.h>
