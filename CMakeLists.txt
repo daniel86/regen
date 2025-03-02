@@ -196,7 +196,7 @@ if(UNIX)
     set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
     set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgl-dev, libboost-thread-dev, libboost-system-dev, \
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgl-dev, libboost-thread-dev, libboost-system-dev, libboost-timer-dev, \
                 libboost-date-time-dev, libboost-filesystem-dev, libboost-regex-dev, libassimp-dev, \
                 libopenal-dev, libdevil-dev, libfreetype-dev, libbullet-dev, libglew-dev, \
                 libglu1-mesa-dev, libgl1-mesa-dev, libavcodec-dev, libavformat-dev, libavutil-dev \
