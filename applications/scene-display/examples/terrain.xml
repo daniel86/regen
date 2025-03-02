@@ -564,6 +564,7 @@
             <input type="float" name="fogDensity" value="1.0"/>
             <input type="vec2" name="fogDistance" value="25.0,180.0"/>
             <input type="vec3" name="fogColor" value="0.35, 0.55, 0.5"/>
+            <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <texture name="skyColorTexture" id="sky"/>
             <fullscreen-pass shader="regen.shading.fog.distance"/>
