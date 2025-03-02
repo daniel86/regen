@@ -53,7 +53,6 @@ VideoRecorder::~VideoRecorder() {
 	}
 	avcodec_free_context(&codecCtx_);
 	avformat_free_context(formatCtx_);
-	glDeleteBuffers(2, pboIds_);
 }
 
 void VideoRecorder::finalize() {
@@ -112,9 +111,9 @@ void VideoRecorder::initialize() {
 	encoder_->setOutputStream(stream_, formatCtx_, codecCtx_);
 
 	// Create PBOs
-	glGenBuffers(2, pboIds_);
+	pbo_ = ref_ptr<PBO>::alloc(2);
 	for (int i = 0; i < 2; ++i) {
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds_[i]);
+		pbo_->bindPackBuffer(i);
 		glBufferData(GL_PIXEL_PACK_BUFFER, frameSize_, nullptr, GL_STREAM_READ);
 	}
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -157,14 +156,14 @@ void VideoRecorder::updateFrameBuffer() {
 	encoderFBO_->readBuffer().push(GL_COLOR_ATTACHMENT0);
 
 	// read pixels from framebuffer to PBO glReadPixels() should return immediately.
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds_[pboIndex_]);
+	pbo_->bindPackBuffer(pboIndex_);
 	glReadPixels(0, 0,
 				 codecCtx_->width, codecCtx_->height,
 				 GL_RGB, GL_UNSIGNED_BYTE,
 				 nullptr);
 
 	// map the other PBO to process its data
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, pboIds_[nextIndex]);
+	pbo_->bindPackBuffer(nextIndex);
 	auto *ptr = (GLubyte *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 	if (ptr) {
 		auto nextFrame = encoder_->reserveFrame();
