@@ -86,7 +86,7 @@ jobs:
         # The branch the action should deploy to.
         BRANCH: gh-pages
         # The folder the action should deploy.
-        FOLDER: build/regen/doc/html
+        FOLDER: regen/doc/html
         # The folder in the target branch
         TARGET_FOLDER: ${{ env.REGEN_DOCU_VERSION }}
         CLEAN: true
