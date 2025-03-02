@@ -24,6 +24,11 @@ namespace regen {
 	 */
 	class BoidsSimulation_CPU : public Animation {
 	public:
+		enum ObjectType {
+			ATTRACTOR,
+			DANGER
+		};
+
 		/**
 		 * TF constructor.
 		 * @param tf A model transformation, each instance of the model will be a boid.
@@ -36,7 +41,7 @@ namespace regen {
 		 */
 		explicit BoidsSimulation_CPU(const ref_ptr<ShaderInput3f> &position);
 
-		virtual ~BoidsSimulation_CPU() = default;
+		~BoidsSimulation_CPU() override = default;
 
 		/**
 		 * Load the boids settings from a scene input node.
@@ -68,25 +73,9 @@ namespace regen {
 		 * Add an attractor to the boids.
 		 * @param tf the attractor.
 		 */
-		void addAttractor(const ref_ptr<ShaderInputMat4> &tf);
-
-		/**
-		 * Add an attractor to the boids.
-		 * @param pos the attractor.
-		 */
-		void addAttractor(const ref_ptr<ShaderInput3f> &pos);
-
-		/**
-		 * Add a danger to the boids.
-		 * @param tf the danger.
-		 */
-		void addDanger(const ref_ptr<ShaderInputMat4> &tf);
-
-		/**
-		 * Add a danger to the boids.
-		 * @param pos the danger.
-		 */
-		void addDanger(const ref_ptr<ShaderInput3f> &pos);
+		void addObject(ObjectType objectType,
+				const ref_ptr<ShaderInputMat4> &tf,
+				const ref_ptr<ShaderInput3f> &offset);
 
 		/**
 		 * Set the visual range of the boids, i.e. how far they can see the neighbors.
@@ -238,6 +227,10 @@ namespace regen {
 
 		void attract(BoidData &boid);
 	};
+
+	std::ostream &operator<<(std::ostream &out, const BoidsSimulation_CPU::ObjectType &v);
+
+	std::istream &operator>>(std::istream &in, BoidsSimulation_CPU::ObjectType &v);
 }
 
 #endif //REGEN_BOIDS_H

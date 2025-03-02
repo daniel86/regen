@@ -2,6 +2,7 @@
 #define REGEN_SPATIAL_INDEX_H_
 
 #include <regen/shapes/bounding-shape.h>
+#include <regen/shapes/indexed-shape.h>
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
 #include "regen/utility/ThreadPool.h"
@@ -15,6 +16,14 @@ namespace regen {
 		SpatialIndex();
 
 		virtual ~SpatialIndex() = default;
+
+		/**
+		 * @brief Get the indexed shape for a camera
+		 * @param camera The camera
+		 * @param shapeName The shape name
+		 * @return The indexed shape
+		 */
+		ref_ptr<IndexedShape> getIndexedShape(const ref_ptr<Camera> &camera, std::string_view shapeName);
 
 		/**
 		 * @brief Add a camera to the index
@@ -39,28 +48,11 @@ namespace regen {
 		bool isVisible(const Camera &camera, std::string_view shapeID);
 
 		/**
-		 * @brief Get the visible instances of a shape
-		 * Note: update must be called before this function
-		 * @param camera The camera
-		 * @param shapeID The shape ID
-		 * @return The visible instances
-		 */
-		const std::vector<unsigned int>&
-		getVisibleInstances(const Camera &camera, std::string_view shapeID) const;
-
-		/**
 		 * @brief Get the number of instances of a shape
 		 * @param shapeID The shape ID
 		 * @return The number of instances
 		 */
 		GLuint numInstances(std::string_view shapeID) const;
-
-		/**
-		 * @brief Get the mesh of a shape
-		 * @param shapeID The shape ID
-		 * @return The mesh
-		 */
-		ref_ptr<Mesh> getMeshOfShape(std::string_view shapeID) const;
 
 		/**
 		 * @brief Get the shape with a given ID
@@ -79,7 +71,7 @@ namespace regen {
 		 * @brief Get the cameras in the index
 		 * @return The cameras
 		 */
-		std::vector<const Camera*> cameras() const;
+		std::vector<const Camera *> cameras() const;
 
 		/**
 		 * @brief Update the index
@@ -130,18 +122,13 @@ namespace regen {
 
 	protected:
 		ThreadPool threadPool_;
-		using ShapeIndexSet = std::map<std::string_view, std::set<unsigned int>>;
-		using ShapeIndexVec = std::map<std::string_view, std::vector<unsigned int>>;
 		struct IndexCamera {
 			ref_ptr<Camera> camera;
-			std::set<std::string_view> visibleShapes;
-			ShapeIndexSet visibleInstances;
-			ShapeIndexVec visibleInstances_vec;
+			std::map<std::string_view, ref_ptr<IndexedShape>> shapes;
 			bool sortInstances;
 		};
 		std::map<std::string_view, std::vector<ref_ptr<BoundingShape>>> shapes_;
 		std::map<const Camera *, IndexCamera> cameras_;
-		std::mutex mutex_;
 
 		void updateVisibility();
 
@@ -158,6 +145,8 @@ namespace regen {
 		 * @param shape The shape to remove
 		 */
 		void removeFromIndex(const ref_ptr<BoundingShape> &shape);
+
+		static void createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape> &shape);
 	};
 } // namespace
 

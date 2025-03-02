@@ -6,11 +6,14 @@
 using namespace regen;
 
 SpatialIndex::SpatialIndex()
-	: threadPool_(std::max(2u,std::thread::hardware_concurrency()) - 2u) {
+		: threadPool_(std::max(2u, std::thread::hardware_concurrency()) - 2u) {
 }
 
 void SpatialIndex::addToIndex(const ref_ptr<BoundingShape> &shape) {
 	shapes_[shape->name()].push_back(shape);
+	for (auto &ic: cameras_) {
+		createIndexShape(ic.second, shape);
+	}
 }
 
 void SpatialIndex::removeFromIndex(const ref_ptr<BoundingShape> &shape) {
@@ -24,20 +27,34 @@ void SpatialIndex::removeFromIndex(const ref_ptr<BoundingShape> &shape) {
 }
 
 void SpatialIndex::addCamera(const ref_ptr<Camera> &camera, bool sortInstances) {
-	cameras_.emplace(camera.get(),
-					 IndexCamera{camera, {}, {}, {}, sortInstances});
+	auto &data = cameras_[camera.get()];
+	data.camera = camera;
+	data.sortInstances = sortInstances;
+	for (auto &pair: shapes_) {
+		for (auto &shape: pair.second) {
+			createIndexShape(data, shape);
+		}
+	}
 }
 
 bool SpatialIndex::hasCamera(const Camera &camera) const {
 	return cameras_.find(&camera) != cameras_.end();
 }
 
-std::vector<const Camera*> SpatialIndex::cameras() const {
-	std::vector<const Camera*> result;
+std::vector<const Camera *> SpatialIndex::cameras() const {
+	std::vector<const Camera *> result;
 	for (auto &pair: cameras_) {
 		result.push_back(pair.first);
 	}
 	return result;
+}
+
+ref_ptr<IndexedShape> SpatialIndex::getIndexedShape(const ref_ptr<Camera> &camera, std::string_view shapeName) {
+	auto it = cameras_.find(camera.get());
+	if (it == cameras_.end()) {
+		return {};
+	}
+	return it->second.shapes[shapeName];
 }
 
 bool SpatialIndex::isVisible(const Camera &camera, std::string_view shapeID) {
@@ -45,21 +62,11 @@ bool SpatialIndex::isVisible(const Camera &camera, std::string_view shapeID) {
 	if (it == cameras_.end()) {
 		return true;
 	}
-	return it->second.visibleShapes.count(shapeID) > 0;
-}
-
-const std::vector<unsigned int> &
-SpatialIndex::getVisibleInstances(const Camera &camera, std::string_view shapeID) const {
-	static std::vector<unsigned int> empty;
-	auto it = cameras_.find(&camera);
-	if (it == cameras_.end()) {
-		return empty;
+	auto it2 = it->second.shapes.find(shapeID);
+	if (it2 == it->second.shapes.end()) {
+		return true;
 	}
-	auto it2 = it->second.visibleInstances_vec.find(shapeID);
-	if (it2 == it->second.visibleInstances_vec.end()) {
-		return empty;
-	}
-	return it2->second;
+	return it2->second->isVisible();
 }
 
 GLuint SpatialIndex::numInstances(std::string_view shapeID) const {
@@ -70,14 +77,6 @@ GLuint SpatialIndex::numInstances(std::string_view shapeID) const {
 	return shape->numInstances();
 }
 
-ref_ptr<Mesh> SpatialIndex::getMeshOfShape(std::string_view shapeID) const {
-	auto shape = getShape(shapeID);
-	if (!shape.get()) {
-		return {};
-	}
-	return shape->mesh();
-}
-
 ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID) const {
 	auto it = shapes_.find(shapeID);
 	if (it != shapes_.end() && !it->second.empty()) {
@@ -86,52 +85,60 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID) const {
 	return {};
 }
 
-void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shape, bool isMultiShape) {
+void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera_shape, bool isMultiShape) {
 	if (ic.sortInstances) {
+		for (auto &pair: ic.shapes) {
+			pair.second->instanceDistances_.clear();
+		}
+
 		auto camPos = ic.camera->position()->getVertex(0);
-		struct ShapeDistance {
-			const BoundingShape *shape;
-			float distance;
-		};
-		std::map<std::string_view, std::vector<ShapeDistance>> instanceDistances;
-		foreachIntersection(a_shape, [&](const BoundingShape &b_shape) {
-			std::lock_guard<std::mutex> lock(mutex_);
-			ic.visibleShapes.insert(b_shape.name());
+		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
+			//std::lock_guard<std::mutex> lock(mutex_);
+			auto &index_shape = ic.shapes[b_shape.name()];
+			index_shape->u_visible_ = true;
+
 			if (b_shape.numInstances() > 1) {
 				if (isMultiShape) {
 					// make sure we don't add the same instance twice
-					auto &visibleInstances = ic.visibleInstances[b_shape.name()];
-					auto [_,inserted] = visibleInstances.insert(b_shape.instanceID());
+					auto [_, inserted] = index_shape->u_visibleSet_.insert(b_shape.instanceID());
 					if (!inserted) return;
 				}
 				float d = (b_shape.getCenterPosition() - camPos.r).length();
-				instanceDistances[b_shape.name()].push_back({&b_shape, d});
+				index_shape->instanceDistances_.push_back({&b_shape, d});
 			}
 		});
-		for (auto &pair: instanceDistances) {
-			auto &distances = pair.second;
-			std::sort(distances.begin(), distances.end(), [](const ShapeDistance &a, const ShapeDistance &b) {
+		for (auto &pair: ic.shapes) {
+			auto &index_shape = pair.second;
+			auto &distances = index_shape->instanceDistances_;
+			if (distances.empty()) {
+				continue;
+			}
+			std::sort(distances.begin(), distances.end(), [](const IndexedShape::ShapeDistance &a, const IndexedShape::ShapeDistance &b) {
 				return a.distance < b.distance;
 			});
-			auto &visibleInstances = ic.visibleInstances_vec[pair.first];
-			visibleInstances.reserve(distances.size());
+			auto mapped_data = index_shape->mappedInstanceIDs();
 			for (auto &distance: distances) {
-				visibleInstances.push_back(distance.shape->instanceID());
+				index_shape->u_instanceCount_ += 1;
+				mapped_data[index_shape->u_instanceCount_] = distance.shape->instanceID();
+				mapped_data[0] = index_shape->u_instanceCount_;
 			}
 		}
 	} else {
-		foreachIntersection(a_shape, [&](const BoundingShape &b_shape) {
-			std::lock_guard<std::mutex> lock(mutex_);
-			ic.visibleShapes.insert(b_shape.name());
+		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
+			//std::lock_guard<std::mutex> lock(mutex_);
+			auto &index_shape = ic.shapes[b_shape.name()];
+			auto mapped_data = index_shape->mappedInstanceIDs();
+			index_shape->u_visible_ = true;
+
 			if (b_shape.numInstances() > 1) {
 				if (isMultiShape) {
 					// make sure we don't add the same instance twice
-					auto &visibleInstances = ic.visibleInstances[b_shape.name()];
-					auto [_,inserted] = visibleInstances.insert(b_shape.instanceID());
+					auto [_, inserted] = index_shape->u_visibleSet_.insert(b_shape.instanceID());
 					if (!inserted) return;
 				}
-				auto &visibleInstances = ic.visibleInstances_vec[b_shape.name()];
-				visibleInstances.push_back(b_shape.instanceID());
+				index_shape->u_instanceCount_ += 1;
+				mapped_data[index_shape->u_instanceCount_] = b_shape.instanceID();
+				mapped_data[0] = index_shape->u_instanceCount_;
 			}
 		});
 	}
@@ -139,9 +146,15 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &a_shap
 
 void SpatialIndex::updateVisibility() {
 	for (auto &ic: cameras_) {
-		ic.second.visibleShapes.clear();
-		ic.second.visibleInstances.clear();
-		ic.second.visibleInstances_vec.clear();
+		for (auto &pair: ic.second.shapes) {
+			// keep instance IDs mapped for writing during visibility update
+			pair.second->mapInstanceIDs_internal();
+			// note: first element is the number of visible instances
+			pair.second->mappedInstanceIDs()[0] = 0;
+			pair.second->u_instanceCount_ = 0;
+			pair.second->u_visible_ = false;
+			pair.second->u_visibleSet_.clear();
+		}
 
 		if (ic.second.camera->isOmni()) {
 			// omni camera -> intersection test with bounding sphere
@@ -150,9 +163,9 @@ void SpatialIndex::updateVisibility() {
 			sphereShape.updateTransform(true);
 			updateVisibility(ic.second, sphereShape, false);
 		}
-		//else if (ic.second.camera->isSemiOmni()) {
-		//	// TODO: Support half-spheres for culling
-		//}
+			//else if (ic.second.camera->isSemiOmni()) {
+			//	// TODO: Support half-spheres for culling
+			//}
 		else {
 			// spot camera -> intersection test with view frustum
 			auto &frustumShapes = ic.first->frustum();
@@ -160,5 +173,23 @@ void SpatialIndex::updateVisibility() {
 				updateVisibility(ic.second, frustumShape, frustumShapes.size() > 1);
 			}
 		}
+
+		for (auto &pair: ic.second.shapes) {
+			pair.second->unmapInstanceIDs_internal();
+			pair.second->visible_ = pair.second->u_visible_;
+			pair.second->instanceCount_ = pair.second->u_instanceCount_;
+		}
 	}
+}
+
+void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape> &shape) {
+	auto is = ref_ptr<IndexedShape>::alloc(ic.camera, shape);
+	is->visibleVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
+	is->visibleVec_->setInstanceData(shape->numInstances() + 1, 1, nullptr);
+	auto mapped = is->visibleVec_->mapClientData<unsigned int>(ShaderData::WRITE);
+	for (unsigned int i = 0; i < shape->numInstances(); ++i) {
+		mapped.w[i + 1] = i;
+	}
+	mapped.w[0] = shape->numInstances();
+	ic.shapes[shape->name()] = is;
 }
