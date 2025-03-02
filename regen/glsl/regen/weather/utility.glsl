@@ -71,7 +71,7 @@ float pseudo_rand(const vec2 i, const int seed) {
 -- dither
 #ifndef __dither_INCLUDED
 #define2 __dither_INCLUDED
-#include regen.sky.utility.pseudo_rand
+#include regen.weather.utility.pseudo_rand
 vec4 dither(float multiplier, int seed) {
   float r = pseudo_rand(gl_FragCoord.xy, seed);
   uvec4 v = uint(r * 3571) * uvec4(67, 89, 23, 71);
@@ -159,7 +159,7 @@ float computeHorizonExtinction(vec3 position, vec3 dir, float radius)
 -- computeEyeExtinction
 #ifndef __computeEyeExtinction_vec3_INCLUDED
 #define2 __computeEyeExtinction_vec3_INCLUDED
-#include regen.sky.utility.computeHorizonExtinction
+#include regen.weather.utility.computeHorizonExtinction
 float computeEyeExtinction(vec3 eyedir)
 {
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
@@ -186,7 +186,7 @@ float computeAtmosphericDepth(vec3 position, vec3 dir)
 -- computeEyeDepth
 #ifndef __computeEyeDepth_vec3__INCLUDED
 #define2 __computeEyeDepth_vec3__INCLUDED
-#include regen.sky.utility.computeAtmosphericDepth
+#include regen.weather.utility.computeAtmosphericDepth
 float computeEyeDepth(vec3 eyedir)
 {
     vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);

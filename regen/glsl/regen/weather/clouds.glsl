@@ -154,11 +154,11 @@ const vec3 in_color = vec3(1.0);
 #endif
 const float surfaceHeight = 0.99;
 
-#include regen.sky.utility.belowHorizon
-#include regen.sky.clouds.layerIntersection
-#include regen.sky.clouds.T
+#include regen.weather.utility.belowHorizon
+#include regen.weather.clouds.layerIntersection
+#include regen.weather.clouds.T
 #include regen.states.camera.transformTexcoToWorld
-#include regen.sky.utility.computeEyeExtinction
+#include regen.weather.utility.computeEyeExtinction
 
 #ifdef USE_SCATTER
 float density(in vec3 stu0, in vec3 sun, in float aa0) {

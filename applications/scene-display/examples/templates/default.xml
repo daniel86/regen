@@ -183,7 +183,7 @@
     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
     <texture name="skyColorTexture" id="earth-sky" />
     <define key="USE_SKY_COLOR" value="TRUE" />
-    <fullscreen-pass shader="regen.shading.fog.distance" />
+    <fullscreen-pass shader="regen.weather.fog.distance" />
 </node>
 
 <node id="FXAA">

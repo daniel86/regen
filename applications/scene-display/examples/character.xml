@@ -787,7 +787,7 @@
             <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
             <texture name="skyColorTexture" id="sky" />
-            <fullscreen-pass shader="regen.shading.fog.distance" />
+            <fullscreen-pass shader="regen.weather.fog.distance" />
         </node>
         <view id="Distance Fog">
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>

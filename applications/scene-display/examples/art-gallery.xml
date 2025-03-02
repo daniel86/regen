@@ -859,7 +859,7 @@
         <input type="vec2" name="fogRadiusScale" value="0.44,0.76"/>
         <input type="vec2" name="fogConeScale" value="1.0,1.0"/>
         <node>
-            <light-pass type="SPOT" shader="regen.shading.fog.volumetric.spot">
+            <light-pass type="SPOT" shader="regen.weather.fog.volumetric.spot">
                 <light id="picture-spot-center"/>
                 <light id="picture-spot-center-n"/>
                 <light id="picture-spot-right"/>

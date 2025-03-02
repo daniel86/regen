@@ -32,9 +32,9 @@ const float in_scintillation = 0.15;
 
 #ifndef SKIP_SCATTERING
 const float in_scattering = 4.0;
-#include regen.sky.utility.scatter
+#include regen.weather.utility.scatter
 #endif
-#include regen.sky.utility.sunIntensity
+#include regen.weather.utility.sunIntensity
 
 void main(void) {
     vec4 v = in_equToHorMatrix * vec4(in_pos.xyz,0.0);
@@ -85,7 +85,7 @@ const float surfaceHeight = 0.99;
 #include regen.states.camera.transformWorldToScreen
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
-#include regen.sky.utility.computeEyeExtinction
+#include regen.weather.utility.computeEyeExtinction
 
 void emitVertex(vec3 posWorld, vec2 texco, int layer) {
     gl_Position = transformWorldToScreen(vec4(posWorld,0.0),layer);

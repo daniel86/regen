@@ -212,7 +212,7 @@
         <input type="vec2" name="fogDistance" value="0.0,100.0"/>
         <node>
             <light-pass type="SPOT"
-                        shader="regen.shading.fog.volumetric.spot"
+                        shader="regen.weather.fog.volumetric.spot"
                         use-shadows="1"
                         shadow-filter="NONE">
                 <light id="spot-light"
@@ -236,7 +236,7 @@
         <input type="vec2" name="fogDistance" value="0.0,100.0"/>
         <node>
             <light-pass type="SPOT"
-                        shader="regen.shading.fog.volumetric.spot"
+                        shader="regen.weather.fog.volumetric.spot"
                         use-shadows="1"
                         shadow-filter="NONE">
                 <light id="spot-light"

@@ -116,7 +116,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	scale_->setUniformData(Vec2f(32.0, 32.0));
 	cloudUniforms_->addUniform(scale_);
 
-	shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.clouds.cloud-layer");
+	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.clouds.cloud-layer");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
 
 	///////
@@ -156,7 +156,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 void CloudLayer::createUpdateShader() {
 	StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
 	shaderConfig.setVersion(330);
-	updateShader_->createShader(shaderConfig, "regen.sky.clouds.pre-noise");
+	updateShader_->createShader(shaderConfig, "regen.weather.clouds.pre-noise");
 	updateMesh_->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
 }
 

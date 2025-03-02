@@ -19,9 +19,9 @@ void emitStarVertex(vec3 pos, int index, int layer) {
 uniform mat4 in_equToHorMatrix;
 out vec3 out_ray;
 #endif
-#include regen.sky.star-map.vs_include
+#include regen.weather.star-map.vs_include
 #if RENDER_LAYER == 1
-#include regen.sky.star-map.emitStarVertex
+#include regen.weather.star-map.emitStarVertex
 void main() {
     emitStarVertex(in_pos.xyz, gl_VertexID, 0);
 }
@@ -41,12 +41,12 @@ void main() {
 
 -- gs_include
 #include regen.models.sky-box.gs_include
-#include regen.sky.star-map.emitStarVertex
+#include regen.weather.star-map.emitStarVertex
 -- gs
 #if RENDER_LAYER > 1
 uniform mat4 in_equToHorMatrix;
 out vec3 out_ray;
-#include regen.sky.star-map.gs_include
+#include regen.weather.star-map.gs_include
 void main() {
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}
@@ -84,9 +84,9 @@ uniform samplerCube in_starmapCube;
 
 #include regen.states.textures.input
 
-#include regen.sky.utility.scatter
-#include regen.sky.utility.computeEyeExtinction
-#include regen.sky.utility.sunIntensity
+#include regen.weather.utility.scatter
+#include regen.weather.utility.computeEyeExtinction
+#include regen.weather.utility.sunIntensity
 
 void main(void) {
     vec3 eye = in_posWorld.xyz;

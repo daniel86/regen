@@ -57,7 +57,7 @@ Stars::Stars(const ref_ptr<Sky> &sky)
 	updateNoiseTexture();
 	state()->joinStates(noiseTexState_);
 
-	shaderState_ = ref_ptr<HasShader>::alloc("regen.sky.bright-stars");
+	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.bright-stars");
 	meshState_ = ref_ptr<Mesh>::alloc(GL_POINTS, VBO::USAGE_STATIC);
 	pos_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_POS);
 	col_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_COL0);

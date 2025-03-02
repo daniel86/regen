@@ -39,10 +39,10 @@ const float in_fogDensity = 1.0;
 
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.input
-#include regen.shading.fog.fogIntensity
+#include regen.weather.fog.fogIntensity
 #include regen.states.camera.transformTexcoToWorld
 #ifdef HAS_sunPosition
-    #include regen.sky.utility.sunIntensity
+    #include regen.weather.utility.sunIntensity
 #endif
 
 void main() {
@@ -152,7 +152,7 @@ uniform vec2 in_fogDistance;
     #include regen.math.computeCubeDirection
 #endif
 
-#include regen.shading.fog.fogIntensity
+#include regen.weather.fog.fogIntensity
 
 #ifdef IS_SPOT_LIGHT
 void solvableQuadratic(
@@ -373,27 +373,27 @@ void main()
 #include regen.shading.deferred.point.gs
 -- volumetric.point.fs
 #define IS_POINT_LIGHT
-#include regen.shading.fog.volumetric.fs
+#include regen.weather.fog.volumetric.fs
 
 -- volumetric.parabolic.vs
 #define POINT_LIGHT_TYPE PARABOLIC
-#include regen.shading.fog.volumetric.point.vs
+#include regen.weather.fog.volumetric.point.vs
 -- volumetric.parabolic.gs
 #define POINT_LIGHT_TYPE PARABOLIC
-#include regen.shading.fog.volumetric.point.gs
+#include regen.weather.fog.volumetric.point.gs
 -- volumetric.parabolic.fs
 #define POINT_LIGHT_TYPE PARABOLIC
-#include regen.shading.fog.volumetric.point.fs
+#include regen.weather.fog.volumetric.point.fs
 
 -- volumetric.cube.vs
 #define POINT_LIGHT_TYPE CUBE
-#include regen.shading.fog.volumetric.point.vs
+#include regen.weather.fog.volumetric.point.vs
 -- volumetric.cube.gs
 #define POINT_LIGHT_TYPE CUBE
-#include regen.shading.fog.volumetric.point.gs
+#include regen.weather.fog.volumetric.point.gs
 -- volumetric.cube.fs
 #define POINT_LIGHT_TYPE CUBE
-#include regen.shading.fog.volumetric.point.fs
+#include regen.weather.fog.volumetric.point.fs
 
 --------------------------------------
 --------------------------------------
@@ -407,5 +407,5 @@ void main()
 #include regen.shading.deferred.spot.gs
 -- volumetric.spot.fs
 #define IS_SPOT_LIGHT
-#include regen.shading.fog.volumetric.fs
+#include regen.weather.fog.volumetric.fs
 

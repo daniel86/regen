@@ -106,8 +106,8 @@ const float in_surface = 1.0;
 const float in_scale = 0.1;
 const float surfaceHeight = 0.99;
 
-#include regen.sky.utility.computeEyeExtinction
-#include regen.sky.utility.sunIntensity
+#include regen.weather.utility.computeEyeExtinction
+#include regen.weather.utility.sunIntensity
 
 // Hapke-Lommel-Seeliger approximation of the moons reflectance function.
 // i between incident  (+sun) and surface
@@ -138,7 +138,7 @@ float brdf(float cos_r, float cos_i, float cos_p)
 
 #ifndef SKIP_SCATTER
 const float in_scattering = 4.0;
-#include regen.sky.utility.scatter
+#include regen.weather.utility.scatter
 #endif
 
 void main(void)

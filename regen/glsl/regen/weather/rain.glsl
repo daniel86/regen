@@ -127,11 +127,11 @@ in vec4 in_posWorld;
 in vec2 in_spriteTexco;
 
 #ifdef USE_RAIN_DB
-#include regen.particles.rain.draw.fs-database
+#include regen.weather.rain.draw.fs-database
 #elif USE_RAIN_DB_RAND
-#include regen.particles.rain.draw.fs-database-random
+#include regen.weather.rain.draw.fs-database-random
 #else
-#include regen.particles.rain.draw.fs-single-texture
+#include regen.weather.rain.draw.fs-single-texture
 #endif
 
 -- draw.fs-single-texture
@@ -197,7 +197,7 @@ const float in_rainNormalization[370] = float[](
 );
 
 -- draw.fs-database-random
-#include regen.particles.rain.draw.fs-database.input
+#include regen.weather.rain.draw.fs-database.input
 #include regen.shading.direct.diffuse
 #include regen.states.camera.linearizeDepth
 #include regen.particles.sprite.softParticleScale
@@ -217,7 +217,7 @@ void main() {
 
 -- @see http://www1.cs.columbia.edu/CAVE/publications/pdfs/Garg_TOG06.pdf
 -- draw.fs-database
-#include regen.particles.rain.draw.fs-database.input
+#include regen.weather.rain.draw.fs-database.input
 #include regen.states.camera.linearizeDepth
 #include regen.particles.sprite.softParticleScale
 

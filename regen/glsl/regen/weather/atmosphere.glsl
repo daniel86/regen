@@ -109,12 +109,12 @@ float fbm(vec3 p) {
 const float in_cloudTimeFactor = 0.2;
 #endif
 
-#include regen.sky.utility.computeHorizonExtinction
-#include regen.sky.utility.computeEyeExtinction
-#include regen.sky.utility.computeAtmosphericDepth
-#include regen.sky.utility.computeEyeDepth
-#include regen.sky.utility.phase
-#include regen.sky.utility.absorb
+#include regen.weather.utility.computeHorizonExtinction
+#include regen.weather.utility.computeEyeExtinction
+#include regen.weather.utility.computeAtmosphericDepth
+#include regen.weather.utility.computeEyeDepth
+#include regen.weather.utility.phase
+#include regen.weather.utility.absorb
 
 void main(void)
 {

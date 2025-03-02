@@ -125,7 +125,7 @@ const float in_softParticleScale = 1.0;
     #include regen.states.textures.mapToFragmentUnshaded
 #endif
 #ifdef HAS_fogDistance
-    #include regen.shading.fog.fogIntensity
+    #include regen.weather.fog.fogIntensity
 #endif
 
 void main() {

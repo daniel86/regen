@@ -29,7 +29,7 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 	set_apparentMagnitude(6.5);
 
 	state()->joinShaderInput(starsUniforms);
-	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.sky.star-map");
+	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.weather.star-map");
 }
 
 float StarMap::defaultScattering() { return 0.2; }
