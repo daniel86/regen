@@ -164,6 +164,14 @@ if(DOXYGEN_FOUND)
     configure_file(
         ${CMAKE_CURRENT_SOURCE_DIR}/regen/doc/doxyfile.in
         ${CMAKE_CURRENT_BINARY_DIR}/regen/doc/doxyfile @ONLY)
+
+    if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome.css")
+        message(STATUS "Downloading \"doxygen-awesome.css\" into directory \"${CMAKE_CURRENT_BINARY_DIR}\".")
+        file(DOWNLOAD
+                https://raw.githubusercontent.com/jothepro/doxygen-awesome-css/v2.3.2/doxygen-awesome.css
+                ${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome.css)
+    endif ()
+
     add_custom_target(doc
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/regen/doc/doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/regen

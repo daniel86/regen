@@ -9,7 +9,7 @@
 
 #include "video-player-widget.h"
 #include "regen/gl-types/fbo.h"
-#include <regen/states/texture-state.h>
+#include <regen/textures/texture-state.h>
 #include <regen/states/shader-state.h>
 #include <regen/states/fbo-state.h>
 #include <regen/states/blit-state.h>
