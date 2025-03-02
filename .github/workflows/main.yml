@@ -24,7 +24,7 @@ jobs:
             libglew-dev libglu1-mesa-dev libgl1-mesa-dev \
             libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
             libpng-dev libalut-dev \
-            qtbase5-dev \
+            qtbase5-dev libgtest-dev \
             doxygen graphviz
         mkdir build
         cd build
