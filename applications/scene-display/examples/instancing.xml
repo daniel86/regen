@@ -2,6 +2,7 @@
 
 <node>
     <constant name="num-cascades" value="3"/>
+    <constant name="map-y-min" value="-2.0"/>
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
     <node id="configuration"
@@ -39,6 +40,8 @@
                sampler-type="sampler2DArrayShadow"/>
     </fbo>
     <!-- Textures -->
+    <texture id="snow-flake" file="res/textures/splats/flake.png"/>
+    <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <!-- Cameras -->
     <camera id="main-camera"
             fov="45.0" near="0.1" far="200.0"
@@ -82,13 +85,20 @@
             sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
             earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
         <atmosphere preset="earth" size="256" lod="0">
-            <input type="float" name="cirrus" value="0.8" />
-            <input type="float" name="cumulus" value="0.6" />
+            <input type="float" name="cirrus" value="1.0" />
+            <input type="float" name="cumulus" value="1.0" />
             <input type="float" name="dithering" value="0.2" />
             <input type="float" name="ditheringScale" value="100.0" />
             <input type="float" name="cloudTimeFactor" value="0.3" />
         </atmosphere>
     </sky>
+
+    <ubo id="Wind-UBO">
+        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
+        <uniform name="windFlowScale" type="float" value="150.0"/>
+        <uniform name="windFlowTime" type="float" value="0.2"/>
+        <uniform name="windStrength" type="float" value="1.0"/>
+    </ubo>
 
     <!--**************************-->
     <!--**************************-->
@@ -137,6 +147,50 @@
         <node id="Dwarf">
             <mesh id="dwarf" shader="regen.models.mesh"/>
         </node>
+    </node>
+
+    <!--**************************-->
+    <!--******* Particles ********-->
+    <!--**************************-->
+
+    <node id="Snow-Config">
+        <input type="vec3" name="precipitationWind" value="-0.1,-0.4,0"/>
+        <input type="vec3" name="precipitationVelocity" value="0.1,0.2,0.1"/>
+        <input type="vec2" name="precipitationBrightness" value="5.0,2.0"/>
+        <input type="vec2" name="precipitationCone" value="60.0,30.0"/>
+        <input type="float" name="surfaceHeight" value="{{map-y-min}}"/>
+        <input name="cameraPosition" state="main-camera" component="cameraPosition"/>
+        <input name="Wind" ubo="Wind-UBO"/>
+        <texture name="windFlow" id="wind-flowmap"/>
+    </node>
+
+    <mesh id="snow-particles"
+          type="particles"
+          num-vertices="50000"
+          update-shader="regen.weather.precipitation.update"
+          animation-state="Snow-Config">
+        <input type="vec3" name="pos" is-attribute="1"/>
+        <input type="vec3" name="velocity" is-attribute="1"/>
+        <input type="float" name="brightness" is-attribute="1"/>
+    </mesh>
+
+    <node id="Snow">
+        <direct-shading ambient="0.3,0.3,0.3">
+            <direct-lights>
+                <light id="sky-sun"/>
+                <light id="sky-moon"/>
+            </direct-lights>
+            <direct-pass>
+                <node id="particle-draw">
+                    <blend mode="add"/>
+                    <depth test="1" write="0"/>
+                    <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+                    <texture name="snowTexture" id="snow-flake"/>
+                    <input type="vec2" name="particleSize" value="0.06,0.06"/>
+                    <mesh id="snow-particles" shader="regen.weather.snow.draw"/>
+                </node>
+            </direct-pass>
+        </direct-shading>
     </node>
 
     <!--**************************-->
@@ -195,6 +249,10 @@
         <view id="DoF">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
+
+        <node import="Snow">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
 
         <node import="FXAA">
             <fbo id="g-buffer" draw-buffers="1"/>
