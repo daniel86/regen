@@ -19,14 +19,14 @@
         <anchor type="look-at" transform="dragon-tf" offset="0.0, 2.0, 14.0" />
         <anchor type="look-at" transform="dragon-tf" offset="0.0, 2.0, 4.0" />
         <anchor type="look-at" transform="venus-tf"  offset="0.0, 2.0, 18.0" />
-        <anchor type="look-at" transform="bunny-tf"  offset="8.0, 2.0, 10.0" />
-        <anchor type="look-at" transform="reflector-tf" offset="44.0, 0.0, 0.0" />
-        <anchor type="look-at" transform="velocity-picture-tf" offset="0.0, 2.0, -8.0" />
-        <anchor type="look-at" transform="smoke-picture-tf" offset="0.0, 2.0, -14.0" />
-        <anchor type="look-at" transform="video-picture-tf" offset="0.0, 2.0, -14.0" />
-        <anchor type="look-at" transform="video-picture-tf" offset="0.0, 12.0, -18.0" />
-        <anchor type="look-at" transform="mandelbrot-picture-tf" offset="0.0, 2.0, -14.0" />
-        <anchor type="look-at" transform="reflector-tf" offset="52.0, 30.0, 0.0" />
+        <anchor type="look-at" transform="bunny-tf"  offset="-8.0, 2.0, 10.0" />
+        <anchor type="look-at" transform="reflector-tf" offset="0.0, 44.0, 0.0" />
+        <anchor type="look-at" transform="velocity-picture-tf" offset="0.0, -8.0, 2.0" />
+        <anchor type="look-at" transform="smoke-picture-tf" offset="0.0, -14.0, -2.0" />
+        <anchor type="look-at" transform="video-picture-tf" offset="0.0, -14.0, 2.0" />
+        <anchor type="look-at" transform="video-picture-tf" offset="0.0, -18.0, 12.0" />
+        <anchor type="look-at" transform="mandelbrot-picture-tf" offset="0.0, -14.0, 2.0" />
+        <anchor type="look-at" transform="reflector-tf" offset="-30.0, 52.0, 0.0" />
         <!--
         <anchor pos=" 2.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0" />
         <anchor pos=" 0.0, 0.5,-2.0" dir=" 0.0,-0.5, 2.0" />
