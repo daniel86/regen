@@ -35,7 +35,7 @@ specific scenes, or to explore specific algorithmic challanges in computer graph
 Downloading
 =========================
 Clone the code from [github](https://github.com/daniel86/regen).
-The master branch contains the most up to date source code.
+The dev branch contains the most up to date source code.
 For each release you will find a custom branch.
 
 Compiling
