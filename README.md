@@ -140,6 +140,9 @@ Videos of regen in action
 =========================
 
 <p align="center">
+    <a href="http://www.youtube.com/watch?v=7zD6GoNz72U">
+        <img src="http://img.youtube.com/vi/7zD6GoNz72U/0.jpg"  width="160" height="120" />
+    </a>
     <a href="http://www.youtube.com/watch?v=waBatPmNW9Y">
         <img src="http://img.youtube.com/vi/waBatPmNW9Y/0.jpg"  width="160" height="120" />
     </a>
