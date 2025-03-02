@@ -156,29 +156,10 @@ void LightPass::addLightInput(LightPassLight &light) {
 		addInputLocation(light, light.shadow->size(), "shadowSize");
 	}
 
-	// add light uniforms
-	switch (lightType_) {
-		case Light::DIRECTIONAL:
-			addInputLocation(light, light.light->direction(), "lightDirection");
-			addInputLocation(light, light.light->diffuse(), "lightDiffuse");
-			addInputLocation(light, light.light->specular(), "lightSpecular");
-			break;
-		case Light::SPOT:
-			addInputLocation(light, light.light->position(), "lightPosition");
-			addInputLocation(light, light.light->direction(), "lightDirection");
-			addInputLocation(light, light.light->radius(), "lightRadius");
-			addInputLocation(light, light.light->coneAngle(), "lightConeAngles");
-			addInputLocation(light, light.light->diffuse(), "lightDiffuse");
-			addInputLocation(light, light.light->specular(), "lightSpecular");
-			addInputLocation(light, light.light->coneMatrix(), "modelMatrix");
-			break;
-		case Light::POINT:
-			addInputLocation(light, light.light->position(), "lightPosition");
-			addInputLocation(light, light.light->direction(), "lightDirection");
-			addInputLocation(light, light.light->radius(), "lightRadius");
-			addInputLocation(light, light.light->diffuse(), "lightDiffuse");
-			addInputLocation(light, light.light->specular(), "lightSpecular");
-			break;
+	// add light UBO, and special light type uniforms
+	addInputLocation(light, light.light->lightUBO(), "Light");
+	if (lightType_ == Light::SPOT) {
+		addInputLocation(light, light.light->coneMatrix(), "modelMatrix");
 	}
 }
 
@@ -196,10 +177,8 @@ void LightPass::enable(RenderState *rs) {
 	auto smChannel = rs->reserveTextureChannel();
 	auto smColorChannel = rs->reserveTextureChannel();
 
-	for (auto it = lights_.begin(); it != lights_.end(); ++it) {
-		LightPassLight &l = *it;
+	for (auto &l : lights_) {
 		ref_ptr<Texture> shadowTex;
-
 		// activate shadow map if specified
 		if (l.shadow.get()) {
 			l.shadow->begin(rs, smChannel);
