@@ -158,6 +158,21 @@ if(UNIX)
 )
 endif ()
 
+# add a target to generate API documentation with Doxygen
+find_package(Doxygen QUIET)
+if(DOXYGEN_FOUND)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/regen/doc/doxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/regen/doc/doxyfile @ONLY)
+    add_custom_target(doc
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/regen/doc/doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/regen
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
+    message(STATUS "target doc generates the documentation.")
+endif()
+
 ###########
 ###########
 
@@ -170,14 +185,26 @@ add_subdirectory(regen)
 # build demos
 add_subdirectory(applications)
 
-###########
-## Packaging
-###########
+##############
+########## packaging
+##############
 
 include(InstallRequiredSystemLibraries)
 if(UNIX)
-  set(CPACK_GENERATOR "TGZ")
+    set(CPACK_GENERATOR "DEB")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Daniel Beßler <danielb@uni-bremen.de>")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "devel")
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+    set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgl-dev, libboost-thread-dev, libboost-system-dev, \
+                libboost-date-time-dev, libboost-filesystem-dev, libboost-regex-dev, libassimp-dev, \
+                libopenal-dev, libdevil-dev, libfreetype-dev, libbullet-dev, libglew-dev, \
+                libglu1-mesa-dev, libgl1-mesa-dev, libavcodec-dev, libavformat-dev, libavutil-dev \
+                libswscale-dev, libpng-dev, libalut-dev")
 endif()
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_HOMEPAGE_URL ${PROJECT_WEBSITE})
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${REGEN_BRIEF_DESCRIPTION}")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
@@ -185,13 +212,13 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${REGEN_MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${REGEN_MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${REGEN_MICRO_VERSION}")
 if(WIN32)
-  # There is a bug in NSI that does not handle full unix paths properly. Make
-  # sure there is at least one set of four (4) backlasshes.
-  set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/regen/res\\\\icon-small.png")
-  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ${PROJECT_NAME}")
-  set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\daniel86.github.io/regen/")
-  set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\daniel86.github.io/regen/")
-  set(CPACK_NSIS_CONTACT "daniel@orgizm.net")
-  set(CPACK_NSIS_MODIFY_PATH ON)
+    # There is a bug in NSI that does not handle full unix paths properly. Make
+    # sure there is at least one set of four (4) backlasshes.
+    set(CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/regen/res\\\\icon-small.png")
+    set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ${PROJECT_NAME}")
+    set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\daniel86.github.io/regen/")
+    set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\daniel86.github.io/regen/")
+    set(CPACK_NSIS_CONTACT "daniel@orgizm.net")
+    set(CPACK_NSIS_MODIFY_PATH ON)
 endif()
 include(CPack)

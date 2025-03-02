@@ -5,21 +5,6 @@ set(SHADER_INSTALL_PATH share/${PROJECT_NAME})
 configure_file(config.h.cmake config.h)
 configure_file(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc)
 
-# add a target to generate API documentation with Doxygen
-find_package(Doxygen QUIET)
-if(DOXYGEN_FOUND)
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/doc/doxyfile.in
-        ${CMAKE_CURRENT_BINARY_DIR}/doc/doxyfile @ONLY)
-    add_custom_target(doc
-        ${DOXYGEN_EXECUTABLE}
-        ${CMAKE_CURRENT_BINARY_DIR}/doc/doxyfile
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen" VERBATIM
-    )
-    message(STATUS "target doc generates the documentation.")
-endif()
-
 enable_testing()
 find_package(GTest REQUIRED)
 
@@ -59,9 +44,9 @@ install(TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib)
-install(FILES ${PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_BINARY_DIR}/regen/regen.pc DESTINATION lib/pkgconfig)
+install(FILES ${CMAKE_BINARY_DIR}/regen/config.h DESTINATION ${HEADER_INSTALL_PATH})
 install(FILES application.h DESTINATION ${HEADER_INSTALL_PATH})
-install(FILES config.h DESTINATION ${HEADER_INSTALL_PATH})
 
 ##############
 ########## Unit Testings

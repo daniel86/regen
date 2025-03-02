@@ -1,0 +1,110 @@
+name: CI
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+    # Note: some steps require the checkout in the root directory
+    - uses: actions/checkout@v3
+    - name: Build REGEN workspace
+      shell: bash
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install libgl-dev \
+            libboost-thread-dev libboost-system-dev libboost-date-time-dev libboost-filesystem-dev \
+            libboost-regex-dev \
+            libassimp-dev libopenal-dev libdevil-dev libfreetype-dev libbullet-dev \
+            libglew-dev libglu1-mesa-dev libgl1-mesa-dev \
+            libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
+            libpng-dev libalut-dev \
+            qtbase5-dev \
+            doxygen graphviz
+        mkdir build
+        cd build
+        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DBUILD_VIDEO_PLAYER=ON
+        make 2> >(tee "make-output.txt")
+    - name: Annotate compilation warnings/errors
+      if: ${{github.event_name == 'pull_request'}}
+      uses: JacobDomagala/CompileResult@master
+      # just so that in case this step fails, the workflow doesn't stop.
+      # this is done as it is unclear how well the action is maintained.
+      continue-on-error: true
+      with:
+        comment_title: Compilation
+        compile_result_file: build/make-output.txt
+    - name: Create debian package
+      if: ${{github.event_name == 'push' || github.event_name == 'release'}}
+      shell: bash
+      run: |
+        cd build
+        cpack
+    - name: Run unit tests
+      if: ${{github.event_name == 'push' || github.event_name == 'pull_request'}}
+      shell: bash
+      run: |
+        cd build
+        ./regen/all_gtests --gtest_filter=* --gtest_output="xml:$GITHUB_WORKSPACE/gtest-regen.xml" --gtest_color=no
+    - name: Report test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: ${{github.event_name == 'push' || github.event_name == 'pull_request'}}
+      with:
+        junit_files: "gtest-regen.xml"
+        action_fail: true
+        action_fail_on_inconclusive: true
+    #####
+    - name: Run doxygen
+      if: ${{github.event_name == 'push' || github.event_name == 'release'}}
+      shell: bash
+      run: |
+        cd build
+        cmake --build . --target doc
+    - name: Extract version tag
+      if: github.event_name == 'release'
+      shell: bash
+      # Extract major.minor version from tag
+      run: echo "REGEN_DOCU_VERSION=$(echo ${GITHUB_REF#refs/tags/} | cut -d'.' -f1,2)" >> $GITHUB_ENV
+    - name: Extract branch name
+      if: github.event_name == 'push'
+      shell: bash
+      # Use branch name as version
+      run: echo "REGEN_DOCU_VERSION=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+    - name: Deploy doc to gh-pages
+      if: ${{github.event_name == 'push' || github.event_name == 'release'}}
+      uses: JamesIves/github-pages-deploy-action@3.5.7
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # The branch the action should deploy to.
+        BRANCH: gh-pages
+        # The folder the action should deploy.
+        FOLDER: doc/html
+        # The folder in the target branch
+        TARGET_FOLDER: ${{ env.REGEN_DOCU_VERSION }}
+        CLEAN: true
+        SINGLE_COMMIT: true
+    #####
+    - name: Release debian package
+      if: github.event_name == 'release'
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.TOKEN }}
+      run: |
+        gh release upload ${{github.event.release.tag_name}} ./build/regen-*.deb
+    - name: Upload debian package
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: debian package
+        path: ./build/regen-*.deb
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test results
+        path: ./gtest-regen.xml
