@@ -1,89 +1,29 @@
+/**
 
-body, table, div, p, dl {
-  font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
-  font-size: 14px;
-}
-body {
-  background-color:  #EBE9FE;
-}
-div.contents
-{
-  box-shadow: 0px 3px 10px #777;
-  margin-left: auto;
-  margin-right: auto;
-  width: 80%;
-  background-color: white;
-  padding: 10px 20px;
-}
+This file contains the CSS for the KnowRob Doxygen documentation.
+It is supposed to modify / extend definitions of doxygen-awesome.css.
+see https://github.com/jothepro/doxygen-awesome-css/blob/main/docs/customization.md
 
-/* Top of the page */
-#top
-{
-  background-color: #EBE9FE;
-}
-#titlearea
-{
-  padding: 0px 10px;
-  border: 0px none;
-}
-#projectlogo
-{
-  vertical-align: middle;
-}
-#projectname
-{
-  padding: 2px 0px;
-}
+*/
 
-/* Headers */
-div.headertitle
-{
-  background-color: #AA9FFF;
-  text-align: center;
-  box-shadow: 0px 3px 5px #777;
-}
-div.header
-{
-  margin-left: auto;
-  margin-right: auto;
-  width: 84%;
-  opacity:0.75;
-}
-h1 {
-  font-size: 150%;
-  background-color: #AA9FFF;
-  margin: 10px -20px;
-  padding: 8px 4px 8px 20px;
-  opacity: 0.8;
-}
+html {
+    /* override light-mode variables here */
 
-/* Links */
-a {
-  color: #3D578C;
-}
-.contents a:visited {
-  color: #4665A2;
-}
-.contents a.qindexHL:visited {
-  color: #ffffff;
-}
-a.code, a.code:visited {
-  color: #4665A2;
-}
-a.codeRef, a.codeRef:visited {
-  color: #4665A2;
-}
+    /* primary theme color. This will affect the entire websites color scheme: links, arrows, labels, ... */
+    --primary-color: #1779c4;
+    --primary-dark-color: #335c80;
+    --primary-light-color: #70b1e9;
 
-/* Tables */
-table.doxtable td {
-  border: 1px solid #6A4F9F;
-}
-table.doxtable td, table.doxtable th {
-  background-color: #E7E7E7;
-}
-table.doxtable th {
-  background-color: #8A6FAF;
-  text-align:left;
-  border: 1px solid #6A4F9F;
-}
+    /* page base colors */
+    --page-background-color: #ffffff;
+    --page-foreground-color: #2f4153;
+    --page-secondary-foreground-color: #6f7e8e;
 
+    /* color for all separators on the website: hr, borders, ... */
+    --separator-color: #dedede;
+
+    /* border radius for all rounded components. Will affect many components, like dropdowns, memitems, codeblocks, ... */
+    --border-radius-large: 8px;
+    --border-radius-small: 4px;
+    --border-radius-medium: 6px;
+}

@@ -1,3 +1,4 @@
+
 <p align="center">
     <img src="img/fluid-text-white.gif" width="320" height="90" />
 </p>
@@ -8,6 +9,8 @@
     <img src="img/transparency.gif" width="160" height="100" />
     <img src="img/gallery.gif" width="160" height="100" />
 </p>
+
+![CI](https://github.com/daniel86/regen/workflows/CI/badge.svg)
 
 `regen` -- Real-time Graphics Engine -- is a portable OpenGL library written in C++.
 The purpose of this library is to help creating real-time rendering software.

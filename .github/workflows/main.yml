@@ -65,6 +65,7 @@ jobs:
       run: |
         cd build
         cmake --build . --target doc
+        cp -r ../img regen/doc/html/
     - name: Extract version tag
       if: github.event_name == 'release'
       shell: bash
@@ -85,7 +86,7 @@ jobs:
         # The branch the action should deploy to.
         BRANCH: gh-pages
         # The folder the action should deploy.
-        FOLDER: doc/html
+        FOLDER: regen/doc/html
         # The folder in the target branch
         TARGET_FOLDER: ${{ env.REGEN_DOCU_VERSION }}
         CLEAN: true
