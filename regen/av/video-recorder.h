@@ -11,6 +11,7 @@ extern "C" {
 #include <regen/gl-types/fbo.h>
 #include <regen/animations/animation.h>
 #include "video-encoder.h"
+#include "regen/gl-types/pbo.h"
 
 namespace regen {
 	/**
@@ -72,11 +73,11 @@ namespace regen {
 		ref_ptr<Animation> encoderThread_;
 		ref_ptr<FBO> encoderFBO_;
 		ref_ptr<FBO> fbo_;
+		ref_ptr<PBO> pbo_;
+		int pboIndex_ = 0;
 		GLenum attachment_;
 		unsigned int frameSize_;
 		double elapsedTime_ = 0.0;
-		int pboIndex_ = 0;
-		GLuint pboIds_[2];
 		std::string filename_;
 
 		AVFormatContext *formatCtx_ = nullptr;
