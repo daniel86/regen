@@ -137,7 +137,7 @@ the following list of libraries:
 
 Documentation
 =========================
-The documentation is hosted using the [gh-pages branch](http://daniel86.github.com/regen/)
+The documentation is hosted using the [gh-pages branch](https://daniel86.github.io/regen/)
 
 Videos of regen in action
 =========================

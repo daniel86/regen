@@ -27,3 +27,8 @@ html {
     --border-radius-small: 4px;
     --border-radius-medium: 6px;
 }
+
+div.header {
+    visibility: hidden;
+    height: 0;
+}
