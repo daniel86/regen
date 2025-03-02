@@ -42,24 +42,23 @@ namespace regen {
 	protected:
 		ref_ptr<Camera> camera_;
 		ref_ptr<SpatialIndex> spatialIndex_;
-		std::string shapeName_;
+		ref_ptr<IndexedShape> shapeIndex_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 
-		GLuint numInstances_;
+		GLuint numInstances_ = 1;
 		ref_ptr<ShaderInput1ui> instanceIDMap_;
 		ref_ptr<Mesh> mesh_;
 		std::vector<std::vector<GLuint>> lodGroups_;
 
 		void updateMeshLOD();
 
-		void computeLODGroups(
-				const std::vector<GLuint> &visibleInstances,
-				const ref_ptr<BoundingShape> &shape,
-				std::vector<std::vector<GLuint>> &lodGroups);
+		void computeLODGroups();
 
-		void traverseInstanced(RenderState *rs,
-				const std::vector<unsigned int> &visibleInstances,
-				const ref_ptr<BoundingShape> &shape);
+		void traverseInstanced_(RenderState *rs, unsigned int numVisible);
+
+		void traverseInstanced1(RenderState *rs);
+
+		void traverseInstanced2(RenderState *rs, const unsigned int *visibleInstances, unsigned int numVisible);
 	};
 }
 

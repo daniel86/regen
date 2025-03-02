@@ -165,42 +165,28 @@ void BoidsSimulation_CPU::loadSettings(scene::SceneParser *parser, const ref_ptr
 		addHomePoint(homePointNode->getValue<Vec3f>("value", Vec3f(0.0f)));
 	}
 	for (auto &objectNode: node->getChildren("object")) {
-		ref_ptr<ShaderInputMat4> attractorTF;
-		ref_ptr<ShaderInput3f> attractorPos;
+		auto objectType = objectNode->getValue<ObjectType>("type", ObjectType::ATTRACTOR);
+		ref_ptr<ShaderInputMat4> entityTF;
+		ref_ptr<ShaderInput3f> entityPos;
 		if (objectNode->hasAttribute("tf")) {
 			auto transformID = objectNode->getValue("tf");
 			auto transform = parser->getResources()->getTransform(parser, transformID);
 			if (transform.get() != nullptr) {
-				attractorTF = transform->get();
+				entityTF = transform->get();
 			}
 		} else if (objectNode->hasAttribute("point")) {
-			attractorTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");
-			attractorTF->setUniformData(Mat4f::translationMatrix(
+			entityTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");
+			entityTF->setUniformData(Mat4f::translationMatrix(
 					objectNode->getValue<Vec3f>("point", Vec3f(0.0f))));
 		} else if (objectNode->hasAttribute("value")) {
 			auto attractorPosValue = objectNode->getValue<Vec3f>("value", Vec3f(0.0f));
-			attractorPos = ref_ptr<ShaderInput3f>::alloc("attractorPos");
-			attractorPos->setUniformData(attractorPosValue);
+			entityPos = ref_ptr<ShaderInput3f>::alloc("attractorPos");
+			entityPos->setUniformData(attractorPosValue);
 		} else {
 			REGEN_WARN("No position or transform specified for boid object.");
 			continue;
 		}
-		auto objectType = objectNode->getValue<std::string>("type", "attractor");
-		if (objectType == "attractor") {
-			if (attractorTF.get()) {
-				addAttractor(attractorTF);
-			} else if (attractorPos.get()) {
-				addAttractor(attractorPos);
-			}
-		} else if (objectType == "danger") {
-			if (attractorTF.get()) {
-				addDanger(attractorTF);
-			} else if (attractorPos.get()) {
-				addDanger(attractorPos);
-			}
-		} else {
-			REGEN_WARN("Unknown boid object type '" << objectType << "'.");
-		}
+		addObject(objectType, entityTF, entityPos);
 	}
 }
 
@@ -394,43 +380,42 @@ void BoidsSimulation_CPU::homesickness(BoidData &boid) {
 	boid.force += boidDirection_ * repulsionFactor * 0.1;
 }
 
-void BoidsSimulation_CPU::addAttractor(const ref_ptr<ShaderInputMat4> &tf) {
-	auto &attractor = attractors_.emplace_back();
-	attractor.tf = tf;
-}
-
-void BoidsSimulation_CPU::addAttractor(const ref_ptr<ShaderInput3f> &pos) {
-	auto &attractor = attractors_.emplace_back();
-	attractor.pos = pos;
-}
-
-void BoidsSimulation_CPU::addDanger(const ref_ptr<ShaderInputMat4> &tf) {
-	auto &danger = dangers_.emplace_back();
-	danger.tf = tf;
-}
-
-void BoidsSimulation_CPU::addDanger(const ref_ptr<ShaderInput3f> &pos) {
-	auto &danger = dangers_.emplace_back();
-	danger.pos = pos;
+void BoidsSimulation_CPU::addObject(ObjectType objectType, const ref_ptr<ShaderInputMat4> &tf, const ref_ptr<ShaderInput3f> &offset) {
+	SimulationEntity *entity = nullptr;
+	switch (objectType) {
+		case ObjectType::ATTRACTOR:
+			entity = &attractors_.emplace_back();
+			break;
+		case ObjectType::DANGER:
+			entity = &dangers_.emplace_back();
+			break;
+	}
+	if (!entity) { return; }
+	entity->tf = tf;
+	entity->pos = offset;
 }
 
 bool BoidsSimulation_CPU::avoidDanger(BoidData &boid) {
 	auto maxDistance = visualRange_->getVertex(0).r;
 	bool isInDanger = false;
 	for (auto &danger: dangers_) {
-		auto dangerDirection = (danger.pos.get()) ?
-				danger.pos.get()->getVertex(0).r :
-				danger.tf.get()->getVertex(0).r.position();
-		dangerDirection -= boid.position;
-		auto distance = dangerDirection.length();
+		auto dir = Vec3f::zero();
+		if (danger.pos.get()) {
+			dir = danger.pos.get()->getVertex(0).r;
+		}
+		if (danger.tf.get()) {
+			dir += danger.tf.get()->getVertex(0).r.position();
+		}
+		dir -= boid.position;
+		auto distance = dir.length();
 		if (distance < maxDistance) {
 			if (distance < 0.001f) {
-				dangerDirection = Vec3f::random();
+				dir = Vec3f::random();
 			} else {
-				dangerDirection /= distance;
+				dir /= distance;
 			}
 			auto repulsionFactor = repulsionFactor_->getVertex(0).r * separationWeight_->getVertex(0).r;
-			boid.force += dangerDirection * repulsionFactor;
+			boid.force += dir * repulsionFactor;
 			isInDanger = true;
 		}
 	}
@@ -440,14 +425,18 @@ bool BoidsSimulation_CPU::avoidDanger(BoidData &boid) {
 void BoidsSimulation_CPU::attract(BoidData &boid) {
 	auto maxDistance = visualRange_->getVertex(0).r * 100; // TODO: parameter
 	for (auto &attractor: attractors_) {
-		auto attractorDirection = (attractor.pos.get()) ?
-				attractor.pos.get()->getVertex(0).r :
-				attractor.tf.get()->getVertex(0).r.position();
-		attractorDirection -= boid.position;
-		auto distance = attractorDirection.length();
+		auto dir = Vec3f::zero();
+		if (attractor.pos.get()) {
+			dir = attractor.pos.get()->getVertex(0).r;
+		}
+		if (attractor.tf.get()) {
+			dir += attractor.tf.get()->getVertex(0).r.position();
+		}
+		dir -= boid.position;
+		auto distance = dir.length();
 		if (distance < maxDistance && distance > 0.001f) {
 			auto attractionFactor = repulsionFactor_->getVertex(0).r * separationWeight_->getVertex(0).r;
-			boid.force += attractorDirection * attractionFactor / distance;
+			boid.force += dir * attractionFactor / distance;
 		}
 	}
 }
@@ -526,4 +515,33 @@ bool BoidsSimulation_CPU::avoidCollisions(BoidData &boid, float dt) {
 	}
 
 	return isCollisionFree;
+}
+
+
+namespace regen {
+	std::ostream &operator<<(std::ostream &out, const BoidsSimulation_CPU::ObjectType &mode) {
+		switch (mode) {
+			case BoidsSimulation_CPU::ObjectType::ATTRACTOR:
+				out << "attractor";
+				break;
+			case BoidsSimulation_CPU::ObjectType::DANGER:
+				out << "danger";
+				break;
+		}
+		return out;
+	}
+
+	std::istream &operator>>(std::istream &in, BoidsSimulation_CPU::ObjectType &mode) {
+		std::string val;
+		in >> val;
+		boost::to_lower(val);
+		if (val == "attractor") mode = BoidsSimulation_CPU::ObjectType::ATTRACTOR;
+		else if (val == "danger") mode = BoidsSimulation_CPU::ObjectType::DANGER;
+		else {
+			REGEN_WARN("Unknown Boid Object Type '" << val <<
+													   "'. Using default ATTRACTOR.");
+			mode = BoidsSimulation_CPU::ObjectType::ATTRACTOR;
+		}
+		return in;
+	}
 }
