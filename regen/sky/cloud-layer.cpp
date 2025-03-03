@@ -150,7 +150,6 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	updateState_->joinShaderInput(sky->worldTime()->in);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
-	updateState_->joinStates(updateMesh_);
 }
 
 void CloudLayer::createUpdateShader() {
@@ -178,6 +177,8 @@ void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);
+	updateMesh_->enable(rs);
+	updateMesh_->disable(rs);
 	updateState_->disable(rs);
 
 	rs->viewport().pop();

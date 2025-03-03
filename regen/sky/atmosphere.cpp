@@ -78,7 +78,6 @@ Atmosphere::Atmosphere(
 	updateState_->joinShaderInput(atmosphereUBO);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
-	updateState_->joinStates(updateMesh_);
 	updateState_->joinShaderInput(sky_->worldTime()->in);
 }
 
@@ -209,6 +208,8 @@ void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);
+	updateMesh_->enable(rs);
+	updateMesh_->disable(rs);
 	updateState_->disable(rs);
 
 	rs->viewport().pop();
