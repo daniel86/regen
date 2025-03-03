@@ -95,13 +95,13 @@ namespace regen {
 		 * \brief Encodes a frame.
 		 * @param frameData the frame data to encode.
 		 */
-		void encodeFrame(const GLubyte *frameData);
+		void encodeFrame(const GLubyte *frameData, double dt_seconds);
 
 		/**
 		 * \brief Pushes a frame to the encoder.
 		 * @param frame the frame to push.
 		 */
-		void pushFrame(GLubyte *frame);
+		void pushFrame(GLubyte *frame, double dt);
 
 	protected:
 		boost::mutex encodingLock_;
@@ -114,11 +114,11 @@ namespace regen {
 		int width_;
 		int height_;
 
-		std::queue<GLubyte *> encodedFrames_;
+		std::queue<std::pair<GLubyte*,double>> encodedFrames_;
 		std::vector<GLubyte *> framePool_;
 		AVPacket *pkt_ = nullptr;
-		int frameCounter_ = 0;
-		unsigned int fps_ = 30;
+		double cumulativeTime_ = 0.0;
+		unsigned int fps_ = 40;
 
 		bool isActive_ = true;
 	};

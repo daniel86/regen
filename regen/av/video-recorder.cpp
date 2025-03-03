@@ -85,7 +85,9 @@ void VideoRecorder::initialize() {
 	// Create the codec context
 	codecCtx_->width = width;
 	codecCtx_->height = height;
-	codecCtx_->time_base = {1, fps};
+	// for a fixed frame rate, set time_base to {1, fps}
+	//codecCtx_->time_base = {1, fps};
+	codecCtx_->time_base = {1, 1000};
 	codecCtx_->framerate = {fps, 1};
 	codecCtx_->pix_fmt = AV_PIX_FMT_YUV420P;
 	if (formatCtx_->oformat->flags & AVFMT_GLOBALHEADER) {
@@ -168,7 +170,7 @@ void VideoRecorder::updateFrameBuffer() {
 	if (ptr) {
 		auto nextFrame = encoder_->reserveFrame();
 		std::memcpy(nextFrame, ptr, frameSize_);
-		encoder_->pushFrame(nextFrame);
+		encoder_->pushFrame(nextFrame, elapsedTime_);
 		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 	}
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);

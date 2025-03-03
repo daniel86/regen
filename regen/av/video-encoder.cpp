@@ -81,12 +81,12 @@ void VideoEncoder::freeFrame(GLubyte *frame) {
 	framePool_.push_back(frame);
 }
 
-void VideoEncoder::pushFrame(GLubyte *frame) {
+void VideoEncoder::pushFrame(GLubyte *frame, double dt_seconds) {
 	boost::lock_guard<boost::mutex> lock(encodingLock_);
-	encodedFrames_.push(frame);
+	encodedFrames_.emplace(frame, dt_seconds);
 }
 
-void VideoEncoder::encodeFrame(const GLubyte *frameData) {
+void VideoEncoder::encodeFrame(const GLubyte *frameData, double dt_seconds) {
 	int srcStride[] = {3 * codecCtx_->width};
 	// flip the frame vertically
 	int srcStrideFlipped[] = {-srcStride[0]};
@@ -100,8 +100,8 @@ void VideoEncoder::encodeFrame(const GLubyte *frameData) {
 			  frame_->data,
 			  frame_->linesize);
 	// set the frame's timestamp
-	frame_->pts = frameCounter_ * (codecCtx_->time_base.den / codecCtx_->time_base.num / fps_);
-	frameCounter_++;
+    frame_->pts = static_cast<int64_t>(cumulativeTime_ * 1000);
+    cumulativeTime_ += dt_seconds;
 
 	// Send the frame to the encoder
 	if (avcodec_send_frame(codecCtx_, frame_) < 0) {
@@ -125,15 +125,18 @@ void VideoEncoder::encodeNextFrame() {
 		return;
 	}
 	GLubyte *frame = nullptr;
+	double dt = 0.0;
 	{
 		boost::lock_guard<boost::mutex> lock(encodingLock_);
 		if (encodedFrames_.empty()) {
 			return;
 		}
-		frame = encodedFrames_.front();
+		auto pair = encodedFrames_.front();
+		frame = pair.first;
+		dt = pair.second;
 		encodedFrames_.pop();
 	}
-	encodeFrame(frame);
+	encodeFrame(frame, dt);
 	freeFrame(frame);
 }
 
