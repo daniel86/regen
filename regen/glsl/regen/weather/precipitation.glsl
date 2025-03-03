@@ -1,55 +1,76 @@
 
--- update.vs
-#include regen.states.camera.defines
-#include regen.states.camera.input
-#include regen.particles.emitter.inputs
-#include regen.particles.emitter.defines
-
-const vec3 in_precipitationWind = vec3(-0.05,-0.5,0);
-const vec3 in_precipitationVelocity = vec3(0.001,0.001,0.01);
-// x: cone radius, y: cone height
-const vec2 in_precipitationCone = vec3(50.0,20.0);
+-- spawnParticle
+void spawnParticle(inout uint seed)
+{
+    out_pos = variance(in_emitterCone.xyx, seed) + in_cameraPosition;
+    out_velocity = variance(in_initialVelocity, seed);
+    out_velocity.y = -abs(out_velocity.y);
 #ifdef HAS_brightness
-const vec2 in_precipitationBrightness = vec2(0.9,0.2);
+    out_brightness = in_initialBrightness.x + variance(in_initialBrightness.y, seed);
 #endif
+    out_lifetime = 1.0;
+}
 
-#include regen.noise.variance
+-- updateParticle
+void updateParticle(inout uint seed)
+{
+    float dt = in_timeDeltaMS*0.01;
+    vec3 force = in_gravity;
+#ifdef HAS_wind || HAS_windFlow
+    force.xz += windAtPosition(in_pos) * in_windFactor;
+#endif
+    out_pos = in_pos + in_velocity*dt;
+    out_velocity = in_velocity + force*dt/in_mass;
+#ifdef HAS_brightness
+    out_brightness = in_brightness;
+#endif
+    out_lifetime = in_lifetime+dt;
+}
 
+-- isRespawnRequired
 bool isRespawnRequired()
 {
     return (in_lifetime<0.01)
 #ifdef HAS_surfaceHeight
         || (in_pos.y<in_surfaceHeight)
 #endif
-        || (in_pos.y<in_cameraPosition.y-in_precipitationCone.y);
+        || (in_pos.y<in_cameraPosition.y-in_emitterCone.y);
 }
 
+-- update.includes
+#include regen.states.camera.defines
+#include regen.states.camera.input
+#include regen.particles.emitter.inputs
+#include regen.particles.emitter.defines
+
+const vec3 in_gravity = vec3(-0.05,-0.5,0);
+const vec3 in_initialVelocity = vec3(0.001,0.001,0.01);
+// x: cone radius, y: cone height
+const vec2 in_emitterCone = vec3(50.0,20.0);
+#ifdef HAS_brightness
+const vec2 in_initialBrightness = vec2(0.9,0.2);
+#endif
+const float in_mass = 1.0;
+
+#include regen.noise.variance
+#ifdef HAS_wind || HAS_windFlow
+const float in_windFactor = 10.0;
+    #include regen.states.wind.windAtPosition
+#endif
+
+-- update.vs
+#include regen.weather.precipitation.update.includes
+#include regen.weather.precipitation.isRespawnRequired
+#include regen.weather.precipitation.spawnParticle
+#include regen.weather.precipitation.updateParticle
+
 void main() {
-    // TODO: proper wind handling
-    // TODO: allow to apply some rotational force to the particles, but maybe changing wind is enough
     uint seed = in_randomSeed;
     if(isRespawnRequired()) {
-        out_pos = variance(in_precipitationCone.xyx, seed) + in_cameraPosition;
-        out_velocity = variance(in_precipitationVelocity, seed);
-#ifdef HAS_type
-        out_type = int(floor(random(seed)*8.0));
-#endif
-#ifdef HAS_brightness
-        out_brightness = in_precipitationBrightness.x + variance(in_precipitationBrightness.y, seed);
-#endif
-        out_lifetime = 1.0;
+        spawnParticle(seed);
     }
     else {
-        float dt = in_timeDeltaMS*0.01;
-        out_pos = in_pos + (in_velocity+in_precipitationWind)*dt;
-        out_velocity = in_velocity;
-#ifdef HAS_type
-        out_type = in_type;
-#endif
-#ifdef HAS_brightness
-        out_brightness = in_brightness;
-#endif
-        out_lifetime = in_lifetime+dt;
+        updateParticle(seed);
     }
     out_randomSeed = seed;
 }
@@ -83,7 +104,7 @@ flat out int out_layer;
 
 #include regen.states.camera.input
 uniform vec2 in_viewport;
-uniform vec3 in_precipitationWind;
+uniform vec3 in_gravity;
 uniform vec2 in_particleSize;
 
 #include regen.states.camera.transformWorldToEye
@@ -113,7 +134,7 @@ void emitSprite(vec3 quadPos[4], int layer)
 
 void main() {
     vec3 zAxis = normalize(in_cameraPosition-in_pos[0]);
-    vec3 yAxis = normalize(in_velocity[0]+in_precipitationWind);
+    vec3 yAxis = normalize(in_velocity[0]+in_gravity);
     vec3 quadPos[4] = computeSpritePoints(in_pos[0], in_particleSize, zAxis, yAxis);
     emitSprite(quadPos,out_layer);
 }

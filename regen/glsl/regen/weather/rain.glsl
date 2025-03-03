@@ -1,51 +1,34 @@
 
+/*****************************/
+/* UPDATE SHADER             */
+/*****************************/
+
 -- update.vs
-#include regen.states.camera.defines
-#include regen.states.camera.input
-#include regen.particles.emitter.inputs
-#include regen.particles.emitter.defines
-
-const vec3 in_wind = vec3(-0.05,-0.5,0);
-const vec3 in_rainVelocity = vec3(0.001,0.001,0.01);
-const vec2 in_rainCone = vec3(50.0,20.0);
-const vec2 in_rainBrightness = vec2(0.9,0.2);
-
-#include regen.noise.variance
-
-bool isRespawnRequired()
-{
-  return (in_lifetime<0.01) || (in_pos.y<in_cameraPosition.y-in_rainCone.y);
-}
+#include regen.weather.precipitation.update.includes
+#include regen.weather.precipitation.isRespawnRequired
+#include regen.weather.precipitation.spawnParticle
+#include regen.weather.precipitation.updateParticle
 
 void main() {
     uint seed = in_randomSeed;
     if(isRespawnRequired()) {
-      out_pos = variance(in_rainCone.xyx, seed) + in_cameraPosition;
-      out_velocity = variance(in_rainVelocity, seed);
 #ifdef USE_RAIN_DB_RAND
-      out_type = int(random(seed)*369.0);
+        out_type = int(random(seed)*369.0);
 #else
-      out_type = int(floor(random(seed)*8.0));
+        out_type = int(floor(random(seed)*8.0));
 #endif
-      out_brightness = in_rainBrightness.x + variance(in_rainBrightness.y, seed);
-      out_lifetime = 1.0;
+        spawnParticle(seed);
     }
     else {
-      float dt = in_timeDeltaMS*0.01;
-      out_pos = in_pos + (in_velocity+in_wind)*dt;
-      out_velocity = in_velocity;
-      out_type = in_type;
-      out_brightness = in_brightness;
-      out_lifetime = in_lifetime+dt;
+        updateParticle(seed);
+        out_type = in_type;
     }
     out_randomSeed = seed;
 }
 
--------------------------------
--------------------------------
--------------------------------
--------------------------------
-
+/*****************************/
+/* DRAW SHADER               */
+/*****************************/
 -- draw.vs
 #include regen.weather.precipitation.draw.vs
 -- draw.gs
@@ -156,7 +139,7 @@ void main() {
 #define MAX_VIDX 4
 #define MAX_HIDX 8
 
-const vec3 in_wind = vec3(-0.05,-0.5,0);
+const vec3 in_gravity = vec3(-0.05,-0.5,0);
 
 const float RAD_TO_DEG = 57.2957795;
 
@@ -217,7 +200,7 @@ void main() {
   // camera to raindrop
   vec3 eyeDir = normalize(in_cameraPosition - P);
   // up vector of rain drop space
-  vec3 upVector = normalize(in_velocity + in_wind);
+  vec3 upVector = normalize(in_velocity + in_gravity);
   vec3 lightDir;
   vec2 angles;
   

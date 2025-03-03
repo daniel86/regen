@@ -320,10 +320,10 @@
           num-vertices="50000"
           update-shader="regen.weather.rain.update">
         <!-- Add shader input. -->
-        <input type="vec3" name="wind" value="-0.8,-4.5,0"/>
-        <input type="vec3" name="rainVelocity" value="0.5,0.75,0.5"/>
-        <input type="vec2" name="rainBrightness" value="5.0,2.0"/>
-        <input type="vec2" name="rainCone" value="60.0,30.0"/>
+        <input type="vec3" name="gravity" value="-0.8,-4.5,0"/>
+        <input type="vec3" name="initialVelocity" value="0.5,0.75,0.5"/>
+        <input type="vec2" name="initialBrightness" value="5.0,2.0"/>
+        <input type="vec2" name="emitterCone" value="60.0,30.0"/>
         <input name="cameraPosition" state="main-camera" component="cameraPosition"/>
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>

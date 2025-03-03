@@ -94,7 +94,7 @@
     </sky>
 
     <ubo id="Wind-UBO">
-        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
+        <uniform name="wind" type="vec2" value="0.1, 0.1"/>
         <uniform name="windFlowScale" type="float" value="150.0"/>
         <uniform name="windFlowTime" type="float" value="0.2"/>
         <uniform name="windStrength" type="float" value="1.0"/>
@@ -154,12 +154,14 @@
     <!--**************************-->
 
     <node id="Snow-Config">
-        <input type="vec3" name="precipitationWind" value="-0.1,-0.4,0"/>
-        <input type="vec3" name="precipitationVelocity" value="0.1,0.2,0.1"/>
-        <input type="vec2" name="precipitationBrightness" value="5.0,2.0"/>
-        <input type="vec2" name="precipitationCone" value="60.0,30.0"/>
+        <input type="vec3" name="gravity" value="0.1,-0.2,0.05"/>
+        <input type="float" name="mass" value="20.0"/>
+        <input type="vec3" name="initialVelocity" value="0.05,-0.05,0.05"/>
+        <input type="vec2" name="initialBrightness" value="5.0,2.0"/>
+        <input type="vec2" name="emitterCone" value="60.0,30.0"/>
         <input type="float" name="surfaceHeight" value="{{map-y-min}}"/>
         <input name="cameraPosition" state="main-camera" component="cameraPosition"/>
+        <input type="float" name="windFactor" value="10.0"/>
         <input name="Wind" ubo="Wind-UBO"/>
         <texture name="windFlow" id="wind-flowmap"/>
     </node>
