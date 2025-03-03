@@ -384,7 +384,6 @@ ref_ptr<TextureCube> textures::loadCube(
 	}
 
 	tex->end(RenderState::get());
-	// TODO: push/pop interface for glPixelStore ?
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
 	ilDeleteImages(1, &ilID);

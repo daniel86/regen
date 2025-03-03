@@ -12,7 +12,6 @@
 
 using namespace regen::scene;
 using namespace regen;
-using namespace std;
 
 #include <regen/gl-types/gl-enum.h>
 #include <regen/av/video-texture.h>
@@ -21,60 +20,31 @@ using namespace std;
 
 #define REGEN_TEXTURE_CATEGORY "texture"
 
-/**
- * Resizes Texture texture when the window size changed
- */
 class TextureResizer : public EventHandler {
 public:
-	/**
-	 * Default constructor.
-	 * @param tex Texture reference.
-	 * @param windowViewport The window dimensions.
-	 * @param wScale The width scale.
-	 * @param hScale The height scale.
-	 */
-	TextureResizer(const ref_ptr<Texture> &tex,
-				   const ref_ptr<ShaderInput2i> &windowViewport,
-				   GLfloat wScale, GLfloat hScale)
+	TextureResizer(Application *app, const ref_ptr<Texture> &tex,
+			const ref_ptr<ShaderInput2i> &windowViewport, GLfloat wScale, GLfloat hScale)
 			: EventHandler(),
+			  app_(app),
 			  tex_(tex),
 			  windowViewport_(windowViewport),
 			  wScale_(wScale), hScale_(hScale) {}
 
 	void call(EventObject *, EventData *) override {
-		auto winSize = windowViewport_->getVertex(0);
-		// FIXME: I do not think this is safe from GUI thread!
-		tex_->set_rectangleSize(winSize.r.x * wScale_, winSize.r.y * hScale_);
-		RenderState::get()->textures().push(7, tex_->textureBind());
-		tex_->texImage();
-		RenderState::get()->textures().pop(7);
+		auto winSize = windowViewport_->getVertex(0).r;
+		winSize.x = (winSize.x*wScale_);
+		winSize.y = (winSize.y*hScale_);
+		// FIXME: I think we should enforce GL thread here! But initially the resize needs to be done
+		//        right away as withGLContext causes some fbo errors. possible fix: check if
+		//        we have a GL context, and only use withGLContext if not. Could also do this in withGLContext.
+		//app_->withGLContext([&]() {
+			tex_->resize(winSize.x, winSize.y);
+		//});
 	}
 
 protected:
+	Application *app_;
 	ref_ptr<Texture> tex_;
-	ref_ptr<ShaderInput2i> windowViewport_;
-	GLfloat wScale_, hScale_;
-};
-
-// TODO: unify with above
-template<class T>
-class TextureResizer2 : public EventHandler {
-public:
-	TextureResizer2(const ref_ptr<T> &tex,
-					const ref_ptr<ShaderInput2i> &windowViewport,
-					GLfloat wScale, GLfloat hScale)
-			: EventHandler(),
-			  tex_(tex),
-			  windowViewport_(windowViewport),
-			  wScale_(wScale), hScale_(hScale) {}
-
-	void call(EventObject *, EventData *) override {
-		auto winSize = windowViewport_->getVertex(0);
-		tex_->resize(winSize.r.x * wScale_, winSize.r.y * hScale_);
-	}
-
-protected:
-	ref_ptr<T> tex_;
 	ref_ptr<ShaderInput2i> windowViewport_;
 	GLfloat wScale_, hScale_;
 };
@@ -82,7 +52,7 @@ protected:
 
 Vec3i TextureResource::getSize(
 		const ref_ptr<ShaderInput2i> &viewport,
-		const string &sizeMode,
+		const std::string &sizeMode,
 		const Vec3f &size) {
 	if (sizeMode == "abs") {
 		return Vec3i(size.x, size.y, size.z);
@@ -109,7 +79,7 @@ void TextureResource::configureTexture(
 	{
 		if (!input.getValue("wrapping").empty()) {
 			tex->wrapping().push(glenum::wrappingMode(
-					input.getValue<string>("wrapping", "CLAMP_TO_EDGE")));
+					input.getValue<std::string>("wrapping", "CLAMP_TO_EDGE")));
 		}
 		if (!input.getValue("aniso").empty()) {
 			tex->aniso().push(input.getValue<GLfloat>("aniso", 2.0f));
@@ -121,21 +91,21 @@ void TextureResource::configureTexture(
 			!input.getValue("swizzle-g").empty() ||
 			!input.getValue("swizzle-b").empty() ||
 			!input.getValue("swizzle-a").empty()) {
-			GLenum swizzleR = glenum::textureSwizzle(
-					input.getValue<string>("swizzle-r", "RED"));
-			GLenum swizzleG = glenum::textureSwizzle(
-					input.getValue<string>("swizzle-g", "GREEN"));
-			GLenum swizzleB = glenum::textureSwizzle(
-					input.getValue<string>("swizzle-b", "BLUE"));
-			GLenum swizzleA = glenum::textureSwizzle(
-					input.getValue<string>("swizzle-a", "ALPHA"));
+			auto swizzleR = static_cast<int>(glenum::textureSwizzle(
+					input.getValue<std::string>("swizzle-r", "RED")));
+			auto swizzleG = static_cast<int>(glenum::textureSwizzle(
+					input.getValue<std::string>("swizzle-g", "GREEN")));
+			auto swizzleB = static_cast<int>(glenum::textureSwizzle(
+					input.getValue<std::string>("swizzle-b", "BLUE")));
+			auto swizzleA = static_cast<int>(glenum::textureSwizzle(
+					input.getValue<std::string>("swizzle-a", "ALPHA")));
 			tex->swizzle().push(Vec4i(swizzleR, swizzleG, swizzleB, swizzleA));
 		}
 		if (!input.getValue("compare-mode").empty()) {
-			GLenum function = glenum::compareFunction(
-					input.getValue<string>("compare-function", "LEQUAL"));
-			GLenum mode = glenum::compareMode(
-					input.getValue<string>("compare-mode", "NONE"));
+			auto function = static_cast<int>(glenum::compareFunction(
+					input.getValue<std::string>("compare-function", "LEQUAL")));
+			auto mode = static_cast<int>(glenum::compareMode(
+					input.getValue<std::string>("compare-mode", "NONE")));
 			tex->compare().push(TextureCompare(mode, function));
 		}
 		if (!input.getValue("max-level").empty()) {
@@ -144,12 +114,12 @@ void TextureResource::configureTexture(
 
 		if (!input.getValue("min-filter").empty() &&
 			!input.getValue("mag-filter").empty()) {
-			GLenum min = glenum::filterMode(input.getValue("min-filter"));
-			GLenum mag = glenum::filterMode(input.getValue("mag-filter"));
+			auto min = static_cast<int>(glenum::filterMode(input.getValue("min-filter")));
+			auto mag = static_cast<int>(glenum::filterMode(input.getValue("mag-filter")));
 			tex->filter().push(TextureFilter(min, mag));
 		} else if (!input.getValue("min-filter").empty() ||
 				   !input.getValue("mag-filter").empty()) {
-			REGEN_WARN("Minifiacation and magnification filters must be specified both." <<
+			REGEN_WARN("Minification and magnification filters must be specified both." <<
 																						 " One missing for '"
 																						 << input.getDescription()
 																						 << "'.");
@@ -200,13 +170,13 @@ ref_ptr<Texture> TextureResource::createResource(
 	if (input.hasAttribute("file")) {
 		auto mipmapFlag = GL_DONT_CARE;
 		auto forcedInternalFormat = glenum::textureInternalFormat(
-				input.getValue<string>("forced-internal-format", "NONE"));
+				input.getValue<std::string>("forced-internal-format", "NONE"));
 		auto forcedFormat = glenum::textureFormat(
-				input.getValue<string>("forced-format", "NONE"));
+				input.getValue<std::string>("forced-format", "NONE"));
 		auto forcedSize =
 				input.getValue<Vec3ui>("forced-size", Vec3ui(0u));
 		auto keepData = input.getValue<bool>("keep-data", false);
-		const string filePath =
+		const std::string filePath =
 				resourcePath(input.getValue("file"));
 
 		try {
@@ -221,7 +191,7 @@ ref_ptr<Texture> TextureResource::createResource(
 			} else if (input.getValue<bool>("is-array", false)) {
 				tex = textures::loadArray(
 						filePath,
-						input.getValue<string>("name-pattern", ".*"),
+						input.getValue<std::string>("name-pattern", ".*"),
 						mipmapFlag,
 						forcedInternalFormat,
 						forcedFormat,
@@ -246,7 +216,7 @@ ref_ptr<Texture> TextureResource::createResource(
 			REGEN_ERROR("Failed to load Texture at " << filePath << ".");
 		}
 	} else if (input.hasAttribute("video")) {
-		const string filePath = resourcePath(input.getValue("video"));
+		const std::string filePath = resourcePath(input.getValue("video"));
 		ref_ptr<VideoTexture> video = ref_ptr<VideoTexture>::alloc();
 		try {
 			video->set_file(filePath);
@@ -262,9 +232,9 @@ ref_ptr<Texture> TextureResource::createResource(
 			REGEN_ERROR("Failed to load Video at " << filePath << ".");
 		}
 	} else if (input.hasAttribute("noise")) {
-		const string noiseMode = input.getValue("noise");
+		const std::string noiseMode = input.getValue("noise");
 
-		auto sizeMode = input.getValue<string>("size-mode", "abs");
+		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
 		auto sizeAbs = getSize(parser->getViewport(), sizeMode, sizeRel);
 
@@ -317,11 +287,11 @@ ref_ptr<Texture> TextureResource::createResource(
 			tex = RampTexture::rgb();
 		} else if (ramp == "inline") {
 			auto format = glenum::textureFormat(
-					input.getValue<string>("format", "LUMINANCE"));
+					input.getValue<std::string>("format", "LUMINANCE"));
 			auto internalFormat = format;
 			if (input.hasAttribute("internal-format")) {
 				internalFormat = glenum::textureInternalFormat(
-						input.getValue<string>("internal-format", "LUMINANCE"));
+						input.getValue<std::string>("internal-format", "LUMINANCE"));
 			}
 			auto data = readTextureData(input, format);
 			tex = ref_ptr<RampTexture>::alloc(format, internalFormat, data);
@@ -330,10 +300,10 @@ ref_ptr<Texture> TextureResource::createResource(
 		}
 	} else if (input.hasAttribute("spectrum")) {
 		auto spectrum = input.getValue<Vec2d>("spectrum", Vec2d(0.0, 1.0));
-		auto numTexels = input.getValue<GLuint>("num-texels", 256u);
+		auto numTexels = input.getValue<GLint>("num-texels", 256u);
 		tex = regen::textures::loadSpectrum(spectrum.x, spectrum.y, numTexels);
 	} else if (input.hasAttribute("type")) {
-		const string typeName = input.getValue("type");
+		const std::string typeName = input.getValue("type");
 		if (typeName == "bloom") {
 			auto numMips = input.getValue<GLuint>("num-mips", 5u);
 			auto bloomTexture = ref_ptr<BloomTexture>::alloc(numMips);
@@ -342,7 +312,7 @@ ref_ptr<Texture> TextureResource::createResource(
 			if (inputFBO.get() == nullptr) {
 				REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
 			} else {
-				auto resizer = ref_ptr<TextureResizer2<BloomTexture>>::alloc(
+				auto resizer = ref_ptr<TextureResizer>::alloc(parser->application(),
 						bloomTexture, parser->getViewport(), 1.0, 1.0);
 				parser->addEventHandler(Application::RESIZE_EVENT, resizer);
 				tex = bloomTexture;
@@ -352,7 +322,7 @@ ref_ptr<Texture> TextureResource::createResource(
 			REGEN_WARN("Unknown texture type '" << typeName << "'.");
 		}
 	} else {
-		auto sizeMode = input.getValue<string>("size-mode", "abs");
+		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
 		Vec3i sizeAbs = getSize(parser->getViewport(), sizeMode, sizeRel);
 
@@ -360,9 +330,9 @@ ref_ptr<Texture> TextureResource::createResource(
 		auto pixelSize = input.getValue<GLuint>("pixel-size", 16);
 		auto pixelComponents = input.getValue<GLuint>("pixel-components", 4);
 		auto pixelType = glenum::pixelType(
-				input.getValue<string>("pixel-type", "UNSIGNED_BYTE"));
+				input.getValue<std::string>("pixel-type", "UNSIGNED_BYTE"));
 		auto textureTarget = glenum::textureTarget(
-				input.getValue<string>("target", sizeAbs.z > 1 ? "TEXTURE_3D" : "TEXTURE_2D"));
+				input.getValue<std::string>("target", sizeAbs.z > 1 ? "TEXTURE_3D" : "TEXTURE_2D"));
 
 
 		tex = FBO::createTexture(
@@ -374,7 +344,7 @@ ref_ptr<Texture> TextureResource::createResource(
 				pixelType);
 
 		if (input.hasAttribute("size-mode") && sizeMode == "rel") {
-			ref_ptr<TextureResizer> resizer = ref_ptr<TextureResizer>::alloc(
+			auto resizer = ref_ptr<TextureResizer>::alloc(parser->application(),
 					tex, parser->getViewport(), sizeRel.x, sizeRel.y);
 			parser->addEventHandler(Application::RESIZE_EVENT, resizer);
 		}

@@ -403,7 +403,6 @@ function(_Boost_GUESS_COMPILER_PREFIX _ret)
       endif()
     endif ()
   else()
-    # TODO at least Boost_DEBUG here?
     set(_boost_COMPILER "")
   endif()
   set(${_ret} ${_boost_COMPILER} PARENT_SCOPE)

@@ -16,6 +16,10 @@ std::pair<float, float> project(const std::vector<Vec2f> &points, const Vec2f &a
 }
 
 OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape) {
+	update(shape);
+}
+
+void OrthogonalProjection::update(const BoundingShape &shape) {
 	switch (shape.shapeType()) {
 		case BoundingShapeType::SPHERE: {
 			// sphere projection is a circle

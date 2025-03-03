@@ -17,11 +17,11 @@ namespace regen {
 
 		explicit BloomTexture(GLuint numMips = 5);
 
-		void resize(GLuint width, GLuint height);
-
 		auto &mips() { return mips_; }
 
 		auto numMips() const { return mips_.size(); }
+
+		void resize(GLuint width, GLuint height) override;
 
 	protected:
 		std::vector<Mip> mips_;

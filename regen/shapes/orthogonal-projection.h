@@ -28,7 +28,7 @@ namespace regen {
 		 */
 		Bounds<Vec2f> bounds() const;
 
-		Type type;
+		Type type = Type::CIRCLE;
 		std::vector<Vec2f> points;
 		struct Axis {
 			explicit Axis(const Vec2f &dir) : dir(dir) {}
@@ -37,6 +37,8 @@ namespace regen {
 			float max;
 		};
 		std::vector<Axis> axes;
+
+		void update(const BoundingShape &shape);
 
 	protected:
 		void makePerspectiveProjection(const Frustum &frustum);

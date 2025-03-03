@@ -364,6 +364,11 @@ namespace regen {
 		 */
 		virtual unsigned int numTexel() const = 0;
 
+		/**
+		 * Resize the texture.
+		 */
+		virtual void resize(unsigned int width, unsigned int height);
+
 	protected:
 		GLuint dim_;
 		// format of pixel data

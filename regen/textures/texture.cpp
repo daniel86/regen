@@ -202,6 +202,13 @@ unsigned int Texture::texelIndex(const Vec2f &texco) const {
 	return (y * width() + x);
 }
 
+void Texture::resize(unsigned int width, unsigned int height) {
+	set_rectangleSize(width, height);
+	RenderState::get()->textures().push(7, textureBind());
+	texImage();
+	RenderState::get()->textures().pop(7);
+}
+
 ///////////////
 
 Texture1D::Texture1D(GLuint numTextures)

@@ -565,8 +565,7 @@ void QuadTree::update(float dt) {
 		hasChanged = item->shape->updateGeometry();
 		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
 		if (hasChanged) {
-			// TODO: rather update the old projection instead of creating a new one
-			item->projection = OrthogonalProjection(*item->shape.get());
+			item->projection.update(*item->shape.get());
 			changedItems_.push_back(item);
 		}
 		newBounds_.extend(item->projection.bounds());
