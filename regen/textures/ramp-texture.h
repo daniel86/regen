@@ -3,6 +3,7 @@
 
 #include <regen/textures/texture.h>
 #include <regen/utility/ref-ptr.h>
+#include <regen/textures/texture-1d.h>
 
 namespace regen {
 	/**

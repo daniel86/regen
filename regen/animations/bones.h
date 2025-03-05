@@ -12,6 +12,7 @@
 #include <regen/animations/animation-node.h>
 #include <regen/gl-types/vbo.h>
 #include <regen/textures/texture-state.h>
+#include <regen/textures/texture-buffer.h>
 
 namespace regen {
 	/**

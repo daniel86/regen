@@ -24,8 +24,8 @@ namespace regen {
 		BLEND_MODE_MULTIPLY,         //!< c = c0*c1
 		BLEND_MODE_ADD,              //!< c = c0+c1
 		BLEND_MODE_SMOOTH_ADD,       //!< c = 0.5*c0+0.5*c1
-		BLEND_MODE_SUBSTRACT,        //!< c = c0-c1
-		BLEND_MODE_REVERSE_SUBSTRACT,//!< c = c1-c0
+		BLEND_MODE_SUBTRACT,         //!< c = c0-c1
+		BLEND_MODE_REVERSE_SUBTRACT, //!< c = c1-c0
 		BLEND_MODE_DIFFERENCE,       //!< c = abs(c0-c1)
 		BLEND_MODE_LIGHTEN,          //!< c = max(c0,c1)
 		BLEND_MODE_DARKEN,           //!< c = min(c0,c1)

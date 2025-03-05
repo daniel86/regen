@@ -11,6 +11,8 @@
 #include <stdexcept>
 
 #include <regen/textures/texture.h>
+#include <regen/textures/texture-cube.h>
+#include <regen/textures/texture-array.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/math/vector.h>
 
@@ -26,8 +28,6 @@ namespace regen {
 			 */
 			explicit Error(const std::string &message) : std::runtime_error(message) {}
 		};
-
-		GLenum regenImageFormat();
 
 		GLuint loadImage(const std::string &file);
 

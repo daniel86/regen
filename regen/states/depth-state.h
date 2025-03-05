@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef __DEPTH_STATE_H_
-#define __DEPTH_STATE_H_
+#ifndef REGEN_DEPTH_STATE_H_
+#define REGEN_DEPTH_STATE_H_
 
 #include <regen/states/atomic-states.h>
 
@@ -49,4 +49,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* BLIT_TO_SCREEN_H_ */
+#endif /* REGEN_DEPTH_STATE_H_ */

@@ -27,6 +27,7 @@ static vector<string> getFBOAttachments(SceneInputNode &input, const string &key
 }
 
 #include <regen/states/fbo-state.h>
+#include "regen/states/screen-state.h"
 
 namespace regen {
 	namespace scene {

@@ -9,6 +9,9 @@
 
 <!-- Textures -->
 <texture id="regen-logo" file="img/logo.png" />
+<!--
+<texture id="regen-logo" file="img/fluid-text.gif" fps="30" />
+-->
 <texture id="rain-database" is-array="1" file="res/textures/rain" name-pattern=".*.png" />
 
 <!-- Fonts -->
@@ -305,6 +308,12 @@
     <blend mode="alpha" />
     <depth test="0" write="0" />
     <node id="logo-widget">
+        <!--
+        <define key="TIME_TO_ARRAY_TEXCO" value="TRUE" />
+        <define key="TIME_TO_ARRAY_TEX" value="0" />
+        <define key="TIME_TO_ARRAY_FPS" value="15" />
+        <blend mode="add" />
+        -->
         <material alpha="0.7" />
         <texture id="regen-logo" map-to="COLOR" blend="SRC" />
         <mesh id="logo-widget" shader="regen.gui.widget" />

@@ -8,6 +8,7 @@
 #include <regen/states/state-configurer.h>
 #include <regen/meshes/primitives/box.h>
 #include <regen/meshes/primitives/rectangle.h>
+#include <regen/textures/texture-3d.h>
 
 #include "light-pass.h"
 
@@ -131,7 +132,7 @@ void LightPass::createShader(const StateConfig &cfg) {
 	shader_->createShader(_cfg.cfg(), shaderKey_);
 	mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
 
-	for (auto it = lights_.begin(); it != lights_.end(); ++it) { addLightInput(*it); }
+	for (auto & light : lights_) { addLightInput(light); }
 	shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
 	shadowColorLoc_ = shader_->shader()->uniformLocation("shadowColorTexture");
 }
@@ -189,10 +190,10 @@ void LightPass::enable(RenderState *rs) {
 			glUniform1i(shadowColorLoc_, smColorChannel);
 		}
 		// enable light pass uniforms
-		for (auto jt = l.inputLocations.begin(); jt != l.inputLocations.end(); ++jt) {
-			if (lights_.size()>1 || jt->uploadStamp != jt->input->stamp()) {
-				jt->input->enableUniform(jt->location);
-				jt->uploadStamp = jt->input->stamp();
+		for (auto & inputLocation : l.inputLocations) {
+			if (lights_.size()>1 || inputLocation.uploadStamp != inputLocation.input->stamp()) {
+				inputLocation.input->enableUniform(inputLocation.location);
+				inputLocation.uploadStamp = inputLocation.input->stamp();
 			}
 		}
 

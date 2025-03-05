@@ -12,6 +12,7 @@
 #include "regen/shapes/quad-tree.h"
 #include "regen/scene/scene-input.h"
 #include "regen/scene/scene-parser.h"
+#include <regen/textures/texture-2d.h>
 
 namespace regen {
 	/**

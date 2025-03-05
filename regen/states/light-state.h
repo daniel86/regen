@@ -152,7 +152,6 @@ namespace regen {
 	protected:
 		ref_ptr<Light> light_;
 		ref_ptr<AnimationNode> animNode_;
-		Vec3f untransformedPos_;
 	};
 
 	/**

@@ -22,6 +22,7 @@
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/render-state.h>
+#include <regen/textures/texture-1d.h>
 
 #include "texture-loader.h"
 
@@ -43,12 +44,37 @@ static void scaleImage(GLuint w, GLuint h, GLuint d) {
 	}
 }
 
+GLenum regenImageFormat1() {
+	GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
+	switch (format) {
+		case GL_COLOR_INDEX:
+			return GL_RGBA;
+		default:
+			return format;
+	}
+}
+
+GLenum regenImageFormat() {
+	GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
+	switch (format) {
+		// handle deprecated formats
+		case GL_LUMINANCE:
+			return GL_RED;
+		case GL_LUMINANCE_ALPHA:
+			return GL_RG;
+		case GL_COLOR_INDEX:
+			return GL_RGBA;
+		default:
+			return format;
+	}
+}
+
 static void convertImage(GLenum format, GLenum type) {
-	GLenum srcFormat = regenImageFormat();
-	GLenum srcType = ilGetInteger(IL_IMAGE_TYPE);
-	GLenum dstFormat = (format == GL_NONE ? srcFormat : format);
-	GLenum dstType = (type == GL_NONE ? srcType : type);
-	if (srcFormat != dstFormat || srcType != dstType) {
+	auto srcFormat = regenImageFormat1();
+	auto srcType = ilGetInteger(IL_IMAGE_TYPE);
+	auto dstFormat = (format == GL_NONE ? srcFormat : format);
+	auto dstType = (type == GL_NONE ? srcType : type);
+	if (ilGetInteger(IL_IMAGE_FORMAT) != dstFormat || srcType != dstType) {
 		if (ilConvertImage(dstFormat, dstType) == IL_FALSE) {
 			throw Error("ilConvertImage failed");
 		}
@@ -79,23 +105,11 @@ GLuint textures::loadImage(const std::string &file) {
 							" type=" << ilGetInteger(IL_IMAGE_TYPE) <<
 							" bpp=" << ilGetInteger(IL_IMAGE_BPP) <<
 							" channels=" << ilGetInteger(IL_IMAGE_CHANNELS) <<
+							" images=" << ilGetInteger(IL_NUM_IMAGES) <<
 							" width=" << ilGetInteger(IL_IMAGE_WIDTH) <<
 							" height=" << ilGetInteger(IL_IMAGE_HEIGHT));
 
 	return ilID;
-}
-
-GLenum textures::regenImageFormat() {
-	GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
-	switch (format) {
-		// handle deprecated formats
-		case GL_LUMINANCE:
-			return GL_RED;
-		case GL_LUMINANCE_ALPHA:
-			return GL_RG;
-		default:
-			return format;
-	}
 }
 
 void unsetData(GLuint ilID, const ref_ptr<Texture> &tex, bool keepData) {
@@ -127,16 +141,22 @@ ref_ptr<Texture> textures::load(
 		GLenum forcedFormat,
 		const Vec3ui &forcedSize,
 		bool keepData) {
-	GLuint ilID = loadImage(file);
+	auto ilID = loadImage(file);
 	scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
 	convertImage(forcedFormat, GL_NONE);
-	GLint depth = ilGetInteger(IL_IMAGE_DEPTH);
+	auto depth = ilGetInteger(IL_IMAGE_DEPTH);
+	auto numImages = ilGetInteger(IL_NUM_IMAGES);
 
 	ref_ptr<Texture> tex;
 	if (depth > 1) {
 		ref_ptr<Texture3D> tex3D = ref_ptr<Texture3D>::alloc();
 		tex3D->set_depth(depth);
 		tex = tex3D;
+		numImages = 1;
+	} else if (numImages > 1) {
+		ref_ptr<Texture2DArray> tex2DArray = ref_ptr<Texture2DArray>::alloc();
+		tex2DArray->set_depth(numImages);
+		tex = tex2DArray;
 	} else {
 		tex = ref_ptr<Texture2D>::alloc();
 	}
@@ -152,9 +172,19 @@ ref_ptr<Texture> textures::load(
 		forcedInternalFormat = GL_RGB;
 	}
 	tex->set_internalFormat(forcedInternalFormat);
-	tex->set_textureData((GLubyte *) ilGetData(), false);
+	if (numImages < 2) {
+		tex->set_textureData((GLubyte *) ilGetData(), false);
+	}
 	tex->begin(RenderState::get());
 	tex->texImage();
+	if (numImages > 1) {
+		auto *tex3d = dynamic_cast<Texture3D *>(tex.get());
+		for (auto i = 0; i < numImages; ++i) {
+			ilBindImage(ilID);
+			ilActiveImage(i);
+			tex3d->texSubImage(i, (GLubyte *) ilGetData());
+		}
+	}
 	if (mipmapFlag != GL_NONE) {
 		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(mipmapFlag);
@@ -249,9 +279,8 @@ ref_ptr<Texture2DArray> textures::loadArray(
 	tex->begin(RenderState::get());
 
 	GLint arrayIndex = 0;
-	for (auto jt = accumulator.begin(); jt != accumulator.end(); ++jt) {
-		const std::string &textureFile = *jt;
-		GLuint ilID = loadImage(textureFile);
+	for (auto & textureFile : accumulator) {
+		auto ilID = loadImage(textureFile);
 		scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
 		convertImage(forcedFormat, GL_NONE);
 
@@ -291,13 +320,13 @@ ref_ptr<TextureCube> textures::loadCube(
 		GLenum forcedInternalFormat,
 		GLenum forcedFormat,
 		const Vec3ui &forcedSize) {
-	GLuint ilID = loadImage(file);
+	auto ilID = loadImage(file);
 	scaleImage(forcedSize.x, forcedSize.y, forcedSize.z);
 	convertImage(forcedFormat, GL_NONE);
 
 	GLint faceWidth, faceHeight;
-	GLint width = ilGetInteger(IL_IMAGE_WIDTH);
-	GLint height = ilGetInteger(IL_IMAGE_HEIGHT);
+	auto width = ilGetInteger(IL_IMAGE_WIDTH);
+	auto height = ilGetInteger(IL_IMAGE_HEIGHT);
 	GLint faces[12];
 	// guess layout
 	if (width > height) {
@@ -320,13 +349,13 @@ ref_ptr<TextureCube> textures::loadCube(
 		};
 		for (ILint i = 0; i < 12; ++i) faces[i] = faces_[i];
 	}
-	const ILint numRows = height / faceHeight;
-	const ILint numCols = width / faceWidth;
-	const ILint bpp = ilGetInteger(IL_IMAGE_BPP);
-	const ILint faceBytes = bpp * faceWidth * faceHeight;
-	const ILint rowBytes = faceBytes * numCols;
+	const auto numRows = height / faceHeight;
+	const auto numCols = width / faceWidth;
+	const auto bpp = ilGetInteger(IL_IMAGE_BPP);
+	const auto faceBytes = bpp * faceWidth * faceHeight;
+	const auto rowBytes = faceBytes * numCols;
 
-	ref_ptr<TextureCube> tex = ref_ptr<TextureCube>::alloc();
+	auto tex = ref_ptr<TextureCube>::alloc();
 	tex->begin(RenderState::get());
 	tex->set_rectangleSize(faceWidth, faceHeight);
 	tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
@@ -358,10 +387,10 @@ ref_ptr<TextureCube> textures::loadCube(
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		auto *flippedFace = new GLbyte[faceBytes];
 		auto *faceData = (GLbyte *) tex->cubeData()[TextureCube::BACK];
-		GLbyte *dst = flippedFace;
+		auto *dst = flippedFace;
 
 		for (ILint row = faceWidth - 1; row >= 0; --row) {
-			GLbyte *rowData = faceData + row * faceWidth * numCols * bpp;
+			auto *rowData = faceData + row * faceWidth * numCols * bpp;
 			for (ILint col = faceHeight - 1; col >= 0; --col) {
 				GLbyte *pixelData = rowData + col * bpp;
 				memcpy(dst, pixelData, bpp);
@@ -407,14 +436,14 @@ ref_ptr<Texture> textures::loadRAW(
 							"Unable to open data set file at '" << path << "'."));
 	}
 
-	int numBytes = size.x * size.y * size.z * numComponents;
-	char *pixels = new char[numBytes];
+	auto numBytes = size.x * size.y * size.z * numComponents;
+	auto *pixels = new char[numBytes];
 	f.seekg(0, std::ios::beg);
 	f.read(pixels, numBytes);
 	f.close();
 
-	GLenum format_ = glenum::textureFormat(numComponents);
-	GLenum internalFormat_ = glenum::textureInternalFormat(GL_UNSIGNED_BYTE, numComponents, bytesPerComponent);
+	auto format_ = glenum::textureFormat(numComponents);
+	auto internalFormat_ = glenum::textureInternalFormat(GL_UNSIGNED_BYTE, numComponents, bytesPerComponent);
 
 	ref_ptr<Texture> tex;
 	if (size.z > 1) {

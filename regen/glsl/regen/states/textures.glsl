@@ -893,6 +893,22 @@ float displacementTransfer(inout vec3 p)
 }
 #endif
 
+-- timeArrayTransfer
+#ifndef REGEN_TEXCOTRANSFER_TIME_ARRAY_
+#define2 REGEN_TEXCOTRANSFER_TIME_ARRAY_
+
+const float in_fps = 15.0;
+const int in_numFrames = 10;
+
+vec3 timeArrayTransfer(vec2 uv, int numArrayLayers, float fps) {
+    return vec3(uv, mod(in_time*fps, float(numArrayLayers)));
+}
+vec3 timeArrayTransfer(vec2 uv)
+{
+    return timeArrayTransfer(uv, in_numFrames, in_fps);
+}
+#endif
+
 -- rampCoordinate
 #ifndef REGEN_RAMP_COORDINATE_INCLUDED_
 #define2 REGEN_RAMP_COORDINATE_INCLUDED_

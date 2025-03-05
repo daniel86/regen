@@ -30,9 +30,9 @@ namespace regen {
 				return out << "smooth_add";
 			case BLEND_MODE_ADD:
 				return out << "add";
-			case BLEND_MODE_SUBSTRACT:
+			case BLEND_MODE_SUBTRACT:
 				return out << "sub";
-			case BLEND_MODE_REVERSE_SUBSTRACT:
+			case BLEND_MODE_REVERSE_SUBTRACT:
 				return out << "reverse_sub";
 			case BLEND_MODE_LIGHTEN:
 				return out << "lighten";
@@ -80,8 +80,8 @@ namespace regen {
 		else if (val == "smooth_add") mode = BLEND_MODE_SMOOTH_ADD;
 		else if (val == "average") mode = BLEND_MODE_SMOOTH_ADD;
 		else if (val == "add") mode = BLEND_MODE_ADD;
-		else if (val == "sub") mode = BLEND_MODE_SUBSTRACT;
-		else if (val == "reverse_sub") mode = BLEND_MODE_REVERSE_SUBSTRACT;
+		else if (val == "sub") mode = BLEND_MODE_SUBTRACT;
+		else if (val == "reverse_sub") mode = BLEND_MODE_REVERSE_SUBTRACT;
 		else if (val == "lighten") mode = BLEND_MODE_LIGHTEN;
 		else if (val == "darken") mode = BLEND_MODE_DARKEN;
 		else if (val == "screen") mode = BLEND_MODE_SCREEN;
@@ -137,12 +137,12 @@ namespace regen {
 						GL_ONE, GL_ONE);
 				setBlendColor(Vec4f(0.5f));
 				break;
-			case BLEND_MODE_SUBSTRACT:
+			case BLEND_MODE_SUBTRACT:
 				// c = c0-c1, a=a0-a1
 				setBlendEquation(GL_FUNC_SUBTRACT);
 				setBlendFunc(GL_ONE, GL_ONE);
 				break;
-			case BLEND_MODE_REVERSE_SUBSTRACT:
+			case BLEND_MODE_REVERSE_SUBTRACT:
 				// c = c1-c0, a=c1-c0
 				setBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
 				setBlendFunc(GL_ONE, GL_ONE);

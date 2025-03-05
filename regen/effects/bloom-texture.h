@@ -1,7 +1,7 @@
 #ifndef REGEN_BLOOM_TEXTURE_H
 #define REGEN_BLOOM_TEXTURE_H
 
-#include <regen/textures/texture.h>
+#include <regen/textures/texture-2d.h>
 
 namespace regen {
 	/**

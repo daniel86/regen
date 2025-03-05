@@ -11,6 +11,7 @@
 #include <regen/meshes/primitives/box.h>
 #include <regen/camera/camera.h>
 #include <regen/textures/texture-state.h>
+#include <regen/textures/texture-cube.h>
 #include <regen/states/light-state.h>
 #include <regen/states/shader-state.h>
 #include <regen/gl-types/fbo.h>

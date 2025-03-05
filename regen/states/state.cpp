@@ -54,12 +54,12 @@ static void setConstantUniforms_(State *s, GLboolean isConstant) {
 	auto *inState = dynamic_cast<HasInput *>(s);
 	if (inState) {
 		const ShaderInputList &in = inState->inputContainer()->inputs();
-		for (auto it = in.begin(); it != in.end(); ++it) {
-			it->in_->set_isConstant(isConstant);
+		for (const auto & it : in) {
+			it.in_->set_isConstant(isConstant);
 		}
 	}
-	for (auto it = s->joined().begin(); it != s->joined().end(); ++it) {
-		setConstantUniforms_(it->get(), isConstant);
+	for (const auto & it : s->joined()) {
+		setConstantUniforms_(it.get(), isConstant);
 	}
 }
 
@@ -70,8 +70,8 @@ void State::setConstantUniforms(GLboolean isConstant) {
 const std::list<ref_ptr<State> > &State::joined() const { return joined_; }
 
 void State::enable(RenderState *state) {
-	for (auto it = joined_.begin(); it != joined_.end(); ++it) {
-		if (!(*it)->isHidden()) (*it)->enable(state);
+	for (auto & it : joined_) {
+		if (!it->isHidden()) it->enable(state);
 	}
 }
 
@@ -176,9 +176,9 @@ const ref_ptr<State> &StateSequence::globalState() const { return globalState_; 
 
 void StateSequence::enable(RenderState *state) {
 	globalState_->enable(state);
-	for (auto it = joined_.begin(); it != joined_.end(); ++it) {
-		(*it)->enable(state);
-		(*it)->disable(state);
+	for (auto & it : joined_) {
+		it->enable(state);
+		it->disable(state);
 	}
 	globalState_->disable(state);
 }

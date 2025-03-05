@@ -368,7 +368,7 @@ static void loadTexture(
 				texState->set_blendMode(BLEND_MODE_ADD);
 				break;
 			case aiTextureOp_Subtract:
-				texState->set_blendMode(BLEND_MODE_SUBSTRACT);
+				texState->set_blendMode(BLEND_MODE_SUBTRACT);
 				break;
 			case aiTextureOp_Divide:
 				texState->set_blendMode(BLEND_MODE_DIVIDE);

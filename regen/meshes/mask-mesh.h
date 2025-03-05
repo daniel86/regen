@@ -5,6 +5,7 @@
 #include <regen/shapes/bounds.h>
 #include "tessellation.h"
 #include "regen/meshes/primitives/rectangle.h"
+#include <regen/textures/texture-2d.h>
 
 namespace regen {
 	/**

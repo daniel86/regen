@@ -9,6 +9,7 @@
 
 #include "direct-shading.h"
 #include "regen/camera/light-camera-parabolic.h"
+#include <regen/textures/texture-3d.h>
 
 using namespace regen;
 
@@ -165,7 +166,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	DirectLight &directLight = *it;
 	{
 		const ShaderInputList &in = l->inputContainer()->inputs();
-		for (auto it = in.begin(); it != in.end(); ++it) { disjoinShaderInput(it->in_); }
+		for (const auto & jt : in) { disjoinShaderInput(jt.in_); }
 	}
 	if (directLight.camera_.get()) {
 		disjoinShaderInput(directLight.camera_->lightCamera()->far());
@@ -185,8 +186,8 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	GLuint numLights = lights_.size(), lightIndex = 0;
 	// update shader defines
 	shaderDefine("NUM_LIGHTS", REGEN_STRING(numLights));
-	for (auto it = lights_.begin(); it != lights_.end(); ++it) {
-		updateDefine(*it, lightIndex);
+	for (auto & light : lights_) {
+		updateDefine(light, lightIndex);
 		++lightIndex;
 	}
 }

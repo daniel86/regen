@@ -8,6 +8,9 @@
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/shader-input.h>
+#include <regen/textures/texture-cube.h>
+#include <regen/textures/texture-3d.h>
+#include <regen/textures/texture-array.h>
 #include <regen/config.h>
 
 #include "fbo.h"

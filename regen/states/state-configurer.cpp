@@ -78,11 +78,11 @@ void StateConfigurer::addState(const State *s) {
 
 		// remember inputs, they will be enabled automatically
 		// when the shader is enabled.
-		for (auto it = container->inputs().begin(); it != container->inputs().end(); ++it) {
-			addInput(it->name_, it->in_);
+		for (const auto & it : container->inputs()) {
+			addInput(it.name_, it.in_);
 
 			std::queue<std::pair<const std::string&,ShaderInput*>> queue;
-			queue.emplace(it->in_->name(), it->in_.get());
+			queue.emplace(it.in_->name(), it.in_.get());
 
 			while (!queue.empty()) {
 				auto [name, in] = queue.front();
@@ -109,8 +109,8 @@ void StateConfigurer::addState(const State *s) {
 	if (x1) {
 		cfg_.feedbackMode_ = x1->feedbackMode();
 		cfg_.feedbackStage_ = x1->feedbackStage();
-		for (auto it = x1->feedbackAttributes().begin(); it != x1->feedbackAttributes().end(); ++it) {
-			cfg_.feedbackAttributes_.push_back((*it)->name());
+		for (const auto & it : x1->feedbackAttributes()) {
+			cfg_.feedbackAttributes_.push_back(it->name());
 		}
 	}
 	if (x2) {
@@ -137,19 +137,21 @@ void StateConfigurer::addState(const State *s) {
 		// do not add joined states of sequences
 		return;
 	}
-	for (auto it = s->joined().begin(); it != s->joined().end(); ++it) {
-		addState(it->get());
+	for (const auto & it : s->joined()) {
+		addState(it.get());
 	}
 }
 
 void StateConfigurer::addDefines(const std::map<std::string, std::string> &defines) {
-	for (auto it = defines.begin(); it != defines.end(); ++it)
+	for (auto it = defines.begin(); it != defines.end(); ++it) {
 		define(it->first, it->second);
+	}
 }
 
 void StateConfigurer::addFunctions(const std::map<std::string, std::string> &functions) {
-	for (auto it = functions.begin(); it != functions.end(); ++it)
-		defineFunction(it->first, it->second);
+	for (const auto & function : functions) {
+		defineFunction(function.first, function.second);
+	}
 }
 
 void StateConfigurer::define(const std::string &name, const std::string &value) { cfg_.defines_[name] = value; }

@@ -121,8 +121,7 @@ void FeedbackState::disableInterleaved(RenderState *rs) {
 void FeedbackState::enableSeparate(RenderState *rs) {
 	if (!rs->isTransformFeedbackAcive()) {
 		GLint bufferIndex = 0;
-		for (auto it = feedbackAttributes_.begin(); it != feedbackAttributes_.end(); ++it) {
-			const ref_ptr<ShaderInput> &att = *it;
+		for (auto & att : feedbackAttributes_) {
 			bufferRange_.offset_ = att->offset();
 			bufferRange_.size_ = att->inputSize();
 			rs->feedbackBufferRange().push(bufferIndex, bufferRange_);

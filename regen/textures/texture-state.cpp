@@ -10,6 +10,7 @@
 #include <regen/utility/string-util.h>
 
 #include "texture-state.h"
+#include "texture-3d.h"
 
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const TextureState::Mapping &mode) {
@@ -200,6 +201,11 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex) {
 		shaderDefine(REGEN_TEX_NAME("TEX_TEXEL_Y"), REGEN_STRING(1.0 / tex->height()));
 		shaderDefine(REGEN_TEX_NAME("TEX_WIDTH"), REGEN_STRING(tex->width()));
 		shaderDefine(REGEN_TEX_NAME("TEX_HEIGHT"), REGEN_STRING(tex->height()));
+
+		auto tex3d = dynamic_cast<Texture3D *>(tex.get());
+		if (tex3d) {
+			shaderDefine(REGEN_TEX_NAME("TEX_DEPTH"), REGEN_STRING(tex3d->depth()));
+		}
 	}
 }
 

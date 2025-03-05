@@ -6,6 +6,8 @@
  */
 
 #include <regen/states/state-configurer.h>
+#include <regen/textures/texture-cube.h>
+#include <regen/textures/texture-3d.h>
 
 #include "filter.h"
 

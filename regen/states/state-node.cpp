@@ -28,13 +28,13 @@ ModelTransformation *NodeEyeDepthComparator::findModelTransformation(StateNode *
 	auto *ret = dynamic_cast<ModelTransformation *>(nodeState);
 	if (ret != nullptr) { return ret; }
 
-	for (auto it = nodeState->joined().begin(); it != nodeState->joined().end(); ++it) {
-		auto *ret = dynamic_cast<ModelTransformation *>(it->get());
+	for (const auto & it : nodeState->joined()) {
+		ret = dynamic_cast<ModelTransformation *>(it.get());
 		if (ret != nullptr) { return ret; }
 	}
 
-	for (auto it = n->childs().begin(); it != n->childs().end(); ++it) {
-		ret = findModelTransformation(it->get());
+	for (auto & it : n->childs()) {
+		ret = findModelTransformation(it.get());
 		if (ret != nullptr) { return ret; }
 	}
 
@@ -100,7 +100,7 @@ void StateNode::traverse(RenderState *rs) {
 	if (!isHidden_ && !state_->isHidden()) {
 		state_->enable(rs);
 
-		for (auto it = childs_.begin(); it != childs_.end(); ++it) { it->get()->traverse(rs); }
+		for (auto & child : childs_) { child.get()->traverse(rs); }
 
 		state_->disable(rs);
 	}
