@@ -1,0 +1,17 @@
+<map id="regen::scene::SortByModelMatrix" name="regen::scene::SortByModelMatrix">
+<area shape="rect" id="Node000001" title=" " alt="" coords="712,117,908,157"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="406,64,507,89"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="521,85,712,117,711,123,520,90"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,29,406,66,405,71,173,34"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,73,406,74,406,79,182,78"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,121,405,82,406,88,182,126"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="375,117,538,157"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="552,134,712,134,712,139,552,139"/>
+<area shape="rect" id="Node000007" href="$d2/d4e/classregen_1_1_node_eye_depth_comparator.html" title="Compares nodes by distance to camera." alt="" coords="336,188,577,213"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="541,183,711,152,712,157,542,188"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,183,168,223"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="182,200,336,199,336,204,182,205"/>
+</map>

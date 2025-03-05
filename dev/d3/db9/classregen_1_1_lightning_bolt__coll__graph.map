@@ -1,0 +1,38 @@
+<map id="regen::LightningBolt" name="regen::LightningBolt">
+<area shape="rect" id="Node000001" title="A lightning bolt." alt="" coords="1028,279,1181,305"/>
+<area shape="rect" id="Node000002" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="726,225,829,250"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="843,237,920,243,1005,256,1072,277,1071,282,1003,261,920,248,842,242"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="397,141,498,166"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="512,163,673,200,741,222,740,227,671,205,511,168"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="25,70,172,95"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="186,94,337,123,400,138,398,143,335,128,185,99"/>
+<area shape="rect" id="Node000014" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="380,42,515,67"/>
+<area shape="poly" id="edge14_Node000014_Node000004" title=" " alt="" coords="186,73,380,57,380,63,186,78"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,184,180,224"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="193,188,396,158,397,163,194,193"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,120,180,160"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="194,141,397,149,397,154,194,146"/>
+<area shape="rect" id="Node000007" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="385,190,510,215"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="524,208,726,229,726,235,524,213"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,248,192,288"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="205,245,384,212,385,217,206,251"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,240,529,280"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="542,252,672,244,726,239,726,245,672,249,543,258"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,304,529,344"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="542,306,606,292,671,272,695,260,731,248,732,253,697,265,673,277,608,297,543,311"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,368,529,408"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="542,378,610,360,642,344,670,324,679,309,681,294,684,277,694,261,709,250,725,243,727,248,711,255,698,264,689,279,687,294,684,311,674,327,644,349,611,365,543,384"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,432,529,472"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="543,450,577,444,611,434,643,419,670,397,681,381,685,365,682,331,678,297,683,279,694,261,708,249,725,242,727,247,711,254,698,264,688,281,684,297,687,331,690,365,686,383,674,400,646,423,613,439,578,449,543,455"/>
+<area shape="rect" id="Node000013" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="360,91,535,117"/>
+<area shape="poly" id="edge12_Node000002_Node000013" title=" " alt="" coords="510,118,535,125,605,144,673,170,721,196,760,222,757,227,719,201,671,174,604,149,534,131,508,123"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="529,65,599,80,673,99,769,128,843,155,915,186,1005,230,1086,277,1083,282,1003,234,912,191,841,160,767,134,671,104,598,85,528,71"/>
+<area shape="rect" id="Node000015" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,5,180,45"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="194,31,380,46,379,52,193,36"/>
+<area shape="rect" id="Node000016" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="696,275,859,315"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="873,291,1028,290,1028,295,873,297"/>
+<area shape="rect" id="Node000017" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="696,420,859,460"/>
+<area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="872,444,939,437,972,428,1003,415,1035,390,1062,359,1095,303,1100,306,1066,363,1039,394,1005,420,974,433,940,442,873,449"/>
+<area shape="rect" id="Node000018" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="696,495,859,535"/>
+<area shape="poly" id="edge18_Node000001_Node000018" title=" " alt="" coords="873,524,906,524,940,519,973,509,1003,494,1026,474,1045,450,1074,396,1091,343,1099,304,1104,305,1096,344,1079,398,1049,453,1029,478,1005,498,975,514,941,524,907,529,873,530"/>
+</map>

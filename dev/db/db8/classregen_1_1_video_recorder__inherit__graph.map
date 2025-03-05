@@ -1,0 +1,7 @@
+<map id="regen::VideoRecorder" name="regen::VideoRecorder">
+<area shape="rect" id="Node000001" title="Records a video from a FBO and saves it to a file." alt="" coords="5,152,168,177"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="19,79,154,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,118,89,152,84,152,84,118"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,44,89,79,84,79,84,44"/>
+</map>

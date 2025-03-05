@@ -1,0 +1,59 @@
+<map id="regen::GLObject" name="regen::GLObject">
+<area shape="rect" id="Node000001" title="Base class for buffer objects." alt="" coords="5,229,132,255"/>
+<area shape="rect" id="Node000002" href="$d4/d27/classregen_1_1_g_l_buffer.html" title="Base class for OpenGL buffer objects." alt="" coords="193,107,316,132"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,219,179,165,232,130,235,135,181,170,101,224"/>
+<area shape="rect" id="Node000005" href="$dd/d23/classregen_1_1_g_l_rectangle.html" title="A 2D rectangular buffer." alt="" coords="180,180,329,205"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="130,223,205,203,206,208,131,228"/>
+<area shape="rect" id="Node000027" href="$de/ddb/classregen_1_1_p_b_o.html" title="Pixel Buffer Objects (PBO) are OpenGL Buffer Objects that are used for asynchronous pixel transfers." alt="" coords="207,229,302,255"/>
+<area shape="poly" id="edge26_Node000001_Node000027" title=" " alt="" coords="146,239,207,239,207,245,146,245"/>
+<area shape="rect" id="Node000028" href="$d3/dd6/classregen_1_1_u_b_o.html" title="Uniform Buffer Objects are a mechanism for sharing data between the CPU and the GPU...." alt="" coords="207,279,303,304"/>
+<area shape="poly" id="edge27_Node000001_Node000028" title=" " alt="" coords="131,256,207,276,206,281,129,261"/>
+<area shape="rect" id="Node000029" href="$da/dbf/classregen_1_1_v_a_o.html" title="Vertex Array Objects (VAO) are OpenGL Objects that store the set of bindings between Vertex Attribute..." alt="" coords="207,328,302,353"/>
+<area shape="poly" id="edge28_Node000001_Node000029" title=" " alt="" coords="99,261,137,287,181,313,212,326,210,330,179,318,134,292,96,265"/>
+<area shape="rect" id="Node000003" href="$df/d8d/classregen_1_1_atomic_counter.html" title="An atomic counter buffer object." alt="" coords="377,93,541,119"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="329,112,377,109,377,114,330,117"/>
+<area shape="rect" id="Node000004" href="$d7/d6b/classregen_1_1_bounding_box_counter.html" title="An atomic counter buffer object for bounding boxes." alt="" coords="589,93,793,119"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="555,103,589,103,589,109,555,109"/>
+<area shape="rect" id="Node000006" href="$d1/d68/classregen_1_1_f_b_o.html" title="Framebuffer Objects are a mechanism for rendering to images other than the default OpenGL Default Fra..." alt="" coords="412,143,507,168"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="338,175,411,161,412,167,339,180"/>
+<area shape="rect" id="Node000007" href="$dd/d1c/classregen_1_1_render_buffer.html" title="OpenGL Objects that contain images." alt="" coords="383,192,535,217"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="343,195,383,198,383,203,343,201"/>
+<area shape="rect" id="Node000008" href="$d6/d95/classregen_1_1_texture.html" title="A OpenGL Object that contains one or more images that all have the same image format." alt="" coords="402,241,517,267"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="312,207,417,239,415,244,310,212"/>
+<area shape="rect" id="Node000009" href="$d9/d48/classregen_1_1_texture1_d.html" title="Images in this texture are all 1&#45;dimensional." alt="" coords="625,155,758,180"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="516,235,540,226,660,178,662,183,542,231,517,240"/>
+<area shape="rect" id="Node000011" href="$dc/d9b/classregen_1_1_texture2_d.html" title="Images in this texture all are 2&#45;dimensional." alt="" coords="625,228,758,253"/>
+<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="530,247,624,242,624,247,530,253"/>
+<area shape="rect" id="Node000022" href="$d0/d6c/classregen_1_1_texture3_d.html" title="A 3 dimensional texture." alt="" coords="625,400,758,425"/>
+<area shape="poly" id="edge21_Node000008_Node000022" title=" " alt="" coords="492,272,673,398,670,402,489,277"/>
+<area shape="rect" id="Node000026" href="$d9/dac/classregen_1_1_texture_buffer.html" title="One&#45;dimensional arrays of texels whose storage comes from an attached buffer object." alt="" coords="614,449,769,475"/>
+<area shape="poly" id="edge25_Node000008_Node000026" title=" " alt="" coords="474,278,492,314,517,356,551,399,591,434,616,447,613,452,588,439,547,402,513,359,487,316,469,281"/>
+<area shape="rect" id="Node000010" href="$d7/da5/classregen_1_1_ramp_texture.html" title=" " alt="" coords="872,5,1025,31"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="760,147,792,128,808,107,814,84,821,62,840,40,871,24,873,29,843,44,826,64,819,86,812,109,795,132,762,152"/>
+<area shape="rect" id="Node000012" href="$dd/d1f/classregen_1_1_noise_texture2_d.html" title=" " alt="" coords="863,55,1034,80"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="745,220,769,207,791,190,808,164,813,139,820,114,828,101,840,89,862,76,864,81,843,93,832,105,825,116,818,140,813,166,795,193,772,211,747,225"/>
+<area shape="rect" id="Node000013" href="$d8/d96/classregen_1_1_texture2_d_depth.html" title="Texture with depth format." alt="" coords="863,104,1035,129"/>
+<area shape="poly" id="edge12_Node000011_Node000013" title=" " alt="" coords="737,220,792,189,806,176,814,163,824,151,840,138,866,127,868,132,843,143,828,154,819,166,810,180,795,193,740,225"/>
+<area shape="rect" id="Node000015" href="$de/db1/classregen_1_1_texture2_d_multisample.html" title="The image in this texture (only one image. No mipmapping) is 2&#45;dimensional." alt="" coords="841,153,1056,179"/>
+<area shape="poly" id="edge14_Node000011_Node000015" title=" " alt="" coords="738,221,841,187,885,176,887,181,842,193,740,226"/>
+<area shape="rect" id="Node000016" href="$da/d49/classregen_1_1_texture_cube.html" title="Texture with exactly 6 distinct sets of 2D images, all of the same size." alt="" coords="875,203,1023,228"/>
+<area shape="poly" id="edge15_Node000011_Node000016" title=" " alt="" coords="772,230,874,220,875,225,772,235"/>
+<area shape="rect" id="Node000018" href="$d2/d93/classregen_1_1_texture_mips2_d.html" title="A texture with multiple mipmap textures." alt="" coords="867,252,1031,277"/>
+<area shape="poly" id="edge17_Node000011_Node000018" title=" " alt="" coords="772,245,867,254,866,260,772,251"/>
+<area shape="rect" id="Node000020" href="$d5/d6f/classregen_1_1_texture_rectangle.html" title="The image in this texture (only one image. No mipmapping) is 2&#45;dimensional." alt="" coords="859,301,1039,327"/>
+<area shape="poly" id="edge19_Node000011_Node000020" title=" " alt="" coords="743,255,842,286,891,299,890,304,841,291,742,260"/>
+<area shape="rect" id="Node000021" href="$d8/de3/classregen_1_1_video_texture.html" title="A texture that displays a video." alt="" coords="873,351,1025,376"/>
+<area shape="poly" id="edge20_Node000011_Node000021" title=" " alt="" coords="720,260,775,298,842,336,880,348,878,353,840,340,772,303,717,264"/>
+<area shape="rect" id="Node000014" href="$d4/d5e/classregen_1_1_texture2_d_multisample_depth.html" title="The image in this texture (only one image. No mipmapping) is 2&#45;dimensional." alt="" coords="1104,97,1319,137"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="1048,114,1104,114,1104,119,1048,119"/>
+<area shape="rect" id="Node000017" href="$dd/dfb/classregen_1_1_texture_cube_depth.html" title="Texture with exactly 6 distinct sets of 2D images, all of the same size." alt="" coords="1118,203,1305,228"/>
+<area shape="poly" id="edge16_Node000016_Node000017" title=" " alt="" coords="1036,213,1118,213,1118,218,1036,218"/>
+<area shape="rect" id="Node000019" href="$d5/d81/classregen_1_1_bloom_texture.html" title="A mip mapped texture used for the bloom effect." alt="" coords="1133,252,1290,277"/>
+<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="1044,262,1132,262,1132,267,1044,267"/>
+<area shape="rect" id="Node000023" href="$d0/dcb/classregen_1_1_noise_texture3_d.html" title=" " alt="" coords="863,400,1034,425"/>
+<area shape="poly" id="edge22_Node000022_Node000023" title=" " alt="" coords="772,410,863,410,863,415,772,415"/>
+<area shape="rect" id="Node000024" href="$d8/da4/classregen_1_1_texture2_d_array.html" title="Array of two dimensional textures." alt="" coords="865,449,1033,475"/>
+<area shape="poly" id="edge23_Node000022_Node000024" title=" " alt="" coords="772,425,882,447,881,452,771,431"/>
+<area shape="rect" id="Node000025" href="$dc/dbf/classregen_1_1_texture3_d_depth.html" title="A 3 dimensional depth texture." alt="" coords="863,499,1035,524"/>
+<area shape="poly" id="edge24_Node000022_Node000025" title=" " alt="" coords="772,424,795,434,810,447,820,460,828,472,843,484,872,496,870,501,840,488,824,476,815,463,806,450,792,439,770,429"/>
+</map>

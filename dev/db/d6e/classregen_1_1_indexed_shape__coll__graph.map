@@ -1,0 +1,9 @@
+<map id="regen::IndexedShape" name="regen::IndexedShape">
+<area shape="rect" id="Node000001" title="Encapsulates information about a shape in the index and its visibility for a given camera." alt="" coords="293,77,452,102"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,44,315,74,314,79,181,49"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,69,168,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,87,293,87,293,92,182,92"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,133,168,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,130,314,99,315,105,182,135"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="regen::CameraControllerBase" name="regen::CameraControllerBase">
+<area shape="rect" id="Node000001" title="Computes the transformation matrices of a Camera." alt="" coords="138,152,353,177"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,53,202,126,232,150,228,154,198,130,115,57"/>
+<area shape="rect" id="Node000003" href="$d0/dfd/structregen_1_1_mat4f.html" title="A 4x4 matrix." alt="" coords="193,13,298,38"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,52,248,152,243,152,243,52"/>
+<area shape="rect" id="Node000004" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="322,13,497,38"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="399,52,373,91,336,130,313,144,289,154,287,149,311,139,333,126,369,88,395,49"/>
+</map>

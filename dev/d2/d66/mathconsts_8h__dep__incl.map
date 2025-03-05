@@ -1,0 +1,21 @@
+<map id="/home/runner/work/regen/regen/regen/external/libnoise/src/noise/mathconsts.h" name="/home/runner/work/regen/regen/regen/external/libnoise/src/noise/mathconsts.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="247,5,478,60"/>
+<area shape="rect" id="Node000002" href="$d3/dd3/cylinder_8cpp.html" title=" " alt="" coords="5,211,232,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,56,146,79,111,93,90,110,81,133,82,159,91,186,103,209,98,212,86,188,77,160,75,132,86,106,109,89,144,74,233,51"/>
+<area shape="rect" id="Node000004" href="$dd/d1a/rotatepoint_8cpp.html" title=" " alt="" coords="100,108,356,163"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="318,70,265,110,262,106,315,66"/>
+<area shape="rect" id="Node000005" href="$d3/de6/voronoi_8cpp.html" title=" " alt="" coords="381,108,614,163"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="410,66,464,106,460,110,407,70"/>
+<area shape="rect" id="Node000006" href="$d4/d77/latlon_8h.html" title=" " alt="" coords="639,108,831,163"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="473,61,639,106,638,111,472,66"/>
+<area shape="rect" id="Node000003" href="$d1/d1d/libnoise_2src_2noise_8cpp.html" title=" " alt="" coords="283,313,469,368"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="199,268,310,311,308,316,197,273"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="257,172,359,311,354,314,253,176"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="441,173,420,191,404,212,392,237,384,264,379,314,373,313,379,263,387,235,399,209,417,187,437,169"/>
+<area shape="rect" id="Node000007" href="$d5/d88/latlon_8cpp.html" title=" " alt="" coords="413,211,600,265"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="664,171,567,213,565,208,662,166"/>
+<area shape="rect" id="Node000008" href="$dc/dbc/external_2libnoise_2src_2model_2sphere_8cpp.html" title=" " alt="" coords="625,211,845,265"/>
+<area shape="poly" id="edge10_Node000006_Node000008" title=" " alt="" coords="737,176,737,211,732,211,732,176"/>
+<area shape="poly" id="edge9_Node000007_Node000003" title=" " alt="" coords="464,276,412,315,409,311,460,271"/>
+<area shape="poly" id="edge11_Node000008_Node000003" title=" " alt="" coords="629,272,470,316,469,311,627,266"/>
+</map>

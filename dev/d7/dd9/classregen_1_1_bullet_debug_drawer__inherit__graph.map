@@ -1,0 +1,11 @@
+<map id="regen::BulletDebugDrawer" name="regen::BulletDebugDrawer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="195,79,389,104"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,120,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,32,256,76,254,81,112,37"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="145,5,279,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,38,281,76,277,80,233,42"/>
+<area shape="rect" id="Node000004" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="303,5,441,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="351,42,307,80,303,76,347,38"/>
+<area shape="rect" id="Node000005" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="465,5,591,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="478,37,331,81,329,76,476,32"/>
+</map>

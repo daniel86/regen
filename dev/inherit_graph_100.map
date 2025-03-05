@@ -1,0 +1,9 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$d5/d83/classregen_1_1_logger.html" title="Base class for loggers." alt="" coords="5,55,116,80"/>
+<area shape="rect" id="Node000001" href="$d5/d63/classregen_1_1_cerr_logger.html" title="Log to cerr." alt="" coords="165,5,304,31"/>
+<area shape="poly" id="edge259_Node000000_Node000001" title=" " alt="" coords="118,48,188,28,190,33,120,53"/>
+<area shape="rect" id="Node000002" href="$d3/d65/classregen_1_1_cout_logger.html" title="Log to cout." alt="" coords="164,55,305,80"/>
+<area shape="poly" id="edge260_Node000000_Node000002" title=" " alt="" coords="130,65,164,65,164,70,130,70"/>
+<area shape="rect" id="Node000003" href="$d2/d00/classregen_1_1_file_logger.html" title="Log to a file." alt="" coords="167,104,302,129"/>
+<area shape="poly" id="edge261_Node000000_Node000003" title=" " alt="" coords="120,81,190,101,188,106,118,86"/>
+</map>

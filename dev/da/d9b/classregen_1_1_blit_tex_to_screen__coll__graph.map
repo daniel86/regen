@@ -1,0 +1,19 @@
+<map id="regen::BlitTexToScreen" name="regen::BlitTexToScreen">
+<area shape="rect" id="Node000001" title="Blits a FBO color attachment to screen." alt="" coords="885,160,1055,185"/>
+<area shape="rect" id="Node000002" href="$da/d91/classregen_1_1_blit_to_screen.html" title="Blits a FBO color attachment to screen." alt="" coords="624,120,771,145"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="785,143,885,158,885,163,784,148"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="367,63,468,88"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="482,86,635,117,634,123,481,91"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="174,29,312,53,367,63,366,68,312,58,173,34"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="182,73,367,73,367,78,182,78"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="181,118,366,82,367,88,182,124"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,113,499,153"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="513,130,624,130,624,135,513,135"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,177,499,217"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="511,173,640,143,642,148,513,178"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="616,170,779,210"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="792,181,885,175,885,181,793,187"/>
+</map>

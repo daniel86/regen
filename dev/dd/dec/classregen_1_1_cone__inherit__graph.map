@@ -1,0 +1,15 @@
+<map id="regen::Cone" name="regen::Cone">
+<area shape="rect" id="Node000001" title=" " alt="" coords="113,225,213,251"/>
+<area shape="rect" id="Node000006" href="$d4/d0b/classregen_1_1_cone_closed.html" title="A cone is an n&#45;dimensional geometric shape that tapers smoothly from a base to a point called the ape..." alt="" coords="5,299,149,324"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="140,261,93,300,90,296,137,257"/>
+<area shape="rect" id="Node000007" href="$df/d53/classregen_1_1_cone_opened.html" title="A cone is an n&#45;dimensional geometric shape that tapers smoothly from a base to a point called the ape..." alt="" coords="174,299,325,324"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="189,257,237,296,233,301,185,261"/>
+<area shape="rect" id="Node000002" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="111,152,214,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,191,165,225,160,225,160,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="44,79,145,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="117,112,154,150,150,154,113,116"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="21,5,168,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,44,97,79,92,79,92,44"/>
+<area shape="rect" id="Node000005" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="169,79,295,104"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="213,116,176,154,172,150,209,112"/>
+</map>

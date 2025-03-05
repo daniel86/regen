@@ -1,0 +1,15 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$df/d55/classregen_1_1_g_l_s_l_processor.html" title="Baseclass for GLSL pre&#45;processors." alt="" coords="5,129,168,155"/>
+<area shape="rect" id="Node000001" href="$dd/d3d/classregen_1_1_comment_processor.html" title="Removes comments from GLSL code." alt="" coords="227,5,422,31"/>
+<area shape="poly" id="edge253_Node000000_Node000001" title=" " alt="" coords="109,117,155,77,184,57,215,40,246,28,248,33,217,44,187,61,158,82,112,121"/>
+<area shape="rect" id="Node000002" href="$d3/d17/classregen_1_1_directive_processor.html" title="Offline Processing of Shader PreProcessor directives." alt="" coords="230,55,419,80"/>
+<area shape="poly" id="edge254_Node000000_Node000002" title=" " alt="" coords="128,121,215,89,258,77,259,83,217,94,130,126"/>
+<area shape="rect" id="Node000003" href="$d8/dd6/classregen_1_1_i_o_processor.html" title="A GLSL processor that modifies the IO behavior of the Shader code." alt="" coords="253,104,397,129"/>
+<area shape="poly" id="edge255_Node000000_Node000003" title=" " alt="" coords="182,129,252,122,253,127,182,135"/>
+<area shape="rect" id="Node000004" href="$d9/df2/classregen_1_1_input_provider_processor.html" title="Simple GLSL pre&#45;processor that provides the unprocessed GLSL code to child processors." alt="" coords="216,153,433,179"/>
+<area shape="poly" id="edge256_Node000000_Node000004" title=" " alt="" coords="182,149,216,152,216,158,182,154"/>
+<area shape="rect" id="Node000005" href="$d6/d03/classregen_1_1_stream_processor.html" title="Simple GLSL pre&#45;processor that provides input from an arbitrary stringstream." alt="" coords="236,203,413,228"/>
+<area shape="poly" id="edge257_Node000000_Node000005" title=" " alt="" coords="132,157,217,187,264,200,263,205,215,193,130,162"/>
+<area shape="rect" id="Node000006" href="$d9/d05/classregen_1_1_white_space_processor.html" title="Removes empty lines from GLSL code." alt="" coords="221,252,428,277"/>
+<area shape="poly" id="edge258_Node000000_Node000006" title=" " alt="" coords="113,162,159,201,217,237,252,249,250,254,215,242,156,205,109,166"/>
+</map>
