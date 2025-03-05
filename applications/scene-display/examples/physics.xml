@@ -118,8 +118,8 @@
     -->
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0">
-        <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4"/>
-        <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
+        <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4"/>
+        <stars catalog="res/sky/bright-stars.bin" scale="1.4"
                scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
                glare-intensity="0.04" glare-scale="0.2"
                color="0.66,0.78,1.0" color-ratio="0.66"/>
@@ -327,7 +327,7 @@
         <!-- Add shader input. -->
         <input type="vec3" name="gravity" value="-0.8,-4.5,0"/>
         <input type="vec3" name="initialVelocity" value="0.5,0.75,0.5"/>
-        <input type="vec2" name="initialBrightness" value="5.0,2.0"/>
+        <input type="vec2" name="initialBrightness" value="3.0,1.0"/>
         <input type="vec2" name="emitterCone" value="60.0,30.0"/>
         <input name="cameraPosition" state="main-camera" component="cameraPosition"/>
         <!-- Add particle attributes. -->
@@ -336,7 +336,7 @@
         <input type="int" name="type" is-attribute="1"/>
         <input type="float" name="brightness" is-attribute="1"/>
     </mesh>
-
+milkyway.png
     <node id="Rain">
         <direct-shading ambient="0.3,0.3,0.3">
             <direct-lights>
@@ -350,7 +350,7 @@
                     <define key="USE_RAIN_DB" value="TRUE"/>
                     <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
                     <texture name="rainDB" id="rain-database"/>
-                    <input type="vec2" name="particleSize" value="0.01,5.0"/>
+                    <input type="vec2" name="particleSize" value="0.1,5.0"/>
                     <mesh id="rain-particles" shader="regen.weather.rain.draw"/>
                 </node>
             </direct-pass>
