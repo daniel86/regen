@@ -193,6 +193,14 @@ add_subdirectory(regen)
 # build demos
 add_subdirectory(applications)
 
+###########
+###########
+
+set(SHARE_INSTALL_PATH share/${PROJECT_NAME})
+install(FILES img/logo.png DESTINATION ${SHARE_INSTALL_PATH}/img)
+install(FILES img/icon.png DESTINATION ${SHARE_INSTALL_PATH}/img)
+install(FILES img/icon-small.png DESTINATION ${SHARE_INSTALL_PATH}/img)
+
 ##############
 ########## packaging
 ##############

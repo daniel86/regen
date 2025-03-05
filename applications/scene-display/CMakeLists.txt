@@ -21,3 +21,10 @@ target_link_libraries(
     ${PROJECT_NAME}
     Qt5::Core Qt5::Gui Qt5::OpenGL
 )
+
+set(HEADER_INSTALL_PATH include/${PROJECT_NAME}/applications)
+file(GLOB HEADER_FILES *.h)
+
+install(TARGETS ${PROJECT_NAME}-scene-display RUNTIME DESTINATION bin)
+install(FILES ${HEADER_FILES} DESTINATION ${HEADER_INSTALL_PATH}/scene-display)
+install(DIRECTORY examples DESTINATION share/${PROJECT_NAME})
