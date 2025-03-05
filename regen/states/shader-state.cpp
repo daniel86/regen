@@ -21,10 +21,14 @@
 using namespace regen;
 
 ShaderState::ShaderState(const ref_ptr<Shader> &shader)
-		: State(), shader_(shader) { isHidden_ = (shader.get() == nullptr); }
+		: State(), shader_(shader) {
+	set_isHidden((shader.get() == nullptr));
+}
 
 ShaderState::ShaderState()
-		: State() { isHidden_ = GL_TRUE; }
+		: State() {
+	set_isHidden(true);
+}
 
 void ShaderState::loadStage(
 		const std::map<std::string, std::string> &shaderConfig,
@@ -94,14 +98,14 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 		for (auto it = processedCode.begin(); it != processedCode.end(); ++it) {
 			REGEN_DEBUG("Shader code failed to link:\n" << it->second);
 		}
+	} else {
+		set_isHidden(false);
 	}
 
 	shader_->setInputs(specifiedInput);
 	for (auto it = textures.begin(); it != textures.end(); ++it) {
 		shader_->setTexture(it->second, it->first);
 	}
-
-	isHidden_ = GL_FALSE;
 
 	return GL_TRUE;
 }

@@ -41,6 +41,9 @@ void emitQuad_eye(vec3 quadPos[4], int layer)
 #ifdef HAS_UPWARDS_NORMAL
     out_norWorld = normalize(transformEyeToWorld(vec4(quadPos[1] - quadPos[0], 0.0),layer).xyz);
 #endif
+#ifdef HAS_brightness
+    out_brightness = in_brightness[0];
+#endif
 
     vec4 posEye;
     out_texco0 = vec2(1.0,1.0);
@@ -96,6 +99,9 @@ void emitQuad_world(vec3 quadPos[4], int layer)
 #endif
 #ifdef HAS_UPWARDS_NORMAL
     out_norWorld = normalize(quadPos[1] - quadPos[0]);
+#endif
+#ifdef HAS_brightness
+    out_brightness = in_brightness[0];
 #endif
 
     vec4 posEye;

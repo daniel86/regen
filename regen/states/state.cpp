@@ -13,8 +13,9 @@ using namespace regen;
 
 State::State()
 		: EventObject(),
-		  isHidden_(GL_FALSE),
 		  shaderVersion_(130) {
+	isHidden_ = ref_ptr<ShaderInput1i>::alloc("isHidden");
+	isHidden_->setUniformData(0);
 }
 
 State::State(const ref_ptr<State> &other)
@@ -41,9 +42,13 @@ void State::shaderFunction(const std::string &name, const std::string &value) { 
 
 const std::map<std::string, std::string> &State::shaderFunctions() const { return shaderFunctions_; }
 
-GLboolean State::isHidden() const { return isHidden_; }
+GLboolean State::isHidden() const {
+	return isHidden_->getVertex(0).r;
+}
 
-void State::set_isHidden(GLboolean isHidden) { isHidden_ = isHidden; }
+void State::set_isHidden(GLboolean isHidden) {
+	isHidden_->setVertex(0, isHidden);
+}
 
 static void setConstantUniforms_(State *s, GLboolean isConstant) {
 	auto *inState = dynamic_cast<HasInput *>(s);

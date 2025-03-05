@@ -296,6 +296,20 @@ out vec4 out_color;
 out vec4 out_color;
 #endif
 
+-- applyBrightness
+#ifdef HAS_brightness
+void applyBrightness(inout Material mat) {
+    mat.diffuse.rgb *= in_brightness;
+    #ifdef HAS_MATERIAL
+        #ifdef HAS_MATERIAL_EMISSION
+    mat.emission *= in_brightness;
+        #endif
+    #endif
+}
+#else
+#define applyBrightness(mat)
+#endif
+
 -- fs
 #include regen.models.mesh.defines
 #include regen.models.mesh.fs-outputs
@@ -307,6 +321,9 @@ flat in int in_layer;
 #endif
 #ifdef HAS_INSTANCES
 flat in int in_instanceID;
+#endif
+#ifdef HAS_brightness
+in float in_brightness;
 #endif
 
 #ifdef DISCARD_ALPHA
@@ -425,7 +442,7 @@ void main() {
     vec4 color = vec4(1.0);
     #endif
 #endif 
-#ifdef HAS_MATERIAL
+#ifdef HAS_matAlpha
     color.a *= in_matAlpha;
 #endif
 #endif // HAS_COL
@@ -456,11 +473,14 @@ void main() {
 #endif
 
 -- writeOutput-color
+#include regen.models.mesh.applyBrightness
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
+    mat.ambient = vec3(0.0);
     mat.diffuse = color.rgb;
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
+    applyBrightness(mat);
     textureMappingLight(posWorld, norWorld, mat);
     out_color.rgb = mat.diffuse;
     out_color.a = color.a;
@@ -471,6 +491,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 uniform vec3 in_ambientLight;
 #include regen.shading.direct.shade
 #endif
+#include regen.models.mesh.applyBrightness
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.occlusion = 0.0;
@@ -486,6 +507,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
 #endif
+    applyBrightness(mat);
     textureMappingLight(posWorld, norWorld, mat);
 
     Shading shading = shade(posWorld, norWorld, gl_FragCoord.z, mat.shininess);
@@ -510,6 +532,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     out_diffuse = color;
 }
 #else
+#include regen.models.mesh.applyBrightness
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     // TODO: only normalize when not using FLOAT textures!
     // map to [0,1] for rgba buffer
@@ -538,6 +561,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     mat.emission = vec3(0,0,0);
     #endif
 #endif // HAS_MATERIAL
+    applyBrightness(mat);
     textureMappingLight(in_posWorld, norWorld, mat);
 
     out_ambient = vec4(mat.ambient,0.0);

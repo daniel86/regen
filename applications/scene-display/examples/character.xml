@@ -642,11 +642,13 @@
         <view id="Particle-Color">
             <blit src-fbo="particle-fbo" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
+        <!--
         <view id="Particle-Ramp">
             <fbo id="SCREEN"/>
             <texture name="inputTexture" id="particle-color-ramp"/>
             <fullscreen-pass shader="regen.filter.sampling"/>
         </view>
+        -->
 
         <!-- Finally, create a blurred version. -->
         <node id="Particle-Blur">
@@ -757,6 +759,7 @@
             <input name="matEmission" state="fire-flies-light0" component="lightDiffuse"/>
             <mesh id="fire-flies0" shader="regen.models.sprite-sphere"/>
         </node>
+
         <node id="Light-Bulbs">
             <node id="Light-Bulb0" cull-shape="light-bulb-shape">
                 <input name="sphereRadius" type="float" value="0.5"/>
@@ -812,6 +815,7 @@
                     Also, emission is more difficult: it is generated with blurring from multiple mips.
                     Will be difficult to get the depth buffer for that.
         -->
+        <node import="Emission-Update"/>
         <node import="Particle-Update-FBO"/>
         <!-- render transparent objects -->
         <node id="Transparent-Pass">

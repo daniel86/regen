@@ -247,7 +247,7 @@ namespace regen {
 		std::list<ref_ptr<State> > joined_;
 		std::list<ref_ptr<EventObject> > attached_;
 		ref_ptr<HasInput> inputStateBuddy_;
-		GLboolean isHidden_;
+		ref_ptr<ShaderInput1i> isHidden_;
 		GLuint shaderVersion_;
 	};
 } // namespace

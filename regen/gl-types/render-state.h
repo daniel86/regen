@@ -663,6 +663,10 @@ namespace regen {
 		 */
 		inline ValueStackAtomic<GLenum> &logicOp() { return logicOp_; }
 
+		void setDeltaTime(GLfloat dt) { deltaTime_ = dt; }
+
+		GLfloat getDeltaTime() { return deltaTime_; }
+
 	protected:
 		static RenderState *instance_;
 
@@ -740,6 +744,8 @@ namespace regen {
 		ValueStackAtomic<GLfloat> minSampleShading_;
 		ValueStackAtomic<GLenum> logicOp_;
 		ValueStackAtomic<GLenum> frontFace_;
+
+		GLfloat deltaTime_;
 
 		RenderState();
 	};

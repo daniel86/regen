@@ -5,8 +5,8 @@
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
-            date="01-09-2014 06:00:00"
-            time-scale="60.0">
+          date="01-09-2014 06:00:00"
+          time-scale="60.0">
         <camera id="main-camera"
                 mode="third-person"
                 type="impulse"
@@ -31,15 +31,15 @@
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
-    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}" >
+    <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}">
         <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-            target="TEXTURE_2D_ARRAY"
-            wrapping="REPEAT"
-            min-filter="NEAREST"
-            mag-filter="NEAREST"
-            compare-mode="COMPARE_R_TO_TEXTURE"
-            compare-function="LEQUAL"
-            sampler-type="sampler2DArrayShadow" />
+               target="TEXTURE_2D_ARRAY"
+               wrapping="REPEAT"
+               min-filter="NEAREST"
+               mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="sampler2DArrayShadow"/>
     </fbo>
     <fbo id="cube-reflection-buffer"
          size-mode="abs" size="256,256,6"
@@ -69,6 +69,11 @@
         <texture id="normal"/>
         <depth pixel-size="24"/>
     </fbo>
+    <fbo id="emission-fbo" size-mode="rel" size="0.25, 0.25"
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="color" pixel-components="4"/>
+        <depth id="depth"/>
+    </fbo>
     <!--
     <fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
       <depth pixel-size="24" pixel-type="FLOAT"
@@ -94,7 +99,7 @@
             split-weight="0.9"/>
     <camera id="paraboloid-camera"
             type="paraboloid"
-            tf="sphere0-tf" />
+            tf="sphere0-tf"/>
     <camera id="cube-camera"
             type="cube"
             tf="sphere1-tf"/>
@@ -112,21 +117,21 @@
            cone-angles="11.5,25.5" />
     -->
     <!-- Sky -->
-    <sky id="sky" camera="main-camera" update-interval="200.0" >
-        <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4" />
+    <sky id="sky" camera="main-camera" update-interval="200.0">
+        <star-map texture="applications/res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4"/>
         <stars catalog="applications/res/sky/bright-stars.bin" scale="1.4"
-            scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
-            glare-intensity="0.04" glare-scale="0.2"
-            color="0.66,0.78,1.0" color-ratio="0.66"/>
+               scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+               glare-intensity="0.04" glare-scale="0.2"
+               color="0.66,0.78,1.0" color-ratio="0.66"/>
         <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
-            sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
-            earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
+              sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
+              earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0"/>
         <atmosphere preset="earth" size="256" lod="4">
-            <input type="float" name="cirrus" value="0.8" />
-            <input type="float" name="cumulus" value="1.0" />
-            <input type="float" name="dithering" value="0.2" />
-            <input type="float" name="ditheringScale" value="100.0" />
-            <input type="float" name="cloudTimeFactor" value="0.3" />
+            <input type="float" name="cirrus" value="0.8"/>
+            <input type="float" name="cumulus" value="1.0"/>
+            <input type="float" name="dithering" value="0.2"/>
+            <input type="float" name="ditheringScale" value="100.0"/>
+            <input type="float" name="cloudTimeFactor" value="0.3"/>
         </atmosphere>
     </sky>
 
@@ -150,7 +155,7 @@
         <material preset="copper"/>
         <transform id="bowl-tf"/>
         <shape id="bowl-physics" mode="physics" shape="triangle-mesh" mass="0.0"
-            mesh-id="bowl" transform-id="bowl-tf"/>
+               mesh-id="bowl" transform-id="bowl-tf"/>
     </mesh>
 
     <transform id="sphere0-tf">
@@ -167,8 +172,8 @@
           usage="STATIC">
         <transform id="sphere0-tf"/>
         <shape id="sphere0-physics" mode="physics" shape="sphere"
-            radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0"
-            mesh-id="sphere-mesh0" transform-id="sphere0-tf"/>
+               radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0"
+               mesh-id="sphere-mesh0" transform-id="sphere0-tf"/>
     </mesh>
 
     <transform id="sphere1-tf">
@@ -186,8 +191,8 @@
         <material preset="ruby"/>
         <transform id="sphere1-tf"/>
         <shape id="sphere1-physics" mode="physics" shape="sphere"
-            radius="1.0" mass="20.0" inertia="0.0,-1.0,0.0" friction="0.0"
-            mesh-id="sphere-mesh1" transform-id="sphere1-tf"/>
+               radius="1.0" mass="20.0" inertia="0.0,-1.0,0.0" friction="0.0"
+               mesh-id="sphere-mesh1" transform-id="sphere1-tf"/>
     </mesh>
 
     <transform id="sphere2-tf" num-instances="40" is-instanced="1">
@@ -209,8 +214,8 @@
         <material preset="ruby"/>
         <transform id="sphere2-tf"/>
         <shape id="sphere2-physics" mode="physics" shape="sphere"
-            radius="0.5" mass="0.4" inertia="0.0,0.0,0.0" friction="0.0"
-            mesh-id="sphere-mesh2" transform-id="sphere2-tf"/>
+               radius="0.5" mass="0.4" inertia="0.0,0.0,0.0" friction="0.0"
+               mesh-id="sphere-mesh2" transform-id="sphere2-tf"/>
     </mesh>
 
     <!--**************************-->
@@ -353,6 +358,73 @@
     </node>
 
     <!--**************************-->
+    <!--******* Lightning ********-->
+    <!--**************************-->
+
+    <mesh id="lightning-mesh" type="lightning" num-subdivisions="7" max-branches="12"
+          jitter-offset="12.0" frequency="1.1f, 1.0f" lifetime="0.35f, 0.15f"
+          branch-probability="0.9"
+          branch-offset="16.0"
+          source-pos="10.0, 60.0, 30.0"
+          target-pos="0.0, -40.0, 30.0">
+    </mesh>
+
+    <node id="Emission-Update">
+        <!-- copy scene depth to emission-fbo -->
+        <node id="Depth">
+            <depth test="1" write="1"/>
+            <fbo id="emission-fbo" clear-depth="1"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="depth"/>
+            <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
+        </node>
+        <!-- update emission-fbo -->
+        <node id="Emission-Draw">
+            <fbo id="emission-fbo" clear-buffers="0" draw-buffers="0"/>
+            <depth test="1" write="0"/>
+            <blend mode="lighten"/>
+            <node id="Lightning-Bolt0">
+                <input type="float" name="lightningWidth" value="0.6"/>
+                <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
+                <mesh id="lightning-mesh" shader="regen.weather.lightning"/>
+            </node>
+        </node>
+        <!-- Create a blurred version. -->
+        <node id="Emission-Blur">
+            <input type="int" name="numBlurPixels" value="9"/>
+            <input type="float" name="blurSigma" value="5.0"/>
+            <filter-sequence id="emission-color" fbo="emission-fbo" attachment="0">
+                <filter shader="regen.filter.blur.horizontal"/>
+                <filter shader="regen.filter.blur.vertical"/>
+            </filter-sequence>
+        </node>
+
+        <view id="Emission-Color">
+            <blit src-fbo="emission-fbo" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Emission-Blur">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="emission-color"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+    </node>
+
+    <node id="Emission-Draw">
+        <blend mode="alpha"/>
+        <node id="Lightning-Bolt0">
+            <depth test="1" write="0"/>
+            <input type="float" name="lightningWidth" value="0.15"/>
+            <input type="vec3" name="matDiffuse" value="1.0, 1.0, 1.0"/>
+            <mesh id="lightning-mesh" shader="regen.weather.lightning"/>
+        </node>
+        <node id="Glow">
+            <depth test="0" write="0"/>
+            <texture name="inputTexture" id="emission-color"/>
+            <define key="IS_2D_TEXTURE" value="TRUE"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </node>
+    </node>
+
+    <!--**************************-->
     <!--**************************-->
 
     <node id="Scene-Geometry">
@@ -429,7 +501,6 @@
         </node>
     </node>
 
-
     <node id="Background-Pass">
         <node id="Sky">
             <depth test="1" write="0"/>
@@ -437,12 +508,21 @@
         </node>
         <node import="Reflectors"/>
         <node import="Rain"/>
+        <node import="Emission-Update"/>
+        <node id="Transparent-Pass">
+            <blend mode="add"/>
+            <depth test="1" write="0"/>
+            <node import="Emission-Draw" />
+        </node>
     </node>
     <node id="Background-Pass0">
         <node id="Sky">
             <depth test="1" write="0"/>
             <sky id="sky"/>
         </node>
+        <!-- TODO: Add lightning to the reflection buffer. But each of them would need their own emission-fbo!
+                   Alternatively, only use emission component of g-buffer with float format, then use very high
+                   emission color.  -->
     </node>
 
     <node id="Post-Pass">
@@ -470,7 +550,53 @@
 
         <node id="Render">
             <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
-            <node import="Default-Pipeline"/>
+
+            <camera id="main-camera"/>
+
+            <node id="Geometry-Pass">
+                <blend mode="src"/>
+                <depth test="1" write="1"/>
+                <fbo id="g-buffer" draw-buffers="0,1,2,3"/>
+
+                <node import="Shadow-Caster"/>
+                <node import="Scene-Geometry"/>
+                <view id="Scene -- Diffuse">
+                    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Scene -- Ambient">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Scene -- Specular">
+                    <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Scene -- Normal">
+                    <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN"/>
+                </view>
+            </node>
+
+            <node id="Shading">
+                <fbo id="g-buffer" draw-buffers="1"/>
+
+                <node id="Light-Pass">
+                    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+                    <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
+                    <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
+                    <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+
+                    <node import="Shading-Pass"/>
+                </node>
+
+                <view id="Scene -- Shading">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+
+                <node import="Background-Pass"/>
+                <view id="Scene -- Background">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+
+                <node import="Post-Pass"/>
+            </node>
 
             <view id="Bullet-Debug">
                 <node import="bullet-debug">
