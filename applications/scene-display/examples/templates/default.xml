@@ -8,7 +8,7 @@
 </fbo>
 
 <!-- Textures -->
-<texture id="regen-logo" file="res/logo.png" />
+<texture id="regen-logo" file="img/logo.png" />
 <texture id="rain-database" is-array="1" file="res/textures/rain" name-pattern=".*.png" />
 
 <!-- Fonts -->
