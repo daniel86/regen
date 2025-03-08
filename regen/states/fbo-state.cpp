@@ -9,6 +9,7 @@
 #include <regen/states/atomic-states.h>
 
 #include "fbo-state.h"
+#include "screen-state.h"
 
 using namespace regen;
 
@@ -25,7 +26,7 @@ FBOState::FBOState(const ref_ptr<FBO> &fbo)
 	joinShaderInput(fbo->viewport());
 	joinShaderInput(fbo->inverseViewport());
 #endif
-	for (auto &attachment : fbo->colorTextures()) {
+	for (auto &attachment: fbo->colorTextures()) {
 		shaderDefine(REGEN_STRING("FBO_ATTACHMENT_" << attachment->name()), "TRUE");
 	}
 }
@@ -63,7 +64,7 @@ void FBOState::setClearColor(const std::list<ClearColorState::Data> &data) {
 		disjoinStates(clearColorCallable_);
 	}
 	clearColorCallable_ = ref_ptr<ClearColorState>::alloc(fbo_);
-	for (const auto & it : data) {
+	for (const auto &it: data) {
 		clearColorCallable_->data.push_back(it);
 	}
 	joinStates(clearColorCallable_);
@@ -121,3 +122,79 @@ void FBOState::resize(GLuint width, GLuint height) {
 }
 
 const ref_ptr<FBO> &FBOState::fbo() { return fbo_; }
+
+static std::vector<std::string> getFBOAttachments(scene::SceneInputNode &input, const std::string &key) {
+	std::vector<std::string> out;
+	auto attachments = input.getValue<std::string>(key, "");
+	if (attachments.empty()) {
+		REGEN_WARN("No attachments specified in " << input.getDescription() << ".");
+	} else {
+		boost::split(out, attachments, boost::is_any_of(","));
+	}
+	return out;
+}
+
+ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto scene = ctx.scene();
+
+	if (input.getName() == "SCREEN") {
+		GLenum drawBuffer = glenum::drawBuffer(
+				input.getValue<std::string>("draw-buffer", "FRONT"));
+		ref_ptr<ScreenState> screenState =
+				ref_ptr<ScreenState>::alloc(scene->getViewport(), drawBuffer);
+
+		return screenState;
+	} else {
+		ref_ptr<FBO> fbo = scene->getResource<FBO>(input.getName());
+		if (fbo.get() == nullptr) {
+			REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
+			return {};
+		}
+		ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
+
+		if (input.hasAttribute("clear-depth") &&
+			input.getValue<bool>("clear-depth", true)) {
+			fboState->setClearDepth();
+		}
+
+		if (input.hasAttribute("clear-buffers")) {
+			std::vector<std::string> idVec = getFBOAttachments(input, "clear-buffers");
+			std::vector<GLenum> buffers(idVec.size());
+			for (GLuint i = 0u; i < idVec.size(); ++i) {
+				GLint v;
+				std::stringstream ss(idVec[i]);
+				ss >> v;
+				buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+			}
+
+			ClearColorState::Data data;
+			data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
+			data.colorBuffers = DrawBuffers(buffers);
+			fboState->setClearColor(data);
+		}
+
+		if (input.hasAttribute("draw-buffers")) {
+			std::vector<std::string> idVec = getFBOAttachments(input, "draw-buffers");
+			std::vector<GLenum> buffers(idVec.size());
+			for (GLuint i = 0u; i < idVec.size(); ++i) {
+				GLint v;
+				std::stringstream ss(idVec[i]);
+				ss >> v;
+				buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+			}
+			fboState->setDrawBuffers(buffers);
+		} else if (input.hasAttribute("ping-pong-buffers")) {
+			std::vector<std::string> idVec = getFBOAttachments(input, "ping-pong-buffers");
+			std::vector<GLenum> buffers(idVec.size());
+			for (GLuint i = 0u; i < idVec.size(); ++i) {
+				GLint v;
+				std::stringstream ss(idVec[i]);
+				ss >> v;
+				buffers[i] = GL_COLOR_ATTACHMENT0 + v;
+			}
+			fboState->setPingPongBuffers(buffers);
+		}
+
+		return fboState;
+	}
+}

@@ -21,11 +21,14 @@
 #include "regen/utility/time.h"
 
 namespace regen {
-
-	class Sky : public StateNode, public Animation {
+	class Sky : public StateNode, public Animation, public Resource {
 	public:
+		static constexpr const char *TYPE_NAME = "Sky";
+
 		Sky(const ref_ptr<Camera> &cam,
 			const ref_ptr<ShaderInput2i> &viewport);
+
+		static ref_ptr<Sky> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		void setWorldTime(const WorldTime *worldTime) { worldTime_ = worldTime; }
 
@@ -63,9 +66,9 @@ namespace regen {
 
 		void set_moonSunLightReflectance(GLfloat moonSunLightReflectance);
 
-		GLfloat computeHorizonExtinction(const Vec3f& position, const Vec3f& dir, GLfloat radius);
+		GLfloat computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius);
 
-		GLfloat computeEyeExtinction(const Vec3f& eyedir);
+		GLfloat computeEyeExtinction(const Vec3f &eyedir);
 
 		const ref_ptr<Rectangle> &skyQuad() const { return skyQuad_; }
 
@@ -117,6 +120,8 @@ namespace regen {
 	class SkyView : public StateNode {
 	public:
 		explicit SkyView(const ref_ptr<Sky> &sky);
+
+		static ref_ptr<SkyView> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		const ref_ptr<Sky> &sky() const { return sky_; }
 

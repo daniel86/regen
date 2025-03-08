@@ -12,10 +12,17 @@
 #include <regen/gl-types/fbo.h>
 
 namespace regen {
+	class BlitState : public State {
+	public:
+		BlitState() = default;
+
+		static ref_ptr<BlitState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+	};
+
 	/**
 	 * \brief Blits a FBO color attachment to another FBO.
 	 */
-	class BlitToFBO : public State {
+	class BlitToFBO : public BlitState {
 	public:
 		/**
 		 * @param src Source FBO.
@@ -59,7 +66,7 @@ namespace regen {
 	/**
 	 * \brief Blits a FBO color attachment to screen.
 	 */
-	class BlitToScreen : public State {
+	class BlitToScreen : public BlitState {
 	public:
 		/**
 		 * @param fbo FBO to blit.

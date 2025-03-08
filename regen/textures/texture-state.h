@@ -115,6 +115,8 @@ namespace regen {
 		 */
 		explicit TextureState(const ref_ptr<Texture> &tex, const std::string &name = "");
 
+		static ref_ptr<TextureState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * @return used to get unique names in shaders.
 		 */
@@ -260,6 +262,13 @@ namespace regen {
 
 		void disable(RenderState *rs) override;
 
+		static ref_ptr<Texture> getTexture(
+				scene::SceneLoader *scene,
+				scene::SceneInputNode &input,
+				const std::string &idKey = "id",
+				const std::string &bufferKey = "fbo",
+				const std::string &attachmentKey = "attachment");
+
 	protected:
 		static GLuint idCounter_;
 
@@ -308,10 +317,17 @@ namespace regen {
 } // namespace
 
 namespace regen {
+	class TextureIndexState : public State {
+	public:
+		TextureIndexState() = default;
+
+		static ref_ptr<State> load(LoadingContext &ctx, scene::SceneInputNode &input);
+	};
+
 	/**
 	 * \brief Activates texture image when enabled.
 	 */
-	class TextureSetIndex : public State {
+	class TextureSetIndex : public TextureIndexState {
 	public:
 		/**
 		 * @param tex texture reference.
@@ -331,7 +347,7 @@ namespace regen {
 	/**
 	 * \brief Activates texture image when enabled.
 	 */
-	class TextureNextIndex : public State {
+	class TextureNextIndex : public TextureIndexState {
 	public:
 		/**
 		 * @param tex texture reference.

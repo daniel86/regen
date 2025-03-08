@@ -6,16 +6,21 @@
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
 #include "regen/utility/ThreadPool.h"
+#include <regen/scene/loading-context.h>
 
 namespace regen {
 	/**
 	 * @brief Spatial index
 	 */
-	class SpatialIndex {
+	class SpatialIndex : public Resource {
 	public:
+		static constexpr const char *TYPE_NAME = "SpatialIndex";
+
 		SpatialIndex();
 
-		virtual ~SpatialIndex() = default;
+		~SpatialIndex() override = default;
+
+		static ref_ptr<SpatialIndex> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @brief Get the indexed shape for a camera

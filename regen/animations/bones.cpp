@@ -6,6 +6,7 @@
  */
 
 #include <regen/textures/texture-state.h>
+#include <regen/gl-types/gl-util.h>
 
 #include "bones.h"
 

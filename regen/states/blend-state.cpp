@@ -226,4 +226,16 @@ namespace regen {
 		joinStates(blendColor_);
 	}
 
+	ref_ptr<BlendState> BlendState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+		ref_ptr<BlendState> blend = ref_ptr<BlendState>::alloc(
+				input.getValue<BlendMode>("mode", BLEND_MODE_SRC));
+		if (input.hasAttribute("color")) {
+			blend->setBlendColor(input.getValue<Vec4f>("color", Vec4f(0.0f)));
+		}
+		if (input.hasAttribute("equation")) {
+			blend->setBlendEquation(glenum::blendFunction(
+					input.getValue<std::string>("equation", "ADD")));
+		}
+		return blend;
+	}
 }

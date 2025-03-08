@@ -47,3 +47,21 @@ void DepthState::set_depthRange(GLdouble nearVal, GLdouble farVal) {
 	depthRange_ = ref_ptr<DepthRangeState>::alloc(nearVal, farVal);
 	joinStates(depthRange_);
 }
+
+ref_ptr<DepthState> DepthState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
+
+	depth->set_useDepthTest(input.getValue<bool>("test", true));
+	depth->set_useDepthWrite(input.getValue<bool>("write", true));
+
+	if (input.hasAttribute("range")) {
+		auto range = input.getValue<Vec2f>("range", Vec2f(0.0f));
+		depth->set_depthRange(range.x, range.y);
+	}
+
+	if (input.hasAttribute("function")) {
+		depth->set_depthFunc(glenum::compareFunction(input.getValue("function")));
+	}
+
+	return depth;
+}

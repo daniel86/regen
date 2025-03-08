@@ -5,8 +5,8 @@
  *      Author: daniel
  */
 
-#ifndef _FBO_H_
-#define _FBO_H_
+#ifndef REGEN_FBO_H_
+#define REGEN_FBO_H_
 
 #include <vector>
 #include <list>
@@ -17,6 +17,8 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/utility/ref-ptr.h>
 #include "uniform-block.h"
+#include "regen/scene/loading-context.h"
+#include "render-buffer.h"
 
 namespace regen {
 	/**
@@ -89,56 +91,6 @@ namespace regen {
 
 namespace regen {
 	/**
-	 * \brief OpenGL Objects that contain images.
-	 *
-	 * RenderBuffer's are created and used specifically with Framebuffer Objects.
-	 * RenderBuffer's are optimized for being used as render targets,
-	 * while Textures may not be.
-	 */
-	class RenderBuffer : public GLRectangle {
-	public:
-		/**
-		 * @param numObjects number of GL buffers.
-		 */
-		explicit RenderBuffer(GLuint numObjects = 1);
-
-		/**
-		 * Binds this RenderBuffer.
-		 * Call end when you are done.
-		 */
-		void begin(RenderState *rs);
-
-		/**
-		 * Complete previous call to begin.
-		 */
-		void end(RenderState *rs);
-
-		/**
-		 * Specifies the internal format to use for the renderbuffer object's image.
-		 * Accepted values are GL_R*, GL_RG*, GL_RGB* GL_RGBA*, GL_DEPTH_COMPONENT*,
-		 * GL_SRGB*, GL_COMPRESSED_*.
-		 */
-		void set_format(GLenum format);
-
-		/**
-		 * Establish data storage, format and dimensions
-		 * of a renderbuffer object's image using multisampling.
-		 */
-		void storageMS(GLuint numMultisamples) const;
-
-		/**
-		 * Establish data storage, format and dimensions of a
-		 * renderbuffer object's image
-		 */
-		void storage() const;
-
-	protected:
-		GLenum format_;
-	};
-} // namespace
-
-namespace regen {
-	/**
 	 * \brief Framebuffer Objects are a mechanism for rendering to images
 	 * other than the default OpenGL Default Framebuffer.
 	 * They are OpenGL Objects that allow you to render directly
@@ -146,6 +98,8 @@ namespace regen {
 	 */
 	class FBO : public GLRectangle {
 	public:
+		static constexpr const char *TYPE_NAME = "FBO";
+
 		/**
 		 * \brief Contains state stacks for the screen buffer.
 		 */
@@ -178,6 +132,8 @@ namespace regen {
 
 		FBO(const FBO &) = delete;
 
+		static ref_ptr<FBO> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * Specifies a list of color buffers to be drawn into.
 		 */
@@ -196,17 +152,17 @@ namespace regen {
 		/**
 		 * @return the FBO viewport.
 		 */
-		const ref_ptr<ShaderInput2f> &viewport() const;
+		const ref_ptr<ShaderInput2f> &viewport() const { return viewport_; }
 
 		/**
 		 * @return convenience vector that can be passed to glViewport.
 		 */
-		const Vec4ui &glViewport() const;
+		const Vec4ui &glViewport() const { return glViewport_; }
 
 		/**
 		 * @return the target texel size.
 		 */
-		const ref_ptr<ShaderInput2f> &inverseViewport() const;
+		const ref_ptr<ShaderInput2f> &inverseViewport() const { return inverseViewport_; }
 
 		/**
 		 * @return the uniforms.
@@ -216,7 +172,7 @@ namespace regen {
 		/**
 		 * @return depth of attachment textures.
 		 */
-		GLuint depth() const;
+		GLuint depth() const { return depth_; }
 
 		/**
 		 * Creates depth attachment.
@@ -230,17 +186,17 @@ namespace regen {
 		 * Returns GL_NONE if no depth buffer used else the depth
 		 * buffer format is returned (GL_DEPTH_COMPONENT_*).
 		 */
-		GLenum depthAttachmentFormat() const;
+		GLenum depthAttachmentFormat() const { return depthAttachmentFormat_; }
 
 		/**
 		 * List of attached textures.
 		 */
-		std::vector<ref_ptr<Texture> > &colorTextures();
+		std::vector<ref_ptr<Texture> > &colorTextures() { return colorTextures_; }
 
 		/**
 		 * List of attached RenderBuffer's.
 		 */
-		std::vector<ref_ptr<RenderBuffer> > &renderBuffers();
+		std::vector<ref_ptr<RenderBuffer> > &renderBuffers() { return renderBuffers_; }
 
 		/**
 		 * Returns texture associated to GL_COLOR_ATTACHMENT0.
@@ -250,22 +206,22 @@ namespace regen {
 		/**
 		 * @return the attached depth texture.
 		 */
-		const ref_ptr<Texture> &depthTexture() const;
+		const ref_ptr<Texture> &depthTexture() const { return depthTexture_; }
 
 		/**
 		 * @return the attached stencil texture.
 		 */
-		const ref_ptr<Texture> &stencilTexture() const;
+		const ref_ptr<Texture> &stencilTexture() const { return stencilTexture_; }
 
 		/**
 		 * @return the attached depth-stencil texture.
 		 */
-		const ref_ptr<Texture> &depthStencilTexture() const;
+		const ref_ptr<Texture> &depthStencilTexture() const { return depthStencilTexture_; }
 
 		/**
 		 * @return all added color attachments.
 		 */
-		const DrawBuffers &colorBuffers();
+		const DrawBuffers &colorBuffers() const { return colorBuffers_; }
 
 		/**
 		 * Add n RenderBuffer's to the FBO.
@@ -394,4 +350,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* GL_FBO_H_ */
+#endif /* REGEN_FBO_H_ */

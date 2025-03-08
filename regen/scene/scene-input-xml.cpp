@@ -6,7 +6,7 @@
  */
 
 #include "scene-input-xml.h"
-#include "resources.h"
+#include "resource-processor.h"
 #include <regex>
 
 using namespace regen::scene;

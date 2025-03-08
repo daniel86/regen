@@ -5,6 +5,7 @@
 #include <regen/gl-types/fbo.h>
 #include "regen/camera/camera.h"
 #include "state-node.h"
+#include "pick-data.h"
 
 namespace regen {
 	/**
@@ -12,15 +13,11 @@ namespace regen {
 	 */
 	class GeomPicking : public StateNode {
 	public:
-		struct PickData {
-			GLint objectID;
-			GLint instanceID;
-			GLfloat depth;
-		};
-
 		GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInput2f> &mouseTexco);
 
 		~GeomPicking() override;
+
+		static ref_ptr<GeomPicking> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @return true if an object has been picked.
@@ -30,7 +27,7 @@ namespace regen {
 		/**
 		 * @return the picked object.
 		 */
-		auto* pickedObject() const { return hasPickedObject_ ? &pickedObject_ : nullptr; }
+		auto *pickedObject() const { return hasPickedObject_ ? &pickedObject_ : nullptr; }
 
 		// override
 		void traverse(RenderState *state) override;

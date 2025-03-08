@@ -104,3 +104,19 @@ const ref_ptr<ShaderInput4f> &TesselationState::outerLevel() const { return oute
 const ref_ptr<ShaderInput4f> &TesselationState::innerLevel() const { return innerLevel_; }
 
 const ref_ptr<ShaderInput1f> &TesselationState::lodFactor() const { return lodFactor_; }
+
+ref_ptr<TesselationState> TesselationState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	ref_ptr<TesselationState> tess = ref_ptr<TesselationState>::alloc(
+			input.getValue<GLuint>("num-patch-vertices", 3u));
+
+	tess->innerLevel()->setVertex(0,
+								  input.getValue<Vec4f>("inner-level", Vec4f(8.0f)));
+	tess->outerLevel()->setVertex(0,
+								  input.getValue<Vec4f>("outer-level", Vec4f(8.0f)));
+	tess->lodFactor()->setVertex(0,
+								 input.getValue<GLfloat>("lod-factor", 4.0f));
+	tess->set_lodMetric(input.getValue<TesselationState::LoDMetric>(
+			"lod-metric", TesselationState::CAMERA_DISTANCE));
+
+	return tess;
+}

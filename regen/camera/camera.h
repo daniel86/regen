@@ -23,11 +23,17 @@ namespace regen {
 	 */
 	class Camera : public HasInputState {
 	public:
+		static constexpr const char *TYPE_NAME = "Camera";
+
 		/**
 		 * Default constructor.
 		 * @param numLayer the number of layers.
 		 */
 		explicit Camera(unsigned int numLayer);
+
+		static ref_ptr<Camera> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
+		static ref_ptr<Camera> createCamera(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @return the stamp when the camera was last updated.

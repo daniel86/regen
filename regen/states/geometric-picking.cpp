@@ -2,6 +2,7 @@
 #include "atomic-states.h"
 #include "depth-state.h"
 #include "feedback-state.h"
+#include "regen/scene/node-processor.h"
 
 using namespace regen;
 
@@ -21,7 +22,7 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	state_->joinShaderInput(mousePosVS_);
 
 	mouseDirVS_ = ref_ptr<ShaderInput3f>::alloc("mouseDirVS");
-	mouseDirVS_->setUniformData(Vec3f(0.0f,1.0f,0.0f));
+	mouseDirVS_->setUniformData(Vec3f(0.0f, 1.0f, 0.0f));
 	state_->joinShaderInput(mouseDirVS_);
 
 	// skip fragment shader, only up to geometry shader is needed
@@ -65,7 +66,7 @@ void GeomPicking::pick(RenderState *rs, GLuint feedbackCount) {
 	PickData *bestPicked = nullptr;
 	for (GLuint i = 0; i < feedbackCount; ++i) {
 		PickData &picked_x = bufferData[i];
-		if (picked_x.objectID<0) { continue; }
+		if (picked_x.objectID < 0) { continue; }
 		if (!bestPicked || picked_x.depth > bestPicked->depth) {
 			bestPicked = &picked_x;
 		}
@@ -104,7 +105,7 @@ void GeomPicking::traverse(RenderState *rs) {
 	GLuint feedbackQuery = 0;
 	glGenQueries(1, &feedbackQuery);
 
-	for (auto &pickableNode : childs()) {
+	for (auto &pickableNode: childs()) {
 		auto pickableMesh = pickableNode->findStateWithType<Mesh>();
 		if (pickableMesh == nullptr) {
 			REGEN_WARN("No mesh found in pickable node.");
@@ -130,11 +131,61 @@ void GeomPicking::traverse(RenderState *rs) {
 
 	if (feedbackCount > 0) {
 		auto numPicks = static_cast<GLuint>(feedbackCount);
-		pick(rs, (numPicks<maxPickedObjects_ ? numPicks : maxPickedObjects_));
+		pick(rs, (numPicks < maxPickedObjects_ ? numPicks : maxPickedObjects_));
 	} else {
 		hasPickedObject_ = false;
 	}
 
 	state_->disable(rs);
 	GL_ERROR_LOG();
+}
+
+namespace regen {
+	class PickingUpdater : public State {
+	public:
+		explicit PickingUpdater(Application *app, const ref_ptr<GeomPicking> &geomPicking)
+				: State(), app_(app), geomPicking_(geomPicking) {}
+
+		void disable(RenderState *rs) override {
+			State::disable(rs);
+			if (geomPicking_->hasPickedObject()) {
+				auto &pickedNode = app_->getObjectWithID(geomPicking_->pickedObject()->objectID);
+				if (pickedNode.get() != nullptr) {
+					app_->setHoveredObject(pickedNode, geomPicking_->pickedObject());
+				} else {
+					REGEN_WARN("Unable to find object with ID " <<
+																geomPicking_->pickedObject()->objectID << " in scene.");
+					app_->unsetHoveredObject();
+				}
+			} else {
+				app_->unsetHoveredObject();
+			}
+		}
+
+	protected:
+		Application *app_;
+		ref_ptr<GeomPicking> geomPicking_;
+	};
+}
+
+ref_ptr<GeomPicking> GeomPicking::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto scene = ctx.scene();
+
+	auto userCamera = scene->getResource<Camera>(input.getValue("camera"));
+	if (userCamera.get() == nullptr) {
+		REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+		return {};
+	}
+	auto &mouseTexco = scene->getMouseTexco();
+	auto geomPicking = ref_ptr<GeomPicking>::alloc(userCamera, mouseTexco);
+	ctx.parent()->addChild(geomPicking);
+
+	// create picking updater
+	auto pickingUpdater = ref_ptr<PickingUpdater>::alloc(scene->application(), geomPicking);
+	geomPicking->state()->joinStates(pickingUpdater);
+
+	// load children nodes
+	scene::SceneNodeProcessor::handleChildren(scene, input, geomPicking);
+
+	return geomPicking;
 }

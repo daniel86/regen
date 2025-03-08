@@ -14,8 +14,10 @@
 #include <regen/config.h>
 
 #include "fbo.h"
+#include "regen/application.h"
 
 using namespace regen;
+using namespace regen::scene;
 
 static inline void REGEN_DrawBuffers(const DrawBuffers &v) { glDrawBuffers(v.buffers_.size(), &v.buffers_[0]); }
 
@@ -119,13 +121,11 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type) {
 	ref_ptr<Texture> depth;
 	if (target == GL_TEXTURE_CUBE_MAP) {
 		depth = ref_ptr<TextureCubeDepth>::alloc();
-	}
-	else if (depth_ > 1 || target == GL_TEXTURE_2D_ARRAY) {
+	} else if (depth_ > 1 || target == GL_TEXTURE_2D_ARRAY) {
 		ref_ptr<Texture3DDepth> depth3D = ref_ptr<Texture3DDepth>::alloc();
 		depth3D->set_depth(depth_);
 		depth = depth3D;
-	}
-	else {
+	} else {
 		depth = ref_ptr<Texture2DDepth>::alloc();
 	}
 	depth->set_targetType(target);
@@ -201,7 +201,7 @@ ref_ptr<Texture> FBO::createTexture(
 			break;
 
 		default: // GL_TEXTURE_2D:
-		REGEN_WARN("Unknown texture type " << targetType << ". Using 2D texture.");
+			REGEN_WARN("Unknown texture type " << targetType << ". Using 2D texture.");
 			tex = ref_ptr<Texture2D>::alloc(count);
 			break;
 
@@ -282,12 +282,12 @@ void FBO::blitCopy(
 	RenderState *rs = RenderState::get();
 	// read from this
 	rs->readFrameBuffer().push(id());
-	if(readAttachment != GL_DEPTH_ATTACHMENT) {
+	if (readAttachment != GL_DEPTH_ATTACHMENT) {
 		readBuffer_.push(readAttachment);
 	}
 	// write to dst
 	rs->drawFrameBuffer().push(dst.id());
-	if(writeAttachment != GL_DEPTH_ATTACHMENT) {
+	if (writeAttachment != GL_DEPTH_ATTACHMENT) {
 		dst.drawBuffers().push(writeAttachment);
 	}
 
@@ -317,11 +317,11 @@ void FBO::blitCopy(
 				mask, filter);
 	}
 
-	if(writeAttachment != GL_DEPTH_ATTACHMENT) {
+	if (writeAttachment != GL_DEPTH_ATTACHMENT) {
 		dst.drawBuffers().pop();
 	}
 	rs->drawFrameBuffer().pop();
-	if(readAttachment != GL_DEPTH_ATTACHMENT) {
+	if (readAttachment != GL_DEPTH_ATTACHMENT) {
 		readBuffer_.pop();
 	}
 	rs->readFrameBuffer().pop();
@@ -446,51 +446,89 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	rs->drawFrameBuffer().pop();
 }
 
-GLuint FBO::depth() const { return depth_; }
-
-GLenum FBO::depthAttachmentFormat() const { return depthAttachmentFormat_; }
-
-const DrawBuffers &FBO::colorBuffers() { return colorBuffers_; }
-
-std::vector<ref_ptr<Texture> > &FBO::colorTextures() { return colorTextures_; }
-
 const ref_ptr<Texture> &FBO::firstColorTexture() const { return colorTextures_.front(); }
 
-std::vector<ref_ptr<RenderBuffer> > &FBO::renderBuffers() { return renderBuffers_; }
+namespace regen {
+	class FBOResizer : public EventHandler {
+	public:
+		FBOResizer(const ref_ptr<FBO> &fbo,
+				   const ref_ptr<ShaderInput2i> &windowViewport,
+				   GLfloat wScale, GLfloat hScale)
+				: EventHandler(),
+				  fbo_(fbo),
+				  windowViewport_(windowViewport),
+				  wScale_(wScale), hScale_(hScale) {}
 
-const ref_ptr<Texture> &FBO::depthTexture() const { return depthTexture_; }
+		void call(EventObject *, EventData *) {
+			auto winSize = windowViewport_->getVertex(0);
+			Vec2i fboSize(winSize.r.x * wScale_, winSize.r.y * hScale_);
+			if (fboSize.x % 2 != 0) fboSize.x += 1;
+			if (fboSize.y % 2 != 0) fboSize.y += 1;
+			winSize.unmap();
+			fbo_->resize(fboSize.x, fboSize.y, 1);
+		}
 
-const ref_ptr<Texture> &FBO::stencilTexture() const { return stencilTexture_; }
-
-const ref_ptr<Texture> &FBO::depthStencilTexture() const { return depthStencilTexture_; }
-
-const ref_ptr<ShaderInput2f> &FBO::viewport() const { return viewport_; }
-
-const Vec4ui &FBO::glViewport() const { return glViewport_; }
-
-const ref_ptr<ShaderInput2f> &FBO::inverseViewport() const { return inverseViewport_; }
-
-///////////////
-///////////////
-///////////////
-
-RenderBuffer::RenderBuffer(GLuint numBuffers)
-		: GLRectangle(glGenRenderbuffers, glDeleteRenderbuffers, numBuffers),
-		  format_(GL_RGBA) {
+	protected:
+		ref_ptr<FBO> fbo_;
+		ref_ptr<ShaderInput2i> windowViewport_;
+		GLfloat wScale_, hScale_;
+	};
 }
 
-void RenderBuffer::set_format(GLenum format) { format_ = format; }
+ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto sizeMode = input.getValue<std::string>("size-mode", "abs");
+	auto relSize = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
+	auto absSize = Texture::getSize(ctx.scene()->getViewport(), sizeMode, relSize);
 
-void RenderBuffer::begin(RenderState *rs) { rs->renderBuffer().push(id()); }
+	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x, absSize.y, absSize.z);
+	if (sizeMode == "rel") {
+		ref_ptr<FBOResizer> resizer = ref_ptr<FBOResizer>::alloc(
+				fbo,
+				ctx.scene()->getViewport(),
+				relSize.x,
+				relSize.y);
+		ctx.scene()->addEventHandler(Application::RESIZE_EVENT, resizer);
+	}
 
-void RenderBuffer::end(RenderState *rs) { rs->renderBuffer().pop(); }
+	for (auto &n: input.getChildren()) {
+		if (n->getCategory() == "texture") {
+			LoadingContext texCfg(ctx.scene(), ctx.parent());
+			ref_ptr<Texture> tex = Texture::load(texCfg, *n.get());
+			for (GLuint j = 0; j < tex->numObjects(); ++j) {
+				fbo->addTexture(tex);
+				tex->nextObject();
+			}
+		} else if (n->getCategory() == "depth") {
+			auto depthSize = n->getValue<GLint>("pixel-size", 16);
+			GLenum depthType = glenum::pixelType(
+					n->getValue<std::string>("pixel-type", "UNSIGNED_BYTE"));
+			GLenum textureTarget = glenum::textureTarget(
+					n->getValue<std::string>("target", "TEXTURE_2D"));
 
-void RenderBuffer::storageMS(GLuint numMultisamples) const {
-	glRenderbufferStorageMultisample(
-			GL_RENDERBUFFER, numMultisamples, format_, width(), height());
-}
+			GLenum depthFormat;
+			if (depthSize <= 16) depthFormat = GL_DEPTH_COMPONENT16;
+			else if (depthSize <= 24) depthFormat = GL_DEPTH_COMPONENT24;
+			else depthFormat = GL_DEPTH_COMPONENT32;
 
-void RenderBuffer::storage() const {
-	glRenderbufferStorage(
-			GL_RENDERBUFFER, format_, width(), height());
+			fbo->createDepthTexture(textureTarget, depthFormat, depthType);
+
+			ref_ptr<Texture> tex = fbo->depthTexture();
+			Texture::configure(tex, *n.get());
+		} else {
+			REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
+		}
+	}
+
+	if (input.hasAttribute("clear-color")) {
+		auto c = input.getValue<Vec4f>("clear-color", Vec4f(0.0f));
+
+		fbo->drawBuffers().push(fbo->colorBuffers());
+		RenderState::get()->clearColor().push(c);
+		glClear(GL_COLOR_BUFFER_BIT);
+		RenderState::get()->clearColor().pop();
+		fbo->drawBuffers().pop();
+	}
+	GL_ERROR_LOG();
+
+	return fbo;
 }

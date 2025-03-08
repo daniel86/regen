@@ -10,6 +10,7 @@
 
 #include <regen/states/state.h>
 #include <regen/states/state-node.h>
+#include <regen/states/state-configurer.h>
 #include <regen/states/shader-state.h>
 #include <regen/meshes/primitives/rectangle.h>
 
@@ -34,6 +35,19 @@ namespace regen {
 		void createShader(const StateConfig &cfg) override {
 			shaderState_->createShader(cfg, shaderKey_);
 			fullscreenMesh_->updateVAO(RenderState::get(), cfg, shaderState_->shader());
+		}
+
+		static ref_ptr<FullscreenPass> load(LoadingContext &ctx, scene::SceneInputNode &input) {
+			if (!input.hasAttribute("shader")) {
+				REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");
+				return {};
+			}
+			ref_ptr<FullscreenPass> fs = ref_ptr<FullscreenPass>::alloc(input.getValue("shader"));
+			StateConfigurer shaderConfigurer;
+			shaderConfigurer.addNode(ctx.parent().get());
+			shaderConfigurer.addState(fs.get());
+			fs->createShader(shaderConfigurer.cfg());
+			return fs;
 		}
 
 	protected:

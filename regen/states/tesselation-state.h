@@ -39,6 +39,8 @@ namespace regen {
 		 */
 		explicit TesselationState(GLuint numPatchVertices);
 
+		static ref_ptr<TesselationState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * @param metric the metric to compute LoD factor for faces.
 		 */

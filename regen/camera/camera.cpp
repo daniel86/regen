@@ -6,6 +6,14 @@
  */
 
 #include "camera.h"
+#include "light-camera-spot.h"
+#include "light-camera-parabolic.h"
+#include "light-camera-cube.h"
+#include "light-camera-csm.h"
+#include "reflection-camera.h"
+#include "regen/application.h"
+#include "regen/meshes/mesh-vector.h"
+#include <regen/shapes/spatial-index.h>
 
 using namespace regen;
 
@@ -21,7 +29,9 @@ namespace regen {
 		explicit CameraMotion(Camera *camera)
 				: Animation(false, true),
 				  camera_(camera) {}
+
 		void animate(double dt) override { camera_->updatePose(); }
+
 	private:
 		Camera *camera_;
 	};
@@ -154,14 +164,14 @@ bool Camera::updateView() {
 		auto dir = direction_->getVertexClamped(i);
 		if (std::abs(dir.r.dot(Vec3f::up())) > 0.999f) {
 			auto viewMatrix = Mat4f::lookAtMatrix(
-				position_->getVertexClamped(i).r,
-				dir.r, Vec3f::right());
+					position_->getVertexClamped(i).r,
+					dir.r, Vec3f::right());
 			view_->setVertex(i, viewMatrix);
 			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
 		} else {
 			auto viewMatrix = Mat4f::lookAtMatrix(
-				position_->getVertexClamped(i).r,
-				dir.r, Vec3f::up());
+					position_->getVertexClamped(i).r,
+					dir.r, Vec3f::up());
 			view_->setVertex(i, viewMatrix);
 			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
 		}
@@ -176,20 +186,20 @@ void Camera::updateViewProjection1() {
 	auto maxIndex = std::max(numViewLayers, numProjLayers);
 	for (unsigned int i = 0; i < maxIndex; ++i) {
 		updateViewProjection(
-			numProjLayers > 1 ? i : 0,
-			numViewLayers > 1 ? i : 0);
+				numProjLayers > 1 ? i : 0,
+				numViewLayers > 1 ? i : 0);
 	}
 }
 
 void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
 	auto maxIndex = std::max(projectionIndex, viewIndex);
 	viewProj_->setVertex(maxIndex,
-		view_->getVertex(viewIndex).r * proj_->getVertex(projectionIndex).r);
+						 view_->getVertex(viewIndex).r * proj_->getVertex(projectionIndex).r);
 	viewProjInv_->setVertex(maxIndex,
-		projInv_->getVertex(projectionIndex).r * viewInv_->getVertex(viewIndex).r);
+							projInv_->getVertex(projectionIndex).r * viewInv_->getVertex(viewIndex).r);
 	frustum_[maxIndex].update(
-		position()->getVertexClamped(maxIndex).r,
-		direction()->getVertexClamped(maxIndex).r);
+			position()->getVertexClamped(maxIndex).r,
+			direction()->getVertexClamped(maxIndex).r);
 }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener) {
@@ -209,8 +219,7 @@ void Camera::updatePose() {
 			position_->setUniformData(attachedPosition_->getVertex(0).r);
 			updated = true;
 		}
-	}
-	else if (attachedTransform_.get()) {
+	} else if (attachedTransform_.get()) {
 		if (poseStamp_ != attachedTransform_->stamp()) {
 			poseStamp_ = attachedTransform_->stamp();
 			auto m = attachedTransform_->getVertex(0);
@@ -262,10 +271,10 @@ void Camera::attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform
 
 bool Camera::hasSphereIntersection(const Vec3f &center, GLfloat radius) const {
 	auto d = Plane(
-		position()->getVertex(0).r,
-		direction()->getVertex(0).r).distance(center);
+			position()->getVertex(0).r,
+			direction()->getVertex(0).r).distance(center);
 	return d - radius < far()->getVertex(0).r &&
-	       d + radius > near()->getVertex(0).r;
+		   d + radius > near()->getVertex(0).r;
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) const {
@@ -281,8 +290,8 @@ bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) con
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const {
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
-		position()->getVertex(0).r,
-		direction()->getVertex(0).r).distance(center);
+			position()->getVertex(0).r,
+			direction()->getVertex(0).r).distance(center);
 	// check if the sphere is outside the far plane
 	if (d - radius > far()->getVertex(0).r) return false;
 	// check if the sphere is inside the near plane
@@ -297,8 +306,8 @@ bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) cons
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const {
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
-		position()->getVertex(0).r,
-		direction()->getVertex(0).r).distance(center);
+			position()->getVertex(0).r,
+			direction()->getVertex(0).r).distance(center);
 	// check if the sphere is outside the far plane
 	if (d > far()->getVertex(0).r) return false;
 	// check if the sphere is inside the near plane
@@ -317,7 +326,7 @@ bool Camera::hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points)
 }
 
 bool Camera::hasFrustumIntersection(const Vec3f &center, GLfloat radius) const {
-	for (auto &f : frustum_) {
+	for (auto &f: frustum_) {
 		if (f.hasIntersectionWithSphere(center, radius)) {
 			return true;
 		}
@@ -326,7 +335,7 @@ bool Camera::hasFrustumIntersection(const Vec3f &center, GLfloat radius) const {
 }
 
 bool Camera::hasFrustumIntersection(const Vec3f &center, const Vec3f *points) const {
-	for (auto &f : frustum_) {
+	for (auto &f: frustum_) {
 		if (f.hasIntersectionWithBox(center, points)) {
 			return true;
 		}
@@ -338,9 +347,9 @@ bool Camera::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) cons
 	if (isOmni_) {
 		return hasSphereIntersection(center, radius);
 	}
-	//else if (isSemiOmni_) {
-	//	return hasHalfSphereIntersection(center, radius);
-	//}
+		//else if (isSemiOmni_) {
+		//	return hasHalfSphereIntersection(center, radius);
+		//}
 	else {
 		return hasFrustumIntersection(center, radius);
 	}
@@ -350,11 +359,229 @@ bool Camera::hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) co
 	if (isOmni_) {
 		return hasSphereIntersection(center, points);
 	}
-	//else if (isSemiOmni_) {
-	//	return hasHalfSphereIntersection(center, points);
-	//}
+		//else if (isSemiOmni_) {
+		//	return hasHalfSphereIntersection(center, points);
+		//}
 	else {
 		return hasFrustumIntersection(center, points);
 	}
 }
 
+ref_ptr<Camera> Camera::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto cam = createCamera(ctx, input);
+	if (cam.get() == nullptr) {
+		REGEN_WARN("Unable to create Camera for '" << input.getDescription() << "'.");
+		return {};
+	}
+
+	if (input.hasAttribute("culling-index")) {
+		auto spatialIndex = ctx.scene()->getResource<SpatialIndex>(input.getValue("culling-index"));
+		spatialIndex->addCamera(cam, input.getValue<bool>("sort", true));
+	}
+
+	return cam;
+}
+
+int getHiddenFacesMask(scene::SceneInputNode &input) {
+	int hiddenFacesMask = 0;
+	if (input.hasAttribute("hide-faces")) {
+		auto val = input.getValue<std::string>("hide-faces", "");
+		std::vector<std::string> faces;
+		boost::split(faces, val, boost::is_any_of(","));
+		for (auto it = faces.begin(); it != faces.end(); ++it) {
+			CubeCamera::Face face;
+			std::stringstream(*it) >> face;
+			hiddenFacesMask |= face;
+		}
+	}
+	return hiddenFacesMask;
+}
+
+ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &input) {
+	ref_ptr<Light> light = ctx.scene()->getResource<Light>(input.getValue("light"));
+	if (light.get() == nullptr) {
+		REGEN_WARN("Unable to find Light for '" << input.getDescription() << "'.");
+		return {};
+	}
+	auto numLayer = input.getValue<GLuint>("num-layer", 1u);
+	auto splitWeight = input.getValue<GLdouble>("split-weight", 0.9);
+	auto cameraType = input.getValue<std::string>("camera-type", "spot");
+	auto near = input.getValue<float>("near", 0.1f);
+	ref_ptr<Camera> lightCamera;
+
+	switch (light->lightType()) {
+		case Light::SPOT: {
+			auto spotCam = ref_ptr<LightCamera_Spot>::alloc(light);
+			spotCam->setLightNear(near);
+			lightCamera = spotCam;
+			break;
+		}
+		case Light::DIRECTIONAL: {
+			auto userCamera = ctx.scene()->getResource<Camera>(input.getValue("camera"));
+			if (userCamera.get() == nullptr) {
+				REGEN_WARN("Unable to find user camera for '" << input.getDescription() << "'.");
+				return {};
+			}
+			auto dirCam = ref_ptr<LightCamera_CSM>::alloc(light, userCamera, numLayer);
+			dirCam->setSplitWeight(splitWeight);
+			lightCamera = dirCam;
+			break;
+		}
+		case Light::POINT: {
+			if (cameraType == "parabolic" || cameraType == "paraboloid") {
+				// parabolic camera
+				auto isDualParabolic = input.getValue<bool>("dual-paraboloid", true);
+				auto parabolic = ref_ptr<LightCamera_Parabolic>::alloc(light, isDualParabolic);
+				if (input.hasAttribute("normal")) {
+					parabolic->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
+				}
+				parabolic->setLightNear(near);
+				lightCamera = parabolic;
+			} else {
+				// cube camera
+				auto cube = ref_ptr<LightCamera_Cube>::alloc(light, getHiddenFacesMask(input));
+				cube->setLightNear(near);
+				lightCamera = cube;
+			}
+			break;
+		}
+	}
+	if (lightCamera.get() == nullptr) {
+		REGEN_WARN("Unable to create camera for '" << input.getDescription() << "'.");
+		return {};
+	}
+	ctx.scene()->putState(input.getName(), lightCamera);
+
+	return lightCamera;
+}
+
+namespace regen {
+	class ProjectionUpdater : public EventHandler {
+	public:
+		ProjectionUpdater(const ref_ptr<Camera> &cam,
+						  const ref_ptr<ShaderInput2i> &windowViewport)
+				: EventHandler(), cam_(cam), windowViewport_(windowViewport) {}
+
+		void call(EventObject *, EventData *) {
+			auto windowViewport = windowViewport_->getVertex(0);
+			auto windowAspect =
+					(GLfloat) windowViewport.r.x / (GLfloat) windowViewport.r.y;
+			if (cam_->isOrtho()) {
+				// keep the ortho width and adjust height based on aspect ratio
+				auto width = cam_->frustum()[0].nearPlaneHalfSize.x * 2.0f;
+				auto height = width / windowAspect;
+				cam_->setOrtho(
+						-width / 2.0f, width / 2.0f,
+						-height / 2.0f, height / 2.0f,
+						cam_->near()->getVertex(0).r,
+						cam_->far()->getVertex(0).r);
+			} else {
+				cam_->setPerspective(
+						windowAspect,
+						cam_->fov()->getVertex(0).r,
+						cam_->near()->getVertex(0).r,
+						cam_->far()->getVertex(0).r);
+			}
+		}
+
+	protected:
+		ref_ptr<Camera> cam_;
+		ref_ptr<ShaderInput2i> windowViewport_;
+	};
+}
+
+ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto camType = input.getValue<std::string>("type", "spot");
+
+	if (input.hasAttribute("reflector") ||
+		input.hasAttribute("reflector-normal") ||
+		input.hasAttribute("reflector-point")) {
+		ref_ptr<Camera> userCamera =
+				ctx.scene()->getResource<Camera>(input.getValue("camera"));
+		if (userCamera.get() == nullptr) {
+			REGEN_WARN("Unable to find Camera for '" << input.getDescription() << "'.");
+			return {};
+		}
+		ref_ptr<ReflectionCamera> cam;
+		bool hasBackFace = input.getValue<bool>("has-back-face", false);
+
+		if (input.hasAttribute("reflector")) {
+			ref_ptr<MeshVector> mesh =
+					ctx.scene()->getResource<MeshVector>(input.getValue("reflector"));
+			if (mesh.get() == nullptr || mesh->empty()) {
+				REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
+				return {};
+			}
+			const std::vector<ref_ptr<Mesh> > &vec = *mesh.get();
+			cam = ref_ptr<ReflectionCamera>::alloc(
+					userCamera, vec[0], input.getValue<GLuint>("vertex-index", 0u), hasBackFace);
+		} else if (input.hasAttribute("reflector-normal")) {
+			auto normal = input.getValue<Vec3f>("reflector-normal", Vec3f(0.0f, 1.0f, 0.0f));
+			auto position = input.getValue<Vec3f>("reflector-point", Vec3f(0.0f, 0.0f, 0.0f));
+			cam = ref_ptr<ReflectionCamera>::alloc(userCamera, normal, position, hasBackFace);
+		}
+		if (cam.get()) {
+			ctx.scene()->putState(input.getName(), cam);
+		}
+		return cam;
+	} else if (input.hasAttribute("light")) {
+		auto cam = createLightCamera(ctx, input);
+		return cam;
+	} else if (camType == "cube") {
+		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
+		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
+		if (tf.get()) {
+			cam->attachToPosition(tf->get());
+		}
+		ctx.scene()->putState(input.getName(), cam);
+		return cam;
+	} else if (camType == "parabolic" || camType == "paraboloid") {
+		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
+		bool hasBackFace = input.getValue<bool>("dual-paraboloid", true);
+		auto cam = ref_ptr<ParabolicCamera>::alloc(hasBackFace);
+		if (input.hasAttribute("normal")) {
+			cam->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
+		}
+
+		if (tf.get()) {
+			cam->attachToPosition(tf->get());
+		}
+		ctx.scene()->putState(input.getName(), cam);
+
+		return cam;
+	} else {
+		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
+		cam->set_isAudioListener(
+				input.getValue<bool>("audio-listener", false));
+		cam->position()->setVertex(0,
+								   input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
+
+		auto dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
+		dir.normalize();
+		cam->direction()->setVertex(0, dir);
+
+		if (camType == "ortho" || camType == "orthographic") {
+			auto width = input.getValue<GLfloat>("width", 10.0f);
+			auto height = input.getValue<GLfloat>("height", 10.0f);
+			cam->setOrtho(
+					-width / 2.0f, width / 2.0f,
+					-height / 2.0f, height / 2.0f,
+					input.getValue<GLfloat>("near", 0.1f),
+					input.getValue<GLfloat>("far", 200.0f));
+		} else {
+			auto viewport = ctx.scene()->getViewport()->getVertex(0);
+			cam->setPerspective(
+					(GLfloat) viewport.r.x / (GLfloat) viewport.r.y,
+					input.getValue<GLfloat>("fov", 45.0f),
+					input.getValue<GLfloat>("near", 0.1f),
+					input.getValue<GLfloat>("far", 200.0f));
+		}
+		cam->updateCamera();
+		// Update frustum when window size changes
+		ctx.scene()->addEventHandler(Application::RESIZE_EVENT,
+									 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->getViewport()));
+		ctx.scene()->putState(input.getName(), cam);
+
+		return cam;
+	}
+}

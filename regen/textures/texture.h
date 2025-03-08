@@ -18,6 +18,7 @@
 #include <regen/gl-types/shader-input.h>
 #include <regen/gl-types/vbo.h>
 #include "regen/shapes/bounds.h"
+#include "regen/scene/scene-input.h"
 
 namespace regen {
 	template<typename T>
@@ -72,6 +73,8 @@ namespace regen {
 	 */
 	class Texture : public GLRectangle, public ShaderInput1i {
 	public:
+		static constexpr const char *TYPE_NAME = "Texture";
+
 		/**
 		 * @param numTextures number of texture images.
 		 */
@@ -80,6 +83,8 @@ namespace regen {
 		~Texture() override;
 
 		Texture(const Texture &) = delete;
+
+		static ref_ptr<Texture> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @return the texture channel or -1.
@@ -368,6 +373,11 @@ namespace regen {
 		 * Resize the texture.
 		 */
 		virtual void resize(unsigned int width, unsigned int height);
+
+		static Vec3i getSize(const ref_ptr<ShaderInput2i> &viewport,
+							 const std::string &sizeMode, const Vec3f &size);
+
+		static void configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input);
 
 	protected:
 		GLuint dim_;

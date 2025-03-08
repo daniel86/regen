@@ -8,10 +8,11 @@
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
 #include <regen/animations/animation.h>
+#include <stack>
 
 #include "shader-input.h"
-#include "ubo.h"
 #include "uniform-block.h"
+#include "regen/scene/mesh-processor.h"
 
 using namespace regen;
 
@@ -141,11 +142,11 @@ void ShaderInput::enableUniform(GLint loc) const {
 /////////////
 ////////////
 
-const byte* ShaderInput::readLock(int dataSlot) const {
+const byte *ShaderInput::readLock(int dataSlot) const {
 	auto &slotLock = slotLocks_[dataSlot];
 	// First get a unique lock on the slot, such that we can safely write its members.
 	std::unique_lock<std::mutex> lk(slotLock.lock);
-	while( slotLock.waitingWriters != 0 ) {
+	while (slotLock.waitingWriters != 0) {
 		// in case the slot is write-locked, wait until all writers have finished.
 		slotLock.readerQ.wait(lk);
 	}
@@ -157,7 +158,7 @@ const byte* ShaderInput::readLock(int dataSlot) const {
 	return data;
 }
 
-const byte* ShaderInput::readLockTry(int dataSlot) const {
+const byte *ShaderInput::readLockTry(int dataSlot) const {
 	auto &slotLock = slotLocks_[dataSlot];
 	// First get a unique lock on the slot, such that we can safely write its members.
 	std::unique_lock<std::mutex> lk(slotLock.lock, std::try_to_lock);
@@ -172,13 +173,13 @@ const byte* ShaderInput::readLockTry(int dataSlot) const {
 	return data;
 }
 
-byte* ShaderInput::writeLock(int dataSlot) const {
+byte *ShaderInput::writeLock(int dataSlot) const {
 	auto &slotLock = slotLocks_[dataSlot];
 	// First get a unique lock on the slot, such that we can safely write its members.
 	std::unique_lock<std::mutex> lk(slotLock.lock);
 	// increment waiting writers and wait until there are no active readers or writers.
 	++slotLock.waitingWriters;
-	while( slotLock.activeReaders != 0 || slotLock.activeWriters != 0 ) {
+	while (slotLock.activeReaders != 0 || slotLock.activeWriters != 0) {
 		slotLock.writerQ.wait(lk);
 	}
 	// also increment active writers counter
@@ -188,7 +189,7 @@ byte* ShaderInput::writeLock(int dataSlot) const {
 	return data;
 }
 
-byte* ShaderInput::writeLockTry(int dataSlot) const {
+byte *ShaderInput::writeLockTry(int dataSlot) const {
 	auto &slotLock = slotLocks_[dataSlot];
 	// First get a unique lock on the slot, such that we can safely write its members.
 	std::unique_lock<std::mutex> lk(slotLock.lock, std::try_to_lock);
@@ -221,7 +222,7 @@ void ShaderInput::writeUnlock(int dataSlot, bool hasDataChanged) const {
 	//       switching the data slot. This could be more efficient in case the data is not changed.
 	//if (numInstances > 1 || std::memcmp(data_, data, inputSize_) != 0) { }
 	//if (std::memcmp(data_, data, inputSize_) != 0) { }
-	if(hasDataChanged) {
+	if (hasDataChanged) {
 		// increment the data stamp, and remember the last slot that was written to.
 		// consecutive reads will be done from this slot, next write will be done to the other slot.
 		// If the write operation did not change the data, the stamp is not incremented,
@@ -232,11 +233,10 @@ void ShaderInput::writeUnlock(int dataSlot, bool hasDataChanged) const {
 			requiresReUpload_ = true;
 		}
 	}
-	if(slotLock.waitingWriters > 0) {
+	if (slotLock.waitingWriters > 0) {
 		// first notify the next writer if any
 		slotLock.writerQ.notify_one();
-	}
-	else {
+	} else {
 		// else notify all waiting readers
 		slotLock.readerQ.notify_all();
 	}
@@ -273,7 +273,7 @@ MappedData ShaderInput::mapClientData(int mapMode) const {
 	if ((mapMode & ShaderData::WRITE) != 0) {
 		// NOTE: assuming we can only have two slots, which makes sense IMO, then
 		// if read slot=0, then write slot=1, else write slot=0
-		int w_index = (int)(r_index == 0);
+		int w_index = (int) (r_index == 0);
 		byte *data_w;
 		// index mapping should e avoided! It might require to copy one slot to the other.
 		// NOTE: no index mapping needed if there is only one vertex/array element
@@ -290,8 +290,7 @@ MappedData ShaderInput::mapClientData(int mapMode) const {
 				// got it!
 				w_index = r_index;
 				r_index = lastDataSlot();
-			}
-			else {
+			} else {
 				// read slot is locked, and second slot was not allocated yet.
 				// create it now, and copy the data to it.
 				// note: allocateSecondSlot also acquires a lock in slot 1
@@ -318,38 +317,36 @@ MappedData ShaderInput::mapClientData(int mapMode) const {
 			//       for small data, especially non-array, non-vertex data, always prefer copy.
 			//       for larger array and vertex data prefer write into current slot.
 			if (r_index != w_index) {
-				auto data_r = readLock(r_index); {
+				auto data_r = readLock(r_index);
+				{
 					// copy FULL data into write slot.
 					// NOTE: this will be inefficient if the data is large!
 					std::memcpy(data_w, data_r, inputSize_);
-				} readUnlock(r_index);
+				}
+				readUnlock(r_index);
 			}
-			return { data_w, -1, data_w, w_index };
-		}
-		else { // full write.
-			const byte* data_r = nullptr;
+			return {data_w, -1, data_w, w_index};
+		} else { // full write.
+			const byte *data_r = nullptr;
 			if (r_index != w_index && (mapMode & ShaderData::READ) != 0) {
 				// NOTE: only need a read lock if the read slot is different from the write slot.
 				data_r = readLock(r_index);
-			}
-			else {
+			} else {
 				data_r = data_w;
 				r_index = -1;
 			}
-			return { data_r, r_index, data_w, w_index };
+			return {data_r, r_index, data_w, w_index};
 		}
-	}
-	else {
+	} else {
 		// read only. the case of reading at index is not handled differently here.
 		if (hasTwoSlots()) {
 			auto readData = readLock(r_index);
-			return { readData, r_index };
-		}
-		else {
+			return {readData, r_index};
+		} else {
 			// make an attempt to get direct access
 			auto readData = readLockTry(r_index);
 			if (readData) {
-				return { readData, r_index };
+				return {readData, r_index};
 			} else {
 				// read slot is write locked, plus the second slot was not allocated yet.
 				// allocate it now, copy the data to it, then read from it.
@@ -357,7 +354,7 @@ MappedData ShaderInput::mapClientData(int mapMode) const {
 				writeUnlock(1, false);
 				r_index = lastDataSlot();
 				readData = readLock(r_index);
-				return { readData, r_index };
+				return {readData, r_index};
 			}
 		}
 	}
@@ -366,8 +363,7 @@ MappedData ShaderInput::mapClientData(int mapMode) const {
 void ShaderInput::unmapClientData(int mapMode, int slotIndex) const {
 	if ((mapMode & ShaderData::WRITE) != 0) {
 		writeUnlock(slotIndex, true);
-	}
-	else {
+	} else {
 		readUnlock(slotIndex);
 	}
 }
@@ -379,11 +375,10 @@ void ShaderInput::writeVertex(GLuint index, const byte *data) {
 	//       For vertex data, it is assumed that data is one vertex including all array elements.
 	//       For uniform array data, it is assumed that data is one array element.
 	if (isVertexAttribute_) {
-		std::memcpy(mapped.w + index*elementSize_, data, elementSize_);
-	}
-	else {
+		std::memcpy(mapped.w + index * elementSize_, data, elementSize_);
+	} else {
 		auto arrayElementSize = dataTypeBytes_ * valsPerElement_;
-		std::memcpy(mapped.w + index*arrayElementSize, data, arrayElementSize);
+		std::memcpy(mapped.w + index * arrayElementSize, data, arrayElementSize);
 	}
 }
 
@@ -432,7 +427,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		numElements_ = static_cast<int>(numArrayElements_ * numInstances_);
 		inputSize_ = dataSize_bytes;
 		writeUnlockAll(writeClientData_(data));
-	} else if(data) {
+	} else if (data) {
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
 	}
@@ -452,7 +447,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		numElements_ = static_cast<int>(numArrayElements_ * numVertices_);
 		inputSize_ = dataSize_bytes;
 		writeUnlockAll(writeClientData_(data));
-	} else if(data) {
+	} else if (data) {
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
 	}
@@ -463,8 +458,7 @@ bool ShaderInput::writeClientData_(const byte *data) {
 		// NOTE: writeLockAll locks slot 0 last, so we know it will be the active slot when we unlock.
 		std::memcpy(dataSlots_[0], data, inputSize_);
 		return true;
-	}
-	else {
+	} else {
 		return false;
 	}
 }
@@ -477,10 +471,10 @@ void ShaderInput::writeServerData(GLuint index) const {
 
 	RenderState::get()->copyWriteBuffer().push(buffer_);
 	glBufferSubData(
-		GL_COPY_WRITE_BUFFER,
-		offset_ + stride_ * index,
-		elementSize_,
-		subDataStart);
+			GL_COPY_WRITE_BUFFER,
+			offset_ + stride_ * index,
+			elementSize_,
+			subDataStart);
 	RenderState::get()->copyWriteBuffer().pop();
 }
 

@@ -16,9 +16,9 @@ public:
 
 	// Override
 	void processInput(
-			SceneParser *parser,
+			scene::SceneLoader *parser,
 			SceneInputNode &input,
-			const ref_ptr<StateNode> &parent) {
+			const ref_ptr<StateNode> &parent) override {
 		ref_ptr<State> state = ref_ptr<State>::alloc();
 		ref_ptr<StateNode> newNode = ref_ptr<StateNode>::alloc(state);
 		newNode->set_name(input.getName());
@@ -38,24 +38,22 @@ protected:
 	ViewNodeList *viewNodes_;
 
 	void handleChildren(
-			SceneParser *parser,
+			scene::SceneLoader *parser,
 			SceneInputNode &input,
 			const ref_ptr<StateNode> &newNode) {
 		// Process node children
 		const list<ref_ptr<SceneInputNode> > &childs = input.getChildren();
-		for (list<ref_ptr<SceneInputNode> >::const_iterator
-					 it = childs.begin(); it != childs.end(); ++it) {
-			const ref_ptr<SceneInputNode> &x = *it;
+		for (const auto & x : childs) {
 			// First try node processor
 			ref_ptr<NodeProcessor> nodeProcessor = parser->getNodeProcessor(x->getCategory());
-			if (nodeProcessor.get() != NULL) {
+			if (nodeProcessor.get() != nullptr) {
 				nodeProcessor->processInput(parser, *x.get(), newNode);
 				continue;
 			}
 			// Second try state processor
 			ref_ptr<StateProcessor> stateProcessor = parser->getStateProcessor(x->getCategory());
-			if (stateProcessor.get() != NULL) {
-				stateProcessor->processInput(parser, *x.get(), newNode->state());
+			if (stateProcessor.get() != nullptr) {
+				stateProcessor->processInput(parser, *x.get(), newNode, newNode->state());
 				continue;
 			}
 			REGEN_WARN("No processor registered for '" << x->getDescription() << "'.");

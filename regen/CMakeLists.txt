@@ -17,6 +17,7 @@ set(SOURCE_DIRS
     animations
     physics
     textures
+    text
     states
     camera
     meshes

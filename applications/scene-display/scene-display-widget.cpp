@@ -8,12 +8,12 @@
 #include <regen/camera/camera-controller.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/filesystem.h>
-#include <regen/meshes/texture-mapped-text.h>
+#include <regen/text/texture-mapped-text.h>
 
 //#include <regen/scene/scene-xml.h>
-#include <regen/scene/scene-parser.h>
-#include <regen/scene/input-processors.h>
-#include <regen/scene/resources.h>
+#include <regen/scene/scene-loader.h>
+#include <regen/scene/scene-processors.h>
+#include <regen/scene/resource-processor.h>
 #include <regen/scene/resource-manager.h>
 #include <regen/scene/scene-input-xml.h>
 
@@ -546,7 +546,7 @@ void SceneDisplayWidget::loadScene(const string &sceneFile) {
 /////////////////////////////
 
 void SceneDisplayWidget::handleCameraConfiguration(
-		scene::SceneParser &sceneParser,
+		scene::SceneLoader &sceneParser,
 		const ref_ptr<SceneInputNode> &cameraNode) {
 	ref_ptr<Camera> cam = sceneParser.getResources()->getCamera(&sceneParser, cameraNode->getName());
 	if (cam.get() == nullptr) {
@@ -729,7 +729,7 @@ void SceneDisplayWidget::handleCameraConfiguration(
 }
 
 static void handleAssetController(
-		scene::SceneParser &sceneParser,
+		scene::SceneLoader &sceneParser,
 		const ref_ptr<SceneInputNode> &animationNode,
 		std::list<ref_ptr<Animation> > &animations,
 		const std::vector<ref_ptr<NodeAnimation> > &nodeAnimations,
@@ -786,7 +786,7 @@ static void handleAssetController(
 
 static void handleAssetAnimationConfiguration(
 		QtApplication *app_,
-		scene::SceneParser &sceneParser,
+		scene::SceneLoader &sceneParser,
 		list<ref_ptr<EventHandler> > &eventHandler,
 		const ref_ptr<SceneInputNode> &animationNode,
 		std::list<ref_ptr<Animation> > &animations) {
@@ -861,7 +861,7 @@ static void handleAssetAnimationConfiguration(
 
 static void handleMouseConfiguration(
 		QtApplication *app_,
-		scene::SceneParser &sceneParser,
+		scene::SceneLoader &sceneParser,
 		list<ref_ptr<EventHandler> > &eventHandler,
 		const ref_ptr<SceneInputNode> &mouseNode) {
 	for (auto &child: mouseNode->getChildren()) {
@@ -927,7 +927,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	ref_ptr<RootNode> tree = app_->renderTree();
 
 	ref_ptr<SceneInputXML> xmlInput = ref_ptr<SceneInputXML>::alloc(sceneFile);
-	scene::SceneParser sceneParser(app_, xmlInput);
+	scene::SceneLoader sceneParser(app_, xmlInput);
 	sceneParser.setNodeProcessor(ref_ptr<ViewNodeProcessor>::alloc(&viewNodes_));
 	sceneParser.processNode(tree, "root", "node");
 	physics_ = sceneParser.getPhysics();

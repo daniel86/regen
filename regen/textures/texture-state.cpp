@@ -11,6 +11,7 @@
 
 #include "texture-state.h"
 #include "texture-3d.h"
+#include "texture-2d.h"
 
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const TextureState::Mapping &mode) {
@@ -381,5 +382,163 @@ void TextureState::disable(RenderState *rs) {
 	if (lastTexChannel_ == -1) {
 		texture_->end(rs, texture_->channel());
 		rs->releaseTextureChannel();
+	}
+}
+
+ref_ptr<Texture> TextureState::getTexture(
+		scene::SceneLoader *scene,
+		scene::SceneInputNode &input,
+		const std::string &idKey,
+		const std::string &bufferKey,
+		const std::string &attachmentKey) {
+	ref_ptr<Texture> tex;
+	// Find the texture resource
+	if (input.hasAttribute(idKey)) {
+		tex = scene->getResource<Texture>(input.getValue(idKey));
+	} else if (input.hasAttribute(bufferKey)) {
+		ref_ptr<FBO> fbo = scene->getResource<FBO>(input.getValue(bufferKey));
+		if (fbo.get() == nullptr) {
+			REGEN_WARN("Unable to find FBO '" << input.getValue(bufferKey) <<
+											  "' for " << input.getDescription() << ".");
+			return tex;
+		}
+		const auto val = input.getValue<std::string>(attachmentKey, "0");
+		if (val == "depth") {
+			tex = fbo->depthTexture();
+		} else {
+			std::vector<ref_ptr<Texture> > &textures = fbo->colorTextures();
+
+			unsigned int attachment;
+			std::stringstream ss(val);
+			ss >> attachment;
+
+			if (attachment < textures.size()) {
+				tex = textures[attachment];
+			} else {
+				REGEN_WARN("Invalid attachment '" << val <<
+												  "' for " << input.getDescription() << ".");
+			}
+		}
+	}
+	return tex;
+}
+
+ref_ptr<TextureState> TextureState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto scene = ctx.scene();
+
+	ref_ptr<Texture> tex = getTexture(scene, input);
+	if (tex.get() == nullptr) {
+		REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
+		return {};
+	}
+	if (input.hasAttribute("mip-level") && input.getValue<int>("mip-level", 0) > 0) {
+		auto mipLevel = input.getValue<unsigned int>("mip-level", 1);
+		auto mipTex = dynamic_cast<TextureMips2D *>(tex.get());
+		if (mipTex) {
+			auto maxLevel = mipTex->numMips();
+			if (mipLevel < maxLevel) {
+				tex = mipTex->mipRefs()[mipLevel - 1];
+			} else {
+				REGEN_WARN("Mip level " << mipLevel << " is out of range for texture '" << tex->name() << "'.");
+			}
+		} else {
+			REGEN_WARN("Texture '" << tex->name() << "' is not a mip texture.");
+		}
+	}
+
+	// Set-Up the texture state
+	ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(
+			tex, input.getValue("name"));
+
+	texState->set_ignoreAlpha(
+			input.getValue<bool>("ignore-alpha", false));
+	texState->set_mapTo(input.getValue<TextureState::MapTo>(
+			"map-to", TextureState::MAP_TO_CUSTOM));
+
+	// Describes how a texture will be mixed with existing pixels.
+	texState->set_blendMode(
+			input.getValue<BlendMode>("blend-mode", BLEND_MODE_SRC));
+	texState->set_blendFactor(
+			input.getValue<GLfloat>("blend-factor", 1.0f));
+
+	const std::string blendFunctionName = input.getValue("blend-function-name");
+	if (input.hasAttribute("blend-function")) {
+		texState->set_blendFunction(
+				input.getValue("blend-function"),
+				blendFunctionName);
+	}
+
+	// Defines how a texture should be mapped on geometry.
+	texState->set_mapping(input.getValue<TextureState::Mapping>(
+			"mapping", TextureState::MAPPING_TEXCO));
+
+	const std::string mappingFunctionName = input.getValue("mapping-function-name");
+	if (input.hasAttribute("mapping-function")) {
+		texState->set_mappingFunction(
+				input.getValue("mapping-function"),
+				mappingFunctionName);
+	}
+
+	// texel transfer wraps sampled texels before returning them.
+	const std::string texelTransferName = input.getValue("texel-transfer-name");
+	if (input.hasAttribute("texel-transfer-key")) {
+		texState->set_texelTransferKey(
+				input.getValue("texel-transfer-key"),
+				texelTransferName);
+	} else if (input.hasAttribute("texel-transfer-function")) {
+		texState->set_texelTransferFunction(
+				input.getValue("texel-transfer-function"),
+				texelTransferName);
+	}
+
+	// texel transfer wraps computed texture coordinates before returning them.
+	if (input.hasAttribute("texco-transfer")) {
+		texState->set_texcoTransfer(input.getValue<TextureState::TransferTexco>(
+				"texco-transfer", TextureState::TRANSFER_TEXCO_RELIEF));
+	}
+	if (input.hasAttribute("texco-flipping")) {
+		auto flipModeName = input.getValue("texco-flipping");
+		if (flipModeName == "x") {
+			texState->set_texcoFlipping(TextureState::TEXCO_FLIP_X);
+		} else if (flipModeName == "y") {
+			texState->set_texcoFlipping(TextureState::TEXCO_FLIP_Y);
+		} else {
+			texState->set_texcoFlipping(TextureState::TEXCO_FLIP_NONE);
+		}
+	}
+	if (input.hasAttribute("sampler-type")) {
+		texState->set_samplerType(input.getValue("sampler-type"));
+	}
+	const std::string texcoTransferName = input.getValue("texco-transfer-name");
+	if (input.hasAttribute("texco-transfer-key")) {
+		texState->set_texcoTransferKey(
+				input.getValue("texco-transfer-key"),
+				texcoTransferName);
+	} else if (input.hasAttribute("texco-transfer-function")) {
+		texState->set_texcoTransferFunction(
+				input.getValue("texco-transfer-function"),
+				texcoTransferName);
+	}
+
+	return texState;
+}
+
+ref_ptr<State> TextureIndexState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	const std::string texName = input.getValue("name");
+
+	ref_ptr<Texture> tex = TextureState::getTexture(ctx.scene(), input);
+	if (tex.get() == nullptr) {
+		REGEN_WARN("Skipping unidentified texture node for " << input.getDescription() << ".");
+		return {};
+	}
+
+	if (input.hasAttribute("value")) {
+		auto index = input.getValue<GLuint>("index", 0u);
+		return ref_ptr<TextureSetIndex>::alloc(tex, index);
+	} else if (input.getValue<bool>("set-next-index", true)) {
+		return ref_ptr<TextureNextIndex>::alloc(tex);
+	} else {
+		REGEN_WARN("Skipping " << input.getDescription() << " because no index set.");
+		return {};
 	}
 }

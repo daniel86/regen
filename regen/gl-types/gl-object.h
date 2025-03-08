@@ -13,6 +13,7 @@
 #include <regen/utility/ref-ptr.h>
 
 #include <GL/glew.h>
+#include "regen/scene/resource.h"
 
 namespace regen {
 	/**
@@ -22,7 +23,7 @@ namespace regen {
 	 * the active buffer can be changed with nextObject()
 	 * and set_objectIndex().
 	 */
-	class GLObject {
+	class GLObject : public Resource {
 	public:
 		/**
 		 * Obtain n buffers.

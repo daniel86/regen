@@ -8,7 +8,9 @@
 namespace regen {
 	class MotionBlur : public FullscreenPass {
 	public:
-		MotionBlur(const ref_ptr<Camera> &camera);
+		explicit MotionBlur(const ref_ptr<Camera> &camera);
+
+		static ref_ptr<MotionBlur> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		void enable(RenderState *rs) override;
 

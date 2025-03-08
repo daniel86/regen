@@ -1,7 +1,7 @@
 #ifndef REGEN_SCENE_INTERACTION_H
 #define REGEN_SCENE_INTERACTION_H
 
-#include <regen/scene/nodes/scene-node.h>
+#include <regen/states/state-node.h>
 
 namespace regen {
 	/**
@@ -10,6 +10,7 @@ namespace regen {
 	class SceneInteraction {
 	public:
 		virtual ~SceneInteraction() = default;
+
 		virtual bool interactWith(const ref_ptr<StateNode> &node) = 0;
 	};
 } // regen

@@ -207,15 +207,15 @@ void Application::initGL() {
 	REGEN_DEBUG("VERSION: " << glGetString(GL_VERSION));
 
 	// check for required and optional extensions
-	for (auto & it : requiredExt_) {
+	for (auto &it: requiredExt_) {
 		if (!glewIsSupported(it.c_str())) {
 			REGEN_ERROR(it << " unsupported.");
 			exit(0);
-		} else {REGEN_DEBUG(it << " supported."); }
+		} else { REGEN_DEBUG(it << " supported."); }
 	}
-	for (auto & it : optionalExt_) {
-		if (!glewIsSupported(it.c_str())) {REGEN_DEBUG(it << " unsupported."); }
-		else {REGEN_DEBUG(it << " supported."); }
+	for (auto &it: optionalExt_) {
+		if (!glewIsSupported(it.c_str())) { REGEN_DEBUG(it << " unsupported."); }
+		else { REGEN_DEBUG(it << " supported."); }
 	}
 
 #define DEBUG_GLi(dname, pname) { \
@@ -316,7 +316,7 @@ int Application::putNamedObject(const ref_ptr<StateNode> &node) {
 	return nextId;
 }
 
-void Application::setHoveredObject(const ref_ptr<StateNode> &hoveredObject, const GeomPicking::PickData *pickData) {
+void Application::setHoveredObject(const ref_ptr<StateNode> &hoveredObject, const PickData *pickData) {
 	hoveredObject_ = hoveredObject;
 	hoveredObjectPickData_ = *pickData;
 	mouseDepth_->setVertex(0, pickData->depth);
@@ -336,20 +336,20 @@ void Application::updateTime() {
 	}
 	boost::posix_time::ptime t(boost::posix_time::microsec_clock::local_time());
 	auto dt = (t - lastTime_).total_milliseconds();
-	timeDelta_->setVertex(0, (double)dt);
-	timeSeconds_->setVertex(0, t.time_of_day().total_microseconds()/1e+6);
+	timeDelta_->setVertex(0, (double) dt);
+	timeSeconds_->setVertex(0, t.time_of_day().total_microseconds() / 1e+6);
 	lastTime_ = t;
 	worldTime_.p_time += boost::posix_time::milliseconds(static_cast<long>(dt * worldTime_.scale));
 }
 
 void Application::setWorldTime(const time_t &t) {
 	worldTime_.p_time = boost::posix_time::from_time_t(t);
-	worldTime_.in->setUniformData((float)t);
+	worldTime_.in->setUniformData((float) t);
 }
 
 void Application::setWorldTime(float timeInSeconds) {
 	worldTime_.in->setUniformData(timeInSeconds);
-	worldTime_.p_time = boost::posix_time::from_time_t((time_t)timeInSeconds);
+	worldTime_.p_time = boost::posix_time::from_time_t((time_t) timeInSeconds);
 }
 
 void Application::drawGL() {
@@ -380,7 +380,7 @@ void Application::withGLContext(std::function<void()> f) {
 	glCalls_.emplace_back(anim);
 	anim->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(
 			[this](EventObject *emitter, EventData *data) {
-				for (auto & it : glCalls_) {
+				for (auto &it: glCalls_) {
 					if (it.get() == emitter) {
 						glCalls_.erase(std::remove(glCalls_.begin(), glCalls_.end(), it), glCalls_.end());
 						break;

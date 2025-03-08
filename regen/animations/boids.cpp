@@ -102,75 +102,87 @@ void BoidsSimulation_CPU::initBoidSimulation(unsigned int numBoids) {
 	animationState()->joinShaderInput(maxAngularSpeed_);
 }
 
-void BoidsSimulation_CPU::loadSettings(scene::SceneParser *parser, const ref_ptr<scene::SceneInputNode> &node) {
+ref_ptr<BoidsSimulation_CPU> BoidsSimulation_CPU::load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ShaderInput3f> &position) {
+	auto boids = ref_ptr<BoidsSimulation_CPU>::alloc(position);
+	boids->loadSettings(ctx, input);
+	return boids;
+}
+
+ref_ptr<BoidsSimulation_CPU> BoidsSimulation_CPU::load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ModelTransformation> &tf) {
+	auto boids = ref_ptr<BoidsSimulation_CPU>::alloc(tf);
+	boids->loadSettings(ctx, input);
+	return boids;
+}
+
+void BoidsSimulation_CPU::loadSettings(LoadingContext &ctx, scene::SceneInputNode &input) {
 	// set the bounds of the boids simulation
-	if (node->hasAttribute("boids-area") && node->hasAttribute("boids-center")) {
-		auto boidsArea = node->getValue<Vec3f>("boids-area", Vec3f(10.0f));
-		auto boidsCenter = node->getValue<Vec3f>("boids-center", Vec3f(0.0f));
+	if (input.hasAttribute("boids-area") && input.hasAttribute("boids-center")) {
+		auto boidsArea = input.getValue<Vec3f>("boids-area", Vec3f(10.0f));
+		auto boidsCenter = input.getValue<Vec3f>("boids-center", Vec3f(0.0f));
 		Bounds<Vec3f> bounds(boidsCenter - boidsArea * 0.5f, boidsCenter + boidsArea * 0.5f);
 		setBounds(bounds);
 	} else {
 		auto boidBounds = Bounds<Vec3f>(
-				node->getValue<Vec3f>("bounds-min", Vec3f(-5.0f)),
-				node->getValue<Vec3f>("bounds-max", Vec3f(5.0f))
+				input.getValue<Vec3f>("bounds-min", Vec3f(-5.0f)),
+				input.getValue<Vec3f>("bounds-max", Vec3f(5.0f))
 		);
 		setBounds(boidBounds);
 	}
 
-	if (node->hasAttribute("base-orientation")) {
-		setBaseOrientation(node->getValue<float>("base-orientation", 0.0f));
+	if (input.hasAttribute("base-orientation")) {
+		setBaseOrientation(input.getValue<float>("base-orientation", 0.0f));
 	}
-	if (node->hasAttribute("look-ahead")) {
-		setLookAheadDistance(node->getValue<float>("look-ahead", 1.0f));
+	if (input.hasAttribute("look-ahead")) {
+		setLookAheadDistance(input.getValue<float>("look-ahead", 1.0f));
 	}
-	if (node->hasAttribute("repulsion")) {
-		setRepulsionFactor(node->getValue<float>("repulsion", 1.0f));
+	if (input.hasAttribute("repulsion")) {
+		setRepulsionFactor(input.getValue<float>("repulsion", 1.0f));
 	}
-	if (node->hasAttribute("max-speed")) {
-		setMaxBoidSpeed(node->getValue<float>("max-speed", 1.0f));
+	if (input.hasAttribute("max-speed")) {
+		setMaxBoidSpeed(input.getValue<float>("max-speed", 1.0f));
 	}
-	if (node->hasAttribute("visual-range")) {
-		setVisualRange(node->getValue<float>("visual-range", 1.0f));
+	if (input.hasAttribute("visual-range")) {
+		setVisualRange(input.getValue<float>("visual-range", 1.0f));
 	}
-	if (node->hasAttribute("coherence-weight")) {
-		setCoherenceWeight(node->getValue<float>("coherence-weight", 0.5f));
+	if (input.hasAttribute("coherence-weight")) {
+		setCoherenceWeight(input.getValue<float>("coherence-weight", 0.5f));
 	}
-	if (node->hasAttribute("alignment-weight")) {
-		setAlignmentWeight(node->getValue<float>("alignment-weight", 0.5f));
+	if (input.hasAttribute("alignment-weight")) {
+		setAlignmentWeight(input.getValue<float>("alignment-weight", 0.5f));
 	}
-	if (node->hasAttribute("avoidance-weight")) {
-		setAvoidanceWeight(node->getValue<float>("avoidance-weight", 0.5f));
+	if (input.hasAttribute("avoidance-weight")) {
+		setAvoidanceWeight(input.getValue<float>("avoidance-weight", 0.5f));
 	}
-	if (node->hasAttribute("avoidance-distance")) {
-		setAvoidanceDistance(node->getValue<float>("avoidance-distance", 1.0f));
+	if (input.hasAttribute("avoidance-distance")) {
+		setAvoidanceDistance(input.getValue<float>("avoidance-distance", 1.0f));
 	}
-	if (node->hasAttribute("separation-weight")) {
-		setSeparationWeight(node->getValue<float>("separation-weight", 0.5f));
+	if (input.hasAttribute("separation-weight")) {
+		setSeparationWeight(input.getValue<float>("separation-weight", 0.5f));
 	}
 
-	if (node->hasAttribute("height-map")) {
-		auto heightMap = parser->getResources()->getTexture2D(parser, node->getValue("height-map"));
+	if (input.hasAttribute("height-map")) {
+		auto heightMap = ctx.scene()->getResource<Texture2D>(input.getValue("height-map"));
 		if (heightMap.get() != nullptr) {
 			heightMap->ensureTextureData();
-			auto heightScale = node->getValue<float>("height-map-factor", 1.0f);
-			auto mapCenter = node->getValue<Vec3f>("map-center", Vec3f(0.0f));
-			auto mapSize = node->getValue<Vec2f>("map-size", Vec2f(10.0f));
+			auto heightScale = input.getValue<float>("height-map-factor", 1.0f);
+			auto mapCenter = input.getValue<Vec3f>("map-center", Vec3f(0.0f));
+			auto mapSize = input.getValue<Vec2f>("map-size", Vec2f(10.0f));
 			setMap(mapCenter, mapSize, heightMap, heightScale);
 		} else {
-			REGEN_WARN("Ignoring " << node->getDescription() << ", failed to load height map textures.");
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load height map textures.");
 		}
 	}
 
-	for (auto &homePointNode: node->getChildren("home-point")) {
+	for (auto &homePointNode: input.getChildren("home-point")) {
 		addHomePoint(homePointNode->getValue<Vec3f>("value", Vec3f(0.0f)));
 	}
-	for (auto &objectNode: node->getChildren("object")) {
+	for (auto &objectNode: input.getChildren("object")) {
 		auto objectType = objectNode->getValue<ObjectType>("type", ObjectType::ATTRACTOR);
 		ref_ptr<ShaderInputMat4> entityTF;
 		ref_ptr<ShaderInput3f> entityPos;
 		if (objectNode->hasAttribute("tf")) {
 			auto transformID = objectNode->getValue("tf");
-			auto transform = parser->getResources()->getTransform(parser, transformID);
+			auto transform = ctx.scene()->getResource<ModelTransformation>(transformID);
 			if (transform.get() != nullptr) {
 				entityTF = transform->get();
 			}
@@ -217,7 +229,7 @@ void BoidsSimulation_CPU::animate(double dt) {
 	// advance boids simulation
 	simulateBoids(dt_f);
 	// update boids model transformation using the boids data
-	if (tf_.get()){
+	if (tf_.get()) {
 		auto &tfInput = tf_->get();
 		auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ | ShaderData::WRITE);
 		for (GLuint i = 0; i < tfInput->numInstances(); ++i) {
@@ -237,8 +249,7 @@ void BoidsSimulation_CPU::animate(double dt) {
 				tfData.w[i] = tfData.r[i];
 			}
 		}
-	}
-	else if (position_.get()) {
+	} else if (position_.get()) {
 		auto positionData = position_->mapClientData<Vec3f>(ShaderData::WRITE);
 		// TODO: rather use memcpy
 		for (GLuint i = 0; i < position_->numInstances(); ++i) {
@@ -380,7 +391,8 @@ void BoidsSimulation_CPU::homesickness(BoidData &boid) {
 	boid.force += boidDirection_ * repulsionFactor * 0.1;
 }
 
-void BoidsSimulation_CPU::addObject(ObjectType objectType, const ref_ptr<ShaderInputMat4> &tf, const ref_ptr<ShaderInput3f> &offset) {
+void BoidsSimulation_CPU::addObject(ObjectType objectType, const ref_ptr<ShaderInputMat4> &tf,
+									const ref_ptr<ShaderInput3f> &offset) {
 	SimulationEntity *entity = nullptr;
 	switch (objectType) {
 		case ObjectType::ATTRACTOR:
@@ -539,7 +551,7 @@ namespace regen {
 		else if (val == "danger") mode = BoidsSimulation_CPU::ObjectType::DANGER;
 		else {
 			REGEN_WARN("Unknown Boid Object Type '" << val <<
-													   "'. Using default ATTRACTOR.");
+													"'. Using default ATTRACTOR.");
 			mode = BoidsSimulation_CPU::ObjectType::ATTRACTOR;
 		}
 		return in;

@@ -13,7 +13,7 @@
 #include <regen/utility/event-object.h>
 #include <regen/utility/time.h>
 #include <regen/states/state-node.h>
-#include "regen/states/geometric-picking.h"
+#include "regen/states/pick-data.h"
 #include "regen/scene/scene-interaction.h"
 
 // Defeat evil windows defines...
@@ -224,18 +224,18 @@ namespace regen {
 		 * @param name The name of the object.
 		 * @return The object or a null reference.
 		 */
-		auto& getObjectWithName(const std::string &name) const { return namedToObject_.at(name); }
+		auto &getObjectWithName(const std::string &name) const { return namedToObject_.at(name); }
 
 		/**
 		 * @param id The id of the object.
 		 * @return The object or a null reference.
 		 */
-		auto& getObjectWithID(const int &id) const { return idToObject_.at(id); }
+		auto &getObjectWithID(const int &id) const { return idToObject_.at(id); }
 
 		/**
 		 * @return The named objects.
 		 */
-		auto& namedObjects() const { return namedToObject_; }
+		auto &namedObjects() const { return namedToObject_; }
 
 		/**
 		 * @param name The name of the object.
@@ -248,7 +248,7 @@ namespace regen {
 		 * @param obj the node of the object.
 		 * @param pickData the picking data.
 		 */
-		void setHoveredObject(const ref_ptr<StateNode> &obj, const GeomPicking::PickData *pickData);
+		void setHoveredObject(const ref_ptr<StateNode> &obj, const PickData *pickData);
 
 		/**
 		 * Unsets the hovered object.
@@ -258,12 +258,12 @@ namespace regen {
 		/**
 		 * @return the hovered object.
 		 */
-		auto& hoveredObject() const { return hoveredObject_; }
+		auto &hoveredObject() const { return hoveredObject_; }
 
 		/**
 		 * @return the hovered object picking data.
 		 */
-		auto& hoveredObjectPickData() const { return hoveredObjectPickData_; }
+		auto &hoveredObjectPickData() const { return hoveredObjectPickData_; }
 
 		/**
 		 * @return true if there is a hovered object.
@@ -327,7 +327,7 @@ namespace regen {
 
 		RenderState *renderState_;
 		ref_ptr<StateNode> hoveredObject_;
-		GeomPicking::PickData hoveredObjectPickData_;
+		PickData hoveredObjectPickData_;
 
 		std::list<std::string> requiredExt_;
 		std::list<std::string> optionalExt_;

@@ -26,6 +26,8 @@ namespace regen {
 
 		ShaderState();
 
+		static ref_ptr<ShaderState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * Load, compile and link shader with given include key.
 		 * @param cfg the shader config.
@@ -44,12 +46,16 @@ namespace regen {
 		/**
 		 * @param shader the shader object.
 		 */
-		void set_shader(const ref_ptr<Shader>& shader);
+		void set_shader(const ref_ptr<Shader> &shader);
 
 		// overwrite
 		void enable(RenderState *) override;
 
 		void disable(RenderState *) override;
+
+		static ref_ptr<Shader> findShader(State *s);
+
+		static ref_ptr<Shader> findShader(StateNode *n);
 
 	protected:
 		ref_ptr<Shader> shader_;

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <regen/states/state.h>
+#include <regen/states/state-config.h>
 #include <regen/states/feedback-state.h>
 #include <regen/gl-types/shader-input-container.h>
 #include <regen/gl-types/vbo.h>
@@ -28,6 +29,8 @@ namespace regen {
 	 */
 	class Mesh : public State, public HasInput {
 	public:
+		static constexpr const char *TYPE_NAME = "Mesh";
+
 		struct MeshLOD {
 			GLuint numVertices;
 			GLuint vertexOffset;
@@ -263,8 +266,6 @@ namespace regen {
 
 		void addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in);
 	};
-
-	typedef std::vector<ref_ptr<Mesh> > MeshVector;
 } // namespace
 
 namespace regen {

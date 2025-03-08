@@ -38,6 +38,8 @@ namespace regen {
 
 		Material();
 
+		static ref_ptr<Material> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * @return Ambient material color.
 		 */
@@ -131,72 +133,72 @@ namespace regen {
 		/**
 		 * Sets default material colors for jade.
 		 */
-		void set_jade(Variant variant=0);
+		void set_jade(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for ruby.
 		 */
-		void set_ruby(Variant variant=0);
+		void set_ruby(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for chrome.
 		 */
-		void set_chrome(Variant variant=0);
+		void set_chrome(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for leather.
 		 */
-		void set_leather(Variant variant=0);
+		void set_leather(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for stone.
 		 */
-		void set_stone(Variant variant=0);
+		void set_stone(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for gold.
 		 */
-		void set_gold(Variant variant=0);
+		void set_gold(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for copper.
 		 */
-		void set_copper(Variant variant=0);
+		void set_copper(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for silver.
 		 */
-		void set_silver(Variant variant=0);
+		void set_silver(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for pewter.
 		 */
-		void set_pewter(Variant variant=0);
+		void set_pewter(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for iron.
 		 */
-		void set_iron(Variant variant=0);
+		void set_iron(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for steel.
 		 */
-		void set_steel(Variant variant=0);
+		void set_steel(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for metal.
 		 */
-		void set_metal(Variant variant=0);
+		void set_metal(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for wood.
 		 */
-		void set_wood(Variant variant=0);
+		void set_wood(Variant variant = 0);
 
 		/**
 		 * Sets default material colors for marble.
 		 */
-		void set_marble(Variant variant=0);
+		void set_marble(Variant variant = 0);
 
 		/**
 		 * Loads textures for the given material name and variant.

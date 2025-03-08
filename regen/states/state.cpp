@@ -6,6 +6,7 @@
  */
 
 #include <regen/gl-types/shader-input-container.h>
+#include <regen/scene/loading-context.h>
 
 #include "state.h"
 
@@ -54,11 +55,11 @@ static void setConstantUniforms_(State *s, GLboolean isConstant) {
 	auto *inState = dynamic_cast<HasInput *>(s);
 	if (inState) {
 		const ShaderInputList &in = inState->inputContainer()->inputs();
-		for (const auto & it : in) {
+		for (const auto &it: in) {
 			it.in_->set_isConstant(isConstant);
 		}
 	}
-	for (const auto & it : s->joined()) {
+	for (const auto &it: s->joined()) {
 		setConstantUniforms_(it.get(), isConstant);
 	}
 }
@@ -70,7 +71,7 @@ void State::setConstantUniforms(GLboolean isConstant) {
 const std::list<ref_ptr<State> > &State::joined() const { return joined_; }
 
 void State::enable(RenderState *state) {
-	for (auto & it : joined_) {
+	for (auto &it: joined_) {
 		if (!it->isHidden()) it->enable(state);
 	}
 }
@@ -134,7 +135,7 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 	if (inState != nullptr) {
 		ret.container = inState->inputContainer();
 		auto &l = ret.container->inputs();
-		for (const auto &inNamed : l) {
+		for (const auto &inNamed: l) {
 			if (name == inNamed.name_ || name == inNamed.in_->name()) {
 				ret.in = inNamed.in_;
 				ret.block = {};
@@ -142,7 +143,7 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 			}
 			if (inNamed.in_->isUniformBlock()) {
 				auto block = ref_ptr<UniformBlock>::dynamicCast(inNamed.in_);
-				for (auto &blockUniform : block->uniforms()) {
+				for (auto &blockUniform: block->uniforms()) {
 					if (name == blockUniform.name_ || name == blockUniform.in_->name()) {
 						ret.block = block;
 						ret.in = blockUniform.in_;
@@ -153,7 +154,7 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 		}
 	}
 
-	for (auto  &joined : joined_) {
+	for (auto &joined: joined_) {
 		auto joinedRet = joined->findShaderInput(name);
 		if (joinedRet.has_value()) {
 			return joinedRet.value();
@@ -176,7 +177,7 @@ const ref_ptr<State> &StateSequence::globalState() const { return globalState_; 
 
 void StateSequence::enable(RenderState *state) {
 	globalState_->enable(state);
-	for (auto & it : joined_) {
+	for (auto &it: joined_) {
 		it->enable(state);
 		it->disable(state);
 	}
@@ -184,3 +185,17 @@ void StateSequence::enable(RenderState *state) {
 }
 
 void StateSequence::disable(RenderState *state) {}
+
+ref_ptr<StateSequence> StateSequence::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	ref_ptr<StateSequence> seq = ref_ptr<StateSequence>::alloc();
+	// all states allowed as children
+	for (auto &n: input.getChildren()) {
+		auto processor = ctx.scene()->getStateProcessor(n->getCategory());
+		if (processor.get() == nullptr) {
+			REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
+			return {};
+		}
+		processor->processInput(ctx.scene(), *n.get(), ctx.parent(), seq);
+	}
+	return seq;
+}

@@ -1,16 +1,8 @@
-/*
- * state-node.h
- *
- *  Created on: 03.08.2012
- *      Author: daniel
- */
-
-#ifndef STATE_NODE_H_
-#define STATE_NODE_H_
+#ifndef REGEN_STATE_NODE_H_
+#define REGEN_STATE_NODE_H_
 
 #include <regen/gl-types/render-state.h>
 #include <regen/states/state.h>
-#include <regen/states/model-transformation.h>
 #include <regen/camera/camera.h>
 
 namespace regen {
@@ -31,12 +23,12 @@ namespace regen {
 		/**
 		 * @return Node name. Has no semantics.
 		 */
-		const std::string &name() const;
+		const std::string &name() const { return name_; }
 
 		/**
 		 * @param name Node name. Has no semantics.
 		 */
-		void set_name(const std::string &name);
+		void set_name(const std::string &name) { name_ = name; }
 
 		/**
 		 * Removes all children.
@@ -46,17 +38,17 @@ namespace regen {
 		/**
 		 * @return the state object.
 		 */
-		const ref_ptr<State> &state() const;
+		const ref_ptr<State> &state() const { return state_; }
 
 		/**
 		 * @return is the node hidden.
 		 */
-		GLboolean isHidden() const;
+		GLboolean isHidden() const { return isHidden_; }
 
 		/**
 		 * @param isHidden is the node hidden.
 		 */
-		void set_isHidden(GLboolean isHidden);
+		void set_isHidden(GLboolean isHidden) { isHidden_ = isHidden; }
 
 		/**
 		 * @return true if a parent is set.
@@ -66,12 +58,12 @@ namespace regen {
 		/**
 		 * @return the parent node.
 		 */
-		StateNode *parent() const;
+		StateNode *parent() const { return parent_; }
 
 		/**
 		 * @param parent the parent node.
 		 */
-		void set_parent(StateNode *parent);
+		void set_parent(StateNode *parent) { parent_ = parent; }
 
 		/**
 		 * Add a child node to the end of the child list.
@@ -103,11 +95,11 @@ namespace regen {
 		/**
 		 * Find a node with a given name.
 		 */
-		StateNode* findNodeWithName(const std::string &name);
+		StateNode *findNodeWithName(const std::string &name);
 
 		template<typename StateType>
-		StateType* findStateWithType() {
-			auto queue = std::queue<StateNode*>();
+		StateType *findStateWithType() {
+			auto queue = std::queue<StateNode *>();
 			queue.push(this);
 
 			while (!queue.empty()) {
@@ -118,7 +110,7 @@ namespace regen {
 				if (thisState) {
 					return thisState;
 				}
-				for (auto &joined : node->state_->joined()) {
+				for (auto &joined: node->state_->joined()) {
 					auto *joinedState = dynamic_cast<StateType *>(joined.get());
 					if (joinedState) {
 						return joinedState;
@@ -134,8 +126,8 @@ namespace regen {
 		}
 
 		template<typename StateType>
-		void foreachWithType(std::function<bool(StateType&)> const& func) {
-			auto queue = std::queue<StateNode*>();
+		void foreachWithType(std::function<bool(StateType &)> const &func) {
+			auto queue = std::queue<StateNode *>();
 			queue.push(this);
 
 			while (!queue.empty()) {
@@ -144,14 +136,14 @@ namespace regen {
 
 				auto *thisState = dynamic_cast<StateType *>(node->state_.get());
 				if (thisState) {
-					if(func(*thisState)) {
+					if (func(*thisState)) {
 						return;
 					}
 				}
-				for (auto &joined : node->state_->joined()) {
+				for (auto &joined: node->state_->joined()) {
 					auto *joinedState = dynamic_cast<StateType *>(joined.get());
 					if (joinedState) {
-						if(func(*joinedState)) {
+						if (func(*joinedState)) {
 							return;
 						}
 					}
@@ -250,39 +242,4 @@ namespace regen {
 	};
 } // namespace
 
-namespace regen {
-	/**
-	 * \brief Compares nodes by distance to camera.
-	 */
-	class NodeEyeDepthComparator {
-	public:
-		/**
-		 * @param cam the perspective camera.
-		 * @param frontToBack sort front to back or back to front
-		 */
-		NodeEyeDepthComparator(const ref_ptr<Camera> &cam, GLboolean frontToBack);
-
-		/**
-		 * @param worldPosition the world position.
-		 * @return world position camera distance.
-		 */
-		GLfloat getEyeDepth(const Vec3f &worldPosition) const;
-
-		/**
-		 * @param n a node.
-		 * @return a model view matrix.
-		 */
-		ModelTransformation *findModelTransformation(StateNode *n) const;
-
-		/**
-		 * Do the comparison.
-		 */
-		bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
-
-	protected:
-		ref_ptr<Camera> cam_;
-		GLint mode_;
-	};
-} // namespace
-
-#endif /* STATE_NODE_H_ */
+#endif /* REGEN_STATE_NODE_H_ */

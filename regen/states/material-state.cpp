@@ -12,6 +12,7 @@
 #include "material-state.h"
 #include "regen/utility/filesystem.h"
 #include "regen/textures/texture-loader.h"
+#include "regen/meshes/assimp-importer.h"
 
 using namespace regen;
 
@@ -97,7 +98,7 @@ void Material::set_maxOffset(GLfloat offset) {
 void Material::set_texture(const ref_ptr<TextureState> &texState, TextureState::MapTo mapTo) {
 	texState->set_mapping(TextureState::MAPPING_TEXCO);
 	texState->set_mapTo(TextureState::MAP_TO_CUSTOM);
-	switch(mapTo) {
+	switch (mapTo) {
 		case TextureState::MAP_TO_HEIGHT:
 			// add the offset to the original position
 			texState->set_blendMode(BLEND_MODE_ADD);
@@ -129,11 +130,9 @@ void Material::set_texture(const ref_ptr<TextureState> &texState, TextureState::
 			if (textures_.find(TextureState::MAP_TO_HEIGHT) != textures_.end()) {
 				if (heightMapMode_ == HEIGHT_MAP_RELIEF) {
 					texState->set_texcoTransfer(TextureState::TRANSFER_TEXCO_RELIEF);
-				}
-				else if (heightMapMode_ == HEIGHT_MAP_PARALLAX) {
+				} else if (heightMapMode_ == HEIGHT_MAP_PARALLAX) {
 					texState->set_texcoTransfer(TextureState::TRANSFER_TEXCO_PARALLAX);
-				}
-				else if (heightMapMode_ == HEIGHT_MAP_PARALLAX_OCCLUSION) {
+				} else if (heightMapMode_ == HEIGHT_MAP_PARALLAX_OCCLUSION) {
 					texState->set_texcoTransfer(TextureState::TRANSFER_TEXCO_PARALLAX_OCC);
 				}
 			}
@@ -145,35 +144,25 @@ void Material::set_texture(const ref_ptr<TextureState> &texState, TextureState::
 bool Material::getMapTo(std::string_view fileName, TextureState::MapTo &mapTo) {
 	if (fileName.find("diffuse") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_DIFFUSE;
-	}
-	else if (fileName.find("color") != std::string::npos) {
+	} else if (fileName.find("color") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_COLOR;
-	}
-	else if (fileName.find("ambient") != std::string::npos) {
+	} else if (fileName.find("ambient") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_AMBIENT;
-	}
-	else if (fileName.find("specular") != std::string::npos) {
+	} else if (fileName.find("specular") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_SPECULAR;
-	}
-	else if (fileName.find("emission") != std::string::npos) {
+	} else if (fileName.find("emission") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_EMISSION;
-	}
-	else if (fileName.find("normal") != std::string::npos) {
+	} else if (fileName.find("normal") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_NORMAL;
-	}
-	else if (fileName.find("height") != std::string::npos) {
+	} else if (fileName.find("height") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_HEIGHT;
-	}
-	else if (fileName.find("displacement") != std::string::npos) {
+	} else if (fileName.find("displacement") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_DISPLACEMENT;
-	}
-	else if (fileName.find("displace") != std::string::npos) {
+	} else if (fileName.find("displace") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_DISPLACEMENT;
-	}
-	else if (fileName.find("occlusion") != std::string::npos) {
+	} else if (fileName.find("occlusion") != std::string::npos) {
 		mapTo = TextureState::MAP_TO_LIGHT;
-	}
-	else {
+	} else {
 		return false;
 	}
 	return true;
@@ -224,7 +213,7 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 	}
 
 	for (auto &pair: textures_) {
-		for (auto &tex : pair.second) {
+		for (auto &tex: pair.second) {
 			set_texture(tex, pair.first);
 		}
 	}
@@ -304,18 +293,18 @@ void Material::set_stone(Variant variant) {
 }
 
 void Material::set_marble(Variant variant) {
-    materialAmbient_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
-    materialDiffuse_->setUniformData(Vec3f(0.8f, 0.8f, 0.8f));
-    materialSpecular_->setUniformData(Vec3f(0.9f, 0.9f, 0.9f));
-    materialShininess_->setUniformData(80.0f);
+	materialAmbient_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
+	materialDiffuse_->setUniformData(Vec3f(0.8f, 0.8f, 0.8f));
+	materialSpecular_->setUniformData(Vec3f(0.9f, 0.9f, 0.9f));
+	materialShininess_->setUniformData(80.0f);
 	set_textures("marble", variant);
 }
 
 void Material::set_wood(Variant variant) {
-    materialAmbient_->setUniformData(Vec3f(0.2f, 0.1f, 0.05f)); // Dark brown ambient color
-    materialDiffuse_->setUniformData(Vec3f(0.6f, 0.3f, 0.1f));  // Brown diffuse color
-    materialSpecular_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
-    materialShininess_->setUniformData(25.0f);
+	materialAmbient_->setUniformData(Vec3f(0.2f, 0.1f, 0.05f)); // Dark brown ambient color
+	materialDiffuse_->setUniformData(Vec3f(0.6f, 0.3f, 0.1f));  // Brown diffuse color
+	materialSpecular_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
+	materialShininess_->setUniformData(25.0f);
 	set_textures("wood", variant);
 }
 
@@ -368,9 +357,97 @@ namespace regen {
 		else if (val == "parallax_occlusion") mode = Material::HEIGHT_MAP_PARALLAX_OCCLUSION;
 		else {
 			REGEN_WARN("Unknown Height Map Mode '" << val <<
-													"'. Using default VERTEX Mapping.");
+												   "'. Using default VERTEX Mapping.");
 			mode = Material::HEIGHT_MAP_VERTEX;
 		}
 		return in;
 	}
+}
+
+ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	ref_ptr<Material> mat = ref_ptr<Material>::alloc();
+
+	if (input.hasAttribute("max-offset")) {
+		mat->set_maxOffset(input.getValue<GLfloat>("max-offset", 0.1f));
+	}
+	if (input.hasAttribute("height-map-mode")) {
+		mat->set_heightMapMode(input.getValue<Material::HeightMapMode>("height-map-mode",
+																	   Material::HEIGHT_MAP_VERTEX));
+	}
+	if (input.hasAttribute("color-blend-mode")) {
+		mat->set_colorBlendMode(input.getValue<BlendMode>("color-blend-mode", BLEND_MODE_SRC));
+	}
+	if (input.hasAttribute("color-blend-factor")) {
+		mat->set_colorBlendFactor(input.getValue<GLfloat>("color-blending-factor", 1.0f));
+	}
+
+
+	if (input.hasAttribute("asset")) {
+		ref_ptr<AssetImporter> assetLoader =
+				ctx.scene()->getResource<AssetImporter>(input.getValue("asset"));
+		if (assetLoader.get() == nullptr) {
+			REGEN_WARN("Skipping unknown Asset for '" << input.getDescription() << "'.");
+		} else {
+			const std::vector<ref_ptr<Material> > materials = assetLoader->materials();
+			auto materialIndex = input.getValue<GLuint>("asset-index", 0u);
+			if (materialIndex >= materials.size()) {
+				REGEN_WARN("Invalid Material index '" << materialIndex <<
+													  "' for Asset '" << input.getValue("asset") << "'.");
+			} else {
+				mat = materials[materialIndex];
+			}
+		}
+	} else if (input.hasAttribute("preset")) {
+		std::string presetVal(input.getValue("preset"));
+		auto variant = input.getValue<Material::Variant>("variant", 0);
+		if (presetVal == "jade") mat->set_jade(variant);
+		else if (presetVal == "ruby") mat->set_ruby(variant);
+		else if (presetVal == "chrome") mat->set_chrome(variant);
+		else if (presetVal == "gold") mat->set_gold(variant);
+		else if (presetVal == "copper") mat->set_copper(variant);
+		else if (presetVal == "silver") mat->set_silver(variant);
+		else if (presetVal == "pewter") mat->set_pewter(variant);
+		else if (presetVal == "iron") mat->set_iron(variant);
+		else if (presetVal == "steel") mat->set_steel(variant);
+		else if (presetVal == "metal") mat->set_metal(variant);
+		else if (presetVal == "leather") mat->set_leather(variant);
+		else if (presetVal == "stone") mat->set_stone(variant);
+		else if (presetVal == "wood") mat->set_wood(variant);
+		else if (presetVal == "marble") mat->set_marble(variant);
+		else {
+			mat->set_textures(presetVal, variant);
+		}
+	}
+	if (input.hasAttribute("ambient"))
+		mat->ambient()->setVertex(0,
+								  input.getValue<Vec3f>("ambient", Vec3f(0.0f)));
+	if (input.hasAttribute("diffuse"))
+		mat->diffuse()->setVertex(0,
+								  input.getValue<Vec3f>("diffuse", Vec3f(1.0f)));
+	if (input.hasAttribute("specular"))
+		mat->specular()->setVertex(0,
+								   input.getValue<Vec3f>("specular", Vec3f(0.0f)));
+	if (input.hasAttribute("shininess"))
+		mat->shininess()->setVertex(0,
+									input.getValue<GLfloat>("shininess", 1.0f));
+	if (input.hasAttribute("emission"))
+		mat->set_emission(input.getValue<Vec3f>("emission", Vec3f(0.0f)));
+	if (input.hasAttribute("textures")) {
+		mat->set_textures(
+				input.getValue("textures"),
+				input.getValue<Material::Variant>("variant", 0));
+	}
+
+	mat->alpha()->setVertex(0,
+							input.getValue<GLfloat>("alpha", 1.0f));
+	mat->refractionIndex()->setVertex(0,
+									  input.getValue<GLfloat>("refractionIndex", 0.95f));
+	mat->set_fillMode(glenum::fillMode(
+			input.getValue<std::string>("fill-mode", "FILL")));
+	if (input.getValue<bool>("two-sided", false)) {
+		// this conflicts with shadow mapping front face culling.
+		mat->set_twoSided(true);
+	}
+
+	return mat;
 }

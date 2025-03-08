@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "spatial-index.h"
+#include "quad-tree.h"
 
 using namespace regen;
 
@@ -113,9 +114,10 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 			if (distances.empty()) {
 				continue;
 			}
-			std::sort(distances.begin(), distances.end(), [](const IndexedShape::ShapeDistance &a, const IndexedShape::ShapeDistance &b) {
-				return a.distance < b.distance;
-			});
+			std::sort(distances.begin(), distances.end(),
+					  [](const IndexedShape::ShapeDistance &a, const IndexedShape::ShapeDistance &b) {
+						  return a.distance < b.distance;
+					  });
 			auto mapped_data = index_shape->mappedInstanceIDs();
 			for (auto &distance: distances) {
 				index_shape->u_instanceCount_ += 1;
@@ -192,4 +194,18 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	}
 	mapped.w[0] = shape->numInstances();
 	ic.shapes[shape->name()] = is;
+}
+
+ref_ptr<SpatialIndex> SpatialIndex::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto indexType = input.getValue<std::string>("type", "quadtree");
+	ref_ptr<SpatialIndex> index;
+
+	if (indexType == "quadtree") {
+		auto quadTree = ref_ptr<QuadTree>::alloc();
+		//quadTree->setMaxObjectsPerNode(input.getValue<GLuint>("max-objects-per-node", 4u));
+		quadTree->setMinNodeSize(input.getValue<float>("min-node-size", 0.1f));
+		index = quadTree;
+	}
+
+	return index;
 }

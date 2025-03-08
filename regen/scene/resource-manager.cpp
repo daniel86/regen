@@ -11,7 +11,7 @@ using namespace regen::scene;
 using namespace regen;
 using namespace std;
 
-void ResourceManager::loadResources(SceneParser *parser, const std::string &id) {
+void ResourceManager::loadResources(SceneLoader *parser, const std::string &id) {
 	assets_.getResource(parser, id);
 	cameras_.getResource(parser, id);
 	fbos_.getResource(parser, id);
@@ -24,60 +24,60 @@ void ResourceManager::loadResources(SceneParser *parser, const std::string &id) 
 	skies_.getResource(parser, id);
 }
 
-ref_ptr<Camera> ResourceManager::getCamera(SceneParser *parser, const std::string &id) {
+ref_ptr<Camera> ResourceManager::getCamera(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return cameras_.getResource(parser, id);
 }
 
-ref_ptr<Light> ResourceManager::getLight(SceneParser *parser, const std::string &id) {
+ref_ptr<Light> ResourceManager::getLight(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return lights_.getResource(parser, id);
 }
 
-ref_ptr<regen::Font> ResourceManager::getFont(SceneParser *parser, const std::string &id) {
+ref_ptr<regen::Font> ResourceManager::getFont(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return fonts_.getResource(parser, id);
 }
 
-ref_ptr<regen::SpatialIndex> ResourceManager::getIndex(SceneParser *parser, const std::string &id) {
+ref_ptr<regen::SpatialIndex> ResourceManager::getIndex(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return indices_.getResource(parser, id);
 }
 
-ref_ptr<FBO> ResourceManager::getFBO(SceneParser *parser, const std::string &id) {
+ref_ptr<FBO> ResourceManager::getFBO(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return fbos_.getResource(parser, id);
 }
 
-ref_ptr<UBO> ResourceManager::getUBO(SceneParser *parser, const std::string &id) {
+ref_ptr<UBO> ResourceManager::getUBO(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return ubos_.getResource(parser, id);
 }
 
-ref_ptr<Texture> ResourceManager::getTexture(SceneParser *parser, const std::string &id) {
+ref_ptr<Texture> ResourceManager::getTexture(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return textures_.getResource(parser, id);
 }
 
-ref_ptr<Texture2D> ResourceManager::getTexture2D(SceneParser *parser, const std::string &id) {
+ref_ptr<Texture2D> ResourceManager::getTexture2D(SceneLoader *parser, const std::string &id) {
 	return ref_ptr<Texture2D>::dynamicCast(getTexture(parser, id));
 }
 
-ref_ptr<MeshVector> ResourceManager::getMesh(SceneParser *parser, const std::string &id) {
+ref_ptr<MeshVector> ResourceManager::getMesh(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return meshes_.getResource(parser, id);
 }
 
-ref_ptr<ModelTransformation> ResourceManager::getTransform(SceneParser *parser, const std::string &id) {
+ref_ptr<ModelTransformation> ResourceManager::getTransform(SceneLoader *parser, const std::string &id) {
 	return transforms_[id];
 }
 
-ref_ptr<AssetImporter> ResourceManager::getAsset(SceneParser *parser, const std::string &id) {
+ref_ptr<AssetImporter> ResourceManager::getAsset(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return assets_.getResource(parser, id);
 }
 
-ref_ptr<Sky> ResourceManager::getSky(SceneParser *parser, const std::string &id) {
+ref_ptr<Sky> ResourceManager::getSky(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return skies_.getResource(parser, id);
 }

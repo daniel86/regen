@@ -22,6 +22,8 @@ namespace regen {
 	 */
 	class Light : public State, public HasInput {
 	public:
+		static constexpr const char *TYPE_NAME = "Light";
+
 		/**
 		 * \brief defines the light type
 		 */
@@ -35,6 +37,8 @@ namespace regen {
 		 * @param lightType the light type.
 		 */
 		explicit Light(Type lightType);
+
+		static ref_ptr<Light> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @return the light type.

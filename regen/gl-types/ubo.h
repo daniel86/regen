@@ -4,6 +4,7 @@
 #include <map>
 #include <regen/gl-types/gl-object.h>
 #include <regen/gl-types/shader-input.h>
+#include "regen/scene/scene-input.h"
 
 namespace regen {
 	/**
@@ -14,11 +15,15 @@ namespace regen {
 	 */
 	class UBO : public GLObject {
 	public:
+		static constexpr const char *TYPE_NAME = "UBO";
+
 		UBO();
 
 		~UBO() override = default;
 
 		UBO(const UBO &) = delete;
+
+		static ref_ptr<UBO> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * Add a uniform to the UBO.
@@ -36,7 +41,7 @@ namespace regen {
 		 * Should be called each frame, is a no-op if no data has changed.
 		 * @param forceUpdate force update.
 		 */
-		void update(bool forceUpdate=false);
+		void update(bool forceUpdate = false);
 
 		/**
 		 * @return the list of uniforms.
@@ -63,21 +68,25 @@ namespace regen {
 	protected:
 		struct UBO_Input {
 			UBO_Input() = default;
+
 			UBO_Input(const UBO_Input &other) {
 				input = other.input;
 				offset = other.offset;
 			}
+
 			~UBO_Input() {
 				if (alignedData) {
 					delete[] alignedData;
 				}
 			}
+
 			ref_ptr<ShaderInput> input;
 			GLuint offset = 0;
 			GLuint lastStamp = 0;
 			GLuint alignedSize = 0;
 			byte *alignedData = nullptr;
 		};
+
 		std::vector<UBO_Input> uboInputs_;
 		std::vector<NamedShaderInput> uniforms_;
 		GLuint allocatedSize_;

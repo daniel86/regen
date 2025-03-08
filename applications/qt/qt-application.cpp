@@ -11,7 +11,7 @@
 #include <regen/config.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/threading.h>
-#include <regen/utility/font.h>
+#include <regen/text/font.h>
 
 #include "qt-application.h"
 

@@ -24,6 +24,8 @@ namespace regen {
 	public:
 		DirectShading();
 
+		static ref_ptr<DirectShading> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * @return the ambient light.
 		 */

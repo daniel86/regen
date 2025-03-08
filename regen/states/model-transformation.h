@@ -22,7 +22,11 @@ namespace regen {
 	 */
 	class ModelTransformation : public State, public HasInput {
 	public:
+		static constexpr const char *TYPE_NAME = "ModelTransformation";
+
 		ModelTransformation();
+
+		static ref_ptr<ModelTransformation> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<State> &state);
 
 		/**
 		 * @return the model transformation matrix.

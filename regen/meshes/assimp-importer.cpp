@@ -23,6 +23,7 @@
 #include <IL/ilu.h>
 
 #include "assimp-importer.h"
+#include "regen/utility/filesystem.h"
 
 using namespace regen;
 using namespace std;
@@ -1140,9 +1141,9 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig) {
 		double duration = assimpAnim->mDuration;
 
 		REGEN_DEBUG("Loading animation " << animName <<
-			" with duration " << duration <<
-			" and ticks per second " << ticksPerSecond <<
-			" duration in seconds " << duration / ticksPerSecond);
+										 " with duration " << duration <<
+										 " and ticks per second " << ticksPerSecond <<
+										 " duration in seconds " << duration / ticksPerSecond);
 
 		if (assimpAnim->mNumChannels <= 0) continue;
 
@@ -1238,5 +1239,40 @@ void AssetImporter::loadNodeAnimation(const AssimpAnimationConfig &animConfig) {
 	nodeAnimations_[0] = anim;
 	for (GLuint i = 1; i < nodeAnimations_.size(); ++i) {
 		nodeAnimations_[i] = anim->copy(GL_FALSE);
+	}
+}
+
+ref_ptr<AssetImporter> AssetImporter::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	if (!input.hasAttribute("file")) {
+		REGEN_WARN("Ignoring Asset '" << input.getDescription() << "' without file.");
+		return {};
+	}
+	const std::string assetPath = resourcePath(input.getValue("file"));
+	const std::string texturePath = resourcePath(input.getValue("texture-path"));
+	auto assimpFlags = input.getValue<GLint>("import-flags", -1);
+
+	AssimpAnimationConfig animConfig;
+	animConfig.numInstances =
+			input.getValue<GLuint>("animation-instances", 1u);
+	animConfig.useAnimation = (animConfig.numInstances > 0) &&
+							  input.getValue<bool>("use-animation", true);
+	animConfig.forceStates =
+			input.getValue<bool>("animation-force-states", true);
+	animConfig.ticksPerSecond =
+			input.getValue<GLfloat>("animation-tps", 20.0);
+	animConfig.postState = input.getValue<NodeAnimation::Behavior>(
+			"animation-post-state",
+			NodeAnimation::BEHAVIOR_LINEAR);
+	animConfig.preState = input.getValue<NodeAnimation::Behavior>(
+			"animation-pre-state",
+			NodeAnimation::BEHAVIOR_LINEAR);
+
+	try {
+		return ref_ptr<AssetImporter>::alloc(
+				assetPath, texturePath, animConfig, assimpFlags);
+	}
+	catch (AssetImporter::Error &e) {
+		REGEN_WARN("Unable to open Asset file: " << e.what() << ".");
+		return {};
 	}
 }

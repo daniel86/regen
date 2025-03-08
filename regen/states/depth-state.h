@@ -16,6 +16,8 @@ namespace regen {
 	 */
 	class DepthState : public ServerSideState {
 	public:
+		static ref_ptr<DepthState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * Enable or disable depth testing with this state.
 		 */

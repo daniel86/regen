@@ -12,6 +12,7 @@
 #include <regen/gl-types/glsl/includer.h>
 
 #include "shader-state.h"
+#include "state-configurer.h"
 
 using namespace regen;
 
@@ -107,7 +108,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 
 const ref_ptr<Shader> &ShaderState::shader() const { return shader_; }
 
-void ShaderState::set_shader(const ref_ptr<Shader>& shader) { shader_ = shader; }
+void ShaderState::set_shader(const ref_ptr<Shader> &shader) { shader_ = shader; }
 
 void ShaderState::enable(RenderState *rs) {
 	rs->shader().push(shader_->id());
@@ -120,4 +121,45 @@ void ShaderState::enable(RenderState *rs) {
 void ShaderState::disable(RenderState *rs) {
 	State::disable(rs);
 	rs->shader().pop();
+}
+
+ref_ptr<Shader> ShaderState::findShader(State *s) {
+	for (auto it = s->joined().rbegin(); it != s->joined().rend(); ++it) {
+		ref_ptr<Shader> out = findShader((*it).get());
+		if (out.get() != nullptr) return out;
+	}
+
+	auto *shaderState = dynamic_cast<ShaderState *>(s);
+	if (shaderState != nullptr) return shaderState->shader();
+
+	auto *hasShader = dynamic_cast<HasShader *>(s);
+	if (hasShader != nullptr) return hasShader->shaderState()->shader();
+
+	return {};
+}
+
+ref_ptr<Shader> ShaderState::findShader(StateNode *n) {
+	ref_ptr<Shader> out = findShader(n->state().get());
+	if (out.get() == nullptr && n->hasParent()) {
+		return findShader(n->parent());
+	} else {
+		return out;
+	}
+}
+
+ref_ptr<ShaderState> ShaderState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	if (!input.hasAttribute("key") && !input.hasAttribute("code")) {
+		REGEN_WARN("Ignoring " << input.getDescription() << " without shader input.");
+		return {};
+	}
+	ref_ptr<ShaderState> shaderState = ref_ptr<ShaderState>::alloc();
+
+	const std::string shaderKey = input.hasAttribute("key") ?
+								  input.getValue("key") : input.getValue("code");
+	StateConfigurer stateConfigurer;
+	stateConfigurer.addNode(ctx.parent().get());
+	stateConfigurer.addState(shaderState.get());
+	shaderState->createShader(stateConfigurer.cfg(), shaderKey);
+
+	return shaderState;
 }

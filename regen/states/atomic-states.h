@@ -46,6 +46,16 @@ namespace regen {
 
 		void disable(RenderState *rs) override { rs->toggles().pop(key_); }
 
+		static ref_ptr<ToggleState> load(LoadingContext &ctx, scene::SceneInputNode &input) {
+			if (!input.hasAttribute("key")) {
+				REGEN_WARN("Ignoring " << input.getDescription() << " without key attribute.");
+				return {};
+			}
+			return ref_ptr<ToggleState>::alloc(
+					input.getValue<RenderState::Toggle>("key", RenderState::CULL_FACE),
+					input.getValue<bool>("value", true));
+		}
+
 	protected:
 		RenderState::Toggle key_;
 		GLboolean toggle_;
@@ -191,16 +201,23 @@ namespace regen {
 		BlendFunction func_;
 	};
 
+	class CullState : public ServerSideState {
+	public:
+		CullState() = default;
+
+		static ref_ptr<State> load(LoadingContext &ctx, scene::SceneInputNode &input);
+	};
+
 	/**
 	 * Specifies whether front- or back-facing facets are candidates for culling.
 	 */
-	class CullFaceState : public ServerSideState {
+	class CullFaceState : public CullState {
 	public:
 		/**
 		 * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
 		 * The initial value is GL_BACK.
 		 */
-		explicit CullFaceState(GLenum face) : ServerSideState(), face_(face) {}
+		explicit CullFaceState(GLenum face) : CullState(), face_(face) {}
 
 		void enable(RenderState *rs) override { rs->cullFace().push(face_); }
 
@@ -214,12 +231,12 @@ namespace regen {
 	 * Specifies the orientation of front-facing polygons.
 	 * GL_CW and GL_CCW are accepted. The initial value is GL_CCW.
 	 */
-	class FrontFaceState : public ServerSideState {
+	class FrontFaceState : public CullState {
 	public:
 		/**
 		 * @param ordering GL_CW and GL_CCW are accepted.
 		 */
-		explicit FrontFaceState(GLenum ordering) : ServerSideState(), ordering_(ordering) {}
+		explicit FrontFaceState(GLenum ordering) : CullState(), ordering_(ordering) {}
 
 		// Override
 		void enable(RenderState *rs) override { rs->frontFace().push(ordering_); }
@@ -230,12 +247,19 @@ namespace regen {
 		GLenum ordering_;
 	};
 
+	class PolygonState : public ServerSideState {
+	public:
+		PolygonState() = default;
+
+		static ref_ptr<State> load(LoadingContext &ctx, scene::SceneInputNode &input);
+	};
+
 	/**
 	 * \brief Set the scale and units used to calculate depth values.
 	 *
 	 * This state also enables the polygon offset toggle.
 	 */
-	class PolygonOffsetState : public ServerSideState {
+	class PolygonOffsetState : public PolygonState {
 	public:
 		/**
 		 * @param factor specifies a scale factor that is used to create a variable
@@ -244,7 +268,7 @@ namespace regen {
 		 *    create a constant depth offset. The initial value is 0.
 		 */
 		PolygonOffsetState(GLfloat factor, GLfloat units)
-				: ServerSideState(), factor_(factor), units_(units) {}
+				: PolygonState(), factor_(factor), units_(units) {}
 
 		void enable(RenderState *rs) override {
 			rs->toggles().push(RenderState::POLYGON_OFFSET_FILL, GL_TRUE);
@@ -263,13 +287,13 @@ namespace regen {
 	/**
 	 * \brief Specifies how polygons will be rasterized.
 	 */
-	class FillModeState : public ServerSideState {
+	class FillModeState : public PolygonState {
 	public:
 		/**
 		 * Accepted values are GL_POINT,GL_LINE,GL_FILL.
 		 * The initial value is GL_FILL for both front- and back-facing polygons.
 		 */
-		explicit FillModeState(GLenum mode) : ServerSideState(), mode_(mode) {}
+		explicit FillModeState(GLenum mode) : PolygonState(), mode_(mode) {}
 
 		void enable(RenderState *rs) override { rs->polygonMode().push(mode_); }
 

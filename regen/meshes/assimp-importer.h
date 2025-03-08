@@ -16,6 +16,7 @@
 #include <regen/animations/animation.h>
 #include <regen/animations/bones.h>
 #include <regen/camera/camera.h>
+#include <regen/scene/loading-context.h>
 
 #include <regen/animations/animation-node.h>
 
@@ -68,8 +69,10 @@ namespace regen {
 	 * is supported.
 	 * @see http://assimp.sourceforge.net/
 	 */
-	class AssetImporter {
+	class AssetImporter : public Resource {
 	public:
+		static constexpr const char *TYPE_NAME = "AssetImporter";
+
 		/**
 		 * \brief Something went wrong processing the model file.
 		 */
@@ -92,7 +95,9 @@ namespace regen {
 					  const AssimpAnimationConfig &animConfig = AssimpAnimationConfig(),
 					  GLint assimpFlags = -1);
 
-		~AssetImporter();
+		~AssetImporter() override;
+
+		static ref_ptr<AssetImporter> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @return list of lights defined in the assimp file.

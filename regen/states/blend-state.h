@@ -65,6 +65,8 @@ namespace regen {
 		 */
 		explicit BlendState(BlendMode blendMode);
 
+		static ref_ptr<BlendState> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * Specify pixel arithmetic.
 		 * @param sfactor specifies which method is used to scale the source color components.

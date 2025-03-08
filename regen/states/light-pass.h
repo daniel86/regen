@@ -25,6 +25,8 @@ namespace regen {
 		 */
 		LightPass(Light::Type type, const std::string &shaderKey);
 
+		static ref_ptr<LightPass> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * @param cfg the shader configuration.
 		 */

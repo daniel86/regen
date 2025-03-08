@@ -11,6 +11,7 @@
 #include <regen/textures/texture-3d.h>
 
 #include "light-pass.h"
+#include "regen/scene/shader-input-processor.h"
 
 using namespace regen;
 
@@ -112,16 +113,16 @@ void LightPass::createShader(const StateConfig &cfg) {
 	if (!lights_.empty()) {
 		// add first light to shader to set up shader defines and also instance count
 		auto &firstLight = lights_.front();
-		for (auto &in : firstLight.light->inputContainer()->inputs()) {
+		for (auto &in: firstLight.light->inputContainer()->inputs()) {
 			if (in.in_->isUniformBlock()) {
 				auto *block = dynamic_cast<UniformBlock *>(in.in_.get());
 				_cfg.addInput(in.in_->name(), in.in_);
-				for (auto &blockUniform : block->uniforms()) {
-					if (blockUniform.in_->numInstances()>0) { hasInstancedInputs = true; }
+				for (auto &blockUniform: block->uniforms()) {
+					if (blockUniform.in_->numInstances() > 0) { hasInstancedInputs = true; }
 				}
 			} else {
 				_cfg.addInput(in.in_->name(), in.in_);
-				if (in.in_->numInstances()>0) { hasInstancedInputs = true; }
+				if (in.in_->numInstances() > 0) { hasInstancedInputs = true; }
 			}
 		}
 	}
@@ -132,7 +133,7 @@ void LightPass::createShader(const StateConfig &cfg) {
 	shader_->createShader(_cfg.cfg(), shaderKey_);
 	mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
 
-	for (auto & light : lights_) { addLightInput(light); }
+	for (auto &light: lights_) { addLightInput(light); }
 	shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
 	shadowColorLoc_ = shader_->shader()->uniformLocation("shadowColorTexture");
 }
@@ -178,7 +179,7 @@ void LightPass::enable(RenderState *rs) {
 	auto smChannel = rs->reserveTextureChannel();
 	auto smColorChannel = rs->reserveTextureChannel();
 
-	for (auto &l : lights_) {
+	for (auto &l: lights_) {
 		ref_ptr<Texture> shadowTex;
 		// activate shadow map if specified
 		if (l.shadow.get()) {
@@ -190,8 +191,8 @@ void LightPass::enable(RenderState *rs) {
 			glUniform1i(shadowColorLoc_, smColorChannel);
 		}
 		// enable light pass uniforms
-		for (auto & inputLocation : l.inputLocations) {
-			if (lights_.size()>1 || inputLocation.uploadStamp != inputLocation.input->stamp()) {
+		for (auto &inputLocation: l.inputLocations) {
+			if (lights_.size() > 1 || inputLocation.uploadStamp != inputLocation.input->stamp()) {
 				inputLocation.input->enableUniform(inputLocation.location);
 				inputLocation.uploadStamp = inputLocation.input->stamp();
 			}
@@ -206,4 +207,79 @@ void LightPass::enable(RenderState *rs) {
 
 	rs->releaseTextureChannel();
 	rs->releaseTextureChannel();
+}
+
+ref_ptr<LightPass> LightPass::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto scene = ctx.scene();
+
+	if (!input.hasAttribute("shader")) {
+		REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");
+		return {};
+	}
+	ref_ptr<LightPass> x = ref_ptr<LightPass>::alloc(
+			input.getValue<Light::Type>("type", Light::SPOT),
+			input.getValue("shader"));
+
+	x->setShadowFiltering(input.getValue<ShadowFilterMode>(
+			"shadow-filter", SHADOW_FILTERING_NONE));
+	bool useShadows = false, toggle = true;
+
+	for (auto &n: input.getChildren()) {
+
+		ref_ptr<Light> light = scene->getResource<Light>(n->getName());
+		if (light.get() == nullptr) {
+			continue;
+		}
+		std::list<ref_ptr<ShaderInput> > inputs;
+
+		ref_ptr<Texture> shadowMap;
+		ref_ptr<Texture> shadowColorMap;
+		ref_ptr<LightCamera> shadowCamera;
+		if (n->hasAttribute("shadow-camera")) {
+			shadowCamera = ref_ptr<LightCamera>::dynamicCast(
+					scene->getResource<Camera>(n->getValue("shadow-camera")));
+			if (shadowCamera.get() == nullptr) {
+				REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");
+			}
+		}
+		if (n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-texture")) {
+			shadowMap = TextureState::getTexture(scene, *n.get(),
+												 "shadow-texture", "shadow-buffer",
+												 "shadow-attachment");
+			if (shadowMap.get() == nullptr) {
+				REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
+			}
+		}
+		if ((n->hasAttribute("shadow-buffer") && n->hasAttribute("shadow-color-attachment")) ||
+			n->hasAttribute("shadow-color-texture")) {
+			shadowColorMap = TextureState::getTexture(scene, *n.get(),
+													  "shadow-color-texture", "shadow-buffer",
+													  "shadow-color-attachment");
+		}
+		if (toggle) {
+			useShadows = (shadowMap.get() != nullptr);
+			toggle = false;
+		} else if ((shadowMap.get() != nullptr) != useShadows) {
+			REGEN_WARN("Ignoring " << input.getDescription() << ".");
+			continue;
+		}
+
+		// Each light pass can have a set of ShaderInput's
+		for (auto &m: n->getChildren()) {
+			if (m->getCategory() == "input") {
+				inputs.push_back(scene::ShaderInputProcessor::createShaderInput(scene, *m.get(), x));
+			} else {
+				REGEN_WARN("Unhandled node " << m->getDescription() << ".");
+			}
+		}
+
+		x->addLight(light, shadowCamera, shadowMap, shadowColorMap, inputs);
+	}
+
+	StateConfigurer shaderConfigurer;
+	shaderConfigurer.addNode(ctx.parent().get());
+	shaderConfigurer.addState(x.get());
+	x->createShader(shaderConfigurer.cfg());
+
+	return x;
 }

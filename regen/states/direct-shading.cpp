@@ -9,6 +9,7 @@
 
 #include "direct-shading.h"
 #include "regen/camera/light-camera-parabolic.h"
+#include "regen/scene/node-processor.h"
 #include <regen/textures/texture-3d.h>
 
 using namespace regen;
@@ -121,7 +122,7 @@ void DirectShading::addLight(
 				// to avoid name clash.
 				// TODO: find a way to use UBO without the name clash
 				auto *block = dynamic_cast<UniformBlock *>(it->in_.get());
-				for (auto &blockUniform : block->uniforms()) {
+				for (auto &blockUniform: block->uniforms()) {
 					joinShaderInput(
 							blockUniform.in_,
 							REGEN_LIGHT_NAME(blockUniform.name_, lightID));
@@ -166,7 +167,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	DirectLight &directLight = *it;
 	{
 		const ShaderInputList &in = l->inputContainer()->inputs();
-		for (const auto & jt : in) { disjoinShaderInput(jt.in_); }
+		for (const auto &jt: in) { disjoinShaderInput(jt.in_); }
 	}
 	if (directLight.camera_.get()) {
 		disjoinShaderInput(directLight.camera_->lightCamera()->far());
@@ -186,10 +187,80 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	GLuint numLights = lights_.size(), lightIndex = 0;
 	// update shader defines
 	shaderDefine("NUM_LIGHTS", REGEN_STRING(numLights));
-	for (auto & light : lights_) {
+	for (auto &light: lights_) {
 		updateDefine(light, lightIndex);
 		++lightIndex;
 	}
 }
 
 const ref_ptr<ShaderInput3f> &DirectShading::ambientLight() const { return ambientLight_; }
+
+ref_ptr<DirectShading> DirectShading::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto scene = ctx.scene();
+
+	ref_ptr<scene::SceneInputNode> lightNode = input.getFirstChild("direct-lights");
+	ref_ptr<scene::SceneInputNode> passNode = input.getFirstChild("direct-pass");
+	if (lightNode.get() == nullptr) {
+		REGEN_WARN("Missing direct-lights attribute for " << input.getDescription() << ".");
+		return {};
+	}
+	if (passNode.get() == nullptr) {
+		REGEN_WARN("Missing direct-pass attribute for " << input.getDescription() << ".");
+		return {};
+	}
+
+	ref_ptr<DirectShading> shadingState = ref_ptr<DirectShading>::alloc();
+	ref_ptr<StateNode> shadingNode = ref_ptr<StateNode>::alloc(shadingState);
+	ctx.parent()->addChild(shadingNode);
+
+	if (input.hasAttribute("ambient")) {
+		shadingState->ambientLight()->setVertex(0,
+												input.getValue<Vec3f>("ambient", Vec3f(0.1f)));
+	}
+
+	// load lights
+	for (auto &n: lightNode->getChildren()) {
+		if (n->getCategory() != "light") {
+			REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
+			continue;
+		}
+
+		ref_ptr<Light> light = scene->getResource<Light>(n->getName());
+		if (light.get() == nullptr) {
+			REGEN_WARN("Unable to find Light for '" << n->getDescription() << "'.");
+			continue;
+		}
+
+		auto shadowFiltering =
+				n->getValue<ShadowFilterMode>("shadow-filter", SHADOW_FILTERING_NONE);
+		ref_ptr<Texture> shadowMap;
+		ref_ptr<Texture> shadowColorMap;
+		ref_ptr<LightCamera> shadowCamera;
+		if (n->hasAttribute("shadow-camera")) {
+			shadowCamera = ref_ptr<LightCamera>::dynamicCast(
+					scene->getResource<Camera>(n->getValue("shadow-camera")));
+			if (shadowCamera.get() == nullptr) {
+				REGEN_WARN("Unable to find LightCamera for '" << n->getDescription() << "'.");
+			}
+		}
+		if (n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-texture")) {
+			shadowMap = TextureState::getTexture(scene, *n.get(),
+												 "shadow-texture", "shadow-buffer",
+												 "shadow-attachment");
+			if (shadowMap.get() == nullptr) {
+				REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
+			}
+		}
+		if (n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-color-texture")) {
+			shadowColorMap = TextureState::getTexture(scene, *n.get(),
+													  "shadow-color-texture", "shadow-buffer",
+													  "shadow-color-attachment");
+		}
+		shadingState->addLight(light, shadowCamera, shadowMap, shadowColorMap, shadowFiltering);
+	}
+
+	// parse passNode
+	scene::SceneNodeProcessor().processInput(scene, *passNode.get(), shadingNode);
+
+	return shadingState;
+}

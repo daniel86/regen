@@ -11,6 +11,7 @@
 #include <regen/states/fullscreen-pass.h>
 #include <regen/textures/texture-state.h>
 #include <regen/states/fbo-state.h>
+#include <regen/scene/loading-context.h>
 
 namespace regen {
 	/**
@@ -116,6 +117,8 @@ namespace regen {
 		 * @param bindInput bind and activate input before filtering.
 		 */
 		explicit FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInput = GL_TRUE);
+
+		static ref_ptr<FilterSequence> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * Creates filter shaders.

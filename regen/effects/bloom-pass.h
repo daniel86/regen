@@ -14,8 +14,10 @@ namespace regen {
 	class BloomPass : public StateNode {
 	public:
 		BloomPass(
-			const ref_ptr<Texture> &inputTexture,
-			const ref_ptr<BloomTexture> &bloomTexture);
+				const ref_ptr<Texture> &inputTexture,
+				const ref_ptr<BloomTexture> &bloomTexture);
+
+		static ref_ptr<BloomPass> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		void createShader(const StateConfig &cfg);
 
@@ -41,6 +43,7 @@ namespace regen {
 		GLint inverseInputSizeLocDS_;
 
 		void downsample(RenderState *rs);
+
 		void upsample(RenderState *rs);
 	};
 }

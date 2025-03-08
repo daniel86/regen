@@ -95,7 +95,7 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="0.0,-0.1,2.25"/>
         </transform>
-        <deformation id="teapot-deformation" mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
+        <animation type="deformation" id="teapot-deformation" mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
             <interpolations>
                 <interpolation target="pos" function="elastic"/>
                 <interpolation target="nor" function="elastic"/>
@@ -106,7 +106,7 @@
                 <frame duration="3.0" shape="box" width="0.85" height="0.85" depth="0.85" offset="0.0,-0.075,0.0"/>
                 <frame duration="3.0" shape="original"/>
             </frames>
-        </deformation>
+        </animation>
     </mesh>
 
     <mesh id="mesh-venus" type="asset" asset="asset-venus"
@@ -127,7 +127,7 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="-1.5,-0.6,0.0"/>
         </transform>
-        <deformation id="dragon-deformation" mesh-id="mesh-dragon" friction="7.9" frequency="1.0" repeat="true">
+        <animation type="deformation" id="dragon-deformation" mesh-id="mesh-dragon" friction="7.9" frequency="1.0" repeat="true">
             <interpolations>
                 <interpolation target="pos" function="elastic"/>
                 <interpolation target="nor" function="elastic"/>
@@ -136,7 +136,7 @@
                 <frame duration="2.0" shape="sphere"/>
                 <frame duration="2.0" shape="original"/>
             </frames>
-        </deformation>
+        </animation>
     </mesh>
 
     <node id="Shadow-Caster">

@@ -158,6 +158,74 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 	}
 }
 
+ref_ptr<FilterSequence> FilterSequence::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	auto scene = ctx.scene();
+	if (!input.hasAttribute("texture") && !input.hasAttribute("fbo")) {
+		REGEN_WARN("Ignoring " << input.getDescription() << " without input texture.");
+		return {};
+	}
+
+	ref_ptr<Texture> tex;
+	if (input.hasAttribute("texture")) {
+		tex = scene->getResource<Texture>(input.getValue("texture"));
+		if (tex.get() == nullptr) {
+			REGEN_WARN("Unable to find Texture for " << input.getDescription() << ".");
+			return {};
+		}
+	} else {
+		ref_ptr<FBO> fbo = scene->getResource<FBO>(input.getValue("fbo"));
+		if (fbo.get() == nullptr) {
+			REGEN_WARN("Unable to find FBO for " << input.getDescription() << ".");
+			return {};
+		}
+		auto attachment = input.getValue<GLuint>("attachment", 0);
+		std::vector<ref_ptr<Texture> > textures = fbo->colorTextures();
+		if (attachment >= textures.size()) {
+			REGEN_WARN("FBO " << input.getValue("fbo") <<
+							  " has less then " << (attachment + 1) << " attachments.");
+			return {};
+		}
+		tex = textures[attachment];
+	}
+
+	ref_ptr<FilterSequence> filterSeq = ref_ptr<FilterSequence>::alloc(
+			tex,
+			input.getValue<bool>("bind-input", true));
+	filterSeq->set_format(glenum::textureFormat(
+			input.getValue<std::string>("format", "NONE")));
+	filterSeq->set_internalFormat(glenum::textureInternalFormat(
+			input.getValue<std::string>("internal-format", "NONE")));
+	filterSeq->set_pixelType(glenum::pixelType(
+			input.getValue<std::string>("pixel-type", "NONE")));
+	if (input.hasAttribute("clear-color")) {
+		filterSeq->setClearColor(
+				input.getValue<Vec4f>("clear-color", Vec4f(0.0f)));
+	}
+
+	const std::list<ref_ptr<scene::SceneInputNode> > &childs = input.getChildren();
+	for (auto it = childs.begin(); it != childs.end(); ++it) {
+		ref_ptr<scene::SceneInputNode> n = *it;
+		if (!n->hasAttribute("shader")) {
+			REGEN_WARN("Ignoring filter '" << n->getDescription() << "' without shader.");
+			continue;
+		}
+		filterSeq->addFilter(ref_ptr<Filter>::alloc(
+				n->getValue("shader"),
+				n->getValue<GLfloat>("scale", 1.0f)));
+	}
+
+	StateConfigurer shaderConfigurer;
+	shaderConfigurer.addNode(ctx.parent().get());
+	shaderConfigurer.addState(filterSeq.get());
+	filterSeq->createShader(shaderConfigurer.cfg());
+
+	// Make the filter output available to the Texture resource provider.
+	//scene->putTexture(input.getName(), filterSeq->output());
+	scene->putResource<Texture>(input.getName(), filterSeq->output());
+
+	return filterSeq;
+}
+
 void FilterSequence::setClearColor(const Vec4f &clearColor) {
 	clearFirstFilter_ = GL_TRUE;
 	clearColor_ = clearColor;
@@ -207,7 +275,7 @@ void FilterSequence::addFilter(const ref_ptr<Filter> &f) {
 }
 
 void FilterSequence::createShader(StateConfig &cfg) {
-	for (auto & it : filterSequence_) {
+	for (auto &it: filterSequence_) {
 		auto *f = (Filter *) it.get();
 		StateConfigurer _cfg(cfg);
 		_cfg.addState(f);
@@ -222,7 +290,7 @@ void FilterSequence::resize() {
 	if (width == lastWidth_ && height == lastHeight_) return;
 
 	FBO *last = nullptr;
-	for (auto & it : filterSequence_) {
+	for (auto &it: filterSequence_) {
 		auto *f = (Filter *) it.get();
 		FBO *fbo = f->output()->fbo_.get();
 
@@ -254,7 +322,7 @@ void FilterSequence::enable(RenderState *rs) {
 		rs->clearColor().pop();
 		rs->drawFrameBuffer().pop();
 	}
-	for (auto & it : filterSequence_) {
+	for (auto &it: filterSequence_) {
 		auto *f = (Filter *) it.get();
 
 		FBO *fbo = f->output()->fbo_.get();

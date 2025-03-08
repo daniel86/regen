@@ -16,8 +16,10 @@
 #include <regen/camera/camera-controller.h>
 #include <regen/camera/key-frame-controller.h>
 #include <regen/camera/camera-anchor.h>
-#include <regen/scene/scene-parser.h>
+#include <regen/scene/scene-loader.h>
 #include <regen/scene/scene-input.h>
+#include <regen/shapes/spatial-index.h>
+#include <regen/states/light-state.h>
 #include <regen/animations/animation-node.h>
 #include <applications/qt/qt-application.h>
 #include <applications/qt/qt-camera-events.h>
@@ -130,7 +132,7 @@ protected:
 	void activateAnchor();
 
 	void handleCameraConfiguration(
-		scene::SceneParser &sceneParser,
+		scene::SceneLoader &sceneParser,
 		const ref_ptr<regen::scene::SceneInputNode> &cameraNode);
 
 	friend class SceneLoaderAnimation;

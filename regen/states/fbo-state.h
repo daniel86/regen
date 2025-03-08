@@ -27,6 +27,8 @@ namespace regen {
 		 */
 		explicit FBOState(const ref_ptr<FBO> &fbo);
 
+		static ref_ptr<State> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 		/**
 		 * @return the FBO instance.
 		 */

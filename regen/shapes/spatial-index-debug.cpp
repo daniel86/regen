@@ -1,5 +1,6 @@
 #include "spatial-index-debug.h"
 #include "orthogonal-projection.h"
+#include <regen/gl-types/gl-util.h>
 #include "regen/camera/reflection-camera.h"
 
 using namespace regen;
@@ -83,35 +84,35 @@ void SpatialIndexDebug::drawSphere(const BoundingSphere &sphere) {
 	Vec3f color = Vec3f(0.0f, 1.0f, 1.0f);
 
 	// draw a simple sphere
-    const int segments = 32;
-    const float angleStep = 2.0f * M_PI / segments;
+	const int segments = 32;
+	const float angleStep = 2.0f * M_PI / segments;
 
-    // Draw circle in the xy-plane
-    for (int i = 0; i < segments; i++) {
-        float angle = i * angleStep;
-        float nextAngle = (i + 1) * angleStep;
-        Vec3f from = center + Vec3f(std::cos(angle) * radius, std::sin(angle) * radius, 0);
-        Vec3f to = center + Vec3f(std::cos(nextAngle) * radius, std::sin(nextAngle) * radius, 0);
-        drawLine(from, to, color);
-    }
+	// Draw circle in the xy-plane
+	for (int i = 0; i < segments; i++) {
+		float angle = i * angleStep;
+		float nextAngle = (i + 1) * angleStep;
+		Vec3f from = center + Vec3f(std::cos(angle) * radius, std::sin(angle) * radius, 0);
+		Vec3f to = center + Vec3f(std::cos(nextAngle) * radius, std::sin(nextAngle) * radius, 0);
+		drawLine(from, to, color);
+	}
 
-    // Draw circle in the xz-plane
-    for (int i = 0; i < segments; i++) {
-        float angle = i * angleStep;
-        float nextAngle = (i + 1) * angleStep;
-        Vec3f from = center + Vec3f(std::cos(angle) * radius, 0, std::sin(angle) * radius);
-        Vec3f to = center + Vec3f(std::cos(nextAngle) * radius, 0, std::sin(nextAngle) * radius);
-        drawLine(from, to, color);
-    }
+	// Draw circle in the xz-plane
+	for (int i = 0; i < segments; i++) {
+		float angle = i * angleStep;
+		float nextAngle = (i + 1) * angleStep;
+		Vec3f from = center + Vec3f(std::cos(angle) * radius, 0, std::sin(angle) * radius);
+		Vec3f to = center + Vec3f(std::cos(nextAngle) * radius, 0, std::sin(nextAngle) * radius);
+		drawLine(from, to, color);
+	}
 
-    // Draw circle in the yz-plane
-    for (int i = 0; i < segments; i++) {
-        float angle = i * angleStep;
-        float nextAngle = (i + 1) * angleStep;
-        Vec3f from = center + Vec3f(0, std::cos(angle) * radius, std::sin(angle) * radius);
-        Vec3f to = center + Vec3f(0, std::cos(nextAngle) * radius, std::sin(nextAngle) * radius);
-        drawLine(from, to, color);
-    }
+	// Draw circle in the yz-plane
+	for (int i = 0; i < segments; i++) {
+		float angle = i * angleStep;
+		float nextAngle = (i + 1) * angleStep;
+		Vec3f from = center + Vec3f(0, std::cos(angle) * radius, std::sin(angle) * radius);
+		Vec3f to = center + Vec3f(0, std::cos(nextAngle) * radius, std::sin(nextAngle) * radius);
+		drawLine(from, to, color);
+	}
 }
 
 void SpatialIndexDebug::drawFrustum(const Frustum &frustum, const Vec3f &color) {
@@ -150,17 +151,17 @@ void SpatialIndexDebug::debugFrustum(const Frustum &frustum, const Vec3f &color)
 	Vec3f orthoColor = Vec3f(0.0f, 1.0f, 0.0f);
 	const auto h = 6.0f;
 	// draw lines of the frustum
-	for (size_t i=0; i<vertices.size()-1; i++) {
-		drawLine(toVec3(vertices[i],h), toVec3(vertices[i+1],h), orthoColor);
+	for (size_t i = 0; i < vertices.size() - 1; i++) {
+		drawLine(toVec3(vertices[i], h), toVec3(vertices[i + 1], h), orthoColor);
 	}
-	drawLine(toVec3(vertices.back(),h), toVec3(vertices.front(),h), orthoColor);
+	drawLine(toVec3(vertices.back(), h), toVec3(vertices.front(), h), orthoColor);
 }
 
 void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 	state()->enable(rs);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 	for (auto &shape: index_->shapes()) {
-		for (auto &instance : shape.second) {
+		for (auto &instance: shape.second) {
 			switch (instance->shapeType()) {
 				case BoundingShapeType::BOX: {
 					auto box = dynamic_cast<BoundingBox *>(instance.get());
@@ -180,7 +181,7 @@ void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 		}
 	}
 	for (auto &camera: index_->cameras()) {
-		for (auto &frustum : camera->frustum()) {
+		for (auto &frustum: camera->frustum()) {
 			debugFrustum(frustum, Vec3f(1.0f, 0.0f, 1.0f));
 		}
 	}

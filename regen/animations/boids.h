@@ -11,7 +11,7 @@
 #include "regen/shapes/bounds.h"
 #include "regen/shapes/quad-tree.h"
 #include "regen/scene/scene-input.h"
-#include "regen/scene/scene-parser.h"
+#include "regen/scene/scene-loader.h"
 #include <regen/textures/texture-2d.h>
 
 namespace regen {
@@ -44,12 +44,16 @@ namespace regen {
 
 		~BoidsSimulation_CPU() override = default;
 
+		static ref_ptr<BoidsSimulation_CPU> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ShaderInput3f> &position);
+
+		static ref_ptr<BoidsSimulation_CPU> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ModelTransformation> &tf);
+
 		/**
 		 * Load the boids settings from a scene input node.
 		 * @param parser the scene parser.
 		 * @param node the scene input node.
 		 */
-		void loadSettings(scene::SceneParser *parser, const ref_ptr<scene::SceneInputNode> &node);
+		void loadSettings(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * Set the base orientation of the boids.
@@ -75,8 +79,8 @@ namespace regen {
 		 * @param tf the attractor.
 		 */
 		void addObject(ObjectType objectType,
-				const ref_ptr<ShaderInputMat4> &tf,
-				const ref_ptr<ShaderInput3f> &offset);
+					   const ref_ptr<ShaderInputMat4> &tf,
+					   const ref_ptr<ShaderInput3f> &offset);
 
 		/**
 		 * Set the visual range of the boids, i.e. how far they can see the neighbors.

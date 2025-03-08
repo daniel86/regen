@@ -11,6 +11,8 @@ namespace regen {
 	 */
 	class Texture2D : public Texture {
 	public:
+		static constexpr const char *TYPE_NAME = "Texture2D";
+
 		/**
 		 * @param numTextures number of texture images.
 		 */
@@ -40,7 +42,7 @@ namespace regen {
 		auto numMips() const { return numMips_; }
 
 	protected:
-		std::vector<Texture*> mipTextures_;
+		std::vector<Texture *> mipTextures_;
 		std::vector<ref_ptr<Texture2D>> mipRefs_;
 		GLuint numMips_;
 	};

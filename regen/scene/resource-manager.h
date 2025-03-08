@@ -8,17 +8,12 @@
 #ifndef RESOURCE_MANAGER_H_
 #define RESOURCE_MANAGER_H_
 
-#include <regen/scene/resources/asset.h>
-#include <regen/scene/resources/camera.h>
-#include <regen/scene/resources/fbo.h>
-#include <regen/scene/resources/font.h>
-#include <regen/scene/resources/light.h>
-#include <regen/scene/resources/mesh.h>
-#include <regen/scene/resources/texture.h>
-#include <regen/scene/resources/sky.h>
-#include "regen/scene/resources/ubo-resource.h"
 #include "regen/shapes/spatial-index.h"
-#include "regen/scene/resources/index-resource.h"
+#include "regen/meshes/mesh-vector.h"
+#include "scene-loader.h"
+#include "regen/textures/texture-2d.h"
+#include "regen/sky/sky.h"
+#include "loadable-input.h"
 
 namespace regen {
 	namespace scene {
@@ -32,57 +27,57 @@ namespace regen {
 			 * @param id the resource id.
 			 * @return A Camera resource or null reference.
 			 */
-			ref_ptr<Camera> getCamera(SceneParser *parser, const std::string &id);
+			ref_ptr<Camera> getCamera(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A Light resource or null reference.
 			 */
-			ref_ptr<Light> getLight(SceneParser *parser, const std::string &id);
+			ref_ptr<Light> getLight(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A FBO resource or null reference.
 			 */
-			ref_ptr<FBO> getFBO(SceneParser *parser, const std::string &id);
+			ref_ptr<FBO> getFBO(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A UBO resource or null reference.
 			 */
-			ref_ptr<UBO> getUBO(SceneParser *parser, const std::string &id);
+			ref_ptr<UBO> getUBO(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A Texture resource or null reference.
 			 */
-			ref_ptr<Texture> getTexture(SceneParser *parser, const std::string &id);
+			ref_ptr<Texture> getTexture(SceneLoader *parser, const std::string &id);
 
-			ref_ptr<Texture2D> getTexture2D(SceneParser *parser, const std::string &id);
+			ref_ptr<Texture2D> getTexture2D(SceneLoader *parser, const std::string &id);
 
-			ref_ptr<Sky> getSky(SceneParser *parser, const std::string &id);
+			ref_ptr<Sky> getSky(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A MeshVector resource or null reference.
 			 */
-			ref_ptr<MeshVector> getMesh(SceneParser *parser, const std::string &id);
+			ref_ptr<MeshVector> getMesh(SceneLoader *parser, const std::string &id);
 
-			ref_ptr<ModelTransformation> getTransform(SceneParser *parser, const std::string &id);
+			ref_ptr<ModelTransformation> getTransform(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param parser The scene parser that contains resources.
 			 * @param id the resource id.
 			 * @return A AssetImporter resource or null reference.
 			 */
-			ref_ptr<AssetImporter> getAsset(SceneParser *parser, const std::string &id);
+			ref_ptr<AssetImporter> getAsset(SceneLoader *parser, const std::string &id);
 
-			ref_ptr<State> getState(SceneParser *parser, const std::string &id);
+			ref_ptr<State> getState(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param id the resource id.
@@ -106,7 +101,7 @@ namespace regen {
 			 * @param id the resource id.
 			 * @return A Font resource or null reference.
 			 */
-			ref_ptr<regen::Font> getFont(SceneParser *parser, const std::string &id);
+			ref_ptr<regen::Font> getFont(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * @param id the resource id.
@@ -119,7 +114,7 @@ namespace regen {
 			 * @param id the resource id.
 			 * @return A resource or null reference.
 			 */
-			ref_ptr<regen::SpatialIndex> getIndex(SceneParser *parser, const std::string &id);
+			ref_ptr<regen::SpatialIndex> getIndex(SceneLoader *parser, const std::string &id);
 
 			auto &getIndices() { return indices_.resources(); }
 
@@ -168,19 +163,19 @@ namespace regen {
 			 * @param parser the SceneParser instance.
 			 * @param id resource id.
 			 */
-			void loadResources(SceneParser *parser, const std::string &id);
+			void loadResources(SceneLoader *parser, const std::string &id);
 
 		protected:
-			AssetResource assets_;
-			CameraResource cameras_;
-			FBOResource fbos_;
-			UBOResource ubos_;
-			FontResource fonts_;
-			IndexResource indices_;
-			LightResource lights_;
-			MeshResource meshes_;
-			SkyResource skies_;
-			TextureResource textures_;
+			LoadableResource<SpatialIndex> indices_ = LoadableResource<SpatialIndex>("index");
+			LoadableResource<AssetImporter> assets_ = LoadableResource<AssetImporter>("asset");
+			LoadableResource<UBO> ubos_ = LoadableResource<UBO>("ubo");
+			LoadableResource<Font> fonts_ = LoadableResource<Font>("font");
+			LoadableResource<FBO> fbos_ = LoadableResource<FBO>("fbo");
+			LoadableResource<Texture> textures_ = LoadableResource<Texture>("texture");
+			LoadableResource<Light> lights_ = LoadableResource<Light>("light");
+			LoadableResource<Camera> cameras_ = LoadableResource<Camera>("camera");
+			LoadableResource<MeshVector> meshes_ = LoadableResource<MeshVector>("mesh");
+			LoadableResource<Sky> skies_ = LoadableResource<Sky>("sky");
 			std::map<std::string, ref_ptr<ModelTransformation> > transforms_;
 		};
 	}
