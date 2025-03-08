@@ -6,11 +6,14 @@
 
 #include "regen/states/blit-state.h"
 #include "regen/states/state-configurer.h"
+#include "regen/states/fbo-state.h"
+#include "regen/meshes/primitives/rectangle.h"
 #include <regen/animations/animation-manager.h>
 #include <QInputDialog>
 
 #include "noise-widget.h"
 
+using namespace regen;
 using namespace std;
 
 ////////////

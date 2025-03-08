@@ -130,6 +130,9 @@ message(STATUS "  alut:${ALUT_INCLUDE_DIRS};")
 message(STATUS "  FFmpeg:${FFMPEG_INCLUDE_DIRS};")
 message(STATUS "  Bullet:${BULLET_INCLUDE_DIRS};")
 
+enable_testing()
+find_package(GTest REQUIRED)
+
 # allow includes without AL/ prefix. Some openAL versions require this.
 include_directories(
     ${OPENAL_INCLUDE_DIRS}/AL
@@ -162,8 +165,8 @@ endif ()
 find_package(Doxygen QUIET)
 if(DOXYGEN_FOUND)
     configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/regen/doc/doxyfile.in
-        ${CMAKE_CURRENT_BINARY_DIR}/regen/doc/doxyfile @ONLY)
+        ${CMAKE_CURRENT_SOURCE_DIR}/doc/doxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/doc/doxyfile @ONLY)
 
     if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome.css")
         message(STATUS "Downloading \"doxygen-awesome.css\" into directory \"${CMAKE_CURRENT_BINARY_DIR}\".")
@@ -173,7 +176,7 @@ if(DOXYGEN_FOUND)
     endif ()
 
     add_custom_target(doc
-        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/regen/doc/doxyfile
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/regen
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM
@@ -200,6 +203,24 @@ set(SHARE_INSTALL_PATH share/${PROJECT_NAME})
 install(FILES img/logo.png DESTINATION ${SHARE_INSTALL_PATH}/img)
 install(FILES img/icon.png DESTINATION ${SHARE_INSTALL_PATH}/img)
 install(FILES img/icon-small.png DESTINATION ${SHARE_INSTALL_PATH}/img)
+
+##############
+########## Unit Testings
+##############
+
+# add an executable target for GTest.
+# but the testing code is partly in the *knowrob* library
+# where gtest won't find them without using the "--no-as-needed"
+# flag for the linker.
+add_executable(all_gtests
+        tests/gtests.cpp
+        tests/shapes/quad-tree-test.cpp)
+target_link_libraries(all_gtests
+        -Wl,--whole-archive,--no-as-needed
+        regen
+        -Wl,--no-whole-archive
+        ${Boost_Python_COMPONENT}
+        ${GTEST_MAIN_LIBRARIES})
 
 ##############
 ########## packaging

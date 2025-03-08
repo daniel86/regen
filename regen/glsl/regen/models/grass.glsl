@@ -42,6 +42,9 @@ const float in_lodGeomVariance = 0.2;
 #ifdef HAS_windFlow || HAS_colliderRadius
     #define USE_FORCE
 #endif
+#ifdef HAS_colliderRadius || HAS_collisionMap
+    #define USE_COLLISION
+#endif
 //#define HAS_UPWARDS_NORMAL
 #define HAS_UV_FADED_COLOR
 //#define USE_SPRITE_LOD
@@ -54,8 +57,8 @@ const float in_lodGeomVariance = 0.2;
 #ifdef HAS_wind || HAS_windFlow
     #include regen.states.wind.windAtPosition
 #endif
-#ifdef HAS_colliderRadius
-    #include regen.states.collision.collisionAtPosition
+#ifdef USE_COLLISION
+    #include regen.states.collision.getCollisionVector
 #endif
 #ifdef HAS_VERTEX_MASK_MAP
 const float in_maskThreshold = 0.1;
@@ -63,11 +66,11 @@ const float in_maskThreshold = 0.1;
 
 void main() {
 #ifdef HAS_VERTEX_MASK_MAP
-#ifdef HAS_PRIMITIVE_POINTS
+    #ifdef HAS_PRIMITIVE_POINTS
     float mask = in_mask[0];
-#else
+    #else
     float mask = (in_mask[0] + in_mask[1] + in_mask[2]) / 3.0;
-#endif
+    #endif
     if (mask < in_maskThreshold) {
         return;
     }
@@ -100,6 +103,11 @@ void main() {
 #ifdef HAS_offset
     center += in_offset;
 #endif
+#ifdef USE_COLLISION
+    vec4 collision = getCollisionVector(center);
+    const float collisionThreshold = 0.75;
+    if (collision.w > collisionThreshold) { return; }
+#endif
 
     // set intial output values
     out_col = vec4(vec3(random(seed)*0.3 + 0.7), 1.0);
@@ -112,16 +120,10 @@ void main() {
 #ifdef HAS_wind || HAS_windFlow
     force += windAtPosition(center);
 #endif
-#ifdef HAS_colliderRadius
-    // TODO: support 2d collision map too.
-    //  - if rendering as post-effect, the depth buffer could be used! but then
-    //     no shadows in usual pipeline.
-    //  - maybe ping-pong depth buffer could get desired effect
-    //  - one could render a 2d collision map in a separate pass.
-    vec4 collision = collisionAtPosition(center);
+#ifdef USE_COLLISION
     force = mix(force,
-        normalize(collision.xyz).xz * in_colliderStrength,
-        collision.w);
+        collision.xz * in_colliderStrength,
+        collision.w / collisionThreshold);
 #endif
 #endif
 

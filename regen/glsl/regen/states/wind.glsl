@@ -53,6 +53,7 @@ vec2 windAtPosition(vec3 posWorld)
 layout(triangles) in;
 layout(triangle_strip, max_vertices=${GS_MAX_VERTICES}) out;
 
+in vec2 in_texco0[ ];
 out vec3 out_posWorld;
 out vec3 out_posEye;
 flat out int out_layer;

@@ -348,6 +348,13 @@ void main() {
   out_color = vec4(0.0,0.0,0.0,1.0);
 }
 #endif
+#if OUTPUT_TYPE == WHITE
+///// Output plain white
+out vec4 out_color;
+void main() {
+  out_color = vec4(1.0);
+}
+#endif
 #if OUTPUT_TYPE == DEFERRED
 #include regen.models.mesh.fs-shading
 #endif

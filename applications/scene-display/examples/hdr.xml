@@ -1,169 +1,171 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<gui-config ego-camera="0"
-	    look-at-camera="1"
-	    look-at="0.0,0.0,0.0"
-	    look-at-height="0.0"
-	    look-at-radius="2.0"
-	    look-at-degree="0.0"
-	    look-at-step="0.001"
-	    look-at-scroll-step="0.05"
-	    look-at-step-x="0.02"
-	    look-at-step-y="0.001"
-	    look-at-interval="10"
-	    />
-<node id="configuration">
-  <camera id="main-camera" type="key-frames" interpolation="quadratic" dt="3.0" ease-in-out-intensity="0.0" >
-    <key-frame pos=" 0.0, 0.0,  2.0" dir=" 0.0,  0.0,-2.0" dt="0.0" />
-    <key-frame pos=" 2.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0" />
-    <key-frame pos=" 0.0, 0.5,-2.0" dir=" 0.0,-0.5, 2.0" />
-    <key-frame pos="-2.0, 0.0,  0.0" dir=" 2.0, 0.0, 0.0" />
-    
-    <key-frame pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0" />
-    <key-frame pos=" 2.0, -0.5, 0.0" dir="-2.0, 0.5, 0.0" />
-    <key-frame pos=" 0.0, -0.5,-2.0" dir=" 0.0, 0.5, 2.0" />
-    <key-frame pos="-2.0,  0.0,  0.0" dir=" 2.0,  0.0, 0.0" />
-    <key-frame pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0" />
-  </camera>
-</node>
+<node>
+    <gui-config ego-camera="0"
+                look-at-camera="1"
+                look-at="0.0,0.0,0.0"
+                look-at-height="0.0"
+                look-at-radius="2.0"
+                look-at-degree="0.0"
+                look-at-step="0.001"
+                look-at-scroll-step="0.05"
+                look-at-step-x="0.02"
+                look-at-step-y="0.001"
+                look-at-interval="10"
+    />
+    <node id="configuration">
+        <camera id="main-camera" type="key-frames" interpolation="quadratic" dt="3.0" ease-in-out-intensity="0.0">
+            <key-frame pos=" 0.0, 0.0,  2.0" dir=" 0.0,  0.0,-2.0" dt="0.0"/>
+            <key-frame pos=" 2.0, 0.5, 0.0" dir="-2.0,-0.5, 0.0"/>
+            <key-frame pos=" 0.0, 0.5,-2.0" dir=" 0.0,-0.5, 2.0"/>
+            <key-frame pos="-2.0, 0.0,  0.0" dir=" 2.0, 0.0, 0.0"/>
 
-<include xml-file="scene-display/examples/templates/default.xml" />
+            <key-frame pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0"/>
+            <key-frame pos=" 2.0, -0.5, 0.0" dir="-2.0, 0.5, 0.0"/>
+            <key-frame pos=" 0.0, -0.5,-2.0" dir=" 0.0, 0.5, 2.0"/>
+            <key-frame pos="-2.0,  0.0,  0.0" dir=" 2.0,  0.0, 0.0"/>
+            <key-frame pos=" 0.0,  0.0,  2.0" dir=" 0.0,  0.0,-2.0"/>
+        </camera>
+    </node>
 
-<!-- Framebuffer -->
-<fbo id="buffer-float" size-mode="rel" size="1,1"
-     pixel-type="FLOAT" pixel-size="16">
-  <texture id="color0" pixel-components="3" />
-  <texture id="color1" pixel-components="3" />
-</fbo>
-<fbo id="g-buffer"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
-  <texture id="diffuse0" />
-  <texture id="diffuse1" />
-  <texture id="specular" />
-  <texture id="normal" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-<!-- Textures -->
-<texture id="sky-texture"
-	 is-cube="1"
-	 cube-flip-back="1"
-	 file="res/textures/cube-maps/grace.hdr"
-	 min-filter="LINEAR_MIPMAP_LINEAR"
-	 mag-filter="LINEAR"
-	 wrapping="CLAMP_TO_EDGE"
-	 forced-internal-format="R11F_G11F_B10F"
-	 aniso="2.0" />
-<!-- Cameras -->
-<camera id="main-camera"
-	fov="45.0" near="0.1" far="200.0"
-	position="0.0,0.0,-2.0"
-	direction="0.0,0.0,1.0" />
-<!-- Meshes -->
-<mesh id="sky-box"
-      type="box"
-      use-normal="0"
-      use-tangent="0"
-      texco-mode="CUBE_MAP"
-      usage="STATIC" />
-<mesh id="sprite-sphere"
-      type="mesh"
-      primitive="POINTS"
-      usage="STATIC"
-      num-vertices="1" >
-  <input type="float" name="sphereRadius" is-attribute="1">
-    <set mode="constant" value="1.0" index="0" />
-  </input>
-  <input type="vec3" name="pos" is-attribute="1">
-    <set mode="constant" value="0.0,0.0,0.0" index="0" />
-  </input>
-</mesh>
-  
-<!--**************************-->
-<!--**************************-->
+    <include xml-file="scene-display/examples/templates/default.xml"/>
 
-<node id="Reflection-Sphere">
-    <transform />
-    <material />
-    <texture id="sky-texture" map-to="COLOR"
-	     blend-mode="SRC"
-	     mapping="CUBE_REFRACTION" />
-    <texture id="sky-texture" map-to="COLOR"
-	     blend-mode="MIX" blend-factor="0.35"
-	     mapping="CUBE_REFLECTION" />
-    <mesh id="sprite-sphere" shader="regen.models.sprite-sphere" />
-</node>
-  
-<node id="Background">
-  <define key="IGNORE_VIEW_TRANSLATION" value="TRUE" />
-  
-  <cull mode="front" />
-  <depth function="LEQUAL" />
-  <texture id="sky-texture" map-to="COLOR" />
-  <mesh id="sky-box" shader="regen.models.sky-box" />
-</node>
+    <!-- Framebuffer -->
+    <fbo id="buffer-float" size-mode="rel" size="1,1"
+         pixel-type="FLOAT" pixel-size="16">
+        <texture id="color0" pixel-components="3"/>
+        <texture id="color1" pixel-components="3"/>
+    </fbo>
+    <fbo id="g-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <!-- Textures -->
+    <texture id="sky-texture"
+             is-cube="1"
+             cube-flip-back="1"
+             file="res/textures/cube-maps/grace.hdr"
+             min-filter="LINEAR_MIPMAP_LINEAR"
+             mag-filter="LINEAR"
+             wrapping="CLAMP_TO_EDGE"
+             forced-internal-format="R11F_G11F_B10F"
+             aniso="2.0"/>
+    <!-- Cameras -->
+    <camera id="main-camera"
+            fov="45.0" near="0.1" far="200.0"
+            position="0.0,0.0,-2.0"
+            direction="0.0,0.0,1.0"/>
+    <!-- Meshes -->
+    <mesh id="sky-box"
+          type="box"
+          use-normal="0"
+          use-tangent="0"
+          texco-mode="CUBE_MAP"
+          usage="STATIC"/>
+    <mesh id="sprite-sphere"
+          type="mesh"
+          primitive="POINTS"
+          usage="STATIC"
+          num-vertices="1">
+        <input type="float" name="sphereRadius" is-attribute="1">
+            <set mode="constant" value="1.0" index="0"/>
+        </input>
+        <input type="vec3" name="pos" is-attribute="1">
+            <set mode="constant" value="0.0,0.0,0.0" index="0"/>
+        </input>
+    </mesh>
 
-<node id="Scene-Blur">
-  <input type="int" name="numBlurPixels" value="20" />
-  <input type="float" name="blurSigma" value="5.0" />
-    
-  <filter-sequence id="blurred-scene" fbo="buffer-float" attachment="0" >
-    <filter shader="regen.filter.sampling" scale="0.5" />
-    <filter shader="regen.filter.blur.horizontal" />
-    <filter shader="regen.filter.blur.vertical" />
-  </filter-sequence>
-</node>
+    <!--**************************-->
+    <!--**************************-->
 
-<node id="Tonemapping">
-  <define key="USE_RADIAL_BLUR" value="TRUE" />
-  <define key="USE_VIGNETTE" value="TRUE" />
-  <fbo id="buffer-float" draw-buffers="1" />
-  <texture name="inputTexture" fbo="buffer-float" attachment="0" />
-  <texture name="blurTexture" id="blurred-scene" />
-    
-  <input type="float" name="blurAmount" value="0.5" />
-  <input type="float" name="effectAmount" value="0.2" />
-  <input type="float" name="exposure" value="16.0" />
-  <input type="float" name="gamma" value="0.5" />
-  <input type="float" name="radialBlurSamples" value="36.0" />
-  <input type="float" name="radialBlurStartScale" value="1.0" />
-  <input type="float" name="radialBlurScaleMul" value="0.9555" />
-  <input type="float" name="vignetteInner" value="0.7" />
-  <input type="float" name="vignetteOuter" value="1.5" />
-    
-  <fullscreen-pass shader="regen.filter.tonemap" />
-</node>
+    <node id="Reflection-Sphere">
+        <transform/>
+        <material/>
+        <texture id="sky-texture" map-to="COLOR"
+                 blend-mode="SRC"
+                 mapping="CUBE_REFRACTION"/>
+        <texture id="sky-texture" map-to="COLOR"
+                 blend-mode="MIX" blend-factor="0.35"
+                 mapping="CUBE_REFLECTION"/>
+        <mesh id="sprite-sphere" shader="regen.models.sprite-sphere"/>
+    </node>
 
-<!--**************************-->
-<!--**************************-->
+    <node id="Background">
+        <define key="IGNORE_VIEW_TRANSLATION" value="TRUE"/>
 
-<node id="root">
-  <fbo id="buffer-float" clear-buffers="0" draw-buffers="0" />
-  <camera id="main-camera" />
-  
-  <node import="Background" />
-  <view id="Scene -- Background">
-    <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN" />
-  </view>
-  
-  <node import="Reflection-Sphere" />
-  <view id="Scene -- Reflection-Sphere">
-    <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN" />
-  </view>
-  
-  <node import="Scene-Blur" />
-  <node import="Tonemapping" />
-  <view id="Scene -- Tonemapping">
-    <blit src-fbo="buffer-float" src-attachment="1" dst-fbo="SCREEN" />
-  </view>
-  
-  <node import="GUI-Pass">
-    <fbo id="buffer-float" draw-buffers="1" />
-  </node>
-  
-  <view id="Scene -- Result">
-    <blit src-fbo="buffer-float" src-attachment="1" dst-fbo="SCREEN" />
-  </view>
+        <cull mode="front"/>
+        <depth function="LEQUAL"/>
+        <texture id="sky-texture" map-to="COLOR"/>
+        <mesh id="sky-box" shader="regen.models.sky-box"/>
+    </node>
+
+    <node id="Scene-Blur">
+        <input type="int" name="numBlurPixels" value="20"/>
+        <input type="float" name="blurSigma" value="5.0"/>
+
+        <filter-sequence id="blurred-scene" fbo="buffer-float" attachment="0">
+            <filter shader="regen.filter.sampling" scale="0.5"/>
+            <filter shader="regen.filter.blur.horizontal"/>
+            <filter shader="regen.filter.blur.vertical"/>
+        </filter-sequence>
+    </node>
+
+    <node id="Tonemapping">
+        <define key="USE_RADIAL_BLUR" value="TRUE"/>
+        <define key="USE_VIGNETTE" value="TRUE"/>
+        <fbo id="buffer-float" draw-buffers="1"/>
+        <texture name="inputTexture" fbo="buffer-float" attachment="0"/>
+        <texture name="blurTexture" id="blurred-scene"/>
+
+        <input type="float" name="blurAmount" value="0.5"/>
+        <input type="float" name="effectAmount" value="0.2"/>
+        <input type="float" name="exposure" value="16.0"/>
+        <input type="float" name="gamma" value="0.5"/>
+        <input type="float" name="radialBlurSamples" value="36.0"/>
+        <input type="float" name="radialBlurStartScale" value="1.0"/>
+        <input type="float" name="radialBlurScaleMul" value="0.9555"/>
+        <input type="float" name="vignetteInner" value="0.7"/>
+        <input type="float" name="vignetteOuter" value="1.5"/>
+
+        <fullscreen-pass shader="regen.filter.tonemap"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="root">
+        <fbo id="buffer-float" clear-buffers="0" draw-buffers="0"/>
+        <camera id="main-camera"/>
+
+        <node import="Background"/>
+        <view id="Scene -- Background">
+            <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+
+        <node import="Reflection-Sphere"/>
+        <view id="Scene -- Reflection-Sphere">
+            <blit src-fbo="buffer-float" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+
+        <node import="Scene-Blur"/>
+        <node import="Tonemapping"/>
+        <view id="Scene -- Tonemapping">
+            <blit src-fbo="buffer-float" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+
+        <node import="GUI-Pass">
+            <fbo id="buffer-float" draw-buffers="1"/>
+        </node>
+
+        <view id="Scene -- Result">
+            <blit src-fbo="buffer-float" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+    </node>
 </node>

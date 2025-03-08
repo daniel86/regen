@@ -5,6 +5,8 @@
     <constant name="far-plane" value="100.0"/>
     <constant name="close-range" value="40.0"/>
     <constant name="mid-range" value="100.0"/>
+    <constant name="map-y" value="-2.0"/>
+    <constant name="grass-max-y" value="0.0"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
@@ -80,6 +82,11 @@
                compare-function="LEQUAL"
                sampler-type="sampler2DArrayShadow"/>
     </fbo>
+    <fbo id="collision-fbo" size-mode="abs" size="256,256"
+         pixel-type="UNSIGNED_BYTE" pixel-size="8">
+        <texture id="collision" pixel-components="1" />
+        <texture id="static-collision" pixel-components="1"/>
+    </fbo>
     <!-- Textures -->
     <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
     <texture id="ground-color" file="res/textures/materials/grass/0/ground.png"/>
@@ -113,6 +120,11 @@
             camera="main-camera"
             camera-type="paraboloid"
             dual-paraboloid="0"/>
+    <!-- Orthogonal top-down camera used for collision map generation -->
+    <camera id="collision-camera" type="orthogonal"
+            width="90.0" height="90.0" far="2.0"
+            position="0.0, -0.5, 0.0"
+            direction="0.0,-1.0,0.0"/>
     <!--
 <camera id="room-light-camera0"
     culling-index="main-index"
@@ -300,7 +312,7 @@
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <blend mode="SRC"/>
             <define key="TESS_SPACING" value="equal_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.5" lod-metric="EDGE_DEVICE_DISTANCE"/>
+            <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE"/>
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
             <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
             <input name="minTessLevel" type="float" value="1.0"/>
@@ -312,7 +324,7 @@
             <input name="lodGeomBrightness0" type="float" value="1.7"/>
             <input name="lodGeomVariance" type="float" value="6.0"/>
             <!-- size and position -->
-            <input name="quadSize" type="vec2" value="1.15, 0.3"/>
+            <input name="quadSize" type="vec2" value="2.0, 0.5"/>
             <input name="posVariation" type="float" value="0.4"/>
             <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
             <!-- color -->
@@ -327,9 +339,12 @@
             <input name="windNoiseSpeed" type="float" value="1.0"/>
             <input name="windNoiseStrength" type="float" value="0.1"/>
             <!-- collision with player -->
+            <texture name="collisionMap" fbo="collision-fbo" attachment="0" />
+            <input name="collisionMapArea" type="vec2" value="90.0,90.0"/>
+            <input name="collisionMapCenter" type="vec2" value="0.0,0.0"/>
+            <input name="colliderStrength" type="float" value="5.0"/>
             <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix"/>
             <input name="colliderRadius" type="float" value="4.4"/>
-            <input name="colliderStrength" type="float" value="0.7"/>
             <material
                     diffuse="1.5, 1.5, 1.5"
                     ambient="0.1, 0.1, 0.1"
@@ -667,6 +682,39 @@
     </node>
 
     <!--**************************-->
+    <!--******* Collisions *******-->
+    <!--**************************-->
+
+    <!-- Render static objects into collision buffer at attachment 1. -->
+    <node id="Collision-Initialize">
+        <define key="OUTPUT_TYPE" value="WHITE"/>
+        <cull mode="FRONT"/>
+        <camera id="collision-camera"/>
+        <blend mode="src"/>
+        <depth test="0" write="0"/>
+        <fbo id="collision-fbo" clear-buffers="1" draw-buffers="1"/>
+        <node import="Static-Ground-Items"/>
+    </node>
+
+    <!-- Compose collision buffer attachment 0. First copy static objects from attachment 1,
+         then add dynamic objects. -->
+    <node id="Collision-Update">
+        <node>
+            <blit src-fbo="collision-fbo" src-attachment="1"
+                  dst-fbo="collision-fbo" dst-attachment="0"/>
+        </node>
+        <node>
+            <cull mode="FRONT"/>
+            <define key="OUTPUT_TYPE" value="WHITE"/>
+            <camera id="collision-camera"/>
+            <blend mode="src"/>
+            <depth test="0" write="0"/>
+            <fbo id="collision-fbo" draw-buffers="0"/>
+            <node import="Dynamic-Ground-Items"/>
+        </node>
+    </node>
+
+    <!--**************************-->
     <!--********* Shading ********-->
     <!--**************************-->
 
@@ -732,7 +780,13 @@
         <shape id="fire-flies-shape0" mode="index" type="sphere" radius="0.1" mesh-id="fire-flies0" />
     </mesh>
 
-    <node id="Shadow-Caster">
+    <node id="Static-Ground-Items">
+        <node import="Pedestal"/>
+        <node import="Garden-Items"/>
+        <node import="Stairs"/>
+    </node>
+
+    <node id="Dynamic-Ground-Items">
         <node id="Dwarf">
             <node id="dwarf-body">
                 <mesh id="dwarf-mesh" mesh-index-range="1-" shader="regen.models.mesh"/>
@@ -741,9 +795,11 @@
                 <mesh id="dwarf-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
         </node>
-        <node import="Pedestal"/>
-        <node import="Garden-Items"/>
-        <node import="Stairs"/>
+    </node>
+
+    <node id="Shadow-Caster">
+        <node import="Dynamic-Ground-Items"/>
+        <node import="Static-Ground-Items"/>
         <node import="Platforms"/>
     </node>
 
@@ -853,6 +909,11 @@
         </view>
     </node>
 
+    <node id="initialize">
+        <node import="Collision-Initialize"/>
+        <!-- TODO: could render static shadow maps here. -->
+    </node>
+
     <node id="root">
         <input name="Wind" ubo="Wind-UBO"/>
 
@@ -866,6 +927,11 @@
                 <texture name="inputTexture" fbo="room-light-shadow0" attachment="depth"/>
                 <input type="int" name="arrayTextureSize" value="1"/>
                 <fullscreen-pass shader="regen.filter.sampling.array-row-shadow"/>
+            </view>
+
+            <node import="Collision-Update" />
+            <view id="Collision Map">
+                <blit src-fbo="collision-fbo" src-attachment="0" dst-fbo="SCREEN"/>
             </view>
         </node>
 

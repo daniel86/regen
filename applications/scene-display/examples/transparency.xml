@@ -1,356 +1,358 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/templates/default.xml" />
+<node>
+    <include xml-file="scene-display/examples/templates/default.xml"/>
 
-<node id="configuration">
-  <camera id="main-camera"
-	  mode="first-person"
-	  eye-offset="0.0,0.0,0.0"
-	  eye-orientation="0.0"
-	  ease-in-out="1.8"
-	  anchor-pause-time="0.7"
-	  anchor-time-scale="0.8">
-        <anchor pos="0.0, 0.5, -30.0" dir="0.0,0.0,1.0" />
-        <anchor pos="0.0, 0.5, -10.0" dir="0.0,0.0,1.0" />
-        <anchor pos="0.0, 5.0, -10.0" dir="0.0,-0.5,1.0" />
-        <anchor pos="10.0, 0.5, 0.0" dir="-1.0,0.0,0.0" />
-        <anchor pos="0.0, 0.5, 10.0" dir="0.0,0.0,-1.0" />
-        <anchor pos="0.0, 5.0, 10.0" dir="0.0,-0.5,-1.0" />
-        <anchor pos="-10.0, 0.5, 0.0" dir="1.0,0.0,0.0" />
-        <anchor pos="0.0, 0.5, -10.0" dir="0.0,0.0,1.0" />
-        <anchor pos="0.0, 0.5, -30.0" dir="0.0,0.0,1.0" />
-  </camera>
-</node>
-
-<!-- FBOs -->
-<fbo id="g-buffer"
-     size-mode="rel" size="1.0,1.0"
-     pixel-type="UNSIGNED_BYTE"
-     pixel-size="16"
-     pixel-components="4" >
-  <texture id="diffuse0" />
-  <texture id="diffuse1" />
-  <texture id="specular" />
-  <texture id="normal" />
-  <depth id="depth" pixel-size="24" />
-</fbo>
-<!-- Cameras -->
-<camera id="main-camera"
-	fov="45.0" near="0.1" far="200.0"
-	position="0.0,0.5,-10.0"
-	direction="-0.5,0.0,1.0" />
-<!-- Assets -->
-<asset id="venus-asset"
-       type="asset"
-       file="res/models/venus.obj"
-       use-animation="0" />
-<!-- Meshes -->
-<mesh id="platform"
-      type="box"
-      scaling="1.0,100.0,1.0"
-      use-normal="1"
-      use-tangent="0"
-      usage="STATIC" />
-<mesh id="venus-mesh"
-      type="asset"
-      asset="venus-asset"
-      asset-indices="*"
-      asset-animation="0"
-      asset-material="0"
-      scaling="0.0006,0.0006,0.0006"
-      rotation="0.0,0.0,0.0"
-      translation="0.0,0.0,0.0">
-  <material preset="ruby" alpha="0.85" />
-  <transform>
-    <rotate value="3.14,0.0,0.0" />
-    <translate value="0.0,-0.1,2.25" />
-  </transform>
-</mesh>
-<mesh id="sphere-mesh0"
-      type="sphere"
-      lod-levels="4, 3, 2"
-      scaling="1.0,1.0,1.0"
-      use-normal="1"
-      use-tangent="0"
-      usage="STATIC">
-  <material preset="ruby" alpha="0.5" />
-  <transform id="sphere0-tf">
-    <translate value="1.5,-0.1,0.0" />
-  </transform>
-</mesh>
-<mesh id="sphere-mesh1"
-      type="sphere"
-      lod-levels="4, 3, 2"
-      scaling="1.0,1.0,1.0"
-      use-normal="1"
-      use-tangent="0"
-      usage="STATIC">
-  <material preset="jade" alpha="0.85" />
-  <transform id="sphere1-tf">
-    <translate value="-1.5,-0.1,0.0" />
-  </transform>
-</mesh>
-
-<!--**************************-->
-<!--**************************-->
-
-<node id="Shading-Pass">
-    <blend mode="add" />
-    <depth test="0" write="0" />
-    <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1" />
-
-    <node id="Ambient-Shading">
-        <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+    <node id="configuration">
+        <camera id="main-camera"
+                mode="first-person"
+                eye-offset="0.0,0.0,0.0"
+                eye-orientation="0.0"
+                ease-in-out="1.8"
+                anchor-pause-time="0.7"
+                anchor-time-scale="0.8">
+            <anchor pos="0.0, 0.5, -30.0" dir="0.0,0.0,1.0"/>
+            <anchor pos="0.0, 0.5, -10.0" dir="0.0,0.0,1.0"/>
+            <anchor pos="0.0, 5.0, -10.0" dir="0.0,-0.5,1.0"/>
+            <anchor pos="10.0, 0.5, 0.0" dir="-1.0,0.0,0.0"/>
+            <anchor pos="0.0, 0.5, 10.0" dir="0.0,0.0,-1.0"/>
+            <anchor pos="0.0, 5.0, 10.0" dir="0.0,-0.5,-1.0"/>
+            <anchor pos="-10.0, 0.5, 0.0" dir="1.0,0.0,0.0"/>
+            <anchor pos="0.0, 0.5, -10.0" dir="0.0,0.0,1.0"/>
+            <anchor pos="0.0, 0.5, -30.0" dir="0.0,0.0,1.0"/>
+        </camera>
     </node>
-    <node id="Light-Shading">
-        <light-pass type="SPOT"
-            shader="regen.shading.deferred.spot"
-            shadow-filter="PCF_GAUSSIAN">
-            <light id="spot-light"
-                shadow-buffer="spot-shadow"
-                shadow-attachment="depth"
-                shadow-color-attachment="0"
-                shadow-camera="spot-camera" />
-        </light-pass>
-    </node>
-</node>
 
-<node id="Shadow-Caster">
-  <node id="platform">
-    <material preset="silver" />
-    
-    <node id="platform0" >
-      <transform>
-	<rotate value="0.0,0.0,0.0" />
-	<translate value="0.0,-100.6,2.5" />
-      </transform>
-      <mesh id="platform" shader="regen.models.mesh" />
-    </node>
-    
-    <node id="platform1" >
-      <transform>
-	<rotate value="1.0,0.0,0.0" />
-	<translate value="1.5,-100.6,0.0" />
-      </transform>
-      <mesh id="platform" shader="regen.models.mesh" />
-    </node>
-    
-    <node id="platform2" >
-      <transform>
-	<rotate value="-1.0,0.0,0.0" />
-	<translate value="-1.5,-100.6,0.0" />
-      </transform>
-      <mesh id="platform" shader="regen.models.mesh" />
-    </node>
-  </node>
-</node>
+    <!-- FBOs -->
+    <fbo id="g-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture id="diffuse0"/>
+        <texture id="diffuse1"/>
+        <texture id="specular"/>
+        <texture id="normal"/>
+        <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <!-- Cameras -->
+    <camera id="main-camera"
+            fov="45.0" near="0.1" far="200.0"
+            position="0.0,0.5,-10.0"
+            direction="-0.5,0.0,1.0"/>
+    <!-- Assets -->
+    <asset id="venus-asset"
+           type="asset"
+           file="res/models/venus.obj"
+           use-animation="0"/>
+    <!-- Meshes -->
+    <mesh id="platform"
+          type="box"
+          scaling="1.0,100.0,1.0"
+          use-normal="1"
+          use-tangent="0"
+          usage="STATIC"/>
+    <mesh id="venus-mesh"
+          type="asset"
+          asset="venus-asset"
+          asset-indices="*"
+          asset-animation="0"
+          asset-material="0"
+          scaling="0.0006,0.0006,0.0006"
+          rotation="0.0,0.0,0.0"
+          translation="0.0,0.0,0.0">
+        <material preset="ruby" alpha="0.85"/>
+        <transform>
+            <rotate value="3.14,0.0,0.0"/>
+            <translate value="0.0,-0.1,2.25"/>
+        </transform>
+    </mesh>
+    <mesh id="sphere-mesh0"
+          type="sphere"
+          lod-levels="4, 3, 2"
+          scaling="1.0,1.0,1.0"
+          use-normal="1"
+          use-tangent="0"
+          usage="STATIC">
+        <material preset="ruby" alpha="0.5"/>
+        <transform id="sphere0-tf">
+            <translate value="1.5,-0.1,0.0"/>
+        </transform>
+    </mesh>
+    <mesh id="sphere-mesh1"
+          type="sphere"
+          lod-levels="4, 3, 2"
+          scaling="1.0,1.0,1.0"
+          use-normal="1"
+          use-tangent="0"
+          usage="STATIC">
+        <material preset="jade" alpha="0.85"/>
+        <transform id="sphere1-tf">
+            <translate value="-1.5,-0.1,0.0"/>
+        </transform>
+    </mesh>
 
-<node id="Scene-Geometry" />
+    <!--**************************-->
+    <!--**************************-->
 
-<node id="Background-Pass">
-  <node import="Transparency-Pass" />
-</node>
+    <node id="Shading-Pass">
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1"/>
 
-<node id="Post-Pass">
-  <depth test="0" write="0" />
-  
-  <node import="Fog-Draw" />
-  
-  <node import="FXAA">
-    <fbo id="g-buffer" draw-buffers="0" />
-    <texture name="inputTexture" fbo="g-buffer" attachment="1" />
-  </node>
-</node>
-
-<!--**************************-->
-<!--**** Lights & Shadows ****-->
-<!--**************************-->
-
-<fbo id="spot-shadow" size-mode="abs" size="2048,2048,1" >
-  <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-	 wrapping="REPEAT"
-	 min-filter="NEAREST" mag-filter="NEAREST"
-	 compare-mode="COMPARE_R_TO_TEXTURE"
-	 compare-function="LEQUAL"
-	 sampler-type="sampler2DShadow" />
-  <texture id="color"
-	   pixel-size="16"
-	   pixel-type="UNSIGNED_BYTE"
-	   pixel-components="4"/>
-</fbo>
-
-<light id="spot-light"
-       type="SPOT"
-       position="3.0,8.0,-4.0"
-       direction="-0.37,-0.95,0.46"
-       diffuse="0.58,0.58,0.58"
-       radius="10.0,21.0"
-       cone-angles="11.5,25.5" />
-
-<camera id="spot-camera" light="spot-light" camera="main-camera" />
-
-<node id="Shadow-Pass">
-  <cull mode="FRONT" />
-  
-  <node id="Spot-Shadow-Pass">
-    <fbo id="spot-shadow" clear-depth="1" clear-buffers="0" />
-    <camera id="spot-camera" />
-    
-    <node id="Black-Output">
-      <define key="OUTPUT_TYPE" value="BLACK" />
-      <node import="Shadow-Caster" />
-    </node>
-    <node id="Color-Output">
-      <define key="OUTPUT_TYPE" value="COLOR" />
-      <node import="Shadow-Caster-Transparent" />
-    </node>
-  </node>
-</node>
-
-<!--**************************-->
-<!--**************************-->
-
-<node id="Transparency-Pass">
-  <fbo id="g-buffer" draw-buffers="1" />
-  <depth test="1" write="0" />
-  
-  <direct-shading ambient="0.3,0.3,0.3" >
-    <!-- Define lights used for direct shading. -->
-    <direct-lights>
-      <light id="spot-light"
-	     shadow-buffer="spot-shadow"
-	     shadow-attachment="depth"
-	     shadow-color-attachment="0" />
-    </direct-lights>
-    
-    <direct-pass>
-      <define key="OUTPUT_TYPE" value="TRANSPARENCY" />
-      <blend mode="alpha" />
-      <node import="Shadow-Caster-Transparent"
-	    sort="1" sort-camera="main-camera" />
-    </direct-pass>
-  </direct-shading>
-</node>
-
-<node id="Shadow-Caster-Transparent" >
-    <node id="venus0" >
-        <mesh id="venus-mesh" shader="regen.models.mesh" />
-    </node>
-    <node id="spheres">
-        <node id="sphere0" >
-            <mesh id="sphere-mesh0" shader="regen.models.mesh" />
+        <node id="Ambient-Shading">
+            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
         </node>
-        <node id="sphere1" >
-            <mesh id="sphere-mesh1" shader="regen.models.mesh" />
+        <node id="Light-Shading">
+            <light-pass type="SPOT"
+                        shader="regen.shading.deferred.spot"
+                        shadow-filter="PCF_GAUSSIAN">
+                <light id="spot-light"
+                       shadow-buffer="spot-shadow"
+                       shadow-attachment="depth"
+                       shadow-color-attachment="0"
+                       shadow-camera="spot-camera"/>
+            </light-pass>
         </node>
     </node>
-</node>
 
-<!--**************************-->
-<!--***** Fog Particles ******-->
-<!--**************************-->
+    <node id="Shadow-Caster">
+        <node id="platform">
+            <material preset="silver"/>
 
-<!-- A FBO with blurred fog particles. -->
-<fbo id="fog-buffer" size-mode="abs" size="256.0,256.0" >
-    <texture id="color"  pixel-type="FLOAT" pixel-size="16" pixel-components="4" />
-</fbo>
-<!-- A texture for the fog particles. -->
-<texture id="fog-splat" file="res/textures/splats/flare.jpg" />
-<!-- The mesh uses point sprites for the fog particles. -->
-<mesh id="fog-mesh" type="particles" num-vertices="500">
-    <!-- Add shader defines. -->
-    <define key="EMITTER_POSITION_MODE" value="ABSOLUTE" />
-    <define key="PARTICLE_EMITTER_MODE" value="INOUT" />
-    <define key="PARTICLE_EMITTER_SHAPE" value="DISC" />
-    <define key="OPACITY_WEIGHTED_COLOR" value="TRUE" />
-    <!-- Add shader input. -->
-    <input type="vec3" name="gravity" value="-4.0,-9.0,0.0" />
-    <input type="float" name="dampingFactor" value="2.0" />
-    <input type="vec2" name="velocityFactorMinMax" value="4.0, 10.0" />
-    <input type="vec3" name="emitterPosition" value="2.7, 6.5, 0.0" />
-    <input type="float" name="emitterSize" value="10.0" />
-    <input type="float" name="surfaceHeight" value="-6.0" />
-    <input type="float" name="lifetimeDefault" value="4.0" />
-    <input type="float" name="lifetimeVariance" value="4.0" />
-    <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
-    <!-- Add particle attributes. -->
-    <input type="vec3" name="pos" is-attribute="1" />
-    <input type="vec3" name="velocity" is-attribute="1" />
-    <input type="float" name="mass" is-attribute="1" default="0.8" variance="0.1"/>
-    <input type="float" name="size" is-attribute="1" default="3.0" variance="0.15"/>
-</mesh>
+            <node id="platform0">
+                <transform>
+                    <rotate value="0.0,0.0,0.0"/>
+                    <translate value="0.0,-100.6,2.5"/>
+                </transform>
+                <mesh id="platform" shader="regen.models.mesh"/>
+            </node>
 
-<node id="Fog-Update">
-    <!-- Update the fog FBO. -->
-    <depth test="0" write="0" />
-    <camera id="main-camera" />
+            <node id="platform1">
+                <transform>
+                    <rotate value="1.0,0.0,0.0"/>
+                    <translate value="1.5,-100.6,0.0"/>
+                </transform>
+                <mesh id="platform" shader="regen.models.mesh"/>
+            </node>
 
-    <!-- First, render fog particles into fog-buffer. -->
-    <node id="Fog-Particle-Draw">
-        <fbo id="fog-buffer" clear-buffers="*" draw-buffers="*" />
-        <direct-shading ambient="0.3,0.3,0.3" >
+            <node id="platform2">
+                <transform>
+                    <rotate value="-1.0,0.0,0.0"/>
+                    <translate value="-1.5,-100.6,0.0"/>
+                </transform>
+                <mesh id="platform" shader="regen.models.mesh"/>
+            </node>
+        </node>
+    </node>
+
+    <node id="Scene-Geometry"/>
+
+    <node id="Background-Pass">
+        <node import="Transparency-Pass"/>
+    </node>
+
+    <node id="Post-Pass">
+        <depth test="0" write="0"/>
+
+        <node import="Fog-Draw"/>
+
+        <node import="FXAA">
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**** Lights & Shadows ****-->
+    <!--**************************-->
+
+    <fbo id="spot-shadow" size-mode="abs" size="2048,2048,1">
+        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+               wrapping="REPEAT"
+               min-filter="NEAREST" mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="sampler2DShadow"/>
+        <texture id="color"
+                 pixel-size="16"
+                 pixel-type="UNSIGNED_BYTE"
+                 pixel-components="4"/>
+    </fbo>
+
+    <light id="spot-light"
+           type="SPOT"
+           position="3.0,8.0,-4.0"
+           direction="-0.37,-0.95,0.46"
+           diffuse="0.58,0.58,0.58"
+           radius="10.0,21.0"
+           cone-angles="11.5,25.5"/>
+
+    <camera id="spot-camera" light="spot-light" camera="main-camera"/>
+
+    <node id="Shadow-Pass">
+        <cull mode="FRONT"/>
+
+        <node id="Spot-Shadow-Pass">
+            <fbo id="spot-shadow" clear-depth="1" clear-buffers="0"/>
+            <camera id="spot-camera"/>
+
+            <node id="Black-Output">
+                <define key="OUTPUT_TYPE" value="BLACK"/>
+                <node import="Shadow-Caster"/>
+            </node>
+            <node id="Color-Output">
+                <define key="OUTPUT_TYPE" value="COLOR"/>
+                <node import="Shadow-Caster-Transparent"/>
+            </node>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="Transparency-Pass">
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <depth test="1" write="0"/>
+
+        <direct-shading ambient="0.3,0.3,0.3">
+            <!-- Define lights used for direct shading. -->
             <direct-lights>
-                <light id="spot-light" shadow-buffer="spot-shadow" shadow-attachment="depth" />
+                <light id="spot-light"
+                       shadow-buffer="spot-shadow"
+                       shadow-attachment="depth"
+                       shadow-color-attachment="0"/>
             </direct-lights>
+
             <direct-pass>
-                <node id="Fog-Particle-Draw">
-                    <define key="USE_SOFT_PARTICLES" value="TRUE" />
-                    <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE" />
-                    <define key="IS_SHADOW_RECEIVER" value="FALSE" />
-                    <blend mode="add" />
-                    <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-                    <texture name="colorTexture" id="fog-splat" map-to="COLOR" blend="SRC" />
-                    <input type="float" name="softParticleScale" value="100.0" />
-                    <input type="float" name="particleBrightness" value="0.1" />
-                    <mesh id="fog-mesh" shader="regen.particles.sprite" />
-                </node>
+                <define key="OUTPUT_TYPE" value="TRANSPARENCY"/>
+                <blend mode="alpha"/>
+                <node import="Shadow-Caster-Transparent"
+                      sort="1" sort-camera="main-camera"/>
             </direct-pass>
         </direct-shading>
     </node>
 
-    <!-- Next, create a blurred version. -->
-    <node id="Fog-Particle-Filter">
-        <input type="int" name="numBlurPixels" value="9" />
-        <input type="float" name="blurSigma" value="2.3" />
-        <filter-sequence id="fog-filter" fbo="fog-buffer" attachment="0" >
-            <filter shader="regen.filter.blur.horizontal" />
-            <filter shader="regen.filter.blur.vertical" />
-        </filter-sequence>
+    <node id="Shadow-Caster-Transparent">
+        <node id="venus0">
+            <mesh id="venus-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="spheres">
+            <node id="sphere0">
+                <mesh id="sphere-mesh0" shader="regen.models.mesh"/>
+            </node>
+            <node id="sphere1">
+                <mesh id="sphere-mesh1" shader="regen.models.mesh"/>
+            </node>
+        </node>
     </node>
-</node>
 
-<node id="Fog-Draw">
-    <!-- Blend the fog particles into the scene. They are rendered into fog-filter before.  -->
-    <fbo id="g-buffer" draw-buffers="1" />
-    <blend mode="add" />
-    <depth test="0" write="0" />
-    <texture name="inputTexture" id="fog-filter" />
-    <define key="IS_2D_TEXTURE" value="TRUE" />
-    <fullscreen-pass shader="regen.filter.sampling" />
-</node>
+    <!--**************************-->
+    <!--***** Fog Particles ******-->
+    <!--**************************-->
 
-<!--**************************-->
-<!--**************************-->
+    <!-- A FBO with blurred fog particles. -->
+    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0">
+        <texture id="color" pixel-type="FLOAT" pixel-size="16" pixel-components="4"/>
+    </fbo>
+    <!-- A texture for the fog particles. -->
+    <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
+    <!-- The mesh uses point sprites for the fog particles. -->
+    <mesh id="fog-mesh" type="particles" num-vertices="500">
+        <!-- Add shader defines. -->
+        <define key="EMITTER_POSITION_MODE" value="ABSOLUTE"/>
+        <define key="PARTICLE_EMITTER_MODE" value="INOUT"/>
+        <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
+        <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
+        <!-- Add shader input. -->
+        <input type="vec3" name="gravity" value="-4.0,-9.0,0.0"/>
+        <input type="float" name="dampingFactor" value="2.0"/>
+        <input type="vec2" name="velocityFactorMinMax" value="4.0, 10.0"/>
+        <input type="vec3" name="emitterPosition" value="2.7, 6.5, 0.0"/>
+        <input type="float" name="emitterSize" value="10.0"/>
+        <input type="float" name="surfaceHeight" value="-6.0"/>
+        <input type="float" name="lifetimeDefault" value="4.0"/>
+        <input type="float" name="lifetimeVariance" value="4.0"/>
+        <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
+        <!-- Add particle attributes. -->
+        <input type="vec3" name="pos" is-attribute="1"/>
+        <input type="vec3" name="velocity" is-attribute="1"/>
+        <input type="float" name="mass" is-attribute="1" default="0.8" variance="0.1"/>
+        <input type="float" name="size" is-attribute="1" default="3.0" variance="0.15"/>
+    </mesh>
 
-<node id="root">
-  <node id="Pre-Render">
-    <node import="Shadow-Pass" />
-    <node import="Fog-Update" />
-  </node>
-  
-  <node id="Render">
-    <fbo id="g-buffer"
-	clear-buffers="0,1,2,3"
-	clear-depth="1" />
-    <camera id="main-camera" />
-    
-    <node import="Default-Pipeline" />
-    <node import="GUI-Pass">
-      <fbo id="g-buffer" draw-buffers="0" />
+    <node id="Fog-Update">
+        <!-- Update the fog FBO. -->
+        <depth test="0" write="0"/>
+        <camera id="main-camera"/>
+
+        <!-- First, render fog particles into fog-buffer. -->
+        <node id="Fog-Particle-Draw">
+            <fbo id="fog-buffer" clear-buffers="*" draw-buffers="*"/>
+            <direct-shading ambient="0.3,0.3,0.3">
+                <direct-lights>
+                    <light id="spot-light" shadow-buffer="spot-shadow" shadow-attachment="depth"/>
+                </direct-lights>
+                <direct-pass>
+                    <node id="Fog-Particle-Draw">
+                        <define key="USE_SOFT_PARTICLES" value="TRUE"/>
+                        <define key="USE_NEAR_CAMERA_SOFT_PARTICLES" value="FALSE"/>
+                        <define key="IS_SHADOW_RECEIVER" value="FALSE"/>
+                        <blend mode="add"/>
+                        <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+                        <texture name="colorTexture" id="fog-splat" map-to="COLOR" blend="SRC"/>
+                        <input type="float" name="softParticleScale" value="100.0"/>
+                        <input type="float" name="particleBrightness" value="0.1"/>
+                        <mesh id="fog-mesh" shader="regen.particles.sprite"/>
+                    </node>
+                </direct-pass>
+            </direct-shading>
+        </node>
+
+        <!-- Next, create a blurred version. -->
+        <node id="Fog-Particle-Filter">
+            <input type="int" name="numBlurPixels" value="9"/>
+            <input type="float" name="blurSigma" value="2.3"/>
+            <filter-sequence id="fog-filter" fbo="fog-buffer" attachment="0">
+                <filter shader="regen.filter.blur.horizontal"/>
+                <filter shader="regen.filter.blur.vertical"/>
+            </filter-sequence>
+        </node>
     </node>
-    
-    <view id="Scene -- Result">
-      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-  </node>
+
+    <node id="Fog-Draw">
+        <!-- Blend the fog particles into the scene. They are rendered into fog-filter before.  -->
+        <fbo id="g-buffer" draw-buffers="1"/>
+        <blend mode="add"/>
+        <depth test="0" write="0"/>
+        <texture name="inputTexture" id="fog-filter"/>
+        <define key="IS_2D_TEXTURE" value="TRUE"/>
+        <fullscreen-pass shader="regen.filter.sampling"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="root">
+        <node id="Pre-Render">
+            <node import="Shadow-Pass"/>
+            <node import="Fog-Update"/>
+        </node>
+
+        <node id="Render">
+            <fbo id="g-buffer"
+                 clear-buffers="0,1,2,3"
+                 clear-depth="1"/>
+            <camera id="main-camera"/>
+
+            <node import="Default-Pipeline"/>
+            <node import="GUI-Pass">
+                <fbo id="g-buffer" draw-buffers="0"/>
+            </node>
+
+            <view id="Scene -- Result">
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </view>
+        </node>
+    </node>
 </node>

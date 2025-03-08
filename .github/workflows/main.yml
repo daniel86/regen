@@ -50,7 +50,7 @@ jobs:
       shell: bash
       run: |
         cd build
-        ./regen/all_gtests --gtest_filter=* --gtest_output="xml:$GITHUB_WORKSPACE/gtest-regen.xml" --gtest_color=no
+        ./all_gtests --gtest_filter=* --gtest_output="xml:$GITHUB_WORKSPACE/gtest-regen.xml" --gtest_color=no
     - name: Report test results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: ${{github.event_name == 'push' || github.event_name == 'pull_request'}}

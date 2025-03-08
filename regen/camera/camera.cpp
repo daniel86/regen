@@ -560,7 +560,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		dir.normalize();
 		cam->direction()->setVertex(0, dir);
 
-		if (camType == "ortho" || camType == "orthographic") {
+		if (camType == "ortho" || camType == "orthographic" || camType == "orthogonal") {
 			auto width = input.getValue<GLfloat>("width", 10.0f);
 			auto height = input.getValue<GLfloat>("height", 10.0f);
 			cam->setOrtho(
@@ -575,11 +575,11 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 					input.getValue<GLfloat>("fov", 45.0f),
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));
+			// Update frustum when window size changes
+			ctx.scene()->addEventHandler(Application::RESIZE_EVENT,
+										 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->getViewport()));
 		}
 		cam->updateCamera();
-		// Update frustum when window size changes
-		ctx.scene()->addEventHandler(Application::RESIZE_EVENT,
-									 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->getViewport()));
 		ctx.scene()->putState(input.getName(), cam);
 
 		return cam;

@@ -970,6 +970,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 
 	if (root->getFirstChild("node", "initialize").get() != nullptr) {
 		ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
+		initializeNode->state()->joinStates(app_->renderTree()->state());
 		sceneParser.processNode(initializeNode, "initialize", "node");
 		initializeNode->traverse(RenderState::get());
 	}

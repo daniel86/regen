@@ -145,7 +145,7 @@
 
     <mesh id="bowl"
           type="half-sphere"
-          lod="4"
+          lod="6"
           scaling="10.0,1.5,7.5"
           texco-scaling="5.0,5.0"
           use-normal="1"
@@ -336,7 +336,7 @@
         <input type="int" name="type" is-attribute="1"/>
         <input type="float" name="brightness" is-attribute="1"/>
     </mesh>
-milkyway.png
+
     <node id="Rain">
         <direct-shading ambient="0.3,0.3,0.3">
             <direct-lights>
