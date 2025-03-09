@@ -5,7 +5,6 @@ file(GLOB SOURCES *.cpp)
 install(
     FILES
         event-object.h
-        font.h
         logging.h
         ref-ptr.h
         stack.h
