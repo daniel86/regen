@@ -1,0 +1,5 @@
+<map id="regen::GeomPicking" name="regen::GeomPicking">
+<area shape="rect" id="Node000001" title="Picks an object using geometry shader." alt="" coords="5,79,159,104"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="15,5,149,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,44,85,79,79,79,79,44"/>
+</map>

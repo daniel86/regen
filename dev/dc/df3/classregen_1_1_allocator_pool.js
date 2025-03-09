@@ -1,0 +1,27 @@
+var classregen_1_1_allocator_pool =
+[
+    [ "Node", "d2/d17/structregen_1_1_allocator_pool_1_1_node.html", "d2/d17/structregen_1_1_allocator_pool_1_1_node" ],
+    [ "Reference", "d0/ded/structregen_1_1_allocator_pool_1_1_reference.html", "d0/ded/structregen_1_1_allocator_pool_1_1_reference" ],
+    [ "AllocatorPool", "dc/df3/classregen_1_1_allocator_pool.html#ae8c278bf7a3e5255e09f3226a838bdd6", null ],
+    [ "~AllocatorPool", "dc/df3/classregen_1_1_allocator_pool.html#afb9cdc5733e2319e2b32b38e98139be8", null ],
+    [ "align", "dc/df3/classregen_1_1_allocator_pool.html#ad75edf82b33ce759e53fcb375d6b80e2", null ],
+    [ "alignment", "dc/df3/classregen_1_1_allocator_pool.html#a7df1b54a815623982b4a78d0712066cc", null ],
+    [ "alloc", "dc/df3/classregen_1_1_allocator_pool.html#a6b6cf80da25d62a2acbc6ae9b85a8847", null ],
+    [ "alloc", "dc/df3/classregen_1_1_allocator_pool.html#a1efe9990054ec9ca24dac8077840f169", null ],
+    [ "chooseAllocator", "dc/df3/classregen_1_1_allocator_pool.html#a04d24b30faf62db6bc5647af705c6227", null ],
+    [ "clear", "dc/df3/classregen_1_1_allocator_pool.html#a0f261e239b116d1a07204f73790b6fe1", null ],
+    [ "createAllocator", "dc/df3/classregen_1_1_allocator_pool.html#ad8add2adc0e144521a94f7c88e20d5bd", null ],
+    [ "free", "dc/df3/classregen_1_1_allocator_pool.html#a0a7e03d29a5216c15054d39aac0f274d", null ],
+    [ "index", "dc/df3/classregen_1_1_allocator_pool.html#a8bea9f8797dd2981214f5b79b595910c", null ],
+    [ "set_alignment", "dc/df3/classregen_1_1_allocator_pool.html#a88ad9c7dd8698d620b7eccf258532879", null ],
+    [ "set_index", "dc/df3/classregen_1_1_allocator_pool.html#ac1913c905ab7f920139df9be77772b0d", null ],
+    [ "set_minSize", "dc/df3/classregen_1_1_allocator_pool.html#abf346ae6c69a8a6cf4ed98a2226e696b", null ],
+    [ "sortInBackward", "dc/df3/classregen_1_1_allocator_pool.html#ac348b85d861c07b5424236c6fa11108e", null ],
+    [ "sortInForward", "dc/df3/classregen_1_1_allocator_pool.html#ab22b2b90d903787a57d1b1677104b261", null ],
+    [ "swap", "dc/df3/classregen_1_1_allocator_pool.html#a44383de11ae07e69dcde23c1eeb38cc9", null ],
+    [ "alignment_", "dc/df3/classregen_1_1_allocator_pool.html#a86b8ee31f73a50bb50a2e2bf4c6f1d0f", null ],
+    [ "allocators_", "dc/df3/classregen_1_1_allocator_pool.html#a8e0209d18297dfb248d9cf558d8fb968", null ],
+    [ "index_", "dc/df3/classregen_1_1_allocator_pool.html#a255046cdba864e654885d9d5de85359a", null ],
+    [ "minSize_", "dc/df3/classregen_1_1_allocator_pool.html#a3225bfc817e2c9fff0195d0b8ffff4e1", null ],
+    [ "minSizeUnaligned_", "dc/df3/classregen_1_1_allocator_pool.html#a828f67326842272b24727ac49e7ac811", null ]
+];

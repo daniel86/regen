@@ -1,0 +1,9 @@
+<map id="/home/runner/work/regen/regen/regen/meshes/primitives/sphere.h" name="/home/runner/work/regen/regen/regen/meshes/primitives/sphere.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="229,5,458,60"/>
+<area shape="rect" id="Node000002" href="$d1/d07/mesh-vector_8cpp.html" title=" " alt="" coords="5,108,204,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="270,68,168,110,166,105,268,63"/>
+<area shape="rect" id="Node000003" href="$d9/d3e/meshes_2primitives_2sphere_8cpp.html" title=" " alt="" coords="229,108,458,163"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="346,74,346,108,341,108,341,74"/>
+<area shape="rect" id="Node000004" href="$d6/d54/bounding-sphere_8cpp.html" title=" " alt="" coords="482,108,701,163"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="422,63,528,105,526,110,420,68"/>
+</map>

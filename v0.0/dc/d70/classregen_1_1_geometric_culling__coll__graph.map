@@ -1,0 +1,18 @@
+<map id="regen::GeometricCulling" name="regen::GeometricCulling">
+<area shape="rect" id="Node000001" title="Geometric culling state node." alt="" coords="581,197,761,223"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="275,44,410,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="423,70,490,90,559,118,617,157,659,195,656,199,613,162,556,123,489,95,421,75"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="317,29,325,21,343,17,358,20,367,26,369,36,365,45,360,43,364,35,362,29,356,25,343,23,328,25,321,33"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,37,168,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="182,54,275,54,275,59,182,59"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,94,424,134"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="438,133,558,166,639,195,637,200,557,171,436,138"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,158,424,198"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="438,185,581,199,581,204,438,190"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,222,424,262"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="438,230,581,216,581,221,438,235"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,286,424,326"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="436,283,557,250,638,220,640,225,558,255,438,288"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,350,424,390"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="437,346,497,326,556,300,613,260,656,221,659,225,617,264,559,304,499,331,439,351"/>
+</map>

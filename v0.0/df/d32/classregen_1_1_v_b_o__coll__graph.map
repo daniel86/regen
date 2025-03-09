@@ -1,0 +1,9 @@
+<map id="regen::VBO" name="regen::VBO">
+<area shape="rect" id="Node000001" title="Buffer object that is used for vertex data." alt="" coords="487,5,582,31"/>
+<area shape="rect" id="Node000002" href="$dc/df3/classregen_1_1_allocator_pool.html" title="A pool of memory allocators." alt="" coords="5,63,261,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="275,64,385,41,487,23,488,28,386,46,276,69"/>
+<area shape="rect" id="Node000003" href="$d2/d17/structregen_1_1_allocator_pool_1_1_node.html" title="Doubly linked node containing an allocator." alt="" coords="385,109,684,178"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="275,111,385,124,385,129,275,117"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,152,285,145,239,135,240,130,286,139,372,146"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="498,93,512,85,535,82,553,84,567,89,575,98,577,108,571,109,570,100,564,94,552,89,535,87,514,90,501,98"/>
+</map>

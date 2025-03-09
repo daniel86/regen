@@ -1,0 +1,29 @@
+<map id="regen::Stars" name="regen::Stars">
+<area shape="rect" id="Node000001" title="A sky layer of bright stars." alt="" coords="855,381,955,406"/>
+<area shape="rect" id="Node000002" href="$d0/de9/classregen_1_1_sky_layer.html" title=" " alt="" coords="523,81,650,106"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="664,80,706,79,751,85,794,98,832,122,847,142,860,171,882,247,896,324,904,380,899,381,891,325,876,248,855,173,843,144,829,126,792,103,750,90,706,85,664,85"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="275,81,410,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,91,523,91,523,96,424,96"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="319,66,326,57,343,54,357,56,366,63,368,72,364,82,359,79,362,72,361,66,355,61,343,59,329,62,323,69"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,23,168,63"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="182,25,298,17,362,19,424,27,464,37,501,50,563,78,560,83,499,55,462,42,424,32,361,24,298,22,182,30"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="182,59,278,78,277,83,181,64"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="261,131,424,171"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="436,126,531,103,532,109,438,131"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,131,668,171"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="682,139,721,141,760,148,798,161,832,182,854,204,871,230,892,287,903,341,906,380,901,381,898,342,887,288,866,232,850,207,829,186,796,166,759,153,720,146,682,144"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,195,668,235"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="682,214,769,223,806,231,832,242,863,274,884,313,897,350,904,380,899,381,892,352,879,315,859,277,829,246,805,236,768,228,681,220"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,259,668,299"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="682,261,719,261,758,264,796,272,832,287,857,307,877,332,901,379,896,382,873,335,854,311,829,292,794,277,757,269,719,266,682,267"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,355,668,395"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="682,388,692,389,778,393,855,393,855,398,778,398,692,395,682,394"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,419,668,459"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="682,432,755,425,830,413,867,403,869,409,831,419,755,430,682,437"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,483,668,523"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="681,493,756,478,794,467,829,452,864,429,890,404,894,408,867,433,832,457,795,472,757,484,682,498"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,547,668,587"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="681,561,757,545,795,531,829,511,854,487,874,458,897,405,902,407,879,460,858,490,832,515,797,536,759,550,682,566"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="505,611,668,651"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="682,630,720,626,759,617,796,602,829,581,848,561,863,539,884,489,895,441,900,406,905,407,900,442,889,491,867,541,852,565,832,585,798,607,760,622,721,631,682,636"/>
+</map>

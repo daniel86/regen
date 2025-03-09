@@ -1,0 +1,9 @@
+<map id="regen::PolygonOffsetState" name="regen::PolygonOffsetState">
+<area shape="rect" id="Node000001" title="Set the scale and units used to calculate depth values." alt="" coords="5,225,197,251"/>
+<area shape="rect" id="Node000002" href="$d5/d27/classregen_1_1_server_side_state.html" title="Base class for &#39;atomic&#39; states." alt="" coords="16,152,187,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,191,104,225,99,225,99,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="51,79,152,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,118,104,152,99,152,99,118"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="28,5,175,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="104,44,104,79,99,79,99,44"/>
+</map>

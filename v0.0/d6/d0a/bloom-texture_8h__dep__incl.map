@@ -1,0 +1,16 @@
+<map id="/home/runner/work/regen/regen/regen/effects/bloom&#45;texture.h" name="/home/runner/work/regen/regen/regen/effects/bloom&#45;texture.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="291,5,488,60"/>
+<area shape="rect" id="Node000002" href="$df/dca/bloom-pass_8h.html" title=" " alt="" coords="87,108,284,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="325,68,240,110,237,106,323,63"/>
+<area shape="rect" id="Node000004" href="$d7/d1c/bloom_8h.html" title=" " alt="" coords="227,211,416,265"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="367,73,349,109,334,163,327,211,321,210,329,161,344,107,362,70"/>
+<area shape="rect" id="Node000006" href="$d6/da8/bloom-texture_8cpp.html" title=" " alt="" coords="359,108,556,163"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="417,70,442,106,437,109,413,73"/>
+<area shape="rect" id="Node000007" href="$db/d41/scene_2resources_2texture_8cpp.html" title=" " alt="" coords="580,108,793,163"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="481,62,610,105,608,110,479,67"/>
+<area shape="rect" id="Node000003" href="$d5/d98/bloom-pass_8cpp.html" title=" " alt="" coords="5,211,203,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="158,175,127,212,123,209,153,172"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="233,169,287,208,284,213,230,173"/>
+<area shape="rect" id="Node000005" href="$db/d2c/scene-parser_8cpp.html" title=" " alt="" coords="227,313,415,368"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="324,279,324,313,319,313,319,279"/>
+</map>

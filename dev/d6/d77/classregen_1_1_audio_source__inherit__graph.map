@@ -1,0 +1,5 @@
+<map id="regen::AudioSource" name="regen::AudioSource">
+<area shape="rect" id="Node000001" title="Source of audio in 3D space." alt="" coords="25,79,173,104"/>
+<area shape="rect" id="Node000002" href="$da/def/classregen_1_1_audio_video_stream.html" title="Baseclass for ffmpeg streams." alt="" coords="5,5,193,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,44,102,79,97,79,97,44"/>
+</map>

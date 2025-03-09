@@ -1,0 +1,14 @@
+<map id="regen::Bones" name="regen::Bones">
+<area shape="rect" id="Node000001" title="Provides bone matrices." alt="" coords="155,225,261,251"/>
+<area shape="rect" id="Node000002" href="$db/d71/classregen_1_1_has_input_state.html" title="A state with an input container." alt="" coords="43,152,202,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,184,196,223,192,227,145,188"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="5,79,107,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="78,113,114,150,110,154,75,116"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="101,5,248,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="145,40,77,81,74,76,142,35"/>
+<area shape="rect" id="Node000006" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="226,152,361,177"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="217,35,245,53,270,77,281,96,288,116,295,151,290,152,283,118,276,98,266,80,242,57,214,39"/>
+<area shape="rect" id="Node000005" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="131,79,256,104"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="174,116,136,154,132,150,170,112"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="271,188,224,227,220,223,268,184"/>
+</map>

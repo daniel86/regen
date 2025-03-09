@@ -1,0 +1,9 @@
+<map id="regen::Demuxer" name="regen::Demuxer">
+<area shape="rect" id="Node000001" title="ffmpeg stream demuxer." alt="" coords="367,77,493,102"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="33,5,196,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,40,343,67,376,74,375,79,342,72,209,45"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="33,69,196,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,87,367,87,367,92,209,92"/>
+<area shape="rect" id="Node000004" href="$da/d25/structregen_1_1_demuxer_1_1_seek_position.html" title=" " alt="" coords="5,134,224,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="214,129,342,107,376,99,377,105,343,112,215,134"/>
+</map>

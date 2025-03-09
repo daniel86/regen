@@ -1,0 +1,99 @@
+<map id="regen::State" name="regen::State">
+<area shape="rect" id="Node000001" title="Base class for states." alt="" coords="200,623,301,648"/>
+<area shape="rect" id="Node000004" href="$d6/d47/classregen_1_1_blit_state.html" title=" " alt="" coords="394,55,517,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="252,608,263,508,284,370,312,234,328,179,347,139,364,119,383,102,423,78,426,82,386,107,367,123,352,142,333,181,317,235,289,371,269,509,257,609"/>
+<area shape="rect" id="Node000008" href="$d1/d78/classregen_1_1_direct_shading.html" title="Implements deferred shading." alt="" coords="376,153,535,179"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="251,609,261,515,280,389,292,326,308,268,326,221,347,188,374,171,377,176,351,192,331,223,313,270,298,327,285,390,266,516,257,609"/>
+<area shape="rect" id="Node000009" href="$da/d6c/classregen_1_1_f_b_o_state.html" title="Framebuffer Objects are a mechanism for rendering to images other than the default OpenGL Default Fra..." alt="" coords="391,203,519,228"/>
+<area shape="poly" id="edge7_Node000001_Node000009" title=" " alt="" coords="252,609,263,525,283,414,311,307,328,266,347,237,367,224,390,216,392,221,370,228,351,241,333,268,316,309,288,415,269,526,258,610"/>
+<area shape="rect" id="Node000010" href="$d6/d43/classregen_1_1_feedback_specification.html" title=" " alt="" coords="349,252,561,277"/>
+<area shape="poly" id="edge8_Node000001_Node000010" title=" " alt="" coords="248,609,250,544,263,457,275,411,293,365,316,323,348,287,364,275,367,280,351,291,321,327,297,368,280,412,268,458,256,544,254,609"/>
+<area shape="rect" id="Node000012" href="$d1/d41/classregen_1_1_filter_sequence.html" title="Filters input texture by applying a sequence of filters to the input." alt="" coords="374,301,537,327"/>
+<area shape="poly" id="edge10_Node000001_Node000012" title=" " alt="" coords="250,608,255,552,269,478,282,439,298,402,320,367,348,336,372,321,375,325,351,340,324,370,303,404,287,441,274,480,260,552,255,609"/>
+<area shape="rect" id="Node000013" href="$db/d3c/classregen_1_1_fullscreen_pass.html" title="State that updates each texel of the active render target." alt="" coords="374,351,537,376"/>
+<area shape="poly" id="edge11_Node000001_Node000013" title=" " alt="" coords="252,608,260,560,276,500,305,438,324,410,348,385,373,371,375,375,351,389,328,413,309,441,281,501,265,561,257,609"/>
+<area shape="rect" id="Node000016" href="$db/d71/classregen_1_1_has_input_state.html" title="A state with an input container." alt="" coords="376,400,535,425"/>
+<area shape="poly" id="edge14_Node000001_Node000016" title=" " alt="" coords="258,608,291,536,316,496,348,460,379,438,412,423,414,428,381,443,351,464,320,499,296,539,263,610"/>
+<area shape="rect" id="Node000027" href="$d5/dea/classregen_1_1_light.html" title="A light emitting point in space." alt="" coords="406,475,505,500"/>
+<area shape="poly" id="edge18_Node000001_Node000027" title=" " alt="" coords="263,609,296,558,320,531,348,509,376,496,405,489,406,494,378,501,351,514,324,535,301,561,267,612"/>
+<area shape="rect" id="Node000028" href="$d8/d92/classregen_1_1_light_node.html" title="Animates Light position using an AnimationNode." alt="" coords="389,524,522,549"/>
+<area shape="poly" id="edge19_Node000001_Node000028" title=" " alt="" coords="273,611,307,583,348,558,387,545,389,550,350,563,310,588,277,615"/>
+<area shape="rect" id="Node000029" href="$da/d7b/classregen_1_1_light_pass.html" title="Deferred shading pass." alt="" coords="391,573,519,599"/>
+<area shape="poly" id="edge20_Node000001_Node000029" title=" " alt="" coords="313,617,349,607,396,596,398,601,350,613,314,622"/>
+<area shape="rect" id="Node000030" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="404,623,507,648"/>
+<area shape="poly" id="edge21_Node000001_Node000030" title=" " alt="" coords="315,633,404,633,404,638,315,638"/>
+<area shape="rect" id="Node000048" href="$d5/d69/classregen_1_1_model_transformation.html" title="matrix that transforms for model space to world space." alt="" coords="353,672,558,697"/>
+<area shape="poly" id="edge35_Node000001_Node000048" title=" " alt="" coords="314,649,350,658,398,669,396,674,349,663,313,654"/>
+<area shape="rect" id="Node000049" title=" " alt="" coords="372,721,539,747"/>
+<area shape="poly" id="edge36_Node000001_Node000049" title=" " alt="" coords="277,656,310,683,350,708,381,719,379,724,348,712,307,687,273,660"/>
+<area shape="rect" id="Node000050" href="$df/d91/classregen_1_1_screen_state.html" title="Activation of OpenGL Default Framebuffer." alt="" coords="383,771,528,796"/>
+<area shape="poly" id="edge37_Node000001_Node000050" title=" " alt="" coords="267,659,301,710,324,736,351,757,383,771,381,776,348,762,320,739,296,713,263,662"/>
+<area shape="rect" id="Node000051" href="$d5/d27/classregen_1_1_server_side_state.html" title="Base class for &#39;atomic&#39; states." alt="" coords="370,820,541,845"/>
+<area shape="poly" id="edge38_Node000001_Node000051" title=" " alt="" coords="262,660,274,694,292,734,318,773,351,807,371,818,368,822,348,811,314,777,288,736,269,696,257,662"/>
+<area shape="rect" id="Node000073" href="$d0/d40/classregen_1_1_shader_state.html" title="Binds Shader program to the RenderState." alt="" coords="382,869,529,895"/>
+<area shape="poly" id="edge43_Node000001_Node000073" title=" " alt="" coords="258,661,268,704,285,757,312,811,330,835,351,856,383,872,381,877,348,860,326,839,307,814,280,759,262,706,253,662"/>
+<area shape="rect" id="Node000074" href="$d3/df5/classregen_1_1_state_sequence.html" title="Joined states of the sequence are enabled and disabled one after each other." alt="" coords="373,919,537,944"/>
+<area shape="poly" id="edge44_Node000001_Node000074" title=" " alt="" coords="256,662,262,714,278,780,290,814,306,848,326,879,351,905,375,919,372,924,348,909,322,882,302,850,285,816,273,781,257,715,251,662"/>
+<area shape="rect" id="Node000075" href="$d6/d12/classregen_1_1_tesselation_state.html" title="Encapsulates Tesselation states." alt="" coords="368,968,543,993"/>
+<area shape="poly" id="edge45_Node000001_Node000075" title=" " alt="" coords="254,661,258,722,271,801,283,843,300,884,323,922,351,955,369,967,366,971,348,959,318,925,296,886,278,845,266,803,253,723,249,662"/>
+<area shape="rect" id="Node000076" href="$df/d81/classregen_1_1_texture_index_state.html" title=" " alt="" coords="363,1017,548,1043"/>
+<area shape="poly" id="edge46_Node000001_Node000076" title=" " alt="" coords="258,661,270,740,290,844,317,941,334,979,351,1004,366,1015,363,1019,347,1008,329,982,312,943,285,845,265,741,253,662"/>
+<area shape="rect" id="Node000079" href="$de/d78/classregen_1_1_texture_state.html" title="A State Object that contains one or more images that all have the same image format." alt="" coords="381,1067,530,1092"/>
+<area shape="poly" id="edge47_Node000001_Node000079" title=" " alt="" coords="257,662,268,750,287,868,314,981,332,1024,351,1053,365,1064,382,1071,379,1076,362,1068,347,1057,327,1027,309,983,281,869,262,751,252,662"/>
+<area shape="rect" id="Node000080" href="$df/d2a/classregen_1_1scene_1_1_sort_by_model_matrix.html" title=" " alt="" coords="357,1117,553,1157"/>
+<area shape="poly" id="edge48_Node000001_Node000080" title=" " alt="" coords="257,662,266,759,284,891,297,958,313,1019,331,1069,351,1103,365,1114,362,1118,347,1106,326,1071,307,1021,292,960,279,892,261,760,251,662"/>
+<area shape="rect" id="Node000002" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,597,152,623"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,620,200,625,199,631,165,625"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="15,647,142,672"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,646,200,640,200,645,156,651"/>
+<area shape="rect" id="Node000005" href="$d7/de9/classregen_1_1_blit_to_f_b_o.html" title="Blits a FBO color attachment to another FBO." alt="" coords="641,5,772,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="530,50,641,28,642,33,531,55"/>
+<area shape="rect" id="Node000006" href="$da/d91/classregen_1_1_blit_to_screen.html" title="Blits a FBO color attachment to screen." alt="" coords="633,55,780,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="530,65,633,65,633,70,530,70"/>
+<area shape="rect" id="Node000011" href="$df/d35/classregen_1_1_feedback_state.html" title="Transform feedback state." alt="" coords="625,104,788,129"/>
+<area shape="poly" id="edge9_Node000010_Node000011" title=" " alt="" coords="551,244,560,237,571,226,577,214,583,189,589,164,596,151,608,139,627,127,629,132,611,143,600,154,594,166,588,191,582,216,575,229,563,241,554,248"/>
+<area shape="rect" id="Node000014" href="$dd/d7e/classregen_1_1_filter.html" title="Apply a filter on input Texture." alt="" coords="657,153,757,179"/>
+<area shape="poly" id="edge12_Node000013_Node000014" title=" " alt="" coords="548,345,559,336,574,319,581,301,583,264,585,226,593,207,608,188,630,174,656,166,657,171,632,179,611,192,597,209,590,227,588,264,586,302,578,321,563,340,551,349"/>
+<area shape="rect" id="Node000015" href="$d6/dc2/classregen_1_1_motion_blur.html" title=" " alt="" coords="637,203,776,228"/>
+<area shape="poly" id="edge13_Node000013_Node000015" title=" " alt="" coords="547,344,560,336,571,325,577,313,583,288,589,262,596,250,608,237,636,222,639,227,611,241,600,253,594,264,588,289,582,315,575,328,563,340,550,348"/>
+<area shape="rect" id="Node000017" href="$db/d16/classregen_1_1_bones.html" title="Provides bone matrices." alt="" coords="653,252,760,277"/>
+<area shape="poly" id="edge15_Node000016_Node000017" title=" " alt="" coords="546,394,560,385,571,374,577,362,583,337,589,312,596,299,608,287,629,274,652,267,654,272,631,279,611,291,600,302,594,314,588,339,582,364,575,377,563,389,549,398"/>
+<area shape="rect" id="Node000018" href="$d5/d2d/classregen_1_1_camera.html" title="Camera with projection and view matrix." alt="" coords="647,301,766,327"/>
+<area shape="poly" id="edge16_Node000016_Node000018" title=" " alt="" coords="544,393,560,385,574,374,583,361,592,348,608,336,646,321,648,326,611,340,596,352,588,364,578,377,563,390,546,398"/>
+<area shape="rect" id="Node000026" href="$da/d1f/classregen_1_1_material.html" title="Provides material related uniforms." alt="" coords="646,351,767,376"/>
+<area shape="poly" id="edge17_Node000016_Node000026" title=" " alt="" coords="534,395,645,373,646,378,535,400"/>
+<area shape="rect" id="Node000031" href="$d0/d6e/classregen_1_1_attribute_less_mesh.html" title="Mesh that can be used when no vertex shader input is required." alt="" coords="613,400,801,425"/>
+<area shape="poly" id="edge22_Node000030_Node000031" title=" " alt="" coords="519,629,541,621,559,608,575,588,582,567,583,523,583,479,591,457,607,435,623,423,626,428,611,439,596,459,588,480,588,523,588,568,580,590,563,612,544,625,521,634"/>
+<area shape="rect" id="Node000032" href="$d8/dbb/classregen_1_1_box.html" title="Three&#45;dimensional solid object bounded by six square faces, facets or sides, with three meeting at ea..." alt="" coords="661,449,753,475"/>
+<area shape="poly" id="edge23_Node000030_Node000032" title=" " alt="" coords="520,628,541,620,560,608,572,594,579,579,583,548,587,516,594,500,608,484,633,469,660,462,661,467,635,474,611,488,599,502,592,517,588,548,584,580,577,597,563,612,543,625,521,633"/>
+<area shape="rect" id="Node000034" href="$dd/dc6/classregen_1_1_cone.html" title=" " alt="" coords="657,499,757,524"/>
+<area shape="poly" id="edge24_Node000030_Node000034" title=" " alt="" coords="519,626,540,618,560,608,576,591,583,572,591,552,608,533,631,521,656,514,657,519,633,526,611,537,595,555,588,574,580,593,563,612,543,623,521,631"/>
+<area shape="rect" id="Node000037" href="$de/d68/classregen_1_1_disc.html" title="A disc is a 2D geometric shape that is defined by a center and a radius. The disc is centered at (0,..." alt="" coords="659,548,754,573"/>
+<area shape="poly" id="edge25_Node000030_Node000037" title=" " alt="" coords="519,620,560,608,584,595,608,582,658,567,660,572,610,587,587,600,562,612,521,625"/>
+<area shape="rect" id="Node000038" href="$d2/d62/classregen_1_1_frame_mesh.html" title="Three&#45;dimensional solid box&#45;shape frame with a whole in the middle." alt="" coords="635,597,778,623"/>
+<area shape="poly" id="edge26_Node000030_Node000038" title=" " alt="" coords="520,626,635,614,636,620,521,631"/>
+<area shape="rect" id="Node000039" href="$d2/d73/classregen_1_1_lightning_bolt.html" title="A lightning bolt." alt="" coords="630,647,783,672"/>
+<area shape="poly" id="edge27_Node000030_Node000039" title=" " alt="" coords="521,639,630,649,629,655,520,644"/>
+<area shape="rect" id="Node000040" href="$da/d31/classregen_1_1_particles.html" title="Point sprite particle system." alt="" coords="645,696,768,721"/>
+<area shape="poly" id="edge28_Node000030_Node000040" title=" " alt="" coords="521,646,562,658,587,670,610,682,647,693,645,698,608,687,584,675,560,663,519,651"/>
+<area shape="rect" id="Node000041" href="$d6/dd0/classregen_1_1_point.html" title=" " alt="" coords="657,745,757,771"/>
+<area shape="poly" id="edge29_Node000030_Node000041" title=" " alt="" coords="521,640,543,647,563,659,580,677,588,696,595,715,611,732,633,743,657,750,656,756,631,748,608,736,591,718,583,698,576,680,560,663,540,652,519,645"/>
+<area shape="rect" id="Node000042" href="$d5/dd4/classregen_1_1_rectangle.html" title="A polygon with four edges, vertices and right angles." alt="" coords="641,795,773,820"/>
+<area shape="poly" id="edge30_Node000030_Node000042" title=" " alt="" coords="521,638,543,646,563,659,576,674,584,690,588,722,592,753,599,767,611,781,642,798,639,802,608,785,594,770,587,754,583,722,579,691,572,677,560,663,541,651,520,643"/>
+<area shape="rect" id="Node000044" href="$de/d08/classregen_1_1_sphere.html" title="Round geometrical object in three&#45;dimensional space &#45; a sphere ;)" alt="" coords="651,844,763,869"/>
+<area shape="poly" id="edge31_Node000030_Node000044" title=" " alt="" coords="521,637,543,645,563,659,580,680,588,703,588,747,588,790,596,810,611,831,630,843,651,851,650,856,627,848,608,835,591,813,583,791,583,747,582,703,575,683,559,663,541,650,519,642"/>
+<area shape="rect" id="Node000045" href="$d6/d1c/classregen_1_1_sphere_sprite.html" title="A sprite that generates sphere normals." alt="" coords="631,893,782,919"/>
+<area shape="poly" id="edge32_Node000030_Node000045" title=" " alt="" coords="521,637,544,645,563,659,583,687,591,715,592,743,588,772,585,799,585,827,592,854,611,880,632,894,629,899,607,884,588,856,580,827,579,799,583,771,586,743,586,716,578,689,559,663,541,649,519,642"/>
+<area shape="rect" id="Node000046" href="$d4/d74/classregen_1_1_texture_mapped_text.html" title="Implements texture mapped text rendering." alt="" coords="609,943,804,968"/>
+<area shape="poly" id="edge33_Node000030_Node000046" title=" " alt="" coords="521,636,544,644,563,659,586,693,595,728,594,762,588,796,582,830,581,864,589,897,611,930,625,941,622,945,607,933,584,899,576,864,577,830,583,795,589,762,590,728,582,695,559,663,541,649,519,641"/>
+<area shape="rect" id="Node000047" href="$d7/df1/classregen_1_1_torus.html" title="Three&#45;dimensional solid object bounded by six square faces, facets or sides, with three meeting at ea..." alt="" coords="656,992,757,1017"/>
+<area shape="poly" id="edge34_Node000030_Node000047" title=" " alt="" coords="521,636,544,644,563,659,579,679,590,700,599,740,596,781,588,821,580,861,577,900,586,940,596,959,611,979,632,993,656,1001,655,1006,629,998,607,983,592,962,581,942,572,901,575,860,583,820,591,780,594,741,585,701,575,682,559,663,541,649,519,641"/>
+<area shape="rect" id="Node000052" href="$da/dd3/classregen_1_1_blend_color_state.html" title="Set the blend color." alt="" coords="621,1041,793,1067"/>
+<area shape="poly" id="edge39_Node000051_Node000052" title=" " alt="" coords="555,849,563,856,580,878,588,900,588,944,588,987,596,1008,611,1028,626,1039,623,1043,607,1032,591,1010,583,988,583,944,582,901,575,880,559,860,551,853"/>
+<area shape="rect" id="Node000053" href="$d5/dc1/classregen_1_1_blend_equation_state.html" title="Specify the equation used for both the RGB blend equation and the Alpha blend equation." alt="" coords="609,1091,804,1116"/>
+<area shape="poly" id="edge40_Node000051_Node000053" title=" " alt="" coords="554,848,563,856,583,884,591,912,592,941,588,969,585,997,585,1024,592,1051,611,1077,626,1088,622,1093,607,1081,588,1053,580,1025,579,996,583,968,586,940,586,913,578,886,559,860,551,852"/>
+<area shape="rect" id="Node000054" href="$dd/d20/classregen_1_1_blend_func_state.html" title="Specify pixel arithmetic." alt="" coords="623,1140,791,1165"/>
+<area shape="poly" id="edge41_Node000051_Node000054" title=" " alt="" coords="554,848,563,856,586,890,595,925,594,959,588,994,582,1028,581,1061,589,1094,611,1127,625,1138,622,1142,607,1130,584,1096,576,1061,577,1027,583,993,589,959,590,926,582,893,559,860,551,852"/>
+<area shape="rect" id="Node000055" href="$db/de9/classregen_1_1_blend_state.html" title="Describes how a texture will be mixed with existing pixels." alt="" coords="637,1189,776,1215"/>
+<area shape="poly" id="edge42_Node000051_Node000055" title=" " alt="" coords="554,848,563,856,579,876,590,897,599,938,596,978,588,1018,580,1058,577,1098,586,1137,596,1157,611,1176,624,1186,638,1193,636,1198,621,1191,607,1180,592,1159,581,1139,572,1098,575,1058,583,1017,591,977,594,938,585,899,575,879,559,860,551,852"/>
+</map>

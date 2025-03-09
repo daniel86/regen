@@ -1,0 +1,15 @@
+<map id="/home/runner/work/regen/regen/regen/scene/value&#45;generator.h" name="/home/runner/work/regen/regen/regen/scene/value&#45;generator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="432,5,619,60"/>
+<area shape="rect" id="Node000002" href="$d9/df2/shader-input-processor_8h.html" title=" " alt="" coords="319,108,513,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="488,72,446,110,443,106,485,68"/>
+<area shape="rect" id="Node000007" href="$df/d7a/model-transformation_8cpp.html" title=" " alt="" coords="538,108,731,163"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="566,68,608,106,604,110,562,72"/>
+<area shape="rect" id="Node000003" href="$df/dff/ubo_8cpp.html" title=" " alt="" coords="5,211,192,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="321,169,182,213,181,208,320,164"/>
+<area shape="rect" id="Node000004" href="$db/d42/scene-loader_8cpp.html" title=" " alt="" coords="217,211,405,265"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="380,174,340,213,336,209,377,170"/>
+<area shape="rect" id="Node000005" href="$d2/d2d/light-pass_8cpp.html" title=" " alt="" coords="429,211,616,265"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="456,170,497,209,493,213,452,174"/>
+<area shape="rect" id="Node000006" href="$db/d14/light-state_8cpp.html" title=" " alt="" coords="640,211,827,265"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="512,164,651,208,650,213,511,169"/>
+</map>

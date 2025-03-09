@@ -1,0 +1,13 @@
+<map id="regen::CameraController" name="regen::CameraController">
+<area shape="rect" id="Node000001" title=" " alt="" coords="118,152,301,177"/>
+<area shape="rect" id="Node000005" href="$dd/d23/classregen_1_1_character_controller.html" title="Character controller. The character controller is a camera controller that uses a kinematic character..." alt="" coords="5,225,200,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="182,187,122,227,119,223,180,183"/>
+<area shape="rect" id="Node000006" href="$d0/d32/classregen_1_1_impulse_controller.html" title="Camera controller that applies an impulse to a physical object." alt="" coords="225,225,407,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="239,183,300,223,297,227,236,187"/>
+<area shape="rect" id="Node000002" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="43,79,178,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,110,195,150,192,154,136,114"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="37,5,184,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,44,113,79,108,79,108,44"/>
+<area shape="rect" id="Node000004" href="$d2/d32/classregen_1_1_camera_controller_base.html" title="Computes the transformation matrices of a Camera." alt="" coords="202,79,417,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="284,114,227,154,224,150,281,110"/>
+</map>

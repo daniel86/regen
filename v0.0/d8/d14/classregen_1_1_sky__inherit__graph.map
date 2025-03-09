@@ -1,0 +1,9 @@
+<map id="regen::Sky" name="regen::Sky">
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,152,197,177"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="5,79,140,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,111,140,150,137,154,94,115"/>
+<area shape="rect" id="Node000003" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="164,79,299,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,115,166,154,163,150,207,111"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="158,5,305,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="234,44,234,79,229,79,229,44"/>
+</map>

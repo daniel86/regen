@@ -1,0 +1,8 @@
+<map id="regen::ValueStack&lt; T &gt;" name="regen::ValueStack&lt; T &gt;">
+<area shape="rect" id="Node000001" title="State stack with single argument apply function." alt="" coords="5,227,183,252"/>
+<area shape="rect" id="Node000002" href="$d5/d8d/classregen_1_1_state_stack.html" title=" " alt="" coords="16,123,172,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,191,97,226,91,226,91,191"/>
+<area shape="rect" id="Node000003" href="$d6/d57/structregen_1_1_state_stack_1_1_node.html" title=" " alt="" coords="9,5,179,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,74,97,122,91,122,91,74"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="194,22,202,26,206,33,198,42,180,45,179,40,196,37,201,32,199,30,192,27"/>
+</map>

@@ -1,0 +1,25 @@
+<map id="/home/runner/work/regen/regen/regen/external/libnoise/src/model/plane.cpp" name="/home/runner/work/regen/regen/regen/external/libnoise/src/model/plane.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="19,5,231,60"/>
+<area shape="rect" id="Node000002" href="$d7/d9c/external_2libnoise_2src_2noise_2model_2plane_8h.html" title=" " alt="" coords="68,108,183,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,60,128,94,123,94,123,60"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,255,80,280"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="121,135,58,244,54,241,116,132"/>
+<area shape="rect" id="Node000004" href="$d9/d8e/modulebase_8h.html" title=" " alt="" coords="119,181,297,207"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="140,131,186,170,182,174,137,135"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="182,209,83,252,81,247,180,204"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="471,255,542,280"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="257,204,459,252,457,257,255,209"/>
+<area shape="rect" id="Node000006" href="$df/db1/math_8h.html" title=" " alt="" coords="129,328,197,353"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="189,209,165,229,145,256,142,270,142,286,152,315,147,317,137,287,136,270,140,254,161,225,186,205"/>
+<area shape="rect" id="Node000008" href="$d9/da6/basictypes_8h.html" title=" " alt="" coords="310,328,426,353"/>
+<area shape="poly" id="edge9_Node000004_Node000008" title=" " alt="" coords="298,196,329,203,359,214,387,230,410,253,416,270,413,288,393,319,388,316,408,286,411,270,406,256,384,234,357,219,327,208,297,201"/>
+<area shape="rect" id="Node000009" href="$dd/d2d/exception_8h.html" title=" " alt="" coords="285,255,395,280"/>
+<area shape="poly" id="edge10_Node000004_Node000009" title=" " alt="" coords="230,204,308,246,305,250,228,209"/>
+<area shape="rect" id="Node000010" href="$d8/d10/noisegen_8h.html" title=" " alt="" coords="155,255,261,280"/>
+<area shape="poly" id="edge11_Node000004_Node000010" title=" " alt="" coords="211,207,211,241,205,241,205,207"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="190,325,212,327,220,332,223,341,218,352,204,356,203,351,214,348,218,340,216,335,210,332,190,331"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="127,401,199,427"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="165,354,165,388,160,388,160,354"/>
+<area shape="poly" id="edge12_Node000010_Node000006" title=" " alt="" coords="203,282,180,318,175,315,198,279"/>
+<area shape="poly" id="edge13_Node000010_Node000008" title=" " alt="" coords="235,278,330,320,328,325,233,282"/>
+</map>

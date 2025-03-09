@@ -1,0 +1,19 @@
+<map id="regen::Material" name="regen::Material">
+<area shape="rect" id="Node000001" title="Provides material related uniforms." alt="" coords="743,176,864,201"/>
+<area shape="rect" id="Node000002" href="$db/d71/classregen_1_1_has_input_state.html" title="A state with an input container." alt="" coords="535,176,693,201"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="707,186,742,186,742,191,707,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="372,112,473,137"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="476,139,576,173,574,178,474,144"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="25,5,172,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="186,31,260,49,337,74,373,91,403,110,401,114,370,96,335,79,259,54,185,36"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="35,55,162,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="176,75,337,102,372,110,371,115,335,107,175,80"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,105,180,145"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="194,122,372,122,372,127,194,127"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,169,180,209"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="193,170,335,142,371,134,372,139,337,147,194,175"/>
+<area shape="rect" id="Node000008" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="360,200,485,225"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="499,200,534,196,535,201,500,206"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,233,192,273"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="206,244,336,230,372,223,373,228,336,235,206,250"/>
+</map>

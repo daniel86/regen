@@ -1,0 +1,7 @@
+<map id="regen::scene::SceneInputXML" name="regen::scene::SceneInputXML">
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,108,319,133"/>
+<area shape="rect" id="Node000002" href="$d8/d2e/classregen_1_1scene_1_1_scene_input.html" title=" " alt="" coords="5,13,191,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,44,200,106,197,110,121,48"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="215,5,440,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="295,56,229,110,225,106,292,52"/>
+</map>

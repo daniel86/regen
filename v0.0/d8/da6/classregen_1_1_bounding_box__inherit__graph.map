@@ -1,0 +1,9 @@
+<map id="regen::BoundingBox" name="regen::BoundingBox">
+<area shape="rect" id="Node000001" title="Bounding box." alt="" coords="41,79,195,104"/>
+<area shape="rect" id="Node000003" href="$d0/d1b/classregen_1_1_a_a_b_b.html" title="Axis&#45;aligned bounding box." alt="" coords="5,152,108,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="101,116,69,154,65,150,97,113"/>
+<area shape="rect" id="Node000004" href="$d1/d48/classregen_1_1_o_b_b.html" title="Oriented bounding box." alt="" coords="132,152,227,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="139,113,171,150,167,154,135,116"/>
+<area shape="rect" id="Node000002" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="34,5,202,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,44,121,79,115,79,115,44"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="regen::DirectShading" name="regen::DirectShading">
+<area shape="rect" id="Node000001" title="Implements deferred shading." alt="" coords="644,103,803,128"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="367,63,468,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="482,81,644,102,643,108,481,86"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,29,312,53,367,63,366,68,312,58,173,34"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,73,367,73,367,78,182,78"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,118,366,82,367,88,182,124"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,113,499,153"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="512,125,643,117,644,122,512,130"/>
+</map>

@@ -1,0 +1,35 @@
+<map id="regen::StateNode" name="regen::StateNode">
+<area shape="rect" id="Node000001" title="A node that holds a State." alt="" coords="5,228,140,253"/>
+<area shape="rect" id="Node000002" href="$df/d1b/classregen_1_1_bloom_pass.html" title="Bloom effect pass. This pass updates a bloom texture. It must be composed with the input texture to c..." alt="" coords="216,5,355,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,214,93,175,115,128,146,80,186,40,215,25,217,30,190,44,150,84,120,130,98,177,84,216"/>
+<area shape="rect" id="Node000003" href="$d0/d1a/classregen_1_1_bullet_debug_drawer.html" title=" " alt="" coords="188,55,383,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="84,214,124,151,152,117,187,89,209,78,212,83,189,94,156,121,128,154,88,217"/>
+<area shape="rect" id="Node000004" href="$d1/d30/classregen_1_1_geom_picking.html" title="Picks an object using geometry shader." alt="" coords="209,104,362,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="92,216,133,176,159,156,187,138,215,127,217,132,189,143,162,160,137,180,96,219"/>
+<area shape="rect" id="Node000005" href="$dd/da7/classregen_1_1_geometric_culling.html" title="Geometric culling state node." alt="" coords="195,153,375,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="110,220,187,187,225,176,227,181,189,193,112,225"/>
+<area shape="rect" id="Node000006" href="$dd/dbd/classregen_1_1_loop_node.html" title="Adds the possibility to traverse child tree n times." alt="" coords="219,203,351,228"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="154,228,219,221,219,226,155,234"/>
+<area shape="rect" id="Node000007" href="$d3/d33/classregen_1_1_root_node.html" title="Provides some global uniforms and keeps a reference on the render state." alt="" coords="220,252,351,277"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="154,247,220,255,219,260,153,252"/>
+<area shape="rect" id="Node000008" href="$de/d6d/classregen_1_1_sky.html" title=" " alt="" coords="240,301,331,327"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="115,257,189,286,240,301,239,306,187,291,113,262"/>
+<area shape="rect" id="Node000009" href="$d0/de9/classregen_1_1_sky_layer.html" title=" " alt="" coords="222,351,349,376"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="96,261,137,300,189,336,223,349,221,354,187,340,134,304,93,265"/>
+<area shape="rect" id="Node000016" href="$dc/df6/classregen_1_1_sky_view.html" title=" " alt="" coords="224,400,347,425"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="89,264,128,326,157,358,189,385,225,401,222,406,187,390,153,362,124,329,84,267"/>
+<area shape="rect" id="Node000017" href="$d8/daf/classregen_1_1_spatial_index_debug.html" title=" " alt="" coords="190,449,381,475"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="84,266,99,304,121,350,151,396,190,435,212,447,209,451,186,439,147,399,116,352,94,306,79,268"/>
+<area shape="rect" id="Node000010" href="$db/d43/classregen_1_1_atmosphere.html" title="Atmospheric scattering, and some simple cloud rendering. A cube map is created on updated,..." alt="" coords="437,227,583,252"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="361,347,381,336,397,318,404,300,412,280,429,261,449,250,452,254,432,265,417,283,409,302,401,321,384,340,363,352"/>
+<area shape="rect" id="Node000011" href="$d1/d3b/classregen_1_1_cloud_layer.html" title=" " alt="" coords="440,276,580,301"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="356,344,382,336,405,323,430,310,461,299,463,304,432,315,408,328,384,340,357,349"/>
+<area shape="rect" id="Node000012" href="$db/dd4/classregen_1_1_moon_layer.html" title="Moon layer of the sky. The moon is rendered using a textured quad with alpha blending...." alt="" coords="441,325,579,351"/>
+<area shape="poly" id="edge11_Node000009_Node000012" title=" " alt="" coords="362,352,440,343,441,348,363,357"/>
+<area shape="rect" id="Node000013" href="$db/da9/classregen_1_1_sky_layer_view.html" title=" " alt="" coords="431,375,589,400"/>
+<area shape="poly" id="edge12_Node000009_Node000013" title=" " alt="" coords="363,369,431,376,430,382,362,374"/>
+<area shape="rect" id="Node000014" href="$d4/d08/classregen_1_1_star_map.html" title="A sky layer of far away stars. A textured sky box is used to render the stars." alt="" coords="449,424,571,449"/>
+<area shape="poly" id="edge13_Node000009_Node000014" title=" " alt="" coords="360,377,384,385,432,409,467,421,465,427,430,414,382,390,359,382"/>
+<area shape="rect" id="Node000015" href="$d7/d84/classregen_1_1_stars.html" title="A sky layer of bright stars." alt="" coords="460,473,560,499"/>
+<area shape="poly" id="edge14_Node000009_Node000015" title=" " alt="" coords="363,374,384,385,401,404,409,423,417,441,432,459,461,473,459,478,429,463,412,444,404,425,397,406,381,389,360,378"/>
+</map>

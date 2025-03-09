@@ -1,0 +1,18 @@
+<map id="/home/runner/work/regen/regen/regen/camera/sorting.h" name="/home/runner/work/regen/regen/regen/camera/sorting.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="167,5,386,45"/>
+<area shape="rect" id="Node000002" href="$d9/d0e/sorting_8cpp.html" title=" " alt="" coords="5,101,239,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,55,155,103,152,98,232,50"/>
+<area shape="rect" id="Node000003" href="$d0/df4/geometric-culling_8cpp.html" title=" " alt="" coords="167,196,386,251"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,59,279,196,274,196,274,59"/>
+<area shape="rect" id="Node000004" href="$d6/d14/geometric-culling_8h.html" title=" " alt="" coords="314,93,533,148"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="319,50,383,91,381,95,316,55"/>
+<area shape="poly" id="edge8_Node000004_Node000003" title=" " alt="" coords="375,158,317,198,314,194,372,154"/>
+<area shape="rect" id="Node000005" href="$d6/d35/node-processor_8h.html" title=" " alt="" coords="410,196,597,251"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="455,157,485,194,480,198,451,160"/>
+<area shape="rect" id="Node000006" href="$db/d42/scene-loader_8cpp.html" title=" " alt="" coords="196,299,384,353"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="437,259,347,301,344,296,435,254"/>
+<area shape="rect" id="Node000007" href="$da/d59/direct-shading_8cpp.html" title=" " alt="" coords="409,299,598,353"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="506,264,506,299,501,299,501,264"/>
+<area shape="rect" id="Node000008" href="$d7/d91/geometric-picking_8cpp.html" title=" " alt="" coords="622,299,841,353"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="576,254,673,296,671,301,574,259"/>
+</map>

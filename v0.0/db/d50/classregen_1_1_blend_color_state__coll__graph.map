@@ -1,0 +1,15 @@
+<map id="regen::BlendColorState" name="regen::BlendColorState">
+<area shape="rect" id="Node000001" title="Set the blend color." alt="" coords="740,95,912,120"/>
+<area shape="rect" id="Node000002" href="$d5/d27/classregen_1_1_server_side_state.html" title="Base class for &#39;atomic&#39; states." alt="" coords="489,63,659,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="673,85,740,94,739,99,673,91"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="336,63,437,88"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="451,73,488,73,488,78,451,78"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="174,28,313,53,342,60,341,65,311,58,173,33"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="182,73,336,73,336,78,182,78"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="181,120,311,93,340,85,342,91,313,98,182,125"/>
+<area shape="rect" id="Node000007" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="487,112,661,137"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="675,117,716,114,740,112,740,118,716,119,675,122"/>
+</map>

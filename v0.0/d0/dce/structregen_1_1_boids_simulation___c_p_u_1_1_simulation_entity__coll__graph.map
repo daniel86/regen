@@ -1,0 +1,7 @@
+<map id="regen::BoidsSimulation_CPU::SimulationEntity" name="regen::BoidsSimulation_CPU::SimulationEntity">
+<area shape="rect" id="Node000001" title=" " alt="" coords="93,108,267,148"/>
+<area shape="rect" id="Node000002" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,54,164,106,161,110,112,57"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="192,5,355,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,57,199,110,196,106,245,54"/>
+</map>

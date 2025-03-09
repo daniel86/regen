@@ -1,0 +1,19 @@
+<map id="regen::AABB" name="regen::AABB">
+<area shape="rect" id="Node000001" title="Axis&#45;aligned bounding box." alt="" coords="848,181,951,206"/>
+<area shape="rect" id="Node000002" href="$d8/d98/classregen_1_1_bounding_box.html" title="Bounding box." alt="" coords="645,181,799,206"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="813,191,848,191,848,196,813,196"/>
+<area shape="rect" id="Node000003" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="331,93,499,118"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="475,119,678,178,676,183,473,125"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="195,46,305,73,368,90,366,95,303,79,194,51"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,69,178,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="192,91,331,98,331,104,191,97"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,133,178,173"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="191,136,331,115,332,121,192,142"/>
+<area shape="rect" id="Node000007" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="332,175,499,215"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="513,192,645,191,645,196,513,197"/>
+<area shape="rect" id="Node000008" href="$da/db7/classregen_1_1_vec3.html" title="A 3D vector." alt="" coords="29,199,165,225"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="178,211,304,208,332,205,332,211,304,213,179,217"/>
+<area shape="rect" id="Node000009" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="328,241,503,266"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="516,244,621,227,690,204,692,209,622,232,517,249"/>
+</map>

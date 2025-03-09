@@ -1,0 +1,11 @@
+<map id="regen::FrameMesh" name="regen::FrameMesh">
+<area shape="rect" id="Node000001" title="Three&#45;dimensional solid box&#45;shape frame with a whole in the middle." alt="" coords="75,225,218,251"/>
+<area shape="rect" id="Node000002" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="95,152,198,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,191,149,225,144,225,144,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="28,79,129,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,112,138,150,134,154,97,116"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,5,152,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="81,44,81,79,76,79,76,44"/>
+<area shape="rect" id="Node000005" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="153,79,279,104"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="197,116,160,154,156,150,193,112"/>
+</map>

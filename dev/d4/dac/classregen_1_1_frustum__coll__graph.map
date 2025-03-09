@@ -1,0 +1,23 @@
+<map id="regen::Frustum" name="regen::Frustum">
+<area shape="rect" id="Node000001" title=" " alt="" coords="671,165,791,190"/>
+<area shape="rect" id="Node000002" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="331,91,499,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="513,102,580,109,648,125,684,143,714,162,711,167,682,147,646,131,579,115,512,107"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,72,188,112"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="202,99,212,100,331,102,331,108,212,105,202,105"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,5,178,45"/>
+<area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="192,17,290,18,407,28,469,38,530,53,591,72,648,96,671,111,692,129,722,162,718,166,688,132,668,115,645,101,589,77,529,58,468,44,406,34,290,24,191,23"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,47,213,55,356,89,355,94,211,60,180,52"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,136,178,176"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="191,140,304,123,350,114,351,119,304,128,192,146"/>
+<area shape="rect" id="Node000006" href="$d3/dbd/classregen_1_1_vec2.html" title=" " alt="" coords="328,141,503,166"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="517,158,671,170,670,175,516,164"/>
+<area shape="rect" id="Node000007" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="332,191,499,231"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="512,202,646,189,670,186,671,191,647,195,513,208"/>
+<area shape="rect" id="Node000008" href="$d3/dbd/classregen_1_1_vec2.html" title="A 2D vector." alt="" coords="29,202,165,227"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="178,212,304,211,332,210,332,215,304,216,178,217"/>
+<area shape="rect" id="Node000009" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="9,285,184,310"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="198,308,343,316,423,314,502,305,577,290,608,277,645,256,687,222,717,188,721,192,691,226,648,261,610,282,579,295,503,311,423,319,342,321,198,313"/>
+<area shape="rect" id="Node000010" href="$da/d75/classregen_1_1_plane.html" title=" " alt="" coords="364,255,467,281"/>
+<area shape="poly" id="edge10_Node000010_Node000009" title=" " alt="" coords="198,285,363,270,364,275,198,291"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="480,259,560,245,646,221,680,206,709,188,712,193,682,210,648,227,561,251,481,264"/>
+</map>

@@ -1,0 +1,19 @@
+<map id="regen::FBOState" name="regen::FBOState">
+<area shape="rect" id="Node000001" title="Framebuffer Objects are a mechanism for rendering to images other than the default OpenGL Default Fra..." alt="" coords="683,184,811,209"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="367,63,468,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="482,81,568,98,615,112,660,130,701,156,733,182,730,186,698,160,657,135,613,117,567,104,481,86"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,29,312,53,367,63,366,68,312,58,173,34"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,73,367,73,367,78,182,78"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,118,366,82,367,88,182,124"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,113,499,153"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="513,146,659,174,692,181,691,187,658,179,512,151"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,177,499,217"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="513,194,682,194,682,199,513,199"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,241,499,281"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="512,242,658,214,691,207,692,212,659,219,513,247"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,305,499,345"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="511,307,584,288,657,260,698,234,730,208,733,212,701,238,660,264,586,293,513,312"/>
+</map>

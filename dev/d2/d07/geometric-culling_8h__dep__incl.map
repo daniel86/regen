@@ -1,0 +1,13 @@
+<map id="/home/runner/work/regen/regen/regen/states/geometric&#45;culling.h" name="/home/runner/work/regen/regen/regen/states/geometric&#45;culling.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="317,5,535,60"/>
+<area shape="rect" id="Node000002" href="$d6/d35/node-processor_8h.html" title=" " alt="" coords="219,108,406,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="388,71,344,110,340,106,384,67"/>
+<area shape="rect" id="Node000006" href="$d0/df4/geometric-culling_8cpp.html" title=" " alt="" coords="430,108,649,163"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="468,67,512,106,508,110,464,71"/>
+<area shape="rect" id="Node000003" href="$db/d42/scene-loader_8cpp.html" title=" " alt="" coords="5,211,193,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="246,171,156,213,154,208,244,166"/>
+<area shape="rect" id="Node000004" href="$da/d59/direct-shading_8cpp.html" title=" " alt="" coords="218,211,407,265"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="315,176,315,211,310,211,310,176"/>
+<area shape="rect" id="Node000005" href="$d7/d91/geometric-picking_8cpp.html" title=" " alt="" coords="431,211,650,265"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="386,166,482,208,480,213,383,171"/>
+</map>

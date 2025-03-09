@@ -1,0 +1,11 @@
+<map id="regen::State" name="regen::State">
+<area shape="rect" id="Node000001" title="Base class for states." alt="" coords="336,84,437,109"/>
+<area shape="rect" id="Node000002" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,27,243,40,313,59,363,81,361,86,311,65,241,46,173,32"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,55,150,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,70,312,83,336,86,335,92,312,89,164,75"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,105,168,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,113,336,99,336,104,182,119"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,169,168,209"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="181,169,246,154,311,133,363,107,365,112,313,138,247,159,182,174"/>
+</map>

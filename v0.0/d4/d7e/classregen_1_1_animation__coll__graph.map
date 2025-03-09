@@ -1,0 +1,7 @@
+<map id="regen::Animation" name="regen::Animation">
+<area shape="rect" id="Node000001" title="Abstract base class for animations." alt="" coords="101,108,235,133"/>
+<area shape="rect" id="Node000002" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,13,152,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,46,159,106,155,110,97,50"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="176,5,339,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,57,181,109,177,106,228,53"/>
+</map>

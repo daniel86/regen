@@ -1,0 +1,16 @@
+<map id="/home/runner/work/regen/regen/regen/meshes/sky&#45;box.h" name="/home/runner/work/regen/regen/regen/meshes/sky&#45;box.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="215,5,441,45"/>
+<area shape="rect" id="Node000002" href="$d5/da3/sky-box_8cpp.html" title=" " alt="" coords="5,93,192,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="270,53,164,96,162,91,268,48"/>
+<area shape="rect" id="Node000003" href="$d2/dec/atmosphere_8h.html" title=" " alt="" coords="216,101,440,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="331,59,331,101,325,101,325,59"/>
+<area shape="rect" id="Node000006" href="$d7/d2d/star-map_8h.html" title=" " alt="" coords="464,101,669,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="390,48,519,98,517,103,388,53"/>
+<area shape="rect" id="Node000004" href="$d6/d36/atmosphere_8cpp.html" title=" " alt="" coords="103,203,342,243"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="300,152,244,205,241,201,296,148"/>
+<area shape="rect" id="Node000005" href="$dc/dfe/sky_8cpp.html" title=" " alt="" coords="367,203,553,243"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="366,147,437,201,434,205,362,151"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="538,152,482,205,478,201,535,148"/>
+<area shape="rect" id="Node000007" href="$d6/d16/star-map_8cpp.html" title=" " alt="" coords="577,196,764,251"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="598,148,645,194,641,198,594,152"/>
+</map>

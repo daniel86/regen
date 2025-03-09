@@ -1,0 +1,5 @@
+<map id="regen::PatchLevels" name="regen::PatchLevels">
+<area shape="rect" id="Node000001" title="Specifies the default outer or inner tessellation levels to be used when no tessellation control shad..." alt="" coords="21,108,165,133"/>
+<area shape="rect" id="Node000002" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="5,5,180,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,45,95,108,90,108,90,45"/>
+</map>

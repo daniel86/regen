@@ -1,0 +1,17 @@
+<map id="regen::HasShader" name="regen::HasShader">
+<area shape="rect" id="Node000001" title="can be used to mix in a shader." alt="" coords="5,104,143,129"/>
+<area shape="rect" id="Node000002" href="$d0/d1a/classregen_1_1_bullet_debug_drawer.html" title=" " alt="" coords="191,5,385,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,94,141,66,190,40,222,28,224,33,192,44,144,70,103,98"/>
+<area shape="rect" id="Node000003" href="$db/d3c/classregen_1_1_fullscreen_pass.html" title="State that updates each texel of the active render target." alt="" coords="207,55,369,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="142,98,231,77,233,83,144,103"/>
+<area shape="rect" id="Node000006" href="$d3/d74/classregen_1_1_sky_box.html" title="A special Box that is not translated by camera movement." alt="" coords="231,104,345,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="156,114,230,114,230,119,156,119"/>
+<area shape="rect" id="Node000007" href="$d8/daf/classregen_1_1_spatial_index_debug.html" title=" " alt="" coords="193,153,383,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="144,130,233,151,231,156,142,135"/>
+<area shape="rect" id="Node000008" href="$d6/d1c/classregen_1_1_sphere_sprite.html" title="A sprite that generates sphere normals." alt="" coords="213,203,363,228"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="104,135,145,162,192,188,228,200,226,205,190,192,142,167,101,140"/>
+<area shape="rect" id="Node000004" href="$dd/d7e/classregen_1_1_filter.html" title="Apply a filter on input Texture." alt="" coords="453,31,553,56"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="383,54,452,46,453,52,383,59"/>
+<area shape="rect" id="Node000005" href="$d6/dc2/classregen_1_1_motion_blur.html" title=" " alt="" coords="433,80,572,105"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="383,76,434,82,433,87,383,81"/>
+</map>

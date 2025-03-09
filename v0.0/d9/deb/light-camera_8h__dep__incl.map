@@ -1,0 +1,43 @@
+<map id="/home/runner/work/regen/regen/regen/camera/light&#45;camera.h" name="/home/runner/work/regen/regen/regen/camera/light&#45;camera.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="780,5,971,60"/>
+<area shape="rect" id="Node000002" href="$dc/d24/light-camera-csm_8h.html" title=" " alt="" coords="192,108,383,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="767,51,592,76,394,111,384,113,383,108,394,105,591,71,766,45"/>
+<area shape="rect" id="Node000004" href="$dc/d4a/scene_2resources_2camera_8cpp.html" title=" " alt="" coords="435,211,649,265"/>
+<area shape="poly" id="edge15_Node000001_Node000004" title=" " alt="" coords="768,62,714,83,662,110,568,212,564,209,659,106,711,78,766,57"/>
+<area shape="rect" id="Node000005" href="$da/de1/light-camera-cube_8h.html" title=" " alt="" coords="407,108,597,163"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="767,66,598,111,597,106,766,61"/>
+<area shape="rect" id="Node000007" href="$d4/d07/light-camera-parabolic_8h.html" title=" " alt="" coords="888,108,1079,163"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="916,68,957,106,953,110,912,72"/>
+<area shape="rect" id="Node000010" href="$de/df7/light-camera-spot_8h.html" title=" " alt="" coords="673,108,864,163"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="839,72,798,110,795,106,836,68"/>
+<area shape="rect" id="Node000012" href="$da/d00/light-camera_8cpp.html" title=" " alt="" coords="1635,108,1825,163"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="985,37,1274,61,1448,80,1622,105,1635,108,1634,113,1622,111,1448,85,1273,66,984,43"/>
+<area shape="rect" id="Node000013" href="$de/d82/states_2direct-shading_8h.html" title=" " alt="" coords="1103,108,1293,163"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="973,62,1115,105,1113,110,972,67"/>
+<area shape="rect" id="Node000016" href="$db/da5/states_2light-pass_8h.html" title=" " alt="" coords="1423,108,1610,163"/>
+<area shape="poly" id="edge20_Node000001_Node000016" title=" " alt="" coords="985,48,1423,117,1423,122,984,54"/>
+<area shape="rect" id="Node000003" href="$dd/dde/light-camera-csm_8cpp.html" title=" " alt="" coords="5,211,196,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="228,171,151,213,148,208,226,167"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="367,165,477,208,475,213,365,170"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="520,175,534,210,529,212,515,177"/>
+<area shape="rect" id="Node000006" href="$d7/d59/light-camera-cube_8cpp.html" title=" " alt="" coords="220,211,411,265"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="443,171,366,213,363,208,440,167"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="875,166,649,216,648,211,874,160"/>
+<area shape="rect" id="Node000008" href="$d2/d5e/light-camera-parabolic_8cpp.html" title=" " alt="" coords="888,211,1079,265"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="986,176,986,211,981,211,981,176"/>
+<area shape="rect" id="Node000009" href="$da/d59/direct-shading_8cpp.html" title=" " alt="" coords="1103,211,1293,265"/>
+<area shape="poly" id="edge10_Node000007_Node000009" title=" " alt="" coords="1053,166,1143,208,1141,213,1050,171"/>
+<area shape="poly" id="edge13_Node000010_Node000004" title=" " alt="" coords="698,171,602,213,600,208,696,166"/>
+<area shape="rect" id="Node000011" href="$db/d87/light-camera-spot_8cpp.html" title=" " alt="" coords="673,211,864,265"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="771,176,771,211,766,211,766,176"/>
+<area shape="poly" id="edge19_Node000013_Node000009" title=" " alt="" coords="1201,176,1201,211,1195,211,1195,176"/>
+<area shape="rect" id="Node000014" href="$df/dd1/scene_2nodes_2direct-shading_8h.html" title=" " alt="" coords="1317,211,1506,265"/>
+<area shape="poly" id="edge17_Node000013_Node000014" title=" " alt="" coords="1267,166,1357,208,1355,213,1265,171"/>
+<area shape="rect" id="Node000015" href="$db/d2c/scene-parser_8cpp.html" title=" " alt="" coords="1424,313,1612,368"/>
+<area shape="poly" id="edge18_Node000014_Node000015" title=" " alt="" coords="1451,273,1492,311,1488,315,1447,277"/>
+<area shape="rect" id="Node000017" href="$d3/db6/scene_2nodes_2light-pass_8h.html" title=" " alt="" coords="1530,211,1719,265"/>
+<area shape="poly" id="edge21_Node000016_Node000017" title=" " alt="" coords="1557,170,1598,209,1595,213,1553,174"/>
+<area shape="rect" id="Node000018" href="$d2/d2d/light-pass_8cpp.html" title=" " alt="" coords="1743,211,1930,265"/>
+<area shape="poly" id="edge23_Node000016_Node000018" title=" " alt="" coords="1614,164,1754,208,1752,213,1612,169"/>
+<area shape="poly" id="edge22_Node000017_Node000015" title=" " alt="" coords="1589,277,1548,315,1544,311,1585,273"/>
+</map>

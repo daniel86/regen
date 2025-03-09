@@ -1,0 +1,19 @@
+<map id="regen::FullscreenPass" name="regen::FullscreenPass">
+<area shape="rect" id="Node000001" title="State that updates each texel of the active render target." alt="" coords="657,200,820,225"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="367,112,468,137"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="478,138,692,197,691,203,477,144"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="162,31,236,50,313,74,393,110,391,114,311,79,234,55,161,36"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,55,150,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="164,77,312,102,367,112,366,117,312,107,164,82"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,105,168,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="182,122,367,122,367,127,182,127"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,169,168,209"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="181,168,366,132,367,137,182,173"/>
+<area shape="rect" id="Node000007" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="349,200,486,225"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="500,210,657,210,657,215,500,215"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,233,168,273"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="181,244,312,230,355,223,356,228,312,235,182,249"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,250,499,290"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="512,251,633,230,671,223,672,228,634,235,513,257"/>
+</map>

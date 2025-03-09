@@ -1,0 +1,17 @@
+<map id="regen::FrontFaceState" name="regen::FrontFaceState">
+<area shape="rect" id="Node000001" title=" " alt="" coords="883,84,1045,109"/>
+<area shape="rect" id="Node000002" href="$d3/d38/classregen_1_1_cull_state.html" title=" " alt="" coords="707,84,833,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="847,94,882,94,882,99,847,99"/>
+<area shape="rect" id="Node000003" href="$d5/d27/classregen_1_1_server_side_state.html" title="Base class for &#39;atomic&#39; states." alt="" coords="487,84,657,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="671,94,706,94,706,99,671,99"/>
+<area shape="rect" id="Node000004" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="336,84,437,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="451,94,486,94,486,99,451,99"/>
+<area shape="rect" id="Node000005" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="174,27,243,40,313,59,363,81,361,86,311,65,241,46,173,32"/>
+<area shape="rect" id="Node000006" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,55,150,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="164,70,312,83,336,86,335,92,312,89,164,75"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,105,168,145"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="181,113,336,99,336,104,182,119"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,169,168,209"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="181,169,246,154,311,133,363,107,365,112,313,138,247,159,182,174"/>
+</map>

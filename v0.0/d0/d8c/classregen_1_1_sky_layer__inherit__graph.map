@@ -1,0 +1,17 @@
+<map id="regen::SkyLayer" name="regen::SkyLayer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="188,129,315,155"/>
+<area shape="rect" id="Node000003" href="$db/d43/classregen_1_1_atmosphere.html" title="Atmospheric scattering, and some simple cloud rendering. A cube map is created on updated,..." alt="" coords="369,5,515,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,117,310,78,361,40,387,28,389,33,364,44,313,82,274,121"/>
+<area shape="rect" id="Node000004" href="$d1/d3b/classregen_1_1_cloud_layer.html" title=" " alt="" coords="372,55,512,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="289,121,362,89,395,78,397,83,364,94,291,126"/>
+<area shape="rect" id="Node000005" href="$db/dd4/classregen_1_1_moon_layer.html" title="Moon layer of the sky. The moon is rendered using a textured quad with alpha blending...." alt="" coords="373,104,511,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="328,129,372,123,373,129,329,134"/>
+<area shape="rect" id="Node000006" href="$db/da9/classregen_1_1_sky_layer_view.html" title=" " alt="" coords="363,153,521,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="329,149,363,153,362,159,328,154"/>
+<area shape="rect" id="Node000007" href="$d4/d08/classregen_1_1_star_map.html" title="A sky layer of far away stars. A textured sky box is used to render the stars." alt="" coords="381,203,503,228"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="292,158,364,189,397,200,395,205,362,194,290,163"/>
+<area shape="rect" id="Node000008" href="$d7/d84/classregen_1_1_stars.html" title="A sky layer of bright stars." alt="" coords="392,252,492,277"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="274,163,314,201,364,238,393,251,391,256,361,243,310,206,271,167"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="5,129,140,155"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,139,188,139,188,145,153,145"/>
+</map>
