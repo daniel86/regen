@@ -107,6 +107,39 @@ void main()
     out_color = vec4(depth, depth, depth, 1.0);
 }
 
+
+----------------------------
+----------------------------
+-- depth.array-row.vs
+#include regen.filter.sampling.vs
+-- depth.array-row.fs
+#include regen.states.camera.defines
+out vec4 out_color;
+uniform sampler2DArray in_arrayTexture;
+uniform int in_arrayTextureSize;
+uniform vec2 in_inverseViewport;
+uniform vec2 in_viewport;
+
+#include regen.states.camera.linearizeDepth
+
+void main() {
+  float size = in_viewport.x/in_arrayTextureSize;
+  float diffY = gl_FragCoord.y-in_viewport.y*0.5;
+
+  if(abs(diffY) > 0.5*size) {
+    out_color = vec4(0);
+  }
+  else {
+    float arrayIndex = floor(gl_FragCoord.x/size);
+    // Map in range [0,size] and divide by size to get to range [0,1]
+    float texcoX = mod(gl_FragCoord.x,size)/size;
+    float texcoY = (diffY + 0.5*size)/size;
+    float depth = texture(in_arrayTexture, vec3(texcoX,texcoY,arrayIndex)).x;
+    depth = 1.0 - linearizeDepth(depth, REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
+    out_color = vec4(depth, depth, depth, 1.0);
+  }
+}
+
 ----------------------------
 ----------------------------
 -- downsample.depth.vs

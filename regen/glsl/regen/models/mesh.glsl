@@ -222,9 +222,18 @@ flat out int out_layer;
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
-#include regen.layered.gs.computeVisibleLayers
 
 #define HANDLE_IO(i)
+
+#ifndef COMPUTE_LAYER_VISIBILITY
+    #if RENDER_TARGET == INSTANCE_SELF || RENDER_TARGET == INSTANCE_OTHER
+#define COMPUTE_LAYER_VISIBILITY
+    #endif
+    #if RENDER_TARGET == INSTANCE_SELF || RENDER_TARGET == INSTANCE_OTHER
+#define COMPUTE_LAYER_VISIBILITY
+    #endif
+#endif
+#include regen.layered.gs.computeVisibleLayers
 
 void emitVertex(vec4 posWorld, int index, int layer) {
     vec4 posEye = transformWorldToEye(posWorld,layer);
@@ -233,6 +242,17 @@ void emitVertex(vec4 posWorld, int index, int layer) {
     gl_Position = transformEyeToScreen(posEye,layer);
     HANDLE_IO(index);
     EmitVertex();
+}
+
+void emit(int layer) {
+    #if RENDER_LAYER > 1
+    gl_Layer = layer;
+    out_layer = layer;
+    #endif
+    emitVertex(gl_in[0].gl_Position, 0, layer);
+    emitVertex(gl_in[1].gl_Position, 1, layer);
+    emitVertex(gl_in[2].gl_Position, 2, layer);
+    EndPrimitive();
 }
 
 void main() {
@@ -246,14 +266,7 @@ void main() {
     if (visibleLayers[${LAYER}]) {
         #endif // COMPUTE_LAYER_VISIBILITY
         // select framebuffer layer
-        #if RENDER_LAYER > 1
-        gl_Layer = ${LAYER};
-        out_layer = ${LAYER};
-        #endif
-        emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-        emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-        emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-        EndPrimitive();
+        emit(${LAYER});
         #ifdef COMPUTE_LAYER_VISIBILITY
     }
         #endif // COMPUTE_LAYER_VISIBILITY

@@ -7,12 +7,6 @@
 #ifndef REGEN_computeVisibleLayers_
 #define2 REGEN_computeVisibleLayers_
 
-#if RENDER_LAYER > 1
-    #if RENDER_TARGET_MODE == CASCADE
-#undef COMPUTE_LAYER_VISIBILITY
-    #endif
-#endif
-
 #ifdef COMPUTE_LAYER_VISIBILITY
     #if RENDER_TARGET_MODE == CASCADE
 int computeCascadeLayer(vec4 pos) {
@@ -49,7 +43,13 @@ void computeVisibleLayers(out bool visibilityFlags[RENDER_LAYER])
         #endfor
     #else
         #for LAYER to ${RENDER_LAYER}
+            #if RENDER_TARGET == INSTANCE_SELF
+    visibilityFlags[${LAYER}] = (in_instanceID[0] == ${LAYER});
+            #elif RENDER_TARGET == INSTANCE_OTHER
+    visibilityFlags[${LAYER}] = (in_instanceID[0] != ${LAYER});
+            #else
     visibilityFlags[${LAYER}] = true;
+            #endif
         #endfor
     #endif
 }

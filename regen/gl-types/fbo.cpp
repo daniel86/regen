@@ -121,11 +121,18 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type) {
 	ref_ptr<Texture> depth;
 	if (target == GL_TEXTURE_CUBE_MAP) {
 		depth = ref_ptr<TextureCubeDepth>::alloc();
-	} else if (depth_ > 1 || target == GL_TEXTURE_2D_ARRAY) {
+	}
+	else if (target == GL_TEXTURE_2D_ARRAY) {
+		ref_ptr<Texture2DArrayDepth> depth3D = ref_ptr<Texture2DArrayDepth>::alloc();
+		depth3D->set_depth(depth_);
+		depth = depth3D;
+	}
+	else if (depth_ > 1) {
 		ref_ptr<Texture3DDepth> depth3D = ref_ptr<Texture3DDepth>::alloc();
 		depth3D->set_depth(depth_);
 		depth = depth3D;
-	} else {
+	}
+	else {
 		depth = ref_ptr<Texture2DDepth>::alloc();
 	}
 	depth->set_targetType(target);
@@ -291,30 +298,81 @@ void FBO::blitCopy(
 		dst.drawBuffers().push(writeAttachment);
 	}
 
-	if (keepRatio) {
-		GLuint dstWidth = dst.width();
-		GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
-		GLuint offsetX, offsetY;
-		if (dstHeight > dst.height()) {
-			dstHeight = dst.height();
-			dstWidth = dst.height() * ((GLfloat) height() / width());
-			offsetX = (dst.width() - dstWidth) / 2;
-			offsetY = 0;
-		} else {
-			offsetX = 0;
-			offsetY = (dst.height() - dstHeight) / 2;
+	auto srcTex = colorTextures_[readAttachment - GL_COLOR_ATTACHMENT0];
+	auto dstTex = dst.colorTextures_[writeAttachment - GL_COLOR_ATTACHMENT0];
+	auto srcDepth = depth_;
+	auto dstDepth = dst.depth_;
+	auto numLayer = std::max(srcDepth, dstDepth);
+
+	if (numLayer > 1) {
+		for (int layer = 0; layer < numLayer; ++layer) {
+			GL_ERROR_LOG();
+			if (srcDepth > 1) {
+				glFramebufferTextureLayer(GL_READ_FRAMEBUFFER,
+					readAttachment, srcTex->id(), 0, layer);
+			}
+			GL_ERROR_LOG();
+			if (dstDepth > 1) {
+				glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER,
+					writeAttachment, dstTex->id(), 0, layer);
+			}
+			GL_ERROR_LOG();
+
+			// TODO: redundant
+			if (keepRatio) {
+				GLuint dstWidth = dst.width();
+				GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
+				GLuint offsetX, offsetY;
+				if (dstHeight > dst.height()) {
+					dstHeight = dst.height();
+					dstWidth = dst.height() * ((GLfloat) height() / width());
+					offsetX = (dst.width() - dstWidth) / 2;
+					offsetY = 0;
+				} else {
+					offsetX = 0;
+					offsetY = (dst.height() - dstHeight) / 2;
+				}
+				glBlitFramebuffer(
+						0, 0, width(), height(),
+						offsetX, offsetY,
+						offsetX + dstWidth,
+						offsetY + dstHeight,
+						mask, filter);
+			} else {
+				glBlitFramebuffer(
+						0, 0, width(), height(),
+						0, 0, dst.width(), dst.height(),
+						mask, filter);
+			}
+			GL_ERROR_LOG();
 		}
-		glBlitFramebuffer(
-				0, 0, width(), height(),
-				offsetX, offsetY,
-				offsetX + dstWidth,
-				offsetY + dstHeight,
-				mask, filter);
-	} else {
-		glBlitFramebuffer(
-				0, 0, width(), height(),
-				0, 0, dst.width(), dst.height(),
-				mask, filter);
+	}
+	else {
+		if (keepRatio) {
+			GLuint dstWidth = dst.width();
+			GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
+			GLuint offsetX, offsetY;
+			if (dstHeight > dst.height()) {
+				dstHeight = dst.height();
+				dstWidth = dst.height() * ((GLfloat) height() / width());
+				offsetX = (dst.width() - dstWidth) / 2;
+				offsetY = 0;
+			} else {
+				offsetX = 0;
+				offsetY = (dst.height() - dstHeight) / 2;
+			}
+			glBlitFramebuffer(
+					0, 0, width(), height(),
+					offsetX, offsetY,
+					offsetX + dstWidth,
+					offsetY + dstHeight,
+					mask, filter);
+		} else {
+			glBlitFramebuffer(
+					0, 0, width(), height(),
+					0, 0, dst.width(), dst.height(),
+					mask, filter);
+		}
 	}
 
 	if (writeAttachment != GL_DEPTH_ATTACHMENT) {

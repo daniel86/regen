@@ -14,6 +14,14 @@ namespace regen {
 		 */
 		explicit Texture2DArray(GLuint numTextures = 1);
 	};
+
+	class Texture2DArrayDepth : public Texture2DArray {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture2DArrayDepth(GLuint numTextures = 1);
+	};
 } // namespace
 
 #endif /* REGEN_TEXTURE_ARRAY_H_ */

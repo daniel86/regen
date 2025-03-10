@@ -236,9 +236,9 @@ namespace regen {
 			 */
 			PRIMITIVE_RESTART_FIXED_INDEX,
 			/**
-			 * Close shader pipeline before rastarizing.
+			 * Close shader pipeline before rasterizing.
 			 */
-			RASTARIZER_DISCARD,
+			RASTERIZER_DISCARD,
 			/**
 			 * If enabled, compute a temporary coverage value where each bit is determined by the
 			 * alpha value at the corresponding sample location.  The temporary coverage

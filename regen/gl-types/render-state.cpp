@@ -363,7 +363,7 @@ GLenum RenderState::toggleToID(Toggle t) {
 			return GL_PRIMITIVE_RESTART;
 		case PRIMITIVE_RESTART_FIXED_INDEX:
 			return GL_PRIMITIVE_RESTART_FIXED_INDEX;
-		case RASTARIZER_DISCARD:
+		case RASTERIZER_DISCARD:
 			return GL_RASTERIZER_DISCARD;
 		case SAMPLE_ALPHA_TO_COVERAGE:
 			return GL_SAMPLE_ALPHA_TO_COVERAGE;
@@ -432,8 +432,8 @@ namespace regen {
 				return out << "PRIMITIVE_RESTART";
 			case RenderState::PRIMITIVE_RESTART_FIXED_INDEX:
 				return out << "PRIMITIVE_RESTART_FIXED_INDEX";
-			case RenderState::RASTARIZER_DISCARD:
-				return out << "RASTARIZER_DISCARD";
+			case RenderState::RASTERIZER_DISCARD:
+				return out << "RASTERIZER_DISCARD";
 			case RenderState::SAMPLE_ALPHA_TO_COVERAGE:
 				return out << "SAMPLE_ALPHA_TO_COVERAGE";
 			case RenderState::SAMPLE_ALPHA_TO_ONE:
@@ -502,8 +502,8 @@ namespace regen {
 			mode = RenderState::PRIMITIVE_RESTART;
 		else if (val == "PRIMITIVE_RESTART_FIXED_INDEX")
 			mode = RenderState::PRIMITIVE_RESTART_FIXED_INDEX;
-		else if (val == "RASTARIZER_DISCARD")
-			mode = RenderState::RASTARIZER_DISCARD;
+		else if (val == "RASTERIZER_DISCARD")
+			mode = RenderState::RASTERIZER_DISCARD;
 		else if (val == "SAMPLE_ALPHA_TO_COVERAGE")
 			mode = RenderState::SAMPLE_ALPHA_TO_COVERAGE;
 		else if (val == "SAMPLE_ALPHA_TO_ONE")

@@ -260,7 +260,7 @@ void Particles::createUpdateShader(const ShaderInputList &inputs) {
 }
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt) {
-	rs->toggles().push(RenderState::RASTARIZER_DISCARD, GL_TRUE);
+	rs->toggles().push(RenderState::RASTERIZER_DISCARD, GL_TRUE);
 	updateState_->enable(rs);
 
 	rs->vao().push(particleVAO_.id());
@@ -294,7 +294,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 
 	rs->vao().pop();
 	updateState_->disable(rs);
-	rs->toggles().pop(RenderState::RASTARIZER_DISCARD);
+	rs->toggles().pop(RenderState::RASTERIZER_DISCARD);
 
 	// Update particle attribute layout.
 	GLuint currOffset = bufferRange_.offset_;

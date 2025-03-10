@@ -26,7 +26,7 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	state_->joinShaderInput(mouseDirVS_);
 
 	// skip fragment shader, only up to geometry shader is needed
-	state_->joinStates(ref_ptr<ToggleState>::alloc(RenderState::RASTARIZER_DISCARD, GL_TRUE));
+	state_->joinStates(ref_ptr<ToggleState>::alloc(RenderState::RASTERIZER_DISCARD, GL_TRUE));
 
 	// create attributes used for picking
 	pickObjectID_ = ref_ptr<ShaderInput1i>::alloc("pickObjectID");

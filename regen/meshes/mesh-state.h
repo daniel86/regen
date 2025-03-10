@@ -274,7 +274,7 @@ namespace regen {
 	 * is required.
 	 *
 	 * This effectively means that you have to generate
-	 * geometry that will be rastarized.
+	 * geometry that will be rasterized.
 	 */
 	class AttributeLessMesh : public Mesh {
 	public:
