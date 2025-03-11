@@ -359,6 +359,21 @@ namespace regen {
 	};
 
 	/**
+	 * \brief Clear buffers to preset values.
+	 */
+	class ClearState : public ServerSideState {
+	public:
+		ClearState() = default;
+
+		void addClearBit(GLbitfield clearBit) { clearBits_ |= clearBit; }
+
+		void enable(RenderState *state) override { glClear(clearBits_); }
+
+	protected:
+		GLbitfield clearBits_ = 0;
+	};
+
+	/**
 	 * \brief Clear depth buffer to preset values.
 	 */
 	class ClearDepthState : public ServerSideState {
@@ -389,10 +404,10 @@ namespace regen {
 
 		// override
 		void enable(RenderState *rs) override {
-			for (std::list<Data>::iterator it = data.begin(); it != data.end(); ++it) {
+			for (auto & it : data) {
 				if (!rs->drawFrameBuffer().isLocked()) {
-					fbo_->drawBuffers().push(it->colorBuffers);
-					rs->clearColor().push(it->clearColor);
+					fbo_->drawBuffers().push(it.colorBuffers);
+					rs->clearColor().push(it.clearColor);
 					glClear(GL_COLOR_BUFFER_BIT);
 					rs->clearColor().pop();
 					fbo_->drawBuffers().pop();

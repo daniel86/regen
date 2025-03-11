@@ -156,6 +156,21 @@ GLenum glenum::cubeMapLayer(GLuint layer) {
 	return cubeMapLayer[layer];
 }
 
+GLenum glenum::stencilOp(const std::string &val_) {
+	std::string val = getValue(val_);
+	if (val == "KEEP") return GL_KEEP;
+	else if (val == "ZERO") return GL_ZERO;
+	else if (val == "REPLACE") return GL_REPLACE;
+	else if (val == "INCR") return GL_INCR;
+	else if (val == "INCR_WRAP") return GL_INCR_WRAP;
+	else if (val == "DECR") return GL_DECR;
+	else if (val == "DECR_WRAP") return GL_DECR_WRAP;
+	else if (val == "INVERT") return GL_INVERT;
+	else if (val == "NONE") return GL_NONE;
+	REGEN_WARN("Unknown stencil operation '" << val_ << "'. Using default KEEP.");
+	return GL_KEEP;
+}
+
 GLenum glenum::compareFunction(const std::string &val_) {
 	std::string val = getValue(val_);
 	if (val == "NEVER") return GL_NEVER;

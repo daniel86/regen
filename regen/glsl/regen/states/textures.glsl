@@ -312,6 +312,46 @@ void textureMappingVertex(inout vec3 P, inout vec3 N, int vertexIndex)
 
 void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
 {
+    // NOTE: the normal bump mapping must be done first, as other texture
+    //       sampling methods may require bumped normals such as refraction textures.
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#define2 _TEXCO_CTX textureMappingFragment
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+    #if _MAPTO == NORMAL
+        #ifndef FS_NO_OUTPUT
+    // compute normal map texco
+#include regen.states.textures.computeTexco
+        #endif
+    #endif
+#endfor
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+    #if _MAPTO == NORMAL
+        #ifndef FS_NO_OUTPUT
+    // sample normal map
+#include regen.states.textures.sampleTexel
+        #endif
+    #endif
+#endfor
+#for INDEX to NUM_TEXTURES
+#define2 _ID ${TEX_ID${INDEX}}
+#define2 _BLEND ${TEX_BLEND_NAME${_ID}}
+#define2 _MAPTO ${TEX_MAPTO${_ID}}
+  #if _MAPTO == NORMAL
+    #ifndef FS_NO_OUTPUT
+    // bump!
+    mat3 tbn${INDEX} = mat3(in_tangent,in_binormal,in_norWorld);
+    // Expand the range of the normal value from (0, +1) to (-1, +1).
+    vec3 bump${INDEX} = (texel${INDEX}.rgb * 2.0f) - 1.0f;
+    // Calculate the normal from the data in the normal map.
+    bump${INDEX} = normalize(tbn${INDEX} * bump${INDEX});
+    ${_BLEND}( bump${INDEX}, N, ${TEX_BLEND_FACTOR${_ID}} );
+    #endif
+  #endif
+#endfor
+
     // compute texco
 #for INDEX to NUM_TEXTURES
 #define2 _ID ${TEX_ID${INDEX}}
@@ -321,10 +361,6 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
 #include regen.states.textures.computeTexco
     #elif _MAPTO == ALPHA
 #include regen.states.textures.computeTexco
-    #elif _MAPTO == NORMAL
-        #ifndef FS_NO_OUTPUT
-#include regen.states.textures.computeTexco
-        #endif
     #endif
 #endfor
     // sample texels
@@ -335,10 +371,6 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
 #include regen.states.textures.sampleTexel
     #elif _MAPTO == ALPHA
 #include regen.states.textures.sampleTexel
-    #elif _MAPTO == NORMAL
-        #ifndef FS_NO_OUTPUT
-#include regen.states.textures.sampleTexel
-        #endif
     #endif
 #endfor
     // blend texels with existing values
@@ -350,15 +382,6 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
     ${_BLEND}( texel${INDEX}, C, ${TEX_BLEND_FACTOR${_ID}} );
   #elif _MAPTO == ALPHA
     ${_BLEND}( texel${INDEX}.x, C.a, ${TEX_BLEND_FACTOR${_ID}} );
-  #elif _MAPTO == NORMAL
-    #ifndef FS_NO_OUTPUT
-    mat3 tbn${INDEX} = mat3(in_tangent,in_binormal,in_norWorld);
-    // Expand the range of the normal value from (0, +1) to (-1, +1).
-    vec3 bump${INDEX} = (texel${INDEX}.rgb * 2.0f) - 1.0f;
-    // Calculate the normal from the data in the normal map.
-    bump${INDEX} = normalize(tbn${INDEX} * bump${INDEX});
-    ${_BLEND}( bump${INDEX}, N, ${TEX_BLEND_FACTOR${_ID}} );
-    #endif
   #endif
 #endfor
 }
@@ -527,12 +550,26 @@ vec2 texco_flat(vec3 P, vec3 N)
 -- texco_refraction
 #ifndef REGEN_TEXCO_REFR_
 #define2 REGEN_TEXCO_REFR_
-#include regen.states.camera.transformScreenToTexco
+#include regen.states.camera.transformWorldToTexco
+const float in_refractionScale = 0.1;
 vec2 texco_refraction(vec3 P, vec3 N)
 {
-    vec2 uv = transformScreenToTexco(vec4(P,1.0)).xy;
-    //N = (N.xyz * 2.0f) - 1.0f;
-    return uv + N.xy * in_refractionScale;
+    vec2 uv = transformWorldToTexco(vec4(P,1.0), in_layer).xy;
+    // "N" is in world space, so we need to transform it to tangent space
+    // because we want to apply offset in xy-plane independently of face orientation.
+    mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);
+    uv += (transpose(tbn) * N).xy * in_refractionScale;
+    return uv;
+}
+#endif
+
+-- texco_instance_refraction
+#ifndef REGEN_TEXCO_INSTANCE_REFR_
+#define2 REGEN_TEXCO_INSTANCE_REFR_
+#include regen.states.textures.texco_refraction
+vec3 texco_instance_refraction(vec3 P, vec3 N)
+{
+    return vec3(texco_refraction(P,N), in_instanceID);
 }
 #endif
 

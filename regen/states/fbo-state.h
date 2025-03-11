@@ -45,6 +45,11 @@ namespace regen {
 		void setClearDepth();
 
 		/**
+		 * Clear stencil buffer to preset values.
+		 */
+		void setClearStencil();
+
+		/**
 		 * Clear color buffer to preset values.
 		 */
 		void setClearColor(const ClearColorState::Data &data);
@@ -80,9 +85,11 @@ namespace regen {
 	protected:
 		ref_ptr<FBO> fbo_;
 
-		ref_ptr<ClearDepthState> clearDepthCallable_;
+		ref_ptr<ClearState> clearCallable_;
 		ref_ptr<ClearColorState> clearColorCallable_;
 		ref_ptr<State> drawBufferCallable_;
+
+		void createClearState();
 	};
 } // namespace
 

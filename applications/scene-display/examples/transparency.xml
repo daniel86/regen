@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <node>
+    <constant name="platform-refraction" value="0.8"/>
     <include xml-file="scene-display/examples/templates/default.xml"/>
 
     <node id="configuration">
@@ -35,23 +36,145 @@
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
     </fbo>
+    <fbo id="spot-shadow" size-mode="abs" size="2048,2048,1">
+        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
+               wrapping="CLAMP_TO_EDGE"
+               min-filter="NEAREST" mag-filter="NEAREST"
+               compare-mode="COMPARE_R_TO_TEXTURE"
+               compare-function="LEQUAL"
+               sampler-type="sampler2DShadow"/>
+        <texture id="color"
+                 pixel-size="16"
+                 pixel-type="UNSIGNED_BYTE"
+                 pixel-components="4"/>
+    </fbo>
+    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0">
+        <texture id="color" pixel-type="FLOAT" pixel-size="16" pixel-components="4"/>
+    </fbo>
+    <fbo id="platform-refraction" size-mode="abs" size="1024,1024,3"
+            target="TEXTURE_2D_ARRAY" pixel-type="UNSIGNED_BYTE">
+        <texture id="color" pixel-size="16" pixel-components="3" />
+        <texture id="update" pixel-size="16" pixel-components="3"/>
+        <depth id="depth" pixel-size="24" wrapping="CLAMP_TO_EDGE" />
+    </fbo>
+    <!-- Textures -->
+    <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
+    <texture id="sky-texture"
+             is-cube="1"
+             cube-flip-back="0"
+             file="res/sky/park3/cube.png"
+             min-filter="LINEAR_MIPMAP_LINEAR"
+             mag-filter="LINEAR"
+             wrapping="CLAMP_TO_EDGE"/>
+    <!-- Lights -->
+    <light id="spot-light"
+           type="SPOT"
+           position="3.0,8.0,-4.0"
+           direction="-0.37,-0.95,0.46"
+           diffuse="0.58,0.58,0.58"
+           radius="10.0,21.0"
+           cone-angles="11.5,25.5"/>
     <!-- Cameras -->
     <camera id="main-camera"
             fov="45.0" near="0.1" far="200.0"
             position="0.0,0.5,-10.0"
             direction="-0.5,0.0,1.0"/>
+    <camera id="spot-camera"
+            light="spot-light" camera="main-camera"/>
     <!-- Assets -->
     <asset id="venus-asset"
            type="asset"
            file="res/models/venus.obj"
            use-animation="0"/>
-    <!-- Meshes -->
+
+    <!--**************************-->
+    <!--****** PLATFORMS *********-->
+    <!--**************************-->
+
     <mesh id="platform"
           type="box"
           scaling="1.0,100.0,1.0"
+          texco-scaling="1.0,1.0"
           use-normal="1"
-          use-tangent="0"
-          usage="STATIC"/>
+          use-tangent="1"
+          usage="STATIC"
+          num-instances="3">
+        <transform id="platform-tf" num-instances="3" is-instanced="1">
+            <translate value="0.0, -100.6, 0.0"/>
+            <translate value=" 0.0, 0.0, 2.5" index="0"/>
+            <translate value=" 1.5, 0.0, 0.0" index="1"/>
+            <translate value="-1.5, 0.0, 0.0" index="2"/>
+        </transform>
+    </mesh>
+
+    <node id="Platform-Update">
+        <camera id="main-camera"/>
+        <blend mode="src"/>
+        <node>
+            <node id="Platform-Depth-Mask">
+                <fbo id="platform-refraction" clear-depth="1" />
+                <depth test="1" write="1" function="ALWAYS"/>
+                <node>
+                    <define key="RENDER_TARGET" value="INSTANCE_SELF"/>
+                    <define key="OUTPUT_TYPE" value="DEPTH"/>
+                    <define key="RENDER_LAYER" value="3"/>
+                    <mesh id="platform" shader="regen.models.mesh"/>
+                </node>
+            </node>
+            <node id="Platform-Refraction">
+                <fbo id="platform-refraction" clear-buffers="1" draw-buffers="1"/>
+                <!-- <fbo id="platform-refraction" ping-pong-buffers="0,1" clear-color="1" /> -->
+                <node import="Sky-Box">
+                    <depth test="0" write="0" function="ALWAYS"/>
+                    <define key="RENDER_LAYER" value="3"/>
+                </node>
+                <node import="Platform-Draw">
+                    <depth test="1" write="0" function="GREATER"/>
+                    <define key="RENDER_LAYER" value="3"/>
+                    <define key="RENDER_TARGET" value="INSTANCE_OTHER"/>
+                </node>
+            </node>
+        </node>
+        <!-- Finally blit the new refraction texture to attachment 0. -->
+        <!-- TODO: blit could be avoided through ping-pong rendering. -->
+        <node id="Blit-Refraction">
+            <fbo id="platform-refraction" draw-buffers="0"/>
+            <stencil test="0"/>
+            <depth test="0" write="0"/>
+            <define key="RENDER_LAYER" value="3"/>
+            <texture name="inputTexture" fbo="platform-refraction" attachment="1"/>
+                <fullscreen-pass shader="regen.filter.sampling"/>
+        </node>
+        <view id="Platform Refractions">
+            <fbo id="SCREEN"/>
+            <texture name="arrayTexture" fbo="platform-refraction" attachment="1"/>
+            <input type="int" name="arrayTextureSize" value="3"/>
+            <fullscreen-pass shader="regen.filter.sampling.array-row"/>
+        </view>
+    </node>
+
+    <node id="Platform-Draw">
+        <material preset="ice"
+            ambient="0.15,0.15,0.15"
+            diffuse="0.5,0.5,0.5"
+            color-blend-mode="MUL" />
+        <texture name="refractionTexture" fbo="platform-refraction" attachment="0"
+            mapping="INSTANCE_REFRACTION" map-to="COLOR" blend-mode="MIX" blend-factor="{{platform-refraction}}" />
+        <mesh id="platform" shader="regen.models.mesh"/>
+    </node>
+
+    <node id="Platform-Draw-Opaque">
+        <material preset="ice"
+            ambient="0.15,0.15,0.15"
+            diffuse="1.0,1.0,1.0"
+            color-blend-mode="MUL" />
+        <mesh id="platform" shader="regen.models.mesh"/>
+    </node>
+
+    <!--**************************-->
+    <!--****** OBJECTS ***********-->
+    <!--**************************-->
+
     <mesh id="venus-mesh"
           type="asset"
           asset="venus-asset"
@@ -62,26 +185,31 @@
           rotation="0.0,0.0,0.0"
           translation="0.0,0.0,0.0">
         <material preset="ruby" alpha="0.85"/>
+        <!-- TODO: tangent is missing for venus, should allow to generate it. -->
+        <!-- <material preset="steel" alpha="0.85"/> -->
         <transform>
             <rotate value="3.14,0.0,0.0"/>
             <translate value="0.0,-0.1,2.25"/>
         </transform>
     </mesh>
+
     <mesh id="sphere-mesh0"
           type="sphere"
-          lod-levels="4, 3, 2"
+          lod-levels="5, 4, 3"
           scaling="1.0,1.0,1.0"
           use-normal="1"
-          use-tangent="0"
+          use-tangent="1"
           usage="STATIC">
-        <material preset="ruby" alpha="0.5"/>
+        <material preset="iron"
+            color-blend-mode="MUL" alpha="0.85"/>
         <transform id="sphere0-tf">
             <translate value="1.5,-0.1,0.0"/>
         </transform>
     </mesh>
+
     <mesh id="sphere-mesh1"
           type="sphere"
-          lod-levels="4, 3, 2"
+          lod-levels="5, 4, 3"
           scaling="1.0,1.0,1.0"
           use-normal="1"
           use-tangent="0"
@@ -93,6 +221,77 @@
     </mesh>
 
     <!--**************************-->
+    <!--**************************-->
+
+    <node id="Shadow-Caster">
+        <node import="Platform-Draw-Opaque"/>
+    </node>
+
+    <node id="Shadow-Caster-Transparent">
+        <node id="venus0">
+            <mesh id="venus-mesh" shader="regen.models.mesh"/>
+        </node>
+        <node id="sphere0">
+            <mesh id="sphere-mesh0" shader="regen.models.mesh"/>
+        </node>
+        <node id="sphere1">
+            <mesh id="sphere-mesh1" shader="regen.models.mesh"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <mesh id="sky-box" type="box"
+          use-normal="0" use-tangent="0" texco-mode="CUBE_MAP" usage="STATIC">
+    </mesh>
+
+    <node id="Sky-Box">
+        <define key="IGNORE_VIEW_TRANSLATION" value="TRUE"/>
+        <cull mode="front"/>
+        <texture id="sky-texture" map-to="COLOR"/>
+        <mesh id="sky-box" shader="regen.models.sky-box"/>
+    </node>
+
+    <node id="Scene-Geometry"/>
+
+    <node id="Background-Pass">
+        <node import="Sky-Box">
+            <depth test="1" write="0" function="LEQUAL"/>
+        </node>
+        <view id="Sky">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+        <node id="Platform-Refraction">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <blend mode="alpha"/>
+            <depth test="0" write="0"/>
+            <input type="float" name="refractionStrength" value="{{platform-refraction}}"/>
+            <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+            <texture name="rColorTexture" fbo="platform-refraction" attachment="0"/>
+            <texture name="rDepthTexture" fbo="platform-refraction" attachment="depth"/>
+            <fullscreen-pass shader="regen.filter.refraction"/>
+        </node>
+        <view id="Refraction">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+        <node import="Transparency-Pass">
+            <fbo id="g-buffer" draw-buffers="1"/>
+        </node>
+    </node>
+
+    <node id="Post-Pass">
+        <depth test="0" write="0"/>
+        <node import="Fog-Draw"/>
+        <node import="FXAA">
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--**** Lights & Shadows ****-->
     <!--**************************-->
 
     <node id="Shading-Pass">
@@ -116,79 +315,24 @@
         </node>
     </node>
 
-    <node id="Shadow-Caster">
-        <node id="platform">
-            <material preset="silver"/>
+    <node id="Transparency-Pass">
+        <depth test="1" write="1"/>
 
-            <node id="platform0">
-                <transform>
-                    <rotate value="0.0,0.0,0.0"/>
-                    <translate value="0.0,-100.6,2.5"/>
-                </transform>
-                <mesh id="platform" shader="regen.models.mesh"/>
-            </node>
+        <direct-shading ambient="0.3,0.3,0.3">
+            <direct-lights>
+                <light id="spot-light"
+                       shadow-buffer="spot-shadow"
+                       shadow-attachment="depth"
+                       shadow-color-attachment="0"/>
+            </direct-lights>
 
-            <node id="platform1">
-                <transform>
-                    <rotate value="1.0,0.0,0.0"/>
-                    <translate value="1.5,-100.6,0.0"/>
-                </transform>
-                <mesh id="platform" shader="regen.models.mesh"/>
-            </node>
-
-            <node id="platform2">
-                <transform>
-                    <rotate value="-1.0,0.0,0.0"/>
-                    <translate value="-1.5,-100.6,0.0"/>
-                </transform>
-                <mesh id="platform" shader="regen.models.mesh"/>
-            </node>
-        </node>
+            <direct-pass>
+                <define key="OUTPUT_TYPE" value="TRANSPARENCY"/>
+                <blend mode="alpha"/>
+                <node import="Shadow-Caster-Transparent" sort="1" sort-camera="main-camera"/>
+            </direct-pass>
+        </direct-shading>
     </node>
-
-    <node id="Scene-Geometry"/>
-
-    <node id="Background-Pass">
-        <node import="Transparency-Pass"/>
-    </node>
-
-    <node id="Post-Pass">
-        <depth test="0" write="0"/>
-
-        <node import="Fog-Draw"/>
-
-        <node import="FXAA">
-            <fbo id="g-buffer" draw-buffers="0"/>
-            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
-        </node>
-    </node>
-
-    <!--**************************-->
-    <!--**** Lights & Shadows ****-->
-    <!--**************************-->
-
-    <fbo id="spot-shadow" size-mode="abs" size="2048,2048,1">
-        <depth id="depth" pixel-size="24" pixel-type="FLOAT"
-               wrapping="REPEAT"
-               min-filter="NEAREST" mag-filter="NEAREST"
-               compare-mode="COMPARE_R_TO_TEXTURE"
-               compare-function="LEQUAL"
-               sampler-type="sampler2DShadow"/>
-        <texture id="color"
-                 pixel-size="16"
-                 pixel-type="UNSIGNED_BYTE"
-                 pixel-components="4"/>
-    </fbo>
-
-    <light id="spot-light"
-           type="SPOT"
-           position="3.0,8.0,-4.0"
-           direction="-0.37,-0.95,0.46"
-           diffuse="0.58,0.58,0.58"
-           radius="10.0,21.0"
-           cone-angles="11.5,25.5"/>
-
-    <camera id="spot-camera" light="spot-light" camera="main-camera"/>
 
     <node id="Shadow-Pass">
         <cull mode="FRONT"/>
@@ -209,54 +353,9 @@
     </node>
 
     <!--**************************-->
-    <!--**************************-->
-
-    <node id="Transparency-Pass">
-        <fbo id="g-buffer" draw-buffers="1"/>
-        <depth test="1" write="0"/>
-
-        <direct-shading ambient="0.3,0.3,0.3">
-            <!-- Define lights used for direct shading. -->
-            <direct-lights>
-                <light id="spot-light"
-                       shadow-buffer="spot-shadow"
-                       shadow-attachment="depth"
-                       shadow-color-attachment="0"/>
-            </direct-lights>
-
-            <direct-pass>
-                <define key="OUTPUT_TYPE" value="TRANSPARENCY"/>
-                <blend mode="alpha"/>
-                <node import="Shadow-Caster-Transparent"
-                      sort="1" sort-camera="main-camera"/>
-            </direct-pass>
-        </direct-shading>
-    </node>
-
-    <node id="Shadow-Caster-Transparent">
-        <node id="venus0">
-            <mesh id="venus-mesh" shader="regen.models.mesh"/>
-        </node>
-        <node id="spheres">
-            <node id="sphere0">
-                <mesh id="sphere-mesh0" shader="regen.models.mesh"/>
-            </node>
-            <node id="sphere1">
-                <mesh id="sphere-mesh1" shader="regen.models.mesh"/>
-            </node>
-        </node>
-    </node>
-
-    <!--**************************-->
     <!--***** Fog Particles ******-->
     <!--**************************-->
 
-    <!-- A FBO with blurred fog particles. -->
-    <fbo id="fog-buffer" size-mode="abs" size="256.0,256.0">
-        <texture id="color" pixel-type="FLOAT" pixel-size="16" pixel-components="4"/>
-    </fbo>
-    <!-- A texture for the fog particles. -->
-    <texture id="fog-splat" file="res/textures/splats/flare.jpg"/>
     <!-- The mesh uses point sprites for the fog particles. -->
     <mesh id="fog-mesh" type="particles" num-vertices="500">
         <!-- Add shader defines. -->
@@ -336,16 +435,55 @@
     <node id="root">
         <node id="Pre-Render">
             <node import="Shadow-Pass"/>
+            <node import="Platform-Update"/>
             <node import="Fog-Update"/>
         </node>
 
         <node id="Render">
-            <fbo id="g-buffer"
-                 clear-buffers="0,1,2,3"
-                 clear-depth="1"/>
+            <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
             <camera id="main-camera"/>
 
-            <node import="Default-Pipeline"/>
+            <node id="Geometry-Pass">
+                <blend mode="src"/>
+                <depth test="1" write="1"/>
+                <fbo id="g-buffer" draw-buffers="0,1,2,3"/>
+
+                <node import="Shadow-Caster"/>
+                <node import="Scene-Geometry"/>
+                <view id="Diffuse">
+                    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Ambient">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Specular">
+                    <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Normal">
+                    <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN"/>
+                </view>
+            </node>
+
+            <node id="Shading">
+                <fbo id="g-buffer" draw-buffers="1"/>
+                <node id="Light-Pass">
+                    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+                    <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
+                    <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
+                    <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+                    <node import="Shading-Pass"/>
+                </node>
+                <view id="Deferred Shading">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+            </node>
+
+            <node import="Background-Pass"/>
+            <view id="Scene -- Background">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+            <node import="Post-Pass"/>
+
             <node import="GUI-Pass">
                 <fbo id="g-buffer" draw-buffers="0"/>
             </node>

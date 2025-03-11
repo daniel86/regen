@@ -30,6 +30,8 @@ namespace regen {
 				return out << "refraction";
 			case TextureState::MAPPING_CUBE_REFRACTION:
 				return out << "cube_refraction";
+			case TextureState::MAPPING_INSTANCE_REFRACTION:
+				return out << "instance_refraction";
 			case TextureState::MAPPING_PLANAR_REFLECTION:
 				return out << "planar_reflection";
 			case TextureState::MAPPING_PARABOLOID_REFLECTION:
@@ -55,6 +57,7 @@ namespace regen {
 		else if (val == "cube_reflection") mode = TextureState::MAPPING_CUBE_REFLECTION;
 		else if (val == "cube_refraction") mode = TextureState::MAPPING_CUBE_REFRACTION;
 		else if (val == "refraction") mode = TextureState::MAPPING_REFRACTION;
+		else if (val == "instance_refraction") mode = TextureState::MAPPING_INSTANCE_REFRACTION;
 		else if (val == "planar_reflection") mode = TextureState::MAPPING_PLANAR_REFLECTION;
 		else if (val == "paraboloid_reflection") mode = TextureState::MAPPING_PARABOLOID_REFLECTION;
 		else if (val == "texco") mode = TextureState::MAPPING_TEXCO;
@@ -405,7 +408,15 @@ ref_ptr<Texture> TextureState::getTexture(
 		const auto val = input.getValue<std::string>(attachmentKey, "0");
 		if (val == "depth") {
 			tex = fbo->depthTexture();
-		} else {
+		}
+		else if (val == "stencil") {
+			if (fbo->stencilTexture().get()) {
+				tex = fbo->stencilTexture();
+			} else {
+				tex = fbo->depthStencilTexture();
+			}
+		}
+		else {
 			std::vector<ref_ptr<Texture> > &textures = fbo->colorTextures();
 
 			unsigned int attachment;
@@ -419,6 +430,9 @@ ref_ptr<Texture> TextureState::getTexture(
 												  "' for " << input.getDescription() << ".");
 			}
 		}
+	}
+	if (!tex.get()) {
+		REGEN_WARN("No texture found for " << input.getDescription() << ".");
 	}
 	return tex;
 }

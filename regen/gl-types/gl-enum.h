@@ -23,6 +23,14 @@ namespace regen {
 		GLenum compareFunction(const std::string &val);
 
 		/**
+		 * Specifies the stencil comparison function.
+		 * @param val input string.
+		 * @return GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL,
+		 *         GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, or GL_ALWAYS.
+		 */
+		GLenum stencilOp(const std::string &val_);
+
+		/**
 		 * Specifies the texture comparison mode for currently bound depth textures.
 		 * That is, a texture whose internal format is GL_DEPTH_COMPONENT_*
 		 */

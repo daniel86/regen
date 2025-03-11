@@ -183,6 +183,14 @@ namespace regen {
 		void createDepthTexture(GLenum target, GLenum format, GLenum type);
 
 		/**
+		 * Creates depth-stencil attachment.
+		 * @param target the depth target.
+		 * @param format the depth format.
+		 * @param type the depth type.
+		 */
+		void createDepthStencilTexture(GLenum target, GLenum format, GLenum type);
+
+		/**
 		 * Returns GL_NONE if no depth buffer used else the depth
 		 * buffer format is returned (GL_DEPTH_COMPONENT_*).
 		 */
@@ -347,6 +355,8 @@ namespace regen {
 		ref_ptr<ShaderInput2f> inverseViewport_;
 		ref_ptr<UniformBlock> uniforms_;
 		Vec4ui glViewport_;
+
+		void createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil);
 	};
 } // namespace
 

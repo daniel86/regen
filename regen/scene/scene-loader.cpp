@@ -13,6 +13,7 @@
 #include "regen/effects/bloom-pass.h"
 #include "regen/scene/node-processor.h"
 #include "regen/states/direct-shading.h"
+#include "regen/states/stencil-state.h"
 #include <regen/scene/mesh-processor.h>
 #include <regen/scene/loadable-input.h>
 #include <regen/scene/shader-define-processor.h>
@@ -78,6 +79,7 @@ void SceneLoader::init() {
 	setStateProcessor(ref_ptr<LoadableState<LightPass>>::alloc("light-pass"));
 	setStateProcessor(ref_ptr<LoadableState<MotionBlur>>::alloc("motion-blur"));
 	setStateProcessor(ref_ptr<LoadableState<ShaderState>>::alloc("shader"));
+	setStateProcessor(ref_ptr<LoadableState<StencilState>>::alloc("stencil"));
 	setStateProcessor(ref_ptr<LoadableState2<ModelTransformation>>::alloc("transform"));
 	setStateProcessor(ref_ptr<StateResource<Camera>>::alloc("camera"));
 }

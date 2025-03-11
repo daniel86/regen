@@ -92,6 +92,58 @@ void FBO::set_depthAttachment(const ref_ptr<RenderBuffer> &rbo) {
 	depthTexture_ = ref_ptr<Texture>();
 }
 
+void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil) {
+	RenderState *rs = RenderState::get();
+	depthAttachmentTarget_ = target;
+	depthAttachmentFormat_ = format;
+	depthAttachmentType_ = type;
+
+	ref_ptr<Texture> depth;
+	if (target == GL_TEXTURE_CUBE_MAP) {
+		depth = ref_ptr<TextureCubeDepth>::alloc();
+	} else if (target == GL_TEXTURE_2D_ARRAY) {
+		ref_ptr<Texture2DArrayDepth> depth3D = ref_ptr<Texture2DArrayDepth>::alloc();
+		depth3D->set_depth(depth_);
+		depth = depth3D;
+	} else if (depth_ > 1) {
+		ref_ptr<Texture3DDepth> depth3D = ref_ptr<Texture3DDepth>::alloc();
+		depth3D->set_depth(depth_);
+		depth = depth3D;
+	} else {
+		depth = ref_ptr<Texture2DDepth>::alloc();
+	}
+	depth->set_targetType(target);
+	depth->set_rectangleSize(width(), height());
+	depth->set_internalFormat(format);
+	depth->set_pixelType(type);
+
+	rs->drawFrameBuffer().push(id());
+	{
+		depth->begin(rs);
+		{
+			depth->wrapping().push(GL_REPEAT);
+			depth->filter().push(GL_LINEAR);
+			depth->compare().push(TextureCompare(GL_NONE, GL_EQUAL));
+			depth->texImage();
+		}
+		depth->end(rs);
+		if (isStencil) {
+			set_depthStencilTexture(depth);
+		} else {
+			set_depthAttachment(depth);
+		}
+	}
+	rs->drawFrameBuffer().pop();
+}
+
+void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type) {
+	createDepthTexture(target, format, type, false);
+}
+
+void FBO::createDepthStencilTexture(GLenum target, GLenum format, GLenum type) {
+	createDepthTexture(target, format, type, true);
+}
+
 void FBO::set_stencilTexture(const ref_ptr<Texture> &tex) {
 	attachTexture(tex, GL_STENCIL_ATTACHMENT);
 	stencilTexture_ = tex;
@@ -110,49 +162,6 @@ void FBO::set_depthStencilTexture(const ref_ptr<Texture> &tex) {
 void FBO::set_depthStencilTexture(const ref_ptr<RenderBuffer> &rbo) {
 	attachRenderBuffer(rbo, GL_DEPTH_STENCIL_ATTACHMENT);
 	depthStencilTexture_ = ref_ptr<Texture>();
-}
-
-void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type) {
-	RenderState *rs = RenderState::get();
-	depthAttachmentTarget_ = target;
-	depthAttachmentFormat_ = format;
-	depthAttachmentType_ = type;
-
-	ref_ptr<Texture> depth;
-	if (target == GL_TEXTURE_CUBE_MAP) {
-		depth = ref_ptr<TextureCubeDepth>::alloc();
-	}
-	else if (target == GL_TEXTURE_2D_ARRAY) {
-		ref_ptr<Texture2DArrayDepth> depth3D = ref_ptr<Texture2DArrayDepth>::alloc();
-		depth3D->set_depth(depth_);
-		depth = depth3D;
-	}
-	else if (depth_ > 1) {
-		ref_ptr<Texture3DDepth> depth3D = ref_ptr<Texture3DDepth>::alloc();
-		depth3D->set_depth(depth_);
-		depth = depth3D;
-	}
-	else {
-		depth = ref_ptr<Texture2DDepth>::alloc();
-	}
-	depth->set_targetType(target);
-	depth->set_rectangleSize(width(), height());
-	depth->set_internalFormat(format);
-	depth->set_pixelType(type);
-
-	rs->drawFrameBuffer().push(id());
-	{
-		depth->begin(rs);
-		{
-			depth->wrapping().push(GL_REPEAT);
-			depth->filter().push(GL_LINEAR);
-			depth->compare().push(TextureCompare(GL_NONE, GL_EQUAL));
-			depth->texImage();
-		}
-		depth->end(rs);
-		set_depthAttachment(depth);
-	}
-	rs->drawFrameBuffer().pop();
 }
 
 GLenum FBO::addTexture(const ref_ptr<Texture> &tex) {
@@ -300,79 +309,30 @@ void FBO::blitCopy(
 
 	auto srcTex = colorTextures_[readAttachment - GL_COLOR_ATTACHMENT0];
 	auto dstTex = dst.colorTextures_[writeAttachment - GL_COLOR_ATTACHMENT0];
-	auto srcDepth = depth_;
-	auto dstDepth = dst.depth_;
-	auto numLayer = std::max(srcDepth, dstDepth);
-
-	if (numLayer > 1) {
-		for (int layer = 0; layer < numLayer; ++layer) {
-			GL_ERROR_LOG();
-			if (srcDepth > 1) {
-				glFramebufferTextureLayer(GL_READ_FRAMEBUFFER,
-					readAttachment, srcTex->id(), 0, layer);
-			}
-			GL_ERROR_LOG();
-			if (dstDepth > 1) {
-				glFramebufferTextureLayer(GL_DRAW_FRAMEBUFFER,
-					writeAttachment, dstTex->id(), 0, layer);
-			}
-			GL_ERROR_LOG();
-
-			// TODO: redundant
-			if (keepRatio) {
-				GLuint dstWidth = dst.width();
-				GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
-				GLuint offsetX, offsetY;
-				if (dstHeight > dst.height()) {
-					dstHeight = dst.height();
-					dstWidth = dst.height() * ((GLfloat) height() / width());
-					offsetX = (dst.width() - dstWidth) / 2;
-					offsetY = 0;
-				} else {
-					offsetX = 0;
-					offsetY = (dst.height() - dstHeight) / 2;
-				}
-				glBlitFramebuffer(
-						0, 0, width(), height(),
-						offsetX, offsetY,
-						offsetX + dstWidth,
-						offsetY + dstHeight,
-						mask, filter);
-			} else {
-				glBlitFramebuffer(
-						0, 0, width(), height(),
-						0, 0, dst.width(), dst.height(),
-						mask, filter);
-			}
-			GL_ERROR_LOG();
-		}
-	}
-	else {
-		if (keepRatio) {
-			GLuint dstWidth = dst.width();
-			GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
-			GLuint offsetX, offsetY;
-			if (dstHeight > dst.height()) {
-				dstHeight = dst.height();
-				dstWidth = dst.height() * ((GLfloat) height() / width());
-				offsetX = (dst.width() - dstWidth) / 2;
-				offsetY = 0;
-			} else {
-				offsetX = 0;
-				offsetY = (dst.height() - dstHeight) / 2;
-			}
-			glBlitFramebuffer(
-					0, 0, width(), height(),
-					offsetX, offsetY,
-					offsetX + dstWidth,
-					offsetY + dstHeight,
-					mask, filter);
+	if (keepRatio) {
+		GLuint dstWidth = dst.width();
+		GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
+		GLuint offsetX, offsetY;
+		if (dstHeight > dst.height()) {
+			dstHeight = dst.height();
+			dstWidth = dst.height() * ((GLfloat) height() / width());
+			offsetX = (dst.width() - dstWidth) / 2;
+			offsetY = 0;
 		} else {
-			glBlitFramebuffer(
-					0, 0, width(), height(),
-					0, 0, dst.width(), dst.height(),
-					mask, filter);
+			offsetX = 0;
+			offsetY = (dst.height() - dstHeight) / 2;
 		}
+		glBlitFramebuffer(
+				0, 0, width(), height(),
+				offsetX, offsetY,
+				offsetX + dstWidth,
+				offsetY + dstHeight,
+				mask, filter);
+	} else {
+		glBlitFramebuffer(
+				0, 0, width(), height(),
+				0, 0, dst.width(), dst.height(),
+				mask, filter);
 	}
 
 	if (writeAttachment != GL_DEPTH_ATTACHMENT) {
@@ -439,7 +399,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	viewport_->setUniformData(
 			Vec2f((GLfloat) w, (GLfloat) h));
 	inverseViewport_->setUniformData(
-			Vec2f(1.0 / (GLfloat) w, 1.0 / (GLfloat) h));
+			Vec2f(1.0f / (GLfloat) w, 1.0f / (GLfloat) h));
 	glViewport_ = Vec4ui(0, 0, w, h);
 	rs->drawFrameBuffer().push(id());
 	rs->activeTexture().push(GL_TEXTURE7);
@@ -475,8 +435,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	}
 
 	// resize color attachments
-	for (auto it = colorTextures_.begin(); it != colorTextures_.end(); ++it) {
-		ref_ptr<Texture> &tex = *it;
+	for (auto & tex : colorTextures_) {
 		tex->set_rectangleSize(w, h);
 		auto *tex3D = dynamic_cast<Texture3D *>(tex.get());
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
@@ -489,8 +448,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	}
 
 	// resize rbo attachments
-	for (auto it = renderBuffers_.begin(); it != renderBuffers_.end(); ++it) {
-		ref_ptr<RenderBuffer> &rbo = *it;
+	for (auto & rbo : renderBuffers_) {
 		rbo->set_rectangleSize(w, h);
 		for (GLuint i = 0; i < rbo->numObjects(); ++i) {
 			rbo->begin(rs);
@@ -572,6 +530,34 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 
 			ref_ptr<Texture> tex = fbo->depthTexture();
 			Texture::configure(tex, *n.get());
+		} else if (n->getCategory() == "depth-stencil") {
+			GLenum textureTarget = glenum::textureTarget(
+					n->getValue<std::string>("target", "TEXTURE_2D"));
+			GLenum depthFormat = GL_DEPTH24_STENCIL8;
+			GLenum depthType = GL_UNSIGNED_INT_24_8;
+
+   			auto tex = fbo->createTexture(
+   				fbo->width(), fbo->height(), fbo->depth(),
+   				1, textureTarget,
+   				GL_DEPTH_STENCIL, depthFormat, depthType);
+			fbo->set_depthStencilTexture(tex);
+		} else if (n->getCategory() == "stencil") {
+			GLenum pixelType = glenum::pixelType(
+					n->getValue<std::string>("pixel-type", "UNSIGNED_BYTE"));
+			GLenum textureTarget = glenum::textureTarget(
+					n->getValue<std::string>("target", "TEXTURE_2D"));
+
+			GLenum stencilFormat;
+			auto stencilSize = n->getValue<GLint>("pixel-size", 8);
+			if (stencilSize < 8) stencilFormat = GL_STENCIL_INDEX1;
+			else if (stencilSize < 16) stencilFormat = GL_STENCIL_INDEX4;
+			else stencilFormat = GL_STENCIL_INDEX8;
+
+			auto stencilTexture = fbo->createTexture(
+					fbo->width(), fbo->height(), fbo->depth(),
+					1, textureTarget,
+					GL_STENCIL_INDEX, stencilFormat, pixelType);
+			fbo->set_stencilTexture(stencilTexture);
 		} else {
 			REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
 		}

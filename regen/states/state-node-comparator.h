@@ -30,11 +30,18 @@ namespace regen {
 		ModelTransformation *findModelTransformation(StateNode *n) const;
 
 		/**
+		 * @param n a node.
+		 * @return a model view matrix.
+		 */
+		ModelTransformation *getModelTransformation(StateNode *n) const;
+
+		/**
 		 * Do the comparison.
 		 */
 		bool operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const;
 
 	protected:
+		mutable std::map<StateNode*, ModelTransformation*> modelTransformations_;
 		ref_ptr<Camera> cam_;
 		GLint mode_;
 	};

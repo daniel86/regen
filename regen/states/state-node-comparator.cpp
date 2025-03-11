@@ -31,11 +31,22 @@ ModelTransformation *NodeEyeDepthComparator::findModelTransformation(StateNode *
 	return nullptr;
 }
 
+ModelTransformation *NodeEyeDepthComparator::getModelTransformation(StateNode *n) const {
+	auto it = modelTransformations_.find(n);
+	if (it != modelTransformations_.end()) {
+		return it->second;
+	} else {
+		ModelTransformation *modelMat = findModelTransformation(n);
+		modelTransformations_[n] = modelMat;
+		return modelMat;
+	}
+}
+
 bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const {
-	ModelTransformation *modelMat0 = findModelTransformation(n0.get());
-	ModelTransformation *modelMat1 = findModelTransformation(n1.get());
+	auto *modelMat0 = getModelTransformation(n0.get());
+	auto *modelMat1 = getModelTransformation(n1.get());
 	if (modelMat0 != nullptr && modelMat1 != nullptr) {
-		GLfloat diff = mode_ * (
+		auto diff = mode_ * (
 				getEyeDepth(modelMat0->get()->getVertex(0).r.position()) -
 				getEyeDepth(modelMat1->get()->getVertex(0).r.position()));
 		return diff < 0;

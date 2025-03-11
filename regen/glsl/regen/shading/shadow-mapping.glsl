@@ -27,6 +27,7 @@ float shadowVSM(sampler2DArrayShadow tex, vec4 shadowCoord)
 {
     float shadow = texture(tex, shadowCoord);
     // Ortho matrix projects linear depth
+    // FIXME: but not all 2d array correspond to ortho matrix! Better check for that..
     float depth = shadowCoord.w;
     return chebyshevUpperBound(depth, vec2(shadow));
 }
@@ -157,7 +158,7 @@ vec4 parabolicShadowCoord(int textureLayer, vec3 posWorld, mat4 lightMatrix, flo
 #include regen.shading.shadow-mapping.filtering.all
 #include regen.math.linstep
 
-#define spotShadowSingle(tex,x,l,n,f)   textureProj(tex,x);
+#define spotShadowSingle(tex,x,l,n,f)   textureProj(tex,x)
 #define spotShadowGaussian(tex,x,l,n,f) shadowGaussian(tex,x)
 #define spotShadowVSM(tex,x,l,n,f)      shadowVSM(tex,x,linstep(n,f,length(l)))
 

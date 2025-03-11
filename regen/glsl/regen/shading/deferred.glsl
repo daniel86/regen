@@ -204,7 +204,7 @@ void main() {
 #ifdef USE_SHADOW_COLOR
     vec4 shadowColor = shadow2DArray(in_shadowColorTexture,shadowCoord);
     attenuation += (1.0-shadow)*(1.0-shadowColor.a);
-    diff.rgb += (1.0-shadow)*shadowColor.rgb;
+    diff.rgb += mix(diff.rgb, shadowColor.rgb, shadowColor.a);
 #endif
 #else
     float attenuation = 1.0;
@@ -427,8 +427,12 @@ void main() {
     /*************************************/
     /*************************************/
     #ifdef USE_SHADOW_COLOR
+    // Here the idea is that we actually reduce the shadow in case we have a shadow color.
+    // Then we rather add the shadow color to the material color weighted by the alpha of the shadow color.
+    // NOTE: this can create artifacts of colored shadows "shining through" objects and being projected on
+    //       on objects behind. Not sure what would be the best way to avoid this...
+    diff.rgb += mix(diff.rgb, shadowColor.rgb, shadowColor.a);
     shadow += (1.0-shadow)*(1.0-shadowColor.a);
-    diff.rgb += (1.0-shadow)*shadowColor.rgb;
     #endif
     attenuation *= shadow;
 #endif // USE_SHADOW_MAP

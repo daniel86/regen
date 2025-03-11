@@ -75,6 +75,7 @@ namespace regen {
 			/** Refraction mapping. */
 			MAPPING_REFRACTION,
 			MAPPING_CUBE_REFRACTION,
+			MAPPING_INSTANCE_REFRACTION,
 			/** Use XZ coordinates for mapping. */
 			MAPPING_XZ_PLANE,
 			/** User defined mapping. */

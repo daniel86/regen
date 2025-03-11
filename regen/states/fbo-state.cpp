@@ -31,18 +31,26 @@ FBOState::FBOState(const ref_ptr<FBO> &fbo)
 	}
 }
 
-void FBOState::setClearDepth() {
-	if (clearDepthCallable_.get()) {
-		disjoinStates(clearDepthCallable_);
+void FBOState::createClearState() {
+	if (!clearCallable_.get()) {
+		clearCallable_ = ref_ptr<ClearState>::alloc();
+		joinStates(clearCallable_);
+		// make sure clearing is done before draw buffer configuration
+		if (drawBufferCallable_.get() != nullptr) {
+			disjoinStates(drawBufferCallable_);
+			joinStates(drawBufferCallable_);
+		}
 	}
-	clearDepthCallable_ = ref_ptr<ClearDepthState>::alloc();
-	joinStates(clearDepthCallable_);
+}
 
-	// make sure clearing is done before draw buffer configuration
-	if (drawBufferCallable_.get() != nullptr) {
-		disjoinStates(drawBufferCallable_);
-		joinStates(drawBufferCallable_);
-	}
+void FBOState::setClearDepth() {
+	createClearState();
+	clearCallable_->addClearBit(GL_DEPTH_BUFFER_BIT);
+}
+
+void FBOState::setClearStencil() {
+	createClearState();
+	clearCallable_->addClearBit(GL_STENCIL_BUFFER_BIT);
 }
 
 void FBOState::setClearColor(const ClearColorState::Data &data) {
@@ -153,8 +161,13 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 		ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 
 		if (input.hasAttribute("clear-depth") &&
-			input.getValue<bool>("clear-depth", true)) {
+			input.getValue<int>("clear-depth", 1)) {
 			fboState->setClearDepth();
+		}
+
+		if (input.hasAttribute("clear-stencil") &&
+			input.getValue<int>("clear-stencil", 1)) {
+			fboState->setClearStencil();
 		}
 
 		if (input.hasAttribute("clear-buffers")) {
