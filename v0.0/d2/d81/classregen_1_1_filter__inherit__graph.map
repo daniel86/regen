@@ -1,0 +1,11 @@
+<map id="regen::Filter" name="regen::Filter">
+<area shape="rect" id="Node000001" title="Apply a filter on input Texture." alt="" coords="101,225,201,251"/>
+<area shape="rect" id="Node000002" href="$db/d3c/classregen_1_1_fullscreen_pass.html" title="State that updates each texel of the active render target." alt="" coords="69,152,232,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,191,153,225,148,225,148,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="28,79,129,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="102,112,141,150,137,154,99,116"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,5,152,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="81,44,81,79,76,79,76,44"/>
+<area shape="rect" id="Node000005" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="154,79,291,104"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="203,116,164,154,160,150,199,112"/>
+</map>

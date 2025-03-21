@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="5,79,173,104"/>
+<area shape="rect" id="Node000001" href="$d8/d98/classregen_1_1_bounding_box.html" title="Bounding box." alt="" coords="231,29,385,55"/>
+<area shape="poly" id="edge256_Node000000_Node000001" title=" " alt="" coords="159,73,250,52,251,57,160,78"/>
+<area shape="rect" id="Node000004" href="$db/d6b/classregen_1_1_bounding_sphere.html" title="Bounding sphere." alt="" coords="221,79,395,104"/>
+<area shape="poly" id="edge259_Node000000_Node000004" title=" " alt="" coords="187,89,221,89,221,94,187,94"/>
+<area shape="rect" id="Node000005" href="$de/d18/classregen_1_1_frustum.html" title=" " alt="" coords="248,128,368,153"/>
+<area shape="poly" id="edge260_Node000000_Node000005" title=" " alt="" coords="160,104,251,125,250,131,159,110"/>
+<area shape="rect" id="Node000002" href="$d0/d1b/classregen_1_1_a_a_b_b.html" title="Axis&#45;aligned bounding box." alt="" coords="443,5,545,31"/>
+<area shape="poly" id="edge257_Node000001_Node000002" title=" " alt="" coords="398,28,442,22,443,27,399,33"/>
+<area shape="rect" id="Node000003" href="$d1/d48/classregen_1_1_o_b_b.html" title="Oriented bounding box." alt="" coords="447,55,541,80"/>
+<area shape="poly" id="edge258_Node000001_Node000003" title=" " alt="" coords="399,52,447,58,446,64,398,57"/>
+</map>

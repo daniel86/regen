@@ -1,0 +1,27 @@
+<map id="regen::Camera" name="regen::Camera">
+<area shape="rect" id="Node000001" title="Camera with projection and view matrix." alt="" coords="580,104,699,129"/>
+<area shape="rect" id="Node000007" href="$de/dbe/classregen_1_1_cube_camera.html" title=" " alt="" coords="765,5,915,31"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="665,93,702,66,746,41,780,28,782,33,748,46,705,71,668,97"/>
+<area shape="rect" id="Node000009" href="$d0/ddc/classregen_1_1_light_camera___c_s_m.html" title=" " alt="" coords="747,55,933,80"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="704,98,787,77,788,83,705,103"/>
+<area shape="rect" id="Node000010" href="$d2/df8/classregen_1_1_light_camera___spot.html" title=" " alt="" coords="747,104,933,129"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="713,114,747,114,747,119,713,119"/>
+<area shape="rect" id="Node000011" href="$d9/d5a/classregen_1_1_parabolic_camera.html" title=" " alt="" coords="751,153,929,179"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="705,130,788,151,787,156,704,135"/>
+<area shape="rect" id="Node000013" href="$de/d17/classregen_1_1_reflection_camera.html" title=" " alt="" coords="749,203,931,228"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="667,136,704,163,748,189,778,200,776,205,746,194,701,168,664,140"/>
+<area shape="rect" id="Node000002" href="$db/d71/classregen_1_1_has_input_state.html" title="A state with an input container." alt="" coords="373,104,532,129"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="546,114,580,114,580,119,546,119"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="212,79,313,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="327,97,373,103,373,109,327,102"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,53,152,79"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="166,75,212,82,211,87,165,81"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="15,103,142,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="156,103,212,95,212,101,156,108"/>
+<area shape="rect" id="Node000006" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="200,128,325,153"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="339,128,373,124,373,129,339,134"/>
+<area shape="rect" id="Node000008" href="$d3/df3/classregen_1_1_light_camera___cube.html" title=" " alt="" coords="981,5,1172,31"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="929,15,981,15,981,21,929,21"/>
+<area shape="rect" id="Node000012" href="$d0/db3/classregen_1_1_light_camera___parabolic.html" title=" " alt="" coords="1001,146,1152,186"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="943,163,1001,163,1001,169,943,169"/>
+</map>

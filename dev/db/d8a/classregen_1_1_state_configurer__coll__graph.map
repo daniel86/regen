@@ -1,0 +1,5 @@
+<map id="regen::StateConfigurer" name="regen::StateConfigurer">
+<area shape="rect" id="Node000001" title="Shader configuration based on State&#39;s." alt="" coords="5,93,173,119"/>
+<area shape="rect" id="Node000002" href="$d8/db5/structregen_1_1_state_config.html" title="Configures a Shader object." alt="" coords="18,5,161,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,45,92,93,87,93,87,45"/>
+</map>

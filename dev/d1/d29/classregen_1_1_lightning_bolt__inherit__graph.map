@@ -1,0 +1,16 @@
+<map id="regen::LightningBolt" name="regen::LightningBolt">
+<area shape="rect" id="Node000001" title="A lightning bolt." alt="" coords="157,225,311,251"/>
+<area shape="rect" id="Node000002" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="112,152,215,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,185,224,223,221,227,183,189"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="18,79,119,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="96,110,149,150,146,154,93,114"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="194,5,341,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,38,102,81,100,76,222,33"/>
+<area shape="rect" id="Node000007" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="239,152,373,177"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="277,44,305,151,300,152,271,45"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="5,5,132,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="71,44,71,79,66,79,66,44"/>
+<area shape="rect" id="Node000006" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="143,79,269,104"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="194,117,173,153,168,151,190,114"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="286,189,248,227,244,223,282,185"/>
+</map>

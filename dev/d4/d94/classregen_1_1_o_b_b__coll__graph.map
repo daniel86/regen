@@ -1,0 +1,20 @@
+<map id="regen::OBB" name="regen::OBB">
+<area shape="rect" id="Node000001" title="Oriented bounding box." alt="" coords="848,238,943,263"/>
+<area shape="rect" id="Node000002" href="$d8/d98/classregen_1_1_bounding_box.html" title="Bounding box." alt="" coords="645,187,799,213"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="780,214,852,235,850,240,779,219"/>
+<area shape="rect" id="Node000003" href="$d4/da0/classregen_1_1_bounding_shape.html" title="Bounding shape." alt="" coords="331,109,499,134"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="493,134,622,165,684,185,683,190,621,171,492,139"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="188,46,305,80,380,106,379,111,303,85,187,51"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,69,178,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="192,96,331,110,331,116,191,101"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="15,133,178,173"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="191,141,331,127,331,132,192,147"/>
+<area shape="rect" id="Node000007" href="$d2/d5d/structregen_1_1_bounds.html" title=" " alt="" coords="332,160,499,200"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="513,184,645,192,645,198,512,189"/>
+<area shape="rect" id="Node000008" href="$da/db7/classregen_1_1_vec3.html" title="A 3D vector." alt="" coords="29,199,165,225"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="178,201,332,186,332,191,179,206"/>
+<area shape="rect" id="Node000009" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="328,237,503,262"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="517,247,848,248,848,253,516,252"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="516,240,621,225,681,210,682,215,622,231,517,245"/>
+</map>

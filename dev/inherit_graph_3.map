@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$d0/d1c/classnoise_1_1_exception.html" title="Abstract base class for libnoise exceptions." alt="" coords="5,80,135,105"/>
+<area shape="rect" id="Node000001" href="$da/d17/classnoise_1_1_exception_invalid_param.html" title=" " alt="" coords="186,5,401,31"/>
+<area shape="poly" id="edge219_Node000000_Node000001" title=" " alt="" coords="107,71,182,39,222,28,224,33,184,45,109,76"/>
+<area shape="rect" id="Node000002" href="$d1/d85/classnoise_1_1_exception_no_module.html" title=" " alt="" coords="196,55,391,80"/>
+<area shape="poly" id="edge220_Node000000_Node000002" title=" " alt="" coords="149,81,196,76,196,81,149,86"/>
+<area shape="rect" id="Node000003" href="$d5/d78/classnoise_1_1_exception_out_of_memory.html" title=" " alt="" coords="183,104,404,129"/>
+<area shape="poly" id="edge221_Node000000_Node000003" title=" " alt="" coords="149,98,183,102,182,107,148,104"/>
+<area shape="rect" id="Node000004" href="$d0/d44/classnoise_1_1_exception_unknown.html" title=" " alt="" coords="198,153,389,179"/>
+<area shape="poly" id="edge222_Node000000_Node000004" title=" " alt="" coords="111,109,184,138,229,151,228,156,182,143,109,114"/>
+</map>

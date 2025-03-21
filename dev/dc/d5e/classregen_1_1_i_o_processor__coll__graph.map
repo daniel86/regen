@@ -1,0 +1,7 @@
+<map id="regen::IOProcessor" name="regen::IOProcessor">
+<area shape="rect" id="Node000001" title="A GLSL processor that modifies the IO behavior of the Shader code." alt="" coords="15,183,159,208"/>
+<area shape="rect" id="Node000002" href="$df/d55/classregen_1_1_g_l_s_l_processor.html" title="Baseclass for GLSL pre&#45;processors." alt="" coords="5,108,168,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,148,89,182,84,182,84,148"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,59,89,108,84,108,84,59"/>
+</map>

@@ -1,0 +1,23 @@
+<map id="/home/runner/work/regen/regen/regen/scene/mesh&#45;processor.h" name="/home/runner/work/regen/regen/regen/scene/mesh&#45;processor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="639,5,825,60"/>
+<area shape="rect" id="Node000002" href="$df/db2/transform-animation_8h.html" title=" " alt="" coords="323,108,509,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="638,67,499,110,498,105,636,62"/>
+<area shape="rect" id="Node000009" href="$d5/d53/shader-input_8cpp.html" title=" " alt="" coords="533,108,720,163"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="696,72,656,110,652,106,693,68"/>
+<area shape="rect" id="Node000010" href="$dc/d74/mesh-processor_8cpp.html" title=" " alt="" coords="744,108,931,163"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="771,68,812,106,808,110,768,72"/>
+<area shape="rect" id="Node000011" href="$db/d42/scene-loader_8cpp.html" title=" " alt="" coords="955,108,1143,163"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="828,62,967,105,966,110,827,67"/>
+<area shape="rect" id="Node000003" href="$df/dca/animation-controller_8h.html" title=" " alt="" coords="111,211,297,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,171,260,213,258,208,348,166"/>
+<area shape="rect" id="Node000007" href="$d8/d8f/transform-animation_8cpp.html" title=" " alt="" coords="322,211,510,265"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="419,176,419,211,413,211,413,176"/>
+<area shape="rect" id="Node000008" href="$df/d7a/model-transformation_8cpp.html" title=" " alt="" coords="534,211,727,265"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="485,166,576,208,574,213,483,171"/>
+<area shape="rect" id="Node000004" href="$d2/daa/animal-controller_8h.html" title=" " alt="" coords="5,313,192,368"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="168,277,128,315,124,311,165,273"/>
+<area shape="rect" id="Node000006" href="$dd/dd8/animation-controller_8cpp.html" title=" " alt="" coords="216,313,403,368"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="243,273,284,311,280,315,240,277"/>
+<area shape="rect" id="Node000005" href="$d9/d15/animal-controller_8cpp.html" title=" " alt="" coords="5,416,192,471"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="101,382,101,416,96,416,96,382"/>
+</map>

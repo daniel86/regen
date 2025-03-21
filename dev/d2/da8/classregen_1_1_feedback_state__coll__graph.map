@@ -1,0 +1,21 @@
+<map id="regen::FeedbackState" name="regen::FeedbackState">
+<area shape="rect" id="Node000001" title="Transform feedback state." alt="" coords="857,171,1020,196"/>
+<area shape="rect" id="Node000002" href="$d6/d43/classregen_1_1_feedback_specification.html" title=" " alt="" coords="487,84,699,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="688,109,760,124,834,142,908,168,906,173,833,147,758,129,686,114"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="336,84,437,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="451,94,486,94,486,99,451,99"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="174,26,243,39,313,58,364,81,362,86,311,63,241,44,173,31"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,55,150,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="164,70,312,83,336,86,335,92,312,89,164,75"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,105,168,145"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="181,113,336,99,336,104,182,119"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,169,168,209"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="181,168,246,152,311,132,362,107,365,112,313,136,247,157,182,173"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="511,134,674,174"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="688,159,857,174,857,179,687,165"/>
+<area shape="rect" id="Node000009" href="$de/d38/structregen_1_1_buffer_range.html" title="Bind a range within a buffer object to an indexed buffer target." alt="" coords="519,199,666,224"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="680,206,833,195,856,193,857,198,834,201,680,211"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="516,249,669,289"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="683,254,757,241,833,222,909,194,911,199,834,227,758,246,684,259"/>
+</map>

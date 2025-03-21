@@ -1,0 +1,11 @@
+<map id="regen::GLBuffer" name="regen::GLBuffer">
+<area shape="rect" id="Node000001" title="Base class for OpenGL buffer objects." alt="" coords="46,152,169,177"/>
+<area shape="rect" id="Node000004" href="$df/d8d/classregen_1_1_atomic_counter.html" title="An atomic counter buffer object." alt="" coords="25,225,189,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="110,191,110,225,105,225,105,191"/>
+<area shape="rect" id="Node000002" href="$d2/d27/classregen_1_1_g_l_object.html" title="Base class for buffer objects." alt="" coords="44,79,171,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,118,110,152,105,152,105,118"/>
+<area shape="rect" id="Node000003" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="44,5,171,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="110,44,110,79,105,79,105,44"/>
+<area shape="rect" id="Node000005" href="$d7/d6b/classregen_1_1_bounding_box_counter.html" title="An atomic counter buffer object for bounding boxes." alt="" coords="5,299,209,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="110,264,110,299,105,299,105,264"/>
+</map>

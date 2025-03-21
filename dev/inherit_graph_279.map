@@ -1,0 +1,43 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$d5/d8d/classregen_1_1_state_stack.html" title="A stack that keeps track of a state value." alt="" coords="5,606,176,661"/>
+<area shape="rect" id="Node000001" href="$dc/d67/classregen_1_1_parameter_stack_atomic.html" title=" " alt="" coords="225,5,441,45"/>
+<area shape="poly" id="edge304_Node000000_Node000001" title=" " alt="" coords="93,592,108,470,134,310,152,230,172,157,195,97,222,56,237,43,240,48,226,59,200,99,177,158,157,231,140,311,114,471,99,593"/>
+<area shape="rect" id="Node000002" href="$dc/d67/classregen_1_1_parameter_stack_atomic.html" title=" " alt="" coords="225,69,441,109"/>
+<area shape="poly" id="edge305_Node000000_Node000002" title=" " alt="" coords="95,592,112,482,139,341,156,271,176,207,198,155,222,120,237,108,240,112,226,123,203,158,181,209,161,272,144,342,117,483,100,592"/>
+<area shape="rect" id="Node000003" href="$dc/d67/classregen_1_1_parameter_stack_atomic.html" title=" " alt="" coords="225,133,441,173"/>
+<area shape="poly" id="edge306_Node000000_Node000003" title=" " alt="" coords="89,592,95,507,102,455,113,398,130,340,153,283,184,230,222,183,238,171,241,176,226,187,188,233,158,286,135,342,119,399,107,455,100,508,94,592"/>
+<area shape="rect" id="Node000004" href="$dc/d67/classregen_1_1_parameter_stack_atomic.html" title=" " alt="" coords="225,197,441,237"/>
+<area shape="poly" id="edge307_Node000000_Node000004" title=" " alt="" coords="92,592,101,518,122,426,139,378,161,330,188,286,222,247,238,235,242,240,226,251,193,289,166,333,144,380,127,427,106,519,97,592"/>
+<area shape="rect" id="Node000005" href="$dc/d71/classregen_1_1_texture_parameter_stack.html" title=" " alt="" coords="224,261,443,301"/>
+<area shape="poly" id="edge308_Node000000_Node000005" title=" " alt="" coords="95,592,108,530,131,455,148,416,168,378,193,342,222,311,239,299,242,304,226,315,197,346,173,380,153,418,136,456,113,531,100,593"/>
+<area shape="rect" id="Node000006" href="$dc/d71/classregen_1_1_texture_parameter_stack.html" title=" " alt="" coords="224,325,443,365"/>
+<area shape="poly" id="edge309_Node000000_Node000006" title=" " alt="" coords="100,592,116,542,141,484,176,425,198,399,222,375,241,363,244,368,226,379,202,402,180,429,146,486,121,544,105,593"/>
+<area shape="rect" id="Node000007" href="$dc/d71/classregen_1_1_texture_parameter_stack.html" title=" " alt="" coords="224,389,443,429"/>
+<area shape="poly" id="edge310_Node000000_Node000007" title=" " alt="" coords="107,592,126,556,152,514,184,474,222,439,243,427,246,432,226,443,188,477,156,517,131,558,112,595"/>
+<area shape="rect" id="Node000008" href="$dc/d71/classregen_1_1_texture_parameter_stack.html" title=" " alt="" coords="224,453,443,493"/>
+<area shape="poly" id="edge311_Node000000_Node000008" title=" " alt="" coords="120,594,165,547,193,523,223,503,248,491,250,496,225,508,196,527,169,550,124,597"/>
+<area shape="rect" id="Node000009" href="$dc/d71/classregen_1_1_texture_parameter_stack.html" title=" " alt="" coords="224,517,443,557"/>
+<area shape="poly" id="edge312_Node000000_Node000009" title=" " alt="" coords="155,597,223,567,257,555,259,560,225,572,157,602"/>
+<area shape="rect" id="Node000010" href="$df/dee/classregen_1_1_value_stack.html" title=" " alt="" coords="250,581,417,621"/>
+<area shape="poly" id="edge313_Node000000_Node000010" title=" " alt="" coords="190,618,250,610,250,615,190,623"/>
+<area shape="rect" id="Node000011" href="$df/dee/classregen_1_1_value_stack.html" title=" " alt="" coords="258,645,409,685"/>
+<area shape="poly" id="edge314_Node000000_Node000011" title=" " alt="" coords="190,644,258,653,258,658,189,649"/>
+<area shape="rect" id="Node000012" href="$df/dee/classregen_1_1_value_stack.html" title=" " alt="" coords="253,709,413,749"/>
+<area shape="poly" id="edge315_Node000000_Node000012" title=" " alt="" coords="157,665,225,695,259,707,257,712,223,700,155,669"/>
+<area shape="rect" id="Node000013" href="$df/dee/classregen_1_1_value_stack.html" title=" " alt="" coords="258,773,409,813"/>
+<area shape="poly" id="edge316_Node000000_Node000013" title=" " alt="" coords="124,669,169,716,196,739,225,759,259,774,257,779,223,764,193,744,165,720,120,673"/>
+<area shape="rect" id="Node000014" href="$df/dee/classregen_1_1_value_stack.html" title=" " alt="" coords="258,837,409,877"/>
+<area shape="poly" id="edge317_Node000000_Node000014" title=" " alt="" coords="112,672,131,708,156,749,188,789,226,823,259,840,257,845,222,828,184,793,152,752,126,711,107,674"/>
+<area shape="rect" id="Node000015" href="$df/dee/classregen_1_1_value_stack.html" title=" " alt="" coords="252,901,415,941"/>
+<area shape="poly" id="edge318_Node000000_Node000015" title=" " alt="" coords="105,673,121,723,146,780,180,838,202,864,226,887,253,903,250,908,222,891,198,868,176,841,141,783,116,725,100,675"/>
+<area shape="rect" id="Node000016" href="$d8/d09/classregen_1_1_value_stack_atomic.html" title=" " alt="" coords="241,965,426,1005"/>
+<area shape="poly" id="edge319_Node000000_Node000016" title=" " alt="" coords="100,674,113,735,136,810,153,849,173,886,197,921,226,951,242,963,239,967,222,955,193,924,168,889,148,851,131,812,108,737,95,675"/>
+<area shape="rect" id="Node000017" href="$d8/d09/classregen_1_1_value_stack_atomic.html" title=" " alt="" coords="241,1029,426,1069"/>
+<area shape="poly" id="edge320_Node000000_Node000017" title=" " alt="" coords="97,674,106,747,127,839,144,887,166,934,193,977,226,1015,242,1027,239,1032,222,1019,188,980,161,936,139,889,122,841,101,748,92,675"/>
+<area shape="rect" id="Node000018" href="$d8/d09/classregen_1_1_value_stack_atomic.html" title=" " alt="" coords="241,1093,426,1133"/>
+<area shape="poly" id="edge321_Node000000_Node000018" title=" " alt="" coords="94,674,100,759,107,811,119,867,135,925,158,981,188,1033,226,1079,242,1092,239,1096,222,1083,184,1036,153,983,130,927,113,869,102,812,95,759,89,675"/>
+<area shape="rect" id="Node000019" href="$d8/d09/classregen_1_1_value_stack_atomic.html" title=" " alt="" coords="241,1157,426,1197"/>
+<area shape="poly" id="edge322_Node000000_Node000019" title=" " alt="" coords="100,674,117,784,144,925,161,994,181,1057,203,1109,226,1144,242,1156,239,1160,222,1147,198,1111,176,1059,156,996,139,926,112,785,95,675"/>
+<area shape="rect" id="Node000020" href="$d8/d09/classregen_1_1_value_stack_atomic.html" title=" " alt="" coords="241,1221,426,1261"/>
+<area shape="poly" id="edge323_Node000000_Node000020" title=" " alt="" coords="99,674,114,796,140,956,157,1036,177,1108,200,1167,226,1208,242,1220,239,1225,222,1211,195,1170,172,1110,152,1037,134,957,108,797,93,674"/>
+</map>

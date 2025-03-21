@@ -1,0 +1,11 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$da/def/classregen_1_1_audio_video_stream.html" title="Baseclass for ffmpeg streams." alt="" coords="5,80,193,105"/>
+<area shape="rect" id="Node000001" href="$d3/d33/classregen_1_1_audio_library.html" title="Global audio state." alt="" coords="245,5,394,31"/>
+<area shape="poly" id="edge252_Node000000_Node000001" title=" " alt="" coords="146,73,240,39,275,28,277,33,242,45,148,78"/>
+<area shape="rect" id="Node000002" href="$d3/d0e/classregen_1_1_audio_listener.html" title="Configures the audio listener." alt="" coords="241,55,397,80"/>
+<area shape="poly" id="edge253_Node000000_Node000002" title=" " alt="" coords="207,78,241,74,242,79,207,83"/>
+<area shape="rect" id="Node000003" href="$d2/da9/classregen_1_1_audio_source.html" title="Source of audio in 3D space." alt="" coords="245,104,393,129"/>
+<area shape="poly" id="edge254_Node000000_Node000003" title=" " alt="" coords="207,102,246,106,245,111,207,107"/>
+<area shape="rect" id="Node000004" href="$d1/db7/classregen_1_1_video_stream.html" title="ffmpeg stream that provides texture data for GL texture." alt="" coords="244,153,395,179"/>
+<area shape="poly" id="edge255_Node000000_Node000004" title=" " alt="" coords="151,107,242,138,280,151,279,156,240,143,150,112"/>
+</map>

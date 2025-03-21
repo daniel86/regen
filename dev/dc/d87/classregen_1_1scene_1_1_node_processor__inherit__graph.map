@@ -1,0 +1,13 @@
+<map id="regen::scene::NodeProcessor" name="regen::scene::NodeProcessor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="263,80,473,105"/>
+<area shape="rect" id="Node000003" href="$d5/d41/classregen_1_1_loadable_node.html" title=" " alt="" coords="548,5,747,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="415,73,521,39,571,28,572,33,522,45,417,78"/>
+<area shape="rect" id="Node000004" href="$d5/d3c/classregen_1_1scene_1_1_debug_node_processor.html" title=" " alt="" coords="521,55,773,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="487,79,521,76,521,81,487,85"/>
+<area shape="rect" id="Node000005" href="$dc/d7d/classregen_1_1scene_1_1_mesh_node_provider.html" title=" " alt="" coords="529,104,765,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="487,100,529,104,529,109,487,106"/>
+<area shape="rect" id="Node000006" href="$d8/d38/classregen_1_1scene_1_1_scene_node_processor.html" title=" " alt="" coords="523,153,772,179"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="418,107,522,139,572,151,571,156,521,145,417,113"/>
+<area shape="rect" id="Node000002" href="$df/de7/classregen_1_1scene_1_1_input_processor.html" title=" " alt="" coords="5,80,215,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,90,263,90,263,95,228,95"/>
+</map>

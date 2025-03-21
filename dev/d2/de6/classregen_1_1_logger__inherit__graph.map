@@ -1,0 +1,9 @@
+<map id="regen::Logger" name="regen::Logger">
+<area shape="rect" id="Node000001" title="Base class for loggers." alt="" coords="183,5,294,31"/>
+<area shape="rect" id="Node000002" href="$d5/d63/classregen_1_1_cerr_logger.html" title="Log to cerr." alt="" coords="5,79,144,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,39,103,81,100,76,199,34"/>
+<area shape="rect" id="Node000003" href="$d3/d65/classregen_1_1_cout_logger.html" title="Log to cout." alt="" coords="168,79,309,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="241,44,241,79,236,79,236,44"/>
+<area shape="rect" id="Node000004" href="$d2/d00/classregen_1_1_file_logger.html" title="Log to a file." alt="" coords="334,79,469,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="278,34,376,76,374,81,276,39"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="regen::TimerInput" name="regen::TimerInput">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1059,60,1197,85"/>
+<area shape="rect" id="Node000002" href="$df/df5/classregen_1_1_shader_input1f.html" title="Provides 1D float input to shader programs." alt="" coords="851,31,1009,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1023,54,1059,60,1058,65,1023,60"/>
+<area shape="rect" id="Node000003" href="$db/dab/classregen_1_1_shader_input_typed.html" title=" " alt="" coords="508,5,691,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="705,33,851,38,850,43,704,39"/>
+<area shape="rect" id="Node000004" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="313,20,459,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="473,30,508,30,508,35,473,35"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,13,168,53"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="182,30,313,30,313,35,182,35"/>
+<area shape="rect" id="Node000006" href="$d1/dc3/classregen_1_1_animation.html" title="Abstract base class for animations." alt="" coords="863,84,997,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="1011,84,1058,78,1059,84,1011,90"/>
+<area shape="rect" id="Node000007" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="526,84,673,109"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="687,94,863,94,863,99,687,99"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="518,134,681,174"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="694,137,826,114,865,107,866,112,827,119,695,142"/>
+</map>

@@ -1,0 +1,53 @@
+<map id="regen::ServerSideState" name="regen::ServerSideState">
+<area shape="rect" id="Node000001" title="Base class for &#39;atomic&#39; states." alt="" coords="349,425,520,451"/>
+<area shape="rect" id="Node000005" href="$da/dd3/classregen_1_1_blend_color_state.html" title="Set the blend color." alt="" coords="591,5,763,31"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="434,411,440,337,459,237,476,183,498,131,528,82,566,40,589,26,592,30,570,44,533,85,503,133,481,185,464,238,445,338,439,412"/>
+<area shape="rect" id="Node000006" href="$d5/dc1/classregen_1_1_blend_equation_state.html" title="Specify the equation used for both the RGB blend equation and the Alpha blend equation." alt="" coords="579,55,774,80"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="435,411,444,346,465,259,482,212,504,167,532,125,566,89,584,78,587,82,570,93,536,129,509,170,487,214,470,260,449,347,440,412"/>
+<area shape="rect" id="Node000007" href="$dd/d20/classregen_1_1_blend_func_state.html" title="Specify pixel arithmetic." alt="" coords="593,104,761,129"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="437,411,449,354,472,280,489,241,510,203,536,169,566,139,591,124,594,129,570,143,540,172,515,206,494,244,477,282,454,355,442,412"/>
+<area shape="rect" id="Node000008" href="$db/de9/classregen_1_1_blend_state.html" title="Describes how a texture will be mixed with existing pixels." alt="" coords="607,153,746,179"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="440,411,454,363,479,302,516,240,540,212,566,188,586,177,606,169,608,175,588,182,570,192,543,216,520,243,484,305,459,365,445,413"/>
+<area shape="rect" id="Node000009" href="$d0/d91/classregen_1_1_clear_color_state.html" title="Clear color buffers to preset values." alt="" coords="592,203,761,228"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="443,411,461,372,487,325,522,277,566,237,591,225,593,230,570,242,526,281,491,328,465,375,448,414"/>
+<area shape="rect" id="Node000010" href="$d7/dc5/classregen_1_1_clear_depth_state.html" title="Clear depth buffer to preset values." alt="" coords="589,252,764,277"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="448,412,495,349,528,315,567,286,592,275,594,280,569,291,532,319,499,352,453,415"/>
+<area shape="rect" id="Node000011" href="$d9/d75/classregen_1_1_clear_state.html" title="Clear buffers to preset values." alt="" coords="609,301,744,327"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="457,414,505,374,535,353,567,336,608,322,610,327,569,340,538,358,508,378,461,418"/>
+<area shape="rect" id="Node000012" href="$d3/d38/classregen_1_1_cull_state.html" title=" " alt="" coords="613,351,740,376"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="477,418,567,385,612,373,614,378,569,390,479,423"/>
+<area shape="rect" id="Node000015" href="$da/de3/classregen_1_1_depth_func_state.html" title="Specifies the depth comparison function." alt="" coords="591,400,762,425"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="533,425,591,419,591,424,534,430"/>
+<area shape="rect" id="Node000016" href="$d1/d24/classregen_1_1_depth_range_state.html" title="Specify mapping of depth values from normalized device coordinates to window coordinates." alt="" coords="586,449,767,475"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="534,445,586,450,586,456,533,450"/>
+<area shape="rect" id="Node000017" href="$d0/d5e/classregen_1_1_depth_state.html" title="Allows manipulating how the depth buffer is handled." alt="" coords="607,499,747,524"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="480,453,569,485,612,496,611,501,567,490,478,458"/>
+<area shape="rect" id="Node000018" href="$d4/d52/classregen_1_1_draw_buffer_state.html" title="Specifies a list of color buffers to be drawn into." alt="" coords="589,548,764,573"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="461,458,508,497,538,517,569,534,600,545,599,550,567,539,535,522,505,502,457,462"/>
+<area shape="rect" id="Node000019" href="$dc/dde/classregen_1_1_patch_level_state.html" title="Specifies the default outer or inner tessellation levels to be used when no tessellation control shad..." alt="" coords="591,597,762,623"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="453,460,499,523,532,556,569,584,594,595,592,600,567,588,529,560,495,527,448,464"/>
+<area shape="rect" id="Node000020" href="$dd/dde/classregen_1_1_patch_vertices_state.html" title="Specifies the number of vertices that will be used to make up a single patch primitive." alt="" coords="583,647,771,672"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="448,463,466,501,492,548,527,594,570,633,591,644,588,649,566,638,523,598,487,551,461,504,443,465"/>
+<area shape="rect" id="Node000021" href="$d8/db6/classregen_1_1_ping_pong_buffer_state.html" title="Specifies a list of color buffers to be drawn into. Each frame activates a single draw buffer and in ..." alt="" coords="577,696,777,721"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="445,464,460,512,485,571,521,632,544,659,570,683,589,694,586,698,566,687,540,663,516,635,480,574,455,513,440,465"/>
+<area shape="rect" id="Node000022" href="$d1/d18/classregen_1_1_polygon_state.html" title=" " alt="" coords="600,745,753,771"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="442,464,454,520,477,593,494,632,515,669,540,703,570,732,601,748,598,753,566,736,536,706,510,672,489,634,472,595,449,522,437,465"/>
+<area shape="rect" id="Node000025" href="$dc/d2f/classregen_1_1_toggle_depth_write_state.html" title="Specifies whether the depth buffer is enabled for writing." alt="" coords="568,795,785,820"/>
+<area shape="poly" id="edge24_Node000001_Node000025" title=" " alt="" coords="440,464,449,529,471,615,487,661,509,705,536,746,570,781,587,792,584,797,566,785,532,749,504,708,482,663,465,617,444,530,435,465"/>
+<area shape="rect" id="Node000026" href="$df/d08/classregen_1_1_toggle_state.html" title="Toggles server side GL state." alt="" coords="605,844,748,869"/>
+<area shape="poly" id="edge25_Node000001_Node000026" title=" " alt="" coords="439,464,445,538,464,637,481,690,503,742,533,789,570,831,587,842,606,849,604,854,584,847,566,835,528,793,499,744,476,692,459,638,440,538,434,465"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="200,425,301,451"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="315,435,349,435,349,441,315,441"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="5,400,152,425"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="166,423,200,428,199,433,165,428"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="15,449,142,475"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="155,449,200,442,200,448,156,454"/>
+<area shape="rect" id="Node000013" href="$de/d42/classregen_1_1_cull_face_state.html" title=" " alt="" coords="852,327,1007,352"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="754,353,851,344,852,349,754,359"/>
+<area shape="rect" id="Node000014" href="$dc/db6/classregen_1_1_front_face_state.html" title=" " alt="" coords="848,376,1011,401"/>
+<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="754,368,848,378,848,383,754,374"/>
+<area shape="rect" id="Node000023" href="$d5/de4/classregen_1_1_fill_mode_state.html" title="Specifies how polygons will be rasterized." alt="" coords="851,720,1007,745"/>
+<area shape="poly" id="edge22_Node000022_Node000023" title=" " alt="" coords="766,746,851,738,851,743,767,752"/>
+<area shape="rect" id="Node000024" href="$dd/d7e/classregen_1_1_polygon_offset_state.html" title="Set the scale and units used to calculate depth values." alt="" coords="833,769,1025,795"/>
+<area shape="poly" id="edge23_Node000022_Node000024" title=" " alt="" coords="767,764,834,770,833,776,767,769"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="regen::LoopNode" name="regen::LoopNode">
+<area shape="rect" id="Node000001" title="Adds the possibility to traverse child tree n times." alt="" coords="21,183,153,208"/>
+<area shape="rect" id="Node000002" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="19,108,154,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,148,89,182,84,182,84,148"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="169,113,181,121,172,128,155,130,154,125,170,123,175,121,167,118"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,59,89,108,84,108,84,59"/>
+</map>

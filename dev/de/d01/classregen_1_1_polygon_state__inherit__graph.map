@@ -1,0 +1,15 @@
+<map id="regen::PolygonState" name="regen::PolygonState">
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,225,259,251"/>
+<area shape="rect" id="Node000006" href="$d5/de4/classregen_1_1_fill_mode_state.html" title="Specifies how polygons will be rasterized." alt="" coords="5,299,161,324"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="157,261,101,301,98,296,154,256"/>
+<area shape="rect" id="Node000007" href="$dd/d7e/classregen_1_1_polygon_offset_state.html" title="Set the scale and units used to calculate depth values." alt="" coords="186,299,378,324"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="211,256,267,296,264,301,208,261"/>
+<area shape="rect" id="Node000002" href="$d5/d27/classregen_1_1_server_side_state.html" title="Base class for &#39;atomic&#39; states." alt="" coords="97,152,267,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,191,185,225,179,225,179,191"/>
+<area shape="rect" id="Node000003" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="131,79,233,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="185,118,185,152,179,152,179,118"/>
+<area shape="rect" id="Node000004" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="29,5,175,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="127,38,171,76,167,80,123,42"/>
+<area shape="rect" id="Node000005" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="200,5,327,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="242,42,197,80,194,76,238,38"/>
+</map>

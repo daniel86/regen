@@ -1,0 +1,18 @@
+<map id="regen::BulletDebugDrawer" name="regen::BulletDebugDrawer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="535,123,729,148"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="359,5,474,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="472,33,487,40,559,82,615,120,612,125,556,86,484,44,470,38"/>
+<area shape="rect" id="Node000003" href="$d5/da0/classregen_1_1_state_node.html" title="A node that holds a State." alt="" coords="349,93,484,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="498,114,539,120,538,125,497,120"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="397,79,403,70,417,67,428,69,435,76,437,85,434,94,429,92,431,84,430,78,426,74,417,72,406,75,402,82"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,71,180,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="194,93,349,100,349,106,194,98"/>
+<area shape="rect" id="Node000005" href="$d1/d60/classregen_1_1_has_shader.html" title="can be used to mix in a shader." alt="" coords="348,143,485,168"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="499,145,534,142,535,147,499,150"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,135,180,175"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="194,153,348,153,348,158,194,158"/>
+<area shape="rect" id="Node000007" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="354,199,479,224"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="465,192,594,146,596,151,467,197"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,199,192,239"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="206,214,354,210,354,216,206,219"/>
+</map>

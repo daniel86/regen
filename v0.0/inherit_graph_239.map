@@ -1,0 +1,29 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$df/de7/classregen_1_1scene_1_1_input_processor.html" title=" " alt="" coords="5,326,215,366"/>
+<area shape="rect" id="Node000001" href="$dd/d3f/classregen_1_1scene_1_1_node_processor.html" title=" " alt="" coords="263,333,473,359"/>
+<area shape="poly" id="edge282_Node000000_Node000001" title=" " alt="" coords="228,343,263,343,263,349,228,349"/>
+<area shape="rect" id="Node000002" href="$d9/d43/classregen_1_1scene_1_1_bloom_provider.html" title=" " alt="" coords="541,5,751,31"/>
+<area shape="poly" id="edge283_Node000001_Node000002" title=" " alt="" coords="372,319,387,261,415,184,434,144,458,106,486,70,520,40,540,28,543,33,523,44,490,74,462,109,439,147,420,186,392,262,377,321"/>
+<area shape="rect" id="Node000003" href="$d6/d84/classregen_1_1scene_1_1_debugger_provider.html" title=" " alt="" coords="531,55,761,80"/>
+<area shape="poly" id="edge284_Node000001_Node000003" title=" " alt="" coords="375,319,393,270,423,207,465,144,490,115,520,90,543,78,546,83,523,95,494,119,469,147,427,210,398,272,380,321"/>
+<area shape="rect" id="Node000004" href="$d7/dd6/classregen_1_1scene_1_1_direct_shading_node_provider.html" title=" " alt="" coords="544,105,748,145"/>
+<area shape="poly" id="edge285_Node000001_Node000004" title=" " alt="" coords="380,319,402,282,434,238,473,193,520,154,543,142,545,147,523,159,477,196,438,241,407,285,385,322"/>
+<area shape="rect" id="Node000005" href="$d3/db6/classregen_1_1scene_1_1_filter_sequence_node_provider.html" title=" " alt="" coords="541,169,751,209"/>
+<area shape="poly" id="edge286_Node000001_Node000005" title=" " alt="" coords="389,321,445,270,481,242,520,218,548,206,551,211,523,223,484,246,448,274,392,325"/>
+<area shape="rect" id="Node000006" href="$db/df4/classregen_1_1scene_1_1_fullscreen_pass_node_provider.html" title=" " alt="" coords="557,233,735,273"/>
+<area shape="poly" id="edge287_Node000001_Node000006" title=" " alt="" coords="410,325,520,282,561,270,562,275,522,287,412,330"/>
+<area shape="rect" id="Node000007" href="$d9/db7/classregen_1_1scene_1_1_light_pass_node_provider.html" title=" " alt="" coords="542,297,750,337"/>
+<area shape="poly" id="edge288_Node000001_Node000007" title=" " alt="" coords="487,331,542,325,542,330,487,336"/>
+<area shape="rect" id="Node000008" href="$dc/d7d/classregen_1_1scene_1_1_mesh_node_provider.html" title=" " alt="" coords="528,361,764,387"/>
+<area shape="poly" id="edge289_Node000001_Node000008" title=" " alt="" coords="487,355,528,359,528,365,487,361"/>
+<area shape="rect" id="Node000009" href="$d0/dbe/classregen_1_1scene_1_1_motion_blur_provider.html" title=" " alt="" coords="554,411,738,451"/>
+<area shape="poly" id="edge290_Node000001_Node000009" title=" " alt="" coords="419,361,522,395,568,409,567,414,521,401,417,366"/>
+<area shape="rect" id="Node000010" href="$d6/de4/classregen_1_1scene_1_1_picking_node_provider.html" title=" " alt="" coords="549,475,743,515"/>
+<area shape="poly" id="edge291_Node000001_Node000010" title=" " alt="" coords="394,366,450,414,485,439,522,461,552,473,550,478,520,466,482,444,446,418,390,370"/>
+<area shape="rect" id="Node000011" href="$d8/d38/classregen_1_1scene_1_1_scene_node_processor.html" title=" " alt="" coords="521,540,771,565"/>
+<area shape="poly" id="edge292_Node000001_Node000011" title=" " alt="" coords="385,370,407,405,438,448,477,490,523,525,550,537,548,542,520,530,474,494,434,451,403,408,381,372"/>
+<area shape="rect" id="Node000012" href="$d2/d66/classregen_1_1scene_1_1_shader_node_provider.html" title=" " alt="" coords="550,590,742,630"/>
+<area shape="poly" id="edge293_Node000001_Node000012" title=" " alt="" coords="381,371,401,415,432,471,472,527,496,552,523,574,551,590,549,594,520,579,493,556,468,530,427,473,397,418,377,373"/>
+<area shape="rect" id="Node000013" href="$d2/dc9/classregen_1_1scene_1_1_sky_node_provider.html" title=" " alt="" coords="534,655,758,680"/>
+<area shape="poly" id="edge294_Node000001_Node000013" title=" " alt="" coords="377,372,393,429,421,502,441,540,464,577,491,611,523,640,544,652,542,657,520,644,487,615,459,580,436,543,416,504,388,430,372,373"/>
+</map>

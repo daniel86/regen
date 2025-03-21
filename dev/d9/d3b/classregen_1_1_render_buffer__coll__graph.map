@@ -1,0 +1,11 @@
+<map id="regen::RenderBuffer" name="regen::RenderBuffer">
+<area shape="rect" id="Node000001" title="OpenGL Objects that contain images." alt="" coords="77,272,229,297"/>
+<area shape="rect" id="Node000002" href="$dd/d23/classregen_1_1_g_l_rectangle.html" title="A 2D rectangular buffer." alt="" coords="78,197,227,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,237,155,272,150,272,150,237"/>
+<area shape="rect" id="Node000003" href="$d2/d27/classregen_1_1_g_l_object.html" title="Base class for buffer objects." alt="" coords="5,87,132,113"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,122,146,195,141,199,84,126"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="5,5,132,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="71,44,71,87,66,87,66,44"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="157,80,319,120"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="217,132,164,198,160,195,213,129"/>
+</map>

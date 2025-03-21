@@ -1,0 +1,31 @@
+<map id="regen::CubeCamera" name="regen::CubeCamera">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1047,365,1197,391"/>
+<area shape="rect" id="Node000002" href="$d5/d2d/classregen_1_1_camera.html" title="Camera with projection and view matrix." alt="" coords="879,365,997,391"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1011,375,1046,375,1046,381,1011,381"/>
+<area shape="rect" id="Node000003" href="$db/d71/classregen_1_1_has_input_state.html" title="A state with an input container." alt="" coords="537,173,695,199"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="710,180,746,183,785,191,822,203,856,223,889,256,913,296,928,335,936,364,931,366,923,336,908,298,885,259,853,227,820,208,783,196,746,188,709,185"/>
+<area shape="rect" id="Node000004" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="372,112,473,137"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="477,139,576,171,574,176,476,144"/>
+<area shape="rect" id="Node000005" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="25,5,172,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="186,31,260,49,337,74,373,91,403,110,401,114,370,96,335,79,259,54,185,36"/>
+<area shape="rect" id="Node000006" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="35,55,162,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="176,75,337,102,372,110,371,115,335,107,175,80"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,105,180,145"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="194,122,372,122,372,127,194,127"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,169,180,209"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="193,170,335,142,371,134,372,139,337,147,194,175"/>
+<area shape="rect" id="Node000009" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="360,200,485,225"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="498,200,536,194,537,200,499,205"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,233,192,273"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="206,244,336,230,372,223,373,228,336,235,206,250"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="535,223,697,263"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="712,240,785,251,821,263,856,278,882,297,903,321,932,364,928,367,899,324,878,301,853,283,820,268,784,257,711,246"/>
+<area shape="rect" id="Node000012" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="535,313,697,353"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="711,340,855,359,879,364,878,369,854,365,711,345"/>
+<area shape="rect" id="Node000013" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="535,402,697,442"/>
+<area shape="poly" id="edge12_Node000002_Node000013" title=" " alt="" coords="711,429,782,428,854,418,888,405,917,389,919,393,890,410,855,423,782,434,711,434"/>
+<area shape="rect" id="Node000014" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="535,535,697,575"/>
+<area shape="poly" id="edge13_Node000002_Node000014" title=" " alt="" coords="711,568,747,568,784,564,820,555,853,538,871,523,887,505,910,463,925,422,932,390,937,392,930,424,915,466,891,508,875,527,856,543,822,560,785,569,748,573,711,573"/>
+<area shape="rect" id="Node000015" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="535,599,697,639"/>
+<area shape="poly" id="edge14_Node000002_Node000015" title=" " alt="" coords="711,634,748,634,785,630,821,620,853,603,876,580,895,553,909,523,919,492,931,433,934,391,939,391,936,434,924,494,914,525,900,556,881,584,856,607,823,625,786,636,748,640,711,639"/>
+</map>

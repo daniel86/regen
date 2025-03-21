@@ -1,0 +1,19 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,213,144,238"/>
+<area shape="rect" id="Node000001" href="$dc/d89/classregen_1_1_asset_importer_1_1_error.html" title="Something went wrong processing the model file." alt="" coords="207,5,365,45"/>
+<area shape="poly" id="edge328_Node000000_Node000001" title=" " alt="" coords="85,199,125,128,155,89,190,55,210,43,213,48,194,59,159,93,129,131,89,201"/>
+<area shape="rect" id="Node000002" href="$d0/da8/classregen_1_1_audio_video_stream_1_1_error.html" title="An error occurred during stream processing." alt="" coords="192,69,380,109"/>
+<area shape="poly" id="edge329_Node000000_Node000002" title=" " alt="" coords="95,200,137,159,191,119,215,107,218,112,193,124,140,163,99,204"/>
+<area shape="rect" id="Node000003" href="$df/dd8/classregen_1_1_demuxer_1_1_error.html" title="An error occurred during demuxing." alt="" coords="203,134,369,159"/>
+<area shape="poly" id="edge330_Node000000_Node000003" title=" " alt="" coords="111,204,191,168,228,157,230,162,193,173,113,209"/>
+<area shape="rect" id="Node000004" href="$d0/dab/classregen_1_1_font_1_1_error.html" title="A font related error occurred." alt="" coords="219,183,353,209"/>
+<area shape="poly" id="edge331_Node000000_Node000004" title=" " alt="" coords="158,211,218,203,219,208,158,216"/>
+<area shape="rect" id="Node000005" href="$db/d4c/classregen_1_1_video_encoder_1_1_error.html" title="An error occurred during stream processing." alt="" coords="208,233,364,273"/>
+<area shape="poly" id="edge332_Node000000_Node000005" title=" " alt="" coords="158,234,208,240,208,246,158,239"/>
+<area shape="rect" id="Node000006" href="$d4/dd8/classregen_1_1_video_texture_1_1_error.html" title="An error occurred during video processing." alt="" coords="210,297,362,337"/>
+<area shape="poly" id="edge333_Node000000_Node000006" title=" " alt="" coords="111,242,193,283,223,295,221,300,191,288,109,247"/>
+<area shape="rect" id="Node000007" href="$d3/dd6/classregen_1_1textures_1_1_error.html" title="An error occurred loading the Texture." alt="" coords="206,362,366,387"/>
+<area shape="poly" id="edge334_Node000000_Node000007" title=" " alt="" coords="94,248,135,298,163,325,193,347,221,360,219,364,191,352,159,329,131,302,90,251"/>
+<area shape="rect" id="Node000008" href="$d6/d72/classregen_1_1xml_1_1_error.html" title="A font related error occurred." alt="" coords="221,411,351,437"/>
+<area shape="poly" id="edge335_Node000000_Node000008" title=" " alt="" coords="88,249,104,283,127,323,157,363,194,396,222,411,219,415,190,401,153,366,123,326,99,285,83,252"/>
+</map>

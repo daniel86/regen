@@ -1,0 +1,69 @@
+<map id="regen::HasInput" name="regen::HasInput">
+<area shape="rect" id="Node000001" title="Interface for State&#39;s with input." alt="" coords="5,425,131,451"/>
+<area shape="rect" id="Node000002" href="$d0/d1a/classregen_1_1_bullet_debug_drawer.html" title=" " alt="" coords="184,104,379,129"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,411,76,354,93,281,107,242,126,204,149,169,177,139,194,127,197,132,180,143,153,172,130,207,112,244,99,282,81,355,74,412"/>
+<area shape="rect" id="Node000003" href="$db/d71/classregen_1_1_has_input_state.html" title="A state with an input container." alt="" coords="202,153,361,179"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="85,413,268,177,272,181,90,416"/>
+<area shape="rect" id="Node000014" href="$d5/dea/classregen_1_1_light.html" title="A light emitting point in space." alt="" coords="232,400,331,425"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="144,426,232,416,232,421,145,432"/>
+<area shape="rect" id="Node000015" href="$df/dee/classregen_1_1_mesh.html" title="A collection of vertices, edges and faces that defines the shape of an object in 3D space." alt="" coords="230,449,333,475"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="145,444,230,454,229,459,144,449"/>
+<area shape="rect" id="Node000033" href="$d5/d69/classregen_1_1_model_transformation.html" title="matrix that transforms for model space to world space." alt="" coords="179,499,384,524"/>
+<area shape="poly" id="edge32_Node000001_Node000033" title=" " alt="" coords="108,454,180,483,223,496,221,501,178,489,106,459"/>
+<area shape="rect" id="Node000034" href="$d8/daf/classregen_1_1_spatial_index_debug.html" title=" " alt="" coords="186,548,377,573"/>
+<area shape="poly" id="edge33_Node000001_Node000034" title=" " alt="" coords="91,460,130,498,180,533,211,545,209,550,177,538,127,502,88,463"/>
+<area shape="rect" id="Node000004" href="$db/d16/classregen_1_1_bones.html" title="Provides bone matrices." alt="" coords="476,55,583,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="366,146,383,138,397,127,406,114,415,102,431,89,475,72,477,77,433,94,419,105,410,118,401,130,385,143,369,151"/>
+<area shape="rect" id="Node000005" href="$d5/d2d/classregen_1_1_camera.html" title="Camera with projection and view matrix." alt="" coords="470,104,589,129"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="359,148,469,126,470,131,360,153"/>
+<area shape="rect" id="Node000013" href="$da/d1f/classregen_1_1_material.html" title="Provides material related uniforms." alt="" coords="469,153,590,179"/>
+<area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="375,163,468,163,468,169,375,169"/>
+<area shape="rect" id="Node000006" href="$de/dbe/classregen_1_1_cube_camera.html" title=" " alt="" coords="693,5,843,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="601,100,625,89,640,77,648,65,658,52,673,40,699,28,701,33,676,44,662,56,653,68,644,81,628,94,603,105"/>
+<area shape="rect" id="Node000008" href="$d0/ddc/classregen_1_1_light_camera___c_s_m.html" title=" " alt="" coords="675,55,861,80"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="602,99,705,77,706,83,603,104"/>
+<area shape="rect" id="Node000009" href="$d2/df8/classregen_1_1_light_camera___spot.html" title=" " alt="" coords="675,104,861,129"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="603,114,675,114,675,119,603,119"/>
+<area shape="rect" id="Node000010" href="$d9/d5a/classregen_1_1_parabolic_camera.html" title=" " alt="" coords="679,153,857,179"/>
+<area shape="poly" id="edge9_Node000005_Node000010" title=" " alt="" coords="603,129,706,151,705,156,602,134"/>
+<area shape="rect" id="Node000012" href="$de/d17/classregen_1_1_reflection_camera.html" title=" " alt="" coords="677,203,859,228"/>
+<area shape="poly" id="edge11_Node000005_Node000012" title=" " alt="" coords="603,127,628,138,644,151,653,164,662,176,676,188,704,200,702,205,673,192,658,180,649,167,640,154,625,143,601,132"/>
+<area shape="rect" id="Node000007" href="$d3/df3/classregen_1_1_light_camera___cube.html" title=" " alt="" coords="909,5,1100,31"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="857,15,909,15,909,21,857,21"/>
+<area shape="rect" id="Node000011" href="$d0/db3/classregen_1_1_light_camera___parabolic.html" title=" " alt="" coords="929,146,1080,186"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="871,163,929,163,929,169,871,169"/>
+<area shape="rect" id="Node000016" href="$d0/d6e/classregen_1_1_attribute_less_mesh.html" title="Mesh that can be used when no vertex shader input is required." alt="" coords="435,203,623,228"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="345,455,365,447,382,435,399,411,407,387,408,363,405,338,403,313,404,288,412,262,430,237,446,226,449,230,434,241,417,265,409,289,408,313,411,338,413,363,412,388,404,414,386,439,368,452,347,460"/>
+<area shape="rect" id="Node000017" href="$d8/dbb/classregen_1_1_box.html" title="Three&#45;dimensional solid object bounded by six square faces, facets or sides, with three meeting at ea..." alt="" coords="483,252,575,277"/>
+<area shape="poly" id="edge16_Node000015_Node000017" title=" " alt="" coords="345,454,365,446,382,435,396,417,403,400,405,363,408,324,415,305,430,287,455,272,482,264,484,269,457,276,434,291,420,308,413,326,411,363,408,401,401,420,386,439,368,451,347,459"/>
+<area shape="rect" id="Node000019" href="$dd/dc6/classregen_1_1_cone.html" title=" " alt="" coords="479,301,579,327"/>
+<area shape="poly" id="edge18_Node000015_Node000019" title=" " alt="" coords="345,453,365,445,382,435,393,423,400,412,405,387,411,361,418,348,430,336,453,323,478,315,480,320,455,328,434,340,423,351,416,363,411,388,405,414,398,426,386,439,367,450,347,458"/>
+<area shape="rect" id="Node000022" href="$de/d68/classregen_1_1_disc.html" title="A disc is a 2D geometric shape that is defined by a center and a radius. The disc is centered at (0,..." alt="" coords="482,351,577,376"/>
+<area shape="poly" id="edge21_Node000015_Node000022" title=" " alt="" coords="345,450,383,434,397,423,406,410,415,398,431,385,455,374,481,367,482,372,457,379,433,390,419,401,410,414,401,426,385,439,347,454"/>
+<area shape="rect" id="Node000023" href="$d2/d62/classregen_1_1_frame_mesh.html" title="Three&#45;dimensional solid box&#45;shape frame with a whole in the middle." alt="" coords="458,400,601,425"/>
+<area shape="poly" id="edge22_Node000015_Node000023" title=" " alt="" coords="346,447,464,423,465,428,347,452"/>
+<area shape="rect" id="Node000024" href="$d2/d73/classregen_1_1_lightning_bolt.html" title="A lightning bolt." alt="" coords="453,449,606,475"/>
+<area shape="poly" id="edge23_Node000015_Node000024" title=" " alt="" coords="346,459,453,459,453,465,346,465"/>
+<area shape="rect" id="Node000025" href="$da/d31/classregen_1_1_particles.html" title="Point sprite particle system." alt="" coords="468,499,591,524"/>
+<area shape="poly" id="edge24_Node000015_Node000025" title=" " alt="" coords="347,472,468,497,467,502,346,477"/>
+<area shape="rect" id="Node000026" href="$d6/dd0/classregen_1_1_point.html" title=" " alt="" coords="479,548,579,573"/>
+<area shape="poly" id="edge25_Node000015_Node000026" title=" " alt="" coords="347,469,385,484,401,496,410,509,419,521,433,533,456,543,480,551,478,556,454,548,431,538,415,525,406,512,397,500,383,488,345,474"/>
+<area shape="rect" id="Node000027" href="$d5/dd4/classregen_1_1_rectangle.html" title="A polygon with four edges, vertices and right angles." alt="" coords="463,597,595,623"/>
+<area shape="poly" id="edge26_Node000015_Node000027" title=" " alt="" coords="347,466,367,473,386,484,398,496,405,509,411,535,416,561,423,572,434,584,464,600,462,604,430,588,418,576,411,563,405,536,400,511,393,499,382,488,365,478,345,471"/>
+<area shape="rect" id="Node000029" href="$de/d08/classregen_1_1_sphere.html" title="Round geometrical object in three&#45;dimensional space &#45; a sphere ;)" alt="" coords="473,647,585,672"/>
+<area shape="poly" id="edge28_Node000015_Node000029" title=" " alt="" coords="347,464,368,472,386,484,401,503,409,522,411,560,413,598,420,616,434,633,452,646,474,653,472,658,450,650,430,637,415,619,408,599,405,561,403,523,396,505,382,488,365,476,345,469"/>
+<area shape="rect" id="Node000030" href="$d6/d1c/classregen_1_1_sphere_sprite.html" title="A sprite that generates sphere normals." alt="" coords="454,696,605,721"/>
+<area shape="poly" id="edge29_Node000015_Node000030" title=" " alt="" coords="347,464,368,471,386,484,404,509,412,535,413,560,411,585,408,610,409,635,417,659,434,683,455,697,452,701,430,687,412,661,404,636,403,610,405,585,408,560,407,535,400,511,382,488,365,476,345,469"/>
+<area shape="rect" id="Node000031" href="$d4/d74/classregen_1_1_texture_mapped_text.html" title="Implements texture mapped text rendering." alt="" coords="432,745,627,771"/>
+<area shape="poly" id="edge30_Node000015_Node000031" title=" " alt="" coords="347,463,368,471,386,484,408,515,416,547,416,579,411,610,406,641,406,672,413,702,434,732,448,743,445,747,430,736,409,704,400,673,401,641,406,609,410,578,411,548,403,518,382,488,365,476,346,468"/>
+<area shape="rect" id="Node000032" href="$d7/df1/classregen_1_1_torus.html" title="Three&#45;dimensional solid object bounded by six square faces, facets or sides, with three meeting at ea..." alt="" coords="479,795,580,820"/>
+<area shape="poly" id="edge31_Node000015_Node000032" title=" " alt="" coords="347,463,368,471,386,484,401,503,411,522,420,560,418,597,411,635,404,672,402,709,410,745,420,763,434,781,454,796,479,803,478,808,452,801,430,785,415,766,405,747,396,709,398,671,406,634,413,597,415,560,406,524,396,506,382,488,365,475,345,468"/>
+<area shape="rect" id="Node000018" href="$d3/d74/classregen_1_1_sky_box.html" title="A special Box that is not translated by camera movement." alt="" coords="711,252,825,277"/>
+<area shape="poly" id="edge17_Node000017_Node000018" title=" " alt="" coords="589,262,711,262,711,267,589,267"/>
+<area shape="rect" id="Node000020" href="$d4/d0b/classregen_1_1_cone_closed.html" title="A cone is an n&#45;dimensional geometric shape that tapers smoothly from a base to a point called the ape..." alt="" coords="696,301,840,327"/>
+<area shape="poly" id="edge19_Node000019_Node000020" title=" " alt="" coords="593,311,696,311,696,317,593,317"/>
+<area shape="rect" id="Node000021" href="$df/d53/classregen_1_1_cone_opened.html" title="A cone is an n&#45;dimensional geometric shape that tapers smoothly from a base to a point called the ape..." alt="" coords="693,351,843,376"/>
+<area shape="poly" id="edge20_Node000019_Node000021" title=" " alt="" coords="593,324,706,348,705,353,592,330"/>
+<area shape="rect" id="Node000028" href="$d8/d27/classregen_1_1_mask_mesh.html" title="A series of patches in xz plane covering a mask defined by a texture." alt="" coords="699,597,837,623"/>
+<area shape="poly" id="edge27_Node000027_Node000028" title=" " alt="" coords="609,607,699,607,699,613,609,613"/>
+</map>

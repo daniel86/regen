@@ -1,0 +1,17 @@
+<map id="regen::ScreenState" name="regen::ScreenState">
+<area shape="rect" id="Node000001" title="Activation of OpenGL Default Framebuffer." alt="" coords="675,152,820,177"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="371,63,472,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="486,82,566,98,652,121,721,149,719,154,650,126,564,103,485,88"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,29,312,53,371,63,370,69,312,58,173,34"/>
+<area shape="rect" id="Node000004" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,55,168,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="182,73,370,73,370,78,182,78"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,119,168,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,119,370,82,371,88,182,124"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="340,113,503,153"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="517,139,675,155,674,160,517,145"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="340,177,503,217"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="516,195,582,193,650,186,703,175,704,180,651,191,583,198,516,200"/>
+<area shape="rect" id="Node000008" href="$df/d1b/classregen_1_1_vec4.html" title=" " alt="" coords="336,241,507,267"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="520,243,585,232,650,214,691,196,726,175,729,180,694,200,652,219,586,237,521,248"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="regen::StencilState" name="regen::StencilState">
+<area shape="rect" id="Node000001" title="Set stencil testing parameters." alt="" coords="667,124,812,149"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="367,84,468,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="482,97,559,103,643,113,688,121,687,127,642,118,559,108,481,102"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="13,5,160,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="174,30,313,61,380,81,379,86,311,66,173,36"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="23,55,150,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="164,71,312,83,367,89,366,94,312,89,164,76"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,105,168,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="181,114,366,98,367,104,182,119"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,169,168,209"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="181,167,311,134,385,107,387,112,313,139,182,173"/>
+<area shape="rect" id="Node000007" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="336,155,499,195"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="513,180,577,179,642,171,679,161,712,147,714,152,681,166,643,177,577,184,513,185"/>
+</map>

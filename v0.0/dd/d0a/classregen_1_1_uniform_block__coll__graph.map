@@ -1,0 +1,11 @@
+<map id="regen::UniformBlock" name="regen::UniformBlock">
+<area shape="rect" id="Node000001" title="Provides input data via a Uniform Buffer Object (UBO)." alt="" coords="99,211,255,236"/>
+<area shape="rect" id="Node000002" href="$dd/d36/classregen_1_1_shader_input.html" title="Provides input to shader programs." alt="" coords="18,115,163,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,149,169,209,165,212,109,152"/>
+<area shape="rect" id="Node000003" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="91,59,93,115,88,115,85,59"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="193,108,349,148"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="244,160,191,212,187,208,240,156"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="192,5,355,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="275,59,274,108,269,108,270,59"/>
+</map>

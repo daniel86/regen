@@ -1,0 +1,13 @@
+<map id="regen::TextureIndexState" name="regen::TextureIndexState">
+<area shape="rect" id="Node000001" title=" " alt="" coords="104,152,289,177"/>
+<area shape="rect" id="Node000005" href="$d9/de8/classregen_1_1_texture_next_index.html" title="Activates texture image when enabled." alt="" coords="5,225,188,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="171,187,115,227,111,223,168,183"/>
+<area shape="rect" id="Node000006" href="$da/db9/classregen_1_1_texture_set_index.html" title="Activates texture image when enabled." alt="" coords="212,225,384,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="226,183,283,223,280,227,223,187"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="146,79,247,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,118,199,152,194,152,194,118"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="43,5,190,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="141,38,185,76,182,80,138,42"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="215,5,341,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="256,42,212,80,208,76,253,38"/>
+</map>

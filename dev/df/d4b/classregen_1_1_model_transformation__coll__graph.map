@@ -1,0 +1,25 @@
+<map id="regen::ModelTransformation" name="regen::ModelTransformation">
+<area shape="rect" id="Node000001" title="matrix that transforms for model space to world space." alt="" coords="675,289,880,315"/>
+<area shape="rect" id="Node000002" href="$d3/d0d/classregen_1_1_state.html" title="Base class for states." alt="" coords="397,112,498,137"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="486,142,652,230,754,287,752,291,649,235,484,146"/>
+<area shape="rect" id="Node000003" href="$d4/dc6/classregen_1_1_event_object.html" title="Allows to integrate events into subclasses." alt="" coords="25,5,172,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="177,31,255,50,337,74,421,110,419,114,335,79,254,55,176,36"/>
+<area shape="rect" id="Node000004" href="$d9/df5/classregen_1_1_resource.html" title=" " alt="" coords="35,55,162,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="176,76,336,102,397,113,396,118,336,107,175,81"/>
+<area shape="rect" id="Node000005" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,105,180,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="194,122,397,122,397,127,194,127"/>
+<area shape="rect" id="Node000006" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="17,169,180,209"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="193,169,396,131,397,136,194,174"/>
+<area shape="rect" id="Node000007" href="$dd/d29/classregen_1_1_has_input.html" title="Interface for State&#39;s with input." alt="" coords="385,200,510,225"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="519,226,651,259,739,287,738,292,650,265,518,231"/>
+<area shape="rect" id="Node000008" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="5,233,192,273"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="205,243,336,230,384,222,385,228,336,235,206,249"/>
+<area shape="rect" id="Node000009" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,250,529,290"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="543,277,675,289,674,295,542,282"/>
+<area shape="rect" id="Node000010" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,314,529,354"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="542,322,674,309,675,315,543,327"/>
+<area shape="rect" id="Node000011" href="$d2/d62/classregen_1_1ref__ptr.html" title=" " alt="" coords="366,378,529,418"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="539,372,650,341,738,312,740,317,651,346,540,377"/>
+<area shape="rect" id="Node000012" href="$da/db7/classregen_1_1_vec3.html" title=" " alt="" coords="360,443,535,468"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="506,436,534,427,593,410,649,386,711,348,759,313,762,317,714,353,652,391,595,415,535,433,508,441"/>
+</map>
