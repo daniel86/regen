@@ -432,6 +432,26 @@ namespace regen {
 		}
 
 		/**
+		 * Apply a value to all indices.
+		 */
+		void apply(const ValueType &v) {
+			if (head_->v != v) {
+				apply_(v);
+			}
+		}
+
+		/**
+		 * Apply a value to given index.
+		 * @param index the value index.
+		 * @param v the value.
+		 */
+		void apply(GLuint index, const ValueType &v) {
+			if (headi_[index]->v != v) {
+				applyi_(index, v);
+			}
+		}
+
+		/**
 		 * Pop out last value that was applied to all indices.
 		 */
 		void pop() {

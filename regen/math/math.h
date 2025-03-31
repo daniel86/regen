@@ -80,13 +80,14 @@ namespace regen {
 		/**
 		 * Produce a random number between 0 and 1.
 		 */
-		static inline float random() {
+		template <typename T>
+		static inline T random() {
 			// Seed for the random number engine
 			static std::random_device rd;
 			// Mersenne Twister engine
 			static std::mt19937 gen(rd());
 			// Uniform distribution between 0 and 1
-			static std::uniform_real_distribution<GLfloat> dis(0.0, 1.0);
+			static std::uniform_real_distribution<T> dis(0.0, 1.0);
 			return dis(gen);
 		}
 	}

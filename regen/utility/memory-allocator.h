@@ -1,14 +1,8 @@
-/*
- * memory-allocator.h
- *
- *  Created on: 26.04.2013
- *      Author: daniel
- */
-
 #ifndef MEMORY_ALLOCATOR_H_
 #define MEMORY_ALLOCATOR_H_
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <stack>
 #include <iostream>
 
 #include <regen/utility/logging.h>
@@ -68,7 +62,6 @@ namespace regen {
 		AllocatorPool()
 				: allocators_(nullptr),
 				  minSize_(4u * 1024u * 1024u),
-				  minSizeUnaligned_(minSize_),
 				  alignment_(1),
 				  index_(0) {}
 
@@ -96,7 +89,7 @@ namespace regen {
 		 * of the alignment.
 		 * @param alignment the memory alignment.
 		 */
-		void set_alignment(unsigned int alignment) { alignment_ = alignment; }
+		void set_alignment(unsigned int alignment) { alignment_ = std::max(1u, alignment); }
 
 		/**
 		 * Allocated memory will be aligned to be an integer multiplication
@@ -110,7 +103,11 @@ namespace regen {
 		 * of the alignment.
 		 */
 		unsigned int align(unsigned int v) {
-			return (unsigned int) v / alignment_ + (unsigned int) (v % alignment_ > 0);
+			if (alignment_ > 1) {
+				unsigned int mask = alignment_ - 1;
+				return (v + mask) & ~mask;
+			}
+			return v;
 		}
 
 		/**
@@ -123,7 +120,7 @@ namespace regen {
 			x->prev = nullptr;
 			x->next = allocators_;
 			// allocate actual memory
-			x->allocatorRef = ActualAllocatorType::createAllocator(index_, actualSize * alignment_);
+			x->allocatorRef = ActualAllocatorType::createAllocator(index_, actualSize);
 			if (allocators_) allocators_->prev = x;
 			allocators_ = x;
 			sortInForward(x);
@@ -226,7 +223,6 @@ namespace regen {
 	protected:
 		Node *allocators_;
 		unsigned int minSize_;
-		unsigned int minSizeUnaligned_;
 		unsigned int alignment_;
 		unsigned int index_;
 
@@ -313,7 +309,7 @@ namespace regen {
 		/**
 		 * @return The current allocator state.
 		 */
-		State allocaterState() const;
+		State allocatorState() const;
 
 		/**
 		 * @return number of pre-allocated bytes.
@@ -360,13 +356,21 @@ namespace regen {
 			BuddyNode *parent;
 		};
 
+		std::stack<BuddyNode*> nodePool_;
 		BuddyNode *buddyTree_;
+
+		BuddyNode *createNode(
+				unsigned int address,
+				unsigned int size,
+				BuddyNode *parent);
+
+		void deleteNode(BuddyNode *n);
 
 		unsigned int createPartition(BuddyNode *n, unsigned int size);
 
-		void computeMaxSpace(BuddyNode *n);
+		static void computeMaxSpace(BuddyNode *n);
 
-		void clear(BuddyNode *n);
+		static void clear(BuddyNode *n);
 	};
 }
 

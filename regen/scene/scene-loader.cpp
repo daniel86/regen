@@ -213,7 +213,7 @@ void SceneLoader::putResource(const std::string &category, const std::string &na
 	if (category == "FBO") {
 		resources_->putFBO(name, ref_ptr<FBO>::dynamicCast(v));
 	} else if (category == "UBO" || category == "SSBO" || category == "BufferBlock") {
-		resources_->putBufferBlock(name, ref_ptr<UBO>::dynamicCast(v));
+		resources_->putBufferBlock(name, ref_ptr<BufferBlock>::dynamicCast(v));
 	} else if (category == "Texture") {
 		resources_->putTexture(name, ref_ptr<Texture>::dynamicCast(v));
 	} else if (category == "ModelTransformation") {

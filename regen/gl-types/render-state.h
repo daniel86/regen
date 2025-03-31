@@ -425,7 +425,12 @@ namespace regen {
 		/**
 		 * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
 		 */
-		inline IndexedValueStack<BufferRange> &shaderStorageBufferRange() { return shaderStorageBufferRange_; }
+		inline IndexedValueStack<BufferRange> &ssboRange() { return ssboRange_; }
+
+		/**
+		 * bind a buffer range to given target.
+		 */
+		IndexedValueStack<BufferRange> &bufferRange(GLenum target);
 
 		/**
 		 * Bind a framebuffer to the framebuffer read target.
@@ -699,7 +704,7 @@ namespace regen {
 		IndexedValueStack<BufferRange> uniformBufferRange_;
 		IndexedValueStack<BufferRange> feedbackBufferRange_;
 		IndexedValueStack<BufferRange> atomicCounterBufferRange_;
-		IndexedValueStack<BufferRange> shaderStorageBufferRange_;
+		IndexedValueStack<BufferRange> ssboRange_;
 
 		ParameterStackAtomic<GLuint> readFrameBuffer_;
 		ParameterStackAtomic<GLuint> drawFrameBuffer_;

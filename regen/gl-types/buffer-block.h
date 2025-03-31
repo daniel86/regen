@@ -49,9 +49,19 @@ namespace regen {
 
 		~BufferBlock() override = default;
 
-		BufferBlock(const BufferBlock &) = delete;
+		/**
+		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
+		 * @param other another buffer block
+		 * @param name name of the new buffer block
+		 */
+		BufferBlock(const BufferBlock &other);
 
 		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
+		/**
+		 * @return the reference to the buffer object.
+		 */
+		auto& blockReference() const { return ref_; }
 
 		/**
 		 * @return true if the block is a uniform block.
@@ -128,7 +138,7 @@ namespace regen {
 		void unlock() { mutex_.unlock(); }
 
 	protected:
-		const StorageQualifier storageQualifier_;
+		StorageQualifier storageQualifier_;
 		const MemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
 		std::mutex mutex_;
@@ -139,6 +149,8 @@ namespace regen {
 			BlockInput(const BlockInput &other) {
 				input = other.input;
 				offset = other.offset;
+				lastStamp = other.lastStamp;
+				alignedSize = other.alignedSize;
 			}
 
 			~BlockInput() {
@@ -158,12 +170,11 @@ namespace regen {
 		std::vector<NamedShaderInput> inputs_;
 		ref_ptr<BufferReference> ref_;
 		unsigned int requiredSize_ = 0;
-		bool requiresResize_ = false;
 		unsigned int stamp_ = 0;
+		bool hasNewStamp_ = false;
+		bool hasClientData_ = false;
 
-		bool needsUpdate() const;
-
-		void computePaddedSize();
+		void updateBlockInputs();
 
 		void updateAlignedData(BlockInput &uboInput);
 	};

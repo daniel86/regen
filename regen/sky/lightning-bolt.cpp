@@ -137,7 +137,7 @@ void LightningBolt::setBranchDarkening(float darkening) {
 
 void LightningBolt::setNextStrike() {
 	auto frequency = frequencyConfig_->getVertex(0);
-	u_nextStrike_ = -(frequency.r.x + frequency.r.y * static_cast<float>(math::random() * 2.0 - 1.0));
+	u_nextStrike_ = -(frequency.r.x + frequency.r.y * (math::random<float>() * 2.0f - 1.0f));
 }
 
 void LightningBolt::updateBolt(double dt_s) {
@@ -206,7 +206,7 @@ static Vec3f getPerpendicular(const Vec3f &v) {
 	auto w = getPerpendicular1(v);
 	w.normalize();
 	// Generate a random angle
-	auto phi = static_cast<float>(math::random() * 2.0 * M_PI);
+	auto phi = static_cast<float>(math::random<float>() * 2.0f * M_PI);
 	// Rotate the perpendicular vector around v by phi
 	return w * std::cos(phi) + v.cross(w) * std::sin(phi);
 }
@@ -218,7 +218,7 @@ static Vec3f branch(
 		float offsetAmount,
 		float branchLength) {
 	Vec3f v = segmentEnd;
-	v += getPerpendicular(dir) * (offsetAmount * (math::random() * 2.0f - 1.0f));
+	v += getPerpendicular(dir) * (offsetAmount * (math::random<float>() * 2.0f - 1.0f));
 	v -= start;
 	v.normalize();
 	// pull the end point of the branch closer to origin by factor lengthScale
@@ -258,7 +258,7 @@ void LightningBolt::updateSegmentData() {
 
 	// update the lifetime
 	auto lifetime_cfg = lifetimeConfig_->getVertex(0);
-	u_lifetime_ = lifetime_cfg.r.x + lifetime_cfg.r.y * (math::random() * 2.0f - 1.0f);
+	u_lifetime_ = lifetime_cfg.r.x + lifetime_cfg.r.y * (math::random<float>() * 2.0f - 1.0f);
 	u_lifetimeBegin_ = u_lifetime_;
 
 	Vec3f midPoint, direction;
@@ -269,14 +269,14 @@ void LightningBolt::updateSegmentData() {
 			midPoint = (segment.start.pos + segment.end.pos) * 0.5f;
 			direction = segment.end.pos - segment.start.pos;
 			direction.normalize();
-			midPoint += getPerpendicular(direction) * (offsetAmount * (math::random() * 2.0f - 1.0f));
+			midPoint += getPerpendicular(direction) * (offsetAmount * (math::random<float>() * 2.0f - 1.0f));
 			segments_[nextIndex].emplace_back(segment.start.pos, midPoint, segment.start.brightness);
 			segments_[nextIndex].emplace_back(midPoint, segment.end.pos, segment.end.brightness);
 
 			direction = midPoint - segment.start.pos;
 			// with some probability create a new branch.
 			if (numRemainingVertices > numSubBranchVertices &&
-			    math::random() < branchProbability.r *
+			    math::random<float>() < branchProbability.r *
 			    	// decrease the probability for sub-branches
 					std::min(1.0f, segment.start.brightness + 0.25f) *
 					// decrease the probability further away from the target

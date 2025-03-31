@@ -1,12 +1,5 @@
-/*
- * memory-allocator.cpp
- *
- *  Created on: 26.04.2013
- *      Author: daniel
- */
-
 #include "memory-allocator.h"
-#include <regen/utility/logging.h>
+#include <stack>
 
 #define EXACT_BUDDY_ALLOCATION
 
@@ -21,7 +14,7 @@ BuddyAllocator::BuddyNode::BuddyNode(
 }
 
 BuddyAllocator::BuddyAllocator(unsigned int size) {
-	buddyTree_ = new BuddyNode(0u, size, nullptr);
+	buddyTree_ = createNode(0u, size, nullptr);
 }
 
 BuddyAllocator::~BuddyAllocator() {
@@ -31,7 +24,7 @@ BuddyAllocator::~BuddyAllocator() {
 	}
 }
 
-BuddyAllocator::State BuddyAllocator::allocaterState() const { return buddyTree_->state; }
+BuddyAllocator::State BuddyAllocator::allocatorState() const { return buddyTree_->state; }
 
 unsigned int BuddyAllocator::size() const { return buddyTree_->size; }
 
@@ -66,10 +59,10 @@ unsigned int BuddyAllocator::createPartition(BuddyNode *n, unsigned int size) {
 	unsigned int size1 = n->size - size;
 	n->state = PARTIAL;
 	n->maxSpace = size1;
-	n->leftChild = new BuddyNode(n->address, size0, n);
+	n->leftChild = createNode(n->address, size0, n);
 	n->leftChild->state = FULL;
 	n->leftChild->maxSpace = 0;
-	n->rightChild = new BuddyNode(n->address + size0, size1, n);
+	n->rightChild = createNode(n->address + size0, size1, n);
 	return n->address;
 #ifndef EXACT_BUDDY_ALLOCATION
 	}
@@ -91,7 +84,7 @@ bool BuddyAllocator::alloc(unsigned int size, unsigned int *x) {
 	if (buddyTree_->maxSpace < size) return false;
 
 	BuddyNode *n = buddyTree_;
-	while (1) {
+	while (true) {
 		switch (n->state) {
 			case FREE:
 				// free node with enough space. Create partitions inside the
@@ -117,15 +110,21 @@ bool BuddyAllocator::alloc(unsigned int size, unsigned int *x) {
 }
 
 void BuddyAllocator::clear() {
-	BuddyNode *clearedTree = new BuddyNode(0u, buddyTree_->size, nullptr);
+	auto *clearedTree = createNode(0u, buddyTree_->size, nullptr);
 	clear(buddyTree_);
 	buddyTree_ = clearedTree;
 }
 
 void BuddyAllocator::clear(BuddyNode *n) {
-	if (n->leftChild) clear(n->leftChild);
-	if (n->rightChild) clear(n->rightChild);
-	delete n;
+	std::stack<BuddyNode *> stack;
+	stack.push(n);
+	while (!stack.empty()) {
+		BuddyNode *node = stack.top();
+		stack.pop();
+		if (node->leftChild) stack.push(node->leftChild);
+		if (node->rightChild) stack.push(node->rightChild);
+		delete node;
+	}
 }
 
 void BuddyAllocator::free(unsigned int address) {
@@ -139,11 +138,11 @@ void BuddyAllocator::free(unsigned int address) {
 	t->state = FREE;
 	t->maxSpace = t->size;
 	if (t->leftChild) {
-		delete t->leftChild;
+		deleteNode(t->leftChild);
 		t->leftChild = nullptr;
 	}
 	if (t->rightChild) {
-		delete t->rightChild;
+		deleteNode(t->rightChild);
 		t->rightChild = nullptr;
 	}
 	// join parents with both childs becoming FREE with this call
@@ -151,8 +150,8 @@ void BuddyAllocator::free(unsigned int address) {
 		if (t->parent->leftChild->state == FREE &&
 			t->parent->rightChild->state == FREE) {
 			t = t->parent;
-			delete t->leftChild;
-			delete t->rightChild;
+			deleteNode(t->leftChild);
+			deleteNode(t->rightChild);
 			t->leftChild = nullptr;
 			t->rightChild = nullptr;
 			// mark as free space
@@ -163,4 +162,29 @@ void BuddyAllocator::free(unsigned int address) {
 			break;
 		}
 	}
+}
+
+BuddyAllocator::BuddyNode* BuddyAllocator::createNode(
+				unsigned int address,
+				unsigned int size,
+				BuddyNode *parent) {
+	if (nodePool_.empty()) {
+		return new BuddyNode(address, size, parent);
+	} else {
+		BuddyNode *n = nodePool_.top();
+		nodePool_.pop();
+		n->address = address;
+		n->size = size;
+		n->maxSpace = size;
+		n->parent = parent;
+		return n;
+	}
+}
+
+void BuddyAllocator::deleteNode(BuddyNode *n) {
+	n->leftChild = nullptr;
+	n->rightChild = nullptr;
+	n->parent = nullptr;
+	n->state = FREE;
+	nodePool_.push(n);
 }

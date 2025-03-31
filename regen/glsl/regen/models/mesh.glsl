@@ -133,7 +133,7 @@ uniform vec2 in_viewport;
 
 #define HANDLE_IO(i)
 
-#include regen.states.tesselation.tesselationControl
+#include regen.stages.tesselation.tesselationControl
 
 void main() {
     tesselationControl();
@@ -170,7 +170,7 @@ out float out_mask;
 #include regen.states.camera.input
 #include regen.states.textures.input
 
-#include regen.states.tesselation.interpolate
+#include regen.stages.tesselation.interpolate
 
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen

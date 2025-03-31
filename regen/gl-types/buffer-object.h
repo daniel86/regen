@@ -31,7 +31,11 @@ namespace regen {
 
 		~BufferObject() override;
 
-		BufferObject(const BufferObject &) = delete;
+		/**
+		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
+		 * @param other another buffer object
+		 */
+		BufferObject(const BufferObject &other);
 
 		/**
 		 * Provides info how the buffer object is going to be used.
@@ -72,7 +76,7 @@ namespace regen {
 		* Replaces only existing data, no new memory allocated for the buffer.
 		* Make sure to bind before.
 		*/
-		void setBufferData(const ref_ptr<BufferReference> &ref, const GLuint *data);
+		static void setBufferData(const ref_ptr<BufferReference> &ref, const GLuint *data);
 
 		/**
 		* Map a range of the buffer object into client's memory.

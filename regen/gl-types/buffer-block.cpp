@@ -4,6 +4,8 @@
 #include "regen/states/state.h"
 #include "regen/scene/shader-input-processor.h"
 
+//#define BUFFER_LOCK_PARTIAL_UPDATE
+
 using namespace regen;
 
 BufferBlock::BufferBlock(
@@ -16,87 +18,99 @@ BufferBlock::BufferBlock(
 		  memoryLayout_(memoryLayout) {
 }
 
+BufferBlock::BufferBlock(const BufferBlock &other)
+		: BufferObject(other),
+		  storageQualifier_(other.storageQualifier_),
+		  memoryLayout_(other.memoryLayout_),
+		  blockInputs_(other.blockInputs_),
+		  inputs_(other.inputs_),
+		  ref_(other.ref_),
+		  requiredSize_(other.requiredSize_),
+		  stamp_(other.stamp_) {
+	// TODO: avoid duplicate copy of data in update!
+}
+
 void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
 	auto &uboInput = blockInputs_.emplace_back();
 	uboInput.input = input;
-	uboInput.offset = requiredSize_;
+	uboInput.offset = 0;
 	uboInput.lastStamp = 0;
 	inputs_.emplace_back(input, name);
-	requiredSize_ += input->inputSize();
-	requiresResize_ = true;
 }
 
 void BufferBlock::updateBlockInput(const ref_ptr<ShaderInput> &input) {
 	for (auto &uboInput: blockInputs_) {
 		if (uboInput.input.get() == input.get()) {
 			uboInput.lastStamp = 0;
-			requiresResize_ = true;
 			return;
 		}
 	}
 }
 
-bool BufferBlock::needsUpdate() const {
-	if (requiresResize_) { return true; }
-	for (auto &uboInput: blockInputs_) {
-		if (uboInput.input->stamp() != uboInput.lastStamp) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void BufferBlock::computePaddedSize() {
+void BufferBlock::updateBlockInputs() {
 	requiredSize_ = 0;
-	for (auto &uboInput: blockInputs_) {
-		auto &uniform = uboInput.input;
+	hasNewStamp_ = false;
+	hasClientData_ = true;
+	for (auto &blockInput: blockInputs_) {
+		auto &in = blockInput.input;
 		// note we need to compute the "aligned" offset for std140 layout
-		GLuint numElements = uniform->numArrayElements() * uniform->numInstances();
-		GLuint baseSize = uniform->inputSize() / numElements;
-
+		auto baseSize = in->dataTypeBytes() * in->valsPerElement();
 		// Compute the alignment based on the type
-		GLuint baseAlignment = baseSize;
-		GLuint alignmentCount = 1;
-		if (baseSize == 12) { // vec3
-			baseAlignment = 16;
-		} else if (baseSize == 48) { // mat3
+		auto baseAlignment = baseSize;
+		auto alignmentCount = 1u;
+		if (baseSize == 12u) { // vec3
+			baseAlignment = 16u;
+		} else if (baseSize == 48u) { // mat3
 			baseAlignment = 16;
 			alignmentCount = 3;
-		} else if (baseSize == 64) { // mat4
+		} else if (baseSize == 64u) { // mat4
 			baseAlignment = 16;
 			alignmentCount = 4;
-		} else if (numElements > 1) {
-			if (memoryLayout_ == MemoryLayout::STD140) {
-				// NOTE: STD430 does not require alignment for arrays
-				baseAlignment = 16;
-			}
+		} else if (in->numElements() > 1u && memoryLayout_ == MemoryLayout::STD140) {
+			// with STD140, each array element must be padded to a multiple of 16 bytes
+			baseAlignment = 16u;
 		}
-
 		// Align the offset to the required alignment
-		if (requiredSize_ % baseAlignment != 0) {
-			requiredSize_ += baseAlignment - (requiredSize_ % baseAlignment);
+		auto remainder = requiredSize_ % baseAlignment;
+		if (remainder != 0) {
+			requiredSize_ += baseAlignment - remainder;
 		}
-		uboInput.offset = requiredSize_;
-		if (numElements > 1) {
-			requiredSize_ += baseAlignment * alignmentCount * numElements;
+		blockInput.offset = requiredSize_;
+		if (in->numElements() > 1) {
+			requiredSize_ += baseAlignment * alignmentCount * in->numElements();
 		} else {
-			requiredSize_ += uniform->inputSize();
+			requiredSize_ += baseSize * in->numElements();
+		}
+		if (blockInput.input->stamp() != blockInput.lastStamp) {
+			hasNewStamp_ = true;
+		}
+		if (!in->hasClientData()) {
+			hasClientData_ = false;
 		}
 	}
+	// ignore stamps if there is no client data
+	hasNewStamp_ = hasNewStamp_ && hasClientData_;
 }
 
 void BufferBlock::updateAlignedData(BlockInput &uboInput) {
-	// the GL specification states that the stride between array elements must be
-	// rounded up to 16 bytes.
-	// this is quite ugly to do element-wise memcpy below, hence non 16-byte aligned
-	// arrays should be avoided in general.
 	auto &in = uboInput.input;
 	auto numElements = in->numArrayElements() * in->numInstances();
-	if (numElements == 1 || memoryLayout_ == MemoryLayout::STD430) {
+	if (numElements == 1) {
 		return;
 	}
 	auto elementSizeUnaligned = in->valsPerElement() * in->dataTypeBytes();
-	if (elementSizeUnaligned % 16 == 0) {
+	if (memoryLayout_ == MemoryLayout::STD140) {
+		// the GL specification states that the stride between array elements must be
+		// rounded up to 16 bytes for STD140.
+		if (elementSizeUnaligned % 16 == 0) {
+			return;
+		}
+	} else if (memoryLayout_ == MemoryLayout::STD430) {
+		// only vec3 and mat3 types need to be aligned to 16 bytes with STD430.
+		if (elementSizeUnaligned != 12 && elementSizeUnaligned != 48) {
+			return;
+		}
+	} else {
 		return;
 	}
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
@@ -117,40 +131,54 @@ void BufferBlock::updateAlignedData(BlockInput &uboInput) {
 }
 
 void BufferBlock::update(bool forceUpdate) {
-	bool needUpdate = forceUpdate || needsUpdate();
+	updateBlockInputs();
+	bool needsResize = allocatedSize_ != requiredSize_;
+	bool needUpdate = hasNewStamp_ || needsResize || forceUpdate;
 	if (!needUpdate) { return; }
 	std::unique_lock<std::mutex> lock(mutex_);
 
-	if (requiresResize_) {
-		computePaddedSize();
+	if (needsResize) {
+		if (ref_.get()) {
+			free(ref_.get());
+		}
 		ref_ = allocBytes(requiredSize_);
 		allocatedSize_ = requiredSize_;
-		forceUpdate = GL_TRUE;
-		requiresResize_ = GL_FALSE;
 		GL_ERROR_LOG();
+	}
+	if (!hasClientData_) {
+		// do not copy data if there is no client data
+		return;
 	}
 
 	glBindBuffer(glTarget_, ref_->bufferID());
+#ifdef BUFFER_LOCK_PARTIAL_UPDATE
 	void *bufferData = map(ref_, GL_MAP_WRITE_BIT);
+#else
+	void *bufferData = map(ref_, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+#endif
 	if (bufferData) {
 		for (auto &uboInput: blockInputs_) {
+#ifdef BUFFER_LOCK_PARTIAL_UPDATE
 			if (forceUpdate || uboInput.input->stamp() != uboInput.lastStamp) {
-				if (!uboInput.input->hasClientData()) {
-					continue;
-				}
-				// copy the data to the buffer.
-				updateAlignedData(uboInput);
-				if (uboInput.alignedData) {
-					memcpy(static_cast<char *>(bufferData) + uboInput.offset,
-						   uboInput.alignedData, uboInput.alignedSize);
-				} else {
-					auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
-					memcpy(static_cast<char *>(bufferData) + uboInput.offset,
-						   mapped.r,
-						   uboInput.input->inputSize());
-				}
-				uboInput.lastStamp = uboInput.input->stamp();
+#endif
+			if (!uboInput.input->hasClientData()) {
+				continue;
 			}
+			// copy the data to the buffer.
+			updateAlignedData(uboInput);
+			if (uboInput.alignedData) {
+				memcpy(static_cast<char *>(bufferData) + uboInput.offset,
+					   uboInput.alignedData, uboInput.alignedSize);
+			} else {
+				auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
+				memcpy(static_cast<char *>(bufferData) + uboInput.offset,
+					   mapped.r,
+					   uboInput.input->inputSize());
+			}
+			uboInput.lastStamp = uboInput.input->stamp();
+#ifdef BUFFER_LOCK_PARTIAL_UPDATE
+			}
+#endif
 		}
 		unmap();
 	} else {
@@ -174,7 +202,7 @@ ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNod
 	} else if (blockType == "ssbo") {
 		block = ref_ptr<SSBO>::alloc(input.getName(), usageHint);
 	} else {
-		REGEN_WARN("Unknown buffer block type '" << blockType << "'. Using default UBO.");
+		REGEN_WARN("Unknown buffer block type '" << blockType << "'. Using UBO.");
 		block = ref_ptr<UBO>::alloc(input.getName(), usageHint);
 	}
 	auto dummyState = ref_ptr<State>::alloc();
@@ -243,7 +271,7 @@ std::istream &regen::operator>>(std::istream &in, BufferBlock::MemoryLayout &v) 
 	else if (val == "packed") v = BufferBlock::MemoryLayout::PACKED;
 	else if (val == "shared") v = BufferBlock::MemoryLayout::SHARED;
 	else {
-		REGEN_WARN("Unknown memory layout '" << val << "'. Using default STD140.");
+		REGEN_WARN("Unknown memory layout '" << val << "'. Using STD140.");
 		v = BufferBlock::MemoryLayout::STD140;
 	}
 	return in;
@@ -258,7 +286,7 @@ std::istream &regen::operator>>(std::istream &in, BufferBlock::StorageQualifier 
 	else if (val == "in") v = BufferBlock::StorageQualifier::IN;
 	else if (val == "out") v = BufferBlock::StorageQualifier::OUT;
 	else {
-		REGEN_WARN("Unknown storage qualifier '" << val << "'. Using default UNIFORM.");
+		REGEN_WARN("Unknown storage qualifier '" << val << "'. Using UNIFORM.");
 		v = BufferBlock::StorageQualifier::UNIFORM;
 	}
 	return in;

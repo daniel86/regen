@@ -7,7 +7,7 @@ using namespace regen;
 UBO::UBO(const std::string &name, BufferUsage usage) :
 		BufferBlock(UNIFORM_BUFFER, usage, UNIFORM, STD140),
 		ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, false) {
-	enableUniform_ = [this](GLint loc) { enableBufferBlock(loc); };
+	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
 	isVertexAttribute_ = false;

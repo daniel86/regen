@@ -104,6 +104,11 @@ namespace regen {
 		void setRootState(const ref_ptr<State> &rootState);
 
 		/**
+		 * @return the root state.
+		 */
+		auto &rootState() const { return rootState_; }
+
+		/**
 		 * Set the spatial indices.
 		 * @param indices the spatial indices.
 		 */

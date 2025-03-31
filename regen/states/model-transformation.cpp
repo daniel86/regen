@@ -9,7 +9,7 @@
 #include "model-transformation.h"
 #include "regen/meshes/mesh-vector.h"
 #include "regen/textures/texture-2d.h"
-#include "regen/animations/boids.h"
+#include "regen/animations/boid-simulation.h"
 #include "regen/animations/transform-animation.h"
 #include "regen/scene/value-generator.h"
 
@@ -26,10 +26,10 @@ ModelTransformation::ModelTransformation()
 	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
 	velocity_->setUniformData(Vec3f(0.0f));
 
-	auto uniforms = ref_ptr<UBO>::alloc("ModelTransformation");
-	uniforms->addBlockInput(modelMat_);
-	uniforms->addBlockInput(velocity_);
-	setInput(uniforms);
+	ubo_ = ref_ptr<UBO>::alloc("ModelTransformation");
+	ubo_->addBlockInput(modelMat_);
+	ubo_->addBlockInput(velocity_);
+	setInput(ubo_);
 }
 
 const ref_ptr<ShaderInputMat4> &ModelTransformation::get() const { return modelMat_; }
@@ -372,7 +372,12 @@ static void transformAnimation(
 
 	if (animType == "boids") {
 		LoadingContext boidsConfig(scene, parent);
-		auto boidsAnimation = BoidsSimulation_CPU::load(boidsConfig, *child.get(), tf);
+		ref_ptr<Animation> boidsAnimation;
+		if (child->getValue<std::string>("sim-mode", "CPU") == "CPU") {
+			boidsAnimation = BoidSimulation_CPU::load(boidsConfig, *child.get(), tf);
+		} else {
+			boidsAnimation = BoidSimulation_GPU::load(boidsConfig, *child.get(), tf);
+		}
 		state->attach(boidsAnimation);
 		boidsAnimation->startAnimation();
 	} else {
@@ -470,9 +475,9 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 			auto matrices = transform->get()->mapClientData<Mat4f>(ShaderData::WRITE);
 			for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
 		}
-		transformMatrix(scene, input, state, ctx.parent(), transform, numInstances);
-		// add data to vbo
+		// update numInstances
 		transform->setInput(transform->get());
+		transformMatrix(scene, input, state, ctx.parent(), transform, numInstances);
 	} else {
 		transformMatrix(scene, input, state, ctx.parent(), transform, 1u);
 		if (transform->get()->numInstances() > 1) {

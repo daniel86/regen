@@ -6,7 +6,7 @@
  */
 
 #include "light-state.h"
-#include "regen/animations/boids.h"
+#include "regen/animations/boid-simulation.h"
 #include "regen/scene/shader-input-processor.h"
 
 using namespace regen;
@@ -244,7 +244,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			if (animationType == "boids") {
 				// let a boid simulation change the light positions
 				LoadingContext boidsConfig(ctx.scene(), ctx.parent());
-				auto boidsAnimation = BoidsSimulation_CPU::load(boidsConfig, *child.get(), light->position());
+				auto boidsAnimation = BoidSimulation_CPU::load(boidsConfig, *child.get(), light->position());
 				light->attach(boidsAnimation);
 				boidsAnimation->startAnimation();
 			} else {

@@ -83,15 +83,12 @@ static inline void Regen_Texture(GLuint i, const TextureBind &v) { glBindTexture
 static inline void Regen_UniformBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_UNIFORM_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
-
 static inline void Regen_FeedbackBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
-
 static inline void Regen_AtomicCounterBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
-
 static inline void Regen_ShaderStorageBufferRange(GLuint i, const BufferRange &v) {
 	glBindBufferRange(GL_SHADER_STORAGE_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
@@ -220,7 +217,7 @@ RenderState::RenderState()
 		  uniformBufferRange_(maxUniformBuffers_, regen_lockedValue, Regen_UniformBufferRange),
 		  feedbackBufferRange_(maxFeedbackBuffers_, regen_lockedValue, Regen_FeedbackBufferRange),
 		  atomicCounterBufferRange_(maxAtomicCounterBuffers_, regen_lockedValue, Regen_AtomicCounterBufferRange),
-		  shaderStorageBufferRange_(maxShaderStorageBuffers_, regen_lockedValue, Regen_ShaderStorageBufferRange),
+		  ssboRange_(maxShaderStorageBuffers_, regen_lockedValue, Regen_ShaderStorageBufferRange),
 		  readFrameBuffer_(GL_READ_FRAMEBUFFER, Regen_BindFramebuffer),
 		  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, Regen_BindFramebuffer),
 		  viewport_(Regen_Viewport),
@@ -302,6 +299,22 @@ RenderState::RenderState()
 	activeTexture_.push(GL_TEXTURE0);
 	textureBuffer_.push(0);
 	GL_ERROR_LOG();
+}
+
+IndexedValueStack<BufferRange>& RenderState::bufferRange(GLenum target) {
+	switch (target) {
+		case GL_UNIFORM_BUFFER:
+			return uniformBufferRange_;
+		case GL_ATOMIC_COUNTER_BUFFER:
+			return atomicCounterBufferRange_;
+		case GL_SHADER_STORAGE_BUFFER:
+			return ssboRange_;
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			return feedbackBufferRange_;
+		default: // GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, GL_DRAW_INDIRECT_BUFFER
+			REGEN_WARN("Unknown buffer target " << target << ". Using GL_UNIFORM_BUFFER.");
+			return uniformBufferRange_;
+	}
 }
 
 static inline int bufferBaseIndex(GLenum target) {

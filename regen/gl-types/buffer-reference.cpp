@@ -14,7 +14,7 @@ BufferReference::~BufferReference() {
 
 unsigned int BufferReference::address() const {
 	// virtual address is the virtual allocator reference
-	return poolReference_.allocatorRef * poolReference_.allocatorNode->pool->alignment();
+	return poolReference_.allocatorRef;
 }
 
 unsigned int BufferReference::bufferID() const {

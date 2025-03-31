@@ -36,19 +36,26 @@ IOProcessor::InputOutput::InputOutput(const InputOutput &other)
 		  name(other.name),
 		  numElements(other.numElements),
 		  value(other.value),
-		  block(other.block) {}
+		  block(other.block),
+		  requiresArrayElements(other.requiresArrayElements) {}
 
 string IOProcessor::InputOutput::declaration() {
 	stringstream ss;
 	if (!layout.empty()) { ss << layout << " "; }
 	if (!interpolation.empty()) { ss << interpolation << " "; }
 	ss << ioType << " " << dataType << " " << name;
-	if (!numElements.empty()) { ss << "[" << numElements << "]"; }
+	if (!numElements.empty()) {
+		if (requiresArrayElements) {
+			ss << "[" << numElements << "]";
+		} else {
+			ss << "[]";
+		}
+	}
 	if (!value.empty()) { ss << " = " << value; }
 	if (!block.empty()) {
 		ss << "{" << endl;
-		for (auto it = block.begin(); it != block.end(); ++it) {
-			ss << '\t' << *it << endl;
+		for (auto & it : block) {
+			ss << '\t' << it << endl;
 		}
 		ss << "}";
 	}
@@ -193,7 +200,7 @@ IOProcessor::InputOutput IOProcessor::getUniformIO(const NamedShaderInput &unifo
 	GLuint numElements = uniform.in_->numArrayElements() * uniform.in_->numInstances();
 	io.numElements = (numElements > 1 || uniform.in_->forceArray()) ?
 					 REGEN_STRING(numElements) : "";
-	if (uniform.in_->numInstances()>1) {
+	if (uniform.in_->numInstances()>1 && currStage_ != GL_COMPUTE_SHADER) {
 		io.name = "instances_" + nameWithoutPrefix;
 	} else {
 		io.name = "in_" + nameWithoutPrefix;
@@ -249,7 +256,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		GLuint numElements = in->numArrayElements() * in->numInstances();
 		io.numElements = (numElements > 1 || in->forceArray()) ?
 						 REGEN_STRING(numElements) : "";
-		if (in->numInstances() > 1) {
+		if (in->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
 			io.name = "instances_" + nameWithoutPrefix;
 			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix <<
 					" instances_" << nameWithoutPrefix << "[regen_InstanceID]"));
@@ -276,6 +283,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.value = val.str();
 		} else if (in->isBufferBlock()) {
 			auto *block = dynamic_cast<BufferBlock *>(in.get());
+			bool isSSBO = block->storageQualifier() == BufferBlock::StorageQualifier::BUFFER;
 			std::stringstream layoutStr;
 			layoutStr << "layout(";
 			layoutStr << REGEN_STRING(block->memoryLayout());
@@ -284,15 +292,20 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.ioType = REGEN_STRING(block->storageQualifier());
 			io.value = "";
 			io.dataType = "";
-			for (auto &blockUniform: block->blockInputs()) {
+			for (int i=0; i<block->blockInputs().size(); i++) {
+				auto &blockUniform = block->blockInputs()[i];
 				auto memberIO = getUniformIO(blockUniform);
 				auto blockNameWithoutPrefix = getNameWithoutPrefix(blockUniform.name_.empty() ?
 						blockUniform.in_->name() : blockUniform.name_);
 				memberIO.ioType = "";
+				// last element in SSBO can omit the array size
+				if (isSSBO && i == block->blockInputs().size() - 1) {
+					memberIO.requiresArrayElements = false;
+				}
 				io.block.push_back(memberIO.declaration());
 				inputNames_.insert(blockNameWithoutPrefix);
 
-				if (blockUniform.in_->numInstances() > 1) {
+				if (blockUniform.in_->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
 					lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix <<
 						" instances_" << blockNameWithoutPrefix << "[regen_InstanceID]"));
 				}
@@ -346,7 +359,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 			"^[ |\t|]*((flat|noperspective|smooth|centroid)[ |\t]+(.*))$";
 	static boost::regex interpolationRegex_(interpolationPattern_);
 	static const char *pattern_ =
-			"^[ |\t|]*((in|uniform|const|out)[ |\t]+([^ ]*)[ |\t]+([^;]+);)$";
+			"^[ |\t|]*((in|uniform|buffer|const|out)[ |\t]+([^ ]*)[ |\t]+([^;]+);)$";
 	static boost::regex regex_(pattern_);
 	static const char *handleIOPattern_ =
 			"^[ |\t]*#define[ |\t]+HANDLE_IO[ |\t]*";
@@ -473,7 +486,7 @@ bool IOProcessor::process(PreProcessorState &state, string &line) {
 		outputs_[state.currStage].insert(make_pair(nameWithoutPrefix, io));
 	} else if (io.ioType == "in") {
 		inputs_[state.currStage].insert(make_pair(nameWithoutPrefix, io));
-	} else if (io.ioType == "uniform") {
+	} else if (io.ioType == "uniform" || io.ioType == "buffer") {
 		uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix, io));
 	}
 

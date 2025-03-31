@@ -76,13 +76,13 @@ void offscreenNDC(vec4 v, inout ivec3 offscreen)
 }
 
 #if TESS_LOD == EDGE_SCREEN_DISTANCE
-    #include regen.states.tesselation.metricSreenDistance
+    #include regen.stages.tesselation.metricSreenDistance
 #endif
 #if TESS_LOD == EDGE_DEVICE_DISTANCE
-    #include regen.states.tesselation.metricDeviceDistance
+    #include regen.stages.tesselation.metricDeviceDistance
 #endif
 #if TESS_LOD == CAMERA_DISTANCE
-    #include regen.states.tesselation.metricCameraDistance
+    #include regen.stages.tesselation.metricCameraDistance
 #endif
 #ifdef HAS_HEIGHT_MAP
     #include regen.states.textures.input
@@ -211,7 +211,7 @@ layout(vertices=TESS_NUM_VERTICES) out;
 
 uniform vec2 in_viewport;
 #include regen.states.camera.input
-#include regen.states.tesselation.tesselationControl
+#include regen.stages.tesselation.tesselationControl
 
 #define HANDLE_IO(i)
 

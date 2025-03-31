@@ -424,6 +424,7 @@ void Shader::setupInputLocations() {
 		}
 	}
 
+	// uniform blocks
 	glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
 	GLint bindingPoint = 0;
 	for (GLint blockIndex = 0; blockIndex < count; ++blockIndex) {
@@ -438,6 +439,21 @@ void Shader::setupInputLocations() {
 		// We can choose which one but must make sure that the uniform buffer object is bound to the same binding point
 		// when the shader is used.
 		glUniformBlockBinding(id(), blockIndex, bindingPoint);
+		++bindingPoint;
+	}
+
+	// shader storage blocks
+	glGetProgramInterfaceiv(id(),
+			GL_SHADER_STORAGE_BLOCK,
+			GL_ACTIVE_RESOURCES, &count);
+	for (GLint blockIndex = 0; blockIndex < count; ++blockIndex) {
+		glGetProgramResourceName(id(),
+				GL_SHADER_STORAGE_BLOCK,
+				blockIndex, 320, &arraySize, nameC);
+		std::string blockName(truncPrefix(nameC, "in_"));
+		uniformLocations_[blockName] = bindingPoint;
+		uniformLocations_[REGEN_STRING("in_" << blockName)] = bindingPoint;
+		glShaderStorageBlockBinding(id(), blockIndex, bindingPoint);
 		++bindingPoint;
 	}
 
@@ -570,7 +586,7 @@ void Shader::enable(RenderState *) {
 	for (auto &uniform: uniforms_) {
 		if (!uniform.input->active()) { continue; }
 		if (uniform.input->isBufferBlock()) {
-			// enable uniform block
+			// enable buffer block
 			uniform.input->enableUniform(uniform.location);
 		} else if (uniform.input->stamp() != uniform.uploadStamp) {
 			// enable uniform

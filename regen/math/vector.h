@@ -239,6 +239,13 @@ namespace regen {
 		/** copy constructor. */
 		Vec3(const Vec3 &b) : x(b.x), y(b.y), z(b.z) {}
 
+		/** copy constructor. */
+		template<typename U>
+		explicit Vec3(const Vec3<U> &b) :
+			x(static_cast<T>(b.x)),
+			y(static_cast<T>(b.y)),
+			z(static_cast<T>(b.z)) {}
+
 		/** Construct from Vec2 and scalar. */
 		Vec3(const Vec2<T> &b, T _z) : x(b.x), y(b.y), z(_z) {}
 
@@ -274,6 +281,18 @@ namespace regen {
 		 * @return the vector sum.
 		 */
 		inline Vec3 operator+(const Vec3 &b) const { return Vec3(x + b.x, y + b.y, z + b.z); }
+
+		/**
+		 * @param b vector to add.
+		 * @return the vector sum.
+		 */
+		template<class U>
+		inline Vec3<T> operator+(const Vec3<U> &b) const {
+			return Vec3<T>(
+				x + static_cast<T>(b.x),
+				y + static_cast<T>(b.y),
+				z + static_cast<T>(b.z));
+		}
 
 		/**
 		 * @param b vector to subtract.
@@ -446,6 +465,14 @@ namespace regen {
 			else return z;
 		}
 
+		static inline Vec3 min(const Vec3 &a, const Vec3 &b) {
+			return Vec3(std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z));
+		}
+
+		static inline Vec3 max(const Vec3 &a, const Vec3 &b) {
+			return Vec3(std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z));
+		}
+
 		/** Set maximum component. */
 		inline void setMax(const Vec3 &b) {
 			x = std::max(x, b.x);
@@ -482,6 +509,22 @@ namespace regen {
 		static const Vec3 &one() {
 			static Vec3 one_(1);
 			return one_;
+		}
+
+		/**
+		 * @return static positive max vector.
+		 */
+		static const Vec3& posMax() {
+			static Vec3 posMax_(std::numeric_limits<T>::max());
+			return posMax_;
+		}
+
+		/**
+		 * @return static negative max vector.
+		 */
+		static const Vec3& negMax() {
+			static Vec3 negMax_(std::numeric_limits<T>::lowest());
+			return negMax_;
 		}
 
 		/**
@@ -536,7 +579,7 @@ namespace regen {
 		 * @return a random vector.
 		 */
 		static Vec3 random() {
-			return Vec3(math::random(), math::random(), math::random());
+			return Vec3(math::random<T>(), math::random<T>(), math::random<T>());
 		}
 	};
 

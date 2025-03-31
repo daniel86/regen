@@ -172,7 +172,7 @@
             <mesh id="mesh-dragon" shader="regen.models.mesh"/>
         </node>
         <node id="venus">
-            <define key="POS_MODEL_TRANSFER_KEY" value="regen.morph.twist"/>
+            <define key="POS_MODEL_TRANSFER_KEY" value="regen.animation.morph.twist"/>
             <define key="POS_MODEL_TRANSFER_NAME" value="twist"/>
             <input type="float" name="in_twistSpeed" value="2.0"/>
             <input type="float" name="in_twistStrength" value="1.0"/>

@@ -58,7 +58,7 @@ const float in_lodGeomVariance = 0.2;
     #include regen.states.wind.windAtPosition
 #endif
 #ifdef USE_COLLISION
-    #include regen.states.collision.getCollisionVector
+    #include regen.shapes.collision.getCollisionVector
 #endif
 #ifdef HAS_VERTEX_MASK_MAP
 const float in_maskThreshold = 0.1;

@@ -88,9 +88,6 @@ void AnimationManager::addAnimation(Animation *animation) {
 	addInProgress_ = true;
 
 	if (animation->isGPUAnimation()) {
-		if (rootState_.get() != nullptr) {
-			animation->joinAnimationState(rootState_);
-		}
 		if (glInProgress_ && addThreadID_ == glThreadID_) {
 			// Called from glAnimate().
 			glChangedDuringLoop_ = true;

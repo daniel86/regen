@@ -34,6 +34,11 @@ namespace regen {
 		const ref_ptr<ShaderInputMat4> &get() const;
 
 		/**
+		 * @return The buffer object that contains the model transformation matrix.
+		 */
+		auto& ubo() const { return ubo_; }
+
+		/**
 		 * @param audioSource the audio source attached to the world position
 		 * of the model.
 		 */
@@ -51,6 +56,7 @@ namespace regen {
 	protected:
 		ref_ptr<ShaderInputMat4> modelMat_;
 		ref_ptr<ShaderInput3f> velocity_;
+		ref_ptr<UBO> ubo_;
 
 		ref_ptr<AudioSource> audioSource_;
 

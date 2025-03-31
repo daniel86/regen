@@ -90,7 +90,7 @@ const vec4 in_normalModifier = vec4(1.0,2.0,4.0,8.0);
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.transformTexcoToWorld
 #include regen.states.textures.texco_planar_reflection
-#include regen.math.matrixInverse
+#include regen.math.mat3.inverse
 
 #ifdef USE_RIPPLES
 mat3 computeTangentFrame(in vec3 N, in vec3 P, in vec2 UV) {

@@ -7,6 +7,7 @@
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
     <constant name="num-cascades" value="4"/>
+    <constant name="num-fish" value="2000"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -498,15 +499,17 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
-            num-instances="200">
-        <transform id="fish-tf" num-instances="200" is-instanced="1">
+            num-instances="{{num-fish}}">
+        <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
-            <translate value="0.0, -0.5, 0.0"/>
+            <translate value="0.0, -0.5, 3.0"/>
             <set mode="circle" target="translate" radius="1.0" variance="0.8"
                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 1.0, 1.0"/>
             <animation type="boids"
+                sim-mode="GPU"
                 base-orientation="1.570796"
                 max-speed="4.0"
+                max-neighbors="100"
                 visual-range="1.6"
                 look-ahead="2.0"
                 repulsion="8.0"
@@ -530,7 +533,7 @@
             </animation>
 
         </transform>
-        <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" />
+        <!-- <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 
     <mesh id="hyena-mesh" type="asset" asset="hyena-asset" asset-indices="*" asset-animation="1">
@@ -549,7 +552,12 @@
     </node>
 
     <node id="Fish">
+        <!--
         <node id="fish0" cull-shape="fish-shape">
+            <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
+        </node>
+        -->
+        <node id="fish0">
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>

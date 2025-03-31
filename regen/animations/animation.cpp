@@ -23,6 +23,9 @@ Animation::Animation(bool isGPUAnimation, bool isCPUAnimation)
 		  isCPUAnimation_(isCPUAnimation),
 		  isRunning_(false) {
 	animationState_ = ref_ptr<State>::alloc();
+	if (AnimationManager::get().rootState().get()) {
+		animationState_->joinStates(AnimationManager::get().rootState());
+	}
 }
 
 Animation::~Animation() {

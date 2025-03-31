@@ -125,6 +125,11 @@ namespace regen {
 		unsigned int stamp() const;
 
 		/**
+		 * Increment the stamp.
+		 */
+		void nextStamp();
+
+		/**
 		 * Specifies the data type of each component in the array.
 		 * Symbolic constants GL_FLOAT,GL_DOUBLE,.. accepted.
 		 */
@@ -196,6 +201,11 @@ namespace regen {
 		 * attribute element.
 		 */
 		auto offset() const { return offset_; }
+
+		/**
+		 * numArrayElements() * numInstances()
+		 */
+		auto numElements() const { return numElements_; }
 
 		/**
 		 * Number of array elements.
@@ -543,7 +553,7 @@ namespace regen {
 		friend struct ShaderDataRaw_ro;
 
 		//void (ShaderInput::*enableUniform_)(GLint loc) const;
-		std::function<void(GLint)> enableUniform_;
+		std::function<void(GLint)> enableInput_;
 
 		ShaderInput(const ShaderInput &);
 
@@ -960,6 +970,16 @@ namespace regen {
 				GLuint numArrayElements = 1,
 				GLboolean normalize = GL_FALSE);
 	};
+
+	/**
+	 * Utility function to create a uniform input.
+	 */
+	template<class T, class U>
+	ref_ptr<T> createUniform(const std::string &name, const U &value) {
+		auto uniform = ref_ptr<T>::alloc(name);
+		uniform->setUniformData(value);
+		return uniform;
+	}
 } // namespace
 
 #endif /* SHADER_INPUT_H_ */

@@ -92,7 +92,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  active_(o.active_),
 		  schema_(o.schema_) {
 	enableAttribute_ = &ShaderInput::enableAttributef;
-	enableUniform_ = o.enableUniform_;
+	enableInput_ = o.enableInput_;
 	// copy client data, if any
 	if (o.hasClientData()) {
 		dataSlots_[0] = new byte[inputSize_];
@@ -109,6 +109,9 @@ ShaderInput::~ShaderInput() {
 }
 
 void ShaderInput::set_numArrayElements(GLsizei v) {
+	if (v == numArrayElements_) {
+		return;
+	}
 	numArrayElements_ = v;
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
 	if (isVertexAttribute_) {
@@ -116,10 +119,15 @@ void ShaderInput::set_numArrayElements(GLsizei v) {
 	} else {
 		numElements_ = numArrayElements_ * numInstances_;
 	}
+	nextStamp();
 }
 
 unsigned int ShaderInput::stamp() const {
 	return dataStamp_.load(std::memory_order_relaxed);
+}
+
+void ShaderInput::nextStamp() {
+	dataStamp_.fetch_add(1, std::memory_order_relaxed);
 }
 
 int ShaderInput::lastDataSlot() const {
@@ -141,7 +149,7 @@ void ShaderInput::enableAttribute(GLint loc) const {
 }
 
 void ShaderInput::enableUniform(GLint loc) const {
-	enableUniform_(loc);
+	enableInput_(loc);
 }
 
 /////////////
@@ -226,8 +234,7 @@ void ShaderInput::writeUnlock(int dataSlot, bool hasDataChanged) const {
 	--slotLock.activeWriters;
 	// TODO: if the data is small, then we could do a check here with memcmp to avoid incrementing the stamp, and
 	//       switching the data slot. This could be more efficient in case the data is not changed.
-	//if (numInstances > 1 || std::memcmp(data_, data, inputSize_) != 0) { }
-	//if (std::memcmp(data_, data, inputSize_) != 0) { }
+	//if (inputSize_ < 128 || std::memcmp(data_, data, inputSize_) != 0) { }
 	if (hasDataChanged) {
 		// increment the data stamp, and remember the last slot that was written to.
 		// consecutive reads will be done from this slot, next write will be done to the other slot.
@@ -434,6 +441,11 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		inputSize_ = dataSize_bytes;
 		writeUnlockAll(writeClientData_(data));
 	} else if (data) {
+		// TODO: if the data is small, then we could do a check here with memcmp
+		//if (dataSize_bytes == inputSize_ && inputSize_ <= 128) {
+		//	auto mapped_r = mapClientDataRaw(ShaderData::READ);
+		//	if (memcmp(mapped_r.r, data, inputSize_) == 0) { return; }
+		//}
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
 	}
@@ -788,7 +800,7 @@ ShaderInput1f::ShaderInput1f(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform1fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
 	};
 }
@@ -798,7 +810,7 @@ ShaderInput2f::ShaderInput2f(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform2fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
 	};
 }
@@ -808,7 +820,7 @@ ShaderInput3f::ShaderInput3f(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform3fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
 	};
 }
@@ -818,7 +830,7 @@ ShaderInput4f::ShaderInput4f(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform4fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
 	};
 }
@@ -830,7 +842,7 @@ ShaderInputMat3::ShaderInputMat3(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	transpose_ = GL_FALSE;
 	enableAttribute_ = &ShaderInput::enableAttributeMat3;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniformMatrix3fv(loc, numElements_, transpose_, mapClientData<float>(ShaderData::READ).r);
 	};
 }
@@ -842,7 +854,7 @@ ShaderInputMat4::ShaderInputMat4(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	transpose_ = GL_FALSE;
 	enableAttribute_ = &ShaderInput::enableAttributeMat4;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniformMatrix4fv(loc, numElements_, transpose_, mapClientData<float>(ShaderData::READ).r);
 	};
 }
@@ -852,7 +864,7 @@ ShaderInput1d::ShaderInput1d(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform1dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
 	};
 }
@@ -862,7 +874,7 @@ ShaderInput2d::ShaderInput2d(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform2dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
 	};
 }
@@ -872,7 +884,7 @@ ShaderInput3d::ShaderInput3d(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform3dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
 	};
 }
@@ -882,7 +894,7 @@ ShaderInput4d::ShaderInput4d(
 		GLuint numArrayElements,
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform4dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
 	};
 }
@@ -893,7 +905,7 @@ ShaderInput1i::ShaderInput1i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform1iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
 }
@@ -904,7 +916,7 @@ ShaderInput2i::ShaderInput2i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform2iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
 }
@@ -915,7 +927,7 @@ ShaderInput3i::ShaderInput3i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform3iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
 }
@@ -926,7 +938,7 @@ ShaderInput4i::ShaderInput4i(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform4iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
 }
@@ -937,7 +949,7 @@ ShaderInput1ui::ShaderInput1ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform1uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
 }
@@ -948,7 +960,7 @@ ShaderInput2ui::ShaderInput2ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform2uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
 }
@@ -959,7 +971,7 @@ ShaderInput3ui::ShaderInput3ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform3uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
 }
@@ -970,7 +982,7 @@ ShaderInput4ui::ShaderInput4ui(
 		GLboolean normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableAttribute_ = &ShaderInput::enableAttributei;
-	enableUniform_ = [this](GLint loc) {
+	enableInput_ = [this](GLint loc) {
 		glUniform4uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
 }

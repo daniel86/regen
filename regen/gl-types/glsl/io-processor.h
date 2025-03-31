@@ -47,6 +47,7 @@ namespace regen {
 			std::string numElements; /**< number of array elements (name[N]). */
 			std::string value; /**< for constants this defines the value. */
 			std::vector<std::string> block; /**< for uniform blocks. */
+			bool requiresArrayElements = true; /**< should the array elements be declared ? */
 
 			InputOutput();
 
