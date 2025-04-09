@@ -106,11 +106,6 @@ namespace regen {
 		void addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
 
 		/**
-		 * @param input the shader input.
-		 */
-		void updateBlockInput(const ref_ptr<ShaderInput> &input);
-
-		/**
 		 * @return the list of uniforms.
 		 */
 		auto &blockInputs() const { return inputs_; }

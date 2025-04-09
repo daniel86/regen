@@ -52,7 +52,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	rs->textureBuffer().push(vboRef_->bufferID());
 	boneMatrixTex_ = ref_ptr<TextureBuffer>::alloc(GL_RGBA32F);
 	boneMatrixTex_->begin(rs);
-	boneMatrixTex_->attach(inputContainer_->inputBuffer(), vboRef_);
+	boneMatrixTex_->attach(vboRef_);
 	boneMatrixTex_->end(rs);
 	rs->textureBuffer().pop();
 

@@ -38,15 +38,6 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	inputs_.emplace_back(input, name);
 }
 
-void BufferBlock::updateBlockInput(const ref_ptr<ShaderInput> &input) {
-	for (auto &uboInput: blockInputs_) {
-		if (uboInput.input.get() == input.get()) {
-			uboInput.lastStamp = 0;
-			return;
-		}
-	}
-}
-
 void BufferBlock::updateBlockInputs() {
 	requiredSize_ = 0;
 	hasNewStamp_ = false;

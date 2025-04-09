@@ -24,7 +24,7 @@ namespace regen {
 		/**
 		 * Attach VBO to TextureBuffer and keep a reference on the VBO.
 		 */
-		void attach(const ref_ptr<VBO> &vbo, ref_ptr<BufferReference> &ref);
+		void attach(const ref_ptr<BufferReference> &ref);
 
 		/**
 		 * Attach the storage for a buffer object to the active buffer texture.
@@ -42,7 +42,6 @@ namespace regen {
 
 	private:
 		GLenum texelFormat_;
-		ref_ptr<VBO> attachedVBO_;
 		ref_ptr<BufferReference> attachedVBORef_;
 
 		// override

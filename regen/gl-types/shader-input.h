@@ -575,6 +575,7 @@ namespace regen {
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
 		/** the name overwrite. */
+		// TODO: could use global atom table for shader input names
 		std::string name_;
 		/** the type overwrite. */
 		std::string type_;
