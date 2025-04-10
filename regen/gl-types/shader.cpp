@@ -60,6 +60,9 @@ void Shader::preProcess(
 		}
 	}
 	header << "#include regen.defines.regen_InstanceID" << std::endl;
+	for (const auto &path: cfg.includes) {
+		header << "#include " << path << std::endl;
+	}
 	std::string headerStr = header.str();
 
 	// load the GLSL code.

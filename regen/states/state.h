@@ -114,6 +114,17 @@ namespace regen {
 		const std::map<std::string, std::string> &shaderDefines() const;
 
 		/**
+		 * Adds a GLSL include to generated shaders.
+		 * @param name the include name.
+		 */
+		void shaderInclude(const std::string &name);
+
+		/**
+		 * @return GLSL includes.
+		 */
+		const std::vector<std::string> &shaderIncludes() const { return shaderIncludes_; }
+
+		/**
 		 * Adds a GLSL function to generated shaders.
 		 * @param name the function name.
 		 * @param value the GLSL code.
@@ -160,6 +171,7 @@ namespace regen {
 
 	protected:
 		std::map<std::string, std::string> shaderDefines_;
+		std::vector<std::string> shaderIncludes_;
 		std::map<std::string, std::string> shaderFunctions_;
 
 		std::list<ref_ptr<State> > joined_;

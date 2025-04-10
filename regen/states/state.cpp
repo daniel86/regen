@@ -35,9 +35,17 @@ void State::setShaderVersion(GLuint version) {
 	if (version > shaderVersion_) shaderVersion_ = version;
 }
 
-void State::shaderDefine(const std::string &name, const std::string &value) { shaderDefines_[name] = value; }
+void State::shaderDefine(const std::string &name, const std::string &value) {
+	shaderDefines_[name] = value;
+}
 
-const std::map<std::string, std::string> &State::shaderDefines() const { return shaderDefines_; }
+const std::map<std::string, std::string> &State::shaderDefines() const {
+	return shaderDefines_;
+}
+
+void State::shaderInclude(const std::string &path) {
+	shaderIncludes_.push_back(path);
+}
 
 void State::shaderFunction(const std::string &name, const std::string &value) { shaderFunctions_[name] = value; }
 
