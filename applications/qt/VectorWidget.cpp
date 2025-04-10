@@ -3,7 +3,7 @@
 using namespace regen;
 
 static GLfloat readInputValue(const ref_ptr<ShaderInput> &input, const byte *value, GLuint i) {
-	switch (input->dataType()) {
+	switch (input->baseType()) {
 		case GL_FLOAT: {
 			return ((GLfloat *) value)[i];
 		}
@@ -14,7 +14,7 @@ static GLfloat readInputValue(const ref_ptr<ShaderInput> &input, const byte *val
 			return static_cast<GLfloat>((((GLuint *) value)[i]));
 		}
 		default:
-			REGEN_WARN("Unknown data type " << input->dataType());
+			REGEN_WARN("Unknown data type " << input->baseType());
 			break;
 	}
 	return 0.0f;
@@ -135,7 +135,7 @@ void VectorWidget::valueUpdated() {
 	}
 
 	byte *changedData = nullptr;
-	switch (input_->dataType()) {
+	switch (input_->baseType()) {
 		case GL_FLOAT:
 			changedData = createData<GLfloat>(input_, valueWidgets, valueTexts, count);
 			break;
@@ -146,7 +146,7 @@ void VectorWidget::valueUpdated() {
 			changedData = createData<GLuint>(input_, valueWidgets, valueTexts, count);
 			break;
 		default:
-			REGEN_WARN("Unknown data type " << input_->dataType());
+			REGEN_WARN("Unknown data type " << input_->baseType());
 			break;
 	}
 

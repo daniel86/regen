@@ -6,7 +6,13 @@ using namespace regen;
 TextureBuffer::TextureBuffer(GLenum texelFormat)
 		: Texture() {
 	texBind_.target_ = GL_TEXTURE_BUFFER;
-	samplerType_ = "samplerBuffer";
+	if (glenum::isSignedIntegerType(texelFormat)) {
+		samplerType_ = "isamplerBuffer";
+	} else if (glenum::isUnsignedIntegerType(texelFormat)) {
+		samplerType_ = "usamplerBuffer";
+	} else {
+		samplerType_ = "samplerBuffer";
+	}
 	texelFormat_ = texelFormat;
 }
 

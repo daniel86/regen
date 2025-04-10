@@ -8,56 +8,45 @@ BufferContainer::BufferContainer(
 	const std::vector<NamedShaderInput> &namedInputs,
 	BufferUsage bufferUsage)
 		: State(),
+		  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
 		  namedInputs_(namedInputs),
 		  bufferUsage_(bufferUsage),
 		  bufferName_(bufferName) {
-	allocateBuffers();
+	updateBuffer();
 }
 
 BufferContainer::BufferContainer(const std::string &bufferName, BufferUsage bufferUsage)
 	: State(),
+	  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
 	  bufferUsage_(bufferUsage),
 	  bufferName_(bufferName) {
 }
 
-void BufferContainer::addInput(const NamedShaderInput &namedInput) {
-	if (namedInput.in_->isBufferBlock()) {
-		auto block = ref_ptr<BufferBlock>::dynamicCast(namedInput.in_);
+void BufferContainer::addInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
+	if (input->isBufferBlock()) {
+		auto block = ref_ptr<BufferBlock>::dynamicCast(input);
 		for (auto &blockUniform: block->blockInputs()) {
 			namedInputs_.emplace_back(blockUniform.in_, blockUniform.name_);
 		}
 	} else {
-		namedInputs_.emplace_back(namedInput.in_, namedInput.name_);
+		namedInputs_.emplace_back(input, name);
 	}
 	isAllocated_ = false;
-}
-
-void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs) {
-	auto ubo = ref_ptr<UBO>::alloc("BufferContainer", BufferUsage::USAGE_DYNAMIC);
-	for (auto &namedInput: namedInputs) {
-		ubo->addBlockInput(namedInput.in_, namedInput.name_);
-	}
-	joinShaderInput(ubo);
-	ubos_.push_back(ubo);
 }
 
 std::string BufferContainer::getNextBufferName() {
 	return REGEN_STRING(bufferName_ << "_" << (ubos_.size()+tbos_.size()));
 }
 
-static GLenum getTBOFormat(GLenum dataType) {
-	switch (dataType) {
-		case GL_FLOAT:
-			return GL_RGBA32F;
-		case GL_HALF_FLOAT:
-			return GL_RGBA16F;
-		case GL_UNSIGNED_INT:
-			return GL_RGBA32UI;
-		case GL_INT:
-			return GL_RGBA32I;
-		default:
-			return GL_RGBA8;
+void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs) {
+	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), BufferUsage::USAGE_DYNAMIC);
+	for (auto &namedInput: namedInputs) {
+		ubo->addBlockInput(namedInput.in_, namedInput.name_);
+		bufferObjectOfInput_[namedInput.in_.get()] = ubo;
 	}
+	ubo->update();
+	joinShaderInput(ubo);
+	ubos_.push_back(ubo);
 }
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
@@ -73,25 +62,32 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	tbos_.push_back(tbo);
 	// attach buffer to texture
 	rs->textureBuffer().push(ref->bufferID());
-	auto tex = ref_ptr<TextureBuffer>::alloc(getTBOFormat(namedInput.in_->dataType()));
+	auto tex = ref_ptr<TextureBuffer>::alloc(namedInput.in_->dataType());
 	tex->begin(rs);
 	tex->attach(ref);
+	// initially upload the data to the TBO
+	tbo->setBufferData(namedInput.in_);
 	tex->end(rs);
 	rs->textureBuffer().pop();
 	textureBuffers_.push_back(tex);
 	// and make the TBO available as a texture to the shader
-	auto texState = ref_ptr<TextureState>::alloc(tex, namedInput.name_);
+	auto texState = ref_ptr<TextureState>::alloc(tex,
+		REGEN_STRING("tbo_" << namedInput.name_));
 	texState->set_mapping(TextureState::MAPPING_CUSTOM);
 	texState->set_mapTo(TextureState::MAP_TO_CUSTOM);
 	joinStates(texState);
-	// TODO: add shader defines for accessing the buffer, or handle this in IO processor
-	REGEN_WARN("TBO not fully implemented yet.");
-	//shaderDefine(
-	// 		REGEN_STRING(namedInput.name_),
-	// 		REGEN_STRING("readFromTBO(tbo_" << namedInput.name_ << ")"));
+	// add shader defines for accessing the buffer
+	auto shaderType = glenum::glslDataType(
+			namedInput.in_->baseType(),
+			namedInput.in_->valsPerElement());
+	shaderInclude(REGEN_STRING("regen.buffer.tbo." << shaderType));
+	shaderDefine(
+	 		REGEN_STRING("in_" << namedInput.name_),
+	 		REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", regen_InstanceID)"));
+	bufferObjectOfInput_[namedInput.in_.get()] = tbo;
 }
 
-void BufferContainer::allocateBuffers() {
+void BufferContainer::updateBuffer() {
 	if (isAllocated_) return;
 	isAllocated_ = true;
 
@@ -118,8 +114,18 @@ void BufferContainer::allocateBuffers() {
 			nextUBOInputs.push_back(namedInput);
 			uboSize += inputSize;
 		}
+		setInput(namedInput.in_);
 	}
 	if (!nextUBOInputs.empty()) {
 		createUBO(nextUBOInputs);
 	}
+}
+
+ref_ptr<BufferObject> BufferContainer::getBufferObject(const ref_ptr<ShaderInput> &input) {
+	return bufferObjectOfInput_[input.get()];
+}
+
+void BufferContainer::enable(RenderState *rs) {
+	updateBuffer();
+	State::enable(rs);
 }

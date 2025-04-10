@@ -192,6 +192,23 @@ namespace regen {
 		 * Maps pixel type and values per element to the GLSL data type.
 		 */
 		std::string glslDataType(GLenum pixelType, GLuint valsPerElement);
+
+		/**
+		 * @param baseType the base type of the data, e.g. GL_FLOAT
+		 * @param valsPerElement the number of values per element, e.g. 4
+		 * @return the data type for the shader, e.g. GL_RGBA32F
+		 */
+		GLenum dataType(GLenum baseType, GLuint valsPerElement);
+
+		/**
+		 * True if the data type is a signed integer type.
+		 */
+		bool isSignedIntegerType(GLenum dataType);
+
+		/**
+		 * True if the data type is a unsigned integer type.
+		 */
+		bool isUnsignedIntegerType(GLenum dataType);
 	}
 } // namespace
 

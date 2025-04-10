@@ -91,7 +91,7 @@ namespace regen {
 
 			static void setInput(SceneInputNode &input, ShaderInput *in, unsigned int count) {
 				if (input.getChildren().empty()) return;
-				switch (in->dataType()) {
+				switch (in->baseType()) {
 					case GL_FLOAT:
 						switch (in->valsPerElement()) {
 							case 1:

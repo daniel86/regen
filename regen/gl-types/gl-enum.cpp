@@ -92,6 +92,109 @@ std::string glenum::glslStagePrefix(GLenum stage) {
 	}
 }
 
+GLenum glenum::dataType(GLenum pixelType, GLuint valsPerElement) {
+	// compose complex data type from base type and number of components
+	switch (pixelType) {
+		case GL_FLOAT:
+			switch (valsPerElement) {
+				case 1: return GL_R32F;
+				case 2: return GL_RG32F;
+				case 9:
+				case 3: return GL_RGB32F;
+				case 4:
+				case 16: return GL_RGBA32F;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA32F;
+			}
+		case GL_UNSIGNED_BYTE:
+			switch (valsPerElement) {
+				case 1: return GL_R8;
+				case 2: return GL_RG8;
+				case 3: return GL_RGB8;
+				case 4: return GL_RGBA8;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA8;
+			}
+		case GL_BYTE:
+			switch (valsPerElement) {
+				case 1: return GL_R8I;
+				case 2: return GL_RG8I;
+				case 3: return GL_RGB8I;
+				case 4: return GL_RGBA8I;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA8I;
+			}
+		case GL_UNSIGNED_SHORT:
+			switch (valsPerElement) {
+				case 1: return GL_R16;
+				case 2: return GL_RG16;
+				case 3: return GL_RGB16;
+				case 4: return GL_RGBA16;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA16;
+			}
+		case GL_SHORT:
+			switch (valsPerElement) {
+				case 1: return GL_R16I;
+				case 2: return GL_RG16I;
+				case 3: return GL_RGB16I;
+				case 4: return GL_RGBA16I;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA16I;
+			}
+		case GL_UNSIGNED_INT:
+			switch (valsPerElement) {
+				case 1: return GL_R32UI;
+				case 2: return GL_RG32UI;
+				case 3: return GL_RGB32UI;
+				case 4: return GL_RGBA32UI;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA32UI;
+			}
+		case GL_INT:
+			switch (valsPerElement) {
+				case 1: return GL_R32I;
+				case 2: return GL_RG32I;
+				case 3: return GL_RGB32I;
+				case 4: return GL_RGBA32I;
+				default:
+					REGEN_WARN("Unknown number of components " << valsPerElement
+							   << " for pixel type " << pixelType);
+					return GL_RGBA32I;
+			}
+	}
+	return GL_RGBA32F;
+}
+
+bool glenum::isSignedIntegerType(GLenum dataType) {
+	return dataType == GL_BYTE || dataType == GL_SHORT || dataType == GL_INT ||
+		   dataType == GL_R8I || dataType == GL_RG8I || dataType == GL_RGB8I ||
+		   dataType == GL_RGBA8I || dataType == GL_R16I || dataType == GL_RG16I ||
+		   dataType == GL_RGB16I || dataType == GL_RGBA16I || dataType == GL_R32I ||
+		   dataType == GL_RG32I || dataType == GL_RGB32I || dataType == GL_RGBA32I;
+}
+
+bool glenum::isUnsignedIntegerType(GLenum dataType) {
+	return dataType == GL_UNSIGNED_BYTE || dataType == GL_UNSIGNED_SHORT ||
+		   dataType == GL_UNSIGNED_INT || dataType == GL_R8UI || dataType == GL_RG8UI ||
+		   dataType == GL_RGB8UI || dataType == GL_RGBA8UI || dataType == GL_R16UI ||
+		   dataType == GL_RG16UI || dataType == GL_RGB16UI || dataType == GL_RGBA16UI ||
+		   dataType == GL_R32UI || dataType == GL_RG32UI || dataType == GL_RGB32UI ||
+		   dataType == GL_RGBA32UI;
+}
+
 std::string glenum::glslDataType(GLenum pixelType, GLuint valsPerElement) {
 	switch (pixelType) {
 		case GL_BYTE:

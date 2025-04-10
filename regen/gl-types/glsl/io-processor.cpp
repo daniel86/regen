@@ -208,7 +208,7 @@ IOProcessor::InputOutput IOProcessor::getUniformIO(const NamedShaderInput &unifo
 
 	auto *tex = dynamic_cast<Texture *>(uniform.in_.get());
 	if (tex == nullptr) {
-		io.dataType = glenum::glslDataType(uniform.in_->dataType(), uniform.in_->valsPerElement());
+		io.dataType = glenum::glslDataType(uniform.in_->baseType(), uniform.in_->valsPerElement());
 	} else {
 		io.dataType = tex->samplerType();
 	}
@@ -246,7 +246,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		if (it.type_.empty()) {
 			auto *tex = dynamic_cast<Texture *>(in.get());
 			if (tex == nullptr) {
-				io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
+				io.dataType = glenum::glslDataType(in->baseType(), in->valsPerElement());
 			} else {
 				io.dataType = tex->samplerType();
 			}

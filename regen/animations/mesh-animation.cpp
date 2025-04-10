@@ -96,7 +96,7 @@ MeshAnimation::MeshAnimation(
 		}
 		shaderConfig[REGEN_STRING("ATTRIBUTE" << i << "_NAME")] = in->name();
 		shaderConfig[REGEN_STRING("ATTRIBUTE" << i << "_TYPE")] =
-				glenum::glslDataType(in->dataType(), in->valsPerElement());
+				glenum::glslDataType(in->baseType(), in->valsPerElement());
 		i += 1;
 	}
 	shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);

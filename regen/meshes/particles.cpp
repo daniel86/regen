@@ -80,7 +80,7 @@ ref_ptr<BufferReference> Particles::end() {
 		if (!it->in_->isVertexAttribute()) continue;
 		shaderDefine(
 				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_TYPE"),
-				glenum::glslDataType(it->in_->dataType(), it->in_->valsPerElement()));
+				glenum::glslDataType(it->in_->baseType(), it->in_->valsPerElement()));
 		shaderDefine(
 				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_NAME"),
 				it->in_->name());

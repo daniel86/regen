@@ -19,7 +19,7 @@ namespace regen {
 	 * This is transparent for shader code, as in case of TBO some defines are added such
 	 * that the shader code is generated to use TBOs instead of UBOs.
 	 */
-	class BufferContainer : public State {
+	class BufferContainer : public State, public HasInput {
 	public:
 		/**
 		 * Constructor that takes a list of all shader input objects of this container.
@@ -48,19 +48,30 @@ namespace regen {
 		 * Add a shader input to the container.
 		 * @param input the shader input object.
 		 */
-		void addInput(const NamedShaderInput &namedInput);
+		void addInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
 
 		/**
 		 * Allocate the buffers for the shader inputs.
 		 * Must be called after all inputs have been added.
 		 */
-		void allocateBuffers();
+		void updateBuffer();
+
+		/**
+		 * Get the UBO or TBO for a given shader input.
+		 * @param input the shader input object.
+		 * @return the buffer object.
+		 */
+		ref_ptr<BufferObject> getBufferObject(const ref_ptr<ShaderInput> &input);
+
+		// Override from State
+		void enable(RenderState *rs) override;
 
 	protected:
 		std::vector<NamedShaderInput> namedInputs_;
 		std::vector<ref_ptr<UBO>> ubos_;
 		std::vector<ref_ptr<TBO>> tbos_;
 		std::vector<ref_ptr<TextureBuffer>> textureBuffers_;
+		std::map<ShaderInput*, ref_ptr<BufferObject>> bufferObjectOfInput_;
 		bool isAllocated_ = true;
 		BufferUsage bufferUsage_;
 		std::string bufferName_;

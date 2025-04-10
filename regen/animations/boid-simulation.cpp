@@ -237,8 +237,10 @@ void BoidSimulation_GPU::initBuffers() {
 	// SSBO for position, one per boid
 	if (tf_.get()) {
 		// bind UBO as SSBO for writing model matrix
-		tf_->ubo()->update();
-		tfBuffer_ = ref_ptr<SSBO>::alloc(*tf_->ubo().get());
+		auto bufferContainer = tf_->bufferContainer();
+		bufferContainer->updateBuffer();
+		auto bufferObject = bufferContainer->getBufferObject(tf_->modelMat());
+		tfBuffer_ = ref_ptr<SSBO>::alloc(*bufferObject.get());
 	}
 
 	// SSBO for velocity, one per boid

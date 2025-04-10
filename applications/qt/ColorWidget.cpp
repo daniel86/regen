@@ -25,7 +25,7 @@ QColor ColorWidget::initializeColor() {
 	const byte *value = mapped.r;
 	GLuint count = input_->valsPerElement();
 	QColor color;
-	if (input_->dataType() == GL_FLOAT) {
+	if (input_->baseType() == GL_FLOAT) {
 		GLfloat r = ((GLfloat *) value)[0];
 		GLfloat g = ((GLfloat *) value)[1];
 		GLfloat b = ((GLfloat *) value)[2];
@@ -54,7 +54,7 @@ void ColorWidget::updateColor(const QColor &color) {
 	// Update the shader input
 	GLuint count = input_->valsPerElement();
 	byte *changedData = new byte[input_->elementSize()];
-	if (input_->dataType() == GL_FLOAT) {
+	if (input_->baseType() == GL_FLOAT) {
 		((GLfloat *) changedData)[0] = color.redF();
 		((GLfloat *) changedData)[1] = color.greenF();
 		((GLfloat *) changedData)[2] = color.blueF();
@@ -80,7 +80,7 @@ void ColorWidget::pickColor() {
 	auto mapped = input_->mapClientDataRaw(ShaderData::READ);
 	const byte *value = mapped.r;
 	QColor initialColor;
-	if (input_->dataType() == GL_FLOAT) {
+	if (input_->baseType() == GL_FLOAT) {
 		GLfloat r = ((GLfloat *) value)[0];
 		GLfloat g = ((GLfloat *) value)[1];
 		GLfloat b = ((GLfloat *) value)[2];
@@ -123,7 +123,7 @@ void ColorWidget::alphaChanged() {
 	// Update the alpha value in the shader input
 	auto mapped = input_->mapClientDataRaw(ShaderData::READ);
 	const byte *value = mapped.r;
-	if (input_->dataType() == GL_FLOAT) {
+	if (input_->baseType() == GL_FLOAT) {
 		((GLfloat *) value)[3] = static_cast<GLfloat>(sliderValue) / 1000.0f;
 	} else {
 		REGEN_WARN("Unsupported data type for color input.");

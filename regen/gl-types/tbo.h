@@ -10,6 +10,13 @@ namespace regen {
 	class TBO : public BufferObject {
 	public:
 		explicit TBO(BufferUsage usage);
+
+		void setBufferData(const ref_ptr<ShaderInput> &input);
+
+		auto &input() const { return input_; }
+
+	protected:
+		ref_ptr<ShaderInput> input_;
 	};
 } // namespace
 

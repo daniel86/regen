@@ -323,7 +323,10 @@ bool Shader::link() {
 	glGetProgramiv(id(), GL_LINK_STATUS, &status);
 	GL_ERROR_LOG();
 	if (status == GL_FALSE) {
-		printLog(id(), GL_NONE, nullptr, false);
+		for (auto &shaderCode: shaderCodes_) {
+			const char *source = shaderCode.second.c_str();
+			printLog(id(), shaderCode.first, source, false);
+		}
 		return false;
 	} else {
 		printLog(id(), GL_NONE, nullptr, true);

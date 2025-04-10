@@ -63,6 +63,11 @@ namespace regen {
 		 */
 		static void free(BufferReference *ref);
 
+		/**
+		 * @return the list of all allocated buffers.
+		 */
+		auto &allocations() const { return allocations_; }
+
 		unsigned int bufferID(unsigned int index = 0) const { return allocations_[index]->bufferID(); }
 
 		/**

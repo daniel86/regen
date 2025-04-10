@@ -56,6 +56,13 @@ namespace regen {
 		 */
 		BufferBlock(const BufferBlock &other);
 
+		/**
+		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
+		 * @param other another buffer object
+		 * @param name name of the new buffer block
+		 */
+		explicit BufferBlock(const BufferObject &other);
+
 		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
@@ -134,7 +141,7 @@ namespace regen {
 
 	protected:
 		StorageQualifier storageQualifier_;
-		const MemoryLayout memoryLayout_;
+		MemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
 		std::mutex mutex_;
 

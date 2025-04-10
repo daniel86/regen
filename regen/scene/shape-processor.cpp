@@ -122,7 +122,7 @@ createTriangleMesh(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 	btMesh.m_triangleIndexBase = indices_data.r;
 
 	PHY_ScalarType indexType;
-	switch (indices->dataType()) {
+	switch (indices->baseType()) {
 		case GL_FLOAT:
 			indexType = PHY_FLOAT;
 			break;
