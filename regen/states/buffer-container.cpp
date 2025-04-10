@@ -50,7 +50,8 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 }
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
-	auto inputSize = namedInput.in_->dataTypeBytes() * namedInput.in_->valsPerElement();
+	auto inputSize = namedInput.in_->dataTypeBytes() *
+		namedInput.in_->valsPerElement() * namedInput.in_->numElements();
 	auto rs = RenderState::get();
 	// create a TBO for the input
 	auto tbo = ref_ptr<TBO>::alloc(BufferUsage::USAGE_DYNAMIC);
@@ -97,7 +98,8 @@ void BufferContainer::updateBuffer() {
 	std::vector<NamedShaderInput> nextUBOInputs;
 
 	for (auto &namedInput: namedInputs_) {
-		auto inputSize = namedInput.in_->dataTypeBytes() * namedInput.in_->valsPerElement();
+		auto inputSize = namedInput.in_->dataTypeBytes() *
+		namedInput.in_->valsPerElement() * namedInput.in_->numElements();
 		if (inputSize > maxTBOSize) {
 			REGEN_WARN("Input '" << namedInput.in_->name() <<
 				"' is too large for TBO. Size: " << inputSize/1024.0 << " KB.");
