@@ -63,6 +63,11 @@ namespace regen {
 		void addDefines(const std::map<std::string, std::string> &defines);
 
 		/**
+		 * Add include paths from given map.
+		 */
+		void addIncludes(const std::vector<std::string> &includes);
+
+		/**
 		 * Add function declarations from given map.
 		 */
 		void addFunctions(const std::map<std::string, std::string> &functions);

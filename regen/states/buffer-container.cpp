@@ -66,9 +66,9 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	auto tex = ref_ptr<TextureBuffer>::alloc(namedInput.in_->dataType());
 	tex->begin(rs);
 	tex->attach(ref);
+	tex->end(rs);
 	// initially upload the data to the TBO
 	tbo->setBufferData(namedInput.in_);
-	tex->end(rs);
 	rs->textureBuffer().pop();
 	textureBuffers_.push_back(tex);
 	// and make the TBO available as a texture to the shader

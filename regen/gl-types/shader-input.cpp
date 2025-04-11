@@ -109,7 +109,7 @@ ShaderInput::~ShaderInput() {
 }
 
 GLenum ShaderInput::dataType() const {
-
+	return glenum::dataType(baseType_, valsPerElement_);
 }
 
 void ShaderInput::set_numArrayElements(GLsizei v) {
