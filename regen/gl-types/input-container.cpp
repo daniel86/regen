@@ -164,7 +164,7 @@ void InputContainer::drawElements(GLenum primitive) {
 	glDrawElements(
 			primitive,
 			numIndices_,
-			indices_->dataType(),
+			indices_->baseType(),
 			BUFFER_OFFSET(indices_->offset()));
 }
 
@@ -172,7 +172,7 @@ void InputContainer::drawElementsInstanced(GLenum primitive) {
 	glDrawElementsInstancedEXT(
 			primitive,
 			numIndices_,
-			indices_->dataType(),
+			indices_->baseType(),
 			BUFFER_OFFSET(indices_->offset()),
 			numVisibleInstances_);
 }

@@ -57,24 +57,34 @@ void BufferObject::createMemoryPools() {
 	// alignment to be set, i.e. when using shared buffers consecutive
 	// allocations need to be aligned to the size of the buffer.
 	for (int i = 0;  i < BufferUsage::USAGE_LAST; ++i) {
+		int poolIndex;
+		poolIndex = (int) TEXTURE_BUFFER * (int) BufferUsage::USAGE_LAST + i;
 #ifdef USE_SHARED_TBO_BUFFER
-		pools[(int) TEXTURE_BUFFER * (int) BufferUsage::USAGE_LAST + i]->set_alignment(
-			getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
+		pools[poolIndex]->set_alignment(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
 #else
-		pools[TEXTURE_BUFFER * BufferUsage::USAGE_LAST + i]->set_minSize(1);
+		pools[poolIndex]->set_minSize(1);
 #endif
+		// Meaning: Max number of texels, not bytes!
+		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16);
+		poolIndex = (int) UNIFORM_BUFFER * (int) BufferUsage::USAGE_LAST + i;
 #ifdef USE_SHARED_UBO_BUFFER
-		pools[(int) UNIFORM_BUFFER * (int) BufferUsage::USAGE_LAST + i]->set_alignment(
-			getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
+		pools[poolIndex]->set_alignment(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 #else
-		pools[UNIFORM_BUFFER * BufferUsage::USAGE_LAST + i]->set_minSize(1);
+		pools[poolIndex]->set_minSize(1);
 #endif
+		// common: ~64KB
+		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
+		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BufferUsage::USAGE_LAST + i;
 #ifdef USE_SHARED_SSBO_BUFFER
-		pools[(int) SHADER_STORAGE_BUFFER * (int) BufferUsage::USAGE_LAST + i]->set_alignment(
-			getGLInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
+		pools[poolIndex]->set_alignment(getGLInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
 #else
-		pools[SHADER_STORAGE_BUFFER * BufferUsage::USAGE_LAST + i]->set_minSize(1);
+		pools[poolIndex]->set_minSize(1);
 #endif
+		// common: ~2GB
+		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
+		// common: ~4KB
+		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE));
 	}
 }
 
@@ -101,7 +111,14 @@ ref_ptr<BufferReference> &BufferObject::createReference(GLuint numBytes) {
 	BufferPool *memoryPool_ = bufferPool(target_, usage_);
 	// get an allocator
 	BufferPool::Node *allocator = memoryPool_->chooseAllocator(numBytes);
-	if (allocator == nullptr) { allocator = memoryPool_->createAllocator(numBytes); }
+	if (allocator == nullptr) {
+		allocator = memoryPool_->createAllocator(numBytes);
+	}
+	if (allocator == nullptr) {
+		REGEN_ERROR("BufferObject::createReference: no allocator found for " << numBytes/1024.0 << " KB for " <<
+			"buffer target " << target_ << " and usage " << usage_);
+		return nullReference();
+	}
 
 	ref_ptr<BufferReference> ref = ref_ptr<BufferReference>::alloc();
 	ref->poolReference_ = memoryPool_->alloc(allocator, numBytes);

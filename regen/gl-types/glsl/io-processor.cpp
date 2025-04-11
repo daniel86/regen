@@ -208,7 +208,7 @@ IOProcessor::InputOutput IOProcessor::getUniformIO(const NamedShaderInput &unifo
 
 	auto *tex = dynamic_cast<Texture *>(uniform.in_.get());
 	if (tex == nullptr) {
-		io.dataType = glenum::glslDataType(uniform.in_->dataType(), uniform.in_->valsPerElement());
+		io.dataType = glenum::glslDataType(uniform.in_->baseType(), uniform.in_->valsPerElement());
 	} else {
 		io.dataType = tex->samplerType();
 	}
@@ -246,7 +246,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		if (it.type_.empty()) {
 			auto *tex = dynamic_cast<Texture *>(in.get());
 			if (tex == nullptr) {
-				io.dataType = glenum::glslDataType(in->dataType(), in->valsPerElement());
+				io.dataType = glenum::glslDataType(in->baseType(), in->valsPerElement());
 			} else {
 				io.dataType = tex->samplerType();
 			}
@@ -256,11 +256,16 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		GLuint numElements = in->numArrayElements() * in->numInstances();
 		io.numElements = (numElements > 1 || in->forceArray()) ?
 						 REGEN_STRING(numElements) : "";
-		if (in->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
+		if (io.dataType == "samplerBuffer") {
+			io.name = "tbo_" + nameWithoutPrefix;
+			io.numElements = "";
+		}
+		else if (in->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
 			io.name = "instances_" + nameWithoutPrefix;
 			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix <<
 					" instances_" << nameWithoutPrefix << "[regen_InstanceID]"));
-		} else {
+		}
+		else {
 			io.name = "in_" + nameWithoutPrefix;
 		}
 

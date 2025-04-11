@@ -60,6 +60,9 @@ void Shader::preProcess(
 		}
 	}
 	header << "#include regen.defines.regen_InstanceID" << std::endl;
+	for (const auto &path: cfg.includes) {
+		header << "#include " << path << std::endl;
+	}
 	std::string headerStr = header.str();
 
 	// load the GLSL code.
@@ -320,7 +323,10 @@ bool Shader::link() {
 	glGetProgramiv(id(), GL_LINK_STATUS, &status);
 	GL_ERROR_LOG();
 	if (status == GL_FALSE) {
-		printLog(id(), GL_NONE, nullptr, false);
+		for (auto &shaderCode: shaderCodes_) {
+			const char *source = shaderCode.second.c_str();
+			printLog(id(), shaderCode.first, source, false);
+		}
 		return false;
 	} else {
 		printLog(id(), GL_NONE, nullptr, true);
@@ -375,6 +381,8 @@ void Shader::setupInputLocations() {
 		}
 		if (hasPrefix(uniformName, "instances_")) {
 			uniformName = truncPrefix(uniformName, "instances_");
+		} else if (hasPrefix(uniformName, "tbo_")) {
+			uniformName = truncPrefix(uniformName, "tbo_");
 		}
 		uniformLocations_[std::string(nameC)] = loc;
 		uniformLocations_[uniformName] = loc;

@@ -17,7 +17,6 @@ using namespace regen;
 
 ModelTransformation::ModelTransformation()
 		: State(),
-		  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
 		  lastPosition_(0.0, 0.0, 0.0) {
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
 	modelMat_->setUniformData(Mat4f::identity());
@@ -26,10 +25,10 @@ ModelTransformation::ModelTransformation()
 	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
 	velocity_->setUniformData(Vec3f(0.0f));
 
-	ubo_ = ref_ptr<UBO>::alloc("ModelTransformation");
-	ubo_->addBlockInput(modelMat_);
-	ubo_->addBlockInput(velocity_);
-	setInput(ubo_);
+	bufferContainer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation");
+	bufferContainer_->addInput(modelMat_);
+	bufferContainer_->addInput(velocity_);
+	joinStates(bufferContainer_);
 }
 
 const ref_ptr<ShaderInputMat4> &ModelTransformation::get() const { return modelMat_; }
@@ -476,15 +475,12 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 			for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
 		}
 		// update numInstances
-		transform->setInput(transform->get());
 		transformMatrix(scene, input, state, ctx.parent(), transform, numInstances);
 	} else {
 		transformMatrix(scene, input, state, ctx.parent(), transform, 1u);
-		if (transform->get()->numInstances() > 1) {
-			transform->setInput(transform->get());
-		}
 	}
 
+	transform->bufferContainer()->updateBuffer();
 	state->joinStates(transform);
 	scene->putResource<ModelTransformation>(input.getName(), transform);
 	return transform;

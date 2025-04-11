@@ -68,15 +68,15 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<st
 }
 
 GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode) {
-	const std::list<NamedShaderInput> specifiedInput = cfg.inputs_;
-	const std::map<std::string, ref_ptr<Texture> > &textures = cfg.textures_;
-	const std::map<std::string, std::string> &shaderConfig = cfg.defines_;
-	const std::map<std::string, std::string> &shaderFunctions = cfg.functions_;
 	std::map<GLenum, std::string> processedCode;
 
-	PreProcessorConfig preProcessCfg(cfg.version(),
-									 unprocessedCode, shaderConfig,
-									 shaderFunctions, specifiedInput);
+	PreProcessorConfig preProcessCfg(
+			cfg.version(),
+			unprocessedCode,
+			cfg.defines_,
+			cfg.functions_,
+			cfg.inputs_,
+			cfg.includes_);
 	Shader::preProcess(processedCode, preProcessCfg);
 	shader_ = ref_ptr<Shader>::alloc(processedCode);
 	// setup transform feedback attributes
@@ -98,8 +98,8 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 		set_isHidden(false);
 	}
 
-	shader_->setInputs(specifiedInput);
-	for (const auto & texture : textures) {
+	shader_->setInputs(cfg.inputs_);
+	for (const auto & texture : cfg.textures_) {
 		shader_->setTexture(texture.second, texture.first);
 	}
 

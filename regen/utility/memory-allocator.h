@@ -85,6 +85,11 @@ namespace regen {
 		void set_minSize(unsigned int size) { minSize_ = size; }
 
 		/**
+		 * @param size max size of automatically instantiated allocators.
+		 */
+		void set_maxSize(unsigned int size) { maxSize_ = size; }
+
+		/**
 		 * Allocated memory will be aligned to be an integer multiplication
 		 * of the alignment.
 		 * @param alignment the memory alignment.
@@ -115,6 +120,11 @@ namespace regen {
 		 * @param size the allocator size.
 		 */
 		Node *createAllocator(unsigned int size) {
+			if (maxSize_ > 0 && size > maxSize_) {
+				REGEN_ERROR("Allocator size " << size/1024.0 <<
+					" KB exceeds maximum size " << maxSize_ /1024.0 << " KB.");
+				return nullptr;
+			}
 			unsigned int actualSize = align(size > minSize_ ? size : minSize_);
 			Node *x = new Node(this, actualSize);
 			x->prev = nullptr;
@@ -223,6 +233,7 @@ namespace regen {
 	protected:
 		Node *allocators_;
 		unsigned int minSize_;
+		unsigned int maxSize_ = 0;
 		unsigned int alignment_;
 		unsigned int index_;
 

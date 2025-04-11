@@ -34,6 +34,7 @@ namespace regen {
 		StateConfig(const StateConfig &other) {
 			functions_ = other.functions_;
 			defines_ = other.defines_;
+			includes_ = other.includes_;
 			inputs_ = other.inputs_;
 			textures_ = other.textures_;
 			feedbackAttributes_ = other.feedbackAttributes_;
@@ -56,6 +57,10 @@ namespace regen {
 		 * Macro key-value map. Macros are prepended to loaded shaders.
 		 */
 		std::map<std::string, std::string> defines_;
+		/**
+		 * GLSL code to be included.
+		 */
+		std::vector<std::string> includes_;
 		/**
 		 * User defined GLSL functions for the shader.
 		 */
@@ -80,6 +85,10 @@ namespace regen {
 		 * Capture output of this shader stage.
 		 */
 		GLenum feedbackStage_;
+		/**
+		 * Number of object instances used in the shader.
+		 */
+		unsigned int numInstances_ = 1;
 
 	protected:
 		GLuint version_;

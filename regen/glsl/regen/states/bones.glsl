@@ -31,10 +31,10 @@ int boneMatrixIndex(uint i) {
 mat4 fetchBoneMatrix(uint i) {
     int matIndex = boneMatrixIndex(i);
     return mat4(
-        texelFetch(in_boneMatrices, matIndex),
-        texelFetch(in_boneMatrices, matIndex+1),
-        texelFetch(in_boneMatrices, matIndex+2),
-        texelFetch(in_boneMatrices, matIndex+3)
+        texelFetch(tbo_boneMatrices, matIndex),
+        texelFetch(tbo_boneMatrices, matIndex+1),
+        texelFetch(tbo_boneMatrices, matIndex+2),
+        texelFetch(tbo_boneMatrices, matIndex+3)
     );
 }
 

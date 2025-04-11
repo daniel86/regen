@@ -29,19 +29,19 @@ NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
 		name_ = in->name();
 	}
 	if (type_.empty()) {
-		type_ = glenum::glslDataType(in->dataType(), in->valsPerElement());
+		type_ = glenum::glslDataType(in->baseType(), in->valsPerElement());
 	}
 }
 
 ShaderInput::ShaderInput(
 		const std::string &name,
-		GLenum dataType,
+		GLenum baseType,
 		GLuint dataTypeBytes,
 		GLint valsPerElement,
 		GLsizei numArrayElements,
 		GLboolean normalize)
 		: name_(name),
-		  dataType_(dataType),
+		  baseType_(baseType),
 		  dataTypeBytes_(dataTypeBytes),
 		  stride_(0),
 		  offset_(0),
@@ -68,7 +68,7 @@ ShaderInput::ShaderInput(
 
 ShaderInput::ShaderInput(const ShaderInput &o)
 		: name_(o.name_),
-		  dataType_(o.dataType_),
+		  baseType_(o.baseType_),
 		  dataTypeBytes_(o.dataTypeBytes_),
 		  stride_(o.stride_),
 		  offset_(o.offset_),
@@ -106,6 +106,10 @@ ShaderInput::~ShaderInput() {
 		BufferObject::free(bufferIterator_.get());
 	}
 	deallocateClientData();
+}
+
+GLenum ShaderInput::dataType() const {
+	return glenum::dataType(baseType_, valsPerElement_);
 }
 
 void ShaderInput::set_numArrayElements(GLsizei v) {
@@ -581,10 +585,10 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 	}
 
 	const std::string &name = in->name();
-	GLenum dataType = in->dataType();
+	GLenum baseType = in->baseType();
 	GLuint valsPerElement = in->valsPerElement();
 
-	switch (dataType) {
+	switch (baseType) {
 		case GL_FLOAT:
 			switch (valsPerElement) {
 				case 16:
@@ -679,7 +683,7 @@ void ShaderInput::enableAttributef(GLint location) const {
 		glVertexAttribPointer(
 				loc,
 				valsPerElement_,
-				dataType_,
+				baseType_,
 				normalize_,
 				stride_,
 				BUFFER_OFFSET(offset_));
@@ -698,7 +702,7 @@ void ShaderInput::enableAttributei(GLint location) const {
 		glVertexAttribIPointer(
 				loc,
 				valsPerElement_,
-				dataType_,
+				baseType_,
 				stride_,
 				BUFFER_OFFSET(offset_));
 		if (divisor_ != 0) {
@@ -720,16 +724,16 @@ void ShaderInput::enableAttributeMat4(GLint location) const {
 		glEnableVertexAttribArray(loc3);
 
 		glVertexAttribPointer(loc0,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 		glVertexAttribPointer(loc2,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 8));
 		glVertexAttribPointer(loc3,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 12));
 
 		if (divisor_ != 0) {
@@ -752,13 +756,13 @@ void ShaderInput::enableAttributeMat3(GLint location) const {
 		glEnableVertexAttribArray(loc2);
 
 		glVertexAttribPointer(loc0,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 		glVertexAttribPointer(loc2,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 8));
 
 		if (divisor_ != 0) {
@@ -778,10 +782,10 @@ void ShaderInput::enableAttributeMat2(GLint location) const {
 		glEnableVertexAttribArray(loc1);
 
 		glVertexAttribPointer(loc0,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
-							  4, dataType_, normalize_, stride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 
 		if (divisor_ != 0) {

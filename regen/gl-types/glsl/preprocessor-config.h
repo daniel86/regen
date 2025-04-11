@@ -14,17 +14,16 @@ namespace regen {
 		PreProcessorConfig(
 				GLuint _version,
 				const std::map<GLenum, std::string> &_unprocessed,
-				const std::map<std::string, std::string> &_defines =
-				std::map<std::string, std::string>(),
-				const std::map<std::string, std::string> &_externalFunctions =
-				std::map<std::string, std::string>(),
-				const std::list<NamedShaderInput> &_specifiedInput =
-				std::list<NamedShaderInput>())
+				const std::map<std::string, std::string> &_defines = std::map<std::string, std::string>(),
+				const std::map<std::string, std::string> &_externalFunctions = std::map<std::string, std::string>(),
+				const std::list<NamedShaderInput> &_specifiedInput = std::list<NamedShaderInput>(),
+				const std::vector<std::string> &_includes = std::vector<std::string>())
 				: version(_version),
 				  unprocessed(_unprocessed),
 				  defines(_defines),
 				  externalFunctions(_externalFunctions),
-				  specifiedInput(_specifiedInput) {}
+				  specifiedInput(_specifiedInput),
+				  includes(_includes) {}
 
 		/** GLSL version. */
 		GLuint version;
@@ -36,6 +35,8 @@ namespace regen {
 		const std::map<std::string, std::string> &externalFunctions;
 		/** Input data specification. */
 		const std::list<NamedShaderInput> &specifiedInput;
+		/** Included GLSL code. */
+		const std::vector<std::string> &includes;
 	};
 } // namespace
 

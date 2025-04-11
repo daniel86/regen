@@ -108,7 +108,11 @@ void Mesh::updateVAO(
 		const ref_ptr<Shader> &meshShader) {
 	// remember the shader
 	meshShader_ = meshShader;
-	hasInstances_ = GL_FALSE;
+	hasInstances_ = cfg.numInstances_ > 1;
+	if (cfg.numInstances_ > 1) {
+		inputContainer()->set_numInstances(cfg.numInstances_);
+		shaderDefine("HAS_INSTANCES", "TRUE");
+	}
 
 	// reset attribute list
 	vaoAttributes_.clear();

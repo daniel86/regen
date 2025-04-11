@@ -95,6 +95,7 @@ void StateConfigurer::addState(const State *s) {
 				}
 				if (in->numInstances() > 1) {
 					define("HAS_INSTANCES", "TRUE");
+					cfg_.numInstances_ = in->numInstances();
 				}
 
 				if (in->isBufferBlock()) {
@@ -104,6 +105,10 @@ void StateConfigurer::addState(const State *s) {
 					}
 				}
 			}
+		}
+		if (container->numInstances()>1) {
+			define("HAS_INSTANCES", "TRUE");
+			cfg_.numInstances_ = container->numInstances();
 		}
 	}
 	if (x1) {
@@ -129,6 +134,7 @@ void StateConfigurer::addState(const State *s) {
 
 	setVersion(s->shaderVersion());
 	addDefines(s->shaderDefines());
+	addIncludes(s->shaderIncludes());
 	addFunctions(s->shaderFunctions());
 
 	if (x3) {
@@ -145,6 +151,12 @@ void StateConfigurer::addState(const State *s) {
 void StateConfigurer::addDefines(const std::map<std::string, std::string> &defines) {
 	for (auto it = defines.begin(); it != defines.end(); ++it) {
 		define(it->first, it->second);
+	}
+}
+
+void StateConfigurer::addIncludes(const std::vector<std::string> &includes) {
+	for (const auto & include : includes) {
+		cfg_.includes_.push_back(include);
 	}
 }
 

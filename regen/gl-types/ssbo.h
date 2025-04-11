@@ -27,10 +27,10 @@ namespace regen {
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
-		 * @param other another buffer block
+		 * @param other another buffer object
 		 * @param name name of the new buffer block
 		 */
-		explicit SSBO(const BufferBlock &other, const std::string &name="");
+		explicit SSBO(const BufferObject &other, const std::string &name="");
 
 		void set_memoryQualifier(MemoryQualifier qualifier) { memoryQualifier_ = qualifier; }
 

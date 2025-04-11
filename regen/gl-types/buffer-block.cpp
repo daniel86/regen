@@ -30,21 +30,44 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 	// TODO: avoid duplicate copy of data in update!
 }
 
+BufferBlock::BufferBlock(const BufferObject &other)
+		: BufferObject(other),
+		  storageQualifier_(BufferBlock::BUFFER),
+		  memoryLayout_(BufferBlock::STD430) {
+	// TODO: avoid duplicate copy of data in update!
+	auto block = dynamic_cast<const BufferBlock *>(&other);
+	if (block != nullptr) {
+		storageQualifier_ = block->storageQualifier_;
+		memoryLayout_ = block->memoryLayout_;
+		inputs_ = block->inputs_;
+		blockInputs_ = block->blockInputs_;
+		requiredSize_ = block->requiredSize_;
+		stamp_ = block->stamp_;
+		ref_ = block->ref_;
+	}
+	else {
+		auto tbo = dynamic_cast<const TBO *>(&other);
+		if (tbo != nullptr) {
+			inputs_.emplace_back(tbo->input(), tbo->input()->name());
+			auto &bi = blockInputs_.emplace_back();
+			bi.input = tbo->input();
+			bi.offset = 0;
+			bi.lastStamp = tbo->input()->stamp();
+			if (!tbo->allocations().empty()) {
+				ref_ = tbo->allocations()[0];
+			}
+		} else {
+			REGEN_WARN("BufferBlock: Unable to copy buffer object of unknown type.");
+		}
+	}
+}
+
 void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
 	auto &uboInput = blockInputs_.emplace_back();
 	uboInput.input = input;
 	uboInput.offset = 0;
 	uboInput.lastStamp = 0;
 	inputs_.emplace_back(input, name);
-}
-
-void BufferBlock::updateBlockInput(const ref_ptr<ShaderInput> &input) {
-	for (auto &uboInput: blockInputs_) {
-		if (uboInput.input.get() == input.get()) {
-			uboInput.lastStamp = 0;
-			return;
-		}
-	}
 }
 
 void BufferBlock::updateBlockInputs() {
@@ -131,6 +154,7 @@ void BufferBlock::updateAlignedData(BlockInput &uboInput) {
 }
 
 void BufferBlock::update(bool forceUpdate) {
+	if (!isBlockValid_) return;
 	updateBlockInputs();
 	bool needsResize = allocatedSize_ != requiredSize_;
 	bool needUpdate = hasNewStamp_ || needsResize || forceUpdate;
@@ -142,6 +166,14 @@ void BufferBlock::update(bool forceUpdate) {
 			free(ref_.get());
 		}
 		ref_ = allocBytes(requiredSize_);
+		if (!ref_.get()) {
+			REGEN_ERROR("BufferBlock::update: failed to allocate buffer. "
+						"Setting buffer state to \"invalid\".");
+			isBlockValid_ = false;
+			return;
+		} else {
+			isBlockValid_ = true;
+		}
 		allocatedSize_ = requiredSize_;
 		GL_ERROR_LOG();
 	}
@@ -189,6 +221,7 @@ void BufferBlock::update(bool forceUpdate) {
 }
 
 void BufferBlock::enableBufferBlock(GLint loc) {
+	if (!isBlockValid_) return;
 	update();
 	bind(loc);
 }

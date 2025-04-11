@@ -68,6 +68,10 @@ ref_ptr<BufferReference> Particles::end() {
 
 	particleRef_ = HasInput::end();
 	feedbackRef_ = feedbackBuffer_->allocBytes(particleRef_->allocatedSize());
+	if (feedbackRef_.get() == nullptr) {
+		REGEN_WARN("Unable to allocate VBO for particles. Particles will not work.");
+		return particleRef_;
+	}
 	bufferRange_.size_ = particleRef_->allocatedSize();
 
 	// Create shader defines.
@@ -76,7 +80,7 @@ ref_ptr<BufferReference> Particles::end() {
 		if (!it->in_->isVertexAttribute()) continue;
 		shaderDefine(
 				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_TYPE"),
-				glenum::glslDataType(it->in_->dataType(), it->in_->valsPerElement()));
+				glenum::glslDataType(it->in_->baseType(), it->in_->valsPerElement()));
 		shaderDefine(
 				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_NAME"),
 				it->in_->name());
@@ -260,6 +264,10 @@ void Particles::createUpdateShader(const ShaderInputList &inputs) {
 }
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt) {
+	if (!feedbackRef_.get()) {
+		return;
+	}
+
 	rs->toggles().push(RenderState::RASTERIZER_DISCARD, GL_TRUE);
 	updateState_->enable(rs);
 

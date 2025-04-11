@@ -76,7 +76,7 @@ namespace regen {
 
 		/**
 		 * @param name Name of this attribute used in shader programs.
-		 * @param dataType Specifies the data type of each component in the array.
+		 * @param baseType Specifies the data type of each component in the array.
 		 * @param dataTypeBytes Size of a single instance of the data type in bytes.
 		 * @param valsPerElement Specifies the number of components per generic vertex attribute.
 		 * @param numArrayElements Number of array elements.
@@ -84,7 +84,7 @@ namespace regen {
 		 */
 		ShaderInput(
 				const std::string &name,
-				GLenum dataType,
+				GLenum baseType,
 				GLuint dataTypeBytes,
 				GLint valsPerElement,
 				GLsizei numArrayElements,
@@ -133,7 +133,13 @@ namespace regen {
 		 * Specifies the data type of each component in the array.
 		 * Symbolic constants GL_FLOAT,GL_DOUBLE,.. accepted.
 		 */
-		GLenum dataType() const { return dataType_; }
+		GLenum baseType() const { return baseType_; }
+
+		/**
+		 * Specified the complex data type, e.g. GL_RGBA32F for Vec4f.
+		 * @return the complex data type.
+		 */
+		GLenum dataType() const;
 
 		/**
 		 * Size of a single instance of the data type in bytes.
@@ -473,7 +479,7 @@ namespace regen {
 
 	protected:
 		std::string name_;
-		GLenum dataType_;
+		GLenum baseType_;
 		GLuint dataTypeBytes_;
 		GLsizei stride_;
 		GLuint offset_;
@@ -575,6 +581,7 @@ namespace regen {
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
 		/** the name overwrite. */
+		// TODO: could use global atom table for shader input names
 		std::string name_;
 		/** the type overwrite. */
 		std::string type_;

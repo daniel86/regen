@@ -12,6 +12,7 @@
 #include <regen/math/quaternion.h>
 #include <regen/gl-types/input-container.h>
 #include <regen/states/state.h>
+#include "buffer-container.h"
 
 namespace regen {
 	/**
@@ -20,7 +21,7 @@ namespace regen {
 	 * Usually meshes should be defined at origin and then translated
 	 * and rotated to the world position.
 	 */
-	class ModelTransformation : public State, public HasInput {
+	class ModelTransformation : public State {
 	public:
 		static constexpr const char *TYPE_NAME = "ModelTransformation";
 
@@ -31,12 +32,22 @@ namespace regen {
 		/**
 		 * @return the model transformation matrix.
 		 */
+		auto &modelMat() { return modelMat_; }
+
+		/**
+		 * @return the model velocity.
+		 */
+		auto &velocity() { return velocity_; }
+
+		/**
+		 * @return the model transformation matrix.
+		 */
 		const ref_ptr<ShaderInputMat4> &get() const;
 
 		/**
 		 * @return The buffer object that contains the model transformation matrix.
 		 */
-		auto& ubo() const { return ubo_; }
+		auto& bufferContainer() const { return bufferContainer_; }
 
 		/**
 		 * @param audioSource the audio source attached to the world position
@@ -56,7 +67,7 @@ namespace regen {
 	protected:
 		ref_ptr<ShaderInputMat4> modelMat_;
 		ref_ptr<ShaderInput3f> velocity_;
-		ref_ptr<UBO> ubo_;
+		ref_ptr<BufferContainer> bufferContainer_;
 
 		ref_ptr<AudioSource> audioSource_;
 

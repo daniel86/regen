@@ -56,6 +56,13 @@ namespace regen {
 		 */
 		BufferBlock(const BufferBlock &other);
 
+		/**
+		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
+		 * @param other another buffer object
+		 * @param name name of the new buffer block
+		 */
+		explicit BufferBlock(const BufferObject &other);
+
 		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
@@ -106,11 +113,6 @@ namespace regen {
 		void addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
 
 		/**
-		 * @param input the shader input.
-		 */
-		void updateBlockInput(const ref_ptr<ShaderInput> &input);
-
-		/**
 		 * @return the list of uniforms.
 		 */
 		auto &blockInputs() const { return inputs_; }
@@ -139,7 +141,7 @@ namespace regen {
 
 	protected:
 		StorageQualifier storageQualifier_;
-		const MemoryLayout memoryLayout_;
+		MemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
 		std::mutex mutex_;
 
@@ -173,6 +175,7 @@ namespace regen {
 		unsigned int stamp_ = 0;
 		bool hasNewStamp_ = false;
 		bool hasClientData_ = false;
+		bool isBlockValid_ = true;
 
 		void updateBlockInputs();
 
