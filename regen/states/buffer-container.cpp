@@ -50,30 +50,17 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 }
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
-	auto inputSize = namedInput.in_->dataTypeBytes() *
-		namedInput.in_->valsPerElement() * namedInput.in_->numElements();
 	auto rs = RenderState::get();
 	// create a TBO for the input
 	auto tbo = ref_ptr<TBO>::alloc(BufferUsage::USAGE_DYNAMIC);
-	auto ref = tbo->allocBytes(inputSize);
-	if (!ref.get()) {
-		REGEN_WARN("Unable to allocate TBO for input '" << namedInput.in_->name() << "'.");
-		return;
-	}
+	tbo->setBufferInput(namedInput.in_);
 	tbos_.push_back(tbo);
-	// attach buffer to texture
-	rs->textureBuffer().push(ref->bufferID());
-	auto tex = ref_ptr<TextureBuffer>::alloc(namedInput.in_->dataType());
-	tex->begin(rs);
-	tex->attach(ref);
-	tex->end(rs);
+	textureBuffers_.push_back(tbo->tboTexture());
 	// initially upload the data to the TBO
-	tbo->setBufferData(namedInput.in_);
-	rs->textureBuffer().pop();
-	textureBuffers_.push_back(tex);
+	tbo->updateTBO();
+
 	// and make the TBO available as a texture to the shader
-	auto texState = ref_ptr<TextureState>::alloc(tex,
-		REGEN_STRING("tbo_" << namedInput.name_));
+	auto texState = ref_ptr<TextureState>::alloc(tbo->tboTexture(), namedInput.name_);
 	texState->set_mapping(TextureState::MAPPING_CUSTOM);
 	texState->set_mapTo(TextureState::MAP_TO_CUSTOM);
 	joinStates(texState);
@@ -84,7 +71,7 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	shaderInclude(REGEN_STRING("regen.buffer.tbo." << shaderType));
 	shaderDefine(
 	 		REGEN_STRING("in_" << namedInput.name_),
-	 		REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", regen_InstanceID)"));
+	 		REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(regen_InstanceID))"));
 	bufferObjectOfInput_[namedInput.in_.get()] = tbo;
 }
 
@@ -92,20 +79,22 @@ void BufferContainer::updateBuffer() {
 	if (isAllocated_) return;
 	isAllocated_ = true;
 
-	auto maxUBOSize = getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE);
-	auto maxTBOSize = getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16;
+	static auto maxUBOSize = getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE);
+	static auto maxTBOSize = getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16;
 	unsigned int uboSize = 0u;
 	std::vector<NamedShaderInput> nextUBOInputs;
 
 	for (auto &namedInput: namedInputs_) {
-		auto inputSize = namedInput.in_->dataTypeBytes() *
-		namedInput.in_->valsPerElement() * namedInput.in_->numElements();
+		auto inputSize = namedInput.in_->inputSize();
 		if (inputSize > maxTBOSize) {
 			REGEN_WARN("Input '" << namedInput.in_->name() <<
 				"' is too large for TBO. Size: " << inputSize/1024.0 << " KB.");
 		}
 		else if (inputSize > maxUBOSize) {
 			createTBO(namedInput);
+			if (namedInput.in_->numInstances() > 1) {
+				inputContainer()->set_numInstances(namedInput.in_->numInstances());
+			}
 		}
 		else {
 			if (uboSize + inputSize > maxUBOSize) {
@@ -115,12 +104,13 @@ void BufferContainer::updateBuffer() {
 			}
 			nextUBOInputs.push_back(namedInput);
 			uboSize += inputSize;
+			setInput(namedInput.in_);
 		}
-		setInput(namedInput.in_);
 	}
 	if (!nextUBOInputs.empty()) {
 		createUBO(nextUBOInputs);
 	}
+	GL_ERROR_LOG();
 }
 
 ref_ptr<BufferObject> BufferContainer::getBufferObject(const ref_ptr<ShaderInput> &input) {
@@ -129,5 +119,12 @@ ref_ptr<BufferObject> BufferContainer::getBufferObject(const ref_ptr<ShaderInput
 
 void BufferContainer::enable(RenderState *rs) {
 	updateBuffer();
+	for (auto &tbo: tbos_) {
+		// update TBO in case client data changed
+		// TODO: UBO uses ShaderInput interface for update, would be good to unify!
+		//         one option would be to only do it here, as probably UBO/TBO won't be
+		//         used much without this container.
+		tbo->updateTBO();
+	}
 	State::enable(rs);
 }

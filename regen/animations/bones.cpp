@@ -41,24 +41,13 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	boneMatrices_->setUniformUntyped();
 
 #ifdef USE_BONE_TBO
-	bufferSize_ = sizeof(GLfloat) * 16 * bones_.size();
-	vboRef_ = inputContainer_->inputBuffer()->allocBytes(bufferSize_);
-	if (!vboRef_.get()) {
-		REGEN_WARN("Unable to allocate VBO for bone matrices. Animation will not work.");
-		return;
-	}
-
-	// attach vbo to texture
-	rs->textureBuffer().push(vboRef_->bufferID());
-	boneMatrixTex_ = ref_ptr<TextureBuffer>::alloc(GL_RGBA32F);
-	boneMatrixTex_->begin(rs);
-	boneMatrixTex_->attach(vboRef_);
-	boneMatrixTex_->end(rs);
-	rs->textureBuffer().pop();
+	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BufferUsage::USAGE_DYNAMIC);
+	boneMatrixTBO_->setBufferInput(boneMatrices_);
+	bufferSize_ = boneMatrices_->inputSize();
 
 	// and make the tbo available
 	if (texState_.get()) disjoinStates(texState_);
-	texState_ = ref_ptr<TextureState>::alloc(boneMatrixTex_, "boneMatrices");
+	texState_ = ref_ptr<TextureState>::alloc(boneMatrixTBO_->tboTexture(), "boneMatrices");
 	texState_->set_mapping(TextureState::MAPPING_CUSTOM);
 	texState_->set_mapTo(TextureState::MAP_TO_CUSTOM);
 	joinStates(texState_);
@@ -90,13 +79,7 @@ void Bones::animate(GLdouble dt) {
 
 void Bones::glAnimate(RenderState *rs, GLdouble dt) {
 	if (bufferSize_ <= 0) return;
-	auto mapped = boneMatrices_->mapClientData<Mat4f>(ShaderData::READ);
-	auto *boneMatrixData_ = mapped.r;
-
 #ifdef USE_BONE_TBO
-	rs->textureBuffer().push(vboRef_->bufferID());
-	glBufferSubData(GL_TEXTURE_BUFFER,
-					vboRef_->address(), bufferSize_, &boneMatrixData_[0].x);
-	rs->textureBuffer().pop();
+	boneMatrixTBO_->updateTBO();
 #endif
 }

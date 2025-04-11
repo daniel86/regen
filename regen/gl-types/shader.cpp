@@ -381,6 +381,8 @@ void Shader::setupInputLocations() {
 		}
 		if (hasPrefix(uniformName, "instances_")) {
 			uniformName = truncPrefix(uniformName, "instances_");
+		} else if (hasPrefix(uniformName, "tbo_")) {
+			uniformName = truncPrefix(uniformName, "tbo_");
 		}
 		uniformLocations_[std::string(nameC)] = loc;
 		uniformLocations_[uniformName] = loc;

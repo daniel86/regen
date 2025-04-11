@@ -58,24 +58,24 @@ void BufferObject::createMemoryPools() {
 	// allocations need to be aligned to the size of the buffer.
 	for (int i = 0;  i < BufferUsage::USAGE_LAST; ++i) {
 		int poolIndex;
-#ifdef USE_SHARED_TBO_BUFFER
 		poolIndex = (int) TEXTURE_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+#ifdef USE_SHARED_TBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
 #else
 		pools[poolIndex]->set_minSize(1);
 #endif
 		// Meaning: Max number of texels, not bytes!
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16);
-#ifdef USE_SHARED_UBO_BUFFER
 		poolIndex = (int) UNIFORM_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+#ifdef USE_SHARED_UBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 #else
 		pools[poolIndex]->set_minSize(1);
 #endif
 		// common: ~64KB
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
-#ifdef USE_SHARED_SSBO_BUFFER
 		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+#ifdef USE_SHARED_SSBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
 #else
 		pools[poolIndex]->set_minSize(1);

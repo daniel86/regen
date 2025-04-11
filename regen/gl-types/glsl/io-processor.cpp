@@ -256,11 +256,16 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		GLuint numElements = in->numArrayElements() * in->numInstances();
 		io.numElements = (numElements > 1 || in->forceArray()) ?
 						 REGEN_STRING(numElements) : "";
-		if (in->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
+		if (io.dataType == "samplerBuffer") {
+			io.name = "tbo_" + nameWithoutPrefix;
+			io.numElements = "";
+		}
+		else if (in->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
 			io.name = "instances_" + nameWithoutPrefix;
 			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix <<
 					" instances_" << nameWithoutPrefix << "[regen_InstanceID]"));
-		} else {
+		}
+		else {
 			io.name = "in_" + nameWithoutPrefix;
 		}
 

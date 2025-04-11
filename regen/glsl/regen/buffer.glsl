@@ -73,7 +73,8 @@
 -- tbo.mat3
 #ifndef regen_tboRead_mat3_defined_
 #define2 regen_tboRead_mat3_defined_
-mat3 tboRead_mat3(samplerBuffer tbo, int i) {
+mat3 tboRead_mat3(samplerBuffer tbo, int objectIndex) {
+    int i = objectIndex * 3;
     return mat3(
         texelFetch(tbo, i).rgb,
         texelFetch(tbo, i+1).rgb,
@@ -84,7 +85,8 @@ mat3 tboRead_mat3(samplerBuffer tbo, int i) {
 -- tbo.mat4
 #ifndef regen_tboRead_mat4_defined_
 #define2 regen_tboRead_mat4_defined_
-mat4 tboRead_mat4(samplerBuffer tbo, int i) {
+mat4 tboRead_mat4(samplerBuffer tbo, int objectIndex) {
+    int i = objectIndex * 4;
     return mat4(
         texelFetch(tbo, i).rgba,
         texelFetch(tbo, i+1).rgba,

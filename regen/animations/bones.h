@@ -49,9 +49,8 @@ namespace regen {
 		ref_ptr<ShaderInput1i> numBoneWeights_;
 		GLuint bufferSize_;
 
-		ref_ptr<TextureBuffer> boneMatrixTex_;
+		ref_ptr<TBO> boneMatrixTBO_;
 		ref_ptr<TextureState> texState_;
-		ref_ptr<BufferReference> vboRef_;
 		ref_ptr<ShaderInputMat4> boneMatrices_;
 	};
 } // namespace

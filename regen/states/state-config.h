@@ -85,6 +85,10 @@ namespace regen {
 		 * Capture output of this shader stage.
 		 */
 		GLenum feedbackStage_;
+		/**
+		 * Number of object instances used in the shader.
+		 */
+		unsigned int numInstances_ = 1;
 
 	protected:
 		GLuint version_;

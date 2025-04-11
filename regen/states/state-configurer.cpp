@@ -95,6 +95,7 @@ void StateConfigurer::addState(const State *s) {
 				}
 				if (in->numInstances() > 1) {
 					define("HAS_INSTANCES", "TRUE");
+					cfg_.numInstances_ = in->numInstances();
 				}
 
 				if (in->isBufferBlock()) {
@@ -104,6 +105,10 @@ void StateConfigurer::addState(const State *s) {
 					}
 				}
 			}
+		}
+		if (container->numInstances()>1) {
+			define("HAS_INSTANCES", "TRUE");
+			cfg_.numInstances_ = container->numInstances();
 		}
 	}
 	if (x1) {
