@@ -5,5 +5,5 @@ file(GLOB HEADER_FILES *.h)
 
 install(
     FILES ${HEADER_FILES}
-    DESTINATION ${HEADER_INSTALL_PATH}/meshes/primitives
+    DESTINATION ${HEADER_INSTALL_PATH}/meshes/lod
 )

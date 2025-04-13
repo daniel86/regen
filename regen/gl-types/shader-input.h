@@ -425,6 +425,13 @@ namespace regen {
 		GLboolean hasClientData() const;
 
 		/**
+		 * Obtains the client data without locking.
+		 * Be sure that no other thread is writing to the data at the same time.
+		 * @return the client data.
+		 */
+		byte *clientData() const { return dataSlots_[lastDataSlot()]; }
+
+		/**
 		 * Returns true if this attribute was uploaded to GL already.
 		 */
 		GLboolean hasServerData() const;

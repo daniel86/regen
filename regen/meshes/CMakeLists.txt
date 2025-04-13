@@ -8,7 +8,7 @@ install(
     DESTINATION ${HEADER_INSTALL_PATH}/meshes
 )
 
-foreach(DIR primitives)
+foreach(DIR primitives lod)
     add_subdirectory(${DIR})
     get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
     list(APPEND SOURCES ${BUFFER})

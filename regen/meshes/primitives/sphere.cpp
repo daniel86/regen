@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include "../tessellation.h"
+#include "../lod/tessellation.h"
 #include "sphere.h"
 
 using namespace regen;

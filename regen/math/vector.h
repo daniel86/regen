@@ -1,12 +1,5 @@
-/*
- * vector.h
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
-#ifndef ___VECTOR_H_
-#define ___VECTOR_H_
+#ifndef REGEN_VECTOR_H_
+#define REGEN_VECTOR_H_
 
 #include <GL/glew.h>
 
@@ -876,4 +869,4 @@ namespace regen {
 	Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal);
 } // namespace
 
-#endif /* ___VECTOR_H_ */
+#endif /* REGEN_VECTOR_H_ */

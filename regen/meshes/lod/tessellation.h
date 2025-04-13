@@ -1,12 +1,5 @@
-/*
- * tesselation.h
- *
- *  Created on: Dec 27, 2013
- *      Author: daniel
- */
-
-#ifndef TESSELLATION_H_
-#define TESSELLATION_H_
+#ifndef REGEN_TESSELLATION_H_
+#define REGEN_TESSELLATION_H_
 
 #include <vector>
 

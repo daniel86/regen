@@ -5,6 +5,9 @@
 #include <regen/math/matrix.h>
 
 namespace regen {
+	/**
+	 * \brief A quadric surface defined by a symmetric 4x4 matrix.
+	 */
 	class Quadric {
 	public:
 		double a[10] = {0}; // 10 unique components of the symmetric 4x4 matrix

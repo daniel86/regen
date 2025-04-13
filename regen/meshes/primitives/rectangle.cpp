@@ -5,7 +5,7 @@
  *      Author: daniel
  */
 
-#include "../tessellation.h"
+#include "../lod/tessellation.h"
 #include "rectangle.h"
 
 using namespace regen;

@@ -5,12 +5,12 @@
  *      Author: daniel
  */
 
-#ifndef REGEN_BOX_H__
-#define REGEN_BOX_H__
+#ifndef REGEN_BOX_H_
+#define REGEN_BOX_H_
 
 #include <regen/meshes/mesh-state.h>
 #include <regen/math/vector.h>
-#include <regen/meshes/tessellation.h>
+#include <regen/meshes/lod/tessellation.h>
 
 namespace regen {
 	/**
@@ -98,4 +98,4 @@ namespace regen {
 	std::istream &operator>>(std::istream &in, Box::TexcoMode &mode);
 } // namespace
 
-#endif /* REGEN_BOX_H__ */
+#endif /* REGEN_BOX_H_ */

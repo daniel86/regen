@@ -13,6 +13,7 @@
 #include "particles.h"
 #include "regen/states/state-node.h"
 #include "regen/scene/loading-context.h"
+#include "lod/mesh-simplifier.h"
 
 using namespace regen;
 
@@ -272,6 +273,16 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		(*out)[0] = ref_ptr<Mesh>::alloc(primitive, vboUsage);
 	} else {
 		REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
+	}
+
+	// generate LOD levels if requested
+	if (input.hasAttribute("lod-simplification")) {
+		auto thresholds = input.getValue<Vec2f>("lod-simplification", Vec2f(0.75, 0.25));
+		for (auto & mesh : *out) {
+			MeshSimplifier simplifier(mesh);
+			simplifier.setThresholds(thresholds.x, thresholds.y);
+			simplifier.simplifyMesh();
+		}
 	}
 
 	// configure mesh LOD

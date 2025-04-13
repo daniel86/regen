@@ -1,0 +1,780 @@
+#include <map>
+#include "mesh-simplifier.h"
+
+#define SIMPLIFIER_USE_PATH_COMPRESSION
+
+using namespace regen;
+
+MeshSimplifier::MeshSimplifier(const ref_ptr<Mesh> &mesh) : mesh_(mesh) {
+	switch (mesh_->primitive()) {
+		case GL_TRIANGLES:
+			break;
+		case GL_TRIANGLE_FAN:
+		case GL_TRIANGLE_STRIP:
+		case GL_QUADS:
+		case GL_QUAD_STRIP:
+		case GL_LINES:
+		case GL_LINE_LOOP:
+		case GL_LINE_STRIP:
+		default:
+			// TODO: support other primitive types than triangles
+			REGEN_WARN("Mesh simplifier only supports triangle meshes.");
+			hasValidAttributes_ = false;
+			break;
+	}
+
+	// lookup mesh attributes
+	for (auto &in : mesh_->inputContainer()->inputs()) {
+		if (in.in_->isVertexAttribute()) {
+			if (!addInputAttribute( in)) {
+				hasValidAttributes_ = false;
+			}
+		}
+	}
+	inputIndices_ = ref_ptr<ShaderInput1ui>::dynamicCast(mesh_->inputContainer()->indices());
+	quadrics_.resize(inputPos_->numVertices());
+	neighbors_.resize(inputPos_->numVertices());
+	// Validate attributes
+	if (!inputPos_.get()) {
+		REGEN_WARN("Mesh has no position attribute, no LoD will be generated.");
+		hasValidAttributes_ = false;
+	}
+	REGEN_INFO("LOD level 0: " <<
+		"#faces=" << inputIndices_->numVertices() / 3 << " " <<
+		"#verts=" << inputPos_->numVertices() << " " <<
+		"#attributes=" << (inputAttributes_.size()+1) << " ");
+	// avoid resize
+	const int numLodLevels = 3;
+	lodData_.reserve(numLodLevels-1);
+	lodLevels_.reserve(numLodLevels);
+}
+
+bool MeshSimplifier::addInputAttribute(const NamedShaderInput &namedAttribute) {
+	if (namedAttribute.in_->baseType() != GL_FLOAT) {
+		REGEN_WARN("Mesh simplifier only supports float attributes.");
+		return false;
+	}
+
+	if (namedAttribute.name_.find(ATTRIBUTE_NAME_POS) == 0) {
+		inputPos_ = ref_ptr<ShaderInput3f>::dynamicCast(namedAttribute.in_);
+		return inputPos_.get() != nullptr;
+	}
+	else if (namedAttribute.name_.find(ATTRIBUTE_NAME_NOR) == 0) {
+		if (namedAttribute.in_->valsPerElement() != 3) {
+			REGEN_WARN("Mesh simplifier only supports 3D normal attributes.");
+			return false;
+		}
+		inputAttributes_.emplace_back(AttributeSemantic::NORMAL, namedAttribute.in_);
+	}
+	else if (namedAttribute.name_.find("texco") == 0 ||
+	         namedAttribute.name_.find("uv") == 0) {
+		inputAttributes_.emplace_back(AttributeSemantic::TEXCOORD, namedAttribute.in_);
+	}
+	else if (namedAttribute.name_.find("col") == 0) {
+		inputAttributes_.emplace_back(AttributeSemantic::COLOR, namedAttribute.in_);
+	}
+	else if (namedAttribute.name_.find(ATTRIBUTE_NAME_TAN) == 0) {
+		if (namedAttribute.in_->valsPerElement() != 4) {
+			REGEN_WARN("Mesh simplifier only supports 4D tangent attributes.");
+			return false;
+		}
+		inputAttributes_.emplace_back(AttributeSemantic::TANGENT, namedAttribute.in_);
+	}
+	else if (namedAttribute.name_.find("bitan") == 0) {
+		if (namedAttribute.in_->valsPerElement() != 4) {
+			REGEN_WARN("Mesh simplifier only supports 4D bi-tangent attributes.");
+			return false;
+		}
+		inputAttributes_.emplace_back(AttributeSemantic::BITANGENT, namedAttribute.in_);
+	}
+	else {
+		REGEN_WARN("Unknown attribute semantics for attribute '" << namedAttribute.name_ << "'.");
+		inputAttributes_.emplace_back(AttributeSemantic::UNKNOWN, namedAttribute.in_);
+	}
+	return true;
+}
+
+bool MeshSimplifier::isBoundaryVertex(uint32_t idx) const {
+	// boundary vertices are part of a boundary edge, i.e.
+	// one that appears only in one face.
+	if (isBoundary_.size() > idx) {
+		return isBoundary_[idx];
+	}
+	return false;
+}
+
+static inline std::pair<uint32_t,uint32_t> makeEdge(uint32_t v0, uint32_t v1) {
+	return { std::min(v0, v1), std::max(v0, v1) };
+}
+
+void MeshSimplifier::computeQuadrics(const std::vector<Triangle> &faces, const Vec3f *posData, uint32_t numVertices) {
+	// this is done for each LOD level, so first clear the quadrics and neighbors
+	quadrics_.clear();
+	quadrics_.resize(numVertices);
+	neighbors_.clear();
+	neighbors_.resize(numVertices);
+	// count edges for boundary detection
+	std::map<std::pair<uint32_t, uint32_t>, int> inputEdges;
+	isBoundary_.clear();
+	isBoundary_.resize(numVertices, false);
+
+	for (auto &face : faces) {
+		neighbors_[face.v0].insert(face.v1);
+		neighbors_[face.v0].insert(face.v2);
+		neighbors_[face.v1].insert(face.v0);
+		neighbors_[face.v1].insert(face.v2);
+		neighbors_[face.v2].insert(face.v0);
+		neighbors_[face.v2].insert(face.v1);
+		// store the edges
+		inputEdges[makeEdge(face.v0, face.v1)]++;
+		inputEdges[makeEdge(face.v1, face.v2)]++;
+		inputEdges[makeEdge(face.v2, face.v0)]++;
+
+		// update vertex quadrics
+		auto &p0 = posData[face.v0];
+		auto &p1 = posData[face.v1];
+		auto &p2 = posData[face.v2];
+		auto faceNormal = (p1 - p0).cross(p2 - p0);
+		faceNormal.normalize();
+		Quadric faceQuadric(
+				faceNormal.x,
+				faceNormal.y,
+				faceNormal.z,
+				-faceNormal.dot(p0));
+		quadrics_[face.v0] += faceQuadric;
+		quadrics_[face.v1] += faceQuadric;
+		quadrics_[face.v2] += faceQuadric;
+	}
+
+	// mark boundary vertices, we will avoid collapsing them
+	for (auto &edge : inputEdges) {
+		if (edge.second == 1) {
+			isBoundary_[edge.first.first] = true;
+			isBoundary_[edge.first.second] = true;
+		}
+	}
+}
+
+bool MeshSimplifier::solve(const Quadric& Q, Vec3f& outPos) {
+	// TODO: use vector/matrix class instead
+	// Build the system from the quadric: A * v = -b
+	// A is the 3x3 symmetric matrix from the quadric
+	double A[3][3] = {
+		{Q.a[0], Q.a[1], Q.a[2]},
+		{Q.a[1], Q.a[4], Q.a[5]},
+		{Q.a[2], Q.a[5], Q.a[7]}
+	};
+
+	// Compute inverse of A
+	double det = A[0][0] * (A[1][1]*A[2][2] - A[1][2]*A[2][1])
+	           - A[0][1] * (A[1][0]*A[2][2] - A[1][2]*A[2][0])
+	           + A[0][2] * (A[1][0]*A[2][1] - A[1][1]*A[2][0]);
+	if (fabs(det) < 1e-8) return false; // Degenerate quadric
+	double inv[3][3];
+	inv[0][0] =  (A[1][1]*A[2][2] - A[1][2]*A[2][1]) / det;
+	inv[0][1] = -(A[0][1]*A[2][2] - A[0][2]*A[2][1]) / det;
+	inv[0][2] =  (A[0][1]*A[1][2] - A[0][2]*A[1][1]) / det;
+	inv[1][0] = -(A[1][0]*A[2][2] - A[1][2]*A[2][0]) / det;
+	inv[1][1] =  (A[0][0]*A[2][2] - A[0][2]*A[2][0]) / det;
+	inv[1][2] = -(A[0][0]*A[1][2] - A[0][2]*A[1][0]) / det;
+	inv[2][0] =  (A[1][0]*A[2][1] - A[1][1]*A[2][0]) / det;
+	inv[2][1] = -(A[0][0]*A[2][1] - A[0][1]*A[2][0]) / det;
+	inv[2][2] =  (A[0][0]*A[1][1] - A[0][1]*A[1][0]) / det;
+
+	double b[3] = {-Q.a[3], -Q.a[6], -Q.a[8]};
+	outPos.x = static_cast<float>(
+		inv[0][0]*b[0] + inv[0][1]*b[1] + inv[0][2]*b[2]);
+	outPos.y = static_cast<float>(
+		inv[1][0]*b[0] + inv[1][1]*b[1] + inv[1][2]*b[2]);
+	outPos.z = static_cast<float>(
+		inv[2][0]*b[0] + inv[2][1]*b[1] + inv[2][2]*b[2]);
+
+	return true;
+}
+
+void MeshSimplifier::pushEdge(uint32_t idx0, uint32_t idx2, const Quadric &Q, const Vec3f *posData) {
+	Vec3f collapsePos;
+	if (!solve(Q, collapsePos)) {
+		// pick the midpoint of the edge in case of degenerate quadric
+		collapsePos = (posData[idx0] + posData[idx2]) * 0.5f;
+	}
+	auto cost = Q.evaluate(collapsePos);
+	// TODO: Increase collapse cost if some attributes differ significantly.
+	//       Not entirely trivial though to define a distance in range of [0,1] for all attributes...
+	//       - also consider special normal-cost term. Could average vertex normals through face normals.
+	//       - could avoid collapsing edges entirely if difference in normal angles is too large.
+	/**
+	float attrPenalty = 0.0f;
+	for (int i=0; i < inputAttributes_.size(); ++i) {
+		attrPenalty += (attr1 - attr2).length_squared();
+	}
+	cost += lambda * attrPenalty;
+	**/
+	edgeCollapses_.push({ idx0, idx2, collapsePos, cost });
+}
+
+void MeshSimplifier::buildEdgeQueue(const std::vector<Triangle> &faces, const LODLevel &data) {
+	// Build the edge queue from the faces.
+	// It orders the edges by their cost, which is the sum of the quadrics
+	// of the two vertices of the edge.
+	// TODO: Improve collapse priority.
+	//          - Factor in valence (favor collapsing high-valence vertices),
+	//          - Add feature edge preservation heuristics (e.g., high dihedral angles),
+	//          - Penalize collapses that distort surface curvature too much.
+	std::set<std::pair<uint32_t, uint32_t>> usedEdges;
+	std::array<std::pair<uint32_t, uint32_t>, 3> edges;
+
+	// remove any remaining edges from the previous LOD level
+	edgeCollapses_ = {};
+
+	for (auto &face : faces) {
+		edges[0] = makeEdge(face.v0, face.v1);
+		edges[1] = makeEdge(face.v1, face.v2);
+		edges[2] = makeEdge(face.v2, face.v0);
+
+		for (auto &edge : edges) {
+			if (usedEdges.find(edge) != usedEdges.end()) continue;
+			usedEdges.insert(edge);
+			pushEdge(edge.first, edge.second,
+					quadrics_[edge.first] + quadrics_[edge.second],
+					data.pos.data());
+		}
+	}
+}
+
+static uint32_t resolve(uint32_t v, std::vector<uint32_t>& mapping) {
+#ifdef SIMPLIFIER_USE_PATH_COMPRESSION
+    if (mapping[v] != v) {
+    	// path compression
+        mapping[v] = resolve(mapping[v], mapping);
+    }
+    return mapping[v];
+#else
+	while (mapping[v] != v) v = mapping[v];
+	return v;
+#endif
+}
+
+static void interpolateNormal(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
+	auto &data = ((LODAttributeT<Vec3f>*)(&attr))->data;
+	auto interp = (data[i1] * w1 + data[i2] * w2);
+	interp.normalize();
+	data.push_back(interp);
+}
+
+static void interpolateTangent(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
+	auto &data = ((LODAttributeT<Vec4f>*)(&attr))->data;
+	auto &x1 = data[i1];
+	auto &x2 = data[i2];
+	auto interp = (x1.xyz_() * w1 + x2.xyz_() * w2);
+	interp.normalize();
+	data.emplace_back(
+			interp.x,
+			interp.y,
+			interp.z,
+			(x1.w + x2.w) * 0.5f);
+}
+
+template<class T>
+static void interpolateLinearT(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
+	auto &data = ((LODAttributeT<T>*)(&attr))->data;
+	auto &x1 = data[i1];
+	auto &x2 = data[i2];
+	data.emplace_back(x1 * w1 + x2 * w2);
+}
+
+static void interpolateTexco(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
+	// Texco can be 2d/Vec2f or 3d/Vec3f.
+	// TODO: Avoid texture stretching. Approaches:
+	//        - Hard constraint: Don’t collapse edges that cross UV chart borders.
+	//        - Soft constraint: Add UV distortion as a penalty term.
+	if (attr.attribute->valsPerElement() == 2) {
+		interpolateLinearT<Vec2f>(attr, i1, i2, w1, w2);
+	}
+	else if (attr.attribute->valsPerElement() == 3) {
+		interpolateLinearT<Vec3f>(attr, i1, i2, w1, w2);
+	}
+	else {
+		REGEN_WARN("Unknown texco type.");
+	}
+}
+
+static void interpolateLinear(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
+	if (attr.attribute->valsPerElement() == 1) {
+		interpolateLinearT<float>(attr, i1, i2, w1, w2);
+	}
+	else if (attr.attribute->valsPerElement() == 2) {
+		interpolateLinearT<Vec2f>(attr, i1, i2, w1, w2);
+	}
+	else if (attr.attribute->valsPerElement() == 3) {
+		interpolateLinearT<Vec3f>(attr, i1, i2, w1, w2);
+	}
+	else if (attr.attribute->valsPerElement() == 4) {
+		interpolateLinearT<Vec4f>(attr, i1, i2, w1, w2);
+	}
+	else if (attr.attribute->valsPerElement() == 9) {
+		interpolateLinearT<Mat3f>(attr, i1, i2, w1, w2);
+	}
+	else if (attr.attribute->valsPerElement() == 16) {
+		interpolateLinearT<Mat4f>(attr, i1, i2, w1, w2);
+	}
+	else {
+		REGEN_WARN("Unknown attribute type.");
+	}
+}
+
+static void interpolate(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
+	switch(attr.semantic) {
+		case AttributeSemantic::NORMAL:
+			interpolateNormal(attr, i1, i2, w1, w2);
+			break;
+		case AttributeSemantic::BITANGENT:
+		case AttributeSemantic::TANGENT:
+			interpolateTangent(attr, i1, i2, w1, w2);
+			break;
+		case AttributeSemantic::TEXCOORD:
+			interpolateTexco(attr, i1, i2, w1, w2);
+			break;
+		default:
+			interpolateLinear(attr, i1, i2, w1, w2);
+			break;
+	}
+}
+
+static uint32_t collapseEdge(uint32_t i1, uint32_t i2, const Vec3f &opt, LODLevel& level) {
+    // Get positions
+    auto &p1 = level.pos[i1];
+    auto &p2 = level.pos[i2];
+    // Compute distances to optimal position
+    auto d1 = (opt - p1).length();
+    auto d2 = (opt - p2).length();
+    // Threshold for reusing existing vertex
+    const float reuseThreshold = 1e-6f;
+    uint32_t newIdx;
+
+    if (d1 < reuseThreshold) {
+    	// Collapse to v1
+        newIdx = i1;
+    }
+    else if (d2 < reuseThreshold) {
+    	// Collapse to v2
+        newIdx = i2;
+    }
+    else {
+        // Compute weights for interpolation
+        auto invSum = 1.0f / (d1 + d2 + 1e-6f);
+        auto w1 = d2 * invSum;
+        auto w2 = d1 * invSum;
+
+        // Create new vertex with interpolated attributes
+        newIdx = static_cast<uint32_t>(level.pos.size());
+        level.pos.push_back(opt);
+        for (auto &attr : level.attributes) {
+			interpolate(*attr, i1, i2, w1, w2);
+		}
+    }
+
+    return newIdx;
+}
+
+void MeshSimplifier::updateEdgeCosts(uint32_t vNew,
+			const LODLevel &levelData,
+			std::vector<uint32_t> &mapping) {
+    const Quadric& Qv = quadrics_[vNew];
+    for (uint32_t neighbor : neighbors_[vNew]) {
+        // Skip if vertex is no longer active
+        if (mapping[neighbor] != neighbor) continue;
+        // Else create new edge, as we do not want to modify items in the priority queue
+		pushEdge(
+			std::min(vNew, neighbor),
+			std::max(vNew, neighbor),
+			Qv + quadrics_[neighbor],
+			levelData.pos.data());
+    }
+}
+
+uint32_t MeshSimplifier::generateLodLevel(size_t targetFaceCount, LODLevel &lodData) {
+	const auto& inputTriangles = lodLevels_.back();  // Last LOD level
+	auto triangles = inputTriangles; // Working copy
+	// LOD data has initially the same size as the last LOD level output.
+	// and also holds a copy of the vertex data.
+	// In the loop below, we might create additional vertices which
+	// are pushed to the back of the lodData.
+	// The output of generateLodLevel then may has some unused vertices and faces,
+	// which we will remove in compactLodLevel.
+	// Map from old vertex index to its current representative
+	std::vector<uint32_t> vertexMapping(lodData.pos.size());
+	std::iota(vertexMapping.begin(), vertexMapping.end(), 0); // initially identity mapping
+	uint32_t collapseCount = 0;
+	uint32_t numActiveFaces = triangles.size();
+	uint32_t r1, r2, newIdx;
+
+	while (numActiveFaces > targetFaceCount && !edgeCollapses_.empty()) {
+		EdgeCollapse collapse = edgeCollapses_.top();
+		edgeCollapses_.pop();
+		r1 = resolve(collapse.v1, vertexMapping);
+		r2 = resolve(collapse.v2, vertexMapping);
+		if (r1 == r2 ||
+				// Skip boundary vertices
+				isBoundaryVertex(r1) || isBoundaryVertex(r2) ||
+				// Already collapsed, and another edge was added to the queue
+				r1 != collapse.v1 || r2 != collapse.v2) {
+			continue;
+		}
+		collapseCount += 1;
+
+		// Collapse v2 into v1 or use a new vertex
+		newIdx = collapseEdge(r1, r2, collapse.optimalPos, lodData);
+		// clean up the neighborhood
+		if (r1 != newIdx) {
+			for (auto n : neighbors_[r1]) {
+				neighbors_[resolve(n, vertexMapping)].erase(r1);
+			}
+			neighbors_[r1].clear();
+		}
+		if (r2 != newIdx) {
+			for (auto n : neighbors_[r2]) {
+				neighbors_[resolve(n, vertexMapping)].erase(r2);
+			}
+			neighbors_[r2].clear();
+		}
+		// Update mapping: collapsed vertices now point to new vertex
+		vertexMapping[r1] = newIdx;
+		vertexMapping[r2] = newIdx;
+		if (newIdx >= vertexMapping.size()) {
+			// New vertex created, update mapping and add to neighbors (empty set of neighbors)
+			vertexMapping.push_back(newIdx);
+			neighbors_.emplace_back();
+			quadrics_.emplace_back();
+		}
+		// Compute quadric of new vertex
+		quadrics_[newIdx] = quadrics_[r1] + quadrics_[r2];
+
+		// Update triangles
+		for (auto& tri : triangles) {
+			if (!tri.active) continue;
+			tri.v0 = resolve(tri.v0, vertexMapping);
+			tri.v1 = resolve(tri.v1, vertexMapping);
+			tri.v2 = resolve(tri.v2, vertexMapping);
+			if (tri.isDegenerate()) {
+				tri.active = false;
+				numActiveFaces -= 1;
+				continue;
+			}
+			// Update neighbors, we only insert here and skip the inactive neighbors later in edge collapses
+			if (tri.v0 == newIdx) {
+				neighbors_[tri.v0].insert(tri.v1);
+				neighbors_[tri.v0].insert(tri.v2);
+				neighbors_[tri.v1].insert(tri.v0);
+				neighbors_[tri.v2].insert(tri.v0);
+			}
+			else if (tri.v1 == newIdx) {
+				neighbors_[tri.v1].insert(tri.v0);
+				neighbors_[tri.v1].insert(tri.v2);
+				neighbors_[tri.v0].insert(tri.v1);
+				neighbors_[tri.v2].insert(tri.v1);
+			}
+			else if (tri.v2 == newIdx) {
+				neighbors_[tri.v2].insert(tri.v0);
+				neighbors_[tri.v2].insert(tri.v1);
+				neighbors_[tri.v0].insert(tri.v2);
+				neighbors_[tri.v1].insert(tri.v2);
+			}
+		}
+
+		// rebuild affected edge collapses around `newIndex`
+		updateEdgeCosts(newIdx, lodData, vertexMapping);
+	}
+
+	// Store the result
+	auto &finalLOD = lodLevels_.emplace_back();
+	for (const auto& tri : triangles) {
+		if (tri.active) finalLOD.push_back(tri);
+	}
+
+	return collapseCount;
+}
+
+static void compactLodLevel(const LODLevel &data, LODLevel &compactData, std::vector<Triangle> &faces) {
+	// after collapse some vertices may be unused.
+	// we remove them here, and remap the indices accordingly.
+	std::unordered_set<uint32_t> usedIndices;
+	for (const Triangle& tri : faces) {
+		if (!tri.active) continue;
+		usedIndices.insert(tri.v0);
+		usedIndices.insert(tri.v1);
+		usedIndices.insert(tri.v2);
+	}
+
+	std::unordered_map<uint32_t, uint32_t> indexRemap;
+	// allocate compacted position buffer
+	compactData.pos.resize(usedIndices.size());
+	for (auto &a : data.attributes) {
+		compactData.attributes.push_back(a->makeSibling(usedIndices.size()));
+	}
+	// copy the data
+	uint32_t newIdx = 0u;
+	for (uint32_t oldIdx : usedIndices) {
+		compactData.pos[newIdx] = data.pos[oldIdx];
+		for (uint32_t attributeIndex=0; attributeIndex<data.attributes.size(); ++attributeIndex) {
+			auto &attr_in = data.attributes[attributeIndex];
+			auto &attr_out = compactData.attributes[attributeIndex];
+			attr_out->setVertex(newIdx, attr_in, oldIdx);
+		}
+		indexRemap[oldIdx] = newIdx++;
+	}
+
+	// Rewrite Indices for new vertex buffer data
+	for (Triangle& tri : faces) {
+		if (!tri.active) continue;
+		tri.v0 = indexRemap[tri.v0];
+		tri.v1 = indexRemap[tri.v1];
+		tri.v2 = indexRemap[tri.v2];
+	}
+}
+
+static void initializeLevelData(LODLevel &data,
+		AttributeSemantic semantic,
+		const ref_ptr<ShaderInput> &attribute) {
+	if (attribute->valsPerElement() == 1) {
+		data.attributes.push_back(new LODAttributeT<float>(semantic, attribute));
+	}
+	else if (attribute->valsPerElement() == 2) {
+		data.attributes.push_back(new LODAttributeT<Vec2f>(semantic, attribute));
+	}
+	else if (attribute->valsPerElement() == 3) {
+		data.attributes.push_back(new LODAttributeT<Vec3f>(semantic, attribute));
+	}
+	else if (attribute->valsPerElement() == 4) {
+		data.attributes.push_back(new LODAttributeT<Vec4f>(semantic, attribute));
+	}
+	else if (attribute->valsPerElement() == 9) {
+		data.attributes.push_back(new LODAttributeT<Mat3f>(semantic, attribute));
+	}
+	else if (attribute->valsPerElement() == 16) {
+		data.attributes.push_back(new LODAttributeT<Mat4f>(semantic, attribute));
+	}
+	else {
+		REGEN_WARN("Unknown attribute type.");
+		return;
+	}
+}
+
+static void initializeLevelData(LODLevel &data, const LODAttribute *lastAttribute) {
+	if (lastAttribute->attribute->valsPerElement() == 1) {
+		data.attributes.push_back(new LODAttributeT<float>(lastAttribute));
+	}
+	else if (lastAttribute->attribute->valsPerElement() == 2) {
+		data.attributes.push_back(new LODAttributeT<Vec2f>(lastAttribute));
+	}
+	else if (lastAttribute->attribute->valsPerElement() == 3) {
+		data.attributes.push_back(new LODAttributeT<Vec3f>(lastAttribute));
+	}
+	else if (lastAttribute->attribute->valsPerElement() == 4) {
+		data.attributes.push_back(new LODAttributeT<Vec4f>(lastAttribute));
+	}
+	else if (lastAttribute->attribute->valsPerElement() == 9) {
+		data.attributes.push_back(new LODAttributeT<Mat3f>(lastAttribute));
+	}
+	else if (lastAttribute->attribute->valsPerElement() == 16) {
+		data.attributes.push_back(new LODAttributeT<Mat4f>(lastAttribute));
+	}
+	else {
+		REGEN_WARN("Unknown attribute type.");
+		return;
+	}
+}
+
+void MeshSimplifier::simplifyMesh() {
+	const int numLodLevels = 3;
+	if (!hasValidAttributes_) {
+		REGEN_WARN("Mesh simplifier has invalid attributes, simplification will not be performed.");
+		return;
+	}
+
+	// construct first LOD level.
+	{
+		auto numOriginalFaces = mesh_->inputContainer()->numIndices() / 3;
+		auto &lodLevel0 = lodLevels_.emplace_back();
+		lodLevel0.reserve(numOriginalFaces);
+		auto m_inputIndices = (uint32_t*) inputIndices_->clientData();
+		for (int i = 0; i < numOriginalFaces; ++i) {
+			// create triangle faces of the original mesh
+			auto j = i * 3;
+			lodLevel0.emplace_back(
+				m_inputIndices[j],
+				m_inputIndices[j+1],
+				m_inputIndices[j+2]);
+		}
+	}
+
+	// compute number of faces for each LOD level
+	std::vector<unsigned int> lodFaces = {0, 0, 0};
+	lodFaces[0] = lodLevels_.front().size();
+	lodFaces[1] = static_cast<unsigned int>(
+		static_cast<float>(lodLevels_.front().size()) * thresholds_[0]);
+	lodFaces[2] = static_cast<unsigned int>(
+		static_cast<float>(lodLevels_.front().size()) * thresholds_[1]);
+
+	// First level offset is num vertices of the original mesh
+	vertexOffset_ = inputPos_->numVertices();
+
+	// Iteratively collapse the cheapest edge, updating affected geometry and edge costs.
+	//	- Stop once your desired number of triangles is reached (or vertices),
+	//    and record the current mesh as LOD level.
+	uint32_t collapseCount = 0;
+	for (size_t lodLevel = 1; lodLevel < numLodLevels; ++lodLevel) {
+		// create temporary level data
+		LODLevel levelData;
+		{
+			levelData.offset = vertexOffset_;
+
+			if (lodLevel == 1) {
+				levelData.pos.resize(inputPos_->numVertices());
+				std::memcpy(
+					(byte*)levelData.pos.data(),
+					inputPos_->clientData(),
+					inputPos_->inputSize());
+				for (auto &attr : inputAttributes_) {
+					initializeLevelData(levelData, attr.first, attr.second);
+				}
+				computeQuadrics(lodLevels_.back(), (Vec3f*)inputPos_->clientData(), levelData.pos.size());
+			}
+			else {
+				// copy the previous LOD level
+				auto &lastLevelData = lodData_[lodLevel-2];
+				levelData.pos.resize(lastLevelData.pos.size());
+				std::memcpy(
+					(byte*)levelData.pos.data(),
+					(byte*)lastLevelData.pos.data(),
+					levelData.pos.size() * inputPos_->elementSize());
+				for (unsigned int attributeIndex = 0u; attributeIndex < inputAttributes_.size(); ++attributeIndex) {
+					initializeLevelData(levelData, lastLevelData.attributes[attributeIndex]);
+				}
+				computeQuadrics(lodLevels_.back(), lastLevelData.pos.data(), levelData.pos.size());
+			}
+			buildEdgeQueue(lodLevels_.back(), levelData);
+			collapseCount = generateLodLevel(lodFaces[lodLevel], levelData);
+		}
+		{
+			auto &compactData = lodData_.emplace_back();
+			compactData.offset = vertexOffset_;
+			compactLodLevel(levelData, compactData, lodLevels_[lodLevel]);
+			REGEN_INFO("LOD level " << lodLevels_.size() - 1 << ":"
+				<< " #faces=" << lodLevels_[lodLevel].size()
+				<< " #verts=" << compactData.pos.size()
+				<< " #collapses=" << collapseCount
+				<< " offset=" << compactData.offset
+				<< " target=" << lodFaces[lodLevel]);
+			// increment vertex offset for next LOD level
+			vertexOffset_ += compactData.pos.size();
+		}
+	}
+
+	applyAttributes();
+}
+
+uint32_t MeshSimplifier::createOutputAttributes() {
+	uint32_t numVertices = inputPos_->numVertices();
+	uint32_t numIndices = 0;
+	for (auto &faces : lodLevels_) {
+		numIndices += faces.size() * 3;
+	}
+	for (auto &lod : lodData_) {
+		numVertices += lod.pos.size();
+	}
+	REGEN_INFO("Mesh simplified:"
+		<< " #lods=" << lodLevels_.size()
+		<< " #faces=" << numIndices / 3
+		<< " #verts=" << numVertices
+		<< " #indices=" << numIndices);
+
+	// create a new index buffer
+	outputIndices_ = ref_ptr<ShaderInput1ui>::alloc("indices");
+	outputIndices_->setVertexData(numIndices);
+	auto v_indices = (uint32_t*)outputIndices_->clientData();
+	for (uint32_t lod_i=0; lod_i < lodLevels_.size(); ++lod_i) {
+		auto &faces = lodLevels_[lod_i];
+		auto vertexOffset = (lod_i==0 ? 0u : lodData_[lod_i-1].offset);
+		for (auto &face : faces) {
+			// faces count from 0 to numVertices, so we need to add the vertexOffset
+			*v_indices++ = vertexOffset + face.v0;
+			*v_indices++ = vertexOffset + face.v1;
+			*v_indices++ = vertexOffset + face.v2;
+		}
+	}
+
+	// allocate new attributes
+	outputPos_ = ref_ptr<ShaderInput3f>::alloc("pos");
+	outputPos_->setVertexData(numVertices);
+	for (auto &typedAttribute : inputAttributes_) {
+		auto att = ShaderInput::create(typedAttribute.second);
+		att->setVertexData(numVertices);
+		outputAttributes_.emplace_back(typedAttribute.first, att);
+	}
+	// and copy data into the new attributes using std::memcpy into clientData() of the new attributes
+	// first copy the original mesh data to the beginning of the new attributes
+	std::memcpy(outputPos_->clientData(), inputPos_->clientData(), inputPos_->inputSize());
+	for (uint32_t att_i=0; att_i < inputAttributes_.size(); ++att_i) {
+		auto &in = inputAttributes_[att_i].second;
+		auto &out = outputAttributes_[att_i].second;
+		std::memcpy(out->clientData(), in->clientData(), in->inputSize());
+	}
+	// then copy the LOD data into the new attributes
+	for (auto &lod : lodData_) {
+		std::memcpy(
+				outputPos_->clientData() + lod.offset * outputPos_->elementSize(),
+				(byte*)lod.pos.data(),
+				lod.pos.size() * outputPos_->elementSize());
+		for (unsigned int attributeIndex=0; attributeIndex<lod.attributes.size(); ++attributeIndex) {
+			auto &in = lod.attributes[attributeIndex];
+			auto &out = outputAttributes_[attributeIndex].second;
+			std::memcpy(
+				out->clientData() + lod.offset * out->elementSize(),
+				in->clientData(),
+				in->inputSize());
+		}
+	}
+
+	return numVertices;
+}
+
+void MeshSimplifier::applyAttributes() {
+	// create the output attributes from the generated LOD levels
+	auto numVertices = createOutputAttributes();
+
+	// remove the input attributes from the mesh
+	mesh_->inputContainer()->removeInput(inputPos_);
+	for (auto &pair : inputAttributes_) {
+		mesh_->inputContainer()->removeInput(pair.second);
+	}
+
+	// add the output attributes to the mesh
+	mesh_->inputContainer()->set_numVertices(numVertices);
+	mesh_->begin(InputContainer::INTERLEAVED);
+	auto indexRef = mesh_->setIndices(outputIndices_, numVertices);
+	mesh_->setInput(outputPos_);
+	for (auto &pair : outputAttributes_) {
+		mesh_->setInput(pair.second);
+	}
+	mesh_->end();
+
+	// create the mesh LODs
+	std::vector<Mesh::MeshLOD> meshLODs(lodLevels_.size());
+	uint32_t indexOffset = 0, vertexOffset = 0;
+	for (size_t i = 0; i < lodLevels_.size(); ++i) {
+		auto &faces = lodLevels_[i];
+		meshLODs[i].numIndices = faces.size() * 3;
+		meshLODs[i].indexOffset = indexRef->address() + indexOffset * sizeof(uint32_t);
+		meshLODs[i].vertexOffset = vertexOffset;
+		if (i == 0) {
+			meshLODs[i].numVertices = inputPos_->numVertices();
+		} else {
+			meshLODs[i].numVertices = lodData_[i-1].pos.size();
+		}
+		indexOffset += meshLODs[i].numIndices;
+		vertexOffset += meshLODs[i].numVertices;
+	}
+	mesh_->setMeshLODs(meshLODs);
+	mesh_->activateLOD(0);
+}

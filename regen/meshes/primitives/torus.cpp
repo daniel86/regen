@@ -1,4 +1,5 @@
-#include "../tessellation.h"
+
+#include "../lod/tessellation.h"
 #include "torus.h"
 
 using namespace regen;
