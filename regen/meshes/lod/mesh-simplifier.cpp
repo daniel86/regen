@@ -2,6 +2,8 @@
 #include "mesh-simplifier.h"
 
 #define SIMPLIFIER_USE_PATH_COMPRESSION
+#define SIMPLIFIER_USE_VALENCE_COST
+//#define SIMPLIFIER_USE_AREA_COST
 
 using namespace regen;
 
@@ -65,6 +67,8 @@ bool MeshSimplifier::addInputAttribute(const NamedShaderInput &namedAttribute) {
 			return false;
 		}
 		inputAttributes_.emplace_back(AttributeSemantic::NORMAL, namedAttribute.in_);
+		inputNor_ = ref_ptr<ShaderInput3f>::dynamicCast(namedAttribute.in_);
+		norIndex_ = inputAttributes_.size() - 1;
 	}
 	else if (namedAttribute.name_.find("texco") == 0 ||
 	         namedAttribute.name_.find("uv") == 0) {
@@ -169,35 +173,61 @@ bool MeshSimplifier::solve(const Quadric& Q, Vec3f& outPos) {
 	return true;
 }
 
-void MeshSimplifier::pushEdge(uint32_t idx0, uint32_t idx2, const Quadric &Q, const Vec3f *posData) {
+void MeshSimplifier::pushEdge(uint32_t idx0, uint32_t idx1, const Quadric &Q, const LODLevel &lod) {
+	auto posData = lod.pos.data();
+
+	// Compute cost based on quadric error
 	Vec3f collapsePos;
 	if (!solve(Q, collapsePos)) {
 		// pick the midpoint of the edge in case of degenerate quadric
-		collapsePos = (posData[idx0] + posData[idx2]) * 0.5f;
+		collapsePos = (posData[idx0] + posData[idx1]) * 0.5f;
 	}
 	auto cost = Q.evaluate(collapsePos);
-	// TODO: Increase collapse cost if some attributes differ significantly.
-	//       Not entirely trivial though to define a distance in range of [0,1] for all attributes...
-	//       - also consider special normal-cost term. Could average vertex normals through face normals.
-	//       - could avoid collapsing edges entirely if difference in normal angles is too large.
-	/**
-	float attrPenalty = 0.0f;
-	for (int i=0; i < inputAttributes_.size(); ++i) {
-		attrPenalty += (attr1 - attr2).length_squared();
+
+	// TODO: Add additional constraints to cost function.
+	//		 - Experiment with penalty for boundary condition.
+	//       Currently boundary edges are skipped entirely. But
+	//       some meshes use them for small details in which case we actually want to collapse them.
+	//		 - Add penalty for collapsing larger triangles
+	//			- find all active triangles touching idx0 or idx1, sum their areas, and divide by their count.
+	//			- but currently there is no fast way to find the triangles, should not iterate over all faces here!
+	//		 - discourage collapsing across visible UV seams
+	//			- float uvDistance = length(v1.uv - v2.uv);
+	//			- if (uvDistance > threshold) return;
+#ifdef SIMPLIFIER_USE_AREA_COST
+	auto area = averageAreaOfAffectedTriangles(idx0, idx1);
+	auto areaCost = 1.0f / (area + 1e-6f);
+	cost += areaCost * areaPenalty_;
+#endif
+#ifdef SIMPLIFIER_USE_VALENCE_COST
+	// Add a Valence Preservation Heuristic
+	auto diff = std::abs(
+		static_cast<int>(neighbors_[idx0].size()) -
+		static_cast<int>(neighbors_[idx1].size()));
+	cost += (1.0f / (1.0f + static_cast<float>(diff))) * valencePenalty_;
+#endif
+	// Check Attribute Continuity Constraints
+	if (inputNor_.get()) {
+		// add a penalty for normal difference based on angle diff
+		auto faceNor = (Vec3f*)lod.attributes[norIndex_]->clientData();
+		auto angle = acosf(std::clamp(
+			faceNor[idx0].dot(faceNor[idx1]), -1.0f, 1.0f));
+		if (normalMaxAngle_ > 0.0 && angle > normalMaxAngle_) {
+			// skip collapse if angle is too large
+			return;
+		}
+		auto norCost = (angle / M_PIf);
+		// add squared penalty to cost
+		cost += norCost * norCost * normalPenalty_;
 	}
-	cost += lambda * attrPenalty;
-	**/
-	edgeCollapses_.push({ idx0, idx2, collapsePos, cost });
+
+	edgeCollapses_.push({ idx0, idx1, collapsePos, cost });
 }
 
 void MeshSimplifier::buildEdgeQueue(const std::vector<Triangle> &faces, const LODLevel &data) {
 	// Build the edge queue from the faces.
 	// It orders the edges by their cost, which is the sum of the quadrics
 	// of the two vertices of the edge.
-	// TODO: Improve collapse priority.
-	//          - Factor in valence (favor collapsing high-valence vertices),
-	//          - Add feature edge preservation heuristics (e.g., high dihedral angles),
-	//          - Penalize collapses that distort surface curvature too much.
 	std::set<std::pair<uint32_t, uint32_t>> usedEdges;
 	std::array<std::pair<uint32_t, uint32_t>, 3> edges;
 
@@ -214,7 +244,7 @@ void MeshSimplifier::buildEdgeQueue(const std::vector<Triangle> &faces, const LO
 			usedEdges.insert(edge);
 			pushEdge(edge.first, edge.second,
 					quadrics_[edge.first] + quadrics_[edge.second],
-					data.pos.data());
+					data);
 		}
 	}
 }
@@ -261,9 +291,6 @@ static void interpolateLinearT(LODAttribute& attr, uint32_t i1, uint32_t i2, flo
 
 static void interpolateTexco(LODAttribute& attr, uint32_t i1, uint32_t i2, float w1, float w2) {
 	// Texco can be 2d/Vec2f or 3d/Vec3f.
-	// TODO: Avoid texture stretching. Approaches:
-	//        - Hard constraint: Don’t collapse edges that cross UV chart borders.
-	//        - Soft constraint: Add UV distortion as a penalty term.
 	if (attr.attribute->valsPerElement() == 2) {
 		interpolateLinearT<Vec2f>(attr, i1, i2, w1, w2);
 	}
@@ -365,7 +392,7 @@ void MeshSimplifier::updateEdgeCosts(uint32_t vNew,
 			std::min(vNew, neighbor),
 			std::max(vNew, neighbor),
 			Qv + quadrics_[neighbor],
-			levelData.pos.data());
+			levelData);
     }
 }
 
@@ -600,6 +627,8 @@ void MeshSimplifier::simplifyMesh() {
 	// Iteratively collapse the cheapest edge, updating affected geometry and edge costs.
 	//	- Stop once your desired number of triangles is reached (or vertices),
 	//    and record the current mesh as LOD level.
+	// TODO: Possible optimization: Use reserve to avoid reallocating the vector buffers in LODLevel.
+	//       Required space depends on how many collapses we do, so we can only guess beforehand.
 	uint32_t collapseCount = 0;
 	// temporary level data
 	LODLevel levelData;

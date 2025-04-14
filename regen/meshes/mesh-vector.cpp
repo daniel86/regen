@@ -281,6 +281,18 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		for (auto & mesh : *out) {
 			MeshSimplifier simplifier(mesh);
 			simplifier.setThresholds(thresholds.x, thresholds.y);
+			if (input.hasAttribute("nor-max-angle")) {
+				simplifier.setNormalMaxAngle(input.getValue<float>("nor-max-angle", 0.6f));
+			}
+			if (input.hasAttribute("nor-penalty")) {
+				simplifier.setNormalPenalty(input.getValue<float>("nor-penalty", 0.1f));
+			}
+			if (input.hasAttribute("valence-penalty")) {
+				simplifier.setValencePenalty(input.getValue<float>("valence-penalty", 0.1f));
+			}
+			if (input.hasAttribute("area-penalty")) {
+				simplifier.setAreaPenalty(input.getValue<float>("area-penalty", 0.1f));
+			}
 			simplifier.simplifyMesh();
 		}
 	}
