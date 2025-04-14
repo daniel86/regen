@@ -1,14 +1,7 @@
-/*
- * math.h
- *
- *  Created on: 01.04.2013
- *      Author: daniel
- */
+#ifndef REGEN_MATH_H_
+#define REGEN_MATH_H_
 
-#ifndef MATH_H_
-#define MATH_H_
-
-#include <math.h>
+#include <cmath>
 #include <random>
 
 // = 360.0/(2.0*pi)

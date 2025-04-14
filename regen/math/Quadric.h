@@ -10,17 +10,20 @@ namespace regen {
 	 */
 	class Quadric {
 	public:
-		double a[10] = {0}; // 10 unique components of the symmetric 4x4 matrix
+		float a[10] = {0}; // 10 unique components of the symmetric 4x4 matrix
 
 		Quadric() = default;
 
 		// Construct from plane ax + by + cz + d = 0
-		Quadric(double a_, double b_, double c_, double d_) {
+		Quadric(float a_, float b_, float c_, float d_) {
 			set(a_, b_, c_, d_);
 		}
 
-		void set(double a_, double b_, double c_, double d_) {
-			double p[4] = {a_, b_, c_, d_};
+		/**
+		 * Set the quadric coefficients.
+		 */
+		void set(float a_, float b_, float c_, float d_) {
+			float p[4] = {a_, b_, c_, d_};
 			int index = 0;
 			for (int i = 0; i < 4; ++i)
 				for (int j = i; j < 4; ++j)
@@ -41,9 +44,23 @@ namespace regen {
 			return *this;
 		}
 
-		// Evaluate error at a point
+		/**
+		 * @return the quadric matrix.
+		 */
+		Mat3f toMatrix() const {
+			return {
+				a[0], a[1], a[2],
+				a[1], a[4], a[5],
+				a[2], a[5], a[7]
+			};
+		}
+
+		/**
+		 * @param v a point in 3D space.
+		 * @return the quadric value at the given point.
+		 */
 		double evaluate(const Vec3f &v) const {
-			double x = v.x, y = v.y, z = v.z;
+			float x = v.x, y = v.y, z = v.z;
 			return a[0] * x * x + 2 * a[1] * x * y + 2 * a[2] * x * z + 2 * a[3] * x +
 				   a[4] * y * y + 2 * a[5] * y * z + 2 * a[6] * y +
 				   a[7] * z * z + 2 * a[8] * z +

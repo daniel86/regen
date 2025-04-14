@@ -1,12 +1,5 @@
-/*
- * matrix.h
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
-#ifndef _MATRIX_H_
-#define _MATRIX_H_
+#ifndef REGEN_MATRIX_H_
+#define REGEN_MATRIX_H_
 
 #include <regen/math/vector.h>
 
@@ -181,6 +174,36 @@ namespace regen {
 					0.0f, 0.0f, 1.0f
 			);
 			return id;
+		}
+
+		/**
+		 * @return the determinant of this matrix.
+		 */
+		inline float determinant() const {
+			return x[0] * (x[4] * x[8] - x[5] * x[7]) -
+				   x[1] * (x[3] * x[8] - x[5] * x[6]) +
+				   x[2] * (x[3] * x[7] - x[4] * x[6]);
+		}
+
+		/**
+		 * @return the inverse of this matrix.
+		 */
+		inline bool inverse(Mat3f &inv) const {
+			auto det = determinant();
+			if (fabs(det) < 1e-8) {
+				return false;
+			}
+			float inv_det = 1.0f / det;
+			inv.x[0] = (x[4] * x[8] - x[5] * x[7]) * inv_det;
+			inv.x[1] = (x[2] * x[7] - x[1] * x[8]) * inv_det;
+			inv.x[2] = (x[1] * x[5] - x[2] * x[4]) * inv_det;
+			inv.x[3] = (x[5] * x[6] - x[3] * x[8]) * inv_det;
+			inv.x[4] = (x[0] * x[8] - x[2] * x[6]) * inv_det;
+			inv.x[5] = (x[2] * x[3] - x[0] * x[5]) * inv_det;
+			inv.x[6] = (x[3] * x[7] - x[4] * x[6]) * inv_det;
+			inv.x[7] = (x[1] * x[6] - x[0] * x[7]) * inv_det;
+			inv.x[8] = (x[0] * x[4] - x[1] * x[3]) * inv_det;
+			return true;
 		}
 	};
 

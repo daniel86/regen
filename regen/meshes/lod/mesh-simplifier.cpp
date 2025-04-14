@@ -156,39 +156,16 @@ void MeshSimplifier::computeQuadrics(const std::vector<Triangle> &faces, const V
 }
 
 bool MeshSimplifier::solve(const Quadric& Q, Vec3f& outPos) {
-	// TODO: use vector/matrix class instead
 	// Build the system from the quadric: A * v = -b
-	// A is the 3x3 symmetric matrix from the quadric
-	double A[3][3] = {
-		{Q.a[0], Q.a[1], Q.a[2]},
-		{Q.a[1], Q.a[4], Q.a[5]},
-		{Q.a[2], Q.a[5], Q.a[7]}
-	};
-
-	// Compute inverse of A
-	double det = A[0][0] * (A[1][1]*A[2][2] - A[1][2]*A[2][1])
-	           - A[0][1] * (A[1][0]*A[2][2] - A[1][2]*A[2][0])
-	           + A[0][2] * (A[1][0]*A[2][1] - A[1][1]*A[2][0]);
-	if (fabs(det) < 1e-8) return false; // Degenerate quadric
-	double inv[3][3];
-	inv[0][0] =  (A[1][1]*A[2][2] - A[1][2]*A[2][1]) / det;
-	inv[0][1] = -(A[0][1]*A[2][2] - A[0][2]*A[2][1]) / det;
-	inv[0][2] =  (A[0][1]*A[1][2] - A[0][2]*A[1][1]) / det;
-	inv[1][0] = -(A[1][0]*A[2][2] - A[1][2]*A[2][0]) / det;
-	inv[1][1] =  (A[0][0]*A[2][2] - A[0][2]*A[2][0]) / det;
-	inv[1][2] = -(A[0][0]*A[1][2] - A[0][2]*A[1][0]) / det;
-	inv[2][0] =  (A[1][0]*A[2][1] - A[1][1]*A[2][0]) / det;
-	inv[2][1] = -(A[0][0]*A[2][1] - A[0][1]*A[2][0]) / det;
-	inv[2][2] =  (A[0][0]*A[1][1] - A[0][1]*A[1][0]) / det;
-
-	double b[3] = {-Q.a[3], -Q.a[6], -Q.a[8]};
-	outPos.x = static_cast<float>(
-		inv[0][0]*b[0] + inv[0][1]*b[1] + inv[0][2]*b[2]);
-	outPos.y = static_cast<float>(
-		inv[1][0]*b[0] + inv[1][1]*b[1] + inv[1][2]*b[2]);
-	outPos.z = static_cast<float>(
-		inv[2][0]*b[0] + inv[2][1]*b[1] + inv[2][2]*b[2]);
-
+	Mat3f inv;
+	if (!Q.toMatrix().inverse(inv)) {
+		// Degenerate quadric
+		return false;
+	}
+	float b[3] = {-Q.a[3], -Q.a[6], -Q.a[8]};
+	outPos.x = inv.x[0]*b[0] + inv.x[1]*b[1] + inv.x[2]*b[2];
+	outPos.y = inv.x[3]*b[0] + inv.x[4]*b[1] + inv.x[5]*b[2];
+	outPos.z = inv.x[6]*b[0] + inv.x[7]*b[1] + inv.x[8]*b[2];
 	return true;
 }
 
@@ -245,7 +222,6 @@ void MeshSimplifier::buildEdgeQueue(const std::vector<Triangle> &faces, const LO
 static uint32_t resolve(uint32_t v, std::vector<uint32_t>& mapping) {
 #ifdef SIMPLIFIER_USE_PATH_COMPRESSION
     if (mapping[v] != v) {
-    	// path compression
         mapping[v] = resolve(mapping[v], mapping);
     }
     return mapping[v];
@@ -410,21 +386,24 @@ uint32_t MeshSimplifier::generateLodLevel(size_t targetFaceCount, LODLevel &lodD
 	uint32_t r1, r2, newIdx;
 
 	while (numActiveFaces > targetFaceCount && !edgeCollapses_.empty()) {
-		EdgeCollapse collapse = edgeCollapses_.top();
-		edgeCollapses_.pop();
-		r1 = resolve(collapse.v1, vertexMapping);
-		r2 = resolve(collapse.v2, vertexMapping);
-		if (r1 == r2 ||
-				// Skip boundary vertices
-				isBoundaryVertex(r1) || isBoundaryVertex(r2) ||
-				// Already collapsed, and another edge was added to the queue
-				r1 != collapse.v1 || r2 != collapse.v2) {
-			continue;
-		}
-		collapseCount += 1;
+		{	// collapse next edge
+			auto &collapse = edgeCollapses_.top();
+			r1 = resolve(collapse.v1, vertexMapping);
+			r2 = resolve(collapse.v2, vertexMapping);
+			if (r1 == r2 ||
+					// Skip boundary vertices
+					isBoundaryVertex(r1) || isBoundaryVertex(r2) ||
+					// Already collapsed, and another edge was added to the queue
+					r1 != collapse.v1 || r2 != collapse.v2) {
+				edgeCollapses_.pop();
+				continue;
+			}
+			collapseCount += 1;
 
-		// Collapse v2 into v1 or use a new vertex
-		newIdx = collapseEdge(r1, r2, collapse.optimalPos, lodData);
+			// Collapse v2 into v1 or use a new vertex
+			newIdx = collapseEdge(r1, r2, collapse.optimalPos, lodData);
+			edgeCollapses_.pop();
+		}
 		// clean up the neighborhood
 		if (r1 != newIdx) {
 			for (auto n : neighbors_[r1]) {
@@ -592,8 +571,7 @@ void MeshSimplifier::simplifyMesh() {
 		return;
 	}
 
-	// construct first LOD level.
-	{
+	{	// construct first LOD level.
 		auto numOriginalFaces = mesh_->inputContainer()->numIndices() / 3;
 		auto &lodLevel0 = lodLevels_.emplace_back();
 		lodLevel0.reserve(numOriginalFaces);
@@ -623,12 +601,12 @@ void MeshSimplifier::simplifyMesh() {
 	//	- Stop once your desired number of triangles is reached (or vertices),
 	//    and record the current mesh as LOD level.
 	uint32_t collapseCount = 0;
+	// temporary level data
+	LODLevel levelData;
 	for (size_t lodLevel = 1; lodLevel < numLodLevels; ++lodLevel) {
-		// create temporary level data
-		LODLevel levelData;
-		{
+		{	// generate LOD level
+			levelData.attributes.clear();
 			levelData.offset = vertexOffset_;
-
 			if (lodLevel == 1) {
 				levelData.pos.resize(inputPos_->numVertices());
 				std::memcpy(
@@ -656,7 +634,7 @@ void MeshSimplifier::simplifyMesh() {
 			buildEdgeQueue(lodLevels_.back(), levelData);
 			collapseCount = generateLodLevel(lodFaces[lodLevel], levelData);
 		}
-		{
+		{	// compact the LOD level
 			auto &compactData = lodData_.emplace_back();
 			compactData.offset = vertexOffset_;
 			compactLodLevel(levelData, compactData, lodLevels_[lodLevel]);
