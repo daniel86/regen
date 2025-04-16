@@ -11,6 +11,7 @@
 #include <regen/states/state-node.h>
 #include <regen/shapes/spatial-index.h>
 #include "regen/camera/sorting.h"
+#include "regen/gl-types/ssbo.h"
 
 namespace regen {
 	/**
@@ -29,6 +30,11 @@ namespace regen {
 				const ref_ptr<SpatialIndex> &spatialIndex,
 				std::string_view shapeName);
 
+		GeometricCulling(
+				const ref_ptr<Camera> &camera,
+				const std::vector<ref_ptr<Mesh>> &meshVector,
+				const ref_ptr<ModelTransformation> &tf);
+
 		~GeometricCulling() override = default;
 
 		/**
@@ -46,19 +52,38 @@ namespace regen {
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 
 		GLuint numInstances_ = 1;
+		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera
+		ref_ptr<SSBO> instanceIDBuffer_;
 		ref_ptr<ShaderInput1ui> instanceIDMap_;
-		ref_ptr<Mesh> mesh_;
+		// provides offset to instanceIDMap_ as a uniform for the next LOD level
+		ref_ptr<ShaderInput1i> instanceIDOffset_;
+		// stores how many instances are currently visible for each LOD level
+		std::vector<uint32_t> lodNumInstances_;
+		// temporary storage for instanceIDs, used to fill the instanceIDMap_
 		std::vector<std::vector<GLuint>> lodGroups_;
+		ref_ptr<Mesh> mesh_;
+		std::vector<ref_ptr<Mesh>> meshVector_;
+		ref_ptr<ModelTransformation> tf_;
+
+		void createInstanceBuffer();
 
 		void updateMeshLOD();
+
+		void activateLOD(uint32_t lodLevel);
 
 		void computeLODGroups();
 
 		void traverseInstanced_(RenderState *rs, unsigned int numVisible);
 
-		void traverseInstanced1(RenderState *rs);
+		void traverseCPU(RenderState *rs);
 
-		void traverseInstanced2(RenderState *rs, const unsigned int *visibleInstances, unsigned int numVisible);
+		void traverseGPU(RenderState *rs);
+
+		void computeLODGroups_(
+			const uint32_t *mappedData,
+			int begin,
+			int end,
+			int increment);
 	};
 }
 

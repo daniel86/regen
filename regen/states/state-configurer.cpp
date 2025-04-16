@@ -39,7 +39,7 @@ StateConfigurer::StateConfigurer()
 	cfg_.feedbackMode_ = GL_SEPARATE_ATTRIBS;
 	cfg_.feedbackStage_ = GL_VERTEX_SHADER;
 	// sets the minimum version
-	cfg_.setVersion(330);
+	cfg_.setVersion(430);
 	// initially no lights added
 	define("NUM_LIGHTS", "0");
 }
