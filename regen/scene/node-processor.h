@@ -9,7 +9,7 @@
 #define REGEN_NODE_CATEGORY "node"
 
 #include <regen/states/state-node.h>
-#include <regen/states/geometric-culling.h>
+#include <regen/states/lod-state.h>
 #include "regen/states/state-node-comparator.h"
 
 namespace regen::scene {
@@ -180,7 +180,7 @@ namespace regen::scene {
 				scene::SceneLoader *parser,
 				SceneInputNode &input,
 				const ref_ptr<StateNode> &parent) {
-			ref_ptr<GeometricCulling> cullNode;
+			ref_ptr<LODState> cullNode;
 			// get the parent camera. Note that this will be the light camera in case
 			// updating the shadow map.
 			auto cam = parent->getParentCamera();
@@ -195,7 +195,7 @@ namespace regen::scene {
 			}
 
 			auto shapeName = input.getValue<std::string>("cull-shape", "");
-			cullNode = ref_ptr<GeometricCulling>::alloc(cam, spatialIndex, shapeName);
+			cullNode = ref_ptr<LODState>::alloc(cam, spatialIndex, shapeName);
 			cullNode->set_name(input.getName());
 			if (input.hasAttribute("sort-mode")) {
 				cullNode->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));

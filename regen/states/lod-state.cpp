@@ -6,12 +6,12 @@
  */
 
 #include <regen/states/state-node.h>
-#include "geometric-culling.h"
+#include "lod-state.h"
 #include "regen/meshes/mesh-vector.h"
 
 using namespace regen;
 
-GeometricCulling::GeometricCulling(
+LODState::LODState(
 		const ref_ptr<Camera> &camera,
 		const ref_ptr<SpatialIndex> &spatialIndex,
 		std::string_view shapeName)
@@ -33,7 +33,7 @@ GeometricCulling::GeometricCulling(
 	createInstanceBuffer();
 }
 
-GeometricCulling::GeometricCulling(
+LODState::LODState(
 		const ref_ptr<Camera> &camera,
 		const std::vector<ref_ptr<Mesh>> &meshVector,
 		const ref_ptr<ModelTransformation> &tf)
@@ -46,7 +46,7 @@ GeometricCulling::GeometricCulling(
 	createInstanceBuffer();
 }
 
-void GeometricCulling::createInstanceBuffer() {
+void LODState::createInstanceBuffer() {
 	if (numInstances_ <= 1) return;
 	// Create array with numInstances_ elements.
 	// The instance ids will be added each frame 1. in LOD-groups and 2. in view-dependent order
@@ -75,7 +75,7 @@ void GeometricCulling::createInstanceBuffer() {
 	}
 }
 
-void GeometricCulling::updateMeshLOD() {
+void LODState::updateMeshLOD() {
 	if (!mesh_.get() || mesh_->numLODs() <= 1) {
 		return;
 	}
@@ -92,7 +92,7 @@ void GeometricCulling::updateMeshLOD() {
 	}
 }
 
-void GeometricCulling::activateLOD(uint32_t lodLevel) {
+void LODState::activateLOD(uint32_t lodLevel) {
 	// set the LOD level
 	for (auto &part: meshVector_) {
 		if (mesh_->numLODs() == part->numLODs() && part->numLODs() > 1) {
@@ -107,7 +107,7 @@ void GeometricCulling::activateLOD(uint32_t lodLevel) {
 	}
 }
 
-void GeometricCulling::traverseInstanced_(RenderState *rs, uint32_t numVisible) {
+void LODState::traverseInstanced_(RenderState *rs, uint32_t numVisible) {
 	// set number of visible instances
 	for (auto &m : meshVector_) {
 		m->inputContainer()->set_numVisibleInstances(numVisible);
@@ -119,7 +119,7 @@ void GeometricCulling::traverseInstanced_(RenderState *rs, uint32_t numVisible) 
 	}
 }
 
-void GeometricCulling::traverse(RenderState *rs) {
+void LODState::traverse(RenderState *rs) {
 	if (spatialIndex_.get()) {
 		traverseCPU(rs);
 	} else {
@@ -131,7 +131,7 @@ void GeometricCulling::traverse(RenderState *rs) {
 //////////// CPU-based LOD update
 ///////////////////////
 
-void GeometricCulling::traverseCPU(RenderState *rs) {
+void LODState::traverseCPU(RenderState *rs) {
 	if (!spatialIndex_->hasCamera(*camera_.get()) || !shapeIndex_.get()) {
 		updateMeshLOD();
 		StateNode::traverse(rs);
@@ -171,7 +171,7 @@ void GeometricCulling::traverseCPU(RenderState *rs) {
 	}
 }
 
-void GeometricCulling::computeLODGroups() {
+void LODState::computeLODGroups() {
 	auto visible_ids = shapeIndex_->mapInstanceIDs(ShaderData::READ);
 	auto numVisible = visible_ids.r[0];
 	if (numVisible == 0) { return; }
@@ -191,7 +191,7 @@ void GeometricCulling::computeLODGroups() {
 	}
 }
 
-void GeometricCulling::computeLODGroups_(
+void LODState::computeLODGroups_(
 		const uint32_t *mappedData, int begin, int end, int increment) {
 	auto &transform = shapeIndex_->shape()->transform();
 	auto &modelOffset = shapeIndex_->shape()->modelOffset();
@@ -252,6 +252,6 @@ void GeometricCulling::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
-void GeometricCulling::traverseGPU(RenderState *rs) {
+void LODState::traverseGPU(RenderState *rs) {
 	// TODO: implement GPU culling
 }

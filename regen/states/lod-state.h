@@ -15,27 +15,26 @@
 
 namespace regen {
 	/**
-	 * @brief Geometric culling state node
+	 * @brief Dynamic LOD handling and culling
 	 */
-	class GeometricCulling : public StateNode {
+	class LODState : public StateNode {
 	public:
 		/**
-		 * @brief Construct a new Geometric Culling object
 		 * @param camera The camera
 		 * @param spatialIndex The spatial index
 		 * @param shapeName The shape name
 		 */
-		GeometricCulling(
+		LODState(
 				const ref_ptr<Camera> &camera,
 				const ref_ptr<SpatialIndex> &spatialIndex,
 				std::string_view shapeName);
 
-		GeometricCulling(
+		LODState(
 				const ref_ptr<Camera> &camera,
 				const std::vector<ref_ptr<Mesh>> &meshVector,
 				const ref_ptr<ModelTransformation> &tf);
 
-		~GeometricCulling() override = default;
+		~LODState() override = default;
 
 		/**
 		 * @brief Set the instance sorting
