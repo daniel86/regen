@@ -30,6 +30,9 @@ void ComputeState::updateNumWorkGroups() {
 	shaderDefine("CS_GROUP_SIZE_X", REGEN_STRING(localSize_.x));
 	shaderDefine("CS_GROUP_SIZE_Y", REGEN_STRING(localSize_.y));
 	shaderDefine("CS_GROUP_SIZE_Z", REGEN_STRING(localSize_.z));
+	shaderDefine("CS_NUM_WORK_GROUPS_X", REGEN_STRING(numWorkGroups_.x));
+	shaderDefine("CS_NUM_WORK_GROUPS_Y", REGEN_STRING(numWorkGroups_.y));
+	shaderDefine("CS_NUM_WORK_GROUPS_Z", REGEN_STRING(numWorkGroups_.z));
 }
 
 void ComputeState::enable(RenderState *rs) {
