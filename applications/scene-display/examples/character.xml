@@ -265,7 +265,7 @@
     </mesh>
 
     <node id="Trees">
-        <node id="tree1" cull-shape="tree-shape">
+        <node id="tree1" lod-shape="tree-shape">
             <node id="tree1-trunk">
                 <input name="matEmission" type="vec3" value="0.01,0.01,0.01"/>
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
@@ -282,7 +282,7 @@
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.states.wind.wavingQuad"/>
             </node>
         </node>
-        <node id="tree1-pot" cull-shape="tree-pot-shape">
+        <node id="tree1-pot" lod-shape="tree-pot-shape">
             <node id="tree1-pot">
                 <mesh id="tree-pot" shader="regen.models.mesh"/>
             </node>
@@ -372,7 +372,7 @@
 
     <node id="Garden-Items">
         <node import="Trees"/>
-        <node id="Stone0" cull-shape="stone0-shape">
+        <node id="Stone0" lod-shape="stone0-shape">
             <mesh id="stone0" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -417,13 +417,13 @@
     <node id="Stairs">
         <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
-        <node id="stairs0" cull-shape="stairs0-shape">
+        <node id="stairs0" lod-shape="stairs0-shape">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs1" cull-shape="stairs1-shape">
+        <node id="stairs1" lod-shape="stairs1-shape">
             <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs2" cull-shape="stairs2-shape">
+        <node id="stairs2" lod-shape="stairs2-shape">
             <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -470,10 +470,10 @@
 
     <node id="Platforms">
         <material preset="iron" emission="0.05,0.07,0.07"/>
-        <node id="platform0" cull-shape="platform0-shape">
+        <node id="platform0" lod-shape="platform0-shape">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="platform1" cull-shape="platform1-shape">
+        <node id="platform1" lod-shape="platform1-shape">
             <mesh id="platform1-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -512,10 +512,10 @@
     </mesh>
 
     <node id="Pedestal">
-        <node id="pedestal" cull-shape="pedestal-shape">
+        <node id="pedestal" lod-shape="pedestal-shape">
             <mesh id="pedestal-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="statue-slope" cull-shape="slope-shape">
+        <node id="statue-slope" lod-shape="slope-shape">
             <mesh id="slope-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -810,14 +810,14 @@
             <material specular="0, 0, 0" ambient="0.05, 0.0, 0.0"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
-        <node id="Fire-Flies" cull-shape="fire-flies-shape0">
+        <node id="Fire-Flies" lod-shape="fire-flies-shape0">
             <input name="sphereRadius" type="float" value="0.1"/>
             <input name="matEmission" state="fire-flies-light0" component="lightDiffuse"/>
             <mesh id="fire-flies0" shader="regen.models.sprite-sphere"/>
         </node>
 
         <node id="Light-Bulbs">
-            <node id="Light-Bulb0" cull-shape="light-bulb-shape">
+            <node id="Light-Bulb0" lod-shape="light-bulb-shape">
                 <input name="sphereRadius" type="float" value="0.5"/>
                 <input name="matEmission" state="room-light0" component="lightDiffuse"/>
                 <mesh id="light-bulb-point" shader="regen.models.sprite-sphere"/>

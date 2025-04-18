@@ -249,7 +249,7 @@
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>
         <!--
-        <node id="Ground-patches" cull-shape="ground-shape">
+        <node id="Ground-patches" lod-shape="ground-shape">
             <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/>
             <define key="TESS_SPACING" value="fractional_odd_spacing"/>
             <tesselation num-patch-vertices="3" lod-factor="0.18" lod-metric="EDGE_DEVICE_DISTANCE"/>
@@ -290,7 +290,7 @@
     </mesh>
 
     <node id="Grass">
-        <node cull-shape="grass-shape">
+        <node lod-shape="grass-shape">
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <blend mode="SRC"/>
             <material
@@ -369,7 +369,7 @@
     </mesh>
 
     <node id="Trees">
-        <node cull-shape="tree-shape">
+        <node lod-shape="tree-shape">
             <node id="tree-trunk">
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
@@ -499,6 +499,7 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
+            lod-simplification="0.5, 0.1"
             num-instances="{{num-fish}}">
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
@@ -546,18 +547,18 @@
     </mesh>
 
     <node id="Mammals">
-        <node id="hyena0" cull-shape="hyena-shape">
+        <node id="hyena0" lod-shape="hyena-shape">
             <mesh id="hyena-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>
 
     <node id="Fish">
         <!--
-        <node id="fish0" cull-shape="fish-shape">
+        <node id="fish0" lod-shape="fish-shape">
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
         -->
-        <node id="fish0">
+        <node id="fish0" lod-mesh="fish-mesh" lod-tf="fish-tf" lod-thresholds="6.0, 40.0">
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>

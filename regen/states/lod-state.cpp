@@ -1,10 +1,3 @@
-/*
- * geometric-culling.cpp
- *
- *  Created on: Oct 17, 2014
- *      Author: daniel
- */
-
 #include <regen/states/state-node.h>
 #include "lod-state.h"
 #include "regen/meshes/mesh-vector.h"
@@ -70,8 +63,33 @@ void LODState::createInstanceBuffer() {
 	lodGroups_.resize(mesh_->numLODs());
 	// initially all instances are added to first LOD group
 	lodNumInstances_[0] = numInstances_;
-	for (int i = 1; i < mesh_->numLODs(); ++i) {
+	for (uint32_t i = 1u; i < mesh_->numLODs(); ++i) {
 		lodNumInstances_[i] = 0;
+	}
+
+	// create LOD thresholds
+	auto far = camera_->far()->getVertex(0).r;
+	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
+	lodThresholds_->setUniformData(Vec3f::zero());
+	setThresholds(Vec3f(0.2f*far, 0.6f*far, 0.8f*far));
+
+	if (!spatialIndex_.get()) {
+		createComputeShader();
+	}
+}
+
+void LODState::setThresholds(const Vec3f &thresholds) {
+	if(mesh_->numLODs()==4) {
+		lodThresholds_->setVertex(0, thresholds);
+	}
+	else if(mesh_->numLODs()==3) {
+		lodThresholds_->setVertex(0, Vec3f(0.0f, thresholds.x, thresholds.y));
+	}
+	else if(mesh_->numLODs()==2) {
+		lodThresholds_->setVertex(0, Vec3f(0.0f, 0.0f, thresholds.x));
+	}
+	else {
+		lodThresholds_->setVertex(0, Vec3f(0.0f, 0.0f, 0.0f));
 	}
 }
 
@@ -252,6 +270,125 @@ void LODState::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
+void LODState::createComputeShader() {
+	computeLODPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.compute");
+	computeLODPass_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
+	computeLODPass_->computeState()->setGroupSize(256, 1, 1);
+
+	// Output (1): instanceIDMap
+	computeLODPass_->joinShaderInput(instanceIDBuffer_);
+	// Output (2): lodGroupSize
+	lodGroupSizeBuffer_ = ref_ptr<SSBO>::alloc("LODGroupBuffer", USAGE_DYNAMIC);
+	lodGroupSize_ = ref_ptr<ShaderInput1ui>::alloc("lodGroupSize", 4);
+	lodGroupSizeBuffer_->addBlockInput(lodGroupSize_);
+	lodGroupSizeBuffer_->update();
+	computeLODPass_->joinShaderInput(lodGroupSizeBuffer_);
+	// +PBO for reading back the lodGroupSizeBuffer_
+	lodGroupSizePBO_ = ref_ptr<PBO>::alloc(USAGE_STREAM);
+	lodGroupSizePBO_->bindPackBuffer();
+	glBufferStorage(GL_PIXEL_PACK_BUFFER,
+		sizeof(uint32_t)*4, nullptr,
+		GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	m_lodGroupSize_ = (Vec4ui*)glMapBufferRange(
+		GL_PIXEL_PACK_BUFFER,
+		0,
+		sizeof(uint32_t)*4,
+		GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+	// Temporary Buffers for sorting.
+	auto numWorkGroups = computeLODPass_->computeState()->numWorkGroups().x;
+	sortBuffer1_ = ref_ptr<SSBO>::alloc("SortBuffer1", USAGE_DYNAMIC);
+	sortBuffer1_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortKeys", numInstances_));
+	sortBuffer1_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortedIDsTemp", numInstances_));
+	sortBuffer1_->update();
+	computeLODPass_->joinShaderInput(sortBuffer1_);
+	sortBuffer2_ = ref_ptr<SSBO>::alloc("SortBuffer2", USAGE_DYNAMIC);
+	sortBuffer2_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("workGroupSize", numWorkGroups));
+	sortBuffer2_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("workGroupOffset", numWorkGroups));
+	sortBuffer2_->update();
+	computeLODPass_->joinShaderInput(sortBuffer2_);
+
+	// Position input buffer
+	computeLODPass_->joinStates(tf_);
+
+	// Uniform parameters
+	computeLODPass_->joinShaderInput(lodThresholds_);
+	computeLODPass_->joinStates(camera_);
+	//computeLODPass_->joinShaderInput(camera_->cameraBlock());
+
+	StateConfigurer shaderConfigurer;
+	shaderConfigurer.addState(computeLODPass_.get());
+	computeLODPass_->createShader(shaderConfigurer.cfg());
+}
+
 void LODState::traverseGPU(RenderState *rs) {
-	// TODO: implement GPU culling
+	// clear the lodGroupSizeBuffer_ to zero's
+	static uint32_t zero = 0;
+	rs->copyWriteBuffer().push(lodGroupSizeBuffer_->blockReference()->bufferID());
+	glClearBufferSubData(GL_COPY_WRITE_BUFFER, GL_R32UI,
+		lodGroupSizeBuffer_->blockReference()->address(),
+		lodGroupSizeBuffer_->blockReference()->allocatedSize(),
+		GL_RED_INTEGER,
+		GL_UNSIGNED_INT,
+		&zero);
+	rs->copyWriteBuffer().pop();
+
+	// update the index buffer
+	computeLODPass_->enable(rs);
+	computeLODPass_->disable(rs);
+
+	// Copy lodGroupSizeBuffer_ to lodGroupSizePBO_
+	rs->copyReadBuffer().push(lodGroupSizeBuffer_->blockReference()->bufferID());
+	rs->copyWriteBuffer().push(lodGroupSizePBO_->id());
+	glCopyBufferSubData(
+			GL_COPY_READ_BUFFER,
+			GL_COPY_WRITE_BUFFER,
+			lodGroupSizeBuffer_->blockReference()->address(),
+			0,
+			lodGroupSizeBuffer_->blockReference()->allocatedSize());
+	rs->copyWriteBuffer().pop();
+	rs->copyReadBuffer().pop();
+
+	// Read lodGroupSizePBO_ and update lodNumInstances_
+    if (m_lodGroupSize_) {
+    	if (mesh_->numLODs() == 4) {
+			lodNumInstances_[0] = m_lodGroupSize_[0].x;
+			lodNumInstances_[1] = m_lodGroupSize_[0].y;
+			lodNumInstances_[2] = m_lodGroupSize_[0].z;
+			lodNumInstances_[3] = m_lodGroupSize_[0].w;
+    	} else if (mesh_->numLODs() == 3) {
+			lodNumInstances_[0] = m_lodGroupSize_[0].y;
+			lodNumInstances_[1] = m_lodGroupSize_[0].z;
+			lodNumInstances_[2] = m_lodGroupSize_[0].w;
+			lodNumInstances_[3] = 0;
+		} else if (mesh_->numLODs() == 2) {
+			lodNumInstances_[0] = m_lodGroupSize_[0].z;
+			lodNumInstances_[1] = m_lodGroupSize_[0].w;
+			lodNumInstances_[2] = 0;
+			lodNumInstances_[3] = 0;
+		} else {
+			lodNumInstances_[0] = m_lodGroupSize_[0].w;
+			lodNumInstances_[1] = 0;
+			lodNumInstances_[2] = 0;
+			lodNumInstances_[3] = 0;
+		}
+    }
+
+	// loop over all LOD levels
+	int32_t instanceIDOffset = 0;
+	for (uint32_t lodLevel = 0; lodLevel < 4; ++lodLevel) {
+		auto lodGroupSize = lodNumInstances_[lodLevel];
+		if (lodGroupSize == 0) {
+			continue;
+		}
+		// set the LOD level
+		activateLOD(lodLevel);
+		// set instanceIDOffset
+		instanceIDOffset_->setVertex(0, instanceIDOffset);
+		traverseInstanced_(rs, lodGroupSize);
+		instanceIDOffset += lodGroupSize;
+	}
+	// reset LOD level
+	activateLOD(0);
 }

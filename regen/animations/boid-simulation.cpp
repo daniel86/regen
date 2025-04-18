@@ -317,7 +317,7 @@ void BoidSimulation_GPU::initAnimationState() {
 		updateBoidsState_->shaderDefine("NUM_BOID_HOMES", "0");
 	} else {
 		updateBoidsState_->shaderDefine("NUM_BOID_HOMES", std::to_string(homePoints_.size()));
-		for (int i = 0; i < homePoints_.size(); ++i) {
+		for (uint64_t i = 0u; i < homePoints_.size(); ++i) {
 			updateBoidsState_->shaderDefine(
 				REGEN_STRING("BOID_HOME" << i),
 				REGEN_STRING("vec3(" <<

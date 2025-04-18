@@ -12,6 +12,8 @@
 #include <regen/shapes/spatial-index.h>
 #include "regen/camera/sorting.h"
 #include "regen/gl-types/ssbo.h"
+#include "compute-pass.h"
+#include "regen/gl-types/pbo.h"
 
 namespace regen {
 	/**
@@ -29,6 +31,12 @@ namespace regen {
 				const ref_ptr<SpatialIndex> &spatialIndex,
 				std::string_view shapeName);
 
+		/**
+		 * @brief Constructor for LODState
+		 * @param camera The camera
+		 * @param meshVector The mesh vector
+		 * @param tf The model transformation
+		 */
 		LODState(
 				const ref_ptr<Camera> &camera,
 				const std::vector<ref_ptr<Mesh>> &meshVector,
@@ -42,6 +50,13 @@ namespace regen {
 		 */
 		void setInstanceSortMode(SortMode mode) { instanceSortMode_ = mode; }
 
+		/**
+		 * @brief Set the LOD thresholds
+		 * @param thresholds The LOD thresholds
+		 */
+		void setThresholds(const Vec3f &thresholds);
+
+		// override
 		void traverse(RenderState *rs) override;
 
 	protected:
@@ -58,13 +73,27 @@ namespace regen {
 		ref_ptr<ShaderInput1i> instanceIDOffset_;
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;
+		ref_ptr<ShaderInput3f> lodThresholds_;
 		// temporary storage for instanceIDs, used to fill the instanceIDMap_
 		std::vector<std::vector<GLuint>> lodGroups_;
 		ref_ptr<Mesh> mesh_;
 		std::vector<ref_ptr<Mesh>> meshVector_;
 		ref_ptr<ModelTransformation> tf_;
 
+		// GPU LOD update
+		ref_ptr<ComputePass> computeLODPass_;
+		// includes array data: sortKeys, sortedIDsTemp, workGroupSize, workGroupOffset
+		ref_ptr<SSBO> sortBuffer1_;
+		ref_ptr<SSBO> sortBuffer2_;
+		// includes array data: lodGroupSize
+		ref_ptr<SSBO> lodGroupSizeBuffer_;
+		ref_ptr<ShaderInput1ui> lodGroupSize_;
+		ref_ptr<PBO> lodGroupSizePBO_;
+		Vec4ui *m_lodGroupSize_ = nullptr;
+
 		void createInstanceBuffer();
+
+		void createComputeShader();
 
 		void updateMeshLOD();
 

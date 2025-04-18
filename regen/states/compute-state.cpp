@@ -27,6 +27,9 @@ void ComputeState::updateNumWorkGroups() {
 	numWorkGroups_.x = (numWorkUnits_.x + localSize_.x - 1) / localSize_.x;
 	numWorkGroups_.y = (numWorkUnits_.y + localSize_.y - 1) / localSize_.y;
 	numWorkGroups_.z = (numWorkUnits_.z + localSize_.z - 1) / localSize_.z;
+	shaderDefine("CS_GROUP_SIZE_X", REGEN_STRING(localSize_.x));
+	shaderDefine("CS_GROUP_SIZE_Y", REGEN_STRING(localSize_.y));
+	shaderDefine("CS_GROUP_SIZE_Z", REGEN_STRING(localSize_.z));
 }
 
 void ComputeState::enable(RenderState *rs) {
