@@ -86,8 +86,8 @@ namespace regen {
 		ref_ptr<ShaderInput1ui> mergeSegmentSize_;
 		uint32_t radixMergeReadBinding_ = 0u;
 		uint32_t radixMergeWriteBinding_ = 0u;
-		// includes array data: sortKeys, sortedIDsTemp, workGroupSize, workGroupOffset
-		ref_ptr<SSBO> sortBuffer_;
+		ref_ptr<SSBO> keyBuffer_;
+		ref_ptr<SSBO> tmpIDBuffer_;
 		ref_ptr<SSBO> workGroupBuffer_;
 		// includes array data: lodGroupSize
 		ref_ptr<SSBO> lodGroupSizeBuffer_;

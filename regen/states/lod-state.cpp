@@ -306,12 +306,17 @@ void LODState::createComputeShader() {
 
 	// Temporary Buffers for sorting.
 	auto numWorkGroups = radixSort_->computeState()->numWorkGroups().x;
-	sortBuffer_ = ref_ptr<SSBO>::alloc("SortBuffer", USAGE_DYNAMIC);
-	sortBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortedIDsTemp", numInstances_));
-	sortBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortKeys", numInstances_));
-	sortBuffer_->update();
-	radixSort_->joinShaderInput(sortBuffer_);
-	radixMerge_->joinShaderInput(sortBuffer_);
+	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer", USAGE_DYNAMIC);
+	keyBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortKeys", numInstances_));
+	keyBuffer_->update();
+	radixSort_->joinShaderInput(keyBuffer_);
+	radixMerge_->joinShaderInput(keyBuffer_);
+
+	tmpIDBuffer_ = ref_ptr<SSBO>::alloc("TempIDBuffer", USAGE_DYNAMIC);
+	tmpIDBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortedIDsTemp", numInstances_));
+	tmpIDBuffer_->update();
+	// TODO: pick such that we don't do copy?
+	radixSort_->joinShaderInput(tmpIDBuffer_);
 
 	workGroupBuffer_ = ref_ptr<SSBO>::alloc("WorkGroupBuffer", USAGE_DYNAMIC);
 	workGroupBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("workGroupSize", numWorkGroups));
@@ -353,7 +358,7 @@ void LODState::radixSortGPU(RenderState *rs) {
 	// Each pass takes the current buffer and merges segments into the next buffer.
 	ref_ptr<BufferReference> currentRef, nextRef, pingPongRef, outputRef;
 	outputRef = instanceIDBuffer_->blockReference();
-	currentRef = sortBuffer_->blockReference();
+	currentRef = tmpIDBuffer_->blockReference();
 	nextRef = outputRef;
 	// Number of segments, and size of each segment in the current buffer
 	auto numSegments = radixSort_->computeState()->numWorkGroups().x;
@@ -492,18 +497,30 @@ float uintBitsToFloat(uint32_t uintValue) {
 void LODState::debugGPU(RenderState *rs, bool debugFinalBuffer) {
 	// debug sorted output
 	REGEN_INFO("sortedIDs");
-	std::vector<uint32_t> sortedIDs(numInstances_);
 	std::vector<double> distances(numInstances_);
-	rs->copyReadBuffer().push(sortBuffer_->blockReference()->bufferID());
-	auto sortedIDsTemp = (uint32_t*)glMapBufferRange(
+	rs->copyReadBuffer().push(keyBuffer_->blockReference()->bufferID());
+	auto sortKeys = (uint32_t*)glMapBufferRange(
 		GL_COPY_READ_BUFFER,
-		sortBuffer_->blockReference()->address(),
-		sortBuffer_->blockReference()->allocatedSize(),
+		keyBuffer_->blockReference()->address(),
+		keyBuffer_->blockReference()->allocatedSize(),
 		GL_MAP_READ_BIT);
-	if (sortedIDsTemp) {
-		auto sortKeys = sortedIDsTemp + numInstances_;
+	if (sortKeys) {
 		for (uint32_t i = 0; i < numInstances_; ++i) {
 			distances[i] = uintBitsToFloat(sortKeys[i]);
+		}
+		glUnmapBuffer(GL_COPY_READ_BUFFER);
+	}
+	rs->copyReadBuffer().pop();
+
+	std::vector<uint32_t> sortedIDs(numInstances_);
+	rs->copyReadBuffer().push(tmpIDBuffer_->blockReference()->bufferID());
+	auto sortedIDsTemp = (uint32_t*)glMapBufferRange(
+		GL_COPY_READ_BUFFER,
+		tmpIDBuffer_->blockReference()->address(),
+		tmpIDBuffer_->blockReference()->allocatedSize(),
+		GL_MAP_READ_BIT);
+	if (sortedIDsTemp) {
+		for (uint32_t i = 0; i < numInstances_; ++i) {
 			sortedIDs[i] = sortedIDsTemp[i];
 		}
 		for (uint32_t i = 0; i < numInstances_; ++i) {
