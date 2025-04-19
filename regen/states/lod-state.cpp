@@ -299,7 +299,7 @@ static inline uint32_t getNumMergePasses(uint32_t numWorkGroups) {
 void LODState::createComputeShader() {
 	radixSort_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.sort");
 	radixSort_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
-	if (instanceSortMode_ == SortMode::FRONT_TO_BACK) {
+	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 		radixSort_->computeState()->shaderDefine("RADIX_REVERSE_SORT", "TRUE");
 	}
 	radixSort_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
