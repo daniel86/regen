@@ -56,6 +56,11 @@ namespace regen {
 		 */
 		void setThresholds(const Vec3f &thresholds);
 
+		/**
+		 * Update buffers needed for LOD computation.
+		 */
+		void createBuffers();
+
 		// override
 		void traverse(RenderState *rs) override;
 
@@ -98,7 +103,7 @@ namespace regen {
 		ref_ptr<PBO> lodGroupSizePBO_;
 		Vec4ui *m_lodGroupSize_ = nullptr;
 
-		void createInstanceBuffer();
+		void initLODState();
 
 		void createComputeShader();
 

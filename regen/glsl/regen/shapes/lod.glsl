@@ -96,6 +96,9 @@ bool cull(uint globalID, uint localID, uint groupID) {
 
         if (isVisible) {
             float depth = length(pos - in_cameraPosition.xyz);
+#ifdef RADIX_REVERSE_SORT
+            depth = in_far - depth;
+#endif
             in_sortKeys[globalID] = floatBitsToUint(depth);
             // increase visibility count
             atomicAdd(sh_visibleCount, 1);

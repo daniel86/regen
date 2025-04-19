@@ -224,6 +224,7 @@ namespace regen::scene {
 			if (input.hasAttribute("sort-mode")) {
 				lodState->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));
 			}
+			lodState->createBuffers();
 			parent->addChild(lodState);
 			parser->putNode(input.getName(), lodState);
 

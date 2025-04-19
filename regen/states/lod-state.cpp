@@ -23,7 +23,7 @@ LODState::LODState(
 	if (!mesh_.get()) {
 		numInstances_ = 1;
 	}
-	createInstanceBuffer();
+	initLODState();
 }
 
 LODState::LODState(
@@ -36,10 +36,18 @@ LODState::LODState(
 		  tf_(tf) {
 	mesh_ = meshVector.front();
 	numInstances_ = tf->get()->numInstances();
-	createInstanceBuffer();
+	initLODState();
 }
 
-void LODState::createInstanceBuffer() {
+void LODState::initLODState() {
+	// create LOD thresholds
+	auto far = camera_->far()->getVertex(0).r;
+	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
+	lodThresholds_->setUniformData(Vec3f::zero());
+	setThresholds(Vec3f(0.2f*far, 0.6f*far, 0.8f*far));
+}
+
+void LODState::createBuffers() {
 	if (numInstances_ <= 1) return;
 	// Create array with numInstances_ elements.
 	// The instance ids will be added each frame 1. in LOD-groups and 2. in view-dependent order
@@ -67,18 +75,13 @@ void LODState::createInstanceBuffer() {
 		lodNumInstances_[i] = 0;
 	}
 
-	// create LOD thresholds
-	auto far = camera_->far()->getVertex(0).r;
-	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
-	lodThresholds_->setUniformData(Vec3f::zero());
-	setThresholds(Vec3f(0.2f*far, 0.6f*far, 0.8f*far));
-
 	if (!spatialIndex_.get() && numInstances_ > 1) {
 		createComputeShader();
 	}
 }
 
 void LODState::setThresholds(const Vec3f &thresholds) {
+	if (!mesh_.get()) return;
 	if(mesh_->numLODs()==4) {
 		lodThresholds_->setVertex(0, thresholds);
 	}
@@ -270,6 +273,7 @@ void LODState::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
+// TODO: CLEANUP move somewhere else
 static inline uint32_t nextPowerOfTwo(uint32_t n) {
     if (n == 0) return 1; // Special case for 0
     n--;
@@ -295,9 +299,11 @@ static inline uint32_t getNumMergePasses(uint32_t numWorkGroups) {
 void LODState::createComputeShader() {
 	radixSort_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.sort");
 	radixSort_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
+	if (instanceSortMode_ == SortMode::FRONT_TO_BACK) {
+		radixSort_->computeState()->shaderDefine("RADIX_REVERSE_SORT", "TRUE");
+	}
 	radixSort_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
 	radixSort_->computeState()->setGroupSize(256, 1, 1);
-	//radixSort_->computeState()->setGroupSize(32, 1, 1);
 	auto numWorkGroups = radixSort_->computeState()->numWorkGroups().x;
 
 	radixMerge_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.merge");
@@ -347,10 +353,8 @@ void LODState::createComputeShader() {
 	}
 	workGroupBuffer_->update();
 	radixSort_->joinShaderInput(workGroupBuffer_);
-
 	// Position input buffer
 	radixSort_->joinStates(tf_);
-
 	// Uniform parameters
 	radixSort_->joinShaderInput(lodThresholds_);
 	radixSort_->joinStates(camera_);
@@ -411,20 +415,11 @@ void LODState::radixSortGPU(RenderState *rs) {
 			nextRef->bufferID(),
 			nextRef->address(),
 			outputRef->allocatedSize());
-		GL_ERROR_LOG();
 		mergeSegmentSize_->setVertex(0, segmentSize);
 		// merge segments by running a compute shader
 		radixMerge_->computeState()->setNumWorkUnits(numMergeThreads, 1, 1);
-#if 0
-		REGEN_INFO("Radix merge stage " <<
-			" numSegments: " << numSegments <<
-			" segmentSize: " << segmentSize <<
-			" numMergeThreads: " << numMergeThreads <<
-			" num work groups: " << radixMerge_->computeState()->numWorkGroups().x);
-#endif
 		radixMerge_->enable(rs);
 		radixMerge_->disable(rs);
-		GL_ERROR_LOG();
 		// update segment size
 		segmentSize *= 2;
 		numSegments = numMergeThreads;
@@ -508,6 +503,7 @@ void LODState::traverseGPU(RenderState *rs) {
 #endif
 }
 
+// TODO: CLEANUP move somewhere else
 float uintBitsToFloat(uint32_t uintValue) {
 	union {
 		uint32_t uintValue;
