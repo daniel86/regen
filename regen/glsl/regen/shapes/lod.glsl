@@ -37,7 +37,9 @@
 buffer uint in_sortKeys[];
 // - intermediate sorted output of workgroups, each element is inserted into the
 //   final output with a work group offset.
-buffer uint in_sortedIDsTemp[];
+layout(std430) writeonly buffer TempIDBuffer {
+    uint in_sortedIDsTemp[];
+};
 // - Write from each workgroup how many visible instances it has
 buffer uint in_workGroupSize[CS_NUM_WORK_GROUPS_X];
 

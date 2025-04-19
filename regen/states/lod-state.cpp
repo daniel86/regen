@@ -73,7 +73,7 @@ void LODState::createInstanceBuffer() {
 	lodThresholds_->setUniformData(Vec3f::zero());
 	setThresholds(Vec3f(0.2f*far, 0.6f*far, 0.8f*far));
 
-	if (!spatialIndex_.get()) {
+	if (!spatialIndex_.get() && numInstances_ > 1) {
 		createComputeShader();
 	}
 }
@@ -270,12 +270,35 @@ void LODState::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
+static inline uint32_t nextPowerOfTwo(uint32_t n) {
+    if (n == 0) return 1; // Special case for 0
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    return n + 1;
+}
+
+static inline uint32_t getNumMergePasses(uint32_t numWorkGroups) {
+	uint32_t x = nextPowerOfTwo(numWorkGroups);
+	if (x == 1) {
+		return 0;
+	} else if (x == 2) {
+		return 1;
+	} else {
+		return static_cast<uint32_t>(sqrt(static_cast<float>(x)));
+	}
+}
+
 void LODState::createComputeShader() {
 	radixSort_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.sort");
 	radixSort_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
 	radixSort_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
 	radixSort_->computeState()->setGroupSize(256, 1, 1);
 	//radixSort_->computeState()->setGroupSize(32, 1, 1);
+	auto numWorkGroups = radixSort_->computeState()->numWorkGroups().x;
 
 	radixMerge_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.merge");
 	radixMerge_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
@@ -284,6 +307,7 @@ void LODState::createComputeShader() {
 	radixMerge_->computeState()->setGroupSize(1, 1, 1);
 	mergeSegmentSize_ = createUniform<ShaderInput1ui,uint32_t>("mergeSegmentSize", 0u);
 	radixMerge_->computeState()->joinShaderInput(mergeSegmentSize_);
+	auto numMergePasses = getNumMergePasses(numWorkGroups);
 
 	// Output: lodGroupSize
 	lodGroupSizeBuffer_ = ref_ptr<SSBO>::alloc("LODGroupBuffer", USAGE_DYNAMIC);
@@ -305,7 +329,6 @@ void LODState::createComputeShader() {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 	// Temporary Buffers for sorting.
-	auto numWorkGroups = radixSort_->computeState()->numWorkGroups().x;
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer", USAGE_DYNAMIC);
 	keyBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortKeys", numInstances_));
 	keyBuffer_->update();
@@ -315,8 +338,6 @@ void LODState::createComputeShader() {
 	tmpIDBuffer_ = ref_ptr<SSBO>::alloc("TempIDBuffer", USAGE_DYNAMIC);
 	tmpIDBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortedIDsTemp", numInstances_));
 	tmpIDBuffer_->update();
-	// TODO: pick such that we don't do copy?
-	radixSort_->joinShaderInput(tmpIDBuffer_);
 
 	workGroupBuffer_ = ref_ptr<SSBO>::alloc("WorkGroupBuffer", USAGE_DYNAMIC);
 	workGroupBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("workGroupSize", numWorkGroups));
@@ -334,9 +355,20 @@ void LODState::createComputeShader() {
 	radixSort_->joinShaderInput(lodThresholds_);
 	radixSort_->joinStates(camera_);
 
+	// if even -> use instanceIDMap as first temp buffer
+	// if odd -> use tmpIDBuffer_ as first temp buffer
+	if (numMergePasses % 2 == 0) {
+		radixSortIDBuffer_ = instanceIDBuffer_;
+		radixMergeIDBuffer_ = tmpIDBuffer_;
+	} else {
+		radixSortIDBuffer_ = tmpIDBuffer_;
+		radixMergeIDBuffer_ = instanceIDBuffer_;
+	}
+
 	StateConfigurer shaderConfigurer_local;
 	shaderConfigurer_local.addState(radixSort_.get());
 	radixSort_->createShader(shaderConfigurer_local.cfg());
+	radixSortIDBinding_ = radixSort_->shaderState()->shader()->uniformLocation("TempIDBuffer");
 
 	StateConfigurer shaderConfigurer_merge;
 	shaderConfigurer_merge.addState(radixMerge_.get());
@@ -347,6 +379,10 @@ void LODState::createComputeShader() {
 
 void LODState::radixSortGPU(RenderState *rs) {
 	// partially sort into sortedIDsTemp buffer
+	glBindBufferRange(GL_SHADER_STORAGE_BUFFER, radixSortIDBinding_,
+		radixSortIDBuffer_->blockReference()->bufferID(),
+		radixSortIDBuffer_->blockReference()->address(),
+		radixSortIDBuffer_->blockReference()->allocatedSize());
 	radixSort_->enable(rs);
 	radixSort_->disable(rs);
 
@@ -357,8 +393,8 @@ void LODState::radixSortGPU(RenderState *rs) {
 	// ping pong buffers, references should have the same size.
 	// Each pass takes the current buffer and merges segments into the next buffer.
 	ref_ptr<BufferReference> currentRef, nextRef, pingPongRef, outputRef;
-	outputRef = instanceIDBuffer_->blockReference();
-	currentRef = tmpIDBuffer_->blockReference();
+	currentRef = radixSortIDBuffer_->blockReference();
+	outputRef = radixMergeIDBuffer_->blockReference();
 	nextRef = outputRef;
 	// Number of segments, and size of each segment in the current buffer
 	auto numSegments = radixSort_->computeState()->numWorkGroups().x;
@@ -396,19 +432,6 @@ void LODState::radixSortGPU(RenderState *rs) {
 		pingPongRef = currentRef;
 		currentRef = nextRef;
 		nextRef = pingPongRef;
-	}
-
-	if (currentRef->bufferID() != outputRef->bufferID()) {
-		rs->copyReadBuffer().push(currentRef->bufferID());
-		rs->copyWriteBuffer().push(outputRef->bufferID());
-		glCopyBufferSubData(
-				GL_COPY_READ_BUFFER,
-				GL_COPY_WRITE_BUFFER,
-				currentRef->address(),
-				outputRef->address(),
-				outputRef->allocatedSize());
-		rs->copyWriteBuffer().pop();
-		rs->copyReadBuffer().pop();
 	}
 }
 

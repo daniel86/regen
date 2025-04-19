@@ -84,11 +84,14 @@ namespace regen {
 		ref_ptr<ComputePass> radixSort_;
 		ref_ptr<ComputePass> radixMerge_;
 		ref_ptr<ShaderInput1ui> mergeSegmentSize_;
+		uint32_t radixSortIDBinding_ = 0u;
 		uint32_t radixMergeReadBinding_ = 0u;
 		uint32_t radixMergeWriteBinding_ = 0u;
 		ref_ptr<SSBO> keyBuffer_;
 		ref_ptr<SSBO> tmpIDBuffer_;
 		ref_ptr<SSBO> workGroupBuffer_;
+		ref_ptr<SSBO> radixSortIDBuffer_;
+		ref_ptr<SSBO> radixMergeIDBuffer_;
 		// includes array data: lodGroupSize
 		ref_ptr<SSBO> lodGroupSizeBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
