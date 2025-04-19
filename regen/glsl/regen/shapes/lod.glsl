@@ -17,17 +17,18 @@
 #define RADIX_NUM_BUCKETS (1 << RADIX_BITS)
 // LOD groups: high resolution, medium resolution, low resolution.
 #define MAX_NUM_LOD_GROUPS 4
-#define LOD_NUM_INSTANCES in_sortKeys.length()
 
 --------------
+---- This stage runs radix sort on the visible instances, and counts how many
+---- visible instances are in each LOD group.
+---- The radix sort is applied only locally per workgroup, and the output index
+---- buffer is as such only locally ordered within a segment of the same workgroup.
+---- An additional stage is needed to merge the results of all workgroups.
 --------------
--- compute.cs
+-- radix.sort.cs
 #include regen.stages.compute.defines
 #include regen.stages.compute.readPosition
 #include regen.shapes.lod.defines
-
-// FIXME something is wrong with parallel offset sum.
-//#define USE_PARALLEL_OFFSET_SUM
 
 ////////////////////////
 // Temporary Buffers
@@ -38,14 +39,11 @@ buffer uint in_sortKeys[];
 //   final output with a work group offset.
 buffer uint in_sortedIDsTemp[];
 // - Write from each workgroup how many visible instances it has
-buffer uint in_workGroupSize[CS_GROUP_SIZE_X];
-buffer uint in_workGroupOffset[CS_GROUP_SIZE_X];
+buffer uint in_workGroupSize[CS_NUM_WORK_GROUPS_X];
 
 ////////////////////////
 // Output Buffers
 ////////////////////////
-// - The final sorted instance IDs
-buffer uint in_instanceIDMap[];
 // - One per LOD group: how many valid instances passed culling
 //   NOTE: this buffer must be cleared to 0 before the dispatch on the CPU! (use glClearBufferSubData)
 buffer uint in_lodGroupSize[];
@@ -149,54 +147,6 @@ void exclusivePrefixSum(uint localID) {
         }
     }
 }
-
-#ifdef USE_PARALLEL_OFFSET_SUM
-shared uint sh_offsetScan[CS_GROUP_SIZE_X];
-void computeOffsetsParallel(uint globalID, uint localID) {
-    uint temp = 0;
-
-    // Load input from global buffer (e.g. in_workGroupSize) to shared memory
-    sh_offsetScan[localID] = in_workGroupSize[localID];
-    barrier();
-
-    // Up-sweep / reduce phase
-    for (uint offset = 1; offset < CS_GROUP_SIZE_X; offset <<= 1) {
-        if (localID >= offset) {
-            temp = sh_offsetScan[localID - offset];
-        }
-        barrier();  // Wait for all threads
-        if (localID >= offset) {
-            sh_offsetScan[localID] += temp;
-        }
-        barrier();
-    }
-
-    // Convert to exclusive scan
-    if (localID == 0) {
-        sh_offsetScan[CS_GROUP_SIZE_X - 1] = 0;
-    }
-    barrier();
-
-    // Down-sweep phase
-    //for (uint offset = CS_GROUP_SIZE_X >> 1; offset >= 1; offset >>= 1) {
-    for (uint offset = CS_GROUP_SIZE_X >> 1; offset > 0; offset >>= 1) {
-        if (localID >= offset) {
-            temp = sh_offsetScan[localID - offset];
-        }
-        barrier();
-        if (localID >= offset) {
-            uint t = sh_offsetScan[localID];
-            sh_offsetScan[localID] = t + temp;
-        }
-        barrier();
-    }
-
-    // Write to output
-    if (localID < CS_GROUP_SIZE_X) {
-        in_workGroupOffset[localID] = sh_offsetScan[localID];
-    }
-}
-#endif
 
 void reorderKeys(uint bitOffset, uint localID) {
     uint key = sh_sortedKeys[localID];
@@ -312,30 +262,66 @@ void main() {
     barrier();
 
     countVisibleInLOD(localID);
-    barrier();
+}
 
-    // Compute a global prefix sum of groupSize[] to get groupOffset[]
-    if (globalID == 0) {
-#ifdef USE_PARALLEL_OFFSET_SUM
-        // parallel prefix sum of work group offsets
-        computeOffsetsParallel(globalID, localID);
-#else
-        // serial prefix sum of work group offsets
-        in_workGroupOffset[0] = 0;
-        for (uint i = 1; i < CS_GROUP_SIZE_X; ++i) {
-            in_workGroupOffset[i] = in_workGroupOffset[i - 1] + in_workGroupSize[i - 1];
-        }
-#endif
-    }
-    barrier();
+--------------
+--------------
+-- radix.merge.cs
+// layout(local_size_x = 1) in;
+// glDispatchCompute(numMergeGroups / 2, 1, 1);
+#include regen.stages.compute.defines
+#include regen.shapes.lod.defines
 
-    if (globalID < LOD_NUM_INSTANCES) {
-        // Fetch the instance ID for this thread
-        uint instanceID = in_sortedIDsTemp[globalID];
-        uint sortKey    = in_sortKeys[instanceID];
-        // Only write if valid
-        if (sortKey != 0xFFFFFFFFu) {
-            in_instanceIDMap[in_workGroupOffset[groupID] + localID] = instanceID;
+// Ping-pong buffers
+// A partially sorted buffer, segments of size in_mergeSegmentSize are sorted already.
+layout(std430, binding = 0) readonly buffer InputBuffer {
+    uint in_mergeInput[];
+};
+// A partially sorted buffer, segments of size in_mergeSegmentSize*2 are sorted already.
+// If in_mergeSegmentSize*2 > LOD_NUM_INSTANCES, the last segment is fully sorted.
+layout(std430, binding = 1) writeonly buffer OutputBuffer {
+    uint in_mergeResult[];
+};
+
+// The sort keys for the instances, needed for comparison
+buffer uint in_sortKeys[];
+// The number of elements in each segment during this merge pass.
+uniform uint in_mergeSegmentSize;
+
+void main() {
+    uint mergeID = gl_GlobalInvocationID.x;
+    uint segmentSize = in_mergeSegmentSize;
+    // The start offset of segment A, each merge processes 2 * segmentSize elements.
+    uint A_start = 2 * mergeID * segmentSize;
+    // The start offset of segment B
+    uint B_start = A_start + segmentSize;
+
+    // Bounds check (if we had odd segments)
+    if (A_start >= LOD_NUM_INSTANCES) return;
+
+    uint A_end = min(B_start, LOD_NUM_INSTANCES);
+    uint B_end = min(B_start + segmentSize, LOD_NUM_INSTANCES);
+
+    uint i = A_start;
+    uint j = B_start;
+    uint k = A_start;
+    uint id_A, id_B;
+
+    // first merge the two segments where they overlap
+    while (i < A_end && j < B_end) {
+        id_A = in_mergeInput[i];
+        id_B = in_mergeInput[j];
+
+        if (in_sortKeys[id_A] <= in_sortKeys[id_B]) {
+            in_mergeResult[k++] = id_A;
+            i++;
+        }
+        else {
+            in_mergeResult[k++] = id_B;
+            j++;
         }
     }
+    // one of the segments was entirely merged, now copy the rest of the other
+    while (i < A_end) in_mergeResult[k++] = in_mergeInput[i++];
+    while (j < B_end) in_mergeResult[k++] = in_mergeInput[j++];
 }

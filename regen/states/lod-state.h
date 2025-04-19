@@ -81,10 +81,14 @@ namespace regen {
 		ref_ptr<ModelTransformation> tf_;
 
 		// GPU LOD update
-		ref_ptr<ComputePass> computeLODPass_;
+		ref_ptr<ComputePass> radixSort_;
+		ref_ptr<ComputePass> radixMerge_;
+		ref_ptr<ShaderInput1ui> mergeSegmentSize_;
+		uint32_t radixMergeReadBinding_ = 0u;
+		uint32_t radixMergeWriteBinding_ = 0u;
 		// includes array data: sortKeys, sortedIDsTemp, workGroupSize, workGroupOffset
-		ref_ptr<SSBO> sortBuffer1_;
-		ref_ptr<SSBO> sortBuffer2_;
+		ref_ptr<SSBO> sortBuffer_;
+		ref_ptr<SSBO> workGroupBuffer_;
 		// includes array data: lodGroupSize
 		ref_ptr<SSBO> lodGroupSizeBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
@@ -106,6 +110,10 @@ namespace regen {
 		void traverseCPU(RenderState *rs);
 
 		void traverseGPU(RenderState *rs);
+
+		void radixSortGPU(RenderState *rs);
+
+		void debugGPU(RenderState *rs, bool debugFinalBuffer);
 
 		void computeLODGroups_(
 			const uint32_t *mappedData,

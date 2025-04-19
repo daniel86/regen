@@ -11,6 +11,9 @@ void ComputeState::setNumWorkUnits(int x, int y, int z) {
 	numWorkUnits_.y = y;
 	numWorkUnits_.z = z;
 	updateNumWorkGroups();
+	shaderDefine("CS_WORK_UNITS_X", REGEN_STRING(numWorkUnits_.x));
+	shaderDefine("CS_WORK_UNITS_Y", REGEN_STRING(numWorkUnits_.y));
+	shaderDefine("CS_WORK_UNITS_Z", REGEN_STRING(numWorkUnits_.z));
 }
 
 void ComputeState::setGroupSize(int x, int y, int z) {
@@ -27,9 +30,6 @@ void ComputeState::updateNumWorkGroups() {
 	numWorkGroups_.x = (numWorkUnits_.x + localSize_.x - 1) / localSize_.x;
 	numWorkGroups_.y = (numWorkUnits_.y + localSize_.y - 1) / localSize_.y;
 	numWorkGroups_.z = (numWorkUnits_.z + localSize_.z - 1) / localSize_.z;
-	shaderDefine("CS_GROUP_SIZE_X", REGEN_STRING(localSize_.x));
-	shaderDefine("CS_GROUP_SIZE_Y", REGEN_STRING(localSize_.y));
-	shaderDefine("CS_GROUP_SIZE_Z", REGEN_STRING(localSize_.z));
 	shaderDefine("CS_NUM_WORK_GROUPS_X", REGEN_STRING(numWorkGroups_.x));
 	shaderDefine("CS_NUM_WORK_GROUPS_Y", REGEN_STRING(numWorkGroups_.y));
 	shaderDefine("CS_NUM_WORK_GROUPS_Z", REGEN_STRING(numWorkGroups_.z));

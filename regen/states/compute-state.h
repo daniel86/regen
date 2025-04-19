@@ -24,6 +24,13 @@ namespace regen {
 				static_cast<uint32_t>(numWorkGroups_.z));
 		}
 
+		Vec3ui workGroupSize() const {
+			return Vec3ui(
+				static_cast<uint32_t>(localSize_.x),
+				static_cast<uint32_t>(localSize_.y),
+				static_cast<uint32_t>(localSize_.z));
+		}
+
 		// override
 		void enable(RenderState *state) override;
 
