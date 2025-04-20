@@ -23,7 +23,7 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 		cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
 		cfg.texcoScale = Vec2f(1.0);
 		cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
-		cfg.usage = USAGE_STATIC;
+		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<Rectangle>::alloc(cfg);
 		return mesh;
 	} else {
@@ -65,7 +65,7 @@ Rectangle::Config::Config()
 		  isTexcoRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
 		  centerAtOrigin(GL_FALSE),
-		  usage(USAGE_DYNAMIC) {
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 void Rectangle::generateLODLevel(const Config &cfg,

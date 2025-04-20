@@ -23,7 +23,7 @@ ConeOpened::Config::Config()
 		  height(1.0f),
 		  isNormalRequired(GL_TRUE),
 		  levelOfDetails({1}),
-		  usage(USAGE_DYNAMIC) {
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 ConeOpened::ConeOpened(const Config &cfg)
@@ -113,7 +113,7 @@ ConeClosed::Config::Config()
 		  isNormalRequired(GL_TRUE),
 		  isBaseRequired(GL_TRUE),
 		  levelOfDetails({1}),
-		  usage(USAGE_DYNAMIC) {
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 ref_ptr<Mesh> ConeClosed::getBaseCone() {
@@ -125,7 +125,7 @@ ref_ptr<Mesh> ConeClosed::getBaseCone() {
 		cfg.levelOfDetails = {3, 2, 1};
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isBaseRequired = GL_TRUE;
-		cfg.usage = USAGE_STATIC;
+		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<ConeClosed>::alloc(cfg);
 		return mesh;
 	} else {

@@ -14,7 +14,7 @@ namespace regen {
 	 */
 	class UBO : public BufferBlock, public ShaderInput {
 	public:
-		explicit UBO(const std::string &name, BufferUsage usage = USAGE_DYNAMIC);
+		explicit UBO(const std::string &name, BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW);
 
 		~UBO() override = default;
 

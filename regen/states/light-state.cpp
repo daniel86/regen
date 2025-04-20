@@ -27,7 +27,7 @@ namespace regen {
 
 Light::Light(Light::Type lightType)
 		: State(),
-		  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
+		  HasInput(ARRAY_BUFFER),
 		  lightType_(lightType),
 		  isAttenuated_(GL_TRUE),
 		  coneMatrixStamp_(0) {

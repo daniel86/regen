@@ -41,7 +41,7 @@ ref_ptr<Torus> Torus::getUnitTorus() {
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
-		cfg.usage = USAGE_STATIC;
+		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<Torus>::alloc(cfg);
 		return mesh;
 	} else {
@@ -78,7 +78,7 @@ Torus::Config::Config()
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  usage(USAGE_DYNAMIC),
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW),
 		  ringRadius(1.0f),
 		  tubeRadius(0.5f) {
 }

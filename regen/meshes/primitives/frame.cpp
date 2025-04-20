@@ -41,7 +41,7 @@ ref_ptr<FrameMesh> FrameMesh::getUnitFrame() {
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
 		cfg.borderSize = 0.1f;
-		cfg.usage = USAGE_STATIC;
+		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<FrameMesh>::alloc(cfg);
 		return mesh;
 	} else {
@@ -78,7 +78,7 @@ FrameMesh::Config::Config()
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  usage(USAGE_DYNAMIC),
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW),
 		  borderSize(0.1f) {
 }
 

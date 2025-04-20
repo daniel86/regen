@@ -8,7 +8,7 @@ BufferContainer::BufferContainer(
 	const std::vector<NamedShaderInput> &namedInputs,
 	BufferUsage bufferUsage)
 		: State(),
-		  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
+		  HasInput(ARRAY_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
 		  namedInputs_(namedInputs),
 		  bufferUsage_(bufferUsage),
 		  bufferName_(bufferName) {
@@ -17,7 +17,7 @@ BufferContainer::BufferContainer(
 
 BufferContainer::BufferContainer(const std::string &bufferName, BufferUsage bufferUsage)
 	: State(),
-	  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
+	  HasInput(ARRAY_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
 	  bufferUsage_(bufferUsage),
 	  bufferName_(bufferName) {
 }
@@ -39,7 +39,7 @@ std::string BufferContainer::getNextBufferName() {
 }
 
 void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs) {
-	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), BufferUsage::USAGE_DYNAMIC);
+	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), BUFFER_USAGE_DYNAMIC_DRAW);
 	for (auto &namedInput: namedInputs) {
 		ubo->addBlockInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ubo;
@@ -52,7 +52,7 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	auto rs = RenderState::get();
 	// create a TBO for the input
-	auto tbo = ref_ptr<TBO>::alloc(BufferUsage::USAGE_DYNAMIC);
+	auto tbo = ref_ptr<TBO>::alloc(BUFFER_USAGE_DYNAMIC_DRAW);
 	tbo->setBufferInput(namedInput.in_);
 	tbos_.push_back(tbo);
 	textureBuffers_.push_back(tbo->tboTexture());

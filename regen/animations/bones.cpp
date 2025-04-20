@@ -15,7 +15,7 @@ using namespace regen;
 #define USE_BONE_TBO
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
-		: HasInputState(TEXTURE_BUFFER, BufferUsage::USAGE_DYNAMIC),
+		: HasInputState(TEXTURE_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
 		  Animation(true, true) {
 	bufferSize_ = 0u;
 	setAnimationName("bones");
@@ -41,7 +41,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	boneMatrices_->setUniformUntyped();
 
 #ifdef USE_BONE_TBO
-	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BufferUsage::USAGE_DYNAMIC);
+	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BUFFER_USAGE_DYNAMIC_DRAW);
 	boneMatrixTBO_->setBufferInput(boneMatrices_);
 	bufferSize_ = boneMatrices_->inputSize();
 

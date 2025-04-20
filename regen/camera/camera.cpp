@@ -38,7 +38,7 @@ namespace regen {
 }
 
 Camera::Camera(unsigned int numLayer)
-		: HasInputState(ARRAY_BUFFER, USAGE_DYNAMIC),
+		: HasInputState(ARRAY_BUFFER),
 		  numLayer_(numLayer),
 		  frustum_(numLayer) {
 	// add shader constants via defines

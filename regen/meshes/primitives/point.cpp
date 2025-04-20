@@ -5,7 +5,7 @@ using namespace regen;
 ///////////
 
 Point::Point(GLuint numVertices)
-		: Mesh(GL_POINTS, USAGE_STREAM) {
+		: Mesh(GL_POINTS, BUFFER_USAGE_DYNAMIC_DRAW) {
 	inputContainer_->set_numVertices(numVertices);
 
 	pos_ = ref_ptr<ShaderInput3f>::alloc("pos");

@@ -28,7 +28,7 @@ namespace regen {
 		 */
 		BufferContainer(const std::string &bufferName,
 				const std::vector<NamedShaderInput> &inputs,
-				BufferUsage bufferUsage = USAGE_DYNAMIC);
+				BufferUsage bufferUsage = BUFFER_USAGE_DYNAMIC_DRAW);
 
 		/**
 		 * No-arg constructor.
@@ -36,7 +36,7 @@ namespace regen {
 		 * once done, call the allocateBuffers() method to allocate the required buffers.
 		 */
 		explicit BufferContainer(const std::string &bufferName,
-				BufferUsage bufferUsage = USAGE_DYNAMIC);
+				BufferUsage bufferUsage = BUFFER_USAGE_DYNAMIC_DRAW);
 
 		/**
 		 * Copy constructor.

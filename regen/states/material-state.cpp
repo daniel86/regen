@@ -17,7 +17,7 @@
 using namespace regen;
 
 Material::Material()
-		: HasInputState(ARRAY_BUFFER, USAGE_DYNAMIC),
+		: HasInputState(ARRAY_BUFFER),
 		  fillMode_(GL_FILL),
 		  mipmapFlag_(GL_DONT_CARE),
 		  forcedInternalFormat_(GL_NONE),

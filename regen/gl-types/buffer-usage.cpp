@@ -5,13 +5,25 @@ using namespace regen;
 namespace regen {
 	GLenum glBufferUsage(BufferUsage usage) {
 		switch (usage) {
-			case BufferUsage::USAGE_DYNAMIC:
+			case BUFFER_USAGE_DYNAMIC_DRAW:
 				return GL_DYNAMIC_DRAW;
-			case BufferUsage::USAGE_STATIC:
+			case BUFFER_USAGE_DYNAMIC_COPY:
+				return GL_DYNAMIC_COPY;
+			case BUFFER_USAGE_DYNAMIC_READ:
+				return GL_DYNAMIC_READ;
+			case BUFFER_USAGE_STATIC_DRAW:
 				return GL_STATIC_DRAW;
-			case BufferUsage::USAGE_STREAM:
+			case BUFFER_USAGE_STATIC_COPY:
+				return GL_STATIC_COPY;
+			case BUFFER_USAGE_STATIC_READ:
+				return GL_STATIC_READ;
+			case BUFFER_USAGE_STREAM_DRAW:
 				return GL_STREAM_DRAW;
-			case BufferUsage::USAGE_LAST:
+			case BUFFER_USAGE_STREAM_COPY:
+				return GL_STREAM_COPY;
+			case BUFFER_USAGE_STREAM_READ:
+				return GL_STREAM_READ;
+			case BUFFER_USAGE_LAST:
 				return GL_DYNAMIC_DRAW;
 		}
 		return GL_DYNAMIC_DRAW;
@@ -19,14 +31,26 @@ namespace regen {
 
 	std::ostream &operator<<(std::ostream &out, const BufferUsage &mode) {
 		switch (mode) {
-			case BufferUsage::USAGE_DYNAMIC:
-				return out << "DYNAMIC";
-			case BufferUsage::USAGE_STATIC:
-				return out << "STATIC";
-			case BufferUsage::USAGE_STREAM:
-				return out << "STREAM";
-			case BufferUsage::USAGE_LAST:
-				return out << "DYNAMIC";
+			case BUFFER_USAGE_DYNAMIC_DRAW:
+				return out << "DYNAMIC_DRAW";
+			case BUFFER_USAGE_DYNAMIC_COPY:
+				return out << "DYNAMIC_COPY";
+			case BUFFER_USAGE_DYNAMIC_READ:
+				return out << "DYNAMIC_READ";
+			case BUFFER_USAGE_STATIC_DRAW:
+				return out << "STATIC_DRAW";
+			case BUFFER_USAGE_STATIC_COPY:
+				return out << "STATIC_COPY";
+			case BUFFER_USAGE_STATIC_READ:
+				return out << "STATIC_READ";
+			case BUFFER_USAGE_STREAM_DRAW:
+				return out << "STREAM_DRAW";
+			case BUFFER_USAGE_STREAM_COPY:
+				return out << "STREAM_COPY";
+			case BUFFER_USAGE_STREAM_READ:
+				return out << "STREAM_READ";
+			case BUFFER_USAGE_LAST:
+				return out << "DYNAMIC_DRAW";
 		}
 		return out;
 	}
@@ -35,12 +59,18 @@ namespace regen {
 		std::string val;
 		in >> val;
 		boost::to_upper(val);
-		if (val == "DYNAMIC") mode = BufferUsage::USAGE_DYNAMIC;
-		else if (val == "STATIC") mode = BufferUsage::USAGE_STATIC;
-		else if (val == "STREAM") mode = BufferUsage::USAGE_STREAM;
+		if (val == "DYNAMIC_DRAW") mode = BUFFER_USAGE_DYNAMIC_DRAW;
+		else if (val == "DYNAMIC_COPY") mode = BUFFER_USAGE_DYNAMIC_COPY;
+		else if (val == "DYNAMIC_READ") mode = BUFFER_USAGE_DYNAMIC_READ;
+		else if (val == "STATIC_DRAW") mode = BUFFER_USAGE_STATIC_DRAW;
+		else if (val == "STATIC_COPY") mode = BUFFER_USAGE_STATIC_COPY;
+		else if (val == "STATIC_READ") mode = BUFFER_USAGE_STATIC_READ;
+		else if (val == "STREAM_DRAW") mode = BUFFER_USAGE_STREAM_DRAW;
+		else if (val == "STREAM_COPY") mode = BUFFER_USAGE_STREAM_COPY;
+		else if (val == "STREAM_READ") mode = BUFFER_USAGE_STREAM_READ;
 		else {
-			REGEN_WARN("Unknown buffer usage '" << val << "'. Using default USAGE_DYNAMIC.");
-			mode = BufferUsage::USAGE_DYNAMIC;
+			REGEN_WARN("Unknown buffer usage '" << val << "'. Using default DYNAMIC_DRAW.");
+			mode =BUFFER_USAGE_DYNAMIC_DRAW;
 		}
 		return in;
 	}

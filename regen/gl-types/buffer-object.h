@@ -27,7 +27,7 @@ namespace regen {
 	 */
 	class BufferObject : public Resource {
 	public:
-		explicit BufferObject(BufferTarget target, BufferUsage= BufferUsage::USAGE_DYNAMIC);
+		explicit BufferObject(BufferTarget target, BufferUsage=BUFFER_USAGE_DYNAMIC_DRAW);
 
 		~BufferObject() override;
 

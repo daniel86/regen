@@ -10,7 +10,7 @@ GLuint BufferAllocator::createAllocator(GLuint poolIndex, GLuint size) {
 	glGenBuffers(1, &ref);
 	rs->copyWriteBuffer().push(ref);
 	glBufferData(GL_COPY_WRITE_BUFFER, size, nullptr,
-		glBufferUsage((BufferUsage)(poolIndex % BufferUsage::USAGE_LAST)));
+		glBufferUsage((BufferUsage)(poolIndex % BUFFER_USAGE_LAST)));
 	rs->copyWriteBuffer().pop();
 	return ref;
 }

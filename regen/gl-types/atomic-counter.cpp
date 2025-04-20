@@ -21,7 +21,7 @@ unsigned int floatBitsToUint(float floatValue) {
 }
 
 AtomicCounter::AtomicCounter() :
-		BufferObjectT(BufferUsage::USAGE_DYNAMIC) {
+		BufferObjectT(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 BoundingBoxCounter::BoundingBoxCounter() :

@@ -24,7 +24,7 @@ namespace regen {
 		 */
 		explicit InputContainer(
 				BufferTarget target = ARRAY_BUFFER,
-				BufferUsage usage = USAGE_DYNAMIC);
+				BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW);
 
 		/**
 		 * @param in shader input data.
@@ -32,7 +32,7 @@ namespace regen {
 		 * @param usage VBO usage.
 		 */
 		explicit InputContainer(const ref_ptr<ShaderInput> &in, const std::string &name = "",
-								BufferUsage usage = BufferUsage::USAGE_DYNAMIC);
+								BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW);
 
 		~InputContainer();
 
@@ -215,7 +215,7 @@ namespace regen {
 		/**
 		 * @param usage VBO usage hint.
 		 */
-		explicit HasInput(BufferTarget target, BufferUsage usage) {
+		explicit HasInput(BufferTarget target, BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW) {
 			inputContainer_ = ref_ptr<InputContainer>::alloc(target, usage);
 		}
 

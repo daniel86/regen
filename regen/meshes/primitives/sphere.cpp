@@ -54,7 +54,7 @@ Sphere::Config::Config()
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
 		  isHalfSphere(GL_FALSE),
-		  usage(USAGE_DYNAMIC) {
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 static Vec3f computeSphereTangent(const Vec3f &v) {
@@ -230,7 +230,7 @@ SphereSprite::Config::Config()
 		: radius(nullptr),
 		  position(nullptr),
 		  sphereCount(0),
-		  usage(USAGE_DYNAMIC) {
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 SphereSprite::SphereSprite(const Config &cfg)

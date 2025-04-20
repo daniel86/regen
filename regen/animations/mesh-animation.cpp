@@ -102,8 +102,8 @@ MeshAnimation::MeshAnimation(
 	shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
 	// used to save two frames
-	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, USAGE_STREAM);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, USAGE_STREAM);
+	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BUFFER_USAGE_STREAM_DRAW);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_USAGE_STREAM_DRAW);
 	feedbackRef_ = feedbackBuffer_->allocBytes(bufferSize_);
 	if (!feedbackRef_.get()) {
 		REGEN_WARN("Unable to allocate VBO for animation. Animation will not work.");

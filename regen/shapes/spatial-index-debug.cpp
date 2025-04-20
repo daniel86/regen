@@ -8,7 +8,7 @@ using namespace regen;
 SpatialIndexDebug::SpatialIndexDebug(const ref_ptr<SpatialIndex> &index)
 		: StateNode(),
 		  HasShader("regen.models.lines"),
-		  HasInput(ARRAY_BUFFER, USAGE_DYNAMIC),
+		  HasInput(ARRAY_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
 		  index_(index),
 		  lineLocation_(-1),
 		  vbo_(0) {

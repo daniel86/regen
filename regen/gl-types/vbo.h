@@ -15,7 +15,7 @@ namespace regen {
 		 */
 		explicit VBO(
 				BufferTarget target = ARRAY_BUFFER,
-				BufferUsage usage = BufferUsage::USAGE_DYNAMIC);
+				BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW);
 
 		~VBO() override = default;
 

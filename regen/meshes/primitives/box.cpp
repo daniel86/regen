@@ -47,7 +47,7 @@ ref_ptr<Box> Box::getUnitCube() {
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
-		cfg.usage = USAGE_STATIC;
+		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		cfg.levelOfDetails = {0};
 		mesh = ref_ptr<Box>::alloc(cfg);
 		return mesh;
@@ -87,7 +87,7 @@ Box::Config::Config()
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  usage(USAGE_DYNAMIC) {
+		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
 }
 
 void Box::generateLODLevel(

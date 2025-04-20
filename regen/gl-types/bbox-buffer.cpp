@@ -14,7 +14,7 @@ struct BoundingBoxBlock {
 };
 
 BBoxBuffer::BBoxBuffer(const std::string &name) :
-	SSBO(name, USAGE_STREAM),
+	SSBO(name, BUFFER_USAGE_STREAM_COPY),
 	bbox_(Vec3f::zero(), Vec3f::zero())
 {
 	addBlockInput(createUniform<ShaderInput4f,Vec4f>("bboxMin", Vec4f(0)));
@@ -27,7 +27,7 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 	addBlockInput(createUniform<ShaderInput4i,Vec4i>("bboxNegativeFlags", Vec4i(0)));
 	update();
 
-	bboxPBO_ = ref_ptr<PBO>::alloc(USAGE_STREAM);
+	bboxPBO_ = ref_ptr<PBO>::alloc(BUFFER_USAGE_STREAM_READ);
 	bboxPBO_->bindPackBuffer();
 	glBufferData(GL_PIXEL_PACK_BUFFER, sizeof(BoundingBoxBlock), nullptr, GL_STREAM_READ);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);

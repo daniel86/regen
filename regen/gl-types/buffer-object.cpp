@@ -35,19 +35,19 @@ BufferObject::BufferObject(const BufferObject &other) :
 }
 
 BufferPool **BufferObject::bufferPools() {
-	static std::array<BufferPool *, (int) BufferTarget::TARGET_LAST * (int) BufferUsage::USAGE_LAST> bufferPools;
+	static std::array<BufferPool *, (int) BufferTarget::TARGET_LAST * (int) BUFFER_USAGE_LAST> bufferPools;
 	return bufferPools.data();
 }
 
 BufferPool *BufferObject::bufferPool(BufferTarget target, BufferUsage usage) {
 	auto *x = bufferPools();
-	auto poolIndex = (int) target * BufferUsage::USAGE_LAST + (int) usage;
+	auto poolIndex = (int) target * BUFFER_USAGE_LAST + (int) usage;
 	return x[poolIndex];
 }
 
 void BufferObject::createMemoryPools() {
 	auto *pools = bufferPools();
-	for (int i = 0; i < (int) BufferTarget::TARGET_LAST * (int) BufferUsage::USAGE_LAST; ++i) {
+	for (int i = 0; i < (int) BufferTarget::TARGET_LAST * (int) BUFFER_USAGE_LAST; ++i) {
 		if (pools[i] == nullptr) {
 			pools[i] = new BufferPool();
 			pools[i]->set_index(i);
@@ -56,9 +56,9 @@ void BufferObject::createMemoryPools() {
 	// some buffer semantics need special attention as they require
 	// alignment to be set, i.e. when using shared buffers consecutive
 	// allocations need to be aligned to the size of the buffer.
-	for (int i = 0;  i < BufferUsage::USAGE_LAST; ++i) {
+	for (int i = 0;  i < BUFFER_USAGE_LAST; ++i) {
 		int poolIndex;
-		poolIndex = (int) TEXTURE_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+		poolIndex = (int) TEXTURE_BUFFER * (int) BUFFER_USAGE_LAST + i;
 #ifdef USE_SHARED_TBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
 #else
@@ -66,7 +66,7 @@ void BufferObject::createMemoryPools() {
 #endif
 		// Meaning: Max number of texels, not bytes!
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16);
-		poolIndex = (int) UNIFORM_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+		poolIndex = (int) UNIFORM_BUFFER * (int) BUFFER_USAGE_LAST + i;
 #ifdef USE_SHARED_UBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 #else
@@ -74,7 +74,7 @@ void BufferObject::createMemoryPools() {
 #endif
 		// common: ~64KB
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
-		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BUFFER_USAGE_LAST + i;
 #ifdef USE_SHARED_SSBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
 #else
@@ -83,14 +83,14 @@ void BufferObject::createMemoryPools() {
 		// common: ~2GB
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
 		// common: ~4KB
-		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BufferUsage::USAGE_LAST + i;
+		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BUFFER_USAGE_LAST + i;
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE));
 	}
 }
 
 void BufferObject::destroyMemoryPools() {
 	auto *x = bufferPools();
-	for (int i = 0; i < BufferUsage::USAGE_LAST * BufferUsage::USAGE_LAST; ++i) {
+	for (int i = 0; i < BUFFER_USAGE_LAST * BUFFER_USAGE_LAST; ++i) {
 		delete x[i];
 		x[i] = nullptr;
 	}

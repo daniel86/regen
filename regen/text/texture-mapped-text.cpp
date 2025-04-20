@@ -15,7 +15,7 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height)
-		: Mesh(GL_TRIANGLES, USAGE_DYNAMIC),
+		: Mesh(GL_TRIANGLES, BUFFER_USAGE_DYNAMIC_DRAW),
 		  font_(font),
 		  value_(),
 		  height_(height),
