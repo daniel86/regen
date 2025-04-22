@@ -86,22 +86,23 @@ namespace regen {
 		ref_ptr<ModelTransformation> tf_;
 
 		// GPU LOD update
-		ref_ptr<ComputePass> radixSort_;
-		ref_ptr<ComputePass> radixMerge_;
-		ref_ptr<ShaderInput1ui> mergeSegmentSize_;
-		uint32_t radixSortIDBinding_ = 0u;
-		uint32_t radixMergeReadBinding_ = 0u;
-		uint32_t radixMergeWriteBinding_ = 0u;
+		ref_ptr<ComputePass> radixCull_;
+		ref_ptr<ComputePass> radixHistogramPass_;
+		ref_ptr<ComputePass> radixOffsetsPass_;
+		ref_ptr<ComputePass> radixScatterPass_;
+		ref_ptr<UBO> cullUBO_;
 		ref_ptr<SSBO> keyBuffer_;
-		ref_ptr<SSBO> tmpIDBuffer_;
-		ref_ptr<SSBO> workGroupBuffer_;
-		ref_ptr<SSBO> radixSortIDBuffer_;
-		ref_ptr<SSBO> radixMergeIDBuffer_;
-		// includes array data: lodGroupSize
+		ref_ptr<SSBO> valueBuffer_[2];
+		ref_ptr<SSBO> globalHistogramBuffer_;
 		ref_ptr<SSBO> lodGroupSizeBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
 		ref_ptr<PBO> lodGroupSizePBO_;
 		Vec4ui *m_lodGroupSize_ = nullptr;
+		int32_t histogramReadIndex_ = 0u;
+		int32_t histogramBitOffsetIndex_ = 0u;
+		int32_t scatterReadIndex_ = 0u;
+		int32_t scatterWriteIndex_ = 0u;
+		int32_t scatterBitOffsetIndex_ = 0u;
 
 		void initLODState();
 
@@ -121,13 +122,15 @@ namespace regen {
 
 		void radixSortGPU(RenderState *rs);
 
-		void debugGPU(RenderState *rs, bool debugFinalBuffer);
-
 		void computeLODGroups_(
 			const uint32_t *mappedData,
 			int begin,
 			int end,
 			int increment);
+
+		void printInstanceMap(RenderState *rs);
+
+		void printHistogram(RenderState *rs);
 	};
 }
 

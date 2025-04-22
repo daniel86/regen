@@ -34,6 +34,11 @@ namespace regen {
 			shaderState_->createShader(cfg, shaderKey_);
 		}
 
+		void disable(RenderState *rs) override {
+			computeState_->dispatch();
+			State::disable(rs);
+		}
+
 		static ref_ptr<ComputePass> load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			if (!input.hasAttribute("shader")) {
 				REGEN_WARN("Missing shader attribute for " << input.getDescription() << ".");

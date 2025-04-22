@@ -35,12 +35,12 @@ void ComputeState::updateNumWorkGroups() {
 	shaderDefine("CS_NUM_WORK_GROUPS_Z", REGEN_STRING(numWorkGroups_.z));
 }
 
-void ComputeState::enable(RenderState *rs) {
-	State::enable(rs);
+void ComputeState::dispatch() {
     glDispatchCompute(
     		numWorkGroups_.x,
 			numWorkGroups_.y,
 			numWorkGroups_.z);
+	// TODO: make configurable?
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 

@@ -2,6 +2,15 @@
 #include "lod-state.h"
 #include "regen/meshes/mesh-vector.h"
 
+#define RADIX_BITS_PER_PASS 4u
+// 4-bit radix sort over 32-bit data points --> 32/4 = 8 passes
+#define RADIX_NUM_PASSES 8
+// 4-bit radix sort --> 2^4 = 16 buckets
+#define RADIX_NUM_BUCKETS 16
+#define RADIX_GROUP_SIZE 128
+//#define RADIX_DEBUG_HISTOGRAM
+//#define RADIX_DEBUG_RESULT
+
 using namespace regen;
 
 LODState::LODState(
@@ -59,7 +68,7 @@ void LODState::createBuffers() {
 	}
 	instanceData.unmap();
 	// use SSBO for instanceIDMap_
-	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUsage::USAGE_DYNAMIC);
+	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BUFFER_USAGE_STREAM_DRAW);
 	instanceIDBuffer_->addBlockInput(instanceIDMap_);
 	instanceIDBuffer_->update();
 	state()->joinShaderInput(instanceIDBuffer_);
@@ -273,56 +282,37 @@ void LODState::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
-// TODO: CLEANUP move somewhere else
-static inline uint32_t nextPowerOfTwo(uint32_t n) {
-    if (n == 0) return 1; // Special case for 0
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    return n + 1;
-}
-
-static inline uint32_t getNumMergePasses(uint32_t numWorkGroups) {
-	uint32_t x = nextPowerOfTwo(numWorkGroups);
-	if (x == 1) {
-		return 0;
-	} else if (x == 2) {
-		return 1;
-	} else {
-		return static_cast<uint32_t>(sqrt(static_cast<float>(x)));
-	}
-}
-
 void LODState::createComputeShader() {
-	radixSort_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.sort");
-	radixSort_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
-	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		radixSort_->computeState()->shaderDefine("RADIX_REVERSE_SORT", "TRUE");
-	}
-	radixSort_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
-	radixSort_->computeState()->setGroupSize(256, 1, 1);
-	auto numWorkGroups = radixSort_->computeState()->numWorkGroups().x;
+	{
+		radixCull_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.cull");
+		radixCull_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
+		radixCull_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
+		radixCull_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 
-	radixMerge_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.merge");
-	radixMerge_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
-	// note: is dynamically configured as multiple passes with varying work group size are used
-	radixMerge_->computeState()->setNumWorkUnits(1, 1, 1);
-	radixMerge_->computeState()->setGroupSize(1, 1, 1);
-	mergeSegmentSize_ = createUniform<ShaderInput1ui,uint32_t>("mergeSegmentSize", 0u);
-	radixMerge_->computeState()->joinShaderInput(mergeSegmentSize_);
-	auto numMergePasses = getNumMergePasses(numWorkGroups);
+		radixHistogramPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.histogram");
+		radixHistogramPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
+		radixHistogramPass_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
+		radixHistogramPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
+
+		// Note: currently offset pass performs serial scan
+		radixOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets");
+		radixOffsetsPass_->computeState()->setNumWorkUnits(1, 1, 1);
+		radixOffsetsPass_->computeState()->setGroupSize(1, 1, 1);
+
+		radixScatterPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.scatter");
+		radixScatterPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
+		radixScatterPass_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
+		radixScatterPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
+	}
+	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 
 	// Output: lodGroupSize
-	lodGroupSizeBuffer_ = ref_ptr<SSBO>::alloc("LODGroupBuffer", USAGE_DYNAMIC);
+	lodGroupSizeBuffer_ = ref_ptr<SSBO>::alloc("LODGroupBuffer", BUFFER_USAGE_STREAM_COPY);
 	lodGroupSize_ = ref_ptr<ShaderInput1ui>::alloc("lodGroupSize", 4);
 	lodGroupSizeBuffer_->addBlockInput(lodGroupSize_);
 	lodGroupSizeBuffer_->update();
-	radixSort_->joinShaderInput(lodGroupSizeBuffer_);
 	// +PBO for reading back the lodGroupSizeBuffer_
-	lodGroupSizePBO_ = ref_ptr<PBO>::alloc(USAGE_STREAM);
+	lodGroupSizePBO_ = ref_ptr<PBO>::alloc(BUFFER_USAGE_STREAM_READ);
 	lodGroupSizePBO_->bindPackBuffer();
 	glBufferStorage(GL_PIXEL_PACK_BUFFER,
 		sizeof(uint32_t)*4, nullptr,
@@ -335,99 +325,115 @@ void LODState::createComputeShader() {
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 	// Temporary Buffers for sorting.
-	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer", USAGE_DYNAMIC);
-	keyBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortKeys", numInstances_));
+	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer", BUFFER_USAGE_STREAM_COPY);
+	keyBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("keys", numInstances_));
 	keyBuffer_->update();
-	radixSort_->joinShaderInput(keyBuffer_);
-	radixMerge_->joinShaderInput(keyBuffer_);
 
-	tmpIDBuffer_ = ref_ptr<SSBO>::alloc("TempIDBuffer", USAGE_DYNAMIC);
-	tmpIDBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("sortedIDsTemp", numInstances_));
-	tmpIDBuffer_->update();
+	valueBuffer_[0] = instanceIDBuffer_;
+	valueBuffer_[1] = ref_ptr<SSBO>::alloc("ValueBuffer2", BUFFER_USAGE_STREAM_COPY);
+	valueBuffer_[1]->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("values", numInstances_));
+	valueBuffer_[1]->update();
 
-	workGroupBuffer_ = ref_ptr<SSBO>::alloc("WorkGroupBuffer", USAGE_DYNAMIC);
-	workGroupBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("workGroupSize", numWorkGroups));
-	workGroupBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("workGroupOffset", numWorkGroups));
-	for (auto &x : workGroupBuffer_->blockInputs()) {
-		x.in_->set_forceArray(true);
+	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer", BUFFER_USAGE_STREAM_COPY);
+	globalHistogramBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc(
+			"globalHistogram", RADIX_NUM_BUCKETS * numWorkGroups));
+	globalHistogramBuffer_->update();
+
+	{ // radix cull
+		cullUBO_ = ref_ptr<UBO>::alloc("CullUBO");
+		cullUBO_->addBlockInput(lodThresholds_);
+		cullUBO_->update();
+
+		StateConfigurer shaderCfg;
+		radixCull_->joinShaderInput(cullUBO_);
+		radixCull_->joinShaderInput(lodGroupSizeBuffer_);
+		radixCull_->joinShaderInput(keyBuffer_);
+		radixCull_->joinShaderInput(instanceIDBuffer_);
+		radixCull_->joinStates(tf_);
+		radixCull_->joinStates(camera_);
+		shaderCfg.addState(radixCull_.get());
+		radixCull_->createShader(shaderCfg.cfg());
 	}
-	workGroupBuffer_->update();
-	radixSort_->joinShaderInput(workGroupBuffer_);
-	// Position input buffer
-	radixSort_->joinStates(tf_);
-	// Uniform parameters
-	radixSort_->joinShaderInput(lodThresholds_);
-	radixSort_->joinStates(camera_);
-
-	// if even -> use instanceIDMap as first temp buffer
-	// if odd -> use tmpIDBuffer_ as first temp buffer
-	if (numMergePasses % 2 == 0) {
-		radixSortIDBuffer_ = instanceIDBuffer_;
-		radixMergeIDBuffer_ = tmpIDBuffer_;
-	} else {
-		radixSortIDBuffer_ = tmpIDBuffer_;
-		radixMergeIDBuffer_ = instanceIDBuffer_;
+	{ // radix histogram
+		StateConfigurer shaderCfg;
+		radixHistogramPass_->joinShaderInput(globalHistogramBuffer_);
+		radixHistogramPass_->joinShaderInput(keyBuffer_);
+		shaderCfg.addState(radixHistogramPass_.get());
+		radixHistogramPass_->createShader(shaderCfg.cfg());
+		// retrieve locations for quick state switching in radix passes
+		histogramReadIndex_ = radixHistogramPass_->shaderState()->shader()->uniformLocation("ValueBuffer");
+		histogramBitOffsetIndex_ = radixHistogramPass_->shaderState()->shader()->uniformLocation("radixBitOffset");
 	}
-
-	StateConfigurer shaderConfigurer_local;
-	shaderConfigurer_local.addState(radixSort_.get());
-	radixSort_->createShader(shaderConfigurer_local.cfg());
-	radixSortIDBinding_ = radixSort_->shaderState()->shader()->uniformLocation("TempIDBuffer");
-
-	StateConfigurer shaderConfigurer_merge;
-	shaderConfigurer_merge.addState(radixMerge_.get());
-	radixMerge_->createShader(shaderConfigurer_merge.cfg());
-	radixMergeReadBinding_ = radixMerge_->shaderState()->shader()->uniformLocation("InputBuffer");
-	radixMergeWriteBinding_ = radixMerge_->shaderState()->shader()->uniformLocation("OutputBuffer");
+	{ // radix offsets
+		StateConfigurer shaderCfg;
+		radixOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_WORK_GROUPS", REGEN_STRING(numWorkGroups));
+		radixOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_BUCKETS", REGEN_STRING(RADIX_NUM_BUCKETS));
+		radixOffsetsPass_->joinShaderInput(globalHistogramBuffer_);
+		shaderCfg.addState(radixOffsetsPass_.get());
+		radixOffsetsPass_->createShader(shaderCfg.cfg());
+	}
+	{ // radix sort
+		StateConfigurer shaderCfg;
+		radixScatterPass_->joinShaderInput(globalHistogramBuffer_);
+		radixScatterPass_->joinShaderInput(keyBuffer_);
+		// TODO: reverse sort
+		//if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
+		//	radixScatterPass_->computeState()->shaderDefine("RADIX_REVERSE_SORT", "TRUE");
+		//}
+		shaderCfg.addState(radixScatterPass_.get());
+		radixScatterPass_->createShader(shaderCfg.cfg());
+		// retrieve locations for quick state switching in radix passes
+		scatterReadIndex_ = radixScatterPass_->shaderState()->shader()->uniformLocation("ReadBuffer");
+		scatterWriteIndex_ = radixScatterPass_->shaderState()->shader()->uniformLocation("WriteBuffer");
+		scatterBitOffsetIndex_ = radixScatterPass_->shaderState()->shader()->uniformLocation("radixBitOffset");
+	}
 }
 
 void LODState::radixSortGPU(RenderState *rs) {
-	// partially sort into sortedIDsTemp buffer
-	glBindBufferRange(GL_SHADER_STORAGE_BUFFER, radixSortIDBinding_,
-		radixSortIDBuffer_->blockReference()->bufferID(),
-		radixSortIDBuffer_->blockReference()->address(),
-		radixSortIDBuffer_->blockReference()->allocatedSize());
-	radixSort_->enable(rs);
-	radixSort_->disable(rs);
+	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
+	radixCull_->enable(rs);
+	radixCull_->disable(rs);
 
-#if 0
-	debugGPU(rs, false);
+	// now we can make the radix passes starting with values_[0] as input
+	// and writing to values_[1]. Then we swap the buffers each pass.
+	// In the end, we will have the sorted instanceIDs in values_[0].
+	uint32_t readIndex = 0u;
+	uint32_t writeIndex = 1u;
+	for (uint32_t bitOffset = 0u; bitOffset < 32u; bitOffset+=RADIX_BITS_PER_PASS) {
+		// Run histogram pass. As a result we will have global counts for each bucket
+		// and work group in the globalHistogramBuffer_.
+		radixHistogramPass_->enable(rs);
+		glUniform1ui(histogramBitOffsetIndex_, bitOffset);
+		valueBuffer_[readIndex]->bind(histogramReadIndex_);
+		radixHistogramPass_->disable(rs);
+#ifdef RADIX_DEBUG_HISTOGRAM
+		printHistogram(rs);
 #endif
 
-	// ping pong buffers, references should have the same size.
-	// Each pass takes the current buffer and merges segments into the next buffer.
-	ref_ptr<BufferReference> currentRef, nextRef, pingPongRef, outputRef;
-	currentRef = radixSortIDBuffer_->blockReference();
-	outputRef = radixMergeIDBuffer_->blockReference();
-	nextRef = outputRef;
-	// Number of segments, and size of each segment in the current buffer
-	auto numSegments = radixSort_->computeState()->numWorkGroups().x;
-	auto segmentSize = radixSort_->computeState()->workGroupSize().x;
+		// Run offsets pass. As a result we will have the offsets for each work group
+		// in the globalHistogramBuffer_.
+		radixOffsetsPass_->enable(rs);
+		radixOffsetsPass_->disable(rs);
+#ifdef RADIX_DEBUG_HISTOGRAM
+		printHistogram(rs);
+#endif
 
-	// make passes until segmentSize exceeds numInstances_
-	while (segmentSize < numInstances_) {
-		uint32_t numMergeThreads = numSegments / 2 + numSegments % 2;
-		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, radixMergeReadBinding_,
-			currentRef->bufferID(),
-			currentRef->address(),
-			outputRef->allocatedSize());
-		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, radixMergeWriteBinding_,
-			nextRef->bufferID(),
-			nextRef->address(),
-			outputRef->allocatedSize());
-		mergeSegmentSize_->setVertex(0, segmentSize);
-		// merge segments by running a compute shader
-		radixMerge_->computeState()->setNumWorkUnits(numMergeThreads, 1, 1);
-		radixMerge_->enable(rs);
-		radixMerge_->disable(rs);
-		// update segment size
-		segmentSize *= 2;
-		numSegments = numMergeThreads;
-		// ping pong buffers
-		pingPongRef = currentRef;
-		currentRef = nextRef;
-		nextRef = pingPongRef;
+		// Finally, run the scatter pass. As a result we will have the sorted instanceIDs
+		// in the values_[writeIndex] buffer.
+		radixScatterPass_->enable(rs);
+		glUniform1ui(scatterBitOffsetIndex_, bitOffset);
+		valueBuffer_[readIndex]->bind(scatterReadIndex_);
+		valueBuffer_[writeIndex]->bind(scatterWriteIndex_);
+		radixScatterPass_->disable(rs);
+
+		// swap read and write buffers
+		std::swap(readIndex, writeIndex);
 	}
+	GL_ERROR_LOG();
+
+#ifdef RADIX_DEBUG_RESULT
+	printInstanceMap(rs);
+#endif
 }
 
 void LODState::traverseGPU(RenderState *rs) {
@@ -479,6 +485,8 @@ void LODState::traverseGPU(RenderState *rs) {
 			lodNumInstances_[2] = 0;
 			lodNumInstances_[3] = 0;
 		}
+		//REGEN_INFO("   lod: " << lodNumInstances_[0] << ", " << lodNumInstances_[1] << ", "
+		//	<< lodNumInstances_[2] << ", " << lodNumInstances_[3]);
     }
 
 	// loop over all LOD levels
@@ -488,6 +496,7 @@ void LODState::traverseGPU(RenderState *rs) {
 		if (lodGroupSize == 0) {
 			continue;
 		}
+		//REGEN_INFO("    LOD_" << lodLevel << " num instances:" << lodGroupSize << " offset:" << instanceIDOffset);
 		// set the LOD level
 		activateLOD(lodLevel);
 		// set instanceIDOffset
@@ -497,10 +506,6 @@ void LODState::traverseGPU(RenderState *rs) {
 	}
 	// reset LOD level
 	activateLOD(0);
-
-#if 0
-	debugGPU(rs, true);
-#endif
 }
 
 // TODO: CLEANUP move somewhere else
@@ -513,9 +518,33 @@ float uintBitsToFloat(uint32_t uintValue) {
 	return converter.floatValue;
 }
 
-void LODState::debugGPU(RenderState *rs, bool debugFinalBuffer) {
+void LODState::printHistogram(RenderState *rs) {
+	// debug histogram
+	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
+	auto numBuckets = RADIX_NUM_BUCKETS;
+	rs->copyReadBuffer().push(globalHistogramBuffer_->blockReference()->bufferID());
+	auto histogramData = (uint32_t*)glMapBufferRange(
+		GL_COPY_READ_BUFFER,
+		globalHistogramBuffer_->blockReference()->address(),
+		globalHistogramBuffer_->blockReference()->allocatedSize(),
+		GL_MAP_READ_BIT);
+	if (histogramData) {
+		std::stringstream sss;
+		sss << "    histogram: | ";
+		for (uint32_t i = 0; i < numBuckets * numWorkGroups; ++i) {
+			sss << histogramData[i] << " ";
+			if ((i + 1) % numBuckets == 0) {
+				sss << " | ";
+			}
+		}
+		REGEN_INFO(" " << sss.str());
+		glUnmapBuffer(GL_COPY_READ_BUFFER);
+	}
+	rs->copyReadBuffer().pop();
+}
+
+void LODState::printInstanceMap(RenderState *rs) {
 	// debug sorted output
-	REGEN_INFO("sortedIDs");
 	std::vector<double> distances(numInstances_);
 	rs->copyReadBuffer().push(keyBuffer_->blockReference()->bufferID());
 	auto sortKeys = (uint32_t*)glMapBufferRange(
@@ -531,38 +560,46 @@ void LODState::debugGPU(RenderState *rs, bool debugFinalBuffer) {
 	}
 	rs->copyReadBuffer().pop();
 
-	std::vector<uint32_t> sortedIDs(numInstances_);
-	rs->copyReadBuffer().push(tmpIDBuffer_->blockReference()->bufferID());
-	auto sortedIDsTemp = (uint32_t*)glMapBufferRange(
-		GL_COPY_READ_BUFFER,
-		tmpIDBuffer_->blockReference()->address(),
-		tmpIDBuffer_->blockReference()->allocatedSize(),
-		GL_MAP_READ_BIT);
-	if (sortedIDsTemp) {
-		for (uint32_t i = 0; i < numInstances_; ++i) {
-			sortedIDs[i] = sortedIDsTemp[i];
-		}
-		for (uint32_t i = 0; i < numInstances_; ++i) {
-			REGEN_INFO("   d[" << i << "] = " << distances[sortedIDs[i]]);
-		}
-		glUnmapBuffer(GL_COPY_READ_BUFFER);
-	}
-	rs->copyReadBuffer().pop();
-
-	if(debugFinalBuffer) {
-		REGEN_INFO("instanceIDBuffer");
-		rs->copyReadBuffer().push(instanceIDBuffer_->blockReference()->bufferID());
+		auto idRef = instanceIDBuffer_->blockReference();
+		rs->copyReadBuffer().push(idRef->bufferID());
 		auto instanceIDs = (uint32_t*)glMapBufferRange(
 			GL_COPY_READ_BUFFER,
-			instanceIDBuffer_->blockReference()->address(),
-			instanceIDBuffer_->blockReference()->allocatedSize(),
+			idRef->address(),
+			idRef->allocatedSize(),
 			GL_MAP_READ_BIT);
 		if (instanceIDs) {
+			double lastDistance = 0.0;
+			bool validSortedIDs_ = true;
 			for (uint32_t i = 0; i < numInstances_; ++i) {
-				REGEN_INFO("   d[" << i << "] = " << distances[instanceIDs[i]]);
+				auto mappedID = instanceIDs[i];
+				if (mappedID >= numInstances_) {
+					REGEN_ERROR("mappedID " << mappedID << " >= numInstances_ " << numInstances_);
+					validSortedIDs_ = false;
+					break;
+				}
+				auto distance = distances[mappedID];
+				if (distance < lastDistance) {
+					validSortedIDs_ = false;
+				}
+				lastDistance = distance;
+			}
+			if (validSortedIDs_) {
+				REGEN_INFO("   sortedIDs are valid");
+			} else {
+				REGEN_INFO("   sortedIDs are INVALID");
+			}
+			{
+				std::stringstream sss;
+				sss << "    ID data (" << numInstances_ << "): ";
+				for (uint32_t i = 0; i < numInstances_; ++i) {
+					if (instanceIDs[i] >= numInstances_) {
+						break;
+					}
+					sss << instanceIDs[i] << " (" << distances[instanceIDs[i]] << ") ";
+				}
+				REGEN_INFO(" " << sss.str());
 			}
 			glUnmapBuffer(GL_COPY_READ_BUFFER);
 		}
 		rs->copyReadBuffer().pop();
-	}
 }

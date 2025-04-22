@@ -31,8 +31,7 @@ namespace regen {
 				static_cast<uint32_t>(localSize_.z));
 		}
 
-		// override
-		void enable(RenderState *state) override;
+		void dispatch();
 
 	protected:
 		// the number of invocations per work group
