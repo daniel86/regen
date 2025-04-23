@@ -26,7 +26,8 @@ namespace regen {
 	protected:
 		ref_ptr<Texture> inputTexture_;
 		ref_ptr<BloomTexture> bloomTexture_;
-		ref_ptr<Mesh> fullscreenMesh_;
+		ref_ptr<Mesh> fullscreenMesh_d_;
+		ref_ptr<Mesh> fullscreenMesh_u_;
 
 		ref_ptr<FBO> fbo_;
 
