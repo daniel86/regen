@@ -295,7 +295,7 @@ void main() {
 
 // The global histogram, it reflects global offsets for each bucket and workgroup.
 buffer uint in_globalHistogram[];
-buffer uint in_blockOffsets[];
+buffer uint in_blockSums[];
 shared uint sh_temp[CS_LOCAL_SIZE_X];
 
 void main() {
@@ -319,7 +319,7 @@ void main() {
 
     // Save total sum
     if (tid == 0)
-        in_blockOffsets[groupID] = sh_temp[CS_LOCAL_SIZE_X - 1];
+        in_blockSums[groupID] = sh_temp[CS_LOCAL_SIZE_X - 1];
     barrier();
 
     // Downsweep
@@ -348,13 +348,14 @@ void main() {
 #include regen.stages.compute.defines
 #include regen.shapes.lod.defines
 
+buffer uint in_blockSums[];
 buffer uint in_blockOffsets[];
 shared uint sh_temp[CS_LOCAL_SIZE_X];
 
 void main() {
     uint tid = gl_LocalInvocationID.x;
 
-    sh_temp[tid] = in_blockOffsets[tid];
+    sh_temp[tid] = in_blockSums[tid];
     barrier();
 
     for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {

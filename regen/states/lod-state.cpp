@@ -342,7 +342,7 @@ void LODState::createComputeShader() {
 		//         - I think shape loading should be more general. Then in an additional step the shape can
 		//           optionally be added to spatial index in CPU memory.
 		//radixCull_->joinShaderInput(mesh_->shapeUBO());
-		radixCull_->joinShaderInput(createUniform<ShaderInput1f,float>("shapeRadius", 1.0f));
+		//radixCull_->joinShaderInput(createUniform<ShaderInput1f,float>("shapeRadius", 1.0f));
 		// TODO: Add a frustum UBO to camera, and join it here!
 		//radixCull_->joinShaderInput(camera_->frustumUBO());
 		radixCull_->joinStates(tf_);
@@ -545,8 +545,8 @@ void LODState::traverseGPU(RenderState *rs) {
 		lodNumInstances_[2] = m_lodGroupSize_[0].z;
 		lodNumInstances_[3] = m_lodGroupSize_[0].w;
 	}
-	//REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
-	//		<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
+	REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
+			<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
 
 	// loop over all LOD levels
 	int32_t instanceIDOffset = 0;
