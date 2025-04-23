@@ -1,7 +1,7 @@
 // This shader is used for dynamically computing the LOD of objects in an
 // input array. It performs a culling pass to determine which objects are visible
 // and computes LOD level based on their distance to the camera.
-// The shader uses a block-wise radix sort to sort the objects based on their
+// The shader uses a radix sort to sort the objects based on their
 // computed keys (e.g., depth).
 
 -- defines
@@ -66,6 +66,10 @@ shared uint sh_lodGroupSize[MAX_NUM_LOD_GROUPS];
 //
 uniform vec3 in_lodThresholds;
 
+#ifdef USE_CULLING
+#include regen.shapes.culling.isSphereVisible
+#endif
+
 int getLODGroup(float depth) {
     // Returns the LOD group for a given depth.
     return int(depth >= in_lodThresholds.x)
@@ -78,7 +82,7 @@ void main() {
     uint localID  = gl_LocalInvocationID.x;
     uint groupID  = gl_WorkGroupID.x;
     float depth = 0.0;
-    bool isCulled = true;
+    bool isVisible = false;
 
     // Initialize memory
     if (localID < MAX_NUM_LOD_GROUPS) {
@@ -91,11 +95,28 @@ void main() {
 
     if (globalID < LOD_NUM_INSTANCES) {
         vec3 pos = readPosition(globalID);
-        // TODO: add real frustum check
-        isCulled = false;
-
-        if (!isCulled) {
+#ifdef USE_CULLING
+        // make a visibility check
+    #ifdef HAS_modelMatrix
+        vec3 scale = vec3(
+            in_modelMatrix[globalID][0][0],
+            in_modelMatrix[globalID][1][1],
+            in_modelMatrix[globalID][2][2]);
+        float radius = in_shapeRadius * max(max(scale.x, scale.y), scale.z);
+        isVisible = isSphereVisible(pos, radius);
+    #else
+        isVisible = isSphereVisible(pos, in_shapeRadius);
+    #endif
+#else
+        isVisible = true;
+#endif
+        if (isVisible) {
             depth = length(pos - in_cameraPosition.xyz);
+#ifdef RADIX_REVERSE_SORT
+            // Reverse sort: smaller depth = higher LOD.
+            // Note: we must use positive numbers for the uint conversion.
+            depth = FLT_MAX - depth;
+#endif
             // increase visibility count
             atomicAdd(sh_visibleCount, 1);
             // increment the LOD group size
@@ -104,18 +125,12 @@ void main() {
     }
     barrier();
 
-    // Atomic global accumulation from shared count
+    // Write results to global memory
     if (localID < MAX_NUM_LOD_GROUPS) {
         atomicAdd(in_lodGroupSize[localID], sh_lodGroupSize[localID]);
     }
-    // Write sort key into global memory
-    if (!isCulled) {
-        in_keys[globalID] = floatBitsToUint(depth);
-    } else {
-        in_keys[globalID] = 0xFFFFFFFFu;
-    }
-    // Also initialize the value buffer to [0...(LOD_NUM_INSTANCES-1)]
     if (globalID < LOD_NUM_INSTANCES) {
+        in_keys[globalID] = (isVisible ? floatBitsToUint(depth) : 0xFFFFFFFFu);
         in_instanceIDMap[globalID] = globalID;
     }
 }
@@ -183,69 +198,83 @@ void main() {
 }
 
 --------------
------- This shader computes the offsets for each bucket and workgroup in the global
------- memory. It is used to determine the write locations for the sorted keys in the radix sort pass.
+--- Parallel scan: Use a parallel prefix sum algorithm to compute the prefix sum of the histogram.
+--- Should be dispatchd with a single work group having a thread for each element in the histogram.
+--- This will work for mid-sized histograms, as it is parallelized. However, the number of threads
+--- per work group is limited.
+--- The histogram size is NUM_WORK_GROUPS * NUM_BUCKETS.
+--- NUM_WORK_GROUPS can get large, e.g. with 1.000.000 keys and work group size of 256,
+--- we have 3907 work groups, for 4bit radix sort we have 16 buckets,
+--- so the histogram size is 3907 * 16 = 62512 times 32-bit which is ~250kB
+--- and might be too big for shared memory which is often capped to 64kB.
+--- So as an estimate with group size 256, only use shared memory sum up to ~100.000 keys,
+--- and with group size 512, only use shared memory sum up to ~200.000 keys.
 --------------
--- radix.offsets.cs
+-- radix.offsets.parallel.cs
 #include regen.stages.compute.defines
 #include regen.shapes.lod.defines
-
 // - [read/write] the global histogram. NOTE: input should be counts, output will be (global) offsets.
-//           size: RADIX_NUM_BUCKETS * NUM_WORK_GROUPS
 buffer uint in_globalHistogram[];
-
-#ifdef USE_PARALLEL_SCAN
-shared uint temp[NUM_THREADS];
+shared uint sh_offsets[RADIX_NUM_THREADS];
 
 void main() {
     uint tid = gl_LocalInvocationID.x;
 
     // Load input into shared memory
-    if (tid < HISTOGRAM_SIZE) {
-        temp[tid] = in_globalHistogram[tid];
+    if (tid < RADIX_HISTOGRAM_SIZE) {
+        sh_offsets[tid] = in_globalHistogram[tid];
     } else {
-        temp[tid] = 0; // pad with 0s if over histogram size
+        sh_offsets[tid] = 0; // pad with 0s if over histogram size
     }
-
     barrier();
 
     // === Upsweep (reduce) ===
-    for (uint offset = 1; offset < NUM_THREADS; offset *= 2) {
+    for (uint offset = 1; offset < RADIX_NUM_THREADS; offset *= 2) {
         uint index = (tid + 1) * offset * 2 - 1;
-        if (index < NUM_THREADS) {
-            temp[index] += temp[index - offset];
+        if (index < RADIX_NUM_THREADS) {
+            sh_offsets[index] += sh_offsets[index - offset];
         }
         barrier();
     }
 
     // === Set last element to zero (for exclusive scan) ===
     if (tid == 0) {
-        temp[NUM_THREADS - 1] = 0;
+        sh_offsets[RADIX_NUM_THREADS - 1] = 0;
     }
     barrier();
 
     // === Downsweep ===
-    for (uint offset = NUM_THREADS / 2; offset > 0; offset /= 2) {
+    for (uint offset = RADIX_NUM_THREADS / 2; offset > 0; offset /= 2) {
         uint index = (tid + 1) * offset * 2 - 1;
-        if (index < NUM_THREADS) {
-            uint t = temp[index - offset];
-            temp[index - offset] = temp[index];
-            temp[index] += t;
+        if (index < RADIX_NUM_THREADS) {
+            uint t = sh_offsets[index - offset];
+            sh_offsets[index - offset] = sh_offsets[index];
+            sh_offsets[index] += t;
         }
         barrier();
     }
 
     // Write result back
-    if (tid < HISTOGRAM_SIZE) {
-        in_globalHistogram[tid] = temp[tid];
+    if (tid < RADIX_HISTOGRAM_SIZE) {
+        in_globalHistogram[tid] = sh_offsets[tid];
     }
 }
-#else
+
+--------------
+--- Serial scan: Use a single thread to compute the prefix sum of the histogram.
+--- This should only be used for small histograms, as it is not parallelized.
+--------------
+-- radix.offsets.serial.cs
+#include regen.stages.compute.defines
+#include regen.shapes.lod.defines
+// - [read/write] the global histogram. NOTE: input should be counts, output will be (global) offsets.
+buffer uint in_globalHistogram[];
+
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
     if (globalID == 0) {
         uint sum = 0;
-        for (uint i = 0; i < HISTOGRAM_SIZE; ++i) {
+        for (uint i = 0; i < RADIX_HISTOGRAM_SIZE; ++i) {
             // Compute the prefix sum of the histogram
             uint h_i = in_globalHistogram[i];
             in_globalHistogram[i] = sum;
@@ -253,7 +282,123 @@ void main() {
         }
     }
 }
-#endif
+
+--------------
+--- Each workgroup scans WG_SIZE elements and:
+---     - Writes scanned output to in_globalHistogram.
+---     - Writes total sum of block to a blockSums[] array.
+--------------
+-- radix.offsets.local.cs
+//layout(local_size_x = WG_SIZE) in;
+#include regen.stages.compute.defines
+#include regen.shapes.lod.defines
+
+// The global histogram, it reflects global offsets for each bucket and workgroup.
+buffer uint in_globalHistogram[];
+buffer uint in_blockOffsets[];
+shared uint sh_temp[CS_LOCAL_SIZE_X];
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+    uint gid = gl_GlobalInvocationID.x;
+    uint groupID = gl_WorkGroupID.x;
+
+    uint index = groupID * CS_LOCAL_SIZE_X + tid;
+
+    // Load to shared memory
+    sh_temp[tid] = (index < RADIX_HISTOGRAM_SIZE) ? in_globalHistogram[index] : 0;
+    barrier();
+
+    // Upsweep (reduce)
+    for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {
+        uint i = (tid + 1) * offset * 2 - 1;
+        if (i < CS_LOCAL_SIZE_X)
+            sh_temp[i] += sh_temp[i - offset];
+        barrier();
+    }
+
+    // Save total sum
+    if (tid == 0)
+        in_blockOffsets[groupID] = sh_temp[CS_LOCAL_SIZE_X - 1];
+    barrier();
+
+    // Downsweep
+    if (tid == 0)
+        sh_temp[CS_LOCAL_SIZE_X - 1] = 0;
+    barrier();
+
+    for (uint offset = CS_LOCAL_SIZE_X >> 1; offset > 0; offset >>= 1) {
+        uint i = (tid + 1) * offset * 2 - 1;
+        if (i < CS_LOCAL_SIZE_X) {
+            uint t = sh_temp[i - offset];
+            sh_temp[i - offset] = sh_temp[i];
+            sh_temp[i] += t;
+        }
+        barrier();
+    }
+
+    // Store back result
+    if (index < RADIX_HISTOGRAM_SIZE)
+        in_globalHistogram[index] = sh_temp[tid];
+}
+
+-- radix.offsets.global.cs
+// NUM_BLOCKS = ceil(HISTOGRAM_SIZE / WG_SIZE)
+// layout(local_size_x = BLOCK_SUMS_SIZE) in;
+#include regen.stages.compute.defines
+#include regen.shapes.lod.defines
+
+buffer uint in_blockOffsets[];
+shared uint sh_temp[CS_LOCAL_SIZE_X];
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+
+    sh_temp[tid] = in_blockOffsets[tid];
+    barrier();
+
+    for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {
+        uint i = (tid + 1) * offset * 2 - 1;
+        if (i < CS_LOCAL_SIZE_X)
+            sh_temp[i] += sh_temp[i - offset];
+        barrier();
+    }
+
+    if (tid == 0)
+        sh_temp[CS_LOCAL_SIZE_X - 1] = 0;
+    barrier();
+
+    for (uint offset = CS_LOCAL_SIZE_X >> 1; offset > 0; offset >>= 1) {
+        uint i = (tid + 1) * offset * 2 - 1;
+        if (i < CS_LOCAL_SIZE_X) {
+            uint t = sh_temp[i - offset];
+            sh_temp[i - offset] = sh_temp[i];
+            sh_temp[i] += t;
+        }
+        barrier();
+    }
+
+    in_blockOffsets[tid] = sh_temp[tid];
+}
+
+-- radix.offsets.distribute.cs
+//layout(local_size_x = WG_SIZE) in;
+#include regen.stages.compute.defines
+#include regen.shapes.lod.defines
+// The global histogram, it reflects global offsets for each bucket and workgroup.
+buffer uint in_globalHistogram[];
+buffer uint in_blockOffsets[];
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+    uint groupID = gl_WorkGroupID.x;
+
+    uint index = groupID * CS_LOCAL_SIZE_X + tid;
+    if (index >= RADIX_HISTOGRAM_SIZE) return;
+
+    uint offset = in_blockOffsets[groupID];
+    in_globalHistogram[index] += offset;
+}
 
 --------------
 ------ Radix scattering stage. This shader takes the sorted keys and values from the previous pass
@@ -263,67 +408,61 @@ void main() {
 #include regen.stages.compute.defines
 #include regen.shapes.lod.defines
 
-// - [read] the global histogram, it reflects global offsets for each bucket and workgroup.
-//           size: RADIX_NUM_BUCKETS * NUM_WORK_GROUPS
+// The global histogram, it reflects global offsets for each bucket and workgroup.
 buffer uint in_globalHistogram[];
-// - [read] the sort keys, computed by culling pass, one per instance.
+// The sort keys, computed by culling pass, one per instance.
 buffer uint in_keys[LOD_NUM_INSTANCES];
-// - [read] The value input buffer, either [0...(LOD_NUM_INSTANCES-1)] or output from the previous pass.
+// The value input buffer, either [0...(LOD_NUM_INSTANCES-1)] or output from the previous pass.
 layout(std430) readonly buffer ReadBuffer {
     uint in_lastValues[LOD_NUM_INSTANCES];
 };
-// - [write] The output buffer, where the sorted values will be written to.
+// The output buffer, where the sorted values will be written to.
 layout(std430) writeonly buffer WriteBuffer {
     uint in_nextValues[LOD_NUM_INSTANCES];
 };
 // The bit offset of the current radix pass.
 uniform uint radixBitOffset;
-
-shared uint sh_bucket[CS_LOCAL_SIZE_X];     // Each thread's bucket
-shared uint sh_flags[CS_LOCAL_SIZE_X];      // Per-bucket flag
-shared uint sh_scan[CS_LOCAL_SIZE_X];       // Prefix sum results
+// Prefix sum results
+shared uint sh_scan[CS_LOCAL_SIZE_X];
 
 #include regen.shapes.lod.radix.bucket
 #include regen.shapes.lod.radix.histogram
 
-void main() {
-    uint globalID = gl_GlobalInvocationID.x;
+void scatterBucket(uint b, uint t_value, uint t_bucket) {
     uint localID = gl_LocalInvocationID.x;
     uint groupID = gl_WorkGroupID.x;
+    // - Parallel scan (O(log n)) to compute the prefix sum of the local histogram.
+    sh_scan[localID] = uint(t_bucket == b);
+    for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {
+        uint temp = (localID >= offset) ? sh_scan[localID - offset] : 0;
+        barrier();
+        sh_scan[localID] += temp;
+        barrier();
+    }
 
-    if (globalID >= LOD_NUM_INSTANCES)
-        return;
+    // - Scatter if in this bucket
+    if (t_bucket == b) {
+        uint localOffset = sh_scan[localID] - 1;
+        uint histogramIndex = radixHistogramIndex(b, groupID);
+        uint scatterIndex = in_globalHistogram[histogramIndex] + localOffset;
+        in_nextValues[scatterIndex] = t_value;
+    }
+    barrier();
+}
+
+void main() {
+    uint globalID = gl_GlobalInvocationID.x;
+    if (globalID >= LOD_NUM_INSTANCES) return;
 
     // Read key/value input
     uint value = in_lastValues[globalID];
     uint key = in_keys[value];
+    if (key == 0xFFFFFFFFu) return;
 
+    // Compute the bucket for this thread
     uint bucket = radixBucket(key);
-    sh_bucket[localID] = bucket;
-    barrier();
-
     // Process each bucket individually
-    for (uint b = 0; b < RADIX_NUM_BUCKETS; ++b) {
-        // Step 1: Set flags
-        sh_flags[localID] = (sh_bucket[localID] == b) ? 1 : 0;
-        barrier();
-
-        // Step 2: Inclusive prefix sum over flags (naive scan)
-        sh_scan[localID] = sh_flags[localID];
-        for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {
-            uint temp = (localID >= offset) ? sh_scan[localID - offset] : 0;
-            barrier();
-            sh_scan[localID] += temp;
-            barrier();
-        }
-
-        // Step 3: Scatter if in this bucket
-        if (sh_bucket[localID] == b) {
-            uint localOffset = sh_scan[localID] - 1;
-            uint histogramIndex = radixHistogramIndex(b, groupID);
-            uint scatterIndex = in_globalHistogram[histogramIndex] + localOffset;
-            in_nextValues[scatterIndex] = value;
-        }
-        barrier();
-    }
+#for BUCKET_I to RADIX_NUM_BUCKETS
+    scatterBucket(${BUCKET_I}, value, bucket);
+#endfor
 }

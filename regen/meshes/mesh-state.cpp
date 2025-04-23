@@ -10,7 +10,6 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  HasInput(sourceMesh->inputContainer()),
 		  primitive_(sourceMesh->primitive_),
 		  meshLODs_(sourceMesh->meshLODs_),
-		  lodFar_(sourceMesh->lodFar_),
 		  lodLevel_(sourceMesh->lodLevel_),
 		  feedbackCount_(0),
 		  hasInstances_(sourceMesh->hasInstances_),
@@ -23,6 +22,8 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 	draw_ = sourceMesh_->draw_;
 	set_primitive(primitive_);
 	sourceMesh_->meshViews_.insert(this);
+	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
+	lodThresholds_->setUniformData(sourceMesh->lodThresholds()->getVertex(0).r);
 }
 
 Mesh::Mesh(GLenum primitive, BufferUsage usage)
@@ -37,6 +38,9 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 	hasInstances_ = GL_FALSE;
 	draw_ = &InputContainer::drawArrays;
 	set_primitive(primitive);
+	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
+	lodThresholds_->setUniformData(Vec3f::zero());
+	setLODThresholds(Vec3f(10.0, 30.0, 60.0));
 }
 
 Mesh::~Mesh() {
@@ -169,11 +173,50 @@ void Mesh::updateVAO(RenderState *rs) {
 	rs->vao().pop();
 }
 
-unsigned int Mesh::getLODLevel(float cameraDistance) {
-	auto normalizedDistance = std::min(cameraDistance / lodFar_, 0.9999f);
-	auto lodLevel = static_cast<float>(meshLODs_.size()) * normalizedDistance;
-	lodLevel = std::trunc(lodLevel);
-	return static_cast<unsigned int>(lodLevel);
+unsigned int Mesh::getLODLevel(float depth) {
+    // Returns the LOD group for a given depth.
+    auto thresholds = lodThresholds_->getVertex(0);
+    return int(depth >= thresholds.r.x)
+         + int(depth >= thresholds.r.y)
+         + int(depth >= thresholds.r.z);
+}
+
+void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
+	meshLODs_ = meshLODs;
+	setLODThresholds(Vec3f(10.0, 30.0, 60.0));
+}
+
+void Mesh::setLODThresholds(const Vec3f &thresholds) {
+	if (numLODs() == 4) {
+		lodThresholds_->setVertex(0, thresholds);
+	}
+	else if (numLODs() == 3) {
+		if (thresholds.z > 1e-6f) {
+			lodThresholds_->setVertex(0, Vec3f(
+				(thresholds.x+thresholds.y)*0.5f,
+				(thresholds.y+thresholds.z)*0.5f,
+				FLT_MAX));
+		} else {
+			lodThresholds_->setVertex(0, Vec3f(thresholds.x, thresholds.y, FLT_MAX));
+		}
+	}
+	else if (numLODs() == 2) {
+		auto avg = thresholds.x;
+		auto count = 1u;
+		if (thresholds.y > 1e-6f) {
+			avg += thresholds.y;
+			count++;
+		}
+		if (thresholds.z > 1e-6f) {
+			avg += thresholds.z;
+			count++;
+		}
+		avg /= static_cast<float>(count);
+		lodThresholds_->setVertex(0, Vec3f(avg, FLT_MAX, FLT_MAX));
+	}
+	else {
+		lodThresholds_->setVertex(0, Vec3f(FLT_MAX));
+	}
 }
 
 void Mesh::updateLOD(float cameraDistance) {

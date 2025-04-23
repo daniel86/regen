@@ -97,9 +97,15 @@ namespace regen {
 		auto lodLevel() const { return lodLevel_; }
 
 		/**
-		 * Set the far distance for LOD.
+		 * @return thresholds for LOD levels.
 		 */
-		void setLODFar(float far) { lodFar_ = far; }
+		const ref_ptr<ShaderInput3f>& lodThresholds() const { return lodThresholds_; }
+
+		/**
+		 * Set the thresholds for LOD levels.
+		 * @param thresholds thresholds for LOD levels.
+		 */
+		void setLODThresholds(const Vec3f &thresholds);
 
 		/**
 		 * All LODs are stored in the same buffer, so each LOD level is simply expressed
@@ -111,7 +117,7 @@ namespace regen {
 		/**
 		 * Set the LODs of this mesh.
 		 */
-		void setMeshLODs(const std::vector<MeshLOD> &meshLODs) { meshLODs_ = meshLODs; }
+		void setMeshLODs(const std::vector<MeshLOD> &meshLODs);
 
 		/**
 		 * @return number of LODs.
@@ -227,7 +233,7 @@ namespace regen {
 
 		ref_ptr<VAO> vao_;
 		std::vector<MeshLOD> meshLODs_;
-		float lodFar_ = 160.0f;
+		ref_ptr<ShaderInput3f> lodThresholds_;
 		unsigned int lodLevel_ = 0;
 
 		std::list<InputLocation> vaoAttributes_;

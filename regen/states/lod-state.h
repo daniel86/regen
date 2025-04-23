@@ -78,7 +78,6 @@ namespace regen {
 		ref_ptr<ShaderInput1i> instanceIDOffset_;
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;
-		ref_ptr<ShaderInput3f> lodThresholds_;
 		// temporary storage for instanceIDs, used to fill the instanceIDMap_
 		std::vector<std::vector<GLuint>> lodGroups_;
 		ref_ptr<Mesh> mesh_;
@@ -88,13 +87,18 @@ namespace regen {
 		// GPU LOD update
 		ref_ptr<ComputePass> radixCull_;
 		ref_ptr<ComputePass> radixHistogramPass_;
-		ref_ptr<ComputePass> radixOffsetsPass_;
+		ref_ptr<State> radixOffsetsPass_;
+		ref_ptr<ComputePass> radixGlobalOffsetsPass_;
+		ref_ptr<ComputePass> radixLocaleOffsetsPass_;
+		ref_ptr<ComputePass> radixDistributeOffsetsPass_;
 		ref_ptr<ComputePass> radixScatterPass_;
 		ref_ptr<UBO> cullUBO_;
 		ref_ptr<SSBO> keyBuffer_;
 		ref_ptr<SSBO> valueBuffer_[2];
 		ref_ptr<SSBO> globalHistogramBuffer_;
 		ref_ptr<SSBO> lodGroupSizeBuffer_;
+		ref_ptr<SSBO> blockSumsBuffer_;
+		ref_ptr<SSBO> blockOffsetsBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
 		ref_ptr<PBO> lodGroupSizePBO_;
 		Vec4ui *m_lodGroupSize_ = nullptr;

@@ -150,7 +150,7 @@
           texco-scaling="5.0,5.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <define key="HAS_TWO_SIDES" value="TRUE"/>
         <material preset="copper"/>
         <transform id="bowl-tf"/>
@@ -169,7 +169,7 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <transform id="sphere0-tf"/>
         <shape id="sphere0-physics" mode="physics" shape="sphere"
                radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0"
@@ -187,7 +187,7 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <material preset="ruby"/>
         <transform id="sphere1-tf"/>
         <shape id="sphere1-physics" mode="physics" shape="sphere"
@@ -209,7 +209,7 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           num-instances="40">
         <material preset="ruby"/>
         <transform id="sphere2-tf"/>

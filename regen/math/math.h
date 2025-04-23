@@ -83,6 +83,22 @@ namespace regen {
 			static std::uniform_real_distribution<T> dis(0.0, 1.0);
 			return dis(gen);
 		}
+
+		/**
+		 * Compute the next power of 2 greater than or equal to x.
+		 * @param x the input value
+		 * @return the next power of 2 greater than or equal to x
+		 */
+		static inline uint32_t nextPow2(uint32_t x) {
+			if (x == 0) return 1;
+			--x;
+			x |= x >> 1;
+			x |= x >> 2;
+			x |= x >> 4;
+			x |= x >> 8;
+			x |= x >> 16;
+			return ++x;
+		}
 	}
 } // namespace
 

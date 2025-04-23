@@ -197,7 +197,7 @@
           use-texco="1"
           use-tangent="1"
           center="1"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           primitive="PATCHES">
         <transform>
             <translate value="0.0,{{map-y-min}},0.0"/>
@@ -214,7 +214,7 @@
           use-texco="0"
           use-tangent="1"
           center="1"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           num-instances="100">
         <transform id="ground-tf" is-instanced="1" >
             <set mode="row" target="translate"
@@ -277,7 +277,7 @@
           lod="0"
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <transform id="grass-tf">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
@@ -344,7 +344,7 @@
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
-    <mesh id="tree-mesh" type="proctree" lods="3,2,1" lod-far="40.0" preset="fir">
+    <mesh id="tree-mesh" type="proctree" lods="3,2,1" preset="fir">
         <transform id="tree-tf">
             <set mode="plane"
                 area-mask-texture="tree-mask"
@@ -499,7 +499,7 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
-            lod-simplification="0.2, 0.1"
+            lod-simplification="0.4, 0.1" lod-thresholds="5.0, 10.0"
             num-instances="{{num-fish}}">
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
@@ -534,6 +534,7 @@
             </animation>
 
         </transform>
+        <shape id="fish-shape-ubo" mode="gpu" type="sphere" mesh-id="fish-mesh" />
         <!-- <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 
@@ -558,7 +559,7 @@
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
         -->
-        <node id="fish0" lod-mesh="fish-mesh" lod-tf="fish-tf" lod-thresholds="6.0, 40.0">
+        <node id="fish0" lod-mesh="fish-mesh" lod-tf="fish-tf">
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>

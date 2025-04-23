@@ -103,7 +103,7 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="ground-mesh" type="rectangle" lod="0" center="1" usage="STATIC"
+    <mesh id="ground-mesh" type="rectangle" lod="0" center="1" usage="STATIC_DRAW"
           use-normal="1" use-texco="1" use-tangent="1"
           rotation="0.0,0.0,3.1415"
           scaling="1000.0,1000.0,1000.0"

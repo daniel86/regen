@@ -1,24 +1,7 @@
 #include "atomic-counter.h"
+#include "regen/utility/conversion.h"
 
 using namespace regen;
-
-float uintBitsToFloat(uint32_t uintValue) {
-	union {
-		uint32_t uintValue;
-		float floatValue;
-	} converter;
-	converter.uintValue = uintValue;
-	return converter.floatValue;
-}
-
-unsigned int floatBitsToUint(float floatValue) {
-	union {
-		uint32_t uintValue;
-		float floatValue;
-	} converter;
-	converter.floatValue = floatValue;
-	return converter.uintValue;
-}
 
 AtomicCounter::AtomicCounter() :
 		BufferObjectT(BUFFER_USAGE_DYNAMIC_DRAW) {
@@ -27,8 +10,8 @@ AtomicCounter::AtomicCounter() :
 BoundingBoxCounter::BoundingBoxCounter() :
 		AtomicCounter(),
 		bounds_(Vec3f(0.0f), Vec3f(0.0f)) {
-	auto max_float = floatBitsToUint(std::numeric_limits<float>::max());
-	auto min_float = floatBitsToUint(std::numeric_limits<float>::lowest());
+	auto max_float = conversion::floatToUint(std::numeric_limits<float>::max());
+	auto min_float = conversion::floatToUint(std::numeric_limits<float>::lowest());
 	initialData_[0] = max_float;
 	initialData_[1] = max_float;
 	initialData_[2] = max_float;
@@ -50,7 +33,7 @@ Bounds<Vec3f> &BoundingBoxCounter::updateBounds() {
 
 	auto localData = &bounds_.min.x;
 	for (int i = 0; i < 6; ++i) {
-		localData[i] = uintBitsToFloat(ptr[i]);
+		localData[i] = conversion::uintToFloat(ptr[i]);
 		ptr[i] = initialData_[i];
 	}
 

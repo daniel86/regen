@@ -67,7 +67,7 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" lod="0" usage="STATIC"
+    <mesh id="bg-box" type="box" use-normal="1" use-tangent="0" lod="0" usage="STATIC_DRAW"
           scaling="80.0,80.0,80.0">
         <material preset="silver"/>
     </mesh>
@@ -83,7 +83,7 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="platform" type="box" use-normal="1" use-tangent="0" usage="STATIC" lod="0" scaling="1.0,60.0,1.0">
+    <mesh id="platform" type="box" use-normal="1" use-tangent="0" usage="STATIC_DRAW" lod="0" scaling="1.0,60.0,1.0">
         <material preset="copper" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0"/>
     </mesh>
 
