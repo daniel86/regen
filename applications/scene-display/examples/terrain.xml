@@ -7,7 +7,7 @@
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
     <constant name="num-cascades" value="4"/>
-    <constant name="num-fish" value="2000"/>
+    <constant name="num-fish" value="200"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -499,7 +499,7 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
-            lod-simplification="0.35, 0.1"
+            lod-simplification="0.2, 0.1"
             num-instances="{{num-fish}}">
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
@@ -507,7 +507,7 @@
             <set mode="circle" target="translate" radius="1.0" variance="0.8"
                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 1.0, 1.0"/>
             <animation type="boids"
-                sim-mode="GPU"
+                sim-mode="CPU"
                 base-orientation="1.570796"
                 max-speed="4.0"
                 max-neighbors="100"
@@ -588,8 +588,11 @@
         <node import="Trees"/>
     </node>
 
-    <node id="Scene-Geometry">
+    <node id="Non-Shadow-Caster">
         <node import="Fish"/>
+    </node>
+
+    <node id="Scene-Geometry">
         <node import="Grass"/>
         <node import="Ground"/>
     </node>
@@ -755,6 +758,7 @@
                 <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <node import="Shadow-Caster"/>
+                <node import="Non-Shadow-Caster"/>
                 <node import="Scene-Geometry"/>
                 <node import="G-Buffer-Views"/>
                 <view id="G-Buffer: Emission">

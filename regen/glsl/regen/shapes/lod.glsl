@@ -194,11 +194,58 @@ void main() {
 //           size: RADIX_NUM_BUCKETS * NUM_WORK_GROUPS
 buffer uint in_globalHistogram[];
 
+#ifdef USE_PARALLEL_SCAN
+shared uint temp[NUM_THREADS];
+
+void main() {
+    uint tid = gl_LocalInvocationID.x;
+
+    // Load input into shared memory
+    if (tid < HISTOGRAM_SIZE) {
+        temp[tid] = in_globalHistogram[tid];
+    } else {
+        temp[tid] = 0; // pad with 0s if over histogram size
+    }
+
+    barrier();
+
+    // === Upsweep (reduce) ===
+    for (uint offset = 1; offset < NUM_THREADS; offset *= 2) {
+        uint index = (tid + 1) * offset * 2 - 1;
+        if (index < NUM_THREADS) {
+            temp[index] += temp[index - offset];
+        }
+        barrier();
+    }
+
+    // === Set last element to zero (for exclusive scan) ===
+    if (tid == 0) {
+        temp[NUM_THREADS - 1] = 0;
+    }
+    barrier();
+
+    // === Downsweep ===
+    for (uint offset = NUM_THREADS / 2; offset > 0; offset /= 2) {
+        uint index = (tid + 1) * offset * 2 - 1;
+        if (index < NUM_THREADS) {
+            uint t = temp[index - offset];
+            temp[index - offset] = temp[index];
+            temp[index] += t;
+        }
+        barrier();
+    }
+
+    // Write result back
+    if (tid < HISTOGRAM_SIZE) {
+        in_globalHistogram[tid] = temp[tid];
+    }
+}
+#else
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
     if (globalID == 0) {
         uint sum = 0;
-        for (uint i = 0; i < RADIX_NUM_BUCKETS * RADIX_NUM_WORK_GROUPS; ++i) {
+        for (uint i = 0; i < HISTOGRAM_SIZE; ++i) {
             // Compute the prefix sum of the histogram
             uint h_i = in_globalHistogram[i];
             in_globalHistogram[i] = sum;
@@ -206,6 +253,7 @@ void main() {
         }
     }
 }
+#endif
 
 --------------
 ------ Radix scattering stage. This shader takes the sorted keys and values from the previous pass

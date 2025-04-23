@@ -8,6 +8,7 @@
 // 4-bit radix sort --> 2^4 = 16 buckets
 #define RADIX_NUM_BUCKETS 16
 #define RADIX_GROUP_SIZE 128
+//#define RADIX_USE_PARALLEL_SCAN
 //#define RADIX_DEBUG_HISTOGRAM
 //#define RADIX_DEBUG_RESULT
 
@@ -282,7 +283,19 @@ void LODState::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
+uint32_t nextPow2(uint32_t x) {
+	if (x == 0) return 1;
+	--x;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return ++x;
+}
+
 void LODState::createComputeShader() {
+	uint32_t numWorkGroups = 0u;
 	{
 		radixCull_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.cull");
 		radixCull_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
@@ -293,10 +306,19 @@ void LODState::createComputeShader() {
 		radixHistogramPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
 		radixHistogramPass_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
 		radixHistogramPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
+		numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 
 		// Note: currently offset pass performs serial scan
 		radixOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets");
+		radixOffsetsPass_->computeState()->shaderDefine("HISTOGRAM_SIZE", REGEN_STRING(RADIX_NUM_BUCKETS * numWorkGroups));
+#ifdef RADIX_USE_PARALLEL_SCAN
+		uint32_t numOffsetThreads = nextPow2(RADIX_NUM_BUCKETS * numWorkGroups);
+		radixOffsetsPass_->computeState()->shaderDefine("USE_PARALLEL_SCAN", "TRUE");
+		radixOffsetsPass_->computeState()->shaderDefine("NUM_THREADS", REGEN_STRING(numOffsetThreads));
+		radixOffsetsPass_->computeState()->setNumWorkUnits(numOffsetThreads, 1, 1);
+#else
 		radixOffsetsPass_->computeState()->setNumWorkUnits(1, 1, 1);
+#endif
 		radixOffsetsPass_->computeState()->setGroupSize(1, 1, 1);
 
 		radixScatterPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.scatter");
@@ -304,7 +326,6 @@ void LODState::createComputeShader() {
 		radixScatterPass_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
 		radixScatterPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 	}
-	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 
 	// Output: lodGroupSize
 	lodGroupSizeBuffer_ = ref_ptr<SSBO>::alloc("LODGroupBuffer", BUFFER_USAGE_STREAM_COPY);

@@ -224,11 +224,12 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBlockValid_) return;
 	update();
 	bind(loc);
+	bindingIndex_ = loc;
 }
 
 ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto blockType = input.getValue<std::string>("type", "ubo");
-	auto usageHint = input.getValue<BufferUsage>("usage", USAGE_DYNAMIC);
+	auto usageHint = input.getValue<BufferUsage>("usage", BUFFER_USAGE_DYNAMIC_DRAW);
 	ref_ptr<BufferBlock> block;
 	if (blockType == "ubo") {
 		block = ref_ptr<UBO>::alloc(input.getName(), usageHint);
