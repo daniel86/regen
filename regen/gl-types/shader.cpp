@@ -461,6 +461,8 @@ void Shader::setupInputLocations() {
 		std::string blockName(truncPrefix(nameC, "in_"));
 		uniformLocations_[blockName] = bindingPoint;
 		uniformLocations_[REGEN_STRING("in_" << blockName)] = bindingPoint;
+		// TODO: this might overwrite binding points that are configured in the shader!
+		//       this should be avoided as user may bind blindly to these binding points.
 		glShaderStorageBlockBinding(id(), blockIndex, bindingPoint);
 		++bindingPoint;
 	}
