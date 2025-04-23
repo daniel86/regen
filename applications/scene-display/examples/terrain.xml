@@ -344,7 +344,9 @@
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
-    <mesh id="tree-mesh" type="proctree" lods="3,2,1" preset="fir">
+    <mesh id="tree-mesh" type="proctree"
+            lods="3,2,1" lod-thresholds="5.0, 10.0"
+            preset="fir">
         <transform id="tree-tf">
             <set mode="plane"
                 area-mask-texture="tree-mask"
