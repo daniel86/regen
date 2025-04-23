@@ -187,36 +187,10 @@ void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
 }
 
 void Mesh::setLODThresholds(const Vec3f &thresholds) {
-	if (numLODs() == 4) {
-		lodThresholds_->setVertex(0, thresholds);
-	}
-	else if (numLODs() == 3) {
-		if (thresholds.z > 1e-6f) {
-			lodThresholds_->setVertex(0, Vec3f(
-				(thresholds.x+thresholds.y)*0.5f,
-				(thresholds.y+thresholds.z)*0.5f,
-				FLT_MAX));
-		} else {
-			lodThresholds_->setVertex(0, Vec3f(thresholds.x, thresholds.y, FLT_MAX));
-		}
-	}
-	else if (numLODs() == 2) {
-		auto avg = thresholds.x;
-		auto count = 1u;
-		if (thresholds.y > 1e-6f) {
-			avg += thresholds.y;
-			count++;
-		}
-		if (thresholds.z > 1e-6f) {
-			avg += thresholds.z;
-			count++;
-		}
-		avg /= static_cast<float>(count);
-		lodThresholds_->setVertex(0, Vec3f(avg, FLT_MAX, FLT_MAX));
-	}
-	else {
-		lodThresholds_->setVertex(0, Vec3f(FLT_MAX));
-	}
+	float t_x = thresholds.x;
+	float t_y = thresholds.y > t_x ? thresholds.y : FLT_MAX;
+	float t_z = thresholds.z > t_y ? thresholds.z : FLT_MAX;
+	lodThresholds_->setVertex(0, Vec3f(t_x, t_y, t_z));
 }
 
 void Mesh::updateLOD(float cameraDistance) {

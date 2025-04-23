@@ -7,7 +7,7 @@
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
     <constant name="num-cascades" value="4"/>
-    <constant name="num-fish" value="200"/>
+    <constant name="num-fish" value="600"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -534,7 +534,7 @@
             </animation>
 
         </transform>
-        <shape id="fish-shape-ubo" mode="gpu" type="sphere" mesh-id="fish-mesh" />
+        <!-- <shape id="fish-shape-ubo" mode="gpu" type="sphere" mesh-id="fish-mesh" /> -->
         <!-- <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 

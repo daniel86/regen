@@ -464,10 +464,6 @@ void LODState::createComputeShader() {
 }
 
 void LODState::radixSortGPU(RenderState *rs) {
-	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
-	radixCull_->enable(rs);
-	radixCull_->disable(rs);
-
 	// now we can make the radix passes starting with values_[0] as input
 	// and writing to values_[1]. Then we swap the buffers each pass.
 	// In the end, we will have the sorted instanceIDs in values_[0].
@@ -524,6 +520,10 @@ void LODState::traverseGPU(RenderState *rs) {
 						 &zero);
 	rs->copyWriteBuffer().pop();
 
+	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
+	radixCull_->enable(rs);
+	radixCull_->disable(rs);
+
 	radixSortGPU(rs);
 
 	// Copy lodGroupSizeBuffer_ to lodGroupSizePBO_
@@ -545,8 +545,8 @@ void LODState::traverseGPU(RenderState *rs) {
 		lodNumInstances_[2] = m_lodGroupSize_[0].z;
 		lodNumInstances_[3] = m_lodGroupSize_[0].w;
 	}
-	REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
-			<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
+	//REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
+	//		<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
 
 	// loop over all LOD levels
 	int32_t instanceIDOffset = 0;
