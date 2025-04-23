@@ -112,29 +112,27 @@ void Shader::printLog(
 		}
 	}
 
-	int length;
+	static constexpr int maxLogChars = 5000;
+	static char log[maxLogChars];
+	std::string msgPrefix;
+	int actualLogChars = 0;
 	if (shaderType == GL_NONE) {
-		glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &length);
+		glGetProgramInfoLog(shader, maxLogChars, &actualLogChars, log);
+		msgPrefix = "link info: ";
 	} else {
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+		glGetShaderInfoLog(shader, maxLogChars, &actualLogChars, log);
+		msgPrefix = "compile info: ";
 	}
-	if (length > 1) {
-		char *log = new char[length];
-		std::string msgPrefix;
-		if (shaderType == GL_NONE) {
-			glGetProgramInfoLog(shader, length, nullptr, log);
-			msgPrefix = "link info: ";
-		} else {
-			glGetShaderInfoLog(shader, length, nullptr, log);
-			msgPrefix = "compile info: ";
-		}
+
+	if (actualLogChars > 0) {
+		// add null terminator
+		log[std::min(actualLogChars, maxLogChars - 1)] = '\0';
 
 		std::vector<std::string> errorLines;
 		boost::split(errorLines, log, boost::is_any_of("\n"));
 		for (const auto &errorLine: errorLines) {
 			if (!errorLine.empty()) REGEN_LOG(logLevel, msgPrefix << errorLine);
 		}
-		delete[]log;
 	}
 }
 
@@ -327,6 +325,7 @@ bool Shader::link() {
 			const char *source = shaderCode.second.c_str();
 			printLog(id(), shaderCode.first, source, false);
 		}
+		printLog(id(), GL_NONE, nullptr, false);
 		return false;
 	} else {
 		printLog(id(), GL_NONE, nullptr, true);

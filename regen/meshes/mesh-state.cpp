@@ -151,7 +151,6 @@ void Mesh::updateDrawFunction() {
 
 void Mesh::updateVAO(RenderState *rs) {
 	GLuint lastArrayBuffer = 0;
-	vao_->resetGL();
 	rs->vao().push(vao_->id());
 	// Setup attributes
 	for (auto & vaoAttribute : vaoAttributes_) {
