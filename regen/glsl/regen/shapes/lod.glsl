@@ -185,11 +185,8 @@ void main() {
     if (globalID < LOD_NUM_INSTANCES) {
         uint value = in_values[globalID];
         uint key = in_keys[value];
-        if (key != 0xFFFFFFFFu) {
-            // Atomically increment bin count
-            uint bucket = radixBucket(key);
-            atomicAdd(sh_bucketSize[bucket], 1);
-        }
+        // Atomically increment bin count
+        atomicAdd(sh_bucketSize[radixBucket(key)], 1);
     }
     barrier();
     // Write histogram data to global memory. Only write into slots that belong to this workgroup.
@@ -321,16 +318,14 @@ void main() {
         barrier();
     }
 
-    // Save total sum
-    if (tid == 0)
+    if (tid == 0) {
+        // Save total sum
         in_blockSums[groupID] = sh_temp[CS_LOCAL_SIZE_X - 1];
+        sh_temp[CS_LOCAL_SIZE_X - 1] = 0;
+    }
     barrier();
 
     // Downsweep
-    if (tid == 0)
-        sh_temp[CS_LOCAL_SIZE_X - 1] = 0;
-    barrier();
-
     for (uint offset = CS_LOCAL_SIZE_X >> 1; offset > 0; offset >>= 1) {
         uint i = (tid + 1) * offset * 2 - 1;
         if (i < CS_LOCAL_SIZE_X) {
@@ -436,8 +431,11 @@ shared uint sh_scan[CS_LOCAL_SIZE_X];
 void scatterBucket(uint b, uint t_value, uint t_bucket) {
     uint localID = gl_LocalInvocationID.x;
     uint groupID = gl_WorkGroupID.x;
-    // - Parallel scan (O(log n)) to compute the prefix sum of the local histogram.
+
     sh_scan[localID] = uint(t_bucket == b);
+    barrier();
+
+    // - Parallel scan (O(log n)) to compute the prefix sum of the local histogram.
     for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {
         uint temp = (localID >= offset) ? sh_scan[localID - offset] : 0;
         barrier();
@@ -452,7 +450,6 @@ void scatterBucket(uint b, uint t_value, uint t_bucket) {
         uint scatterIndex = in_globalHistogram[histogramIndex] + localOffset;
         in_nextValues[scatterIndex] = t_value;
     }
-    barrier();
 }
 
 void main() {
@@ -462,12 +459,11 @@ void main() {
     // Read key/value input
     uint value = in_lastValues[globalID];
     uint key = in_keys[value];
-    if (key == 0xFFFFFFFFu) return;
-
     // Compute the bucket for this thread
     uint bucket = radixBucket(key);
     // Process each bucket individually
 #for BUCKET_I to RADIX_NUM_BUCKETS
     scatterBucket(${BUCKET_I}, value, bucket);
+    barrier();
 #endfor
 }
