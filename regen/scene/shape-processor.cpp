@@ -392,7 +392,14 @@ void ShapeProcessor::processInput(
 	auto mesh = getMesh(scene, input);
 	auto parts = getParts(scene, input);
 	auto offset = getOffset(input, mesh, parts);
-	auto shapeMode = input.getValue<std::string>("mode", "index");
+	// read flags for target of shape
+	auto isMeshShape = input.getValue<uint32_t>("mesh", 0u);
+	auto isIndexShape = input.getValue<uint32_t>("index", 0u);
+	auto isGPUShape = input.getValue<uint32_t>("gpu", 0u);
+	auto isPhysicalShape = input.getValue<uint32_t>("physical", 0u);
+	if (!isIndexShape && !isGPUShape && !isPhysicalShape) {
+		isMeshShape = 1;
+	}
 
 	auto numInstances = 1u;
 	if (transform.get()) {
@@ -405,7 +412,29 @@ void ShapeProcessor::processInput(
 		numInstances = input.getValue<GLuint>("num-instances", numInstances);
 	}
 
-	if (shapeMode == "index") {
+	if (isPhysicalShape) {
+		// add shape to physics engine
+		if (numInstances == 1) {
+			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), 0);
+			auto physicalProps = createPhysicalProps(input, mesh, motion);
+			auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
+			mesh->addPhysicalObject(physicalObject);
+			scene->getPhysics()->addObject(physicalObject);
+		} else {
+			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->get());
+			for (GLuint i = 0; i < numInstances; ++i) {
+				auto motion = ref_ptr<Mat4fMotion>::alloc(motionAnim, i);
+				auto physicalProps = createPhysicalProps(input, mesh, motion);
+				auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
+				mesh->addPhysicalObject(physicalObject);
+				scene->getPhysics()->addObject(physicalObject);
+			}
+			motionAnim->startAnimation();
+			mesh->addAnimation(motionAnim);
+		}
+	}
+
+	if (isIndexShape) {
 		// add shape to spatial index
 		auto spatialIndex = getSpatialIndex(scene, input);
 		if (spatialIndex.get()) {
@@ -427,29 +456,18 @@ void ShapeProcessor::processInput(
 			}
 		} else {
 			REGEN_WARN("Skipping shape node " << input.getDescription() << " without spatial index.");
-			return;
 		}
-	} else if (shapeMode == "physics") {
-		// add shape to physics engine
-		if (numInstances == 1) {
-			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), 0);
-			auto physicalProps = createPhysicalProps(input, mesh, motion);
-			auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
-			mesh->addPhysicalObject(physicalObject);
-			scene->getPhysics()->addObject(physicalObject);
+		if (mesh.get() && !mesh->hasBoundingShape()) {
+			isMeshShape = 1;
+		}
+	}
+
+	if (isGPUShape || isMeshShape) {
+		auto shape = createShape(input, mesh, parts);
+		if (shape.get()) {
+			mesh->setBoundingShape(shape, isGPUShape);
 		} else {
-			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->get());
-			for (GLuint i = 0; i < numInstances; ++i) {
-				auto motion = ref_ptr<Mat4fMotion>::alloc(motionAnim, i);
-				auto physicalProps = createPhysicalProps(input, mesh, motion);
-				auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
-				mesh->addPhysicalObject(physicalObject);
-				scene->getPhysics()->addObject(physicalObject);
-			}
-			motionAnim->startAnimation();
-			mesh->addAnimation(motionAnim);
+			REGEN_WARN("Skipping shape node " << input.getDescription() << " without shape.");
 		}
-	} else {
-		REGEN_WARN("Ignoring unknown shape mode '" << input.getDescription() << "'.");
 	}
 }

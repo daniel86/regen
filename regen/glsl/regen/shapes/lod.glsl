@@ -64,10 +64,6 @@ shared uint sh_lodGroupSize[MAX_NUM_LOD_GROUPS];
 //
 uniform vec3 in_lodThresholds;
 
-#ifdef USE_CULLING
-#include regen.shapes.culling.isSphereVisible
-#endif
-
 int getLODGroup(float depth) {
     // Returns the LOD group for a given depth.
     return int(depth >= in_lodThresholds.x)
@@ -75,12 +71,30 @@ int getLODGroup(float depth) {
          + int(depth >= in_lodThresholds.z);
 }
 
+#ifdef USE_CULLING
+#include regen.shapes.culling.isShapeVisible
+#endif
+
+float countLOD(vec3 pos) {
+    float depth = length(pos - in_cameraPosition.xyz);
+#ifdef RADIX_REVERSE_SORT
+    // Reverse sort: smaller depth = higher LOD.
+    // Note: we must use positive numbers for the uint conversion.
+    depth = FLT_MAX - depth;
+#endif
+    // increment the LOD group size
+    atomicAdd(sh_lodGroupSize[getLODGroup(depth)], 1);
+    return depth;
+}
+
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
     uint localID  = gl_LocalInvocationID.x;
     uint groupID  = gl_WorkGroupID.x;
     float depth = 0.0;
-    bool isVisible = false;
+#ifdef USE_CULLING
+    bool l_visible = false;
+#endif
 
     // Initialize memory
     if (localID < MAX_NUM_LOD_GROUPS) {
@@ -91,30 +105,13 @@ void main() {
     if (globalID < LOD_NUM_INSTANCES) {
         vec3 pos = readPosition(globalID);
 #ifdef USE_CULLING
-        // make a visibility check
-    #ifdef HAS_modelMatrix
-        //vec3 scale = vec3(
-        //    in_modelMatrix[globalID][0][0],
-        //    in_modelMatrix[globalID][1][1],
-        //    in_modelMatrix[globalID][2][2]);
-        //float radius = in_shapeRadius * max(max(scale.x, scale.y), scale.z);
-        isVisible = isSphereVisible(pos, 1.0f);
-    #else
-        isVisible = isSphereVisible(pos, in_shapeRadius);
-    #endif
-#else
-        isVisible = true;
-#endif
-        if (isVisible) {
-            depth = length(pos - in_cameraPosition.xyz);
-#ifdef RADIX_REVERSE_SORT
-            // Reverse sort: smaller depth = higher LOD.
-            // Note: we must use positive numbers for the uint conversion.
-            depth = FLT_MAX - depth;
-#endif
-            // increment the LOD group size
-            atomicAdd(sh_lodGroupSize[getLODGroup(depth)], 1);
+        l_visible = isShapeVisible(globalID, pos);
+        if (l_visible) {
+            depth = countLOD(pos);
         }
+#else
+        depth = countLOD(pos);
+#endif
     }
     barrier();
 
@@ -130,10 +127,14 @@ void main() {
         //       would need to be replaced by uniform. Compaction would be a kind of rough sort, so we
         //       could use existing global memory for doing this trivially (i.e. adding instance IDs to the
         //       output buffer only if they are visible, then mapping the count to CPU memory, etc.)
-#ifdef RADIX_REVERSE_SORT
-        in_keys[globalID] = (isVisible ? floatBitsToUint(depth) : floatBitsToUint(0.0f));
-#else
-        in_keys[globalID] = (isVisible ? floatBitsToUint(depth) : floatBitsToUint(FLT_MAX));
+#ifdef USE_CULLING
+    #ifdef RADIX_REVERSE_SORT
+        in_keys[globalID] = (l_visible ? floatBitsToUint(depth) : floatBitsToUint(0.0f));
+    #else
+        in_keys[globalID] = (l_visible ? floatBitsToUint(depth) : floatBitsToUint(FLT_MAX));
+    #endif
+#else // No culling, so we can use the depth directly.
+        in_keys[globalID] = floatBitsToUint(depth);
 #endif
         in_instanceIDMap[globalID] = globalID;
     }

@@ -336,19 +336,26 @@ void LODState::createComputeShader() {
 		if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 			shaderCfg.define("RADIX_REVERSE_SORT", "TRUE");
 		}
-		shaderCfg.define("USE_CULLING", "TRUE");
 		radixCull_->joinShaderInput(cullUBO_);
 		radixCull_->joinShaderInput(frustumUBO_);
 		radixCull_->joinShaderInput(lodGroupSizeBuffer_);
 		radixCull_->joinShaderInput(keyBuffer_);
 		radixCull_->joinShaderInput(instanceIDBuffer_);
-		// TODO: Add a shape UBO to mesh, and join it here!
-		//         - I think shape loading should be more general. Then in an additional step the shape can
-		//           optionally be added to spatial index in CPU memory.
-		//radixCull_->joinShaderInput(mesh_->shapeUBO());
-		radixCull_->joinShaderInput(createUniform<ShaderInput1f,float>("shapeRadius", 1.0f));
+		radixCull_->joinShaderInput(mesh_->getShapeBuffer());
 		radixCull_->joinStates(tf_);
 		radixCull_->joinStates(camera_);
+		auto boundingShape = mesh_->boundingShape();
+		if (boundingShape->shapeType() == BoundingShapeType::SPHERE) {
+			shaderCfg.define("SHAPE_TYPE", "SPHERE");
+		} else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
+			auto box = (BoundingBox *) (boundingShape.get());
+			if (box->isAABB()) {
+				shaderCfg.define("SHAPE_TYPE", "AABB");
+			} else {
+				shaderCfg.define("SHAPE_TYPE", "OBB");
+			}
+		}
+		shaderCfg.define("USE_CULLING", "TRUE");
 		shaderCfg.addState(radixCull_.get());
 		radixCull_->createShader(shaderCfg.cfg());
 	}

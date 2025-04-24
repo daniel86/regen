@@ -14,6 +14,9 @@
 #include "regen/physics/physical-object.h"
 
 namespace regen {
+	// forward declaration
+	class BoundingShape;
+
 	/**
 	 * \brief A collection of vertices, edges and faces that defines the shape of an object in 3D space.
 	 *
@@ -123,6 +126,51 @@ namespace regen {
 		 * @return number of LODs.
 		 */
 		auto numLODs() const { return meshLODs_.empty() ? 1 : meshLODs_.size(); }
+
+		/**
+		 * Assign a bounding shape to this mesh.
+		 * Optionally create a GBU buffer and attach it to the mesh.
+		 * @param shape the bounding shape.
+		 * @param uploadToGPU true if the shape should be uploaded to GPU.
+		 */
+		void setBoundingShape(const ref_ptr<BoundingShape> &shape, bool uploadToGPU);
+
+		/**
+		 * Create a bounding sphere or box for this mesh based on the
+		 * min and max positions of vertices.
+		 * @param uploadToGPU true if the shape should be uploaded to GPU.
+		 */
+		void createBoundingSphere(bool uploadToGPU);
+
+		/**
+		 * Create a bounding box for this mesh based on the
+		 * min and max positions of vertices.
+		 * @param isOBB true if the bounding box should be an oriented bounding box.
+		 * @param uploadToGPU true if the shape should be uploaded to GPU.
+		 */
+		void createBoundingBox(bool isOBB, bool uploadToGPU);
+
+		/**
+		 * @return the bounding shape, if any.
+		 */
+		bool hasBoundingShape() const { return boundingShape_.get() != nullptr; }
+
+		/**
+		 * @return the bounding shape.
+		 */
+		const ref_ptr<BoundingShape>& boundingShape() const { return boundingShape_; }
+
+		/**
+		 * Returns a buffer that contains the shape data.
+		 * Only one for all instances in case of instanced draw.
+		 * @return the shape buffer.
+		 */
+		const ref_ptr<UBO>& getShapeBuffer();
+
+		/**
+		 * @return true if the shape buffer is available.
+		 */
+		bool hasShapeBuffer() const { return shapeBuffer_.get() != nullptr; }
 
 		/**
 		 * Set the physical object.
@@ -237,6 +285,10 @@ namespace regen {
 		Vec3f v_lodThresholds_;
 		unsigned int lodLevel_ = 0;
 
+		ref_ptr<BoundingShape> boundingShape_;
+		ref_ptr<UBO> shapeBuffer_;
+		int32_t shapeType_ = -1;
+
 		std::list<InputLocation> vaoAttributes_;
 		std::map<GLint, std::list<InputLocation>::iterator> vaoLocations_;
 
@@ -263,6 +315,12 @@ namespace regen {
 		void (InputContainer::*draw_)(GLenum);
 
 		void updateDrawFunction();
+
+		void createShapeBuffer();
+
+		void updateShapeBuffer();
+
+		void updateShapeBuffer(byte *shapeData);
 
 		void addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in);
 	};
