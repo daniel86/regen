@@ -325,17 +325,20 @@ void LODState::createComputeShader() {
 		cullUBO_ = ref_ptr<UBO>::alloc("CullUBO");
 		// TODO: Allow meshes to have different thresholds depending on render target/camera.
 		//       e.g. for shadow mapping we never need to use the highest LOD.
-		REGEN_INFO("LODState::createComputeShader: using " << mesh_->numLODs() << " LODs " <<
-			" thresholds are " << mesh_->lodThresholds()->getVertex(0).r << " ");
 		cullUBO_->addBlockInput(mesh_->lodThresholds());
 		cullUBO_->update();
+		// we store the 6 frustum planes in a UBO
+		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer");
+		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", 6));
+		frustumUBO_->update();
 
 		StateConfigurer shaderCfg;
 		if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 			shaderCfg.define("RADIX_REVERSE_SORT", "TRUE");
 		}
-		//shaderCfg.define("USE_CULLING", "TRUE");
+		shaderCfg.define("USE_CULLING", "TRUE");
 		radixCull_->joinShaderInput(cullUBO_);
+		radixCull_->joinShaderInput(frustumUBO_);
 		radixCull_->joinShaderInput(lodGroupSizeBuffer_);
 		radixCull_->joinShaderInput(keyBuffer_);
 		radixCull_->joinShaderInput(instanceIDBuffer_);
@@ -343,9 +346,7 @@ void LODState::createComputeShader() {
 		//         - I think shape loading should be more general. Then in an additional step the shape can
 		//           optionally be added to spatial index in CPU memory.
 		//radixCull_->joinShaderInput(mesh_->shapeUBO());
-		//radixCull_->joinShaderInput(createUniform<ShaderInput1f,float>("shapeRadius", 1.0f));
-		// TODO: Add a frustum UBO to camera, and join it here!
-		//radixCull_->joinShaderInput(camera_->frustumUBO());
+		radixCull_->joinShaderInput(createUniform<ShaderInput1f,float>("shapeRadius", 1.0f));
 		radixCull_->joinStates(tf_);
 		radixCull_->joinStates(camera_);
 		shaderCfg.addState(radixCull_.get());
@@ -519,6 +520,20 @@ void LODState::traverseGPU(RenderState *rs) {
 						 GL_RED_INTEGER,
 						 GL_UNSIGNED_INT,
 						 &zero);
+	rs->copyWriteBuffer().pop();
+
+	// Update the frustum planes in the UBO
+	// TODO: how to handle multi layer rendering with GPU LOD?
+	auto &frustumPlanes = camera_->frustum()[0].planes;
+	for (int i = 0; i < 6; ++i) {
+		frustumPlanes_[i] = frustumPlanes[i].equation();
+	}
+	rs->copyWriteBuffer().push(frustumUBO_->blockReference()->bufferID());
+	glBufferSubData(
+			GL_COPY_WRITE_BUFFER,
+			frustumUBO_->blockReference()->address(),
+			frustumUBO_->blockReference()->allocatedSize(),
+			&frustumPlanes_[0].x);
 	rs->copyWriteBuffer().pop();
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)

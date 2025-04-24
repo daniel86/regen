@@ -52,8 +52,6 @@ uint radixHistogramIndex(uint bucket, uint workGroup) {
 buffer uint in_keys[];
 // - [write] One per LOD group: how many valid instances passed culling
 buffer uint in_lodGroupSize[];
-// - number of visible instances (per workgroup)
-shared uint sh_visibleCount;
 // - number of visible instances in each LOD group (per workgroup)
 shared uint sh_lodGroupSize[MAX_NUM_LOD_GROUPS];
 // LOD distance thresholds.
@@ -88,9 +86,6 @@ void main() {
     if (localID < MAX_NUM_LOD_GROUPS) {
         sh_lodGroupSize[localID] = 0;
     }
-    if (localID == 0) {
-        sh_visibleCount = 0;
-    }
     barrier();
 
     if (globalID < LOD_NUM_INSTANCES) {
@@ -98,12 +93,12 @@ void main() {
 #ifdef USE_CULLING
         // make a visibility check
     #ifdef HAS_modelMatrix
-        vec3 scale = vec3(
-            in_modelMatrix[globalID][0][0],
-            in_modelMatrix[globalID][1][1],
-            in_modelMatrix[globalID][2][2]);
-        float radius = in_shapeRadius * max(max(scale.x, scale.y), scale.z);
-        isVisible = isSphereVisible(pos, radius);
+        //vec3 scale = vec3(
+        //    in_modelMatrix[globalID][0][0],
+        //    in_modelMatrix[globalID][1][1],
+        //    in_modelMatrix[globalID][2][2]);
+        //float radius = in_shapeRadius * max(max(scale.x, scale.y), scale.z);
+        isVisible = isSphereVisible(pos, 1.0f);
     #else
         isVisible = isSphereVisible(pos, in_shapeRadius);
     #endif
@@ -117,8 +112,6 @@ void main() {
             // Note: we must use positive numbers for the uint conversion.
             depth = FLT_MAX - depth;
 #endif
-            // increase visibility count
-            atomicAdd(sh_visibleCount, 1);
             // increment the LOD group size
             atomicAdd(sh_lodGroupSize[getLODGroup(depth)], 1);
         }
@@ -130,7 +123,18 @@ void main() {
         atomicAdd(in_lodGroupSize[localID], sh_lodGroupSize[localID]);
     }
     if (globalID < LOD_NUM_INSTANCES) {
-        in_keys[globalID] = (isVisible ? floatBitsToUint(depth) : 0xFFFFFFFFu);
+        // NOTE: For culled instances we use FLT_MAX as depth value for the sort key,
+        //       effectively putting them at the end of the list.
+        // TODO: Consider doing a compaction pass to remove culled instances, then use
+        //       the compacted buffer as input for sort. But currently num instances is baked into shader,
+        //       would need to be replaced by uniform. Compaction would be a kind of rough sort, so we
+        //       could use existing global memory for doing this trivially (i.e. adding instance IDs to the
+        //       output buffer only if they are visible, then mapping the count to CPU memory, etc.)
+#ifdef RADIX_REVERSE_SORT
+        in_keys[globalID] = (isVisible ? floatBitsToUint(depth) : floatBitsToUint(0.0f));
+#else
+        in_keys[globalID] = (isVisible ? floatBitsToUint(depth) : floatBitsToUint(FLT_MAX));
+#endif
         in_instanceIDMap[globalID] = globalID;
     }
 }

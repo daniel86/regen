@@ -93,6 +93,7 @@ namespace regen {
 		ref_ptr<ComputePass> radixDistributeOffsetsPass_;
 		ref_ptr<ComputePass> radixScatterPass_;
 		ref_ptr<UBO> cullUBO_;
+		ref_ptr<UBO> frustumUBO_;
 		ref_ptr<SSBO> keyBuffer_;
 		ref_ptr<SSBO> valueBuffer_[2];
 		ref_ptr<SSBO> globalHistogramBuffer_;
@@ -102,6 +103,7 @@ namespace regen {
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
 		ref_ptr<PBO> lodGroupSizePBO_;
 		Vec4ui *m_lodGroupSize_ = nullptr;
+		Vec4f frustumPlanes_[6];
 		int32_t histogramReadIndex_ = 0u;
 		int32_t histogramBitOffsetIndex_ = 0u;
 		int32_t scatterReadIndex_ = 0u;
