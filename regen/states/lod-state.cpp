@@ -52,12 +52,11 @@ LODState::LODState(
 }
 
 void LODState::initLODState() {
-	uint32_t numLODs = std::min(1u, static_cast<uint32_t>((mesh_.get() ? mesh_->numLODs() : 1u)));
-	lodNumInstances_.resize(numLODs);
-	lodGroups_.resize(numLODs);
+	lodNumInstances_.resize(4);
+	lodGroups_.resize(4);
 	// initially all instances are added to first LOD group
 	lodNumInstances_[0] = numInstances_;
-	for (uint32_t i = 1u; i < numLODs; ++i) {
+	for (uint32_t i = 1u; i < 4; ++i) {
 		lodNumInstances_[i] = 0;
 	}
 }
@@ -161,7 +160,7 @@ void LODState::traverseCPU(RenderState *rs) {
 			// no visible instances
 			return;
 		}
-		if (lodNumInstances_.size() < 2) {
+		if (mesh_->numLODs() <= 1) {
 			traverseInstanced_(rs, numInstances_);
 		} else {
 			// build LOD groups, then traverse each group
@@ -214,7 +213,7 @@ void LODState::computeLODGroups_(
 		lodGroup.clear();
 	}
 
-	if (lodNumInstances_.size() == 1) {
+	if (mesh_->numLODs() == 1) {
 		for (int i = begin; i != end; i += increment) {
 			lodGroups_[0].push_back(mappedData[i]);
 		}
@@ -326,6 +325,8 @@ void LODState::createComputeShader() {
 		cullUBO_ = ref_ptr<UBO>::alloc("CullUBO");
 		// TODO: Allow meshes to have different thresholds depending on render target/camera.
 		//       e.g. for shadow mapping we never need to use the highest LOD.
+		REGEN_INFO("LODState::createComputeShader: using " << mesh_->numLODs() << " LODs " <<
+			" thresholds are " << mesh_->lodThresholds()->getVertex(0).r << " ");
 		cullUBO_->addBlockInput(mesh_->lodThresholds());
 		cullUBO_->update();
 

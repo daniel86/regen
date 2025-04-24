@@ -84,7 +84,7 @@ namespace regen {
 		 * @param cameraDistance distance to camera.
 		 * @return the level of detail.
 		 */
-		unsigned int getLODLevel(float cameraDistance);
+		unsigned int getLODLevel(float cameraDistance) const;
 
 		/**
 		 * Activate given LOD level.
@@ -234,6 +234,7 @@ namespace regen {
 		ref_ptr<VAO> vao_;
 		std::vector<MeshLOD> meshLODs_;
 		ref_ptr<ShaderInput3f> lodThresholds_;
+		Vec3f v_lodThresholds_;
 		unsigned int lodLevel_ = 0;
 
 		std::list<InputLocation> vaoAttributes_;

@@ -173,12 +173,11 @@ void Mesh::updateVAO(RenderState *rs) {
 	rs->vao().pop();
 }
 
-unsigned int Mesh::getLODLevel(float depth) {
+unsigned int Mesh::getLODLevel(float depth) const {
     // Returns the LOD group for a given depth.
-    auto thresholds = lodThresholds_->getVertex(0);
-    return int(depth >= thresholds.r.x)
-         + int(depth >= thresholds.r.y)
-         + int(depth >= thresholds.r.z);
+    return (depth >= v_lodThresholds_.x)
+         + (depth >= v_lodThresholds_.y)
+         + (depth >= v_lodThresholds_.z);
 }
 
 void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
@@ -187,10 +186,10 @@ void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
 }
 
 void Mesh::setLODThresholds(const Vec3f &thresholds) {
-	float t_x = thresholds.x;
-	float t_y = thresholds.y > t_x ? thresholds.y : FLT_MAX;
-	float t_z = thresholds.z > t_y ? thresholds.z : FLT_MAX;
-	lodThresholds_->setVertex(0, Vec3f(t_x, t_y, t_z));
+	v_lodThresholds_.x = thresholds.x;
+	v_lodThresholds_.y = thresholds.y > v_lodThresholds_.x ? thresholds.y : FLT_MAX;
+	v_lodThresholds_.z = thresholds.z > v_lodThresholds_.y ? thresholds.z : FLT_MAX;
+	lodThresholds_->setVertex(0, v_lodThresholds_);
 }
 
 void Mesh::updateLOD(float cameraDistance) {

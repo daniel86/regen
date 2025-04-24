@@ -7,7 +7,7 @@
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
     <constant name="num-cascades" value="4"/>
-    <constant name="num-fish" value="600"/>
+    <constant name="num-fish" value="2000"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -345,7 +345,7 @@
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
     <mesh id="tree-mesh" type="proctree"
-            lods="3,2,1" lod-thresholds="5.0, 10.0"
+            lods="3,2,1" lod-thresholds="10.0, 20.0"
             preset="fir">
         <transform id="tree-tf">
             <set mode="plane"
@@ -501,7 +501,7 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
-            lod-simplification="0.4, 0.1" lod-thresholds="5.0, 10.0"
+            lod-simplification="0.2, 0.1" lod-thresholds="6.0, 40.0"
             num-instances="{{num-fish}}">
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
