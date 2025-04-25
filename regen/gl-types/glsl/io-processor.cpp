@@ -313,6 +313,8 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 				if (blockUniform.in_->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
 					lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix <<
 						" instances_" << blockNameWithoutPrefix << "[regen_InstanceID]"));
+					lineQueue_.push_back(REGEN_STRING("#define fetch_" << blockNameWithoutPrefix <<
+						"(i) instances_" << blockNameWithoutPrefix << "[i]"));
 				}
 			}
 			uniforms_[state.currStage].insert(make_pair(nameWithoutPrefix, io));

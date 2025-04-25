@@ -59,10 +59,8 @@ bool isOBBVisible(vec3 center, vec3 halfExtents, mat3 basis) {
 #define2 getModelScale_included_
 #ifdef HAS_modelMatrix
 vec3 getModelScale(uint index) {
-    return vec3(
-        in_modelMatrix[index][0][0],
-        in_modelMatrix[index][1][1],
-        in_modelMatrix[index][2][2]);
+    mat4 m = fetch_modelMatrix(index);
+    return vec3(m[0][0],m[1][1],m[2][2]);
 }
 vec3 getModelScale(mat4 modelMatrix) {
     return vec3(

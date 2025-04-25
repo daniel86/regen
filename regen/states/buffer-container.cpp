@@ -50,7 +50,6 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 }
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
-	auto rs = RenderState::get();
 	// create a TBO for the input
 	auto tbo = ref_ptr<TBO>::alloc(BUFFER_USAGE_DYNAMIC_DRAW);
 	tbo->setBufferInput(namedInput.in_);
@@ -72,6 +71,9 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	shaderDefine(
 	 		REGEN_STRING("in_" << namedInput.name_),
 	 		REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(regen_InstanceID))"));
+	shaderDefine(
+			 REGEN_STRING("fetch_" << namedInput.name_ << "(i)"),
+			 REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(i))"));
 	bufferObjectOfInput_[namedInput.in_.get()] = tbo;
 }
 

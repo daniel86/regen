@@ -20,7 +20,7 @@ layout(
 #define2 readPosition_included
 vec3 readPosition(uint i) {
     #ifdef HAS_modelMatrix
-    return in_modelMatrix[i][3].xyz;
+    return fetch_modelMatrix(i)[3].xyz;
     #else
     i *= 3;
     return vec3(in_pos[i], in_pos[i + 1], in_pos[i + 2]);
