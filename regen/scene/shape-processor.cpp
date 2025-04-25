@@ -396,7 +396,7 @@ void ShapeProcessor::processInput(
 	auto isMeshShape = input.getValue<uint32_t>("mesh", 0u);
 	auto isIndexShape = input.getValue<uint32_t>("index", 0u);
 	auto isGPUShape = input.getValue<uint32_t>("gpu", 0u);
-	auto isPhysicalShape = input.getValue<uint32_t>("physical", 0u);
+	auto isPhysicalShape = input.getValue<uint32_t>("physics", 0u);
 	if (!isIndexShape && !isGPUShape && !isPhysicalShape) {
 		isMeshShape = 1;
 	}
