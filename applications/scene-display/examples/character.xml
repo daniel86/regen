@@ -207,14 +207,14 @@
     <!--********* Ground *********-->
     <!--**************************-->
 
-    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC" lod="4"
+    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC_DRAW" lod="4"
           rotation="0.0,0.0,3.1415"
           scaling="400.0,20.0,400.0"
           texco-scaling="100.0,100.0">
         <transform id="ground-tf">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
-        <shape id="ground-physics" mode="physics" shape="triangle-mesh" mass="0.0"
+        <shape id="ground-physics" physics="1" shape="triangle-mesh" mass="0.0"
                mesh-id="ground-mesh" transform-id="ground-tf"/>
     </mesh>
 
@@ -228,36 +228,36 @@
             <rotate value="1.5707963,0.0,0.0"/>
             <translate value="8.0,-2.0, -8.0"/>
         </transform>
-        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
+        <shape id="tree-shape" index="1" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1"/>
         </shape>
         <!-- FIXME: there is some hack around here, look at bullet shape it is not at correct height.
                  probably because base of the mesh is at 0.0,0.0,0.0, and not its center.
                  plus there is a scaling here too. -->
-        <shape id="tree-mesh-physics" mode="physics" shape="box" mass="0.0" size="0.6, 6.0, 0.6"
+        <shape id="tree-mesh-physics" physics="1" shape="box" mass="0.0" size="0.6, 6.0, 0.6"
                mesh-id="tree-mesh" transform-id="tree-tf"/>
     </mesh>
 
     <mesh id="tree-pot" type="torus"
           lod-levels="3, 2, 1"
           use-normal="1" use-tangent="1" center="1"
-          usage="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
+          usage="STATIC_DRAW" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
           ring-radius="1.0" tube-radius="0.2">
         <transform id="tree-pot-tf">
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
-        <shape id="tree-pot-shape" mode="index" type="aabb"
+        <shape id="tree-pot-shape" index="1" type="aabb"
                mesh-id="tree-pot" transform-id="tree-pot-tf">
             <has-part mesh-id="tree-disc"/>
         </shape>
-        <shape id="tree-pot-physics" mode="physics" shape="cylinder" mass="0.0" size="7.2,1.2,7.2"
+        <shape id="tree-pot-physics" physics="1" shape="cylinder" mass="0.0" size="7.2,1.2,7.2"
                mesh-id="tree-pot" transform-id="tree-pot-tf"/>
         <material preset="stone" color-blend-mode="MUL" emission="0.04, 0.04, 0.04"/>
     </mesh>
 
     <mesh id="tree-disc" type="disc"
           lod-levels="3, 2, 1"
-          use-normal="1" center="1" usage="STATIC" scaling="3.0, 3.0, 3.0"
+          use-normal="1" center="1" usage="STATIC_DRAW" scaling="3.0, 3.0, 3.0"
           texco-scaling="0.1, 0.1" disc-radius="1.0">
         <transform id="tree-disc-tf">
             <translate value="8.0, -1.0, -8.0"/>
@@ -355,7 +355,7 @@
         </node>
     </node>
 
-    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC"
+    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC_DRAW"
           lod-levels="4, 3, 2" scaling="1.5,3.0,3.0" num-instances="20">
         <transform id="stone0-tf" num-instances="20" is-instanced="1">
             <rotate value="0.0, 1.57079632, 0.0"/>
@@ -364,9 +364,9 @@
                  dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
         </transform>
         <material preset="stone" variant="0" max-offset="0.2"/>
-        <shape id="stone0-shape" mode="index" type="sphere"
+        <shape id="stone0-shape" index="1" type="sphere"
                mesh-id="stone0" transform-id="stone0-tf" radius="1.6"/>
-        <shape id="stone0-physics" mode="physics"
+        <shape id="stone0-physics" physics="1"
                mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0"/>
     </mesh>
 
@@ -381,36 +381,36 @@
     <!--********* Stairs *********-->
     <!--**************************-->
 
-    <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
+    <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
           scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
         </transform>
-        <shape id="stairs0-shape" mode="index" type="aabb"
+        <shape id="stairs0-shape" index="1" type="aabb"
                mesh-id="stairs0-mesh" transform-id="stairs0-tf"/>
-        <shape id="stairs0-physics" mode="physics"
+        <shape id="stairs0-physics" physics="1"
                mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
+    <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
           scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
         </transform>
-        <shape id="stairs1-shape" mode="index" type="aabb"
+        <shape id="stairs1-shape" index="1" type="aabb"
                mesh-id="stairs1-mesh" transform-id="stairs1-tf"/>
-        <shape id="stairs1-physics" mode="physics"
+        <shape id="stairs1-physics" physics="1"
                mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
+    <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
           scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
         </transform>
-        <shape id="stairs2-shape" mode="index" type="aabb"
+        <shape id="stairs2-shape" index="1" type="aabb"
                mesh-id="stairs2-mesh" transform-id="stairs2-tf"/>
-        <shape id="stairs2-physics" mode="physics"
+        <shape id="stairs2-physics" physics="1"
                mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
     </mesh>
 
@@ -432,7 +432,7 @@
     <!--******** Platforms *******-->
     <!--**************************-->
 
-    <mesh id="platform0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
+    <mesh id="platform0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
           scaling="4.0,0.4,4.0"
           texco-scaling="0.5,0.5">
         <transform id="platform0-tf">
@@ -442,15 +442,15 @@
                 <key-frame position="16.0,3.0,-16.0"/>
             </animation>
         </transform>
-        <shape id="platform0-shape" mode="index" type="aabb"
+        <shape id="platform0-shape" index="1" type="aabb"
                mesh-id="platform0-mesh" transform-id="platform0-tf"/>
-        <shape id="platform0-physics" mode="physics"
+        <shape id="platform0-physics" physics="1"
                mesh-id="platform0-mesh" transform-id="platform0-tf"
                shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
                size="8.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC"
+    <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
           scaling="4.0,0.4,4.0"
           texco-scaling="0.5,0.5">
         <transform id="platform1-tf">
@@ -460,9 +460,9 @@
                 <key-frame position="8.0,7.0,-16.0"/>
             </animation>
         </transform>
-        <shape id="platform1-shape" mode="index" type="aabb"
+        <shape id="platform1-shape" index="1" type="aabb"
                mesh-id="platform1-mesh" transform-id="platform1-tf"/>
-        <shape id="platform1-physics" mode="physics"
+        <shape id="platform1-physics" physics="1"
                mesh-id="platform1-mesh" transform-id="platform1-tf"
                shape="box" mass="0.0" gravity="0.0, 0.0, 0.0" friction="20.0"
                size="8.0,0.8,8.0"/>
@@ -482,16 +482,16 @@
     <!--**************************-->
 
     <mesh id="pedestal-mesh" type="box"
-          lod-levels="3, 2, 1" lod-far="100.0"
-          use-normal="1" use-tangent="1" center="1" usage="STATIC"
+          lod-levels="3, 2, 1"
+          use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
           scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
         <transform id="pedestal-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
         </transform>
-        <shape id="pedestal-shape" mode="index" type="aabb"
+        <shape id="pedestal-shape" index="1" type="aabb"
                mesh-id="pedestal-mesh" transform-id="pedestal-tf"/>
-        <shape id="pedestal-physics" mode="physics"
+        <shape id="pedestal-physics" physics="1"
                mesh-id="pedestal-mesh" transform-id="pedestal-tf"
                shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
         <material preset="wood" variant="1" color-blend-mode="mul"
@@ -499,14 +499,14 @@
     </mesh>
 
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
-          usage="STATIC" lod="1" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
+          usage="STATIC_DRAW" lod="1" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
         <transform id="slope-tf">
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
         </transform>
-        <shape id="slope-shape" mode="index" type="obb"
+        <shape id="slope-shape" index="1" type="obb"
                mesh-id="slope-mesh" transform-id="slope-tf"/>
-        <shape id="slope-physics" mode="physics"
+        <shape id="slope-physics" physics="1"
                mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
         <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.35, 0.35, 0.28"/>
     </mesh>
@@ -528,7 +528,7 @@
     <texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
     <texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
 
-    <mesh id="fire-sprite" type="point" usage="STATIC">
+    <mesh id="fire-sprite" type="point" usage="STATIC_DRAW">
         <transform>
             <translate value="-16.0, 12.0, -3.0"/>
         </transform>
@@ -769,15 +769,15 @@
     <!--********* Objects ********-->
     <!--**************************-->
 
-    <mesh id="light-bulb-point" type="point" usage="STATIC" num-vertices="1">
+    <mesh id="light-bulb-point" type="point" usage="STATIC_DRAW" num-vertices="1">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
         <input name="modelOffset" state="room-light0" component="lightPosition"/>
-        <shape id="light-bulb-shape" mode="index" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
+        <shape id="light-bulb-shape" index="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
-    <mesh id="fire-flies0" type="point" usage="STATIC" num-vertices="1" num-instances="{{num-fire-flies}}">
+    <mesh id="fire-flies0" type="point" usage="STATIC_DRAW" num-vertices="1" num-instances="{{num-fire-flies}}">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
         <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
-        <shape id="fire-flies-shape0" mode="index" type="sphere" radius="0.1" mesh-id="fire-flies0" />
+        <shape id="fire-flies-shape0" index="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />
     </mesh>
 
     <node id="Static-Ground-Items">

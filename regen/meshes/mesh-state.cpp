@@ -2,6 +2,10 @@
 #include <regen/states/feedback-state.h>
 
 #include "mesh-state.h"
+#include "regen/shapes/bounding-sphere.h"
+#include "regen/shapes/frustum.h"
+#include "regen/shapes/aabb.h"
+#include "regen/shapes/obb.h"
 
 using namespace regen;
 
@@ -10,8 +14,11 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  HasInput(sourceMesh->inputContainer()),
 		  primitive_(sourceMesh->primitive_),
 		  meshLODs_(sourceMesh->meshLODs_),
-		  lodFar_(sourceMesh->lodFar_),
+		  v_lodThresholds_(sourceMesh->v_lodThresholds_),
 		  lodLevel_(sourceMesh->lodLevel_),
+		  boundingShape_(sourceMesh->boundingShape_),
+		  shapeBuffer_(sourceMesh->shapeBuffer_),
+		  shapeType_(sourceMesh->shapeType_),
 		  feedbackCount_(0),
 		  hasInstances_(sourceMesh->hasInstances_),
 		  sourceMesh_(sourceMesh),
@@ -23,6 +30,8 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 	draw_ = sourceMesh_->draw_;
 	set_primitive(primitive_);
 	sourceMesh_->meshViews_.insert(this);
+	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
+	lodThresholds_->setUniformData(sourceMesh->lodThresholds()->getVertex(0).r);
 }
 
 Mesh::Mesh(GLenum primitive, BufferUsage usage)
@@ -37,6 +46,9 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 	hasInstances_ = GL_FALSE;
 	draw_ = &InputContainer::drawArrays;
 	set_primitive(primitive);
+	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
+	lodThresholds_->setUniformData(Vec3f::zero());
+	setLODThresholds(Vec3f(10.0, 30.0, 60.0));
 }
 
 Mesh::~Mesh() {
@@ -151,7 +163,6 @@ void Mesh::updateDrawFunction() {
 
 void Mesh::updateVAO(RenderState *rs) {
 	GLuint lastArrayBuffer = 0;
-	vao_->resetGL();
 	rs->vao().push(vao_->id());
 	// Setup attributes
 	for (auto & vaoAttribute : vaoAttributes_) {
@@ -170,11 +181,23 @@ void Mesh::updateVAO(RenderState *rs) {
 	rs->vao().pop();
 }
 
-unsigned int Mesh::getLODLevel(float cameraDistance) {
-	auto normalizedDistance = std::min(cameraDistance / lodFar_, 0.9999f);
-	auto lodLevel = static_cast<float>(meshLODs_.size()) * normalizedDistance;
-	lodLevel = std::trunc(lodLevel);
-	return static_cast<unsigned int>(lodLevel);
+unsigned int Mesh::getLODLevel(float depth) const {
+    // Returns the LOD group for a given depth.
+    return (depth >= v_lodThresholds_.x)
+         + (depth >= v_lodThresholds_.y)
+         + (depth >= v_lodThresholds_.z);
+}
+
+void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
+	meshLODs_ = meshLODs;
+	setLODThresholds(Vec3f(10.0, 30.0, 60.0));
+}
+
+void Mesh::setLODThresholds(const Vec3f &thresholds) {
+	v_lodThresholds_.x = thresholds.x;
+	v_lodThresholds_.y = thresholds.y > v_lodThresholds_.x ? thresholds.y : FLT_MAX;
+	v_lodThresholds_.z = thresholds.z > v_lodThresholds_.y ? thresholds.z : FLT_MAX;
+	lodThresholds_->setVertex(0, v_lodThresholds_);
 }
 
 void Mesh::updateLOD(float cameraDistance) {
@@ -195,6 +218,108 @@ void Mesh::activateLOD(GLuint lodLevel) {
 		inputContainer_->set_numVertices(lod.numVertices);
 		inputContainer_->set_vertexOffset(lod.vertexOffset);
 	}
+}
+
+namespace regen {
+	struct SphereShape_GPU {
+		Vec3f center = Vec3f::zero();
+		float radius = 0.0f;
+	};
+	struct BoxShape_GPU {
+		Vec3f aabbMin = Vec3f::zero();
+		float padding = 0.0f;
+		Vec3f aabbMax = Vec3f::zero();
+	};
+}
+
+void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape, bool uploadToGPU) {
+	auto lastType = shapeType_;
+	if (shape->shapeType() == BoundingShapeType::SPHERE) {
+		shapeType_ = 0;
+		shaderDefine("SHAPE_TYPE", "SPHERE");
+	} else if (shape->shapeType() == BoundingShapeType::BOX) {
+		auto box = (BoundingBox *) (shape.get());
+		shapeType_ = box->isAABB() ? 1 : 2;
+		shaderDefine("SHAPE_TYPE", box->isAABB() ? "AABB" : "OBB");
+	} else {
+		REGEN_WARN("Unsupported shape type for mesh: " << (int)shape->shapeType());
+		if(!boundingShape_.get()) createBoundingSphere(uploadToGPU);
+		return;
+	}
+	boundingShape_ = shape;
+
+	if (uploadToGPU) {
+		if (!shapeBuffer_.get() || lastType != shapeType_) {
+			createShapeBuffer();
+		}
+		updateShapeBuffer();
+	}
+}
+
+void Mesh::createBoundingSphere(bool uploadToGPU) {
+	// create a sphere shape, compute radius from bounding box
+	float radius = (maxPosition_ - minPosition_).length() * 0.5f;
+	auto sphere = ref_ptr<BoundingSphere>::alloc(centerPosition(), radius);
+	setBoundingShape(sphere, uploadToGPU);
+}
+
+void Mesh::createBoundingBox(bool isOBB, bool uploadToGPU) {
+	// create a box shape, compute radius from bounding box
+	Bounds<Vec3f> bounds(minPosition_, maxPosition_);
+	if (isOBB) {
+		auto box = ref_ptr<OBB>::alloc(bounds);
+		setBoundingShape(box, uploadToGPU);
+	} else {
+		auto aabb = ref_ptr<AABB>::alloc(bounds);
+		setBoundingShape(aabb, uploadToGPU);
+	}
+}
+
+void Mesh::createShapeBuffer() {
+	shapeBuffer_ = ref_ptr<UBO>::alloc("ShapeBuffer", BUFFER_USAGE_DYNAMIC_DRAW);
+	if (shapeType_ == 0) {
+		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeCenter", Vec3f::zero()));
+		shapeBuffer_->addBlockInput(createUniform<ShaderInput1f, float>("shapeRadius", 0.0f));
+	} else {
+		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeAABBMin", Vec3f::zero()));
+		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeAABBMax", Vec3f::zero()));
+	}
+	shapeBuffer_->update();
+	setInput(shapeBuffer_);
+}
+
+void Mesh::updateShapeBuffer(byte *shapeData) {
+	RenderState::get()->copyWriteBuffer().push(shapeBuffer_->blockReference()->bufferID());
+	glBufferSubData(
+			GL_COPY_WRITE_BUFFER,
+			shapeBuffer_->blockReference()->address(),
+			shapeBuffer_->blockReference()->allocatedSize(),
+			&shapeData);
+	RenderState::get()->copyWriteBuffer().pop();
+}
+
+void Mesh::updateShapeBuffer() {
+	if (boundingShape_->shapeType() == BoundingShapeType::SPHERE) {
+		auto *sphere = (BoundingSphere*)(boundingShape_.get());
+		SphereShape_GPU shapeData;
+		shapeData.radius = sphere->radius();
+		updateShapeBuffer((byte*)&shapeData);
+	}
+	else if (boundingShape_->shapeType() == BoundingShapeType::BOX) {
+		auto *box = (BoundingBox*)(boundingShape_.get());
+		BoxShape_GPU shapeData;
+		shapeData.aabbMin = box->bounds().min;
+		shapeData.aabbMax = box->bounds().max;
+		updateShapeBuffer((byte*)&shapeData);
+	}
+}
+
+const ref_ptr<UBO>& Mesh::getShapeBuffer() {
+	if (!shapeBuffer_.get()) {
+		createShapeBuffer();
+		updateShapeBuffer();
+	}
+	return shapeBuffer_;
 }
 
 void Mesh::setFeedbackRange(const ref_ptr<BufferRange> &range) {

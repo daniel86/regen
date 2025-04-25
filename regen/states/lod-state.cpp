@@ -1,16 +1,18 @@
 #include <regen/states/state-node.h>
 #include "lod-state.h"
 #include "regen/meshes/mesh-vector.h"
+#include "regen/gl-types/gl-param.h"
+#include "regen/utility/conversion.h"
 
 #define RADIX_BITS_PER_PASS 4u
-// 4-bit radix sort over 32-bit data points --> 32/4 = 8 passes
-#define RADIX_NUM_PASSES 8
 // 4-bit radix sort --> 2^4 = 16 buckets
 #define RADIX_NUM_BUCKETS 16
-#define RADIX_GROUP_SIZE 128
-//#define RADIX_USE_PARALLEL_SCAN
+#define RADIX_GROUP_SIZE 256
+#define RADIX_OFFSET_GROUP_SIZE 512
+//#define RADIX_GLOBAL_HIERARCHICAL_SCAN
 //#define RADIX_DEBUG_HISTOGRAM
 //#define RADIX_DEBUG_RESULT
+//#define RADIX_DEBUG_CORRECTNESS
 
 using namespace regen;
 
@@ -50,11 +52,13 @@ LODState::LODState(
 }
 
 void LODState::initLODState() {
-	// create LOD thresholds
-	auto far = camera_->far()->getVertex(0).r;
-	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
-	lodThresholds_->setUniformData(Vec3f::zero());
-	setThresholds(Vec3f(0.2f*far, 0.6f*far, 0.8f*far));
+	lodNumInstances_.resize(4);
+	lodGroups_.resize(4);
+	// initially all instances are added to first LOD group
+	lodNumInstances_[0] = numInstances_;
+	for (uint32_t i = 1u; i < 4; ++i) {
+		lodNumInstances_[i] = 0;
+	}
 }
 
 void LODState::createBuffers() {
@@ -77,32 +81,9 @@ void LODState::createBuffers() {
 	// section of the instanceIDMap_.
 	instanceIDOffset_ = createUniform<ShaderInput1i, int32_t>("instanceIDOffset", 0);
 	state()->joinShaderInput(instanceIDOffset_);
-	lodNumInstances_.resize(mesh_->numLODs());
-	lodGroups_.resize(mesh_->numLODs());
-	// initially all instances are added to first LOD group
-	lodNumInstances_[0] = numInstances_;
-	for (uint32_t i = 1u; i < mesh_->numLODs(); ++i) {
-		lodNumInstances_[i] = 0;
-	}
 
 	if (!spatialIndex_.get() && numInstances_ > 1) {
 		createComputeShader();
-	}
-}
-
-void LODState::setThresholds(const Vec3f &thresholds) {
-	if (!mesh_.get()) return;
-	if(mesh_->numLODs()==4) {
-		lodThresholds_->setVertex(0, thresholds);
-	}
-	else if(mesh_->numLODs()==3) {
-		lodThresholds_->setVertex(0, Vec3f(0.0f, thresholds.x, thresholds.y));
-	}
-	else if(mesh_->numLODs()==2) {
-		lodThresholds_->setVertex(0, Vec3f(0.0f, 0.0f, thresholds.x));
-	}
-	else {
-		lodThresholds_->setVertex(0, Vec3f(0.0f, 0.0f, 0.0f));
 	}
 }
 
@@ -140,12 +121,12 @@ void LODState::activateLOD(uint32_t lodLevel) {
 
 void LODState::traverseInstanced_(RenderState *rs, uint32_t numVisible) {
 	// set number of visible instances
-	for (auto &m : meshVector_) {
+	for (auto &m: meshVector_) {
 		m->inputContainer()->set_numVisibleInstances(numVisible);
 	}
 	StateNode::traverse(rs);
 	// reset number of visible instances
-	for (auto &m : meshVector_) {
+	for (auto &m: meshVector_) {
 		m->inputContainer()->set_numVisibleInstances(numInstances_);
 	}
 }
@@ -179,7 +160,7 @@ void LODState::traverseCPU(RenderState *rs) {
 			// no visible instances
 			return;
 		}
-		if (lodNumInstances_.size() < 2) {
+		if (mesh_->numLODs() <= 1) {
 			traverseInstanced_(rs, numInstances_);
 		} else {
 			// build LOD groups, then traverse each group
@@ -194,7 +175,7 @@ void LODState::traverseCPU(RenderState *rs) {
 				// set instanceIDOffset
 				instanceIDOffset_->setVertex(0, instanceIDOffset);
 				traverseInstanced_(rs, lodGroupSize);
-				instanceIDOffset += lodGroupSize;
+				instanceIDOffset += static_cast<int32_t>(lodGroupSize);
 			}
 			// reset LOD level
 			activateLOD(0);
@@ -232,7 +213,7 @@ void LODState::computeLODGroups_(
 		lodGroup.clear();
 	}
 
-	if (lodNumInstances_.size() == 1) {
+	if (mesh_->numLODs() == 1) {
 		for (int i = begin; i != end; i += increment) {
 			lodGroups_[0].push_back(mappedData[i]);
 		}
@@ -283,19 +264,11 @@ void LODState::computeLODGroups_(
 //////////// GPU-based LOD update
 ///////////////////////
 
-uint32_t nextPow2(uint32_t x) {
-	if (x == 0) return 1;
-	--x;
-	x |= x >> 1;
-	x |= x >> 2;
-	x |= x >> 4;
-	x |= x >> 8;
-	x |= x >> 16;
-	return ++x;
-}
-
 void LODState::createComputeShader() {
-	uint32_t numWorkGroups = 0u;
+	uint32_t maxSharedMem = glParam<int>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE);
+	uint32_t maxWorkGroupInvocations = glParam<int>(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS);
+	uint32_t numWorkGroups = 0u, histogramSize = 0u;
+
 	{
 		radixCull_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.cull");
 		radixCull_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
@@ -307,19 +280,7 @@ void LODState::createComputeShader() {
 		radixHistogramPass_->computeState()->setNumWorkUnits(static_cast<int>(numInstances_), 1, 1);
 		radixHistogramPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 		numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
-
-		// Note: currently offset pass performs serial scan
-		radixOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets");
-		radixOffsetsPass_->computeState()->shaderDefine("HISTOGRAM_SIZE", REGEN_STRING(RADIX_NUM_BUCKETS * numWorkGroups));
-#ifdef RADIX_USE_PARALLEL_SCAN
-		uint32_t numOffsetThreads = nextPow2(RADIX_NUM_BUCKETS * numWorkGroups);
-		radixOffsetsPass_->computeState()->shaderDefine("USE_PARALLEL_SCAN", "TRUE");
-		radixOffsetsPass_->computeState()->shaderDefine("NUM_THREADS", REGEN_STRING(numOffsetThreads));
-		radixOffsetsPass_->computeState()->setNumWorkUnits(numOffsetThreads, 1, 1);
-#else
-		radixOffsetsPass_->computeState()->setNumWorkUnits(1, 1, 1);
-#endif
-		radixOffsetsPass_->computeState()->setGroupSize(1, 1, 1);
+		histogramSize = RADIX_NUM_BUCKETS * numWorkGroups;
 
 		radixScatterPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.scatter");
 		radixScatterPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(numInstances_));
@@ -336,13 +297,13 @@ void LODState::createComputeShader() {
 	lodGroupSizePBO_ = ref_ptr<PBO>::alloc(BUFFER_USAGE_STREAM_READ);
 	lodGroupSizePBO_->bindPackBuffer();
 	glBufferStorage(GL_PIXEL_PACK_BUFFER,
-		sizeof(uint32_t)*4, nullptr,
-		GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	m_lodGroupSize_ = (Vec4ui*)glMapBufferRange(
-		GL_PIXEL_PACK_BUFFER,
-		0,
-		sizeof(uint32_t)*4,
-		GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+					sizeof(uint32_t) * 4, nullptr,
+					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+	m_lodGroupSize_ = (Vec4ui *) glMapBufferRange(
+			GL_PIXEL_PACK_BUFFER,
+			0,
+			sizeof(uint32_t) * 4,
+			GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 	// Temporary Buffers for sorting.
@@ -362,16 +323,39 @@ void LODState::createComputeShader() {
 
 	{ // radix cull
 		cullUBO_ = ref_ptr<UBO>::alloc("CullUBO");
-		cullUBO_->addBlockInput(lodThresholds_);
+		// TODO: Allow meshes to have different thresholds depending on render target/camera.
+		//       e.g. for shadow mapping we never need to use the highest LOD.
+		cullUBO_->addBlockInput(mesh_->lodThresholds());
 		cullUBO_->update();
+		// we store the 6 frustum planes in a UBO
+		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer");
+		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", 6));
+		frustumUBO_->update();
 
 		StateConfigurer shaderCfg;
+		if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
+			shaderCfg.define("RADIX_REVERSE_SORT", "TRUE");
+		}
 		radixCull_->joinShaderInput(cullUBO_);
+		radixCull_->joinShaderInput(frustumUBO_);
 		radixCull_->joinShaderInput(lodGroupSizeBuffer_);
 		radixCull_->joinShaderInput(keyBuffer_);
 		radixCull_->joinShaderInput(instanceIDBuffer_);
+		radixCull_->joinShaderInput(mesh_->getShapeBuffer());
 		radixCull_->joinStates(tf_);
 		radixCull_->joinStates(camera_);
+		auto boundingShape = mesh_->boundingShape();
+		if (boundingShape->shapeType() == BoundingShapeType::SPHERE) {
+			shaderCfg.define("SHAPE_TYPE", "SPHERE");
+		} else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
+			auto box = (BoundingBox *) (boundingShape.get());
+			if (box->isAABB()) {
+				shaderCfg.define("SHAPE_TYPE", "AABB");
+			} else {
+				shaderCfg.define("SHAPE_TYPE", "OBB");
+			}
+		}
+		shaderCfg.define("USE_CULLING", "TRUE");
 		shaderCfg.addState(radixCull_.get());
 		radixCull_->createShader(shaderCfg.cfg());
 	}
@@ -385,22 +369,100 @@ void LODState::createComputeShader() {
 		histogramReadIndex_ = radixHistogramPass_->shaderState()->shader()->uniformLocation("ValueBuffer");
 		histogramBitOffsetIndex_ = radixHistogramPass_->shaderState()->shader()->uniformLocation("radixBitOffset");
 	}
-	{ // radix offsets
+	// radix offsets. We prefer here to do a single-pass parallel scan, if possible.
+	// But we need to check if the histogram fits into shared memory and if the number of
+	// work group invocations is not too high. Else we need to do a hierarchical scan.
+	auto parallelScanInvocations = static_cast<int32_t>(math::nextPow2(histogramSize));
+	int32_t parallelScanMemory = parallelScanInvocations * sizeof(uint32_t);
+	bool useParallelScan = (
+		parallelScanMemory <= maxSharedMem &&
+		parallelScanInvocations <= maxWorkGroupInvocations);
+#ifdef RADIX_SERIAL_GLOBAL_SCAN
+	useParallelScan = true;
+#endif
+
+	if (useParallelScan) {
 		StateConfigurer shaderCfg;
-		radixOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_WORK_GROUPS", REGEN_STRING(numWorkGroups));
-		radixOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_BUCKETS", REGEN_STRING(RADIX_NUM_BUCKETS));
-		radixOffsetsPass_->joinShaderInput(globalHistogramBuffer_);
-		shaderCfg.addState(radixOffsetsPass_.get());
-		radixOffsetsPass_->createShader(shaderCfg.cfg());
+#ifdef RADIX_SERIAL_GLOBAL_SCAN
+		radixGlobalOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets.serial");
+		radixGlobalOffsetsPass_->computeState()->setNumWorkUnits(1, 1, 1);
+		radixGlobalOffsetsPass_->computeState()->setGroupSize(1, 1, 1);
+#else
+		radixGlobalOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets.parallel");
+		radixGlobalOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_THREADS", REGEN_STRING(parallelScanInvocations));
+		radixGlobalOffsetsPass_->computeState()->setNumWorkUnits(parallelScanInvocations, 1, 1);
+		radixGlobalOffsetsPass_->computeState()->setGroupSize(parallelScanInvocations, 1, 1);
+#endif
+		radixGlobalOffsetsPass_->computeState()->shaderDefine("RADIX_HISTOGRAM_SIZE", REGEN_STRING(histogramSize));
+		radixGlobalOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_WORK_GROUPS", REGEN_STRING(numWorkGroups));
+		radixGlobalOffsetsPass_->computeState()->shaderDefine("RADIX_NUM_BUCKETS", REGEN_STRING(RADIX_NUM_BUCKETS));
+		radixGlobalOffsetsPass_->joinShaderInput(globalHistogramBuffer_);
+		shaderCfg.addState(radixGlobalOffsetsPass_.get());
+		radixGlobalOffsetsPass_->createShader(shaderCfg.cfg());
+		radixOffsetsPass_ = radixGlobalOffsetsPass_;
+	}
+	else {
+		// divide the histogram into "blocks" of RADIX_OFFSET_GROUP_SIZE
+		int32_t numBlocks = ceil(static_cast<float>(histogramSize) / static_cast<float>(RADIX_OFFSET_GROUP_SIZE));
+		// need to enforce power of two below
+		auto numBlocks2 = static_cast<int32_t>(math::nextPow2(numBlocks));
+
+		// create global memory for the offsets
+		blockSumsBuffer_ = ref_ptr<SSBO>::alloc("BlockSumBuffer", BUFFER_USAGE_STREAM_COPY);
+		blockSumsBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("blockSums", numBlocks));
+		blockSumsBuffer_->blockInputs()[0].in_->set_forceArray(true);
+		blockSumsBuffer_->update();
+
+		blockOffsetsBuffer_ = ref_ptr<SSBO>::alloc("BlockOffsetsBuffer", BUFFER_USAGE_STREAM_COPY);
+		blockOffsetsBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("blockOffsets", numBlocks));
+		blockOffsetsBuffer_->blockInputs()[0].in_->set_forceArray(true);
+		blockOffsetsBuffer_->update();
+
+		{ // pass 1: local offsets
+			radixLocaleOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets.local");
+			radixLocaleOffsetsPass_->computeState()->setGroupSize(RADIX_OFFSET_GROUP_SIZE, 1, 1);
+			radixLocaleOffsetsPass_->computeState()->setNumWorkUnits(numBlocks * RADIX_OFFSET_GROUP_SIZE, 1, 1);
+			radixLocaleOffsetsPass_->computeState()->shaderDefine("RADIX_HISTOGRAM_SIZE", REGEN_STRING(histogramSize));
+			radixLocaleOffsetsPass_->joinShaderInput(globalHistogramBuffer_);
+			radixLocaleOffsetsPass_->joinShaderInput(blockSumsBuffer_);
+
+			StateConfigurer shaderCfg;
+			shaderCfg.addState(radixLocaleOffsetsPass_.get());
+			radixLocaleOffsetsPass_->createShader(shaderCfg.cfg());
+		}
+		{ // pass 2: global offsets
+			radixGlobalOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets.global");
+			radixGlobalOffsetsPass_->computeState()->setGroupSize(numBlocks2, 1, 1);
+			radixGlobalOffsetsPass_->computeState()->setNumWorkUnits(numBlocks2, 1, 1);
+			radixGlobalOffsetsPass_->joinShaderInput(blockSumsBuffer_);
+			radixGlobalOffsetsPass_->joinShaderInput(blockOffsetsBuffer_);
+
+			StateConfigurer shaderCfg;
+			shaderCfg.addState(radixGlobalOffsetsPass_.get());
+			radixGlobalOffsetsPass_->createShader(shaderCfg.cfg());
+		}
+		{ // pass 3: distribute offsets
+			radixDistributeOffsetsPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.offsets.distribute");
+			radixDistributeOffsetsPass_->computeState()->setGroupSize(RADIX_OFFSET_GROUP_SIZE, 1, 1);
+			radixDistributeOffsetsPass_->computeState()->setNumWorkUnits(numBlocks * RADIX_OFFSET_GROUP_SIZE, 1, 1);
+			radixDistributeOffsetsPass_->computeState()->shaderDefine("RADIX_HISTOGRAM_SIZE", REGEN_STRING(histogramSize));
+			radixDistributeOffsetsPass_->joinShaderInput(globalHistogramBuffer_);
+			radixDistributeOffsetsPass_->joinShaderInput(blockOffsetsBuffer_);
+
+			StateConfigurer shaderCfg;
+			shaderCfg.addState(radixDistributeOffsetsPass_.get());
+			radixDistributeOffsetsPass_->createShader(shaderCfg.cfg());
+		}
+
+		radixOffsetsPass_ = ref_ptr<StateSequence>::alloc();
+		radixOffsetsPass_->joinStates(radixLocaleOffsetsPass_);
+		radixOffsetsPass_->joinStates(radixGlobalOffsetsPass_);
+		radixOffsetsPass_->joinStates(radixDistributeOffsetsPass_);
 	}
 	{ // radix sort
 		StateConfigurer shaderCfg;
 		radixScatterPass_->joinShaderInput(globalHistogramBuffer_);
 		radixScatterPass_->joinShaderInput(keyBuffer_);
-		// TODO: reverse sort
-		//if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		//	radixScatterPass_->computeState()->shaderDefine("RADIX_REVERSE_SORT", "TRUE");
-		//}
 		shaderCfg.addState(radixScatterPass_.get());
 		radixScatterPass_->createShader(shaderCfg.cfg());
 		// retrieve locations for quick state switching in radix passes
@@ -411,16 +473,12 @@ void LODState::createComputeShader() {
 }
 
 void LODState::radixSortGPU(RenderState *rs) {
-	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
-	radixCull_->enable(rs);
-	radixCull_->disable(rs);
-
 	// now we can make the radix passes starting with values_[0] as input
 	// and writing to values_[1]. Then we swap the buffers each pass.
 	// In the end, we will have the sorted instanceIDs in values_[0].
 	uint32_t readIndex = 0u;
 	uint32_t writeIndex = 1u;
-	for (uint32_t bitOffset = 0u; bitOffset < 32u; bitOffset+=RADIX_BITS_PER_PASS) {
+	for (uint32_t bitOffset = 0u; bitOffset < 32u; bitOffset += RADIX_BITS_PER_PASS) {
 		// Run histogram pass. As a result we will have global counts for each bucket
 		// and work group in the globalHistogramBuffer_.
 		radixHistogramPass_->enable(rs);
@@ -454,6 +512,8 @@ void LODState::radixSortGPU(RenderState *rs) {
 
 #ifdef RADIX_DEBUG_RESULT
 	printInstanceMap(rs);
+#elifdef RADIX_DEBUG_CORRECTNESS
+	printInstanceMap(rs);
 #endif
 }
 
@@ -462,12 +522,30 @@ void LODState::traverseGPU(RenderState *rs) {
 	static uint32_t zero = 0;
 	rs->copyWriteBuffer().push(lodGroupSizeBuffer_->blockReference()->bufferID());
 	glClearBufferSubData(GL_COPY_WRITE_BUFFER, GL_R32UI,
-		lodGroupSizeBuffer_->blockReference()->address(),
-		lodGroupSizeBuffer_->blockReference()->allocatedSize(),
-		GL_RED_INTEGER,
-		GL_UNSIGNED_INT,
-		&zero);
+						 lodGroupSizeBuffer_->blockReference()->address(),
+						 lodGroupSizeBuffer_->blockReference()->allocatedSize(),
+						 GL_RED_INTEGER,
+						 GL_UNSIGNED_INT,
+						 &zero);
 	rs->copyWriteBuffer().pop();
+
+	// Update the frustum planes in the UBO
+	// TODO: how to handle multi layer rendering with GPU LOD?
+	auto &frustumPlanes = camera_->frustum()[0].planes;
+	for (int i = 0; i < 6; ++i) {
+		frustumPlanes_[i] = frustumPlanes[i].equation();
+	}
+	rs->copyWriteBuffer().push(frustumUBO_->blockReference()->bufferID());
+	glBufferSubData(
+			GL_COPY_WRITE_BUFFER,
+			frustumUBO_->blockReference()->address(),
+			frustumUBO_->blockReference()->allocatedSize(),
+			&frustumPlanes_[0].x);
+	rs->copyWriteBuffer().pop();
+
+	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
+	radixCull_->enable(rs);
+	radixCull_->disable(rs);
 
 	radixSortGPU(rs);
 
@@ -484,31 +562,14 @@ void LODState::traverseGPU(RenderState *rs) {
 	rs->copyReadBuffer().pop();
 
 	// Read lodGroupSizePBO_ and update lodNumInstances_
-    if (m_lodGroupSize_) {
-    	if (mesh_->numLODs() == 4) {
-			lodNumInstances_[0] = m_lodGroupSize_[0].x;
-			lodNumInstances_[1] = m_lodGroupSize_[0].y;
-			lodNumInstances_[2] = m_lodGroupSize_[0].z;
-			lodNumInstances_[3] = m_lodGroupSize_[0].w;
-    	} else if (mesh_->numLODs() == 3) {
-			lodNumInstances_[0] = m_lodGroupSize_[0].y;
-			lodNumInstances_[1] = m_lodGroupSize_[0].z;
-			lodNumInstances_[2] = m_lodGroupSize_[0].w;
-			lodNumInstances_[3] = 0;
-		} else if (mesh_->numLODs() == 2) {
-			lodNumInstances_[0] = m_lodGroupSize_[0].z;
-			lodNumInstances_[1] = m_lodGroupSize_[0].w;
-			lodNumInstances_[2] = 0;
-			lodNumInstances_[3] = 0;
-		} else {
-			lodNumInstances_[0] = m_lodGroupSize_[0].w;
-			lodNumInstances_[1] = 0;
-			lodNumInstances_[2] = 0;
-			lodNumInstances_[3] = 0;
-		}
-		//REGEN_INFO("   lod: " << lodNumInstances_[0] << ", " << lodNumInstances_[1] << ", "
-		//	<< lodNumInstances_[2] << ", " << lodNumInstances_[3]);
-    }
+	if (m_lodGroupSize_) {
+		lodNumInstances_[0] = m_lodGroupSize_[0].x;
+		lodNumInstances_[1] = m_lodGroupSize_[0].y;
+		lodNumInstances_[2] = m_lodGroupSize_[0].z;
+		lodNumInstances_[3] = m_lodGroupSize_[0].w;
+	}
+	//REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
+	//		<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
 
 	// loop over all LOD levels
 	int32_t instanceIDOffset = 0;
@@ -517,26 +578,15 @@ void LODState::traverseGPU(RenderState *rs) {
 		if (lodGroupSize == 0) {
 			continue;
 		}
-		//REGEN_INFO("    LOD_" << lodLevel << " num instances:" << lodGroupSize << " offset:" << instanceIDOffset);
 		// set the LOD level
 		activateLOD(lodLevel);
 		// set instanceIDOffset
 		instanceIDOffset_->setVertex(0, instanceIDOffset);
 		traverseInstanced_(rs, lodGroupSize);
-		instanceIDOffset += lodGroupSize;
+		instanceIDOffset += static_cast<int32_t>(lodGroupSize);
 	}
 	// reset LOD level
 	activateLOD(0);
-}
-
-// TODO: CLEANUP move somewhere else
-float uintBitsToFloat(uint32_t uintValue) {
-	union {
-		uint32_t uintValue;
-		float floatValue;
-	} converter;
-	converter.uintValue = uintValue;
-	return converter.floatValue;
 }
 
 void LODState::printHistogram(RenderState *rs) {
@@ -544,11 +594,11 @@ void LODState::printHistogram(RenderState *rs) {
 	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	auto numBuckets = RADIX_NUM_BUCKETS;
 	rs->copyReadBuffer().push(globalHistogramBuffer_->blockReference()->bufferID());
-	auto histogramData = (uint32_t*)glMapBufferRange(
-		GL_COPY_READ_BUFFER,
-		globalHistogramBuffer_->blockReference()->address(),
-		globalHistogramBuffer_->blockReference()->allocatedSize(),
-		GL_MAP_READ_BIT);
+	auto histogramData = (uint32_t *) glMapBufferRange(
+			GL_COPY_READ_BUFFER,
+			globalHistogramBuffer_->blockReference()->address(),
+			globalHistogramBuffer_->blockReference()->allocatedSize(),
+			GL_MAP_READ_BIT);
 	if (histogramData) {
 		std::stringstream sss;
 		sss << "    histogram: | ";
@@ -568,59 +618,61 @@ void LODState::printInstanceMap(RenderState *rs) {
 	// debug sorted output
 	std::vector<double> distances(numInstances_);
 	rs->copyReadBuffer().push(keyBuffer_->blockReference()->bufferID());
-	auto sortKeys = (uint32_t*)glMapBufferRange(
-		GL_COPY_READ_BUFFER,
-		keyBuffer_->blockReference()->address(),
-		keyBuffer_->blockReference()->allocatedSize(),
-		GL_MAP_READ_BIT);
+	auto sortKeys = (uint32_t *) glMapBufferRange(
+			GL_COPY_READ_BUFFER,
+			keyBuffer_->blockReference()->address(),
+			keyBuffer_->blockReference()->allocatedSize(),
+			GL_MAP_READ_BIT);
 	if (sortKeys) {
 		for (uint32_t i = 0; i < numInstances_; ++i) {
-			distances[i] = uintBitsToFloat(sortKeys[i]);
+			distances[i] = conversion::uintToFloat(sortKeys[i]);
 		}
 		glUnmapBuffer(GL_COPY_READ_BUFFER);
 	}
 	rs->copyReadBuffer().pop();
 
-		auto idRef = instanceIDBuffer_->blockReference();
-		rs->copyReadBuffer().push(idRef->bufferID());
-		auto instanceIDs = (uint32_t*)glMapBufferRange(
+	auto idRef = instanceIDBuffer_->blockReference();
+	rs->copyReadBuffer().push(idRef->bufferID());
+	auto instanceIDs = (uint32_t *) glMapBufferRange(
 			GL_COPY_READ_BUFFER,
 			idRef->address(),
 			idRef->allocatedSize(),
 			GL_MAP_READ_BIT);
-		if (instanceIDs) {
-			double lastDistance = 0.0;
-			bool validSortedIDs_ = true;
+	if (instanceIDs) {
+		double lastDistance = 0.0;
+		bool validSortedIDs_ = true;
+		for (uint32_t i = 0; i < numInstances_; ++i) {
+			auto mappedID = instanceIDs[i];
+			if (mappedID >= numInstances_) {
+				REGEN_ERROR("mappedID " << mappedID << " >= numInstances_ " << numInstances_);
+				validSortedIDs_ = false;
+				break;
+			}
+			auto distance = distances[mappedID];
+			if (distance < lastDistance) {
+				validSortedIDs_ = false;
+			}
+			lastDistance = distance;
+		}
+		if (validSortedIDs_) {
+			REGEN_INFO("   sortedIDs are valid");
+		} else {
+			REGEN_INFO("   sortedIDs are INVALID");
+		}
+#ifdef RADIX_DEBUG_RESULT
+		{
+			std::stringstream sss;
+			sss << "    ID data (" << numInstances_ << "): ";
 			for (uint32_t i = 0; i < numInstances_; ++i) {
-				auto mappedID = instanceIDs[i];
-				if (mappedID >= numInstances_) {
-					REGEN_ERROR("mappedID " << mappedID << " >= numInstances_ " << numInstances_);
-					validSortedIDs_ = false;
+				if (instanceIDs[i] >= numInstances_) {
 					break;
 				}
-				auto distance = distances[mappedID];
-				if (distance < lastDistance) {
-					validSortedIDs_ = false;
-				}
-				lastDistance = distance;
+				sss << instanceIDs[i] << " (" << distances[instanceIDs[i]] << ") ";
 			}
-			if (validSortedIDs_) {
-				REGEN_INFO("   sortedIDs are valid");
-			} else {
-				REGEN_INFO("   sortedIDs are INVALID");
-			}
-			{
-				std::stringstream sss;
-				sss << "    ID data (" << numInstances_ << "): ";
-				for (uint32_t i = 0; i < numInstances_; ++i) {
-					if (instanceIDs[i] >= numInstances_) {
-						break;
-					}
-					sss << instanceIDs[i] << " (" << distances[instanceIDs[i]] << ") ";
-				}
-				REGEN_INFO(" " << sss.str());
-			}
-			glUnmapBuffer(GL_COPY_READ_BUFFER);
+			REGEN_INFO(" " << sss.str());
 		}
-		rs->copyReadBuffer().pop();
+#endif
+		glUnmapBuffer(GL_COPY_READ_BUFFER);
+	}
+	rs->copyReadBuffer().pop();
 }

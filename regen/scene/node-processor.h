@@ -214,12 +214,6 @@ namespace regen::scene {
 				return lodState;
 			}
 
-			if (input.hasAttribute("lod-thresholds")) {
-				auto thresholds = input.getValue<Vec3f>(
-					"lod-thresholds", Vec3f(10.0, 50.0, 100.0));
-				lodState->setThresholds(thresholds);
-			}
-
 			lodState->set_name(input.getName());
 			if (input.hasAttribute("sort-mode")) {
 				lodState->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));

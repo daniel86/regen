@@ -7,7 +7,7 @@
     <constant name="map-size" value="100.0"/>
     <constant name="water-surface-y" value="1.7"/>
     <constant name="num-cascades" value="4"/>
-    <constant name="num-fish" value="200"/>
+    <constant name="num-fish" value="2000"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -197,7 +197,7 @@
           use-texco="1"
           use-tangent="1"
           center="1"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           primitive="PATCHES">
         <transform>
             <translate value="0.0,{{map-y-min}},0.0"/>
@@ -214,7 +214,7 @@
           use-texco="0"
           use-tangent="1"
           center="1"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           num-instances="100">
         <transform id="ground-tf" is-instanced="1" >
             <set mode="row" target="translate"
@@ -222,7 +222,7 @@
                 z-step="0.0,0.0,10.0" />
             <translate value="-45.0,{{map-y-min}},-45.0" />
         </transform>
-        <shape id="ground-shape" mode="index" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
+        <shape id="ground-shape" index="1" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
     </mesh>
     -->
 
@@ -277,11 +277,11 @@
           lod="0"
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <transform id="grass-tf">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
-        <shape id="grass-shape" mode="index" type="aabb"
+        <shape id="grass-shape" index="1" type="aabb"
                 box-size="2.0, {{map-height}}, 2.0"
                 box-center="0.0, {{map-height-half}}, 0.0"
                 transform-id="grass-tf">
@@ -344,7 +344,9 @@
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
-    <mesh id="tree-mesh" type="proctree" lods="3,2,1" lod-far="40.0" preset="fir">
+    <mesh id="tree-mesh" type="proctree"
+            lods="3,2,1" lod-thresholds="10.0, 20.0"
+            preset="fir">
         <transform id="tree-tf">
             <set mode="plane"
                 area-mask-texture="tree-mask"
@@ -363,7 +365,7 @@
         <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
             <set mode="random" min="1,1,1" max="5,4,2"/>
         </input>
-        <shape id="tree-shape" mode="index" type="aabb" mesh-id="tree-mesh" mesh-index="0" transform-id="tree-tf">
+        <shape id="tree-shape" index="1" type="aabb" mesh-id="tree-mesh" mesh-index="0" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1" />
         </shape>
     </mesh>
@@ -499,7 +501,7 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
-            lod-simplification="0.2, 0.1"
+            lod-simplification="0.2, 0.1" lod-thresholds="6.0, 40.0"
             num-instances="{{num-fish}}">
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
             <scale value="0.001, 0.001, 0.001"/>
@@ -532,9 +534,9 @@
                 <!-- <object type="danger" tf="hyena-tf" /> -->
                 <!-- <object type="attractor" tf="hyena-tf" /> -->
             </animation>
-
         </transform>
-        <!-- <shape id="fish-shape" mode="index" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
+        <shape id="fish-shape" gpu="1" type="sphere" mesh-id="fish-mesh" />
+        <!-- <shape id="fish-shape" index="1" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 
     <mesh id="hyena-mesh" type="asset" asset="hyena-asset" asset-indices="*" asset-animation="1">
@@ -543,7 +545,7 @@
             <scale value="0.005, 0.005, 0.005"/>
             <translate value="-2, 2.5, -24"/>
         </transform>
-        <shape id="hyena-shape" mode="index" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
+        <shape id="hyena-shape" index="1" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
     </mesh>
 
     <node id="Mammals">
@@ -558,7 +560,7 @@
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
         -->
-        <node id="fish0" lod-mesh="fish-mesh" lod-tf="fish-tf" lod-thresholds="6.0, 40.0">
+        <node id="fish0" lod-mesh="fish-mesh" lod-tf="fish-tf">
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>

@@ -126,9 +126,9 @@ void emitVertex(vec2 texco, vec3 posWorld, int layer, int vertexID)
 void emitSprite(vec3 quadPos[4], int layer)
 {
     emitVertex(vec2(1.0,0.0),quadPos[0],layer,0);
-    emitVertex(vec2(1.0,1.0),quadPos[1],layer,1);
-    emitVertex(vec2(0.0,0.0),quadPos[2],layer,2);
-    emitVertex(vec2(0.0,1.0),quadPos[3],layer,3);
+    emitVertex(vec2(1.0,1.0),quadPos[1],layer,0);
+    emitVertex(vec2(0.0,0.0),quadPos[2],layer,0);
+    emitVertex(vec2(0.0,1.0),quadPos[3],layer,0);
     EndPrimitive();
 }
 

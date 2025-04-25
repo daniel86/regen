@@ -68,11 +68,11 @@
           use-normal="0"
           use-tangent="0"
           texco-mode="CUBE_MAP"
-          usage="STATIC"/>
+          usage="STATIC_DRAW"/>
     <mesh id="sprite-sphere"
           type="mesh"
           primitive="POINTS"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           num-vertices="1">
         <input type="float" name="sphereRadius" is-attribute="1">
             <set mode="constant" value="1.0" index="0"/>

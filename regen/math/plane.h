@@ -24,6 +24,11 @@ namespace regen {
 		Plane(const Vec3f &p, const Vec3f &n);
 
 		/**
+		 * @return the coefficients (a, b, c, d) of the plane equation ax + by + cz + d = 0.
+		 */
+		Vec4f equation() const;
+
+		/**
 		 * Set plane coefficients based on 3 arbitrary points on the plane.
 		 */
 		void set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2);

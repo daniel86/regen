@@ -298,10 +298,11 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	}
 
 	// configure mesh LOD
-	if (input.hasAttribute("lod-far")) {
-		auto lodFar = input.getValue<GLfloat>("lod-far", 160.0f);
+	if (input.hasAttribute("lod-thresholds")) {
+		auto thresholds = input.getValue<Vec3f>(
+			"lod-thresholds", Vec3f(10.0, 50.0, 100.0));
 		for (GLuint i = 0u; i < out->size(); ++i) {
-			(*out)[i]->setLODFar(lodFar);
+			(*out)[i]->setLODThresholds(thresholds);
 		}
 	}
 

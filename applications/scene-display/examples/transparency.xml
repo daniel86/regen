@@ -108,7 +108,7 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="1"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           num-instances="3">
         <transform id="platform-tf" num-instances="3" is-instanced="1">
             <translate value="0.0, -100.6, 0.0"/>
@@ -210,7 +210,7 @@
           scaling="1.0,1.0,1.0"
           use-normal="1"
           use-tangent="1"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <material preset="iron"
             color-blend-mode="MUL" alpha="0.85"/>
         <transform id="sphere0-tf">
@@ -224,7 +224,7 @@
           scaling="1.0,1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <material preset="jade" alpha="0.85"/>
         <transform id="sphere1-tf">
             <translate value="-1.5,-0.1,0.0"/>
@@ -254,7 +254,7 @@
     <!--**************************-->
 
     <mesh id="sky-box" type="box"
-          use-normal="0" use-tangent="0" texco-mode="CUBE_MAP" usage="STATIC">
+          use-normal="0" use-tangent="0" texco-mode="CUBE_MAP" usage="STATIC_DRAW">
     </mesh>
 
     <node id="Sky-Box">

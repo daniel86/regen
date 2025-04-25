@@ -150,11 +150,11 @@
           texco-scaling="5.0,5.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <define key="HAS_TWO_SIDES" value="TRUE"/>
         <material preset="copper"/>
         <transform id="bowl-tf"/>
-        <shape id="bowl-physics" mode="physics" shape="triangle-mesh" mass="0.0"
+        <shape id="bowl-physics" physics="1" shape="triangle-mesh" mass="0.0"
                mesh-id="bowl" transform-id="bowl-tf"/>
     </mesh>
 
@@ -169,9 +169,9 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <transform id="sphere0-tf"/>
-        <shape id="sphere0-physics" mode="physics" shape="sphere"
+        <shape id="sphere0-physics" physics="1" shape="sphere"
                radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0"
                mesh-id="sphere-mesh0" transform-id="sphere0-tf"/>
     </mesh>
@@ -187,10 +187,10 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC">
+          usage="STATIC_DRAW">
         <material preset="ruby"/>
         <transform id="sphere1-tf"/>
-        <shape id="sphere1-physics" mode="physics" shape="sphere"
+        <shape id="sphere1-physics" physics="1" shape="sphere"
                radius="1.0" mass="20.0" inertia="0.0,-1.0,0.0" friction="0.0"
                mesh-id="sphere-mesh1" transform-id="sphere1-tf"/>
     </mesh>
@@ -209,11 +209,11 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          usage="STATIC"
+          usage="STATIC_DRAW"
           num-instances="40">
         <material preset="ruby"/>
         <transform id="sphere2-tf"/>
-        <shape id="sphere2-physics" mode="physics" shape="sphere"
+        <shape id="sphere2-physics" physics="1" shape="sphere"
                radius="0.5" mass="0.4" inertia="0.0,0.0,0.0" friction="0.0"
                mesh-id="sphere-mesh2" transform-id="sphere2-tf"/>
     </mesh>
