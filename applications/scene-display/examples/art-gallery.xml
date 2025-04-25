@@ -936,7 +936,7 @@
             <view id="Shadow-Map">
                 <fbo id="SCREEN"/>
                 <texture name="inputTexture" fbo="room-light-shadow0" attachment="depth"/>
-                <fullscreen-pass shader="regen.filter.sampling.cube-shadow-unfold"/>
+                <fullscreen-pass shader="regen.filter.sampling.cube.shadow"/>
             </view>
         </node>
 

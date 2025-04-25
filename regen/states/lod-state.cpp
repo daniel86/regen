@@ -295,7 +295,7 @@ void LODState::createComputeShader() {
 	lodGroupSizeBuffer_->update();
 	// +PBO for reading back the lodGroupSizeBuffer_
 	lodGroupSizePBO_ = ref_ptr<PBO>::alloc(BUFFER_USAGE_STREAM_READ);
-	lodGroupSizePBO_->bindPackBuffer();
+	RenderState::get()->pixelPackBuffer().push(lodGroupSizePBO_->id());
 	glBufferStorage(GL_PIXEL_PACK_BUFFER,
 					sizeof(uint32_t) * 4, nullptr,
 					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
@@ -304,7 +304,7 @@ void LODState::createComputeShader() {
 			0,
 			sizeof(uint32_t) * 4,
 			GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	RenderState::get()->pixelPackBuffer().pop();
 
 	// Temporary Buffers for sorting.
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer", BUFFER_USAGE_STREAM_COPY);
@@ -520,14 +520,13 @@ void LODState::radixSortGPU(RenderState *rs) {
 void LODState::traverseGPU(RenderState *rs) {
 	// clear the lodGroupSizeBuffer_ to zero's
 	static uint32_t zero = 0;
-	rs->copyWriteBuffer().push(lodGroupSizeBuffer_->blockReference()->bufferID());
-	glClearBufferSubData(GL_COPY_WRITE_BUFFER, GL_R32UI,
+	rs->shaderStorageBuffer().apply(lodGroupSizeBuffer_->blockReference()->bufferID());
+	glClearBufferSubData(GL_SHADER_STORAGE_BUFFER, GL_R32UI,
 						 lodGroupSizeBuffer_->blockReference()->address(),
 						 lodGroupSizeBuffer_->blockReference()->allocatedSize(),
 						 GL_RED_INTEGER,
 						 GL_UNSIGNED_INT,
 						 &zero);
-	rs->copyWriteBuffer().pop();
 
 	// Update the frustum planes in the UBO
 	// TODO: how to handle multi layer rendering with GPU LOD?
@@ -535,13 +534,12 @@ void LODState::traverseGPU(RenderState *rs) {
 	for (int i = 0; i < 6; ++i) {
 		frustumPlanes_[i] = frustumPlanes[i].equation();
 	}
-	rs->copyWriteBuffer().push(frustumUBO_->blockReference()->bufferID());
+	rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
 	glBufferSubData(
-			GL_COPY_WRITE_BUFFER,
+			GL_UNIFORM_BUFFER,
 			frustumUBO_->blockReference()->address(),
 			frustumUBO_->blockReference()->allocatedSize(),
 			&frustumPlanes_[0].x);
-	rs->copyWriteBuffer().pop();
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
 	radixCull_->enable(rs);
@@ -550,16 +548,15 @@ void LODState::traverseGPU(RenderState *rs) {
 	radixSortGPU(rs);
 
 	// Copy lodGroupSizeBuffer_ to lodGroupSizePBO_
-	rs->copyReadBuffer().push(lodGroupSizeBuffer_->blockReference()->bufferID());
+	rs->shaderStorageBuffer().apply(lodGroupSizeBuffer_->blockReference()->bufferID());
 	rs->copyWriteBuffer().push(lodGroupSizePBO_->id());
 	glCopyBufferSubData(
-			GL_COPY_READ_BUFFER,
+			GL_SHADER_STORAGE_BUFFER,
 			GL_COPY_WRITE_BUFFER,
 			lodGroupSizeBuffer_->blockReference()->address(),
 			0,
 			lodGroupSizeBuffer_->blockReference()->allocatedSize());
 	rs->copyWriteBuffer().pop();
-	rs->copyReadBuffer().pop();
 
 	// Read lodGroupSizePBO_ and update lodNumInstances_
 	if (m_lodGroupSize_) {
@@ -593,9 +590,9 @@ void LODState::printHistogram(RenderState *rs) {
 	// debug histogram
 	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	auto numBuckets = RADIX_NUM_BUCKETS;
-	rs->copyReadBuffer().push(globalHistogramBuffer_->blockReference()->bufferID());
+	rs->shaderStorageBuffer().apply(globalHistogramBuffer_->blockReference()->bufferID());
 	auto histogramData = (uint32_t *) glMapBufferRange(
-			GL_COPY_READ_BUFFER,
+			GL_SHADER_STORAGE_BUFFER,
 			globalHistogramBuffer_->blockReference()->address(),
 			globalHistogramBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -611,15 +608,14 @@ void LODState::printHistogram(RenderState *rs) {
 		REGEN_INFO(" " << sss.str());
 		glUnmapBuffer(GL_COPY_READ_BUFFER);
 	}
-	rs->copyReadBuffer().pop();
 }
 
 void LODState::printInstanceMap(RenderState *rs) {
 	// debug sorted output
 	std::vector<double> distances(numInstances_);
-	rs->copyReadBuffer().push(keyBuffer_->blockReference()->bufferID());
+	rs->shaderStorageBuffer().apply(keyBuffer_->blockReference()->bufferID());
 	auto sortKeys = (uint32_t *) glMapBufferRange(
-			GL_COPY_READ_BUFFER,
+			GL_SHADER_STORAGE_BUFFER,
 			keyBuffer_->blockReference()->address(),
 			keyBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -629,12 +625,11 @@ void LODState::printInstanceMap(RenderState *rs) {
 		}
 		glUnmapBuffer(GL_COPY_READ_BUFFER);
 	}
-	rs->copyReadBuffer().pop();
 
 	auto idRef = instanceIDBuffer_->blockReference();
-	rs->copyReadBuffer().push(idRef->bufferID());
+	rs->shaderStorageBuffer().apply(idRef->bufferID());
 	auto instanceIDs = (uint32_t *) glMapBufferRange(
-			GL_COPY_READ_BUFFER,
+			GL_SHADER_STORAGE_BUFFER,
 			idRef->address(),
 			idRef->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -674,5 +669,4 @@ void LODState::printInstanceMap(RenderState *rs) {
 #endif
 		glUnmapBuffer(GL_COPY_READ_BUFFER);
 	}
-	rs->copyReadBuffer().pop();
 }

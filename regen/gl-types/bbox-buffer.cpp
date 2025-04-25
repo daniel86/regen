@@ -28,27 +28,26 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 	update();
 
 	bboxPBO_ = ref_ptr<PBO>::alloc(BUFFER_USAGE_STREAM_READ);
-	bboxPBO_->bindPackBuffer();
+	RenderState::get()->pixelPackBuffer().push(bboxPBO_->id());
 	glBufferData(GL_PIXEL_PACK_BUFFER, sizeof(BoundingBoxBlock), nullptr, GL_STREAM_READ);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	RenderState::get()->pixelPackBuffer().pop();
 }
 
 bool BBoxBuffer::updateBoundingBox(RenderState *rs) {
 	bool hasChanged = false;
     // Read back the bounding box values into the PBO
-	rs->copyReadBuffer().push(bufferID());
+	rs->shaderStorageBuffer().apply(bufferID());
 	rs->copyWriteBuffer().push(bboxPBO_->id());
 	glCopyBufferSubData(
-			GL_COPY_READ_BUFFER,
+			GL_SHADER_STORAGE_BUFFER,
 			GL_COPY_WRITE_BUFFER,
 			blockReference()->address(),
 			0,
 			2 * sizeof(Vec4f));
 	rs->copyWriteBuffer().pop();
-	rs->copyReadBuffer().pop();
 
     // Map the PBO to read the data
-	bboxPBO_->bindPackBuffer();
+	rs->pixelPackBuffer().push(bboxPBO_->id());
     auto* ptr = (Vec4f*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (ptr) {
     	Bounds<Vec3f> newBounds(ptr[0].xyz_(), ptr[1].xyz_());
@@ -62,6 +61,6 @@ bool BBoxBuffer::updateBoundingBox(RenderState *rs) {
 			hasChanged = true;
 		}
     }
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	rs->pixelPackBuffer().pop();
     return hasChanged;
 }

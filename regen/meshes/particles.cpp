@@ -272,7 +272,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	updateState_->enable(rs);
 
 	rs->vao().push(particleVAO_.id());
-	glBindBuffer(GL_ARRAY_BUFFER, particleRef_->bufferID());
+	rs->arrayBuffer().apply(particleRef_->bufferID());
 	for (auto &particleAttribute: particleAttributes_) {
 		particleAttribute.input->enableAttribute(particleAttribute.location);
 	}

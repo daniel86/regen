@@ -81,6 +81,11 @@ static inline void Regen_Viewport(const Viewport &v) { glViewport(v.x, v.y, v.z,
 static inline void Regen_Texture(GLuint i, const TextureBind &v) { glBindTexture(v.target_, v.id_); }
 
 static inline void Regen_UniformBufferRange(GLuint i, const BufferRange &v) {
+	// TODO: When i is bound to another target, e.g. GL_SHADER_STORAGE_BUFFER or so,
+	//       then binding it to GL_UNIFORM_BUFFER causes undefined behaviour on some drivers.
+	//       It could be considered as an application error, or we do the extra bookkeeping and
+	//       handle this case here by first unbinding the buffer from the other target.
+	//       At least in debug mode would be nice to get a report on this.
 	glBindBufferRange(GL_UNIFORM_BUFFER, i, v.buffer_, v.offset_, v.size_);
 }
 static inline void Regen_FeedbackBufferRange(GLuint i, const BufferRange &v) {
@@ -204,6 +209,8 @@ RenderState::RenderState()
 		  toggles_(TOGGLE_STATE_LAST, regen_lockedValue, Regen_Toggle),
 		  arrayBuffer_(GL_ARRAY_BUFFER, Regen_BindBuffer),
 		  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER, Regen_BindBuffer),
+		  uniformBuffer_(GL_UNIFORM_BUFFER, Regen_BindBuffer),
+		  shaderStorageBuffer_(GL_SHADER_STORAGE_BUFFER, Regen_BindBuffer),
 		  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER, Regen_BindBuffer),
 		  pixelUnpackBuffer_(GL_PIXEL_UNPACK_BUFFER, Regen_BindBuffer),
 		  dispatchIndirectBuffer_(GL_DISPATCH_INDIRECT_BUFFER, Regen_BindBuffer),
@@ -298,7 +305,47 @@ RenderState::RenderState()
 	pointSpriteOrigin_.push(GL_UPPER_LEFT);
 	activeTexture_.push(GL_TEXTURE0);
 	textureBuffer_.push(0);
+	// for pixel pack buffers we want that each time we have a push-pop sequence that
+	//   "glBindBuffer(GL_PIXEL_[UN]PACK_BUFFER, 0)" is called.
+	pixelPackBuffer_.push(0);
+	pixelUnpackBuffer_.push(0);
+	copyWriteBuffer().push(0);
+	copyReadBuffer().push(0);
 	GL_ERROR_LOG();
+}
+
+ParameterStackAtomic<GLuint>& RenderState::buffer(GLenum target) {
+	switch (target) {
+		case GL_UNIFORM_BUFFER:
+			return uniformBuffer_;
+		case GL_SHADER_STORAGE_BUFFER:
+			return shaderStorageBuffer_;
+		case GL_PIXEL_PACK_BUFFER:
+			return pixelPackBuffer_;
+		case GL_PIXEL_UNPACK_BUFFER:
+			return pixelUnpackBuffer_;
+		case GL_DISPATCH_INDIRECT_BUFFER:
+			return dispatchIndirectBuffer_;
+		case GL_DRAW_INDIRECT_BUFFER:
+			return drawIndirectBuffer_;
+		case GL_TEXTURE_BUFFER:
+			return textureBuffer_;
+		case GL_COPY_READ_BUFFER:
+			return copyReadBuffer_;
+		case GL_COPY_WRITE_BUFFER:
+			return copyWriteBuffer_;
+		case GL_RENDERBUFFER:
+			return renderBuffer_;
+		case GL_ATOMIC_COUNTER_BUFFER:
+			return atomicCounterBuffer_;
+		case GL_ARRAY_BUFFER:
+			return arrayBuffer_;
+		case GL_ELEMENT_ARRAY_BUFFER:
+			return elementArrayBuffer_;
+		default:
+			REGEN_WARN("Unknown buffer target " << target << ". Using GL_ARRAY_BUFFER.");
+			return arrayBuffer_;
+	}
 }
 
 IndexedValueStack<BufferRange>& RenderState::bufferRange(GLenum target) {

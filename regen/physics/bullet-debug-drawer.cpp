@@ -89,7 +89,7 @@ int BulletDebugDrawer::getDebugMode() const {
 void BulletDebugDrawer::traverse(regen::RenderState *rs) {
 	renderState_ = rs;
 	state()->enable(rs);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+	rs->arrayBuffer().apply(vbo_);
 	physics_->dynamicsWorld()->debugDrawWorld();
 	state()->disable(rs);
 	renderState_ = nullptr;

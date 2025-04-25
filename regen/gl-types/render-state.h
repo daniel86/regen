@@ -352,6 +352,16 @@ namespace regen {
 		inline ParameterStackAtomic<GLuint> &elementArrayBuffer() { return elementArrayBuffer_; }
 
 		/**
+		 * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
+		 */
+		inline ParameterStackAtomic<GLuint> &shaderStorageBuffer() { return shaderStorageBuffer_; }
+
+		/**
+		 * bind a named buffer object to GL_UNIFORM_BUFFER target.
+		 */
+		inline ParameterStackAtomic<GLuint> &uniformBuffer() { return uniformBuffer_; }
+
+		/**
 		 * bind a named buffer object to GL_PIXEL_PACK_BUFFER target.
 		 */
 		inline ParameterStackAtomic<GLuint> &pixelPackBuffer() { return pixelPackBuffer_; }
@@ -431,6 +441,11 @@ namespace regen {
 		 * bind a buffer range to given target.
 		 */
 		IndexedValueStack<BufferRange> &bufferRange(GLenum target);
+
+		/**
+		 * bind a buffer to given target.
+		 */
+		ParameterStackAtomic<GLuint>& buffer(GLenum target);
 
 		/**
 		 * Bind a framebuffer to the framebuffer read target.
@@ -690,6 +705,8 @@ namespace regen {
 		std::map<GLuint,GLuint> bufferBaseBindings_[4];
 		ParameterStackAtomic<GLuint> arrayBuffer_;
 		ParameterStackAtomic<GLuint> elementArrayBuffer_;
+		ParameterStackAtomic<GLuint> uniformBuffer_;
+		ParameterStackAtomic<GLuint> shaderStorageBuffer_;
 		ParameterStackAtomic<GLuint> pixelPackBuffer_;
 		ParameterStackAtomic<GLuint> pixelUnpackBuffer_;
 		ParameterStackAtomic<GLuint> dispatchIndirectBuffer_;

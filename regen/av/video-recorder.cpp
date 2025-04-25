@@ -116,10 +116,12 @@ void VideoRecorder::initialize() {
 	// Create PBOs
 	pbo_ = ref_ptr<PBO>::alloc(2);
 	for (int i = 0; i < 2; ++i) {
-		pbo_->bindPackBuffer(i);
+		RenderState::get()->pixelPackBuffer().push(pbo_->ids()[i]);
 		glBufferData(GL_PIXEL_PACK_BUFFER, frameSize_, nullptr, GL_STREAM_READ);
 	}
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	for (int i = 0; i < 2; ++i) {
+		RenderState::get()->pixelPackBuffer().pop();
+	}
 
 	// create a FBO for the encoder with the same size as the input FBO,
 	// but with a single color attachment that has the same format as used by the encoder
@@ -166,7 +168,7 @@ void VideoRecorder::updateFrameBuffer() {
 				 nullptr);
 
 	// map the other PBO to process its data
-	pbo_->bindPackBuffer(nextIndex);
+	RenderState::get()->pixelPackBuffer().push(pbo_->ids()[nextIndex]);
 	auto *ptr = (GLubyte *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 	if (ptr) {
 		auto nextFrame = encoder_->reserveFrame();
@@ -174,7 +176,7 @@ void VideoRecorder::updateFrameBuffer() {
 		encoder_->pushFrame(nextFrame, elapsedTime_);
 		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 	}
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	RenderState::get()->pixelPackBuffer().pop();
 
 	encoderFBO_->readBuffer().pop();
 	RenderState::get()->readFrameBuffer().pop();

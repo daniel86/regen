@@ -11,9 +11,9 @@ PBO::PBO(unsigned int numBuffers)
 }
 
 void PBO::bindPackBuffer(unsigned int index) const {
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, ids_[index]);
+	RenderState::get()->pixelPackBuffer().push(ids_[index]);
 }
 
 void PBO::bindUnpackBuffer(unsigned int index) const {
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, ids_[index]);
+	RenderState::get()->pixelUnpackBuffer().push(ids_[index]);
 }

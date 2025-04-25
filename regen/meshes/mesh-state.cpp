@@ -169,14 +169,14 @@ void Mesh::updateVAO(RenderState *rs) {
 		const ref_ptr<ShaderInput> &in = vaoAttribute.input;
 		if (lastArrayBuffer != in->buffer()) {
 			lastArrayBuffer = in->buffer();
-			glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
+			rs->arrayBuffer().apply(lastArrayBuffer);
 		}
 		in->enableAttribute(vaoAttribute.location);
 		if (in->numInstances() > 1) hasInstances_ = GL_TRUE;
 	}
 	// bind the index buffer
 	if (inputContainer_->indexBuffer() > 0) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inputContainer_->indexBuffer());
+		rs->elementArrayBuffer().apply(inputContainer_->indexBuffer());
 	}
 	rs->vao().pop();
 }

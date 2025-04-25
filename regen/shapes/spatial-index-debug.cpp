@@ -159,7 +159,7 @@ void SpatialIndexDebug::debugFrustum(const Frustum &frustum, const Vec3f &color)
 
 void SpatialIndexDebug::traverse(regen::RenderState *rs) {
 	state()->enable(rs);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+	rs->arrayBuffer().apply(vbo_);
 	for (auto &shape: index_->shapes()) {
 		for (auto &instance: shape.second) {
 			switch (instance->shapeType()) {

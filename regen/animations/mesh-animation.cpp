@@ -327,11 +327,11 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		rs->vao().push(vao_->id());
 
 		// setup attributes
-		glBindBuffer(GL_ARRAY_BUFFER, frame0.ref->bufferID());
+		rs->arrayBuffer().apply(frame0.ref->bufferID());
 		for (auto & attribute : frame0.attributes) {
 			attribute.input->enableAttribute(attribute.location);
 		}
-		glBindBuffer(GL_ARRAY_BUFFER, frame1.ref->bufferID());
+		rs->arrayBuffer().apply(frame1.ref->bufferID());
 		for (auto & attribute : frame1.attributes) {
 			attribute.input->enableAttribute(attribute.location);
 		}

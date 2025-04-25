@@ -182,7 +182,7 @@ void BufferBlock::update(bool forceUpdate) {
 		return;
 	}
 
-	glBindBuffer(glTarget_, ref_->bufferID());
+	RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
 #ifdef BUFFER_LOCK_PARTIAL_UPDATE
 	void *bufferData = map(ref_, GL_MAP_WRITE_BIT);
 #else
@@ -216,7 +216,6 @@ void BufferBlock::update(bool forceUpdate) {
 	} else {
 		REGEN_WARN("BufferBlock::update: failed to map buffer");
 	}
-	glBindBuffer(glTarget_, 0);
 	stamp_ += 1;
 }
 

@@ -528,7 +528,7 @@ void ShaderInput::readServerData() {
 	auto mappedClientData = mapClientData(ShaderData::WRITE);
 	auto clientData = mappedClientData.w;
 
-	RenderState::get()->arrayBuffer().push(buffer());
+	RenderState::get()->arrayBuffer().apply(buffer());
 	byte *serverData = (byte *) glMapBufferRange(
 			GL_ARRAY_BUFFER,
 			offset_,
@@ -546,7 +546,6 @@ void ShaderInput::readServerData() {
 	}
 
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-	RenderState::get()->arrayBuffer().pop();
 }
 
 GLboolean ShaderInput::hasClientData() const {

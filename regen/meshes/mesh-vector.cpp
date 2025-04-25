@@ -298,11 +298,25 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	}
 
 	// configure mesh LOD
-	if (input.hasAttribute("lod-thresholds")) {
+	{
 		auto thresholds = input.getValue<Vec3f>(
 			"lod-thresholds", Vec3f(10.0, 50.0, 100.0));
-		for (GLuint i = 0u; i < out->size(); ++i) {
-			(*out)[i]->setLODThresholds(thresholds);
+		for (const auto &mesh : *out) {
+			auto numLODs = mesh->numLODs();
+			if (numLODs == 0) {
+				continue;
+			}
+			auto thresholds_i = thresholds;
+			if (numLODs < 4) {
+				thresholds_i.y = 0.0f;
+			}
+			if (numLODs < 3) {
+				thresholds_i.z = 0.0f;
+			}
+			if (numLODs < 2) {
+				thresholds_i.x = 0.0f;
+			}
+			mesh->setLODThresholds(thresholds);
 		}
 	}
 
