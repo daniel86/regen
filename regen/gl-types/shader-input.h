@@ -306,6 +306,16 @@ namespace regen {
 		auto forceArray() const { return forceArray_; }
 
 		/**
+		 * @param gpuUsage the gpu usage mode.
+		 */
+		void set_gpuUsage(ShaderData::MappingMode gpuUsage) { gpuUsage_ = gpuUsage; }
+
+		/**
+		 * @return the gpu usage mode.
+		 */
+		auto gpuUsage() const { return gpuUsage_; }
+
+		/**
 		 * Allocates RAM for the attribute and does a memcpy
 		 * if the data pointer is not null.
 		 * numVertices*elementSize bytes will be allocated.
@@ -506,6 +516,7 @@ namespace regen {
 		bool normalize_;
 		bool isVertexAttribute_;
 		bool transpose_;
+		ShaderData::MappingMode gpuUsage_;
 
 		struct SlotLock {
 			std::mutex lock;

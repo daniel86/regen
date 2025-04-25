@@ -5,6 +5,7 @@
 #include <regen/gl-types/ubo.h>
 #include <regen/gl-types/tbo.h>
 #include <regen/textures/texture-buffer.h>
+#include "regen/gl-types/ssbo.h"
 
 namespace regen {
 	/**
@@ -69,6 +70,7 @@ namespace regen {
 	protected:
 		std::vector<NamedShaderInput> namedInputs_;
 		std::vector<ref_ptr<UBO>> ubos_;
+		std::vector<ref_ptr<SSBO>> ssbos_;
 		std::vector<ref_ptr<TBO>> tbos_;
 		std::vector<ref_ptr<TextureBuffer>> textureBuffers_;
 		std::map<ShaderInput*, ref_ptr<BufferObject>> bufferObjectOfInput_;
@@ -77,6 +79,8 @@ namespace regen {
 		std::string bufferName_;
 
 		void createUBO(const std::vector<NamedShaderInput> &namedInputs);
+
+		void createSSBO(const std::vector<NamedShaderInput> &namedInputs);
 
 		void createTBO(const NamedShaderInput &namedInput);
 

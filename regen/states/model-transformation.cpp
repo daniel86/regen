@@ -466,6 +466,12 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 	bool isInstanced = input.getValue<bool>("is-instanced", false);
 	auto numInstances = input.getValue<GLuint>("num-instances", 1u);
 	transform = ref_ptr<ModelTransformation>::alloc();
+	// read the gpu-usage flag
+	if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
+		transform->modelMat()->set_gpuUsage(ShaderData::WRITE);
+	} else {
+		transform->modelMat()->set_gpuUsage(ShaderData::READ);
+	}
 
 	// Handle instanced model matrix
 	if (isInstanced && numInstances > 1) {

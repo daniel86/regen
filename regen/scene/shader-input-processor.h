@@ -336,6 +336,12 @@ namespace regen {
 				bool isInstanced = input.getValue<bool>("is-instanced", false);
 				bool isAttribute = input.getValue<bool>("is-attribute", false);
 				GLuint count = 1;
+				// read the gpu-usage flag
+				if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
+					v->set_gpuUsage(ShaderData::WRITE);
+				} else {
+					v->set_gpuUsage(ShaderData::READ);
+				}
 
 				if (isInstanced) {
 					v->setInstanceData(numInstances, 1, nullptr);
