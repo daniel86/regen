@@ -174,10 +174,10 @@
         <node id="venus">
             <define key="POS_MODEL_TRANSFER_KEY" value="regen.animation.morph.twist"/>
             <define key="POS_MODEL_TRANSFER_NAME" value="twist"/>
-            <input type="float" name="in_twistSpeed" value="2.0"/>
-            <input type="float" name="in_twistStrength" value="1.0"/>
-            <input type="float" name="in_twistHeight" value="0.5"/>
-            <input type="float" name="in_twistAngle" value="3.1415"/>
+            <input type="float" name="twistSpeed" value="2.0"/>
+            <input type="float" name="twistStrength" value="1.0"/>
+            <input type="float" name="twistHeight" value="0.5"/>
+            <input type="float" name="twistAngle" value="3.1415"/>
             <mesh id="mesh-venus" shader="regen.models.mesh"/>
         </node>
     </node>

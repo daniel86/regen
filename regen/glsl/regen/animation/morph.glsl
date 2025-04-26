@@ -13,7 +13,8 @@ const float in_twistAngle = 3.1415;
 
 void twist(inout vec3 pos)
 {
-	float angle = (pos.y/in_twistHeight) * in_twistAngle * sin(in_time);
+    float twistHeight = max(in_twistHeight, 0.001);
+	float angle = (pos.y/twistHeight) * in_twistAngle * sin(in_time);
 	float st = sin(angle * in_twistSpeed) * in_twistStrength;
 	float ct = cos(angle * in_twistSpeed) * in_twistStrength;
     pos.xz = vec2(
