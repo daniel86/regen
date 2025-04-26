@@ -14,6 +14,7 @@
 
 #include "application.h"
 #include "regen/gl-types/gl-param.h"
+#include "regen/gl-types/binding-manager.h"
 
 using namespace regen;
 
@@ -240,6 +241,9 @@ void Application::initGL() {
 	REGEN_DEBUG("MAX_UNIFORM_LOCATIONS: " << glParam<int>(GL_MAX_UNIFORM_LOCATIONS));
 #endif
 	REGEN_DEBUG("MAX_UNIFORM_BLOCK_SIZE: " << glParam<int>(GL_MAX_UNIFORM_BLOCK_SIZE));
+	REGEN_DEBUG("MAX_UNIFORM_BUFFER_BINDINGS: " << glParam<int>(GL_MAX_UNIFORM_BUFFER_BINDINGS));
+	REGEN_DEBUG("MAX_SHADER_STORAGE_BLOCK_SIZE: " << glParam<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
+	REGEN_DEBUG("MAX_SHADER_STORAGE_BUFFER_BINDINGS: " << glParam<int>(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS));
 	REGEN_DEBUG("MAX_VERTEX_ATTRIBS: " << glParam<int>(GL_MAX_VERTEX_ATTRIBS));
 	REGEN_DEBUG("MAX_VIEWPORTS: " << glParam<int>(GL_MAX_VIEWPORTS));
 #ifdef GL_ARB_texture_buffer_range
@@ -273,6 +277,7 @@ void Application::clear() {
 	idToObject_.clear();
 	isTimeInitialized_ = GL_FALSE;
 	RenderState::reset();
+	BindingManager::clear();
 
 	if (!globalUniforms_.get()) {
 		// TODO: for some reason UBO cannot be created in initGL above.

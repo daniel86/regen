@@ -84,6 +84,7 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 	shader_ = ref_ptr<Shader>::alloc(processedCode);
 	// setup transform feedback attributes
 	shader_->setTransformFeedback(cfg.feedbackAttributes_, cfg.feedbackMode_, cfg.feedbackStage_);
+	shader_->setInputs(cfg.inputs_);
 
 	if (!shader_->compile()) {
 		REGEN_ERROR("Shader failed to compiled.");
@@ -101,7 +102,6 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenu
 		set_isHidden(false);
 	}
 
-	shader_->setInputs(cfg.inputs_);
 	for (const auto & texture : cfg.textures_) {
 		shader_->setTexture(texture.second, texture.first);
 	}

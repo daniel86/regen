@@ -221,6 +221,14 @@ void BufferBlock::update(bool forceUpdate) {
 
 void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBlockValid_) return;
+	if (bindingIndex_ != loc && bindingIndex_ != -1) {
+		auto &actual = RenderState::get()->bufferRange(glTarget_).value(bindingIndex_);
+		if (actual.buffer_ == ref_->bufferID() &&
+			actual.offset_ == ref_->address() &&
+			actual.size_ == ref_->allocatedSize()) {
+			RenderState::get()->bufferRange(glTarget_).apply(bindingIndex_, BufferRange::nullReference());
+		}
+	}
 	update();
 	bind(loc);
 	bindingIndex_ = loc;

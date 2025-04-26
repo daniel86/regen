@@ -2,14 +2,12 @@
 #include <boost/regex.hpp>
 
 #include <regen/utility/logging.h>
-#include <regen/utility/string-util.h>
-#include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/glsl/directive-processor.h>
 #include <regen/gl-types/glsl/io-processor.h>
 #include <regen/gl-types/glsl/comment-processor.h>
-
 #include "shader.h"
+#include "binding-manager.h"
 
 using namespace regen;
 
@@ -388,6 +386,11 @@ void Shader::setupInputLocations() {
 		uniformLocations_[REGEN_STRING("u_" << uniformName)] = loc;
 		uniformLocations_[REGEN_STRING("in_" << uniformName)] = loc;
 
+		auto needle = inputNames_.find(uniformName);
+		if (needle != inputNames_.end()) {
+			uniforms_.emplace_back(needle->second->in_, loc);
+		}
+
 		// create ShaderInput without data allocated.
 		// still setupInput must be called with this ShaderInput
 		// for the shader to enable it with applyInputs()
@@ -431,25 +434,39 @@ void Shader::setupInputLocations() {
 		}
 	}
 
+	std::set<int32_t> bindingPoints;
 	// uniform blocks
 	glGetProgramiv(id(), GL_ACTIVE_UNIFORM_BLOCKS, &count);
-	GLint bindingPoint = 0;
 	for (GLint blockIndex = 0; blockIndex < count; ++blockIndex) {
 		// Note: uniforms inside a uniform block do not have individual uniform locations,
 		// but each block has an index within the shader program.
 		glGetActiveUniformBlockName(id(), blockIndex, 320, &arraySize, nameC);
 		std::string blockName(truncPrefix(nameC, "in_"));
+
+		// request a binding point for this block
+		std::uintptr_t bufferRangeID = 0;
+		auto needle = inputNames_.find(blockName);
+		if (needle != inputNames_.end()) {
+			bufferRangeID = reinterpret_cast<std::uintptr_t>(needle->second->in_.get());
+		}
+		auto bindingPoint = BindingManager::request(
+				BindingManager::UBO,
+				bufferRangeID, blockName,
+				bindingPoints);
+		bindingPoints.insert(bindingPoint);
+
+		// remember the binding point, and associate a shader block index with this binding point
 		uniformLocations_[blockName] = bindingPoint;
 		uniformLocations_[REGEN_STRING("u_" << blockName)] = bindingPoint;
 		uniformLocations_[REGEN_STRING("in_" << blockName)] = bindingPoint;
-		// To bind data to a uniform block, we need to bind the uniform buffer object to a "binding point".
-		// We can choose which one but must make sure that the uniform buffer object is bound to the same binding point
-		// when the shader is used.
+		if (needle != inputNames_.end()) {
+			uniforms_.emplace_back(needle->second->in_, bindingPoint);
+		}
 		glUniformBlockBinding(id(), blockIndex, bindingPoint);
-		++bindingPoint;
 	}
 
 	// shader storage blocks
+	bindingPoints.clear();
 	glGetProgramInterfaceiv(id(),
 			GL_SHADER_STORAGE_BLOCK,
 			GL_ACTIVE_RESOURCES, &count);
@@ -458,12 +475,26 @@ void Shader::setupInputLocations() {
 				GL_SHADER_STORAGE_BLOCK,
 				blockIndex, 320, &arraySize, nameC);
 		std::string blockName(truncPrefix(nameC, "in_"));
+
+		// request a binding point for this block
+		std::uintptr_t bufferRangeID = 0;
+		auto needle = inputNames_.find(blockName);
+		if (needle != inputNames_.end()) {
+			bufferRangeID = reinterpret_cast<std::uintptr_t>(needle->second->in_.get());
+		}
+		auto bindingPoint = BindingManager::request(
+				BindingManager::SSBO,
+				bufferRangeID, blockName,
+				bindingPoints);
+		bindingPoints.insert(bindingPoint);
+
+		// remember the binding point, and associate a shader block index with this binding point
 		uniformLocations_[blockName] = bindingPoint;
 		uniformLocations_[REGEN_STRING("in_" << blockName)] = bindingPoint;
-		// TODO: this might overwrite binding points that are configured in the shader!
-		//       this should be avoided as user may bind blindly to these binding points.
+		if (needle != inputNames_.end()) {
+			uniforms_.emplace_back(needle->second->in_, bindingPoint);
+		}
 		glShaderStorageBlockBinding(id(), blockIndex, bindingPoint);
-		++bindingPoint;
 	}
 
 	glGetProgramiv(id(), GL_ACTIVE_ATTRIBUTES, &count);
@@ -489,6 +520,11 @@ void Shader::setupInputLocations() {
 		attributeLocations_[REGEN_STRING("a_" << attName)] = loc;
 		attributeLocations_[REGEN_STRING("in_" << attName)] = loc;
 		attributeLocations_[REGEN_STRING("vs_" << attName)] = loc;
+
+		auto needle = inputNames_.find(attName);
+		if (needle != inputNames_.end()) {
+			attributes_.emplace_back(needle->second->in_, loc);
+		}
 	}
 }
 
@@ -552,8 +588,8 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 		}
 	}
 	if (in->isVertexAttribute()) {
-		auto needle = attributeLocations_.find(inputName);
 		if (!in->hasData()) { return; }
+		auto needle = attributeLocations_.find(inputName);
 		if (needle != attributeLocations_.end()) {
 			attributes_.emplace_back(in, needle->second);
 		}

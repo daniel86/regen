@@ -132,6 +132,11 @@ namespace regen {
 		inline bool operator!=(const BufferRange &b) const {
 			return buffer_ != b.buffer_ || offset_ != b.offset_ || size_ != b.size_;
 		}
+
+		static const BufferRange &nullReference() {
+			static BufferRange nullRef;
+			return nullRef;
+		}
 	};
 
 	/**

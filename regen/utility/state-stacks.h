@@ -348,6 +348,13 @@ namespace regen {
 		const ValueType &globalValue() { return head_->v; }
 
 		/**
+		 * @return the current state value or the value created by default constructor.
+		 */
+		const auto& value(GLuint index) const {
+			return headi_[index]->v;
+		}
+
+		/**
 		 * Push a value onto the stack.
 		 * Applies to all indices.
 		 * @param v the value.
