@@ -5,13 +5,13 @@
 using namespace regen;
 
 GLuint BufferAllocator::createAllocator(GLuint poolIndex, GLuint size) {
-	RenderState *rs = RenderState::get();
+	auto usage = glBufferUsage((BufferUsage)(poolIndex % BUFFER_USAGE_LAST));
+	auto target = glBufferTarget((BufferTarget)(poolIndex / BUFFER_USAGE_LAST));
 	GLuint ref;
+
 	glGenBuffers(1, &ref);
-	rs->copyWriteBuffer().push(ref);
-	glBufferData(GL_COPY_WRITE_BUFFER, size, nullptr,
-		glBufferUsage((BufferUsage)(poolIndex % BUFFER_USAGE_LAST)));
-	rs->copyWriteBuffer().pop();
+	RenderState::get()->buffer(target).apply(ref);
+	glBufferData(target, size, nullptr, usage);
 	return ref;
 }
 

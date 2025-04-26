@@ -58,7 +58,10 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys) {
 	std::map<GLenum, std::string> unprocessedCode;
 	for (GLuint i = 0u; i < shaderKeys.size(); ++i) {
-		loadStage(cfg.defines_, shaderKeys[i], unprocessedCode, glenum::glslStages()[i]);
+		auto stage = glenum::glslStages()[i];
+		if (!shaderKeys[i].empty()) {
+			loadStage(cfg.defines_, shaderKeys[i], unprocessedCode, stage);
+		}
 	}
 	if (unprocessedCode.empty()) {
 		REGEN_ERROR("Failed to load shader with key '" << shaderKeys[0] << "'");

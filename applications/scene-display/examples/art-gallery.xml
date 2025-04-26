@@ -644,12 +644,12 @@
             <node name="video-picture">
                 <texture name="colorTexture" id="video-texture" map-to="COLOR"/>
                 <transform id="video-picture-tf"/>
-                <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom"/>
+                <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" fs="NONE"/>
             </node>
             <node name="smoke-picture">
                 <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="COLOR"/>
                 <transform id="smoke-picture-tf"/>
-                <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom"/>
+                <mesh id="picture-canvas" shader="regen.models.mesh" gs="regen.states.picking.geom" fs="NONE"/>
             </node>
         </picking>
     </node>

@@ -817,6 +817,22 @@ namespace regen {
 		inline GLboolean isApprox(const Vec4 &b, T delta) const {
 			return abs(x - b.x) < delta && abs(y - b.y) < delta && abs(z - b.z) < delta && abs(w - b.w) < delta;
 		}
+
+		/**
+		 * @return static zero vector.
+		 */
+		static const Vec4 &zero() {
+			static Vec4 zero_(0);
+			return zero_;
+		}
+
+		/**
+		 * @return static one vector.
+		 */
+		static const Vec4 &one() {
+			static Vec4 one_(1);
+			return one_;
+		}
 	};
 
 	// writing vector to output stream

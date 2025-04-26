@@ -360,11 +360,12 @@ void BoidSimulation_GPU::glAnimate(RenderState *rs, GLdouble dt) {
 	if (time_ > 0.016666) { time_ = 0.0; }
 	else { return; }
 
+	bboxBuffer_->clear();
 	updateGridState_->enable(rs);
 	updateGridState_->disable(rs);
 	simulate(rs, dt);
 	// update the grid in case the bounding box around the boids changed.
-	if(bboxBuffer_->updateBoundingBox(rs) || vrStamp_ != cellSize_->stamp()) {
+	if(bboxBuffer_->updateBoundingBox() || vrStamp_ != cellSize_->stamp()) {
 		boidBounds_ = bboxBuffer_->bbox();
 		updateGrid();
 		vrStamp_ = visualRange_->stamp();

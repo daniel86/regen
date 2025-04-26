@@ -14,6 +14,7 @@
 #include "regen/gl-types/ssbo.h"
 #include "compute-pass.h"
 #include "regen/gl-types/pbo.h"
+#include "regen/gl-types/buffer-mapping.h"
 
 namespace regen {
 	/**
@@ -101,8 +102,7 @@ namespace regen {
 		ref_ptr<SSBO> blockSumsBuffer_;
 		ref_ptr<SSBO> blockOffsetsBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
-		ref_ptr<PBO> lodGroupSizePBO_;
-		Vec4ui *m_lodGroupSize_ = nullptr;
+		ref_ptr<BufferStructMapping<Vec4ui>> lodGroupSizeMapping_;
 		Vec4f frustumPlanes_[6];
 		int32_t histogramReadIndex_ = 0u;
 		int32_t histogramBitOffsetIndex_ = 0u;

@@ -6,17 +6,23 @@
 namespace regen::conversion {
 	/**
 	 * Convert a float to a uint32_t.
-	 * @param value The float value to convert.
-	 * @return The converted uint32_t value.
 	 */
-	uint32_t floatToUint(float value);
+	uint32_t floatBitsToUint(float value);
+
+	/**
+	 * Convert a float to a int32_t.
+	 */
+	int32_t floatBitsToInt(float value);
 
 	/**
 	 * Convert a uint32_t to a float.
-	 * @param value The uint32_t value to convert.
-	 * @return The converted float value.
 	 */
 	float uintToFloat(uint32_t value);
+
+	/**
+	 * Convert a int32_t to a float.
+	 */
+	float intBitsToFloat(int32_t value);
 }
 
 #endif //REGEN_CONVERSION_H

@@ -352,6 +352,11 @@ namespace regen {
 		inline ParameterStackAtomic<GLuint> &elementArrayBuffer() { return elementArrayBuffer_; }
 
 		/**
+		 * bind a named buffer object to GL_TRANSFORM_FEEDBACK_BUFFER target.
+		 */
+		inline ParameterStackAtomic<GLuint> &feedbackBuffer() { return feedbackBuffer_; }
+
+		/**
 		 * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
 		 */
 		inline ParameterStackAtomic<GLuint> &shaderStorageBuffer() { return shaderStorageBuffer_; }
@@ -705,6 +710,7 @@ namespace regen {
 		std::map<GLuint,GLuint> bufferBaseBindings_[4];
 		ParameterStackAtomic<GLuint> arrayBuffer_;
 		ParameterStackAtomic<GLuint> elementArrayBuffer_;
+		ParameterStackAtomic<GLuint> feedbackBuffer_;
 		ParameterStackAtomic<GLuint> uniformBuffer_;
 		ParameterStackAtomic<GLuint> shaderStorageBuffer_;
 		ParameterStackAtomic<GLuint> pixelPackBuffer_;

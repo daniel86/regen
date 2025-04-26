@@ -6,6 +6,8 @@
 #include "regen/camera/camera.h"
 #include "state-node.h"
 #include "pick-data.h"
+#include "regen/gl-types/pbo.h"
+#include "regen/gl-types/buffer-mapping.h"
 
 namespace regen {
 	/**
@@ -35,7 +37,6 @@ namespace regen {
 	protected:
 		ref_ptr<Camera> camera_;
 		GLuint maxPickedObjects_;
-		GLdouble pickInterval_;
 
 		GLboolean hasPickedObject_;
 		PickData pickedObject_;
@@ -52,11 +53,8 @@ namespace regen {
 		ref_ptr<VBO> feedbackBuffer_;
 		ref_ptr<BufferRange> bufferRange_;
 		ref_ptr<BufferReference> vboRef_;
+		ref_ptr<BufferStructMapping<PickData>> pickMapping_;
 		GLuint bufferSize_;
-
-		GLdouble dt_;
-
-		void pick(RenderState *rs, GLuint feedbackCount);
 
 		void updateMouse();
 	};

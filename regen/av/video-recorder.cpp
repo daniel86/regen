@@ -173,8 +173,8 @@ void VideoRecorder::updateFrameBuffer() {
 	if (ptr) {
 		auto nextFrame = encoder_->reserveFrame();
 		std::memcpy(nextFrame, ptr, frameSize_);
-		encoder_->pushFrame(nextFrame, elapsedTime_);
 		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		encoder_->pushFrame(nextFrame, elapsedTime_);
 	}
 	RenderState::get()->pixelPackBuffer().pop();
 

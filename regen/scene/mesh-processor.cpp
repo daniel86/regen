@@ -96,7 +96,10 @@ void MeshNodeProvider::processInput(
 			for (GLint i = 0; i < glenum::glslStageCount(); ++i) {
 				auto prefix = glenum::glslStagePrefix(glenum::glslStages()[i]);
 				if (input.hasAttribute(prefix)) {
-					shaderKeys[i] = input.getValue(prefix);
+					auto overwriteKey = input.getValue(prefix);
+					if (overwriteKey != "NONE") {
+						shaderKeys[i] = input.getValue(prefix);
+					}
 				} else {
 					shaderKeys[i] = shaderKey;
 				}

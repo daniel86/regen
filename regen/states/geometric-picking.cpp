@@ -10,10 +10,9 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 		: StateNode(),
 		  camera_(camera),
 		  hasPickedObject_(false) {
-	maxPickedObjects_ = 100;
-	// skip picking some frames
-	pickInterval_ = 50.0;
-	dt_ = 0.0;
+	// we should only get one result from the picking, but just in case we allocate
+	// a bit extra space.
+	maxPickedObjects_ = 5;
 
 	// create uniforms encoding the mouse position
 	mouseTexco_ = mouseTexco;
@@ -47,6 +46,11 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	bufferRange_ = ref_ptr<BufferRange>::alloc();
 	bufferRange_->buffer_ = vboRef_->bufferID();
 
+	// Create a double-buffered PBO for reading the feedback buffer
+	pickMapping_ = ref_ptr<BufferStructMapping<PickData>>::alloc(
+			BufferMapping::READ | BufferMapping::PERSISTENT | BufferMapping::COHERENT,
+			BufferMapping::DOUBLE_BUFFER);
+
 	// setup transform feedback specification, this is needed for shaders to know what to output
 	feedbackState_ = ref_ptr<FeedbackSpecification>::alloc(maxPickedObjects_);
 	feedbackState_->set_feedbackMode(GL_INTERLEAVED_ATTRIBS);
@@ -58,34 +62,6 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 }
 
 GeomPicking::~GeomPicking() = default;
-
-void GeomPicking::pick(RenderState *rs, GLuint feedbackCount) {
-	rs->copyReadBuffer().push(vboRef_->bufferID());
-	auto *bufferData = (PickData *) glMapBufferRange(
-			GL_COPY_READ_BUFFER,
-			vboRef_->address(),
-			bufferSize_,
-			GL_MAP_READ_BIT);
-	// find pick result with max depth (camera looks in negative z direction)
-	PickData *bestPicked = nullptr;
-	for (GLuint i = 0; i < feedbackCount; ++i) {
-		PickData &picked_x = bufferData[i];
-		if (picked_x.objectID < 0) { continue; }
-		if (!bestPicked || picked_x.depth > bestPicked->depth) {
-			bestPicked = &picked_x;
-		}
-	}
-	if (bestPicked) {
-		pickedObject_.depth = bestPicked->depth;
-		pickedObject_.instanceID = bestPicked->instanceID;
-		pickedObject_.objectID = bestPicked->objectID;
-		hasPickedObject_ = true;
-	} else {
-		hasPickedObject_ = false;
-	}
-	glUnmapBuffer(GL_COPY_READ_BUFFER);
-	rs->copyReadBuffer().pop();
-}
 
 void GeomPicking::updateMouse() {
 	auto inverseProjectionMatrix = camera_->projectionInverse()->getVertex(0);
@@ -108,7 +84,6 @@ void GeomPicking::traverse(RenderState *rs) {
 	int feedbackCount = 0;
 	GLuint feedbackQuery = 0;
 	glGenQueries(1, &feedbackQuery);
-
 	for (auto &pickableNode: childs()) {
 		auto pickableMesh = pickableNode->findStateWithType<Mesh>();
 		if (pickableMesh == nullptr) {
@@ -130,12 +105,19 @@ void GeomPicking::traverse(RenderState *rs) {
 			break;
 		}
 	}
-
 	glDeleteQueries(1, &feedbackQuery);
 
 	if (feedbackCount > 0) {
-		auto numPicks = static_cast<GLuint>(feedbackCount);
-		pick(rs, (numPicks < maxPickedObjects_ ? numPicks : maxPickedObjects_));
+		pickMapping_->updateMapping(vboRef_, GL_TRANSFORM_FEEDBACK_BUFFER);
+		if (pickMapping_->hasData()) {
+			auto &pickData = pickMapping_->storageValue();
+			pickedObject_.depth = pickData.depth;
+			pickedObject_.instanceID = pickData.instanceID;
+			pickedObject_.objectID = pickData.objectID;
+			hasPickedObject_ = true;
+		} else {
+			hasPickedObject_ = false;
+		}
 	} else {
 		hasPickedObject_ = false;
 	}

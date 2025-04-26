@@ -2,7 +2,7 @@
 #define REGEN_BOUNDING_BOX_BUFFER_H_
 
 #include <regen/gl-types/ssbo.h>
-#include <regen/gl-types/pbo.h>
+#include <regen/gl-types/buffer-mapping.h>
 #include <regen/shapes/bounds.h>
 
 namespace regen {
@@ -31,15 +31,31 @@ namespace regen {
 		auto &bbox() { return bbox_; }
 
 		/**
+		 * Clears the bounding box buffer to zero.
+		 * This must be called each frame before computing the bounding box,
+		 * as this resets some counters to zero that are used in compute.
+		 */
+		void clear();
+
+		/**
 		 * Read the bounding box values from the GPU.
-		 * @param rs the render state.
 		 * @return true if the bounding box has changed, false otherwise.
 		 */
-		bool updateBoundingBox(RenderState *rs);
+		bool updateBoundingBox();
 
-	private:
+	protected:
+		struct BoundingBoxBlock {
+			Vec4i positiveMin;
+			Vec4i positiveMax;
+			Vec4i negativeMin;
+			Vec4i negativeMax;
+			Vec4i positiveFlags;
+			Vec4i negativeFlags;
+		};
+
 		Bounds<Vec3f> bbox_;
-		ref_ptr<PBO> bboxPBO_;
+		ref_ptr<BufferStructMapping<BoundingBoxBlock>> bboxMapping_;
+		Vec3f bboxMin_, bboxMax_;
 
 	};
 } // namespace

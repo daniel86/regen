@@ -1,6 +1,6 @@
 -- geom.gs
-#version 150
-
+#include regen.states.camera.defines
+#include regen.defines.all
 layout(triangles) in;
 layout(points, max_vertices=1) out;
 
@@ -8,8 +8,6 @@ layout(points, max_vertices=1) out;
 out int out_pickObjectID;
 out int out_pickInstanceID;
 out float out_pickDepth;
-// pretend to be fragment shader for name matching.
-//in int fs_instanceID[3];
 in int in_instanceID[3];
 
 // camera input
@@ -22,6 +20,8 @@ uniform vec2 in_mouseTexco;
 // mesh id
 uniform int in_objectID;
 uniform sampler2D in_gDepthTexture;
+
+#define HANDLE_IO(i)
 
 void main()
 {
@@ -56,6 +56,7 @@ void main()
     out_pickObjectID = in_objectID;
     out_pickInstanceID = in_instanceID[0];
     out_pickDepth = intersectionDepth;
+    HANDLE_IO(0);
     EmitVertex();
     EndPrimitive();
 }

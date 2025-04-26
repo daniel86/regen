@@ -209,6 +209,7 @@ RenderState::RenderState()
 		  toggles_(TOGGLE_STATE_LAST, regen_lockedValue, Regen_Toggle),
 		  arrayBuffer_(GL_ARRAY_BUFFER, Regen_BindBuffer),
 		  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER, Regen_BindBuffer),
+		  feedbackBuffer_(GL_TRANSFORM_FEEDBACK_BUFFER, Regen_BindBuffer),
 		  uniformBuffer_(GL_UNIFORM_BUFFER, Regen_BindBuffer),
 		  shaderStorageBuffer_(GL_SHADER_STORAGE_BUFFER, Regen_BindBuffer),
 		  pixelPackBuffer_(GL_PIXEL_PACK_BUFFER, Regen_BindBuffer),
@@ -342,6 +343,8 @@ ParameterStackAtomic<GLuint>& RenderState::buffer(GLenum target) {
 			return arrayBuffer_;
 		case GL_ELEMENT_ARRAY_BUFFER:
 			return elementArrayBuffer_;
+		case GL_TRANSFORM_FEEDBACK_BUFFER:
+			return feedbackBuffer_;
 		default:
 			REGEN_WARN("Unknown buffer target " << target << ". Using GL_ARRAY_BUFFER.");
 			return arrayBuffer_;

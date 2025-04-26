@@ -294,17 +294,9 @@ void LODState::createComputeShader() {
 	lodGroupSizeBuffer_->addBlockInput(lodGroupSize_);
 	lodGroupSizeBuffer_->update();
 	// +PBO for reading back the lodGroupSizeBuffer_
-	lodGroupSizePBO_ = ref_ptr<PBO>::alloc(BUFFER_USAGE_STREAM_READ);
-	RenderState::get()->pixelPackBuffer().push(lodGroupSizePBO_->id());
-	glBufferStorage(GL_PIXEL_PACK_BUFFER,
-					sizeof(uint32_t) * 4, nullptr,
-					GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	m_lodGroupSize_ = (Vec4ui *) glMapBufferRange(
-			GL_PIXEL_PACK_BUFFER,
-			0,
-			sizeof(uint32_t) * 4,
-			GL_MAP_READ_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
-	RenderState::get()->pixelPackBuffer().pop();
+	lodGroupSizeMapping_ = ref_ptr<BufferStructMapping<Vec4ui>>::alloc(
+			BufferMapping::READ | BufferMapping::PERSISTENT | BufferMapping::COHERENT,
+			BufferMapping::DOUBLE_BUFFER);
 
 	// Temporary Buffers for sorting.
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer", BUFFER_USAGE_STREAM_COPY);
@@ -529,7 +521,6 @@ void LODState::traverseGPU(RenderState *rs) {
 						 &zero);
 
 	// Update the frustum planes in the UBO
-	// TODO: how to handle multi layer rendering with GPU LOD?
 	auto &frustumPlanes = camera_->frustum()[0].planes;
 	for (int i = 0; i < 6; ++i) {
 		frustumPlanes_[i] = frustumPlanes[i].equation();
@@ -547,23 +538,18 @@ void LODState::traverseGPU(RenderState *rs) {
 
 	radixSortGPU(rs);
 
-	// Copy lodGroupSizeBuffer_ to lodGroupSizePBO_
-	rs->shaderStorageBuffer().apply(lodGroupSizeBuffer_->blockReference()->bufferID());
-	rs->copyWriteBuffer().push(lodGroupSizePBO_->id());
-	glCopyBufferSubData(
-			GL_SHADER_STORAGE_BUFFER,
-			GL_COPY_WRITE_BUFFER,
-			lodGroupSizeBuffer_->blockReference()->address(),
-			0,
-			lodGroupSizeBuffer_->blockReference()->allocatedSize());
-	rs->copyWriteBuffer().pop();
-
-	// Read lodGroupSizePBO_ and update lodNumInstances_
-	if (m_lodGroupSize_) {
-		lodNumInstances_[0] = m_lodGroupSize_[0].x;
-		lodNumInstances_[1] = m_lodGroupSize_[0].y;
-		lodNumInstances_[2] = m_lodGroupSize_[0].z;
-		lodNumInstances_[3] = m_lodGroupSize_[0].w;
+	// Update and read lodGroupSize and update lodNumInstances
+	lodGroupSizeMapping_->updateMapping(
+			lodGroupSizeBuffer_->blockReference(),
+			GL_SHADER_STORAGE_BUFFER);
+	if (lodGroupSizeMapping_->hasData()) {
+		auto &latestData = lodGroupSizeMapping_->storageValue();
+		lodNumInstances_[0] = latestData.x;
+		lodNumInstances_[1] = latestData.y;
+		lodNumInstances_[2] = latestData.z;
+		lodNumInstances_[3] = latestData.w;
+	} else {
+		return;
 	}
 	//REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
 	//		<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
