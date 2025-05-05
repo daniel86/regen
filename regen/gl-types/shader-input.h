@@ -526,7 +526,7 @@ namespace regen {
 		bool normalize_;
 		bool isVertexAttribute_;
 		bool transpose_;
-		ShaderData::MappingMode gpuUsage_;
+		ShaderData::MappingMode gpuUsage_ = ShaderData::READ;
 
 		struct SlotLock {
 			std::mutex lock;

@@ -18,6 +18,7 @@
 #include <regen/states/direct-shading.h>
 #include <applications/qt/qt-camera-events.h>
 #include <applications/qt/ColorWidget.h>
+#include <applications/scene-display/animation-events.h>
 
 using namespace std;
 
@@ -81,32 +82,34 @@ MeshViewerWidget::MeshViewerWidget(QtApplication *app)
 	ui_.setupUi(this);
 	ui_.loadMeshButton->setEnabled(false);
 	ui_.meshIndexCombo->setEnabled(false);
-	ui_.splitter->setSizes(QList<int>({INT_MAX, INT_MAX}));
 	// load initial settings
-	ui_.simplifyCheckBox->setChecked(settings_.value("simplify", true).toBool());
-	ui_.simplify1Spin->setValue(settings_.value("simplify1", 0.7).toFloat());
-	ui_.simplify2Spin->setValue(settings_.value("simplify2", 0.4).toFloat());
-	ui_.simplify3Spin->setValue(settings_.value("simplify3", 0.1).toFloat());
-	ui_.norMaxAngleSpin->setValue(settings_.value("norMaxAngle", 0.6).toFloat());
-	ui_.norPenaltySpin->setValue(settings_.value("norPenalty", 0.1).toFloat());
-	ui_.valencePenaltySpin->setValue(settings_.value("valencePenalty", 0.1).toFloat());
-	ui_.areaPenaltySpin->setValue(settings_.value("areaPenalty", 0.1).toFloat());
-	ui_.genNorCheck->setCheckState(
-			settings_.value("genNorCheck", false).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.fixNorCheck->setCheckState(
-			settings_.value("fixNorCheck", false).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.genUvCheck->setCheckState(
-			settings_.value("genUvCheck", true).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.flipUvCheck->setCheckState(
-			settings_.value("flipUvCheck", true).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.deboneCheck->setCheckState(
-			settings_.value("deboneCheck", false).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.limitBonesCheck->setCheckState(
-			settings_.value("limitBonesCheck", false).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.optimizeMeshesCheck->setCheckState(
-			settings_.value("optimizeMeshesCheck", true).toBool() ? Qt::Checked : Qt::Unchecked);
-	ui_.optimizeGraphCheck->setCheckState(
-			settings_.value("optimizeGraphCheck", true).toBool() ? Qt::Checked : Qt::Unchecked);
+	for (auto [check, name]: {
+			std::make_pair(ui_.simplifyCheckBox, "simplify"),
+			std::make_pair(ui_.genNorCheck, "genNorCheck"),
+			std::make_pair(ui_.fixNorCheck, "fixNorCheck"),
+			std::make_pair(ui_.genUvCheck, "genUvCheck"),
+			std::make_pair(ui_.flipUvCheck, "flipUvCheck"),
+			std::make_pair(ui_.deboneCheck, "deboneCheck"),
+			std::make_pair(ui_.limitBonesCheck, "limitBonesCheck"),
+			std::make_pair(ui_.optimizeMeshesCheck, "optimizeMeshesCheck"),
+			std::make_pair(ui_.optimizeGraphCheck, "optimizeGraphCheck"),
+			std::make_pair(ui_.animateCheck, "animateCheck"),
+			std::make_pair(ui_.strictBoundaryCheck, "strictBoundaryCheck"),
+	}) {
+		check->setChecked(settings_.value(name, check->isChecked()).toBool());
+	}
+	for (auto [spin, name]: {
+			std::make_pair(ui_.simplify0Spin, "simplify0"),
+			std::make_pair(ui_.simplify1Spin, "simplify1"),
+			std::make_pair(ui_.simplify2Spin, "simplify2"),
+			std::make_pair(ui_.simplify3Spin, "simplify3"),
+			std::make_pair(ui_.norMaxAngleSpin, "norMaxAngle"),
+			std::make_pair(ui_.norPenaltySpin, "norPenalty"),
+			std::make_pair(ui_.valencePenaltySpin, "valencePenalty"),
+			std::make_pair(ui_.areaPenaltySpin, "areaPenalty"),
+	}) {
+		spin->setValue(settings_.value(name, spin->value()).toFloat());
+	}
 	auto lastPath = settings_.value("lastPath", "").toString();
 	if (!lastPath.isEmpty()) {
 		assetFilePath_ = lastPath.toStdString();
@@ -122,18 +125,24 @@ MeshViewerWidget::MeshViewerWidget(QtApplication *app)
 	hideLayout(fullscreenLayout_);
 
 	resize(1600, 1200);
+	ui_.splitter->setSizes(QList<int>({1200, 400}));
 	updateSize();
 	app_->withGLContext([this]() { gl_loadScene(); });
 }
 
-void MeshViewerWidget::simplifyMesh_GL(const Vec3f &thresholds) {
+void MeshViewerWidget::simplifyMesh_GL(const Vec4f &thresholds) {
 	for (auto &mesh: meshes_) {
 		MeshSimplifier simplifier(mesh);
-		simplifier.setThresholds(thresholds.x, thresholds.y);
+		simplifier.setThresholds(thresholds);
 		simplifier.setNormalMaxAngle(static_cast<float>(ui_.norMaxAngleSpin->value()));
 		simplifier.setNormalPenalty(static_cast<float>(ui_.norPenaltySpin->value()));
 		simplifier.setValencePenalty(static_cast<float>(ui_.valencePenaltySpin->value()));
 		simplifier.setAreaPenalty(static_cast<float>(ui_.areaPenaltySpin->value()));
+		if (ui_.strictBoundaryCheck->isChecked()) {
+			simplifier.setUseStrictBoundary(true);
+		} else {
+			simplifier.setUseStrictBoundary(false);
+		}
 		simplifier.simplifyMesh();
 	}
 }
@@ -161,6 +170,10 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 	Mat4f transform = Mat4f::identity();
 	asset_ = ref_ptr<AssetImporter>::alloc(p);
 	asset_->setImportFlag(AssetImporter::IGNORE_NORMAL_MAP);
+	if (ui_.animateCheck->isChecked()) {
+		asset_->setAnimationConfig(AssimpAnimationConfig(ui_.tpsSpin->value()));
+	}
+	setAssImpFlags();
 	asset_->importAsset();
 	meshes_ = asset_->loadAllMeshes(transform, vboUsage);
 	if (meshes_.empty()) {
@@ -177,9 +190,14 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 			bounds.min.setMin(mesh->minPosition());
 			bounds.max.setMax(mesh->maxPosition());
 		}
-		meshScale_ = 1.0f / (bounds.max.y - bounds.min.y);
+		meshOrigin_ = -bounds.center();
+		meshScale_ = 1.0f / std::max(
+				bounds.max.x - bounds.min.x, std::max(
+				bounds.max.y - bounds.min.y,
+				bounds.max.z - bounds.min.z));
 		// Add mesh indexes to the combo box, select "0" by default
 		ui_.meshIndexCombo->clear();
+		ui_.meshIndexCombo->addItem(QString::fromStdString(REGEN_STRING(-1)));
 		for (uint32_t i = 0; i < meshes_.size(); ++i) {
 			ui_.meshIndexCombo->addItem(QString::fromStdString(REGEN_STRING(i)));
 		}
@@ -187,17 +205,19 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 		ui_.meshIndexCombo->setCurrentIndex(0);
 
 		if (simplify) {
-			auto lod0 = static_cast<float>(ui_.simplify1Spin->value());
-			auto lod1 = static_cast<float>(ui_.simplify2Spin->value());
-			auto lod2 = static_cast<float>(ui_.simplify3Spin->value());
-			simplifyMesh_GL(Vec3f(
+			auto lod0 = static_cast<float>(ui_.simplify0Spin->value());
+			auto lod1 = static_cast<float>(ui_.simplify1Spin->value());
+			auto lod2 = static_cast<float>(ui_.simplify2Spin->value());
+			auto lod3 = static_cast<float>(ui_.simplify3Spin->value());
+			simplifyMesh_GL(Vec4f(
 					lod0,
 					lod1 < lod0 ? lod1 : 0.0f,
-					lod2 < lod1 ? lod2 : 0.0f));
+					lod2 < lod1 ? lod2 : 0.0f,
+					lod3 < lod2 ? lod3 : 0.0f));
 		}
 		loadResources_GL();
 		updateLoDButtons();
-		selectMesh(0, 0);
+		selectMesh(-1, 0);
 		transformMesh(0.0f);
 	}
 }
@@ -206,10 +226,16 @@ void MeshViewerWidget::loadResources_GL() {
 	meshRoot_->clear();
 	meshNodes_.clear();
 
+	uint32_t index = 0;
 	for (auto &mesh: meshes_) {
 		auto material = asset_->getMeshMaterial(mesh.get());
 		if (material.get() != nullptr) {
 			mesh->joinStates(material);
+		}
+
+		// load bone animation, if any
+		if (ui_.animateCheck->isChecked()) {
+			loadAnimation(mesh, index++);
 		}
 
 		auto shaderState = ref_ptr<ShaderState>::alloc();
@@ -227,23 +253,61 @@ void MeshViewerWidget::loadResources_GL() {
 	}
 }
 
-void MeshViewerWidget::selectMesh(uint32_t meshIndex, uint32_t lodIndex) {
-	// TODO: Support mesh animations, play the animation from begin to end in a loop.
+void MeshViewerWidget::loadAnimation(const ref_ptr<Mesh> &mesh, uint32_t index) {
+	std::list<ref_ptr<AnimationNode> > meshBones;
+	GLuint numBoneWeights = asset_->numBoneWeights(mesh.get());
+	GLuint numBones = 0u;
+	// Find bones influencing this mesh
+	for (auto &nodeAnim_i : asset_->getNodeAnimations()) {
+		auto boneNodes_i = asset_->loadMeshBones(mesh.get(), nodeAnim_i.get());
+		meshBones.insert(meshBones.end(), boneNodes_i.begin(), boneNodes_i.end());
+		numBones = boneNodes_i.size();
+		nodeAnim_i->startAnimation();
+	}
+	// Create Bones state that is responsible for uploading animation data to GL.
+	if (!meshBones.empty()) {
+		ref_ptr<Bones> bonesState = ref_ptr<Bones>::alloc(numBoneWeights, numBones);
+		bonesState->setBones(meshBones);
+		bonesState->setAnimationName(REGEN_STRING("bones-mesh-viewer-" << index));
+		bonesState->startAnimation();
+		mesh->joinStates(bonesState);
+	}
+
+	for (const auto &anim: asset_->getNodeAnimations()) {
+		ref_ptr<EventHandler> animStopped = ref_ptr<RandomAnimationRangeUpdater2>::alloc(anim);
+		anim->connect(Animation::ANIMATION_STOPPED, animStopped);
+		{
+			EventData evData;
+			evData.eventID = Animation::ANIMATION_STOPPED;
+			animStopped->call(anim.get(), &evData);
+		}
+	}
+}
+
+void MeshViewerWidget::selectMesh_(uint32_t meshIndex, uint32_t lodIndex) {
+	auto &mesh = meshes_[meshIndex];
+	auto numLODs = mesh->numLODs();
+	if (numLODs > 1) {
+		if (lodIndex < numLODs) {
+			mesh->activateLOD(lodIndex);
+		} else {
+			REGEN_WARN("Invalid LOD index " << lodIndex << " for mesh " << meshIndex);
+			mesh->activateLOD(0);
+		}
+	}
+	meshNodes_[meshIndex]->set_isHidden(false);
+}
+
+void MeshViewerWidget::selectMesh(int32_t meshIndex, uint32_t lodIndex) {
 	for (auto &meshNode: meshNodes_) {
 		meshNode->set_isHidden(true);
 	}
-	if (meshIndex < meshNodes_.size()) {
-		auto &mesh = meshes_[meshIndex];
-		auto numLODs = mesh->numLODs();
-		if (numLODs > 1) {
-			if (lodIndex < numLODs) {
-				mesh->activateLOD(lodIndex);
-			} else {
-				REGEN_WARN("Invalid LOD index " << lodIndex << " for mesh " << meshIndex);
-				mesh->activateLOD(0);
-			}
+	if (meshIndex < 0) {
+		for (uint32_t i = 0u; i < meshNodes_.size(); ++i) {
+			selectMesh_(i, lodIndex);
 		}
-		meshNodes_[meshIndex]->set_isHidden(false);
+	} else if (meshIndex < meshNodes_.size()) {
+			selectMesh_(meshIndex, lodIndex);
 	}
 	currentMeshIndex_ = meshIndex;
 	currentLodLevel_ = lodIndex;
@@ -312,12 +376,21 @@ void MeshViewerWidget::gl_loadScene() {
 	// TODO: better use deferred shading, and also allow to display the normals
 	auto shadingState = ref_ptr<DirectShading>::alloc();
 	shadingState->ambientLight()->setVertex(0, Vec3f(0.3f));
-	sceneLight_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-	sceneLight_->set_isAttenuated(false);
-	sceneLight_->direction()->setVertex(0, Vec3f(1.0f, 0.0f, 0.0f).normalize());
-	sceneLight_->diffuse()->setVertex(0, Vec3f(0.6f, 0.6f, 0.6f));
-	sceneLight_->specular()->setVertex(0, Vec3f(0.2f));
-	shadingState->addLight(sceneLight_);
+	sceneLight_[0] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
+	sceneLight_[0]->direction()->setVertex(0, Vec3f(0.0f, 1.0f, 0.0f).normalize());
+	sceneLight_[0]->diffuse()->setVertex(0, Vec3f(0.3f, 0.3f, 0.3f));
+	sceneLight_[0]->specular()->setVertex(0, Vec3f(0.0f));
+	sceneLight_[1] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
+	sceneLight_[1]->direction()->setVertex(0, Vec3f(-1.0f, 0.0f, 0.0f).normalize());
+	sceneLight_[1]->diffuse()->setVertex(0, Vec3f(0.4f, 0.4f, 0.4f));
+	sceneLight_[1]->specular()->setVertex(0, Vec3f(0.0f));
+	sceneLight_[2] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
+	sceneLight_[2]->direction()->setVertex(0, Vec3f(1.0f, 1.0f, 0.0f).normalize());
+	sceneLight_[2]->diffuse()->setVertex(0, Vec3f(0.4f, 0.4f, 0.4f));
+	sceneLight_[2]->specular()->setVertex(0, Vec3f(0.0f));
+	shadingState->addLight(sceneLight_[0]);
+	shadingState->addLight(sceneLight_[1]);
+	shadingState->addLight(sceneLight_[2]);
 	sceneRoot_->state()->joinStates(shadingState);
 	// finally, enable a blit state to copy the framebuffer to the screen
 	sceneRoot_->state()->joinStates(ref_ptr<BlitToScreen>::alloc(
@@ -344,6 +417,7 @@ void MeshViewerWidget::transformMesh(GLdouble dt) {
 	}
 	meshQuaternion_.setAxisAngle(Vec3f::up(), meshOrientation_);
 	auto mat = meshQuaternion_.calculateMatrix();
+	mat.translate(meshOrigin_);
 	mat.scale(Vec3f(meshScale_));
 	tf->setVertex(0, mat);
 }
@@ -378,23 +452,35 @@ void MeshViewerWidget::loadMeshes() {
 		loadMeshes_GL(assetFilePath_);
 	});
 	// store the settings
+	for (auto [spin, name]: {
+			std::make_pair(ui_.simplify0Spin, "simplify0"),
+			std::make_pair(ui_.simplify1Spin, "simplify1"),
+			std::make_pair(ui_.simplify2Spin, "simplify2"),
+			std::make_pair(ui_.simplify3Spin, "simplify3"),
+			std::make_pair(ui_.tpsSpin, "tps"),
+			std::make_pair(ui_.norMaxAngleSpin, "norMaxAngle"),
+			std::make_pair(ui_.norPenaltySpin, "norPenalty"),
+			std::make_pair(ui_.valencePenaltySpin, "valencePenalty"),
+			std::make_pair(ui_.areaPenaltySpin, "areaPenalty")
+	}) {
+		settings_.setValue(name, spin->value());
+	}
+	for (auto [check, name]: {
+			std::make_pair(ui_.simplifyCheckBox, "simplify"),
+			std::make_pair(ui_.genNorCheck, "genNorCheck"),
+			std::make_pair(ui_.fixNorCheck, "fixNorCheck"),
+			std::make_pair(ui_.genUvCheck, "genUvCheck"),
+			std::make_pair(ui_.flipUvCheck, "flipUvCheck"),
+			std::make_pair(ui_.deboneCheck, "deboneCheck"),
+			std::make_pair(ui_.limitBonesCheck, "limitBonesCheck"),
+			std::make_pair(ui_.optimizeMeshesCheck, "optimizeMeshesCheck"),
+			std::make_pair(ui_.optimizeGraphCheck, "optimizeGraphCheck"),
+			std::make_pair(ui_.animateCheck, "animateCheck"),
+			std::make_pair(ui_.strictBoundaryCheck, "strictBoundaryCheck"),
+	}) {
+		settings_.setValue(name, check->isChecked());
+	}
 	settings_.setValue("lastPath", QString::fromStdString(assetFilePath_));
-	settings_.setValue("simplify", ui_.simplifyCheckBox->isChecked());
-	settings_.setValue("simplify1", ui_.simplify1Spin->value());
-	settings_.setValue("simplify2", ui_.simplify2Spin->value());
-	settings_.setValue("simplify3", ui_.simplify3Spin->value());
-	settings_.setValue("norMaxAngle", ui_.norMaxAngleSpin->value());
-	settings_.setValue("norPenalty", ui_.norPenaltySpin->value());
-	settings_.setValue("valencePenalty", ui_.valencePenaltySpin->value());
-	settings_.setValue("areaPenalty", ui_.areaPenaltySpin->value());
-	settings_.setValue("genNorCheck", ui_.genNorCheck->checkState() == Qt::Checked);
-	settings_.setValue("fixNorCheck", ui_.fixNorCheck->checkState() == Qt::Checked);
-	settings_.setValue("genUvCheck", ui_.genUvCheck->checkState() == Qt::Checked);
-	settings_.setValue("flipUvCheck", ui_.flipUvCheck->checkState() == Qt::Checked);
-	settings_.setValue("deboneCheck", ui_.deboneCheck->checkState() == Qt::Checked);
-	settings_.setValue("limitBonesCheck", ui_.limitBonesCheck->checkState() == Qt::Checked);
-	settings_.setValue("optimizeMeshesCheck", ui_.optimizeMeshesCheck->checkState() == Qt::Checked);
-	settings_.setValue("optimizeGraphCheck", ui_.optimizeGraphCheck->checkState() == Qt::Checked);
 	settings_.sync();
 }
 
@@ -410,18 +496,27 @@ void MeshViewerWidget::openAssetFile() {
 	ui_.loadMeshButton->setEnabled(true);
 }
 
+void MeshViewerWidget::activateLoD(int lodLevel, const ref_ptr<Mesh> &mesh) {
+	auto numLODs = mesh->numLODs();
+	if (lodLevel > numLODs) {
+		REGEN_WARN("Invalid LOD level " << lodLevel);
+		lodLevel = 0;
+	}
+	mesh->activateLOD(lodLevel);
+}
+
 void MeshViewerWidget::activateLoD(int lodLevel) {
 	if (meshes_.empty()) {
 		REGEN_WARN("No meshes loaded.");
 		return;
 	}
-	auto &firstMesh = meshes_[currentMeshIndex_];
-	auto numLODs = firstMesh->numLODs();
-	if (lodLevel > numLODs) {
-		REGEN_WARN("Invalid LOD level " << lodLevel);
-		lodLevel = 0;
+	if (currentMeshIndex_ == -1) {
+		for (auto &mesh: meshes_) {
+			activateLoD(lodLevel, mesh);
+		}
+	} else {
+		activateLoD(lodLevel, meshes_[currentMeshIndex_]);
 	}
-	firstMesh->activateLOD(lodLevel);
 }
 
 void MeshViewerWidget::activateLoD_0() {
@@ -441,12 +536,7 @@ void MeshViewerWidget::activateLoD_3() {
 }
 
 void MeshViewerWidget::activateMeshIndex(int index) {
-	if (index < 0 || index >= meshes_.size()) {
-		REGEN_WARN("Invalid mesh index " << index);
-		return;
-	}
-	REGEN_INFO("Activating mesh " << index);
-	selectMesh(index, currentLodLevel_);
+	selectMesh(index-1, currentLodLevel_);
 }
 
 void MeshViewerWidget::updateSize() {
@@ -505,10 +595,11 @@ void MeshViewerWidget::toggleRotate(bool isEnabled) {
 }
 
 void MeshViewerWidget::setAssImpFlags() {
+	asset_->setAiProcessFlag(aiProcess_GenNormals);
 	if (ui_.genNorCheck->checkState() == Qt::Checked) {
-		asset_->setAiProcessFlag(aiProcess_GenNormals);
+		asset_->setAiProcessFlag(aiProcess_ForceGenNormals);
 	} else {
-		asset_->unsetAiProcessFlag(aiProcess_GenNormals);
+		asset_->unsetAiProcessFlag(aiProcess_ForceGenNormals);
 	}
 	if (ui_.fixNorCheck->checkState() == Qt::Checked) {
 		asset_->setAiProcessFlag(aiProcess_FixInfacingNormals);

@@ -31,7 +31,7 @@ namespace regen {
 
 		virtual const byte *clientData() const = 0;
 
-		virtual uint32_t numVertices() const = 0;
+		virtual uint32_t numElements() const = 0;
 
 		virtual uint32_t inputSize() const = 0;
 
@@ -50,27 +50,18 @@ namespace regen {
 	template<typename T>
 	class LODAttributeT : public LODAttribute {
 	public:
-		LODAttributeT(AttributeSemantic semantic, const ref_ptr<ShaderInput> &attr)
+		LODAttributeT(const ref_ptr<ShaderInput> &attr,
+				AttributeSemantic semantic,
+				uint32_t numElements,
+				const T *_data = nullptr)
 				: LODAttribute(semantic, attr),
-				  data(attr->numVertices()) {
-			std::memcpy(
-					(byte *) data.data(),
-					attr->clientData(),
-					data.size() * attribute->elementSize());
-		}
-
-		LODAttributeT(AttributeSemantic semantic, const ref_ptr<ShaderInput> &attr, uint32_t numVertices)
-				: LODAttribute(semantic, attr),
-				  data(numVertices) {
-		}
-
-		explicit LODAttributeT(const LODAttribute *other)
-				: LODAttribute(other->semantic, other->attribute),
-				  data(other->numVertices()) {
-			std::memcpy(
-					(byte*)this->data.data(),
-					other->clientData(),
-					data.size() * attribute->elementSize());
+				  data(numElements) {
+			if (_data) {
+				std::memcpy(
+						(byte *) data.data(),
+						_data,
+						data.size() * attribute->dataTypeBytes() * attribute->valsPerElement());
+			}
 		}
 
 		~LODAttributeT() override = default;
@@ -78,21 +69,35 @@ namespace regen {
 		std::vector <T> data;
 
 		LODAttribute *makeSibling(uint32_t numVertices) const override {
-			return new LODAttributeT<T>(semantic, attribute, numVertices);
+			return new LODAttributeT<T>(
+					attribute,
+					semantic,
+					numVertices * attribute->numArrayElements());
 		}
 
 		void setVertex(uint32_t newIdx, const LODAttribute *other, uint32_t otherIndex) override {
 			auto &otherData = ((const LODAttributeT*) other)->data;
-			data[newIdx] = otherData[otherIndex];
+			if (attribute->numArrayElements()>1) {
+				// must access data with stride, and set num array elements
+				newIdx *= attribute->numArrayElements();
+				otherIndex *= attribute->numArrayElements();
+				for (uint32_t i = 0; i < attribute->numArrayElements(); ++i) {
+					data[newIdx + i] = otherData[otherIndex + i];
+				}
+			} else {
+				data[newIdx] = otherData[otherIndex];
+			}
 		}
 
 		byte *clientData() override { return (byte *) data.data(); }
 
 		const byte *clientData() const override { return (const byte *) data.data(); }
 
-		uint32_t numVertices() const override { return data.size(); }
+		uint32_t numElements() const override { return data.size(); }
 
-		uint32_t inputSize() const override { return data.size() * attribute->elementSize(); }
+		uint32_t inputSize() const override {
+			return data.size() * attribute->dataTypeBytes() * attribute->valsPerElement();
+		}
 	};
 }
 

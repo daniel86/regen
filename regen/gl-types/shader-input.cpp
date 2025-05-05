@@ -302,7 +302,8 @@ MappedData ShaderInput::mapClientData(int mapMode) const {
 		byte *data_w;
 		// index mapping should e avoided! It might require to copy one slot to the other.
 		// NOTE: no index mapping needed if there is only one vertex/array element
-		bool isPartialWrite = ((mapMode & ShaderData::INDEX) != 0 && inputSize_ > (dataTypeBytes_ * valsPerElement_));
+		bool isPartialWrite = ((mapMode & ShaderData::INDEX) != 0 && inputSize_ >
+			(dataTypeBytes_ * valsPerElement_ * numArrayElements_));
 
 		// ShaderInput initially has only one slot, the second is allocated on demand in case
 		// multiple threads are concurrently reading/writing the data.
@@ -599,53 +600,54 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 		case GL_FLOAT:
 			switch (valsPerElement) {
 				case 16:
-					return ref_ptr<ShaderInputMat4>::alloc(name);
+					return ref_ptr<ShaderInputMat4>::alloc(name, in->numArrayElements(), in->normalize());
 				case 9:
-					return ref_ptr<ShaderInputMat3>::alloc(name);
+					return ref_ptr<ShaderInputMat3>::alloc(name, in->numArrayElements(), in->normalize());
 				case 4:
-					return ref_ptr<ShaderInput4f>::alloc(name);
+					return ref_ptr<ShaderInput4f>::alloc(name, in->numArrayElements(), in->normalize());
 				case 3:
-					return ref_ptr<ShaderInput3f>::alloc(name);
+					return ref_ptr<ShaderInput3f>::alloc(name, in->numArrayElements(), in->normalize());
 				case 2:
-					return ref_ptr<ShaderInput2f>::alloc(name);
+					return ref_ptr<ShaderInput2f>::alloc(name, in->numArrayElements(), in->normalize());
 				default:
-					return ref_ptr<ShaderInput1f>::alloc(name);
+					return ref_ptr<ShaderInput1f>::alloc(name, in->numArrayElements(), in->normalize());
 			}
 		case GL_DOUBLE:
 			switch (valsPerElement) {
 				case 4:
-					return ref_ptr<ShaderInput4d>::alloc(name);
+					return ref_ptr<ShaderInput4d>::alloc(name, in->numArrayElements(), in->normalize());
 				case 3:
-					return ref_ptr<ShaderInput3d>::alloc(name);
+					return ref_ptr<ShaderInput3d>::alloc(name, in->numArrayElements(), in->normalize());
 				case 2:
-					return ref_ptr<ShaderInput2d>::alloc(name);
+					return ref_ptr<ShaderInput2d>::alloc(name, in->numArrayElements(), in->normalize());
 				default:
-					return ref_ptr<ShaderInput1d>::alloc(name);
+					return ref_ptr<ShaderInput1d>::alloc(name, in->numArrayElements(), in->normalize());
 			}
 		case GL_BOOL:
 		case GL_INT:
 			switch (valsPerElement) {
 				case 4:
-					return ref_ptr<ShaderInput4i>::alloc(name);
+					return ref_ptr<ShaderInput4i>::alloc(name, in->numArrayElements(), in->normalize());
 				case 3:
-					return ref_ptr<ShaderInput3i>::alloc(name);
+					return ref_ptr<ShaderInput3i>::alloc(name, in->numArrayElements(), in->normalize());
 				case 2:
-					return ref_ptr<ShaderInput2i>::alloc(name);
+					return ref_ptr<ShaderInput2i>::alloc(name, in->numArrayElements(), in->normalize());
 				default:
-					return ref_ptr<ShaderInput1i>::alloc(name);
+					return ref_ptr<ShaderInput1i>::alloc(name, in->numArrayElements(), in->normalize());
 			}
 		case GL_UNSIGNED_INT:
 			switch (valsPerElement) {
 				case 4:
-					return ref_ptr<ShaderInput4ui>::alloc(name);
+					return ref_ptr<ShaderInput4ui>::alloc(name, in->numArrayElements(), in->normalize());
 				case 3:
-					return ref_ptr<ShaderInput3ui>::alloc(name);
+					return ref_ptr<ShaderInput3ui>::alloc(name, in->numArrayElements(), in->normalize());
 				case 2:
-					return ref_ptr<ShaderInput2ui>::alloc(name);
+					return ref_ptr<ShaderInput2ui>::alloc(name, in->numArrayElements(), in->normalize());
 				default:
-					return ref_ptr<ShaderInput1ui>::alloc(name);
+					return ref_ptr<ShaderInput1ui>::alloc(name, in->numArrayElements(), in->normalize());
 			}
 		default:
+			REGEN_WARN("Unknown shader input type: " << glenum::glslDataType(baseType, valsPerElement));
 			return {};
 	}
 }

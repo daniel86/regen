@@ -268,6 +268,13 @@ namespace regen {
 		 */
 		void stopNodeAnimation();
 
+		/**
+		 * @return the number of animations.
+		 */
+		uint32_t numAnimations() const {
+			return (uint32_t) animData_.size();
+		}
+
 		// override
 		void animate(GLdouble dt) override;
 

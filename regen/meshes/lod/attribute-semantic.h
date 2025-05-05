@@ -14,6 +14,8 @@ namespace regen {
 		BITANGENT,
 		TEXCOORD,
 		COLOR,
+		BONE_WEIGHTS,
+		BONE_INDICES,
 		UNKNOWN // keep last
 	};
 }

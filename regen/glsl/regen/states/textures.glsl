@@ -345,6 +345,11 @@ void textureMappingFragment(in vec3 P, inout vec4 C, inout vec3 N)
     mat3 tbn${INDEX} = mat3(in_tangent,in_binormal,in_norWorld);
     // Expand the range of the normal value from (0, +1) to (-1, +1).
     vec3 bump${INDEX} = (texel${INDEX}.rgb * 2.0f) - 1.0f;
+    // TODO: unity-style normal maps are all red with alpha. I did not really find good documentation
+    //       but below looks right for an example mesh. Not sure though if the format should be supported
+    //       and how to handle in assimp loader. With above there will be artifacts using unity-style normal maps.
+    //vec2 bump${INDEX}_u = (texel${INDEX}.ra * 2.0f) - 1.0f;
+    //vec3 bump${INDEX} = normalize(vec3(bump${INDEX}_u.yyx));
     // Calculate the normal from the data in the normal map.
     bump${INDEX} = normalize(tbn${INDEX} * bump${INDEX});
     ${_BLEND}( bump${INDEX}, N, ${TEX_BLEND_FACTOR${_ID}} );

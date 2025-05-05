@@ -31,12 +31,12 @@ namespace regen {
 		/**
 		 * Set the thresholds for LOD levels.
 		 * Each value is a fraction of the original mesh size measured in number of faces.
-		 * @param lodMid fraction of faces to keep for the first LOD level.
-		 * @param lodFar fraction of faces to keep for the second LOD level.
 		 */
-		void setThresholds(float lodMid, float lodFar) {
-			thresholds_[0] = lodMid;
-			thresholds_[1] = lodFar;
+		void setThresholds(const Vec4f thresholds) {
+			thresholds_[0] = thresholds.x;
+			thresholds_[1] = thresholds.y;
+			thresholds_[2] = thresholds.z;
+			thresholds_[3] = thresholds.w;
 		}
 
 		/**
@@ -72,18 +72,30 @@ namespace regen {
 		}
 
 		/**
+		 * Set the use of strict boundary.
+		 * In strict mode, no edges are collapsed where a vertex is a boundary vertex.
+		 * Otherwise, edges can be collapsed if at most one vertex is a boundary vertex.
+		 * @param useStrictBoundary true if strict boundary is used, false otherwise.
+		 */
+		void setUseStrictBoundary(bool useStrictBoundary) {
+			useStrictBoundary_ = useStrictBoundary;
+		}
+
+		/**
 		 * Run the mesh simplification algorithm.
 		 */
 		void simplifyMesh();
 
 	protected:
 		bool hasValidAttributes_ = true;
-		float thresholds_[2] = { 0.75f, 0.25f };
+		float thresholds_[4] = { 1.0f, 0.75f, 0.25f, 1.0f };
 
 		ref_ptr<Mesh> mesh_;
 		ref_ptr<ShaderInput1ui> inputIndices_;
 		ref_ptr<ShaderInput3f> inputPos_;
 		ref_ptr<ShaderInput3f> inputNor_;
+		ref_ptr<ShaderInput1f> inputBoneWeights_;
+		ref_ptr<ShaderInput1ui> inputBoneIndices_;
 		std::vector<std::pair<AttributeSemantic,ref_ptr<ShaderInput>>> inputAttributes_;
 
 		ref_ptr<ShaderInput1ui> outputIndices_;
@@ -109,6 +121,7 @@ namespace regen {
 		float areaPenalty_ = 0.1f;
 		float normalPenalty_ = 0.1f;
 		float normalMaxAngle_ = 0.6f;
+		bool useStrictBoundary_ = false;
 
 		bool addInputAttribute(const NamedShaderInput &namedAttribute);
 
@@ -129,6 +142,12 @@ namespace regen {
 		static bool solve(const Quadric& Q, Vec3f& outPos);
 
 		bool isBoundaryVertex(uint32_t idx) const;
+
+		bool useOriginalData();
+
+		uint32_t getNumFaces(float threshold);
+
+		uint32_t collapseEdge(uint32_t i1, uint32_t i2, const Vec3f &opt, LODLevel &level);
 	};
 }
 

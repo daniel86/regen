@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 	// create and show application window
 	ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc, (const char **) argv, glFormat);
 	app->setupLogging();
+	app->setVSyncEnabled(true);
 	app->toplevelWidget()->setWindowTitle("REGEN Mesh Viewer");
 
 	// create the main widget and connect it to applications key events

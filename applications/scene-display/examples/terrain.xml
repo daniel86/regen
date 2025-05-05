@@ -499,7 +499,8 @@
 
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
-            lod-simplification="0.2, 0.1" lod-thresholds="6.0, 40.0"
+            lod-simplification="0.6, 0.4, 0.2"
+            lod-thresholds="6.0, 40.0"
             num-instances="{{num-fish}}">
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1" gpu-usage="WRITE">
             <scale value="0.001, 0.001, 0.001"/>

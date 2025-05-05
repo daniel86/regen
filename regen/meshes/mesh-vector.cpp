@@ -277,10 +277,12 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 
 	// generate LOD levels if requested
 	if (input.hasAttribute("lod-simplification")) {
-		auto thresholds = input.getValue<Vec2f>("lod-simplification", Vec2f(0.75, 0.25));
+		auto thresholds = input.getValue<Vec4f>(
+				"lod-simplification",
+				Vec4f(1.0f, 0.75f, 0.25f, 1.0f));
 		for (auto & mesh : *out) {
 			MeshSimplifier simplifier(mesh);
-			simplifier.setThresholds(thresholds.x, thresholds.y);
+			simplifier.setThresholds(thresholds);
 			if (input.hasAttribute("nor-max-angle")) {
 				simplifier.setNormalMaxAngle(input.getValue<float>("nor-max-angle", 0.6f));
 			}

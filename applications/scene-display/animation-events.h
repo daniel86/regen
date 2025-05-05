@@ -13,7 +13,7 @@
 
 void setAnimationRangeActive(
 			const ref_ptr<NodeAnimation> &anim,
-			const AnimRange &animRange) {
+			const regen::scene::AnimRange &animRange) {
 	if (animRange.channelName.empty()) {
 		anim->setAnimationIndexActive(animRange.channelIndex, animRange.range);
 	} else {
@@ -25,7 +25,7 @@ class RandomAnimationRangeUpdater : public EventHandler {
 public:
 	RandomAnimationRangeUpdater(
 			const ref_ptr<NodeAnimation> &anim,
-			const vector<AnimRange> &animRanges)
+			const std::vector<regen::scene::AnimRange> &animRanges)
 			: EventHandler(),
 			  anim_(anim),
 			  animRanges_(animRanges) {}
@@ -37,7 +37,24 @@ public:
 
 protected:
 	ref_ptr<NodeAnimation> anim_;
-	vector<AnimRange> animRanges_;
+	std::vector<regen::scene::AnimRange> animRanges_;
+};
+
+class RandomAnimationRangeUpdater2 : public EventHandler {
+public:
+	explicit RandomAnimationRangeUpdater2(
+			const ref_ptr<NodeAnimation> &anim)
+			: EventHandler(),
+			  anim_(anim) {}
+
+	void call(EventObject *ev, EventData *data) override {
+		static const Vec2d fullRange(-1.0, -1.0);
+		int index = rand() % anim_->numAnimations();
+		anim_->setAnimationIndexActive(index, fullRange);
+	}
+
+protected:
+	ref_ptr<NodeAnimation> anim_;
 };
 
 struct KeyAnimationMapping {
@@ -47,9 +64,9 @@ struct KeyAnimationMapping {
 			  interrupt(GL_FALSE),
 			  releaseInterrupt(GL_FALSE) {}
 
-	string key;
-	string press;
-	string idle;
+	std::string key;
+	std::string press;
+	std::string idle;
 	GLboolean toggle;
 	GLboolean backwards;
 	GLboolean interrupt;
@@ -60,13 +77,13 @@ class KeyAnimationRangeUpdater : public EventHandler {
 public:
 	KeyAnimationRangeUpdater(
 			const ref_ptr<NodeAnimation> &anim,
-			const vector<AnimRange> &animRanges,
-			const map<string, KeyAnimationMapping> &mappings,
-			const string &idleAnimation)
+			const std::vector<regen::scene::AnimRange> &animRanges,
+			const std::map<std::string, KeyAnimationMapping> &mappings,
+			const std::string &idleAnimation)
 			: EventHandler(),
 			  anim_(anim),
 			  mappings_(mappings) {
-		for (vector<AnimRange>::const_iterator it = animRanges.begin(); it != animRanges.end(); ++it) {
+		for (std::vector<regen::scene::AnimRange>::const_iterator it = animRanges.begin(); it != animRanges.end(); ++it) {
 			animRanges_[it->name] = *it;
 		}
 		active_ = "";
@@ -180,12 +197,12 @@ public:
 
 protected:
 	ref_ptr<NodeAnimation> anim_;
-	map<string, KeyAnimationMapping> mappings_;
-	map<string, AnimRange> animRanges_;
-	list<string> pressed_;
-	set<string> toggles_;
-	string active_;
-	string idleAnimation_;
+	std::map<std::string, KeyAnimationMapping> mappings_;
+	std::map<std::string, regen::scene::AnimRange> animRanges_;
+	std::list<std::string> pressed_;
+	std::set<std::string> toggles_;
+	std::string active_;
+	std::string idleAnimation_;
 };
 
 

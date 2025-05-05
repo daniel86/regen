@@ -67,7 +67,7 @@ protected:
 	ref_ptr<StateNode> sceneRoot_;
 	ref_ptr<StateNode> meshRoot_;
 	ref_ptr<Camera> userCamera_;
-	ref_ptr<Light> sceneLight_;
+	ref_ptr<Light> sceneLight_[3];
 	ref_ptr<CameraController> cameraController_;
 	ref_ptr<State> wireframeState_;
 	std::vector<ref_ptr<StateNode>> meshNodes_;
@@ -81,8 +81,9 @@ protected:
 	Quaternion meshQuaternion_;
 	float meshOrientation_ = 0.0f;
 	float meshScale_ = 1.0f;
+	Vec3f meshOrigin_ = Vec3f::zero();
 	uint32_t currentLodLevel_ = 0;
-	uint32_t currentMeshIndex_ = 0;
+	int32_t currentMeshIndex_ = -1;
 	ref_ptr<Animation> rotateAnim_;
 
 	QSettings settings_;
@@ -92,9 +93,15 @@ protected:
 
 	void loadMeshes_GL(const std::string &assetPath);
 
-	void simplifyMesh_GL(const Vec3f &simplificationFactors);
+	void loadAnimation(const ref_ptr<Mesh> &mesh, uint32_t index);
 
-	void selectMesh(uint32_t meshIndex, uint32_t lodIndex);
+	void simplifyMesh_GL(const Vec4f &simplificationFactors);
+
+	void selectMesh(int32_t meshIndex, uint32_t lodIndex);
+
+	void selectMesh_(uint32_t meshIndex, uint32_t lodIndex);
+
+	void activateLoD(int lodLevel, const ref_ptr<Mesh> &mesh);
 
 	void activateLoD(int lodLevel);
 

@@ -51,6 +51,13 @@ namespace regen {
 		inline bool operator!=(const Vec2 &b) const { return !operator==(b); }
 
 		/**
+		 * Subscript operator.
+		 */
+		inline T &operator[](int i) {
+			return ((T *) this)[i];
+		}
+
+		/**
 		 * @return vector with each component negated.
 		 */
 		inline Vec2 operator-() const { return Vec2(-x, -y); }
@@ -263,6 +270,13 @@ namespace regen {
 		 * @return false if all values are equal
 		 */
 		inline bool operator!=(const Vec3 &b) const { return !operator==(b); }
+
+		/**
+		 * Subscript operator.
+		 */
+		inline T &operator[](int i) {
+			return ((T *) this)[i];
+		}
 
 		/**
 		 * @return vector with each component negated.
@@ -656,6 +670,13 @@ namespace regen {
 		inline bool operator!=(const Vec4 &b) const { return !operator==(b); }
 
 		/**
+		 * Subscript operator.
+		 */
+		inline T &operator[](int i) {
+			return ((T *) this)[i];
+		}
+
+		/**
 		 * @return vector with each component negated.
 		 */
 		inline Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
@@ -856,6 +877,53 @@ namespace regen {
 	typedef Vec4<GLint> Vec4i;
 	typedef Vec4<GLuint> Vec4ui;
 	typedef Vec4<GLboolean> Vec4b;
+
+	/**
+	 * \brief A 1D vector.
+	 */
+	template<typename T>
+	class Vec1 {
+	public:
+		T x; /**< the x component. **/
+
+		Vec1() : x(0) {}
+
+		/** @param _x value that is applied to all components. */
+		explicit Vec1(T _x) : x(_x) {}
+
+		/** copy constructor. */
+		Vec1(const Vec1 &b) : x(b.x) {}
+
+		/** copy operator. */
+		inline void operator=(const Vec1 &b) {
+			x = b.x;
+		}
+
+		/**
+		 * @param b another vector
+		 * @return true if all values are equal
+		 */
+		inline bool operator==(const Vec1 &b) const { return x == b.x; }
+
+		/**
+		 * @param b another vector
+		 * @return false if all values are equal
+		 */
+		inline bool operator!=(const Vec1 &b) const { return !operator==(b); }
+
+		/**
+		 * Subscript operator.
+		 */
+		inline T &operator[](int i) {
+			return ((T *) this)[i];
+		}
+	};
+
+	typedef Vec1<GLfloat> Vec1f;
+	typedef Vec1<GLdouble> Vec1d;
+	typedef Vec1<GLint> Vec1i;
+	typedef Vec1<GLuint> Vec1ui;
+	typedef Vec1<GLboolean> Vec1b;
 
 	/**
 	 * \brief A 6D vector.

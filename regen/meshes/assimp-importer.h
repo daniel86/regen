@@ -26,11 +26,11 @@ namespace regen {
 	 * Configuration of animations defined in assets.
 	 */
 	struct AssimpAnimationConfig {
-		AssimpAnimationConfig()
+		explicit AssimpAnimationConfig(float tps=20.0f)
 				: useAnimation(GL_TRUE),
 				  numInstances(1u),
 				  forceStates(GL_TRUE),
-				  ticksPerSecond(20.0),
+				  ticksPerSecond(tps),
 				  postState(NodeAnimation::BEHAVIOR_LINEAR),
 				  preState(NodeAnimation::BEHAVIOR_LINEAR) {}
 
