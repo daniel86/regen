@@ -65,7 +65,7 @@ void AttributeFeedbackAnimation::glAnimate(regen::RenderState *rs, GLdouble dt) 
 ref_ptr<AttributeFeedbackAnimation> AttributeFeedbackAnimation::load(scene::SceneLoader *scene, scene::SceneInputNode &input) {
 	// Try to find the mesh
 	auto meshID = input.getValue("mesh-id");
-	auto meshIndex = input.getValue("mesh-index", 0);
+	auto meshIndex = input.getValue<uint32_t>("mesh-index", 0u);
 	auto meshVec = scene->getResource<MeshVector>(meshID);
 	if (meshVec.get() == nullptr || meshVec->empty()) {
 		REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
@@ -73,7 +73,7 @@ ref_ptr<AttributeFeedbackAnimation> AttributeFeedbackAnimation::load(scene::Scen
 	}
 	if (meshVec->size() <= meshIndex) {
 		REGEN_WARN("Mesh index " << meshIndex << " is out of range for '" << input.getDescription() << "'.");
-		meshIndex = 0;
+		meshIndex = 0u;
 	}
 	auto &mesh = (*meshVec.get())[meshIndex];
 	auto shaderKey = input.getValue("shader");

@@ -11,9 +11,9 @@ namespace regen {
 	 * Transform key frame.
 	 */
 	struct TransformKeyFrame {
-		std::optional<Vec3f> pos;
-		std::optional<Vec3f> rotation;
-		GLdouble dt;
+		std::optional<Vec3f> pos = std::nullopt;
+		std::optional<Vec3f> rotation = std::nullopt;
+		GLdouble dt = 0.0;
 	};
 
 	/**
