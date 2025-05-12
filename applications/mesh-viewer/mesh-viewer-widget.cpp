@@ -306,7 +306,7 @@ void MeshViewerWidget::selectMesh(int32_t meshIndex, uint32_t lodIndex) {
 		for (uint32_t i = 0u; i < meshNodes_.size(); ++i) {
 			selectMesh_(i, lodIndex);
 		}
-	} else if (meshIndex < meshNodes_.size()) {
+	} else if (meshIndex < static_cast<int32_t>(meshNodes_.size())) {
 			selectMesh_(meshIndex, lodIndex);
 	}
 	currentMeshIndex_ = meshIndex;
@@ -502,7 +502,7 @@ void MeshViewerWidget::activateLoD(int lodLevel, const ref_ptr<Mesh> &mesh) {
 		REGEN_WARN("Invalid LOD level " << lodLevel);
 		lodLevel = 0;
 	}
-	mesh->activateLOD(lodLevel);
+	mesh->activateLOD(static_cast<uint32_t>(lodLevel));
 }
 
 void MeshViewerWidget::activateLoD(int lodLevel) {

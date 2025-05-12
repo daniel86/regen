@@ -304,8 +304,10 @@ bool ShaderInputWidget::isValidParameter(const ShaderInput *input) {
 			return false;
 		}
 		bool hasInputs = false;
-		for (auto &uniform: block->blockInputs()) {
-			hasInputs = isValidParameter(uniform.in_.get()) || hasInputs;
+		if (block) {
+			for (auto &uniform: block->blockInputs()) {
+				hasInputs = isValidParameter(uniform.in_.get()) || hasInputs;
+			}
 		}
 		return hasInputs;
 	}

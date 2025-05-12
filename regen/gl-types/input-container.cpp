@@ -76,9 +76,11 @@ ShaderInputList::const_iterator InputContainer::setInput(
 		const ref_ptr<ShaderInput> &in, const std::string &name) {
 	const std::string &inputName = (name.empty() ? in->name() : name);
 
-	if (in->isVertexAttribute() && in->numVertices() > numVertices_) { numVertices_ = in->numVertices(); }
+	if (in->isVertexAttribute() && in->numVertices() > numVertices_) {
+		numVertices_ = static_cast<int>(in->numVertices());
+	}
 	if (in->numInstances() > 1) {
-		numInstances_ = in->numInstances();
+		numInstances_ = static_cast<int>(in->numInstances());
 		numVisibleInstances_ = numInstances_;
 	}
 	// check for instances of attributes within UBO
@@ -86,10 +88,10 @@ ShaderInputList::const_iterator InputContainer::setInput(
 		auto *block = dynamic_cast<BufferBlock *>(in.get());
 		for (auto &namedInput: block->blockInputs()) {
 			if (namedInput.in_->isVertexAttribute() && namedInput.in_->numVertices() > numVertices_) {
-				numVertices_ = namedInput.in_->numVertices();
+				numVertices_ = static_cast<int>(namedInput.in_->numVertices());
 			}
 			if (namedInput.in_->numInstances() > 1) {
-				numInstances_ = namedInput.in_->numInstances();
+				numInstances_ = static_cast<int>(namedInput.in_->numInstances());
 				numVisibleInstances_ = numInstances_;
 			}
 		}

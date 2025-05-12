@@ -2,7 +2,10 @@
 
 <node>
     <constant name="map-height" value="24.0"/>
+    <constant name="map-height-half" value="12.0"/>
     <constant name="map-size" value="1000.0"/>
+    <constant name="map-frame-offset" value="-6.5"/>
+    <constant name="map-frame-size" value="999.5"/>
     <constant name="water-level" value="-4.0"/>
     <constant name="sea-level" value="0.0"/>
 
@@ -140,11 +143,31 @@
             mesh-id="ground-mesh" transform-id="ground-tf" />
     </mesh>
 
+    <mesh id="ground-frame"
+          type="frame"
+          lod="0"
+          scaling="{{map-frame-size}},{{map-height-half}},{{map-frame-size}}"
+          border-size="0.05"
+          use-normal="0"
+          use-tangent="0"
+          usage="STATIC_DRAW">
+        <transform>
+            <translate value="0.0, {{map-frame-offset}}, 0.0"/>
+        </transform>
+        <material preset="stone"/>
+    </mesh>
+
     <node id="Ground">
         <node id="Ground-quad" lod-shape="ground-shape">
             <input type="float" name="noiseScale" value="0.005"/>
             <texture name="noiseTexture" id="ground-noise"/>
             <mesh id="ground-mesh" shader="regen.terrain.ground"/>
+        </node>
+        <!-- we add a frame around the ground mesh to avoid problems at the edges
+             with how distance fog is calculated based on depth (it may not correctly
+             handle water at the boundaries where there is nothing behind the water) -->
+        <node id="Ground-frame" lod-shape="ground-shape">
+            <mesh id="ground-frame" shader="regen.models.mesh"/>
         </node>
     </node>
 
@@ -272,6 +295,9 @@
             <texture name="skyColorTexture" id="sky"/>
             <fullscreen-pass shader="regen.weather.fog.distance"/>
         </node>
+        <view id="Fog">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
     </node>
 
     <!--**************************-->

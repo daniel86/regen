@@ -54,7 +54,8 @@ void main() {
     float d0 = texture(in_gDepthTexture, texco).x;
     vec3 eye0 = transformTexcoToWorld(texco_2D, d0, in_layer) - in_cameraPosition;
     float eye0Length = length(eye0);
-    float factor0 = float(d0<1.0) * fogIntensity(eye0Length);
+    float factor0 = fogIntensity(eye0Length);
+    //float factor0 = float(d0<1.0) * fogIntensity(eye0Length);
 
     vec3 fogColor = in_fogColor;
 #ifdef HAS_sunPosition
