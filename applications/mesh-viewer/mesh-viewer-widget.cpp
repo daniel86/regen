@@ -498,7 +498,7 @@ void MeshViewerWidget::openAssetFile() {
 
 void MeshViewerWidget::activateLoD(int lodLevel, const ref_ptr<Mesh> &mesh) {
 	auto numLODs = mesh->numLODs();
-	if (lodLevel > numLODs) {
+	if (static_cast<uint32_t>(lodLevel) > numLODs) {
 		REGEN_WARN("Invalid LOD level " << lodLevel);
 		lodLevel = 0;
 	}

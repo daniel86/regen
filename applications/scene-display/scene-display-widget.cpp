@@ -367,7 +367,7 @@ void SceneDisplayWidget::makeVideo(bool isClicked) {
 							// Save the video to the selected file
 							boost::filesystem::copy_file(sourceFile,
 														 fileName.toStdString(),
-														 boost::filesystem::copy_option::overwrite_if_exists);
+														 boost::filesystem::copy_options::overwrite_existing);
 							REGEN_INFO("Video saved to " << fileName.toStdString());
 						}
 					}, Qt::QueuedConnection);

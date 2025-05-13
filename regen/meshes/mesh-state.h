@@ -125,7 +125,7 @@ namespace regen {
 		/**
 		 * @return number of LODs.
 		 */
-		auto numLODs() const { return meshLODs_.empty() ? 1 : meshLODs_.size(); }
+		uint32_t numLODs() const { return meshLODs_.empty() ? 1u : meshLODs_.size(); }
 
 		/**
 		 * Assign a bounding shape to this mesh.

@@ -71,10 +71,11 @@ GLenum regenImageFormat() {
 
 static GLenum convertImage(GLenum format, GLenum type) {
 	auto srcFormat = regenImageFormat1();
-	auto srcType = ilGetInteger(IL_IMAGE_TYPE);
+	auto srcType = static_cast<uint32_t>(ilGetInteger(IL_IMAGE_TYPE));
+	auto origSrcFormat = static_cast<uint32_t>(ilGetInteger(IL_IMAGE_FORMAT));
 	auto dstFormat = (format == GL_NONE ? srcFormat : format);
 	auto dstType = (type == GL_NONE ? srcType : type);
-	if (ilGetInteger(IL_IMAGE_FORMAT) != dstFormat || srcType != dstType) {
+	if (origSrcFormat != dstFormat || srcType != dstType) {
 		if (ilConvertImage(dstFormat, dstType) == IL_FALSE) {
 			throw Error("ilConvertImage failed");
 		}
