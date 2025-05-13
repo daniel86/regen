@@ -49,8 +49,8 @@ GLboolean InputContainer::hasInput(const std::string &name) const {
 }
 
 void InputContainer::set_numInstances(GLuint v) {
-	numInstances_ = v;
-	numVisibleInstances_ = v;
+	numInstances_ = static_cast<int32_t>(v);
+	numVisibleInstances_ = static_cast<int32_t>(v);
 }
 
 void InputContainer::begin(DataLayout layout) {
@@ -76,7 +76,7 @@ ShaderInputList::const_iterator InputContainer::setInput(
 		const ref_ptr<ShaderInput> &in, const std::string &name) {
 	const std::string &inputName = (name.empty() ? in->name() : name);
 
-	if (in->isVertexAttribute() && in->numVertices() > numVertices_) {
+	if (in->isVertexAttribute() && in->numVertices() > static_cast<uint32_t>(numVertices_)) {
 		numVertices_ = static_cast<int>(in->numVertices());
 	}
 	if (in->numInstances() > 1) {
@@ -87,7 +87,8 @@ ShaderInputList::const_iterator InputContainer::setInput(
 	if (in->isBufferBlock()) {
 		auto *block = dynamic_cast<BufferBlock *>(in.get());
 		for (auto &namedInput: block->blockInputs()) {
-			if (namedInput.in_->isVertexAttribute() && namedInput.in_->numVertices() > numVertices_) {
+			if (namedInput.in_->isVertexAttribute() &&
+			    namedInput.in_->numVertices() > static_cast<uint32_t>(numVertices_)) {
 				numVertices_ = static_cast<int>(namedInput.in_->numVertices());
 			}
 			if (namedInput.in_->numInstances() > 1) {
@@ -116,7 +117,7 @@ ShaderInputList::const_iterator InputContainer::setInput(
 
 ref_ptr<BufferReference> InputContainer::setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex) {
 	indices_ = indices;
-	numIndices_ = indices_->numVertices();
+	numIndices_ = static_cast<int32_t>(indices_->numVertices());
 	maxIndex_ = maxIndex;
 	return inputBuffer_->alloc(indices_);
 }

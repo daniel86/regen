@@ -36,10 +36,10 @@ NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
 ShaderInput::ShaderInput(
 		const std::string &name,
 		GLenum baseType,
-		GLuint dataTypeBytes,
-		GLint valsPerElement,
-		GLsizei numArrayElements,
-		GLboolean normalize)
+		uint32_t dataTypeBytes,
+		int32_t valsPerElement,
+		uint32_t numArrayElements,
+		bool normalize)
 		: name_(name),
 		  baseType_(baseType),
 		  dataTypeBytes_(dataTypeBytes),
@@ -63,7 +63,7 @@ ShaderInput::ShaderInput(
 		  forceArray_(false),
 		  active_(true) {
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
-	enableAttribute_ = &ShaderInput::enableAttributef;
+	enableAttribute_ = &ShaderInput::enableAttribute_f;
 }
 
 ShaderInput::ShaderInput(const ShaderInput &o)
@@ -91,7 +91,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  forceArray_(o.forceArray_),
 		  active_(o.active_),
 		  schema_(o.schema_) {
-	enableAttribute_ = &ShaderInput::enableAttributef;
+	enableAttribute_ = &ShaderInput::enableAttribute_f;
 	enableInput_ = o.enableInput_;
 	// copy client data, if any
 	if (o.hasClientData()) {
@@ -112,16 +112,16 @@ GLenum ShaderInput::dataType() const {
 	return glenum::dataType(baseType_, valsPerElement_);
 }
 
-void ShaderInput::set_numArrayElements(GLsizei v) {
+void ShaderInput::set_numArrayElements(uint32_t v) {
 	if (v == numArrayElements_) {
 		return;
 	}
 	numArrayElements_ = v;
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
 	if (isVertexAttribute_) {
-		numElements_ = numArrayElements_ * numVertices_;
+		numElements_ = static_cast<int32_t>(numArrayElements_ * numVertices_);
 	} else {
-		numElements_ = numArrayElements_ * numInstances_;
+		numElements_ = static_cast<int32_t>(numArrayElements_ * numInstances_);
 	}
 	nextStamp();
 }
@@ -517,7 +517,7 @@ void ShaderInput::writeServerData() const {
 	auto count = std::max(numVertices_, numInstances_);
 
 	RenderState::get()->copyWriteBuffer().push(buffer_);
-	if (stride_ == elementSize_) {
+	if (static_cast<uint32_t>(stride_) == elementSize_) {
 		glBufferSubData(GL_COPY_WRITE_BUFFER, offset_, inputSize_, clientData);
 	} else {
 		GLuint offset = offset_;
@@ -544,7 +544,7 @@ void ShaderInput::readServerData() {
 			numVertices_ * stride_ + elementSize_,
 			GL_MAP_READ_BIT);
 
-	if (stride_ == elementSize_) {
+	if (static_cast<uint32_t>(stride_) == elementSize_) {
 		std::memcpy(clientData, serverData, inputSize_);
 	} else {
 		for (GLuint i = 0; i < numVertices_; ++i) {
@@ -685,7 +685,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 /////////////
 /////////////
 
-void ShaderInput::enableAttributef(GLint location) const {
+void ShaderInput::enableAttribute_f(GLint location) const {
 	for (unsigned int i = 0; i < numArrayElements_; ++i) {
 		auto loc = location + i;
 		glEnableVertexAttribArray(loc);
@@ -702,7 +702,7 @@ void ShaderInput::enableAttributef(GLint location) const {
 	}
 }
 
-void ShaderInput::enableAttributei(GLint location) const {
+void ShaderInput::enableAttribute_i(GLint location) const {
 	for (unsigned int i = 0; i < numArrayElements_; ++i) {
 		auto loc = location + i;
 		glEnableVertexAttribArray(loc);
@@ -810,8 +810,8 @@ void ShaderInput::enableAttributeMat2(GLint location) const {
 
 ShaderInput1f::ShaderInput1f(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform1fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
@@ -820,8 +820,8 @@ ShaderInput1f::ShaderInput1f(
 
 ShaderInput2f::ShaderInput2f(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform2fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
@@ -830,8 +830,8 @@ ShaderInput2f::ShaderInput2f(
 
 ShaderInput3f::ShaderInput3f(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform3fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
@@ -840,8 +840,8 @@ ShaderInput3f::ShaderInput3f(
 
 ShaderInput4f::ShaderInput4f(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform4fv(loc, numElements_, mapClientData<float>(ShaderData::READ).r);
@@ -850,8 +850,8 @@ ShaderInput4f::ShaderInput4f(
 
 ShaderInputMat3::ShaderInputMat3(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	transpose_ = GL_FALSE;
 	enableAttribute_ = &ShaderInput::enableAttributeMat3;
@@ -862,8 +862,8 @@ ShaderInputMat3::ShaderInputMat3(
 
 ShaderInputMat4::ShaderInputMat4(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	transpose_ = GL_FALSE;
 	enableAttribute_ = &ShaderInput::enableAttributeMat4;
@@ -874,8 +874,8 @@ ShaderInputMat4::ShaderInputMat4(
 
 ShaderInput1d::ShaderInput1d(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform1dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
@@ -884,8 +884,8 @@ ShaderInput1d::ShaderInput1d(
 
 ShaderInput2d::ShaderInput2d(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform2dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
@@ -894,8 +894,8 @@ ShaderInput2d::ShaderInput2d(
 
 ShaderInput3d::ShaderInput3d(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform3dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
@@ -904,8 +904,8 @@ ShaderInput3d::ShaderInput3d(
 
 ShaderInput4d::ShaderInput4d(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		glUniform4dv(loc, numElements_, mapClientData<double>(ShaderData::READ).r);
@@ -914,10 +914,10 @@ ShaderInput4d::ShaderInput4d(
 
 ShaderInput1i::ShaderInput1i(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform1iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
@@ -925,10 +925,10 @@ ShaderInput1i::ShaderInput1i(
 
 ShaderInput2i::ShaderInput2i(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform2iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
@@ -936,10 +936,10 @@ ShaderInput2i::ShaderInput2i(
 
 ShaderInput3i::ShaderInput3i(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform3iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
@@ -947,10 +947,10 @@ ShaderInput3i::ShaderInput3i(
 
 ShaderInput4i::ShaderInput4i(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform4iv(loc, numElements_, mapClientData<int>(ShaderData::READ).r);
 	};
@@ -958,10 +958,10 @@ ShaderInput4i::ShaderInput4i(
 
 ShaderInput1ui::ShaderInput1ui(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform1uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
@@ -969,10 +969,10 @@ ShaderInput1ui::ShaderInput1ui(
 
 ShaderInput2ui::ShaderInput2ui(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform2uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
@@ -980,10 +980,10 @@ ShaderInput2ui::ShaderInput2ui(
 
 ShaderInput3ui::ShaderInput3ui(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform3uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};
@@ -991,10 +991,10 @@ ShaderInput3ui::ShaderInput3ui(
 
 ShaderInput4ui::ShaderInput4ui(
 		const std::string &name,
-		GLuint numArrayElements,
-		GLboolean normalize)
+		uint32_t numArrayElements,
+		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
-	enableAttribute_ = &ShaderInput::enableAttributei;
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		glUniform4uiv(loc, numElements_, mapClientData<unsigned int>(ShaderData::READ).r);
 	};

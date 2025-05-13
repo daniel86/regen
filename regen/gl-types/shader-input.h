@@ -85,10 +85,10 @@ namespace regen {
 		ShaderInput(
 				const std::string &name,
 				GLenum baseType,
-				GLuint dataTypeBytes,
-				GLint valsPerElement,
-				GLsizei numArrayElements,
-				GLboolean normalize);
+				uint32_t dataTypeBytes,
+				int32_t valsPerElement,
+				uint32_t numArrayElements,
+				bool normalize);
 
 		virtual ~ShaderInput();
 
@@ -111,7 +111,7 @@ namespace regen {
 		 * no call to glUniform when inactive.
 		 * @return the active toggle value
 		 */
-		auto active() const { return active_; }
+		bool active() const { return active_; }
 
 		/**
 		 * no call to glUniform when inactive.
@@ -122,7 +122,7 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		unsigned int stamp() const;
+		uint32_t stamp() const;
 
 		/**
 		 * Increment the stamp.
@@ -144,7 +144,7 @@ namespace regen {
 		/**
 		 * Size of a single instance of the data type in bytes.
 		 */
-		auto dataTypeBytes() const { return dataTypeBytes_; }
+		uint32_t dataTypeBytes() const { return dataTypeBytes_; }
 
 		/**
 		 * Specifies the byte offset between consecutive generic vertex attributes.
@@ -162,12 +162,12 @@ namespace regen {
 		/**
 		 * VBO that contains this vertex data.
 		 */
-		auto buffer() const { return buffer_; }
+		uint32_t buffer() const { return buffer_; }
 
 		/**
 		 * data with stamp was uploaded to GL.
 		 */
-		auto bufferStamp() const { return bufferStamp_; }
+		uint32_t bufferStamp() const { return bufferStamp_; }
 
 		/**
 		 * Iterator to allocated VBO block.
@@ -179,12 +179,12 @@ namespace regen {
 		 * If stride is 0, the generic vertex attributes are understood to be tightly
 		 * packed in the array. The initial value is 0.
 		 */
-		auto stride() const { return stride_; }
+		int32_t stride() const { return stride_; }
 
 		/**
 		 * Attribute size for all vertices.
 		 */
-		auto inputSize() const { return inputSize_; }
+		uint32_t inputSize() const { return inputSize_; }
 
 		/**
 		 * Attribute size for all vertices.
@@ -194,7 +194,7 @@ namespace regen {
 		/**
 		 * Attribute size for a single vertex.
 		 */
-		auto elementSize() const { return elementSize_; }
+		uint32_t elementSize() const { return elementSize_; }
 
 		/**
 		 * Offset in the VBO to the first
@@ -206,24 +206,24 @@ namespace regen {
 		 * Offset in the VBO to the first
 		 * attribute element.
 		 */
-		auto offset() const { return offset_; }
+		uint32_t offset() const { return offset_; }
 
 		/**
 		 * numArrayElements() * numInstances()
 		 */
-		auto numElements() const { return numElements_; }
+		int32_t numElements() const { return numElements_; }
 
 		/**
 		 * Number of array elements.
 		 * returns 1 if this is not an array attribute.
 		 */
-		auto numArrayElements() const { return numArrayElements_; }
+		uint32_t numArrayElements() const { return numArrayElements_; }
 
 		/**
 		 * Number of array elements.
 		 * returns 1 if this is not an array attribute.
 		 */
-		void set_numArrayElements(GLsizei v);
+		void set_numArrayElements(uint32_t v);
 
 		/**
 		 * Set the flag to true if this input is a vertex attribute.
@@ -234,24 +234,24 @@ namespace regen {
 		 * Specifies the number of components per generic vertex attribute.
 		 * Must be 1, 2, 3, or 4.
 		 */
-		auto valsPerElement() const { return valsPerElement_; }
+		int32_t valsPerElement() const { return valsPerElement_; }
 
 		/**
 		 * Used for instanced attributes.
 		 */
-		auto numInstances() const { return numInstances_; }
+		uint32_t numInstances() const { return numInstances_; }
 
 		/**
 		 * Specify the number of instances that will pass between updates
 		 * of the generic attribute at slot index.
 		 */
-		auto divisor() const { return divisor_; }
+		uint32_t divisor() const { return divisor_; }
 
 		/**
 		 * Specifies whether fixed-point data values should be normalized (GL_TRUE)
 		 * or converted directly as fixed-point values (GL_FALSE) when they are accessed.
 		 */
-		auto normalize() const { return normalize_; }
+		bool normalize() const { return normalize_; }
 
 		/**
 		 * @param transpose transpose the data.
@@ -261,12 +261,12 @@ namespace regen {
 		/**
 		 * @return transpose the data.
 		 */
-		auto transpose() const { return transpose_; }
+		bool transpose() const { return transpose_; }
 
 		/**
 		 * @return the vertex count.
 		 */
-		auto numVertices() const { return numVertices_; }
+		uint32_t numVertices() const { return numVertices_; }
 
 		/**
 		 * @param numVertices the vertex count.
@@ -277,7 +277,7 @@ namespace regen {
 		 * Returns true if this input is a vertex attribute or
 		 * an instanced attribute.
 		 */
-		auto isVertexAttribute() const { return isVertexAttribute_; }
+		bool isVertexAttribute() const { return isVertexAttribute_; }
 
 		/**
 		 * Constants can not change the value during the lifetime
@@ -289,17 +289,17 @@ namespace regen {
 		 * Constants can not change the value during the lifetime
 		 * of the shader program.
 		 */
-		auto isConstant() const { return isConstant_; }
+		bool isConstant() const { return isConstant_; }
 
 		/**
 		 * @return true if this input is a uniform block.
 		 */
-		auto isBufferBlock() const { return isBufferBlock_; }
+		bool isBufferBlock() const { return isBufferBlock_; }
 
 		/**
 		 * @return true if this input is a struct (array).
 		 */
-		auto isStruct() const { return isStruct_; }
+		bool isStruct() const { return isStruct_; }
 
 		/**
 		 * Uniforms with a single array element will appear
@@ -313,7 +313,7 @@ namespace regen {
 		 * with [1] in the generated shader if forceArray is true.
 		 * Note: attributes can not be arrays.
 		 */
-		auto forceArray() const { return forceArray_; }
+		bool forceArray() const { return forceArray_; }
 
 		/**
 		 * @param gpuUsage the gpu usage mode.
@@ -470,14 +470,14 @@ namespace regen {
 		/**
 		 * Bind the attribute to the given shader location.
 		 */
-		void enableAttributef(GLint location) const;
+		void enableAttribute_f(GLint location) const;
 
 		/**
 		 * Only the integer types GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT,
 		 * GL_UNSIGNED_SHORT, GL_INT, GL_UNSIGNED_INT are accepted.
 		 * Values are always left as integer values.
 		 */
-		void enableAttributei(GLint location) const;
+		void enableAttribute_i(GLint location) const;
 
 		/**
 		 * Matrix attributes have special enable functions.
@@ -507,21 +507,21 @@ namespace regen {
 	protected:
 		std::string name_;
 		GLenum baseType_;
-		GLuint dataTypeBytes_;
-		GLsizei stride_;
-		GLuint offset_;
-		GLuint inputSize_;
+		uint32_t dataTypeBytes_;
+		int32_t stride_;
+		uint32_t offset_;
+		uint32_t inputSize_;
 		// This is the size in bytes of one element in the vertex buffer.
 		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
-		GLuint elementSize_;
-		GLuint numArrayElements_;
-		GLuint numVertices_;
-		GLuint numInstances_;
-		GLsizei numElements_;
-		GLint valsPerElement_;
-		GLuint divisor_;
-		GLuint buffer_;
-		mutable GLuint bufferStamp_;
+		uint32_t elementSize_;
+		uint32_t numArrayElements_;
+		uint32_t numVertices_;
+		uint32_t numInstances_;
+		int32_t numElements_;
+		int32_t valsPerElement_;
+		uint32_t divisor_;
+		uint32_t buffer_;
+		mutable uint32_t bufferStamp_;
 		ref_ptr<BufferReference> bufferIterator_;
 		bool normalize_;
 		bool isVertexAttribute_;
@@ -803,7 +803,7 @@ namespace regen {
 	/**
 	 * \brief Provides 1D float input to shader programs.
 	 */
-	class ShaderInput1f : public ShaderInputTyped<GLfloat, GLfloat, GL_FLOAT> {
+	class ShaderInput1f : public ShaderInputTyped<float, float, GL_FLOAT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -812,14 +812,14 @@ namespace regen {
 		 */
 		explicit ShaderInput1f(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 2D float input to shader programs.
 	 */
-	class ShaderInput2f : public ShaderInputTyped<Vec2f, GLfloat, GL_FLOAT> {
+	class ShaderInput2f : public ShaderInputTyped<Vec2f, float, GL_FLOAT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -828,14 +828,14 @@ namespace regen {
 		 */
 		explicit ShaderInput2f(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 3D float input to shader programs.
 	 */
-	class ShaderInput3f : public ShaderInputTyped<Vec3f, GLfloat, GL_FLOAT> {
+	class ShaderInput3f : public ShaderInputTyped<Vec3f, float, GL_FLOAT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -844,14 +844,14 @@ namespace regen {
 		 */
 		explicit ShaderInput3f(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 4D float input to shader programs.
 	 */
-	class ShaderInput4f : public ShaderInputTyped<Vec4f, GLfloat, GL_FLOAT> {
+	class ShaderInput4f : public ShaderInputTyped<Vec4f, float, GL_FLOAT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -860,14 +860,14 @@ namespace regen {
 		 */
 		explicit ShaderInput4f(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 3x3 matrix input to shader programs.
 	 */
-	class ShaderInputMat3 : public ShaderInputTyped<Mat3f, GLfloat, GL_FLOAT> {
+	class ShaderInputMat3 : public ShaderInputTyped<Mat3f, float, GL_FLOAT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -876,14 +876,14 @@ namespace regen {
 		 */
 		explicit ShaderInputMat3(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 4x4 matrix input to shader programs.
 	 */
-	class ShaderInputMat4 : public ShaderInputTyped<Mat4f, GLfloat, GL_FLOAT> {
+	class ShaderInputMat4 : public ShaderInputTyped<Mat4f, float, GL_FLOAT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -892,14 +892,14 @@ namespace regen {
 		 */
 		explicit ShaderInputMat4(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 1D double input to shader programs.
 	 */
-	class ShaderInput1d : public ShaderInputTyped<GLdouble, GLdouble, GL_DOUBLE> {
+	class ShaderInput1d : public ShaderInputTyped<GLdouble, double, GL_DOUBLE> {
 	public:
 		/**
 		 * @param name the input name.
@@ -908,14 +908,14 @@ namespace regen {
 		 */
 		explicit ShaderInput1d(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 2D double input to shader programs.
 	 */
-	class ShaderInput2d : public ShaderInputTyped<Vec2d, GLdouble, GL_DOUBLE> {
+	class ShaderInput2d : public ShaderInputTyped<Vec2d, double, GL_DOUBLE> {
 	public:
 		/**
 		 * @param name the input name.
@@ -924,14 +924,14 @@ namespace regen {
 		 */
 		explicit ShaderInput2d(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 3D double input to shader programs.
 	 */
-	class ShaderInput3d : public ShaderInputTyped<Vec3d, GLdouble, GL_DOUBLE> {
+	class ShaderInput3d : public ShaderInputTyped<Vec3d, double, GL_DOUBLE> {
 	public:
 		/**
 		 * @param name the input name.
@@ -940,14 +940,14 @@ namespace regen {
 		 */
 		explicit ShaderInput3d(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 4D double input to shader programs.
 	 */
-	class ShaderInput4d : public ShaderInputTyped<Vec4d, GLdouble, GL_DOUBLE> {
+	class ShaderInput4d : public ShaderInputTyped<Vec4d, double, GL_DOUBLE> {
 	public:
 		/**
 		 * @param name the input name.
@@ -956,14 +956,14 @@ namespace regen {
 		 */
 		explicit ShaderInput4d(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 1D int input to shader programs.
 	 */
-	class ShaderInput1i : public ShaderInputTyped<GLint, GLint, GL_INT> {
+	class ShaderInput1i : public ShaderInputTyped<int32_t, int32_t, GL_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -972,14 +972,14 @@ namespace regen {
 		 */
 		explicit ShaderInput1i(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 2D int input to shader programs.
 	 */
-	class ShaderInput2i : public ShaderInputTyped<Vec2i, GLint, GL_INT> {
+	class ShaderInput2i : public ShaderInputTyped<Vec2i, int32_t, GL_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -988,14 +988,14 @@ namespace regen {
 		 */
 		explicit ShaderInput2i(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 3D int input to shader programs.
 	 */
-	class ShaderInput3i : public ShaderInputTyped<Vec3i, GLint, GL_INT> {
+	class ShaderInput3i : public ShaderInputTyped<Vec3i, int32_t, GL_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -1004,14 +1004,14 @@ namespace regen {
 		 */
 		explicit ShaderInput3i(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 4D int input to shader programs.
 	 */
-	class ShaderInput4i : public ShaderInputTyped<Vec4i, GLint, GL_INT> {
+	class ShaderInput4i : public ShaderInputTyped<Vec4i, int32_t, GL_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -1020,14 +1020,14 @@ namespace regen {
 		 */
 		explicit ShaderInput4i(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 1D unsigned int input to shader programs.
 	 */
-	class ShaderInput1ui : public ShaderInputTyped<GLuint, GLuint, GL_UNSIGNED_INT> {
+	class ShaderInput1ui : public ShaderInputTyped<uint32_t, uint32_t, GL_UNSIGNED_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -1036,14 +1036,14 @@ namespace regen {
 		 */
 		explicit ShaderInput1ui(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 2D unsigned int input to shader programs.
 	 */
-	class ShaderInput2ui : public ShaderInputTyped<Vec2ui, GLuint, GL_UNSIGNED_INT> {
+	class ShaderInput2ui : public ShaderInputTyped<Vec2ui, uint32_t, GL_UNSIGNED_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -1052,14 +1052,14 @@ namespace regen {
 		 */
 		explicit ShaderInput2ui(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 3D unsigned int input to shader programs.
 	 */
-	class ShaderInput3ui : public ShaderInputTyped<Vec3ui, GLuint, GL_UNSIGNED_INT> {
+	class ShaderInput3ui : public ShaderInputTyped<Vec3ui, uint32_t, GL_UNSIGNED_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -1068,14 +1068,14 @@ namespace regen {
 		 */
 		explicit ShaderInput3ui(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**
 	 * \brief Provides 4D unsigned int input to shader programs.
 	 */
-	class ShaderInput4ui : public ShaderInputTyped<Vec4ui, GLuint, GL_UNSIGNED_INT> {
+	class ShaderInput4ui : public ShaderInputTyped<Vec4ui, uint32_t, GL_UNSIGNED_INT> {
 	public:
 		/**
 		 * @param name the input name.
@@ -1084,8 +1084,8 @@ namespace regen {
 		 */
 		explicit ShaderInput4ui(
 				const std::string &name,
-				GLuint numArrayElements = 1,
-				GLboolean normalize = GL_FALSE);
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
 	};
 
 	/**

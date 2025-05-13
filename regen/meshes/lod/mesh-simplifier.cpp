@@ -792,7 +792,7 @@ void MeshSimplifier::simplifyMesh() {
 		lodFaces[3] = getNumFaces(thresholds_[2]);
 		lodFaces[4] = getNumFaces(thresholds_[3]);
 	}
-	int numLodLevels = 1;
+	uint32_t numLodLevels = 1;
 	for (int i=0; i < 4; ++i) {
 		if (i!=0 && thresholds_[i] >= thresholds_[i-1]) {
 			break;

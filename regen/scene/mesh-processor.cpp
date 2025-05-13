@@ -15,7 +15,7 @@ void MeshNodeProvider::processInput(
 	auto meshIndex = input.getValue<int>("mesh-index", -1);
 
 	std::queue<ref_ptr<Mesh>> meshQueue;
-	if (meshIndex >= 0 && meshIndex < meshes->size()) {
+	if (meshIndex >= 0 && meshIndex < static_cast<int>(meshes->size())) {
 		meshQueue.push((*meshes.get())[meshIndex]);
 	} else if (input.hasAttribute("mesh-indices")) {
 		auto meshIndices = input.getValue("mesh-indices");
@@ -23,7 +23,7 @@ void MeshNodeProvider::processInput(
 		boost::split(indices, meshIndices, boost::is_any_of(","));
 		for (auto &index: indices) {
 			int i = std::stoi(index);
-			if (i >= 0 && i < meshes->size()) {
+			if (i >= 0 && i < static_cast<int>(meshes->size())) {
 				meshQueue.push((*meshes.get())[i]);
 			}
 		}
@@ -33,9 +33,9 @@ void MeshNodeProvider::processInput(
 		boost::split(range, meshIndexRange, boost::is_any_of("-"));
 		if (range.size() == 2) {
 			int start = range[0].empty() ? 0 : std::stoi(range[0]);
-			int end = range[1].empty() ? meshes->size() - 1 : std::stoi(range[1]);
+			int end = range[1].empty() ? static_cast<int>(meshes->size()) - 1 : std::stoi(range[1]);
 			for (int i = start; i <= end; ++i) {
-				if (i >= 0 && i < meshes->size()) {
+				if (i >= 0 && i < static_cast<int>(meshes->size())) {
 					meshQueue.push((*meshes.get())[i]);
 				}
 			}
