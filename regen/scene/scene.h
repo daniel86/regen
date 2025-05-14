@@ -291,6 +291,11 @@ namespace regen {
 		auto &worldTime() const { return worldTime_; }
 
 		/**
+		 * @return the time of last frame.
+		 */
+		auto &lastTime() const { return lastTime_; }
+
+		/**
 		 * Sets the world time scale.
 		 * @param scale the scale.
 		 */
@@ -312,6 +317,24 @@ namespace regen {
 		 * @param f the function to run.
 		 */
 		void withGLContext(std::function<void()> f);
+
+		/**
+		 * Initializes GL resources of the scene.
+		 */
+		void initGL();
+
+		/**
+		 * Resizes FBOs that have window-relative size.
+		 * @param size
+		 */
+		void resizeGL(const Vec2i &size);
+
+		/**
+		 * Draw next frame.
+		 */
+		void drawGL();
+
+		void updateGL();
 
 	protected:
 		ref_ptr<RootNode> renderTree_;
@@ -348,14 +371,6 @@ namespace regen {
 		void setupShaderLoading();
 
 		void setTime();
-
-		void initGL();
-
-		void drawGL();
-
-		void updateGL();
-
-		void resizeGL(const Vec2i &size);
 
 		void updateMousePosition();
 	};

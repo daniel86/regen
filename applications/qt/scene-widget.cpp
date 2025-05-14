@@ -1,17 +1,8 @@
-/*
- * qt-gl-widget.cpp
- *
- *  Created on: 31.12.2012
- *      Author: daniel
- */
-
 #include <GL/glew.h>
 #include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QCloseEvent>
-#include <QtGui/QWheelEvent>
 #include <QtGui/QWindow>
 #include <QtGui/QOpenGLContext>
+#include <QVBoxLayout>
 
 #include <regen/utility/threading.h>
 #include "scene-widget.h"
@@ -21,6 +12,37 @@
 using namespace regen;
 
 #define WAIT_ON_VSYNC
+
+namespace regen {
+	class SceneWindow : public QOpenGLWindow {
+	public:
+		explicit SceneWindow(SceneWidget *sceneWidget, QWindow *parent = nullptr)
+				: QOpenGLWindow(NoPartialUpdate, parent),
+				  sceneWidget_(sceneWidget) {}
+
+		void initializeGL() override {}
+		void resizeGL(int w, int h) override {}
+		void paintGL() override {}
+
+		// forward events to the scene widget
+		void mousePressEvent(QMouseEvent *event) override
+			{ sceneWidget_->mousePressEvent(event); }
+		void mouseDoubleClickEvent(QMouseEvent *event) override
+			{ sceneWidget_->mouseDoubleClickEvent(event); }
+		void mouseReleaseEvent(QMouseEvent *event) override
+			{ sceneWidget_->mouseReleaseEvent(event); }
+		void wheelEvent(QWheelEvent *event) override
+			{ sceneWidget_->wheelEvent(event); }
+		void mouseMoveEvent(QMouseEvent *event) override
+			{ sceneWidget_->mouseMoveEvent(event); }
+		void keyPressEvent(QKeyEvent *event) override
+			{ sceneWidget_->keyPressEvent(event); }
+		void keyReleaseEvent(QKeyEvent *event) override
+			{ sceneWidget_->keyReleaseEvent(event); }
+	protected:
+		SceneWidget *sceneWidget_;
+	};
+}
 
 static GLint qtToOgleButton(Qt::MouseButton button) {
 	switch (button) {
@@ -39,38 +61,55 @@ static GLint qtToOgleButton(Qt::MouseButton button) {
 	}
 }
 
-static QSurfaceFormat convertFormat(const QGLFormat &glFormat) {
-	QSurfaceFormat surfaceFormat;
-
-	surfaceFormat.setDepthBufferSize(glFormat.depthBufferSize());
-	surfaceFormat.setStencilBufferSize(glFormat.stencilBufferSize());
-	surfaceFormat.setRedBufferSize(glFormat.redBufferSize());
-	surfaceFormat.setGreenBufferSize(glFormat.greenBufferSize());
-	surfaceFormat.setBlueBufferSize(glFormat.blueBufferSize());
-	surfaceFormat.setAlphaBufferSize(glFormat.alphaBufferSize());
-	surfaceFormat.setSamples(glFormat.samples());
-	surfaceFormat.setSwapBehavior(
-			glFormat.doubleBuffer() ? QSurfaceFormat::DoubleBuffer : QSurfaceFormat::SingleBuffer);
-	surfaceFormat.setStereo(glFormat.stereo());
-	surfaceFormat.setVersion(glFormat.majorVersion(), glFormat.minorVersion());
-	surfaceFormat.setProfile(static_cast<QSurfaceFormat::OpenGLContextProfile>(glFormat.profile()));
-	surfaceFormat.setSwapInterval(glFormat.swapInterval());
-
-	return surfaceFormat;
-}
-
 SceneWidget::SceneWidget(
 		QtApplication *app,
-		const QGLFormat &glFormat,
+		const QSurfaceFormat &surfaceFormat,
 		QWidget *parent)
-		: QGLWidget(glFormat, parent),
+		: QWidget(parent),
 		  app_(app),
 		  updateInterval_(16000),
 		  isRunning_(GL_FALSE),
-		  surfaceFormat_(convertFormat(glFormat)),
-		  renderThread_(this) {
+		  surfaceFormat_(surfaceFormat) {
 	setMouseTracking(true);
-	setAutoBufferSwap(false);
+	setFocusPolicy(Qt::StrongFocus);
+
+	sceneWindow_ = ref_ptr<SceneWindow>::alloc(this, parent->windowHandle());
+	sceneWindow_->setFormat(surfaceFormat_);
+    sceneWindow_->installEventFilter(this);
+    // Create container widget
+    winContainer_ = QWidget::createWindowContainer(sceneWindow_.get(), this);
+    winContainer_->setFocusPolicy(Qt::StrongFocus);
+    winContainer_->installEventFilter(this);
+
+    // Use a layout to embed into the widget
+    auto layout = new QVBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(winContainer_);
+
+	renderThread_ = ref_ptr<GLThread>::alloc(this);
+}
+
+QSurfaceFormat SceneWidget::defaultFormat() {
+	QSurfaceFormat format;
+	format.setRenderableType(QSurfaceFormat::OpenGL);
+	format.setProfile(QSurfaceFormat::CoreProfile);
+	format.setVersion(4, 5);
+	// Buffer sizes
+	format.setRedBufferSize(8);
+	format.setGreenBufferSize(8);
+	format.setBlueBufferSize(8);
+	format.setAlphaBufferSize(0);
+	format.setDepthBufferSize(0);
+	format.setStencilBufferSize(0);
+	// Anti-aliasing
+	format.setSamples(0);  // Or 4/8 if you use MSAA
+	// Performance
+	format.setSwapInterval(0);  // vsync OFF for uncapped FPS
+	format.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+	format.setStereo(false);
+	// Optional
+	//format.setOption(QSurfaceFormat::DebugContext);
+	return format;
 }
 
 void SceneWidget::setUpdateInterval(GLint interval) {
@@ -78,30 +117,21 @@ void SceneWidget::setUpdateInterval(GLint interval) {
 }
 
 void SceneWidget::resizeEvent(QResizeEvent *ev) {
-	if (!isRunning_) {
-		// QGLWidget wants to do the first resize...
-		QGLWidget::resizeEvent(ev);
-	} else {
-		resizeGL(ev->size().width(), ev->size().height());
-	}
+	QWidget::resizeEvent(ev);
+	app_->resizeGL(Vec2i(ev->size().width(), ev->size().height()));
 }
 
-// init GL in main thread
-void SceneWidget::initializeGL() { app_->initGL(); }
-
-// queue resize event to be processed in render thread
-void SceneWidget::resizeGL(int w, int h) { app_->resizeGL(Vec2i(w, h)); }
-
 void SceneWidget::startRendering() {
-	renderThread_.start(QThread::HighPriority);
+	setFocus();
+	renderThread_->start(QThread::HighPriority);
 }
 
 void SceneWidget::stopRendering() {
 	isRunning_ = GL_FALSE;
-	renderThread_.wait();
+	renderThread_->wait();
 }
 
-void SceneWidget::run() {
+void SceneWidget::run(QOpenGLContext *glContext) {
 	if (isRunning_) {
 		REGEN_WARN("Render thread already running.");
 		return;
@@ -127,12 +157,8 @@ void SceneWidget::run() {
 		//  screen FBO is bound to the current draw framebuffer.
 		//  Not sure why....
 		RenderState::get()->drawFrameBuffer().push(0);
-		glFlush();
+		glContext->swapBuffers(sceneWindow_.get());
 		RenderState::get()->drawFrameBuffer().pop();
-		// some tools require buffer swapping for detecting frames.
-		// for example apitrace. Is it so unusual to use single buffer
-		// with offscreen FBO ?
-		//swapBuffers();
 
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();
@@ -142,7 +168,7 @@ void SceneWidget::run() {
 			boost::posix_time::ptime t(
 					boost::posix_time::microsec_clock::local_time());
 			dt = std::max(0, updateInterval_ - (GLint)
-					(t - app_->lastTime_).total_microseconds());
+					(t - app_->lastTime()).total_microseconds());
 			// sleep desired interval
 			usleepRegen(dt);
 		}
@@ -155,18 +181,19 @@ SceneWidget::GLThread::GLThread(SceneWidget *glWidget)
 
 void SceneWidget::GLThread::run() {
 	auto sharedContext = new QOpenGLContext();
-	sharedContext->setFormat(glWidget_->surfaceFormat());
+	sharedContext->setFormat(glWidget_->sceneWindow_->requestedFormat());
 	sharedContext->setShareContext(QOpenGLContext::globalShareContext());
 	sharedContext->create();
-	sharedContext->makeCurrent(glWidget_->windowHandle());
+	sharedContext->makeCurrent(glWidget_->sceneWindow_.get());
 
-	glWidget_->run();
+	glWidget_->app_->initGL();
+	glWidget_->run(sharedContext);
 
 	sharedContext->doneCurrent();
 	delete sharedContext;
 }
 
-void SceneWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick) {
+void SceneWidget::do_mouseClick(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick) {
 	GLint x = event->x(), y = event->y();
 	GLint button = qtToOgleButton(event->button());
 	if (button == -1) { return; }
@@ -181,17 +208,19 @@ void SceneWidget::mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolea
 }
 
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
-	mouseClick__(event, GL_TRUE, GL_FALSE);
+	do_mouseClick(event, GL_TRUE, GL_FALSE);
+	setFocus();
 	event->accept();
 }
 
 void SceneWidget::mouseDoubleClickEvent(QMouseEvent *event) {
-	mouseClick__(event, GL_TRUE, GL_TRUE);
+	do_mouseClick(event, GL_TRUE, GL_TRUE);
+	setFocus();
 	event->accept();
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
-	mouseClick__(event, GL_FALSE, GL_FALSE);
+	do_mouseClick(event, GL_FALSE, GL_FALSE);
 	event->accept();
 }
 
@@ -266,6 +295,14 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 bool SceneWidget::eventFilter(QObject *obj, QEvent *event) {
 	if (event->type() == QEvent::Close) {
 		app_->exitMainLoop(0);
+		return true;
+	}
+	else if (event->type() == QEvent::Enter) {
+		enterEvent(event);
+		return true;
+	}
+	else if (event->type() == QEvent::Leave) {
+		leaveEvent(event);
 		return true;
 	}
 	return QObject::eventFilter(obj, event);

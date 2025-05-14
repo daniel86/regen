@@ -14,7 +14,7 @@ namespace regen {
 	public:
 		QtApplication(
 				const int &argc, const char **argv,
-				const QGLFormat &glFormat,
+				const QSurfaceFormat &glFormat,
 				uint32_t width = 800,
 				uint32_t height = 600,
 				QWidget *parent = nullptr);
@@ -45,8 +45,6 @@ namespace regen {
 		QWidget *glWidget_;
 		bool isMainloopRunning_;
 		int32_t exitCode_;
-
-		friend class SceneWidget;
 	};
 }
 

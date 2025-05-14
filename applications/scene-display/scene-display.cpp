@@ -3,6 +3,7 @@
 #include <regen/config.h>
 
 #include "scene-display-widget.h"
+#include "applications/qt/scene-widget.h"
 
 #ifdef Q_WS_X11
 #include <X11/Xlib.h>
@@ -23,23 +24,10 @@ int main(int argc, char **argv) {
 	XInitThreads();
 #endif
 #endif
-	QGLFormat glFormat(
-			QGL::SingleBuffer
-			| QGL::NoAlphaChannel
-			| QGL::NoAccumBuffer
-			| QGL::NoDepthBuffer
-			| QGL::NoStencilBuffer
-			| QGL::NoStereoBuffers
-			| QGL::NoSampleBuffers);
-	glFormat.setSwapInterval(0);
-	glFormat.setDirectRendering(true);
-	glFormat.setRgba(true);
-	glFormat.setOverlay(false);
-	glFormat.setVersion(3, 3);
-	glFormat.setProfile(QGLFormat::CoreProfile);
-
 	// create and show application window
-	ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(argc, (const char **) argv, glFormat);
+	ref_ptr<QtApplication> app = ref_ptr<QtApplication>::alloc(
+		argc, (const char **) argv,
+		SceneWidget::defaultFormat());
 	app->setupLogging();
 
 	// add a custom path for shader loading

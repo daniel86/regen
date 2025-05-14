@@ -3,25 +3,28 @@
 
 #include <GL/glew.h>
 
-#include <QtOpenGL/QGLWidget>
+#include <QtWidgets/QWidget>
 #include <QtCore/QThread>
+#include <QOpenGLWindow>
 #include "qt-application.h"
 
 namespace regen {
 	/**
 	 * QT Widget that can be used for OpenGL rendering.
 	 */
-	class SceneWidget : public QGLWidget {
+	class SceneWidget : public QWidget {
 	public:
-		SceneWidget(QtApplication *app,
-					const QGLFormat &glFormat,
+		static QSurfaceFormat defaultFormat();
+
+		explicit SceneWidget(QtApplication *app,
+					const QSurfaceFormat &glFormat = defaultFormat(),
 					QWidget *parent = nullptr);
 
 		void startRendering();
 
 		void stopRendering();
 
-		void run();
+		void run(QOpenGLContext *glContext);
 
 		auto surfaceFormat() const -> QSurfaceFormat const & { return surfaceFormat_; }
 
@@ -29,6 +32,42 @@ namespace regen {
 		 * @param interval update interval in milliseconds.
 		 */
 		void setUpdateInterval(GLint interval);
+
+		// override
+		void mousePressEvent(QMouseEvent *) override;
+
+		// override
+		void mouseDoubleClickEvent(QMouseEvent *) override;
+
+		// override
+		void mouseReleaseEvent(QMouseEvent *) override;
+
+		// override
+		void enterEvent(QEvent *) override;
+
+		// override
+		void leaveEvent(QEvent *) override;
+
+		// override
+		void wheelEvent(QWheelEvent *) override;
+
+		// override
+		void mouseMoveEvent(QMouseEvent *event) override;
+
+		// override
+		void keyPressEvent(QKeyEvent *event) override;
+
+		// override
+		void keyReleaseEvent(QKeyEvent *event) override;
+
+		// override
+		void resizeEvent(QResizeEvent *) override;
+
+		// override
+		void paintEvent(QPaintEvent *) override {};
+
+		// override
+		bool eventFilter(QObject *obj, QEvent *event) override;
 
 	protected:
 		class GLThread : public QThread {
@@ -45,41 +84,11 @@ namespace regen {
 		GLint updateInterval_;
 		GLboolean isRunning_;
 		QSurfaceFormat surfaceFormat_;
-		GLThread renderThread_;
+		QWidget *winContainer_;
+		ref_ptr<QOpenGLWindow> sceneWindow_;
+		ref_ptr<GLThread> renderThread_;
 
-		void initializeGL() override;
-
-		void paintGL() override {};
-
-		void updateGL() override {};
-
-		void resizeGL(int width, int height) override;
-
-		void resizeEvent(QResizeEvent *) override;
-
-		void paintEvent(QPaintEvent *) override {};
-
-		void mousePressEvent(QMouseEvent *) override;
-
-		void mouseDoubleClickEvent(QMouseEvent *) override;
-
-		void mouseReleaseEvent(QMouseEvent *) override;
-
-		void enterEvent(QEvent *) override;
-
-		void leaveEvent(QEvent *) override;
-
-		void wheelEvent(QWheelEvent *) override;
-
-		void mouseMoveEvent(QMouseEvent *event) override;
-
-		void keyPressEvent(QKeyEvent *event) override;
-
-		void keyReleaseEvent(QKeyEvent *event) override;
-
-		bool eventFilter(QObject *obj, QEvent *event) override;
-
-		void mouseClick__(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
+		void do_mouseClick(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
 	};
 
 }

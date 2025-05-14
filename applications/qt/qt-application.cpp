@@ -24,7 +24,7 @@ static int appArgCount = 1;
 
 QtApplication::QtApplication(
 		const int &argc, const char **argv,
-		const QGLFormat &glFormat,
+		const QSurfaceFormat &glFormat,
 		GLuint width, GLuint height,
 		QWidget *parent)
 		: Scene(argc, argv), isMainloopRunning_(GL_FALSE), exitCode_(0) {
