@@ -56,8 +56,6 @@ protected:
 void NoiseWidget::gl_loadScene() {
 	AnimationManager::get().pause(GL_TRUE);
 	AnimationManager::get().setRootState(app_->renderTree()->state());
-	// TODO: why needed? seems it is initialized once and then GL context is switched?
-	RenderState::reset();
 
 	// create render target
 	auto winSize = app_->windowViewport()->getVertex(0).r;

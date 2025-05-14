@@ -344,8 +344,6 @@ void MeshViewerWidget::createCameraController() {
 void MeshViewerWidget::gl_loadScene() {
 	AnimationManager::get().pause(GL_TRUE);
 	AnimationManager::get().setRootState(app_->renderTree()->state());
-	// TODO: why needed? seems it is initialized once and then GL context is switched?
-	RenderState::reset();
 
 	// create render target
 	auto fbo = ref_ptr<FBO>::alloc(ui_.glWidget->width(), ui_.glWidget->height());

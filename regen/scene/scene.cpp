@@ -247,6 +247,17 @@ void Scene::initGL() {
 	renderState_ = RenderState::get();
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");
+
+	globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms");
+	globalUniforms_->addBlockInput(windowViewport_);
+	globalUniforms_->addBlockInput(mousePosition_);
+	globalUniforms_->addBlockInput(mouseTexco_);
+	globalUniforms_->addBlockInput(mouseDepth_);
+	globalUniforms_->addBlockInput(timeSeconds_);
+	globalUniforms_->addBlockInput(timeDelta_);
+	globalUniforms_->addBlockInput(worldTime_.in);
+	globalUniforms_->addBlockInput(isMouseEntered_);
+	renderTree_->state()->joinShaderInput(globalUniforms_);
 }
 
 void Scene::setTime() {
@@ -263,20 +274,6 @@ void Scene::clear() {
 	isTimeInitialized_ = GL_FALSE;
 	RenderState::reset();
 	BindingManager::clear();
-
-	if (!globalUniforms_.get()) {
-		// FIXME: Cannot create UBO in initGL above, because of the problem with early GL context!
-		globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms");
-		globalUniforms_->addBlockInput(windowViewport_);
-		globalUniforms_->addBlockInput(mousePosition_);
-		globalUniforms_->addBlockInput(mouseTexco_);
-		globalUniforms_->addBlockInput(mouseDepth_);
-		globalUniforms_->addBlockInput(timeSeconds_);
-		globalUniforms_->addBlockInput(timeDelta_);
-		globalUniforms_->addBlockInput(worldTime_.in);
-		globalUniforms_->addBlockInput(isMouseEntered_);
-		renderTree_->state()->joinShaderInput(globalUniforms_);
-	}
 }
 
 void Scene::registerInteraction(const std::string &name, const ref_ptr<SceneInteraction> &interaction) {
