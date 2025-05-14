@@ -211,7 +211,7 @@ namespace regen {
 		/**
 		 * numArrayElements() * numInstances()
 		 */
-		int32_t numElements() const { return numElements_; }
+		uint32_t numElements() const { return numElements_ui_; }
 
 		/**
 		 * Number of array elements.
@@ -517,7 +517,10 @@ namespace regen {
 		uint32_t numArrayElements_;
 		uint32_t numVertices_;
 		uint32_t numInstances_;
-		int32_t numElements_;
+		// note: not exactly sure why GL API uses int32_t here,
+		//       well we keep num-elements as both signed and unsigned then :/
+		int32_t numElements_i_;
+		uint32_t numElements_ui_;
 		int32_t valsPerElement_;
 		uint32_t divisor_;
 		uint32_t buffer_;
@@ -769,14 +772,14 @@ namespace regen {
 		 * @param vertexIndex index in data array.
 		 * @param val the new value.
 		 */
-		void setVertexClamped(GLuint i, const ValueType &val) { setVertex(numElements_ > i ? i : 0, val); }
+		void setVertexClamped(GLuint i, const ValueType &val) { setVertex(numElements_ui_ > i ? i : 0, val); }
 
 		/**
 		 * Get vertex at index or the first vertex if index is out of bounds.
 		 * @param vertexIndex index in data array.
 		 * @return data value at given index.
 		 */
-		auto getVertexClamped(GLuint i) const { return getVertex(numElements_ > i ? i : 0); }
+		auto getVertexClamped(GLuint i) const { return getVertex(numElements_ui_ > i ? i : 0); }
 
 		/**
 		 * Write ShaderInput.
