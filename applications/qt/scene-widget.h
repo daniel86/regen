@@ -2,10 +2,14 @@
 #define REGEN_SCENE_WIDGET_H_
 
 #include <GL/glew.h>
+// NOTE: QT does not like using glew :/ it will print warnings that can be ignored.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcpp"
+#include <QOpenGLWindow>
+#pragma GCC diagnostic pop
 
 #include <QtWidgets/QWidget>
 #include <QtCore/QThread>
-#include <QOpenGLWindow>
 #include "qt-application.h"
 
 namespace regen {

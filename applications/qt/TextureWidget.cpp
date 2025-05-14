@@ -10,14 +10,13 @@
 #include <QLabel>
 #include <QTimer>
 #include <QVBoxLayout>
-#include <QOpenGLFunctions>
 #include <QMessageBox>
 #include <QFileDialog>
 
 using namespace regen;
 
 namespace regen {
-	class TextureWidgetGL : public RegenWidgetGL, public State, protected QOpenGLFunctions {
+	class TextureWidgetGL : public RegenWidgetGL, public State {
 	public:
 		explicit TextureWidgetGL(TextureWidget *widget, QWidget *container)
 				: RegenWidgetGL(widget, container),
@@ -31,7 +30,6 @@ namespace regen {
 		}
 
 		void initializeGL() override {
-			initializeOpenGLFunctions();
 		}
 
 		void initializeGL_() {

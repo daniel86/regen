@@ -1,7 +1,11 @@
 #include <GL/glew.h>
+// NOTE: QT does not like using glew :/ it will print warnings that can be ignored.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcpp"
+#include <QOpenGLContext>
+#pragma GCC diagnostic pop
 
 #include <QDesktopWidget>
-#include <QOpenGLContext>
 #include <QtWidgets/QHBoxLayout>
 
 #include <regen/config.h>
