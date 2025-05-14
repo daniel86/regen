@@ -145,7 +145,7 @@ public:
 			: EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) {}
 
 	void call(EventObject *evObject, EventData *) {
-		Application *app = (Application *) evObject;
+		Scene *app = (Scene *) evObject;
 		auto winSize = app->windowViewport()->getVertex(0);
 		fboState_->resize(winSize.r.x * wScale_, winSize.r.y * hScale_);
 	}
@@ -155,13 +155,13 @@ protected:
 	GLfloat wScale_, hScale_;
 };
 
-void setBlitToScreen(Application *app, const ref_ptr<FBO> &fbo, GLenum attachment) {
+void setBlitToScreen(Scene *app, const ref_ptr<FBO> &fbo, GLenum attachment) {
 	ref_ptr<State> blitState = ref_ptr<BlitToScreen>::alloc(fbo, app->windowViewport(), attachment);
 	app->renderTree()->addChild(ref_ptr<StateNode>::alloc(blitState));
 }
 
 ref_ptr<Mesh> createVideoWidget(
-		Application *app,
+		Scene *app,
 		const ref_ptr<Texture> &videoTexture,
 		const ref_ptr<StateNode> &root) {
 	Rectangle::Config quadConfig;
@@ -208,7 +208,7 @@ void VideoPlayerWidget::gl_loadScene() {
 	ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 	fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
 	// resize fbo with window
-	app_->connect(Application::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState, 1.0, 1.0));
+	app_->connect(Scene::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState, 1.0, 1.0));
 
 	// create a root node (that binds the render target)
 	ref_ptr<StateNode> sceneRoot = ref_ptr<StateNode>::alloc(fboState);

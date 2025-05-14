@@ -27,7 +27,7 @@ class FBOResizer : public EventHandler {
 public:
 	explicit FBOResizer(const ref_ptr<FBOState> &fbo) : EventHandler(), fboState_(fbo) {}
 	void call(EventObject *evObject, EventData *) override {
-		auto *app = (Application *) evObject;
+		auto *app = (Scene *) evObject;
 		auto winSize = app->windowViewport()->getVertex(0);
 		fboState_->resize(winSize.r.x, winSize.r.y);
 	}
@@ -336,9 +336,9 @@ void MeshViewerWidget::createCameraController() {
 	ref_ptr<QtFirstPersonEventHandler> cameraEventHandler =
 			ref_ptr<QtFirstPersonEventHandler>::alloc(cameraController_, keyMappings);
 	cameraEventHandler->set_sensitivity(0.005f);
-	app_->connect(Application::KEY_EVENT, cameraEventHandler);
-	app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
-	app_->connect(Application::MOUSE_MOTION_EVENT, cameraEventHandler);
+	app_->connect(Scene::KEY_EVENT, cameraEventHandler);
+	app_->connect(Scene::BUTTON_EVENT, cameraEventHandler);
+	app_->connect(Scene::MOUSE_MOTION_EVENT, cameraEventHandler);
 }
 
 void MeshViewerWidget::gl_loadScene() {
@@ -398,10 +398,10 @@ void MeshViewerWidget::gl_loadScene() {
 	GL_ERROR_LOG();
 
 	// resize fbo with window
-	app_->connect(Application::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState));
+	app_->connect(Scene::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState));
 	// Update frustum when window size changes
-	app_->connect(Application::RESIZE_EVENT,
-			ref_ptr<ProjectionUpdater>::alloc(userCamera_, app_->windowViewport()));
+	app_->connect(Scene::RESIZE_EVENT,
+				  ref_ptr<ProjectionUpdater>::alloc(userCamera_, app_->windowViewport()));
 
 	AnimationManager::get().resume();
 	REGEN_INFO("Scene Loaded.");

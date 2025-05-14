@@ -76,16 +76,16 @@ protected:
 
 class SceneDisplayMouseHandler : public EventHandler, public Animation {
 public:
-	explicit SceneDisplayMouseHandler(Application *app)
+	explicit SceneDisplayMouseHandler(Scene *app)
 			: EventHandler(), Animation(true, false), app_(app) {
 	}
 
 	void call(EventObject *evObject, EventData *data) override {
-		if (data->eventID == Application::BUTTON_EVENT) {
-			auto *ev = (Application::ButtonEvent *) data;
+		if (data->eventID == Scene::BUTTON_EVENT) {
+			auto *ev = (Scene::ButtonEvent *) data;
 			boost::posix_time::ptime evtTime(boost::posix_time::microsec_clock::local_time());
 
-			if (ev->button == Application::MOUSE_BUTTON_LEFT && app_->hasHoveredObject()) {
+			if (ev->button == Scene::MOUSE_BUTTON_LEFT && app_->hasHoveredObject()) {
 				auto timeDiff = evtTime - buttonClickTime_[ev->button];
 				if (timeDiff.total_milliseconds() < 200) {
 					auto interaction = app_->getInteraction(app_->hoveredObject()->name());
@@ -116,7 +116,7 @@ public:
 	}
 
 protected:
-	Application *app_;
+	Scene *app_;
 	std::map<int, boost::posix_time::ptime> buttonClickTime_;
 	std::queue<std::pair<ref_ptr<StateNode>, ref_ptr<SceneInteraction> > > interactionQueue_;
 	boost::mutex animationLock_;
@@ -687,9 +687,9 @@ void SceneDisplayWidget::handleCameraConfiguration(
 		ref_ptr<QtFirstPersonEventHandler> cameraEventHandler = ref_ptr<QtFirstPersonEventHandler>::alloc(
 				cameraController_, keyMappings);
 		cameraEventHandler->set_sensitivity(cameraNode->getValue<GLfloat>("sensitivity", 0.005f));
-		app_->connect(Application::KEY_EVENT, cameraEventHandler);
-		app_->connect(Application::BUTTON_EVENT, cameraEventHandler);
-		app_->connect(Application::MOUSE_MOTION_EVENT, cameraEventHandler);
+		app_->connect(Scene::KEY_EVENT, cameraEventHandler);
+		app_->connect(Scene::BUTTON_EVENT, cameraEventHandler);
+		app_->connect(Scene::MOUSE_MOTION_EVENT, cameraEventHandler);
 		eventHandler_.emplace_back(cameraEventHandler);
 
 		// make sure camera transforms are updated in first few frames
@@ -851,8 +851,8 @@ static void handleAssetAnimationConfiguration(
 			for (const auto &anim: nodeAnimations_) {
 				auto keyHandler = ref_ptr<KeyAnimationRangeUpdater>::alloc(
 						anim, ranges, keyMappings, idleAnimation);
-				app_->connect(Application::KEY_EVENT, keyHandler);
-				app_->connect(Application::BUTTON_EVENT, keyHandler);
+				app_->connect(Scene::KEY_EVENT, keyHandler);
+				app_->connect(Scene::BUTTON_EVENT, keyHandler);
 				anim->connect(Animation::ANIMATION_STOPPED, keyHandler);
 				eventHandler.emplace_back(keyHandler);
 			}
@@ -1042,7 +1042,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	auto mouseEventHandler = ref_ptr<SceneDisplayMouseHandler>::alloc(app_);
 	mouseEventHandler->setAnimationName("mouse");
 	mouseEventHandler->startAnimation();
-	app_->connect(Application::BUTTON_EVENT, mouseEventHandler);
+	app_->connect(Scene::BUTTON_EVENT, mouseEventHandler);
 	eventHandler_.emplace_back(mouseEventHandler);
 
 	timeWidgetAnimation_ = ref_ptr<GameTimeAnimation>::alloc(this);

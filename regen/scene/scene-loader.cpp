@@ -22,7 +22,7 @@ using namespace regen::scene;
 using namespace regen;
 
 SceneLoader::SceneLoader(
-		Application *application,
+		Scene *application,
 		const ref_ptr<SceneInput> &inputProvider)
 		: application_(application),
 		  inputProvider_(inputProvider) {
@@ -35,7 +35,7 @@ SceneLoader::SceneLoader(
 }
 
 SceneLoader::SceneLoader(
-		Application *application,
+		Scene *application,
 		const ref_ptr<SceneInput> &inputProvider,
 		const ref_ptr<ResourceManager> &resources,
 		const ref_ptr<BulletPhysics> &physics)

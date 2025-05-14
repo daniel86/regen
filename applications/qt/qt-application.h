@@ -1,10 +1,3 @@
-/*
- * qt-application.h
- *
- *  Created on: 31.12.2012
- *      Author: daniel
- */
-
 #ifndef QT_APPLICATION_H_
 #define QT_APPLICATION_H_
 
@@ -12,21 +5,19 @@
 
 #include <QtOpenGL/QGLWidget>
 #include <QtWidgets/QApplication>
-#include <regen/application.h>
-#include <applications/qt/qt-gl-widget.h>
+#include <regen/scene/scene.h>
 
 #include <string>
 
 namespace regen {
-	class QTGLWidget;
-
-	class QtApplication : public Application {
+	class QtApplication : public Scene {
 	public:
 		QtApplication(
 				const int &argc, const char **argv,
 				const QGLFormat &glFormat,
-				GLuint width = 800, GLuint height = 600,
-				QWidget *parent = NULL);
+				uint32_t width = 800,
+				uint32_t height = 600,
+				QWidget *parent = nullptr);
 
 		/**
 		 * @return topmost parent of GL widget.
@@ -36,7 +27,7 @@ namespace regen {
 		/**
 		 * @return the rendering widget.
 		 */
-		QTGLWidget *glWidget() { return glWidget_; }
+		QWidget *glWidget() { return glWidget_; }
 
 		QWidget *glWidgetContainer()  { return glContainer_; }
 
@@ -51,11 +42,11 @@ namespace regen {
 	protected:
 		QApplication *app_;
 		QWidget *glContainer_;
-		QTGLWidget *glWidget_;
-		GLboolean isMainloopRunning_;
-		GLint exitCode_;
+		QWidget *glWidget_;
+		bool isMainloopRunning_;
+		int32_t exitCode_;
 
-		friend class QTGLWidget;
+		friend class SceneWidget;
 	};
 }
 

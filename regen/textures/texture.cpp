@@ -21,7 +21,7 @@ using namespace regen;
 #include "noise-texture.h"
 #include "ramp-texture.h"
 #include "regen/effects/bloom-texture.h"
-#include "regen/application.h"
+#include "regen/scene/scene.h"
 #include "regen/scene/loading-context.h"
 #include "regen/gl-types/fbo.h"
 
@@ -443,7 +443,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 			REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
 		} else {
 			auto resizer = ref_ptr<TextureResizer>::alloc(bloomTexture, viewport, 1.0, 1.0);
-			ctx.scene()->addEventHandler(Application::RESIZE_EVENT, resizer);
+			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT, resizer);
 			tex = bloomTexture;
 			bloomTexture->resize(inputFBO->width(), inputFBO->height());
 		}
@@ -471,7 +471,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 
 		if (input.hasAttribute("size-mode") && sizeMode == "rel") {
 			auto resizer = ref_ptr<TextureResizer>::alloc(tex, viewport, sizeRel.x, sizeRel.y);
-			ctx.scene()->addEventHandler(Application::RESIZE_EVENT, resizer);
+			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT, resizer);
 		}
 	}
 

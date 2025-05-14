@@ -149,13 +149,13 @@ public:
 		}
 		std::string eventKey;
 		GLboolean isUp;
-		if (data->eventID == Application::KEY_EVENT) {
-			auto *ev = (Application::KeyEvent *) data;
+		if (data->eventID == Scene::KEY_EVENT) {
+			auto *ev = (Scene::KeyEvent *) data;
 			// TODO: mapping of non-asci keys
 			eventKey = REGEN_STRING((char) ev->key);
 			isUp = ev->isUp;
-		} else if (data->eventID == Application::BUTTON_EVENT) {
-			auto *ev = (Application::ButtonEvent *) data;
+		} else if (data->eventID == Scene::BUTTON_EVENT) {
+			auto *ev = (Scene::ButtonEvent *) data;
 			eventKey = REGEN_STRING("button" << ev->button);
 			isUp = !ev->pressed;
 		} else {

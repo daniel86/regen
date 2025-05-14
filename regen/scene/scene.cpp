@@ -1,38 +1,27 @@
-/*
- * application.cpp
- *
- *  Created on: 15.10.2012
- *      Author: daniel
- */
-
 #include <GL/glew.h>
-
-#include <boost/foreach.hpp>
-
 #include <regen/gl-types/glsl/includer.h>
 #include <regen/config.h>
-
-#include "application.h"
-#include "regen/gl-types/gl-param.h"
-#include "regen/gl-types/binding-manager.h"
+#include <regen/gl-types/gl-param.h>
+#include <regen/gl-types/binding-manager.h>
+#include "scene.h"
 
 using namespace regen;
 
-GLuint Application::BUTTON_EVENT =
+uint32_t Scene::BUTTON_EVENT =
 		EventObject::registerEvent("button-event");
-GLuint Application::KEY_EVENT =
+uint32_t Scene::KEY_EVENT =
 		EventObject::registerEvent("key-event");
-GLuint Application::MOUSE_MOTION_EVENT =
+uint32_t Scene::MOUSE_MOTION_EVENT =
 		EventObject::registerEvent("mouse-motion-event");
-GLuint Application::MOUSE_LEAVE_EVENT =
+uint32_t Scene::MOUSE_LEAVE_EVENT =
 		EventObject::registerEvent("mouse-leave-event");
-GLuint Application::RESIZE_EVENT =
+uint32_t Scene::RESIZE_EVENT =
 		EventObject::registerEvent("resize-event");
 
-Application::Application(const int &argc, const char **argv)
+Scene::Scene(const int &argc, const char **argv)
 		: EventObject(),
 		  renderTree_(ref_ptr<RootNode>::alloc()),
-		  renderState_(NULL),
+		  renderState_(nullptr),
 		  isGLInitialized_(GL_FALSE),
 		  isTimeInitialized_(GL_FALSE),
 		  isVSyncEnabled_(GL_TRUE) {
@@ -74,22 +63,20 @@ Application::Application(const int &argc, const char **argv)
 	optionalExt_.emplace_back("GL_ARB_seamless_cube_map");
 	optionalExt_.emplace_back("GL_ARB_tessellation_shader");
 	optionalExt_.emplace_back("GL_ARB_texture_buffer_range");
-
-	srand(time(0));
 }
 
-void Application::addShaderPath(const std::string &path) {
+void Scene::addShaderPath(const std::string &path) {
 	Includer::get().addIncludePath(path);
 }
 
-void Application::setupShaderLoading() {
+void Scene::setupShaderLoading() {
 	// try src directory first, might be more up to date then installation
 	boost::filesystem::path srcPath(REGEN_SOURCE_DIR);
 	srcPath /= REGEN_PROJECT_NAME;
 	srcPath /= "glsl";
 	addShaderPath(srcPath.string());
 
-	// if nothing found in src dir, try insatll directory
+	// if nothing found in src dir, try install directory
 	boost::filesystem::path installPath(REGEN_INSTALL_PREFIX);
 	installPath /= "share";
 	installPath /= REGEN_PROJECT_NAME;
@@ -97,7 +84,7 @@ void Application::setupShaderLoading() {
 	addShaderPath(installPath.string());
 }
 
-void Application::setupLogging() {
+void Scene::setupLogging() {
 	Logging::addLogger(new FileLogger(Logging::INFO, "regen-info.log"));
 	Logging::addLogger(new FileLogger(Logging::DEBUG, "regen-debug.log"));
 	Logging::addLogger(new FileLogger(Logging::WARN, "regen-error.log"));
@@ -110,38 +97,38 @@ void Application::setupLogging() {
 	Logging::set_verbosity(Logging::V);
 }
 
-void Application::addRequiredExtension(const std::string &ext) { requiredExt_.push_back(ext); }
+void Scene::addRequiredExtension(const std::string &ext) { requiredExt_.push_back(ext); }
 
-void Application::addOptionalExtension(const std::string &ext) { optionalExt_.push_back(ext); }
+void Scene::addOptionalExtension(const std::string &ext) { optionalExt_.push_back(ext); }
 
-void Application::mouseEnter() {
+void Scene::mouseEnter() {
 	isMouseEntered_->setVertex(0, 1);
 	ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
 	event->entered = GL_TRUE;
 	queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 
-void Application::mouseLeave() {
+void Scene::mouseLeave() {
 	isMouseEntered_->setVertex(0, 0);
 	ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
 	event->entered = GL_FALSE;
 	queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 
-ref_ptr<ShaderInput1i> Application::isMouseEntered() const {
+ref_ptr<ShaderInput1i> Scene::isMouseEntered() const {
 	return isMouseEntered_;
 }
 
-void Application::updateMousePosition() {
+void Scene::updateMousePosition() {
 	auto mousePosition = mousePosition_->getVertex(0);
 	auto viewport = windowViewport_->getVertex(0);
 	// mouse position in range [0,1] within viewport
 	mouseTexco_->setVertex(0, Vec2f(
 			mousePosition.r.x / (GLfloat) viewport.r.x,
-			1.0 - mousePosition.r.y / (GLfloat) viewport.r.y));
+			1.0f - mousePosition.r.y / (GLfloat) viewport.r.y));
 }
 
-void Application::mouseMove(const Vec2i &pos) {
+void Scene::mouseMove(const Vec2i &pos) {
 	boost::posix_time::ptime time(
 			boost::posix_time::microsec_clock::local_time());
 	GLint dx = pos.x - mousePosition_->getVertex(0).r.x;
@@ -157,7 +144,7 @@ void Application::mouseMove(const Vec2i &pos) {
 	lastMotionTime_ = time;
 }
 
-void Application::mouseButton(const ButtonEvent &ev) {
+void Scene::mouseButton(const ButtonEvent &ev) {
 	mousePosition_->setVertex(0, Vec2f(ev.x, ev.y));
 
 	ref_ptr<ButtonEvent> event = ref_ptr<ButtonEvent>::alloc();
@@ -169,7 +156,7 @@ void Application::mouseButton(const ButtonEvent &ev) {
 	queueEmit(BUTTON_EVENT, event);
 }
 
-void Application::keyUp(const KeyEvent &ev) {
+void Scene::keyUp(const KeyEvent &ev) {
 	ref_ptr<KeyEvent> event = ref_ptr<KeyEvent>::alloc();
 	event->isUp = GL_TRUE;
 	event->key = ev.key;
@@ -178,7 +165,7 @@ void Application::keyUp(const KeyEvent &ev) {
 	queueEmit(KEY_EVENT, event);
 }
 
-void Application::keyDown(const KeyEvent &ev) {
+void Scene::keyDown(const KeyEvent &ev) {
 	ref_ptr<KeyEvent> event = ref_ptr<KeyEvent>::alloc();
 	event->isUp = GL_FALSE;
 	event->key = ev.key;
@@ -187,21 +174,19 @@ void Application::keyDown(const KeyEvent &ev) {
 	queueEmit(KEY_EVENT, event);
 }
 
-void Application::resizeGL(const Vec2i &size) {
+void Scene::resizeGL(const Vec2i &size) {
 	windowViewport_->setVertex(0, size);
 	queueEmit(RESIZE_EVENT);
 	updateMousePosition();
 }
 
-void Application::initGL() {
-	//glewExperimental=GL_TRUE;
+void Scene::initGL() {
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
 		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
 		exit(1);
 	}
-	// glewInit may calls glGetString(GL_EXTENSIONS),
-	// then invalid enum error is generated.
+	// note: glewInit may call glGetString(GL_EXTENSIONS), then invalid enum error is generated.
 	GL_ERROR_LOG();
 
 	REGEN_DEBUG("VENDOR: " << glGetString(GL_VENDOR));
@@ -264,14 +249,14 @@ void Application::initGL() {
 	REGEN_INFO("GL initialized.");
 }
 
-void Application::setTime() {
+void Scene::setTime() {
 	lastTime_ = boost::posix_time::ptime(
 			boost::posix_time::microsec_clock::local_time());
 	lastMotionTime_ = lastTime_;
 	isTimeInitialized_ = GL_TRUE;
 }
 
-void Application::clear() {
+void Scene::clear() {
 	renderTree_->clear();
 	namedToObject_.clear();
 	idToObject_.clear();
@@ -280,9 +265,7 @@ void Application::clear() {
 	BindingManager::clear();
 
 	if (!globalUniforms_.get()) {
-		// TODO: for some reason UBO cannot be created in initGL above.
-		//       well it gets ID 1, but the first UBO in the loaded scene
-		//       gets ID 1 too, then there is flickering. Not sure why.
+		// FIXME: Cannot create UBO in initGL above, because of the problem with early GL context!
 		globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms");
 		globalUniforms_->addBlockInput(windowViewport_);
 		globalUniforms_->addBlockInput(mousePosition_);
@@ -296,11 +279,11 @@ void Application::clear() {
 	}
 }
 
-void Application::registerInteraction(const std::string &name, const ref_ptr<SceneInteraction> &interaction) {
+void Scene::registerInteraction(const std::string &name, const ref_ptr<SceneInteraction> &interaction) {
 	interactions_.emplace(name, interaction);
 }
 
-ref_ptr<SceneInteraction> Application::getInteraction(const std::string &name) {
+ref_ptr<SceneInteraction> Scene::getInteraction(const std::string &name) {
 	auto it = interactions_.find(name);
 	if (it == interactions_.end()) {
 		REGEN_WARN("Interaction with name '" << name << "' not found.");
@@ -309,7 +292,7 @@ ref_ptr<SceneInteraction> Application::getInteraction(const std::string &name) {
 	return it->second;
 }
 
-int Application::putNamedObject(const ref_ptr<StateNode> &node) {
+int Scene::putNamedObject(const ref_ptr<StateNode> &node) {
 	int nextId = namedToObject_.size();
 	auto needId = namedToObject_.find(node->name());
 	if (needId != namedToObject_.end()) {
@@ -322,21 +305,21 @@ int Application::putNamedObject(const ref_ptr<StateNode> &node) {
 	return nextId;
 }
 
-void Application::setHoveredObject(const ref_ptr<StateNode> &hoveredObject, const PickData *pickData) {
+void Scene::setHoveredObject(const ref_ptr<StateNode> &hoveredObject, const PickData *pickData) {
 	hoveredObject_ = hoveredObject;
 	hoveredObjectPickData_ = *pickData;
 	mouseDepth_->setVertex(0, pickData->depth);
 }
 
-void Application::unsetHoveredObject() {
+void Scene::unsetHoveredObject() {
 	hoveredObject_ = {};
 }
 
-void Application::setWorldTimeScale(const double &scale) {
+void Scene::setWorldTimeScale(const double &scale) {
 	worldTime_.scale = scale;
 }
 
-void Application::updateTime() {
+void Scene::updateTime() {
 	if (!isTimeInitialized_) {
 		setTime();
 	}
@@ -348,28 +331,30 @@ void Application::updateTime() {
 	worldTime_.p_time += boost::posix_time::milliseconds(static_cast<long>((dt/1000.0) * worldTime_.scale));
 }
 
-void Application::setWorldTime(const time_t &t) {
+void Scene::setWorldTime(const time_t &t) {
 	worldTime_.p_time = boost::posix_time::from_time_t(t);
 	worldTime_.in->setUniformData((float) t);
 }
 
-void Application::setWorldTime(float timeInSeconds) {
+void Scene::setWorldTime(float timeInSeconds) {
 	worldTime_.in->setUniformData(timeInSeconds);
 	worldTime_.p_time = boost::posix_time::from_time_t((time_t) timeInSeconds);
 }
 
-void Application::drawGL() {
+void Scene::drawGL() {
 	renderTree_->render(timeDelta_->getVertex(0).r);
 }
 
-void Application::updateGL() {
+void Scene::updateGL() {
 	renderTree_->postRender(timeDelta_->getVertex(0).r);
 }
 
 namespace regen {
 	class FunctionCallWithGL : public Animation {
 	public:
-		explicit FunctionCallWithGL(std::function<void()> f) : Animation(true, false), f_(f) {}
+		explicit FunctionCallWithGL(std::function<void()> f) :
+				Animation(true, false),
+				f_(f) {}
 
 		void glAnimate(RenderState *rs, GLdouble dt) override {
 			f_();
@@ -381,7 +366,7 @@ namespace regen {
 	};
 }
 
-void Application::withGLContext(std::function<void()> f) {
+void Scene::withGLContext(std::function<void()> f) {
 	auto anim = ref_ptr<FunctionCallWithGL>::alloc(f);
 	glCalls_.emplace_back(anim);
 	anim->connect(Animation::ANIMATION_STOPPED, ref_ptr<LambdaEventHandler>::alloc(

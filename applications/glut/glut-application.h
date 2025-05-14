@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-#include <regen/application.h>
+#include <regen/scene.h>
 
 #include <string>
 

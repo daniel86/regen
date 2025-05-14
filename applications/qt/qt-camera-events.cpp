@@ -9,7 +9,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QtCore/QThread>
 
-#include <regen/application.h>
+#include <regen/scene/scene.h>
 #include "qt-camera-events.h"
 
 using namespace regen;
@@ -29,16 +29,16 @@ QtFirstPersonEventHandler::QtFirstPersonEventHandler(
 void QtFirstPersonEventHandler::set_sensitivity(GLfloat val) { sensitivity_ = val; }
 
 void QtFirstPersonEventHandler::call(EventObject *evObject, EventData *data) {
-	if (data->eventID == Application::MOUSE_MOTION_EVENT) {
+	if (data->eventID == Scene::MOUSE_MOTION_EVENT) {
 		if (buttonPressed_) {
-			auto *ev = (Application::MouseMotionEvent *) data;
+			auto *ev = (Scene::MouseMotionEvent *) data;
 			Vec2f delta((float) ev->dx, (float) ev->dy);
 			m_->lookLeft(delta.x * sensitivity_);
 			m_->lookUp(delta.y * sensitivity_);
 		}
 	}
-	else if (data->eventID == Application::KEY_EVENT) {
-		auto *ev = (Application::KeyEvent *) data;
+	else if (data->eventID == Scene::KEY_EVENT) {
+		auto *ev = (Scene::KeyEvent *) data;
 		auto evKey = QKeySequence(ev->key).toString();
 		auto needle = keyMappings_.find(evKey.toStdString());
 
@@ -65,13 +65,13 @@ void QtFirstPersonEventHandler::call(EventObject *evObject, EventData *data) {
 			else if (cmd == CameraCommand::JUMP && !ev->isUp) m_->jump();
 		}
 	}
-	else if (data->eventID == Application::BUTTON_EVENT) {
-		auto *ev = (Application::ButtonEvent *) data;
-		if (ev->button == Application::MOUSE_BUTTON_LEFT) {
+	else if (data->eventID == Scene::BUTTON_EVENT) {
+		auto *ev = (Scene::ButtonEvent *) data;
+		if (ev->button == Scene::MOUSE_BUTTON_LEFT) {
 			buttonPressed_ = ev->pressed;
-		} else if (ev->button == Application::MOUSE_WHEEL_UP) {
+		} else if (ev->button == Scene::MOUSE_WHEEL_UP) {
 			m_->zoomIn(0.5);
-		} else if (ev->button == Application::MOUSE_WHEEL_DOWN) {
+		} else if (ev->button == Scene::MOUSE_WHEEL_DOWN) {
 			m_->zoomOut(0.5);
 		}
 	}

@@ -13,7 +13,7 @@
 #include "regen/states/state-node.h"
 #include "scene-processors.h"
 #include "regen/physics/bullet-physics.h"
-#include "regen/application.h"
+#include "regen/scene/scene.h"
 
 namespace regen::scene {
 	// forward declaration due to circular dependency.
@@ -75,7 +75,7 @@ namespace regen::scene {
 		 * @param inputProvider The Scene input.
 		 */
 		SceneLoader(
-				Application *application,
+				Scene *application,
 				const ref_ptr<SceneInput> &inputProvider);
 
 		/**
@@ -86,7 +86,7 @@ namespace regen::scene {
 		 * @param physics The physics framework instance.
 		 */
 		SceneLoader(
-				Application *application,
+				Scene *application,
 				const ref_ptr<SceneInput> &inputProvider,
 				const ref_ptr<ResourceManager> &resources,
 				const ref_ptr<BulletPhysics> &physics);
@@ -94,7 +94,7 @@ namespace regen::scene {
 		/**
 		 * @return The application instance.
 		 */
-		Application *application() const { return application_; }
+		Scene *application() const { return application_; }
 
 		/**
 		 * @return The scene graph root node, is never null.
@@ -241,7 +241,7 @@ namespace regen::scene {
 		void loadResources(const std::string &name);
 
 	protected:
-		Application *application_;
+		Scene *application_;
 		std::list<ref_ptr<EventHandler> > eventHandler_;
 
 		ref_ptr<SceneInput> inputProvider_;

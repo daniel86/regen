@@ -14,7 +14,7 @@
 #include <regen/config.h>
 
 #include "fbo.h"
-#include "regen/application.h"
+#include "regen/scene/scene.h"
 
 using namespace regen;
 using namespace regen::scene;
@@ -503,7 +503,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				ctx.scene()->getViewport(),
 				relSize.x,
 				relSize.y);
-		ctx.scene()->addEventHandler(Application::RESIZE_EVENT, resizer);
+		ctx.scene()->addEventHandler(Scene::RESIZE_EVENT, resizer);
 	}
 
 	for (auto &n: input.getChildren()) {

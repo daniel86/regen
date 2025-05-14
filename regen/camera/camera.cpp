@@ -11,7 +11,7 @@
 #include "light-camera-cube.h"
 #include "light-camera-csm.h"
 #include "reflection-camera.h"
-#include "regen/application.h"
+#include "regen/scene/scene.h"
 #include "regen/meshes/mesh-vector.h"
 #include <regen/shapes/spatial-index.h>
 
@@ -581,7 +581,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));
 			// Update frustum when window size changes
-			ctx.scene()->addEventHandler(Application::RESIZE_EVENT,
+			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT,
 										 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->getViewport()));
 		}
 		cam->updateCamera();

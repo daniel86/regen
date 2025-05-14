@@ -129,7 +129,7 @@ void GeomPicking::traverse(RenderState *rs) {
 namespace regen {
 	class PickingUpdater : public State {
 	public:
-		explicit PickingUpdater(Application *app, const ref_ptr<GeomPicking> &geomPicking)
+		explicit PickingUpdater(Scene *app, const ref_ptr<GeomPicking> &geomPicking)
 				: State(), app_(app), geomPicking_(geomPicking) {}
 
 		void disable(RenderState *rs) override {
@@ -149,7 +149,7 @@ namespace regen {
 		}
 
 	protected:
-		Application *app_;
+		Scene *app_;
 		ref_ptr<GeomPicking> geomPicking_;
 	};
 }
