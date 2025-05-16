@@ -114,6 +114,7 @@ const ref_ptr<Shader> &ShaderState::shader() const { return shader_; }
 void ShaderState::set_shader(const ref_ptr<Shader> &shader) { shader_ = shader; }
 
 void ShaderState::enable(RenderState *rs) {
+	// TODO: rather use apply and leave shader on slot?
 	rs->shader().push(shader_->id());
 	if (!rs->shader().isLocked()) {
 		shader_->enable(rs);

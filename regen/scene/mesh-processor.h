@@ -37,6 +37,8 @@ namespace regen {
 
 		protected:
 			std::set<Mesh *> usedMeshes_;
+
+			ref_ptr<Mesh> getMeshCopy(const ref_ptr<Mesh> &originalMesh);
 		};
 	}
 }
