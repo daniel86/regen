@@ -154,6 +154,11 @@ namespace regen {
 		auto maxIndex() const { return maxIndex_; }
 
 		/**
+		 * @return the offset to the index buffer in bytes.
+		 */
+		uint32_t indexOffset() const { return indices_.get() ? indices_->offset() : 0u; }
+
+		/**
 		 * @return indexes to the vertex data of this primitive set.
 		 */
 		auto &indices() const { return indices_; }

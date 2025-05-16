@@ -107,6 +107,29 @@ void LODState::updateMeshLOD() {
 	}
 }
 
+static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels) {
+	if (numPartLevels == 1) {
+		return 0;
+	}
+	else if (numPartLevels == 2) {
+		if (lodLevel < 2) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+	else if (numPartLevels == 3) {
+		if (lodLevel == 0) {
+			return 0;
+		} else if (lodLevel == 3) {
+			return 2;
+		} else {
+			return 1;
+		}
+	}
+	return lodLevel;
+}
+
 void LODState::activateLOD(uint32_t lodLevel) {
 	// increase LOD level by one if we have a shadow target
 	if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
@@ -114,27 +137,21 @@ void LODState::activateLOD(uint32_t lodLevel) {
 	}
 	// set the LOD level
 	for (auto &part: meshVector_) {
-		if (mesh_->numLODs() == part->numLODs() && part->numLODs() > 1) {
-			part->activateLOD(lodLevel);
-		} else if (part->numLODs() > 1) {
-			// could be part has different number of LODs, need to compute an adjusted
-			// LOD level for each part
-			part->activateLOD(static_cast<uint32_t>(std::round(static_cast<float>(lodLevel) *
-															   static_cast<float>(part->numLODs()) /
-															   static_cast<float>(mesh_->numLODs()))));
-		}
+		// could be part has different number of LODs, need to compute an adjusted
+		// LOD level for each part
+		part->activateLOD(getPartLOD(lodLevel, part->numLODs()));
 	}
 }
 
 void LODState::traverseInstanced_(RenderState *rs, uint32_t numVisible) {
 	// set number of visible instances
 	for (auto &m: meshVector_) {
-		m->inputContainer()->set_numVisibleInstances(numVisible);
+		m->activeInputContainer()->set_numVisibleInstances(numVisible);
 	}
 	StateNode::traverse(rs);
 	// reset number of visible instances
 	for (auto &m: meshVector_) {
-		m->inputContainer()->set_numVisibleInstances(numInstances_);
+		m->activeInputContainer()->set_numVisibleInstances(numInstances_);
 	}
 }
 
@@ -174,7 +191,7 @@ void LODState::traverseCPU(RenderState *rs) {
 			computeLODGroups();
 
 			int32_t instanceIDOffset = 0;
-			for (uint32_t lodLevel = 0; lodLevel < mesh_->numLODs(); ++lodLevel) {
+			for (uint32_t lodLevel = 0; lodLevel < lodNumInstances_.size(); ++lodLevel) {
 				auto lodGroupSize = lodNumInstances_[lodLevel];
 				if (lodGroupSize == 0) { continue; }
 				// set the LOD level
