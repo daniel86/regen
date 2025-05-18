@@ -175,24 +175,32 @@ void main() {
 void main() {
     #define2 TEX_ID ${TEX_ID_inputTexture}
     int numElements = ${TEX_DEPTH${TEX_ID}};
-    float size = in_viewport.x/numElements;
-    float diffY = gl_FragCoord.y-in_viewport.y*0.5;
-    if(abs(diffY) > 0.5*size) {
+    uint numRows = uint(sqrt(numElements));
+    uint numCols = uint(ceil(float(numElements)/float(numRows)));
+    float size    = in_viewport.x/numCols;
+    float offsetY = 0.5*(float(in_viewport.y) - size*float(numRows));
+
+    if(gl_FragCoord.y < offsetY || gl_FragCoord.y > in_viewport.y - offsetY) {
         out_color = vec4(0);
     }
     else {
-        float arrayIndex = floor(gl_FragCoord.x/size);
-        // Map in range [0,size] and divide by size to get to range [0,1]
         vec2 uv = vec2(
-            mod(gl_FragCoord.x,size)/size,
-            (diffY + 0.5*size)/size);
+            mod(gl_FragCoord.x, size)/size,
+            mod(gl_FragCoord.y - offsetY, size)/size);
+        uint idx_x = uint(gl_FragCoord.x/size);
+        uint idx_y = uint((gl_FragCoord.y - offsetY)/size);
+        uint arrayIndex = idx_x + idx_y*numCols;
+        if(arrayIndex >= numElements) {
+            out_color = vec4(0);
+        } else {
 #if TEXTURE_SEMANTICS == DEPTH
-        writeDepth(texture(in_inputTexture, vec3(uv.x, uv.y, arrayIndex)).x);
+            writeDepth(texture(in_inputTexture, vec3(uv.x, uv.y, arrayIndex)).x);
 #elif TEXTURE_SEMANTICS == SHADOW
-        writeDepth(texture(in_inputTexture, vec4(uv.x, uv.y, arrayIndex, 1.0)));
+            writeDepth(texture(in_inputTexture, vec4(uv.x, uv.y, arrayIndex, 1.0)));
 #else
-        out_color = texture(in_inputTexture, vec3(uv.x, uv.y, arrayIndex));
+            out_color = texture(in_inputTexture, vec3(uv.x, uv.y, arrayIndex));
 #endif
+        }
 #ifdef DRAW_BORDERS
         drawEdges(uv);
 #endif
