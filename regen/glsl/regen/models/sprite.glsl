@@ -222,19 +222,13 @@ void emitSpriteCross(vec3 center
 
 -- vs
 #include regen.models.mesh.defines
-#ifdef HAS_modelMatrix
-uniform mat4 in_modelMatrix;
-#endif
+#include regen.models.tf.transformModel
 
 in vec3 in_pos;
 out vec3 out_pos;
 
 void main() {
-#ifdef HAS_modelMatrix
-    vec4 posWorld = in_modelMatrix * vec4(in_pos,1.0);
-#else
-    vec4 posWorld = vec4(in_pos,1.0);
-#endif
+    vec4 posWorld = transformModel(vec4(in_pos,1.0));
     out_pos = posWorld.xyz;
     gl_Position = posWorld;
 }

@@ -7,9 +7,7 @@
 --------------------------------
 -- vs
 #include regen.models.mesh.defines
-#ifdef HAS_modelMatrix
-uniform mat4 in_modelMatrix;
-#endif
+#include regen.models.tf.transformModel
 
 in vec3 in_pos;
 #ifdef HAS_INSTANCES
@@ -22,11 +20,7 @@ out float out_sphereRadius;
 #define HANDLE_IO(i)
 
 void main() {
-#ifdef HAS_modelMatrix
-    vec4 pos = in_modelMatrix * vec4(in_pos,1.0);
-#else
-    vec4 pos = vec4(in_pos,1.0);
-#endif
+    vec4 pos = transformModel(vec4(in_pos,1.0));
 #ifdef HAS_modelOffset
     pos.xyz += in_modelOffset;
 #endif

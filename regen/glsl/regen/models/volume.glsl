@@ -18,7 +18,7 @@ out vec3 out_rayDirection;
 
 #include regen.states.camera.input
 
-#include regen.states.model.transformModel
+#include regen.models.tf.transformModel
 #ifdef VS_CAMERA_TRANSFORM
     #include regen.states.camera.transformWorldToEye
     #include regen.states.camera.transformEyeToScreen

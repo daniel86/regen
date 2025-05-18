@@ -35,7 +35,7 @@ flat out int out_instanceID;
 #include regen.states.camera.input
 #include regen.states.textures.input
 
-#include regen.states.model.transformModel
+#include regen.models.tf.transformModel
 #ifdef VS_CAMERA_TRANSFORM
     #include regen.states.camera.transformWorldToEye
     #include regen.states.camera.transformEyeToScreen
