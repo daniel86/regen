@@ -26,9 +26,13 @@ FBOState::FBOState(const ref_ptr<FBO> &fbo)
 	joinShaderInput(fbo->viewport());
 	joinShaderInput(fbo->inverseViewport());
 #endif
-	for (auto &attachment: fbo->colorTextures()) {
-		shaderDefine(REGEN_STRING("FBO_ATTACHMENT_" << attachment->name()), "TRUE");
+	for (uint32_t attachmentIdx = 0; attachmentIdx < fbo->colorTextures().size(); ++attachmentIdx) {
+		auto &attachment = fbo->colorTextures()[attachmentIdx];
+		shaderDefine(REGEN_STRING("HAS_ATTACHMENT_" << attachment->name()), "TRUE");
+		shaderDefine(REGEN_STRING("ATTACHMENT_IDX_" << attachment->name()), REGEN_STRING(attachmentIdx));
+		shaderDefine(REGEN_STRING("ATTACHMENT_NAME_" << attachmentIdx), attachment->name());
 	}
+	shaderDefine("NUM_ATTACHMENTS", REGEN_STRING(fbo->colorTextures().size()));
 }
 
 void FBOState::createClearState() {

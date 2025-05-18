@@ -279,34 +279,21 @@ void main() {
 #ifdef FS_EARLY_FRAGMENT_TEST
 layout(early_fragment_tests) in;
 #endif
-#if OUTPUT_TYPE == DEFERRED
-///// Deferred fragment shading
-#if SHADING==NONE
-out vec4 out_diffuse;
-#else
-layout(location = 0) out vec4 out_diffuse;
-layout(location = 1) out vec4 out_ambient;
-layout(location = 2) out vec4 out_specular;
-layout(location = 3) out vec4 out_norWorld;
-#ifdef FBO_ATTACHMENT_emission
-layout(location = 4) out vec3 out_emission;
-#endif
-#endif
-#endif
-#if OUTPUT_TYPE == TRANSPARENCY
-///// Direct fragment shading
 layout(location = 0) out vec4 out_color;
-#ifdef USE_AVG_SUM_ALPHA
-layout(location = 1) out vec2 out_counter;
+#ifdef HAS_ATTACHMENT_ambient
+layout(location = ATTACHMENT_IDX_ambient) out vec4 out_ambient;
 #endif
+#ifdef HAS_ATTACHMENT_specular
+layout(location = ATTACHMENT_IDX_specular) out vec4 out_specular;
 #endif
-#if OUTPUT_TYPE == DIRECT
-///// Direct fragment shading
-out vec4 out_color;
+#ifdef HAS_ATTACHMENT_normal
+layout(location = ATTACHMENT_IDX_normal) out vec4 out_norWorld;
 #endif
-#if OUTPUT_TYPE == COLOR
-///// Plain color fragment shading
-out vec4 out_color;
+#ifdef HAS_ATTACHMENT_emission
+layout(location = ATTACHMENT_IDX_emission) out vec3 out_emission;
+#endif
+#ifdef HAS_ATTACHMENT_counter
+layout(location = ATTACHMENT_IDX_counter) out vec2 out_counter;
 #endif
 
 -- applyBrightness
@@ -442,6 +429,11 @@ uniform vec4 in_col;
 #ifndef FS_NO_OUTPUT
 #include regen.states.material.defines
 #endif
+#ifndef IGNORE_MATERIAL
+    #ifdef HAS_MATERIAL
+    #define USE_MATERIAL
+    #endif
+#endif
 
 #ifdef HAS_CLIPPING
 #include regen.states.clipping.isClipped
@@ -468,14 +460,16 @@ void main() {
 #ifdef HAS_col
     vec4 color = in_col;
 #else
-    #ifdef HAS_matDiffuse
+    #ifdef USE_MATERIAL
     vec4 color = vec4(in_matDiffuse, 1.0);
     #else
     vec4 color = vec4(1.0);
     #endif
 #endif 
 #ifdef HAS_matAlpha
+    #ifdef USE_MATERIAL
     color.a *= in_matAlpha;
+    #endif
 #endif
 #endif // HAS_COL
 #ifdef HAS_CUSTOM_FRAGMENT_MAPPING
@@ -532,7 +526,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.occlusion = 0.0;
 #if SHADING!=NONE
-#ifdef HAS_MATERIAL
+#ifdef USE_MATERIAL
     mat.ambient = in_matAmbient;
     mat.diffuse = color.rgb;
     mat.specular = in_matSpecular;
@@ -565,7 +559,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 -- writeOutput-deferred
 #if SHADING==NONE
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
-    out_diffuse = color;
+    out_color = color;
 }
 #else
 #include regen.models.mesh.applyBrightness
@@ -578,7 +572,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.occlusion = 0.0;
     mat.diffuse = color.rgb;
-#ifdef HAS_MATERIAL
+#ifdef USE_MATERIAL
     mat.ambient = in_matAmbient;
     mat.specular = in_matSpecular;
     mat.shininess = in_matShininess;
@@ -596,24 +590,28 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #ifdef HAS_MATERIAL_EMISSION
     mat.emission = vec3(0,0,0);
     #endif
-#endif // HAS_MATERIAL
+#endif // USE_MATERIAL
     applyBrightness(mat);
     textureMappingLight(in_posWorld, norWorld, mat);
 
+    out_color.rgb = mat.diffuse.rgb;
+    out_color.a = color.a;
+#ifdef HAS_ATTACHMENT_ambient
     out_ambient = vec4(mat.ambient,0.0);
-    out_diffuse.rgb = mat.diffuse.rgb;
-    out_diffuse.a = color.a;
+#endif
+#ifdef HAS_ATTACHMENT_specular
     out_specular.rgb = mat.specular;
     // normalize shininess to [0,1]
     // TODO: only normalize when not using FLOAT textures!
     out_specular.a = clamp(mat.shininess/256.0, 0.0, 1.0);
-    #ifdef FBO_ATTACHMENT_emission
+#endif
+#ifdef HAS_ATTACHMENT_emission
     #ifdef HAS_MATERIAL_EMISSION
     out_emission = mat.emission;
     #else
     out_emission = vec3(0,0,0);
     #endif
-    #endif
+#endif
     // TODO: handle the occlusion value. It might be best to encode it in the g-buffer,
     //       then use this info in deferred shading.
     //out_norWorld.w = mat.occlusion;

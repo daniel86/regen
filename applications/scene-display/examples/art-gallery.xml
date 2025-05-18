@@ -54,8 +54,8 @@
          size-mode="rel" size="1.0,1.0"
          pixel-components="4"
          pixel-type="FLOAT" pixel-size="16">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
+        <texture id="diffuse"/>
+        <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
@@ -167,8 +167,8 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-size="16"
          pixel-components="4">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
+        <texture id="diffuse"/>
+        <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth pixel-size="24"/>

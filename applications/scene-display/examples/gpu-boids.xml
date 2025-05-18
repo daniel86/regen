@@ -32,8 +32,8 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-size="16"
          pixel-components="4">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
+        <texture id="diffuse"/>
+        <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <texture id="emission" pixel-components="3"/>
@@ -44,8 +44,8 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-size="16"
          pixel-components="4">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
+        <texture id="diffuse"/>
+        <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>

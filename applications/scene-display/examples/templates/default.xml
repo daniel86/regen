@@ -70,8 +70,8 @@
     <fbo id="overview-buffer"
          size-mode="rel" size="1.0,1.0"
          pixel-type="FLOAT" pixel-size="16">
-        <texture id="diffuse0" pixel-components="3"/>
-        <texture id="diffuse1" pixel-components="3"/>
+        <texture id="diffuse" pixel-components="3"/>
+        <texture id="ambient" pixel-components="3"/>
         <texture id="specular" pixel-components="4"/>
         <texture id="normal" pixel-components="4"/>
         <depth pixel-size="24"/>
