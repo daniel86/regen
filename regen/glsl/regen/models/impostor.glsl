@@ -26,7 +26,41 @@ uint selectViewIdx(vec3 viewDirLocal) {
 #endif
 
 /**
- * This shader renders a billboard impostor using a 2D texture array.
+ * This shader renders different views of a billboard impostor using 2D texture arrays.
+ * Only one draw call is needed to render all views of the impostor thanks to layered rendering
+ * and geometry shaders.
+ * The geometry shader takes as input a triangle, and emits it into the different layers of
+ * the array textures.
+ **/
+-- update.defines
+// the model should be centered at origin, so we need
+// to ignore the model matrix.
+#define IGNORE_modelMatrix
+#define IGNORE_modelOffset
+// material parameters are handled by billboard to
+// allow per-instance veriations.
+#define IGNORE_MATERIAL
+// TODO: this should be configurable. eg. fish does not need this
+#define DISCARD_ALPHA
+#define DISCARD_ALPHA_THRESHOLD 0.25
+
+-- update.vs
+#include regen.models.impostor.update.defines
+#include regen.models.mesh.defines
+#include regen.models.mesh.vs
+
+-- update.gs
+#include regen.models.impostor.update.defines
+#include regen.models.mesh.gs
+
+-- update.fs
+#include regen.models.impostor.update.defines
+#include regen.models.mesh.fs
+
+/**
+ * This shader renders a billboard impostor using 2D texture arrays.
+ * The arrays are used for mapping to diffuse, normal, specular components,
+ * and can be combined with material properties in the fragment shader.
  **/
 -- vs
 #include regen.models.mesh.defines
@@ -43,7 +77,8 @@ flat out int out_instanceID;
 
 void main() {
 #ifdef HAS_modelMatrix
-    // TODO: only offset is needed
+    // TODO: only offset is needed? i.e. because this is the center of the mesh, in_pos=0,0,0
+    //        --> switch to attribute-less mesh.
     vec4 pos = in_modelMatrix * vec4(in_pos,1.0);
 #else
     vec4 pos = vec4(in_pos,1.0);
@@ -80,6 +115,10 @@ out vec3 out_texco0;
 out vec3 out_posEye;
 out vec3 out_posWorld;
 
+buffer vec3 in_snapshotDirs[];
+buffer vec4 in_snapshotOrthoBounds[];
+buffer vec2 in_snapshotDepthRanges[];
+
 const float in_depthOffset = 0.5f;
 const vec3 in_modelOrigin = vec3(0.0f);
 
@@ -115,7 +154,13 @@ void emitLayer(int layer, float scale) {
     vec4 centerWorld = gl_in[0].gl_Position;
     vec4 centerEye = transformWorldToEye(centerWorld, layer);
     // Find the best impostor view index based on the view direction.
+#ifdef HAS_modelMatrix
+    vec3 viewDirWorld = normalize(centerWorld.xyz - REGEN_CAM_POS_(0));
+    vec3 viewDirLocal = transpose(mat3(in_modelMatrix)) * viewDirWorld;
+#else
     vec3 viewDirLocal = normalize(centerWorld.xyz - REGEN_CAM_POS_(0));
+    vec3 viewDirWorld = viewDirLocal;
+#endif
     uint viewIdx = selectViewIdx(viewDirLocal);
     // Read impostor data from SSBO.
     vec4 orthoBounds = in_snapshotOrthoBounds[viewIdx];
@@ -142,37 +187,20 @@ void emitLayer(int layer, float scale) {
     float viewCoord = float(viewIdx);
 
     // construct tangent space
-    vec3 N = -viewDirLocal;
+    vec3 N = -viewDirWorld;
     vec3 T = normalize(cross(up, N));
     vec3 B = cross(N, T);
+    writeFlatOutput(layer, viewIdx, N, T, B);
 
     // bottom-left, top-left, bottom-right
-    {
-        writeFlatOutput(layer, viewIdx, N, T, B);
-        emitVertex(vec4(quadPos[2],1.0), vec3(1.0,0.0,viewCoord), layer);
-    }
-    {
-        writeFlatOutput(layer, viewIdx, N, T, B);
-        emitVertex(vec4(quadPos[1],1.0), vec3(1.0,1.0,viewCoord), layer);
-    }
-    {
-        writeFlatOutput(layer, viewIdx, N, T, B);
-        emitVertex(vec4(quadPos[0],1.0), vec3(0.0,0.0,viewCoord), layer);
-    }
+    emitVertex(vec4(quadPos[2],1.0), vec3(0.0,0.0,viewCoord), layer);
+    emitVertex(vec4(quadPos[1],1.0), vec3(1.0,1.0,viewCoord), layer);
+    emitVertex(vec4(quadPos[0],1.0), vec3(1.0,0.0,viewCoord), layer);
     EndPrimitive();
     // bottom-right, top-left, top-right
-    {
-        writeFlatOutput(layer, viewIdx, N, T, B);
-        emitVertex(vec4(quadPos[3],1.0), vec3(0.0,0.0,viewCoord), layer);
-    }
-    {
-        writeFlatOutput(layer, viewIdx, N, T, B);
-        emitVertex(vec4(quadPos[1],1.0), vec3(1.0,1.0,viewCoord), layer);
-    }
-    {
-        writeFlatOutput(layer, viewIdx, N, T, B);
-        emitVertex(vec4(quadPos[2],1.0), vec3(0.0,1.0,viewCoord), layer);
-    }
+    emitVertex(vec4(quadPos[3],1.0), vec3(0.0,1.0,viewCoord), layer);
+    emitVertex(vec4(quadPos[1],1.0), vec3(1.0,1.0,viewCoord), layer);
+    emitVertex(vec4(quadPos[2],1.0), vec3(0.0,0.0,viewCoord), layer);
     EndPrimitive();
 }
 

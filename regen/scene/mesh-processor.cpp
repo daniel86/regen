@@ -165,13 +165,6 @@ void MeshNodeProvider::processInput(
 			auto &lodMeshOriginal = (*lodMeshes.get())[lodMeshIndex];
 			auto lodMeshCopy = getMeshCopy(lodMeshOriginal);
 			StateConfigurer lodConfigurer;
-			// also make states of the original mesh available
-			for (auto &state: meshCopy->joined()) {
-				if(dynamic_cast<Material*>(state.get()) != nullptr) {
-					continue;
-				}
-				lodConfigurer.addState(state.get());
-			}
 			for (auto &state: lodMeshOriginal->joined()) {
 				lodConfigurer.addState(state.get());
 			}
@@ -182,10 +175,18 @@ void MeshNodeProvider::processInput(
 					lodMeshCopy->inputContainer()->numIndices(),
 					lodMeshCopy->inputContainer()->indexOffset(),
 					lodMeshCopy);
+
+			// add a hidden state, this is done such that
+			// the impostor pops up in the scene UI.
+			auto lodMeshNode = ref_ptr<StateNode>::alloc(lodMeshCopy);
+			lodMeshNode->set_isHidden(true);
+			lodMeshNode->set_name("impostor-mesh");
+			parent->addChild(lodMeshNode);
 		}
 
 		meshCopy->setMeshLODs(meshLODs);
 		auto meshNode = ref_ptr<StateNode>::alloc(meshCopy);
+		meshNode->set_name("base-mesh");
 		parent->addChild(meshNode);
 	}
 }

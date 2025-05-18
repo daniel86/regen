@@ -55,8 +55,8 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-size="16"
          pixel-components="4">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
+        <texture id="diffuse"/>
+        <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <texture id="emission" pixel-components="3"/>
@@ -67,8 +67,8 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-size="16"
          pixel-components="4">
-        <texture id="diffuse0"/>
-        <texture id="diffuse1"/>
+        <texture id="diffuse"/>
+        <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
@@ -370,7 +370,14 @@
         </shape>
     </mesh>
 
-    <mesh id="twig-impostor" type="impostor-billboard" depth-offset="0.5"
+    <mesh id="twig-impostor" type="impostor-billboard"
+            depth-offset="0.5"
+            hemispherical="0"
+            top-view="0"
+            bottom-view="0"
+            longitude-steps="8"
+            latitude-steps="0"
+            texture-size="256,256"
             original-mesh="tree-mesh" original-index="1">
     </mesh>
 
@@ -382,12 +389,12 @@
             <node id="tree-twig">
                 <texture name="windFlow" id="wind-flowmap" />
                 <input name="stiffness" type="float" value="0.5"/>
+                        <define key="DISCARD_ALPHA" value="TRUE"/>
+                        <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
 
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.weather.wind.wavingQuad">
                     <base-state>
                         <define key="HAS_GS_TRANSFORM" value="TRUE"/>
-                        <define key="DISCARD_ALPHA" value="TRUE"/>
-                        <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
                     </base-state>
                     <lod-mesh id="twig-impostor" mesh-index="0" shader="regen.models.impostor"/>
                 </mesh>

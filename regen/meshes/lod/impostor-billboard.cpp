@@ -1,5 +1,7 @@
 #include "impostor-billboard.h"
 #include "regen/scene/resource-manager.h"
+#include "regen/states/state-configurer.h"
+#include "regen/states/depth-state.h"
 
 using namespace regen;
 
@@ -27,7 +29,8 @@ void ImpostorBillboard::updateAttributes() {
 
 void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> &drawState) {
 	auto &imitation = meshes_.emplace_back();
-	imitation.mesh = mesh;
+	imitation.meshOrig = mesh;
+	imitation.meshCopy = ref_ptr<Mesh>::alloc(mesh);
 	imitation.drawState = drawState;
 	imitation.shaderState = ref_ptr<ShaderState>::alloc();
 
@@ -43,9 +46,33 @@ void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> 
 	modelOrigin_->setVertex(0, meshCenterPoint_);
 	meshBoundsRadius_ = meshBounds.radius();
 	meshCornerPoints_ = meshBounds.cornerPoints();
-	// subtract the center from the mesh corner points
-	for (auto &corner: meshCornerPoints_) {
-		corner -= meshCenterPoint_;
+
+	// join states of the input mesh, besides its material texture state which we
+	// want to bake into the array textures.
+	// NOTE: might very well be that some texture mapping techniques will cause problems here.
+	//       effectively we loose UV coordinates, so we cannot apply any (uv-mapped) textures from
+	//       the original mesh to the impostor.
+	std::stack<State*> stateStack;
+	for (auto &state: mesh->joined()) {
+		stateStack.push(state.get());
+	}
+	while (!stateStack.empty()) {
+		auto state = stateStack.top();
+		stateStack.pop();
+		auto *textureState = dynamic_cast<TextureState*>(state);
+		if (textureState) {
+			// skip texture states, we will bake them into the snapshot textures
+			continue;
+		}
+		auto *hasInput = dynamic_cast<HasInput*>(state);
+		if (hasInput) {
+			for (auto &input: hasInput->inputContainer()->inputs()) {
+				joinShaderInput(input.in_, input.name_);
+			}
+		}
+		for (auto &joined: state->joined()) {
+			stateStack.push(joined.get());
+		}
 	}
 
 	REGEN_INFO("ImpostorBillboard mesh center (model space): " << meshCenterPoint_ <<
@@ -82,6 +109,8 @@ void ImpostorBillboard::ensureResourcesExist() {
 void ImpostorBillboard::createResources() {
 	hasInitializedResources_ = true;
 	updateNumberOfViews();
+	// create camera for the update pass
+	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_);
 
 	{ // create UBO with some parameters for the shader
 		billboardUBO_ = ref_ptr<UBO>::alloc("Billboard", BUFFER_USAGE_STATIC_DRAW);
@@ -115,65 +144,156 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create the snapshot FBO
-		snapshotFBO_ = ref_ptr<FBO>::alloc(snapshotWidth_, snapshotHeight_, numSnapshotViews_);
+		// TODO: be more flexible: check what types of texturs the mesh
+		//        has and setup FBO accordingly.
+		//		- TODO: optional: depth correct
+		//      - TODO: optional enable/disable normal, write tangent space normals
+		// TODO: consider filtering options
+		//		- TODO: optional: setup mipmap of albedo (and others)
+		//      - TODO: be careful with normal, need to use nearest?
+		auto fbo = ref_ptr<FBO>::alloc(snapshotWidth_, snapshotHeight_, numSnapshotViews_);
 		// create albedo texture
-		auto albedo = snapshotFBO_->addTexture(1, GL_TEXTURE_2D_ARRAY,
-											   GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE);
+		auto albedo = fbo->addTexture(1, GL_TEXTURE_2D_ARRAY,
+											   GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE);
+		albedo->set_name("diffuse");
 		snapshotAlbedo_ = ref_ptr<Texture2DArray>::dynamicCast(albedo);
 		// create normal texture
-		auto normal = snapshotFBO_->addTexture(1, GL_TEXTURE_2D_ARRAY,
-											   GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+		auto normal = fbo->addTexture(1, GL_TEXTURE_2D_ARRAY,
+											   GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE);
+		normal->set_name("normal");
 		snapshotNormal_ = ref_ptr<Texture2DArray>::dynamicCast(normal);
 		// create depth texture
-		snapshotFBO_->createDepthTexture(GL_TEXTURE_2D_ARRAY,
-										 GL_DEPTH_COMPONENT16, GL_FLOAT);
-		snapshotDepth_ = ref_ptr<Texture2DArrayDepth>::dynamicCast(snapshotFBO_->depthTexture());
+		fbo->createDepthTexture(GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT);
+		snapshotDepth_ = ref_ptr<Texture2DArrayDepth>::dynamicCast(fbo->depthTexture());
+
+		const std::vector<GLenum> drawAttachments = {
+				GL_COLOR_ATTACHMENT0,
+				GL_COLOR_ATTACHMENT1};
+		// create the FBO state
+		snapshotFBO_ = ref_ptr<FBOState>::alloc(fbo);
+		// render to albedo + normal
+		snapshotFBO_->setDrawBuffers(drawAttachments);
+		snapshotFBO_->setClearDepth();
+		snapshotFBO_->setClearColor({
+			Vec4f(0.0, 0.0, 0.0, 0.0),
+			drawAttachments });
+
+		// setup depth test/write
+		// TODO: might be best if this is configurable, could be e,g,
+		//        input is sorted and we can do alpha blending or so.
+		auto depth = ref_ptr<DepthState>::alloc();
+		depth->set_depthFunc(GL_LEQUAL);
+		depth->set_useDepthWrite(GL_TRUE);
+		depth->set_useDepthTest(GL_TRUE);
+		snapshotFBO_->joinStates(depth);
+
+		// setup blending
+		// TODO: might be best if this is configurable, see above.
+		//snapshotFBO_->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC));
+		snapshotFBO_->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC_ALPHA));
+		//snapshotFBO_->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
+
+		GL_ERROR_LOG();
 	}
 
-	// TODO: create snapshot shader
+	for (auto &viewMesh : meshes_) {
+		StateConfigurer meshConfigurer;
+		meshConfigurer.addState(snapshotState_.get());
+		meshConfigurer.addState(snapshotFBO_.get());
+		meshConfigurer.addState(snapshotCamera_.get());
+		if(viewMesh.drawState.get()) {
+			meshConfigurer.addState(viewMesh.drawState.get());
+		}
+		meshConfigurer.addState(viewMesh.meshOrig.get());
+		meshConfigurer.addState(viewMesh.meshCopy.get());
+		meshConfigurer.define("NUM_IMPOSTOR_VIEWS", REGEN_STRING(numSnapshotViews_));
+		//meshConfigurer.define("DISCARD_ALPHA", "FALSE");
+		// TODO: make configurable
+		viewMesh.shaderState->createShader(meshConfigurer.cfg(), "regen.models.impostor.update");
+
+		viewMesh.meshCopy->joinStates(viewMesh.shaderState);
+		viewMesh.meshCopy->updateVAO(
+				RenderState::get(),
+				meshConfigurer.cfg(),
+				viewMesh.shaderState->shader());
+	}
 
 	{ // add textures to the billboard state
 		auto albedo = ref_ptr<TextureState>::alloc(snapshotAlbedo_, "impostorAlbedo");
 		albedo->set_mapping(TextureState::MAPPING_TEXCO);
-		albedo->set_mapTo(TextureState::MAP_TO_DIFFUSE);
+		// note: map to color is used for alpha discard to work
+		albedo->set_mapTo(TextureState::MAP_TO_COLOR);
+		// TODO: make configurable
+		albedo->set_blendMode(BLEND_MODE_MULTIPLY);
 		joinStates(albedo);
 
+		// TODO: configure mapping, regular normal mapping is fine!
 		auto normal = ref_ptr<TextureState>::alloc(snapshotNormal_, "impostorNormal");
 		normal->set_mapping(TextureState::MAPPING_CUSTOM);
 		normal->set_mapTo(TextureState::MAP_TO_CUSTOM);
 		joinStates(normal);
 
-		auto depth = ref_ptr<TextureState>::alloc(snapshotDepth_, "impostorDepth");
-		depth->set_mapping(TextureState::MAPPING_CUSTOM);
-		depth->set_mapTo(TextureState::MAP_TO_CUSTOM);
-		joinStates(depth);
+		//auto depth = ref_ptr<TextureState>::alloc(snapshotDepth_, "impostorDepth");
+		//depth->set_mapping(TextureState::MAPPING_CUSTOM);
+		//depth->set_mapTo(TextureState::MAP_TO_CUSTOM);
+		//joinStates(depth);
 	}
 }
 
 void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, const Vec3f &up) {
-	auto &center = meshCenterPoint_;
-	auto eye = center + dir * meshBoundsRadius_ * 2.0f; // distance can be tuned
-	auto view = Mat4f::lookAtMatrix(center, eye, up);
+	// map data pointers
+	auto *camView    = (Mat4f*)snapshotCamera_->view()->clientData();
+	auto *camViewInv = (Mat4f*)snapshotCamera_->viewInverse()->clientData();
+	auto *camProj    = (Mat4f*)snapshotCamera_->projection()->clientData();
+	auto *camProjInv = (Mat4f*)snapshotCamera_->projectionInverse()->clientData();
+	auto *camNear    = (float*)snapshotCamera_->near()->clientData();
+	auto *camFar     = (float*)snapshotCamera_->far()->clientData();
+	auto *camPos     = (Vec3f*)snapshotCamera_->position()->clientData();
+	auto *viewDir    = (Vec3f*)snapshotDirs_->clientData();
+	auto *viewBounds = (Vec4f*)snapshotOrthoBounds_->clientData();
+	auto *viewDepth  = (Vec2f*)snapshotDepthRanges_->clientData();
+
+	// this is an offset of the mesh that translates it to origin.
+	// in many cases this will be (0,0,0).
+	auto eye = meshCenterPoint_ + dir * meshBoundsRadius_ * 1.5f;
+	camView[viewIdx] = Mat4f::lookAtMatrix(eye, -dir, up);
+	camViewInv[viewIdx] = camView[viewIdx].lookAtInverse();
+	auto &view = camView[viewIdx];
 
 	float minX = +FLT_MAX, maxX = -FLT_MAX;
 	float minY = +FLT_MAX, maxY = -FLT_MAX;
 	float minZ = +FLT_MAX, maxZ = -FLT_MAX;
 
 	for (const auto &corner: meshCornerPoints_) {
-		// TODO: need transposed multiplication?
-		auto viewSpace = view * Vec4f(corner, 1.0f);
-		//auto viewSpace = view ^ Vec4f(corner, 1.0f);
+		auto viewSpace = view ^ Vec4f(corner, 1.0f);
 		minX = std::min(minX, viewSpace.x);
 		maxX = std::max(maxX, viewSpace.x);
 		minY = std::min(minY, viewSpace.y);
 		maxY = std::max(maxY, viewSpace.y);
-		minZ = std::min(minZ, viewSpace.z);
-		maxZ = std::max(maxZ, viewSpace.z);
+		minZ = std::min(minZ, -viewSpace.z);
+		maxZ = std::max(maxZ, -viewSpace.z);
 	}
+	const float zPadding = 0.1f * (maxZ - minZ);
+	minZ -= zPadding;
+	maxZ += zPadding;
 
-	((Vec3f *) snapshotDirs_->clientData())[viewIdx] = dir;
-	((Vec4f *) snapshotOrthoBounds_->clientData())[viewIdx] = Vec4f(minX, maxX, minY, maxY);
-	((Vec2f *) snapshotDepthRanges_->clientData())[viewIdx] = Vec2f(minZ, maxZ);
+	viewDir[viewIdx] = dir;
+	viewBounds[viewIdx] = Vec4f(minX, maxX, minY, maxY);
+	viewDepth[viewIdx] = Vec2f(minZ, maxZ);
+#ifdef DEBUG_SNAPSHOT_VIEWS
+	REGEN_INFO("Snapshot view " << viewIdx << ":"
+									<< "\n\tmesh-origin=" << meshCenterPoint_
+									<< "\n\teye=" << eye
+									<< "\n\tdir=" << -dir
+									<< "\n\tbounds=" << viewBounds[viewIdx]
+									<< "\n\tdepth=" << viewDepth[viewIdx]);
+#endif
+
+	camProj[viewIdx] = Mat4f::orthogonalMatrix(minX, maxX, minY, maxY, minZ, maxZ);
+	camProjInv[viewIdx] = camProj[viewIdx].orthogonalInverse();
+	camNear[viewIdx] = minZ;
+	camFar[viewIdx] = maxZ;
+	camPos[viewIdx] = eye;
 }
 
 void ImpostorBillboard::updateSnapshotViews() {
@@ -219,29 +339,37 @@ void ImpostorBillboard::updateSnapshotViews() {
 		addSnapshotView(viewIdx++, Vec3f::up(), Vec3f::down());
 	}
 
-#ifdef DEBUG_SNAPSHOT_VIEWS
-	for (uint32_t i = 0; i < numSnapshotViews_; ++i) {
-		Vec3f &dir = ((Vec3f *) snapshotDirs_->clientData())[i];
-		Vec4f &bounds = ((Vec4f *) snapshotOrthoBounds_->clientData())[i];
-		Vec2f &depth = ((Vec2f *) snapshotDepthRanges_->clientData())[i];
-		REGEN_INFO("Snapshot view " << i << ": dir=" << dir
-									<< ", bounds=" << bounds
-									<< ", depth=" << depth);
-	}
-#endif
-
 	snapshotDirs_->nextStamp();
 	snapshotOrthoBounds_->nextStamp();
 	snapshotDepthRanges_->nextStamp();
 	ssbo_snapshotDirs_->update();
 	ssbo_snapshotOrthoBounds_->update();
 	ssbo_snapshotDepthRanges_->update();
+	snapshotCamera_->view()->nextStamp();
+	snapshotCamera_->viewInverse()->nextStamp();
+	snapshotCamera_->projection()->nextStamp();
+	snapshotCamera_->projectionInverse()->nextStamp();
+	snapshotCamera_->position()->nextStamp();
+	snapshotCamera_->direction()->nextStamp();
+	snapshotCamera_->updateViewProjection1();
 }
 
 void ImpostorBillboard::createSnapshot() {
+	auto rs = RenderState::get();
 	// make sure resources were created
 	ensureResourcesExist();
-	// TODO: implement this
+	snapshotFBO_->enable(rs);
+	// render all meshes into the snapshot FBO
+	for (auto &view: meshes_) {
+		auto oldNumInstances = view.meshCopy->inputContainer()->numVisibleInstances();
+		// make sure only one instance is rendered
+		view.meshCopy->inputContainer()->set_numVisibleInstances(1);
+		view.shaderState->enable(rs);
+		view.meshCopy->draw(rs);
+		view.shaderState->disable(rs);
+		view.meshCopy->inputContainer()->set_numVisibleInstances(oldNumInstances);
+	}
+	snapshotFBO_->disable(rs);
 }
 
 ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::SceneInputNode &input) {
@@ -263,6 +391,25 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 	auto originalMesh = (*originalMeshVec.get())[originalIndex];
 	if (input.hasAttribute("depth-offset")) {
 		impostor->depthOffset_->setVertex(0, input.getValue<float>("depth-offset", 0.0f));
+	}
+	if (input.hasAttribute("texture-size")) {
+		auto textureSize = input.getValue<Vec2ui>("texture-size", Vec2ui(256u, 256u));
+		impostor->setSnapshotTextureSize(textureSize.x, textureSize.y);
+	}
+	if (input.hasAttribute("longitude-steps")) {
+		impostor->longitudeSteps_ = input.getValue<uint32_t>("longitude-steps", 8u);
+	}
+	if (input.hasAttribute("latitude-steps")) {
+		impostor->latitudeSteps_ = input.getValue<uint32_t>("latitude-steps", 0u);
+	}
+	if (input.hasAttribute("hemispherical")) {
+		impostor->isHemispherical_ = input.getValue<bool>("hemispherical", true);
+	}
+	if (input.hasAttribute("top-view")) {
+		impostor->hasTopView_ = input.getValue<bool>("top-view", false);
+	}
+	if (input.hasAttribute("bottom-view")) {
+		impostor->hasBottomView_ = input.getValue<bool>("bottom-view", false);
 	}
 	impostor->addMesh(originalMesh);
 	impostor->updateSnapshotViews();

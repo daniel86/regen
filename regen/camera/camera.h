@@ -267,6 +267,8 @@ namespace regen {
 		 */
 		void updatePose();
 
+		virtual void updateViewProjection1();
+
 	protected:
 		unsigned int numLayer_ = 1;
 		bool isOmni_ = false;
@@ -300,8 +302,6 @@ namespace regen {
 		ref_ptr<Animation> cameraMotion_;
 
 		virtual bool updateView();
-
-		virtual void updateViewProjection1();
 
 		virtual void updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex);
 

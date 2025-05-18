@@ -5,6 +5,8 @@
 #include <regen/shapes/bounds.h>
 #include <regen/meshes/mesh-vector.h>
 #include <regen/textures/texture-2d.h>
+#include "regen/states/fbo-state.h"
+#include "regen/camera/array-camera.h"
 
 namespace regen {
 	/**
@@ -122,7 +124,8 @@ namespace regen {
 	protected:
 		struct ImitatedMesh {
 			// the mesh state that will do the draw call for doing a snapshot.
-			ref_ptr<Mesh> mesh;
+			ref_ptr<Mesh> meshOrig;
+			ref_ptr<Mesh> meshCopy;
 			// each mesh has an optional draw state with mesh-specific configuration
 			// for the snapshot pass. by default, no state is used.
 			ref_ptr<State> drawState;
@@ -159,6 +162,8 @@ namespace regen {
 
 		// a state that is only enabled for the snapshot pass
 		ref_ptr<State> snapshotState_;
+		// this is an "array camera" with a layer for each snapshot view.
+		ref_ptr<ArrayCamera> snapshotCamera_;
 		bool hasInitializedResources_ = false;
 		bool hasAttributes_ = false;
 
@@ -184,7 +189,7 @@ namespace regen {
 		// that can be used for the billboard in direct or deferred rendering pipelines.
 		// The layout is "longitude-major", starting at the equator and going up to the poles,
 		// the northern hemisphere is sampled first (after the equator), then the southern hemisphere.
-		ref_ptr<FBO> snapshotFBO_;
+		ref_ptr<FBOState> snapshotFBO_;
 		ref_ptr<Texture2DArray> snapshotAlbedo_;
 		ref_ptr<Texture2DArray> snapshotNormal_;
 		ref_ptr<Texture2DArrayDepth> snapshotDepth_;

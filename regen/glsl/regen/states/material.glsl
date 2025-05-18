@@ -3,6 +3,11 @@
 #ifndef material_defines_DEFINED
 #define2 material_defines_DEFINED
 #include regen.states.textures.defines
+#ifdef HAS_matDiffuse
+    #ifndef HAS_MATERIAL
+#define HAS_MATERIAL
+    #endif
+#endif
 #ifdef HAS_matEmission || HAS_EMISSION_MAP
 #define HAS_MATERIAL_EMISSION
 #endif
