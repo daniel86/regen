@@ -358,6 +358,11 @@ void Mesh::setFeedbackRange(const ref_ptr<BufferRange> &range) {
 	feedbackRange_ = range;
 }
 
+void Mesh::draw(RenderState *rs) {
+	enable(rs);
+	disable(rs);
+}
+
 void Mesh::enable(RenderState *rs) {
 	auto &currentLOD = meshLODs_[*lodLevel_.get()];
 	State::enable(rs);

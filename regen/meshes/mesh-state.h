@@ -288,6 +288,13 @@ namespace regen {
 		 */
 		void addAnimation(const ref_ptr<Animation> &animation) { animations_.push_back(animation); }
 
+		/**
+		 * Make a draw call with this mesh. This will internally
+		 * call enable and disable.
+		 * @param rs the render state.
+		 */
+		void draw(RenderState *rs);
+
 		// override
 		void enable(RenderState *) override;
 
