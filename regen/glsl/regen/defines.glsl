@@ -6,12 +6,22 @@
     #ifdef HAS_instanceIDMap
         #ifdef HAS_instanceIDOffset
 #define regen_InstanceID in_instanceIDMap[in_instanceID + in_instanceIDOffset]
-        #else
+        #else // HAS_instanceIDOffset
 #define regen_InstanceID in_instanceIDMap[in_instanceID]
-        #endif
-    #else
+        #endif // HAS_instanceIDOffset
+    #else // HAS_instanceIDMap
 #define regen_InstanceID in_instanceID
-    #endif
+    #endif // HAS_instanceIDMap
+#elif SHADER_STAGE==gs
+    #ifdef HAS_instanceIDMap
+        #ifdef HAS_instanceIDOffset
+#define regen_InstanceID in_instanceIDMap[in_instanceID[0] + in_instanceIDOffset]
+        #else // HAS_instanceIDOffset
+#define regen_InstanceID in_instanceIDMap[in_instanceID[0]]
+        #endif // HAS_instanceIDOffset
+    #else // HAS_instanceIDMap
+#define regen_InstanceID in_instanceID[0]
+    #endif // HAS_instanceIDMap
 #else
     #ifdef HAS_instanceIDMap
         #ifdef HAS_instanceIDOffset

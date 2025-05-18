@@ -1,6 +1,9 @@
 #ifndef REGEN_BOUNDS_H
 #define REGEN_BOUNDS_H
 
+#include <array>
+#include <regen/math/vector.h>
+
 namespace regen {
 	/**
 	 * @brief Bounds
@@ -22,7 +25,7 @@ namespace regen {
 		 * @param other The other bounds
 		 * @return true if the bounds are equal
 		 */
-		bool operator==(const Bounds<T> &other) const {
+		inline bool operator==(const Bounds<T> &other) const {
 			return min == other.min && max == other.max;
 		}
 
@@ -30,7 +33,7 @@ namespace regen {
 		 * @param other The other bounds
 		 * @return true if the bounds are not equal
 		 */
-		bool operator!=(const Bounds<T> &other) const {
+		inline bool operator!=(const Bounds<T> &other) const {
 			return min != other.min || max != other.max;
 		}
 
@@ -44,8 +47,15 @@ namespace regen {
 		/**
 		 * @return The center of the bounds
 		 */
-		T center() const {
+		inline T center() const {
 			return (min + max) * 0.5f;
+		}
+
+		/**
+		 * @return The radius of the bounds
+		 */
+		inline float radius() const {
+			return size() * 0.5f;
 		}
 
 		/**
@@ -75,6 +85,23 @@ namespace regen {
 		inline bool contains(const Bounds<T> &other) const {
 			return min.x <= other.min.x && max.x >= other.max.x &&
 				   min.y <= other.min.y && max.y >= other.max.y;
+		}
+
+		/**
+		 * @brief Get the corner points of the bounds
+		 * @return The corner points of the bounds
+		 */
+		inline std::array<Vec3f, 8> cornerPoints() const {
+			return {
+				Vec3f(min.x, min.y, min.z),
+				Vec3f(max.x, min.y, min.z),
+				Vec3f(min.x, max.y, min.z),
+				Vec3f(max.x, max.y, min.z),
+				Vec3f(min.x, min.y, max.z),
+				Vec3f(max.x, min.y, max.z),
+				Vec3f(min.x, max.y, max.z),
+				Vec3f(max.x, max.y, max.z)
+			};
 		}
 	};
 }

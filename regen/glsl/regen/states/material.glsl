@@ -1,7 +1,7 @@
 
 -- defines
 #ifndef material_defines_DEFINED
-#define material_defines_DEFINED
+#define2 material_defines_DEFINED
 #include regen.states.textures.defines
 #ifdef HAS_matEmission || HAS_EMISSION_MAP
 #define HAS_MATERIAL_EMISSION
@@ -10,7 +10,7 @@
 
 -- input
 #ifndef material_input_DEFINED
-#define material_input_DEFINED
+#define2 material_input_DEFINED
 #ifdef HAS_MATERIAL
 uniform vec3 in_matAmbient;
 uniform vec3 in_matDiffuse;
@@ -24,7 +24,7 @@ uniform float in_matAlpha;
 
 -- type
 #ifndef Material_STRUCT_DEFINED
-#define Material_STRUCT_DEFINED
+#define2 Material_STRUCT_DEFINED
 #include regen.states.material.defines
 struct Material {
     vec3 ambient;

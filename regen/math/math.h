@@ -121,6 +121,33 @@ namespace regen {
 		static inline bool isPowerOfTwo(uint32_t x) {
 			return (x != 0) && ((x & (x - 1)) == 0);
 		}
+
+		/**
+		 * @tparam T numeric type
+		 * @return pi
+		 */
+		template<typename T> static inline T pi() {
+			static T v = static_cast<T>(M_PI);
+			return v;
+		}
+
+		/**
+		 * @tparam T numeric type
+		 * @return two times pi
+		 */
+		template<typename T> static inline T twoPi() {
+			static T v = static_cast<T>(2.0 * M_PI);
+			return v;
+		}
+
+		/**
+		 * @tparam T numeric type
+		 * @return pi/2
+		 */
+		template<typename T> static inline T halfPi() {
+			static T v = static_cast<T>(M_PI * 0.5);
+			return v;
+		}
 	}
 } // namespace
 

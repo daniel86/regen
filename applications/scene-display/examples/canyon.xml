@@ -370,29 +370,15 @@
         </shape>
     </mesh>
 
-    <!--
-    <mesh id="twig-impostor" type="impostor-billboard"
+    <mesh id="twig-impostor" type="impostor-billboard" depth-offset="0.5"
             original-mesh="tree-mesh" original-index="1">
     </mesh>
-
-    <mesh id="twig-impostor"
-          type="box"
-          lod="0"
-          scaling="2.8,2.8,2.8"
-          texco-scaling="0.025,0.025"
-          use-normal="1"
-          use-tangent="1"
-          usage="STATIC_DRAW">
-        <material ambient="0.05,0.05,0.05" diffuse="0.9,0.6,0.6" fill-mode="fill"/>
-    </mesh>
-    -->
 
     <node id="Trees">
         <node lod-shape="tree-shape">
             <node id="tree-trunk">
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
-            <!--
             <node id="tree-twig">
                 <texture name="windFlow" id="wind-flowmap" />
                 <input name="stiffness" type="float" value="0.5"/>
@@ -403,10 +389,10 @@
                         <define key="DISCARD_ALPHA" value="TRUE"/>
                         <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
                     </base-state>
-                    <lod-mesh id="twig-impostor" mesh-index="0" shader="regen.models.mesh"/>
+                    <lod-mesh id="twig-impostor" mesh-index="0" shader="regen.models.impostor"/>
                 </mesh>
             </node>
-            -->
+            <!--
             <node id="tree-twig">
                 <define key="DISCARD_ALPHA" value="TRUE"/>
                 <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
@@ -418,6 +404,7 @@
                         gs="regen.weather.wind.wavingQuad">
                 </mesh>
             </node>
+            -->
         </node>
     </node>
 

@@ -13,8 +13,10 @@
 #include "particles.h"
 #include "regen/states/state-node.h"
 #include "regen/scene/loading-context.h"
+#include "regen/scene/resource-manager.h"
 #include "lod/mesh-simplifier.h"
 #include "regen/meshes/terrain/ground.h"
+#include "regen/meshes/lod/impostor-billboard.h"
 
 using namespace regen;
 
@@ -235,6 +237,14 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		}
 		for (GLuint i = 0u; i < out->size(); ++i) {
 			parser->putState(REGEN_STRING(input.getName() << i), (*out)[i]);
+		}
+	} else if (meshType == "impostor-billboard") {
+		auto impostor = ImpostorBillboard::load(ctx, input);
+		if (impostor.get() == nullptr) {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load impostor billboard.");
+		} else {
+			(*out) = MeshVector(1);
+			(*out)[0] = impostor;
 		}
 	} else if (meshType == "mask-patch") {
 		MaskMesh::Config meshCfg;

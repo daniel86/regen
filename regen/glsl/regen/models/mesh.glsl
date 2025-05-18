@@ -413,11 +413,23 @@ void main()
 in vec3 in_posWorld;
 in vec3 in_posEye;
 #ifdef HAS_TANGENT_SPACE
+    #if HAS_flat_tangent
+flat in vec3 in_tangent;
+    #else
 in vec3 in_tangent;
+    #endif
+    #if HAS_flat_binormal
+flat in vec3 in_binormal;
+    #else
 in vec3 in_binormal;
+    #endif
 #endif
 #ifdef HAS_nor
+    #ifdef HAS_flat_nor
+flat in vec3 in_norWorld;
+    #else
 in vec3 in_norWorld;
+    #endif
 #endif
 
 #ifdef HAS_col
