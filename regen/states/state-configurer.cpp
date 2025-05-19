@@ -93,6 +93,9 @@ void StateConfigurer::addState(const State *s) {
 				if (in->isVertexAttribute()) {
 					define(REGEN_STRING("HAS_VERTEX_" << inName), "TRUE");
 				}
+				if (in->numArrayElements()>1 || in->forceArray()) {
+					define(REGEN_STRING("IS_ARRAY_" << inName), "TRUE");
+				}
 				if (in->numInstances() > 1) {
 					define("HAS_INSTANCES", "TRUE");
 					cfg_.numInstances_ = in->numInstances();
@@ -120,15 +123,18 @@ void StateConfigurer::addState(const State *s) {
 	}
 	if (x2) {
 		// map for loop index to texture id
-		define(
-				REGEN_STRING("TEX_ID" << cfg_.textures_.size()),
-				REGEN_STRING(x2->stateID()));
-		define(
-				REGEN_STRING("TEX_ID_" << x2->name()),
-				REGEN_STRING(x2->stateID()));
-		// remember the number of textures used
-		define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size() + 1));
-		cfg_.textures_[x2->name()] = x2->texture();
+		auto needle = cfg_.textures_.find(x2->name());
+		if (needle == cfg_.textures_.end()) {
+			// add texture to the list
+			auto texIdx = cfg_.textures_.size();
+			auto it = cfg_.textures_.insert({ x2->name(), { x2->texture(), texIdx } });
+			define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size() + 1));
+			needle = it.first;
+		}
+		auto texIdx = needle->second.second;
+		define(REGEN_STRING("TEX_ID" << texIdx), REGEN_STRING(x2->stateID()));
+		define(REGEN_STRING("TEX_ID_" << x2->name()), REGEN_STRING(x2->stateID()));
+		needle->second.first = x2->texture();
 		addInput(x2->name(), x2->texture(), x2->samplerType());
 	}
 

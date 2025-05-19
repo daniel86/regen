@@ -138,7 +138,9 @@ void Mesh::updateVAO(
 		addShaderInput(localInput.name_, localInput.in_);
 	}
 	// Add Textures
-	for (const auto & texture : cfg.textures_) { addShaderInput(texture.first, texture.second); }
+	for (const auto & texture : cfg.textures_) {
+		addShaderInput(texture.first, texture.second.first);
+	}
 
 	updateVAO(rs);
 	updateDrawFunction();

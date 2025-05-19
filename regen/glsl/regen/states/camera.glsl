@@ -18,55 +18,58 @@
 #define in_layer 0
 #endif // RENDER_LAYER == 1
 // Macros for Layered Camera access
-#if RENDER_TARGET == CUBE || RENDER_TARGET == DUAL_PARABOLOID
-#define REGEN_VIEW_(layer)          in_viewMatrix[layer]
-#define REGEN_VIEW_INV_(layer)      in_inverseViewMatrix[layer]
-#define REGEN_VIEW_PROJ_(layer)     in_viewProjectionMatrix[layer]
-#define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix[layer]
-#define REGEN_CAM_DIR_(layer)       in_cameraDirection[layer]
-#elif RENDER_TARGET == 2D_ARRAY
-#define REGEN_VIEW_(layer)          in_viewMatrix[layer]
-#define REGEN_VIEW_INV_(layer)      in_inverseViewMatrix[layer]
-#define REGEN_PROJ_(layer)          in_projectionMatrix[layer]
-#define REGEN_PROJ_INV_(layer)      in_inverseProjectionMatrix[layer]
-#define REGEN_VIEW_PROJ_(layer)     in_viewProjectionMatrix[layer]
-#define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix[layer]
-#define REGEN_CAM_NEAR_(layer)      in_near[layer]
-#define REGEN_CAM_FAR_(layer)       in_far[layer]
-#define REGEN_CAM_POS_(layer)       in_cameraPosition[layer]
-#endif // RENDER_TARGET == 2D_ARRAY
-#ifndef REGEN_VIEW_(layer)
-#define REGEN_VIEW_(layer)          in_viewMatrix
+#ifdef IS_ARRAY_viewMatrix
+    #define REGEN_VIEW_(layer) in_viewMatrix[layer]
+#else
+    #define REGEN_VIEW_(layer) in_viewMatrix
 #endif
-#ifndef REGEN_VIEW_INV_(layer)
-#define REGEN_VIEW_INV_(layer)      in_inverseViewMatrix
+#ifdef IS_ARRAY_inverseViewMatrix
+    #define REGEN_VIEW_INV_(layer) in_inverseViewMatrix[layer]
+#else
+    #define REGEN_VIEW_INV_(layer) in_inverseViewMatrix
 #endif
-#ifndef REGEN_PROJ_(layer)
-#define REGEN_PROJ_(layer)          in_projectionMatrix
+#ifdef IS_ARRAY_projectionMatrix
+    #define REGEN_PROJ_(layer) in_projectionMatrix[layer]
+#else
+    #define REGEN_PROJ_(layer) in_projectionMatrix
 #endif
-#ifndef REGEN_PROJ_INV_(layer)
-#define REGEN_PROJ_INV_(layer)      in_inverseProjectionMatrix
+#ifdef IS_ARRAY_inverseProjectionMatrix
+    #define REGEN_PROJ_INV_(layer) in_inverseProjectionMatrix[layer]
+#else
+    #define REGEN_PROJ_INV_(layer) in_inverseProjectionMatrix
 #endif
-#ifndef REGEN_VIEW_PROJ_(layer)
-#define REGEN_VIEW_PROJ_(layer)     in_viewProjectionMatrix
+#ifdef IS_ARRAY_viewProjectionMatrix
+    #define REGEN_VIEW_PROJ_(layer) in_viewProjectionMatrix[layer]
+#else
+    #define REGEN_VIEW_PROJ_(layer) in_viewProjectionMatrix
 #endif
-#ifndef REGEN_VIEW_PROJ_INV_(layer)
-#define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix
+#ifdef IS_ARRAY_inverseViewProjectionMatrix
+    #define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix[layer]
+#else
+    #define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix
 #endif
-#ifndef REGEN_CAM_DIR_(layer)
-#define REGEN_CAM_DIR_(layer)       in_cameraDirection
+#ifdef IS_ARRAY_cameraDirection
+    #define REGEN_CAM_DIR_(layer) in_cameraDirection[layer]
+#else
+    #define REGEN_CAM_DIR_(layer) in_cameraDirection
 #endif
-#ifndef REGEN_CAM_POS_(layer)
-#define REGEN_CAM_POS_(layer)       in_cameraPosition
+#ifdef IS_ARRAY_cameraPosition
+    #define REGEN_CAM_POS_(layer) in_cameraPosition[layer]
+#else
+    #define REGEN_CAM_POS_(layer) in_cameraPosition
 #endif
-#ifndef REGEN_CAM_NEAR_(layer)
-#define REGEN_CAM_NEAR_(layer)      in_near
+#ifdef IS_ARRAY_near
+    #define REGEN_CAM_NEAR_(layer) in_near[layer]
+#else
+    #define REGEN_CAM_NEAR_(layer) in_near
 #endif
-#ifndef REGEN_CAM_FAR_(layer)
-#define REGEN_CAM_FAR_(layer)       in_far
+#ifdef IS_ARRAY_far
+    #define REGEN_CAM_FAR_(layer) in_far[layer]
+#else
+    #define REGEN_CAM_FAR_(layer) in_far
 #endif
 #ifdef USE_PARABOLOID_PROJECTION || IGNORE_VIEW_ROTATION || IGNORE_VIEW_TRANSLATION
-#define SEPERATE_VIEW_PROJ
+    #define SEPERATE_VIEW_PROJ
 #endif
 
 -- input

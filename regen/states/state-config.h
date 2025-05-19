@@ -72,7 +72,7 @@ namespace regen {
 		/**
 		 * Specified shader textures.
 		 */
-		std::map<std::string, ref_ptr<Texture> > textures_;
+		std::map<std::string, std::pair<ref_ptr<Texture>,uint32_t>> textures_;
 		/**
 		 * List of attribute names to capture using transform feedback.
 		 */
