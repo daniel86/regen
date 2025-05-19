@@ -128,7 +128,7 @@ void StateConfigurer::addState(const State *s) {
 			// add texture to the list
 			auto texIdx = cfg_.textures_.size();
 			auto it = cfg_.textures_.insert({ x2->name(), { x2->texture(), texIdx } });
-			define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size() + 1));
+			define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()));
 			needle = it.first;
 		}
 		auto texIdx = needle->second.second;
