@@ -109,6 +109,12 @@ namespace regen {
 		void shaderDefine(const std::string &name, const std::string &value);
 
 		/**
+		 * Undefine a GLSL macro, i.e. removing it from the shader.
+		 * @param name the macro key.
+		 */
+		void shaderUndefine(const std::string &name);
+
+		/**
 		 * @return GLSL macros.
 		 */
 		const std::map<std::string, std::string> &shaderDefines() const;

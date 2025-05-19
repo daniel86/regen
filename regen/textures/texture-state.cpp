@@ -160,6 +160,54 @@ namespace regen {
 		}
 		return in;
 	}
+
+	std::ostream &operator<<(std::ostream &out, const TextureState::TexelTransfer &mode) {
+		switch (mode) {
+			case TextureState::TEXEL_TRANSFER_TANGENT_NORMAL:
+				return out << "texel_norTan";
+			case TextureState::TEXEL_TRANSFER_EYE_NORMAL:
+				return out << "texel_norEye";
+			case TextureState::TEXEL_TRANSFER_INVERT:
+				return out << "texel_invert";
+			case TextureState::TEXEL_TRANSFER_IDENTITY:
+				return out << "texel_identity";
+			case TextureState::TEXEL_TRANSFER_GAMMA:
+				return out << "texel_gamma";
+			case TextureState::TEXEL_TRANSFER_GRAYSCALE:
+				return out << "texel_grayscale";
+			case TextureState::TEXEL_TRANSFER_BRIGHTNESS:
+				return out << "texel_brightness";
+			case TextureState::TEXEL_TRANSFER_CONTRAST:
+				return out << "texel_contrast";
+			case TextureState::TEXEL_TRANSFER_SATURATION:
+				return out << "texel_saturation";
+			case TextureState::TEXEL_TRANSFER_HUE:
+				return out << "texel_hue";
+		}
+		return out;
+	}
+
+	std::istream &operator>>(std::istream &in, TextureState::TexelTransfer &mode) {
+		std::string val;
+		in >> val;
+		boost::to_lower(val);
+		if (val == "texel_norTan") mode = TextureState::TEXEL_TRANSFER_TANGENT_NORMAL;
+		else if (val == "texel_norEye") mode = TextureState::TEXEL_TRANSFER_EYE_NORMAL;
+		else if (val == "texel_invert") mode = TextureState::TEXEL_TRANSFER_INVERT;
+		else if (val == "texel_identity") mode = TextureState::TEXEL_TRANSFER_IDENTITY;
+		else if (val == "texel_gamma") mode = TextureState::TEXEL_TRANSFER_GAMMA;
+		else if (val == "texel_grayscale") mode = TextureState::TEXEL_TRANSFER_GRAYSCALE;
+		else if (val == "texel_brightness") mode = TextureState::TEXEL_TRANSFER_BRIGHTNESS;
+		else if (val == "texel_contrast") mode = TextureState::TEXEL_TRANSFER_CONTRAST;
+		else if (val == "texel_saturation") mode = TextureState::TEXEL_TRANSFER_SATURATION;
+		else if (val == "texel_hue") mode = TextureState::TEXEL_TRANSFER_HUE;
+		else {
+			REGEN_WARN("Unknown Texel Transfer '" << val <<
+														  "'. Using default IDENTITY Texel-Transfer.");
+			mode = TextureState::TEXEL_TRANSFER_IDENTITY;
+		}
+		return in;
+	}
 }
 using namespace regen;
 
@@ -259,6 +307,12 @@ void TextureState::set_blendFunction(const std::string &blendFunction, const std
 void TextureState::set_mapTo(MapTo id) {
 	mapTo_ = id;
 	shaderDefine(REGEN_TEX_NAME("TEX_MAPTO"), REGEN_STRING(mapTo_));
+	if (mapTo_ == MAP_TO_NORMAL) {
+		// we default to normal maps in tangent space, these need a special transfer function
+		if (!hasTexelTransfer()) {
+			set_texelTransfer(TEXEL_TRANSFER_TANGENT_NORMAL);
+		}
+	}
 }
 
 void TextureState::set_mapping(TextureState::Mapping mapping) {
@@ -280,19 +334,20 @@ void TextureState::set_mappingFunction(const std::string &mappingFunction, const
 ///////
 ///////
 
-
-void TextureState::set_texelTransferFunction(const std::string &transferFunction, const std::string &transferName) {
-	transferKey_ = "";
-	transferName_ = transferName;
-	transferFunction_ = transferFunction;
-
-	shaderFunction(transferName_, transferFunction_);
-	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
-	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
+void TextureState::set_texelTransfer(TextureState::TexelTransfer transfer) {
+	if (transfer == TEXEL_TRANSFER_IDENTITY) {
+		shaderUndefine(REGEN_TEX_NAME("TEX_TRANSFER_KEY"));
+		shaderUndefine(REGEN_TEX_NAME("TEX_TRANSFER_NAME"));
+	}
+	else {
+		auto functionName = REGEN_STRING(transfer);
+		auto importKey = REGEN_STRING("regen.states.textures.transfer." << functionName);
+		set_texelTransfer(importKey, functionName);
+	}
 }
 
-void TextureState::set_texelTransferKey(const std::string &transferKey, const std::string &transferName) {
-	transferFunction_ = "";
+void TextureState::set_texelTransfer(const std::string &transferKey, const std::string &transferName) {
+	transferInlineCode_ = "";
 	transferKey_ = transferKey;
 	if (transferName.empty()) {
 		std::list<std::string> path;
@@ -302,6 +357,15 @@ void TextureState::set_texelTransferKey(const std::string &transferKey, const st
 		transferName_ = transferName;
 	}
 	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_KEY"), transferKey_);
+	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
+}
+
+void TextureState::set_texelTransferInline(const std::string &transferFunction, const std::string &transferName) {
+	transferKey_ = "";
+	transferName_ = transferName;
+	transferInlineCode_ = transferFunction;
+	shaderFunction(transferName_, transferInlineCode_);
+	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_KEY"), transferName_);
 	shaderDefine(REGEN_TEX_NAME("TEX_TRANSFER_NAME"), transferName_);
 }
 
@@ -420,8 +484,8 @@ ref_ptr<Texture> TextureState::getTexture(
 			std::vector<ref_ptr<Texture> > &textures = fbo->colorTextures();
 
 			unsigned int attachment;
-			std::stringstream ss(val);
-			ss >> attachment;
+			std::stringstream ass(val);
+			ass >> attachment;
 
 			if (attachment < textures.size()) {
 				tex = textures[attachment];
@@ -495,12 +559,18 @@ ref_ptr<TextureState> TextureState::load(LoadingContext &ctx, scene::SceneInputN
 
 	// texel transfer wraps sampled texels before returning them.
 	const std::string texelTransferName = input.getValue("texel-transfer-name");
-	if (input.hasAttribute("texel-transfer-key")) {
-		texState->set_texelTransferKey(
+	if (input.hasAttribute("texel-transfer")) {
+		texState->set_texelTransfer(
+				input.getValue<TextureState::TexelTransfer>("texel-transfer",
+						TextureState::TEXEL_TRANSFER_IDENTITY));
+	}
+	else if (input.hasAttribute("texel-transfer-key")) {
+		texState->set_texelTransfer(
 				input.getValue("texel-transfer-key"),
 				texelTransferName);
-	} else if (input.hasAttribute("texel-transfer-function")) {
-		texState->set_texelTransferFunction(
+	}
+	else if (input.hasAttribute("texel-transfer-function")) {
+		texState->set_texelTransferInline(
 				input.getValue("texel-transfer-function"),
 				texelTransferName);
 	}

@@ -76,6 +76,11 @@ namespace regen {
 		void setHasBottomView(bool bottomView) { hasBottomView_ = bottomView; }
 
 		/**
+		 * @param mips true if the albedo texture should use mipmaps
+		 */
+		void setUseAlbedoMips(bool mips) { useAlbedoMips_ = mips; }
+
+		/**
 		 * Sets the size of the snapshot texture, default is 256x256.
 		 * The size is the same for all snapshots.
 		 * @param width the width of the snapshot texture
@@ -193,6 +198,7 @@ namespace regen {
 		ref_ptr<Texture2DArray> snapshotAlbedo_;
 		ref_ptr<Texture2DArray> snapshotNormal_;
 		ref_ptr<Texture2DArrayDepth> snapshotDepth_;
+		bool useAlbedoMips_ = true;
 
 		void updateAttributes();
 

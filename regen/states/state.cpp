@@ -39,6 +39,13 @@ void State::shaderDefine(const std::string &name, const std::string &value) {
 	shaderDefines_[name] = value;
 }
 
+void State::shaderUndefine(const std::string &name) {
+	auto it = shaderDefines_.find(name);
+	if (it != shaderDefines_.end()) {
+		shaderDefines_.erase(it);
+	}
+}
+
 const std::map<std::string, std::string> &State::shaderDefines() const {
 	return shaderDefines_;
 }

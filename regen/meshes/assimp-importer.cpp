@@ -308,7 +308,7 @@ static void loadTexture(
 	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
 												AI_MATKEY_TEXFLAGS(textureTypes[l], k - 1), &intVal, &maxElements)) {
 		if (intVal & aiTextureFlags_Invert) {
-			texState->set_texelTransferKey("regen.states.textures.transfer.texel_invert");
+			texState->set_texelTransfer(TextureState::TEXEL_TRANSFER_INVERT);
 		}
 		if (intVal & aiTextureFlags_UseAlpha) {
 			REGEN_WARN("aiTextureFlags_UseAlpha is not supported.");

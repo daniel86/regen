@@ -97,6 +97,25 @@ namespace regen {
 			TRANSFER_TEXCO_NOISE
 		};
 		/**
+		 * \brief Specifies how a texel should be transferred before returning it.
+		 */
+		enum TexelTransfer {
+			/** no transfer. */
+			TEXEL_TRANSFER_IDENTITY,
+			/** eye normal mapping. */
+			TEXEL_TRANSFER_EYE_NORMAL,
+			/** tangent normal mapping. */
+			TEXEL_TRANSFER_TANGENT_NORMAL,
+			/** out = 1 - in */
+			TEXEL_TRANSFER_INVERT,
+			TEXEL_TRANSFER_GRAYSCALE,
+			TEXEL_TRANSFER_BRIGHTNESS,
+			TEXEL_TRANSFER_CONTRAST,
+			TEXEL_TRANSFER_SATURATION,
+			TEXEL_TRANSFER_HUE,
+			TEXEL_TRANSFER_GAMMA
+		};
+		/**
 		 * \brief Specifies if texture coordinates should be flipped.
 		 */
 		enum TexcoFlipping {
@@ -201,11 +220,22 @@ namespace regen {
 		void set_mapTo(MapTo id);
 
 		/**
+		 * @return true if the texture has a custom transfer function.
+		 */
+		bool hasTexelTransfer() const { return !transferName_.empty(); }
+
+		/**
+		 * Specifies how texture samples are transferred before returning them.
+		 * @param transfer Specifies how texture samples are transfererd before returning them.
+		 */
+		void set_texelTransfer(TextureState::TexelTransfer transfer);
+
+		/**
 		 * Specifies how a texture should be sampled.
 		 * @param transferKey GLSL include key for transfer function.
 		 * @param transferName name of the transfer function.
 		 */
-		void set_texelTransferKey(const std::string &transferKey, const std::string &transferName = "");
+		void set_texelTransfer(const std::string &transferKey, const std::string &transferName = "");
 
 		/**
 		 * Specifies how a texture should be sampled.
@@ -214,22 +244,22 @@ namespace regen {
 		 * @param transferFunction user defined GLSL function.
 		 * @param transferName name of user defined GLSL function.
 		 */
-		void set_texelTransferFunction(const std::string &transferFunction, const std::string &transferName);
+		void set_texelTransferInline(const std::string &transferFunction, const std::string &transferName);
 
 		/**
-		 * @param mode Specifies how texture coordinates are transfered before sampling.
+		 * @param mode Specifies how texture coordinates are transferred before sampling.
 		 */
 		void set_texcoTransfer(TransferTexco mode);
 
 		/**
-		 * Specifies how texture coordinates are transfered before sampling.
+		 * Specifies how texture coordinates are transferred before sampling.
 		 * @param transferKey GLSL include key for transfer function.
 		 * @param transferName name of the transfer function.
 		 */
 		void set_texcoTransferKey(const std::string &transferKey, const std::string &transferName = "");
 
 		/**
-		 * Specifies how texture coordinates are transfered before sampling.
+		 * Specifies how texture coordinates are transferred before sampling.
 		 * @param transferFunction user defined GLSL function.
 		 * @param transferName  name of user defined GLSL function.
 		 */
@@ -291,7 +321,7 @@ namespace regen {
 		MapTo mapTo_;
 
 		std::string transferKey_;
-		std::string transferFunction_;
+		std::string transferInlineCode_;
 		std::string transferName_;
 
 		std::string transferTexcoKey_;
@@ -315,6 +345,10 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const TextureState::TransferTexco &v);
 
 	std::istream &operator>>(std::istream &in, TextureState::TransferTexco &v);
+
+	std::ostream &operator<<(std::ostream &out, const TextureState::TexelTransfer &v);
+
+	std::istream &operator>>(std::istream &in, TextureState::TexelTransfer &v);
 } // namespace
 
 namespace regen {
