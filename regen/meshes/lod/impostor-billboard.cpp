@@ -78,10 +78,10 @@ void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> 
 		}
 	}
 
-	REGEN_INFO("ImpostorBillboard mesh center (model space): " << meshCenterPoint_ <<
-															   " radius: " << meshBoundsRadius_ <<
-															   " min (model space): " << minPosition_ <<
-															   " max (model space): " << maxPosition_);
+	REGEN_INFO("impostor mesh center (model space): " << meshCenterPoint_ <<
+			" radius: " << meshBoundsRadius_ <<
+			" min (model space): " << minPosition_ <<
+			" max (model space): " << maxPosition_);
 }
 
 void ImpostorBillboard::updateNumberOfViews() {
@@ -100,7 +100,7 @@ void ImpostorBillboard::updateNumberOfViews() {
 	if (hasBottomView_ && !isHemispherical_) numSnapshotViews_++;
 	shaderDefine("NUM_IMPOSTOR_VIEWS", REGEN_STRING(numSnapshotViews_));
 
-	REGEN_INFO("ImpostorBillboard will take " << numSnapshotViews_ << " snapshots of the mesh.");
+	REGEN_INFO("impostor will take " << numSnapshotViews_ << " snapshots of the mesh.");
 }
 
 void ImpostorBillboard::ensureResourcesExist() {
