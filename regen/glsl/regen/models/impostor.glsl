@@ -173,7 +173,6 @@ void emitLayer(int layer, float scale) {
 #ifndef DEPTH_CORRECT
     #if OUTPUT_TYPE == DEPTH
     // FIXME: there can be artifacts when attempting to use impostor billboards for shadow mapping.
-    //        there could be some strategies to mitigate this.
     // NOTE: depth correction can fix it, but might kill early z-culling.
     centerEye.z -= 0.5 * in_depthOffset * (depthRange.y - depthRange.x) * scale;
     #else
