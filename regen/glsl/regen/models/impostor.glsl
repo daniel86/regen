@@ -54,6 +54,7 @@ uint selectViewIdx(vec3 viewDirLocal) {
 #include regen.models.mesh.gs
 
 -- update.fs
+#define USE_EYESPACE_NORMAL
 #include regen.models.impostor.update.defines
 #include regen.models.mesh.fs
 

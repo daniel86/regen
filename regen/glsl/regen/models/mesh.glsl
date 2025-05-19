@@ -287,7 +287,7 @@ layout(location = ATTACHMENT_IDX_ambient) out vec4 out_ambient;
 layout(location = ATTACHMENT_IDX_specular) out vec4 out_specular;
 #endif
 #ifdef HAS_ATTACHMENT_normal
-layout(location = ATTACHMENT_IDX_normal) out vec4 out_norWorld;
+layout(location = ATTACHMENT_IDX_normal) out vec4 out_normal;
 #endif
 #ifdef HAS_ATTACHMENT_emission
 layout(location = ATTACHMENT_IDX_emission) out vec3 out_emission;
@@ -563,11 +563,20 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 }
 #else
 #include regen.models.mesh.applyBrightness
+#ifdef USE_EYESPACE_NORMAL
+#include regen.states.camera.transformWorldToEye
+#endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     // TODO: only normalize when not using FLOAT textures!
     // map to [0,1] for rgba buffer
-    out_norWorld.xyz = normalize(norWorld)*0.5 + vec3(0.5);
-    out_norWorld.w = 1.0;
+#ifdef USE_EYESPACE_NORMAL
+    // TODO: rather transform in VS/GS
+    vec3 norEye = transformWorldToEye(vec4(norWorld,0),in_layer).xyz;
+    out_normal.xyz = normalize(norEye)*0.5 + vec3(0.5);
+#else
+    out_normal.xyz = normalize(norWorld)*0.5 + vec3(0.5);
+#endif
+    out_normal.w = 1.0;
 
     Material mat;
     mat.occlusion = 0.0;
@@ -614,6 +623,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #endif
     // TODO: handle the occlusion value. It might be best to encode it in the g-buffer,
     //       then use this info in deferred shading.
-    //out_norWorld.w = mat.occlusion;
+    //out_normal.w = mat.occlusion;
 }
 #endif // SHADING!=NONE
