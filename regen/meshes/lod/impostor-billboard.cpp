@@ -4,7 +4,7 @@
 
 using namespace regen;
 
-#define DEBUG_SNAPSHOT_VIEWS
+#undef DEBUG_SNAPSHOT_VIEWS
 
 ImpostorBillboard::ImpostorBillboard()
 		: Mesh(GL_POINTS, BUFFER_USAGE_STATIC_DRAW),
@@ -428,7 +428,6 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 			if (processor.get() == nullptr) {
 				REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
 			} else {
-				REGEN_INFO("Processing child state '" << child->getDescription() << "'.");
 				processor->processInput(ctx.scene(), *child.get(), ctx.parent(), impostor->snapshotState());
 			}
 		}
