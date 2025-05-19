@@ -16,6 +16,7 @@ ImpostorBillboard::ImpostorBillboard()
 	// FIXME: this is a quick fix for shadow mapping. not sure if this would be copied over at the moment!
 	//        I think only shader inputs are, but shadow pass is first it seems.
 	//        also shadow has strong artifacts.
+	//        Probably depth offset contributes to problem, might be worth pushing away from shadow camera!
 	joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
 }
 
@@ -186,21 +187,6 @@ void ImpostorBillboard::createResources() {
 			Vec4f(0.0, 0.0, 0.0, 0.0),
 			drawAttachments });
 
-		// setup depth test/write
-		// TODO: might be best if this is configurable, could be e,g,
-		//        input is sorted and we can do alpha blending or so.
-		auto depth = ref_ptr<DepthState>::alloc();
-		depth->set_depthFunc(GL_LEQUAL);
-		depth->set_useDepthWrite(GL_TRUE);
-		depth->set_useDepthTest(GL_TRUE);
-		snapshotFBO_->joinStates(depth);
-
-		// setup blending
-		// TODO: might be best if this is configurable, see above.
-		//snapshotFBO_->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC));
-		snapshotFBO_->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC_ALPHA));
-		//snapshotFBO_->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
-
 		GL_ERROR_LOG();
 	}
 
@@ -215,9 +201,7 @@ void ImpostorBillboard::createResources() {
 		meshConfigurer.addState(viewMesh.meshOrig.get());
 		meshConfigurer.addState(viewMesh.meshCopy.get());
 		meshConfigurer.define("NUM_IMPOSTOR_VIEWS", REGEN_STRING(numSnapshotViews_));
-		//meshConfigurer.define("DISCARD_ALPHA", "FALSE");
-		// TODO: make configurable
-		viewMesh.shaderState->createShader(meshConfigurer.cfg(), "regen.models.impostor.update");
+		viewMesh.shaderState->createShader(meshConfigurer.cfg(), snapshotShaderKey_);
 
 		viewMesh.meshCopy->joinStates(viewMesh.shaderState);
 		viewMesh.meshCopy->updateVAO(
@@ -231,7 +215,6 @@ void ImpostorBillboard::createResources() {
 		albedo->set_mapping(TextureState::MAPPING_TEXCO);
 		// note: map to color is used for alpha discard to work
 		albedo->set_mapTo(TextureState::MAP_TO_COLOR);
-		// TODO: make configurable
 		albedo->set_blendMode(BLEND_MODE_MULTIPLY);
 		joinStates(albedo);
 
@@ -425,6 +408,25 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 	if (input.hasAttribute("bottom-view")) {
 		impostor->hasBottomView_ = input.getValue<bool>("bottom-view", false);
 	}
+	if (input.hasAttribute("snapshot-shader")) {
+		impostor->snapshotShaderKey_ = input.getValue<std::string>("snapshot-shader", "regen.models.impostor.update");
+	}
+
+	// load update state
+	auto updateStateNode = input.getFirstChild("update-state");
+	if(updateStateNode.get()) {
+		for (auto &child: updateStateNode->getChildren()) {
+			auto processor = ctx.scene()->getStateProcessor(child->getCategory());
+			if (processor.get() == nullptr) {
+				REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
+			} else {
+				REGEN_INFO("Processing child state '" << child->getDescription() << "'.");
+				processor->processInput(ctx.scene(), *child.get(), ctx.parent(), impostor->snapshotState());
+			}
+		}
+		input.removeChild(updateStateNode);
+	}
+
 	impostor->addMesh(originalMesh);
 	impostor->updateSnapshotViews();
 	impostor->createSnapshot();

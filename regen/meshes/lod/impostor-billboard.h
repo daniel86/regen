@@ -34,6 +34,12 @@ namespace regen {
 		void addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> &drawState={});
 
 		/**
+		 * Use a custom shader for updating the snapshot textures.
+		 * @param key the shader import key.
+		 */
+		void setSnapshotShaderKey(const std::string &key) { snapshotShaderKey_ = key; }
+
+		/**
 		 * Sets the depth offset for the billboard.
 		 * - 0 means it is placed at the center of the mesh
 		 * - 0.5 means it is placed at the "front" of the mesh
@@ -171,6 +177,7 @@ namespace regen {
 		ref_ptr<ArrayCamera> snapshotCamera_;
 		bool hasInitializedResources_ = false;
 		bool hasAttributes_ = false;
+		std::string snapshotShaderKey_ = "regen.models.impostor.update";
 
 		// container for billboard uniforms
 		ref_ptr<UBO> billboardUBO_;

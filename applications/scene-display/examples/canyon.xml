@@ -379,6 +379,12 @@
             latitude-steps="0"
             texture-size="256,256"
             original-mesh="tree-mesh" original-index="1">
+        <update-state>
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <depth test="1" write="1"/>
+            <blend mode="src"/>
+        </update-state>
     </mesh>
 
     <node id="Trees">
@@ -389,14 +395,14 @@
             <node id="tree-twig">
                 <texture name="windFlow" id="wind-flowmap" />
                 <input name="stiffness" type="float" value="0.5"/>
-                        <define key="DISCARD_ALPHA" value="TRUE"/>
-                        <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                <define key="DISCARD_ALPHA" value="TRUE"/>
+                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
 
                 <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.weather.wind.wavingQuad">
                     <base-state>
                         <define key="HAS_GS_TRANSFORM" value="TRUE"/>
                     </base-state>
-                    <lod-mesh id="twig-impostor" mesh-index="0" shader="regen.models.impostor"/>
+                    <lod-mesh id="twig-impostor" shader="regen.models.impostor" />
                 </mesh>
             </node>
             <!--

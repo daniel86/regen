@@ -40,9 +40,6 @@ uint selectViewIdx(vec3 viewDirLocal) {
 // material parameters are handled by billboard to
 // allow per-instance veriations.
 #define IGNORE_MATERIAL
-// TODO: this should be configurable. eg. fish does not need this
-#define DISCARD_ALPHA
-#define DISCARD_ALPHA_THRESHOLD 0.25
 
 -- update.vs
 #include regen.models.impostor.update.defines
