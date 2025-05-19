@@ -1,7 +1,6 @@
 #include "impostor-billboard.h"
 #include "regen/scene/resource-manager.h"
 #include "regen/states/state-configurer.h"
-#include "regen/states/depth-state.h"
 
 using namespace regen;
 
@@ -13,10 +12,9 @@ ImpostorBillboard::ImpostorBillboard()
 	depthOffset_ = createUniform<ShaderInput1f>("depthOffset", 0.5f);
 	modelOrigin_ = createUniform<ShaderInput3f>("modelOrigin", Vec3f::zero());
 	updateAttributes();
-	// FIXME: this is a quick fix for shadow mapping. not sure if this would be copied over at the moment!
-	//        I think only shader inputs are, but shadow pass is first it seems.
-	//        also shadow has strong artifacts.
-	//        Probably depth offset contributes to problem, might be worth pushing away from shadow camera!
+	// note: we generally do not need culling when rendering impostor billboards
+	//       as they only have a two front face.
+	//       this is also important for the billboards to be rendered into shadow maps.
 	joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
 }
 
@@ -149,11 +147,14 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create the snapshot FBO
-		// TODO: be more flexible
-		//		- TODO: add attachment based on textures/attributes in use
-		//		- TODO: optional: depth correct
-		//      - TODO: optional enable/disable normal, write tangent space normals
+		// TODO: support specular maps, but only if input mesh uses them!
+		// TODO: support depth correction
 		auto fbo = ref_ptr<FBO>::alloc(snapshotWidth_, snapshotHeight_, numSnapshotViews_);
+		std::vector<GLenum> drawAttachments;
+
+		// create depth texture
+		fbo->createDepthTexture(GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT);
+		snapshotDepth_ = ref_ptr<Texture2DArrayDepth>::dynamicCast(fbo->depthTexture());
 
 		// create albedo texture
 		auto albedo = fbo->addTexture(1, GL_TEXTURE_2D_ARRAY,
@@ -164,22 +165,19 @@ void ImpostorBillboard::createResources() {
 		snapshotAlbedo_->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		snapshotAlbedo_->wrapping().push(GL_CLAMP_TO_EDGE);
 		snapshotAlbedo_->end(RenderState::get());
+		drawAttachments.push_back(GL_COLOR_ATTACHMENT0);
 
-		// create normal texture
-		auto normal = fbo->addTexture(1, GL_TEXTURE_2D_ARRAY,
-											   GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE);
-		normal->set_name("normal");
-		snapshotNormal_ = ref_ptr<Texture2DArray>::dynamicCast(normal);
-
-		// create depth texture
-		fbo->createDepthTexture(GL_TEXTURE_2D_ARRAY, GL_DEPTH_COMPONENT24, GL_UNSIGNED_INT);
-		snapshotDepth_ = ref_ptr<Texture2DArrayDepth>::dynamicCast(fbo->depthTexture());
+		if (useNormalCorrection_) {
+			// create normal texture
+			auto normal = fbo->addTexture(1, GL_TEXTURE_2D_ARRAY,
+												   GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE);
+			normal->set_name("normal");
+			snapshotNormal_ = ref_ptr<Texture2DArray>::dynamicCast(normal);
+			drawAttachments.push_back(GL_COLOR_ATTACHMENT0 + drawAttachments.size());
+		}
 
 		// create the FBO state
 		snapshotFBO_ = ref_ptr<FBOState>::alloc(fbo);
-		const std::vector<GLenum> drawAttachments = {
-				GL_COLOR_ATTACHMENT0,
-				GL_COLOR_ATTACHMENT1};
 		// render to albedo + normal
 		snapshotFBO_->setDrawBuffers(drawAttachments);
 		snapshotFBO_->setClearDepth();
@@ -218,18 +216,22 @@ void ImpostorBillboard::createResources() {
 		albedo->set_blendMode(BLEND_MODE_MULTIPLY);
 		joinStates(albedo);
 
-		auto normal = ref_ptr<TextureState>::alloc(snapshotNormal_, "impostorNormal");
-		normal->set_mapping(TextureState::MAPPING_TEXCO);
-		normal->set_mapTo(TextureState::MAP_TO_NORMAL);
-		// note: we store normal in eye space, so we need to use special transfer function
-		normal->set_texelTransfer(TextureState::TEXEL_TRANSFER_EYE_NORMAL);
-		normal->set_blendMode(BLEND_MODE_SRC);
-		joinStates(normal);
+		if (useNormalCorrection_) {
+			auto normal = ref_ptr<TextureState>::alloc(snapshotNormal_, "impostorNormal");
+			normal->set_mapping(TextureState::MAPPING_TEXCO);
+			normal->set_mapTo(TextureState::MAP_TO_NORMAL);
+			// note: we store normal in eye space, so we need to use special transfer function
+			normal->set_texelTransfer(TextureState::TEXEL_TRANSFER_EYE_NORMAL);
+			normal->set_blendMode(BLEND_MODE_SRC);
+			joinStates(normal);
+		}
 
-		//auto depth = ref_ptr<TextureState>::alloc(snapshotDepth_, "impostorDepth");
-		//depth->set_mapping(TextureState::MAPPING_CUSTOM);
-		//depth->set_mapTo(TextureState::MAP_TO_CUSTOM);
-		//joinStates(depth);
+		if (useDepthCorrection_) {
+			//auto depth = ref_ptr<TextureState>::alloc(snapshotDepth_, "impostorDepth");
+			//depth->set_mapping(TextureState::MAPPING_CUSTOM);
+			//depth->set_mapTo(TextureState::MAP_TO_CUSTOM);
+			//joinStates(depth);
+		}
 	}
 }
 
@@ -407,6 +409,12 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 	}
 	if (input.hasAttribute("bottom-view")) {
 		impostor->hasBottomView_ = input.getValue<bool>("bottom-view", false);
+	}
+	if (input.hasAttribute("normal-correction")) {
+		impostor->useNormalCorrection_ = input.getValue<bool>("normal-correction", true);
+	}
+	if (input.hasAttribute("depth-correction")) {
+		impostor->useDepthCorrection_ = input.getValue<bool>("depth-correction", false);
 	}
 	if (input.hasAttribute("snapshot-shader")) {
 		impostor->snapshotShaderKey_ = input.getValue<std::string>("snapshot-shader", "regen.models.impostor.update");

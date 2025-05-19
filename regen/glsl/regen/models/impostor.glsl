@@ -171,11 +171,18 @@ void emitLayer(int layer, float scale) {
     // for the case where the mesh is not centered at the origin.
     centerEye.xyz += in_modelOrigin * scale;
 #ifndef DEPTH_CORRECT
+    #if OUTPUT_TYPE == DEPTH
+    // FIXME: there can be artifacts when attempting to use impostor billboards for shadow mapping.
+    //        there could be some strategies to mitigate this.
+    // NOTE: depth correction can fix it, but might kill early z-culling.
+    centerEye.z -= 0.5 * in_depthOffset * (depthRange.y - depthRange.x) * scale;
+    #else
     // Pull the mesh closer to the camera to avoid z-fighting issues when it is placed in
     // the center of the original mesh.
     // e.g. in case of a tree, there is also a trunk in the center of the mesh and we might want
     // to pull the impostor closer to the camera (i.e. using in_depthOffset=0.5)
     centerEye.z += in_depthOffset * (depthRange.y - depthRange.x) * scale;
+    #endif
 #endif
 
     // build a coordinate system for the quad

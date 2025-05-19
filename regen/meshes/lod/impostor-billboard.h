@@ -87,6 +87,18 @@ namespace regen {
 		void setUseAlbedoMips(bool mips) { useAlbedoMips_ = mips; }
 
 		/**
+		 * Sets whether the snapshot pass should use normal correction.
+		 * @param normalCorrection true if normal correction should be used
+		 */
+		void setUseNormalCorrection(bool normalCorrection) { useNormalCorrection_ = normalCorrection; }
+
+		/**
+		 * Sets whether the snapshot pass should use depth correction.
+		 * @param depthCorrection true if depth correction should be used
+		 */
+		void setUseDepthCorrection(bool depthCorrection) { useDepthCorrection_ = depthCorrection; }
+
+		/**
 		 * Sets the size of the snapshot texture, default is 256x256.
 		 * The size is the same for all snapshots.
 		 * @param width the width of the snapshot texture
@@ -177,6 +189,8 @@ namespace regen {
 		ref_ptr<ArrayCamera> snapshotCamera_;
 		bool hasInitializedResources_ = false;
 		bool hasAttributes_ = false;
+		bool useNormalCorrection_ = true;
+		bool useDepthCorrection_ = false;
 		std::string snapshotShaderKey_ = "regen.models.impostor.update";
 
 		// container for billboard uniforms

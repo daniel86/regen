@@ -372,6 +372,8 @@
 
     <mesh id="twig-impostor" type="impostor-billboard"
             depth-offset="0.5"
+            normal-correction="1"
+            depth-correction="0"
             hemispherical="0"
             top-view="0"
             bottom-view="0"
@@ -402,7 +404,7 @@
                     <base-state>
                         <define key="HAS_GS_TRANSFORM" value="TRUE"/>
                     </base-state>
-                    <lod-mesh id="twig-impostor" shader="regen.models.impostor" />
+                    <lod-mesh id="twig-impostor" mesh-index="0" shader="regen.models.impostor" />
                 </mesh>
             </node>
             <!--
