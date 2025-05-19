@@ -94,6 +94,7 @@ Camera::Camera(unsigned int numLayer)
 	// TODO: in case of layered rendering, e.g. for shadow mapping, some attributes
 	//       may turn into arrays, e.g. the scalars near and far currently have alignment issue!
 	//       they would be padded to 16 bytes which should be avoided!
+	// TODO: I think we really need t use buffer container here!
 	cameraBlock_ = ref_ptr<UBO>::alloc("Camera");
 	cameraBlock_->addBlockInput(view_);
 	cameraBlock_->addBlockInput(viewInv_);
