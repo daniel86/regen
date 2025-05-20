@@ -343,16 +343,14 @@ void main() {}
 #endif
 #if OUTPUT_TYPE == BLACK
 ///// Output plain black
-out vec4 out_color;
 void main() {
-  out_color = vec4(0.0,0.0,0.0,1.0);
+    out_color = vec4(0.0,0.0,0.0,1.0);
 }
 #endif
 #if OUTPUT_TYPE == WHITE
 ///// Output plain white
-out vec4 out_color;
 void main() {
-  out_color = vec4(1.0);
+    out_color = vec4(1.0);
 }
 #endif
 #if OUTPUT_TYPE == DEFERRED
@@ -372,14 +370,11 @@ void main() {
 #endif
 
 -- fs-moments
-out vec4 out_color;
-
 #if RENDER_TARGET != 2D_ARRAY
 #include regen.states.camera.linearizeDepth
 #endif
 
-void main()
-{
+void main() {
     float depth = gl_FragDepth;
 #if RENDER_TARGET == 2D_ARRAY
     // no need to linearize for ortho projection
@@ -567,16 +562,18 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 #include regen.states.camera.transformWorldToEye
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
+    #ifdef HAS_ATTACHMENT_normal
     // TODO: only normalize when not using FLOAT textures!
     // map to [0,1] for rgba buffer
-#ifdef USE_EYESPACE_NORMAL
+        #ifdef USE_EYESPACE_NORMAL
     // TODO: rather transform in VS/GS
     vec3 norEye = transformWorldToEye(vec4(norWorld,0),in_layer).xyz;
     out_normal.xyz = normalize(norEye)*0.5 + vec3(0.5);
-#else
+        #else
     out_normal.xyz = normalize(norWorld)*0.5 + vec3(0.5);
-#endif
+        #endif
     out_normal.w = 1.0;
+    #endif
 
     Material mat;
     mat.occlusion = 0.0;

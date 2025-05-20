@@ -128,14 +128,17 @@ void StateConfigurer::addState(const State *s) {
 			// add texture to the list
 			auto texIdx = cfg_.textures_.size();
 			auto it = cfg_.textures_.insert({ x2->name(), { x2->texture(), texIdx } });
-			define("NUM_TEXTURES", REGEN_STRING(cfg_.textures_.size()));
 			needle = it.first;
 		}
-		auto texIdx = needle->second.second;
+		auto texIdx = textureStates_.size();
 		define(REGEN_STRING("TEX_ID" << texIdx), REGEN_STRING(x2->stateID()));
 		define(REGEN_STRING("TEX_ID_" << x2->name()), REGEN_STRING(x2->stateID()));
 		needle->second.first = x2->texture();
 		addInput(x2->name(), x2->texture(), x2->samplerType());
+		// note: NUM_TEXTURES is rather "num texture states", i.e. one texture can be used
+		//         in multiple states with different mapping etc.
+		textureStates_.insert(x2);
+		define("NUM_TEXTURES", REGEN_STRING(textureStates_.size()));
 	}
 
 	setVersion(s->shaderVersion());

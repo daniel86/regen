@@ -90,6 +90,7 @@ namespace regen {
 	protected:
 		StateConfig cfg_;
 		std::map<std::string, ShaderInputList::iterator> inputNames_;
+		std::set<const TextureState*> textureStates_;
 		GLuint numLights_;
 	};
 } // namespace
