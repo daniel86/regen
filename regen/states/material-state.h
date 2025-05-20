@@ -47,6 +47,9 @@ namespace regen {
 		 * @return The texture file for the given map type.
 		 */
 		std::vector<std::string> getMaps(TextureState::MapTo mapMode) const { return textureFiles.at(mapMode); }
+
+	protected:
+		void addTexture(const boost::filesystem::path &path);
 	};
 
 	/**

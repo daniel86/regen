@@ -183,33 +183,45 @@ MaterialDescription::MaterialDescription(std::string_view materialName, std::str
 		basePath0 = resourcePath(basePath0);
 	}
 	if (!boost::filesystem::exists(basePath0)) {
-		REGEN_WARN("Material '" << materialName << "' variant '" << variant << "' not found.");
 		return;
 	}
+
+	bool hasTextures = false;
 	for (auto &entry: boost::filesystem::directory_iterator(basePath0)) {
-		auto &filePath = entry.path().string();
-		auto fileName = entry.path().filename().string();
-		TextureState::MapTo mapTo = TextureState::MAP_TO_CUSTOM;
-		if (!getMapTo(fileName, mapTo)) {
-			continue;
+		auto &path = entry.path();
+		if (entry.is_directory()) {
+			if (variant.empty() && !hasTextures) {
+				// look for textures in the subdirectory
+				for (auto &subEntry: boost::filesystem::directory_iterator(path)) {
+					if (subEntry.is_regular_file()) {
+						addTexture(subEntry.path());
+						hasTextures = true;
+					}
+				}
+				if (hasTextures) {
+					break;
+				}
+			}
+		} else {
+			addTexture(entry.path());
+			hasTextures = true;
 		}
-		textureFiles[mapTo].push_back(filePath);
 	}
+}
+
+void MaterialDescription::addTexture(const boost::filesystem::path &path) {
+	auto fileName = path.filename().string();
+	TextureState::MapTo mapTo = TextureState::MAP_TO_CUSTOM;
+	if (!getMapTo(fileName, mapTo)) {
+		REGEN_WARN("Texture '" << fileName << "' does not match any known map type.");
+		return;
+	}
+	textureFiles[mapTo].push_back(path.string());
 }
 
 bool Material::set_textures(std::string_view materialName, std::string_view variant) {
 	// find the base path with the textures
 	MaterialDescription materialDescr(materialName, variant);
-
-	auto basePath0 = REGEN_STRING("res/textures/materials/" << materialName << "/" << variant);
-	basePath0 = resourcePath(basePath0);
-	if (!boost::filesystem::exists(basePath0)) {
-		basePath0 = REGEN_STRING("res/textures/" << materialName << "/" << variant);
-		basePath0 = resourcePath(basePath0);
-	}
-	if (!boost::filesystem::exists(basePath0)) {
-		return false;
-	}
 
 	// iterate over the texture files in the directory
 	for (auto &entry: materialDescr.textureFiles) {
@@ -221,15 +233,19 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 					forcedFormat_,
 					forcedSize_);
 			if (tex.get() != nullptr) {
-				auto texName = REGEN_STRING("materialTexture" << textures_.size());
+				// extract file name without extension
+				auto fileName = boost::filesystem::path(filePath).stem().string();
+				auto texName = REGEN_STRING("tex_" << materialName << "_" << fileName << textures_.size());
 				auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 				textures_[entry.first].push_back(texState);
 
 				if (wrapping_.has_value()) {
 					tex->begin(RenderState::get(), 0);
-					tex->wrapping().push(GL_CLAMP_TO_EDGE);
+					tex->wrapping().push(wrapping_.value());
 					tex->end(RenderState::get());
 				}
+			} else {
+				REGEN_WARN("Failed to load texture '" << filePath << "'.");
 			}
 		}
 	}
@@ -243,7 +259,7 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 }
 
 ref_ptr<TextureState> Material::set_texture(const ref_ptr<Texture> &tex,
-		TextureState::MapTo mapTo, const std::string &texName) {
+											TextureState::MapTo mapTo, const std::string &texName) {
 	auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 	textures_[mapTo].push_back(texState);
 	if (wrapping_.has_value()) {
@@ -265,7 +281,7 @@ void Material::set_iron(std::string_view variant) {
 	materialAmbient_->setUniformData(Vec3f(0.19, 0.19, 0.19));
 	materialSpecular_->setUniformData(Vec3f(0.11, 0.11, 0.11));
 	materialShininess_->setUniformData(9.8);
-	if(!variant.empty()) set_textures("iron", variant);
+	if (!variant.empty()) set_textures("iron", variant);
 }
 
 void Material::set_steel(std::string_view variant) {
@@ -273,7 +289,7 @@ void Material::set_steel(std::string_view variant) {
 	materialAmbient_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialSpecular_->setUniformData(Vec3f(0.21, 0.21, 0.21));
 	materialShininess_->setUniformData(21.2);
-	if(!variant.empty()) set_textures("steel", variant);
+	if (!variant.empty()) set_textures("steel", variant);
 }
 
 void Material::set_silver(std::string_view variant) {
@@ -281,7 +297,7 @@ void Material::set_silver(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.51, 0.51, 0.51));
 	materialSpecular_->setUniformData(Vec3f(0.51, 0.51, 0.51));
 	materialShininess_->setUniformData(51.2);
-	if(!variant.empty()) set_textures("silver", variant);
+	if (!variant.empty()) set_textures("silver", variant);
 }
 
 void Material::set_pewter(std::string_view variant) {
@@ -289,7 +305,7 @@ void Material::set_pewter(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.43, 0.47, 0.54));
 	materialSpecular_->setUniformData(Vec3f(0.33, 0.33, 0.52));
 	materialShininess_->setUniformData(9.8);
-	if(!variant.empty()) set_textures("silver", variant);
+	if (!variant.empty()) set_textures("silver", variant);
 }
 
 void Material::set_gold(std::string_view variant) {
@@ -297,7 +313,7 @@ void Material::set_gold(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.75, 0.61, 0.23));
 	materialSpecular_->setUniformData(Vec3f(0.63, 0.65, 0.37));
 	materialShininess_->setUniformData(51.2);
-	if(!variant.empty()) set_textures("gold", variant);
+	if (!variant.empty()) set_textures("gold", variant);
 }
 
 void Material::set_copper(std::string_view variant) {
@@ -305,7 +321,7 @@ void Material::set_copper(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.70, 0.27, 0.08));
 	materialSpecular_->setUniformData(Vec3f(0.26, 0.14, 0.09));
 	materialShininess_->setUniformData(12.8);
-	if(!variant.empty()) set_textures("copper", variant);
+	if (!variant.empty()) set_textures("copper", variant);
 }
 
 void Material::set_metal(std::string_view variant) {
@@ -313,7 +329,7 @@ void Material::set_metal(std::string_view variant) {
 	materialAmbient_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialSpecular_->setUniformData(Vec3f(0.21, 0.21, 0.21));
 	materialShininess_->setUniformData(21.2);
-	if(!variant.empty()) set_textures("metal", variant);
+	if (!variant.empty()) set_textures("metal", variant);
 }
 
 void Material::set_leather(std::string_view variant) {
@@ -321,7 +337,7 @@ void Material::set_leather(std::string_view variant) {
 	materialAmbient_->setUniformData(Vec3f(0.1647, 0.1216, 0.0745));
 	materialSpecular_->setUniformData(Vec3f(0.21, 0.21, 0.21));
 	materialShininess_->setUniformData(21.2);
-	if(!variant.empty()) set_textures("leather", variant);
+	if (!variant.empty()) set_textures("leather", variant);
 }
 
 void Material::set_stone(std::string_view variant) {
@@ -329,7 +345,7 @@ void Material::set_stone(std::string_view variant) {
 	materialAmbient_->setUniformData(Vec3f(0.0647, 0.0647, 0.0647));
 	materialSpecular_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialShininess_->setUniformData(52.2);
-	if(!variant.empty()) set_textures("stone", variant);
+	if (!variant.empty()) set_textures("stone", variant);
 }
 
 void Material::set_marble(std::string_view variant) {
@@ -337,7 +353,7 @@ void Material::set_marble(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.8f, 0.8f, 0.8f));
 	materialSpecular_->setUniformData(Vec3f(0.9f, 0.9f, 0.9f));
 	materialShininess_->setUniformData(80.0f);
-	if(!variant.empty()) set_textures("marble", variant);
+	if (!variant.empty()) set_textures("marble", variant);
 }
 
 void Material::set_wood(std::string_view variant) {
@@ -345,7 +361,7 @@ void Material::set_wood(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.6f, 0.3f, 0.1f));  // Brown diffuse color
 	materialSpecular_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
 	materialShininess_->setUniformData(25.0f);
-	if(!variant.empty()) set_textures("wood", variant);
+	if (!variant.empty()) set_textures("wood", variant);
 }
 
 void Material::set_jade(std::string_view variant) {
@@ -353,7 +369,7 @@ void Material::set_jade(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.54, 0.89, 0.63));
 	materialSpecular_->setUniformData(Vec3f(0.32, 0.32, 0.32));
 	materialShininess_->setUniformData(12.8);
-	if(!variant.empty()) set_textures("jade", variant);
+	if (!variant.empty()) set_textures("jade", variant);
 }
 
 void Material::set_ruby(std::string_view variant) {
@@ -361,7 +377,7 @@ void Material::set_ruby(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.61, 0.04, 0.04));
 	materialSpecular_->setUniformData(Vec3f(0.73, 0.63, 0.63));
 	materialShininess_->setUniformData(76.8);
-	if(!variant.empty()) set_textures("ruby", variant);
+	if (!variant.empty()) set_textures("ruby", variant);
 }
 
 void Material::set_chrome(std::string_view variant) {
@@ -369,7 +385,7 @@ void Material::set_chrome(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.40, 0.40, 0.40));
 	materialSpecular_->setUniformData(Vec3f(0.77, 0.77, 0.77));
 	materialShininess_->setUniformData(76.8);
-	if(!variant.empty()) set_textures("chrome", variant);
+	if (!variant.empty()) set_textures("chrome", variant);
 }
 
 namespace regen {
