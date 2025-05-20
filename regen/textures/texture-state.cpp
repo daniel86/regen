@@ -131,15 +131,15 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const TextureState::TransferTexco &mode) {
 		switch (mode) {
 			case TextureState::TRANSFER_TEXCO_PARALLAX:
-				return out << "PARALLAX";
+				return out << "parallax";
 			case TextureState::TRANSFER_TEXCO_PARALLAX_OCC:
-				return out << "PARALLAX_OCC";
+				return out << "parallax_occlusion";
 			case TextureState::TRANSFER_TEXCO_RELIEF:
-				return out << "RELIEF";
+				return out << "relief";
 			case TextureState::TRANSFER_TEXCO_FISHEYE:
-				return out << "FISHEYE";
+				return out << "fisheye";
 			case TextureState::TRANSFER_TEXCO_NOISE:
-				return out << "NOISE";
+				return out << "noise";
 		}
 		return out;
 	}
@@ -147,12 +147,12 @@ namespace regen {
 	std::istream &operator>>(std::istream &in, TextureState::TransferTexco &mode) {
 		std::string val;
 		in >> val;
-		boost::to_upper(val);
-		if (val == "PARALLAX") mode = TextureState::TRANSFER_TEXCO_PARALLAX;
-		else if (val == "PARALLAX_OCC") mode = TextureState::TRANSFER_TEXCO_PARALLAX_OCC;
-		else if (val == "RELIEF") mode = TextureState::TRANSFER_TEXCO_RELIEF;
-		else if (val == "FISHEYE") mode = TextureState::TRANSFER_TEXCO_FISHEYE;
-		else if (val == "NOISE") mode = TextureState::TRANSFER_TEXCO_NOISE;
+		boost::to_lower(val);
+		if (val == "parallax") mode = TextureState::TRANSFER_TEXCO_PARALLAX;
+		else if (val == "parallax_occlusion") mode = TextureState::TRANSFER_TEXCO_PARALLAX_OCC;
+		else if (val == "relief") mode = TextureState::TRANSFER_TEXCO_RELIEF;
+		else if (val == "fisheye") mode = TextureState::TRANSFER_TEXCO_FISHEYE;
+		else if (val == "noise") mode = TextureState::TRANSFER_TEXCO_NOISE;
 		else {
 			REGEN_WARN("Unknown Texture Texco-Transfer '" << val <<
 														  "'. Using default PARALLAX Texco-Transfer.");
@@ -164,25 +164,25 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const TextureState::TexelTransfer &mode) {
 		switch (mode) {
 			case TextureState::TEXEL_TRANSFER_TANGENT_NORMAL:
-				return out << "texel_norTan";
+				return out << "norTan";
 			case TextureState::TEXEL_TRANSFER_EYE_NORMAL:
-				return out << "texel_norEye";
+				return out << "norEye";
 			case TextureState::TEXEL_TRANSFER_INVERT:
-				return out << "texel_invert";
+				return out << "invert";
 			case TextureState::TEXEL_TRANSFER_IDENTITY:
-				return out << "texel_identity";
+				return out << "identity";
 			case TextureState::TEXEL_TRANSFER_GAMMA:
-				return out << "texel_gamma";
+				return out << "gamma";
 			case TextureState::TEXEL_TRANSFER_GRAYSCALE:
-				return out << "texel_grayscale";
+				return out << "grayscale";
 			case TextureState::TEXEL_TRANSFER_BRIGHTNESS:
-				return out << "texel_brightness";
+				return out << "brightness";
 			case TextureState::TEXEL_TRANSFER_CONTRAST:
-				return out << "texel_contrast";
+				return out << "contrast";
 			case TextureState::TEXEL_TRANSFER_SATURATION:
-				return out << "texel_saturation";
+				return out << "saturation";
 			case TextureState::TEXEL_TRANSFER_HUE:
-				return out << "texel_hue";
+				return out << "hue";
 		}
 		return out;
 	}
@@ -191,16 +191,16 @@ namespace regen {
 		std::string val;
 		in >> val;
 		boost::to_lower(val);
-		if (val == "texel_norTan") mode = TextureState::TEXEL_TRANSFER_TANGENT_NORMAL;
-		else if (val == "texel_norEye") mode = TextureState::TEXEL_TRANSFER_EYE_NORMAL;
-		else if (val == "texel_invert") mode = TextureState::TEXEL_TRANSFER_INVERT;
-		else if (val == "texel_identity") mode = TextureState::TEXEL_TRANSFER_IDENTITY;
-		else if (val == "texel_gamma") mode = TextureState::TEXEL_TRANSFER_GAMMA;
-		else if (val == "texel_grayscale") mode = TextureState::TEXEL_TRANSFER_GRAYSCALE;
-		else if (val == "texel_brightness") mode = TextureState::TEXEL_TRANSFER_BRIGHTNESS;
-		else if (val == "texel_contrast") mode = TextureState::TEXEL_TRANSFER_CONTRAST;
-		else if (val == "texel_saturation") mode = TextureState::TEXEL_TRANSFER_SATURATION;
-		else if (val == "texel_hue") mode = TextureState::TEXEL_TRANSFER_HUE;
+		if (val == "norTan") mode = TextureState::TEXEL_TRANSFER_TANGENT_NORMAL;
+		else if (val == "norEye") mode = TextureState::TEXEL_TRANSFER_EYE_NORMAL;
+		else if (val == "invert") mode = TextureState::TEXEL_TRANSFER_INVERT;
+		else if (val == "identity") mode = TextureState::TEXEL_TRANSFER_IDENTITY;
+		else if (val == "gamma") mode = TextureState::TEXEL_TRANSFER_GAMMA;
+		else if (val == "grayscale") mode = TextureState::TEXEL_TRANSFER_GRAYSCALE;
+		else if (val == "brightness") mode = TextureState::TEXEL_TRANSFER_BRIGHTNESS;
+		else if (val == "contrast") mode = TextureState::TEXEL_TRANSFER_CONTRAST;
+		else if (val == "saturation") mode = TextureState::TEXEL_TRANSFER_SATURATION;
+		else if (val == "hue") mode = TextureState::TEXEL_TRANSFER_HUE;
 		else {
 			REGEN_WARN("Unknown Texel Transfer '" << val <<
 														  "'. Using default IDENTITY Texel-Transfer.");
@@ -346,7 +346,7 @@ void TextureState::set_texelTransfer(TextureState::TexelTransfer transfer) {
 	}
 	else {
 		set_texelTransfer(ShaderFunction::createImport(
-			REGEN_STRING("regen.states.textures.transfer." << transfer)));
+			REGEN_STRING("regen.states.textures.transfer.texel_" << transfer)));
 	}
 }
 
@@ -366,23 +366,8 @@ void TextureState::set_texelTransfer(const ref_ptr<ShaderFunction> &function) {
 ///////
 
 void TextureState::set_texcoTransfer(TransferTexco mode) {
-	switch (mode) {
-		case TRANSFER_TEXCO_NOISE:
-			set_texcoTransfer(ShaderFunction::createImport("regen.states.textures.noiseTransfer"));
-			break;
-		case TRANSFER_TEXCO_FISHEYE:
-			set_texcoTransfer(ShaderFunction::createImport("regen.states.textures.fisheyeTransfer"));
-			break;
-		case TRANSFER_TEXCO_PARALLAX:
-			set_texcoTransfer(ShaderFunction::createImport("regen.states.textures.parallaxTransfer"));
-			break;
-		case TRANSFER_TEXCO_PARALLAX_OCC:
-			set_texcoTransfer(ShaderFunction::createImport("regen.states.textures.parallaxOcclusionTransfer"));
-			break;
-		case TRANSFER_TEXCO_RELIEF:
-			set_texcoTransfer(ShaderFunction::createImport("regen.states.textures.reliefTransfer"));
-			break;
-	}
+	set_texcoTransfer(ShaderFunction::createImport(
+		REGEN_STRING("regen.states.textures.transfer.texco_" << mode)));
 }
 
 void TextureState::set_texcoTransfer(const ref_ptr<ShaderFunction> &function) {
@@ -535,22 +520,26 @@ ref_ptr<TextureState> TextureState::load(LoadingContext &ctx, scene::SceneInputN
 	}
 
 	// texel transfer wraps sampled texels before returning them.
-	auto customTexelTransfer = ShaderFunction::load(input, "texel-transfer");
-	if (customTexelTransfer.get()) {
-		texState->set_texelTransfer(customTexelTransfer);
-	} else if (input.hasAttribute("texel-transfer")) {
+	if (input.hasAttribute("texel-transfer")) {
 		texState->set_texelTransfer(
 				input.getValue<TextureState::TexelTransfer>("texel-transfer",
 						TextureState::TEXEL_TRANSFER_IDENTITY));
+	} else {
+		auto customTexelTransfer = ShaderFunction::load(input, "texel-transfer");
+		if (customTexelTransfer.get()) {
+			texState->set_texelTransfer(customTexelTransfer);
+		}
 	}
 
 	// texel transfer wraps computed texture coordinates before returning them.
-	auto customTexcoTransfer = ShaderFunction::load(input, "texco-transfer");
-	if (customTexcoTransfer.get()) {
-		texState->set_texcoTransfer(customTexcoTransfer);
-	} else if (input.hasAttribute("texco-transfer")) {
+	if (input.hasAttribute("texco-transfer")) {
 		texState->set_texcoTransfer(input.getValue<TextureState::TransferTexco>(
 				"texco-transfer", TextureState::TRANSFER_TEXCO_RELIEF));
+	} else {
+		auto customTexcoTransfer = ShaderFunction::load(input, "texco-transfer");
+		if (customTexcoTransfer.get()) {
+			texState->set_texcoTransfer(customTexcoTransfer);
+		}
 	}
 
 	if (input.hasAttribute("texco-flipping")) {

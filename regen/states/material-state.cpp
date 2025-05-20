@@ -213,7 +213,6 @@ void MaterialDescription::addTexture(const boost::filesystem::path &path) {
 	auto fileName = path.filename().string();
 	TextureState::MapTo mapTo = TextureState::MAP_TO_CUSTOM;
 	if (!getMapTo(fileName, mapTo)) {
-		REGEN_WARN("Texture '" << fileName << "' does not match any known map type.");
 		return;
 	}
 	textureFiles[mapTo].push_back(path.string());
@@ -222,6 +221,11 @@ void MaterialDescription::addTexture(const boost::filesystem::path &path) {
 bool Material::set_textures(std::string_view materialName, std::string_view variant) {
 	// find the base path with the textures
 	MaterialDescription materialDescr(materialName, variant);
+
+	// remove any non-alphanumeric characters from material name
+	std::string materialNameStr(materialName);
+	materialNameStr.erase(std::remove_if(materialNameStr.begin(), materialNameStr.end(),
+			[](char c) { return !std::isalnum(c); }), materialNameStr.end());
 
 	// iterate over the texture files in the directory
 	for (auto &entry: materialDescr.textureFiles) {
@@ -235,7 +239,10 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 			if (tex.get() != nullptr) {
 				// extract file name without extension
 				auto fileName = boost::filesystem::path(filePath).stem().string();
-				auto texName = REGEN_STRING("tex_" << materialName << "_" << fileName << textures_.size());
+				// remove any non-alphanumeric characters
+				fileName.erase(std::remove_if(fileName.begin(), fileName.end(),
+						[](char c) { return !std::isalnum(c); }), fileName.end());
+				auto texName = REGEN_STRING("tex_" << materialNameStr << "_" << fileName << textures_.size());
 				auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 				textures_[entry.first].push_back(texState);
 

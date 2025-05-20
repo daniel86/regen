@@ -768,20 +768,20 @@ void texel_hue(inout vec4 texel)
 --------------------------------------
 --------------------------------------
 
--- noiseTransfer
+-- transfer.texco_noise
 #ifndef REGEN_NOISE_TRANSFER_
 #define2 REGEN_NOISE_TRANSFER_
 const float in_uvNoiseScale = 0.1;
 
 #include regen.noise.random2D.a
 
-void noiseTransfer(inout vec2 texco)
+void texco_noise(inout vec2 texco)
 {
     texco += in_uvNoiseScale * random2D(texco);
 }
 #endif
 
--- parallaxTransfer
+-- transfer.texco_parallax
 #ifndef REGEN_PARALLAX_TRANSFER_
 #define2 REGEN_PARALLAX_TRANSFER_
 const float in_parallaxScale = 0.1;
@@ -793,7 +793,7 @@ const float in_parallaxBias = 0.05;
 #endif
 #include regen.states.textures.sampleHeight
 
-void parallaxTransfer(inout vec2 texco)
+void texco_parallax(inout vec2 texco)
 {
     vec3 offset = eyeVectorTan();
     // parallax mapping with offset limiting
@@ -808,7 +808,7 @@ void parallaxTransfer(inout vec2 texco)
 }
 #endif
 
--- parallaxOcclusionTransfer
+-- transfer.texco_parallax_occlusion
 #ifndef REGEN_PARALLAX_OCCLUSION_TRANSFER_
 #define2 REGEN_PARALLAX_OCCLUSION_TRANSFER_
 const float in_parallaxScale = 0.1;
@@ -820,7 +820,7 @@ const int in_parallaxSteps = 50;
 #endif
 #include regen.states.textures.sampleHeight
 
-void parallaxOcclusionTransfer(inout vec2 texco)
+void texco_parallax_occlusion(inout vec2 texco)
 {
     vec3 offset = eyeVectorTan();
     // step in height each frame
@@ -849,7 +849,7 @@ void parallaxOcclusionTransfer(inout vec2 texco)
 }
 #endif
 
--- reliefTransfer
+-- transfer.texco_relief
 #ifndef REGEN_RELIEF_TRANSFER_
 #define2 REGEN_RELIEF_TRANSFER_
 
@@ -863,7 +863,7 @@ const float in_reliefScale = 0.01;
 #endif
 #include regen.states.textures.sampleHeight
 
-void reliefTransfer(inout vec2 texco)
+void texco_relief(inout vec2 texco)
 {
     vec3 offset = eyeVectorTan();
     vec2 ds = -offset.xy*in_reliefScale/offset.z;
@@ -890,13 +890,13 @@ void reliefTransfer(inout vec2 texco)
 }
 #endif
 
--- fisheyeTransfer
+-- transfer.texco_fisheye
 #ifndef REGEN_TEXCOTRANSFER_FISHEYE_
 #define2 REGEN_TEXCOTRANSFER_FISHEYE_
 
 const float in_fishEyeTheta=0.5;
 
-void fisheyeTransfer(inout vec2 texco)
+void texco_fisheye(inout vec2 texco)
 {
     vec2 uv = texco - vec2(0.5);
     float z = sqrt(1.0 - uv.x*uv.x - uv.y*uv.y);
@@ -906,7 +906,7 @@ void fisheyeTransfer(inout vec2 texco)
 }
 #endif
 
--- wavingTransfer
+-- transfer.texco_waving
 #ifndef REGEN_TEXCOTRANSFER_WAVING_
 #define2 REGEN_TEXCOTRANSFER_WAVING_
 
