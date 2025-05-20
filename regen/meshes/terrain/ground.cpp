@@ -60,8 +60,8 @@ void Ground::setMapTextures(
 	normalMap_ = normalMap;
 	auto heightMapState = groundMaterial_->set_texture(
 			heightMap_, TextureState::MAP_TO_HEIGHT, "heightMap");
-	heightMapState->set_mappingFunction("regen.terrain.ground.groundUV", "groundUV");
-	heightMapState->set_blendFunction("regen.terrain.ground.groundHeightBlend", "groundHeightBlend");
+	heightMapState->set_mapping(ShaderFunction::createImport("regen.terrain.ground.groundUV"));
+	heightMapState->set_blendMode(ShaderFunction::createImport("regen.terrain.ground.groundHeightBlend"));
 	groundMaterial_->set_texture(
 			normalMap_, TextureState::MAP_TO_CUSTOM, "normalMap");
 	// TODO: consider using: glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -bias) to force sharper detail
