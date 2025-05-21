@@ -166,6 +166,7 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 	auto p = resourcePath(assetPath);
 	// Read values from UI spinner
 	bool simplify = ui_.simplifyCheckBox->isChecked();
+	bool useBillboard = ui_.impostorCheck->isChecked();
 	// Apply transform to model on import
 	Mat4f transform = Mat4f::identity();
 	asset_ = ref_ptr<AssetImporter>::alloc(p);
