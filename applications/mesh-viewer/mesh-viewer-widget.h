@@ -66,10 +66,11 @@ protected:
 
 	ref_ptr<StateNode> sceneRoot_;
 	ref_ptr<StateNode> meshRoot_;
+	ref_ptr<StateNode> lodMeshRoot_;
 	ref_ptr<Camera> userCamera_;
 	ref_ptr<Light> sceneLight_[3];
 	ref_ptr<CameraController> cameraController_;
-	ref_ptr<State> wireframeState_;
+	ref_ptr<FillModeState> wireframeState_;
 	std::vector<ref_ptr<StateNode>> meshNodes_;
 
 	QDialog *inputDialog_ = nullptr;
@@ -92,6 +93,8 @@ protected:
 	void loadResources_GL();
 
 	void loadMeshes_GL(const std::string &assetPath);
+
+	void billboardMeshes_GL();
 
 	void loadAnimation(const ref_ptr<Mesh> &mesh, uint32_t index);
 

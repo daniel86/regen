@@ -519,7 +519,7 @@
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-160</y>
+                   <y>0</y>
                    <width>583</width>
                    <height>882</height>
                   </rect>
@@ -877,6 +877,40 @@
                        </property>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QPushButton" name="animateCarret">
+                       <property name="minimumSize">
+                        <size>
+                         <width>48</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>48</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="font">
+                        <font>
+                         <family>FontAwesome</family>
+                         <pointsize>7</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string></string>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -1022,6 +1056,53 @@
                         <string>simplify</string>
                        </property>
                        <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="simplifyCarret">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>48</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>48</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="font">
+                        <font>
+                         <family>FontAwesome</family>
+                         <pointsize>7</pointsize>
+                         <weight>50</weight>
+                         <italic>false</italic>
+                         <bold>false</bold>
+                         <underline>false</underline>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string></string>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                       <property name="default">
+                        <bool>false</bool>
+                       </property>
+                       <property name="flat">
                         <bool>true</bool>
                        </property>
                       </widget>
@@ -1864,18 +1945,70 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QCheckBox" name="impostorCheck">
-                    <property name="font">
-                     <font>
-                      <family>FontAwesome</family>
-                      <pointsize>8</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>impostor-billboard</string>
-                    </property>
+                   <widget class="QWidget" name="widget_25" native="true">
+                    <layout class="QHBoxLayout" name="horizontalLayout_32">
+                     <property name="leftMargin">
+                      <number>4</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QCheckBox" name="impostorCheck">
+                       <property name="font">
+                        <font>
+                         <family>FontAwesome</family>
+                         <pointsize>8</pointsize>
+                         <weight>75</weight>
+                         <bold>true</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>impostor-billboard</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="impostorCarret">
+                       <property name="minimumSize">
+                        <size>
+                         <width>48</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>48</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="font">
+                        <font>
+                         <family>FontAwesome</family>
+                         <pointsize>7</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string></string>
+                       </property>
+                       <property name="checkable">
+                        <bool>true</bool>
+                       </property>
+                       <property name="checked">
+                        <bool>true</bool>
+                       </property>
+                       <property name="flat">
+                        <bool>true</bool>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                   <item>
@@ -2837,7 +2970,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>619</x>
-     <y>760</y>
+     <y>906</y>
     </hint>
     <hint type="destinationlabel">
      <x>492</x>
@@ -2853,7 +2986,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>624</x>
-     <y>-52</y>
+     <y>85</y>
     </hint>
     <hint type="destinationlabel">
      <x>532</x>
@@ -2884,8 +3017,8 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>362</x>
-     <y>188</y>
+     <x>420</x>
+     <y>327</y>
     </hint>
     <hint type="destinationlabel">
      <x>550</x>
@@ -2996,12 +3129,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>235</x>
-     <y>110</y>
+     <x>293</x>
+     <y>249</y>
     </hint>
     <hint type="destinationlabel">
-     <x>297</x>
-     <y>151</y>
+     <x>351</x>
+     <y>277</y>
     </hint>
    </hints>
   </connection>
@@ -3012,12 +3145,60 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>130</x>
-     <y>466</y>
+     <x>184</x>
+     <y>618</y>
     </hint>
     <hint type="destinationlabel">
-     <x>122</x>
-     <y>486</y>
+     <x>176</x>
+     <y>646</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>simplifyCarret</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>simplifyContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>605</x>
+     <y>338</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>607</x>
+     <y>357</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>impostorCarret</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>impostorContainer</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>591</x>
+     <y>632</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>577</x>
+     <y>647</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>animateCarret</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widget_13</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>583</x>
+     <y>255</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>571</x>
+     <y>277</y>
     </hint>
    </hints>
   </connection>

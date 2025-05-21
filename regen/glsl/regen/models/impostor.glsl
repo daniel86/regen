@@ -150,13 +150,21 @@ void emitVertex(vec4 posEye, vec3 texco, int layer) {
 
 void emitLayer(int layer, float scale) {
     vec4 centerWorld = gl_in[0].gl_Position;
+    // Translate the center of the quad to the center of the original mesh,
+    // for the case where the mesh is not centered at the origin.
+#ifdef HAS_modelMatrix
+    centerWorld.xyz += mat3(in_modelMatrix) * in_modelOrigin;
+#else
+    centerWorld.xyz += in_modelOrigin;
+#endif
     vec4 centerEye = transformWorldToEye(centerWorld, layer);
+
     // Find the best impostor view index based on the view direction.
 #ifdef HAS_modelMatrix
-    vec3 viewDirWorld = normalize(centerWorld.xyz - REGEN_CAM_POS_(0));
+    vec3 viewDirWorld = normalize(REGEN_CAM_POS_(0) - centerWorld.xyz);
     vec3 viewDirLocal = transpose(mat3(in_modelMatrix)) * viewDirWorld;
 #else
-    vec3 viewDirLocal = normalize(centerWorld.xyz - REGEN_CAM_POS_(0));
+    vec3 viewDirLocal = normalize(REGEN_CAM_POS_(0) - centerWorld.xyz);
     vec3 viewDirWorld = viewDirLocal;
 #endif
     uint viewIdx = selectViewIdx(viewDirLocal);
@@ -167,9 +175,6 @@ void emitLayer(int layer, float scale) {
 #endif
     // Compute size of the quad in world space, based on the ortho bounds of the selected view.
     vec2 spriteSize = vec2(orthoBounds.y - orthoBounds.x, orthoBounds.w - orthoBounds.z) * scale;
-    // Translate the center of the quad to the center of the original mesh,
-    // for the case where the mesh is not centered at the origin.
-    centerEye.xyz += in_modelOrigin * scale;
 #ifndef DEPTH_CORRECT
     #if OUTPUT_TYPE == DEPTH
     // FIXME: there can be artifacts when attempting to use impostor billboards for shadow mapping.

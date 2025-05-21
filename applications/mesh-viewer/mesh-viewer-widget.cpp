@@ -15,6 +15,7 @@
 #include <regen/utility/filesystem.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/meshes/lod/mesh-simplifier.h>
+#include <regen/meshes/lod/impostor-billboard.h>
 #include <regen/states/direct-shading.h>
 #include <applications/qt/qt-camera-events.h>
 #include <applications/qt/ColorWidget.h>
@@ -78,6 +79,12 @@ MeshViewerWidget::MeshViewerWidget(QtApplication *app)
 	controlsShown_ = true;
 	sceneRoot_ = ref_ptr<StateNode>::alloc();
 	meshRoot_ = ref_ptr<StateNode>::alloc();
+	lodMeshRoot_ = ref_ptr<StateNode>::alloc();
+	sceneRoot_->set_name("sceneRoot");
+	meshRoot_->set_name("meshRoot");
+	lodMeshRoot_->set_name("lodMeshRoot");
+	sceneRoot_->addChild(meshRoot_);
+	sceneRoot_->addChild(lodMeshRoot_);
 
 	ui_.setupUi(this);
 	ui_.loadMeshButton->setEnabled(false);
@@ -95,6 +102,12 @@ MeshViewerWidget::MeshViewerWidget(QtApplication *app)
 			std::make_pair(ui_.optimizeGraphCheck, "optimizeGraphCheck"),
 			std::make_pair(ui_.animateCheck, "animateCheck"),
 			std::make_pair(ui_.strictBoundaryCheck, "strictBoundaryCheck"),
+			std::make_pair(ui_.impostorCheck, "impostorCheck"),
+			std::make_pair(ui_.hemisphericalCheck, "hemisphericalCheck"),
+			std::make_pair(ui_.topViewCheck, "topViewCheck"),
+			std::make_pair(ui_.bottomViewCheck, "bottomViewCheck"),
+			std::make_pair(ui_.depthCorrectionCheck, "depthCorrectionCheck"),
+			std::make_pair(ui_.normalCorrectionCheck, "normalCorrectionCheck"),
 	}) {
 		check->setChecked(settings_.value(name, check->isChecked()).toBool());
 	}
@@ -107,8 +120,23 @@ MeshViewerWidget::MeshViewerWidget(QtApplication *app)
 			std::make_pair(ui_.norPenaltySpin, "norPenalty"),
 			std::make_pair(ui_.valencePenaltySpin, "valencePenalty"),
 			std::make_pair(ui_.areaPenaltySpin, "areaPenalty"),
+			std::make_pair(ui_.depthOffsetSpin, "depthOffset")
 	}) {
 		spin->setValue(settings_.value(name, spin->value()).toFloat());
+	}
+	for (auto [spin, name]: {
+			std::make_pair(ui_.longitudeSpin, "longitudeSteps"),
+			std::make_pair(ui_.latitudeSpin, "latitudeSteps"),
+			std::make_pair(ui_.impostorSizeSpin, "impostorSize")
+	}) {
+		spin->setValue(settings_.value(name, spin->value()).toFloat());
+	}
+	for (auto [button, name]: {
+			std::make_pair(ui_.animateCarret, "animateCaret"),
+			std::make_pair(ui_.simplifyCarret, "simplifyCaret"),
+			std::make_pair(ui_.impostorCarret, "impostorCaret"),
+	}) {
+		button->setChecked(settings_.value(name, button->isChecked()).toBool());
 	}
 	auto lastPath = settings_.value("lastPath", "").toString();
 	if (!lastPath.isEmpty()) {
@@ -147,6 +175,34 @@ void MeshViewerWidget::simplifyMesh_GL(const Vec4f &thresholds) {
 	}
 }
 
+void MeshViewerWidget::billboardMeshes_GL() {
+	for (auto &mesh: meshes_) {
+		auto billboard = ref_ptr<ImpostorBillboard>::alloc();
+		billboard->addMesh(mesh);
+		billboard->setLongitudeSteps(ui_.longitudeSpin->value());
+		billboard->setLatitudeSteps(ui_.latitudeSpin->value());
+		billboard->setHemispherical(ui_.hemisphericalCheck->isChecked());
+		billboard->setHasTopView(ui_.topViewCheck->isChecked());
+		billboard->setHasBottomView(ui_.bottomViewCheck->isChecked());
+		billboard->setDepthOffset(static_cast<float>(ui_.depthOffsetSpin->value()));
+		billboard->setUseDepthCorrection(ui_.depthCorrectionCheck->isChecked());
+		billboard->setUseNormalCorrection(ui_.normalCorrectionCheck->isChecked());
+		billboard->setSnapshotTextureSize(ui_.impostorSizeSpin->value(), ui_.impostorSizeSpin->value());
+		billboard->setShaderKey("regen.models.impostor");
+		billboard->setSnapshotShaderKey("regen.models.impostor.update");
+		billboard->updateSnapshotViews();
+		billboard->createSnapshot();
+
+		// add a hidden node for the UI
+		auto meshNode = ref_ptr<StateNode>::alloc(billboard);
+		meshNode->set_name("billboard");
+		meshNode->set_isHidden(true);
+		meshRoot_->addChild(meshNode);
+
+		mesh->addMeshLOD(Mesh::MeshLOD(billboard));
+	}
+}
+
 void MeshViewerWidget::updateLoDButtons() {
 	if (meshes_.empty()) {
 		ui_.lodControls->setEnabled(false);
@@ -164,6 +220,10 @@ void MeshViewerWidget::updateLoDButtons() {
 void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 	static const BufferUsage vboUsage = BUFFER_USAGE_STATIC_DRAW;
 	auto p = resourcePath(assetPath);
+	meshRoot_->clear();
+	lodMeshRoot_->clear();
+	meshNodes_.clear();
+
 	// Read values from UI spinner
 	bool simplify = ui_.simplifyCheckBox->isChecked();
 	bool useBillboard = ui_.impostorCheck->isChecked();
@@ -205,6 +265,15 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 		ui_.meshIndexCombo->setEnabled(true);
 		ui_.meshIndexCombo->setCurrentIndex(0);
 
+		// load the mesh materials
+		for (auto &mesh: meshes_) {
+			auto material = asset_->getMeshMaterial(mesh.get());
+			if (material.get() != nullptr) {
+				mesh->joinStates(material);
+			}
+		}
+		transformMesh(0.0f);
+
 		if (simplify) {
 			auto lod0 = static_cast<float>(ui_.simplify0Spin->value());
 			auto lod1 = static_cast<float>(ui_.simplify1Spin->value());
@@ -216,24 +285,18 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 					lod2 < lod1 ? lod2 : 0.0f,
 					lod3 < lod2 ? lod3 : 0.0f));
 		}
+		if (useBillboard) {
+			billboardMeshes_GL();
+		}
 		loadResources_GL();
 		updateLoDButtons();
 		selectMesh(-1, 0);
-		transformMesh(0.0f);
 	}
 }
 
 void MeshViewerWidget::loadResources_GL() {
-	meshRoot_->clear();
-	meshNodes_.clear();
-
 	uint32_t index = 0;
 	for (auto &mesh: meshes_) {
-		auto material = asset_->getMeshMaterial(mesh.get());
-		if (material.get() != nullptr) {
-			mesh->joinStates(material);
-		}
-
 		// load bone animation, if any
 		if (ui_.animateCheck->isChecked()) {
 			loadAnimation(mesh, index++);
@@ -244,13 +307,9 @@ void MeshViewerWidget::loadResources_GL() {
 		auto meshNode = ref_ptr<StateNode>::alloc(mesh);
 		meshNode->set_isHidden(true);
 		meshRoot_->addChild(meshNode);
+		meshRoot_->state()->shaderDefine("OUTPUT_TYPE", "DIRECT");
 		meshNodes_.push_back(meshNode);
-
-		StateConfigurer shaderConfigurer;
-		shaderConfigurer.define("OUTPUT_TYPE", "DIRECT");
-		shaderConfigurer.addNode(meshNode.get());
-		shaderState->createShader(shaderConfigurer.cfg(), "regen.models.mesh");
-		mesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState->shader());
+		mesh->createShader(meshRoot_);
 	}
 }
 
@@ -359,7 +418,6 @@ void MeshViewerWidget::gl_loadScene() {
 
 	// create a root node
 	sceneRoot_->state()->joinStates(fboState);
-	sceneRoot_->addChild(meshRoot_);
 	app_->renderTree()->addChild(sceneRoot_);
 	// enable user camera
 	userCamera_ = createUserCamera(app_->windowViewport()->getVertex(0).r);
@@ -368,8 +426,7 @@ void MeshViewerWidget::gl_loadScene() {
 	modelTransform_ = ref_ptr<ModelTransformation>::alloc();
 	sceneRoot_->state()->joinStates(modelTransform_);
 	// enable wireframe mode
-	wireframeState_ = ref_ptr<FillModeState>::alloc(GL_LINE);
-	//wireframeState_->set_isHidden(true);
+	wireframeState_ = ref_ptr<FillModeState>::alloc(GL_FILL);
 	sceneRoot_->state()->joinStates(wireframeState_);
 	// enable light, and use it in direct shading
 	// TODO: better use deferred shading, and also allow to display the normals
@@ -460,9 +517,24 @@ void MeshViewerWidget::loadMeshes() {
 			std::make_pair(ui_.norMaxAngleSpin, "norMaxAngle"),
 			std::make_pair(ui_.norPenaltySpin, "norPenalty"),
 			std::make_pair(ui_.valencePenaltySpin, "valencePenalty"),
-			std::make_pair(ui_.areaPenaltySpin, "areaPenalty")
+			std::make_pair(ui_.areaPenaltySpin, "areaPenalty"),
+			std::make_pair(ui_.depthOffsetSpin, "depthOffset")
 	}) {
 		settings_.setValue(name, spin->value());
+	}
+	for (auto [spin, name]: {
+			std::make_pair(ui_.longitudeSpin, "longitudeSteps"),
+			std::make_pair(ui_.latitudeSpin, "latitudeSteps"),
+			std::make_pair(ui_.impostorSizeSpin, "impostorSize")
+	}) {
+		settings_.setValue(name, spin->value());
+	}
+	for (auto [button, name]: {
+			std::make_pair(ui_.animateCarret, "animateCaret"),
+			std::make_pair(ui_.simplifyCarret, "simplifyCaret"),
+			std::make_pair(ui_.impostorCarret, "impostorCaret"),
+	}) {
+		settings_.setValue(name, button->isChecked());
 	}
 	for (auto [check, name]: {
 			std::make_pair(ui_.simplifyCheckBox, "simplify"),
@@ -476,6 +548,12 @@ void MeshViewerWidget::loadMeshes() {
 			std::make_pair(ui_.optimizeGraphCheck, "optimizeGraphCheck"),
 			std::make_pair(ui_.animateCheck, "animateCheck"),
 			std::make_pair(ui_.strictBoundaryCheck, "strictBoundaryCheck"),
+			std::make_pair(ui_.impostorCheck, "impostorCheck"),
+			std::make_pair(ui_.hemisphericalCheck, "hemisphericalCheck"),
+			std::make_pair(ui_.topViewCheck, "topViewCheck"),
+			std::make_pair(ui_.bottomViewCheck, "bottomViewCheck"),
+			std::make_pair(ui_.depthCorrectionCheck, "depthCorrectionCheck"),
+			std::make_pair(ui_.normalCorrectionCheck, "normalCorrectionCheck"),
 	}) {
 		settings_.setValue(name, check->isChecked());
 	}
@@ -581,7 +659,9 @@ void MeshViewerWidget::toggleFullscreen() {
 }
 
 void MeshViewerWidget::toggleWireframe(bool isEnabled) {
-	wireframeState_->set_isHidden(!isEnabled);
+	app_->withGLContext([&]() {
+		wireframeState_->set_fillMode(isEnabled ? GL_LINE : GL_FILL);
+	});
 }
 
 void MeshViewerWidget::toggleRotate(bool isEnabled) {

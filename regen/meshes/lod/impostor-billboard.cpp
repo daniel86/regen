@@ -16,6 +16,8 @@ ImpostorBillboard::ImpostorBillboard()
 	//       as they only have a two front face.
 	//       this is also important for the billboards to be rendered into shadow maps.
 	joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
+	//joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	setShaderKey("regen.models.impostor");
 }
 
 void ImpostorBillboard::updateAttributes() {
@@ -78,10 +80,10 @@ void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> 
 		}
 	}
 
-	REGEN_INFO("impostor mesh center (model space): " << meshCenterPoint_ <<
-			" radius: " << meshBoundsRadius_ <<
-			" min (model space): " << minPosition_ <<
-			" max (model space): " << maxPosition_);
+	REGEN_INFO("impostor center: " << meshCenterPoint_);
+	REGEN_INFO("impostor radius: " << meshBoundsRadius_);
+	REGEN_INFO("impostor min: " << minPosition_);
+	REGEN_INFO("impostor max: " << maxPosition_);
 }
 
 void ImpostorBillboard::updateNumberOfViews() {
@@ -100,7 +102,7 @@ void ImpostorBillboard::updateNumberOfViews() {
 	if (hasBottomView_ && !isHemispherical_) numSnapshotViews_++;
 	shaderDefine("NUM_IMPOSTOR_VIEWS", REGEN_STRING(numSnapshotViews_));
 
-	REGEN_INFO("impostor will take " << numSnapshotViews_ << " snapshots of the mesh.");
+	REGEN_INFO("impostor num snapshots: " << numSnapshotViews_);
 }
 
 void ImpostorBillboard::ensureResourcesExist() {
@@ -202,10 +204,7 @@ void ImpostorBillboard::createResources() {
 		viewMesh.shaderState->createShader(meshConfigurer.cfg(), snapshotShaderKey_);
 
 		viewMesh.meshCopy->joinStates(viewMesh.shaderState);
-		viewMesh.meshCopy->updateVAO(
-				RenderState::get(),
-				meshConfigurer.cfg(),
-				viewMesh.shaderState->shader());
+		viewMesh.meshCopy->updateVAO(meshConfigurer.cfg(), viewMesh.shaderState->shader());
 	}
 
 	{ // add textures to the billboard state
@@ -273,6 +272,7 @@ void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, cons
 	maxZ += zPadding;
 
 	viewDir[viewIdx] = dir;
+	viewDir[viewIdx].z = -viewDir[viewIdx].z;
 	viewBounds[viewIdx] = Vec4f(minX, maxX, minY, maxY);
 	viewDepth[viewIdx] = Vec2f(minZ, maxZ);
 #ifdef DEBUG_SNAPSHOT_VIEWS
@@ -304,6 +304,9 @@ void ImpostorBillboard::updateSnapshotViews() {
 		for (uint32_t i = 0; i < latitudeSteps_; ++i) {
 			float frac = static_cast<float>(i) / static_cast<float>(latitudeSteps_);
 			latAngles.push_back(frac * math::halfPi<float>());
+			if (!isHemispherical_ && latAngles[i] > 0.0f) {
+				latAngles.push_back(-latAngles[i]);
+			}
 		}
 	}
 
@@ -328,10 +331,10 @@ void ImpostorBillboard::updateSnapshotViews() {
 	}
 
 	if (hasTopView_) {
-		addSnapshotView(viewIdx++, Vec3f::down(), Vec3f::up());
+		addSnapshotView(viewIdx++, Vec3f::down(), Vec3f::right());
 	}
 	if (hasBottomView_ && !isHemispherical_) {
-		addSnapshotView(viewIdx++, Vec3f::up(), Vec3f::down());
+		addSnapshotView(viewIdx++, Vec3f::down(), Vec3f::right());
 	}
 
 	snapshotDirs_->nextStamp();
