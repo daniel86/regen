@@ -12,6 +12,7 @@
 #include <regen/gl-types/shader.h>
 #include <regen/animations/animation.h>
 #include "regen/physics/physical-object.h"
+#include "regen/states/state-node.h"
 
 namespace regen {
 	// forward declaration
@@ -34,6 +35,21 @@ namespace regen {
 		 * If numVertices=0, then all vertices of the mesh are used.
 		 */
 		struct MeshLOD {
+			MeshLOD() = default;
+			MeshLOD(uint32_t numVertices, uint32_t vertexOffset,
+					uint32_t numIndices, uint32_t indexOffset,
+					const ref_ptr<Mesh> &impostorMesh = {})
+					: numVertices(numVertices),
+					  vertexOffset(vertexOffset),
+					  numIndices(numIndices),
+					  indexOffset(indexOffset),
+					  impostorMesh(impostorMesh) {}
+			explicit MeshLOD(const ref_ptr<Mesh> &mesh)
+					: numVertices(mesh->inputContainer()->numVertices()),
+					  vertexOffset(mesh->inputContainer()->vertexOffset()),
+					  numIndices(mesh->inputContainer()->numIndices()),
+					  indexOffset(mesh->inputContainer()->indexOffset()),
+					  impostorMesh(mesh) {}
 			uint32_t numVertices = 0;
 			uint32_t vertexOffset = 0;
 			uint32_t numIndices = 0;
@@ -42,8 +58,9 @@ namespace regen {
 			// LOD levels. This is e.g used for "impostor billboards" where the mesh is
 			// replaced by a 2D quad with a texture of the original mesh.
 			// Note that the impostor mesh might also enable a custom shader which must be
-			// joined into the impostorMesh state.
-			// if null, then attributes of this mesh are used.
+			// joined into the impostorMesh state (if no shader is joined, then base mesh
+			// shader is used).
+			// if null, then attributes of base mesh and base mesh shader are used.
 			ref_ptr<Mesh> impostorMesh = {};
 		};
 
@@ -69,26 +86,35 @@ namespace regen {
 		void getMeshViews(std::set<Mesh *> &out);
 
 		/**
+		 * Assign a shader key to this mesh.
+		 * This will be used to load the shader in case createShader is used.
+		 * @param key the shader key.
+		 */
+		void setShaderKey(const std::string &key) { meshShaderKey_ = key; }
+
+		/**
+		 * Create a shader for this mesh.
+		 * This will also call the create shader function of all attached LOD meshes.
+		 * @param parentNode the parent node of this mesh in the scene graph.
+		 */
+		void createShader(const ref_ptr<StateNode> &parentNode);
+
+		/**
 		 * Assign a shader state to this mesh.
 		 * Update VAO that is used to render from array data.
 		 * And setup uniforms and textures not handled in Shader class.
 		 * Basically all uniforms and textures declared as parent nodes of
 		 * a Shader instance are auto-enabled by that Shader. All remaining uniforms
 		 * and textures are activated in Mesh::enable.
-		 * @param rs the render state.
 		 * @param cfg the state configuration.
 		 * @param shader the mesh shader.
 		 */
-		void updateVAO(
-				RenderState *rs,
-				const StateConfig &cfg,
-				const ref_ptr<Shader> &shader);
+		void updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &shader);
 
 		/**
 		 * Update VAO using last StateConfig.enable.
-		 * @param rs the render state.
 		 */
-		void updateVAO(RenderState *rs);
+		void updateVAO();
 
 		/**
 		 * Update the level of detail based on camera distance.
@@ -133,6 +159,12 @@ namespace regen {
 		 * Set the LODs of this mesh.
 		 */
 		void setMeshLODs(const std::vector<MeshLOD> &meshLODs);
+
+		/**
+		 * Add a LOD to this mesh.
+		 * @param meshLOD the LOD to add.
+		 */
+		void addMeshLOD(const MeshLOD &meshLOD);
 
 		/**
 		 * @return number of LODs.
@@ -264,7 +296,7 @@ namespace regen {
 		/**
 		 * @return the modification stamp of the geometry.
 		 */
-		auto geometryStamp() const { return geometryStamp_; }
+		uint32_t geometryStamp() const { return geometryStamp_; }
 
 		/**
 		 * Increment the geometry stamp.
@@ -304,7 +336,6 @@ namespace regen {
 	protected:
 		GLenum primitive_;
 
-		ref_ptr<VAO> vao_;
 		std::vector<MeshLOD> meshLODs_;
 		ref_ptr<ShaderInput3f> lodThresholds_;
 		Vec3f v_lodThresholds_;
@@ -316,11 +347,12 @@ namespace regen {
 		ref_ptr<UBO> shapeBuffer_;
 		int32_t shapeType_ = -1;
 
+		ref_ptr<VAO> vao_;
+		ref_ptr<Shader> meshShader_;
 		std::list<InputLocation> vaoAttributes_;
 		std::map<GLint, std::list<InputLocation>::iterator> vaoLocations_;
-
-		ref_ptr<Shader> meshShader_;
 		std::map<GLint, InputLocation> meshUniforms_;
+		std::string meshShaderKey_ = "regen.models.mesh";
 
 		ref_ptr<BufferRange> feedbackRange_;
 		uint32_t feedbackCount_ = 0;

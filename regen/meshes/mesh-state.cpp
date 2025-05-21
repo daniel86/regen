@@ -6,6 +6,7 @@
 #include "regen/shapes/frustum.h"
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"
+#include "regen/states/state-configurer.h"
 
 // TODO: think about making a distinction between mesh resource and state.
 // TODO: think about introducing a notion of model replacing mesh vector.
@@ -16,8 +17,8 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 		: State(),
 		  HasInput(ARRAY_BUFFER, usage),
 		  primitive_(primitive),
-		  vao_(ref_ptr<VAO>::alloc()),
 		  lodLevel_(ref_ptr<uint32_t>::alloc(0u)),
+		  vao_(ref_ptr<VAO>::alloc()),
 		  minPosition_(-1.0f),
 		  maxPosition_(1.0f) {
 	draw_ = &InputContainer::drawArrays;
@@ -36,6 +37,7 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  boundingShape_(sourceMesh->boundingShape_),
 		  shapeBuffer_(sourceMesh->shapeBuffer_),
 		  shapeType_(sourceMesh->shapeType_),
+		  meshShaderKey_(sourceMesh->meshShaderKey_),
 		  feedbackCount_(0),
 		  hasInstances_(sourceMesh->hasInstances_),
 		  sourceMesh_(sourceMesh),
@@ -48,6 +50,12 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 	sourceMesh_->meshViews_.insert(this);
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
 	lodThresholds_->setUniformData(sourceMesh->lodThresholds()->getVertex(0).r);
+	// create copies of LOD meshes
+	for (auto & lod : meshLODs_) {
+		if (lod.impostorMesh.get()) {
+			lod.impostorMesh = ref_ptr<Mesh>::alloc(lod.impostorMesh);
+		}
+	}
 }
 
 Mesh::~Mesh() {
@@ -113,10 +121,23 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 	}
 }
 
-void Mesh::updateVAO(
-		RenderState *rs,
-		const StateConfig &cfg,
-		const ref_ptr<Shader> &meshShader) {
+void Mesh::createShader(const ref_ptr<StateNode> &parentNode) {
+	auto shaderState = ref_ptr<ShaderState>::alloc();
+	joinStates(shaderState);
+	StateConfigurer shaderConfigurer;
+	shaderConfigurer.addNode(parentNode.get());
+	shaderConfigurer.addState(this);
+	shaderState->createShader(shaderConfigurer.cfg(), meshShaderKey_);
+	updateVAO(shaderConfigurer.cfg(), shaderState->shader());
+	// create shader of lod meshes
+	for (auto &lod : meshLODs_) {
+		if (lod.impostorMesh.get()) {
+			lod.impostorMesh->createShader(parentNode);
+		}
+	}
+}
+
+void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) {
 	// remember the shader
 	meshShader_ = meshShader;
 	hasInstances_ = cfg.numInstances_ > 1;
@@ -142,28 +163,13 @@ void Mesh::updateVAO(
 		addShaderInput(texture.first, texture.second.first);
 	}
 
-	updateVAO(rs);
+	updateVAO();
 	updateDrawFunction();
 }
 
-void Mesh::updateDrawFunction() {
-	if (inputContainer_->indexBuffer() > 0) {
-		if (hasInstances_) {
-			draw_ = &InputContainer::drawElementsInstanced;
-		} else {
-			draw_ = &InputContainer::drawElements;
-		}
-	} else {
-		if (hasInstances_) {
-			draw_ = &InputContainer::drawArraysInstanced;
-		} else {
-			draw_ = &InputContainer::drawArrays;
-		}
-	}
-}
-
-void Mesh::updateVAO(RenderState *rs) {
-	GLuint lastArrayBuffer = 0;
+void Mesh::updateVAO() {
+	auto rs = RenderState::get();
+	auto lastArrayBuffer = 0u;
 	rs->vao().push(vao_->id());
 	// Setup attributes
 	for (auto & vaoAttribute : vaoAttributes_) {
@@ -187,6 +193,22 @@ void Mesh::updateVAO(RenderState *rs) {
 			inputContainer_->vertexOffset(),
 			inputContainer_->numIndices(),
 			inputContainer_->indexOffset());
+	}
+}
+
+void Mesh::updateDrawFunction() {
+	if (inputContainer_->indexBuffer() > 0) {
+		if (hasInstances_) {
+			draw_ = &InputContainer::drawElementsInstanced;
+		} else {
+			draw_ = &InputContainer::drawElements;
+		}
+	} else {
+		if (hasInstances_) {
+			draw_ = &InputContainer::drawArraysInstanced;
+		} else {
+			draw_ = &InputContainer::drawArrays;
+		}
 	}
 }
 
@@ -220,6 +242,10 @@ void Mesh::setLODThresholds(const Vec3f &thresholds) {
 void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
 	meshLODs_ = meshLODs;
 	setLODThresholds(Vec3f(10.0, 30.0, 60.0));
+}
+
+void Mesh::addMeshLOD(const MeshLOD &meshLOD) {
+	meshLODs_.push_back(meshLOD);
 }
 
 void Mesh::updateLOD(float cameraDistance) {
