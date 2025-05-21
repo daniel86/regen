@@ -55,7 +55,7 @@ void AttributeFeedbackAnimation::initializeResources() {
 	StateConfigurer shaderConfigurer;
 	shaderConfigurer.addNode(animationNode_.get());
 	shaderState_->createShader(shaderConfigurer.cfg(), shaderKey_);
-	feedbackMesh_->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState_->shader());
+	feedbackMesh_->updateVAO(shaderConfigurer.cfg(), shaderState_->shader());
 }
 
 void AttributeFeedbackAnimation::glAnimate(regen::RenderState *rs, GLdouble dt) {

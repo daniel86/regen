@@ -85,7 +85,7 @@ void Atmosphere::createUpdateShader() {
 	StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
 	shaderConfig.setVersion(330);
 	updateShader_->createShader(shaderConfig, "regen.weather.atmosphere");
-	updateMesh_->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
+	updateMesh_->updateVAO(shaderConfig, updateShader_->shader());
 }
 
 void Atmosphere::setRayleighBrightness(float v) {

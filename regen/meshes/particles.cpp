@@ -314,7 +314,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	// And update the VAO so that next drawing uses last feedback result.
 	std::set<Mesh *> particleMeshes;
 	getMeshViews(particleMeshes);
-	for (auto particleMesh: particleMeshes) { particleMesh->updateVAO(rs); }
+	for (auto particleMesh: particleMeshes) { particleMesh->updateVAO(); }
 
 	// Ping-Pong VBO references so that next feedback goes to other buffer.
 	ref_ptr<BufferReference> buf = particleRef_;

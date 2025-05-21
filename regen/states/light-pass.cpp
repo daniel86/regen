@@ -131,7 +131,7 @@ void LightPass::createShader(const StateConfig &cfg) {
 	}
 	_cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(numShadowLayer_));
 	shader_->createShader(_cfg.cfg(), shaderKey_);
-	mesh_->updateVAO(RenderState::get(), _cfg.cfg(), shader_->shader());
+	mesh_->updateVAO(_cfg.cfg(), shader_->shader());
 
 	for (auto &light: lights_) { addLightInput(light); }
 	shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");

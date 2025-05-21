@@ -178,7 +178,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	setInput(norAttribute_);
 	setInput(texcoAttribute_);
 	end();
-	updateVAO(RenderState::get());
+	updateVAO();
 
 	// set center and extends for bounding box
 	minPosition_ = v_pos.w[0];

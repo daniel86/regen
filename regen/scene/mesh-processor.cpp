@@ -56,7 +56,7 @@ static ref_ptr<Shader> createMeshShader(
 		REGEN_WARN("Unable to find shader for " << input.getDescription() << ".");
 	} else {
 		// Update VAO
-		meshCopy->updateVAO(RenderState::get(), stateConfigurer.cfg(), meshShader);
+		meshCopy->updateVAO(stateConfigurer.cfg(), meshShader);
 	}
 	return meshShader;
 }

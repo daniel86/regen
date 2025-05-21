@@ -156,7 +156,7 @@ void CloudLayer::createUpdateShader() {
 	StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
 	shaderConfig.setVersion(330);
 	updateShader_->createShader(shaderConfig, "regen.weather.clouds.pre-noise");
-	updateMesh_->updateVAO(RenderState::get(), shaderConfig, updateShader_->shader());
+	updateMesh_->updateVAO(shaderConfig, updateShader_->shader());
 }
 
 float CloudLayer::defaultAltitudeHigh() { return 8.0f; }

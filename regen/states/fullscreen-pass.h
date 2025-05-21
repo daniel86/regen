@@ -34,7 +34,7 @@ namespace regen {
 		 */
 		void createShader(const StateConfig &cfg) override {
 			shaderState_->createShader(cfg, shaderKey_);
-			fullscreenMesh_->updateVAO(RenderState::get(), cfg, shaderState_->shader());
+			fullscreenMesh_->updateVAO(cfg, shaderState_->shader());
 		}
 
 		static ref_ptr<FullscreenPass> load(LoadingContext &ctx, scene::SceneInputNode &input) {

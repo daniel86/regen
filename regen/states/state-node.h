@@ -1,9 +1,9 @@
 #ifndef REGEN_STATE_NODE_H_
 #define REGEN_STATE_NODE_H_
 
+#include <queue>
 #include <regen/gl-types/render-state.h>
 #include <regen/states/state.h>
-#include <regen/camera/camera.h>
 
 namespace regen {
 	/**
@@ -90,7 +90,7 @@ namespace regen {
 		 */
 		auto &childs() const { return childs_; }
 
-		ref_ptr<Camera> getParentCamera();
+		ref_ptr<State> getParentCamera();
 
 		/**
 		 * Find a node with a given name.

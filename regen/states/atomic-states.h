@@ -299,6 +299,8 @@ namespace regen {
 
 		void disable(RenderState *rs) override { rs->polygonMode().pop(); }
 
+		void set_fillMode(GLenum mode) { mode_ = mode; }
+
 	protected:
 		GLenum mode_;
 	};

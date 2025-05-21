@@ -183,7 +183,7 @@ namespace regen::scene {
 			ref_ptr<LODState> lodState;
 			// get the parent camera. Note that this will be the light camera in case
 			// updating the shadow map.
-			auto cam = parent->getParentCamera();
+			auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
 			if (cam.get() == nullptr) {
 				REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
 				return lodState;

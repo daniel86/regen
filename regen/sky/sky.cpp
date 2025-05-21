@@ -269,8 +269,7 @@ void SkyView::createShader(RenderState *rs, const StateConfig &stateCfg) {
 		cfg.addNode(layer.get());
 
 		layer->getShaderState()->createShader(cfg.cfg());
-		layer->getMeshState()->updateVAO(RenderState::get(), cfg.cfg(),
-										 layer->getShaderState()->shaderState()->shader());
+		layer->getMeshState()->updateVAO(cfg.cfg(), layer->getShaderState()->shaderState()->shader());
 	}
 }
 

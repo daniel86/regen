@@ -81,7 +81,7 @@ static void getStateCamera(const ref_ptr<State> &state, ref_ptr<Camera> *out) {
 	}
 }
 
-ref_ptr<Camera> StateNode::getParentCamera() {
+ref_ptr<State> StateNode::getParentCamera() {
 	ref_ptr<Camera> out;
 	if (hasParent()) {
 		getStateCamera(parent_->state(), &out);

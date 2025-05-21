@@ -71,7 +71,7 @@ namespace regen {
 			shaderConfigurer.addState(updateState_.get());
 			shaderState_ = ref_ptr<ShaderState>::alloc();
 			shaderState_->createShader(shaderConfigurer.cfg(), getShaderKey(texture));
-			fullscreenMesh->updateVAO(RenderState::get(), shaderConfigurer.cfg(), shaderState_->shader());
+			fullscreenMesh->updateVAO(shaderConfigurer.cfg(), shaderState_->shader());
 			updateState_->joinStates(shaderState_);
 			updateState_->joinStates(fullscreenMesh);
 		}
