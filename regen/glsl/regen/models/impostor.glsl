@@ -219,8 +219,12 @@ float scaleFromMatrix(mat4 model) {
 }
 
 void main() {
+#ifdef HAS_modelMatrix
     // the original mesh might be scaled on per-instance basis
     float scale = scaleFromMatrix(in_modelMatrix);
+#else
+    float scale = 1.0;
+#endif
 #ifdef COMPUTE_LAYER_VISIBILITY
     bool visibleLayers[RENDER_LAYER];
     computeVisibleLayers(visibleLayers);

@@ -30,6 +30,7 @@ void BoidsGPU::initBoidSimulation() {
 	//         - then use define some macros to generate the shader code
 	setAnimationName("boids");
 	createResource();
+	REGEN_INFO("GPU Boids simulation with " << numBoids_ << " boids");
 	GL_ERROR_LOG();
 }
 

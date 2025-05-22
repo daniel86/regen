@@ -54,7 +54,7 @@ MeshSimplifier::MeshSimplifier(const ref_ptr<Mesh> &mesh) : mesh_(mesh) {
 			hasValidAttributes_ = false;
 		}
 	}
-	REGEN_INFO("LOD level 0: " <<
+	REGEN_INFO("Input mesh has " <<
 							   "#faces=" << inputIndices_->numVertices() / 3 << " " <<
 							   "#verts=" << inputPos_->numVertices() << " " <<
 							   "#attributes=" << (inputAttributes_.size() + 1) << " ");
@@ -893,7 +893,7 @@ uint32_t MeshSimplifier::createOutputAttributes() {
 		numIndices -= lodLevels_.front().size() * 3;
 	}
 	REGEN_INFO("Mesh simplified:"
-					   << " #lods=" << lodLevels_.size()
+					   << " #lods=" << (lodLevels_.size() - (useOriginal ? 0 : 1))
 					   << " #faces=" << numIndices / 3
 					   << " #verts=" << numVertices
 					   << " #indices=" << numIndices);

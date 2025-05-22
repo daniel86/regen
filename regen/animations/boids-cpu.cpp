@@ -84,6 +84,7 @@ void BoidsCPU::initBoidSimulation() {
 	animationState()->joinShaderInput(maxNumNeighbors_);
 	animationState()->joinShaderInput(maxBoidSpeed_);
 	animationState()->joinShaderInput(maxAngularSpeed_);
+	REGEN_INFO("CPU Boids simulation with " << numBoids_ << " boids");
 }
 
 ref_ptr<BoidsCPU> BoidsCPU::load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ShaderInput3f> &position) {

@@ -48,7 +48,10 @@ namespace regen {
 		 * Assigns a model transformation to this ground.
 		 * @param tf the model transformation to assign.
 		 */
-		void setModelTransform(const ref_ptr<ModelTransformation> &tf) { modelTransform_ = tf; }
+		void setModelTransform(const ref_ptr<ModelTransformation> &tf) {
+			modelTransform_ = tf;
+			joinStates(tf);
+		}
 
 		/**
 		 * @return the model transformation assigned to this ground.

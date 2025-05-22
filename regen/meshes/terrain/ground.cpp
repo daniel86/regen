@@ -431,8 +431,7 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 			}
 			handledChildren.push_back(n);
 		} else if (n->getCategory() == "transform") {
-			auto processor = scene->getStateProcessor(n->getCategory());
-			processor->processInput(scene, *n.get(), ctx.parent(), ground);
+			// note: skip transform, we create one below
 			handledChildren.push_back(n);
 		}
 	}
@@ -461,13 +460,13 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 	}
 	ground->setMapTextures(heightMap, normalMap);
 
-	auto modelTransform = scene->getResource<ModelTransformation>(input.getValue("tf"));
-	if (!modelTransform.get()) {
-		REGEN_WARN("No model transform found for " << input.getDescription() << ".");
-		return {};
-	}
+	auto tfName = input.getValue("tf");
+	auto modelTransform = ref_ptr<ModelTransformation>::alloc();
+	scene->putResource<ModelTransformation>(tfName, modelTransform);
 	ground->setModelTransform(modelTransform);
 	ground->updateAttributes();
+	modelTransform->bufferContainer()->updateBuffer();
+
 	ground->createResources();
 	ground->updateWeightMaps();
 

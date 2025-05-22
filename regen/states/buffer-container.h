@@ -67,6 +67,12 @@ namespace regen {
 		// Override from State
 		void enable(RenderState *rs) override;
 
+		/**
+		 * Print the layout of the buffer container, i.e. what UBOs, TBOs and
+		 * SSBOs are used and how much memory they use.
+		 */
+		void printLayout();
+
 	protected:
 		std::vector<NamedShaderInput> namedInputs_;
 		std::vector<ref_ptr<UBO>> ubos_;
