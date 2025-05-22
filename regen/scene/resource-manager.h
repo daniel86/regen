@@ -68,6 +68,14 @@ namespace regen {
 			 */
 			ref_ptr<MeshVector> getMesh(SceneLoader *parser, const std::string &id);
 
+			/**
+			 * Create a MeshVector from the given SceneInputNode.
+			 * @param parser The scene parser that contains resources.
+			 * @param input the SceneInputNode to create the MeshVector from.
+			 * @return A MeshVector resource or null reference.
+			 */
+			ref_ptr<MeshVector> createMesh(SceneLoader *parser, scene::SceneInputNode &input);
+
 			ref_ptr<ModelTransformation> getTransform(SceneLoader *parser, const std::string &id);
 
 			/**

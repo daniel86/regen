@@ -20,6 +20,47 @@ ImpostorBillboard::ImpostorBillboard()
 	setShaderKey("regen.models.impostor");
 }
 
+void ImpostorBillboard::createShader(const ref_ptr<StateNode> &parentNode) {
+	StateConfigurer shaderConfigurer;
+	shaderConfigurer.addNode(parentNode.get());
+
+	// join states of the input mesh, besides its material texture state which we
+	// want to bake into the array textures.
+	// NOTE: might very well be that some texture mapping techniques will cause problems here.
+	//       effectively we loose UV coordinates, so we cannot apply any (uv-mapped) textures from
+	//       the original mesh to the impostor.
+	for (auto &mesh: meshes_) {
+		std::stack<State*> stateStack;
+		for (auto &state: mesh.meshOrig->joined()) {
+			stateStack.push(state.get());
+		}
+		while (!stateStack.empty()) {
+			auto state = stateStack.top();
+			stateStack.pop();
+			auto *textureState = dynamic_cast<TextureState*>(state);
+			if (textureState && textureState->texture()->targetType() != GL_TEXTURE_BUFFER) {
+				// skip texture states, we will bake them into the snapshot textures
+				continue;
+			}
+			auto *hasInput = dynamic_cast<HasInput*>(state);
+			if (hasInput) {
+				for (auto &input: hasInput->inputContainer()->inputs()) {
+					if (!input.in_->isVertexAttribute()) {
+						joinShaderInput(input.in_, input.name_);
+					}
+				}
+			}
+			for (auto &joined: state->joined()) {
+				stateStack.push(joined.get());
+			}
+		}
+	}
+
+	shaderConfigurer.addState(sharedState_.get());
+	shaderConfigurer.addState(this);
+	Mesh::createShader(parentNode, shaderConfigurer.cfg());
+}
+
 void ImpostorBillboard::updateAttributes() {
 	if (hasAttributes_) return;
 	auto positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
@@ -51,34 +92,6 @@ void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> 
 	modelOrigin_->setVertex(0, meshCenterPoint_);
 	meshBoundsRadius_ = meshBounds.radius();
 	meshCornerPoints_ = meshBounds.cornerPoints();
-
-	// join states of the input mesh, besides its material texture state which we
-	// want to bake into the array textures.
-	// NOTE: might very well be that some texture mapping techniques will cause problems here.
-	//       effectively we loose UV coordinates, so we cannot apply any (uv-mapped) textures from
-	//       the original mesh to the impostor.
-	std::stack<State*> stateStack;
-	for (auto &state: mesh->joined()) {
-		stateStack.push(state.get());
-	}
-	while (!stateStack.empty()) {
-		auto state = stateStack.top();
-		stateStack.pop();
-		auto *textureState = dynamic_cast<TextureState*>(state);
-		if (textureState) {
-			// skip texture states, we will bake them into the snapshot textures
-			continue;
-		}
-		auto *hasInput = dynamic_cast<HasInput*>(state);
-		if (hasInput) {
-			for (auto &input: hasInput->inputContainer()->inputs()) {
-				joinShaderInput(input.in_, input.name_);
-			}
-		}
-		for (auto &joined: state->joined()) {
-			stateStack.push(joined.get());
-		}
-	}
 
 	REGEN_INFO("impostor center: " << meshCenterPoint_);
 	REGEN_INFO("impostor radius: " << meshBoundsRadius_);
@@ -380,17 +393,11 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 	// find the original mesh
 	auto originalMeshVec = parser->getResources()->getMesh(
 			parser,
-			input.getValue("original-mesh"));
+			input.getValue("base-mesh"));
 	if (originalMeshVec.get() == nullptr || originalMeshVec->empty()) {
-		REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load original mesh.");
+		REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load base mesh.");
 		return {};
 	}
-	auto originalIndex = input.getValue<GLuint>("original-index", 0u);
-	if (originalIndex >= originalMeshVec->size()) {
-		REGEN_WARN("Invalid original index '" << originalIndex << "' for '" << input.getDescription() << "'.");
-		originalIndex = 0u;
-	}
-	auto originalMesh = (*originalMeshVec.get())[originalIndex];
 	if (input.hasAttribute("depth-offset")) {
 		impostor->depthOffset_->setVertex(0, input.getValue<float>("depth-offset", 0.0f));
 	}
@@ -437,7 +444,18 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 		input.removeChild(updateStateNode);
 	}
 
-	impostor->addMesh(originalMesh);
+	// add meshes to the impostor
+	auto indexRange = MeshVector::loadIndexRange(input, "base-mesh");
+	if (indexRange.empty()) { indexRange.push_back(0); }
+	for (auto &index: indexRange) {
+		if (index >= originalMeshVec->size()) {
+			REGEN_WARN("Invalid mesh index '" << index << "' for '" << input.getDescription() << "'.");
+		} else {
+			auto originalMesh = (*originalMeshVec.get())[index];
+			impostor->addMesh(originalMesh);
+		}
+	}
+
 	impostor->updateSnapshotViews();
 	impostor->createSnapshot();
 	return impostor;

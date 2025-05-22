@@ -144,6 +144,9 @@ namespace regen {
 		 */
 		static ref_ptr<ImpostorBillboard> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
+		// override
+		void createShader(const ref_ptr<StateNode> &parentNode) override;
+
 	protected:
 		struct ImitatedMesh {
 			// the mesh state that will do the draw call for doing a snapshot.

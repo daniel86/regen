@@ -127,6 +127,11 @@ const vec3 in_modelOrigin = vec3(0.0f);
 #include regen.layered.gs.computeVisibleLayers
 #include regen.models.impostor.selectViewIdx
 
+#ifdef HAS_windFlow
+#include regen.models.sprite.applyForce
+#include regen.weather.wind.windAtPosition
+#endif
+
 #define HANDLE_IO(i)
 
 void writeFlatOutput(int layer, uint viewIdx, vec3 N, vec3 T, vec3 B) {
@@ -194,6 +199,12 @@ void emitLayer(int layer, float scale) {
     vec3 up = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), float(abs(zAxis.y) < 0.99));
     vec3 quadPos[4] = computeSpritePoints(centerEye.xyz, spriteSize, zAxis, up);
     float viewCoord = float(viewIdx);
+
+#ifdef HAS_windFlow
+    vec3 bottomCenter = 0.5*(quadPos[0] + quadPos[2]);
+    vec2 wind = windAtPosition(bottomCenter);
+    applyForce(quadPos, wind);
+#endif
 
     // construct tangent space
     vec3 N = -viewDirWorld;

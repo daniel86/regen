@@ -25,6 +25,7 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 	set_primitive(primitive);
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
 	lodThresholds_->setUniformData(Vec3f::zero());
+	sharedState_ = ref_ptr<State>::alloc();
 }
 
 Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
@@ -37,7 +38,9 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  boundingShape_(sourceMesh->boundingShape_),
 		  shapeBuffer_(sourceMesh->shapeBuffer_),
 		  shapeType_(sourceMesh->shapeType_),
-		  meshShaderKey_(sourceMesh->meshShaderKey_),
+		  shaderKey_(sourceMesh->shaderKey_),
+		  shaderStageKeys_(sourceMesh->shaderStageKeys_),
+		  sharedState_(sourceMesh->sharedState_),
 		  feedbackCount_(0),
 		  hasInstances_(sourceMesh->hasInstances_),
 		  sourceMesh_(sourceMesh),
@@ -122,13 +125,39 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 }
 
 void Mesh::createShader(const ref_ptr<StateNode> &parentNode) {
-	auto shaderState = ref_ptr<ShaderState>::alloc();
-	joinStates(shaderState);
 	StateConfigurer shaderConfigurer;
 	shaderConfigurer.addNode(parentNode.get());
+	shaderConfigurer.addState(sharedState_.get());
 	shaderConfigurer.addState(this);
-	shaderState->createShader(shaderConfigurer.cfg(), meshShaderKey_);
-	updateVAO(shaderConfigurer.cfg(), shaderState->shader());
+	createShader(parentNode, shaderConfigurer.cfg());
+}
+
+void Mesh::createShader(const ref_ptr<StateNode> &parentNode, StateConfig &shaderConfig) {
+	auto shaderState = ref_ptr<ShaderState>::alloc();
+	joinStates(shaderState);
+
+	if(shaderKey_.empty()) {
+		shaderKey_ = "regen.models.mesh";
+	}
+	if(shaderStageKeys_.empty()) {
+		shaderState->createShader(shaderConfig, shaderKey_);
+	}
+	else {
+		std::vector<std::string> stageKeys(glenum::glslStageCount());
+		for (int i = 0; i < glenum::glslStageCount(); ++i) {
+			stageKeys[i] = shaderKey_;
+		}
+		for (int i = 0; i < glenum::glslStageCount(); ++i) {
+			auto stage = glenum::glslStages()[i];
+			auto it = shaderStageKeys_.find(stage);
+			if (it != shaderStageKeys_.end()) {
+				stageKeys[i] = it->second;
+			}
+		}
+		shaderState->createShader(shaderConfig, stageKeys);
+	}
+
+	updateVAO(shaderConfig, shaderState->shader());
 	// create shader of lod meshes
 	for (auto &lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
@@ -457,4 +486,36 @@ void Mesh::set_bounds(const Vec3f &min, const Vec3f &max) {
 	minPosition_ = min;
 	maxPosition_ = max;
 	geometryStamp_++;
+}
+
+void Mesh::loadShaderConfig(LoadingContext &ctx, scene::SceneInputNode &input) {
+	if (input.hasAttribute("shader")) {
+		setShaderKey(input.getValue<std::string>("shader", shaderKey_));
+	} else if (input.hasAttribute("shader-key")) {
+		setShaderKey(input.getValue<std::string>("shader-key", shaderKey_));
+	} else if (input.hasAttribute("key")) {
+		setShaderKey(input.getValue<std::string>("key", shaderKey_));
+	}
+	for (int i = 0; i < glenum::glslStageCount(); ++i) {
+		auto stage = glenum::glslStages()[i];
+		auto keyName = glenum::glslStagePrefix(stage);
+		if (input.hasAttribute(keyName)) {
+			setShaderKey(input.getValue(keyName), stage);
+			continue;
+		}
+		keyName = REGEN_STRING("shader-" << keyName);
+		if (input.hasAttribute(keyName)) {
+			setShaderKey(input.getValue(keyName), stage);
+			continue;
+		}
+	}
+	// read child nodes into shared state
+	for (auto &child : input.getChildren()) {
+		auto processor = ctx.scene()->getStateProcessor(child->getCategory());
+		if (processor.get() == nullptr) {
+			REGEN_WARN("No processor registered for '" << child->getDescription() << "'.");
+		} else {
+			processor->processInput(ctx.scene(), *child.get(), ctx.parent(), sharedState_);
+		}
+	}
 }

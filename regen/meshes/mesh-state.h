@@ -90,14 +90,27 @@ namespace regen {
 		 * This will be used to load the shader in case createShader is used.
 		 * @param key the shader key.
 		 */
-		void setShaderKey(const std::string &key) { meshShaderKey_ = key; }
+		void setShaderKey(const std::string &key) { shaderKey_ = key; }
+
+		/**
+		 * Assign a shader key to this mesh.
+		 * This will be used to load the shader in case createShader is used.
+		 * @param key the shader key.
+		 * @param stage the shader stage.
+		 */
+		void setShaderKey(const std::string &key, GLenum stage) { shaderStageKeys_[stage] = key; }
+
+		/**
+		 * @return true if this mesh has a shader key.
+		 */
+		bool hasShaderKey() const { return !shaderKey_.empty() || !shaderStageKeys_.empty(); }
 
 		/**
 		 * Create a shader for this mesh.
 		 * This will also call the create shader function of all attached LOD meshes.
 		 * @param parentNode the parent node of this mesh in the scene graph.
 		 */
-		void createShader(const ref_ptr<StateNode> &parentNode);
+		virtual void createShader(const ref_ptr<StateNode> &parentNode);
 
 		/**
 		 * Assign a shader state to this mesh.
@@ -321,11 +334,22 @@ namespace regen {
 		void addAnimation(const ref_ptr<Animation> &animation) { animations_.push_back(animation); }
 
 		/**
+		 * @return the shared state.
+		 */
+		ref_ptr<State> sharedState() const { return sharedState_; }
+
+		/**
 		 * Make a draw call with this mesh. This will internally
 		 * call enable and disable.
 		 * @param rs the render state.
 		 */
 		void draw(RenderState *rs);
+
+		/**
+		 * Load shader keys from the input node.
+		 * @param input the scene input node.
+		 */
+		void loadShaderConfig(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		// override
 		void enable(RenderState *) override;
@@ -350,9 +374,14 @@ namespace regen {
 		ref_ptr<VAO> vao_;
 		ref_ptr<Shader> meshShader_;
 		std::list<InputLocation> vaoAttributes_;
-		std::map<GLint, std::list<InputLocation>::iterator> vaoLocations_;
-		std::map<GLint, InputLocation> meshUniforms_;
-		std::string meshShaderKey_ = "regen.models.mesh";
+		std::map<int32_t, std::list<InputLocation>::iterator> vaoLocations_;
+		std::map<int32_t, InputLocation> meshUniforms_;
+
+		std::string shaderKey_;
+		std::map<GLenum, std::string> shaderStageKeys_;
+
+		// a state shared among all copies of this mesh.
+		ref_ptr<State> sharedState_;
 
 		ref_ptr<BufferRange> feedbackRange_;
 		uint32_t feedbackCount_ = 0;
@@ -378,6 +407,8 @@ namespace regen {
 		void createShapeBuffer();
 
 		void updateShapeBuffer();
+
+		void createShader(const ref_ptr<StateNode> &parentNode, StateConfig &shaderConfigurer);
 
 		void updateShapeBuffer(byte *shapeData);
 

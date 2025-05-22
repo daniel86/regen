@@ -344,9 +344,15 @@
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
-    <mesh id="tree-mesh" type="proctree"
-            lods="3,2,1" lod-thresholds="10.0, 20.0"
+    <mesh id="tree-mesh"
+            type="proctree"
+            lods="3,2,1"
+            lod-thresholds="10.0, 50.0, 100.0"
             preset="fir">
+        <shader mesh-index="0" key="regen.models.mesh" />
+        <shader mesh-index="1" key="regen.models.mesh" gs="regen.weather.wind.wavingQuad">
+            <define key="HAS_GS_TRANSFORM" value="TRUE"/>
+        </shader>
         <transform id="tree-tf">
             <set mode="plane"
                 area-mask-texture="tree-mask"
@@ -362,6 +368,30 @@
                 obj-mesh="tree-mesh"
               />
         </transform>
+        <lod-meshes>
+            <mesh id="twig-impostor"
+                    type="impostor-billboard"
+                    base-mesh="tree-mesh"
+                    base-mesh-index="1"
+                    depth-offset="0.5"
+                    normal-correction="1"
+                    depth-correction="0"
+                    hemispherical="0"
+                    top-view="0"
+                    bottom-view="0"
+                    longitude-steps="8"
+                    latitude-steps="0"
+                    texture-size="256,256">
+                <shader mesh-index="0" key="regen.models.impostor" />
+                <update-state>
+                    <define key="DISCARD_ALPHA" value="TRUE"/>
+                    <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                    <depth test="1" write="1"/>
+                    <blend mode="src"/>
+                </update-state>
+                <input name="stiffness" type="float" value="0.1"/>
+            </mesh>
+        </lod-meshes>
         <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
             <set mode="random" min="1,1,1" max="5,4,2"/>
         </input>
@@ -370,56 +400,21 @@
         </shape>
     </mesh>
 
-    <mesh id="twig-impostor" type="impostor-billboard"
-            depth-offset="0.5"
-            normal-correction="1"
-            depth-correction="0"
-            hemispherical="0"
-            top-view="0"
-            bottom-view="0"
-            longitude-steps="8"
-            latitude-steps="0"
-            texture-size="256,256"
-            original-mesh="tree-mesh" original-index="1">
-        <update-state>
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-            <depth test="1" write="1"/>
-            <blend mode="src"/>
-        </update-state>
-    </mesh>
-
     <node id="Trees">
+        <!-- <lod shape="tree-shape" /> -->
         <node lod-shape="tree-shape">
             <node id="tree-trunk">
-                <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
+                <mesh id="tree-mesh" mesh-index="0" />
             </node>
             <node id="tree-twig">
-                <texture name="windFlow" id="wind-flowmap" />
-                <input name="stiffness" type="float" value="0.5"/>
                 <define key="DISCARD_ALPHA" value="TRUE"/>
                 <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
+                <input name="stiffness" type="float" value="0.5"/>
 
-                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.weather.wind.wavingQuad">
-                    <base-state>
-                        <define key="HAS_GS_TRANSFORM" value="TRUE"/>
-                    </base-state>
-                    <lod-mesh id="twig-impostor" mesh-index="0" shader="regen.models.impostor" />
-                </mesh>
+                <mesh id="tree-mesh" mesh-index="1" />
+                <!-- <mesh id="tree-mesh" mesh-index="1" filter="opaque,silhouette,transparent" /> -->
             </node>
-            <!--
-            <node id="tree-twig">
-                <define key="DISCARD_ALPHA" value="TRUE"/>
-                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-                <define key="HAS_GS_TRANSFORM" value="TRUE"/>
-                <texture name="windFlow" id="wind-flowmap" />
-                <input name="stiffness" type="float" value="0.5"/>
-                <mesh id="tree-mesh" mesh-index="1"
-                        shader="regen.models.mesh"
-                        gs="regen.weather.wind.wavingQuad">
-                </mesh>
-            </node>
-            -->
         </node>
     </node>
 

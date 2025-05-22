@@ -68,6 +68,13 @@ ref_ptr<MeshVector> ResourceManager::getMesh(SceneLoader *parser, const std::str
 	return meshes_.getResource(parser, id);
 }
 
+ref_ptr<MeshVector> ResourceManager::createMesh(SceneLoader *parser, scene::SceneInputNode &input) {
+	auto id = input.getName();
+	auto mesh = meshes_.createResource(parser, input);
+	meshes_.putResource(id, mesh);
+	return mesh;
+}
+
 ref_ptr<ModelTransformation> ResourceManager::getTransform(SceneLoader *parser, const std::string &id) {
 	return transforms_[id];
 }

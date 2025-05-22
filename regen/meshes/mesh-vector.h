@@ -2,6 +2,7 @@
 #define REGEN_MESH_VECTOR_H_
 
 #include <vector>
+#include <queue>
 #include <regen/meshes/mesh-state.h>
 #include "regen/text/texture-mapped-text.h"
 #include "particles.h"
@@ -19,12 +20,22 @@ namespace regen {
 
 		explicit MeshVector(GLuint numMeshes) : std::vector<ref_ptr<Mesh> >(numMeshes) {}
 
-		static ref_ptr<MeshVector> load(LoadingContext &ctx, scene::SceneInputNode &input);
-
 		MeshVector &operator=(const std::vector<ref_ptr<Mesh> > &rhs) {
 			std::vector<ref_ptr<Mesh> >::operator=(rhs);
 			return *this;
 		}
+
+		static ref_ptr<MeshVector> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
+		static std::vector<uint32_t> loadIndexRange(
+				scene::SceneInputNode &input,
+				const std::string &prefix = "mesh");
+
+		static void loadIndexRange(
+				scene::SceneInputNode &input,
+				ref_ptr<MeshVector> &meshes,
+				std::queue<ref_ptr<Mesh>> &meshQueue,
+				const std::string &prefix = "mesh");
 
 	protected:
 		static ref_ptr<MeshVector> createAssetMeshes(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<AssetImporter> &importer);
