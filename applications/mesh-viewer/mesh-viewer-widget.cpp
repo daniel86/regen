@@ -407,14 +407,45 @@ void MeshViewerWidget::gl_loadScene() {
 
 	// create render target
 	auto fbo = ref_ptr<FBO>::alloc(ui_.glWidget->width(), ui_.glWidget->height());
-	fbo->addTexture(1, GL_TEXTURE_2D, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
-	fbo->createDepthTexture(GL_TEXTURE_2D, GL_DEPTH_COMPONENT24, GL_UNSIGNED_BYTE);
+	fbo->addTexture(1,
+		GL_TEXTURE_2D,
+		GL_RGBA,
+		GL_RGBA8,
+		GL_UNSIGNED_BYTE,
+		4);
+	fbo->createDepthTexture(
+		GL_TEXTURE_2D,
+		GL_DEPTH_COMPONENT24,
+		GL_UNSIGNED_BYTE,
+		4);
 	auto fboState = ref_ptr<FBOState>::alloc(fbo);
 	fboState->setClearDepth();
 	fboState->setClearColor({
 		Vec4f(0.26, 0.26, 0.36, 1.0),
 		GL_COLOR_ATTACHMENT0 });
 	fboState->setDrawBuffers({GL_COLOR_ATTACHMENT0});
+
+	/**
+	RenderState::get()->drawFrameBuffer().push(fbo->id());
+	auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "Framebuffer13 not complete: 0x" << std::hex << status << std::dec << std::endl;
+	}
+	RenderState::get()->drawFrameBuffer().pop();
+
+	RenderState::get()->drawFrameBuffer().push(fbo->id());
+	GLint type;
+	glGetFramebufferAttachmentParameteriv(
+		GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+		GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
+	std::cout << "COLOR_ATTACHMENT0 type: " << std::hex << type << std::endl;
+
+	glGetFramebufferAttachmentParameteriv(
+		GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+		GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
+	std::cout << "DEPTH_ATTACHMENT type: " << std::hex << type << std::endl;
+	RenderState::get()->drawFrameBuffer().pop();
+	**/
 
 	// create a root node
 	sceneRoot_->state()->joinStates(fboState);
@@ -449,8 +480,11 @@ void MeshViewerWidget::gl_loadScene() {
 	shadingState->addLight(sceneLight_[2]);
 	sceneRoot_->state()->joinStates(shadingState);
 	// finally, enable a blit state to copy the framebuffer to the screen
-	sceneRoot_->state()->joinStates(ref_ptr<BlitToScreen>::alloc(
-			fbo, app_->windowViewport(), GL_COLOR_ATTACHMENT0));
+	auto blit = ref_ptr<BlitToScreen>::alloc(
+			fbo, app_->windowViewport(), GL_COLOR_ATTACHMENT0);
+	// NOTE: must use nearest with MSAA
+	blit->set_filterMode(GL_NEAREST);
+	sceneRoot_->state()->joinStates(blit);
 	GL_ERROR_LOG();
 
 	// resize fbo with window

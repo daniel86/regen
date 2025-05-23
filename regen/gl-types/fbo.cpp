@@ -33,8 +33,15 @@ static inline void REGEN_ReadBuffer(GLenum v)
 
 static inline void attachTexture(
 		const ref_ptr<Texture> &tex, GLenum target) {
-	glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
-						 target, tex->id(), 0);
+	if (tex->numSamples() > 1) {
+		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
+								target,
+								tex->textureBind().target_,
+								tex->id(), 0);
+	} else {
+		glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
+							 target, tex->id(), 0);
+	}
 }
 
 static inline void attachRenderBuffer(
@@ -74,7 +81,6 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
 	rs->readFrameBuffer().push(id());
 	readBuffer_.push(GL_COLOR_ATTACHMENT0);
 	rs->readFrameBuffer().pop();
-	GL_ERROR_LOG();
 
 	uniforms_ = ref_ptr<UBO>::alloc("FBO");
 	uniforms_->addBlockInput(viewport_);
@@ -92,7 +98,7 @@ void FBO::set_depthAttachment(const ref_ptr<RenderBuffer> &rbo) {
 	depthTexture_ = ref_ptr<Texture>();
 }
 
-void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil) {
+void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil, uint32_t numSamples) {
 	RenderState *rs = RenderState::get();
 	depthAttachmentTarget_ = target;
 	depthAttachmentFormat_ = format;
@@ -102,13 +108,20 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 	if (target == GL_TEXTURE_CUBE_MAP) {
 		depth = ref_ptr<TextureCubeDepth>::alloc();
 	} else if (target == GL_TEXTURE_2D_ARRAY) {
-		ref_ptr<Texture2DArrayDepth> depth3D = ref_ptr<Texture2DArrayDepth>::alloc();
+		ref_ptr<Texture3D> depth3D;
+		if (numSamples > 1) {
+			depth3D = ref_ptr<Texture2DArrayMultisampleDepth>::alloc(numSamples);
+		} else {
+			depth3D = ref_ptr<Texture2DArrayDepth>::alloc();
+		}
 		depth3D->set_depth(depth_);
 		depth = depth3D;
 	} else if (depth_ > 1) {
 		ref_ptr<Texture3DDepth> depth3D = ref_ptr<Texture3DDepth>::alloc();
 		depth3D->set_depth(depth_);
 		depth = depth3D;
+	} else if (numSamples > 1) {
+		depth = ref_ptr<Texture2DMultisampleDepth>::alloc(numSamples);
 	} else {
 		depth = ref_ptr<Texture2DDepth>::alloc();
 	}
@@ -120,10 +133,12 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 	rs->drawFrameBuffer().push(id());
 	{
 		depth->begin(rs);
-		{
+		if (numSamples == 1) {
 			depth->wrapping().push(GL_REPEAT);
 			depth->filter().push(GL_LINEAR);
 			depth->compare().push(TextureCompare(GL_NONE, GL_EQUAL));
+		}
+		{
 			depth->texImage();
 		}
 		depth->end(rs);
@@ -134,10 +149,18 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 		}
 	}
 	rs->drawFrameBuffer().pop();
+
+	/**
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depth->id());
+	GLint tex_width = 0, tex_height = 0;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_WIDTH, &tex_width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_HEIGHT, &tex_height);
+	std::cout << "Depth size: " << tex_width << "x" << tex_height << std::endl;
+	**/
 }
 
-void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type) {
-	createDepthTexture(target, format, type, false);
+void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, uint32_t numSamples) {
+	createDepthTexture(target, format, type, false, numSamples);
 }
 
 void FBO::createDepthStencilTexture(GLenum target, GLenum format, GLenum type) {
@@ -207,7 +230,7 @@ ref_ptr<Texture> FBO::createTexture(
 
 		case GL_TEXTURE_2D_ARRAY:
 			if (numSamples > 1) {
-				tex3d = ref_ptr<Texture2DArrayMultisample>::alloc(count);
+				tex3d = ref_ptr<Texture2DArrayMultisample>::alloc(numSamples, count);
 			} else {
 				tex3d = ref_ptr<Texture2DArray>::alloc(count);
 			}
@@ -245,13 +268,24 @@ ref_ptr<Texture> FBO::createTexture(
 	rs->activeTexture().push(GL_TEXTURE7);
 	for (GLuint j = 0; j < count; ++j) {
 		rs->textures().push(7, tex->textureBind());
-		tex->wrapping().push(GL_CLAMP_TO_EDGE);
-		tex->filter().push(GL_LINEAR);
+		if (numSamples == 1) {
+			tex->wrapping().push(GL_CLAMP_TO_EDGE);
+			tex->filter().push(GL_LINEAR);
+		}
 		tex->texImage();
+
 		rs->textures().pop(7);
 		tex->nextObject();
 	}
 	rs->activeTexture().pop();
+
+	/**
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex->id());
+	GLint tex_width = 0, tex_height = 0;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_WIDTH, &tex_width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_HEIGHT, &tex_height);
+	std::cout << "Albedo size: " << tex_width << "x" << tex_height << std::endl;
+	**/
 
 	return tex;
 }
@@ -261,9 +295,10 @@ ref_ptr<Texture> FBO::addTexture(
 		GLenum targetType,
 		GLenum format,
 		GLint internalFormat,
-		GLenum pixelType) {
+		GLenum pixelType,
+		GLuint numSamples) {
 	ref_ptr<Texture> tex = createTexture(width(), height(), depth_,
-										 count, targetType, format, internalFormat, pixelType);
+										 count, targetType, format, internalFormat, pixelType, numSamples);
 
 	for (GLuint j = 0; j < tex->numObjects(); ++j) {
 		addTexture(tex);

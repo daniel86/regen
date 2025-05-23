@@ -89,7 +89,7 @@ namespace regen {
 		explicit Texture2DMultisample(
 				GLsizei numSamples,
 				GLuint numTextures = 1,
-				GLboolean fixedLocations = GL_FALSE);
+				GLboolean fixedLocations = GL_TRUE);
 
 		// override
 		void texImage() const override;
@@ -111,7 +111,7 @@ namespace regen {
 		 * @param numSamples number of samples per texel.
 		 * @param fixedLocations use fixed locations.
 		 */
-		explicit Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations = GL_FALSE);
+		explicit Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations = GL_TRUE);
 
 		// override
 		void texImage() const override;

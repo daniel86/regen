@@ -69,6 +69,7 @@ Texture2DMultisampleDepth::Texture2DMultisampleDepth(
 		GLsizei numSamples,
 		GLboolean fixedSampleLaocations)
 		: Texture2DDepth() {
+	internalFormat_ = GL_DEPTH_COMPONENT24;
 	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
 	fixedsamplelocations_ = fixedSampleLaocations;
 	set_numSamples(numSamples);

@@ -180,7 +180,7 @@ namespace regen {
 		 * @param format the depth format.
 		 * @param type the depth type.
 		 */
-		void createDepthTexture(GLenum target, GLenum format, GLenum type);
+		void createDepthTexture(GLenum target, GLenum format, GLenum type, uint32_t numSamples=1);
 
 		/**
 		 * Creates depth-stencil attachment.
@@ -273,7 +273,8 @@ namespace regen {
 				GLenum targetType,
 				GLenum format,
 				GLint internalFormat,
-				GLenum pixelType);
+				GLenum pixelType,
+				GLuint numSamples=1);
 
 		/**
 		 * Add a Texture to the FBO.
@@ -358,7 +359,7 @@ namespace regen {
 		ref_ptr<UBO> uniforms_;
 		Vec4ui glViewport_;
 
-		void createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil);
+		void createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil, uint32_t numSamples);
 	};
 } // namespace
 
