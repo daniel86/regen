@@ -251,6 +251,7 @@ namespace regen {
 		 * @param format the texel format (GL_RGBA,...).
 		 * @param internalFormat internal texel format (GL_RGBA,...).
 		 * @param pixelType texel base type (GL_FLOAT,..).
+		 * @param numSamples number of samples for multisampling.
 		 * @return the texture created.
 		 */
 		static ref_ptr<Texture> createTexture(
@@ -261,7 +262,8 @@ namespace regen {
 				GLenum targetType,
 				GLenum format,
 				GLint internalFormat,
-				GLenum pixelType);
+				GLenum pixelType,
+				GLuint numSamples=1);
 
 		/**
 		 * Add n Texture's to the FBO.

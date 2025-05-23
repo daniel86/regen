@@ -95,7 +95,7 @@ namespace regen {
 		void texImage() const override;
 
 	private:
-		GLboolean fixedsamplelocations_;
+		GLboolean fixedSampleLocations_;
 	};
 
 	/**

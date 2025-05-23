@@ -418,6 +418,40 @@
         </node>
     </node>
 
+    <fbo id="msaa-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-size="16"
+         pixel-components="4">
+        <texture num-samples="4" id="diffuse"/>
+        <texture id="normal"/>
+        <depth pixel-size="24"/>
+    </fbo>
+
+    <node id="Silhouette-Alpha-Pass">
+        <node id="MSAA-Init">
+            <blit src-fbo="g-buffer" src-attachment="depth"
+                  dst-fbo="msaa-buffer" dst-attachment="depth" />
+        </node>
+
+        <node id="MSAA-Render">
+            <fbo id="msaa-buffer" draw-buffers="0,1" clear-buffers="0,1" />
+            <toggle key="MULTISAMPLE" value="1"/>
+            <toggle key="SAMPLE_ALPHA_TO_COVERAGE" value="1"/>
+            <!-- <toggle key="SAMPLE_ALPHA_TO_ONE" value="1"/> -->
+            <toggle key="BLEND" value="0"/>
+
+            <node id="tree-twig">
+                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
+                <input name="stiffness" type="float" value="0.5"/>
+                <mesh id="tree-mesh" mesh-index="1" />
+            </node>
+        </node>
+
+        <!-- TODO: how to combine after render? deferred shading ok, or definitely deferred? -->
+    </node>
+
+
     <!--**************************-->
     <!--**** Water Reflection ****-->
     <!--**************************-->

@@ -48,10 +48,10 @@ Texture2DDepth::Texture2DDepth(GLuint numTextures)
 Texture2DMultisample::Texture2DMultisample(
 		GLsizei numSamples,
 		GLuint numTextures,
-		GLboolean fixedSampleLaocations)
+		GLboolean fixedSampleLocations)
 		: Texture2D(numTextures) {
 	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
-	fixedsamplelocations_ = fixedSampleLaocations;
+	fixedSampleLocations_ = fixedSampleLocations;
 	samplerType_ = "sampler2DMS";
 	set_numSamples(numSamples);
 }
@@ -62,7 +62,7 @@ void Texture2DMultisample::texImage() const {
 							internalFormat_,
 							width(),
 							height(),
-							fixedsamplelocations_);
+							fixedSampleLocations_);
 }
 
 Texture2DMultisampleDepth::Texture2DMultisampleDepth(

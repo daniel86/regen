@@ -186,7 +186,8 @@ ref_ptr<Texture> FBO::createTexture(
 		GLenum targetType,
 		GLenum format,
 		GLint internalFormat,
-		GLenum pixelType) {
+		GLenum pixelType,
+		GLuint numSamples) {
 	RenderState *rs = RenderState::get();
 	ref_ptr<Texture> tex;
 	ref_ptr<Texture3D> tex3d;
@@ -196,24 +197,38 @@ ref_ptr<Texture> FBO::createTexture(
 			tex = ref_ptr<TextureRectangle>::alloc(count);
 			break;
 
+		case GL_TEXTURE_2D:
+			if (numSamples > 1) {
+				tex = ref_ptr<Texture2DMultisample>::alloc(numSamples, count);
+			} else {
+				tex = ref_ptr<Texture2D>::alloc(count);
+			}
+			break;
+
 		case GL_TEXTURE_2D_ARRAY:
-			tex3d = ref_ptr<Texture2DArray>::alloc(count);
+			if (numSamples > 1) {
+				tex3d = ref_ptr<Texture2DArrayMultisample>::alloc(count);
+			} else {
+				tex3d = ref_ptr<Texture2DArray>::alloc(count);
+			}
 			tex3d->set_depth(depth);
 			tex = tex3d;
 			break;
 
 		case GL_TEXTURE_CUBE_MAP:
 			tex = ref_ptr<TextureCube>::alloc(count);
+			if (numSamples > 1) {
+				REGEN_WARN("Multisample cube textures not supported. Using normal cube texture.");
+			}
 			break;
 
 		case GL_TEXTURE_3D:
 			tex3d = ref_ptr<Texture3D>::alloc(count);
+			if (numSamples > 1) {
+				REGEN_WARN("Multisample 3D textures not supported. Using normal 3D texture.");
+			}
 			tex3d->set_depth(depth);
 			tex = tex3d;
-			break;
-
-		case GL_TEXTURE_2D:
-			tex = ref_ptr<Texture2D>::alloc(count);
 			break;
 
 		default: // GL_TEXTURE_2D:

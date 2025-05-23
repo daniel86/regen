@@ -720,7 +720,7 @@ void MeshVector::loadIndexRange(
 		}
 	} else {
 		for (auto &index: indexRange) {
-			if (index >= 0 && index < static_cast<int>(meshes->size())) {
+			if (index >= 0 && index < static_cast<uint32_t>(meshes->size())) {
 				meshQueue.push((*meshes.get())[index]);
 			} else {
 				REGEN_WARN("Ignoring " << input.getDescription() << ", invalid mesh index '" << index << "'.");
