@@ -519,6 +519,7 @@ static void loadTexture(
 			// TODO: make configurable
 			//		- alpha discard threshold
 			//      - texel invert
+			REGEN_WARN("Enabling alpha discard for texture '" << stringVal.data << "'.");
 			texState->set_discardAlpha(true, 0.25f);
 			//texState->set_texelTransferKey("regen.states.textures.transfer.texel_invert");
 			break;
@@ -642,9 +643,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		// this is the color to be multiplied with the color of translucent light to
 		// construct the final 'destination color' for a particular position in the screen buffer.
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_TRANSPARENT, &aiCol)) {
-			// not supposed to be used like this but for now i think this is ok...
-			auto alpha = mat->alpha()->getVertex(0).r;
-			mat->alpha()->setVertex(0, alpha * (aiCol.r + aiCol.g + aiCol.b) / 3.0f);
+			// TODO: add support for AI_MATKEY_COLOR_TRANSPARENT
 		}
 
 		maxElements = 1;

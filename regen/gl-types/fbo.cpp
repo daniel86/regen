@@ -125,7 +125,6 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 	} else {
 		depth = ref_ptr<Texture2DDepth>::alloc();
 	}
-	depth->set_targetType(target);
 	depth->set_rectangleSize(width(), height());
 	depth->set_internalFormat(format);
 	depth->set_pixelType(type);
@@ -149,14 +148,6 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 		}
 	}
 	rs->drawFrameBuffer().pop();
-
-	/**
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depth->id());
-	GLint tex_width = 0, tex_height = 0;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_WIDTH, &tex_width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_HEIGHT, &tex_height);
-	std::cout << "Depth size: " << tex_width << "x" << tex_height << std::endl;
-	**/
 }
 
 void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, uint32_t numSamples) {
@@ -278,14 +269,6 @@ ref_ptr<Texture> FBO::createTexture(
 		tex->nextObject();
 	}
 	rs->activeTexture().pop();
-
-	/**
-	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, tex->id());
-	GLint tex_width = 0, tex_height = 0;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_WIDTH, &tex_width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D_MULTISAMPLE, 0, GL_TEXTURE_HEIGHT, &tex_height);
-	std::cout << "Albedo size: " << tex_width << "x" << tex_height << std::endl;
-	**/
 
 	return tex;
 }
@@ -510,6 +493,15 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 
 	rs->activeTexture().pop();
 	rs->drawFrameBuffer().pop();
+}
+
+void FBO::checkStatus() const {
+	RenderState::get()->drawFrameBuffer().push(id());
+	auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		REGEN_WARN("Framebuffer not complete: 0x" << std::hex << status << std::dec);
+	}
+	RenderState::get()->drawFrameBuffer().pop();
 }
 
 const ref_ptr<Texture> &FBO::firstColorTexture() const { return colorTextures_.front(); }

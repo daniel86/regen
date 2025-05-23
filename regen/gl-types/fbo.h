@@ -336,6 +336,12 @@ namespace regen {
 				GLenum filter = GL_NEAREST,
 				GLboolean keepRatio = GL_FALSE);
 
+		/**
+		 * Check the status of this FBO, and print warning
+		 * if the status is not "complete".
+		 */
+		void checkStatus() const;
+
 	protected:
 		// state stacks
 		ValueStack<DrawBuffers> drawBuffers_;

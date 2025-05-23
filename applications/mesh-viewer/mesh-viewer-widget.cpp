@@ -418,6 +418,8 @@ void MeshViewerWidget::gl_loadScene() {
 		GL_DEPTH_COMPONENT24,
 		GL_UNSIGNED_BYTE,
 		4);
+	fbo->checkStatus();
+
 	auto fboState = ref_ptr<FBOState>::alloc(fbo);
 	fboState->setClearDepth();
 	fboState->setClearColor({
@@ -425,40 +427,27 @@ void MeshViewerWidget::gl_loadScene() {
 		GL_COLOR_ATTACHMENT0 });
 	fboState->setDrawBuffers({GL_COLOR_ATTACHMENT0});
 
-	/**
-	RenderState::get()->drawFrameBuffer().push(fbo->id());
-	auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		std::cerr << "Framebuffer13 not complete: 0x" << std::hex << status << std::dec << std::endl;
-	}
-	RenderState::get()->drawFrameBuffer().pop();
-
-	RenderState::get()->drawFrameBuffer().push(fbo->id());
-	GLint type;
-	glGetFramebufferAttachmentParameteriv(
-		GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
-	std::cout << "COLOR_ATTACHMENT0 type: " << std::hex << type << std::endl;
-
-	glGetFramebufferAttachmentParameteriv(
-		GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-		GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
-	std::cout << "DEPTH_ATTACHMENT type: " << std::hex << type << std::endl;
-	RenderState::get()->drawFrameBuffer().pop();
-	**/
-
 	// create a root node
 	sceneRoot_->state()->joinStates(fboState);
 	app_->renderTree()->addChild(sceneRoot_);
+
 	// enable user camera
 	userCamera_ = createUserCamera(app_->windowViewport()->getVertex(0).r);
 	sceneRoot_->state()->joinStates(userCamera_);
+
 	// enable model transformation
 	modelTransform_ = ref_ptr<ModelTransformation>::alloc();
 	sceneRoot_->state()->joinStates(modelTransform_);
+
 	// enable wireframe mode
 	wireframeState_ = ref_ptr<FillModeState>::alloc(GL_FILL);
 	sceneRoot_->state()->joinStates(wireframeState_);
+
+	// setup MSAA + alpha coverage for mesh rendering
+	sceneRoot_->state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::BLEND, false));
+	sceneRoot_->state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::MULTISAMPLE, true));
+	sceneRoot_->state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::SAMPLE_ALPHA_TO_COVERAGE, true));
+
 	// enable light, and use it in direct shading
 	// TODO: better use deferred shading, and also allow to display the normals
 	auto shadingState = ref_ptr<DirectShading>::alloc();
@@ -479,6 +468,7 @@ void MeshViewerWidget::gl_loadScene() {
 	shadingState->addLight(sceneLight_[1]);
 	shadingState->addLight(sceneLight_[2]);
 	sceneRoot_->state()->joinStates(shadingState);
+
 	// finally, enable a blit state to copy the framebuffer to the screen
 	auto blit = ref_ptr<BlitToScreen>::alloc(
 			fbo, app_->windowViewport(), GL_COLOR_ATTACHMENT0);
