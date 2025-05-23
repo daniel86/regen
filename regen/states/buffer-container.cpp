@@ -87,11 +87,11 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	auto shaderType = glenum::glslDataType(
 			namedInput.in_->baseType(),
 			namedInput.in_->valsPerElement());
-	shaderInclude(REGEN_STRING("regen.buffer.tbo." << shaderType));
-	shaderDefine(
+	texState->shaderInclude(REGEN_STRING("regen.buffer.tbo." << shaderType));
+	texState->shaderDefine(
 	 		REGEN_STRING("in_" << namedInput.name_),
 	 		REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(regen_InstanceID))"));
-	shaderDefine(
+	texState->shaderDefine(
 			 REGEN_STRING("fetch_" << namedInput.name_ << "(i)"),
 			 REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(i))"));
 	bufferObjectOfInput_[namedInput.in_.get()] = tbo;

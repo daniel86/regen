@@ -30,28 +30,35 @@ void ImpostorBillboard::createShader(const ref_ptr<StateNode> &parentNode) {
 	//       effectively we loose UV coordinates, so we cannot apply any (uv-mapped) textures from
 	//       the original mesh to the impostor.
 	for (auto &mesh: meshes_) {
-		std::stack<State*> stateStack;
+		std::stack<ref_ptr<State>> stateStack;
 		for (auto &state: mesh.meshOrig->joined()) {
-			stateStack.push(state.get());
+			stateStack.push(state);
 		}
 		while (!stateStack.empty()) {
 			auto state = stateStack.top();
 			stateStack.pop();
-			auto *textureState = dynamic_cast<TextureState*>(state);
-			if (textureState && textureState->texture()->targetType() != GL_TEXTURE_BUFFER) {
-				// skip texture states, we will bake them into the snapshot textures
-				continue;
+			auto *textureState = dynamic_cast<TextureState*>(state.get());
+			if (textureState) {
+				if (textureState->texture()->targetType() == GL_TEXTURE_BUFFER) {
+					// TBOs must be joined, they could be used for instancing of uniforms
+					joinStates(state);
+				} else {
+					// skip (material) texture states, we will bake them into the snapshot textures
+					continue;
+				}
 			}
-			auto *hasInput = dynamic_cast<HasInput*>(state);
-			if (hasInput) {
-				for (auto &input: hasInput->inputContainer()->inputs()) {
-					if (!input.in_->isVertexAttribute()) {
-						joinShaderInput(input.in_, input.name_);
+			else {
+				auto *hasInput = dynamic_cast<HasInput*>(state.get());
+				if (hasInput) {
+					for (auto &input: hasInput->inputContainer()->inputs()) {
+						if (!input.in_->isVertexAttribute()) {
+							joinShaderInput(input.in_, input.name_);
+						}
 					}
 				}
 			}
 			for (auto &joined: state->joined()) {
-				stateStack.push(joined.get());
+				stateStack.push(joined);
 			}
 		}
 	}
