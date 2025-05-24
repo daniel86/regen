@@ -3,6 +3,7 @@
 #include "regen/shapes/obb.h"
 #include "regen/meshes/mesh-vector.h"
 #include "regen/shapes/spatial-index.h"
+#include "regen/shapes/cull-shape.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -333,6 +334,9 @@ static ref_ptr<Mesh> getMesh(scene::SceneLoader *scene, SceneInputNode &input) {
 	auto meshID = input.getValue("mesh-id");
 	auto meshVector = scene->getResource<MeshVector>(meshID);
 	if (meshVector.get() == nullptr) {
+		if (!meshID.empty()) {
+			REGEN_WARN("Unable to find MeshVector with ID '" << meshID << "' for input node " << input.getDescription() << ".");
+		}
 		return {};
 	}
 	auto meshIndex = input.getValue<unsigned int>("mesh-index", 0);
@@ -397,6 +401,7 @@ void ShapeProcessor::processInput(
 	auto isIndexShape = input.getValue<uint32_t>("index", 0u);
 	auto isGPUShape = input.getValue<uint32_t>("gpu", 0u);
 	auto isPhysicalShape = input.getValue<uint32_t>("physics", 0u);
+	auto isCullShape = input.getValue<uint32_t>("cull", 0u);
 	if (!isIndexShape && !isGPUShape && !isPhysicalShape) {
 		isMeshShape = 1;
 	}
@@ -454,10 +459,22 @@ void ShapeProcessor::processInput(
 				}
 				spatialIndex->insert(shape);
 			}
+
+			if (isCullShape) {
+				REGEN_DEBUG("Creating CPU cull shape for " << input.getDescription() << ".");
+				auto cullShape = ref_ptr<CullShape>::alloc(spatialIndex, input.getName());
+				if (mesh.get()) {
+					mesh->setCullShape(cullShape);
+				}
+				for (auto &part: parts) {
+					part->setCullShape(cullShape);
+				}
+			}
 		} else {
 			REGEN_WARN("Skipping shape node " << input.getDescription() << " without spatial index.");
 		}
 		if (mesh.get() && !mesh->hasBoundingShape()) {
+			// also create a shape without instances for the mesh bounding box
 			isMeshShape = 1;
 		}
 	}
@@ -468,6 +485,22 @@ void ShapeProcessor::processInput(
 			mesh->setBoundingShape(shape, isGPUShape);
 		} else {
 			REGEN_WARN("Skipping shape node " << input.getDescription() << " without shape.");
+		}
+		if (transform.get()) {
+			shape->setTransform(transform);
+		}
+		if (offset.get()) {
+			shape->setTransform(offset);
+		}
+		if (isGPUShape && isCullShape) {
+			REGEN_DEBUG("Creating GPU cull shape for " << input.getDescription() << ".");
+			auto cullShape = ref_ptr<CullShape>::alloc(shape, input.getName());
+			if (mesh.get()) {
+				mesh->setCullShape(cullShape);
+			}
+			for (auto &part: parts) {
+				part->setCullShape(cullShape);
+			}
 		}
 	}
 }

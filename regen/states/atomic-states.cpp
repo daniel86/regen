@@ -45,3 +45,7 @@ ref_ptr<State> CullState::load(LoadingContext &ctx, scene::SceneInputNode &input
 		return orderState;
 	}
 }
+
+ref_ptr<State> SampleShadingState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	return ref_ptr<SampleShadingState>::alloc(input.getValue<float>("min-samples", 4.0f));
+}

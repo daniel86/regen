@@ -453,21 +453,31 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		Vec3i sizeAbs = getSize(viewport, sizeMode, sizeRel);
 
 		auto texCount = input.getValue<GLuint>("count", 1);
-		auto pixelSize = input.getValue<GLuint>("pixel-size", 16);
 		auto pixelComponents = input.getValue<GLuint>("pixel-components", 4);
 		auto pixelType = glenum::pixelType(
 				input.getValue<std::string>("pixel-type", "UNSIGNED_BYTE"));
 		auto textureTarget = glenum::textureTarget(
 				input.getValue<std::string>("target", sizeAbs.z > 1 ? "TEXTURE_3D" : "TEXTURE_2D"));
+		auto numSamples = input.getValue<GLuint>("num-samples", 1);
 
+		GLenum internalFormat;
+		if (input.hasAttribute("internal-format")) {
+			internalFormat = glenum::textureInternalFormat(
+					input.getValue<std::string>("internal-format", "RGBA8"));
+		} else {
+			auto pixelSize = input.getValue<GLuint>("pixel-size", 16);
+			internalFormat = glenum::textureInternalFormat(pixelType,
+					pixelComponents, pixelSize);
+		}
 
 		tex = FBO::createTexture(
 				sizeAbs.x, sizeAbs.y, sizeAbs.z,
 				texCount,
 				textureTarget,
 				glenum::textureFormat(pixelComponents),
-				glenum::textureInternalFormat(pixelType, pixelComponents, pixelSize),
-				pixelType);
+				internalFormat,
+				pixelType,
+				numSamples);
 
 		if (input.hasAttribute("size-mode") && sizeMode == "rel") {
 			auto resizer = ref_ptr<TextureResizer>::alloc(tex, viewport, sizeRel.x, sizeRel.y);
@@ -488,6 +498,10 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 void Texture::configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input) {
 	if (!input.getValue("sampler-type").empty()) {
 		tex->set_samplerType(input.getValue("sampler-type"));
+	}
+	if (tex->numSamples() > 1) {
+		// glTexParameter* not allowed for multi-sampled textures
+		return;
 	}
 	tex->begin(RenderState::get(), 0);
 	{

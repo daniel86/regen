@@ -360,6 +360,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 			if (lodMeshVec->size() > 1) {
 				REGEN_WARN("multiple lod mesh indices in '" << meshChild->getDescription() << "'.");
 			}
+			lodMesh->shaderDefine("HAS_LOD", "TRUE");
 			REGEN_DEBUG("Adding LOD mesh '" << meshChild->getName() << "' to base mesh.");
 			baseMesh->addMeshLOD(Mesh::MeshLOD(lodMesh));
 		}
@@ -378,17 +379,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 			if (numLODs == 0) {
 				continue;
 			}
-			auto thresholds_i = thresholds;
-			if (numLODs < 4) {
-				thresholds_i.z = FLT_MAX;
-			}
-			if (numLODs < 3) {
-				thresholds_i.y = FLT_MAX;
-			}
-			if (numLODs < 2) {
-				thresholds_i.x = FLT_MAX;
-			}
-			mesh->setLODThresholds(thresholds_i);
+			mesh->setLODThresholds(thresholds);
 		}
 	}
 

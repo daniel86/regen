@@ -165,12 +165,12 @@ void Sphere::updateAttributes(const Config &cfg) {
 			numFaces = 2 * lodLevel * lodLevel;
 		}
 		auto &x = meshLODs_.emplace_back();
-		x.numVertices = numFaces * 2;
-		x.numIndices = numFaces * 3;
-		x.vertexOffset = vertexOffset;
-		x.indexOffset = indexOffset;
-		vertexOffset += x.numVertices;
-		indexOffset += x.numIndices;
+		x.d->numVertices = numFaces * 2;
+		x.d->numIndices = numFaces * 3;
+		x.d->vertexOffset = vertexOffset;
+		x.d->indexOffset = indexOffset;
+		vertexOffset += x.d->numVertices;
+		indexOffset += x.d->numIndices;
 	}
 	GLuint numVertices = vertexOffset;
 	GLuint numIndices = indexOffset;
@@ -196,8 +196,8 @@ void Sphere::updateAttributes(const Config &cfg) {
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
 						 LODs[i],
-						 meshLODs_[i].vertexOffset,
-						 meshLODs_[i].indexOffset);
+						 meshLODs_[i].d->vertexOffset,
+						 meshLODs_[i].d->indexOffset);
 	}
 
 	begin(InputContainer::INTERLEAVED);
@@ -216,7 +216,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 	minPosition_ = -cfg.posScale * 0.5f;

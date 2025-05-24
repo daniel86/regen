@@ -75,9 +75,9 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 		GLuint lodLevel = 4u * pow(lod, 2);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
-		x.numVertices = lodLevel + 2;
-		x.vertexOffset = vertexOffset;
-		vertexOffset += x.numVertices;
+		x.d->numVertices = lodLevel + 2;
+		x.d->vertexOffset = vertexOffset;
+		vertexOffset += x.d->numVertices;
 	}
 	GLuint numVertices = vertexOffset;
 
@@ -91,8 +91,8 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
 						 LODs[i],
-						 meshLODs_[i].vertexOffset,
-						 meshLODs_[i].indexOffset);
+						 meshLODs_[i].d->vertexOffset,
+						 meshLODs_[i].d->indexOffset);
 	}
 
 	begin(InputContainer::INTERLEAVED);
@@ -228,16 +228,16 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 		GLuint lodLevel = 4u * pow(lod, 2);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
-		x.numVertices = lodLevel + 1;
-		if (cfg.isBaseRequired) x.numVertices += 1;
-		x.vertexOffset = vertexOffset;
-		vertexOffset += x.numVertices;
+		x.d->numVertices = lodLevel + 1;
+		if (cfg.isBaseRequired) x.d->numVertices += 1;
+		x.d->vertexOffset = vertexOffset;
+		vertexOffset += x.d->numVertices;
 
 		GLuint numFaces = lodLevel;
 		if (cfg.isBaseRequired) { numFaces *= 2; }
-		x.numIndices = numFaces * 3;
-		x.indexOffset = indexOffset;
-		indexOffset += x.numIndices;
+		x.d->numIndices = numFaces * 3;
+		x.d->indexOffset = indexOffset;
+		indexOffset += x.d->numIndices;
 	}
 	GLuint numVertices = vertexOffset;
 	GLuint numIndices = indexOffset;
@@ -253,8 +253,8 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
 						 LODs[i],
-						 meshLODs_[i].vertexOffset,
-						 meshLODs_[i].indexOffset);
+						 meshLODs_[i].d->vertexOffset,
+						 meshLODs_[i].d->indexOffset);
 	}
 
 	begin(InputContainer::INTERLEAVED);
@@ -266,7 +266,7 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 }

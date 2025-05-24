@@ -110,15 +110,49 @@ void main() {
 #ifdef DRAW_BORDERS
 #include regen.filter.sampling.drawEdges
 #endif
+#define NUM_SAMPLES ${TEX_NUM_SAMPLES${TEX_ID_inputTexture}}
+#if NUM_SAMPLES > 1
+#define HAS_INPUT_MULTISAMPLE
+#endif
+
+#ifdef HAS_INPUT_MULTISAMPLE
+vec4 coverageAverage_MS(vec2 uv) {
+    ivec2 msaaCoord = ivec2(uv * in_viewport);
+    vec3 color = vec3(0.0);
+    float coverageSum = 0.0, coverage;
+    vec4 x;
+    // Accumulate only samples that actually contributed (alpha > threshold)
+#for SAMPLE_I to NUM_SAMPLES
+    x = texelFetch(in_inputTexture, msaaCoord, ${SAMPLE_I});
+    #ifdef HAS_alphaThreshold
+    coverage = step(in_alphaThreshold, x.a);
+    #else
+    coverage = step(0.1, x.a);
+    #endif
+    color += coverage*x.rgb;
+    coverageSum += coverage;
+#endfor
+    color /= max(coverageSum, 1.0);
+    return vec4(color, coverageSum / float(NUM_SAMPLES));
+}
+#endif
 
 void main() {
     vec2 uv = gl_FragCoord.xy*in_inverseViewport;
 #if TEXTURE_SEMANTICS == DEPTH
+    #ifdef HAS_INPUT_MULTISAMPLE
+    writeDepth(coverageAverage_MS(computeTexco(uv)).r);
+    #else
     writeDepth(texture(in_inputTexture, computeTexco(uv)).r);
+    #endif
 #elif TEXTURE_SEMANTICS == SHADOW
     writeDepth(texture(in_inputTexture, vec3(computeTexco(uv),1.0)));
 #else
+    #ifdef HAS_INPUT_MULTISAMPLE
+    out_color = coverageAverage_MS(computeTexco(uv));
+    #else
     out_color = texture(in_inputTexture, computeTexco(uv));
+    #endif
 #endif
 #ifdef DRAW_BORDERS
     drawEdges(uv);

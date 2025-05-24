@@ -655,7 +655,7 @@ void texel_norTan(inout vec4 normal) {
 #define2 REGEN_TRANSFER_NORMAL_EYE_
 #include regen.states.camera.transformEyeToWorld
 void texel_norEye(inout vec4 normal) {
-    // Input: normal in eye space
+    // Input: normal in eye space (normalized to [0,1] range)
     // Output: normal in world space
     normal.xyz = normal.xyz*2.0 - vec3(1.0);
     normal.xyz = normalize( normal.xyz );
@@ -663,12 +663,31 @@ void texel_norEye(inout vec4 normal) {
 }
 #endif
 
+-- transfer.texel_norWorld
+#ifndef REGEN_TRANSFER_NORMAL_WORLD_
+#define2 REGEN_TRANSFER_NORMAL_WORLD_
+#include regen.models.tf.transformModel
+void texel_norWorld(inout vec4 normal) {
+    // Input: normal in world space (normalized to [0,1] range)
+    // Output: normal in world space
+    normal.xyz = normal.xyz*2.0 - vec3(1.0);
+    normal.xyz = normalize( normal.xyz );
+#ifdef HAS_modelMatrix
+    normal.xyz = normalize(mat3(in_modelMatrix) * normal.xyz);
+#endif
+}
+#endif
+
 -- transfer.texel_norUnity
-// TODO: unity-style normal maps are all red with alpha. I did not really find good documentation
-//       but below looks right for an example mesh. Not sure though if the format should be supported
-//       and how to handle in assimp loader. With above there will be artifacts using unity-style normal maps.
-//vec2 bump${INDEX}_u = (texel${INDEX}.ra * 2.0f) - 1.0f;
-//vec3 bump${INDEX} = normalize(vec3(bump${INDEX}_u.yyx));
+#ifndef REGEN_TRANSFER_NORMAL_UNITY_
+#define2 REGEN_TRANSFER_NORMAL_UNITY_
+void texel_norUnity(inout vec4 normal) {
+    // Input: normal in unity style (normalized to [0,1] range)
+    // Output: normal in world space
+    normal.xy = vec2(normal.a, normal.g) * 2.0 - 1.0;
+    normal.z  = sqrt(1.0 - clamp(dot(normal.xy, normal.xy), 0.0, 1.0));
+}
+#endif
 
 -- transfer.texel_invert
 #ifndef REGEN_TRANSFER_TEXEL_INVERT_

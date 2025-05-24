@@ -105,8 +105,12 @@ namespace regen {
 			TEXEL_TRANSFER_IDENTITY,
 			/** eye normal mapping. */
 			TEXEL_TRANSFER_EYE_NORMAL,
+			/** world normal mapping. */
+			TEXEL_TRANSFER_WORLD_NORMAL,
 			/** tangent normal mapping. */
 			TEXEL_TRANSFER_TANGENT_NORMAL,
+			/** unity-style normal mapping. */
+			TEXEL_TRANSFER_UNITY_NORMAL,
 			/** out = 1 - in */
 			TEXEL_TRANSFER_INVERT,
 			TEXEL_TRANSFER_GRAYSCALE,
@@ -267,6 +271,21 @@ namespace regen {
 		 * of the texture.
 		 */
 		auto ignoreAlpha() const { return ignoreAlpha_; }
+
+		/**
+		 * @return true if the texture is a normal map.
+		 */
+		bool isNormalMap() const { return mapTo_ == MAP_TO_NORMAL; }
+
+		/**
+		 * @return true if the texture is a height map.
+		 */
+		bool isHeightMap() const { return mapTo_ == MAP_TO_HEIGHT; }
+
+		/**
+		 * @return true if the texture is a displacement map.
+		 */
+		bool isDisplacementMap() const { return mapTo_ == MAP_TO_DISPLACEMENT; }
 
 		// override
 		void enable(RenderState *rs) override;

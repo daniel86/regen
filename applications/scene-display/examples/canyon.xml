@@ -62,6 +62,15 @@
         <texture id="emission" pixel-components="3"/>
         <depth pixel-size="24"/>
     </fbo>
+    <!-- FBO for silhouette-based alpha with msaa + alpha coverage -->
+    <fbo id="silhouette-buffer"
+         size-mode="rel" size="1.0,1.0"
+         pixel-type="UNSIGNED_BYTE"
+         pixel-components="4"
+         num-samples="4">
+        <texture id="diffuse" pixel-size="8"/>
+        <depth pixel-size="24"/>
+    </fbo>
     <fbo id="reflection-buffer"
          size="512, 512"
          pixel-type="UNSIGNED_BYTE"
@@ -281,7 +290,7 @@
         <transform id="grass-tf">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
-        <shape id="grass-shape" index="1" type="aabb"
+        <shape id="grass-shape" index="1" cull="1" type="aabb"
                 box-size="2.0, {{map-height}}, 2.0"
                 box-center="0.0, {{map-height-half}}, 0.0"
                 transform-id="grass-tf">
@@ -290,7 +299,7 @@
     </mesh>
 
     <node id="Grass">
-        <node lod-shape="grass-shape">
+        <node>
             <define key="DISCARD_ALPHA" value="TRUE"/>
             <blend mode="SRC"/>
             <material
@@ -393,62 +402,114 @@
             </mesh>
         </lod-meshes>
         <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
+            <!--
             <set mode="random" min="1,1,1" max="5,4,2"/>
+            -->
+            <set mode="random" min="0.6,0.4,0" max="1,1,1"/>
         </input>
-        <shape id="tree-shape" index="1" type="aabb" mesh-id="tree-mesh" mesh-index="0" transform-id="tree-tf">
+        <shape id="tree-shape" cull="1" index="1" type="aabb" mesh-id="tree-mesh" mesh-index="0" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1" />
         </shape>
     </mesh>
 
     <node id="Trees">
-        <!-- <lod shape="tree-shape" /> -->
-        <node lod-shape="tree-shape">
-            <node id="tree-trunk">
-                <mesh id="tree-mesh" mesh-index="0" />
-            </node>
-            <node id="tree-twig">
-                <define key="DISCARD_ALPHA" value="TRUE"/>
-                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
-                <input name="stiffness" type="float" value="0.5"/>
-
-                <mesh id="tree-mesh" mesh-index="1" />
-                <!-- <mesh id="tree-mesh" mesh-index="1" filter="opaque,silhouette,transparent" /> -->
-            </node>
+        <node id="tree-trunk">
+            <mesh id="tree-mesh" mesh-index="0" update-visibility="1" />
+        </node>
+        <node id="tree-twig">
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <texture name="windFlow" id="wind-flowmap" mapping="custom" />
+            <input name="stiffness" type="float" value="0.5"/>
+            <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
         </node>
     </node>
 
-    <fbo id="msaa-buffer"
-         size-mode="rel" size="1.0,1.0"
-         pixel-type="UNSIGNED_BYTE"
-         pixel-size="16"
-         pixel-components="4">
-        <texture num-samples="4" id="diffuse"/>
-        <texture id="normal"/>
-        <depth pixel-size="24"/>
-    </fbo>
+    <!--**************************-->
+    <!--** Silhouette Rendering **-->
+    <!--**************************-->
 
-    <node id="Silhouette-Alpha-Pass">
-        <node id="MSAA-Init">
-            <blit src-fbo="g-buffer" src-attachment="depth"
-                  dst-fbo="msaa-buffer" dst-attachment="depth" />
+    <node id="Silhouette-Shadow-Meshes">
+        <node id="tree-twig">
+            <texture name="windFlow" id="wind-flowmap" mapping="custom" />
+            <input name="stiffness" type="float" value="0.5"/>
+            <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
         </node>
+    </node>
 
-        <node id="MSAA-Render">
-            <fbo id="msaa-buffer" draw-buffers="0,1" clear-buffers="0,1" />
+    <node id="Silhouette-Non-Shadow-Meshes">
+    </node>
+
+    <node id="Semi-Transparent-Pass">
+        <!-- copy over the depth buffer from the g-buffer -->
+        <node id="Depth-Blit-Input">
+            <blit src-fbo="g-buffer" src-attachment="depth"
+                  dst-fbo="silhouette-buffer" dst-attachment="depth" />
+        </node>
+        <!-- render the silhouette meshes into the buffer, and copy resulting depth into G-buffer. -->
+        <node id="Silhouette-Render">
+            <fbo id="silhouette-buffer" draw-buffers="0" clear-buffers="0" clear-color="0,0,0,0" />
+            <depth test="1" write="1"/>
             <toggle key="MULTISAMPLE" value="1"/>
             <toggle key="SAMPLE_ALPHA_TO_COVERAGE" value="1"/>
-            <!-- <toggle key="SAMPLE_ALPHA_TO_ONE" value="1"/> -->
             <toggle key="BLEND" value="0"/>
+            <!-- <toggle key="SAMPLE_SHADING" value="1"/> -->
+            <!--
+            <sample-shading min-samples="1.0" />
+            -->
 
-            <node id="tree-twig">
-                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
-                <input name="stiffness" type="float" value="0.5"/>
-                <mesh id="tree-mesh" mesh-index="1" />
+            <node id="Direct-Silhouettes">
+                <define key="OUTPUT_TYPE" value="DIRECT"/>
+                <direct-shading ambient="0.1,0.1,0.1">
+                    <direct-lights>
+                        <!--
+                        <light id="sky-sun" shadow-buffer="sun-shadow" shadow-attachment="depth" shadow-camera="sun-camera" />
+                        -->
+                        <light id="sky-sun" />
+                    </direct-lights>
+                    <direct-pass>
+                        <node>
+                            <node id="tree-twig">
+                                <!--
+                                <define key="DISCARD_ALPHA" value="TRUE"/>
+                                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                                -->
+                                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
+                                <input name="stiffness" type="float" value="0.5"/>
+                                <input name="brightness" type="float" value="2.8"/>
+                                <input name="alphaMaskMin" type="float" value="0.3"/>
+                                <input name="alphaMaskMax" type="float" value="0.5"/>
+                                <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
+                            </node>
+                        </node>
+                        <!--
+                        <node import="Silhouette-Shadow-Meshes" />
+                        <node import="Silhouette-Non-Shadow-Meshes" />
+                        -->
+                    </direct-pass>
+                </direct-shading>
             </node>
         </node>
-
-        <!-- TODO: how to combine after render? deferred shading ok, or definitely deferred? -->
+        <!-- Finally, blit the silhouette buffer to the screen. -->+
+        <node id="Silhouette-Blit">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <depth test="0" write="0"/>
+            <blend mode="alpha"/>
+            <input name="alphaThreshold" type="float" value="0.25"/>
+            <texture name="inputTexture" fbo="silhouette-buffer" attachment="0"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+            <!--
+            <blit dst-fbo="g-buffer" dst-attachment="1"
+                  src-fbo="silhouette-buffer" src-attachment="0"
+                  filter-mode="NEAREST" />
+            -->
+        </node>
+        <!-- Resolve updated depth buffer into G-buffer depth.  -->
+        <node id="Depth-Blit-Output">
+            <blit dst-fbo="g-buffer" dst-attachment="depth"
+                  src-fbo="silhouette-buffer" src-attachment="depth"
+                  filter-mode="NEAREST"/>
+        </node>
     </node>
 
 
@@ -461,12 +522,11 @@
         <camera id="reflection-camera"/>
         <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
-        <node>
+        <node id="Reflection-Pass-Deferred">
             <blend mode="src"/>
             <depth test="1" write="1"/>
             <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
-
-            <node import="Shadow-Caster"/>
+            <node import="Shadow-Caster-All"/>
             <node import="Scene-Geometry"/>
         </node>
 
@@ -602,7 +662,7 @@
                 <!-- <object type="attractor" tf="hyena-tf" /> -->
             </animation>
         </transform>
-        <shape id="fish-shape" gpu="1" type="sphere" mesh-id="fish-mesh" />
+        <shape id="fish-shape" cull="1" gpu="1" type="sphere" mesh-id="fish-mesh" transform-id="fish-tf" />
         <!-- <shape id="fish-shape" index="1" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 
@@ -612,22 +672,17 @@
             <scale value="0.005, 0.005, 0.005"/>
             <translate value="-2, 2.5, -24"/>
         </transform>
-        <shape id="hyena-shape" index="1" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
+        <shape id="hyena-shape" index="1" cull="1" type="obb" mesh-id="hyena-mesh" transform-id="hyena-tf" />
     </mesh>
 
     <node id="Mammals">
-        <node id="hyena0" lod-shape="hyena-shape">
+        <node id="hyena0">
             <mesh id="hyena-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>
 
     <node id="Fish">
-        <!--
-        <node id="fish0" lod-shape="fish-shape">
-            <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
-        </node>
-        -->
-        <node id="fish0" lod-mesh="fish-mesh" lod-tf="fish-tf">
+        <node id="fish0">
             <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -655,6 +710,21 @@
     <node id="Shadow-Caster">
         <node import="Mammals"/>
         <node import="Trees"/>
+    </node>
+
+    <node id="Shadow-Caster-All">
+        <node import="Shadow-Caster"/>
+        <!--
+        <node>
+            <define key="DISCARD_ALPHA" value="TRUE"/>
+            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <node id="tree-twig">
+                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
+                <input name="stiffness" type="float" value="0.5"/>
+                <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
+            </node>
+        </node>
+        -->
     </node>
 
     <node id="Non-Shadow-Caster">
@@ -865,6 +935,14 @@
                     <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
                 </view>
             </node>
+
+            <!--
+            <node import="Semi-Transparent-Pass">
+            </node>
+            <view id="Semi-Transparent Meshes">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+            -->
 
             <node id="Post-Shading">
                 <node import="Background-Objects"/>

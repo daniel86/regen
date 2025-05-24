@@ -1,10 +1,3 @@
-/*
- * direct.cpp
- *
- *  Created on: 25.02.2013
- *      Author: daniel
- */
-
 #include <regen/utility/string-util.h>
 
 #include "direct-shading.h"
@@ -146,6 +139,8 @@ void DirectShading::addLight(
 		joinShaderInput(shadow->size(), REGEN_LIGHT_NAME("shadowSize", lightID));
 		directLight.shadowMap_ =
 				ref_ptr<TextureState>::alloc(shadow, REGEN_LIGHT_NAME("shadowTexture", lightID));
+		directLight.shadowMap_->set_mapping(TextureState::MAPPING_CUSTOM);
+		directLight.shadowMap_->set_mapTo(TextureState::MAP_TO_CUSTOM);
 		joinStates(directLight.shadowMap_);
 		if (shadowColor.get()) {
 			directLight.shadowColorMap_ =
@@ -231,6 +226,7 @@ ref_ptr<DirectShading> DirectShading::load(LoadingContext &ctx, scene::SceneInpu
 			REGEN_WARN("Unable to find Light for '" << n->getDescription() << "'.");
 			continue;
 		}
+		REGEN_INFO("processing light '" << n->getName() << "' for " << input.getDescription() << ".");
 
 		auto shadowFiltering =
 				n->getValue<ShadowFilterMode>("shadow-filter", SHADOW_FILTERING_NONE);
@@ -252,10 +248,13 @@ ref_ptr<DirectShading> DirectShading::load(LoadingContext &ctx, scene::SceneInpu
 				REGEN_WARN("Unable to find ShadowMap for '" << n->getDescription() << "'.");
 			}
 		}
-		if (n->hasAttribute("shadow-buffer") || n->hasAttribute("shadow-color-texture")) {
+		if (n->hasAttribute("shadow-color-attachment") || n->hasAttribute("shadow-color-texture")) {
 			shadowColorMap = TextureState::getTexture(scene, *n.get(),
 													  "shadow-color-texture", "shadow-buffer",
 													  "shadow-color-attachment");
+			if (shadowMap.get() == nullptr) {
+				REGEN_WARN("Unable to find Shadow-Color-Map for '" << n->getDescription() << "'.");
+			}
 		}
 		shadingState->addLight(light, shadowCamera, shadowMap, shadowColorMap, shadowFiltering);
 	}

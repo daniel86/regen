@@ -177,12 +177,12 @@ void Torus::updateAttributes(const Config &cfg) {
 		GLuint lodLevel = 4u * pow(2u, lod);
 		LODs.push_back(lodLevel);
 		auto &x = meshLODs_.emplace_back();
-		x.numVertices = (lodLevel + 1) * (lodLevel + 1);
-		x.numIndices = lodLevel * lodLevel * 6;
-		x.vertexOffset = vertexOffset;
-		x.indexOffset = indexOffset;
-		vertexOffset += x.numVertices;
-		indexOffset += x.numIndices;
+		x.d->numVertices = (lodLevel + 1) * (lodLevel + 1);
+		x.d->numIndices = lodLevel * lodLevel * 6;
+		x.d->vertexOffset = vertexOffset;
+		x.d->indexOffset = indexOffset;
+		vertexOffset += x.d->numVertices;
+		indexOffset += x.d->numIndices;
 	}
 	GLuint numVertices = vertexOffset;
 	GLuint numIndices = indexOffset;
@@ -206,8 +206,8 @@ void Torus::updateAttributes(const Config &cfg) {
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
 						 LODs[i],
-						 meshLODs_[i].vertexOffset,
-						 meshLODs_[i].indexOffset);
+						 meshLODs_[i].d->vertexOffset,
+						 meshLODs_[i].d->indexOffset);
 	}
 
 	// Set up the vertex attributes
@@ -227,7 +227,7 @@ void Torus::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 

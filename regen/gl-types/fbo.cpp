@@ -339,13 +339,10 @@ void FBO::blitCopy(
 	if (writeAttachment != GL_DEPTH_ATTACHMENT) {
 		dst.drawBuffers().push(writeAttachment);
 	}
-
-	auto srcTex = colorTextures_[readAttachment - GL_COLOR_ATTACHMENT0];
-	auto dstTex = dst.colorTextures_[writeAttachment - GL_COLOR_ATTACHMENT0];
 	if (keepRatio) {
-		GLuint dstWidth = dst.width();
-		GLuint dstHeight = dst.width() * ((GLfloat) width() / height());
-		GLuint offsetX, offsetY;
+		uint32_t dstWidth = dst.width();
+		uint32_t dstHeight = dst.width() * ((GLfloat) width() / height());
+		uint32_t offsetX, offsetY;
 		if (dstHeight > dst.height()) {
 			dstHeight = dst.height();
 			dstWidth = dst.height() * ((GLfloat) height() / width());
@@ -356,15 +353,22 @@ void FBO::blitCopy(
 			offsetY = (dst.height() - dstHeight) / 2;
 		}
 		glBlitFramebuffer(
-				0, 0, width(), height(),
-				offsetX, offsetY,
-				offsetX + dstWidth,
-				offsetY + dstHeight,
+				0, 0,
+				static_cast<int32_t>(width()),
+				static_cast<int32_t>(height()),
+				static_cast<int32_t>(offsetX),
+				static_cast<int32_t>(offsetY),
+				static_cast<int32_t>(offsetX + dstWidth),
+				static_cast<int32_t>(offsetY + dstHeight),
 				mask, filter);
 	} else {
 		glBlitFramebuffer(
-				0, 0, width(), height(),
-				0, 0, dst.width(), dst.height(),
+				0, 0,
+				static_cast<int32_t>(width()),
+				static_cast<int32_t>(height()),
+				0, 0,
+				static_cast<int32_t>(dst.width()),
+				static_cast<int32_t>(dst.height()),
 				mask, filter);
 	}
 
@@ -393,9 +397,9 @@ void FBO::blitCopyToScreen(
 	screen().drawBuffer_.push(GL_FRONT);
 
 	if (keepRatio) {
-		GLuint dstWidth = screenWidth;
-		GLuint dstHeight = screenWidth * ((GLfloat) width() / height());
-		GLuint offsetX, offsetY;
+		uint32_t dstWidth = screenWidth;
+		uint32_t dstHeight = screenWidth * ((GLfloat) width() / height());
+		uint32_t offsetX, offsetY;
 		if (dstHeight > screenHeight) {
 			dstHeight = screenHeight;
 			dstWidth = screenHeight * ((GLfloat) height() / width());
@@ -406,15 +410,22 @@ void FBO::blitCopyToScreen(
 			offsetY = (screenHeight - dstHeight) / 2;
 		}
 		glBlitFramebuffer(
-				0, 0, width(), height(),
-				offsetX, offsetY,
-				offsetX + dstWidth,
-				offsetY + dstHeight,
+				0, 0,
+				static_cast<int32_t>(width()),
+				static_cast<int32_t>(height()),
+				static_cast<int32_t>(offsetX),
+				static_cast<int32_t>(offsetY),
+				static_cast<int32_t>(offsetX + dstWidth),
+				static_cast<int32_t>(offsetY + dstHeight),
 				mask, filter);
 	} else {
 		glBlitFramebuffer(
-				0, 0, width(), height(),
-				0, 0, screenWidth, screenHeight,
+				0, 0,
+				static_cast<int32_t>(width()),
+				static_cast<int32_t>(height()),
+				0, 0,
+				static_cast<int32_t>(screenWidth),
+				static_cast<int32_t>(screenHeight),
 				mask, filter);
 	}
 
@@ -562,13 +573,14 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 					n->getValue<std::string>("pixel-type", "UNSIGNED_BYTE"));
 			GLenum textureTarget = glenum::textureTarget(
 					n->getValue<std::string>("target", "TEXTURE_2D"));
+			auto numSamples = n->getValue<GLuint>("num-samples", 1);
 
 			GLenum depthFormat;
 			if (depthSize <= 16) depthFormat = GL_DEPTH_COMPONENT16;
 			else if (depthSize <= 24) depthFormat = GL_DEPTH_COMPONENT24;
 			else depthFormat = GL_DEPTH_COMPONENT32;
 
-			fbo->createDepthTexture(textureTarget, depthFormat, depthType);
+			fbo->createDepthTexture(textureTarget, depthFormat, depthType, numSamples);
 
 			ref_ptr<Texture> tex = fbo->depthTexture();
 			Texture::configure(tex, *n.get());
@@ -595,10 +607,12 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			else if (stencilSize < 16) stencilFormat = GL_STENCIL_INDEX4;
 			else stencilFormat = GL_STENCIL_INDEX8;
 
-			auto stencilTexture = fbo->createTexture(
+			auto stencilTexture = FBO::createTexture(
 					fbo->width(), fbo->height(), fbo->depth(),
 					1, textureTarget,
-					GL_STENCIL_INDEX, stencilFormat, pixelType);
+					GL_STENCIL_INDEX,
+					stencilFormat,
+					pixelType);
 			fbo->set_stencilTexture(stencilTexture);
 		} else {
 			REGEN_WARN("No processor registered for '" << n->getDescription() << "'.");
@@ -615,6 +629,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 		fbo->drawBuffers().pop();
 	}
 	GL_ERROR_LOG();
+	fbo->checkStatus();
 
 	return fbo;
 }

@@ -64,7 +64,7 @@ Shading shade(vec3 P, vec3 N, float depth, float shininess)
         vec4 shadowCoord = dirShadowCoord(shadowLayer, P,
             in_lightMatrix${__ID}[shadowLayer]);
         // compute filtered shadow
-        attenuation *= dirShadow${SHADOW_MAP_FILTER}(in_shadowTexture, shadowCoord);
+        attenuation *= dirShadow${SHADOW_MAP_FILTER${__ID}}(in_shadowTexture${__ID}, shadowCoord);
     #endif // LIGHT_TYPE${__ID} == DIRECTIONAL
     #if LIGHT_TYPE${__ID} == POINT
         #if POINT_LIGHT_TYPE${__ID} == PARABOLIC

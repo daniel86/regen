@@ -92,6 +92,9 @@ namespace regen {
 		std::map<std::string, ShaderInputList::iterator> inputNames_;
 		std::set<const TextureState*> textureStates_;
 		GLuint numLights_;
+		bool hasFBO_ = false;
+
+		void preAddState(const State *s);
 	};
 } // namespace
 

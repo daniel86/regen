@@ -434,6 +434,8 @@ void Shader::setupInputLocations() {
 			case GL_SAMPLER_2D_SHADOW:
 			case GL_SAMPLER_CUBE_SHADOW:
 			case GL_SAMPLER_2D_ARRAY_SHADOW:
+			case GL_SAMPLER_2D_MULTISAMPLE:
+			case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
 				samplerLocations_[uniformName] = loc;
 				break;
 

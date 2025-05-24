@@ -1,12 +1,5 @@
-/*
- * geometric-culling.h
- *
- *  Created on: Oct 17, 2014
- *      Author: daniel
- */
-
-#ifndef GEOMETRIC_CULLING_H_
-#define GEOMETRIC_CULLING_H_
+#ifndef REGEN_LOD_STATE_H_
+#define REGEN_LOD_STATE_H_
 
 #include <regen/states/state-node.h>
 #include <regen/shapes/spatial-index.h>
@@ -16,33 +9,19 @@
 #include "regen/gl-types/pbo.h"
 #include "regen/gl-types/buffer-mapping.h"
 #include "radix-sort.h"
+#include "regen/shapes/cull-shape.h"
 
 namespace regen {
 	/**
 	 * @brief Dynamic LOD handling and culling
 	 */
-	class LODState : public StateNode {
+	class LODState : public State {
 	public:
 		/**
 		 * @param camera The camera
-		 * @param spatialIndex The spatial index
-		 * @param shapeName The shape name
+		 * @param shape The cull shape used for LOD computation
 		 */
-		LODState(
-				const ref_ptr<Camera> &camera,
-				const ref_ptr<SpatialIndex> &spatialIndex,
-				std::string_view shapeName);
-
-		/**
-		 * @brief Constructor for LODState
-		 * @param camera The camera
-		 * @param meshVector The mesh vector
-		 * @param tf The model transformation
-		 */
-		LODState(
-				const ref_ptr<Camera> &camera,
-				const std::vector<ref_ptr<Mesh>> &meshVector,
-				const ref_ptr<ModelTransformation> &tf);
+		LODState(const ref_ptr<Camera> &camera, const ref_ptr<CullShape> &shape);
 
 		~LODState() override = default;
 
@@ -52,39 +31,20 @@ namespace regen {
 		 */
 		void setInstanceSortMode(SortMode mode) { instanceSortMode_ = mode; }
 
-		/**
-		 * @brief Set the LOD thresholds
-		 * @param thresholds The LOD thresholds
-		 */
-		void setThresholds(const Vec3f &thresholds);
-
-		/**
-		 * Update buffers needed for LOD computation.
-		 */
-		void createBuffers();
-
 		// override
-		void traverse(RenderState *rs) override;
+		void enable(RenderState *rs) override;
 
 	protected:
 		ref_ptr<Camera> camera_;
-		ref_ptr<SpatialIndex> spatialIndex_;
+		ref_ptr<CullShape> cullShape_;
 		ref_ptr<IndexedShape> shapeIndex_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 
-		GLuint numInstances_ = 1;
-		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera
-		ref_ptr<SSBO> instanceIDBuffer_;
-		ref_ptr<ShaderInput1ui> instanceIDMap_;
-		// provides offset to instanceIDMap_ as a uniform for the next LOD level
-		ref_ptr<ShaderInput1i> instanceIDOffset_;
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;
 		// temporary storage for instanceIDs, used to fill the instanceIDMap_
 		std::vector<std::vector<GLuint>> lodGroups_;
 		ref_ptr<Mesh> mesh_;
-		std::vector<ref_ptr<Mesh>> meshVector_;
-		ref_ptr<ModelTransformation> tf_;
 		bool hasShadowTarget_;
 
 		// GPU LOD update
@@ -103,11 +63,11 @@ namespace regen {
 
 		void updateMeshLOD();
 
-		void activateLOD(uint32_t lodLevel);
+		void updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset);
+
+		void resetVisibility();
 
 		void computeLODGroups();
-
-		void traverseInstanced_(RenderState *rs, unsigned int numVisible);
 
 		void traverseCPU(RenderState *rs);
 
@@ -122,4 +82,4 @@ namespace regen {
 }
 
 
-#endif /* GEOMETRIC_CULLING_H_ */
+#endif /* REGEN_LOD_STATE_H_ */

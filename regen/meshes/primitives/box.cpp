@@ -113,8 +113,8 @@ void Box::generateLODLevel(
 	};
 
 	auto &tessellation = tessellations[lodLevel];
-	auto vertexOffset = meshLODs_[lodLevel].vertexOffset + sideIndex * tessellation.vertices.size();
-	auto indexOffset = meshLODs_[lodLevel].indexOffset + sideIndex * tessellation.outputFaces.size() * 3;
+	auto vertexOffset = meshLODs_[lodLevel].d->vertexOffset + sideIndex * tessellation.vertices.size();
+	auto indexOffset = meshLODs_[lodLevel].d->indexOffset + sideIndex * tessellation.outputFaces.size() * 3;
 	const Vec3f &normal = cubeNormals[sideIndex];
 	const Mat4f &faceRotMat = faceRotations[sideIndex];
 	GLuint nextIndex = indexOffset;
@@ -242,12 +242,12 @@ void Box::updateAttributes(const Config &cfg) {
 		tessellate(lodLevel, lodTess);
 
 		auto &x = meshLODs_.emplace_back();
-		x.numVertices = lodTess.vertices.size() * 6; // 6 faces
-		x.numIndices = lodTess.outputFaces.size() * 3 * 6; // 6 faces
-		x.vertexOffset = numVertices;
-		x.indexOffset = numIndices;
-		numVertices += x.numVertices;
-		numIndices += x.numIndices;
+		x.d->numVertices = lodTess.vertices.size() * 6; // 6 faces
+		x.d->numIndices = lodTess.outputFaces.size() * 3 * 6; // 6 faces
+		x.d->vertexOffset = numVertices;
+		x.d->indexOffset = numIndices;
+		numVertices += x.d->numVertices;
+		numIndices += x.d->numIndices;
 	}
 
 	modelRotation_ = Mat4f::rotationMatrix(cfg.rotation.x, cfg.rotation.y, cfg.rotation.z);
@@ -294,7 +294,7 @@ void Box::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 }

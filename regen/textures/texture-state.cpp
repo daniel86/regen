@@ -1,10 +1,3 @@
-/*
- * texture-node.cpp
- *
- *  Created on: 03.08.2012
- *      Author: daniel
- */
-
 #include <boost/algorithm/string.hpp>
 
 #include <regen/utility/string-util.h>
@@ -167,6 +160,10 @@ namespace regen {
 				return out << "norTan";
 			case TextureState::TEXEL_TRANSFER_EYE_NORMAL:
 				return out << "norEye";
+			case TextureState::TEXEL_TRANSFER_WORLD_NORMAL:
+				return out << "norWorld";
+			case TextureState::TEXEL_TRANSFER_UNITY_NORMAL:
+				return out << "unityNormal";
 			case TextureState::TEXEL_TRANSFER_INVERT:
 				return out << "invert";
 			case TextureState::TEXEL_TRANSFER_IDENTITY:
@@ -193,6 +190,8 @@ namespace regen {
 		boost::to_lower(val);
 		if (val == "norTan") mode = TextureState::TEXEL_TRANSFER_TANGENT_NORMAL;
 		else if (val == "norEye") mode = TextureState::TEXEL_TRANSFER_EYE_NORMAL;
+		else if (val == "norWorld") mode = TextureState::TEXEL_TRANSFER_WORLD_NORMAL;
+		else if (val == "unityNormal") mode = TextureState::TEXEL_TRANSFER_UNITY_NORMAL;
 		else if (val == "invert") mode = TextureState::TEXEL_TRANSFER_INVERT;
 		else if (val == "identity") mode = TextureState::TEXEL_TRANSFER_IDENTITY;
 		else if (val == "gamma") mode = TextureState::TEXEL_TRANSFER_GAMMA;
@@ -253,6 +252,7 @@ void TextureState::set_texture(const ref_ptr<Texture> &tex) {
 		shaderDefine(REGEN_TEX_NAME("TEX_TEXEL_Y"), REGEN_STRING(1.0 / tex->height()));
 		shaderDefine(REGEN_TEX_NAME("TEX_WIDTH"), REGEN_STRING(tex->width()));
 		shaderDefine(REGEN_TEX_NAME("TEX_HEIGHT"), REGEN_STRING(tex->height()));
+		shaderDefine(REGEN_TEX_NAME("TEX_NUM_SAMPLES"), REGEN_STRING(tex->numSamples()));
 
 		auto tex3d = dynamic_cast<Texture3D *>(tex.get());
 		if (tex3d) {

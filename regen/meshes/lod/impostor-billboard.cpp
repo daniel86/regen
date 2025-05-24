@@ -16,7 +16,6 @@ ImpostorBillboard::ImpostorBillboard()
 	//       as they only have a two front face.
 	//       this is also important for the billboards to be rendered into shadow maps.
 	joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
-	//joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	setShaderKey("regen.models.impostor");
 }
 
@@ -240,7 +239,7 @@ void ImpostorBillboard::createResources() {
 			normal->set_mapping(TextureState::MAPPING_TEXCO);
 			normal->set_mapTo(TextureState::MAP_TO_NORMAL);
 			// note: we store normal in eye space, so we need to use special transfer function
-			normal->set_texelTransfer(TextureState::TEXEL_TRANSFER_EYE_NORMAL);
+			normal->set_texelTransfer(TextureState::TEXEL_TRANSFER_WORLD_NORMAL);
 			normal->set_blendMode(BLEND_MODE_SRC);
 			joinStates(normal);
 		}
@@ -269,8 +268,8 @@ void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, cons
 
 	// this is an offset of the mesh that translates it to origin.
 	// in many cases this will be (0,0,0).
-	auto eye = meshCenterPoint_ + dir * meshBoundsRadius_ * 1.5f;
-	camView[viewIdx] = Mat4f::lookAtMatrix(eye, -dir, up);
+	auto eye = meshCenterPoint_ - dir * meshBoundsRadius_ * 1.5f;
+	camView[viewIdx] = Mat4f::lookAtMatrix(eye, dir, up);
 	camViewInv[viewIdx] = camView[viewIdx].lookAtInverse();
 	auto &view = camView[viewIdx];
 
@@ -291,8 +290,7 @@ void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, cons
 	minZ -= zPadding;
 	maxZ += zPadding;
 
-	viewDir[viewIdx] = dir;
-	viewDir[viewIdx].z = -viewDir[viewIdx].z;
+	viewDir[viewIdx] = -dir;
 	viewBounds[viewIdx] = Vec4f(minX, maxX, minY, maxY);
 	viewDepth[viewIdx] = Vec2f(minZ, maxZ);
 #ifdef DEBUG_SNAPSHOT_VIEWS
@@ -351,7 +349,7 @@ void ImpostorBillboard::updateSnapshotViews() {
 	}
 
 	if (hasTopView_) {
-		addSnapshotView(viewIdx++, Vec3f::down(), Vec3f::right());
+		addSnapshotView(viewIdx++, Vec3f::up(), Vec3f::right());
 	}
 	if (hasBottomView_ && !isHemispherical_) {
 		addSnapshotView(viewIdx++, Vec3f::down(), Vec3f::right());

@@ -683,9 +683,7 @@ void MeshViewerWidget::toggleFullscreen() {
 }
 
 void MeshViewerWidget::toggleWireframe(bool isEnabled) {
-	app_->withGLContext([&]() {
-		wireframeState_->set_fillMode(isEnabled ? GL_LINE : GL_FILL);
-	});
+	wireframeState_->set_fillMode(isEnabled ? GL_LINE : GL_FILL);
 }
 
 void MeshViewerWidget::toggleRotate(bool isEnabled) {

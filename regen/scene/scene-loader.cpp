@@ -80,6 +80,7 @@ void SceneLoader::init() {
 	setStateProcessor(ref_ptr<LoadableState<MotionBlur>>::alloc("motion-blur"));
 	setStateProcessor(ref_ptr<LoadableState<ShaderState>>::alloc("shader"));
 	setStateProcessor(ref_ptr<LoadableState<StencilState>>::alloc("stencil"));
+	setStateProcessor(ref_ptr<LoadableState<SampleShadingState>>::alloc("sample-shading"));
 	setStateProcessor(ref_ptr<LoadableState2<ModelTransformation>>::alloc("transform"));
 	setStateProcessor(ref_ptr<StateResource<Camera>>::alloc("camera"));
 }

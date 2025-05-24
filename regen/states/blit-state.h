@@ -51,7 +51,7 @@ namespace regen {
 		void set_sourceBuffer(GLenum sourceBuffer = GL_COLOR_BUFFER_BIT);
 
 		// override
-		void enable(RenderState *state) override;
+		void disable(RenderState *state) override;
 
 	protected:
 		ref_ptr<FBO> src_;

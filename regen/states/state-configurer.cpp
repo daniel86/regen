@@ -11,6 +11,7 @@
 #include <regen/utility/string-util.h>
 
 #include "state-configurer.h"
+#include "fbo-state.h"
 
 using namespace regen;
 
@@ -49,10 +50,15 @@ StateConfig &StateConfigurer::cfg() { return cfg_; }
 void StateConfigurer::setVersion(GLuint version) { cfg_.setVersion(version); }
 
 void StateConfigurer::addNode(const StateNode *node) {
+	bool hadFBOBefore = hasFBO_;
+	preAddState(node->state().get());
+	bool hasFBO = hasFBO_;
 	if (node->hasParent()) {
 		addNode(node->parent());
 	}
+	hasFBO_ = hadFBOBefore;
 	addState(node->state().get());
+	hasFBO_ = hasFBO;
 }
 
 void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type) {
@@ -67,11 +73,28 @@ void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInpu
 	}
 }
 
+void StateConfigurer::preAddState(const State *s) {
+	const auto *fboState = dynamic_cast<const FBOState *>(s);
+	if (fboState) {
+		// set FBO flag to true, to avoid that parent FBOs are added
+		hasFBO_ = true;
+	}
+	for (const auto & it : s->joined()) {
+		preAddState(it.get());
+	}
+}
+
 void StateConfigurer::addState(const State *s) {
 	const auto *x0 = dynamic_cast<const HasInput *>(s);
 	const auto *x1 = dynamic_cast<const FeedbackSpecification *>(s);
 	const auto *x2 = dynamic_cast<const TextureState *>(s);
 	const auto *x3 = dynamic_cast<const StateSequence *>(s);
+	const auto *fboState = dynamic_cast<const FBOState *>(s);
+
+	if (fboState) {
+		// skip this state if it is a FBO and a child node already has a FBO.
+		if (hasFBO_) { return; }
+	}
 
 	if (x0 != nullptr) {
 		const ref_ptr<InputContainer> &container = x0->inputContainer();

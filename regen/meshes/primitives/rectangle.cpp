@@ -156,10 +156,10 @@ void Rectangle::updateAttributes() {
 			tessellateRectangle(lodLevel, lodTess);
 
 			auto &x = meshLODs_.emplace_back();
-			x.numVertices = lodTess.vertices.size();
-			x.numIndices = lodTess.outputFaces.size() * 3;
-			x.vertexOffset = numVertices;
-			x.indexOffset = numIndices;
+			x.d->numVertices = lodTess.vertices.size();
+			x.d->numIndices = lodTess.outputFaces.size() * 3;
+			x.d->vertexOffset = numVertices;
+			x.d->indexOffset = numIndices;
 			numVertices += lodTess.vertices.size();
 			numIndices += lodTess.outputFaces.size() * 3;
 		}
@@ -193,8 +193,8 @@ void Rectangle::updateAttributes() {
 		generateLODLevel(rectangleConfig_,
 						 tessellations[i],
 						 rotMat,
-						 meshLODs_[i].vertexOffset,
-						 meshLODs_[i].indexOffset);
+						 meshLODs_[i].d->vertexOffset,
+						 meshLODs_[i].d->indexOffset);
 	}
 
 	begin(InputContainer::INTERLEAVED);
@@ -210,7 +210,7 @@ void Rectangle::updateAttributes() {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
 	}
 	activateLOD(0);
 }

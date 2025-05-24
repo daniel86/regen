@@ -35,25 +35,54 @@ namespace regen {
 		 * If numVertices=0, then all vertices of the mesh are used.
 		 */
 		struct MeshLOD {
-			MeshLOD() = default;
+			struct SharedData {
+				uint32_t numVertices = 0;
+				uint32_t vertexOffset = 0;
+				uint32_t numIndices = 0;
+				uint32_t indexOffset = 0;
+				// current number of visible instances for this LOD.
+				uint32_t numVisibleInstances = 0;
+				// current offset into the instance ID map for this LOD.
+				uint32_t instanceOffset = 0;
+			};
+			MeshLOD() {
+				d->numVertices = 0;
+				d->vertexOffset = 0;
+				d->numIndices = 0;
+				d->indexOffset = 0;
+				d->numVisibleInstances = 0;
+				d->instanceOffset = 0;
+			}
 			MeshLOD(uint32_t numVertices, uint32_t vertexOffset,
 					uint32_t numIndices, uint32_t indexOffset,
 					const ref_ptr<Mesh> &impostorMesh = {})
-					: numVertices(numVertices),
-					  vertexOffset(vertexOffset),
-					  numIndices(numIndices),
-					  indexOffset(indexOffset),
-					  impostorMesh(impostorMesh) {}
+					: impostorMesh(impostorMesh) {
+				d->numVertices = numVertices;
+				d->vertexOffset = vertexOffset;
+				d->numIndices = numIndices;
+				d->indexOffset = indexOffset;
+				d->numVisibleInstances = 0;
+				d->instanceOffset = 0;
+			}
 			explicit MeshLOD(const ref_ptr<Mesh> &mesh)
-					: numVertices(mesh->inputContainer()->numVertices()),
-					  vertexOffset(mesh->inputContainer()->vertexOffset()),
-					  numIndices(mesh->inputContainer()->numIndices()),
-					  indexOffset(mesh->inputContainer()->indexOffset()),
-					  impostorMesh(mesh) {}
-			uint32_t numVertices = 0;
-			uint32_t vertexOffset = 0;
-			uint32_t numIndices = 0;
-			uint32_t indexOffset = 0;
+					: impostorMesh(mesh) {
+				d->numVertices = mesh->inputContainer()->numVertices();
+				d->vertexOffset = mesh->inputContainer()->vertexOffset();
+				d->numIndices = mesh->inputContainer()->numIndices();
+				d->indexOffset = mesh->inputContainer()->indexOffset();
+				d->numVisibleInstances = 0;
+				d->instanceOffset = 0;
+			}
+			ref_ptr<SharedData> d = ref_ptr<SharedData>::alloc();
+			uint32_t numVertices() const { return d->numVertices; }
+			uint32_t vertexOffset() const { return d->vertexOffset; }
+			uint32_t numIndices() const { return d->numIndices; }
+			uint32_t indexOffset() const { return d->indexOffset; }
+			// number of visible instances for this LOD.
+			uint32_t numVisibleInstances() const { return d->numVisibleInstances; }
+			// offset into the instance ID map for this LOD.
+			uint32_t instanceOffset() const { return d->instanceOffset; }
+
 			// optional LOD mesh, i.e. a completely different mesh which is used for some
 			// LOD levels. This is e.g used for "impostor billboards" where the mesh is
 			// replaced by a 2D quad with a texture of the original mesh.
@@ -148,6 +177,23 @@ namespace regen {
 		void activateLOD(uint32_t lodLevel);
 
 		/**
+		 * Update the visibility of instances for the given LOD level.
+		 * This will set the number of visible instances and the instance offset
+		 * for the next LOD level.
+		 * @param lodLevel the LOD level to update.
+		 * @param numInstances number of visible instances.
+		 * @param instanceOffset offset into the instance ID map.
+		 */
+		void updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset);
+
+		/**
+		 * Reset visibility of all LODs.
+		 * This will set the number of visible instances to 0 for all LODs
+		 * and reset the instance offset.
+		 */
+		void resetVisibility();
+
+		/**
 		 * @return the current LOD level.
 		 */
 		uint32_t lodLevel() const { return *lodLevel_.get(); }
@@ -188,6 +234,23 @@ namespace regen {
 		 * @return the active input container.
 		 */
 		const ref_ptr<InputContainer> &activeInputContainer() const;
+
+		/**
+		 * Sets the cull shape for this mesh.
+		 * It holds some state that is used to cull the mesh
+		 * @param cullShape the cull shape to set.
+		 */
+		void setCullShape(const ref_ptr<State> &cullShape);
+
+		/**
+		 * @return the cull shape.
+		 */
+		ref_ptr<State> cullShape() const { return cullShape_; }
+
+		/**
+		 * @return true if this mesh has a cull shape.
+		 */
+		bool hasCullShape() const { return cullShape_.get() != nullptr; }
 
 		/**
 		 * Assign a bounding shape to this mesh.
@@ -366,7 +429,11 @@ namespace regen {
 		// note: it is important that this is shared between copies of the mesh
 		//       as the lod state only changes lod level of the original mesh.
 		ref_ptr<uint32_t> lodLevel_;
+		// provides offset to instanceIDMap_ as a uniform for the next LOD level
+		int32_t instanceIDOffset_loc_;
+		uint32_t lastNumVertices_ = 0u;
 
+		ref_ptr<State> cullShape_;
 		ref_ptr<BoundingShape> boundingShape_;
 		ref_ptr<UBO> shapeBuffer_;
 		int32_t shapeType_ = -1;
@@ -413,6 +480,10 @@ namespace regen {
 		void updateShapeBuffer(byte *shapeData);
 
 		void addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in);
+
+		void drawMesh(RenderState *rs);
+
+		void drawMeshLOD(RenderState *rs, uint32_t lodLevel);
 	};
 } // namespace
 

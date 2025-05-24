@@ -29,8 +29,8 @@ void BlitToFBO::set_filterMode(GLenum filterMode) { filterMode_ = filterMode; }
 
 void BlitToFBO::set_sourceBuffer(GLenum sourceBuffer) { sourceBuffer_ = sourceBuffer; }
 
-void BlitToFBO::enable(RenderState *rs) {
-	State::enable(rs);
+void BlitToFBO::disable(RenderState *rs) {
+	State::disable(rs);
 	src_->blitCopy(
 			*dst_.get(),
 			srcAttachment_,
@@ -132,11 +132,20 @@ ref_ptr<BlitState> BlitState::load(LoadingContext &ctx, scene::SceneInputNode &i
 		} else {
 			auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
 			auto dstAttachment = input.getValue<GLuint>("dst-attachment", 0u);
-			return ref_ptr<BlitToFBO>::alloc(
+			auto state = ref_ptr<BlitToFBO>::alloc(
 					src, dst,
 					GL_COLOR_ATTACHMENT0 + srcAttachment,
 					GL_COLOR_ATTACHMENT0 + dstAttachment,
 					keepAspect);
+			if (input.hasAttribute("filter-mode")) {
+				auto filterMode = glenum::filterMode(input.getValue<std::string>("filter-mode", "LINEAR"));
+				if (filterMode != GL_NEAREST && filterMode != GL_LINEAR) {
+					REGEN_WARN("Invalid filter mode '" << input.getValue("filter-mode") << "' for " << input.getDescription() << ".");
+				} else {
+					state->set_filterMode(filterMode);
+				}
+			}
+			return state;
 		}
 	} else if (src.get() != nullptr) {
 		// Blit Texture to Screen

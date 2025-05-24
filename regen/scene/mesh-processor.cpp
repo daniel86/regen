@@ -1,4 +1,5 @@
 #include "mesh-processor.h"
+#include "regen/states/lod-state.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -15,6 +16,27 @@ ref_ptr<Mesh> MeshNodeProvider::getMeshCopy(const ref_ptr<Mesh> &originalMesh) {
 		meshCopy = ref_ptr<Mesh>::alloc(originalMesh);
 	}
 	return meshCopy;
+}
+
+static ref_ptr<LODState> createCullState(
+		scene::SceneLoader *parser,
+		SceneInputNode &input,
+		const ref_ptr<StateNode> &parent,
+		const ref_ptr<CullShape> &cullShape) {
+	// get the parent camera. Note that this will be the light camera in case
+	// updating the shadow map.
+	auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
+	if (cam.get() == nullptr) {
+		REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
+		return {};
+	}
+	auto lodState = ref_ptr<LODState>::alloc(cam, cullShape);
+	if (input.hasAttribute("sort-mode")) {
+		lodState->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));
+	}
+	parser->putState(input.getName(), lodState);
+
+	return lodState;
 }
 
 void MeshNodeProvider::processInput(
@@ -37,6 +59,9 @@ void MeshNodeProvider::processInput(
 			meshCopy->set_primitive(glenum::primitive(input.getValue("primitive")));
 		}
 		StateConfigurer meshConfigurer;
+		auto meshNode = ref_ptr<StateNode>::alloc();
+		meshNode->set_name("base-mesh");
+		parent->addChild(meshNode);
 
 		auto baseStateInput = input.getFirstChild("base-state");
 		if (baseStateInput.get() != nullptr) {
@@ -54,7 +79,23 @@ void MeshNodeProvider::processInput(
 			input.removeChild(baseStateInput);
 		}
 
-		LoadingContext ctx(scene,parent);
+		// load LOD state in case mesh has a cull shape + update-visibility="1"
+		if (meshCopy->hasCullShape()) {
+			auto updateVisibility = input.getValue<uint32_t>("update-visibility", 1u);
+			if (updateVisibility) {
+				auto cullShape = ref_ptr<CullShape>::dynamicCast(meshCopy->cullShape());
+				if (cullShape.get()) {
+					auto lodState = createCullState(scene, input, parent, cullShape);
+					meshNode->state()->joinStates(lodState);
+				} else {
+					REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape.");
+				}
+			}
+		} else if (input.hasAttribute("update-visibility")) {
+			REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape, but update-visibility is set.");
+		}
+
+		LoadingContext ctx(scene, parent);
 		meshCopy->loadShaderConfig(ctx, input);
 		bool hasShader = false;
 		if (!meshCopy->hasShaderKey()) {
@@ -74,9 +115,17 @@ void MeshNodeProvider::processInput(
 		if (!hasShader) {
 			meshCopy->createShader(parent);
 		}
-		auto meshNode = ref_ptr<StateNode>::alloc(meshCopy);
-		meshNode->set_name("base-mesh");
-		parent->addChild(meshNode);
+		meshNode->state()->joinStates(meshCopy);
+
+		// add hidden nodes for LOD meshes to show up in the GUI
+		for (auto &lodLevel: meshCopy->meshLODs()) {
+			if (lodLevel.impostorMesh.get()) {
+				auto lodNode = ref_ptr<StateNode>::alloc(lodLevel.impostorMesh);
+				lodNode->set_name("lod-impostor");
+				lodNode->set_isHidden(true);
+				meshNode->addChild(lodNode);
+			}
+		}
 	}
 }
 

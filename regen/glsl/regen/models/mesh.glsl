@@ -6,6 +6,11 @@
 #ifndef OUTPUT_TYPE
 #define OUTPUT_TYPE DEFERRED
 #endif
+#ifdef HAS_alphaMaskMin || HAS_alphaMaskMax || HAS_alphaClipThreshold
+    #ifndef HAS_ALHPHA_MASK_COEFFICIENTS
+#define HAS_ALHPHA_MASK_COEFFICIENTS
+    #endif
+#endif
 
 -- vs
 #include regen.models.mesh.defines
@@ -310,6 +315,28 @@ void applyBrightness(inout Material mat) {
 #define applyBrightness(mat)
 #endif
 
+-- applyAlphaMask
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+void applyAlphaMask(inout vec4 color) {
+#ifdef HAS_alphaMaskMin
+    #ifdef HAS_alphaMaskMax
+    color.a = smoothstep(in_alphaMaskMin, in_alphaMaskMax, color.a);
+    #else
+    color.a = step(in_alphaMaskMin, color.a);
+    #endif
+#else
+    #ifdef HAS_alphaMaskMax
+    color.a = step(color.a, in_alphaMaskMax);
+    #endif
+#endif
+#ifdef HAS_alphaClipThreshold
+    color.a = step(in_alphaClip, color.a);
+#endif
+}
+#else
+#define applyAlphaMask(color)
+#endif
+
 -- fs
 #include regen.models.mesh.defines
 #include regen.models.mesh.fs-outputs
@@ -499,6 +526,9 @@ void main() {
 
 -- writeOutput-color
 #include regen.models.mesh.applyBrightness
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+#include regen.models.mesh.applyAlphaMask
+#endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.ambient = vec3(0.0);
@@ -508,6 +538,9 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     applyBrightness(mat);
     textureMappingLight(posWorld, norWorld, mat);
     out_color.rgb = mat.diffuse;
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+    applyAlphaMask(color);
+#endif
     out_color.a = color.a;
 }
 
@@ -517,6 +550,9 @@ uniform vec3 in_ambientLight;
 #include regen.shading.direct.shade
 #endif
 #include regen.models.mesh.applyBrightness
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+#include regen.models.mesh.applyAlphaMask
+#endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.occlusion = 0.0;
@@ -541,6 +577,9 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
         mat.specular*shading.specular.rgb +
         mat.ambient*in_ambientLight;
 #endif
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+    applyAlphaMask(color);
+#endif
 #ifdef USE_AVG_SUM_ALPHA
     out_color = vec4(shadedColor*color.a, color.a);
     out_counter = vec2(1.0);
@@ -558,6 +597,9 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 }
 #else
 #include regen.models.mesh.applyBrightness
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+#include regen.models.mesh.applyAlphaMask
+#endif
 #ifdef USE_EYESPACE_NORMAL
 #include regen.states.camera.transformWorldToEye
 #endif
@@ -601,6 +643,9 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     textureMappingLight(in_posWorld, norWorld, mat);
 
     out_color.rgb = mat.diffuse.rgb;
+#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
+    applyAlphaMask(color);
+#endif
     out_color.a = color.a;
 #ifdef HAS_ATTACHMENT_ambient
     out_ambient = vec4(mat.ambient,0.0);

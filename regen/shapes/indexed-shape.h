@@ -29,6 +29,12 @@ namespace regen {
 		bool hasVisibleInstances() const;
 
 		/**
+		 * \brief Get the number of visible instances
+		 * @return The number of visible instances
+		 */
+		uint32_t numVisibleInstances() const { return instanceCount_; }
+
+		/**
 		 * \brief Map the instance IDs for the shape
 		 * \param mapMode The mapping mode
 		 * \return The mapped data

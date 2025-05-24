@@ -7,6 +7,7 @@
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"
 #include "regen/states/state-configurer.h"
+#include "regen/shapes/cull-shape.h"
 
 // TODO: think about making a distinction between mesh resource and state.
 // TODO: think about introducing a notion of model replacing mesh vector.
@@ -18,6 +19,7 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 		  HasInput(ARRAY_BUFFER, usage),
 		  primitive_(primitive),
 		  lodLevel_(ref_ptr<uint32_t>::alloc(0u)),
+		  instanceIDOffset_loc_(-1),
 		  vao_(ref_ptr<VAO>::alloc()),
 		  minPosition_(-1.0f),
 		  maxPosition_(1.0f) {
@@ -35,6 +37,8 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  meshLODs_(sourceMesh->meshLODs_),
 		  v_lodThresholds_(sourceMesh->v_lodThresholds_),
 		  lodLevel_(sourceMesh->lodLevel_),
+		  instanceIDOffset_loc_(-1),
+		  cullShape_(sourceMesh->cullShape_),
 		  boundingShape_(sourceMesh->boundingShape_),
 		  shapeBuffer_(sourceMesh->shapeBuffer_),
 		  shapeType_(sourceMesh->shapeType_),
@@ -129,6 +133,12 @@ void Mesh::createShader(const ref_ptr<StateNode> &parentNode) {
 	shaderConfigurer.addNode(parentNode.get());
 	shaderConfigurer.addState(sharedState_.get());
 	shaderConfigurer.addState(this);
+	if (meshLODs_.size()>1) {
+		shaderConfigurer.define("HAS_LOD", "TRUE");
+	}
+	if (cullShape_.get()) {
+		shaderConfigurer.addState(cullShape_.get());
+	}
 	createShader(parentNode, shaderConfigurer.cfg());
 }
 
@@ -172,7 +182,6 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	hasInstances_ = cfg.numInstances_ > 1;
 	if (cfg.numInstances_ > 1) {
 		inputContainer()->set_numInstances(cfg.numInstances_);
-		shaderDefine("HAS_INSTANCES", "TRUE");
 	}
 
 	// reset attribute list
@@ -191,6 +200,7 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	for (const auto & texture : cfg.textures_) {
 		addShaderInput(texture.first, texture.second.first);
 	}
+	instanceIDOffset_loc_ = meshShader_->uniformLocation("instanceIDOffset");
 
 	updateVAO();
 	updateDrawFunction();
@@ -222,7 +232,21 @@ void Mesh::updateVAO() {
 			inputContainer_->vertexOffset(),
 			inputContainer_->numIndices(),
 			inputContainer_->indexOffset());
+	} else {
+		for (auto &lodData : meshLODs_) {
+			if (lodData.d->numVertices == lastNumVertices_ && !lodData.impostorMesh.get()) {
+				// update the full LOD data if it is not an impostor mesh
+				lodData.d->numVertices = inputContainer_->numVertices();
+				lodData.d->vertexOffset = inputContainer_->vertexOffset();
+				lodData.d->numIndices = inputContainer_->numIndices();
+				lodData.d->indexOffset = inputContainer_->indexOffset();
+			}
+		}
 	}
+	lastNumVertices_ = inputContainer_->numVertices();
+
+	// initialize num visible instances and offsets for all LODs
+	resetVisibility();
 }
 
 void Mesh::updateDrawFunction() {
@@ -270,11 +294,20 @@ void Mesh::setLODThresholds(const Vec3f &thresholds) {
 
 void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
 	meshLODs_ = meshLODs;
-	setLODThresholds(Vec3f(10.0, 30.0, 60.0));
 }
 
 void Mesh::addMeshLOD(const MeshLOD &meshLOD) {
+	if (meshLODs_.empty()) {
+		meshLODs_.emplace_back(
+			inputContainer_->numVertices(),
+			inputContainer_->vertexOffset(),
+			inputContainer_->numIndices(),
+			inputContainer_->indexOffset());
+	}
 	meshLODs_.push_back(meshLOD);
+	if (meshLOD.impostorMesh.get() && cullShape_.get()) {
+		meshLOD.impostorMesh->setCullShape(cullShape_);
+	}
 }
 
 void Mesh::updateLOD(float cameraDistance) {
@@ -283,12 +316,12 @@ void Mesh::updateLOD(float cameraDistance) {
 
 void Mesh::activateLOD(uint32_t lodLevel) {
 	auto n = numLODs();
-	if (n==1) { return; }
 	if (n <= lodLevel) {
 		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << n);
 		return;
 	}
-	MeshLOD &lod = meshLODs_[lodLevel];
+	if (meshLODs_.empty()) { return; }
+	auto &lod = meshLODs_[lodLevel];
 	// set the LOD level
 	*lodLevel_.get() = lodLevel;
 	// select the input container (some LODs may use impostor meshes with different
@@ -301,11 +334,44 @@ void Mesh::activateLOD(uint32_t lodLevel) {
 	}
 	// finally, configure the input container with the LOD data.
 	if (inputContainer->indexBuffer() > 0) {
-		inputContainer->set_numIndices(lod.numIndices);
-		inputContainer->set_indexOffset(lod.indexOffset);
+		inputContainer->set_numIndices(lod.d->numIndices);
+		inputContainer->set_indexOffset(lod.d->indexOffset);
 	} else {
-		inputContainer->set_numVertices(lod.numVertices);
-		inputContainer->set_vertexOffset(lod.vertexOffset);
+		inputContainer->set_numVertices(lod.d->numVertices);
+		inputContainer->set_vertexOffset(lod.d->vertexOffset);
+	}
+}
+
+void Mesh::resetVisibility() {
+	if (meshLODs_.empty()) return;
+	// reset visibility for all LODs
+	for (auto &lod : meshLODs_) {
+		lod.d->numVisibleInstances = 0;
+		lod.d->instanceOffset = 0;
+		if (lod.impostorMesh.get()) {
+			lod.impostorMesh->resetVisibility();
+		}
+	}
+	auto &firstLOD = meshLODs_[0];
+	firstLOD.d->numVisibleInstances = inputContainer()->numInstances();
+	firstLOD.d->instanceOffset = 0;
+	if (firstLOD.impostorMesh.get()) {
+		firstLOD.impostorMesh->updateVisibility(0, inputContainer()->numInstances(), 0);
+	}
+}
+
+void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
+	auto n = numLODs();
+	if (n <= lodLevel) {
+		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << n);
+		return;
+	}
+	if (meshLODs_.empty()) { return; }
+	auto &lod = meshLODs_[lodLevel];
+	lod.d->numVisibleInstances = numInstances;
+	lod.d->instanceOffset = instanceOffset;
+	if (lod.impostorMesh.get()) {
+		lod.impostorMesh->updateVisibility(0, numInstances, instanceOffset);
 	}
 }
 
@@ -411,6 +477,19 @@ const ref_ptr<UBO>& Mesh::getShapeBuffer() {
 	return shapeBuffer_;
 }
 
+void Mesh::setCullShape(const ref_ptr<State> &cullShape) {
+	cullShape_ = cullShape;
+	if (cullShape_.get()) {
+		auto *cs = dynamic_cast<CullShape *>(cullShape_.get());
+		joinShaderInput(cs->instanceIDBuffer());
+	}
+	for (auto & lod : meshLODs_) {
+		if (lod.impostorMesh.get()) {
+			lod.impostorMesh->setCullShape(cullShape_);
+		}
+	}
+}
+
 void Mesh::setFeedbackRange(const ref_ptr<BufferRange> &range) {
 	feedbackRange_ = range;
 }
@@ -420,41 +499,77 @@ void Mesh::draw(RenderState *rs) {
 	disable(rs);
 }
 
-void Mesh::enable(RenderState *rs) {
-	auto &currentLOD = meshLODs_[*lodLevel_.get()];
-	State::enable(rs);
+void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
+	auto &lod = meshLODs_[lodLevel];
+	if (lod.d->numVisibleInstances == 0) {
+		// no instances to draw, skip
+		return;
+	}
+	// set the LOD level vertex meta data
+	activateLOD(lodLevel);
 
-	if (currentLOD.impostorMesh.get()) {
+	// set number of instances to draw
+	auto c = activeInputContainer();
+	c->set_numVisibleInstances(lod.d->numVisibleInstances);
+
+	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
-		currentLOD.impostorMesh->enable(rs);
+		// NOTE: assuming here the impostor does not itself have LODs!
+		lod.impostorMesh->resetVisibility();
+		lod.impostorMesh->updateVisibility(0,
+				lod.d->numVisibleInstances,
+				lod.d->instanceOffset);
+		lod.impostorMesh->draw(rs);
 	}
 	else {
-		// TODO: isn't this a bit redundant? I think the shader handles this
+		if (instanceIDOffset_loc_ != -1) {
+			glUniform1ui(instanceIDOffset_loc_, lod.d->instanceOffset);
+		}
+		drawMesh(rs);
+	}
+
+	c->set_numVisibleInstances(c->numInstances());
+}
+
+void Mesh::drawMesh(RenderState *rs) {
+	if (feedbackRange_.get()) {
+		// TODO: How to handle transform feedback with multiple LODs? how for impostors?
+		feedbackCount_ = 0;
+		rs->feedbackBufferRange().push(0, *feedbackRange_.get());
+		rs->beginTransformFeedback(GL_POINTS);
+	}
+	{ // TODO: isn't this a bit redundant? I think the shader handles this
 		for (auto & meshUniform : meshUniforms_) {
 			InputLocation &x = meshUniform.second;
 			x.input->enableUniform(x.location);
 		}
-		if (feedbackRange_.get()) {
-			feedbackCount_ = 0;
-			rs->feedbackBufferRange().push(0, *feedbackRange_.get());
-			rs->beginTransformFeedback(GL_POINTS);
+	}
+
+	rs->vao().push(vao_->id());
+	(inputContainer_.get()->*draw_)(primitive_);
+	rs->vao().pop();
+
+	if (feedbackRange_.get()) {
+		rs->endTransformFeedback();
+		rs->feedbackBufferRange().pop(0);
+	}
+}
+
+void Mesh::enable(RenderState *rs) {
+	State::enable(rs);
+
+	if (meshLODs_.empty()) {
+		drawMesh(rs);
+	}
+	else {
+		for (uint32_t lodLevel = 0; lodLevel < meshLODs_.size(); ++lodLevel) {
+			drawMeshLOD(rs, lodLevel);
 		}
-		rs->vao().push(vao_->id());
-		(inputContainer_.get()->*draw_)(primitive_);
+		activateLOD(0);
 	}
 }
 
 void Mesh::disable(RenderState *rs) {
-	auto &currentLOD = meshLODs_[*lodLevel_.get()];
-	if (currentLOD.impostorMesh.get()) {
-		currentLOD.impostorMesh->disable(rs);
-	} else {
-		if (feedbackRange_.get()) {
-			rs->endTransformFeedback();
-			rs->feedbackBufferRange().pop(0);
-		}
-		rs->vao().pop();
-	}
 	State::disable(rs);
 }
 

@@ -2,6 +2,20 @@
 -- regen_InstanceID
 #ifndef regen_InstanceID_defined_
 #define2 regen_InstanceID_defined_
+
+#ifdef HAS_LOD && HAS_INSTANCES
+    #ifndef HAS_instanceIDMap
+#error "HAS_LOD + HAS_INSTANCES defined but HAS_instanceIDMap not defined"
+    #endif
+    // introduce instanceIDOffset uniform in case of LOD and instances,
+    // this is needed to map the instanceID to the correct LOD level
+    // using the instanceIDMap.
+    #ifndef HAS_instanceIDOffset
+#define HAS_instanceIDOffset
+uniform uint in_instanceIDOffset;
+    #endif
+#endif
+
 #if SHADER_STAGE==fs
     #ifdef HAS_instanceIDMap
         #ifdef HAS_instanceIDOffset

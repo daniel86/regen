@@ -169,7 +169,8 @@ void ProcTree::loadPreset(Preset preset) {
 			props.mTrunkLength = 2.45;
 			trunkMaterial_->set_textures("materials/tree-trunk", "0");
 			twigMaterial_->set_textures("materials/tree-twig", "fir");
-			twigMaterial_->diffuse()->setUniformData(Vec3f(1.7f, 1.8f, 1.7f));
+			twigMaterial_->diffuse()->setVertex(0, Vec3f(0.7f, 0.8f, 0.7f));
+			//twigMaterial_->diffuse()->setUniformData(Vec3f(1.7f, 1.8f, 1.7f));
 			break;
 		case PRESET_OAK_GREEN:
 		case PRESET_OAK_RED:
@@ -342,10 +343,10 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 		for (auto &lod: procLODs) {
 			// create LOD description
 			auto &lodLevel = lodLevels.emplace_back();
-			lodLevel.numVertices = lod.mVertCount;
-			lodLevel.numIndices = lod.mFaceCount * 3;
-			lodLevel.vertexOffset = vertexOffset;
-			lodLevel.indexOffset = indexOffset;
+			lodLevel.d->numVertices = lod.mVertCount;
+			lodLevel.d->numIndices = lod.mFaceCount * 3;
+			lodLevel.d->vertexOffset = vertexOffset;
+			lodLevel.d->indexOffset = indexOffset;
 			// copy data
 			for (int i = 0; i < lod.mFaceCount; i++) {
 				indices.w[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
@@ -358,9 +359,9 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 			// compute tangents
 			computeTan(treeMesh, lod, vertexOffset, (Vec4f*)v_tan.w);
 			// increase offsets
-			vertexOffset += lodLevel.numVertices;
-			indexOffset += lodLevel.numIndices;
-			indices.w += lodLevel.numIndices;
+			vertexOffset += lodLevel.d->numVertices;
+			indexOffset += lodLevel.d->numIndices;
+			indices.w += lodLevel.d->numIndices;
 			v_pos.w += lod.mVertCount * 3;
 			v_nor.w += lod.mVertCount * 3;
 			v_texco.w += lod.mVertCount * 2;
@@ -392,7 +393,7 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 	if (!lodLevels.empty()) {
 		for (auto &x: lodLevels) {
 			// add the index buffer offset (in number of bytes)
-			x.indexOffset = indexRef->address() + x.indexOffset * sizeof(GLuint);
+			x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
 		}
 		treeMesh.mesh->setMeshLODs(lodLevels);
 		treeMesh.mesh->activateLOD(0);
