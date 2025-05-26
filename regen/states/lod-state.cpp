@@ -37,6 +37,9 @@ void LODState::initLODState() {
 	if (cullShape_->isIndexShape()) {
 		auto index = cullShape_->spatialIndex();
 		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
+		if (!shapeIndex_.get()) {
+			REGEN_WARN("No indexed shape found for cull shape '" << cullShape_->shapeName() << "'.");
+		}
 	} else {
 		createComputeShader();
 	}
@@ -126,7 +129,7 @@ void LODState::enable(RenderState *rs) {
 ///////////////////////
 
 void LODState::traverseCPU(RenderState *rs) {
-	if (!shapeIndex_->isVisible()) {
+	if (!shapeIndex_.get() || !shapeIndex_->isVisible()) {
 		return;
 	}
 
@@ -218,7 +221,6 @@ void LODState::computeLODGroups_(
 	}
 
 	// write lodGroups_ data into instanceIDMap_
-	auto &ref = cullShape_->instanceIDBuffer()->blockReference();
 	auto &instanceIDMap = cullShape_->instanceIDMap();
 	auto instance_ids = instanceIDMap->mapClientData<uint32_t>(ShaderData::WRITE);
 	uint32_t numVisible = 0u;

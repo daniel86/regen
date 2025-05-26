@@ -208,6 +208,7 @@
           center="1"
           usage="STATIC_DRAW"
           primitive="PATCHES">
+        <shader mesh-index="0" key="regen.models.mesh" />
         <transform>
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
@@ -255,10 +256,10 @@
             <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
             <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
                     blend-mode="ADD" blend-factor="{{map-height}}"/>
-            <mesh id="ground-mesh" shader="regen.models.mesh"/>
+            <mesh id="ground-mesh" />
         </node>
         <!--
-        <node id="Ground-patches" lod-shape="ground-shape">
+        <node id="Ground-patches">
             <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/>
             <define key="TESS_SPACING" value="fractional_odd_spacing"/>
             <tesselation num-patch-vertices="3" lod-factor="0.18" lod-metric="EDGE_DEVICE_DISTANCE"/>
@@ -287,6 +288,7 @@
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
           usage="STATIC_DRAW">
+        <shader mesh-index="0" key="regen.terrain.grass.patch" />
         <transform id="grass-tf">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
@@ -343,7 +345,7 @@
             <!-- height -->
             <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
                      blend-mode="ADD" blend-factor="{{map-height}}"/>
-            <mesh id="grass-patches" primitive="patches" shader="regen.terrain.grass.patch"/>
+            <mesh id="grass-patches" primitive="patches" />
         </node>
     </node>
 
@@ -630,6 +632,7 @@
             lod-simplification="0.6, 0.4, 0.2"
             lod-thresholds="6.0, 40.0"
             num-instances="{{num-fish}}">
+        <shader mesh-index="0" key="regen.models.mesh" />
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1" gpu-usage="WRITE">
             <scale value="0.001, 0.001, 0.001"/>
             <translate value="0.0, -0.5, 3.0"/>
@@ -667,6 +670,7 @@
     </mesh>
 
     <mesh id="hyena-mesh" type="asset" asset="hyena-asset" asset-indices="*" asset-animation="1">
+        <shader mesh-index="0" key="regen.models.mesh" />
         <transform id="hyena-tf">
             <rotate value="0, 1.57079, 1.57079"/>
             <scale value="0.005, 0.005, 0.005"/>
@@ -677,13 +681,13 @@
 
     <node id="Mammals">
         <node id="hyena0">
-            <mesh id="hyena-mesh" mesh-index="0" shader="regen.models.mesh"/>
+            <mesh id="hyena-mesh" mesh-index="0" />
         </node>
     </node>
 
     <node id="Fish">
         <node id="fish0">
-            <mesh id="fish-mesh" mesh-index="0" shader="regen.models.mesh"/>
+            <mesh id="fish-mesh" mesh-index="0" />
         </node>
     </node>
 

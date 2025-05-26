@@ -229,7 +229,7 @@
             <rotate value="1.5707963,0.0,0.0"/>
             <translate value="8.0,-2.0, -8.0"/>
         </transform>
-        <shape id="tree-shape" index="1" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
+        <shape id="tree-shape" index="1" cull="1" type="aabb" mesh-id="tree-mesh" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1"/>
         </shape>
         <!-- FIXME: there is some hack around here, look at bullet shape it is not at correct height.
@@ -247,7 +247,7 @@
         <transform id="tree-pot-tf">
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
-        <shape id="tree-pot-shape" index="1" type="aabb"
+        <shape id="tree-pot-shape" index="1" cull="1" type="aabb"
                mesh-id="tree-pot" transform-id="tree-pot-tf">
             <has-part mesh-id="tree-disc"/>
         </shape>
@@ -266,7 +266,7 @@
     </mesh>
 
     <node id="Trees">
-        <node id="tree1" lod-shape="tree-shape">
+        <node id="tree1">
             <node id="tree1-trunk">
                 <input name="matEmission" type="vec3" value="0.01,0.01,0.01"/>
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
@@ -280,17 +280,19 @@
                 <texture name="windFlow" id="wind-flowmap"/>
                 <input name="stiffness" type="float" value="0.5"/>
                 <!-- draw the mesh -->
-                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" gs="regen.weather.wind.wavingQuad"/>
+                <mesh id="tree-mesh" mesh-index="1"
+                        shader="regen.models.mesh" gs="regen.weather.wind.wavingQuad"
+                        update-visibility="0"/>
             </node>
         </node>
-        <node id="tree1-pot" lod-shape="tree-pot-shape">
+        <node id="tree1-pot">
             <node id="tree1-pot">
                 <mesh id="tree-pot" shader="regen.models.mesh"/>
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
                 <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0"/>
-                <mesh id="tree-disc" shader="regen.models.mesh"/>
+                <mesh id="tree-disc" shader="regen.models.mesh" update-visibility="0" />
             </node>
         </node>
     </node>
@@ -368,7 +370,7 @@
                  dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
         </transform>
         <material preset="stone" variant="0" max-offset="0.2"/>
-        <shape id="stone0-shape" index="1" type="sphere"
+        <shape id="stone0-shape" index="1" cull="1" type="sphere"
                mesh-id="stone0" transform-id="stone0-tf" radius="1.6"/>
         <shape id="stone0-physics" physics="1"
                mesh-id="stone0" transform-id="stone0-tf" shape="capsule" radius="1.0" height="0.4" mass="2.0"/>
@@ -376,7 +378,7 @@
 
     <node id="Garden-Items">
         <node import="Trees"/>
-        <node id="Stone0" lod-shape="stone0-shape">
+        <node id="Stone0">
             <mesh id="stone0" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -390,7 +392,7 @@
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
         </transform>
-        <shape id="stairs0-shape" index="1" type="aabb"
+        <shape id="stairs0-shape" index="1" cull="1" type="aabb"
                mesh-id="stairs0-mesh" transform-id="stairs0-tf"/>
         <shape id="stairs0-physics" physics="1"
                mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
@@ -401,7 +403,7 @@
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
         </transform>
-        <shape id="stairs1-shape" index="1" type="aabb"
+        <shape id="stairs1-shape" index="1" cull="1" type="aabb"
                mesh-id="stairs1-mesh" transform-id="stairs1-tf"/>
         <shape id="stairs1-physics" physics="1"
                mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
@@ -412,7 +414,7 @@
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
         </transform>
-        <shape id="stairs2-shape" index="1" type="aabb"
+        <shape id="stairs2-shape" index="1" cull="1" type="aabb"
                mesh-id="stairs2-mesh" transform-id="stairs2-tf"/>
         <shape id="stairs2-physics" physics="1"
                mesh-id="stairs2-mesh" transform-id="stairs2-tf" shape="box" mass="0.0" size="8.0,0.8,8.0"/>
@@ -421,13 +423,13 @@
     <node id="Stairs">
         <material preset="steel" variant="0"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
-        <node id="stairs0" lod-shape="stairs0-shape">
+        <node id="stairs0">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs1" lod-shape="stairs1-shape">
+        <node id="stairs1">
             <mesh id="stairs1-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="stairs2" lod-shape="stairs2-shape">
+        <node id="stairs2">
             <mesh id="stairs2-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -446,7 +448,7 @@
                 <key-frame position="16.0,3.0,-16.0"/>
             </animation>
         </transform>
-        <shape id="platform0-shape" index="1" type="aabb"
+        <shape id="platform0-shape" index="1" cull="1" type="aabb"
                mesh-id="platform0-mesh" transform-id="platform0-tf"/>
         <shape id="platform0-physics" physics="1"
                mesh-id="platform0-mesh" transform-id="platform0-tf"
@@ -464,7 +466,7 @@
                 <key-frame position="8.0,7.0,-16.0"/>
             </animation>
         </transform>
-        <shape id="platform1-shape" index="1" type="aabb"
+        <shape id="platform1-shape" index="1" cull="1" type="aabb"
                mesh-id="platform1-mesh" transform-id="platform1-tf"/>
         <shape id="platform1-physics" physics="1"
                mesh-id="platform1-mesh" transform-id="platform1-tf"
@@ -474,10 +476,10 @@
 
     <node id="Platforms">
         <material preset="iron" emission="0.05,0.07,0.07"/>
-        <node id="platform0" lod-shape="platform0-shape">
+        <node id="platform0">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="platform1" lod-shape="platform1-shape">
+        <node id="platform1">
             <mesh id="platform1-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -493,7 +495,7 @@
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
         </transform>
-        <shape id="pedestal-shape" index="1" type="aabb"
+        <shape id="pedestal-shape" index="1" cull="1" type="aabb"
                mesh-id="pedestal-mesh" transform-id="pedestal-tf"/>
         <shape id="pedestal-physics" physics="1"
                mesh-id="pedestal-mesh" transform-id="pedestal-tf"
@@ -508,7 +510,7 @@
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
         </transform>
-        <shape id="slope-shape" index="1" type="obb"
+        <shape id="slope-shape" index="1" cull="1" type="obb"
                mesh-id="slope-mesh" transform-id="slope-tf"/>
         <shape id="slope-physics" physics="1"
                mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
@@ -516,10 +518,10 @@
     </mesh>
 
     <node id="Pedestal">
-        <node id="pedestal" lod-shape="pedestal-shape">
+        <node id="pedestal">
             <mesh id="pedestal-mesh" shader="regen.models.mesh"/>
         </node>
-        <node id="statue-slope" lod-shape="slope-shape">
+        <node id="statue-slope">
             <mesh id="slope-mesh" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -776,12 +778,12 @@
     <mesh id="light-bulb-point" type="point" usage="STATIC_DRAW" num-vertices="1">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
         <input name="modelOffset" state="room-light0" component="lightPosition"/>
-        <shape id="light-bulb-shape" index="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
+        <shape id="light-bulb-shape" index="1" cull="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
     <mesh id="fire-flies0" type="point" usage="STATIC_DRAW" num-vertices="1" num-instances="{{num-fire-flies}}">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
         <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
-        <shape id="fire-flies-shape0" index="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />
+        <shape id="fire-flies-shape0" index="1" cull="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />
     </mesh>
 
     <node id="Static-Ground-Items">
@@ -814,14 +816,14 @@
             <material specular="0, 0, 0" ambient="0.05, 0.0, 0.0"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
-        <node id="Fire-Flies" lod-shape="fire-flies-shape0">
+        <node id="Fire-Flies">
             <input name="sphereRadius" type="float" value="0.1"/>
             <input name="matEmission" state="fire-flies-light0" component="lightDiffuse"/>
             <mesh id="fire-flies0" shader="regen.models.sprite-sphere"/>
         </node>
 
         <node id="Light-Bulbs">
-            <node id="Light-Bulb0" lod-shape="light-bulb-shape">
+            <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="0.5"/>
                 <input name="matEmission" state="room-light0" component="lightDiffuse"/>
                 <mesh id="light-bulb-point" shader="regen.models.sprite-sphere"/>

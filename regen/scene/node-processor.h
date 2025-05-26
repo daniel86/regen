@@ -75,19 +75,9 @@ namespace regen::scene {
 					handleChildren(scene, *imported.get(), newNode);
 				}
 			}
-			if (input.hasAttribute("lod-shape") || input.hasAttribute("lod-mesh")) {
-				newNode = createCullNode(scene, input, parent);
-				if (newNode.get() != nullptr) {
-					handleAttributes(scene, input, newNode);
-					handleChildren(scene, input, newNode);
-				} else {
-					REGEN_WARN("Unable to create culling node for '" << input.getDescription() << "'.");
-				}
-			} else {
-				newNode = createNode(scene, input, parent);
-				handleAttributes(scene, input, newNode);
-				handleChildren(scene, input, newNode);
-			}
+			newNode = createNode(scene, input, parent);
+			handleAttributes(scene, input, newNode);
+			handleChildren(scene, input, newNode);
 		}
 
 		static void handleAttributes(
@@ -160,69 +150,6 @@ namespace regen::scene {
 			scene->putNode(input.getName(), newNode);
 
 			return newNode;
-		}
-
-		static ref_ptr<SpatialIndex> getSpatialIndex(scene::SceneLoader *scene, SceneInputNode &input) {
-			ref_ptr<SpatialIndex> spatialIndex;
-			if (input.hasAttribute("spatial-index")) {
-				auto spatialIndexID = input.getValue("spatial-index");
-				spatialIndex = scene->getResource<SpatialIndex>(spatialIndexID);
-			} else {
-				auto indexNode = scene->getRoot()->getFirstChild("index");
-				if (indexNode.get()) {
-					spatialIndex = scene->getResource<SpatialIndex>(indexNode->getName());
-				}
-			}
-			return spatialIndex;
-		}
-
-		static ref_ptr<StateNode> createCullNode(
-				scene::SceneLoader *parser,
-				SceneInputNode &input,
-				const ref_ptr<StateNode> &parent) {
-			ref_ptr<LODState> lodState;
-			// get the parent camera. Note that this will be the light camera in case
-			// updating the shadow map.
-			auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
-			if (cam.get() == nullptr) {
-				REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
-				return lodState;
-			}
-
-			if (input.hasAttribute("lod-shape")) {
-				// compute LOD based on a shape in spatial index on CPU-side
-				auto spatialIndex = getSpatialIndex(parser, input);
-				if (spatialIndex.get() == nullptr) {
-					REGEN_WARN("No SpatialIndex can be found for '" << input.getDescription() << "'.");
-					return lodState;
-				}
-				auto shapeName = input.getValue<std::string>("lod-shape", "");
-				lodState = ref_ptr<LODState>::alloc(cam, spatialIndex, shapeName);
-			}
-			else {
-				// compute LOD GPU-side
-				auto tf = parser->getResources()->getTransform(parser, input.getValue("lod-tf"));
-				if (tf.get() == nullptr) {
-					REGEN_WARN("No Transform can be found for '" << input.getDescription() << "'.");
-					return lodState;
-				}
-				auto meshVector = parser->getResources()->getMesh(
-					parser, input.getValue("lod-mesh"));
-				lodState = ref_ptr<LODState>::alloc(cam, *meshVector.get(), tf);
-			}
-			if (!lodState.get()) {
-				return lodState;
-			}
-
-			lodState->set_name(input.getName());
-			if (input.hasAttribute("sort-mode")) {
-				lodState->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));
-			}
-			lodState->createBuffers();
-			parent->addChild(lodState);
-			parser->putNode(input.getName(), lodState);
-
-			return lodState;
 		}
 	};
 }

@@ -71,11 +71,17 @@ void RadixSort::createResources() {
 		radixScatterPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
 	}
 	uint32_t numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
+	REGEN_INFO("GPU radix sort with " << numKeys_ << " keys, "
+			<< numWorkGroups << " work groups, radix bits: " << radixBits_
+			<< ", sort group size: " << sortGroupSize_
+			<< ", scan group size: " << scanGroupSize_);
 
 	// Temporary Buffers for sorting.
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer",
 			BUFFER_USAGE_STREAM_COPY, SSBO::RESTRICT);
-	keyBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("keys", numKeys_));
+	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeys_);
+	keys->set_forceArray(true);
+	keyBuffer_->addBlockInput(keys);
 	keyBuffer_->update();
 
 	if (userValueBuffer_.get()) {
@@ -83,12 +89,16 @@ void RadixSort::createResources() {
 	} else {
 		valueBuffer_[0] = ref_ptr<SSBO>::alloc("ValueBuffer1",
 				BUFFER_USAGE_STREAM_COPY, SSBO::RESTRICT);
-		valueBuffer_[0]->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("values", numKeys_));
+		auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_);
+		values1->set_forceArray(true);
+		valueBuffer_[0]->addBlockInput(values1);
 		valueBuffer_[0]->update();
 	}
 	valueBuffer_[1] = ref_ptr<SSBO>::alloc("ValueBuffer2",
 			BUFFER_USAGE_STREAM_COPY, SSBO::RESTRICT);
-	valueBuffer_[1]->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("values", numKeys_));
+	auto values2 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_);
+	values2->set_forceArray(true);
+	valueBuffer_[1]->addBlockInput(values2);
 	valueBuffer_[1]->update();
 
 	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer",

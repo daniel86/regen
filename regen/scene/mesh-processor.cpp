@@ -30,6 +30,13 @@ static ref_ptr<LODState> createCullState(
 		REGEN_WARN("No Camera can be found for '" << input.getDescription() << "'.");
 		return {};
 	}
+	auto spatialIndex = cullShape->spatialIndex();
+	if (spatialIndex.get() && !spatialIndex->hasCamera(*cam.get())) {
+		// no need to create LOD state if the camera is not used by the spatial index
+		// TODO: still should reset to base LOD level? because maybe we get
+		//       LOD level configuration from previous pass?
+		return {};
+	}
 	auto lodState = ref_ptr<LODState>::alloc(cam, cullShape);
 	if (input.hasAttribute("sort-mode")) {
 		lodState->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));
@@ -86,7 +93,9 @@ void MeshNodeProvider::processInput(
 				auto cullShape = ref_ptr<CullShape>::dynamicCast(meshCopy->cullShape());
 				if (cullShape.get()) {
 					auto lodState = createCullState(scene, input, parent, cullShape);
-					meshNode->state()->joinStates(lodState);
+					if (lodState.get()) {
+						meshNode->state()->joinStates(lodState);
+					}
 				} else {
 					REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape.");
 				}

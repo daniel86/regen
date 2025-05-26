@@ -139,7 +139,7 @@
                     height-range="0.0, 0.75" height-smooth="0.2"
                     slope-range="10.0, 180.0" slope-smooth="20.0"/>
         </materials>
-        <shape id="ground-shape" index="1" type="obb"
+        <shape id="ground-shape" index="1" cull="1" type="obb"
             mesh-id="ground-mesh" transform-id="ground-tf" />
     </mesh>
 
@@ -158,7 +158,7 @@
     </mesh>
 
     <node id="Ground">
-        <node id="Ground-quad" lod-shape="ground-shape">
+        <node id="Ground-quad">
             <input type="float" name="noiseScale" value="0.005"/>
             <texture name="noiseTexture" id="ground-noise"/>
             <mesh id="ground-mesh" shader="regen.terrain.ground"/>
@@ -166,7 +166,7 @@
         <!-- we add a frame around the ground mesh to avoid problems at the edges
              with how distance fog is calculated based on depth (it may not correctly
              handle water at the boundaries where there is nothing behind the water) -->
-        <node id="Ground-frame" lod-shape="ground-shape">
+        <node id="Ground-frame">
             <mesh id="ground-frame" shader="regen.models.mesh"/>
         </node>
     </node>

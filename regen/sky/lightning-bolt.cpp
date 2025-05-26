@@ -189,6 +189,7 @@ void LightningBolt::updateVertexData() {
 	RenderState::get()->copyWriteBuffer().pop();
 	// update the number of vertices
 	inputContainer()->set_numVertices(numVertices);
+	updateVAO();
 }
 
 static Vec3f getPerpendicular1(const Vec3f &v) {
