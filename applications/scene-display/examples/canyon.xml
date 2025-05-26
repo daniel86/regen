@@ -630,7 +630,7 @@
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
             lod-simplification="0.6, 0.4, 0.2"
-            lod-thresholds="6.0, 40.0"
+            lod-thresholds="5.0, 15.0, 40.0"
             num-instances="{{num-fish}}">
         <shader mesh-index="0" key="regen.models.mesh" />
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1" gpu-usage="WRITE">
@@ -665,6 +665,30 @@
                 <!-- <object type="attractor" tf="hyena-tf" /> -->
             </animation>
         </transform>
+        <lod-meshes>
+            <mesh id="fish-impostor"
+                    type="impostor-billboard"
+                    base-mesh="fish-mesh"
+                    base-mesh-index="0"
+                    depth-offset="0.5"
+                    normal-correction="0"
+                    depth-correction="0"
+                    hemispherical="1"
+                    top-view="0"
+                    bottom-view="0"
+                    longitude-steps="8"
+                    latitude-steps="2"
+                    texture-size="64,64">
+                <shader mesh-index="0" key="regen.models.impostor">
+                    <define key="DISCARD_ALPHA" value="TRUE"/>
+                    <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                </shader>
+                <update-state>
+                    <depth test="0" write="0"/>
+                    <blend mode="src"/>
+                </update-state>
+            </mesh>
+        </lod-meshes>
         <shape id="fish-shape" cull="1" gpu="1" type="sphere" mesh-id="fish-mesh" transform-id="fish-tf" />
         <!-- <shape id="fish-shape" index="1" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>

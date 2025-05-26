@@ -8,6 +8,7 @@
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256
 #define RADIX_OFFSET_GROUP_SIZE 512
+#undef LOD_DEBUG_GROUPS
 
 using namespace regen;
 
@@ -122,6 +123,21 @@ void LODState::enable(RenderState *rs) {
 	} else {
 		traverseGPU(rs);
 	}
+#ifdef LOD_DEBUG_GROUPS
+	if (mesh_.get() && mesh_->numLODs() > 1) {
+		REGEN_INFO("LOD ("
+				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
+				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
+				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
+				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")"
+				<< " numInstances: " <<
+				std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
+				<< " numLODs: " <<
+				std::setw(2) << std::setfill(' ') << mesh_->numLODs()
+				<< " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
+				<< " shape: " << cullShape_->shapeName());
+	}
+#endif
 }
 
 ///////////////////////
@@ -346,8 +362,6 @@ void LODState::traverseGPU(RenderState *rs) {
 	} else {
 		return;
 	}
-	//REGEN_INFO("LOD group sizes: (" << lodNumInstances_[0] << " " << lodNumInstances_[1] << " "
-	//		<< lodNumInstances_[2] << " " << lodNumInstances_[3] << ")");
 
 	// loop over all LOD levels
 	int32_t instanceIDOffset = 0;

@@ -190,8 +190,9 @@ namespace regen {
 		 * Reset visibility of all LODs.
 		 * This will set the number of visible instances to 0 for all LODs
 		 * and reset the instance offset.
+		 * @param resetToInvisible if true, then all LODs are set to 0 visible instances, else first LOD has all instances visible.
 		 */
-		void resetVisibility();
+		void resetVisibility(bool resetToInvisible=false);
 
 		/**
 		 * @return the current LOD level.
@@ -484,6 +485,8 @@ namespace regen {
 		void drawMesh(RenderState *rs);
 
 		void drawMeshLOD(RenderState *rs, uint32_t lodLevel);
+
+		void activateLOD_(uint32_t lodLevel);
 	};
 } // namespace
 

@@ -321,8 +321,8 @@ void ImpostorBillboard::updateSnapshotViews() {
 	} else {
 		for (uint32_t i = 0; i < latitudeSteps_; ++i) {
 			float frac = static_cast<float>(i) / static_cast<float>(latitudeSteps_);
-			latAngles.push_back(frac * math::halfPi<float>());
-			if (!isHemispherical_ && latAngles[i] > 0.0f) {
+			latAngles.push_back(-frac * math::halfPi<float>());
+			if (!isHemispherical_ && latAngles[i] < 0.0f) {
 				latAngles.push_back(-latAngles[i]);
 			}
 		}
@@ -340,7 +340,7 @@ void ImpostorBillboard::updateSnapshotViews() {
 					y,
 					horizontalRadius * sin(lon));
 			dir.normalize();
-			if (isHemispherical_ && dir.y < 0.0f) {
+			if (isHemispherical_ && dir.y > 0.0f) {
 				// skip southern hemisphere
 				continue;
 			}

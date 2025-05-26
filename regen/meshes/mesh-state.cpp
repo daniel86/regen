@@ -315,6 +315,11 @@ void Mesh::updateLOD(float cameraDistance) {
 }
 
 void Mesh::activateLOD(uint32_t lodLevel) {
+	resetVisibility(true);
+	updateVisibility(lodLevel, inputContainer()->numInstances(), 0);
+}
+
+void Mesh::activateLOD_(uint32_t lodLevel) {
 	auto n = numLODs();
 	if (n <= lodLevel) {
 		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << n);
@@ -342,21 +347,23 @@ void Mesh::activateLOD(uint32_t lodLevel) {
 	}
 }
 
-void Mesh::resetVisibility() {
+void Mesh::resetVisibility(bool resetToInvisible) {
 	if (meshLODs_.empty()) return;
 	// reset visibility for all LODs
 	for (auto &lod : meshLODs_) {
 		lod.d->numVisibleInstances = 0;
 		lod.d->instanceOffset = 0;
 		if (lod.impostorMesh.get()) {
-			lod.impostorMesh->resetVisibility();
+			lod.impostorMesh->resetVisibility(true);
 		}
 	}
-	auto &firstLOD = meshLODs_[0];
-	firstLOD.d->numVisibleInstances = inputContainer()->numInstances();
-	firstLOD.d->instanceOffset = 0;
-	if (firstLOD.impostorMesh.get()) {
-		firstLOD.impostorMesh->updateVisibility(0, inputContainer()->numInstances(), 0);
+	if (!resetToInvisible) {
+		auto &firstLOD = meshLODs_[0];
+		firstLOD.d->numVisibleInstances = inputContainer()->numInstances();
+		firstLOD.d->instanceOffset = 0;
+		if (firstLOD.impostorMesh.get()) {
+			firstLOD.impostorMesh->updateVisibility(0, inputContainer()->numInstances(), 0);
+		}
 	}
 }
 
@@ -506,7 +513,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 		return;
 	}
 	// set the LOD level vertex meta data
-	activateLOD(lodLevel);
+	activateLOD_(lodLevel);
 
 	// set number of instances to draw
 	auto c = activeInputContainer();
@@ -515,7 +522,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
 		// NOTE: assuming here the impostor does not itself have LODs!
-		lod.impostorMesh->resetVisibility();
+		lod.impostorMesh->resetVisibility(true);
 		lod.impostorMesh->updateVisibility(0,
 				lod.d->numVisibleInstances,
 				lod.d->instanceOffset);
@@ -565,7 +572,7 @@ void Mesh::enable(RenderState *rs) {
 		for (uint32_t lodLevel = 0; lodLevel < meshLODs_.size(); ++lodLevel) {
 			drawMeshLOD(rs, lodLevel);
 		}
-		activateLOD(0);
+		activateLOD_(0);
 	}
 }
 

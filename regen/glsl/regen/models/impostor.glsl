@@ -159,10 +159,10 @@ void emitLayer(int layer, float scale) {
     #if OUTPUT_TYPE == DEPTH
     centerEye.z -= 0.25 * (depthRange.y - depthRange.x) * scale;
     #else
-    // TODO: push billboard closer to camera to avoid depth fighting with inner geometry, e.g. trunk of a tree.
-    //float zCenter = centerEye.z;
-    //centerEye.z += 0.5 * (depthRange.y - depthRange.x) * scale;
-    //spriteSize *= abs(centerEye.z / zCenter);
+    // push billboard closer to camera to avoid depth fighting with inner geometry, e.g. trunk of a tree.
+    float zCenter = centerEye.z;
+    centerEye.z += 0.5 * (depthRange.y - depthRange.x) * scale;
+    spriteSize *= abs(centerEye.z / zCenter);
     #endif
 #endif
 
