@@ -203,6 +203,12 @@ void LODState::computeLODGroups_(
 		lodGroup.clear();
 	}
 
+	// TODO: make this faster:
+	// - remove lodGroups_ entirely, it is not needed.
+	// - look for fast function to cop in reverse order, else it should be fine to copy data as is.
+	// - then we could try optimizing the counting of instances per LOD level.
+	//   in case we have some instance, let's say >1000, we could use a multithreaded approach
+	//   with e.g. group size of 256 and then use a parallel reduction to count the instances.
 	if (mesh_->numLODs() == 1) {
 		for (int i = begin; i != end; i += increment) {
 			lodGroups_[0].push_back(mappedData[i]);
