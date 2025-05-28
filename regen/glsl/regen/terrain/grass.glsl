@@ -175,7 +175,7 @@ void main() {
 -- patch.fs
 #define HAS_nor
 #define HAS_col
-#define DISCARD_ALPHA_THRESHOLD 0.25
+//#define DISCARD_ALPHA_THRESHOLD 0.25
 in vec4 in_col;
 #include regen.models.mesh.fs
 
@@ -196,6 +196,6 @@ in vec4 in_col;
 -- fs
 #define HAS_nor
 #define HAS_col
-#define DISCARD_ALPHA_THRESHOLD 0.25
+//#define DISCARD_ALPHA_THRESHOLD 0.25
 in vec4 in_col;
 #include regen.models.sprite.fs

@@ -302,8 +302,7 @@
 
     <node id="Grass">
         <node>
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <blend mode="SRC"/>
+            <alpha discard-threshold="0.25"/>
             <material
                     diffuse="0.1, 0.1, 0.1"
                     ambient="0.1, 0.1, 0.1"
@@ -395,10 +394,8 @@
                     texture-size="256,256">
                 <shader mesh-index="0" key="regen.models.impostor" />
                 <update-state>
-                    <define key="DISCARD_ALPHA" value="TRUE"/>
-                    <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                    <alpha discard-threshold="0.25"/>
                     <depth test="1" write="1"/>
-                    <blend mode="src"/>
                 </update-state>
                 <input name="stiffness" type="float" value="0.1"/>
             </mesh>
@@ -419,8 +416,7 @@
             <mesh id="tree-mesh" mesh-index="0" update-visibility="1" />
         </node>
         <node id="tree-twig">
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <alpha discard-threshold="0.25"/>
             <texture name="windFlow" id="wind-flowmap" mapping="custom" />
             <input name="stiffness" type="float" value="0.5"/>
             <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
@@ -473,14 +469,13 @@
                         <node>
                             <node id="tree-twig">
                                 <!--
-                                <define key="DISCARD_ALPHA" value="TRUE"/>
-                                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                                <alpha discard-threshold="0.25"/>
                                 -->
                                 <texture name="windFlow" id="wind-flowmap" mapping="custom" />
                                 <input name="stiffness" type="float" value="0.5"/>
                                 <input name="brightness" type="float" value="2.8"/>
-                                <input name="alphaMaskMin" type="float" value="0.3"/>
-                                <input name="alphaMaskMax" type="float" value="0.5"/>
+                                <input name="alphaClipMin" type="float" value="0.3"/>
+                                <input name="alphaClipMax" type="float" value="0.5"/>
                                 <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
                             </node>
                         </node>
@@ -525,7 +520,6 @@
         <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
         <node id="Reflection-Pass-Deferred">
-            <blend mode="src"/>
             <depth test="1" write="1"/>
             <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster-All"/>
@@ -600,7 +594,6 @@
 
     <node id="Water-Rendering">
         <depth test="0" write="0"/>
-        <blend mode="src"/>
 
         <define key="USE_REFRACTION" value="TRUE"/>
         <define key="USE_FOAM" value="FALSE"/>
@@ -680,12 +673,9 @@
                     latitude-steps="2"
                     texture-size="64,64">
                 <shader mesh-index="0" key="regen.models.impostor">
-                    <define key="DISCARD_ALPHA" value="TRUE"/>
-                    <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
-                </shader>
+                    <alpha discard-threshold="0.25"/>
                 <update-state>
                     <depth test="0" write="0"/>
-                    <blend mode="src"/>
                 </update-state>
             </mesh>
         </lod-meshes>
@@ -744,8 +734,7 @@
         <node import="Shadow-Caster"/>
         <!--
         <node>
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <alpha discard-threshold="0.25"/>
             <node id="tree-twig">
                 <texture name="windFlow" id="wind-flowmap" mapping="custom" />
                 <input name="stiffness" type="float" value="0.5"/>
@@ -924,7 +913,6 @@
 
             <node id="Geometry-Pass">
                 <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
-                <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <node import="Shadow-Caster"/>
                 <node import="Non-Shadow-Caster"/>

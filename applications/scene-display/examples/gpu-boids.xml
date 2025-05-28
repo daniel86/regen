@@ -180,10 +180,8 @@
         <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
         <node>
-            <blend mode="src"/>
             <depth test="1" write="1"/>
             <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
-
             <node import="Shadow-Caster"/>
             <node import="Scene-Geometry"/>
         </node>
@@ -256,7 +254,6 @@
 
     <node id="Water-Rendering">
         <depth test="0" write="0"/>
-        <blend mode="src"/>
 
         <define key="USE_REFRACTION" value="TRUE"/>
         <define key="USE_FOAM" value="FALSE"/>
@@ -501,7 +498,6 @@
 
             <node id="Geometry-Pass">
                 <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
-                <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <node import="Shadow-Caster"/>
                 <node import="Non-Shadow-Caster"/>

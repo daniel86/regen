@@ -6,9 +6,9 @@
 #ifndef OUTPUT_TYPE
 #define OUTPUT_TYPE DEFERRED
 #endif
-#ifdef HAS_alphaMaskMin || HAS_alphaMaskMax || HAS_alphaClipThreshold
-    #ifndef HAS_ALHPHA_MASK_COEFFICIENTS
-#define HAS_ALHPHA_MASK_COEFFICIENTS
+#ifdef HAS_alphaClipkMin || HAS_alphaClipkMax || HAS_alphaClipThreshold
+    #ifndef HAS_ALHPHA_CLIP_COEFFICIENTS
+#define HAS_ALHPHA_CLIP_COEFFICIENTS
     #endif
 #endif
 
@@ -315,18 +315,18 @@ void applyBrightness(inout Material mat) {
 #define applyBrightness(mat)
 #endif
 
--- applyAlphaMask
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-void applyAlphaMask(inout vec4 color) {
-#ifdef HAS_alphaMaskMin
-    #ifdef HAS_alphaMaskMax
-    color.a = smoothstep(in_alphaMaskMin, in_alphaMaskMax, color.a);
+-- clipAlpha
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+void clipAlpha(inout vec4 color) {
+#ifdef HAS_alphaClipkMin
+    #ifdef HAS_alphaClipkMax
+    color.a = smoothstep(in_alphaClipMin, in_alphaClipMax, color.a);
     #else
-    color.a = step(in_alphaMaskMin, color.a);
+    color.a = step(in_alphaClipMin, color.a);
     #endif
 #else
-    #ifdef HAS_alphaMaskMax
-    color.a = step(color.a, in_alphaMaskMax);
+    #ifdef HAS_alphaClipMax
+    color.a = step(in_alphaClipMax, color.a);
     #endif
 #endif
 #ifdef HAS_alphaClipThreshold
@@ -334,7 +334,7 @@ void applyAlphaMask(inout vec4 color) {
 #endif
 }
 #else
-#define applyAlphaMask(color)
+#define clipAlpha(color)
 #endif
 
 -- fs
@@ -353,15 +353,9 @@ flat in int in_instanceID;
 in float in_brightness;
 #endif
 
-#ifdef DISCARD_ALPHA
-    #ifndef DISCARD_ALPHA_THRESHOLD
-#define DISCARD_ALPHA_THRESHOLD 0.01
-    #endif
-#endif
-
 #if OUTPUT_TYPE == DEPTH
 ///// Depth only output
-    #ifdef DISCARD_ALPHA
+    #ifdef HAS_alphaDiscardThreshold
 #define FS_NO_OUTPUT
 #include regen.models.mesh.fs-shading
     #else
@@ -499,8 +493,8 @@ void main() {
 #else
     textureMappingFragment(in_posWorld, color, norWorld);
 #endif
-#ifdef DISCARD_ALPHA
-    if (color.a < DISCARD_ALPHA_THRESHOLD) discard;
+#ifdef HAS_alphaDiscardThreshold
+    if (color.a < in_alphaDiscardThreshold) discard;
 #endif
 #ifndef FS_NO_OUTPUT
     writeOutput(in_posWorld, norWorld, color);
@@ -526,8 +520,8 @@ void main() {
 
 -- writeOutput-color
 #include regen.models.mesh.applyBrightness
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-#include regen.models.mesh.applyAlphaMask
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#include regen.models.mesh.clipAlpha
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
@@ -538,8 +532,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     applyBrightness(mat);
     textureMappingLight(posWorld, norWorld, mat);
     out_color.rgb = mat.diffuse;
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-    applyAlphaMask(color);
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+	clipAlpha(color);
 #endif
     out_color.a = color.a;
 }
@@ -550,8 +544,8 @@ uniform vec3 in_ambientLight;
 #include regen.shading.direct.shade
 #endif
 #include regen.models.mesh.applyBrightness
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-#include regen.models.mesh.applyAlphaMask
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#include regen.models.mesh.clipAlpha
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
@@ -577,8 +571,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
         mat.specular*shading.specular.rgb +
         mat.ambient*in_ambientLight;
 #endif
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-    applyAlphaMask(color);
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+	clipAlpha(color);
 #endif
 #ifdef USE_AVG_SUM_ALPHA
     out_color = vec4(shadedColor*color.a, color.a);
@@ -597,8 +591,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 }
 #else
 #include regen.models.mesh.applyBrightness
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-#include regen.models.mesh.applyAlphaMask
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#include regen.models.mesh.clipAlpha
 #endif
 #ifdef USE_EYESPACE_NORMAL
 #include regen.states.camera.transformWorldToEye
@@ -643,8 +637,8 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     textureMappingLight(in_posWorld, norWorld, mat);
 
     out_color.rgb = mat.diffuse.rgb;
-#ifdef HAS_ALHPHA_MASK_COEFFICIENTS
-    applyAlphaMask(color);
+#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+    clipAlpha(color);
 #endif
     out_color.a = color.a;
 #ifdef HAS_ATTACHMENT_ambient

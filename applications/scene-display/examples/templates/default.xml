@@ -81,7 +81,6 @@
             <camera id="overview-camera"/>
             <fbo id="overview-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
             <node>
-                <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <fbo id="overview-buffer" draw-buffers="0,1,2,3"/>
                 <node import="Shadow-Caster"/>
@@ -124,7 +123,6 @@
 <texture id="random-normal" file="res/textures/random_normals.png" />
 
 <node id="Ambient-Occlusion-Update">
-    <blend mode="src" />
     <input type="int" name="numBlurPixels" value="20" />
     <input type="float" name="blurSigma" value="3.2" />
     <input type="float" name="aoSamplingRadius" value="30.0" />
@@ -222,7 +220,6 @@
   <camera id="main-camera" />
   
   <node id="Geometry-Pass">
-    <blend mode="src" />
     <depth test="1" write="1" />
     <fbo id="g-buffer" draw-buffers="0,1,2,3" />
     

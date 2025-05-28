@@ -118,7 +118,6 @@
 
     <node id="Platform-Update">
         <camera id="main-camera"/>
-        <blend mode="src"/>
         <node>
             <node id="Platform-Depth-Mask">
                 <fbo id="platform-refraction" clear-depth="1" />
@@ -307,7 +306,6 @@
         </view>
         <node id="Flare">
             <fbo id="lens-fbo" draw-buffers="0"/>
-            <blend mode="src"/>
             <texture name="inputTexture" id="blurred-scene0" />
             <texture name="ghostGradient" id="lens-gradient" />
             <input type="int" name="numGhosts" value="5"/>
@@ -518,7 +516,6 @@
             <camera id="main-camera"/>
 
             <node id="Geometry-Pass">
-                <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <fbo id="g-buffer" draw-buffers="0,1,2,3"/>
 

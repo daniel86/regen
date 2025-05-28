@@ -185,8 +185,8 @@ void main() {
 #if RAY_CASTING_MODE==AVERAGE_INTENSITY
     dst /= counter;
 #endif
-#ifdef DISCARD_ALPHA
-    if (dst.a < DISCARD_ALPHA_THRESHOLD) discard;
+#ifdef HAS_alphaDiscardThreshold
+    if (dst.a < in_alphaDiscardThreshold) discard;
 #endif
 #ifdef DEPTH_CORRECT
     vec3 po = 2.0 * pos - vec3(1.0);

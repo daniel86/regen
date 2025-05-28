@@ -516,12 +516,6 @@ static void loadTexture(
 			// Usually 'white' means opaque and 'black' means 'transparency'.
 			// Or quite the opposite. Have fun.
 			texState->set_mapTo(TextureState::MAP_TO_ALPHA);
-			// TODO: make configurable
-			//		- alpha discard threshold
-			//      - texel invert
-			REGEN_WARN("Enabling alpha discard for texture '" << stringVal.data << "'.");
-			texState->set_discardAlpha(true, 0.25f);
-			//texState->set_texelTransferKey("regen.states.textures.transfer.texel_invert");
 			break;
 		case aiTextureType_LIGHTMAP:
 			// Lightmap texture (aka Ambient Occlusion). Both 'Lightmaps' and

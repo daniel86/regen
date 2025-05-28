@@ -272,8 +272,7 @@
                 <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
             </node>
             <node id="tree1-twig">
-                <define key="DISCARD_ALPHA" value="TRUE"/>
-                <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+                <alpha discard-threshold="0.25" early-depth-test="1" />
                 <input name="matEmission" type="vec3" value="0.0,0.02,0.0"/>
                 <!-- transform mesh in geometry shader -->
                 <define key="HAS_GS_TRANSFORM" value="TRUE"/>
@@ -312,8 +311,7 @@
             -->
             <!-- <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.0" /> -->
             <!-- <toggle key="MULTISAMPLE" value="1" /> -->
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <blend mode="SRC"/>
+            <alpha discard-threshold="0.25" early-depth-test="1" />
             <define key="TESS_SPACING" value="equal_spacing"/>
             <tesselation num-patch-vertices="3" lod-factor="0.4" lod-metric="EDGE_DEVICE_DISTANCE"/>
             <input name="lodMinDeviceDistance" type="float" value="0.1"/>
@@ -542,7 +540,7 @@
 
     <node id="Fire">
         <blend mode="alpha"/>
-        <define key="DISCARD_ALPHA" value="TRUE"/>
+        <alpha discard-threshold="0.25"/>
         <input type="vec2" name="spriteSize" value="8.0, 8.0"/>
         <texture id="fire-noise" name="fireNoiseTexture"/>
         <texture id="fire-color" map-to="COLOR" blend="SRC"
@@ -696,7 +694,6 @@
         <define key="OUTPUT_TYPE" value="WHITE"/>
         <cull mode="FRONT"/>
         <camera id="collision-camera"/>
-        <blend mode="src"/>
         <depth test="0" write="0"/>
         <fbo id="collision-fbo" clear-buffers="1" draw-buffers="1"/>
         <node import="Static-Ground-Items"/>
@@ -713,7 +710,6 @@
             <cull mode="FRONT"/>
             <define key="OUTPUT_TYPE" value="WHITE"/>
             <camera id="collision-camera"/>
-            <blend mode="src"/>
             <depth test="0" write="0"/>
             <fbo id="collision-fbo" draw-buffers="0"/>
             <node import="Dynamic-Ground-Items"/>
@@ -948,7 +944,6 @@
 
             <node id="Geometry-Pass">
                 <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
-                <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <node import="Shadow-Caster"/>
                 <node import="Non-Shadow-Caster"/>

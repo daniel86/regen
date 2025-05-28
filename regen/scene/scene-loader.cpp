@@ -14,6 +14,7 @@
 #include "regen/scene/node-processor.h"
 #include "regen/states/direct-shading.h"
 #include "regen/states/stencil-state.h"
+#include "regen/states/alpha-state.h"
 #include <regen/scene/mesh-processor.h>
 #include <regen/scene/loadable-input.h>
 #include <regen/scene/shader-define-processor.h>
@@ -63,6 +64,7 @@ void SceneLoader::init() {
 	setStateProcessor(ref_ptr<ShapeProcessor>::alloc());
 	setStateProcessor(ref_ptr<AnimationProcessor>::alloc());
 	setStateProcessor(ref_ptr<LoadableState<BlendState>>::alloc("blend"));
+	setStateProcessor(ref_ptr<LoadableState<AlphaState>>::alloc("alpha"));
 	setStateProcessor(ref_ptr<LoadableState<BlitState>>::alloc("blit"));
 	setStateProcessor(ref_ptr<LoadableState<FBOState>>::alloc("fbo"));
 	setStateProcessor(ref_ptr<LoadableState<Material>>::alloc("material"));

@@ -204,7 +204,6 @@
         <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
         <node id="Reflection-Geometry">
-            <blend mode="src"/>
             <depth test="1" write="1"/>
             <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster"/>
@@ -314,7 +313,6 @@
     </transform>
 
     <node id="smoke-splat-interaction">
-        <blend mode="src"/>
         <fbo id="fluid-smoke-splat" clear-buffers="0" draw-buffers="0"/>
         <texture name="obstaclesBuffer" fbo="fluid-smoke-obstacles" attachment="0"/>
         <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
@@ -369,7 +367,7 @@
 
         <node id="Picture-Titles">
             <depth test="1" write="0"/>
-            <define key="DISCARD_ALPHA" value="1"/>
+            <alpha discard-threshold="0.25"/>
             <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0"/>
             <blend mode="alpha"/>
             <node id="video-picture-text">
@@ -565,8 +563,7 @@
                 <translate value="5.8, 1.82, -10.8"/>
             </transform>
             <!-- <define key="DEPTH_CORRECT" value="TRUE"/> -->
-            <define key="DISCARD_ALPHA" value="TRUE"/>
-            <define key="DISCARD_ALPHA_THRESHOLD" value="0.25"/>
+            <alpha discard-threshold="0.25"/>
             <define key="RAY_CASTING_MODE" value="FIRST_MAXIMUM"/>
             <define key="SWITCH_VOLUME_Y" value="FALSE"/>
             <cull mode="front"/>

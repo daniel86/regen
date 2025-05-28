@@ -237,7 +237,6 @@
         <camera id="paraboloid-camera"/>
         <fbo id="paraboloid-reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
         <node>
-            <blend mode="src"/>
             <depth test="1" write="1"/>
             <fbo id="paraboloid-reflection-buffer" draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster"/>
@@ -281,7 +280,6 @@
         <camera id="cube-camera"/>
         <fbo id="cube-reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
         <node>
-            <blend mode="src"/>
             <depth test="1" write="1"/>
             <fbo id="cube-reflection-buffer" draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster"/>
@@ -553,7 +551,6 @@
             <camera id="main-camera"/>
 
             <node id="Geometry-Pass">
-                <blend mode="src"/>
                 <depth test="1" write="1"/>
                 <fbo id="g-buffer" draw-buffers="0,1,2,3"/>
 

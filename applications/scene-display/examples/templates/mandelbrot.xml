@@ -11,8 +11,6 @@
 
 <node id="mandelbrot-update">
   <fbo id="mandelbrot-buffer" draw-buffers="0" />
-  <blend mode="src" />
-
   <define key="JULIA_SET" value="TRUE" />
   <input type="vec2" name="juliaConstants" >
     <animation dt="6.0">

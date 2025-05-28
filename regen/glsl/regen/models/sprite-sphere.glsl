@@ -152,11 +152,6 @@ uniform vec4 in_col;
 #include regen.states.textures.mapToLight
 #include regen.models.mesh.writeOutput
 
-#ifdef DISCARD_ALPHA
-    #ifndef DISCARD_ALPHA_THRESHOLD
-#define DISCARD_ALPHA_THRESHOLD 0.01
-    #endif
-#endif
 #ifdef DISCARD_EMISSION
     #ifndef DISCARD_EMISSION_THRESHOLD
 #define DISCARD_EMISSION_THRESHOLD 0.01
@@ -183,8 +178,8 @@ void main()
     vec4 color = vec4(1.0);
 #endif
     textureMappingFragment(in_posWorld,color,norWorld.xyz);
-#ifdef DISCARD_ALPHA
-    if (color.a < DISCARD_ALPHA_THRESHOLD) discard;
+#ifdef HAS_alphaDiscardThreshold
+    if (color.a < in_alphaDiscardThreshold) discard;
 #endif
     writeOutput(in_posWorld,norWorld.xyz,color);
 #ifdef DISCARD_EMISSION
