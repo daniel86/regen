@@ -791,28 +791,30 @@
     </node>
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.06,0.04,0.04"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
-        <node id="Light-Shading">
-            <node>
-                <light-pass type="POINT" shader="regen.shading.deferred.point">
-                    <light id="room-light0"
-                           shadow-buffer="room-light-shadow0" shadow-attachment="depth"
-                           shadow-camera="room-light-camera0"/>
-                </light-pass>
+        <node id="Additive-Shading">
+            <blend mode="add"/>
+            <node id="Ambient-Shading">
+                <fullscreen-pass shader="regen.shading.deferred.ambient"/>
             </node>
-            <node>
-                <light-pass type="SPOT" shader="regen.shading.deferred.spot">
-                    <light id="picture-spot-center"/>
-                    <light id="picture-spot-right"/>
-                    <light id="picture-spot-left"/>
-                    <light id="picture-spot-center-n"/>
-                </light-pass>
+            <node id="Light-Shading">
+                <node>
+                    <light-pass type="POINT" shader="regen.shading.deferred.point">
+                        <light id="room-light0"
+                               shadow-buffer="room-light-shadow0" shadow-attachment="depth"
+                               shadow-camera="room-light-camera0"/>
+                    </light-pass>
+                </node>
+                <node>
+                    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+                        <light id="picture-spot-center"/>
+                        <light id="picture-spot-right"/>
+                        <light id="picture-spot-left"/>
+                        <light id="picture-spot-center-n"/>
+                    </light-pass>
+                </node>
             </node>
         </node>
 
