@@ -29,7 +29,6 @@ LODState::LODState(
 
 void LODState::initLODState() {
 	lodNumInstances_.resize(4);
-	lodGroups_.resize(4);
 	// initially all instances are added to first LOD group
 	lodNumInstances_[0] = cullShape_->numInstances();
 	for (uint32_t i = 1u; i < 4; ++i) {
@@ -173,86 +172,64 @@ void LODState::traverseCPU(RenderState *rs) {
 	}
 }
 
+static inline void reverse_copy_u32(uint32_t* __restrict dst, const uint32_t* __restrict src, size_t count) {
+	for (size_t i = 0; i < count; ++i) {
+		dst[i] = src[count - 1 - i];
+	}
+}
+
 void LODState::computeLODGroups() {
 	auto visible_ids = shapeIndex_->mapInstanceIDs(ShaderData::READ);
 	auto numVisible = visible_ids.r[0];
 	if (numVisible == 0) { return; }
 
-	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		computeLODGroups_(
-				visible_ids.r + 1,
-				static_cast<int>(numVisible) - 1,
-				-1,
-				-1);
-	} else {
-		computeLODGroups_(
-				visible_ids.r + 1,
-				0,
-				static_cast<int>(numVisible),
-				1);
-	}
-}
-
-void LODState::computeLODGroups_(
-		const uint32_t *mappedData, int begin, int end, int increment) {
+	const uint32_t *mappedData = visible_ids.r + 1;
 	auto &transform = cullShape_->tf();
 	auto &modelOffset = cullShape_->modelOffset();
 	auto camPos = camera_->position()->getVertex(0);
-	// clear LOD groups of last frame
-	for (auto &lodGroup: lodGroups_) {
-		lodGroup.clear();
+	for (size_t i = 0; i < lodNumInstances_.size(); ++i) {
+		lodNumInstances_[i] = 0;
 	}
 
-	// TODO: make this faster:
-	// - remove lodGroups_ entirely, it is not needed.
-	// - look for fast function to cop in reverse order, else it should be fine to copy data as is.
-	// - then we could try optimizing the counting of instances per LOD level.
+	// TODO: try optimizing the counting of instances per LOD level.
 	//   in case we have some instance, let's say >1000, we could use a multithreaded approach
 	//   with e.g. group size of 256 and then use a parallel reduction to count the instances.
 	if (mesh_->numLODs() == 1) {
-		for (int i = begin; i != end; i += increment) {
-			lodGroups_[0].push_back(mappedData[i]);
-		}
+		lodNumInstances_[0] = numVisible;
 	} else if (transform.get() && modelOffset.get()) {
 		auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
 		auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
-		for (int i = begin; i != end; i += increment) {
+		for (uint32_t i = 0; i != numVisible; ++i) {
 			auto lodLevel = mesh_->getLODLevel((
 													   tfData.r[mappedData[i]].position() +
 													   modelOffsetData.r[mappedData[i]] - camPos.r).length());
-			lodGroups_[lodLevel].push_back(mappedData[i]);
+			++lodNumInstances_[lodLevel];
 		}
 	} else if (modelOffset.get()) {
 		auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
-		for (int i = begin; i != end; i += increment) {
+		for (uint32_t i = 0; i != numVisible; ++i) {
 			auto lodLevel = mesh_->getLODLevel((
 													   modelOffsetData.r[mappedData[i]] - camPos.r).length());
-			lodGroups_[lodLevel].push_back(mappedData[i]);
+			++lodNumInstances_[lodLevel];
 		}
 	} else if (transform.get()) {
 		auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
-		for (int i = begin; i != end; i += increment) {
+		for (uint32_t i = 0; i != numVisible; ++i) {
 			auto lodLevel = mesh_->getLODLevel((
 													   tfData.r[mappedData[i]].position() - camPos.r).length());
-			lodGroups_[lodLevel].push_back(mappedData[i]);
+			++lodNumInstances_[lodLevel];
 		}
 	} else {
-		for (int i = begin; i != end; i += increment) {
-			lodGroups_[0].push_back(mappedData[i]);
-		}
+		lodNumInstances_[0] = numVisible;
 	}
 
 	// write lodGroups_ data into instanceIDMap_
 	auto &instanceIDMap = cullShape_->instanceIDMap();
 	auto instance_ids = instanceIDMap->mapClientData<uint32_t>(ShaderData::WRITE);
-	uint32_t numVisible = 0u;
-	for (size_t i = 0; i < lodGroups_.size(); ++i) {
-		auto &lodGroup = lodGroups_[i];
-		lodNumInstances_[i] = static_cast<uint32_t>(lodGroup.size());
-		if (!lodGroup.empty()) {
-			std::memcpy(instance_ids.w + numVisible, lodGroup.data(), lodNumInstances_[i] * sizeof(uint32_t));
-			numVisible += lodNumInstances_[i];
-		}
+	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
+		reverse_copy_u32(instance_ids.w, mappedData, numVisible * sizeof(uint32_t));
+	} else {
+		std::memcpy(instance_ids.w, mappedData, numVisible * sizeof(uint32_t));
 	}
 	instance_ids.unmap();
 }

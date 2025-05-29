@@ -31,6 +31,12 @@ namespace regen {
 		 */
 		void setInstanceSortMode(SortMode mode) { instanceSortMode_ = mode; }
 
+		/**
+		 * @brief Get the instance sorting mode
+		 * @return The instance sorting mode
+		 */
+		SortMode instanceSortMode() const { return instanceSortMode_; }
+
 		// override
 		void enable(RenderState *rs) override;
 
@@ -42,8 +48,6 @@ namespace regen {
 
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;
-		// temporary storage for instanceIDs, used to fill the instanceIDMap_
-		std::vector<std::vector<GLuint>> lodGroups_;
 		ref_ptr<Mesh> mesh_;
 		bool hasShadowTarget_;
 
@@ -72,12 +76,6 @@ namespace regen {
 		void traverseCPU(RenderState *rs);
 
 		void traverseGPU(RenderState *rs);
-
-		void computeLODGroups_(
-			const uint32_t *mappedData,
-			int begin,
-			int end,
-			int increment);
 	};
 }
 

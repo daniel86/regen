@@ -13,6 +13,7 @@
 #include <regen/animations/animation.h>
 #include "regen/physics/physical-object.h"
 #include "regen/states/state-node.h"
+#include "regen/camera/sorting.h"
 
 namespace regen {
 	// forward declaration
@@ -232,6 +233,13 @@ namespace regen {
 		uint32_t numLODs() const;
 
 		/**
+		 * Sets the sort mode for LOD levels, if back-to-front
+		 * is used, then low LOD levels are rendered first,
+		 * @param mode the sort mode to set.
+		 */
+		void set_lodSortMode(SortMode mode) { lodSortMode_ = mode; }
+
+		/**
 		 * @return the active input container.
 		 */
 		const ref_ptr<InputContainer> &activeInputContainer() const;
@@ -433,6 +441,7 @@ namespace regen {
 		// provides offset to instanceIDMap_ as a uniform for the next LOD level
 		int32_t instanceIDOffset_loc_;
 		uint32_t lastNumVertices_ = 0u;
+		SortMode lodSortMode_ = SortMode::FRONT_TO_BACK;
 
 		ref_ptr<State> cullShape_;
 		ref_ptr<BoundingShape> boundingShape_;

@@ -65,6 +65,7 @@ void MeshNodeProvider::processInput(
 		if (input.hasAttribute("primitive")) {
 			meshCopy->set_primitive(glenum::primitive(input.getValue("primitive")));
 		}
+		meshCopy->set_lodSortMode(SortMode::FRONT_TO_BACK);
 		StateConfigurer meshConfigurer;
 		auto meshNode = ref_ptr<StateNode>::alloc();
 		meshNode->set_name("base-mesh");
@@ -95,6 +96,8 @@ void MeshNodeProvider::processInput(
 					auto lodState = createCullState(scene, input, parent, cullShape);
 					if (lodState.get()) {
 						meshNode->state()->joinStates(lodState);
+						// set sorting mode
+						meshCopy->set_lodSortMode(lodState->instanceSortMode());
 					}
 				} else {
 					REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape.");

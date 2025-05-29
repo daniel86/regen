@@ -569,8 +569,15 @@ void Mesh::enable(RenderState *rs) {
 		drawMesh(rs);
 	}
 	else {
-		for (uint32_t lodLevel = 0; lodLevel < meshLODs_.size(); ++lodLevel) {
-			drawMeshLOD(rs, lodLevel);
+		if (lodSortMode_ == SortMode::BACK_TO_FRONT) {
+			for (uint32_t lodLevel = meshLODs_.size(); lodLevel > 0; --lodLevel) {
+				drawMeshLOD(rs, lodLevel - 1);
+			}
+		}
+		else {
+			for (uint32_t lodLevel = 0; lodLevel < meshLODs_.size(); ++lodLevel) {
+				drawMeshLOD(rs, lodLevel);
+			}
 		}
 		activateLOD_(0);
 	}
