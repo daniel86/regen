@@ -8,6 +8,8 @@
     <constant name="map-frame-size" value="999.5"/>
     <constant name="water-level" value="-4.0"/>
     <constant name="sea-level" value="0.0"/>
+    <constant name="far-plane" value="200.0"/>
+    <constant name="far-plane*0.5" value="100.0"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -143,6 +145,7 @@
             mesh-id="ground-mesh" transform-id="ground-tf" />
     </mesh>
 
+    <!--
     <mesh id="ground-frame"
           type="frame"
           lod="0"
@@ -156,6 +159,7 @@
         </transform>
         <material preset="stone"/>
     </mesh>
+    -->
 
     <node id="Ground">
         <node id="Ground-quad">
@@ -166,9 +170,11 @@
         <!-- we add a frame around the ground mesh to avoid problems at the edges
              with how distance fog is calculated based on depth (it may not correctly
              handle water at the boundaries where there is nothing behind the water) -->
+        <!--
         <node id="Ground-frame">
             <mesh id="ground-frame" shader="regen.models.mesh"/>
         </node>
+        -->
     </node>
 
     <!--**************************-->
@@ -253,6 +259,17 @@
         <input type="float" name="foamHardness" value="1.0"/>
     </block>
 
+    <!-- water surface mesh used for depth rendering and post-processing effects -->
+    <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
+    <mesh id="water-mesh" type="rectangle" lod="0" center="1" usage="STATIC_DRAW"
+          use-normal="0" use-texco="0" use-tangent="0"
+          rotation="0.0,0.0,3.1415"
+          scaling="{{far-plane}},1.0,{{far-plane}}">
+        <transform>
+            <translate value="0.0,{{water-level}},-{{far-plane*0.5}}"/>
+        </transform>
+    </mesh>
+
     <node id="Water-Rendering">
         <depth test="0" write="0"/>
 
@@ -274,7 +291,16 @@
         <input name="sunDirection" state="sky-sun" component="lightDirection"/>
         <input name="sunColor" state="sky-sun" component="lightDiffuse"/>
 
-        <fullscreen-pass shader="regen.terrain.water"/>
+        <fullscreen-pass shader="regen.terrain.water.fullscreen"/>
+    </node>
+
+    <!-- Render surface plane into depth buffer
+         to be used for post-processing effects -->
+    <node id="Water-Depth">
+        <depth test="1" write="1"/>
+        <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
+        <define key="OUTPUT_TYPE" value="DEPTH"/>
+        <mesh id="water-mesh" shader="regen.models.mesh" />
     </node>
 
     <!--**************************-->
@@ -283,17 +309,18 @@
 
     <node id="Fog-Draw">
         <node id="Distance-Fog">
-            <blend mode="alpha"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
             <input type="float" name="fogDensity" value="1.0"/>
             <input type="vec2" name="fogDistance" value="25.0,180.0"/>
             <input type="vec3" name="fogColor" value="0.35, 0.55, 0.5"/>
             <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="gColorTexture" fbo="g-buffer" attachment="0"/>
             <texture name="skyColorTexture" id="sky"/>
             <fullscreen-pass shader="regen.weather.fog.distance"/>
         </node>
         <view id="Fog">
-            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
     </node>
 
@@ -361,6 +388,12 @@
         <node import="Water-Rendering">
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>
+        <node import="Water-Depth">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
+        <view id="Water">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
 
         <!-- render transparent objects -->
         <node id="Transparent-Pass">
@@ -383,10 +416,10 @@
         <node import="Fog-Draw"/>
         <node import="Scene-Blur"/>
         <node import="ToneMapping">
-            <fbo id="g-buffer" draw-buffers="1"/>
+            <fbo id="g-buffer" draw-buffers="0"/>
         </node>
         <view id="Scene -- ToneMapping">
-            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
     </node>
 
@@ -394,7 +427,7 @@
         <input type="int" name="numBlurPixels" value="10"/>
         <input type="float" name="blurSigma" value="2.5"/>
 
-        <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0">
+        <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1">
             <filter shader="regen.filter.sampling" scale="0.5"/>
             <filter shader="regen.filter.blur.horizontal"/>
             <filter shader="regen.filter.blur.vertical"/>
@@ -422,7 +455,7 @@
     <node id="ToneMapping">
         <define key="USE_RADIAL_BLUR" value="TRUE"/>
         <define key="USE_VIGNETTE" value="TRUE"/>
-        <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+        <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
         <texture name="blurTexture" id="blurred-scene"/>
         <input name="ToneMapping" ubo="ToneMapping"/>
         <fullscreen-pass shader="regen.filter.tonemap"/>
@@ -502,19 +535,19 @@
             <view id="Spatial Index">
                 <node import="spatial-index-debug">
                     <camera id="main-camera"/>
-                    <fbo id="g-buffer" draw-buffers="1"/>
+                    <fbo id="g-buffer" draw-buffers="0"/>
                 </node>
                 <node>
-                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
                 </node>
             </view>
 
             <node import="GUI-Pass">
-                <fbo id="g-buffer" draw-buffers="1"/>
+                <fbo id="g-buffer" draw-buffers="0"/>
             </node>
 
             <view id="Scene -- Result">
-                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
             </view>
         </node>
     </node>

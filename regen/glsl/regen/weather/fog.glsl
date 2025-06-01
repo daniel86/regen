@@ -5,6 +5,8 @@
 float fogIntensity(float d)
 {
     float x = smoothstep(in_fogDistance.x, in_fogDistance.y, d);
+    // TODO: support S-Curve Variant
+    // return x * x * (3.0 - 2.0 * x); // smoothstep curve, manual
 #ifdef USE_EXP_FOG
     return 1.0 - exp( -pow(1.75*x, 2.0) );
 #else
@@ -30,14 +32,13 @@ float fogIntensity(float d)
 out vec4 out_color;
 
 uniform sampler2D in_gDepthTexture;
-#ifdef USE_TBUFFER
-uniform sampler2D in_tDepthTexture;
-uniform sampler2D in_tColorTexture;
-#endif
+uniform sampler2D in_gColorTexture;
 
 const vec3 in_fogColor = vec3(1.0);
 const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
+
+#define USE_DIRECTIONAL_SCATTERING
 
 #include regen.filter.sampling.computeTexco
 #include regen.states.camera.input
@@ -47,45 +48,63 @@ const float in_fogDensity = 1.0;
     #include regen.weather.utility.sunIntensity
 #endif
 
+float verticalFalloff(vec3 viewDir, vec3 worldUp) {
+    float angle = dot(viewDir, worldUp); // -1 (down) to 1 (up)
+    return clamp(1.0 - abs(angle), 0.0, 1.0); // strong at horizon
+}
+
 void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-    vecTexco texco = computeTexco(texco_2D);
-    
-    float d0 = texture(in_gDepthTexture, texco).x;
-    vec3 eye0 = transformTexcoToWorld(texco_2D, d0, in_layer) - in_cameraPosition;
-    float eye0Length = length(eye0);
-    float factor0 = fogIntensity(eye0Length);
-    //float factor0 = float(d0<1.0) * fogIntensity(eye0Length);
+    vecTexco sceneUV = computeTexco(texco_2D);
+
+    float sceneDepth = texture(in_gDepthTexture, sceneUV).x;
+    vec3 posWorld = transformTexcoToWorld(texco_2D, sceneDepth, in_layer);
+    vec3 eye = posWorld - in_cameraPosition;
+    float eyeLength = length(eye);
+    vec3 eyeDir = eye / eyeLength;
 
     vec3 fogColor = in_fogColor;
-#ifdef HAS_sunPosition
-    fogColor *= clamp(sunIntensity(), 0.0, 1.0);
-#endif
-#ifdef HAS_skyColorTexture
-    vec3 skyColor = texture(in_skyColorTexture, eye0).rgb;
-    fogColor = mix(fogColor, skyColor, factor0);
-#endif
-    
-#ifdef USE_TBUFFER
-    float d1 = texture(in_tDepthTexture, texco).x;
-    vec3 eye1 = transformTexcoToWorld(texco_2D, d1, in_layer) - in_cameraPosition;
-    
-    // use standard fog color from eye to transparent object
-    float factor1 = fogIntensity(length(eye1));
-    out_color = (factor1*in_fogDensity)*fogColor;
-    
-    // starting from transparent object to scene depth sample use alpha blended fog color.
-    vec4 tcolor = texture(in_tColorTexture, texco).x;
-    vec3 blended = fogColor*(1.0-tcolor.a) + tcolor.rgb*tcolor.a;
-    // substract intensity from eye to p1
-    factor0 -= factor1;
-    // multiple by alpha value (no fog behind opaque objects)
-    factor0 *= (1.0-tcolor.a);
-    out_color += (factor0*in_fogDensity) * blended;
+    vec3 sceneColor = texture(in_gColorTexture, sceneUV).rgb;
+    #ifdef HAS_skyColorTexture
+    vec3 skyColor = texture(in_skyColorTexture, eye).rgb;
+    #endif
 
-#else
-    out_color = vec4(fogColor, factor0*in_fogDensity);
-#endif
+    // Compute fog factor based on distance to camera, eye direction, and (optionally) height.
+    float fogFactor = fogIntensity(eyeLength) * in_fogDensity;
+    fogFactor *= verticalFalloff(eyeDir, vec3(0.0, 1.0, 0.0));
+    #ifdef HAS_fogHeightMin && HAS_fogHeightMax
+    fogFactor *=  1.0 - smoothstep(in_fogHeightMin, in_fogHeightMax, posWorld.y);
+    #endif
+
+    #ifdef HAS_sunPosition
+        #ifdef USE_DIRECTIONAL_SCATTERING
+    // Directional Fog Scattering
+    float scatteringAmount = pow(max(dot(eyeDir, in_sunPosition), 0.0), 2.0);
+    scatteringAmount = pow(scatteringAmount, 4.0);
+    vec3 sunColor = vec3(1.0, 0.9, 0.7);
+    vec3 directionalFogColor = mix(fogColor, sunColor, scatteringAmount);
+    fogColor = mix(fogColor, directionalFogColor, scatteringAmount);
+        #endif
+    #endif
+    #ifdef HAS_sunPosition
+    // Vary Fog Based on Sun Elevation using Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
+    float sunFactor = sunIntensity();
+    // mix fog color with warm tint based on sun elevation
+    fogColor = mix(vec3(1.0, 0.75, 0.6), fogColor, sunFactor);
+    // darken fog color based on sun elevation
+    fogColor *= clamp(sunFactor, 0.0, 1.0);
+    #endif
+    #ifdef HAS_skyColorTexture
+    fogColor = mix(fogColor, skyColor, fogFactor * fogFactor);
+    #endif
+
+    vec3 foggedColor = mix(sceneColor, fogColor, fogFactor);
+    #ifdef HAS_skyColorTexture
+    float skyBlend = smoothstep(0.999, 1.0, sceneDepth); // Sky is depth=1.0
+    vec3 finalColor = mix(foggedColor, skyColor, skyBlend);
+    #endif
+
+    out_color = vec4(finalColor, 1.0);
 }
 
 --------------------------------------

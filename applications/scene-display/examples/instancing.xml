@@ -229,40 +229,44 @@
         </node>
 
         <node id="Distance-Fog">
-            <blend mode="alpha"/>
+            <fbo id="g-buffer" draw-buffers="0"/>
             <input type="float" name="fogDensity" value="1.0"/>
             <input type="vec2" name="fogDistance" value="50.0,100.0" min="0,0" max="100,100"/>
             <input type="vec3" name="fogColor" value="0.35, 0.55, 0.5" schema="color"/>
             <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+            <texture name="gColorTexture" fbo="g-buffer" attachment="1"/>
             <texture name="skyColorTexture" id="sky"/>
             <fullscreen-pass shader="regen.weather.fog.distance"/>
         </node>
+        <view id="Fog">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
     </node>
 
     <node id="Post-Pass">
         <depth test="0" write="0"/>
 
-        <node import="G-Buffer-Blur1"/>
+        <node import="G-Buffer-Blur0"/>
         <node import="Depth-of-Field">
-            <fbo id="g-buffer" draw-buffers="0"/>
-            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
             <input type="vec2" name="focalWidth" value="0.2,0.5" />
         </node>
         <view id="DoF">
-            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
 
         <node import="Snow">
-            <fbo id="g-buffer" draw-buffers="0"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
         </node>
 
         <node import="FXAA">
-            <fbo id="g-buffer" draw-buffers="1"/>
-            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
         </node>
         <view id="Scene -- Antialiased">
-            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
     </node>
 

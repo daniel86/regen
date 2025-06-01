@@ -256,10 +256,6 @@
     </view>
     
     <node import="Background-Pass" />
-    <view id="Scene -- Background">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    
     <node import="Post-Pass" />
   </node>
 </node>

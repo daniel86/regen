@@ -840,31 +840,31 @@
         <depth test="0" write="0"/>
 
         <node id="Distance-Fog">
-            <fbo id="g-buffer" draw-buffers="1"/>
-            <blend mode="alpha" />
+            <fbo id="g-buffer" draw-buffers="0"/>
             <input type="float" name="fogDensity" value="1.0" />
             <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" min="0.0" max="{{far-plane}}"/>
             <input type="vec3" name="fogColor" value="0.2,0.33,0.3" schema="color"/>
             <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+            <texture name="gColorTexture" fbo="g-buffer" attachment="1"/>
             <texture name="skyColorTexture" id="sky" />
-            <fullscreen-pass shader="regen.weather.fog.distance" />
+            <fullscreen-pass shader="regen.weather.fog.distance"/>
         </node>
         <view id="Distance Fog">
-            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
-        <!-- blur the g-buffer attachment 1 -->
-        <node import="G-Buffer-Blur1"/>
+        <!-- blur the g-buffer attachment0 -->
+        <node import="G-Buffer-Blur0"/>
         <!-- apply depth of field effect by mixing the blurred scene with the original scene -->
         <node import="Depth-of-Field">
-            <fbo id="g-buffer" draw-buffers="0"/>
-            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
             <!-- TODO: shouldn't blurred scene be used? -->
             <!-- <texture name="inputTexture" id="blurred-scene" /> -->
             <input type="vec2" name="focalWidth" value="0.7,1.0" />
         </node>
         <view id="Depth of Field">
-            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
 
         <!-- render particles into a separate buffer -->
@@ -878,7 +878,7 @@
         <node import="Particle-Update-FBO"/>
         <!-- render transparent objects -->
         <node id="Transparent-Pass">
-            <fbo id="g-buffer" draw-buffers="0"/>
+            <fbo id="g-buffer" draw-buffers="1"/>
             <blend mode="add"/>
             <depth test="1" write="0"/>
             <!-- render emission light -->
@@ -898,17 +898,17 @@
             </node>
             <!-- <node import="Fire" /> -->
             <view id="Transparent Objects">
-                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
             </view>
         </node>
 
         <!-- apply anti-aliasing effect -->
         <node import="FXAA">
-            <fbo id="g-buffer" draw-buffers="1"/>
-            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+            <fbo id="g-buffer" draw-buffers="0"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
         </node>
         <view id="Antialiased Scene">
-            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
     </node>
 
