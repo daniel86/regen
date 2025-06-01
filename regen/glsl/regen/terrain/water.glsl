@@ -4,10 +4,20 @@
 ---- @see http://www.gamedev.net/page/reference/index.html/_/technical/graphics-programming-and-theory/rendering-water-as-a-post-process-effect-r2642
 --------------------------------------
 --------------------------------------
--- vs
+-- plane.vs
+#include regen.models.mesh.vs
+-- plane.gs
+#include regen.models.mesh.gs
+-- plane.fs
+#include regen.terrain.water.fs
+
+-- fullscreen.vs
 #include regen.filter.sampling.vs
--- gs
+-- fullscreen.gs
 #include regen.filter.sampling.gs
+-- fullscreen.fs
+#include regen.terrain.water.fs
+
 -- fs
 #define NUM_HEIGHT_SAMPLES 10
 #include regen.states.camera.defines
