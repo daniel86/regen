@@ -68,8 +68,11 @@
 #else
     #define REGEN_CAM_FAR_(layer) in_far
 #endif
-#ifdef USE_PARABOLOID_PROJECTION || IGNORE_VIEW_ROTATION || IGNORE_VIEW_TRANSLATION
-    #define SEPERATE_VIEW_PROJ
+#ifdef USE_PARABOLOID_PROJECTION || IGNORE_VIEW_ROTATION || IGNORE_VIEW_TRANSLATION || IS_VIEW_ALIGNED_GROUND_QUAD
+// enforces that view and projection matrices are applied separately,
+// this is needed in case of some special things are done in the view space computation e.g.
+// ignoring view rotation or translation, or using a view-aligned ground quad
+#define SEPERATE_VIEW_PROJ
 #endif
 
 -- input
@@ -147,6 +150,22 @@ vec4 transformWorldToEye(vec4 posWorld, mat4 view) {
     return vec4(view[3].xyz,0.0) + posWorld;
 #elif IGNORE_VIEW_TRANSLATION
     return mat4(view[0], view[1], view[2], vec3(0.0), 1.0) * posWorld;
+#elif IS_VIEW_ALIGNED_GROUND_QUAD
+    vec3 pos = posWorld.xyz;
+    // Adjust position to be relative to camera position
+    pos.y -= in_cameraPosition.y + 0.01;
+    // Extract yaw (Y-axis) rotation from view matrix
+    mat3 yawOnly = mat3(
+        // right
+        normalize(vec3(view[0].x, 0.0, view[0].z)),
+        // up
+        vec3(0.0, 1.0, 0.0),
+        // forward
+        normalize(vec3(view[2].x, 0.0, view[2].z)));
+    pos = transpose(yawOnly) * pos;
+    // Apply the view matrix without translation
+    pos = mat3(view[0].xyz, view[1].xyz, view[2].xyz) * pos;
+    return vec4(pos, 1.0);
 #else
     return view * posWorld;
 #endif
