@@ -27,8 +27,8 @@ namespace regen {
 		struct Axis {
 			explicit Axis(const Vec2f &dir) : dir(dir) {}
 			Vec2f dir;
-			float min;
-			float max;
+			float min = 0.0f;
+			float max = 0.0f;
 		};
 		std::vector<Axis> axes;
 		Bounds<Vec2f> bounds;
