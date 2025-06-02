@@ -4,11 +4,10 @@
     <constant name="map-size" value="1000.0"/>
     <constant name="map-height" value="24.0"/>
     <constant name="map-y-min" value="-12.0"/>
-    <constant name="map-frame-height" value="18.0"/>
-    <constant name="map-frame-offset" value="-6.0"/>
-    <constant name="map-frame-size" value="999.5"/>
-    <constant name="water-surface-y" value="1.7"/>
+    <constant name="water-level" value="1.7"/>
     <constant name="num-fish" value="100000"/>
+    <constant name="far-plane" value="200.0"/>
+    <constant name="far-plane*0.5" value="100.0"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -71,7 +70,7 @@
             culling-index="main-index"
             camera="main-camera"
             reflector-normal="0,1,0"
-            reflector-point="0,{{water-surface-y}},0"/>
+            reflector-point="0,{{water-level}},0"/>
     <!-- Assets -->
     <asset id="fish-asset" type="asset"
            file="res/models/fish-puffer/PufferFish.fbx"
@@ -140,20 +139,6 @@
             mesh-id="ground-mesh" transform-id="ground-tf" />
     </mesh>
 
-    <mesh id="ground-frame"
-          type="frame"
-          lod="0"
-          scaling="{{map-frame-size}},{{map-frame-height}},{{map-frame-size}}"
-          border-size="0.05"
-          use-normal="0"
-          use-tangent="0"
-          usage="STATIC_DRAW">
-        <transform>
-            <translate value="0.0, {{map-frame-offset}}, 0.0"/>
-        </transform>
-        <material preset="stone"/>
-    </mesh>
-
     <node id="Ground">
         <node id="Ground-quad">
             <!--
@@ -161,12 +146,6 @@
             <texture name="noiseTexture" id="ground-noise"/>
             -->
             <mesh id="ground-mesh" shader="regen.terrain.ground"/>
-        </node>
-        <!-- we add a frame around the ground mesh to avoid problems at the edges
-             with how distance fog is calculated based on depth (it may not correctly
-             handle water at the boundaries where there is nothing behind the water) -->
-        <node id="Ground-frame">
-            <mesh id="ground-frame" shader="regen.models.mesh"/>
         </node>
     </node>
 
@@ -241,7 +220,7 @@
         <input type="vec2" name="windDirection" value="0.9,0.0"/>
         <input type="vec2" name="waveScale" value="0.05,0.05"/>
         <input type="float" name="heightTextureSize" value="256.0"/>
-        <input type="float" name="surfaceHeight" value="{{water-surface-y}}"/>
+        <input type="float" name="surfaceHeight" value="{{water-level}}"/>
         <input type="float" name="normalScale" value="3.0"/>
         <input type="float" name="refractionConstant" value="30.0"/>
         <input type="float" name="refractionStrength" value="0.24"/>
@@ -273,7 +252,27 @@
         <input name="sunDirection" state="sky-sun" component="lightDirection"/>
         <input name="sunColor" state="sky-sun" component="lightDiffuse"/>
 
-        <fullscreen-pass shader="regen.terrain.water"/>
+        <fullscreen-pass shader="regen.terrain.water.fullscreen"/>
+    </node>
+
+    <!-- water surface mesh used for depth rendering and post-processing effects -->
+    <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
+    <mesh id="water-mesh" type="rectangle" lod="0" center="1" usage="STATIC_DRAW"
+          use-normal="0" use-texco="0" use-tangent="0"
+          rotation="0.0,0.0,3.1415"
+          scaling="{{far-plane}},1.0,{{far-plane}}">
+        <transform>
+            <translate value="0.0,{{water-level}},-{{far-plane*0.5}}"/>
+        </transform>
+    </mesh>
+
+    <!-- Render surface plane into depth buffer
+         to be used for post-processing effects -->
+    <node id="Water-Depth">
+        <depth test="1" write="1"/>
+        <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
+        <define key="OUTPUT_TYPE" value="DEPTH"/>
+        <mesh id="water-mesh" shader="regen.models.mesh" />
     </node>
 
     <!--**************************-->
@@ -304,7 +303,7 @@
                 avoidance-distance="0.5"
                 separation-weight="10.0"
                 bounds-min="-500.0, {{map-y-min}}, -150.0"
-                bounds-max="500.0, {{water-surface-y}}, 150.0"
+                bounds-max="500.0, {{water-level}}, 150.0"
                 map-center="0, {{map-y-min}}, 0"
                 map-size="{{map-size}}, {{map-size}}"
                 height-map="ground-height"
@@ -360,6 +359,13 @@
 
     <node id="Scene-Geometry">
         <node import="Ground"/>
+        <!--
+        <node id="Water-Test">
+            <depth test="1" write="1"/>
+            <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
+            <mesh id="water-mesh" shader="regen.models.mesh" />
+        </node>
+        -->
     </node>
 
     <node id="Background-Objects">
@@ -414,6 +420,12 @@
         <node import="Water-Rendering">
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>
+        <node import="Water-Depth">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
+        <view id="Water">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
 
         <!-- render transparent objects -->
         <node id="Transparent-Pass">

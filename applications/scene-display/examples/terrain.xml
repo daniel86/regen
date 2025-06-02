@@ -4,8 +4,6 @@
     <constant name="map-height" value="24.0"/>
     <constant name="map-height-half" value="12.0"/>
     <constant name="map-size" value="1000.0"/>
-    <constant name="map-frame-offset" value="-6.5"/>
-    <constant name="map-frame-size" value="999.5"/>
     <constant name="water-level" value="-4.0"/>
     <constant name="sea-level" value="0.0"/>
     <constant name="far-plane" value="200.0"/>
@@ -144,22 +142,6 @@
         <shape id="ground-shape" index="1" cull="1" type="obb"
             mesh-id="ground-mesh" transform-id="ground-tf" />
     </mesh>
-
-    <!--
-    <mesh id="ground-frame"
-          type="frame"
-          lod="0"
-          scaling="{{map-frame-size}},{{map-height-half}},{{map-frame-size}}"
-          border-size="0.05"
-          use-normal="0"
-          use-tangent="0"
-          usage="STATIC_DRAW">
-        <transform>
-            <translate value="0.0, {{map-frame-offset}}, 0.0"/>
-        </transform>
-        <material preset="stone"/>
-    </mesh>
-    -->
 
     <node id="Ground">
         <node id="Ground-quad">
