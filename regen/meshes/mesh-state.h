@@ -167,10 +167,10 @@ namespace regen {
 
 		/**
 		 * Get the level of detail based on camera distance.
-		 * @param cameraDistance distance to camera.
+		 * @param distanceSquared squared distance to camera.
 		 * @return the level of detail.
 		 */
-		uint32_t getLODLevel(float cameraDistance) const;
+		uint32_t getLODLevel(float distanceSquared) const;
 
 		/**
 		 * Activate given LOD level.

@@ -278,17 +278,23 @@ const ref_ptr<InputContainer> &Mesh::activeInputContainer() const {
 	}
 }
 
-unsigned int Mesh::getLODLevel(float depth) const {
+unsigned int Mesh::getLODLevel(float distanceSquared) const {
     // Returns the LOD group for a given depth.
-    return (depth >= v_lodThresholds_.x)
-         + (depth >= v_lodThresholds_.y)
-         + (depth >= v_lodThresholds_.z);
+    return (distanceSquared >= v_lodThresholds_.x)
+         + (distanceSquared >= v_lodThresholds_.y)
+         + (distanceSquared >= v_lodThresholds_.z);
 }
 
 void Mesh::setLODThresholds(const Vec3f &thresholds) {
-	v_lodThresholds_.x = thresholds.x;
-	v_lodThresholds_.y = thresholds.y > v_lodThresholds_.x ? thresholds.y : FLT_MAX;
-	v_lodThresholds_.z = thresholds.z > v_lodThresholds_.y ? thresholds.z : FLT_MAX;
+	v_lodThresholds_.x = powf(thresholds.x,2);
+	v_lodThresholds_.y = powf(thresholds.y,2);
+	v_lodThresholds_.z = powf(thresholds.z,2);
+	if (v_lodThresholds_.y <= v_lodThresholds_.x) {
+		v_lodThresholds_.y = FLT_MAX;
+	}
+	if (v_lodThresholds_.z <= v_lodThresholds_.y) {
+		v_lodThresholds_.z = FLT_MAX;
+	}
 	lodThresholds_->setVertex(0, v_lodThresholds_);
 }
 

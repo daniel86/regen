@@ -9,6 +9,7 @@
 #define RADIX_GROUP_SIZE 256
 #define RADIX_OFFSET_GROUP_SIZE 512
 #undef LOD_DEBUG_GROUPS
+#undef LOD_DEBUG_CPU_TIME
 
 using namespace regen;
 
@@ -29,6 +30,8 @@ LODState::LODState(
 
 void LODState::initLODState() {
 	lodNumInstances_.resize(4);
+	lodBoundaries_.resize(5);
+	lodBoundaries_[0] = 0;
 	// initially all instances are added to first LOD group
 	lodNumInstances_[0] = cullShape_->numInstances();
 	for (uint32_t i = 1u; i < 4; ++i) {
@@ -60,11 +63,9 @@ static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uin
 	if (numPartLevels == numBaseLevels && lodLevel < numBaseLevels) {
 		// part has same number of LODs as mesh, return the LOD level
 		return lodLevel;
-	}
-	else if (numPartLevels == 1) {
+	} else if (numPartLevels == 1) {
 		return 0;
-	}
-	else if (numPartLevels < numBaseLevels || lodLevel >= numPartLevels) {
+	} else if (numPartLevels < numBaseLevels || lodLevel >= numPartLevels) {
 		// adjust the LOD level for parts
 		if (numPartLevels == 2) {
 			if (lodLevel < 2) {
@@ -116,6 +117,13 @@ void LODState::resetVisibility() {
 
 void LODState::enable(RenderState *rs) {
 	State::enable(rs);
+#ifdef LOD_DEBUG_CPU_TIME
+	using std::chrono::high_resolution_clock;
+	using std::chrono::duration_cast;
+	using std::chrono::duration;
+	using std::chrono::milliseconds;
+	auto t1 = high_resolution_clock::now();
+#endif
 	resetVisibility();
 	if (cullShape_->isIndexShape()) {
 		traverseCPU(rs);
@@ -125,17 +133,23 @@ void LODState::enable(RenderState *rs) {
 #ifdef LOD_DEBUG_GROUPS
 	if (mesh_.get() && mesh_->numLODs() > 1) {
 		REGEN_INFO("LOD ("
-				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
-				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
-				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
-				<< std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")"
-				<< " numInstances: " <<
-				std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
-				<< " numLODs: " <<
-				std::setw(2) << std::setfill(' ') << mesh_->numLODs()
-				<< " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
-				<< " shape: " << cullShape_->shapeName());
+						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
+						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
+						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
+						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")"
+						   << " numInstances: " <<
+						   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
+						   << " numLODs: " <<
+						   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
+						   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
+						   << " shape: " << cullShape_->shapeName());
 	}
+#endif
+#ifdef LOD_DEBUG_CPU_TIME
+	auto t2 = high_resolution_clock::now();
+	duration<double, std::milli> ms_double = t2 - t1;
+	REGEN_INFO("LOD time: " << ms_double.count() << " ms"
+							<< " shape: " << cullShape_->shapeName());
 #endif
 }
 
@@ -143,7 +157,7 @@ void LODState::enable(RenderState *rs) {
 //////////// CPU-based LOD update
 ///////////////////////
 
-void LODState::traverseCPU(RenderState *rs) {
+void LODState::traverseCPU(RenderState *) {
 	if (!shapeIndex_.get() || !shapeIndex_->isVisible()) {
 		return;
 	}
@@ -157,8 +171,7 @@ void LODState::traverseCPU(RenderState *rs) {
 
 		if (mesh_->numLODs() <= 1) {
 			updateVisibility(0, shapeIndex_->numVisibleInstances(), 0);
-		}
-		else {
+		} else {
 			int32_t instanceIDOffset = 0;
 			for (uint32_t lodLevel = 0; lodLevel < lodNumInstances_.size(); ++lodLevel) {
 				auto lodGroupSize = lodNumInstances_[lodLevel];
@@ -172,10 +185,87 @@ void LODState::traverseCPU(RenderState *rs) {
 	}
 }
 
-static inline void reverse_copy_u32(uint32_t* __restrict dst, const uint32_t* __restrict src, size_t count) {
+static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__restrict src, size_t count) {
 	for (size_t i = 0; i < count; ++i) {
 		dst[i] = src[count - 1 - i];
 	}
+}
+
+struct LODSelector_Full {
+	const Mat4f *tfData;
+	const Vec3f *modelOffsetData;
+	const uint32_t *mappedData;
+	const Mesh *mesh;
+
+	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
+		return mesh->getLODLevel((
+										 tfData[mappedData[i]].position() +
+										 modelOffsetData[mappedData[i]] - camPos).lengthSquared());
+	}
+};
+
+struct LODSelector_ModelOffset {
+	const Vec3f *modelOffsetData;
+	const uint32_t *mappedData;
+	const Mesh *mesh;
+
+	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
+		return mesh->getLODLevel((
+										 modelOffsetData[mappedData[i]] - camPos).lengthSquared());
+	}
+};
+
+struct LODSelector_Transform {
+	const Mat4f *tfData;
+	const uint32_t *mappedData;
+	const Mesh *mesh;
+
+	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
+		return mesh->getLODLevel((
+										 tfData[mappedData[i]].position() - camPos).lengthSquared());
+	}
+};
+
+template<typename Selector>
+static inline void countGroupSize_CPU(
+		uint32_t numInstances,
+		std::vector<uint32_t> &lodNumInstances,
+		std::vector<uint32_t> &lodBoundaries,
+		const Vec3f &camPos,
+		const Selector &getLODLevel) {
+	const auto numLODs = static_cast<uint32_t>(lodNumInstances.size());
+	// Adjust boundaries incrementally
+	for (uint32_t i = 1u; i < numLODs; ++i) {
+		auto &boundary = lodBoundaries[i];
+		boundary = lodBoundaries[i - 1] + lodNumInstances[i - 1];
+		// Shrink boundary to num instances
+		if (boundary >= numInstances) {
+			boundary = numInstances;
+		}
+		// Move boundary backward if previous level leaks into current
+		while (boundary > 0) {
+			if (getLODLevel(boundary - 1, camPos) < i) break;
+			--boundary;
+		}
+		// Move boundary forward if current level leaks into next
+		while (boundary < numInstances) {
+			if (getLODLevel(boundary, camPos) >= i) break;
+			++boundary;
+		}
+		lodNumInstances[i - 1] = boundary - lodBoundaries[i - 1];
+
+		// Fill in remaining LODs with zero instances
+		if (boundary == numInstances) {
+			for (uint32_t j = i; j < numLODs - 1; ++j) {
+				lodNumInstances[j] = 0;
+				lodBoundaries[j + 1] = numInstances;
+			}
+			lodNumInstances[numLODs - 1] = 0;
+			return;
+		}
+	}
+	lodBoundaries[numLODs] = numInstances;
+	lodNumInstances[numLODs - 1] = numInstances - lodBoundaries[numLODs - 1];
 }
 
 void LODState::computeLODGroups() {
@@ -187,51 +277,61 @@ void LODState::computeLODGroups() {
 	auto &transform = cullShape_->tf();
 	auto &modelOffset = cullShape_->modelOffset();
 	auto camPos = camera_->position()->getVertex(0);
-	for (size_t i = 0; i < lodNumInstances_.size(); ++i) {
-		lodNumInstances_[i] = 0;
-	}
+	bool hasTF = transform.get() || modelOffset.get();
 
-	// TODO: try optimizing the counting of instances per LOD level.
-	//   in case we have some instance, let's say >1000, we could use a multithreaded approach
-	//   with e.g. group size of 256 and then use a parallel reduction to count the instances.
-	if (mesh_->numLODs() == 1) {
-		lodNumInstances_[0] = numVisible;
-	} else if (transform.get() && modelOffset.get()) {
-		auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
-		auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
-		for (uint32_t i = 0; i != numVisible; ++i) {
-			auto lodLevel = mesh_->getLODLevel((
-													   tfData.r[mappedData[i]].position() +
-													   modelOffsetData.r[mappedData[i]] - camPos.r).length());
-			++lodNumInstances_[lodLevel];
-		}
-	} else if (modelOffset.get()) {
-		auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
-		for (uint32_t i = 0; i != numVisible; ++i) {
-			auto lodLevel = mesh_->getLODLevel((
-													   modelOffsetData.r[mappedData[i]] - camPos.r).length());
-			++lodNumInstances_[lodLevel];
-		}
-	} else if (transform.get()) {
-		auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
-		for (uint32_t i = 0; i != numVisible; ++i) {
-			auto lodLevel = mesh_->getLODLevel((
-													   tfData.r[mappedData[i]].position() - camPos.r).length());
-			++lodNumInstances_[lodLevel];
+	if (hasTF) {
+		if (transform.get() && modelOffset.get()) {
+			auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
+			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
+			LODSelector_Full selector{
+					.tfData = tfData.r,
+					.modelOffsetData = modelOffsetData.r,
+					.mappedData = mappedData,
+					.mesh = mesh_.get()
+			};
+			countGroupSize_CPU(numVisible,
+							   lodNumInstances_, lodBoundaries_,
+							   camPos.r,
+							   selector);
+		} else if (modelOffset.get()) {
+			auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
+			LODSelector_ModelOffset selector{
+					.modelOffsetData = modelOffsetData.r,
+					.mappedData = mappedData,
+					.mesh = mesh_.get()
+			};
+			countGroupSize_CPU(numVisible,
+							   lodNumInstances_, lodBoundaries_,
+							   camPos.r,
+							   selector);
+		} else {
+			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
+			LODSelector_Transform selector{
+					.tfData = tfData.r,
+					.mappedData = mappedData,
+					.mesh = mesh_.get()
+			};
+			countGroupSize_CPU(numVisible,
+							   lodNumInstances_, lodBoundaries_,
+							   camPos.r,
+							   selector);
 		}
 	} else {
+		for (size_t i = 1; i < lodNumInstances_.size(); ++i) {
+			lodNumInstances_[i] = 0;
+		}
 		lodNumInstances_[0] = numVisible;
 	}
 
 	// write lodGroups_ data into instanceIDMap_
 	auto &instanceIDMap = cullShape_->instanceIDMap();
-	auto instance_ids = instanceIDMap->mapClientData<uint32_t>(ShaderData::WRITE);
+	auto instance_ids = (uint32_t*)instanceIDMap->clientData();
 	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		reverse_copy_u32(instance_ids.w, mappedData, numVisible * sizeof(uint32_t));
+		reverse_copy_u32(instance_ids, mappedData, numVisible * sizeof(uint32_t));
 	} else {
-		std::memcpy(instance_ids.w, mappedData, numVisible * sizeof(uint32_t));
+		std::memcpy(instance_ids, mappedData, numVisible * sizeof(uint32_t));
 	}
-	instance_ids.unmap();
+	instanceIDMap->nextStamp();
 }
 
 ///////////////////////

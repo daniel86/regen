@@ -393,7 +393,12 @@ namespace regen {
 		/**
 		 * @return vector length.
 		 */
-		inline GLfloat length() const { return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)); }
+		inline GLfloat length() const { return sqrt(x * x + y * y + z * z); }
+
+		/**
+		 * @return squared vector length.
+		 */
+		inline GLfloat lengthSquared() const { return x * x + y * y + z * z; }
 
 		/**
 		 * Normalize this vector.

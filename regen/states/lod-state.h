@@ -48,6 +48,7 @@ namespace regen {
 
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;
+		std::vector<uint32_t> lodBoundaries_;
 		ref_ptr<Mesh> mesh_;
 		bool hasShadowTarget_;
 

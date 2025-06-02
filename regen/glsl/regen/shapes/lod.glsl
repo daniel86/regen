@@ -35,11 +35,11 @@ shared uint sh_lodGroupSize[MAX_NUM_LOD_GROUPS];
 //
 uniform vec3 in_lodThresholds;
 
-int getLODGroup(float depth) {
+int getLODGroup(float squaredDistance) {
     // Returns the LOD group for a given depth.
-    return int(depth >= in_lodThresholds.x)
-         + int(depth >= in_lodThresholds.y)
-         + int(depth >= in_lodThresholds.z);
+    return int(squaredDistance >= in_lodThresholds.x)
+         + int(squaredDistance >= in_lodThresholds.y)
+         + int(squaredDistance >= in_lodThresholds.z);
 }
 
 #ifdef USE_CULLING
@@ -47,15 +47,16 @@ int getLODGroup(float depth) {
 #endif
 
 float countLOD(vec3 pos) {
-    float depth = length(pos - in_cameraPosition.xyz);
+    vec3 diff = pos - in_cameraPosition.xyz;
+    float depthSquared = dot(diff, diff);
 #ifdef USE_REVERSE_SORT
     // Reverse sort: smaller depth = higher LOD.
     // Note: we must use positive numbers for the uint conversion.
-    depth = FLT_MAX - depth;
+    depthSquared = FLT_MAX - depthSquared;
 #endif
     // increment the LOD group size
-    atomicAdd(sh_lodGroupSize[getLODGroup(depth)], 1);
-    return depth;
+    atomicAdd(sh_lodGroupSize[getLODGroup(depthSquared)], 1);
+    return depthSquared;
 }
 
 void main() {
