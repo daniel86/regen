@@ -327,7 +327,7 @@ void LODState::computeLODGroups() {
 	auto &instanceIDMap = cullShape_->instanceIDMap();
 	auto instance_ids = (uint32_t*)instanceIDMap->clientData();
 	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		reverse_copy_u32(instance_ids, mappedData, numVisible * sizeof(uint32_t));
+		reverse_copy_u32(instance_ids, mappedData, numVisible);
 	} else {
 		std::memcpy(instance_ids, mappedData, numVisible * sizeof(uint32_t));
 	}
