@@ -837,7 +837,7 @@
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>
         <node import="Water-Depth">
-            <fbo id="g-buffer" draw-buffers="0"/>
+            <fbo id="g-buffer" draw-buffers="NONE"/>
         </node>
         <view id="Water">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>

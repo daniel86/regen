@@ -146,6 +146,39 @@ static std::vector<std::string> getFBOAttachments(scene::SceneInputNode &input, 
 	return out;
 }
 
+static std::vector<GLenum> getFBOAttachments_(scene::SceneInputNode &input, const std::string &key) {
+	auto attachments_str = getFBOAttachments(input, key);
+	std::vector<GLenum> attachments(attachments_str.size());
+	for (GLuint i = 0u; i < attachments_str.size(); ++i) {
+		auto &attachments_str_i = attachments_str[i];
+		if (attachments_str_i.empty()) {
+			REGEN_WARN("Empty attachment in " << input.getDescription() << ".");
+		}
+		else if (attachments_str_i == "none" || attachments_str_i == "NONE") {
+			attachments[i] = GL_NONE;
+		}
+		else if (attachments_str_i == "front-left") {
+			attachments[i] = GL_FRONT_LEFT;
+		}
+		else if (attachments_str_i == "front-right") {
+			attachments[i] = GL_FRONT_RIGHT;
+		}
+		else if (attachments_str_i == "back-left") {
+			attachments[i] = GL_BACK_LEFT;
+		}
+		else if (attachments_str_i == "back-right") {
+			attachments[i] = GL_BACK_RIGHT;
+		}
+		else {
+			GLint v;
+			std::stringstream ss(attachments_str[i]);
+			ss >> v;
+			attachments[i] = GL_COLOR_ATTACHMENT0 + v;
+		}
+	}
+	return attachments;
+}
+
 ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto scene = ctx.scene();
 
@@ -175,15 +208,7 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 		}
 
 		if (input.hasAttribute("clear-buffers")) {
-			std::vector<std::string> idVec = getFBOAttachments(input, "clear-buffers");
-			std::vector<GLenum> buffers(idVec.size());
-			for (GLuint i = 0u; i < idVec.size(); ++i) {
-				GLint v;
-				std::stringstream ss(idVec[i]);
-				ss >> v;
-				buffers[i] = GL_COLOR_ATTACHMENT0 + v;
-			}
-
+			const auto buffers = getFBOAttachments_(input, "clear-buffers");
 			ClearColorState::Data data;
 			data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
 			data.colorBuffers = DrawBuffers(buffers);
@@ -191,24 +216,10 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 		}
 
 		if (input.hasAttribute("draw-buffers")) {
-			std::vector<std::string> idVec = getFBOAttachments(input, "draw-buffers");
-			std::vector<GLenum> buffers(idVec.size());
-			for (GLuint i = 0u; i < idVec.size(); ++i) {
-				GLint v;
-				std::stringstream ss(idVec[i]);
-				ss >> v;
-				buffers[i] = GL_COLOR_ATTACHMENT0 + v;
-			}
+			const auto buffers = getFBOAttachments_(input, "draw-buffers");
 			fboState->setDrawBuffers(buffers);
 		} else if (input.hasAttribute("ping-pong-buffers")) {
-			std::vector<std::string> idVec = getFBOAttachments(input, "ping-pong-buffers");
-			std::vector<GLenum> buffers(idVec.size());
-			for (GLuint i = 0u; i < idVec.size(); ++i) {
-				GLint v;
-				std::stringstream ss(idVec[i]);
-				ss >> v;
-				buffers[i] = GL_COLOR_ATTACHMENT0 + v;
-			}
+			const auto buffers = getFBOAttachments_(input, "ping-pong-buffers");
 			fboState->setPingPongBuffers(buffers);
 		}
 

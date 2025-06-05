@@ -7,8 +7,8 @@
 #define OUTPUT_TYPE DEFERRED
 #endif
 #ifdef HAS_alphaClipkMin || HAS_alphaClipkMax || HAS_alphaClipThreshold
-    #ifndef HAS_ALHPHA_CLIP_COEFFICIENTS
-#define HAS_ALHPHA_CLIP_COEFFICIENTS
+    #ifndef HAS_ALPHA_CLIP_COEFFICIENTS
+#define HAS_ALPHA_CLIP_COEFFICIENTS
     #endif
 #endif
 #ifndef IGNORE_MATERIAL
@@ -290,21 +290,23 @@ void main() {
 #ifdef FS_EARLY_FRAGMENT_TEST
 layout(early_fragment_tests) in;
 #endif
+#if OUTPUT_TYPE != DEPTH && OUTPUT_TYPE != BLACK && OUTPUT_TYPE != WHITE
 layout(location = 0) out vec4 out_color;
-#ifdef HAS_ATTACHMENT_ambient
+    #ifdef HAS_ATTACHMENT_ambient
 layout(location = ATTACHMENT_IDX_ambient) out vec4 out_ambient;
-#endif
-#ifdef HAS_ATTACHMENT_specular
+    #endif
+    #ifdef HAS_ATTACHMENT_specular
 layout(location = ATTACHMENT_IDX_specular) out vec4 out_specular;
-#endif
-#ifdef HAS_ATTACHMENT_normal
+    #endif
+    #ifdef HAS_ATTACHMENT_normal
 layout(location = ATTACHMENT_IDX_normal) out vec4 out_normal;
-#endif
-#ifdef HAS_ATTACHMENT_emission
+    #endif
+    #ifdef HAS_ATTACHMENT_emission
 layout(location = ATTACHMENT_IDX_emission) out vec3 out_emission;
-#endif
-#ifdef HAS_ATTACHMENT_counter
+    #endif
+    #ifdef HAS_ATTACHMENT_counter
 layout(location = ATTACHMENT_IDX_counter) out vec2 out_counter;
+    #endif
 #endif
 
 -- applyBrightness
@@ -322,7 +324,7 @@ void applyBrightness(inout Material mat) {
 #endif
 
 -- clipAlpha
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 void clipAlpha(inout vec4 color) {
 #ifdef HAS_alphaClipkMin
     #ifdef HAS_alphaClipkMax
@@ -365,7 +367,13 @@ in float in_brightness;
 #define FS_NO_OUTPUT
 #include regen.models.mesh.fs-shading
     #else
-void main() {}
+void main() {
+    // enforce depth writing. This seems redundant, but is necessary
+    // for some drivers (i.e. NVIDIA) that may prune the fragment shader entirely
+    // as a form of optimization. Without this, I experienced square-pattern noise
+    // in the FBO used for depth only writing.
+    gl_FragDepth = gl_FragCoord.z;
+}
     #endif
 #endif
 #if OUTPUT_TYPE == BLACK
@@ -518,7 +526,7 @@ void main() {
 
 -- writeOutput-color
 #include regen.models.mesh.applyBrightness
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 #include regen.models.mesh.clipAlpha
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
@@ -530,7 +538,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     applyBrightness(mat);
     textureMappingLight(posWorld, norWorld, mat);
     out_color.rgb = mat.diffuse;
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 	clipAlpha(color);
 #endif
     out_color.a = color.a;
@@ -542,7 +550,7 @@ uniform vec3 in_ambientLight;
 #include regen.shading.direct.shade
 #endif
 #include regen.models.mesh.applyBrightness
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 #include regen.models.mesh.clipAlpha
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
@@ -569,7 +577,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
         mat.specular*shading.specular.rgb +
         mat.ambient*in_ambientLight;
 #endif
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 	clipAlpha(color);
 #endif
 #ifdef USE_AVG_SUM_ALPHA
@@ -589,7 +597,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
 }
 #else
 #include regen.models.mesh.applyBrightness
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
 #include regen.models.mesh.clipAlpha
 #endif
 #ifdef USE_EYESPACE_NORMAL
@@ -635,7 +643,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     textureMappingLight(in_posWorld, norWorld, mat);
 
     out_color.rgb = mat.diffuse.rgb;
-#ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
+#ifdef HAS_ALPHA_CLIP_COEFFICIENTS
     clipAlpha(color);
 #endif
     out_color.a = color.a;
