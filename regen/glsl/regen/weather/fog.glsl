@@ -15,56 +15,31 @@ float fogIntensity(float d)
 }
 #endif
 
---------------------------------------
---------------------------------------
----- Computes fog by distance to camera.
---------------------------------------
---------------------------------------
--- distance.schema
-
--- distance.vs
-#include regen.filter.sampling.vs
--- distance.gs
-#include regen.filter.sampling.gs
--- distance.fs
-#include regen.states.camera.defines
-
-out vec4 out_color;
-
-uniform sampler2D in_gDepthTexture;
-uniform sampler2D in_gColorTexture;
+-- applyFogToColor
+#include regen.weather.fog.fogIntensity
+#ifdef HAS_sunPosition
+    #include regen.weather.utility.sunIntensity
+#endif
 
 const vec3 in_fogColor = vec3(1.0);
 const vec2 in_fogDistance = vec2(0.0,100.0);
 const float in_fogDensity = 1.0;
-
-#define USE_DIRECTIONAL_SCATTERING
-
-#include regen.filter.sampling.computeTexco
-#include regen.states.camera.input
-#include regen.weather.fog.fogIntensity
-#include regen.states.camera.transformTexcoToWorld
-#ifdef HAS_sunPosition
-    #include regen.weather.utility.sunIntensity
-#endif
 
 float verticalFalloff(vec3 viewDir, vec3 worldUp) {
     float angle = dot(viewDir, worldUp); // -1 (down) to 1 (up)
     return clamp(1.0 - abs(angle), 0.0, 1.0); // strong at horizon
 }
 
-void main() {
-    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
-    vecTexco sceneUV = computeTexco(texco_2D);
-
-    float sceneDepth = texture(in_gDepthTexture, sceneUV).x;
-    vec3 posWorld = transformTexcoToWorld(texco_2D, sceneDepth, in_layer);
+vec3 applyFogToColor(vec3 sceneColor, float sceneDepth, vec3 posWorld) {
     vec3 eye = posWorld - in_cameraPosition;
     float eyeLength = length(eye);
     vec3 eyeDir = eye / eyeLength;
 
+    #ifdef HAS_fogColor
     vec3 fogColor = in_fogColor;
-    vec3 sceneColor = texture(in_gColorTexture, sceneUV).rgb;
+    #else
+    vec3 fogColor = vec3(1.0);
+    #endif
     #ifdef HAS_skyColorTexture
     vec3 skyColor = texture(in_skyColorTexture, eye).rgb;
     #endif
@@ -101,10 +76,48 @@ void main() {
     vec3 foggedColor = mix(sceneColor, fogColor, fogFactor);
     #ifdef HAS_skyColorTexture
     float skyBlend = smoothstep(0.999, 1.0, sceneDepth); // Sky is depth=1.0
-    vec3 finalColor = mix(foggedColor, skyColor, skyBlend);
+    return mix(foggedColor, skyColor, skyBlend);
+    #else
+    return foggedColor;
     #endif
+}
 
-    out_color = vec4(finalColor, 1.0);
+--------------------------------------
+--------------------------------------
+---- Computes fog by distance to camera.
+--------------------------------------
+--------------------------------------
+-- distance.schema
+
+-- distance.vs
+#include regen.filter.sampling.vs
+-- distance.gs
+#include regen.filter.sampling.gs
+-- distance.fs
+#include regen.states.camera.defines
+
+out vec4 out_color;
+
+uniform sampler2D in_gDepthTexture;
+uniform sampler2D in_gColorTexture;
+
+#define USE_DIRECTIONAL_SCATTERING
+
+#include regen.filter.sampling.computeTexco
+#include regen.states.camera.input
+#include regen.states.camera.transformTexcoToWorld
+#include regen.weather.fog.applyFogToColor
+
+void main() {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco sceneUV = computeTexco(texco_2D);
+
+    vec3 sceneColor = texture(in_gColorTexture, sceneUV).rgb;
+    float sceneDepth = texture(in_gDepthTexture, sceneUV).x;
+    vec3 posWorld = transformTexcoToWorld(texco_2D, sceneDepth, in_layer);
+
+    vec3 foggedColor = applyFogToColor(sceneColor, sceneDepth, posWorld);
+    out_color = vec4(foggedColor, 1.0);
 }
 
 --------------------------------------
