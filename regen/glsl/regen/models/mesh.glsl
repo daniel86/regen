@@ -290,8 +290,10 @@ void main() {
 #ifdef FS_EARLY_FRAGMENT_TEST
 layout(early_fragment_tests) in;
 #endif
-#if OUTPUT_TYPE != DEPTH && OUTPUT_TYPE != BLACK && OUTPUT_TYPE != WHITE
+#if OUTPUT_TYPE != DEPTH
 layout(location = 0) out vec4 out_color;
+#endif
+#if OUTPUT_TYPE != DEPTH && OUTPUT_TYPE != BLACK && OUTPUT_TYPE != WHITE
     #ifdef HAS_ATTACHMENT_ambient
 layout(location = ATTACHMENT_IDX_ambient) out vec4 out_ambient;
     #endif
