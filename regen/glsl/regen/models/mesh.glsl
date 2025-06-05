@@ -545,10 +545,12 @@ uniform vec3 in_ambientLight;
 #ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
 #include regen.models.mesh.clipAlpha
 #endif
+#ifdef HAS_fogDistance
+#include regen.weather.fog.applyFogToColor
+#endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.occlusion = 0.0;
-#if SHADING!=NONE
 #ifdef USE_MATERIAL
     mat.ambient = in_matAmbient;
     mat.diffuse = color.rgb;
@@ -568,7 +570,9 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
         mat.diffuse*shading.diffuse.rgb +
         mat.specular*shading.specular.rgb +
         mat.ambient*in_ambientLight;
-#endif
+    #ifdef HAS_fogDistance
+    shadedColor = applyFogToColor(shadedColor, gl_FragCoord.z, posWorld);
+    #endif
 #ifdef HAS_ALHPHA_CLIP_COEFFICIENTS
 	clipAlpha(color);
 #endif
