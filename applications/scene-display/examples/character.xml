@@ -622,7 +622,7 @@
         <node id="Particle-Density">
             <fbo id="particle-fbo" clear-buffers="0" draw-buffers="0"/>
             <blend mode="add"/>
-            <!-- TODO: there is a halo around objects, maybe it can be avoided with downsamled depth
+            <!-- TODO: there is a halo around objects, maybe it can be avoided with down-sampled depth
                        but first attempt did not have an effect for some reason. -->
             <!--
             <texture name="depthTexture" fbo="particle-depth" attachment="depth"/>
@@ -840,18 +840,18 @@
     <node id="Post-Pass">
         <depth test="0" write="0"/>
 
-        <node id="Distance-Fog">
+        <node id="Albedo-Fog">
             <fbo id="g-buffer" draw-buffers="0"/>
-            <input type="float" name="fogDensity" value="1.0" />
-            <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" min="0.0" max="{{far-plane}}"/>
-            <input type="vec3" name="fogColor" value="0.2,0.33,0.3" schema="color"/>
-            <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
             <texture name="gColorTexture" fbo="g-buffer" attachment="1"/>
             <texture name="skyColorTexture" id="sky" />
+            <input type="vec3" name="fogColor" value="0.2,0.33,0.3" schema="color"/>
+            <input type="float" name="fogDensity" value="1.0" />
+            <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" min="0.0" max="{{far-plane}}"/>
+            <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
             <fullscreen-pass shader="regen.weather.fog.distance"/>
         </node>
-        <view id="Distance Fog">
+        <view id="Albedo-Fog">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
         <!-- blur the g-buffer attachment0 -->
@@ -920,6 +920,7 @@
 
     <node id="root">
         <input name="Wind" ubo="WindUBO"/>
+        <resource id="sky"/>
 
         <node id="Pre-Render">
             <!-- Render shadow maps such that they can be used in the shading pass -->
@@ -955,9 +956,27 @@
             </node>
 
             <node id="Post-Geometry">
+                <node id="Emission-Fog">
+                    <depth test="0" write="0"/>
+                    <fbo id="g-buffer" draw-buffers="1"/>
+                    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
+                    <texture name="gColorTexture" fbo="g-buffer" attachment="4"/>
+                    <input type="vec3" name="fogColor" value="0,0,0" schema="color"/>
+                    <input type="float" name="fogDensity" value="1.0" />
+                    <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" min="0.0" max="{{far-plane}}"/>
+                    <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
+                    <fullscreen-pass shader="regen.weather.fog.distance"/>
+                </node>
                 <node id="Emission-Update">
                     <input type="float" name="filterRadius" value="0.01"/>
-                    <bloom fbo="g-buffer" attachment="4" bloom-texture="emission-map-bloom"/>
+                    <bloom fbo="g-buffer" attachment="1" bloom-texture="emission-map-bloom"/>
+                </node>
+                <node id="Shaded Scene">
+                    <!-- TODO: this blit could be avoided by rendering emission into attachment 1 of g-buffer
+                               and then computing fog in attachment 4. Or switch back to GL blending instead of
+                               blending in the shader. -->
+                    <blit src-fbo="g-buffer" src-attachment="1"
+                          dst-fbo="g-buffer" dst-attachment="4"/>
                 </node>
                 <view id="Emission Mips">
                     <fbo id="SCREEN"/>
