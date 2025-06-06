@@ -37,5 +37,5 @@ void main() {
 }
 #endif
 -- fs
-#define OUTPUT_TYPE COLOR
+#define HAS_MATERIAL
 #include regen.models.mesh.fs
