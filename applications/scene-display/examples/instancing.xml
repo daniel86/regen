@@ -92,6 +92,9 @@
             <input type="float" name="cloudTimeFactor" value="0.3" />
         </atmosphere>
     </sky>
+    <node id="Sky">
+        <sky id="sky"/>
+    </node>
 
     <block type="ubo" id="WindUBO">
         <uniform name="wind" type="vec2" value="0.1, 0.1"/>
@@ -224,24 +227,31 @@
     <node id="Background-Pass">
         <depth test="1" write="0"/>
 
-        <node id="sky-node">
-            <sky id="sky"/>
-        </node>
-
         <node id="Distance-Fog">
             <fbo id="g-buffer" draw-buffers="0"/>
             <input type="float" name="fogDensity" value="1.0"/>
-            <input type="vec2" name="fogDistance" value="50.0,100.0" min="0,0" max="100,100"/>
-            <input type="vec3" name="fogColor" value="0.35, 0.55, 0.5" schema="color"/>
-            <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
+            <input type="vec2" name="fogDistance" value="50.0,150.0" min="0,0" max="200"/>
+            <input type="vec3" name="fogColor" value="0.25, 0.35, 0.3" schema="color"/>
+            <!--
+            <input type="float" name="fogHeightMax" value="15.0"/>
+            <input type="float" name="fogHeightMin" value="-10.0"/>
+            -->
+            <input type="vec2" name="farDistance" value="150.0,200.0"/>
+            <input type="vec3" name="sunPosition" state="sky-sun" component="lightDirection"/>
+            <input type="vec3" name="sunColor" state="sky-sun" component="lightDiffuse"/>
+            <input type="vec3" name="warmTint" value="0.6, 0.4, 0.3" />
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <texture name="gColorTexture" fbo="g-buffer" attachment="1"/>
             <texture name="skyColorTexture" id="sky"/>
             <fullscreen-pass shader="regen.weather.fog.distance"/>
         </node>
         <view id="Fog">
-            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
+
+        <node import="Sky">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
     </node>
 
     <node id="Post-Pass">

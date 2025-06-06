@@ -106,6 +106,10 @@
         </atmosphere>
     </sky>
 
+    <node id="Sky">
+        <sky id="sky"/>
+    </node>
+
     <!--**************************-->
     <!--****** Ground mesh *******-->
     <!--**************************-->
@@ -184,7 +188,7 @@
                 <texture name="gNorWorldTexture" fbo="reflection-buffer" attachment="3"/>
                 <node import="Shading-Pass-No-Shadow"/>
             </node>
-            <node import="Background-Objects"/>
+            <node import="Sky" />
         </node>
 
         <node>
@@ -293,9 +297,16 @@
         <node id="Distance-Fog">
             <fbo id="g-buffer" draw-buffers="1"/>
             <input type="float" name="fogDensity" value="1.0"/>
-            <input type="vec2" name="fogDistance" value="25.0,180.0"/>
-            <input type="vec3" name="fogColor" value="0.35, 0.55, 0.5"/>
-            <input type="vec3" name="sunPosition" state="sky-sun" component="lightPosition"/>
+            <input type="vec2" name="fogDistance" value="50.0,180.0"/>
+            <input type="vec3" name="fogColor" value="0.25, 0.35, 0.3"/>
+            <!--
+            <input type="float" name="fogHeightMax" value="15.0"/>
+            <input type="float" name="fogHeightMin" value="-10.0"/>
+            -->
+            <input type="vec2" name="farDistance" value="150.0,200.0"/>
+            <input type="vec3" name="sunPosition" state="sky-sun" component="lightDirection"/>
+            <input type="vec3" name="sunColor" state="sky-sun" component="lightDiffuse"/>
+            <input type="vec3" name="warmTint" value="0.6, 0.4, 0.3" />
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
             <texture name="gColorTexture" fbo="g-buffer" attachment="0"/>
             <texture name="skyColorTexture" id="sky"/>
@@ -317,12 +328,6 @@
 
     <node id="Scene-Geometry">
         <node import="Ground"/>
-    </node>
-
-    <node id="Background-Objects">
-        <node id="Sky">
-            <sky id="sky"/>
-        </node>
     </node>
 
     <node id="Shading-Pass">
@@ -394,8 +399,14 @@
                 <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
             </view>
         </node>
-
         <node import="Fog-Draw"/>
+        <!-- NOTE: the sky is rendered after the fog pass to avoid leakage into the sky -->
+        <node import="Sky">
+            <fbo id="g-buffer" draw-buffers="1"/>
+        </node>
+        <view id="Sky">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
         <node import="Scene-Blur"/>
         <node import="ToneMapping">
             <fbo id="g-buffer" draw-buffers="0"/>
@@ -506,13 +517,7 @@
                 </view>
             </node>
 
-            <node id="Post-Shading">
-                <node import="Background-Objects"/>
-                <view id="Scene with Background">
-                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
-                </view>
-                <node import="Post-Pass"/>
-            </node>
+            <node import="Post-Pass"/>
 
             <view id="Spatial Index">
                 <node import="spatial-index-debug">

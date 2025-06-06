@@ -2,8 +2,9 @@
 -- fogIntensity
 #ifndef fogIntensity_DEFINED
 #define2 fogIntensity_DEFINED
-float fogIntensity(float d)
-{
+const vec2 in_fogDistance = vec2(0.0,100.0);
+
+float fogIntensity(float d) {
     float x = smoothstep(in_fogDistance.x, in_fogDistance.y, d);
     // TODO: support S-Curve Variant
     // return x * x * (3.0 - 2.0 * x); // smoothstep curve, manual
@@ -16,71 +17,75 @@ float fogIntensity(float d)
 #endif
 
 -- applyFogToColor
+#ifndef applyFogToColor_DEFINED
+#define2 applyFogToColor_DEFINED
 #include regen.weather.fog.fogIntensity
 #ifdef HAS_sunPosition
     #include regen.weather.utility.sunIntensity
 #endif
 
-const vec3 in_fogColor = vec3(1.0);
-const vec2 in_fogDistance = vec2(0.0,100.0);
-const float in_fogDensity = 1.0;
-
-float verticalFalloff(vec3 viewDir, vec3 worldUp) {
-    float angle = dot(viewDir, worldUp); // -1 (down) to 1 (up)
-    return clamp(1.0 - abs(angle), 0.0, 1.0); // strong at horizon
+float fogIntensity(vec3 posWorld, vec3 eyeDir, float d) {
+    float fogFactor = fogIntensity(d) * in_fogDensity;
+    #ifdef HAS_fogHeightMin && HAS_fogHeightMax
+    // height-based falloff
+    fogFactor *=  1.0 - smoothstep(in_fogHeightMin, in_fogHeightMax, posWorld.y);
+    #endif
+    return fogFactor;
 }
+
+const vec3 in_fogColor = vec3(1.0);
+const float in_fogDensity = 1.0;
+#ifdef HAS_sunPosition
+const vec3 in_sunColor = vec3(1.0, 0.9, 0.7);
+const vec3 in_warmTint = vec3(1.0, 0.8, 0.6);
+#endif
+#ifdef HAS_skyColorTexture
+const vec2 in_farDistance = vec2(150.0, 200.0);
+#endif
 
 vec3 applyFogToColor(vec3 sceneColor, float sceneDepth, vec3 posWorld) {
     vec3 eye = posWorld - in_cameraPosition;
     float eyeLength = length(eye);
     vec3 eyeDir = eye / eyeLength;
-
+    // Compute fog factor based on distance to camera, eye direction, and (optionally) height.
+    float fogFactor = fogIntensity(posWorld, eyeDir, eyeLength) * in_fogDensity;
     #ifdef HAS_fogColor
     vec3 fogColor = in_fogColor;
     #else
     vec3 fogColor = vec3(1.0);
     #endif
-    #ifdef HAS_skyColorTexture
-    vec3 skyColor = texture(in_skyColorTexture, eye).rgb;
-    #endif
-
-    // Compute fog factor based on distance to camera, eye direction, and (optionally) height.
-    float fogFactor = fogIntensity(eyeLength) * in_fogDensity;
-    fogFactor *= verticalFalloff(eyeDir, vec3(0.0, 1.0, 0.0));
-    #ifdef HAS_fogHeightMin && HAS_fogHeightMax
-    fogFactor *=  1.0 - smoothstep(in_fogHeightMin, in_fogHeightMax, posWorld.y);
-    #endif
 
     #ifdef HAS_sunPosition
+    float daytimeBlend = smoothstep(-0.1, 0.1, in_sunPosition.y);
         #ifdef USE_DIRECTIONAL_SCATTERING
     // Directional Fog Scattering
     float scatteringAmount = pow(max(dot(eyeDir, in_sunPosition), 0.0), 2.0);
-    scatteringAmount = pow(scatteringAmount, 4.0);
-    vec3 sunColor = vec3(1.0, 0.9, 0.7);
-    vec3 directionalFogColor = mix(fogColor, sunColor, scatteringAmount);
-    fogColor = mix(fogColor, directionalFogColor, scatteringAmount);
+    scatteringAmount = pow(scatteringAmount, 4.0) * (1.0 - fogFactor);
+    // cancel scattering if sun is below horizon
+    scatteringAmount *= daytimeBlend;
+    fogColor = mix(fogColor, in_sunColor, scatteringAmount);
         #endif
-    #endif
-    #ifdef HAS_sunPosition
+
     // Vary Fog Based on Sun Elevation using Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
-    float sunFactor = sunIntensity();
+    float sunFactor = 1.0 - sunIntensity();
     // mix fog color with warm tint based on sun elevation
-    fogColor = mix(vec3(1.0, 0.75, 0.6), fogColor, sunFactor);
+    fogColor = mix(in_warmTint, fogColor, sunFactor);
     // darken fog color based on sun elevation
     fogColor *= clamp(sunFactor, 0.0, 1.0);
     #endif
+
+    fogColor = mix(sceneColor, fogColor, fogFactor);
+
     #ifdef HAS_skyColorTexture
-    fogColor = mix(fogColor, skyColor, fogFactor * fogFactor);
+    // blend into sky to avoid hard edges at far plane
+    vec3 skyColor = texture(in_skyColorTexture, eyeDir).rgb;
+    float farPlaneBlend = smoothstep(in_farDistance.x, in_farDistance.y, eyeLength) * fogFactor;
+    fogColor = mix(fogColor, skyColor, farPlaneBlend);
     #endif
 
-    vec3 foggedColor = mix(sceneColor, fogColor, fogFactor);
-    #ifdef HAS_skyColorTexture
-    float skyBlend = smoothstep(0.999, 1.0, sceneDepth); // Sky is depth=1.0
-    return mix(foggedColor, skyColor, skyBlend);
-    #else
-    return foggedColor;
-    #endif
+    return fogColor;
 }
+#endif
 
 --------------------------------------
 --------------------------------------

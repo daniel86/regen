@@ -134,7 +134,7 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 		depth->begin(rs);
 		if (numSamples == 1) {
 			depth->wrapping().push(GL_REPEAT);
-			depth->filter().push(GL_LINEAR);
+			depth->filter().push(GL_NEAREST);
 			depth->compare().push(TextureCompare(GL_NONE, GL_EQUAL));
 		}
 		{
