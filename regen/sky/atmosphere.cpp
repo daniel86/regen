@@ -208,8 +208,7 @@ void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);
-	updateMesh_->enable(rs);
-	updateMesh_->disable(rs);
+	updateMesh_->draw(rs);
 	updateState_->disable(rs);
 
 	rs->viewport().pop();
