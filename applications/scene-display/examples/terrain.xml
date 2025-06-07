@@ -89,21 +89,13 @@
     </block>
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" >
-        <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="0" />
+        <darkness/>
         <stars catalog="res/sky/bright-stars.bin" scale="1.4"
             scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
             glare-intensity="0.04" glare-scale="0.2"
-            color="0.66,0.78,1.0" color-ratio="0.66"/>
-        <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
-            sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
-            earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
-        <atmosphere preset="earth" size="256" lod="0">
-            <input type="float" name="cirrus" value="0.8" />
-            <input type="float" name="cumulus" value="0.6" />
-            <input type="float" name="dithering" value="0.2" />
-            <input type="float" name="ditheringScale" value="100.0" />
-            <input type="float" name="cloudTimeFactor" value="0.3" />
-        </atmosphere>
+            color="0.66,0.78,1.0" color-ratio="0.66"
+            blend="src_alpha,zero"/>
+        <atmosphere preset="venus" size="256" lod="0"/>
     </sky>
 
     <node id="Sky">
@@ -237,7 +229,7 @@
         <input type="float" name="surfaceHeight" value="{{water-level}}"/>
         <input type="float" name="normalScale" value="3.0"/>
         <input type="float" name="refractionConstant" value="30.0"/>
-        <input type="float" name="refractionStrength" value="0.24"/>
+        <input type="float" name="refractionStrength" value="2.24"/>
         <input type="float" name="shoreHardness" value="0.075"/>
         <input type="float" name="maxAmplitude" value="1.5"/>
         <input type="float" name="reflectionDisplace" value="10.0"/>
@@ -436,13 +428,13 @@
     <block type="ubo" id="ToneMapping">
         <input type="float" name="blurAmount" value="0.3"/>
         <input type="float" name="effectAmount" value="0.1"/>
-        <input type="float" name="exposure" value="1.7"/>
+        <input type="float" name="exposure" value="1.0"/>
         <input type="float" name="gamma" value="1.1"/>
         <input type="float" name="radialBlurSamples" value="26.0"/>
         <input type="float" name="radialBlurStartScale" value="1.0"/>
         <input type="float" name="radialBlurScaleMul" value="0.9555"/>
-        <input type="float" name="vignetteInner" value="0.9"/>
-        <input type="float" name="vignetteOuter" value="1.75"/>
+        <input type="float" name="vignetteInner" value="0.95"/>
+        <input type="float" name="vignetteOuter" value="2.4"/>
     </block>
 
     <node id="ToneMapping">
