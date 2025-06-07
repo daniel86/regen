@@ -483,6 +483,9 @@ void ShapeProcessor::processInput(
 		auto shape = createShape(input, mesh, parts);
 		if (shape.get()) {
 			mesh->setBoundingShape(shape, isGPUShape);
+			for (auto &part: parts) {
+				part->setBoundingShape(shape, isGPUShape);
+			}
 		} else {
 			REGEN_WARN("Skipping shape node " << input.getDescription() << " without shape.");
 		}

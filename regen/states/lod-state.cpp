@@ -46,6 +46,11 @@ void LODState::initLODState() {
 	} else {
 		createComputeShader();
 	}
+	REGEN_INFO("Created LOD state for cull shape '"
+			   << cullShape_->shapeName()
+			   << "' with " << cullShape_->numInstances() << " instances, "
+			   << mesh_->numLODs() << " LODs, "
+			   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
 }
 
 void LODState::updateMeshLOD() {
@@ -131,8 +136,9 @@ void LODState::enable(RenderState *rs) {
 		traverseGPU(rs);
 	}
 #ifdef LOD_DEBUG_GROUPS
-	if (mesh_.get() && mesh_->numLODs() > 1) {
-		REGEN_INFO("LOD ("
+	if (mesh_.get()) {
+		if (mesh_->numLODs() > 1) {
+			REGEN_INFO("LOD ("
 						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
 						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
 						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
@@ -143,6 +149,16 @@ void LODState::enable(RenderState *rs) {
 						   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
 						   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
 						   << " shape: " << cullShape_->shapeName());
+		} else {
+			REGEN_INFO("LOD ("
+						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << ")"
+						   << " numInstances: " <<
+						   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
+						   << " numLODs: " <<
+						   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
+						   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
+						   << " shape: " << cullShape_->shapeName());
+		}
 	}
 #endif
 #ifdef LOD_DEBUG_CPU_TIME
@@ -196,11 +212,14 @@ struct LODSelector_Full {
 	const Vec3f *modelOffsetData;
 	const uint32_t *mappedData;
 	const Mesh *mesh;
+	const uint32_t tfIdxMultiplier;
+	const uint32_t offsetIdxMultiplier;
 
 	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
+		auto idx = mappedData[i];
 		return mesh->getLODLevel((
-										 tfData[mappedData[i]].position() +
-										 modelOffsetData[mappedData[i]] - camPos).lengthSquared());
+										 tfData[tfIdxMultiplier*idx].position() +
+										 modelOffsetData[offsetIdxMultiplier*idx] - camPos).lengthSquared());
 	}
 };
 
@@ -287,7 +306,9 @@ void LODState::computeLODGroups() {
 					.tfData = tfData.r,
 					.modelOffsetData = modelOffsetData.r,
 					.mappedData = mappedData,
-					.mesh = mesh_.get()
+					.mesh = mesh_.get(),
+					.tfIdxMultiplier = (transform->get()->numInstances() > 1u ? 1u : 0u),
+					.offsetIdxMultiplier = (modelOffset->numInstances() > 1u ? 1u : 0u)
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,

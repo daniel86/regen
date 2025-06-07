@@ -47,7 +47,14 @@ int getLODGroup(float squaredDistance) {
 #endif
 
 float countLOD(vec3 pos) {
-    vec3 diff = pos - in_cameraPosition.xyz;
+#ifdef IS_ARRAY_cameraPosition
+    // FIXME: not in all cases of layered rendering it would be correct to use the first camera position here!
+    //        e.g for cube map rendering we would need to do the sorting three times, at least.
+    //        e.g. if camera slices are used, then maybe an enclosing camera can be used for sorting.
+    vec3 diff = pos - in_cameraPosition[0];
+#else
+    vec3 diff = pos - in_cameraPosition;
+#endif
     float depthSquared = dot(diff, diff);
 #ifdef USE_REVERSE_SORT
     // Reverse sort: smaller depth = higher LOD.

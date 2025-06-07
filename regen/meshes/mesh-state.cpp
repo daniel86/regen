@@ -467,6 +467,10 @@ void Mesh::updateShapeBuffer(byte *shapeData) {
 }
 
 void Mesh::updateShapeBuffer() {
+	if (!boundingShape_.get()) {
+		REGEN_WARN("No bounding shape set for mesh, cannot update shape buffer.");
+		return;
+	}
 	if (boundingShape_->shapeType() == BoundingShapeType::SPHERE) {
 		auto *sphere = (BoundingSphere*)(boundingShape_.get());
 		SphereShape_GPU shapeData;

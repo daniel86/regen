@@ -61,7 +61,6 @@
         <texture id="ambient"/>
         <texture id="specular"/>
         <texture id="normal"/>
-        <texture id="emission" pixel-components="3"/>
         <depth pixel-size="24"/>
     </fbo>
     <!-- FBO for silhouette-based alpha with msaa + alpha coverage -->
@@ -95,7 +94,6 @@
             sampler-type="sampler2DArrayShadow" />
     </fbo>
     <!-- Textures -->
-    <texture id="emission-map-bloom" type="bloom" num-mips="4" input-fbo="g-buffer"/>
     <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
     <texture id="ground-normal" file="res/textures/terrain/canyon/normal.png"/>
     <texture id="ground-height" file="res/textures/terrain/canyon/height.png"/>
@@ -289,7 +287,8 @@
     <mesh id="grass-patches"
           type="mask-patch"
           mask="grass-mask"
-          lod="0"
+          lod-levels="4,3,2,1"
+          lod-thresholds="20.0,60.0,120.0"
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
           usage="STATIC_DRAW">
@@ -306,51 +305,34 @@
     </mesh>
 
     <node id="Grass">
-        <node>
-            <alpha discard-threshold="0.25"/>
-            <material
-                    diffuse="0.1, 0.1, 0.1"
-                    ambient="0.1, 0.1, 0.1"
-                    specular="0.0, 0.0, 0.0"
-                    shininess="256.0"
-                    emission="0.0, 0.0, 0.0"/>
-            <!-- TODO: Can we use alpha blending instead of discard alpha? it can be much faster. -->
-            <!-- <blend mode="ALPHA"/>  -->
-            <!-- TODO: There is some jittering in the grass with tessellation, maybe we can only switch
-                       between fixed level of LODs and not do this continuously. -->
-            <define key="TESS_SPACING" value="equal_spacing"/>
-            <define key="TESS_POWER_OF_TWO" value="TRUE"/>
-            <input name="minTessLevel" type="float" value="1.0"/>
-            <input name="maxTessLevel" type="float" value="50.0"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.35" lod-metric="EDGE_DEVICE_DISTANCE"/>
-            <input name="lodMinDeviceDistance" type="float" value="0.02"/>
-            <input name="lodMaxDeviceDistance" type="float" value="0.6"/>
-            <!-- use more complex geometry in close range. -->
-            <define key="USE_SPRITE_LOD" value="TRUE"/>
-            <input name="lodGeomLevel0" type="float" value="60.0"/>
-            <input name="lodGeomLevel1" type="float" value="160.0"/>
-            <input name="lodGeomBrightness0" type="float" value="1.7"/>
-            <input name="lodGeomVariance" type="float" value="6.0"/>
-            <!-- size and position -->
-            <input name="quadSize" type="vec2" value="0.5, 0.15"/>
-            <input name="posVariation" type="float" value="0.4"/>
-            <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
-            <!-- color -->
-            <texture id="grass-color" map-to="color" blend-mode="mul"/>
-            <input name="uvDarken" type="float" value="0.25"/>
-            <!-- wind -->
-            <texture name="windFlow" id="wind-flowmap" />
-            <input name="stiffness" type="float" value="1.0"/>
-            <!-- small-scale wind details -->
-            <texture name="windNoise" id="wind-noise" />
-            <input name="windNoiseScale" type="float" value="100.0"/>
-            <input name="windNoiseSpeed" type="float" value="1.0"/>
-            <input name="windNoiseStrength" type="float" value="0.1"/>
-            <!-- height -->
-            <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
+        <alpha discard-threshold="0.25"/>
+        <material diffuse="0.1, 0.1, 0.1" ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+        <!-- use more complex geometry in close range. -->
+        <define key="USE_SPRITE_LOD" value="TRUE"/>
+        <input name="lodGeomLevel0" type="float" value="60.0"/>
+        <input name="lodGeomLevel1" type="float" value="160.0"/>
+        <input name="lodGeomBrightness0" type="float" value="1.7"/>
+        <input name="lodGeomVariance" type="float" value="6.0"/>
+        <!-- size and position -->
+        <input name="quadSize" type="vec2" value="0.5, 0.15"/>
+        <input name="posVariation" type="float" value="0.4"/>
+        <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
+        <!-- color -->
+        <texture id="grass-color" map-to="color" blend-mode="mul"/>
+        <input name="uvDarken" type="float" value="0.25"/>
+        <!-- wind -->
+        <texture name="windFlow" id="wind-flowmap" />
+        <input name="stiffness" type="float" value="1.0"/>
+        <!-- small-scale wind details -->
+        <texture name="windNoise" id="wind-noise" />
+        <input name="windNoiseScale" type="float" value="100.0"/>
+        <input name="windNoiseSpeed" type="float" value="1.0"/>
+        <input name="windNoiseStrength" type="float" value="0.1"/>
+        <!-- height -->
+        <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
                      blend-mode="ADD" blend-factor="{{map-height}}"/>
-            <mesh id="grass-patches" primitive="patches" />
-        </node>
+        <!-- <mesh id="grass-patches" primitive="patches" /> -->
+        <mesh id="grass-patches" />
     </node>
 
     <!--**************************-->
@@ -383,6 +365,9 @@
                 obj-mesh="tree-mesh"
               />
         </transform>
+        <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
+            <set mode="random" min="0.6,0.4,0" max="1,1,1"/>
+        </input>
         <lod-meshes>
             <mesh id="twig-impostor"
                     type="impostor-billboard"
@@ -405,12 +390,6 @@
                 <input name="stiffness" type="float" value="0.1"/>
             </mesh>
         </lod-meshes>
-        <input join="0" mesh="tree-mesh" mesh-index="1" component="matDiffuse">
-            <!--
-            <set mode="random" min="1,1,1" max="5,4,2"/>
-            -->
-            <set mode="random" min="0.6,0.4,0" max="1,1,1"/>
-        </input>
         <shape id="tree-shape" cull="1" index="1" type="aabb" mesh-id="tree-mesh" mesh-index="0" transform-id="tree-tf">
             <has-part mesh-id="tree-mesh" mesh-index="1" />
         </shape>
@@ -622,7 +601,6 @@
     </node>
 
     <!-- water surface mesh used for depth rendering and post-processing effects -->
-    <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
     <mesh id="water-mesh" type="rectangle" lod="0" center="1" usage="STATIC_DRAW"
           use-normal="0" use-texco="0" use-tangent="0"
           rotation="0.0,0.0,3.1415"
@@ -632,8 +610,9 @@
         </transform>
     </mesh>
 
-    <!-- Render surface plane into depth buffer
-         to be used for post-processing effects -->
+    <!-- Render surface plane into depth buffer to be used for post-processing effects -->
+    <!-- NOTE: this approach does not work well when camera is facing downwards,
+               however, this is mostly for fog rendering which does not produce noticeable artifacts. -->
     <node id="Water-Depth">
         <depth test="1" write="1"/>
         <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
@@ -689,7 +668,7 @@
                     base-mesh="fish-mesh"
                     base-mesh-index="0"
                     depth-offset="0.5"
-                    normal-correction="0"
+                    normal-correction="1"
                     depth-correction="0"
                     hemispherical="1"
                     top-view="0"
@@ -698,7 +677,7 @@
                     latitude-steps="2"
                     texture-size="64,64">
                 <shader mesh-index="0" key="regen.models.impostor">
-                    <alpha discard-threshold="0.25"/>
+                    <alpha discard-threshold="0.5"/>
                 </shader>
                 <update-state>
                     <depth test="0" write="0"/>
@@ -847,24 +826,6 @@
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
 
-        <!-- render transparent objects -->
-        <node id="Transparent-Pass">
-            <fbo id="g-buffer" draw-buffers="0"/>
-            <blend mode="add"/>
-            <depth test="1" write="0"/>
-            <!-- render emission light -->
-            <node id="Material-Emission">
-                <texture name="gEmissionTexture" fbo="g-buffer" attachment="4"/>
-                <texture name="gEmissionBlurred" id="emission-map-bloom"/>
-                <!-- <texture name="gEmissionBlurred" id="emission-map-blur" /> -->
-                <fullscreen-pass shader="regen.shading.deferred.emission"/>
-            </node>
-            <!-- <node import="Fire" /> -->
-            <view id="Transparent Objects">
-                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
-            </view>
-        </node>
-
         <node import="Fog-Draw"/>
         <node import="Sky"/>
         <node import="Scene-Blur"/>
@@ -956,24 +917,6 @@
                 <node import="Non-Shadow-Caster"/>
                 <node import="Scene-Geometry"/>
                 <node import="G-Buffer-Views"/>
-                <view id="G-Buffer: Emission">
-                    <blit src-fbo="g-buffer" src-attachment="4" dst-fbo="SCREEN"/>
-                </view>
-            </node>
-
-            <node id="Post-Geometry">
-                <node id="Emission-Update">
-                    <input type="float" name="filterRadius" value="0.01"/>
-                    <bloom fbo="g-buffer" attachment="4" bloom-texture="emission-map-bloom"/>
-                </node>
-                <view id="Emission Mips">
-                    <fbo id="SCREEN"/>
-                    <texture name="inputTexture1" id="emission-map-bloom" mip-level="0"/>
-                    <texture name="inputTexture2" id="emission-map-bloom" mip-level="1"/>
-                    <texture name="inputTexture3" id="emission-map-bloom" mip-level="2"/>
-                    <texture name="inputTexture4" id="emission-map-bloom" mip-level="3"/>
-                    <fullscreen-pass shader="regen.filter.sampling.x4"/>
-                </view>
             </node>
 
             <node id="Shading">
