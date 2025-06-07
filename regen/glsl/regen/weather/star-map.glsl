@@ -11,15 +11,12 @@ void emitStarVertex(vec3 pos, int index, int layer) {
     emitVertex(pos,index,layer);
     out_ray = (in_equToHorMatrix * vec4(pos,0.0)).xyz;
 }
-
--- vs_include
-#include regen.models.sky-box.vs_include
 -- vs
 #if RENDER_LAYER == 1
 uniform mat4 in_equToHorMatrix;
 out vec3 out_ray;
 #endif
-#include regen.weather.star-map.vs_include
+#include regen.models.sky-box.vs_include
 #if RENDER_LAYER == 1
 #include regen.weather.star-map.emitStarVertex
 void main() {

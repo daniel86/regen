@@ -1,10 +1,3 @@
-/*
- * star-map-layer.h
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #ifndef REGEN_STAR_MAP_LAYER_H_
 #define REGEN_STAR_MAP_LAYER_H_
 

@@ -1,10 +1,3 @@
-/*
- * stars.cpp
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #include "stars.h"
 
 #include <regen/textures/texture-loader.h>

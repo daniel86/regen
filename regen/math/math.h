@@ -85,6 +85,18 @@ namespace regen {
 		}
 
 		/**
+		 * Produce a random number between min and max.
+		 * @tparam T numeric type
+		 * @param min minimum value
+		 * @param max maximum value
+		 * @return a random number between min and max
+		 */
+		template <typename T>
+		static inline T random(const T &min, const T &max) {
+			return min + random<T>() * (max - min);
+		}
+
+		/**
 		 * Produce a random number between 0 and max_int.
 		 */
 		static inline int randomInt() {

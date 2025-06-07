@@ -1,10 +1,3 @@
-/*
- * atmosphere.h
- *
- *  Created on: Jan 4, 2014
- *      Author: daniel
- */
-
 #ifndef REGEN_ATMOSPHERE_H_
 #define REGEN_ATMOSPHERE_H_
 

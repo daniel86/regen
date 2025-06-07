@@ -1,10 +1,3 @@
-/*
- * moon.h
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #ifndef REGEN_MOON_H_
 #define REGEN_MOON_H_
 

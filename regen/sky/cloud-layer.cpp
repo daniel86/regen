@@ -1,10 +1,3 @@
-/*
- * cloud-layer.cpp
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #include "cloud-layer.h"
 
 #include <regen/external/osghimmel/noise.h>
@@ -12,21 +5,21 @@
 
 using namespace regen;
 
-#define _randf(min, max) \
-    (static_cast<float>(rand()) / RAND_MAX * ((max) - (min)) + (min))
-
 static GLfloat *createNoiseSlice(GLuint texSize, GLuint octave) {
 	GLuint size2 = texSize * texSize;
-	GLfloat oneOverTexSize = 1.f / static_cast<GLfloat>(texSize);
-
-	osgHimmel::Noise n(1 << (octave + 2), _randf(0.f, 1.f), _randf(0.f, 1.f));
+	GLfloat oneOverTexSize = 1.f / static_cast<float>(texSize);
+	osgHimmel::Noise n(1 << (octave + 2),
+		math::random<float>(0.f, 1.f),
+		math::random<float>(0.f, 1.f));
 
 	auto *noise = new float[size2];
 	GLuint o;
 	for (GLuint s = 0; s < texSize; ++s)
 		for (GLuint t = 0; t < texSize; ++t) {
 			o = t * texSize + s;
-			noise[o] = n.noise2(s * oneOverTexSize, t * oneOverTexSize, octave) * 0.5 + 0.5;
+			noise[o] = n.noise2(
+				static_cast<float>(s) * oneOverTexSize,
+				static_cast<float>(t) * oneOverTexSize, octave) * 0.5f + 0.5f;
 		}
 
 	return noise;
@@ -46,9 +39,9 @@ static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint
 		tex->set_pixelType(GL_FLOAT);
 
 		tex->texImage();
-		for (unsigned int s = 0; s < slices; ++s) {
+		for (uint32_t s = 0; s < slices; ++s) {
 			GLfloat *data = createNoiseSlice(texSize, octave);
-			tex->texSubImage(s, (GLubyte *) data);
+			tex->texSubImage(static_cast<int>(s), (GLubyte *) data);
 			delete[]data;
 		}
 
@@ -159,17 +152,29 @@ void CloudLayer::createUpdateShader() {
 	updateMesh_->updateVAO(shaderConfig, updateShader_->shader());
 }
 
-float CloudLayer::defaultAltitudeHigh() { return 8.0f; }
+float CloudLayer::defaultAltitudeHigh() {
+	return 8.0f;
+}
 
-float CloudLayer::defaultAltitudeLow() { return 2.0f; }
+float CloudLayer::defaultAltitudeLow() {
+	return 2.0f;
+}
 
-Vec2f CloudLayer::defaultScaleHigh() { return {32.0, 32.0}; }
+Vec2f CloudLayer::defaultScaleHigh() {
+	return {32.0, 32.0};
+}
 
-Vec2f CloudLayer::defaultScaleLow() { return {128.0, 128.0}; }
+Vec2f CloudLayer::defaultScaleLow() {
+	return {128.0, 128.0};
+}
 
-float CloudLayer::defaultChangeHigh() { return 0.1f; }
+float CloudLayer::defaultChangeHigh() {
+	return 0.1f;
+}
 
-float CloudLayer::defaultChangeLow() { return 0.1f; }
+float CloudLayer::defaultChangeLow() {
+	return 0.1f;
+}
 
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().push(fbo_->id());
@@ -177,8 +182,7 @@ void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);
-	updateMesh_->enable(rs);
-	updateMesh_->disable(rs);
+	updateMesh_->draw(rs);
 	updateState_->disable(rs);
 
 	rs->viewport().pop();

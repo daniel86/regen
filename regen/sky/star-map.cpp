@@ -1,10 +1,3 @@
-/*
- * star-map.cpp
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #include "star-map.h"
 
 #include <regen/external/osghimmel/earth.h>
@@ -32,15 +25,19 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.weather.star-map");
 }
 
-float StarMap::defaultScattering() { return 0.2; }
+float StarMap::defaultScattering() {
+	return 0.2;
+}
 
-void StarMap::set_texture(const std::string &textureFile) { meshState_->setCubeMap(textures::loadCube(textureFile)); }
+void StarMap::set_texture(const std::string &textureFile) {
+	meshState_->setCubeMap(textures::loadCube(textureFile));
+}
 
 void StarMap::set_apparentMagnitude(float apparentMagnitude) {
 	// Precompute brightness based on logarithmic scale.
 	// (Similar to starsgeode vertex shader.)
 	deltaM_->setVertex(0, pow(2.512f, apparentMagnitude -
-									 static_cast<double>(osgHimmel::Earth::apparentMagnitudeLimit())));
+									  static_cast<double>(osgHimmel::Earth::apparentMagnitudeLimit())));
 }
 
 void StarMap::set_deltaMagnitude(float deltaMagnitude) {

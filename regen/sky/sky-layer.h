@@ -1,10 +1,3 @@
-/*
- * sky-layer.h
- *
- *  Created on: Jan 4, 2014
- *      Author: daniel
- */
-
 #ifndef SKY_LAYER_H_
 #define SKY_LAYER_H_
 

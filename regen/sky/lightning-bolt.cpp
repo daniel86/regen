@@ -146,7 +146,7 @@ void LightningBolt::updateBolt(double dt_s) {
 		strike();
 	}
 	matAlpha_->setVertex(0, static_cast<float>(std::min(1.0, std::max(0.0,
-			u_lifetime_ / (u_lifetimeBegin_ * 0.5)))));
+																	  u_lifetime_ / (u_lifetimeBegin_ * 0.5)))));
 }
 
 void LightningBolt::glAnimate(RenderState *rs, GLdouble dt) {
@@ -239,7 +239,6 @@ void LightningBolt::updateSegmentData() {
 	// reallocation of memory after the first iteration.
 	// the memory in the vector is further aligned with the GL buffer such that we can
 	// directly copy the data to the buffer.
-	// TODO: could rather generate a 2D bolt oriented wrt the camera.
 	auto source = source_->getVertex(0);
 	auto target = target_->getVertex(0);
 	segments_[1].clear();
@@ -277,11 +276,11 @@ void LightningBolt::updateSegmentData() {
 			direction = midPoint - segment.start.pos;
 			// with some probability create a new branch.
 			if (numRemainingVertices > numSubBranchVertices &&
-			    math::random<float>() < branchProbability.r *
-			    	// decrease the probability for sub-branches
-					std::min(1.0f, segment.start.brightness + 0.25f) *
-					// decrease the probability further away from the target
-					std::min(1.0f, (1.0f - (midPoint.y - target.r.y) / heightRange) + 0.25f)) {
+				math::random<float>() < branchProbability.r *
+										// decrease the probability for sub-branches
+										std::min(1.0f, segment.start.brightness + 0.25f) *
+										// decrease the probability further away from the target
+										std::min(1.0f, (1.0f - (midPoint.y - target.r.y) / heightRange) + 0.25f)) {
 				segments_[nextIndex].emplace_back(
 						midPoint,
 						branch(midPoint, direction, segment.end.pos,

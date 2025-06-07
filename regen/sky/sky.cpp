@@ -1,10 +1,3 @@
-/*
- * sky.cpp
- *
- *  Created on: Oct 3, 2014
- *      Author: daniel
- */
-
 #include "sky.h"
 #include "cloud-layer.h"
 #include "atmosphere.h"
@@ -232,7 +225,7 @@ void Sky::animate(GLdouble dt) {
 }
 
 void Sky::glAnimate(RenderState *rs, GLdouble dt) {
-	for (auto &layer : layer_) {
+	for (auto &layer: layer_) {
 		layer->updateSky(rs, dt);
 	}
 }
@@ -259,7 +252,7 @@ void SkyView::traverse(RenderState *rs) {
 	}
 }
 
-void SkyView::createShader(RenderState *rs, const StateConfig &stateCfg) {
+void SkyView::createShader(RenderState*, const StateConfig &stateCfg) {
 	for (auto &layer: layer_) {
 		StateConfigurer cfg(stateCfg);
 		cfg.addNode(layer.get());
@@ -287,7 +280,7 @@ ref_ptr<SkyView> SkyView::load(LoadingContext &ctx, scene::SceneInputNode &input
 }
 
 static ref_ptr<Darkness> createDarknessLayer(const ref_ptr<Sky> &sky,
-										   scene::SceneLoader *parser, scene::SceneInputNode &input) {
+											 scene::SceneInputNode &input) {
 	auto darkness = ref_ptr<Darkness>::alloc(sky, input.getValue<GLuint>("lod", 0));
 
 	darkness->set_updateInterval(
@@ -298,7 +291,7 @@ static ref_ptr<Darkness> createDarknessLayer(const ref_ptr<Sky> &sky,
 }
 
 static ref_ptr<StarMap> createStarMapLayer(const ref_ptr<Sky> &sky,
-										   scene::SceneLoader *parser, scene::SceneInputNode &input) {
+										   scene::SceneInputNode &input) {
 	ref_ptr<StarMap> starMap = ref_ptr<StarMap>::alloc(sky, input.getValue<GLuint>("lod", 0));
 
 	if (input.hasAttribute("texture"))
@@ -322,7 +315,7 @@ static ref_ptr<StarMap> createStarMapLayer(const ref_ptr<Sky> &sky,
 
 static ref_ptr<Stars> createStarsLayer(
 		const ref_ptr<Sky> &sky,
-		scene::SceneLoader *parser, scene::SceneInputNode &input) {
+		scene::SceneInputNode &input) {
 	ref_ptr<Stars> stars = ref_ptr<Stars>::alloc(sky);
 
 	if (input.hasAttribute("catalog"))
@@ -360,7 +353,7 @@ static ref_ptr<Stars> createStarsLayer(
 }
 
 static ref_ptr<MoonLayer> createMoonLayer(const ref_ptr<Sky> &sky,
-										  scene::SceneLoader *parser, scene::SceneInputNode &input) {
+										  scene::SceneInputNode &input) {
 	const std::string textureFile = resourcePath(input.getValue("texture"));
 	ref_ptr<MoonLayer> moon = ref_ptr<MoonLayer>::alloc(sky, textureFile);
 
@@ -516,13 +509,13 @@ ref_ptr<Sky> Sky::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 		} else if (n->getCategory() == "cloud-layer") {
 			layer = createCloudLayer(sky, scene, *n.get());
 		} else if (n->getCategory() == "moon") {
-			layer = createMoonLayer(sky, scene, *n.get());
+			layer = createMoonLayer(sky, *n.get());
 		} else if (n->getCategory() == "star-map") {
-			layer = createStarMapLayer(sky, scene, *n.get());
+			layer = createStarMapLayer(sky, *n.get());
 		} else if (n->getCategory() == "stars") {
-			layer = createStarsLayer(sky, scene, *n.get());
+			layer = createStarsLayer(sky, *n.get());
 		} else if (n->getCategory() == "darkness") {
-			layer = createDarknessLayer(sky, scene, *n.get());
+			layer = createDarknessLayer(sky, *n.get());
 		}
 		if (!layer.get()) {
 			REGEN_WARN("No layer created for '" << n->getDescription() << "'.");

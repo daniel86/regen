@@ -1,10 +1,3 @@
-/*
- * cloud-layer.h
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #ifndef REGEN_CLOUD_LAYER_H_
 #define REGEN_CLOUD_LAYER_H_
 

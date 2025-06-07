@@ -1,10 +1,3 @@
-/*
- * sky.h
- *
- *  Created on: Oct 3, 2014
- *      Author: daniel
- */
-
 #ifndef SKY_H_
 #define SKY_H_
 
@@ -66,9 +59,9 @@ namespace regen {
 
 		void set_moonSunLightReflectance(GLfloat moonSunLightReflectance);
 
-		GLfloat computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius);
+		static GLfloat computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius);
 
-		GLfloat computeEyeExtinction(const Vec3f &eyedir);
+		static GLfloat computeEyeExtinction(const Vec3f &eyedir);
 
 		const ref_ptr<Rectangle> &skyQuad() const { return skyQuad_; }
 

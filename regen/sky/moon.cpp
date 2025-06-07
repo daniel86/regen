@@ -1,10 +1,3 @@
-/*
- * moon.cpp
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #include "moon.h"
 
 #include <regen/external/osghimmel/noise.h>
@@ -50,17 +43,29 @@ void MoonLayer::setupMoonTextureCube(const std::string &moonMapFile) {
 	state()->joinStates(ref_ptr<TextureState>::alloc(texture, "moonmapCube"));
 }
 
-float MoonLayer::defaultScale() { return 0.1; }
+float MoonLayer::defaultScale() {
+	return 0.1;
+}
 
-float MoonLayer::defaultScattering() { return 4.0; }
+float MoonLayer::defaultScattering() {
+	return 4.0;
+}
 
-Vec3f MoonLayer::defaultSunShineColor() { return {0.923, 0.786, 0.636}; }
+Vec3f MoonLayer::defaultSunShineColor() {
+	return {0.923, 0.786, 0.636};
+}
 
-float MoonLayer::defaultSunShineIntensity() { return 128.0; }
+float MoonLayer::defaultSunShineIntensity() {
+	return 128.0;
+}
 
-Vec3f MoonLayer::defaultEarthShineColor() { return {0.88, 0.96, 1.0}; }
+Vec3f MoonLayer::defaultEarthShineColor() {
+	return {0.88, 0.96, 1.0};
+}
 
-float MoonLayer::defaultEarthShineIntensity() { return 4.0; }
+float MoonLayer::defaultEarthShineIntensity() {
+	return 4.0;
+}
 
 void MoonLayer::set_sunShineColor(const Vec3f &color) {
 	auto v_sunShine = sunShine_->mapClientVertex<Vec4f>(ShaderData::READ | ShaderData::WRITE, 0);

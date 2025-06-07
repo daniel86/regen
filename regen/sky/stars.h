@@ -1,10 +1,3 @@
-/*
- * stars.h
- *
- *  Created on: Oct 4, 2014
- *      Author: daniel
- */
-
 #ifndef REGEN_STARS_LAYER_H_
 #define REGEN_STARS_LAYER_H_
 
@@ -27,7 +20,7 @@ namespace regen {
 
 		const ref_ptr<ShaderInput1f> &apparentMagnitude() const { return apparentMagnitude_; }
 
-		void set_color(const Vec3f& color) { color_->setVertex(0, color); }
+		void set_color(const Vec3f &color) { color_->setVertex(0, color); }
 
 		const ref_ptr<ShaderInput3f> &color() const { return color_; }
 
