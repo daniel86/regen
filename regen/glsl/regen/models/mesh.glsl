@@ -48,10 +48,11 @@ out float out_mask;
     #endif
 #endif // HAS_TESSELATION
 
+#include regen.states.textures.input
+
 #define HANDLE_IO(i)
 
 #include regen.states.camera.input
-#include regen.states.textures.input
 
 #include regen.models.tf.transformModel
 #ifdef VS_CAMERA_TRANSFORM

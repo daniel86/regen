@@ -440,10 +440,10 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 		input.removeChild(n);
 	}
 
-	auto lodVec = input.getValue<Vec3ui>(
-			"lod-levels", Vec3ui(5,3,1));
+	auto lodVec = input.getValue<Vec4ui>(
+			"lod-levels", Vec4ui(5,3,2, 1));
 	auto patchDensity = input.getValue<uint32_t>("patch-density", 9);
-	ground->setLODConfig(patchDensity, {lodVec.x, lodVec.y, lodVec.z});
+	ground->setLODConfig(patchDensity, {lodVec.x, lodVec.y, lodVec.z, lodVec.w});
 	ground->setMapGeometry(
 			input.getValue<Vec3f>("map-center", Vec3f(0.0f)),
 			input.getValue<Vec3f>("map-size", Vec3f(1.0f)));

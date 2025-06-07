@@ -58,11 +58,12 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 
 	std::vector<GLuint> lodLevels;
 	if (input.hasAttribute("lod-levels")) {
-		auto lodVec = input.getValue<Vec3ui>("lod-levels", Vec3ui(0));
-		lodLevels.resize(3);
+		auto lodVec = input.getValue<Vec4ui>("lod-levels", Vec4ui(0));
+		lodLevels.resize(4);
 		lodLevels[0] = lodVec.x;
 		lodLevels[1] = lodVec.y;
 		lodLevels[2] = lodVec.z;
+		lodLevels[3] = lodVec.w;
 	} else {
 		lodLevels.push_back(input.getValue<GLuint>("lod", 0));
 	}

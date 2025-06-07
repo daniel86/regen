@@ -144,14 +144,6 @@
             <texture name="noiseTexture" id="ground-noise"/>
             <mesh id="ground-mesh" shader="regen.terrain.ground"/>
         </node>
-        <!-- we add a frame around the ground mesh to avoid problems at the edges
-             with how distance fog is calculated based on depth (it may not correctly
-             handle water at the boundaries where there is nothing behind the water) -->
-        <!--
-        <node id="Ground-frame">
-            <mesh id="ground-frame" shader="regen.models.mesh"/>
-        </node>
-        -->
     </node>
 
     <!--**************************-->
