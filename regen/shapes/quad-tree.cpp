@@ -5,7 +5,7 @@
 
 #include "quad-tree.h"
 
-#define QUAD_TREE_DEBUG
+//#define QUAD_TREE_DEBUG
 #define QUAD_TREE_EVER_GROWING
 #define QUAD_TREE_SQUARED
 #define QUAD_TREE_SUBDIVIDE_THRESHOLD 4
@@ -655,10 +655,11 @@ void QuadTree::foreachIntersection(
 				else {
 					if (quadShape->shape->hasIntersectionWith(shape)) {
 						callback(*quadShape->shape.get());
-					} else {
-						num3DPruned += 1;
 					}
 					#ifdef QUAD_TREE_DEBUG
+					else {
+						num3DPruned += 1;
+					}
 					num3DTests++;
 					#endif
 				}
