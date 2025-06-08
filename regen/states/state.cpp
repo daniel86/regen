@@ -15,8 +15,6 @@ using namespace regen;
 State::State()
 		: EventObject(),
 		  shaderVersion_(130) {
-	isHidden_ = ref_ptr<ShaderInput1i>::alloc("isHidden");
-	isHidden_->setUniformData(0);
 }
 
 State::State(const ref_ptr<State> &other)
@@ -57,14 +55,6 @@ void State::shaderInclude(const std::string &path) {
 void State::shaderFunction(const std::string &name, const std::string &value) { shaderFunctions_[name] = value; }
 
 const std::map<std::string, std::string> &State::shaderFunctions() const { return shaderFunctions_; }
-
-GLboolean State::isHidden() const {
-	return isHidden_->getVertex(0).r;
-}
-
-void State::set_isHidden(GLboolean isHidden) {
-	isHidden_->setVertex(0, isHidden);
-}
 
 static void setConstantUniforms_(State *s, GLboolean isConstant) {
 	auto *inState = dynamic_cast<HasInput *>(s);
@@ -139,8 +129,7 @@ void State::collectShaderInput(ShaderInputList &out) {
 		const ref_ptr<InputContainer> &container = inState->inputContainer();
 		out.insert(out.end(), container->inputs().begin(), container->inputs().end());
 	}
-
-	for (auto it = joined_.begin(); it != joined_.end(); ++it) { (*it)->collectShaderInput(out); }
+	for (auto &buddy : joined_) { buddy->collectShaderInput(out); }
 }
 
 std::optional<StateInput> State::findShaderInput(const std::string &name) {

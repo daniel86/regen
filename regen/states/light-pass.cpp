@@ -154,8 +154,12 @@ void LightPass::addLightInput(LightPassLight &light) {
 		addInputLocation(light, light.camera->lightMatrix(), "lightMatrix");
 	}
 	if (light.shadow.get()) {
-		addInputLocation(light, light.shadow->sizeInverse(), "shadowInverseSize");
-		addInputLocation(light, light.shadow->size(), "shadowSize");
+		auto shadowSizeInv = createUniform<ShaderInput2f>(
+				"shadowInverseSize", light.shadow->sizeInverse());
+		auto shadowSize = createUniform<ShaderInput2f>(
+				"shadowSize", light.shadow->size());
+		addInputLocation(light, shadowSizeInv, "shadowInverseSize");
+		addInputLocation(light, shadowSize, "shadowSize");
 	}
 
 	// add light UBO, and special light type uniforms

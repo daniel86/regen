@@ -45,12 +45,12 @@ namespace regen {
 		/**
 		 * @return flag indicating if this state is hidden.
 		 */
-		GLboolean isHidden() const;
+		inline bool isHidden() const { return isHidden_; }
 
 		/**
 		 * @param v flag indicating if this state is hidden.
 		 */
-		void set_isHidden(GLboolean v);
+		void set_isHidden(bool v) { isHidden_ = v; }
 
 		/**
 		 * @return joined states.
@@ -183,7 +183,7 @@ namespace regen {
 		std::list<ref_ptr<State> > joined_;
 		std::list<ref_ptr<EventObject> > attached_;
 		ref_ptr<HasInput> inputStateBuddy_;
-		ref_ptr<ShaderInput1i> isHidden_;
+		bool isHidden_ = false;
 		GLuint shaderVersion_;
 	};
 } // namespace

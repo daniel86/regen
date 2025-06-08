@@ -23,31 +23,32 @@ namespace regen {
 		/**
 		 * Set the buffer size.
 		 */
-		void set_rectangleSize(GLuint width, GLuint height);
+		void set_rectangleSize(uint32_t width, uint32_t height);
 
 		/**
 		 * Width of the buffer.
 		 */
-		GLuint width() const;
+		inline uint32_t width() const { return sizeUI_.x; }
 
 		/**
 		 * Height of the buffer.
 		 */
-		GLuint height() const;
+		inline uint32_t height() const { return sizeUI_.y; }
 
 		/**
 		 * @return The inverse rectangle size.
 		 */
-		const ref_ptr<ShaderInput2f> &sizeInverse() const;
+		inline const Vec2f &sizeInverse() const { return sizeInverse_; }
 
 		/**
 		 * @return The rectangle size.
 		 */
-		const ref_ptr<ShaderInput2f> &size() const;
+		inline const Vec2f &size() const { return size_; }
 
 	protected:
-		ref_ptr<ShaderInput2f> size_;
-		ref_ptr<ShaderInput2f> sizeInverse_;
+		Vec2ui sizeUI_;
+		Vec2f size_;
+		Vec2f sizeInverse_;
 	};
 } // namespace
 
