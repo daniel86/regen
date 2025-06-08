@@ -102,7 +102,8 @@ namespace regen {
 
 	protected:
 		Node *root_ = nullptr;
-		std::map<BoundingShape*, Item*> items_;
+		std::unordered_map<BoundingShape*, Item*> shapeToItem_;
+		std::vector<Item *> items_;
 		std::vector<Item *> newItems_;
 		std::stack<Node *> nodePool_;
 		std::stack<Item *> itemPool_;

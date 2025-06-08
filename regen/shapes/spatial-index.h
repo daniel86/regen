@@ -1,6 +1,7 @@
 #ifndef REGEN_SPATIAL_INDEX_H_
 #define REGEN_SPATIAL_INDEX_H_
 
+#include <map>
 #include <regen/shapes/bounding-shape.h>
 #include <regen/shapes/indexed-shape.h>
 #include <regen/camera/camera.h>
@@ -70,7 +71,7 @@ namespace regen {
 		 * @brief Get the shapes in the index
 		 * @return The shapes
 		 */
-		auto &shapes() const { return shapes_; }
+		auto &shapes() const { return nameToShape_; }
 
 		/**
 		 * @brief Get the cameras in the index
@@ -130,11 +131,14 @@ namespace regen {
 		ThreadPool threadPool_;
 		struct IndexCamera {
 			ref_ptr<Camera> camera;
-			std::map<std::string_view, ref_ptr<IndexedShape>> shapes;
-			bool sortInstances;
+			std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
+			// flattened list of shapes for faster access
+			std::vector<IndexedShape*> indexShapes_;
+			// whether to sort instances by distance to camera
+			bool sortInstances = true;
 		};
-		std::map<std::string_view, std::vector<ref_ptr<BoundingShape>>> shapes_;
-		std::map<const Camera *, IndexCamera> cameras_;
+		std::unordered_map<std::string_view, std::vector<ref_ptr<BoundingShape>>> nameToShape_;
+		std::unordered_map<const Camera *, IndexCamera> cameras_;
 
 		void updateVisibility();
 

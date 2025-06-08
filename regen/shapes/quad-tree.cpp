@@ -18,6 +18,12 @@
 	#include <simde/x86/sse2.h>
 #endif
 
+// NOTE: this piece of code is performance critical! For many execution paths:
+// - avoid the use of std::set, std::unordered_set, std::map, std::unordered_map, etc. here
+// 		- also iteration over these containers is expensive!
+// - avoid lambda functions
+// - avoid alloc/free
+
 using namespace regen;
 
 QuadTree::QuadTree()
@@ -32,9 +38,10 @@ QuadTree::~QuadTree() {
 		root_ = nullptr;
 	}
 	for (auto item: items_) {
-		delete item.second;
+		delete item;
 	}
 	items_.clear();
+	shapeToItem_.clear();
 	for (auto item: newItems_) {
 		delete item;
 	}
@@ -136,8 +143,8 @@ void QuadTree::freeItem(Item *item) {
 }
 
 QuadTree::Item* QuadTree::getItem(const ref_ptr<BoundingShape> &shape) {
-	auto it = items_.find(shape.get());
-	if (it != items_.end()) {
+	auto it = shapeToItem_.find(shape.get());
+	if (it != shapeToItem_.end()) {
 		return it->second;
 	}
 	return nullptr;
@@ -629,8 +636,8 @@ void QuadTree::foreachIntersection(
 	Vec2f basePoint(origin.x, origin.z);
 
 	// reset intersection state of items.
-	for (const auto &it: items_) {
-		it.second->visited = false;
+	for (const auto &item: items_) {
+		item->visited = false;
 	}
 
 	while (!stack.empty()) {
@@ -705,8 +712,7 @@ void QuadTree::update(float dt) {
 #endif
 
 	// go through all items and update their geometry and transform, and the new bounds
-	for (const auto &it: items_) {
-		auto &item = it.second;
+	for (const auto &item: items_) {
 		hasChanged = item->shape->updateGeometry();
 		hasChanged = item->shape->updateTransform(hasChanged) || hasChanged;
 		if (hasChanged) {
@@ -738,8 +744,7 @@ void QuadTree::update(float dt) {
 		if(root_) freeNode(root_);
 		root_ = createNode(newBounds_.min, newBounds_.max);
 
-		for (auto &it: items_) {
-			auto &item = it.second;
+		for (auto &item: items_) {
 			item->nodes.clear();
 			insert1(root_, item, true);
 		}
@@ -754,7 +759,8 @@ void QuadTree::update(float dt) {
 	// finally insert the new items
 	for (auto item: newItems_) {
 		if(insert1(root_, item, true)) {
-			items_[item->shape.get()] = item;
+			shapeToItem_[item->shape.get()] = item;
+			items_.push_back(item);
 		} else {
 			freeItem(item);
 			REGEN_WARN("Failed to insert shape into quad tree. This should not happen!");
@@ -809,7 +815,7 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 	lineColor = Vec3f(0, 1, 0);
 	const GLfloat h = 5.1f;
 	for (auto &item: items_) {
-		auto &projection = item.second->projection;
+		auto &projection = item->projection;
 		auto &points = projection.points;
 		switch (projection.type) {
 			case OrthogonalProjection::Type::CIRCLE: {
