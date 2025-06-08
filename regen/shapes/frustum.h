@@ -102,9 +102,6 @@ namespace regen {
 		// BoundingShape interface
 		void updateBounds(const Vec3f &min, const Vec3f &max) override { }
 
-		// override BoundingShape::getCenterPosition
-		Vec3f getCenterPosition() const override;
-
 	protected:
 		ref_ptr<ShaderInput3f> direction_;
 		unsigned int lastDirectionStamp_ = 0;

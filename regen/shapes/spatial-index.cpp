@@ -105,7 +105,7 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 						return;
 					}
 				}
-				float d = (b_shape.getCenterPosition() - camPos.r).lengthSquared();
+				float d = (b_shape.getShapeOrigin() - camPos.r).lengthSquared();
 				index_shape->instanceDistances_.push_back({&b_shape, d});
 			}
 		});

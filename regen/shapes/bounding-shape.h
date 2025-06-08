@@ -121,7 +121,7 @@ namespace regen {
 		 * This is the geometric center position plus the translation
 		 * @return The center position
 		 */
-		virtual Vec3f getCenterPosition() const = 0;
+		const Vec3f& getShapeOrigin() const { return shapeOrigin_; }
 
 		/**
 		 * @brief Get the stamp of the center
@@ -180,6 +180,7 @@ namespace regen {
 		const BoundingShapeType shapeType_;
 		ref_ptr<ModelTransformation> transform_;
 		ref_ptr<ShaderInput3f> modelOffset_;
+		Vec3f shapeOrigin_ = Vec3f::zero();
 		ref_ptr<Mesh> mesh_;
 		std::vector<ref_ptr<Mesh>> parts_;
 		unsigned int lastTransformStamp_ = 0;

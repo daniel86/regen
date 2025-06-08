@@ -52,14 +52,13 @@ namespace regen {
 		// BoundingShape interface
 		void updateBounds(const Vec3f &min, const Vec3f &max) override;
 
-		// override BoundingShape::getCenterPosition
-		Vec3f getCenterPosition() const override;
-
 	protected:
 		Vec3f basePosition_;
 		GLfloat radius_;
 
 		float computeRadius(const Vec3f &min, const Vec3f &max);
+
+		void updateShapeOrigin();
 	};
 } // namespace
 

@@ -25,15 +25,13 @@ void BoundingBox::updateBounds(const Vec3f &min, const Vec3f &max) {
 	basePosition_ = (bounds_.max + bounds_.min) * 0.5f;
 }
 
-Vec3f BoundingBox::getCenterPosition() const {
-	Vec3f p = basePosition_;
+void BoundingBox::updateShapeOrigin() {
+	shapeOrigin_ = basePosition_;
 	if (modelOffset_.get()) {
-		p += modelOffset_->getVertex(modelOffsetIndex_).r;
+		shapeOrigin_ += modelOffset_->getVertex(modelOffsetIndex_).r;
 	}
 	if (transform_.get()) {
-		return p + transform_->get()->getVertex(transformIndex_).r.position();
-	} else {
-		return p;
+		shapeOrigin_ += transform_->get()->getVertex(transformIndex_).r.position();
 	}
 }
 

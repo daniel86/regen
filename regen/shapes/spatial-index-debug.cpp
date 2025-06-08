@@ -79,7 +79,7 @@ void SpatialIndexDebug::drawBox(const BoundingBox &box) {
 }
 
 void SpatialIndexDebug::drawSphere(const BoundingSphere &sphere) {
-	auto center = sphere.getCenterPosition();
+	auto &center = sphere.getShapeOrigin();
 	auto radius = sphere.radius();
 	Vec3f color = Vec3f(0.0f, 1.0f, 1.0f);
 

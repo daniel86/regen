@@ -25,6 +25,7 @@ bool OBB::updateTransform(bool forceUpdate) {
 }
 
 void OBB::updateOBB() {
+	updateShapeOrigin();
 	Vec3f offset = basePosition_;
 	if (modelOffset_.get()) {
 		offset += modelOffset_->getVertex(modelOffsetIndex_).r;
@@ -64,7 +65,7 @@ Vec3f OBB::closestPointOnSurface(const Vec3f &point) const {
 	auto halfSize = (bounds_.max - bounds_.min) * 0.5f;
 	const GLfloat *halfSizes = &halfSize.x;
 	const Vec3f *axes = boxAxes();
-	Vec3f obbCenter = getCenterPosition();
+	const Vec3f &obbCenter = getShapeOrigin();
 	Vec3f d = point - obbCenter;
 	Vec3f closest = obbCenter;
 

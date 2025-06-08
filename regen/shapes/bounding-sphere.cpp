@@ -38,23 +38,23 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 		return false;
 	} else {
 		lastTransformStamp_ = transformStamp();
+		updateShapeOrigin();
 		return true;
 	}
 }
 
-Vec3f BoundingSphere::getCenterPosition() const {
-	Vec3f p = basePosition_;
+void BoundingSphere::updateShapeOrigin() {
+	shapeOrigin_ = basePosition_;
 	if (modelOffset_.get()) {
-		p += modelOffset_->getVertex(modelOffsetIndex_).r;
+		shapeOrigin_ += modelOffset_->getVertex(modelOffsetIndex_).r;
 	}
 	if (transform_.get()) {
-		p += transform_->get()->getVertex(transformIndex_).r.position();
+		shapeOrigin_ += transform_->get()->getVertex(transformIndex_).r.position();
 	}
-	return p;
 }
 
 Vec3f BoundingSphere::closestPointOnSurface(const Vec3f &point) const {
-	Vec3f p = getCenterPosition();
+	const Vec3f &p = getShapeOrigin();
 	Vec3f d = point - p;
 	if (d.length() == 0) {
 		return p + Vec3f(0, 0, 1) * radius();
@@ -64,8 +64,8 @@ Vec3f BoundingSphere::closestPointOnSurface(const Vec3f &point) const {
 }
 
 bool BoundingSphere::hasIntersectionWithSphere(const BoundingShape &other) const {
-	Vec3f p_this = getCenterPosition();
-	Vec3f p_other = other.getCenterPosition();
+	const Vec3f &p_this = getShapeOrigin();
+	const Vec3f &p_other = other.getShapeOrigin();
 	if ((p_this - p_other).length() <= radius()) {
 		return true;
 	}

@@ -40,6 +40,7 @@ void AABB::updateAABB() {
 	// initialize vertices based on bounds
 	setVertices(bounds());
 
+	updateShapeOrigin();
 	// apply transform
 	if (modelOffset_.get()) {
 		for (int i = 0; i < 8; ++i) {
@@ -50,7 +51,7 @@ void AABB::updateAABB() {
 		auto tf = transform_->get()->getVertex(transformIndex_);
 		// compute transformed bounds
 		Vec3f transformed;
-		auto transformedMin = getCenterPosition();
+		auto transformedMin = getShapeOrigin();
 		auto transformedMax = transformedMin;
 		for (int i = 0; i < 8; ++i) {
 			transformed = (tf.r ^ vertices_[i]).xyz_();
