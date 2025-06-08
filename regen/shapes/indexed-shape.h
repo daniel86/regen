@@ -69,6 +69,7 @@ namespace regen {
 			float distance;
 		};
 		std::vector<ShapeDistance> instanceDistances_;
+		std::vector<ref_ptr<BoundingShape>> boundingShapes_;
 
 		struct MappedData {
 			explicit MappedData(const ref_ptr <ShaderInput1ui> &visibleVec);

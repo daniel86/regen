@@ -90,12 +90,17 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 	if (ic.sortInstances) {
 		for (auto &pair: ic.shapes) {
 			pair.second->instanceDistances_.clear();
+			// Remember the index shape to bounding shape mapping such that we can
+			// obtain index shape from bounding shape directly below
+			// (else a hash lookup would be required).
+			for (auto &bs: pair.second->boundingShapes_) {
+				bs->spatialIndexData_ = pair.second.get();
+			}
 		}
 
 		auto camPos = ic.camera->position()->getVertex(0);
 		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
-			// TODO: Can we avoid the hash lookup here?
-			auto &index_shape = ic.shapes[b_shape.name()];
+			auto *index_shape = (IndexedShape*) b_shape.spatialIndexData_;
 			index_shape->u_visible_ = true;
 
 			if (b_shape.numInstances() > 1) {
@@ -186,6 +191,12 @@ void SpatialIndex::updateVisibility() {
 }
 
 void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape> &shape) {
+	auto needle = ic.shapes.find(shape->name());
+	if (needle != ic.shapes.end()) {
+		// already created
+		needle->second->boundingShapes_.push_back(shape);
+		return;
+	}
 	auto is = ref_ptr<IndexedShape>::alloc(ic.camera, shape);
 	is->visibleVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
 	is->visibleVec_->setInstanceData(shape->numInstances() + 1, 1, nullptr);
@@ -195,6 +206,7 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	}
 	mapped.w[0] = shape->numInstances();
 	ic.shapes[shape->name()] = is;
+	is->boundingShapes_.push_back(shape);
 }
 
 ref_ptr<SpatialIndex> SpatialIndex::load(LoadingContext &ctx, scene::SceneInputNode &input) {
