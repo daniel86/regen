@@ -613,9 +613,6 @@ void QuadTree::foreachIntersection(
 	if (!root_) return;
 	if (root_->isLeaf() && root_->shapes.empty()) return;
 
-	// TODO: make configurable
-	static const float minDistanceThresholdSq = 20.0f * 20.0f; // heuristic threshold for distance to camera position
-
 	// project the shape onto the xz-plane for faster intersection tests
 	// with the quad tree nodes.
 	OrthogonalProjection shape_projection(shape);
@@ -653,15 +650,12 @@ void QuadTree::foreachIntersection(
 				if (quadShape->visited) { continue; }
 				quadShape->visited = true;
 
-				// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
-				// This is a good approach because:
-				//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
-				//     (2) most false positives are close to camera position in case camera is above/below the ground level
-				float distSq = (basePoint - node->bounds.center()).lengthSquared();
-				if (distSq > minDistanceThresholdSq) {
+				if (testMode3D_ == QUAD_TREE_3D_TEST_NONE) {
+					// no intersection test, just call the callback
 					callback(*quadShape->shape.get(), userData);
 				}
-				else {
+				else if (testMode3D_ == QUAD_TREE_3D_TEST_ALL) {
+					// test all shapes, even if they are not close to the shape's projection origin
 					if (quadShape->shape->hasIntersectionWith(shape)) {
 						callback(*quadShape->shape.get(), userData);
 					}
@@ -671,6 +665,29 @@ void QuadTree::foreachIntersection(
 					}
 					num3DTests++;
 					#endif
+				}
+				else if (testMode3D_ == QUAD_TREE_3D_TEST_CLOSEST) {
+					// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
+					// This is a good approach because:
+					//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
+					//     (2) most false positives are close to camera position in case camera is above/below the ground level
+					float distSq = (basePoint - node->bounds.center()).lengthSquared();
+					if (distSq > closeDistanceSquared_) {
+						callback(*quadShape->shape.get(), userData);
+					}
+					else {
+						if (quadShape->shape->hasIntersectionWith(shape)) {
+							callback(*quadShape->shape.get(), userData);
+						}
+						#ifdef QUAD_TREE_DEBUG
+						else {
+							num3DPruned += 1;
+						}
+						num3DTests++;
+						#endif
+					}
+				} else {
+					REGEN_WARN("Unknown 3D test mode: " << testMode3D_);
 				}
 			}
 		} else {

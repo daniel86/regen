@@ -236,6 +236,21 @@ ref_ptr<SpatialIndex> SpatialIndex::load(LoadingContext &ctx, scene::SceneInputN
 		auto quadTree = ref_ptr<QuadTree>::alloc();
 		//quadTree->setMaxObjectsPerNode(input.getValue<GLuint>("max-objects-per-node", 4u));
 		quadTree->setMinNodeSize(input.getValue<float>("min-node-size", 0.1f));
+
+		if (input.hasAttribute("test-mode-3d")) {
+			auto testMode = input.getValue("test-mode-3d");
+			if (testMode == "closest") {
+				quadTree->setTestMode3D(QuadTree::QUAD_TREE_3D_TEST_CLOSEST);
+			} else if (testMode == "all") {
+				quadTree->setTestMode3D(QuadTree::QUAD_TREE_3D_TEST_ALL);
+			} else {
+				quadTree->setTestMode3D(QuadTree::QUAD_TREE_3D_TEST_NONE);
+			}
+		}
+		if (input.hasAttribute("close-distance")) {
+			quadTree->setCloseDistanceSquared(input.getValue<float>("close-distance", 20.0f));
+		}
+
 		index = quadTree;
 	}
 

@@ -53,6 +53,17 @@ namespace regen {
 
 			inline bool contains(const OrthogonalProjection &projection) const;
 		};
+		/**
+		 * @brief Configuration for 3D intersection tests in the quad tree.
+		 * QUAD_TREE_3D_TEST_NONE: No intersection test.
+		 * QUAD_TREE_3D_TEST_CLOSEST: Only the closest intersection is returned.
+		 * QUAD_TREE_3D_TEST_ALL: All intersections are returned.
+		 */
+		enum TestMode_3D {
+			QUAD_TREE_3D_TEST_NONE = 0,
+			QUAD_TREE_3D_TEST_CLOSEST,
+			QUAD_TREE_3D_TEST_ALL
+		};
 
 		QuadTree();
 
@@ -75,6 +86,18 @@ namespace regen {
 		 * @param size The minimum size
 		 */
 		void setMinNodeSize(float size) { minNodeSize_ = size; }
+
+		/**
+		 * Set the test mode for 3D intersection tests.
+		 * @param mode The test mode to set
+		 */
+		void setTestMode3D(TestMode_3D mode) { testMode3D_ = mode; }
+
+		/**
+		 * Set the distance threshold for close distance tests.
+		 * @param distance The distance threshold to set
+		 */
+		void setCloseDistanceSquared(float d) { closeDistanceSquared_ = d * d; }
 
 		// override SpatialIndex::insert
 		void insert(const ref_ptr<BoundingShape> &shape) override;
@@ -108,6 +131,9 @@ namespace regen {
 		std::stack<Node *> nodePool_;
 		std::stack<Item *> itemPool_;
 		float minNodeSize_ = 0.1f;
+
+		TestMode_3D testMode3D_ = QUAD_TREE_3D_TEST_CLOSEST;
+		float closeDistanceSquared_ = 20.0f * 20.0f; // heuristic threshold for distance to camera position
 
 		Bounds<Vec2f> newBounds_;
 		std::vector<Item *> changedItems_;
