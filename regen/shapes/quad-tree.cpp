@@ -618,7 +618,6 @@ void QuadTree::foreachIntersection(
 	// TODO: make configurable
 	static const float minDistanceThresholdSq = 20.0f * 20.0f; // heuristic threshold for distance to camera position
 
-	std::unordered_set<const Item *> visited;
 	// project the shape onto the xz-plane for faster intersection tests
 	// with the quad tree nodes.
 	OrthogonalProjection shape_projection(shape);
@@ -635,32 +634,32 @@ void QuadTree::foreachIntersection(
 	GLuint num3DPruned = 0;
 	auto t1 = high_resolution_clock::now();
 #endif
+	auto &origin = shape.getShapeOrigin();
+	Vec2f basePoint(origin.x, origin.z);
 
-	// FIXME: only works for frustum shapes!
-	Vec2f &basePoint = shape_projection.points[0];
+	// reset intersection state of items.
+	for (const auto &it: items_) {
+		it.second->visited = false;
+	}
 
 	while (!stack.empty()) {
 		Node *node = stack.top();
 		stack.pop();
-
 #ifdef QUAD_TREE_DEBUG
 		num2DTests++;
 #endif
-
 		if (node->isLeaf()) {
 			// 3D intersection test with the shapes in the node
 			for (const auto &quadShape: node->shapes) {
-				if (visited.find(quadShape) != visited.end()) {
-					continue;
-				}
-				visited.insert(quadShape);
+				// skip shapes that are already visited in this frame
+				if (quadShape->visited) { continue; }
+				quadShape->visited = true;
 
 				// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
 				// This is a good approach because:
 				//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
 				//     (2) most false positives are close to camera position in case camera is above/below the ground level
 				float distSq = (basePoint - node->bounds.center()).lengthSquared();
-
 				if (distSq > minDistanceThresholdSq) {
 					callback(*quadShape->shape.get());
 				}

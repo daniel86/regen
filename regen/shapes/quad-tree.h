@@ -25,6 +25,7 @@ namespace regen {
 			ref_ptr<BoundingShape> shape;
 			OrthogonalProjection projection;
 			std::vector<Node *> nodes;
+			bool visited = false; // used during intersection tests
 
 			explicit Item(const ref_ptr<BoundingShape> &shape);
 
