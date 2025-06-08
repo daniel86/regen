@@ -90,7 +90,7 @@ namespace regen {
 		/**
 		 * @return the texture channel or -1.
 		 */
-		GLint channel() const;
+		inline int channel() const { return v_channel_; }
 
 		/**
 		 * Specifies the format of the pixel data.
@@ -410,6 +410,7 @@ namespace regen {
 		GLint border_;
 		TextureBind texBind_;
 		GLuint numSamples_;
+		int v_channel_ = -1;
 		std::string samplerType_;
 		std::optional<TextureFile> textureFile_;
 
