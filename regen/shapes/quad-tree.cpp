@@ -582,25 +582,27 @@ bool QuadTree::Node::intersects(const OrthogonalProjection &projection) const {
 	return false;
 }
 
+static void countIntersections(const BoundingShape&, void *userData) {
+	int &counter = *static_cast<int *>(userData);
+	counter++;
+}
+
 bool QuadTree::hasIntersection(const BoundingShape &shape) {
 	int count = 0;
-	foreachIntersection(shape, [&count](const BoundingShape &shape) {
-		count++;
-	});
+	foreachIntersection(shape, countIntersections, &count);
 	return count > 0;
 }
 
 int QuadTree::numIntersections(const BoundingShape &shape) {
 	int count = 0;
-	foreachIntersection(shape, [&count](const BoundingShape &shape) {
-		count++;
-	});
+	foreachIntersection(shape, countIntersections, &count);
 	return count;
 }
 
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
-		const std::function<void(const BoundingShape &)> &callback) {
+		void (*callback)(const BoundingShape&, void*),
+		void *userData) {
 	if (!root_) return;
 	if (root_->isLeaf() && root_->shapes.empty()) return;
 
@@ -650,11 +652,11 @@ void QuadTree::foreachIntersection(
 				//     (2) most false positives are close to camera position in case camera is above/below the ground level
 				float distSq = (basePoint - node->bounds.center()).lengthSquared();
 				if (distSq > minDistanceThresholdSq) {
-					callback(*quadShape->shape.get());
+					callback(*quadShape->shape.get(), userData);
 				}
 				else {
 					if (quadShape->shape->hasIntersectionWith(shape)) {
-						callback(*quadShape->shape.get());
+						callback(*quadShape->shape.get(), userData);
 					}
 					#ifdef QUAD_TREE_DEBUG
 					else {

@@ -94,7 +94,8 @@ namespace regen {
 		// override SpatialIndex::foreachIntersection
 		void foreachIntersection(
 				const BoundingShape &shape,
-				const std::function<void(const BoundingShape &)> &callback) override;
+				void (*callback)(const BoundingShape&, void*),
+				void *userData) override;
 
 		// override SpatialIndex
 		void debugDraw(DebugInterface &debug) const override;

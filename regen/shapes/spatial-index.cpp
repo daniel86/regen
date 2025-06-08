@@ -86,7 +86,40 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID) const {
 	return {};
 }
 
+void SpatialIndex::handleIntersection_sorted(const BoundingShape &b_shape, void *userData) {
+	auto *data = (SpatialIndex::TraversalData*)(userData);
+	auto *index_shape = (IndexedShape*) b_shape.spatialIndexData_;
+	index_shape->u_visible_ = true;
+
+	if (b_shape.numInstances() > 1) {
+		if (data->isMultiShape && !index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
+			// Already added this instance
+			return;
+		}
+		float d = (b_shape.getShapeOrigin() - *data->camPos).lengthSquared();
+		index_shape->instanceDistances_.push_back({&b_shape, d});
+	}
+}
+
+void SpatialIndex::handleIntersection_unsorted(const BoundingShape &b_shape, void *userData) {
+	auto *data = (SpatialIndex::TraversalData*)(userData);
+	auto *index_shape = (IndexedShape*) b_shape.spatialIndexData_;
+	auto mapped_data = index_shape->mappedInstanceIDs();
+	index_shape->u_visible_ = true;
+	if (b_shape.numInstances() > 1) {
+		if (data->isMultiShape && !index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
+			// Already added this instance
+			return;
+		}
+		index_shape->u_instanceCount_ += 1;
+		mapped_data[index_shape->u_instanceCount_] = b_shape.instanceID();
+		mapped_data[0] = index_shape->u_instanceCount_;
+	}
+}
+
 void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera_shape, bool isMultiShape) {
+	TraversalData traversalData{this, nullptr, isMultiShape};
+
 	if (ic.sortInstances) {
 		for (auto &pair: ic.shapes) {
 			pair.second->instanceDistances_.clear();
@@ -99,19 +132,9 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 		}
 
 		auto camPos = ic.camera->position()->getVertex(0);
-		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
-			auto *index_shape = (IndexedShape*) b_shape.spatialIndexData_;
-			index_shape->u_visible_ = true;
+		traversalData.camPos = &camPos.r;
 
-			if (b_shape.numInstances() > 1) {
-				if (isMultiShape && !index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
-					// Already added this instance
-					return;
-				}
-				float d = (b_shape.getShapeOrigin() - camPos.r).lengthSquared();
-				index_shape->instanceDistances_.push_back({&b_shape, d});
-			}
-		});
+		foreachIntersection(camera_shape, SpatialIndex::handleIntersection_sorted, &traversalData);
 		for (auto &pair: ic.shapes) {
 			auto &index_shape = pair.second;
 			auto &distances = index_shape->instanceDistances_;
@@ -138,21 +161,7 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 				bs->spatialIndexData_ = pair.second.get();
 			}
 		}
-
-		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
-			auto *index_shape = (IndexedShape*) b_shape.spatialIndexData_;
-			auto mapped_data = index_shape->mappedInstanceIDs();
-			index_shape->u_visible_ = true;
-			if (b_shape.numInstances() > 1) {
-				if (isMultiShape && !index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
-					// Already added this instance
-					return;
-				}
-				index_shape->u_instanceCount_ += 1;
-				mapped_data[index_shape->u_instanceCount_] = b_shape.instanceID();
-				mapped_data[0] = index_shape->u_instanceCount_;
-			}
-		});
+		foreachIntersection(camera_shape, handleIntersection_unsorted, &traversalData);
 	}
 }
 

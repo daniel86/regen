@@ -117,7 +117,8 @@ namespace regen {
 		 */
 		virtual void foreachIntersection(
 				const BoundingShape &shape,
-				const std::function<void(const BoundingShape &)> &callback) = 0;
+				void (*callback)(const BoundingShape&, void*),
+				void *userData) = 0;
 
 		/**
 		 * @brief Draw debug information
@@ -152,6 +153,17 @@ namespace regen {
 		void removeFromIndex(const ref_ptr<BoundingShape> &shape);
 
 		static void createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape> &shape);
+
+		// used internally when handling intersections
+		struct TraversalData {
+			SpatialIndex *index;
+			const Vec3f *camPos;
+			bool isMultiShape;
+		};
+
+		static void handleIntersection_sorted(const BoundingShape &b_shape, void *userData);
+
+		static void handleIntersection_unsorted(const BoundingShape &b_shape, void *userData);
 	};
 } // namespace
 
