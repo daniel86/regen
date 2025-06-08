@@ -94,17 +94,18 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 
 		auto camPos = ic.camera->position()->getVertex(0);
 		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
-			//std::lock_guard<std::mutex> lock(mutex_);
+			// TODO: Can we avoid the hash lookup here?
 			auto &index_shape = ic.shapes[b_shape.name()];
 			index_shape->u_visible_ = true;
 
 			if (b_shape.numInstances() > 1) {
 				if (isMultiShape) {
-					// make sure we don't add the same instance twice
-					auto [_, inserted] = index_shape->u_visibleSet_.insert(b_shape.instanceID());
-					if (!inserted) return;
+					if (!index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
+						// Already added this instance
+						return;
+					}
 				}
-				float d = (b_shape.getCenterPosition() - camPos.r).length();
+				float d = (b_shape.getCenterPosition() - camPos.r).lengthSquared();
 				index_shape->instanceDistances_.push_back({&b_shape, d});
 			}
 		});

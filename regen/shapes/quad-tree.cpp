@@ -5,12 +5,18 @@
 
 #include "quad-tree.h"
 
-#undef QUAD_TREE_THREADING
-#undef QUAD_TREE_DEBUG
+#define QUAD_TREE_DEBUG
 #define QUAD_TREE_EVER_GROWING
 #define QUAD_TREE_SQUARED
 #define QUAD_TREE_SUBDIVIDE_THRESHOLD 4
 #define QUAD_TREE_COLLAPSE_THRESHOLD 2
+
+//#define QUAD_TREE_NO_SSE
+#if defined(__SSE2__) && !defined(QUAD_TREE_NO_SSE)
+	// Use SSE2 for faster intersection tests
+	#define QUAD_TREE_SSE
+	#include <simde/x86/sse2.h>
+#endif
 
 using namespace regen;
 
@@ -338,20 +344,220 @@ bool QuadTree::Node::isLeaf() const {
 	return children[0] == nullptr;
 }
 
-std::pair<float, float> project(const Bounds<Vec2f> &b, const Vec2f &axis) {
-	std::array<float, 4> projections = {
-		b.min.dot(axis),
-		Vec2f(b.max.x, b.min.y).dot(axis),
-		Vec2f(b.min.x, b.max.y).dot(axis),
-		b.max.dot(axis)
-	};
+bool QuadTree::Node::contains(const OrthogonalProjection &projection) const {
+	return bounds.contains(projection.bounds);
+}
 
+static inline void pushSphereIntersections(
+		std::stack<QuadTree::Node *> &stack,
+		QuadTree::Node **nodes,
+		const OrthogonalProjection &projection) {
+	const auto &radiusSqr = projection.points[1].x; // = radius * radius
+	const auto &center = projection.points[0];
+#ifdef QUAD_TREE_SSE
+	// Load center.xy + radiusSqr into SSE registers
+	simde__m128 centerX = simde_mm_set1_ps(center.x);
+	simde__m128 centerY = simde_mm_set1_ps(center.y);
+	simde__m128 radiusSqrSSE = simde_mm_set1_ps(radiusSqr);
+	// Load bounds for 4 nodes into SSE vectors
+	float minX[4], maxX[4], minY[4], maxY[4];
+	for (int i = 0; i < 4; ++i) {
+		minX[i] = nodes[i]->bounds.min.x;
+		maxX[i] = nodes[i]->bounds.max.x;
+		minY[i] = nodes[i]->bounds.min.y;
+		maxY[i] = nodes[i]->bounds.max.y;
+	}
+	simde__m128 minXv = simde_mm_loadu_ps(minX);
+	simde__m128 maxXv = simde_mm_loadu_ps(maxX);
+	simde__m128 minYv = simde_mm_loadu_ps(minY);
+	simde__m128 maxYv = simde_mm_loadu_ps(maxY);
+
+	// Compute distance along X
+	simde__m128 distLX = simde_mm_sub_ps(minXv, centerX);
+	simde__m128 distRX = simde_mm_sub_ps(centerX, maxXv);
+	simde__m128 maskLX = simde_mm_cmplt_ps(centerX, minXv);
+	simde__m128 maskRX = simde_mm_cmpgt_ps(centerX, maxXv);
+	simde__m128 distX = simde_mm_or_ps(
+		simde_mm_and_ps(maskLX, distLX),
+		simde_mm_and_ps(maskRX, distRX)
+	);
+	// Compute distance along Y
+	simde__m128 distLY = simde_mm_sub_ps(minYv, centerY);
+	simde__m128 distRY = simde_mm_sub_ps(centerY, maxYv);
+	simde__m128 maskLY = simde_mm_cmplt_ps(centerY, minYv);
+	simde__m128 maskRY = simde_mm_cmpgt_ps(centerY, maxYv);
+	simde__m128 distY = simde_mm_or_ps(
+		simde_mm_and_ps(maskLY, distLY),
+		simde_mm_and_ps(maskRY, distRY)
+	);
+	// Compute total squared distance
+	simde__m128 sqDistX = simde_mm_mul_ps(distX, distX);
+	simde__m128 sqDistY = simde_mm_mul_ps(distY, distY);
+	simde__m128 sqDist  = simde_mm_add_ps(sqDistX, sqDistY);
+
+	// Finally, compare against radius², and push nodes that intersect
+	simde__m128 mask = simde_mm_cmplt_ps(sqDist, radiusSqrSSE);
+	int bitmask = simde_mm_movemask_ps(mask); // 4 bits, one per node
+	if (bitmask & (1 << 0)) { stack.push(nodes[0]); }
+	if (bitmask & (1 << 1)) { stack.push(nodes[1]); }
+	if (bitmask & (1 << 2)) { stack.push(nodes[2]); }
+	if (bitmask & (1 << 3)) { stack.push(nodes[3]); }
+#else
+	for (int i=0; i < 4; i++) {
+		auto *n = nodes[i];
+		// Calculate the squared distance from the circle's center to the AABB
+		float sqDist = 0.0f;
+		if (center.x < n->bounds.min.x) {
+			sqDist += (n->bounds.min.x - center.x) * (n->bounds.min.x - center.x);
+		} else if (center.x > n->bounds.max.x) {
+			sqDist += (center.x - n->bounds.max.x) * (center.x - n->bounds.max.x);
+		}
+		if (center.y < n->bounds.min.y) {
+			sqDist += (n->bounds.min.y - center.y) * (n->bounds.min.y - center.y);
+		} else if (center.y > n->bounds.max.y) {
+			sqDist += (center.y - n->bounds.max.y) * (center.y - n->bounds.max.y);
+		}
+		if (sqDist < radiusSqr) {
+			// the node intersects with the sphere
+			stack.push(n);
+		}
+	}
+#endif
+}
+
+static inline std::pair<float, float> project(const Bounds<Vec2f> &b, const Vec2f &axis) {
+	std::array<Vec2f, 4> corners = {
+		Vec2f(b.min.x, b.min.y),
+		Vec2f(b.max.x, b.min.y),
+		Vec2f(b.min.x, b.max.y),
+		Vec2f(b.max.x, b.max.y)
+	};
+	std::array<float, 4> projections;
+	for (int i = 0; i < 4; ++i) projections[i] = corners[i].dot(axis);
 	auto [minIt, maxIt] = std::minmax_element(projections.begin(), projections.end());
 	return {*minIt, *maxIt};
 }
 
-bool QuadTree::Node::contains(const OrthogonalProjection &projection) const {
-	return bounds.contains(projection.bounds);
+#ifdef QUAD_TREE_SSE
+static inline void project_simd(QuadTree::Node **nodes, const Vec2f &axis, float outMin[4], float outMax[4]) {
+	// Each array stores the same corner across all 4 nodes
+	alignas(16) float x0[4], y0[4]; // b.min
+	alignas(16) float x1[4], y1[4]; // (b.max.x, b.min.y)
+	alignas(16) float x2[4], y2[4]; // (b.min.x, b.max.y)
+	alignas(16) float x3[4], y3[4]; // b.max
+	for (int i = 0; i < 4; ++i) {
+		const auto &b = nodes[i]->bounds;
+		x0[i] = b.min.x; y0[i] = b.min.y;
+		x1[i] = b.max.x; y1[i] = b.min.y;
+		x2[i] = b.min.x; y2[i] = b.max.y;
+		x3[i] = b.max.x; y3[i] = b.max.y;
+	}
+
+	// Compute dot products for each corner with the axis
+	auto dot4 = [&](const float *xs, const float *ys) -> simde__m128 {
+		simde__m128 vx = simde_mm_load_ps(xs);
+		simde__m128 vy = simde_mm_load_ps(ys);
+		simde__m128 ax = simde_mm_set1_ps(axis.x);
+		simde__m128 ay = simde_mm_set1_ps(axis.y);
+		return simde_mm_add_ps(simde_mm_mul_ps(vx, ax), simde_mm_mul_ps(vy, ay));
+	};
+	simde__m128 d0 = dot4(x0, y0);
+	simde__m128 d1 = dot4(x1, y1);
+	simde__m128 d2 = dot4(x2, y2);
+	simde__m128 d3 = dot4(x3, y3);
+
+	// Compute per-node min and max
+	simde__m128 min1 = simde_mm_min_ps(d0, d1);
+	simde__m128 min2 = simde_mm_min_ps(d2, d3);
+	simde__m128 minA = simde_mm_min_ps(min1, min2);
+	simde__m128 max1 = simde_mm_max_ps(d0, d1);
+	simde__m128 max2 = simde_mm_max_ps(d2, d3);
+	simde__m128 maxA = simde_mm_max_ps(max1, max2);
+
+	// Store result
+	simde_mm_storeu_ps(outMin, minA);
+	simde_mm_storeu_ps(outMax, maxA);
+}
+#endif
+
+static inline void pushPolygonIntersections(
+		std::stack<QuadTree::Node *> &stack,
+		QuadTree::Node **nodes,
+		const OrthogonalProjection &projection) {
+#ifdef QUAD_TREE_SSE
+	uint8_t intersectMask = 0b1111;
+	for (const auto &axis: projection.axes) {
+		float min[4], max[4];
+		project_simd(nodes, axis.dir, min, max);
+
+		// Compute `(maxA_n < axis.min) || (axis.max < minA_n)`
+		simde__m128 minA = simde_mm_loadu_ps(min);
+		simde__m128 maxA = simde_mm_loadu_ps(max);
+		simde__m128 axisMin = simde_mm_set1_ps(axis.min);
+		simde__m128 axisMax = simde_mm_set1_ps(axis.max);
+		simde__m128 mask1 = simde_mm_cmplt_ps(maxA, axisMin);
+		simde__m128 mask2 = simde_mm_cmplt_ps(axisMax, minA);
+		simde__m128 sep = simde_mm_or_ps(mask1, mask2);
+
+		// Convert mask to bits
+		uint8_t sepMask = simde_mm_movemask_ps(sep); // 1 = separated
+		intersectMask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
+		// Early exit: if no bits are set, all 4 nodes culled
+		if (intersectMask == 0) return;
+	}
+	if (intersectMask & (1 << 0)) { stack.push(nodes[0]); }
+	if (intersectMask & (1 << 1)) { stack.push(nodes[1]); }
+	if (intersectMask & (1 << 2)) { stack.push(nodes[2]); }
+	if (intersectMask & (1 << 3)) { stack.push(nodes[3]); }
+#else
+	for (int i=0; i < 4; i++) {
+		auto *n = nodes[i];
+		bool intersects = true;
+		// Check for separation along the axes of the shape and the axis-aligned quad
+		for (const auto &axis: projection.axes) {
+			auto [minA, maxA] = project(n->bounds, axis.dir);
+			if (maxA < axis.min || axis.max < minA) {
+				intersects = false;
+				break; // no intersection along this axis
+			}
+		}
+		if (intersects) {
+			// the node intersects with the box
+			stack.push(n);
+		}
+	}
+#endif
+}
+
+static inline QuadTree::Node *getEnclosingNode(QuadTree::Node **nodes, const OrthogonalProjection &projection) {
+	// Check if one of the nodes fully contains the projection
+	if (nodes[0]->contains(projection)) { return nodes[0]; }
+	if (nodes[1]->contains(projection)) { return nodes[1]; }
+	if (nodes[2]->contains(projection)) { return nodes[2]; }
+	if (nodes[3]->contains(projection)) { return nodes[3]; }
+	return nullptr;
+}
+
+static void pushIntersections(
+		std::stack<QuadTree::Node *> &stack,
+		QuadTree::Node **nodes,
+		const OrthogonalProjection &projection) {
+	// Make a contains check first, to avoid unnecessary intersection tests
+	/**
+	QuadTree::Node *enclosingNode = getEnclosingNode(nodes, projection);
+	if (enclosingNode) {
+		stack = std::stack<QuadTree::Node *>();
+		stack.push(enclosingNode);
+		REGEN_INFO("QUAD TREE INTERSECTION: found enclosing node");
+		return;
+	}
+	 **/
+
+	if (projection.type == OrthogonalProjection::Type::CIRCLE) {
+		pushSphereIntersections(stack, nodes, projection);
+	} else {
+		pushPolygonIntersections(stack, nodes, projection);
+	}
 }
 
 bool QuadTree::Node::intersects(const OrthogonalProjection &projection) const {
@@ -403,74 +609,21 @@ int QuadTree::numIntersections(const BoundingShape &shape) {
 	return count;
 }
 
-#ifdef QUAD_TREE_THREADING
-namespace regen {
-	class QuadTreeWorker : public ThreadPool::Runner {
-	public:
-		using Callback = std::function<void(const BoundingShape &)>;
-
-		ThreadPool *threadPool;
-		const BoundingShape *shape;
-		const OrthogonalProjection *projection;
-		const QuadTree::Node *node;
-		std::set<const QuadTree::Item *> *visited;
-		std::mutex *mutex;
-		const Callback &callback;
-		std::vector<std::shared_ptr<QuadTreeWorker>> children_;
-
-		explicit QuadTreeWorker(const Callback &callback)
-				: callback(callback) {
-		}
-
-		~QuadTreeWorker() override = default;
-
-		void run() override {
-			// 2D intersection test with the xz-projection
-			if (!node->intersects(*projection)) {
-				return;
-			}
-			if (node->isLeaf()) {
-				// 3D intersection test with the shapes in the node
-				for (const auto &quadShape: node->shapes) {
-					{
-						std::lock_guard<std::mutex> lock(*mutex);
-						if (visited->find(quadShape) != visited->end()) {
-							continue;
-						}
-						visited->insert(quadShape);
-					}
-					if (quadShape->shape->hasIntersectionWith(*shape)) {
-						callback(*quadShape->shape.get());
-					}
-				}
-			}
-			else {
-				static auto excHandler = [](const std::exception &) {};
-				// Add the children to the stack
-				for (auto &child: node->children) {
-					if (child && (!child->isLeaf() || !child->shapes.empty())) {
-						auto childWorker = std::make_shared<QuadTreeWorker>(callback);
-						childWorker->threadPool = threadPool;
-						childWorker->node = child;
-						childWorker->shape = shape;
-						childWorker->projection = projection;
-						childWorker->visited = visited;
-						childWorker->mutex = mutex;
-						threadPool->pushWork(childWorker, excHandler);
-						children_.push_back(childWorker);
-					}
-				}
-			}
-		}
-	};
-}
-#endif
-
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
 		const std::function<void(const BoundingShape &)> &callback) {
 	if (!root_) return;
 	if (root_->isLeaf() && root_->shapes.empty()) return;
+
+	// TODO: make configurable
+	static const float minDistanceThresholdSq = 20.0f * 20.0f; // heuristic threshold for distance to camera position
+
+	std::unordered_set<const Item *> visited;
+	// project the shape onto the xz-plane for faster intersection tests
+	// with the quad tree nodes.
+	OrthogonalProjection shape_projection(shape);
+	std::stack<Node *> stack;
+	stack.push(root_);
 
 #ifdef QUAD_TREE_DEBUG
     using std::chrono::high_resolution_clock;
@@ -479,65 +632,20 @@ void QuadTree::foreachIntersection(
     using std::chrono::milliseconds;
 	GLuint num2DTests = 0;
 	GLuint num3DTests = 0;
+	GLuint num3DPruned = 0;
 	auto t1 = high_resolution_clock::now();
 #endif
 
-	std::unordered_set<const Item *> visited;
-	// project the shape onto the xz-plane for faster intersection tests
-	// with the quad tree nodes.
-	OrthogonalProjection shape_projection(shape);
-
-#ifdef QUAD_TREE_THREADING
-	std::mutex mutex;
-	//std::atomic<unsigned int> jobCounter(1);
-	//auto runner = std::make_shared<ThreadPool::LambdaRunner>([&](const ThreadPool::LambdaRunner::StopChecker&) {
-	//	intersect2D(shape, shape_projection, root_, jobCounter, visited, mutex, callback);
-	//});
-	//threadPool_.pushWork(runner, [](const std::exception &) {});
-	auto firstWorker = std::make_shared<QuadTreeWorker>(callback);
-	firstWorker->threadPool = &threadPool_;
-	firstWorker->node = root_;
-	firstWorker->shape = &shape;
-	firstWorker->projection = &shape_projection;
-	firstWorker->visited = &visited;
-	firstWorker->mutex = &mutex;
-	threadPool_.pushWork(firstWorker, [](const std::exception &) {});
-
-	std::stack<QuadTreeWorker*> stack;
-	stack.push(firstWorker.get());
-	while (!stack.empty()) {
-		auto *worker = stack.top();
-		stack.pop();
-		if (!worker->isTerminated()) {
-			worker->join();
-		}
-		for (auto &child: worker->children_) {
-			stack.push(child.get());
-		}
-	}
-#else
-	std::stack<Node *> stack;
-	stack.push(root_);
+	// FIXME: only works for frustum shapes!
+	Vec2f &basePoint = shape_projection.points[0];
 
 	while (!stack.empty()) {
 		Node *node = stack.top();
 		stack.pop();
 
-		// skip empty nodes
-		if (node->isLeaf() && node->shapes.empty()) {
-			continue;
-		}
-
 #ifdef QUAD_TREE_DEBUG
 		num2DTests++;
 #endif
-		// 2D intersection test with the xz-projection
-		if (node->contains(shape_projection)) {
-			stack = std::stack<Node *>();
-		}
-		else if (!node->intersects(shape_projection)) {
-			continue;
-		}
 
 		if (node->isLeaf()) {
 			// 3D intersection test with the shapes in the node
@@ -546,28 +654,37 @@ void QuadTree::foreachIntersection(
 					continue;
 				}
 				visited.insert(quadShape);
-#ifdef QUAD_TREE_DEBUG
-				num3DTests++;
-#endif
-				if (quadShape->shape->hasIntersectionWith(shape)) {
+
+				// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
+				// This is a good approach because:
+				//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
+				//     (2) most false positives are close to camera position in case camera is above/below the ground level
+				float distSq = (basePoint - node->bounds.center()).lengthSquared();
+
+				if (distSq > minDistanceThresholdSq) {
 					callback(*quadShape->shape.get());
+				}
+				else {
+					if (quadShape->shape->hasIntersectionWith(shape)) {
+						callback(*quadShape->shape.get());
+					} else {
+						num3DPruned += 1;
+					}
+					#ifdef QUAD_TREE_DEBUG
+					num3DTests++;
+					#endif
 				}
 			}
 		} else {
 			// Add the children to the stack
-			for (auto &child: node->children) {
-				if (child) {
-					stack.push(child);
-				}
-			}
+			pushIntersections(stack, node->children, shape_projection);
 		}
 	}
-#endif
 
 #ifdef QUAD_TREE_DEBUG
 	auto t2 = high_resolution_clock::now();
 	duration<double, std::milli> ms_double = t2 - t1;
-	REGEN_INFO("QUAD TREE STATS");
+	REGEN_INFO("QUAD TREE INTERSECTION STATS");
 	REGEN_INFO("     time: " << ms_double.count() << " ms");
 	unsigned int numShapes = 0;
 	for (const auto &x: shapes_) {
@@ -577,6 +694,7 @@ void QuadTree::foreachIntersection(
 	REGEN_INFO("     #Nodes: " << numNodes());
 	REGEN_INFO("     #2D Tests: " << num2DTests);
 	REGEN_INFO("     #3D Tests: " << num3DTests);
+	REGEN_INFO("     #3D Prune: " << num3DPruned);
 #endif
 }
 
