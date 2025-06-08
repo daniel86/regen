@@ -288,6 +288,8 @@ void FilterSequence::resize() {
 	GLuint width = input_->width();
 	GLuint height = input_->height();
 	if (width == lastWidth_ && height == lastHeight_) return;
+	lastWidth_ = width;
+	lastHeight_ = height;
 
 	FBO *last = nullptr;
 	for (auto &it: filterSequence_) {
@@ -302,9 +304,6 @@ void FilterSequence::resize() {
 
 		last = fbo;
 	}
-
-	lastWidth_ = width;
-	lastHeight_ = height;
 }
 
 void FilterSequence::enable(RenderState *rs) {
