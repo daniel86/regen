@@ -542,17 +542,6 @@ static void pushIntersections(
 		std::stack<QuadTree::Node *> &stack,
 		QuadTree::Node **nodes,
 		const OrthogonalProjection &projection) {
-	// Make a contains check first, to avoid unnecessary intersection tests
-	/**
-	QuadTree::Node *enclosingNode = getEnclosingNode(nodes, projection);
-	if (enclosingNode) {
-		stack = std::stack<QuadTree::Node *>();
-		stack.push(enclosingNode);
-		REGEN_INFO("QUAD TREE INTERSECTION: found enclosing node");
-		return;
-	}
-	 **/
-
 	if (projection.type == OrthogonalProjection::Type::CIRCLE) {
 		pushSphereIntersections(stack, nodes, projection);
 	} else {

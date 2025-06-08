@@ -104,11 +104,9 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 			index_shape->u_visible_ = true;
 
 			if (b_shape.numInstances() > 1) {
-				if (isMultiShape) {
-					if (!index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
-						// Already added this instance
-						return;
-					}
+				if (isMultiShape && !index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
+					// Already added this instance
+					return;
 				}
 				float d = (b_shape.getShapeOrigin() - camPos.r).lengthSquared();
 				index_shape->instanceDistances_.push_back({&b_shape, d});
@@ -132,17 +130,23 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 			}
 		}
 	} else {
+		for (auto &pair: ic.shapes) {
+			// Remember the index shape to bounding shape mapping such that we can
+			// obtain index shape from bounding shape directly below
+			// (else a hash lookup would be required).
+			for (auto &bs: pair.second->boundingShapes_) {
+				bs->spatialIndexData_ = pair.second.get();
+			}
+		}
+
 		foreachIntersection(camera_shape, [&](const BoundingShape &b_shape) {
-			//std::lock_guard<std::mutex> lock(mutex_);
-			auto &index_shape = ic.shapes[b_shape.name()];
+			auto *index_shape = (IndexedShape*) b_shape.spatialIndexData_;
 			auto mapped_data = index_shape->mappedInstanceIDs();
 			index_shape->u_visible_ = true;
-
 			if (b_shape.numInstances() > 1) {
-				if (isMultiShape) {
-					// make sure we don't add the same instance twice
-					auto [_, inserted] = index_shape->u_visibleSet_.insert(b_shape.instanceID());
-					if (!inserted) return;
+				if (isMultiShape && !index_shape->u_visibleSet_.insert(b_shape.instanceID()).second) {
+					// Already added this instance
+					return;
 				}
 				index_shape->u_instanceCount_ += 1;
 				mapped_data[index_shape->u_instanceCount_] = b_shape.instanceID();
