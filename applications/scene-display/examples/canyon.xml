@@ -105,7 +105,10 @@
             size="128.0,128.0,1.0" noise-scale="1.0"
             swizzle-g="RED" swizzle-b="RED"/>
     <!-- Spatial Index -->
-    <index id="main-index" type="quadtree" max-objects-per-node="4"/>
+    <index id="main-index" type="quadtree"
+            max-objects-per-node="4"
+            test-mode-3d="closest"
+            close-distance="20.0"/>
     <!-- Cameras -->
     <camera id="main-camera"
             culling-index="main-index"
