@@ -3,6 +3,7 @@
 
 #include <regen/gl-types/buffer-object.h>
 #include "regen/scene/scene-input.h"
+#include "regen/utility/threading.h"
 
 namespace regen {
 	/**
@@ -132,18 +133,18 @@ namespace regen {
 		/**
 		 * Lock the UBO, preventing updates.
 		 */
-		void lock() { mutex_.lock(); }
+		void lock() { lock_.lock(); }
 
 		/**
 		 * Unlock the UBO, allowing updates.
 		 */
-		void unlock() { mutex_.unlock(); }
+		void unlock() { lock_.unlock(); }
 
 	protected:
 		StorageQualifier storageQualifier_;
 		MemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
-		std::mutex mutex_;
+		SpinLock lock_;
 
 		struct BlockInput {
 			BlockInput() = default;

@@ -136,6 +136,8 @@ void BufferBlock::updateAlignedData(BlockInput &uboInput) {
 	} else {
 		return;
 	}
+	//REGEN_WARN("RE-ALIGN needed for input " << in->name() <<
+	//		   " with " << numElements << " elements, unaligned size: " << elementSizeUnaligned);
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
 	auto dataSizeAligned = elementSizeAligned * numElements;
 	if (dataSizeAligned != uboInput.alignedSize) {
@@ -154,12 +156,20 @@ void BufferBlock::updateAlignedData(BlockInput &uboInput) {
 }
 
 void BufferBlock::update(bool forceUpdate) {
+	// NOTE: this function is performance critical!
+	// TODO Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
+	// TODO: count number of changed attributes, if 1 or 2, make partial update!
+	//
+	// TODO: if BufferUsage = STREAM* then make a persistent mapped buffer by default.
+	// TODO: Benchmark with Buffer Orphaning
+	//  - glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW); // orphan
+	//  - glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data); // or glMap...
 	if (!isBlockValid_) return;
 	updateBlockInputs();
 	bool needsResize = allocatedSize_ != requiredSize_;
 	bool needUpdate = hasNewStamp_ || needsResize || forceUpdate;
 	if (!needUpdate) { return; }
-	std::unique_lock<std::mutex> lock(mutex_);
+	std::unique_lock<SpinLock> lock(lock_);
 
 	if (needsResize) {
 		// enforce rebinding
@@ -177,12 +187,22 @@ void BufferBlock::update(bool forceUpdate) {
 			isBlockValid_ = true;
 		}
 		allocatedSize_ = requiredSize_;
-		GL_ERROR_LOG();
 	}
 	if (!hasClientData_) {
 		// do not copy data if there is no client data
 		return;
 	}
+
+	/**
+	if (usage() == BUFFER_USAGE_STREAM_DRAW ||
+		usage() == BUFFER_USAGE_STREAM_READ ||
+		usage() == BUFFER_USAGE_STREAM_COPY) {
+		REGEN_WARN("PERSISTENT MAPPED BUFFER! " <<
+				   " usage: " << usage() <<
+				   " storage: " << storageQualifier_ <<
+				   " memory layout: " << memoryLayout_);
+	}
+	**/
 
 	RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
 #ifdef BUFFER_LOCK_PARTIAL_UPDATE
