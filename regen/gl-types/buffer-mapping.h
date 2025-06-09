@@ -53,7 +53,7 @@ namespace regen {
 		 * Initializes fixed-sized buffers for the mapping.
 		 * @param numBytes the number of bytes to allocate for each buffer.
 		 */
-		void initializeMapping(GLuint numBytes);
+		bool initializeMapping(GLuint numBytes, GLenum target=GL_PIXEL_PACK_BUFFER);
 
 		/**
 		 * Update the mapping with the data from the input reference.

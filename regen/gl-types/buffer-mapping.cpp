@@ -27,42 +27,65 @@ BufferMapping::~BufferMapping() {
 	storageClientData_ = nullptr;
 }
 
-void BufferMapping::initializeMapping(GLuint numBytes) {
+bool BufferMapping::initializeMapping(GLuint numBytes, GLenum target) {
 	auto *rs = RenderState::get();
-	if (storageClientData_ != nullptr) {
-		delete[] storageClientData_;
-		for (int i = 0; i < (int)storageBuffering_; ++i) {
-			if (storageMappedData_[i] != nullptr) {
-				glUnmapBuffer(GL_COPY_READ_BUFFER);
-				storageMappedData_[i] = nullptr;
-			}
-		}
-	}
 	// allocate CPU data
+	delete[] storageClientData_;
 	storageClientData_ = new byte[numBytes];
 	storageSize_ = numBytes;
 	// allocate GPU data
 	for (int i = 0; i < (int)storageBuffering_; ++i) {
+		if (storageMappedData_[i]) {
+			if (storageFlags_ & GL_MAP_WRITE_BIT) {
+				rs->buffer(target).push(ids_[i]);
+				glUnmapBuffer(target);
+				rs->buffer(target).pop();
+			} else {
+				rs->copyReadBuffer().push(ids_[i]);
+				glUnmapBuffer(GL_COPY_READ_BUFFER);
+				rs->copyReadBuffer().pop();
+			}
+			if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
+				glDeleteBuffers(1, &ids_[i]);
+				glGenBuffers(1, &ids_[i]);
+			}
+		}
+
 		// allocate buffer
-		rs->pixelPackBuffer().push(ids_[i]);
-		glBufferStorage(GL_PIXEL_PACK_BUFFER, numBytes, nullptr, storageFlags_);
-		rs->pixelPackBuffer().pop();
+		rs->buffer(target).push(ids_[i]);
+		glBufferStorage(target, numBytes, nullptr, storageFlags_);
+		rs->buffer(target).pop();
+
 		// map buffer
 		if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
-			rs->copyReadBuffer().push(ids_[i]);
-			storageMappedData_[i] = (byte *) glMapBufferRange(
-					GL_COPY_READ_BUFFER, 0, numBytes, storageFlags_);
-			rs->copyReadBuffer().pop();
+			if (storageFlags_ & GL_MAP_WRITE_BIT) {
+				rs->buffer(target).push(ids_[i]);
+				storageMappedData_[i] = (byte *) glMapBufferRange(
+						target, 0, numBytes, storageFlags_);
+				rs->buffer(target).pop();
+			} else {
+				rs->copyReadBuffer().push(ids_[i]);
+				storageMappedData_[i] = (byte *) glMapBufferRange(
+						GL_COPY_READ_BUFFER, 0, numBytes, storageFlags_);
+				rs->copyReadBuffer().pop();
+			}
 			if (!storageMappedData_[i]) {
-				REGEN_WARN("failed to map buffer " << ids_[i] << " with flags " << storageFlags_ <<
+				REGEN_WARN("failed to map buffer " << ids_[i] <<
+					" with write flag " << (storageFlags_ & GL_MAP_WRITE_BIT) <<
+					" read flag " << (storageFlags_ & GL_MAP_READ_BIT) <<
+					" persistent flag " << (storageFlags_ & GL_MAP_PERSISTENT_BIT) <<
+					" coherent flag " << (storageFlags_ & GL_MAP_COHERENT_BIT) <<
+					" target " << std::hex << target << std::dec <<
 					" and size " << numBytes/ 1024 << "kB");
 				GL_ERROR_LOG();
+				return false;
 			}
 		} else {
 			storageMappedData_[i] = nullptr;
 		}
 		hasData_[i] = false;
 	}
+	return true;
 }
 
 void* BufferMapping::mapCopyWrite() {
@@ -84,15 +107,14 @@ void* BufferMapping::mapCopyWrite() {
 }
 
 void BufferMapping::unmapCopyWrite(const ref_ptr<BufferReference> &outputBuffer, GLenum outputTarget) {
-	if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
-		// nothing to do, persistent mapping does not need unmapping
-		return;
-	}
 	auto *rs = RenderState::get();
-	if (!glUnmapBuffer(GL_COPY_WRITE_BUFFER)) {
-		REGEN_WARN("failed to unmap buffer");
+	if (!(storageFlags_ & GL_MAP_PERSISTENT_BIT)) {
+		if (!glUnmapBuffer(GL_COPY_WRITE_BUFFER)) {
+			REGEN_WARN("failed to unmap buffer");
+		}
+		rs->copyWriteBuffer().pop();
 	}
-	rs->copyWriteBuffer().pop();
+	glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 	// at this point data was written to ids_[writeBufferIndex_].
 	// next, copy the read buffer to the target buffer
 	rs->copyWriteBuffer().push(ids_[readBufferIndex_]);

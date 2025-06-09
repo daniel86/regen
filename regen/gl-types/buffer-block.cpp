@@ -9,7 +9,7 @@
 using namespace regen;
 
 static bool usePersistentMapping(BufferUsage usage) {
-	return usage == BUFFER_USAGE_DYNAMIC_DRAW || usage == BUFFER_USAGE_STREAM_DRAW;
+	return usage == BUFFER_USAGE_STREAM_COPY || usage == BUFFER_USAGE_STREAM_DRAW;
 }
 
 BufferBlock::BufferBlock(
@@ -122,6 +122,14 @@ void BufferBlock::updateBlockInputs() {
 			hasClientData_ = false;
 		}
 	}
+	// Round total size up to next multiple of 16 (vec4 alignment for std140)
+	if (memoryLayout_ == MemoryLayout::STD140) {
+		static constexpr size_t std140Alignment = 16;
+		size_t remainder = requiredSize_ % std140Alignment;
+		if (remainder != 0) {
+			requiredSize_ += std140Alignment - remainder;
+		}
+	}
 	// ignore stamps if there is no client data
 	hasNewStamp_ = hasNewStamp_ && hasClientData_;
 }
@@ -229,11 +237,20 @@ void BufferBlock::update(bool forceUpdate) {
 	if (usePersistentMapping_) {
 		static constexpr uint32_t mappingFlags = BufferMapping::WRITE | BufferMapping::PERSISTENT | BufferMapping::COHERENT;
 		if (!persistentMapping_.get()) {
-			persistentMapping_ = ref_ptr<BufferMapping>::alloc(
-				mappingFlags, BufferMapping::SINGLE_BUFFER);
-			persistentMapping_->initializeMapping(ref_->allocatedSize());
+			persistentMapping_ = ref_ptr<BufferMapping>::alloc(mappingFlags, BufferMapping::SINGLE_BUFFER);
+			if(!persistentMapping_->initializeMapping(allocatedSize_, glTarget_)) {
+				REGEN_WARN("something went wrong with persistent mapping initialization.");
+				for (auto &blockInput: blockInputs_) {
+					REGEN_WARN("     block input '" << blockInput.input->name() << "' will not be updated.");
+				}
+			}
 		} else if (needsResize) {
-			persistentMapping_->initializeMapping(ref_->allocatedSize());
+			if(!persistentMapping_->initializeMapping(allocatedSize_, glTarget_)) {
+				REGEN_WARN("something went wrong with persistent mapping re-initialization.");
+				for (auto &blockInput: blockInputs_) {
+					REGEN_WARN("     block input '" << blockInput.input->name() << "' will not be updated.");
+				}
+			}
 		}
 		auto *mappedData = persistentMapping_->mapCopyWrite();
 		if (mappedData) {

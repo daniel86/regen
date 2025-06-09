@@ -192,7 +192,7 @@ void OrthogonalProjection::frustumProjectionTriangle(const regen::Frustum &frust
 	auto basePoint = frustum.translation();
 	points[0] = Vec2f(basePoint.x, basePoint.z);
 
-#if 1
+#if 0
 	// Project far plane points onto the xz plane
 	auto *farPlanePoints = frustum.points;
 	std::array<Vec2f, 4> farPoints2D;
