@@ -97,6 +97,10 @@
     <texture id="ground-color" file="res/textures/terrain/canyon/diffuse.png"/>
     <texture id="ground-normal" file="res/textures/terrain/canyon/normal.png"/>
     <texture id="ground-height" file="res/textures/terrain/canyon/height.png"/>
+    <texture id="ground-noise" type="noise" size="1024.0,1024.0" is-seamless="0"
+            output-generator="0" noise-scale="1.0">
+        <generator id="0" type="perlin" octaves="4" frequency="2.0" persistence="0.5" lacunarity="2.0"/>
+    </texture>
     <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass.png"/>
     <texture id="tree-mask" file="res/textures/terrain/canyon/mask-trees.png"/>
     <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
@@ -203,84 +207,44 @@
     <!--**************************-->
 
     <mesh id="ground-mesh"
-          type="rectangle"
-          lod="5"
-          rotation="0.0,0.0,3.1415"
-          scaling="{{map-size}},1.0,{{map-size}}"
-          texco-scaling="1.0,-1.0"
-          use-normal="1"
-          use-texco="1"
-          use-tangent="1"
-          center="1"
-          usage="STATIC_DRAW"
-          primitive="PATCHES">
-        <shader mesh-index="0" key="regen.models.mesh" />
-        <transform>
-            <translate value="0.0,{{map-y-min}},0.0"/>
-        </transform>
+          type="ground"
+          lod-levels="5,4,3,1"
+          lod-thresholds="10.0, 30.0, 60.0"
+          patch-density="24"
+          map-size="{{map-size}},{{map-height}},{{map-size}}"
+          map-center="0.0,0.0,0.0"
+          skirt-size="0.2"
+          weight-map-size="2024"
+          weight-mips="1"
+          triplanar-blending="1"
+          height-map="ground-height"
+          normal-map="ground-normal"
+          tf="ground-tf">
+        <transform id="ground-tf" />
+        <materials>
+            <material type="grass" name="ground/grass" variant="1" uv-scale="0.25"
+                    height-range="0.25, 0.75" height-smooth="0.25"
+                    slope-range="0.0, 25.0" slope-smooth="10.0"/>
+            <material type="rock" name="ground/stone" variant="8" uv-scale="0.1"
+                    height-range="0.0, 1.0"
+                    slope-range="30.0, 180.0" slope-smooth="30.0"/>
+            <material type="sand" name="ground/sand" variant="3" uv-scale="0.05"
+                    height-range="0.0, 0.3" height-smooth="0.2"
+                    slope-range="0.0, 15.0" slope-smooth="15.0"/>
+            <material type="dirt" name="ground/dirt" variant="1" uv-scale="0.5" is-fallback="1"
+                    height-range="0.0, 0.75" height-smooth="0.2"
+                    slope-range="10.0, 180.0" slope-smooth="20.0"/>
+        </materials>
+        <shape id="ground-shape" index="1" cull="1" type="obb"
+            mesh-id="ground-mesh" transform-id="ground-tf" />
     </mesh>
-
-    <!--
-    <mesh id="ground-patches"
-          type="rectangle"
-          lod="2"
-          rotation="0.0,0.0,3.1415"
-          scaling="10.0,1.0,10.0"
-          use-normal="1"
-          use-texco="0"
-          use-tangent="1"
-          center="1"
-          usage="STATIC_DRAW"
-          num-instances="100">
-        <transform id="ground-tf" is-instanced="1" >
-            <set mode="row" target="translate"
-                x-step="10.0,0.0,0.0" x-count="10"
-                z-step="0.0,0.0,10.0" />
-            <translate value="-45.0,{{map-y-min}},-45.0" />
-        </transform>
-        <shape id="ground-shape" index="1" type="aabb" mesh-id="ground-patches" transform-id="ground-tf" />
-    </mesh>
-    -->
 
     <node id="Ground">
         <node id="Ground-quad">
-            <define key="TESS_SPACING" value="equal_spacing"/>
-            <!--
-            <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="FIXED_FUNCTION"/>
-            -->
-            <tesselation num-patch-vertices="3" lod-factor="0.2" lod-metric="EDGE_DEVICE_DISTANCE"/>
-            <input name="lodMinDeviceDistance" type="float" value="0.02"/>
-            <input name="lodMaxDeviceDistance" type="float" value="0.6"/>
-            <!--
-            <tesselation num-patch-vertices="3" lod-factor="0.275" lod-metric="EDGE_SCREEN_DISTANCE"/>
-            <input name="lodMinScreenDistance" type="float" value="0.03"/>
-            <input name="lodMaxScreenDistance" type="float" value="0.1"/>
-            -->
-            <material ambient="0.05,0.05,0.05" diffuse="0.5,0.6,0.6" fill-mode="fill"/>
-            <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane"
-                    blend-mode="MUL" />
-            <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
-            <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
-                    blend-mode="ADD" blend-factor="{{map-height}}"/>
-            <mesh id="ground-mesh" />
+            <input type="float" name="noiseScale" value="0.005"/>
+            <texture name="noiseTexture" id="ground-noise"/>
+            <mesh id="ground-mesh" shader="regen.terrain.ground"/>
         </node>
-        <!--
-        <node id="Ground-patches">
-            <input type="vec4" name="clipPlane" value="0.0,1.0,0.0,-2.5"/>
-            <define key="TESS_SPACING" value="fractional_odd_spacing"/>
-            <tesselation num-patch-vertices="3" lod-factor="0.18" lod-metric="EDGE_DEVICE_DISTANCE"/>
-            <input name="lodMinDeviceDistance" type="float" value="0.15"/>
-            <input name="lodMaxDeviceDistance" type="float" value="0.5"/>
-            <input name="minTessLevel" type="float" value="1.0"/>
-            <input name="maxTessLevel" type="float" value="72.0"/>
-            <material ambient="0.05,0.05,0.05" diffuse="0.6,0.6,0.6" fill-mode="fill"/>
-            <texture name="colorTexture" id="ground-color" map-to="COLOR" mapping="xz_plane" />
-            <texture name="normalTexture" id="ground-normal" map-to="NORMAL" mapping="xz_plane" />
-            <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
-                     blend-mode="ADD" blend-factor="5.0"/>
-            <mesh id="ground-patches" primitive="patches" shader="regen.models.mesh"/>
-        </node>
-        -->
     </node>
 
     <!--**************************-->
