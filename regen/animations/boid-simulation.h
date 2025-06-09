@@ -138,9 +138,13 @@ namespace regen {
 
 		Vec3f getCellCenter(const Vec3ui &gridIndex) const;
 
-		static uint32_t getGridIndex(const Vec3i &v, const Vec3ui &gridSize);
+		static inline uint32_t getGridIndex(const Vec3i &v, const Vec3ui &gridSize) {
+			return v.x + v.y * gridSize.x + v.z * gridSize.x * gridSize.y;
+		}
 
-		static uint32_t getGridIndex(const Vec3i &v, const Vec3i &gridSize);
+		static inline uint32_t getGridIndex(const Vec3i &v, const Vec3i &gridSize) {
+			return v.x + v.y * gridSize.x + v.z * gridSize.x * gridSize.y;
+		}
 
 		virtual void initBoidSimulation() {};
 

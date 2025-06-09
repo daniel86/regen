@@ -15,6 +15,7 @@ struct BoidsCPU::Private {
 	std::vector<Cell> grid_;
 	// Configuration parameters
 	float visualRange_ = 0.0f;
+	float visualRangeSq_ = 0.0f;
 	float avoidanceDistance_ = 0.0f;
 	float avoidanceDistanceHalf_ = 0.0f;
 	float repulsionTimesSeparation_ = 0.0f;
@@ -107,6 +108,7 @@ void BoidsCPU::animate(double dt) {
 	priv_->avoidanceDistanceHalf_ = priv_->avoidanceDistance_ * 0.5f;
 	priv_->repulsionTimesSeparation_ = repulsionFactor_->getVertex(0).r * separationWeight_->getVertex(0).r;
 	priv_->visualRange_ = visualRange_->getVertex(0).r;
+	priv_->visualRangeSq_ = priv_->visualRange_ * priv_->visualRange_;
 	priv_->separationWeight_ = separationWeight_->getVertex(0).r;
 	priv_->alignmentWeight_ = alignmentWeight_->getVertex(0).r;
 	priv_->coherenceWeight_ = coherenceWeight_->getVertex(0).r;
@@ -258,7 +260,7 @@ void BoidsCPU::updateNeighbours2(BoidData &boid,
 		if (&neighbor == &boid) { continue; }
 
 		auto &neighborPos = boidPositions_[neighborIndex];
-		if ((boidPos - neighborPos).length() < priv_->visualRange_) {
+		if ((boidPos - neighborPos).lengthSquared() < priv_->visualRangeSq_) {
 			boid.neighbors.push_back(neighborIndex);
 			if (neighbor.neighbors.size() < priv_->maxNumNeighbors_) {
 				neighbor.neighbors.push_back(boidIndex);

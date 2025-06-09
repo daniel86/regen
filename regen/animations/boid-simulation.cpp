@@ -108,14 +108,6 @@ Vec3f BoidSimulation::getCellCenter(const Vec3ui &gridIndex) const {
 		Vec3f(visualRange_->getVertex(0).r);
 }
 
-uint32_t BoidSimulation::getGridIndex(const Vec3i &v, const Vec3ui &gridSize) {
-	return v.x + v.y * gridSize.x + v.z * gridSize.x * gridSize.y;
-}
-
-uint32_t BoidSimulation::getGridIndex(const Vec3i &v, const Vec3i &gridSize) {
-	return v.x + v.y * gridSize.x + v.z * gridSize.x * gridSize.y;
-}
-
 Vec2f BoidSimulation::computeUV(const Vec3f &boidPosition, const Vec3f &mapCenter, const Vec2f &mapSize) {
 	Vec2f boidCoord(
 			boidPosition.x - mapCenter.x,
