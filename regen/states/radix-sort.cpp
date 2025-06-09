@@ -184,7 +184,6 @@ void RadixSort::sort(RenderState *rs) {
 		// swap read and write buffers
 		std::swap(readIndex, writeIndex);
 	}
-	GL_ERROR_LOG();
 
 #ifdef RADIX_DEBUG_RESULT
 	printInstanceMap(rs);
