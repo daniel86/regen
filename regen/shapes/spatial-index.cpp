@@ -125,6 +125,10 @@ void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera
 	TraversalData traversalData{this, nullptr, isMultiShape};
 
 	if (ic.sortInstances) {
+		for (auto &indexShape: ic.indexShapes_) {
+			indexShape->instanceDistances_.clear();
+		}
+
 		auto camPos = ic.camera->position()->getVertex(0);
 		traversalData.camPos = &camPos.r;
 
@@ -159,8 +163,9 @@ void SpatialIndex::updateVisibility() {
 			indexShape->mappedInstanceIDs()[0] = 0;
 			indexShape->u_instanceCount_ = 0;
 			indexShape->u_visible_ = false;
-			indexShape->instanceDistances_.clear();
 			for (auto &bs: indexShape->boundingShapes_) {
+				// Remember the index shape to bounding shape mapping such that we can
+				// obtain index shape from bounding shape directly (else a hash lookup would be required).
 				bs->spatialIndexData_ = indexShape;
 				bs->spatialIndexVisible_ = false;
 			}
