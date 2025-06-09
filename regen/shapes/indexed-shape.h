@@ -60,7 +60,6 @@ namespace regen {
 		unsigned int instanceCount_ = 1;
 		ref_ptr <ShaderInput1ui> visibleVec_;
 
-		std::set<unsigned int> u_visibleSet_;
 		unsigned int u_instanceCount_ = 0;
 		bool u_visible_ = false;
 

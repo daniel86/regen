@@ -192,6 +192,7 @@ namespace regen {
 		unsigned int instanceID_ = 0;
 		// custom data pointer used for spatial index intersection tests
 		void *spatialIndexData_ = nullptr;
+		mutable bool spatialIndexVisible_ = false;
 		friend class SpatialIndex;
 	};
 } // namespace
