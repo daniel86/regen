@@ -129,6 +129,9 @@ namespace regen {
 
 		~AnimationManager();
 
+		void flushGraphics();
+		friend class Scene;
+
 		void run();
 
 		void runUnsynchronized(Animation *animation) const;

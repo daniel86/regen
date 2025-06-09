@@ -164,6 +164,7 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		RenderState::get()->drawFrameBuffer().push(0);
 		glContext->swapBuffers(sceneWindow_.get());
 		RenderState::get()->drawFrameBuffer().pop();
+		app_->flushGL();
 
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();

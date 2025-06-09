@@ -4,6 +4,7 @@
 #include <regen/gl-types/gl-param.h>
 #include <regen/gl-types/binding-manager.h>
 #include "scene.h"
+#include "regen/animations/animation-manager.h"
 
 using namespace regen;
 
@@ -344,6 +345,10 @@ void Scene::drawGL() {
 
 void Scene::updateGL() {
 	renderTree_->postRender(timeDelta_->getVertex(0).r);
+}
+
+void Scene::flushGL() {
+	AnimationManager::get().flushGraphics();
 }
 
 namespace regen {

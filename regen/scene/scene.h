@@ -335,7 +335,15 @@ namespace regen {
 		 */
 		void drawGL();
 
+		/**
+		 * Used to advance the GL state.
+		 */
 		void updateGL();
+
+		/**
+		 * Called each frame after rendering and GL animations.
+		 */
+		void flushGL();
 
 	protected:
 		ref_ptr<RootNode> renderTree_;

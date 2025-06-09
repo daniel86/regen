@@ -217,6 +217,9 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 		}
 	}
 	glInProgress_ = false;
+}
+
+void AnimationManager::flushGraphics() {
 #ifdef SYNCHRONIZE_THREADS
 	frameBarrier_.arrive_and_wait();
 #endif
