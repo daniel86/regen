@@ -91,6 +91,9 @@ namespace regen {
 			return storageMappedData_[writeBufferIndex_];
 		}
 
+		void* mapCopyWrite();
+		void unmapCopyWrite(const ref_ptr<BufferReference> &outputBuffer, GLenum outputTarget);
+
 	protected:
 		uint32_t storageFlags_;
 		Buffering storageBuffering_;

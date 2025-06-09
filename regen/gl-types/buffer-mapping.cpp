@@ -29,6 +29,15 @@ BufferMapping::~BufferMapping() {
 
 void BufferMapping::initializeMapping(GLuint numBytes) {
 	auto *rs = RenderState::get();
+	if (storageClientData_ != nullptr) {
+		delete[] storageClientData_;
+		for (int i = 0; i < (int)storageBuffering_; ++i) {
+			if (storageMappedData_[i] != nullptr) {
+				glUnmapBuffer(GL_COPY_READ_BUFFER);
+				storageMappedData_[i] = nullptr;
+			}
+		}
+	}
 	// allocate CPU data
 	storageClientData_ = new byte[numBytes];
 	storageSize_ = numBytes;
@@ -44,11 +53,61 @@ void BufferMapping::initializeMapping(GLuint numBytes) {
 			storageMappedData_[i] = (byte *) glMapBufferRange(
 					GL_COPY_READ_BUFFER, 0, numBytes, storageFlags_);
 			rs->copyReadBuffer().pop();
+			if (!storageMappedData_[i]) {
+				REGEN_WARN("failed to map buffer " << ids_[i] << " with flags " << storageFlags_ <<
+					" and size " << numBytes/ 1024 << "kB");
+				GL_ERROR_LOG();
+			}
 		} else {
 			storageMappedData_[i] = nullptr;
 		}
 		hasData_[i] = false;
 	}
+}
+
+void* BufferMapping::mapCopyWrite() {
+	if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
+		return storageMappedData_[writeBufferIndex_];
+	}
+	else {
+		auto *rs = RenderState::get();
+		rs->copyWriteBuffer().push(ids_[writeBufferIndex_]);
+		auto mapped = (byte *) glMapBufferRange(
+				GL_COPY_WRITE_BUFFER, 0, storageSize_, GL_MAP_WRITE_BIT);
+		if (mapped) {
+			return mapped;
+		} else {
+			rs->copyWriteBuffer().pop();
+			return nullptr;
+		}
+	}
+}
+
+void BufferMapping::unmapCopyWrite(const ref_ptr<BufferReference> &outputBuffer, GLenum outputTarget) {
+	if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
+		// nothing to do, persistent mapping does not need unmapping
+		return;
+	}
+	auto *rs = RenderState::get();
+	if (!glUnmapBuffer(GL_COPY_WRITE_BUFFER)) {
+		REGEN_WARN("failed to unmap buffer");
+	}
+	rs->copyWriteBuffer().pop();
+	// at this point data was written to ids_[writeBufferIndex_].
+	// next, copy the read buffer to the target buffer
+	rs->copyWriteBuffer().push(ids_[readBufferIndex_]);
+	rs->buffer(outputTarget).apply(outputBuffer->bufferID());
+	glCopyBufferSubData(
+			GL_COPY_WRITE_BUFFER,
+			outputTarget,
+			0,
+			outputBuffer->address(),
+			storageSize_);
+	rs->copyWriteBuffer().pop();
+
+	// swap buffers
+	readBufferIndex_ = (readBufferIndex_ + 1) % (int)storageBuffering_;
+	writeBufferIndex_ = (writeBufferIndex_ + 1) % (int)storageBuffering_;
 }
 
 void BufferMapping::updateMapping(const ref_ptr<BufferReference> &inputReference, GLenum inputTarget) {

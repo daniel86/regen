@@ -29,6 +29,12 @@ namespace regen {
 		unsigned int allocatedSize() const { return allocatedSize_; }
 
 		/**
+		 * @return the size of the full buffer, i.e. the size of the node in the allocator pool.
+		 * This is not the same as allocatedSize() which returns the size of the allocated block.
+		 */
+		unsigned int fullBufferSize() const { return poolReference_.allocatorNode->allocator.size(); }
+
+		/**
 		 * @return virtual address to allocated block.
 		 */
 		unsigned int address() const;

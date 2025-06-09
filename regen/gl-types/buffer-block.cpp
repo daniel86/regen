@@ -4,9 +4,13 @@
 #include "regen/states/state.h"
 #include "regen/scene/shader-input-processor.h"
 
-//#define BUFFER_LOCK_PARTIAL_UPDATE
+#define BUFFER_BLOCK_DISABLE_PERSISTENT
 
 using namespace regen;
+
+static bool usePersistentMapping(BufferUsage usage) {
+	return usage == BUFFER_USAGE_DYNAMIC_DRAW || usage == BUFFER_USAGE_STREAM_DRAW;
+}
 
 BufferBlock::BufferBlock(
 		BufferTarget target,
@@ -15,13 +19,15 @@ BufferBlock::BufferBlock(
 		MemoryLayout memoryLayout)
 		: BufferObject(target, usage),
 		  storageQualifier_(storageQualifier),
-		  memoryLayout_(memoryLayout) {
+		  memoryLayout_(memoryLayout),
+		  usePersistentMapping_(usePersistentMapping(usage)) {
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
 		: BufferObject(other),
 		  storageQualifier_(other.storageQualifier_),
 		  memoryLayout_(other.memoryLayout_),
+		  usePersistentMapping_(other.usePersistentMapping_),
 		  blockInputs_(other.blockInputs_),
 		  inputs_(other.inputs_),
 		  ref_(other.ref_),
@@ -33,7 +39,8 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 BufferBlock::BufferBlock(const BufferObject &other)
 		: BufferObject(other),
 		  storageQualifier_(BufferBlock::BUFFER),
-		  memoryLayout_(BufferBlock::STD430) {
+		  memoryLayout_(BufferBlock::STD430),
+		  usePersistentMapping_(usePersistentMapping(usage_)) {
 	// TODO: avoid duplicate copy of data in update!
 	auto block = dynamic_cast<const BufferBlock *>(&other);
 	if (block != nullptr) {
@@ -60,6 +67,10 @@ BufferBlock::BufferBlock(const BufferObject &other)
 			REGEN_WARN("BufferBlock: Unable to copy buffer object of unknown type.");
 		}
 	}
+}
+
+void BufferBlock::setPersistentMapping(bool isPersistent) {
+	usePersistentMapping_ = isPersistent;
 }
 
 void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
@@ -155,15 +166,32 @@ void BufferBlock::updateAlignedData(BlockInput &uboInput) {
 	}
 }
 
+void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partialWrite) {
+	for (auto &uboInput: blockInputs_) {
+		if (!forceUpdate && partialWrite &&
+		    uboInput.input->stamp() == uboInput.lastStamp) { continue; }
+		if (!uboInput.input->hasClientData()) { continue; }
+		// copy the data to the buffer.
+		updateAlignedData(uboInput);
+		if (uboInput.alignedData) {
+			memcpy(bufferData + uboInput.offset,
+				   uboInput.alignedData, uboInput.alignedSize);
+		} else {
+			auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
+			memcpy(bufferData + uboInput.offset,
+				   mapped.r,
+				   uboInput.input->inputSize());
+		}
+		uboInput.lastStamp = uboInput.input->stamp();
+	}
+}
+
 void BufferBlock::update(bool forceUpdate) {
 	// NOTE: this function is performance critical!
 	// TODO Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
 	// TODO: count number of changed attributes, if 1 or 2, make partial update!
+	//          - better: build ranges of changed attributes and update only those ranges if num ranges is 1 or 2.
 	//
-	// TODO: if BufferUsage = STREAM* then make a persistent mapped buffer by default.
-	// TODO: Benchmark with Buffer Orphaning
-	//  - glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW); // orphan
-	//  - glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data); // or glMap...
 	if (!isBlockValid_) return;
 	updateBlockInputs();
 	bool needsResize = allocatedSize_ != requiredSize_;
@@ -179,8 +207,7 @@ void BufferBlock::update(bool forceUpdate) {
 		}
 		ref_ = allocBytes(requiredSize_);
 		if (!ref_.get()) {
-			REGEN_ERROR("BufferBlock::update: failed to allocate buffer. "
-						"Setting buffer state to \"invalid\".");
+			REGEN_ERROR("failed to allocate buffer.");
 			isBlockValid_ = false;
 			return;
 		} else {
@@ -192,51 +219,51 @@ void BufferBlock::update(bool forceUpdate) {
 		// do not copy data if there is no client data
 		return;
 	}
-
-	/**
-	if (usage() == BUFFER_USAGE_STREAM_DRAW ||
-		usage() == BUFFER_USAGE_STREAM_READ ||
-		usage() == BUFFER_USAGE_STREAM_COPY) {
-		REGEN_WARN("PERSISTENT MAPPED BUFFER! " <<
-				   " usage: " << usage() <<
-				   " storage: " << storageQualifier_ <<
-				   " memory layout: " << memoryLayout_);
-	}
-	**/
+	static const bool partialUpdate = false;
 
 	RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
-#ifdef BUFFER_LOCK_PARTIAL_UPDATE
-	void *bufferData = map(ref_, GL_MAP_WRITE_BIT);
-#else
-	void *bufferData = map(ref_, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
+	// temporary disable persistent mapping until it is working nicely...
+	usePersistentMapping_ = false;
 #endif
-	if (bufferData) {
-		for (auto &uboInput: blockInputs_) {
-#ifdef BUFFER_LOCK_PARTIAL_UPDATE
-			if (forceUpdate || uboInput.input->stamp() != uboInput.lastStamp) {
-#endif
-			if (!uboInput.input->hasClientData()) {
-				continue;
-			}
-			// copy the data to the buffer.
-			updateAlignedData(uboInput);
-			if (uboInput.alignedData) {
-				memcpy(static_cast<char *>(bufferData) + uboInput.offset,
-					   uboInput.alignedData, uboInput.alignedSize);
-			} else {
-				auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
-				memcpy(static_cast<char *>(bufferData) + uboInput.offset,
-					   mapped.r,
-					   uboInput.input->inputSize());
-			}
-			uboInput.lastStamp = uboInput.input->stamp();
-#ifdef BUFFER_LOCK_PARTIAL_UPDATE
-			}
-#endif
+	if (usePersistentMapping_) {
+		static constexpr uint32_t mappingFlags = BufferMapping::WRITE | BufferMapping::PERSISTENT | BufferMapping::COHERENT;
+		if (!persistentMapping_.get()) {
+			persistentMapping_ = ref_ptr<BufferMapping>::alloc(
+				mappingFlags, BufferMapping::SINGLE_BUFFER);
+			persistentMapping_->initializeMapping(ref_->allocatedSize());
+		} else if (needsResize) {
+			persistentMapping_->initializeMapping(ref_->allocatedSize());
 		}
-		unmap();
-	} else {
-		REGEN_WARN("BufferBlock::update: failed to map buffer");
+		auto *mappedData = persistentMapping_->mapCopyWrite();
+		if (mappedData) {
+			copyBufferData(static_cast<char *>(mappedData), forceUpdate, partialUpdate);
+			persistentMapping_->unmapCopyWrite(ref_, glTarget_);
+		} else {
+			REGEN_WARN("failed to map buffer persistently");
+			isBlockValid_ = false;
+		}
+	}
+	else {
+		if (persistentMapping_.get()) {
+			persistentMapping_ = {};
+		}
+		int mappingFlags = GL_MAP_WRITE_BIT;
+		if (!partialUpdate) {
+			mappingFlags |= GL_MAP_INVALIDATE_RANGE_BIT;
+			// Orphan old storage, but only if this buffer block occupies the whole buffer!
+			if (ref_->fullBufferSize() == ref_->allocatedSize()) {
+				glBufferData(glTarget_, ref_->allocatedSize(), nullptr, usage_);
+			}
+		}
+		void *bufferData = map(ref_, mappingFlags);
+		if (bufferData) {
+			copyBufferData(static_cast<char *>(bufferData), forceUpdate, partialUpdate);
+			unmap();
+		} else {
+			REGEN_WARN("failed to map buffer");
+			isBlockValid_ = false;
+		}
 	}
 	stamp_ += 1;
 }
