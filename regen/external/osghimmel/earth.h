@@ -1,5 +1,4 @@
-
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel MÃ¼ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -28,45 +27,43 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#ifndef __EARTH_H__
-#define __EARTH_H__
+#ifndef OSG_HIMMEL_EARTH_H_
+#define OSG_HIMMEL_EARTH_H_
 
 #include "declspec.h"
 #include "julianday.h"
 #include "typedefs.h"
 
+namespace osgHimmel {
+	class Earth {
+	public:
+		static float orbitEccentricity();
 
-namespace osgHimmel
-{
+		static float apparentAngularSunDiameter(const t_julianDay &t);
 
-class Earth
-{
-public:
+		static float apparentAngularMoonDiameter(const t_julianDay &t);
 
-    static const t_longf orbitEccentricity(const t_julianDay t);
+		static float longitudeNutation(const t_julianDay &t);
 
-    static const t_longf apparentAngularSunDiameter(const t_julianDay t);
-    static const t_longf apparentAngularMoonDiameter(const t_julianDay t);
+		static float obliquityNutation(const t_julianDay &t);
 
-    static const t_longf longitudeNutation(const t_julianDay t);
-    static const t_longf obliquityNutation(const t_julianDay t);
+		static float meanObliquity(const t_julianDay &t);
 
-    static const t_longf meanObliquity(const t_julianDay t);
-    static const t_longf trueObliquity(const t_julianDay t);
+		static float trueObliquity(const t_julianDay &t);
 
-    static const t_longf atmosphericRefraction(const t_longf altitude);
+		static float viewDistanceWithinAtmosphere(float y);
 
-    static const t_longf viewDistanceWithinAtmosphere(
-        const t_longf y /* height component of the view direction on ground into the sky */
-    ,   const bool refractionCorrected = false);
+		static float atmosphericRefraction(float altitude);
 
-    static const t_longf meanRadius();
-    static const t_longf atmosphereThickness(); // if its density were uniform...
-    static const t_longf atmosphereThicknessNonUniform();
+		static float meanRadius();
 
-    static const t_longf apparentMagnitudeLimit();
-};
+		static float atmosphereThickness();
+
+		static float atmosphereThicknessNonUniform();
+
+		static float apparentMagnitudeLimit();
+	};
 
 } // namespace osgHimmel
 
-#endif // __EARTH_H__
+#endif // OSG_HIMMEL_EARTH_H_

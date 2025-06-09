@@ -1,5 +1,4 @@
-
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel MÃ¼ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -35,135 +34,87 @@
 #include "stars.h"
 #include "siderealtime.h"
 
+using namespace osgHimmel;
 
-namespace osgHimmel
-{
-
-Astronomy::Astronomy()
-{
+Astronomy::Astronomy() {
 }
 
-
-const float Astronomy::sunDistance(const t_julianDay t) const
-{
-    return Sun::distance(t);
+float Astronomy::sunDistance(const t_julianDay &t) const {
+	return Sun::distance(t);
 }
 
-const float Astronomy::angularSunRadius(const t_julianDay t) const
-{
-    return Earth::apparentAngularSunDiameter(t) * 0.5;
+float Astronomy::angularSunRadius(const t_julianDay &t) const {
+	return Earth::apparentAngularSunDiameter(t) * 0.5f;
 }
 
-
-const float Astronomy::moonRadius() const
-{
-    return Moon::meanRadius();
+float Astronomy::moonRadius() const {
+	return Moon::meanRadius();
 }
 
-
-const float Astronomy::moonDistance(const t_julianDay t) const
-{
-    return Moon::distance(t);
+float Astronomy::moonDistance(const t_julianDay &t) const {
+	return Moon::distance(t);
 }
 
-const float Astronomy::angularMoonRadius(const t_julianDay t) const
-{
-    return Earth::apparentAngularMoonDiameter(t) * 0.5;
+float Astronomy::angularMoonRadius(const t_julianDay &t) const {
+	return Earth::apparentAngularMoonDiameter(t) * 0.5f;
 }
 
+regen::Vec3f Astronomy::moonPosition(const t_aTime &aTime, float latitude,
+									 float longitude, bool refractionCorrected) const {
+	t_horf moon = Moon::horizontalPosition(aTime, latitude, longitude);
+	if (refractionCorrected)
+		moon.altitude += Earth::atmosphericRefraction(moon.altitude);
 
-const regen::Vec3f Astronomy::moonPosition(
-    const t_aTime &aTime
-,   const float latitude
-,   const float longitude
-,   const bool refractionCorrected) const
-{
-    t_hord moon = Moon::horizontalPosition(aTime, latitude, longitude);
-    if(refractionCorrected)
-        moon.altitude += Earth::atmosphericRefraction(moon.altitude);
-
-    regen::Vec3f moonv  = moon.toEuclidean();
-    moonv.normalize();
-
-    return moonv;
+	regen::Vec3f moon_v = moon.toEuclidean();
+	moon_v.normalize();
+	return moon_v;
 }
 
+regen::Vec3f Astronomy::sunPosition(const t_aTime &aTime, float latitude,
+									float longitude, bool refractionCorrected) const {
+	t_horf sun = Sun::horizontalPosition(aTime, latitude, longitude);
+	if (refractionCorrected)
+		sun.altitude += Earth::atmosphericRefraction(sun.altitude);
 
-const regen::Vec3f Astronomy::sunPosition(
-    const t_aTime &aTime
-,   const float latitude
-,   const float longitude
-,   const bool refractionCorrected) const
-{
-    t_hord sun = Sun::horizontalPosition(aTime, latitude, longitude);
-    if(refractionCorrected)
-        sun.altitude += Earth::atmosphericRefraction(sun.altitude);
-
-    regen::Vec3f sunv  = sun.toEuclidean();
-    sunv.normalize();
-
-    return sunv;
+	regen::Vec3f sun_v = sun.toEuclidean();
+	sun_v.normalize();
+	return sun_v;
 }
 
+regen::Mat4f Astronomy::moonOrientation(const t_aTime &aTime, float latitude, float longitude) const {
+	const t_julianDay t(jd(aTime));
 
-const regen::Mat4f Astronomy::moonOrientation(
-    const t_aTime &aTime
-,   const float latitude
-,   const float longitude) const
-{    
-    const t_julianDay t(jd(aTime));
+	float l, b;
+	Moon::opticalLibrations(t, l, b);
 
-    t_longf l, b;
-    Moon::opticalLibrations(t, l, b);
+	const regen::Mat4f libLat = regen::Mat4f::rotationMatrix(-_rad(b), 0, 0);
+	const regen::Mat4f libLon = regen::Mat4f::rotationMatrix(0, _rad(l), 0);
 
-    const regen::Mat4f libLat = regen::Mat4f::rotationMatrix(-_rad(b), 0, 0);
-    const regen::Mat4f libLon = regen::Mat4f::rotationMatrix(0, _rad(l), 0);
+	const float a = _rad(Moon::positionAngleOfAxis(t));
+	const float p = _rad(Moon::parallacticAngle(aTime, latitude, longitude));
 
-    const float a = _rad(Moon::positionAngleOfAxis(t));
-    const float p = _rad(Moon::parallacticAngle(aTime, latitude, longitude));
-
-    const regen::Mat4f zenith = regen::Mat4f::rotationMatrix(0, 0, p - a);
-
-    // finalOrientationWithLibrations
-    const regen::Mat4f R(libLat * libLon * zenith);
-
-    return R;
+	const regen::Mat4f zenith = regen::Mat4f::rotationMatrix(0, 0, p - a);
+	const regen::Mat4f R(libLat * libLon * zenith);
+	return R;
 }
 
+float Astronomy::earthShineIntensity(const t_aTime &aTime, float latitude, float longitude) const {
+	auto m = moonPosition(aTime, latitude, longitude, false);
+	auto s = sunPosition(aTime, latitude, longitude, false);
 
-const float Astronomy::earthShineIntensity(
-    const t_aTime &aTime
-,   const float latitude
-,   const float longitude) const
-{
-    const regen::Vec3f m = moonPosition(aTime, latitude, longitude, false);
-    const regen::Vec3f s = sunPosition(aTime, latitude, longitude, false);
+	// ("Multiple Light Scattering" - 1980 - Van de Hulst) and
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.) -> the 0.19 is the earth full intensity
+	const float ep = acos(s.dot(-m));
+	const float ep2 = ep * ep;
+	const float ep3 = ep * ep2;
+	const float Eem = -0.0061f * ep3 + 0.0289f * ep2 - 0.0105f * sin(ep);
 
-    // ("Multiple Light Scattering" - 1980 - Van de Hulst) and 
-    // ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.) -> the 0.19 is the earth full intensity
-    
-    const float ep  = (_PI - acos(s.dot(-m))) * 0.5;
-    const float Eem = 0.19 * 0.5 * (1.0 - sin(ep) * tan(ep) * log(1.0 / tan(ep * 0.5)));
-
-    return Eem;
+	return Eem;
 }
 
-
-const regen::Mat4f Astronomy::equToHorTransform(
-    const t_aTime &aTime
-,   const float latitude
-,   const float longitude) const
-{
-    const t_julianDay T(jCenturiesSinceSE(jd(aTime)));
-    const float s = siderealTime(aTime);
-
-    return regen::Mat4f::scaleMatrix(regen::Vec3f(-1, 1, 1))
-        * regen::Mat4f::rotationMatrix( _rad(latitude)  - _PI_2, 0, 0)
-        * regen::Mat4f::rotationMatrix(0, 0, -_rad(s + longitude))
-        // precession as suggested in (Jensen et al. 2001)
-        * regen::Mat4f::rotationMatrix(0, 0,  0.01118 * T)
-        * regen::Mat4f::rotationMatrix(-0.00972 * T, 0, 0)
-        * regen::Mat4f::rotationMatrix(0, 0,  0.01118 * T);
+regen::Mat4f Astronomy::equToHorTransform(const t_aTime &aTime, float latitude, float longitude) const {
+	const float s = siderealTime2(aTime);
+	return regen::Mat4f::scaleMatrix(regen::Vec3f(-1, 1, 1))
+		   * regen::Mat4f::rotationMatrix(_rad(latitude) - _PI_2, 0, 0)
+		   * regen::Mat4f::rotationMatrix(0, 0, -_rad(s + longitude));
 }
-
-} // namespace osgHimmel

@@ -1,5 +1,4 @@
-
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel MÃ¼ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -28,60 +27,43 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#ifndef __ASTRONOMY_H__
-#define __ASTRONOMY_H__
+#ifndef OSG_HIMMEL_ASTRONOMY_H_
+#define OSG_HIMMEL_ASTRONOMY_H_
 
 #include "declspec.h"
 #include "abstractastronomy.h"
 
+namespace osgHimmel {
+	class Astronomy : public AbstractAstronomy {
+	public:
+		Astronomy();
 
-namespace osgHimmel
-{
+	protected:
+		regen::Vec3f moonPosition(
+				const t_aTime &aTime, float latitude, float longitude,
+				bool refractionCorrected) const final;
 
-class Astronomy : public AbstractAstronomy
-{
-public:
+		regen::Vec3f sunPosition(
+				const t_aTime &aTime, float latitude, float longitude,
+				bool refractionCorrected) const final;
 
-    Astronomy();
+		regen::Mat4f moonOrientation(const t_aTime &aTime, float latitude, float longitude) const final;
 
-protected:
+		float earthShineIntensity(const t_aTime &aTime, float latitude, float longitude) const final;
 
-    virtual const regen::Vec3f moonPosition(
-        const t_aTime &aTime
-    ,   const float latitude
-    ,   const float longitude
-    ,   const bool refractionCorrected) const;
+		regen::Mat4f equToHorTransform(const t_aTime &aTime, float latitude, float longitude) const final;
 
-    virtual const regen::Vec3f sunPosition(
-        const t_aTime &aTime
-    ,   const float latitude
-    ,   const float longitude
-    ,   const bool refractionCorrected) const;
+		float sunDistance(const t_julianDay &t) const final;
 
-    virtual const regen::Mat4f moonOrientation(
-        const t_aTime &aTime
-    ,   const float latitude
-    ,   const float longitude) const;
+		float angularSunRadius(const t_julianDay &t) const final;
 
-    virtual const float earthShineIntensity(
-        const t_aTime &aTime
-    ,   const float latitude
-    ,   const float longitude) const;
+		float moonRadius() const final;
 
-    virtual const regen::Mat4f equToHorTransform(
-        const t_aTime &aTime
-    ,   const float latitude
-    ,   const float longitude) const;
+		float moonDistance(const t_julianDay &t) const final;
 
-    virtual const float sunDistance(const t_julianDay t) const;
-    virtual const float angularSunRadius(const t_julianDay t) const;
-
-    virtual const float moonRadius() const;
-
-    virtual const float moonDistance(const t_julianDay t) const;
-    virtual const float angularMoonRadius(const t_julianDay t) const;
-};
+		float angularMoonRadius(const t_julianDay &t) const final;
+	};
 
 } // namespace osgHimmel
 
-#endif // __ASTRONOMY_H__
+#endif // OSG_HIMMEL_ASTRONOMY_H_

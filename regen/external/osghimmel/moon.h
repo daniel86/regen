@@ -1,5 +1,4 @@
-
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel MÃ¼ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -28,53 +27,48 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#ifndef __MOON_H__
-#define __MOON_H__
+#ifndef OSG_HIMMEL_MOON_H_
+#define OSG_HIMMEL_MOON_H_
 
 #include "declspec.h"
 #include "typedefs.h"
 #include "julianday.h"
 #include "coords.h"
 
+namespace osgHimmel {
+	class Moon {
+	public:
+		static float meanLongitude(const t_julianDay &t);
 
-namespace osgHimmel
-{
+		static float meanElongation(const t_julianDay &t);
 
-class Moon
-{
-public:
-    static const t_longf meanLongitude(const t_julianDay t); 
-    static const t_longf meanElongation(const t_julianDay t);
-    static const t_longf meanAnomaly(const t_julianDay t);
-    static const t_longf meanLatitude(const t_julianDay t);
+		static float meanAnomaly(const t_julianDay &t);
 
-    static const t_longf meanOrbitLongitude(const t_julianDay t);
+		static float meanLatitude(const t_julianDay &t);
 
-    static const t_ecld position(const t_julianDay t);
-    static const t_equd apparentPosition(const t_julianDay t);
+		static float meanOrbitLongitude(const t_julianDay &t);
 
-    static const t_hord horizontalPosition(
-        const t_aTime &aTime
-    ,   const t_longf latitude
-    ,   const t_longf longitude);
+		static t_eclf position(const t_julianDay &t);
 
-    static const t_longf distance(const t_julianDay t);
+		static t_equf apparentPosition(const t_julianDay &t);
 
-    static void opticalLibrations(
-        const t_julianDay t
-    ,   t_longf &l /* librations in longitude */
-    ,   t_longf &b /* librations in latitude  */);
+		static t_horf horizontalPosition(
+				const t_aTime &aTime, float latitude, float longitude);
 
-    static const t_longf parallacticAngle(
-        const t_aTime &aTime
-    ,   const t_longf latitude
-    ,   const t_longf longitude);
+		static float distance(const t_julianDay &t);
 
-    static const t_longf positionAngleOfAxis(const t_julianDay t);
+		static void opticalLibrations(
+				const t_julianDay &t
+				, float &l /* librations in longitude */
+				, float &b /* librations in latitude  */);
 
-    static const t_longf meanRadius();
-};
+		static float parallacticAngle(const t_aTime &aTime, float latitude, float longitude);
+
+		static float positionAngleOfAxis(const t_julianDay t);
+
+		static float meanRadius();
+	};
 
 } // namespace osgHimmel
 
-#endif // __MOON_H__
+#endif // OSG_HIMMEL_MOON_H_

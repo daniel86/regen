@@ -1,5 +1,4 @@
-﻿
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+﻿// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -34,479 +33,225 @@
 #include "siderealtime.h"
 #include "mathmacros.h"
 
-#include <assert.h>
+using namespace osgHimmel;
 
-
-namespace osgHimmel
-{
-
-// Mean longitude, referred to the mean equinox of the date (AA.45.1).
-
-const t_longf Moon::meanLongitude(const t_julianDay t)
-{
-    const t_julianDay T(jCenturiesSinceSE(t));
-
-    const t_longf L0 = 218.3164591 
-        + T * (+ 481267.88134236
-        + T * (-      0.0013268
-        + T * (+ 1.0 / 528841.0
-        + T * (- 1.0 / 65194000.0))));
-
-    return _revd(L0);
+float Moon::meanLongitude(const t_julianDay &t) {
+	// Mean longitude, referred to the mean equinox of the date (AA.45.1).
+	const t_julianDay T(jCenturiesSinceSE(t));
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
+	const float L0 = _deg(3.8104 + 8399.7091 * T);
+	// (AA.21 p132)
+	//const float L0 = 218.3165
+	//    + T * (+  481267.8813);
+	// (http://www.jgiesen.de/moonmotion/index.html)
+	//const float L0 = 218.31617f
+	//    + T * (+ 481267.88088
+	//    + T * (-      0.00112778));
+	return _revd(L0);
 }
 
-
-// Mean elongation (AA.45.2).
-
-const t_longf Moon::meanElongation(const t_julianDay t)
-{
-    const t_julianDay T(jCenturiesSinceSE(t));
-
-    const t_longf D = 297.8502042 
-        + T * (+ 445267.1115168
-        + T * (-      0.0016300
-        + T * (+ 1.0 / 545868.0
-        + T * (- 1.0 / 113065000.0))));
-
-    return _revd(D);
+float Moon::meanElongation(const t_julianDay &t) {
+	// Mean elongation (AA.45.2).
+	const t_julianDay T(jCenturiesSinceSE(t));
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
+	const float D = _deg(5.1985 + 7771.3772 * T);
+	return _revd(D);
 }
 
-
-// Mean anomaly (AA.45.4).
-
-const t_longf Moon::meanAnomaly(const t_julianDay t)
-{
-    const t_julianDay T(jCenturiesSinceSE(t));
-
-    const t_longf M = 134.9634114 
-        + T * (+ 477198.8676313
-        + T * (+      0.0089970
-        + T * (+ 1.0 / 69699.0
-        + T * (- 1.0 / 14712000.0))));
-
-    return _revd(M);
+float Moon::meanAnomaly(const t_julianDay &t) {
+	const t_julianDay T(jCenturiesSinceSE(t));
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
+	const float M = _deg(2.3554 + 8328.6911 * T);
+	// (AA.21...)
+	//const float M = 134.96298
+	//    + T * (+ 477198.867398
+	//    + T * (+      0.0086972
+	//    + T * (+ 1.0 / 56250.0)));
+	// (http://www.jgiesen.de/moonmotion/index.html)
+	//const float M = 134.96292
+	//    + T * (+ 477198.86753
+	//    + T * (+      0.00923611));
+	return _revd(M);
 }
 
-
-// Mean distance of the Moon from its ascending node (AA.45.5)
-
-const t_longf Moon::meanLatitude(const t_julianDay t)
-{
-    const t_julianDay T(jCenturiesSinceSE(t));
-
-    const t_longf F = 93.2720993 
-        + T * (+ 483202.0175273
-        + T * (-      0.0034029
-        + T * (- 1.0 / 3526000.0
-        + T * (+ 1.0 / 863310000.0))));
-
-    return _revd(F);
+float Moon::meanLatitude(const t_julianDay &t) {
+	// Mean distance of the Moon from its ascending node (AA.45.5)
+	const t_julianDay T(jCenturiesSinceSE(t));
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
+	const float F = _deg(1.6280 + 8433.4663 * T);
+	return _revd(F);
 }
 
-
-const t_longf Moon::meanOrbitLongitude(const t_julianDay t)
-{
-    const t_julianDay T(jCenturiesSinceSE(t));
-
-    const t_longf O = 125.04452 
-        + T * (- 1934.136261
-        + T * (+    0.0020708
-        + T * (+ 1.0 / 450000.0)));
-
-    return _revd(O);
+float Moon::meanOrbitLongitude(const t_julianDay &t) {
+	const t_julianDay T(jCenturiesSinceSE(t));
+	// (AA p152)
+	const float O = 125.04f + T * (-1934.136f);
+	return _revd(O);
 }
 
+t_eclf Moon::position(const t_julianDay &t) {
+	const float sM = _rad(Sun::meanAnomaly(t));
+	const float mL = _rad(meanLongitude(t));
+	const float mM = _rad(meanAnomaly(t));
+	const float mD = _rad(meanElongation(t));
+	const float mF = _rad(meanLatitude(t));
 
-const t_ecld Moon::position(const t_julianDay t)
-{
-    const t_longf sM = _rad(Sun::meanAnomaly(t));
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
 
-    const t_longf mL = _rad(meanLongitude(t));
-    const t_longf mM = _rad(meanAnomaly(t));
-    const t_longf mD = _rad(meanElongation(t));
-    const t_longf mF = _rad(meanLatitude(t));
+	float Sl = mL;
 
-    const t_julianDay T(jCenturiesSinceSE(t));
+	Sl += 0.1098f * sin(+1 * mM);
+	Sl += 0.0222f * sin(2 * mD - 1 * mM);
+	Sl += 0.0115f * sin(2 * mD);
+	Sl += 0.0037f * sin(+2 * mM);
+	Sl -= 0.0032f * sin(+1 * sM);
+	Sl -= 0.0020f * sin(+2 * mF);
+	Sl += 0.0010f * sin(2 * mD - 2 * mM);
+	Sl += 0.0010f * sin(2 * mD - 1 * sM - 1 * mM);
+	Sl += 0.0009f * sin(2 * mD + 1 * mM);
+	Sl += 0.0008f * sin(2 * mD - 1 * sM);
+	Sl -= 0.0007f * sin(+1 * sM - 1 * mM);
+	Sl -= 0.0006f * sin(1 * mD);
+	Sl -= 0.0005f * sin(+1 * sM + 1 * mM);
 
-    const t_longf A1 = _rad(_revd(119.75 +    131.849 * T));
-    const t_longf A2 = _rad(_revd( 53.09 + 479264.290 * T));
-    const t_longf A3 = _rad(_revd(313.45 + 481266.484 * T));
+	float Sb = 0.0;
 
-    //const t_longf E = earth_orbitEccentricity(t);
-    // -> does not apply here - the eccentricity of the earths' orbit 
-    // in 45.6 is about 60. times the earth_orbitEccentricity...?
+	Sb += 0.0895f * sin(+1 * mF);
+	Sb += 0.0049f * sin(+1 * mM + 1 * mF);
+	Sb += 0.0048f * sin(+1 * mM - 1 * mF);
+	Sb += 0.0030f * sin(2 * mD - 1 * mF);
+	Sb += 0.0010f * sin(2 * mD - 1 * mM + 1 * mF);
+	Sb += 0.0008f * sin(2 * mD - 1 * mM - 1 * mF);
+	Sb += 0.0006f * sin(2 * mD + 1 * mF);
 
-    // Correction for eccentricity of the Earth's orbit around the sun.
+	t_eclf ecl;
 
-    // (AA.45.6)
-    const t_longf E = 1.0  
-        + T * (- 0.002516 
-        + T * (- 0.0000074));
+	ecl.longitude = _deg(Sl);
+	ecl.latitude = _deg(Sb);
 
-    const t_longf EE = E * E;
-
-    // (AA.45.A)
-
-    t_longf Sl = 0.0;
-
-    Sl += 6288.774 * sin(                 + 1 * mM         );
-    Sl += 1274.027 * sin( 2 * mD          - 1 * mM         );
-    Sl +=  658.314 * sin( 2 * mD                           );
-    Sl +=  213.618 * sin(                 + 2 * mM         );
-    Sl -=  185.116 * sin(        + 1 * sM                  ) * E;
-    Sl -=  114.332 * sin(                          + 2 * mF);
-    Sl +=   58.793 * sin( 2 * mD          - 2 * mM         );
-    Sl +=   57.066 * sin( 2 * mD - 1 * sM - 1 * mM         ) * E;
-    Sl +=   53.322 * sin( 2 * mD          + 1 * mM         );
-    Sl +=   45.758 * sin( 2 * mD - 1 * sM                  ) * E;
-    Sl -=   40.923 * sin(        + 1 * sM - 1 * mM         ) * E;
-    Sl -=   34.720 * sin( 1 * mD                           );
-    Sl -=   30.383 * sin(        + 1 * sM + 1 * mM         ) * E;
-    Sl +=   15.327 * sin( 2 * mD                   - 2 * mF);
-    Sl -=   12.528 * sin(                 + 1 * mM + 2 * mF);
-    Sl +=   10.980 * sin(                 + 1 * mM - 2 * mF);
-    Sl +=   10.675 * sin( 4 * mD          - 1 * mM         );
-    Sl +=   10.034 * sin(                 + 3 * mM         );
-    Sl +=    8.548 * sin( 4 * mD          - 2 * mM         );
-    Sl -=    7.888 * sin( 2 * mD + 1 * sM - 1 * mM         ) * E;
-    Sl -=    6.766 * sin( 2 * mD + 1 * sM                  ) * E;
-    Sl -=    5.163 * sin( 1 * mD          - 1 * mM         );
-    Sl +=    4.987 * sin( 1 * mD + 1 * sM                  ) * E;
-    Sl +=    4.036 * sin( 2 * mD - 1 * sM + 1 * mM         ) * E;
-    Sl +=    3.994 * sin( 2 * mD          + 2 * mM         );
-    Sl +=    3.861 * sin( 4 * mD                           );
-    Sl +=    3.665 * sin( 2 * mD          - 3 * mM         );
-    Sl -=    2.689 * sin(        + 1 * sM - 2 * mM         ) * E;
-    Sl -=    2.602 * sin( 2 * mD          - 1 * mM + 2 * mF);
-    Sl +=    2.390 * sin( 2 * mD - 1 * sM - 2 * mM         ) * E;
-    Sl -=    2.348 * sin( 1 * mD          + 1 * mM         );
-    Sl +=    2.236 * sin( 2 * mD - 2 * sM                  ) * EE;
-    Sl -=    2.120 * sin(        + 1 * sM + 2 * mM         ) * E;
-    Sl -=    2.069 * sin(        + 2 * sM                  ) * EE;
-    Sl +=    2.048 * sin( 2 * mD - 2 * sM - 1 * mM         ) * EE;
-    Sl -=    1.773 * sin( 2 * mD          + 1 * mM - 2 * mF);
-    Sl -=    1.595 * sin( 2 * mD                   + 2 * mF);
-    Sl +=    1.215 * sin( 4 * mD - 1 * sM - 1 * mM         ) * E;
-    Sl -=    1.110 * sin(                 + 2 * mM + 2 * mF);
-    Sl -=    0.892 * sin( 3 * mD          - 1 * mM         );
-    Sl -=    0.810 * sin( 2 * mD + 1 * sM + 1 * mM         ) * E;
-    Sl +=    0.759 * sin( 4 * mD - 1 * sM - 2 * mM         ) * E;
-    Sl -=    0.713 * sin(        + 2 * sM - 1 * mM         ) * EE;
-    Sl -=    0.700 * sin( 2 * mD + 2 * sM - 1 * mM         ) * EE;
-    Sl +=    0.691 * sin( 2 * mD + 1 * sM - 2 * mM         );
-    Sl +=    0.596 * sin( 2 * mD - 1 * sM          - 2 * mF) * E;
-    Sl +=    0.549 * sin( 4 * mD          + 1 * mM         );
-    Sl +=    0.537 * sin(                 + 4 * mM         );
-    Sl +=    0.520 * sin( 4 * mD - 1 * sM                  ) * E;
-    Sl -=    0.487 * sin( 1 * mD          - 2 * mM         );
-    Sl -=    0.399 * sin( 2 * mD + 1 * sM          - 2 * mF) * E;
-    Sl -=    0.381 * sin(                 + 2 * mM - 2 * mF);
-    Sl +=    0.351 * sin( 1 * mD + 1 * sM + 1 * mM         ) * E;
-    Sl -=    0.340 * sin( 3 * mD          - 2 * mM         );
-    Sl +=    0.330 * sin( 4 * mD          - 3 * mM         );
-    Sl +=    0.327 * sin( 2 * mD - 1 * sM + 2 * mM         ) * E;
-    Sl -=    0.323 * sin(        + 2 * sM + 1 * mM         ) * EE;
-    Sl +=    0.299 * sin( 1 * mD + 1 * sM - 1 * mM         ) * E;
-    Sl +=    0.294 * sin( 2 * mD          + 3 * mM         );
-
-    // (AA.45.B)
-
-    t_longf Sb = 0.0;
-
-    Sb += 5128.122 * sin(                          + 1 * mF);
-    Sb +=  280.602 * sin(                 + 1 * mM + 1 * mF);
-    Sb +=  277.693 * sin(                 + 1 * mM - 1 * mF);
-    Sb +=  173.237 * sin( 2 * mD                   - 1 * mF);
-    Sb +=   55.413 * sin( 2 * mD          - 1 * mM + 1 * mF);
-    Sb +=   46.271 * sin( 2 * mD          - 1 * mM - 1 * mF);
-    Sb +=   32.573 * sin( 2 * mD                   + 1 * mF);
-    Sb +=   17.198 * sin(                 + 2 * mM + 1 * mF);
-    Sb +=    9.266 * sin( 2 * mD          + 1 * mM - 1 * mF);
-    Sb +=    8.822 * sin(                 + 2 * mM - 1 * mF);
-    Sb +=    8.216 * sin( 2 * mD - 1 * sM          - 1 * mF) * E;
-    Sb +=    4.324 * sin( 2 * mD          - 2 * mM - 1 * mF);
-    Sb +=    4.200 * sin( 2 * mD          + 1 * mM + 1 * mF);
-    Sb -=    3.359 * sin( 2 * mD + 1 * sM          - 1 * mF) * E;
-    Sb +=    2.463 * sin( 2 * mD - 1 * sM - 1 * mM + 1 * mF) * E;
-    Sb +=    2.211 * sin( 2 * mD - 1 * sM          + 1 * mF) * E;
-    Sb +=    2.065 * sin( 2 * mD - 1 * sM - 1 * mM - 1 * mF) * E;
-    Sb -=    1.870 * sin(        + 1 * sM - 1 * mM - 1 * mF) * E;
-    Sb +=    1.828 * sin( 4 * mD          - 1 * mM - 1 * mF);
-    Sb -=    1.794 * sin(        + 1 * sM          + 1 * mF) * E;
-    Sb -=    1.749 * sin(                          + 3 * mF);
-    Sb -=    1.565 * sin(        + 1 * sM - 1 * mM + 1 * mF) * E;
-    Sb -=    1.491 * sin( 1 * mD                   + 1 * mF);
-    Sb -=    1.475 * sin(        + 1 * sM + 1 * mM + 1 * mF) * E;
-    Sb -=    1.410 * sin(        + 1 * sM + 1 * mM - 1 * mF) * E;
-    Sb -=    1.344 * sin(        + 1 * sM          - 1 * mF) * E;
-    Sb -=    1.335 * sin( 1 * mD                   - 1 * mF);
-    Sb +=    1.107 * sin(                 + 3 * mM + 1 * mF);
-    Sb +=    1.024 * sin( 4 * mD                   - 1 * mF);
-    Sb +=    0.833 * sin( 4 * mD          - 1 * mM + 1 * mF);
-    Sb +=    0.777 * sin(                 + 1 * mM - 3 * mF);
-    Sb +=    0.671 * sin( 4 * mD          - 2 * mM + 1 * mF);
-    Sb +=    0.607 * sin( 2 * mD                   - 3 * mF);
-    Sb +=    0.596 * sin( 2 * mD          + 2 * mM - 1 * mF);
-    Sb +=    0.491 * sin( 2 * mD - 1 * sM + 1 * mM - 1 * mF) * E;
-    Sb -=    0.451 * sin( 2 * mD          - 2 * mM + 1 * mF);
-    Sb +=    0.439 * sin(                 + 3 * mM - 1 * mF);
-    Sb +=    0.422 * sin( 2 * mD          + 2 * mM + 1 * mF);
-    Sb +=    0.421 * sin( 2 * mD          - 3 * mM - 1 * mF);
-    Sb -=    0.366 * sin( 2 * mD + 1 * sM - 1 * mM + 1 * mF) * E;
-    Sb -=    0.351 * sin( 2 * mD + 1 * sM          + 1 * mF) * E;
-    Sb +=    0.331 * sin( 4 * mD                   + 1 * mF);
-    Sb +=    0.315 * sin( 2 * mD - 1 * sM + 1 * mM + 1 * mF) * E;
-    Sb +=    0.302 * sin( 2 * mD - 2 * sM          - 1 * mF) * EE;
-    Sb -=    0.283 * sin(                 + 1 * mM + 3 * mF);
-    Sb -=    0.229 * sin( 2 * mD + 1 * sM + 1 * mM - 1 * mF) * E;
-    Sb +=    0.223 * sin( 1 * mD + 1 * sM          - 1 * mF) * E;
-    Sb +=    0.223 * sin( 1 * mD + 1 * sM          + 1 * mF) * E;
-    Sb -=    0.220 * sin(        + 1 * sM - 2 * mM - 1 * mF) * E;
-    Sb -=    0.220 * sin( 2 * mD + 1 * sM - 1 * mM - 1 * mF) * E;
-    Sb -=    0.185 * sin( 1 * mD          + 1 * mM + 1 * mF);
-    Sb +=    0.181 * sin( 2 * mD - 1 * sM - 2 * mM - 1 * mF) * E;
-    Sb -=    0.177 * sin(        + 1 * sM + 2 * mM + 1 * mF) * E;
-    Sb +=    0.176 * sin( 4 * mD          - 2 * mM - 1 * mF);
-    Sb +=    0.166 * sin( 4 * mD - 1 * sM - 1 * mM - 1 * mF) * E;
-    Sb -=    0.164 * sin( 1 * mD          + 1 * mM - 1 * mF);
-    Sb +=    0.132 * sin( 4 * mD          + 1 * mM - 1 * mF);
-    Sb -=    0.119 * sin( 1 * mD          - 1 * mM - 1 * mF);
-    Sb +=    0.115 * sin( 4 * mD - 1 * sM          - 1 * mF) * E;
-    Sb +=    0.107 * sin( 2 * mD - 2 * sM          + 1 * mF) * EE;
-
-    // Add corrective Terms
-
-    Sl +=  3.958 * sin(A1)
-         + 1.962 * sin(mL - mF)
-         + 0.318 * sin(A2);
-
-    Sb += -2.235 * sin(mL) 
-         + 0.382 * sin(A3)
-         + 0.175 * sin(A1 - mF)
-         + 0.175 * sin(A1 + mF)
-         + 0.127 * sin(mL - mM)
-         - 0.115 * sin(mL + mM);
-
-    t_ecld ecl;
-
-    ecl.longitude = meanLongitude(t) + Sl * 0.001 + Earth::longitudeNutation(t);
-    ecl.latitude = Sb * 0.001;
-
-    return ecl;
+	return ecl;
 }
 
-
-const t_equd Moon::apparentPosition(const t_julianDay t)
-{
-    t_ecld ecl = position(t);
-    ecl.longitude += Earth::longitudeNutation(t);
-
-    return ecl.toEquatorial(Earth::meanObliquity(t));
+t_equf Moon::apparentPosition(const t_julianDay &t) {
+	t_eclf ecl = position(t);
+	return ecl.toEquatorial(Earth::trueObliquity(t));
 }
 
-
-const t_hord Moon::horizontalPosition(
-    const t_aTime &aTime
-,   const t_longf latitude
-,   const t_longf longitude)
-{
-    t_julianDay t(jd(aTime));
-    t_julianDay s(siderealTime(aTime));
-
-    t_equd equ = apparentPosition(t);
-
-    return equ.toHorizontal(s, latitude, longitude);
+t_horf Moon::horizontalPosition(const t_aTime &aTime, float latitude, float longitude) {
+	t_julianDay t(jd(aTime));
+	t_julianDay s(siderealTime(aTime));
+	t_equf equ = apparentPosition(t);
+	return equ.toHorizontal(s, latitude, longitude);
 }
 
+float Moon::distance(const t_julianDay &t) {
+	// NOTE: This gives the distance from the center of the moon to the
+	// center of the earth.
+	const float sM = _rad(Sun::meanAnomaly(t));
+	const float mM = _rad(meanAnomaly(t));
+	const float mD = _rad(meanElongation(t));
 
-// NOTE: This gives the distance from the center of the moon to the
-// center of the earth. 
+	// ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
 
-const t_longf Moon::distance(const t_julianDay t)
-{
-    const t_longf sM = _rad(Sun::meanAnomaly(t));
+	float Sr = 0.016593;
 
-    const t_longf mM = _rad(meanAnomaly(t));
-    const t_longf mD = _rad(meanElongation(t));
-    const t_longf mF = _rad(meanLatitude(t));
+	Sr += 0.000904f * cos(+1 * mM);
+	Sr += 0.000166f * cos(2 * mD - 1 * mM);
+	Sr += 0.000137f * cos(2 * mD);
+	Sr += 0.000049f * cos(+2 * mM);
+	Sr += 0.000015f * cos(2 * mD + 1 * mM);
+	Sr += 0.000009f * cos(2 * mD - 1 * sM);
 
-    const t_julianDay T(jCenturiesSinceSE(t));
-
-    // Correction for eccentricity of the Earth's orbit around the sun.
-
-    // (AA.45.6)
-
-    const t_longf E = 1.0  
-        + T * (- 0.002516 
-        + T * (- 0.0000074));
-
-    const t_longf EE = E * E;
-
-    // (AA.45.A)
-
-    t_longf Sr = 0.0;
-
-    Sr -= 20905.355 * cos(                 + 1 * mM         );
-    Sr -=  3699.111 * cos( 2 * mD          - 1 * mM         );
-    Sr -=  2955.968 * cos( 2 * mD                           );
-    Sr -=   569.925 * cos(                 + 2 * mM         );
-    Sr +=    48.888 * cos(        + 1 * sM                  ) * E;
-    Sr -=     3.149 * cos(                          + 2 * mF);
-    Sr +=   246.158 * cos( 2 * mD          - 2 * mM         );
-    Sr -=   152.138 * cos( 2 * mD - 1 * sM - 1 * mM         ) * E;
-    Sr -=   170.733 * cos( 2 * mD          + 1 * mM         );
-    Sr -=   204.586 * cos( 2 * mD - 1 * sM                  ) * E;
-    Sr -=   129.620 * cos(        + 1 * sM - 1 * mM         ) * E;
-    Sr +=   108.743 * cos( 1 * mD                           );
-    Sr +=   104.755 * cos(        + 1 * sM + 1 * mM         ) * E;
-    Sr +=    10.321 * cos( 2 * mD                   - 2 * mF);
-    Sr +=    79.661 * cos(                 + 1 * mM - 2 * mF);
-    Sr -=    34.782 * cos( 4 * mD          - 1 * mM         );
-    Sr -=    23.210 * cos(                 + 3 * mM         );
-    Sr -=    21.636 * cos( 4 * mD          - 2 * mM         );
-    Sr +=    24.208 * cos( 2 * mD + 1 * sM - 1 * mM         ) * E;
-    Sr +=    30.824 * cos( 2 * mD + 1 * sM                  ) * E;
-    Sr -=     8.379 * cos( 1 * mD          - 1 * mM         );
-    Sr -=    16.675 * cos( 1 * mD + 1 * sM                  ) * E;
-    Sr -=    12.831 * cos( 2 * mD - 1 * sM + 1 * mM         ) * E;
-    Sr -=    10.445 * cos( 2 * mD          + 2 * mM         );
-    Sr -=    11.650 * cos( 4 * mD                           );
-    Sr +=    14.403 * cos( 2 * mD          - 3 * mM         );
-    Sr -=     7.003 * cos(        + 1 * sM - 2 * mM         ) * E;
-    Sr +=    10.056 * cos( 2 * mD - 1 * sM - 2 * mM         ) * E;
-    Sr +=     6.322 * cos( 1 * mD          + 1 * mM         );
-    Sr -=     9.884 * cos( 2 * mD - 2 * sM                  ) * EE;
-    Sr +=     5.751 * cos(        + 1 * sM + 2 * mM         ) * E;
-    Sr -=     4.950 * cos( 2 * mD - 2 * sM - 1 * mM         ) * EE;
-    Sr +=     4.130 * cos( 2 * mD          + 1 * mM - 2 * mF);
-    Sr -=     3.958 * cos( 4 * mD - 1 * sM - 1 * mM         ) * E;
-    Sr +=     3.258 * cos( 3 * mD          - 1 * mM         );
-    Sr +=     2.616 * cos( 2 * mD + 1 * sM + 1 * mM         ) * E;
-    Sr -=     1.897 * cos( 4 * mD - 1 * sM - 2 * mM         ) * E;
-    Sr -=     2.117 * cos(        + 2 * sM - 1 * mM         ) * EE;
-    Sr +=     2.354 * cos( 2 * mD + 2 * sM - 1 * mM         ) * EE;
-    Sr -=     1.423 * cos( 4 * mD          + 1 * mM         );
-    Sr -=     1.117 * cos(                 + 4 * mM         );
-    Sr -=     1.571 * cos( 4 * mD - 1 * sM                  ) * E;
-    Sr -=     1.739 * cos( 1 * mD          - 2 * mM         );
-    Sr -=     4.421 * cos(                 + 2 * mM - 2 * mF);
-    Sr +=     1.165 * cos(        + 2 * sM + 1 * mM         ) * EE;
-    Sr +=     8.752 * cos( 2 * mD          - 1 * mM - 2 * mF);
-
-    const t_longf D = 385000.56 + Sr; // in kilometers
-
-    return D;
+	return Earth::meanRadius() / Sr;
 }
 
+void Moon::opticalLibrations(const t_julianDay &t, float &l, float &b) {
+	// (AA.51.1)
+	const float Dr = _rad(Earth::longitudeNutation(t));
+	const float F = _rad(meanLatitude(t));
+	const float O = _rad(meanOrbitLongitude(t));
 
-void Moon::opticalLibrations(
-    const t_julianDay t
-,   t_longf &l /* librations in longitude */
-,   t_longf &b /* librations in latitude  */)
-{
-    // (AA.51.1)
+	const t_eclf ecl = position(t);
+	const float lo = _rad(ecl.longitude);
+	const float la = _rad(ecl.latitude);
 
-    const t_longf Dr = _rad(Earth::longitudeNutation(t));
+	static const float I = _rad(1.54242f);
 
-    const t_longf F  = _rad(meanLatitude(t));
-    const t_longf O  = _rad(meanOrbitLongitude(t));
+	const float cos_la = cos(la);
+	const float sin_la = sin(la);
+	const float cos_I = cos(I);
+	const float sin_I = sin(I);
 
-    const t_ecld ecl = position(t);
-    const t_longf lo = _rad(ecl.longitude);
-    const t_longf la = _rad(ecl.latitude);
+	const float W = _rev(lo - Dr - O);
+	const float sin_W = sin(W);
 
-    static const t_longf I = _rad(1.54242);
+	const float A = _rev(atan2(sin_W * cos_la * cos_I - sin_la * sin_I, cos(W) * cos_la));
 
-    const t_longf cos_la = cos(la);
-    const t_longf sin_la = sin(la);
-    const t_longf cos_I  = cos(I);
-    const t_longf sin_I  = sin(I);
-
-    const t_longf W  = _rev(lo - Dr - O);
-    const t_longf sin_W  = sin(W);
-
-    const t_longf A  = _rev(atan2(sin_W * cos_la * cos_I - sin_la * sin_I, cos(W) * cos_la));
-
-    l = _deg(A - F);
-    b = _deg(asin(-sin_W * cos_la * sin_I - sin_la * cos_I));
+	l = _deg(A - F);
+	b = _deg(asin(-sin_W * cos_la * sin_I - sin_la * cos_I));
 }
 
+float Moon::parallacticAngle(const t_aTime &aTime, float latitude, float longitude) {
+	// (AA.13.1)
+	const t_julianDay t(jd(aTime));
 
-const t_longf Moon::parallacticAngle(
-    const t_aTime &aTime
-,   const t_longf latitude
-,   const t_longf longitude)
-{
-    // (AA.13.1)
+	const float la = _rad(latitude);
+	const float lo = _rad(longitude);
 
-    const t_julianDay t(jd(aTime));
+	const t_equf pos = apparentPosition(t);
+	const float ra = _rad(pos.right_ascension);
+	const float de = _rad(pos.declination);
 
-    const t_longf la = _rad(latitude);
-    const t_longf lo = _rad(longitude);
+	const float s = _rad(siderealTime(aTime));
 
-    const t_equd pos = apparentPosition(t);
-    const t_longf ra = _rad(pos.right_ascension);
-    const t_longf de = _rad(pos.declination);
-     
-    const t_longf s  = _rad(siderealTime(aTime));
+	// (AA.p88) - local hour angle
 
-    // (AA.p88) - local hour angle
+	const float H = s + lo - ra;
 
-    const t_longf H = s + lo - ra;
+	const float cos_la = cos(la);
+	const float P = atan2(sin(H) * cos_la, sin(la) * cos(de) - sin(de) * cos_la * cos(H));
 
-    const t_longf cos_la = cos(la);
-    const t_longf P = atan2(sin(H) * cos_la, sin(la) * cos(de) - sin(de) * cos_la * cos(H));
-
-    return _deg(P);
+	return _deg(P);
 }
 
+float Moon::positionAngleOfAxis(const t_julianDay t) {
+	// (AA.p344)
+	const t_equf pos = apparentPosition(t);
 
-const t_longf Moon::positionAngleOfAxis(const t_julianDay t)
-{
-    // (AA.p344)
+	const float a = _rad(pos.right_ascension);
+	const float e = _rad(Earth::meanObliquity(t));
 
-    const t_equd pos = apparentPosition(t);
+	const float Dr = _rad(Earth::longitudeNutation(t));
+	const float O = _rad(meanOrbitLongitude(t));
 
-    const t_longf a  = _rad(pos.right_ascension);
-    const t_longf e  = _rad(Earth::meanObliquity(t));
+	const float V = O + Dr;
 
-    const t_longf Dr = _rad(Earth::longitudeNutation(t));
-    const t_longf O  = _rad(meanOrbitLongitude(t));
+	static const float I = _rad(1.54242);
+	const float sin_I = sin(I);
 
-    const t_longf V  = O + Dr;
+	const float X = sin_I * sin(V);
+	const float Y = sin_I * cos(V) * cos(e) - cos(I) * sin(e);
 
-    static const t_longf I = _rad(1.54242);
-    const t_longf sin_I  = sin(I);
+	// optical libration in latitude
 
-    const t_longf X  = sin_I * sin(V);
-    const t_longf Y  = sin_I * cos(V) * cos(e) - cos(I) * sin(e);
+	const t_eclf ecl = position(t);
 
-    // optical libration in latitude
+	const float lo = _rad(ecl.longitude);
+	const float la = _rad(ecl.latitude);
 
-    const t_ecld ecl = position(t);
+	const float W = _rev(lo - Dr - O);
+	const float b = asin(-sin(W) * cos(la) * sin_I - sin(la) * cos(I));
 
-    const t_longf lo = _rad(ecl.longitude);
-    const t_longf la = _rad(ecl.latitude);
+	// final angle
 
-    const t_longf W  = _rev(lo - Dr - O);
-    const t_longf b = asin(-sin(W) * cos(la) * sin_I - sin(la) * cos(I));
+	const float w = _rev(atan2(X, Y));
+	const float P = asin(sqrt(X * X + Y * Y) * cos(a - w) / cos(b));
 
-    // final angle
-
-    const t_longf w  = _rev(atan2(X, Y));
-    const t_longf P = asin(sqrt(X * X + Y * Y) * cos(a - w) / cos(b));
-
-    return _deg(P);
+	return _deg(P);
 }
 
-
-const t_longf Moon::meanRadius()
-{
-    // http://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
-
-    static const t_longf r = 1737.1; // in kilometers
-
-    return r; 
+float Moon::meanRadius() {
+	// http://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+	static const float r = 1737.1f; // in kilometers
+	return r;
 }
-
-} // namespace osgHimmel

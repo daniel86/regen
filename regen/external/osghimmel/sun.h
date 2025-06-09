@@ -1,5 +1,4 @@
-
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel MÃ¼ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -28,41 +27,30 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
-#ifndef __SUN_H__
-#define __SUN_H__
+#ifndef OSG_HIMMEL_SUN_H_
+#define OSG_HIMMEL_SUN_H_
 
 #include "declspec.h"
 #include "typedefs.h"
 #include "julianday.h"
 #include "coords.h"
 
+namespace osgHimmel {
+	class Sun {
+	public:
+		static float meanAnomaly(const t_julianDay &t);
 
-namespace osgHimmel
-{
+		static float meanLongitude(const t_julianDay &t);
 
-class Sun
-{
-public:
+		static t_equf apparentPosition(const t_julianDay &t);
 
-    static const t_longf meanAnomaly(const t_julianDay t);
-    static const t_longf meanLongitude(const t_julianDay t);
+		static t_horf horizontalPosition(const t_aTime &aTime, float latitude, float longitude);
 
-    static const t_longf center(const t_julianDay t);
+		static float distance(const t_julianDay &t);
 
-    static const t_longf trueAnomaly(const t_julianDay t);
-    static const t_longf trueLongitude(const t_julianDay t);
-
-    static const t_equd apparentPosition(const t_julianDay t);
-    static const t_hord horizontalPosition(
-        const t_aTime &aTime
-    ,   const t_longf latitude
-    ,   const t_longf longitude);
-
-    static const t_longf distance(const t_julianDay t);
-
-    static const t_longf meanRadius();
-};
+		static float meanRadius();
+	};
 
 } // namespace osgHimmel
 
-#endif // __SUN_H__
+#endif // OSG_HIMMEL_SUN_H_

@@ -15,10 +15,13 @@
 
 namespace regen {
 	namespace math {
+		constexpr float DEG_TO_RAD = M_PI / 180.0;
+		constexpr float RAD_TO_DEG = 180.0 / M_PI;
+
 		/**
 		 * Check if floating point values are equal.
 		 */
-		static inline GLboolean isApprox(const GLfloat &a, const GLfloat &b, GLfloat delta = 1e-6) {
+		static inline bool isApprox(const float &a, const float &b, float delta = 1e-6) {
 			return abs(a - b) <= delta;
 		}
 
@@ -26,25 +29,25 @@ namespace regen {
 		 * linearly interpolate between two values.
 		 */
 		template<class T>
-		static inline T mix(T x, T y, GLdouble a) { return x * (1.0 - a) + y * a; }
+		static inline T mix(T x, T y, double a) { return x * (1.0 - a) + y * a; }
 
 		/**
 		 * constrain a value to lie between two further values.
 		 */
-		static inline GLfloat clamp(GLfloat x, GLfloat min, GLfloat max) {
+		static inline float clamp(float x, float min, float max) {
 			if (x > max) return max;
 			else if (x < min) return min;
 			else return x;
 		}
 
-		static inline GLfloat smoothstep(GLfloat edge0, GLfloat edge1, GLfloat x) {
+		static inline float smoothstep(float edge0, float edge1, float x) {
 			// Scale, bias and saturate x to 0..1 range
 			x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
 			// Evaluate polynomial
 			return x * x * (3 - 2 * x);
 		}
 
-		static inline GLfloat smootherstep(GLfloat edge0, GLfloat edge1, GLfloat x) {
+		static inline float smootherstep(float edge0, float edge1, float x) {
 			// Scale, and clamp x to 0..1 range
 			x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
 			// Evaluate polynomial
@@ -55,7 +58,7 @@ namespace regen {
 		 * linearly interpolate between two values.
 		 */
 		template<class T>
-		static inline T lerp(const T &x, const T &y, GLdouble a) { return x * (1.0 - a) + y * a; }
+		static inline T lerp(const T &x, const T &y, double a) { return x * (1.0 - a) + y * a; }
 
 		/**
 		 * spherical linear interpolation between two vectors.

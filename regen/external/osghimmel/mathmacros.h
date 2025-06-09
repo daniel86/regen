@@ -1,5 +1,4 @@
-
-// Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+// Copyright (c) 2011-2012, Daniel MÃ¼ller <dm@g4t3.de>
 // Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
 // All rights reserved.
 //
@@ -32,14 +31,14 @@
 #define __MATHMACROS_H__
 
 #include <math.h>
-
+#include <regen/math/math.h>
 
 namespace osgHimmel
 {
 
 #define _PI 3.1415926535897932384626433832795L
-#define _PI2  (_PI * 2.00L)
-#define _PI_2 (_PI * 0.50L)
+#define _PI2  regen::math::twoPi<t_longf>()
+#define _PI_2 regen::math::halfPi<t_longf>()
 #define _PI4  (_PI * 4.00L)
 #define _PI_4 (_PI * 0.25L)
 
@@ -61,11 +60,9 @@ namespace osgHimmel
 #define _clamp(l, u, x) \
     ((x) < (l) ? (l) : (x) > (u) ? (u) : (x))
 
-#define _deg(rad) \
-    ((rad) * 180.0L / _PI)
+#define _deg(rad) ((rad) * regen::math::RAD_TO_DEG)
 
-#define _rad(deg) \
-    ((deg) * _PI / 180.0L)
+#define _rad(deg) ((deg) * regen::math::DEG_TO_RAD)
 
 #define _mi(a, b) \
     ((a) < (b) ? (a) : (b))
