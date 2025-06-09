@@ -1,10 +1,3 @@
-/*
- * animation-manager.cpp
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
 #include <map>
 
 #include <regen/utility/threading.h>
@@ -17,9 +10,6 @@ using namespace regen;
 #define IDLE_SLEEP 100000
 // Synchronize animation and render thread.
 #define SYNCHRONIZE_THREADS
-// Use a spinlock instead of a condition variables
-#define USE_SYNCHRONIZE_SPINLOCK
-#define SYNCHRONIZE_SPINLOCK_SLEEP 10
 
 AnimationManager &AnimationManager::get() {
 	static AnimationManager manager;
@@ -27,7 +17,8 @@ AnimationManager &AnimationManager::get() {
 }
 
 AnimationManager::AnimationManager()
-		: animInProgress_(false),
+		: frameBarrier_(2),
+		  animInProgress_(false),
 		  glInProgress_(false),
 		  removeInProgress_(false),
 		  addInProgress_(false),
@@ -41,7 +32,7 @@ AnimationManager::AnimationManager()
 
 AnimationManager::~AnimationManager() {
 	closeFlag_ = true;
-	nextFrame();
+	frameBarrier_.arrive_and_drop();
 	thread_.join();
 }
 
@@ -192,79 +183,10 @@ void AnimationManager::removeAnimation(Animation *animation) {
 	removeInProgress_ = false;
 }
 
-void AnimationManager::nextFrame() {
-	// set the next frame condition to true
-	// and notify waitForFrame if it is waiting.
-	// waitForStep waits only if it was faster to render
-	// a new frame then calculating the next animation step
-	hasNextFrame_.store(true, std::memory_order_relaxed);
-#ifndef USE_SYNCHRONIZE_SPINLOCK
-	frameCond_.notify_all();
-#endif
-}
-
-void AnimationManager::nextStep() {
-	// set the next step condition to true
-	// and notify waitForStep if it is waiting.
-	// waitForStep waits only if it was faster to render
-	// a new frame then calculating the next animation step
-	hasNextStep_.store(true, std::memory_order_relaxed);
-#ifndef USE_SYNCHRONIZE_SPINLOCK
-	stepCond_.notify_all();
-#endif
-}
-
-void AnimationManager::waitForFrame() {
-#ifdef SYNCHRONIZE_THREADS
-	#ifdef USE_SYNCHRONIZE_SPINLOCK
-	while (!hasNextFrame_.load(std::memory_order_acquire)) {
-		#ifdef SYNCHRONIZE_SPINLOCK_SLEEP
-		std::this_thread::sleep_for(std::chrono::microseconds(SYNCHRONIZE_SPINLOCK_SLEEP));
-		#endif
-	}
-	#else
-	// wait until a new frame is rendered.
-	{
-		boost::unique_lock<boost::mutex> lock(frameMut_);
-		while (!hasNextFrame_.load(std::memory_order_acquire)) {
-			frameCond_.wait(lock);
-		}
-	}
-	#endif // USE_SYNCHRONIZE_SPINLOCK
-	// toggle hasNextFrame_ to false
-	hasNextFrame_.store(false, std::memory_order_release);
-#endif
-}
-
-void AnimationManager::waitForStep() {
-#ifdef SYNCHRONIZE_THREADS
-	// wait for hasNextStep_ to be true
-	#ifdef USE_SYNCHRONIZE_SPINLOCK
-	while (!hasNextStep_.load(std::memory_order_acquire)) {
-		#ifdef SYNCHRONIZE_SPINLOCK_SLEEP
-		std::this_thread::sleep_for(std::chrono::microseconds(SYNCHRONIZE_SPINLOCK_SLEEP));
-		#endif
-	}
-	#else
-	{
-		boost::unique_lock<boost::mutex> lock(stepMut_);
-		while (!hasNextStep_.load(std::memory_order_acquire)) {
-			stepCond_.wait(lock);
-		}
-	}
-	#endif // USE_SYNCHRONIZE_SPINLOCK
-	// toggle hasNextStep_ to false
-	hasNextStep_.store(false, std::memory_order_release);
-#endif
-}
-
 void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
-	if (pauseFlag_) return;
+	if (pauseFlag_) { return; }
 	glThreadID_ = boost::this_thread::get_id();
 
-#ifdef SYNCHRONIZE_THREADS
-	nextFrame();
-#endif
 	// wait for remove/remove to return
 	while (removeInProgress_) usleepRegen(1000);
 	while (addInProgress_) usleepRegen(1000);
@@ -295,8 +217,9 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 		}
 	}
 	glInProgress_ = false;
-
-	waitForStep();
+#ifdef SYNCHRONIZE_THREADS
+	frameBarrier_.arrive_and_wait();
+#endif
 }
 
 void AnimationManager::runUnsynchronized(Animation *animation) const {
@@ -372,7 +295,7 @@ void AnimationManager::run() {
 				}
 			}
 			for (auto &index : spatialIndices_) {
-				index.second->update(dt);
+				index.second->update(static_cast<float>(dt));
 			}
 			animInProgress_ = false;
 #ifndef SYNCHRONIZE_THREADS
@@ -382,8 +305,7 @@ void AnimationManager::run() {
 		lastTime_ = time_;
 
 #ifdef SYNCHRONIZE_THREADS
-		nextStep();
-		waitForFrame();
+		frameBarrier_.arrive_and_wait();
 #endif // SYNCHRONIZE_THREADS
 	}
 }
@@ -393,7 +315,7 @@ void AnimationManager::close(bool blocking) {
 	if (blocking) {
 		boost::thread::id callingThread = boost::this_thread::get_id();
 		if (callingThread != animationThreadID_)
-			while (animInProgress_) usleepRegen(1000); // TODO: rather use signals
+			while (animInProgress_) usleepRegen(1000);
 		if (callingThread != glThreadID_)
 			while (glInProgress_) usleepRegen(1000);
 	}
@@ -417,11 +339,6 @@ void AnimationManager::clear() {
 	spatialIndices_.clear();
 }
 
-void AnimationManager::resume(bool blocking) {
+void AnimationManager::resume() {
 	pauseFlag_ = false;
-	if (blocking) {
-		auto last_t = lastTime_;
-		nextFrame();
-		while (last_t == lastTime_) usleepRegen(1000);
-	}
 }

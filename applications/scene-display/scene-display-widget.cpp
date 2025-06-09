@@ -1052,7 +1052,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	lightStates_ = sceneParser.getResources()->getLights();
 	AnimationManager::get().setSpatialIndices(spatialIndices_);
 	AnimationManager::get().resetTime();
-	AnimationManager::get().resume(true);
+	AnimationManager::get().resume();
 	REGEN_INFO("XML Scene Loaded.");
 }
 

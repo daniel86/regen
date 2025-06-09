@@ -1,15 +1,9 @@
-/*
- * animation-manager.h
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
-#ifndef GL_ANIMATION_MANAGER_H_
-#define GL_ANIMATION_MANAGER_H_
+#ifndef REGEN_ANIMATION_MANAGER_H_
+#define REGEN_ANIMATION_MANAGER_H_
 
 #include <list>
 #include <set>
+#include <barrier>
 
 #include <regen/utility/threading.h>
 #include <regen/animations/animation.h>
@@ -46,17 +40,6 @@ namespace regen {
 		void updateGraphics(RenderState *rs, GLdouble dt);
 
 		/**
-		 * Wait until next step was calculated in animation thread.
-		 */
-		void waitForStep();
-
-		/**
-		 * Wake up the animation thread if it is waiting for
-		 * the next frame to finish.
-		 */
-		void nextFrame();
-
-		/**
 		 * Close animation thread.
 		 */
 		void close(bool blocking = false);
@@ -75,7 +58,7 @@ namespace regen {
 		/**
 		 * Resumes previously paused glAnimations.
 		 */
-		void resume(bool blocking=false);
+		void resume();
 
 		/**
 		 * Reset the time of the animation manager.
@@ -130,6 +113,8 @@ namespace regen {
 		boost::thread::id addThreadID_;
 		boost::thread thread_;
 		boost::mutex threadLock_;
+		std::barrier<> frameBarrier_;
+		boost::mutex unsynchronizedMut_;
 
 		bool animInProgress_;
 		bool glInProgress_;
@@ -140,14 +125,6 @@ namespace regen {
 		bool closeFlag_;
 		bool pauseFlag_;
 
-		boost::mutex stepMut_;
-		boost::mutex frameMut_;
-		boost::mutex unsynchronizedMut_;
-		boost::condition_variable stepCond_;
-		boost::condition_variable frameCond_;
-		std::atomic<bool> hasNextFrame_ = false;
-		std::atomic<bool> hasNextStep_ = false;
-
 		AnimationManager();
 
 		~AnimationManager();
@@ -155,11 +132,7 @@ namespace regen {
 		void run();
 
 		void runUnsynchronized(Animation *animation) const;
-
-		void nextStep();
-
-		void waitForFrame();
 	};
 } // namespace
 
-#endif /* GL_ANIMATION_MANAGER_H_ */
+#endif /* REGEN_ANIMATION_MANAGER_H_ */
