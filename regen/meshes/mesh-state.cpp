@@ -80,7 +80,11 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 	if (!meshShader_.get()) return;
 
 	if (in->isBufferBlock()) {
-		auto block = (BufferBlock *) (in.get());
+		auto *block = dynamic_cast<BufferBlock*>(in.get());
+		if (!block) {
+			REGEN_ERROR("Shader input '" << name << "' is not a BufferBlock.");
+			return;
+		}
 		for (auto &blockUniform: block->blockInputs()) {
 			if (blockUniform.in_->numInstances() > 1) {
 				inputContainer_->set_numInstances(blockUniform.in_->numInstances());
