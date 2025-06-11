@@ -56,6 +56,7 @@ Scene::Scene(const int &argc, const char **argv)
 	requiredExt_.emplace_back("GL_ARB_texture_float");
 	requiredExt_.emplace_back("GL_ARB_texture_multisample");
 	requiredExt_.emplace_back("GL_ARB_viewport_array");
+	requiredExt_.emplace_back("GL_ARB_buffer_storage");
 	requiredExt_.emplace_back("GL_ARB_uniform_buffer_object");
 	requiredExt_.emplace_back("GL_ARB_vertex_array_object");
 	requiredExt_.emplace_back("GL_ARB_map_buffer_range");
@@ -239,6 +240,7 @@ void Scene::initGL() {
 	REGEN_DEBUG("MAX_COMPUTE_WORK_GROUP_COUNT: " << glParam<Vec3i>(GL_MAX_COMPUTE_WORK_GROUP_COUNT));
 	REGEN_DEBUG("MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " << glParam<int>(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS));
 	REGEN_DEBUG("MAX_COMPUTE_SHARED_MEMORY_SIZE: " << glParam<int>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE));
+	REGEN_DEBUG("MIN_MAP_BUFFER_ALIGNMENT: " << glParam<int>(GL_MIN_MAP_BUFFER_ALIGNMENT));
 #undef DEBUG_GLi
 
 	setupShaderLoading();
