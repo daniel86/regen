@@ -4,12 +4,15 @@
 #include "regen/states/state.h"
 #include "regen/scene/shader-input-processor.h"
 
-#define BUFFER_BLOCK_DISABLE_PERSISTENT
-
 using namespace regen;
 
+//#define BUFFER_BLOCK_DISABLE_PERSISTENT
 static bool usePersistentMapping(BufferUsage usage) {
+#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
+	return false;
+#else
 	return usage == BUFFER_USAGE_STREAM_COPY || usage == BUFFER_USAGE_STREAM_DRAW;
+#endif
 }
 
 BufferBlock::BufferBlock(
@@ -134,7 +137,13 @@ void BufferBlock::updateBlockInputs() {
 	hasNewStamp_ = hasNewStamp_ && hasClientData_;
 }
 
-void BufferBlock::updateAlignedData(BlockInput &uboInput) {
+void BufferBlock::updateStridedData(BlockInput &uboInput) {
+	// Some attributes cannot be stored tightly packed in the buffer,
+	// especially vec3 arrays or mat3 arrays cannot be stored tightly packed
+	// in STD140 or STD430 layouts, so we need to align them to 16 bytes.
+	// Which means there is a stride between array elements, which unfortunately
+	// means that we need to copy element-by-element to the buffer instead of
+	// copying the whole array at once using memcpy.
 	auto &in = uboInput.input;
 	auto numElements = in->numArrayElements() * in->numInstances();
 	if (numElements == 1) {
@@ -180,7 +189,7 @@ void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partia
 		    uboInput.input->stamp() == uboInput.lastStamp) { continue; }
 		if (!uboInput.input->hasClientData()) { continue; }
 		// copy the data to the buffer.
-		updateAlignedData(uboInput);
+		updateStridedData(uboInput);
 		if (uboInput.alignedData) {
 			memcpy(bufferData + uboInput.offset,
 				   uboInput.alignedData, uboInput.alignedSize);
@@ -196,10 +205,9 @@ void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partia
 
 void BufferBlock::update(bool forceUpdate) {
 	// NOTE: this function is performance critical!
-	// TODO Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
-	// TODO: count number of changed attributes, if 1 or 2, make partial update!
-	//          - better: build ranges of changed attributes and update only those ranges if num ranges is 1 or 2.
-	//
+	// TODO: Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
+	// TODO: Build ranges of changed attributes and update only those ranges if num ranges is small, i.e. 1 or 2,
+	//       and buffer is not mapped persistently.
 	if (!isBlockValid_) return;
 	updateBlockInputs();
 	bool needsResize = allocatedSize_ != requiredSize_;
@@ -229,45 +237,47 @@ void BufferBlock::update(bool forceUpdate) {
 	}
 	static const bool partialUpdate = false;
 
-	RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
-#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
 	// temporary disable persistent mapping until it is working nicely...
-	usePersistentMapping_ = false;
-#endif
 	if (usePersistentMapping_) {
-		static constexpr uint32_t mappingFlags = BufferMapping::WRITE | BufferMapping::PERSISTENT | BufferMapping::COHERENT;
+		static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_COHERENT;
+		// TODO: Enable FLUSH_EXPLICIT + disable COHERENT -> should be faster!
+		//       However, I keep getting nullptr from glMapBufferRange with FLUSH_EXPLICIT on AMD GPU.
+		//static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_FLUSH_EXPLICIT;
 		if (!persistentMapping_.get()) {
-			persistentMapping_ = ref_ptr<BufferMapping>::alloc(mappingFlags, BufferMapping::SINGLE_BUFFER);
-			if(!persistentMapping_->initializeMapping(allocatedSize_, glTarget_)) {
+			persistentMapping_ = ref_ptr<BufferMapping>::alloc(
+					mappingFlags,
+					TRIPLE_BUFFER,
+					BufferMapping::RING_BUFFER);
+			// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
+			// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
+			//persistentMapping_->setAllowFrameDropping(true);
+
+			if(!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
 				REGEN_WARN("something went wrong with persistent mapping initialization.");
-				for (auto &blockInput: blockInputs_) {
-					REGEN_WARN("     block input '" << blockInput.input->name() << "' will not be updated.");
-				}
+				isBlockValid_ = false;
 			}
 		} else if (needsResize) {
-			if(!persistentMapping_->initializeMapping(allocatedSize_, glTarget_)) {
+			if(!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
 				REGEN_WARN("something went wrong with persistent mapping re-initialization.");
-				for (auto &blockInput: blockInputs_) {
-					REGEN_WARN("     block input '" << blockInput.input->name() << "' will not be updated.");
-				}
+				isBlockValid_ = false;
 			}
 		}
-		auto *mappedData = persistentMapping_->mapCopyWrite();
+		auto *mappedData = persistentMapping_->beginWriteBuffer(partialUpdate);
 		if (mappedData) {
+			//RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
 			copyBufferData(static_cast<char *>(mappedData), forceUpdate, partialUpdate);
-			persistentMapping_->unmapCopyWrite(ref_, glTarget_);
-		} else {
-			REGEN_WARN("failed to map buffer persistently");
-			isBlockValid_ = false;
+			persistentMapping_->endWriteBuffer(ref_, glTarget_);
+			stamp_ += 1;
 		}
-	}
-	else {
+		return;
+	} else {
 		if (persistentMapping_.get()) {
 			persistentMapping_ = {};
 		}
-		int mappingFlags = GL_MAP_WRITE_BIT;
+		RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
+		uint32_t mappingFlags = MAP_WRITE;
 		if (!partialUpdate) {
-			mappingFlags |= GL_MAP_INVALIDATE_RANGE_BIT;
+			mappingFlags |= MAP_INVALIDATE_RANGE;
 			// Orphan old storage, but only if this buffer block occupies the whole buffer!
 			if (ref_->fullBufferSize() == ref_->allocatedSize()) {
 				glBufferData(glTarget_, ref_->allocatedSize(), nullptr, usage_);
@@ -277,12 +287,12 @@ void BufferBlock::update(bool forceUpdate) {
 		if (bufferData) {
 			copyBufferData(static_cast<char *>(bufferData), forceUpdate, partialUpdate);
 			unmap();
+			stamp_ += 1;
 		} else {
 			REGEN_WARN("failed to map buffer");
 			isBlockValid_ = false;
 		}
 	}
-	stamp_ += 1;
 }
 
 void BufferBlock::enableBufferBlock(GLint loc) {

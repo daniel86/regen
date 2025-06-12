@@ -245,6 +245,11 @@ void Scene::initGL() {
 
 	setupShaderLoading();
 
+	// set some configuration options
+	// TODO: check if it make a different e.g. to use alignment of page size 4096 bytes.
+	//BufferMapping::setMinMapAlignment(4096);
+	BufferMapping::setMinMapAlignment(64);
+
 	BufferObject::createMemoryPools();
 	renderTree_->init();
 	renderState_ = RenderState::get();

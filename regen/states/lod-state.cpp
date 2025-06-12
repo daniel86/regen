@@ -367,8 +367,8 @@ void LODState::createComputeShader() {
 	lodGroupSizeBuffer_->update();
 	// +PBO for reading back the lodGroupSizeBuffer_
 	lodGroupSizeMapping_ = ref_ptr<BufferStructMapping<Vec4ui>>::alloc(
-			BufferMapping::READ | BufferMapping::PERSISTENT | BufferMapping::COHERENT,
-			BufferMapping::DOUBLE_BUFFER);
+			MAP_READ | MAP_PERSISTENT | MAP_COHERENT,
+			DOUBLE_BUFFER);
 
 	{ // radix sort
 		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances());
@@ -454,10 +454,10 @@ void LODState::traverseGPU(RenderState *rs) {
 	radixSort_->disable(rs);
 
 	// Update and read lodGroupSize and update lodNumInstances
-	lodGroupSizeMapping_->updateMapping(
+	lodGroupSizeMapping_->readBuffer(
 			lodGroupSizeBuffer_->blockReference(),
 			GL_SHADER_STORAGE_BUFFER);
-	if (lodGroupSizeMapping_->hasData()) {
+	if (lodGroupSizeMapping_->hasReadData()) {
 		auto &latestData = lodGroupSizeMapping_->storageValue();
 		lodNumInstances_[0] = latestData.x;
 		lodNumInstances_[1] = latestData.y;

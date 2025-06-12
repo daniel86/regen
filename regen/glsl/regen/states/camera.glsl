@@ -49,14 +49,14 @@
     #define REGEN_VIEW_PROJ_INV_(layer) in_inverseViewProjectionMatrix
 #endif
 #ifdef IS_ARRAY_cameraDirection
-    #define REGEN_CAM_DIR_(layer) in_cameraDirection[layer]
+    #define REGEN_CAM_DIR_(layer) in_cameraDirection[layer].xyz
 #else
-    #define REGEN_CAM_DIR_(layer) in_cameraDirection
+    #define REGEN_CAM_DIR_(layer) in_cameraDirection.xyz
 #endif
 #ifdef IS_ARRAY_cameraPosition
-    #define REGEN_CAM_POS_(layer) in_cameraPosition[layer]
+    #define REGEN_CAM_POS_(layer) in_cameraPosition[layer].xyz
 #else
-    #define REGEN_CAM_POS_(layer) in_cameraPosition
+    #define REGEN_CAM_POS_(layer) in_cameraPosition.xyz
 #endif
 #ifdef IS_ARRAY_near
     #define REGEN_CAM_NEAR_(layer) in_near[layer]

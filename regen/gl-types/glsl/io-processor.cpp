@@ -226,6 +226,8 @@ IOProcessor::InputOutput IOProcessor::getUniformIO(const NamedShaderInput &unifo
 }
 
 void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
+	static constexpr const char *swizzlePatterns[] = {"x", "xy", "xyz", "xyzw" };
+
 	list<NamedShaderInput> specifiedInput = state.in.specifiedInput;
 	InputOutput io;
 	io.layout = "";
@@ -266,8 +268,8 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 		}
 		else if (in->numInstances() > 1 && currStage_ != GL_COMPUTE_SHADER) {
 			io.name = "instances_" + nameWithoutPrefix;
-			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix <<
-					" instances_" << nameWithoutPrefix << "[regen_InstanceID]"));
+			lineQueue_.push_back(REGEN_STRING("#define in_" << nameWithoutPrefix
+				<< " instances_" << nameWithoutPrefix << "[regen_InstanceID]"));
 		}
 		else {
 			io.name = "in_" + nameWithoutPrefix;
@@ -327,6 +329,49 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 				auto blockNameWithoutPrefix = getNameWithoutPrefix(blockUniform.name_.empty() ?
 						blockUniform.in_->name() : blockUniform.name_);
 				memberIO.ioType = "";
+
+				bool needsPaddingHack = false;
+#if 0
+				bool isArray = blockUniform.in_->numElements() > 1 || blockUniform.in_->forceArray();
+				bool isUBO = block->storageQualifier() == BufferBlock::StorageQualifier::UNIFORM;
+				if (isArray) {
+					auto bytesPerElement = blockUniform.in_->valsPerElement() * blockUniform.in_->dataTypeBytes();
+					if (isUBO && bytesPerElement < 16) {
+						// array elements in UBOs must be padded to 16 bytes.
+						needsPaddingHack = true;
+					} else if (isSSBO && bytesPerElement == 12) {
+						// array elements in SSBOs with 12 bytes (vec3) must be padded to 16 bytes.
+						needsPaddingHack = true;
+					}
+				}
+				if (needsPaddingHack) {
+					if (blockUniform.in_->baseType() == GL_FLOAT) {
+						memberIO.dataType = "vec4";
+					} else if (blockUniform.in_->baseType() == GL_INT) {
+						memberIO.dataType = "ivec4";
+					} else if (blockUniform.in_->baseType() == GL_UNSIGNED_INT) {
+						memberIO.dataType = "uvec4";
+					} else if (blockUniform.in_->baseType() == GL_DOUBLE) {
+						memberIO.dataType = "dvec4";
+					} else if (blockUniform.in_->baseType() == GL_INT64_ARB) {
+						memberIO.dataType = "i64vec2";
+					} else if (blockUniform.in_->baseType() == GL_UNSIGNED_INT64_ARB) {
+						memberIO.dataType = "u64vec2";
+					} else {
+						REGEN_WARN("UBO array '" << memberIO.name <<
+								   "' has array elements with unknown type < 16 bytes. ");
+						needsPaddingHack = false;
+					}
+					if (needsPaddingHack) {
+						auto renaming = REGEN_STRING("_padded_" << blockNameWithoutPrefix);
+						lineQueue_.push_back(REGEN_STRING("#define " << memberIO.name << " " << renaming));
+						memberIO.name = renaming;
+						REGEN_WARN("padding UBO array element '" << memberIO.name <<
+								   "' to 16 bytes for compatibility with OpenGL.");
+					}
+				}
+#endif
+
 				// last element in SSBO can omit the array size
 				if (isSSBO && i == block->blockInputs().size() - 1) {
 					memberIO.requiresArrayElements = false;
@@ -340,8 +385,14 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 							"(i) in_" << blockNameWithoutPrefix << "[i]"));
 					}
 					else {
-						lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix <<
-							" instances_" << blockNameWithoutPrefix << "[regen_InstanceID]"));
+						if (needsPaddingHack) {
+							lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix
+								<< " instances_" << blockNameWithoutPrefix << "[regen_InstanceID]."
+								<< swizzlePatterns[blockUniform.in_->valsPerElement()-1]));
+						} else {
+							lineQueue_.push_back(REGEN_STRING("#define in_" << blockNameWithoutPrefix
+								<< " instances_" << blockNameWithoutPrefix << "[regen_InstanceID]"));
+						}
 						lineQueue_.push_back(REGEN_STRING("#define fetch_" << blockNameWithoutPrefix <<
 							"(i) instances_" << blockNameWithoutPrefix << "[i]"));
 					}

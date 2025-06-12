@@ -12,8 +12,8 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 	addBlockInput(createUniform<ShaderInput4i,Vec4i>("bboxMax", Vec4i(0)));
 	update();
 	bboxMapping_ = ref_ptr<BufferStructMapping<BoundingBoxBlock>>::alloc(
-			BufferMapping::READ | BufferMapping::PERSISTENT | BufferMapping::COHERENT,
-			BufferMapping::DOUBLE_BUFFER);
+			MAP_READ | MAP_PERSISTENT | MAP_COHERENT,
+			DOUBLE_BUFFER);
 }
 
 namespace regen {
@@ -29,8 +29,8 @@ namespace regen {
 
 bool BBoxBuffer::updateBoundingBox() {
 	bool hasChanged = false;
-	bboxMapping_->updateMapping(blockReference(), GL_SHADER_STORAGE_BUFFER);
-	if (bboxMapping_->hasData()) {
+	bboxMapping_->readBuffer(blockReference(), GL_SHADER_STORAGE_BUFFER);
+	if (bboxMapping_->hasReadData()) {
 		auto &bbox = bboxMapping_->storageValue();
         bboxMin_.x = biasedToFloat(bbox.min.x);
         bboxMin_.y = biasedToFloat(bbox.min.y);

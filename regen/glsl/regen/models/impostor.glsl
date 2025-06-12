@@ -15,7 +15,7 @@ uint selectViewIdx(vec3 viewDirLocal) {
     #endfor
     **/
     for (uint i = 0; i < NUM_IMPOSTOR_VIEWS; ++i) {
-        d = dot(viewDirLocal, in_snapshotDirs[i]);
+        d = dot(viewDirLocal, in_snapshotDirs[i].xyz);
         if (d > maxDot) {
             maxDot = d;
             bestIndex = i;
