@@ -383,6 +383,16 @@ namespace regen {
 
 		static void clear(BuddyNode *n);
 	};
+
+	/**
+	 * \brief Aligns a size to the next multiple of the given alignment.
+	 * @param size the size to align.
+	 * @param alignment the alignment to use.
+	 * @return aligned size.
+	 */
+	inline size_t alignUp(size_t size, size_t alignment) {
+		return (size + alignment - 1) & ~(alignment - 1);
+	}
 }
 
 #endif /* MEMORY_ALLOCATOR_H_ */
