@@ -167,7 +167,7 @@ float ramp_emitterDistance(float max)
 #include regen.states.textures.rampCoordinate
 float ramp_cameraDistance(float max)
 {
-    return rampCoordinate(length(out_pos - in_cameraPosition) / max);
+    return rampCoordinate(length(out_pos - in_cameraPosition.xyz) / max);
 }
 #endif
 
@@ -236,7 +236,7 @@ void particlePosition(inout uint seed, inout vec3 pos)
     // Note that this is done here rather in the draw function such that particles
     // cannot be dragged away in case emitter moves.
 #if ${EMITTER_POSITION_MODE} == CAMERA_RELATIVE
-    pos += in_cameraPosition;
+    pos += in_cameraPosition.xyz;
 #endif
 #ifdef HAS_emitterPosition
     // the position is given in form of a uniform vec3 in world space.
@@ -341,7 +341,7 @@ void particleEmit(inout uint seed)
 -- vs
 #include regen.particles.emitter.inputs
 #include regen.particles.emitter.defines
-uniform vec3 in_cameraPosition;
+uniform vec4 in_cameraPosition;
 
 #include regen.particles.emitter.particleUpdate
 #include regen.particles.emitter.particleEmit

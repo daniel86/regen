@@ -6,7 +6,7 @@
 
 using namespace regen;
 
-//#define BUFFER_BLOCK_DISABLE_PERSISTENT
+#define BUFFER_BLOCK_DISABLE_PERSISTENT
 static bool usePersistentMapping(BufferUsage usage) {
 #ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
 	return false;
@@ -278,10 +278,6 @@ void BufferBlock::update(bool forceUpdate) {
 		uint32_t mappingFlags = MAP_WRITE;
 		if (!partialUpdate) {
 			mappingFlags |= MAP_INVALIDATE_RANGE;
-			// Orphan old storage, but only if this buffer block occupies the whole buffer!
-			if (ref_->fullBufferSize() == ref_->allocatedSize()) {
-				glBufferData(glTarget_, ref_->allocatedSize(), nullptr, usage_);
-			}
 		}
 		void *bufferData = map(ref_, mappingFlags);
 		if (bufferData) {

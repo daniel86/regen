@@ -179,14 +179,14 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
     // Height of water intersecting with view ray.
     float level = in_surfaceHeight;
     // Vector from camera to sampled scene point
-    vec3 eyeVec = position - in_cameraPosition;
+    vec3 eyeVec = position - REGEN_CAM_POS_(in_layer);
     float diff = level - position.y;
-    float cameraDepth = in_cameraPosition.y - position.y;
+    float cameraDepth = REGEN_CAM_POS_(in_layer).y - position.y;
     float isAtFarPlane = step(0.99998, sceneDepth);
     // Find intersection with water surface
     vec3 eyeVecNorm = normalize(eyeVec);
-    float t = (level - in_cameraPosition.y) / eyeVecNorm.y;
-    vec3 surfacePoint = in_cameraPosition + eyeVecNorm * t;
+    float t = (level - REGEN_CAM_POS_(in_layer).y) / eyeVecNorm.y;
+    vec3 surfacePoint = REGEN_CAM_POS_(in_layer) + eyeVecNorm * t;
 
     // Sample height map a few times to find wave amplitude
     float biasFactor = 1.0/float(${NUM_HEIGHT_SAMPLES});
@@ -194,14 +194,14 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
 #for INDEX to ${NUM_HEIGHT_SAMPLES}
     uv = biasFactor * in_waveScale * (surfacePoint.xz + eyeVecNorm.xz) + windOffset;
     level += biasFactor*in_maxAmplitude * texture(in_heightTexture, uv).r;
-    t = (level - in_cameraPosition.y) / eyeVecNorm.y;
-    surfacePoint = in_cameraPosition + eyeVecNorm * t;
+    t = (level - REGEN_CAM_POS_(in_layer).y) / eyeVecNorm.y;
+    surfacePoint = REGEN_CAM_POS_(in_layer) + eyeVecNorm * t;
 #endfor
     //surfacePoint.y -= (level - in_surfaceHeight);
     surfacePoint.y -= in_maxAmplitude;
 
     // Compute eye vector with corrected surface point
-    eyeVecNorm = normalize(in_cameraPosition - surfacePoint);
+    eyeVecNorm = normalize(REGEN_CAM_POS_(in_layer) - surfacePoint);
     float depth = length(position - surfacePoint);
     float depth2 = surfacePoint.y - position.y;
 #ifdef USE_FOAM
@@ -316,7 +316,7 @@ void main()
     // initialize output color to scene color
     out_color = texture(in_refractionTexture, texco);
     // check if camera is below water surface
-    if(in_cameraPosition.y<in_surfaceHeight) {
+    if(REGEN_CAM_POS_(in_layer).y < in_surfaceHeight) {
         computeUnderWaterColor(posWorldSpace,depth,texco,out_color);
     }
     // check if point is below water surface

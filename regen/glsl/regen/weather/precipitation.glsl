@@ -2,7 +2,7 @@
 -- spawnParticle
 void spawnParticle(inout uint seed)
 {
-    out_pos = variance(in_emitterCone.xyx, seed) + in_cameraPosition;
+    out_pos = variance(in_emitterCone.xyx, seed) + in_cameraPosition.xyz;
     out_velocity = variance(in_initialVelocity, seed);
     out_velocity.y = -abs(out_velocity.y);
 #ifdef HAS_brightness
@@ -133,7 +133,7 @@ void emitSprite(vec3 quadPos[4], int layer)
 }
 
 void main() {
-    vec3 zAxis = normalize(in_cameraPosition-in_pos[0]);
+    vec3 zAxis = normalize(in_cameraPosition.xyz-in_pos[0]);
     vec3 yAxis = normalize(in_velocity[0]+in_gravity);
     vec3 quadPos[4] = computeSpritePoints(in_pos[0], in_particleSize, zAxis, yAxis);
     emitSprite(quadPos,out_layer);

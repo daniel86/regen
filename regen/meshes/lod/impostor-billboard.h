@@ -206,7 +206,7 @@ namespace regen {
 		ref_ptr<SSBO> ssbo_snapshotOrthoBounds_;
 		ref_ptr<SSBO> ssbo_snapshotDepthRanges_;
 		// array of view directions, one for each snapshot
-		ref_ptr<ShaderInput3f> snapshotDirs_;
+		ref_ptr<ShaderInput4f> snapshotDirs_;
 		// meshes may have different aspect ratios, so we need to store the bounds
 		ref_ptr<ShaderInput4f> snapshotOrthoBounds_;
 		// the depth ranges for each snapshot, used to compute the depth

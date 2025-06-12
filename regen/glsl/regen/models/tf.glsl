@@ -16,7 +16,7 @@ uniform mat4 in_modelMatrix;
 vec4 transformModel(vec4 posModel) {
     #ifndef IGNORE_modelOffset
         #ifdef HAS_modelOffset
-    posModel.xyz += in_modelOffset;
+    posModel.xyz += in_modelOffset.xyz;
         #endif
     #endif // IGNORE_modelOffset
     #ifndef IGNORE_bones

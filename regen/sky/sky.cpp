@@ -216,7 +216,7 @@ void Sky::animate(GLdouble dt) {
 			computeEyeExtinction(moon))
 	);
 
-	const float fovHalf = camera()->fov()->getVertex(0).r * 0.5f * DEGREE_TO_RAD;
+	const float fovHalf = camera()->projParams()->getVertex(0).r.x * 0.5f * DEGREE_TO_RAD;
 	const float height = static_cast<float>(viewport()->getVertex(0).r.y);
 	q_->setVertex(0, sqrt(2.0f) * 2.0f * tan(fovHalf) / height);
 	R_->setVertex(0, astro().getEquToHorTransform());

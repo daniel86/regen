@@ -58,15 +58,14 @@
 #else
     #define REGEN_CAM_POS_(layer) in_cameraPosition.xyz
 #endif
-#ifdef IS_ARRAY_near
-    #define REGEN_CAM_NEAR_(layer) in_near[layer]
+#ifdef IS_ARRAY_cameraProjParams
+    #define REGEN_CAM_NEAR_(layer) in_cameraProjParams[layer].x
+    #define REGEN_CAM_FAR_(layer)  in_cameraProjParams[layer].y
+    #define REGEN_CAM_PARAMS_(layer) in_cameraProjParams[layer]
 #else
-    #define REGEN_CAM_NEAR_(layer) in_near
-#endif
-#ifdef IS_ARRAY_far
-    #define REGEN_CAM_FAR_(layer) in_far[layer]
-#else
-    #define REGEN_CAM_FAR_(layer) in_far
+    #define REGEN_CAM_NEAR_(layer) in_cameraProjParams.x
+    #define REGEN_CAM_FAR_(layer)  in_cameraProjParams.y
+    #define REGEN_CAM_PARAMS_(layer) in_cameraProjParams
 #endif
 #ifdef USE_PARABOLOID_PROJECTION || IGNORE_VIEW_ROTATION || IGNORE_VIEW_TRANSLATION || IS_VIEW_ALIGNED_GROUND_QUAD
 // enforces that view and projection matrices are applied separately,
@@ -84,54 +83,47 @@
 //// Camera input start
 ////////////////
 
-uniform float in_fov;
-uniform float in_aspect;
+#ifdef IS_ARRAY_cameraProjParams
+#define in_aspect in_cameraProjParams[0].z
+#define in_fov    in_cameraProjParams[0].w
+#else
+#define in_aspect in_cameraProjParams.z
+#define in_fov    in_cameraProjParams.w
+#endif
 
 #if RENDER_TARGET == CUBE
-uniform vec3 in_cameraPosition;
-uniform vec3 in_cameraDirection[6];
-
-uniform float in_near;
-uniform float in_far;
+uniform vec4 in_cameraPosition;
+uniform vec4 in_cameraDirection[6];
+uniform vec4 in_cameraProjParams;
 
 uniform mat4 in_viewMatrix[6];
 uniform mat4 in_inverseViewMatrix[6];
-
 uniform mat4 in_projectionMatrix;
 uniform mat4 in_inverseProjectionMatrix;
-
 uniform mat4 in_viewProjectionMatrix[6];
 uniform mat4 in_inverseViewProjectionMatrix[6];
 
 #elif RENDER_TARGET == 2D_ARRAY
-uniform vec3 in_cameraPosition;
-uniform vec3 in_cameraDirection;
-
-uniform float in_near[${RENDER_LAYER}];
-uniform float in_far[${RENDER_LAYER}];
+uniform vec4 in_cameraPosition;
+uniform vec4 in_cameraDirection;
+uniform vec4 in_cameraProjParams[${RENDER_LAYER}];
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_inverseViewMatrix;
-
 uniform mat4 in_projectionMatrix[${RENDER_LAYER}];
 uniform mat4 in_inverseProjectionMatrix[${RENDER_LAYER}];
-
 uniform mat4 in_viewProjectionMatrix[${RENDER_LAYER}];
 uniform mat4 in_inverseViewProjectionMatrix[${RENDER_LAYER}];
 
 #else // RENDER_TARGET == 2D
-uniform vec3 in_cameraPosition;
-uniform vec3 in_cameraDirection;
-
-uniform float in_near;
-uniform float in_far;
+uniform vec4 in_cameraPosition;
+uniform vec4 in_cameraDirection;
+uniform vec4 in_cameraProjParams;
 
 uniform mat4 in_viewMatrix;
 uniform mat4 in_inverseViewMatrix;
-
 uniform mat4 in_projectionMatrix;
 uniform mat4 in_inverseProjectionMatrix;
-
 uniform mat4 in_viewProjectionMatrix;
 uniform mat4 in_inverseViewProjectionMatrix;
 #endif

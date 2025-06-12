@@ -37,7 +37,7 @@ CubeCamera::CubeCamera(int hiddenFacesMask)
 	direction_->set_numArrayElements(numLayer_);
 	direction_->setUniformUntyped();
 	for (auto i = 0; i < 6; ++i) {
-		direction_->setVertex(i, Mat4f::cubeDirections()[i]);
+		direction_->setVertex3(i, Mat4f::cubeDirections()[i]);
 		if (!isCubeFaceVisible(i)) {
 			shaderDefine(REGEN_STRING("SKIP_LAYER" << i), "1");
 		}
@@ -71,7 +71,7 @@ bool CubeCamera::updateView() {
 	auto viewInv = viewInv_->mapClientData<Mat4f>(ShaderData::WRITE);
 	for (int i = 0; i < 6; ++i) {
 		if (isCubeFaceVisible(i)) {
-			views.w[i] = Mat4f::lookAtMatrix(pos.r, dir[i], up[i]);
+			views.w[i] = Mat4f::lookAtMatrix(pos.r.xyz_(), dir[i], up[i]);
 			viewInv.w[i] = views.w[i].lookAtInverse();
 		}
 	}

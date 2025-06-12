@@ -31,16 +31,12 @@ ArrayCamera::ArrayCamera(unsigned int numLayer)
 	viewProjInv_->set_forceArray(true);
 	viewProjInv_->setUniformUntyped();
 
-	near_->set_numArrayElements(numLayer_);
-	near_->set_forceArray(true);
-	near_->setUniformUntyped();
-
-	far_->set_numArrayElements(numLayer_);
-	far_->set_forceArray(true);
-	far_->setUniformUntyped();
+	projParams_->set_numArrayElements(numLayer_);
+	projParams_->set_forceArray(true);
+	projParams_->setUniformUntyped();
 
 	position_->set_numArrayElements(numLayer_);
 	position_->set_forceArray(true);
 	position_->setUniformUntyped();
-	position_->setVertex(0, Vec3f(0.0f));
+	position_->setVertex(0, Vec4f(0.0f));
 }

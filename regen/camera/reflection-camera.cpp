@@ -38,11 +38,7 @@ ReflectionCamera::ReflectionCamera(
 		  isFront_(GL_TRUE),
 		  hasMesh_(GL_TRUE),
 		  hasBackFace_(hasBackFace) {
-	setPerspective(
-			userCamera_->fov()->getVertex(0).r,
-			userCamera_->aspect()->getVertex(0).r,
-			userCamera_->near()->getVertex(0).r,
-			userCamera_->far()->getVertex(0).r);
+	setPerspective(userCamera_->projParams()->getVertex(0).r);
 
 	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	clipPlane_->setUniformData(Vec4f(0.0f));
@@ -80,11 +76,7 @@ ReflectionCamera::ReflectionCamera(
 		  isFront_(true),
 		  hasMesh_(false),
 		  hasBackFace_(hasBackFace) {
-	setPerspective(
-			userCamera_->aspect()->getVertex(0).r,
-			userCamera_->fov()->getVertex(0).r,
-			userCamera_->near()->getVertex(0).r,
-			userCamera_->far()->getVertex(0).r);
+	setPerspective(userCamera_->projParams()->getVertex(0).r);
 
 	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	clipPlane_->setUniformData(Vec4f(0.0f));
@@ -145,7 +137,7 @@ void ReflectionCamera::updateReflection() {
 
 	// Switch normal if viewer is behind reflector.
 	GLboolean isFront = norWorld_.dot(
-		userCamera_->position()->getVertex(0).r - posWorld_) > 0.0;
+		userCamera_->position()->getVertex(0).r.xyz_() - posWorld_) > 0.0;
 	if (isFront != isFront_) {
 		isFront_ = isFront;
 		reflectorChanged = GL_TRUE;
@@ -171,9 +163,9 @@ void ReflectionCamera::updateReflection() {
 	// Compute reflection camera direction
 	if (reflectorChanged || userCamera_->direction()->stamp() != camDirStamp_) {
 		camDirStamp_ = userCamera_->direction()->stamp();
-		Vec3f dir = reflectionMatrix_.rotateVector(userCamera_->direction()->getVertex(0).r);
+		Vec3f dir = reflectionMatrix_.rotateVector(userCamera_->direction()->getVertex(0).r.xyz_());
 		dir.normalize();
-		direction_->setVertex(0, dir);
+		direction_->setVertex3(0, dir);
 
 		reflectorChanged = GL_TRUE;
 	}
@@ -181,8 +173,8 @@ void ReflectionCamera::updateReflection() {
 	if (reflectorChanged || userCamera_->position()->stamp() != camPosStamp_) {
 		camPosStamp_ = userCamera_->position()->stamp();
 		Vec3f reflected = reflectionMatrix_.transformVector(
-			userCamera_->position()->getVertex(0).r);
-		position_->setVertex(0, reflected);
+			userCamera_->position()->getVertex(0).r.xyz_());
+		position_->setVertex3(0, reflected);
 
 		reflectorChanged = GL_TRUE;
 	}

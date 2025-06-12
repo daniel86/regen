@@ -61,26 +61,21 @@ LightCamera_CSM::LightCamera_CSM(
 	viewProjInv_->set_forceArray(true);
 	viewProjInv_->setUniformUntyped();
 
-	near_->set_numArrayElements(numLayer_);
-	near_->set_forceArray(true);
-	near_->setUniformUntyped();
-
-	far_->set_numArrayElements(numLayer_);
-	far_->set_forceArray(true);
-	far_->setUniformUntyped();
+	projParams_->set_numArrayElements(numLayer_);
+	projParams_->set_forceArray(true);
+	projParams_->setUniformUntyped();
 
 	position_->set_numArrayElements(numLayer_);
 	position_->set_forceArray(true);
 	position_->setUniformUntyped();
-	position_->setVertex(0, Vec3f(0.0f));
+	position_->setVertex(0, Vec4f(0.0f));
 
 	lightMatrix_->set_numArrayElements(numLayer_);
 	lightMatrix_->set_forceArray(true);
 	lightMatrix_->setUniformUntyped();
 	setInput(lightMatrix_);
 	// these are needed to compute the CSM layer given a position
-	setInput(near_, "lightNear");
-	setInput(far_, "lightFar");
+	setInput(projParams_, "lightProjParams");
 	setInput(userCamera_->position(), "userPosition");
 	setInput(userCamera_->direction(), "userDirection");
 	setInput(userCamera_->projection(), "userProjection");
@@ -122,16 +117,18 @@ bool LightCamera_CSM::updateFrustumSplit() {
 		// update frustum splits
 		userCamera_->frustum()[0].split(splitWeight_, userCameraFrustum_);
 		// update near/far values
-		auto farValues = far_->mapClientData<GLfloat>(ShaderData::WRITE);
-		auto nearValues = near_->mapClientData<GLfloat>(ShaderData::WRITE);
+		auto nearFarAspectFov = projParams_->mapClientData<Vec4f>(ShaderData::WRITE);
+		auto *projParams = (ProjectionParams*)nearFarAspectFov.w;
 		for (unsigned int i = 0; i < numLayer_; ++i) {
 			auto &u_frustum = userCameraFrustum_[i];
 			// frustum_->far() is originally in eye space - tell's us how far we can see.
 			// Here we compute it in camera homogeneous coordinates. Basically, we calculate
 			// proj * (0, 0, far, 1)^t and then normalize to [0; 1]
 			// Note: this is used in shaders for computing z coordinate for shadow map lookup
-			farValues.w[i] = 0.5 * (-u_frustum.far * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.far + 0.5;
-			nearValues.w[i] = 0.5 * (-u_frustum.near * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.near + 0.5;
+			projParams[i].near = 0.5 * (-u_frustum.near * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.near + 0.5;
+			projParams[i].far  = 0.5 * (-u_frustum.far * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.far + 0.5;
+			projParams[i].aspect = proj.r(0, 0) / proj.r(1, 1);
+			projParams[i].fov = 0.0f;
 		}
 		hasChanged = true;
 	}
@@ -145,8 +142,8 @@ bool LightCamera_CSM::updateFrustumSplit() {
 		auto userPos = userCamera_->position()->getVertex(0);
 		auto userDir = userCamera_->direction()->getVertex(0);
 		for (unsigned int i = 0; i < numLayer_; ++i) {
-			userCameraFrustum_[i].update(userPos.r, userDir.r);
-			userFrustumCentroids_[i] = userPos.r + userDir.r *
+			userCameraFrustum_[i].update(userPos.r.xyz_(), userDir.r.xyz_());
+			userFrustumCentroids_[i] = userPos.r.xyz_() + userDir.r.xyz_() *
 					((userCameraFrustum_[i].far - userCameraFrustum_[i].near) * 0.5f + userCameraFrustum_[i].near);
 		}
 		hasChanged = true;
@@ -162,7 +159,7 @@ bool LightCamera_CSM::updateLightView() {
 
 	auto f = -light_->direction()->getVertex(0).r;
 	f.normalize();
-	direction_->setVertex(0, f);
+	direction_->setVertex3(0, f);
 #ifdef CSM_USE_SINGLE_VIEW
 	// NOTE: The nvidia example uses a single view matrix for all layers with position at (0,0,0).
 	// but for some reason I have some issues with this approach.
@@ -180,7 +177,7 @@ bool LightCamera_CSM::updateLightView() {
 	));
 	viewInv_->setVertex(0, view_->getVertex(0).lookAtInverse());
 	for (int i = 0; i < numLayer_; ++i) {
-		position_->setVertex(i, Vec3f::zero());
+		position_->setVertex3(i, Vec3f::zero());
 	}
 #else
 	for (unsigned int i = 0; i < numLayer_; ++i) {
@@ -196,10 +193,10 @@ bool LightCamera_CSM::updateLightView() {
 		centroid_z += 1.0f;
 		position_->setVertex(i, userFrustumCentroids_[i] - f*centroid_z);
 #else
-		position_->setVertex(i, userFrustumCentroids_[i] - f*userCameraFrustum_[i].far);
+		position_->setVertex3(i, userFrustumCentroids_[i] - f*userCameraFrustum_[i].far);
 #endif
 		view_->setVertex(i, Mat4f::lookAtMatrix(
-			position_->getVertex(i).r, f, Vec3f::up()));
+			position_->getVertex(i).r.xyz_(), f, Vec3f::up()));
 		viewInv_->setVertex(i, view_->getVertex(i).r.lookAtInverse());
 	}
 #endif
@@ -243,8 +240,8 @@ bool LightCamera_CSM::updateLightProjection() {
 				bounds_ls.min.y, bounds_ls.max.y,
 				bounds_ls.min.z, bounds_ls.max.z);
 		frustum_[layerIndex].update(
-			position_->getVertex(layerIndex).r,
-			direction_->getVertex(0).r);
+			position_->getVertex(layerIndex).r.xyz_(),
+			direction_->getVertex(0).r.xyz_());
 	}
 
 	return true;

@@ -161,7 +161,7 @@ namespace regen {
 		// used internally when handling intersections
 		struct TraversalData {
 			SpatialIndex *index;
-			const Vec3f *camPos;
+			const Vec4f *camPos;
 			bool isMultiShape;
 		};
 

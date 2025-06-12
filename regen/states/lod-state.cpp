@@ -57,7 +57,7 @@ void LODState::updateMeshLOD() {
 	if (!mesh_.get()) { return; }
 	// set LOD level based on distance
 	auto camPos = camera_->position()->getVertex(0);
-	auto distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos.r).lengthSquared();
+	auto distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos.r.xyz_()).lengthSquared();
 	camPos.unmap();
 	updateVisibility(
 			mesh_->getLODLevel(distanceSquared),
@@ -209,7 +209,7 @@ static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__
 
 struct LODSelector_Full {
 	const Mat4f *tfData;
-	const Vec3f *modelOffsetData;
+	const Vec4f *modelOffsetData;
 	const uint32_t *mappedData;
 	const Mesh *mesh;
 	const uint32_t tfIdxMultiplier;
@@ -219,18 +219,18 @@ struct LODSelector_Full {
 		auto idx = mappedData[i];
 		return mesh->getLODLevel((
 										 tfData[tfIdxMultiplier*idx].position() +
-										 modelOffsetData[offsetIdxMultiplier*idx] - camPos).lengthSquared());
+										 modelOffsetData[offsetIdxMultiplier*idx].xyz_() - camPos).lengthSquared());
 	}
 };
 
 struct LODSelector_ModelOffset {
-	const Vec3f *modelOffsetData;
+	const Vec4f *modelOffsetData;
 	const uint32_t *mappedData;
 	const Mesh *mesh;
 
 	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
 		return mesh->getLODLevel((
-										 modelOffsetData[mappedData[i]] - camPos).lengthSquared());
+										 modelOffsetData[mappedData[i]].xyz_() - camPos).lengthSquared());
 	}
 };
 
@@ -300,7 +300,7 @@ void LODState::computeLODGroups() {
 
 	if (hasTF) {
 		if (transform.get() && modelOffset.get()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
+			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ShaderData::READ);
 			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
 			LODSelector_Full selector{
 					.tfData = tfData.r,
@@ -312,10 +312,10 @@ void LODState::computeLODGroups() {
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
-							   camPos.r,
+							   camPos.r.xyz_(),
 							   selector);
 		} else if (modelOffset.get()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec3f>(ShaderData::READ);
+			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ShaderData::READ);
 			LODSelector_ModelOffset selector{
 					.modelOffsetData = modelOffsetData.r,
 					.mappedData = mappedData,
@@ -323,7 +323,7 @@ void LODState::computeLODGroups() {
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
-							   camPos.r,
+							   camPos.r.xyz_(),
 							   selector);
 		} else {
 			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
@@ -334,7 +334,7 @@ void LODState::computeLODGroups() {
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
-							   camPos.r,
+							   camPos.r.xyz_(),
 							   selector);
 		}
 	} else {

@@ -361,7 +361,7 @@ static ref_ptr<SpatialIndex> getSpatialIndex(scene::SceneLoader *scene, SceneInp
 	return spatialIndex;
 }
 
-static ref_ptr<ShaderInput3f> getOffset(
+static ref_ptr<ShaderInput4f> getOffset(
 		SceneInputNode &input,
 		const ref_ptr<Mesh> &mesh,
 		const std::vector<ref_ptr<Mesh>> &parts) {
@@ -376,7 +376,7 @@ static ref_ptr<ShaderInput3f> getOffset(
 	}
 	auto meshOffset = m->findShaderInput("modelOffset");
 	if (meshOffset.has_value()) {
-		auto upcasted = ref_ptr<ShaderInput3f>::dynamicCast(meshOffset.value().in);
+		auto upcasted = ref_ptr<ShaderInput4f>::dynamicCast(meshOffset.value().in);
 		if (upcasted.get()) {
 			return upcasted;
 		} else {

@@ -197,7 +197,7 @@ float computeRainDensity(vec2 angles, int typeIndex) {
 void main() {
   vec3 P = in_posWorld.xyz;
   // camera to raindrop
-  vec3 eyeDir = normalize(in_cameraPosition - P);
+  vec3 eyeDir = normalize(in_cameraPosition.xyz - P);
   // up vector of rain drop space
   vec3 upVector = normalize(in_velocity + in_gravity);
   vec3 lightDir;
@@ -210,19 +210,19 @@ void main() {
 #for INDEX to NUM_LIGHTS
 #define2 __ID ${LIGHT${INDEX}_ID}
 #if LIGHT_TYPE${__ID} == DIRECTIONAL
-  lightDir = normalize(-in_lightDirection${__ID});
+  lightDir = normalize(-in_lightDirection${__ID}.xyz);
 #else
-  lightDir = normalize(in_lightPosition${__ID} - P);
+  lightDir = normalize(in_lightPosition${__ID}.xyz - P);
 #endif
   // Compute angles in range [0.0,180.0]
   angles = computeRainAngles(eyeDir,lightDir,upVector,dotUpInv);
   // Compute rain density at this fragment
   density = in_brightness*computeRainDensity(angles,in_type);
 #ifdef LIGHT_IS_ATTENUATED${__ID}
-  density *= radiusAttenuation(length(P - in_lightPosition${__ID}), in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
+  density *= radiusAttenuation(length(P - in_lightPosition${__ID}.xyz), in_lightRadius${__ID}.x, in_lightRadius${__ID}.y);
 #endif
 #if LIGHT_TYPE${__ID} == SPOT
-  density *= spotConeAttenuation(lightDir, in_lightDirection${__ID}, in_lightConeAngles${__ID});
+  density *= spotConeAttenuation(lightDir, in_lightDirection${__ID}.xyz, in_lightConeAngles${__ID});
 #endif
 
   out_color += density*vec4(in_lightDiffuse${__ID},1.0);

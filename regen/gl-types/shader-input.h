@@ -865,6 +865,11 @@ namespace regen {
 				const std::string &name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
+
+		void setVertex3(GLuint i, const Vec3f &val) {
+			auto mapped = mapClientData<Vec4f>(ShaderData::WRITE | ShaderData::INDEX);
+			mapped.w[i].xyz_() = val;
+		}
 	};
 
 	/**

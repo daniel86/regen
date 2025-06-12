@@ -44,7 +44,7 @@ const vec2 in_farDistance = vec2(150.0, 200.0);
 #endif
 
 vec3 applyFogToColor(vec3 sceneColor, float sceneDepth, vec3 posWorld) {
-    vec3 eye = posWorld - in_cameraPosition;
+    vec3 eye = posWorld - REGEN_CAM_POS_(in_layer);
     float eyeLength = length(eye);
     vec3 eyeDir = eye / eyeLength;
     // Compute fog factor based on distance to camera, eye direction, and (optionally) height.
@@ -243,6 +243,8 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
 {
     vec3 p = start, lightVec;
     float shadow = 0.0, shadowDepth;
+    float lightNear = in_lightProjParams.x;
+    float lightFar = in_lightProjParams.y;
     // ray through the light volume
     vec3 stepRay = stop-start;
     // scale factor for the ray (clamp to minimum to avoid tight samples)
@@ -250,18 +252,18 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
     stepRay *= step;
     // step through the volume
     for(float i=step; i<1.0; i+=step) {
-        lightVec = in_lightPosition - p;
+        lightVec = in_lightPosition.xyz - p;
     #ifdef IS_POINT_LIGHT
         /*************************************/
         /***** PARABOLIC SHADOW MAPPING ******/
         /*************************************/
         #if POINT_LIGHT_TYPE == PARABOLIC
-        int parabolicLayer = int(dot(lightVec, in_lightDirection[0]) > 0.0);
+        int parabolicLayer = int(dot(lightVec, in_lightDirection[0].xyz) > 0.0);
         vec4 shadowCoord = parabolicShadowCoord(
                 parabolicLayer,
                 P,
                 in_lightMatrix[parabolicLayer],
-                in_lightNear, in_lightFar);
+                lightNear, lightFar);
         float shadow = parabolicShadowSingle(in_shadowTexture, shadowCoord);
             #if NUM_SHADOW_LAYER == 1
         shadow *= float(1 - parabolicLayer);
@@ -276,15 +278,15 @@ float volumeShadow(vec3 start, vec3 stop, float _step)
             in_shadowTexture,
             lightVec,
             shadowDepth,
-            in_lightNear,
-            in_lightFar,
+            lightNear,
+            lightFar,
             in_shadowInverseSize.x);
         #endif
     #endif
     #ifdef IS_SPOT_LIGHT
         shadow += spotShadowSingle(
                 in_shadowTexture, in_lightMatrix*vec4(p,1.0),
-                lightVec, in_lightNear, in_lightFar);
+                lightVec, lightNear, lightFar);
     #endif
         p += stepRay;
     }
@@ -298,62 +300,62 @@ void main()
     vecTexco texco = computeTexco(texco_2D);
     
     vec3 vertexPos = transformTexcoToWorld(texco_2D, texture(in_gDepthTexture, texco).x, in_layer);
-    vec3 vertexRay = vertexPos-in_cameraPosition;
+    vec3 vertexRay = vertexPos-in_cameraPosition.xyz;
     // fog volume scales light radius
     vec2 lightRadius = in_lightRadius*in_fogRadiusScale;
     // compute point in the volume with maximum light intensity
 #ifdef IS_SPOT_LIGHT
     // compute a ray. all intersections must be in range [0,1]*ray
-    vec3 ray1 = in_intersection - in_cameraPosition;
+    vec3 ray1 = in_intersection - in_cameraPosition.xyz;
     float toggle = float(dot(ray1,ray1) > dot(vertexRay,vertexRay));
     vec3 ray = toggle*vertexRay + (1.0-toggle)*ray1;
     // compute intersection points
     vec2 t = computeConeIntersections(
-        in_cameraPosition, ray,
-        in_lightPosition,
-        normalize(in_lightDirection),
+        in_cameraPosition.xyz, ray,
+        in_lightPosition.xyz,
+        normalize(in_lightDirection.xyz),
         in_lightConeAngles.y);
     t.x = clamp(t.x,0.0,1.0);
     t.y = clamp(t.y,0.0,1.0);
     // clamp to ray length
-    vec3 x = in_cameraPosition + 0.5*(t.x+t.y)*ray;
+    vec3 x = in_cameraPosition.xyz + 0.5*(t.x+t.y)*ray;
 #else
     float d = clamp(pointVectorDistance(
-        vertexRay, in_lightPosition - in_cameraPosition), 0.0, 1.0);
-    vec3 x = in_cameraPosition + d*vertexRay;
+        vertexRay, in_lightPosition.xyz - in_cameraPosition.xyz), 0.0, 1.0);
+    vec3 x = in_cameraPosition.xyz + d*vertexRay;
 #endif
     // compute fog exposure by distance to camera
-    float dCam = length(x-in_cameraPosition)/length(vertexRay);
+    float dCam = length(x-in_cameraPosition.xyz)/length(vertexRay);
     // compute fog exposure by distance to camera
     float exposure = in_fogExposure * (1.0 - fogIntensity(dCam));
 #ifdef IS_SPOT_LIGHT
     // approximate spot falloff.
     exposure *= spotConeAttenuation(
-        normalize(in_lightPosition - x),
-        in_lightDirection,
+        normalize(in_lightPosition.xyz - x),
+        in_lightDirection.xyz,
         in_lightConeAngles*in_fogConeScale);
-    vec3 start = in_cameraPosition + t.x*ray;
-    vec3 stop = in_cameraPosition + t.y*ray;
+    vec3 start = in_cameraPosition.xyz + t.x*ray;
+    vec3 stop = in_cameraPosition.xyz + t.y*ray;
 #ifdef HAS_clipPlane
-    bool clip0 = isClipped(in_cameraPosition);
+    bool clip0 = isClipped(in_cameraPosition.xyz);
     bool clip1 = isClipped(start);
     bool clip2 = isClipped(stop);
     if(clip0==clip1 && clip1==clip2) discard;
 #endif
     // compute distance attenuation.
     float a0 = radiusAttenuation(min(
-        distance(in_lightPosition, start),
-        distance(in_lightPosition, stop)),
+        distance(in_lightPosition.xyz, start),
+        distance(in_lightPosition.xyz, stop)),
         lightRadius.x, lightRadius.y);
 #else
 #ifdef HAS_clipPlane
-    bool clip0 = isClipped(in_cameraPosition);
-    bool clip1 = isClipped(in_lightPosition);
+    bool clip0 = isClipped(in_cameraPosition.xyz);
+    bool clip1 = isClipped(in_lightPosition.xyz);
     if(clip0==clip1) discard;
 #endif
     // compute distance attenuation.
     // vertexRay and the light position.
-    float lightDistance = distance(in_lightPosition, x);
+    float lightDistance = distance(in_lightPosition.xyz, x);
     float a0 = radiusAttenuation(lightDistance, lightRadius.x, lightRadius.y);
 #endif
 
@@ -361,8 +363,8 @@ void main()
     // sample shadow map along ray through volume
 #ifdef IS_POINT_LIGHT
     float omega = sqrt(lightRadius.y*lightRadius.y - lightDistance*lightDistance);
-    vec3 start = in_cameraPosition + clamp(d+omega, 0.0, 1.0)*vertexRay;
-    vec3 stop = in_cameraPosition + clamp(d-omega, 0.0, 1.0)*vertexRay;
+    vec3 start = in_cameraPosition.xyz + clamp(d+omega, 0.0, 1.0)*vertexRay;
+    vec3 stop = in_cameraPosition.xyz + clamp(d-omega, 0.0, 1.0)*vertexRay;
 #endif
     exposure *= volumeShadow(start,stop,in_shadowSampleStep);
 #endif
@@ -370,17 +372,17 @@ void main()
 #ifdef USE_TBUFFER
     // TODO: test
     vec3 alphaPos = transformTexcoToWorld(texco_2D, texture(in_tDepthTexture, texco).x, in_layer);
-    float dLightAlpha = distance(alphaPos, in_lightPosition);
+    float dLightAlpha = distance(alphaPos, in_lightPosition.xyz);
     float a1 = radiusAttenuation(dLightAlpha, lightRadius.x, lightRadius.y));
     vec4 tcolor = texture(in_tColorTexture, texco);
 #if 0
     float dz = sqrt(pow(in_radius,2) - pow(dnl,2));
-    float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition,alphaPos));
+    float blendFactor = smoothstep(dLightNearest - dz, dLightNearest + dz, distance(in_cameraPosition.xyz,alphaPos));
 #else
     // x=1 -> transparent object in front else x=0
     // when transparent object is in front then at least 50% of the volume
     // is blended with the transparent color
-    float x = float(dCamNearest>distance(in_cameraPosition,alphaPos));
+    float x = float(dCamNearest>distance(in_cameraPosition.xyz,alphaPos));
     // occlusion=1 -> the other 50% are also occluded.
     float occlusion = x - (2.0*x - 1.0)*a1/a0;
     // linear blend between unoccluded volume and transparency occluded

@@ -65,7 +65,7 @@ namespace regen {
 		/**
 		 * @return the model offset of this shape, if any.
 		 */
-		const ref_ptr<ShaderInput3f> &modelOffset() const { return modelOffset_; }
+		const ref_ptr<ShaderInput4f> &modelOffset() const { return modelOffset_; }
 
 		/**
 		 * @return the instance ID map, if any (only used if num instances > 1).
@@ -81,7 +81,7 @@ namespace regen {
 		std::string shapeName_;
 		std::vector<ref_ptr<Mesh>> parts_;
 		ref_ptr<ModelTransformation> tf_;
-		ref_ptr<ShaderInput3f> modelOffset_;
+		ref_ptr<ShaderInput4f> modelOffset_;
 		uint32_t numInstances_ = 1u;
 		ref_ptr<ShaderInput1ui> instanceIDMap_;
 		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera

@@ -33,7 +33,7 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 	matVal_ = Mat4f::identity();
 	#define REGEN_ORIENT_THRESHOLD_ 0.1
 	orientThreshold_ = 0.5 * M_PI + REGEN_ORIENT_THRESHOLD_;
-	pos_ = cam->position()->getVertex(0).r;
+	pos_ = cam->position()->getVertex(0).r.xyz_();
 }
 
 void CameraController::setAttachedTo(

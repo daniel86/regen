@@ -246,8 +246,8 @@ void SceneDisplayWidget::toggleOnCameraTransform() {
 	if (cameraController_.get()) {
 		// update the camera position
 		cameraController_->setTransform(
-				mainCamera_->position()->getVertex(0).r,
-				mainCamera_->direction()->getVertex(0).r);
+				mainCamera_->position()->getVertex(0).r.xyz_(),
+				mainCamera_->direction()->getVertex(0).r.xyz_());
 		cameraController_->startAnimation();
 		cameraController_->animate(0.0);
 	}
@@ -264,8 +264,8 @@ void SceneDisplayWidget::activateAnchor() {
 	auto &anchor = anchors_[anchorIndex_];
 	auto camPos = mainCamera_->position()->getVertex(0);
 	auto camDir = mainCamera_->direction()->getVertex(0);
-	auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos.r, camDir.r);
-	double dt = getAnchorTime(anchor->position(), camPos.r);
+	auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos.r.xyz_(), camDir.r.xyz_());
+	double dt = getAnchorTime(anchor->position(), camPos.r.xyz_());
 	camPos.unmap();
 	camDir.unmap();
 
@@ -317,8 +317,8 @@ void SceneDisplayWidget::playAnchor() {
 	anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
 	auto camPos = mainCamera_->position()->getVertex(0);
 	auto camDir = mainCamera_->direction()->getVertex(0);
-	anchorAnim_->push_back(camPos.r, camDir.r, 0.0);
-	Vec3f lastPos = camPos.r;
+	anchorAnim_->push_back(camPos.r.xyz_(), camDir.r.xyz_(), 0.0);
+	Vec3f lastPos = camPos.r.xyz_();
 	for (auto &anchor: anchors_) {
 		double dt = getAnchorTime(anchor->position(), lastPos);
 		anchorAnim_->push_back(anchor, dt * anchorTimeScale_);
@@ -439,8 +439,8 @@ void SceneDisplayWidget::toggleCameraPopup() {
 		cameraPopup->setLayout(layout);
 	}
 
-	Vec3f position = mainCamera_->position()->getVertex(0).r;
-	Vec3f direction = mainCamera_->direction()->getVertex(0).r;
+	Vec3f position = mainCamera_->position()->getVertex(0).r.xyz_();
+	Vec3f direction = mainCamera_->direction()->getVertex(0).r.xyz_();
 
 	positionLineEdit->setText(QString("%1, %2, %3").arg(position.x).arg(position.y).arg(position.z));
 	directionLineEdit->setText(QString("%1, %2, %3").arg(direction.x).arg(direction.y).arg(direction.z));

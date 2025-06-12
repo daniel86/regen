@@ -130,8 +130,7 @@ void DirectShading::addLight(
 	}
 
 	if (camera.get()) {
-		joinShaderInput(camera->lightCamera()->far(), REGEN_LIGHT_NAME("lightFar", lightID));
-		joinShaderInput(camera->lightCamera()->near(), REGEN_LIGHT_NAME("lightNear", lightID));
+		joinShaderInput(camera->lightCamera()->projParams(), REGEN_LIGHT_NAME("lightProjParams", lightID));
 		joinShaderInput(camera->lightMatrix(), REGEN_LIGHT_NAME("lightMatrix", lightID));
 	}
 	if (shadow.get()) {
@@ -173,8 +172,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 		for (const auto &jt: in) { disjoinShaderInput(jt.in_); }
 	}
 	if (directLight.camera_.get()) {
-		disjoinShaderInput(directLight.camera_->lightCamera()->far());
-		disjoinShaderInput(directLight.camera_->lightCamera()->near());
+		disjoinShaderInput(directLight.camera_->lightCamera()->projParams());
 		disjoinShaderInput(directLight.camera_->lightMatrix());
 	}
 	if (directLight.shadow_.get()) {

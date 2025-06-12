@@ -29,9 +29,9 @@ void CameraControllerBase::updateCamera(const Vec3f &pos, const Vec3f &dir, GLdo
 	auto ubo = cam_->cameraBlock();
 	ubo->lock();
 #endif
-	cam_->position()->setVertex(0, pos);
-	cam_->direction()->setVertex(0, dir);
-	cam_->velocity()->setVertex(0, velocity_);
+	cam_->position()->setVertex3(0, pos);
+	cam_->direction()->setVertex3(0, dir);
+	cam_->velocity()->setVertex3(0, velocity_);
 	cam_->view()->setVertex(0, view_);
 	cam_->viewInverse()->setVertex(0, viewInv_);
 	cam_->viewProjection()->setVertex(0, viewproj_);

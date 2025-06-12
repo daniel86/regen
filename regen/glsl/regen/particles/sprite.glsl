@@ -102,7 +102,7 @@ const float in_lifetimeSmoothstep = 1.0;
 const float in_cameraSmoothstep = 5.0;
 #endif
 
-uniform vec3 in_cameraPosition;
+uniform vec4 in_cameraPosition;
 uniform vec2 in_viewport;
 
 #ifdef USE_SOFT_PARTICLES
@@ -138,7 +138,7 @@ void main() {
 #endif
 #ifdef USE_NEAR_CAMERA_SOFT_PARTICLES
     // fade out particls near camera
-    opacity *= smoothstep(0.0, in_cameraSmoothstep, distance(P, in_cameraPosition));
+    opacity *= smoothstep(0.0, in_cameraSmoothstep, distance(P, in_cameraPosition.xyz));
 #endif
     // fade out based on lifetime
     opacity *= smoothstep(0.0, in_lifetimeSmoothstep, in_lifetime);
@@ -151,7 +151,7 @@ void main() {
     opacity *= color.a;
     #endif
     #ifdef HAS_fogDistance
-    opacity *= fogIntensity(distance(P, in_cameraPosition));
+    opacity *= fogIntensity(distance(P, in_cameraPosition.xyz));
     #endif
     out_density = opacity;
 #else // HAS_DENSITY_OUTPUT

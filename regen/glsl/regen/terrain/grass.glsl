@@ -110,7 +110,7 @@ void main() {
 #endif
 
     // set intial output values
-    out_col = vec4(vec3(random(seed)*0.3 + 0.7), 1.0);
+    vec4 color = vec4(vec3(random(seed)*0.3 + 0.7), 1.0);
 #ifndef HAS_UPWARDS_NORMAL
     out_norWorld = vec3(0,1,0);
 #endif
@@ -131,17 +131,19 @@ void main() {
     vec3 lodPos = center;
     lodPos.xz += in_lodGeomVariance*
         vec2(2.0*random(seed)-1.0, 2.0*random(seed)-1.0);
-    float cameraDistance = length(in_cameraPosition - lodPos);
+    // TODO: support layered rendering here!
+    float cameraDistance = length(REGEN_CAM_POS_(0) - lodPos);
 
     if (cameraDistance < in_lodGeomLevel0) {
-        out_col.rgb *= in_lodGeomBrightness0;
+        color.rgb *= in_lodGeomBrightness0;
     #ifdef USE_FORCE
-        emitSpriteCross(center, vec2(size), orientation, force);
+        emitSpriteCross(center, vec2(size), color, orientation, force);
     #else
-        emitSpriteCross(center, vec2(size), orientation);
+        emitSpriteCross(center, vec2(size), color, orientation);
     #endif
     }
     else if (cameraDistance < in_lodGeomLevel1) {
+        out_col = color;
     #ifdef USE_FORCE
         emitBillboard(center, vec2(size), force);
     #else
@@ -150,9 +152,9 @@ void main() {
     }
 #else
     #ifdef USE_FORCE
-    emitSpriteCross(center, vec2(size), orientation, force);
+    emitSpriteCross(center, vec2(size), color, orientation, force);
     #else
-    emitSpriteCross(center, vec2(size), orientation);
+    emitSpriteCross(center, vec2(size), color, orientation);
     #endif
 #endif
 }

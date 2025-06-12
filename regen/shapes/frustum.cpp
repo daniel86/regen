@@ -14,8 +14,8 @@ using namespace regen;
 Frustum::Frustum() :
 		BoundingShape(BoundingShapeType::FRUSTUM),
 		orthoBounds(Vec2f(0), Vec2f(0)) {
-	modelOffset_ = ref_ptr<ShaderInput3f>::alloc("frustumCenter");
-	modelOffset_->setUniformData(Vec3f(0));
+	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("frustumCenter");
+	modelOffset_->setUniformData(Vec4f(0));
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
 }
@@ -74,8 +74,8 @@ unsigned int Frustum::directionStamp() const {
 void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	Vec3f d = dir;
 	d.normalize();
-	modelOffset_->setUniformData(pos);
-	direction_->setUniformData(d);
+	modelOffset_->setVertex3(0,pos);
+	direction_->setVertex(0, d);
 	shapeOrigin_ = pos;
 
 	if (fov > 0.0) {

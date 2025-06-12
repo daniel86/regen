@@ -13,7 +13,7 @@ MaskMesh::MaskMesh(const ref_ptr<Texture2D> &maskTexture, const Config &cfg)
 	ts->set_mapping(TextureState::MAPPING_XZ_PLANE);
 	joinStates(ts);
 
-	modelOffset_ = ref_ptr<ShaderInput3f>::alloc("modelOffset");
+	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
 	updateAttributes();
 	updateMask(cfg);
 }
@@ -43,7 +43,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 			cfg.quad.posScale.x / cfg.meshSize.x,
 			cfg.quad.posScale.z / cfg.meshSize.y);
 	Vec2f quadHalfSize = Vec2f(cfg.quad.posScale.x, cfg.quad.posScale.z) * 0.5f;
-	std::vector<Vec3f> instanceData(quadCountX * quadCountY);
+	std::vector<Vec4f> instanceData(quadCountX * quadCountY);
 
 	unsigned int numInstances = 0;
 
@@ -64,10 +64,11 @@ void MaskMesh::updateMask(const Config &cfg) {
 				//          could use scaling instead though to make instances smaller. This might be fine for some cases.
 				//auto corrected_x = static_cast<float>(masked.second.min.x + masked.second.max.x) * 0.5f;
 				//auto corrected_y = static_cast<float>(masked.second.min.y + masked.second.max.y) * 0.5f;
-				instanceData[numInstances++] = Vec3f(
+				instanceData[numInstances++] = Vec4f(
 					static_cast<float>( x ) * cfg.quad.posScale.x + quadHalfSize.x - cfg.meshSize.x * 0.5f,
 					cfg.height,
-					static_cast<float>( y ) * cfg.quad.posScale.z + quadHalfSize.y - cfg.meshSize.y * 0.5f);
+					static_cast<float>( y ) * cfg.quad.posScale.z + quadHalfSize.y - cfg.meshSize.y * 0.5f,
+					0.0f);
 			}
 		}
 		maskUV.x = quadSize_ts.x * 0.5f;

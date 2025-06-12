@@ -17,7 +17,11 @@ const float in_far = 100.0;
 #define2 writeDepth_Included
 #include regen.states.camera.linearizeDepth
 void writeDepth(float depth) {
+#ifdef HAS_cameraProjParams
     depth = linearizeDepth(depth, REGEN_CAM_NEAR_(in_layer), REGEN_CAM_FAR_(in_layer));
+#else
+    depth = linearizeDepth(depth, in_near, in_far);
+#endif
     out_color = vec4(depth, depth, depth, 1.0);
 }
 #endif

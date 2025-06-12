@@ -24,7 +24,7 @@ int computeCascadeLayer(vec4 pos) {
     int layer = ${RENDER_LAYER};
     #for LAYER to ${RENDER_LAYER}
     layer = min(layer, ${RENDER_LAYER} -
-        int(d < in_lightFar[${LAYER}]) * (${RENDER_LAYER} - ${LAYER}));
+        int(d < in_lightProjParams[${LAYER}].y) * (${RENDER_LAYER} - ${LAYER}));
     #endfor
     return layer;
 }

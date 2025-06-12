@@ -48,7 +48,7 @@ bool LightCamera_Spot::updateLightView() {
 		lightDirStamp_ == light_->direction()->stamp()) { return false; }
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
-	position_->setVertex(0, light_->position()->getVertex(0).r);
-	direction_->setVertex(0, light_->direction()->getVertex(0).r);
+	position_->setVertex3(0, light_->position()->getVertex(0).r);
+	direction_->setVertex3(0, light_->direction()->getVertex(0).r);
 	return updateView();
 }

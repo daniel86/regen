@@ -5,7 +5,7 @@
 vec3 eyeVectorTan()
 {
     mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);
-    return normalize( tbn * (in_cameraPosition-in_posWorld) );
+    return normalize( tbn * (in_cameraPosition.xyz-in_posWorld) );
 }
 #endif
 

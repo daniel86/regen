@@ -96,7 +96,7 @@ namespace regen {
 		 * @brief Set the transform of this shape
 		 * @param center The transform
 		 */
-		void setTransform(const ref_ptr<ShaderInput3f> &center, unsigned int instanceIndex = 0);
+		void setTransform(const ref_ptr<ShaderInput4f> &center, unsigned int instanceIndex = 0);
 
 		/**
 		 * @brief Get the transform of this shape
@@ -179,7 +179,7 @@ namespace regen {
 	protected:
 		const BoundingShapeType shapeType_;
 		ref_ptr<ModelTransformation> transform_;
-		ref_ptr<ShaderInput3f> modelOffset_;
+		ref_ptr<ShaderInput4f> modelOffset_;
 		Vec3f shapeOrigin_ = Vec3f::zero();
 		ref_ptr<Mesh> mesh_;
 		std::vector<ref_ptr<Mesh>> parts_;

@@ -79,6 +79,8 @@ namespace regen {
 		 */
 		void setPerspective(float aspect, float fov, float near, float far, unsigned int layer);
 
+		void setPerspective(const Vec4f &params);
+
 		/**
 		 * Update frustum projection and projection matrix.
 		 * @param left the left vertical clipping plane.
@@ -110,22 +112,24 @@ namespace regen {
 		/**
 		 * @return specifies the field of view angle, in degrees, in the y direction.
 		 */
-		auto &fov() const { return fov_; }
+		//auto &fov() const { return fov_; }
 
 		/**
 		 * @return specifies the aspect ratio that determines the field of view in the x direction.
 		 */
-		auto &aspect() const { return aspect_; }
+		//auto &aspect() const { return aspect_; }
 
 		/**
 		 * @return specifies the distance from the viewer to the near clipping plane (always positive).
 		 */
-		auto &near() const { return near_; }
+		//auto &near() const { return near_; }
 
 		/**
 		 * @return specifies the distance from the viewer to the far clipping plane (always positive).
 		 */
-		auto &far() const { return far_; }
+		//auto &far() const { return far_; }
+
+		auto &projParams() const { return projParams_; }
 
 		/**
 		 * @return the camera position.
@@ -279,14 +283,15 @@ namespace regen {
 		std::vector<Frustum> frustum_;
 
 		ref_ptr<UBO> cameraBlock_;
-		ref_ptr<ShaderInput1f> fov_;
-		ref_ptr<ShaderInput1f> aspect_;
-		ref_ptr<ShaderInput1f> far_;
-		ref_ptr<ShaderInput1f> near_;
+		//ref_ptr<ShaderInput1f> fov_;
+		//ref_ptr<ShaderInput1f> aspect_;
+		//ref_ptr<ShaderInput1f> far_;
+		//ref_ptr<ShaderInput1f> near_;
+		ref_ptr<ShaderInput4f> projParams_;
 
-		ref_ptr<ShaderInput3f> position_;
-		ref_ptr<ShaderInput3f> direction_;
-		ref_ptr<ShaderInput3f> vel_;
+		ref_ptr<ShaderInput4f> position_;
+		ref_ptr<ShaderInput4f> direction_;
+		ref_ptr<ShaderInput4f> vel_;
 
 		ref_ptr<ShaderInputMat4> view_;
 		ref_ptr<ShaderInputMat4> viewInv_;
@@ -322,6 +327,13 @@ namespace regen {
 	protected:
 		ref_ptr<Camera> cam_;
 		ref_ptr<ShaderInput2i> windowViewport_;
+	};
+
+	struct ProjectionParams {
+		float near = 0.1f; // near plane distance
+		float far = 100.0f; // far plane distance
+		float aspect = 1.0f; // aspect ratio
+		float fov = 60.0f; // field of view in degrees
 	};
 } // namespace
 

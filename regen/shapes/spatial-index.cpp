@@ -101,7 +101,7 @@ void SpatialIndex::handleIntersection_sorted(const BoundingShape &b_shape, void 
 		// Skip if we already added this instance
 		if (data->isMultiShape && b_shape.spatialIndexVisible_) { return; }
 		b_shape.spatialIndexVisible_ = true;
-		float d = (b_shape.getShapeOrigin() - *data->camPos).lengthSquared();
+		float d = (b_shape.getShapeOrigin() - data->camPos->xyz_()).lengthSquared();
 		index_shape->instanceDistances_.push_back({&b_shape, d});
 	}
 }
@@ -173,7 +173,8 @@ void SpatialIndex::updateVisibility() {
 
 		if (ic.second.camera->isOmni()) {
 			// omni camera -> intersection test with bounding sphere
-			BoundingSphere sphereShape(Vec3f::zero(), ic.first->far()->getVertex(0).r);
+			auto projParams = ic.first->projParams()->getVertex(0);
+			BoundingSphere sphereShape(Vec3f::zero(), projParams.r.y);
 			sphereShape.setTransform(ic.first->position());
 			sphereShape.updateTransform(true);
 			updateVisibility(ic.second, sphereShape, false);

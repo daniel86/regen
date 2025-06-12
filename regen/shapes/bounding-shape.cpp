@@ -55,7 +55,7 @@ void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, 
 	transformIndex_ = instanceIndex;
 }
 
-void BoundingShape::setTransform(const ref_ptr<ShaderInput3f> &center, unsigned int instanceIndex) {
+void BoundingShape::setTransform(const ref_ptr<ShaderInput4f> &center, unsigned int instanceIndex) {
 	modelOffset_ = center;
 	modelOffsetIndex_ = instanceIndex;
 }
@@ -75,14 +75,14 @@ Vec3f BoundingShape::translation() const {
 	if (transform_.get()) {
 		auto p = transform_->get()->getVertex(transformIndex_);
 		if (modelOffset_.get()) {
-			return p.r.position() + modelOffset_->getVertex(modelOffsetIndex_).r;
+			return p.r.position() + modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
 		}
 		else {
 			return p.r.position();
 		}
 	}
 	else if (modelOffset_.get()) {
-		return modelOffset_->getVertex(modelOffsetIndex_).r;
+		return modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
 	}
 	else {
 		return Vec3f::zero();

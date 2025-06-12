@@ -31,9 +31,9 @@ void main() {
 #ifdef HAS_modelMatrix
     out_rayOrigin = (
         inverse(in_modelMatrix) *
-        vec4(in_cameraPosition,1.0)).xyz;
+        vec4(in_cameraPosition.xyz,1.0)).xyz;
 #else
-    out_rayOrigin = in_cameraPosition;
+    out_rayOrigin = in_cameraPosition.xyz;
 #endif
     out_rayDirection = in_pos.xyz - out_rayOrigin;
 
@@ -82,7 +82,7 @@ uniform mat4 in_modelMatrix;
 #endif
 uniform sampler3D in_volumeTexture;
 uniform sampler2D in_transferTexture;
-uniform vec3 in_cameraPosition;
+uniform vec4 in_cameraPosition;
 
 const float in_rayStep=0.02;
 const float in_densityThreshold=0.125;

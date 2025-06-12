@@ -46,7 +46,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<Texture2D> maskTexture_;
-		ref_ptr<ShaderInput3f> modelOffset_;
+		ref_ptr<ShaderInput4f> modelOffset_;
 		Vec2f meshSize_;
 	};
 } // namespace
