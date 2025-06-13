@@ -194,6 +194,8 @@ namespace regen {
 		void copyBufferData(char *bufferData, bool forceUpdate, bool partialWrite);
 
 		void updateStridedData(BlockInput &uboInput);
+
+		void resize();
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BufferBlock::MemoryLayout &v);

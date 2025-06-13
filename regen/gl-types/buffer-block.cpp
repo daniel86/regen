@@ -203,6 +203,23 @@ void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partia
 	}
 }
 
+void BufferBlock::resize() {
+	// enforce rebinding
+	bindingIndex_ = -1;
+	if (ref_.get()) {
+		free(ref_.get());
+	}
+	ref_ = allocBytes(requiredSize_);
+	if (!ref_.get()) {
+		REGEN_ERROR("failed to allocate buffer.");
+		isBlockValid_ = false;
+		return;
+	} else {
+		isBlockValid_ = true;
+	}
+	allocatedSize_ = requiredSize_;
+}
+
 void BufferBlock::update(bool forceUpdate) {
 	// NOTE: this function is performance critical!
 	// TODO: Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
@@ -216,20 +233,7 @@ void BufferBlock::update(bool forceUpdate) {
 	std::unique_lock<SpinLock> lock(lock_);
 
 	if (needsResize) {
-		// enforce rebinding
-		bindingIndex_ = -1;
-		if (ref_.get()) {
-			free(ref_.get());
-		}
-		ref_ = allocBytes(requiredSize_);
-		if (!ref_.get()) {
-			REGEN_ERROR("failed to allocate buffer.");
-			isBlockValid_ = false;
-			return;
-		} else {
-			isBlockValid_ = true;
-		}
-		allocatedSize_ = requiredSize_;
+		resize();
 	}
 	if (!hasClientData_) {
 		// do not copy data if there is no client data
