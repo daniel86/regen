@@ -342,6 +342,13 @@ void AnimationManager::clear() {
 	spatialIndices_.clear();
 }
 
-void AnimationManager::resume() {
+void AnimationManager::resume(bool runOnce) {
+	if(runOnce) {
+		for (auto anim : synchronizedAnimations_) {
+			if (anim->isRunning()) {
+				anim->animate(0.0);
+			}
+		}
+	}
 	pauseFlag_ = false;
 }

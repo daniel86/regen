@@ -16,6 +16,7 @@
 #include <regen/states/model-transformation.h>
 #include <regen/gl-types/input-container.h>
 #include "regen/gl-types/ubo.h"
+#include "regen/meshes/lod/lod-level.h"
 
 namespace regen {
 	/**
@@ -110,25 +111,8 @@ namespace regen {
 		auto &cameraBlock() const { return cameraBlock_; }
 
 		/**
-		 * @return specifies the field of view angle, in degrees, in the y direction.
+		 * @return the projection parameters: near, far, aspect, fov.
 		 */
-		//auto &fov() const { return fov_; }
-
-		/**
-		 * @return specifies the aspect ratio that determines the field of view in the x direction.
-		 */
-		//auto &aspect() const { return aspect_; }
-
-		/**
-		 * @return specifies the distance from the viewer to the near clipping plane (always positive).
-		 */
-		//auto &near() const { return near_; }
-
-		/**
-		 * @return specifies the distance from the viewer to the far clipping plane (always positive).
-		 */
-		//auto &far() const { return far_; }
-
 		auto &projParams() const { return projParams_; }
 
 		/**
@@ -271,6 +255,25 @@ namespace regen {
 		 */
 		void updatePose();
 
+		/**
+		 * @return true is the camera has a fixed LOD quality.
+		 */
+		bool hasFixedLOD() const { return hasFixedLOD_; }
+
+		/**
+		 * @return the fixed LOD quality.
+		 */
+		LODQuality fixedLODQuality() const { return fixedLODQuality_; }
+
+		/**
+		 * Set the fixed LOD quality.
+		 * @param quality the LOD quality to set.
+		 */
+		void setFixedLOD(LODQuality quality) {
+			hasFixedLOD_ = true;
+			fixedLODQuality_ = quality;
+		}
+
 		virtual void updateViewProjection1();
 
 	protected:
@@ -279,6 +282,9 @@ namespace regen {
 		bool isOrtho_ = false;
 		bool isAudioListener_ = false;
 		unsigned int camStamp_ = 0u;
+
+		bool hasFixedLOD_ = false;
+		LODQuality fixedLODQuality_ = LODQuality::LOW;
 
 		std::vector<Frustum> frustum_;
 

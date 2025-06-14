@@ -35,6 +35,22 @@ namespace regen {
 		// vertex offset of this LOD level
 		unsigned int offset = 0;
 	};
+
+	/**
+	 * \brief Quality of the LOD level.
+	 *
+	 * This enum represents the quality of the LOD level.
+	 * It can be used to determine which LOD level to use based on the distance to the camera.
+	 */
+	enum class LODQuality {
+		LOW,
+		MEDIUM,
+		HIGH
+	};
+
+	std::ostream &operator<<(std::ostream &out, const LODQuality &quality);
+
+	std::istream &operator>>(std::istream &in, LODQuality &quality);
 }
 
 #endif //REGEN_LOD_LEVEL_H

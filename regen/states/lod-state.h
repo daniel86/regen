@@ -46,10 +46,12 @@ namespace regen {
 		ref_ptr<IndexedShape> shapeIndex_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 		uint32_t cameraStamp_ = 0;
+		uint32_t tfStamp_ = 0;
 
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;
 		std::vector<uint32_t> lodBoundaries_;
+		uint32_t fixedLOD_;
 		ref_ptr<Mesh> mesh_;
 		bool hasShadowTarget_;
 
@@ -61,7 +63,7 @@ namespace regen {
 		ref_ptr<SSBO> lodGroupSizeBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;
 		ref_ptr<BufferStructMapping<Vec4ui>> lodGroupSizeMapping_;
-		Vec4f frustumPlanes_[6];
+		std::vector<Vec4f> frustumPlanes_;
 
 		void initLODState();
 

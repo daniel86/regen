@@ -374,6 +374,10 @@ ref_ptr<Camera> Camera::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 		return {};
 	}
 
+	if (input.hasAttribute("fixed-lod")) {
+		cam->setFixedLOD(input.getValue<LODQuality>("fixed-lod", LODQuality::HIGH));
+	}
+
 	if (input.hasAttribute("culling-index")) {
 		auto spatialIndex = ctx.scene()->getResource<SpatialIndex>(input.getValue("culling-index"));
 		spatialIndex->addCamera(cam, input.getValue<bool>("sort", true));

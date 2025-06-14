@@ -398,9 +398,8 @@ namespace regen {
 		float radius = 0.0f;
 	};
 	struct BoxShape_GPU {
-		Vec3f aabbMin = Vec3f::zero();
-		float padding = 0.0f;
-		Vec3f aabbMax = Vec3f::zero();
+		Vec4f aabbMin = Vec4f::zero();
+		Vec4f aabbMax = Vec4f::zero();
 	};
 }
 
@@ -453,21 +452,21 @@ void Mesh::createShapeBuffer() {
 		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeCenter", Vec3f::zero()));
 		shapeBuffer_->addBlockInput(createUniform<ShaderInput1f, float>("shapeRadius", 0.0f));
 	} else {
-		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeAABBMin", Vec3f::zero()));
-		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeAABBMax", Vec3f::zero()));
+		shapeBuffer_->addBlockInput(createUniform<ShaderInput4f, Vec4f>("shapeAABBMin", Vec4f::zero()));
+		shapeBuffer_->addBlockInput(createUniform<ShaderInput4f, Vec4f>("shapeAABBMax", Vec4f::zero()));
 	}
 	shapeBuffer_->update();
 	setInput(shapeBuffer_);
 }
 
 void Mesh::updateShapeBuffer(byte *shapeData) {
-	RenderState::get()->copyWriteBuffer().push(shapeBuffer_->blockReference()->bufferID());
+	RenderState::get()->uniformBuffer().push(shapeBuffer_->blockReference()->bufferID());
 	glBufferSubData(
-			GL_COPY_WRITE_BUFFER,
+			GL_UNIFORM_BUFFER,
 			shapeBuffer_->blockReference()->address(),
 			shapeBuffer_->blockReference()->allocatedSize(),
 			&shapeData);
-	RenderState::get()->copyWriteBuffer().pop();
+	RenderState::get()->uniformBuffer().pop();
 }
 
 void Mesh::updateShapeBuffer() {
@@ -484,8 +483,8 @@ void Mesh::updateShapeBuffer() {
 	else if (boundingShape_->shapeType() == BoundingShapeType::BOX) {
 		auto *box = (BoundingBox*)(boundingShape_.get());
 		BoxShape_GPU shapeData;
-		shapeData.aabbMin = box->bounds().min;
-		shapeData.aabbMax = box->bounds().max;
+		shapeData.aabbMin.xyz_() = box->bounds().min;
+		shapeData.aabbMax.xyz_() = box->bounds().max;
 		updateShapeBuffer((byte*)&shapeData);
 	}
 }

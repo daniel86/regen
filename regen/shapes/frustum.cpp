@@ -101,18 +101,18 @@ void Frustum::updatePointsPerspective(const Vec3f &pos, const Vec3f &dir) {
 	auto nc = pos + dir * near;
 	auto rw = v * nearPlaneHalfSize.x;
 	auto uh = u * nearPlaneHalfSize.y;
-	points[0] = nc - uh + rw;
-	points[1] = nc + uh - rw;
-	points[2] = nc + uh + rw;
-	points[3] = nc - uh - rw;
+	points[0] = nc - uh + rw; // bottom right
+	points[1] = nc + uh - rw; // top left
+	points[2] = nc + uh + rw; // top right
+	points[3] = nc - uh - rw; // bottom left
 	// far plane points
 	auto fc = pos + dir * far;
 	rw = v * farPlaneHalfSize.x;
 	uh = u * farPlaneHalfSize.y;
-	points[4] = fc - uh + rw;
-	points[5] = fc + uh - rw;
-	points[6] = fc + uh + rw;
-	points[7] = fc - uh - rw;
+	points[4] = fc - uh + rw; // bottom right
+	points[5] = fc + uh - rw; // top left
+	points[6] = fc + uh + rw; // top right
+	points[7] = fc - uh - rw; // bottom left
 }
 
 void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
@@ -128,16 +128,16 @@ void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
 	auto ut = u * orthoBounds.max.y; // top
 	// near plane points
 	auto nc = pos + dir * near;
-	points[0] = nc + vr + ub;
-	points[1] = nc + vl + ut;
-	points[2] = nc + vr + ut;
-	points[3] = nc + vl + ub;
+	points[0] = nc + vr + ub; // bottom right
+	points[1] = nc + vl + ut; // top left
+	points[2] = nc + vr + ut; // top right
+	points[3] = nc + vl + ub; // bottom left
 	// far plane points
 	auto fc = pos + dir * far;
-	points[4] = fc + vr + ub;
-	points[5] = fc + vl + ut;
-	points[6] = fc + vr + ut;
-	points[7] = fc + vl + ub;
+	points[4] = fc + vr + ub; // bottom right
+	points[5] = fc + vl + ut; // top left
+	points[6] = fc + vr + ut; // top right
+	points[7] = fc + vl + ub; // bottom left
 }
 
 bool Frustum::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const {

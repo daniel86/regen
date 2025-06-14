@@ -8,10 +8,16 @@
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256
 #define RADIX_OFFSET_GROUP_SIZE 512
-#undef LOD_DEBUG_GROUPS
+//#define LOD_DEBUG_GROUPS
 #undef LOD_DEBUG_CPU_TIME
 
 using namespace regen;
+
+static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__restrict src, size_t count) {
+	for (size_t i = 0; i < count; ++i) {
+		dst[i] = src[count - 1 - i];
+	}
+}
 
 LODState::LODState(
 		const ref_ptr<Camera> &camera,
@@ -25,6 +31,22 @@ LODState::LODState(
 	} else {
 		REGEN_WARN("No mesh set for shape");
 	}
+	if (camera_->hasFixedLOD()) {
+		if (camera_->fixedLODQuality() == LODQuality::HIGH) {
+			fixedLOD_ = 0u; // always use highest quality LOD
+		} else if (camera_->fixedLODQuality() == LODQuality::LOW) {
+			fixedLOD_ = mesh_->numLODs() - 1u; // always use lowest quality LOD
+		} else {
+			fixedLOD_ = 0u;
+			if (mesh_->numLODs() == 2) {
+				fixedLOD_ = 1u;
+			} else if (mesh_->numLODs() == 3) {
+				fixedLOD_ = 1u;
+			} else if (mesh_->numLODs() > 3) {
+				fixedLOD_ = 2u;
+			}
+		}
+	}
 	initLODState();
 }
 
@@ -33,10 +55,15 @@ void LODState::initLODState() {
 	lodBoundaries_.resize(5);
 	lodBoundaries_[0] = 0;
 	// initially all instances are added to first LOD group
-	lodNumInstances_[0] = cullShape_->numInstances();
-	for (uint32_t i = 1u; i < 4; ++i) {
+	for (uint32_t i = 0u; i < 4; ++i) {
 		lodNumInstances_[i] = 0;
 	}
+	if (camera_->hasFixedLOD()) {
+		lodNumInstances_[fixedLOD_] = cullShape_->numInstances();
+	} else {
+		lodNumInstances_[0] = cullShape_->numInstances();
+	}
+	frustumPlanes_.resize(6 * camera_->frustum().size());
 	if (cullShape_->isIndexShape()) {
 		auto index = cullShape_->spatialIndex();
 		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
@@ -47,10 +74,10 @@ void LODState::initLODState() {
 		createComputeShader();
 	}
 	REGEN_INFO("Created LOD state for cull shape '"
-			   << cullShape_->shapeName()
-			   << "' with " << cullShape_->numInstances() << " instances, "
-			   << mesh_->numLODs() << " LODs, "
-			   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
+					   << cullShape_->shapeName()
+					   << "' with " << cullShape_->numInstances() << " instances, "
+					   << mesh_->numLODs() << " LODs, "
+					   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
 }
 
 void LODState::updateMeshLOD() {
@@ -93,8 +120,10 @@ static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uin
 
 void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
 	// increase LOD level by one if we have a shadow target
-	if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
-		lodLevel++;
+	if (!camera_->hasFixedLOD()) {
+		if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
+			lodLevel++;
+		}
 	}
 	// set the LOD level
 	for (auto &part: cullShape_->parts()) {
@@ -182,9 +211,15 @@ void LODState::traverseCPU(RenderState *) {
 		if (shapeIndex_->isVisible()) {
 			updateMeshLOD();
 		}
+	} else if (camera_->hasFixedLOD()) {
+		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);
 	} else {
+		//if (tfStamp_ != cullShape_->tf()->stamp() || cameraStamp_ != camera_->stamp()) {
+		//	computeLODGroups();
+		//	tfStamp_ = cullShape_->tf()->stamp();
+		//	cameraStamp_ = camera_->stamp();
+		//}
 		computeLODGroups();
-
 		if (mesh_->numLODs() <= 1) {
 			updateVisibility(0, shapeIndex_->numVisibleInstances(), 0);
 		} else {
@@ -201,12 +236,6 @@ void LODState::traverseCPU(RenderState *) {
 	}
 }
 
-static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__restrict src, size_t count) {
-	for (size_t i = 0; i < count; ++i) {
-		dst[i] = src[count - 1 - i];
-	}
-}
-
 struct LODSelector_Full {
 	const Mat4f *tfData;
 	const Vec4f *modelOffsetData;
@@ -218,8 +247,8 @@ struct LODSelector_Full {
 	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
 		auto idx = mappedData[i];
 		return mesh->getLODLevel((
-										 tfData[tfIdxMultiplier*idx].position() +
-										 modelOffsetData[offsetIdxMultiplier*idx].xyz_() - camPos).lengthSquared());
+										 tfData[tfIdxMultiplier * idx].position() +
+										 modelOffsetData[offsetIdxMultiplier * idx].xyz_() - camPos).lengthSquared());
 	}
 };
 
@@ -347,7 +376,7 @@ void LODState::computeLODGroups() {
 
 	// write lodGroups_ data into instanceIDMap_
 	auto &instanceIDMap = cullShape_->instanceIDMap();
-	auto instance_ids = (uint32_t*)instanceIDMap->clientData();
+	auto instance_ids = (uint32_t *) instanceIDMap->clientData();
 	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 		reverse_copy_u32(instance_ids, mappedData, numVisible);
 	} else {
@@ -388,7 +417,7 @@ void LODState::createComputeShader() {
 		cullUBO_->update();
 		// we store the 6 frustum planes in a UBO
 		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer");
-		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", 6));
+		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size()));
 		frustumUBO_->update();
 
 		StateConfigurer shaderCfg;
@@ -397,6 +426,7 @@ void LODState::createComputeShader() {
 		}
 		cullPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.cull");
 		cullPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(cullShape_->numInstances()));
+		cullPass_->computeState()->shaderDefine("NUM_CAMERA_LAYERS", REGEN_STRING(camera_->frustum().size()));
 		cullPass_->computeState()->setNumWorkUnits(static_cast<int>(cullShape_->numInstances()), 1, 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 		cullPass_->joinShaderInput(cullUBO_);
@@ -436,13 +466,16 @@ void LODState::traverseGPU(RenderState *rs) {
 						 &zero);
 
 	// Update the frustum planes in the UBO
+	rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
 	if (cameraStamp_ != camera_->stamp()) {
 		cameraStamp_ = camera_->stamp();
-		auto &frustumPlanes = camera_->frustum()[0].planes;
-		for (int i = 0; i < 6; ++i) {
-			frustumPlanes_[i] = frustumPlanes[i].equation();
+		auto &frustum = camera_->frustum();
+		for (size_t i = 0; i < frustum.size(); ++i) {
+			auto &frustumPlanes = frustum[i].planes;
+			for (int j = 0; j < 6; ++j) {
+				frustumPlanes_[i*6 + j] = frustumPlanes[j].equation();
+			}
 		}
-		rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
 		glBufferSubData(
 				GL_UNIFORM_BUFFER,
 				frustumUBO_->blockReference()->address(),
@@ -451,6 +484,7 @@ void LODState::traverseGPU(RenderState *rs) {
 	}
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
+	// TODO: avoid LOD computation if hasFixedLOD
 	cullPass_->enable(rs);
 	cullPass_->disable(rs);
 

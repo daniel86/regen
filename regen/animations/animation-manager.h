@@ -58,7 +58,7 @@ namespace regen {
 		/**
 		 * Resumes previously paused glAnimations.
 		 */
-		void resume();
+		void resume(bool runOnce = true);
 
 		/**
 		 * Reset the time of the animation manager.
