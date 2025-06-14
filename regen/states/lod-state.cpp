@@ -435,16 +435,19 @@ void LODState::traverseGPU(RenderState *rs) {
 						 &zero);
 
 	// Update the frustum planes in the UBO
-	auto &frustumPlanes = camera_->frustum()[0].planes;
-	for (int i = 0; i < 6; ++i) {
-		frustumPlanes_[i] = frustumPlanes[i].equation();
+	if (cameraStamp_ != camera_->stamp()) {
+		cameraStamp_ = camera_->stamp();
+		auto &frustumPlanes = camera_->frustum()[0].planes;
+		for (int i = 0; i < 6; ++i) {
+			frustumPlanes_[i] = frustumPlanes[i].equation();
+		}
+		rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
+		glBufferSubData(
+				GL_UNIFORM_BUFFER,
+				frustumUBO_->blockReference()->address(),
+				frustumUBO_->blockReference()->allocatedSize(),
+				&frustumPlanes_[0].x);
 	}
-	rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
-	glBufferSubData(
-			GL_UNIFORM_BUFFER,
-			frustumUBO_->blockReference()->address(),
-			frustumUBO_->blockReference()->allocatedSize(),
-			&frustumPlanes_[0].x);
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
 	cullPass_->enable(rs);

@@ -181,12 +181,12 @@ void LightningBolt::setTargetPosition(const regen::Vec3f &to) {
 
 void LightningBolt::updateVertexData() {
 	unsigned int numVertices = segments_[segmentIndex_].size() * 2;
-	RenderState::get()->copyWriteBuffer().push(pos_->buffer());
-	glBufferSubData(GL_COPY_WRITE_BUFFER,
+	RenderState::get()->arrayBuffer().push(pos_->buffer());
+	glBufferSubData(GL_ARRAY_BUFFER,
 					bufferOffset_,
 					numVertices * elementSize_,
 					segments_[segmentIndex_].data());
-	RenderState::get()->copyWriteBuffer().pop();
+	RenderState::get()->arrayBuffer().pop();
 	// update the number of vertices
 	inputContainer()->set_numVertices(numVertices);
 	updateVAO();

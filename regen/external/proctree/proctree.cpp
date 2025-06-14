@@ -682,7 +682,7 @@ namespace Proctree {
 
 		if (aBranch->mChild0->mRing0 != 0) {
 			int segOffset0 = -1, segOffset1 = -1;
-			float match0, match1;
+			float match0 = 0.0f, match1 = 0.0f;
 
 			fvec3 v1 = normalize(sub(mVert[aBranch->mRing1[0]], aBranch->mHead));
 			fvec3 v2 = normalize(sub(mVert[aBranch->mRing2[0]], aBranch->mHead));

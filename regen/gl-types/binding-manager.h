@@ -2,7 +2,7 @@
 #define REGEN_BINDING_MANAGER_H_
 
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -53,8 +53,8 @@ namespace regen {
 
 		int32_t maxBindings_[LAST_BLOCK_TYPE];
 		int32_t nextBindingPoint_[LAST_BLOCK_TYPE];
-		std::map<std::uintptr_t, int32_t> bufferBindings_;
-		std::map<std::string, int32_t> namedBindings_;
+		std::unordered_map<std::uintptr_t, int32_t> bufferBindings_;
+		std::unordered_map<std::string, int32_t> namedBindings_;
 		// counts how often a binding point was used before
 		std::vector<int32_t> bindingPointCounter_[LAST_BLOCK_TYPE];
 

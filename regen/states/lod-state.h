@@ -45,6 +45,7 @@ namespace regen {
 		ref_ptr<CullShape> cullShape_;
 		ref_ptr<IndexedShape> shapeIndex_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
+		uint32_t cameraStamp_ = 0;
 
 		// stores how many instances are currently visible for each LOD level
 		std::vector<uint32_t> lodNumInstances_;

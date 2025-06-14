@@ -1,5 +1,7 @@
 #include "boids-cpu.h"
 
+//#define BOID_DEBUG_TIME
+
 using namespace regen;
 
 // private data struct
@@ -73,6 +75,11 @@ void BoidsCPU::initBoidSimulation() {
 	setSynchronized(false);
 	priv_->baseOrientation_ = baseOrientation_->getVertex(0).r;
 	priv_->boidsScale_ = boidsScale_->getVertex(0).r;
+
+	for (uint32_t i = 0; i < numBoids_; ++i) {
+		auto &d = boidData_[i];
+		d.neighbors.reserve(maxNumNeighbors_->getVertex(0).r);
+	}
 
 	animationState()->joinShaderInput(coherenceWeight_);
 	animationState()->joinShaderInput(alignmentWeight_);
@@ -152,10 +159,10 @@ void BoidsCPU::animate(double dt) {
 	auto copyTime = std::chrono::duration_cast<std::chrono::microseconds>(afterTF - afterSim).count();
 	auto gridTime = std::chrono::duration_cast<std::chrono::microseconds>(afterGrid - afterTF).count();
 	REGEN_INFO("BoidsSimulation_CPU: " <<
-		"simTime=" << static_cast<float>(simTime)/1000.0f << "ms " <<
-		"copyTime=" << static_cast<float>(copyTime)/1000.0f << "ms " <<
-		"gridTime=" << static_cast<float>(gridTime)/1000.0f << "ms " <<
-		"totalTime=" << static_cast<float>(simTime + copyTime + gridTime)/1000.0f << "ms");
+		"simTime="   << std::fixed << std::setprecision(2) << static_cast<float>(simTime)/1000.0f << "ms " <<
+		"copyTime="  << std::fixed << std::setprecision(2) << static_cast<float>(copyTime)/1000.0f << "ms " <<
+		"gridTime="  << std::fixed << std::setprecision(2) << static_cast<float>(gridTime)/1000.0f << "ms " <<
+		"totalTime=" << std::fixed << std::setprecision(2) << static_cast<float>(simTime + copyTime + gridTime)/1000.0f << "ms");
 #endif
 }
 
@@ -260,14 +267,15 @@ void BoidsCPU::updateNeighbours2(BoidData &boid,
 		if (&neighbor == &boid) { continue; }
 
 		auto &neighborPos = boidPositions_[neighborIndex];
-		if ((boidPos - neighborPos).lengthSquared() < priv_->visualRangeSq_) {
-			boid.neighbors.push_back(neighborIndex);
-			if (neighbor.neighbors.size() < priv_->maxNumNeighbors_) {
-				neighbor.neighbors.push_back(boidIndex);
-			}
-			if (boid.neighbors.size() >= priv_->maxNumNeighbors_) {
-				return;
-			}
+		if ((boidPos - neighborPos).lengthSquared() > priv_->visualRangeSq_) {
+			continue;
+		}
+		boid.neighbors.push_back(neighborIndex);
+		if (neighbor.neighbors.size() < priv_->maxNumNeighbors_) {
+			neighbor.neighbors.push_back(boidIndex);
+		}
+		if (boid.neighbors.size() >= priv_->maxNumNeighbors_) {
+			break;
 		}
 	}
 }

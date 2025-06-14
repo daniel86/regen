@@ -37,7 +37,7 @@ set(REGEN_BRIEF_DESCRIPTION "Real-time-Graphics-Engine")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_FLAGS "-fPIC")
-set(CMAKE_CXX_FLAGS "-std=c++0x -O2 -pthread ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++0x -pthread ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_STANDARD 23)
 
 # include extra warnings specific to C++ (not on Win, visual studio is much to verbose then)
@@ -50,11 +50,14 @@ endif()
 # add_definitions( -Weffc++ )
 
 # optimization level
-# add_definitions( -O2 )
+add_definitions( -O2 )
 
 if(UNIX) # gcc options
     add_definitions( -mfpmath=sse -march=native )
 endif()
+
+# perform more aggressive floating-point optimizations
+# add_definitions( -ffast-math )
 
 add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
 
