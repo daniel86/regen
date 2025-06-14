@@ -53,6 +53,9 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	Vec2f maskUV = quadSize_ts * 0.5f;
 
+	auto &modelOffset = tf_->modelOffset();
+	auto baseOffset = modelOffset->getVertex(0).r;
+
 	for (unsigned int y = 0; y < quadCountY; ++y) {
 		for (unsigned int x = 0; x < quadCountX; ++x) {
 			auto maskDensity = maskTexture_->sampleMax<float>(
@@ -65,7 +68,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 				//          could use scaling instead though to make instances smaller. This might be fine for some cases.
 				//auto corrected_x = static_cast<float>(masked.second.min.x + masked.second.max.x) * 0.5f;
 				//auto corrected_y = static_cast<float>(masked.second.min.y + masked.second.max.y) * 0.5f;
-				instanceData[numInstances++] = Vec4f(
+				instanceData[numInstances++] = baseOffset + Vec4f(
 						static_cast<float>( x ) * cfg.quad.posScale.x + quadHalfSize.x - cfg.meshSize.x * 0.5f,
 						cfg.height,
 						static_cast<float>( y ) * cfg.quad.posScale.z + quadHalfSize.y - cfg.meshSize.y * 0.5f,
@@ -78,13 +81,9 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	// update the model offset attribute
 	static constexpr uint32_t instanceDivisor = 1u;
-	auto &modelOffset = tf_->modelOffset();
 	instanceData.resize(numInstances);
 	modelOffset->setInstanceData(numInstances, instanceDivisor, (byte *) instanceData.data());
 	disjoinStates(tf_);
-
-	REGEN_INFO("MaskMesh: " << numInstances << " instances created for mask texture "
-			<< " with size " << cfg.meshSize);
 
 	tf_->bufferContainer()->updateBuffer();
 	joinStates(tf_);
@@ -101,6 +100,7 @@ ref_ptr<MaskMesh> MaskMesh::load(LoadingContext &ctx, scene::SceneInputNode &inp
 			handledChildren.push_back(n);
 			// load the model transformation
 			tf = ModelTransformation::load(ctx, *n.get(), dummy);
+			scene->putResource("ModelTransformation", n->getValue("id"), tf);
 		}
 	}
 	for (auto &n: handledChildren) {

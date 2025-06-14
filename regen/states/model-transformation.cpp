@@ -42,11 +42,14 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat)
 		: State(),
 		  tfMode_(TF_MATRIX) {
 	modelMat_ = mat;
-	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
-	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
-	modelOffset_->setUniformData(Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
-	velocity_->setUniformData(Vec3f(0.0f));
 	modelMat_->setSchema(InputSchema::transform());
+
+	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
+	modelOffset_->setUniformData(Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
+
+	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
+	velocity_->setUniformData(Vec3f(0.0f));
+
 	initBufferContainer();
 }
 
@@ -118,6 +121,27 @@ static void transformMatrix(
 		Quaternion q(0.0, 0.0, 0.0, 1.0);
 		q.setEuler(value.x, value.y, value.z);
 		mat *= q.calculateMatrix();
+	} else {
+		REGEN_WARN("Unknown distribute target '" << target << "'.");
+	}
+}
+
+static void transformMatrix2(
+		const std::string &target, Mat4f &mat, Vec4f &offset, const Vec3f &value) {
+	if (target == "translate") {
+		mat.x[12] += value.x;
+		mat.x[13] += value.y;
+		mat.x[14] += value.z;
+	} else if (target == "scale") {
+		mat.scale(value);
+	} else if (target == "rotate") {
+		Quaternion q(0.0, 0.0, 0.0, 1.0);
+		q.setEuler(value.x, value.y, value.z);
+		mat *= q.calculateMatrix();
+	} else if (target == "offset") {
+		offset.x += value.x;
+		offset.y += value.y;
+		offset.z += value.z;
 	} else {
 		REGEN_WARN("Unknown distribute target '" << target << "'.");
 	}
@@ -494,17 +518,16 @@ static void transformMatrix(
 		} else if (child->getCategory() == "animation") {
 			transformAnimation(scene, child, state, parent, tf);
 		} else {
-			// TODO: add support here
-			if (!tf->hasModelMat()) {
-				REGEN_WARN("transforms without model matrix not supported.");
-				continue;
-			}
 			auto &modelMat = tf->modelMat();
-			//auto &modelOffset = tf->modelOffset();
-			auto matrices = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
-			for (unsigned int & indice : indices) {
-				transformMatrix(child->getCategory(), matrices.w[indice],
-								child->getValue<Vec3f>("value", Vec3f(0.0f)));
+			auto &modelOffset = tf->modelOffset();
+			auto v_modelMat = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
+			auto v_modelOffset = modelOffset->mapClientData<Vec4f>(ShaderData::WRITE);
+			for (unsigned int & j : indices) {
+				transformMatrix2(
+						child->getCategory(),
+						(modelMat->numInstances() > 1 ? v_modelMat.w[j] : v_modelMat.w[0]),
+						(modelOffset->numInstances() > 1 ? v_modelOffset.w[j] : v_modelOffset.w[0]),
+						child->getValue<Vec3f>("value", Vec3f(0.0f)));
 			}
 		}
 	}
@@ -527,7 +550,16 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 
 	bool isInstanced = input.getValue<bool>("is-instanced", false);
 	auto numInstances = input.getValue<GLuint>("num-instances", 1u);
-	transform = ref_ptr<ModelTransformation>::alloc();
+	int tfMode = ModelTransformation::TF_MATRIX;
+	if (input.hasAttribute("mode")) {
+		auto tfMode_str = input.getValue<std::string>("mode", "matrix");
+		if (tfMode_str == "offset") {
+			tfMode = ModelTransformation::TF_OFFSET;
+		} else if (tfMode_str == "both") {
+			tfMode = ModelTransformation::TF_OFFSET | ModelTransformation::TF_MATRIX;
+		}
+	}
+	transform = ref_ptr<ModelTransformation>::alloc(tfMode);
 	// read the gpu-usage flag
 	if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
 		transform->modelMat()->set_gpuUsage(ShaderData::WRITE);

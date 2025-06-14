@@ -21,6 +21,8 @@ layout(
 vec3 readPosition(uint i) {
     #ifdef HAS_modelMatrix
     return fetch_modelMatrix(i)[3].xyz;
+    #elif HAS_modelOffset
+    return fetch_modelOffset(i).xyz;
     #else
     i *= 3;
     return vec3(in_pos[i], in_pos[i + 1], in_pos[i + 2]);
