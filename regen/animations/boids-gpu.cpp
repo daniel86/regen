@@ -85,24 +85,6 @@ void BoidsGPU::createResource() {
 	u_numCells_ = ref_ptr<ShaderInput1ui>::alloc("numGridCells");
 	u_numCells_->setUniformData(numCells_);
 
-	{ // UBO with simulation parameters
-		simulationUBO_ = ref_ptr<UBO>::alloc("BoidsSimulation");
-		simulationUBO_->addBlockInput(simulationBoundsMin_);
-		simulationUBO_->addBlockInput(visualRange_);
-		simulationUBO_->addBlockInput(simulationBoundsMax_);
-		simulationUBO_->addBlockInput(maxBoidSpeed_);
-		simulationUBO_->addBlockInput(boidsScale_);
-		simulationUBO_->addBlockInput(baseOrientation_);
-		simulationUBO_->addBlockInput(maxAngularSpeed_);
-		simulationUBO_->addBlockInput(coherenceWeight_);
-		simulationUBO_->addBlockInput(alignmentWeight_);
-		simulationUBO_->addBlockInput(separationWeight_);
-		simulationUBO_->addBlockInput(avoidanceWeight_);
-		simulationUBO_->addBlockInput(avoidanceDistance_);
-		simulationUBO_->addBlockInput(lookAheadDistance_);
-		simulationUBO_->addBlockInput(repulsionFactor_);
-		simulationUBO_->addBlockInput(maxNumNeighbors_);
-	}
 	{ // UBO with grid parameters
 		gridUBO_ = ref_ptr<UBO>::alloc("BoidGrid");
 		gridMin_ = ref_ptr<ShaderInput3f>::alloc("gridMin");
@@ -233,7 +215,23 @@ void BoidsGPU::createResource() {
 #ifdef BOID_USE_HALF_VELOCITY
 	simulationState_->shaderDefine("USE_HALF_VELOCITY", "TRUE");
 #endif
-	simulationState_->joinShaderInput(simulationUBO_);
+	{ // simulation parameters
+		simulationState_->joinShaderInput(simulationBoundsMin_);
+		simulationState_->joinShaderInput(visualRange_);
+		simulationState_->joinShaderInput(simulationBoundsMax_);
+		simulationState_->joinShaderInput(maxBoidSpeed_);
+		simulationState_->joinShaderInput(boidsScale_);
+		simulationState_->joinShaderInput(baseOrientation_);
+		simulationState_->joinShaderInput(maxAngularSpeed_);
+		simulationState_->joinShaderInput(coherenceWeight_);
+		simulationState_->joinShaderInput(alignmentWeight_);
+		simulationState_->joinShaderInput(separationWeight_);
+		simulationState_->joinShaderInput(avoidanceWeight_);
+		simulationState_->joinShaderInput(avoidanceDistance_);
+		simulationState_->joinShaderInput(lookAheadDistance_);
+		simulationState_->joinShaderInput(repulsionFactor_);
+		simulationState_->joinShaderInput(maxNumNeighbors_);
+	}
 	simulationState_->joinShaderInput(gridUBO_);
 	simulationState_->joinShaderInput(velBuffer_);
 	simulationState_->joinShaderInput(gridOffsetBuffer_);

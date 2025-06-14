@@ -9,19 +9,16 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 		: SkyLayer(sky) {
 	state()->joinStates(ref_ptr<BlendState>::alloc(GL_ONE, GL_ZERO));
 
-	auto starsUniforms = ref_ptr<UBO>::alloc("StarMap");
-
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
-	starsUniforms->addBlockInput(scattering_);
+	state()->joinShaderInput(scattering_);
 
 	deltaM_ = ref_ptr<ShaderInput1f>::alloc("deltaM");
 	deltaM_->setUniformData(0.5f);
-	starsUniforms->addBlockInput(deltaM_);
+	state()->joinShaderInput(deltaM_);
 
 	set_apparentMagnitude(6.5);
 
-	state()->joinShaderInput(starsUniforms);
 	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.weather.star-map");
 }
 

@@ -132,7 +132,6 @@ namespace regen {
 		ref_ptr<Texture2D> heightMap_;
 		ref_ptr<Texture2D> normalMap_;
 
-		ref_ptr<UBO> groundUBO_;
 		ref_ptr<ShaderInput3f> u_mapCenter_;
 		ref_ptr<ShaderInput3f> u_mapSize_;
 		ref_ptr<ShaderInput1f> u_skirtSize_;

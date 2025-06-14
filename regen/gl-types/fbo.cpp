@@ -81,10 +81,6 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
 	rs->readFrameBuffer().push(id());
 	readBuffer_.push(GL_COLOR_ATTACHMENT0);
 	rs->readFrameBuffer().pop();
-
-	uniforms_ = ref_ptr<UBO>::alloc("FBO");
-	uniforms_->addBlockInput(viewport_);
-	uniforms_->addBlockInput(inverseViewport_);
 	GL_ERROR_LOG();
 }
 

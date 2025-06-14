@@ -11,41 +11,38 @@ Stars::Stars(const ref_ptr<Sky> &sky)
 		: SkyLayer(sky) {
 	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
 
-	auto starsUniforms = ref_ptr<UBO>::alloc("Stars");
-	state()->joinShaderInput(starsUniforms);
-
 	color_ = ref_ptr<ShaderInput3f>::alloc("starColor");
 	color_->setUniformData(defaultColor());
 	color_->setSchema(InputSchema::color());
-	starsUniforms->addBlockInput(color_);
+	state()->joinShaderInput(color_);
 
 	apparentMagnitude_ = ref_ptr<ShaderInput1f>::alloc("apparentMagnitude");
 	apparentMagnitude_->setUniformData(defaultApparentMagnitude());
-	starsUniforms->addBlockInput(apparentMagnitude_);
+	state()->joinShaderInput(apparentMagnitude_);
 
 	colorRatio_ = ref_ptr<ShaderInput1f>::alloc("colorRatio");
 	colorRatio_->setUniformData(defaultColorRatio());
-	starsUniforms->addBlockInput(colorRatio_);
+	state()->joinShaderInput(colorRatio_);
 
 	glareIntensity_ = ref_ptr<ShaderInput1f>::alloc("glareIntensity");
 	glareIntensity_->setUniformData(0.1);
-	starsUniforms->addBlockInput(glareIntensity_);
+	state()->joinShaderInput(glareIntensity_);
 
 	glareScale_ = ref_ptr<ShaderInput1f>::alloc("glareScale");
 	glareScale_->setUniformData(defaultGlareScale());
-	starsUniforms->addBlockInput(glareScale_);
+	state()->joinShaderInput(glareScale_);
 
 	scintillation_ = ref_ptr<ShaderInput1f>::alloc("scintillation");
 	scintillation_->setUniformData(defaultScintillation());
-	starsUniforms->addBlockInput(scintillation_);
+	state()->joinShaderInput(scintillation_);
 
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
-	starsUniforms->addBlockInput(scattering_);
+	state()->joinShaderInput(scattering_);
 
 	scale_ = ref_ptr<ShaderInput1f>::alloc("scale");
 	scale_->setUniformData(2.0f);
-	starsUniforms->addBlockInput(scale_);
+	state()->joinShaderInput(scale_);
 
 	noiseTexState_ = ref_ptr<TextureState>::alloc();
 	updateNoiseTexture();

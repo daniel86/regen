@@ -89,7 +89,6 @@ namespace regen {
 
 		ref_ptr<ShaderState> updateShader_;
 
-		ref_ptr<UBO> cloudUniforms_;
 		ref_ptr<ShaderInput1f> offset_;
 		ref_ptr<ShaderInput1f> thickness_;
 		ref_ptr<ShaderInput3f> topColor_;

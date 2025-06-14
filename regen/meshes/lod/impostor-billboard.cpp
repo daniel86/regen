@@ -136,12 +136,9 @@ void ImpostorBillboard::createResources() {
 	// create camera for the update pass
 	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_);
 
-	{ // create UBO with some parameters for the shader
-		billboardUBO_ = ref_ptr<UBO>::alloc("Billboard", BUFFER_USAGE_STATIC_DRAW);
-		billboardUBO_->addBlockInput(depthOffset_);
-		billboardUBO_->addBlockInput(modelOrigin_);
-		billboardUBO_->update();
-		joinShaderInput(billboardUBO_);
+	{ // create parameters for the shader
+		joinShaderInput(depthOffset_);
+		joinShaderInput(modelOrigin_);
 	}
 
 	{ // create view data arrays

@@ -156,12 +156,9 @@ void Ground::updateAttributes() {
 
 void Ground::createResources() {
 	u_skirtSize_->setVertex(0, skirtSize_);
-	groundUBO_ = ref_ptr<UBO>::alloc("Ground");
-	groundUBO_->addBlockInput(u_mapCenter_); // vec3
-	groundUBO_->addBlockInput(u_skirtSize_); // float
-	groundUBO_->addBlockInput(u_mapSize_);   // vec3
-	groundUBO_->update();
-	joinShaderInput(groundUBO_);
+	joinShaderInput(u_mapCenter_);
+	joinShaderInput(u_skirtSize_);
+	joinShaderInput(u_mapSize_);
 
 	updateMaterialMaps();
 	createWeightPass();
@@ -334,8 +331,10 @@ void Ground::createWeightPass() {
 	weightFBO_->setDrawBuffers(attachments);
 	weightUpdateState_->joinStates(weightFBO_);
 
-	// bind ground UBO for size information
-	weightUpdateState_->joinShaderInput(groundUBO_);
+	// bind ground parameter for size information
+	weightUpdateState_->joinShaderInput(u_mapCenter_);
+	weightUpdateState_->joinShaderInput(u_skirtSize_);
+	weightUpdateState_->joinShaderInput(u_mapSize_);
 	// bind material masks
 	if (materialMaskState_.get()) {
 		weightUpdateState_->joinStates(materialMaskState_);

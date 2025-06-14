@@ -40,7 +40,6 @@ namespace regen {
 		ref_ptr<SSBO> velBuffer_;        // velocity data buffer
 		ref_ptr<SSBO> gridOffsetBuffer_; // offsets of grid cells into data buffer
 		ref_ptr<SSBO> boidDataBuffer_;   // optional: sorted boid data
-		ref_ptr<UBO> simulationUBO_;
 		ref_ptr<UBO> gridUBO_;
 		ref_ptr<ShaderInput1ui> u_numCells_;
 		ref_ptr<ShaderInput3f> gridMin_;

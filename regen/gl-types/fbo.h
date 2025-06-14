@@ -165,11 +165,6 @@ namespace regen {
 		const ref_ptr<ShaderInput2f> &inverseViewport() const { return inverseViewport_; }
 
 		/**
-		 * @return the uniforms.
-		 */
-		auto &uniforms() const { return uniforms_; }
-
-		/**
 		 * @return depth of attachment textures.
 		 */
 		GLuint depth() const { return depth_; }
@@ -362,7 +357,6 @@ namespace regen {
 
 		ref_ptr<ShaderInput2f> viewport_;
 		ref_ptr<ShaderInput2f> inverseViewport_;
-		ref_ptr<UBO> uniforms_;
 		Vec4ui glViewport_;
 
 		void createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil, uint32_t numSamples);

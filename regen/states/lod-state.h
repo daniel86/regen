@@ -58,7 +58,6 @@ namespace regen {
 		// GPU LOD update
 		ref_ptr<ComputePass> cullPass_;
 		ref_ptr<RadixSort> radixSort_;
-		ref_ptr<UBO> cullUBO_;
 		ref_ptr<UBO> frustumUBO_;
 		ref_ptr<SSBO> lodGroupSizeBuffer_;
 		ref_ptr<ShaderInput1ui> lodGroupSize_;

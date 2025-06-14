@@ -197,7 +197,6 @@ namespace regen {
 		std::string snapshotShaderKey_ = "regen.models.impostor.update";
 
 		// container for billboard uniforms
-		ref_ptr<UBO> billboardUBO_;
 		ref_ptr<ShaderInput1f> depthOffset_;
 		ref_ptr<ShaderInput3f> modelOrigin_;
 

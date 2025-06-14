@@ -216,6 +216,7 @@ void LODState::traverseCPU(RenderState *) {
 	} else if (camera_->hasFixedLOD()) {
 		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);
 	} else {
+		// TODO: problem with cameraStamp_
 		//if (tfStamp_ != cullShape_->tf()->stamp() || cameraStamp_ != camera_->stamp()) {
 		//	computeLODGroups();
 		//	tfStamp_ = cullShape_->tf()->stamp();
@@ -412,11 +413,6 @@ void LODState::createComputeShader() {
 	}
 
 	{ // radix cull
-		cullUBO_ = ref_ptr<UBO>::alloc("CullUBO");
-		// TODO: Allow meshes to have different thresholds depending on render target/camera.
-		//       e.g. for shadow mapping we never need to use the highest LOD.
-		cullUBO_->addBlockInput(mesh_->lodThresholds());
-		cullUBO_->update();
 		// we store the 6 frustum planes in a UBO
 		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer");
 		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size()));
@@ -431,7 +427,7 @@ void LODState::createComputeShader() {
 		cullPass_->computeState()->shaderDefine("NUM_CAMERA_LAYERS", REGEN_STRING(camera_->frustum().size()));
 		cullPass_->computeState()->setNumWorkUnits(static_cast<int>(cullShape_->numInstances()), 1, 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
-		cullPass_->joinShaderInput(cullUBO_);
+		cullPass_->joinShaderInput(mesh_->lodThresholds());
 		cullPass_->joinShaderInput(frustumUBO_);
 		cullPass_->joinShaderInput(lodGroupSizeBuffer_);
 		cullPass_->joinShaderInput(radixSort_->keyBuffer());
