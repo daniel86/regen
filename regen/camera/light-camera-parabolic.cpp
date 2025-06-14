@@ -44,7 +44,7 @@ bool LightCamera_Parabolic::updateLightView() {
 	auto dir = light_->direction()->getVertex(0);
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
-	position_->setVertex3(0, light_->position()->getVertex(0).r);
+	position_->setVertex3(0, light_->position()->getVertex(0).r.xyz_());
 	direction_->setVertex3(0, -dir.r);
 	if (hasBackFace_) {
 		direction_->setVertex3(1, dir.r);

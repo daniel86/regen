@@ -152,13 +152,13 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 			}
 			case aiLightSource_POINT: {
 				light = ref_ptr<Light>::alloc(Light::POINT);
-				light->position()->setVertex(0, *((Vec3f *) &lightPos.x));
+				light->position()->setVertex3(0, *((Vec3f *) &lightPos.x));
 				setLightRadius(assimpLight, light);
 				break;
 			}
 			case aiLightSource_SPOT: {
 				light = ref_ptr<Light>::alloc(Light::SPOT);
-				light->position()->setVertex(0, *((Vec3f *) &lightPos.x));
+				light->position()->setVertex3(0, *((Vec3f *) &lightPos.x));
 				light->direction()->setVertex(0, *((Vec3f *) &assimpLight->mDirection.x));
 				light->set_outerConeAngle(
 						acos(assimpLight->mAngleOuterCone) * 360.0f / (2.0f * M_PI));

@@ -364,7 +364,11 @@ static ref_ptr<SpatialIndex> getSpatialIndex(scene::SceneLoader *scene, SceneInp
 static ref_ptr<ShaderInput4f> getOffset(
 		SceneInputNode &input,
 		const ref_ptr<Mesh> &mesh,
+		const ref_ptr<ModelTransformation> &transform,
 		const std::vector<ref_ptr<Mesh>> &parts) {
+	if (transform.get() && transform->hasModelOffset()) {
+		return transform->modelOffset();
+	}
 	// try to find shader inputs of mesh
 	ref_ptr<Mesh> m = mesh;
 	if (m.get() == nullptr) {
@@ -392,10 +396,8 @@ void ShapeProcessor::processInput(
 		const ref_ptr<StateNode> &parentNode,
 		const ref_ptr<State> &parentState) {
 	auto transformID = input.getValue("transform-id");
-	auto transform = scene->getResource<ModelTransformation>(transformID);
 	auto mesh = getMesh(scene, input);
 	auto parts = getParts(scene, input);
-	auto offset = getOffset(input, mesh, parts);
 	// read flags for target of shape
 	auto isMeshShape = input.getValue<uint32_t>("mesh", 0u);
 	auto isIndexShape = input.getValue<uint32_t>("index", 0u);
@@ -405,13 +407,17 @@ void ShapeProcessor::processInput(
 	if (!isIndexShape && !isGPUShape && !isPhysicalShape) {
 		isMeshShape = 1;
 	}
-
 	auto numInstances = 1u;
-	if (transform.get()) {
-		numInstances = transform->get()->numInstances();
+
+	auto transform = scene->getResource<ModelTransformation>(transformID);
+	if(!transform.get()) {
+		auto offset = getOffset(input, mesh, transform, parts);
+		if (offset.get()) {
+			transform = ref_ptr<ModelTransformation>::alloc(offset);
+		}
 	}
-	if (offset.get()) {
-		numInstances = std::max(offset->numInstances(), numInstances);
+	if (transform.get()) {
+		numInstances = transform->numInstances();
 	}
 	if (input.hasAttribute("num-instances")) {
 		numInstances = input.getValue<GLuint>("num-instances", numInstances);
@@ -420,13 +426,13 @@ void ShapeProcessor::processInput(
 	if (isPhysicalShape) {
 		// add shape to physics engine
 		if (numInstances == 1) {
-			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->get(), 0);
+			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->modelMat(), 0);
 			auto physicalProps = createPhysicalProps(input, mesh, motion);
 			auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
 			mesh->addPhysicalObject(physicalObject);
 			scene->getPhysics()->addObject(physicalObject);
 		} else {
-			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->get());
+			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->modelMat());
 			for (GLuint i = 0; i < numInstances; ++i) {
 				auto motion = ref_ptr<Mat4fMotion>::alloc(motionAnim, i);
 				auto physicalProps = createPhysicalProps(input, mesh, motion);
@@ -452,10 +458,7 @@ void ShapeProcessor::processInput(
 				shape->setName(input.getName());
 				shape->setInstanceID(i);
 				if (transform.get()) {
-					shape->setTransform(transform, transform->get()->numInstances() > 1 ? i : 0);
-				}
-				if (offset.get()) {
-					shape->setTransform(offset, offset->numInstances() > 1 ? i : 0);
+					shape->setTransform(transform, transform->numInstances() > 1 ? i : 0);
 				}
 				spatialIndex->insert(shape);
 			}
@@ -482,7 +485,9 @@ void ShapeProcessor::processInput(
 	if (isGPUShape || isMeshShape) {
 		auto shape = createShape(input, mesh, parts);
 		if (shape.get()) {
-			mesh->setBoundingShape(shape, isGPUShape);
+			if (mesh.get()) {
+				mesh->setBoundingShape(shape, isGPUShape);
+			}
 			for (auto &part: parts) {
 				part->setBoundingShape(shape, isGPUShape);
 			}
@@ -491,9 +496,6 @@ void ShapeProcessor::processInput(
 		}
 		if (transform.get()) {
 			shape->setTransform(transform);
-		}
-		if (offset.get()) {
-			shape->setTransform(offset);
 		}
 		if (isGPUShape && isCullShape) {
 			REGEN_DEBUG("Creating GPU cull shape for " << input.getDescription() << ".");

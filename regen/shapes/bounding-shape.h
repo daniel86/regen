@@ -93,22 +93,10 @@ namespace regen {
 		void setTransform(const ref_ptr<ModelTransformation> &transform, unsigned int instanceIndex = 0);
 
 		/**
-		 * @brief Set the transform of this shape
-		 * @param center The transform
-		 */
-		void setTransform(const ref_ptr<ShaderInput4f> &center, unsigned int instanceIndex = 0);
-
-		/**
 		 * @brief Get the transform of this shape
 		 * @return The transform
 		 */
 		auto &transform() const { return transform_; }
-
-		/**
-		 * @brief Get the model offset of this shape
-		 * @return The model offset
-		 */
-		auto &modelOffset() const { return modelOffset_; }
 
 		/**
 		 * @brief Get the translation of this shape
@@ -178,22 +166,23 @@ namespace regen {
 
 	protected:
 		const BoundingShapeType shapeType_;
-		ref_ptr<ModelTransformation> transform_;
-		ref_ptr<ShaderInput4f> modelOffset_;
-		Vec3f shapeOrigin_ = Vec3f::zero();
 		ref_ptr<Mesh> mesh_;
 		std::vector<ref_ptr<Mesh>> parts_;
+
+		ref_ptr<ModelTransformation> transform_;
+		Vec3f shapeOrigin_ = Vec3f::zero();
+
 		unsigned int lastTransformStamp_ = 0;
 		unsigned int lastGeometryStamp_;
 		unsigned int nextGeometryStamp_ = 0u;
 		unsigned int transformIndex_ = 0;
-		unsigned int modelOffsetIndex_ = 0;
 		std::string name_;
 		unsigned int instanceID_ = 0;
 		// custom data pointer used for spatial index intersection tests
 		void *spatialIndexData_ = nullptr;
 		mutable bool spatialIndexVisible_ = false;
 		friend class SpatialIndex;
+
 	};
 } // namespace
 

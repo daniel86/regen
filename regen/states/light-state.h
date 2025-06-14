@@ -64,7 +64,7 @@ namespace regen {
 		 * @return the world space light position.
 		 * @note undefined for directional lights.
 		 */
-		auto &position() const { return lightPosition_; }
+		const ref_ptr<ShaderInput4f> &position() const { return lightPosition_; }
 
 		/**
 		 * @return the light direction.
@@ -117,7 +117,7 @@ namespace regen {
 		GLboolean isAttenuated_;
 
 		ref_ptr<UBO> lightUniforms_;
-		ref_ptr<ShaderInput3f> lightPosition_;
+		ref_ptr<ShaderInput4f> lightPosition_;
 		ref_ptr<ShaderInput3f> lightDirection_;
 		ref_ptr<ShaderInput3f> lightDiffuse_;
 		ref_ptr<ShaderInput3f> lightSpecular_;

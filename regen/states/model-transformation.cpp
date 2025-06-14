@@ -1,10 +1,3 @@
-/*
- * model-transformation.cpp
- *
- *  Created on: 05.08.2012
- *      Author: daniel
- */
-
 #include <stack>
 #include "model-transformation.h"
 #include "regen/meshes/mesh-vector.h"
@@ -16,27 +9,82 @@
 
 using namespace regen;
 
-ModelTransformation::ModelTransformation()
+ModelTransformation::ModelTransformation(int tfMode)
 		: State(),
-		  lastPosition_(0.0, 0.0, 0.0) {
+		  tfMode_(tfMode) {
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
-	modelMat_->setUniformData(Mat4f::identity());
-	modelMat_->setSchema(InputSchema::transform());
-
+	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
 	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
+
+	modelMat_->setUniformData(Mat4f::identity());
+	modelOffset_->setUniformData(Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
 	velocity_->setUniformData(Vec3f(0.0f));
 
+	modelMat_->setSchema(InputSchema::transform());
+	modelOffset_->setSchema(InputSchema::position());
+
+	initBufferContainer();
+}
+
+ModelTransformation::ModelTransformation(const ref_ptr<ShaderInput4f> &offset)
+		: State(),
+		  tfMode_(TF_OFFSET) {
+	modelOffset_ = offset;
+	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
+	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
+	modelMat_->setUniformData(Mat4f::identity());
+	velocity_->setUniformData(Vec3f(0.0f));
+	modelMat_->setSchema(InputSchema::transform());
+	initBufferContainer();
+}
+
+ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat)
+		: State(),
+		  tfMode_(TF_MATRIX) {
+	modelMat_ = mat;
+	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
+	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
+	modelOffset_->setUniformData(Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
+	velocity_->setUniformData(Vec3f(0.0f));
+	modelMat_->setSchema(InputSchema::transform());
+	initBufferContainer();
+}
+
+void ModelTransformation::initBufferContainer() {
 	bufferContainer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation");
-	bufferContainer_->addInput(modelMat_);
+	if (tfMode_ & TF_MATRIX) {
+		bufferContainer_->addInput(modelMat_);
+	}
+	if (tfMode_ & TF_OFFSET) {
+		bufferContainer_->addInput(modelOffset_);
+	}
 	bufferContainer_->addInput(velocity_);
 	joinStates(bufferContainer_);
 }
 
-const ref_ptr<ShaderInputMat4> &ModelTransformation::get() const { return modelMat_; }
+uint32_t ModelTransformation::stamp() const {
+	if (tfMode_ == TF_OFFSET) {
+		return modelOffset_->stamp();
+	}
+	else if (tfMode_ == TF_MATRIX) {
+		return modelMat_->stamp();
+	}
+	else {
+		return modelOffset_->stamp() + modelMat_->stamp();
+	}
+}
 
-void ModelTransformation::set_audioSource(const ref_ptr<AudioSource> &audioSource) { audioSource_ = audioSource; }
-
-GLboolean ModelTransformation::isAudioSource() const { return audioSource_.get() != nullptr; }
+uint32_t ModelTransformation::numInstances() const {
+	if (tfMode_ == TF_OFFSET) {
+		return modelOffset_->numInstances();
+	}
+	else if (tfMode_ == TF_MATRIX) {
+		return modelMat_->numInstances();
+	}
+	else {
+		return std::max(modelOffset_->numInstances(), modelMat_->numInstances());
+	}
+}
 
 void ModelTransformation::enable(RenderState *rs) {
 	if (isAudioSource()) {
@@ -107,15 +155,11 @@ struct InstancePlaneGenerator {
 	const GLubyte *maskData = nullptr;
 	const GLubyte *heightData = nullptr;
 	//
-	PlaneCell *cells;
-	unsigned int cellCountX;
-	unsigned int cellCountY;
-	unsigned int numCells;
+	PlaneCell *cells = nullptr;
+	unsigned int cellCountX = 0;
+	unsigned int cellCountY = 0;
+	unsigned int numCells = 0;
 };
-
-static float badRandom() {
-	return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-}
 
 static void makeInstance(InstancePlaneGenerator &generator, const PlaneCell &cell) {
 	if (generator.maskData) {
@@ -127,12 +171,12 @@ static void makeInstance(InstancePlaneGenerator &generator, const PlaneCell &cel
 	auto &instanceMat = generator.instanceData.emplace_back(Mat4f::identity());
 
 	// apply scaling, randomize between min and max scale
-	auto sizeFactor = badRandom() * cell.density;
+	auto sizeFactor = math::random<float>() * cell.density;
 	auto scale = generator.objMinScale + sizeFactor * (generator.objMaxScale - generator.objMinScale);
 	instanceMat.scale(scale);
 
 	// apply random rotation around y axis
-	auto angle = badRandom() * 2.0f * M_PI;
+	auto angle = math::random<float>() * 2.0f * M_PI;
 	Quaternion q(0.0, 0.0, 0.0, 1.0);
 	q.setEuler(angle, 0.0f, 0.0f);
 	instanceMat *= q.calculateMatrix();
@@ -141,8 +185,8 @@ static void makeInstance(InstancePlaneGenerator &generator, const PlaneCell &cel
 	Vec3f pos = Vec3f(cell.position.x, 0.0f, cell.position.y) + generator.cellWorldOffset;
 	if (generator.objPosVariation > 0.0f) {
 		// TODO: randomize position within cell, but need to re-compute UV then!
-		//pos.x += generator.objPosVariation * (badRandom() - 0.5f) * 2.0f;
-		//pos.z += generator.objPosVariation * (badRandom() - 0.5f) * 2.0f;
+		//pos.x += generator.objPosVariation * (math::random<float>() - 0.5f) * 2.0f;
+		//pos.z += generator.objPosVariation * (math::random<float>() - 0.5f) * 2.0f;
 		//cell_uv = ...
 	}
 	instanceMat.x[12] += pos.x;
@@ -194,8 +238,8 @@ static void makeInstances(InstancePlaneGenerator &generator,
 			topRight.first.density = halfCellDensity + (weights.top + weights.right) * 0.25f;
 			topLeft.first.density = halfCellDensity + (weights.top + weights.left) * 0.25f;
 			// compute uv coordinate, and set the size to half size of parent cell
-			for (int i = 0; i < 4; i++) {
-				auto &subdivideCell = *subdivideCells[i];
+			for (auto & i : subdivideCells) {
+				auto &subdivideCell = *i;
 				subdivideCell.size = subdividedSize;
 			}
 			auto uvOffset = cell.size / generator.areaSize;
@@ -381,7 +425,12 @@ static void transformAnimation(
 		state->attach(boidsAnimation);
 		boidsAnimation->startAnimation();
 	} else {
-		auto transformAnimation = ref_ptr<TransformAnimation>::alloc(tf->get());
+		if (!tf->hasModelMat()) {
+			REGEN_WARN("transform animation requires a model matrix, but TF of "
+					   << child->getDescription() << " has no model matrix.");
+			return;
+		}
+		auto transformAnimation = ref_ptr<TransformAnimation>::alloc(tf->modelMat());
 
 		if (child->hasAttribute("mesh-id")) {
 			auto meshID = child->getValue("mesh-id");
@@ -424,11 +473,16 @@ static void transformMatrix(
 		std::list<GLuint> indices = child->getIndexSequence(numInstances);
 
 		if (child->getCategory() == "set") {
+			if (!tf->hasModelMat()) {
+				REGEN_WARN("set requires a model matrix, but TF of "
+						   << input.getDescription() << " has no model matrix.");
+				continue;
+			}
 			auto mode = child->getValue("mode");
 			if (mode == "plane") {
-				numInstances = transformMatrixPlane(scene, *child.get(), tf->get(), numInstances);
+				numInstances = transformMatrixPlane(scene, *child.get(), tf->modelMat(), numInstances);
 			} else {
-				auto matrices = tf->get()->mapClientData<Mat4f>(ShaderData::WRITE);
+				auto matrices = tf->modelMat()->mapClientData<Mat4f>(ShaderData::WRITE);
 				scene::ValueGenerator<Vec3f> generator(child.get(), indices.size(),
 													   child->getValue<Vec3f>("value", Vec3f(0.0f)));
 				const auto target = child->getValue<std::string>("target", "translate");
@@ -440,7 +494,14 @@ static void transformMatrix(
 		} else if (child->getCategory() == "animation") {
 			transformAnimation(scene, child, state, parent, tf);
 		} else {
-			auto matrices = tf->get()->mapClientData<Mat4f>(ShaderData::WRITE);
+			// TODO: add support here
+			if (!tf->hasModelMat()) {
+				REGEN_WARN("transforms without model matrix not supported.");
+				continue;
+			}
+			auto &modelMat = tf->modelMat();
+			//auto &modelOffset = tf->modelOffset();
+			auto matrices = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
 			for (unsigned int & indice : indices) {
 				transformMatrix(child->getCategory(), matrices.w[indice],
 								child->getValue<Vec3f>("value", Vec3f(0.0f)));
@@ -470,16 +531,24 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 	// read the gpu-usage flag
 	if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
 		transform->modelMat()->set_gpuUsage(ShaderData::WRITE);
+		transform->modelOffset()->set_gpuUsage(ShaderData::WRITE);
 	} else {
 		transform->modelMat()->set_gpuUsage(ShaderData::READ);
+		transform->modelOffset()->set_gpuUsage(ShaderData::READ);
 	}
 
 	// Handle instanced model matrix
 	if (isInstanced && numInstances > 1) {
-		transform->get()->setInstanceData(numInstances, 1, nullptr);
-		{
-			auto matrices = transform->get()->mapClientData<Mat4f>(ShaderData::WRITE);
+		auto &modelMat = transform->modelMat();
+		auto &modelOffset = transform->modelOffset();
+		if (transform->hasModelMat()) {
+			modelMat->setInstanceData(numInstances, 1, nullptr);
+			auto matrices = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
 			for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
+		} else if (transform->hasModelOffset()) {
+			modelOffset->setInstanceData(numInstances, 1, nullptr);
+			auto offsets = modelOffset->mapClientData<Vec4f>(ShaderData::WRITE);
+			for (GLuint i = 0; i < numInstances; i += 1) offsets.w[i] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 		// update numInstances
 		transformMatrix(scene, input, state, ctx.parent(), transform, numInstances);

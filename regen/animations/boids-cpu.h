@@ -19,17 +19,9 @@ namespace regen {
 		 */
 		explicit BoidsCPU(const ref_ptr<ModelTransformation> &tf);
 
-		/**
-		 * Position constructor.
-		 * @param position A shader input with the boid positions.
-		 */
-		explicit BoidsCPU(const ref_ptr<ShaderInput3f> &position);
-
 		~BoidsCPU() override;
 
 		BoidsCPU(const BoidsCPU &) = delete;
-
-		static ref_ptr<BoidsCPU> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ShaderInput3f> &position);
 
 		static ref_ptr<BoidsCPU> load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ModelTransformation> &tf);
 

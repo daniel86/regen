@@ -42,10 +42,7 @@ bool BoundingShape::updateGeometry() {
 GLuint BoundingShape::numInstances() const {
 	GLuint numInstances = 1;
 	if (transform_.get()) {
-		numInstances = std::max(transform_->get()->numInstances(), numInstances);
-	}
-	if (modelOffset_.get()) {
-		numInstances = std::max(modelOffset_->numInstances(), numInstances);
+		numInstances = std::max(transform_->numInstances(), numInstances);
 	}
 	return numInstances;
 }
@@ -55,38 +52,36 @@ void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, 
 	transformIndex_ = instanceIndex;
 }
 
-void BoundingShape::setTransform(const ref_ptr<ShaderInput4f> &center, unsigned int instanceIndex) {
-	modelOffset_ = center;
-	modelOffsetIndex_ = instanceIndex;
-}
-
 unsigned int BoundingShape::transformStamp() const {
 	unsigned int stamp = 0;
 	if (transform_.get()) {
-		stamp = transform_->get()->stamp();
-	}
-	if (modelOffset_.get()) {
-		stamp = std::max(stamp, modelOffset_->stamp());
+		stamp = transform_->stamp();
 	}
 	return stamp;
 }
 
 Vec3f BoundingShape::translation() const {
+	// TODO: would be good if we could return a reference to the translation to avoid copying,
+	//        but it is problematic with the mapping interface. A solution would be to
+	//        return a object that holds both mappings.
+	//        It is unfortunate because modelOffset and modelMatrix are usually not used together
 	if (transform_.get()) {
-		auto p = transform_->get()->getVertex(transformIndex_);
-		if (modelOffset_.get()) {
-			return p.r.position() + modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
+		if(transform_->hasModelMat()) {
+			auto m_modelMat = transform_->modelMat()->getVertexClamped(transformIndex_);
+			if(transform_->hasModelOffset()) {
+				REGEN_WARN("model mat + model offset");
+				auto m_modelOffset = transform_->modelOffset()->getVertexClamped(transformIndex_);
+				return m_modelMat.r.position() + m_modelOffset.r.xyz_();
+			} else {
+				return m_modelMat.r.position();
+			}
 		}
-		else {
-			return p.r.position();
+		else if (transform_->hasModelOffset()) {
+			auto m_modelOffset = transform_->modelOffset()->getVertexClamped(transformIndex_);
+			return m_modelOffset.r.xyz_();
 		}
 	}
-	else if (modelOffset_.get()) {
-		return modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
-	}
-	else {
-		return Vec3f::zero();
-	}
+	return Vec3f::zero();
 }
 
 bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {

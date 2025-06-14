@@ -255,7 +255,7 @@
         <transform id="grass-tf">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
-        <shape id="grass-shape" index="1" cull="1" type="aabb"
+        <shape id="grass-shape" gpu="0" cull="1" type="aabb"
                 box-size="2.0, {{map-height}}, 2.0"
                 box-center="0.0, {{map-height-half}}, 0.0"
                 transform-id="grass-tf">

@@ -175,7 +175,7 @@ void SpatialIndex::updateVisibility() {
 			// omni camera -> intersection test with bounding sphere
 			auto projParams = ic.first->projParams()->getVertex(0);
 			BoundingSphere sphereShape(Vec3f::zero(), projParams.r.y);
-			sphereShape.setTransform(ic.first->position());
+			sphereShape.setTransform(ref_ptr<ModelTransformation>::alloc(ic.first->position()));
 			sphereShape.updateTransform(true);
 			updateVisibility(ic.second, sphereShape, false);
 		}

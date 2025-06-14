@@ -56,7 +56,7 @@ namespace regen {
 		/**
 		 * @return the model transformation assigned to this ground.
 		 */
-		const ref_ptr<ModelTransformation> &modelTransform() const { return modelTransform_; }
+		const ref_ptr<ModelTransformation> &tf() const { return modelTransform_; }
 
 		/**
 		 * Set LOD configuration parameters.

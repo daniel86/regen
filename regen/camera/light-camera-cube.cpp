@@ -46,6 +46,6 @@ bool LightCamera_Cube::updateLightView() {
 	if (lightPosStamp_ == light_->position()->stamp()) { return false; }
 	lightPosStamp_ = light_->position()->stamp();
 	position_->setVertex3(0,
-		light_->position()->getVertex(0).r);
+		light_->position()->getVertex(0).r.xyz_());
 	return updateView();
 }

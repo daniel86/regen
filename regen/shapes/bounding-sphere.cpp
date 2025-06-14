@@ -45,11 +45,13 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 
 void BoundingSphere::updateShapeOrigin() {
 	shapeOrigin_ = basePosition_;
-	if (modelOffset_.get()) {
-		shapeOrigin_ += modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
-	}
 	if (transform_.get()) {
-		shapeOrigin_ += transform_->get()->getVertex(transformIndex_).r.position();
+		if (transform_->hasModelOffset()) {
+			shapeOrigin_ += transform_->modelOffset()->getVertexClamped(transformIndex_).r.xyz_();
+		}
+		if (transform_->hasModelMat()) {
+			shapeOrigin_ += transform_->modelMat()->getVertexClamped(transformIndex_).r.position();
+		}
 	}
 }
 

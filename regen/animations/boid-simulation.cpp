@@ -5,20 +5,14 @@
 using namespace regen;
 
 BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf) {
-	auto tfInput = tf_->get();
-	auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ);
 	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
-	boidsScale_->setUniformData(tfData.r[0].scaling());
-	numBoids_ = tfInput->numInstances();
-	tfData.unmap();
-	initBoidSimulation0();
-}
-
-BoidSimulation::BoidSimulation(const ref_ptr<ShaderInput3f> &position) :
-		  position_(position) {
-	numBoids_ = position_->numInstances();
-	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
-	boidsScale_->setUniformData(Vec3f(1.0f));
+	if (tf->hasModelMat()) {
+		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ShaderData::READ);
+		boidsScale_->setUniformData(tfData.r[0].scaling());
+	} else {
+		boidsScale_->setUniformData(Vec3f(1.0f));
+	}
+	numBoids_ = tf->numInstances();
 	initBoidSimulation0();
 }
 
@@ -257,7 +251,7 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 			auto transformID = objectNode->getValue("tf");
 			auto transform = ctx.scene()->getResource<ModelTransformation>(transformID);
 			if (transform.get() != nullptr) {
-				entityTF = transform->get();
+				entityTF = transform->modelMat();
 			}
 		} else if (objectNode->hasAttribute("point")) {
 			entityTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");

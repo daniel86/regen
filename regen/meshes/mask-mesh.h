@@ -31,7 +31,10 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		explicit MaskMesh(const ref_ptr<Texture2D> &maskTexture, const Config &cfg = Config());
+		explicit MaskMesh(
+				const ref_ptr<Texture2D> &maskTexture,
+				const ref_ptr<ModelTransformation> &tf,
+				const Config &cfg = Config());
 
 		/**
 		 * @param other Another Rectangle.
@@ -39,14 +42,29 @@ namespace regen {
 		explicit MaskMesh(const ref_ptr<MaskMesh> &other);
 
 		/**
+		 * @return the model transformation assigned to this ground.
+		 */
+		const ref_ptr<ModelTransformation> &tf() const { return tf_; }
+
+		/**
 		 * Updates vertex data based on given configuration.
 		 * @param cfg vertex data configuration.
 		 */
 		void updateMask(const Config &cfg);
 
+		/**
+		 * Load a mask mesh from a property tree.
+		 * @param ctx the loading context.
+		 * @param input the input node.
+		 * @return the loaded ground mesh.
+		 */
+		static ref_ptr<MaskMesh> load(LoadingContext &ctx,
+				scene::SceneInputNode &input,
+				const Rectangle::Config &quadCfg);
+
 	protected:
 		ref_ptr<Texture2D> maskTexture_;
-		ref_ptr<ShaderInput4f> modelOffset_;
+		ref_ptr<ModelTransformation> tf_;
 		Vec2f meshSize_;
 	};
 } // namespace

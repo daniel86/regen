@@ -27,19 +27,21 @@ bool OBB::updateTransform(bool forceUpdate) {
 void OBB::updateOBB() {
 	updateShapeOrigin();
 	Vec3f offset = basePosition_;
-	if (modelOffset_.get()) {
-		offset += modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
-	}
 	// compute axes of the OBB based on the model transformation
 	auto scaling = Vec3f::one();
 	if (transform_.get()) {
-		auto tf = transform_->get()->getVertex(transformIndex_);
-		boxAxes_[0] = (tf.r ^ Vec4f(Vec3f::right(), 0.0f)).xyz_();
-		boxAxes_[1] = (tf.r ^ Vec4f(Vec3f::up(), 0.0f)).xyz_();
-		boxAxes_[2] = (tf.r ^ Vec4f(Vec3f::front(), 0.0f)).xyz_();
-		// transform base position offset
-		offset = (tf.r ^ Vec4f(offset, 0.0f)).xyz_();
-		offset += tf.r.position();
+		if (transform_->hasModelOffset()) {
+			offset += transform_->modelOffset()->getVertexClamped(transformIndex_).r.xyz_();
+		}
+		if (transform_->hasModelMat()) {
+			auto tf = transform_->modelMat()->getVertex(transformIndex_);
+			boxAxes_[0] = (tf.r ^ Vec4f(Vec3f::right(), 0.0f)).xyz_();
+			boxAxes_[1] = (tf.r ^ Vec4f(Vec3f::up(), 0.0f)).xyz_();
+			boxAxes_[2] = (tf.r ^ Vec4f(Vec3f::front(), 0.0f)).xyz_();
+			// transform base position offset
+			offset = (tf.r ^ Vec4f(offset, 0.0f)).xyz_();
+			offset += tf.r.position();
+		}
 	} else {
 		boxAxes_[0] = Vec3f::right();
 		boxAxes_[1] = Vec3f::up();

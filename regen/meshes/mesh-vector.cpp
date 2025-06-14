@@ -248,27 +248,22 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 			(*out)[0] = impostor;
 		}
 	} else if (meshType == "mask-patch") {
-		MaskMesh::Config meshCfg;
-		meshCfg.quad.centerAtOrigin = true;
-		meshCfg.quad.levelOfDetails = lodLevels;
-		meshCfg.quad.posScale = scaling;
-		meshCfg.quad.rotation = rotation;
-		meshCfg.quad.texcoScale = texcoScaling;
-		meshCfg.quad.isNormalRequired = input.hasAttribute("use-normal") && useNormal;
-		meshCfg.quad.isTangentRequired = input.hasAttribute("use-tangent") && useTangent;
-		meshCfg.quad.isTexcoRequired = input.hasAttribute("use-texco") && useTexco;
-		meshCfg.quad.usage = vboUsage;
-		if (input.hasAttribute("height-map")) {
-			meshCfg.heightMap = parser->getResource<Texture2D>(input.getValue("height-map"));
-		}
-		meshCfg.height = input.getValue<float>("height", 0.0f);
-		meshCfg.meshSize = input.getValue<Vec2f>("ground-size", Vec2f(10.0f));
-		auto maskTexture = parser->getResource<Texture2D>(input.getValue("mask"));
-		if (maskTexture.get() == nullptr) {
-			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load mask texture.");
+		Rectangle::Config meshCfg;
+		meshCfg.centerAtOrigin = true;
+		meshCfg.levelOfDetails = lodLevels;
+		meshCfg.posScale = scaling;
+		meshCfg.rotation = rotation;
+		meshCfg.texcoScale = texcoScaling;
+		meshCfg.isNormalRequired = input.hasAttribute("use-normal") && useNormal;
+		meshCfg.isTangentRequired = input.hasAttribute("use-tangent") && useTangent;
+		meshCfg.isTexcoRequired = input.hasAttribute("use-texco") && useTexco;
+		meshCfg.usage = vboUsage;
+		auto m = MaskMesh::load(ctx, input, meshCfg);
+		if (m.get() == nullptr) {
+			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load ground mesh.");
 		} else {
 			(*out) = MeshVector(1);
-			(*out)[0] = ref_ptr<MaskMesh>::alloc(maskTexture, meshCfg);
+			(*out)[0] = m;
 		}
 	} else if (meshType == "ground") {
 		auto groundMesh = Ground::load(ctx, input);

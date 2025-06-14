@@ -16,7 +16,7 @@ uniform vec3 in_lightDiffuse;
 uniform vec3 in_lightSpecular;
 
 #ifdef IS_SPOT_LIGHT
-uniform vec3 in_lightPosition;
+uniform vec4 in_lightPosition;
 uniform vec2 in_lightRadius;
 uniform vec3 in_lightDirection;
 uniform vec2 in_lightConeAngles;
@@ -34,7 +34,7 @@ uniform mat4 in_lightMatrix;
 
 #ifdef IS_POINT_LIGHT
     #if POINT_LIGHT_TYPE == CUBE
-uniform vec3 in_lightPosition;
+uniform vec4 in_lightPosition;
 uniform vec2 in_lightRadius;
         #ifdef USE_SHADOW_MAP
 uniform vec4 in_lightProjParams;
@@ -50,7 +50,7 @@ uniform mat4 in_lightMatrix[6];
     #if POINT_LIGHT_TYPE == PARABOLIC
 uniform vec3 in_lightDirection;
 uniform mat4 in_lightMatrix[NUM_SHADOW_LAYER];
-uniform vec3 in_lightPosition;
+uniform vec4 in_lightPosition;
 uniform vec2 in_lightRadius;
         #ifdef USE_SHADOW_MAP
 uniform vec4 in_lightProjParams;
@@ -93,7 +93,7 @@ uniform vec2 in_lightRadius${REGEN_ID};
 
 #if LIGHT_TYPE${REGEN_ID} == SPOT
 // spot light
-uniform vec3 in_lightPosition${REGEN_ID};
+uniform vec4 in_lightPosition${REGEN_ID};
 uniform vec2 in_lightConeAngles${REGEN_ID};
 uniform vec3 in_lightDirection${REGEN_ID};
 #ifdef USE_SHADOW_MAP${REGEN_ID}
@@ -110,7 +110,7 @@ uniform sampler2D in_shadowColorTexture;
 #if LIGHT_TYPE${REGEN_ID} == POINT
     #if POINT_LIGHT_TYPE${REGEN_ID} == CUBE
 // point light
-uniform vec3 in_lightPosition${REGEN_ID};
+uniform vec4 in_lightPosition${REGEN_ID};
         #ifdef USE_SHADOW_MAP${REGEN_ID}
 uniform vec4 in_lightProjParams${REGEN_ID};
 uniform vec2 in_shadowInverseSize${REGEN_ID};
@@ -124,7 +124,7 @@ uniform samplerCube in_shadowColorTexture;
 
     #if POINT_LIGHT_TYPE${REGEN_ID} == PARABOLIC
 // point light
-uniform vec3 in_lightPosition${REGEN_ID};
+uniform vec4 in_lightPosition${REGEN_ID};
         #ifdef USE_SHADOW_MAP${REGEN_ID}
 uniform vec4 in_lightProjParams${REGEN_ID};
 uniform vec2 in_shadowInverseSize${REGEN_ID};

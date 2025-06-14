@@ -471,7 +471,7 @@ flat out int out_instanceID;
 #endif
 
 uniform vec2 in_lightRadius;
-uniform vec3 in_lightPosition;
+uniform vec4 in_lightPosition;
 
 #if RENDER_LAYER == 1
 #include regen.states.camera.input

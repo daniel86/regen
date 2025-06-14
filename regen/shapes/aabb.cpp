@@ -42,24 +42,27 @@ void AABB::updateAABB() {
 
 	updateShapeOrigin();
 	// apply transform
-	if (modelOffset_.get()) {
-		for (int i = 0; i < 8; ++i) {
-			vertices_[i] += modelOffset_->getVertex(modelOffsetIndex_).r.xyz_();
-		}
-	}
 	if (transform_.get()) {
-		auto tf = transform_->get()->getVertex(transformIndex_);
-		// compute transformed bounds
-		Vec3f transformed;
-		auto transformedMin = getShapeOrigin();
-		auto transformedMax = transformedMin;
-		for (int i = 0; i < 8; ++i) {
-			transformed = (tf.r ^ vertices_[i]).xyz_();
-			transformedMin.setMin(transformed);
-			transformedMax.setMax(transformed);
+		if (transform_->hasModelOffset()) {
+			auto modelOffset = transform_->modelOffset();
+			for (int i = 0; i < 8; ++i) {
+				vertices_[i] += modelOffset->getVertexClamped(transformIndex_).r.xyz_();
+			}
 		}
-		// set vertices based on transformed bounds
-		setVertices(Bounds<Vec3f>(transformedMin, transformedMax));
+		if (transform_->hasModelMat()) {
+			auto tf = transform_->modelMat()->getVertexClamped(transformIndex_);
+			// compute transformed bounds
+			Vec3f transformed;
+			auto transformedMin = getShapeOrigin();
+			auto transformedMax = transformedMin;
+			for (int i = 0; i < 8; ++i) {
+				transformed = (tf.r ^ vertices_[i]).xyz_();
+				transformedMin.setMin(transformed);
+				transformedMax.setMax(transformed);
+			}
+			// set vertices based on transformed bounds
+			setVertices(Bounds<Vec3f>(transformedMin, transformedMax));
+		}
 	}
 }
 

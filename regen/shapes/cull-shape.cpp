@@ -34,16 +34,18 @@ void CullShape::initCullShape(const ref_ptr<BoundingShape> &boundingShape, bool 
 		parts_.push_back(mesh);
 	}
 	tf_ = boundingShape->transform();
-	modelOffset_ = boundingShape->modelOffset();
 	numInstances_ = boundingShape->numInstances();
 	// create instanceIDMap_ and instanceIDBuffer_, these are used to store the instance IDs
 	createBuffers();
 }
 
 void CullShape::createBuffers() {
+	numInstances_ = tf_->numInstances();
+
 	// Create array with numInstances_ elements.
 	// The instance ids will be added each frame 1. in LOD-groups and 2. in view-dependent order
 	instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numInstances_);
+	//instanceIDMap_->set_forceArray(true);
 	instanceIDMap_->setInstanceData(1, 1, nullptr);
 	auto instanceData = instanceIDMap_->mapClientData<GLuint>(ShaderData::WRITE);
 	for (GLuint i = 0; i < numInstances_; ++i) {

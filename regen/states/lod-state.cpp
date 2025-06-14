@@ -293,28 +293,29 @@ void LODState::computeLODGroups() {
 	if (numVisible == 0) { return; }
 
 	const uint32_t *mappedData = visible_ids.r + 1;
-	auto &transform = cullShape_->tf();
-	auto &modelOffset = cullShape_->modelOffset();
+	auto &tf = cullShape_->tf();
 	auto camPos = camera_->position()->getVertex(0);
-	bool hasTF = transform.get() || modelOffset.get();
+	bool hasTF = tf.get() && (tf->hasModelOffset() || tf->hasModelMat());
 
 	if (hasTF) {
-		if (transform.get() && modelOffset.get()) {
+		auto &modelOffset = tf->modelOffset();
+		auto &modelMat = tf->modelMat();
+		if (tf->hasModelOffset() && tf->hasModelMat()) {
 			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ShaderData::READ);
-			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
+			auto tfData = modelMat->mapClientData<Mat4f>(ShaderData::READ);
 			LODSelector_Full selector{
 					.tfData = tfData.r,
 					.modelOffsetData = modelOffsetData.r,
 					.mappedData = mappedData,
 					.mesh = mesh_.get(),
-					.tfIdxMultiplier = (transform->get()->numInstances() > 1u ? 1u : 0u),
+					.tfIdxMultiplier = (modelMat->numInstances() > 1u ? 1u : 0u),
 					.offsetIdxMultiplier = (modelOffset->numInstances() > 1u ? 1u : 0u)
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
 							   camPos.r.xyz_(),
 							   selector);
-		} else if (modelOffset.get()) {
+		} else if (tf->hasModelOffset()) {
 			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ShaderData::READ);
 			LODSelector_ModelOffset selector{
 					.modelOffsetData = modelOffsetData.r,
@@ -326,7 +327,7 @@ void LODState::computeLODGroups() {
 							   camPos.r.xyz_(),
 							   selector);
 		} else {
-			auto tfData = transform->get()->mapClientData<Mat4f>(ShaderData::READ);
+			auto tfData = modelMat->mapClientData<Mat4f>(ShaderData::READ);
 			LODSelector_Transform selector{
 					.tfData = tfData.r,
 					.mappedData = mappedData,

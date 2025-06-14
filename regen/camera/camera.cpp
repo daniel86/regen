@@ -212,7 +212,7 @@ void Camera::updatePose() {
 	if (attachedPosition_.get()) {
 		if (poseStamp_ != attachedPosition_->stamp()) {
 			poseStamp_ = attachedPosition_->stamp();
-			position_->setVertex3(0, attachedPosition_->getVertex(0).r);
+			position_->setVertex3(0, attachedPosition_->getVertex(0).r.xyz_());
 			updated = true;
 		}
 	} else if (attachedTransform_.get()) {
@@ -233,7 +233,7 @@ void Camera::updatePose() {
 	}
 }
 
-void Camera::attachToPosition(const ref_ptr<ShaderInput3f> &attachedPosition) {
+void Camera::attachToPosition(const ref_ptr<ShaderInput4f> &attachedPosition) {
 	attachedPosition_ = attachedPosition;
 	attachedTransform_ = {};
 	poseStamp_ = 0;
@@ -523,7 +523,11 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
 		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
 		if (tf.get()) {
-			cam->attachToPosition(tf->get());
+			if (tf->hasModelMat()) {
+				cam->attachToPosition(tf->modelMat());
+			} else if (tf->hasModelOffset()) {
+				cam->attachToPosition(tf->modelOffset());
+			}
 		}
 		ctx.scene()->putState(input.getName(), cam);
 		return cam;
@@ -536,7 +540,11 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		}
 
 		if (tf.get()) {
-			cam->attachToPosition(tf->get());
+			if (tf->hasModelMat()) {
+				cam->attachToPosition(tf->modelMat());
+			} else if (tf->hasModelOffset()) {
+				cam->attachToPosition(tf->modelOffset());
+			}
 		}
 		ctx.scene()->putState(input.getName(), cam);
 

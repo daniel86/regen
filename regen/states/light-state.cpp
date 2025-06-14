@@ -51,8 +51,8 @@ Light::Light(Light::Type lightType)
 	lightConeAngles_->setUniformData(Vec2f(0.0f));
 	lightUniforms_->addBlockInput(lightConeAngles_);
 
-	lightPosition_ = ref_ptr<ShaderInput3f>::alloc("lightPosition");
-	lightPosition_->setUniformData(Vec3f(1.0, 1.0, 1.0));
+	lightPosition_ = ref_ptr<ShaderInput4f>::alloc("lightPosition");
+	lightPosition_->setUniformData(Vec4f(1.0f, 1.0f, 1.0f, 0.0f));
 	lightPosition_->setSchema(InputSchema::position());
 	lightUniforms_->addBlockInput(lightPosition_);
 
@@ -107,9 +107,9 @@ void Light::updateConeMatrix() {
 void Light::updateConeMatrix_() {
 	// Note: cone opens in positive z direction.
 	auto numInstances = std::max(lightPosition_->numInstances(), lightDirection_->numInstances());
-	if (coneMatrix_->get()->numInstances() != numInstances) {
+	if (coneMatrix_->modelMat()->numInstances() != numInstances) {
 		// ensure cone matrix has numInstances
-		coneMatrix_->get()->setInstanceData(numInstances, 1, nullptr);
+		coneMatrix_->modelMat()->setInstanceData(numInstances, 1, nullptr);
 	}
 
 	for (unsigned int i = 0; i < numInstances; ++i) {
@@ -118,7 +118,7 @@ void Light::updateConeMatrix_() {
 		auto angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));
 
 		if (math::isApprox(abs(angleCos), 1.0)) {
-			coneMatrix_->get()->setVertex(i, Mat4f::identity());
+			coneMatrix_->modelMat()->setVertex(i, Mat4f::identity());
 		} else {
 			const auto radius = lightRadius_->getVertexClamped(i).r.y;
 			const auto coneAngle = lightConeAngles_->getVertexClamped(i).r.y;
@@ -133,13 +133,15 @@ void Light::updateConeMatrix_() {
 			auto x = 2.0f * radius * tan(acos(coneAngle));
 			auto val = q.calculateMatrix();
 			val.scale(Vec3f(x, x, radius));
-			val.translate(lightPosition_->getVertexClamped(i).r);
-			coneMatrix_->get()->setVertex(i, val);
+			val.translate(lightPosition_->getVertexClamped(i).r.xyz_());
+			coneMatrix_->modelMat()->setVertex(i, val);
 		}
 	}
 }
 
-const ref_ptr<ShaderInputMat4> &Light::coneMatrix() { return coneMatrix_->get(); }
+const ref_ptr<ShaderInputMat4> &Light::coneMatrix() {
+	return coneMatrix_->modelMat();
+}
 
 namespace regen {
 	std::ostream &operator<<(std::ostream &out, const Light::Type &type) {
@@ -204,7 +206,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
 	dir.normalize();
 	light->direction()->setVertex(0, dir);
-	light->position()->setVertex(0,
+	light->position()->setVertex3(0,
 								 input.getValue<Vec3f>("position", Vec3f(0.0f)));
 	light->direction()->setVertex(0,
 								  input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f)));
@@ -244,7 +246,10 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			if (animationType == "boids") {
 				// let a boid simulation change the light positions
 				LoadingContext boidsConfig(ctx.scene(), ctx.parent());
-				auto boidsAnimation = BoidsCPU::load(boidsConfig, *child.get(), light->position());
+				auto boidsAnimation = BoidsCPU::load(
+							boidsConfig,
+							*child.get(),
+							ref_ptr<ModelTransformation>::alloc(light->position()));
 				light->attach(boidsAnimation);
 				boidsAnimation->startAnimation();
 			} else {
@@ -267,6 +272,6 @@ LightNode::LightNode(
 
 void LightNode::update(GLdouble dt) {
 	Vec3f v = animNode_->localTransform().transformVector(
-			light_->position()->getVertex(0).r);
-	light_->position()->setVertex(0, v);
+			light_->position()->getVertex(0).r.xyz_());
+	light_->position()->setVertex3(0, v);
 }

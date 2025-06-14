@@ -40,27 +40,23 @@ BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 		  Animation(false, true),
 		  priv_(new Private())
 {
-	auto tfData = tf_->get()->mapClientData<Mat4f>(ShaderData::READ);
-	boidData_.resize(numBoids_);
-	boidPositions_.resize(numBoids_);
-	for (uint32_t i = 0; i < numBoids_; ++i) {
-		boidPositions_[i] = tfData.r[i].position();
-		boidData_[i].velocity = Vec3f::zero();
-	}
-}
-
-BoidsCPU::BoidsCPU(const ref_ptr<ShaderInput3f> &position)
-		: BoidSimulation(position),
-		  Animation(false, true),
-		  priv_(new Private())
-{
-	auto initialPositionData = position_->mapClientData<Vec3f>(ShaderData::READ);
-	boidData_.resize(numBoids_);
-	boidPositions_.resize(numBoids_);
-	for (uint32_t i = 0; i < numBoids_; ++i) {
-		auto &d = boidData_[i];
-		boidPositions_[i] = initialPositionData.r[i];
-		d.velocity = Vec3f::zero();
+	if (tf_->hasModelMat()) {
+		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ShaderData::READ);
+		boidData_.resize(numBoids_);
+		boidPositions_.resize(numBoids_);
+		for (uint32_t i = 0; i < numBoids_; ++i) {
+			boidPositions_[i] = tfData.r[i].position();
+			boidData_[i].velocity = Vec3f::zero();
+		}
+	} else {
+		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec3f>(ShaderData::READ);
+		boidData_.resize(numBoids_);
+		boidPositions_.resize(numBoids_);
+		for (uint32_t i = 0; i < numBoids_; ++i) {
+			auto &d = boidData_[i];
+			boidPositions_[i] = initialPositionData.r[i];
+			d.velocity = Vec3f::zero();
+		}
 	}
 }
 
@@ -93,12 +89,6 @@ void BoidsCPU::initBoidSimulation() {
 	animationState()->joinShaderInput(maxBoidSpeed_);
 	animationState()->joinShaderInput(maxAngularSpeed_);
 	REGEN_INFO("CPU Boids simulation with " << numBoids_ << " boids");
-}
-
-ref_ptr<BoidsCPU> BoidsCPU::load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ShaderInput3f> &position) {
-	auto boids = ref_ptr<BoidsCPU>::alloc(position);
-	boids->loadSettings(ctx, input);
-	return boids;
 }
 
 ref_ptr<BoidsCPU> BoidsCPU::load(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<ModelTransformation> &tf) {
@@ -168,31 +158,34 @@ void BoidsCPU::animate(double dt) {
 
 void BoidsCPU::updateTransforms() {
 	if (tf_.get()) {
-		auto &tfInput = tf_->get();
-		auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ | ShaderData::WRITE);
-		float vl;
+		if (tf_->hasModelMat()) {
+			auto &tfInput = tf_->modelMat();
+			auto tfData = tfInput->mapClientData<Mat4f>(ShaderData::READ | ShaderData::WRITE);
+			float vl;
 
-		for (uint32_t i = 0; i < numBoids_; ++i) {
-			auto &d = boidData_[i];
-			// calculate boid matrix, also need to compute rotation from velocity, model z
-			//       should point in the direction of velocity.
-			vl = d.velocity.length();
-			if (vl > 0.001f) {
-				// Convert the normalized direction vector to Euler angles
-				priv_->boidRotation_.setEuler(
-						atan2(-d.velocity.x/vl, d.velocity.z/vl) + priv_->baseOrientation_,
-						asin(-d.velocity.y/vl),
-						0.0f);
-				tfData.w[i] = priv_->boidRotation_.calculateMatrix();
-				tfData.w[i].scale(priv_->boidsScale_);
-				tfData.w[i].translate(boidPositions_[i]);
-			} else {
-				tfData.w[i] = tfData.r[i];
+			for (uint32_t i = 0; i < numBoids_; ++i) {
+				auto &d = boidData_[i];
+				// calculate boid matrix, also need to compute rotation from velocity, model z
+				//       should point in the direction of velocity.
+				vl = d.velocity.length();
+				if (vl > 0.001f) {
+					// Convert the normalized direction vector to Euler angles
+					priv_->boidRotation_.setEuler(
+							atan2(-d.velocity.x/vl, d.velocity.z/vl) + priv_->baseOrientation_,
+							asin(-d.velocity.y/vl),
+							0.0f);
+					tfData.w[i] = priv_->boidRotation_.calculateMatrix();
+					tfData.w[i].scale(priv_->boidsScale_);
+					tfData.w[i].translate(boidPositions_[i]);
+				} else {
+					tfData.w[i] = tfData.r[i];
+				}
 			}
 		}
-	} else if (position_.get()) {
-		auto positionData = position_->mapClientDataRaw(ShaderData::WRITE);
-		std::memcpy(positionData.w, (byte*)boidPositions_.data(), numBoids_ * sizeof(Vec3f));
+		else if (tf_->hasModelOffset()) {
+			auto positionData = tf_->modelOffset()->mapClientDataRaw(ShaderData::WRITE);
+			std::memcpy(positionData.w, (byte*)boidPositions_.data(), numBoids_ * sizeof(Vec3f));
+		}
 	}
 }
 

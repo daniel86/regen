@@ -258,7 +258,7 @@ namespace regen {
 		 * Attach the camera to a position, updating the camera position.
 		 * @param attachedPosition the position to attach to.
 		 */
-		void attachToPosition(const ref_ptr<ShaderInput3f> &attachedPosition);
+		void attachToPosition(const ref_ptr<ShaderInput4f> &attachedPosition);
 
 		/**
 		 * Attach the camera to a position, updating the camera position.
@@ -302,7 +302,7 @@ namespace regen {
 
 		ref_ptr<Animation> attachedMotion_;
 		ref_ptr<ShaderInputMat4> attachedTransform_;
-		ref_ptr<ShaderInput3f> attachedPosition_;
+		ref_ptr<ShaderInput4f> attachedPosition_;
 		bool isAttachedToPosition_ = false;
 		ref_ptr<Animation> cameraMotion_;
 
