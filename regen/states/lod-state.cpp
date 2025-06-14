@@ -29,7 +29,7 @@ LODState::LODState(
 	if (!cullShape_->parts().empty()) {
 		mesh_ = cullShape_->parts().front();
 	} else {
-		REGEN_WARN("No mesh set for shape");
+		REGEN_WARN("No mesh set for shape '" << cullShape_->shapeName() << "'.");
 	}
 	if (camera_->hasFixedLOD()) {
 		if (camera_->fixedLODQuality() == LODQuality::HIGH) {
@@ -121,9 +121,9 @@ static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uin
 void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
 	// increase LOD level by one if we have a shadow target
 	if (!camera_->hasFixedLOD()) {
-		if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
-			lodLevel++;
-		}
+		//if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
+		//	lodLevel++;
+		//}
 	}
 	// set the LOD level
 	for (auto &part: cullShape_->parts()) {
@@ -177,7 +177,9 @@ void LODState::enable(RenderState *rs) {
 						   << " numLODs: " <<
 						   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
 						   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
-						   << " shape: " << cullShape_->shapeName());
+						   << " shadow: " << (hasShadowTarget_ ? "1" : "0")
+						   << " shape: " << cullShape_->shapeName()
+						   );
 		} else {
 			REGEN_INFO("LOD ("
 						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << ")"
@@ -434,20 +436,27 @@ void LODState::createComputeShader() {
 		cullPass_->joinShaderInput(lodGroupSizeBuffer_);
 		cullPass_->joinShaderInput(radixSort_->keyBuffer());
 		cullPass_->joinShaderInput(cullShape_->instanceIDBuffer());
-		cullPass_->joinShaderInput(mesh_->getShapeBuffer());
-		cullPass_->joinStates(cullShape_->tf());
-		cullPass_->joinStates(camera_);
 		auto boundingShape = mesh_->boundingShape();
 		if (boundingShape->shapeType() == BoundingShapeType::SPHERE) {
+			auto *sphere = dynamic_cast<BoundingSphere*>(boundingShape.get());
+			cullPass_->joinShaderInput(createUniform<ShaderInput1f, float>(
+					"shapeRadius", sphere->radius()));
 			shaderCfg.define("SHAPE_TYPE", "SPHERE");
-		} else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
-			auto box = (BoundingBox *) (boundingShape.get());
+		}
+		else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
+			auto *box = dynamic_cast<BoundingBox*>(boundingShape.get());
+			cullPass_->joinShaderInput(createUniform<ShaderInput4f, Vec4f>(
+					"shapeAABBMin", Vec4f(box->bounds().min,0.0f)));
+			cullPass_->joinShaderInput(createUniform<ShaderInput4f, Vec4f>(
+					"shapeAABBMax", Vec4f(box->bounds().max,0.0f)));
 			if (box->isAABB()) {
 				shaderCfg.define("SHAPE_TYPE", "AABB");
 			} else {
 				shaderCfg.define("SHAPE_TYPE", "OBB");
 			}
 		}
+		cullPass_->joinStates(cullShape_->tf());
+		cullPass_->joinStates(camera_);
 		shaderCfg.define("USE_CULLING", "TRUE");
 		shaderCfg.addState(cullPass_.get());
 		cullPass_->createShader(shaderCfg.cfg());
@@ -467,8 +476,9 @@ void LODState::traverseGPU(RenderState *rs) {
 
 	// Update the frustum planes in the UBO
 	rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
-	if (cameraStamp_ != camera_->stamp()) {
-		cameraStamp_ = camera_->stamp();
+	// TODO: something wrong with camera_->stamp()
+	//if (cameraStamp_ != camera_->stamp()) {
+	//	cameraStamp_ = camera_->stamp();
 		auto &frustum = camera_->frustum();
 		for (size_t i = 0; i < frustum.size(); ++i) {
 			auto &frustumPlanes = frustum[i].planes;
@@ -481,7 +491,7 @@ void LODState::traverseGPU(RenderState *rs) {
 				frustumUBO_->blockReference()->address(),
 				frustumUBO_->blockReference()->allocatedSize(),
 				&frustumPlanes_[0].x);
-	}
+	//}
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
 	// TODO: avoid LOD computation if hasFixedLOD

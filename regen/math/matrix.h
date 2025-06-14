@@ -878,6 +878,16 @@ namespace regen {
 		}
 
 		/**
+		 * Apply scaling to a vector.
+		 * @param v the vector to scale.
+		 */
+		inline void applyScaling(Vec3f &v) const {
+			v.x *= x[0];
+			v.y *= x[5];
+			v.z *= x[10];
+		}
+
+		/**
 		 * @return the scaling vector.
 		 */
 		inline Vec3f scaling() const {

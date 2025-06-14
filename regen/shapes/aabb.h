@@ -13,13 +13,13 @@ namespace regen {
 		 * @brief Construct a new AABB object
 		 * @param mesh The mesh
 		 */
-		explicit AABB(const ref_ptr<Mesh> &mesh);
+		AABB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts);
 
 		/**
 		 * @brief Construct a new AABB object
 		 * @param bounds The min/max of the AABB
 		 */
-		explicit AABB(const Bounds<Vec3f> &bounds);
+		AABB(const Bounds<Vec3f> &bounds);
 
 		~AABB() override = default;
 

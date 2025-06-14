@@ -1,10 +1,3 @@
-/*
- * plane.cpp
- *
- *  Created on: Oct 18, 2014
- *      Author: daniel
- */
-
 #include "plane.h"
 
 using namespace regen;
@@ -17,19 +10,15 @@ Plane::Plane(const Vec3f &p, const Vec3f &n) {
 }
 
 Vec4f Plane::equation() const {
-	return { normal.x, normal.y, normal.z, normal.dot(point) };
+	return { -normal.x, -normal.y, -normal.z, normal.dot(point) };
 }
 
 void Plane::set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) {
 	point = p0;
+	// TODO: I think the normal is reversed.
+	//         - plane equation should be {n, -n.dot(p)}
+	//         - requires some changes in camera/frustum code
 	normal = (p2 - p0).cross(p1 - p0);
+	//normal = (p1 - p0).cross(p2 - p0);
 	normal.normalize();
-}
-
-GLfloat Plane::distance(const Vec3f &p) const {
-	return normal.dot(point - p);
-}
-
-Vec3f Plane::closestPoint(const Vec3f &p) const {
-	return p - normal * distance(p);
 }

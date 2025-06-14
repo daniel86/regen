@@ -36,12 +36,16 @@ namespace regen {
 		/**
 		 * @return Minimum distance between this plane and a point.
 		 */
-		GLfloat distance(const Vec3f &p) const;
+		inline float distance(const Vec3f &p) const {
+			return normal.dot(point - p);
+		}
 
 		/**
 		 * @return Closest point on this plane to a point.
 		 */
-		Vec3f closestPoint(const Vec3f &p) const;
+		inline Vec3f closestPoint(const Vec3f &p) const {
+			return p - normal * distance(p);
+		}
 	};
 }
 

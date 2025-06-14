@@ -267,14 +267,14 @@ namespace regen {
 		 * @param shape the bounding shape.
 		 * @param uploadToGPU true if the shape should be uploaded to GPU.
 		 */
-		void setBoundingShape(const ref_ptr<BoundingShape> &shape, bool uploadToGPU);
+		void setBoundingShape(const ref_ptr<BoundingShape> &shape);
 
 		/**
 		 * Create a bounding sphere or box for this mesh based on the
 		 * min and max positions of vertices.
 		 * @param uploadToGPU true if the shape should be uploaded to GPU.
 		 */
-		void createBoundingSphere(bool uploadToGPU);
+		void createBoundingSphere();
 
 		/**
 		 * Create a bounding box for this mesh based on the
@@ -282,7 +282,7 @@ namespace regen {
 		 * @param isOBB true if the bounding box should be an oriented bounding box.
 		 * @param uploadToGPU true if the shape should be uploaded to GPU.
 		 */
-		void createBoundingBox(bool isOBB, bool uploadToGPU);
+		void createBoundingBox(bool isOBB);
 
 		/**
 		 * @return the bounding shape, if any.
@@ -293,18 +293,6 @@ namespace regen {
 		 * @return the bounding shape.
 		 */
 		const ref_ptr<BoundingShape>& boundingShape() const { return boundingShape_; }
-
-		/**
-		 * Returns a buffer that contains the shape data.
-		 * Only one for all instances in case of instanced draw.
-		 * @return the shape buffer.
-		 */
-		const ref_ptr<UBO>& getShapeBuffer();
-
-		/**
-		 * @return true if the shape buffer is available.
-		 */
-		bool hasShapeBuffer() const { return shapeBuffer_.get() != nullptr; }
 
 		/**
 		 * Set the physical object.
@@ -445,7 +433,6 @@ namespace regen {
 
 		ref_ptr<State> cullShape_;
 		ref_ptr<BoundingShape> boundingShape_;
-		ref_ptr<UBO> shapeBuffer_;
 		int32_t shapeType_ = -1;
 
 		ref_ptr<VAO> vao_;
@@ -481,13 +468,7 @@ namespace regen {
 
 		void updateDrawFunction();
 
-		void createShapeBuffer();
-
-		void updateShapeBuffer();
-
 		void createShader(const ref_ptr<StateNode> &parentNode, StateConfig &shaderConfigurer);
-
-		void updateShapeBuffer(byte *shapeData);
 
 		void addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in);
 

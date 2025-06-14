@@ -1,10 +1,3 @@
-/*
- * frustum.cpp
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
 #include <regen/utility/logging.h>
 
 #include "frustum.h"
@@ -84,11 +77,17 @@ void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 		updatePointsOrthogonal(pos, d);
 	}
 
+	// Top:		nTr - nTl - fTl
 	planes[0].set(points[2], points[1], points[5]);
+	// Bottom:	nBl - nBr - fBr
 	planes[1].set(points[3], points[0], points[4]);
+	// Left:	ntL - nbL - fbL
 	planes[2].set(points[1], points[3], points[7]);
+	// Right:	nbR - ntR - fbR
 	planes[3].set(points[0], points[2], points[4]);
+	// Near:	nTl - nTr - nBr
 	planes[4].set(points[1], points[2], points[0]);
+	// Far:		fTr - fTl - fBl
 	planes[5].set(points[6], points[5], points[7]);
 }
 
@@ -143,41 +142,47 @@ void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
 bool Frustum::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const {
 	for (const auto &plane: planes) {
 		if (plane.distance(center) < -radius) {
-			return GL_FALSE;
-		}
-	}
-	return GL_TRUE;
-}
-
-bool hasIntersection_(
-		const Plane *planes,
-		const Vec3f &center,
-		const Vec3f *points,
-		unsigned int numPoints) {
-	GLboolean allOutside;
-	for (unsigned int i = 0u; i < 6u; ++i) {
-		allOutside = true;
-		for (unsigned int j = 0u; j < numPoints; ++j) {
-			if (planes[i].distance(center + points[j]) >= 0.0) {
-				allOutside = false;
-				break;
-			}
-		}
-		if (allOutside) {
 			return false;
 		}
 	}
 	return true;
 }
 
-bool hasIntersection_(
-		const Plane *planes,
-		const Vec3f *points,
-		unsigned int numPoints) {
-	GLboolean allOutside;
+static inline bool hasIntersection_AABB_(const Plane *planes, const BoundingBox &box) {
+	const auto &points = box.boxVertices();
+	Vec3f p_min = points[0];
+	Vec3f p_max = points[0];
+	for (unsigned int i = 1u; i < 8u; ++i) {
+		p_min.x = std::min(p_min.x, points[i].x);
+		p_min.y = std::min(p_min.y, points[i].y);
+		p_min.z = std::min(p_min.z, points[i].z);
+		p_max.x = std::max(p_max.x, points[i].x);
+		p_max.y = std::max(p_max.y, points[i].y);
+		p_max.z = std::max(p_max.z, points[i].z);
+	}
+	for (unsigned int i = 0u; i < 6u; ++i) {
+		// Select vertex farthest from the plane in direction of the plane normal.
+		// If this point is behind the plane, the AABB must be outside of the frustum.
+		auto &plane = planes[i];
+		auto &n = plane.normal;
+		Vec3f p(
+			n.x > 0.0 ? p_min.x : p_max.x,
+			n.y > 0.0 ? p_min.y : p_max.y,
+			n.z > 0.0 ? p_min.z : p_max.z);
+		if (n.dot(plane.point) - n.dot(p) < 0.0) {
+			// AABB is outside of the frustum
+			return false;
+		}
+	}
+	return true;
+}
+
+static inline bool hasIntersection_OBB_(const Plane *planes, const BoundingBox &box) {
+	bool allOutside;
+	auto *points = box.boxVertices();
 	for (unsigned int i = 0u; i < 6u; ++i) {
 		allOutside = true;
-		for (unsigned int j = 0u; j < numPoints; ++j) {
+		for (unsigned int j = 0u; j < 8; ++j) {
 			if (planes[i].distance(points[j]) >= 0.0) {
 				allOutside = false;
 				break;
@@ -190,8 +195,28 @@ bool hasIntersection_(
 	return true;
 }
 
+static inline bool hasIntersection_OBB_(
+		const Plane *planes,
+		const Vec3f &center,
+		const Vec3f *points) {
+	bool allOutside;
+	for (unsigned int i = 0u; i < 6u; ++i) {
+		allOutside = true;
+		for (unsigned int j = 0u; j < 8; ++j) {
+			if (planes[i].distance(center + points[j]) >= 0.0) {
+				allOutside = false;
+				break;
+			}
+		}
+		if (allOutside) {
+			return false;
+		}
+	}
+	return true;
+}
+
 bool Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *point) const {
-	return hasIntersection_(planes, center, point, 8);
+	return hasIntersection_OBB_(planes, center, point);
 }
 
 bool Frustum::hasIntersectionWithFrustum(const BoundingSphere &sphere) const {
@@ -199,7 +224,11 @@ bool Frustum::hasIntersectionWithFrustum(const BoundingSphere &sphere) const {
 }
 
 bool Frustum::hasIntersectionWithFrustum(const BoundingBox &box) const {
-	return hasIntersection_(planes, box.boxVertices(), 8);
+	if (box.isAABB()) {
+		return hasIntersection_AABB_(planes, box);
+	} else {
+		return hasIntersection_OBB_(planes, box);
+	}
 }
 
 bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {
@@ -212,10 +241,10 @@ bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {
 			other.planes[i].distance(points[5]) < 0 &&
 			other.planes[i].distance(points[6]) < 0 &&
 			other.planes[i].distance(points[7]) < 0) {
-			return GL_FALSE;
+			return false;
 		}
 	}
-	return GL_TRUE;
+	return true;
 }
 
 void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) const {
@@ -243,13 +272,13 @@ void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) cons
 
 Vec3f Frustum::closestPointOnSurface(const Vec3f &point) const {
 	Vec3f closestPoint;
-	float minDistance = std::numeric_limits<float>::max();
+	float minDistanceSqr = std::numeric_limits<float>::max();
 
 	for (const auto &plane: planes) {
 		Vec3f planePoint = plane.closestPoint(point);
-		float distance = (planePoint - point).length();
-		if (distance < minDistance) {
-			minDistance = distance;
+		float distanceSqr = (planePoint - point).lengthSquared();
+		if (distanceSqr < minDistanceSqr) {
+			minDistanceSqr = distanceSqr;
 			closestPoint = planePoint;
 		}
 	}

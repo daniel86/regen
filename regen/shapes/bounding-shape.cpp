@@ -12,9 +12,12 @@ BoundingShape::BoundingShape(BoundingShapeType shapeType)
 		  lastGeometryStamp_(0u) {
 }
 
-BoundingShape::BoundingShape(BoundingShapeType shapeType, const ref_ptr<Mesh> &mesh)
+BoundingShape::BoundingShape(BoundingShapeType shapeType,
+			const ref_ptr<Mesh> &mesh,
+			const std::vector<ref_ptr<Mesh>> &parts)
 		: shapeType_(shapeType),
 		  mesh_(mesh),
+		  parts_(parts),
 		  lastGeometryStamp_(mesh_->geometryStamp()) {
 }
 
@@ -69,7 +72,6 @@ Vec3f BoundingShape::translation() const {
 		if(transform_->hasModelMat()) {
 			auto m_modelMat = transform_->modelMat()->getVertexClamped(transformIndex_);
 			if(transform_->hasModelOffset()) {
-				REGEN_WARN("model mat + model offset");
 				auto m_modelOffset = transform_->modelOffset()->getVertexClamped(transformIndex_);
 				return m_modelMat.r.position() + m_modelOffset.r.xyz_();
 			} else {

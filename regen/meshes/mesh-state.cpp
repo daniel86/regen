@@ -40,7 +40,6 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  instanceIDOffset_loc_(-1),
 		  cullShape_(sourceMesh->cullShape_),
 		  boundingShape_(sourceMesh->boundingShape_),
-		  shapeBuffer_(sourceMesh->shapeBuffer_),
 		  shapeType_(sourceMesh->shapeType_),
 		  shaderKey_(sourceMesh->shaderKey_),
 		  shaderStageKeys_(sourceMesh->shaderStageKeys_),
@@ -392,19 +391,7 @@ void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t i
 	}
 }
 
-namespace regen {
-	struct SphereShape_GPU {
-		Vec3f center = Vec3f::zero();
-		float radius = 0.0f;
-	};
-	struct BoxShape_GPU {
-		Vec4f aabbMin = Vec4f::zero();
-		Vec4f aabbMax = Vec4f::zero();
-	};
-}
-
-void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape, bool uploadToGPU) {
-	auto lastType = shapeType_;
+void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
 	if (shape->shapeType() == BoundingShapeType::SPHERE) {
 		shapeType_ = 0;
 		shaderDefine("SHAPE_TYPE", "SPHERE");
@@ -414,87 +401,29 @@ void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape, bool uploadToGP
 		shaderDefine("SHAPE_TYPE", box->isAABB() ? "AABB" : "OBB");
 	} else {
 		REGEN_WARN("Unsupported shape type for mesh: " << (int)shape->shapeType());
-		if(!boundingShape_.get()) createBoundingSphere(uploadToGPU);
+		if(!boundingShape_.get()) createBoundingSphere();
 		return;
 	}
 	boundingShape_ = shape;
-
-	if (uploadToGPU) {
-		if (!shapeBuffer_.get() || lastType != shapeType_) {
-			createShapeBuffer();
-		}
-		updateShapeBuffer();
-	}
 }
 
-void Mesh::createBoundingSphere(bool uploadToGPU) {
+void Mesh::createBoundingSphere() {
 	// create a sphere shape, compute radius from bounding box
 	float radius = (maxPosition_ - minPosition_).length() * 0.5f;
 	auto sphere = ref_ptr<BoundingSphere>::alloc(centerPosition(), radius);
-	setBoundingShape(sphere, uploadToGPU);
+	setBoundingShape(sphere);
 }
 
-void Mesh::createBoundingBox(bool isOBB, bool uploadToGPU) {
+void Mesh::createBoundingBox(bool isOBB) {
 	// create a box shape, compute radius from bounding box
 	Bounds<Vec3f> bounds(minPosition_, maxPosition_);
 	if (isOBB) {
 		auto box = ref_ptr<OBB>::alloc(bounds);
-		setBoundingShape(box, uploadToGPU);
+		setBoundingShape(box);
 	} else {
 		auto aabb = ref_ptr<AABB>::alloc(bounds);
-		setBoundingShape(aabb, uploadToGPU);
+		setBoundingShape(aabb);
 	}
-}
-
-void Mesh::createShapeBuffer() {
-	shapeBuffer_ = ref_ptr<UBO>::alloc("ShapeBuffer", BUFFER_USAGE_DYNAMIC_DRAW);
-	if (shapeType_ == 0) {
-		shapeBuffer_->addBlockInput(createUniform<ShaderInput3f, Vec3f>("shapeCenter", Vec3f::zero()));
-		shapeBuffer_->addBlockInput(createUniform<ShaderInput1f, float>("shapeRadius", 0.0f));
-	} else {
-		shapeBuffer_->addBlockInput(createUniform<ShaderInput4f, Vec4f>("shapeAABBMin", Vec4f::zero()));
-		shapeBuffer_->addBlockInput(createUniform<ShaderInput4f, Vec4f>("shapeAABBMax", Vec4f::zero()));
-	}
-	shapeBuffer_->update();
-	setInput(shapeBuffer_);
-}
-
-void Mesh::updateShapeBuffer(byte *shapeData) {
-	RenderState::get()->uniformBuffer().push(shapeBuffer_->blockReference()->bufferID());
-	glBufferSubData(
-			GL_UNIFORM_BUFFER,
-			shapeBuffer_->blockReference()->address(),
-			shapeBuffer_->blockReference()->allocatedSize(),
-			&shapeData);
-	RenderState::get()->uniformBuffer().pop();
-}
-
-void Mesh::updateShapeBuffer() {
-	if (!boundingShape_.get()) {
-		REGEN_WARN("No bounding shape set for mesh, cannot update shape buffer.");
-		return;
-	}
-	if (boundingShape_->shapeType() == BoundingShapeType::SPHERE) {
-		auto *sphere = (BoundingSphere*)(boundingShape_.get());
-		SphereShape_GPU shapeData;
-		shapeData.radius = sphere->radius();
-		updateShapeBuffer((byte*)&shapeData);
-	}
-	else if (boundingShape_->shapeType() == BoundingShapeType::BOX) {
-		auto *box = (BoundingBox*)(boundingShape_.get());
-		BoxShape_GPU shapeData;
-		shapeData.aabbMin.xyz_() = box->bounds().min;
-		shapeData.aabbMax.xyz_() = box->bounds().max;
-		updateShapeBuffer((byte*)&shapeData);
-	}
-}
-
-const ref_ptr<UBO>& Mesh::getShapeBuffer() {
-	if (!shapeBuffer_.get()) {
-		createShapeBuffer();
-		updateShapeBuffer();
-	}
-	return shapeBuffer_;
 }
 
 void Mesh::setCullShape(const ref_ptr<State> &cullShape) {

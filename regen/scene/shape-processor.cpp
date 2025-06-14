@@ -261,45 +261,42 @@ static ref_ptr<BoundingShape> createShape(
 	if (shapeType == "sphere") {
 		if (mesh.get()) {
 			if (input.hasAttribute("radius")) {
-				shape = ref_ptr<BoundingSphere>::alloc(mesh, input.getValue<float>("radius", 1.0f));
+				shape = ref_ptr<BoundingSphere>::alloc(mesh, parts, input.getValue<float>("radius", 1.0f));
 			} else {
-				shape = ref_ptr<BoundingSphere>::alloc(mesh);
+				shape = ref_ptr<BoundingSphere>::alloc(mesh, parts);
 			}
 		} else if (input.hasAttribute("radius")) {
 			auto radius_opt = getRadius(input);
 			if (radius_opt.has_value()) {
 				auto center = input.getValue<Vec3f>("center", Vec3f(0.0f));
 				shape = ref_ptr<BoundingSphere>::alloc(center, radius_opt.value());
+				for (auto &part: parts) { shape->addPart(part); }
 			}
 		}
 	} else if (shapeType == "aabb") {
 		if (mesh.get()) {
-			shape = ref_ptr<AABB>::alloc(mesh);
+			shape = ref_ptr<AABB>::alloc(mesh, parts);
 		} else {
 			auto size_opt = getBoxBounds(input);
 			if (size_opt.has_value()) {
 				shape = ref_ptr<AABB>::alloc(size_opt.value());
+				for (auto &part: parts) { shape->addPart(part); }
 			}
 		}
 	} else if (shapeType == "obb") {
 		if (mesh.get()) {
-			shape = ref_ptr<OBB>::alloc(mesh);
+			shape = ref_ptr<OBB>::alloc(mesh, parts);
 		} else {
 			auto size_opt = getBoxBounds(input);
 			if (size_opt.has_value()) {
 				shape = ref_ptr<OBB>::alloc(size_opt.value());
+				for (auto &part: parts) { shape->addPart(part); }
 			}
 		}
 	}
 	if (!shape.get()) {
 		REGEN_WARN("Ignoring unknown shape '" << input.getDescription() << "'.");
 		return {};
-	}
-
-	// handle input children with tag "has-part" which define additional
-	// meshes to be included in the shape.
-	for (auto &part: parts) {
-		shape->addPart(part);
 	}
 
 	return shape;
@@ -486,10 +483,10 @@ void ShapeProcessor::processInput(
 		auto shape = createShape(input, mesh, parts);
 		if (shape.get()) {
 			if (mesh.get()) {
-				mesh->setBoundingShape(shape, isGPUShape);
+				mesh->setBoundingShape(shape);
 			}
 			for (auto &part: parts) {
-				part->setBoundingShape(shape, isGPUShape);
+				part->setBoundingShape(shape);
 			}
 		} else {
 			REGEN_WARN("Skipping shape node " << input.getDescription() << " without shape.");

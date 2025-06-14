@@ -28,7 +28,7 @@ namespace regen {
 		 * @param shapeType The type of the shape
 		 * @param mesh The mesh
 		 */
-		BoundingShape(BoundingShapeType shapeType, const ref_ptr<Mesh> &mesh);
+		BoundingShape(BoundingShapeType shapeType, const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts);
 
 		virtual ~BoundingShape() = default;
 
@@ -130,10 +130,14 @@ namespace regen {
 		auto &parts() const { return parts_; }
 
 		/**
-		 * @brief Add a part to this shape
-		 * @param part The part
+		 * Add a part to this shape
+		 * @param part The part to add
 		 */
-		void addPart(const ref_ptr<Mesh> &part) { parts_.push_back(part); }
+		void addPart(const ref_ptr<Mesh> &part) {
+			if (part.get() != nullptr) {
+				parts_.push_back(part);
+			}
+		}
 
 		/**
 		 * @brief Update the transform

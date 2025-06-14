@@ -14,7 +14,7 @@ namespace regen {
 		 * @brief Construct a new OBB object
 		 * @param mesh The mesh
 		 */
-		explicit OBB(const ref_ptr<Mesh> &mesh);
+		OBB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts);
 
 		/**
 		 * @brief Construct a new OBB object

@@ -8,8 +8,8 @@ BoundingSphere::BoundingSphere(const Vec3f &basePosition, GLfloat radius)
 		  basePosition_(basePosition),
 		  radius_(radius) {}
 
-BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh, float radius)
-		: BoundingShape(BoundingShapeType::SPHERE, mesh),
+BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts, float radius)
+		: BoundingShape(BoundingShapeType::SPHERE, mesh, parts),
 		  basePosition_(mesh->centerPosition()),
 		  radius_(radius > 0.0f ? radius : computeRadius(mesh->minPosition(), mesh->maxPosition())) {
 	auto sphereMesh = dynamic_cast<Sphere *>(mesh.get());
