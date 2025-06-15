@@ -216,13 +216,13 @@ void LODState::traverseCPU(RenderState *) {
 	} else if (camera_->hasFixedLOD()) {
 		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);
 	} else {
-		// TODO: problem with cameraStamp_
-		//if (tfStamp_ != cullShape_->tf()->stamp() || cameraStamp_ != camera_->stamp()) {
-		//	computeLODGroups();
-		//	tfStamp_ = cullShape_->tf()->stamp();
-		//	cameraStamp_ = camera_->stamp();
-		//}
-		computeLODGroups();
+		if (tfStamp_ != cullShape_->tf()->stamp() || cameraStamp_ != camera_->stamp()) {
+			// recompute LOD groups if the transform or camera has changed
+			computeLODGroups();
+			tfStamp_ = cullShape_->tf()->stamp();
+			cameraStamp_ = camera_->stamp();
+		}
+		//computeLODGroups();
 		if (mesh_->numLODs() <= 1) {
 			updateVisibility(0, shapeIndex_->numVisibleInstances(), 0);
 		} else {
@@ -470,11 +470,10 @@ void LODState::traverseGPU(RenderState *rs) {
 						 GL_UNSIGNED_INT,
 						 &zero);
 
-	// Update the frustum planes in the UBO
-	rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
-	// TODO: something wrong with camera_->stamp()
-	//if (cameraStamp_ != camera_->stamp()) {
-	//	cameraStamp_ = camera_->stamp();
+	bool hasUpdated = false;
+	if (cameraStamp_ != camera_->stamp()) {
+		// Update the frustum planes in the UBO
+		cameraStamp_ = camera_->stamp();
 		auto &frustum = camera_->frustum();
 		for (size_t i = 0; i < frustum.size(); ++i) {
 			auto &frustumPlanes = frustum[i].planes;
@@ -482,12 +481,19 @@ void LODState::traverseGPU(RenderState *rs) {
 				frustumPlanes_[i*6 + j] = frustumPlanes[j].equation();
 			}
 		}
+		rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
 		glBufferSubData(
 				GL_UNIFORM_BUFFER,
 				frustumUBO_->blockReference()->address(),
 				frustumUBO_->blockReference()->allocatedSize(),
 				&frustumPlanes_[0].x);
-	//}
+		hasUpdated = true;
+	}
+	if (tfStamp_ != cullShape_->tf()->stamp()) {
+		// Update the transform in the cull pass
+		tfStamp_ = cullShape_->tf()->stamp();
+		hasUpdated = true;
+	}
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
 	// TODO: avoid LOD computation if hasFixedLOD
@@ -498,17 +504,19 @@ void LODState::traverseGPU(RenderState *rs) {
 	radixSort_->disable(rs);
 
 	// Update and read lodGroupSize and update lodNumInstances
-	lodGroupSizeMapping_->readBuffer(
-			lodGroupSizeBuffer_->blockReference(),
-			GL_SHADER_STORAGE_BUFFER);
-	if (lodGroupSizeMapping_->hasReadData()) {
-		auto &latestData = lodGroupSizeMapping_->storageValue();
-		lodNumInstances_[0] = latestData.x;
-		lodNumInstances_[1] = latestData.y;
-		lodNumInstances_[2] = latestData.z;
-		lodNumInstances_[3] = latestData.w;
-	} else {
-		return;
+	if (hasUpdated) {
+		lodGroupSizeMapping_->readBuffer(
+				lodGroupSizeBuffer_->blockReference(),
+				GL_SHADER_STORAGE_BUFFER);
+		if (lodGroupSizeMapping_->hasReadData()) {
+			auto &latestData = lodGroupSizeMapping_->storageValue();
+			lodNumInstances_[0] = latestData.x;
+			lodNumInstances_[1] = latestData.y;
+			lodNumInstances_[2] = latestData.z;
+			lodNumInstances_[3] = latestData.w;
+		} else {
+			return;
+		}
 	}
 
 	// loop over all LOD levels

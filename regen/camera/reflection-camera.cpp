@@ -104,18 +104,18 @@ void ReflectionCamera::updateReflection() {
 		return;
 	}
 
-	GLboolean reflectorChanged = GL_FALSE;
+	bool reflectorChanged = false;
 	if (hasMesh_) {
 		if (transform_.get() != nullptr && transform_->stamp() != transformStamp_) {
-			reflectorChanged = GL_TRUE;
+			reflectorChanged = true;
 			transformStamp_ = transform_->stamp();
 		}
 		if (nor_->stamp() != norStamp_) {
-			reflectorChanged = GL_TRUE;
+			reflectorChanged = true;
 			norStamp_ = nor_->stamp();
 		}
 		if (pos_->stamp() != posStamp_) {
-			reflectorChanged = GL_TRUE;
+			reflectorChanged = true;
 			posStamp_ = pos_->stamp();
 		}
 		// Compute plane parameters...
@@ -140,7 +140,7 @@ void ReflectionCamera::updateReflection() {
 		userCamera_->position()->getVertex(0).r.xyz_() - posWorld_) > 0.0;
 	if (isFront != isFront_) {
 		isFront_ = isFront;
-		reflectorChanged = GL_TRUE;
+		reflectorChanged = true;
 	}
 	// Skip back faces
 	if (!isFront && !hasBackFace_) return;
@@ -167,7 +167,7 @@ void ReflectionCamera::updateReflection() {
 		dir.normalize();
 		direction_->setVertex3(0, dir);
 
-		reflectorChanged = GL_TRUE;
+		reflectorChanged = true;
 	}
 	// Compute reflection camera position
 	if (reflectorChanged || userCamera_->position()->stamp() != camPosStamp_) {
@@ -176,13 +176,13 @@ void ReflectionCamera::updateReflection() {
 			userCamera_->position()->getVertex(0).r.xyz_());
 		position_->setVertex3(0, reflected);
 
-		reflectorChanged = GL_TRUE;
+		reflectorChanged = true;
 	}
 
 	// Compute view matrix
 	if (reflectorChanged) {
 		updateView();
-		cameraChanged_ = GL_TRUE;
+		cameraChanged_ = true;
 	}
 
 	// Compute projection matrix
@@ -192,12 +192,13 @@ void ReflectionCamera::updateReflection() {
 				userCamera_->projection()->getVertex(0).r);
 		projInv_->setUniformData(
 				userCamera_->projectionInverse()->getVertex(0).r);
-		cameraChanged_ = GL_TRUE;
+		cameraChanged_ = true;
 	}
 
 	// Compute view-projection matrix
 	if (cameraChanged_) {
 		updateViewProjection(0u,0u);
-		cameraChanged_ = GL_FALSE;
+		cameraChanged_ = false;
+		camStamp_ += 1u;
 	}
 }

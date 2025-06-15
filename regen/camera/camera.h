@@ -42,6 +42,12 @@ namespace regen {
 		auto stamp() const { return camStamp_; }
 
 		/**
+		 * Increment the camera stamp.
+		 * @return the new stamp.
+		 */
+		auto nextStamp() { return ++camStamp_; }
+
+		/**
 		 * @return the number of layers.
 		 */
 		auto numLayer() const { return numLayer_; }

@@ -140,6 +140,7 @@ bool Camera::updateCamera() {
 	if (updateView() || projectionStamp != projectionStamp_) {
 		updateViewProjection1();
 		projectionStamp_ = projectionStamp;
+		camStamp_ += 1u;
 		return true;
 	} else {
 		return false;
