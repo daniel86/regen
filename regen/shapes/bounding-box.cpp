@@ -36,12 +36,7 @@ void BoundingBox::updateBounds(const Vec3f &min, const Vec3f &max) {
 void BoundingBox::updateShapeOrigin() {
 	shapeOrigin_ = basePosition_;
 	if (transform_.get()) {
-		if (transform_->hasModelOffset()) {
-			shapeOrigin_ += transform_->modelOffset()->getVertexClamped(transformIndex_).r.xyz_();
-		}
-		if (transform_->hasModelMat()) {
-			shapeOrigin_ +=  transform_->modelMat()->getVertexClamped(transformIndex_).r.position();
-		}
+		shapeOrigin_ += transform_->position(transformIndex_).r;
 	}
 }
 

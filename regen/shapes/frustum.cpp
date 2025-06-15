@@ -220,7 +220,7 @@ bool Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *point) co
 }
 
 bool Frustum::hasIntersectionWithFrustum(const BoundingSphere &sphere) const {
-	return hasIntersectionWithSphere(sphere.translation(), sphere.radius());
+	return hasIntersectionWithSphere(sphere.translation().r, sphere.radius());
 }
 
 bool Frustum::hasIntersectionWithFrustum(const BoundingBox &box) const {

@@ -190,7 +190,7 @@ void OrthogonalProjection::frustumProjectionTriangle(const regen::Frustum &frust
 
 	// Frustum origin in world space, projected to XZ
 	auto basePoint = frustum.translation();
-	points[0] = Vec2f(basePoint.x, basePoint.z);
+	points[0] = Vec2f(basePoint.r.x, basePoint.r.z);
 
 #if 0
 	// Project far plane points onto the xz plane

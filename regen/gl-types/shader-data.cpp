@@ -43,9 +43,14 @@ void ShaderDataRaw_rw::unmap() {
 
 ShaderDataRaw_ro::ShaderDataRaw_ro(const ShaderInput *input, int mapMode) :
 	input(input), mapMode(mapMode) {
-	auto mapped = input->mapClientData(mapMode);
-	r = mapped.r;
-	r_index = mapped.r_index;
+	if (input) {
+		auto mapped = input->mapClientData(mapMode);
+		r = mapped.r;
+		r_index = mapped.r_index;
+	} else {
+		r = nullptr;
+		r_index = -1;
+	}
 }
 
 ShaderDataRaw_ro::~ShaderDataRaw_ro() {

@@ -63,27 +63,11 @@ unsigned int BoundingShape::transformStamp() const {
 	return stamp;
 }
 
-Vec3f BoundingShape::translation() const {
-	// TODO: would be good if we could return a reference to the translation to avoid copying,
-	//        but it is problematic with the mapping interface. A solution would be to
-	//        return a object that holds both mappings.
-	//        It is unfortunate because modelOffset and modelMatrix are usually not used together
+PositionReader BoundingShape::translation() const {
 	if (transform_.get()) {
-		if(transform_->hasModelMat()) {
-			auto m_modelMat = transform_->modelMat()->getVertexClamped(transformIndex_);
-			if(transform_->hasModelOffset()) {
-				auto m_modelOffset = transform_->modelOffset()->getVertexClamped(transformIndex_);
-				return m_modelMat.r.position() + m_modelOffset.r.xyz_();
-			} else {
-				return m_modelMat.r.position();
-			}
-		}
-		else if (transform_->hasModelOffset()) {
-			auto m_modelOffset = transform_->modelOffset()->getVertexClamped(transformIndex_);
-			return m_modelOffset.r.xyz_();
-		}
+		return transform_->position(transformIndex_);
 	}
-	return Vec3f::zero();
+	return {};
 }
 
 bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {

@@ -68,11 +68,9 @@ void ModelTransformation::initBufferContainer() {
 uint32_t ModelTransformation::stamp() const {
 	if (tfMode_ == TF_OFFSET) {
 		return modelOffset_->stamp();
-	}
-	else if (tfMode_ == TF_MATRIX) {
+	} else if (tfMode_ == TF_MATRIX) {
 		return modelMat_->stamp();
-	}
-	else {
+	} else {
 		return modelOffset_->stamp() + modelMat_->stamp();
 	}
 }
@@ -80,13 +78,38 @@ uint32_t ModelTransformation::stamp() const {
 uint32_t ModelTransformation::numInstances() const {
 	if (tfMode_ == TF_OFFSET) {
 		return modelOffset_->numInstances();
-	}
-	else if (tfMode_ == TF_MATRIX) {
+	} else if (tfMode_ == TF_MATRIX) {
 		return modelMat_->numInstances();
-	}
-	else {
+	} else {
 		return std::max(modelOffset_->numInstances(), modelMat_->numInstances());
 	}
+}
+
+ShaderInput *PositionReader::getModelMat(const ModelTransformation *tf) {
+	return tf->hasModelMat() ? tf->modelMat().get() : nullptr;
+}
+
+ShaderInput *PositionReader::getModelOffset(const ModelTransformation *tf) {
+	return tf->hasModelOffset() ? tf->modelOffset().get() : nullptr;
+}
+
+const Vec3f &PositionReader::getPositionReference(const ModelTransformation *tf, unsigned int vertexIndex) const {
+	if (tf->hasModelOffset() && tf->hasModelMat()) {
+		tf->tmpPos_ = ((const Mat4f *) rawData_mat.r)[vertexIndex].position();
+		tf->tmpPos_ += ((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
+		return tf->tmpPos_;
+	}
+	if (tf->hasModelOffset()) {
+		return ((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
+	}
+	if (tf->hasModelMat()) {
+		return ((const Mat4f *) rawData_mat.r)[vertexIndex].position();
+	}
+	return Vec3f::zero();
+}
+
+PositionReader ModelTransformation::position(uint32_t idx) const {
+	return {this, idx};
 }
 
 void ModelTransformation::enable(RenderState *rs) {
@@ -262,7 +285,7 @@ static void makeInstances(InstancePlaneGenerator &generator,
 			topRight.first.density = halfCellDensity + (weights.top + weights.right) * 0.25f;
 			topLeft.first.density = halfCellDensity + (weights.top + weights.left) * 0.25f;
 			// compute uv coordinate, and set the size to half size of parent cell
-			for (auto & i : subdivideCells) {
+			for (auto &i: subdivideCells) {
 				auto &subdivideCell = *i;
 				subdivideCell.size = subdividedSize;
 			}
@@ -451,7 +474,7 @@ static void transformAnimation(
 	} else {
 		if (!tf->hasModelMat()) {
 			REGEN_WARN("transform animation requires a model matrix, but TF of "
-					   << child->getDescription() << " has no model matrix.");
+							   << child->getDescription() << " has no model matrix.");
 			return;
 		}
 		auto transformAnimation = ref_ptr<TransformAnimation>::alloc(tf->modelMat());
@@ -499,7 +522,7 @@ static void transformMatrix(
 		if (child->getCategory() == "set") {
 			if (!tf->hasModelMat()) {
 				REGEN_WARN("set requires a model matrix, but TF of "
-						   << input.getDescription() << " has no model matrix.");
+								   << input.getDescription() << " has no model matrix.");
 				continue;
 			}
 			auto mode = child->getValue("mode");
@@ -511,7 +534,7 @@ static void transformMatrix(
 													   child->getValue<Vec3f>("value", Vec3f(0.0f)));
 				const auto target = child->getValue<std::string>("target", "translate");
 
-				for (unsigned int & indice : indices) {
+				for (unsigned int &indice: indices) {
 					transformMatrix(target, matrices.w[indice], generator.next());
 				}
 			}
@@ -522,7 +545,7 @@ static void transformMatrix(
 			auto &modelOffset = tf->modelOffset();
 			auto v_modelMat = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
 			auto v_modelOffset = modelOffset->mapClientData<Vec4f>(ShaderData::WRITE);
-			for (unsigned int & j : indices) {
+			for (unsigned int &j: indices) {
 				transformMatrix2(
 						child->getCategory(),
 						(modelMat->numInstances() > 1 ? v_modelMat.w[j] : v_modelMat.w[0]),

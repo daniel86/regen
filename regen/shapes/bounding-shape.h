@@ -102,7 +102,7 @@ namespace regen {
 		 * @brief Get the translation of this shape
 		 * @return The translation
 		 */
-		Vec3f translation() const;
+		PositionReader translation() const;
 
 		/**
 		 * @brief Get the center position of this shape

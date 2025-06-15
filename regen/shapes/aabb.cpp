@@ -53,8 +53,8 @@ void AABB::updateAABB() {
 			auto tf = transform_->modelMat()->getVertexClamped(transformIndex_);
 			// compute transformed bounds
 			Vec3f transformed;
-			auto transformedMin = getShapeOrigin();
-			auto transformedMax = transformedMin;
+			Vec3f transformedMin = getShapeOrigin();
+			Vec3f transformedMax = transformedMin;
 			for (int i = 0; i < 8; ++i) {
 				transformed = (tf.r ^ vertices_[i]).xyz_();
 				transformedMin.setMin(transformed);
@@ -67,7 +67,7 @@ void AABB::updateAABB() {
 }
 
 const Vec3f *AABB::boxAxes() const {
-	static Vec3f aabb_axes[3] = {
+	static const Vec3f aabb_axes[3] = {
 			Vec3f::right(),
 			Vec3f::up(),
 			Vec3f::front()
@@ -76,18 +76,21 @@ const Vec3f *AABB::boxAxes() const {
 }
 
 bool AABB::hasIntersectionWithAABB(const AABB &other) const {
-	auto aMin = translation() + bounds().min;
-	auto aMax = translation() + bounds().max;
-	auto bMin = other.translation() + other.bounds().min;
-	auto bMax = other.translation() + other.bounds().max;
+	auto a_p = translation();
+	auto b_p = other.translation();
+	Vec3f aMin = a_p.r + bounds().min;
+	Vec3f aMax = a_p.r + bounds().max;
+	Vec3f bMin = b_p.r + other.bounds().min;
+	Vec3f bMax = b_p.r + other.bounds().max;
 	return aMin.x < bMax.x && aMax.x > bMin.x &&
 		   aMin.y < bMax.y && aMax.y > bMin.y &&
 		   aMin.z < bMax.z && aMax.z > bMin.z;
 }
 
 Vec3f AABB::closestPointOnSurface(const Vec3f &point) const {
-	auto aMin = translation() + bounds().min;
-	auto aMax = translation() + bounds().max;
+	auto a_p = translation();
+	Vec3f aMin = a_p.r + bounds().min;
+	Vec3f aMax = a_p.r + bounds().max;
 	Vec3f closestPoint;
 	closestPoint.x = point.x < aMin.x ? aMin.x : (point.x > aMax.x ? aMax.x : point.x);
 	closestPoint.y = point.y < aMin.y ? aMin.y : (point.y > aMax.y ? aMax.y : point.y);
