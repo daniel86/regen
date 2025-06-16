@@ -95,8 +95,9 @@ ShaderInput *PositionReader::getModelOffset(const ModelTransformation *tf) {
 
 const Vec3f &PositionReader::getPositionReference(const ModelTransformation *tf, unsigned int vertexIndex) const {
 	if (tf->hasModelOffset() && tf->hasModelMat()) {
-		tf->tmpPos_ = ((const Mat4f *) rawData_mat.r)[vertexIndex].position();
-		tf->tmpPos_ += ((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
+		tf->tmpPos_ =
+			((const Mat4f *) rawData_mat.r)[vertexIndex].position() +
+			((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
 		return tf->tmpPos_;
 	}
 	if (tf->hasModelOffset()) {
