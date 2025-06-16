@@ -134,25 +134,45 @@ void BoidsCPU::animate(double dt) {
 	// based on the boid position and the grid bounds.
 	for (uint32_t i = 0; i < numBoids_; ++i) {
 		auto &boid = boidData_[i];
-		boid.gridIndex = getGridIndex3D(boidPositions_[i]);
+		auto &boidPos = boidPositions_[i];
+		boid.gridIndex = getGridIndex3D(boidPos);
 		gridIndex = getGridIndex(boid.gridIndex, priv_->gridSize_);
 		priv_->grid_[gridIndex].elements.push_back(i);
-	}
-	// recompute neighborhood relationship
-	// TODO: do this in one loop, but then we can only consider neighbors with smaller index!
-	for (uint32_t i = 0; i < numBoids_; ++i) {
-		updateNeighbours0(boidData_[i], boidPositions_[i], i);
+		updateNeighbours0(boid, boidPos, i);
 	}
 #ifdef BOID_DEBUG_TIME
+	static std::vector<long> simTimes;
+	static std::vector<long> copyTimes;
+	static std::vector<long> gridTimes;
 	auto afterGrid = std::chrono::high_resolution_clock::now();
 	auto simTime = std::chrono::duration_cast<std::chrono::microseconds>(afterSim - start).count();
 	auto copyTime = std::chrono::duration_cast<std::chrono::microseconds>(afterTF - afterSim).count();
 	auto gridTime = std::chrono::duration_cast<std::chrono::microseconds>(afterGrid - afterTF).count();
-	REGEN_INFO("BoidsSimulation_CPU: " <<
-		"simTime="   << std::fixed << std::setprecision(2) << static_cast<float>(simTime)/1000.0f << "ms " <<
-		"copyTime="  << std::fixed << std::setprecision(2) << static_cast<float>(copyTime)/1000.0f << "ms " <<
-		"gridTime="  << std::fixed << std::setprecision(2) << static_cast<float>(gridTime)/1000.0f << "ms " <<
-		"totalTime=" << std::fixed << std::setprecision(2) << static_cast<float>(simTime + copyTime + gridTime)/1000.0f << "ms");
+	simTimes.push_back(simTime);
+	copyTimes.push_back(copyTime);
+	gridTimes.push_back(gridTime);
+	if (simTimes.size() > 100) {
+		// print the average time for the last 100 frames
+		long simAvg = 0;
+		long copyAvg = 0;
+		long gridAvg = 0;
+		for (size_t i = 0; i < simTimes.size(); ++i) {
+			simAvg += simTimes[i];
+			copyAvg += copyTimes[i];
+			gridAvg += gridTimes[i];
+		}
+		simAvg /= simTimes.size();
+		copyAvg /= copyTimes.size();
+		gridAvg /= gridTimes.size();
+		REGEN_INFO("BoidsSimulation_CPU: " <<
+			"simTime="   << std::fixed << std::setprecision(2) << static_cast<float>(simAvg)/1000.0f << "ms " <<
+			"copyTime="  << std::fixed << std::setprecision(2) << static_cast<float>(copyAvg)/1000.0f << "ms " <<
+			"gridTime="  << std::fixed << std::setprecision(2) << static_cast<float>(gridAvg)/1000.0f << "ms " <<
+			"totalTime=" << std::fixed << std::setprecision(2) << static_cast<float>(simAvg + copyAvg + gridAvg)/1000.0f << "ms");
+		simTimes.clear();
+		copyTimes.clear();
+		gridTimes.clear();
+	}
 #endif
 }
 
