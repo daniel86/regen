@@ -246,17 +246,24 @@ void BoidsCPU::updateNeighbours0(BoidData &boid, const Vec3f &boidPos, uint32_t 
 	// however we only need to consider one direction in each dimension
 	// as the grid cell size is equal to the visual range times two.
 	auto cellPosition = getCellCenter(boid.gridIndex);
-	Vec3i dir;
+	Vec3i dir, gridIdx;
 	dir.x = (boidPos.x < cellPosition.x ? -1 : 1);
 	dir.y = (boidPos.y < cellPosition.y ? -1 : 1);
 	dir.z = (boidPos.z < cellPosition.z ? -1 : 1);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(dir.x, 0, 0) + boid.gridIndex);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(0, dir.y, 0) + boid.gridIndex);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(0, 0, dir.z) + boid.gridIndex);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(dir.x, dir.y, 0) + boid.gridIndex);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(dir.x, 0, dir.z) + boid.gridIndex);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(0, dir.y, dir.z) + boid.gridIndex);
-	updateNeighbours1(boid, boidPos, boidIndex, Vec3i(dir.x, dir.y, dir.z) + boid.gridIndex);
+	gridIdx = Vec3i(dir.x, 0, 0) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
+	gridIdx = Vec3i(0, dir.y, 0) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
+	gridIdx = Vec3i(0, 0, dir.z) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
+	gridIdx = Vec3i(dir.x, dir.y, 0) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
+	gridIdx = Vec3i(dir.x, 0, dir.z) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
+	gridIdx = Vec3i(0, dir.y, dir.z) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
+	gridIdx = Vec3i(dir.x, dir.y, dir.z) + boid.gridIndex;
+	updateNeighbours1(boid, boidPos, boidIndex, gridIdx);
 }
 
 void BoidsCPU::updateNeighbours1(BoidData &boid,
