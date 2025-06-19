@@ -172,25 +172,37 @@ namespace regen {
 		 * render primitives from array data.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawArrays(GLenum primitive);
+		void draw(GLenum primitive);
 
 		/**
 		 * draw multiple instances of a range of elements.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawArraysInstanced(GLenum primitive);
+		void drawInstances(GLenum primitive);
+
+		/**
+		 * draw multiple instances of a range of elements with base instance.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawBaseInstances(GLenum primitive);
 
 		/**
 		 * render primitives from array data.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawElements(GLenum primitive);
+		void drawIndexed(GLenum primitive);
 
 		/**
 		 * draw multiple instances of a set of elements.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawElementsInstanced(GLenum primitive);
+		void drawIndexedInstances(GLenum primitive);
+
+		/**
+		 * draw multiple instances of a set of elements with base instance.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawIndexedBaseInstances(GLenum primitive);
 
 	protected:
 		ShaderInputList inputs_;
@@ -199,6 +211,7 @@ namespace regen {
 		GLint vertexOffset_;
 		GLint numInstances_;
 		GLint numVisibleInstances_;
+		GLuint baseInstance_ = 0u;
 		GLint numIndices_;
 		GLuint maxIndex_;
 		ref_ptr<ShaderInput> indices_;

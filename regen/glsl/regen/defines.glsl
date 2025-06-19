@@ -19,7 +19,7 @@ uniform uint in_instanceIDOffset;
 #if SHADER_STAGE==fs
     #ifdef HAS_instanceIDMap
         #ifdef HAS_instanceIDOffset
-#define regen_InstanceID in_instanceIDMap[in_instanceID + in_instanceIDOffset]
+#define regen_InstanceID in_instanceIDMap[in_instanceID + int(in_instanceIDOffset)]
         #else // HAS_instanceIDOffset
 #define regen_InstanceID in_instanceIDMap[in_instanceID]
         #endif // HAS_instanceIDOffset
@@ -29,7 +29,7 @@ uniform uint in_instanceIDOffset;
 #elif SHADER_STAGE==gs
     #ifdef HAS_instanceIDMap
         #ifdef HAS_instanceIDOffset
-#define regen_InstanceID in_instanceIDMap[in_instanceID[0] + in_instanceIDOffset]
+#define regen_InstanceID in_instanceIDMap[in_instanceID[0] + int(in_instanceIDOffset)]
         #else // HAS_instanceIDOffset
 #define regen_InstanceID in_instanceIDMap[in_instanceID[0]]
         #endif // HAS_instanceIDOffset
@@ -39,7 +39,7 @@ uniform uint in_instanceIDOffset;
 #else
     #ifdef HAS_instanceIDMap
         #ifdef HAS_instanceIDOffset
-#define regen_InstanceID in_instanceIDMap[gl_InstanceID + in_instanceIDOffset]
+#define regen_InstanceID in_instanceIDMap[gl_InstanceID + int(in_instanceIDOffset)]
         #else
 #define regen_InstanceID in_instanceIDMap[gl_InstanceID]
         #endif

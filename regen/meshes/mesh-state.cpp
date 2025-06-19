@@ -23,7 +23,7 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 		  vao_(ref_ptr<VAO>::alloc()),
 		  minPosition_(-1.0f),
 		  maxPosition_(1.0f) {
-	draw_ = &InputContainer::drawArrays;
+	draw_ = &InputContainer::draw;
 	set_primitive(primitive);
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
 	lodThresholds_->setUniformData(Vec3f::zero());
@@ -254,15 +254,15 @@ void Mesh::updateVAO() {
 void Mesh::updateDrawFunction() {
 	if (inputContainer_->indexBuffer() > 0) {
 		if (hasInstances_) {
-			draw_ = &InputContainer::drawElementsInstanced;
+			draw_ = &InputContainer::drawIndexedInstances;
 		} else {
-			draw_ = &InputContainer::drawElements;
+			draw_ = &InputContainer::drawIndexed;
 		}
 	} else {
 		if (hasInstances_) {
-			draw_ = &InputContainer::drawArraysInstanced;
+			draw_ = &InputContainer::drawInstances;
 		} else {
-			draw_ = &InputContainer::drawArrays;
+			draw_ = &InputContainer::draw;
 		}
 	}
 }

@@ -151,11 +151,11 @@ void InputContainer::removeInput(const std::string &name) {
 	inputs_.erase(it);
 }
 
-void InputContainer::drawArrays(GLenum primitive) {
+void InputContainer::draw(GLenum primitive) {
 	glDrawArrays(primitive, vertexOffset_, numVertices_);
 }
 
-void InputContainer::drawArraysInstanced(GLenum primitive) {
+void InputContainer::drawInstances(GLenum primitive) {
 	glDrawArraysInstancedEXT(
 			primitive,
 			vertexOffset_,
@@ -163,7 +163,16 @@ void InputContainer::drawArraysInstanced(GLenum primitive) {
 			numVisibleInstances_);
 }
 
-void InputContainer::drawElements(GLenum primitive) {
+void InputContainer::drawBaseInstances(GLenum primitive) {
+	glDrawArraysInstancedBaseInstanceEXT(
+			primitive,
+			vertexOffset_,
+			numVertices_,
+			numVisibleInstances_,
+			baseInstance_);
+}
+
+void InputContainer::drawIndexed(GLenum primitive) {
 	glDrawElements(
 			primitive,
 			numIndices_,
@@ -171,11 +180,21 @@ void InputContainer::drawElements(GLenum primitive) {
 			BUFFER_OFFSET(indices_->offset()));
 }
 
-void InputContainer::drawElementsInstanced(GLenum primitive) {
+void InputContainer::drawIndexedInstances(GLenum primitive) {
 	glDrawElementsInstancedEXT(
 			primitive,
 			numIndices_,
 			indices_->baseType(),
 			BUFFER_OFFSET(indices_->offset()),
 			numVisibleInstances_);
+}
+
+void InputContainer::drawIndexedBaseInstances(GLenum primitive) {
+	glDrawElementsInstancedBaseInstanceEXT(
+			primitive,
+			numIndices_,
+			indices_->baseType(),
+			BUFFER_OFFSET(indices_->offset()),
+			numVisibleInstances_,
+			baseInstance_);
 }
