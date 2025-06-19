@@ -377,8 +377,8 @@ static ref_ptr<Camera> createUserCamera(const Vec2i &viewport) {
 	auto cam = ref_ptr<Camera>::alloc(1);
 	float aspect = (GLfloat) viewport.x / (GLfloat) viewport.y;
 	cam->set_isAudioListener(false);
-	cam->position()->setVertex(0, Vec3f(0.0f, 0.0f, -3.0f));
-	cam->direction()->setVertex(0, Vec3f(0.0f, 0.0f, 1.0f));
+	cam->position()->setVertex3(0, Vec3f(0.0f, 0.0f, -3.0f));
+	cam->direction()->setVertex3(0, Vec3f(0.0f, 0.0f, 1.0f));
 	cam->setPerspective(aspect, 45.0f, 0.1f, 100.0f);
 	cam->updateCamera();
 	return cam;
@@ -489,7 +489,7 @@ void MeshViewerWidget::gl_loadScene() {
 }
 
 void MeshViewerWidget::transformMesh(GLdouble dt) {
-	auto &tf = modelTransform_->get();
+	auto &tf = modelTransform_->modelMat();
 	// rotate the mesh around the Y axis
 	meshOrientation_ += dt * 0.001f;
 	if (meshOrientation_ > M_PI * 2.0f) {
