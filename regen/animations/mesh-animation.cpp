@@ -324,7 +324,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	}
 	if (framesChanged) {
 		vao_ = ref_ptr<VAO>::alloc();
-		rs->vao().push(vao_->id());
+		rs->vao().apply(vao_->id());
 
 		// setup attributes
 		rs->arrayBuffer().apply(frame0.ref->bufferID());
@@ -335,8 +335,6 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		for (auto & attribute : frame1.attributes) {
 			attribute.input->enableAttribute(attribute.location);
 		}
-
-		rs->vao().pop();
 	}
 
 	frameTimeUniform_->setVertex(0,
@@ -349,7 +347,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		// setup the interpolation shader
 		rs->shader().push(interpolationShader_->id());
 		interpolationShader_->enable(rs);
-		rs->vao().push(vao_->id());
+		rs->vao().apply(vao_->id());
 
 		// setup the transform feedback
 		if (hasMeshInterleavedAttributes_) {
@@ -383,7 +381,6 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 				rs->feedbackBufferRange().pop(index+1);
 			}
 		}
-		rs->vao().pop();
 		rs->shader().pop();
 		rs->depthMask().pop();
 		rs->toggles().pop(RenderState::RASTERIZER_DISCARD);

@@ -40,10 +40,9 @@ void SpatialIndexDebug::drawLine(const Vec3f &from, const Vec3f &to, const Vec3f
 		glBufferData(GL_ARRAY_BUFFER, bufferSize_, mappedClientData.r, GL_DYNAMIC_DRAW);
 	}
 	// draw the line
-	rs->vao().push(vao_->id());
+	rs->vao().apply(vao_->id());
 	lineVertices_->enableAttribute(0);
 	glDrawArrays(GL_LINES, 0, 2);
-	rs->vao().pop();
 }
 
 void SpatialIndexDebug::drawCircle(const Vec3f &center, float radius, const Vec3f &color) {

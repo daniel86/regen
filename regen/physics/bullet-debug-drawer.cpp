@@ -33,10 +33,9 @@ void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, con
 	glBufferData(GL_ARRAY_BUFFER, bufferSize_, mappedClientData.r, GL_DYNAMIC_DRAW);
 	mappedClientData.unmap();
 	// draw the line
-	renderState_->vao().push(vao_->id());
+	renderState_->vao().apply(vao_->id());
 	lineVertices_->enableAttribute(0);
 	glDrawArrays(GL_LINES, 0, 2);
-	renderState_->vao().pop();
 }
 
 void
@@ -64,10 +63,9 @@ BulletDebugDrawer::drawContactPoint(
 			GL_DYNAMIC_DRAW);
 	mappedClientData.unmap();
     // Draw the contact point as a small line
-    renderState_->vao().push(vao_->id());
+    renderState_->vao().apply(vao_->id());
     lineVertices_->enableAttribute(0);
     glDrawArrays(GL_LINES, 0, 2);
-    renderState_->vao().pop();
 }
 
 void BulletDebugDrawer::reportErrorWarning(const char *warningString) {

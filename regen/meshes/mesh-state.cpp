@@ -212,7 +212,7 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 void Mesh::updateVAO() {
 	auto rs = RenderState::get();
 	auto lastArrayBuffer = 0u;
-	rs->vao().push(vao_->id());
+	rs->vao().apply(vao_->id());
 	// Setup attributes
 	for (auto & vaoAttribute : vaoAttributes_) {
 		const ref_ptr<ShaderInput> &in = vaoAttribute.input;
@@ -227,7 +227,6 @@ void Mesh::updateVAO() {
 	if (inputContainer_->indexBuffer() > 0) {
 		rs->elementArrayBuffer().apply(inputContainer_->indexBuffer());
 	}
-	rs->vao().pop();
 
 	if (meshLODs_.empty()) {
 		meshLODs_.emplace_back(
@@ -494,9 +493,8 @@ void Mesh::drawMesh(RenderState *rs) {
 		}
 	}
 
-	rs->vao().push(vao_->id());
+	rs->vao().apply(vao_->id());
 	(inputContainer_.get()->*draw_)(primitive_);
-	rs->vao().pop();
 
 	if (feedbackRange_.get()) {
 		rs->endTransformFeedback();

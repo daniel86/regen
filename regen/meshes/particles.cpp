@@ -271,7 +271,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	rs->toggles().push(RenderState::RASTERIZER_DISCARD, GL_TRUE);
 	updateState_->enable(rs);
 
-	rs->vao().push(particleVAO_.id());
+	rs->vao().apply(particleVAO_.id());
 	rs->arrayBuffer().apply(particleRef_->bufferID());
 	for (auto &particleAttribute: particleAttributes_) {
 		particleAttribute.input->enableAttribute(particleAttribute.location);
@@ -300,7 +300,6 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	rs->endTransformFeedback();
 	rs->feedbackBufferRange().pop(0);
 
-	rs->vao().pop();
 	updateState_->disable(rs);
 	rs->toggles().pop(RenderState::RASTERIZER_DISCARD);
 
