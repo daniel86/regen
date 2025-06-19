@@ -164,7 +164,7 @@ void InputContainer::drawInstances(GLenum primitive) {
 }
 
 void InputContainer::drawBaseInstances(GLenum primitive) {
-	glDrawArraysInstancedBaseInstanceEXT(
+	glDrawArraysInstancedBaseInstance(
 			primitive,
 			vertexOffset_,
 			numVertices_,
@@ -190,7 +190,7 @@ void InputContainer::drawIndexedInstances(GLenum primitive) {
 }
 
 void InputContainer::drawIndexedBaseInstances(GLenum primitive) {
-	glDrawElementsInstancedBaseInstanceEXT(
+	glDrawElementsInstancedBaseInstance(
 			primitive,
 			numIndices_,
 			indices_->baseType(),

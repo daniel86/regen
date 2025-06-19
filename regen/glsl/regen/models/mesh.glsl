@@ -130,7 +130,7 @@ void main() {
 #endif
 
 #ifdef HAS_INSTANCES
-    out_instanceID = gl_InstanceID;
+    out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
 
     HANDLE_IO(gl_VertexID);

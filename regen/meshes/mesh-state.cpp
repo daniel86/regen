@@ -19,7 +19,6 @@ Mesh::Mesh(GLenum primitive, BufferUsage usage)
 		  HasInput(ARRAY_BUFFER, usage),
 		  primitive_(primitive),
 		  lodLevel_(ref_ptr<uint32_t>::alloc(0u)),
-		  instanceIDOffset_loc_(-1),
 		  vao_(ref_ptr<VAO>::alloc()),
 		  minPosition_(-1.0f),
 		  maxPosition_(1.0f) {
@@ -37,7 +36,6 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  meshLODs_(sourceMesh->meshLODs_),
 		  v_lodThresholds_(sourceMesh->v_lodThresholds_),
 		  lodLevel_(sourceMesh->lodLevel_),
-		  instanceIDOffset_loc_(-1),
 		  cullShape_(sourceMesh->cullShape_),
 		  boundingShape_(sourceMesh->boundingShape_),
 		  shapeType_(sourceMesh->shapeType_),
@@ -203,7 +201,6 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	for (const auto & texture : cfg.textures_) {
 		addShaderInput(texture.first, texture.second.first);
 	}
-	instanceIDOffset_loc_ = meshShader_->uniformLocation("instanceIDOffset");
 
 	updateVAO();
 	updateDrawFunction();
@@ -254,13 +251,13 @@ void Mesh::updateVAO() {
 void Mesh::updateDrawFunction() {
 	if (inputContainer_->indexBuffer() > 0) {
 		if (hasInstances_) {
-			draw_ = &InputContainer::drawIndexedInstances;
+			draw_ = &InputContainer::drawIndexedBaseInstances;
 		} else {
 			draw_ = &InputContainer::drawIndexed;
 		}
 	} else {
 		if (hasInstances_) {
-			draw_ = &InputContainer::drawInstances;
+			draw_ = &InputContainer::drawBaseInstances;
 		} else {
 			draw_ = &InputContainer::draw;
 		}
@@ -459,6 +456,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 	// set number of instances to draw
 	auto c = activeInputContainer();
 	c->set_numVisibleInstances(lod.d->numVisibleInstances);
+	c->set_baseInstance(lod.d->instanceOffset);
 
 	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
@@ -470,13 +468,11 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 		lod.impostorMesh->draw(rs);
 	}
 	else {
-		if (instanceIDOffset_loc_ != -1) {
-			glUniform1ui(instanceIDOffset_loc_, lod.d->instanceOffset);
-		}
 		drawMesh(rs);
 	}
 
 	c->set_numVisibleInstances(c->numInstances());
+	c->set_baseInstance(0);
 }
 
 void Mesh::drawMesh(RenderState *rs) {

@@ -92,6 +92,16 @@ namespace regen {
 		void set_numVisibleInstances(GLuint v) { numVisibleInstances_ = v; }
 
 		/**
+		 * @return Base instance for instanced rendering.
+		 */
+		auto baseInstance() const { return baseInstance_; }
+
+		/**
+		 * @param v Base instance for instanced rendering.
+		 */
+		void set_baseInstance(GLuint v) { baseInstance_ = v; }
+
+		/**
 		 * @param layout Start recording added inputs.
 		 */
 		void begin(DataLayout layout);

@@ -486,7 +486,7 @@ void main() {
     gl_Position = transformWorldToScreen(vec4(posWorld,1.0),0);
 #endif
 #ifdef HAS_INSTANCES
-    out_instanceID = gl_InstanceID;
+    out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
 }
 
@@ -541,7 +541,7 @@ uniform mat4 in_modelMatrix;
 void main() {
     out_intersection = (in_modelMatrix * vec4(in_pos,1.0)).xyz;
 #ifdef HAS_INSTANCES
-    out_instanceID = gl_InstanceID;
+    out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
 #if RENDER_LAYER > 1
     gl_Position = vec4(out_intersection,1.0);

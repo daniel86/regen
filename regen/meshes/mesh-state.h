@@ -426,8 +426,6 @@ namespace regen {
 		// note: it is important that this is shared between copies of the mesh
 		//       as the lod state only changes lod level of the original mesh.
 		ref_ptr<uint32_t> lodLevel_;
-		// provides offset to instanceIDMap_ as a uniform for the next LOD level
-		int32_t instanceIDOffset_loc_;
 		uint32_t lastNumVertices_ = 0u;
 		SortMode lodSortMode_ = SortMode::FRONT_TO_BACK;
 

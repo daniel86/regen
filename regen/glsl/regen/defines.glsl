@@ -7,44 +7,25 @@
     #ifndef HAS_instanceIDMap
 #error "HAS_LOD + HAS_INSTANCES defined but HAS_instanceIDMap not defined"
     #endif
-    // introduce instanceIDOffset uniform in case of LOD and instances,
-    // this is needed to map the instanceID to the correct LOD level
-    // using the instanceIDMap.
-    #ifndef HAS_instanceIDOffset
-#define HAS_instanceIDOffset
-uniform uint in_instanceIDOffset;
-    #endif
 #endif
 
 #if SHADER_STAGE==fs
     #ifdef HAS_instanceIDMap
-        #ifdef HAS_instanceIDOffset
-#define regen_InstanceID in_instanceIDMap[in_instanceID + int(in_instanceIDOffset)]
-        #else // HAS_instanceIDOffset
 #define regen_InstanceID in_instanceIDMap[in_instanceID]
-        #endif // HAS_instanceIDOffset
     #else // HAS_instanceIDMap
 #define regen_InstanceID in_instanceID
     #endif // HAS_instanceIDMap
 #elif SHADER_STAGE==gs
     #ifdef HAS_instanceIDMap
-        #ifdef HAS_instanceIDOffset
-#define regen_InstanceID in_instanceIDMap[in_instanceID[0] + int(in_instanceIDOffset)]
-        #else // HAS_instanceIDOffset
 #define regen_InstanceID in_instanceIDMap[in_instanceID[0]]
-        #endif // HAS_instanceIDOffset
     #else // HAS_instanceIDMap
 #define regen_InstanceID in_instanceID[0]
     #endif // HAS_instanceIDMap
 #else
     #ifdef HAS_instanceIDMap
-        #ifdef HAS_instanceIDOffset
-#define regen_InstanceID in_instanceIDMap[gl_InstanceID + int(in_instanceIDOffset)]
-        #else
-#define regen_InstanceID in_instanceIDMap[gl_InstanceID]
-        #endif
+#define regen_InstanceID in_instanceIDMap[gl_InstanceID + gl_BaseInstance]
     #else
-#define regen_InstanceID gl_InstanceID
+#define regen_InstanceID (gl_InstanceID + gl_BaseInstance)
     #endif
 #endif
 #endif // regen_InstanceID_defined_
