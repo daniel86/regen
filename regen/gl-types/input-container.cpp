@@ -11,24 +11,13 @@
 
 using namespace regen;
 
-InputContainer::InputContainer(BufferTarget target, BufferUsage usage)
-		: numVertices_(0),
-		  vertexOffset_(0),
-		  numInstances_(1),
-		  numVisibleInstances_(1),
-		  numIndices_(0),
-		  maxIndex_(0) {
+InputContainer::InputContainer(BufferTarget target, BufferUsage usage) {
 	uploadLayout_ = LAYOUT_LAST;
 	inputBuffer_ = ref_ptr<VBO>::alloc(target, usage);
 }
 
 InputContainer::InputContainer(
-		const ref_ptr<ShaderInput> &in, const std::string &name, BufferUsage usage)
-		: numVertices_(0),
-		  vertexOffset_(0),
-		  numInstances_(1),
-		  numVisibleInstances_(1),
-		  numIndices_(0) {
+		const ref_ptr<ShaderInput> &in, const std::string &name, BufferUsage usage) {
 	uploadLayout_ = LAYOUT_LAST;
 	inputBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, usage);
 	setInput(in, name);
@@ -162,11 +151,11 @@ void InputContainer::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuff
 	}
 }
 
-void InputContainer::draw(GLenum primitive) {
+void InputContainer::draw(GLenum primitive) const {
 	glDrawArrays(primitive, vertexOffset_, numVertices_);
 }
 
-void InputContainer::drawIndexed(GLenum primitive) {
+void InputContainer::drawIndexed(GLenum primitive) const {
 	glDrawElements(
 			primitive,
 			numIndices_,
@@ -174,7 +163,7 @@ void InputContainer::drawIndexed(GLenum primitive) {
 			BUFFER_OFFSET(indices_->offset()));
 }
 
-void InputContainer::drawInstances(GLenum primitive) {
+void InputContainer::drawInstances(GLenum primitive) const {
 	glDrawArraysInstancedEXT(
 			primitive,
 			vertexOffset_,
@@ -182,7 +171,7 @@ void InputContainer::drawInstances(GLenum primitive) {
 			numVisibleInstances_);
 }
 
-void InputContainer::drawIndexedInstances(GLenum primitive) {
+void InputContainer::drawInstancesIndexed(GLenum primitive) const {
 	glDrawElementsInstancedEXT(
 			primitive,
 			numIndices_,
@@ -191,7 +180,7 @@ void InputContainer::drawIndexedInstances(GLenum primitive) {
 			numVisibleInstances_);
 }
 
-void InputContainer::drawBaseInstances(GLenum primitive) {
+void InputContainer::drawBaseInstances(GLenum primitive) const {
 	glDrawArraysInstancedBaseInstance(
 			primitive,
 			vertexOffset_,
@@ -200,7 +189,7 @@ void InputContainer::drawBaseInstances(GLenum primitive) {
 			baseInstance_);
 }
 
-void InputContainer::drawIndexedBaseInstances(GLenum primitive) {
+void InputContainer::drawBaseInstancesIndexed(GLenum primitive) const {
 	glDrawElementsInstancedBaseInstance(
 			primitive,
 			numIndices_,
@@ -210,15 +199,32 @@ void InputContainer::drawIndexedBaseInstances(GLenum primitive) {
 			baseInstance_);
 }
 
-void InputContainer::drawIndirect(GLenum primitive) {
+void InputContainer::drawIndirect(GLenum primitive) const {
 	glDrawArraysIndirect(
 		primitive,
 		BUFFER_OFFSET(indirectOffset_));
 }
 
-void InputContainer::drawIndexedIndirect(GLenum primitive) {
+void InputContainer::drawIndirectIndexed(GLenum primitive) const {
 	glDrawElementsIndirect(
 			primitive,
 			indices_->baseType(),
 			BUFFER_OFFSET(indirectOffset_));
+}
+
+void InputContainer::drawMultiIndirect(GLenum primitive) const {
+	glMultiDrawArraysIndirect(
+		primitive,
+		BUFFER_OFFSET(indirectOffset_),
+		multiDrawCount_,
+		sizeof(DrawCommand));
+}
+
+void InputContainer::drawMultiIndirectIndexed(GLenum primitive) const {
+	glMultiDrawElementsIndirect(
+		primitive,
+		indices_->baseType(),
+		BUFFER_OFFSET(indirectOffset_),
+		multiDrawCount_,
+		sizeof(DrawCommand));
 }

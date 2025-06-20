@@ -108,6 +108,11 @@ namespace regen {
 		void set_indirectOffset(GLuint v) { indirectOffset_ = v; }
 
 		/**
+		 * @param v the number of multi draw calls.
+		 */
+		void set_multiDrawCount(GLint v) { multiDrawCount_ = v; }
+
+		/**
 		 * @param layout Start recording added inputs.
 		 */
 		void begin(DataLayout layout);
@@ -210,65 +215,78 @@ namespace regen {
 		 * render primitives from array data.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void draw(GLenum primitive);
-
-		/**
-		 * draw multiple instances of a range of elements.
-		 * @param primitive Specifies what kind of primitives to render.
-		 */
-		void drawInstances(GLenum primitive);
-
-		/**
-		 * draw multiple instances of a range of elements with base instance.
-		 * @param primitive Specifies what kind of primitives to render.
-		 */
-		void drawBaseInstances(GLenum primitive);
-
-		/**
-		 * render primitives from array data using indirect draw call.
-		 * @param primitive Specifies what kind of primitives to render.
-		 */
-		void drawIndirect(GLenum primitive);
+		void draw(GLenum primitive) const;
 
 		/**
 		 * render primitives from array data.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawIndexed(GLenum primitive);
+		void drawIndexed(GLenum primitive) const;
+
+		/**
+		 * draw multiple instances of a range of elements.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawInstances(GLenum primitive) const;
 
 		/**
 		 * draw multiple instances of a set of elements.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawIndexedInstances(GLenum primitive);
+		void drawInstancesIndexed(GLenum primitive) const;
+
+		/**
+		 * draw multiple instances of a range of elements with base instance.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawBaseInstances(GLenum primitive) const;
 
 		/**
 		 * draw multiple instances of a set of elements with base instance.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawIndexedBaseInstances(GLenum primitive);
+		void drawBaseInstancesIndexed(GLenum primitive) const;
 
 		/**
 		 * render primitives from array data using indirect draw call.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
-		void drawIndexedIndirect(GLenum primitive);
+		void drawIndirect(GLenum primitive) const;
+
+		/**
+		 * render primitives from array data using indirect draw call.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawIndirectIndexed(GLenum primitive) const;
+
+		/**
+		 * render primitives from array data using multi indirect draw call.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawMultiIndirect(GLenum primitive) const;
+
+		/**
+		 * render primitives from array data using multi indexed indirect draw call.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawMultiIndirectIndexed(GLenum primitive) const;
 
 	protected:
 		ShaderInputList inputs_;
 		std::set<std::string> inputMap_;
-		GLint numVertices_;
-		GLint vertexOffset_;
-		GLint numInstances_;
-		GLint numVisibleInstances_;
+		GLint numVertices_ = 0;
+		GLint vertexOffset_ = 0;
+		GLint numInstances_ = 1;
+		GLint numVisibleInstances_ = 1;
 		GLuint baseInstance_ = 0u;
 		GLuint indirectOffset_ = 0u;
-		GLint numIndices_;
-		GLuint maxIndex_;
+		GLint numIndices_ = 0u;
+		GLuint maxIndex_ = 0u;
 		ref_ptr<ShaderInput> indices_;
 
 		ref_ptr<SSBO> indirectDrawBuffer_;
 		uint32_t baseDrawIdx_ = 0u;
+		int32_t multiDrawCount_ = 1u;
 
 		ShaderInputList uploadInputs_;
 		std::list<ref_ptr<ShaderInput> > uploadAttributes_;

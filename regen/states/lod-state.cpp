@@ -598,7 +598,6 @@ void LODState::traverseGPU(RenderState *rs) {
 	}
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
-	// TODO: avoid LOD computation if hasFixedLOD
 	cullPass_->enable(rs);
 	cullPass_->disable(rs);
 

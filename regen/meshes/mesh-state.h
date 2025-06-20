@@ -445,7 +445,7 @@ namespace regen {
 		ref_ptr<Shader> meshShader_;
 		std::list<InputLocation> vaoAttributes_;
 		std::map<int32_t, std::list<InputLocation>::iterator> vaoLocations_;
-		std::map<int32_t, InputLocation> meshUniforms_;
+		std::vector<int32_t> indirectDrawGroups_;
 
 		std::string shaderKey_;
 		std::map<GLenum, std::string> shaderStageKeys_;
@@ -470,7 +470,7 @@ namespace regen {
 
 		std::vector<ref_ptr<Animation> > animations_;
 
-		void (InputContainer::*draw_)(GLenum);
+		void (InputContainer::*draw_)(GLenum) const;
 
 		void updateDrawFunction();
 
@@ -480,7 +480,7 @@ namespace regen {
 
 		void drawMesh(RenderState *rs);
 
-		void drawMeshLOD(RenderState *rs, uint32_t lodLevel);
+		void drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCount);
 
 		void activateLOD_(uint32_t lodLevel);
 	};

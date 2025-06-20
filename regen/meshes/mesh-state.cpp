@@ -115,18 +115,6 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 		} else {
 			*needle->second = InputLocation(in, loc);
 		}
-	} else if (!in->isConstant()) {
-		if (meshShader_->hasUniform(name) &&
-			meshShader_->input(name).get() == in.get()) {
-			// shader handles uniform already.
-			return;
-		}
-		GLint loc = meshShader_->uniformLocation(name);
-		if (loc == -1) {
-			// not used in shader
-			return;
-		}
-		meshUniforms_[loc] = InputLocation(in, loc);
 	}
 }
 
@@ -189,7 +177,6 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	// reset attribute list
 	vaoAttributes_.clear();
 	vaoLocations_.clear();
-	meshUniforms_.clear();
 	// and load from Config
 	for (const auto & input : cfg.inputs_) { addShaderInput(input.name_, input.in_); }
 	// Get input from mesh and joined states (might be handled by StateConfig allready)
@@ -252,15 +239,23 @@ void Mesh::updateVAO() {
 void Mesh::updateDrawFunction() {
 	if (inputContainer_->indexBuffer() > 0) {
 		if (inputContainer_->hasIndirectDrawBuffer()) {
-			draw_ = &InputContainer::drawIndexedIndirect;
+			if (indirectDrawGroups_.empty()) {
+				draw_ = &InputContainer::drawIndirectIndexed;
+			} else {
+				draw_ = &InputContainer::drawMultiIndirectIndexed;
+			}
 		} else if (hasInstances_) {
-			draw_ = &InputContainer::drawIndexedBaseInstances;
+			draw_ = &InputContainer::drawBaseInstancesIndexed;
 		} else {
 			draw_ = &InputContainer::drawIndexed;
 		}
 	} else {
 		if (inputContainer_->hasIndirectDrawBuffer()) {
-			draw_ = &InputContainer::drawIndirect;
+			if (indirectDrawGroups_.empty()) {
+				draw_ = &InputContainer::drawIndirect;
+			} else {
+				draw_ = &InputContainer::drawMultiIndirect;
+			}
 		} else if (hasInstances_) {
 			draw_ = &InputContainer::drawBaseInstances;
 		} else {
@@ -394,6 +389,28 @@ void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t i
 
 void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx) {
 	inputContainer_->setIndirectDrawBuffer(indirectDrawBuffer, baseDrawIdx);
+	// group together LODs that can be drawn with multi draw calls,
+	// i.e. those that do not have impostor meshes.
+	indirectDrawGroups_.clear();
+	if (meshLODs_.size()>1) {
+		uint32_t drawGroupIdx = 0;
+		for (auto & lod : meshLODs_) {
+			if (indirectDrawGroups_.size() <= drawGroupIdx) {
+				indirectDrawGroups_.emplace_back(0);
+			}
+			if (lod.impostorMesh.get()) {
+				indirectDrawGroups_.emplace_back(1);
+				// note: for now do not use multi draw calls for impostor meshes
+				drawGroupIdx += 2;
+			} else {
+				indirectDrawGroups_[drawGroupIdx] += 1;
+			}
+		}
+	}
+	if (indirectDrawGroups_.size() == meshLODs_.size()) {
+		// seems nothing was joined...
+		indirectDrawGroups_.clear();
+	}
 	updateDrawFunction();
 }
 
@@ -454,7 +471,7 @@ void Mesh::draw(RenderState *rs) {
 	disable(rs);
 }
 
-void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
+void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCount) {
 	auto &lod = meshLODs_[lodLevel];
 	if (!inputContainer_->hasIndirectDrawBuffer() && lod.d->numVisibleInstances == 0) {
 		// no instances to draw, skip
@@ -466,25 +483,17 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 
 	// set number of instances to draw
 	auto c = activeInputContainer();
-	c->set_numVisibleInstances(lod.d->numVisibleInstances);
-	c->set_baseInstance(lod.d->instanceOffset);
-	if (c->hasIndirectDrawBuffer()) {
-		c->set_indirectOffset(
-			c->indirectDrawBuffer()->blockReference()->address() +
-			// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
-			(c->baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
-	}
 
 	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
 		// NOTE: assuming here the impostor does not itself have LODs!
-		lod.impostorMesh->resetVisibility(true);
 		if (inputContainer_->hasIndirectDrawBuffer()) {
 			c->setIndirectDrawBuffer(
 					inputContainer_->indirectDrawBuffer(),
 					inputContainer_->baseDrawIndex() + lodLevel);
 			lod.impostorMesh->updateDrawFunction();
 		} else {
+			lod.impostorMesh->resetVisibility(true);
 			lod.impostorMesh->updateVisibility(0,
 					lod.d->numVisibleInstances,
 					lod.d->instanceOffset);
@@ -492,26 +501,30 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 		lod.impostorMesh->draw(rs);
 	}
 	else {
+		c->set_numVisibleInstances(lod.d->numVisibleInstances);
+		c->set_baseInstance(lod.d->instanceOffset);
+		if (c->hasIndirectDrawBuffer()) {
+			c->set_indirectOffset(
+				c->indirectDrawBuffer()->blockReference()->address() +
+				// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
+				(c->baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
+			c->set_multiDrawCount(multiDrawCount);
+		}
 		drawMesh(rs);
+		c->set_numVisibleInstances(c->numInstances());
+		c->set_baseInstance(0);
+		c->set_indirectOffset(0);
+		c->set_multiDrawCount(1);
 	}
-
-	c->set_numVisibleInstances(c->numInstances());
-	c->set_baseInstance(0);
-	c->set_indirectOffset(0);
 }
 
 void Mesh::drawMesh(RenderState *rs) {
 	if (feedbackRange_.get()) {
-		// TODO: How to handle transform feedback with multiple LODs? how for impostors?
+		// TODO: Reconsider transform feedback integration, especially how it should be used
+		//    with LODs! e.g. some impostor meshes might cause unwanted behavior!
 		feedbackCount_ = 0;
 		rs->feedbackBufferRange().push(0, *feedbackRange_.get());
 		rs->beginTransformFeedback(GL_POINTS);
-	}
-	{ // TODO: isn't this a bit redundant? I think the shader handles this
-		for (auto & meshUniform : meshUniforms_) {
-			InputLocation &x = meshUniform.second;
-			x.input->enableUniform(x.location);
-		}
 	}
 
 	rs->vao().apply(vao_->id());
@@ -528,23 +541,28 @@ void Mesh::drawMesh(RenderState *rs) {
 
 void Mesh::enable(RenderState *rs) {
 	State::enable(rs);
-	// TODO: support multi indirect draw buffers: the first LODs before impostor meshes can be drawn together.
 
 	if (meshLODs_.empty()) {
 		drawMesh(rs);
 	}
-	else {
+	else if (indirectDrawGroups_.empty()) {
 		if (lodSortMode_ == SortMode::BACK_TO_FRONT) {
 			for (uint32_t lodLevel = meshLODs_.size(); lodLevel > 0; --lodLevel) {
-				drawMeshLOD(rs, lodLevel - 1);
+				drawMeshLOD(rs, lodLevel - 1, 1);
 			}
 		}
 		else {
 			for (uint32_t lodLevel = 0; lodLevel < meshLODs_.size(); ++lodLevel) {
-				drawMeshLOD(rs, lodLevel);
+				drawMeshLOD(rs, lodLevel, 1);
 			}
 		}
 		activateLOD_(0);
+	} else {
+		uint32_t lodLevel = 0u;
+		for (int32_t groupSize : indirectDrawGroups_) {
+			drawMeshLOD(rs, lodLevel, groupSize);
+			lodLevel += groupSize;
+		}
 	}
 }
 
