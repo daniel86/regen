@@ -31,6 +31,7 @@ struct BoidsCPU::Private {
 	float cellSize_ = 0.0f;
 	Vec3i gridSize_ = Vec3i::zero();
 	Vec3f boidsScale_ = Vec3f::zero();
+	Quaternion yawAdjust_;
 	unsigned int maxNumNeighbors_ = 0;
 	Bounds<Vec3f> simBounds_ = Bounds<Vec3f>(-10.0f, 10.0f);
 };
@@ -70,6 +71,7 @@ void BoidsCPU::initBoidSimulation() {
 	// i.e. it can be slower or faster than the graphics thread.
 	setSynchronized(false);
 	priv_->baseOrientation_ = baseOrientation_->getVertex(0).r;
+	priv_->yawAdjust_.setAxisAngle(Vec3f(0, 1, 0), priv_->baseOrientation_);
 	priv_->boidsScale_ = boidsScale_->getVertex(0).r;
 
 	for (uint32_t i = 0; i < numBoids_; ++i) {
@@ -189,12 +191,8 @@ void BoidsCPU::updateTransforms() {
 				//       should point in the direction of velocity.
 				vl = d.velocity.length();
 				if (vl > 0.001f) {
-					// Convert the normalized direction vector to Euler angles
-					priv_->boidRotation_.setEuler(
-							atan2(-d.velocity.x/vl, d.velocity.z/vl) + priv_->baseOrientation_,
-							asin(-d.velocity.y/vl),
-							0.0f);
-					tfData.w[i] = priv_->boidRotation_.calculateMatrix();
+					priv_->boidRotation_.setLookRotation(d.velocity / vl);
+					tfData.w[i] = (priv_->yawAdjust_ * priv_->boidRotation_).calculateMatrix();
 					tfData.w[i].scale(priv_->boidsScale_);
 					tfData.w[i].translate(boidPositions_[i]);
 				} else {

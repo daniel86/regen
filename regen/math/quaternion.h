@@ -143,6 +143,55 @@ namespace regen {
 		}
 
 		/**
+		 * Sets the rotation of this Quaternion to look in a specific direction.
+		 * @param direction the direction vector to look at.
+		 * @param up the up vector, defaults to (0, 1, 0).
+		 */
+		inline void setLookRotation(const Vec3f& direction, const Vec3f& up = Vec3f::up()) {
+			Vec3f forward = direction;
+			forward.normalize();
+			Vec3f right = up.cross(forward);
+			right.normalize();
+			Vec3f newUp = forward.cross(right);
+
+			// Construct rotation matrix (column-major)
+			float m00 = right.x,  m01 = right.y,  m02 = right.z;
+			float m10 = newUp.x,  m11 = newUp.y,  m12 = newUp.z;
+			float m20 = forward.x, m21 = forward.y, m22 = forward.z;
+
+			// Convert rotation matrix to quaternion
+			float trace = m00 + m11 + m22;
+			if (trace > 0.0f) {
+				float s = 0.5f / sqrtf(trace + 1.0f);
+				w = 0.25f / s;
+				x = (m21 - m12) * s;
+				y = (m02 - m20) * s;
+				z = (m10 - m01) * s;
+			} else {
+				if (m00 > m11 && m00 > m22) {
+					float s = 2.0f * sqrtf(1.0f + m00 - m11 - m22);
+					w = (m21 - m12) / s;
+					x = 0.25f * s;
+					y = (m01 + m10) / s;
+					z = (m02 + m20) / s;
+				} else if (m11 > m22) {
+					float s = 2.0f * sqrtf(1.0f + m11 - m00 - m22);
+					w = (m02 - m20) / s;
+					x = (m01 + m10) / s;
+					y = 0.25f * s;
+					z = (m12 + m21) / s;
+				} else {
+					float s = 2.0f * sqrtf(1.0f + m22 - m00 - m11);
+					w = (m10 - m01) / s;
+					x = (m02 + m20) / s;
+					y = (m12 + m21) / s;
+					z = 0.25f * s;
+				}
+			}
+			normalize();
+		}
+
+		/**
 		 * Construction from am existing, normalized Quaternion.
 		 * @param normalized a normalized Quaternion.
 		 */
