@@ -91,6 +91,7 @@ namespace regen {
 		ref_ptr<ShaderInput2i> viewport_;
 
 		const WorldTime *worldTime_ = nullptr;
+		osgHimmel::TimeF time_osg_;
 		ref_ptr<osgHimmel::AbstractAstronomy> astro_;
 
 		std::list<ref_ptr<SkyLayer> > layer_;

@@ -88,31 +88,15 @@ s_AstronomicalTime::s_AstronomicalTime(
 }
 
 
-const s_AstronomicalTime s_AstronomicalTime::fromTimeT(
-    const time_t &time
-,   const time_t &utcOffset)
-{
-    // Daylight saving time should not be concidered here -> julian time functions ignore this.
-
-#ifdef __GNUC__
-    struct tm lcl(*localtime(&time));
-#else // __GNUC__
-    struct tm lcl;
-    localtime_s(&lcl, &time);
-#endif // __GNUC__
-
-    time_t mt = mktime(&lcl);
-
-    if(mt == -1)
-        return s_AstronomicalTime();
-
+const s_AstronomicalTime s_AstronomicalTime::fromTimeT(const time_t &time, const time_t &utcOffset) {
+    struct tm utc = *gmtime(&time);
     return s_AstronomicalTime(
-        static_cast<short>(lcl.tm_year + 1900)
-    ,   static_cast<short>(lcl.tm_mon + 1)
-    ,   static_cast<short>(lcl.tm_mday)
-    ,   static_cast<short>(lcl.tm_hour)
-    ,   static_cast<short>(lcl.tm_min)
-    ,   static_cast<short>(lcl.tm_sec)
+        static_cast<short>(utc.tm_year + 1900)
+    ,   static_cast<short>(utc.tm_mon + 1)
+    ,   static_cast<short>(utc.tm_mday)
+    ,   static_cast<short>(utc.tm_hour)
+    ,   static_cast<short>(utc.tm_min)
+    ,   static_cast<short>(utc.tm_sec)
     ,   static_cast<short>(utcOffset));
 }
 

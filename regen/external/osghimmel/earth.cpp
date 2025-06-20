@@ -59,10 +59,10 @@ float Earth::longitudeNutation(const t_julianDay &t) {
 
 	// (AA.21 p132)
 	const float r =
-			- _decimal(0, 0, 17.20) * sin(O)
-			- _decimal(0, 0, 1.32) * sin(2.0 * sM)
-			- _decimal(0, 0, 0.23) * sin(2.0 * mM)
-			+ _decimal(0, 0, 0.21) * sin(2.0 * O);
+			- _decimal(0, 0, 17.20f) * sinf(O)
+			- _decimal(0, 0, 1.32f) * sinf(2.0f * sM)
+			- _decimal(0, 0, 0.23f) * sinf(2.0f * mM)
+			+ _decimal(0, 0, 0.21f) * sinf(2.0f * O);
 
 	return r;
 }
@@ -74,10 +74,10 @@ float Earth::obliquityNutation(const t_julianDay &t) {
 
 	// (AA.21 p132)
 	const float e =
-			+ _decimal(0, 0, 9.20) * cos(O)
-			+ _decimal(0, 0, 0.57) * cos(2.0 * Ls)
-			+ _decimal(0, 0, 0.10) * cos(2.0 * Lm)
-			- _decimal(0, 0, 0.09) * cos(2.0 * O);
+			+ _decimal(0, 0, 9.20f) * cosf(O)
+			+ _decimal(0, 0, 0.57f) * cosf(2.0f * Ls)
+			+ _decimal(0, 0, 0.10f) * cosf(2.0f * Lm)
+			- _decimal(0, 0, 0.09f) * cosf(2.0f * O);
 
 	return e;
 }

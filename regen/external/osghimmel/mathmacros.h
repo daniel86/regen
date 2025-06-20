@@ -73,7 +73,7 @@ namespace osgHimmel
 // same as _hour
 // note: if d is negative use -_decimal(d, m, s) instead of _decimal(-d, m, s)
 #define _decimal(d, m, s) \
-    ((d) + ((m) + (s) / 60.0L) / 60.0L)
+    ((d) + ((m) + (s) / 60.0f) / 60.0f)
 
 #define _sind(deg) \
     (sin(_rad(deg)))

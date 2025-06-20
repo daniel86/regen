@@ -100,29 +100,29 @@ t_eclf Moon::position(const t_julianDay &t) {
 
 	float Sl = mL;
 
-	Sl += 0.1098f * sin(+1 * mM);
-	Sl += 0.0222f * sin(2 * mD - 1 * mM);
-	Sl += 0.0115f * sin(2 * mD);
-	Sl += 0.0037f * sin(+2 * mM);
-	Sl -= 0.0032f * sin(+1 * sM);
-	Sl -= 0.0020f * sin(+2 * mF);
-	Sl += 0.0010f * sin(2 * mD - 2 * mM);
-	Sl += 0.0010f * sin(2 * mD - 1 * sM - 1 * mM);
-	Sl += 0.0009f * sin(2 * mD + 1 * mM);
-	Sl += 0.0008f * sin(2 * mD - 1 * sM);
-	Sl -= 0.0007f * sin(+1 * sM - 1 * mM);
-	Sl -= 0.0006f * sin(1 * mD);
-	Sl -= 0.0005f * sin(+1 * sM + 1 * mM);
+	Sl += 0.1098f * sinf(+1 * mM);
+	Sl += 0.0222f * sinf(2 * mD - 1 * mM);
+	Sl += 0.0115f * sinf(2 * mD);
+	Sl += 0.0037f * sinf(+2 * mM);
+	Sl -= 0.0032f * sinf(+1 * sM);
+	Sl -= 0.0020f * sinf(+2 * mF);
+	Sl += 0.0010f * sinf(2 * mD - 2 * mM);
+	Sl += 0.0010f * sinf(2 * mD - 1 * sM - 1 * mM);
+	Sl += 0.0009f * sinf(2 * mD + 1 * mM);
+	Sl += 0.0008f * sinf(2 * mD - 1 * sM);
+	Sl -= 0.0007f * sinf(+1 * sM - 1 * mM);
+	Sl -= 0.0006f * sinf(1 * mD);
+	Sl -= 0.0005f * sinf(+1 * sM + 1 * mM);
 
 	float Sb = 0.0;
 
-	Sb += 0.0895f * sin(+1 * mF);
-	Sb += 0.0049f * sin(+1 * mM + 1 * mF);
-	Sb += 0.0048f * sin(+1 * mM - 1 * mF);
-	Sb += 0.0030f * sin(2 * mD - 1 * mF);
-	Sb += 0.0010f * sin(2 * mD - 1 * mM + 1 * mF);
-	Sb += 0.0008f * sin(2 * mD - 1 * mM - 1 * mF);
-	Sb += 0.0006f * sin(2 * mD + 1 * mF);
+	Sb += 0.0895f * sinf(+1 * mF);
+	Sb += 0.0049f * sinf(+1 * mM + 1 * mF);
+	Sb += 0.0048f * sinf(+1 * mM - 1 * mF);
+	Sb += 0.0030f * sinf(2 * mD - 1 * mF);
+	Sb += 0.0010f * sinf(2 * mD - 1 * mM + 1 * mF);
+	Sb += 0.0008f * sinf(2 * mD - 1 * mM - 1 * mF);
+	Sb += 0.0006f * sinf(2 * mD + 1 * mF);
 
 	t_eclf ecl;
 
@@ -155,12 +155,12 @@ float Moon::distance(const t_julianDay &t) {
 
 	float Sr = 0.016593;
 
-	Sr += 0.000904f * cos(+1 * mM);
-	Sr += 0.000166f * cos(2 * mD - 1 * mM);
-	Sr += 0.000137f * cos(2 * mD);
-	Sr += 0.000049f * cos(+2 * mM);
-	Sr += 0.000015f * cos(2 * mD + 1 * mM);
-	Sr += 0.000009f * cos(2 * mD - 1 * sM);
+	Sr += 0.000904f * cosf(+1 * mM);
+	Sr += 0.000166f * cosf(2 * mD - 1 * mM);
+	Sr += 0.000137f * cosf(2 * mD);
+	Sr += 0.000049f * cosf(+2 * mM);
+	Sr += 0.000015f * cosf(2 * mD + 1 * mM);
+	Sr += 0.000009f * cosf(2 * mD - 1 * sM);
 
 	return Earth::meanRadius() / Sr;
 }
@@ -177,18 +177,18 @@ void Moon::opticalLibrations(const t_julianDay &t, float &l, float &b) {
 
 	static const float I = _rad(1.54242f);
 
-	const float cos_la = cos(la);
-	const float sin_la = sin(la);
-	const float cos_I = cos(I);
-	const float sin_I = sin(I);
+	const float cos_la = cosf(la);
+	const float sin_la = sinf(la);
+	const float cos_I = cosf(I);
+	const float sin_I = sinf(I);
 
 	const float W = _rev(lo - Dr - O);
-	const float sin_W = sin(W);
+	const float sin_W = sinf(W);
 
 	const float A = _rev(atan2(sin_W * cos_la * cos_I - sin_la * sin_I, cos(W) * cos_la));
 
 	l = _deg(A - F);
-	b = _deg(asin(-sin_W * cos_la * sin_I - sin_la * cos_I));
+	b = _deg(asinf(-sin_W * cos_la * sin_I - sin_la * cos_I));
 }
 
 float Moon::parallacticAngle(const t_aTime &aTime, float latitude, float longitude) {
@@ -209,7 +209,7 @@ float Moon::parallacticAngle(const t_aTime &aTime, float latitude, float longitu
 	const float H = s + lo - ra;
 
 	const float cos_la = cos(la);
-	const float P = atan2(sin(H) * cos_la, sin(la) * cos(de) - sin(de) * cos_la * cos(H));
+	const float P = atan2f(sin(H) * cos_la, sin(la) * cos(de) - sin(de) * cos_la * cos(H));
 
 	return _deg(P);
 }
@@ -227,10 +227,10 @@ float Moon::positionAngleOfAxis(const t_julianDay t) {
 	const float V = O + Dr;
 
 	static const float I = _rad(1.54242);
-	const float sin_I = sin(I);
+	const float sin_I = sinf(I);
 
-	const float X = sin_I * sin(V);
-	const float Y = sin_I * cos(V) * cos(e) - cos(I) * sin(e);
+	const float X = sin_I * sinf(V);
+	const float Y = sin_I * cosf(V) * cosf(e) - cosf(I) * sinf(e);
 
 	// optical libration in latitude
 
@@ -240,12 +240,12 @@ float Moon::positionAngleOfAxis(const t_julianDay t) {
 	const float la = _rad(ecl.latitude);
 
 	const float W = _rev(lo - Dr - O);
-	const float b = asin(-sin(W) * cos(la) * sin_I - sin(la) * cos(I));
+	const float b = asinf(-sinf(W) * cosf(la) * sin_I - sinf(la) * cosf(I));
 
 	// final angle
 
 	const float w = _rev(atan2(X, Y));
-	const float P = asin(sqrt(X * X + Y * Y) * cos(a - w) / cos(b));
+	const float P = asinf(sqrt(X * X + Y * Y) * cosf(a - w) / cosf(b));
 
 	return _deg(P);
 }

@@ -189,14 +189,9 @@ static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
 
 void Sky::animate(GLdouble dt) {
 	if (worldTime_) {
-		// convert to time_t
-		time_t t = boost::posix_time::to_time_t(worldTime_->p_time);
-		// get UTC offset
-		struct tm *tm = gmtime(&t);
-		time_t utcOffset = t - mktime(tm);
-		// create timef object
-		osgHimmel::TimeF time_osg(t, utcOffset);
-		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg));
+		time_osg_.sett(boost::posix_time::to_time_t(worldTime_->p_time));
+		time_osg_.setUtcOffset(0);
+		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg_));
 	}
 
 	// Compute sun/moon directions
@@ -218,7 +213,8 @@ void Sky::animate(GLdouble dt) {
 
 	const float fovHalf = camera()->projParams()->getVertex(0).r.x * 0.5f * DEGREE_TO_RAD;
 	const float height = static_cast<float>(viewport()->getVertex(0).r.y);
-	q_->setVertex(0, sqrt(2.0f) * 2.0f * tan(fovHalf) / height);
+	q_->setVertex(0, 2.8284271247461903f // = sqrt(2.0f) * 2.0f
+			* tan(fovHalf) / height);
 	R_->setVertex(0, astro().getEquToHorTransform());
 	// Update random number in cmn uniform
 	updateSeed();
