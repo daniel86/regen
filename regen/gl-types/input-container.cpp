@@ -3,6 +3,7 @@
 
 #include "input-container.h"
 #include "ubo.h"
+#include "draw-command.h"
 
 #ifndef BUFFER_OFFSET
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -151,8 +152,26 @@ void InputContainer::removeInput(const std::string &name) {
 	inputs_.erase(it);
 }
 
+void InputContainer::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx) {
+	indirectDrawBuffer_ = indirectDrawBuffer;
+	baseDrawIdx_ = baseDrawIdx;
+	if (indirectDrawBuffer_.get()) {
+		indirectOffset_ = indirectDrawBuffer_->offset() + baseDrawIdx_ * sizeof(DrawCommand);
+	} else {
+		indirectOffset_ = 0u;
+	}
+}
+
 void InputContainer::draw(GLenum primitive) {
 	glDrawArrays(primitive, vertexOffset_, numVertices_);
+}
+
+void InputContainer::drawIndexed(GLenum primitive) {
+	glDrawElements(
+			primitive,
+			numIndices_,
+			indices_->baseType(),
+			BUFFER_OFFSET(indices_->offset()));
 }
 
 void InputContainer::drawInstances(GLenum primitive) {
@@ -160,6 +179,15 @@ void InputContainer::drawInstances(GLenum primitive) {
 			primitive,
 			vertexOffset_,
 			numVertices_,
+			numVisibleInstances_);
+}
+
+void InputContainer::drawIndexedInstances(GLenum primitive) {
+	glDrawElementsInstancedEXT(
+			primitive,
+			numIndices_,
+			indices_->baseType(),
+			BUFFER_OFFSET(indices_->offset()),
 			numVisibleInstances_);
 }
 
@@ -172,23 +200,6 @@ void InputContainer::drawBaseInstances(GLenum primitive) {
 			baseInstance_);
 }
 
-void InputContainer::drawIndexed(GLenum primitive) {
-	glDrawElements(
-			primitive,
-			numIndices_,
-			indices_->baseType(),
-			BUFFER_OFFSET(indices_->offset()));
-}
-
-void InputContainer::drawIndexedInstances(GLenum primitive) {
-	glDrawElementsInstancedEXT(
-			primitive,
-			numIndices_,
-			indices_->baseType(),
-			BUFFER_OFFSET(indices_->offset()),
-			numVisibleInstances_);
-}
-
 void InputContainer::drawIndexedBaseInstances(GLenum primitive) {
 	glDrawElementsInstancedBaseInstance(
 			primitive,
@@ -197,4 +208,17 @@ void InputContainer::drawIndexedBaseInstances(GLenum primitive) {
 			BUFFER_OFFSET(indices_->offset()),
 			numVisibleInstances_,
 			baseInstance_);
+}
+
+void InputContainer::drawIndirect(GLenum primitive) {
+	glDrawArraysIndirect(
+		primitive,
+		BUFFER_OFFSET(indirectOffset_));
+}
+
+void InputContainer::drawIndexedIndirect(GLenum primitive) {
+	glDrawElementsIndirect(
+			primitive,
+			indices_->baseType(),
+			BUFFER_OFFSET(indirectOffset_));
 }

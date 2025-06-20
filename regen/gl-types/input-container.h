@@ -5,6 +5,7 @@
 #include <regen/gl-types/vbo.h>
 
 #include <set>
+#include "ssbo.h"
 
 namespace regen {
 	/**
@@ -102,6 +103,11 @@ namespace regen {
 		void set_baseInstance(GLuint v) { baseInstance_ = v; }
 
 		/**
+		 * @return Offset to the indirect draw call in bytes.
+		 */
+		void set_indirectOffset(GLuint v) { indirectOffset_ = v; }
+
+		/**
 		 * @param layout Start recording added inputs.
 		 */
 		void begin(DataLayout layout);
@@ -179,6 +185,28 @@ namespace regen {
 		GLuint indexBuffer() const;
 
 		/**
+		 * @return true if this input container has an index buffer.
+		 */
+		bool hasIndirectDrawBuffer() const { return indirectDrawBuffer_.get() != nullptr; }
+
+		/**
+		 * Sets the indirect draw buffer.
+		 * @param indirectDrawBuffer the indirect draw buffer.
+		 * @param baseDrawIdx base draw index.
+		 */
+		void setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx = 0u);
+
+		/**
+		 * @return the base draw index in the indirect draw buffer.
+		 */
+		uint32_t baseDrawIndex() const { return baseDrawIdx_; }
+
+		/**
+		 * @return the indirect draw buffer.
+		 */
+		const ref_ptr<SSBO> &indirectDrawBuffer() const { return indirectDrawBuffer_; }
+
+		/**
 		 * render primitives from array data.
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
@@ -195,6 +223,12 @@ namespace regen {
 		 * @param primitive Specifies what kind of primitives to render.
 		 */
 		void drawBaseInstances(GLenum primitive);
+
+		/**
+		 * render primitives from array data using indirect draw call.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawIndirect(GLenum primitive);
 
 		/**
 		 * render primitives from array data.
@@ -214,6 +248,12 @@ namespace regen {
 		 */
 		void drawIndexedBaseInstances(GLenum primitive);
 
+		/**
+		 * render primitives from array data using indirect draw call.
+		 * @param primitive Specifies what kind of primitives to render.
+		 */
+		void drawIndexedIndirect(GLenum primitive);
+
 	protected:
 		ShaderInputList inputs_;
 		std::set<std::string> inputMap_;
@@ -222,9 +262,13 @@ namespace regen {
 		GLint numInstances_;
 		GLint numVisibleInstances_;
 		GLuint baseInstance_ = 0u;
+		GLuint indirectOffset_ = 0u;
 		GLint numIndices_;
 		GLuint maxIndex_;
 		ref_ptr<ShaderInput> indices_;
+
+		ref_ptr<SSBO> indirectDrawBuffer_;
+		uint32_t baseDrawIdx_ = 0u;
 
 		ShaderInputList uploadInputs_;
 		std::list<ref_ptr<ShaderInput> > uploadAttributes_;

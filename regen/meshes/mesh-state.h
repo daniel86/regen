@@ -9,6 +9,7 @@
 #include <regen/gl-types/input-container.h>
 #include <regen/gl-types/vbo.h>
 #include <regen/gl-types/vao.h>
+#include <regen/gl-types/ssbo.h>
 #include <regen/gl-types/shader.h>
 #include <regen/animations/animation.h>
 #include "regen/physics/physical-object.h"
@@ -186,6 +187,13 @@ namespace regen {
 		 * @param instanceOffset offset into the instance ID map.
 		 */
 		void updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset);
+
+		/**
+		 * Set the indirect draw buffer.
+		 * @param indirectDrawBuffer the indirect draw buffer.
+		 * @param baseDrawIdx base draw index.
+		 */
+		void setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx);
 
 		/**
 		 * Reset visibility of all LODs.

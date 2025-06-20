@@ -8,6 +8,7 @@
 #include "regen/shapes/obb.h"
 #include "regen/states/state-configurer.h"
 #include "regen/shapes/cull-shape.h"
+#include "regen/gl-types/draw-command.h"
 
 // TODO: think about making a distinction between mesh resource and state.
 // TODO: think about introducing a notion of model replacing mesh vector.
@@ -250,13 +251,17 @@ void Mesh::updateVAO() {
 
 void Mesh::updateDrawFunction() {
 	if (inputContainer_->indexBuffer() > 0) {
-		if (hasInstances_) {
+		if (inputContainer_->hasIndirectDrawBuffer()) {
+			draw_ = &InputContainer::drawIndexedIndirect;
+		} else if (hasInstances_) {
 			draw_ = &InputContainer::drawIndexedBaseInstances;
 		} else {
 			draw_ = &InputContainer::drawIndexed;
 		}
 	} else {
-		if (hasInstances_) {
+		if (inputContainer_->hasIndirectDrawBuffer()) {
+			draw_ = &InputContainer::drawIndirect;
+		} else if (hasInstances_) {
 			draw_ = &InputContainer::drawBaseInstances;
 		} else {
 			draw_ = &InputContainer::draw;
@@ -387,6 +392,11 @@ void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t i
 	}
 }
 
+void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx) {
+	inputContainer_->setIndirectDrawBuffer(indirectDrawBuffer, baseDrawIdx);
+	updateDrawFunction();
+}
+
 void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
 	if (shape->shapeType() == BoundingShapeType::SPHERE) {
 		shapeType_ = 0;
@@ -446,8 +456,9 @@ void Mesh::draw(RenderState *rs) {
 
 void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 	auto &lod = meshLODs_[lodLevel];
-	if (lod.d->numVisibleInstances == 0) {
+	if (!inputContainer_->hasIndirectDrawBuffer() && lod.d->numVisibleInstances == 0) {
 		// no instances to draw, skip
+		// note: we do not know number of visible instances in case of indirect draw buffers.
 		return;
 	}
 	// set the LOD level vertex meta data
@@ -457,14 +468,27 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 	auto c = activeInputContainer();
 	c->set_numVisibleInstances(lod.d->numVisibleInstances);
 	c->set_baseInstance(lod.d->instanceOffset);
+	if (c->hasIndirectDrawBuffer()) {
+		c->set_indirectOffset(
+			c->indirectDrawBuffer()->blockReference()->address() +
+			// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
+			(c->baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
+	}
 
 	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
 		// NOTE: assuming here the impostor does not itself have LODs!
 		lod.impostorMesh->resetVisibility(true);
-		lod.impostorMesh->updateVisibility(0,
-				lod.d->numVisibleInstances,
-				lod.d->instanceOffset);
+		if (inputContainer_->hasIndirectDrawBuffer()) {
+			c->setIndirectDrawBuffer(
+					inputContainer_->indirectDrawBuffer(),
+					inputContainer_->baseDrawIndex() + lodLevel);
+			lod.impostorMesh->updateDrawFunction();
+		} else {
+			lod.impostorMesh->updateVisibility(0,
+					lod.d->numVisibleInstances,
+					lod.d->instanceOffset);
+		}
 		lod.impostorMesh->draw(rs);
 	}
 	else {
@@ -473,6 +497,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel) {
 
 	c->set_numVisibleInstances(c->numInstances());
 	c->set_baseInstance(0);
+	c->set_indirectOffset(0);
 }
 
 void Mesh::drawMesh(RenderState *rs) {
@@ -490,6 +515,9 @@ void Mesh::drawMesh(RenderState *rs) {
 	}
 
 	rs->vao().apply(vao_->id());
+	if (inputContainer_->hasIndirectDrawBuffer()) {
+		rs->drawIndirectBuffer().apply(inputContainer_->indirectDrawBuffer()->blockReference()->bufferID());
+	}
 	(inputContainer_.get()->*draw_)(primitive_);
 
 	if (feedbackRange_.get()) {
@@ -500,6 +528,7 @@ void Mesh::drawMesh(RenderState *rs) {
 
 void Mesh::enable(RenderState *rs) {
 	State::enable(rs);
+	// TODO: support multi indirect draw buffers: the first LODs before impostor meshes can be drawn together.
 
 	if (meshLODs_.empty()) {
 		drawMesh(rs);

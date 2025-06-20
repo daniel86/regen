@@ -4,6 +4,7 @@
 #include "regen/gl-types/gl-param.h"
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
+#include "regen/gl-types/draw-command.h"
 
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256
@@ -165,7 +166,39 @@ void LODState::enable(RenderState *rs) {
 		traverseGPU(rs);
 	}
 #ifdef LOD_DEBUG_GROUPS
-	if (mesh_.get()) {
+	if (!indirectDrawBuffers_.empty()) {
+		// map indirect buffer and print the number of instances per LOD
+		auto indirectBuffer = indirectDrawBuffers_[0];
+		auto *data = (DrawCommand *) indirectBuffer->map(
+				indirectBuffer->blockReference(), GL_MAP_READ_BIT);
+		if (data) {
+			// print the number of instances per LOD
+			REGEN_INFO("LOD ("
+							   << std::setw(4) << std::setfill(' ') << data[0].instanceCount() << " "
+							   << std::setw(4) << std::setfill(' ') << data[1].instanceCount() << " "
+							   << std::setw(4) << std::setfill(' ') << data[2].instanceCount() << " "
+							   << std::setw(4) << std::setfill(' ') << data[3].instanceCount() << ")"
+							   << " numInstances: " <<
+							   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
+							   << " numLODs: " <<
+							   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
+							   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
+							   << " shadow: " << (hasShadowTarget_ ? "1" : "0")
+							   << " shape: " << cullShape_->shapeName());
+			for (uint32_t i = 0; i < mesh_->numLODs(); ++i) {
+				REGEN_INFO("   Indirect buffer " << i << " -- "
+								<< "mode: " << data[i].mode << "; data: ["
+								   << std::setw(8) << data[i].data[0] << ", "
+								   << std::setw(8) << data[i].data[1] << ", "
+								   << std::setw(8) << data[i].data[2] << ", "
+								   << std::setw(8) << data[i].data[3] << ", "
+								   << std::setw(4) << data[i].data[4] << ", "
+								   << data[i]._pad[0] << ", "
+								   << data[i]._pad[1] << "]");
+			}
+			indirectBuffer->unmap();
+		}
+	} else if (mesh_.get()) {
 		if (mesh_->numLODs() > 1) {
 			REGEN_INFO("LOD ("
 						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
@@ -393,15 +426,65 @@ void LODState::computeLODGroups() {
 ///////////////////////
 
 void LODState::createComputeShader() {
-	// Output: lodGroupSize
-	lodGroupSizeBuffer_ = ref_ptr<SSBO>::alloc("LODGroupBuffer", BUFFER_USAGE_STREAM_COPY, SSBO::RESTRICT);
-	lodGroupSize_ = ref_ptr<ShaderInput1ui>::alloc("lodGroupSize", 4);
-	lodGroupSizeBuffer_->addBlockInput(lodGroupSize_);
-	lodGroupSizeBuffer_->update();
-	// +PBO for reading back the lodGroupSizeBuffer_
-	lodGroupSizeMapping_ = ref_ptr<BufferStructMapping<Vec4ui>>::alloc(
-			MAP_READ | MAP_PERSISTENT | MAP_COHERENT,
-			DOUBLE_BUFFER);
+	DrawCommand drawParams[4];
+	indirectDrawBuffers_.resize(cullShape_->parts().size());
+
+	for (uint32_t partIdx=0; partIdx < cullShape_->parts().size(); ++partIdx) {
+    	std::string suffix = (partIdx==0 ? "Base" : REGEN_STRING(partIdx-1));
+		auto &part = cullShape_->parts()[partIdx];
+		// we need to create a drawParams for each part, since they can have different
+		// number of indices and different index buffers.
+		auto &meshLODs = part->meshLODs();
+		for (uint32_t i = 0; i < 4; ++i) {
+			auto &lod = meshLODs[i];
+			auto &m = (lod.impostorMesh.get() ? lod.impostorMesh : part);
+			auto &indices = m->inputContainer()->indices();
+			if (indices.get()) {
+				drawParams[i].mode = 1u; // 1=elements, 2=arrays
+				drawParams[i].setCount(m->inputContainer()->numIndices());
+				drawParams[i].setFirstElement(indices->offset() / sizeof(uint32_t));
+			} else {
+				drawParams[i].mode = 2u; // 1=elements, 2=arrays
+				drawParams[i].setCount(m->inputContainer()->numVertices());
+				drawParams[i].setFirstElement(m->inputContainer()->vertexOffset());
+			}
+			drawParams[i].setInstanceCount(i==0 ? m->inputContainer()->numInstances() : 0);
+		}
+		auto idb = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+				"DrawCommand",
+				REGEN_STRING("drawParams"<<suffix),
+				4);
+		idb->setUniformUntyped((byte*)(&drawParams[0]));
+		// create an indirect draw buffer, which is computed each frame
+		indirectDrawBuffers_[partIdx] = ref_ptr<SSBO>::alloc(
+				REGEN_STRING("IndirectDrawBuffer"<<suffix),
+				BUFFER_USAGE_STREAM_DRAW, SSBO::RESTRICT);
+		indirectDrawBuffers_[partIdx]->addBlockInput(idb);
+		indirectDrawBuffers_[partIdx]->update();
+		// TODO use a single buffer with offsets
+		uint32_t partDrawIdx = 0;
+		part->setIndirectDrawBuffer(
+				indirectDrawBuffers_[partIdx],
+				partDrawIdx);
+
+		if(partIdx==0) {
+			// Create a static indirect draw buffer, which is used for clearing the
+			// indirect draw buffer each frame.
+			for (uint32_t i = 0; i < 4; ++i) {
+				drawParams[i].setInstanceCount(0u);
+			}
+			auto clearData = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+					"DrawCommand",
+					REGEN_STRING("drawParams"<<suffix),
+					4);
+			clearData->setUniformUntyped((byte*)(&drawParams[0]));
+			clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
+				REGEN_STRING("IndirectDrawBuffer"<<suffix),
+				BUFFER_USAGE_STATIC_COPY, SSBO::RESTRICT);
+			clearIndirectBuffer_->addBlockInput(clearData);
+			clearIndirectBuffer_->update();
+		}
+	}
 
 	{ // radix sort
 		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances());
@@ -429,7 +512,9 @@ void LODState::createComputeShader() {
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 		cullPass_->joinShaderInput(mesh_->lodThresholds());
 		cullPass_->joinShaderInput(frustumUBO_);
-		cullPass_->joinShaderInput(lodGroupSizeBuffer_);
+		// Note: LOD pass only writes into first buffer, we need to copy into the other buffers
+		//       in a separate pass.
+		cullPass_->joinShaderInput(indirectDrawBuffers_[0]);
 		cullPass_->joinShaderInput(radixSort_->keyBuffer());
 		cullPass_->joinShaderInput(cullShape_->instanceIDBuffer());
 		auto boundingShape = mesh_->boundingShape();
@@ -457,20 +542,39 @@ void LODState::createComputeShader() {
 		shaderCfg.addState(cullPass_.get());
 		cullPass_->createShader(shaderCfg.cfg());
 	}
+
+	if (cullShape_->parts().size()>1) {
+		// copy indirect draw buffers
+		copyIndirect_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.copy-indirect");
+		copyIndirect_->computeState()->setNumWorkUnits(1, 1, 1);
+		copyIndirect_->computeState()->setGroupSize(1, 1, 1);
+		for (const auto & indirectDrawBuffer : indirectDrawBuffers_) {
+			copyIndirect_->joinShaderInput(indirectDrawBuffer);
+		}
+		StateConfigurer shaderCfg;
+		shaderCfg.addState(copyIndirect_.get());
+		shaderCfg.define("NUM_ATTACHED_PARTS", REGEN_STRING(cullShape_->parts().size() - 1));
+		shaderCfg.define("NUM_BASE_LOD", REGEN_STRING(mesh_->numLODs()));
+		for (uint32_t i = 0; i < cullShape_->parts().size() - 1; ++i) {
+			shaderCfg.define(REGEN_STRING("NUM_PART_LOD_" << i),
+							 REGEN_STRING(cullShape_->parts()[i + 1]->numLODs()));
+		}
+		copyIndirect_->createShader(shaderCfg.cfg());
+	}
 }
 
 void LODState::traverseGPU(RenderState *rs) {
-	// clear the lodGroupSizeBuffer_ to zero's
-	static uint32_t zero = 0;
-	rs->shaderStorageBuffer().apply(lodGroupSizeBuffer_->blockReference()->bufferID());
-	glClearBufferSubData(GL_SHADER_STORAGE_BUFFER, GL_R32UI,
-						 lodGroupSizeBuffer_->blockReference()->address(),
-						 lodGroupSizeBuffer_->blockReference()->allocatedSize(),
-						 GL_RED_INTEGER,
-						 GL_UNSIGNED_INT,
-						 &zero);
+	// copy the clear buffer to the indirect draw buffer
+	rs->copyReadBuffer().push(clearIndirectBuffer_->blockReference()->bufferID());
+	rs->shaderStorageBuffer().apply(indirectDrawBuffers_[0]->blockReference()->bufferID());
+	glCopyBufferSubData(
+			GL_COPY_READ_BUFFER,
+			GL_SHADER_STORAGE_BUFFER,
+			clearIndirectBuffer_->blockReference()->address(),
+			indirectDrawBuffers_[0]->blockReference()->address(),
+			clearIndirectBuffer_->blockReference()->allocatedSize());
+	rs->copyReadBuffer().pop();
 
-	bool hasUpdated = false;
 	if (cameraStamp_ != camera_->stamp()) {
 		// Update the frustum planes in the UBO
 		cameraStamp_ = camera_->stamp();
@@ -487,12 +591,10 @@ void LODState::traverseGPU(RenderState *rs) {
 				frustumUBO_->blockReference()->address(),
 				frustumUBO_->blockReference()->allocatedSize(),
 				&frustumPlanes_[0].x);
-		hasUpdated = true;
 	}
 	if (tfStamp_ != cullShape_->tf()->stamp()) {
 		// Update the transform in the cull pass
 		tfStamp_ = cullShape_->tf()->stamp();
-		hasUpdated = true;
 	}
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
@@ -503,29 +605,9 @@ void LODState::traverseGPU(RenderState *rs) {
 	radixSort_->enable(rs);
 	radixSort_->disable(rs);
 
-	// Update and read lodGroupSize and update lodNumInstances
-	if (hasUpdated) {
-		lodGroupSizeMapping_->readBuffer(
-				lodGroupSizeBuffer_->blockReference(),
-				GL_SHADER_STORAGE_BUFFER);
-		if (lodGroupSizeMapping_->hasReadData()) {
-			auto &latestData = lodGroupSizeMapping_->storageValue();
-			lodNumInstances_[0] = latestData.x;
-			lodNumInstances_[1] = latestData.y;
-			lodNumInstances_[2] = latestData.z;
-			lodNumInstances_[3] = latestData.w;
-		} else {
-			return;
-		}
-	}
-
-	// loop over all LOD levels
-	int32_t instanceIDOffset = 0;
-	for (uint32_t lodLevel = 0; lodLevel < 4; ++lodLevel) {
-		auto lodGroupSize = lodNumInstances_[lodLevel];
-		if (lodGroupSize > 0) {
-			updateVisibility(lodLevel, lodGroupSize, instanceIDOffset);
-			instanceIDOffset += static_cast<int32_t>(lodGroupSize);
-		}
+	if (copyIndirect_.get()) {
+		// update the indirect draw buffers for the other parts
+		copyIndirect_->enable(rs);
+		copyIndirect_->disable(rs);
 	}
 }

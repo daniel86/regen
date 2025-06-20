@@ -57,11 +57,13 @@ namespace regen {
 
 		// GPU LOD update
 		ref_ptr<ComputePass> cullPass_;
+		ref_ptr<ComputePass> copyIndirect_;
 		ref_ptr<RadixSort> radixSort_;
 		ref_ptr<UBO> frustumUBO_;
-		ref_ptr<SSBO> lodGroupSizeBuffer_;
-		ref_ptr<ShaderInput1ui> lodGroupSize_;
-		ref_ptr<BufferStructMapping<Vec4ui>> lodGroupSizeMapping_;
+		// buffer for indirect draw calls, one per mesh part
+		// (parts have different index buffers, so we cannot use a single buffer for all parts)
+		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;
+		ref_ptr<SSBO> clearIndirectBuffer_;
 		std::vector<Vec4f> frustumPlanes_;
 
 		void initLODState();
