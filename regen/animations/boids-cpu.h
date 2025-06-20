@@ -3,6 +3,9 @@
 
 #include "boid-simulation.h"
 #include "animation.h"
+#include "regen/math/vector-batch.h"
+
+#define REGEN_BOID_USE_SSE
 
 namespace regen {
 	/**
@@ -41,13 +44,20 @@ namespace regen {
 			std::vector<uint32_t> neighbors;
 		};
 		std::vector<BoidData> boidData_;
+#ifdef REGEN_BOID_USE_SSE
+		Vec3fBatch4 batchPositions_;
+		std::vector<float> boidPositionsX_;
+		std::vector<float> boidPositionsY_;
+		std::vector<float> boidPositionsZ_;
+#else
 		std::vector<Vec3f> boidPositions_;
+#endif
 
 		void updateTransforms();
 
 		void simulateBoids(float dt);
 
-		void simulateBoid(BoidData &boid, Vec3f &boidPos, float dt);
+		void simulateBoid(uint32_t boidIdx, float dt);
 
 		void limitVelocity(BoidData &boid, const Vec3f &lastDir);
 

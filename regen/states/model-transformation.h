@@ -86,7 +86,7 @@ namespace regen {
 		/**
 		 * @return the model offset.
 		 */
-		auto &modelOffset() const { return modelOffset_; }
+		const ref_ptr<ShaderInput4f> &modelOffset() const { return modelOffset_; }
 
 		/**
 		 * @return the model velocity.
