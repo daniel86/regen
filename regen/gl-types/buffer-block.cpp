@@ -187,6 +187,8 @@ void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partia
 	for (auto &uboInput: blockInputs_) {
 		if (!forceUpdate && partialWrite &&
 		    uboInput.input->stamp() == uboInput.lastStamp) { continue; }
+		uboInput.lastStamp = uboInput.input->stamp();
+
 		if (!uboInput.input->hasClientData()) { continue; }
 		// copy the data to the buffer.
 		updateStridedData(uboInput);
@@ -199,7 +201,6 @@ void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partia
 				   mapped.r,
 				   uboInput.input->inputSize());
 		}
-		uboInput.lastStamp = uboInput.input->stamp();
 	}
 }
 

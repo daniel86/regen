@@ -202,8 +202,7 @@ void LightPass::enable(RenderState *rs) {
 		}
 
 		mesh_->updateVisibility(0, numInstances_, 0);
-		mesh_->enable(rs);
-		mesh_->disable(rs);
+		mesh_->draw(rs);
 
 		if (l.shadow.get()) { l.shadow->end(rs, smChannel); }
 		if (l.shadowColor.get()) { l.shadowColor->end(rs, smColorChannel); }
