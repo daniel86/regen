@@ -132,18 +132,20 @@ void BoidSimulation::updateGridSize() {
 		static_cast<uint32_t>(ceil(gridSize.x)),
 		static_cast<uint32_t>(ceil(gridSize.y)),
 		static_cast<uint32_t>(ceil(gridSize.z)));
-	numCells_ = v_gridSize.x * v_gridSize.y * v_gridSize.z;
+	uint32_t newNumCells = v_gridSize.x * v_gridSize.y * v_gridSize.z;
 	// makes ure we will get at least one cell
-	if (numCells_ == 0) {
-		numCells_ = 1;
+	if (newNumCells == 0) {
+		newNumCells = 1;
 		v_gridSize.x = 1;
 		v_gridSize.y = 1;
 		v_gridSize.z = 1;
 		gridBounds_.min -= Vec3f(cs) * 0.5f;
 		gridBounds_.max += Vec3f(cs) * 0.5f;
 	}
-	gridSize_->setVertex(0, v_gridSize);
-
+	if (newNumCells != numCells_) {
+		numCells_ = newNumCells;
+		gridSize_->setVertex(0, v_gridSize);
+	}
 }
 
 namespace regen {

@@ -178,23 +178,6 @@ GLenum glenum::dataType(GLenum pixelType, GLuint valsPerElement) {
 	return GL_RGBA32F;
 }
 
-bool glenum::isSignedIntegerType(GLenum dataType) {
-	return dataType == GL_BYTE || dataType == GL_SHORT || dataType == GL_INT ||
-		   dataType == GL_R8I || dataType == GL_RG8I || dataType == GL_RGB8I ||
-		   dataType == GL_RGBA8I || dataType == GL_R16I || dataType == GL_RG16I ||
-		   dataType == GL_RGB16I || dataType == GL_RGBA16I || dataType == GL_R32I ||
-		   dataType == GL_RG32I || dataType == GL_RGB32I || dataType == GL_RGBA32I;
-}
-
-bool glenum::isUnsignedIntegerType(GLenum dataType) {
-	return dataType == GL_UNSIGNED_BYTE || dataType == GL_UNSIGNED_SHORT ||
-		   dataType == GL_UNSIGNED_INT || dataType == GL_R8UI || dataType == GL_RG8UI ||
-		   dataType == GL_RGB8UI || dataType == GL_RGBA8UI || dataType == GL_R16UI ||
-		   dataType == GL_RG16UI || dataType == GL_RGB16UI || dataType == GL_RGBA16UI ||
-		   dataType == GL_R32UI || dataType == GL_RG32UI || dataType == GL_RGB32UI ||
-		   dataType == GL_RGBA32UI;
-}
-
 std::string glenum::glslDataType(GLenum pixelType, GLuint valsPerElement) {
 	switch (pixelType) {
 		case GL_BYTE:
@@ -245,18 +228,6 @@ std::string glenum::glslDataType(GLenum pixelType, GLuint valsPerElement) {
 			break;
 	}
 	return "unk";
-}
-
-GLenum glenum::cubeMapLayer(GLuint layer) {
-	const GLenum cubeMapLayer[] = {
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-			GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-			GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
-	};
-	return cubeMapLayer[layer];
 }
 
 GLenum glenum::stencilOp(const std::string &val_) {
@@ -330,28 +301,6 @@ GLenum glenum::pixelType(const std::string &val_) {
 	else if (val == "NONE") return GL_NONE;
 	REGEN_WARN("Unknown pixel type '" << val_ << "'. Using default UNSIGNED_BYTE.");
 	return GL_UNSIGNED_BYTE;
-}
-
-GLuint glenum::pixelComponents(GLenum format) {
-	switch (format) {
-		case GL_RED:
-		case GL_GREEN:
-		case GL_BLUE:
-		case GL_ALPHA:
-		case GL_LUMINANCE:
-		case GL_DEPTH_COMPONENT:
-			return 1;
-		case GL_RG:
-		case GL_LUMINANCE_ALPHA:
-			return 2;
-		case GL_RGB:
-			return 3;
-		case GL_RGBA:
-			return 4;
-		default:
-			REGEN_WARN("Unknown pixel format '" << format << "'. Using default 4.");
-			return 4;
-	}
 }
 
 GLenum glenum::fillMode(const std::string &val_) {
@@ -529,59 +478,5 @@ GLenum glenum::textureInternalFormat(const std::string &val_) {
 	else if (val == "DEPTH_STENCIL") return GL_DEPTH_STENCIL;
 
 	REGEN_WARN("Unknown internal texture format mode '" << val_ << "'. Using default GL_RGBA.");
-	return GL_RGBA;
-}
-
-GLenum glenum::textureFormat(GLuint numComponents) {
-	switch (numComponents) {
-		case 1:
-			return GL_RED;
-		case 2:
-			return GL_RG;
-		case 3:
-			return GL_RGB;
-		case 4:
-			return GL_RGBA;
-	}
-	return GL_RGBA;
-}
-
-GLenum glenum::textureInternalFormat(GLenum pixelType, GLuint numComponents, GLuint bytesPerComponent) {
-	GLuint i = 1;
-	if (bytesPerComponent <= 8) i = 0;
-	else if (bytesPerComponent <= 16) i = 1;
-	else if (bytesPerComponent <= 32) i = 2;
-
-	GLuint j = numComponents - 1;
-
-	if (pixelType == GL_FLOAT || pixelType == GL_DOUBLE || pixelType == GL_HALF_FLOAT) {
-		static GLenum values[3][4] = {
-				{GL_NONE, GL_NONE,  GL_NONE,   GL_NONE},
-				{GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F},
-				{GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F}
-		};
-		return values[i][j];
-	} else if (pixelType == GL_UNSIGNED_INT) {
-		static GLenum values[3][4] = {
-				{GL_R8UI,  GL_RG8UI,  GL_RGB8UI,  GL_RGBA8UI},
-				{GL_R16UI, GL_RG16UI, GL_RGB16UI, GL_RGBA16UI},
-				{GL_R32UI, GL_RG32UI, GL_RGB32UI, GL_RGBA32UI}
-		};
-		return values[i][j];
-	} else if (pixelType == GL_INT) {
-		static GLenum values[3][4] = {
-				{GL_R8I,  GL_RG8I,  GL_RGB8I,  GL_RGBA8I},
-				{GL_R16I, GL_RG16I, GL_RGB16I, GL_RGBA16I},
-				{GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I}
-		};
-		return values[i][j];
-	} else {
-		static GLenum values[3][4] = {
-				{GL_R8,   GL_RG8,  GL_RGB8,  GL_RGBA8},
-				{GL_R16,  GL_RG16, GL_RGB16, GL_RGBA16},
-				{GL_NONE, GL_NONE, GL_NONE,  GL_NONE}
-		};
-		return values[i][j];
-	}
 	return GL_RGBA;
 }

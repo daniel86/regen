@@ -1,4 +1,6 @@
 #include <map>
+#include <time.h>
+#include <boost/thread.hpp>
 
 #include <regen/utility/threading.h>
 #include <regen/utility/logging.h>
@@ -226,35 +228,36 @@ void AnimationManager::flushGraphics() {
 }
 
 void AnimationManager::runUnsynchronized(Animation *animation) const {
-	// call animate until the animation is stopped
-	// try to reach a dedicated frame rate.
-	const auto goalTime = (1.0 / animation->desiredFrameRate()) * 1000.0;
-	boost::posix_time::ptime time0, time1;
-	time0 = boost::posix_time::ptime(boost::posix_time::microsec_clock::local_time());
-	time1 = time0;
-	double dt;
-	int delta_micros;
+	using Clock = std::chrono::steady_clock;
+	using ms = std::chrono::duration<double, std::milli>;
+
+	const double targetMs = 1000.0 / animation->desiredFrameRate();
+	const auto d_frameDuration = ms(targetMs);
+	const auto frameDuration = std::chrono::duration_cast<Clock::duration>(d_frameDuration);
+	auto nextFrame = Clock::now();
 
 	while (animation->isRunning()) {
 		if (pauseFlag_) {
-			usleepRegen(IDLE_SLEEP);
-			time0 += boost::posix_time::microseconds(IDLE_SLEEP);
-			time1 += boost::posix_time::microseconds(IDLE_SLEEP);
+			usleepRegen(IDLE_SLEEP);  // or sleep_for()
+			nextFrame += std::chrono::microseconds(IDLE_SLEEP);
 			continue;
 		}
 
-		// make a step
-		dt = static_cast<double>((time1 - time0).total_microseconds()) / 1000.0;
-		time0 = boost::posix_time::ptime(boost::posix_time::microsec_clock::local_time());
-		animation->animate(static_cast<double>(dt));
-		time1 = boost::posix_time::ptime(boost::posix_time::microsec_clock::local_time());
+		auto frameStart = Clock::now();
+		double dt = std::chrono::duration<double, std::milli>(frameStart - nextFrame + frameDuration).count();
 
-		// synchronize to the desired frame rate
-		dt = static_cast<double>((time1 - time0).total_microseconds()) / 1000.0;
-		if (dt < goalTime) {
-			delta_micros = static_cast<int>((goalTime - dt) * 1000);
-			usleepRegen(delta_micros);
-			time1 += boost::posix_time::microseconds(delta_micros);
+		// Run the animation logic
+		animation->animate(dt);
+
+		// Schedule next frame
+		nextFrame += frameDuration;
+
+		auto now = Clock::now();
+		if (now < nextFrame) {
+			std::this_thread::sleep_until(nextFrame);
+		} else {
+			// Missed the frame deadline: resync
+			nextFrame = now;
 		}
 	}
 }

@@ -3,9 +3,7 @@
 
 #include "boid-simulation.h"
 #include "animation.h"
-#include "regen/math/vector-batch.h"
-
-#define REGEN_BOID_USE_SSE
+#include "regen/math/simd.h"
 
 namespace regen {
 	/**
@@ -40,24 +38,29 @@ namespace regen {
 		struct BoidData {
 			Vec3f force;
 			Vec3f velocity;
-			Vec3i gridIndex = Vec3i::zero();
-			std::vector<uint32_t> neighbors;
+			std::vector<int32_t> neighbors; // size = maxNumNeighbors
+			uint32_t numNeighbors = 0;
 		};
-		std::vector<BoidData> boidData_;
-#ifdef REGEN_BOID_USE_SSE
-		Vec3fBatch4 batchPositions_;
-		std::vector<float> boidPositionsX_;
-		std::vector<float> boidPositionsY_;
-		std::vector<float> boidPositionsZ_;
-#else
-		std::vector<Vec3f> boidPositions_;
-#endif
+		std::vector<BoidData> boidData_;   // size = numBoids_
+		// Note: SoA data layout for SIMD-friendly processing
+		// Note: vectorSIMD is used to ensure 32-bit alignment which is good for SIMD operations.
+		vectorSIMD<float> boidPositionsX_;    // size = numBoids_
+		vectorSIMD<float> boidPositionsY_;    // size = numBoids_
+		vectorSIMD<float> boidPositionsZ_;    // size = numBoids_
+		vectorSIMD<int32_t> boidGridIndices_; // size = numBoids_
+		//vectorSIMD<int32_t> boidGridIndicesX_; // size = numBoids_
+		//vectorSIMD<int32_t> boidGridIndicesY_; // size = numBoids_
+		//vectorSIMD<int32_t> boidGridIndicesZ_; // size = numBoids_
+
+		inline void setBoidPosition(uint32_t boidIndex, const Vec3f &pos);
+
+		inline Vec3f getBoidPosition(uint32_t boidIndex) const;
 
 		void updateTransforms();
 
 		void simulateBoids(float dt);
 
-		void simulateBoid(uint32_t boidIdx, float dt);
+		void simulateBoid(int32_t boidIdx, float dt);
 
 		void limitVelocity(BoidData &boid, const Vec3f &lastDir);
 
@@ -69,15 +72,14 @@ namespace regen {
 
 		void attract(BoidData &boid, const Vec3f &boidPos);
 
-		void updateNeighbours0(BoidData &boid, const Vec3f &boidPos, uint32_t boidIndex);
+		void updateNeighbours(BoidData &boid, const Vec3f &boidPos, int32_t boidIndex,
+				const vectorSIMD<int32_t> &neighborIndices, uint32_t neighborCount);
 
-		void updateNeighbours1(BoidData &boid, const Vec3f &boidPos, uint32_t boidIndex, const Vec3i &gridIndex);
-
-		void updateNeighbours2(BoidData &boid, const Vec3f &boidPos, uint32_t boidIndex, const Vec3i &gridIndex);
+		void clearGrid();
 
 		void updateGrid();
 
-		Vec3i getGridIndex3D(const Vec3f &boid) const;
+		inline Vec3i getGridIndex3D(const Vec3f &boid) const;
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BoidSimulation::ObjectType &v);

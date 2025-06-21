@@ -140,7 +140,7 @@ namespace regen {
 			return v.x + v.y * gridSize.x + v.z * gridSize.x * gridSize.y;
 		}
 
-		static inline uint32_t getGridIndex(const Vec3i &v, const Vec3i &gridSize) {
+		static inline int32_t getGridIndex(const Vec3i &v, const Vec3i &gridSize) {
 			return v.x + v.y * gridSize.x + v.z * gridSize.x * gridSize.y;
 		}
 
