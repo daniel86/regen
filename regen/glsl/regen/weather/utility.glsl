@@ -199,10 +199,11 @@ float computeEyeDepth(vec3 eyedir)
 #define2 __phase_float_float__INCLUDED
 float phase(float alpha, float g)
 {
-    float a = 3.0*(1.0-g*g);
-    float b = 2.0*(2.0+g*g);
+    float gg = g*g;
+    float a = 3.0*(1.0-gg);
+    float b = 2.0*(2.0+gg);
     float c = 1.0+alpha*alpha;
-    float d = pow(1.0+g*g-2.0*g*alpha, 1.5);
+    float d = pow(1.0+gg-2.0*g*alpha, 1.5);
     return (a/b)*(c/d);
 }
 #endif

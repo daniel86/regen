@@ -33,8 +33,8 @@ void StarMap::set_texture(const std::string &textureFile) {
 void StarMap::set_apparentMagnitude(float apparentMagnitude) {
 	// Precompute brightness based on logarithmic scale.
 	// (Similar to starsgeode vertex shader.)
-	deltaM_->setVertex(0, pow(2.512f, apparentMagnitude -
-									  static_cast<double>(osgHimmel::Earth::apparentMagnitudeLimit())));
+	deltaM_->setVertex(0, powf(2.512f, apparentMagnitude -
+									  osgHimmel::Earth::apparentMagnitudeLimit()));
 }
 
 void StarMap::set_deltaMagnitude(float deltaMagnitude) {
