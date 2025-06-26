@@ -249,10 +249,10 @@ namespace regen {
 		 * @return A new Vec3iBatch containing the minimum values.
 		 */
 		inline Vec3iBatch min(const Vec3iBatch &other) const {
-			return Vec3iBatch(
+			return {
 				regen::simd::min_epi32(x, other.x),
 				regen::simd::min_epi32(y, other.y),
-				regen::simd::min_epi32(z, other.z));
+				regen::simd::min_epi32(z, other.z)};
 		}
 
 		/**
@@ -261,10 +261,10 @@ namespace regen {
 		 * @return A new Vec3iBatch containing the minimum values.
 		 */
 		inline Vec3iBatch min(const Vec3iSIMD &other) const {
-			return Vec3iBatch(
+			return {
 				regen::simd::min_epi32(x, other.x),
 				regen::simd::min_epi32(y, other.y),
-				regen::simd::min_epi32(z, other.z));
+				regen::simd::min_epi32(z, other.z)};
 		}
 	};
 
