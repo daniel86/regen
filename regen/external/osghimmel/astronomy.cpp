@@ -113,7 +113,7 @@ float Astronomy::earthShineIntensity(const t_aTime &aTime, float latitude, float
 }
 
 regen::Mat4f Astronomy::equToHorTransform(const t_aTime &aTime, float latitude, float longitude) const {
-	const float s = siderealTime2(aTime);
+	auto s = static_cast<float>(siderealTime(aTime));
 	return regen::Mat4f::scaleMatrix(regen::Vec3f(-1, 1, 1))
 		   * regen::Mat4f::rotationMatrix(_rad(latitude) - _PI_2, 0, 0)
 		   * regen::Mat4f::rotationMatrix(0, 0, -_rad(s + longitude));
