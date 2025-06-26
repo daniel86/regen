@@ -35,7 +35,7 @@
 namespace osgHimmel
 {
 
-const t_longf siderealTime(const t_aTime &aTime)
+t_longf siderealTime(const t_aTime &aTime)
 {
     const t_aTime gmt(makeUT(aTime));
     const t_julianDay JD(jdUT(gmt));
@@ -51,14 +51,12 @@ const t_longf siderealTime(const t_aTime &aTime)
 }
 
 
-const t_longf siderealTime2(const t_aTime &aTime)
+float siderealTime2(const t_aTime &aTime)
 {
-    const t_aTime gmt(makeUT(aTime));
     const t_julianDay JD(jdUT(aTime));
-
     // ("A Physically-Based Night Sky Model" - 2001 - Wann Jensen et al.)
 
-    const float T(static_cast<float>(jCenturiesSinceSE(JD)));
+    const auto T(static_cast<float>(jCenturiesSinceSE(JD)));
     const float t = 4.894961f + 230121.675315f * T;
 
     return _revd(_deg(t));

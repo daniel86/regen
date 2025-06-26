@@ -39,8 +39,8 @@ namespace osgHimmel
 {
 
 // The mean sideral time, Greenwich hour angle of the mean vernal point.
-const t_longf siderealTime(const t_aTime &aTime);
-const t_longf siderealTime2(const t_aTime &aTime);
+t_longf siderealTime(const t_aTime &aTime);
+float siderealTime2(const t_aTime &aTime);
 
 } // namespace osgHimmel
 
