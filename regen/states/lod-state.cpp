@@ -436,8 +436,12 @@ void LODState::createComputeShader() {
 		// number of indices and different index buffers.
 		auto &meshLODs = part->meshLODs();
 		for (uint32_t i = 0; i < 4; ++i) {
-			auto &lod = meshLODs[i];
-			auto &m = (lod.impostorMesh.get() ? lod.impostorMesh : part);
+			ref_ptr<Mesh> m;
+			if (i < meshLODs.size()) {
+				m = meshLODs[i].impostorMesh.get() ? meshLODs[i].impostorMesh : part;
+			} else {
+				m = part;
+			}
 			auto &indices = m->inputContainer()->indices();
 			if (indices.get()) {
 				drawParams[i].mode = 1u; // 1=elements, 2=arrays
