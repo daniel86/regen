@@ -115,6 +115,11 @@ const float in_cloudTimeFactor = 0.2;
 #include regen.weather.utility.computeEyeDepth
 #include regen.weather.utility.phase
 #include regen.weather.utility.absorb
+#ifdef USE_CLOUDS
+float sunIntensity() {
+    return 1.0 - 1.0 / sqrt(1 + pow(in_sunDir.y + 1.14, 32));
+}
+#endif
 
 void main(void)
 {
@@ -152,18 +157,21 @@ void main(void)
 #ifdef USE_CLOUDS
     float cloud_t = in_worldTime * 0.0001 * in_cloudTimeFactor;
     float density;
+    vec3 dayColor = vec3(collectedFactor);
+    vec3 nightColor = vec3(0.1, 0.1, 0.15); // bluish tint
+    vec3 cloudColor = mix(nightColor, dayColor, sunIntensity());
     #ifdef HAS_cirrus
     density = smoothstep(
         1.0 - in_cirrus, 1.0,
         fbm(in_pos.xyz / in_pos.y * 2.0 + cloud_t)) * 0.3;
-    out_color.rgb = mix(out_color.rgb, vec3(collectedFactor) * 4.0, density * max(in_pos.y, 0.0));
+    out_color.rgb = mix(out_color.rgb, cloudColor * 4.0, density * max(in_pos.y, 0.0));
     #endif
     #ifdef HAS_cumulus
     for (int i = 0; i < 3; i++) {
         density = smoothstep(
             1.0 - in_cumulus, 1.0,
             fbm((0.7 + float(i) * 0.01) * in_pos.xyz / in_pos.y + cloud_t));
-        out_color.rgb = mix(out_color.rgb, vec3(collectedFactor) * density * 5.0, min(density, 1.0) * max(in_pos.y, 0.0));
+        out_color.rgb = mix(out_color.rgb, cloudColor * density * 5.0, min(density, 1.0) * max(in_pos.y, 0.0));
     }
     #endif
 #endif

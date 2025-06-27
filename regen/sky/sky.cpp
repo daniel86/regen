@@ -7,8 +7,6 @@
 #include "regen/utility/filesystem.h"
 #include "darkness.h"
 
-#include <ctime>
-
 #include <regen/external/osghimmel/earth.h>
 #include <regen/external/osghimmel/moon.h>
 #include <regen/states/depth-state.h>
@@ -29,7 +27,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	state()->joinStates(depth);
 
 	//state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
-	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
 
 	noonColor_ = Vec3f(0.5, 0.5, 0.5);
 	dawnColor_ = Vec3f(0.2, 0.15, 0.15);
@@ -67,7 +65,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
 	q_->setUniformData(0.0f);
-	uniformBlock->addBlockInput(q_);
+	state()->joinShaderInput(q_);
+
+	sqrt_q_ = ref_ptr<ShaderInput1f>::alloc("sqrt_q");
+	sqrt_q_->setUniformData(0.0f);
+	state()->joinShaderInput(sqrt_q_);
 
 	// directional light that approximates the moon
 	moon_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
@@ -76,6 +78,8 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	moon_->diffuse()->setVertex(0, Vec3f(0.0f));
 	moon_->direction()->setVertex(0, Vec3f(1.0f));
 	uniformBlock->addBlockInput(moon_->direction(), "moonPosition");
+
+	state()->joinShaderInput(uniformBlock);
 
 	Rectangle::Config cfg;
 	cfg.centerAtOrigin = GL_FALSE;
@@ -90,7 +94,6 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 	skyQuad_ = Rectangle::create(cfg);
 
-	state()->joinShaderInput(uniformBlock);
 	// mae some parts of the sky configurable from the GUI.
 	setAnimationName("sky");
 	joinAnimationState(state());
@@ -174,7 +177,7 @@ GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, f
 }
 
 GLfloat Sky::computeEyeExtinction(const Vec3f &eyeDir) {
-	static const float surfaceHeight = 0.99f;
+	static const float surfaceHeight = 0.99f; // TODO: should be configurable
 	static const Vec3f eyePosition(0.0, surfaceHeight, 0.0);
 	return computeHorizonExtinction(eyePosition, eyeDir, surfaceHeight - 0.15f);
 }
@@ -190,7 +193,7 @@ static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
 void Sky::animate(GLdouble dt) {
 	if (worldTime_) {
 		time_osg_.sett(boost::posix_time::to_time_t(worldTime_->p_time));
-		time_osg_.setUtcOffset(0);
+		time_osg_.setUtcOffset(14400); // UTC+4, Berlin time
 		astro_->update(osgHimmel::t_aTime::fromTimeF(time_osg_));
 	}
 
@@ -210,12 +213,18 @@ void Sky::animate(GLdouble dt) {
 			sunColor * moonSunLightReflectance_,
 			computeEyeExtinction(moon))
 	);
-
-	const float fovHalf = camera()->projParams()->getVertex(0).r.x * 0.5f * DEGREE_TO_RAD;
-	const float height = static_cast<float>(viewport()->getVertex(0).r.y);
-	q_->setVertex(0, 2.8284271247461903f // = sqrt(2.0f) * 2.0f
-			* tan(fovHalf) / height);
 	R_->setVertex(0, astro().getEquToHorTransform());
+
+	if (camStamp_ != cam_->stamp() || viewportStamp_ != viewport_->stamp()) {
+		const float fovHalf = camera()->projParams()->getVertex(0).r.x * 0.5f * DEGREE_TO_RAD;
+		const float height = static_cast<float>(viewport()->getVertex(0).r.y);
+		const float q = 2.8284271247461903f // = sqrt(2.0f) * 2.0f
+				* tan(fovHalf) / height; // q is the distance from the camera to the sky quad
+		q_->setVertex(0, q);
+		sqrt_q_->setVertex(0, sqrt(q));
+		camStamp_ = cam_->stamp();
+		viewportStamp_ = viewport_->stamp();
+	}
 	// Update random number in cmn uniform
 	updateSeed();
 }

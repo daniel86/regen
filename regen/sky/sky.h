@@ -89,6 +89,8 @@ namespace regen {
 
 		ref_ptr<Camera> cam_;
 		ref_ptr<ShaderInput2i> viewport_;
+		uint32_t camStamp_ = 0;
+		uint32_t viewportStamp_ = 0;
 
 		const WorldTime *worldTime_ = nullptr;
 		osgHimmel::TimeF time_osg_;
@@ -101,6 +103,7 @@ namespace regen {
 		ref_ptr<ShaderInput4f> cmnUniform_;
 		ref_ptr<ShaderInputMat4> R_;
 		ref_ptr<ShaderInput1f> q_;
+		ref_ptr<ShaderInput1f> sqrt_q_;
 		ref_ptr<Rectangle> skyQuad_;
 
 		Vec3f noonColor_;
