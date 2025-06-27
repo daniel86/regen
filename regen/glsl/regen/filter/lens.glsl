@@ -113,8 +113,9 @@ void main() {
 	uv = vec2(1.0) - uv;
 
 	vec3 ret = vec3(0.0);
+	float aspect = REGEN_CAM_PARAMS_(0).z;
 	ret += SampleGhosts(uv, in_ghostThreshold);
-	ret += SampleHalo(uv, in_haloRadius, 1.0/in_aspect, in_haloThreshold);
+	ret += SampleHalo(uv, in_haloRadius, 1.0/aspect, in_haloThreshold);
 
 	out_color = ret;
 }
