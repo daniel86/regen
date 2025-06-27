@@ -1,20 +1,40 @@
 #include "boids-cpu.h"
 #include "regen/math/simd.h"
+#include "regen/utility/aligned-array.h"
 
-//#define REGEN_BOID_DEBUG_TIME
-#define REGEN_USE_SIMD_GRID_UPDATE
-#define REGEN_USE_SIMD_NEIGHBOR_UPDATE
+#define REGEN_BOID_DEBUG_TIME
+//#define REGEN_BOID_USE_SORTED_GRID
+#define REGEN_BOID_USE_GRID_SIMD
+#define REGEN_BOID_USE_NEIGHBOR_SIMD
+//#define REGEN_BOID_USE_FORCE_SIMD
 
 using namespace regen;
 
 // private data struct
 struct BoidsCPU::Private {
+	// Note: SoA data layout for SIMD-friendly processing
+	// Note: vectorSIMD is used to ensure 32-bit alignment which is good for SIMD operations.
+#ifdef REGEN_BOID_USE_SORTED_GRID
+	AlignedArray<int32_t> sortedGridIndices_; // size = numBoids_
+	AlignedArray<int32_t> cellCounts_;  // size = numCells
+	AlignedArray<int32_t> cellOffsets_; // size = numCells
+#else
 	// Boid spatial grid. A cell in a 3D grid with edge length equal to boid visual range.
 	struct Cell {
 		vectorSIMD<int32_t> elements; // size = maxNumNeighbors
 		uint32_t numElements = 0;     // (capped) number of boids in this cell
 	};
 	std::vector<Cell> grid_;
+#endif
+	// Per-boid data
+	AlignedArray<int32_t> boidGridIndex_;   // size = numBoids_
+	AlignedArray<float>   boidPositionsX_;  // size = numBoids_
+	AlignedArray<float>   boidPositionsY_;  // size = numBoids_
+	AlignedArray<float>   boidPositionsZ_;  // size = numBoids_
+	AlignedArray<float>   boidVelocityX_;   // size = numBoids_
+	AlignedArray<float>   boidVelocityY_;   // size = numBoids_
+	AlignedArray<float>   boidVelocityZ_;   // size = numBoids_
+
 	// Configuration parameters
 	float visualRange_ = 0.0f;
 	float visualRangeSq_ = 0.0f;
@@ -38,38 +58,45 @@ struct BoidsCPU::Private {
 
 	// some per-boid parameters used in simulation.
 	// note: this is only ok in case of single-threaded simulation.
-	Vec3f avgPosition_ = Vec3f::zero();
-	Vec3f avgVelocity_ = Vec3f::zero();
-	Vec3f separation_ = Vec3f::zero();
 	Vec3f boidDirection_ = Vec3f::front();
 	Quaternion boidRotation_;
+
+	explicit Private(uint32_t numBoids) :
+#ifdef REGEN_BOID_USE_SORTED_GRID
+			  sortedGridIndices_(numBoids),
+#endif
+			  boidGridIndex_(numBoids),
+			  boidPositionsX_(numBoids),
+			  boidPositionsY_(numBoids),
+			  boidPositionsZ_(numBoids),
+			  boidVelocityX_(numBoids),
+			  boidVelocityY_(numBoids),
+			  boidVelocityZ_(numBoids)
+			  {}
 };
 
 BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 		: BoidSimulation(tf),
 		  Animation(false, true),
-		  priv_(new Private()) {
+		  priv_(new Private(numBoids_)) {
 	boidData_.resize(numBoids_);
-	boidPositionsX_.resize(numBoids_);
-	boidPositionsY_.resize(numBoids_);
-	boidPositionsZ_.resize(numBoids_);
-	boidGridIndices_.resize(numBoids_, 0);
-	//boidGridIndicesX_.resize(numBoids_, 0);
-	//boidGridIndicesY_.resize(numBoids_, 0);
-	//boidGridIndicesZ_.resize(numBoids_, 0);
+	priv_->boidVelocityX_.setToZero();
+	priv_->boidVelocityY_.setToZero();
+	priv_->boidVelocityZ_.setToZero();
+	priv_->boidGridIndex_.setToZero();
+#ifdef REGEN_BOID_USE_SORTED_GRID
+	priv_->sortedGridIndices_.setToZero();
+#endif
 
 	if (tf_->hasModelMat()) {
 		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ShaderData::READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
 			setBoidPosition(i, tfData.r[i].position());
-			boidData_[i].velocity = Vec3f::zero();
 		}
 	} else {
 		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec3f>(ShaderData::READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
-			auto &d = boidData_[i];
 			setBoidPosition(i, initialPositionData.r[i]);
-			d.velocity = Vec3f::zero();
 		}
 	}
 }
@@ -87,18 +114,26 @@ void BoidsCPU::initBoidSimulation() {
 	priv_->yawAdjust_.setAxisAngle(Vec3f(0, 1, 0), priv_->baseOrientation_);
 	priv_->boidsScale_ = boidsScale_->getVertex(0).r;
 
+	// Initialize grid memory.
+#ifdef REGEN_BOID_USE_SORTED_GRID
+	auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
+	numCells = std::max(numCells, 0);
+	priv_->cellCounts_.resize(numCells);
+	priv_->cellOffsets_.resize(numCells);
+#else
+	for (auto &cell : priv_->grid_) {
+		cell.elements.resize(maxNumNeighbors_->getVertex(0).r + 1); // +1 to avoid branching
+		cell.numElements = 0;
+	}
+#endif
+
 	// Initialize per-boid memory.
 	for (uint32_t i = 0; i < numBoids_; ++i) {
 		auto &d = boidData_[i];
 		// note: an additional element is added to the end of the vector which is used
-		//       to avoid branching in the SIMD code.
+		//       to avoid branching.
 		d.neighbors.resize(maxNumNeighbors_->getVertex(0).r + 1);
 		d.numNeighbors = 0;
-	}
-	// Initialize per-cell memory.
-	for (auto &cell : priv_->grid_) {
-		cell.elements.resize(maxNumNeighbors_->getVertex(0).r + 1); // +1 to avoid branching in the SIMD code
-		cell.numElements = 0;
 	}
 
 	animationState()->joinShaderInput(coherenceWeight_);
@@ -116,16 +151,29 @@ void BoidsCPU::initBoidSimulation() {
 }
 
 void BoidsCPU::setBoidPosition(uint32_t boidIndex, const Vec3f &pos) {
-	boidPositionsX_[boidIndex] = pos.x;
-	boidPositionsY_[boidIndex] = pos.y;
-	boidPositionsZ_[boidIndex] = pos.z;
+	priv_->boidPositionsX_[boidIndex] = pos.x;
+	priv_->boidPositionsY_[boidIndex] = pos.y;
+	priv_->boidPositionsZ_[boidIndex] = pos.z;
 }
 
 Vec3f BoidsCPU::getBoidPosition(uint32_t boidIndex) const {
 	return {
-			boidPositionsX_[boidIndex],
-			boidPositionsY_[boidIndex],
-			boidPositionsZ_[boidIndex]};
+			priv_->boidPositionsX_[boidIndex],
+			priv_->boidPositionsY_[boidIndex],
+			priv_->boidPositionsZ_[boidIndex]};
+}
+
+void BoidsCPU::setBoidVelocity(uint32_t boidIndex, const Vec3f &vel) {
+	priv_->boidVelocityX_[boidIndex] = vel.x;
+	priv_->boidVelocityY_[boidIndex] = vel.y;
+	priv_->boidVelocityZ_[boidIndex] = vel.z;
+}
+
+Vec3f BoidsCPU::getBoidVelocity(uint32_t boidIndex) const {
+	return {
+			priv_->boidVelocityX_[boidIndex],
+			priv_->boidVelocityY_[boidIndex],
+			priv_->boidVelocityZ_[boidIndex]};
 }
 
 Vec3i BoidsCPU::getGridIndex3D(const Vec3f &x) const {
@@ -175,7 +223,9 @@ void BoidsCPU::animate(double dt) {
 
 	// resize the grid, and clear all cells
 	clearGrid();
+#ifndef REGEN_BOID_USE_SORTED_GRID
 	if (priv_->grid_.empty()) { return; }
+#endif
 
 	// add boids to the grid and compute their neighborhood relations.
 	updateGrid();
@@ -205,13 +255,13 @@ void BoidsCPU::animate(double dt) {
 		copyAvg /= static_cast<long>(copyTimes.size());
 		gridAvg /= static_cast<long>(gridTimes.size());
 		REGEN_INFO("BoidsSimulation_CPU: " <<
-										   "simTime=" << std::fixed << std::setprecision(2)
+										   "sim=" << std::fixed << std::setprecision(2)
 										   << static_cast<float>(simAvg) / 1000.0f << "ms " <<
-										   "copyTime=" << std::fixed << std::setprecision(2)
+										   "copy=" << std::fixed << std::setprecision(2)
 										   << static_cast<float>(copyAvg) / 1000.0f << "ms " <<
-										   "gridTime=" << std::fixed << std::setprecision(2)
+										   "grid=" << std::fixed << std::setprecision(2)
 										   << static_cast<float>(gridAvg) / 1000.0f << "ms " <<
-										   "totalTime=" << std::fixed << std::setprecision(2)
+										   "total=" << std::fixed << std::setprecision(2)
 										   << static_cast<float>(simAvg + copyAvg + gridAvg) / 1000.0f << "ms");
 		simTimes.clear();
 		copyTimes.clear();
@@ -228,27 +278,30 @@ void BoidsCPU::updateTransforms() {
 			float vl;
 
 			for (uint32_t i = 0; i < numBoids_; ++i) {
-				auto &d = boidData_[i];
+				Vec3f velocity(
+					priv_->boidVelocityX_[i],
+					priv_->boidVelocityY_[i],
+					priv_->boidVelocityZ_[i]);
 				// calculate boid matrix, also need to compute rotation from velocity, model z
 				//       should point in the direction of velocity.
-				vl = d.velocity.length();
+				vl = velocity.length();
 				if (vl > 0.001f) {
-					priv_->boidRotation_.setLookRotation(d.velocity / vl);
+					priv_->boidRotation_.setLookRotation(velocity / vl);
 				}
 				auto &matrix = tfData.w[i];
 				matrix = (priv_->yawAdjust_ * priv_->boidRotation_).calculateMatrix();
 				matrix.scale(priv_->boidsScale_);
-				matrix.x[12] += boidPositionsX_[i];
-				matrix.x[13] += boidPositionsY_[i];
-				matrix.x[14] += boidPositionsZ_[i];
+				matrix.x[12] += priv_->boidPositionsX_[i];
+				matrix.x[13] += priv_->boidPositionsY_[i];
+				matrix.x[14] += priv_->boidPositionsZ_[i];
 			}
 		} else if (tf_->hasModelOffset()) {
 			auto positionData = tf_->modelOffset()->mapClientData<Vec4f>(ShaderData::WRITE);
 			for (uint32_t i = 0; i < numBoids_; ++i) {
 				auto &pos_w = positionData.w[i];
-				pos_w.x = boidPositionsX_[i];
-				pos_w.y = boidPositionsY_[i];
-				pos_w.z = boidPositionsZ_[i];
+				pos_w.x = priv_->boidPositionsX_[i];
+				pos_w.y = priv_->boidPositionsY_[i];
+				pos_w.z = priv_->boidPositionsZ_[i];
 			}
 		}
 	}
@@ -266,6 +319,11 @@ void BoidsCPU::clearGrid() {
 		priv_->gridSize_.z = static_cast<int>(gridSize.z);
 		auto numCells = priv_->gridSize_.x * priv_->gridSize_.y * priv_->gridSize_.z;
 		numCells = std::max(numCells, 0);
+#ifdef REGEN_BOID_USE_SORTED_GRID
+		priv_->cellCounts_.resize(numCells);
+		priv_->cellOffsets_.resize(numCells);
+		priv_->cellOffsets_[0] = 0;
+#else
 		auto firstAdded = priv_->grid_.size();
 		priv_->grid_.resize(numCells);
 		// reserve space for the neighbor indices in each cell.
@@ -274,47 +332,67 @@ void BoidsCPU::clearGrid() {
 		for (uint32_t i = firstAdded; i < priv_->grid_.size(); ++i) {
 			priv_->grid_[i].elements.resize(maxNumNeighbors + 1);
 		}
+#endif
 	}
+
+#ifndef REGEN_BOID_USE_SORTED_GRID
 	if (priv_->grid_.empty()) { return; }
 
 	// clear all cells, removing the old boids.
 	for (auto &cell: priv_->grid_) {
 		cell.numElements = 0;
 	}
+#endif
 }
+
+#ifdef REGEN_BOID_USE_SORTED_GRID
+void zeroAligned(AlignedArray<int32_t> &vec) {
+    size_t size = vec.size();
+    int* data = vec.data();
+    size_t i = 0;
+    // Use AVX2 to set 8 ints (32 bytes) at a time
+    // TODO: use simd abstraction API
+    __m256i zero = _mm256_setzero_si256();
+    for (; i + 8 <= size; i += 8) {
+        _mm256_store_si256(reinterpret_cast<__m256i*>(data + i), zero);
+    }
+    // Tail loop (in case size is not divisible by 8)
+    for (; i < size; ++i) { data[i] = 0; }
+}
+#endif
 
 void BoidsCPU::updateGrid() {
 	// iterate over all boids and add them to the grid, compute the index
 	// based on the boid position and the grid bounds.
 	int32_t startIdx = 0u;
 
-#ifdef REGEN_USE_SIMD_GRID_UPDATE
+#ifdef REGEN_BOID_USE_GRID_SIMD
 	{
-		Vec3fBatch boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-		Vec3fSIMD simd_gridMin(gridBounds_.min);
-		Vec3iSIMD simd_gridSize(priv_->gridSize_ - Vec3i::one());
-		Vec3iSIMD simd_gridSize_1_X_XY(Vec3i(
+		BatchOf_Vec3f boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+		BatchOf_Vec3f simd_gridMin(gridBounds_.min);
+		BatchOf_Vec3i simd_gridSize(priv_->gridSize_ - Vec3i::one());
+		BatchOf_Vec3i simd_gridSize_1_X_XY(Vec3i(
 			1,
 			priv_->gridSize_.x,
 			priv_->gridSize_.x * priv_->gridSize_.y));
-		floatSIMD simd_cellSize(priv_->cellSize_);
-		floatSIMD simd_zero(0.0f);
+		BatchOf_float simd_cellSize(priv_->cellSize_);
+		BatchOf_float simd_zero(0.0f);
 
 		// we compute the grid index in batches
 		for (; startIdx +  regen::simd::RegisterWidth <= static_cast<int32_t>(numBoids_);
 			   startIdx += regen::simd::RegisterWidth) {
 			// load the boid positions into a SIMD register
 			boidBatch.load_aligned(
-					boidPositionsX_.data() + startIdx,
-					boidPositionsY_.data() + startIdx,
-					boidPositionsZ_.data() + startIdx);
+					priv_->boidPositionsX_.data() + startIdx,
+					priv_->boidPositionsY_.data() + startIdx,
+					priv_->boidPositionsZ_.data() + startIdx);
 			// x = (x - gridBounds_.min) / cellSize
 			boidBatch = (boidBatch - simd_gridMin) / simd_cellSize;
 			// clamp to 0+
 			boidBatch = boidBatch.max(simd_zero);
 
 			// floor to integer grid indices
-			Vec3iBatch gridIndices = boidBatch.floor();
+			BatchOf_Vec3i gridIndices = boidBatch.floor();
 			// clamp to max grid bounds
 			gridIndices = gridIndices.min(simd_gridSize);
 			// iy_f = iy * gridSize.x
@@ -327,7 +405,7 @@ void BoidsCPU::updateGrid() {
 			//regen::simd::storeu_epi32(boidGridIndicesX_.data() + startIdx, gridIndices.x);
 			//regen::simd::storeu_epi32(boidGridIndicesY_.data() + startIdx, gridIndices.y);
 			//regen::simd::storeu_epi32(boidGridIndicesZ_.data() + startIdx, gridIndices.z);
-			regen::simd::storeu_epi32(boidGridIndices_.data() + startIdx, i_f);
+			regen::simd::storeu_epi32(priv_->boidGridIndex_.data() + startIdx, i_f);
 		}
 	}
 #endif // REGEN_USE_SIMD_GRID_UPDATE
@@ -335,15 +413,58 @@ void BoidsCPU::updateGrid() {
 	// Fallback to scalar loop for grid index computation
 	for (; startIdx < static_cast<int32_t>(numBoids_);  ++startIdx) {
 		Vec3f boidPos = getBoidPosition(startIdx);
-		boidGridIndices_[startIdx] = getGridIndex(getGridIndex3D(boidPos), priv_->gridSize_);
+		priv_->boidGridIndex_[startIdx] = getGridIndex(getGridIndex3D(boidPos), priv_->gridSize_);
 	}
 
+#ifdef REGEN_BOID_USE_SORTED_GRID
+	const int32_t numCells = priv_->cellOffsets_.size();
+	// Reset the cell counts to zero
+	priv_->cellOffsets_[0] = 0;
+	zeroAligned(priv_->cellCounts_);
+	// Count how many boids are in each cell
+	for (uint32_t i = 0; i < numBoids_; ++i) {
+		priv_->cellCounts_[priv_->boidGridIndex_[i]] += 1;
+	}
+	// Compute prefix sum to get starting offsets
+	for (int32_t i = 1; i < numCells; ++i) {
+		priv_->cellOffsets_[i] = priv_->cellOffsets_[i - 1] + priv_->cellCounts_[i - 1];
+	}
+
+	// Write sorted indices to buffer
+	for (int32_t boidIdx = 0; boidIdx < static_cast<int32_t>(numBoids_); ++boidIdx) {
+		// cell of i'th boid
+		int32_t cell_idx = priv_->boidGridIndex_[boidIdx];
+		// the start of the cell in the sorted grid indices
+		int32_t cell_offset = priv_->cellOffsets_[cell_idx];
+		priv_->cellOffsets_[cell_idx] += 1;
+		priv_->sortedGridIndices_[cell_offset] = boidIdx;
+	}
+	// Finally iterate over the grid cells and update neighbors
+	int32_t* cellElements = priv_->sortedGridIndices_.data();
+
+	for (int32_t cellIdx = 0; cellIdx < numCells; ++cellIdx) {
+		int32_t count = priv_->cellCounts_[cellIdx];
+		if (count == 0) continue; // skip empty cells
+
+		for (int32_t i= 0; i + 1 < count; ++i) {
+			int32_t boidIdx = cellElements[i];
+			auto &boid = boidData_[boidIdx];
+			auto boidPos = getBoidPosition(boidIdx);
+			updateNeighbours(boid, boidPos, boidIdx,
+				cellElements + i + 1,
+				count - i - 1);
+		}
+
+		cellElements += count;
+	}
+
+#else
 	for (int32_t boidIdx = 0; boidIdx < static_cast<int32_t>(numBoids_); ++boidIdx) {
 		auto &boid = boidData_[boidIdx];
-		auto &cell = priv_->grid_[boidGridIndices_[boidIdx]];
+		auto &cell = priv_->grid_[priv_->boidGridIndex_[boidIdx]];
 		auto boidPos = getBoidPosition(boidIdx);
 		updateNeighbours(boid, boidPos, boidIdx,
-			cell.elements, cell.numElements);
+			cell.elements.data(), cell.numElements);
 		// add the boid to the grid cell
 		// Note: we can safely write one more element than the maxNumNeighbors_ because
 		//       we reserve one additional element in the cell.elements vector.
@@ -352,37 +473,38 @@ void BoidsCPU::updateGrid() {
 		cell.elements[cell.numElements] = boidIdx;
 		cell.numElements += uint32_t(cell.numElements < priv_->maxNumNeighbors_);
 	}
+#endif
 }
 
 void BoidsCPU::updateNeighbours(
 		BoidData &boid,
 		const Vec3f &boidPos,
 		int32_t boidIndex,
-		const vectorSIMD<int32_t> &neighborIndices,
+		const int32_t *neighborIndices,
 		uint32_t neighborCount) {
 	size_t startIdx = 0;
 
-#ifdef REGEN_USE_SIMD_NEIGHBOR_UPDATE
+#ifdef REGEN_BOID_USE_NEIGHBOR_SIMD
 	if (neighborCount >= regen::simd::RegisterWidth) {
-		Vec3fBatch neighborBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-		Vec3fSIMD boidPos_SIMD(boidPos);
-		floatSIMD visualRangeSq_SIMD(priv_->visualRangeSq_);
+		BatchOf_Vec3f neighborBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+		BatchOf_Vec3f boidPos_SIMD(boidPos);
+		BatchOf_float visualRangeSq_SIMD(priv_->visualRangeSq_);
 
 		for (; startIdx + regen::simd::RegisterWidth <= neighborCount;
 			   startIdx += regen::simd::RegisterWidth) {
 			// load the indices of the neighbors into a SIMD register
-			auto idx = regen::simd::loadu_si256(neighborIndices.data() + startIdx);
+			auto idx = regen::simd::loadu_si256(neighborIndices + startIdx);
 			// load the positions of the neighbors into a SIMD register
 			neighborBatch.load(
-					boidPositionsX_.data(),
-					boidPositionsY_.data(),
-					boidPositionsZ_.data(),
+					priv_->boidPositionsX_.data(),
+					priv_->boidPositionsY_.data(),
+					priv_->boidPositionsZ_.data(),
 					idx);
 
 			// finally compute the distance to the boid position for a batch of neighbors
 			neighborBatch -= boidPos_SIMD;
 			auto lengthSq = neighborBatch.lengthSquared();
-			auto mask = regen::simd::cmp_lt(lengthSq, visualRangeSq_SIMD.c);
+			auto mask = regen::simd::cmp_lt(lengthSq.c, visualRangeSq_SIMD.c);
 			// use the result as a bit mask to filter neighbors
 			int maskBits = regen::simd::movemask_ps(mask);
 
@@ -430,19 +552,126 @@ void BoidsCPU::simulateBoids(float dt) {
 	for (int32_t boidIdx = 0; boidIdx < static_cast<int32_t>(numBoids_); ++boidIdx) {
 		simulateBoid(boidIdx, dt);
 		// update the grid bounds
-		newBounds_.min.x = std::min(newBounds_.min.x, boidPositionsX_[boidIdx]);
-		newBounds_.min.y = std::min(newBounds_.min.y, boidPositionsY_[boidIdx]);
-		newBounds_.min.z = std::min(newBounds_.min.z, boidPositionsZ_[boidIdx]);
-		newBounds_.max.x = std::max(newBounds_.max.x, boidPositionsX_[boidIdx]);
-		newBounds_.max.y = std::max(newBounds_.max.y, boidPositionsY_[boidIdx]);
-		newBounds_.max.z = std::max(newBounds_.max.z, boidPositionsZ_[boidIdx]);
+		newBounds_.min.x = std::min(newBounds_.min.x, priv_->boidPositionsX_[boidIdx]);
+		newBounds_.min.y = std::min(newBounds_.min.y, priv_->boidPositionsY_[boidIdx]);
+		newBounds_.min.z = std::min(newBounds_.min.z, priv_->boidPositionsZ_[boidIdx]);
+		newBounds_.max.x = std::max(newBounds_.max.x, priv_->boidPositionsX_[boidIdx]);
+		newBounds_.max.y = std::max(newBounds_.max.y, priv_->boidPositionsY_[boidIdx]);
+		newBounds_.max.z = std::max(newBounds_.max.z, priv_->boidPositionsZ_[boidIdx]);
 	}
 	boidBounds_ = newBounds_;
+}
+
+Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3f &boidVel) {
+	size_t startIdx = 0;
+	boid.sumPos = Vec3f::zero();
+	boid.sumVel = Vec3f::zero();
+	boid.sumSep = Vec3f::zero();
+
+#ifdef REGEN_BOID_USE_FORCE_SIMD
+	if (boid.numNeighbors >= regen::simd::RegisterWidth) {
+		{ // pass 1: compute average position and velocity
+			BatchOf_Vec3f avgPosition_SIMD(Vec3f::zero());
+			BatchOf_Vec3f avgVelocity_SIMD(Vec3f::zero());
+			BatchOf_Vec3f neighborVel_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			BatchOf_Vec3f neighborPos_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			for (; startIdx + regen::simd::RegisterWidth <= boid.numNeighbors;
+				   startIdx += regen::simd::RegisterWidth) {
+				// load the neighbor indices into a SIMD register
+				auto idx = regen::simd::loadu_si256(boid.neighbors.data() + startIdx);
+				// load the positions of the neighbors into a SIMD register
+				neighborPos_SIMD.load(
+						priv_->boidPositionsX_.data() + startIdx,
+						priv_->boidPositionsY_.data() + startIdx,
+						priv_->boidPositionsZ_.data() + startIdx,
+						idx);
+				neighborVel_SIMD.load(
+						priv_->boidVelocityX_.data() + startIdx,
+						priv_->boidVelocityY_.data() + startIdx,
+						priv_->boidVelocityZ_.data() + startIdx,
+						idx);
+				avgPosition_SIMD += neighborPos_SIMD;
+				avgVelocity_SIMD += neighborVel_SIMD;
+			}
+			boid.sumPos += avgPosition_SIMD.hsum();
+			boid.sumVel += avgVelocity_SIMD.hsum();
+		}
+
+		{ // pass 2: compute separation term
+			startIdx = 0;
+			const BatchOf_Vec3f boidPos_SIMD(boidPos);
+			BatchOf_Vec3f neighborPos_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			BatchOf_Vec3f separation_SIMD(Vec3f::zero());
+			const BatchOf_Vec3f randomDir_SIMD(Vec3f::random().normalize());
+			const BatchOf_float avoidanceDistanceSq_SIMD(priv_->avoidanceDistance_ * priv_->avoidanceDistance_);
+			const BatchOf_float epsilon_SIMD(0.001f * 0.001f);
+			const BatchOf_float zero_SIMD(0.0f);
+			const BatchOf_float one_SIMD(1.0f);
+
+			for (; startIdx + regen::simd::RegisterWidth <= boid.numNeighbors;
+				   startIdx += regen::simd::RegisterWidth) {
+				// load the neighbor indices into a SIMD register
+				auto idx = regen::simd::loadu_si256(boid.neighbors.data() + startIdx);
+				// load the positions of the neighbors into a SIMD register
+				neighborPos_SIMD.load(
+						priv_->boidPositionsX_.data() + startIdx,
+						priv_->boidPositionsY_.data() + startIdx,
+						priv_->boidPositionsZ_.data() + startIdx,
+						idx);
+
+				auto dir = boidPos_SIMD - neighborPos_SIMD;
+				auto distSq = dir.lengthSquared();
+				auto invDistSq = one_SIMD / distSq;
+				auto mask = regen::simd::cmp_lt(distSq.c, avoidanceDistanceSq_SIMD.c);
+				invDistSq.c = _mm256_blendv_ps(zero_SIMD.c, invDistSq.c, mask);
+				dir *= invDistSq;
+
+				//auto rMask = regen::simd::cmp_lt(distSq.c, epsilon_SIMD.c);
+				//auto randomFactor = BatchOf_float(_mm256_blendv_ps(one_SIMD.c, zero_SIMD.c, rMask));
+
+				//auto randomFactor2 = BatchOf_float(_mm256_blendv_ps(zero_SIMD.c, one_SIMD.c, rMask));
+				//dir *= randomFactor2;
+
+				separation_SIMD += dir; //*randomFactor2;
+				//separation_SIMD += randomDir_SIMD*randomFactor;
+			}
+			boid.sumSep += separation_SIMD.hsum();
+		}
+	}
+#endif
+	{
+		for (; startIdx<boid.numNeighbors; startIdx++) {
+			auto neighborIdx = boid.neighbors[startIdx];
+			auto neighborPos = getBoidPosition(neighborIdx);
+
+			boid.sumPos += neighborPos;
+			boid.sumVel += getBoidVelocity(neighborIdx);
+
+			auto boidDirection = boidPos - neighborPos;
+			float distance = boidDirection.length();
+			if (distance < priv_->avoidanceDistance_) {
+				if (distance < 0.001f) {
+					boidDirection = Vec3f::random();
+					boidDirection.normalize();
+				} else {
+					boidDirection /= distance * distance;
+				}
+				boid.sumSep += boidDirection;
+			}
+		}
+	}
+
+	float alpha = 1.0f / static_cast<float>(boid.numNeighbors);
+	return
+		(boid.sumSep * priv_->separationWeight_) +
+		(boid.sumVel*alpha - boidVel) * priv_->alignmentWeight_ +
+		(boid.sumPos*alpha - boidPos) * priv_->coherenceWeight_;
 }
 
 void BoidsCPU::simulateBoid(int32_t boidIdx, float dt) {
 	auto &boid = boidData_[boidIdx];
 	Vec3f boidPos = getBoidPosition(boidIdx);
+	Vec3f boidVel = getBoidVelocity(boidIdx);
 
 	// a boid is lost if it is outside the bounds
 	bool isBoidLost = !priv_->simBounds_.contains(boidPos);
@@ -452,83 +681,57 @@ void BoidsCPU::simulateBoid(int32_t boidIdx, float dt) {
 		boid.force = Vec3f::zero();
 	} else {
 		// simulate the boid using the three rules of boids
-		// TODO: We could compute per-boid force via SIMD operations.
-		priv_->avgPosition_ = Vec3f::zero();
-		priv_->avgVelocity_ = Vec3f::zero();
-		priv_->separation_ = Vec3f::zero();
-		for (uint32_t i=0; i<boid.numNeighbors; i++) {
-			auto neighborIndex = boid.neighbors[i];
-			auto &neighbor = boidData_[neighborIndex];
-			auto neighborPos = getBoidPosition(neighborIndex);
-
-			priv_->avgPosition_ += neighborPos;
-			priv_->boidDirection_ = boidPos - neighborPos;
-			priv_->avgVelocity_ += neighbor.velocity;
-			float distance = priv_->boidDirection_.length();
-			if (distance < 0.001f) {
-				priv_->boidDirection_ = Vec3f::random();
-				priv_->boidDirection_.normalize();
-				distance = 0.0f;
-			} else {
-				priv_->boidDirection_ /= distance * distance;
-			}
-			if (distance < priv_->avoidanceDistance_) {
-				priv_->separation_ += priv_->boidDirection_;
-			}
-		}
-		priv_->avgPosition_ /= static_cast<float>(boid.numNeighbors);
-		priv_->avgVelocity_ /= static_cast<float>(boid.numNeighbors);
-		boid.force =
-				priv_->separation_ * priv_->separationWeight_ +
-				(priv_->avgVelocity_ - boid.velocity) * priv_->alignmentWeight_ +
-				(priv_->avgPosition_ - boidPos) * priv_->coherenceWeight_;
+		boid.force = accumulateForce(boid, boidPos, boidVel);
 	}
 
 	// put some restrictions on the boid's velocity.
 	// a boid that cannot avoid collisions is considered lost.
-	isBoidLost = !avoidCollisions(boid, boidPos, dt) || isBoidLost;
-	auto isInDanger = !dangers_.empty() && !avoidDanger(boid, boidPos);
+	isBoidLost = !avoidCollisions(boidPos, boidVel, boid.force, dt) || isBoidLost;
+	auto isInDanger = !dangers_.empty() && !avoidDanger(boidPos, boid.force);
 	if (!isInDanger) {
 		// note: ignore attractors if in danger
-		attract(boid, boidPos);
+		attract(boidPos, boid.force);
 	}
 	// drift towards home if lost
-	if (isBoidLost) { homesickness(boid, boidPos); }
+	if (isBoidLost) { homesickness(boidPos, boid.force); }
 
-	auto dx = Vec3f(boid.velocity) * dt;
-	boidPositionsX_[boidIdx] += dx.x;
-	boidPositionsY_[boidIdx] += dx.y;
-	boidPositionsZ_[boidIdx] += dx.z;
-	auto lastDir = boid.velocity;
-	lastDir.normalize();
-	boid.velocity += boid.force * dt;
-	limitVelocity(boid, lastDir);
+	auto dx = boidVel * dt;
+	priv_->boidPositionsX_[boidIdx] += dx.x;
+	priv_->boidPositionsY_[boidIdx] += dx.y;
+	priv_->boidPositionsZ_[boidIdx] += dx.z;
+	auto lastVelNorm = boidVel;
+	lastVelNorm.normalize();
+
+	setBoidVelocity(boidIdx, limitVelocity(lastVelNorm, boidVel + boid.force * dt));
 
 	// clear the neighbors for the next frame
 	boid.numNeighbors = 0;
 }
 
-void BoidsCPU::limitVelocity(BoidData &boid, const Vec3f &lastDir) {
+Vec3f BoidsCPU::limitVelocity(
+		const Vec3f &lastVelNorm,
+		const Vec3f &nextVel) {
+	float speed = nextVel.length();
+	Vec3f nextVelNorm = nextVel / speed;
+
 	// limit translation speed
-	if (boid.velocity.length() > priv_->maxBoidSpeed_) {
-		boid.velocity.normalize();
-		boid.velocity *= priv_->maxBoidSpeed_;
-	}
+	float limitedSpeed = std::min(speed, priv_->maxBoidSpeed_);
+	Vec3f limitedVel = nextVelNorm * limitedSpeed;
 
 	// limit angular speed
-	priv_->boidDirection_ = boid.velocity;
-	priv_->boidDirection_.normalize();
-	auto angle = acos(priv_->boidDirection_.dot(lastDir));
+	auto angle = acos(nextVelNorm.dot(lastVelNorm));
 	if (angle > priv_->maxAngularSpeed_) {
-		auto axis = priv_->boidDirection_.cross(lastDir);
+		auto axis = nextVelNorm.cross(lastVelNorm);
 		axis.normalize();
 		priv_->boidRotation_.setAxisAngle(axis, priv_->maxAngularSpeed_);
-		auto newDirection = priv_->boidRotation_.rotate(lastDir);
-		boid.velocity = newDirection * boid.velocity.length();
+		auto newDirection = priv_->boidRotation_.rotate(lastVelNorm);
+		limitedVel = newDirection * limitedSpeed;
 	}
+
+	return limitedVel;
 }
 
-void BoidsCPU::homesickness(BoidData &boid, const Vec3f &boidPos) {
+void BoidsCPU::homesickness(const Vec3f &boidPos, Vec3f &boidForce) {
 	// a boid seems to have lost track, and wants to go home!
 	// first find closest home point...
 	const Vec3f *closestHomePoint = &Vec3f::zero();
@@ -552,10 +755,10 @@ void BoidsCPU::homesickness(BoidData &boid, const Vec3f &boidPos) {
 	} else {
 		priv_->boidDirection_ = (*closestHomePoint - boidPos) / minDistance;
 	}
-	boid.force += priv_->boidDirection_ * priv_->repulsionTimesSeparation_ * 0.1;
+	boidForce += priv_->boidDirection_ * priv_->repulsionTimesSeparation_ * 0.1;
 }
 
-bool BoidsCPU::avoidDanger(BoidData &boid, const Vec3f &boidPos) {
+bool BoidsCPU::avoidDanger(const Vec3f &boidPos, Vec3f &boidForce) {
 	bool isInDanger = false;
 	Vec3f dir;
 
@@ -576,14 +779,14 @@ bool BoidsCPU::avoidDanger(BoidData &boid, const Vec3f &boidPos) {
 			} else {
 				dir /= distance;
 			}
-			boid.force += dir * priv_->repulsionTimesSeparation_;
+			boidForce += dir * priv_->repulsionTimesSeparation_;
 			isInDanger = true;
 		}
 	}
 	return !isInDanger;
 }
 
-void BoidsCPU::attract(BoidData &boid, const Vec3f &boidPos) {
+void BoidsCPU::attract(const Vec3f &boidPos, Vec3f &boidForce) {
 	auto maxDistance = priv_->visualRange_ * 100; // TODO: parameter
 	Vec3f dir;
 	for (auto &attractor: attractors_) {
@@ -598,13 +801,17 @@ void BoidsCPU::attract(BoidData &boid, const Vec3f &boidPos) {
 		auto distance = dir.length();
 		if (distance < maxDistance && distance > 0.001f) {
 			dir /= distance;
-			boid.force += dir * priv_->repulsionTimesSeparation_;
+			boidForce += dir * priv_->repulsionTimesSeparation_;
 		}
 	}
 }
 
-bool BoidsCPU::avoidCollisions(BoidData &boid, const Vec3f &boidPos, float dt) {
-	auto nextVelocity = boid.velocity + boid.force * dt;
+bool BoidsCPU::avoidCollisions(
+		const Vec3f &boidPos,
+		const Vec3f &boidVel,
+		Vec3f &boidForce,
+		float dt) {
+	auto nextVelocity = boidVel + boidForce * dt;
 	nextVelocity.normalize();
 	auto lookAhead = boidPos + nextVelocity * priv_->lookAheadDistance_;
 	bool isCollisionFree = true;
@@ -613,19 +820,19 @@ bool BoidsCPU::avoidCollisions(BoidData &boid, const Vec3f &boidPos, float dt) {
 	/////// Collision with boundaries.
 	////////////////
 	if (lookAhead.x < priv_->simBounds_.min.x + priv_->avoidanceDistance_) {
-		boid.force.x += priv_->repulsionTimesSeparation_;
+		boidForce.x += priv_->repulsionTimesSeparation_;
 	} else if (lookAhead.x > priv_->simBounds_.max.x - priv_->avoidanceDistance_) {
-		boid.force.x -= priv_->repulsionTimesSeparation_;
+		boidForce.x -= priv_->repulsionTimesSeparation_;
 	}
 	if (lookAhead.y < priv_->simBounds_.min.y + priv_->avoidanceDistance_) {
-		boid.force.y += priv_->repulsionTimesSeparation_;
+		boidForce.y += priv_->repulsionTimesSeparation_;
 	} else if (lookAhead.y > priv_->simBounds_.max.y - priv_->avoidanceDistance_) {
-		boid.force.y -= priv_->repulsionTimesSeparation_;
+		boidForce.y -= priv_->repulsionTimesSeparation_;
 	}
 	if (lookAhead.z < priv_->simBounds_.min.z + priv_->avoidanceDistance_) {
-		boid.force.z += priv_->repulsionTimesSeparation_;
+		boidForce.z += priv_->repulsionTimesSeparation_;
 	} else if (lookAhead.z > priv_->simBounds_.max.z - priv_->avoidanceDistance_) {
-		boid.force.z -= priv_->repulsionTimesSeparation_;
+		boidForce.z -= priv_->repulsionTimesSeparation_;
 	}
 
 	////////////////
@@ -647,7 +854,7 @@ bool BoidsCPU::avoidCollisions(BoidData &boid, const Vec3f &boidPos, float dt) {
 			// The boid is below the minimum height of the height map -> push boid up.
 			if (currentY < priv_->simBounds_.max.y - priv_->avoidanceDistanceHalf_) {
 				// only push up in case the height map y is below the maximum y of boids
-				boid.force.y += priv_->repulsionTimesSeparation_;
+				boidForce.y += priv_->repulsionTimesSeparation_;
 			}
 			isCollisionFree = false;
 		}
@@ -656,14 +863,14 @@ bool BoidsCPU::avoidCollisions(BoidData &boid, const Vec3f &boidPos, float dt) {
 			// it is below the surface of the height map -> push boid up.
 			if (nextY < priv_->simBounds_.max.y - priv_->avoidanceDistanceHalf_) {
 				// only push up in case the height map y is below the maximum y of boids
-				boid.force.y += priv_->repulsionTimesSeparation_;
+				boidForce.y += priv_->repulsionTimesSeparation_;
 			}
 		}
 		if (nextY > priv_->simBounds_.max.y - priv_->avoidanceDistanceHalf_) {
 			// Assuming the boid follows the lookAhead direction, it will eventually reach a point where
 			// it is above the max y of the boid bounds. A simple approach is to push the boid to where it came from:
-			boid.force.x -= nextVelocity.x * priv_->repulsionTimesSeparation_;
-			boid.force.z -= nextVelocity.z * priv_->repulsionTimesSeparation_;
+			boidForce.x -= nextVelocity.x * priv_->repulsionTimesSeparation_;
+			boidForce.z -= nextVelocity.z * priv_->repulsionTimesSeparation_;
 		}
 	}
 

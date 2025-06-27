@@ -36,25 +36,20 @@ namespace regen {
 		Private *priv_;
 
 		struct BoidData {
-			Vec3f force;
-			Vec3f velocity;
 			std::vector<int32_t> neighbors; // size = maxNumNeighbors
 			uint32_t numNeighbors = 0;
+			Vec3f force;
+			Vec3f sumPos, sumVel, sumSep;
 		};
 		std::vector<BoidData> boidData_;   // size = numBoids_
-		// Note: SoA data layout for SIMD-friendly processing
-		// Note: vectorSIMD is used to ensure 32-bit alignment which is good for SIMD operations.
-		vectorSIMD<float> boidPositionsX_;    // size = numBoids_
-		vectorSIMD<float> boidPositionsY_;    // size = numBoids_
-		vectorSIMD<float> boidPositionsZ_;    // size = numBoids_
-		vectorSIMD<int32_t> boidGridIndices_; // size = numBoids_
-		//vectorSIMD<int32_t> boidGridIndicesX_; // size = numBoids_
-		//vectorSIMD<int32_t> boidGridIndicesY_; // size = numBoids_
-		//vectorSIMD<int32_t> boidGridIndicesZ_; // size = numBoids_
 
 		inline void setBoidPosition(uint32_t boidIndex, const Vec3f &pos);
 
 		inline Vec3f getBoidPosition(uint32_t boidIndex) const;
+
+		inline void setBoidVelocity(uint32_t boidIndex, const Vec3f &vel);
+
+		inline Vec3f getBoidVelocity(uint32_t boidIndex) const;
 
 		void updateTransforms();
 
@@ -62,18 +57,36 @@ namespace regen {
 
 		void simulateBoid(int32_t boidIdx, float dt);
 
-		void limitVelocity(BoidData &boid, const Vec3f &lastDir);
+		Vec3f accumulateForce(
+				BoidData &boid,
+				const Vec3f &boidPos,
+				const Vec3f &boidVel);
 
-		void homesickness(BoidData &boid, const Vec3f &boidPos);
+		Vec3f limitVelocity(
+				const Vec3f &lastDir,
+				const Vec3f &boidVel);
 
-		bool avoidCollisions(BoidData &boid, const Vec3f &boidPos, float dt);
+		void homesickness(
+				const Vec3f &boidPos, Vec3f &boidForce);
 
-		bool avoidDanger(BoidData &boid, const Vec3f &boidPos);
+		bool avoidCollisions(
+				const Vec3f &boidPos,
+				const Vec3f &boidVel,
+				Vec3f &boidForce,
+				float dt);
 
-		void attract(BoidData &boid, const Vec3f &boidPos);
+		bool avoidDanger(
+				const Vec3f &boidPos, Vec3f &boidForce);
 
-		void updateNeighbours(BoidData &boid, const Vec3f &boidPos, int32_t boidIndex,
-				const vectorSIMD<int32_t> &neighborIndices, uint32_t neighborCount);
+		void attract(
+				const Vec3f &boidPos, Vec3f &boidForce);
+
+		void updateNeighbours(
+				BoidData &boid,
+				const Vec3f &boidPos,
+				int32_t boidIndex,
+				const int32_t *neighborIndices,
+				uint32_t neighborCount);
 
 		void clearGrid();
 

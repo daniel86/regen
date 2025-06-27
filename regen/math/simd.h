@@ -66,6 +66,17 @@ namespace regen::simd {
 	inline __m256i min_epi32(const __m256i &a, const __m256i &b) { return _mm256_min_epi32(a, b); }
 	inline __m256i max_epi32(const __m256i &a, const __m256i &b) { return _mm256_max_epi32(a, b); }
 
+	inline float hsum_ps(__m256 v) {
+		__m128 vlow  = _mm256_castps256_ps128(v);        // low 128
+		__m128 vhigh = _mm256_extractf128_ps(v, 1);   // high 128
+		__m128 sum   = _mm_add_ps(vlow, vhigh);       // add low and high parts
+		__m128 shuf  = _mm_movehdup_ps(sum);             // (sum.y, sum.y, sum.w, sum.w)
+		__m128 sums  = _mm_add_ps(sum, shuf);
+		shuf         = _mm_movehl_ps(shuf, sums);     // high half of sums
+		sums         = _mm_add_ss(sums, shuf);
+		return _mm_cvtss_f32(sums);
+	}
+
 	inline __m256 cmp_lt(const __m256 &a, const __m256 &b) {
 		return _mm256_cmp_ps(a, b, _CMP_LT_OQ);
 	}
@@ -119,6 +130,14 @@ namespace regen::simd {
 	inline __m128i min_epi32(const __m128i &a, const __m128i &b) { return _mm_min_epi32(a, b); }
 	inline __m128i max_epi32(const __m128i &a, const __m128i &b) { return _mm_max_epi32(a, b); }
 
+	inline float hsum_ps(__m128 v) {
+		__m128 shuf = _mm_movehdup_ps(v);  // (v1, v1, v3, v3)
+		__m128 sums = _mm_add_ps(v, shuf);
+		shuf = _mm_movehl_ps(shuf, sums); // (v2 + v3, v3, -, -)
+		sums = _mm_add_ss(sums, shuf);
+		return _mm_cvtss_f32(sums);
+	}
+
 	inline __m128 cmp_lt(const __m128 &a, const __m128 &b)  { return _mm_cmplt_ps(a, b); }
 	inline __m128 cmp_gt(const __m128 &a, const __m128 &b)  { return _mm_cmplt_ps(b, a); }
 	inline __m128 cmp_eq(const __m128 &a, const __m128 &b)  { return _mm_cmpeq_ps(a, b); }
@@ -170,48 +189,54 @@ namespace regen::simd {
 
 namespace regen {
 	/**
-	 * SIMD-accelerated 3D vector using SSE registers.
-	 * This is a simple structure that holds three float values (x, y, z) in SIMD registers.
-	 */
-	struct Vec3fSIMD {
-		regen::simd::Register x, y, z;
-
-		Vec3fSIMD() = default;
-
-		explicit Vec3fSIMD(const Vec3f &v) {
-			x = regen::simd::set1_ps(v.x);
-			y = regen::simd::set1_ps(v.y);
-			z = regen::simd::set1_ps(v.z);
-		}
-	};
-
-	/**
-	 * SIMD-accelerated 3D integer vector using SSE registers.
-	 * This is a simple structure that holds three integer values (x, y, z) in SIMD registers.
-	 */
-	struct Vec3iSIMD {
-		regen::simd::Register_i x, y, z;
-
-		Vec3iSIMD() = default;
-
-		explicit Vec3iSIMD(const Vec3i &v) {
-			x = regen::simd::set1_epi32(v.x);
-			y = regen::simd::set1_epi32(v.y);
-			z = regen::simd::set1_epi32(v.z);
-		}
-	};
-
-	/**
 	 * SIMD-accelerated float value using SSE registers.
 	 * This is a simple structure that holds a single float value in a SIMD register.
 	 */
-	struct floatSIMD {
+	struct BatchOf_float {
 		simd::Register c;
 
-		floatSIMD() = default;
+		BatchOf_float() = default;
 
-		explicit floatSIMD(float v) {
+		explicit BatchOf_float(float v) {
 			c = regen::simd::set1_ps(v);
+		}
+
+		explicit BatchOf_float(simd::Register v) : c(v) {}
+
+		BatchOf_float operator+(const BatchOf_float &other) const {
+			return BatchOf_float{regen::simd::add_ps(c, other.c)};
+		}
+
+		BatchOf_float operator-(const BatchOf_float &other) const {
+			return BatchOf_float{regen::simd::sub_ps(c, other.c)};
+		}
+
+		BatchOf_float operator/(const BatchOf_float &other) const {
+			return BatchOf_float{regen::simd::div_ps(c, other.c)};
+		}
+
+		BatchOf_float operator*(const BatchOf_float &other) const {
+			return BatchOf_float{regen::simd::mul_ps(c, other.c)};
+		}
+
+		void operator+=(const BatchOf_float &other) {
+			c = regen::simd::add_ps(c, other.c);
+		}
+
+		void operator-=(const BatchOf_float &other) {
+			c = regen::simd::sub_ps(c, other.c);
+		}
+
+		void operator*=(const BatchOf_float &other) {
+			c = regen::simd::mul_ps(c, other.c);
+		}
+
+		void operator/=(const BatchOf_float &other) {
+			c = regen::simd::div_ps(c, other.c);
+		}
+
+		BatchOf_float cmp_lt(const BatchOf_float &other) const {
+			return BatchOf_float{regen::simd::cmp_lt(c, other.c)};
 		}
 	};
 
@@ -219,48 +244,50 @@ namespace regen {
 	 * SIMD-accelerated integer value using SSE registers.
 	 * This is a simple structure that holds a single integer value in a SIMD register.
 	 */
-	struct intSIMD {
+	struct BatchOf_int32 {
 		simd::Register_i c;
 
-		intSIMD() = default;
+		BatchOf_int32() = default;
 
-		explicit intSIMD(int32_t v) {
+		explicit BatchOf_int32(int32_t v) {
 			c = regen::simd::set1_epi32(v);
 		}
 	};
 
-	class Vec3iBatch {
+	/**
+	 * SIMD-accelerated 3D integer vector using SSE registers.
+	 * This is a simple structure that holds three integer values (x, y, z) in SIMD registers.
+	 */
+	class BatchOf_Vec3i {
 	public:
 		/** x/y/z components, each stored as __m128i representing 4 integers */
 		regen::simd::Register_i x, y, z;
 
 		/** Default constructor. Leaves content uninitialized. */
-		Vec3iBatch() = default;
+		BatchOf_Vec3i() = default;
 
 		/**
 		 * Constructor that initializes the batch with SIMD registers.
 		 */
-		Vec3iBatch(regen::simd::Register_i x_, regen::simd::Register_i y_, regen::simd::Register_i z_)
+		BatchOf_Vec3i(regen::simd::Register_i x_, regen::simd::Register_i y_, regen::simd::Register_i z_)
 			: x(x_), y(y_), z(z_) {}
+
+		/**
+		 * Constructor that initializes the batch with a single Vec3i value.
+		 * @param v The Vec3i value to initialize the batch with.
+		 */
+		explicit BatchOf_Vec3i(const Vec3i &v) {
+			x = regen::simd::set1_epi32(v.x);
+			y = regen::simd::set1_epi32(v.y);
+			z = regen::simd::set1_epi32(v.z);
+		}
 
 		/**
 		 * Computes the minimum of this batch and another Vec3iBatch.
 		 * @param other Another Vec3iBatch to compare with.
 		 * @return A new Vec3iBatch containing the minimum values.
 		 */
-		inline Vec3iBatch min(const Vec3iBatch &other) const {
-			return {
-				regen::simd::min_epi32(x, other.x),
-				regen::simd::min_epi32(y, other.y),
-				regen::simd::min_epi32(z, other.z)};
-		}
-
-		/**
-		 * Computes the minimum of this batch and a Vec3iSIMD.
-		 * @param other A Vec3iSIMD to compare with.
-		 * @return A new Vec3iBatch containing the minimum values.
-		 */
-		inline Vec3iBatch min(const Vec3iSIMD &other) const {
+		inline BatchOf_Vec3i min(const BatchOf_Vec3i &other) const {
 			return {
 				regen::simd::min_epi32(x, other.x),
 				regen::simd::min_epi32(y, other.y),
@@ -272,13 +299,19 @@ namespace regen {
 	 * SIMD-accelerated batch of 3D vectors using SoA layout and SSE registers.
 	 * Useful for performing vector operations on multiple entities (e.g., boids) in parallel.
 	 */
-	class Vec3fBatch {
+	class BatchOf_Vec3f {
 	public:
 		/** x/y/z components, each stored as __m128 representing 4 floats */
 		regen::simd::Register x, y, z;
 
 		/** Default constructor. Leaves content uninitialized. */
-		Vec3fBatch() = default;
+		BatchOf_Vec3f() = default;
+
+		explicit BatchOf_Vec3f(const Vec3f &v) {
+			x = regen::simd::set1_ps(v.x);
+			y = regen::simd::set1_ps(v.y);
+			z = regen::simd::set1_ps(v.z);
+		}
 
 		/**
 		 * Load batch from an array of 4 unaligned Vec3f values (AoS layout).
@@ -355,7 +388,7 @@ namespace regen {
 		 * @param other Batch to add.
 		 * @return Reference to self.
 		 */
-		inline Vec3fBatch &operator+=(const Vec3fBatch &other) {
+		inline BatchOf_Vec3f &operator+=(const BatchOf_Vec3f &other) {
 			x = regen::simd::add_ps(x, other.x);
 			y = regen::simd::add_ps(y, other.y);
 			z = regen::simd::add_ps(z, other.z);
@@ -363,14 +396,14 @@ namespace regen {
 		}
 
 		/**
-		 * Adds a Vec3fSIMD to each vector of this batch.
-		 * @param other Vec3fSIMD to add.
+		 * Adds a constant BatchOf_float to each element in the batch.
+		 * @param other BatchOf_float to add.
 		 * @return Reference to self.
 		 */
-		inline Vec3fBatch &operator+=(const Vec3fSIMD &other) {
-			x = regen::simd::add_ps(x, other.x);
-			y = regen::simd::add_ps(y, other.y);
-			z = regen::simd::add_ps(z, other.z);
+		inline BatchOf_Vec3f &operator+=(const BatchOf_float &other) {
+			x = regen::simd::add_ps(x, other.c);
+			y = regen::simd::add_ps(y, other.c);
+			z = regen::simd::add_ps(z, other.c);
 			return *this;
 		}
 
@@ -379,7 +412,7 @@ namespace regen {
 		 * @param v Constant Vec3f to add.
 		 * @return Reference to self.
 		 */
-		inline Vec3fBatch &operator+=(const Vec3f &v) {
+		inline BatchOf_Vec3f &operator+=(const Vec3f &v) {
 			x = regen::simd::add_ps(x, regen::simd::set1_ps(v.x));
 			y = regen::simd::add_ps(y, regen::simd::set1_ps(v.y));
 			z = regen::simd::add_ps(z, regen::simd::set1_ps(v.z));
@@ -387,23 +420,31 @@ namespace regen {
 		}
 
 		/**
+		 * Adds another Vec3fBatch to this batch.
+		 * @param other Batch to add.
+		 */
+		inline void operator+(const BatchOf_Vec3f &other) {
+			x = regen::simd::add_ps(x, other.x);
+			y = regen::simd::add_ps(y, other.y);
+			z = regen::simd::add_ps(z, other.z);
+		}
+
+		/**
+		 * Adds a constant vector to each element in the batch.
+		 * @param v Constant Vec3f to add.
+		 */
+		inline void operator+(const Vec3f &v) {
+			x = regen::simd::add_ps(x, regen::simd::set1_ps(v.x));
+			y = regen::simd::add_ps(y, regen::simd::set1_ps(v.y));
+			z = regen::simd::add_ps(z, regen::simd::set1_ps(v.z));
+		}
+
+		/**
 		 * Subtracts another Vec3fBatch4 from this batch.
 		 * @param other Batch to subtract.
 		 * @return Reference to self.
 		 */
-		inline Vec3fBatch &operator-=(const Vec3fBatch &other) {
-			x = regen::simd::sub_ps(x, other.x);
-			y = regen::simd::sub_ps(y, other.y);
-			z = regen::simd::sub_ps(z, other.z);
-			return *this;
-		}
-
-		/**
-		 * Subtracts a Vec3fSIMD from each vector of this batch.
-		 * @param other Vec3fSIMD to subtract.
-		 * @return Reference to self.
-		 */
-		inline Vec3fBatch &operator-=(const Vec3fSIMD &other) {
+		inline BatchOf_Vec3f &operator-=(const BatchOf_Vec3f &other) {
 			x = regen::simd::sub_ps(x, other.x);
 			y = regen::simd::sub_ps(y, other.y);
 			z = regen::simd::sub_ps(z, other.z);
@@ -415,7 +456,7 @@ namespace regen {
 		 * @param v Constant Vec3f to subtract.
 		 * @return Reference to self.
 		 */
-		inline Vec3fBatch &operator-=(const Vec3f &v) {
+		inline BatchOf_Vec3f &operator-=(const Vec3f &v) {
 			x = regen::simd::sub_ps(x, regen::simd::set1_ps(v.x));
 			y = regen::simd::sub_ps(y, regen::simd::set1_ps(v.y));
 			z = regen::simd::sub_ps(z, regen::simd::set1_ps(v.z));
@@ -423,11 +464,47 @@ namespace regen {
 		}
 
 		/**
+		 * Multiplies this batch by another Vec3fBatch4.
+		 * @param other Batch to multiply by.
+		 * @return New Vec3fBatch4 result.
+		 */
+		inline BatchOf_Vec3f operator*(const BatchOf_Vec3f &other) const {
+			return {
+				regen::simd::mul_ps(x, other.x),
+				regen::simd::mul_ps(y, other.y),
+				regen::simd::mul_ps(z, other.z)};
+		}
+
+		/**
+		 * Multiplies this batch by a BatchOf_float.
+		 * @param other Batch to multiply by.
+		 * @return New BatchOf_Vec3f result.
+		 */
+		inline BatchOf_Vec3f operator*(const BatchOf_float &other) const {
+			return {
+				regen::simd::mul_ps(x, other.c),
+				regen::simd::mul_ps(y, other.c),
+				regen::simd::mul_ps(z, other.c)};
+		}
+
+		/**
+		 * Multiplies each component of this batch by a constant BatchOf_float.
+		 * @param other BatchOf_float to multiply by.
+		 * @return Reference to self.
+		 */
+		inline void operator*=(const BatchOf_float &other) {
+			x = regen::simd::mul_ps(x, other.c);
+			y = regen::simd::mul_ps(y, other.c);
+			z = regen::simd::mul_ps(z, other.c);
+		}
+
+
+		/**
 		 * Returns the result of subtracting another batch from this batch.
 		 * @param other Batch to subtract.
 		 * @return New Vec3fBatch4 result.
 		 */
-		inline Vec3fBatch operator-(const Vec3fBatch &other) const {
+		inline BatchOf_Vec3f operator-(const BatchOf_Vec3f &other) const {
 			return {
 				regen::simd::sub_ps(x, other.x),
 				regen::simd::sub_ps(y, other.y),
@@ -435,35 +512,11 @@ namespace regen {
 		}
 
 		/**
-		 * Returns the result of subtracting a Vec3fSIMD from this batch.
-		 * @param other Vec3fSIMD to subtract.
-		 * @return New Vec3fBatch4 result.
-		 */
-		inline Vec3fBatch operator-(const Vec3fSIMD &other) const {
-			return {
-				regen::simd::sub_ps(x, other.x),
-				regen::simd::sub_ps(y, other.y),
-				regen::simd::sub_ps(z, other.z)};
-		}
-
-		/**
-		 * Returns the result of dividing this batch by another Vec3fBatch.
-		 * @param other Batch to divide by.
+		 * Returns the result of dividing this batch by a constant BatchOf_float.
+		 * @param other BatchOf_float to divide by.
 		 * @return New Vec3fBatch result.
 		 */
-		inline Vec3fBatch operator/(const Vec3fSIMD &other) const {
-			return {
-				regen::simd::div_ps(x, other.x),
-				regen::simd::div_ps(y, other.y),
-				regen::simd::div_ps(z, other.z)};
-		}
-
-		/**
-		 * Returns the result of dividing this batch by a constant floatSIMD.
-		 * @param other floatSIMD to divide by.
-		 * @return New Vec3fBatch result.
-		 */
-		inline Vec3fBatch operator/(const floatSIMD &other) const {
+		inline BatchOf_Vec3f operator/(const BatchOf_float &other) const {
 			return {
 				regen::simd::div_ps(x, other.c),
 				regen::simd::div_ps(y, other.c),
@@ -471,16 +524,27 @@ namespace regen {
 		}
 
 		/**
+		 * Divides each component of this batch by a constant BatchOf_float.
+		 * @param other BatchOf_float to divide by.
+		 * @return Reference to self.
+		 */
+		inline void operator/=(const BatchOf_float &other) {
+			x = regen::simd::div_ps(x, other.c);
+			y = regen::simd::div_ps(y, other.c);
+			z = regen::simd::div_ps(z, other.c);
+		}
+
+		/**
 		 * Computes the length squared of each vector in the batch.
 		 * @return __m128 containing the length squared for each vector.
 		 */
-		inline simd::Register lengthSquared() const {
+		inline BatchOf_float lengthSquared() const {
 			// Calculate length squared for each component
 			regen::simd::Register x2 = regen::simd::mul_ps(x, x);
 			regen::simd::Register y2 = regen::simd::mul_ps(y, y);
 			regen::simd::Register z2 = regen::simd::mul_ps(z, z);
 			// Sum the squares
-			return regen::simd::add_ps(regen::simd::add_ps(x2, y2), z2);
+			return BatchOf_float{regen::simd::add_ps(regen::simd::add_ps(x2, y2), z2)};
 		}
 
 		/**
@@ -488,18 +552,25 @@ namespace regen {
 		 * @param maxValue The maximum value to clamp each component to.
 		 * @return New Vec3fBatch with clamped values.
 		 */
-		inline Vec3fBatch max(const floatSIMD &maxValue) const {
+		inline BatchOf_Vec3f max(const BatchOf_float &maxValue) const {
 			return {
 				regen::simd::max_ps(x, maxValue.c),
 				regen::simd::max_ps(y, maxValue.c),
 				regen::simd::max_ps(z, maxValue.c)};
 		}
 
+		inline Vec3f hsum() const {
+			return {
+				regen::simd::hsum_ps(x),
+				regen::simd::hsum_ps(y),
+				regen::simd::hsum_ps(z) };
+		}
+
 		/**
 		 * Truncates each component of the batch to an integer value.
 		 * @return New Vec3iBatch with truncated integer values.
 		 */
-		inline Vec3iBatch floor() const {
+		inline BatchOf_Vec3i floor() const {
 			// Convert to integer by truncating the decimal part
 			regen::simd::Register_i ix = regen::simd::cvttps_epi32(x);
 			regen::simd::Register_i iy = regen::simd::cvttps_epi32(y);
@@ -514,7 +585,7 @@ namespace regen {
 		 * @param y_ __m128 for y component.
 		 * @param z_ __m128 for z component.
 		 */
-		Vec3fBatch(
+		BatchOf_Vec3f(
 				regen::simd::Register x_,
 				regen::simd::Register y_,
 				regen::simd::Register z_)
