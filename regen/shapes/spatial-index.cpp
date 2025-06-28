@@ -121,7 +121,7 @@ void SpatialIndex::handleIntersection_unsorted(const BoundingShape &b_shape, voi
 	}
 }
 
-void SpatialIndex::updateVisibility(IndexCamera &ic, const BoundingShape &camera_shape, bool isMultiShape) {
+void SpatialIndex::updateVisibilityWithCamera(IndexCamera &ic, const BoundingShape &camera_shape, bool isMultiShape) {
 	TraversalData traversalData{this, nullptr, isMultiShape};
 
 	if (ic.sortInstances) {
@@ -177,7 +177,7 @@ void SpatialIndex::updateVisibility() {
 			BoundingSphere sphereShape(Vec3f::zero(), projParams.r.y);
 			sphereShape.setTransform(ref_ptr<ModelTransformation>::alloc(ic.first->position()));
 			sphereShape.updateTransform(true);
-			updateVisibility(ic.second, sphereShape, false);
+			updateVisibilityWithCamera(ic.second, sphereShape, false);
 		}
 			//else if (ic.second.camera->isSemiOmni()) {
 			//	// TODO: Support half-spheres for culling
@@ -186,7 +186,7 @@ void SpatialIndex::updateVisibility() {
 			// spot camera -> intersection test with view frustum
 			auto &frustumShapes = ic.first->frustum();
 			for (auto &frustumShape: frustumShapes) {
-				updateVisibility(ic.second, frustumShape, frustumShapes.size() > 1);
+				updateVisibilityWithCamera(ic.second, frustumShape, frustumShapes.size() > 1);
 			}
 		}
 

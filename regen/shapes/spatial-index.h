@@ -142,7 +142,7 @@ namespace regen {
 
 		void updateVisibility();
 
-		void updateVisibility(IndexCamera &camera, const BoundingShape &shape, bool isMultiShape);
+		void updateVisibilityWithCamera(IndexCamera &camera, const BoundingShape &shape, bool isMultiShape);
 
 		/**
 		 * @brief Add a shape to the index
