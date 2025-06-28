@@ -97,7 +97,10 @@ namespace regen {
 		 * Accepted values are GL_COLOR_INDEX, GL_RED, GL_GREEN,
 		 * GL_BLUE, GL_RGB, GL_BGR, GL_RGBA, GL_BGRA
 		 */
-		void set_format(GLenum format) { format_ = format; }
+		void set_format(GLenum format) {
+			format_ = format;
+			numComponents_ = glenum::pixelComponents(format);
+		}
 
 		/**
 		 * Specifies the format of the pixel data.
@@ -405,6 +408,7 @@ namespace regen {
 		// format of pixel data
 		GLenum format_;
 		GLenum internalFormat_;
+		uint32_t numComponents_ = 4; // number of components per texel
 		// type for pixels
 		GLenum pixelType_;
 		GLint border_;
@@ -432,11 +436,10 @@ namespace regen {
 
 		template<class T>
 		T sample(unsigned int texelIndex, const GLubyte *textureData) const {
-			auto numComponents = glenum::pixelComponents(format());
-			auto *dataOffset = textureData + texelIndex * numComponents;
+			auto *dataOffset = textureData + texelIndex * numComponents_;
 			T v(0.0f);
 			auto *typedData = (float *) &v;
-			for (unsigned int i = 0; i < numComponents; ++i) {
+			for (unsigned int i = 0; i < numComponents_; ++i) {
 				typedData[i] = static_cast<float>(dataOffset[i]) / 255.0f;
 			}
 			return v;

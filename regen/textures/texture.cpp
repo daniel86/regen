@@ -138,7 +138,7 @@ void Texture::set_textureData(GLubyte *textureData, bool owned) {
 
 void Texture::readTextureData() {
 	ScopedTextureActivation sta(*this, RenderState::get());
-	auto *pixels = new GLubyte[numTexel() * glenum::pixelComponents(format())];
+	auto *pixels = new GLubyte[numTexel() * numComponents_];
 	glGetTexImage(targetType(), 0, format(), GL_UNSIGNED_BYTE, pixels);
 	set_textureData(pixels, true);
 }
