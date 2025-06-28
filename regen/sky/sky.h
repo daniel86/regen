@@ -1,5 +1,5 @@
-#ifndef SKY_H_
-#define SKY_H_
+#ifndef REGEN_SKY_H_
+#define REGEN_SKY_H_
 
 #include <list>
 
@@ -10,8 +10,8 @@
 #include <regen/meshes/primitives/rectangle.h>
 
 #include <regen/external/osghimmel/timef.h>
-#include <regen/external/osghimmel/astronomy.h>
 #include "regen/utility/time.h"
+#include "astronomy.h"
 
 namespace regen {
 	class Sky : public StateNode, public Animation, public Resource {
@@ -65,9 +65,9 @@ namespace regen {
 
 		const ref_ptr<Rectangle> &skyQuad() const { return skyQuad_; }
 
-		osgHimmel::AbstractAstronomy &astro();
+		Astronomy &astro();
 
-		void set_astro(const ref_ptr<osgHimmel::AbstractAstronomy> &astro) { astro_ = astro; }
+		void set_astro(const ref_ptr<Astronomy> &astro) { astro_ = astro; }
 
 		void addLayer(const ref_ptr<SkyLayer> &layer);
 
@@ -94,7 +94,7 @@ namespace regen {
 
 		const WorldTime *worldTime_ = nullptr;
 		osgHimmel::TimeF time_osg_;
-		ref_ptr<osgHimmel::AbstractAstronomy> astro_;
+		ref_ptr<Astronomy> astro_;
 
 		std::list<ref_ptr<SkyLayer> > layer_;
 
@@ -134,4 +134,4 @@ namespace regen {
 	};
 }
 
-#endif /* SKY_H_ */
+#endif /* REGEN_SKY_H_ */

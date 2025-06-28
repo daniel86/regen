@@ -13,7 +13,7 @@ Atmosphere::Atmosphere(
 		: SkyLayer(sky) {
 	updateMesh_ = Rectangle::getUnitQuad();
 
-	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
+	//state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
 
 	ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::alloc(1);
 	cubeMap->begin(RenderState::get());
@@ -74,7 +74,6 @@ Atmosphere::Atmosphere(
 
 void Atmosphere::createUpdateShader() {
 	StateConfig shaderConfig = StateConfigurer::configure(updateState_.get());
-	shaderConfig.setVersion(330);
 	updateShader_->createShader(shaderConfig, "regen.weather.atmosphere");
 	updateMesh_->updateVAO(shaderConfig, updateShader_->shader());
 }

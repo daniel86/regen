@@ -30,10 +30,8 @@
 #ifndef __SIDERALTIME_H__
 #define __SIDERALTIME_H__
 
-#include "declspec.h"
 #include "typedefs.h"
 #include "atime.h"
-
 
 namespace osgHimmel
 {

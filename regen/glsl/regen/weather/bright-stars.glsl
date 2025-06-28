@@ -47,7 +47,7 @@ void main(void) {
     i_t *= 4e-7 / (in_q * in_q);  // resolution correlated
     i_t = min(1.167, i_t);  // volume of smoothstep (V_T)
     i_t *= sunIntensity();
-    if(i_t < 0.01) return;
+    //if(i_t < 0.01) return;
     out_col = vec3(i_t);
 
 #ifndef SKIP_SCATTERING
@@ -113,6 +113,7 @@ void emitBrightStar(int layer) {
 }
 
 void main() {
+    //if(in_k[0] > 0 && in_col[0].r > 0.001) {
     if(in_k[0] > 0) {
 #for LAYER to ${RENDER_LAYER}
 #ifndef SKIP_LAYER${LAYER}

@@ -30,7 +30,6 @@
 #ifndef __ASTRONOMICAL_TIME_H__
 #define __ASTRONOMICAL_TIME_H__
 
-#include "declspec.h"
 #include "typedefs.h"
 
 #include <time.h>
@@ -62,17 +61,17 @@ typedef struct s_AstronomicalTime
     ,   const t_longf day
     ,   const short utcOffset = 0);
 
-    static const s_AstronomicalTime fromTimeT(
+    static s_AstronomicalTime fromTimeT(
         const time_t &localTime
     ,   const time_t &utcOffset);
 
-    static const s_AstronomicalTime fromTimeF(const TimeF &t);
+    static s_AstronomicalTime fromTimeF(const TimeF &t);
 
-    const time_t toTime_t() const;
+    time_t toTime_t() const;
 
-    const t_longf dayf() const;
+    t_longf dayf() const;
 
-    const bool operator==(const s_AstronomicalTime &other) const
+    bool operator==(const s_AstronomicalTime &other) const
     {
         return other.year   == year
             && other.month  == month

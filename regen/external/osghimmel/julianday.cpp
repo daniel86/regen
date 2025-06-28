@@ -27,19 +27,13 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "julianday.h"
-
 #include "mathmacros.h"
-
-#include <assert.h>
-
 
 namespace osgHimmel
 {
 
 const t_julianDay jd(t_aTime aTime)
 {
-    assert(aTime.month > 0);
-
     if(aTime.month < 3)
     {
         // "If the date is in January or February, it is concidered to
@@ -105,8 +99,6 @@ const t_aTime makeTime(
     t_julianDay julianDate
 ,   const short GMTOffset)
 {
-    assert(julianDate >= 0.0);
-
     julianDate += 0.5;
 
     const int z = _int(julianDate);

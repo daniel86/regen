@@ -86,11 +86,11 @@
     </block>
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" >
-        <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="0" />
+        <star-map texture="res/sky/milkyway.png" scattering="0.2" delta-magnitude="0.01" lod="0" />
         <stars catalog="res/sky/bright-stars.bin" scale="1.4"
             scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
             glare-intensity="0.04" glare-scale="0.2"
-            color="0.66,0.78,1.0" color-ratio="0.66"/>
+            color="0.66,0.78,1.0" color-ratio="0.8"/>
         <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
             sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
             earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
@@ -319,7 +319,29 @@
                 <!-- <object type="attractor" tf="hyena-tf" /> -->
             </animation>
         </transform>
-        <shape id="fish-shape" gpu="1" cull="1" type="sphere" mesh-id="fish-mesh" transform-id="fish-tf" />
+        <lod-meshes>
+            <mesh id="fish-impostor"
+                    type="impostor-billboard"
+                    base-mesh="fish-mesh"
+                    base-mesh-index="0"
+                    depth-offset="0.5"
+                    normal-correction="1"
+                    depth-correction="0"
+                    hemispherical="1"
+                    top-view="0"
+                    bottom-view="0"
+                    longitude-steps="8"
+                    latitude-steps="2"
+                    texture-size="64,64">
+                <shader mesh-index="0" key="regen.models.impostor">
+                    <alpha discard-threshold="0.5"/>
+                </shader>
+                <update-state>
+                    <depth test="0" write="0"/>
+                </update-state>
+            </mesh>
+        </lod-meshes>
+        <shape id="fish-shape" cull="1" gpu="1" type="sphere" mesh-id="fish-mesh" transform-id="fish-tf" />
         <!-- <shape id="fish-shape" index="1" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 

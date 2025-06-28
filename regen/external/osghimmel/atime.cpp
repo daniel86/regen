@@ -27,12 +27,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "atime.h"
-
 #include "mathmacros.h"
 #include "timef.h"
-
-#include <assert.h>
-
 
 namespace osgHimmel
 {
@@ -88,7 +84,7 @@ s_AstronomicalTime::s_AstronomicalTime(
 }
 
 
-const s_AstronomicalTime s_AstronomicalTime::fromTimeT(const time_t &time, const time_t &utcOffset) {
+s_AstronomicalTime s_AstronomicalTime::fromTimeT(const time_t &time, const time_t &utcOffset) {
     struct tm utc = *gmtime(&time);
     return s_AstronomicalTime(
         static_cast<short>(utc.tm_year + 1900)
@@ -101,13 +97,13 @@ const s_AstronomicalTime s_AstronomicalTime::fromTimeT(const time_t &time, const
 }
 
 
-const s_AstronomicalTime s_AstronomicalTime::fromTimeF(const TimeF &t)
+s_AstronomicalTime s_AstronomicalTime::fromTimeF(const TimeF &t)
 {
     return fromTimeT(t.gett(), t.getUtcOffset());
 }
 
 
-const time_t s_AstronomicalTime::toTime_t() const
+time_t s_AstronomicalTime::toTime_t() const
 {
     time_t t = 0;
 
@@ -134,7 +130,7 @@ const time_t s_AstronomicalTime::toTime_t() const
 }
 
 
-const t_longf s_AstronomicalTime::dayf() const
+t_longf s_AstronomicalTime::dayf() const
 {
     return day + _day(hour, minute, second);
 }

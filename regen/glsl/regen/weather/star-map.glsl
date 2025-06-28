@@ -69,13 +69,13 @@ in vec4 in_posEye;
 in vec3 in_ray;
 
 uniform vec3 in_sunPosition;
-uniform float in_q;
+uniform float in_sqrt_q;
 uniform vec4 in_cmn;
 uniform vec2 in_inverseViewport;
 
 const float in_deltaM = 1.0;
 const float in_scattering = 1.0;
-const float surfaceHeight = 0.99;
+const float surfaceHeight = 0.99; // TODO: shouldn't this be a uniform?
 
 uniform samplerCube in_starmapCube;
 
@@ -86,14 +86,11 @@ uniform samplerCube in_starmapCube;
 #include regen.weather.utility.sunIntensity
 
 void main(void) {
-    vec3 eye = in_posWorld.xyz;
     float ext = computeEyeExtinction(in_posWorld.xyz);
-    if(ext <= 0.0) discard;
+    float omega = acos(in_posWorld.y * 0.9998);
 
     vec4 fc = texture(in_starmapCube, in_ray);
-    fc *= 3e-2 / sqrt(in_q) * in_deltaM;
-
-    float omega = acos(eye.y * 0.9998);
+    fc *= 3e-2 / in_sqrt_q * in_deltaM;
 
     out_color = smoothstep(0.0, 0.05, ext) *
         vec4(sunIntensity() * (fc.rgb - in_scattering*scatter(omega)), 1.0);

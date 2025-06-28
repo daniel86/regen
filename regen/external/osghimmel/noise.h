@@ -30,8 +30,6 @@
 #ifndef __NOISE_H__
 #define __NOISE_H__
 
-#include "declspec.h"
-
 #include <regen/math/vector.h>
 #include <string>
 
@@ -54,19 +52,10 @@ public:
     ,   const float xOffset = 0
     ,   const float yOffset = 0);
 
-    void generatePermutationMap(unsigned char *dest) const;
-
-//    static const std::string fadeGlslSource();
-
-    const float noise2(
-        const float s
-    ,   const float t) const;
     const float noise2(
         const float s
     ,   const float t
     ,   const unsigned int r) const;
-
-//    const std::string noise2GlslSource();
 
 protected:
 
@@ -74,32 +63,10 @@ protected:
 
     const unsigned int hash(
         const unsigned int x
-    ,   const unsigned int y) const;
-    const unsigned int hash(
-        const unsigned int x
     ,   const unsigned int y
     ,   const unsigned int r) const;
 
     const regen::Vec2f grad2(
-        const unsigned int x
-    ,   const unsigned int y) const;
-    const regen::Vec2f grad2(
-        const unsigned int x
-    ,   const unsigned int y
-    ,   const unsigned int r) const;
-
-    const regen::Vec3f grad3(
-        const unsigned int x
-    ,   const unsigned int y) const;
-    const regen::Vec3f grad3(
-        const unsigned int x
-    ,   const unsigned int y
-    ,   const unsigned int r) const;
-
-    const regen::Vec4f grad3h(
-        const unsigned int x
-    ,   const unsigned int y) const;
-    const regen::Vec4f grad3h(
         const unsigned int x
     ,   const unsigned int y
     ,   const unsigned int r) const;

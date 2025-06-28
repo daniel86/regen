@@ -31,7 +31,6 @@
 #define __COORDS_H__
 
 #include "julianday.h"
-#include "pragmanote.h"
 #include <regen/math/vector.h>
 
 namespace osgHimmel
@@ -47,9 +46,6 @@ struct s_EclipticalCoords;
 
 template<typename T>
 struct s_HorizontalCoords;
-
-template<typename T>
-struct s_GalacticCoords;
 
 
 // http://en.wikipedia.org/wiki/Equatorial_coordinate_system
@@ -67,9 +63,6 @@ struct s_EquatorialCoords
     ,   const T observersLongitude     /* L   */) const;
 
     const regen::Vec3f toEuclidean() const;
-
-// Not required for now...
-//#pragma NOTE("const s_GalacticCoords toGalactic() const; not yet implemented")
 
     // Measures the angle (longitudinal) of an object east of the apparent 
     // location of the center of the Sun at the moment of the vernal equinox.
@@ -133,27 +126,7 @@ struct s_HorizontalCoords
 typedef s_HorizontalCoords<t_longf> t_hord;
 typedef s_HorizontalCoords<float> t_horf;
 
-
-// Not required for now...
-
-//// http://en.wikipedia.org/wiki/Galactic_coordinate_system
-//
-//typedef struct s_GalacticCoords 
-//{    
-//    s_GalacticCoords();
-//
-//#pragma NOTE("const s_EquatorialCoords toEquatorial() const; not yet implemented")
-//
-//    t_longf longitude; // l
-//    t_longf latitude;  // b
-//
-//} t_galCoords;
-
-
-
 #include "mathmacros.h"
-
-#include <assert.h>
 
 template<typename T>
 s_EquatorialCoords<T>::s_EquatorialCoords()
@@ -178,15 +151,6 @@ s_HorizontalCoords<T>::s_HorizontalCoords()
 ,   altitude(0.0)
 {
 }
-
-
-//s_GalacticCoords::s_GalacticCoords()
-//:   longitude(0.0)
-//,   latitude(0.0)
-//{
-//}
-
-
 
 // To remove 180° ambiquity, atan2 is applied ("Astronomical Algorithms")
 

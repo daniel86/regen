@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "declspec.h"
 #include "typedefs.h"
 
 #include <boost/timer/timer.hpp>
@@ -42,10 +41,6 @@ namespace osgHimmel {
 	// The time starts cycling automatically, but can also be paused, stopped,
 	// or set to a specific value.
 	class TimeF {
-		enum e_Mode {
-			M_Running, M_Pausing
-		};
-
 	public:
 		static long utcOffset();
 
@@ -95,9 +90,6 @@ namespace osgHimmel {
 		t_longf m_timef[3]; // [2] is for stop
 
 		t_longf m_offset;
-
-		e_Mode m_mode;
-		t_longf m_lastModeChangeTime;
 	};
 
 } // namespace osgHimmel

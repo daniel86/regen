@@ -26,15 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 // POSSIBILITY OF SUCH DAMAGE.
 
-
 #include "noise.h"
-
 #include "mathmacros.h"
-#include "interpolate.h"
-#include "strutils.h"
-
-#include <assert.h>
-
 
 namespace osgHimmel
 {
@@ -79,15 +72,6 @@ Noise::Noise(
 {
 }
 
-
-const unsigned int Noise::hash(
-    const unsigned int x
-,   const unsigned int y) const
-{
-    return m_perm[(m_perm[x & MAXPERMINDEX] + y) & MAXPERMINDEX];
-}
-
-
 const unsigned int Noise::hash(
     const unsigned int x
 ,   const unsigned int y
@@ -96,18 +80,6 @@ const unsigned int Noise::hash(
     return m_perm[(m_perm[x & ((1 << r) - 1)] + y) & ((1 << r) - 1)];
 }
 
-
-const regen::Vec2f Noise::grad2(
-    const unsigned int x
-,   const unsigned int y) const
-{
-    const unsigned char p = hash(x, y);
-    return regen::Vec2f(
-        m_grad[p & 0xf][0]
-    ,   m_grad[p & 0xf][1]);
-}
-
-
 const regen::Vec2f Noise::grad2(
     const unsigned int x
 ,   const unsigned int y
@@ -118,85 +90,11 @@ const regen::Vec2f Noise::grad2(
         m_grad[p & 0xf][0]
     ,   m_grad[p & 0xf][1]);
 }
-
-
-const regen::Vec3f Noise::grad3(
-    const unsigned int x
-,   const unsigned int y) const
-{
-    const unsigned char p = hash(x, y);
-    return regen::Vec3f(
-        m_grad[p & 0xf][0]
-    ,   m_grad[p & 0xf][1]
-    ,   m_grad[p & 0xf][2]);
-}
-
-
-const regen::Vec3f Noise::grad3(
-    const unsigned int x
-,   const unsigned int y
-,   const unsigned int r) const
-{
-    const unsigned char p = hash(x, y, r);
-    return regen::Vec3f(
-        m_grad[p & 0xf][0]
-    ,   m_grad[p & 0xf][1]
-    ,   m_grad[p & 0xf][2]);
-}
-
-
-const regen::Vec4f Noise::grad3h(
-    const unsigned int x
-,   const unsigned int y) const
-{
-    const unsigned char p = hash(x, y);
-    return regen::Vec4f(
-        m_grad[p & 0xf][0]
-    ,   m_grad[p & 0xf][1]
-    ,   m_grad[p & 0xf][2]
-    ,   p);
-}
-
-
-const regen::Vec4f Noise::grad3h(
-    const unsigned int x
-,   const unsigned int y
-,   const unsigned int r) const
-{
-    const unsigned char p = hash(x, y, r);
-    return regen::Vec4f(
-        m_grad[p & 0xf][0]
-    ,   m_grad[p & 0xf][1]
-    ,   m_grad[p & 0xf][2]
-    ,   p);
-}
-
-
-void Noise::generatePermutationMap(unsigned char *dest) const
-{
-    const unsigned int size2 = m_size * m_size;
-
-    if(size2 < 1) 
-        return;
-
-    for(unsigned int s = 0; s < m_size; ++s)
-        for(unsigned int t = 0; t < m_size; ++t)
-        {
-            const unsigned int o = 4 * (t * m_size + s);
-            regen::Vec4f  g(grad3h(s + m_xoff, t + m_yoff));
-            dest[o + 0] = static_cast<unsigned char>(g.x + 1);
-            dest[o + 1] = static_cast<unsigned char>(g.y + 1);
-            dest[o + 2] = static_cast<unsigned char>(g.z + 1);
-            dest[o + 3] = static_cast<unsigned char>(g.w);
-        }
-}
-
 
 const float Noise::fade(const float t)
 {
     return _smootherstep(t);
 }
-
 
 const float Noise::mix(
     const float x
@@ -221,31 +119,6 @@ const float Noise::dot(
 {
     return x.x*y.x + x.y*y.y;
 }
-
-const float Noise::noise2(
-    const float s
-,   const float t) const
-{
-    //const float o10 = 1.0 / static_cast<float>(m_size);
-    //const float o05 = 0.5 / static_cast<float>(m_size);
-
-    const float is = floor(s);
-    const float it = floor(t);
-
-    const regen::Vec2f f(_frac(s), _frac(t));
-
-    // range [-1;+1]
-
-    const float aa = dot(grad2(is + 0, it + 0), (f                       ));
-    const float ba = dot(grad2(is + 1, it + 0), (f - regen::Vec2f(1.f, 0.f)));
-    const float ab = dot(grad2(is + 0, it + 1), (f - regen::Vec2f(0.f, 1.f)));
-    const float bb = dot(grad2(is + 1, it + 1), (f - regen::Vec2f(1.f, 1.f)));
-
-    const regen::Vec2f i = mix(regen::Vec2f(aa, ab), regen::Vec2f(ba, bb), fade(f.x));
-
-    return mix(i.x, i.y, fade(f.y));
-}
-
 
 const float Noise::noise2(
     float s

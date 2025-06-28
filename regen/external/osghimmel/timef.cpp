@@ -32,11 +32,6 @@
 
 using namespace osgHimmel;
 
-double elapsedSeconds(const boost::timer::cpu_timer &timer) {
-	// Convert nanoseconds to seconds
-	return static_cast<double>(timer.elapsed().wall) / 1e9;
-}
-
 long TimeF::utcOffset() {
 	long tz;
 
@@ -50,13 +45,13 @@ long TimeF::utcOffset() {
 }
 
 TimeF::TimeF(const t_longf time)
-		: m_utcOffset(0), m_offset(0.f), m_mode(M_Pausing) {
+		: m_utcOffset(0), m_offset(0.f) {
 	initialize();
 	setf(time);
 }
 
 TimeF::TimeF(const time_t &time, const time_t &utcOffset)
-		: m_utcOffset(utcOffset), m_offset(0.f), m_mode(M_Pausing) {
+		: m_utcOffset(utcOffset), m_offset(0.f) {
 	initialize();
 	sett(time);
 }

@@ -10,9 +10,9 @@ namespace regen {
 	/**
 	 * \brief A sky layer of bright stars.
 	 */
-	class Stars : public SkyLayer {
+	class BrightStars : public SkyLayer {
 	public:
-		explicit Stars(const ref_ptr<Sky> &sky);
+		explicit BrightStars(const ref_ptr<Sky> &sky);
 
 		void set_brightStarsFile(const std::string &brightStars);
 
@@ -68,6 +68,7 @@ namespace regen {
 		ref_ptr<Mesh> meshState_;
 		ref_ptr<ShaderInput4f> pos_;
 		ref_ptr<ShaderInput4f> col_;
+		uint32_t numStars_ = 0;
 
 		ref_ptr<HasShader> shaderState_;
 

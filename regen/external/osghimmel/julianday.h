@@ -30,10 +30,8 @@
 #ifndef __JULIANDAY_H__
 #define __JULIANDAY_H__
 
-#include "declspec.h"
 #include "typedefs.h"
 #include "atime.h"
-
 
 namespace osgHimmel
 {

@@ -30,9 +30,6 @@
 #ifndef __RANDOM_MAP_GENERATOR_H__
 #define __RANDOM_MAP_GENERATOR_H__
 
-#include "declspec.h"
-
-
 namespace osgHimmel
 {
 
@@ -40,37 +37,7 @@ class RandomMapGenerator
 {
 public:
 
-   static void generate1f(
-        const int width
-    ,   const int height
-    ,   float *dest
-    ,   const int seed = 0);
-
-    static void generate3f(
-        const int width
-    ,   const int height
-    ,   float *dest
-    ,   const int seed = 0);
-
-    static void generate4f(
-        const int width
-    ,   const int height
-    ,   float *dest
-    ,   const int seed = 0);
-
     static void generate1(
-        const int width
-    ,   const int height
-    ,   unsigned char *dest
-    ,   const int seed = 0);
-
-    static void generate3(
-        const int width
-    ,   const int height
-    ,   unsigned char *dest
-    ,   const int seed = 0);
-
-    static void generate4(
         const int width
     ,   const int height
     ,   unsigned char *dest

@@ -1,13 +1,13 @@
 #include "star-map.h"
 
-#include <regen/external/osghimmel/earth.h>
+#include <regen/sky/earth.h>
 #include <regen/textures/texture-loader.h>
 
 using namespace regen;
 
 StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 		: SkyLayer(sky) {
-	state()->joinStates(ref_ptr<BlendState>::alloc(GL_ONE, GL_ZERO));
+	state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC));
 
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
@@ -33,8 +33,7 @@ void StarMap::set_texture(const std::string &textureFile) {
 void StarMap::set_apparentMagnitude(float apparentMagnitude) {
 	// Precompute brightness based on logarithmic scale.
 	// (Similar to starsgeode vertex shader.)
-	deltaM_->setVertex(0, powf(2.512f, apparentMagnitude -
-									  osgHimmel::Earth::apparentMagnitudeLimit()));
+	deltaM_->setVertex(0, powf(2.512f, apparentMagnitude - Earth::apparentMagnitudeLimit()));
 }
 
 void StarMap::set_deltaMagnitude(float deltaMagnitude) {

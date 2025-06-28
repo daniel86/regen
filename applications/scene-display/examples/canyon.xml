@@ -174,17 +174,17 @@
     </asset>
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" >
-        <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="0" />
+        <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.015" lod="0" />
         <stars catalog="res/sky/bright-stars.bin" scale="1.4"
             scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
-            glare-intensity="0.04" glare-scale="0.2"
+            glare-intensity="0.08" glare-scale="0.2"
             color="0.66,0.78,1.0" color-ratio="0.66"/>
         <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
             sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
             earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
         <atmosphere preset="earth" size="256" lod="0">
-            <input type="float" name="cirrus" value="0.8" />
-            <input type="float" name="cumulus" value="0.6" />
+            <input type="float" name="cirrus" value="0.4" />
+            <input type="float" name="cumulus" value="0.2" />
             <input type="float" name="dithering" value="0.2" />
             <input type="float" name="ditheringScale" value="100.0" />
             <input type="float" name="cloudTimeFactor" value="0.3" />
@@ -783,7 +783,10 @@
         </view>
 
         <node import="Fog-Draw"/>
-        <node import="Sky"/>
+        <node import="Sky" />
+        <view id="Scene -- Sky">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
         <node import="Scene-Blur"/>
         <node import="ToneMapping">
             <fbo id="g-buffer" draw-buffers="0"/>

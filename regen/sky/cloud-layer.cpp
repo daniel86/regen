@@ -9,8 +9,8 @@ static GLfloat *createNoiseSlice(GLuint texSize, GLuint octave) {
 	GLuint size2 = texSize * texSize;
 	GLfloat oneOverTexSize = 1.f / static_cast<float>(texSize);
 	osgHimmel::Noise n(1 << (octave + 2),
-		math::random<float>(0.f, 1.f),
-		math::random<float>(0.f, 1.f));
+					   math::random<float>(0.f, 1.f),
+					   math::random<float>(0.f, 1.f));
 
 	auto *noise = new float[size2];
 	GLuint o;
@@ -18,8 +18,8 @@ static GLfloat *createNoiseSlice(GLuint texSize, GLuint octave) {
 		for (GLuint t = 0; t < texSize; ++t) {
 			o = t * texSize + s;
 			noise[o] = n.noise2(
-				static_cast<float>(s) * oneOverTexSize,
-				static_cast<float>(t) * oneOverTexSize, octave) * 0.5f + 0.5f;
+					static_cast<float>(s) * oneOverTexSize,
+					static_cast<float>(t) * oneOverTexSize, octave) * 0.5f + 0.5f;
 		}
 
 	return noise;

@@ -1,9 +1,14 @@
+// Code partly based on the original code from osgHimmel:
+//   Copyright (c) 2011-2012, Daniel Müller <dm@g4t3.de>
+//   Computer Graphics Systems Group at the Hasso-Plattner-Institute, Germany
+
 #ifndef REGEN_MOON_H_
 #define REGEN_MOON_H_
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
 #include <regen/gl-types/fbo.h>
+#include "regen/external/osghimmel/coords.h"
 
 namespace regen {
 	/**
@@ -11,9 +16,9 @@ namespace regen {
 	 * The moon is rendered using a textured quad with alpha blending.
 	 * As moon texture, a cube map is used.
 	 */
-	class MoonLayer : public SkyLayer {
+	class Moon : public SkyLayer {
 	public:
-		MoonLayer(const ref_ptr<Sky> &sky, const std::string &moonMapFile);
+		Moon(const ref_ptr<Sky> &sky, const std::string &moonMapFile);
 
 		void set_scale(float scale) { scale_->setVertex(0, scale); }
 
@@ -46,6 +51,35 @@ namespace regen {
 		static Vec3f defaultEarthShineColor();
 
 		static float defaultEarthShineIntensity();
+
+		static float meanLongitude(const osgHimmel::t_julianDay &t);
+
+		static float meanElongation(const osgHimmel::t_julianDay &t);
+
+		static float meanAnomaly(const osgHimmel::t_julianDay &t);
+
+		static float meanLatitude(const osgHimmel::t_julianDay &t);
+
+		static float meanOrbitLongitude(const osgHimmel::t_julianDay &t);
+
+		static osgHimmel::t_eclf position(const osgHimmel::t_julianDay &t);
+
+		static osgHimmel::t_equf apparentPosition(const osgHimmel::t_julianDay &t);
+
+		static osgHimmel::t_horf horizontalPosition(
+				const osgHimmel::t_aTime &aTime, float latitude, float longitude);
+
+		static float distance(const osgHimmel::t_julianDay &t);
+
+		static void opticalLibrations(
+				const osgHimmel::t_julianDay &t, float &l /* librations in longitude */
+				, float &b /* librations in latitude  */);
+
+		static float parallacticAngle(const osgHimmel::t_aTime &aTime, float latitude, float longitude);
+
+		static float positionAngleOfAxis(const osgHimmel::t_julianDay &t);
+
+		static float meanRadius();
 
 		// Override
 		void updateSkyLayer(RenderState *rs, GLdouble dt) override;
