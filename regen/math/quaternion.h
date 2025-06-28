@@ -147,9 +147,7 @@ namespace regen {
 		 * @param direction the direction vector to look at.
 		 * @param up the up vector, defaults to (0, 1, 0).
 		 */
-		inline void setLookRotation(const Vec3f& direction, const Vec3f& up = Vec3f::up()) {
-			Vec3f forward = direction;
-			forward.normalize();
+		inline void setLookRotation(const Vec3f& forward, const Vec3f& up = Vec3f::up()) {
 			Vec3f right = up.cross(forward);
 			right.normalize();
 			Vec3f newUp = forward.cross(right);
