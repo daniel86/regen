@@ -593,6 +593,81 @@ namespace regen {
 	};
 
 	/**
+	 * SIMD-accelerated quaternion using SSE registers.
+	 * This class represents a quaternion with w, x, y, z components stored in SIMD registers.
+	 */
+	class BatchOf_Quaternion {
+	public:
+		/** w/x/y/z components, each stored as batch-of representing 4 or 8 floats */
+		regen::simd::Register w, x, y, z;
+
+		/** Default constructor. Leaves content uninitialized. */
+		BatchOf_Quaternion() = default;
+
+		/**
+		 * Constructor that initializes the batch with a single Quaternion value.
+		 * @param q The Quaternion value to initialize the batch with.
+		 */
+		explicit BatchOf_Quaternion(const Quaternion &q) {
+			w = regen::simd::set1_ps(q.w);
+			x = regen::simd::set1_ps(q.x);
+			y = regen::simd::set1_ps(q.y);
+			z = regen::simd::set1_ps(q.z);
+		}
+
+		/**
+		 * Constructor that initializes the batch with SIMD registers.
+		 */
+		BatchOf_Quaternion(
+				regen::simd::Register w_,
+				regen::simd::Register x_,
+				regen::simd::Register y_,
+				regen::simd::Register z_) {
+			w = w_;
+			x = x_;
+			y = y_;
+			z = z_;
+		}
+
+		/**
+		 * Adds another quaternion batch to this batch.
+		 * @param b Another quaternion batch to add.
+		 * @return New quaternion batch result.
+		 */
+		inline BatchOf_Quaternion operator*(const BatchOf_Quaternion &b) const {
+			return {
+				regen::simd::sub_ps(
+					regen::simd::sub_ps(
+						regen::simd::mul_ps(w, b.w),
+						regen::simd::mul_ps(x, b.x)),
+					regen::simd::add_ps(
+						regen::simd::mul_ps(y, b.z),
+						regen::simd::mul_ps(z, b.y))),
+				regen::simd::add_ps(
+					regen::simd::add_ps(
+						regen::simd::mul_ps(w, b.x),
+						regen::simd::mul_ps(x, b.w)),
+					regen::simd::sub_ps(
+						regen::simd::mul_ps(y, b.y),
+						regen::simd::mul_ps(z, b.z))),
+				regen::simd::add_ps(
+					regen::simd::add_ps(
+						regen::simd::mul_ps(w, b.y),
+						regen::simd::mul_ps(y, b.w)),
+					regen::simd::add_ps(
+						regen::simd::mul_ps(z, b.x),
+						regen::simd::mul_ps(x, b.z))),
+				regen::simd::add_ps(
+					regen::simd::add_ps(
+						regen::simd::mul_ps(w, b.z),
+						regen::simd::mul_ps(z, b.w)),
+					regen::simd::sub_ps(
+						regen::simd::mul_ps(x, b.y),
+						regen::simd::mul_ps(y, b.x)))};
+		}
+	};
+
+	/**
 	 * Aligned vector type for SIMD operations.
 	 * Uses AlignedAllocator to ensure proper alignment for SIMD registers.
 	 */

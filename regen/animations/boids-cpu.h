@@ -51,6 +51,11 @@ namespace regen {
 
 		inline Vec3f getBoidVelocity(uint32_t boidIndex) const;
 
+		inline Quaternion getBoidOrientation(uint32_t boidIndex) const;
+
+		inline void setBoidOrientation(
+				uint32_t boidIndex, const Quaternion &orientation);
+
 		void updateTransforms();
 
 		void simulateBoids(float dt);
@@ -64,7 +69,8 @@ namespace regen {
 
 		Vec3f limitVelocity(
 				const Vec3f &lastDir,
-				const Vec3f &boidVel);
+				const Vec3f &boidVel,
+				float &boidSpeed);
 
 		void homesickness(
 				const Vec3f &boidPos, Vec3f &boidForce);
