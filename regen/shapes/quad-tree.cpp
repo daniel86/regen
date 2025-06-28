@@ -5,7 +5,7 @@
 
 #include "quad-tree.h"
 
-//#define QUAD_TREE_DEBUG
+#define QUAD_TREE_DEBUG
 #define QUAD_TREE_EVER_GROWING
 #define QUAD_TREE_SQUARED
 #define QUAD_TREE_SUBDIVIDE_THRESHOLD 4
@@ -697,19 +697,40 @@ void QuadTree::foreachIntersection(
 	}
 
 #ifdef QUAD_TREE_DEBUG
-	auto t2 = high_resolution_clock::now();
-	duration<double, std::milli> ms_double = t2 - t1;
-	REGEN_INFO("QUAD TREE INTERSECTION STATS");
-	REGEN_INFO("     time: " << ms_double.count() << " ms");
-	unsigned int numShapes = 0;
-	for (const auto &x: shapes_) {
-		numShapes += x.second.size();
+	static std::vector<long> times;
+	static std::vector<uint32_t> numTests_2d;
+	static std::vector<uint32_t> numTests_3d;
+	auto t2 = std::chrono::high_resolution_clock::now();
+	auto dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+	times.push_back(dt);
+	numTests_2d.push_back(num2DTests);
+	numTests_3d.push_back(num3DTests);
+	if (times.size() > 100) {
+		long avgTime = 0;
+		long totalTime = 0;
+		uint32_t avg2DTests = 0;
+		uint32_t avg3DTests = 0;
+		for (size_t i = 0; i < times.size(); i++) {
+			totalTime += times[i];
+			avg2DTests += numTests_2d[i];
+			avg3DTests += numTests_3d[i];
+		}
+		avgTime = totalTime / times.size();
+		avg2DTests /= times.size();
+		avg3DTests /= times.size();
+		REGEN_INFO("QuadTree:"
+				<< " t0: " << std::fixed << std::setprecision(4)
+				<< static_cast<float>(avgTime) / 1000.0f << "ms"
+				<< " t0-t100: " << std::fixed << std::setprecision(2)
+				<< static_cast<float>(totalTime) / 1000.0f << "ms"
+				<< " #avg-2d: "
+				<< avg2DTests
+				<< " #avg-3d: "
+				<< avg3DTests);
+		times.clear();
+		numTests_2d.clear();
+		numTests_3d.clear();
 	}
-	REGEN_INFO("     #Shapes: " << numShapes);
-	REGEN_INFO("     #Nodes: " << numNodes());
-	REGEN_INFO("     #2D Tests: " << num2DTests);
-	REGEN_INFO("     #3D Tests: " << num3DTests);
-	REGEN_INFO("     #3D Prune: " << num3DPruned);
 #endif
 }
 
