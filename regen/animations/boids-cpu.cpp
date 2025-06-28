@@ -2,7 +2,7 @@
 #include "regen/math/simd.h"
 #include "regen/utility/aligned-array.h"
 
-#define REGEN_BOID_DEBUG_TIME
+//#define REGEN_BOID_DEBUG_TIME
 //#define REGEN_BOID_USE_SORTED_GRID
 #define REGEN_BOID_USE_GRID_SIMD
 #define REGEN_BOID_USE_NEIGHBOR_SIMD
@@ -671,7 +671,7 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 		}
 	}
 
-	float alpha = 1.0f / static_cast<float>(boid.numNeighbors);
+	float alpha = 1.0f / static_cast<float>(std::max(boid.numNeighbors,1u));
 	return
 		(boid.sumSep * priv_->separationWeight_) +
 		(boid.sumVel*alpha - boidVel) * priv_->alignmentWeight_ +
@@ -682,28 +682,22 @@ void BoidsCPU::simulateBoid(int32_t boidIdx, float dt) {
 	auto &boid = boidData_[boidIdx];
 	Vec3f boidPos = getBoidPosition(boidIdx);
 	Vec3f boidVel = getBoidVelocity(boidIdx);
+	// simulate the boid using the three rules of boids
+	boid.force = accumulateForce(boid, boidPos, boidVel);
 
 	// a boid is lost if it is outside the bounds
-	bool isBoidLost = !priv_->simBounds_.contains(boidPos);
-	if (boid.numNeighbors == 0) {
-		// a boid without neighbors is lost
-		isBoidLost = true;
-		boid.force = Vec3f::zero();
-	} else {
-		// simulate the boid using the three rules of boids
-		boid.force = accumulateForce(boid, boidPos, boidVel);
-	}
+	bool isBoidLost    = (boid.numNeighbors == 0 || !priv_->simBounds_.contains(boidPos));
+	bool isInCollision = avoidCollisions(boidPos, boidVel, boid.force, dt);
+	bool isInDanger    = !dangers_.empty() && avoidDanger(boidPos, boid.force);
 
-	// put some restrictions on the boid's velocity.
-	// a boid that cannot avoid collisions is considered lost.
-	isBoidLost = !avoidCollisions(boidPos, boidVel, boid.force, dt) || isBoidLost;
-	auto isInDanger = !dangers_.empty() && !avoidDanger(boidPos, boid.force);
 	if (!isInDanger) {
 		// note: ignore attractors if in danger
 		attract(boidPos, boid.force);
 	}
-	// drift towards home if lost
-	if (isBoidLost) { homesickness(boidPos, boid.force); }
+	if (isBoidLost || isInCollision) {
+		// drift towards home if lost or in collision
+		homesickness(boidPos, boid.force);
+	}
 
 	auto dx = boidVel * dt;
 	priv_->boidPositionsX_[boidIdx] += dx.x;
@@ -803,7 +797,7 @@ bool BoidsCPU::avoidDanger(const Vec3f &boidPos, Vec3f &boidForce) {
 			isInDanger = true;
 		}
 	}
-	return !isInDanger;
+	return isInDanger;
 }
 
 void BoidsCPU::attract(const Vec3f &boidPos, Vec3f &boidForce) {
