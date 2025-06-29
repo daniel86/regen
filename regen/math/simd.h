@@ -25,6 +25,7 @@
 namespace regen::simd {
 	static constexpr int32_t RegisterWidth = REGEN_SIMD_WIDTH;
 #if REGEN_SIMD_MODE == AVX
+	static constexpr int8_t RegisterMask = 0xFF; // 8 bits for AVX
 	using Register = __m256; // 8 floats
 	using Register_i = __m256i; // 8 integers
 
@@ -89,12 +90,14 @@ namespace regen::simd {
 	inline __m256 cmp_neq(const __m256 &a, const __m256 &b) {
 		return _mm256_cmp_ps(a, b, _CMP_NEQ_OQ);
 	}
+	inline __m256 cmp_or(const __m256 &a, const __m256 &b) { return _mm256_or_ps(a, b); }
 
 	inline __m256i cvttps_epi32(const __m256 &a) { return _mm256_cvttps_epi32(a); }
 
 	inline int movemask_ps(const __m256 &v) { return _mm256_movemask_ps(v); }
 
 #elif REGEN_SIMD_MODE == SSE
+	static constexpr int8_t RegisterMask = 0x0F; // 4 bits for SSE
 	using Register = __m128; // 4 floats
 	using Register_i = __m128i; // 4 integers
 
@@ -145,12 +148,14 @@ namespace regen::simd {
 		__m128 eq = _mm_cmpeq_ps(a, b);
 		return _mm_andnot_ps(eq, _mm_castsi128_ps(_mm_set1_epi32(-1)));  // ~eq & all_ones
 	}
+	inline __m128 cmp_or(const __m128 &a, const __m128 &b) { return _mm_or_ps(a, b); }
 
 	inline __m128i cvttps_epi32(const __m128 &a) { return _mm_cvttps_epi32(a); }
 
 	inline int movemask_ps(const __m128 &v) { return _mm_movemask_ps(v); }
 
 #else // Fallback to scalar operations
+	static constexpr int8_t RegisterMask = 0x01; // 1 bit for scalar
 	using Register = float; // scalar
 
 	inline float set1_ps(float v) { return v; }
@@ -203,6 +208,29 @@ namespace regen {
 
 		explicit BatchOf_float(simd::Register v) : c(v) {}
 
+		/**
+		 * Load batch from an array of 4 unaligned floats.
+		 * @param src Pointer to array of 4 floats.
+		 */
+		inline void load_unaligned(const float *src) {
+			c = regen::simd::loadu_ps(src);
+		}
+
+		/**
+		 * Load batch from an array of 4 aligned floats.
+		 * @param src Pointer to array of 4 floats.
+		 */
+		inline void load_aligned(const float *src) {
+			c = regen::simd::load_ps(src);
+		}
+
+		/**
+		 * Load a single float value into the batch.
+		 */
+		inline void load(float v) {
+			c = regen::simd::set1_ps(v);
+		}
+
 		BatchOf_float operator+(const BatchOf_float &other) const {
 			return BatchOf_float{regen::simd::add_ps(c, other.c)};
 		}
@@ -237,6 +265,41 @@ namespace regen {
 
 		BatchOf_float cmp_lt(const BatchOf_float &other) const {
 			return BatchOf_float{regen::simd::cmp_lt(c, other.c)};
+		}
+	};
+
+	/**
+	 * SIMD-accelerated 2D vector using SoA layout and SSE registers.
+	 * Useful for performing vector operations on multiple entities (e.g., boids) in parallel.
+	 */
+	struct BatchOf_Vec2f {
+		/** x/y components, each stored as __m128 representing 4 floats */
+		regen::simd::Register x, y;
+
+		/** Default constructor. Leaves content uninitialized. */
+		BatchOf_Vec2f() = default;
+
+		/**
+		 * Constructor that initializes the batch with SIMD registers.
+		 */
+		BatchOf_Vec2f(regen::simd::Register x_, regen::simd::Register y_)
+			: x(x_), y(y_) {}
+
+		/**
+		 * Constructor that initializes the batch with a single Vec2f value.
+		 * @param v The Vec2f value to initialize the batch with.
+		 */
+		explicit BatchOf_Vec2f(const Vec2f &v) {
+			x = regen::simd::set1_ps(v.x);
+			y = regen::simd::set1_ps(v.y);
+		}
+
+		/**
+		 * Load a single Vec2f value into the batch.
+		 */
+		inline void load(const Vec2f &v) {
+			x = regen::simd::set1_ps(v.x);
+			y = regen::simd::set1_ps(v.y);
 		}
 	};
 

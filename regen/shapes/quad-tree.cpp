@@ -4,18 +4,21 @@
 #include <unordered_set>
 
 #include "quad-tree.h"
+#include "regen/math/simd.h"
 
-#define QUAD_TREE_DEBUG
+//#define QUAD_TREE_DEBUG
 #define QUAD_TREE_EVER_GROWING
 #define QUAD_TREE_SQUARED
+//#define QUAD_TREE_DISABLE_SIMD
+#define QUAD_TREE_MASK_EARLY_EXIT
+//#define QUAD_TREE_DEFERRED_BATCH_STORE
 #define QUAD_TREE_SUBDIVIDE_THRESHOLD 4
 #define QUAD_TREE_COLLAPSE_THRESHOLD 2
 
-//#define QUAD_TREE_NO_SSE
-#if defined(__SSE2__) && !defined(QUAD_TREE_NO_SSE)
-	// Use SSE2 for faster intersection tests
-	#define QUAD_TREE_SSE
-	#include <simde/x86/sse2.h>
+#ifdef QUAD_TREE_DISABLE_SIMD
+	#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+	#undef QUAD_TREE_DEFERRED_BATCH_STORE
+	#endif // QUAD_TREE_DEFERRED_BATCH_STORE
 #endif
 
 // NOTE: this piece of code is performance critical! For many execution paths:
@@ -26,10 +29,68 @@
 
 using namespace regen;
 
+namespace regen {
+	struct QuadTreeTraversal {
+		QuadTree *tree;
+		const BoundingShape *shape;
+		const OrthogonalProjection *projection;
+		Vec2f basePoint;
+		std::array<Vec2f, 4> corners;
+		std::array<float, 4> projections;
+		void *userData;
+
+		void (*callback)(const BoundingShape &, void *);
+
+#ifndef QUAD_TREE_DISABLE_SIMD
+		BatchOf_float batchBoundsMinX; // NOLINT(cppcoreguidelines-pro-type-member-init)
+		BatchOf_float batchBoundsMinY; // NOLINT(cppcoreguidelines-pro-type-member-init)
+		BatchOf_float batchBoundsMaxX; // NOLINT(cppcoreguidelines-pro-type-member-init)
+		BatchOf_float batchBoundsMaxY; // NOLINT(cppcoreguidelines-pro-type-member-init)
+#endif
+	};
+
+	struct QuadTree::Private {
+		// Stores bounds of nodes that are queued for testing.
+		AlignedArray<float> queuedMinX_;
+		AlignedArray<float> queuedMinY_;
+		AlignedArray<float> queuedMaxX_;
+		AlignedArray<float> queuedMaxY_;
+		AlignedArray<uint32_t> successorIdx_;
+		AlignedArray<Node *> queuedNodes_[2];
+#ifndef QUAD_TREE_DISABLE_SIMD
+#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+		AlignedArray<uint8_t> batchResults_;
+#endif
+#endif
+		uint32_t numQueuedItems_ = 0;
+		uint32_t numSucceedingItems_ = 0;
+		uint32_t currIdx_ = 0;
+		uint32_t nextIdx_ = 1;
+#ifdef QUAD_TREE_DEBUG
+		uint32_t num2DTests_ = 0;
+		uint32_t num3DTests_ = 0;
+#endif
+
+		Private() {}
+
+		void addNodeToQueue(Node *node);
+		void processLeafNode(QuadTreeTraversal &td, Node *leaf);
+		void processSuccessors(QuadTreeTraversal &td);
+		void processQueuedNodes_scalar(QuadTreeTraversal &td, int32_t nodeIdx);
+		template<uint32_t NumAxes> void processQueuedNodes(QuadTreeTraversal &td);
+		template<uint32_t NumAxes> void intersectionLoop(QuadTreeTraversal &td);
+#ifndef QUAD_TREE_DISABLE_SIMD
+		template<uint32_t NumAxes> void processAxes_SIMD(QuadTreeTraversal &td, uint8_t &mask);
+		void processAxis_SIMD(QuadTreeTraversal &td, uint8_t &mask, int32_t axisIdx);
+#endif
+	};
+}
+
 QuadTree::QuadTree()
 		: SpatialIndex(),
+		  priv_(new Private()),
 		  root_(nullptr),
-		  newBounds_(0,0) {
+		  newBounds_(0, 0) {
 }
 
 QuadTree::~QuadTree() {
@@ -54,26 +115,7 @@ QuadTree::~QuadTree() {
 		delete nodePool_.top();
 		nodePool_.pop();
 	}
-}
-
-unsigned int QuadTree::numNodes() const {
-	if (!root_) {
-		return 0;
-	}
-	unsigned int count = 0;
-	std::stack<const Node *> stack;
-	stack.push(root_);
-	while (!stack.empty()) {
-		auto *node = stack.top();
-		stack.pop();
-		count++;
-		if (!node->isLeaf()) {
-			for (int i = 0; i < 4; i++) {
-				stack.push(node->children[i]);
-			}
-		}
-	}
-	return count;
+	delete priv_;
 }
 
 unsigned int QuadTree::numShapes() const {
@@ -142,7 +184,7 @@ void QuadTree::freeItem(Item *item) {
 	itemPool_.push(item);
 }
 
-QuadTree::Item* QuadTree::getItem(const ref_ptr<BoundingShape> &shape) {
+QuadTree::Item *QuadTree::getItem(const ref_ptr<BoundingShape> &shape) {
 	auto it = shapeToItem_.find(shape.get());
 	if (it != shapeToItem_.end()) {
 		return it->second;
@@ -162,7 +204,7 @@ bool QuadTree::insert(Node *node, Item *shape, bool allowSubdivision) { // NOLIN
 		// only subdivide if the node is larger than the shape
 		auto nodeSize = node->bounds.max - node->bounds.min;
 		auto shapeSize = shape->projection.bounds.max - shape->projection.bounds.min;
-		bool isNodeLargeEnough = (nodeSize.x > 2.0*shapeSize.x && nodeSize.y > 2.0*shapeSize.y);
+		bool isNodeLargeEnough = (nodeSize.x > 2.0 * shapeSize.x && nodeSize.y > 2.0 * shapeSize.y);
 
 		return insert1(node, shape, isNodeLargeEnough && allowSubdivision);
 	}
@@ -176,8 +218,8 @@ bool QuadTree::insert1(Node *node, Item *newShape, bool allowSubdivision) { // N
 		// 2. the node has reached the minimum size and cannot be subdivided further
 		// 3. the node was just created by subdividing a parent node
 		if (!allowSubdivision ||
-				node->shapes.size() < QUAD_TREE_SUBDIVIDE_THRESHOLD ||
-				node->bounds.size() < minNodeSize_) {
+			node->shapes.size() < QUAD_TREE_SUBDIVIDE_THRESHOLD ||
+			node->bounds.size() < minNodeSize_) {
 			node->shapes.push_back(newShape);
 			newShape->nodes.push_back(node);
 			return true;
@@ -201,8 +243,7 @@ bool QuadTree::insert1(Node *node, Item *newShape, bool allowSubdivision) { // N
 			node->shapes.clear();
 			return inserted;
 		}
-	}
-	else {
+	} else {
 		// the node has child nodes, must insert into (at least) one of them.
 		// note: a shape can be inserted into multiple nodes, so we allways need to check all children
 		//       (at least on the next level)
@@ -231,7 +272,7 @@ void QuadTree::remove(const ref_ptr<BoundingShape> &shape) {
 
 void QuadTree::removeFromNodes(Item *item) {
 	auto nodes = item->nodes;
-	for (auto &node : nodes) {
+	for (auto &node: nodes) {
 		removeFromNode(node, item);
 	}
 	item->nodes.clear();
@@ -252,15 +293,15 @@ void QuadTree::collapse(Node *node) { // NOLINT(misc-no-recursion)
 	}
 	auto *parent = node->parent;
 	auto &firstShapes = parent->children[0]->shapes;
-	for (auto &child : parent->children) {
+	for (auto &child: parent->children) {
 		if (!child->isLeaf()) {
 			// at least one child is not a leaf -> no collapse
 			return;
 		}
 	}
 	//if (parent->children[0]->shapes.size() > QUAD_TREE_COLLAPSE_THRESHOLD) {
-		// no collapse
-		//return;
+	// no collapse
+	//return;
 	//}
 	for (int i = 1; i < 4; i++) {
 		if (parent->children[i]->shapes.size() != firstShapes.size()) {
@@ -291,6 +332,9 @@ void QuadTree::collapse(Node *node) { // NOLINT(misc-no-recursion)
 		freeNode(parent->children[i]);
 		parent->children[i] = nullptr;
 	}
+	// four nodes are removed, parent turns into a leaf node
+	numNodes_ -= 4;
+	numLeaves_ -= 3;
 	// continue collapsing the parent node
 	collapse(parent);
 }
@@ -315,6 +359,9 @@ void QuadTree::subdivide(Node *node) {
 	child = createNode(Vec2f(node->bounds.min.x, center.y), Vec2f(center.x, node->bounds.max.y));
 	child->parent = node;
 	node->children[3] = child;
+	// four new nodes created, parent turns into an internal node
+	numNodes_ += 4;
+	numLeaves_ += 3;
 }
 
 inline ref_ptr<BoundingShape> initShape(const ref_ptr<BoundingShape> &shape) {
@@ -355,205 +402,17 @@ bool QuadTree::Node::contains(const OrthogonalProjection &projection) const {
 	return bounds.contains(projection.bounds);
 }
 
-static inline void pushSphereIntersections(
-		std::stack<QuadTree::Node *> &stack,
-		QuadTree::Node **nodes,
-		const OrthogonalProjection &projection) {
-	const auto &radiusSqr = projection.points[1].x; // = radius * radius
-	const auto &center = projection.points[0];
-#ifdef QUAD_TREE_SSE
-	// Load center.xy + radiusSqr into SSE registers
-	simde__m128 centerX = simde_mm_set1_ps(center.x);
-	simde__m128 centerY = simde_mm_set1_ps(center.y);
-	simde__m128 radiusSqrSSE = simde_mm_set1_ps(radiusSqr);
-	// Load bounds for 4 nodes into SSE vectors
-	float minX[4], maxX[4], minY[4], maxY[4];
-	for (int i = 0; i < 4; ++i) {
-		minX[i] = nodes[i]->bounds.min.x;
-		maxX[i] = nodes[i]->bounds.max.x;
-		minY[i] = nodes[i]->bounds.min.y;
-		maxY[i] = nodes[i]->bounds.max.y;
-	}
-	simde__m128 minXv = simde_mm_loadu_ps(minX);
-	simde__m128 maxXv = simde_mm_loadu_ps(maxX);
-	simde__m128 minYv = simde_mm_loadu_ps(minY);
-	simde__m128 maxYv = simde_mm_loadu_ps(maxY);
-
-	// Compute distance along X
-	simde__m128 distLX = simde_mm_sub_ps(minXv, centerX);
-	simde__m128 distRX = simde_mm_sub_ps(centerX, maxXv);
-	simde__m128 maskLX = simde_mm_cmplt_ps(centerX, minXv);
-	simde__m128 maskRX = simde_mm_cmpgt_ps(centerX, maxXv);
-	simde__m128 distX = simde_mm_or_ps(
-		simde_mm_and_ps(maskLX, distLX),
-		simde_mm_and_ps(maskRX, distRX)
-	);
-	// Compute distance along Y
-	simde__m128 distLY = simde_mm_sub_ps(minYv, centerY);
-	simde__m128 distRY = simde_mm_sub_ps(centerY, maxYv);
-	simde__m128 maskLY = simde_mm_cmplt_ps(centerY, minYv);
-	simde__m128 maskRY = simde_mm_cmpgt_ps(centerY, maxYv);
-	simde__m128 distY = simde_mm_or_ps(
-		simde_mm_and_ps(maskLY, distLY),
-		simde_mm_and_ps(maskRY, distRY)
-	);
-	// Compute total squared distance
-	simde__m128 sqDistX = simde_mm_mul_ps(distX, distX);
-	simde__m128 sqDistY = simde_mm_mul_ps(distY, distY);
-	simde__m128 sqDist  = simde_mm_add_ps(sqDistX, sqDistY);
-
-	// Finally, compare against radius², and push nodes that intersect
-	simde__m128 mask = simde_mm_cmplt_ps(sqDist, radiusSqrSSE);
-	int bitmask = simde_mm_movemask_ps(mask); // 4 bits, one per node
-	if (bitmask & (1 << 0)) { stack.push(nodes[0]); }
-	if (bitmask & (1 << 1)) { stack.push(nodes[1]); }
-	if (bitmask & (1 << 2)) { stack.push(nodes[2]); }
-	if (bitmask & (1 << 3)) { stack.push(nodes[3]); }
-#else
-	for (int i=0; i < 4; i++) {
-		auto *n = nodes[i];
-		// Calculate the squared distance from the circle's center to the AABB
-		float sqDist = 0.0f;
-		if (center.x < n->bounds.min.x) {
-			sqDist += (n->bounds.min.x - center.x) * (n->bounds.min.x - center.x);
-		} else if (center.x > n->bounds.max.x) {
-			sqDist += (center.x - n->bounds.max.x) * (center.x - n->bounds.max.x);
-		}
-		if (center.y < n->bounds.min.y) {
-			sqDist += (n->bounds.min.y - center.y) * (n->bounds.min.y - center.y);
-		} else if (center.y > n->bounds.max.y) {
-			sqDist += (center.y - n->bounds.max.y) * (center.y - n->bounds.max.y);
-		}
-		if (sqDist < radiusSqr) {
-			// the node intersects with the sphere
-			stack.push(n);
-		}
-	}
-#endif
-}
-
 static inline std::pair<float, float> project(const Bounds<Vec2f> &b, const Vec2f &axis) {
 	std::array<Vec2f, 4> corners = {
-		Vec2f(b.min.x, b.min.y),
-		Vec2f(b.max.x, b.min.y),
-		Vec2f(b.min.x, b.max.y),
-		Vec2f(b.max.x, b.max.y)
+			Vec2f(b.min.x, b.min.y),
+			Vec2f(b.max.x, b.min.y),
+			Vec2f(b.min.x, b.max.y),
+			Vec2f(b.max.x, b.max.y)
 	};
 	std::array<float, 4> projections;
 	for (int i = 0; i < 4; ++i) projections[i] = corners[i].dot(axis);
 	auto [minIt, maxIt] = std::minmax_element(projections.begin(), projections.end());
 	return {*minIt, *maxIt};
-}
-
-#ifdef QUAD_TREE_SSE
-static inline void project_simd(QuadTree::Node **nodes, const Vec2f &axis, float outMin[4], float outMax[4]) {
-	// Each array stores the same corner across all 4 nodes
-	alignas(16) float x0[4], y0[4]; // b.min
-	alignas(16) float x1[4], y1[4]; // (b.max.x, b.min.y)
-	alignas(16) float x2[4], y2[4]; // (b.min.x, b.max.y)
-	alignas(16) float x3[4], y3[4]; // b.max
-	for (int i = 0; i < 4; ++i) {
-		const auto &b = nodes[i]->bounds;
-		x0[i] = b.min.x; y0[i] = b.min.y;
-		x1[i] = b.max.x; y1[i] = b.min.y;
-		x2[i] = b.min.x; y2[i] = b.max.y;
-		x3[i] = b.max.x; y3[i] = b.max.y;
-	}
-
-	// Compute dot products for each corner with the axis
-	auto dot4 = [&](const float *xs, const float *ys) -> simde__m128 {
-		simde__m128 vx = simde_mm_load_ps(xs);
-		simde__m128 vy = simde_mm_load_ps(ys);
-		simde__m128 ax = simde_mm_set1_ps(axis.x);
-		simde__m128 ay = simde_mm_set1_ps(axis.y);
-		return simde_mm_add_ps(simde_mm_mul_ps(vx, ax), simde_mm_mul_ps(vy, ay));
-	};
-	simde__m128 d0 = dot4(x0, y0);
-	simde__m128 d1 = dot4(x1, y1);
-	simde__m128 d2 = dot4(x2, y2);
-	simde__m128 d3 = dot4(x3, y3);
-
-	// Compute per-node min and max
-	simde__m128 min1 = simde_mm_min_ps(d0, d1);
-	simde__m128 min2 = simde_mm_min_ps(d2, d3);
-	simde__m128 minA = simde_mm_min_ps(min1, min2);
-	simde__m128 max1 = simde_mm_max_ps(d0, d1);
-	simde__m128 max2 = simde_mm_max_ps(d2, d3);
-	simde__m128 maxA = simde_mm_max_ps(max1, max2);
-
-	// Store result
-	simde_mm_storeu_ps(outMin, minA);
-	simde_mm_storeu_ps(outMax, maxA);
-}
-#endif
-
-static inline void pushPolygonIntersections(
-		std::stack<QuadTree::Node *> &stack,
-		QuadTree::Node **nodes,
-		const OrthogonalProjection &projection) {
-#ifdef QUAD_TREE_SSE
-	uint8_t intersectMask = 0b1111;
-	for (const auto &axis: projection.axes) {
-		float min[4], max[4];
-		project_simd(nodes, axis.dir, min, max);
-
-		// Compute `(maxA_n < axis.min) || (axis.max < minA_n)`
-		simde__m128 minA = simde_mm_loadu_ps(min);
-		simde__m128 maxA = simde_mm_loadu_ps(max);
-		simde__m128 axisMin = simde_mm_set1_ps(axis.min);
-		simde__m128 axisMax = simde_mm_set1_ps(axis.max);
-		simde__m128 mask1 = simde_mm_cmplt_ps(maxA, axisMin);
-		simde__m128 mask2 = simde_mm_cmplt_ps(axisMax, minA);
-		simde__m128 sep = simde_mm_or_ps(mask1, mask2);
-
-		// Convert mask to bits
-		uint8_t sepMask = simde_mm_movemask_ps(sep); // 1 = separated
-		intersectMask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
-		// Early exit: if no bits are set, all 4 nodes culled
-		if (intersectMask == 0) return;
-	}
-	if (intersectMask & (1 << 0)) { stack.push(nodes[0]); }
-	if (intersectMask & (1 << 1)) { stack.push(nodes[1]); }
-	if (intersectMask & (1 << 2)) { stack.push(nodes[2]); }
-	if (intersectMask & (1 << 3)) { stack.push(nodes[3]); }
-#else
-	for (int i=0; i < 4; i++) {
-		auto *n = nodes[i];
-		bool intersects = true;
-		// Check for separation along the axes of the shape and the axis-aligned quad
-		for (const auto &axis: projection.axes) {
-			auto [minA, maxA] = project(n->bounds, axis.dir);
-			if (maxA < axis.min || axis.max < minA) {
-				intersects = false;
-				break; // no intersection along this axis
-			}
-		}
-		if (intersects) {
-			// the node intersects with the box
-			stack.push(n);
-		}
-	}
-#endif
-}
-
-static inline QuadTree::Node *getEnclosingNode(QuadTree::Node **nodes, const OrthogonalProjection &projection) {
-	// Check if one of the nodes fully contains the projection
-	if (nodes[0]->contains(projection)) { return nodes[0]; }
-	if (nodes[1]->contains(projection)) { return nodes[1]; }
-	if (nodes[2]->contains(projection)) { return nodes[2]; }
-	if (nodes[3]->contains(projection)) { return nodes[3]; }
-	return nullptr;
-}
-
-static void pushIntersections(
-		std::stack<QuadTree::Node *> &stack,
-		QuadTree::Node **nodes,
-		const OrthogonalProjection &projection) {
-	if (projection.type == OrthogonalProjection::Type::CIRCLE) {
-		pushSphereIntersections(stack, nodes, projection);
-	} else {
-		pushPolygonIntersections(stack, nodes, projection);
-	}
 }
 
 bool QuadTree::Node::intersects(const OrthogonalProjection &projection) const {
@@ -589,7 +448,7 @@ bool QuadTree::Node::intersects(const OrthogonalProjection &projection) const {
 	return false;
 }
 
-static void countIntersections(const BoundingShape&, void *userData) {
+static void countIntersections(const BoundingShape &, void *userData) {
 	int &counter = *static_cast<int *>(userData);
 	counter++;
 }
@@ -606,93 +465,321 @@ int QuadTree::numIntersections(const BoundingShape &shape) {
 	return count;
 }
 
+void QuadTree::Private::addNodeToQueue(Node *node) {
+	queuedNodes_[nextIdx_][numQueuedItems_] = node;
+	queuedMinX_[numQueuedItems_] = node->bounds.min.x;
+	queuedMinY_[numQueuedItems_] = node->bounds.min.y;
+	queuedMaxX_[numQueuedItems_] = node->bounds.max.x;
+	queuedMaxY_[numQueuedItems_] = node->bounds.max.y;
+	numQueuedItems_++;
+}
+
+#ifndef QUAD_TREE_DISABLE_SIMD
+void QuadTree::Private::processAxis_SIMD(
+		QuadTreeTraversal &td,
+		uint8_t &intersectMask,
+		int32_t axisIdx) {
+	using namespace regen::simd;
+	Register min, max;
+	{
+		// d_i = corners[i].dot(axis.dir);
+		BatchOf_Vec2f axisDir(td.projection->axes[axisIdx].dir);
+		auto d0 = add_ps(
+				mul_ps(td.batchBoundsMinX.c, axisDir.x),
+				mul_ps(td.batchBoundsMinY.c, axisDir.y));
+		auto d1 = add_ps(
+				mul_ps(td.batchBoundsMaxX.c, axisDir.x),
+				mul_ps(td.batchBoundsMinY.c, axisDir.y));
+		auto d2 = add_ps(
+				mul_ps(td.batchBoundsMinX.c, axisDir.x),
+				mul_ps(td.batchBoundsMaxY.c, axisDir.y));
+		auto d3 = add_ps(
+				mul_ps(td.batchBoundsMaxX.c, axisDir.x),
+				mul_ps(td.batchBoundsMaxY.c, axisDir.y));
+
+		// min = min{d0, d1, d2, d3}
+		min = min_ps(min_ps(d0, d1), min_ps(d2, d3));
+		// max = max{d0, d1, d2, d3}
+		max = max_ps(max_ps(d0, d1), max_ps(d2, d3));
+	}
+
+	// Compute `(max_n < axis.min) || (axis.max < min_n)`
+	BatchOf_float axisMin(td.projection->axes[axisIdx].min);
+	BatchOf_float axisMax(td.projection->axes[axisIdx].max);
+	auto sep = cmp_or(
+			cmp_lt(max, axisMin.c),
+			cmp_lt(axisMax.c, min));
+
+	// Convert mask to bits
+	uint8_t sepMask = movemask_ps(sep); // 1 = separated
+	intersectMask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
+}
+
+template<uint32_t NumAxes>
+void QuadTree::Private::processAxes_SIMD(QuadTreeTraversal &td, uint8_t &mask) {
+    if constexpr (NumAxes >= 1u) {
+        processAxis_SIMD(td, mask, 0);
+#ifdef QUAD_TREE_MASK_EARLY_EXIT
+        if (mask == 0) return;
+#endif
+    }
+    if constexpr (NumAxes >= 2u) {
+        processAxis_SIMD(td, mask, 1);
+#ifdef QUAD_TREE_MASK_EARLY_EXIT
+        if (mask == 0) return;
+#endif
+    }
+    if constexpr (NumAxes >= 3u) {
+        processAxis_SIMD(td, mask, 2);
+#ifdef QUAD_TREE_MASK_EARLY_EXIT
+        if (mask == 0) return;
+#endif
+    }
+    if constexpr (NumAxes >= 4u) {
+        processAxis_SIMD(td, mask, 3);
+#ifdef QUAD_TREE_MASK_EARLY_EXIT
+        if (mask == 0) return;
+#endif
+    }
+    if constexpr (NumAxes >= 5u) {
+        processAxis_SIMD(td, mask, 4);
+    }
+}
+#endif
+
+template<uint32_t NumAxes>
+void QuadTree::Private::processQueuedNodes(QuadTreeTraversal &td) {
+	// Process numQueuedItems_ nodes from the queue, performing an intersection test with the shape's projection;
+	// and also writing nodeIdx to successor array if the test succeeds.
+	int32_t nodeIdx = 0;
+#ifndef QUAD_TREE_DISABLE_SIMD
+	if (numQueuedItems_ >= 64) {
+	#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+		int32_t batchCount = 0;
+	#endif
+
+		for (; nodeIdx + regen::simd::RegisterWidth <= static_cast<int32_t>(numQueuedItems_);
+			   nodeIdx += regen::simd::RegisterWidth) {
+			// Load the bounds of the node at nodeIdx into the SIMD registers
+			td.batchBoundsMinX.load_aligned(queuedMinX_.data() + nodeIdx);
+			td.batchBoundsMinY.load_aligned(queuedMinY_.data() + nodeIdx);
+			td.batchBoundsMaxX.load_aligned(queuedMaxX_.data() + nodeIdx);
+			td.batchBoundsMaxY.load_aligned(queuedMaxY_.data() + nodeIdx);
+
+			uint8_t mask = regen::simd::RegisterMask;
+			processAxes_SIMD<NumAxes>(td, mask);
+#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+			batchResults_[batchCount++] = mask;
+#else
+			// add nodeIdx to successorIdx_ for each bit set in intersectMask
+			while (mask) {
+				int bitIndex = __builtin_ctz(mask);
+				mask &= (mask - 1);
+				successorIdx_[numSucceedingItems_++] = nodeIdx + bitIndex;
+			}
+#endif
+		}
+
+#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+		for (int32_t batchIdx = 0; batchIdx < batchCount; ++batchIdx) {
+			uint8_t mask = batchResults_[batchIdx];
+			int32_t startIdx = batchIdx * regen::simd::RegisterWidth;
+			while (mask) {
+				int bitIndex = __builtin_ctz(mask);
+				mask &= (mask - 1);
+				successorIdx_[numSucceedingItems_++] = startIdx + bitIndex;
+			}
+		}
+#endif
+	}
+#endif
+	processQueuedNodes_scalar(td, nodeIdx);
+#ifdef QUAD_TREE_DEBUG
+	num2DTests_ += numQueuedItems_;
+#endif
+	numQueuedItems_ = 0;
+}
+
+template<uint32_t NumAxes>
+void QuadTree::Private::intersectionLoop(QuadTreeTraversal &td) {
+	// Process the queued nodes, performing an intersection test with the shape's projection;
+	// and also writing nodeIdx to successor array if the test succeeds.
+	while (numQueuedItems_ > 0) {
+		currIdx_ = nextIdx_;
+		nextIdx_ = 1 - nextIdx_;
+		processQueuedNodes<NumAxes>(td);
+		processSuccessors(td);
+	}
+}
+
+void QuadTree::Private::processQueuedNodes_scalar(QuadTreeTraversal &td, int32_t nodeIdx) {
+	for (; nodeIdx < static_cast<int32_t>(numQueuedItems_); nodeIdx++) {
+		float minX = queuedMinX_[nodeIdx];
+		float minY = queuedMinY_[nodeIdx];
+		float maxX = queuedMaxX_[nodeIdx];
+		float maxY = queuedMaxY_[nodeIdx];
+		td.corners[0].x = minX;
+		td.corners[0].y = minY;
+		td.corners[1].x = maxX;
+		td.corners[1].y = minY;
+		td.corners[2].x = minX;
+		td.corners[2].y = maxY;
+		td.corners[3].x = maxX;
+		td.corners[3].y = maxY;
+
+		bool hasIntersection = true;
+		for (const auto &axis: td.projection->axes) {
+			td.projections[0] = td.corners[0].dot(axis.dir);
+			td.projections[1] = td.corners[1].dot(axis.dir);
+			td.projections[2] = td.corners[2].dot(axis.dir);
+			td.projections[3] = td.corners[3].dot(axis.dir);
+
+			auto [minA, maxA] = std::minmax_element(
+					td.projections.begin(), td.projections.end());
+			if (*maxA < axis.min || axis.max < *minA) {
+				hasIntersection = false;
+				break; // no need to check further axes
+			}
+		}
+
+		// write to successor array
+		successorIdx_[numSucceedingItems_] = nodeIdx;
+		// but only increment the count if the projection intersects with the node
+		numSucceedingItems_ += int32_t(hasIntersection);
+	}
+}
+
+void QuadTree::Private::processSuccessors(QuadTreeTraversal &td) {
+	// this function implements a scalar loop over all nodes that passed the intersection test
+	// in the current iteration:
+	// (1) if inner node, then add children to the queue for the next iteration.
+	// (2) if leaf node, then process the shapes in the node.
+
+	for (uint32_t i = 0; i < numSucceedingItems_; i++) {
+		auto successorIdx = successorIdx_[i];
+		auto successor = queuedNodes_[currIdx_][successorIdx];
+
+		if (successor->isLeaf()) {
+			processLeafNode(td, successor);
+		} else {
+			// add child nodes to the queue for the next iteration
+			addNodeToQueue(successor->children[0]);
+			addNodeToQueue(successor->children[1]);
+			addNodeToQueue(successor->children[2]);
+			addNodeToQueue(successor->children[3]);
+		}
+	}
+	numSucceedingItems_ = 0;
+}
+
+void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
+	// 3D intersection test with the shapes in the node
+
+	if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_NONE) {
+		// no intersection test, just call the callback
+		for (const auto &quadShape: leaf->shapes) {
+			if (!quadShape->visited) {
+				quadShape->visited = true;
+				td.callback(*quadShape->shape.get(), td.userData);
+			}
+		}
+	} else if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_ALL) {
+		// test all shapes, even if they are not close to the shape's projection origin
+		for (const auto &quadShape: leaf->shapes) {
+			if (!quadShape->visited) {
+				quadShape->visited = true;
+				if (quadShape->shape->hasIntersectionWith(*td.shape)) {
+					td.callback(*quadShape->shape.get(), td.userData);
+				}
+#ifdef QUAD_TREE_DEBUG
+				num3DTests_ += 1;
+#endif
+			}
+		}
+	} else if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_CLOSEST) {
+		// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
+		// This is a good approach because:
+		//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
+		//     (2) most false positives are close to camera position in case camera is above/below the ground level
+		for (const auto &quadShape: leaf->shapes) {
+			// skip shapes that are already visited in this frame
+			if (quadShape->visited) { continue; }
+			quadShape->visited = true;
+
+			float distSq = (td.basePoint - leaf->bounds.center()).lengthSquared();
+			if (distSq > td.tree->closeDistanceSquared_) {
+				td.callback(*quadShape->shape.get(), td.userData);
+			} else {
+				if (quadShape->shape->hasIntersectionWith(*td.shape)) {
+					td.callback(*quadShape->shape.get(), td.userData);
+				}
+#ifdef QUAD_TREE_DEBUG
+				num3DTests_ += 1;
+#endif
+			}
+		}
+	}
+}
+
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
-		void (*callback)(const BoundingShape&, void*),
+		void (*callback)(const BoundingShape &, void *),
 		void *userData) {
 	if (!root_) return;
 	if (root_->isLeaf() && root_->shapes.empty()) return;
 
+	auto &origin = shape.getShapeOrigin();
 	// project the shape onto the xz-plane for faster intersection tests
 	// with the quad tree nodes.
 	OrthogonalProjection shape_projection(shape);
-	std::stack<Node *> stack;
-	stack.push(root_);
+	QuadTreeTraversal td;
+	td.tree = this;
+	td.shape = &shape;
+	td.projection = &shape_projection;
+	td.basePoint = Vec2f(origin.x, origin.z);
+	td.callback = callback;
+	td.userData = userData;
 
 #ifdef QUAD_TREE_DEBUG
-    using std::chrono::high_resolution_clock;
-    using std::chrono::duration_cast;
-    using std::chrono::duration;
-    using std::chrono::milliseconds;
-	GLuint num2DTests = 0;
-	GLuint num3DTests = 0;
-	GLuint num3DPruned = 0;
+	using std::chrono::high_resolution_clock;
+	using std::chrono::duration_cast;
+	using std::chrono::duration;
+	using std::chrono::milliseconds;
+	priv_->num2DTests_ = 0;
+	priv_->num3DTests_ = 0;
 	auto t1 = high_resolution_clock::now();
 #endif
-	auto &origin = shape.getShapeOrigin();
-	Vec2f basePoint(origin.x, origin.z);
 
 	// reset intersection state of items.
+	// this is done to avoid duplicates as each item can be in multiple nodes.
 	for (const auto &item: items_) {
 		item->visited = false;
 	}
 
-	while (!stack.empty()) {
-		Node *node = stack.top();
-		stack.pop();
-#ifdef QUAD_TREE_DEBUG
-		num2DTests++;
-#endif
-		if (node->isLeaf()) {
-			// 3D intersection test with the shapes in the node
-			for (const auto &quadShape: node->shapes) {
-				// skip shapes that are already visited in this frame
-				if (quadShape->visited) { continue; }
-				quadShape->visited = true;
+	priv_->numQueuedItems_ = 0;
+	priv_->numSucceedingItems_ = 0;
+	if (root_->isLeaf()) {
+		priv_->addNodeToQueue(root_);
+	} else {
+		// add the root node's children to the queue
+		priv_->addNodeToQueue(root_->children[0]);
+		priv_->addNodeToQueue(root_->children[1]);
+		priv_->addNodeToQueue(root_->children[2]);
+		priv_->addNodeToQueue(root_->children[3]);
+	}
 
-				if (testMode3D_ == QUAD_TREE_3D_TEST_NONE) {
-					// no intersection test, just call the callback
-					callback(*quadShape->shape.get(), userData);
-				}
-				else if (testMode3D_ == QUAD_TREE_3D_TEST_ALL) {
-					// test all shapes, even if they are not close to the shape's projection origin
-					if (quadShape->shape->hasIntersectionWith(shape)) {
-						callback(*quadShape->shape.get(), userData);
-					}
-					#ifdef QUAD_TREE_DEBUG
-					else {
-						num3DPruned += 1;
-					}
-					num3DTests++;
-					#endif
-				}
-				else if (testMode3D_ == QUAD_TREE_3D_TEST_CLOSEST) {
-					// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
-					// This is a good approach because:
-					//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
-					//     (2) most false positives are close to camera position in case camera is above/below the ground level
-					float distSq = (basePoint - node->bounds.center()).lengthSquared();
-					if (distSq > closeDistanceSquared_) {
-						callback(*quadShape->shape.get(), userData);
-					}
-					else {
-						if (quadShape->shape->hasIntersectionWith(shape)) {
-							callback(*quadShape->shape.get(), userData);
-						}
-						#ifdef QUAD_TREE_DEBUG
-						else {
-							num3DPruned += 1;
-						}
-						num3DTests++;
-						#endif
-					}
-				} else {
-					REGEN_WARN("Unknown 3D test mode: " << testMode3D_);
-				}
-			}
+	if (shape_projection.type == OrthogonalProjection::Type::CIRCLE) {
+		// TODO: implement intersection test with circle
+		REGEN_ERROR("intersection test with circle is not supported.");
+		return;
+	} else {
+		if (shape_projection.axes.size() == 4) {
+			priv_->intersectionLoop<4>(td);
+		} else if (shape_projection.axes.size() == 5) {
+			priv_->intersectionLoop<5>(td);
 		} else {
-			// Add the children to the stack
-			pushIntersections(stack, node->children, shape_projection);
+			REGEN_ERROR("unsupported number of axes for intersection test: " << shape_projection.axes.size());
+			return;
 		}
 	}
 
@@ -703,8 +790,8 @@ void QuadTree::foreachIntersection(
 	auto t2 = std::chrono::high_resolution_clock::now();
 	auto dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
 	times.push_back(dt);
-	numTests_2d.push_back(num2DTests);
-	numTests_3d.push_back(num3DTests);
+	numTests_2d.push_back(priv_->num2DTests_);
+	numTests_3d.push_back(priv_->num3DTests_);
 	if (times.size() > 100) {
 		long avgTime = 0;
 		long totalTime = 0;
@@ -719,14 +806,14 @@ void QuadTree::foreachIntersection(
 		avg2DTests /= times.size();
 		avg3DTests /= times.size();
 		REGEN_INFO("QuadTree:"
-				<< " t0: " << std::fixed << std::setprecision(4)
-				<< static_cast<float>(avgTime) / 1000.0f << "ms"
-				<< " t0-t100: " << std::fixed << std::setprecision(2)
-				<< static_cast<float>(totalTime) / 1000.0f << "ms"
-				<< " #avg-2d: "
-				<< avg2DTests
-				<< " #avg-3d: "
-				<< avg3DTests);
+						   << " t0: " << std::fixed << std::setprecision(4)
+						   << static_cast<float>(avgTime) / 1000.0f << "ms"
+						   << " t0-t100: " << std::fixed << std::setprecision(2)
+						   << static_cast<float>(totalTime) / 1000.0f << "ms"
+						   << " #nodes: " << numNodes_
+						   << " #leaves: " << numLeaves_
+						   << " #avg-2d: " << avg2DTests
+						   << " #avg-3d: " << avg3DTests);
 		times.clear();
 		numTests_2d.clear();
 		numTests_3d.clear();
@@ -779,15 +866,17 @@ void QuadTree::update(float dt) {
 	auto reInit = (root_ == nullptr || newBounds_ != root_->bounds);
 	if (reInit) {
 		// free the root node and start all over
-		if(root_) freeNode(root_);
+		if (root_) freeNode(root_);
 		root_ = createNode(newBounds_.min, newBounds_.max);
+		numNodes_ = 1;
+		numLeaves_ = 1;
 
 		for (auto &item: items_) {
 			item->nodes.clear();
 			insert1(root_, item, true);
 		}
 	}
-	// else remove/insert the changed items
+		// else remove/insert the changed items
 	else {
 		for (auto item: changedItems_) {
 			removeFromNodes(item);
@@ -796,7 +885,7 @@ void QuadTree::update(float dt) {
 	}
 	// finally insert the new items
 	for (auto item: newItems_) {
-		if(insert1(root_, item, true)) {
+		if (insert1(root_, item, true)) {
 			shapeToItem_[item->shape.get()] = item;
 			items_.push_back(item);
 		} else {
@@ -805,6 +894,23 @@ void QuadTree::update(float dt) {
 		}
 	}
 	newItems_.clear();
+
+	// update buffer sizes for intersection tests.
+	// at max we will have num-leaves nodes in the queue.
+	// here we will resize the arrays to the next power of two to have sufficient space.
+	auto nextBufferSize = math::nextPow2(numLeaves_);
+	if (nextBufferSize > priv_->queuedMinX_.size()) {
+		priv_->queuedNodes_[0].resize(nextBufferSize);
+		priv_->queuedNodes_[1].resize(nextBufferSize);
+		priv_->queuedMinX_.resize(nextBufferSize);
+		priv_->queuedMinY_.resize(nextBufferSize);
+		priv_->queuedMaxX_.resize(nextBufferSize);
+		priv_->queuedMaxY_.resize(nextBufferSize);
+		priv_->successorIdx_.resize(nextBufferSize);
+#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+		priv_->batchResults_.resize(nextBufferSize / regen::simd::RegisterWidth + 1);
+#endif
+	}
 
 	// make the visibility computations
 	updateVisibility();
@@ -862,11 +968,11 @@ void QuadTree::debugDraw(DebugInterface &debug) const {
 				break;
 			}
 			default:
-				for (size_t i=0; i<points.size(); i++) {
+				for (size_t i = 0; i < points.size(); i++) {
 					debug.drawLine(
-						toVec3(points[i], h),
-						toVec3(points[(i+1)%points.size()], h),
-						lineColor);
+							toVec3(points[i], h),
+							toVec3(points[(i + 1) % points.size()], h),
+							lineColor);
 				}
 				break;
 		}

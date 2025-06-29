@@ -135,19 +135,17 @@ void SpatialIndex::updateVisibilityWithCamera(IndexCamera &ic, const BoundingSha
 		foreachIntersection(camera_shape, SpatialIndex::handleIntersection_sorted, &traversalData);
 		for (auto &indexShape: ic.indexShapes_) {
 			auto &distances = indexShape->instanceDistances_;
-			if (distances.empty()) {
-				continue;
-			}
-			std::sort(distances.begin(), distances.end(),
-					  [](const IndexedShape::ShapeDistance &a, const IndexedShape::ShapeDistance &b) {
-						  return a.distance < b.distance;
-					  });
+			if (distances.empty()) { continue; }
+			std::ranges::sort(distances, {}, &IndexedShape::ShapeDistance::distance);
+
+			indexShape->u_instanceCount_ = static_cast<unsigned int>(distances.size());
 			auto mapped_data = indexShape->mappedInstanceIDs();
-			for (auto &distance: distances) {
-				indexShape->u_instanceCount_ += 1;
-				mapped_data[indexShape->u_instanceCount_] = distance.shape->instanceID();
-				mapped_data[0] = indexShape->u_instanceCount_;
-			}
+			// convention: first element is the number of visible instances
+			mapped_data[0] = indexShape->u_instanceCount_;
+			std::transform(
+				distances.begin(), distances.end(),
+				mapped_data + 1,
+				[](const auto &d) { return d.shape->instanceID(); });
 		}
 	} else {
 		foreachIntersection(camera_shape, handleIntersection_unsorted, &traversalData);

@@ -6,6 +6,7 @@
 #include <regen/shapes/spatial-index.h>
 #include <regen/shapes/bounds.h>
 #include <regen/shapes/orthogonal-projection.h>
+#include "regen/utility/aligned-array.h"
 
 namespace regen {
 	/**
@@ -79,7 +80,13 @@ namespace regen {
 		 * @brief Get the number of nodes in the quad tree
 		 * @return The number of nodes
 		 */
-		unsigned int numNodes() const;
+		unsigned int numNodes() const { return numNodes_; }
+
+		/**
+		 * @brief Get the number of leaves in the quad tree
+		 * @return The number of leaves
+		 */
+		unsigned int numLeaves() const { return numLeaves_; }
 
 		/**
 		 * @brief Set the minimum size of a node
@@ -124,6 +131,9 @@ namespace regen {
 		void debugDraw(DebugInterface &debug) const override;
 
 	protected:
+		struct Private;
+		Private *priv_;
+
 		Node *root_ = nullptr;
 		std::unordered_map<BoundingShape*, Item*> shapeToItem_;
 		std::vector<Item *> items_;
@@ -131,6 +141,8 @@ namespace regen {
 		std::stack<Node *> nodePool_;
 		std::stack<Item *> itemPool_;
 		float minNodeSize_ = 0.1f;
+		uint32_t numNodes_ = 0;
+		uint32_t numLeaves_ = 0;
 
 		TestMode_3D testMode3D_ = QUAD_TREE_3D_TEST_CLOSEST;
 		float closeDistanceSquared_ = 20.0f * 20.0f; // heuristic threshold for distance to camera position
