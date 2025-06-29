@@ -1,4 +1,4 @@
-#include "SpinThreadPool.h"
+#include "spin-thread-pool.h"
 #include <regen/utility/logging.h>
 
 using namespace regen;
@@ -6,7 +6,6 @@ using namespace regen;
 SpinThreadPool::SpinThreadPool(unsigned int numThreads) :
 		workers(numThreads),
 		shutdown(false) {
-	REGEN_INFO("num threads: " << numThreads);
 	for (unsigned int i = 0; i < numThreads; ++i) {
 		workers[i].thread = std::thread([this, i] {
 			while (!shutdown.load()) {

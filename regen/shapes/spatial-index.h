@@ -6,7 +6,6 @@
 #include <regen/shapes/indexed-shape.h>
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
-#include "regen/utility/ThreadPool.h"
 #include <regen/scene/loading-context.h>
 
 namespace regen {
@@ -128,7 +127,6 @@ namespace regen {
 		virtual void debugDraw(DebugInterface &debug) const = 0;
 
 	protected:
-		ThreadPool threadPool_;
 		struct IndexCamera {
 			ref_ptr<Camera> camera;
 			std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;

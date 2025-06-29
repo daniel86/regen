@@ -7,6 +7,14 @@
 #include <stdexcept>
 
 namespace regen {
+	/**
+	 * @brief A custom allocator that provides aligned memory allocation.
+	 * This allocator uses posix_memalign to allocate memory with a specified alignment.
+	 * It is designed to be used with types that require specific alignment, such as SIMD types.
+	 *
+	 * @tparam T The type of elements in the array.
+	 * @tparam Alignment The alignment in bytes (must be a power of two).
+	 */
 	template <typename T, std::size_t Alignment>
 	class AlignedAllocator {
 	public:
@@ -15,9 +23,15 @@ namespace regen {
 		AlignedAllocator() noexcept = default;
 
 		template <typename U>
-		AlignedAllocator(const AlignedAllocator<U, Alignment>&) noexcept {}
+		explicit AlignedAllocator(const AlignedAllocator<U, Alignment>&) noexcept {}
 
-		T* allocate(std::size_t n) {
+		/**
+		 * Allocates memory for n objects of type T with the specified alignment.
+		 * @param n The number of objects to allocate.
+		 * @return Pointer to the allocated memory.
+		 * @throws std::bad_alloc if memory allocation fails.
+		 */
+		[[nodiscard]] T* allocate(std::size_t n) {
 			void* ptr = nullptr;
 			if (posix_memalign(&ptr, Alignment, n * sizeof(T)) != 0) {
 				throw std::bad_alloc();

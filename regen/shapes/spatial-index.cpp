@@ -12,8 +12,7 @@
 
 using namespace regen;
 
-SpatialIndex::SpatialIndex()
-		: threadPool_(std::max(2u, std::thread::hardware_concurrency()) - 2u) {
+SpatialIndex::SpatialIndex() {
 }
 
 void SpatialIndex::addToIndex(const ref_ptr<BoundingShape> &shape) {

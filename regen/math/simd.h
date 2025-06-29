@@ -90,7 +90,9 @@ namespace regen::simd {
 	inline __m256 cmp_neq(const __m256 &a, const __m256 &b) {
 		return _mm256_cmp_ps(a, b, _CMP_NEQ_OQ);
 	}
-	inline __m256 cmp_or(const __m256 &a, const __m256 &b) { return _mm256_or_ps(a, b); }
+	inline __m256 cmp_or(const __m256 &a, const __m256 &b) {
+		return _mm256_or_ps(a, b);
+	}
 
 	inline __m256i cvttps_epi32(const __m256 &a) { return _mm256_cvttps_epi32(a); }
 
