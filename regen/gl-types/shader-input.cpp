@@ -472,11 +472,6 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		inputSize_ = dataSize_bytes;
 		writeUnlockAll(writeClientData_(data));
 	} else if (data) {
-		// TODO: if the data is small, then we could do a check here with memcmp
-		//if (dataSize_bytes == inputSize_ && inputSize_ <= 128) {
-		//	auto mapped_r = mapClientDataRaw(ShaderData::READ);
-		//	if (memcmp(mapped_r.r, data, inputSize_) == 0) { return; }
-		//}
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
 	}
@@ -694,7 +689,9 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, GLboolean
 		// allocate memory for one slot, copy most recent data
 		auto mapped = in->mapClientData(ShaderData::READ);
 		cp->dataSlots_[0] = new byte[cp->inputSize_];
-		std::memcpy(cp->dataSlots_[0], mapped.r, cp->inputSize_);
+		if (copyData) {
+			std::memcpy(cp->dataSlots_[0], mapped.r, cp->inputSize_);
+		}
 	}
 	return cp;
 }
