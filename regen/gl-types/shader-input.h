@@ -510,7 +510,7 @@ namespace regen {
 		uint32_t dataTypeBytes_;
 		int32_t stride_;
 		uint32_t offset_;
-		uint32_t inputSize_;
+		uint32_t inputSize_ = 0u;
 		// This is the size in bytes of one element in the vertex buffer.
 		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
 		uint32_t elementSize_;
@@ -531,19 +531,15 @@ namespace regen {
 		bool transpose_;
 		ShaderData::MappingMode gpuUsage_ = ShaderData::READ;
 
-		struct SlotLock {
-			std::mutex lock;
-			std::condition_variable readerQ;
-			std::condition_variable writerQ;
-			int activeReaders = 0;
-			int activeWriters = 0;
-			int waitingWriters = 0;
-		};
 		// Note: marked as mutable because client data mapping must be allowed in const functions
 		//       for reading data, but mapping interacts with locks. Hence, locks must be mutable.
-		mutable std::array<byte *, 2> dataSlots_;
-		mutable std::array<SlotLock, 2> slotLocks_;
-		mutable std::atomic<int> lastDataSlot_ = 0;
+		mutable std::array<byte *, 2> dataSlots_ = {nullptr, nullptr};
+		// active slot for readers
+		mutable std::atomic<int> lastDataSlot_{0};
+		// per-slot reader/writer count
+		mutable std::atomic<uint32_t> readerCounts_[2] = {0u, 0u};
+		// protects against simultaneous writers
+		mutable std::atomic_flag writerFlags_[2] = {ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT};
 		mutable std::atomic<unsigned int> dataStamp_ = 0;
 
 		bool isConstant_;
@@ -561,15 +557,15 @@ namespace regen {
 
 		void unmapClientData(int mapMode, int slotIndex) const;
 
-		const byte *readLock(int slotIndex) const;
+		int readLock() const;
 
-		const byte *readLockTry(int dataSlot) const;
+		bool readLock_SingleBuffer() const;
 
 		void readUnlock(int slotIndex) const;
 
-		byte *writeLock(int slotIndex) const;
+		int writeLock() const;
 
-		byte *writeLockTry(int slotIndex) const;
+		bool writeLock_SingleBuffer() const;
 
 		void writeUnlock(int slotIndex, bool hasDataChanged) const;
 

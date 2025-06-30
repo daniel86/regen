@@ -182,6 +182,9 @@ void SpatialIndex::updateVisibility() {
 			//}
 		else {
 			// spot camera -> intersection test with view frustum
+			// TODO: In case of cascaded frustums, rather find enclosing frustum and only
+			//       do one intersection test. would probably give us more false positives, but
+			//       might still be faster.
 			auto &frustumShapes = ic.first->frustum();
 			for (auto &frustumShape: frustumShapes) {
 				updateVisibilityWithCamera(ic.second, frustumShape, frustumShapes.size() > 1);
