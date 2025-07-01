@@ -6,7 +6,9 @@
 
 using namespace regen;
 
+//#define REGEN_BUFFER_BLOCK_DEBUG
 #define BUFFER_BLOCK_DISABLE_PERSISTENT
+
 static bool usePersistentMapping(BufferUsage usage) {
 #ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
 	return false;
@@ -36,7 +38,6 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  ref_(other.ref_),
 		  requiredSize_(other.requiredSize_),
 		  stamp_(other.stamp_) {
-	// TODO: avoid duplicate copy of data in update!
 }
 
 BufferBlock::BufferBlock(const BufferObject &other)
@@ -44,7 +45,6 @@ BufferBlock::BufferBlock(const BufferObject &other)
 		  storageQualifier_(BufferBlock::BUFFER),
 		  memoryLayout_(BufferBlock::STD430),
 		  usePersistentMapping_(usePersistentMapping(usage_)) {
-	// TODO: avoid duplicate copy of data in update!
 	auto block = dynamic_cast<const BufferBlock *>(&other);
 	if (block != nullptr) {
 		storageQualifier_ = block->storageQualifier_;
@@ -54,15 +54,17 @@ BufferBlock::BufferBlock(const BufferObject &other)
 		requiredSize_ = block->requiredSize_;
 		stamp_ = block->stamp_;
 		ref_ = block->ref_;
-	}
-	else {
+	} else {
 		auto tbo = dynamic_cast<const TBO *>(&other);
 		if (tbo != nullptr) {
 			inputs_.emplace_back(tbo->input(), tbo->input()->name());
-			auto &bi = blockInputs_.emplace_back();
-			bi.input = tbo->input();
-			bi.offset = 0;
-			bi.lastStamp = tbo->input()->stamp();
+
+			auto uboInput = ref_ptr<BlockInput>::alloc();
+			uboInput->input = tbo->input();
+			uboInput->offset = 0;
+			uboInput->lastStamp = tbo->input()->stamp();
+			blockInputs_.emplace_back(uboInput);
+
 			if (!tbo->allocations().empty()) {
 				ref_ = tbo->allocations()[0];
 			}
@@ -77,64 +79,103 @@ void BufferBlock::setPersistentMapping(bool isPersistent) {
 }
 
 void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
-	auto &uboInput = blockInputs_.emplace_back();
-	uboInput.input = input;
-	uboInput.offset = 0;
-	uboInput.lastStamp = 0;
+	auto uboInput = ref_ptr<BlockInput>::alloc();
+	uboInput->input = input;
+	blockInputs_.emplace_back(uboInput);
 	inputs_.emplace_back(input, name);
 }
 
+void BufferBlock::resetSegments() {
+	// note: we never clear the segments_ vector, we just reset the counters
+	numNextSegments_ = 0;
+}
+
+BufferBlock::BlockSegment &BufferBlock::getLastSegment() {
+	return nextSegments_[numNextSegments_ - 1];
+}
+
+BufferBlock::BlockSegment &BufferBlock::getNextSegment() {
+	if (numNextSegments_ >= nextSegments_.size()) {
+		// allocate a new segment if we have no more space
+		numNextSegments_ += 1;
+		return nextSegments_.emplace_back();
+	} else {
+		return nextSegments_[numNextSegments_++];
+	}
+}
+
+
 void BufferBlock::updateBlockInputs() {
-	requiredSize_ = 0;
-	hasNewStamp_ = false;
+	bool lastChanged = false; // whether the last input changed or not
+	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
 	hasClientData_ = true;
-	for (auto &blockInput: blockInputs_) {
-		auto &in = blockInput.input;
-		// note we need to compute the "aligned" offset for std140 layout
-		auto baseSize = in->dataTypeBytes() * in->valsPerElement();
-		// Compute the alignment based on the type
-		auto baseAlignment = baseSize;
-		auto alignmentCount = 1u;
-		if (baseSize == 12u) { // vec3
-			baseAlignment = 16u;
-		} else if (baseSize == 48u) { // mat3
-			baseAlignment = 16;
-			alignmentCount = 3;
-		} else if (baseSize == 64u) { // mat4
-			baseAlignment = 16;
-			alignmentCount = 4;
-		} else if (in->numElements() > 1 && memoryLayout_ == MemoryLayout::STD140) {
-			// with STD140, each array element must be padded to a multiple of 16 bytes
-			baseAlignment = 16u;
-		}
-		// Align the offset to the required alignment
-		auto remainder = requiredSize_ % baseAlignment;
-		if (remainder != 0) {
-			requiredSize_ += baseAlignment - remainder;
-		}
-		blockInput.offset = requiredSize_;
-		if (in->numElements() > 1) {
-			requiredSize_ += baseAlignment * alignmentCount * in->numElements();
-		} else {
-			requiredSize_ += baseSize * in->numElements();
-		}
+	updatedSize_ = 0u; // total size of the inputs that have changed
+	resetSegments();
+
+	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(blockInputs_.size()); ++inputIdx) {
+		auto &blockInput = *blockInputs_[inputIdx].get();
+		hasNewSize = hasNewSize || (blockInput.inputSize != blockInput.input->inputSize());
+		hasClientData_ = hasClientData_ && blockInput.input->hasClientData();
+
+		// construct contiguous segments of inputs that have changed
 		if (blockInput.input->stamp() != blockInput.lastStamp) {
-			hasNewStamp_ = true;
-		}
-		if (!in->hasClientData()) {
-			hasClientData_ = false;
+			updatedSize_ += blockInput.input->inputSize();
+			if (lastChanged) {
+				// this input adds to the current segment
+				getLastSegment().append(blockInput, inputIdx);
+			} else {
+				// this input starts a new segment
+				getNextSegment().set(blockInput, inputIdx);
+			}
+			lastChanged = true;
+		} else {
+			lastChanged = false;
 		}
 	}
-	// Round total size up to next multiple of 16 (vec4 alignment for std140)
-	if (memoryLayout_ == MemoryLayout::STD140) {
-		static constexpr size_t std140Alignment = 16;
-		size_t remainder = requiredSize_ % std140Alignment;
-		if (remainder != 0) {
-			requiredSize_ += std140Alignment - remainder;
+
+	if (hasNewSize) {
+		requiredSize_ = 0;
+		for (auto &blockInput: blockInputs_) {
+			auto &in = blockInput->input;
+			// note we need to compute the "aligned" offset for std140 layout
+			auto baseSize = in->dataTypeBytes() * in->valsPerElement();
+			// Compute the alignment based on the type
+			auto baseAlignment = baseSize;
+			auto alignmentCount = 1u;
+			if (baseSize == 12u) { // vec3
+				baseAlignment = 16u;
+			} else if (baseSize == 48u) { // mat3
+				baseAlignment = 16;
+				alignmentCount = 3;
+			} else if (baseSize == 64u) { // mat4
+				baseAlignment = 16;
+				alignmentCount = 4;
+			} else if (in->numElements() > 1 && memoryLayout_ == MemoryLayout::STD140) {
+				// with STD140, each array element must be padded to a multiple of 16 bytes
+				baseAlignment = 16u;
+			}
+			// Align the offset to the required alignment
+			auto remainder = requiredSize_ % baseAlignment;
+			if (remainder != 0) {
+				requiredSize_ += baseAlignment - remainder;
+			}
+			blockInput->offset = requiredSize_;
+			if (in->numElements() > 1) {
+				blockInput->inputSize = baseAlignment * alignmentCount * in->numElements();
+			} else {
+				blockInput->inputSize = baseSize * in->numElements();
+			}
+			requiredSize_ += blockInput->inputSize;
+		}
+		// Round total size up to next multiple of 16 (vec4 alignment for std140)
+		if (memoryLayout_ == MemoryLayout::STD140) {
+			static constexpr size_t std140Alignment = 16;
+			size_t remainder = requiredSize_ % std140Alignment;
+			if (remainder != 0) {
+				requiredSize_ += std140Alignment - remainder;
+			}
 		}
 	}
-	// ignore stamps if there is no client data
-	hasNewStamp_ = hasNewStamp_ && hasClientData_;
 }
 
 void BufferBlock::updateStridedData(BlockInput &uboInput) {
@@ -183,23 +224,52 @@ void BufferBlock::updateStridedData(BlockInput &uboInput) {
 	}
 }
 
-void BufferBlock::copyBufferData(char *bufferData, bool forceUpdate, bool partialWrite) {
-	for (auto &uboInput: blockInputs_) {
-		if (!forceUpdate && partialWrite &&
-		    uboInput.input->stamp() == uboInput.lastStamp) { continue; }
-		uboInput.lastStamp = uboInput.input->stamp();
+void BufferBlock::copyBufferData1(char *bufferData, BlockInput &uboInput) {
+	updateStridedData(uboInput);
+	if (uboInput.alignedData) {
+		// NOTE: the buffer is mapped starting from the first segment, so we need to
+		//       adjust the offset to the first segment's offset.
+		//       However, ths is not the case for persistent mapping, where the whole
+		//       buffer is mapped and the offset is relative to the start of the buffer.
+		uint32_t offset = uboInput.offset;
+		if (!usePersistentMapping_) offset -= nextSegments_[0].offset;
+		memcpy(bufferData + offset,
+			   uboInput.alignedData, uboInput.alignedSize);
+	} else {
+		auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
+		uint32_t offset = uboInput.offset;
+		if (!usePersistentMapping_) offset -= nextSegments_[0].offset;
+		memcpy(bufferData + offset,
+			   mapped.r,
+			   uboInput.input->inputSize());
+	}
+}
 
-		if (!uboInput.input->hasClientData()) { continue; }
-		// copy the data to the buffer.
-		updateStridedData(uboInput);
-		if (uboInput.alignedData) {
-			memcpy(bufferData + uboInput.offset,
-				   uboInput.alignedData, uboInput.alignedSize);
-		} else {
-			auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
-			memcpy(bufferData + uboInput.offset,
-				   mapped.r,
-				   uboInput.input->inputSize());
+void BufferBlock::copyBufferData(char *bufferData, bool partialWrite) {
+	if (partialWrite) {
+		// iterate over the changed segments and copy only those
+		for (uint32_t segmentIdx = 0; segmentIdx < numNextSegments_; ++segmentIdx) {
+			auto &segment = nextSegments_[segmentIdx];
+
+			for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
+				auto &uboInput = *blockInputs_[inputIdx].get();
+				copyBufferData1(bufferData, uboInput);
+				uboInput.lastStamp = uboInput.input->stamp();
+			}
+		}
+	} else { // full write of mapped range
+		// get start and end indices from first and last segment
+		// note: in case of persistent mapping, we always must write the whole buffer range,
+		//       as the whole range is mapped.
+		uint32_t startIdx = (usePersistentMapping_ ? 0u : nextSegments_[0].startIdx);
+		uint32_t endIdx = (usePersistentMapping_ ?
+						   (blockInputs_.size() - 1) :
+						   nextSegments_[numNextSegments_ - 1].endIdx);
+
+		for (uint32_t inputIdx = startIdx; inputIdx <= endIdx; ++inputIdx) {
+			auto &uboInput = *blockInputs_[inputIdx].get();
+			copyBufferData1(bufferData, uboInput);
+			uboInput.lastStamp = uboInput.input->stamp();
 		}
 	}
 }
@@ -223,87 +293,170 @@ void BufferBlock::resize() {
 
 void BufferBlock::update(bool forceUpdate) {
 	// NOTE: this function is performance critical!
-	// TODO: Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
-	// TODO: Build ranges of changed attributes and update only those ranges if num ranges is small, i.e. 1 or 2,
-	//       and buffer is not mapped persistently.
+
 	if (!isBlockValid_) return;
 	updateBlockInputs();
 	bool needsResize = allocatedSize_ != requiredSize_;
-	bool needUpdate = hasNewStamp_ || needsResize || forceUpdate;
-	if (!needUpdate) { return; }
-	std::unique_lock<SpinLock> lock(lock_);
+	bool needsUpdate = (numNextSegments_ > 0 || forceUpdate) && hasClientData_;
+	if (!needsUpdate && !needsResize) { return; }
+#ifdef REGEN_BUFFER_BLOCK_DEBUG
+	auto t0 = std::chrono::high_resolution_clock::now();
+#endif
+	if (forceUpdate || needsResize) {
+		numNextSegments_ = 0;
+		auto &segment = getNextSegment();
+		segment.offset = 0;
+		segment.size = requiredSize_;
+		segment.startIdx = 0;
+		segment.endIdx = static_cast<uint32_t>(blockInputs_.size() - 1);
+	}
+	lock_.lock();
 
+#ifdef REGEN_BUFFER_BLOCK_DEBUG
+	auto t1 = std::chrono::high_resolution_clock::now();
+#endif
 	if (needsResize) {
 		resize();
 	}
-	if (!hasClientData_) {
-		// do not copy data if there is no client data
-		return;
-	}
-	static const bool partialUpdate = false;
-
-	// temporary disable persistent mapping until it is working nicely...
-	if (usePersistentMapping_) {
-		static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_COHERENT;
-		// TODO: Enable FLUSH_EXPLICIT + disable COHERENT -> should be faster!
-		//       However, I keep getting nullptr from glMapBufferRange with FLUSH_EXPLICIT on AMD GPU.
-		//static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_FLUSH_EXPLICIT;
-		if (!persistentMapping_.get()) {
-			persistentMapping_ = ref_ptr<BufferMapping>::alloc(
-					mappingFlags,
-					TRIPLE_BUFFER,
-					BufferMapping::RING_BUFFER);
-			// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
-			// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
-			//persistentMapping_->setAllowFrameDropping(true);
-
-			if(!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
-				REGEN_WARN("something went wrong with persistent mapping initialization.");
-				isBlockValid_ = false;
-			}
-		} else if (needsResize) {
-			if(!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
-				REGEN_WARN("something went wrong with persistent mapping re-initialization.");
-				isBlockValid_ = false;
-			}
-		}
-		auto *mappedData = persistentMapping_->beginWriteBuffer(partialUpdate);
-		if (mappedData) {
-			//RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
-			copyBufferData(static_cast<char *>(mappedData), forceUpdate, partialUpdate);
-			persistentMapping_->endWriteBuffer(ref_, glTarget_);
-			stamp_ += 1;
-		}
-		return;
-	} else {
-		if (persistentMapping_.get()) {
-			persistentMapping_ = {};
-		}
-		RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
-		uint32_t mappingFlags = MAP_WRITE;
-		if (!partialUpdate) {
-			mappingFlags |= MAP_INVALIDATE_RANGE;
-		}
-		void *bufferData = map(ref_, mappingFlags);
-		if (bufferData) {
-			copyBufferData(static_cast<char *>(bufferData), forceUpdate, partialUpdate);
-			unmap();
-			stamp_ += 1;
+#ifdef REGEN_BUFFER_BLOCK_DEBUG
+	auto t2 = std::chrono::high_resolution_clock::now();
+#endif
+	if (hasClientData_) {
+		if (usePersistentMapping_) {
+			updatePersistent(needsResize);
 		} else {
-			REGEN_WARN("failed to map buffer");
+			updateNonPersistent();
+		}
+	}
+#ifdef REGEN_BUFFER_BLOCK_DEBUG
+	auto t3 = std::chrono::high_resolution_clock::now();
+#endif
+
+#ifdef REGEN_BUFFER_BLOCK_DEBUG
+	static std::vector<long> resizeTimes;
+	static std::vector<long> copyTimes;
+	static std::vector<long> totalTimes;
+	auto resizeTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+	auto copyTime = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
+	auto totalTime = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t0).count();
+	resizeTimes.push_back(resizeTime);
+	copyTimes.push_back(copyTime);
+	totalTimes.push_back(totalTime);
+	if (copyTimes.size() > 1000) {
+		// print the average time for the last 100 frames
+		long resizeAvg = 0;
+		long copyAvg = 0;
+		long totalAvg = 0;
+		for (size_t i = 0; i < copyTimes.size(); ++i) {
+			resizeAvg += resizeTimes[i];
+			copyAvg += copyTimes[i];
+			totalAvg += totalTimes[i];
+		}
+		resizeAvg /= static_cast<long>(copyTimes.size());
+		copyAvg /= static_cast<long>(copyTimes.size());
+		totalAvg /= static_cast<long>(copyTimes.size());
+		REGEN_INFO("resize=" << std::fixed << std::setprecision(4)
+				<< static_cast<float>(resizeAvg) / 1000.0f << "ms " <<
+				"copy=" << std::fixed << std::setprecision(4)
+				<< static_cast<float>(copyAvg) / 1000.0f << "ms " <<
+				"total=" << std::fixed << std::setprecision(4)
+				<< static_cast<float>(totalAvg) / 1000.0f << "ms ");
+		resizeTimes.clear();
+		copyTimes.clear();
+		totalTimes.clear();
+	}
+#endif
+
+	lock_.unlock();
+}
+
+void BufferBlock::updateNonPersistent() {
+	if (persistentMapping_.get()) {
+		persistentMapping_ = {};
+	}
+	// selectively enable partial updates
+	bool partialUpdate = false;
+	if (numNextSegments_ > 1) {
+		// activate partial update if at least two non-contiguous segments
+		// of the buffer block are updated. and their size is less than 33% of the total size.
+		float updatedRatio = updatedSize_ / static_cast<float>(requiredSize_);
+		partialUpdate = (updatedRatio < 0.33f);
+	}
+
+	// map the changed segment range such that each updated segment is covered by the mapping.
+	const auto &firstSegment = nextSegments_[0];
+	const auto &lastSegment = nextSegments_[numNextSegments_ - 1];
+	auto mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
+
+	uint32_t mappingFlags = MAP_WRITE;
+	if (!partialUpdate) { mappingFlags |= MAP_INVALIDATE_RANGE; }
+
+	RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
+	void *bufferData = map(glTarget_,
+						   ref_->address() + firstSegment.offset,
+						   mapRangeSize,
+						   mappingFlags);
+	if (bufferData) {
+		copyBufferData(static_cast<char *>(bufferData), partialUpdate);
+		unmap();
+		stamp_ += 1;
+	} else {
+		REGEN_WARN("failed to map buffer");
+		GL_ERROR_LOG();
+		isBlockValid_ = false;
+	}
+}
+
+void BufferBlock::updatePersistent(bool needsResize) {
+	// TODO: selectively enable partial updates
+	static const bool partialUpdate = false;
+	static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_COHERENT;
+	// TODO: Enable FLUSH_EXPLICIT + disable COHERENT -> should be faster!
+	//       However, I keep getting nullptr from glMapBufferRange with FLUSH_EXPLICIT on AMD GPU.
+	//   - XXX: It could be that multiple copies of the buffer create a persistent mapping! but unlikely that's the problem
+	//   - Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
+	//static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_FLUSH_EXPLICIT;
+	if (!persistentMapping_.get()) {
+		persistentMapping_ = ref_ptr<BufferMapping>::alloc(
+				mappingFlags,
+				TRIPLE_BUFFER,
+				BufferMapping::RING_BUFFER);
+		// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
+		// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
+		//persistentMapping_->setAllowFrameDropping(true);
+
+		if (!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
+			REGEN_WARN("something went wrong with persistent mapping initialization.");
 			isBlockValid_ = false;
 		}
+	} else if (needsResize) {
+		if (!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
+			REGEN_WARN("something went wrong with persistent mapping re-initialization.");
+			isBlockValid_ = false;
+		}
+	}
+	auto *mappedData = persistentMapping_->beginWriteBuffer(partialUpdate);
+	if (mappedData) {
+		//RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
+		copyBufferData(static_cast<char *>(mappedData), partialUpdate);
+		persistentMapping_->endWriteBuffer(ref_, glTarget_);
+		stamp_ += 1;
 	}
 }
 
 void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBlockValid_) return;
 	if (bindingIndex_ != loc && bindingIndex_ != -1) {
+		// seems the buffer switched to another index!
+		// this is something the buffer manager should try to avoid, but there are some situations
+		// where it might be difficult.
+		// In case of doing the switch, we need to unbind the old binding index.
 		auto &actual = RenderState::get()->bufferRange(glTarget_).value(bindingIndex_);
 		if (actual.buffer_ == ref_->bufferID() &&
 			actual.offset_ == ref_->address() &&
 			actual.size_ == ref_->allocatedSize()) {
 			RenderState::get()->bufferRange(glTarget_).apply(bindingIndex_, BufferRange::nullReference());
+			bindingIndex_ = -1;
 		}
 	}
 	update();
@@ -409,4 +562,3 @@ std::istream &regen::operator>>(std::istream &in, BufferBlock::StorageQualifier 
 	}
 	return in;
 }
-

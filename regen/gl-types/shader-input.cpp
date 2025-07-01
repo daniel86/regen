@@ -12,15 +12,6 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #endif
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
-    #include <immintrin.h>
-    #define CPU_PAUSE() _mm_pause()
-#elif defined(__aarch64__) || defined(__arm__)
-    #define CPU_PAUSE() asm volatile("yield" ::: "memory")
-#else
-    #define CPU_PAUSE() ((void)0)
-#endif
-
 constexpr int SPIN_PAUSE_THRESHOLD = 20;
 
 using namespace regen;

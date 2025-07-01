@@ -162,6 +162,7 @@ namespace regen {
 				offset = other.offset;
 				lastStamp = other.lastStamp;
 				alignedSize = other.alignedSize;
+				inputSize = other.inputSize;
 			}
 
 			~BlockInput() {
@@ -171,29 +172,62 @@ namespace regen {
 			}
 
 			ref_ptr<ShaderInput> input;
-			unsigned int offset = 0;
-			unsigned int lastStamp = 0;
-			unsigned int alignedSize = 0;
+			uint32_t offset = 0;
+			uint32_t lastStamp = 0;
+			uint32_t alignedSize = 0;
+			uint32_t inputSize = 0;
 			byte *alignedData = nullptr;
+		};
+		struct BlockSegment {
+			uint32_t offset = 0; // offset in the buffer
+			uint32_t size = 0; // size of the segment in bytes
+			uint32_t startIdx = 0; // start index of the segment in the blockInputs vector
+			uint32_t endIdx = 0; // end index of the segment in the blockInputs vector
+
+			void set(BlockInput &input, uint32_t inputIdx) {
+				offset = input.offset;
+				size = input.inputSize;
+				startIdx = inputIdx;
+				endIdx = inputIdx;
+			}
+
+			void append(BlockInput &input, uint32_t inputIdx) {
+				size = input.offset - offset + input.inputSize;
+				endIdx = inputIdx;
+			}
 		};
 
 		bool usePersistentMapping_ = false;
 		ref_ptr<BufferMapping> persistentMapping_;
 
-		std::vector<BlockInput> blockInputs_;
+		std::vector<ref_ptr<BlockInput>> blockInputs_;
+		std::vector<BlockSegment> nextSegments_;
+		uint32_t numNextSegments_ = 0;
 		std::vector<NamedShaderInput> inputs_;
 		ref_ptr<BufferReference> ref_;
-		unsigned int requiredSize_ = 0;
-		unsigned int stamp_ = 0;
-		bool hasNewStamp_ = false;
+		uint32_t requiredSize_ = 0;
+		uint32_t updatedSize_ = 0;
+		uint32_t stamp_ = 0;
 		bool hasClientData_ = false;
 		bool isBlockValid_ = true;
 
+		inline void resetSegments();
+
+		inline BlockSegment& getLastSegment();
+
+		inline BlockSegment& getNextSegment();
+
 		void updateBlockInputs();
 
-		void copyBufferData(char *bufferData, bool forceUpdate, bool partialWrite);
+		void copyBufferData(char *bufferData, bool partialWrite);
+
+		void copyBufferData1(char *bufferData, BlockInput &uboInput);
 
 		void updateStridedData(BlockInput &uboInput);
+
+		void updateNonPersistent();
+
+		void updatePersistent(bool needsResize);
 
 		void resize();
 	};

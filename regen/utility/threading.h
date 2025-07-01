@@ -5,6 +5,15 @@
 #include <boost/thread/mutex.hpp>
 #include <thread>
 
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
+    #include <immintrin.h>
+    #define CPU_PAUSE() _mm_pause()
+#elif defined(__aarch64__) || defined(__arm__)
+    #define CPU_PAUSE() asm volatile("yield" ::: "memory")
+#else
+    #define CPU_PAUSE() ((void)0)
+#endif
+
 namespace regen {
 	/**
 	 * \brief A simple spin lock implementation.
@@ -16,8 +25,7 @@ namespace regen {
 	public:
 		void lock() {
 			while (flag.test_and_set(std::memory_order_acquire)) {
-				// Optional: pause to reduce contention
-				// std::this_thread::yield(); or _mm_pause();
+				CPU_PAUSE();
 			}
 		}
 

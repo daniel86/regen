@@ -444,6 +444,7 @@ namespace regen {
 		void apply(const ValueType &v) {
 			if (head_->v != v) {
 				apply_(v);
+				head_->v = v;
 			}
 		}
 
@@ -455,6 +456,7 @@ namespace regen {
 		void apply(GLuint index, const ValueType &v) {
 			if (headi_[index]->v != v) {
 				applyi_(index, v);
+				headi_[index]->v = v;
 			}
 		}
 
