@@ -15,17 +15,8 @@ using namespace regen;
 
 FBOState::FBOState(const ref_ptr<FBO> &fbo)
 		: State(), fbo_(fbo) {
-#ifdef USE_FBO_UBO
-	// TODO: there are some nodes in the scene graph with special handling for viewport and inverseViewport
-	//         uniforms. This includes BloomPass and FilterSequence. I think the problem is that FBOState appears
-	//         as a parent, and then the shader is compiled for a uniform block.
-	//         However, BloomPass and FilterSequence rather use gUniform* functions to set the uniforms, which
-	//         pretty sure does not work with uniform blocks.
-	joinShaderInput(fbo->uniforms());
-#else
 	joinShaderInput(fbo->viewport());
 	joinShaderInput(fbo->inverseViewport());
-#endif
 	for (uint32_t attachmentIdx = 0; attachmentIdx < fbo->colorTextures().size(); ++attachmentIdx) {
 		auto &attachment = fbo->colorTextures()[attachmentIdx];
 		shaderDefine(REGEN_STRING("HAS_ATTACHMENT_" << attachment->name()), "TRUE");

@@ -499,7 +499,7 @@ void LODState::createComputeShader() {
 		radixSort_->createResources();
 	}
 
-	{ // radix cull
+	{ // cull
 		// we store the 6 frustum planes in a UBO
 		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer");
 		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size()));
