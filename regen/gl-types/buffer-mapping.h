@@ -174,4 +174,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* REGEN_BUFFER_REFERENCE_H_ */
+#endif /* REGEN_BUFFER_MAPPING_H_ */

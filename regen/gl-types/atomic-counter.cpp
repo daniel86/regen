@@ -24,9 +24,8 @@ BoundingBoxCounter::BoundingBoxCounter() :
 }
 
 Bounds<Vec3f> &BoundingBoxCounter::updateBounds() {
-	RenderState::get()->atomicCounterBuffer().push(ref_->bufferID());
-	auto *ptr = (GLuint *) glMapBufferRange(
-			GL_ATOMIC_COUNTER_BUFFER,
+	auto *ptr = (GLuint *) glMapNamedBufferRange(
+			ref_->bufferID(),
 			ref_->address(),
 			sizeof(GLuint) * 6,
 			GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
@@ -37,8 +36,7 @@ Bounds<Vec3f> &BoundingBoxCounter::updateBounds() {
 		ptr[i] = initialData_[i];
 	}
 
-	glUnmapBuffer(GL_ATOMIC_COUNTER_BUFFER);
-	RenderState::get()->atomicCounterBuffer().pop();
+	glUnmapNamedBuffer(ref_->bufferID());
 
 	return bounds_;
 }

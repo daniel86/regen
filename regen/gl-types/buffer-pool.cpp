@@ -6,12 +6,11 @@ using namespace regen;
 
 GLuint BufferAllocator::createAllocator(GLuint poolIndex, GLuint size) {
 	auto usage = glBufferUsage((BufferUsage)(poolIndex % BUFFER_USAGE_LAST));
-	auto target = glBufferTarget((BufferTarget)(poolIndex / BUFFER_USAGE_LAST));
+	//auto target = glBufferTarget((BufferTarget)(poolIndex / BUFFER_USAGE_LAST));
 	GLuint ref;
 
 	glGenBuffers(1, &ref);
-	RenderState::get()->buffer(target).apply(ref);
-	glBufferData(target, size, nullptr, usage);
+	glNamedBufferData(ref, size, nullptr, usage);
 	return ref;
 }
 

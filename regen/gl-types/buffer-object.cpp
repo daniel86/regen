@@ -163,32 +163,36 @@ void BufferObject::bind(GLuint index) const {
 }
 
 void BufferObject::setBufferData(const ref_ptr<BufferReference> &ref, const GLuint *data) {
-	RenderState::get()->copyWriteBuffer().push(ref->bufferID());
-	glBufferSubData(GL_COPY_WRITE_BUFFER,
-					ref->address(),
-					ref->allocatedSize(),
-					data);
-	RenderState::get()->copyWriteBuffer().pop();
+	glNamedBufferSubData(
+			ref->bufferID(),
+			ref->address(),
+			ref->allocatedSize(),
+			data);
 }
 
-GLvoid *BufferObject::map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags) {
-	return glMapBufferRange(target, offset, size, accessFlags);
+GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, GLenum accessFlags) {
+	return glMapNamedBufferRange(
+			allocations_[0]->bufferID(),
+			allocations_[0]->address() + relativeOffset,
+			mappedSize,
+			accessFlags);
 }
 
-GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, GLenum accessFlags) const {
-	return glMapBufferRange(
-			glTarget_,
+GLvoid *BufferObject::map(GLenum accessFlags) {
+	return BufferObject::map(allocations_[0], accessFlags);
+}
+
+GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, GLenum accessFlags) {
+	return glMapNamedBufferRange(
+			ref->bufferID(),
 			ref->address(),
 			ref->allocatedSize(),
 			accessFlags);
 }
 
-void BufferObject::unmap(GLenum target) {
-	glUnmapBuffer(target);
-}
-
 void BufferObject::unmap() const {
-	glUnmapBuffer(glTarget_);
+	glUnmapNamedBuffer(
+			allocations_[0]->bufferID());
 }
 
 void BufferObject::copy(
@@ -197,17 +201,12 @@ void BufferObject::copy(
 		GLuint size,
 		GLuint offset,
 		GLuint toOffset) {
-	RenderState *rs = RenderState::get();
-	rs->copyReadBuffer().push(from);
-	rs->copyWriteBuffer().push(to);
-	glCopyBufferSubData(
-			GL_COPY_READ_BUFFER,
-			GL_COPY_WRITE_BUFFER,
+	glCopyNamedBufferSubData(
+			from,
+			to,
 			offset,
 			toOffset,
 			size);
-	rs->copyReadBuffer().pop();
-	rs->copyWriteBuffer().pop();
 }
 
 GLuint BufferObject::attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes) {

@@ -1,10 +1,3 @@
-/*
- * gl-enum.cpp
- *
- *  Created on: 24.02.2013
- *      Author: daniel
- */
-
 #include <boost/algorithm/string.hpp>
 #include <regen/utility/logging.h>
 

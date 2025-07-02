@@ -12,8 +12,6 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #endif
 
-constexpr int SPIN_PAUSE_THRESHOLD = 20;
-
 using namespace regen;
 
 NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
@@ -504,14 +502,11 @@ void ShaderInput::writeServerData(GLuint index) const {
 	auto mappedClientData = mapClientData(ShaderData::READ);
 	auto clientData = mappedClientData.r;
 	auto subDataStart = clientData + elementSize_ * index;
-
-	RenderState::get()->copyWriteBuffer().push(buffer_);
-	glBufferSubData(
-			GL_COPY_WRITE_BUFFER,
+	glNamedBufferSubData(
+			buffer_,
 			offset_ + stride_ * index,
 			elementSize_,
 			subDataStart);
-	RenderState::get()->copyWriteBuffer().pop();
 }
 
 void ShaderInput::writeServerData() const {
@@ -521,18 +516,16 @@ void ShaderInput::writeServerData() const {
 	auto clientData = mappedClientData.r;
 	auto count = std::max(numVertices_, numInstances_);
 
-	RenderState::get()->copyWriteBuffer().push(buffer_);
 	if (static_cast<uint32_t>(stride_) == elementSize_) {
-		glBufferSubData(GL_COPY_WRITE_BUFFER, offset_, inputSize_, clientData);
+		glNamedBufferSubData(buffer_, offset_, inputSize_, clientData);
 	} else {
 		GLuint offset = offset_;
 		for (GLuint i = 0; i < count; ++i) {
-			glBufferSubData(GL_COPY_WRITE_BUFFER, offset, elementSize_, clientData);
+			glNamedBufferSubData(buffer_, offset, elementSize_, clientData);
 			offset += stride_;
 			clientData += elementSize_;
 		}
 	}
-	RenderState::get()->copyWriteBuffer().pop();
 
 	bufferStamp_ = stamp();
 }
@@ -542,9 +535,8 @@ void ShaderInput::readServerData() {
 	auto mappedClientData = mapClientData(ShaderData::WRITE);
 	auto clientData = mappedClientData.w;
 
-	RenderState::get()->arrayBuffer().apply(buffer());
-	byte *serverData = (byte *) glMapBufferRange(
-			GL_ARRAY_BUFFER,
+	byte *serverData = (byte *) glMapNamedBufferRange(
+			buffer(),
 			offset_,
 			numVertices_ * stride_ + elementSize_,
 			GL_MAP_READ_BIT);
@@ -559,7 +551,7 @@ void ShaderInput::readServerData() {
 		}
 	}
 
-	glUnmapBuffer(GL_ARRAY_BUFFER);
+	glUnmapNamedBuffer(buffer());
 }
 
 GLboolean ShaderInput::hasClientData() const {

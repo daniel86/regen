@@ -89,7 +89,11 @@ namespace regen {
 		* map returns the pointer to the buffer. Otherwise it returns NULL.
 		* Make sure to bind before.
 		*/
-		static GLvoid *map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags);
+		//static GLvoid *map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags);
+
+		GLvoid *map(GLuint relativeOffset, GLuint mappedSize, GLenum accessFlags);
+
+		GLvoid *map(GLenum accessFlags);
 
 		/**
 		* Map a range of the buffer object into client's memory.
@@ -97,12 +101,7 @@ namespace regen {
 		* map returns the pointer to the buffer. Otherwise it returns NULL.
 		* Make sure to bind before.
 		*/
-		GLvoid *map(const ref_ptr<BufferReference> &ref, GLenum accessFlags) const;
-
-		/**
-		* Unmaps previously mapped data.
-		*/
-		static void unmap(GLenum target);
+		static GLvoid *map(const ref_ptr<BufferReference> &ref, GLenum accessFlags) ;
 
 		/**
 		* Unmaps previously mapped data.

@@ -169,15 +169,13 @@ void VideoRecorder::updateFrameBuffer() {
 	RenderState::get()->pixelPackBuffer().pop();
 
 	// map the other PBO to process its data
-	RenderState::get()->pixelPackBuffer().push(pbo_->ids()[nextIndex]);
-	auto *ptr = (GLubyte *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+	auto *ptr = (GLubyte *) glMapNamedBuffer(pbo_->ids()[nextIndex], GL_READ_ONLY);
 	if (ptr) {
 		auto nextFrame = encoder_->reserveFrame();
 		std::memcpy(nextFrame, ptr, frameSize_);
-		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		glUnmapNamedBuffer(pbo_->ids()[nextIndex]);
 		encoder_->pushFrame(nextFrame, elapsedTime_);
 	}
-	RenderState::get()->pixelPackBuffer().pop();
 
 	encoderFBO_->readBuffer().pop();
 	RenderState::get()->readFrameBuffer().pop();

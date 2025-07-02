@@ -195,9 +195,8 @@ void RadixSort::sort(RenderState *rs) {
 void RadixSort::printHistogram(RenderState *rs) {
 	// debug histogram
 	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
-	rs->shaderStorageBuffer().apply(globalHistogramBuffer_->blockReference()->bufferID());
-	auto histogramData = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	auto histogramData = (uint32_t *) glMapNamedBufferRange(
+			globalHistogramBuffer_->blockReference()->bufferID(),
 			globalHistogramBuffer_->blockReference()->address(),
 			globalHistogramBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -211,16 +210,15 @@ void RadixSort::printHistogram(RenderState *rs) {
 			}
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(globalHistogramBuffer_->blockReference()->bufferID());
 	}
 }
 
 void RadixSort::printInstanceMap(RenderState *rs) {
 	// debug sorted output
 	std::vector<double> distances(numKeys_);
-	rs->shaderStorageBuffer().apply(keyBuffer_->blockReference()->bufferID());
-	auto sortKeys = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	auto sortKeys = (uint32_t *) glMapNamedBufferRange(
+			keyBuffer_->blockReference()->bufferID(),
 			keyBuffer_->blockReference()->address(),
 			keyBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -228,13 +226,12 @@ void RadixSort::printInstanceMap(RenderState *rs) {
 		for (uint32_t i = 0; i < numKeys_; ++i) {
 			distances[i] = conversion::uintToFloat(sortKeys[i]);
 		}
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(keyBuffer_->blockReference()->bufferID());
 	}
 
 	auto idRef = valueBuffer_[outputIdx_]->blockReference();
-	rs->shaderStorageBuffer().apply(idRef->bufferID());
-	auto instanceIDs = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	auto instanceIDs = (uint32_t *) glMapNamedBufferRange(
+			idRef->bufferID(),
 			idRef->address(),
 			idRef->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -272,6 +269,6 @@ void RadixSort::printInstanceMap(RenderState *rs) {
 			REGEN_INFO(" " << sss.str());
 		}
 #endif
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(idRef->bufferID());
 	}
 }

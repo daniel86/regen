@@ -391,9 +391,7 @@ void BufferBlock::updateNonPersistent() {
 	uint32_t mappingFlags = MAP_WRITE;
 	if (!partialUpdate) { mappingFlags |= MAP_INVALIDATE_RANGE; }
 
-	RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
-	void *bufferData = map(glTarget_,
-						   ref_->address() + firstSegment.offset,
+	void *bufferData = map(firstSegment.offset,
 						   mapRangeSize,
 						   mappingFlags);
 	if (bufferData) {
@@ -437,7 +435,6 @@ void BufferBlock::updatePersistent(bool needsResize) {
 	}
 	auto *mappedData = persistentMapping_->beginWriteBuffer(partialUpdate);
 	if (mappedData) {
-		//RenderState::get()->buffer(glTarget_).apply(ref_->bufferID());
 		copyBufferData(static_cast<char *>(mappedData), partialUpdate);
 		persistentMapping_->endWriteBuffer(ref_, glTarget_);
 		stamp_ += 1;

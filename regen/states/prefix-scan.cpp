@@ -337,9 +337,8 @@ void PrefixScan::scan(RenderState *rs) {
 
 void PrefixScan::printHistogram(RenderState *rs) {
 	// debug histogram
-	rs->shaderStorageBuffer().apply(globalHistogramBuffer_->blockReference()->bufferID());
-	auto histogramData = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	auto histogramData = (uint32_t *) glMapNamedBufferRange(
+			globalHistogramBuffer_->blockReference()->bufferID(),
 			globalHistogramBuffer_->blockReference()->address(),
 			globalHistogramBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -350,6 +349,6 @@ void PrefixScan::printHistogram(RenderState *rs) {
 			sss << histogramData[i] << " ";
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(globalHistogramBuffer_->blockReference()->bufferID());
 	}
 }

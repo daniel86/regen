@@ -362,9 +362,8 @@ void BoidsGPU::simulate(RenderState *rs, double boidTimeDelta) {
 }
 
 void BoidsGPU::printOffsets(RenderState *rs) {
-	rs->shaderStorageBuffer().apply(gridOffsetBuffer_->blockReference()->bufferID());
-	auto offsetData = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	auto offsetData = (uint32_t *) glMapNamedBufferRange(
+			gridOffsetBuffer_->blockReference()->bufferID(),
 			gridOffsetBuffer_->blockReference()->address(),
 			gridOffsetBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -375,15 +374,14 @@ void BoidsGPU::printOffsets(RenderState *rs) {
 			sss << offsetData[i] << " ";
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(gridOffsetBuffer_->blockReference()->bufferID());
 	}
 }
 
 void BoidsGPU::debugVelocity(RenderState *rs) {
 #ifndef BOID_USE_HALF_VELOCITY
-	rs->shaderStorageBuffer().apply(velBuffer_->blockReference()->bufferID());
-	auto velData = (Vec3f *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	auto velData = (Vec3f *) glMapNamedBufferRange(
+			velBuffer_->blockReference()->bufferID(),
 			velBuffer_->blockReference()->address(),
 			velBuffer_->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -394,7 +392,7 @@ void BoidsGPU::debugVelocity(RenderState *rs) {
 			sss << velData[i] << " ";
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(velBuffer_->blockReference()->bufferID());
 	}
 #endif
 }
@@ -402,9 +400,9 @@ void BoidsGPU::debugVelocity(RenderState *rs) {
 void BoidsGPU::debugGridSorting(RenderState *rs) {
 	// read the key buffer
 	std::vector<uint32_t> sortKeys(numBoids_);
-	rs->shaderStorageBuffer().apply(((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->bufferID());
-	auto sortKeysData = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	uint32_t bufferID = ((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->bufferID();
+	auto sortKeysData = (uint32_t *) glMapNamedBufferRange(
+			bufferID,
 			((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->address(),
 			((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -415,13 +413,13 @@ void BoidsGPU::debugGridSorting(RenderState *rs) {
 			usedCells.insert(sortKeys[i]);
 		}
 		REGEN_INFO("Number of occupied cells: " << usedCells.size());
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(bufferID);
 	}
 
 	// second map the index buffer and test if the indices are sorted correctly
-	rs->shaderStorageBuffer().apply(((RadixSort*)radixSort_.get())->sortedIndexBuffer()->blockReference()->bufferID());
-	auto sortedIndexData = (uint32_t *) glMapBufferRange(
-			GL_SHADER_STORAGE_BUFFER,
+	bufferID = ((RadixSort*)radixSort_.get())->sortedIndexBuffer()->blockReference()->bufferID();
+	auto sortedIndexData = (uint32_t *) glMapNamedBufferRange(
+			bufferID,
 			((RadixSort*)radixSort_.get())->sortedIndexBuffer()->blockReference()->address(),
 			((RadixSort*)radixSort_.get())->sortedIndexBuffer()->blockReference()->allocatedSize(),
 			GL_MAP_READ_BIT);
@@ -446,6 +444,6 @@ void BoidsGPU::debugGridSorting(RenderState *rs) {
 		}
 		REGEN_INFO("Number of unique IDs: " << uniqueBoidIDs.size());
 		REGEN_INFO("Number of repeated IDs (should be 0): " << numBoids_ - uniqueBoidIDs.size());
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		glUnmapNamedBuffer(bufferID);
 	}
 }

@@ -66,26 +66,20 @@ BufferMapping::~BufferMapping() {
 		}
 		if (segment.mappedPtr) {
 			if (!mappedRing_) {
-				rs->buffer(glTarget_).push(ids_[i]);
-				glUnmapBuffer(glTarget_);
-				rs->buffer(glTarget_).pop();
+				glUnmapNamedBuffer(ids_[i]);
 			}
 			segment.mappedPtr = nullptr; // clear pointer
 		}
 	}
 	// cleanup the mapped buffer
 	if (mappedRing_) {
-		rs->buffer(glTarget_).push(ids_[0]);
-		glUnmapBuffer(glTarget_);
-		rs->buffer(glTarget_).pop();
+		glUnmapNamedBuffer(ids_[0]);
 		mappedRing_ = nullptr;
 	}
 }
 
 static inline void resetBuffer(RenderState *rs, GLenum target, uint32_t &id) {
-	rs->buffer(target).push(id);
-	glUnmapBuffer(target);
-	rs->buffer(target).pop();
+	glUnmapNamedBuffer(id);
 	// NOTE: this seems to be necessary on some drivers, e.g. AMD
 	glDeleteBuffers(1, &id);
 	glGenBuffers(1, &id);
@@ -176,13 +170,12 @@ bool BufferMapping::initializeMapping(GLuint numBytes, GLenum bufferTarget) {
 	int status = 0;
 
 	if (bufferType_ == RING_BUFFER) {
-		rs->buffer(bufferTarget).push(ids_[0]);
 		// initialize storage for the ring buffer: 3*segmentSize_ bytes
-		glBufferStorage(bufferTarget, storageSize_, nullptr, storageFlags_);
+		glNamedBufferStorage(ids_[0], storageSize_, nullptr, storageFlags_);
 		// if persistent mapping is requested, map the ring buffer
 		if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
-			mappedRing_ = (byte *) glMapBufferRange(
-					bufferTarget,
+			mappedRing_ = (byte *) glMapNamedBufferRange(
+					ids_[0],
 					0,
 					storageSize_,
 					storageFlags_);
@@ -196,17 +189,15 @@ bool BufferMapping::initializeMapping(GLuint numBytes, GLenum bufferTarget) {
 				status = 1; // error
 			}
 		}
-		rs->buffer(bufferTarget).pop();
 	} else {
 		for (uint32_t i = 0u; i < bufferSegments_.size(); ++i) {
 			auto &segment = bufferSegments_[i];
-			rs->buffer(bufferTarget).push(ids_[i]);
 			// initialize storage for the segment: segmentSize_ bytes
-			glBufferStorage(bufferTarget, segmentSize_, nullptr, storageFlags_);
+			glNamedBufferStorage(ids_[i], segmentSize_, nullptr, storageFlags_);
 			// if persistent mapping is requested, map the buffer segment
 			if (storageFlags_ & GL_MAP_PERSISTENT_BIT) {
-				segment.mappedPtr = (byte *) glMapBufferRange(
-						bufferTarget,
+				segment.mappedPtr = (byte *) glMapNamedBufferRange(
+						ids_[i],
 						0,
 						segmentSize_,
 						storageFlags_);
@@ -215,7 +206,6 @@ bool BufferMapping::initializeMapping(GLuint numBytes, GLenum bufferTarget) {
 					break;
 				}
 			}
-			rs->buffer(bufferTarget).pop();
 		}
 	}
 
@@ -288,18 +278,11 @@ void* BufferMapping::beginWriteBuffer(bool isPartialWrite) {
 		}
 
 		auto &writeBuffer = (bufferType_ == RING_BUFFER ? ids_[0] : ids_[writeBufferIndex_]);
-		rs->buffer(glTarget_).push(writeBuffer);
-		auto mapped = (byte *) glMapBufferRange(
-				glTarget_,
+		return (byte *) glMapNamedBufferRange(
+				writeBuffer,
 				writeSegment.offset,
 				segmentSize_,
 				mappingFlags);
-		if (mapped) {
-			return mapped;
-		} else {
-			rs->buffer(glTarget_).pop();
-			return nullptr;
-		}
 	}
 }
 
@@ -309,29 +292,26 @@ void BufferMapping::endWriteBuffer(const ref_ptr<BufferReference> &outputBuffer,
 	uint32_t readBuffer = (bufferType_ == RING_BUFFER ? ids_[0] : ids_[readBufferIndex_]);
 
 	if (!(storageFlags_ & MAP_PERSISTENT)) {
-		if (!glUnmapBuffer(glTarget_)) {
+		auto &writeBuffer = (bufferType_ == RING_BUFFER ? ids_[0] : ids_[writeBufferIndex_]);
+		if (!glUnmapNamedBuffer(writeBuffer)) {
 			REGEN_WARN("failed to unmap buffer!");
 		}
-		rs->buffer(glTarget_).pop();
 	}
 
 	// TODO: Below copy is not necessary! would be good to avoid it...
 	//       However, this might make synchronization more difficult, as the buffer can be used in several
 	//       places in the scene graph, and the fence would need to be placed after the last use of the buffer
 	//       in a scene graph traversal.
-	rs->buffer(outputTarget).apply(outputBuffer->bufferID());
-	rs->copyReadBuffer().push(readBuffer);
 	if (storageFlags_ & MAP_FLUSH_EXPLICIT) {
 		glFlushMappedBufferRange(GL_COPY_READ_BUFFER, readSegment.offset, segmentSize_);
 	}
 	auto copySize = std::min(outputBuffer->allocatedSize(), unalignedSegmentSize_);
-	glCopyBufferSubData(
-			GL_COPY_READ_BUFFER,
-			outputTarget,
+	glCopyNamedBufferSubData(
+			readBuffer,
+			outputBuffer->bufferID(),
 			readSegment.offset,
 			outputBuffer->address(),
 			copySize);
-	rs->copyReadBuffer().pop();
 	if (storageFlags_ & MAP_PERSISTENT) {
 		// Create a fence ust after glCopyBufferSubData such that we can wait for the GPU to finish
 		// before writing into mapped range again.
@@ -358,16 +338,13 @@ void BufferMapping::readBuffer(const ref_ptr<BufferReference> &inputReference, G
 	// TODO: need to add fence here too?
 
 	// copy data from inputReference to write buffer
-	rs->buffer(inputTarget).apply(inputReference->bufferID());
-	rs->copyWriteBuffer().push(writeBuffer);
-	glCopyBufferSubData(
-			inputTarget,
-			GL_COPY_WRITE_BUFFER,
+	glCopyNamedBufferSubData(
+			inputReference->bufferID(),
+			writeBuffer,
 			inputReference->address(),
 			writeSegment.offset,
 			unalignedSegmentSize_);
 	writeSegment.hasData = true;
-	rs->copyWriteBuffer().pop();
 
 	// copy data from read buffer to client data
 	if (readSegment.hasData) {
@@ -375,17 +352,15 @@ void BufferMapping::readBuffer(const ref_ptr<BufferReference> &inputReference, G
 			std::memcpy(storageClientData_, readSegment.mappedPtr, segmentSize_);
 		} else {
 			// map read buffer, copy data to client data, unmap read buffer
-			rs->copyReadBuffer().push(readBuffer);
-			auto mapped = (byte *) glMapBufferRange(
-					GL_COPY_READ_BUFFER,
+			auto mapped = (byte *) glMapNamedBufferRange(
+					readBuffer,
 					readSegment.offset,
 					segmentSize_,
 					GL_MAP_READ_BIT);
 			if (mapped) {
 				std::memcpy(storageClientData_, mapped, segmentSize_);
-				glUnmapBuffer(GL_COPY_READ_BUFFER);
+				glUnmapNamedBuffer(readBuffer);
 			}
-			rs->copyReadBuffer().pop();
 		}
 		hasReadData_ = true;
 	}

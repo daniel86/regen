@@ -56,8 +56,8 @@ void BBoxBuffer::clear() {
 		Vec4i(biasedBits(FLT_MAX)),
 		Vec4i(biasedBits(-FLT_MAX))
 	};
-	RenderState::get()->shaderStorageBuffer().apply(blockReference()->bufferID());
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER,
+	glNamedBufferSubData(
+		blockReference()->bufferID(),
 		blockReference()->address(),
 		blockReference()->allocatedSize(),
 		&zeroBlock);

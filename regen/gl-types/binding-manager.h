@@ -71,4 +71,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* REGEN_BOUNDING_BOX_BUFFER_H_ */
+#endif /* REGEN_BINDING_MANAGER_H_ */

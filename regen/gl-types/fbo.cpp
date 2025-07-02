@@ -1,10 +1,3 @@
-/*
- * fbo.cpp
- *
- *  Created on: 05.08.2012
- *      Author: daniel
- */
-
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/shader-input.h>

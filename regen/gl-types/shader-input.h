@@ -1,10 +1,3 @@
-/*
- * shader-input.h
- *
- *  Created on: 15.08.2012
- *      Author: daniel
- */
-
 #ifndef SHADER_INPUT_H_
 #define SHADER_INPUT_H_
 

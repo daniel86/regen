@@ -569,15 +569,12 @@ void LODState::createComputeShader() {
 
 void LODState::traverseGPU(RenderState *rs) {
 	// copy the clear buffer to the indirect draw buffer
-	rs->copyReadBuffer().push(clearIndirectBuffer_->blockReference()->bufferID());
-	rs->shaderStorageBuffer().apply(indirectDrawBuffers_[0]->blockReference()->bufferID());
-	glCopyBufferSubData(
-			GL_COPY_READ_BUFFER,
-			GL_SHADER_STORAGE_BUFFER,
+	glCopyNamedBufferSubData(
+			clearIndirectBuffer_->blockReference()->bufferID(),
+			indirectDrawBuffers_[0]->blockReference()->bufferID(),
 			clearIndirectBuffer_->blockReference()->address(),
 			indirectDrawBuffers_[0]->blockReference()->address(),
 			clearIndirectBuffer_->blockReference()->allocatedSize());
-	rs->copyReadBuffer().pop();
 
 	if (cameraStamp_ != camera_->stamp()) {
 		// Update the frustum planes in the UBO
@@ -589,9 +586,8 @@ void LODState::traverseGPU(RenderState *rs) {
 				frustumPlanes_[i*6 + j] = frustumPlanes[j].equation();
 			}
 		}
-		rs->uniformBuffer().apply(frustumUBO_->blockReference()->bufferID());
-		glBufferSubData(
-				GL_UNIFORM_BUFFER,
+		glNamedBufferSubData(
+				frustumUBO_->blockReference()->bufferID(),
 				frustumUBO_->blockReference()->address(),
 				frustumUBO_->blockReference()->allocatedSize(),
 				&frustumPlanes_[0].x);

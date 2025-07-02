@@ -58,13 +58,10 @@ void TBO::updateTBO() {
 	if (!ref.get()) {
 		return;
 	}
-	auto rs = RenderState::get();
-	rs->textureBuffer().push(ref->bufferID());
 	auto mapped = input_->mapClientDataRaw(ShaderData::READ);
-	glBufferSubData(
-			GL_TEXTURE_BUFFER,
+	glNamedBufferSubData(
+			ref->bufferID(),
 			ref->address(),
 			input_->inputSize(),
 			mapped.r);
-	rs->textureBuffer().pop();
 }

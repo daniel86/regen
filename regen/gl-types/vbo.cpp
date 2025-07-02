@@ -59,8 +59,7 @@ void VBO::uploadSequential(
 		currOffset += att->inputSize();
 	}
 
-	RenderState::get()->arrayBuffer().apply(ref->bufferID());
-	glBufferSubData(GL_ARRAY_BUFFER, startByte, bufferSize, data);
+	glNamedBufferSubData(ref->bufferID(), startByte, bufferSize, data);
 	delete[]data;
 }
 
@@ -128,7 +127,6 @@ void VBO::uploadInterleaved(
 		}
 	}
 
-	RenderState::get()->arrayBuffer().apply(ref->bufferID());
-	glBufferSubData(GL_ARRAY_BUFFER, startByte, bufferSize, data);
+	glNamedBufferSubData(ref->bufferID(), startByte, bufferSize, data);
 	delete[]data;
 }
