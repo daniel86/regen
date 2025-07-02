@@ -142,26 +142,21 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create view data arrays
-		ssbo_snapshotDirs_ = ref_ptr<SSBO>::alloc("SnapshotDirsData", BUFFER_USAGE_STATIC_DRAW);
+		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer", BUFFER_USAGE_STATIC_DRAW);
 		snapshotDirs_ = ref_ptr<ShaderInput4f>::alloc("snapshotDirs", numSnapshotViews_);
 		snapshotDirs_->setUniformUntyped();
-		ssbo_snapshotDirs_->addBlockInput(snapshotDirs_);
-		snapshotState_->joinShaderInput(ssbo_snapshotDirs_);
-		joinShaderInput(ssbo_snapshotDirs_);
+		impostorBuffer_->addBlockInput(snapshotDirs_);
 
-		ssbo_snapshotOrthoBounds_ = ref_ptr<SSBO>::alloc("SnapshotOrthoBoundsData", BUFFER_USAGE_STATIC_DRAW);
 		snapshotOrthoBounds_ = ref_ptr<ShaderInput4f>::alloc("snapshotOrthoBounds", numSnapshotViews_);
 		snapshotOrthoBounds_->setUniformUntyped();
-		ssbo_snapshotOrthoBounds_->addBlockInput(snapshotOrthoBounds_);
-		snapshotState_->joinShaderInput(ssbo_snapshotOrthoBounds_);
-		joinShaderInput(ssbo_snapshotOrthoBounds_);
+		impostorBuffer_->addBlockInput(snapshotOrthoBounds_);
 
-		ssbo_snapshotDepthRanges_ = ref_ptr<SSBO>::alloc("SnapshotDepthRangesData", BUFFER_USAGE_STATIC_DRAW);
 		snapshotDepthRanges_ = ref_ptr<ShaderInput2f>::alloc("snapshotDepthRanges", numSnapshotViews_);
 		snapshotDepthRanges_->setUniformUntyped();
-		ssbo_snapshotDepthRanges_->addBlockInput(snapshotDepthRanges_);
-		snapshotState_->joinShaderInput(ssbo_snapshotDepthRanges_);
-		joinShaderInput(ssbo_snapshotDepthRanges_);
+		impostorBuffer_->addBlockInput(snapshotDepthRanges_);
+
+		snapshotState_->joinShaderInput(impostorBuffer_);
+		joinShaderInput(impostorBuffer_);
 	}
 
 	{ // create the snapshot FBO
@@ -357,9 +352,7 @@ void ImpostorBillboard::updateSnapshotViews() {
 	snapshotDirs_->nextStamp();
 	snapshotOrthoBounds_->nextStamp();
 	snapshotDepthRanges_->nextStamp();
-	ssbo_snapshotDirs_->update();
-	ssbo_snapshotOrthoBounds_->update();
-	ssbo_snapshotDepthRanges_->update();
+	impostorBuffer_->update();
 	snapshotCamera_->view()->nextStamp();
 	snapshotCamera_->viewInverse()->nextStamp();
 	snapshotCamera_->projection()->nextStamp();
