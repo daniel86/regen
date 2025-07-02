@@ -201,9 +201,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> modelOrigin_;
 
 		// a container for the view data
-		ref_ptr<SSBO> ssbo_snapshotDirs_;
-		ref_ptr<SSBO> ssbo_snapshotOrthoBounds_;
-		ref_ptr<SSBO> ssbo_snapshotDepthRanges_;
+		ref_ptr<SSBO> impostorBuffer_;
 		// array of view directions, one for each snapshot
 		ref_ptr<ShaderInput4f> snapshotDirs_;
 		// meshes may have different aspect ratios, so we need to store the bounds
