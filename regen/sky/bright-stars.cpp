@@ -139,11 +139,9 @@ void BrightStars::updateNoiseTexture() {
 	noiseTex_->set_internalFormat(GL_R8);
 	noiseTex_->set_pixelType(GL_UNSIGNED_BYTE);
 	noiseTex_->set_textureData(noiseMap);
-	noiseTex_->begin(RenderState::get());
-	noiseTex_->texImage();
-	noiseTex_->filter().push(GL_LINEAR);
-	noiseTex_->wrapping().push(GL_REPEAT);
-	noiseTex_->end(RenderState::get());
+	noiseTex_->set_filter(GL_LINEAR);
+	noiseTex_->set_wrapping(GL_REPEAT);
+	noiseTex_->updateTextureStorage();
 	noiseTex_->set_textureData(nullptr);
 
 	delete[]noiseMap;

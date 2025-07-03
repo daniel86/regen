@@ -198,26 +198,26 @@ namespace regen {
 		 * GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR,
 		 * GL_LINEAR_MIPMAP_LINEAR.
 		 */
-		auto &filter() { return *filter_[objectIndex_]; }
+		void set_filter(const TextureFilter &v);
 
 		/**
 		 * Sets the minimum and maximum level-of-detail parameter.  This value limits the
 		 * selection of highest/lowest resolution mipmap. The initial values are -1000/1000.
 		 */
-		auto &lod() { return *lod_[objectIndex_]; }
+		void set_lod(const TextureLoD &v);
 
 		/**
 		 * Sets the swizzle that will be applied to the rgba components of a texel before it is returned to the shader.
 		 * Valid values for param are GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_ZERO and GL_ONE.
 		 */
-		auto &swizzle() { return *swizzle_[objectIndex_]; }
+		void set_swizzle(const TextureSwizzle &v);
 
 		/**
 		 * Sets the wrap parameter for texture coordinates s,t,r to either GL_CLAMP,
 		 * GL_CLAMP_TO_BORDER, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT, or
 		 * GL_REPEAT.
 		 */
-		auto &wrapping() { return *wrapping_[objectIndex_]; }
+		void set_wrapping(const TextureWrapping &v);
 
 		/**
 		 * Specifies the texture comparison mode for currently bound depth textures.
@@ -226,24 +226,24 @@ namespace regen {
 		 * And specifies the comparison operator used when
 		 * mode is set to GL_COMPARE_R_TO_TEXTURE.
 		 */
-		auto &compare() { return *compare_[objectIndex_]; }
+		void set_compare(const TextureCompare &v);
 
 		/**
 		 * Sets the index of the highest defined mipmap level. The initial value is 1000.
 		 */
-		auto &maxLevel() { return *maxLevel_[objectIndex_]; }
+		void set_maxLevel(const TextureMaxLevel &v);
 
 		/**
 		 * Sets GL_TEXTURE_MAX_ANISOTROPY.
 		 */
-		auto &aniso() { return *aniso_[objectIndex_]; }
+		void set_aniso(const TextureAniso &v);
 
 		/**
 		 * Generates mipmaps for the texture.
 		 * Make sure to set the base level before.
 		 * @param mode: Should be GL_NICEST, GL_DONT_CARE or GL_FASTEST
 		 */
-		void setupMipmaps(GLenum mode = GL_DONT_CARE) const;
+		//void setupMipmaps(GLenum mode = GL_DONT_CARE) const;
 
 		/**
 		 * GLSL sampler type used for this texture.
@@ -393,12 +393,12 @@ namespace regen {
 		/**
 		 * Specify the texture image.
 		 */
-		virtual void texImage() const = 0;
+		virtual void updateTextureStorage() = 0;
 
 		/**
 		 * @return number of texel.
 		 */
-		virtual unsigned int numTexel() const = 0;
+		uint32_t numTexel() const { return numTexel_; }
 
 		/**
 		 * Resize the texture.
@@ -422,19 +422,13 @@ namespace regen {
 		TextureBind texBind_;
 		GLuint numSamples_;
 		int v_channel_ = -1;
+		TextureWrapping wrappingMode_ = Vec3i(GL_REPEAT, GL_REPEAT, GL_REPEAT);
 		std::string samplerType_;
 		std::optional<TextureFile> textureFile_;
 
-		TextureParameterStack<TextureFilter> **filter_;
-		TextureParameterStack<TextureLoD> **lod_;
-		TextureParameterStack<TextureSwizzle> **swizzle_;
-		TextureParameterStack<TextureWrapping> **wrapping_;
-		TextureParameterStack<TextureCompare> **compare_;
-		TextureParameterStack<TextureMaxLevel> **maxLevel_;
-		TextureParameterStack<TextureAniso> **aniso_;
-
 		// client data, or null
 		const GLubyte *textureData_;
+		uint32_t numTexel_ = 0u;
 		bool isTextureDataOwned_;
 
 		Bounds<Vec2ui> getRegion(const Vec2f &texco, const Vec2f &regionTS) const;

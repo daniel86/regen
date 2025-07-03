@@ -120,16 +120,12 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 
 	rs->drawFrameBuffer().push(id());
 	{
-		depth->begin(rs);
 		if (numSamples == 1) {
-			depth->wrapping().push(GL_REPEAT);
-			depth->filter().push(GL_NEAREST);
-			depth->compare().push(TextureCompare(GL_NONE, GL_EQUAL));
+			depth->set_wrapping(GL_REPEAT);
+			depth->set_filter(GL_NEAREST);
+			depth->set_compare(TextureCompare(GL_NONE, GL_EQUAL));
 		}
-		{
-			depth->texImage();
-		}
-		depth->end(rs);
+		depth->updateTextureStorage();
 		if (isStencil) {
 			set_depthStencilTexture(depth);
 		} else {
@@ -247,14 +243,11 @@ ref_ptr<Texture> FBO::createTexture(
 	tex->set_pixelType(pixelType);
 	rs->activeTexture().push(GL_TEXTURE7);
 	for (GLuint j = 0; j < count; ++j) {
-		rs->textures().push(7, tex->textureBind());
 		if (numSamples == 1) {
-			tex->wrapping().push(GL_CLAMP_TO_EDGE);
-			tex->filter().push(GL_LINEAR);
+			tex->set_wrapping(GL_CLAMP_TO_EDGE);
+			tex->set_filter(GL_LINEAR);
 		}
-		tex->texImage();
-
-		rs->textures().pop(7);
+		tex->updateTextureStorage();
 		tex->nextObject();
 	}
 	rs->activeTexture().pop();
@@ -429,6 +422,8 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	set_rectangleSize(w, h);
 	depth_ = depth;
 
+	// FIXME: all textures must be re-created then re-bound!
+
 	viewport_->setUniformData(
 			Vec2f((GLfloat) w, (GLfloat) h));
 	inverseViewport_->setUniformData(
@@ -442,9 +437,9 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		depthTexture_->set_rectangleSize(w, h);
 		auto *tex3D = dynamic_cast<Texture3D *>(depthTexture_.get());
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
-		rs->textures().push(7, depthTexture_->textureBind());
+		//rs->textures().push(7, depthTexture_->textureBind());
 		depthTexture_->texImage();
-		rs->textures().pop(7);
+		//rs->textures().pop(7);
 	}
 
 	// resize stencil attachment
@@ -452,9 +447,9 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		stencilTexture_->set_rectangleSize(w, h);
 		auto *tex3D = dynamic_cast<Texture3D *>(stencilTexture_.get());
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
-		rs->textures().push(7, stencilTexture_->textureBind());
+		//rs->textures().push(7, stencilTexture_->textureBind());
 		stencilTexture_->texImage();
-		rs->textures().pop(7);
+		//rs->textures().pop(7);
 	}
 
 	// resize depth stencil attachment
@@ -462,9 +457,9 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		depthStencilTexture_->set_rectangleSize(w, h);
 		auto *tex3D = dynamic_cast<Texture3D *>(depthStencilTexture_.get());
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
-		rs->textures().push(7, depthStencilTexture_->textureBind());
+		//rs->textures().push(7, depthStencilTexture_->textureBind());
 		depthStencilTexture_->texImage();
-		rs->textures().pop(7);
+		//rs->textures().pop(7);
 	}
 
 	// resize color attachments
@@ -473,9 +468,9 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		auto *tex3D = dynamic_cast<Texture3D *>(tex.get());
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
 		for (GLuint i = 0; i < tex->numObjects(); ++i) {
-			rs->textures().push(7, tex->textureBind());
+			//rs->textures().push(7, tex->textureBind());
 			tex->texImage();
-			rs->textures().pop(7);
+			//rs->textures().pop(7);
 			tex->nextObject();
 		}
 	}

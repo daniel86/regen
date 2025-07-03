@@ -318,9 +318,7 @@ void Ground::createWeightPass() {
 		weightMaps_[i] = ref_ptr<Texture2D>::dynamicCast(tex);
 		attachments[i] = GL_COLOR_ATTACHMENT0 + i;
 		if (useWeightMapMips_) {
-			tex->begin(RenderState::get());
-			tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
-			tex->end(RenderState::get());
+			tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		}
 
 		joinStates(ref_ptr<TextureState>::alloc(

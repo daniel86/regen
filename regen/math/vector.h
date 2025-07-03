@@ -603,6 +603,26 @@ namespace regen {
 		static Vec3 random() {
 			return Vec3(math::random<T>(), math::random<T>(), math::random<T>());
 		}
+
+		/**
+		 * @return this vector as a Vec3f.
+		 */
+		Vec3<GLfloat> asVec3f() const {
+			return {
+				static_cast<GLfloat>(x),
+				static_cast<GLfloat>(y),
+				static_cast<GLfloat>(z) };
+		}
+
+		/**
+		 * @return this vector as a Vec3f.
+		 */
+		Vec3<GLint> asVec3i() const {
+			return {
+					static_cast<GLint>(x),
+					static_cast<GLint>(y),
+					static_cast<GLint>(z) };
+		}
 	};
 
 	// writing vector to output stream

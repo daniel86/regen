@@ -247,9 +247,7 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 				textures_[entry.first].push_back(texState);
 
 				if (wrapping_.has_value()) {
-					tex->begin(RenderState::get(), 0);
-					tex->wrapping().push(wrapping_.value());
-					tex->end(RenderState::get());
+					tex->set_wrapping(wrapping_.value());
 				}
 			} else {
 				REGEN_WARN("Failed to load texture '" << filePath << "'.");
@@ -270,9 +268,7 @@ ref_ptr<TextureState> Material::set_texture(const ref_ptr<Texture> &tex,
 	auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 	textures_[mapTo].push_back(texState);
 	if (wrapping_.has_value()) {
-		tex->begin(RenderState::get(), 0);
-		tex->wrapping().push(GL_CLAMP_TO_EDGE);
-		tex->end(RenderState::get());
+		tex->set_wrapping(GL_CLAMP_TO_EDGE);
 	}
 	set_textureState(texState, mapTo);
 	return texState;

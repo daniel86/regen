@@ -286,16 +286,14 @@ static void loadTexture(
 		}
 	} else { // The texture is NOT compressed
 		tex = ref_ptr<Texture2D>::alloc();
-		tex->begin(RenderState::get());
 		tex->set_rectangleSize(aiTexture->mWidth, aiTexture->mHeight);
 		tex->set_textureData((GLubyte *) aiTexture->pcData);
 		tex->set_pixelType(GL_UNSIGNED_BYTE);
 		tex->set_format(GL_RGBA);
 		tex->set_internalFormat(GL_RGBA8);
-		tex->filter().push(GL_LINEAR);
-		tex->wrapping().push(GL_REPEAT);
-		tex->texImage();
-		tex->end(RenderState::get());
+		tex->set_filter(GL_LINEAR);
+		tex->set_wrapping(GL_REPEAT);
+		tex->updateTextureStorage();
 		tex->set_textureData(nullptr);
 	}
 
@@ -482,7 +480,7 @@ static void loadTexture(
 	  }
 	}
 #endif
-	tex->wrapping().push(wrapping_);
+	tex->set_wrapping(wrapping_);
 
 	switch (textureTypes[l]) {
 		case aiTextureType_DIFFUSE:
@@ -561,12 +559,12 @@ static void loadTexture(
 
 	if (texState->isNormalMap()) {
 		// Normal maps should use linear filtering, but no mipmaps.
-		tex->filter().push(TextureFilter(GL_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR, GL_LINEAR));
 	} else {
 		// Other textures should use linear mipmap filtering.
 		// Note: Assimp does not provide a way to specify the filter type.
 		//       So we assume that all textures are mipmapped.
-		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(GL_DONT_CARE);
 	}
 	mat->joinStates(texState);

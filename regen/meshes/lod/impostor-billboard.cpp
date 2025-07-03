@@ -174,10 +174,8 @@ void ImpostorBillboard::createResources() {
 											   GL_RGBA, GL_RGBA8, GL_UNSIGNED_BYTE);
 		albedo->set_name("diffuse");
 		snapshotAlbedo_ = ref_ptr<Texture2DArray>::dynamicCast(albedo);
-		snapshotAlbedo_->begin(RenderState::get());
-		snapshotAlbedo_->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
-		snapshotAlbedo_->wrapping().push(GL_CLAMP_TO_EDGE);
-		snapshotAlbedo_->end(RenderState::get());
+		snapshotAlbedo_->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		snapshotAlbedo_->set_wrapping(GL_CLAMP_TO_EDGE);
 		drawAttachments.push_back(GL_COLOR_ATTACHMENT0);
 
 		if (useNormalCorrection_) {

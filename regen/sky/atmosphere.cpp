@@ -16,18 +16,16 @@ Atmosphere::Atmosphere(
 	//state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
 
 	ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::alloc(1);
-	cubeMap->begin(RenderState::get());
 	cubeMap->set_format(GL_RGBA);
 	if (useFloatBuffer) {
 		cubeMap->set_internalFormat(GL_RGBA16F);
 	} else {
 		cubeMap->set_internalFormat(GL_RGBA);
 	}
-	cubeMap->filter().push(GL_LINEAR);
+	cubeMap->set_filter(GL_LINEAR);
 	cubeMap->set_rectangleSize(cubeMapSize, cubeMapSize);
-	cubeMap->wrapping().push(GL_CLAMP_TO_EDGE);
-	cubeMap->texImage();
-	cubeMap->end(RenderState::get());
+	cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
+	cubeMap->updateTextureStorage();
 
 	// create render target for updating the sky cube map
 	fbo_ = ref_ptr<FBO>::alloc(cubeMapSize, cubeMapSize);

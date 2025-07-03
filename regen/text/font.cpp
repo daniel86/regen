@@ -108,9 +108,9 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 	arrayTexture_->set_rectangleSize(textureWidth, textureHeight);
 	arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
 	arrayTexture_->begin(RenderState::get());
-	arrayTexture_->wrapping().push(GL_CLAMP_TO_BORDER);
-	arrayTexture_->filter().push(GL_LINEAR);
-	arrayTexture_->swizzle().push(GL_RED);
+	arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
+	arrayTexture_->set_filter(GL_LINEAR);
+	arrayTexture_->set_swizzle(GL_RED);
 	// GL expects 4byte aligned rows
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	arrayTexture_->texImage();

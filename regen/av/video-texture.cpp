@@ -152,7 +152,7 @@ void VideoTexture::animate(GLdouble animateDT) {
 		vs_->popFrame();
 
 		{
-			// queue calling texImage
+			// queue calling updating texture storage
 			boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
 			if (lastFrame_) {
 				av_free(lastFrame_->data[0]);
@@ -193,15 +193,15 @@ void VideoTexture::glAnimate(RenderState *rs, GLdouble dt) {
 	if (fileToLoaded_) { // setup the texture target
 		set_textureData(nullptr);
 		texImage();
-		filter().push(GL_LINEAR);
-		wrapping().push(GL_REPEAT);
+		set_filter(GL_LINEAR);
+		set_wrapping(GL_REPEAT);
 		fileToLoaded_ = GL_FALSE;
 	}
 	// upload texture data to GL
-	if (textureData() != NULL) {
+	if (textureData() != nullptr) {
 		boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
 		texImage();
-		set_textureData(NULL);
+		set_textureData(nullptr);
 	}
 	end(rs, channel);
 	rs->releaseTextureChannel();

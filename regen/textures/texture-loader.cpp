@@ -46,12 +46,7 @@ static void scaleImage(GLuint w, GLuint h, GLuint d) {
 
 GLenum regenImageFormat1() {
 	GLenum format = ilGetInteger(IL_IMAGE_FORMAT);
-	switch (format) {
-		case GL_COLOR_INDEX:
-			return GL_RGBA;
-		default:
-			return format;
-	}
+	return (format == GL_COLOR_INDEX ? GL_RGBA : format);
 }
 
 GLenum regenImageFormat() {
@@ -237,12 +232,12 @@ ref_ptr<Texture> textures::load(
 		}
 	}
 	if (useMipmaps) {
-		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(0);
 	} else {
-		tex->filter().push(GL_LINEAR);
+		tex->set_filter(GL_LINEAR);
 	}
-	tex->wrapping().push(GL_REPEAT);
+	tex->set_wrapping(GL_REPEAT);
 	tex->end(RenderState::get());
 	unsetData(ilID, tex, keepData);
 	GL_ERROR_LOG();
@@ -283,16 +278,14 @@ ref_ptr<Texture> textures::load(
 	tex->set_internalFormat(
 			forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
 	tex->set_textureData((GLubyte *) ilGetData());
-	tex->begin(RenderState::get());
-	tex->texImage();
+	tex->updateTextureStorage();
 	if (useMipmaps) {
-		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(0);
 	} else {
-		tex->filter().push(GL_LINEAR);
+		tex->set_filter(GL_LINEAR);
 	}
-	tex->wrapping().push(GL_REPEAT);
-	tex->end(RenderState::get());
+	tex->set_wrapping(GL_REPEAT);
 	tex->set_textureData(nullptr);
 
 	ilDeleteImages(1, &ilID);
@@ -365,12 +358,12 @@ ref_ptr<Texture2DArray> textures::loadArray(
 	}
 
 	if (useMipmaps) {
-		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(0);
 	} else {
-		tex->filter().push(GL_LINEAR);
+		tex->set_filter(GL_LINEAR);
 	}
-	tex->wrapping().push(GL_REPEAT);
+	tex->set_wrapping(GL_REPEAT);
 
 	tex->end(RenderState::get());
 	GL_ERROR_LOG();
@@ -472,10 +465,10 @@ ref_ptr<TextureCube> textures::loadCube(
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 4);
 	}
 	if (useMipmaps) {
-		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(0);
 	} else {
-		tex->filter().push(GL_LINEAR);
+		tex->set_filter(GL_LINEAR);
 	}
 
 	tex->end(RenderState::get());
@@ -520,16 +513,14 @@ ref_ptr<Texture> textures::loadRAW(
 		tex = ref_ptr<Texture2D>::alloc();
 	}
 
-	tex->begin(RenderState::get());
 	tex->set_rectangleSize(size.x, size.y);
 	tex->set_pixelType(GL_UNSIGNED_BYTE);
 	tex->set_format(format_);
 	tex->set_internalFormat(internalFormat_);
 	tex->set_textureData((GLubyte *) pixels);
-	tex->filter().push(GL_LINEAR);
-	tex->wrapping().push(GL_REPEAT);
-	tex->texImage();
-	tex->end(RenderState::get());
+	tex->set_filter(GL_LINEAR);
+	tex->set_wrapping(GL_REPEAT);
+	tex->updateTextureStorage();
 	tex->set_textureData(nullptr);
 
 	delete[] pixels;
@@ -546,23 +537,21 @@ ref_ptr<Texture> textures::loadSpectrum(
 	spectrum(t1, t2, numTexels, data);
 
 	ref_ptr<Texture> tex = ref_ptr<Texture1D>::alloc();
-	tex->begin(RenderState::get());
 	tex->set_rectangleSize(numTexels, 1);
 	tex->set_pixelType(GL_UNSIGNED_BYTE);
 	tex->set_format(GL_RGBA);
 	tex->set_internalFormat(GL_RGBA);
 	tex->set_textureData((GLubyte *) data);
-	tex->texImage();
-	tex->wrapping().push(GL_CLAMP);
+	tex->updateTextureStorage();
+	tex->set_wrapping(GL_CLAMP);
 	if (mipmapFlag == GL_NONE) {
-		tex->filter().push(GL_LINEAR);
+		tex->set_filter(GL_LINEAR);
 	} else {
-		tex->filter().push(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+		tex->set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
 		tex->setupMipmaps(mipmapFlag);
 	}
 	tex->set_textureData(nullptr);
 	delete[]data;
-	tex->end(RenderState::get());
 
 	return tex;
 }

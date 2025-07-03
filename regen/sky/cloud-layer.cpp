@@ -45,8 +45,8 @@ static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint
 			delete[]data;
 		}
 
-		tex->filter().push(GL_LINEAR);
-		tex->wrapping().push(GL_REPEAT);
+		tex->set_filter(GL_LINEAR);
+		tex->set_wrapping(GL_REPEAT);
 	}
 	tex->end(rs);
 
@@ -59,15 +59,13 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
 
 	cloudTexture_ = ref_ptr<Texture2D>::alloc(1);
-	cloudTexture_->begin(RenderState::get());
 	cloudTexture_->set_rectangleSize(textureSize, textureSize);
 	cloudTexture_->set_format(GL_RED);
 	cloudTexture_->set_internalFormat(GL_R16F);
 	cloudTexture_->set_pixelType(GL_FLOAT);
-	cloudTexture_->filter().push(GL_LINEAR);
-	cloudTexture_->wrapping().push(GL_REPEAT);
-	cloudTexture_->texImage();
-	cloudTexture_->end(RenderState::get());
+	cloudTexture_->set_filter(GL_LINEAR);
+	cloudTexture_->set_wrapping(GL_REPEAT);
+	cloudTexture_->updateTextureStorage();
 	state()->joinStates(ref_ptr<TextureState>::alloc(cloudTexture_, "cloudTexture"));
 
 	// create render target for updating the sky cube map

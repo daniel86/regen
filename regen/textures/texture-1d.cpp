@@ -9,7 +9,20 @@ Texture1D::Texture1D(GLuint numTextures)
 	samplerType_ = "sampler1D";
 }
 
-void Texture1D::texImage() const {
+void Texture1D::allocateTextureStorage(int numLevels) {
+	auto w = static_cast<int32_t>(width());
+	glTextureStorage1D(id(),
+					   numLevels,
+					   internalFormat_,
+					   w);
+	glTextureSubImage1D(id(),
+						0, // mipmap level
+						0, // x offset
+						w,
+						format_,
+						pixelType_,
+						textureData_);
+	/**
 	glTexImage1D(
 			texBind_.target_,
 			0, // mipmap level
@@ -19,4 +32,5 @@ void Texture1D::texImage() const {
 			format_,
 			pixelType_,
 			textureData_);
+	 */
 }

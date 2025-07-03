@@ -12,10 +12,8 @@ BloomTexture::BloomTexture(GLuint numMips) : TextureMips2D(numMips)
 		mip.texture->set_internalFormat(GL_R11F_G11F_B10F);
 		mip.texture->set_format(GL_RGB);
 		mip.texture->set_pixelType(GL_FLOAT);
-		mip.texture->begin(RenderState::get());
-		mip.texture->filter().push(GL_LINEAR);
-		mip.texture->wrapping().push(GL_CLAMP_TO_EDGE);
-		mip.texture->end(RenderState::get());
+		mip.texture->set_filter(GL_LINEAR);
+		mip.texture->set_wrapping(GL_CLAMP_TO_EDGE);
 	}
 }
 
@@ -34,8 +32,6 @@ void BloomTexture::resize(GLuint width, GLuint height)
         mip.glViewport = Viewport(0, 0, i_mipSize.x, i_mipSize.y);
 
 		mip.texture->set_rectangleSize(i_mipSize.x, i_mipSize.y);
-		mip.texture->begin(RenderState::get());
-		mip.texture->texImage();
-		mip.texture->end(RenderState::get());
+		mip.texture->updateTextureStorage();
 	}
 }

@@ -19,10 +19,7 @@ namespace regen {
 		explicit Texture2D(GLuint numTextures = 1);
 
 		// override
-		void texImage() const override;
-
-		// override
-		unsigned int numTexel() const override { return width() * height(); }
+		void updateTextureStorage() override;
 	};
 
 	/**
