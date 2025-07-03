@@ -44,6 +44,7 @@ namespace regen {
 }
 
 namespace regen {
+	class Texture;
 	/** minification/magnifiction */
 	typedef Vec2i TextureFilter;
 	/** min/max LoD. */
@@ -153,7 +154,7 @@ namespace regen {
 		/**
 		 * Number of samples used for multisampling
 		 */
-		void set_numSamples(GLsizei v) { numSamples_ = v; }
+		void set_numSamples(int32_t v) { numSamples_ = v; }
 
 		/**
 		 * Number of components per texel.
@@ -161,12 +162,17 @@ namespace regen {
 		GLuint numComponents() const { return dim_; }
 
 		/**
+		 * @return the texture depth.
+		 */
+		GLuint depth() const { return imageDepth_; }
+
+		/**
 		 * Specifies a pointer to the image data in memory.
 		 * Initially NULL.
 		 * @param data the image data.
 		 * @param owned if true, the texture will take ownership of the data.
 		 */
-		void set_textureData(const GLubyte *data, bool owned = false);
+		void setTextureData(const GLubyte *data, bool owned = false);
 
 		/**
 		 * Specifies a pointer to the image data in memory.
@@ -177,7 +183,7 @@ namespace regen {
 		/**
 		 * Reads the texture data from the server.
 		 */
-		void readTextureData();
+		void updateTextureData();
 
 		void ensureTextureData();
 
@@ -239,13 +245,6 @@ namespace regen {
 		void set_aniso(const TextureAniso &v);
 
 		/**
-		 * Generates mipmaps for the texture.
-		 * Make sure to set the base level before.
-		 * @param mode: Should be GL_NICEST, GL_DONT_CARE or GL_FASTEST
-		 */
-		//void setupMipmaps(GLenum mode = GL_DONT_CARE) const;
-
-		/**
 		 * GLSL sampler type used for this texture.
 		 */
 		const std::string &samplerType() const { return samplerType_; }
@@ -254,6 +253,50 @@ namespace regen {
 		 * GLSL sampler type used for this texture.
 		 */
 		void set_samplerType(const std::string &samplerType) { samplerType_ = samplerType; }
+
+		/**
+		 * @return true if the texture has a file name.
+		 */
+		bool hasTextureFile() const { return textureFile_.has_value(); }
+
+		/**
+		 * @return the texture file name.
+		 */
+		void set_textureFile(const std::string &fileName);
+
+		/**
+		 * @return the texture file name.
+		 */
+		void set_textureFile(const std::string &directory, const std::string &namePattern);
+
+		/**
+		 * @return the texture file name.
+		 */
+		auto &textureFile() const { return textureFile_; }
+
+		/**
+		 * Specify the texture image.
+		 */
+		void allocTexture();
+
+		void updateImage(GLubyte *data);
+
+		void updateSubImage(GLint layer, GLubyte *subData);
+
+		void setNumMipmaps(int32_t numMips);
+
+		int32_t getNumMipmaps();
+
+		/**
+		 * Generates mipmaps for the texture.
+		 * Make sure to set the base level before, and that the texture is allocated.
+		 */
+		void updateMipmaps();
+
+		/**
+		 * @return number of texel.
+		 */
+		uint32_t numTexel() const { return numTexel_; }
 
 		/**
 		 * Activates and binds this texture.
@@ -370,45 +413,10 @@ namespace regen {
 			return v0 * (1.0f - dy) + v1 * dy;
 		}
 
-		/**
-		 * @return true if the texture has a file name.
-		 */
-		bool hasTextureFile() const { return textureFile_.has_value(); }
-
-		/**
-		 * @return the texture file name.
-		 */
-		void set_textureFile(const std::string &fileName);
-
-		/**
-		 * @return the texture file name.
-		 */
-		void set_textureFile(const std::string &directory, const std::string &namePattern);
-
-		/**
-		 * @return the texture file name.
-		 */
-		auto &textureFile() const { return textureFile_; }
-
-		/**
-		 * Specify the texture image.
-		 */
-		virtual void updateTextureStorage() = 0;
-
-		/**
-		 * @return number of texel.
-		 */
-		uint32_t numTexel() const { return numTexel_; }
-
-		/**
-		 * Resize the texture.
-		 */
-		virtual void resize(unsigned int width, unsigned int height);
+		static void configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input);
 
 		static Vec3i getSize(const ref_ptr<ShaderInput2i> &viewport,
 							 const std::string &sizeMode, const Vec3f &size);
-
-		static void configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input);
 
 	protected:
 		GLuint dim_;
@@ -416,13 +424,16 @@ namespace regen {
 		GLenum format_;
 		GLenum internalFormat_;
 		uint32_t numComponents_ = 4; // number of components per texel
+		uint32_t imageDepth_ = 1;
+		int32_t numMips_ = -1;
 		// type for pixels
 		GLenum pixelType_;
-		GLint border_;
+		int32_t border_ = 0;
 		TextureBind texBind_;
-		GLuint numSamples_;
+		int32_t numSamples_ = 1;
+		GLboolean fixedSampleLocations_ = GL_TRUE;
 		int v_channel_ = -1;
-		TextureWrapping wrappingMode_ = Vec3i(GL_REPEAT, GL_REPEAT, GL_REPEAT);
+		TextureWrapping wrappingMode_ = Vec3i(GL_CLAMP_TO_EDGE);
 		std::string samplerType_;
 		std::optional<TextureFile> textureFile_;
 
@@ -430,6 +441,37 @@ namespace regen {
 		const GLubyte *textureData_;
 		uint32_t numTexel_ = 0u;
 		bool isTextureDataOwned_;
+
+		void (Texture::*allocTexture_)();
+		void (Texture::*updateImage_)(GLubyte *subData);
+		void (Texture::*updateSubImage_)(GLint layer, GLubyte *subData);
+		Vec3ui allocatedSize_ = Vec3ui(0u);
+
+		void allocTexture1D();
+
+		void allocTexture2D();
+
+		void allocTexture2D_Multisample();
+
+		void allocTexture3D();
+
+		void allocTexture_noop() {}
+
+		void updateImage1D(GLubyte *subData);
+
+		void updateImage2D(GLubyte *subData);
+
+		void updateImage3D(GLubyte *subData);
+
+		void updateImage_noop(GLubyte*) {}
+
+		void updateSubImage1D(GLint layer, GLubyte *subData);
+
+		void updateSubImage2D(GLint layer, GLubyte *subData);
+
+		void updateSubImage3D(GLint layer, GLubyte *subData);
+
+		void updateSubImage_noop(GLint, GLubyte*) {}
 
 		Bounds<Vec2ui> getRegion(const Vec2f &texco, const Vec2f &regionTS) const;
 
@@ -448,29 +490,229 @@ namespace regen {
 	};
 
 	/**
-	 * \brief Scoped activation of a texture.
+	 * \brief Images in this texture are all 1-dimensional.
+	 *
+	 * They have width, but no height or depth.
 	 */
-	class ScopedTextureActivation {
+	class Texture1D : public Texture {
 	public:
-		ScopedTextureActivation(Texture &tex, RenderState *rs, GLint channel = 7)
-				: tex_(tex), rs_(rs), channel_(channel) {
-			wasActive_ = tex_.active();
-			if (!wasActive_) {
-				tex_.begin(rs_, channel_);
-			}
-		}
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture1D(GLuint numTextures = 1);
+	};
 
-		~ScopedTextureActivation() {
-			if (!wasActive_) {
-				tex_.end(rs_, channel_);
-			}
-		}
+	/**
+	 * \brief Images in this texture all are 2-dimensional.
+	 *
+	 * They have width and height, but no depth.
+	 */
+	class Texture2D : public Texture {
+	public:
+		static constexpr const char *TYPE_NAME = "Texture2D";
 
-	private:
-		Texture &tex_;
-		RenderState *rs_;
-		GLint channel_;
-		bool wasActive_;
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture2D(GLuint numTextures = 1);
+	};
+
+	/**
+	 * \brief A texture with multiple mipmap textures.
+	 *
+	 * Note this is not using the GL mipmapping feature,
+	 * downscaling must be done manually.
+	 */
+	class TextureMips2D : public Texture2D {
+	public:
+		explicit TextureMips2D(GLuint numMips = 4);
+
+		auto &mipTextures() { return mipTextures_; }
+
+		auto &mipRefs() { return mipRefs_; }
+
+		auto numMips() const { return numMips_; }
+
+	protected:
+		std::vector<Texture *> mipTextures_;
+		std::vector<ref_ptr<Texture2D>> mipRefs_;
+	};
+
+	/**
+	 * \brief The image in this texture (only one image. No mipmapping)
+	 * is 2-dimensional.
+	 *
+	 * Texture coordinates used for these
+	 * textures are not normalized.
+	 */
+	class TextureRectangle : public Texture2D {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit TextureRectangle(GLuint numTextures = 1);
+	};
+
+	/**
+	 * \brief Texture with depth format.
+	 */
+	class Texture2DDepth : public Texture2D {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture2DDepth(GLuint numTextures = 1);
+	};
+
+	/**
+	 * \brief The image in this texture (only one image. No mipmapping) is 2-dimensional.
+	 *
+	 * Each pixel in these images contains multiple samples instead
+	 * of just one value.
+	 */
+	class Texture2DMultisample : public Texture2D {
+	public:
+		/**
+		 * @param numSamples number of samples per texel.
+		 * @param numTextures number of texture images.
+		 * @param fixedLocations use fixed locations.
+		 */
+		explicit Texture2DMultisample(
+				GLsizei numSamples,
+				GLuint numTextures = 1,
+				GLboolean fixedLocations = GL_TRUE);
+	};
+
+	/**
+	 * \brief The image in this texture (only one image. No mipmapping) is 2-dimensional.
+	 *
+	 * Each pixel in these images contains multiple samples instead
+	 * of just one value.
+	 * Uses a depth format.
+	 */
+	class Texture2DMultisampleDepth : public Texture2DDepth {
+	public:
+		/**
+		 * @param numSamples number of samples per texel.
+		 * @param fixedLocations use fixed locations.
+		 */
+		explicit Texture2DMultisampleDepth(GLsizei numSamples, GLboolean fixedLocations = GL_TRUE);
+	};
+
+	/**
+	 * \brief A 3 dimensional texture.
+	 */
+	class Texture3D : public Texture {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture3D(GLuint numTextures = 1);
+
+		/**
+		 * @param depth the texture depth.
+		 */
+		void set_depth(GLuint depth);
+	};
+
+	/**
+	 * \brief A 3 dimensional depth texture.
+	 */
+	class Texture3DDepth : public Texture3D {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture3DDepth(GLuint numTextures = 1);
+	};
+
+	/**
+	 * \brief Array of two dimensional textures.
+	 */
+	class Texture2DArray : public Texture3D {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture2DArray(GLuint numTextures = 1);
+	};
+
+	class Texture2DArrayDepth : public Texture2DArray {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit Texture2DArrayDepth(GLuint numTextures = 1);
+	};
+
+	/**
+	 * \brief Array of two dimensional textures with multiple samples.
+	 */
+	class Texture2DArrayMultisample : public Texture2DArray {
+	public:
+		/**
+		 * @param numSamples number of samples per texel.
+		 * @param numTextures number of texture images.
+		 * @param fixedLocations use fixed locations.
+		 */
+		explicit Texture2DArrayMultisample(
+				int32_t numSamples,
+				GLuint numTextures = 1,
+				GLboolean fixedLocations = GL_FALSE);
+	};
+
+	/**
+	 * \brief Array of two dimensional textures with multiple samples.
+	 */
+	class Texture2DArrayMultisampleDepth : public Texture2DArray {
+	public:
+		/**
+		 * @param numSamples number of samples per texel.
+		 * @param numTextures number of texture images.
+		 * @param fixedLocations use fixed locations.
+		 */
+		explicit Texture2DArrayMultisampleDepth(
+				int32_t numSamples,
+				GLuint numTextures = 1,
+				GLboolean fixedLocations = GL_FALSE);
+	};
+
+	/**
+	 * \brief Texture with exactly 6 distinct sets of 2D images,
+	 * all of the same size.
+	 *
+	 * They act as 6 faces of a cube.
+	 */
+	class TextureCube : public Texture2D {
+	public:
+		/**
+		 * \brief Defines the sides of a cube.
+		 */
+		enum CubeSide {
+			RIGHT = 0,//!< the right side
+			LEFT,    //!< the left side
+			TOP,    //!< the top side
+			BOTTOM, //!< the bottom side
+			FRONT,  //!< the front side
+			BACK,   //!< the back side
+		};
+
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit TextureCube(GLuint numTextures = 1);
+	};
+
+	/**
+	 * \brief Texture with exactly 6 distinct sets of 2D images,
+	 * all of the same size.
+	 */
+	class TextureCubeDepth : public TextureCube {
+	public:
+		/**
+		 * @param numTextures number of texture images.
+		 */
+		explicit TextureCubeDepth(GLuint numTextures = 1);
 	};
 } // namespace
 #endif /* REGEN_TEXTURE_H_ */

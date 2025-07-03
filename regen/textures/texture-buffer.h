@@ -36,16 +36,10 @@ namespace regen {
 		 */
 		void attach(GLuint storage, GLuint offset, GLuint size);
 
-		// override
-		unsigned int numTexel() const override;
-
 
 	private:
 		GLenum texelFormat_;
 		ref_ptr<BufferReference> attachedVBORef_;
-
-		// override
-		void texImage() const override;
 	};
 } // namespace
 

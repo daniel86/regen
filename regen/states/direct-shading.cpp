@@ -3,7 +3,7 @@
 #include "direct-shading.h"
 #include "regen/camera/light-camera-parabolic.h"
 #include "regen/scene/node-processor.h"
-#include <regen/textures/texture-3d.h>
+#include <regen/textures/texture.h>
 
 using namespace regen;
 

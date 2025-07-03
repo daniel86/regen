@@ -1,15 +1,7 @@
-/*
- * noise-texture.h
- *
- *  Created on: 29.12.2012
- *      Author: daniel
- */
-
 #ifndef NOISE_TEXTURE_H_
 #define NOISE_TEXTURE_H_
 
-#include <regen/textures/texture-3d.h>
-#include <regen/textures/texture-2d.h>
+#include <regen/textures/texture.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/external/libnoise/src/noise/module/module.h>
 

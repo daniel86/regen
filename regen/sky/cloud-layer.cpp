@@ -26,29 +26,21 @@ static GLfloat *createNoiseSlice(GLuint texSize, GLuint octave) {
 }
 
 static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint slices) {
-	RenderState *rs = RenderState::get();
-
 	ref_ptr<Texture3D> tex = ref_ptr<Texture3D>::alloc();
 	//ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::alloc();
-	tex->begin(rs);
-	{
-		tex->set_rectangleSize(texSize, texSize);
-		tex->set_depth(slices);
-		tex->set_format(GL_RED);
-		tex->set_internalFormat(GL_R16F);
-		tex->set_pixelType(GL_FLOAT);
-
-		tex->texImage();
-		for (uint32_t s = 0; s < slices; ++s) {
-			GLfloat *data = createNoiseSlice(texSize, octave);
-			tex->texSubImage(static_cast<int>(s), (GLubyte *) data);
-			delete[]data;
-		}
-
-		tex->set_filter(GL_LINEAR);
-		tex->set_wrapping(GL_REPEAT);
+	tex->set_rectangleSize(texSize, texSize);
+	tex->set_depth(slices);
+	tex->set_format(GL_RED);
+	tex->set_internalFormat(GL_R16F);
+	tex->set_pixelType(GL_FLOAT);
+	tex->allocTexture();
+	for (uint32_t s = 0; s < slices; ++s) {
+		GLfloat *data = createNoiseSlice(texSize, octave);
+		tex->updateSubImage(static_cast<int>(s), (GLubyte *) data);
+		delete[]data;
 	}
-	tex->end(rs);
+	tex->set_filter(GL_LINEAR);
+	tex->set_wrapping(GL_REPEAT);
 
 	return tex;
 }
@@ -65,7 +57,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	cloudTexture_->set_pixelType(GL_FLOAT);
 	cloudTexture_->set_filter(GL_LINEAR);
 	cloudTexture_->set_wrapping(GL_REPEAT);
-	cloudTexture_->updateTextureStorage();
+	cloudTexture_->allocTexture();
 	state()->joinStates(ref_ptr<TextureState>::alloc(cloudTexture_, "cloudTexture"));
 
 	// create render target for updating the sky cube map

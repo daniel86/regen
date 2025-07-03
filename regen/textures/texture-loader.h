@@ -11,8 +11,6 @@
 #include <stdexcept>
 
 #include <regen/textures/texture.h>
-#include <regen/textures/texture-cube.h>
-#include <regen/textures/texture-array.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/math/vector.h>
 

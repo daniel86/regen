@@ -362,9 +362,7 @@ void Ground::updateWeightMaps() {
 	weightUpdateState_->disable(rs);
 	if(useWeightMapMips_) {
 		for (auto &tex : weightMaps_) {
-			tex->begin(RenderState::get());
-			tex->setupMipmaps(0);
-			tex->end(RenderState::get());
+			tex->updateMipmaps();
 		}
 	}
 }

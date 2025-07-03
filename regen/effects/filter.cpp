@@ -1,13 +1,5 @@
-/*
- * filter.cpp
- *
- *  Created on: 23.02.2013
- *      Author: daniel
- */
-
 #include <regen/states/state-configurer.h>
-#include <regen/textures/texture-cube.h>
-#include <regen/textures/texture-3d.h>
+#include <regen/textures/texture.h>
 
 #include "filter.h"
 

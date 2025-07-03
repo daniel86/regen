@@ -158,11 +158,11 @@ void VideoTexture::animate(GLdouble animateDT) {
 				av_free(lastFrame_->data[0]);
 				av_free(lastFrame_);
 			}
-			set_textureData(frame->data[0]);
+			setTextureData(frame->data[0]);
 		}
 
 		// set next interval
-		GLfloat *t = (GLfloat *) frame->opaque;
+		auto *t = (GLfloat *) frame->opaque;
 		if (!seeked_) {
 			// set timeout interval to time difference to last frame plus a correction
 			// value because the last timeout call was not exactly the wanted interval
@@ -187,31 +187,25 @@ void VideoTexture::animate(GLdouble animateDT) {
 }
 
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt) {
-	GL_ERROR_LOG();
-	auto channel = rs->reserveTextureChannel();
-	begin(rs, channel);
 	if (fileToLoaded_) { // setup the texture target
-		set_textureData(nullptr);
-		texImage();
+		setTextureData(nullptr);
 		set_filter(GL_LINEAR);
 		set_wrapping(GL_REPEAT);
+		allocTexture();
 		fileToLoaded_ = GL_FALSE;
 	}
 	// upload texture data to GL
 	if (textureData() != nullptr) {
 		boost::lock_guard<boost::mutex> lock(textureUpdateLock_);
-		texImage();
-		set_textureData(nullptr);
+		updateImage((GLubyte*) textureData());
+		setTextureData(nullptr);
 	}
-	end(rs, channel);
-	rs->releaseTextureChannel();
-	GL_ERROR_LOG();
 }
 
 ref_ptr<AudioSource> VideoTexture::audioSource() {
 	if (demuxer_.get()) {
 		return demuxer_->audioStream();
 	} else {
-		return ref_ptr<AudioSource>();
+		return {};
 	}
 }

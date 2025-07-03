@@ -376,10 +376,7 @@ void ImpostorBillboard::createSnapshot() {
 		view.meshCopy->inputContainer()->set_numVisibleInstances(oldNumInstances);
 	}
 	snapshotFBO_->disable(rs);
-	// update mipmaps
-	snapshotAlbedo_->begin(rs);
-	snapshotAlbedo_->setupMipmaps();
-	snapshotAlbedo_->end(rs);
+	snapshotAlbedo_->updateMipmaps();
 }
 
 ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::SceneInputNode &input) {

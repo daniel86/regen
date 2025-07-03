@@ -78,9 +78,8 @@ void NoiseTexture2D::updateNoise() {
 		}
 	}
 
-	set_textureData(data);
-	updateTextureStorage();
-	set_textureData(nullptr);
+	allocTexture();
+	updateImage(data);
 	delete[]data;
 }
 
@@ -116,9 +115,8 @@ void NoiseTexture3D::updateNoise() {
 		}
 	}
 
-	set_textureData(data);
-	updateTextureStorage();
-	set_textureData(nullptr);
+	allocTexture();
+	updateImage(data);
 	delete[]data;
 }
 

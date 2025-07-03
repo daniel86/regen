@@ -1,10 +1,3 @@
-/*
- * font-manager.cpp
- *
- *  Created on: 15.03.2011
- *      Author: daniel
- */
-
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 
@@ -107,19 +100,17 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 	arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
 	arrayTexture_->set_rectangleSize(textureWidth, textureHeight);
 	arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-	arrayTexture_->begin(RenderState::get());
 	arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
 	arrayTexture_->set_filter(GL_LINEAR);
 	arrayTexture_->set_swizzle(GL_RED);
 	// GL expects 4byte aligned rows
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	arrayTexture_->texImage();
+	glTextureParameteri(arrayTexture_->id(), GL_UNPACK_ALIGNMENT, 1);
+	arrayTexture_->allocTexture();
 	for (unsigned short i = 0; i < NUMBER_OF_GLYPHS; i++) {
 		initGlyph(face, i, textureWidth, textureHeight);
 	}
 	// reset to default
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	arrayTexture_->end(RenderState::get());
+	glTextureParameteri(arrayTexture_->id(), GL_UNPACK_ALIGNMENT, 4);
 
 	FT_Done_Face(face);
 }
@@ -188,7 +179,7 @@ void Font::initGlyph(FT_Face face, GLushort ch, GLuint textureWidth, GLuint text
 
 	{
 		inverted = invertPixmapWithAlpha(bitmap, textureWidth, textureHeight);
-		arrayTexture_->texSubImage((int) ch, inverted);
+		arrayTexture_->updateSubImage((int) ch, inverted);
 		delete[]inverted;
 	}
 

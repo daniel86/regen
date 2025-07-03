@@ -25,7 +25,7 @@ Atmosphere::Atmosphere(
 	cubeMap->set_filter(GL_LINEAR);
 	cubeMap->set_rectangleSize(cubeMapSize, cubeMapSize);
 	cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
-	cubeMap->updateTextureStorage();
+	cubeMap->allocTexture();
 
 	// create render target for updating the sky cube map
 	fbo_ = ref_ptr<FBO>::alloc(cubeMapSize, cubeMapSize);

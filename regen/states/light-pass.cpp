@@ -1,14 +1,7 @@
-/*
- * light-pass.cpp
- *
- *  Created on: 13.03.2013
- *      Author: daniel
- */
-
 #include <regen/states/state-configurer.h>
 #include <regen/meshes/primitives/box.h>
 #include <regen/meshes/primitives/rectangle.h>
-#include <regen/textures/texture-3d.h>
+#include <regen/textures/texture.h>
 
 #include "light-pass.h"
 #include "regen/scene/shader-input-processor.h"

@@ -3,7 +3,7 @@
 
 #include "regen/gl-types/shader-input.h"
 #include "regen/shapes/bounds.h"
-#include "regen/textures/texture-2d.h"
+#include "regen/textures/texture.h"
 #include "regen/states/model-transformation.h"
 
 namespace regen {

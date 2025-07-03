@@ -4,8 +4,7 @@
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
 #include <regen/gl-types/fbo.h>
-#include <regen/textures/texture-3d.h>
-#include <regen/textures/texture-2d.h>
+#include <regen/textures/texture.h>
 
 namespace regen {
 	class CloudLayer : public SkyLayer {

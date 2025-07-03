@@ -7,14 +7,12 @@ RampTexture::RampTexture(
 			GLenum internalFormat,
 			GLuint width)
 		: Texture1D() {
-	begin(RenderState::get());
 	set_rectangleSize(width, 1);
 	set_pixelType(GL_UNSIGNED_BYTE);
 	set_format(format);
 	set_internalFormat(internalFormat);
 	set_filter(GL_LINEAR);
 	set_wrapping(GL_CLAMP_TO_EDGE);
-	end(RenderState::get());
 }
 
 RampTexture::RampTexture(GLenum format, const std::vector<GLubyte> &data)
@@ -33,9 +31,8 @@ RampTexture::RampTexture(
 	set_internalFormat(internalFormat);
 	set_filter(GL_LINEAR);
 	set_wrapping(GL_CLAMP_TO_EDGE);
-	textureData_ = data.data();
-	Texture1D::updateTextureStorage();
-	textureData_ = nullptr;
+	Texture1D::allocTexture();
+	Texture1D::updateImage((GLubyte *) data.data());
 }
 
 ref_ptr<RampTexture> RampTexture::darkWhite() {

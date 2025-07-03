@@ -1,7 +1,7 @@
 #ifndef REGEN_BLOOM_TEXTURE_H
 #define REGEN_BLOOM_TEXTURE_H
 
-#include <regen/textures/texture-2d.h>
+#include <regen/textures/texture.h>
 
 namespace regen {
 	/**
@@ -19,9 +19,7 @@ namespace regen {
 
 		auto &mips() { return mips_; }
 
-		auto numMips() const { return mips_.size(); }
-
-		void resize(GLuint width, GLuint height) override;
+		void resize(GLuint width, GLuint height);
 
 	protected:
 		std::vector<Mip> mips_;

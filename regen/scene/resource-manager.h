@@ -11,7 +11,7 @@
 #include "regen/shapes/spatial-index.h"
 #include "regen/meshes/mesh-vector.h"
 #include "scene-loader.h"
-#include "regen/textures/texture-2d.h"
+#include "regen/textures/texture.h"
 #include "regen/sky/sky.h"
 #include "loadable-input.h"
 

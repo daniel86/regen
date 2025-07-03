@@ -52,7 +52,6 @@ BufferMapping::BufferMapping(GLbitfield storageFlags, BufferingMode storageBuffe
 }
 
 BufferMapping::~BufferMapping() {
-	auto *rs = RenderState::get();
 	// free client data
 	if (storageClientData_) {
 		delete[] storageClientData_;
@@ -263,7 +262,6 @@ void* BufferMapping::beginWriteBuffer(bool isPartialWrite) {
 		return writeSegment.mappedPtr;
 	}
 	else {
-		auto *rs = RenderState::get();
 		GLbitfield mappingFlags = storageFlags_;
 		if (bufferType_ == MULTI_BUFFER) {
 			if (!isPartialWrite) {
@@ -287,7 +285,6 @@ void* BufferMapping::beginWriteBuffer(bool isPartialWrite) {
 }
 
 void BufferMapping::endWriteBuffer(const ref_ptr<BufferReference> &outputBuffer, GLenum outputTarget) {
-	auto *rs = RenderState::get();
 	auto &readSegment = bufferSegments_[readBufferIndex_];
 	uint32_t readBuffer = (bufferType_ == RING_BUFFER ? ids_[0] : ids_[readBufferIndex_]);
 
@@ -329,7 +326,6 @@ void BufferMapping::readBuffer(const ref_ptr<BufferReference> &inputReference, G
 		REGEN_WARN("readBufferData called without GL_MAP_READ_BIT set.");
 	}
 #endif
-	auto *rs = RenderState::get();
 	auto &writeSegment = bufferSegments_[writeBufferIndex_];
 	auto &readSegment = bufferSegments_[readBufferIndex_];
 	uint32_t writeBuffer = (bufferType_ == RING_BUFFER ? ids_[0] : ids_[writeBufferIndex_]);

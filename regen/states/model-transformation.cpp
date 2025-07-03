@@ -1,7 +1,7 @@
 #include <stack>
 #include "model-transformation.h"
 #include "regen/meshes/mesh-vector.h"
-#include "regen/textures/texture-2d.h"
+#include "regen/textures/texture.h"
 #include "regen/animations/boids-cpu.h"
 #include "regen/animations/boids-gpu.h"
 #include "regen/animations/transform-animation.h"

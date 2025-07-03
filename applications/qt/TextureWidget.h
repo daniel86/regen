@@ -2,7 +2,7 @@
 #define REGEN_TEXTURE_WIDGET_H
 
 #include <qt/ui_ColorWidget.h>
-#include <regen/textures/texture-2d.h>
+#include <regen/textures/texture.h>
 #include <QDateTime>
 #include "qt-application.h"
 #include "RegenWidget.h"

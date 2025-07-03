@@ -2,9 +2,8 @@
 #define REGEN_GROUND_H_
 
 #include <regen/meshes/primitives/skirt-quad.h>
-#include "regen/textures/texture-array.h"
 #include "regen/states/material-state.h"
-#include "regen/textures/texture-2d.h"
+#include "regen/textures/texture.h"
 #include "regen/states/fbo-state.h"
 #include "regen/states/fullscreen-pass.h"
 

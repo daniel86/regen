@@ -30,10 +30,7 @@ void TBO::resizeTBO() {
 	}
 	tboRef_ = allocBytes(input_->inputSize());
 	if (tboRef_.get()) {
-		auto rs = RenderState::get();
-		tboTexture_->begin(rs);
 		tboTexture_->attach(tboRef_);
-		tboTexture_->end(rs);
 	}
 }
 

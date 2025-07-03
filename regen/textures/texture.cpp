@@ -25,11 +25,12 @@ Texture::Texture(GLuint numTextures)
 		  format_(GL_RGBA),
 		  internalFormat_(GL_RGBA8),
 		  pixelType_(GL_BYTE),
-		  border_(0),
 		  texBind_(GL_TEXTURE_2D, 0),
-		  numSamples_(1),
 		  textureData_(nullptr),
-		  isTextureDataOwned_(false) {
+		  isTextureDataOwned_(false),
+		  allocTexture_(&Texture::allocTexture_noop),
+		  updateImage_(&Texture::updateImage_noop),
+		  updateSubImage_(&Texture::updateSubImage_noop) {
 	set_rectangleSize(2, 2);
 	samplerType_ = "sampler2D";
 	setUniformData(-1);
@@ -79,6 +80,111 @@ void Texture::set_aniso(const TextureAniso &v) {
 	glTextureParameterf(id(), GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
 }
 
+void Texture::allocTexture1D() {
+	glTextureStorage1D(id(),
+					   getNumMipmaps(),
+					   internalFormat_,
+					   static_cast<int32_t>(width()));
+}
+
+void Texture::allocTexture2D() {
+	glTextureStorage2D(id(),
+					   getNumMipmaps(),
+					   internalFormat_,
+					   static_cast<int32_t>(width()),
+					   static_cast<int32_t>(height()));
+}
+
+void Texture::allocTexture2D_Multisample() {
+	glTextureStorage2DMultisample(id(),
+								  numSamples_,
+								  internalFormat_,
+								  static_cast<int32_t>(width()),
+								  static_cast<int32_t>(height()),
+								  fixedSampleLocations_);
+}
+
+void Texture::allocTexture3D() {
+	glTextureStorage3D(id(),
+					   getNumMipmaps(),
+					   internalFormat_,
+					   static_cast<int32_t>(width()),
+					   static_cast<int32_t>(height()),
+					   static_cast<int32_t>(depth()));
+}
+
+void Texture::updateImage1D(GLubyte *subData) {
+	glTextureSubImage1D(id(),
+						0, // mipmap level
+						0, // x offset
+						static_cast<int32_t>(width()),
+						format_,
+						pixelType_,
+						subData);
+}
+
+void Texture::updateImage2D(GLubyte *subData) {
+	glTextureSubImage2D(id(),
+						0, // mipmap level
+						0, // x offset
+						0, // y offset
+						static_cast<int32_t>(width()),
+						static_cast<int32_t>(height()),
+						format_,
+						pixelType_,
+						subData);
+}
+
+void Texture::updateImage3D(GLubyte *subData) {
+	glTextureSubImage3D(id(),
+						0, // mipmap level
+						0, // x offset
+						0, // y offset
+						0, // z offset
+						static_cast<int32_t>(width()),
+						static_cast<int32_t>(height()),
+						static_cast<int32_t>(depth()),
+						format_,
+						pixelType_,
+						subData);
+}
+
+void Texture::updateSubImage1D(GLint layer, GLubyte *subData) {
+	glTextureSubImage1D(id(),
+						0, // mipmap level
+						0, // x offset
+						static_cast<int32_t>(width()),
+						format_,
+						pixelType_,
+						subData);
+}
+
+void Texture::updateSubImage2D(GLint layer, GLubyte *subData) {
+	glTextureSubImage2D(id(),
+						0, // mipmap level
+						0, // x offset
+						0, // y offset
+						static_cast<int32_t>(width()),
+						static_cast<int32_t>(height()),
+						format_,
+						pixelType_,
+						subData);
+}
+
+void Texture::updateSubImage3D(GLint layer, GLubyte *subData) {
+	glTextureSubImage3D(id(),
+						0, // mipmap level
+						0, // x offset
+						0, // y offset
+						layer, // z offset
+						static_cast<int32_t>(width()),
+						static_cast<int32_t>(height()),
+						1, // depth of the sub-image
+						format_,
+						pixelType_,
+						subData);
+}
+
 GLenum Texture::targetType() const {
 	return texBind_.target_;
 }
@@ -92,7 +198,7 @@ const TextureBind &Texture::textureBind() {
 	return texBind_;
 }
 
-void Texture::set_textureData(const GLubyte *textureData, bool owned) {
+void Texture::setTextureData(const GLubyte *textureData, bool owned) {
 	if (textureData_ && isTextureDataOwned_) {
 		delete[]textureData_;
 	}
@@ -100,36 +206,65 @@ void Texture::set_textureData(const GLubyte *textureData, bool owned) {
 	isTextureDataOwned_ = owned;
 }
 
-void Texture::readTextureData() {
-	ScopedTextureActivation sta(*this, RenderState::get());
-	int32_t bufSize = static_cast<int32_t>(numTexel() * numComponents_);
+void Texture::updateTextureData() {
+	auto bufSize = static_cast<int32_t>(numTexel() * numComponents_);
 	auto *pixels = new GLubyte[bufSize];
 	glGetTextureImage(id(), 0,
 					  format(), GL_UNSIGNED_BYTE,
 					  bufSize, pixels);
-	set_textureData(pixels, true);
+	setTextureData(pixels, true);
 }
 
 void Texture::ensureTextureData() {
 	if (!textureData_) {
-		readTextureData();
+		updateTextureData();
 	}
 }
 
-void Texture::updateTextureStorage() {
-	auto w = static_cast<int32_t>(width());
-	auto h = static_cast<int32_t>(height());
-	auto d = static_cast<int32_t>(depth());
-	numTexel_ = w*h*d;
-
-	int32_t maxNumLevels = 1 + (int)floor(log2(std::max({w, h})));
-	int32_t levels = maxNumLevels; // FIXME
-
-	allocateTextureStorage_(levels);
-
-	if (levels > 1) {
-		glGenerateTextureMipmap(id());
+void Texture::allocTexture() {
+	Vec3ui size(width(), height(), depth());
+	if (size == allocatedSize_) {
+		// already allocated
+		return;
 	}
+	bool isReAlloc = (
+		allocatedSize_.x > 0 &&
+		allocatedSize_.y > 0 &&
+		allocatedSize_.z > 0);
+	allocatedSize_ = size;
+	numTexel_ = size.x * size.y * size.z;
+	if (isReAlloc) {
+		// NOTE: texture objects must be destroyed and re-created
+		glDeleteTextures(numObjects_, ids_);
+		glGenTextures(numObjects_, ids_);
+	}
+	(this->*(this->allocTexture_))();
+}
+
+void Texture::updateImage(GLubyte *data) {
+	(this->*(this->updateImage_))(data);
+}
+
+void Texture::updateSubImage(GLint layer, GLubyte *subData) {
+	(this->*(this->updateSubImage_))(layer, subData);
+}
+
+void Texture::setNumMipmaps(int32_t numMips) {
+	numMips_ = numMips;
+}
+
+int32_t Texture::getNumMipmaps() {
+	int32_t maxNumLevels = 1 + (int)floor(log2(std::max({width(), height(), depth()})));
+	if (numMips_ >= 0 && numMips_ < maxNumLevels) {
+		return numMips_;
+	} else {
+		return maxNumLevels;
+	}
+}
+
+void Texture::updateMipmaps() {
+	set_filter(TextureFilter(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR));
+	glGenerateTextureMipmap(id());
 }
 
 void Texture::begin(RenderState *rs, GLint x) {
@@ -192,11 +327,6 @@ unsigned int Texture::texelIndex(const Vec2f &texco) const {
 	return (y * w + x);
 }
 
-void Texture::resize(unsigned int width, unsigned int height) {
-	set_rectangleSize(width, height);
-	updateTextureStorage();
-}
-
 void Texture::set_textureFile(const std::string &fileName) {
 	if (fileName.empty()) {
 		textureFile_.reset();
@@ -235,7 +365,7 @@ static std::vector<GLubyte> readTextureData_cfg(LoadingContext&, scene::SceneInp
 				data.push_back(v.x);
 				data.push_back(v.y);
 				data.push_back(v.z);
-			} else if (numPixelComponents == 4) {
+			} else {
 				auto v = child->getValue<Vec4ui>("v", Vec4ui(0u));
 				data.push_back(v.x);
 				data.push_back(v.y);
@@ -265,7 +395,8 @@ namespace regen {
 			// FIXME: I think we should enforce GL thread here! But initially the resize needs to be done
 			//        right away as withGLContext causes some fbo errors. possible fix: check if
 			//        we have a GL context, and only use withGLContext if not. Could also do this in withGLContext.
-			tex_->resize(winSize.x, winSize.y);
+			tex_->set_rectangleSize(winSize.x, winSize.y);
+			tex_->allocTexture();
 		}
 
 	protected:
@@ -531,4 +662,145 @@ void Texture::configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input) {
 																					<< "'.");
 	}
 	GL_ERROR_LOG();
+}
+
+Texture1D::Texture1D(GLuint numTextures)
+		: Texture(numTextures) {
+	dim_ = 1;
+	texBind_.target_ = GL_TEXTURE_1D;
+	samplerType_ = "sampler1D";
+	allocTexture_ = &Texture1D::allocTexture1D;
+	updateImage_ = &Texture1D::updateImage1D;
+	updateSubImage_ = &Texture1D::updateSubImage1D;
+}
+
+Texture2D::Texture2D(GLuint numTextures)
+		: Texture(numTextures) {
+	dim_ = 2;
+	texBind_.target_ = GL_TEXTURE_2D;
+	samplerType_ = "sampler2D";
+	allocTexture_ = &Texture2D::allocTexture2D;
+	updateImage_ = &Texture2D::updateImage2D;
+	updateSubImage_ = &Texture2D::updateSubImage2D;
+}
+
+TextureMips2D::TextureMips2D(GLuint numMips) : Texture2D() {
+	numMips_ = std::max(numMips, 1u); // at least one mip level
+	mipTextures_.resize(numMips_);
+	mipRefs_.resize(numMips_-1);
+
+	mipTextures_[0] = this;
+	for (auto i = 1; i < numMips_; ++i) {
+		mipRefs_[i-1] = ref_ptr<Texture2D>::alloc();
+		mipTextures_[i] = mipRefs_[i-1].get();
+	}
+}
+
+TextureRectangle::TextureRectangle(GLuint numTextures)
+		: Texture2D(numTextures) {
+	texBind_.target_ = GL_TEXTURE_RECTANGLE;
+	samplerType_ = "sampler2DRect";
+}
+
+Texture2DDepth::Texture2DDepth(GLuint numTextures)
+		: Texture2D(numTextures) {
+	format_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT;
+	pixelType_ = GL_UNSIGNED_BYTE;
+}
+
+Texture2DMultisample::Texture2DMultisample(
+		GLsizei numSamples,
+		GLuint numTextures,
+		GLboolean fixedSampleLocations)
+		: Texture2D(numTextures) {
+	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
+	fixedSampleLocations_ = fixedSampleLocations;
+	samplerType_ = "sampler2DMS";
+	set_numSamples(numSamples);
+	allocTexture_ = &Texture2DMultisample::allocTexture2D_Multisample;
+	// NOTE: no data can be uploaded from CPU to a multisample texture
+	updateImage_ = &Texture2DMultisample::updateImage_noop;
+	updateSubImage_ = &Texture2DMultisample::updateSubImage_noop;
+}
+
+Texture2DMultisampleDepth::Texture2DMultisampleDepth(
+		GLsizei numSamples,
+		GLboolean fixedSampleLocations)
+		: Texture2DDepth() {
+	internalFormat_ = GL_DEPTH_COMPONENT24;
+	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
+	fixedSampleLocations_ = fixedSampleLocations;
+	set_numSamples(numSamples);
+	allocTexture_ = &Texture2DMultisampleDepth::allocTexture2D_Multisample;
+	// NOTE: no data can be uploaded from CPU to a multisample texture
+	updateImage_ = &Texture2DMultisampleDepth::updateImage_noop;
+	updateSubImage_ = &Texture2DMultisampleDepth::updateSubImage_noop;
+}
+
+Texture3D::Texture3D(GLuint numTextures)
+		: Texture(numTextures) {
+	dim_ = 3;
+	texBind_.target_ = GL_TEXTURE_3D;
+	samplerType_ = "sampler3D";
+	allocTexture_ = &Texture3D::allocTexture3D;
+	updateImage_ = &Texture3D::updateImage3D;
+	updateSubImage_ = &Texture3D::updateSubImage3D;
+}
+
+void Texture3D::set_depth(GLuint numTextures) {
+	imageDepth_ = numTextures;
+}
+
+Texture3DDepth::Texture3DDepth(GLuint numTextures) : Texture3D(numTextures) {
+	format_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT;
+}
+
+Texture2DArray::Texture2DArray(GLuint numTextures) : Texture3D(numTextures) {
+	samplerType_ = "sampler2DArray";
+	texBind_.target_ = GL_TEXTURE_2D_ARRAY;
+}
+
+Texture2DArrayDepth::Texture2DArrayDepth(GLuint numTextures) : Texture2DArray(numTextures) {
+	format_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT;
+	pixelType_ = GL_UNSIGNED_BYTE;
+}
+
+Texture2DArrayMultisample::Texture2DArrayMultisample(
+		GLsizei numSamples,
+		GLuint numTextures,
+		GLboolean fixedSampleLocations)
+		: Texture2DArray(numTextures) {
+	samplerType_ = "sampler2DMSArray";
+	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+	set_numSamples(numSamples);
+	fixedSampleLocations_ = fixedSampleLocations;
+}
+
+Texture2DArrayMultisampleDepth::Texture2DArrayMultisampleDepth(
+		GLsizei numSamples,
+		GLuint numTextures,
+		GLboolean fixedSampleLocations)
+		: Texture2DArray(numTextures) {
+	samplerType_ = "sampler2DMSArray";
+	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+	set_numSamples(numSamples);
+	fixedSampleLocations_ = fixedSampleLocations;
+}
+
+TextureCube::TextureCube(GLuint numTextures)
+		: Texture2D(numTextures) {
+	samplerType_ = "samplerCube";
+	texBind_.target_ = GL_TEXTURE_CUBE_MAP;
+	dim_ = 3;
+	imageDepth_ = 6; // 6 faces for cube map
+}
+
+TextureCubeDepth::TextureCubeDepth(GLuint numTextures)
+		: TextureCube(numTextures) {
+	format_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT;
+	pixelType_ = GL_UNSIGNED_BYTE;
 }

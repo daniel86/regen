@@ -4,7 +4,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/shapes/bounds.h>
 #include <regen/meshes/mesh-vector.h>
-#include <regen/textures/texture-2d.h>
+#include <regen/textures/texture.h>
 #include "regen/states/fbo-state.h"
 #include "regen/camera/array-camera.h"
 

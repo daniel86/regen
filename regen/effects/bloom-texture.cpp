@@ -2,8 +2,8 @@
 
 using namespace regen;
 
-BloomTexture::BloomTexture(GLuint numMips) : TextureMips2D(numMips)
-{
+BloomTexture::BloomTexture(GLuint numMips) : TextureMips2D(numMips) {
+	// TODO: rather use one texture and set its mipmap levels manually?
 	mips_.resize(numMips);
 	mips_[0].texture = this;
 	for (auto i = 0u; i < numMips; ++i) {
@@ -17,8 +17,7 @@ BloomTexture::BloomTexture(GLuint numMips) : TextureMips2D(numMips)
 	}
 }
 
-void BloomTexture::resize(GLuint width, GLuint height)
-{
+void BloomTexture::resize(GLuint width, GLuint height) {
 	auto i_mipSize = Vec2ui(width, height);
 	auto f_mipSize = Vec2f(
 		static_cast<float>(i_mipSize.x),
@@ -32,6 +31,6 @@ void BloomTexture::resize(GLuint width, GLuint height)
         mip.glViewport = Viewport(0, 0, i_mipSize.x, i_mipSize.y);
 
 		mip.texture->set_rectangleSize(i_mipSize.x, i_mipSize.y);
-		mip.texture->updateTextureStorage();
+		mip.texture->allocTexture();
 	}
 }
