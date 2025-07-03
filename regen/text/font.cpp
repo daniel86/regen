@@ -94,23 +94,23 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 	faceData_ = new FaceData[NUMBER_OF_GLYPHS];
 
 	// create a array texture for the glyphs
-	arrayTexture_ = ref_ptr<Texture2DArray>::alloc(1);
+	arrayTexture_ = ref_ptr<Texture2DArray>::alloc(GL_TEXTURE_2D_ARRAY, 1);
 	arrayTexture_->set_format(GL_RED);
 	arrayTexture_->set_internalFormat(GL_R8);
 	arrayTexture_->set_pixelType(GL_UNSIGNED_BYTE);
 	arrayTexture_->set_rectangleSize(textureWidth, textureHeight);
 	arrayTexture_->set_depth(NUMBER_OF_GLYPHS);
-	arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
-	arrayTexture_->set_filter(GL_LINEAR);
-	arrayTexture_->set_swizzle(GL_RED);
-	// GL expects 4byte aligned rows
-	glTextureParameteri(arrayTexture_->id(), GL_UNPACK_ALIGNMENT, 1);
 	arrayTexture_->allocTexture();
+	// GL expects 4byte aligned rows
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	for (unsigned short i = 0; i < NUMBER_OF_GLYPHS; i++) {
 		initGlyph(face, i, textureWidth, textureHeight);
 	}
 	// reset to default
-	glTextureParameteri(arrayTexture_->id(), GL_UNPACK_ALIGNMENT, 4);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
+	arrayTexture_->set_filter(GL_LINEAR);
+	arrayTexture_->set_swizzle(GL_RED);
 
 	FT_Done_Face(face);
 }

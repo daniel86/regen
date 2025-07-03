@@ -21,6 +21,17 @@ namespace regen {
 				GLuint numObjects = 1);
 
 		/**
+		 * @param createObjects allocate buffers.
+		 * @param releaseObjects delete buffers.
+		 * @param numObjects number of buffers to allocate.
+		 */
+		GLRectangle(
+				CreateObjectFunc2 createObjects,
+				ReleaseObjectFunc releaseObjects,
+				GLenum objectTarget,
+				GLuint numObjects = 1);
+
+		/**
 		 * Set the buffer size.
 		 */
 		void set_rectangleSize(uint32_t width, uint32_t height);

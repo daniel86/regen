@@ -4,8 +4,7 @@
 using namespace regen;
 
 TextureBuffer::TextureBuffer(GLenum texelFormat)
-		: Texture() {
-	texBind_.target_ = GL_TEXTURE_BUFFER;
+		: Texture(GL_TEXTURE_BUFFER, 1) {
 	if (glenum::isSignedIntegerType(texelFormat)) {
 		samplerType_ = "isamplerBuffer";
 	} else if (glenum::isUnsignedIntegerType(texelFormat)) {

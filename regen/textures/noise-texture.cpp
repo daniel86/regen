@@ -56,10 +56,7 @@ NoiseTexture2D::NoiseTexture2D(GLuint width, GLuint height, GLboolean isSeamless
 	set_rectangleSize(width, height);
 	set_pixelType(GL_UNSIGNED_BYTE);
 	set_format(GL_RED);
-	set_internalFormat(GL_RED);
-	set_swizzle(Vec4i(GL_RED, GL_RED, GL_RED, GL_ONE));
-	set_filter(GL_LINEAR);
-	set_wrapping(GL_MIRRORED_REPEAT);
+	set_internalFormat(GL_R8);
 }
 
 void NoiseTexture2D::updateNoise() {
@@ -81,6 +78,10 @@ void NoiseTexture2D::updateNoise() {
 	allocTexture();
 	updateImage(data);
 	delete[]data;
+
+	set_swizzle(Vec4i(GL_RED, GL_RED, GL_RED, GL_ONE));
+	set_filter(GL_LINEAR);
+	set_wrapping(GL_MIRRORED_REPEAT);
 }
 
 NoiseTexture3D::NoiseTexture3D(GLuint width, GLuint height, GLuint depth, GLboolean isSeamless)
@@ -90,10 +91,7 @@ NoiseTexture3D::NoiseTexture3D(GLuint width, GLuint height, GLuint depth, GLbool
 	set_rectangleSize(width, height);
 	set_pixelType(GL_UNSIGNED_BYTE);
 	set_format(GL_RED);
-	set_internalFormat(GL_RED);
-	set_swizzle(Vec4i(GL_RED, GL_RED, GL_RED, GL_ONE));
-	set_filter(GL_LINEAR);
-	set_wrapping(GL_MIRRORED_REPEAT);
+	set_internalFormat(GL_R8);
 }
 
 void NoiseTexture3D::updateNoise() {
@@ -118,6 +116,9 @@ void NoiseTexture3D::updateNoise() {
 	allocTexture();
 	updateImage(data);
 	delete[]data;
+	set_swizzle(Vec4i(GL_RED, GL_RED, GL_RED, GL_ONE));
+	set_filter(GL_LINEAR);
+	set_wrapping(GL_MIRRORED_REPEAT);
 }
 
 /////////

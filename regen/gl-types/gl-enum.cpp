@@ -414,10 +414,10 @@ GLenum glenum::textureSwizzle(const std::string &val_) {
 GLenum glenum::textureInternalFormat(const std::string &val_) {
 	std::string val = getValue(val_);
 
-	if (val == "RED") return GL_RED;
-	else if (val == "RG") return GL_RG;
-	else if (val == "RGB") return GL_RGB;
-	else if (val == "RGBA") return GL_RGBA;
+	if (val == "RED") return GL_R8;
+	else if (val == "RG") return GL_RG8;
+	else if (val == "RGB") return GL_RGB8;
+	else if (val == "RGBA") return GL_RGBA8;
 	else if (val == "NONE") return GL_NONE;
 
 	else if (val == "R16F") return GL_R16F;

@@ -15,35 +15,6 @@
 #include "regen/textures/texture-file.h"
 
 namespace regen {
-	template<typename T>
-	void regen_lockedTextureParameter(GLenum, const T&) {}
-
-	/**
-	 * \brief State stack for texture parameters.
-	 */
-	template<typename T>
-	class TextureParameterStack
-			: public StateStack<TextureParameterStack<T>, T, void (*)(GLenum, const T &)> {
-	public:
-		/**
-		 * @param v the texture target.
-		 * @param apply apply a stack value.
-		 */
-		TextureParameterStack(const TextureBind &v, void (*apply)(GLenum, const T &))
-				: StateStack<TextureParameterStack, T, void (*)(GLenum, const T &)>(
-				apply, regen_lockedTextureParameter), v_(v) {}
-
-		/**
-		 * @param v the new state value
-		 */
-		void apply(const T &v) { this->apply_(v_.target_, v); }
-
-	protected:
-		const TextureBind &v_;
-	};
-}
-
-namespace regen {
 	class Texture;
 	/** minification/magnifiction */
 	typedef Vec2i TextureFilter;
@@ -73,12 +44,18 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		explicit Texture(GLuint numTextures = 1);
+		explicit Texture(GLenum textureTarget, GLuint numTextures = 1);
 
 		~Texture() override;
 
 		Texture(const Texture &) = delete;
 
+		/**
+		 * Loads a texture from the given input node.
+		 * @param ctx the loading context.
+		 * @param input the input node.
+		 * @return a new texture object.
+		 */
 		static ref_ptr<Texture> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
@@ -185,6 +162,10 @@ namespace regen {
 		 */
 		void updateTextureData();
 
+		/**
+		 * Ensures that the texture data is available.
+		 * If the texture data is not available, it will be read from the server.
+		 */
 		void ensureTextureData();
 
 		/**
@@ -279,12 +260,28 @@ namespace regen {
 		 */
 		void allocTexture();
 
+		/**
+		 * Allocates the texture image.
+		 * This will allocate the texture data on the GPU.
+		 */
 		void updateImage(GLubyte *data);
 
+		/**
+		 * Allocates the texture image.
+		 * This will allocate the texture data on the GPU.
+		 */
 		void updateSubImage(GLint layer, GLubyte *subData);
 
+		/**
+		 * Sets the number of mipmaps.
+		 * If the value is negative, it will be computed from the texture size.
+		 * @param numMips number of mipmaps.
+		 */
 		void setNumMipmaps(int32_t numMips);
 
+		/**
+		 * @return number of mipmaps.
+		 */
 		int32_t getNumMipmaps();
 
 		/**
@@ -514,7 +511,9 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		explicit Texture2D(GLuint numTextures = 1);
+		explicit Texture2D(
+				GLenum textureTarget = GL_TEXTURE_2D,
+				GLuint numTextures = 1);
 	};
 
 	/**
@@ -561,7 +560,9 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		explicit Texture2DDepth(GLuint numTextures = 1);
+		explicit Texture2DDepth(
+				GLenum textureTarget = GL_TEXTURE_2D,
+				GLuint numTextures = 1);
 	};
 
 	/**
@@ -607,7 +608,9 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		explicit Texture3D(GLuint numTextures = 1);
+		explicit Texture3D(
+				GLenum textureTarget = GL_TEXTURE_3D,
+				GLuint numTextures = 1);
 
 		/**
 		 * @param depth the texture depth.
@@ -634,7 +637,9 @@ namespace regen {
 		/**
 		 * @param numTextures number of texture images.
 		 */
-		explicit Texture2DArray(GLuint numTextures = 1);
+		explicit Texture2DArray(
+				GLenum textureTarget = GL_TEXTURE_2D_ARRAY,
+				GLuint numTextures = 1);
 	};
 
 	class Texture2DArrayDepth : public Texture2DArray {

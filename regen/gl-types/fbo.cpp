@@ -112,17 +112,17 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 		depth = ref_ptr<Texture2DDepth>::alloc();
 	}
 	depth->set_rectangleSize(width(), height());
-	depth->set_internalFormat(format);
+	depth->set_internalFormat(glenum::textureInternalFormat(format));
 	depth->set_pixelType(type);
 
 	rs->drawFrameBuffer().push(id());
 	{
+		depth->allocTexture();
 		if (numSamples == 1) {
 			depth->set_wrapping(GL_REPEAT);
 			depth->set_filter(GL_NEAREST);
 			depth->set_compare(TextureCompare(GL_NONE, GL_EQUAL));
 		}
-		depth->allocTexture();
 		if (isStencil) {
 			set_depthStencilTexture(depth);
 		} else {
@@ -196,7 +196,7 @@ ref_ptr<Texture> FBO::createTexture(
 			if (numSamples > 1) {
 				tex = ref_ptr<Texture2DMultisample>::alloc(numSamples, count);
 			} else {
-				tex = ref_ptr<Texture2D>::alloc(count);
+				tex = ref_ptr<Texture2D>::alloc(GL_TEXTURE_2D, count);
 			}
 			break;
 
@@ -204,7 +204,7 @@ ref_ptr<Texture> FBO::createTexture(
 			if (numSamples > 1) {
 				tex3d = ref_ptr<Texture2DArrayMultisample>::alloc(numSamples, count);
 			} else {
-				tex3d = ref_ptr<Texture2DArray>::alloc(count);
+				tex3d = ref_ptr<Texture2DArray>::alloc(GL_TEXTURE_2D_ARRAY, count);
 			}
 			tex3d->set_depth(depth);
 			tex = tex3d;
@@ -218,7 +218,7 @@ ref_ptr<Texture> FBO::createTexture(
 			break;
 
 		case GL_TEXTURE_3D:
-			tex3d = ref_ptr<Texture3D>::alloc(count);
+			tex3d = ref_ptr<Texture3D>::alloc(GL_TEXTURE_3D, count);
 			if (numSamples > 1) {
 				REGEN_WARN("Multisample 3D textures not supported. Using normal 3D texture.");
 			}
@@ -228,7 +228,7 @@ ref_ptr<Texture> FBO::createTexture(
 
 		default: // GL_TEXTURE_2D:
 			REGEN_WARN("Unknown texture type " << targetType << ". Using 2D texture.");
-			tex = ref_ptr<Texture2D>::alloc(count);
+			tex = ref_ptr<Texture2D>::alloc(GL_TEXTURE_2D, count);
 			break;
 
 	}

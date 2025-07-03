@@ -10,6 +10,15 @@ GLRectangle::GLRectangle(
 	set_rectangleSize(2, 2);
 }
 
+GLRectangle::GLRectangle(
+		CreateObjectFunc2 createObjects,
+		ReleaseObjectFunc releaseObjects,
+		GLenum objectTarget,
+		GLuint numObjects)
+		: GLObject(createObjects, releaseObjects, objectTarget, numObjects) {
+	set_rectangleSize(2, 2);
+}
+
 void GLRectangle::set_rectangleSize(uint32_t width, uint32_t height) {
 	sizeUI_.x = width;
 	sizeUI_.y = height;

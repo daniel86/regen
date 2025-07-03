@@ -290,9 +290,9 @@ static void loadTexture(
 		tex->set_pixelType(GL_UNSIGNED_BYTE);
 		tex->set_format(GL_RGBA);
 		tex->set_internalFormat(GL_RGBA8);
+		tex->allocTexture();
 		tex->set_filter(GL_LINEAR);
 		tex->set_wrapping(GL_REPEAT);
-		tex->allocTexture();
 		tex->updateImage((GLubyte *) aiTexture->pcData);
 	}
 

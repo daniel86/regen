@@ -29,9 +29,9 @@ RampTexture::RampTexture(
 	set_pixelType(GL_UNSIGNED_BYTE);
 	set_format(format);
 	set_internalFormat(internalFormat);
+	Texture1D::allocTexture();
 	set_filter(GL_LINEAR);
 	set_wrapping(GL_CLAMP_TO_EDGE);
-	Texture1D::allocTexture();
 	Texture1D::updateImage((GLubyte *) data.data());
 }
 

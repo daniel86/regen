@@ -42,10 +42,10 @@ namespace regen {
 			colorBuffer->set_rectangleSize(width_, height_);
 			colorBuffer->set_pixelType(GL_UNSIGNED_BYTE);
 			colorBuffer->set_format(GL_RGB);
-			colorBuffer->set_internalFormat(GL_RGB);
+			colorBuffer->set_internalFormat(GL_RGB8);
+			colorBuffer->allocTexture();
 			colorBuffer->set_filter(GL_LINEAR);
 			colorBuffer->set_wrapping(GL_REPEAT);
-			colorBuffer->allocTexture();
 			fbo->addTexture(colorBuffer);
 			fboState_ = ref_ptr<FBOState>::alloc(fbo);
 			updateState_->joinStates(fboState_);

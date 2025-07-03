@@ -1,10 +1,3 @@
-/*
- * texture-loader.cpp
- *
- *  Created on: 21.12.2012
- *      Author: daniel
- */
-
 #include <GL/glew.h>
 #include <IL/il.h>
 #include <IL/ilu.h>
@@ -203,17 +196,17 @@ ref_ptr<Texture> textures::load(
 	tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
 	tex->set_format(regenImageFormat());
 	if (forcedInternalFormat == GL_NONE) {
-		forcedInternalFormat = tex->format();
+		forcedInternalFormat = glenum::textureInternalFormat(tex->format());
 	}
 	if (forcedInternalFormat == GL_BGRA) {
-		forcedInternalFormat = GL_RGBA;
+		forcedInternalFormat = GL_RGBA8;
 	} else if (forcedInternalFormat == GL_BGR) {
-		forcedInternalFormat = GL_RGB;
+		forcedInternalFormat = GL_RGB8;
 	}
 	tex->set_internalFormat(forcedInternalFormat);
+	tex->allocTexture();
 	tex->set_wrapping(GL_REPEAT);
 	tex->set_filter(GL_LINEAR);
-	tex->allocTexture();
 	if (numImages > 1) {
 		auto *tex3d = dynamic_cast<Texture3D *>(tex.get());
 		for (auto i = 0; i < numImages; ++i) {
@@ -263,11 +256,12 @@ ref_ptr<Texture> textures::load(
 	tex->set_rectangleSize(ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT));
 	tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
 	tex->set_format(regenImageFormat());
-	tex->set_internalFormat(
-			forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
+	tex->set_internalFormat(forcedInternalFormat == GL_NONE ?
+		glenum::textureInternalFormat(tex->format()) :
+		forcedInternalFormat);
+	tex->allocTexture();
 	tex->set_wrapping(GL_REPEAT);
 	tex->set_filter(GL_LINEAR);
-	tex->allocTexture();
 	tex->updateImage((GLubyte *) ilGetData());
 	if (useMipmaps) {
 		tex->updateMipmaps();
@@ -315,8 +309,6 @@ ref_ptr<Texture2DArray> textures::loadArray(
 	GLuint numTextures = textureFiles.size();
 	ref_ptr<Texture2DArray> tex = ref_ptr<Texture2DArray>::alloc();
 	tex->set_depth(numTextures);
-	tex->set_wrapping(GL_REPEAT);
-	tex->set_filter(GL_LINEAR);
 
 	Vec3ui forcedSize_ = forcedSize;
 	GLint arrayIndex = 0;
@@ -331,8 +323,9 @@ ref_ptr<Texture2DArray> textures::loadArray(
 			tex->set_rectangleSize(forcedSize_.x, forcedSize_.y);
 			tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
 			tex->set_format(regenImageFormat());
-			tex->set_internalFormat(
-					forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
+			tex->set_internalFormat(forcedInternalFormat == GL_NONE ?
+				glenum::textureInternalFormat(tex->format()) :
+				forcedInternalFormat);
 			tex->allocTexture();
 		}
 
@@ -340,6 +333,8 @@ ref_ptr<Texture2DArray> textures::loadArray(
 		ilDeleteImages(1, &ilID);
 		arrayIndex += 1;
 	}
+	tex->set_wrapping(GL_REPEAT);
+	tex->set_filter(GL_LINEAR);
 	if (useMipmaps) {
 		tex->updateMipmaps();
 	}
@@ -395,12 +390,13 @@ ref_ptr<TextureCube> textures::loadCube(
 	tex->set_rectangleSize(faceWidth, faceHeight);
 	tex->set_pixelType(ilGetInteger(IL_IMAGE_TYPE));
 	tex->set_format(regenImageFormat());
-	tex->set_internalFormat(
-			forcedInternalFormat == GL_NONE ? tex->format() : forcedInternalFormat);
-	tex->set_filter(GL_LINEAR);
-
-	glTextureParameteri(tex->id(), GL_UNPACK_ROW_LENGTH, faceWidth * numCols);
+	tex->set_internalFormat(forcedInternalFormat == GL_NONE ?
+		glenum::textureInternalFormat(tex->format()) :
+		forcedInternalFormat);
 	tex->allocTexture();
+
+	tex->set_filter(GL_LINEAR);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, faceWidth * numCols);
 
 	auto *imageData = (GLbyte *) ilGetData();
 	ILint index = 0;
@@ -412,7 +408,7 @@ ref_ptr<TextureCube> textures::loadCube(
 				auto nextFace = (TextureCube::CubeSide) mappedFace;
 
 				if (flipBackFace && nextFace == TextureCube::BACK) {
-					glTextureParameteri(tex->id(), GL_UNPACK_ROW_LENGTH, 0);
+					glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 					auto *flippedFace = new GLbyte[faceBytes];
 					auto *faceData = (GLbyte *) colData;
 					auto *dst = flippedFace;
@@ -427,7 +423,7 @@ ref_ptr<TextureCube> textures::loadCube(
 					tex->updateSubImage(nextFace, (GLubyte *) flippedFace);
 				} else {
 					tex->updateSubImage(nextFace, (GLubyte *) colData);
-					glTextureParameteri(tex->id(), GL_UNPACK_ROW_LENGTH, 4);
+					glPixelStorei(GL_UNPACK_ROW_LENGTH, 4);
 				}
 			}
 			index += 1;
@@ -439,10 +435,9 @@ ref_ptr<TextureCube> textures::loadCube(
 	if (useMipmaps) {
 		tex->updateMipmaps();
 	}
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
-	glTextureParameteri(tex->id(), GL_UNPACK_ROW_LENGTH, 0);
 	ilDeleteImages(1, &ilID);
-	GL_ERROR_LOG();
 
 	return tex;
 }
@@ -483,9 +478,9 @@ ref_ptr<Texture> textures::loadRAW(
 	tex->set_pixelType(GL_UNSIGNED_BYTE);
 	tex->set_format(format_);
 	tex->set_internalFormat(internalFormat_);
+	tex->allocTexture();
 	tex->set_filter(GL_LINEAR);
 	tex->set_wrapping(GL_REPEAT);
-	tex->allocTexture();
 	tex->updateImage((GLubyte *) pixels);
 	delete[] pixels;
 
@@ -504,10 +499,10 @@ ref_ptr<Texture> textures::loadSpectrum(
 	tex->set_rectangleSize(numTexels, 1);
 	tex->set_pixelType(GL_UNSIGNED_BYTE);
 	tex->set_format(GL_RGBA);
-	tex->set_internalFormat(GL_RGBA);
+	tex->set_internalFormat(GL_RGBA8);
+	tex->allocTexture();
 	tex->set_wrapping(GL_CLAMP);
 	tex->set_filter(GL_LINEAR);
-	tex->allocTexture();
 	tex->updateImage((GLubyte *) data);
 	if (mipmapFlag != GL_NONE) {
 		tex->updateMipmaps();

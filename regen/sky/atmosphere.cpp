@@ -20,12 +20,12 @@ Atmosphere::Atmosphere(
 	if (useFloatBuffer) {
 		cubeMap->set_internalFormat(GL_RGBA16F);
 	} else {
-		cubeMap->set_internalFormat(GL_RGBA);
+		cubeMap->set_internalFormat(GL_RGBA8);
 	}
-	cubeMap->set_filter(GL_LINEAR);
 	cubeMap->set_rectangleSize(cubeMapSize, cubeMapSize);
-	cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
 	cubeMap->allocTexture();
+	cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
+	cubeMap->set_filter(GL_LINEAR);
 
 	// create render target for updating the sky cube map
 	fbo_ = ref_ptr<FBO>::alloc(cubeMapSize, cubeMapSize);

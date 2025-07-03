@@ -18,14 +18,18 @@ using namespace regen;
 #include "regen/scene/loading-context.h"
 #include "regen/gl-types/fbo.h"
 
-Texture::Texture(GLuint numTextures)
-		: GLRectangle(glGenTextures, glDeleteTextures, numTextures),
+Texture::Texture(GLenum textureTarget, GLuint numTextures)
+		: GLRectangle(
+				glCreateTextures,
+				glDeleteTextures,
+				textureTarget,
+				numTextures),
 		  ShaderInput1i(REGEN_STRING("textureChannel" << id())),
 		  dim_(2),
 		  format_(GL_RGBA),
 		  internalFormat_(GL_RGBA8),
 		  pixelType_(GL_BYTE),
-		  texBind_(GL_TEXTURE_2D, 0),
+		  texBind_(textureTarget, id()),
 		  textureData_(nullptr),
 		  isTextureDataOwned_(false),
 		  allocTexture_(&Texture::allocTexture_noop),
@@ -34,6 +38,7 @@ Texture::Texture(GLuint numTextures)
 	set_rectangleSize(2, 2);
 	samplerType_ = "sampler2D";
 	setUniformData(-1);
+	set_active(GL_FALSE);
 }
 
 Texture::~Texture() {
@@ -254,7 +259,7 @@ void Texture::setNumMipmaps(int32_t numMips) {
 }
 
 int32_t Texture::getNumMipmaps() {
-	int32_t maxNumLevels = 1 + (int)floor(log2(std::max({width(), height(), depth()})));
+	int32_t maxNumLevels = 1 + (int)floor(log2(std::max({width(), height()})));
 	if (numMips_ >= 0 && numMips_ < maxNumLevels) {
 		return numMips_;
 	} else {
@@ -665,26 +670,25 @@ void Texture::configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input) {
 }
 
 Texture1D::Texture1D(GLuint numTextures)
-		: Texture(numTextures) {
+		: Texture(GL_TEXTURE_1D, numTextures) {
 	dim_ = 1;
-	texBind_.target_ = GL_TEXTURE_1D;
 	samplerType_ = "sampler1D";
 	allocTexture_ = &Texture1D::allocTexture1D;
 	updateImage_ = &Texture1D::updateImage1D;
 	updateSubImage_ = &Texture1D::updateSubImage1D;
 }
 
-Texture2D::Texture2D(GLuint numTextures)
-		: Texture(numTextures) {
+Texture2D::Texture2D(GLenum textureTarget, GLuint numTextures)
+		: Texture(textureTarget, numTextures) {
 	dim_ = 2;
-	texBind_.target_ = GL_TEXTURE_2D;
 	samplerType_ = "sampler2D";
 	allocTexture_ = &Texture2D::allocTexture2D;
 	updateImage_ = &Texture2D::updateImage2D;
 	updateSubImage_ = &Texture2D::updateSubImage2D;
 }
 
-TextureMips2D::TextureMips2D(GLuint numMips) : Texture2D() {
+TextureMips2D::TextureMips2D(GLuint numMips)
+		: Texture2D(GL_TEXTURE_2D, 1) {
 	numMips_ = std::max(numMips, 1u); // at least one mip level
 	mipTextures_.resize(numMips_);
 	mipRefs_.resize(numMips_-1);
@@ -697,15 +701,14 @@ TextureMips2D::TextureMips2D(GLuint numMips) : Texture2D() {
 }
 
 TextureRectangle::TextureRectangle(GLuint numTextures)
-		: Texture2D(numTextures) {
-	texBind_.target_ = GL_TEXTURE_RECTANGLE;
+		: Texture2D(GL_TEXTURE_RECTANGLE, numTextures) {
 	samplerType_ = "sampler2DRect";
 }
 
-Texture2DDepth::Texture2DDepth(GLuint numTextures)
-		: Texture2D(numTextures) {
+Texture2DDepth::Texture2DDepth(GLenum textureTarget, GLuint numTextures)
+		: Texture2D(textureTarget, numTextures) {
 	format_ = GL_DEPTH_COMPONENT;
-	internalFormat_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT24;
 	pixelType_ = GL_UNSIGNED_BYTE;
 }
 
@@ -713,8 +716,7 @@ Texture2DMultisample::Texture2DMultisample(
 		GLsizei numSamples,
 		GLuint numTextures,
 		GLboolean fixedSampleLocations)
-		: Texture2D(numTextures) {
-	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
+		: Texture2D(GL_TEXTURE_2D_MULTISAMPLE, numTextures) {
 	fixedSampleLocations_ = fixedSampleLocations;
 	samplerType_ = "sampler2DMS";
 	set_numSamples(numSamples);
@@ -727,9 +729,8 @@ Texture2DMultisample::Texture2DMultisample(
 Texture2DMultisampleDepth::Texture2DMultisampleDepth(
 		GLsizei numSamples,
 		GLboolean fixedSampleLocations)
-		: Texture2DDepth() {
+		: Texture2DDepth(GL_TEXTURE_2D_MULTISAMPLE, 1) {
 	internalFormat_ = GL_DEPTH_COMPONENT24;
-	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE;
 	fixedSampleLocations_ = fixedSampleLocations;
 	set_numSamples(numSamples);
 	allocTexture_ = &Texture2DMultisampleDepth::allocTexture2D_Multisample;
@@ -738,10 +739,9 @@ Texture2DMultisampleDepth::Texture2DMultisampleDepth(
 	updateSubImage_ = &Texture2DMultisampleDepth::updateSubImage_noop;
 }
 
-Texture3D::Texture3D(GLuint numTextures)
-		: Texture(numTextures) {
+Texture3D::Texture3D(GLenum textureTarget, GLuint numTextures)
+		: Texture(textureTarget, numTextures) {
 	dim_ = 3;
-	texBind_.target_ = GL_TEXTURE_3D;
 	samplerType_ = "sampler3D";
 	allocTexture_ = &Texture3D::allocTexture3D;
 	updateImage_ = &Texture3D::updateImage3D;
@@ -752,19 +752,21 @@ void Texture3D::set_depth(GLuint numTextures) {
 	imageDepth_ = numTextures;
 }
 
-Texture3DDepth::Texture3DDepth(GLuint numTextures) : Texture3D(numTextures) {
+Texture3DDepth::Texture3DDepth(GLuint numTextures)
+		: Texture3D(GL_TEXTURE_3D, numTextures) {
 	format_ = GL_DEPTH_COMPONENT;
-	internalFormat_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT24;
 }
 
-Texture2DArray::Texture2DArray(GLuint numTextures) : Texture3D(numTextures) {
+Texture2DArray::Texture2DArray(GLenum textureTarget, GLuint numTextures)
+		: Texture3D(textureTarget, numTextures) {
 	samplerType_ = "sampler2DArray";
-	texBind_.target_ = GL_TEXTURE_2D_ARRAY;
 }
 
-Texture2DArrayDepth::Texture2DArrayDepth(GLuint numTextures) : Texture2DArray(numTextures) {
+Texture2DArrayDepth::Texture2DArrayDepth(GLuint numTextures)
+		: Texture2DArray(GL_TEXTURE_2D_ARRAY, numTextures) {
 	format_ = GL_DEPTH_COMPONENT;
-	internalFormat_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT24;
 	pixelType_ = GL_UNSIGNED_BYTE;
 }
 
@@ -772,9 +774,8 @@ Texture2DArrayMultisample::Texture2DArrayMultisample(
 		GLsizei numSamples,
 		GLuint numTextures,
 		GLboolean fixedSampleLocations)
-		: Texture2DArray(numTextures) {
+		: Texture2DArray(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, numTextures) {
 	samplerType_ = "sampler2DMSArray";
-	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 	set_numSamples(numSamples);
 	fixedSampleLocations_ = fixedSampleLocations;
 }
@@ -783,24 +784,24 @@ Texture2DArrayMultisampleDepth::Texture2DArrayMultisampleDepth(
 		GLsizei numSamples,
 		GLuint numTextures,
 		GLboolean fixedSampleLocations)
-		: Texture2DArray(numTextures) {
+		: Texture2DArray(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, numTextures) {
 	samplerType_ = "sampler2DMSArray";
-	texBind_.target_ = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 	set_numSamples(numSamples);
 	fixedSampleLocations_ = fixedSampleLocations;
 }
 
 TextureCube::TextureCube(GLuint numTextures)
-		: Texture2D(numTextures) {
+		: Texture2D(GL_TEXTURE_CUBE_MAP, numTextures) {
 	samplerType_ = "samplerCube";
-	texBind_.target_ = GL_TEXTURE_CUBE_MAP;
 	dim_ = 3;
 	imageDepth_ = 6; // 6 faces for cube map
+	updateImage_ = &TextureCube::updateImage3D;
+	updateSubImage_ = &TextureCube::updateSubImage3D;
 }
 
 TextureCubeDepth::TextureCubeDepth(GLuint numTextures)
 		: TextureCube(numTextures) {
 	format_ = GL_DEPTH_COMPONENT;
-	internalFormat_ = GL_DEPTH_COMPONENT;
+	internalFormat_ = GL_DEPTH_COMPONENT24;
 	pixelType_ = GL_UNSIGNED_BYTE;
 }

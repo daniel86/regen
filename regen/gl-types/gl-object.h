@@ -24,6 +24,11 @@ namespace regen {
 		typedef void (GLAPIENTRY *CreateObjectFunc)(GLsizei n, GLuint *buffers);
 
 		/**
+		 * Obtain n buffers.
+		 */
+		typedef void (GLAPIENTRY *CreateObjectFunc2)(GLenum target, GLsizei n, GLuint *buffers);
+
+		/**
 		 * Release n buffers.
 		 */
 		typedef void (GLAPIENTRY *ReleaseObjectFunc)(GLsizei n, const GLuint *buffers);
@@ -36,6 +41,17 @@ namespace regen {
 		GLObject(
 				CreateObjectFunc createObjects,
 				ReleaseObjectFunc releaseObjects,
+				GLuint numObjects = 1);
+
+		/**
+		 * @param createObjects allocate buffers.
+		 * @param releaseObjects delete buffers.
+		 * @param numObjects number of buffers to allocate.
+		 */
+		GLObject(
+				CreateObjectFunc2 createObjects,
+				ReleaseObjectFunc releaseObjects,
+				GLenum objectTarget,
 				GLuint numObjects = 1);
 
 		virtual ~GLObject();
@@ -81,8 +97,10 @@ namespace regen {
 		GLuint *ids_;
 		GLuint numObjects_;
 		GLuint objectIndex_;
+		GLenum objectTarget_ = GL_NONE;
 		ReleaseObjectFunc releaseObjects_;
 		CreateObjectFunc createObjects_;
+		CreateObjectFunc2 createObjects2_;
 
 		/**
 		 * copy not allowed.

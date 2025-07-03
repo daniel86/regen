@@ -6,7 +6,7 @@ using namespace regen;
 int BufferMapping::minMapAlignment_ = 64; // default value, can be overridden
 
 BufferMapping::BufferMapping(GLbitfield storageFlags, BufferingMode storageBuffering, BufferType bufferType) :
-		GLObject(glGenBuffers, glDeleteBuffers,
+		GLObject(glCreateBuffers, glDeleteBuffers,
 		bufferType==MULTI_BUFFER ? (int)storageBuffering : 1),
 		storageFlags_(storageFlags),
 		bufferType_(bufferType),
@@ -81,7 +81,7 @@ static inline void resetBuffer(RenderState *rs, GLenum target, uint32_t &id) {
 	glUnmapNamedBuffer(id);
 	// NOTE: this seems to be necessary on some drivers, e.g. AMD
 	glDeleteBuffers(1, &id);
-	glGenBuffers(1, &id);
+	glCreateBuffers(1, &id);
 }
 
 static inline bool waitForFence(GLsync &fence, bool allowFrameDropping) {

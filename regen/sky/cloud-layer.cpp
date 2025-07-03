@@ -50,14 +50,14 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 		: SkyLayer(sky) {
 	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
 
-	cloudTexture_ = ref_ptr<Texture2D>::alloc(1);
+	cloudTexture_ = ref_ptr<Texture2D>::alloc();
 	cloudTexture_->set_rectangleSize(textureSize, textureSize);
 	cloudTexture_->set_format(GL_RED);
 	cloudTexture_->set_internalFormat(GL_R16F);
 	cloudTexture_->set_pixelType(GL_FLOAT);
+	cloudTexture_->allocTexture();
 	cloudTexture_->set_filter(GL_LINEAR);
 	cloudTexture_->set_wrapping(GL_REPEAT);
-	cloudTexture_->allocTexture();
 	state()->joinStates(ref_ptr<TextureState>::alloc(cloudTexture_, "cloudTexture"));
 
 	// create render target for updating the sky cube map

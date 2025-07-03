@@ -225,6 +225,26 @@ namespace regen {
 
 		/**
 		 * Defines the format of texel data that is used texture intern.
+		 * @param textureFormat the texture pixel type.
+		 * @return On of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
+		 */
+		inline GLenum textureInternalFormat(GLenum textureFormat) {
+			switch (textureFormat) {
+				case GL_RED:
+					return GL_R8;
+				case GL_RG:
+					return GL_RG8;
+				case GL_RGB:
+					return GL_RGB8;
+				case GL_RGBA:
+					return GL_RGBA8;
+				default:
+					return textureFormat;
+			}
+		}
+
+		/**
+		 * Defines the format of texel data that is used texture intern.
 		 * @param val the type string.
 		 * @return On of the GL_R,GL_RG,GL_RGB,GL_RGBA constants.
 		 */
