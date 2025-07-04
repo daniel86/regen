@@ -419,15 +419,12 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	set_rectangleSize(w, h);
 	depth_ = depth;
 
-	// FIXME: all textures must be re-created then re-bound!
-
 	viewport_->setUniformData(
 			Vec2f((GLfloat) w, (GLfloat) h));
 	inverseViewport_->setUniformData(
 			Vec2f(1.0f / (GLfloat) w, 1.0f / (GLfloat) h));
 	glViewport_ = Vec4ui(0, 0, w, h);
 	rs->drawFrameBuffer().push(id());
-	rs->activeTexture().push(GL_TEXTURE7);
 
 	// resize depth attachment
 	if (depthTexture_.get() != nullptr) {
@@ -479,7 +476,6 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		}
 	}
 
-	rs->activeTexture().pop();
 	rs->drawFrameBuffer().pop();
 }
 
