@@ -126,12 +126,27 @@ namespace regen {
 
 		static ref_ptr<FBO> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
+		/**
+		 * Assigns an attachment to the read buffer state of the FBO.
+		 * @param attachment the attachment to be used as read buffer.
+		 */
 		void applyReadBuffer(GLenum attachment);
 
+		/**
+		 * Assigns all FBO attachments to the draw buffer state of the FBO.x
+		 */
 		void applyDrawBuffers();
 
+		/**
+		 * Assigns an attachment to the draw buffer state of the FBO.
+		 * @param attachment the attachment to be used as draw buffer.
+		 */
 		void applyDrawBuffers(GLenum attachment);
 
+		/**
+		 * Assigns a list of attachments to the draw buffer state of the FBO.
+		 * @param buffers the attachments to be used as draw buffers.
+		 */
 		void applyDrawBuffers(const DrawBuffers &buffers);
 
 		/**
@@ -321,8 +336,17 @@ namespace regen {
 				GLenum filter = GL_NEAREST,
 				GLboolean keepRatio = GL_FALSE);
 
+		/**
+		 * Clear the FBO color attachments to the given color.
+		 * @param color the color to clear to.
+		 */
 		void clearColor(const Vec4f &color);
 
+		/**
+		 * Clear the FBO color attachment at the given index to the given color.
+		 * @param color the color to clear to.
+		 * @param attachmentIdx the index of the attachment to clear.
+		 */
 		void clearColor(const Vec4f &color, uint32_t attachmentIdx);
 
 		/**
