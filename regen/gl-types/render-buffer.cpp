@@ -3,7 +3,7 @@
 using namespace regen;
 
 RenderBuffer::RenderBuffer(GLuint numBuffers)
-		: GLRectangle(glGenRenderbuffers, glDeleteRenderbuffers, numBuffers),
+		: GLRectangle(glCreateRenderbuffers, glDeleteRenderbuffers, numBuffers),
 		  format_(GL_RGBA) {
 }
 
@@ -13,9 +13,9 @@ void RenderBuffer::begin(RenderState *rs) { rs->renderBuffer().push(id()); }
 
 void RenderBuffer::end(RenderState *rs) { rs->renderBuffer().pop(); }
 
-void RenderBuffer::storageMS(GLuint numMultisamples) const {
+void RenderBuffer::storageMS(GLuint numSamples) const {
 	glNamedRenderbufferStorageMultisample(
-			id(), numMultisamples, format_, width(), height());
+			id(), numSamples, format_, width(), height());
 }
 
 void RenderBuffer::storage() const {
