@@ -62,11 +62,12 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 
 	// create render target for updating the sky cube map
 	fbo_ = ref_ptr<FBO>::alloc(textureSize, textureSize);
-	RenderState::get()->drawFrameBuffer().push(fbo_->id());
-	fbo_->drawBuffers().push(DrawBuffers::attachment0());
-	glClear(GL_COLOR_BUFFER_BIT);
-	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cloudTexture_->id(), 0);
-	RenderState::get()->drawFrameBuffer().pop();
+	glNamedFramebufferTexture(
+			fbo_->id(),
+			GL_COLOR_ATTACHMENT0,
+			cloudTexture_->id(),
+			0);
+	fbo_->clearColor({0.0, 0.0, 0.0, 1.0});
 
 	color_ = ref_ptr<ShaderInput3f>::alloc("color");
 	color_->setUniformData(Vec3f(1.f, 1.f, 1.f));
@@ -164,8 +165,8 @@ float CloudLayer::defaultChangeLow() {
 }
 
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
-	rs->drawFrameBuffer().push(fbo_->id());
-	glClear(GL_COLOR_BUFFER_BIT);
+	static const Vec4f clearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	fbo_->clearColor(clearColor);
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);
@@ -173,7 +174,6 @@ void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	updateState_->disable(rs);
 
 	rs->viewport().pop();
-	rs->drawFrameBuffer().pop();
 }
 
 

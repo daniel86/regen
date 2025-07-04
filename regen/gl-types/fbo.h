@@ -1,10 +1,3 @@
-/*
- * fbo.h
- *
- *  Created on: 04.02.2011
- *      Author: daniel
- */
-
 #ifndef REGEN_FBO_H_
 #define REGEN_FBO_H_
 
@@ -105,11 +98,10 @@ namespace regen {
 		 */
 		struct Screen {
 			Screen();
-
-			/** the active draw buffers. */
-			ValueStackAtomic<GLenum> drawBuffer_;
-			/** the active read buffer. */
-			ValueStackAtomic<GLenum> readBuffer_;
+			void applyReadBuffer(GLenum attachment);
+			void applyDrawBuffer(GLenum attachment);
+			GLenum readBuffer_ = GL_NONE; // the read buffer
+			GLenum drawBuffer_ = GL_NONE; // the draw buffer
 		};
 
 		/**
@@ -134,15 +126,13 @@ namespace regen {
 
 		static ref_ptr<FBO> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
-		/**
-		 * Specifies a list of color buffers to be drawn into.
-		 */
-		inline ValueStack<DrawBuffers> &drawBuffers() { return drawBuffers_; }
+		void applyReadBuffer(GLenum attachment);
 
-		/**
-		 * Select a color buffer source for pixels.
-		 */
-		inline ValueStackAtomic<GLenum> &readBuffer() { return readBuffer_; }
+		void applyDrawBuffers();
+
+		void applyDrawBuffers(GLenum attachment);
+
+		void applyDrawBuffers(const DrawBuffers &buffers);
 
 		/**
 		 * Resizes all textures attached to this FBO.
@@ -222,9 +212,9 @@ namespace regen {
 		const ref_ptr<Texture> &depthStencilTexture() const { return depthStencilTexture_; }
 
 		/**
-		 * @return all added color attachments.
+		 * @return all color attachments of the FBO.
 		 */
-		const DrawBuffers &colorBuffers() const { return colorBuffers_; }
+		const DrawBuffers &colorAttachments() const { return colorAttachments_; }
 
 		/**
 		 * Add n RenderBuffer's to the FBO.
@@ -331,6 +321,10 @@ namespace regen {
 				GLenum filter = GL_NEAREST,
 				GLboolean keepRatio = GL_FALSE);
 
+		void clearColor(const Vec4f &color);
+
+		void clearColor(const Vec4f &color, uint32_t attachmentIdx);
+
 		/**
 		 * Check the status of this FBO, and print warning
 		 * if the status is not "complete".
@@ -338,11 +332,11 @@ namespace regen {
 		void checkStatus() const;
 
 	protected:
-		// state stacks
-		ValueStack<DrawBuffers> drawBuffers_;
-		ValueStackAtomic<GLenum> readBuffer_;
+		// FBO state
+		DrawBuffers drawBuffers_;
+		GLenum readBuffer_ = GL_NONE;
 
-		DrawBuffers colorBuffers_;
+		DrawBuffers colorAttachments_;
 		GLuint depth_;
 
 		GLenum depthAttachmentTarget_;
@@ -360,6 +354,10 @@ namespace regen {
 		Vec4ui glViewport_;
 
 		void createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil, uint32_t numSamples);
+
+		inline void attachTexture(const ref_ptr<Texture> &tex, GLenum target);
+
+		inline void attachRenderBuffer(const ref_ptr<RenderBuffer> &rbo, GLenum target);
 	};
 } // namespace
 

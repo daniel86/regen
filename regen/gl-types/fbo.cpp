@@ -21,42 +21,29 @@ static inline void REGEN_ReadBuffer(GLenum v)
 #define REGEN_ReadBuffer glReadBuffer
 #endif
 
-static inline void attachTexture(
-		const ref_ptr<Texture> &tex, GLenum target) {
-	if (tex->numSamples() > 1) {
-		glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER,
-								target,
-								tex->textureBind().target_,
-								tex->id(), 0);
-	} else {
-		glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
-							 target, tex->id(), 0);
+FBO::Screen::Screen() {
+	applyDrawBuffer(GL_FRONT);
+}
+
+void FBO::Screen::applyReadBuffer(GLenum attachment) {
+	if (attachment != readBuffer_) {
+		readBuffer_ = attachment;
+		glNamedFramebufferReadBuffer(0, attachment);
 	}
 }
 
-static inline void attachRenderBuffer(
-		const ref_ptr<RenderBuffer> &rbo, GLenum target) {
-	glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER,
-							  target, GL_RENDERBUFFER, rbo->id());
-}
-
-FBO::Screen::Screen()
-		: drawBuffer_(REGEN_DrawBuffer),
-		  readBuffer_(REGEN_ReadBuffer) {
-	RenderState *rs = RenderState::get();
-	rs->drawFrameBuffer().push(0);
-	drawBuffer_.push(GL_FRONT);
-	rs->drawFrameBuffer().pop();
+void FBO::Screen::applyDrawBuffer(GLenum attachment) {
+	if (attachment != drawBuffer_) {
+		drawBuffer_ = attachment;
+		glNamedFramebufferDrawBuffer(0, attachment);
+	}
 }
 
 FBO::FBO(GLuint width, GLuint height, GLuint depth)
-		: GLRectangle(glGenFramebuffers, glDeleteFramebuffers),
-		  drawBuffers_(REGEN_DrawBuffers),
-		  readBuffer_(REGEN_ReadBuffer),
+		: GLRectangle(glCreateFramebuffers, glDeleteFramebuffers),
 		  depthAttachmentTarget_(GL_NONE),
 		  depthAttachmentFormat_(GL_NONE),
 		  depthAttachmentType_(GL_NONE) {
-	RenderState *rs = RenderState::get();
 	set_rectangleSize(width, height);
 	depth_ = depth;
 
@@ -68,10 +55,47 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
 			Vec2f(1.0 / (GLfloat) width, 1.0 / (GLfloat) height));
 	glViewport_ = Vec4ui(0, 0, width, height);
 
-	rs->readFrameBuffer().push(id());
-	readBuffer_.push(GL_COLOR_ATTACHMENT0);
-	rs->readFrameBuffer().pop();
-	GL_ERROR_LOG();
+	applyReadBuffer(GL_COLOR_ATTACHMENT0);
+}
+
+void FBO::applyReadBuffer(GLenum attachment) {
+	if (attachment != readBuffer_) {
+		readBuffer_ = attachment;
+		glNamedFramebufferReadBuffer(id(), attachment);
+	}
+}
+
+void FBO::applyDrawBuffers() {
+	applyDrawBuffers(colorAttachments_);
+}
+
+void FBO::applyDrawBuffers(GLenum attachment) {
+}
+
+void FBO::applyDrawBuffers(const DrawBuffers &buffers) {
+	if (buffers != drawBuffers_) {
+		drawBuffers_ = buffers;
+		glNamedFramebufferDrawBuffers(
+				id(),
+				buffers.buffers_.size(),
+				&buffers.buffers_[0]);
+	}
+}
+
+void FBO::attachTexture(const ref_ptr<Texture> &tex, GLenum target) {
+	glNamedFramebufferTexture(
+			id(),
+			target,
+			tex->id(),
+			0);
+}
+
+void FBO::attachRenderBuffer(const ref_ptr<RenderBuffer> &rbo, GLenum target) {
+	glNamedFramebufferRenderbuffer(
+			id(),
+			target,
+			GL_RENDERBUFFER,
+			rbo->id());
 }
 
 void FBO::set_depthAttachment(const ref_ptr<Texture> &tex) {
@@ -85,7 +109,6 @@ void FBO::set_depthAttachment(const ref_ptr<RenderBuffer> &rbo) {
 }
 
 void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isStencil, uint32_t numSamples) {
-	RenderState *rs = RenderState::get();
 	depthAttachmentTarget_ = target;
 	depthAttachmentFormat_ = format;
 	depthAttachmentType_ = type;
@@ -114,22 +137,17 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 	depth->set_rectangleSize(width(), height());
 	depth->set_internalFormat(glenum::textureInternalFormat(format));
 	depth->set_pixelType(type);
-
-	rs->drawFrameBuffer().push(id());
-	{
-		depth->allocTexture();
-		if (numSamples == 1) {
-			depth->set_wrapping(GL_REPEAT);
-			depth->set_filter(GL_NEAREST);
-			depth->set_compare(TextureCompare(GL_NONE, GL_EQUAL));
-		}
-		if (isStencil) {
-			set_depthStencilTexture(depth);
-		} else {
-			set_depthAttachment(depth);
-		}
+	depth->allocTexture();
+	if (numSamples == 1) {
+		depth->set_wrapping(GL_REPEAT);
+		depth->set_filter(GL_NEAREST);
+		depth->set_compare(TextureCompare(GL_NONE, GL_EQUAL));
 	}
-	rs->drawFrameBuffer().pop();
+	if (isStencil) {
+		set_depthStencilTexture(depth);
+	} else {
+		set_depthAttachment(depth);
+	}
 }
 
 void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, uint32_t numSamples) {
@@ -161,16 +179,10 @@ void FBO::set_depthStencilTexture(const ref_ptr<RenderBuffer> &rbo) {
 }
 
 GLenum FBO::addTexture(const ref_ptr<Texture> &tex) {
-	RenderState *rs = RenderState::get();
-
-	GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.buffers_.size();
-	colorBuffers_.buffers_.push_back(attachment);
+	GLenum attachment = GL_COLOR_ATTACHMENT0 + colorAttachments_.buffers_.size();
+	colorAttachments_.buffers_.push_back(attachment);
 	colorTextures_.push_back(tex);
-
-	rs->drawFrameBuffer().push(id());
 	attachTexture(tex, attachment);
-	rs->drawFrameBuffer().pop();
-
 	return attachment;
 }
 
@@ -268,16 +280,10 @@ ref_ptr<Texture> FBO::addTexture(
 }
 
 GLenum FBO::addRenderBuffer(const ref_ptr<RenderBuffer> &rbo) {
-	RenderState *rs = RenderState::get();
-
-	GLenum attachment = GL_COLOR_ATTACHMENT0 + colorBuffers_.buffers_.size();
-	colorBuffers_.buffers_.push_back(attachment);
+	GLenum attachment = GL_COLOR_ATTACHMENT0 + colorAttachments_.buffers_.size();
+	colorAttachments_.buffers_.push_back(attachment);
 	renderBuffers_.push_back(rbo);
-
-	rs->drawFrameBuffer().push(id());
 	attachRenderBuffer(rbo, attachment);
-	rs->drawFrameBuffer().pop();
-
 	return attachment;
 }
 
@@ -304,16 +310,11 @@ void FBO::blitCopy(
 		GLbitfield mask,
 		GLenum filter,
 		GLboolean keepRatio) {
-	RenderState *rs = RenderState::get();
-	// read from this
-	rs->readFrameBuffer().push(id());
 	if (readAttachment != GL_DEPTH_ATTACHMENT) {
-		readBuffer_.push(readAttachment);
+		applyReadBuffer(readAttachment);
 	}
-	// write to dst
-	rs->drawFrameBuffer().push(dst.id());
 	if (writeAttachment != GL_DEPTH_ATTACHMENT) {
-		dst.drawBuffers().push(writeAttachment);
+		dst.applyDrawBuffers(writeAttachment);
 	}
 	if (keepRatio) {
 		uint32_t dstWidth = dst.width();
@@ -328,7 +329,9 @@ void FBO::blitCopy(
 			offsetX = 0;
 			offsetY = (dst.height() - dstHeight) / 2;
 		}
-		glBlitFramebuffer(
+		glBlitNamedFramebuffer(
+				id(),
+				dst.id(),
 				0, 0,
 				static_cast<int32_t>(width()),
 				static_cast<int32_t>(height()),
@@ -338,7 +341,9 @@ void FBO::blitCopy(
 				static_cast<int32_t>(offsetY + dstHeight),
 				mask, filter);
 	} else {
-		glBlitFramebuffer(
+		glBlitNamedFramebuffer(
+				id(),
+				dst.id(),
 				0, 0,
 				static_cast<int32_t>(width()),
 				static_cast<int32_t>(height()),
@@ -347,31 +352,17 @@ void FBO::blitCopy(
 				static_cast<int32_t>(dst.height()),
 				mask, filter);
 	}
-
-	if (writeAttachment != GL_DEPTH_ATTACHMENT) {
-		dst.drawBuffers().pop();
-	}
-	rs->drawFrameBuffer().pop();
-	if (readAttachment != GL_DEPTH_ATTACHMENT) {
-		readBuffer_.pop();
-	}
-	rs->readFrameBuffer().pop();
 }
 
 void FBO::blitCopyToScreen(
-		GLuint screenWidth, GLuint screenHeight,
+		GLuint screenWidth,
+		GLuint screenHeight,
 		GLenum readAttachment,
 		GLbitfield mask,
 		GLenum filter,
 		GLboolean keepRatio) {
-	RenderState *rs = RenderState::get();
-	// read from this
-	rs->readFrameBuffer().push(id());
-	readBuffer_.push(readAttachment);
-	// write to screen front buffer
-	rs->drawFrameBuffer().push(0);
-	screen().drawBuffer_.push(GL_FRONT);
-
+	applyReadBuffer(readAttachment);
+	glNamedFramebufferDrawBuffer(0, GL_FRONT);
 	if (keepRatio) {
 		uint32_t dstWidth = screenWidth;
 		uint32_t dstHeight = screenWidth * ((GLfloat) width() / height());
@@ -385,7 +376,9 @@ void FBO::blitCopyToScreen(
 			offsetX = 0;
 			offsetY = (screenHeight - dstHeight) / 2;
 		}
-		glBlitFramebuffer(
+		glBlitNamedFramebuffer(
+				id(),
+				0,
 				0, 0,
 				static_cast<int32_t>(width()),
 				static_cast<int32_t>(height()),
@@ -395,7 +388,9 @@ void FBO::blitCopyToScreen(
 				static_cast<int32_t>(offsetY + dstHeight),
 				mask, filter);
 	} else {
-		glBlitFramebuffer(
+		glBlitNamedFramebuffer(
+				id(),
+				0,
 				0, 0,
 				static_cast<int32_t>(width()),
 				static_cast<int32_t>(height()),
@@ -404,11 +399,24 @@ void FBO::blitCopyToScreen(
 				static_cast<int32_t>(screenHeight),
 				mask, filter);
 	}
+}
 
-	rs->drawFrameBuffer().pop();
-	readBuffer_.pop();
-	rs->readFrameBuffer().pop();
-	screen().drawBuffer_.pop();
+void FBO::clearColor(const Vec4f &color) {
+	for (uint32_t attachmentIdx=0; attachmentIdx < colorAttachments_.buffers_.size(); ++attachmentIdx) {
+		glClearNamedFramebufferfv(
+				id(),
+				GL_COLOR,
+				attachmentIdx,
+				&color.x);
+	}
+}
+
+void FBO::clearColor(const Vec4f &color, uint32_t attachmentIdx) {
+	glClearNamedFramebufferfv(
+			id(),
+			GL_COLOR,
+			attachmentIdx,
+			&color.x);
 }
 
 void FBO::resize(GLuint w, GLuint h, GLuint depth) {
@@ -424,7 +432,6 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	inverseViewport_->setUniformData(
 			Vec2f(1.0f / (GLfloat) w, 1.0f / (GLfloat) h));
 	glViewport_ = Vec4ui(0, 0, w, h);
-	rs->drawFrameBuffer().push(id());
 
 	// resize depth attachment
 	if (depthTexture_.get() != nullptr) {
@@ -460,7 +467,7 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
 		for (GLuint i = 0; i < tex->numObjects(); ++i) {
 			tex->allocTexture();
-			attachTexture(tex, colorBuffers_.buffers_[i]);
+			attachTexture(tex, colorAttachments_.buffers_[i]);
 			tex->nextObject();
 		}
 	}
@@ -475,17 +482,13 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 			rbo->nextObject();
 		}
 	}
-
-	rs->drawFrameBuffer().pop();
 }
 
 void FBO::checkStatus() const {
-	RenderState::get()->drawFrameBuffer().push(id());
-	auto status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+	auto status = glCheckNamedFramebufferStatus(id(), GL_DRAW_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
 		REGEN_WARN("Framebuffer not complete: 0x" << std::hex << status << std::dec);
 	}
-	RenderState::get()->drawFrameBuffer().pop();
 }
 
 const ref_ptr<Texture> &FBO::firstColorTexture() const { return colorTextures_.front(); }
@@ -594,12 +597,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 
 	if (input.hasAttribute("clear-color")) {
 		auto c = input.getValue<Vec4f>("clear-color", Vec4f(0.0f));
-
-		fbo->drawBuffers().push(fbo->colorBuffers());
-		RenderState::get()->clearColor().push(c);
-		glClear(GL_COLOR_BUFFER_BIT);
-		RenderState::get()->clearColor().pop();
-		fbo->drawBuffers().pop();
+		fbo->clearColor(c);
 	}
 	GL_ERROR_LOG();
 	fbo->checkStatus();

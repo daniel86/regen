@@ -442,11 +442,10 @@ namespace regen {
 		void enable(RenderState *rs) override {
 			for (auto & it : data) {
 				if (!rs->drawFrameBuffer().isLocked()) {
-					fbo_->drawBuffers().push(it.colorBuffers);
+					fbo_->applyDrawBuffers(it.colorBuffers);
 					rs->clearColor().push(it.clearColor);
 					glClear(GL_COLOR_BUFFER_BIT);
 					rs->clearColor().pop();
-					fbo_->drawBuffers().pop();
 				}
 			}
 		}
@@ -468,9 +467,9 @@ namespace regen {
 				: ServerSideState(), fbo_(fbo) {}
 
 		// override
-		void enable(RenderState *rs) override { fbo_->drawBuffers().push(colorBuffers); }
-
-		void disable(RenderState *rs) override { fbo_->drawBuffers().pop(); }
+		void enable(RenderState *rs) override {
+			fbo_->applyDrawBuffers(colorBuffers);
+		}
 
 	protected:
 		ref_ptr<FBO> fbo_;
@@ -493,11 +492,9 @@ namespace regen {
 		// override
 		void enable(RenderState *rs) override {
 			DrawBuffers v(colorBuffers.buffers_[index_]);
-			fbo_->drawBuffers().push(v);
+			fbo_->applyDrawBuffers(v);
 			index_ = (index_ + 1) % colorBuffers.buffers_.size();
 		}
-
-		void disable(RenderState *rs) override { fbo_->drawBuffers().pop(); }
 
 	protected:
 		ref_ptr<FBO> fbo_;

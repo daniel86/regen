@@ -109,12 +109,11 @@ namespace regen {
 
 		void paintGL() override {
 			if (!fboState_.get()) return;
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, fboState_->fbo()->id());
-			glBlitFramebuffer(
+			glBlitNamedFramebuffer(
+				fboState_->fbo()->id(), 0,
 				0, 0, width_, height_,
 				0, 0, width_, height_,
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			GL_ERROR_LOG();
 		}
 

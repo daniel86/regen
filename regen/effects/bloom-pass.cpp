@@ -33,11 +33,9 @@ BloomPass::BloomPass(
 	upsampleState_->joinStates(upsampleShader_);
 
 	fbo_ = ref_ptr<FBO>::alloc(bloomTexture->width(), bloomTexture->height());
-	RenderState::get()->drawFrameBuffer().push(fbo_->id());
-	glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
+	glNamedFramebufferTexture(fbo_->id(),
 						 GL_COLOR_ATTACHMENT0,
 						 bloomTexture->id(), 0);
-	RenderState::get()->drawFrameBuffer().pop();
 }
 
 void BloomPass::createShader(const StateConfig &cfg) {
@@ -61,7 +59,7 @@ void BloomPass::downsample(RenderState *rs) {
 				static_cast<GLfloat>(1.0 / nextInputTexture->height()));
 
 	for (auto &mip: bloomTexture_->mips()) {
-		glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
+		glNamedFramebufferTexture(fbo_->id(),
 							 GL_COLOR_ATTACHMENT0,
 							 mip.texture->id(), 0);
 		glUniform2f(inverseViewportLocDS_, mip.sizeInverse.x, mip.sizeInverse.y);
@@ -88,7 +86,7 @@ void BloomPass::upsample(RenderState *rs) {
 		auto &mip = mips[i];
 		auto &nextMip = mips[i - 1];
 
-		glFramebufferTexture(GL_DRAW_FRAMEBUFFER,
+		glNamedFramebufferTexture(fbo_->id(),
 							 GL_COLOR_ATTACHMENT0,
 							 nextMip.texture->id(), 0);
 		glUniform2f(inverseViewportLocUS_,

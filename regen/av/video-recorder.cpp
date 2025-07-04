@@ -144,21 +144,16 @@ void VideoRecorder::updateFrameBuffer() {
 	GLenum filerMode = (texWidth == codecCtx_->width && texHeight == codecCtx_->height) ?  GL_NEAREST : GL_LINEAR;
 
 	// blit the input FBO to the encoder FBO
-	RenderState::get()->readFrameBuffer().push(fbo_->id());
-	fbo_->readBuffer().push(attachment_);
-	RenderState::get()->drawFrameBuffer().push(encoderFBO_->id());
-	encoderFBO_->drawBuffers().push(GL_COLOR_ATTACHMENT0);
-	glBlitFramebuffer(0, 0, texWidth, texHeight,
+	fbo_->applyReadBuffer(attachment_);
+	encoderFBO_->applyDrawBuffers(GL_COLOR_ATTACHMENT0);
+	glBlitNamedFramebuffer(fbo_->id(), encoderFBO_->id(),
+					  0, 0, texWidth, texHeight,
 					  0, 0, codecCtx_->width, codecCtx_->height,
 					  GL_COLOR_BUFFER_BIT, filerMode);
-	encoderFBO_->drawBuffers().pop();
-	RenderState::get()->drawFrameBuffer().pop();
-	fbo_->readBuffer().pop();
-	RenderState::get()->readFrameBuffer().pop();
 
 	// set the target framebuffer to read
 	RenderState::get()->readFrameBuffer().push(encoderFBO_->id());
-	encoderFBO_->readBuffer().push(GL_COLOR_ATTACHMENT0);
+	encoderFBO_->applyReadBuffer(GL_COLOR_ATTACHMENT0);
 
 	// read pixels from framebuffer to PBO glReadPixels() should return immediately.
 	RenderState::get()->pixelPackBuffer().push(pbo_->ids()[pboIndex_]);
@@ -177,7 +172,6 @@ void VideoRecorder::updateFrameBuffer() {
 		encoder_->pushFrame(nextFrame, elapsedTime_);
 	}
 
-	encoderFBO_->readBuffer().pop();
 	RenderState::get()->readFrameBuffer().pop();
 
 	pboIndex_ = nextIndex;

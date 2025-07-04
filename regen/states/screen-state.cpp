@@ -33,7 +33,7 @@ void ScreenState::enable(RenderState *state) {
 	}
 
 	state->drawFrameBuffer().push(0);
-	FBO::screen().drawBuffer_.push(drawBuffer_);
+	FBO::screen().applyDrawBuffer(drawBuffer_);
 	state->viewport().push(glViewport_);
 	State::enable(state);
 }
@@ -41,6 +41,5 @@ void ScreenState::enable(RenderState *state) {
 void ScreenState::disable(RenderState *state) {
 	State::disable(state);
 	state->viewport().pop();
-	FBO::screen().drawBuffer_.pop();
 	state->drawFrameBuffer().pop();
 }

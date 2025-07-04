@@ -29,15 +29,26 @@ Atmosphere::Atmosphere(
 
 	// create render target for updating the sky cube map
 	fbo_ = ref_ptr<FBO>::alloc(cubeMapSize, cubeMapSize);
-	RenderState::get()->drawFrameBuffer().push(fbo_->id());
-	fbo_->drawBuffers().push(DrawBuffers::attachment0());
+	fbo_->applyDrawBuffers(DrawBuffers::attachment0());
 	// clear negative y to black, -y cube face is not updated
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-						   GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, cubeMap->id(), 0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glNamedFramebufferTextureLayer(
+		fbo_->id(),
+		GL_COLOR_ATTACHMENT0,
+		cubeMap->id(),
+		0,
+		3);
+	static const float CLEAR_BLACK[4] = {0, 0, 0, 0};
+	glClearNamedFramebufferfv(
+		fbo_->id(),
+		GL_COLOR,
+		0,
+		CLEAR_BLACK);
 	// for updating bind all layers to GL_COLOR_ATTACHMENT0
-	glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, cubeMap->id(), 0);
-	RenderState::get()->drawFrameBuffer().pop();
+	glNamedFramebufferTexture(
+		fbo_->id(),
+		GL_COLOR_ATTACHMENT0,
+		cubeMap->id(),
+		0);
 
 	drawState_ = ref_ptr<SkyBox>::alloc(levelOfDetail);
 	drawState_->setCubeMap(cubeMap);

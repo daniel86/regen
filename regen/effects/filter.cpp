@@ -300,11 +300,7 @@ void FilterSequence::enable(RenderState *rs) {
 
 	if (clearFirstFilter_) {
 		Filter *firstFilter = (Filter *) (*filterSequence_.begin()).get();
-		rs->drawFrameBuffer().push(firstFilter->output()->fbo_->id());
-		rs->clearColor().push(clearColor_);
-		glClear(GL_COLOR_BUFFER_BIT);
-		rs->clearColor().pop();
-		rs->drawFrameBuffer().pop();
+		firstFilter->output()->fbo_->clearColor(clearColor_);
 	}
 	for (auto &it: filterSequence_) {
 		auto *f = (Filter *) it.get();
