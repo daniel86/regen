@@ -486,21 +486,6 @@ namespace regen {
 		inline IndexedValueStack<TextureBind> &textures() { return textures_; }
 
 		/**
-		 * Selects active texture unit.
-		 */
-		inline ValueStackAtomic<GLenum> &activeTexture() { return activeTexture_; }
-
-		/**
-		 * Reserves next texture channel.
-		 */
-		inline GLint reserveTextureChannel() { return std::min(textureCounter_++, maxTextureUnits_ - 1); }
-
-		/**
-		 * Releases last reserved texture channel.
-		 */
-		inline void releaseTextureChannel() { --textureCounter_; }
-
-		/**
 		 * Installs a program object as part of current rendering state.
 		 */
 		inline ValueStackAtomic<GLuint> &shader() { return shader_; }
@@ -701,10 +686,6 @@ namespace regen {
 		 */
 		inline ValueStackAtomic<GLenum> &logicOp() { return logicOp_; }
 
-		void setDeltaTime(GLfloat dt) { deltaTime_ = dt; }
-
-		GLfloat getDeltaTime() { return deltaTime_; }
-
 	protected:
 		static RenderState *instance_;
 
@@ -748,9 +729,7 @@ namespace regen {
 
 		ValueStackAtomic<GLuint> shader_;
 
-		ValueStackAtomic<GLenum> activeTexture_;
 		IndexedValueStack<TextureBind> textures_;
-		GLint textureCounter_;
 
 		IndexedValueStack<Scissor> scissor_;
 		ValueStackAtomic<GLenum> cullFace_;
@@ -785,8 +764,6 @@ namespace regen {
 		ValueStackAtomic<GLfloat> minSampleShading_;
 		ValueStackAtomic<GLenum> logicOp_;
 		ValueStackAtomic<GLenum> frontFace_;
-
-		GLfloat deltaTime_;
 
 		RenderState();
 	};

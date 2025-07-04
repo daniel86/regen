@@ -17,6 +17,7 @@ using namespace regen;
 #include "regen/scene/scene.h"
 #include "regen/scene/loading-context.h"
 #include "regen/gl-types/fbo.h"
+#include "texture-binder.h"
 
 Texture::Texture(GLenum textureTarget, GLuint numTextures)
 		: GLRectangle(
@@ -38,7 +39,7 @@ Texture::Texture(GLenum textureTarget, GLuint numTextures)
 	set_rectangleSize(2, 2);
 	samplerType_ = "sampler2D";
 	setUniformData(-1);
-	set_active(GL_FALSE);
+	set_active(false);
 }
 
 Texture::~Texture() {
@@ -272,23 +273,14 @@ void Texture::updateMipmaps() {
 	glGenerateTextureMipmap(id());
 }
 
-void Texture::begin(RenderState *rs, GLint x) {
-	set_active(GL_TRUE);
-	v_channel_ = x;
-	setVertex(0, x);
-	rs->activeTexture().push(GL_TEXTURE0 + x);
-	rs->textures().push(x, textureBind());
+void Texture::setTextureChannel(int32_t channel) {
+	textureChannel_ = channel;
+	setVertex(0, channel);
+	set_active(channel >= 0);
 }
 
-void Texture::end(RenderState *rs, GLint x) {
-	rs->textures().pop(x);
-	rs->activeTexture().pop();
-	setVertex(0, -1);
-	v_channel_ = -1;
-	// INVALID_VALUE is generated when texture uniform is enabled
-	// with channel=-1. This flag should avoid calls to glUniform
-	// for this texture.
-	set_active(GL_FALSE);
+void Texture::bind() {
+	TextureBinder::bind(this);
 }
 
 Bounds<Vec2ui> Texture::getRegion(const Vec2f &texco, const Vec2f &regionTS) const {

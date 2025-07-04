@@ -65,12 +65,11 @@ void BloomPass::downsample(RenderState *rs) {
 		glUniform2f(inverseViewportLocDS_, mip.sizeInverse.x, mip.sizeInverse.y);
 
 		// render a quad that fills the selected mip level
-		nextInputTexture->begin(rs, 0);
+		nextInputTexture->bind();
 		rs->viewport().push(mip.glViewport);
 		fullscreenMesh_d_->enable(rs);
 		fullscreenMesh_d_->disable(rs);
 		rs->viewport().pop();
-		nextInputTexture->end(rs, 0);
 
 		nextInputTexture = mip.texture;
 		glUniform2f(inverseInputSizeLocDS_, mip.sizeInverse.x, mip.sizeInverse.y);
@@ -94,10 +93,9 @@ void BloomPass::upsample(RenderState *rs) {
 
 		// set next mip texture as render target, and render a quad that fills it
 		rs->viewport().push(nextMip.glViewport);
-		mip.texture->begin(rs, 0);
+		mip.texture->bind();
 		fullscreenMesh_u_->enable(rs);
 		fullscreenMesh_u_->disable(rs);
-		mip.texture->end(rs, 0);
 		rs->viewport().pop();
 	}
 	upsampleState_->disable(rs);

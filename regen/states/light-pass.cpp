@@ -172,19 +172,17 @@ void LightPass::addInputLocation(LightPassLight &l,
 
 void LightPass::enable(RenderState *rs) {
 	State::enable(rs);
-	auto smChannel = rs->reserveTextureChannel();
-	auto smColorChannel = rs->reserveTextureChannel();
 
 	for (auto &l: lights_) {
 		ref_ptr<Texture> shadowTex;
 		// activate shadow map if specified
 		if (l.shadow.get()) {
-			l.shadow->begin(rs, smChannel);
-			glUniform1i(shadowMapLoc_, smChannel);
+			l.shadow->bind();
+			glUniform1i(shadowMapLoc_, l.shadow->textureChannel());
 		}
 		if (l.shadowColor.get()) {
-			l.shadowColor->begin(rs, smColorChannel);
-			glUniform1i(shadowColorLoc_, smColorChannel);
+			l.shadowColor->bind();
+			glUniform1i(shadowColorLoc_, l.shadowColor->textureChannel());
 		}
 		// enable light pass uniforms
 		for (auto &inputLocation: l.inputLocations) {
@@ -196,13 +194,7 @@ void LightPass::enable(RenderState *rs) {
 
 		mesh_->updateVisibility(0, numInstances_, 0);
 		mesh_->draw(rs);
-
-		if (l.shadow.get()) { l.shadow->end(rs, smChannel); }
-		if (l.shadowColor.get()) { l.shadowColor->end(rs, smColorChannel); }
 	}
-
-	rs->releaseTextureChannel();
-	rs->releaseTextureChannel();
 }
 
 ref_ptr<LightPass> LightPass::load(LoadingContext &ctx, scene::SceneInputNode &input) {

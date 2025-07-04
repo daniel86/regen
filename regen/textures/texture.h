@@ -59,9 +59,21 @@ namespace regen {
 		static ref_ptr<Texture> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
+		 * Assigns a texture channel (unit) to the texture.
+		 * @param channel the texture channel.
+		 */
+		void setTextureChannel(int32_t channel);
+
+		/**
+		 * Sets the texture channel to -1.
+		 * This means that the texture is not used in a shader.
+		 */
+		void clearTextureChannel() { setTextureChannel(-1); }
+
+		/**
 		 * @return the texture channel or -1.
 		 */
-		inline int channel() const { return v_channel_; }
+		int textureChannel() const { return textureChannel_; }
 
 		/**
 		 * Specifies the format of the pixel data.
@@ -116,17 +128,17 @@ namespace regen {
 		/**
 		 * Specifies the data type of the pixel data.
 		 */
-		void set_pixelType(GLuint pixelType) { pixelType_ = pixelType; }
+		void set_pixelType(uint32_t pixelType) { pixelType_ = pixelType; }
 
 		/**
 		 * Specifies the data type of the pixel data.
 		 */
-		auto pixelType() const { return pixelType_; }
+		inline uint32_t pixelType() const { return pixelType_; }
 
 		/**
 		 * Number of samples used for multisampling
 		 */
-		auto numSamples() const { return numSamples_; }
+		inline int32_t numSamples() const { return numSamples_; }
 
 		/**
 		 * Number of samples used for multisampling
@@ -136,12 +148,12 @@ namespace regen {
 		/**
 		 * Number of components per texel.
 		 */
-		GLuint numComponents() const { return dim_; }
+		inline uint32_t numComponents() const { return dim_; }
 
 		/**
 		 * @return the texture depth.
 		 */
-		GLuint depth() const { return imageDepth_; }
+		inline uint32_t depth() const { return imageDepth_; }
 
 		/**
 		 * Specifies a pointer to the image data in memory.
@@ -155,7 +167,7 @@ namespace regen {
 		 * Specifies a pointer to the image data in memory.
 		 * Initially NULL.
 		 */
-		auto *textureData() const { return textureData_; }
+		inline auto *textureData() const { return textureData_; }
 
 		/**
 		 * Reads the texture data from the server.
@@ -293,18 +305,12 @@ namespace regen {
 		/**
 		 * @return number of texel.
 		 */
-		uint32_t numTexel() const { return numTexel_; }
+		inline uint32_t numTexel() const { return numTexel_; }
 
 		/**
-		 * Activates and binds this texture.
-		 * Call end when you are done.
+		 * Ensures the texture is bound to a texture unit.
 		 */
-		void begin(RenderState *rs, GLint channel = 7);
-
-		/**
-		 * Complete previous call to begin.
-		 */
-		void end(RenderState *rs, GLint channel = 7);
+		void bind();
 
 		/**
 		 * Sample a region, and return the average value.
@@ -416,7 +422,7 @@ namespace regen {
 							 const std::string &sizeMode, const Vec3f &size);
 
 	protected:
-		GLuint dim_;
+		uint32_t dim_;
 		// format of pixel data
 		GLenum format_;
 		GLenum internalFormat_;
@@ -429,7 +435,7 @@ namespace regen {
 		TextureBind texBind_;
 		int32_t numSamples_ = 1;
 		GLboolean fixedSampleLocations_ = GL_TRUE;
-		int v_channel_ = -1;
+		int32_t textureChannel_ = -1;
 		TextureWrapping wrappingMode_ = Vec3i(GL_CLAMP_TO_EDGE);
 		std::string samplerType_;
 		std::optional<TextureFile> textureFile_;

@@ -1,14 +1,8 @@
-/*
-* scene-display-widget.cpp
- *
- *  Created on: Oct 26, 2013
- *      Author: daniel
- */
-
 #include <regen/camera/camera-controller.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/filesystem.h>
 #include <regen/text/texture-mapped-text.h>
+#include <regen/textures/texture-binder.h>
 #include <QLineEdit>
 
 //#include <regen/scene/scene-xml.h>
@@ -908,6 +902,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	AnimationManager::get().pause(GL_TRUE);
 	AnimationManager::get().clear();
 	AnimationManager::get().setRootState(app_->renderTree()->state());
+	TextureBinder::reset();
 
 	animations_.clear();
 	viewNodes_.clear();

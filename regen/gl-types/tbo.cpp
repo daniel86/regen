@@ -15,13 +15,8 @@ void TBO::setBufferInput(const ref_ptr<regen::ShaderInput> &input) {
 	}
 
 	// attach vbo to texture
-	auto rs = RenderState::get();
-	rs->textureBuffer().push(tboRef_->bufferID());
 	tboTexture_ = ref_ptr<TextureBuffer>::alloc(input->dataType());
-	tboTexture_->begin(rs);
 	tboTexture_->attach(tboRef_);
-	tboTexture_->end(rs);
-	rs->textureBuffer().pop();
 }
 
 void TBO::resizeTBO() {

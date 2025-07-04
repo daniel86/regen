@@ -122,7 +122,6 @@ void RootNode::init() {
 
 void RootNode::render(GLdouble dt) {
 	GL_ERROR_LOG();
-	RenderState::get()->setDeltaTime(dt);
 	traverse(RenderState::get());
 	GL_ERROR_LOG();
 }

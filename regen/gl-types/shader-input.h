@@ -110,7 +110,7 @@ namespace regen {
 		 * no call to glUniform when inactive.
 		 * @param v the active toggle value
 		 */
-		void set_active(GLboolean v) { active_ = v; }
+		void set_active(bool v) { active_ = v; }
 
 		/**
 		 * Compare stamps to check if the input data changed.

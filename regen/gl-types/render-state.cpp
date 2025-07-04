@@ -71,7 +71,7 @@ static inline void Regen_Scissori(GLuint i, const Scissor &v) { glScissorIndexed
 
 static inline void Regen_Viewport(const Viewport &v) { glViewport(v.x, v.y, v.z, v.w); }
 
-static inline void Regen_Texture(GLuint i, const TextureBind &v) { glBindTexture(v.target_, v.id_); }
+static inline void Regen_Texture(GLuint i, const TextureBind &v) { glBindTextureUnit(i, v.id_); }
 
 static inline void Regen_UniformBufferRange(GLuint i, const BufferRange &v) {
 	// NOTE: When buffer `i` is bound to another target, e.g. GL_SHADER_STORAGE_BUFFER or so,
@@ -129,8 +129,6 @@ template<typename T> void Regen_BindFramebuffer(GLenum key,T v)
 { glBindFramebuffer(key,v); }
 template<typename T> void Regen_UseProgram(T v)
 { glUseProgram(v); }
-template<typename T> void Regen_ActiveTexture(T v)
-{ glActiveTexture(v); }
 template<typename T> void Regen_CullFace(T v)
 { glCullFace(v); }
 template<typename T> void Regen_DepthMask(T v)
@@ -165,7 +163,6 @@ template<typename T> void Regen_VAO(T v)
 #define Regen_BindRenderbuffer glBindRenderbuffer
 #define Regen_BindFramebuffer glBindFramebuffer
 #define Regen_UseProgram glUseProgram
-#define Regen_ActiveTexture glActiveTexture
 #define Regen_CullFace glCullFace
 #define Regen_DepthMask glDepthMask
 #define Regen_DepthFunc glDepthFunc
@@ -186,7 +183,7 @@ template<typename T> void Regen_VAO(T v)
 
 RenderState::RenderState()
 		: maxDrawBuffers_(getGLInteger(GL_MAX_DRAW_BUFFERS)),
-		  maxTextureUnits_(getGLInteger(GL_MAX_TEXTURE_IMAGE_UNITS)),
+		  maxTextureUnits_(getGLInteger(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS)),
 		  maxViewports_(getGLInteger(GL_MAX_VIEWPORTS)),
 		  maxAttributes_(getGLInteger(GL_MAX_VERTEX_ATTRIBS)),
 		  maxFeedbackBuffers_(getGLInteger(GL_MAX_TRANSFORM_FEEDBACK_BUFFERS)),
@@ -221,7 +218,6 @@ RenderState::RenderState()
 		  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, Regen_BindFramebuffer),
 		  viewport_(Regen_Viewport),
 		  shader_(Regen_UseProgram),
-		  activeTexture_(Regen_ActiveTexture),
 		  textures_(maxTextureUnits_, regen_lockedValue, Regen_Texture),
 		  scissor_(maxViewports_, Regen_Scissor, Regen_Scissori),
 		  cullFace_(Regen_CullFace),
@@ -257,7 +253,6 @@ RenderState::RenderState()
 	REGEN_ASSERT(maxAtomicCounterBuffers_ >= 0);
 	REGEN_ASSERT(maxShaderStorageBuffers_ >= 0);
 
-	textureCounter_ = 0;
 	// init toggle states
 	GLenum enabledToggles[] = {
 			GL_CULL_FACE, GL_DEPTH_TEST,
@@ -295,7 +290,6 @@ RenderState::RenderState()
 	frontFace_.push(GL_CCW);
 	pointFadeThreshold_.push(1.0);
 	pointSpriteOrigin_.push(GL_UPPER_LEFT);
-	activeTexture_.push(GL_TEXTURE0);
 	textureBuffer_.push(0);
 	// for pixel pack buffers we want that each time we have a push-pop sequence that
 	//   "glBindBuffer(GL_PIXEL_[UN]PACK_BUFFER, 0)" is called.

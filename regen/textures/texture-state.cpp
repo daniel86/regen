@@ -395,19 +395,8 @@ void TextureState::set_texcoFlipping(TexcoFlipping mode) {
 ///////
 
 void TextureState::enable(RenderState *rs) {
-	lastTexChannel_ = texture_->channel();
-	if (lastTexChannel_ == -1) {
-		texture_->begin(rs, rs->reserveTextureChannel());
-	}
+	texture_->bind();
 	State::enable(rs);
-}
-
-void TextureState::disable(RenderState *rs) {
-	State::disable(rs);
-	if (lastTexChannel_ == -1) {
-		texture_->end(rs, texture_->channel());
-		rs->releaseTextureChannel();
-	}
 }
 
 ref_ptr<Texture> TextureState::getTexture(

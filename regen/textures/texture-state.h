@@ -285,8 +285,6 @@ namespace regen {
 		// override
 		void enable(RenderState *rs) override;
 
-		void disable(RenderState *rs) override;
-
 		static ref_ptr<Texture> getTexture(
 				scene::SceneLoader *scene,
 				scene::SceneInputNode &input,
