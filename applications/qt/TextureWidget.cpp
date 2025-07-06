@@ -114,7 +114,6 @@ namespace regen {
 				0, 0, width_, height_,
 				0, 0, width_, height_,
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			GL_ERROR_LOG();
 		}
 
 		void updateSize() {

@@ -17,7 +17,7 @@
 using namespace regen;
 
 Material::Material()
-		: HasInputState(ARRAY_BUFFER),
+		: HasInputState(ARRAY_BUFFER, BUFFER_HINT_UPDATE_RARELY),
 		  fillMode_(GL_FILL),
 		  forcedInternalFormat_(GL_NONE),
 		  forcedFormat_(GL_NONE),
@@ -51,7 +51,7 @@ Material::Material()
 
 	shaderDefine("HAS_MATERIAL", "TRUE");
 
-	materialUniforms_ = ref_ptr<UBO>::alloc("Material");
+	materialUniforms_ = ref_ptr<UBO>::alloc("Material", BUFFER_HINT_UPDATE_RARELY);
 	materialUniforms_->addBlockInput(materialSpecular_);
 	materialUniforms_->addBlockInput(materialShininess_);
 	materialUniforms_->addBlockInput(materialDiffuse_);

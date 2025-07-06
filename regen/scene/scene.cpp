@@ -256,7 +256,7 @@ void Scene::initGL() {
 	isGLInitialized_ = GL_TRUE;
 	REGEN_INFO("GL initialized.");
 
-	globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms");
+	globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms", BUFFER_HINT_UPDATE_STREAM);
 	globalUniforms_->addBlockInput(windowViewport_);
 	globalUniforms_->addBlockInput(mousePosition_);
 	globalUniforms_->addBlockInput(mouseTexco_);

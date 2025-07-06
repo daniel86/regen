@@ -14,19 +14,17 @@ using namespace regen;
 BufferContainer::BufferContainer(
 	const std::string &bufferName,
 	const std::vector<NamedShaderInput> &namedInputs,
-	BufferUsage bufferUsage)
+	BufferUpdateHint hint)
 		: State(),
-		  HasInput(ARRAY_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
+		  HasInput(ARRAY_BUFFER, hint),
 		  namedInputs_(namedInputs),
-		  bufferUsage_(bufferUsage),
 		  bufferName_(bufferName) {
 	updateBuffer();
 }
 
-BufferContainer::BufferContainer(const std::string &bufferName, BufferUsage bufferUsage)
+BufferContainer::BufferContainer(const std::string &bufferName, BufferUpdateHint hint)
 	: State(),
-	  HasInput(ARRAY_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
-	  bufferUsage_(bufferUsage),
+	  HasInput(ARRAY_BUFFER, hint),
 	  bufferName_(bufferName) {
 }
 
@@ -47,7 +45,7 @@ std::string BufferContainer::getNextBufferName() {
 }
 
 void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs) {
-	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), BUFFER_USAGE_DYNAMIC_DRAW);
+	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), bufferUpdateHint_);
 	for (auto &namedInput: namedInputs) {
 		ubo->addBlockInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ubo;
@@ -58,8 +56,7 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 }
 
 void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInputs) {
-	// TODO: allow more fine grained usage configuration
-	auto ssbo = ref_ptr<SSBO>::alloc(getNextBufferName(), BUFFER_USAGE_STREAM_COPY);
+	auto ssbo = ref_ptr<SSBO>::alloc(getNextBufferName(), bufferUpdateHint_);
 	for (auto &namedInput: namedInputs) {
 		ssbo->addBlockInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ssbo;
@@ -71,7 +68,7 @@ void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInput
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	// create a TBO for the input
-	auto tbo = ref_ptr<TBO>::alloc(BUFFER_USAGE_DYNAMIC_DRAW);
+	auto tbo = ref_ptr<TBO>::alloc(bufferUpdateHint_);
 	tbo->setBufferInput(namedInput.in_);
 	tbos_.push_back(tbo);
 	textureBuffers_.push_back(tbo->tboTexture());
@@ -136,7 +133,6 @@ void BufferContainer::updateBuffer() {
 	if (!nextSSBOInputs.empty()) {
 		createSSBO(nextSSBOInputs);
 	}
-	GL_ERROR_LOG();
 }
 
 ref_ptr<BufferObject> BufferContainer::getBufferObject(const ref_ptr<ShaderInput> &input) {

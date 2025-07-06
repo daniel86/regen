@@ -57,7 +57,7 @@ void CullShape::createBuffers() {
 	}
 	instanceData.unmap();
 	// use SSBO for instanceIDMap_
-	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BUFFER_USAGE_STREAM_DRAW);
+	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BUFFER_HINT_UPDATE_STREAM);
 	instanceIDBuffer_->addBlockInput(instanceIDMap_);
 	instanceIDBuffer_->update();
 	joinShaderInput(instanceIDBuffer_);

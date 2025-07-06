@@ -218,7 +218,10 @@ void MeshViewerWidget::updateLoDButtons() {
 }
 
 void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
-	static const BufferUsage vboUsage = BUFFER_USAGE_STATIC_DRAW;
+	static const BufferConfig bufferCfg(
+			BUFFER_HINT_STATIC,
+			BUFFER_CPU_WRITE,
+			BUFFER_MAP_DISABLED);
 	auto p = resourcePath(assetPath);
 	meshRoot_->clear();
 	lodMeshRoot_->clear();
@@ -236,7 +239,7 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 	}
 	setAssImpFlags();
 	asset_->importAsset();
-	meshes_ = asset_->loadAllMeshes(transform, vboUsage);
+	meshes_ = asset_->loadAllMeshes(transform, bufferCfg);
 	if (meshes_.empty()) {
 		REGEN_WARN("No meshes loaded from " << p);
 		// remove all elements from the mesh index combo box and disable it

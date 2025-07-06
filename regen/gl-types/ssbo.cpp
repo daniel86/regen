@@ -22,8 +22,8 @@ static std::string getName(const BufferObject &other, const std::string &name) {
 	return name;
 }
 
-SSBO::SSBO(const std::string &name, BufferUsage usage, int memoryMask) :
-		BufferBlock(SHADER_STORAGE_BUFFER, usage,
+SSBO::SSBO(const std::string &name, BufferUpdateHint hint, int memoryMask) :
+		BufferBlock(SHADER_STORAGE_BUFFER, hint,
 		            BufferBlock::BUFFER,
 		            BufferBlock::STD430),
 		ShaderInput(name, GL_INVALID_ENUM,

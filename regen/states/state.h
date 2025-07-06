@@ -197,9 +197,7 @@ namespace regen {
 		/**
 		 * @param usage the buffer object usage.
 		 */
-		explicit HasInputState(
-			BufferTarget target = ARRAY_BUFFER,
-			BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW) : State(), HasInput(target, usage) {}
+		explicit HasInputState(BufferTarget target, BufferUpdateHint hint) : State(), HasInput(target, hint) {}
 	};
 } // namespace
 

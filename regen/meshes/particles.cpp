@@ -18,12 +18,14 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
-		: Mesh(GL_POINTS, BUFFER_USAGE_STREAM_DRAW),
+		: Mesh(GL_POINTS, BUFFER_HINT_UPDATE_STREAM),
 		  Animation(true, false),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
 	setAnimationName("particles");
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_USAGE_STREAM_DRAW);
+	setBufferAccessMode(BUFFER_CPU_WRITE);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_UPDATE_STREAM);
+	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
 	inputContainer_->set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
 	numParticles_ = numParticles;
@@ -323,8 +325,6 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	// Read atomic counter to get the bounding box of the particles
 	//auto bounds = boundingBoxCounter_->updateBounds();
 	//set_bounds(bounds.min, bounds.max);
-
-	GL_ERROR_LOG();
 }
 
 namespace regen {

@@ -1,10 +1,3 @@
-/*
- * bones.cpp
- *
- *  Created on: 05.08.2012
- *      Author: daniel
- */
-
 #include <regen/textures/texture-state.h>
 #include <regen/gl-types/gl-util.h>
 
@@ -15,7 +8,7 @@ using namespace regen;
 #define USE_BONE_TBO
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
-		: HasInputState(TEXTURE_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
+		: HasInputState(TEXTURE_BUFFER, BUFFER_HINT_UPDATE_STREAM),
 		  Animation(true, true) {
 	bufferSize_ = 0u;
 	setAnimationName("bones");
@@ -30,7 +23,6 @@ Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 }
 
 void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
-	GL_ERROR_LOG();
 	RenderState *rs = RenderState::get();
 	bones_ = bones;
 	shaderDefine("NUM_BONES", REGEN_STRING(bones_.size()));
@@ -41,7 +33,9 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	boneMatrices_->setUniformUntyped();
 
 #ifdef USE_BONE_TBO
-	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BUFFER_USAGE_DYNAMIC_DRAW);
+	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BUFFER_HINT_UPDATE_STREAM);
+	boneMatrixTBO_->setBufferAccessMode(BUFFER_CPU_WRITE);
+	boneMatrixTBO_->setBufferMapMode(BUFFER_MAP_DISABLED);
 	boneMatrixTBO_->setBufferInput(boneMatrices_);
 	bufferSize_ = boneMatrices_->inputSize();
 

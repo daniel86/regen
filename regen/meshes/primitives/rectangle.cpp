@@ -16,7 +16,6 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 		cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
 		cfg.texcoScale = Vec2f(1.0);
 		cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
-		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<Rectangle>::alloc(cfg);
 		mesh->updateAttributes();
 		return mesh;
@@ -26,13 +25,15 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 }
 
 Rectangle::Rectangle(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.usage),
+		: Mesh(GL_TRIANGLES, cfg.updateHint),
 		  rectangleConfig_(cfg) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 }
 
 Rectangle::Rectangle(const ref_ptr<Rectangle> &other)
@@ -54,8 +55,7 @@ Rectangle::Config::Config()
 		  isNormalRequired(GL_TRUE),
 		  isTexcoRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  centerAtOrigin(GL_FALSE),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
+		  centerAtOrigin(GL_FALSE) {
 }
 
 void Rectangle::generateLODLevel(const Config &cfg,

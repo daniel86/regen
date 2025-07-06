@@ -36,7 +36,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	astro_->setLatitude(52.5491);
 	astro_->setLongitude(13.3611);
 
-	auto uniformBlock = ref_ptr<UBO>::alloc("Sky");
+	auto uniformBlock = ref_ptr<UBO>::alloc("Sky", BUFFER_HINT_UPDATE_STREAM);
 
 	// 0: altitude in km
 	// 1: apparent angular radius (not diameter!)
@@ -90,7 +90,9 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
 	cfg.texcoScale = Vec2f(1.0);
 	cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
-	cfg.usage = BUFFER_USAGE_STATIC_DRAW;
+	cfg.updateHint = BUFFER_HINT_STATIC;
+	cfg.mapMode = BUFFER_MAP_DISABLED;
+	cfg.accessMode = BUFFER_CPU_WRITE;
 	skyQuad_ = Rectangle::create(cfg);
 
 	// mae some parts of the sky configurable from the GUI.
@@ -139,7 +141,6 @@ void Sky::updateSeed() {
 void Sky::addLayer(const ref_ptr<SkyLayer> &layer) {
 	//addChild(layer);
 	this->layer_.push_back(layer);
-	GL_ERROR_LOG();
 }
 
 void Sky::createShader() {

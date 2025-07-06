@@ -5,9 +5,11 @@
 using namespace regen;
 
 BBoxBuffer::BBoxBuffer(const std::string &name) :
-	SSBO(name, BUFFER_USAGE_STREAM_COPY),
+	SSBO(name, BUFFER_HINT_UPDATE_STREAM),
 	bbox_(Vec3f::zero(), Vec3f::zero())
 {
+	setBufferMapMode(BUFFER_MAP_TEMPORARY);
+	setBufferAccessMode(BUFFER_CPU_READ);
 	addBlockInput(createUniform<ShaderInput4i,Vec4i>("bboxMin", Vec4i(0)));
 	addBlockInput(createUniform<ShaderInput4i,Vec4i>("bboxMax", Vec4i(0)));
 	update();
@@ -56,9 +58,5 @@ void BBoxBuffer::clear() {
 		Vec4i(biasedBits(FLT_MAX)),
 		Vec4i(biasedBits(-FLT_MAX))
 	};
-	glNamedBufferSubData(
-		blockReference()->bufferID(),
-		blockReference()->address(),
-		blockReference()->allocatedSize(),
-		&zeroBlock);
+	setBufferData(&zeroBlock);
 }

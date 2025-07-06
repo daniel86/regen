@@ -27,7 +27,12 @@ namespace regen {
 	 */
 	class BufferObject : public Resource {
 	public:
-		explicit BufferObject(BufferTarget target, BufferUsage=BUFFER_USAGE_DYNAMIC_DRAW);
+		/**
+		 * Create a buffer object.
+		 * @param target the buffer target.
+		 * @param hint the buffer update hint.
+		 */
+		BufferObject(BufferTarget target, BufferUpdateHint hint);
 
 		~BufferObject() override;
 
@@ -40,7 +45,36 @@ namespace regen {
 		/**
 		 * Provides info how the buffer object is going to be used.
 		 */
-		BufferUsage usage() const { return usage_; }
+		BufferUpdateHint bufferUpdateHint() const { return updateHint_; }
+
+		/**
+		 * Set the mapping mode for the buffer object.
+		 * Note that mapping will not be possible if the buffer when
+		 * map mode is set to BUFFER_MAP_DISABLED.
+		 * @param mode the mapping mode to set.
+		 */
+		void setBufferMapMode(BufferMapMode mode) { mapMode_ = mode; }
+
+		/**
+		 * Get the mapping mode for the buffer object.
+		 * @return the mapping mode.
+		 */
+		BufferMapMode bufferMapMode() const { return mapMode_; }
+
+		/**
+		 * Set the access mode for the buffer object.
+		 * This will determine how the buffer can be accessed by the CPU and GPU.
+		 * Note that GPU_ONLY buffers cannot be modified at all by the CPU,
+		 * no copying or mapping is possible!
+		 * @param mode the access mode to set.
+		 */
+		void setBufferAccessMode(BufferAccessMode mode);
+
+		/**
+		 * Get the access mode for the buffer object.
+		 * @return the access mode.
+		 */
+		BufferAccessMode bufferAccessMode() const { return accessMode_; }
 
 		/**
 		 * Allocated VRAM in bytes.
@@ -68,6 +102,11 @@ namespace regen {
 		 */
 		auto &allocations() const { return allocations_; }
 
+		/**
+		 * Get the buffer name for a specific index of the allocations.
+		 * @param index the index of the allocation.
+		 * @return the buffer ID.
+		 */
 		unsigned int bufferID(unsigned int index = 0) const { return allocations_[index]->bufferID(); }
 
 		/**
@@ -79,29 +118,58 @@ namespace regen {
 		/**
 		* Copy vertex data to the buffer object. Sets part of data.
 		* Replaces only existing data, no new memory allocated for the buffer.
-		* Make sure to bind before.
 		*/
-		static void setBufferData(const ref_ptr<BufferReference> &ref, const GLuint *data);
+		static void setBufferData(const void *data, const ref_ptr<BufferReference> &ref);
 
 		/**
-		* Map a range of the buffer object into client's memory.
-		* If OpenGL is able to map the buffer object into client's address space,
-		* map returns the pointer to the buffer. Otherwise it returns NULL.
-		* Make sure to bind before.
-		*/
-		//static GLvoid *map(GLenum target, GLuint offset, GLuint size, GLenum accessFlags);
-
-		GLvoid *map(GLuint relativeOffset, GLuint mappedSize, GLenum accessFlags);
-
-		GLvoid *map(GLenum accessFlags);
+		 * Copy client data to the buffer object.
+		 * This will replace the existing data in the buffer.
+		 * @param data pointer to the data to copy.
+		 */
+		void setBufferData(const void *data);
 
 		/**
-		* Map a range of the buffer object into client's memory.
-		* If OpenGL is able to map the buffer object into client's address space,
-		* map returns the pointer to the buffer. Otherwise it returns NULL.
-		* Make sure to bind before.
-		*/
-		static GLvoid *map(const ref_ptr<BufferReference> &ref, GLenum accessFlags) ;
+		 * Copy client data to the buffer object.
+		 * This will replace the existing data in the buffer.
+		 * @param other another buffer object to copy from.
+		 */
+		void setBufferData(const BufferObject &other);
+
+		/**
+		 * Copy part of the data to the buffer object.
+		 * This will replace only part of the existing data in the buffer.
+		 * @param data pointer to the data to copy.
+		 * @param relativeOffset relative offset in bytes from the start of the buffer.
+		 * @param dataSize size of the data to copy in bytes.
+		 */
+		void setBufferSubData(const void *data, GLuint relativeOffset, GLuint dataSize);
+
+		/**
+		 * Map the buffer object to CPU memory.
+		 * Note that accessFlags must be compatible with the access mode of the buffer.
+		 * @param relativeOffset relative offset in bytes from the start of the buffer.
+		 * @param mappedSize size of the data to map in bytes.
+		 * @param accessFlags access flags for the mapping operation.
+		 * @return pointer to the mapped data, or nullptr if mapping failed.
+		 */
+		GLvoid *map(GLuint relativeOffset, GLuint mappedSize, uint32_t accessFlags);
+
+		/**
+		 * Map the buffer object to CPU memory.
+		 * Note that accessFlags must be compatible with the access mode of the buffer.
+		 * @param accessFlags access flags for the mapping operation.
+		 * @return pointer to the mapped data, or nullptr if mapping failed.
+		 */
+		GLvoid *map(uint32_t accessFlags);
+
+		/**
+		 * Map the buffer object to CPU memory.
+		 * Note that accessFlags must be compatible with the access mode of the buffer.
+		 * @param ref the buffer reference to map.
+		 * @param accessFlags access flags for the mapping operation.
+		 * @return pointer to the mapped data, or nullptr if mapping failed.
+		 */
+		static GLvoid *map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags);
 
 		/**
 		* Unmaps previously mapped data.
@@ -140,10 +208,12 @@ namespace regen {
 		 * @param usage the usage hint.
 		 * @return memory pool.
 		 */
-		static BufferPool *bufferPool(BufferTarget target, BufferUsage usage);
+		static BufferPool *bufferPool(BufferTarget target, BufferStorageMode mode);
 
 	protected:
-		BufferUsage usage_;
+		BufferUpdateHint updateHint_;
+		BufferMapMode mapMode_ = BUFFER_MAP_DISABLED;
+		BufferAccessMode accessMode_ = BUFFER_GPU_ONLY;
 		BufferTarget target_;
 		GLenum glTarget_;
 
@@ -163,7 +233,7 @@ namespace regen {
 	template<BufferTarget target>
 	class BufferObjectT : public BufferObject {
 	public:
-		explicit BufferObjectT(BufferUsage usage) : BufferObject(target, usage) {}
+		explicit BufferObjectT(BufferUpdateHint hint) : BufferObject(target, hint) {}
 	};
 } // namespace
 

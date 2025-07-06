@@ -1,10 +1,3 @@
-/*
- * box.cpp
- *
- *  Created on: 31.08.2011
- *      Author: daniel
- */
-
 #include "../lod/tessellation.h"
 #include "box.h"
 
@@ -47,7 +40,6 @@ ref_ptr<Box> Box::getUnitCube() {
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
-		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		cfg.levelOfDetails = {0};
 		mesh = ref_ptr<Box>::alloc(cfg);
 		return mesh;
@@ -57,12 +49,14 @@ ref_ptr<Box> Box::getUnitCube() {
 }
 
 Box::Box(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.usage),
+		: Mesh(GL_TRIANGLES, cfg.updateHint),
 		  texcoMode_(cfg.texcoMode) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -86,8 +80,7 @@ Box::Config::Config()
 		  texcoScale(Vec2f(1.0f)),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
-		  isTangentRequired(GL_FALSE),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
+		  isTangentRequired(GL_FALSE) {
 }
 
 void Box::generateLODLevel(

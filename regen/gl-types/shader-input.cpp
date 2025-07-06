@@ -574,14 +574,14 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 	if (in->isBufferBlock()) {
 		auto oldBlock = dynamic_cast<BufferBlock *>(in.get());
 		if (oldBlock->isUniformBlock()) {
-			auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->usage());
+			auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->bufferUpdateHint());
 			for (auto &namedInput: oldBlock->blockInputs()) {
 				newBlock->addBlockInput(create(namedInput.in_), namedInput.name_);
 			}
 			return newBlock;
 		}
 		if (oldBlock->isShaderStorageBlock()) {
-			auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->usage());
+			auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->bufferUpdateHint());
 			for (auto &namedInput: oldBlock->blockInputs()) {
 				newBlock->addBlockInput(create(namedInput.in_), namedInput.name_);
 			}

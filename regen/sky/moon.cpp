@@ -44,7 +44,7 @@ Moon::Moon(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 }
 
 void Moon::setupMoonTextureCube(const std::string &moonMapFile) {
-	ref_ptr<TextureCube> texture = textures::loadCube(moonMapFile);
+	ref_ptr<TextureCube> texture = textures::loadCube(moonMapFile, false, true);
 	state()->joinStates(ref_ptr<TextureState>::alloc(texture, "moonmapCube"));
 }
 

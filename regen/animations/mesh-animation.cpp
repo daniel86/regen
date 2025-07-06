@@ -102,8 +102,10 @@ MeshAnimation::MeshAnimation(
 	shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
 	// used to save two frames
-	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BUFFER_USAGE_STREAM_DRAW);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_USAGE_STREAM_DRAW);
+	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BUFFER_HINT_STATIC);
+	animationBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_STATIC);
+	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
 	feedbackRef_ = feedbackBuffer_->allocBytes(bufferSize_);
 	if (!feedbackRef_.get()) {
 		REGEN_WARN("Unable to allocate VBO for animation. Animation will not work.");
@@ -407,7 +409,6 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	}
 
 	lastTime_ = tickRange_.x + timeInTicks;
-	GL_ERROR_LOG();
 }
 
 ////////

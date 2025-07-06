@@ -6,7 +6,7 @@ BulletDebugDrawer::BulletDebugDrawer(const ref_ptr<BulletPhysics> &physics)
 		: btIDebugDraw(),
 		  StateNode(),
 		  HasShader("regen.models.lines"),
-		  HasInput(ARRAY_BUFFER, BUFFER_USAGE_DYNAMIC_DRAW),
+		  HasInput(ARRAY_BUFFER, BUFFER_HINT_STATIC),
 		  physics_(physics),
 		  vbo_(0),
 		  m_debugMode(DBG_DrawContactPoints | DBG_DrawWireframe){
@@ -91,5 +91,4 @@ void BulletDebugDrawer::traverse(regen::RenderState *rs) {
 	physics_->dynamicsWorld()->debugDrawWorld();
 	state()->disable(rs);
 	renderState_ = nullptr;
-	GL_ERROR_LOG();
 }

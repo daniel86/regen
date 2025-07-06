@@ -121,7 +121,7 @@
           use-texco="1"
           use-tangent="1"
           center="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <transform>
             <translate value="0.0,-2.0,0.0"/>
         </transform>
@@ -134,7 +134,7 @@
           texco-scaling="0.0125,0.0125"
           use-normal="1"
           use-tangent="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
     </mesh>
 
     <mesh id="box-wall-1"
@@ -143,7 +143,7 @@
           texco-scaling="0.0125,0.0125"
           use-normal="1"
           use-tangent="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
     </mesh>
 
     <mesh id="wall"
@@ -155,7 +155,7 @@
           use-normal="1"
           use-tangent="1"
           center="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
     </mesh>
 
     <!--**************************-->
@@ -191,7 +191,7 @@
           use-texco="1"
           use-tangent="0"
           center="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <transform id="reflector-tf"/>
     </mesh>
     <transform id="reflector-tf">
@@ -261,7 +261,7 @@
           use-texco="1"
           use-tangent="0"
           center="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
     </mesh>
 
     <mesh id="picture-frame"
@@ -271,7 +271,7 @@
           texco-scaling="0.025,0.025"
           use-normal="1"
           use-tangent="1"
-          usage="STATIC_DRAW"
+          update-hint="STATIC"
           num-instances="4">
         <transform is-instanced="1">
             <rotate value="0.0,3.14,1.5707963"/>
@@ -418,7 +418,7 @@
           asset-animation="0"
           asset-material="0"
           scaling="0.0006,0.0006,0.0006"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <material preset="ruby"/>
     </mesh>
     <transform id="venus-tf">
@@ -432,7 +432,7 @@
           asset-animation="0"
           asset-material="0"
           scaling="0.15, 0.15, 0.15"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <material preset="gold"/>
     </mesh>
     <transform id="dragon-tf">
@@ -447,7 +447,7 @@
           asset-animation="0"
           asset-material="0"
           scaling="0.6, 0.6, 0.6"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <material preset="jade"/>
     </mesh>
     <transform id="bunny-tf">
@@ -461,7 +461,7 @@
           use-normal="1"
           use-tangent="0"
           center="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <material preset="copper"/>
     </mesh>
     <mesh id="statue-platform-head"
@@ -470,7 +470,7 @@
           use-normal="1"
           use-tangent="0"
           center="1"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <material preset="pewter"/>
     </mesh>
 
@@ -489,7 +489,7 @@
           use-normal="0"
           use-tangent="0"
           texco-mode="NONE"
-          usage="STATIC_DRAW">
+          update-hint="STATIC">
         <material emission="0.05,0.1,0.05"/>
     </mesh>
 

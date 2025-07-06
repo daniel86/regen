@@ -14,7 +14,7 @@
 namespace regen {
 	class Cone : public Mesh {
 	public:
-		Cone(GLenum primitive, BufferUsage usage);
+		Cone(GLenum primitive, BufferUpdateHint updateHint);
 
 	protected:
 		ref_ptr<ShaderInput3f> nor_;
@@ -41,8 +41,10 @@ namespace regen {
 			GLboolean isNormalRequired;
 			/** subdivisions = 4*levelOfDetail^2 */
 			std::vector<GLuint> levelOfDetails;
-			/** VBO usage hint. */
-			BufferUsage usage;
+			/** Buffer usage hints. */
+			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
 		};
@@ -96,8 +98,10 @@ namespace regen {
 			GLboolean isBaseRequired;
 			/** level of detail for base circle */
 			std::vector<GLuint> levelOfDetails;
-			/** VBO usage hint. */
-			BufferUsage usage;
+			/** Buffer usage hints. */
+			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
 		};

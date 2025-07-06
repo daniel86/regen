@@ -108,7 +108,6 @@ void BloomPass::traverse(RenderState *rs) {
 	upsample(rs);
 	rs->drawFrameBuffer().pop();
 	state()->disable(rs);
-	GL_ERROR_LOG();
 }
 
 ref_ptr<BloomPass> BloomPass::load(LoadingContext &ctx, scene::SceneInputNode &input) {

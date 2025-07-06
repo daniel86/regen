@@ -42,8 +42,10 @@ namespace regen {
 			GLboolean isTangentRequired;
 			/** flag indicating if the quad center should be translated to origin. */
 			GLboolean centerAtOrigin;
-			/** VBO usage hint. */
-			BufferUsage usage;
+			/** Buffer usage hints. */
+			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
 		};

@@ -2,8 +2,8 @@
 
 using namespace regen;
 
-TBO::TBO(BufferUsage usage) :
-		BufferObject(TEXTURE_BUFFER, usage) {
+TBO::TBO(BufferUpdateHint hint) :
+		BufferObject(TEXTURE_BUFFER, hint) {
 }
 
 void TBO::setBufferInput(const ref_ptr<regen::ShaderInput> &input) {

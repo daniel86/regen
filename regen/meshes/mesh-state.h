@@ -106,9 +106,26 @@ namespace regen {
 		 * @param primitive Specifies what kind of primitives to render.
 		 * @param usage VBO usage.
 		 */
-		Mesh(GLenum primitive, BufferUsage usage);
+		Mesh(GLenum primitive, BufferUpdateHint hint);
 
 		~Mesh() override;
+
+		/**
+		 * Set the mapping mode for the vertex buffer.
+		 * Note that mapping will not be possible if the buffer when
+		 * map mode is set to BUFFER_MAP_DISABLED.
+		 * @param mode the mapping mode to set.
+		 */
+		void setBufferMapMode(BufferMapMode mode);
+
+		/**
+		 * Set the access mode for the vertex buffer.
+		 * This will determine how the buffer can be accessed by the CPU and GPU.
+		 * Note that GPU_ONLY buffers cannot be modified at all by the CPU,
+		 * no copying or mapping is possible!
+		 * @param mode the access mode to set.
+		 */
+		void setBufferAccessMode(BufferAccessMode mode);
 
 		/**
 		 * @param out Set of meshes using the ShaderInputcontainer of this mesh

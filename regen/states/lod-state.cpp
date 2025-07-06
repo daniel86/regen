@@ -462,7 +462,7 @@ void LODState::createComputeShader() {
 		// create an indirect draw buffer, which is computed each frame
 		indirectDrawBuffers_[partIdx] = ref_ptr<SSBO>::alloc(
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BUFFER_USAGE_STREAM_DRAW, SSBO::RESTRICT);
+				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
 		indirectDrawBuffers_[partIdx]->addBlockInput(idb);
 		indirectDrawBuffers_[partIdx]->update();
 		// TODO use a single buffer with offsets
@@ -484,7 +484,7 @@ void LODState::createComputeShader() {
 			clearData->setUniformUntyped((byte*)(&drawParams[0]));
 			clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BUFFER_USAGE_STATIC_COPY, SSBO::RESTRICT);
+				BUFFER_HINT_STATIC, SSBO::RESTRICT);
 			clearIndirectBuffer_->addBlockInput(clearData);
 			clearIndirectBuffer_->update();
 		}
@@ -501,7 +501,8 @@ void LODState::createComputeShader() {
 
 	{ // cull
 		// we store the 6 frustum planes in a UBO
-		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer");
+		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer", BUFFER_HINT_UPDATE_STREAM);
+		frustumUBO_->setBufferAccessMode(BUFFER_CPU_WRITE);
 		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size()));
 		frustumUBO_->update();
 
@@ -569,12 +570,7 @@ void LODState::createComputeShader() {
 
 void LODState::traverseGPU(RenderState *rs) {
 	// copy the clear buffer to the indirect draw buffer
-	glCopyNamedBufferSubData(
-			clearIndirectBuffer_->blockReference()->bufferID(),
-			indirectDrawBuffers_[0]->blockReference()->bufferID(),
-			clearIndirectBuffer_->blockReference()->address(),
-			indirectDrawBuffers_[0]->blockReference()->address(),
-			clearIndirectBuffer_->blockReference()->allocatedSize());
+	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
 
 	if (cameraStamp_ != camera_->stamp()) {
 		// Update the frustum planes in the UBO
@@ -586,11 +582,7 @@ void LODState::traverseGPU(RenderState *rs) {
 				frustumPlanes_[i*6 + j] = frustumPlanes[j].equation();
 			}
 		}
-		glNamedBufferSubData(
-				frustumUBO_->blockReference()->bufferID(),
-				frustumUBO_->blockReference()->address(),
-				frustumUBO_->blockReference()->allocatedSize(),
-				&frustumPlanes_[0].x);
+		frustumUBO_->setBufferData(&frustumPlanes_[0].x);
 	}
 	if (tfStamp_ != cullShape_->tf()->stamp()) {
 		// Update the transform in the cull pass

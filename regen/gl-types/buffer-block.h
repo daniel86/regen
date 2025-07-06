@@ -29,6 +29,10 @@ namespace regen {
 			// Output block
 			OUT
 		};
+		/**
+		 * Memory layout for shader storage blocks.
+		 * Defines how the data is laid out in memory.
+		 */
 		enum MemoryLayout {
 			STD140 = 0,
 			STD430,
@@ -45,7 +49,7 @@ namespace regen {
 		 */
 		BufferBlock(
 			BufferTarget target,
-			BufferUsage usage,
+			BufferUpdateHint hint,
 			StorageQualifier storageQualifier,
 			MemoryLayout memoryLayout);
 
@@ -64,15 +68,6 @@ namespace regen {
 		 * @param name name of the new buffer block
 		 */
 		explicit BufferBlock(const BufferObject &other);
-
-		/**
-		 * Enforce a persistent mapping of the buffer block.
-		 * The default mode is that the mapping mode is determined based on the buffer usage.
-		 * @param isPersistent true if the buffer block should be persistently mapped.
-		 */
-		void setPersistentMapping(bool isPersistent);
-
-		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * @return the reference to the buffer object.
@@ -148,6 +143,14 @@ namespace regen {
 		 */
 		void unlock() { lock_.unlock(); }
 
+		/**
+		 * Load a BufferBlock from a scene input node.
+		 * @param ctx the loading context.
+		 * @param input the scene input node.
+		 * @return a reference to the loaded BufferBlock.
+		 */
+		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
+
 	protected:
 		StorageQualifier storageQualifier_;
 		MemoryLayout memoryLayout_;
@@ -197,7 +200,6 @@ namespace regen {
 			}
 		};
 
-		bool usePersistentMapping_ = false;
 		ref_ptr<BufferMapping> persistentMapping_;
 
 		std::vector<ref_ptr<BlockInput>> blockInputs_;

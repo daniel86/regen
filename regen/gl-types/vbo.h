@@ -13,9 +13,7 @@ namespace regen {
 		 * Default-Constructor.
 		 * @param usage usage hint.
 		 */
-		explicit VBO(
-				BufferTarget target = ARRAY_BUFFER,
-				BufferUsage usage = BUFFER_USAGE_DYNAMIC_DRAW);
+		explicit VBO(BufferTarget target, BufferUpdateHint hint);
 
 		~VBO() override = default;
 

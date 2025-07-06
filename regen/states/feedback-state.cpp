@@ -63,7 +63,7 @@ GLboolean FeedbackSpecification::hasFeedback(const std::string &name) const {
 FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
 		: FeedbackSpecification(feedbackCount),
 		  feedbackPrimitive_(feedbackPrimitive) {
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_USAGE_STREAM_DRAW);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_STATIC);
 	allocatedBufferSize_ = 0;
 
 	bufferRange_.buffer_ = 0;

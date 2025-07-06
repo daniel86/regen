@@ -1,10 +1,3 @@
-/*
- * texture-mapped-text.cpp
- *
- *  Created on: 23.03.2011
- *      Author: daniel
- */
-
 #include <GL/glew.h>
 
 #include <boost/algorithm/string.hpp>
@@ -15,7 +8,7 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height)
-		: Mesh(GL_TRIANGLES, BUFFER_USAGE_DYNAMIC_DRAW),
+		: Mesh(GL_TRIANGLES, BUFFER_HINT_UPDATE_RARELY),
 		  font_(font),
 		  value_(),
 		  height_(height),

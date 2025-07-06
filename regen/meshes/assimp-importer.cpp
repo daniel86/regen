@@ -580,7 +580,6 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 	GLuint maxElements;
 	GLuint l, k;
 
-	GL_ERROR_LOG();
 	for (GLuint n = 0; n < scene_->mNumMaterials; ++n) {
 		ref_ptr<Material> mat = ref_ptr<Material>::alloc();
 		materials[n] = mat;
@@ -740,21 +739,21 @@ static GLuint getMeshCount(const struct aiNode *node) {
 }
 
 vector<ref_ptr<Mesh> > AssetImporter::loadAllMeshes(
-		const Mat4f &transform, BufferUsage usage) {
+		const Mat4f &transform, BufferConfig bufferCfg) {
 	GLuint meshCount = getMeshCount(scene_->mRootNode);
 
 	vector<GLuint> meshIndices(meshCount);
 	for (GLuint n = 0; n < meshCount; ++n) { meshIndices[n] = n; }
 
-	return loadMeshes(transform, usage, meshIndices);
+	return loadMeshes(transform, bufferCfg, meshIndices);
 }
 
 vector<ref_ptr<Mesh> > AssetImporter::loadMeshes(
-		const Mat4f &transform, BufferUsage usage, const vector<GLuint> &meshIndices) {
+		const Mat4f &transform, BufferConfig bufferCfg, const vector<GLuint> &meshIndices) {
 	vector<ref_ptr<Mesh> > out(meshIndices.size());
 	GLuint currentIndex = 0;
 
-	loadMeshes(*scene_->mRootNode, transform, usage, meshIndices, currentIndex, out);
+	loadMeshes(*scene_->mRootNode, transform, bufferCfg, meshIndices, currentIndex, out);
 
 	return out;
 }
@@ -762,7 +761,7 @@ vector<ref_ptr<Mesh> > AssetImporter::loadMeshes(
 void AssetImporter::loadMeshes(
 		const struct aiNode &node,
 		const Mat4f &transform,
-		BufferUsage usage,
+		BufferConfig bufferCfg,
 		const vector<GLuint> &meshIndices,
 		GLuint &currentIndex,
 		vector<ref_ptr<Mesh> > &out) {
@@ -782,7 +781,7 @@ void AssetImporter::loadMeshes(
 		if (mesh == nullptr) { continue; }
 
 		aiMatrix4x4 meshTransform = (*aiTransform) * node.mTransformation;
-		ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f *) &meshTransform.a1), usage);
+		ref_ptr<Mesh> meshState = loadMesh(*mesh, *((const Mat4f *) &meshTransform.a1),  bufferCfg);
 		// remember mesh material
 		meshMaterials_[meshState.get()] = materials_[mesh->mMaterialIndex];
 		meshToAiMesh_[meshState.get()] = mesh;
@@ -793,13 +792,18 @@ void AssetImporter::loadMeshes(
 	for (GLuint n = 0; n < node.mNumChildren; ++n) {
 		const struct aiNode *child = node.mChildren[n];
 		if (child == nullptr) { continue; }
-		loadMeshes(*child, transform, usage, meshIndices, currentIndex, out);
+		loadMeshes(*child, transform, bufferCfg, meshIndices, currentIndex, out);
 	}
 }
 
-ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform, BufferUsage usage) {
-	ref_ptr<Mesh> meshState = ref_ptr<Mesh>::alloc(GL_TRIANGLES, usage);
-	stringstream s;
+ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform, BufferConfig bufferCfg) {
+	ref_ptr<Mesh> meshState = ref_ptr<Mesh>::alloc(GL_TRIANGLES, bufferCfg.updateHint);
+	if (bufferCfg.accessMode.has_value()) {
+		meshState->setBufferAccessMode(*bufferCfg.accessMode);
+	}
+	if (bufferCfg.mapMode.has_value()) {
+		meshState->setBufferMapMode(*bufferCfg.mapMode);
+	}
 
 	ref_ptr<ShaderInput3f> pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	ref_ptr<ShaderInput3f> nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);

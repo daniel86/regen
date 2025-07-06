@@ -1,16 +1,9 @@
-/*
- * cone.cpp
- *
- *  Created on: 03.02.2013
- *      Author: daniel
- */
-
 #include "cone.h"
 
 using namespace regen;
 
-Cone::Cone(GLenum primitive, BufferUsage usage)
-		: Mesh(primitive, usage) {
+Cone::Cone(GLenum primitive, BufferUpdateHint updateHint)
+		: Mesh(primitive, updateHint) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 }
@@ -22,12 +15,13 @@ ConeOpened::Config::Config()
 		: cosAngle(0.5),
 		  height(1.0f),
 		  isNormalRequired(GL_TRUE),
-		  levelOfDetails({1}),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
+		  levelOfDetails({1}) {
 }
 
 ConeOpened::ConeOpened(const Config &cfg)
-		: Cone(GL_TRIANGLE_FAN, cfg.usage) {
+		: Cone(GL_TRIANGLE_FAN, cfg.updateHint) {
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -112,8 +106,7 @@ ConeClosed::Config::Config()
 		  height(1.0f),
 		  isNormalRequired(GL_TRUE),
 		  isBaseRequired(GL_TRUE),
-		  levelOfDetails({1}),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
+		  levelOfDetails({1}) {
 }
 
 ref_ptr<Mesh> ConeClosed::getBaseCone() {
@@ -125,7 +118,6 @@ ref_ptr<Mesh> ConeClosed::getBaseCone() {
 		cfg.levelOfDetails = {3, 2, 1};
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isBaseRequired = GL_TRUE;
-		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<ConeClosed>::alloc(cfg);
 		return mesh;
 	} else {
@@ -134,8 +126,10 @@ ref_ptr<Mesh> ConeClosed::getBaseCone() {
 }
 
 ConeClosed::ConeClosed(const Config &cfg)
-		: Cone(GL_TRIANGLES, cfg.usage) {
+		: Cone(GL_TRIANGLES, cfg.updateHint) {
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 

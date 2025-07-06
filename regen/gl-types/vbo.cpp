@@ -2,8 +2,12 @@
 
 using namespace regen;
 
-VBO::VBO(BufferTarget target, BufferUsage usage)
-		: BufferObject(target, usage) {
+VBO::VBO(BufferTarget target, BufferUpdateHint updateHint)
+		: BufferObject(target, updateHint) {
+	// set default storage flags
+	mapMode_ = BUFFER_MAP_DISABLED;
+	// default case: mesh data is loaded from CPU and written to GPU
+	accessMode_ = BUFFER_CPU_WRITE;
 }
 
 ref_ptr<BufferReference> &VBO::alloc(const ref_ptr<ShaderInput> &att) {

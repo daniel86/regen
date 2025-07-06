@@ -39,7 +39,6 @@ ref_ptr<Disc> Disc::getUnitDisc() {
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
 		cfg.discRadius = 1.0f;
-		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<Disc>::alloc(cfg);
 		return mesh;
 	} else {
@@ -48,11 +47,13 @@ ref_ptr<Disc> Disc::getUnitDisc() {
 }
 
 Disc::Disc(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.usage) {
+		: Mesh(GL_TRIANGLES, cfg.updateHint) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -76,7 +77,6 @@ Disc::Config::Config()
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW),
 		  discRadius(1.0f) {
 }
 

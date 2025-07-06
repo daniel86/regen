@@ -310,7 +310,7 @@ namespace regen {
 
 				if (input.getValue<bool>("join", true)) {
 					if (x == nullptr) {
-						ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc();
+						ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc(ARRAY_BUFFER, BUFFER_HINT_UPDATE_RARELY);
 						inputState->setInput(in, input.getValue("name"));
 						state->joinStates(inputState);
 					} else {

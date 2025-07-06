@@ -11,15 +11,15 @@
 
 using namespace regen;
 
-InputContainer::InputContainer(BufferTarget target, BufferUsage usage) {
+InputContainer::InputContainer(BufferTarget target, BufferUpdateHint hint) {
 	uploadLayout_ = LAYOUT_LAST;
-	inputBuffer_ = ref_ptr<VBO>::alloc(target, usage);
+	inputBuffer_ = ref_ptr<VBO>::alloc(target, hint);
 }
 
 InputContainer::InputContainer(
-		const ref_ptr<ShaderInput> &in, const std::string &name, BufferUsage usage) {
+		const ref_ptr<ShaderInput> &in, BufferUpdateHint hint, const std::string &name) {
 	uploadLayout_ = LAYOUT_LAST;
-	inputBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, usage);
+	inputBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, hint);
 	setInput(in, name);
 }
 

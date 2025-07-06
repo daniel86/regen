@@ -9,30 +9,41 @@ using namespace regen;
 //#define REGEN_BUFFER_BLOCK_DEBUG
 #define BUFFER_BLOCK_DISABLE_PERSISTENT
 
-static bool usePersistentMapping(BufferUsage usage) {
-#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
-	return false;
-#else
-	return usage == BUFFER_USAGE_STREAM_COPY || usage == BUFFER_USAGE_STREAM_DRAW;
-#endif
-}
-
 BufferBlock::BufferBlock(
 		BufferTarget target,
-		BufferUsage usage,
+		BufferUpdateHint hint,
 		StorageQualifier storageQualifier,
 		MemoryLayout memoryLayout)
-		: BufferObject(target, usage),
+		: BufferObject(target, hint),
 		  storageQualifier_(storageQualifier),
-		  memoryLayout_(memoryLayout),
-		  usePersistentMapping_(usePersistentMapping(usage)) {
+		  memoryLayout_(memoryLayout) {
+	// initially assume it is a GPU-only buffer.
+	// the flag will be switched to something else based on the inputs added.
+	setBufferAccessMode(BUFFER_GPU_ONLY);
+	// set mapping mode based on the update hint
+	if (hint == BUFFER_HINT_STATIC) {
+		// data is static, so we do not need to map the buffer.
+		// if data is written initially from CPU, then it must be done without mapping.
+		setBufferMapMode(BUFFER_MAP_DISABLED);
+	} else if (hint == BUFFER_HINT_UPDATE_RARELY) {
+		// data is updated rarely, so we can use temporary mapping,
+		// i.e. map, write, and unmap the buffer.
+		setBufferMapMode(BUFFER_MAP_TEMPORARY);
+	} else if (hint == BUFFER_HINT_UPDATE_STREAM) {
+#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
+		setBufferMapMode(BUFFER_MAP_TEMPORARY);
+#else
+		// TODO: set BUFFER_MAP_PERSISTENT_FLUSH
+		setBufferMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
+		//setBufferMapMode(BUFFER_MAP_PERSISTENT_FLUSH);
+#endif
+	}
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
 		: BufferObject(other),
 		  storageQualifier_(other.storageQualifier_),
 		  memoryLayout_(other.memoryLayout_),
-		  usePersistentMapping_(other.usePersistentMapping_),
 		  blockInputs_(other.blockInputs_),
 		  inputs_(other.inputs_),
 		  ref_(other.ref_),
@@ -43,8 +54,7 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 BufferBlock::BufferBlock(const BufferObject &other)
 		: BufferObject(other),
 		  storageQualifier_(BufferBlock::BUFFER),
-		  memoryLayout_(BufferBlock::STD430),
-		  usePersistentMapping_(usePersistentMapping(usage_)) {
+		  memoryLayout_(BufferBlock::STD430) {
 	auto block = dynamic_cast<const BufferBlock *>(&other);
 	if (block != nullptr) {
 		storageQualifier_ = block->storageQualifier_;
@@ -74,15 +84,26 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	}
 }
 
-void BufferBlock::setPersistentMapping(bool isPersistent) {
-	usePersistentMapping_ = isPersistent;
-}
-
 void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
 	auto uboInput = ref_ptr<BlockInput>::alloc();
 	uboInput->input = input;
 	blockInputs_.emplace_back(uboInput);
 	inputs_.emplace_back(input, name);
+	if (input->hasClientData()) {
+		// input has client data, so we need to set the access mode such that the CPU can write to it.
+		if (accessMode_ == BUFFER_GPU_ONLY) {
+			// if the access mode is GPU-only, we need to switch it to CPU_WRITE
+			setBufferAccessMode(BUFFER_CPU_WRITE);
+		} else if (accessMode_ == BUFFER_CPU_READ) {
+			// if the access mode is CPU_READ, we need to switch it to CPU_READ_WRITE
+			setBufferAccessMode(BUFFER_CPU_READ_WRITE);
+		}
+		// at the moment we only support writing via mapping, so also need to set the map mode
+		// TODO: turn on persistent mapping if the input is updated frequently
+		if (bufferMapMode() == BUFFER_MAP_DISABLED) {
+			setBufferMapMode(BUFFER_MAP_TEMPORARY);
+		}
+	}
 }
 
 void BufferBlock::resetSegments() {
@@ -232,13 +253,13 @@ void BufferBlock::copyBufferData1(char *bufferData, BlockInput &uboInput) {
 		//       However, ths is not the case for persistent mapping, where the whole
 		//       buffer is mapped and the offset is relative to the start of the buffer.
 		uint32_t offset = uboInput.offset;
-		if (!usePersistentMapping_) offset -= nextSegments_[0].offset;
+		if (!isMapModePersistent(mapMode_)) offset -= nextSegments_[0].offset;
 		memcpy(bufferData + offset,
 			   uboInput.alignedData, uboInput.alignedSize);
 	} else {
 		auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
 		uint32_t offset = uboInput.offset;
-		if (!usePersistentMapping_) offset -= nextSegments_[0].offset;
+		if (!isMapModePersistent(mapMode_)) offset -= nextSegments_[0].offset;
 		memcpy(bufferData + offset,
 			   mapped.r,
 			   uboInput.input->inputSize());
@@ -261,8 +282,8 @@ void BufferBlock::copyBufferData(char *bufferData, bool partialWrite) {
 		// get start and end indices from first and last segment
 		// note: in case of persistent mapping, we always must write the whole buffer range,
 		//       as the whole range is mapped.
-		uint32_t startIdx = (usePersistentMapping_ ? 0u : nextSegments_[0].startIdx);
-		uint32_t endIdx = (usePersistentMapping_ ?
+		uint32_t startIdx = (isMapModePersistent(mapMode_) ? 0u : nextSegments_[0].startIdx);
+		uint32_t endIdx = (isMapModePersistent(mapMode_) ?
 						   (blockInputs_.size() - 1) :
 						   nextSegments_[numNextSegments_ - 1].endIdx);
 
@@ -322,9 +343,10 @@ void BufferBlock::update(bool forceUpdate) {
 	auto t2 = std::chrono::high_resolution_clock::now();
 #endif
 	if (hasClientData_) {
-		if (usePersistentMapping_) {
+		if (isMapModePersistent(mapMode_)) {
 			updatePersistent(needsResize);
 		} else {
+			// TODO: also support non-mapped updates here
 			updateNonPersistent();
 		}
 	}
@@ -399,7 +421,13 @@ void BufferBlock::updateNonPersistent() {
 		unmap();
 		stamp_ += 1;
 	} else {
-		REGEN_WARN("failed to map buffer");
+		REGEN_WARN("Failed to temporary map storage with "
+			<< " target=" << target_
+			<< " access=" << accessMode_
+			<< " map=" << mapMode_ << ".");
+		if (mapMode_ == BUFFER_MAP_DISABLED) {
+			REGEN_WARN("Reason for failure: storage is not mappable!");
+		}
 		GL_ERROR_LOG();
 		isBlockValid_ = false;
 	}
@@ -463,15 +491,23 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 
 ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto blockType = input.getValue<std::string>("type", "ubo");
-	auto usageHint = input.getValue<BufferUsage>("usage", BUFFER_USAGE_DYNAMIC_DRAW);
+	auto updateHint = input.getValue<BufferUpdateHint>("update-hint", BUFFER_HINT_STATIC);
 	ref_ptr<BufferBlock> block;
 	if (blockType == "ubo") {
-		block = ref_ptr<UBO>::alloc(input.getName(), usageHint);
+		block = ref_ptr<UBO>::alloc(input.getName(), updateHint);
 	} else if (blockType == "ssbo") {
-		block = ref_ptr<SSBO>::alloc(input.getName(), usageHint);
+		block = ref_ptr<SSBO>::alloc(input.getName(), updateHint);
 	} else {
 		REGEN_WARN("Unknown buffer block type '" << blockType << "'. Using UBO.");
-		block = ref_ptr<UBO>::alloc(input.getName(), usageHint);
+		block = ref_ptr<UBO>::alloc(input.getName(), updateHint);
+	}
+	if (input.hasAttribute("access-mode")) {
+		block->setBufferAccessMode(
+				input.getValue<BufferAccessMode>("access-mode", BUFFER_CPU_WRITE));
+	}
+	if (input.hasAttribute("map-mode")) {
+		block->setBufferMapMode(
+				input.getValue<BufferMapMode>("map-mode", BUFFER_MAP_DISABLED));
 	}
 	auto dummyState = ref_ptr<State>::alloc();
 

@@ -21,7 +21,9 @@ static Box::Config cubeCfg(GLuint levelOfDetail) {
 	cfg.isNormalRequired = GL_FALSE;
 	cfg.isTangentRequired = GL_FALSE;
 	cfg.texcoMode = Box::TEXCO_MODE_CUBE_MAP;
-	cfg.usage = BUFFER_USAGE_STATIC_DRAW;
+	cfg.updateHint = BUFFER_HINT_STATIC;
+	cfg.mapMode = BUFFER_MAP_DISABLED;
+	cfg.accessMode = BUFFER_CPU_WRITE;
 	cfg.levelOfDetails = {levelOfDetail};
 	return cfg;
 }

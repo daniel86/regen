@@ -421,9 +421,10 @@ ref_ptr<TextureCube> textures::loadCube(
 						}
 					}
 					tex->updateSubImage(nextFace, (GLubyte *) flippedFace);
+					delete[] flippedFace;
+					glPixelStorei(GL_UNPACK_ROW_LENGTH, faceWidth * numCols);
 				} else {
 					tex->updateSubImage(nextFace, (GLubyte *) colData);
-					glPixelStorei(GL_UNPACK_ROW_LENGTH, 4);
 				}
 			}
 			index += 1;

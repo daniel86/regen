@@ -211,7 +211,7 @@
     <!--********* Ground *********-->
     <!--**************************-->
 
-    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" usage="STATIC_DRAW" lod="4"
+    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" update-hint="STATIC" lod="4"
           rotation="0.0,0.0,3.1415"
           scaling="400.0,20.0,400.0"
           texco-scaling="100.0,100.0">
@@ -245,7 +245,7 @@
     <mesh id="tree-pot" type="torus"
           lod-levels="3, 2, 1"
           use-normal="1" use-tangent="1" center="1"
-          usage="STATIC_DRAW" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
+          update-hint="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
           ring-radius="1.0" tube-radius="0.2">
         <transform id="tree-pot-tf">
             <translate value="8.0, -1.4, -8.0"/>
@@ -261,7 +261,7 @@
 
     <mesh id="tree-disc" type="disc"
           lod-levels="3, 2, 1"
-          use-normal="1" center="1" usage="STATIC_DRAW" scaling="3.0, 3.0, 3.0"
+          use-normal="1" center="1" update-hint="STATIC" scaling="3.0, 3.0, 3.0"
           texco-scaling="0.1, 0.1" disc-radius="1.0">
         <transform id="tree-disc-tf">
             <translate value="8.0, -1.0, -8.0"/>
@@ -359,7 +359,7 @@
         </node>
     </node>
 
-    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" usage="STATIC_DRAW"
+    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" update-hint="STATIC"
           lod-levels="4, 3, 2"
           lod-thresholds="20.0, 50.0, 0.0"
           scaling="1.5,3.0,3.0"
@@ -388,7 +388,7 @@
     <!--********* Stairs *********-->
     <!--**************************-->
 
-    <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
+    <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
           scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
@@ -399,7 +399,7 @@
                mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
+    <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
           scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
@@ -410,7 +410,7 @@
                mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
+    <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
           scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5">
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
@@ -439,7 +439,7 @@
     <!--******** Platforms *******-->
     <!--**************************-->
 
-    <mesh id="platform0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
+    <mesh id="platform0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
           scaling="4.0,0.4,4.0"
           texco-scaling="0.5,0.5">
         <transform id="platform0-tf">
@@ -457,7 +457,7 @@
                size="8.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
+    <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
           scaling="4.0,0.4,4.0"
           texco-scaling="0.5,0.5">
         <transform id="platform1-tf">
@@ -490,7 +490,7 @@
 
     <mesh id="pedestal-mesh" type="box"
           lod-levels="3, 2, 1"
-          use-normal="1" use-tangent="1" center="1" usage="STATIC_DRAW"
+          use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
           scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
         <transform id="pedestal-tf">
             <rotate value="1.57079632,0.0,0.0"/>
@@ -506,7 +506,7 @@
     </mesh>
 
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
-          usage="STATIC_DRAW" lod="1" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
+          update-hint="STATIC" lod="1" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
         <transform id="slope-tf">
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
@@ -535,7 +535,7 @@
     <texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
     <texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
 
-    <mesh id="fire-sprite" type="point" usage="STATIC_DRAW">
+    <mesh id="fire-sprite" type="point" update-hint="STATIC">
         <transform>
             <translate value="-16.0, 12.0, -3.0"/>
         </transform>
@@ -774,12 +774,12 @@
     <!--********* Objects ********-->
     <!--**************************-->
 
-    <mesh id="light-bulb-point" type="point" usage="STATIC_DRAW" num-vertices="1">
+    <mesh id="light-bulb-point" type="point" update-hint="STATIC" num-vertices="1">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
         <input name="modelOffset" state="room-light0" component="lightPosition"/>
         <shape id="light-bulb-shape" index="1" cull="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
-    <mesh id="fire-flies0" type="point" usage="STATIC_DRAW" num-vertices="1" num-instances="{{num-fire-flies}}">
+    <mesh id="fire-flies0" type="point" update-hint="STATIC" num-vertices="1" num-instances="{{num-fire-flies}}">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
         <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
         <shape id="fire-flies-shape0" index="1" cull="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />

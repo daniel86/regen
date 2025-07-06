@@ -31,7 +31,7 @@ namespace regen {
 }
 
 Camera::Camera(unsigned int numLayer)
-		: HasInputState(ARRAY_BUFFER),
+		: HasInputState(ARRAY_BUFFER, BUFFER_HINT_UPDATE_STREAM),
 		  numLayer_(numLayer),
 		  frustum_(numLayer) {
 	// add shader constants via defines
@@ -73,7 +73,7 @@ Camera::Camera(unsigned int numLayer)
 	viewProjInv_->setSchema(InputSchema::transform());
 
 	// TODO: I think we really need t use buffer container here!
-	cameraBlock_ = ref_ptr<UBO>::alloc("Camera");
+	cameraBlock_ = ref_ptr<UBO>::alloc("Camera", BUFFER_HINT_UPDATE_STREAM);
 	cameraBlock_->addBlockInput(view_);
 	cameraBlock_->addBlockInput(viewInv_);
 	cameraBlock_->addBlockInput(proj_);

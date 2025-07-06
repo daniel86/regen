@@ -1,10 +1,3 @@
-/*
- * Cube.cpp
- *
- *  Created on: 31.08.2011
- *      Author: daniel
- */
-
 #include "../lod/tessellation.h"
 #include "sphere.h"
 
@@ -36,13 +29,15 @@ namespace regen {
 }
 
 Sphere::Sphere(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.usage) {
+		: Mesh(GL_TRIANGLES, cfg.updateHint) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	radius_ = 0.5f * cfg.posScale.max();
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -53,8 +48,7 @@ Sphere::Config::Config()
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  isHalfSphere(GL_FALSE),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
+		  isHalfSphere(GL_FALSE) {
 }
 
 static Vec3f computeSphereTangent(const Vec3f &v) {
@@ -229,12 +223,14 @@ void Sphere::updateAttributes(const Config &cfg) {
 SphereSprite::Config::Config()
 		: radius(nullptr),
 		  position(nullptr),
-		  sphereCount(0),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW) {
+		  sphereCount(0) {
 }
 
 SphereSprite::SphereSprite(const Config &cfg)
-		: Mesh(GL_POINTS, cfg.usage), HasShader("regen.models.sprite-sphere") {
+		: Mesh(GL_POINTS, cfg.updateHint),
+		  HasShader("regen.models.sprite-sphere") {
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 	joinStates(shaderState());
 }

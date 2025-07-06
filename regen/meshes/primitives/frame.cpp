@@ -41,7 +41,6 @@ ref_ptr<FrameMesh> FrameMesh::getUnitFrame() {
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isTangentRequired = GL_FALSE;
 		cfg.borderSize = 0.1f;
-		cfg.usage = BUFFER_USAGE_STATIC_DRAW;
 		mesh = ref_ptr<FrameMesh>::alloc(cfg);
 		return mesh;
 	} else {
@@ -50,11 +49,13 @@ ref_ptr<FrameMesh> FrameMesh::getUnitFrame() {
 }
 
 FrameMesh::FrameMesh(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.usage) {
+		: Mesh(GL_TRIANGLES, cfg.updateHint) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
+	setBufferMapMode(cfg.mapMode);
+	setBufferAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -78,7 +79,6 @@ FrameMesh::Config::Config()
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
-		  usage(BUFFER_USAGE_DYNAMIC_DRAW),
 		  borderSize(0.1f) {
 }
 

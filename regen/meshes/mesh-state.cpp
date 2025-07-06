@@ -15,9 +15,9 @@
 
 using namespace regen;
 
-Mesh::Mesh(GLenum primitive, BufferUsage usage)
+Mesh::Mesh(GLenum primitive, BufferUpdateHint hint)
 		: State(),
-		  HasInput(ARRAY_BUFFER, usage),
+		  HasInput(ARRAY_BUFFER, hint),
 		  primitive_(primitive),
 		  lodLevel_(ref_ptr<uint32_t>::alloc(0u)),
 		  vao_(ref_ptr<VAO>::alloc()),
@@ -67,6 +67,14 @@ Mesh::~Mesh() {
 	if (isMeshView_) {
 		sourceMesh_->meshViews_.erase(this);
 	}
+}
+
+void Mesh::setBufferMapMode(BufferMapMode mode) {
+	inputContainer_->inputBuffer()->setBufferMapMode(mode);
+}
+
+void Mesh::setBufferAccessMode(BufferAccessMode mode) {
+	inputContainer_->inputBuffer()->setBufferAccessMode(mode);
 }
 
 void Mesh::getMeshViews(std::set<Mesh *> &out) {

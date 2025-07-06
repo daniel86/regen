@@ -7,7 +7,7 @@ using namespace regen;
 #undef DEBUG_SNAPSHOT_VIEWS
 
 ImpostorBillboard::ImpostorBillboard()
-		: Mesh(GL_POINTS, BUFFER_USAGE_STATIC_DRAW),
+		: Mesh(GL_POINTS, BUFFER_HINT_STATIC),
 		  snapshotState_(ref_ptr<State>::alloc()) {
 	depthOffset_ = createUniform<ShaderInput1f>("depthOffset", 0.5f);
 	modelOrigin_ = createUniform<ShaderInput3f>("modelOrigin", Vec3f::zero());
@@ -142,7 +142,7 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create view data arrays
-		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer", BUFFER_USAGE_STATIC_DRAW);
+		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer", BUFFER_HINT_STATIC);
 		snapshotDirs_ = ref_ptr<ShaderInput4f>::alloc("snapshotDirs", numSnapshotViews_);
 		snapshotDirs_->setUniformUntyped();
 		impostorBuffer_->addBlockInput(snapshotDirs_);
@@ -195,8 +195,6 @@ void ImpostorBillboard::createResources() {
 		snapshotFBO_->setClearColor({
 			Vec4f(0.0, 0.0, 0.0, 0.0),
 			drawAttachments });
-
-		GL_ERROR_LOG();
 	}
 
 	for (auto &viewMesh : meshes_) {
@@ -241,6 +239,7 @@ void ImpostorBillboard::createResources() {
 			//joinStates(depth);
 		}
 	}
+	GL_ERROR_LOG();
 }
 
 void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, const Vec3f &up) {

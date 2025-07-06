@@ -50,8 +50,10 @@ namespace regen {
 			GLboolean isTangentRequired;
 			/** If true only bottom half sphere is used. */
 			GLboolean isHalfSphere;
-			/** VBO usage hint. */
-			BufferUsage usage;
+			/** Buffer usage hints. */
+			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
 		};
@@ -112,8 +114,10 @@ namespace regen {
 			Vec3f *position;
 			/** number of spheres. */
 			GLuint sphereCount;
-			/** VBO usage hint. */
-			BufferUsage usage;
+			/** Buffer usage hints. */
+			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
 		};

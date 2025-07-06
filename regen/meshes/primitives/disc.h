@@ -44,10 +44,12 @@ namespace regen {
 			GLboolean isNormalRequired;
 			/** generate tangent attribute ?. */
 			GLboolean isTangentRequired;
-			/** VBO usage hint. */
-			BufferUsage usage;
 			/** radius of the disc. */
 			GLfloat discRadius;
+			/** Buffer usage hints. */
+			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
 		};

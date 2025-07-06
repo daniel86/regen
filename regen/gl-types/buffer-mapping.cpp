@@ -263,13 +263,11 @@ void* BufferMapping::beginWriteBuffer(bool isPartialWrite) {
 	}
 	else {
 		GLbitfield mappingFlags = storageFlags_;
-		if (bufferType_ == MULTI_BUFFER) {
-			if (!isPartialWrite) {
+		if (!isPartialWrite) {
+			if (bufferType_ == MULTI_BUFFER) {
 				// if not using ring buffer, we can invalidate the whole buffer
 				mappingFlags |= MAP_INVALIDATE_BUFFER;
-			}
-		} else {
-			if (!isPartialWrite) {
+			} else {
 				// if using ring buffer, we can only invalidate the segment region
 				mappingFlags |= MAP_INVALIDATE_RANGE;
 			}

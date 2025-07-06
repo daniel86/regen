@@ -86,7 +86,7 @@ void BoidsGPU::createResource() {
 	u_numCells_->setUniformData(numCells_);
 
 	{ // UBO with grid parameters
-		gridUBO_ = ref_ptr<UBO>::alloc("BoidGrid");
+		gridUBO_ = ref_ptr<UBO>::alloc("BoidGrid", BUFFER_HINT_UPDATE_RARELY);
 		gridMin_ = ref_ptr<ShaderInput3f>::alloc("gridMin");
 		gridMin_->setUniformData(gridBounds_.min);
 		gridUBO_->addBlockInput(gridMin_);
@@ -110,7 +110,7 @@ void BoidsGPU::createResource() {
 
 	// SSBO for velocity, one per boid
 	velBuffer_ = ref_ptr<SSBO>::alloc("VelocityBlock",
-			BUFFER_USAGE_DYNAMIC_DRAW, SSBO::RESTRICT);
+			BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
 #ifdef BOID_USE_HALF_VELOCITY
 	auto vel = ref_ptr<ShaderInput2ui>::alloc("vel", numBoids_);
 #else
@@ -137,7 +137,7 @@ void BoidsGPU::createResource() {
 	}
 	{ // SSBO for grid offsets
 		gridOffsetBuffer_ = ref_ptr<SSBO>::alloc("GridOffsets",
-				BUFFER_USAGE_DYNAMIC_DRAW, SSBO::RESTRICT);
+				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
 		gridOffsetBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("globalHistogram", numCells_ + 1));
 		gridOffsetBuffer_->update();
 	}
@@ -150,7 +150,7 @@ void BoidsGPU::createResource() {
 	#ifdef BOID_USE_SORTED_DATA
 	{
 		boidDataBuffer_ = ref_ptr<SSBO>::alloc("BoidDataBuffer",
-				BUFFER_USAGE_DYNAMIC_DRAW, SSBO::RESTRICT);
+				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
 		boidDataBuffer_->addBlockInput(ref_ptr<ShaderInputStruct<BoidData>>::alloc("BoidData", "boidData", numBoids_));
 		boidDataBuffer_->update();
 	}
@@ -338,7 +338,6 @@ void BoidsGPU::glAnimate(RenderState *rs, GLdouble dt) {
 #endif
 	}
 	time_ = 0.0;
-	GL_ERROR_LOG();
 }
 
 void BoidsGPU::updateGrid() {

@@ -121,13 +121,11 @@ void RootNode::init() {
 }
 
 void RootNode::render(GLdouble dt) {
-	GL_ERROR_LOG();
 	traverse(RenderState::get());
 	GL_ERROR_LOG();
 }
 
 void RootNode::postRender(GLdouble dt) {
-	GL_ERROR_LOG();
 	//AnimationManager::get().nextFrame();
 	// some animations modify the vertex data,
 	// updating the vbo needs a context so we do it here in the main thread..

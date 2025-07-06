@@ -230,7 +230,7 @@
 
     <!-- water surface mesh used for depth rendering and post-processing effects -->
     <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
-    <mesh id="water-mesh" type="rectangle" lod="0" center="1" usage="STATIC_DRAW"
+    <mesh id="water-mesh" type="rectangle" lod="0" center="1" update-hint="STATIC"
           use-normal="0" use-texco="0" use-tangent="0"
           rotation="0.0,0.0,3.1415"
           scaling="{{far-plane}},1.0,{{far-plane}}">

@@ -6,9 +6,9 @@
 
 using namespace regen;
 
-BufferObject::BufferObject(BufferTarget target, BufferUsage usage) :
+BufferObject::BufferObject(BufferTarget target, BufferUpdateHint hint) :
 		Resource(),
-		usage_(usage),
+		updateHint_(hint),
 		target_(target),
 		glTarget_(glBufferTarget(target)),
 		allocatedSize_(0) {
@@ -27,27 +27,61 @@ BufferObject::~BufferObject() {
 
 BufferObject::BufferObject(const BufferObject &other) :
 		Resource(),
-		usage_(other.usage_),
+		updateHint_(other.updateHint_),
+		mapMode_(other.mapMode_),
 		target_(other.target_),
 		glTarget_(glBufferTarget(target_)),
 		allocations_(other.allocations_),
 		allocatedSize_(other.allocatedSize_) {
 }
 
+void BufferObject::setBufferAccessMode(BufferAccessMode mode) {
+	if (mode == BUFFER_GPU_ONLY) {
+		return; // no need to set anything
+	}
+	else if (mode == BUFFER_CPU_READ) {
+		if (accessMode_ == BUFFER_CPU_WRITE) {
+			accessMode_ = BUFFER_CPU_READ_WRITE;
+		}
+		else if (accessMode_ == BUFFER_CPU_READ_WRITE || accessMode_ == BUFFER_CPU_READ) {
+			// nothing to do, already set
+			return;
+		}
+		else {
+			accessMode_ = mode;
+		}
+	}
+	else if (mode == BUFFER_CPU_WRITE) {
+		if (accessMode_ == BUFFER_CPU_READ) {
+			accessMode_ = BUFFER_CPU_READ_WRITE;
+		}
+		else if (accessMode_ == BUFFER_CPU_READ_WRITE || accessMode_ == BUFFER_CPU_WRITE) {
+			// nothing to do, already set
+			return;
+		}
+		else {
+			accessMode_ = mode;
+		}
+	}
+	else {
+		accessMode_ = mode;
+	}
+}
+
 BufferPool **BufferObject::bufferPools() {
-	static std::array<BufferPool *, (int) BufferTarget::TARGET_LAST * (int) BUFFER_USAGE_LAST> bufferPools;
+	static std::array<BufferPool *, (int) BufferTarget::TARGET_LAST * (int) BUFFER_STORAGE_MODE_LAST> bufferPools;
 	return bufferPools.data();
 }
 
-BufferPool *BufferObject::bufferPool(BufferTarget target, BufferUsage usage) {
+BufferPool *BufferObject::bufferPool(BufferTarget target, BufferStorageMode mode) {
 	auto *x = bufferPools();
-	auto poolIndex = (int) target * BUFFER_USAGE_LAST + (int) usage;
+	auto poolIndex = (int) target * BUFFER_STORAGE_MODE_LAST + (int) mode;
 	return x[poolIndex];
 }
 
 void BufferObject::createMemoryPools() {
 	auto *pools = bufferPools();
-	for (int i = 0; i < (int) BufferTarget::TARGET_LAST * (int) BUFFER_USAGE_LAST; ++i) {
+	for (int i = 0; i < (int) BufferTarget::TARGET_LAST * (int) BUFFER_STORAGE_MODE_LAST; ++i) {
 		if (pools[i] == nullptr) {
 			pools[i] = new BufferPool();
 			pools[i]->set_index(i);
@@ -56,9 +90,9 @@ void BufferObject::createMemoryPools() {
 	// some buffer semantics need special attention as they require
 	// alignment to be set, i.e. when using shared buffers consecutive
 	// allocations need to be aligned to the size of the buffer.
-	for (int i = 0;  i < BUFFER_USAGE_LAST; ++i) {
+	for (int i = 0;  i < BUFFER_STORAGE_MODE_LAST; ++i) {
 		int poolIndex;
-		poolIndex = (int) TEXTURE_BUFFER * (int) BUFFER_USAGE_LAST + i;
+		poolIndex = (int) TEXTURE_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_TBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));
 #else
@@ -66,7 +100,7 @@ void BufferObject::createMemoryPools() {
 #endif
 		// Meaning: Max number of texels, not bytes!
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_TEXTURE_BUFFER_SIZE) * 16);
-		poolIndex = (int) UNIFORM_BUFFER * (int) BUFFER_USAGE_LAST + i;
+		poolIndex = (int) UNIFORM_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_UBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 #else
@@ -74,7 +108,7 @@ void BufferObject::createMemoryPools() {
 #endif
 		// common: ~64KB
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_UNIFORM_BLOCK_SIZE));
-		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BUFFER_USAGE_LAST + i;
+		poolIndex = (int) SHADER_STORAGE_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_SSBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
 #else
@@ -83,14 +117,14 @@ void BufferObject::createMemoryPools() {
 		// common: ~2GB
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
 		// common: ~4KB
-		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BUFFER_USAGE_LAST + i;
+		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE));
 	}
 }
 
 void BufferObject::destroyMemoryPools() {
 	auto *x = bufferPools();
-	for (int i = 0; i < BUFFER_USAGE_LAST * BUFFER_USAGE_LAST; ++i) {
+	for (int i = 0; i < (int) BufferTarget::TARGET_LAST * (int) BUFFER_STORAGE_MODE_LAST; ++i) {
 		delete x[i];
 		x[i] = nullptr;
 	}
@@ -112,7 +146,9 @@ ref_ptr<BufferReference> &BufferObject::createReference(GLuint numBytes) {
 		REGEN_WARN("Attempting to allocate buffer of 0 bytes.");
 		return nullReference();
 	}
-	BufferPool *memoryPool_ = bufferPool(target_, usage_);
+	BufferStorageMode storageMode = getBufferStorageMode(
+		accessMode_, mapMode_, updateHint_);
+	BufferPool *memoryPool_ = bufferPool(target_, storageMode);
 	// get an allocator
 	BufferPool::Node *allocator = memoryPool_->chooseAllocator(numBytes);
 	if (allocator == nullptr) {
@@ -120,7 +156,8 @@ ref_ptr<BufferReference> &BufferObject::createReference(GLuint numBytes) {
 	}
 	if (allocator == nullptr) {
 		REGEN_ERROR("BufferObject::createReference: no allocator found for " << numBytes/1024.0 << " KB for " <<
-			"buffer target " << target_ << " and usage " << usage_);
+			"buffer target " << target_ << ", access mode " << accessMode_ <<
+			" and map mode " << mapMode_ << ".");
 		return nullReference();
 	}
 
@@ -162,7 +199,8 @@ void BufferObject::bind(GLuint index) const {
 		ref->allocatedSize()));
 }
 
-void BufferObject::setBufferData(const ref_ptr<BufferReference> &ref, const GLuint *data) {
+void BufferObject::setBufferData(const void *data, const ref_ptr<BufferReference> &ref) {
+	// TODO: special handling here for persistent mapped buffers?
 	glNamedBufferSubData(
 			ref->bufferID(),
 			ref->address(),
@@ -170,29 +208,17 @@ void BufferObject::setBufferData(const ref_ptr<BufferReference> &ref, const GLui
 			data);
 }
 
-GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, GLenum accessFlags) {
-	return glMapNamedBufferRange(
+void BufferObject::setBufferData(const void *data) {
+	setBufferData(data, allocations_[0]);
+}
+
+void BufferObject::setBufferData(const BufferObject &other) {
+	glCopyNamedBufferSubData(
+			other.allocations_[0]->bufferID(),
 			allocations_[0]->bufferID(),
-			allocations_[0]->address() + relativeOffset,
-			mappedSize,
-			accessFlags);
-}
-
-GLvoid *BufferObject::map(GLenum accessFlags) {
-	return BufferObject::map(allocations_[0], accessFlags);
-}
-
-GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, GLenum accessFlags) {
-	return glMapNamedBufferRange(
-			ref->bufferID(),
-			ref->address(),
-			ref->allocatedSize(),
-			accessFlags);
-}
-
-void BufferObject::unmap() const {
-	glUnmapNamedBuffer(
-			allocations_[0]->bufferID());
+			other.allocations_[0]->address(),
+			allocations_[0]->address(),
+			other.allocations_[0]->allocatedSize());
 }
 
 void BufferObject::copy(
@@ -207,6 +233,40 @@ void BufferObject::copy(
 			offset,
 			toOffset,
 			size);
+}
+
+void BufferObject::setBufferSubData(const void *data, GLuint relativeOffset, GLuint dataSize) {
+	// TODO: special handling here for persistent mapped buffers?
+	glNamedBufferSubData(
+			allocations_[0]->bufferID(),
+			allocations_[0]->address() + relativeOffset,
+			dataSize,
+			data);
+}
+
+GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, uint32_t accessFlags) {
+	return glMapNamedBufferRange(
+			allocations_[0]->bufferID(),
+			allocations_[0]->address() + relativeOffset,
+			mappedSize,
+			accessFlags);
+}
+
+GLvoid *BufferObject::map(uint32_t accessFlags) {
+	return BufferObject::map(allocations_[0], accessFlags);
+}
+
+GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags) {
+	return glMapNamedBufferRange(
+			ref->bufferID(),
+			ref->address(),
+			ref->allocatedSize(),
+			accessFlags);
+}
+
+void BufferObject::unmap() const {
+	glUnmapNamedBuffer(
+			allocations_[0]->bufferID());
 }
 
 GLuint BufferObject::attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes) {

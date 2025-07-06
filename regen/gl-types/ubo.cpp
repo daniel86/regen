@@ -4,8 +4,8 @@
 
 using namespace regen;
 
-UBO::UBO(const std::string &name, BufferUsage usage) :
-		BufferBlock(UNIFORM_BUFFER, usage, UNIFORM, STD140),
+UBO::UBO(const std::string &name, BufferUpdateHint hint) :
+		BufferBlock(UNIFORM_BUFFER, hint, UNIFORM, STD140),
 		ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, false) {
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;

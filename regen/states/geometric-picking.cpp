@@ -37,7 +37,9 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 
 	// setup transform feedback buffer
 	bufferSize_ = sizeof(PickData) * maxPickedObjects_;
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_USAGE_STREAM_DRAW);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_UPDATE_STREAM);
+	feedbackBuffer_->setBufferMapMode(BUFFER_MAP_TEMPORARY);
+	feedbackBuffer_->setBufferAccessMode(BUFFER_CPU_READ);
 	vboRef_ = feedbackBuffer_->allocBytes(bufferSize_);
 	if (vboRef_.get() == nullptr) {
 		REGEN_WARN("Unable to allocate VBO for picking. Picking will not work.");

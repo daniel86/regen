@@ -178,21 +178,22 @@ namespace regen {
 		 * Create Mesh instances from Asset file.
 		 * Import all meshes defined in Asset file.
 		 * @param transform Transformation applied during import.
-		 * @param usage VBO usage hint for vertec data.
+		 * @param bufferCfg Buffer usage flags.
 		 * @return vector of successfully created meshes.
 		 */
 		std::vector<ref_ptr<Mesh> > loadAllMeshes(
-				const Mat4f &transform, BufferUsage usage);
+				const Mat4f &transform, BufferConfig bufferCfg);
 
 		/**
 		 * Create Mesh instances from Asset file.
 		 * @param transform Transformation applied during import.
-		 * @param usage VBO usage hint for vertec data.
+		 * @param bufferCfg Buffer usage flags.
 		 * @param meshIndices Mesh indices in Asset file.
 		 * @return vector of successfully created meshes.
 		 */
 		std::vector<ref_ptr<Mesh> > loadMeshes(
-				const Mat4f &transform, BufferUsage usage,
+				const Mat4f &transform,
+				BufferConfig bufferCfg,
 				const std::vector<GLuint> &meshIndices);
 
 		/**
@@ -256,7 +257,7 @@ namespace regen {
 		void loadMeshes(
 				const struct aiNode &node,
 				const Mat4f &transform,
-				BufferUsage usage,
+				BufferConfig bufferCfg,
 				const std::vector<GLuint> &meshIndices,
 				GLuint &currentIndex,
 				std::vector<ref_ptr<Mesh> > &out);
@@ -264,7 +265,7 @@ namespace regen {
 		ref_ptr<Mesh> loadMesh(
 				const struct aiMesh &mesh,
 				const Mat4f &transform,
-				BufferUsage usage);
+				BufferConfig bufferCfg);
 
 		void loadNodeAnimation(const AssimpAnimationConfig &animConfig);
 
