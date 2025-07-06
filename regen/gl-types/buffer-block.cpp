@@ -8,6 +8,7 @@ using namespace regen;
 
 //#define REGEN_BUFFER_BLOCK_DEBUG
 #define BUFFER_BLOCK_DISABLE_PERSISTENT
+//#define BUFFER_BLOCK_FLUSH_EXPLICIT
 
 BufferBlock::BufferBlock(
 		BufferTarget target,
@@ -20,35 +21,25 @@ BufferBlock::BufferBlock(
 	// initially assume it is a GPU-only buffer.
 	// the flag will be switched to something else based on the inputs added.
 	setBufferAccessMode(BUFFER_GPU_ONLY);
-	// set mapping mode based on the update hint
-	if (hint == BUFFER_HINT_STATIC) {
-		// data is static, so we do not need to map the buffer.
-		// if data is written initially from CPU, then it must be done without mapping.
-		setBufferMapMode(BUFFER_MAP_DISABLED);
-	} else if (hint == BUFFER_HINT_UPDATE_RARELY) {
-		// data is updated rarely, so we can use temporary mapping,
-		// i.e. map, write, and unmap the buffer.
-		setBufferMapMode(BUFFER_MAP_TEMPORARY);
-	} else if (hint == BUFFER_HINT_UPDATE_STREAM) {
-#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
-		setBufferMapMode(BUFFER_MAP_TEMPORARY);
-#else
-		// TODO: set BUFFER_MAP_PERSISTENT_FLUSH
-		setBufferMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
-		//setBufferMapMode(BUFFER_MAP_PERSISTENT_FLUSH);
-#endif
-	}
+	setBufferMapMode(BUFFER_MAP_DISABLED);
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
 		: BufferObject(other),
 		  storageQualifier_(other.storageQualifier_),
 		  memoryLayout_(other.memoryLayout_),
-		  blockInputs_(other.blockInputs_),
+		  bufferingMode_(other.bufferingMode_),
+		  bindingIndex_(other.bindingIndex_),
+		  hasClientData_(other.hasClientData_),
+		  isBlockValid_(other.isBlockValid_),
 		  inputs_(other.inputs_),
 		  ref_(other.ref_),
 		  requiredSize_(other.requiredSize_),
-		  stamp_(other.stamp_) {
+		  updatedSize_(other.updatedSize_),
+		  stamp_(other.stamp_),
+		  blockInputs_(other.blockInputs_),
+		  bufferMapping_(other.bufferMapping_),
+		  bufferDrawRange_(other.bufferDrawRange_) {
 }
 
 BufferBlock::BufferBlock(const BufferObject &other)
@@ -59,11 +50,18 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	if (block != nullptr) {
 		storageQualifier_ = block->storageQualifier_;
 		memoryLayout_ = block->memoryLayout_;
+		bufferingMode_ = block->bufferingMode_;
+		bindingIndex_ = block->bindingIndex_;
+		hasClientData_ = block->hasClientData_;
+		isBlockValid_ = block->isBlockValid_;
 		inputs_ = block->inputs_;
-		blockInputs_ = block->blockInputs_;
-		requiredSize_ = block->requiredSize_;
-		stamp_ = block->stamp_;
 		ref_ = block->ref_;
+		requiredSize_ = block->requiredSize_;
+		updatedSize_ = block->updatedSize_;
+		stamp_ = block->stamp_;
+		blockInputs_ = block->blockInputs_;
+		bufferMapping_ = block->bufferMapping_;
+		bufferDrawRange_ = block->bufferDrawRange_;
 	} else {
 		auto tbo = dynamic_cast<const TBO *>(&other);
 		if (tbo != nullptr) {
@@ -89,6 +87,8 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	uboInput->input = input;
 	blockInputs_.emplace_back(uboInput);
 	inputs_.emplace_back(input, name);
+
+	// update the storage flags based on added inputs
 	if (input->hasClientData()) {
 		// input has client data, so we need to set the access mode such that the CPU can write to it.
 		if (accessMode_ == BUFFER_GPU_ONLY) {
@@ -98,10 +98,33 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 			// if the access mode is CPU_READ, we need to switch it to CPU_READ_WRITE
 			setBufferAccessMode(BUFFER_CPU_READ_WRITE);
 		}
-		// at the moment we only support writing via mapping, so also need to set the map mode
-		// TODO: turn on persistent mapping if the input is updated frequently
+
 		if (bufferMapMode() == BUFFER_MAP_DISABLED) {
-			setBufferMapMode(BUFFER_MAP_TEMPORARY);
+			// when reading is used, we need to map the buffer.
+			bool isMapRequired = (accessMode_ == BUFFER_CPU_READ_WRITE ||
+								 accessMode_ == BUFFER_CPU_READ);
+			if (isMapRequired || updateHint_ != BUFFER_HINT_STATIC) {
+#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
+				setBufferMapMode(BUFFER_MAP_TEMPORARY);
+#else
+#ifdef BUFFER_BLOCK_FLUSH_EXPLICIT
+				auto const persistentMappingMode = BUFFER_MAP_PERSISTENT_FLUSH;
+#else
+				auto const persistentMappingMode = BUFFER_MAP_PERSISTENT_COHERENT;
+#endif
+				//auto const persistentMappingMode = BUFFER_MAP_PERSISTENT_FLUSH;
+				setBufferMapMode(updateHint_ == BUFFER_HINT_UPDATE_STREAM ?
+								 persistentMappingMode :
+								 BUFFER_MAP_TEMPORARY);
+#endif
+			}
+			else {
+				// TODO: disable map when buffer is marked as static.
+				//       maybe better then to use copy operation.
+				//       or better: transfer to GPU only memory after initial
+				//       copy.
+				setBufferMapMode(BUFFER_MAP_TEMPORARY);
+			}
 		}
 	}
 }
@@ -124,7 +147,6 @@ BufferBlock::BlockSegment &BufferBlock::getNextSegment() {
 		return nextSegments_[numNextSegments_++];
 	}
 }
-
 
 void BufferBlock::updateBlockInputs() {
 	bool lastChanged = false; // whether the last input changed or not
@@ -301,7 +323,17 @@ void BufferBlock::resize() {
 	if (ref_.get()) {
 		free(ref_.get());
 	}
-	ref_ = allocBytes(requiredSize_);
+	const bool useMapping = isMapModePersistent(mapMode_);
+	// TODO: the mapping object could also be used for non-persistent updates.
+	//const bool useMapping = (mapMode_ != BUFFER_MAP_DISABLED);
+
+	if (useMapping) {
+		// in case of double-buffering etc, we need to allocate space for each segment
+		// of a ring buffer.
+		ref_ = allocBytes(requiredSize_ * (int)bufferingMode_);
+	} else {
+		ref_ = allocBytes(requiredSize_);
+	}
 	if (!ref_.get()) {
 		REGEN_ERROR("failed to allocate buffer.");
 		isBlockValid_ = false;
@@ -310,6 +342,29 @@ void BufferBlock::resize() {
 		isBlockValid_ = true;
 	}
 	allocatedSize_ = requiredSize_;
+	// set draw buffer range to first segment in the ring buffer
+	bufferDrawRange_.buffer_ = ref_->bufferID();
+	bufferDrawRange_.offset_ = ref_->address();
+	bufferDrawRange_.size_ = requiredSize_;
+
+	if (useMapping) {
+		if (ref_->mappedData()) {
+			// initialize the buffer mapping using ring buffer mode
+			const BufferStorageMode storageMode = getBufferStorageMode(
+				accessMode_, mapMode_, updateHint_);
+			bufferMapping_ = ref_ptr<BufferMapping>::alloc(
+				ref_, glAccessFlags(storageMode), bufferingMode_);
+			// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
+			// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
+			//persistentMapping_->setAllowFrameDropping(true);
+		} else {
+			REGEN_WARN("something went wrong with persistent mapping initialization.");
+			isBlockValid_ = false;
+			bufferMapping_ = {};
+		}
+	} else {
+		bufferMapping_ = {};
+	}
 }
 
 void BufferBlock::update(bool forceUpdate) {
@@ -344,10 +399,11 @@ void BufferBlock::update(bool forceUpdate) {
 #endif
 	if (hasClientData_) {
 		if (isMapModePersistent(mapMode_)) {
-			updatePersistent(needsResize);
+			updatePersistentMapped();
+		} else if (mapMode_ == BUFFER_MAP_TEMPORARY) {
+			updateTemporaryMapped();
 		} else {
-			// TODO: also support non-mapped updates here
-			updateNonPersistent();
+			updateNonMapped();
 		}
 	}
 #ifdef REGEN_BUFFER_BLOCK_DEBUG
@@ -392,10 +448,12 @@ void BufferBlock::update(bool forceUpdate) {
 	lock_.unlock();
 }
 
-void BufferBlock::updateNonPersistent() {
-	if (persistentMapping_.get()) {
-		persistentMapping_ = {};
-	}
+void BufferBlock::updateNonMapped() {
+	// TODO: implement
+	REGEN_WARN("updateNonMapped not implemented!");
+}
+
+void BufferBlock::updateTemporaryMapped() {
 	// selectively enable partial updates
 	bool partialUpdate = false;
 	if (numNextSegments_ > 1) {
@@ -411,8 +469,10 @@ void BufferBlock::updateNonPersistent() {
 	auto mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
 
 	uint32_t mappingFlags = MAP_WRITE;
+	// TODO: Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
 	if (!partialUpdate) { mappingFlags |= MAP_INVALIDATE_RANGE; }
 
+	// TODO: rather use the mapping object here?
 	void *bufferData = map(firstSegment.offset,
 						   mapRangeSize,
 						   mappingFlags);
@@ -433,59 +493,39 @@ void BufferBlock::updateNonPersistent() {
 	}
 }
 
-void BufferBlock::updatePersistent(bool needsResize) {
-	// TODO: selectively enable partial updates
+void BufferBlock::updatePersistentMapped() {
+	// NOTE: Assuming we have a ring-buffer, it is difficult to update only a part of the buffer,
+	// as we do not really know the state of the rest of the buffer.
+	// So even if we do not update the whole buffer, we still need to write the whole
+	// client data into mapped memory.
 	static const bool partialUpdate = false;
-	static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_COHERENT;
-	// TODO: Enable FLUSH_EXPLICIT + disable COHERENT -> should be faster!
-	//       However, I keep getting nullptr from glMapBufferRange with FLUSH_EXPLICIT on AMD GPU.
-	//   - XXX: It could be that multiple copies of the buffer create a persistent mapping! but unlikely that's the problem
-	//   - Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
-	//static constexpr uint32_t mappingFlags = MAP_WRITE | MAP_PERSISTENT | MAP_FLUSH_EXPLICIT;
-	if (!persistentMapping_.get()) {
-		persistentMapping_ = ref_ptr<BufferMapping>::alloc(
-				mappingFlags,
-				TRIPLE_BUFFER,
-				BufferMapping::RING_BUFFER);
-		// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
-		// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
-		//persistentMapping_->setAllowFrameDropping(true);
-
-		if (!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
-			REGEN_WARN("something went wrong with persistent mapping initialization.");
-			isBlockValid_ = false;
-		}
-	} else if (needsResize) {
-		if (!persistentMapping_->initializeMapping(ref_->allocatedSize(), glTarget_)) {
-			REGEN_WARN("something went wrong with persistent mapping re-initialization.");
-			isBlockValid_ = false;
-		}
-	}
-	auto *mappedData = persistentMapping_->beginWriteBuffer(partialUpdate);
+	auto *mappedData = bufferMapping_->beginWriteBuffer(partialUpdate);
 	if (mappedData) {
 		copyBufferData(static_cast<char *>(mappedData), partialUpdate);
-		persistentMapping_->endWriteBuffer(ref_, glTarget_);
+		bufferMapping_->endWriteBuffer(bufferDrawRange_);
 		stamp_ += 1;
 	}
 }
 
 void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBlockValid_) return;
+	auto *rs = RenderState::get();
+
 	if (bindingIndex_ != loc && bindingIndex_ != -1) {
 		// seems the buffer switched to another index!
 		// this is something the buffer manager should try to avoid, but there are some situations
 		// where it might be difficult.
 		// In case of doing the switch, we need to unbind the old binding index.
-		auto &actual = RenderState::get()->bufferRange(glTarget_).value(bindingIndex_);
+		auto &actual = rs->bufferRange(glTarget_).value(bindingIndex_);
 		if (actual.buffer_ == ref_->bufferID() &&
 			actual.offset_ == ref_->address() &&
 			actual.size_ == ref_->allocatedSize()) {
-			RenderState::get()->bufferRange(glTarget_).apply(bindingIndex_, BufferRange::nullReference());
+			rs->bufferRange(glTarget_).apply(bindingIndex_, BufferRange::nullReference());
 			bindingIndex_ = -1;
 		}
 	}
 	update();
-	bind(loc);
+	rs->bufferRange(glTarget_).apply(loc, bufferDrawRange_);
 	bindingIndex_ = loc;
 }
 

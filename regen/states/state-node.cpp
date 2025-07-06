@@ -121,8 +121,9 @@ void RootNode::init() {
 }
 
 void RootNode::render(GLdouble dt) {
-	traverse(RenderState::get());
-	GL_ERROR_LOG();
+	auto rs = RenderState::get();
+	traverse(rs);
+	rs->runPostRenderCallbacks();
 }
 
 void RootNode::postRender(GLdouble dt) {
@@ -132,7 +133,6 @@ void RootNode::postRender(GLdouble dt) {
 	AnimationManager::get().updateGraphics(RenderState::get(), dt);
 	// invoke event handler of queued events
 	EventObject::emitQueued();
-	GL_ERROR_LOG();
 }
 
 //////////////

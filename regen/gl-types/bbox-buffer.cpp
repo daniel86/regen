@@ -8,14 +8,12 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 	SSBO(name, BUFFER_HINT_UPDATE_STREAM),
 	bbox_(Vec3f::zero(), Vec3f::zero())
 {
-	setBufferMapMode(BUFFER_MAP_TEMPORARY);
+	setBufferMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
 	setBufferAccessMode(BUFFER_CPU_READ);
-	addBlockInput(createUniform<ShaderInput4i,Vec4i>("bboxMin", Vec4i(0)));
-	addBlockInput(createUniform<ShaderInput4i,Vec4i>("bboxMax", Vec4i(0)));
+	setBufferingMode(DOUBLE_BUFFER);
+	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMin"));
+	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMax"));
 	update();
-	bboxMapping_ = ref_ptr<BufferStructMapping<BoundingBoxBlock>>::alloc(
-			MAP_READ | MAP_PERSISTENT | MAP_COHERENT,
-			DOUBLE_BUFFER);
 }
 
 namespace regen {
@@ -29,11 +27,16 @@ namespace regen {
 	}
 }
 
+struct BoundingBoxBlock {
+	Vec4i min;
+	Vec4i max;
+};
+
 bool BBoxBuffer::updateBoundingBox() {
 	bool hasChanged = false;
-	bboxMapping_->readBuffer(blockReference(), GL_SHADER_STORAGE_BUFFER);
-	if (bboxMapping_->hasReadData()) {
-		auto &bbox = bboxMapping_->storageValue();
+	bufferMapping_->readBuffer(bufferDrawRange_);
+	if (bufferMapping_->hasReadData()) {
+		auto &bbox = *((BoundingBoxBlock*)bufferMapping_->clientData());
         bboxMin_.x = biasedToFloat(bbox.min.x);
         bboxMin_.y = biasedToFloat(bbox.min.y);
         bboxMin_.z = biasedToFloat(bbox.min.z);
@@ -54,6 +57,8 @@ bool BBoxBuffer::updateBoundingBox() {
 
 void BBoxBuffer::clear() {
 	// clear the bounding box buffer to zero
+	// FIXME: cannot write to the buffer directly, as it is mapped persistently with read only access.
+	//        instead use a shader.
 	static const BoundingBoxBlock zeroBlock = {
 		Vec4i(biasedBits(FLT_MAX)),
 		Vec4i(biasedBits(-FLT_MAX))

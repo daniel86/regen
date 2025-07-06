@@ -46,12 +46,6 @@ namespace regen {
 	protected:
 		Bounds<Vec3f> bbox_;
 		Vec3f bboxMin_, bboxMax_;
-
-		struct BoundingBoxBlock {
-			Vec4i min;
-			Vec4i max;
-		};
-		ref_ptr<BufferStructMapping<BoundingBoxBlock>> bboxMapping_;
 	};
 } // namespace
 

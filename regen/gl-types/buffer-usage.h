@@ -117,7 +117,16 @@ namespace regen {
 	 * @param storageMode the buffer storage mode.
 	 * @return OpenGL buffer usage flags.
 	 */
-	uint32_t glBufferUsage(BufferStorageMode storageMode);
+	uint32_t glStorageFlags(BufferStorageMode storageMode);
+
+	/**
+	 * \brief Get the OpenGL access flags for a given buffer storage mode.
+	 *
+	 * @param storageMode the buffer storage mode.
+	 * @return OpenGL access flags.
+	 */
+	uint32_t glAccessFlags(BufferStorageMode storageMode);
+
 
 	/**
 	 * \brief Get the buffer storage mode based on access mode, map mode, and update hint.

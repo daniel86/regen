@@ -1,6 +1,5 @@
 #include "geometric-picking.h"
 #include "atomic-states.h"
-#include "depth-state.h"
 #include "feedback-state.h"
 #include "regen/scene/node-processor.h"
 
@@ -40,16 +39,19 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_UPDATE_STREAM);
 	feedbackBuffer_->setBufferMapMode(BUFFER_MAP_TEMPORARY);
 	feedbackBuffer_->setBufferAccessMode(BUFFER_CPU_READ);
-	vboRef_ = feedbackBuffer_->allocBytes(bufferSize_);
+	vboRef_ = feedbackBuffer_->allocBytes(bufferSize_ * 2); // double-buffered
 	if (vboRef_.get() == nullptr) {
 		REGEN_WARN("Unable to allocate VBO for picking. Picking will not work.");
 		return;
 	}
 	bufferRange_ = ref_ptr<BufferRange>::alloc();
 	bufferRange_->buffer_ = vboRef_->bufferID();
+	feedbackRange_.buffer_ = vboRef_->bufferID();
+	feedbackRange_.size_ = bufferSize_;
 
 	// Create a double-buffered PBO for reading the feedback buffer
 	pickMapping_ = ref_ptr<BufferStructMapping<PickData>>::alloc(
+			vboRef_,
 			MAP_READ | MAP_PERSISTENT | MAP_COHERENT,
 			DOUBLE_BUFFER);
 
@@ -95,7 +97,7 @@ void GeomPicking::traverse(RenderState *rs) {
 		// update buffer range of pickable
 		bufferRange_->offset_ = feedbackCount * sizeof(PickData);
 		bufferRange_->size_ = bufferSize_ - bufferRange_->offset_;
-		bufferRange_->offset_ += vboRef_->address();
+		bufferRange_->offset_ += feedbackRange_.offset_;
 		pickableMesh->setFeedbackRange(bufferRange_);
 		glBeginQuery(GL_PRIMITIVES_GENERATED, feedbackQuery);
 		// render pickable
@@ -110,7 +112,7 @@ void GeomPicking::traverse(RenderState *rs) {
 	glDeleteQueries(1, &feedbackQuery);
 
 	if (feedbackCount > 0) {
-		pickMapping_->readBuffer(vboRef_, GL_TRANSFORM_FEEDBACK_BUFFER);
+		pickMapping_->readBuffer(feedbackRange_);
 		if (pickMapping_->hasReadData()) {
 			auto &pickData = pickMapping_->storageValue();
 			pickedObject_.depth = pickData.depth;

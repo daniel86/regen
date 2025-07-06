@@ -5,6 +5,7 @@
 #include <regen/scene/resource.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/gl-types/buffer-pool.h>
+#include "shader-data.h"
 
 namespace regen {
 	/**
@@ -49,10 +50,16 @@ namespace regen {
 		 */
 		Resource *bufferObject() const { return bufferObject_; }
 
+		/**
+		 * @return mapped data pointer, if any.
+		 */
+		byte* mappedData() const { return mappedData_; }
+
 	private:
 		Resource *bufferObject_ = nullptr;
 		BufferPool::Reference poolReference_ = {};
 		unsigned int allocatedSize_ = 0;
+		byte *mappedData_ = nullptr; // pointer to mapped data, if any
 
 		friend class BufferObject;
 	};

@@ -686,6 +686,30 @@ namespace regen {
 		 */
 		inline ValueStackAtomic<GLenum> &logicOp() { return logicOp_; }
 
+		/**
+		 * A callback function that is called after rendering has finished.
+		 */
+		using RenderCallback = std::function<void(void*)>;
+
+		/**
+		 * Push a callback function to be called after rendering has finished.
+		 * @param callback the callback function to call.
+		 * @param data optional data to pass to the callback function.
+		 */
+		void pushPostRenderCallback(const RenderCallback &callback, void *data = nullptr) {
+			postRenderCallbacks_.emplace_back(callback, data);
+		}
+
+		/**
+		 * Run all post-render callbacks and clear the list.
+		 */
+		void runPostRenderCallbacks() {
+			for (const auto &cb : postRenderCallbacks_) {
+				cb.first(cb.second);
+			}
+			postRenderCallbacks_.clear();
+		}
+
 	protected:
 		static RenderState *instance_;
 
@@ -764,6 +788,8 @@ namespace regen {
 		ValueStackAtomic<GLfloat> minSampleShading_;
 		ValueStackAtomic<GLenum> logicOp_;
 		ValueStackAtomic<GLenum> frontFace_;
+
+		std::vector<std::pair<RenderCallback, void*>> postRenderCallbacks_;
 
 		RenderState();
 	};

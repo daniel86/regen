@@ -14,6 +14,17 @@ BufferObject::BufferObject(BufferTarget target, BufferUpdateHint hint) :
 		allocatedSize_(0) {
 }
 
+BufferObject::BufferObject(const BufferObject &other) :
+		Resource(),
+		updateHint_(other.updateHint_),
+		mapMode_(other.mapMode_),
+		accessMode_(other.accessMode_),
+		target_(other.target_),
+		glTarget_(glBufferTarget(target_)),
+		allocations_(other.allocations_),
+		allocatedSize_(other.allocatedSize_) {
+}
+
 BufferObject::~BufferObject() {
 	while (!allocations_.empty()) {
 		ref_ptr<BufferReference> ref = *allocations_.begin();
@@ -23,16 +34,6 @@ BufferObject::~BufferObject() {
 			allocations_.erase(allocations_.begin());
 		}
 	}
-}
-
-BufferObject::BufferObject(const BufferObject &other) :
-		Resource(),
-		updateHint_(other.updateHint_),
-		mapMode_(other.mapMode_),
-		target_(other.target_),
-		glTarget_(glBufferTarget(target_)),
-		allocations_(other.allocations_),
-		allocatedSize_(other.allocatedSize_) {
 }
 
 void BufferObject::setBufferAccessMode(BufferAccessMode mode) {
@@ -163,7 +164,13 @@ ref_ptr<BufferReference> &BufferObject::createReference(GLuint numBytes) {
 
 	ref_ptr<BufferReference> ref = ref_ptr<BufferReference>::alloc();
 	ref->poolReference_ = memoryPool_->alloc(allocator, numBytes);
-	if (ref->poolReference_.allocatorNode == nullptr) { return nullReference(); }
+	if (ref->poolReference_.allocatorNode == nullptr) {
+		return nullReference();
+	}
+	if (allocator->mapped) {
+		// store persistent mapped data pointer with the reference
+		ref->mappedData_ = (((byte*)allocator->mapped) + ref->address());
+	}
 
 	allocations_.push_back(ref);
 	ref->allocatedSize_ = numBytes;
@@ -200,12 +207,15 @@ void BufferObject::bind(GLuint index) const {
 }
 
 void BufferObject::setBufferData(const void *data, const ref_ptr<BufferReference> &ref) {
-	// TODO: special handling here for persistent mapped buffers?
-	glNamedBufferSubData(
-			ref->bufferID(),
-			ref->address(),
-			ref->allocatedSize(),
-			data);
+	if(ref->mappedData()) {
+		memcpy(ref->mappedData(), data, ref->allocatedSize());
+	} else {
+		glNamedBufferSubData(
+				ref->bufferID(),
+				ref->address(),
+				ref->allocatedSize(),
+				data);
+	}
 }
 
 void BufferObject::setBufferData(const void *data) {
@@ -236,20 +246,29 @@ void BufferObject::copy(
 }
 
 void BufferObject::setBufferSubData(const void *data, GLuint relativeOffset, GLuint dataSize) {
-	// TODO: special handling here for persistent mapped buffers?
-	glNamedBufferSubData(
-			allocations_[0]->bufferID(),
-			allocations_[0]->address() + relativeOffset,
-			dataSize,
-			data);
+	auto &ref = allocations_[0];
+	if (ref->mappedData()) {
+		memcpy(ref->mappedData() + relativeOffset, data, dataSize);
+	} else {
+		glNamedBufferSubData(
+				ref->bufferID(),
+				ref->address() + relativeOffset,
+				dataSize,
+				data);
+	}
 }
 
 GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, uint32_t accessFlags) {
-	return glMapNamedBufferRange(
-			allocations_[0]->bufferID(),
-			allocations_[0]->address() + relativeOffset,
-			mappedSize,
-			accessFlags);
+	auto &ref = allocations_[0];
+	if (ref->mappedData()) {
+		return ref->mappedData() + relativeOffset;
+	} else {
+		return glMapNamedBufferRange(
+				allocations_[0]->bufferID(),
+				allocations_[0]->address() + relativeOffset,
+				mappedSize,
+				accessFlags);
+	}
 }
 
 GLvoid *BufferObject::map(uint32_t accessFlags) {
@@ -257,16 +276,22 @@ GLvoid *BufferObject::map(uint32_t accessFlags) {
 }
 
 GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags) {
-	return glMapNamedBufferRange(
-			ref->bufferID(),
-			ref->address(),
-			ref->allocatedSize(),
-			accessFlags);
+	if (ref->mappedData()) {
+		return ref->mappedData();
+	} else {
+		return glMapNamedBufferRange(
+				ref->bufferID(),
+				ref->address(),
+				ref->allocatedSize(),
+				accessFlags);
+	}
 }
 
 void BufferObject::unmap() const {
-	glUnmapNamedBuffer(
-			allocations_[0]->bufferID());
+	auto &ref = allocations_[0];
+	if (!ref->mappedData()) {
+		glUnmapNamedBuffer(allocations_[0]->bufferID());
+	}
 }
 
 GLuint BufferObject::attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes) {

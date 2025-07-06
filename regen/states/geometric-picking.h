@@ -54,6 +54,7 @@ namespace regen {
 		ref_ptr<BufferRange> bufferRange_;
 		ref_ptr<BufferReference> vboRef_;
 		ref_ptr<BufferStructMapping<PickData>> pickMapping_;
+		BufferRange feedbackRange_;
 		GLuint bufferSize_;
 
 		void updateMouse();

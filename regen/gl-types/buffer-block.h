@@ -95,6 +95,20 @@ namespace regen {
 		MemoryLayout memoryLayout() const { return memoryLayout_; }
 
 		/**
+		 * Set the buffering mode for the block.
+		 * Buffering is used to improve CPU-GPU synchronization.
+		 * @param mode the buffering mode to set.
+		 */
+		void setBufferingMode(BufferingMode mode) { bufferingMode_ = mode; }
+
+		/**
+		 * Get the buffering mode for the block.
+		 * Buffering is used to improve CPU-GPU synchronization.
+		 * @return the buffering mode.
+		 */
+		BufferingMode bufferingMode() const { return bufferingMode_; }
+
+		/**
 		 * @return true if the block has a binding index.
 		 */
 		bool has_bindingIndex() const { return bindingIndex_ >= 0; }
@@ -154,8 +168,18 @@ namespace regen {
 	protected:
 		StorageQualifier storageQualifier_;
 		MemoryLayout memoryLayout_;
+		BufferingMode bufferingMode_ = TRIPLE_BUFFER;
 		int bindingIndex_ = -1;
 		SpinLock lock_;
+
+		bool hasClientData_ = false;
+		bool isBlockValid_ = true;
+
+		std::vector<NamedShaderInput> inputs_;
+		ref_ptr<BufferReference> ref_;
+		uint32_t requiredSize_ = 0;
+		uint32_t updatedSize_ = 0;
+		uint32_t stamp_ = 0;
 
 		struct BlockInput {
 			BlockInput() = default;
@@ -181,6 +205,8 @@ namespace regen {
 			uint32_t inputSize = 0;
 			byte *alignedData = nullptr;
 		};
+		std::vector<ref_ptr<BlockInput>> blockInputs_;
+
 		struct BlockSegment {
 			uint32_t offset = 0; // offset in the buffer
 			uint32_t size = 0; // size of the segment in bytes
@@ -199,19 +225,11 @@ namespace regen {
 				endIdx = inputIdx;
 			}
 		};
-
-		ref_ptr<BufferMapping> persistentMapping_;
-
-		std::vector<ref_ptr<BlockInput>> blockInputs_;
 		std::vector<BlockSegment> nextSegments_;
 		uint32_t numNextSegments_ = 0;
-		std::vector<NamedShaderInput> inputs_;
-		ref_ptr<BufferReference> ref_;
-		uint32_t requiredSize_ = 0;
-		uint32_t updatedSize_ = 0;
-		uint32_t stamp_ = 0;
-		bool hasClientData_ = false;
-		bool isBlockValid_ = true;
+
+		ref_ptr<BufferMapping> bufferMapping_;
+		BufferRange bufferDrawRange_;
 
 		inline void resetSegments();
 
@@ -227,9 +245,11 @@ namespace regen {
 
 		void updateStridedData(BlockInput &uboInput);
 
-		void updateNonPersistent();
+		void updateNonMapped();
 
-		void updatePersistent(bool needsResize);
+		void updateTemporaryMapped();
+
+		void updatePersistentMapped();
 
 		void resize();
 	};
