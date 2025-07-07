@@ -36,8 +36,6 @@ namespace regen {
 			if(isInitialized_) return;
 			isInitialized_ = true;
 
-			// create a framebuffer object for the texture
-			auto fbo = ref_ptr<FBO>::alloc(width_, height_);
 			auto colorBuffer = ref_ptr<Texture2D>::alloc();
 			colorBuffer->set_rectangleSize(width_, height_);
 			colorBuffer->set_pixelType(GL_UNSIGNED_BYTE);
@@ -46,8 +44,16 @@ namespace regen {
 			colorBuffer->allocTexture();
 			colorBuffer->set_filter(GL_LINEAR);
 			colorBuffer->set_wrapping(GL_REPEAT);
-			fbo->addTexture(colorBuffer);
+
+			// create a framebuffer object for the texture
+			auto fbo = ref_ptr<FBO>::alloc(width_, height_);
+			auto attachment = fbo->addTexture(colorBuffer);
 			fboState_ = ref_ptr<FBOState>::alloc(fbo);
+			ClearColorState::Data clearData;
+			clearData.clearColor = Vec4f(1.0f, 1.0f, 1.0f, 1.0f);
+			clearData.colorBuffers = { attachment };
+			fboState_->addDrawBuffer(attachment);
+			fboState_->setClearColor(clearData);
 			updateState_->joinStates(fboState_);
 
 			auto texture = ref_ptr<Texture>::dynamicCast(widget_->input());

@@ -420,6 +420,22 @@ void FBO::clearColor(const Vec4f &color, uint32_t attachmentIdx) {
 			&color.x);
 }
 
+void FBO::clearDepth(GLfloat depth) {
+	glClearNamedFramebufferfv(
+			id(),
+			GL_DEPTH,
+			0,
+			&depth);
+}
+
+void FBO::clearStencil(GLint stencil) {
+	glClearNamedFramebufferiv(
+			id(),
+			GL_STENCIL,
+			0,
+			&stencil);
+}
+
 void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	RenderState *rs = RenderState::get();
 	if (w == width() && h == height() && depth == depth_) {

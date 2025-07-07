@@ -1,10 +1,3 @@
-/*
- * fbo-node.cpp
- *
- *  Created on: 03.08.2012
- *      Author: daniel
- */
-
 #include <regen/utility/string-util.h>
 #include <regen/states/atomic-states.h>
 
@@ -28,7 +21,7 @@ FBOState::FBOState(const ref_ptr<FBO> &fbo)
 
 void FBOState::createClearState() {
 	if (!clearCallable_.get()) {
-		clearCallable_ = ref_ptr<ClearState>::alloc();
+		clearCallable_ = ref_ptr<ClearState>::alloc(fbo_);
 		joinStates(clearCallable_);
 		// make sure clearing is done before draw buffer configuration
 		if (drawBufferCallable_.get() != nullptr) {

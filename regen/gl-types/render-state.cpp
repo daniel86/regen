@@ -47,8 +47,6 @@ static inline void Regen_BlendFunc(const BlendFunction &v) { glBlendFuncSeparate
 
 static inline void Regen_BlendFunci(GLuint i, const BlendFunction &v) { glBlendFuncSeparatei(i, v.x, v.y, v.z, v.w); }
 
-static inline void Regen_ClearColor(const ClearColor &v) { glClearColor(v.x, v.y, v.z, v.w); }
-
 static inline void Regen_ColorMask(const ColorMask &v) { glColorMask(v.x, v.y, v.z, v.w); }
 
 static inline void Regen_ColorMaski(GLuint i, const ColorMask &v) { glColorMaski(i, v.x, v.y, v.z, v.w); }
@@ -135,8 +133,6 @@ template<typename T> void Regen_DepthMask(T v)
 { glDepthMask(v); }
 template<typename T> void Regen_DepthFunc(T v)
 { glDepthFunc(v); }
-template<typename T> void Regen_ClearDepth(T v)
-{ glClearDepth(v); }
 template<typename T> void Regen_StencilMask(T v)
 { glStencilMask(v); }
 template<typename T> void Regen_PolygonMode(GLenum key,T v)
@@ -166,7 +162,6 @@ template<typename T> void Regen_VAO(T v)
 #define Regen_CullFace glCullFace
 #define Regen_DepthMask glDepthMask
 #define Regen_DepthFunc glDepthFunc
-#define Regen_ClearDepth glClearDepth
 #define Regen_StencilMask glStencilMask
 #define Regen_PolygonMode glPolygonMode
 #define Regen_PointSize glPointSize
@@ -223,7 +218,6 @@ RenderState::RenderState()
 		  cullFace_(Regen_CullFace),
 		  depthMask_(Regen_DepthMask),
 		  depthFunc_(Regen_DepthFunc),
-		  depthClear_(Regen_ClearDepth),
 		  depthRange_(maxViewports_, Regen_DepthRange, Regen_DepthRangei),
 		  blendColor_(Regen_BlendColor),
 		  blendEquation_(maxDrawBuffers_, Regen_BlendEquation, Regen_BlendEquationi),
@@ -239,7 +233,6 @@ RenderState::RenderState()
 		  patchVertices_(GL_PATCH_VERTICES, Regen_PatchParameteri),
 		  patchLevel_(Regen_PatchLevel),
 		  colorMask_(maxDrawBuffers_, Regen_ColorMask, Regen_ColorMaski),
-		  clearColor_(Regen_ClearColor),
 		  lineWidth_(Regen_LineWidth),
 		  minSampleShading_(Regen_MinSampleShading),
 		  logicOp_(Regen_LogicOp),
@@ -276,7 +269,6 @@ RenderState::RenderState()
 	cullFace_.push(GL_BACK);
 	depthMask_.push(GL_TRUE);
 	depthFunc_.push(GL_LEQUAL);
-	depthClear_.push(1.0);
 	depthRange_.push(DepthRange(0.0, 1.0));
 	blendEquation_.push(BlendEquation(GL_FUNC_ADD));
 	blendFunc_.push(BlendFunction(GL_ONE, GL_ONE, GL_ZERO, GL_ZERO));
@@ -285,7 +277,6 @@ RenderState::RenderState()
 	pointSize_.push(1.0);
 	lineWidth_.push(1.0);
 	colorMask_.push(ColorMask(GL_TRUE));
-	clearColor_.push(ClearColor(0.0f));
 	logicOp_.push(GL_COPY);
 	frontFace_.push(GL_CCW);
 	pointFadeThreshold_.push(1.0);

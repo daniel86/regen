@@ -399,22 +399,31 @@ namespace regen {
 	 */
 	class ClearState : public ServerSideState {
 	public:
-		ClearState() = default;
+		ClearState(const ref_ptr<FBO> &fbo)
+				: ServerSideState(), fbo_(fbo) {}
 
-		void addClearBit(GLbitfield clearBit) { clearBits_ |= clearBit; }
+		void addClearBit(GLbitfield clearBit) {
+			clearBits_ |= clearBit;
+		}
 
-		void enable(RenderState *state) override { glClear(clearBits_); }
+		void enable(RenderState *state) override {
+			if (clearBits_ & GL_COLOR_BUFFER_BIT) {
+				static const Vec4f defaultClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+				fbo_->clearColor(defaultClearColor);
+			}
+			if (clearBits_ & GL_DEPTH_BUFFER_BIT) {
+				static const float defaultClearDepth = 1.0f;
+				fbo_->clearDepth(defaultClearDepth);
+			}
+			if (clearBits_ & GL_STENCIL_BUFFER_BIT) {
+				static const GLint defaultClearStencil = 0;
+				fbo_->clearStencil(defaultClearStencil);
+			}
+		}
 
 	protected:
+		ref_ptr<FBO> fbo_;
 		GLbitfield clearBits_ = 0;
-	};
-
-	/**
-	 * \brief Clear depth buffer to preset values.
-	 */
-	class ClearDepthState : public ServerSideState {
-	public:
-		void enable(RenderState *state) override { glClear(GL_DEPTH_BUFFER_BIT); }
 	};
 
 	/**
@@ -442,10 +451,9 @@ namespace regen {
 		void enable(RenderState *rs) override {
 			for (auto & it : data) {
 				if (!rs->drawFrameBuffer().isLocked()) {
-					fbo_->applyDrawBuffers(it.colorBuffers);
-					rs->clearColor().push(it.clearColor);
-					glClear(GL_COLOR_BUFFER_BIT);
-					rs->clearColor().pop();
+					for (auto &buffer : it.colorBuffers.buffers_) {
+						fbo_->clearColor(it.clearColor, buffer - GL_COLOR_ATTACHMENT0);
+					}
 				}
 			}
 		}

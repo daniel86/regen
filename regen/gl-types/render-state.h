@@ -528,11 +528,6 @@ namespace regen {
 		inline ValueStackAtomic<GLenum> &depthFunc() { return depthFunc_; }
 
 		/**
-		 * The clear depth value.
-		 */
-		inline ValueStackAtomic<GLclampd> &depthClear() { return depthClear_; }
-
-		/**
 		 * Specify mapping of depth values from normalized device coordinates
 		 * to window coordinates.
 		 * 'nearVal' specifies the mapping of the near clipping plane to window coordinates.
@@ -663,11 +658,6 @@ namespace regen {
 		inline IndexedValueStack<ColorMask> &colorMask() { return colorMask_; }
 
 		/**
-		 * @return specify clear values for the color buffers.
-		 */
-		inline ValueStack<ClearColor> &clearColor() { return clearColor_; }
-
-		/**
 		 * Specify the width of rasterized lines.
 		 * The initial value is 1.
 		 */
@@ -760,7 +750,6 @@ namespace regen {
 
 		ValueStackAtomic<GLboolean> depthMask_;
 		ValueStackAtomic<GLenum> depthFunc_;
-		ValueStackAtomic<GLclampd> depthClear_;
 		IndexedValueStack<DepthRange> depthRange_;
 
 		ValueStack<Vec4f> blendColor_;
@@ -782,7 +771,6 @@ namespace regen {
 		ValueStack<PatchLevels> patchLevel_;
 
 		IndexedValueStack<ColorMask> colorMask_;
-		ValueStack<ClearColor> clearColor_;
 
 		ValueStackAtomic<GLfloat> lineWidth_;
 		ValueStackAtomic<GLfloat> minSampleShading_;

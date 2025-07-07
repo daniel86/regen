@@ -350,6 +350,16 @@ namespace regen {
 		void clearColor(const Vec4f &color, uint32_t attachmentIdx);
 
 		/**
+		 * Clear the FBO depth attachment.
+		 */
+		void clearDepth(float depth = 1.0f);
+
+		/**
+		 * Clear the FBO stencil attachment.
+		 */
+		void clearStencil(int stencil = 0);
+
+		/**
 		 * Check the status of this FBO, and print warning
 		 * if the status is not "complete".
 		 */
