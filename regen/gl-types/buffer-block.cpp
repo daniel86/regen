@@ -18,6 +18,7 @@ BufferBlock::BufferBlock(
 		: BufferObject(target, hint),
 		  storageQualifier_(storageQualifier),
 		  memoryLayout_(memoryLayout) {
+	bufferDrawRange_ = ref_ptr<BufferRange>::alloc();
 	// initially assume it is a GPU-only buffer.
 	// the flag will be switched to something else based on the inputs added.
 	setBufferAccessMode(BUFFER_GPU_ONLY);
@@ -117,13 +118,6 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 								 persistentMappingMode :
 								 BUFFER_MAP_TEMPORARY);
 #endif
-			}
-			else {
-				// TODO: disable map when buffer is marked as static.
-				//       maybe better then to use copy operation.
-				//       or better: transfer to GPU only memory after initial
-				//       copy.
-				setBufferMapMode(BUFFER_MAP_TEMPORARY);
 			}
 		}
 	}
@@ -343,9 +337,9 @@ void BufferBlock::resize() {
 	}
 	allocatedSize_ = requiredSize_;
 	// set draw buffer range to first segment in the ring buffer
-	bufferDrawRange_.buffer_ = ref_->bufferID();
-	bufferDrawRange_.offset_ = ref_->address();
-	bufferDrawRange_.size_ = requiredSize_;
+	bufferDrawRange_->buffer_ = ref_->bufferID();
+	bufferDrawRange_->offset_ = ref_->address();
+	bufferDrawRange_->size_ = requiredSize_;
 
 	if (useMapping) {
 		if (ref_->mappedData()) {
@@ -449,8 +443,30 @@ void BufferBlock::update(bool forceUpdate) {
 }
 
 void BufferBlock::updateNonMapped() {
-	// TODO: implement
-	REGEN_WARN("updateNonMapped not implemented!");
+	// iterate over the changed segments and copy only those
+	for (uint32_t segmentIdx = 0; segmentIdx < numNextSegments_; ++segmentIdx) {
+		auto &segment = nextSegments_[segmentIdx];
+
+		for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
+			auto &uboInput = *blockInputs_[inputIdx].get();
+			if (uboInput.alignedData) {
+				glNamedBufferSubData(
+					ref_->bufferID(),
+					ref_->address() + uboInput.offset,
+					uboInput.alignedSize,
+					uboInput.alignedData);
+			} else {
+				auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
+				glNamedBufferSubData(
+					ref_->bufferID(),
+					ref_->address() + uboInput.offset,
+					uboInput.inputSize,
+					mapped.r);
+			}
+			uboInput.lastStamp = uboInput.input->stamp();
+		}
+	}
+	stamp_ += 1;
 }
 
 void BufferBlock::updateTemporaryMapped() {
@@ -502,7 +518,7 @@ void BufferBlock::updatePersistentMapped() {
 	auto *mappedData = bufferMapping_->beginWriteBuffer(partialUpdate);
 	if (mappedData) {
 		copyBufferData(static_cast<char *>(mappedData), partialUpdate);
-		bufferMapping_->endWriteBuffer(bufferDrawRange_);
+		bufferMapping_->endWriteBuffer(*bufferDrawRange_.get());
 		stamp_ += 1;
 	}
 }
@@ -525,7 +541,7 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 		}
 	}
 	update();
-	rs->bufferRange(glTarget_).apply(loc, bufferDrawRange_);
+	rs->bufferRange(glTarget_).apply(loc, *bufferDrawRange_.get());
 	bindingIndex_ = loc;
 }
 

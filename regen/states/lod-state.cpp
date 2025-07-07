@@ -464,6 +464,7 @@ void LODState::createComputeShader() {
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
 				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
 		indirectDrawBuffers_[partIdx]->addBlockInput(idb);
+		indirectDrawBuffers_[partIdx]->setBufferMapMode(BUFFER_MAP_DISABLED);
 		indirectDrawBuffers_[partIdx]->update();
 		// TODO use a single buffer with offsets
 		uint32_t partDrawIdx = 0;
@@ -570,10 +571,12 @@ void LODState::createComputeShader() {
 
 void LODState::traverseGPU(RenderState *rs) {
 	// copy the clear buffer to the indirect draw buffer
+	// TODO: better use a shader to clear the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
 
 	if (cameraStamp_ != camera_->stamp()) {
 		// Update the frustum planes in the UBO
+		// TODO: seems to change every frame, even if the camera did not move?
 		cameraStamp_ = camera_->stamp();
 		auto &frustum = camera_->frustum();
 		for (size_t i = 0; i < frustum.size(); ++i) {
@@ -582,6 +585,7 @@ void LODState::traverseGPU(RenderState *rs) {
 				frustumPlanes_[i*6 + j] = frustumPlanes[j].equation();
 			}
 		}
+		// TODO: use persistent mapping, modify shader input here?
 		frustumUBO_->setBufferData(&frustumPlanes_[0].x);
 	}
 	if (tfStamp_ != cullShape_->tf()->stamp()) {

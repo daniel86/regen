@@ -229,7 +229,7 @@ namespace regen {
 		uint32_t numNextSegments_ = 0;
 
 		ref_ptr<BufferMapping> bufferMapping_;
-		BufferRange bufferDrawRange_;
+		ref_ptr<BufferRange> bufferDrawRange_;
 
 		inline void resetSegments();
 

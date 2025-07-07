@@ -59,6 +59,11 @@ void CullShape::createBuffers() {
 	// use SSBO for instanceIDMap_
 	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BUFFER_HINT_UPDATE_STREAM);
 	instanceIDBuffer_->addBlockInput(instanceIDMap_);
+	if (!isIndexShape()) {
+		// enforce that we do not use persistent mapping for instance IDs in case we update them with the GPU.
+		// TODO: set access to GPU_ONLY and use a shader to initially fill the buffer instead!
+		instanceIDBuffer_->setBufferMapMode(BUFFER_MAP_DISABLED);
+	}
 	instanceIDBuffer_->update();
 	joinShaderInput(instanceIDBuffer_);
 }

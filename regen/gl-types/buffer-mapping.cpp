@@ -177,20 +177,16 @@ void* BufferMapping::beginWriteBuffer(bool isPartialWrite) {
 
 	if (storageFlags_ & MAP_PERSISTENT) {
 		// ensure that the last write segment is synchronized, i.e. inserts a fence before the
-		// next segment is written to.
-		// usually the sync happens at the end of the frame, but in the case below there apparently
-		// are multiple writes per frame.
+		// next segment is written to. usually the sync happens at the end of the frame,
+		// but in the case below there apparently are multiple writes per frame.
 		if (lastReadIndex_ >= 0) {
 			insertWriteFence(bufferSegments_[lastReadIndex_]);
 		}
-
 		// block until the last write has been consumed by the GPU.,
 		// i.e. all draw commands have been queued that use the buffer.
 		if (writeSegment.writeFence) {
 			if(!waitForFence(writeSegment.writeFence, allowFrameDropping_)) {
-				// this indicates that we should drop the frame, i.e. fence still active, and we
-				// are allowed to drop frames.
-				return nullptr;
+				return nullptr; // drop frame
 			}
 		}
 		return writeSegment.mappedPtr;
@@ -228,7 +224,6 @@ void BufferMapping::endWriteBuffer(BufferRange &nextDrawBuffer) {
 		// into the range that we will read this frame.
 		RenderState::get()->pushPostRenderCallback(
 				ensureWriteFence_cb, &readSegment);
-		lastReadIndex_ = readBufferIndex_;
 	}
 	else { // non-persistent mapping
 		glUnmapNamedBuffer(writeBuffer);
@@ -236,11 +231,14 @@ void BufferMapping::endWriteBuffer(BufferRange &nextDrawBuffer) {
 
 	if (bufferType_ == RING_BUFFER) {
 		nextDrawBuffer.buffer_ = refs_[0]->bufferID();
-		nextDrawBuffer.offset_ = refs_[0]->address() + readSegment.offset;
+		nextDrawBuffer.offset_ = refs_[0]->address() + bufferSegments_[readBufferIndex_].offset;
+		nextDrawBuffer.size_ = segmentSize_;
 	} else {
 		nextDrawBuffer.buffer_ = refs_[readBufferIndex_]->bufferID();
 		nextDrawBuffer.offset_ = refs_[readBufferIndex_]->address();
+		nextDrawBuffer.size_ = segmentSize_;
 	}
+	lastReadIndex_ = readBufferIndex_;
 
 	// swap buffers
 	const auto numBuffers = (int)storageBuffering_;

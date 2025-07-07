@@ -34,7 +34,7 @@ struct BoundingBoxBlock {
 
 bool BBoxBuffer::updateBoundingBox() {
 	bool hasChanged = false;
-	bufferMapping_->readBuffer(bufferDrawRange_);
+	bufferMapping_->readBuffer(*bufferDrawRange_.get());
 	if (bufferMapping_->hasReadData()) {
 		auto &bbox = *((BoundingBoxBlock*)bufferMapping_->clientData());
         bboxMin_.x = biasedToFloat(bbox.min.x);
