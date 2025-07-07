@@ -48,6 +48,13 @@ namespace regen {
 		BufferUpdateHint bufferUpdateHint() const { return updateHint_; }
 
 		/**
+		 * Set the buffer update hint.
+		 * This will determine how the buffer can be updated.
+		 * @param hint the update hint to set.
+		 */
+		void setBufferUpdateHint(BufferUpdateHint hint) { updateHint_ = hint; }
+
+		/**
 		 * Set the mapping mode for the buffer object.
 		 * Note that mapping will not be possible if the buffer when
 		 * map mode is set to BUFFER_MAP_DISABLED.

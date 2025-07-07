@@ -704,16 +704,6 @@
 
     <node id="Shadow-Caster-All">
         <node import="Shadow-Caster"/>
-        <!--
-        <node>
-            <alpha discard-threshold="0.25"/>
-            <node id="tree-twig">
-                <texture name="windFlow" id="wind-flowmap" mapping="custom" />
-                <input name="stiffness" type="float" value="0.5"/>
-                <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
-            </node>
-        </node>
-        -->
     </node>
 
     <node id="Non-Shadow-Caster">

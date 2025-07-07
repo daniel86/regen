@@ -26,7 +26,7 @@ using namespace regen;
 #define IDLE_SLEEP_MS 30000
 
 VideoTexture::VideoTexture()
-		: Texture2D(1),
+		: Texture2D(GL_TEXTURE_2D, 1),
 		  Animation(true, true),
 		  closeFlag_(GL_FALSE),
 		  seeked_(GL_FALSE),

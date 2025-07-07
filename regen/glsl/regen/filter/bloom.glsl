@@ -8,7 +8,7 @@
 #version 430 core
 
 layout (location = 0) out vec3 out_color;
-layout (binding = 0) uniform sampler2D in_inputTexture;
+uniform sampler2D in_inputTexture;
 uniform vec2 in_inverseInputSize;
 uniform vec2 in_inverseViewport;
 
@@ -66,7 +66,7 @@ void main()
 #version 430 core
 
 layout (location = 0) out vec3 out_color;
-layout (binding = 0) uniform sampler2D in_inputTexture;
+uniform sampler2D in_inputTexture;
 const float in_filterRadius = 1.0f;
 uniform vec2 in_inverseViewport;
 

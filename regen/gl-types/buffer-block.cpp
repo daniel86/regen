@@ -9,6 +9,7 @@ using namespace regen;
 //#define REGEN_BUFFER_BLOCK_DEBUG
 #define BUFFER_BLOCK_DISABLE_PERSISTENT
 //#define BUFFER_BLOCK_FLUSH_EXPLICIT
+#define BUFFER_BLOCK_BUFFERING_MODE TRIPLE_BUFFER
 
 BufferBlock::BufferBlock(
 		BufferTarget target,
@@ -23,6 +24,10 @@ BufferBlock::BufferBlock(
 	// the flag will be switched to something else based on the inputs added.
 	setBufferAccessMode(BUFFER_GPU_ONLY);
 	setBufferMapMode(BUFFER_MAP_DISABLED);
+	// a ring-buffer may be used for some cases, by default we use triple buffering, i.e. 3 ring segments.
+	// this also means that triple the space is allocated for the buffer.
+	// but only in case the ring buffer is used.
+	setBufferingMode(BUFFER_BLOCK_BUFFERING_MODE);
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
@@ -210,6 +215,8 @@ void BufferBlock::updateBlockInputs() {
 			size_t remainder = requiredSize_ % std140Alignment;
 			if (remainder != 0) {
 				requiredSize_ += std140Alignment - remainder;
+				REGEN_DEBUG("RE-ALIGN for 16 bytes needed for block with size: " << requiredSize_ << " bytes"
+					<< " first input: " << blockInputs_[0]->input->name());
 			}
 		}
 	}
@@ -242,8 +249,8 @@ void BufferBlock::updateStridedData(BlockInput &uboInput) {
 	} else {
 		return;
 	}
-	//REGEN_WARN("RE-ALIGN needed for input " << in->name() <<
-	//		   " with " << numElements << " elements, unaligned size: " << elementSizeUnaligned);
+	REGEN_DEBUG("RE-ALIGN needed for input " << in->name() <<
+			   " with " << numElements << " elements, unaligned size: " << elementSizeUnaligned);
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
 	auto dataSizeAligned = elementSizeAligned * numElements;
 	if (dataSizeAligned != uboInput.alignedSize) {
@@ -318,8 +325,6 @@ void BufferBlock::resize() {
 		free(ref_.get());
 	}
 	const bool useMapping = isMapModePersistent(mapMode_);
-	// TODO: the mapping object could also be used for non-persistent updates.
-	//const bool useMapping = (mapMode_ != BUFFER_MAP_DISABLED);
 
 	if (useMapping) {
 		// in case of double-buffering etc, we need to allocate space for each segment
@@ -346,11 +351,14 @@ void BufferBlock::resize() {
 			// initialize the buffer mapping using ring buffer mode
 			const BufferStorageMode storageMode = getBufferStorageMode(
 				accessMode_, mapMode_, updateHint_);
+			auto accessFlags = glAccessFlags(storageMode);
 			bufferMapping_ = ref_ptr<BufferMapping>::alloc(
-				ref_, glAccessFlags(storageMode), bufferingMode_);
+				ref_, accessFlags, bufferingMode_);
 			// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
 			// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
 			//persistentMapping_->setAllowFrameDropping(true);
+			// initially copy data to all ring-buffer segments
+			resetPersistentMapped();
 		} else {
 			REGEN_WARN("something went wrong with persistent mapping initialization.");
 			isBlockValid_ = false;
@@ -485,10 +493,8 @@ void BufferBlock::updateTemporaryMapped() {
 	auto mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
 
 	uint32_t mappingFlags = MAP_WRITE;
-	// TODO: Consider using GL_MAP_UNSYNCHRONIZED_BIT with manual sync over GL_MAP_INVALIDATE_RANGE_BIT.
 	if (!partialUpdate) { mappingFlags |= MAP_INVALIDATE_RANGE; }
 
-	// TODO: rather use the mapping object here?
 	void *bufferData = map(firstSegment.offset,
 						   mapRangeSize,
 						   mappingFlags);
@@ -514,12 +520,26 @@ void BufferBlock::updatePersistentMapped() {
 	// as we do not really know the state of the rest of the buffer.
 	// So even if we do not update the whole buffer, we still need to write the whole
 	// client data into mapped memory.
+	// TODO: if flush explicit is used, it would be ok to update only the changed segments, afaik.
 	static const bool partialUpdate = false;
 	auto *mappedData = bufferMapping_->beginWriteBuffer(partialUpdate);
 	if (mappedData) {
-		copyBufferData(static_cast<char *>(mappedData), partialUpdate);
+		auto bufferData = static_cast<char *>(mappedData);
+		for (auto &blockInput: blockInputs_) {
+			auto &uboInput = *blockInput.get();
+			copyBufferData1(bufferData, uboInput);
+			uboInput.lastStamp = uboInput.input->stamp();
+		}
 		bufferMapping_->endWriteBuffer(*bufferDrawRange_.get());
 		stamp_ += 1;
+	}
+}
+
+void BufferBlock::resetPersistentMapped() {
+	if (bufferingMode_ == SINGLE_BUFFER) return;
+	// cycle through the ring buffer once, and write to each segment.
+	for (int idx=0; idx < bufferingMode_; ++idx) {
+		updatePersistentMapped();
 	}
 }
 
@@ -542,6 +562,11 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 	}
 	update();
 	rs->bufferRange(glTarget_).apply(loc, *bufferDrawRange_.get());
+	if (bufferMapping_.get()) {
+		// mark the point of accessing a mapped buffer segment for reading
+		// which is needed to avoid writing to the buffer while it is being read.
+		bufferMapping_->markWriteAccessed(*bufferDrawRange_.get());
+	}
 	bindingIndex_ = loc;
 }
 

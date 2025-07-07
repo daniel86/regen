@@ -251,6 +251,8 @@ namespace regen {
 
 		void updatePersistentMapped();
 
+		void resetPersistentMapped();
+
 		void resize();
 	};
 

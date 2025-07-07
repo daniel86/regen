@@ -44,7 +44,9 @@ void main()
     // Sample the depth texture at the mouse position, and convert it to from NDC to view space
     float depthBufferValue = texture(in_gDepthTexture, in_mouseTexco).r;
     float z_ndc = depthBufferValue * 2.0 - 1.0;
-    float z_view = (2.0 * in_near * in_far) / (in_far + in_near - z_ndc * (in_far - in_near));
+    float far = REGEN_CAM_FAR_(0);
+    float near = REGEN_CAM_NEAR_(0);
+    float z_view = (2.0 * near * far) / (far + near - z_ndc * (far - near));
 
     // Proceed only if the intersection depth is less than or equal to the depth buffer value
     // plus a small epsilon to account for precision issues

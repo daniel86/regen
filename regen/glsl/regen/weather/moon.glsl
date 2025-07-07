@@ -15,7 +15,6 @@ out vec3 out_eye;
 out vec2 out_texco;
 
 uniform vec3 in_moonPosition;
-uniform float in_far;
 
 const float in_scale = 0.1;
 

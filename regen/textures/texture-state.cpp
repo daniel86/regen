@@ -460,8 +460,8 @@ ref_ptr<TextureState> TextureState::load(LoadingContext &ctx, scene::SceneInputN
 		auto mipLevel = input.getValue<int>("mip-level", 1);
 		auto mipTex = dynamic_cast<TextureMips2D *>(tex.get());
 		if (mipTex) {
-			auto maxLevel = mipTex->numMips();
-			if (mipLevel < maxLevel) {
+			uint32_t maxLevel = mipTex->numCustomMips();
+			if (static_cast<uint32_t>(mipLevel) < maxLevel) {
 				tex = mipTex->mipRefs()[mipLevel - 1];
 			} else {
 				REGEN_WARN("Mip level " << mipLevel << " is out of range for texture '" << tex->name() << "'.");

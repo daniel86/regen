@@ -300,7 +300,7 @@ void FilterSequence::enable(RenderState *rs) {
 
 	if (clearFirstFilter_) {
 		Filter *firstFilter = (Filter *) (*filterSequence_.begin()).get();
-		firstFilter->output()->fbo_->clearColor(clearColor_);
+		firstFilter->output()->fbo_->clearAllColorAttachments(clearColor_);
 	}
 	for (auto &it: filterSequence_) {
 		auto *f = (Filter *) it.get();

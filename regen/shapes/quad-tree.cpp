@@ -717,6 +717,7 @@ void QuadTree::Private::processQueuedNodes_sphere(QuadTreeTraversal &td) {
 		// but only increment the count if the projection intersects with the node
 		numSucceedingItems_ += int32_t(hasIntersection);
 	}
+	numQueuedItems_ = 0;
 }
 
 template<uint32_t NumAxes>

@@ -87,6 +87,12 @@ Camera::Camera(unsigned int numLayer)
 	setInput(cameraBlock_);
 }
 
+void Camera::setStaticCamera() {
+	cameraBlock_->setBufferUpdateHint(BUFFER_HINT_STATIC);
+	cameraBlock_->setBufferMapMode(BUFFER_MAP_DISABLED);
+	cameraBlock_->setBufferingMode(SINGLE_BUFFER);
+}
+
 void Camera::setPerspective(const Vec4f &params) {
 	setPerspective(
 			params.z,	// aspect
@@ -527,6 +533,9 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 	} else if (camType == "cube") {
 		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
 		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
+		if (input.getValue<bool>("static", false)) {
+			cam->setStaticCamera();
+		}
 		if (tf.get()) {
 			if (tf->hasModelMat()) {
 				cam->attachToPosition(tf->modelMat());
@@ -543,6 +552,9 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		if (input.hasAttribute("normal")) {
 			cam->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
 		}
+		if (input.getValue<bool>("static", false)) {
+			cam->setStaticCamera();
+		}
 
 		if (tf.get()) {
 			if (tf->hasModelMat()) {
@@ -558,6 +570,9 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
 		cam->set_isAudioListener(
 				input.getValue<bool>("audio-listener", false));
+		if (input.getValue<bool>("static", false)) {
+			cam->setStaticCamera();
+		}
 		cam->position()->setVertex3(0,
 								   input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
 

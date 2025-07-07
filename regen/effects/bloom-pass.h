@@ -37,11 +37,13 @@ namespace regen {
 		ref_ptr<State> upsampleState_;
 		ref_ptr<ShaderState> upsampleShader_;
 		GLint inverseViewportLocUS_;
+		GLint inputTextureLocUS_;
 
 		ref_ptr<State> downsampleState_;
 		ref_ptr<ShaderState> downsampleShader_;
 		GLint inverseViewportLocDS_;
 		GLint inverseInputSizeLocDS_;
+		GLint inputTextureLocDS_;
 
 		void downsample(RenderState *rs);
 

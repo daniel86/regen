@@ -426,7 +426,7 @@ Add a color texture to the render target.
   ref_ptr<Texture> colorAttachment = fbo->addTexture(
       1,
       GL_TEXTURE_2D,
-      GL_RGBA, GL_RGBA,
+      GL_RGBA, GL_RGBA8,
       GL_UNSIGNED_BYTE);
 @endcode
 

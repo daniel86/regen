@@ -121,7 +121,7 @@ void VideoStream::decode(AVPacket *packet) {
 	av_packet_unref(packet);
 }
 
-GLenum VideoStream::texInternalFormat() { return GL_RGB; }
+GLenum VideoStream::texInternalFormat() { return GL_RGB8; }
 
 GLenum VideoStream::texFormat() { return GL_RGB; }
 

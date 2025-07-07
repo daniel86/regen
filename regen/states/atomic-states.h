@@ -408,16 +408,16 @@ namespace regen {
 
 		void enable(RenderState *state) override {
 			if (clearBits_ & GL_COLOR_BUFFER_BIT) {
-				static const Vec4f defaultClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-				fbo_->clearColor(defaultClearColor);
+				static const Vec4f defaultClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+				fbo_->clearAllColorAttachments(defaultClearColor);
 			}
 			if (clearBits_ & GL_DEPTH_BUFFER_BIT) {
 				static const float defaultClearDepth = 1.0f;
-				fbo_->clearDepth(defaultClearDepth);
+				fbo_->clearDepthAttachment(defaultClearDepth);
 			}
 			if (clearBits_ & GL_STENCIL_BUFFER_BIT) {
 				static const GLint defaultClearStencil = 0;
-				fbo_->clearStencil(defaultClearStencil);
+				fbo_->clearStencilAttachment(defaultClearStencil);
 			}
 		}
 
@@ -449,11 +449,10 @@ namespace regen {
 
 		// override
 		void enable(RenderState *rs) override {
-			for (auto & it : data) {
-				if (!rs->drawFrameBuffer().isLocked()) {
-					for (auto &buffer : it.colorBuffers.buffers_) {
-						fbo_->clearColor(it.clearColor, buffer - GL_COLOR_ATTACHMENT0);
-					}
+			if (!rs->drawFrameBuffer().isLocked()) {
+				for (auto & it : data) {
+					fbo_->applyDrawBuffers(it.colorBuffers);
+					fbo_->clearColorAttachments(it.colorBuffers, it.clearColor);
 				}
 			}
 		}

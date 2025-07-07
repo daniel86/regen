@@ -124,6 +124,8 @@ namespace regen {
 		GLintptr offset_;
 		/** The amount of data in machine units that can be read from the buffet object while used as an indexed target. */
 		GLsizeiptr size_;
+		/** Only used for double/triple buffering, e.g. the segment index in the ring buffer. */
+		uint32_t segment_ = 0u;
 
 		/**
 		 * @param b another value.

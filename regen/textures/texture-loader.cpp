@@ -364,7 +364,7 @@ ref_ptr<TextureCube> textures::loadCube(
 		faceHeight = height / 3;
 		GLint faces_[12] = {
 				-1, TextureCube::TOP, -1, -1,
-				TextureCube::RIGHT, TextureCube::FRONT, TextureCube::LEFT, TextureCube::BACK,
+				TextureCube::LEFT, TextureCube::FRONT, TextureCube::RIGHT, TextureCube::BACK,
 				-1, TextureCube::BOTTOM, -1, -1
 		};
 		for (ILint i = 0; i < 12; ++i) faces[i] = faces_[i];
@@ -373,7 +373,7 @@ ref_ptr<TextureCube> textures::loadCube(
 		faceHeight = height / 4;
 		GLint faces_[12] = {
 				-1, TextureCube::TOP, -1,
-				TextureCube::RIGHT, TextureCube::FRONT, TextureCube::LEFT,
+				TextureCube::LEFT, TextureCube::FRONT, TextureCube::RIGHT,
 				-1, TextureCube::BOTTOM, -1,
 				-1, TextureCube::BACK, -1
 		};

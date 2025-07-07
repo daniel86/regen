@@ -37,7 +37,8 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	// setup transform feedback buffer
 	bufferSize_ = sizeof(PickData) * maxPickedObjects_;
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_UPDATE_STREAM);
-	feedbackBuffer_->setBufferMapMode(BUFFER_MAP_TEMPORARY);
+	//feedbackBuffer_->setBufferMapMode(BUFFER_MAP_DISABLED);
+	feedbackBuffer_->setBufferMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
 	feedbackBuffer_->setBufferAccessMode(BUFFER_CPU_READ);
 	vboRef_ = feedbackBuffer_->allocBytes(bufferSize_ * 2); // double-buffered
 	if (vboRef_.get() == nullptr) {
@@ -50,6 +51,7 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	feedbackRange_.size_ = bufferSize_;
 
 	// Create a double-buffered PBO for reading the feedback buffer
+	// TODO: check if it is better to use two buffers, one mapped and one that we copy to like we did before.
 	pickMapping_ = ref_ptr<BufferStructMapping<PickData>>::alloc(
 			vboRef_,
 			MAP_READ | MAP_PERSISTENT | MAP_COHERENT,

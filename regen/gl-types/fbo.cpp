@@ -70,6 +70,7 @@ void FBO::applyDrawBuffers() {
 }
 
 void FBO::applyDrawBuffers(GLenum attachment) {
+	glNamedFramebufferDrawBuffer(id(), attachment);
 }
 
 void FBO::applyDrawBuffers(const DrawBuffers &buffers) {
@@ -402,7 +403,7 @@ void FBO::blitCopyToScreen(
 	}
 }
 
-void FBO::clearColor(const Vec4f &color) {
+void FBO::clearAllColorAttachments(const Vec4f &color) {
 	for (uint32_t attachmentIdx=0; attachmentIdx < colorAttachments_.buffers_.size(); ++attachmentIdx) {
 		glClearNamedFramebufferfv(
 				id(),
@@ -412,7 +413,17 @@ void FBO::clearColor(const Vec4f &color) {
 	}
 }
 
-void FBO::clearColor(const Vec4f &color, uint32_t attachmentIdx) {
+void FBO::clearColorAttachments(const DrawBuffers &buffers, const Vec4f &color) {
+	for (const auto &attachment : buffers.buffers_) {
+		glClearNamedFramebufferfv(
+				id(),
+				GL_COLOR,
+				attachment - GL_COLOR_ATTACHMENT0,
+				&color.x);
+	}
+}
+
+void FBO::clearColorAttachment(const Vec4f &color, uint32_t attachmentIdx) {
 	glClearNamedFramebufferfv(
 			id(),
 			GL_COLOR,
@@ -420,7 +431,7 @@ void FBO::clearColor(const Vec4f &color, uint32_t attachmentIdx) {
 			&color.x);
 }
 
-void FBO::clearDepth(GLfloat depth) {
+void FBO::clearDepthAttachment(GLfloat depth) {
 	glClearNamedFramebufferfv(
 			id(),
 			GL_DEPTH,
@@ -428,7 +439,7 @@ void FBO::clearDepth(GLfloat depth) {
 			&depth);
 }
 
-void FBO::clearStencil(GLint stencil) {
+void FBO::clearStencilAttachment(GLint stencil) {
 	glClearNamedFramebufferiv(
 			id(),
 			GL_STENCIL,
@@ -628,7 +639,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 
 	if (input.hasAttribute("clear-color")) {
 		auto c = input.getValue<Vec4f>("clear-color", Vec4f(0.0f));
-		fbo->clearColor(c);
+		fbo->clearAllColorAttachments(c);
 	}
 	GL_ERROR_LOG();
 	fbo->checkStatus();

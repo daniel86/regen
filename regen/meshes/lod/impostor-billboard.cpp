@@ -135,6 +135,7 @@ void ImpostorBillboard::createResources() {
 	updateNumberOfViews();
 	// create camera for the update pass
 	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_);
+	snapshotCamera_->setStaticCamera();
 
 	{ // create parameters for the shader
 		joinShaderInput(depthOffset_);

@@ -4,6 +4,7 @@
 #include <regen/gl-types/gl-object.h>
 #include <regen/gl-types/buffer-reference.h>
 #include <regen/gl-types/shader-input.h>
+#include "gpu-fence.h"
 
 namespace regen {
 	/**
@@ -49,7 +50,7 @@ namespace regen {
 			byte* mappedPtr = nullptr;
 			// The offset in the ring buffer where this segment starts, in bytes.
 			uint32_t offset = 0;
-			GLsync writeFence = nullptr;
+			GPUFence writeFence;
 			bool hasData = false;
 		};
 
@@ -95,6 +96,12 @@ namespace regen {
 		void endWriteBuffer(BufferRange &nextDrawBuffer);
 
 		/**
+		 * Mark the next draw buffer as accessed for drawing.
+		 * @param drawBuffer the buffer range to mark as accessed.
+		 */
+		void markWriteAccessed(BufferRange &drawBuffer);
+
+		/**
 		 * Read data from an input buffer reference into client memory.
 		 * Note that data may not be available immediately,
 		 * check hasReadData() to see if the data is available.
@@ -127,7 +134,6 @@ namespace regen {
 		byte* storageClientData_ = nullptr;
 		int readBufferIndex_ = 0;
 		int writeBufferIndex_ = 0;
-		int lastReadIndex_ = -1;
 
 		bool initializeMapping();
 	};

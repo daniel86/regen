@@ -53,6 +53,12 @@ namespace regen {
 		auto numLayer() const { return numLayer_; }
 
 		/**
+		 * Flag this camera as a static camera that does not change its position or orientation.
+		 * This is used for optimization purposes.
+		 */
+		void setStaticCamera();
+
+		/**
 		 * @return true if this camera is an omnidirectional camera.
 		 */
 		auto isOmni() const { return isOmni_; }

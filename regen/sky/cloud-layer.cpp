@@ -67,7 +67,7 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 			GL_COLOR_ATTACHMENT0,
 			cloudTexture_->id(),
 			0);
-	fbo_->clearColor({0.0, 0.0, 0.0, 1.0});
+	fbo_->clearAllColorAttachments({0.0, 0.0, 0.0, 1.0});
 
 	color_ = ref_ptr<ShaderInput3f>::alloc("color");
 	color_->setUniformData(Vec3f(1.f, 1.f, 1.f));
@@ -166,7 +166,7 @@ float CloudLayer::defaultChangeLow() {
 
 void CloudLayer::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	static const Vec4f clearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	fbo_->clearColor(clearColor);
+	fbo_->clearAllColorAttachments(clearColor);
 	rs->viewport().push(fbo_->glViewport());
 
 	updateState_->enable(rs);

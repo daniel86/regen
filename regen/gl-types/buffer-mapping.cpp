@@ -38,10 +38,6 @@ BufferMapping::~BufferMapping() {
 	}
 	for (uint32_t i = 0u; i < bufferSegments_.size(); ++i) {
 		auto &segment = bufferSegments_[i];
-		if (segment.writeFence) {
-			glDeleteSync(segment.writeFence);
-			segment.writeFence = nullptr;
-		}
 		if (segment.mappedPtr) {
 			if (!mappedRing_) {
 				glUnmapNamedBuffer(refs_[i]->bufferID());
@@ -58,13 +54,9 @@ BufferMapping::~BufferMapping() {
 
 bool BufferMapping::initializeMapping() {
 	if (storageBuffering_ != SINGLE_BUFFER) {
-		// write into the buffer that was read last frame,
-		// but delay the read buffer by number of buffers in use.
 		if (storageFlags_ & MAP_WRITE) {
 			writeBufferIndex_ = 1;
 			readBufferIndex_ = 0;
-			//writeBufferIndex_ = 0;
-			//readBufferIndex_ = 0;
 		} else {
 			writeBufferIndex_ = 0;
 			readBufferIndex_ = 1;
@@ -135,59 +127,22 @@ bool BufferMapping::initializeMapping() {
 	return true;
 }
 
-static inline bool waitForFence(GLsync &fence, bool allowFrameDropping) {
-	GLenum status = glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
-	if (allowFrameDropping) {
-		// if we can drop frames, then we never want to wait and drop the frame instead!
-		if (status == GL_TIMEOUT_EXPIRED) {
-			return false; // drop frame
-		}
+void BufferMapping::markWriteAccessed(BufferRange &drawBuffer) {
+	if (storageFlags_ & MAP_PERSISTENT) {
+		auto &segment = bufferSegments_[drawBuffer.segment_];
+		segment.writeFence.setFencePoint();
 	}
-	else {
-		// Non-blocking check failed, wait a bit
-		do {
-			status = glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 1000); // 1µs timeout
-		} while (status == GL_TIMEOUT_EXPIRED);
-	}
-	if (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED) {
-		glDeleteSync(fence);
-		fence = nullptr;
-	}
-	else  {
-		REGEN_WARN("Unknown fence status: " << status <<
-				" (0x" << std::hex << status << std::dec << ")");
-		GL_ERROR_LOG();
-	}
-	return true;
-}
-
-static inline void insertWriteFence(BufferMapping::RingSegment &segment) {
-	if (!segment.writeFence) {
-		segment.writeFence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	}
-}
-
-static void ensureWriteFence_cb(void *ptr) {
-	// end-of-frame callback to ensure that the last write fence is created
-	insertWriteFence(*static_cast<BufferMapping::RingSegment *>(ptr));
 }
 
 void* BufferMapping::beginWriteBuffer(bool isPartialWrite) {
 	auto &writeSegment = bufferSegments_[writeBufferIndex_];
 
 	if (storageFlags_ & MAP_PERSISTENT) {
-		// ensure that the last write segment is synchronized, i.e. inserts a fence before the
-		// next segment is written to. usually the sync happens at the end of the frame,
-		// but in the case below there apparently are multiple writes per frame.
-		if (lastReadIndex_ >= 0) {
-			insertWriteFence(bufferSegments_[lastReadIndex_]);
-		}
-		// block until the last write has been consumed by the GPU.,
-		// i.e. all draw commands have been queued that use the buffer.
-		if (writeSegment.writeFence) {
-			if(!waitForFence(writeSegment.writeFence, allowFrameDropping_)) {
-				return nullptr; // drop frame
-			}
+		// if we have a persistent mapping, we need to wait for the fence.
+		// the fence marks the point after the segment we want to write to was bound for reading / drawing.
+		if(!writeSegment.writeFence.wait(allowFrameDropping_)) {
+			// drop frame if we cannot wait for the fence
+			return nullptr;
 		}
 		return writeSegment.mappedPtr;
 	}
@@ -210,20 +165,13 @@ void BufferMapping::endWriteBuffer(BufferRange &nextDrawBuffer) {
 	const auto writeBuffer = (bufferType_ == RING_BUFFER ?
 			refs_[0]->bufferID() :
 			refs_[writeBufferIndex_]->bufferID());
-	auto &readSegment = bufferSegments_[readBufferIndex_];
-
 	if (storageFlags_ & MAP_PERSISTENT) {
-		auto &writeSegment = bufferSegments_[writeBufferIndex_];
 		if (storageFlags_ & MAP_FLUSH_EXPLICIT) {
 			glFlushMappedNamedBufferRange(
 				writeBuffer,
-				writeSegment.offset,
+				bufferSegments_[writeBufferIndex_].offset,
 				segmentSize_);
 		}
-		// insert a fence after draw commands to ensure that the GPU has finished before we write
-		// into the range that we will read this frame.
-		RenderState::get()->pushPostRenderCallback(
-				ensureWriteFence_cb, &readSegment);
 	}
 	else { // non-persistent mapping
 		glUnmapNamedBuffer(writeBuffer);
@@ -232,13 +180,12 @@ void BufferMapping::endWriteBuffer(BufferRange &nextDrawBuffer) {
 	if (bufferType_ == RING_BUFFER) {
 		nextDrawBuffer.buffer_ = refs_[0]->bufferID();
 		nextDrawBuffer.offset_ = refs_[0]->address() + bufferSegments_[readBufferIndex_].offset;
-		nextDrawBuffer.size_ = segmentSize_;
 	} else {
 		nextDrawBuffer.buffer_ = refs_[readBufferIndex_]->bufferID();
 		nextDrawBuffer.offset_ = refs_[readBufferIndex_]->address();
-		nextDrawBuffer.size_ = segmentSize_;
 	}
-	lastReadIndex_ = readBufferIndex_;
+	nextDrawBuffer.size_ = segmentSize_;
+	nextDrawBuffer.segment_ = readBufferIndex_;
 
 	// swap buffers
 	const auto numBuffers = (int)storageBuffering_;

@@ -60,7 +60,7 @@ void NoiseWidget::gl_loadScene() {
 	// create render target
 	auto winSize = app_->windowViewport()->getVertex(0).r;
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.x, winSize.y);
-	ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+	ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB8, GL_UNSIGNED_BYTE);
 	ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
 	fboState->addDrawBuffer(GL_COLOR_ATTACHMENT0);
 	fboState->setClearColor({

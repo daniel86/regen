@@ -428,10 +428,10 @@ Vec3i Texture::getSize(
 		return size.asVec3i();
 	} else if (sizeMode == "rel") {
 		auto v = viewport->getVertex(0);
-		auto size_i = size.asVec3i();
 		return {
-			(size_i.x * v.r.x),
-			(size_i.y * v.r.y), 1 };
+			static_cast<int>(size.x * static_cast<float>(v.r.x)),
+			static_cast<int>(size.y * static_cast<float>(v.r.y)),
+			1 };
 	} else {
 		REGEN_WARN("Unknown size mode '" << sizeMode << "'.");
 		return size.asVec3i();
@@ -546,7 +546,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		} else if (ramp == "inline") {
 			auto format = glenum::textureFormat(
 					input.getValue<std::string>("format", "LUMINANCE"));
-			auto internalFormat = format;
+			auto internalFormat = glenum::textureInternalFormat(format);
 			if (input.hasAttribute("internal-format")) {
 				internalFormat = glenum::textureInternalFormat(
 						input.getValue<std::string>("internal-format", "LUMINANCE"));
@@ -595,11 +595,20 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 														   pixelComponents, pixelSize);
 		}
 
+		auto textureFormat = glenum::textureFormat(pixelComponents);
+		REGEN_DEBUG("Creating texture with "
+					<< sizeAbs.x << "x" << sizeAbs.y << "x" << sizeAbs.z
+					<< ", " << texCount << " textures, "
+					<< "target: 0x" << std::hex << textureTarget << ", "
+					<< "format: 0x" << std::hex << textureFormat << ", "
+					<< "internal-format: 0x" << std::hex << internalFormat << ", "
+					<< "pixel-type: 0x" << std::hex << pixelType << std::dec << ", "
+					<< numSamples << " samples.");
 		tex = FBO::createTexture(
 				sizeAbs.x, sizeAbs.y, sizeAbs.z,
 				texCount,
 				textureTarget,
-				glenum::textureFormat(pixelComponents),
+				textureFormat,
 				internalFormat,
 				pixelType,
 				numSamples);
@@ -698,12 +707,12 @@ Texture2D::Texture2D(GLenum textureTarget, GLuint numTextures)
 
 TextureMips2D::TextureMips2D(GLuint numMips)
 		: Texture2D(GL_TEXTURE_2D, 1) {
-	numMips_ = std::max(numMips, 1u); // at least one mip level
-	mipTextures_.resize(numMips_);
-	mipRefs_.resize(numMips_-1);
+	numMips_ = 1; // we do not use the built-in mipmap generation
+	mipTextures_.resize(numMips);
+	mipRefs_.resize(numMips-1);
 
 	mipTextures_[0] = this;
-	for (auto i = 1; i < numMips_; ++i) {
+	for (uint32_t i = 1u; i < numMips; ++i) {
 		mipRefs_[i-1] = ref_ptr<Texture2D>::alloc();
 		mipTextures_[i] = mipRefs_[i-1].get();
 	}

@@ -231,7 +231,6 @@ ref_ptr<DirectShading> DirectShading::load(LoadingContext &ctx, scene::SceneInpu
 			REGEN_WARN("Unable to find Light for '" << n->getDescription() << "'.");
 			continue;
 		}
-		REGEN_INFO("processing light '" << n->getName() << "' for " << input.getDescription() << ".");
 
 		auto shadowFiltering =
 				n->getValue<ShadowFilterMode>("shadow-filter", SHADOW_FILTERING_NONE);

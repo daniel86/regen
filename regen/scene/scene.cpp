@@ -6,6 +6,8 @@
 #include "scene.h"
 #include "regen/animations/animation-manager.h"
 
+//#define REGEN_ENABLE_GL_DEBUG_OUTPUT
+
 using namespace regen;
 
 uint32_t Scene::BUTTON_EVENT =
@@ -182,6 +184,20 @@ void Scene::resizeGL(const Vec2i &size) {
 	updateMousePosition();
 }
 
+#ifdef REGEN_ENABLE_GL_DEBUG_OUTPUT
+void GLAPIENTRY openglDebugCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar *message,
+    const void *userParam)
+{
+    REGEN_WARN("GL DEBUG: " << message);
+}
+#endif
+
 void Scene::initGL() {
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
@@ -229,8 +245,10 @@ void Scene::initGL() {
 #endif
 	REGEN_DEBUG("MAX_UNIFORM_BLOCK_SIZE: " << glParam<int>(GL_MAX_UNIFORM_BLOCK_SIZE));
 	REGEN_DEBUG("MAX_UNIFORM_BUFFER_BINDINGS: " << glParam<int>(GL_MAX_UNIFORM_BUFFER_BINDINGS));
+	REGEN_DEBUG("UNIFORM_BUFFER_OFFSET_ALIGNMENT: " << glParam<int>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT));
 	REGEN_DEBUG("MAX_SHADER_STORAGE_BLOCK_SIZE: " << glParam<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE));
 	REGEN_DEBUG("MAX_SHADER_STORAGE_BUFFER_BINDINGS: " << glParam<int>(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS));
+	REGEN_DEBUG("SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT: " << glParam<int>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT));
 	REGEN_DEBUG("MAX_VERTEX_ATTRIBS: " << glParam<int>(GL_MAX_VERTEX_ATTRIBS));
 	REGEN_DEBUG("MAX_VIEWPORTS: " << glParam<int>(GL_MAX_VIEWPORTS));
 #ifdef GL_ARB_texture_buffer_range
@@ -242,6 +260,13 @@ void Scene::initGL() {
 	REGEN_DEBUG("MAX_COMPUTE_SHARED_MEMORY_SIZE: " << glParam<int>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE));
 	REGEN_DEBUG("MIN_MAP_BUFFER_ALIGNMENT: " << glParam<int>(GL_MIN_MAP_BUFFER_ALIGNMENT));
 #undef DEBUG_GLi
+
+#ifdef REGEN_ENABLE_GL_DEBUG_OUTPUT
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(openglDebugCallback, NULL);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+#endif
 
 	setupShaderLoading();
 

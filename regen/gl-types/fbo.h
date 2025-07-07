@@ -340,24 +340,31 @@ namespace regen {
 		 * Clear the FBO color attachments to the given color.
 		 * @param color the color to clear to.
 		 */
-		void clearColor(const Vec4f &color);
+		void clearAllColorAttachments(const Vec4f &color);
+
+		/**
+		 * Clear the FBO color attachments to the given color.
+		 * @param buffers the list of buffers to clear.
+		 * @param color the color to clear to.
+		 */
+		void clearColorAttachments(const DrawBuffers &buffers, const Vec4f &color);
 
 		/**
 		 * Clear the FBO color attachment at the given index to the given color.
 		 * @param color the color to clear to.
 		 * @param attachmentIdx the index of the attachment to clear.
 		 */
-		void clearColor(const Vec4f &color, uint32_t attachmentIdx);
+		void clearColorAttachment(const Vec4f &color, uint32_t attachmentIdx);
 
 		/**
 		 * Clear the FBO depth attachment.
 		 */
-		void clearDepth(float depth = 1.0f);
+		void clearDepthAttachment(float depth = 1.0f);
 
 		/**
 		 * Clear the FBO stencil attachment.
 		 */
-		void clearStencil(int stencil = 0);
+		void clearStencilAttachment(int stencil = 0);
 
 		/**
 		 * Check the status of this FBO, and print warning

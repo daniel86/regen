@@ -123,11 +123,14 @@ namespace regen {
 				case GL_LUMINANCE_ALPHA:
 					return 2;
 				case GL_RGB:
+				case GL_BGR:
 					return 3;
 				case GL_RGBA:
+				case GL_BGRA:
 					return 4;
 				default:
-					REGEN_WARN("Unknown pixel format '" << format << "'. Using default 4.");
+					REGEN_WARN("Unknown pixel format 0x" << std::hex << format << std::dec
+							   << ". Using default 4 components.");
 					return 4;
 			}
 		}

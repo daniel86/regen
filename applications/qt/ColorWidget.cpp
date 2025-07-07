@@ -30,6 +30,7 @@ QColor ColorWidget::initializeColor() {
 		GLfloat g = ((GLfloat *) value)[1];
 		GLfloat b = ((GLfloat *) value)[2];
 		GLfloat a = (count == 4) ? ((GLfloat *) value)[3] : 1.0f;
+		mapped.unmap();
 		color.setRgbF(r, g, b, a);
 	} else {
 		REGEN_WARN("Unsupported data type for color input.");
@@ -85,12 +86,12 @@ void ColorWidget::pickColor() {
 		GLfloat g = ((GLfloat *) value)[1];
 		GLfloat b = ((GLfloat *) value)[2];
 		GLfloat a = (count == 4) ? ((GLfloat *) value)[3] : 1.0f;
+		mapped.unmap();
 		initialColor.setRgbF(r, g, b, a);
 	} else {
 		REGEN_WARN("Unsupported data type for color input.");
 		return;
 	}
-	mapped.unmap();
 
 	// Show the color dialog
 	QColor color = QColorDialog::getColor(initialColor, this, "Select Color");
@@ -129,6 +130,7 @@ void ColorWidget::alphaChanged() {
 		REGEN_WARN("Unsupported data type for color input.");
 		return;
 	}
+	mapped.unmap();
 	input_->writeVertex(0, value);
 }
 

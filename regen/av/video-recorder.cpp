@@ -127,8 +127,10 @@ void VideoRecorder::initialize() {
 	// but with a single color attachment that has the same format as used by the encoder
 	encoderFBO_ = ref_ptr<FBO>::alloc(tex->width(), tex->height());
 	encoderFBO_->addTexture(1,
-							GL_TEXTURE_2D, GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
-	GL_ERROR_LOG();
+		GL_TEXTURE_2D,
+		GL_RGB,
+		GL_RGB8,
+		GL_UNSIGNED_BYTE);
 }
 
 void VideoRecorder::setFrameBuffer(const ref_ptr<FBO> &fbo, GLenum attachment) {

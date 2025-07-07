@@ -540,11 +540,11 @@ namespace regen {
 	public:
 		explicit TextureMips2D(GLuint numMips = 4);
 
-		auto &mipTextures() { return mipTextures_; }
+		std::vector<Texture *> &mipTextures() { return mipTextures_; }
 
-		auto &mipRefs() { return mipRefs_; }
+		std::vector<ref_ptr<Texture2D>> &mipRefs() { return mipRefs_; }
 
-		auto numMips() const { return numMips_; }
+		uint32_t numCustomMips() const { return mipTextures_.size(); }
 
 	protected:
 		std::vector<Texture *> mipTextures_;

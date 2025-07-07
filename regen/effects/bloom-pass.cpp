@@ -42,11 +42,13 @@ void BloomPass::createShader(const StateConfig &cfg) {
 	upsampleShader_->createShader(cfg, "regen.filter.bloom.upsample");
 	fullscreenMesh_u_->updateVAO(cfg, upsampleShader_->shader());
 	inverseViewportLocUS_ = upsampleShader_->shader()->uniformLocation("inverseViewport");
+	inputTextureLocUS_ = upsampleShader_->shader()->uniformLocation("inputTexture");
 
 	downsampleShader_->createShader(cfg, "regen.filter.bloom.downsample");
 	fullscreenMesh_d_->updateVAO(cfg, downsampleShader_->shader());
 	inverseViewportLocDS_ = downsampleShader_->shader()->uniformLocation("inverseViewport");
 	inverseInputSizeLocDS_ = downsampleShader_->shader()->uniformLocation("inverseInputSize");
+	inputTextureLocDS_ = downsampleShader_->shader()->uniformLocation("inputTexture");
 }
 
 void BloomPass::downsample(RenderState *rs) {
@@ -63,9 +65,11 @@ void BloomPass::downsample(RenderState *rs) {
 							 GL_COLOR_ATTACHMENT0,
 							 mip.texture->id(), 0);
 		glUniform2f(inverseViewportLocDS_, mip.sizeInverse.x, mip.sizeInverse.y);
+		// activate the next input texture
+		nextInputTexture->bind();
+		glUniform1i(inputTextureLocDS_, nextInputTexture->textureChannel());
 
 		// render a quad that fills the selected mip level
-		nextInputTexture->bind();
 		rs->viewport().push(mip.glViewport);
 		fullscreenMesh_d_->enable(rs);
 		fullscreenMesh_d_->disable(rs);
@@ -90,10 +94,12 @@ void BloomPass::upsample(RenderState *rs) {
 							 nextMip.texture->id(), 0);
 		glUniform2f(inverseViewportLocUS_,
 					nextMip.sizeInverse.x, nextMip.sizeInverse.y);
+		// activate the input texture for this mip level
+		mip.texture->bind();
+		glUniform1i(inputTextureLocUS_, mip.texture->textureChannel());
 
 		// set next mip texture as render target, and render a quad that fills it
 		rs->viewport().push(nextMip.glViewport);
-		mip.texture->bind();
 		fullscreenMesh_u_->enable(rs);
 		fullscreenMesh_u_->disable(rs);
 		rs->viewport().pop();

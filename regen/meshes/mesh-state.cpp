@@ -142,6 +142,14 @@ void Mesh::createShader(const ref_ptr<StateNode> &parentNode) {
 
 void Mesh::createShader(const ref_ptr<StateNode> &parentNode, StateConfig &shaderConfig) {
 	auto shaderState = ref_ptr<ShaderState>::alloc();
+	for (auto &joinedState : joined()) {
+		// disjoin any ShaderState that might be joined
+		auto *shaderStateJoined = dynamic_cast<ShaderState *>(joinedState.get());
+		if (shaderStateJoined != nullptr) {
+			disjoinStates(joinedState);
+			break;
+		}
+	}
 	joinStates(shaderState);
 
 	if(shaderKey_.empty()) {
