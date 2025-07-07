@@ -110,12 +110,6 @@ namespace regen {
 		unsigned int bufferID(unsigned int index = 0) const { return allocations_[index]->bufferID(); }
 
 		/**
-		 * Bind the buffer object to a binding point.
-		 * @param index the binding point.
-		 */
-		void bind(GLuint index) const;
-
-		/**
 		* Copy vertex data to the buffer object. Sets part of data.
 		* Replaces only existing data, no new memory allocated for the buffer.
 		*/

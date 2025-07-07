@@ -198,16 +198,10 @@ ref_ptr<BufferReference> &BufferObject::allocBytes(GLuint numBytes) {
 	return createReference(numBytes);
 }
 
-void BufferObject::bind(GLuint index) const {
-	auto &ref = allocations_[0];
-	RenderState::get()->bufferRange(glTarget_).apply(index, BufferRange(
-		ref->bufferID(),
-		ref->address(),
-		ref->allocatedSize()));
-}
-
 void BufferObject::setBufferData(const void *data, const ref_ptr<BufferReference> &ref) {
+	// FIXME: what about ring buffer here? and also everywhere below?
 	if(ref->mappedData()) {
+		REGEN_WARN("interface might be broken!");
 		memcpy(ref->mappedData(), data, ref->allocatedSize());
 	} else {
 		glNamedBufferSubData(
@@ -248,6 +242,7 @@ void BufferObject::copy(
 void BufferObject::setBufferSubData(const void *data, GLuint relativeOffset, GLuint dataSize) {
 	auto &ref = allocations_[0];
 	if (ref->mappedData()) {
+		REGEN_WARN("interface might be broken!");
 		memcpy(ref->mappedData() + relativeOffset, data, dataSize);
 	} else {
 		glNamedBufferSubData(
@@ -261,6 +256,7 @@ void BufferObject::setBufferSubData(const void *data, GLuint relativeOffset, GLu
 GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, uint32_t accessFlags) {
 	auto &ref = allocations_[0];
 	if (ref->mappedData()) {
+		REGEN_WARN("interface might be broken!");
 		return ref->mappedData() + relativeOffset;
 	} else {
 		return glMapNamedBufferRange(
@@ -277,6 +273,7 @@ GLvoid *BufferObject::map(uint32_t accessFlags) {
 
 GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags) {
 	if (ref->mappedData()) {
+		REGEN_WARN("interface might be broken!");
 		return ref->mappedData();
 	} else {
 		return glMapNamedBufferRange(

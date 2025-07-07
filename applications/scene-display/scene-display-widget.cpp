@@ -735,6 +735,11 @@ static void handleAssetController(
 	auto instanceIndex = animationNode->getValue<int>("instance", 0);
 	ref_ptr<AnimationController> controller;
 
+	if(!tf.get()) {
+		REGEN_WARN("Unable to find transform for controller '" << animationNode->getDescription() << "'.");
+		return;
+	}
+
 	if (controllerType == "animal") {
 		auto animalController = ref_ptr<AnimalController>::alloc(
 				tf, nodeAnimations[instanceIndex], ranges);
