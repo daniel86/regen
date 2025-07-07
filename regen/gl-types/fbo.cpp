@@ -249,12 +249,13 @@ ref_ptr<Texture> FBO::createTexture(
 	tex->set_format(format);
 	tex->set_internalFormat(internalFormat);
 	tex->set_pixelType(pixelType);
+	tex->allocTexture();
+
 	for (GLuint j = 0; j < count; ++j) {
 		if (numSamples == 1) {
 			tex->set_wrapping(GL_CLAMP_TO_EDGE);
 			tex->set_filter(GL_LINEAR);
 		}
-		tex->allocTexture();
 		tex->nextObject();
 	}
 
@@ -460,20 +461,26 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 		set_depthStencilTexture(depthStencilTexture_);
 	}
 
+	uint32_t attachmentIdx = 0;
 	// resize color attachments
-	for (auto & tex : colorTextures_) {
+	for (GLuint colorIdx = 0; colorIdx < colorTextures_.size(); ++colorIdx) {
+		auto &tex = colorTextures_[colorIdx];
 		tex->set_rectangleSize(w, h);
 		auto *tex3D = dynamic_cast<Texture3D *>(tex.get());
 		if (tex3D != nullptr) { tex3D->set_depth(depth); }
+		tex->allocTexture();
+
 		for (GLuint i = 0; i < tex->numObjects(); ++i) {
-			tex->allocTexture();
-			attachTexture(tex, colorAttachments_.buffers_[i]);
+			attachTexture(tex, colorAttachments_.buffers_[attachmentIdx++]);
 			tex->nextObject();
 		}
 	}
 
 	// resize rbo attachments
 	for (auto & rbo : renderBuffers_) {
+		// TODO: implement RBO resize.
+		//  - use attachmentIdx to avoid conflicts with color attachments
+		REGEN_WARN("RBO attachment resizing not implemented. ");
 		rbo->set_rectangleSize(w, h);
 		for (GLuint i = 0; i < rbo->numObjects(); ++i) {
 			rbo->begin(rs);
@@ -482,6 +489,10 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 			rbo->nextObject();
 		}
 	}
+
+	// reset FBO state
+	drawBuffers_.buffers_.clear();
+	readBuffer_ = GL_NONE;
 }
 
 void FBO::checkStatus() const {
@@ -496,10 +507,12 @@ const ref_ptr<Texture> &FBO::firstColorTexture() const { return colorTextures_.f
 namespace regen {
 	class FBOResizer : public EventHandler {
 	public:
-		FBOResizer(const ref_ptr<FBO> &fbo,
-				   const ref_ptr<ShaderInput2i> &windowViewport,
-				   GLfloat wScale, GLfloat hScale)
+		FBOResizer(Scene *scene,
+			const ref_ptr<FBO> &fbo,
+			const ref_ptr<ShaderInput2i> &windowViewport,
+			GLfloat wScale, GLfloat hScale)
 				: EventHandler(),
+				  scene_(scene),
 				  fbo_(fbo),
 				  windowViewport_(windowViewport),
 				  wScale_(wScale), hScale_(hScale) {}
@@ -514,6 +527,7 @@ namespace regen {
 		}
 
 	protected:
+		Scene *scene_;
 		ref_ptr<FBO> fbo_;
 		ref_ptr<ShaderInput2i> windowViewport_;
 		GLfloat wScale_, hScale_;
@@ -528,6 +542,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x, absSize.y, absSize.z);
 	if (sizeMode == "rel") {
 		ref_ptr<FBOResizer> resizer = ref_ptr<FBOResizer>::alloc(
+				ctx.scene()->application(),
 				fbo,
 				ctx.scene()->getViewport(),
 				relSize.x,

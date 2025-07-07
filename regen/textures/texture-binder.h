@@ -30,6 +30,7 @@ namespace regen {
 		static int32_t bind(Texture *tex);
 	private:
 		std::vector<Texture*> activeBindings_; //!< The currently bound textures.
+		std::vector<uint32_t> activeBindingIDs_; //!< The IDs of the currently bound textures.
 		int32_t nextUnit_ = 0; //!< The next texture unit to bind to.
 
 		static TextureBinder &instance() {

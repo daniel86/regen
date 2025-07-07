@@ -307,7 +307,6 @@ namespace regen {
 		GLfloat blendFactor_;
 
 		GLuint texcoChannel_;
-		GLint lastTexChannel_;
 
 		GLboolean ignoreAlpha_;
 

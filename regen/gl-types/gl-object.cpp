@@ -55,7 +55,12 @@ GLObject::~GLObject() {
 	delete[] ids_;
 }
 
-void GLObject::nextObject() { objectIndex_ = (objectIndex_ + 1) % numObjects_; }
+void GLObject::nextObject() {
+	objectIndex_ += 1;
+	if (objectIndex_ >= numObjects_) {
+		objectIndex_ = 0;
+	}
+}
 
 GLuint GLObject::objectIndex() const { return objectIndex_; }
 

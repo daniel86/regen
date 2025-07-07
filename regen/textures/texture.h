@@ -436,9 +436,17 @@ namespace regen {
 		int32_t numSamples_ = 1;
 		GLboolean fixedSampleLocations_ = GL_TRUE;
 		int32_t textureChannel_ = -1;
-		TextureWrapping wrappingMode_ = Vec3i(GL_CLAMP_TO_EDGE);
 		std::string samplerType_;
 		std::optional<TextureFile> textureFile_;
+
+		// texture state
+		TextureFilter texFilter_ = Vec2i(GL_LINEAR, GL_LINEAR);
+		TextureWrapping wrappingMode_ = Vec3i(GL_CLAMP_TO_EDGE);
+		std::optional<TextureLoD> texLoD_ = std::nullopt;
+		std::optional<TextureSwizzle> texSwizzle_ = std::nullopt;
+		std::optional<TextureCompare> texCompare_ = std::nullopt;
+		std::optional<TextureMaxLevel> texMaxLevel_ = std::nullopt;
+		std::optional<TextureAniso> texAniso_ = std::nullopt;
 
 		// client data, or null
 		const GLubyte *textureData_;

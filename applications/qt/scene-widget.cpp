@@ -190,8 +190,8 @@ void SceneWidget::GLThread::run() {
 	auto format = glWidget_->sceneWindow_->requestedFormat();
 	REGEN_INFO("OpenGL format version: "
 			   << format.majorVersion() << "." << format.minorVersion()
-			   << (format.profile() == QSurfaceFormat::CoreProfile ? "Core" :
-				   format.profile() == QSurfaceFormat::CompatibilityProfile ? "Compatibility" :
+			   << (format.profile() == QSurfaceFormat::CoreProfile ? "-Core" :
+				   format.profile() == QSurfaceFormat::CompatibilityProfile ? "-Compatibility" :
 				   "NoProfile"));
 	sharedContext->setFormat(format);
 	sharedContext->setShareContext(QOpenGLContext::globalShareContext());

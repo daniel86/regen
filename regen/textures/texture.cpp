@@ -52,18 +52,18 @@ Texture::~Texture() {
 void Texture::set_filter(const TextureFilter &v) {
 	glTextureParameteri(id(), GL_TEXTURE_MIN_FILTER, v.x);
 	glTextureParameteri(id(), GL_TEXTURE_MAG_FILTER, v.y);
+	texFilter_ = v;
 }
 
 void Texture::set_lod(const TextureLoD &v) {
 	glTextureParameterf(id(), GL_TEXTURE_MIN_LOD, v.x);
 	glTextureParameterf(id(), GL_TEXTURE_MAX_LOD, v.y);
+	texLoD_ = v;
 }
 
 void Texture::set_swizzle(const TextureSwizzle &v) {
-	glTextureParameteri(id(), GL_TEXTURE_SWIZZLE_R, v.x);
-	glTextureParameteri(id(), GL_TEXTURE_SWIZZLE_G, v.y);
-	glTextureParameteri(id(), GL_TEXTURE_SWIZZLE_B, v.z);
-	glTextureParameteri(id(), GL_TEXTURE_SWIZZLE_A, v.w);
+	glTextureParameteriv(id(), GL_TEXTURE_SWIZZLE_RGBA, &v.x);
+	texSwizzle_ = v;
 }
 
 void Texture::set_wrapping(const TextureWrapping &v) {
@@ -76,14 +76,17 @@ void Texture::set_wrapping(const TextureWrapping &v) {
 void Texture::set_compare(const TextureCompare &v) {
 	glTextureParameteri(id(), GL_TEXTURE_COMPARE_MODE, v.x);
 	glTextureParameteri(id(), GL_TEXTURE_COMPARE_FUNC, v.y);
+	texCompare_ = v;
 }
 
 void Texture::set_maxLevel(const TextureMaxLevel &v) {
 	glTextureParameteri(id(), GL_TEXTURE_MAX_LEVEL, v);
+	texMaxLevel_ = v;
 }
 
 void Texture::set_aniso(const TextureAniso &v) {
 	glTextureParameterf(id(), GL_TEXTURE_MAX_ANISOTROPY_EXT, v);
+	texAniso_ = v;
 }
 
 void Texture::allocTexture1D() {
@@ -242,9 +245,23 @@ void Texture::allocTexture() {
 	if (isReAlloc) {
 		// NOTE: texture objects must be destroyed and re-created
 		glDeleteTextures(numObjects_, ids_);
-		glGenTextures(numObjects_, ids_);
+		glCreateTextures(texBind_.target_, numObjects_, ids_);
 	}
-	(this->*(this->allocTexture_))();
+	texBind_.id_ = ids_[0];
+	objectIndex_ = 0;
+	for (GLuint j = 0; j < numObjects_; ++j) {
+		(this->*(this->allocTexture_))();
+		if (isReAlloc) {
+			set_wrapping(wrappingMode_);
+			set_filter(texFilter_);
+			if (texLoD_) { set_lod(*texLoD_); }
+			if (texSwizzle_) { set_swizzle(*texSwizzle_); }
+			if (texCompare_) { set_compare(*texCompare_); }
+			if (texMaxLevel_) { set_maxLevel(*texMaxLevel_); }
+			if (texAniso_) { set_aniso(*texAniso_); }
+		}
+		nextObject();
+	}
 }
 
 void Texture::updateImage(GLubyte *data) {
