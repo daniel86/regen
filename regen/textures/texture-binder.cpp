@@ -58,3 +58,23 @@ int32_t TextureBinder::bind(Texture *tex) {
 	}
 	return nextUnit;
 }
+
+void TextureBinder::rebind(Texture *tex) {
+	auto &self = TextureBinder::instance();
+	auto lastBinding = tex->textureChannel();
+	if (lastBinding >= 0) {
+		self.activeBindingIDs_[lastBinding] = tex->id();
+		glBindTextureUnit(lastBinding, tex->id());
+	}
+}
+
+void TextureBinder::release(Texture *tex) {
+	auto &self = TextureBinder::instance();
+	auto texUnit = tex->textureChannel();
+	if (texUnit < 0 || texUnit >= static_cast<int32_t>(self.activeBindings_.size())) {
+		return;
+	}
+	self.activeBindings_[texUnit] = nullptr;
+	self.activeBindingIDs_[texUnit] = 0; // reset binding ID
+	tex->clearTextureChannel();
+}

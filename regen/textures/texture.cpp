@@ -262,6 +262,9 @@ void Texture::allocTexture() {
 		}
 		nextObject();
 	}
+	if (isReAlloc) {
+		TextureBinder::rebind(this);
+	}
 }
 
 void Texture::updateImage(GLubyte *data) {
