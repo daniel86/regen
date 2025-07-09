@@ -44,7 +44,7 @@ namespace regen {
 			/**
 			 * @param msg the error message.
 			 */
-			Error(const std::string &msg) : std::runtime_error(msg) {}
+			explicit Error(const std::string &msg) : std::runtime_error(msg) {}
 		};
 
 		/**
@@ -94,7 +94,7 @@ namespace regen {
 		 */
 		Font(const std::string &filename, GLuint size, GLuint dpi = 96);
 
-		virtual ~Font();
+		~Font() override;
 
 		/**
 		 * Height of a line of text. In unit space (maps font size to 1.0).

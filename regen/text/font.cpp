@@ -116,9 +116,11 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 }
 
 Font::~Font() {
-	auto needle = fonts_.find(
-			REGEN_STRING(fontPath_ << size_ << "_" << dpi_));
-	if (needle != fonts_.end()) { fonts_.erase(needle); }
+	if (isFreetypeInitialized_) {
+		auto needle = fonts_.find(
+				REGEN_STRING(fontPath_ << size_ << "_" << dpi_));
+		if (needle != fonts_.end()) { fonts_.erase(needle); }
+	}
 	delete[] faceData_;
 }
 

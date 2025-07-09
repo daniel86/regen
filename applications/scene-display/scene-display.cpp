@@ -13,6 +13,7 @@
 #include <QtCore/QString>
 
 #include <regen/utility/filesystem.h>
+#include "regen/text/font.h"
 
 #define CONFIG_FILE_NAME ".regen-scene-display.cfg"
 
@@ -47,5 +48,6 @@ int main(int argc, char **argv) {
 	auto exitCode = app->mainLoop();
 	REGEN_INFO("Shutting down application");
 	Logging::shutdown();
+	delete widget;
 	return exitCode;
 }

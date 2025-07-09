@@ -8,6 +8,7 @@
 #ifndef SCENE_DISPLAY_WIDGET_H_
 #define SCENE_DISPLAY_WIDGET_H_
 
+#include <QSettings>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QFileDialog>
 #include <QtCore/QString>
@@ -120,6 +121,8 @@ protected:
 
 	ref_ptr<State> wireframeState_;
 	std::map<std::string, ref_ptr<Light>> lightStates_;
+
+	QSettings settings_;
 
 	void loadScene(const std::string &sceneFile);
 
