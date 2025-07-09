@@ -404,7 +404,7 @@ void FBO::blitCopyToScreen(
 }
 
 void FBO::clearAllColorAttachments(const Vec4f &color) {
-	for (uint32_t attachmentIdx=0; attachmentIdx < colorAttachments_.buffers_.size(); ++attachmentIdx) {
+	for (uint32_t attachmentIdx=0; attachmentIdx < drawBuffers_.buffers_.size(); ++attachmentIdx) {
 		glClearNamedFramebufferfv(
 				id(),
 				GL_COLOR,
@@ -413,17 +413,7 @@ void FBO::clearAllColorAttachments(const Vec4f &color) {
 	}
 }
 
-void FBO::clearColorAttachments(const DrawBuffers &buffers, const Vec4f &color) {
-	for (const auto &attachment : buffers.buffers_) {
-		glClearNamedFramebufferfv(
-				id(),
-				GL_COLOR,
-				attachment - GL_COLOR_ATTACHMENT0,
-				&color.x);
-	}
-}
-
-void FBO::clearColorAttachment(const Vec4f &color, uint32_t attachmentIdx) {
+void FBO::clearColorAttachment(uint32_t attachmentIdx, const Vec4f &color) {
 	glClearNamedFramebufferfv(
 			id(),
 			GL_COLOR,

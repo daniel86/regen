@@ -449,10 +449,10 @@ namespace regen {
 
 		// override
 		void enable(RenderState *rs) override {
-			if (!rs->drawFrameBuffer().isLocked()) {
-				for (auto & it : data) {
-					fbo_->applyDrawBuffers(it.colorBuffers);
-					fbo_->clearColorAttachments(it.colorBuffers, it.clearColor);
+			for (auto & it : data) {
+				fbo_->applyDrawBuffers(it.colorBuffers);
+				for (uint32_t attachmentIdx = 0; attachmentIdx < it.colorBuffers.buffers_.size(); ++attachmentIdx) {
+					fbo_->clearColorAttachment(attachmentIdx, it.clearColor);
 				}
 			}
 		}

@@ -343,18 +343,11 @@ namespace regen {
 		void clearAllColorAttachments(const Vec4f &color);
 
 		/**
-		 * Clear the FBO color attachments to the given color.
-		 * @param buffers the list of buffers to clear.
-		 * @param color the color to clear to.
-		 */
-		void clearColorAttachments(const DrawBuffers &buffers, const Vec4f &color);
-
-		/**
 		 * Clear the FBO color attachment at the given index to the given color.
-		 * @param color the color to clear to.
 		 * @param attachmentIdx the index of the attachment to clear.
+		 * @param color the color to clear to.
 		 */
-		void clearColorAttachment(const Vec4f &color, uint32_t attachmentIdx);
+		void clearColorAttachment(uint32_t attachmentIdx, const Vec4f &color);
 
 		/**
 		 * Clear the FBO depth attachment.
