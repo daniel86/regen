@@ -28,6 +28,8 @@ namespace regen {
 		ref_ptr<BloomTexture> bloomTexture_;
 		ref_ptr<Mesh> fullscreenMesh_d_;
 		ref_ptr<Mesh> fullscreenMesh_u_;
+		uint32_t bloomWidth_ = 0;
+		uint32_t bloomHeight_ = 0;
 
 		ref_ptr<FBO> fbo_;
 

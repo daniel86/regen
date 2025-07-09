@@ -36,6 +36,8 @@ BloomPass::BloomPass(
 	glNamedFramebufferTexture(fbo_->id(),
 						 GL_COLOR_ATTACHMENT0,
 						 bloomTexture->id(), 0);
+	bloomWidth_ = bloomTexture->width();
+	bloomHeight_ = bloomTexture->height();
 }
 
 void BloomPass::createShader(const StateConfig &cfg) {
@@ -108,6 +110,15 @@ void BloomPass::upsample(RenderState *rs) {
 }
 
 void BloomPass::traverse(RenderState *rs) {
+	if (inputTexture_->width() != bloomTexture_->width() ||
+		inputTexture_->height() != bloomTexture_->height()) {
+		bloomTexture_->resize(inputTexture_->width(), inputTexture_->height());
+		fbo_->resize(bloomTexture_->width(), bloomTexture_->height(), 1);
+		glNamedFramebufferTexture(fbo_->id(),
+			GL_COLOR_ATTACHMENT0,
+			bloomTexture_->id(), 0);
+	}
+
 	state()->enable(rs);
 	rs->drawFrameBuffer().push(fbo_->id());
 	downsample(rs);
