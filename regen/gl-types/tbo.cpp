@@ -4,6 +4,8 @@ using namespace regen;
 
 TBO::TBO(BufferUpdateHint hint) :
 		BufferObject(TEXTURE_BUFFER, hint) {
+	setBufferAccessMode(BUFFER_CPU_WRITE);
+	setBufferMapMode(BUFFER_MAP_DISABLED);
 }
 
 void TBO::setBufferInput(const ref_ptr<regen::ShaderInput> &input) {
