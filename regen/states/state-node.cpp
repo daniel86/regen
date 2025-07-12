@@ -123,7 +123,6 @@ void RootNode::init() {
 void RootNode::render(GLdouble dt) {
 	auto rs = RenderState::get();
 	traverse(rs);
-	rs->runPostRenderCallbacks();
 }
 
 void RootNode::postRender(GLdouble dt) {

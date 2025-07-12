@@ -14,7 +14,7 @@
 namespace regen {
 	class Cone : public Mesh {
 	public:
-		Cone(GLenum primitive, BufferUpdateHint updateHint);
+		Cone(GLenum primitive, const BufferUpdateFlags &hints);
 
 	protected:
 		ref_ptr<ShaderInput3f> nor_;
@@ -43,7 +43,7 @@ namespace regen {
 			std::vector<GLuint> levelOfDetails;
 			/** Buffer usage hints. */
 			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
-			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferUpdateFlags updateHint = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY };
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
@@ -100,7 +100,7 @@ namespace regen {
 			std::vector<GLuint> levelOfDetails;
 			/** Buffer usage hints. */
 			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
-			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferUpdateFlags updateHint = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY };
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();

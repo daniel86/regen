@@ -86,7 +86,8 @@ void BoidsGPU::createResource() {
 	u_numCells_->setUniformData(numCells_);
 
 	{ // UBO with grid parameters
-		gridUBO_ = ref_ptr<UBO>::alloc("BoidGrid", BUFFER_HINT_UPDATE_RARELY);
+		gridUBO_ = ref_ptr<UBO>::alloc("BoidGrid",
+			BufferUpdateFlags{ BUFFER_UPDATE_RARE, BUFFER_UPDATE_PARTIALLY });
 		gridMin_ = ref_ptr<ShaderInput3f>::alloc("gridMin");
 		gridMin_->setUniformData(gridBounds_.min);
 		gridUBO_->addBlockInput(gridMin_);
@@ -110,15 +111,15 @@ void BoidsGPU::createResource() {
 
 	// SSBO for velocity, one per boid
 	velBuffer_ = ref_ptr<SSBO>::alloc("VelocityBlock",
-			BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+		SSBO::RESTRICT);
 #ifdef BOID_USE_HALF_VELOCITY
-	auto vel = ref_ptr<ShaderInput2ui>::alloc("vel", numBoids_);
+	velBuffer_->addBlockInput(ref_ptr<ShaderInput2ui>::alloc("vel", numBoids_));
 #else
-	auto vel = ref_ptr<ShaderInput1f>::alloc("vel", numBoids_ * 3);
+	velBuffer_->addBlockInput(ref_ptr<ShaderInput1f>::alloc("vel", numBoids_ * 3));
 #endif
-	vel->setInstanceData(1, 1, (byte*)initialVelocities.data());
-	velBuffer_->addBlockInput(vel);
 	velBuffer_->update();
+	velBuffer_->setBufferData(initialVelocities.data());
 
 	// bounding box SSBO as we read back bounding box to CPU
 	bboxBuffer_ = ref_ptr<BBoxBuffer>::alloc();
@@ -137,7 +138,8 @@ void BoidsGPU::createResource() {
 	}
 	{ // SSBO for grid offsets
 		gridOffsetBuffer_ = ref_ptr<SSBO>::alloc("GridOffsets",
-				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			SSBO::RESTRICT);
 		gridOffsetBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("globalHistogram", numCells_ + 1));
 		gridOffsetBuffer_->update();
 	}
@@ -150,7 +152,8 @@ void BoidsGPU::createResource() {
 	#ifdef BOID_USE_SORTED_DATA
 	{
 		boidDataBuffer_ = ref_ptr<SSBO>::alloc("BoidDataBuffer",
-				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			SSBO::RESTRICT);
 		boidDataBuffer_->addBlockInput(ref_ptr<ShaderInputStruct<BoidData>>::alloc("BoidData", "boidData", numBoids_));
 		boidDataBuffer_->update();
 	}

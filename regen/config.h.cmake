@@ -45,7 +45,6 @@
 namespace regen {
     class LoadingContext;
 };
-
 #endif // __REGEN_CONFIG_H
 
 #include <regen/gl-types/gl-util.h>

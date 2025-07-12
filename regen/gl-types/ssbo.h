@@ -47,7 +47,7 @@ namespace regen {
 			WRITE_ONLY = 1 << 4
 		};
 
-		SSBO(const std::string &name, BufferUpdateHint hint, int memoryMask = 0);
+		SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMask = 0);
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.

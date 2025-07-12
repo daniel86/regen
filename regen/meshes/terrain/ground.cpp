@@ -6,7 +6,8 @@
 using namespace regen;
 
 Ground::Ground() : SkirtQuad() {
-	rectangleConfig_.updateHint = BUFFER_HINT_STATIC;
+	rectangleConfig_.updateHint.frequency = BUFFER_UPDATE_NEVER;
+	rectangleConfig_.updateHint.scope = BUFFER_UPDATE_FULLY;
 	rectangleConfig_.accessMode = BUFFER_CPU_WRITE;
 	rectangleConfig_.mapMode = BUFFER_MAP_DISABLED;
 	rectangleConfig_.isNormalRequired = false;

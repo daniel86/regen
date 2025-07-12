@@ -106,7 +106,7 @@ namespace regen {
 		 * @param primitive Specifies what kind of primitives to render.
 		 * @param usage VBO usage.
 		 */
-		Mesh(GLenum primitive, BufferUpdateHint hint);
+		Mesh(GLenum primitive, const BufferUpdateFlags &hints);
 
 		~Mesh() override;
 

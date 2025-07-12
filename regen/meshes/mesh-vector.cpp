@@ -51,9 +51,11 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	bool useNormal = input.getValue<bool>("use-normal", true);
 	bool useTexco = input.getValue<bool>("use-texco", true);
 	bool useTangent = input.getValue<bool>("use-tangent", false);
-	auto updateHint = input.getValue<BufferUpdateHint>("update-hint", BUFFER_HINT_STATIC);
 	auto accessMode = input.getValue<BufferAccessMode>("access-mode", BUFFER_CPU_WRITE);
 	auto mapMode = input.getValue<BufferMapMode>("map-mode", BUFFER_MAP_DISABLED);
+	BufferUpdateFlags updateFlags;
+	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
+	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
 
 	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
 	MeshVector *out = out_.get();
@@ -80,7 +82,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.isHalfSphere = (meshType == "half-sphere");
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
@@ -96,7 +98,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
 		meshCfg.isTexcoRequired = useTexco;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
@@ -110,7 +112,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetails = lodLevels;
@@ -126,7 +128,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetail = lodLevels[0];
@@ -141,7 +143,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHints = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetails = lodLevels;
@@ -158,7 +160,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.isTangentRequired = useTangent;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetails = lodLevels;
@@ -173,7 +175,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
 		meshCfg.isBaseRequired = input.getValue<bool>("use-base", true);
 		meshCfg.isNormalRequired = useNormal;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
@@ -185,7 +187,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.cosAngle = input.getValue<GLfloat>("angle", 0.5f);
 		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
 		meshCfg.isNormalRequired = useNormal;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
@@ -275,7 +277,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.isNormalRequired = input.hasAttribute("use-normal") && useNormal;
 		meshCfg.isTangentRequired = input.hasAttribute("use-tangent") && useTangent;
 		meshCfg.isTexcoRequired = input.hasAttribute("use-texco") && useTexco;
-		meshCfg.updateHint = updateHint;
+		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		auto m = MaskMesh::load(ctx, input, meshCfg);
@@ -305,7 +307,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	} else if (meshType == "mesh") {
 		GLenum primitive = glenum::primitive(input.getValue<std::string>("primitive", "TRIANGLES"));
 		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Mesh>::alloc(primitive, updateHint);
+		(*out)[0] = ref_ptr<Mesh>::alloc(primitive, updateFlags);
 	} else {
 		REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
 	}
@@ -418,8 +420,11 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 	const auto translation = input.getValue<Vec3f>("translation", Vec3f(0.0f));
 	const auto assetIndices = input.getValue<std::string>("asset-indices", "*");
 	bool useAnimation = input.getValue<bool>("asset-animation", false);
+	BufferUpdateFlags updateFlags;
+	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
+	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
 
-	BufferConfig bufferConfig(input.getValue<BufferUpdateHint>("update-hint", BUFFER_HINT_STATIC));
+	BufferFlags bufferConfig(ARRAY_BUFFER, updateFlags);
 	if (input.hasAttribute("access-mode")) {
 		bufferConfig.accessMode = input.getValue<BufferAccessMode>("access-mode", BUFFER_CPU_WRITE);
 	}

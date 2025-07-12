@@ -15,9 +15,9 @@
 
 using namespace regen;
 
-Mesh::Mesh(GLenum primitive, BufferUpdateHint hint)
+Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints)
 		: State(),
-		  HasInput(ARRAY_BUFFER, hint),
+		  HasInput(ARRAY_BUFFER, hints),
 		  primitive_(primitive),
 		  lodLevel_(ref_ptr<uint32_t>::alloc(0u)),
 		  vao_(ref_ptr<VAO>::alloc()),

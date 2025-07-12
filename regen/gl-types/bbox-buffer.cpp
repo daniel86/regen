@@ -4,17 +4,10 @@
 
 using namespace regen;
 
-BBoxBuffer::BBoxBuffer(const std::string &name) :
-	SSBO(name, BUFFER_HINT_UPDATE_STREAM),
-	bbox_(Vec3f::zero(), Vec3f::zero())
-{
-	setBufferMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
-	setBufferAccessMode(BUFFER_CPU_READ);
-	setBufferingMode(DOUBLE_BUFFER);
-	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMin"));
-	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMax"));
-	update();
-}
+struct BoundingBoxBlock {
+	Vec4i min;
+	Vec4i max;
+};
 
 namespace regen {
 	static inline int biasedBits(float f) {
@@ -27,16 +20,53 @@ namespace regen {
 	}
 }
 
-struct BoundingBoxBlock {
-	Vec4i min;
-	Vec4i max;
-};
+BBoxBuffer::BBoxBuffer(const std::string &name) :
+	SSBO(name, { BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY }),
+	bbox_(Vec3f::zero(), Vec3f::zero())
+{
+	// The parameters of our bounding box buffer or the boundaries encoded as integers.
+	// Integers are used for atomic operations in the compute shader.
+	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMin"));
+	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMax"));
+
+	// configure storage access:
+	// - use persistent coherent mapping for the staging buffer, i.e. keep read buffer mapped
+	setStagingMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
+	// - allow CPU read access on the staging buffer
+	setStagingAccessMode(BUFFER_CPU_READ);
+	// - use double-buffering for the staging buffer, i.e. use a ring buffer with 2 segments.
+	//   so we will always be one frame behind the GPU.
+	setBufferingMode(DOUBLE_BUFFER);
+	//setStagingSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
+	//setStagingSyncFlag(BUFFER_SYNC_FRAME_DROPPING);
+
+	// Adopt a static storage for clearing the draw buffer from which we read the bounding box.
+	// This might be non-mappable storage, so to clear the buffer we will use dedicated static write buffer.
+	static const BoundingBoxBlock zeroBlock = {
+		Vec4i(biasedBits(FLT_MAX)),
+		Vec4i(biasedBits(-FLT_MAX))
+	};
+	clearRef_ = BufferObject::adoptBufferRange(
+		sizeof(BoundingBoxBlock),
+		bufferPool(flags_.target, BUFFER_MODE_STATIC_WRITE));
+	glNamedBufferSubData(
+		clearRef_->bufferID(),
+		clearRef_->address(),
+		clearRef_->allocatedSize(),
+		&zeroBlock);
+
+	update();
+}
 
 bool BBoxBuffer::updateBoundingBox() {
 	bool hasChanged = false;
-	bufferMapping_->readBuffer(*bufferDrawRange_.get());
-	if (bufferMapping_->hasReadData()) {
-		auto &bbox = *((BoundingBoxBlock*)bufferMapping_->clientData());
+	if (!stagingBuffer_->readBuffer(*drawBufferRange_.get())) {
+		REGEN_ERROR("Unable to read bounding box buffer data.");
+		isBlockValid_ = false;
+		return false;
+	}
+	if (stagingBuffer_->hasReadData()) {
+		auto &bbox = *((BoundingBoxBlock*)stagingBuffer_->readData());
         bboxMin_.x = biasedToFloat(bbox.min.x);
         bboxMin_.y = biasedToFloat(bbox.min.y);
         bboxMin_.z = biasedToFloat(bbox.min.z);
@@ -56,12 +86,8 @@ bool BBoxBuffer::updateBoundingBox() {
 }
 
 void BBoxBuffer::clear() {
-	// clear the bounding box buffer to zero
-	// FIXME: cannot write to the buffer directly, as it is mapped persistently with read only access.
-	//        instead use a shader.
-	static const BoundingBoxBlock zeroBlock = {
-		Vec4i(biasedBits(FLT_MAX)),
-		Vec4i(biasedBits(-FLT_MAX))
-	};
-	setBufferData(&zeroBlock);
+	// clear the draw buffer, staging is just used for reading.
+	setBufferData(clearRef_->bufferID(),
+				  clearRef_->address(),
+				  clearRef_->allocatedSize());
 }

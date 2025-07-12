@@ -7,7 +7,7 @@
 #include "state-node.h"
 #include "pick-data.h"
 #include "regen/gl-types/pbo.h"
-#include "regen/gl-types/buffer-mapping.h"
+#include "regen/gl-types/staging-buffer.h"
 
 namespace regen {
 	/**
@@ -53,7 +53,7 @@ namespace regen {
 		ref_ptr<VBO> feedbackBuffer_;
 		ref_ptr<BufferRange> bufferRange_;
 		ref_ptr<BufferReference> vboRef_;
-		ref_ptr<BufferStructMapping<PickData>> pickMapping_;
+		ref_ptr<StagingStructBuffer<PickData>> pickMapping_;
 		BufferRange feedbackRange_;
 		GLuint bufferSize_;
 

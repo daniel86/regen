@@ -2,8 +2,8 @@
 
 using namespace regen;
 
-Cone::Cone(GLenum primitive, BufferUpdateHint updateHint)
-		: Mesh(primitive, updateHint) {
+Cone::Cone(GLenum primitive, const BufferUpdateFlags &hints)
+		: Mesh(primitive, hints) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 }

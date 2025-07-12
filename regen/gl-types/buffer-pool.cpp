@@ -1,18 +1,16 @@
 #include "buffer-pool.h"
-#include "buffer-usage.h"
+#include "buffer-enums.h"
 
 using namespace regen;
 
 GLuint BufferAllocator::createAllocator(GLuint poolIdx, GLuint size) {
+	// create a fresh GL buffer object.
 	GLuint ref;
 	glCreateBuffers(1, &ref);
-
+	// allocate the storage for the buffer object.
 	const uint32_t flags = glStorageFlags((BufferStorageMode)(poolIdx % BUFFER_STORAGE_MODE_LAST));
-	//auto target = glBufferTarget((BufferTarget)(poolIdx / BUFFER_USAGE_LAST));
     glNamedBufferStorage(ref, size, nullptr, flags);
-
 	return ref;
-
 }
 
 void BufferAllocator::deleteAllocator(GLuint /*poolIndex*/, GLuint ref) {

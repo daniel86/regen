@@ -54,7 +54,8 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat)
 }
 
 void ModelTransformation::initBufferContainer() {
-	bufferContainer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation", BUFFER_HINT_UPDATE_STREAM);
+	bufferContainer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation",
+		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
 	if (tfMode_ & TF_MATRIX) {
 		bufferContainer_->addInput(modelMat_);
 	}

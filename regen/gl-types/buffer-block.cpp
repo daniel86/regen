@@ -7,77 +7,89 @@
 using namespace regen;
 
 //#define REGEN_BUFFER_BLOCK_DEBUG
-#define BUFFER_BLOCK_DISABLE_PERSISTENT
-//#define BUFFER_BLOCK_FLUSH_EXPLICIT
-#define BUFFER_BLOCK_BUFFERING_MODE TRIPLE_BUFFER
+//#define BUFFER_BLOCK_DISABLE_PERSISTENT
+//#define BUFFER_BLOCK_DISABLE_PERSISTENT_MEDIUM_SIZE
+//#define BUFFER_BLOCK_DISABLE_PERSISTENT_SMALL_SIZE
+//#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
+
+uint32_t BufferBlock::MIN_SIZE_MEDIUM = 256; // Bytes
+//uint32_t BufferBlock::MIN_SIZE_MEDIUM = 512; // Bytes
+uint32_t BufferBlock::MIN_SIZE_LARGE = 64 * 1024; // 64 KiB
+uint32_t BufferBlock::MIN_SIZE_VERY_LARGE = 1024 * 1024; // 1 MiB
+
+uint32_t BufferBlock::temporaryMappingPartialMinSegments = 6;
+float BufferBlock::temporaryMappingPartialMaxUpdateRatio = 0.33f;
 
 BufferBlock::BufferBlock(
 		BufferTarget target,
-		BufferUpdateHint hint,
-		StorageQualifier storageQualifier,
-		MemoryLayout memoryLayout)
-		: BufferObject(target, hint),
-		  storageQualifier_(storageQualifier),
-		  memoryLayout_(memoryLayout) {
-	bufferDrawRange_ = ref_ptr<BufferRange>::alloc();
+		const BufferUpdateFlags &hints,
+		Qualifier blockQualifier,
+		BufferMemoryLayout memoryLayout)
+		: BufferObject(target, hints),
+		  blockQualifier_(blockQualifier),
+		  memoryLayout_(memoryLayout),
+		  stagingFlags_(target, hints) {
+	drawBufferRange_ = ref_ptr<BufferRange>::alloc();
 	// initially assume it is a GPU-only buffer.
 	// the flag will be switched to something else based on the inputs added.
 	setBufferAccessMode(BUFFER_GPU_ONLY);
 	setBufferMapMode(BUFFER_MAP_DISABLED);
-	// a ring-buffer may be used for some cases, by default we use triple buffering, i.e. 3 ring segments.
-	// this also means that triple the space is allocated for the buffer.
-	// but only in case the ring buffer is used.
-	setBufferingMode(BUFFER_BLOCK_BUFFERING_MODE);
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
 		: BufferObject(other),
-		  storageQualifier_(other.storageQualifier_),
+		  blockQualifier_(other.blockQualifier_),
 		  memoryLayout_(other.memoryLayout_),
-		  bufferingMode_(other.bufferingMode_),
 		  bindingIndex_(other.bindingIndex_),
 		  hasClientData_(other.hasClientData_),
 		  isBlockValid_(other.isBlockValid_),
 		  inputs_(other.inputs_),
 		  ref_(other.ref_),
 		  requiredSize_(other.requiredSize_),
+		  estimatedSize_(other.estimatedSize_),
 		  updatedSize_(other.updatedSize_),
 		  stamp_(other.stamp_),
 		  blockInputs_(other.blockInputs_),
-		  bufferMapping_(other.bufferMapping_),
-		  bufferDrawRange_(other.bufferDrawRange_) {
+		  stagingFlags_(other.stagingFlags_),
+		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
+		  stagingBuffer_(other.stagingBuffer_),
+		  drawBufferRange_(other.drawBufferRange_) {
 }
 
 BufferBlock::BufferBlock(const BufferObject &other)
 		: BufferObject(other),
-		  storageQualifier_(BufferBlock::BUFFER),
-		  memoryLayout_(BufferBlock::STD430) {
+		  blockQualifier_(BufferBlock::BUFFER),
+		  memoryLayout_(BUFFER_MEMORY_STD430),
+		  stagingFlags_(other.bufferTarget(), other.bufferUpdateHints()) {
 	auto block = dynamic_cast<const BufferBlock *>(&other);
 	if (block != nullptr) {
-		storageQualifier_ = block->storageQualifier_;
+		blockQualifier_ = block->blockQualifier_;
 		memoryLayout_ = block->memoryLayout_;
-		bufferingMode_ = block->bufferingMode_;
+		stagingBuffer_ = block->stagingBuffer_;
 		bindingIndex_ = block->bindingIndex_;
 		hasClientData_ = block->hasClientData_;
 		isBlockValid_ = block->isBlockValid_;
 		inputs_ = block->inputs_;
 		ref_ = block->ref_;
 		requiredSize_ = block->requiredSize_;
+		estimatedSize_ = block->estimatedSize_;
 		updatedSize_ = block->updatedSize_;
 		stamp_ = block->stamp_;
 		blockInputs_ = block->blockInputs_;
-		bufferMapping_ = block->bufferMapping_;
-		bufferDrawRange_ = block->bufferDrawRange_;
+		stagingFlags_ = block->stagingFlags_;
+		userDefinedBufferingMode_ = block->userDefinedBufferingMode_;
+		stagingBuffer_ = block->stagingBuffer_;
+		drawBufferRange_ = block->drawBufferRange_;
 	} else {
 		auto tbo = dynamic_cast<const TBO *>(&other);
 		if (tbo != nullptr) {
 			inputs_.emplace_back(tbo->input(), tbo->input()->name());
 
-			auto uboInput = ref_ptr<BlockInput>::alloc();
-			uboInput->input = tbo->input();
-			uboInput->offset = 0;
-			uboInput->lastStamp = tbo->input()->stamp();
-			blockInputs_.emplace_back(uboInput);
+			auto bufferInput = ref_ptr<BlockInput>::alloc();
+			bufferInput->input = tbo->input();
+			bufferInput->offset = 0;
+			bufferInput->lastStamp[0] = tbo->input()->stamp();
+			blockInputs_.emplace_back(bufferInput);
 
 			if (!tbo->allocations().empty()) {
 				ref_ = tbo->allocations()[0];
@@ -88,63 +100,205 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	}
 }
 
+void BufferBlock::setBufferingMode(BufferingMode mode) {
+	userDefinedBufferingMode_ = mode;
+	stagingFlags_.bufferingMode = mode;
+	// TODO: need to resize the stamp arrays etc if this is done late...
+}
+
+std::string BufferBlock::getBlockName() const {
+	auto *si = dynamic_cast<const ShaderInput*>(this);
+	if (si != nullptr) {
+		return si->name();
+	} else if (!blockInputs_.empty()) {
+		return REGEN_STRING("{" << blockInputs_[0]->input->name() << "}");
+	} else {
+		return "BufferBlock";
+	}
+}
+
+void BufferBlock::setStagingUpdateHints(const BufferUpdateFlags &hints) {
+	if (!flags_.useExplicitStaging()) {
+		// if we are not using separate staging buffers, we need to set the same update hint
+		// for the main buffer as well.
+		setBufferUpdateHint(hints);
+		stagingFlags_.updateHints = flags_.updateHints;
+	} else {
+		stagingFlags_.updateHints = hints;
+	}
+}
+
+void BufferBlock::setStagingMapMode(BufferMapMode mode) {
+	if (!flags_.useExplicitStaging()) {
+		// if we are not using separate staging buffers, we need to set the same map mode
+		// for the main buffer as well.
+		setBufferMapMode(mode);
+		stagingFlags_.mapMode = flags_.mapMode;
+	} else {
+		stagingFlags_.mapMode = mode;
+	}
+}
+
+void BufferBlock::setStagingAccessMode(BufferAccessMode mode) {
+	if (!flags_.useExplicitStaging()) {
+		// if we are not using separate staging buffers, we need to set the same access mode
+		// for the main buffer as well.
+		setBufferAccessMode(mode);
+		stagingFlags_.accessMode = flags_.accessMode;
+	} else {
+		stagingFlags_.accessMode = mode;
+	}
+}
+
+void BufferBlock::enableWriteAccess() {
+	if (stagingFlags_.accessMode == BUFFER_GPU_ONLY) {
+		// if the access mode is GPU-only, we need to switch it to CPU_WRITE
+		setStagingAccessMode(BUFFER_CPU_WRITE);
+	} else if (stagingFlags_.accessMode == BUFFER_CPU_READ) {
+		// if the access mode is CPU_READ, we need to switch it to CPU_READ_WRITE
+		setStagingAccessMode(BUFFER_CPU_READ_WRITE);
+	}
+}
+
+void BufferBlock::setStagingBuffering(BufferingMode mode) {
+	if (!userDefinedBufferingMode_.has_value()) {
+		stagingFlags_.bufferingMode = mode;
+	}
+}
+
+void BufferBlock::enablePersistentMapping(bool useFlushExplicit) {
+	if (useFlushExplicit) {
+		setStagingMapMode(BUFFER_MAP_PERSISTENT_FLUSH);
+	} else {
+		setStagingMapMode(BUFFER_MAP_PERSISTENT_COHERENT);
+	}
+}
+
+void BufferBlock::enablePersistentMapping_(bool useFlushExplicit) {
+#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT_SMALL_SIZE
+	// use temporary mapping.
+	setStagingMapMode(BUFFER_MAP_TEMPORARY);
+#else
+	// use coherent persistent mapping.
+	enablePersistentMapping(useFlushExplicit);
+#endif
+}
+
+BufferSizeClass BufferBlock::getBufferSizeClass(uint32_t size) {
+	if (size < BufferBlock::MIN_SIZE_MEDIUM) {
+		return BUFFER_SIZE_SMALL;
+	} else if (size < BufferBlock::MIN_SIZE_LARGE) {
+		return BUFFER_SIZE_MEDIUM;
+	} else if (size < BufferBlock::MIN_SIZE_VERY_LARGE) {
+		return BUFFER_SIZE_LARGE;
+	} else {
+		return BUFFER_SIZE_VERY_LARGE;
+	}
+}
+
 void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
-	auto uboInput = ref_ptr<BlockInput>::alloc();
-	uboInput->input = input;
-	blockInputs_.emplace_back(uboInput);
+	auto bufferInput = ref_ptr<BlockInput>::alloc();
+	bufferInput->input = input;
+	blockInputs_.emplace_back(bufferInput);
 	inputs_.emplace_back(input, name);
+	estimatedSize_ += input->inputSize();
 
 	// update the storage flags based on added inputs
 	if (input->hasClientData()) {
+		auto sizeClass = getBufferSizeClass(estimatedSize_);
 		// input has client data, so we need to set the access mode such that the CPU can write to it.
-		if (accessMode_ == BUFFER_GPU_ONLY) {
-			// if the access mode is GPU-only, we need to switch it to CPU_WRITE
-			setBufferAccessMode(BUFFER_CPU_WRITE);
-		} else if (accessMode_ == BUFFER_CPU_READ) {
-			// if the access mode is CPU_READ, we need to switch it to CPU_READ_WRITE
-			setBufferAccessMode(BUFFER_CPU_READ_WRITE);
-		}
+		enableWriteAccess();
 
-		if (bufferMapMode() == BUFFER_MAP_DISABLED) {
-			// when reading is used, we need to map the buffer.
-			bool isMapRequired = (accessMode_ == BUFFER_CPU_READ_WRITE ||
-								 accessMode_ == BUFFER_CPU_READ);
-			if (isMapRequired || updateHint_ != BUFFER_HINT_STATIC) {
-#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
-				setBufferMapMode(BUFFER_MAP_TEMPORARY);
-#else
-#ifdef BUFFER_BLOCK_FLUSH_EXPLICIT
-				auto const persistentMappingMode = BUFFER_MAP_PERSISTENT_FLUSH;
-#else
-				auto const persistentMappingMode = BUFFER_MAP_PERSISTENT_COHERENT;
-#endif
-				//auto const persistentMappingMode = BUFFER_MAP_PERSISTENT_FLUSH;
-				setBufferMapMode(updateHint_ == BUFFER_HINT_UPDATE_STREAM ?
-								 persistentMappingMode :
-								 BUFFER_MAP_TEMPORARY);
-#endif
+		if (sizeClass == BUFFER_SIZE_SMALL) {
+			// If the buffer is small (e.g. < 512 Byte), then ...
+			if (stagingFlags_.areUpdatesFrequent()) {
+				// (a) use single-buffered coherent persistent mapping for frequent updates.
+				setStagingBuffering(SINGLE_BUFFER);
+				enablePersistentMapping_(false);
+			} else if (stagingFlags_.areUpdatesVeryFrequent()) {
+				// (b) use double-buffered coherent persistent mapping for very frequent updates.
+				// TODO: Consider using UNSYNCHRONIZED for very high frequency updates.
+				setStagingBuffering(DOUBLE_BUFFER);
+				enablePersistentMapping_(false);
+			} else {
+				// (c) use single-buffered coherent persistent mapping for rare updates.
+				setStagingBuffering(SINGLE_BUFFER);
+				enablePersistentMapping_(false);
+				// TODO: Consider using implicit staging instead for small writable buffers with infrequent full updates.
+				//       - It could be worthwhile to enable multi-buffering with implicit staging for slightly
+				//       larger buffers, e.g. 256 Bytes to a few KB e.g. 8KB. then classify >8KB as medium.
+				//if (!stagingFlags_.areUpdatesPartial()) {
+				//	stagingFlags_.syncFlags |= BUFFER_SYNC_IMPLICIT_STAGING;
+				//	setStagingMapMode(BUFFER_MAP_DISABLED);
+				//} else {}
 			}
 		}
+		else if (sizeClass == BUFFER_SIZE_MEDIUM) {
+			// If the buffer is medium sized (e.g. < 64KB), then ...
+			if (stagingFlags_.areUpdatesFrequent() || stagingFlags_.areUpdatesVeryFrequent()) {
+				// (a) use 3-ring staging buffer with persistent mapping for frequent updates.
+				//     In addition, use explicit flushing in case of partial updates.
+				setStagingBuffering(TRIPLE_BUFFER);
+#ifdef BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
+				enablePersistentMapping_(false);
+#else
+				enablePersistentMapping_(stagingFlags_.areUpdatesPartial());
+#endif
+			} else {
+				// (b) use single-buffering in staging with unmapped copy
+				//     or temporary mapping for infrequent updates.
+				setStagingBuffering(SINGLE_BUFFER);
+				if (stagingFlags_.areUpdatesPartial()) {
+					setStagingMapMode(BUFFER_MAP_DISABLED);
+				} else {
+					setStagingMapMode(BUFFER_MAP_TEMPORARY);
+				}
+			}
+		}
+		else if (sizeClass == BUFFER_SIZE_LARGE) {
+			// If the buffer is large (e.g. < 1MB)
+			if (stagingFlags_.areUpdatesFrequent() || stagingFlags_.areUpdatesVeryFrequent()) {
+				// (a) if updates are frequent, then use 2-ring staging buffer with range invalidation.
+				setStagingBuffering(DOUBLE_BUFFER);
+				setStagingMapMode(BUFFER_MAP_TEMPORARY);
+			} else {
+				// (b) if updates are infrequent, then use single-buffering in staging and avoid mapping
+				//     the buffer to CPU memory.
+				setStagingBuffering(SINGLE_BUFFER);
+				setStagingMapMode(BUFFER_MAP_DISABLED);
+			}
+		}
+		else { // sizeClass == BUFFER_SIZE_VERY_LARGE
+			// If the buffer is very large (e.g. > 1MB), avoid mapping it to CPU memory.
+			setStagingBuffering(SINGLE_BUFFER);
+			setStagingMapMode(BUFFER_MAP_DISABLED);
+		}
 	}
 }
 
-void BufferBlock::resetSegments() {
+void BufferBlock::resetDirtySegments() {
 	// note: we never clear the segments_ vector, we just reset the counters
-	numNextSegments_ = 0;
+	numDirtySegments_ = 0;
 }
 
-BufferBlock::BlockSegment &BufferBlock::getLastSegment() {
-	return nextSegments_[numNextSegments_ - 1];
+BufferBlock::DirtySegment &BufferBlock::getLastDirtySegment() {
+	return dirtySegments_[numDirtySegments_ - 1];
 }
 
-BufferBlock::BlockSegment &BufferBlock::getNextSegment() {
-	if (numNextSegments_ >= nextSegments_.size()) {
+BufferBlock::DirtySegment &BufferBlock::getNextDirtySegment() {
+	if (numDirtySegments_ >= dirtySegments_.size()) {
 		// allocate a new segment if we have no more space
-		numNextSegments_ += 1;
-		return nextSegments_.emplace_back();
+		numDirtySegments_ += 1;
+		return dirtySegments_.emplace_back();
 	} else {
-		return nextSegments_[numNextSegments_++];
+		return dirtySegments_[numDirtySegments_++];
 	}
+}
+
+uint32_t& BufferBlock::lastInputStamp(BlockInput &blockInput) {
+	return stagingBuffer_.get() ?
+		blockInput.lastStamp[stagingBuffer_->nextWriteIndex()] :
+		blockInput.lastStamp[0];
 }
 
 void BufferBlock::updateBlockInputs() {
@@ -152,7 +306,7 @@ void BufferBlock::updateBlockInputs() {
 	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
 	hasClientData_ = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
-	resetSegments();
+	resetDirtySegments();
 
 	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(blockInputs_.size()); ++inputIdx) {
 		auto &blockInput = *blockInputs_[inputIdx].get();
@@ -160,14 +314,14 @@ void BufferBlock::updateBlockInputs() {
 		hasClientData_ = hasClientData_ && blockInput.input->hasClientData();
 
 		// construct contiguous segments of inputs that have changed
-		if (blockInput.input->stamp() != blockInput.lastStamp) {
+		if (blockInput.input->stamp() != lastInputStamp(blockInput)) {
 			updatedSize_ += blockInput.input->inputSize();
 			if (lastChanged) {
 				// this input adds to the current segment
-				getLastSegment().append(blockInput, inputIdx);
+				getLastDirtySegment().append(blockInput, inputIdx);
 			} else {
 				// this input starts a new segment
-				getNextSegment().set(blockInput, inputIdx);
+				getNextDirtySegment().set(blockInput, inputIdx);
 			}
 			lastChanged = true;
 		} else {
@@ -192,7 +346,7 @@ void BufferBlock::updateBlockInputs() {
 			} else if (baseSize == 64u) { // mat4
 				baseAlignment = 16;
 				alignmentCount = 4;
-			} else if (in->numElements() > 1 && memoryLayout_ == MemoryLayout::STD140) {
+			} else if (in->numElements() > 1 && memoryLayout_ == BUFFER_MEMORY_STD140) {
 				// with STD140, each array element must be padded to a multiple of 16 bytes
 				baseAlignment = 16u;
 			}
@@ -210,7 +364,7 @@ void BufferBlock::updateBlockInputs() {
 			requiredSize_ += blockInput->inputSize;
 		}
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)
-		if (memoryLayout_ == MemoryLayout::STD140) {
+		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
 			static constexpr size_t std140Alignment = 16;
 			size_t remainder = requiredSize_ % std140Alignment;
 			if (remainder != 0) {
@@ -222,26 +376,26 @@ void BufferBlock::updateBlockInputs() {
 	}
 }
 
-void BufferBlock::updateStridedData(BlockInput &uboInput) {
+void BufferBlock::updateStridedData(BlockInput &bufferInput) {
 	// Some attributes cannot be stored tightly packed in the buffer,
 	// especially vec3 arrays or mat3 arrays cannot be stored tightly packed
 	// in STD140 or STD430 layouts, so we need to align them to 16 bytes.
 	// Which means there is a stride between array elements, which unfortunately
 	// means that we need to copy element-by-element to the buffer instead of
 	// copying the whole array at once using memcpy.
-	auto &in = uboInput.input;
+	auto &in = bufferInput.input;
 	auto numElements = in->numArrayElements() * in->numInstances();
 	if (numElements == 1) {
 		return;
 	}
 	auto elementSizeUnaligned = in->valsPerElement() * in->dataTypeBytes();
-	if (memoryLayout_ == MemoryLayout::STD140) {
+	if (memoryLayout_ == BUFFER_MEMORY_STD140) {
 		// the GL specification states that the stride between array elements must be
 		// rounded up to 16 bytes for STD140.
 		if (elementSizeUnaligned % 16 == 0) {
 			return;
 		}
-	} else if (memoryLayout_ == MemoryLayout::STD430) {
+	} else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
 		// only vec3 and mat3 types need to be aligned to 16 bytes with STD430.
 		if (elementSizeUnaligned != 12 && elementSizeUnaligned != 48) {
 			return;
@@ -253,14 +407,14 @@ void BufferBlock::updateStridedData(BlockInput &uboInput) {
 			   " with " << numElements << " elements, unaligned size: " << elementSizeUnaligned);
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
 	auto dataSizeAligned = elementSizeAligned * numElements;
-	if (dataSizeAligned != uboInput.alignedSize) {
-		delete[] uboInput.alignedData;
-		uboInput.alignedSize = dataSizeAligned;
-		uboInput.alignedData = new byte[uboInput.alignedSize];
+	if (dataSizeAligned != bufferInput.alignedSize) {
+		delete[] bufferInput.alignedData;
+		bufferInput.alignedSize = dataSizeAligned;
+		bufferInput.alignedData = new byte[bufferInput.alignedSize];
 	}
 	auto clientData = in->mapClientDataRaw(ShaderData::READ);
 	auto *src = clientData.r;
-	auto *dst = uboInput.alignedData;
+	auto *dst = bufferInput.alignedData;
 	for (unsigned int i = 0; i < numElements; ++i) {
 		memcpy(dst, src, elementSizeUnaligned);
 		src += elementSizeUnaligned;
@@ -268,52 +422,48 @@ void BufferBlock::updateStridedData(BlockInput &uboInput) {
 	}
 }
 
-void BufferBlock::copyBufferData1(char *bufferData, BlockInput &uboInput) {
-	updateStridedData(uboInput);
-	if (uboInput.alignedData) {
-		// NOTE: the buffer is mapped starting from the first segment, so we need to
-		//       adjust the offset to the first segment's offset.
-		//       However, ths is not the case for persistent mapping, where the whole
-		//       buffer is mapped and the offset is relative to the start of the buffer.
-		uint32_t offset = uboInput.offset;
-		if (!isMapModePersistent(mapMode_)) offset -= nextSegments_[0].offset;
-		memcpy(bufferData + offset,
-			   uboInput.alignedData, uboInput.alignedSize);
+void BufferBlock::copyBufferData1(byte *mappedBufferData, uint32_t localMapOffset, BlockInput &bufferInput) {
+	// NOTE: The buffer maybe is not mapped from the start if the adopted buffer range, e.g.
+	//       in case starts at first dirt segment. However, the block input offsets are always
+	//       relative to the start of the buffer, so we need to adjust the offset accordingly...
+	const uint32_t offset = bufferInput.offset - localMapOffset;
+	updateStridedData(bufferInput);
+	if (bufferInput.alignedData) {
+		memcpy(mappedBufferData + offset,
+			   bufferInput.alignedData, bufferInput.alignedSize);
 	} else {
-		auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
-		uint32_t offset = uboInput.offset;
-		if (!isMapModePersistent(mapMode_)) offset -= nextSegments_[0].offset;
-		memcpy(bufferData + offset,
+		auto mapped = bufferInput.input->mapClientDataRaw(ShaderData::READ);
+		memcpy(mappedBufferData + offset,
 			   mapped.r,
-			   uboInput.input->inputSize());
+			   bufferInput.input->inputSize());
 	}
 }
 
-void BufferBlock::copyBufferData(char *bufferData, bool partialWrite) {
+void BufferBlock::copyBufferData(byte *mappedBufferData, uint32_t localMapOffset, bool partialWrite) {
 	if (partialWrite) {
 		// iterate over the changed segments and copy only those
-		for (uint32_t segmentIdx = 0; segmentIdx < numNextSegments_; ++segmentIdx) {
-			auto &segment = nextSegments_[segmentIdx];
+		for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
+			DirtySegment &segment = dirtySegments_[segmentIdx];
 
 			for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
-				auto &uboInput = *blockInputs_[inputIdx].get();
-				copyBufferData1(bufferData, uboInput);
-				uboInput.lastStamp = uboInput.input->stamp();
+				auto &bufferInput = *blockInputs_[inputIdx].get();
+				copyBufferData1(mappedBufferData, localMapOffset, bufferInput);
+				lastInputStamp(bufferInput) = bufferInput.input->stamp();
 			}
 		}
 	} else { // full write of mapped range
 		// get start and end indices from first and last segment
 		// note: in case of persistent mapping, we always must write the whole buffer range,
 		//       as the whole range is mapped.
-		uint32_t startIdx = (isMapModePersistent(mapMode_) ? 0u : nextSegments_[0].startIdx);
-		uint32_t endIdx = (isMapModePersistent(mapMode_) ?
-						   (blockInputs_.size() - 1) :
-						   nextSegments_[numNextSegments_ - 1].endIdx);
+		bool isPersistent = isMapModePersistent(stagingFlags_.mapMode);
+		uint32_t startIdx = (isPersistent ? 0u : dirtySegments_[0].startIdx);
+		uint32_t endIdx = (isPersistent ? (blockInputs_.size() - 1) :
+						   dirtySegments_[numDirtySegments_ - 1].endIdx);
 
 		for (uint32_t inputIdx = startIdx; inputIdx <= endIdx; ++inputIdx) {
-			auto &uboInput = *blockInputs_[inputIdx].get();
-			copyBufferData1(bufferData, uboInput);
-			uboInput.lastStamp = uboInput.input->stamp();
+			auto &bufferInput = *blockInputs_[inputIdx].get();
+			copyBufferData1(mappedBufferData, localMapOffset, bufferInput);
+			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}
 }
@@ -324,49 +474,52 @@ void BufferBlock::resize() {
 	if (ref_.get()) {
 		free(ref_.get());
 	}
-	const bool useMapping = isMapModePersistent(mapMode_);
 
-	if (useMapping) {
-		// in case of double-buffering etc, we need to allocate space for each segment
-		// of a ring buffer.
-		ref_ = allocBytes(requiredSize_ * (int)bufferingMode_);
+	if (!flags_.useExplicitStaging()) {
+		// in case of implicit staging with multi-buffering, we need to allocate space for each segment
+		// of a ring buffer in the draw buffer.
+		ref_ = adoptBufferRange(requiredSize_ * (int)flags_.bufferingMode);
 	} else {
-		ref_ = allocBytes(requiredSize_);
+		ref_ = adoptBufferRange(requiredSize_);
 	}
+
+	// validate the allocation
 	if (!ref_.get()) {
-		REGEN_ERROR("failed to allocate buffer.");
+		REGEN_ERROR("failed to allocate buffer for buffer flags " << flags_);
 		isBlockValid_ = false;
 		return;
 	} else {
 		isBlockValid_ = true;
 	}
+	if (isMapModePersistent(flags_.mapMode) && !ref_->mappedData()) {
+		REGEN_WARN("something went wrong with persistent mapping for buffer flags " << flags_);
+		isBlockValid_ = false;
+		return;
+	}
+
 	allocatedSize_ = requiredSize_;
 	// set draw buffer range to first segment in the ring buffer
-	bufferDrawRange_->buffer_ = ref_->bufferID();
-	bufferDrawRange_->offset_ = ref_->address();
-	bufferDrawRange_->size_ = requiredSize_;
+	drawBufferRange_->buffer_ = ref_->bufferID();
+	drawBufferRange_->offset_ = ref_->address();
+	drawBufferRange_->size_ = requiredSize_;
 
-	if (useMapping) {
-		if (ref_->mappedData()) {
-			// initialize the buffer mapping using ring buffer mode
-			const BufferStorageMode storageMode = getBufferStorageMode(
-				accessMode_, mapMode_, updateHint_);
-			auto accessFlags = glAccessFlags(storageMode);
-			bufferMapping_ = ref_ptr<BufferMapping>::alloc(
-				ref_, accessFlags, bufferingMode_);
-			// avoid any waiting for fences, if we hit a fence, we will just skip the update to keep it fast!
-			// NOTE: for some reason this causes flickering on my test with AMD GPU, so I disable it for now.
-			//persistentMapping_->setAllowFrameDropping(true);
-			// initially copy data to all ring-buffer segments
-			resetPersistentMapped();
-		} else {
-			REGEN_WARN("something went wrong with persistent mapping initialization.");
-			isBlockValid_ = false;
-			bufferMapping_ = {};
-		}
-	} else {
-		bufferMapping_ = {};
+	// initialize the staging buffer.
+	// all access will be tunneled through the staging buffer.
+	// depending on configuration the staging is explicit (default) or implicit.
+	stagingBuffer_ = ref_ptr<StagingBuffer>::alloc(ref_, stagingFlags_);
+
+	// reset the update stamps: set their state to zero to force reloading
+	// all segments. this is needed as staging buffer adopts fresh buffer range.
+	for (auto &input: blockInputs_) {
+		input->lastStamp.resize((int)stagingFlags_.bufferingMode);
+		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 	}
+
+	REGEN_INFO("Created buffer " << getBlockName()
+			<< " required-size: " << requiredSize_
+			<< " estimated-size: " << estimatedSize_
+			<< "\n\t   draw-flags: " << flags_
+			<< "\n\tstaging-flags: " << stagingFlags_);
 }
 
 void BufferBlock::update(bool forceUpdate) {
@@ -375,14 +528,14 @@ void BufferBlock::update(bool forceUpdate) {
 	if (!isBlockValid_) return;
 	updateBlockInputs();
 	bool needsResize = allocatedSize_ != requiredSize_;
-	bool needsUpdate = (numNextSegments_ > 0 || forceUpdate) && hasClientData_;
+	bool needsUpdate = (numDirtySegments_ > 0 || forceUpdate) && hasClientData_;
 	if (!needsUpdate && !needsResize) { return; }
 #ifdef REGEN_BUFFER_BLOCK_DEBUG
 	auto t0 = std::chrono::high_resolution_clock::now();
 #endif
 	if (forceUpdate || needsResize) {
-		numNextSegments_ = 0;
-		auto &segment = getNextSegment();
+		numDirtySegments_ = 0;
+		DirtySegment &segment = getNextDirtySegment();
 		segment.offset = 0;
 		segment.size = requiredSize_;
 		segment.startIdx = 0;
@@ -400,9 +553,9 @@ void BufferBlock::update(bool forceUpdate) {
 	auto t2 = std::chrono::high_resolution_clock::now();
 #endif
 	if (hasClientData_) {
-		if (isMapModePersistent(mapMode_)) {
+		if (isMapModePersistent(stagingFlags_.mapMode)) {
 			updatePersistentMapped();
-		} else if (mapMode_ == BUFFER_MAP_TEMPORARY) {
+		} else if (stagingFlags_.mapMode == BUFFER_MAP_TEMPORARY) {
 			updateTemporaryMapped();
 		} else {
 			updateNonMapped();
@@ -451,94 +604,128 @@ void BufferBlock::update(bool forceUpdate) {
 }
 
 void BufferBlock::updateNonMapped() {
-	// iterate over the changed segments and copy only those
-	for (uint32_t segmentIdx = 0; segmentIdx < numNextSegments_; ++segmentIdx) {
-		auto &segment = nextSegments_[segmentIdx];
+	// iterate over the changed segments and copy only those into the staging buffer.
+	stagingBuffer_->beginNonMappedWrite();
+
+	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
+		DirtySegment &segment = dirtySegments_[segmentIdx];
 
 		for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
-			auto &uboInput = *blockInputs_[inputIdx].get();
-			if (uboInput.alignedData) {
-				glNamedBufferSubData(
-					ref_->bufferID(),
-					ref_->address() + uboInput.offset,
-					uboInput.alignedSize,
-					uboInput.alignedData);
+			auto &bufferInput = *blockInputs_[inputIdx].get();
+			if (bufferInput.alignedData) {
+				stagingBuffer_->setSubData(
+					bufferInput.offset,
+					bufferInput.alignedSize,
+					bufferInput.alignedData);
 			} else {
-				auto mapped = uboInput.input->mapClientDataRaw(ShaderData::READ);
-				glNamedBufferSubData(
-					ref_->bufferID(),
-					ref_->address() + uboInput.offset,
-					uboInput.inputSize,
+				auto mapped = bufferInput.input->mapClientDataRaw(ShaderData::READ);
+				stagingBuffer_->setSubData(
+					bufferInput.offset,
+					bufferInput.inputSize,
 					mapped.r);
 			}
-			uboInput.lastStamp = uboInput.input->stamp();
+			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}
+	stagingBuffer_->endNonMappedWrite(*drawBufferRange_.get());
 	stamp_ += 1;
 }
 
 void BufferBlock::updateTemporaryMapped() {
-	// selectively enable partial updates
-	bool partialUpdate = false;
-	if (numNextSegments_ > 1) {
-		// activate partial update if at least two non-contiguous segments
-		// of the buffer block are updated. and their size is less than 33% of the total size.
-		float updatedRatio = updatedSize_ / static_cast<float>(requiredSize_);
-		partialUpdate = (updatedRatio < 0.33f);
-	}
+	// Selectively enable partial updates.
+	// However, note that we need to do multiple mappings in case of partial updates,
+	// as we need to always should use range invalidation for the mapped range.
+	// In case of full updates, we can map the whole buffer range at once with invalidation.
+	const bool doPartialUpdate = (numDirtySegments_ > 1) &&
+		// disable partial updates for small buffers, as they are fast to update anyway.
+		(getBufferSizeClass(estimatedSize_) > BUFFER_SIZE_SMALL) &&
+		// disable partial updates in case the update covers a large part of the buffer.
+		(updatedSize_ / static_cast<float>(requiredSize_) > BufferBlock::temporaryMappingPartialMaxUpdateRatio) &&
+		// disable partial updates for larger number of dirty segments.
+		(numDirtySegments_ <= BufferBlock::temporaryMappingPartialMinSegments);
 
-	// map the changed segment range such that each updated segment is covered by the mapping.
-	const auto &firstSegment = nextSegments_[0];
-	const auto &lastSegment = nextSegments_[numNextSegments_ - 1];
-	auto mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
-
-	uint32_t mappingFlags = MAP_WRITE;
-	if (!partialUpdate) { mappingFlags |= MAP_INVALIDATE_RANGE; }
-
-	void *bufferData = map(firstSegment.offset,
-						   mapRangeSize,
-						   mappingFlags);
-	if (bufferData) {
-		copyBufferData(static_cast<char *>(bufferData), partialUpdate);
-		unmap();
-		stamp_ += 1;
-	} else {
-		REGEN_WARN("Failed to temporary map storage with "
-			<< " target=" << target_
-			<< " access=" << accessMode_
-			<< " map=" << mapMode_ << ".");
-		if (mapMode_ == BUFFER_MAP_DISABLED) {
-			REGEN_WARN("Reason for failure: storage is not mappable!");
+	if (doPartialUpdate) {
+		// FIXME: this is problematic with multi buffering, some segments might only
+		//        get changed data, and have zeroes for attributes that never changed.
+		//        basically we need to check what has changed last time, and copy all of that
+		//        region which is not overlapping to the changed segments.
+		//        In addition, initially all segments should be uploaded once completely (currently only the first is).
+		for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
+			DirtySegment &dirtySegment = dirtySegments_[segmentIdx];
+			byte *bufferData = (byte*)stagingBuffer_->beginMappedWrite(
+					false, dirtySegment.offset, dirtySegment.size);
+			if (bufferData) {
+				for (uint32_t inputIdx = dirtySegment.startIdx; inputIdx <= dirtySegment.endIdx; ++inputIdx) {
+					auto &bufferInput = *blockInputs_[inputIdx].get();
+					copyBufferData1(bufferData, dirtySegment.offset, bufferInput);
+				}
+				stagingBuffer_->endMappedWrite(*drawBufferRange_.get());
+			} // else: frame was dropped
 		}
-		GL_ERROR_LOG();
-		isBlockValid_ = false;
+		stamp_ += 1;
+	} else { // full update: map the whole range between the first and last dirty segment.
+		DirtySegment &firstSegment = dirtySegments_[0];
+		DirtySegment &lastSegment = dirtySegments_[numDirtySegments_ - 1];
+		uint32_t mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
+
+		void *bufferData = stagingBuffer_->beginMappedWrite(
+				false, firstSegment.offset, mapRangeSize);
+		if (bufferData) {
+			copyBufferData(static_cast<byte*>(bufferData), firstSegment.offset, false);
+			stagingBuffer_->endMappedWrite(*drawBufferRange_.get());
+			stamp_ += 1;
+		} // else: frame was dropped
 	}
 }
 
 void BufferBlock::updatePersistentMapped() {
 	// NOTE: Assuming we have a ring-buffer, it is difficult to update only a part of the buffer,
-	// as we do not really know the state of the rest of the buffer.
-	// So even if we do not update the whole buffer, we still need to write the whole
-	// client data into mapped memory.
-	// TODO: if flush explicit is used, it would be ok to update only the changed segments, afaik.
-	static const bool partialUpdate = false;
-	auto *mappedData = bufferMapping_->beginWriteBuffer(partialUpdate);
-	if (mappedData) {
-		auto bufferData = static_cast<char *>(mappedData);
-		for (auto &blockInput: blockInputs_) {
-			auto &uboInput = *blockInput.get();
-			copyBufferData1(bufferData, uboInput);
-			uboInput.lastStamp = uboInput.input->stamp();
-		}
-		bufferMapping_->endWriteBuffer(*bufferDrawRange_.get());
-		stamp_ += 1;
+	// as we the GPU might read broken data for the parts we do not write.
+	// TODO: Add special handling for single-buffering mode?
+	if (stagingFlags_.useExplicitFlushing()) {
+		// Explicit flushing is enabled, so we can update only the dirty segments.
+		// And then add the segments to the flush queue.
+		// FIXME: Need to track stamps per segment when doing partial updates!!!
+		//       else some segments might only
+		//        get changed data, and have zeroes for attributes that never changed.
+		//        basically we need to check what has changed last time, and copy all of that
+		//        region which is not overlapping to this changed region.
+		//        In addition, initially all segments should be uploaded once completely (currently only the first is).
+		DirtySegment &firstSegment = dirtySegments_[0];
+		DirtySegment &lastSegment = dirtySegments_[numDirtySegments_ - 1];
+		uint32_t mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
+
+		void *bufferData = stagingBuffer_->beginMappedWrite(
+				true, firstSegment.offset, mapRangeSize);
+		if (bufferData) {
+			copyBufferData(static_cast<byte*>(bufferData), firstSegment.offset, true);
+			// push the dirty segments to the flush queue for just-in-time flushing.
+			stagingBuffer_->pushToFlushQueue(
+				(Vec4ui*)(&dirtySegments_.data()[0].offset),
+				numDirtySegments_);
+			stagingBuffer_->endMappedWrite(*drawBufferRange_.get());
+			stamp_ += 1;
+		} // else: frame was dropped
+	} else {
+		// Without explicit flushing, we need to update the whole mapped buffer range.
+		auto *mappedData = stagingBuffer_->beginMappedWrite(
+			false, 0u, stagingBuffer_->segmentSize());
+		if (mappedData) {
+			auto bufferData = static_cast<byte*>(mappedData);
+			for (auto &blockInput: blockInputs_) {
+				auto &bufferInput = *blockInput.get();
+				copyBufferData1(bufferData, 0u, bufferInput);
+				lastInputStamp(bufferInput) = bufferInput.input->stamp();
+			}
+			stagingBuffer_->endMappedWrite(*drawBufferRange_.get());
+			stamp_ += 1;
+		} // else: frame was dropped
 	}
 }
 
-void BufferBlock::resetPersistentMapped() {
-	if (bufferingMode_ == SINGLE_BUFFER) return;
+void BufferBlock::updateAllBuffers() {
 	// cycle through the ring buffer once, and write to each segment.
-	for (int idx=0; idx < bufferingMode_; ++idx) {
+	for (int idx=0; idx < stagingFlags_.bufferingMode; ++idx) {
 		updatePersistentMapped();
 	}
 }
@@ -561,26 +748,28 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 		}
 	}
 	update();
-	rs->bufferRange(glTarget_).apply(loc, *bufferDrawRange_.get());
-	if (bufferMapping_.get()) {
-		// mark the point of accessing a mapped buffer segment for reading
-		// which is needed to avoid writing to the buffer while it is being read.
-		bufferMapping_->markWriteAccessed(*bufferDrawRange_.get());
-	}
+	rs->bufferRange(glTarget_).apply(loc, *drawBufferRange_.get());
+	// mark the point of accessing a mapped buffer segment for reading
+	// which is needed to avoid writing to the buffer while it is being read.
+	stagingBuffer_->markDrawAccessed(*drawBufferRange_.get());
 	bindingIndex_ = loc;
 }
 
 ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto blockType = input.getValue<std::string>("type", "ubo");
-	auto updateHint = input.getValue<BufferUpdateHint>("update-hint", BUFFER_HINT_STATIC);
+
+	BufferUpdateFlags updateFlags;
+	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
+	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
+
 	ref_ptr<BufferBlock> block;
 	if (blockType == "ubo") {
-		block = ref_ptr<UBO>::alloc(input.getName(), updateHint);
+		block = ref_ptr<UBO>::alloc(input.getName(), updateFlags);
 	} else if (blockType == "ssbo") {
-		block = ref_ptr<SSBO>::alloc(input.getName(), updateHint);
+		block = ref_ptr<SSBO>::alloc(input.getName(), updateFlags);
 	} else {
 		REGEN_WARN("Unknown buffer block type '" << blockType << "'. Using UBO.");
-		block = ref_ptr<UBO>::alloc(input.getName(), updateHint);
+		block = ref_ptr<UBO>::alloc(input.getName(), updateFlags);
 	}
 	if (input.hasAttribute("access-mode")) {
 		block->setBufferAccessMode(
@@ -611,68 +800,35 @@ ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNod
 	return block;
 }
 
-std::ostream &regen::operator<<(std::ostream &out, const BufferBlock::MemoryLayout &v) {
+std::ostream &regen::operator<<(std::ostream &out, const BufferBlock::Qualifier &v) {
 	switch (v) {
-		case BufferBlock::MemoryLayout::STD140:
-			out << "std140";
-			break;
-		case BufferBlock::MemoryLayout::STD430:
-			out << "std430";
-			break;
-		case BufferBlock::MemoryLayout::PACKED:
-			out << "packed";
-			break;
-		case BufferBlock::MemoryLayout::SHARED:
-			out << "shared";
-			break;
-	}
-	return out;
-}
-
-std::ostream &regen::operator<<(std::ostream &out, const BufferBlock::StorageQualifier &v) {
-	switch (v) {
-		case BufferBlock::StorageQualifier::UNIFORM:
+		case BufferBlock::Qualifier::UNIFORM:
 			out << "uniform";
 			break;
-		case BufferBlock::StorageQualifier::BUFFER:
+		case BufferBlock::Qualifier::BUFFER:
 			out << "buffer";
 			break;
-		case BufferBlock::StorageQualifier::IN:
+		case BufferBlock::Qualifier::IN:
 			out << "in";
 			break;
-		case BufferBlock::StorageQualifier::OUT:
+		case BufferBlock::Qualifier::OUT:
 			out << "out";
 			break;
 	}
 	return out;
 }
 
-std::istream &regen::operator>>(std::istream &in, BufferBlock::MemoryLayout &v) {
+std::istream &regen::operator>>(std::istream &in, BufferBlock::Qualifier &v) {
 	std::string val;
 	in >> val;
 	boost::to_lower(val);
-	if (val == "std140") v = BufferBlock::MemoryLayout::STD140;
-	else if (val == "std430") v = BufferBlock::MemoryLayout::STD430;
-	else if (val == "packed") v = BufferBlock::MemoryLayout::PACKED;
-	else if (val == "shared") v = BufferBlock::MemoryLayout::SHARED;
-	else {
-		REGEN_WARN("Unknown memory layout '" << val << "'. Using STD140.");
-		v = BufferBlock::MemoryLayout::STD140;
-	}
-	return in;
-}
-
-std::istream &regen::operator>>(std::istream &in, BufferBlock::StorageQualifier &v) {
-	std::string val;
-	in >> val;
-	boost::to_lower(val);
-	if (val == "uniform") v = BufferBlock::StorageQualifier::UNIFORM;
-	else if (val == "buffer") v = BufferBlock::StorageQualifier::BUFFER;
-	else if (val == "in") v = BufferBlock::StorageQualifier::IN;
-	else if (val == "out") v = BufferBlock::StorageQualifier::OUT;
+	if (val == "uniform") v = BufferBlock::Qualifier::UNIFORM;
+	else if (val == "buffer") v = BufferBlock::Qualifier::BUFFER;
+	else if (val == "in") v = BufferBlock::Qualifier::IN;
+	else if (val == "out") v = BufferBlock::Qualifier::OUT;
 	else {
 		REGEN_WARN("Unknown storage qualifier '" << val << "'. Using UNIFORM.");
-		v = BufferBlock::StorageQualifier::UNIFORM;
+		v = BufferBlock::Qualifier::UNIFORM;
 	}
 	return in;
 }

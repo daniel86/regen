@@ -18,13 +18,14 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
-		: Mesh(GL_POINTS, BUFFER_HINT_UPDATE_STREAM),
+		: Mesh(GL_POINTS, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
 		  Animation(true, false),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
 	setAnimationName("particles");
 	setBufferAccessMode(BUFFER_CPU_WRITE);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_UPDATE_STREAM);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER,
+		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
 	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
 	inputContainer_->set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
@@ -69,7 +70,7 @@ ref_ptr<BufferReference> Particles::end() {
 	ShaderInputList particleInputs = inputContainer()->uploadInputs();
 
 	particleRef_ = HasInput::end();
-	feedbackRef_ = feedbackBuffer_->allocBytes(particleRef_->allocatedSize());
+	feedbackRef_ = feedbackBuffer_->adoptBufferRange(particleRef_->allocatedSize());
 	if (feedbackRef_.get() == nullptr) {
 		REGEN_WARN("Unable to allocate VBO for particles. Particles will not work.");
 		return particleRef_;

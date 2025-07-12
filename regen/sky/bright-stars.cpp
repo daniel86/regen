@@ -48,7 +48,8 @@ BrightStars::BrightStars(const ref_ptr<Sky> &sky)
 	state()->joinStates(noiseTexState_);
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.bright-stars");
-	meshState_ = ref_ptr<Mesh>::alloc(GL_POINTS, BUFFER_HINT_STATIC);
+	meshState_ = ref_ptr<Mesh>::alloc(GL_POINTS,
+		BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
 	pos_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_POS);
 	col_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_COL0);
 }

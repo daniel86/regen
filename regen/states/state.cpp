@@ -109,7 +109,8 @@ void State::joinShaderInput(const ref_ptr<ShaderInput> &in, const std::string &n
 	if (inputStateBuddy_.get()) { inState = inputStateBuddy_.get(); }
 	else if (!inState) {
 		ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc(
-				ARRAY_BUFFER, BUFFER_HINT_UPDATE_RARELY);
+				ARRAY_BUFFER,
+				BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
 		inState = inputState.get();
 		joinStatesFront(inputState);
 		inputStateBuddy_ = inputState;

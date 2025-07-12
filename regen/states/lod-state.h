@@ -7,7 +7,7 @@
 #include "regen/gl-types/ssbo.h"
 #include "compute-pass.h"
 #include "regen/gl-types/pbo.h"
-#include "regen/gl-types/buffer-mapping.h"
+#include "regen/gl-types/staging-buffer.h"
 #include "radix-sort.h"
 #include "regen/shapes/cull-shape.h"
 
@@ -60,6 +60,7 @@ namespace regen {
 		ref_ptr<ComputePass> copyIndirect_;
 		ref_ptr<RadixSort> radixSort_;
 		ref_ptr<UBO> frustumUBO_;
+		ref_ptr<ShaderInput4f> frustumData_;
 		// buffer for indirect draw calls, one per mesh part
 		// (parts have different index buffers, so we cannot use a single buffer for all parts)
 		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;

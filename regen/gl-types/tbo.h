@@ -15,7 +15,7 @@ namespace regen {
 		 *
 		 * @param usage the buffer usage.
 		 */
-		explicit TBO(BufferUpdateHint hint);
+		explicit TBO(const BufferUpdateFlags &hints);
 
 		/**
 		 * Attach a client data pointer to the TBO.

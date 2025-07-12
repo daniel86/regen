@@ -49,7 +49,7 @@ ref_ptr<Torus> Torus::getUnitTorus() {
 }
 
 Torus::Torus(const Config &cfg)
-		: Mesh(GL_TRIANGLES, cfg.updateHint) {
+		: Mesh(GL_TRIANGLES, cfg.updateHints) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);

@@ -2,10 +2,10 @@
 #define REGEN_BUFFER_REFERENCE_H_
 
 #include <list>
+#include <regen/regen.h>
 #include <regen/scene/resource.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/gl-types/buffer-pool.h>
-#include "shader-data.h"
 
 namespace regen {
 	/**
@@ -27,26 +27,26 @@ namespace regen {
 		/**
 		 * @return the allocated block size.
 		 */
-		unsigned int allocatedSize() const { return allocatedSize_; }
+		uint32_t allocatedSize() const { return allocatedSize_; }
 
 		/**
 		 * @return the size of the full buffer, i.e. the size of the node in the allocator pool.
 		 * This is not the same as allocatedSize() which returns the size of the allocated block.
 		 */
-		unsigned int fullBufferSize() const { return poolReference_.allocatorNode->allocator.size(); }
+		uint32_t fullBufferSize() const { return poolReference_.allocatorNode->allocator.size(); }
 
 		/**
 		 * @return virtual address to allocated block.
 		 */
-		unsigned int address() const;
+		uint32_t address() const;
 
 		/**
 		 * @return buffer object name.
 		 */
-		unsigned int bufferID() const;
+		uint32_t bufferID() const;
 
 		/**
-		 * @return The associated VBO.
+		 * @return The associated BufferObject resource.
 		 */
 		Resource *bufferObject() const { return bufferObject_; }
 
@@ -55,10 +55,15 @@ namespace regen {
 		 */
 		byte* mappedData() const { return mappedData_; }
 
+		/**
+		 * @return a null reference.
+		 */
+		static ref_ptr<BufferReference> &nullReference();
+
 	private:
 		Resource *bufferObject_ = nullptr;
 		BufferPool::Reference poolReference_ = {};
-		unsigned int allocatedSize_ = 0;
+		uint32_t allocatedSize_ = 0u;
 		byte *mappedData_ = nullptr; // pointer to mapped data, if any
 
 		friend class BufferObject;

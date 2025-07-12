@@ -14,17 +14,19 @@ using namespace regen;
 BufferContainer::BufferContainer(
 	const std::string &bufferName,
 	const std::vector<NamedShaderInput> &namedInputs,
-	BufferUpdateHint hint)
+	const BufferUpdateFlags &hints)
 		: State(),
-		  HasInput(ARRAY_BUFFER, hint),
+		  HasInput(ARRAY_BUFFER, hints),
 		  namedInputs_(namedInputs),
+		  bufferUpdateHints_(hints),
 		  bufferName_(bufferName) {
 	updateBuffer();
 }
 
-BufferContainer::BufferContainer(const std::string &bufferName, BufferUpdateHint hint)
+BufferContainer::BufferContainer(const std::string &bufferName, const BufferUpdateFlags &hints)
 	: State(),
-	  HasInput(ARRAY_BUFFER, hint),
+	  HasInput(ARRAY_BUFFER, hints),
+	  bufferUpdateHints_(hints),
 	  bufferName_(bufferName) {
 }
 
@@ -45,7 +47,10 @@ std::string BufferContainer::getNextBufferName() {
 }
 
 void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs) {
-	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), bufferUpdateHint_);
+	auto ubo = ref_ptr<UBO>::alloc(getNextBufferName(), bufferUpdateHints_);
+	if (bufferingMode_.has_value()) {
+		ubo->setBufferingMode(bufferingMode_.value());
+	}
 	for (auto &namedInput: namedInputs) {
 		ubo->addBlockInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ubo;
@@ -56,7 +61,10 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 }
 
 void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInputs) {
-	auto ssbo = ref_ptr<SSBO>::alloc(getNextBufferName(), bufferUpdateHint_);
+	auto ssbo = ref_ptr<SSBO>::alloc(getNextBufferName(), bufferUpdateHints_);
+	if (bufferingMode_.has_value()) {
+		ssbo->setBufferingMode(bufferingMode_.value());
+	}
 	for (auto &namedInput: namedInputs) {
 		ssbo->addBlockInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ssbo;
@@ -68,7 +76,7 @@ void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInput
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	// create a TBO for the input
-	auto tbo = ref_ptr<TBO>::alloc(bufferUpdateHint_);
+	auto tbo = ref_ptr<TBO>::alloc(bufferUpdateHints_);
 	tbo->setBufferInput(namedInput.in_);
 	tbos_.push_back(tbo);
 	textureBuffers_.push_back(tbo->tboTexture());

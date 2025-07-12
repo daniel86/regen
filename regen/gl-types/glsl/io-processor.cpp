@@ -294,7 +294,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.value = val.str();
 		} else if (in->isBufferBlock()) {
 			auto *block = dynamic_cast<BufferBlock *>(in.get());
-			bool isSSBO = block->storageQualifier() == BufferBlock::StorageQualifier::BUFFER;
+			bool isSSBO = block->blockQualifier() == BufferBlock::Qualifier::BUFFER;
 			std::stringstream layoutStr;
 			layoutStr << "layout(";
 			layoutStr << REGEN_STRING(block->memoryLayout());
@@ -320,7 +320,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 				}
 			}
 			io.layout = layoutStr.str();
-			io.ioType = REGEN_STRING(block->storageQualifier());
+			io.ioType = REGEN_STRING(block->blockQualifier());
 			io.value = "";
 			io.dataType = "";
 			for (uint64_t i=0; i<block->blockInputs().size(); i++) {

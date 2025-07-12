@@ -1,10 +1,3 @@
-/*
- * material.cpp
- *
- *  Created on: 22.03.2011
- *      Author: daniel
- */
-
 #include <boost/filesystem.hpp>
 #include <regen/textures/texture-state.h>
 #include "atomic-states.h"
@@ -17,7 +10,7 @@
 using namespace regen;
 
 Material::Material()
-		: HasInputState(ARRAY_BUFFER, BUFFER_HINT_UPDATE_RARELY),
+		: HasInputState(ARRAY_BUFFER, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
 		  fillMode_(GL_FILL),
 		  forcedInternalFormat_(GL_NONE),
 		  forcedFormat_(GL_NONE),
@@ -51,7 +44,8 @@ Material::Material()
 
 	shaderDefine("HAS_MATERIAL", "TRUE");
 
-	materialUniforms_ = ref_ptr<UBO>::alloc("Material", BUFFER_HINT_UPDATE_RARELY);
+	materialUniforms_ = ref_ptr<UBO>::alloc("Material",
+		BufferUpdateFlags{ BUFFER_UPDATE_RARE, BUFFER_UPDATE_PARTIALLY });
 	materialUniforms_->addBlockInput(materialSpecular_);
 	materialUniforms_->addBlockInput(materialShininess_);
 	materialUniforms_->addBlockInput(materialDiffuse_);

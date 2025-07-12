@@ -1,12 +1,5 @@
-/*
- * state.h
- *
- *  Created on: 03.08.2012
- *      Author: daniel
- */
-
-#ifndef STATE_H_
-#define STATE_H_
+#ifndef REGEN_STATE_H_
+#define REGEN_STATE_H_
 
 #include <set>
 
@@ -197,7 +190,8 @@ namespace regen {
 		/**
 		 * @param usage the buffer object usage.
 		 */
-		explicit HasInputState(BufferTarget target, BufferUpdateHint hint) : State(), HasInput(target, hint) {}
+		explicit HasInputState(BufferTarget target, const BufferUpdateFlags &hints)
+			: State(), HasInput(target, hints) {}
 	};
 } // namespace
 
@@ -252,4 +246,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* STATE_H_ */
+#endif /* REGEN_STATE_H_ */

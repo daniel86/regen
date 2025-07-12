@@ -8,7 +8,7 @@ using namespace regen;
 #define USE_BONE_TBO
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
-		: HasInputState(TEXTURE_BUFFER, BUFFER_HINT_UPDATE_STREAM),
+		: HasInputState(TEXTURE_BUFFER, { BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY }),
 		  Animation(true, true) {
 	bufferSize_ = 0u;
 	setAnimationName("bones");
@@ -33,7 +33,8 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	boneMatrices_->setUniformUntyped();
 
 #ifdef USE_BONE_TBO
-	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BUFFER_HINT_UPDATE_STREAM);
+	boneMatrixTBO_ = ref_ptr<TBO>::alloc(
+		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
 	boneMatrixTBO_->setBufferAccessMode(BUFFER_CPU_WRITE);
 	boneMatrixTBO_->setBufferMapMode(BUFFER_MAP_DISABLED);
 	boneMatrixTBO_->setBufferInput(boneMatrices_);

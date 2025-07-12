@@ -22,10 +22,10 @@ static std::string getName(const BufferObject &other, const std::string &name) {
 	return name;
 }
 
-SSBO::SSBO(const std::string &name, BufferUpdateHint hint, int memoryMask) :
-		BufferBlock(SHADER_STORAGE_BUFFER, hint,
+SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMask) :
+		BufferBlock(SHADER_STORAGE_BUFFER, hints,
 		            BufferBlock::BUFFER,
-		            BufferBlock::STD430),
+		            BUFFER_MEMORY_STD430),
 		ShaderInput(name, GL_INVALID_ENUM,
 		            0, 0, 0, GL_FALSE),
 		memoryMask_(memoryMask) {
@@ -36,9 +36,9 @@ SSBO::SSBO(const BufferObject &other, const std::string &name) :
 		BufferBlock(other),
 		ShaderInput(getName(other,name), GL_INVALID_ENUM,
 		            0, 0, 0, GL_FALSE) {
-	target_ = SHADER_STORAGE_BUFFER;
-	glTarget_ = glBufferTarget(target_);
-	storageQualifier_ = BufferBlock::BUFFER;
+	flags_.target = SHADER_STORAGE_BUFFER;
+	glTarget_ = glBufferTarget(flags_.target);
+	blockQualifier_ = BufferBlock::BUFFER;
 	auto *otherSSBO = dynamic_cast<const SSBO *>(&other);
 	if (otherSSBO != nullptr) {
 		memoryMask_ = otherSSBO->memoryMask_;

@@ -42,28 +42,26 @@ void CullShape::initCullShape(const ref_ptr<BoundingShape> &boundingShape, bool 
 void CullShape::createBuffers() {
 	numInstances_ = tf_->numInstances();
 	auto numIndices = numInstances_;
+	// if it is a GPU shape, then we need double the size in the GPU buffer for
+	// doing GPU-side sorting (needs a second buffer for the sorted indices).
+	if (!isIndexShape()) { numIndices *= 2; }
+
+	std::vector<uint32_t> clearData(numIndices);
+	for (uint32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
+
+	instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
+	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs",
+		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+	if (isIndexShape()) {
+		// Note: do not set CPU-side data in case of GPU shape (we rather use setBufferData below).
+		instanceIDMap_->setInstanceData(1, 1, (byte*)clearData.data());
+	}
+	instanceIDBuffer_->addBlockInput(instanceIDMap_);
+	instanceIDBuffer_->update();
 	if (!isIndexShape()) {
-		numIndices *= 2;
+		// clear segment to [0, 1, 2, ..., numInstances_-1]
+		instanceIDBuffer_->setBufferData(clearData.data());
 	}
 
-	// Create array with numInstances_ elements.
-	// The instance ids will be added each frame 1. in LOD-groups and 2. in view-dependent order
-	instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
-	//instanceIDMap_->set_forceArray(true);
-	instanceIDMap_->setInstanceData(1, 1, nullptr);
-	auto instanceData = instanceIDMap_->mapClientData<GLuint>(ShaderData::WRITE);
-	for (GLuint i = 0; i < numInstances_; ++i) {
-		instanceData.w[i] = i;
-	}
-	instanceData.unmap();
-	// use SSBO for instanceIDMap_
-	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BUFFER_HINT_UPDATE_STREAM);
-	instanceIDBuffer_->addBlockInput(instanceIDMap_);
-	if (!isIndexShape()) {
-		// enforce that we do not use persistent mapping for instance IDs in case we update them with the GPU.
-		// TODO: set access to GPU_ONLY and use a shader to initially fill the buffer instead!
-		instanceIDBuffer_->setBufferMapMode(BUFFER_MAP_DISABLED);
-	}
-	instanceIDBuffer_->update();
 	joinShaderInput(instanceIDBuffer_);
 }

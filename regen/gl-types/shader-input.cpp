@@ -96,7 +96,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 
 ShaderInput::~ShaderInput() {
 	if (bufferIterator_.get()) {
-		BufferObject::free(bufferIterator_.get());
+		BufferObject::orphanBufferRange(bufferIterator_.get());
 	}
 	deallocateClientData();
 }
@@ -573,15 +573,15 @@ GLboolean ShaderInput::hasData() const {
 ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 	if (in->isBufferBlock()) {
 		auto oldBlock = dynamic_cast<BufferBlock *>(in.get());
-		if (oldBlock->isUniformBlock()) {
-			auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->bufferUpdateHint());
+		if (oldBlock->isUBO()) {
+			auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
 			for (auto &namedInput: oldBlock->blockInputs()) {
 				newBlock->addBlockInput(create(namedInput.in_), namedInput.name_);
 			}
 			return newBlock;
 		}
-		if (oldBlock->isShaderStorageBlock()) {
-			auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->bufferUpdateHint());
+		if (oldBlock->isSSBO()) {
+			auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
 			for (auto &namedInput: oldBlock->blockInputs()) {
 				newBlock->addBlockInput(create(namedInput.in_), namedInput.name_);
 			}

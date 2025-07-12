@@ -27,7 +27,7 @@ namespace regen {
 
 Light::Light(Light::Type lightType)
 		: State(),
-		  HasInput(ARRAY_BUFFER, BUFFER_HINT_STATIC),
+		  HasInput(ARRAY_BUFFER, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
 		  lightType_(lightType),
 		  isAttenuated_(GL_TRUE),
 		  coneMatrixStamp_(0) {
@@ -40,7 +40,8 @@ Light::Light(Light::Type lightType)
 			break;
 	}
 
-	lightUniforms_ = ref_ptr<UBO>::alloc("Light", BUFFER_HINT_UPDATE_RARELY);
+	lightUniforms_ = ref_ptr<UBO>::alloc("Light",
+		BufferUpdateFlags{ BUFFER_UPDATE_RARE, BUFFER_UPDATE_PARTIALLY });
 	setInput(lightUniforms_);
 
 	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");

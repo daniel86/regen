@@ -6,21 +6,17 @@
 
 using namespace regen;
 
-BufferObject::BufferObject(BufferTarget target, BufferUpdateHint hint) :
+BufferObject::BufferObject(BufferTarget target, const BufferUpdateFlags &hints) :
 		Resource(),
-		updateHint_(hint),
-		target_(target),
+		flags_(target, hints),
 		glTarget_(glBufferTarget(target)),
 		allocatedSize_(0) {
 }
 
 BufferObject::BufferObject(const BufferObject &other) :
 		Resource(),
-		updateHint_(other.updateHint_),
-		mapMode_(other.mapMode_),
-		accessMode_(other.accessMode_),
-		target_(other.target_),
-		glTarget_(glBufferTarget(target_)),
+		flags_(other.flags_),
+		glTarget_(glBufferTarget(flags_.target)),
 		allocations_(other.allocations_),
 		allocatedSize_(other.allocatedSize_) {
 }
@@ -28,9 +24,8 @@ BufferObject::BufferObject(const BufferObject &other) :
 BufferObject::~BufferObject() {
 	while (!allocations_.empty()) {
 		ref_ptr<BufferReference> ref = *allocations_.begin();
-		if (ref->bufferObject_ != nullptr) {
-			free(ref.get());
-		} else {
+		orphanBufferRange(ref.get());
+		if (!allocations_.empty() && allocations_.front().get() == ref.get()) {
 			allocations_.erase(allocations_.begin());
 		}
 	}
@@ -41,32 +36,26 @@ void BufferObject::setBufferAccessMode(BufferAccessMode mode) {
 		return; // no need to set anything
 	}
 	else if (mode == BUFFER_CPU_READ) {
-		if (accessMode_ == BUFFER_CPU_WRITE) {
-			accessMode_ = BUFFER_CPU_READ_WRITE;
-		}
-		else if (accessMode_ == BUFFER_CPU_READ_WRITE || accessMode_ == BUFFER_CPU_READ) {
-			// nothing to do, already set
+		if (flags_.accessMode == BUFFER_CPU_WRITE) {
+			flags_.accessMode = BUFFER_CPU_READ_WRITE;
 			return;
 		}
-		else {
-			accessMode_ = mode;
+		else if (flags_.accessMode == BUFFER_CPU_READ_WRITE || flags_.accessMode == BUFFER_CPU_READ) {
+			// nothing to do, already set
+			return;
 		}
 	}
 	else if (mode == BUFFER_CPU_WRITE) {
-		if (accessMode_ == BUFFER_CPU_READ) {
-			accessMode_ = BUFFER_CPU_READ_WRITE;
+		if (flags_.accessMode == BUFFER_CPU_READ) {
+			flags_.accessMode = BUFFER_CPU_READ_WRITE;
+			return;
 		}
-		else if (accessMode_ == BUFFER_CPU_READ_WRITE || accessMode_ == BUFFER_CPU_WRITE) {
+		else if (flags_.accessMode == BUFFER_CPU_READ_WRITE || flags_.accessMode == BUFFER_CPU_WRITE) {
 			// nothing to do, already set
 			return;
 		}
-		else {
-			accessMode_ = mode;
-		}
 	}
-	else {
-		accessMode_ = mode;
-	}
+	flags_.accessMode = mode;
 }
 
 BufferPool **BufferObject::bufferPools() {
@@ -131,41 +120,27 @@ void BufferObject::destroyMemoryPools() {
 	}
 }
 
-ref_ptr<BufferReference> &BufferObject::nullReference() {
-	static ref_ptr<BufferReference> ref;
-	if (ref.get() == nullptr) {
-		ref = ref_ptr<BufferReference>::alloc();
-		ref->allocatedSize_ = 0;
-		ref->bufferObject_ = nullptr;
-		ref->poolReference_.allocatorNode = nullptr;
-	}
-	return ref;
-}
-
-ref_ptr<BufferReference> &BufferObject::createReference(GLuint numBytes) {
+ref_ptr<BufferReference> &BufferObject::adoptBufferRange_(uint32_t numBytes, BufferPool *memoryPool) {
 	if (numBytes == 0) {
 		REGEN_WARN("Attempting to allocate buffer of 0 bytes.");
-		return nullReference();
+		return BufferReference::nullReference();
 	}
-	BufferStorageMode storageMode = getBufferStorageMode(
-		accessMode_, mapMode_, updateHint_);
-	BufferPool *memoryPool_ = bufferPool(target_, storageMode);
 	// get an allocator
-	BufferPool::Node *allocator = memoryPool_->chooseAllocator(numBytes);
+	BufferPool::Node *allocator = memoryPool->chooseAllocator(numBytes);
 	if (allocator == nullptr) {
-		allocator = memoryPool_->createAllocator(numBytes);
+		allocator = memoryPool->createAllocator(numBytes);
 	}
 	if (allocator == nullptr) {
 		REGEN_ERROR("BufferObject::createReference: no allocator found for " << numBytes/1024.0 << " KB for " <<
-			"buffer target " << target_ << ", access mode " << accessMode_ <<
-			" and map mode " << mapMode_ << ".");
-		return nullReference();
+			"buffer target " << flags_.target << ", access mode " << flags_.accessMode <<
+			" and map mode " << flags_.mapMode << ".");
+		return BufferReference::nullReference();
 	}
 
 	ref_ptr<BufferReference> ref = ref_ptr<BufferReference>::alloc();
-	ref->poolReference_ = memoryPool_->alloc(allocator, numBytes);
+	ref->poolReference_ = memoryPool->alloc(allocator, numBytes);
 	if (ref->poolReference_.allocatorNode == nullptr) {
-		return nullReference();
+		return BufferReference::nullReference();
 	}
 	if (allocator->mapped) {
 		// store persistent mapped data pointer with the reference
@@ -180,7 +155,41 @@ ref_ptr<BufferReference> &BufferObject::createReference(GLuint numBytes) {
 	return allocations_.back();
 }
 
-void BufferObject::free(BufferReference *ref) {
+ref_ptr<BufferReference> &BufferObject::adoptBufferRange(uint32_t numBytes) {
+	BufferStorageMode storageMode = getBufferStorageMode(flags_);
+	BufferPool *memoryPool = bufferPool(flags_.target, storageMode);
+	return adoptBufferRange_(numBytes, memoryPool);
+}
+
+ref_ptr<BufferReference> BufferObject::adoptBufferRange(uint32_t numBytes, BufferPool *memoryPool) {
+	if (numBytes == 0) {
+		REGEN_WARN("Attempting to allocate buffer of 0 bytes.");
+		return BufferReference::nullReference();
+	}
+	// get an allocator
+	BufferPool::Node *allocator = memoryPool->chooseAllocator(numBytes);
+	if (allocator == nullptr) {
+		allocator = memoryPool->createAllocator(numBytes);
+	}
+	if (allocator == nullptr) {
+		return BufferReference::nullReference();
+	}
+
+	ref_ptr<BufferReference> ref = ref_ptr<BufferReference>::alloc();
+	ref->poolReference_ = memoryPool->alloc(allocator, numBytes);
+	if (ref->poolReference_.allocatorNode == nullptr) {
+		return BufferReference::nullReference();
+	}
+	if (allocator->mapped) {
+		// store persistent mapped data pointer with the reference
+		ref->mappedData_ = (((byte*)allocator->mapped) + ref->address());
+	}
+	ref->allocatedSize_ = numBytes;
+
+	return ref;
+}
+
+void BufferObject::orphanBufferRange(BufferReference *ref) {
 	if (ref->bufferObject_ != nullptr) {
 		auto *bo = (BufferObject *) ref->bufferObject_;
 		bo->allocatedSize_ -= ref->allocatedSize_;
@@ -194,16 +203,40 @@ void BufferObject::free(BufferReference *ref) {
 	}
 }
 
-ref_ptr<BufferReference> &BufferObject::allocBytes(GLuint numBytes) {
-	return createReference(numBytes);
-}
+// FIXME: Below code won't run well with implicit staging + multi-buffering.
+//        The writes will always go to the first segment of the ring buffer,
+//        no matter which segment is currently active for writing!
+//        Also in this case we might want to interact with fences etc.
+//        - could also push to flush queue if we would have access to staging buffer below.
 
 void BufferObject::setBufferData(const void *data, const ref_ptr<BufferReference> &ref) {
-	// FIXME: what about ring buffer here? and also everywhere below?
-	if(ref->mappedData()) {
-		REGEN_WARN("interface might be broken!");
-		memcpy(ref->mappedData(), data, ref->allocatedSize());
+	if (!flags_.isWritable()) {
+		// CPU is not allowed to write to this buffer, so we cannot set data directly.
+		// But we can copy data to a temporary buffer and then copy it to the target buffer.
+		auto tempRef = BufferObject::adoptBufferRange(
+				ref->allocatedSize(),
+				bufferPool(flags_.target, BUFFER_MODE_STATIC_WRITE));
+		glNamedBufferSubData(
+				tempRef->bufferID(),
+				tempRef->address(),
+				tempRef->allocatedSize(),
+				data);
+		glCopyNamedBufferSubData(
+				tempRef->bufferID(),
+				ref->bufferID(),
+				tempRef->address(),
+				ref->address(),
+				tempRef->allocatedSize());
+	} else if(ref->mappedData()) {
+		// the buffer is write-mapped, so we can write directly to it.
+		// this might be the case for implicit staging buffers.
+		std::memcpy(ref->mappedData(), data, ref->allocatedSize());
+		if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			glFlushMappedNamedBufferRange(ref->bufferID(),
+				0, ref->allocatedSize());
+		}
 	} else {
+		// the buffer is writable, but not mapped persistently
 		glNamedBufferSubData(
 				ref->bufferID(),
 				ref->address(),
@@ -225,12 +258,66 @@ void BufferObject::setBufferData(const BufferObject &other) {
 			other.allocations_[0]->allocatedSize());
 }
 
+void BufferObject::setBufferData(uint32_t readBufferID, uint32_t readAddress, uint32_t readSize) {
+	glCopyNamedBufferSubData(
+			readBufferID,
+			allocations_[0]->bufferID(),
+			readAddress,
+			allocations_[0]->address(),
+			readSize);
+}
+
+void BufferObject::setBuffersToZero() {
+	for (auto &ref: allocations_) {
+		setBufferToZero(ref);
+	}
+}
+
+inline void setToZero(const ref_ptr<BufferReference> &ref) {
+	void *mappedData = glMapNamedBufferRange(
+			ref->bufferID(),
+			ref->address(),
+			ref->allocatedSize(),
+			GL_MAP_WRITE_BIT);
+	if (mappedData) {
+		std::memset(mappedData, 0, ref->allocatedSize());
+		glUnmapNamedBuffer(ref->bufferID());
+	}
+}
+
+void BufferObject::setBufferToZero(const ref_ptr<BufferReference> &ref) {
+	if (!flags_.isWritable() || !flags_.isMappable()) {
+		// CPU is not allowed to write to this buffer, so we cannot set data directly.
+		// But we can copy data to a temporary buffer and then copy it to the target buffer.
+		auto tempRef = BufferObject::adoptBufferRange(
+				ref->allocatedSize(),
+				bufferPool(flags_.target, BUFFER_MODE_CPU_R_MAP_TEMPORARY));
+		setToZero(tempRef);
+		glCopyNamedBufferSubData(
+				tempRef->bufferID(),
+				ref->bufferID(),
+				tempRef->address(),
+				ref->address(),
+				tempRef->allocatedSize());
+	} else if(ref->mappedData()) {
+		// the buffer is write-mapped, so we can write directly to it.
+		memset(ref->mappedData(), 0, ref->allocatedSize());
+		if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			glFlushMappedNamedBufferRange(ref->bufferID(),
+				0, ref->allocatedSize());
+		}
+	} else {
+		// temporarily map the buffer to write zeroes to it.
+		setToZero(ref);
+	}
+}
+
 void BufferObject::copy(
-		GLuint from,
-		GLuint to,
-		GLuint size,
-		GLuint offset,
-		GLuint toOffset) {
+		uint32_t from,
+		uint32_t to,
+		uint32_t size,
+		uint32_t offset,
+		uint32_t toOffset) {
 	glCopyNamedBufferSubData(
 			from,
 			to,
@@ -239,24 +326,44 @@ void BufferObject::copy(
 			size);
 }
 
-void BufferObject::setBufferSubData(const void *data, GLuint relativeOffset, GLuint dataSize) {
+void BufferObject::setBufferSubData(uint32_t localOffset, uint32_t dataSize, const void *data) {
 	auto &ref = allocations_[0];
-	if (ref->mappedData()) {
-		REGEN_WARN("interface might be broken!");
-		memcpy(ref->mappedData() + relativeOffset, data, dataSize);
+	if (!flags_.isWritable()) {
+		// CPU is not allowed to write to this buffer, so we cannot set data directly.
+		// But we can copy data to a temporary buffer and then copy it to the target buffer.
+		auto tempRef = BufferObject::adoptBufferRange(
+				dataSize,
+				bufferPool(flags_.target, BUFFER_MODE_STATIC_WRITE));
+		glNamedBufferSubData(
+				tempRef->bufferID(),
+				tempRef->address(),
+				dataSize,
+				data);
+		glCopyNamedBufferSubData(
+				tempRef->bufferID(),
+				ref->bufferID(),
+				tempRef->address(),
+				ref->address() + localOffset,
+				dataSize);
+	} else if (ref->mappedData()) {
+		// the buffer is write-mapped, so we can write directly to it.
+		std::memcpy(ref->mappedData() + localOffset, data, dataSize);
+		if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			glFlushMappedNamedBufferRange(ref->bufferID(),
+				localOffset, dataSize);
+		}
 	} else {
 		glNamedBufferSubData(
 				ref->bufferID(),
-				ref->address() + relativeOffset,
+				ref->address() + localOffset,
 				dataSize,
 				data);
 	}
 }
 
-GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, uint32_t accessFlags) {
+void *BufferObject::map(uint32_t relativeOffset, uint32_t mappedSize, uint32_t accessFlags) {
 	auto &ref = allocations_[0];
 	if (ref->mappedData()) {
-		REGEN_WARN("interface might be broken!");
 		return ref->mappedData() + relativeOffset;
 	} else {
 		return glMapNamedBufferRange(
@@ -267,13 +374,12 @@ GLvoid *BufferObject::map(GLuint relativeOffset, GLuint mappedSize, uint32_t acc
 	}
 }
 
-GLvoid *BufferObject::map(uint32_t accessFlags) {
+void *BufferObject::map(uint32_t accessFlags) {
 	return BufferObject::map(allocations_[0], accessFlags);
 }
 
-GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags) {
+void *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags) {
 	if (ref->mappedData()) {
-		REGEN_WARN("interface might be broken!");
 		return ref->mappedData();
 	} else {
 		return glMapNamedBufferRange(
@@ -287,13 +393,14 @@ GLvoid *BufferObject::map(const ref_ptr<BufferReference> &ref, uint32_t accessFl
 void BufferObject::unmap() const {
 	auto &ref = allocations_[0];
 	if (!ref->mappedData()) {
+		// only unmap if the buffer is not mapped persistently
 		glUnmapNamedBuffer(allocations_[0]->bufferID());
 	}
 }
 
-GLuint BufferObject::attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes) {
+uint32_t BufferObject::attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes) {
 	if (!attributes.empty()) {
-		GLuint structSize = 0;
+		uint32_t structSize = 0;
 		for (const auto &attribute: attributes) {
 			structSize += attribute->inputSize();
 		}

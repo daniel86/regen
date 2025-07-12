@@ -4,7 +4,7 @@
 #include <regen/gl-types/buffer-object.h>
 #include "regen/scene/scene-input.h"
 #include "regen/utility/threading.h"
-#include "buffer-mapping.h"
+#include "staging-buffer.h"
 
 namespace regen {
 	/**
@@ -17,9 +17,9 @@ namespace regen {
 		static constexpr const char *TYPE_NAME = "BufferBlock";
 
 		/**
-		 * Storage qualifiers for shader storage blocks.
+		 * Buffer block qualifiers for shader storage blocks.
 		 */
-		enum StorageQualifier {
+		enum Qualifier {
 			// Uniform block
 			UNIFORM = 0,
 			// Shader storage block
@@ -28,16 +28,6 @@ namespace regen {
 			IN,
 			// Output block
 			OUT
-		};
-		/**
-		 * Memory layout for shader storage blocks.
-		 * Defines how the data is laid out in memory.
-		 */
-		enum MemoryLayout {
-			STD140 = 0,
-			STD430,
-			PACKED,
-			SHARED
 		};
 
 		/**
@@ -49,11 +39,9 @@ namespace regen {
 		 */
 		BufferBlock(
 			BufferTarget target,
-			BufferUpdateHint hint,
-			StorageQualifier storageQualifier,
-			MemoryLayout memoryLayout);
-
-		~BufferBlock() override = default;
+			const BufferUpdateFlags &hints,
+			Qualifier storageQualifier,
+			BufferMemoryLayout memoryLayout);
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
@@ -69,6 +57,8 @@ namespace regen {
 		 */
 		explicit BufferBlock(const BufferObject &other);
 
+		~BufferBlock() override = default;
+
 		/**
 		 * @return the reference to the buffer object.
 		 */
@@ -77,36 +67,83 @@ namespace regen {
 		/**
 		 * @return true if the block is a uniform block.
 		 */
-		auto isUniformBlock() const { return storageQualifier_ == UNIFORM; }
+		auto isUBO() const { return blockQualifier_ == UNIFORM; }
 
 		/**
 		 * @return true if the block is a shader storage block.
 		 */
-		auto isShaderStorageBlock() const { return storageQualifier_ == BUFFER; }
+		auto isSSBO() const { return blockQualifier_ == BUFFER; }
 
 		/**
 		 * @return the storage qualifier of the block.
 		 */
-		StorageQualifier storageQualifier() const { return storageQualifier_; }
+		Qualifier blockQualifier() const { return blockQualifier_; }
 
 		/**
 		 * @return the memory layout of the block.
 		 */
-		MemoryLayout memoryLayout() const { return memoryLayout_; }
+		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
 
 		/**
-		 * Set the buffering mode for the block.
-		 * Buffering is used to improve CPU-GPU synchronization.
+		 * @return the update hint for the staging buffer.
+		 */
+		BufferUpdateFlags stagingUpdateHint() const { return stagingFlags_.updateHints; }
+
+		/**
+		 * @return the map mode for the staging buffer.
+		 */
+		BufferMapMode stagingMapMode() const { return stagingFlags_.mapMode; }
+
+		/**
+		 * @return the access mode for the staging buffer.
+		 */
+		BufferAccessMode stagingAccessMode() const { return stagingFlags_.accessMode; }
+
+		/**
+		 * @return the buffering mode for the staging buffer.
+		 */
+		BufferingMode stagingBuffering() const { return stagingFlags_.bufferingMode; }
+
+		/**
+		 * Set the update hint for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the update hint for the main buffer.
+		 * @param hint the update hint to set.
+		 */
+		void setStagingUpdateHints(const BufferUpdateFlags &hints);
+
+		/**
+		 * Set the map mode for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the map mode for the main buffer.
+		 * @param mode the map mode to set.
+		 */
+		void setStagingMapMode(BufferMapMode mode);
+
+		/**
+		 * Set the access mode for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the access mode for the main buffer.
+		 * @param mode the access mode to set.
+		 */
+		void setStagingAccessMode(BufferAccessMode mode);
+
+		/**
+		 * Set the buffering mode for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the buffering mode for the main buffer.
 		 * @param mode the buffering mode to set.
 		 */
-		void setBufferingMode(BufferingMode mode) { bufferingMode_ = mode; }
+		void setBufferingMode(BufferingMode mode);
 
 		/**
-		 * Get the buffering mode for the block.
-		 * Buffering is used to improve CPU-GPU synchronization.
-		 * @return the buffering mode.
+		 * Enable a synchronization flag for the buffer object.
+		 * @param flag the synchronization flag to set.
 		 */
-		BufferingMode bufferingMode() const { return bufferingMode_; }
+		void setSyncFlag(BufferSyncFlag flag) { stagingFlags_.syncFlags |= flag; }
+
+		/**
+		 * Check if a specific synchronization flag is set.
+		 * @param flag the synchronization flag to check.
+		 * @return true if the flag is set, false otherwise.
+		 */
+		bool hasSyncFlag(BufferSyncFlag flag) const { return (stagingFlags_.syncFlags & flag) != 0; }
 
 		/**
 		 * @return true if the block has a binding index.
@@ -123,6 +160,11 @@ namespace regen {
 		 * @return the binding index of the block.
 		 */
 		int bindingIndex() const { return bindingIndex_; }
+
+		/**
+		 * @return get string representation of the block name.
+		 */
+		std::string getBlockName() const;
 
 		/**
 		 * Add a uniform to the UBO.
@@ -165,10 +207,49 @@ namespace regen {
 		 */
 		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
+		/**
+		 * Set the minimum size for medium sized buffers.
+		 * @param size the minimum size in bytes.
+		 */
+		static void setMediumBufferMinSize(uint32_t size) { MIN_SIZE_MEDIUM = size; }
+
+		/**
+		 * Set the minimum size for large sized buffers.
+		 * @param size the minimum size in bytes.
+		 */
+		static void setLargeBufferMinSize(uint32_t size) { MIN_SIZE_LARGE = size; }
+
+		/**
+		 * Set the minimum size for very large sized buffers.
+		 * @param size the minimum size in bytes.
+		 */
+		static void setVeryLargeBufferMinSize(uint32_t size) { MIN_SIZE_VERY_LARGE = size; }
+
+		/**
+		 * Set the minimum number of segments for partial updates in temporary mapped buffers.
+		 * @param segments the minimum number of segments.
+		 */
+		static void setTemporaryMappingPartialMinSegments(uint32_t segments) {
+			temporaryMappingPartialMinSegments = segments;
+		}
+
+		/**
+		 * Set the maximum update ratio for partial updates in temporary mapped buffers.
+		 * @param ratio the maximum update ratio.
+		 */
+		static void setTemporaryMappingPartialMaxUpdateRatio(float ratio) {
+			temporaryMappingPartialMaxUpdateRatio = ratio;
+		}
+
 	protected:
-		StorageQualifier storageQualifier_;
-		MemoryLayout memoryLayout_;
-		BufferingMode bufferingMode_ = TRIPLE_BUFFER;
+		static uint32_t MIN_SIZE_MEDIUM;
+		static uint32_t MIN_SIZE_LARGE;
+		static uint32_t MIN_SIZE_VERY_LARGE;
+		static uint32_t temporaryMappingPartialMinSegments;
+		static float temporaryMappingPartialMaxUpdateRatio;
+
+		Qualifier blockQualifier_;
+		BufferMemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
 		SpinLock lock_;
 
@@ -178,11 +259,16 @@ namespace regen {
 		std::vector<NamedShaderInput> inputs_;
 		ref_ptr<BufferReference> ref_;
 		uint32_t requiredSize_ = 0;
+		uint32_t estimatedSize_ = 0;
 		uint32_t updatedSize_ = 0;
 		uint32_t stamp_ = 0;
 
+		// the block inputs are used to store the shader inputs and their offsets in the buffer
 		struct BlockInput {
-			BlockInput() = default;
+			BlockInput() {
+				// initially assume single-buffered, so we need only one last stamp.
+				lastStamp.resize(1, 0);
+			}
 
 			BlockInput(const BlockInput &other) {
 				input = other.input;
@@ -200,14 +286,15 @@ namespace regen {
 
 			ref_ptr<ShaderInput> input;
 			uint32_t offset = 0;
-			uint32_t lastStamp = 0;
+			std::vector<uint32_t> lastStamp;
 			uint32_t alignedSize = 0;
 			uint32_t inputSize = 0;
 			byte *alignedData = nullptr;
 		};
 		std::vector<ref_ptr<BlockInput>> blockInputs_;
 
-		struct BlockSegment {
+		// dirty segments are used to track which parts of the buffer have changed
+		struct DirtySegment {
 			uint32_t offset = 0; // offset in the buffer
 			uint32_t size = 0; // size of the segment in bytes
 			uint32_t startIdx = 0; // start index of the segment in the blockInputs vector
@@ -225,23 +312,35 @@ namespace regen {
 				endIdx = inputIdx;
 			}
 		};
-		std::vector<BlockSegment> nextSegments_;
-		uint32_t numNextSegments_ = 0;
+		std::vector<DirtySegment> dirtySegments_;
+		uint32_t numDirtySegments_ = 0;
 
-		ref_ptr<BufferMapping> bufferMapping_;
-		ref_ptr<BufferRange> bufferDrawRange_;
+		BufferFlags stagingFlags_;
+		std::optional<BufferingMode> userDefinedBufferingMode_ = std::nullopt;
+		ref_ptr<StagingBuffer> stagingBuffer_;
+		ref_ptr<BufferRange> drawBufferRange_;
 
-		inline void resetSegments();
+		inline void resetDirtySegments();
 
-		inline BlockSegment& getLastSegment();
+		inline DirtySegment& getLastDirtySegment();
 
-		inline BlockSegment& getNextSegment();
+		inline DirtySegment& getNextDirtySegment();
+
+		inline uint32_t& lastInputStamp(BlockInput &blockInput);
+
+		void enableWriteAccess();
+
+		void setStagingBuffering(BufferingMode mode);
+
+		void enablePersistentMapping(bool partialWrite);
+
+		void enablePersistentMapping_(bool useFlushExplicit);
 
 		void updateBlockInputs();
 
-		void copyBufferData(char *bufferData, bool partialWrite);
+		void copyBufferData(byte *bufferData, uint32_t mapOffset, bool partialWrite);
 
-		void copyBufferData1(char *bufferData, BlockInput &uboInput);
+		void copyBufferData1(byte *bufferData, uint32_t mapOffset, BlockInput &uboInput);
 
 		void updateStridedData(BlockInput &uboInput);
 
@@ -251,16 +350,16 @@ namespace regen {
 
 		void updatePersistentMapped();
 
-		void resetPersistentMapped();
+		void updateAllBuffers();
 
 		void resize();
+
+		BufferSizeClass getBufferSizeClass(uint32_t size);
 	};
 
-	std::ostream &operator<<(std::ostream &out, const BufferBlock::MemoryLayout &v);
-	std::ostream &operator<<(std::ostream &out, const BufferBlock::StorageQualifier &v);
+	std::ostream &operator<<(std::ostream &out, const BufferBlock::Qualifier &v);
 
-	std::istream &operator>>(std::istream &in, BufferBlock::MemoryLayout &v);
-	std::istream &operator>>(std::istream &in, BufferBlock::StorageQualifier &v);
+	std::istream &operator>>(std::istream &in, BufferBlock::Qualifier &v);
 } // namespace
 
 #endif /* REGEN_BUFFER_BLOCK_H_ */

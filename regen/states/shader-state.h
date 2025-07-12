@@ -1,12 +1,5 @@
-/*
- * shader-node.h
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
-#ifndef SHADER_NODE_H_
-#define SHADER_NODE_H_
+#ifndef REGEN_SHADER_STATE_H_
+#define REGEN_SHADER_STATE_H_
 
 #include <regen/states/state.h>
 #include <regen/textures/texture-state.h>
@@ -103,4 +96,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* SHADER_NODE_H_ */
+#endif /* REGEN_SHADER_STATE_H_ */

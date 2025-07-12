@@ -2,12 +2,12 @@
 
 using namespace regen;
 
-VBO::VBO(BufferTarget target, BufferUpdateHint updateHint)
-		: BufferObject(target, updateHint) {
+VBO::VBO(BufferTarget target, const BufferUpdateFlags &hints)
+		: BufferObject(target, hints) {
 	// set default storage flags
-	mapMode_ = BUFFER_MAP_DISABLED;
+	flags_.mapMode = BUFFER_MAP_DISABLED;
 	// default case: mesh data is loaded from CPU and written to GPU
-	accessMode_ = BUFFER_CPU_WRITE;
+	flags_.accessMode = BUFFER_CPU_WRITE;
 }
 
 ref_ptr<BufferReference> &VBO::alloc(const ref_ptr<ShaderInput> &att) {
@@ -19,7 +19,7 @@ ref_ptr<BufferReference> &VBO::alloc(const ref_ptr<ShaderInput> &att) {
 ref_ptr<BufferReference> &VBO::allocInterleaved(
 		const std::list<ref_ptr<ShaderInput> > &attributes) {
 	GLuint numBytes = attributeSize(attributes);
-	ref_ptr<BufferReference> &ref = createReference(numBytes);
+	ref_ptr<BufferReference> &ref = adoptBufferRange(numBytes);
 	if (ref->allocatedSize() < numBytes) return ref;
 	GLuint offset = ref->address();
 	// set buffer sub data
@@ -30,7 +30,7 @@ ref_ptr<BufferReference> &VBO::allocInterleaved(
 ref_ptr<BufferReference> &VBO::allocSequential(
 		const std::list<ref_ptr<ShaderInput> > &attributes) {
 	GLuint numBytes = attributeSize(attributes);
-	ref_ptr<BufferReference> &ref = createReference(numBytes);
+	ref_ptr<BufferReference> &ref = adoptBufferRange(numBytes);
 	if (ref->allocatedSize() < numBytes) return ref;
 	GLuint offset = ref->address();
 	// set buffer sub data

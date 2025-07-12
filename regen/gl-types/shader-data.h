@@ -2,6 +2,8 @@
 #ifndef SHADER_INPUT_DATA_H_
 #define SHADER_INPUT_DATA_H_
 
+#include <regen/regen.h>
+
 namespace regen::ShaderData {
 	/**
 	 * Flags for client data read/write access.
@@ -16,10 +18,6 @@ namespace regen::ShaderData {
 
 namespace regen {
 	class ShaderInput;
-
-#ifndef byte
-	typedef unsigned char byte;
-#endif
 
 	/**
 	 * A low-level interface for read/write access to client data of shader input.

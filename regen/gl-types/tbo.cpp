@@ -2,15 +2,15 @@
 
 using namespace regen;
 
-TBO::TBO(BufferUpdateHint hint) :
-		BufferObject(TEXTURE_BUFFER, hint) {
+TBO::TBO(const BufferUpdateFlags &hints) :
+		BufferObject(TEXTURE_BUFFER, hints) {
 	setBufferAccessMode(BUFFER_CPU_WRITE);
 	setBufferMapMode(BUFFER_MAP_DISABLED);
 }
 
 void TBO::setBufferInput(const ref_ptr<regen::ShaderInput> &input) {
 	input_ = input;
-	tboRef_ = allocBytes(input_->inputSize());
+	tboRef_ = adoptBufferRange(input_->inputSize());
 	if (!tboRef_.get()) {
 		REGEN_WARN("Unable to allocate TBO.");
 		return;
@@ -25,7 +25,7 @@ void TBO::resizeTBO() {
 	if (tboRef_.get()) {
 		free(tboRef_.get());
 	}
-	tboRef_ = allocBytes(input_->inputSize());
+	tboRef_ = adoptBufferRange(input_->inputSize());
 	if (tboRef_.get()) {
 		tboTexture_->attach(tboRef_);
 	}

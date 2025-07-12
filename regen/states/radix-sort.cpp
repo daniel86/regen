@@ -66,7 +66,7 @@ void RadixSort::createResources() {
 		radixScatterPass_->computeState()->setNumWorkUnits(static_cast<int>(numKeys_), 1, 1);
 		radixScatterPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
 	}
-	uint32_t numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
+	const uint32_t numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	REGEN_INFO("GPU radix sort with " << numKeys_ << " keys, "
 			<< numWorkGroups << " work groups, radix bits: " << radixBits_
 			<< ", sort group size: " << sortGroupSize_
@@ -74,7 +74,8 @@ void RadixSort::createResources() {
 
 	// Temporary Buffers for sorting.
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer",
-			BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			SSBO::RESTRICT);
 	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeys_);
 	keys->set_forceArray(true);
 	keyBuffer_->addBlockInput(keys);
@@ -84,15 +85,19 @@ void RadixSort::createResources() {
 		valueBuffer_ = userValueBuffer_;
 	} else {
 		valueBuffer_ = ref_ptr<SSBO>::alloc("ValueBuffer",
-				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+				BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+				SSBO::RESTRICT);
 		auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_ * 2);
 		values1->set_forceArray(true);
 		valueBuffer_->addBlockInput(values1);
+		valueBuffer_->setStagingAccessMode(BUFFER_GPU_ONLY);
+		valueBuffer_->setStagingMapMode(BUFFER_MAP_DISABLED);
 		valueBuffer_->update();
 	}
 
 	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer",
-			BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			SSBO::RESTRICT);
 	globalHistogramBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc(
 			"globalHistogram", numBuckets_ * numWorkGroups));
 	globalHistogramBuffer_->update();

@@ -106,8 +106,10 @@ void PrefixScan::createHierarchicalPass() {
 	auto numBlocks2 = static_cast<int32_t>(math::nextPow2(numBlocks));
 
 	{ // global memory for the offsets
-		blockOffsetsBuffer_ = ref_ptr<SSBO>::alloc("BlockOffsetsBuffer",
-												   BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
+		blockOffsetsBuffer_ = ref_ptr<SSBO>::alloc(
+			"BlockOffsetsBuffer",
+			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			SSBO::RESTRICT);
 		blockOffsetsBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("blockOffsets", numBlocks));
 		blockOffsetsBuffer_->blockInputs()[0].in_->set_forceArray(true);
 		blockOffsetsBuffer_->update();

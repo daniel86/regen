@@ -2,7 +2,7 @@
 #define REGEN_BOUNDING_BOX_BUFFER_H_
 
 #include <regen/gl-types/ssbo.h>
-#include <regen/gl-types/buffer-mapping.h>
+#include <regen/gl-types/staging-buffer.h>
 #include <regen/shapes/bounds.h>
 
 namespace regen {
@@ -46,6 +46,7 @@ namespace regen {
 	protected:
 		Bounds<Vec3f> bbox_;
 		Vec3f bboxMin_, bboxMax_;
+		ref_ptr<BufferReference> clearRef_;
 	};
 } // namespace
 

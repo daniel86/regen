@@ -219,7 +219,7 @@ void MeshViewerWidget::updateLoDButtons() {
 
 void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 	static const BufferConfig bufferCfg(
-			BUFFER_HINT_STATIC,
+			BUFFER_UPDATE_NEVER,
 			BUFFER_CPU_WRITE,
 			BUFFER_MAP_DISABLED);
 	auto p = resourcePath(assetPath);

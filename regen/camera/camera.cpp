@@ -31,7 +31,7 @@ namespace regen {
 }
 
 Camera::Camera(unsigned int numLayer)
-		: HasInputState(ARRAY_BUFFER, BUFFER_HINT_UPDATE_STREAM),
+		: HasInputState(ARRAY_BUFFER, { BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_PARTIALLY }),
 		  numLayer_(numLayer),
 		  frustum_(numLayer) {
 	// add shader constants via defines
@@ -73,23 +73,26 @@ Camera::Camera(unsigned int numLayer)
 	viewProjInv_->setSchema(InputSchema::transform());
 
 	// TODO: I think we really need t use buffer container here!
-	cameraBlock_ = ref_ptr<UBO>::alloc("Camera", BUFFER_HINT_UPDATE_STREAM);
+	cameraBlock_ = ref_ptr<UBO>::alloc("Camera",
+		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_PARTIALLY });
 	cameraBlock_->addBlockInput(view_);
 	cameraBlock_->addBlockInput(viewInv_);
-	cameraBlock_->addBlockInput(proj_);
-	cameraBlock_->addBlockInput(projInv_);
 	cameraBlock_->addBlockInput(viewProj_);
 	cameraBlock_->addBlockInput(viewProjInv_);
-	cameraBlock_->addBlockInput(projParams_);
 	cameraBlock_->addBlockInput(position_);
 	cameraBlock_->addBlockInput(direction_);
 	cameraBlock_->addBlockInput(vel_);
+	// these change less frequent:
+	cameraBlock_->addBlockInput(projParams_);
+	cameraBlock_->addBlockInput(proj_);
+	cameraBlock_->addBlockInput(projInv_);
 	setInput(cameraBlock_);
 }
 
 void Camera::setStaticCamera() {
-	cameraBlock_->setBufferUpdateHint(BUFFER_HINT_STATIC);
-	cameraBlock_->setBufferMapMode(BUFFER_MAP_DISABLED);
+	cameraBlock_->setStagingUpdateHints({ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
+	cameraBlock_->setStagingMapMode(BUFFER_MAP_DISABLED);
+	//cameraBlock_->setStagingAccessMode(BUFFER_GPU_ONLY);
 	cameraBlock_->setBufferingMode(SINGLE_BUFFER);
 }
 

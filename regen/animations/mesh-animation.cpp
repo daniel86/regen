@@ -102,11 +102,13 @@ MeshAnimation::MeshAnimation(
 	shaderConfig["NUM_ATTRIBUTES"] = REGEN_STRING(i);
 
 	// used to save two frames
-	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BUFFER_HINT_STATIC);
+	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER,
+		BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
 	animationBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BUFFER_HINT_STATIC);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER,
+		BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
 	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
-	feedbackRef_ = feedbackBuffer_->allocBytes(bufferSize_);
+	feedbackRef_ = feedbackBuffer_->adoptBufferRange(bufferSize_);
 	if (!feedbackRef_.get()) {
 		REGEN_WARN("Unable to allocate VBO for animation. Animation will not work.");
 		return;
@@ -206,7 +208,7 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame) {
 	}
 
 	if (isPongFrame) {
-		if (pongFrame_ != -1) { BufferObject::free(pongIt_.get()); }
+		if (pongFrame_ != -1) { BufferObject::orphanBufferRange(pongIt_.get()); }
 		pongFrame_ = frameIndex;
 		if (hasMeshInterleavedAttributes_) {
 			pongIt_ = animationBuffer_->allocInterleaved(atts);
@@ -215,7 +217,7 @@ void MeshAnimation::loadFrame(GLuint frameIndex, GLboolean isPongFrame) {
 		}
 		frame.ref = pongIt_;
 	} else {
-		if (pingFrame_ != -1) { BufferObject::free(pingIt_.get()); }
+		if (pingFrame_ != -1) { BufferObject::orphanBufferRange(pingIt_.get()); }
 		pingFrame_ = frameIndex;
 		if (hasMeshInterleavedAttributes_) {
 			pingIt_ = animationBuffer_->allocInterleaved(atts);

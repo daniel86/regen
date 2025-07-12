@@ -7,7 +7,7 @@ using namespace regen;
 #undef DEBUG_SNAPSHOT_VIEWS
 
 ImpostorBillboard::ImpostorBillboard()
-		: Mesh(GL_POINTS, BUFFER_HINT_STATIC),
+		: Mesh(GL_POINTS, BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
 		  snapshotState_(ref_ptr<State>::alloc()) {
 	depthOffset_ = createUniform<ShaderInput1f>("depthOffset", 0.5f);
 	modelOrigin_ = createUniform<ShaderInput3f>("modelOrigin", Vec3f::zero());
@@ -143,7 +143,9 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create view data arrays
-		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer", BUFFER_HINT_STATIC);
+		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer",
+			BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
+		// TODO: could use GPU-only storage here, but then need to use setBufferData() instead of setUniformData()
 		snapshotDirs_ = ref_ptr<ShaderInput4f>::alloc("snapshotDirs", numSnapshotViews_);
 		snapshotDirs_->setUniformUntyped();
 		impostorBuffer_->addBlockInput(snapshotDirs_);

@@ -13,7 +13,7 @@ namespace regen {
 		 * Default-Constructor.
 		 * @param usage usage hint.
 		 */
-		explicit VBO(BufferTarget target, BufferUpdateHint hint);
+		explicit VBO(BufferTarget target, const BufferUpdateFlags &hints);
 
 		~VBO() override = default;
 

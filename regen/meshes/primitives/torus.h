@@ -53,7 +53,7 @@ namespace regen {
 			GLfloat tubeRadius;
 			/** Buffer usage hints. */
 			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
-			BufferUpdateHint updateHint = BUFFER_HINT_STATIC;
+			BufferUpdateFlags updateHints = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY };
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();

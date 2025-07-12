@@ -29,20 +29,25 @@ namespace regen {
 		 */
 		BufferContainer(const std::string &bufferName,
 				const std::vector<NamedShaderInput> &inputs,
-				BufferUpdateHint hint);
+				const BufferUpdateFlags &hints);
 
 		/**
 		 * No-arg constructor.
 		 * Add individual ShaderInput objects using the addInput() method,
 		 * once done, call the allocateBuffers() method to allocate the required buffers.
 		 */
-		explicit BufferContainer(const std::string &bufferName, BufferUpdateHint hint);
+		BufferContainer(const std::string &bufferName, const BufferUpdateFlags &hints);
 
 		/**
 		 * Copy constructor.
 		 * @param other the other buffer container.
 		 */
 		BufferContainer(const BufferContainer &other) = delete;
+
+		/**
+		 * @param mode the buffering mode to set.
+		 */
+		void setBufferingMode(BufferingMode mode) { bufferingMode_ = mode; }
 
 		/**
 		 * Add a shader input to the container.
@@ -80,7 +85,8 @@ namespace regen {
 		std::vector<ref_ptr<TextureBuffer>> textureBuffers_;
 		std::map<ShaderInput*, ref_ptr<BufferObject>> bufferObjectOfInput_;
 		bool isAllocated_ = true;
-		BufferUpdateHint bufferUpdateHint_;
+		BufferUpdateFlags bufferUpdateHints_;
+		std::optional<BufferingMode> bufferingMode_;
 		std::string bufferName_;
 
 		void createUBO(const std::vector<NamedShaderInput> &namedInputs);

@@ -8,7 +8,7 @@ using namespace regen;
 LightningBolt::Config::Config() = default;
 
 LightningBolt::LightningBolt(const Config &cfg)
-		: Mesh(GL_LINES, BUFFER_HINT_UPDATE_STREAM),
+		: Mesh(GL_LINES, { BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY }),
 		  Animation(true, false),
 		  maxSubDivisions_(cfg.maxSubDivisions_),
 		  maxBranches_(cfg.maxBranches_) {

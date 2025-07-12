@@ -223,7 +223,7 @@ namespace regen {
 				}
 				else if (input.hasAttribute("ubo")) {
 					auto block = scene->getResource<BufferBlock>(input.getValue("ubo"));
-					if (block.get() == nullptr || !block->isUniformBlock()) {
+					if (block.get() == nullptr || !block->isUBO()) {
 						REGEN_WARN("No UBO found for '" << input.getDescription() << "'.");
 						return {};
 					}
@@ -231,7 +231,7 @@ namespace regen {
 				}
 				else if (input.hasAttribute("ssbo")) {
 					auto block = scene->getResource<BufferBlock>(input.getValue("ubo"));
-					if (block.get() == nullptr || !block->isShaderStorageBlock()) {
+					if (block.get() == nullptr || !block->isSSBO()) {
 						REGEN_WARN("No SSBO found for '" << input.getDescription() << "'.");
 						return {};
 					}
@@ -310,7 +310,8 @@ namespace regen {
 
 				if (input.getValue<bool>("join", true)) {
 					if (x == nullptr) {
-						ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc(ARRAY_BUFFER, BUFFER_HINT_UPDATE_RARELY);
+						ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc(ARRAY_BUFFER,
+							BufferUpdateFlags{ BUFFER_UPDATE_RARE, BUFFER_UPDATE_FULLY });
 						inputState->setInput(in, input.getValue("name"));
 						state->joinStates(inputState);
 					} else {

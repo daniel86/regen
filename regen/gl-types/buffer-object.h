@@ -1,8 +1,7 @@
 #ifndef REGEN_BUFFER_OBJECT_H_
 #define REGEN_BUFFER_OBJECT_H_
 
-#include <regen/gl-types/buffer-target.h>
-#include <regen/gl-types/buffer-usage.h>
+#include <regen/gl-types/buffer-enums.h>
 #include <regen/gl-types/buffer-reference.h>
 #include <regen/gl-types/shader-input.h>
 
@@ -32,7 +31,7 @@ namespace regen {
 		 * @param target the buffer target.
 		 * @param hint the buffer update hint.
 		 */
-		BufferObject(BufferTarget target, BufferUpdateHint hint);
+		BufferObject(BufferTarget target, const BufferUpdateFlags &hints);
 
 		~BufferObject() override;
 
@@ -43,16 +42,34 @@ namespace regen {
 		BufferObject(const BufferObject &other);
 
 		/**
+		 * Get the buffer target.
+		 * @return the buffer target.
+		 */
+		BufferTarget bufferTarget() const { return flags_.target; }
+
+		/**
 		 * Provides info how the buffer object is going to be used.
 		 */
-		BufferUpdateHint bufferUpdateHint() const { return updateHint_; }
+		const BufferUpdateFlags& bufferUpdateHints() const { return flags_.updateHints; }
+
+		/**
+		 * Get the mapping mode for the buffer object.
+		 * @return the mapping mode.
+		 */
+		BufferMapMode bufferMapMode() const { return flags_.mapMode; }
+
+		/**
+		 * Get the access mode for the buffer object.
+		 * @return the access mode.
+		 */
+		BufferAccessMode bufferAccessMode() const { return flags_.accessMode; }
 
 		/**
 		 * Set the buffer update hint.
 		 * This will determine how the buffer can be updated.
 		 * @param hint the update hint to set.
 		 */
-		void setBufferUpdateHint(BufferUpdateHint hint) { updateHint_ = hint; }
+		void setBufferUpdateHint(const BufferUpdateFlags &hints) { flags_.updateHints = hints; }
 
 		/**
 		 * Set the mapping mode for the buffer object.
@@ -60,13 +77,7 @@ namespace regen {
 		 * map mode is set to BUFFER_MAP_DISABLED.
 		 * @param mode the mapping mode to set.
 		 */
-		void setBufferMapMode(BufferMapMode mode) { mapMode_ = mode; }
-
-		/**
-		 * Get the mapping mode for the buffer object.
-		 * @return the mapping mode.
-		 */
-		BufferMapMode bufferMapMode() const { return mapMode_; }
+		void setBufferMapMode(BufferMapMode mode) { flags_.mapMode = mode; }
 
 		/**
 		 * Set the access mode for the buffer object.
@@ -78,22 +89,26 @@ namespace regen {
 		void setBufferAccessMode(BufferAccessMode mode);
 
 		/**
-		 * Get the access mode for the buffer object.
-		 * @return the access mode.
-		 */
-		BufferAccessMode bufferAccessMode() const { return accessMode_; }
-
-		/**
 		 * Allocated VRAM in bytes.
 		 */
-		GLuint allocatedSize() const { return allocatedSize_; }
+		uint32_t allocatedSize() const { return allocatedSize_; }
 
 		/**
 		 * Allocate a block in the VBO memory.
 		 * Note that as long as you keep a reference the allocated storage
 		 * is marked as used.
 		 */
-		ref_ptr<BufferReference> &allocBytes(GLuint size);
+		ref_ptr<BufferReference>& adoptBufferRange(uint32_t numBytes);
+
+		/**
+		 * Allocate a block in the VBO memory.
+		 * Note that as long as you keep a reference the allocated storage
+		 * is marked as used.
+		 * @param numBytes the size of the buffer to allocate in bytes.
+		 * @param memoryPool the memory pool to use for allocation.
+		 * @return a reference to the allocated buffer.
+		 */
+		static ref_ptr<BufferReference> adoptBufferRange(uint32_t numBytes, BufferPool *memoryPool);
 
 		/**
 		 * Free previously allocated block of GPU memory.
@@ -102,7 +117,7 @@ namespace regen {
 		 * on the Reference instance somewhere. The allocated space is not marked as
 		 * free as long as you are referencing the allocated block.
 		 */
-		static void free(BufferReference *ref);
+		static void orphanBufferRange(BufferReference *ref);
 
 		/**
 		 * @return the list of all allocated buffers.
@@ -114,13 +129,13 @@ namespace regen {
 		 * @param index the index of the allocation.
 		 * @return the buffer ID.
 		 */
-		unsigned int bufferID(unsigned int index = 0) const { return allocations_[index]->bufferID(); }
+		uint32_t bufferID(uint32_t index = 0) const { return allocations_[index]->bufferID(); }
 
 		/**
 		* Copy vertex data to the buffer object. Sets part of data.
 		* Replaces only existing data, no new memory allocated for the buffer.
 		*/
-		static void setBufferData(const void *data, const ref_ptr<BufferReference> &ref);
+		void setBufferData(const void *data, const ref_ptr<BufferReference> &ref);
 
 		/**
 		 * Copy client data to the buffer object.
@@ -137,13 +152,34 @@ namespace regen {
 		void setBufferData(const BufferObject &other);
 
 		/**
+		 * Copy data from another buffer object to this one.
+		 * @param readBufferID the ID of the buffer to read from.
+		 * @param readAddress the address in the buffer to read from.
+		 * @param readSize the size of the data to read in bytes.
+		 */
+		void setBufferData(uint32_t readBufferID, uint32_t readAddress, uint32_t readSize);
+
+		/**
+		 * Set all allocated buffers to zero.
+		 * This will replace the existing data in the buffer with zeroes.
+		 */
+		void setBuffersToZero();
+
+		/**
+		 * Set the buffer to zero.
+		 * This will replace the existing data in the buffer with zeroes.
+		 * @param ref the buffer reference to set to zero.
+		 */
+		void setBufferToZero(const ref_ptr<BufferReference> &ref);
+
+		/**
 		 * Copy part of the data to the buffer object.
 		 * This will replace only part of the existing data in the buffer.
 		 * @param data pointer to the data to copy.
 		 * @param relativeOffset relative offset in bytes from the start of the buffer.
 		 * @param dataSize size of the data to copy in bytes.
 		 */
-		void setBufferSubData(const void *data, GLuint relativeOffset, GLuint dataSize);
+		void setBufferSubData(uint32_t relativeOffset, uint32_t dataSize, const void *data);
 
 		/**
 		 * Map the buffer object to CPU memory.
@@ -153,7 +189,7 @@ namespace regen {
 		 * @param accessFlags access flags for the mapping operation.
 		 * @return pointer to the mapped data, or nullptr if mapping failed.
 		 */
-		GLvoid *map(GLuint relativeOffset, GLuint mappedSize, uint32_t accessFlags);
+		void *map(uint32_t relativeOffset, uint32_t mappedSize, uint32_t accessFlags);
 
 		/**
 		 * Map the buffer object to CPU memory.
@@ -161,7 +197,7 @@ namespace regen {
 		 * @param accessFlags access flags for the mapping operation.
 		 * @return pointer to the mapped data, or nullptr if mapping failed.
 		 */
-		GLvoid *map(uint32_t accessFlags);
+		void *map(uint32_t accessFlags);
 
 		/**
 		 * Map the buffer object to CPU memory.
@@ -170,7 +206,7 @@ namespace regen {
 		 * @param accessFlags access flags for the mapping operation.
 		 * @return pointer to the mapped data, or nullptr if mapping failed.
 		 */
-		static GLvoid *map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags);
+		static void *map(const ref_ptr<BufferReference> &ref, uint32_t accessFlags);
 
 		/**
 		* Unmaps previously mapped data.
@@ -185,12 +221,12 @@ namespace regen {
 		 * @param offset offset in data VBO
 		 * @param toOffset in destination VBO
 		 */
-		static void copy(GLuint from, GLuint to, GLuint size, GLuint offset, GLuint toOffset);
+		static void copy(uint32_t from, uint32_t to, uint32_t size, uint32_t offset, uint32_t toOffset);
 
 		/**
 		 * Calculates the struct size for the attributes in bytes.
 		 */
-		static GLuint attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes);
+		static uint32_t attributeSize(const std::list<ref_ptr<ShaderInput> > &attributes);
 
 		/**
 		 * Create memory pool instances for different usage hints.
@@ -212,29 +248,28 @@ namespace regen {
 		static BufferPool *bufferPool(BufferTarget target, BufferStorageMode mode);
 
 	protected:
-		BufferUpdateHint updateHint_;
-		BufferMapMode mapMode_ = BUFFER_MAP_DISABLED;
-		BufferAccessMode accessMode_ = BUFFER_GPU_ONLY;
-		BufferTarget target_;
+		BufferFlags flags_;
 		GLenum glTarget_;
 
 		std::vector<ref_ptr<BufferReference> > allocations_;
 		// sum of allocated bytes
-		GLuint allocatedSize_;
+		uint32_t allocatedSize_;
 
-		ref_ptr<BufferReference> &createReference(GLuint numBytes);
-
-		static ref_ptr<BufferReference> &nullReference();
+		ref_ptr<BufferReference> &adoptBufferRange_(uint32_t numBytes, BufferPool *memoryPool);
 
 		static BufferPool **bufferPools();
 
 		friend struct BufferReference;
 	};
 
+	/**
+	 * Template class for buffer objects with a specific target.
+	 * This allows for easier instantiation of buffer objects with different targets.
+	 */
 	template<BufferTarget target>
 	class BufferObjectT : public BufferObject {
 	public:
-		explicit BufferObjectT(BufferUpdateHint hint) : BufferObject(target, hint) {}
+		explicit BufferObjectT(const BufferUpdateFlags &hints) : BufferObject(target, hints) {}
 	};
 } // namespace
 

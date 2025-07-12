@@ -454,18 +454,17 @@ void LODState::createComputeShader() {
 			}
 			drawParams[i].setInstanceCount(i==0 ? m->inputContainer()->numInstances() : 0);
 		}
-		auto idb = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-				"DrawCommand",
-				REGEN_STRING("drawParams"<<suffix),
-				4);
-		idb->setUniformUntyped((byte*)(&drawParams[0]));
 		// create an indirect draw buffer, which is computed each frame
 		indirectDrawBuffers_[partIdx] = ref_ptr<SSBO>::alloc(
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BUFFER_HINT_UPDATE_STREAM, SSBO::RESTRICT);
-		indirectDrawBuffers_[partIdx]->addBlockInput(idb);
-		indirectDrawBuffers_[partIdx]->setBufferMapMode(BUFFER_MAP_DISABLED);
+				BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+				SSBO::RESTRICT);
+		indirectDrawBuffers_[partIdx]->addBlockInput(ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+				"DrawCommand",
+				REGEN_STRING("drawParams"<<suffix),
+				4));
 		indirectDrawBuffers_[partIdx]->update();
+		indirectDrawBuffers_[partIdx]->setBufferData((byte*)(&drawParams[0]));
 		// TODO use a single buffer with offsets
 		uint32_t partDrawIdx = 0;
 		part->setIndirectDrawBuffer(
@@ -485,7 +484,8 @@ void LODState::createComputeShader() {
 			clearData->setUniformUntyped((byte*)(&drawParams[0]));
 			clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BUFFER_HINT_STATIC, SSBO::RESTRICT);
+				BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY },
+				SSBO::RESTRICT);
 			clearIndirectBuffer_->addBlockInput(clearData);
 			clearIndirectBuffer_->update();
 		}
@@ -502,9 +502,11 @@ void LODState::createComputeShader() {
 
 	{ // cull
 		// we store the 6 frustum planes in a UBO
-		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer", BUFFER_HINT_UPDATE_STREAM);
-		frustumUBO_->setBufferAccessMode(BUFFER_CPU_WRITE);
-		frustumUBO_->addBlockInput(ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size()));
+		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer",
+			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+		frustumUBO_->setStagingAccessMode(BUFFER_CPU_WRITE);
+		frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size());
+		frustumUBO_->addBlockInput(frustumData_);
 		frustumUBO_->update();
 
 		StateConfigurer shaderCfg;
@@ -576,17 +578,16 @@ void LODState::traverseGPU(RenderState *rs) {
 
 	if (cameraStamp_ != camera_->stamp()) {
 		// Update the frustum planes in the UBO
-		// TODO: seems to change every frame, even if the camera did not move?
 		cameraStamp_ = camera_->stamp();
 		auto &frustum = camera_->frustum();
+		auto frustum_cpu =
+			frustumData_->mapClientData<Vec4f>(ShaderData::WRITE);
 		for (size_t i = 0; i < frustum.size(); ++i) {
 			auto &frustumPlanes = frustum[i].planes;
 			for (int j = 0; j < 6; ++j) {
-				frustumPlanes_[i*6 + j] = frustumPlanes[j].equation();
+				frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
 			}
 		}
-		// TODO: use persistent mapping, modify shader input here?
-		frustumUBO_->setBufferData(&frustumPlanes_[0].x);
 	}
 	if (tfStamp_ != cullShape_->tf()->stamp()) {
 		// Update the transform in the cull pass

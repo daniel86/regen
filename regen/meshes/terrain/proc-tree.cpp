@@ -40,14 +40,16 @@ namespace regen {
 }
 
 ProcTree::ProcTree() {
-	trunk.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BUFFER_HINT_STATIC);
+	trunk.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES,
+		BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
 	trunk.indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	trunk.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	trunk.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	trunk.tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	trunk.texco = ref_ptr<ShaderInput2f>::alloc("texco0");
 
-	twig.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BUFFER_HINT_STATIC);
+	twig.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES,
+		BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
 	twig.indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	twig.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	twig.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);

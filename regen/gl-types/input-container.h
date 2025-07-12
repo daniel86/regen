@@ -23,7 +23,7 @@ namespace regen {
 		/**
 		 * @param usage VBO usage.
 		 */
-		InputContainer(BufferTarget target, BufferUpdateHint usage);
+		InputContainer(BufferTarget target, const BufferUpdateFlags &hints);
 
 		/**
 		 * @param in shader input data.
@@ -32,7 +32,7 @@ namespace regen {
 		 */
 		InputContainer(
 			const ref_ptr<ShaderInput> &in,
-			BufferUpdateHint hint,
+			const BufferUpdateFlags &hints,
 			const std::string &name = "");
 
 		~InputContainer();
@@ -305,8 +305,8 @@ namespace regen {
 		/**
 		 * @param usage VBO usage hint.
 		 */
-		explicit HasInput(BufferTarget target, BufferUpdateHint hint) {
-			inputContainer_ = ref_ptr<InputContainer>::alloc(target, hint);
+		explicit HasInput(BufferTarget target, const BufferUpdateFlags &hints) {
+			inputContainer_ = ref_ptr<InputContainer>::alloc(target, hints);
 		}
 
 		/**
