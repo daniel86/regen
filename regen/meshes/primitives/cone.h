@@ -43,7 +43,7 @@ namespace regen {
 			std::vector<GLuint> levelOfDetails;
 			/** Buffer usage hints. */
 			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
-			BufferUpdateFlags updateHint = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY };
+			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();
@@ -100,7 +100,7 @@ namespace regen {
 			std::vector<GLuint> levelOfDetails;
 			/** Buffer usage hints. */
 			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
-			BufferUpdateFlags updateHint = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY };
+			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();

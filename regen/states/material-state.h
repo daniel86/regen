@@ -71,7 +71,7 @@ namespace regen {
 			HEIGHT_MAP_PARALLAX_OCCLUSION
 		};
 
-		Material();
+		Material(const BufferUpdateFlags &updateFlags = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_PARTIALLY });
 
 		static ref_ptr<Material> load(LoadingContext &ctx, scene::SceneInputNode &input);
 

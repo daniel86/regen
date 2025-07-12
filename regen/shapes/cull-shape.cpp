@@ -50,8 +50,7 @@ void CullShape::createBuffers() {
 	for (uint32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
 
 	instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
-	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs",
-		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
 	if (isIndexShape()) {
 		// Note: do not set CPU-side data in case of GPU shape (we rather use setBufferData below).
 		instanceIDMap_->setInstanceData(1, 1, (byte*)clearData.data());

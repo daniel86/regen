@@ -2,8 +2,8 @@
 
 using namespace regen;
 
-ArrayCamera::ArrayCamera(unsigned int numLayer)
-		: Camera(numLayer) {
+ArrayCamera::ArrayCamera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
+		: Camera(numLayer, updateFlags) {
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
 
 	// Set matrix array size

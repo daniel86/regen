@@ -34,6 +34,10 @@ BufferBlock::BufferBlock(
 	// the flag will be switched to something else based on the inputs added.
 	setBufferAccessMode(BUFFER_GPU_ONLY);
 	setBufferMapMode(BUFFER_MAP_DISABLED);
+	// if the buffer will never be updated, we can use implicit staging.
+	if (hints.frequency == BUFFER_UPDATE_NEVER) {
+		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
+	}
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
@@ -203,7 +207,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	estimatedSize_ += input->inputSize();
 
 	// update the storage flags based on added inputs
-	if (input->hasClientData()) {
+	if (input->hasClientData() && flags_.updateHints.frequency != BUFFER_UPDATE_NEVER) {
 		auto sizeClass = getBufferSizeClass(estimatedSize_);
 		// input has client data, so we need to set the access mode such that the CPU can write to it.
 		enableWriteAccess();
@@ -486,6 +490,11 @@ void BufferBlock::resize() {
 		free(ref_.get());
 	}
 
+	// if neither read nor write access is allowed, we can use implicit staging.
+	if (!stagingFlags_.isWritable() && !flags_.isReadable()) {
+		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
+	}
+
 	if (!flags_.useExplicitStaging()) {
 		// in case of implicit staging with multi-buffering, we need to allocate space for each segment
 		// of a ring buffer in the draw buffer.
@@ -499,14 +508,13 @@ void BufferBlock::resize() {
 		REGEN_ERROR("failed to allocate buffer for buffer flags " << flags_);
 		isBlockValid_ = false;
 		return;
-	} else {
-		isBlockValid_ = true;
 	}
 	if (isMapModePersistent(flags_.mapMode) && !ref_->mappedData()) {
 		REGEN_WARN("something went wrong with persistent mapping for buffer flags " << flags_);
 		isBlockValid_ = false;
 		return;
 	}
+	isBlockValid_ = true;
 
 	allocatedSize_ = requiredSize_;
 	// set draw buffer range to first segment in the ring buffer
@@ -618,6 +626,7 @@ void BufferBlock::updateNonMapped() {
 	// iterate over the changed segments and copy only those into the staging buffer.
 	stagingBuffer_->beginNonMappedWrite();
 
+	GL_ERROR_LOG();
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
 		auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
 
@@ -638,6 +647,7 @@ void BufferBlock::updateNonMapped() {
 			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}
+	GL_ERROR_LOG();
 	stagingBuffer_->endNonMappedWrite(*drawBufferRange_.get());
 	stamp_ += 1;
 }

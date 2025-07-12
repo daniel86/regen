@@ -18,14 +18,13 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
-		: Mesh(GL_POINTS, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
+		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER),
 		  Animation(true, false),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
 	setAnimationName("particles");
 	setBufferAccessMode(BUFFER_CPU_WRITE);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER,
-		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::FULL_PER_FRAME);
 	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
 	inputContainer_->set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();

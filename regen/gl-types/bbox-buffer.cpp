@@ -21,7 +21,7 @@ namespace regen {
 }
 
 BBoxBuffer::BBoxBuffer(const std::string &name) :
-	SSBO(name, { BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY }),
+	SSBO(name, BufferUpdateFlags::FULL_PER_FRAME),
 	bbox_(Vec3f::zero(), Vec3f::zero())
 {
 	// The parameters of our bounding box buffer or the boundaries encoded as integers.

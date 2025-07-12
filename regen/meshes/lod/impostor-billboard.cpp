@@ -7,7 +7,7 @@ using namespace regen;
 #undef DEBUG_SNAPSHOT_VIEWS
 
 ImpostorBillboard::ImpostorBillboard()
-		: Mesh(GL_POINTS, BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
+		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER),
 		  snapshotState_(ref_ptr<State>::alloc()) {
 	depthOffset_ = createUniform<ShaderInput1f>("depthOffset", 0.5f);
 	modelOrigin_ = createUniform<ShaderInput3f>("modelOrigin", Vec3f::zero());
@@ -134,8 +134,7 @@ void ImpostorBillboard::createResources() {
 	hasInitializedResources_ = true;
 	updateNumberOfViews();
 	// create camera for the update pass
-	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_);
-	snapshotCamera_->setStaticCamera();
+	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_, BufferUpdateFlags::NEVER);
 
 	{ // create parameters for the shader
 		joinShaderInput(depthOffset_);
@@ -143,8 +142,7 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create view data arrays
-		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer",
-			BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
+		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer", BufferUpdateFlags::NEVER);
 		// TODO: could use GPU-only storage here, but then need to use setBufferData() instead of setUniformData()
 		snapshotDirs_ = ref_ptr<ShaderInput4f>::alloc("snapshotDirs", numSnapshotViews_);
 		snapshotDirs_->setUniformUntyped();

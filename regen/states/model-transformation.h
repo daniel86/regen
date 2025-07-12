@@ -42,21 +42,24 @@ namespace regen {
 		 *
 		 * Creates a model transformation with the default mode TF_MATRIX.
 		 */
-		explicit ModelTransformation(int tfMode = TF_MATRIX);
+		explicit ModelTransformation(int tfMode = TF_MATRIX,
+				const BufferUpdateFlags &tfUpdateFlags = BufferUpdateFlags::FULL_PER_FRAME);
 
 		/**
 		 * @brief Constructor with model offset.
 		 *
 		 * Creates a model transformation with TF_OFFSET mode.
 		 */
-		explicit ModelTransformation(const ref_ptr<ShaderInput4f> &modelOffset);
+		explicit ModelTransformation(const ref_ptr<ShaderInput4f> &modelOffset,
+				const BufferUpdateFlags &tfUpdateFlags = BufferUpdateFlags::FULL_PER_FRAME);
 
 		/**
 		 * @brief Constructor with model matrix.
 		 *
 		 * Creates a model transformation with TF_MATRIX mode.
 		 */
-		explicit ModelTransformation(const ref_ptr<ShaderInputMat4> &modelMat);
+		explicit ModelTransformation(const ref_ptr<ShaderInputMat4> &modelMat,
+				const BufferUpdateFlags &tfUpdateFlags = BufferUpdateFlags::FULL_PER_FRAME);
 
 		/**
 		 * @return true if the model transformation has a model matrix.
@@ -124,6 +127,7 @@ namespace regen {
 
 	protected:
 		int tfMode_;
+		BufferUpdateFlags tfUpdateFlags_;
 		ref_ptr<ShaderInputMat4> modelMat_;
 		ref_ptr<ShaderInput4f> modelOffset_;
 		ref_ptr<ShaderInput3f> velocity_;

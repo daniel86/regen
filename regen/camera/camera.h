@@ -30,7 +30,8 @@ namespace regen {
 		 * Default constructor.
 		 * @param numLayer the number of layers.
 		 */
-		explicit Camera(unsigned int numLayer);
+		explicit Camera(unsigned int numLayer,
+				const BufferUpdateFlags &updateFlags = BufferUpdateFlags::PARTIAL_PER_FRAME);
 
 		static ref_ptr<Camera> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
@@ -51,12 +52,6 @@ namespace regen {
 		 * @return the number of layers.
 		 */
 		auto numLayer() const { return numLayer_; }
-
-		/**
-		 * Flag this camera as a static camera that does not change its position or orientation.
-		 * This is used for optimization purposes.
-		 */
-		void setStaticCamera();
 
 		/**
 		 * @return true if this camera is an omnidirectional camera.

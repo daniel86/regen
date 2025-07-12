@@ -457,7 +457,7 @@ void LODState::createComputeShader() {
 		// create an indirect draw buffer, which is computed each frame
 		indirectDrawBuffers_[partIdx] = ref_ptr<SSBO>::alloc(
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+				BufferUpdateFlags::FULL_PER_FRAME,
 				SSBO::RESTRICT);
 		indirectDrawBuffers_[partIdx]->addBlockInput(ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 				"DrawCommand",
@@ -484,7 +484,7 @@ void LODState::createComputeShader() {
 			clearData->setUniformUntyped((byte*)(&drawParams[0]));
 			clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY },
+				BufferUpdateFlags::NEVER,
 				SSBO::RESTRICT);
 			clearIndirectBuffer_->addBlockInput(clearData);
 			clearIndirectBuffer_->update();
@@ -502,8 +502,7 @@ void LODState::createComputeShader() {
 
 	{ // cull
 		// we store the 6 frustum planes in a UBO
-		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer",
-			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer", BufferUpdateFlags::FULL_PER_FRAME);
 		frustumUBO_->setStagingAccessMode(BUFFER_CPU_WRITE);
 		frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size());
 		frustumUBO_->addBlockInput(frustumData_);

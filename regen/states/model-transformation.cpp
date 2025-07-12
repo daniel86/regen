@@ -9,9 +9,10 @@
 
 using namespace regen;
 
-ModelTransformation::ModelTransformation(int tfMode)
+ModelTransformation::ModelTransformation(int tfMode, const BufferUpdateFlags &tfUpdateFlags)
 		: State(),
-		  tfMode_(tfMode) {
+		  tfMode_(tfMode),
+		  tfUpdateFlags_(tfUpdateFlags) {
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
 	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
 	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
@@ -26,9 +27,10 @@ ModelTransformation::ModelTransformation(int tfMode)
 	initBufferContainer();
 }
 
-ModelTransformation::ModelTransformation(const ref_ptr<ShaderInput4f> &offset)
+ModelTransformation::ModelTransformation(const ref_ptr<ShaderInput4f> &offset, const BufferUpdateFlags &tfUpdateFlags)
 		: State(),
-		  tfMode_(TF_OFFSET) {
+		  tfMode_(TF_OFFSET),
+		  tfUpdateFlags_(tfUpdateFlags) {
 	modelOffset_ = offset;
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
 	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
@@ -38,9 +40,10 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInput4f> &offset)
 	initBufferContainer();
 }
 
-ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat)
+ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat, const BufferUpdateFlags &tfUpdateFlags)
 		: State(),
-		  tfMode_(TF_MATRIX) {
+		  tfMode_(TF_MATRIX),
+		  tfUpdateFlags_(tfUpdateFlags) {
 	modelMat_ = mat;
 	modelMat_->setSchema(InputSchema::transform());
 
@@ -54,8 +57,7 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat)
 }
 
 void ModelTransformation::initBufferContainer() {
-	bufferContainer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation",
-		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+	bufferContainer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation", tfUpdateFlags_);
 	if (tfMode_ & TF_MATRIX) {
 		bufferContainer_->addInput(modelMat_);
 	}
@@ -583,7 +585,13 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 			tfMode = ModelTransformation::TF_OFFSET | ModelTransformation::TF_MATRIX;
 		}
 	}
-	transform = ref_ptr<ModelTransformation>::alloc(tfMode);
+	BufferUpdateFlags updateFlags;
+	updateFlags.frequency = input.getValue<BufferUpdateFrequency>(
+		"update-frequency", BUFFER_UPDATE_PER_FRAME);
+	updateFlags.scope = input.getValue<BufferUpdateScope>(
+		"update-scope", BUFFER_UPDATE_FULLY);
+
+	transform = ref_ptr<ModelTransformation>::alloc(tfMode, updateFlags);
 	// read the gpu-usage flag
 	if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
 		transform->modelMat()->set_gpuUsage(ShaderData::WRITE);

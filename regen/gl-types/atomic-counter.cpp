@@ -4,7 +4,7 @@
 using namespace regen;
 
 AtomicCounter::AtomicCounter() :
-		BufferObjectT({BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY}) {
+		BufferObjectT(BufferUpdateFlags::FULL_PER_FRAME) {
 	setBufferAccessMode(BUFFER_CPU_READ_WRITE);
 	setBufferMapMode(BUFFER_MAP_TEMPORARY);
 }

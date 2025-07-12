@@ -3,7 +3,7 @@
 using namespace regen;
 
 LightCamera_Spot::LightCamera_Spot(const ref_ptr<Light> &light)
-		: Camera(1),
+		: Camera(1, light->lightUBO()->bufferUpdateHints()),
 		  LightCamera(light, this) {
 	setInput(lightMatrix_);
 	shaderDefine("RENDER_TARGET", "2D");

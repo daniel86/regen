@@ -8,7 +8,7 @@
 using namespace regen;
 
 TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &height)
-		: Mesh(GL_TRIANGLES, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY } ),
+		: Mesh(GL_TRIANGLES, BufferUpdateFlags::NEVER ),
 		  font_(font),
 		  value_(),
 		  height_(height),

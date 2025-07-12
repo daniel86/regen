@@ -36,8 +36,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	astro_->setLatitude(52.5491);
 	astro_->setLongitude(13.3611);
 
-	auto uniformBlock = ref_ptr<UBO>::alloc("Sky",
-		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY });
+	auto uniformBlock = ref_ptr<UBO>::alloc("Sky", BufferUpdateFlags::FULL_PER_FRAME);
 
 	// 0: altitude in km
 	// 1: apparent angular radius (not diameter!)

@@ -1,10 +1,3 @@
-/*
- * light-state.cpp
- *
- *  Created on: 26.01.2011
- *      Author: daniel
- */
-
 #include "light-state.h"
 #include "regen/animations/boids-cpu.h"
 #include "regen/scene/shader-input-processor.h"
@@ -25,9 +18,9 @@ namespace regen {
 	};
 }
 
-Light::Light(Light::Type lightType)
+Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 		: State(),
-		  HasInput(ARRAY_BUFFER, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
+		  HasInput(ARRAY_BUFFER, BufferUpdateFlags::NEVER),
 		  lightType_(lightType),
 		  isAttenuated_(GL_TRUE),
 		  coneMatrixStamp_(0) {
@@ -40,8 +33,7 @@ Light::Light(Light::Type lightType)
 			break;
 	}
 
-	lightUniforms_ = ref_ptr<UBO>::alloc("Light",
-		BufferUpdateFlags{ BUFFER_UPDATE_RARE, BUFFER_UPDATE_PARTIALLY });
+	lightUniforms_ = ref_ptr<UBO>::alloc("Light", updateFlags);
 	setInput(lightUniforms_);
 
 	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
@@ -199,8 +191,14 @@ namespace regen {
 }
 
 ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+	BufferUpdateFlags updateFlags;
+	updateFlags.frequency = input.getValue<BufferUpdateFrequency>(
+		"update-frequency", BUFFER_UPDATE_PER_FRAME);
+	updateFlags.scope = input.getValue<BufferUpdateScope>(
+		"update-scope", BUFFER_UPDATE_FULLY);
+
 	auto lightType = input.getValue<Light::Type>("type", Light::SPOT);
-	ref_ptr<Light> light = ref_ptr<Light>::alloc(lightType);
+	ref_ptr<Light> light = ref_ptr<Light>::alloc(lightType, updateFlags);
 	light->set_isAttenuated(
 			input.getValue<bool>("is-attenuated", lightType != Light::DIRECTIONAL));
 

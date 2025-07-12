@@ -136,7 +136,10 @@ namespace regen {
 		 * Enable a synchronization flag for the buffer object.
 		 * @param flag the synchronization flag to set.
 		 */
-		void setSyncFlag(BufferSyncFlag flag) { stagingFlags_.syncFlags |= flag; }
+		void setSyncFlag(BufferSyncFlag flag) {
+			stagingFlags_.syncFlags |= flag;
+			flags_.syncFlags |= flag;
+		}
 
 		/**
 		 * Check if a specific synchronization flag is set.

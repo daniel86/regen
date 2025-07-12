@@ -30,8 +30,8 @@ namespace regen {
 	};
 }
 
-Camera::Camera(unsigned int numLayer)
-		: HasInputState(ARRAY_BUFFER, { BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_PARTIALLY }),
+Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
+		: HasInputState(ARRAY_BUFFER, BufferUpdateFlags::PARTIAL_PER_FRAME),
 		  numLayer_(numLayer),
 		  frustum_(numLayer) {
 	// add shader constants via defines
@@ -73,8 +73,7 @@ Camera::Camera(unsigned int numLayer)
 	viewProjInv_->setSchema(InputSchema::transform());
 
 	// TODO: I think we really need t use buffer container here!
-	cameraBlock_ = ref_ptr<UBO>::alloc("Camera",
-		BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_PARTIALLY });
+	cameraBlock_ = ref_ptr<UBO>::alloc("Camera", updateFlags);
 	cameraBlock_->addBlockInput(view_);
 	cameraBlock_->addBlockInput(viewInv_);
 	cameraBlock_->addBlockInput(viewProj_);
@@ -87,13 +86,6 @@ Camera::Camera(unsigned int numLayer)
 	cameraBlock_->addBlockInput(proj_);
 	cameraBlock_->addBlockInput(projInv_);
 	setInput(cameraBlock_);
-}
-
-void Camera::setStaticCamera() {
-	cameraBlock_->setStagingUpdateHints({ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY });
-	cameraBlock_->setStagingMapMode(BUFFER_MAP_DISABLED);
-	//cameraBlock_->setStagingAccessMode(BUFFER_GPU_ONLY);
-	cameraBlock_->setBufferingMode(SINGLE_BUFFER);
 }
 
 void Camera::setPerspective(const Vec4f &params) {
@@ -498,7 +490,6 @@ void ProjectionUpdater::call(EventObject *, EventData *) {
 
 ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto camType = input.getValue<std::string>("type", "spot");
-
 	if (input.hasAttribute("reflector") ||
 		input.hasAttribute("reflector-normal") ||
 		input.hasAttribute("reflector-point")) {
@@ -536,9 +527,6 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 	} else if (camType == "cube") {
 		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
 		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
-		if (input.getValue<bool>("static", false)) {
-			cam->setStaticCamera();
-		}
 		if (tf.get()) {
 			if (tf->hasModelMat()) {
 				cam->attachToPosition(tf->modelMat());
@@ -555,9 +543,6 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		if (input.hasAttribute("normal")) {
 			cam->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
 		}
-		if (input.getValue<bool>("static", false)) {
-			cam->setStaticCamera();
-		}
 
 		if (tf.get()) {
 			if (tf->hasModelMat()) {
@@ -573,9 +558,6 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
 		cam->set_isAudioListener(
 				input.getValue<bool>("audio-listener", false));
-		if (input.getValue<bool>("static", false)) {
-			cam->setStaticCamera();
-		}
 		cam->position()->setVertex3(0,
 								   input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
 

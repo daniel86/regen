@@ -100,6 +100,14 @@ namespace regen {
 	 * Defines how the buffer is updated.
 	 */
 	struct BufferUpdateFlags {
+		static const BufferUpdateFlags NEVER;
+		static const BufferUpdateFlags FULL_PER_FRAME;
+		static const BufferUpdateFlags FULL_PER_DRAW;
+		static const BufferUpdateFlags FULL_RARELY;
+		static const BufferUpdateFlags PARTIAL_PER_FRAME;
+		static const BufferUpdateFlags PARTIAL_PER_DRAW;
+		static const BufferUpdateFlags PARTIAL_RARELY;
+
 		// how often the buffer is updated
 		BufferUpdateFrequency frequency = BUFFER_UPDATE_NEVER;
 		// how much of the buffer is updated each time it is updated
@@ -232,7 +240,7 @@ namespace regen {
 
 		explicit BufferFlags(BufferTarget target)
 			: target(target),
-			  updateHints({BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY}) {}
+			  updateHints(BufferUpdateFlags::NEVER) {}
 
 		BufferFlags(BufferTarget target, const BufferUpdateFlags &hints)
 			: target(target), updateHints(hints) {}

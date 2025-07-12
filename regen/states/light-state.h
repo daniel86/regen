@@ -36,7 +36,8 @@ namespace regen {
 		/**
 		 * @param lightType the light type.
 		 */
-		explicit Light(Type lightType);
+		explicit Light(Type lightType,
+				const BufferUpdateFlags &updateFlags = BufferUpdateFlags::FULL_PER_FRAME);
 
 		static ref_ptr<Light> load(LoadingContext &ctx, scene::SceneInputNode &input);
 

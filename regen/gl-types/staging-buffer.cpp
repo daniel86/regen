@@ -89,10 +89,10 @@ bool StagingBuffer::initializeMapping() {
 			status = 1; // error
 		}
 	} else {
-		for (uint32_t i = 0u; i < bufferSegments_.size(); ++i) {
-			auto &segment = bufferSegments_[i];
+		if (storageFlags_ & MAP_PERSISTENT) {
 			// if persistent mapping is requested, map the buffer segment
-			if (storageFlags_ & MAP_PERSISTENT) {
+			for (uint32_t i = 0u; i < bufferSegments_.size(); ++i) {
+				auto &segment = bufferSegments_[i];
 				segment.mappedPtr = refsCPU_[i]->mappedData();
 				if (!segment.mappedPtr) {
 					status = 1; // error
@@ -175,13 +175,31 @@ void StagingBuffer::setSubData(uint32_t localOffset, uint32_t dataSize, const vo
 			return;
 		}
 		std::memcpy(writeSegment.mappedPtr + localOffset, data, dataSize);
-	} else {
+	} else if (flags_.isWritable()) {
 		// in case of non-persistent mapping, we need to copy the data into the buffer without mapping.
 		auto &writeBuffer = (bufferType_ == RING_BUFFER ? refsCPU_[0] : refsCPU_[writeBufferIndex_]);
 		glNamedBufferSubData(
 			writeBuffer->bufferID(),
 			writeBuffer->address() + writeSegment.offset + localOffset,
 			dataSize, data);
+	} else {
+		// in case of non-writable buffer, we need to adopt a writable buffer range the copy from buffer-to-buffer.
+		auto &writeBuffer = (bufferType_ == RING_BUFFER ? refsCPU_[0] : refsCPU_[writeBufferIndex_]);
+		auto tempRef = BufferObject::adoptBufferRange(
+				dataSize,
+				BufferObject::bufferPool(flags_.target, BUFFER_MODE_STATIC_WRITE));
+		glNamedBufferSubData(
+				tempRef->bufferID(),
+				tempRef->address(),
+				dataSize,
+				data);
+		glCopyNamedBufferSubData(
+				tempRef->bufferID(),
+				writeBuffer->bufferID(),
+				tempRef->address(),
+				writeBuffer->address() + localOffset,
+				dataSize);
+	GL_ERROR_LOG();
 	}
 }
 
@@ -309,6 +327,8 @@ void StagingBuffer::endNonMappedWrite(BufferRange &nextDrawBuffer) {
 		nextDrawBuffer.segment_ = readBufferIndex_;
 	}
 	nextDrawBuffer.size_ = segmentSize_;
+
+	GL_ERROR_LOG();
 
 	swapBuffers();
 }

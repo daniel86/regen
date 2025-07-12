@@ -74,7 +74,7 @@ void RadixSort::createResources() {
 
 	// Temporary Buffers for sorting.
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer",
-			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
 	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeys_);
 	keys->set_forceArray(true);
@@ -85,7 +85,7 @@ void RadixSort::createResources() {
 		valueBuffer_ = userValueBuffer_;
 	} else {
 		valueBuffer_ = ref_ptr<SSBO>::alloc("ValueBuffer",
-				BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+				BufferUpdateFlags::FULL_PER_FRAME,
 				SSBO::RESTRICT);
 		auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_ * 2);
 		values1->set_forceArray(true);
@@ -96,7 +96,7 @@ void RadixSort::createResources() {
 	}
 
 	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer",
-			BufferUpdateFlags{ BUFFER_UPDATE_PER_FRAME, BUFFER_UPDATE_FULLY },
+			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
 	globalHistogramBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc(
 			"globalHistogram", numBuckets_ * numWorkGroups));

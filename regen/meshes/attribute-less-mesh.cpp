@@ -3,6 +3,6 @@
 using namespace regen;
 
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
-		: Mesh(GL_POINTS, BufferUpdateFlags{ BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }) {
+		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER) {
 	inputContainer_->set_numVertices(numVertices);
 }

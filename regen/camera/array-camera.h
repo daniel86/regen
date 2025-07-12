@@ -9,7 +9,8 @@ namespace regen {
 		/**
 		 * @param numLayer the number of layers.
 		 */
-		explicit ArrayCamera(unsigned int numLayer);
+		explicit ArrayCamera(unsigned int numLayer,
+				const BufferUpdateFlags &updateFlags = BufferUpdateFlags::PARTIAL_PER_FRAME);
 	};
 } // namespace
 

@@ -9,8 +9,8 @@
 
 using namespace regen;
 
-Material::Material()
-		: HasInputState(ARRAY_BUFFER, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
+Material::Material(const BufferUpdateFlags &updateFlags)
+		: HasInputState(ARRAY_BUFFER, BufferUpdateFlags::NEVER),
 		  fillMode_(GL_FILL),
 		  forcedInternalFormat_(GL_NONE),
 		  forcedFormat_(GL_NONE),
@@ -44,8 +44,7 @@ Material::Material()
 
 	shaderDefine("HAS_MATERIAL", "TRUE");
 
-	materialUniforms_ = ref_ptr<UBO>::alloc("Material",
-		BufferUpdateFlags{ BUFFER_UPDATE_RARE, BUFFER_UPDATE_PARTIALLY });
+	materialUniforms_ = ref_ptr<UBO>::alloc("Material", updateFlags);
 	materialUniforms_->addBlockInput(materialSpecular_);
 	materialUniforms_->addBlockInput(materialShininess_);
 	materialUniforms_->addBlockInput(materialDiffuse_);
@@ -418,7 +417,12 @@ namespace regen {
 }
 
 ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &input) {
-	ref_ptr<Material> mat = ref_ptr<Material>::alloc();
+	BufferUpdateFlags updateFlags;
+	updateFlags.frequency = input.getValue<BufferUpdateFrequency>(
+		"update-frequency", BUFFER_UPDATE_PER_FRAME);
+	updateFlags.scope = input.getValue<BufferUpdateScope>(
+		"update-scope", BUFFER_UPDATE_FULLY);
+	ref_ptr<Material> mat = ref_ptr<Material>::alloc(updateFlags);
 
 	if (input.hasAttribute("max-offset")) {
 		mat->set_maxOffset(input.getValue<GLfloat>("max-offset", 0.1f));
@@ -433,7 +437,6 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 	if (input.hasAttribute("color-blend-factor")) {
 		mat->set_colorBlendFactor(input.getValue<GLfloat>("color-blending-factor", 1.0f));
 	}
-
 
 	if (input.hasAttribute("asset")) {
 		ref_ptr<AssetImporter> assetLoader =

@@ -57,7 +57,7 @@ namespace regen {
 			GLboolean isTangentRequired;
 			/** Buffer usage hints. */
 			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
-			BufferUpdateFlags updateHint = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY };
+			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
 			Config();

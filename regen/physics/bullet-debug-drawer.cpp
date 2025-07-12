@@ -6,7 +6,7 @@ BulletDebugDrawer::BulletDebugDrawer(const ref_ptr<BulletPhysics> &physics)
 		: btIDebugDraw(),
 		  StateNode(),
 		  HasShader("regen.models.lines"),
-		  HasInput(ARRAY_BUFFER, { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_FULLY }),
+		  HasInput(ARRAY_BUFFER, BufferUpdateFlags::NEVER),
 		  physics_(physics),
 		  vbo_(0),
 		  m_debugMode(DBG_DrawContactPoints | DBG_DrawWireframe){

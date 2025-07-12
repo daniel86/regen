@@ -200,6 +200,35 @@ namespace regen {
 		return in;
 	}
 
+	const BufferUpdateFlags BufferUpdateFlags::NEVER = {
+		.frequency = BUFFER_UPDATE_NEVER,
+		.scope = BUFFER_UPDATE_FULLY
+	};
+	const BufferUpdateFlags BufferUpdateFlags::FULL_PER_FRAME = {
+		.frequency = BUFFER_UPDATE_PER_FRAME,
+		.scope = BUFFER_UPDATE_FULLY
+	};
+	const BufferUpdateFlags BufferUpdateFlags::FULL_PER_DRAW = {
+		.frequency = BUFFER_UPDATE_PER_DRAW,
+		.scope = BUFFER_UPDATE_FULLY
+	};
+	const BufferUpdateFlags BufferUpdateFlags::FULL_RARELY = {
+		.frequency = BUFFER_UPDATE_RARE,
+		.scope = BUFFER_UPDATE_FULLY
+	};
+	const BufferUpdateFlags BufferUpdateFlags::PARTIAL_PER_FRAME = {
+		.frequency = BUFFER_UPDATE_PER_FRAME,
+		.scope = BUFFER_UPDATE_PARTIALLY
+	};
+	const BufferUpdateFlags BufferUpdateFlags::PARTIAL_PER_DRAW = {
+		.frequency = BUFFER_UPDATE_PER_DRAW,
+		.scope = BUFFER_UPDATE_PARTIALLY
+	};
+	const BufferUpdateFlags BufferUpdateFlags::PARTIAL_RARELY = {
+		.frequency = BUFFER_UPDATE_RARE,
+		.scope = BUFFER_UPDATE_PARTIALLY
+	};
+
 	std::ostream &operator<<(std::ostream &out, const BufferUpdateFrequency &hint) {
 		switch (hint) {
 			case BUFFER_UPDATE_NEVER:
