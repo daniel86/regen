@@ -110,7 +110,7 @@ namespace regen {
 		 * @param dirtySegments the dirty segments to push to the flush queue.
 		 * @param numDirtySegments the number of dirty segments.
 		 */
-		void pushToFlushQueue(const Vec4ui *dirtySegments, uint32_t numDirtySegments);
+		void pushToFlushQueue(const BufferRange2ui *dirtySegments, uint32_t numDirtySegments);
 
 		/**
 		 * Read data from an input buffer reference into client memory.
@@ -154,7 +154,7 @@ namespace regen {
 			uint32_t offset = 0;
 			GPUFence writeFence;
 			GPUFence readFence;
-			std::vector<Vec4ui> dirtySegments;
+			std::vector<BufferRange2ui> dirtySegments;
 			uint32_t numDirtySegments = 0;
 			bool hasData = false;
 		};

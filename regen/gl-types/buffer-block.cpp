@@ -280,18 +280,29 @@ void BufferBlock::resetDirtySegments() {
 	numDirtySegments_ = 0;
 }
 
-BufferBlock::DirtySegment &BufferBlock::getLastDirtySegment() {
-	return dirtySegments_[numDirtySegments_ - 1];
+void BufferBlock::createNextDirtySegment() {
+	if (numDirtySegments_ >= dirtySegmentRanges_.size()) {
+		// allocate a new segment if we have no more space
+		dirtySegmentRanges_.emplace_back();
+		dirtyBufferRanges_.emplace_back();
+	}
+	numDirtySegments_ += 1;
 }
 
-BufferBlock::DirtySegment &BufferBlock::getNextDirtySegment() {
-	if (numDirtySegments_ >= dirtySegments_.size()) {
-		// allocate a new segment if we have no more space
-		numDirtySegments_ += 1;
-		return dirtySegments_.emplace_back();
-	} else {
-		return dirtySegments_[numDirtySegments_++];
-	}
+void BufferBlock::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
+	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
+	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
+	dirty_b.offset = input.offset;
+	dirty_b.size = input.inputSize;
+	dirty_s.startIdx = inputIdx;
+	dirty_s.endIdx = inputIdx;
+}
+
+void BufferBlock::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
+	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
+	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
+	dirty_b.size = input.offset - dirty_b.offset + input.inputSize;
+	dirty_s.endIdx = inputIdx;
 }
 
 uint32_t& BufferBlock::lastInputStamp(BlockInput &blockInput) {
@@ -317,10 +328,11 @@ void BufferBlock::updateBlockInputs() {
 			updatedSize_ += blockInput.input->inputSize();
 			if (lastChanged) {
 				// this input adds to the current segment
-				getLastDirtySegment().append(blockInput, inputIdx);
+				appendToDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
 			} else {
 				// this input starts a new segment
-				getNextDirtySegment().set(blockInput, inputIdx);
+				createNextDirtySegment();
+				setDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
 			}
 			lastChanged = true;
 		} else {
@@ -442,7 +454,7 @@ void BufferBlock::copyBufferData(byte *mappedBufferData, uint32_t localMapOffset
 	if (partialWrite) {
 		// iterate over the changed segments and copy only those
 		for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
-			DirtySegment &segment = dirtySegments_[segmentIdx];
+			auto &segment = dirtySegmentRanges_[segmentIdx];
 
 			for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
 				auto &bufferInput = *blockInputs_[inputIdx].get();
@@ -455,9 +467,9 @@ void BufferBlock::copyBufferData(byte *mappedBufferData, uint32_t localMapOffset
 		// note: in case of persistent mapping, we always must write the whole buffer range,
 		//       as the whole range is mapped.
 		bool isPersistent = isMapModePersistent(stagingFlags_.mapMode);
-		uint32_t startIdx = (isPersistent ? 0u : dirtySegments_[0].startIdx);
+		uint32_t startIdx = (isPersistent ? 0u : dirtySegmentRanges_[0].startIdx);
 		uint32_t endIdx = (isPersistent ? (blockInputs_.size() - 1) :
-						   dirtySegments_[numDirtySegments_ - 1].endIdx);
+						   dirtySegmentRanges_[numDirtySegments_ - 1].endIdx);
 
 		for (uint32_t inputIdx = startIdx; inputIdx <= endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
@@ -534,11 +546,11 @@ void BufferBlock::update(bool forceUpdate) {
 #endif
 	if (forceUpdate || needsResize) {
 		numDirtySegments_ = 0;
-		DirtySegment &segment = getNextDirtySegment();
-		segment.offset = 0;
-		segment.size = requiredSize_;
-		segment.startIdx = 0;
-		segment.endIdx = static_cast<uint32_t>(blockInputs_.size() - 1);
+		createNextDirtySegment();
+		dirtyBufferRanges_[0].offset = 0;
+		dirtyBufferRanges_[0].size = requiredSize_;
+		dirtySegmentRanges_[0].startIdx = 0;
+		dirtySegmentRanges_[0].endIdx = static_cast<uint32_t>(blockInputs_.size() - 1);
 	}
 	lock_.lock();
 
@@ -607,9 +619,9 @@ void BufferBlock::updateNonMapped() {
 	stagingBuffer_->beginNonMappedWrite();
 
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
-		DirtySegment &segment = dirtySegments_[segmentIdx];
+		auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
 
-		for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
+		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			if (bufferInput.alignedData) {
 				stagingBuffer_->setSubData(
@@ -645,21 +657,22 @@ void BufferBlock::updateTemporaryMapped() {
 
 	if (doPartialUpdate) {
 		for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
-			DirtySegment &dirtySegment = dirtySegments_[segmentIdx];
+			auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
+			auto &dirtyRange_b = dirtyBufferRanges_[segmentIdx];
 			byte *bufferData = (byte*)stagingBuffer_->beginMappedWrite(
-					false, dirtySegment.offset, dirtySegment.size);
+					false, dirtyRange_b.offset, dirtyRange_b.size);
 			if (bufferData) {
-				for (uint32_t inputIdx = dirtySegment.startIdx; inputIdx <= dirtySegment.endIdx; ++inputIdx) {
+				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 					auto &bufferInput = *blockInputs_[inputIdx].get();
-					copyBufferData1(bufferData, dirtySegment.offset, bufferInput);
+					copyBufferData1(bufferData, dirtyRange_b.offset, bufferInput);
 				}
 				stagingBuffer_->endMappedWrite(*drawBufferRange_.get());
 			} // else: frame was dropped
 		}
 		stamp_ += 1;
 	} else { // full update: map the whole range between the first and last dirty segment.
-		DirtySegment &firstSegment = dirtySegments_[0];
-		DirtySegment &lastSegment = dirtySegments_[numDirtySegments_ - 1];
+		auto &firstSegment = dirtyBufferRanges_[0];
+		auto &lastSegment = dirtyBufferRanges_[numDirtySegments_ - 1];
 		uint32_t mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
 
 		void *bufferData = stagingBuffer_->beginMappedWrite(
@@ -679,8 +692,8 @@ void BufferBlock::updatePersistentMapped() {
 	if (stagingFlags_.useExplicitFlushing()) {
 		// Explicit flushing is enabled, so we can update only the dirty segments.
 		// And then add the segments to the flush queue.
-		DirtySegment &firstSegment = dirtySegments_[0];
-		DirtySegment &lastSegment = dirtySegments_[numDirtySegments_ - 1];
+		auto &firstSegment = dirtyBufferRanges_[0];
+		auto &lastSegment = dirtyBufferRanges_[numDirtySegments_ - 1];
 		uint32_t mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
 
 		void *bufferData = stagingBuffer_->beginMappedWrite(
@@ -689,7 +702,7 @@ void BufferBlock::updatePersistentMapped() {
 			copyBufferData(static_cast<byte*>(bufferData), firstSegment.offset, true);
 			// push the dirty segments to the flush queue for just-in-time flushing.
 			stagingBuffer_->pushToFlushQueue(
-				(Vec4ui*)(&dirtySegments_.data()[0].offset),
+				(BufferRange2ui*)(&dirtyBufferRanges_.data()[0].offset),
 				numDirtySegments_);
 			stagingBuffer_->endMappedWrite(*drawBufferRange_.get());
 			stamp_ += 1;

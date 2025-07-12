@@ -68,6 +68,11 @@ namespace regen {
 
 		friend class BufferObject;
 	};
+
+	struct BufferRange2ui {
+		uint32_t offset = 0; // offset in the buffer
+		uint32_t size = 0; // size of the range in bytes
+	};
 } // namespace
 
 #endif /* REGEN_BUFFER_REFERENCE_H_ */

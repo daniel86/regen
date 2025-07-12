@@ -294,25 +294,12 @@ namespace regen {
 		std::vector<ref_ptr<BlockInput>> blockInputs_;
 
 		// dirty segments are used to track which parts of the buffer have changed
-		struct DirtySegment {
-			uint32_t offset = 0; // offset in the buffer
-			uint32_t size = 0; // size of the segment in bytes
+		struct SegmentRange {
 			uint32_t startIdx = 0; // start index of the segment in the blockInputs vector
 			uint32_t endIdx = 0; // end index of the segment in the blockInputs vector
-
-			void set(BlockInput &input, uint32_t inputIdx) {
-				offset = input.offset;
-				size = input.inputSize;
-				startIdx = inputIdx;
-				endIdx = inputIdx;
-			}
-
-			void append(BlockInput &input, uint32_t inputIdx) {
-				size = input.offset - offset + input.inputSize;
-				endIdx = inputIdx;
-			}
 		};
-		std::vector<DirtySegment> dirtySegments_;
+		std::vector<SegmentRange> dirtySegmentRanges_;
+		std::vector<BufferRange2ui> dirtyBufferRanges_;
 		uint32_t numDirtySegments_ = 0;
 
 		BufferFlags stagingFlags_;
@@ -322,9 +309,11 @@ namespace regen {
 
 		inline void resetDirtySegments();
 
-		inline DirtySegment& getLastDirtySegment();
+		inline void createNextDirtySegment();
 
-		inline DirtySegment& getNextDirtySegment();
+		void setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx);
+
+		void appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx);
 
 		inline uint32_t& lastInputStamp(BlockInput &blockInput);
 

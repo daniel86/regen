@@ -143,7 +143,7 @@ void StagingBuffer::markDrawAccessed(BufferRange &drawBuffer) {
 	}
 }
 
-void StagingBuffer::pushToFlushQueue(const Vec4ui *dirtySegments, uint32_t numDirtySegments) {
+void StagingBuffer::pushToFlushQueue(const BufferRange2ui *dirtySegments, uint32_t numDirtySegments) {
 #ifndef REGEN_STAGING_USE_DIRECT_FLUSHING
 	if (flags_.mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
 		RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
@@ -154,12 +154,11 @@ void StagingBuffer::pushToFlushQueue(const Vec4ui *dirtySegments, uint32_t numDi
 		}
 		// copy the dirty segments into the vector
 		// TODO: support merging of dirty segments?
-		// TODO: can we limit dirty segment to (offset, size) pairs?
 		auto *dataStart = writeSegment.dirtySegments.data() + writeSegment.numDirtySegments;
 		std::memcpy(
 			(byte*)dataStart,
 			(byte*)dirtySegments,
-			numDirtySegments * sizeof(Vec4ui));
+			numDirtySegments * sizeof(BufferRange2ui));
 		// finally increment the number of dirty segments
 		writeSegment.numDirtySegments = totalDirtySegments;
 	}
@@ -241,11 +240,11 @@ void StagingBuffer::endMappedWrite(BufferRange &nextDrawBuffer) {
 		if (accessFlags_ & MAP_FLUSH_EXPLICIT) {
 			for (uint32_t flushIdx = 0; flushIdx < readSegment.numDirtySegments; ++flushIdx) {
 				// get the segment to flush
-				const Vec4ui &flushSegment = readSegment.dirtySegments[flushIdx];
+				const BufferRange2ui &flushSegment = readSegment.dirtySegments[flushIdx];
 				glFlushMappedNamedBufferRange(
 					readBuffer->bufferID(),
-					readSegment.offset + flushSegment.x,
-					flushSegment.y);
+					readSegment.offset + flushSegment.offset,
+					flushSegment.size);
 			}
 			readSegment.numDirtySegments = 0; // reset the dirty segments
 		}
