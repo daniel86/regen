@@ -32,3 +32,7 @@ void BufferAllocator::unmapAllocator(GLuint poolIdx, GLuint ref) {
 		glUnmapNamedBuffer(ref);
 	}
 }
+
+void BufferAllocator::orphanAllocatorRange(GLuint ref, GLuint offset, GLuint size) {
+	glInvalidateBufferSubData(ref, offset, size);
+}

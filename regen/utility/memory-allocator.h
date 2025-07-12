@@ -58,6 +58,7 @@ namespace regen {
 		struct Reference {
 			Node *allocatorNode;               //!< the allocator
 			VirtualAllocatorRef allocatorRef;  //!< the allocator virtual reference
+			uint32_t size;
 		};
 
 		AllocatorPool()
@@ -191,6 +192,7 @@ namespace regen {
 			} else {
 				ref.allocatorNode = nullptr;
 			}
+			ref.size = size;
 			return ref;
 		}
 
@@ -211,6 +213,7 @@ namespace regen {
 			} else {
 				ref.allocatorNode = nullptr;
 			}
+			ref.size = size;
 			return ref;
 		}
 
@@ -220,6 +223,14 @@ namespace regen {
 		 */
 		void free(Reference &ref) {
 			if (ref.allocatorNode) {
+				// orphan the actual memory range
+				ActualAllocatorType::orphanAllocatorRange(
+					// buffer id
+					ref.allocatorNode->allocatorRef,
+					// virtual reference: the allocated range offset in the buffer
+					ref.allocatorRef,
+					ref.size);
+
 				ref.allocatorNode->allocator.free(ref.allocatorRef);
 				sortInBackward(ref.allocatorNode);
 				ref.allocatorNode = nullptr;

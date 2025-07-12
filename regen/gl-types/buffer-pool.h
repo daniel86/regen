@@ -38,6 +38,14 @@ namespace regen {
 		 * and its name is free for reuse.
 		 */
 		static void deleteAllocator(GLuint poolIndex, GLuint ref);
+
+		/**
+		 * Invalidate a buffer range.
+		 * @param ref the reference to the buffer object.
+		 * @param offset the offset in the buffer object.
+		 * @param size the size of the data to invalidate.
+		 */
+		static void orphanAllocatorRange(GLuint ref, GLuint offset, GLuint size);
 	};
 
 	/**
