@@ -103,7 +103,6 @@ BufferBlock::BufferBlock(const BufferObject &other)
 void BufferBlock::setBufferingMode(BufferingMode mode) {
 	userDefinedBufferingMode_ = mode;
 	stagingFlags_.bufferingMode = mode;
-	// TODO: need to resize the stamp arrays etc if this is done late...
 }
 
 std::string BufferBlock::getBlockName() const {
@@ -645,11 +644,6 @@ void BufferBlock::updateTemporaryMapped() {
 		(numDirtySegments_ <= BufferBlock::temporaryMappingPartialMinSegments);
 
 	if (doPartialUpdate) {
-		// FIXME: this is problematic with multi buffering, some segments might only
-		//        get changed data, and have zeroes for attributes that never changed.
-		//        basically we need to check what has changed last time, and copy all of that
-		//        region which is not overlapping to the changed segments.
-		//        In addition, initially all segments should be uploaded once completely (currently only the first is).
 		for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
 			DirtySegment &dirtySegment = dirtySegments_[segmentIdx];
 			byte *bufferData = (byte*)stagingBuffer_->beginMappedWrite(
@@ -685,12 +679,6 @@ void BufferBlock::updatePersistentMapped() {
 	if (stagingFlags_.useExplicitFlushing()) {
 		// Explicit flushing is enabled, so we can update only the dirty segments.
 		// And then add the segments to the flush queue.
-		// FIXME: Need to track stamps per segment when doing partial updates!!!
-		//       else some segments might only
-		//        get changed data, and have zeroes for attributes that never changed.
-		//        basically we need to check what has changed last time, and copy all of that
-		//        region which is not overlapping to this changed region.
-		//        In addition, initially all segments should be uploaded once completely (currently only the first is).
 		DirtySegment &firstSegment = dirtySegments_[0];
 		DirtySegment &lastSegment = dirtySegments_[numDirtySegments_ - 1];
 		uint32_t mapRangeSize = lastSegment.offset - firstSegment.offset + lastSegment.size;
