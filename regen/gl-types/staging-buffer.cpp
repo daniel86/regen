@@ -242,14 +242,10 @@ void StagingBuffer::endMappedWrite(BufferRange &nextDrawBuffer) {
 			for (uint32_t flushIdx = 0; flushIdx < readSegment.numDirtySegments; ++flushIdx) {
 				// get the segment to flush
 				const Vec4ui &flushSegment = readSegment.dirtySegments[flushIdx];
-				// TODO: flush the segment
-				//   - check flush command everywhere once this works!
 				glFlushMappedNamedBufferRange(
 					readBuffer->bufferID(),
 					readSegment.offset + flushSegment.x,
 					flushSegment.y);
-				//glFlushMappedNamedBufferRange(readBuffer->bufferID(),
-				//	flushSegment.x, flushSegment.y);
 			}
 			readSegment.numDirtySegments = 0; // reset the dirty segments
 		}
