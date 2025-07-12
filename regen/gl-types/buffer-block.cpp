@@ -686,9 +686,6 @@ void BufferBlock::updateTemporaryMapped() {
 }
 
 void BufferBlock::updatePersistentMapped() {
-	// NOTE: Assuming we have a ring-buffer, it is difficult to update only a part of the buffer,
-	// as we the GPU might read broken data for the parts we do not write.
-	// TODO: Add special handling for single-buffering mode?
 	if (stagingFlags_.useExplicitFlushing()) {
 		// Explicit flushing is enabled, so we can update only the dirty segments.
 		// And then add the segments to the flush queue.
