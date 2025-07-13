@@ -39,9 +39,7 @@ buffer uint in_globalHistogram[];
 // - [read] the sort keys, computed by culling pass, one per instance.
 buffer uint in_keys[NUM_SORT_KEYS];
 // - [read] The value input buffer, either [0...(NUM_SORT_KEYS-1)] or output from the previous pass.
-layout(std430) readonly buffer ValueBuffer {
-    uint in_values[NUM_SORT_KEYS];
-};
+buffer uint in_values[NUM_SORT_KEYS];
 // The local histogram. Counts bucket sizes in each workgroup.
 shared uint sh_bucketSize[NUM_RADIX_BUCKETS];
 // The bit offset of the current radix pass.

@@ -77,7 +77,7 @@
            ignore-normal-map="1">
     </asset>
     <!-- UBOs -->
-    <block type="ubo" id="SceneUBO">
+    <block type="ubo" id="SceneUBO" update-frequency="NEVER">
         <uniform name="planeSize" type="vec2" value="{{map-size}}, {{map-size}}"/>
         <uniform name="wind" type="vec2" value="0.6, 0.6"/>
         <uniform name="windFlowScale" type="float" value="50.0"/>
@@ -123,7 +123,7 @@
           height-map="ground-height"
           normal-map="ground-normal"
           tf="ground-tf">
-        <transform id="ground-tf" />
+        <transform id="ground-tf" update-frequency="NEVER" />
         <materials>
             <material type="grass" name="ground/grass" variant="1" uv-scale="0.25"
                     height-range="0.25, 0.75" height-smooth="0.25"
@@ -210,7 +210,7 @@
     <texture id="water-foam" file="res/textures/water/foam2.jpg" wrapping="REPEAT"
              swizzle-g="RED" swizzle-b="RED"/>
 
-    <block type="ubo" id="WaterUBO">
+    <block type="ubo" id="WaterUBO" update-frequency="NEVER">
         <input type="vec4" name="normalModifier" value="1.0,2.0,4.0,8.0"/>
         <input type="vec3" name="waterColor" value="0.0078,0.4,0.55"/>
         <input type="float" name="sunScale" value="1.5"/>
@@ -260,11 +260,12 @@
 
     <!-- water surface mesh used for depth rendering and post-processing effects -->
     <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
-    <mesh id="water-mesh" type="rectangle" lod="0" center="1" update-hint="STATIC"
+    <mesh id="water-mesh" type="rectangle" lod="0" center="1"
           use-normal="0" use-texco="0" use-tangent="0"
           rotation="0.0,0.0,3.1415"
-          scaling="{{far-plane}},1.0,{{far-plane}}">
-        <transform>
+          scaling="{{far-plane}},1.0,{{far-plane}}"
+          update-frequency="NEVER">
+        <transform update-frequency="NEVER">
             <translate value="0.0,{{water-level}},-{{far-plane*0.5}}"/>
         </transform>
     </mesh>
@@ -286,8 +287,11 @@
             asset="fish-asset" asset-indices="*" asset-animation="0"
             lod-simplification="0.6, 0.4, 0.2"
             lod-thresholds="6.0, 40.0"
-            num-instances="{{num-fish}}">
-        <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1">
+            num-instances="{{num-fish}}"
+            update-frequency="NEVER">
+        <transform id="fish-tf"
+                num-instances="{{num-fish}}" is-instanced="1"
+                update-frequency="PER_FRAME">
             <scale value="0.001, 0.001, 0.001"/>
             <translate value="0.0, -5.5, 30.0"/>
             <set mode="circle" target="translate" radius="1.0" variance="0.8"
@@ -332,7 +336,8 @@
                     bottom-view="0"
                     longitude-steps="8"
                     latitude-steps="2"
-                    texture-size="64,64">
+                    texture-size="64,64"
+                    update-frequency="NEVER">
                 <shader mesh-index="0" key="regen.models.impostor">
                     <alpha discard-threshold="0.5"/>
                 </shader>
@@ -499,7 +504,7 @@
         </view>
     </node>
 
-    <block type="ubo" id="ToneMapping">
+    <block type="ubo" id="ToneMapping" update-frequency="NEVER">
         <input type="float" name="blurAmount" value="0.3"/>
         <input type="float" name="effectAmount" value="0.1"/>
         <input type="float" name="exposure" value="1.7"/>

@@ -282,17 +282,18 @@
 <!-- ************************ -->
 
 <mesh id="logo-widget" type="rectangle" use-normal="0" use-texco="1" use-tangent="0"
-      lod="0" rotation="1.57,0.0,0.0" scaling="90.0,1.0,23.0" texco-scaling="-1.0,1.0" center="0">
+      lod="0" rotation="1.57,0.0,0.0" scaling="90.0,1.0,23.0" texco-scaling="-1.0,1.0" center="0"
+      update-frequency="NEVER">
     <define key="INVERT_Y" value="TRUE" />
     <define key="INVERT_X" value="FALSE" />
-    <transform>
+    <transform update-frequency="NEVER">
         <translate value="8.0,-8.0,0.0" />
     </transform>
 </mesh>
 
 <mesh id="fps-widget" type="text" center="0"
       font="ubuntu" text="0 FPS" text-color="0.97,0.86,0.77,0.95">
-    <transform>
+    <transform update-frequency="NEVER">
         <translate value="8.0,8.0,0.0" />
     </transform>
 </mesh>
@@ -307,7 +308,7 @@
         <define key="TIME_TO_ARRAY_FPS" value="15" />
         <blend mode="add" />
         -->
-        <material alpha="0.7" />
+        <material alpha="0.7" update-frequency="NEVER" />
         <texture id="regen-logo" map-to="COLOR" blend="SRC" />
         <mesh id="logo-widget" shader="regen.gui.widget" />
     </node>

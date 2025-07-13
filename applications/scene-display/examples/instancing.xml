@@ -96,7 +96,7 @@
         <sky id="sky"/>
     </node>
 
-    <block type="ubo" id="WindUBO">
+    <block type="ubo" id="WindUBO" update-frequency="NEVER">
         <uniform name="wind" type="vec2" value="0.1, 0.1"/>
         <uniform name="windFlowScale" type="float" value="150.0"/>
         <uniform name="windFlowTime" type="float" value="0.2"/>
@@ -106,12 +106,13 @@
     <!--**************************-->
     <!--**************************-->
 
-    <mesh id="ground-mesh" type="rectangle" lod="0" center="1" update-hint="STATIC"
+    <mesh id="ground-mesh" type="rectangle" lod="0" center="1"
           use-normal="1" use-texco="1" use-tangent="1"
           rotation="0.0,0.0,3.1415"
           scaling="1000.0,1000.0,1000.0"
-          texco-scaling="400.0,400.0">
-        <transform>
+          texco-scaling="400.0,400.0"
+          update-frequency="NEVER">
+        <transform update-frequency="NEVER">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
         <material preset="ground/stone" variant="4"/>
@@ -131,7 +132,8 @@
           asset="dwarf-asset-instanced"
           asset-indices="*"
           asset-animation="1"
-          num-instances="100">
+          num-instances="100"
+          update-frequency="NEVER">
         <transform is-instanced="1">
             <set mode="fade" target="scale"
                  start="1.0,1.0,1.0" stop="1.25,1.25,1.25"

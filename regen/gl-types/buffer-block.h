@@ -176,6 +176,12 @@ namespace regen {
 		void addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
 
 		/**
+		 * Remove a block input by name.
+		 * @param name the name of the block input to remove.
+		 */
+		void removeBlockInput(std::string_view name);
+
+		/**
 		 * @return the list of uniforms.
 		 */
 		auto &blockInputs() const { return inputs_; }

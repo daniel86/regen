@@ -149,7 +149,7 @@
           texco-scaling="5.0,5.0"
           use-normal="1"
           use-tangent="0"
-          update-hint="STATIC">
+          update-frequency="NEVER">
         <define key="HAS_TWO_SIDES" value="TRUE"/>
         <material preset="copper"/>
         <transform id="bowl-tf"/>
@@ -168,7 +168,7 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          update-hint="STATIC">
+          update-frequency="NEVER">
         <transform id="sphere0-tf"/>
         <shape id="sphere0-physics" physics="1" shape="sphere"
                radius="1.0" mass="1.0" inertia="0.0,-1.0,0.0" friction="0.0"
@@ -186,8 +186,8 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          update-hint="STATIC">
-        <material preset="ruby"/>
+          update-frequency="NEVER">
+        <material preset="ruby" update-frequency="NEVER"/>
         <transform id="sphere1-tf"/>
         <shape id="sphere1-physics" physics="1" shape="sphere"
                radius="1.0" mass="20.0" inertia="0.0,-1.0,0.0" friction="0.0"
@@ -208,9 +208,9 @@
           texco-scaling="1.0,1.0"
           use-normal="1"
           use-tangent="0"
-          update-hint="STATIC"
+          update-frequency="NEVER"
           num-instances="40">
-        <material preset="ruby"/>
+        <material preset="ruby" update-frequency="NEVER"/>
         <transform id="sphere2-tf"/>
         <shape id="sphere2-physics" physics="1" shape="sphere"
                radius="0.5" mass="0.4" inertia="0.0,0.0,0.0" friction="0.0"
@@ -363,7 +363,9 @@
           branch-probability="0.9"
           branch-offset="16.0"
           source-pos="10.0, 60.0, 30.0"
-          target-pos="0.0, -40.0, 30.0">
+          target-pos="0.0, -40.0, 30.0"
+          update-frequency="PER_FRAME"
+          update-scope="FULL">
     </mesh>
 
     <node id="Emission-Update">

@@ -8,7 +8,7 @@ using namespace regen;
 Ground::Ground() : SkirtQuad() {
 	rectangleConfig_.updateHint.frequency = BUFFER_UPDATE_NEVER;
 	rectangleConfig_.updateHint.scope = BUFFER_UPDATE_FULLY;
-	rectangleConfig_.accessMode = BUFFER_CPU_WRITE;
+	rectangleConfig_.accessMode = BUFFER_GPU_ONLY;
 	rectangleConfig_.mapMode = BUFFER_MAP_DISABLED;
 	rectangleConfig_.isNormalRequired = false;
 	rectangleConfig_.isTexcoRequired = false;
@@ -29,7 +29,7 @@ Ground::Ground() : SkirtQuad() {
 	u_skirtSize_->setUniformData(0.05f);
 	u_skirtSize_->setSchema(InputSchema::scale());
 
-	groundMaterial_ = ref_ptr<Material>::alloc();
+	groundMaterial_ = ref_ptr<Material>::alloc(BufferUpdateFlags::NEVER);
 	joinStates(groundMaterial_);
 	groundShaderDefines_ = ref_ptr<State>::alloc();
 	joinStates(groundShaderDefines_);
@@ -455,7 +455,8 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 	ground->setMapTextures(heightMap, normalMap);
 
 	auto tfName = input.getValue("tf");
-	auto modelTransform = ref_ptr<ModelTransformation>::alloc(ModelTransformation::TF_OFFSET);
+	auto modelTransform = ref_ptr<ModelTransformation>::alloc(
+		ModelTransformation::TF_OFFSET, BufferUpdateFlags::NEVER);
 	scene->putResource<ModelTransformation>(tfName, modelTransform);
 	ground->setModelTransform(modelTransform);
 	ground->updateAttributes();

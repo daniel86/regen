@@ -282,6 +282,8 @@ inline void setToZero(const ref_ptr<BufferReference> &ref) {
 	if (mappedData) {
 		std::memset(mappedData, 0, ref->allocatedSize());
 		glUnmapNamedBuffer(ref->bufferID());
+	} else {
+		REGEN_ERROR("Failed to map buffer " << ref->bufferID() << " for writing.");
 	}
 }
 
@@ -291,7 +293,7 @@ void BufferObject::setBufferToZero(const ref_ptr<BufferReference> &ref) {
 		// But we can copy data to a temporary buffer and then copy it to the target buffer.
 		auto tempRef = BufferObject::adoptBufferRange(
 				ref->allocatedSize(),
-				bufferPool(flags_.target, BUFFER_MODE_CPU_R_MAP_TEMPORARY));
+				bufferPool(flags_.target, BUFFER_MODE_CPU_W_MAP_TEMPORARY));
 		setToZero(tempRef);
 		glCopyNamedBufferSubData(
 				tempRef->bufferID(),

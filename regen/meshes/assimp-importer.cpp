@@ -565,7 +565,6 @@ static void loadTexture(
 		tex->updateMipmaps();
 	}
 	mat->joinStates(texState);
-
 	GL_ERROR_LOG();
 }
 
@@ -954,7 +953,6 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 		v_tan.unmap();
 		meshState->setInput(tan);
 	}
-	GL_ERROR_LOG();
 
 	// A mesh may have a set of bones in the form of aiBone structures..
 	// Bones are a means to deform a mesh according to the movement of a skeleton.

@@ -81,19 +81,23 @@ void RadixSort::createResources() {
 	keyBuffer_->addBlockInput(keys);
 	keyBuffer_->update();
 
+	auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_ * 2);
+	values1->set_forceArray(true);
 	if (userValueBuffer_.get()) {
-		valueBuffer_ = userValueBuffer_;
-	} else {
+		valueBuffer_ = ref_ptr<SSBO>::alloc(*userValueBuffer_.get(), "ValueBuffer");
+		while (!valueBuffer_->blockInputs().empty()) {
+			valueBuffer_->removeBlockInput(valueBuffer_->blockInputs().front().name_);
+		}
+	}
+	if (!userValueBuffer_.get()) {
 		valueBuffer_ = ref_ptr<SSBO>::alloc("ValueBuffer",
 				BufferUpdateFlags::FULL_PER_FRAME,
 				SSBO::RESTRICT);
-		auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_ * 2);
-		values1->set_forceArray(true);
-		valueBuffer_->addBlockInput(values1);
-		valueBuffer_->setStagingAccessMode(BUFFER_GPU_ONLY);
-		valueBuffer_->setStagingMapMode(BUFFER_MAP_DISABLED);
-		valueBuffer_->update();
 	}
+	valueBuffer_->addBlockInput(values1);
+	valueBuffer_->setStagingAccessMode(BUFFER_GPU_ONLY);
+	valueBuffer_->setStagingMapMode(BUFFER_MAP_DISABLED);
+	valueBuffer_->update();
 
 	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,

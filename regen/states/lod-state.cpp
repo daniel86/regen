@@ -505,6 +505,7 @@ void LODState::createComputeShader() {
 		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer", BufferUpdateFlags::FULL_PER_FRAME);
 		frustumUBO_->setStagingAccessMode(BUFFER_CPU_WRITE);
 		frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size());
+		frustumData_->setUniformUntyped();
 		frustumUBO_->addBlockInput(frustumData_);
 		frustumUBO_->update();
 

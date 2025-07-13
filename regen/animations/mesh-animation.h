@@ -1,10 +1,3 @@
-/*
- * mesh-animation-gpu.h
- *
- *  Created on: 21.08.2012
- *      Author: daniel
- */
-
 #ifndef MESH_ANIMATION_GPU_H_
 #define MESH_ANIMATION_GPU_H_
 

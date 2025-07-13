@@ -120,12 +120,14 @@
             light="room-light0"
             camera="main-camera"
             camera-type="paraboloid"
-            dual-paraboloid="0"/>
+            dual-paraboloid="0"
+            update-frequency="NEVER"/>
     <!-- Orthogonal top-down camera used for collision map generation -->
     <camera id="collision-camera" type="orthogonal"
             width="90.0" height="90.0" far="2.0"
             position="0.0, -0.5, 0.0"
-            direction="0.0,-1.0,0.0"/>
+            direction="0.0,-1.0,0.0"
+            update-frequency="NEVER"/>
     <!--
 <camera id="room-light-camera0"
     culling-index="main-index"
@@ -141,7 +143,8 @@
            radius="30.0,54.0"
            direction="0.0,-1.0,0.0"
            diffuse="0.8,0.9,0.835"
-           ambient="0.6,0.6,0.6"/>
+           ambient="0.6,0.6,0.6"
+           update-frequency="NEVER"/>
     <light id="fire-flies-light0"
            num-instances="{{num-fire-flies}}"
            type="POINT"
@@ -211,11 +214,12 @@
     <!--********* Ground *********-->
     <!--**************************-->
 
-    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" update-hint="STATIC" lod="4"
+    <mesh id="ground-mesh" type="rectangle" use-normal="1" use-texco="1" center="1" lod="4"
           rotation="0.0,0.0,3.1415"
           scaling="400.0,20.0,400.0"
-          texco-scaling="100.0,100.0">
-        <transform id="ground-tf">
+          texco-scaling="100.0,100.0"
+          update-frequency="NEVER">
+        <transform id="ground-tf" update-frequency="NEVER">
             <translate value="0.0,-2.0,0.0"/>
         </transform>
         <shape id="ground-physics" physics="1" shape="triangle-mesh" mass="0.0"
@@ -245,9 +249,10 @@
     <mesh id="tree-pot" type="torus"
           lod-levels="3, 2, 1"
           use-normal="1" use-tangent="1" center="1"
-          update-hint="STATIC" scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
-          ring-radius="1.0" tube-radius="0.2">
-        <transform id="tree-pot-tf">
+          scaling="3.0, 3.0, 3.0" texco-scaling="3.0, 1.0"
+          ring-radius="1.0" tube-radius="0.2"
+          update-frequency="NEVER">
+        <transform id="tree-pot-tf" update-frequency="NEVER">
             <translate value="8.0, -1.4, -8.0"/>
         </transform>
         <shape id="tree-pot-shape" index="1" cull="1" type="aabb"
@@ -261,9 +266,10 @@
 
     <mesh id="tree-disc" type="disc"
           lod-levels="3, 2, 1"
-          use-normal="1" center="1" update-hint="STATIC" scaling="3.0, 3.0, 3.0"
-          texco-scaling="0.1, 0.1" disc-radius="1.0">
-        <transform id="tree-disc-tf">
+          use-normal="1" center="1" scaling="3.0, 3.0, 3.0"
+          texco-scaling="0.1, 0.1" disc-radius="1.0"
+          update-frequency="NEVER">
+        <transform id="tree-disc-tf" update-frequency="NEVER">
             <translate value="8.0, -1.0, -8.0"/>
         </transform>
     </mesh>
@@ -293,7 +299,7 @@
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
-                <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0"/>
+                <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0" update-frequency="NEVER"/>
                 <mesh id="tree-disc" shader="regen.models.mesh" update-visibility="0" />
             </node>
         </node>
@@ -354,23 +360,25 @@
                     ambient="0.1, 0.1, 0.1"
                     specular="0.0, 0.0, 0.0"
                     shininess="256.0"
-                    emission="0.0, 0.0, 0.0"/>
+                    emission="0.0, 0.0, 0.0"
+                    update-frequency="NEVER"/>
             <mesh id="ground-mesh" primitive="patches" shader="regen.terrain.grass.patch"/>
         </node>
     </node>
 
-    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1" update-hint="STATIC"
+    <mesh id="stone0" type="sphere" use-normal="1" use-texco="1" use-tangent="1"
           lod-levels="4, 3, 2"
           lod-thresholds="20.0, 50.0, 0.0"
           scaling="1.5,3.0,3.0"
-          num-instances="20">
+          num-instances="20"
+          update-frequency="NEVER">
         <transform id="stone0-tf" num-instances="20" is-instanced="1">
             <rotate value="0.0, 1.57079632, 0.0"/>
             <translate value="0.0, -0.6, 0.0"/>
             <set mode="circle" target="translate" radius="42.0" variance="0.8"
                  dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
         </transform>
-        <material preset="stone" variant="0" max-offset="0.2"/>
+        <material preset="stone" variant="0" max-offset="0.2" update-frequency="NEVER"/>
         <shape id="stone0-shape" index="1" cull="1" type="sphere"
                mesh-id="stone0" transform-id="stone0-tf" radius="1.6"/>
         <shape id="stone0-physics" physics="1"
@@ -388,8 +396,9 @@
     <!--********* Stairs *********-->
     <!--**************************-->
 
-    <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
-          scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5">
+    <mesh id="stairs0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1"
+          scaling="8.0,0.4,4.0" texco-scaling="0.5, 0.5"
+          update-frequency="NEVER">
         <transform id="stairs0-tf">
             <translate value="16.0,-1.47,16.0"/>
         </transform>
@@ -399,8 +408,9 @@
                mesh-id="stairs0-mesh" transform-id="stairs0-tf" shape="box" mass="0.0" size="16.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
-          scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5">
+    <mesh id="stairs1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1"
+          scaling="6.0,0.4,4.0" texco-scaling="0.5, 0.5"
+          update-frequency="NEVER">
         <transform id="stairs1-tf">
             <translate value="16.0,-0.67,16.0"/>
         </transform>
@@ -410,8 +420,9 @@
                mesh-id="stairs1-mesh" transform-id="stairs1-tf" shape="box" mass="0.0" size="12.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
-          scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5">
+    <mesh id="stairs2-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1"
+          scaling="4.0,0.4,4.0" texco-scaling="0.5, 0.5"
+          update-frequency="NEVER">
         <transform id="stairs2-tf">
             <translate value="16.0,0.13,16.0"/>
         </transform>
@@ -422,7 +433,7 @@
     </mesh>
 
     <node id="Stairs">
-        <material preset="steel" variant="0"/>
+        <material preset="steel" variant="0" update-frequency="NEVER"/>
         <!-- <material preset="stone" height-map-mode="parallax_occlusion" max-offset="0.2"/> -->
         <node id="stairs0">
             <mesh id="stairs0-mesh" shader="regen.models.mesh"/>
@@ -439,9 +450,9 @@
     <!--******** Platforms *******-->
     <!--**************************-->
 
-    <mesh id="platform0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
-          scaling="4.0,0.4,4.0"
-          texco-scaling="0.5,0.5">
+    <mesh id="platform0-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1"
+          scaling="4.0,0.4,4.0" texco-scaling="0.5,0.5"
+          update-frequency="NEVER">
         <transform id="platform0-tf">
             <translate value="16.0,3.0,-16.0"/>
             <animation type="key-frames" mesh-id="platform0-mesh" dt="2.5">
@@ -457,9 +468,9 @@
                size="8.0,0.8,8.0"/>
     </mesh>
 
-    <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
-          scaling="4.0,0.4,4.0"
-          texco-scaling="0.5,0.5">
+    <mesh id="platform1-mesh" type="box" lod="1" use-normal="1" use-tangent="1" center="1"
+          scaling="4.0,0.4,4.0" texco-scaling="0.5,0.5"
+          update-frequency="NEVER">
         <transform id="platform1-tf">
             <translate value="8.0,7.0,-16.0"/>
             <animation type="key-frames" mesh-id="platform1-mesh" dt="2.5">
@@ -476,7 +487,7 @@
     </mesh>
 
     <node id="Platforms">
-        <material preset="iron" emission="0.05,0.07,0.07"/>
+        <material preset="iron" emission="0.05,0.07,0.07" update-frequency="NEVER"/>
         <node id="platform0">
             <mesh id="platform0-mesh" shader="regen.models.mesh"/>
         </node>
@@ -490,8 +501,9 @@
 
     <mesh id="pedestal-mesh" type="box"
           lod-levels="3, 2, 1"
-          use-normal="1" use-tangent="1" center="1" update-hint="STATIC"
-          scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25">
+          use-normal="1" use-tangent="1" center="1"
+          scaling="3.5,5.0,3.5" texco-scaling="0.25, 0.25"
+          update-frequency="NEVER">
         <transform id="pedestal-tf">
             <rotate value="1.57079632,0.0,0.0"/>
             <translate value="-16.0, 3.0, -3.0"/>
@@ -502,11 +514,12 @@
                mesh-id="pedestal-mesh" transform-id="pedestal-tf"
                shape="box" size="7.0, 10.0, 7.0" mass="0.0"/>
         <material preset="wood" variant="1" color-blend-mode="mul"
-                  diffuse="0.64, 0.41, 0.27"/>
+                  diffuse="0.64, 0.41, 0.27" update-frequency="NEVER"/>
     </mesh>
 
     <mesh id="slope-mesh" type="box" use-normal="1" use-texco="1" use-tangent="1" center="1"
-          update-hint="STATIC" lod="1" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25">
+        lod="1" rotation="0.0,0.0,0.0" scaling="3.5,0.04,9.0" texco-scaling="0.25, 0.25"
+        update-frequency="NEVER">
         <transform id="slope-tf">
             <rotate value="0,0, -0.6, 0.0"/>
             <translate value="-16.0, 3.0, 7.9"/>
@@ -515,7 +528,8 @@
                mesh-id="slope-mesh" transform-id="slope-tf"/>
         <shape id="slope-physics" physics="1"
                mesh-id="slope-mesh" transform-id="slope-tf" shape="box" size="7,0.08,18" mass="0.0"/>
-        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.35, 0.35, 0.28"/>
+        <material preset="wood" variant="0" color-blend-mode="mul" diffuse="0.35, 0.35, 0.28"
+                update-frequency="NEVER"/>
     </mesh>
 
     <node id="Pedestal">
@@ -535,7 +549,7 @@
     <texture id="fire-noise" file="res/textures/fire/noise.png" wrapping="REPEAT"/>
     <texture id="fire-color" file="res/textures/fire/color.png" wrapping="CLAMP_TO_EDGE"/>
 
-    <mesh id="fire-sprite" type="point" update-hint="STATIC">
+    <mesh id="fire-sprite" type="point" update-frequency="NEVER">
         <transform>
             <translate value="-16.0, 12.0, -3.0"/>
         </transform>
@@ -552,7 +566,7 @@
     </node>
     -->
 
-    <block type="ubo" id="ParticlesUBO">
+    <block type="ubo" id="ParticlesUBO" update-frequency="NEVER">
         <uniform type="vec3" name="gravity" value="0.0,9.81,0.0"/>
         <uniform type="float" name="dampingFactor" value="1.0"/>
         <uniform type="vec3" name="emitterPosition" value="0.0, -0.5, 0.0"/>
@@ -564,7 +578,7 @@
         <uniform type="float" name="lifetimeVariance" value="0.5"/>
     </block>
 
-    <block type="ubo" id="WindUBO">
+    <block type="ubo" id="WindUBO" update-frequency="NEVER">
         <uniform name="wind" type="vec2" value="0.6, 0.6"/>
         <uniform name="windFlowScale" type="float" value="150.0"/>
         <uniform name="windFlowTime" type="float" value="0.2"/>
@@ -774,13 +788,13 @@
     <!--********* Objects ********-->
     <!--**************************-->
 
-    <mesh id="light-bulb-point" type="point" update-hint="STATIC" num-vertices="1">
-        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+    <mesh id="light-bulb-point" type="point" num-vertices="1" update-frequency="NEVER">
+        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0" update-frequency="NEVER"/>
         <input name="modelOffset" state="room-light0" component="lightPosition"/>
         <shape id="light-bulb-shape" index="1" cull="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
-    <mesh id="fire-flies0" type="point" update-hint="STATIC" num-vertices="1" num-instances="{{num-fire-flies}}">
-        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0"/>
+    <mesh id="fire-flies0" type="point" update-frequency="NEVER" num-vertices="1" num-instances="{{num-fire-flies}}">
+        <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0" update-frequency="NEVER"/>
         <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
         <shape id="fire-flies-shape0" index="1" cull="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />
     </mesh>
@@ -812,7 +826,7 @@
         <node import="Grass"/>
         <node id="Ground">
             <texture id="ground-color" map-to="color" blend-mode="SRC" wrapping="REPEAT"/>
-            <material specular="0, 0, 0" ambient="0.05, 0.0, 0.0"/>
+            <material specular="0, 0, 0" ambient="0.05, 0.0, 0.0" update-frequency="NEVER"/>
             <mesh id="ground-mesh" primitive="triangles" shader="regen.models.mesh"/>
         </node>
         <node id="Fire-Flies">

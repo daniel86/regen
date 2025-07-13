@@ -204,7 +204,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	bufferInput->input = input;
 	blockInputs_.emplace_back(bufferInput);
 	inputs_.emplace_back(input, name);
-	estimatedSize_ += input->inputSize();
+	estimatedSize_ += input->numElements() * input->elementSize();
 
 	// update the storage flags based on added inputs
 	if (input->hasClientData() && flags_.updateHints.frequency != BUFFER_UPDATE_NEVER) {
@@ -235,8 +235,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 				//	setStagingMapMode(BUFFER_MAP_DISABLED);
 				//} else {}
 			}
-		}
-		else if (sizeClass == BUFFER_SIZE_MEDIUM) {
+		} else if (sizeClass == BUFFER_SIZE_MEDIUM) {
 			// If the buffer is medium sized (e.g. < 64KB), then ...
 			if (stagingFlags_.areUpdatesFrequent() || stagingFlags_.areUpdatesVeryFrequent()) {
 				// (a) use 3-ring staging buffer with persistent mapping for frequent updates.
@@ -257,8 +256,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 					setStagingMapMode(BUFFER_MAP_TEMPORARY);
 				}
 			}
-		}
-		else if (sizeClass == BUFFER_SIZE_LARGE) {
+		} else if (sizeClass == BUFFER_SIZE_LARGE) {
 			// If the buffer is large (e.g. < 1MB)
 			if (stagingFlags_.areUpdatesFrequent() || stagingFlags_.areUpdatesVeryFrequent()) {
 				// (a) if updates are frequent, then use 2-ring staging buffer with range invalidation.
@@ -270,13 +268,31 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 				setStagingBuffering(SINGLE_BUFFER);
 				setStagingMapMode(BUFFER_MAP_DISABLED);
 			}
-		}
-		else { // sizeClass == BUFFER_SIZE_VERY_LARGE
+		} else { // sizeClass == BUFFER_SIZE_VERY_LARGE
 			// If the buffer is very large (e.g. > 1MB), avoid mapping it to CPU memory.
 			setStagingBuffering(SINGLE_BUFFER);
 			setStagingMapMode(BUFFER_MAP_DISABLED);
 		}
 	}
+}
+
+void BufferBlock::removeBlockInput(std::string_view name) {
+	for (auto it = blockInputs_.begin(); it != blockInputs_.end(); ++it) {
+		auto &blockInput = *it;
+		if (blockInput->input->name() == name) {
+			// remove the input from the inputs_ vector
+			for (auto inputIt = inputs_.begin(); inputIt != inputs_.end(); ++inputIt) {
+				if (inputIt->name_ == name) {
+					inputs_.erase(inputIt);
+					break;
+				}
+			}
+			// remove the block input
+			blockInputs_.erase(it);
+			return;
+		}
+	}
+	REGEN_WARN("BufferBlock: Unable to remove input '" << name << "'. Input not found.");
 }
 
 void BufferBlock::resetDirtySegments() {
@@ -491,7 +507,7 @@ void BufferBlock::resize() {
 	}
 
 	// if neither read nor write access is allowed, we can use implicit staging.
-	if (!stagingFlags_.isWritable() && !flags_.isReadable()) {
+	if (!stagingFlags_.isWritable() && !stagingFlags_.isReadable()) {
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 	}
 
@@ -534,7 +550,8 @@ void BufferBlock::resize() {
 		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 	}
 
-	REGEN_INFO("Created buffer " << getBlockName()
+	REGEN_INFO("Created buffer \"" << getBlockName() << "\""
+			<< " size-class: " << getBufferSizeClass(requiredSize_)
 			<< " required-size: " << requiredSize_
 			<< " estimated-size: " << estimatedSize_
 			<< "\n\t   draw-flags: " << flags_
@@ -626,7 +643,6 @@ void BufferBlock::updateNonMapped() {
 	// iterate over the changed segments and copy only those into the staging buffer.
 	stagingBuffer_->beginNonMappedWrite();
 
-	GL_ERROR_LOG();
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
 		auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
 
@@ -647,7 +663,6 @@ void BufferBlock::updateNonMapped() {
 			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}
-	GL_ERROR_LOG();
 	stagingBuffer_->endNonMappedWrite(*drawBufferRange_.get());
 	stamp_ += 1;
 }

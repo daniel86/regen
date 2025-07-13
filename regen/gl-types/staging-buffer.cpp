@@ -199,7 +199,6 @@ void StagingBuffer::setSubData(uint32_t localOffset, uint32_t dataSize, const vo
 				tempRef->address(),
 				writeBuffer->address() + localOffset,
 				dataSize);
-	GL_ERROR_LOG();
 	}
 }
 
@@ -327,8 +326,6 @@ void StagingBuffer::endNonMappedWrite(BufferRange &nextDrawBuffer) {
 		nextDrawBuffer.segment_ = readBufferIndex_;
 	}
 	nextDrawBuffer.size_ = segmentSize_;
-
-	GL_ERROR_LOG();
 
 	swapBuffers();
 }

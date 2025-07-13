@@ -67,12 +67,12 @@
           use-normal="0"
           use-tangent="0"
           texco-mode="CUBE_MAP"
-          update-hint="STATIC"/>
+          update-frequency="NEVER"/>
     <mesh id="sprite-sphere"
           type="mesh"
           primitive="POINTS"
-          update-hint="STATIC"
-          num-vertices="1">
+          num-vertices="1"
+          update-frequency="NEVER">
         <input type="float" name="sphereRadius" is-attribute="1">
             <set mode="constant" value="1.0" index="0"/>
         </input>
@@ -85,8 +85,8 @@
     <!--**************************-->
 
     <node id="Reflection-Sphere">
-        <transform/>
-        <material/>
+        <transform update-frequency="NEVER"/>
+        <material update-frequency="NEVER"/>
         <texture id="sky-texture" map-to="COLOR"
                  blend-mode="SRC"
                  mapping="CUBE_REFRACTION"/>
