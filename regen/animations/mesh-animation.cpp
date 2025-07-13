@@ -235,11 +235,12 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	// find offst in the mesh vbo.
 	// in the constructor data may not be set or data moved in vbo
 	// so we lookup the offset here.
+	const auto &inputs = mesh_->inputs();
 	std::list<ContiguousBlock> blocks;
 
 	if (hasMeshInterleavedAttributes_) {
-		meshBufferOffset_ = (mesh_->inputs().empty() ? 0 : (mesh_->inputs().begin()->in_)->offset());
-		for (auto it = mesh_->inputs().rbegin(); it != mesh_->inputs().rend(); ++it) {
+		meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
+		for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 			const ref_ptr<ShaderInput> &in = it->in_;
 			if (!in->isVertexAttribute()) continue;
 			if (in->offset() < meshBufferOffset_) {
@@ -248,10 +249,10 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		}
 	} else {
 		// find contiguous blocks of memory in the mesh buffers.
-		auto it = mesh_->inputs().begin();
+		auto it = inputs.begin();
 		blocks.emplace_back(it->in_);
 
-		for (++it; it != mesh_->inputs().end(); ++it) {
+		for (++it; it != inputs.end(); ++it) {
 			const ref_ptr<ShaderInput> &in = it->in_;
 			if (!in->isVertexAttribute()) continue;
 			ContiguousBlock &activeBlock = *blocks.rbegin();
@@ -351,9 +352,9 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		if (hasMeshInterleavedAttributes_) {
 			rs->feedbackBufferRange().push(0, bufferRange_);
 		} else {
-			GLint index = mesh_->inputs().size() - 1;
+			GLint index = inputs.size() - 1;
 			bufferRange_.offset_ = 0;
-			for (auto it = mesh_->inputs().rbegin(); it != mesh_->inputs().rend(); ++it) {
+			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 				const ref_ptr<ShaderInput> &in = it->in_;
 				index -= 1;
 				if (!in->isVertexAttribute()) continue;
@@ -371,8 +372,8 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 		if (hasMeshInterleavedAttributes_) {
 			rs->feedbackBufferRange().pop(0);
 		} else {
-			GLint index = mesh_->inputs().size() - 1;
-			for (auto it = mesh_->inputs().rbegin(); it != mesh_->inputs().rend(); ++it) {
+			GLint index = inputs.size() - 1;
+			for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
 				const ref_ptr<ShaderInput> &in = it->in_;
 				index -= 1;
 				if (!in->isVertexAttribute()) continue;
@@ -387,7 +388,7 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	if (hasMeshInterleavedAttributes_) {
 		BufferObject::copy(
 				feedbackRef_->bufferID(),
-				mesh_->inputs().begin()->in_->buffer(),
+				inputs.begin()->in_->buffer(),
 				bufferSize_,
 				0, // feedback buffer offset
 				meshBufferOffset_);
