@@ -173,7 +173,8 @@ void SpatialIndex::updateVisibility() {
 			// omni camera -> intersection test with bounding sphere
 			auto projParams = ic.first->projParams()->getVertex(0);
 			BoundingSphere sphereShape(Vec3f::zero(), projParams.r.y);
-			sphereShape.setTransform(ref_ptr<ModelTransformation>::alloc(ic.first->position())); // FIXME: what happens here?!?
+			// FIXME: what happens here? definitely we should not create a new tf here!
+			sphereShape.setTransform(ref_ptr<ModelTransformation>::alloc(ic.first->position()));
 			sphereShape.updateTransform(true);
 			updateVisibilityWithCamera(ic.second, sphereShape, false);
 		}
