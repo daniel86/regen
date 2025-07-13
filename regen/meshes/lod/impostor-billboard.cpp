@@ -59,7 +59,7 @@ void ImpostorBillboard::createShader(const ref_ptr<StateNode> &parentNode) {
 		}
 	}
 
-	shaderConfigurer.addState(sharedState_.get());
+	shaderConfigurer.addState(sharedState().get());
 	shaderConfigurer.addState(this);
 	Mesh::createShader(parentNode, shaderConfigurer.cfg());
 }

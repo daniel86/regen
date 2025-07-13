@@ -71,7 +71,7 @@ LightningBolt::LightningBolt(const Config &cfg)
 
 LightningBolt::LightningBolt(const ref_ptr<LightningBolt> &other)
 		: Mesh(other),
-		  Animation(true, false),
+		  Animation(false, false),
 		  maxSubDivisions_(other->maxSubDivisions_),
 		  maxBranches_(other->maxBranches_),
 		  bufferOffset_(other->bufferOffset_),

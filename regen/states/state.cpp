@@ -4,29 +4,59 @@
 
 using namespace regen;
 
+struct State::StateShared {
+	std::vector<NamedShaderInput> inputs_;
+	std::set<std::string> inputMap_;
+	int32_t numVertices_ = 0;
+	int32_t numInstances_ = 1;
+};
+
+State::State()
+		: EventObject(),
+		  Resource() {
+	shared_ = ref_ptr<StateShared>::alloc();
+}
+
 State::State(const ref_ptr<State> &other)
 		: EventObject(),
 		  joined_(other->joined_),
 		  attached_(other->attached_),
 		  isHidden_(other->isHidden_),
-		  inputs_(other->inputs_),
-		  inputMap_(other->inputMap_),
-		  numVertices_(other->numVertices_),
-		  numInstances_(other->numInstances_),
 		  shaderDefines_(other->shaderDefines_),
 		  shaderIncludes_(other->shaderIncludes_),
 		  shaderFunctions_(other->shaderFunctions_),
-		  shaderVersion_(other->shaderVersion_) {
+		  shaderVersion_(other->shaderVersion_),
+		  shared_(other->shared_) {
 }
 
 State::~State() {
-	while (!inputs_.empty()) {
-		removeInput(inputs_.begin()->name_);
+	while (!shared_->inputs_.empty()) {
+		removeInput(shared_->inputs_.begin()->name_);
 	}
 }
 
+const std::vector<NamedShaderInput> &State::inputs() const {
+	return shared_->inputs_;
+}
+
+int32_t State::numVertices() const {
+	return shared_->numVertices_;
+}
+
+void State::set_numVertices(int32_t v) {
+	shared_->numVertices_ = v;
+}
+
+int32_t State::numInstances() const {
+	return shared_->numInstances_;
+}
+
+void State::set_numInstances(int32_t v) {
+	shared_->numInstances_ = v;
+}
+
 void State::setConstantUniforms(bool isConstant) {
-	for (const auto &it: inputs_) {
+	for (const auto &it: shared_->inputs_) {
 		it.in_->set_isConstant(isConstant);
 	}
 	for (const auto &it: joined()) {
@@ -68,11 +98,11 @@ void State::disjoinStates(const ref_ptr<State> &state) {
 }
 
 bool State::hasInput(const std::string &name) const {
-	return inputMap_.count(name) > 0;
+	return shared_->inputMap_.count(name) > 0;
 }
 
 ref_ptr<ShaderInput> State::getInput(const std::string &name) const {
-	for (const auto &input: inputs_) {
+	for (const auto &input: shared_->inputs_) {
 		if (name == input.name_) return input.in_;
 	}
 	return {};
@@ -81,51 +111,52 @@ ref_ptr<ShaderInput> State::getInput(const std::string &name) const {
 void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 	const std::string &inputName = (name.empty() ? in->name() : name);
 
-	if (in->isVertexAttribute() && in->numVertices() > static_cast<uint32_t>(numVertices_)) {
-		numVertices_ = static_cast<int>(in->numVertices());
+	if (in->isVertexAttribute() && in->numVertices() > static_cast<uint32_t>(shared_->numVertices_)) {
+		shared_->numVertices_ = static_cast<int>(in->numVertices());
 	}
 	if (in->numInstances() > 1) {
-		numInstances_ = static_cast<int>(in->numInstances());
+		shared_->numInstances_ = static_cast<int>(in->numInstances());
 	}
 	// check for instances of attributes within UBO
 	if (in->isBufferBlock()) {
 		auto *block = dynamic_cast<BufferBlock *>(in.get());
 		for (auto &namedInput: block->blockInputs()) {
 			if (namedInput.in_->isVertexAttribute() &&
-			    namedInput.in_->numVertices() > static_cast<uint32_t>(numVertices_)) {
-				numVertices_ = static_cast<int>(namedInput.in_->numVertices());
+			    namedInput.in_->numVertices() > static_cast<uint32_t>(shared_->numVertices_)) {
+				shared_->numVertices_ = static_cast<int>(namedInput.in_->numVertices());
 			}
 			if (namedInput.in_->numInstances() > 1) {
-				numInstances_ = static_cast<int>(namedInput.in_->numInstances());
+				shared_->numInstances_ = static_cast<int>(namedInput.in_->numInstances());
 			}
 		}
 	}
 
-	if (inputMap_.count(inputName) > 0) {
+	if (shared_->inputMap_.count(inputName) > 0) {
 		removeInput(inputName);
 	} else { // insert into map of known attributes
-		inputMap_.insert(inputName);
+		shared_->inputMap_.insert(inputName);
 	}
 
-	inputs_.emplace_back(in, inputName);
+	shared_->inputs_.emplace_back(in, inputName);
 }
 
 void State::removeInput(const ref_ptr<ShaderInput> &in) {
-	inputMap_.erase(in->name());
+	shared_->inputMap_.erase(in->name());
 	removeInput(in->name());
 }
 
 void State::removeInput(const std::string &name) {
 	std::vector<NamedShaderInput>::iterator it;
-	for (it = inputs_.begin(); it != inputs_.end(); ++it) {
+	for (it = shared_->inputs_.begin(); it != shared_->inputs_.end(); ++it) {
 		if (it->name_ == name) { break; }
 	}
-	if (it == inputs_.end()) { return; }
-	inputs_.erase(it);
+	if (it == shared_->inputs_.end()) { return; }
+	it->in_->set_buffer(0u, {});
+	shared_->inputs_.erase(it);
 }
 
 void State::collectShaderInput(ShaderInputList &out) {
-	out.insert(out.end(), inputs_.begin(), inputs_.end());
+	out.insert(out.end(), shared_->inputs_.begin(), shared_->inputs_.end());
 	for (auto &buddy : joined_) { buddy->collectShaderInput(out); }
 }
 

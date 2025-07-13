@@ -33,7 +33,7 @@ void Particles::begin() {
 void Particles::begin(DataLayout layout) {
 	Mesh::begin(layout);
 
-	GLuint numParticles = numVertices_;
+	GLuint numParticles = numVertices();
 
 	// Initialize the random number generator and distribution
 	std::random_device rd;
@@ -69,7 +69,7 @@ ref_ptr<BufferReference> Particles::end() {
 
 	// Create shader defines.
 	GLuint counter = 0;
-	for (auto it = inputs_.begin(); it != inputs_.end(); ++it) {
+	for (auto it = inputs().begin(); it != inputs().end(); ++it) {
 		if (!it->in_->isVertexAttribute()) continue;
 		shaderDefine(
 				REGEN_STRING("PARTICLE_ATTRIBUTE" << counter << "_TYPE"),
@@ -86,7 +86,7 @@ ref_ptr<BufferReference> Particles::end() {
 	shaderDefine("NUM_PARTICLE_ATTRIBUTES", REGEN_STRING(counter));
 	createUpdateShader();
 
-	for (auto &particleInput: inputs_) {
+	for (auto &particleInput: inputs()) {
 		const ref_ptr<ShaderInput> in = particleInput.in_;
 		if (!in->isVertexAttribute()) continue;
 		GLint loc = updateState_->shader()->attributeLocation(particleInput.in_->name());
@@ -246,7 +246,7 @@ void Particles::createUpdateShader() {
 
 	StateConfig &shaderCfg = shaderConfigurer.cfg();
 	shaderCfg.feedbackAttributes_.clear();
-	for (const auto &input: inputs_) {
+	for (const auto &input: inputs()) {
 		if (!input.in_->isVertexAttribute()) continue;
 		shaderCfg.feedbackAttributes_.push_back(input.in_->name());
 	}
@@ -288,7 +288,7 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 		}
 	}
 	*/
-	glDrawArrays(primitive_, 0, numVertices_);
+	glDrawArrays(primitive_, 0, numVertices());
 
 	rs->endTransformFeedback();
 	rs->feedbackBufferRange().pop(0);

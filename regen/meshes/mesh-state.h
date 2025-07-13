@@ -180,32 +180,32 @@ namespace regen {
 		/**
 		 * @return Specifies the number of vertices to be rendered.
 		 */
-		void set_vertexOffset(int32_t v) { vertexOffset_ = v; }
+		void set_vertexOffset(int32_t v);
 
 		/**
 		 * @return Specifies the number of vertices to be rendered.
 		 */
-		int32_t vertexOffset() const { return vertexOffset_; }
+		int32_t vertexOffset() const;
 
 		/**
 		 * @return Base instance for instanced rendering.
 		 */
-		auto baseInstance() const { return baseInstance_; }
+		uint32_t baseInstance() const;
 
 		/**
 		 * @param v Base instance for instanced rendering.
 		 */
-		void set_baseInstance(uint32_t v) { baseInstance_ = v; }
+		void set_baseInstance(uint32_t v);
 
 		/**
 		 * @return Number of visible instances of added input data.
 		 */
-		auto numVisibleInstances() const { return numVisibleInstances_; }
+		int32_t numVisibleInstances() const;
 
 		/**
 		 * @param v Specifies the number of instances to be rendered.
 		 */
-		void set_numVisibleInstances(int32_t v) { numVisibleInstances_ = v; }
+		void set_numVisibleInstances(int32_t v);
 
 		/**
 		 * Sets the index attribute.
@@ -215,44 +215,39 @@ namespace regen {
 		ref_ptr<BufferReference> setIndices(const ref_ptr<ShaderInput> &indices, uint32_t maxIndex);
 
 		/**
-		 * @return Specifies the number of indices to be rendered.
-		 */
-		void set_numIndices(int32_t v) { numIndices_ = v; }
-
-		/**
 		 * @return Specifies the offset to the index buffer in bytes.
 		 */
 		void set_indexOffset(uint32_t v);
 
 		/**
+		 * @return Specifies the number of indices to be rendered.
+		 */
+		void set_numIndices(int32_t v);
+
+		/**
 		 * @return number of indices to vertex data.
 		 */
-		int numIndices() const { return numIndices_; }
+		int numIndices() const;
 
 		/**
 		 * @return the maximal index in the index buffer.
 		 */
-		uint32_t maxIndex() const { return maxIndex_; }
+		uint32_t maxIndex() const;
 
 		/**
 		 * @return the offset to the index buffer in bytes.
 		 */
-		uint32_t indexOffset() const { return indices_.get() ? indices_->offset() : 0u; }
+		uint32_t indexOffset() const;
 
 		/**
 		 * @return indexes to the vertex data of this primitive set.
 		 */
-		auto &indices() const { return indices_; }
+		const ref_ptr<ShaderInput> &indices() const;
 
 		/**
 		 * @return index buffer used by this mesh.
 		 */
 		uint32_t indexBuffer() const;
-
-		/**
-		 * @return true if this input container has an index buffer.
-		 */
-		bool hasIndirectDrawBuffer() const { return indirectDrawBuffer_.get() != nullptr; }
 
 		/**
 		 * Sets the indirect draw buffer.
@@ -262,24 +257,29 @@ namespace regen {
 		void setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx = 0u);
 
 		/**
+		 * @return true if this input container has an index buffer.
+		 */
+		bool hasIndirectDrawBuffer() const;
+
+		/**
 		 * @return the base draw index in the indirect draw buffer.
 		 */
-		uint32_t baseDrawIndex() const { return baseDrawIdx_; }
+		uint32_t baseDrawIndex() const;
 
 		/**
 		 * @return Offset to the indirect draw call in bytes.
 		 */
-		void set_indirectOffset(uint32_t v) { indirectOffset_ = v; }
+		void set_indirectOffset(uint32_t v);
 
 		/**
 		 * @param v the number of multi draw calls.
 		 */
-		void set_multiDrawCount(int32_t v) { multiDrawCount_ = v; }
+		void set_multiDrawCount(int32_t v);
 
 		/**
 		 * @return the indirect draw buffer.
 		 */
-		const ref_ptr<SSBO> &indirectDrawBuffer() const { return indirectDrawBuffer_; }
+		const ref_ptr<SSBO> &indirectDrawBuffer() const;
 
 		/**
 		 * Create a shader for this mesh.
@@ -623,22 +623,9 @@ namespace regen {
 		ref_ptr<VBO> meshBuffer_;
 		DataLayout uploadLayout_ = INTERLEAVED;
 
-		int32_t vertexOffset_ = 0;
-		uint32_t baseInstance_ = 0u;
-		int32_t numVisibleInstances_ = 1;
 		ref_ptr<VAO> vao_;
 		std::list<InputLocation> vaoAttributes_;
 		std::map<int32_t, std::list<InputLocation>::iterator> vaoLocations_;
-
-		int32_t numIndices_ = 0u;
-		uint32_t maxIndex_ = 0u;
-		ref_ptr<ShaderInput> indices_;
-
-		ref_ptr<SSBO> indirectDrawBuffer_;
-		uint32_t baseDrawIdx_ = 0u;
-		int32_t multiDrawCount_ = 1u;
-		uint32_t indirectOffset_ = 0u;
-		std::vector<int32_t> indirectDrawGroups_;
 
 		std::vector<MeshLOD> meshLODs_;
 		ref_ptr<ShaderInput3f> lodThresholds_;
@@ -656,9 +643,6 @@ namespace regen {
 		ref_ptr<Shader> meshShader_;
 		std::string shaderKey_;
 		std::map<GLenum, std::string> shaderStageKeys_;
-
-		// a state shared among all copies of this mesh.
-		ref_ptr<State> sharedState_;
 
 		ref_ptr<BufferRange> feedbackRange_;
 		uint32_t feedbackCount_ = 0;
@@ -690,6 +674,12 @@ namespace regen {
 		void drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCount);
 
 		void activateLOD_(uint32_t lodLevel);
+
+	private:
+		struct SharedData; // forward declaration
+		ref_ptr<SharedData> shared_;
+		// a state shared among all copies of this mesh.
+		ref_ptr<State> sharedState_;
 	};
 } // namespace
 

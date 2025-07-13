@@ -23,7 +23,7 @@ namespace regen {
 	 */
 	class State : public EventObject, public Resource {
 	public:
-		State() = default;
+		State();
 
 		/**
 		 * Copy constructor.
@@ -69,7 +69,7 @@ namespace regen {
 		/**
 		 * @return Previously added shader inputs.
 		 */
-		const std::vector<NamedShaderInput> &inputs() const { return inputs_; }
+		const std::vector<NamedShaderInput> &inputs() const;
 
 		/**
 		 * @param name the shader input name.
@@ -118,22 +118,22 @@ namespace regen {
 		/**
 		 * @return Specifies the number of vertices to be rendered.
 		 */
-		int32_t numVertices() const { return numVertices_; }
+		int32_t numVertices() const;
 
 		/**
 		 * @param v Specifies the number of vertices to be rendered.
 		 */
-		void set_numVertices(int32_t v) { numVertices_ = v; }
+		void set_numVertices(int32_t v);
 
 		/**
 		 * @return Number of instances of added input data.
 		 */
-		int32_t numInstances() const { return numInstances_; }
+		int32_t numInstances() const;
 
 		/**
 		 * @param v Specifies the number of instances to be rendered.
 		 */
-		void set_numInstances(int32_t v) { numInstances_ = v; }
+		void set_numInstances(int32_t v);
 
 		/**
 		 * Defines a GLSL macro.
@@ -214,15 +214,14 @@ namespace regen {
 		std::vector<ref_ptr<EventObject> > attached_;
 		bool isHidden_ = false;
 
-		std::vector<NamedShaderInput> inputs_;
-		std::set<std::string> inputMap_;
-		int32_t numVertices_ = 0;
-		int32_t numInstances_ = 1;
-
 		std::map<std::string, std::string> shaderDefines_;
 		std::vector<std::string> shaderIncludes_;
 		std::map<std::string, std::string> shaderFunctions_;
 		GLuint shaderVersion_ = 330;
+
+	private:
+		struct StateShared; // forward declaration
+		ref_ptr<StateShared> shared_;
 	};
 } // namespace
 
