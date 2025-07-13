@@ -648,6 +648,7 @@ void BufferBlock::updateNonMapped() {
 
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
+			updateStridedData(bufferInput);
 			if (bufferInput.alignedData) {
 				stagingBuffer_->setSubData(
 					bufferInput.offset,
