@@ -197,7 +197,7 @@ void StagingBuffer::setSubData(uint32_t localOffset, uint32_t dataSize, const vo
 				tempRef->bufferID(),
 				writeBuffer->bufferID(),
 				tempRef->address(),
-				writeBuffer->address() + localOffset,
+				writeBuffer->address() + writeSegment.offset + localOffset,
 				dataSize);
 	}
 }
