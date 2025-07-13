@@ -8,13 +8,12 @@ using namespace regen;
 SpatialIndexDebug::SpatialIndexDebug(const ref_ptr<SpatialIndex> &index)
 		: StateNode(),
 		  HasShader("regen.models.lines"),
-		  HasInput(ARRAY_BUFFER, BufferUpdateFlags::NEVER),
 		  index_(index),
 		  lineLocation_(-1),
 		  vbo_(0) {
 	lineColor_ = ref_ptr<ShaderInput3f>::alloc("lineColor");
 	lineColor_->setUniformData(Vec3f(1.0f));
-	state()->joinShaderInput(lineColor_);
+	state()->setInput(lineColor_);
 	state()->joinStates(shaderState_);
 	lineVertices_ = ref_ptr<ShaderInput3f>::alloc("lineVertices");
 	lineVertices_->setVertexData(2);

@@ -127,9 +127,9 @@ void BoidsGPU::createResource() {
 		bboxPass_->computeState()->setNumWorkUnits(numBoids_, 1, 1);
 		bboxPass_->computeState()->setGroupSize(simulationGroupSize_, 1, 1);
 		if (tf_.get()) {
-			bboxPass_->joinShaderInput(tfBuffer_);
+			bboxPass_->setInput(tfBuffer_);
 		}
-		bboxPass_->joinShaderInput(bboxBuffer_);
+		bboxPass_->setInput(bboxBuffer_);
 		StateConfigurer shaderConfigurer;
 		shaderConfigurer.define("NUM_ELEMENTS", REGEN_STRING(numBoids_));
 		shaderConfigurer.addState(bboxPass_.get());
@@ -144,7 +144,7 @@ void BoidsGPU::createResource() {
 	}
 
 	if (tf_.get()) {
-		animationState()->joinShaderInput(tfBuffer_);
+		animationState()->setInput(tfBuffer_);
 	}
 	// create a state that updates the boids grid
 	updateGridState_ = ref_ptr<StateSequence>::alloc();
@@ -169,11 +169,11 @@ void BoidsGPU::createResource() {
 	//    and reset the grid offset buffer to all zero.
 	{
 		auto updateState = ref_ptr<State>::alloc();
-		updateState->joinShaderInput(gridUBO_);
-		updateState->joinShaderInput(((RadixSort*)radixSort_.get())->keyBuffer());
-		updateState->joinShaderInput(((RadixSort*)radixSort_.get())->valueBuffer());
-		updateState->joinShaderInput(gridOffsetBuffer_);
-		updateState->joinShaderInput(u_numCells_);
+		updateState->setInput(gridUBO_);
+		updateState->setInput(((RadixSort*)radixSort_.get())->keyBuffer());
+		updateState->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
+		updateState->setInput(gridOffsetBuffer_);
+		updateState->setInput(u_numCells_);
 		gridResetPass_ = ref_ptr<ComputePass>::alloc("regen.animation.boid.grid.reset");
 		gridResetPass_->computeState()->setNumWorkUnits(std::max(numBoids_, numCells_+1), 1, 1);
 		gridResetPass_->computeState()->setGroupSize(simulationGroupSize_, 1, 1);
@@ -189,16 +189,16 @@ void BoidsGPU::createResource() {
 	//    when reading boids data in the simulation shader.
 	{
 		auto updateState = ref_ptr<State>::alloc();
-		updateState->joinShaderInput(gridUBO_);
-		updateState->joinShaderInput(((RadixSort*)radixSort_.get())->keyBuffer());
-		updateState->joinShaderInput(((RadixSort*)radixSort_.get())->valueBuffer());
-		updateState->joinShaderInput(gridOffsetBuffer_);
+		updateState->setInput(gridUBO_);
+		updateState->setInput(((RadixSort*)radixSort_.get())->keyBuffer());
+		updateState->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
+		updateState->setInput(gridOffsetBuffer_);
 		#ifdef BOID_USE_SORTED_DATA
-		updateState->joinShaderInput(velBuffer_);
+		updateState->setInput(velBuffer_);
 		if (tf_.get()) {
-			updateState->joinShaderInput(tfBuffer_);
+			updateState->setInput(tfBuffer_);
 		}
-		updateState->joinShaderInput(boidDataBuffer_);
+		updateState->setInput(boidDataBuffer_);
 		updateState->shaderDefine("USE_SORTED_DATA", "TRUE");
 		#endif
 		#ifdef BOID_USE_HALF_VELOCITY
@@ -218,39 +218,39 @@ void BoidsGPU::createResource() {
 	simulationState_->shaderDefine("USE_HALF_VELOCITY", "TRUE");
 #endif
 	{ // simulation parameters
-		simulationState_->joinShaderInput(simulationBoundsMin_);
-		simulationState_->joinShaderInput(visualRange_);
-		simulationState_->joinShaderInput(simulationBoundsMax_);
-		simulationState_->joinShaderInput(maxBoidSpeed_);
-		simulationState_->joinShaderInput(boidsScale_);
-		simulationState_->joinShaderInput(baseOrientation_);
-		simulationState_->joinShaderInput(maxAngularSpeed_);
-		simulationState_->joinShaderInput(coherenceWeight_);
-		simulationState_->joinShaderInput(alignmentWeight_);
-		simulationState_->joinShaderInput(separationWeight_);
-		simulationState_->joinShaderInput(avoidanceWeight_);
-		simulationState_->joinShaderInput(avoidanceDistance_);
-		simulationState_->joinShaderInput(lookAheadDistance_);
-		simulationState_->joinShaderInput(repulsionFactor_);
-		simulationState_->joinShaderInput(maxNumNeighbors_);
+		simulationState_->setInput(simulationBoundsMin_);
+		simulationState_->setInput(visualRange_);
+		simulationState_->setInput(simulationBoundsMax_);
+		simulationState_->setInput(maxBoidSpeed_);
+		simulationState_->setInput(boidsScale_);
+		simulationState_->setInput(baseOrientation_);
+		simulationState_->setInput(maxAngularSpeed_);
+		simulationState_->setInput(coherenceWeight_);
+		simulationState_->setInput(alignmentWeight_);
+		simulationState_->setInput(separationWeight_);
+		simulationState_->setInput(avoidanceWeight_);
+		simulationState_->setInput(avoidanceDistance_);
+		simulationState_->setInput(lookAheadDistance_);
+		simulationState_->setInput(repulsionFactor_);
+		simulationState_->setInput(maxNumNeighbors_);
 	}
-	simulationState_->joinShaderInput(gridUBO_);
-	simulationState_->joinShaderInput(velBuffer_);
-	simulationState_->joinShaderInput(gridOffsetBuffer_);
-	simulationState_->joinShaderInput(((RadixSort*)radixSort_.get())->valueBuffer());
-	simulationState_->joinShaderInput(bboxBuffer_);
+	simulationState_->setInput(gridUBO_);
+	simulationState_->setInput(velBuffer_);
+	simulationState_->setInput(gridOffsetBuffer_);
+	simulationState_->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
+	simulationState_->setInput(bboxBuffer_);
 	if (tf_.get()) {
-		simulationState_->joinShaderInput(tfBuffer_);
+		simulationState_->setInput(tfBuffer_);
 	}
 #ifdef BOID_USE_SORTED_DATA
-	simulationState_->joinShaderInput(boidDataBuffer_);
+	simulationState_->setInput(boidDataBuffer_);
 #endif
 	if (heightMap_.get()) {
-		simulationState_->joinShaderInput(
+		simulationState_->setInput(
 			createUniform<ShaderInput3f,Vec3f>("mapCenter", mapCenter_));
-		simulationState_->joinShaderInput(
+		simulationState_->setInput(
 			createUniform<ShaderInput1f,float>("heightMapFactor", heightMapFactor_));
-		simulationState_->joinShaderInput(
+		simulationState_->setInput(
 			createUniform<ShaderInput2f,Vec2f>("mapSize", mapSize_));
 		simulationState_->joinStates(
 			ref_ptr<TextureState>::alloc(heightMap_, "heightMap"));

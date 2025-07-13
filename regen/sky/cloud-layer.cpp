@@ -71,31 +71,31 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 
 	color_ = ref_ptr<ShaderInput3f>::alloc("color");
 	color_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-	state()->joinShaderInput(color_);
+	state()->setInput(color_);
 
 	altitude_ = ref_ptr<ShaderInput1f>::alloc("altitude");
 	altitude_->setUniformData(8.0f);
-	state()->joinShaderInput(altitude_);
+	state()->setInput(altitude_);
 
 	bottomColor_ = ref_ptr<ShaderInput3f>::alloc("bcolor");
 	bottomColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-	state()->joinShaderInput(bottomColor_);
+	state()->setInput(bottomColor_);
 
 	thickness_ = ref_ptr<ShaderInput1f>::alloc("thickness");
 	thickness_->setUniformData(3.0f);
-	state()->joinShaderInput(thickness_);
+	state()->setInput(thickness_);
 
 	topColor_ = ref_ptr<ShaderInput3f>::alloc("tcolor");
 	topColor_->setUniformData(Vec3f(1.f, 1.f, 1.f));
-	state()->joinShaderInput(topColor_);
+	state()->setInput(topColor_);
 
 	offset_ = ref_ptr<ShaderInput1f>::alloc("offset");
 	offset_->setUniformData(-0.5f);
-	state()->joinShaderInput(offset_);
+	state()->setInput(offset_);
 
 	scale_ = ref_ptr<ShaderInput2f>::alloc("scale");
 	scale_->setUniformData(Vec2f(32.0, 32.0));
-	state()->joinShaderInput(scale_);
+	state()->setInput(scale_);
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.clouds.cloud-layer");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
@@ -119,16 +119,16 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 	/// Update State
 	///////
 	updateMesh_ = Rectangle::getUnitQuad();
-	updateState_->joinShaderInput(fbo_->inverseViewport());
+	updateState_->setInput(fbo_->inverseViewport());
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise0_, "noise0"));
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise1_, "noise1"));
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise2_, "noise2"));
 	updateState_->joinStates(ref_ptr<TextureState>::alloc(noise3_, "noise3"));
-	updateState_->joinShaderInput(coverage_);
-	updateState_->joinShaderInput(sharpness_);
-	updateState_->joinShaderInput(change_);
-	updateState_->joinShaderInput(wind_);
-	updateState_->joinShaderInput(sky->worldTime()->in);
+	updateState_->setInput(coverage_);
+	updateState_->setInput(sharpness_);
+	updateState_->setInput(change_);
+	updateState_->setInput(wind_);
+	updateState_->setInput(sky->worldTime()->in);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
 }

@@ -8,14 +8,14 @@ using namespace regen;
 #define USE_BONE_TBO
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
-		: HasInputState(TEXTURE_BUFFER, BufferUpdateFlags::FULL_PER_FRAME),
+		: State(),
 		  Animation(true, true) {
 	bufferSize_ = 0u;
 	setAnimationName("bones");
 
 	numBoneWeights_ = ref_ptr<ShaderInput1i>::alloc("numBoneWeights");
 	numBoneWeights_->setUniformData(numBoneWeights);
-	joinShaderInput(numBoneWeights_);
+	setInput(numBoneWeights_);
 
 	// prepend '#define HAS_BONES' to loaded shaders
 	shaderDefine("HAS_BONES", "TRUE");
@@ -47,7 +47,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	joinStates(texState_);
 	shaderDefine("USE_BONE_TBO", "TRUE");
 #else
-	joinShaderInput(boneMatrices_);
+	setInput(boneMatrices_);
 	shaderDefine("USE_BONE_TBO", "FALSE");
 #endif
 

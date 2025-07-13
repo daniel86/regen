@@ -17,7 +17,7 @@ TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &h
 	textColor_ = ref_ptr<ShaderInput4f>::alloc("textColor");
 	textColor_->setUniformData(Vec4f(1.0));
 	textColor_->setSchema(InputSchema::color());
-	joinShaderInput(textColor_);
+	setInput(textColor_);
 
 	ref_ptr<Texture> tex = font_->texture();
 	ref_ptr<TextureState> texState = ref_ptr<TextureState>::alloc(tex, "fontTexture");
@@ -68,7 +68,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	posAttribute_->setVertexData(numCharacters_ * 6);
 	texcoAttribute_->setVertexData(numCharacters_ * 6);
 	norAttribute_->setVertexData(numCharacters_ * 6);
-	inputContainer_->set_numVertices(numCharacters_ * 6);
+	set_numVertices(numCharacters_ * 6);
 	// map client data for writing
 	auto v_pos = posAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
 	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
@@ -166,7 +166,7 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	v_nor.unmap();
 	v_texco.unmap();
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	setInput(posAttribute_);
 	setInput(norAttribute_);
 	setInput(texcoAttribute_);

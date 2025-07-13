@@ -80,7 +80,7 @@ createConvexHull(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 static ref_ptr<btCollisionShape>
 createTriangleMesh(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 	auto pos = (mesh.get() == nullptr ? ref_ptr<ShaderInput>() : mesh->positions());
-	auto indices = (mesh.get() == nullptr ? ref_ptr<ShaderInput>() : mesh->inputContainer()->indices());
+	auto indices = (mesh.get() == nullptr ? ref_ptr<ShaderInput>() : mesh->indices());
 
 	if (indices.get() == nullptr) {
 		REGEN_WARN("Ignoring physical shape for '" << input.getDescription() << "'. Mesh has no Indices.");

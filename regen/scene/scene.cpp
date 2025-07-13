@@ -285,7 +285,7 @@ void Scene::initGL() {
 	globalUniforms_->addBlockInput(timeDelta_);
 	globalUniforms_->addBlockInput(worldTime_.in);
 	globalUniforms_->addBlockInput(isMouseEntered_);
-	renderTree_->state()->joinShaderInput(globalUniforms_);
+	renderTree_->state()->setInput(globalUniforms_);
 }
 
 void Scene::setTime() {

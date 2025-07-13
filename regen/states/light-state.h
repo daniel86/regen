@@ -1,14 +1,6 @@
-/*
- * light.h
- *
- *  Created on: 28.01.2011
- *      Author: daniel
- */
-
 #ifndef REGEN_LIGHT_STATE_H
 #define REGEN_LIGHT_STATE_H
 
-#include <regen/gl-types/input-container.h>
 #include <regen/states/model-transformation.h>
 #include <regen/camera/camera.h>
 #include <regen/math/vector.h>
@@ -20,7 +12,7 @@ namespace regen {
 	/**
 	 * \brief A light emitting point in space.
 	 */
-	class Light : public State, public HasInput {
+	class Light : public State {
 	public:
 		static constexpr const char *TYPE_NAME = "Light";
 

@@ -17,11 +17,11 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	mouseTexco_ = mouseTexco;
 	mousePosVS_ = ref_ptr<ShaderInput3f>::alloc("mousePosVS");
 	mousePosVS_->setUniformData(Vec3f(0.0f));
-	state_->joinShaderInput(mousePosVS_);
+	state_->setInput(mousePosVS_);
 
 	mouseDirVS_ = ref_ptr<ShaderInput3f>::alloc("mouseDirVS");
 	mouseDirVS_->setUniformData(Vec3f(0.0f, 1.0f, 0.0f));
-	state_->joinShaderInput(mouseDirVS_);
+	state_->setInput(mouseDirVS_);
 
 	// skip fragment shader, only up to geometry shader is needed
 	state_->joinStates(ref_ptr<ToggleState>::alloc(RenderState::RASTERIZER_DISCARD, GL_TRUE));

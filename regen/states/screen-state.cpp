@@ -13,11 +13,11 @@ ScreenState::ScreenState(
 
 	viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
 	viewport_->setUniformData(Vec2f(0.0f));
-	joinShaderInput(viewport_);
+	setInput(viewport_);
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
 	inverseViewport_->setUniformData(Vec2f(0.0f));
-	joinShaderInput(inverseViewport_);
+	setInput(inverseViewport_);
 }
 
 void ScreenState::enable(RenderState *state) {

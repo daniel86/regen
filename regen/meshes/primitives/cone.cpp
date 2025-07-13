@@ -89,7 +89,7 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
 		setInput(nor_);
@@ -251,7 +251,7 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired)

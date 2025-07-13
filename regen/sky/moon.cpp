@@ -19,25 +19,25 @@ Moon::Moon(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 
 	moonOrientation_ = ref_ptr<ShaderInputMat4>::alloc("moonOrientationMatrix");
 	moonOrientation_->setUniformData(Mat4f::identity());
-	state()->joinShaderInput(moonOrientation_);
+	state()->setInput(moonOrientation_);
 
 	sunShine_ = ref_ptr<ShaderInput4f>::alloc("sunShine");
 	sunShine_->setUniformData(Vec4f(defaultSunShineColor(), defaultSunShineIntensity()));
-	state()->joinShaderInput(sunShine_);
+	state()->setInput(sunShine_);
 
 	earthShine_ = ref_ptr<ShaderInput3f>::alloc("earthShine");
 	earthShine_->setUniformData(Vec3f(0.0));
-	state()->joinShaderInput(earthShine_);
+	state()->setInput(earthShine_);
 	earthShineColor_ = defaultEarthShineColor();
 	earthShineIntensity_ = defaultEarthShineIntensity();
 
 	scale_ = ref_ptr<ShaderInput1f>::alloc("scale");
 	scale_->setUniformData(defaultScale());
-	state()->joinShaderInput(scale_);
+	state()->setInput(scale_);
 
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
-	state()->joinShaderInput(scattering_);
+	state()->setInput(scattering_);
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.moon");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());

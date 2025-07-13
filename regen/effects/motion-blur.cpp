@@ -17,7 +17,7 @@ MotionBlur::MotionBlur(const ref_ptr<Camera> &camera)
 
 	lastViewProjectionMat_ = ref_ptr<ShaderInputMat4>::alloc("lastViewProjectionMatrix");
 	lastViewProjectionMat_->setUniformData(Mat4f::identity());
-	joinShaderInput(lastViewProjectionMat_);
+	setInput(lastViewProjectionMat_);
 }
 
 void MotionBlur::enable(RenderState *rs) {

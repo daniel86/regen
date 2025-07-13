@@ -835,7 +835,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			break;
 	}
 
-	meshState->begin(InputContainer::INTERLEAVED);
+	meshState->begin(Mesh::INTERLEAVED);
 
 	{
 		ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
@@ -1046,11 +1046,10 @@ list<ref_ptr<AnimationNode> > AssetImporter::loadMeshBones(
 GLuint AssetImporter::numBoneWeights(Mesh *meshState) {
 	const struct aiMesh *mesh = meshToAiMesh_[meshState];
 	if (mesh->mNumBones == 0) { return 0; }
-	const ref_ptr<InputContainer> container = meshState->inputContainer();
 
-	auto *counter = new GLuint[container->numVertices()];
+	auto *counter = new GLuint[meshState->numVertices()];
 	GLuint numWeights = 1;
-	for (GLint i = 0; i < container->numVertices(); ++i) counter[i] = 0u;
+	for (GLint i = 0; i < meshState->numVertices(); ++i) counter[i] = 0u;
 	for (GLuint boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
 		aiBone *assimpBone = mesh->mBones[boneIndex];
 		for (GLuint t = 0; t < assimpBone->mNumWeights; ++t) {

@@ -64,7 +64,7 @@ TesselationState::TesselationState(GLuint numPatchVertices)
 
 	lodFactor_ = ref_ptr<ShaderInput1f>::alloc("lodFactor");
 	lodFactor_->setUniformData(4.0f);
-	joinShaderInput(lodFactor_);
+	setInput(lodFactor_);
 
 	joinStates(ref_ptr<PatchVerticesState>::alloc(numPatchVertices_));
 }

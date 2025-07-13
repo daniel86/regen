@@ -218,10 +218,7 @@ void MeshViewerWidget::updateLoDButtons() {
 }
 
 void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
-	static const BufferConfig bufferCfg(
-			BUFFER_UPDATE_NEVER,
-			BUFFER_CPU_WRITE,
-			BUFFER_MAP_DISABLED);
+	static const BufferFlags bufferCfg(ARRAY_BUFFER, BufferUpdateFlags::NEVER);
 	auto p = resourcePath(assetPath);
 	meshRoot_->clear();
 	lodMeshRoot_->clear();

@@ -187,11 +187,8 @@ bool ShaderInputWidget::handleState(
 		return false;
 	}
 
-	auto *hasInput = dynamic_cast<HasInput *>(state.get());
-	if (hasInput != nullptr) {
-		ref_ptr<InputContainer> container = hasInput->inputContainer();
-		const ShaderInputList &inputs = container->inputs();
-		for (const auto &namedInput: inputs) {
+	{
+		for (const auto &namedInput: state->inputs()) {
 			if (namedInput.in_->numVertices() > 1) continue;
 			if (addParameter(node, namedInput, parent)) isEmpty = false;
 		}
@@ -267,11 +264,8 @@ bool ShaderInputWidget::isValidState(const State *rootState) {
 			dynamic_cast<const Camera *>(state)) {
 			continue;
 		}
-		auto *hasInput = dynamic_cast<const HasInput *>(state);
-		if (hasInput != nullptr) {
-			ref_ptr<InputContainer> container = hasInput->inputContainer();
-			const ShaderInputList &inputs = container->inputs();
-			for (const auto &namedInput: inputs) {
+		{
+			for (const auto &namedInput: state->inputs()) {
 				if (namedInput.in_->numVertices() > 1) continue;
 				if (isValidParameter(namedInput.in_.get())) return true;
 			}

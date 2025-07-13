@@ -16,7 +16,6 @@ BufferContainer::BufferContainer(
 	const std::vector<NamedShaderInput> &namedInputs,
 	const BufferUpdateFlags &hints)
 		: State(),
-		  HasInput(ARRAY_BUFFER, hints),
 		  namedInputs_(namedInputs),
 		  bufferUpdateHints_(hints),
 		  bufferName_(bufferName) {
@@ -25,7 +24,6 @@ BufferContainer::BufferContainer(
 
 BufferContainer::BufferContainer(const std::string &bufferName, const BufferUpdateFlags &hints)
 	: State(),
-	  HasInput(ARRAY_BUFFER, hints),
 	  bufferUpdateHints_(hints),
 	  bufferName_(bufferName) {
 }
@@ -56,7 +54,7 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 		bufferObjectOfInput_[namedInput.in_.get()] = ubo;
 	}
 	ubo->update();
-	joinShaderInput(ubo);
+	setInput(ubo);
 	ubos_.push_back(ubo);
 }
 
@@ -70,7 +68,7 @@ void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInput
 		bufferObjectOfInput_[namedInput.in_.get()] = ssbo;
 	}
 	ssbo->update();
-	joinShaderInput(ssbo);
+	setInput(ssbo);
 	ssbos_.push_back(ssbo);
 }
 
@@ -121,7 +119,7 @@ void BufferContainer::updateBuffer() {
 		else if (inputSize > maxUBOSize) {
 			createTBO(namedInput);
 			if (namedInput.in_->numInstances() > 1) {
-				inputContainer()->set_numInstances(namedInput.in_->numInstances());
+				set_numInstances(namedInput.in_->numInstances());
 			}
 		}
 		else {

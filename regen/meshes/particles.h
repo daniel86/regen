@@ -87,7 +87,7 @@ namespace regen {
 		void setDefault(std::string_view attributeName, const ValueType &value) {
 			auto x = ref_ptr<InputType>::alloc(REGEN_STRING(attributeName << "Default"));
 			x->setUniformData(value);
-			joinShaderInput(x);
+			setInput(x);
 		}
 
 		/**
@@ -99,7 +99,7 @@ namespace regen {
 		void setVariance(std::string_view attributeName, const ValueType &value) {
 			auto x = ref_ptr<InputType>::alloc(REGEN_STRING(attributeName << "Variance"));
 			x->setUniformData(value);
-			joinShaderInput(x);
+			setInput(x);
 		}
 
 		/**
@@ -114,7 +114,7 @@ namespace regen {
 		void setAdvanceConstant(std::string_view attributeName, const ValueType &value) {
 			auto x = ref_ptr<InputType>::alloc(REGEN_STRING(attributeName << "AdvanceConstant"));
 			x->setUniformData(value);
-			joinShaderInput(x);
+			setInput(x);
 		}
 
 		/**
@@ -191,9 +191,9 @@ namespace regen {
 		std::map<std::string, std::string> rampFunctions_;
 
 		// override
-		void begin(InputContainer::DataLayout layout);
+		void begin(DataLayout layout);
 
-		void createUpdateShader(const ShaderInputList &inputs);
+		void createUpdateShader();
 
 		void configureAdvancing(const ref_ptr<ShaderInput> &in, GLuint counter, AdvanceMode mode);
 	};

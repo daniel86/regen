@@ -6,14 +6,14 @@ using namespace regen;
 
 Point::Point(GLuint numVertices)
 		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER) {
-	inputContainer_->set_numVertices(numVertices);
+	set_numVertices(numVertices);
 
 	pos_ = ref_ptr<ShaderInput3f>::alloc("pos");
 	pos_->setVertexData(numVertices);
 
 	if (numVertices == 1) {
 		pos_->setVertex(0, Vec3f(0.0, 0.0, 0.0));
-		begin(InputContainer::INTERLEAVED);
+		begin(INTERLEAVED);
 		setInput(pos_);
 		end();
 	}

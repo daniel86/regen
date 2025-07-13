@@ -13,35 +13,35 @@ BrightStars::BrightStars(const ref_ptr<Sky> &sky)
 	color_ = ref_ptr<ShaderInput3f>::alloc("starColor");
 	color_->setUniformData(defaultColor());
 	color_->setSchema(InputSchema::color());
-	state()->joinShaderInput(color_);
+	state()->setInput(color_);
 
 	apparentMagnitude_ = ref_ptr<ShaderInput1f>::alloc("apparentMagnitude");
 	apparentMagnitude_->setUniformData(defaultApparentMagnitude());
-	state()->joinShaderInput(apparentMagnitude_);
+	state()->setInput(apparentMagnitude_);
 
 	colorRatio_ = ref_ptr<ShaderInput1f>::alloc("colorRatio");
 	colorRatio_->setUniformData(defaultColorRatio());
-	state()->joinShaderInput(colorRatio_);
+	state()->setInput(colorRatio_);
 
 	glareIntensity_ = ref_ptr<ShaderInput1f>::alloc("glareIntensity");
 	glareIntensity_->setUniformData(0.1);
-	state()->joinShaderInput(glareIntensity_);
+	state()->setInput(glareIntensity_);
 
 	glareScale_ = ref_ptr<ShaderInput1f>::alloc("glareScale");
 	glareScale_->setUniformData(defaultGlareScale());
-	state()->joinShaderInput(glareScale_);
+	state()->setInput(glareScale_);
 
 	scintillation_ = ref_ptr<ShaderInput1f>::alloc("scintillation");
 	scintillation_->setUniformData(defaultScintillation());
-	state()->joinShaderInput(scintillation_);
+	state()->setInput(scintillation_);
 
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
-	state()->joinShaderInput(scattering_);
+	state()->setInput(scattering_);
 
 	scale_ = ref_ptr<ShaderInput1f>::alloc("scale");
 	scale_->setUniformData(2.0f);
-	state()->joinShaderInput(scale_);
+	state()->setInput(scale_);
 
 	noiseTexState_ = ref_ptr<TextureState>::alloc();
 	updateNoiseTexture();
@@ -121,7 +121,7 @@ void BrightStars::set_brightStarsFile(const std::string &brightStars) {
 		));
 	}
 
-	meshState_->begin(InputContainer::INTERLEAVED);
+	meshState_->begin(Mesh::INTERLEAVED);
 	meshState_->setInput(pos_);
 	meshState_->setInput(col_);
 	meshState_->end();

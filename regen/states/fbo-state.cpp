@@ -8,8 +8,8 @@ using namespace regen;
 
 FBOState::FBOState(const ref_ptr<FBO> &fbo)
 		: State(), fbo_(fbo) {
-	joinShaderInput(fbo->viewport());
-	joinShaderInput(fbo->inverseViewport());
+	setInput(fbo->viewport());
+	setInput(fbo->inverseViewport());
 	for (uint32_t attachmentIdx = 0; attachmentIdx < fbo->colorTextures().size(); ++attachmentIdx) {
 		auto &attachment = fbo->colorTextures()[attachmentIdx];
 		shaderDefine(REGEN_STRING("HAS_ATTACHMENT_" << attachment->name()), "TRUE");

@@ -146,7 +146,7 @@ namespace regen {
 			}
 
 			static int getNumInstances(const ref_ptr<Mesh> &mesh) {
-				int num = mesh->inputContainer()->numInstances();
+				int num = mesh->numInstances();
 				std::stack<ref_ptr<State>> stack;
 				stack.emplace(mesh);
 				while (!stack.empty()) {
@@ -155,10 +155,7 @@ namespace regen {
 					for (auto &joined: state->joined()) {
 						stack.push(joined);
 					}
-					auto *hasInput = dynamic_cast<HasInput *>(state.get());
-					if (hasInput != nullptr) {
-						num = std::max(num, hasInput->inputContainer()->numInstances());
-					}
+					num = std::max(num, state->numInstances());
 				}
 				return num;
 			}
@@ -299,7 +296,6 @@ namespace regen {
 				while (!s->joined().empty()) {
 					s = *s->joined().rbegin();
 				}
-				auto *x = dynamic_cast<HasInput *>(s.get());
 
 				if (in->name() != input.getValue("name")) {
 					// TODO: there is a problem with renaming of inputs, as state configurer
@@ -309,14 +305,7 @@ namespace regen {
 				}
 
 				if (input.getValue<bool>("join", true)) {
-					if (x == nullptr) {
-						ref_ptr<HasInputState> inputState = ref_ptr<HasInputState>::alloc(
-							ARRAY_BUFFER, BufferUpdateFlags::FULL_RARELY);
-						inputState->setInput(in, input.getValue("name"));
-						state->joinStates(inputState);
-					} else {
-						x->setInput(in, input.getValue("name"));
-					}
+					s->setInput(in, input.getValue("name"));
 				}
 			}
 

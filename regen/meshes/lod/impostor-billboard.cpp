@@ -47,12 +47,9 @@ void ImpostorBillboard::createShader(const ref_ptr<StateNode> &parentNode) {
 				}
 			}
 			else {
-				auto *hasInput = dynamic_cast<HasInput*>(state.get());
-				if (hasInput) {
-					for (auto &input: hasInput->inputContainer()->inputs()) {
-						if (!input.in_->isVertexAttribute()) {
-							joinShaderInput(input.in_, input.name_);
-						}
+				for (auto &input: state->inputs()) {
+					if (!input.in_->isVertexAttribute()) {
+						setInput(input.in_, input.name_);
 					}
 				}
 			}
@@ -73,7 +70,7 @@ void ImpostorBillboard::updateAttributes() {
 	Vec3f posData[1] = {Vec3f(0.0f, 0.0f, 0.0f)};
 	positionIn->setVertexData(1, (byte *) posData);
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	setInput(positionIn);
 	end();
 	hasAttributes_ = true;
@@ -137,8 +134,8 @@ void ImpostorBillboard::createResources() {
 	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_, BufferUpdateFlags::NEVER);
 
 	{ // create parameters for the shader
-		joinShaderInput(depthOffset_);
-		joinShaderInput(modelOrigin_);
+		setInput(depthOffset_);
+		setInput(modelOrigin_);
 	}
 
 	{ // create view data arrays
@@ -156,8 +153,8 @@ void ImpostorBillboard::createResources() {
 		snapshotDepthRanges_->setUniformUntyped();
 		impostorBuffer_->addBlockInput(snapshotDepthRanges_);
 
-		snapshotState_->joinShaderInput(impostorBuffer_);
-		joinShaderInput(impostorBuffer_);
+		snapshotState_->setInput(impostorBuffer_);
+		setInput(impostorBuffer_);
 	}
 
 	{ // create the snapshot FBO
@@ -367,13 +364,13 @@ void ImpostorBillboard::createSnapshot() {
 	snapshotFBO_->enable(rs);
 	// render all meshes into the snapshot FBO
 	for (auto &view: meshes_) {
-		auto oldNumInstances = view.meshCopy->inputContainer()->numVisibleInstances();
+		auto oldNumInstances = view.meshCopy->numVisibleInstances();
 		// make sure only one instance is rendered
-		view.meshCopy->inputContainer()->set_numVisibleInstances(1);
+		view.meshCopy->set_numVisibleInstances(1);
 		view.shaderState->enable(rs);
 		view.meshCopy->draw(rs);
 		view.shaderState->disable(rs);
-		view.meshCopy->inputContainer()->set_numVisibleInstances(oldNumInstances);
+		view.meshCopy->set_numVisibleInstances(oldNumInstances);
 	}
 	snapshotFBO_->disable(rs);
 	snapshotAlbedo_->updateMipmaps();

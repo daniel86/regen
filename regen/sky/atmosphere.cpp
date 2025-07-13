@@ -70,15 +70,15 @@ Atmosphere::Atmosphere(
 	///////
 	/// Update State
 	///////
-	updateState_->joinShaderInput(sky->sun()->direction(), "sunDir");
-	updateState_->joinShaderInput(mie_);
-	updateState_->joinShaderInput(rayleigh_);
-	updateState_->joinShaderInput(spotBrightness_);
-	updateState_->joinShaderInput(skyAbsorption_);
-	updateState_->joinShaderInput(scatterStrength_);
+	updateState_->setInput(sky->sun()->direction(), "sunDir");
+	updateState_->setInput(mie_);
+	updateState_->setInput(rayleigh_);
+	updateState_->setInput(spotBrightness_);
+	updateState_->setInput(skyAbsorption_);
+	updateState_->setInput(scatterStrength_);
 	updateShader_ = ref_ptr<ShaderState>::alloc();
 	updateState_->joinStates(updateShader_);
-	updateState_->joinShaderInput(sky_->worldTime()->in);
+	updateState_->setInput(sky_->worldTime()->in);
 }
 
 void Atmosphere::createUpdateShader() {

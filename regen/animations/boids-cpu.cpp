@@ -144,17 +144,17 @@ void BoidsCPU::initBoidSimulation() {
 		d.numNeighbors = 0;
 	}
 
-	animationState()->joinShaderInput(coherenceWeight_);
-	animationState()->joinShaderInput(alignmentWeight_);
-	animationState()->joinShaderInput(separationWeight_);
-	animationState()->joinShaderInput(avoidanceWeight_);
-	animationState()->joinShaderInput(avoidanceDistance_);
-	animationState()->joinShaderInput(visualRange_);
-	animationState()->joinShaderInput(lookAheadDistance_);
-	animationState()->joinShaderInput(repulsionFactor_);
-	animationState()->joinShaderInput(maxNumNeighbors_);
-	animationState()->joinShaderInput(maxBoidSpeed_);
-	animationState()->joinShaderInput(maxAngularSpeed_);
+	animationState()->setInput(coherenceWeight_);
+	animationState()->setInput(alignmentWeight_);
+	animationState()->setInput(separationWeight_);
+	animationState()->setInput(avoidanceWeight_);
+	animationState()->setInput(avoidanceDistance_);
+	animationState()->setInput(visualRange_);
+	animationState()->setInput(lookAheadDistance_);
+	animationState()->setInput(repulsionFactor_);
+	animationState()->setInput(maxNumNeighbors_);
+	animationState()->setInput(maxBoidSpeed_);
+	animationState()->setInput(maxAngularSpeed_);
 	REGEN_INFO("CPU Boids simulation with " << numBoids_ << " boids");
 }
 

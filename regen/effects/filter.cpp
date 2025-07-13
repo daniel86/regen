@@ -124,8 +124,8 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 	inverseViewport_->setUniformData(Vec2f(
 			1.0f / (GLfloat) input->width(), 1.0f / (GLfloat) input->height()));
 
-	joinShaderInput(viewport_);
-	joinShaderInput(inverseViewport_);
+	setInput(viewport_);
+	setInput(inverseViewport_);
 
 	ref_ptr<ShaderInput2f> inverseViewport;
 

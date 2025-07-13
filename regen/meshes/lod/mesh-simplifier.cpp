@@ -26,14 +26,14 @@ MeshSimplifier::MeshSimplifier(const ref_ptr<Mesh> &mesh) : mesh_(mesh) {
 	}
 
 	// lookup mesh attributes
-	for (auto &in: mesh_->inputContainer()->inputs()) {
+	for (auto &in: mesh_->inputs()) {
 		if (in.in_->isVertexAttribute()) {
 			if (!addInputAttribute(in)) {
 				hasValidAttributes_ = false;
 			}
 		}
 	}
-	inputIndices_ = ref_ptr<ShaderInput1ui>::dynamicCast(mesh_->inputContainer()->indices());
+	inputIndices_ = ref_ptr<ShaderInput1ui>::dynamicCast(mesh_->indices());
 	quadrics_.resize(inputPos_->numVertices());
 	neighbors_.resize(inputPos_->numVertices());
 	// Validate attributes
@@ -764,7 +764,7 @@ void MeshSimplifier::simplifyMesh() {
 	}
 
 	{    // construct first LOD level.
-		auto numOriginalFaces = mesh_->inputContainer()->numIndices() / 3;
+		auto numOriginalFaces = mesh_->numIndices() / 3;
 		auto &lodLevel0 = lodLevels_.emplace_back();
 		lodLevel0.reserve(numOriginalFaces);
 		auto m_inputIndices = (uint32_t *) inputIndices_->clientData();
@@ -955,14 +955,14 @@ void MeshSimplifier::applyAttributes() {
 	auto numVertices = createOutputAttributes();
 
 	// remove the input attributes from the mesh
-	mesh_->inputContainer()->removeInput(inputPos_);
+	mesh_->removeInput(inputPos_);
 	for (auto &pair: inputAttributes_) {
-		mesh_->inputContainer()->removeInput(pair.second);
+		mesh_->removeInput(pair.second);
 	}
 
 	// add the output attributes to the mesh
-	mesh_->inputContainer()->set_numVertices(numVertices);
-	mesh_->begin(InputContainer::INTERLEAVED);
+	mesh_->set_numVertices(numVertices);
+	mesh_->begin(Mesh::INTERLEAVED);
 	auto indexRef = mesh_->setIndices(outputIndices_, numVertices);
 	mesh_->setInput(outputPos_);
 	for (auto &pair: outputAttributes_) {

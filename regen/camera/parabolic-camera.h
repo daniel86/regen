@@ -3,7 +3,6 @@
 
 #include <regen/camera/camera.h>
 #include <regen/meshes/mesh-state.h>
-#include <regen/gl-types/input-container.h>
 
 namespace regen {
 	/**

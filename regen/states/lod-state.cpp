@@ -442,17 +442,17 @@ void LODState::createComputeShader() {
 			} else {
 				m = part;
 			}
-			auto &indices = m->inputContainer()->indices();
+			auto &indices = m->indices();
 			if (indices.get()) {
 				drawParams[i].mode = 1u; // 1=elements, 2=arrays
-				drawParams[i].setCount(m->inputContainer()->numIndices());
+				drawParams[i].setCount(m->numIndices());
 				drawParams[i].setFirstElement(indices->offset() / sizeof(uint32_t));
 			} else {
 				drawParams[i].mode = 2u; // 1=elements, 2=arrays
-				drawParams[i].setCount(m->inputContainer()->numVertices());
-				drawParams[i].setFirstElement(m->inputContainer()->vertexOffset());
+				drawParams[i].setCount(m->numVertices());
+				drawParams[i].setFirstElement(m->vertexOffset());
 			}
-			drawParams[i].setInstanceCount(i==0 ? m->inputContainer()->numInstances() : 0);
+			drawParams[i].setInstanceCount(i==0 ? m->numInstances() : 0);
 		}
 		// create an indirect draw buffer, which is computed each frame
 		indirectDrawBuffers_[partIdx] = ref_ptr<SSBO>::alloc(
@@ -517,25 +517,25 @@ void LODState::createComputeShader() {
 		cullPass_->computeState()->shaderDefine("NUM_CAMERA_LAYERS", REGEN_STRING(camera_->frustum().size()));
 		cullPass_->computeState()->setNumWorkUnits(static_cast<int>(cullShape_->numInstances()), 1, 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
-		cullPass_->joinShaderInput(mesh_->lodThresholds());
-		cullPass_->joinShaderInput(frustumUBO_);
+		cullPass_->setInput(mesh_->lodThresholds());
+		cullPass_->setInput(frustumUBO_);
 		// Note: LOD pass only writes into first buffer, we need to copy into the other buffers
 		//       in a separate pass.
-		cullPass_->joinShaderInput(indirectDrawBuffers_[0]);
-		cullPass_->joinShaderInput(radixSort_->keyBuffer());
-		cullPass_->joinShaderInput(cullShape_->instanceIDBuffer());
+		cullPass_->setInput(indirectDrawBuffers_[0]);
+		cullPass_->setInput(radixSort_->keyBuffer());
+		cullPass_->setInput(cullShape_->instanceIDBuffer());
 		auto boundingShape = mesh_->boundingShape();
 		if (boundingShape->shapeType() == BoundingShapeType::SPHERE) {
 			auto *sphere = dynamic_cast<BoundingSphere*>(boundingShape.get());
-			cullPass_->joinShaderInput(createUniform<ShaderInput1f, float>(
+			cullPass_->setInput(createUniform<ShaderInput1f, float>(
 					"shapeRadius", sphere->radius()));
 			shaderCfg.define("SHAPE_TYPE", "SPHERE");
 		}
 		else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
 			auto *box = dynamic_cast<BoundingBox*>(boundingShape.get());
-			cullPass_->joinShaderInput(createUniform<ShaderInput4f, Vec4f>(
+			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMin", Vec4f(box->bounds().min,0.0f)));
-			cullPass_->joinShaderInput(createUniform<ShaderInput4f, Vec4f>(
+			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMax", Vec4f(box->bounds().max,0.0f)));
 			if (box->isAABB()) {
 				shaderCfg.define("SHAPE_TYPE", "AABB");
@@ -556,7 +556,7 @@ void LODState::createComputeShader() {
 		copyIndirect_->computeState()->setNumWorkUnits(1, 1, 1);
 		copyIndirect_->computeState()->setGroupSize(1, 1, 1);
 		for (const auto & indirectDrawBuffer : indirectDrawBuffers_) {
-			copyIndirect_->joinShaderInput(indirectDrawBuffer);
+			copyIndirect_->setInput(indirectDrawBuffer);
 		}
 		StateConfigurer shaderCfg;
 		shaderCfg.addState(copyIndirect_.get());

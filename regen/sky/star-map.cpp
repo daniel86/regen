@@ -11,11 +11,11 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());
-	state()->joinShaderInput(scattering_);
+	state()->setInput(scattering_);
 
 	deltaM_ = ref_ptr<ShaderInput1f>::alloc("deltaM");
 	deltaM_->setUniformData(0.5f);
-	state()->joinShaderInput(deltaM_);
+	state()->setInput(deltaM_);
 
 	set_apparentMagnitude(6.5);
 

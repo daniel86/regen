@@ -6,13 +6,12 @@ BulletDebugDrawer::BulletDebugDrawer(const ref_ptr<BulletPhysics> &physics)
 		: btIDebugDraw(),
 		  StateNode(),
 		  HasShader("regen.models.lines"),
-		  HasInput(ARRAY_BUFFER, BufferUpdateFlags::NEVER),
 		  physics_(physics),
 		  vbo_(0),
 		  m_debugMode(DBG_DrawContactPoints | DBG_DrawWireframe){
 	lineColor_ = ref_ptr<ShaderInput3f>::alloc("lineColor");
 	lineColor_->setUniformData(Vec3f(1.0f));
-	state()->joinShaderInput(lineColor_);
+	state()->setInput(lineColor_);
 	state()->joinStates(shaderState_);
 	lineVertices_ = ref_ptr<ShaderInput3f>::alloc("lineVertices");
 	lineVertices_->setVertexData(2);

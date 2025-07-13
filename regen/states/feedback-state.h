@@ -1,14 +1,8 @@
-/*
- * feedback-state.h
- *
- *  Created on: 27.01.2013
- *      Author: daniel
- */
-
 #ifndef FEEDBACK_STATE_H_
 #define FEEDBACK_STATE_H_
 
 #include <regen/states/state.h>
+#include <regen/gl-types/vbo.h>
 
 namespace regen {
 	class FeedbackSpecification : public State {

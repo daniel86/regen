@@ -4,5 +4,5 @@ using namespace regen;
 
 AttributeLessMesh::AttributeLessMesh(GLuint numVertices)
 		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER) {
-	inputContainer_->set_numVertices(numVertices);
+	set_numVertices(numVertices);
 }

@@ -194,7 +194,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired) {
@@ -260,7 +260,7 @@ void SphereSprite::updateAttributes(const Config &cfg) {
 	mappedRadius.unmap();
 	mappedPosition.unmap();
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	setInput(radiusIn);
 	setInput(positionIn);
 	end();

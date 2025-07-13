@@ -62,5 +62,5 @@ void CullShape::createBuffers() {
 		instanceIDBuffer_->setBufferData(clearData.data());
 	}
 
-	joinShaderInput(instanceIDBuffer_);
+	setInput(instanceIDBuffer_);
 }

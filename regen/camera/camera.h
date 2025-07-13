@@ -1,10 +1,3 @@
-/*
- * camera.h
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
 #ifndef REGEN_CAMERA_H
 #define REGEN_CAMERA_H
 
@@ -14,7 +7,6 @@
 #include <regen/shapes/frustum.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/model-transformation.h>
-#include <regen/gl-types/input-container.h>
 #include "regen/gl-types/ubo.h"
 #include "regen/meshes/lod/lod-level.h"
 
@@ -22,7 +14,7 @@ namespace regen {
 	/**
 	 * \brief Camera with projection and view matrix.
 	 */
-	class Camera : public HasInputState {
+	class Camera : public State {
 	public:
 		static constexpr const char *TYPE_NAME = "Camera";
 

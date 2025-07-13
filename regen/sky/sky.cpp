@@ -64,11 +64,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
 	q_->setUniformData(0.0f);
-	state()->joinShaderInput(q_);
+	state()->setInput(q_);
 
 	sqrt_q_ = ref_ptr<ShaderInput1f>::alloc("sqrt_q");
 	sqrt_q_->setUniformData(0.0f);
-	state()->joinShaderInput(sqrt_q_);
+	state()->setInput(sqrt_q_);
 
 	// directional light that approximates the moon
 	moon_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
@@ -78,7 +78,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	moon_->direction()->setVertex(0, Vec3f(1.0f));
 	uniformBlock->addBlockInput(moon_->direction(), "moonPosition");
 
-	state()->joinShaderInput(uniformBlock);
+	state()->setInput(uniformBlock);
 
 	Rectangle::Config cfg;
 	cfg.centerAtOrigin = GL_FALSE;

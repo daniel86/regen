@@ -61,14 +61,10 @@ FrameMesh::FrameMesh(const Config &cfg)
 
 FrameMesh::FrameMesh(const ref_ptr<FrameMesh> &other)
 		: Mesh(other) {
-	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
-	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(
-			inputContainer_->getInput("i"));
+	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
+	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
+	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
+	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
 }
 
 FrameMesh::Config::Config()
@@ -281,7 +277,7 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 		v_texco.unmap();
 	}
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
 		setInput(nor_);

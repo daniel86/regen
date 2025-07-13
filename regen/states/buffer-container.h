@@ -20,7 +20,7 @@ namespace regen {
 	 * This is transparent for shader code, as in case of TBO some defines are added such
 	 * that the shader code is generated to use TBOs instead of UBOs.
 	 */
-	class BufferContainer : public State, public HasInput {
+	class BufferContainer : public State {
 	public:
 		/**
 		 * Constructor that takes a list of all shader input objects of this container.

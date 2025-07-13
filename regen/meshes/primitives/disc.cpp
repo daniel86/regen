@@ -59,14 +59,10 @@ Disc::Disc(const Config &cfg)
 
 Disc::Disc(const ref_ptr<Disc> &other)
 		: Mesh(other) {
-	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
-	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(
-			inputContainer_->getInput("i"));
+	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
+	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
+	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
+	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
 }
 
 Disc::Config::Config()
@@ -172,7 +168,7 @@ void Disc::updateAttributes(const Config &cfg) {
 	}
 
 	// Set up the vertex attributes
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired) {

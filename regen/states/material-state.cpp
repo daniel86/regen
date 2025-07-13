@@ -10,7 +10,7 @@
 using namespace regen;
 
 Material::Material(const BufferUpdateFlags &updateFlags)
-		: HasInputState(ARRAY_BUFFER, BufferUpdateFlags::NEVER),
+		: State(),
 		  fillMode_(GL_FILL),
 		  forcedInternalFormat_(GL_NONE),
 		  forcedFormat_(GL_NONE),

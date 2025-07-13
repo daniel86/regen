@@ -368,7 +368,7 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 		}
 	}
 
-	treeMesh.mesh->begin(InputContainer::INTERLEAVED);
+	treeMesh.mesh->begin(Mesh::INTERLEAVED);
 	auto indexRef = treeMesh.mesh->setIndices(treeMesh.indices, numVertices);
 	treeMesh.mesh->setInput(treeMesh.pos);
 	treeMesh.mesh->setInput(treeMesh.nor);

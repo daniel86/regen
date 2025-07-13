@@ -20,7 +20,7 @@ namespace regen {
 	 *
 	 * The data is provided to Shader's using a TextureBuffer.
 	 */
-	class Bones : public HasInputState, public Animation {
+	class Bones : public State, public Animation {
 	public:
 		/**
 		 * @param numBoneWeights maximum number of bone weights.

@@ -1,10 +1,3 @@
-/*
- * feedback-state.cpp
- *
- *  Created on: 27.01.2013
- *      Author: daniel
- */
-
 #include "feedback-state.h"
 
 using namespace regen;

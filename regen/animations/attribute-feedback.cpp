@@ -18,15 +18,15 @@ AttributeFeedbackAnimation::AttributeFeedbackAnimation(
 	// create feedback state
 	feedbackState_ = ref_ptr<FeedbackState>::alloc(
 			inputMesh_->primitive(),
-			inputMesh_->inputContainer()->numVertices());
+			inputMesh_->numVertices());
 	feedbackState_->set_feedbackMode(GL_INTERLEAVED_ATTRIBS);
 	feedbackState_->set_feedbackStage(GL_VERTEX_SHADER);
 	animationNode_->state()->joinStates(feedbackState_);
 
 	bufferSize_ = 0u;
-	originalAttributes_.reserve(inputMesh_->inputContainer()->inputs().size());
-	feedbackAttributes_.reserve(inputMesh_->inputContainer()->inputs().size());
-	for (auto &namedAttribute : inputMesh_->inputContainer()->inputs()) {
+	originalAttributes_.reserve(inputMesh_->inputs().size());
+	feedbackAttributes_.reserve(inputMesh_->inputs().size());
+	for (auto &namedAttribute : inputMesh_->inputs()) {
 		auto &attribute = namedAttribute.in_;
 		if (!attribute->isVertexAttribute()) continue;
 		auto feedbackAttribute = feedbackState_->addFeedback(attribute);

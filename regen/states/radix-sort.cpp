@@ -103,9 +103,9 @@ void RadixSort::createResources() {
 	globalHistogramBuffer_->update();
 
 	{ // radix histogram
-		radixHistogramPass_->joinShaderInput(globalHistogramBuffer_);
-		radixHistogramPass_->joinShaderInput(keyBuffer_);
-		radixHistogramPass_->joinShaderInput(valueBuffer_);
+		radixHistogramPass_->setInput(globalHistogramBuffer_);
+		radixHistogramPass_->setInput(keyBuffer_);
+		radixHistogramPass_->setInput(valueBuffer_);
 		StateConfigurer shaderCfg;
 		shaderCfg.define("NUM_RADIX_BUCKETS", REGEN_STRING(numBuckets_));
 		shaderCfg.define("ONE_LESS_NUM_RADIX_BUCKETS", REGEN_STRING(numBuckets_ - 1));
@@ -125,9 +125,9 @@ void RadixSort::createResources() {
 	}
 
 	{ // radix sort
-		radixScatterPass_->joinShaderInput(globalHistogramBuffer_);
-		radixScatterPass_->joinShaderInput(keyBuffer_);
-		radixScatterPass_->joinShaderInput(valueBuffer_);
+		radixScatterPass_->setInput(globalHistogramBuffer_);
+		radixScatterPass_->setInput(keyBuffer_);
+		radixScatterPass_->setInput(valueBuffer_);
 		StateConfigurer shaderCfg;
 		shaderCfg.define("NUM_RADIX_BUCKETS", REGEN_STRING(numBuckets_));
 		shaderCfg.define("ONE_LESS_NUM_RADIX_BUCKETS", REGEN_STRING(numBuckets_ - 1));

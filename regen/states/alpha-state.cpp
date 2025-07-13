@@ -8,7 +8,7 @@ AlphaState::AlphaState() : ServerSideState() {
 void AlphaState::setDiscardThreshold(float discardThreshold) {
 	if (!discardThreshold_.get()) {
 		discardThreshold_ = createUniform<ShaderInput1f>("alphaDiscardThreshold", 0.25f);
-		joinShaderInput(discardThreshold_);
+		setInput(discardThreshold_);
 		if (forceEarlyDepthTest_) {
 			shaderDefine("FS_EARLY_FRAGMENT_TEST", "TRUE");
 		}
@@ -19,7 +19,7 @@ void AlphaState::setDiscardThreshold(float discardThreshold) {
 void AlphaState::setClipThreshold(float edge) {
 	if (!clipThreshold_.get()) {
 		clipThreshold_ = createUniform<ShaderInput1f>("alphaClipThreshold", 0.5f);
-		joinShaderInput(clipThreshold_);
+		setInput(clipThreshold_);
 	}
 	clipThreshold_->setVertex(0, edge);
 }
@@ -27,11 +27,11 @@ void AlphaState::setClipThreshold(float edge) {
 void AlphaState::setClipThreshold(float edgeMin, float edgeMax) {
 	if (!clipMin_.get()) {
 		clipMin_ = createUniform<ShaderInput1f>("alphaClipMin", 0.0f);
-		joinShaderInput(clipMin_);
+		setInput(clipMin_);
 	}
 	if (!clipMax_.get()) {
 		clipMax_ = createUniform<ShaderInput1f>("alphaClipMax", 1.0f);
-		joinShaderInput(clipMax_);
+		setInput(clipMax_);
 	}
 	clipMin_->setVertex(0, edgeMin);
 	clipMax_->setVertex(0, edgeMax);

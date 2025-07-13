@@ -39,7 +39,7 @@ void PrefixScan::createSerialPass() {
 	computeGlobalOffsets_s_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.serial");
 	computeGlobalOffsets_s_->computeState()->setNumWorkUnits(1, 1, 1);
 	computeGlobalOffsets_s_->computeState()->setGroupSize(1, 1, 1);
-	computeGlobalOffsets_s_->joinShaderInput(globalHistogramBuffer_);
+	computeGlobalOffsets_s_->setInput(globalHistogramBuffer_);
 	if (hasHistogramConstantSize_) {
 		shaderCfg.define("SCAN_HISTOGRAM_SIZE", REGEN_STRING(currentHistogramSize_));
 	} else {
@@ -63,7 +63,7 @@ void PrefixScan::createParallelPass(uint32_t parallelScanInvocations) {
 	computeGlobalOffsets_p_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.parallel");
 	computeGlobalOffsets_p_->computeState()->setNumWorkUnits(parallelScanInvocations, 1, 1);
 	computeGlobalOffsets_p_->computeState()->setGroupSize(parallelScanInvocations, 1, 1);
-	computeGlobalOffsets_p_->joinShaderInput(globalHistogramBuffer_);
+	computeGlobalOffsets_p_->setInput(globalHistogramBuffer_);
 	computeGlobalOffsets_p_cfg_.addState(computeGlobalOffsets_p_.get());
 	computeGlobalOffsets_p_cfg_.define("NUM_SCAN_THREADS", REGEN_STRING(parallelScanInvocations));
 	if (hasHistogramConstantSize_) {
@@ -118,8 +118,8 @@ void PrefixScan::createHierarchicalPass() {
 		computeLocalOffsets_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.local");
 		computeLocalOffsets_->computeState()->setGroupSize(scanGroupSize_, 1, 1);
 		computeLocalOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, 1, 1);
-		computeLocalOffsets_->joinShaderInput(globalHistogramBuffer_);
-		computeLocalOffsets_->joinShaderInput(blockOffsetsBuffer_);
+		computeLocalOffsets_->setInput(globalHistogramBuffer_);
+		computeLocalOffsets_->setInput(blockOffsetsBuffer_);
 
 		StateConfigurer shaderCfg;
 		if (hasHistogramConstantSize_) {
@@ -137,7 +137,7 @@ void PrefixScan::createHierarchicalPass() {
 		computeGlobalOffsets_h_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.global");
 		computeGlobalOffsets_h_->computeState()->setGroupSize(numBlocks2, 1, 1);
 		computeGlobalOffsets_h_->computeState()->setNumWorkUnits(numBlocks2, 1, 1);
-		computeGlobalOffsets_h_->joinShaderInput(blockOffsetsBuffer_);
+		computeGlobalOffsets_h_->setInput(blockOffsetsBuffer_);
 		if (hasHistogramConstantSize_) {
 			computeGlobalOffsets_h_cfg_.define("SCAN_NUM_BLOCKS", REGEN_STRING(numBlocks));
 		} else {
@@ -153,8 +153,8 @@ void PrefixScan::createHierarchicalPass() {
 		distributeOffsets_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.distribute");
 		distributeOffsets_->computeState()->setGroupSize(scanGroupSize_, 1, 1);
 		distributeOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, 1, 1);
-		distributeOffsets_->joinShaderInput(globalHistogramBuffer_);
-		distributeOffsets_->joinShaderInput(blockOffsetsBuffer_);
+		distributeOffsets_->setInput(globalHistogramBuffer_);
+		distributeOffsets_->setInput(blockOffsetsBuffer_);
 
 		StateConfigurer shaderCfg;
 		if (hasHistogramConstantSize_) {

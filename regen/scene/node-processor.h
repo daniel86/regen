@@ -89,7 +89,7 @@ namespace regen::scene {
 				auto newNodeID = scene->putNamedObject(newNode);
 				auto u_objectID = ref_ptr<ShaderInput1i>::alloc("objectID");
 				u_objectID->setUniformData(newNodeID);
-				newNode->state()->joinShaderInput(u_objectID);
+				newNode->state()->setInput(u_objectID);
 			}
 			if (input.hasAttribute("sort")) {
 				// Sort node children by model view matrix.

@@ -39,11 +39,11 @@ Rectangle::Rectangle(const Config &cfg)
 Rectangle::Rectangle(const ref_ptr<Rectangle> &other)
 		: Mesh(other),
 		  rectangleConfig_(other->rectangleConfig_) {
-	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
-	texco_ = ref_ptr<ShaderInput2f>::dynamicCast(inputContainer_->getInput("texco0"));
-	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(inputContainer_->getInput("i"));
+	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
+	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
+	texco_ = ref_ptr<ShaderInput2f>::dynamicCast(getInput("texco0"));
+	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
+	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
 }
 
 Rectangle::Config::Config()
@@ -197,7 +197,7 @@ void Rectangle::updateAttributes() {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (rectangleConfig_.isNormalRequired)

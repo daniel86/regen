@@ -14,7 +14,7 @@ namespace regen {
 	 * It will draw the physics world using Bullet's debug drawing.
 	 * The physics world must be set using setDynamicsWorld().
 	 */
-	class BulletDebugDrawer : public btIDebugDraw, public StateNode, public HasShader, public HasInput {
+	class BulletDebugDrawer : public btIDebugDraw, public StateNode, public HasShader {
 	public:
 		explicit BulletDebugDrawer(const ref_ptr<BulletPhysics> &physics);
 

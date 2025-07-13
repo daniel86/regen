@@ -12,11 +12,11 @@ BloomPass::BloomPass(
 
 	inverseInputSize_ = ref_ptr<ShaderInput2f>::alloc("inverseInputSize");
 	inverseInputSize_->setUniformData(Vec2f(0.0f));
-	state()->joinShaderInput(inverseInputSize_);
+	state()->setInput(inverseInputSize_);
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
 	inverseViewport_->setUniformData(Vec2f(0.0f));
-	state()->joinShaderInput(inverseViewport_);
+	state()->setInput(inverseViewport_);
 
 	// create downsample state
 	downsampleState_ = ref_ptr<State>::alloc();

@@ -14,43 +14,43 @@ LightningBolt::LightningBolt(const Config &cfg)
 		  maxBranches_(cfg.maxBranches_) {
 	frequencyConfig_ = ref_ptr<ShaderInput2f>::alloc("lightningFrequency");
 	frequencyConfig_->setUniformData(Vec2f(0.0f, 0.0f));
-	joinShaderInput(frequencyConfig_);
+	setInput(frequencyConfig_);
 
 	lifetimeConfig_ = ref_ptr<ShaderInput2f>::alloc("lightningLifetime");
 	lifetimeConfig_->setUniformData(Vec2f(2.0f, 0.5f));
-	joinShaderInput(lifetimeConfig_);
+	setInput(lifetimeConfig_);
 
 	jitterOffset_ = ref_ptr<ShaderInput1f>::alloc("lightningMaxOffset");
 	jitterOffset_->setUniformData(2.0f);
-	joinShaderInput(jitterOffset_);
+	setInput(jitterOffset_);
 
 	branchProbability_ = ref_ptr<ShaderInput1f>::alloc("branchProbability");
 	branchProbability_->setUniformData(0.5f);
-	joinShaderInput(branchProbability_);
+	setInput(branchProbability_);
 
 	branchOffset_ = ref_ptr<ShaderInput1f>::alloc("branchOffset");
 	branchOffset_->setUniformData(2.0f);
-	joinShaderInput(branchOffset_);
+	setInput(branchOffset_);
 
 	branchLength_ = ref_ptr<ShaderInput1f>::alloc("branchLength");
 	branchLength_->setUniformData(0.7f);
-	joinShaderInput(branchLength_);
+	setInput(branchLength_);
 
 	branchDarkening_ = ref_ptr<ShaderInput1f>::alloc("branchDarkening");
 	branchDarkening_->setUniformData(0.5f);
-	joinShaderInput(branchDarkening_);
+	setInput(branchDarkening_);
 
 	matAlpha_ = ref_ptr<ShaderInput1f>::alloc("matAlpha");
 	matAlpha_->setUniformData(0.0f);
-	joinShaderInput(matAlpha_);
+	setInput(matAlpha_);
 
 	source_ = ref_ptr<ShaderInput3f>::alloc("lightningSource");
 	source_->setUniformData(Vec3f(0.0f, 60.0f, 0.0f));
-	joinShaderInput(source_);
+	setInput(source_);
 
 	target_ = ref_ptr<ShaderInput3f>::alloc("lightningTarget");
 	target_->setUniformData(Vec3f(0.0f, 0.0f, 0.0f));
-	joinShaderInput(target_);
+	setInput(target_);
 
 	// allocate vertex data for max number of segments and branches,
 	// particular bolts will have less segments and branches.
@@ -61,7 +61,7 @@ LightningBolt::LightningBolt(const Config &cfg)
 	brightness_ = ref_ptr<ShaderInput1f>::alloc(ATTRIBUTE_NAME_BRIGHTNESS);
 	brightness_->setVertexData(numVertices);
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	setInput(pos_);
 	setInput(brightness_);
 	end();
@@ -86,20 +86,18 @@ LightningBolt::LightningBolt(const ref_ptr<LightningBolt> &other)
 
 	matAlpha_ = ref_ptr<ShaderInput1f>::alloc("matAlpha");
 	matAlpha_->setUniformData(0.0f);
-	joinShaderInput(matAlpha_);
+	setInput(matAlpha_);
 
 	source_ = ref_ptr<ShaderInput3f>::alloc("lightningSource");
 	source_->setUniformData(other->source_->getVertex(0).r);
-	joinShaderInput(source_);
+	setInput(source_);
 
 	target_ = ref_ptr<ShaderInput3f>::alloc("lightningTarget");
 	target_->setUniformData(other->target_->getVertex(0).r);
-	joinShaderInput(target_);
+	setInput(target_);
 
-	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-	brightness_ = ref_ptr<ShaderInput1f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_BRIGHTNESS));
+	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
+	brightness_ = ref_ptr<ShaderInput1f>::dynamicCast(getInput(ATTRIBUTE_NAME_BRIGHTNESS));
 }
 
 void LightningBolt::setLifetime(float base, float variance) {
@@ -160,9 +158,9 @@ void LightningBolt::glAnimate(RenderState *rs, GLdouble dt) {
 }
 
 void LightningBolt::setSourcePosition(const ref_ptr<regen::ShaderInput3f> &from) {
-	disjoinShaderInput(source_);
+	removeInput(source_);
 	source_ = from;
-	joinShaderInput(source_);
+	setInput(source_);
 }
 
 void LightningBolt::setSourcePosition(const regen::Vec3f &from) {
@@ -170,9 +168,9 @@ void LightningBolt::setSourcePosition(const regen::Vec3f &from) {
 }
 
 void LightningBolt::setTargetPosition(const ref_ptr<regen::ShaderInput3f> &to) {
-	disjoinShaderInput(target_);
+	removeInput(target_);
 	target_ = to;
-	joinShaderInput(target_);
+	setInput(target_);
 }
 
 void LightningBolt::setTargetPosition(const regen::Vec3f &to) {
@@ -186,7 +184,7 @@ void LightningBolt::updateVertexData() {
 					numVertices * elementSize_,
 					segments_[segmentIndex_].data());
 	// update the number of vertices
-	inputContainer()->set_numVertices(numVertices);
+	set_numVertices(numVertices);
 	updateVAO();
 }
 

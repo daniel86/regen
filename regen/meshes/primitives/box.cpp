@@ -63,14 +63,10 @@ Box::Box(const Config &cfg)
 Box::Box(const ref_ptr<Box> &other)
 		: Mesh(other),
 		  texcoMode_(other->texcoMode_) {
-	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_POS));
-	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_NOR));
-	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(
-			inputContainer_->getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(
-			inputContainer_->getInput("i"));
+	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
+	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
+	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
+	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
 }
 
 Box::Config::Config()
@@ -274,7 +270,7 @@ void Box::updateAttributes(const Config &cfg) {
 		}
 	}
 
-	begin(InputContainer::INTERLEAVED);
+	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired)

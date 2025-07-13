@@ -1,11 +1,3 @@
-/*
- * shader-configurer.cpp
- *
- *  Created on: 31.12.2012
- *      Author: daniel
- */
-
-#include <regen/gl-types/input-container.h>
 #include <regen/states/light-state.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/utility/string-util.h>
@@ -85,7 +77,6 @@ void StateConfigurer::preAddState(const State *s) {
 }
 
 void StateConfigurer::addState(const State *s) {
-	const auto *x0 = dynamic_cast<const HasInput *>(s);
 	const auto *x1 = dynamic_cast<const FeedbackSpecification *>(s);
 	const auto *x2 = dynamic_cast<const TextureState *>(s);
 	const auto *x3 = dynamic_cast<const StateSequence *>(s);
@@ -96,12 +87,10 @@ void StateConfigurer::addState(const State *s) {
 		if (hasFBO_) { return; }
 	}
 
-	if (x0 != nullptr) {
-		const ref_ptr<InputContainer> &container = x0->inputContainer();
-
+	{
 		// remember inputs, they will be enabled automatically
 		// when the shader is enabled.
-		for (const auto & it : container->inputs()) {
+		for (const auto & it : s->inputs()) {
 			addInput(it.name_, it.in_);
 
 			std::queue<std::pair<const std::string&,ShaderInput*>> queue;
@@ -132,9 +121,9 @@ void StateConfigurer::addState(const State *s) {
 				}
 			}
 		}
-		if (container->numInstances()>1) {
+		if (s->numInstances()>1) {
 			define("HAS_INSTANCES", "TRUE");
-			cfg_.numInstances_ = std::max(cfg_.numInstances_, static_cast<uint32_t>(container->numInstances()));
+			cfg_.numInstances_ = std::max(cfg_.numInstances_, static_cast<uint32_t>(s->numInstances()));
 		}
 	}
 	if (x1) {

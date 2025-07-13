@@ -159,9 +159,9 @@ void Ground::updateAttributes() {
 
 void Ground::createResources() {
 	u_skirtSize_->setVertex(0, skirtSize_);
-	joinShaderInput(u_mapCenter_);
-	joinShaderInput(u_skirtSize_);
-	joinShaderInput(u_mapSize_);
+	setInput(u_mapCenter_);
+	setInput(u_skirtSize_);
+	setInput(u_mapSize_);
 
 	updateMaterialMaps();
 	createWeightPass();
@@ -333,9 +333,9 @@ void Ground::createWeightPass() {
 	weightUpdateState_->joinStates(weightFBO_);
 
 	// bind ground parameter for size information
-	weightUpdateState_->joinShaderInput(u_mapCenter_);
-	weightUpdateState_->joinShaderInput(u_skirtSize_);
-	weightUpdateState_->joinShaderInput(u_mapSize_);
+	weightUpdateState_->setInput(u_mapCenter_);
+	weightUpdateState_->setInput(u_skirtSize_);
+	weightUpdateState_->setInput(u_mapSize_);
 	// bind material masks
 	if (materialMaskState_.get()) {
 		weightUpdateState_->joinStates(materialMaskState_);
