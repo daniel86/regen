@@ -73,10 +73,10 @@ namespace regen {
 						for (unsigned int & indice : indices) {
 							switch (blendMode) {
 								case BLEND_MODE_ADD:
-									v_values.w[indice] = v_values.r[indice] + v_values.w[indice] + generator.next();
+									v_values.w[indice] = v_values.r[indice] + generator.next();
 									break;
 								case BLEND_MODE_MULTIPLY:
-									v_values.w[indice] = v_values.r[indice] * v_values.w[indice] * generator.next();
+									v_values.w[indice] = v_values.r[indice] * generator.next();
 									break;
 								default:
 									v_values.w[indice] = generator.next();
