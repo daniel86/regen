@@ -3,6 +3,7 @@
 #include <regen/config.h>
 #include <regen/gl-types/gl-param.h>
 #include <regen/gl-types/binding-manager.h>
+#include <regen/textures/texture-binder.h>
 #include "scene.h"
 #include "regen/animations/animation-manager.h"
 
@@ -297,11 +298,13 @@ void Scene::setTime() {
 
 void Scene::clear() {
 	renderTree_->clear();
+	perFrameInputUpdates_.clear();
 	namedToObject_.clear();
 	idToObject_.clear();
 	isTimeInitialized_ = GL_FALSE;
 	RenderState::reset();
 	BindingManager::clear();
+	TextureBinder::reset();
 }
 
 void Scene::registerInteraction(const std::string &name, const ref_ptr<SceneInteraction> &interaction) {
@@ -366,7 +369,56 @@ void Scene::setWorldTime(float timeInSeconds) {
 	worldTime_.p_time = boost::posix_time::from_time_t((time_t) timeInSeconds);
 }
 
+void Scene::initializePerFrameUpdates() {
+	std::stack<const StateNode*> nodeQueue;
+	std::stack<const State*> stateQueue;
+	std::set<const ShaderInput*> visited;
+	nodeQueue.push(renderTree_.get());
+
+	perFrameInputUpdates_.clear();
+	perFrameInputUpdates_.reserve(20);
+
+	while (!nodeQueue.empty()) {
+		const StateNode *node = nodeQueue.top();
+		nodeQueue.pop();
+		stateQueue.push(node->state().get());
+
+		// push node children to the queue
+		for (const auto &child: node->childs()) {
+			nodeQueue.push(child.get());
+		}
+
+		// process state of node
+		while (!stateQueue.empty()) {
+			const State *state = stateQueue.top();
+			stateQueue.pop();
+
+			for (const auto &ni: state->inputs()) {
+				auto input = ni.in_;
+				if (input->dataTypeBytes() == 0) {
+					// we have a buffer block here
+					BufferBlock *bufferBlock = dynamic_cast<BufferBlock*>(input.get());
+					if (bufferBlock && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
+						perFrameInputUpdates_.emplace_back(bufferBlock);
+					}
+				}
+			}
+
+			for (const auto &joined: state->joined()) {
+				stateQueue.push(joined.get());
+			}
+		}
+	}
+}
+
+void Scene::initializeScene() {
+	initializePerFrameUpdates();
+}
+
 void Scene::drawGL() {
+	for (auto &in : perFrameInputUpdates_) {
+		in->update();
+	}
 	renderTree_->render(timeDelta_->getVertex(0).r);
 }
 

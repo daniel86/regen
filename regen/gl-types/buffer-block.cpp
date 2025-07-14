@@ -771,7 +771,11 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 			bindingIndex_ = -1;
 		}
 	}
-	update();
+	if (flags_.updateHints.frequency > BUFFER_UPDATE_PER_FRAME || !ref_.get()) {
+		// if the buffer is updated per draw, we need to update it first
+		// Note: in the other cases, buffers are updated centrally (@see Scene)
+		update();
+	}
 	rs->bufferRange(glTarget_).apply(loc, *drawBufferRange_.get());
 	// mark the point of accessing a mapped buffer segment for reading
 	// which is needed to avoid writing to the buffer while it is being read.

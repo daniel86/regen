@@ -120,7 +120,7 @@ RootNode::RootNode() : StateNode() {
 void RootNode::init() {
 }
 
-void RootNode::render(GLdouble dt) {
+void RootNode::render(GLdouble /* dt */) {
 	auto rs = RenderState::get();
 	traverse(rs);
 }

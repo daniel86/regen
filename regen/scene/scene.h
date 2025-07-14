@@ -109,6 +109,16 @@ namespace regen {
 		Scene(const int &argc, const char **argv);
 
 		/**
+		 * Initialize the scene after the render tree is loaded.
+		 */
+		void initializeScene();
+
+		/**
+		 * Clears application render tree to be empty.
+		 */
+		void clear();
+
+		/**
 		 * @return true if GL context is ready to be used.
 		 */
 		auto isGLInitialized() const { return isGLInitialized_; }
@@ -277,11 +287,6 @@ namespace regen {
 		ref_ptr<SceneInteraction> getInteraction(const std::string &name);
 
 		/**
-		 * Clears application render tree to be empty.
-		 */
-		void clear();
-
-		/**
 		 * Updates the time.
 		 */
 		void updateTime();
@@ -347,6 +352,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<RootNode> renderTree_;
+		std::vector<BufferBlock*> perFrameInputUpdates_;
 		std::map<std::string, NamedObject> namedToObject_;
 		std::map<int, ref_ptr<StateNode>> idToObject_;
 		std::map<std::string, ref_ptr<SceneInteraction>> interactions_;
@@ -382,6 +388,8 @@ namespace regen {
 		void setTime();
 
 		void updateMousePosition();
+
+		void initializePerFrameUpdates();
 	};
 
 } // namespace

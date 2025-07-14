@@ -943,6 +943,7 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     physics_ = sceneParser.getPhysics();
     eventHandler_ = sceneParser.getEventHandler();
     spatialIndices_ = sceneParser.getResources()->getIndices();
+    app_->initializeScene();
 
     ref_ptr<SceneInputNode> root = sceneParser.getRoot();
     ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
