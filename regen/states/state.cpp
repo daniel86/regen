@@ -5,8 +5,6 @@
 using namespace regen;
 
 struct State::StateShared {
-	std::vector<NamedShaderInput> inputs_;
-	std::set<std::string> inputMap_;
 	int32_t numVertices_ = 0;
 	int32_t numInstances_ = 1;
 };
@@ -27,16 +25,18 @@ State::State(const ref_ptr<State> &other)
 		  shaderFunctions_(other->shaderFunctions_),
 		  shaderVersion_(other->shaderVersion_),
 		  shared_(other->shared_) {
+	inputs_ = other->inputs_;
+	inputMap_ = other->inputMap_;
 }
 
 State::~State() {
-	while (!shared_->inputs_.empty()) {
-		removeInput(shared_->inputs_.begin()->name_);
+	while (!inputs_.empty()) {
+		removeInput(inputs_.begin()->name_);
 	}
 }
 
 const std::vector<NamedShaderInput> &State::inputs() const {
-	return shared_->inputs_;
+	return inputs_;
 }
 
 int32_t State::numVertices() const {
@@ -56,7 +56,7 @@ void State::set_numInstances(int32_t v) {
 }
 
 void State::setConstantUniforms(bool isConstant) {
-	for (const auto &it: shared_->inputs_) {
+	for (const auto &it: inputs_) {
 		it.in_->set_isConstant(isConstant);
 	}
 	for (const auto &it: joined()) {
@@ -98,11 +98,11 @@ void State::disjoinStates(const ref_ptr<State> &state) {
 }
 
 bool State::hasInput(const std::string &name) const {
-	return shared_->inputMap_.count(name) > 0;
+	return inputMap_.count(name) > 0;
 }
 
 ref_ptr<ShaderInput> State::getInput(const std::string &name) const {
-	for (const auto &input: shared_->inputs_) {
+	for (const auto &input: inputs_) {
 		if (name == input.name_) return input.in_;
 	}
 	return {};
@@ -131,34 +131,34 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 		}
 	}
 
-	if (shared_->inputMap_.count(inputName) > 0) {
+	if (inputMap_.count(inputName) > 0) {
 		removeInput(inputName);
 	} else { // insert into map of known attributes
-		shared_->inputMap_.insert(inputName);
+		inputMap_.insert(inputName);
 	}
 
 	// TODO: Rather push back here. But it seems some code relies on the order of inputs.
 	//       This should be fixed in the future.
-	shared_->inputs_.insert(shared_->inputs_.begin(), NamedShaderInput{in, inputName});
+	inputs_.insert(inputs_.begin(), NamedShaderInput{in, inputName});
 }
 
 void State::removeInput(const ref_ptr<ShaderInput> &in) {
-	shared_->inputMap_.erase(in->name());
+	inputMap_.erase(in->name());
 	removeInput(in->name());
 }
 
 void State::removeInput(const std::string &name) {
 	std::vector<NamedShaderInput>::iterator it;
-	for (it = shared_->inputs_.begin(); it != shared_->inputs_.end(); ++it) {
+	for (it = inputs_.begin(); it != inputs_.end(); ++it) {
 		if (it->name_ == name) { break; }
 	}
-	if (it == shared_->inputs_.end()) { return; }
+	if (it == inputs_.end()) { return; }
 	//it->in_->set_buffer(0u, {});
-	shared_->inputs_.erase(it);
+	inputs_.erase(it);
 }
 
 void State::collectShaderInput(ShaderInputList &out) {
-	out.insert(out.end(), shared_->inputs_.begin(), shared_->inputs_.end());
+	out.insert(out.end(), inputs_.begin(), inputs_.end());
 	for (auto &buddy : joined_) { buddy->collectShaderInput(out); }
 }
 

@@ -214,6 +214,13 @@ namespace regen {
 		std::vector<ref_ptr<EventObject> > attached_;
 		bool isHidden_ = false;
 
+		// shader inputs
+		// note: the inputs are not share between copies.
+		// e.g. a basic mesh sets up inputs such as vertex attributes, and copies of the mesh
+		// may add additional specialized inputs for their respective shaders.
+		std::vector<NamedShaderInput> inputs_;
+		std::set<std::string> inputMap_;
+
 		std::map<std::string, std::string> shaderDefines_;
 		std::vector<std::string> shaderIncludes_;
 		std::map<std::string, std::string> shaderFunctions_;
