@@ -137,8 +137,8 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 		shared_->inputMap_.insert(inputName);
 	}
 
-	// TODO: this is not fast with vector, rather insert at end.
-	//       but e.g. lightning has issues with that.
+	// TODO: Rather push back here. But it seems some code relies on the order of inputs.
+	//       This should be fixed in the future.
 	shared_->inputs_.insert(shared_->inputs_.begin(), NamedShaderInput{in, inputName});
 }
 
@@ -153,7 +153,7 @@ void State::removeInput(const std::string &name) {
 		if (it->name_ == name) { break; }
 	}
 	if (it == shared_->inputs_.end()) { return; }
-	it->in_->set_buffer(0u, {});
+	//it->in_->set_buffer(0u, {});
 	shared_->inputs_.erase(it);
 }
 
