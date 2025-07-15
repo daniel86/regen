@@ -291,7 +291,10 @@ namespace regen {
 					REGEN_WARN("Failed to create input for " << input.getDescription() << ".");
 					return;
 				}
-				ref_ptr<State> s = parent->state();
+				ref_ptr<State> s = state;
+				if (parent.get()) {
+					parent->state();
+				}
 
 				if (in->name() != input.getValue("name")) {
 					// TODO: there is a problem with renaming of inputs, as state configurer
