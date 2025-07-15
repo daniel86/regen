@@ -3,6 +3,8 @@
 
 using namespace regen;
 
+uint64_t GPUFence::WAIT_TIMEOUT = 1'000'000; // 1ms timeout
+
 GPUFence::~GPUFence() {
 	if (fence_) {
 		glDeleteSync(fence_);
@@ -11,9 +13,16 @@ GPUFence::~GPUFence() {
 
 void GPUFence::setFencePoint() {
 	if (fence_) {
-		glDeleteSync(fence_);
+		// Check if an old fence exists that did not signal yet.
+		// If this is the case, we skip creating a new fence
+		GLenum status = glClientWaitSync(fence_, 0, 0);
+		if (status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED) {
+			glDeleteSync(fence_);
+			fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		}
+	} else {
+		fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
-	fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 }
 
 void GPUFence::ensureFencePoint() {
@@ -26,15 +35,18 @@ bool GPUFence::wait(bool allowFrameDropping) {
 	if (!fence_) {
 		return true; // No fence to wait on
 	}
-
+	// poll the fence status
 	GLenum status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 	if (allowFrameDropping) {
 		if (status == GL_TIMEOUT_EXPIRED) {
 			return false; // Frame dropped
 		}
 	} else {
+		// keep waiting and polling until the fence is signaled or an error occurs.
+		// Note: we use a wait timeout here to avoid wasting too much time in the loop.
 		while (status == GL_TIMEOUT_EXPIRED) {
-			status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000); // 1µs timeout
+			status = glClientWaitSync(fence_,
+				GL_SYNC_FLUSH_COMMANDS_BIT, WAIT_TIMEOUT);
 		}
 	}
 

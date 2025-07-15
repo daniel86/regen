@@ -13,6 +13,9 @@ namespace regen {
 	 */
 	class GPUFence {
 	public:
+		// Default timeout for waiting on the fence
+		static uint64_t WAIT_TIMEOUT;
+
 		GPUFence() = default;
 
 		~GPUFence();
