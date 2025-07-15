@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/templates/fluid-smoke.xml"/>
+<node>
+    <include xml-file="scene-display/examples/templates/fluid-smoke.xml"/>
 
-<!-- Framebuffer Objects -->
-<fbo id="back-buffer" size-mode="rel" size="1,1" >
-    <texture pixel-components="3" />
-</fbo>
+    <!-- Framebuffer Objects -->
+    <fbo id="back-buffer" size-mode="rel" size="1,1">
+        <texture pixel-components="3"/>
+    </fbo>
 
-<node id="initialize">
-  <node import="fluid-smoke-initialize" />
-</node>
+    <node id="initialize">
+        <node import="fluid-smoke-initialize"/>
+    </node>
 
-<node id="root">
-    <fbo id="back-buffer" clear-buffers="0" />
-    <node import="fluid-smoke-update" />
-    <node>
-        <blit src-fbo="fluid-smoke-output" src-attachment="0"
-            dst-fbo="back-buffer" dst-attachment="0"
-            keep-aspect="1" />
-        <blit src-fbo="back-buffer" src-attachment="0"
-            dst-fbo="SCREEN" />
+    <node id="root">
+        <fbo id="back-buffer" clear-buffers="0"/>
+        <node import="fluid-smoke-update"/>
+        <view id="Velocity + Density">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture1" fbo="fluid-smoke-velocity" attachment="0"/>
+            <texture name="inputTexture2" fbo="fluid-smoke-velocity" attachment="1"/>
+            <texture name="inputTexture3" fbo="fluid-smoke-density" attachment="0"/>
+            <texture name="inputTexture4" fbo="fluid-smoke-density" attachment="1"/>
+            <fullscreen-pass shader="regen.filter.sampling.x4"/>
+        </view>
+        <node>
+            <blit src-fbo="fluid-smoke-output" src-attachment="0"
+                  dst-fbo="back-buffer" dst-attachment="0"
+                  keep-aspect="1"/>
+        </node>
+
+        <view id="Result">
+            <blit src-fbo="back-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
     </node>
 </node>

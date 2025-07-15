@@ -1,206 +1,210 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-    
-<!-- Framebuffer Objects -->
-<fbo id="velocity" size-mode="abs" size="256,256" >
-  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="levelSet" size-mode="abs" size="256,256" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-</fbo>
 
-<fbo id="pressure" size-mode="abs" size="256,256" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="divergence" size-mode="abs" size="256,256" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="obstacles" size-mode="abs" size="256,256" >
-  <texture pixel-components="1" />
-</fbo>
-<fbo id="output" size-mode="abs" size="256,256" >
-  <texture pixel-components="3" />
-</fbo>
-<fbo id="back-buffer" size-mode="rel" size="1,1" >
-  <texture pixel-components="3" />
-</fbo>
+<node>
+    <!-- Framebuffer Objects -->
+    <fbo id="velocity" size-mode="abs" size="256,256">
+        <texture pixel-components="2" pixel-type="HALF_FLOAT"/>
+        <texture pixel-components="2" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="levelSet" size-mode="abs" size="256,256" clear-color="0.0">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+    </fbo>
+
+    <fbo id="pressure" size-mode="abs" size="256,256">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="divergence" size-mode="abs" size="256,256">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="obstacles" size-mode="abs" size="256,256">
+        <texture pixel-components="1"/>
+    </fbo>
+    <fbo id="output" size-mode="abs" size="256,256">
+        <texture pixel-components="3"/>
+    </fbo>
+    <fbo id="back-buffer" size-mode="rel" size="1,1">
+        <texture pixel-components="3"/>
+    </fbo>
 
 
-<node id="initialize">
-  <define key="IS_LIQUID" value="TRUE" />
-  
-  <!-- Add obstacles -->
-  <node id="obstacles.init">
-    <define key="IGNORE_OBSTACLES" value="TRUE" />
-    <fbo id="obstacles" clear-buffers="0" draw-buffers="0" />
-    <blend mode="add" />
-    
-    <node>
-      <input type="float" name="splatBorder" value="1.0" />
-      <input type="vec4" name="splatValue" value="1.0,0.0,0.0" />
-      <fullscreen-pass shader="fluid.splat.border" />
+    <node id="initialize">
+        <define key="IS_LIQUID" value="TRUE"/>
+
+        <!-- Add obstacles -->
+        <node id="obstacles.init">
+            <define key="IGNORE_OBSTACLES" value="TRUE"/>
+            <fbo id="obstacles" clear-buffers="0" draw-buffers="0"/>
+            <blend mode="add"/>
+
+            <node>
+                <input type="float" name="splatBorder" value="1.0"/>
+                <input type="vec4" name="splatValue" value="1.0,0.0,0.0"/>
+                <fullscreen-pass shader="fluid.splat.border"/>
+            </node>
+
+            <node>
+                <input type="vec2" name="splatPoint" value="128.0,58.0"/>
+                <input type="vec2" name="splatSize" value="10.0,49.0"/>
+                <input type="vec4" name="splatValue" value="1.0,0.0,0.0"/>
+                <fullscreen-pass shader="fluid.splat.rect"/>
+            </node>
+        </node>
+
+        <node>
+            <fbo id="levelSet" draw-buffers="0"/>
+            <input type="float" name="liquidHeight" value="100.0"/>
+            <fullscreen-pass shader="fluid.liquid.distanceToHeight"/>
+        </node>
     </node>
-    
-    <node>
-      <input type="vec2" name="splatPoint" value="128.0,58.0" />
-      <input type="vec2" name="splatSize" value="10.0,49.0" />
-      <input type="vec4" name="splatValue" value="1.0,0.0,0.0" />
-      <fullscreen-pass shader="fluid.splat.rect" />
-    </node>
-  </node>
-  
-  <node>
-    <fbo id="levelSet" draw-buffers="0" />
-    <input type="float" name="liquidHeight" value="100.0" />
-    <fullscreen-pass shader="fluid.liquid.distanceToHeight" />
-  </node>
-</node>
-    
-<node id="main-loop">
-  <define key="TIMESTEP" value="0.18" />
-  <define key="IS_LIQUID" value="TRUE" />
-  <texture name="obstaclesBuffer" fbo="obstacles" attachment="0" />
-  
-  <!-- Advection transports quantities in the medium. -->
-  <node id="advect">
-    <texture name="velocityBuffer" fbo="velocity" attachment="0" />
-    <input type="float" name="quantityLoss" value="0.0" />
-    <input type="float" name="decayAmount" value="1.0" />
-    
-    <node>
-      <fbo id="levelSet" draw-buffers="1" />
-      <input type="int" name="treatAsLiquid" value="0" />
-      <texture name="quantityBuffer" fbo="levelSet" attachment="0" />
-      <texture name="levelSetBuffer" fbo="levelSet" attachment="0" />
-      <fullscreen-pass shader="fluid.advect" />
-    </node>
-    <node>
-      <fbo id="velocity" draw-buffers="1" />
-      <input type="int" name="treatAsLiquid" value="1" />
-      <texture name="quantityBuffer" fbo="velocity" attachment="0" />
-      <texture name="levelSetBuffer" fbo="levelSet" attachment="1" />
-      <fullscreen-pass shader="fluid.advect" />
-    </node>
-  </node>
 
-  <!-- Insert liquid -->
-  <node>
-    <fbo id="levelSet" draw-buffers="1" />
-    <blend mode="add" />
-    <input type="vec2" name="streamCenter" value="48.0,235.0" />
-    <input type="float" name="streamRadius" value="12.8" />
-    <input type="vec3" name="streamValue" value="-40.0,0.0,0.0" />
-    <input type="int" name="streamUseValue" value="1" />
-    <fullscreen-pass shader="fluid.liquid.stream" />
-  </node>
-  <node>
-    <fbo id="levelSet" draw-buffers="1" />
-    <blend mode="add" />
-    <input type="vec2" name="streamCenter" value="198.0,185.0" />
-    <input type="float" name="streamRadius" value="12.8" />
-    <input type="vec3" name="streamValue" value="-40.0,0.0,0.0" />
-    <input type="int" name="streamUseValue" value="1" />
-    <fullscreen-pass shader="fluid.liquid.stream" />
-  </node>
+    <node id="main-loop">
+        <define key="TIMESTEP" value="0.18"/>
+        <define key="IS_LIQUID" value="TRUE"/>
+        <texture name="obstaclesBuffer" fbo="obstacles" attachment="0"/>
 
-  <!-- pressure solve. -->
-  <node>
-    <fbo id="divergence" draw-buffers="0" />
-    <input type="float" name="halfInverseCellSize" value="0.4" />
-    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
-    <fullscreen-pass shader="fluid.divergence" />
-  </node>
-  <node id="pressure-solve">
-    <fbo id="pressure" clear-buffers="1" />
-    <input type="float" name="alpha" value="-1.1" />
-    <input type="float" name="inverseBeta" value="0.25" />
-    <texture name="divergenceBuffer" fbo="divergence" attachment="0" />
-    <texture name="levelSetBuffer" fbo="levelSet" attachment="1" />
-    
-    <node id="pressure-solve-loop" num-iterations="90">
-      <node>
-	<fbo id="pressure" draw-buffers="0" />
-	<texture name="pressureBuffer" fbo="pressure" attachment="1" />
-	<fullscreen-pass shader="fluid.pressure" />
-      </node>
-      <node>
-	<fbo id="pressure" draw-buffers="1" />
-	<texture name="pressureBuffer" fbo="pressure" attachment="0" />
-	<fullscreen-pass shader="fluid.pressure" />
-      </node>
+        <!-- Advection transports quantities in the medium. -->
+        <node id="advect">
+            <texture name="velocityBuffer" fbo="velocity" attachment="0"/>
+            <input type="float" name="quantityLoss" value="0.0"/>
+            <input type="float" name="decayAmount" value="1.0"/>
+
+            <node>
+                <fbo id="levelSet" draw-buffers="1"/>
+                <input type="int" name="treatAsLiquid" value="0"/>
+                <texture name="quantityBuffer" fbo="levelSet" attachment="0"/>
+                <texture name="levelSetBuffer" fbo="levelSet" attachment="0"/>
+                <fullscreen-pass shader="fluid.advect"/>
+            </node>
+            <node>
+                <fbo id="velocity" draw-buffers="1"/>
+                <input type="int" name="treatAsLiquid" value="1"/>
+                <texture name="quantityBuffer" fbo="velocity" attachment="0"/>
+                <texture name="levelSetBuffer" fbo="levelSet" attachment="1"/>
+                <fullscreen-pass shader="fluid.advect"/>
+            </node>
+        </node>
+
+        <!-- Insert liquid -->
+        <node>
+            <fbo id="levelSet" draw-buffers="1"/>
+            <blend mode="add"/>
+            <input type="vec2" name="streamCenter" value="48.0,235.0"/>
+            <input type="float" name="streamRadius" value="12.8"/>
+            <input type="vec3" name="streamValue" value="-40.0,0.0,0.0"/>
+            <input type="int" name="streamUseValue" value="1"/>
+            <fullscreen-pass shader="fluid.liquid.stream"/>
+        </node>
+        <node>
+            <fbo id="levelSet" draw-buffers="1"/>
+            <blend mode="add"/>
+            <input type="vec2" name="streamCenter" value="198.0,185.0"/>
+            <input type="float" name="streamRadius" value="12.8"/>
+            <input type="vec3" name="streamValue" value="-40.0,0.0,0.0"/>
+            <input type="int" name="streamUseValue" value="1"/>
+            <fullscreen-pass shader="fluid.liquid.stream"/>
+        </node>
+
+        <!-- pressure solve. -->
+        <node>
+            <fbo id="divergence" draw-buffers="0"/>
+            <input type="float" name="halfInverseCellSize" value="0.4"/>
+            <texture name="velocityBuffer" fbo="velocity" attachment="1"/>
+            <fullscreen-pass shader="fluid.divergence"/>
+        </node>
+        <node id="pressure-solve">
+            <fbo id="pressure" clear-buffers="1"/>
+            <input type="float" name="alpha" value="-1.1"/>
+            <input type="float" name="inverseBeta" value="0.25"/>
+            <texture name="divergenceBuffer" fbo="divergence" attachment="0"/>
+            <texture name="levelSetBuffer" fbo="levelSet" attachment="1"/>
+
+            <node id="pressure-solve-loop" num-iterations="90">
+                <node>
+                    <fbo id="pressure" draw-buffers="0"/>
+                    <texture name="pressureBuffer" fbo="pressure" attachment="1"/>
+                    <fullscreen-pass shader="fluid.pressure"/>
+                </node>
+                <node>
+                    <fbo id="pressure" draw-buffers="1"/>
+                    <texture name="pressureBuffer" fbo="pressure" attachment="0"/>
+                    <fullscreen-pass shader="fluid.pressure"/>
+                </node>
+            </node>
+        </node>
+        <node>
+            <fbo id="velocity" draw-buffers="0"/>
+            <input type="float" name="gradientScale" value="0.9"/>
+            <texture name="velocityBuffer" fbo="velocity" attachment="1"/>
+            <texture name="pressureBuffer" fbo="pressure" attachment="1"/>
+            <texture name="levelSetBuffer" fbo="levelSet" attachment="1"/>
+            <fullscreen-pass shader="fluid.substractGradient"/>
+        </node>
+
+        <node id="velocity-extrapolate">
+            <input type="float" name="gradientScale" value="0.1"/>
+            <texture name="levelSetBuffer" fbo="levelSet" attachment="1"/>
+
+            <node id="velocity-extrapolate-loop" num-iterations="5">
+                <node>
+                    <fbo id="velocity" draw-buffers="1"/>
+                    <texture name="velocityBuffer" fbo="velocity" attachment="0"/>
+                    <fullscreen-pass shader="fluid.extrapolate"/>
+                </node>
+                <node>
+                    <fbo id="velocity" draw-buffers="0"/>
+                    <texture name="velocityBuffer" fbo="velocity" attachment="1"/>
+                    <fullscreen-pass shader="fluid.extrapolate"/>
+                </node>
+            </node>
+        </node>
+        <node>
+            <fbo id="velocity" draw-buffers="0"/>
+            <blend mode="add"/>
+            <input type="vec4" name="gravityValue" value="0.0,-4.0,0.0"/>
+            <texture name="levelSetBuffer" fbo="levelSet" attachment="1"/>
+            <fullscreen-pass shader="fluid.gravity"/>
+        </node>
+
+        <!-- visualize -->
+        <node>
+            <fbo id="output" draw-buffers="0"/>
+            <input type="float" name="texelFactor" value="1.0"/>
+            <input type="vec3" name="colorPositive" value="0.05,0.125,0.415"/>
+            <input type="vec3" name="colorNegative" value="0.2,0.2,0.2"/>
+            <texture name="quantity" fbo="levelSet" attachment="1"/>
+            <fullscreen-pass shader="fluid.sample.levelSet"/>
+        </node>
+        <!-- draw obstacles -->
+        <node>
+            <fbo id="output" draw-buffers="0"/>
+            <blend mode="alpha"/>
+            <input type="float" name="texelFactor" value="1.0"/>
+            <input type="vec3" name="colorPositive" value="0.8,0.7,0.6"/>
+            <input type="vec3" name="colorNegative" value="0.0"/>
+            <texture name="quantity" fbo="obstacles" attachment="0"/>
+            <fullscreen-pass shader="fluid.sample.scalar"/>
+        </node>
+
+        <!-- Blit so that next frame levelSet attachment 0 contains updated data. -->
+        <node>
+            <blit src-fbo="levelSet" src-attachment="1"
+                  dst-fbo="levelSet" dst-attachment="0"/>
+        </node>
     </node>
-  </node>
-  <node>
-    <fbo id="velocity" draw-buffers="0" />
-    <input type="float" name="gradientScale" value="0.9" />
-    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
-    <texture name="pressureBuffer" fbo="pressure" attachment="1" />
-    <texture name="levelSetBuffer" fbo="levelSet" attachment="1" />
-    <fullscreen-pass shader="fluid.substractGradient" />
-  </node>
 
-  <node id="velocity-extrapolate" >
-    <input type="float" name="gradientScale" value="0.1" />
-    <texture name="levelSetBuffer" fbo="levelSet" attachment="1" />
-    
-    <node id="velocity-extrapolate-loop" num-iterations="5">
-      <node>
-	<fbo id="velocity" draw-buffers="1" />
-	<texture name="velocityBuffer" fbo="velocity" attachment="0" />
-	<fullscreen-pass shader="fluid.extrapolate" />
-      </node>
-      <node>
-	<fbo id="velocity" draw-buffers="0" />
-	<texture name="velocityBuffer" fbo="velocity" attachment="1" />
-	<fullscreen-pass shader="fluid.extrapolate" />
-      </node>
+    <node id="root">
+        <fbo id="back-buffer" clear-buffers="0"/>
+        <node import="main-loop"/>
+        <node>
+            <blit src-fbo="output" src-attachment="0"
+                  dst-fbo="back-buffer" dst-attachment="0"
+                  keep-aspect="1"/>
+        </node>
+
+        <view id="Result">
+            <blit src-fbo="back-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
     </node>
-  </node>
-  <node>
-    <fbo id="velocity" draw-buffers="0" />
-    <blend mode="add" />
-    <input type="vec4" name="gravityValue" value="0.0,-4.0,0.0" />
-    <texture name="levelSetBuffer" fbo="levelSet" attachment="1" />
-    <fullscreen-pass shader="fluid.gravity" />
-  </node>
-
-  <!-- visualize -->
-  <node>
-    <fbo id="output" draw-buffers="0" />
-    <input type="float" name="texelFactor" value="1.0" />
-    <input type="vec3" name="colorPositive" value="0.05,0.125,0.415" />
-    <input type="vec3" name="colorNegative" value="0.2,0.2,0.2" />
-    <texture name="quantity" fbo="levelSet" attachment="1" />
-    <fullscreen-pass shader="fluid.sample.levelSet" />
-  </node>
-  <!-- draw obstacles -->
-  <node>
-    <fbo id="output" draw-buffers="0" />
-    <blend mode="alpha" />
-    <input type="float" name="texelFactor" value="1.0" />
-    <input type="vec3" name="colorPositive" value="0.8,0.7,0.6" />
-    <input type="vec3" name="colorNegative" value="0.0" />
-    <texture name="quantity" fbo="obstacles" attachment="0" />
-    <fullscreen-pass shader="fluid.sample.scalar" />
-  </node>
-  
-  <!-- Blit so that next frame levelSet attachment 0 contains updated data. -->
-  <node>
-    <blit src-fbo="levelSet" src-attachment="1"
-	  dst-fbo="levelSet" dst-attachment="0" />
-  </node>
-</node>
-
-<node id="root">
-  <fbo id="back-buffer" clear-buffers="0" />
-  <node import="main-loop" />
-  <node>
-    <blit src-fbo="output" src-attachment="0"
-	  dst-fbo="back-buffer" dst-attachment="0"
-	  keep-aspect="1" />
-    <blit src-fbo="back-buffer" src-attachment="0"
-	  dst-fbo="SCREEN" />
-  </node>
 </node>

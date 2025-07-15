@@ -1,201 +1,246 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-    
-<!-- Framebuffer Objects -->
-<fbo id="velocity" size-mode="abs" size="512,512" clear-color="0.0,0.0" >
-  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="density" size-mode="abs" size="512,512" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
-</fbo>
-<fbo id="temperature" size-mode="abs" size="512,512" clear-color="0.0" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2" />
-</fbo>
 
-<fbo id="vorticity" size-mode="abs" size="512,512" >
-  <texture pixel-components="2" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="pressure" size-mode="abs" size="512,512" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="divergence" size-mode="abs" size="512,512" >
-  <texture pixel-components="1" pixel-type="HALF_FLOAT" />
-</fbo>
-<fbo id="obstacles" size-mode="abs" size="512,512" >
-  <texture pixel-components="1" />
-</fbo>
-<fbo id="output" size-mode="abs" size="512,512" >
-  <texture pixel-components="3" />
-</fbo>
-<fbo id="back-buffer" size-mode="rel" size="1,1" >
-  <texture pixel-components="3" />
-</fbo>
-<!-- Textures -->
-<texture id="splat0" file="res/textures/logo/splats/bookman.png" />
-<texture id="splat1" file="res/textures/logo/splats/palladio.png" />
-<texture id="pattern" spectrum="220.0,380.0" />
+<node>
+    <!-- Framebuffer Objects -->
+    <fbo id="velocity" size-mode="abs" size="512,512" clear-color="0.0,0.0">
+        <texture pixel-components="2" pixel-type="HALF_FLOAT"/>
+        <texture pixel-components="2" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="density" size-mode="abs" size="512,512" clear-color="0.0">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2"/>
+    </fbo>
+    <fbo id="temperature" size-mode="abs" size="512,512" clear-color="0.0">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT" count="2"/>
+    </fbo>
 
-<node id="initialize">
-  <define key="IGNORE_OBSTACLES" value="TRUE" />
-  <!-- Add obstacles -->
-  <node id="obstacles.init">
-    <fbo id="obstacles" clear-buffers="0" draw-buffers="0" />
-    <blend mode="add" />
-    
-    <node>
-      <input type="float" name="splatBorder" value="1.0" />
-      <input type="vec4" name="splatValue" value="1.0,0.0,0.0" />
-      <fullscreen-pass shader="fluid.splat.border" />
+    <fbo id="vorticity" size-mode="abs" size="512,512">
+        <texture pixel-components="2" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="pressure" size-mode="abs" size="512,512">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="divergence" size-mode="abs" size="512,512">
+        <texture pixel-components="1" pixel-type="HALF_FLOAT"/>
+    </fbo>
+    <fbo id="obstacles" size-mode="abs" size="512,512">
+        <texture pixel-components="1"/>
+    </fbo>
+    <fbo id="output" size-mode="abs" size="512,512">
+        <texture pixel-components="3"/>
+    </fbo>
+    <fbo id="back-buffer" size-mode="rel" size="1,1">
+        <texture pixel-components="3"/>
+    </fbo>
+    <!-- Textures -->
+    <texture id="splat0" file="res/textures/logo/splats/bookman.png"/>
+    <texture id="splat1" file="res/textures/logo/splats/palladio.png"/>
+    <texture id="pattern" spectrum="220.0,380.0"/>
+
+    <node id="initialize">
+        <define key="IGNORE_OBSTACLES" value="TRUE"/>
+        <!-- Add obstacles -->
+        <node id="obstacles.init">
+            <fbo id="obstacles" clear-buffers="0" draw-buffers="0"/>
+            <blend mode="add"/>
+
+            <node>
+                <input type="float" name="splatBorder" value="1.0"/>
+                <input type="vec4" name="splatValue" value="1.0,0.0,0.0"/>
+                <fullscreen-pass shader="fluid.splat.border"/>
+            </node>
+        </node>
     </node>
-  </node>
-</node>
 
-<node id="main-loop">
-  <define key="TIMESTEP" value="0.25" />
-  <texture name="obstaclesBuffer" fbo="obstacles" attachment="0" />
+    <node id="main-loop">
+        <define key="TIMESTEP" value="0.25"/>
+        <view id="Obstacles">
+            <blit src-fbo="obstacles" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Texture">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="splat0"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+        <texture name="obstaclesBuffer" fbo="obstacles" attachment="0"/>
 
-  <!-- Advection transports quantities in the medium. -->
-  <node id="advect">
-    <texture name="velocityBuffer" fbo="velocity" attachment="0" />
-    
-    <node>
-      <fbo id="velocity" draw-buffers="1" />
-      <input type="float" name="decayAmount" value="0.99" />
-      <input type="float" name="quantityLoss" value="0.0" />
-      <texture name="quantityBuffer" fbo="velocity" attachment="0" />
-      <fullscreen-pass shader="fluid.advect" />
+        <!-- Advection transports quantities in the medium. -->
+        <node id="advect">
+            <texture name="velocityBuffer" fbo="velocity" attachment="0"/>
+
+            <node>
+                <fbo id="velocity" draw-buffers="1"/>
+                <input type="float" name="decayAmount" value="0.99"/>
+                <input type="float" name="quantityLoss" value="0.0"/>
+                <texture name="quantityBuffer" fbo="velocity" attachment="0"/>
+                <fullscreen-pass shader="fluid.advect"/>
+            </node>
+
+            <node>
+                <fbo id="temperature" ping-pong-buffers="1,0"/>
+                <input type="float" name="decayAmount" value="0.98"/>
+                <input type="float" name="quantityLoss" value="0.0"/>
+                <texture name="quantityBuffer" fbo="temperature" attachment="0"/>
+                <fullscreen-pass shader="fluid.advect"/>
+            </node>
+
+            <node>
+                <fbo id="density" ping-pong-buffers="1,0"/>
+                <input type="float" name="decayAmount" value="0.95"/>
+                <input type="float" name="quantityLoss" value="0.3"/>
+                <texture name="quantityBuffer" fbo="density" attachment="0"/>
+                <fullscreen-pass shader="fluid.advect"/>
+            </node>
+        </node>
+        <view id="Advect (velocity + density)">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture1" fbo="velocity" attachment="0"/>
+            <texture name="inputTexture2" fbo="velocity" attachment="1"/>
+            <texture name="inputTexture3" fbo="density" attachment="0"/>
+            <texture name="inputTexture4" fbo="density" attachment="1"/>
+            <fullscreen-pass shader="regen.filter.sampling.x4"/>
+        </view>
+
+        <!-- Swirl -->
+        <node>
+            <fbo id="vorticity" draw-buffers="0"/>
+            <texture name="velocityBuffer" fbo="velocity" attachment="1"/>
+            <fullscreen-pass shader="fluid.vorticity.compute"/>
+        </node>
+        <node>
+            <fbo id="velocity" draw-buffers="1"/>
+            <blend mode="add"/>
+            <input type="float" name="confinementScale" value="0.75"/>
+            <texture name="vorticityBuffer" fbo="vorticity" attachment="0"/>
+            <fullscreen-pass shader="fluid.vorticity.confinement"/>
+        </node>
+
+        <!-- Splat texture -->
+        <node id="texture-splat">
+            <texture name="splatTexture" id="splat0"/>
+            <blend mode="add"/>
+
+            <node>
+                <fbo id="temperature" ping-pong-buffers="1,0"/>
+                <input type="float" name="texelFactor" value="1.9"/>
+                <fullscreen-pass shader="fluid.splat.tex"/>
+            </node>
+
+            <node>
+                <fbo id="density" ping-pong-buffers="1,0"/>
+                <input type="float" name="texelFactor" value="2.1"/>
+                <fullscreen-pass shader="fluid.splat.tex"/>
+            </node>
+        </node>
+        <view id="Splat (temperature + density)">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture1" fbo="temperature" attachment="0"/>
+            <texture name="inputTexture2" fbo="temperature" attachment="1"/>
+            <texture name="inputTexture3" fbo="density" attachment="0"/>
+            <texture name="inputTexture4" fbo="density" attachment="1"/>
+            <fullscreen-pass shader="regen.filter.sampling.x4"/>
+        </view>
+
+        <!-- Update Texture indices. -->
+        <node>
+            <texture-index fbo="temperature" attachment="0" set-next-index="1"/>
+            <texture-index fbo="density" attachment="0" set-next-index="1"/>
+        </node>
+
+        <!-- Buoyancy transports velocity by temperature:
+             high temperature pushes upwards and low temperature
+             pushes downwards. -->
+        <node>
+            <fbo id="velocity" draw-buffers="1"/>
+            <blend mode="add"/>
+            <input type="float" name="buoyancy" value="0.1"/>
+            <input type="float" name="weight" value="0.06"/>
+            <input type="float" name="ambientTemperature" value="0.0"/>
+            <texture name="temperatureBuffer" fbo="temperature" attachment="0"/>
+            <texture name="densityBuffer" fbo="density" attachment="0"/>
+            <fullscreen-pass shader="fluid.buoyancy"/>
+        </node>
+        <view id="Buoyancy (velocity + density)">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture1" fbo="velocity" attachment="0"/>
+            <texture name="inputTexture2" fbo="velocity" attachment="1"/>
+            <texture name="inputTexture3" fbo="density" attachment="0"/>
+            <texture name="inputTexture4" fbo="density" attachment="1"/>
+            <fullscreen-pass shader="regen.filter.sampling.x4"/>
+        </view>
+
+        <!-- pressure solve -->
+        <node>
+            <fbo id="divergence" draw-buffers="0"/>
+            <input type="float" name="halfInverseCellSize" value="0.4"/>
+            <texture name="velocityBuffer" fbo="velocity" attachment="1"/>
+            <fullscreen-pass shader="fluid.divergence"/>
+        </node>
+        <node id="pressure-solve">
+            <fbo id="pressure" clear-buffers="1"/>
+            <input type="float" name="alpha" value="-1.5625"/>
+            <input type="float" name="inverseBeta" value="0.25"/>
+            <texture name="divergenceBuffer" fbo="divergence" attachment="0"/>
+
+            <node id="pressure-solve-loop" num-iterations="15">
+                <node>
+                    <fbo id="pressure" draw-buffers="0"/>
+                    <texture name="pressureBuffer" fbo="pressure" attachment="1"/>
+                    <fullscreen-pass shader="fluid.pressure"/>
+                </node>
+                <node>
+                    <fbo id="pressure" draw-buffers="1"/>
+                    <texture name="pressureBuffer" fbo="pressure" attachment="0"/>
+                    <fullscreen-pass shader="fluid.pressure"/>
+                </node>
+            </node>
+        </node>
+        <node>
+            <fbo id="velocity" draw-buffers="0"/>
+            <input type="float" name="gradientScale" value="0.9"/>
+            <texture name="velocityBuffer" fbo="velocity" attachment="1"/>
+            <texture name="pressureBuffer" fbo="pressure" attachment="1"/>
+            <fullscreen-pass shader="fluid.substractGradient"/>
+        </node>
+        <view id="Pressure (velocity + density)">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture1" fbo="velocity" attachment="0"/>
+            <texture name="inputTexture2" fbo="velocity" attachment="1"/>
+            <texture name="inputTexture3" fbo="density" attachment="0"/>
+            <texture name="inputTexture4" fbo="density" attachment="1"/>
+            <fullscreen-pass shader="regen.filter.sampling.x4"/>
+        </view>
+
+        <!-- Draw fluid texture. -->
+        <node>
+            <fbo id="output" draw-buffers="0"
+                 clear-buffers="0" clear-color="1.0,1.0,1.0,1.0"/>
+            <blend mode="alpha"/>
+            <input type="int" name="rednessFactor" value="4"/>
+            <input type="float" name="texelFactor" value="0.1"/>
+            <input type="float" name="fireAlphaMultiplier" value="0.75"/>
+            <input type="float" name="fireWeight" value="0.75"/>
+            <input type="float" name="smokeColorMultiplier" value="1.0"/>
+            <input type="float" name="smokeAlphaMultiplier" value="0.5"/>
+            <input type="vec3" name="smokeColor" value="0.15,0.015,0.0255"/>
+            <texture name="pattern" id="pattern"/>
+            <texture name="quantity" fbo="density" attachment="0"/>
+            <fullscreen-pass shader="fluid.sample.fire"/>
+        </node>
     </node>
-    
-    <node>
-      <fbo id="temperature" ping-pong-buffers="1,0" />
-      <input type="float" name="decayAmount" value="0.98" />
-      <input type="float" name="quantityLoss" value="0.0" />
-      <texture name="quantityBuffer" fbo="temperature" attachment="0" />
-      <fullscreen-pass shader="fluid.advect" />
+
+    <node id="root">
+        <fbo id="back-buffer" clear-buffers="0"/>
+        <node import="main-loop"/>
+
+        <node>
+            <blit src-fbo="output" src-attachment="0"
+                  dst-fbo="back-buffer" dst-attachment="0"
+                  keep-aspect="1"/>
+        </node>
+
+        <view id="Result">
+            <blit src-fbo="back-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
     </node>
-    
-    <node>
-      <fbo id="density" ping-pong-buffers="1,0" />
-      <input type="float" name="decayAmount" value="0.95" />
-      <input type="float" name="quantityLoss" value="0.3" />
-      <texture name="quantityBuffer" fbo="density" attachment="0" />
-      <fullscreen-pass shader="fluid.advect" />
-    </node>
-  </node>
-
-  <!-- Swirl -->
-  <node>
-    <fbo id="vorticity" draw-buffers="0" />
-    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
-    <fullscreen-pass shader="fluid.vorticity.compute" />
-  </node>
-  <node>
-    <fbo id="velocity" draw-buffers="1" />
-    <blend mode="add" />
-    <input type="float" name="confinementScale" value="0.75" />
-    <texture name="vorticityBuffer" fbo="vorticity" attachment="0" />
-    <fullscreen-pass shader="fluid.vorticity.confinement" />
-  </node>
-
-  <!-- Splat texture -->
-  <node id="texture-splat">
-    <texture name="splatTexture" id="splat0" />
-    <blend mode="add" />
-    
-    <node>
-      <fbo id="temperature" ping-pong-buffers="1,0" />
-      <input type="float" name="texelFactor" value="1.9" />
-      <fullscreen-pass shader="fluid.splat.tex" />
-    </node>
-    
-    <node>
-      <fbo id="density" ping-pong-buffers="1,0" />
-      <input type="float" name="texelFactor" value="2.1" />
-      <fullscreen-pass shader="fluid.splat.tex" />
-    </node>
-  </node>
-  
-  <!-- Update Texture indices. -->
-  <node>
-    <texture-index fbo="temperature" attachment="0" set-next-index="1" />
-    <texture-index fbo="density" attachment="0" set-next-index="1" />
-  </node>
-
-  <!-- Buoyancy transports velocity by temperature:
-       high temperature pushes upwards and low temperature
-       pushes downwards. -->
-  <node>
-    <fbo id="velocity" draw-buffers="1" />
-    <blend mode="add" />
-    <input type="float" name="buoyancy" value="0.1" />
-    <input type="float" name="weight" value="0.06" />
-    <input type="float" name="ambientTemperature" value="0.0" />
-    <texture name="temperatureBuffer" fbo="temperature" attachment="0" />
-    <texture name="densityBuffer" fbo="density" attachment="0" />
-    <fullscreen-pass shader="fluid.buoyancy" />
-  </node>
-
-  <!-- pressure solve -->
-  <node>
-    <fbo id="divergence" draw-buffers="0" />
-    <input type="float" name="halfInverseCellSize" value="0.4" />
-    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
-    <fullscreen-pass shader="fluid.divergence" />
-  </node>
-  <node id="pressure-solve">
-    <fbo id="pressure" clear-buffers="1" />
-    <input type="float" name="alpha" value="-1.5625" />
-    <input type="float" name="inverseBeta" value="0.25" />
-    <texture name="divergenceBuffer" fbo="divergence" attachment="0" />
-    
-    <node id="pressure-solve-loop" num-iterations="15">
-      <node>
-	<fbo id="pressure" draw-buffers="0" />
-	<texture name="pressureBuffer" fbo="pressure" attachment="1" />
-	<fullscreen-pass shader="fluid.pressure" />
-      </node>
-      <node>
-	<fbo id="pressure" draw-buffers="1" />
-	<texture name="pressureBuffer" fbo="pressure" attachment="0" />
-	<fullscreen-pass shader="fluid.pressure" />
-      </node>
-    </node>
-  </node>
-  <node>
-    <fbo id="velocity" draw-buffers="0" />
-    <input type="float" name="gradientScale" value="0.9" />
-    <texture name="velocityBuffer" fbo="velocity" attachment="1" />
-    <texture name="pressureBuffer" fbo="pressure" attachment="1" />
-    <fullscreen-pass shader="fluid.substractGradient" />
-  </node>
-
-  <!-- Draw fluid texture. -->
-  <node>
-    <fbo id="output" draw-buffers="0"
-	 clear-buffers="0" clear-color="1.0,1.0,1.0,1.0" />
-    <blend mode="alpha" />
-    <input type="int" name="rednessFactor" value="4" />
-    <input type="float" name="texelFactor" value="0.1" />
-    <input type="float" name="fireAlphaMultiplier" value="0.75" />
-    <input type="float" name="fireWeight" value="0.75" />
-    <input type="float" name="smokeColorMultiplier" value="1.0" />
-    <input type="float" name="smokeAlphaMultiplier" value="0.5" />
-    <input type="vec3" name="smokeColor" value="0.15,0.015,0.0255" />
-    <texture name="pattern" id="pattern" />
-    <texture name="quantity" fbo="density" attachment="0" />
-    <fullscreen-pass shader="fluid.sample.fire" />
-  </node>
-</node>
-
-<node id="root">
-  <fbo id="back-buffer" clear-buffers="0" />
-  <node import="main-loop" />
-  <node>
-    <blit src-fbo="output" src-attachment="0"
-	  dst-fbo="back-buffer" dst-attachment="0"
-	  keep-aspect="1" />
-    <blit src-fbo="back-buffer" src-attachment="0"
-	  dst-fbo="SCREEN" />
-  </node>
 </node>

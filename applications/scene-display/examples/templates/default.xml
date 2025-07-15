@@ -1,68 +1,68 @@
+<node>
+    <!-- Framebuffer Objects -->
+    <fbo id="back-buffer" size-mode="rel" size="1,1">
+        <texture id="color" pixel-components="3"/>
+    </fbo>
+    <fbo id="back-buffer-float" size-mode="rel" size="1,1" pixel-type="FLOAT" pixel-size="16">
+        <texture id="color" pixel-components="3"/>
+    </fbo>
 
-<!-- Framebuffer Objects -->
-<fbo id="back-buffer" size-mode="rel" size="1,1" >
-    <texture id="color" pixel-components="3" />
-</fbo>
-<fbo id="back-buffer-float" size-mode="rel" size="1,1" pixel-type="FLOAT" pixel-size="16">
-    <texture id="color" pixel-components="3" />
-</fbo>
+    <!-- Textures -->
+    <texture id="regen-logo" file="img/logo.png"/>
+    <!--
+    <texture id="regen-logo" file="img/fluid-text.gif" fps="30" />
+    -->
+    <texture id="rain-database" is-array="1" file="res/textures/rain" name-pattern=".*.png"/>
 
-<!-- Textures -->
-<texture id="regen-logo" file="img/logo.png" />
-<!--
-<texture id="regen-logo" file="img/fluid-text.gif" fps="30" />
--->
-<texture id="rain-database" is-array="1" file="res/textures/rain" name-pattern=".*.png" />
+    <!-- Fonts -->
+    <font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96"/>
+    <font id="ubuntu" file="res/fonts/ubuntu.ttf" size="16" dpi="96"/>
 
-<!-- Fonts -->
-<font id="obelix" file="res/fonts/obelix.ttf" size="16" dpi="96" />
-<font id="ubuntu" file="res/fonts/ubuntu.ttf" size="16" dpi="96" />
+    <!-- Assets -->
+    <asset id="dwarf-asset"
+           type="asset"
+           file="res/models/psionic/dwarf/x/dwarf.x"
+           texture-path="res/models/psionic/dwarf/x"
+           use-animation="1"
+           animation-force-states="1"
+           animation-post-state="LINEAR"
+           animation-pre-state="LINEAR"
+           animation-tps="20.0">
+        <!-- define named animation ranges. -->
+        <anim-range name="complete" channel="AnimationSet0" range="0.0,360.0"/>
+        <anim-range name="walk" channel="AnimationSet0" range="1.0,13.0"/>
+        <anim-range name="run" channel="AnimationSet0" range="15.0,25.0"/>
+        <anim-range name="jump" channel="AnimationSet0" range="27.0,39.0"/>
+        <anim-range name="jumpSpot" channel="AnimationSet0" range="41.0,53.0"/>
+        <anim-range name="crouch" channel="AnimationSet0" range="55.0,58.0"/>
+        <anim-range name="crouchLoop" channel="AnimationSet0" range="59.0,68.0"/>
+        <anim-range name="getUp" channel="AnimationSet0" range="69.0,73.0"/>
+        <anim-range name="battleIdle1" channel="AnimationSet0" range="74.0,87.0"/>
+        <anim-range name="battleIdle2" channel="AnimationSet0" range="89.0,109.0"/>
+        <anim-range name="attack1" channel="AnimationSet0" range="111.0,125.0"/>
+        <anim-range name="attack2" channel="AnimationSet0" range="127.0,141.0"/>
+        <anim-range name="attack3" channel="AnimationSet0" range="143.0,159.0"/>
+        <anim-range name="attack4" channel="AnimationSet0" range="161.0,179.0"/>
+        <anim-range name="attack5" channel="AnimationSet0" range="181.0,191.0"/>
+        <anim-range name="block" channel="AnimationSet0" range="193.0,209.0"/>
+        <anim-range name="dieFwd" channel="AnimationSet0" range="211.0,226.0"/>
+        <anim-range name="dieBack" channel="AnimationSet0" range="229.0,250.0"/>
+        <anim-range name="yes" channel="AnimationSet0" range="252.0,271.0"/>
+        <anim-range name="no" channel="AnimationSet0" range="273.0,289.0"/>
+        <anim-range name="idle1" channel="AnimationSet0" range="291.0,324.0"/>
+        <anim-range name="idle2" channel="AnimationSet0" range="326.0,359.0"/>
+    </asset>
+    <asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0"/>
+    <asset id="teapot-asset" type="asset" file="res/models/teapot.obj" use-animation="0"/>
+    <asset id="dragon-asset" type="asset" file="res/models/dragon.obj" use-animation="0"/>
+    <asset id="bunny-asset" type="asset" file="res/models/bunny.obj" use-animation="0"/>
 
-<!-- Assets -->
-<asset id="dwarf-asset"
-       type="asset"
-       file="res/models/psionic/dwarf/x/dwarf.x"
-       texture-path="res/models/psionic/dwarf/x"
-       use-animation="1"
-       animation-force-states="1"
-       animation-post-state="LINEAR"
-       animation-pre-state="LINEAR"
-       animation-tps="20.0">
-    <!-- define named animation ranges. -->
-    <anim-range name="complete"    channel="AnimationSet0" range="0.0,360.0" />
-    <anim-range name="walk"        channel="AnimationSet0" range="1.0,13.0" />
-    <anim-range name="run"         channel="AnimationSet0" range="15.0,25.0" />
-    <anim-range name="jump"        channel="AnimationSet0" range="27.0,39.0" />
-    <anim-range name="jumpSpot"    channel="AnimationSet0" range="41.0,53.0" />
-    <anim-range name="crouch"      channel="AnimationSet0" range="55.0,58.0" />
-    <anim-range name="crouchLoop"  channel="AnimationSet0" range="59.0,68.0" />
-    <anim-range name="getUp"       channel="AnimationSet0" range="69.0,73.0" />
-    <anim-range name="battleIdle1" channel="AnimationSet0" range="74.0,87.0" />
-    <anim-range name="battleIdle2" channel="AnimationSet0" range="89.0,109.0" />
-    <anim-range name="attack1"     channel="AnimationSet0" range="111.0,125.0" />
-    <anim-range name="attack2"     channel="AnimationSet0" range="127.0,141.0" />
-    <anim-range name="attack3"     channel="AnimationSet0" range="143.0,159.0" />
-    <anim-range name="attack4"     channel="AnimationSet0" range="161.0,179.0" />
-    <anim-range name="attack5"     channel="AnimationSet0" range="181.0,191.0" />
-    <anim-range name="block"       channel="AnimationSet0" range="193.0,209.0" />
-    <anim-range name="dieFwd"      channel="AnimationSet0" range="211.0,226.0" />
-    <anim-range name="dieBack"     channel="AnimationSet0" range="229.0,250.0" />
-    <anim-range name="yes"         channel="AnimationSet0" range="252.0,271.0" />
-    <anim-range name="no"          channel="AnimationSet0" range="273.0,289.0" />
-    <anim-range name="idle1"       channel="AnimationSet0" range="291.0,324.0" />
-    <anim-range name="idle2"       channel="AnimationSet0" range="326.0,359.0" />
-</asset>
-<asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0" />
-<asset id="teapot-asset" type="asset" file="res/models/teapot.obj" use-animation="0" />
-<asset id="dragon-asset" type="asset" file="res/models/dragon.obj" use-animation="0" />
-<asset id="bunny-asset" type="asset" file="res/models/bunny.obj" use-animation="0" />
-
-<!--
-    <camera id="overview-camera"
-            fov="45.0" near="0.1" far="300.0"
-            position="0.0, 100.0, 100.0"
-            direction="0, -1, -1"/>
--->
+    <!--
+        <camera id="overview-camera"
+                fov="45.0" near="0.1" far="300.0"
+                position="0.0, 100.0, 100.0"
+                direction="0, -1, -1"/>
+    -->
     <camera id="overview-camera"
             fov="45.0" near="0.1" far="300.0"
             position="0.0, 200.0, 0.0"
@@ -95,227 +95,226 @@
         </view>
     </node>
 
-<!--**************************-->
-<!--****** Sky and Sun *******-->
-<!--**************************-->
+    <!--**************************-->
+    <!--****** Sky and Sun *******-->
+    <!--**************************-->
 
-<sky id="earth-sky" camera="main-camera" update-interval="200.0" >
-    <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4" />
-    <stars catalog="res/sky/bright-stars.bin" scale="1.4"
-        scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
-        glare-intensity="0.04" glare-scale="0.2"
-        color="0.66,0.78,1.0" color-ratio="0.66"/>
-    <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
-        sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
-        earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0" />
-    <atmosphere preset="earth" size="256" lod="4" />
-    <!--
-    <cloud-layer id="earth-clouds" texture-size="1028" update-interval="60.0" use-scatter="FALSE"
-        sharpness="0.6" coverage="0.2" altitude="8.0" scale="32.0,32.0"
-        change="0.04" wind="0.0,0.0" color="1.0,1.0,1.0" />
-    -->
-</sky>
-
-<!--**************************-->
-<!--*** Ambient Occlusion ****-->
-<!--**************************-->
-
-<texture id="random-normal" file="res/textures/random_normals.png" />
-
-<node id="Ambient-Occlusion-Update">
-    <input type="int" name="numBlurPixels" value="20" />
-    <input type="float" name="blurSigma" value="3.2" />
-    <input type="float" name="aoSamplingRadius" value="30.0" />
-    <input type="float" name="aoBias" value="0.4" />
-    <input type="vec2" name="aoAttenuation" value="0.15,0.25" />
-    <texture name="aoNoiseTexture" id="random-normal" />
-    <filter-sequence id="ambient-occlusion"
-		   fbo="g-buffer" attachment="3"
-		   format="RED"
-		   internal-format="R16"
-		   pixel-type="BYTE"
-		   bind-input="0" >
-        <filter shader="regen.shading.ssao" scale="0.5" />
-        <filter shader="regen.filter.blur.horizontal" />
-        <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-</node>
-
-<node id="Ambient-Occlusion-Sample">
-    <blend mode="mul" />
-    <texture name="aoTexture" id="ambient-occlusion" />
-    <fullscreen-pass shader="regen.shading.ssao.sample" />
-</node>
-
-<!--**************************-->
-<!--**************************-->
-
-<node id="G-Buffer-Blur1">
-    <input type="int" name="numBlurPixels" value="4" />
-    <input type="float" name="blurSigma" value="2.0" />
-    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1" >
-        <filter shader="regen.filter.sampling" scale="0.5" />
-        <filter shader="regen.filter.blur.horizontal" />
-        <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-</node>
-<node id="G-Buffer-Blur0">
-    <input type="int" name="numBlurPixels" value="4" />
-    <input type="float" name="blurSigma" value="2.0" />
-    <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0" >
-        <filter shader="regen.filter.sampling" scale="0.5" />
-        <filter shader="regen.filter.blur.horizontal" />
-        <filter shader="regen.filter.blur.vertical" />
-    </filter-sequence>
-</node>
-
-<node id="Depth-of-Field">
-    <texture name="depthTexture" fbo="g-buffer" attachment="depth" />
-    <texture name="blurTexture" id="blurred-scene" />
-    <input type="float" name="focalDistance" value="0.0" />
-    <fullscreen-pass shader="regen.filter.dof" />
-</node>
-
-<node id="Distance-Fog">
-    <blend mode="alpha" />
-    <input type="float" name="fogDensity" value="1.0" />
-    <input type="vec2" name="fogDistance" value="50.0,100.0" />
-    <input type="vec3" name="fogColor" value="0.2,0.33,0.3" />
-    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-    <texture name="skyColorTexture" id="earth-sky" />
-    <define key="USE_SKY_COLOR" value="TRUE" />
-    <fullscreen-pass shader="regen.weather.fog.distance" />
-</node>
-
-<node id="FXAA">
-    <input type="float" name="spanMax" value="8.0" />
-    <input type="float" name="reduceMul" value="0.125" />
-    <input type="float" name="reduceMin" value="0.0078125" />
-    <input type="vec3" name="luma" value="0.299,0.587,0.114" />
-    <fullscreen-pass shader="regen.filter.fxaa" />
-</node>
-
-<node id="MotionBlur-Screen">
-  <input type="float" name="velocityScale" value="2.25" />
-  <input type="int" name="numMotionBlurSamples" value="40" />
-  <motion-blur camera="main-camera" />
-</node>
-
-<node id="G-Buffer-Views">
-    <view id="G-Buffer: Diffuse">
-        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-    <view id="G-Buffer: Ambient">
-        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    <view id="G-Buffer: Specular">
-        <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
-    </view>
-    <view id="G-Buffer: Normal">
-        <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN" />
-    </view>
-</node>
-
-<node id="Default-Pipeline">
-  <camera id="main-camera" />
-  
-  <node id="Geometry-Pass">
-    <depth test="1" write="1" />
-    <fbo id="g-buffer" draw-buffers="0,1,2,3" />
-    
-    <node import="Shadow-Caster" />
-    <node import="Scene-Geometry" />
-    <view id="Scene -- Diffuse">
-      <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN" />
-    </view>
-    <view id="Scene -- Ambient">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    <view id="Scene -- Specular">
-      <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN" />
-    </view>
-    <view id="Scene -- Normal">
-      <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN" />
-    </view>
-  </node>
-  
-  <node id="Shading">
-    <fbo id="g-buffer" draw-buffers="1" />
-    
-    <node id="Light-Pass">
-      <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
-      <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0" />
-      <texture name="gSpecularTexture" fbo="g-buffer" attachment="2" />
-      <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3" />
-      
-      <node import="Shading-Pass" />
-    </node>
-  
-    <view id="Scene -- Shading">
-      <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN" />
-    </view>
-    
-    <node import="Background-Pass" />
-    <node import="Post-Pass" />
-  </node>
-</node>
-
-<!-- ************************ -->
-<!-- Debug Rendering -->
-<!-- ************************ -->
-
-<node id="bullet-debug">
-    <camera id="main-camera"/>
-    <depth test="1" write="0" function="LEQUAL"/>
-    <polygon offset-fill="1.1,4.0" />
-    <debugger type="bullet" />
-</node>
-
-<node id="spatial-index-debug">
-    <depth test="1" write="0" function="LEQUAL"/>
-    <polygon offset-fill="1.1,4.0" />
-    <debugger type="spatial-index" resource="main-index" />
-</node>
-
-<!-- ************************ -->
-<!-- Rendering of GUI widgets -->
-<!-- ************************ -->
-
-<mesh id="logo-widget" type="rectangle" use-normal="0" use-texco="1" use-tangent="0"
-      lod="0" rotation="1.57,0.0,0.0" scaling="90.0,1.0,23.0" texco-scaling="-1.0,1.0" center="0"
-      update-frequency="NEVER">
-    <define key="INVERT_Y" value="TRUE" />
-    <define key="INVERT_X" value="FALSE" />
-    <transform update-frequency="NEVER">
-        <translate value="8.0,-8.0,0.0" />
-    </transform>
-</mesh>
-
-<mesh id="fps-widget" type="text" center="0"
-      font="ubuntu" text="0 FPS" text-color="0.97,0.86,0.77,0.95">
-    <transform update-frequency="NEVER">
-        <translate value="8.0,8.0,0.0" />
-    </transform>
-</mesh>
-
-<node id="GUI-Pass">
-    <blend mode="alpha" />
-    <depth test="0" write="0" />
-    <node id="logo-widget">
+    <sky id="earth-sky" camera="main-camera" update-interval="200.0">
+        <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.5" lod="4"/>
+        <stars catalog="res/sky/bright-stars.bin" scale="1.4"
+               scattering="1.0" scintillation="0.2" apparent-magnitude="6.0"
+               glare-intensity="0.04" glare-scale="0.2"
+               color="0.66,0.78,1.0" color-ratio="0.66"/>
+        <moon texture="res/sky/moon.png" scale="0.04" scattering="4.0"
+              sun-shine-color="0.923,0.786,0.636" sun-shine-intensity="128.0"
+              earth-shine-color="0.88,0.96,1.0" earth-shine-intensity="8.0"/>
+        <atmosphere preset="earth" size="256" lod="4"/>
         <!--
-        <define key="TIME_TO_ARRAY_TEXCO" value="TRUE" />
-        <define key="TIME_TO_ARRAY_TEX" value="0" />
-        <define key="TIME_TO_ARRAY_FPS" value="15" />
-        <blend mode="add" />
+        <cloud-layer id="earth-clouds" texture-size="1028" update-interval="60.0" use-scatter="FALSE"
+            sharpness="0.6" coverage="0.2" altitude="8.0" scale="32.0,32.0"
+            change="0.04" wind="0.0,0.0" color="1.0,1.0,1.0" />
         -->
-        <material alpha="0.7" update-frequency="NEVER" />
-        <texture id="regen-logo" map-to="COLOR" blend="SRC" />
-        <mesh id="logo-widget" shader="regen.gui.widget" />
-    </node>
-    <node id="fps-widget">
-        <mesh id="fps-widget" shader="regen.gui.text" />
-    </node>
-</node>
+    </sky>
 
-<!-- ************************ -->
-<!-- ************************ -->
+    <!--**************************-->
+    <!--*** Ambient Occlusion ****-->
+    <!--**************************-->
+
+    <texture id="random-normal" file="res/textures/random_normals.png"/>
+
+    <node id="Ambient-Occlusion-Update">
+        <input type="int" name="numBlurPixels" value="20"/>
+        <input type="float" name="blurSigma" value="3.2"/>
+        <input type="float" name="aoSamplingRadius" value="30.0"/>
+        <input type="float" name="aoBias" value="0.4"/>
+        <input type="vec2" name="aoAttenuation" value="0.15,0.25"/>
+        <texture name="aoNoiseTexture" id="random-normal"/>
+        <filter-sequence id="ambient-occlusion"
+                         fbo="g-buffer" attachment="3"
+                         format="RED"
+                         internal-format="R16"
+                         pixel-type="BYTE"
+                         bind-input="0">
+            <filter shader="regen.shading.ssao" scale="0.5"/>
+            <filter shader="regen.filter.blur.horizontal"/>
+            <filter shader="regen.filter.blur.vertical"/>
+        </filter-sequence>
+    </node>
+
+    <node id="Ambient-Occlusion-Sample">
+        <blend mode="mul"/>
+        <texture name="aoTexture" id="ambient-occlusion"/>
+        <fullscreen-pass shader="regen.shading.ssao.sample"/>
+    </node>
+
+    <!--**************************-->
+    <!--**************************-->
+
+    <node id="G-Buffer-Blur1">
+        <input type="int" name="numBlurPixels" value="4"/>
+        <input type="float" name="blurSigma" value="2.0"/>
+        <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="1">
+            <filter shader="regen.filter.sampling" scale="0.5"/>
+            <filter shader="regen.filter.blur.horizontal"/>
+            <filter shader="regen.filter.blur.vertical"/>
+        </filter-sequence>
+    </node>
+    <node id="G-Buffer-Blur0">
+        <input type="int" name="numBlurPixels" value="4"/>
+        <input type="float" name="blurSigma" value="2.0"/>
+        <filter-sequence id="blurred-scene" fbo="g-buffer" attachment="0">
+            <filter shader="regen.filter.sampling" scale="0.5"/>
+            <filter shader="regen.filter.blur.horizontal"/>
+            <filter shader="regen.filter.blur.vertical"/>
+        </filter-sequence>
+    </node>
+
+    <node id="Depth-of-Field">
+        <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+        <texture name="blurTexture" id="blurred-scene"/>
+        <input type="float" name="focalDistance" value="0.0"/>
+        <fullscreen-pass shader="regen.filter.dof"/>
+    </node>
+
+    <node id="Distance-Fog">
+        <blend mode="alpha"/>
+        <input type="float" name="fogDensity" value="1.0"/>
+        <input type="vec2" name="fogDistance" value="50.0,100.0"/>
+        <input type="vec3" name="fogColor" value="0.2,0.33,0.3"/>
+        <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+        <texture name="skyColorTexture" id="earth-sky"/>
+        <define key="USE_SKY_COLOR" value="TRUE"/>
+        <fullscreen-pass shader="regen.weather.fog.distance"/>
+    </node>
+
+    <node id="FXAA">
+        <input type="float" name="spanMax" value="8.0"/>
+        <input type="float" name="reduceMul" value="0.125"/>
+        <input type="float" name="reduceMin" value="0.0078125"/>
+        <input type="vec3" name="luma" value="0.299,0.587,0.114"/>
+        <fullscreen-pass shader="regen.filter.fxaa"/>
+    </node>
+
+    <node id="MotionBlur-Screen">
+        <input type="float" name="velocityScale" value="2.25"/>
+        <input type="int" name="numMotionBlurSamples" value="40"/>
+        <motion-blur camera="main-camera"/>
+    </node>
+
+    <node id="G-Buffer-Views">
+        <view id="G-Buffer: Diffuse">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <view id="G-Buffer: Ambient">
+            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+        </view>
+        <view id="G-Buffer: Specular">
+            <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
+        </view>
+        <view id="G-Buffer: Normal">
+            <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN"/>
+        </view>
+    </node>
+
+    <node id="Default-Pipeline">
+        <camera id="main-camera"/>
+
+        <node id="Geometry-Pass">
+            <depth test="1" write="1"/>
+            <fbo id="g-buffer" draw-buffers="0,1,2,3"/>
+
+            <node import="Shadow-Caster"/>
+            <node import="Scene-Geometry"/>
+            <view id="Scene -- Diffuse">
+                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+            </view>
+            <view id="Scene -- Ambient">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+            <view id="Scene -- Specular">
+                <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
+            </view>
+            <view id="Scene -- Normal">
+                <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN"/>
+            </view>
+        </node>
+
+        <node id="Shading">
+            <fbo id="g-buffer" draw-buffers="1"/>
+
+            <node id="Light-Pass">
+                <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+                <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
+                <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
+                <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+
+                <node import="Shading-Pass"/>
+            </node>
+
+            <view id="Scene -- Shading">
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+            </view>
+
+            <node import="Background-Pass"/>
+            <node import="Post-Pass"/>
+        </node>
+    </node>
+
+    <!-- ************************ -->
+    <!-- Debug Rendering -->
+    <!-- ************************ -->
+
+    <node id="bullet-debug">
+        <camera id="main-camera"/>
+        <depth test="1" write="0" function="LEQUAL"/>
+        <polygon offset-fill="1.1,4.0"/>
+        <debugger type="bullet"/>
+    </node>
+
+    <node id="spatial-index-debug">
+        <depth test="1" write="0" function="LEQUAL"/>
+        <polygon offset-fill="1.1,4.0"/>
+        <debugger type="spatial-index" resource="main-index"/>
+    </node>
+
+    <!-- ************************ -->
+    <!-- Rendering of GUI widgets -->
+    <!-- ************************ -->
+
+    <mesh id="logo-widget" type="rectangle" use-normal="0" use-texco="1" use-tangent="0"
+          lod="0" rotation="1.57,0.0,0.0" scaling="90.0,1.0,23.0" texco-scaling="-1.0,1.0" center="0"
+          update-frequency="NEVER">
+        <define key="INVERT_Y" value="TRUE"/>
+        <define key="INVERT_X" value="FALSE"/>
+        <transform update-frequency="NEVER">
+            <translate value="8.0,-8.0,0.0"/>
+        </transform>
+    </mesh>
+
+    <mesh id="fps-widget" type="text" center="0"
+          font="ubuntu" text="0 FPS" text-color="0.97,0.86,0.77,0.95">
+        <transform update-frequency="NEVER">
+            <translate value="8.0,8.0,0.0"/>
+        </transform>
+    </mesh>
+
+    <node id="GUI-Pass">
+        <blend mode="alpha"/>
+        <depth test="0" write="0"/>
+        <node id="logo-widget">
+            <!--
+            <define key="TIME_TO_ARRAY_TEXCO" value="TRUE" />
+            <define key="TIME_TO_ARRAY_TEX" value="0" />
+            <define key="TIME_TO_ARRAY_FPS" value="15" />
+            <blend mode="add" />
+            -->
+            <material alpha="0.7" update-frequency="NEVER"/>
+            <texture id="regen-logo" map-to="COLOR" blend="SRC"/>
+            <mesh id="logo-widget" shader="regen.gui.widget"/>
+        </node>
+        <node id="fps-widget">
+            <mesh id="fps-widget" shader="regen.gui.text"/>
+        </node>
+    </node>
+
+</node>

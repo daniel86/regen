@@ -18,10 +18,8 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 		cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
 		mesh = ref_ptr<Rectangle>::alloc(cfg);
 		mesh->updateAttributes();
-		return mesh;
-	} else {
-		return ref_ptr<Rectangle>::alloc(mesh);
 	}
+	return ref_ptr<Rectangle>::alloc(mesh);
 }
 
 Rectangle::Rectangle(const Config &cfg)

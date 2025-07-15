@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<include xml-file="scene-display/examples/templates/mandelbrot.xml"/>
+<node>
+    <include xml-file="scene-display/examples/templates/mandelbrot.xml"/>
 
-<node id="root">
-    <node import="mandelbrot-update" />
-    <blit src-fbo="mandelbrot-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+    <node id="root">
+        <node import="mandelbrot-update"/>
+        <blit src-fbo="mandelbrot-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+    </node>
 </node>
