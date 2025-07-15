@@ -223,6 +223,7 @@ namespace regen {
 
 	// only use GL_WRITE_BIT for static write buffers.
 	const BufferStorageMode BUFFER_MODE_STATIC_WRITE = BUFFER_MODE_CPU_W_MAP_TEMPORARY;
+	const BufferStorageMode BUFFER_MODE_STATIC_READ = BUFFER_MODE_CPU_R_MAP_TEMPORARY;
 
 	/**
 	 * \brief Buffer configuration structure.

@@ -160,6 +160,15 @@ namespace regen {
 		void setBufferData(uint32_t readBufferID, uint32_t readAddress, uint32_t readSize);
 
 		/**
+		 * Read data from the buffer object.
+		 * This will copy the data from the buffer to the provided pointer.
+		 * @param localOffset relative offset in bytes from the start of the buffer.
+		 * @param dataSize size of the data to read in bytes.
+		 * @param data pointer to the memory where to copy the data.
+		 */
+		void readBufferSubData(uint32_t localOffset, uint32_t dataSize, byte *data);
+
+		/**
 		 * Set all allocated buffers to zero.
 		 * This will replace the existing data in the buffer with zeroes.
 		 */

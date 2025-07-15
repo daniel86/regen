@@ -363,6 +363,41 @@ void BufferObject::setBufferSubData(uint32_t localOffset, uint32_t dataSize, con
 	}
 }
 
+void BufferObject::readBufferSubData(uint32_t localOffset, uint32_t dataSize, byte *data) {
+	auto &ref = allocations_[0];
+	if (!flags_.isWritable()) {
+		// CPU is not allowed to read from this buffer, so we cannot read data directly.
+		// But we can copy data to a temporary buffer and then copy it to the target buffer.
+		auto tempRef = BufferObject::adoptBufferRange(
+				dataSize,
+				bufferPool(flags_.target, BUFFER_MODE_STATIC_READ));
+		glCopyNamedBufferSubData(
+				ref->bufferID(),
+				tempRef->bufferID(),
+				ref->address() + localOffset,
+				tempRef->address(),
+				dataSize);
+		auto *tempData = glMapNamedBufferRange(
+				tempRef->bufferID(),
+				tempRef->address(),
+				dataSize,
+				GL_MAP_READ_BIT);
+		if (tempData) {
+			std::memcpy(data, tempData, dataSize);
+			glUnmapNamedBuffer(tempRef->bufferID());
+		}
+	} else if (ref->mappedData()) {
+		// the buffer is mapped, so we can read directly from it.
+		std::memcpy(data, ref->mappedData() + localOffset, dataSize);
+	} else {
+		glGetNamedBufferSubData(
+				ref->bufferID(),
+				ref->address() + localOffset,
+				dataSize,
+				data);
+	}
+}
+
 void *BufferObject::map(uint32_t relativeOffset, uint32_t mappedSize, uint32_t accessFlags) {
 	auto &ref = allocations_[0];
 	if (ref->mappedData()) {
