@@ -7,13 +7,12 @@
 using namespace regen;
 
 //#define REGEN_BUFFER_BLOCK_DEBUG
+//#define BUFFER_BLOCK_DISABLE_RING_BUFFER
 //#define BUFFER_BLOCK_DISABLE_PERSISTENT
-//#define BUFFER_BLOCK_DISABLE_PERSISTENT_MEDIUM_SIZE
-//#define BUFFER_BLOCK_DISABLE_PERSISTENT_SMALL_SIZE
 //#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
+//#define BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
 
-uint32_t BufferBlock::MIN_SIZE_MEDIUM = 256; // Bytes
-//uint32_t BufferBlock::MIN_SIZE_MEDIUM = 512; // Bytes
+uint32_t BufferBlock::MIN_SIZE_MEDIUM = 512; // Bytes
 uint32_t BufferBlock::MIN_SIZE_LARGE = 64 * 1024; // 64 KiB
 uint32_t BufferBlock::MIN_SIZE_VERY_LARGE = 1024 * 1024; // 1 MiB
 
@@ -38,6 +37,12 @@ BufferBlock::BufferBlock(
 	if (hints.frequency == BUFFER_UPDATE_NEVER) {
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 	}
+#ifdef BUFFER_BLOCK_DISABLE_RING_BUFFER
+	setBufferingMode(SINGLE_BUFFER);
+#endif
+#ifdef BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
+	setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
+#endif
 }
 
 BufferBlock::BufferBlock(const BufferBlock &other)
@@ -105,8 +110,10 @@ BufferBlock::BufferBlock(const BufferObject &other)
 }
 
 void BufferBlock::setBufferingMode(BufferingMode mode) {
+#ifndef BUFFER_BLOCK_DISABLE_RING_BUFFER
 	userDefinedBufferingMode_ = mode;
 	stagingFlags_.bufferingMode = mode;
+#endif
 }
 
 std::string BufferBlock::getBlockName() const {
@@ -164,9 +171,11 @@ void BufferBlock::enableWriteAccess() {
 }
 
 void BufferBlock::setStagingBuffering(BufferingMode mode) {
+#ifndef BUFFER_BLOCK_DISABLE_RING_BUFFER
 	if (!userDefinedBufferingMode_.has_value()) {
 		stagingFlags_.bufferingMode = mode;
 	}
+#endif
 }
 
 void BufferBlock::enablePersistentMapping(bool useFlushExplicit) {
@@ -178,7 +187,7 @@ void BufferBlock::enablePersistentMapping(bool useFlushExplicit) {
 }
 
 void BufferBlock::enablePersistentMapping_(bool useFlushExplicit) {
-#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT_SMALL_SIZE
+#ifdef BUFFER_BLOCK_DISABLE_PERSISTENT
 	// use temporary mapping.
 	setStagingMapMode(BUFFER_MAP_TEMPORARY);
 #else
