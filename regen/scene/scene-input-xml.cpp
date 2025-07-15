@@ -142,8 +142,15 @@ const list<ref_ptr<SceneInputNode> > &SceneInputNodeXML::getChildren() {
 							ref_ptr<SceneInputXML>::alloc(filePath);
 					inclusions_.push_back(included);
 
-					const list<ref_ptr<SceneInputNode> > &x = included->getRoot()->getChildren();
-					children_.insert(children_.end(), x.begin(), x.end());
+					auto &x = included->getRoot()->getChildren();
+					if (x.size() == 1) {
+						auto &y = x.front()->getChildren();
+						children_.insert(children_.end(), y.begin(), y.end());
+					} else if (x.size() > 1) {
+						children_.insert(children_.end(), x.begin(), x.end());
+					} else {
+						REGEN_WARN("No children found in included XML file: " + filePath);
+					}
 				} else {
 					REGEN_WARN("Unable to include XML file. Missing 'xml-file' attribute.");
 				}
