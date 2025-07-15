@@ -502,7 +502,7 @@ ref_ptr<Texture> textures::loadSpectrum(
 	tex->set_format(GL_RGBA);
 	tex->set_internalFormat(GL_RGBA8);
 	tex->allocTexture();
-	tex->set_wrapping(GL_CLAMP);
+	tex->set_wrapping(GL_CLAMP_TO_EDGE);
 	tex->set_filter(GL_LINEAR);
 	tex->updateImage((GLubyte *) data);
 	if (mipmapFlag != GL_NONE) {
