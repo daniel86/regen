@@ -5,12 +5,15 @@
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
 #include "regen/gl-types/draw-command.h"
+#include "regen/gl-types/queries/time-elapsed-query.h"
 
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256
 #define RADIX_OFFSET_GROUP_SIZE 512
 //#define LOD_DEBUG_GROUPS
-#undef LOD_DEBUG_CPU_TIME
+//#define LOD_DEBUG_CPU_TIME
+//#define LOD_DEBUG_GPU_TIME
+//#define LOD_DEBUG_SHAPE "fish-shape"
 
 using namespace regen;
 
@@ -268,8 +271,23 @@ void LODState::enable(RenderState *rs) {
 #ifdef LOD_DEBUG_CPU_TIME
 	auto t2 = high_resolution_clock::now();
 	duration<double, std::milli> ms_double = t2 - t1;
+	#ifdef LOD_DEBUG_SHAPE
+	static double timeSum = 0.0;
+	static uint32_t numTimes = 0;
+	if (cullShape_->shapeName() == LOD_DEBUG_SHAPE) {
+		timeSum += ms_double.count();
+		numTimes += 1;
+		if (numTimes >= 200) {
+			timeSum /= numTimes;
+			REGEN_INFO("Average CPU time for '" << LOD_DEBUG_SHAPE << "': " << timeSum << " ms");
+			timeSum = 0.0;
+			numTimes = 0;
+		}
+	}
+	#else
 	REGEN_INFO("LOD time: " << ms_double.count() << " ms"
 							<< " shape: " << cullShape_->shapeName());
+	#endif
 #endif
 }
 
@@ -626,6 +644,16 @@ void LODState::updateFrustumBuffer() {
 }
 
 void LODState::traverseGPU(RenderState *rs) {
+#ifdef LOD_DEBUG_GPU_TIME
+	static TimeElapsedQuery timeElapsedQuery;
+	#ifdef LOD_DEBUG_SHAPE
+	if (cullShape_->shapeName() == LOD_DEBUG_SHAPE) {
+		timeElapsedQuery.begin();
+	}
+	#else
+	timeElapsedQuery.begin();
+	#endif
+#endif
 	// copy the clear buffer to the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
 
@@ -641,4 +669,25 @@ void LODState::traverseGPU(RenderState *rs) {
 		copyIndirect_->enable(rs);
 		copyIndirect_->disable(rs);
 	}
+
+#ifdef LOD_DEBUG_GPU_TIME
+	#ifdef LOD_DEBUG_SHAPE
+	static float timesSum = 0.0f;
+	static uint32_t numTimes = 0;
+	if (cullShape_->shapeName() == LOD_DEBUG_SHAPE) {
+		timesSum += timeElapsedQuery.end();
+		numTimes += 1;
+		if (numTimes >= 200) {
+			timesSum /= numTimes;
+			REGEN_INFO("Average GPU time for '" << LOD_DEBUG_SHAPE << "': " << timesSum << " ms");
+			timesSum = 0.0f;
+			numTimes = 0;
+		}
+	}
+	#else
+	float duration = timeElapsedQuery.end();
+	REGEN_INFO("LOD time: " << duration << " ms"
+							<< " shape: " << cullShape_->shapeName());
+	#endif
+#endif
 }
