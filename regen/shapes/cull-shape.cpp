@@ -50,7 +50,12 @@ void CullShape::createBuffers() {
 	// doing GPU-side sorting (needs a second buffer for the sorted indices).
 	//if (!isIndexShape()) { numIndices *= 2; }
 	instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
-	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
+	// NOTE: cull shape is potentially used in multiple passes, and the InstanceIDs are usually
+	//       updated for each draw call, so we use FULL_PER_DRAW to ensure the data is updated.
+	//       if per-frame is desired, the ssbo could be moved into the cull state.
+	// TODO: test benefit of per-frame vs per-draw updates, but that could be expensive!
+	//        e.g. every shadow mapping and reflection pass would have its own instanceIDBuffer.
+	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_DRAW);
 	if (isIndexShape()) {
 		// Note: do not set CPU-side data in case of GPU shape (we rather use setBufferData below).
 		instanceIDMap_->setInstanceData(1, 1, (byte*)clearData.data());

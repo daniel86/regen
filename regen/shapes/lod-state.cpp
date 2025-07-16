@@ -28,22 +28,31 @@ namespace regen {
 					const ref_ptr<ShaderInput4f> &planes) :
 				Animation(false, true),
 				camera_(camera),
-				planes_(planes) {}
+				planes_(planes) {
+			auto &frustum = camera_->frustum();
+			frustumData_.resize(frustum.size() * 6);
+		}
 
 		void animate(double dt) override {
 			auto &frustum = camera_->frustum();
-			auto frustum_cpu =
-				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
 			for (size_t i = 0; i < frustum.size(); ++i) {
 				auto &frustumPlanes = frustum[i].planes;
 				for (int j = 0; j < 6; ++j) {
-					frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
+					frustumData_[i * 6 + j] = frustumPlanes[j].equation();
 				}
 			}
+
+			auto frustum_cpu =
+				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
+			std::memcpy(
+				(byte*)frustum_cpu.w,
+				frustumData_.data(),
+				frustumData_.size() * sizeof(Vec4f));
 		}
 	protected:
 		ref_ptr<Camera> camera_;
 		ref_ptr<ShaderInput4f> planes_;
+		std::vector<Vec4f> frustumData_;
 	};
 }
 
