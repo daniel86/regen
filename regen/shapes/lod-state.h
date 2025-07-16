@@ -67,6 +67,8 @@ namespace regen {
 		ref_ptr<SSBO> clearIndirectBuffer_;
 		std::vector<Vec4f> frustumPlanes_;
 
+		ref_ptr<Animation> lodAnim_;
+
 		void initLODState();
 
 		void createComputeShader();

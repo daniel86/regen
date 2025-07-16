@@ -20,6 +20,33 @@ static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__
 	}
 }
 
+namespace regen {
+	class FrustumUpdater : public Animation {
+	public:
+		explicit FrustumUpdater(
+					const ref_ptr<Camera> &camera,
+					const ref_ptr<ShaderInput4f> &planes) :
+				Animation(false, true),
+				camera_(camera),
+				planes_(planes) {}
+
+		void animate(double dt) {
+			auto &frustum = camera_->frustum();
+			auto frustum_cpu =
+				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
+			for (size_t i = 0; i < frustum.size(); ++i) {
+				auto &frustumPlanes = frustum[i].planes;
+				for (int j = 0; j < 6; ++j) {
+					frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
+				}
+			}
+		}
+	protected:
+		ref_ptr<Camera> camera_;
+		ref_ptr<ShaderInput4f> planes_;
+	};
+}
+
 LODState::LODState(
 		const ref_ptr<Camera> &camera,
 		const ref_ptr<CullShape> &cullShape)
@@ -73,6 +100,8 @@ void LODState::initLODState() {
 		}
 	} else {
 		createComputeShader();
+		lodAnim_ = ref_ptr<FrustumUpdater>::alloc(camera_, frustumData_);
+		lodAnim_->startAnimation();
 	}
 	REGEN_INFO("Created LOD state for cull shape '"
 					   << cullShape_->shapeName()
@@ -588,18 +617,6 @@ void LODState::updateFrustumBuffer() {
 void LODState::traverseGPU(RenderState *rs) {
 	// copy the clear buffer to the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
-
-	if (cameraStamp_ != camera_->stamp()) {
-		// Update the frustum planes in the UBO
-		// TODO: better do this in animation loop
-		cameraStamp_ = camera_->stamp();
-		updateFrustumBuffer();
-		frustumUBO_->update();
-	}
-	if (tfStamp_ != cullShape_->tf()->stamp()) {
-		// Update the transform in the cull pass
-		tfStamp_ = cullShape_->tf()->stamp();
-	}
 
 	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
 	cullPass_->enable(rs);
