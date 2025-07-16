@@ -39,7 +39,14 @@ buffer uint in_globalHistogram[];
 // - [read] the sort keys, computed by culling pass, one per instance.
 buffer uint in_keys[NUM_SORT_KEYS];
 // - [read] The value input buffer, either [0...(NUM_SORT_KEYS-1)] or output from the previous pass.
+#ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
 buffer uint in_values[NUM_SORT_KEYS];
+uniform uint in_readOffset;
+#else
+layout(std430) readonly buffer ValueBuffer {
+    uint in_values[NUM_SORT_KEYS];
+};
+#endif
 // The local histogram. Counts bucket sizes in each workgroup.
 shared uint sh_bucketSize[NUM_RADIX_BUCKETS];
 // The bit offset of the current radix pass.
@@ -63,7 +70,11 @@ void main() {
     barrier();
     // Compute local histogram
     if (globalID < NUM_SORT_KEYS) {
+#ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
+        uint value = in_values[globalID + in_readOffset];
+#else
         uint value = in_values[globalID];
+#endif
         uint key = in_keys[value];
         // Atomically increment bin count
         atomicAdd(sh_bucketSize[radixBucket(key)], 1);
@@ -89,6 +100,11 @@ void main() {
 buffer uint in_globalHistogram[];
 // The sort keys, computed by culling pass, one per instance.
 buffer uint in_keys[NUM_SORT_KEYS];
+#ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
+buffer uint in_values[NUM_SORT_KEYS];
+uniform uint in_readOffset;
+uniform uint in_writeOffset;
+#else
 // The value input buffer, either [0...(LOD_NUM_INSTANCES-1)] or output from the previous pass.
 layout(std430) readonly buffer ReadBuffer {
     uint in_lastValues[NUM_SORT_KEYS];
@@ -97,6 +113,7 @@ layout(std430) readonly buffer ReadBuffer {
 layout(std430) writeonly buffer WriteBuffer {
     uint in_nextValues[NUM_SORT_KEYS];
 };
+#endif
 // The bit offset of the current radix pass.
 uniform uint radixBitOffset;
 // Prefix sum results
@@ -125,7 +142,11 @@ void scatterBucket(uint b, uint t_value, uint t_bucket) {
         uint localOffset = sh_scan[localID] - 1;
         uint histogramIndex = radixHistogramIndex(b, groupID);
         uint scatterIndex = in_globalHistogram[histogramIndex] + localOffset;
+#ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
+        in_values[scatterIndex + in_writeOffset] = t_value;
+#else
         in_nextValues[scatterIndex] = t_value;
+#endif
     }
 }
 
@@ -134,7 +155,11 @@ void main() {
     if (globalID >= NUM_SORT_KEYS) return;
 
     // Read key/value input
+#ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
+    uint value = in_values[globalID + in_readOffset];
+#else
     uint value = in_lastValues[globalID];
+#endif
     uint key = in_keys[value];
     // Compute the bucket for this thread
     uint bucket = radixBucket(key);

@@ -41,14 +41,14 @@ void CullShape::initCullShape(const ref_ptr<BoundingShape> &boundingShape, bool 
 
 void CullShape::createBuffers() {
 	numInstances_ = tf_->numInstances();
-	auto numIndices = numInstances_;
+	auto numIndices = tf_->numInstances();
+
+	std::vector<uint32_t> clearData(numInstances_);
+	for (uint32_t i = 0; i < numInstances_; ++i) { clearData[i] = i; }
+
 	// if it is a GPU shape, then we need double the size in the GPU buffer for
 	// doing GPU-side sorting (needs a second buffer for the sorted indices).
-	if (!isIndexShape()) { numIndices *= 2; }
-
-	std::vector<uint32_t> clearData(numIndices);
-	for (uint32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
-
+	//if (!isIndexShape()) { numIndices *= 2; }
 	instanceIDMap_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
 	instanceIDBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
 	if (isIndexShape()) {
@@ -59,7 +59,7 @@ void CullShape::createBuffers() {
 	instanceIDBuffer_->update();
 	if (!isIndexShape()) {
 		// clear segment to [0, 1, 2, ..., numInstances_-1]
-		instanceIDBuffer_->setBufferData(clearData.data());
+		instanceIDBuffer_->setBufferSubData(0, numInstances_, clearData.data());
 	}
 
 	setInput(instanceIDBuffer_);

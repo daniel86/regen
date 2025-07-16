@@ -27,7 +27,7 @@ namespace regen {
 		 * The buffer must be a uint array with numKey elements.
 		 * @param values The output buffer.
 		 */
-		void setOutputBuffer(const ref_ptr<SSBO> &values);
+		void setOutputBuffer(const ref_ptr<SSBO> &values, bool isDoubleBuffered);
 
 		/**
 		 * Set the number of bits per radix pass.
@@ -78,7 +78,6 @@ namespace regen {
 
 	protected:
 		uint32_t numKeys_;
-		uint32_t inputIdx_ = 0u;
 		uint32_t outputIdx_ = 0u;
 		uint32_t radixBits_ = 4u;
 		uint32_t numBuckets_ = 1u << radixBits_;
@@ -87,8 +86,9 @@ namespace regen {
 
 		ref_ptr<SSBO> globalHistogramBuffer_;
 		ref_ptr<SSBO> keyBuffer_;
-		ref_ptr<SSBO> valueBuffer_;
+		ref_ptr<SSBO> valueBuffer_[2];
 		ref_ptr<SSBO> userValueBuffer_;
+		bool useSingleValueBuffer_ = false;
 
 		ref_ptr<ComputePass> radixHistogramPass_;
 		ref_ptr<ComputePass> radixScatterPass_;
@@ -100,6 +100,8 @@ namespace regen {
 		int32_t scatterBitOffsetIndex_ = 0u;
 
 		void sort(RenderState *rs);
+
+		void sortContiguous(RenderState *rs);
 
 		void printInstanceMap(RenderState *rs);
 

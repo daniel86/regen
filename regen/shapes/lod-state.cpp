@@ -30,7 +30,7 @@ namespace regen {
 				camera_(camera),
 				planes_(planes) {}
 
-		void animate(double dt) {
+		void animate(double dt) override {
 			auto &frustum = camera_->frustum();
 			auto frustum_cpu =
 				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
@@ -524,7 +524,7 @@ void LODState::createComputeShader() {
 
 	{ // radix sort
 		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances());
-		radixSort_->setOutputBuffer(cullShape_->instanceIDBuffer());
+		radixSort_->setOutputBuffer(cullShape_->instanceIDBuffer(), false);
 		radixSort_->setRadixBits(RADIX_BITS_PER_PASS);
 		radixSort_->setSortGroupSize(RADIX_GROUP_SIZE);
 		radixSort_->setScanGroupSize(RADIX_OFFSET_GROUP_SIZE);
