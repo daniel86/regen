@@ -5,10 +5,10 @@
 #include <regen/shapes/spatial-index.h>
 #include "regen/camera/sorting.h"
 #include "regen/gl-types/ssbo.h"
-#include "compute-pass.h"
 #include "regen/gl-types/pbo.h"
 #include "regen/gl-types/staging-buffer.h"
-#include "radix-sort.h"
+#include "regen/states/compute-pass.h"
+#include "regen/states/radix-sort.h"
 #include "regen/shapes/cull-shape.h"
 
 namespace regen {

@@ -9,7 +9,7 @@
 #define REGEN_NODE_CATEGORY "node"
 
 #include <regen/states/state-node.h>
-#include <regen/states/lod-state.h>
+#include <regen/shapes/lod-state.h>
 #include "regen/states/state-node-comparator.h"
 
 namespace regen::scene {

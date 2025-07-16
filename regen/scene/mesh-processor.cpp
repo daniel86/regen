@@ -1,5 +1,5 @@
 #include "mesh-processor.h"
-#include "regen/states/lod-state.h"
+#include "regen/shapes/lod-state.h"
 
 using namespace regen::scene;
 using namespace regen;

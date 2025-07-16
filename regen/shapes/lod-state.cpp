@@ -168,16 +168,18 @@ void LODState::enable(RenderState *rs) {
 #ifdef LOD_DEBUG_GROUPS
 	if (!indirectDrawBuffers_.empty()) {
 		// map indirect buffer and print the number of instances per LOD
+		static std::vector<DrawCommand> readVec;
 		auto indirectBuffer = indirectDrawBuffers_[0];
-		auto *data = (DrawCommand *) indirectBuffer->map(
-				indirectBuffer->blockReference(), GL_MAP_READ_BIT);
-		if (data) {
+		readVec.resize(mesh_->numLODs());
+		indirectBuffer->readBufferSubData(
+				0, mesh_->numLODs() * sizeof(DrawCommand), (byte *)readVec.data());
+		{
 			// print the number of instances per LOD
 			REGEN_INFO("LOD ("
-							   << std::setw(4) << std::setfill(' ') << data[0].instanceCount() << " "
-							   << std::setw(4) << std::setfill(' ') << data[1].instanceCount() << " "
-							   << std::setw(4) << std::setfill(' ') << data[2].instanceCount() << " "
-							   << std::setw(4) << std::setfill(' ') << data[3].instanceCount() << ")"
+							   << std::setw(4) << std::setfill(' ') << readVec[0].instanceCount() << " "
+							   << std::setw(4) << std::setfill(' ') << readVec[1].instanceCount() << " "
+							   << std::setw(4) << std::setfill(' ') << readVec[2].instanceCount() << " "
+							   << std::setw(4) << std::setfill(' ') << readVec[3].instanceCount() << ")"
 							   << " numInstances: " <<
 							   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
 							   << " numLODs: " <<
@@ -187,14 +189,14 @@ void LODState::enable(RenderState *rs) {
 							   << " shape: " << cullShape_->shapeName());
 			for (uint32_t i = 0; i < mesh_->numLODs(); ++i) {
 				REGEN_INFO("   Indirect buffer " << i << " -- "
-								<< "mode: " << data[i].mode << "; data: ["
-								   << std::setw(8) << data[i].data[0] << ", "
-								   << std::setw(8) << data[i].data[1] << ", "
-								   << std::setw(8) << data[i].data[2] << ", "
-								   << std::setw(8) << data[i].data[3] << ", "
-								   << std::setw(4) << data[i].data[4] << ", "
-								   << data[i]._pad[0] << ", "
-								   << data[i]._pad[1] << "]");
+								<< "mode: " << readVec[i].mode << "; data: ["
+								   << std::setw(8) << readVec[i].data[0] << ", "
+								   << std::setw(8) << readVec[i].data[1] << ", "
+								   << std::setw(8) << readVec[i].data[2] << ", "
+								   << std::setw(8) << readVec[i].data[3] << ", "
+								   << std::setw(4) << readVec[i].data[4] << ", "
+								   << readVec[i]._pad[0] << ", "
+								   << readVec[i]._pad[1] << "]");
 			}
 			indirectBuffer->unmap();
 		}
