@@ -442,3 +442,28 @@ std::istream &regen::operator>>(std::istream &in, BufferingMode &v) {
 	}
 	return in;
 }
+
+std::ostream &regen::operator<<(std::ostream &out, const BufferSizeClass &v) {
+	switch (v) {
+		case BUFFER_SIZE_SMALL: return out << "SMALL";
+		case BUFFER_SIZE_MEDIUM: return out << "MEDIUM";
+		case BUFFER_SIZE_LARGE: return out << "LARGE";
+		case BUFFER_SIZE_VERY_LARGE: return out << "HUGE";
+	}
+	return out;
+}
+
+std::istream &regen::operator>>(std::istream &in, BufferSizeClass &v) {
+	std::string val;
+	in >> val;
+	boost::to_upper(val);
+	if (val == "SMALL") v = BUFFER_SIZE_SMALL;
+	else if (val == "MEDIUM") v = BUFFER_SIZE_MEDIUM;
+	else if (val == "LARGE") v = BUFFER_SIZE_LARGE;
+	else if (val == "HUGE" || val == "VERY_LARGE") v = BUFFER_SIZE_VERY_LARGE;
+	else {
+		REGEN_WARN("Unknown buffer size class '" << val << "'. Using SMALL.");
+		v = BUFFER_SIZE_SMALL;
+	}
+	return in;
+}

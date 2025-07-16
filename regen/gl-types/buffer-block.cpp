@@ -232,21 +232,21 @@ void BufferBlock::updateStorageFlags() {
 			if (stagingFlags_.areUpdatesFrequent()) {
 				// (a) use single-buffered coherent persistent mapping for frequent updates.
 				setStagingBuffering(SINGLE_BUFFER);
-				//setStagingMapMode(BUFFER_MAP_TEMPORARY);
+				setStagingMapMode(BUFFER_MAP_TEMPORARY);
 				//setSyncFlag(BUFFER_SYNC_DISABLE_FENCING);
-				enablePersistentMapping_(false);
+				//enablePersistentMapping_(false);
 			} else if (stagingFlags_.areUpdatesVeryFrequent()) {
-				// (b) use double-buffered coherent persistent mapping for very frequent updates.
+				// (b) use single-buffered coherent persistent mapping for very frequent updates.
 				// TODO: Consider using UNSYNCHRONIZED for very high frequency updates.
-				setStagingBuffering(DOUBLE_BUFFER);
-				//setStagingMapMode(BUFFER_MAP_TEMPORARY);
-				enablePersistentMapping_(false);
+				setStagingBuffering(SINGLE_BUFFER);
+				setStagingMapMode(BUFFER_MAP_TEMPORARY);
+				//enablePersistentMapping_(false);
 			} else {
 				// (c) use single-buffered coherent persistent mapping for rare updates.
 				setStagingBuffering(SINGLE_BUFFER);
-				//setStagingMapMode(BUFFER_MAP_TEMPORARY);
+				setStagingMapMode(BUFFER_MAP_TEMPORARY);
 				//setSyncFlag(BUFFER_SYNC_DISABLE_FENCING);
-				enablePersistentMapping_(false);
+				//enablePersistentMapping_(false);
 				// TODO: Consider using implicit staging instead for small writable buffers with infrequent full updates.
 				//       - It could be worthwhile to enable multi-buffering with implicit staging for slightly
 				//       larger buffers, e.g. 256 Bytes to a few KB e.g. 8KB. then classify >8KB as medium.
@@ -258,7 +258,7 @@ void BufferBlock::updateStorageFlags() {
 			}
 		} else if (sizeClass == BUFFER_SIZE_MEDIUM) {
 			// If the buffer is medium sized (e.g. < 64KB), then ...
-			if (stagingFlags_.areUpdatesFrequent() || stagingFlags_.areUpdatesVeryFrequent()) {
+			if (stagingFlags_.areUpdatesFrequent()) {
 				// (a) use 3-ring staging buffer with persistent mapping for frequent updates.
 				//     In addition, use explicit flushing in case of partial updates.
 				setStagingBuffering(TRIPLE_BUFFER);
@@ -267,6 +267,9 @@ void BufferBlock::updateStorageFlags() {
 #else
 				enablePersistentMapping_(stagingFlags_.areUpdatesPartial());
 #endif
+			} else if (stagingFlags_.areUpdatesVeryFrequent()) {
+				setStagingBuffering(SINGLE_BUFFER);
+				setStagingMapMode(BUFFER_MAP_TEMPORARY);
 			} else {
 				// (b) use single-buffering in staging with unmapped copy
 				//     or temporary mapping for infrequent updates.
@@ -279,9 +282,12 @@ void BufferBlock::updateStorageFlags() {
 			}
 		} else if (sizeClass == BUFFER_SIZE_LARGE) {
 			// If the buffer is large (e.g. < 1MB)
-			if (stagingFlags_.areUpdatesFrequent() || stagingFlags_.areUpdatesVeryFrequent()) {
+			if (stagingFlags_.areUpdatesFrequent()) {
 				// (a) if updates are frequent, then use 2-ring staging buffer with range invalidation.
 				setStagingBuffering(DOUBLE_BUFFER);
+				setStagingMapMode(BUFFER_MAP_TEMPORARY);
+			} else if (stagingFlags_.areUpdatesVeryFrequent()) {
+				setStagingBuffering(SINGLE_BUFFER);
 				setStagingMapMode(BUFFER_MAP_TEMPORARY);
 			} else {
 				// (b) if updates are infrequent, then use single-buffering in staging and avoid mapping
@@ -576,9 +582,9 @@ void BufferBlock::resize() {
 	}
 
 	REGEN_INFO("Created "
+			<< std::setw(6) << std::setfill(' ') << getBufferSizeClass(requiredSize_) << " "
 			<< stagingFlags_
 			<< " \"" << getBlockName() << "\" with "
-			<< " size-class: " << getBufferSizeClass(requiredSize_)
 			<< " size: " << requiredSize_ << " Bytes");
 }
 

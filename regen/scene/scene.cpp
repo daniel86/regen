@@ -412,6 +412,7 @@ void Scene::initializePerFrameUpdates() {
 				if (bufferBlock && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
 					perFrameInputUpdates_.emplace_back(bufferBlock);
 					bufferBlock->setAutoUpdate(false);
+					bufferBlock->update();
 				}
 			}
 
