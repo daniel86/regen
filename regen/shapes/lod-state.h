@@ -82,6 +82,8 @@ namespace regen {
 		void traverseCPU(RenderState *rs);
 
 		void traverseGPU(RenderState *rs);
+
+		void updateFrustumBuffer();
 	};
 }
 

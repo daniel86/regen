@@ -172,15 +172,15 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const BufferMapMode &mode) {
 		switch (mode) {
 			case BUFFER_MAP_DISABLED:
-				return out << "DISABLED";
+				return out << "MAP_DISABLED";
 			case BUFFER_MAP_TEMPORARY:
-				return out << "TEMPORARY";
+				return out << "MAP_TEMPORARY";
 			case BUFFER_MAP_PERSISTENT_COHERENT:
 				return out << "PERSISTENT_COHERENT";
 			case BUFFER_MAP_PERSISTENT_FLUSH:
 				return out << "PERSISTENT_FLUSH";
 			case BUFFER_MAP_LAST:
-				return out << "DISABLED"; // default case
+				return out << "MAP_DISABLED"; // default case
 		}
 		return out;
 	}
@@ -189,10 +189,10 @@ namespace regen {
 		std::string val;
 		in >> val;
 		boost::to_upper(val);
-		if (val == "DISABLED") mode = BUFFER_MAP_DISABLED;
-		else if (val == "TEMPORARY") mode = BUFFER_MAP_TEMPORARY;
-		else if (val == "PERSISTENT_COHERENT") mode = BUFFER_MAP_PERSISTENT_COHERENT;
-		else if (val == "PERSISTENT_FLUSH") mode = BUFFER_MAP_PERSISTENT_FLUSH;
+		if (val == "MAP_DISABLED" || val == "DISABLED") mode = BUFFER_MAP_DISABLED;
+		else if (val == "MAP_TEMPORARY" || val == "TEMPORARY") mode = BUFFER_MAP_TEMPORARY;
+		else if (val == "MAP_PERSISTENT_COHERENT" || val == "PERSISTENT_COHERENT") mode = BUFFER_MAP_PERSISTENT_COHERENT;
+		else if (val == "MAP_PERSISTENT_FLUSH" || val == "PERSISTENT_FLUSH") mode = BUFFER_MAP_PERSISTENT_FLUSH;
 		else {
 			REGEN_WARN("Unknown buffer map mode '" << val << "'. Using default DISABLED.");
 			mode = BUFFER_MAP_DISABLED;
@@ -330,11 +330,11 @@ namespace regen {
 			case PIXEL_UNPACK_BUFFER:
 				return out << "PIXEL_UNPACK_BUFFER";
 			case UNIFORM_BUFFER:
-				return out << "UNIFORM_BUFFER";
+				return out << "UBO";
 			case TEXTURE_BUFFER:
-				return out << "TEXTURE_BUFFER";
+				return out << "TBO";
 			case SHADER_STORAGE_BUFFER:
-				return out << "SHADER_STORAGE_BUFFER";
+				return out << "SSBO";
 			case TRANSFORM_FEEDBACK_BUFFER:
 				return out << "TRANSFORM_FEEDBACK_BUFFER";
 			case COPY_READ_BUFFER:
@@ -359,9 +359,9 @@ namespace regen {
 		else if (val == "ELEMENT_ARRAY_BUFFER") mode = ELEMENT_ARRAY_BUFFER;
 		else if (val == "PIXEL_PACK_BUFFER") mode = PIXEL_PACK_BUFFER;
 		else if (val == "PIXEL_UNPACK_BUFFER") mode = PIXEL_UNPACK_BUFFER;
-		else if (val == "UNIFORM_BUFFER") mode = UNIFORM_BUFFER;
-		else if (val == "TEXTURE_BUFFER") mode = TEXTURE_BUFFER;
-		else if (val == "SHADER_STORAGE_BUFFER") mode = SHADER_STORAGE_BUFFER;
+		else if (val == "UBO" || val == "UNIFORM_BUFFER") mode = UNIFORM_BUFFER;
+		else if (val == "TBO" || val == "TEXTURE_BUFFER") mode = TEXTURE_BUFFER;
+		else if (val == "SSBO" || val == "SHADER_STORAGE_BUFFER") mode = SHADER_STORAGE_BUFFER;
 		else if (val == "TRANSFORM_FEEDBACK_BUFFER") mode = TRANSFORM_FEEDBACK_BUFFER;
 		else if (val == "COPY_READ_BUFFER") mode = COPY_READ_BUFFER;
 		else if (val == "COPY_WRITE_BUFFER") mode = COPY_WRITE_BUFFER;
@@ -376,15 +376,13 @@ namespace regen {
 	}
 
 	std::ostream &operator<<(std::ostream &out, const BufferFlags &v) {
-		out << "{ ";
-		out << "target: " << v.target << ", ";
-		out << "update: (" << v.updateHints.frequency << "," << v.updateHints.scope << "), ";
-		out << "staging: " << (v.useExplicitStaging() ? "explicit" : "implicit") << ", ";
-		out << "access: " << v.accessMode << ", ";
-		out << "map: " << v.mapMode << ", ";
-		out << "buffering: " << v.bufferingMode << ", ";
-		out << "dropping: " << (v.useFrameDropping() ? "1" : "0");
-		out << "}";
+		out << (v.useExplicitStaging() ? "explicit" : "implicit") << " ";
+		out << v.bufferingMode << " ";
+		out << std::setw(20) << std::setfill(' ') << v.mapMode << " ";
+		out << std::setw(20) << std::setfill(' ') <<
+			REGEN_STRING(v.updateHints.scope << "+" << v.updateHints.frequency) << " ";
+		out << std::setw(14) << std::setfill(' ') << v.accessMode << " ";
+		out << std::setw(5) << std::setfill(' ') << v.target;
 		return out;
 	}
 }
@@ -418,6 +416,29 @@ std::istream &regen::operator>>(std::istream &in, BufferMemoryLayout &v) {
 	else {
 		REGEN_WARN("Unknown memory layout '" << val << "'. Using STD140.");
 		v = BUFFER_MEMORY_STD140;
+	}
+	return in;
+}
+
+std::ostream &regen::operator<<(std::ostream &out, const BufferingMode &v) {
+	switch (v) {
+		case SINGLE_BUFFER: return out << "SINGLE_BUFFER";
+		case DOUBLE_BUFFER: return out << "DOUBLE_BUFFER";
+		case TRIPLE_BUFFER: return out << "TRIPLE_BUFFER";
+	}
+	return out;
+}
+
+std::istream &regen::operator>>(std::istream &in, BufferingMode &v) {
+	std::string val;
+	in >> val;
+	boost::to_upper(val);
+	if (val == "SINGLE_BUFFER") v = SINGLE_BUFFER;
+	else if (val == "DOUBLE_BUFFER") v = DOUBLE_BUFFER;
+	else if (val == "TRIPLE_BUFFER") v = TRIPLE_BUFFER;
+	else {
+		REGEN_WARN("Unknown memory layout '" << val << "'. Using SINGLE_BUFFER.");
+		v = SINGLE_BUFFER;
 	}
 	return in;
 }

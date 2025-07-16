@@ -209,8 +209,10 @@ void* StagingBuffer::beginMappedWrite(bool isPartialWrite, uint32_t localOffset,
 		// if we have a persistent mapping, we need to wait for the fence.
 		// the fence marks the point where the segment we want to write to was consumed.
 		// in case of explicit staging, this is the point where staging buffer was copied to the GPU buffer.
-		if(!writeSegment.writeFence.wait(flags_.useFrameDropping())) {
-			return nullptr; // drop frame
+		if (flags_.useSyncFences()) {
+			if(!writeSegment.writeFence.wait(flags_.useFrameDropping())) {
+				return nullptr; // drop frame
+			}
 		}
 		return writeSegment.mappedPtr + localOffset;
 	}
@@ -273,7 +275,7 @@ void StagingBuffer::endMappedWrite(BufferRange &nextDrawBuffer) {
 			readBuffer->address() + readSegment.offset,
 			refGPU_->address(),
 			segmentSize_);
-		if (storageFlags_ & MAP_PERSISTENT) {
+		if (storageFlags_ & MAP_PERSISTENT && flags_.useSyncFences()) {
 			// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
 			// written data of this frame has been consumed by the GPU.
 			readSegment.writeFence.setFencePoint();

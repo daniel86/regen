@@ -151,6 +151,8 @@ namespace regen {
 		// e.g. in case of reading this means that the read data might not be up to date
 		// after read finished!
 		BUFFER_SYNC_FRAME_DROPPING = 1 << 1,
+		// Do not use fences for protecting read/write operations.
+		BUFFER_SYNC_DISABLE_FENCING = 1 << 2,
 	};
 
 	/**
@@ -278,6 +280,10 @@ namespace regen {
 			return (syncFlags & BUFFER_SYNC_FRAME_DROPPING) != 0;
 		}
 
+		bool useSyncFences() const {
+			return (syncFlags & BUFFER_SYNC_DISABLE_FENCING) == 0;
+		}
+
 		bool isMappable() const {
 			return mapMode != BUFFER_MAP_DISABLED && accessMode != BUFFER_GPU_ONLY;
 		}
@@ -344,6 +350,10 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const BufferMemoryLayout &v);
 
 	std::istream &operator>>(std::istream &in, BufferMemoryLayout &v);
+
+	std::ostream &operator<<(std::ostream &out, const BufferingMode &v);
+
+	std::istream &operator>>(std::istream &in, BufferingMode &v);
 } // namespace
 
 #endif /* REGEN_BUFFER_ENUMS_H_ */

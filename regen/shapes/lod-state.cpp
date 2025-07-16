@@ -573,23 +573,28 @@ void LODState::createComputeShader() {
 	}
 }
 
+void LODState::updateFrustumBuffer() {
+	auto &frustum = camera_->frustum();
+	auto frustum_cpu =
+		frustumData_->mapClientData<Vec4f>(ShaderData::WRITE);
+	for (size_t i = 0; i < frustum.size(); ++i) {
+		auto &frustumPlanes = frustum[i].planes;
+		for (int j = 0; j < 6; ++j) {
+			frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
+		}
+	}
+}
+
 void LODState::traverseGPU(RenderState *rs) {
 	// copy the clear buffer to the indirect draw buffer
-	// TODO: better use a shader to clear the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
 
 	if (cameraStamp_ != camera_->stamp()) {
 		// Update the frustum planes in the UBO
+		// TODO: better do this in animation loop
 		cameraStamp_ = camera_->stamp();
-		auto &frustum = camera_->frustum();
-		auto frustum_cpu =
-			frustumData_->mapClientData<Vec4f>(ShaderData::WRITE);
-		for (size_t i = 0; i < frustum.size(); ++i) {
-			auto &frustumPlanes = frustum[i].planes;
-			for (int j = 0; j < 6; ++j) {
-				frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
-			}
-		}
+		updateFrustumBuffer();
+		frustumUBO_->update();
 	}
 	if (tfStamp_ != cullShape_->tf()->stamp()) {
 		// Update the transform in the cull pass

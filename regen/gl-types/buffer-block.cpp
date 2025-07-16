@@ -12,6 +12,7 @@ using namespace regen;
 //#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
 //#define BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
 
+// note: camera is currently with 448 bytes slightly below 512 bytes
 uint32_t BufferBlock::MIN_SIZE_MEDIUM = 512; // Bytes
 uint32_t BufferBlock::MIN_SIZE_LARGE = 64 * 1024; // 64 KiB
 uint32_t BufferBlock::MIN_SIZE_VERY_LARGE = 1024 * 1024; // 1 MiB
@@ -213,10 +214,14 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	bufferInput->input = input;
 	blockInputs_.emplace_back(bufferInput);
 	inputs_.emplace_back(input, name);
-	estimatedSize_ += input->numElements() * input->elementSize();
+	estimatedSize_ += input->elementSize();
+	hasClientData_ = input->hasClientData() && hasClientData_;
+	updateStorageFlags();
+}
 
+void BufferBlock::updateStorageFlags() {
 	// update the storage flags based on added inputs
-	if (input->hasClientData() && flags_.updateHints.frequency != BUFFER_UPDATE_NEVER) {
+	if (hasClientData_ && flags_.updateHints.frequency != BUFFER_UPDATE_NEVER) {
 		auto sizeClass = getBufferSizeClass(estimatedSize_);
 		// input has client data, so we need to set the access mode such that the CPU can write to it.
 		enableWriteAccess();
@@ -226,19 +231,25 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 			if (stagingFlags_.areUpdatesFrequent()) {
 				// (a) use single-buffered coherent persistent mapping for frequent updates.
 				setStagingBuffering(SINGLE_BUFFER);
+				//setStagingMapMode(BUFFER_MAP_TEMPORARY);
+				//setSyncFlag(BUFFER_SYNC_DISABLE_FENCING);
 				enablePersistentMapping_(false);
 			} else if (stagingFlags_.areUpdatesVeryFrequent()) {
 				// (b) use double-buffered coherent persistent mapping for very frequent updates.
 				// TODO: Consider using UNSYNCHRONIZED for very high frequency updates.
 				setStagingBuffering(DOUBLE_BUFFER);
+				//setStagingMapMode(BUFFER_MAP_TEMPORARY);
 				enablePersistentMapping_(false);
 			} else {
 				// (c) use single-buffered coherent persistent mapping for rare updates.
 				setStagingBuffering(SINGLE_BUFFER);
+				//setStagingMapMode(BUFFER_MAP_TEMPORARY);
+				//setSyncFlag(BUFFER_SYNC_DISABLE_FENCING);
 				enablePersistentMapping_(false);
 				// TODO: Consider using implicit staging instead for small writable buffers with infrequent full updates.
 				//       - It could be worthwhile to enable multi-buffering with implicit staging for slightly
 				//       larger buffers, e.g. 256 Bytes to a few KB e.g. 8KB. then classify >8KB as medium.
+				// TODO: maybe better use temporary mapping here?
 				//if (!stagingFlags_.areUpdatesPartial()) {
 				//	stagingFlags_.syncFlags |= BUFFER_SYNC_IMPLICIT_STAGING;
 				//	setStagingMapMode(BUFFER_MAP_DISABLED);
@@ -515,6 +526,10 @@ void BufferBlock::resize() {
 		free(ref_.get());
 	}
 
+	estimatedSize_ = requiredSize_;
+	// FIXME: this will overwrite any user configuration for write buffers!
+	updateStorageFlags();
+
 	// if neither read nor write access is allowed, we can use implicit staging.
 	if (!stagingFlags_.isWritable() && !stagingFlags_.isReadable()) {
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
@@ -559,12 +574,11 @@ void BufferBlock::resize() {
 		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 	}
 
-	REGEN_INFO("Created buffer \"" << getBlockName() << "\""
+	REGEN_INFO("Created "
+			<< stagingFlags_
+			<< " \"" << getBlockName() << "\" with "
 			<< " size-class: " << getBufferSizeClass(requiredSize_)
-			<< " required-size: " << requiredSize_
-			<< " estimated-size: " << estimatedSize_
-			<< "\n\t   draw-flags: " << flags_
-			<< "\n\tstaging-flags: " << stagingFlags_);
+			<< " size: " << requiredSize_ << " Bytes");
 }
 
 void BufferBlock::update(bool forceUpdate) {
@@ -598,6 +612,9 @@ void BufferBlock::update(bool forceUpdate) {
 	auto t2 = std::chrono::high_resolution_clock::now();
 #endif
 	if (hasClientData_) {
+		// FIXME: in case of multi-buffering with <UPDATE_PER_FRAME, a single update might not be propagated
+		//        to the draw buffer ever! In this case update must be called in n frames where n
+		//        is the number of buffer segments.
 		if (isMapModePersistent(stagingFlags_.mapMode)) {
 			updatePersistentMapped();
 		} else if (stagingFlags_.mapMode == BUFFER_MAP_TEMPORARY) {

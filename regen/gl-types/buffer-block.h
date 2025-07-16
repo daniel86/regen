@@ -262,7 +262,7 @@ namespace regen {
 		int bindingIndex_ = -1;
 		SpinLock lock_;
 
-		bool hasClientData_ = false;
+		bool hasClientData_ = true;
 		bool isBlockValid_ = true;
 
 		std::vector<NamedShaderInput> inputs_;
@@ -325,6 +325,8 @@ namespace regen {
 		void appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx);
 
 		inline uint32_t& lastInputStamp(BlockInput &blockInput);
+
+		void updateStorageFlags();
 
 		void enableWriteAccess();
 
