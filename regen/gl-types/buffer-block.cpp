@@ -780,6 +780,25 @@ void BufferBlock::updateAllBuffers() {
 	}
 }
 
+void BufferBlock::bind(GLint loc) {
+	auto *rs = RenderState::get();
+	if (bindingIndex_ != loc && bindingIndex_ != -1) {
+		// seems the buffer switched to another index!
+		// this is something the buffer manager should try to avoid, but there are some situations
+		// where it might be difficult.
+		// In case of doing the switch, we need to unbind the old binding index.
+		auto &actual = rs->bufferRange(glTarget_).value(bindingIndex_);
+		if (actual.buffer_ == ref_->bufferID() &&
+			actual.offset_ == ref_->address() &&
+			actual.size_ == ref_->allocatedSize()) {
+			rs->bufferRange(glTarget_).apply(bindingIndex_, BufferRange::nullReference());
+			bindingIndex_ = -1;
+		}
+	}
+	rs->bufferRange(glTarget_).apply(loc, *drawBufferRange_.get());
+	bindingIndex_ = loc;
+}
+
 void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBlockValid_) return;
 	auto *rs = RenderState::get();

@@ -199,6 +199,11 @@ namespace regen {
 		void enableBufferBlock(GLint loc);
 
 		/**
+		 * Binds the uniform block to the given shader location.
+		 */
+		void bind(GLint loc);
+
+		/**
 		 * Lock the UBO, preventing updates.
 		 */
 		void lock() { lock_.lock(); }
