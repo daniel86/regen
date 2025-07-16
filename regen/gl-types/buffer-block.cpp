@@ -63,7 +63,8 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  stagingFlags_(other.stagingFlags_),
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  stagingBuffer_(other.stagingBuffer_),
-		  drawBufferRange_(other.drawBufferRange_) {
+		  drawBufferRange_(other.drawBufferRange_),
+		  useAutoUpdate_(other.useAutoUpdate_) {
 }
 
 BufferBlock::BufferBlock(const BufferObject &other)
@@ -816,7 +817,7 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 			bindingIndex_ = -1;
 		}
 	}
-	if (flags_.updateHints.frequency > BUFFER_UPDATE_PER_FRAME || !ref_.get()) {
+	if (useAutoUpdate_) {
 		// if the buffer is updated per draw, we need to update it first
 		// Note: in the other cases, buffers are updated centrally (@see Scene)
 		update();

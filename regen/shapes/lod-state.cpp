@@ -499,6 +499,7 @@ void LODState::createComputeShader() {
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
 				BufferUpdateFlags::FULL_PER_FRAME,
 				SSBO::RESTRICT);
+		indirectDrawBuffers_[partIdx]->setAutoUpdate(false); // we update explicitly
 		indirectDrawBuffers_[partIdx]->addBlockInput(ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 				"DrawCommand",
 				REGEN_STRING("drawParams"<<suffix),
@@ -548,6 +549,7 @@ void LODState::createComputeShader() {
 		frustumData_->setUniformUntyped();
 		frustumUBO_->addBlockInput(frustumData_);
 		frustumUBO_->update();
+		setInput(frustumUBO_);
 
 		StateConfigurer shaderCfg;
 		if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {

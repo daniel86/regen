@@ -194,6 +194,12 @@ namespace regen {
 		void update(bool forceUpdate = false);
 
 		/**
+		 * If enabled, the block will be updated automatically each time it is enabled.
+		 * @param v true to enable auto-update, false to disable.
+		 */
+		void setAutoUpdate(bool v) { useAutoUpdate_ = v; }
+
+		/**
 		 * Binds the uniform block to the given shader location.
 		 */
 		void enableBufferBlock(GLint loc);
@@ -320,6 +326,8 @@ namespace regen {
 		std::optional<BufferingMode> userDefinedBufferingMode_ = std::nullopt;
 		ref_ptr<StagingBuffer> stagingBuffer_;
 		ref_ptr<BufferRange> drawBufferRange_;
+
+		bool useAutoUpdate_ = true;
 
 		inline void resetDirtySegments();
 

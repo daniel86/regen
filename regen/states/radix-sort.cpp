@@ -77,6 +77,7 @@ void RadixSort::createResources() {
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
+	keyBuffer_->setAutoUpdate(false);
 	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeys_);
 	keys->set_forceArray(true);
 	keyBuffer_->addBlockInput(keys);
@@ -87,6 +88,7 @@ void RadixSort::createResources() {
 		values1->set_forceArray(true);
 		if (userValueBuffer_.get()) {
 			valueBuffer_[0] = ref_ptr<SSBO>::alloc(*userValueBuffer_.get(), "ValueBuffer");
+			valueBuffer_[0]->setAutoUpdate(false);
 			while (!valueBuffer_[0]->blockInputs().empty()) {
 				valueBuffer_[0]->removeBlockInput(valueBuffer_[0]->blockInputs().front().name_);
 			}
@@ -95,6 +97,7 @@ void RadixSort::createResources() {
 			valueBuffer_[0] = ref_ptr<SSBO>::alloc("ValueBuffer",
 					BufferUpdateFlags::FULL_PER_FRAME,
 					SSBO::RESTRICT);
+			valueBuffer_[0]->setAutoUpdate(false);
 		}
 		valueBuffer_[0]->addBlockInput(values1);
 		valueBuffer_[0]->setStagingAccessMode(BUFFER_GPU_ONLY);
@@ -106,6 +109,7 @@ void RadixSort::createResources() {
 		} else {
 			valueBuffer_[0] = ref_ptr<SSBO>::alloc("ValueBuffer1",
 					BufferUpdateFlags::FULL_PER_FRAME, SSBO::RESTRICT);
+			valueBuffer_[0]->setAutoUpdate(false);
 			auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_);
 			values1->set_forceArray(true);
 			valueBuffer_[0]->addBlockInput(values1);
@@ -113,6 +117,7 @@ void RadixSort::createResources() {
 		}
 		valueBuffer_[1] = ref_ptr<SSBO>::alloc("ValueBuffer2",
 				BufferUpdateFlags::FULL_PER_FRAME, SSBO::RESTRICT);
+		valueBuffer_[1]->setAutoUpdate(false);
 		auto values2 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_);
 		values2->set_forceArray(true);
 		valueBuffer_[1]->addBlockInput(values2);
@@ -122,6 +127,7 @@ void RadixSort::createResources() {
 	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
+	globalHistogramBuffer_->setAutoUpdate(false);
 	globalHistogramBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc(
 			"globalHistogram", numBuckets_ * numWorkGroups));
 	globalHistogramBuffer_->update();

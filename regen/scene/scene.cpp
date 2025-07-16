@@ -6,6 +6,7 @@
 #include <regen/textures/texture-binder.h>
 #include "scene.h"
 #include "regen/animations/animation-manager.h"
+#include "regen/states/light-pass.h"
 
 //#define REGEN_ENABLE_GL_DEBUG_OUTPUT
 
@@ -375,6 +376,11 @@ void Scene::initializePerFrameUpdates() {
 	std::set<const ShaderInput*> visited;
 	nodeQueue.push(renderTree_.get());
 
+	for (auto &anim : AnimationManager::get().graphicsAnimations()) {
+		if(anim->animationState().get() != nullptr)
+			stateQueue.push(anim->animationState().get());
+	}
+
 	perFrameInputUpdates_.clear();
 	perFrameInputUpdates_.reserve(20);
 
@@ -393,14 +399,19 @@ void Scene::initializePerFrameUpdates() {
 			const State *state = stateQueue.top();
 			stateQueue.pop();
 
+			const auto *lp = dynamic_cast<const LightPass*>(state);
+			if (lp) {
+				for (const auto &light: lp->lights()) {
+					stateQueue.push(light.light.get());
+				}
+			}
+
 			for (const auto &ni: state->inputs()) {
 				auto input = ni.in_;
-				if (input->dataTypeBytes() == 0) {
-					// we have a buffer block here
-					BufferBlock *bufferBlock = dynamic_cast<BufferBlock*>(input.get());
-					if (bufferBlock && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
-						perFrameInputUpdates_.emplace_back(bufferBlock);
-					}
+				BufferBlock *bufferBlock = dynamic_cast<BufferBlock*>(input.get());
+				if (bufferBlock && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
+					perFrameInputUpdates_.emplace_back(bufferBlock);
+					bufferBlock->setAutoUpdate(false);
 				}
 			}
 
