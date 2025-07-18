@@ -1,5 +1,5 @@
 #include "screen-state.h"
-#include "regen/gl-types/fbo.h"
+#include "regen/buffer/fbo.h"
 
 using namespace regen;
 

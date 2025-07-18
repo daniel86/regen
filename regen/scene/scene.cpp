@@ -1,8 +1,8 @@
 #include <GL/glew.h>
-#include <regen/gl-types/glsl/includer.h>
+#include "regen/glsl/includer.h"
 #include <regen/config.h>
 #include <regen/gl-types/gl-param.h>
-#include <regen/gl-types/binding-manager.h>
+#include <regen/buffer/binding-manager.h>
 #include <regen/textures/texture-binder.h>
 #include "scene.h"
 #include "regen/animations/animation-manager.h"

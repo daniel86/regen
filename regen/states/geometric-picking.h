@@ -2,12 +2,12 @@
 #define GEOM_PICKING_STATE_H_
 
 #include <regen/states/state.h>
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 #include "regen/camera/camera.h"
 #include "state-node.h"
 #include "pick-data.h"
-#include "regen/gl-types/pbo.h"
-#include "regen/gl-types/staging-buffer.h"
+#include "regen/buffer/pbo.h"
+#include "regen/buffer/staging-buffer.h"
 
 namespace regen {
 	/**

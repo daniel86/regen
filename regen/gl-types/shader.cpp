@@ -2,11 +2,11 @@
 
 #include <regen/utility/logging.h>
 #include <regen/gl-types/gl-enum.h>
-#include <regen/gl-types/glsl/directive-processor.h>
-#include <regen/gl-types/glsl/io-processor.h>
-#include <regen/gl-types/glsl/comment-processor.h>
+#include "regen/glsl/directive-processor.h"
+#include "regen/glsl/io-processor.h"
+#include "regen/glsl/comment-processor.h"
+#include <regen/buffer/binding-manager.h>
 #include "shader.h"
-#include "binding-manager.h"
 
 using namespace regen;
 

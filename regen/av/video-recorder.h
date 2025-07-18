@@ -8,10 +8,10 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 #include <regen/animations/animation.h>
 #include "video-encoder.h"
-#include "regen/gl-types/pbo.h"
+#include "regen/buffer/pbo.h"
 
 namespace regen {
 	/**

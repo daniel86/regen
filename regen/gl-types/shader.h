@@ -7,8 +7,8 @@
 #include <regen/gl-types/render-state.h>
 #include <regen/gl-types/input-location.h>
 #include <regen/textures/texture-location.h>
-#include <regen/gl-types/glsl/preprocessor.h>
-#include <regen/gl-types/glsl/preprocessor-config.h>
+#include "regen/glsl/preprocessor.h"
+#include "regen/glsl/preprocessor-config.h"
 
 namespace regen {
 	/**

@@ -5,7 +5,7 @@
 #include <map>
 #include <atomic>
 
-#include <regen/gl-types/buffer-reference.h>
+#include <regen/buffer/buffer-reference.h>
 #include <regen/gl-types/gl-enum.h>
 #include <regen/gl-types/shader-data.h>
 #include <regen/utility/ref-ptr.h>

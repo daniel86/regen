@@ -4,7 +4,7 @@
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
 #include <regen/meshes/sky-box.h>
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 
 namespace regen {
 	/**

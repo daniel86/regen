@@ -7,7 +7,7 @@
 #include <regen/shapes/frustum.h>
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/model-transformation.h>
-#include "regen/gl-types/ubo.h"
+#include "regen/buffer/ubo.h"
 #include "regen/meshes/lod/lod-level.h"
 
 namespace regen {

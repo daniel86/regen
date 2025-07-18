@@ -6,9 +6,9 @@
 #include <regen/states/state.h>
 #include <regen/states/state-config.h>
 #include <regen/states/feedback-state.h>
-#include <regen/gl-types/vbo.h>
+#include <regen/buffer/vbo.h>
 #include <regen/gl-types/vao.h>
-#include <regen/gl-types/ssbo.h>
+#include <regen/buffer/ssbo.h>
 #include <regen/gl-types/shader.h>
 #include <regen/animations/animation.h>
 #include "regen/physics/physical-object.h"

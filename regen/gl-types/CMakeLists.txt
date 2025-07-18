@@ -1,8 +1,7 @@
 
-
 # list of files in this directory
-file(GLOB SOURCES *.cpp glsl/*.cpp queries/*.cpp)
-file(GLOB HEADER_FILES *.h glsl/*.h queries/*.h)
+file(GLOB SOURCES *.cpp queries/*.cpp)
+file(GLOB HEADER_FILES *.h queries/*.h)
 
 install(
     FILES ${HEADER_FILES}

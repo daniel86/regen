@@ -1,16 +1,9 @@
-/*
- * bones.h
- *
- *  Created on: 05.08.2012
- *      Author: daniel
- */
-
 #ifndef REGEN_BONES_H
 #define REGEN_BONES_H
 
 #include <regen/states/state.h>
 #include <regen/animations/animation-node.h>
-#include <regen/gl-types/vbo.h>
+#include <regen/buffer/vbo.h>
 #include <regen/textures/texture-state.h>
 #include <regen/textures/texture-buffer.h>
 

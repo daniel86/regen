@@ -1,7 +1,7 @@
 #ifndef REGEN_ATOMIC_COUNTER_H_
 #define REGEN_ATOMIC_COUNTER_H_
 
-#include <regen/gl-types/buffer-object.h>
+#include <regen/buffer/buffer-object.h>
 #include "regen/shapes/bounds.h"
 
 namespace regen {

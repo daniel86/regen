@@ -1,12 +1,12 @@
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
 #include <regen/animations/animation.h>
+#include <regen/buffer/ubo.h>
+#include <regen/buffer/ssbo.h>
 #include <stack>
 
 #include "shader-input.h"
-#include "ubo.h"
 #include "regen/scene/mesh-processor.h"
-#include "ssbo.h"
 
 #ifndef BUFFER_OFFSET
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))

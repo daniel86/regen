@@ -1,6 +1,6 @@
 #include "TextureWidget.h"
 #include "RegenWidgetGL.h"
-#include "regen/gl-types/fbo.h"
+#include "regen/buffer/fbo.h"
 #include "regen/states/fbo-state.h"
 #include "regen/textures/texture-state.h"
 #include "regen/states/shader-state.h"

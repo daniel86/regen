@@ -9,6 +9,8 @@ set(SOURCE_DIRS
     math
     av
     gl-types
+    glsl
+    buffer
     utility
     shapes
     animations
@@ -22,8 +24,6 @@ set(SOURCE_DIRS
     scene
     sky
     external)
-
-add_subdirectory(glsl)
 
 # collect sources from sub directories
 foreach(DIR ${SOURCE_DIRS})

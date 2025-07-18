@@ -8,8 +8,8 @@
 #include <regen/utility/string-util.h>
 #include <regen/states/light-state.h>
 #include <regen/states/material-state.h>
-#include <regen/gl-types/glsl/directive-processor.h>
-#include <regen/gl-types/glsl/includer.h>
+#include "regen/glsl/directive-processor.h"
+#include "regen/glsl/includer.h"
 
 #include "shader-state.h"
 #include "state-configurer.h"

@@ -7,7 +7,7 @@
 
 #include <regen/sky/sky-layer.h>
 #include <regen/sky/sky.h>
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 #include "regen/external/osghimmel/coords.h"
 
 namespace regen {

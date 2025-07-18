@@ -1,15 +1,8 @@
-/*
- * blit-to-screen.h
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
 #ifndef BLIT_TO_SCREEN_H_
 #define BLIT_TO_SCREEN_H_
 
 #include <regen/states/state.h>
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 
 namespace regen {
 	class BlitState : public State {

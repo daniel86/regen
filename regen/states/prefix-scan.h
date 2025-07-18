@@ -2,7 +2,7 @@
 #define REGEN_PREFIX_SCAN_H
 
 #include <regen/states/state.h>
-#include "regen/gl-types/ssbo.h"
+#include "regen/buffer/ssbo.h"
 #include "compute-pass.h"
 
 namespace regen {

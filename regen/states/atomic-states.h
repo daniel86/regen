@@ -1,15 +1,8 @@
-/*
- * atomic-states.h
- *
- *  Created on: 28.02.2013
- *      Author: daniel
- */
-
 #ifndef ATOMIC_STATES_H_
 #define ATOMIC_STATES_H_
 
 #include <regen/states/state.h>
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 
 namespace regen {
 	/**

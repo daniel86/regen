@@ -1,16 +1,9 @@
-/*
- * fbo-state.h
- *
- *  Created on: 03.08.2012
- *      Author: daniel
- */
-
 #ifndef REGEN_FBO_STATE_H_
 #define REGEN_FBO_STATE_H_
 
 #include <regen/states/state.h>
 #include <regen/states/atomic-states.h>
-#include <regen/gl-types/fbo.h>
+#include <regen/buffer/fbo.h>
 
 namespace regen {
 	/**
