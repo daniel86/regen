@@ -61,11 +61,6 @@ void RadixSort::createResources() {
 		radixHistogramPass_->computeState()->shaderDefine("NUM_SORT_KEYS", REGEN_STRING(numKeys_));
 		radixHistogramPass_->computeState()->setNumWorkUnits(static_cast<int>(numKeys_), 1, 1);
 		radixHistogramPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
-
-		radixScatterPass_ = ref_ptr<ComputePass>::alloc("regen.compute.sort.radix.scatter");
-		radixScatterPass_->computeState()->shaderDefine("NUM_SORT_KEYS", REGEN_STRING(numKeys_));
-		radixScatterPass_->computeState()->setNumWorkUnits(static_cast<int>(numKeys_), 1, 1);
-		radixScatterPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
 	}
 	const uint32_t numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	REGEN_INFO("GPU radix sort with " << numKeys_ << " keys, "
@@ -168,6 +163,10 @@ void RadixSort::createResources() {
 	}
 
 	{ // radix sort
+		radixScatterPass_ = ref_ptr<ComputePass>::alloc("regen.compute.sort.radix.scatter");
+		radixScatterPass_->computeState()->shaderDefine("NUM_SORT_KEYS", REGEN_STRING(numKeys_));
+		radixScatterPass_->computeState()->setNumWorkUnits(static_cast<int>(numKeys_), 1, 1);
+		radixScatterPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
 		radixScatterPass_->setInput(globalHistogramBuffer_);
 		radixScatterPass_->setInput(keyBuffer_);
 		StateConfigurer shaderCfg;

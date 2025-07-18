@@ -231,6 +231,7 @@ void BufferBlock::updateStorageFlags() {
 			// If the buffer is small (e.g. < 512 Byte), then ...
 			if (stagingFlags_.areUpdatesFrequent()) {
 				// (a) use single-buffered coherent persistent mapping for frequent updates.
+				// TODO: For small, per-frame updates: use glBufferSubData or single mapped persistent buffer with coherent bit, no fences.
 				setStagingBuffering(SINGLE_BUFFER);
 				setStagingMapMode(BUFFER_MAP_TEMPORARY);
 				//setSyncFlag(BUFFER_SYNC_DISABLE_FENCING);

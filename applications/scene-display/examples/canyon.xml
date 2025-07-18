@@ -552,6 +552,7 @@
         <texture name="foamTexture" id="water-foam"/>
         <input type="time" name="time" scale="0.003"/>
         <!-- imported inputs -->
+        <!-- TODO: rather use existing buffer block! -->
         <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
         <input name="sunDirection" state="sky-sun" component="lightDirection"/>
         <input name="sunColor" state="sky-sun" component="lightDiffuse"/>
@@ -690,6 +691,7 @@
             <input type="float" name="fogHeightMin" value="-10.0"/>
             -->
             <input type="vec2" name="farDistance" value="100.0,200.0"/>
+            <!-- TODO: rather use existing buffer block! -->
             <input type="vec3" name="sunPosition" state="sky-sun" component="lightDirection"/>
             <input type="vec3" name="sunColor" state="sky-sun" component="lightDiffuse"/>
             <input type="vec3" name="warmTint" value="0.6, 0.4, 0.3" />

@@ -43,7 +43,7 @@ void ComputeState::dispatch() {
     		numWorkGroups_.x,
 			numWorkGroups_.y,
 			numWorkGroups_.z);
-	if (barrierBits_ != 0) {
+	if (barrierBits_ > 0) {
     	glMemoryBarrier(barrierBits_);
 	}
 }
