@@ -772,7 +772,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			}
 		}
 	}
-	if (!shared_->stagingBuffer_->hasAdoptedRange() && stagingFlags_.useExplicitFlushing()) {
+	if (!shared_->stagingBuffer_->hasAdoptedRange() && stagingFlags_.useExplicitStaging()) {
 		// the staging buffer is not initialized yet, probably globally managed by the staging system,
 		// but the system is not ready yet. Or implicit staging is used.
 		// So we need to wait until the system is ready.
@@ -789,15 +789,13 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 		}
 		shared_->numBufferSegments_ = numStagingSegments;
-		REGEN_INFO("Resized block \""
-						   << getBlockName() << "\" to " << numStagingSegments
-						   << " segments.");
+		REGEN_INFO("Resized block \"" << getBlockName() << "\" to " << numStagingSegments << " segments.");
 	}
 
 	if (shared_->stagingBuffer_->stagingFlags().isReadable()) {
 		// Copy from draw buffer to the staging buffer, then read from the staging buffer into CPU memory.
 		if (!updateReadBuffer()) {
-			REGEN_WARN("BufferBlock: Failed to update read buffer for block \""
+			REGEN_WARN("Failed to update read buffer for block \""
 							   << getBlockName() << "\". This is likely a bug.");
 			isBlockValid_ = false;
 		}
@@ -815,9 +813,10 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		//REGEN_INFO("Wrote " << updatedSize_ << " bytes to staging buffer for block \""
 		//					<< getBlockName() << "\" with "
 		//					<< numDirtySegments_ << " dirty segments.");
-	} else {
-		REGEN_WARN("BufferBlock: No client data to update in staging buffer for block \""
-						   << getBlockName() << "\". This is likely a bug.");
+	} else if (stagingFlags_.useExplicitStaging()) {
+		REGEN_WARN("No client data to update BO \""
+						   << getBlockName() << "\". This is likely a bug, buffer object will be disabled."
+						   << " Staging flags: " << stagingFlags_ << ".");
 		isBlockValid_ = false;
 	}
 }

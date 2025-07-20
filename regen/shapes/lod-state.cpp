@@ -542,7 +542,7 @@ void LODState::createComputeShader() {
 					4);
 			clearData->setUniformUntyped((byte*)(&drawParams[0]));
 			clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
-				REGEN_STRING("IndirectDrawBuffer"<<suffix),
+				REGEN_STRING("Clear_IndirectDrawBuffer"<<suffix),
 				BufferUpdateFlags::NEVER,
 				SSBO::RESTRICT);
 			clearIndirectBuffer_->addBlockInput(clearData);
