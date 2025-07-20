@@ -64,6 +64,16 @@ namespace regen {
 		ref_ptr<StagingBuffer> addBufferBlock(const BlockPtr &block);
 
 		/**
+		 * \brief Remove a buffer block from the staging system.
+		 *
+		 * This method removes a buffer block from the staging system and releases its resources.
+		 * It is called when the buffer block is no longer needed.
+		 *
+		 * @param block the buffer block to remove.
+		 */
+		void removeBufferBlock(const BlockPtr &block);
+
+		/**
 		 * \brief Update the staging buffers for all arenas.
 		 *
 		 * This method is called once after all buffer objects have been added to the system.

@@ -311,6 +311,8 @@ namespace regen {
 		std::optional<BufferingMode> userDefinedBufferingMode_ = std::nullopt;
 
 		struct Shared {
+			Shared() : copyCount_(1) {
+			}
 			~Shared() {
 				if (updatedFrames_) {
 					delete[] updatedFrames_;
@@ -322,7 +324,10 @@ namespace regen {
 			uint32_t stagingOffset_ = 0u;
 			// the number of segments in the staging buffer, used for multi-buffering
 			uint32_t numBufferSegments_ = 1u;
+			// indicates if the block is globally staged, i.e. if it is managed by the staging system
 			bool isGloballyStaged_ = false;
+			// number of copies that are around
+			std::atomic<uint32_t> copyCount_;
 
 			// Array for update detection, true indicates we had an update in a frame.
 			// We record last n frames for computing the update rate.
@@ -374,6 +379,8 @@ namespace regen {
 		bool updateReadBuffer();
 
 		void prepareRebind(GLint loc);
+
+		void resetDataStamps();
 
 		void markBufferDirty();
 

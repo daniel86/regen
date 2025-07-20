@@ -66,6 +66,20 @@ ref_ptr<StagingBuffer> StagingSystem::addBufferBlock(const BlockPtr &block) {
 	}
 }
 
+void StagingSystem::removeBufferBlock(const BlockPtr &block) {
+	for (auto &arena: arenas_) {
+		if (!arena) continue;
+		// remove the block from the arena
+		auto it = std::find(arena->bufferObjects.begin(), arena->bufferObjects.end(), block);
+		if (it != arena->bufferObjects.end()) {
+			arena->bufferObjects.erase(it);
+			REGEN_INFO("Removed buffer block '" << block->getBlockName() << "'"
+					<< " from staging arena: " << arena->type);
+			break;
+		}
+	}
+}
+
 StagingSystem::Arena *StagingSystem::addBufferBlock_readOnly(
 		const BlockPtr &block,
 		const BufferFlags &flags,
@@ -141,10 +155,10 @@ StagingSystem::Arena *StagingSystem::addBufferBlock_writeOnly(
 StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, BufferAccessMode accessMode) {
 	auto *arena = new Arena();
 	arena->type = arenaType;
-	arena->flags.target = arena->flags.isReadable() ? COPY_READ_BUFFER : COPY_WRITE_BUFFER;
 	arena->flags.accessMode = accessMode;
 	// we do fencing here, so disable it at buffer level
 	arena->flags.syncFlags |= BUFFER_SYNC_DISABLE_FENCING;
+	arena->flags.target = arena->flags.isReadable() ? COPY_READ_BUFFER : COPY_WRITE_BUFFER;
 
 	// the maximum number of segments in the ring buffer
 	uint32_t maxRingSegments = 16;
@@ -212,6 +226,7 @@ StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, BufferAcce
 	}
 	REGEN_INFO("Created staging arena \"" << arena->type << "\" with"
 		<< " ring size: " << arena->numRingSegments << " -- " << maxRingSegments);
+	REGEN_INFO("    " << arena->flags);
 
 	// create a staging buffer for this arena
 	arena->stagingBuffer = ref_ptr<StagingBuffer>::alloc(arena->flags);
@@ -281,10 +296,16 @@ void StagingSystem::updateBuffers() {
 		}
 
 		// set the staging offset for each buffer object in the arena
-		uint32_t localOffset = 0;
-		for (auto &bo: arena->bufferObjects) {
-			bo->setStagingOffset(localOffset);
-			localOffset += bo->drawBufferSize();
+		if (arena->flags.useExplicitStaging()) {
+			uint32_t localOffset = 0;
+			for (auto &bo: arena->bufferObjects) {
+				bo->setStagingOffset(localOffset);
+				localOffset += bo->drawBufferSize();
+			}
+		} else {
+			for (auto &bo: arena->bufferObjects) {
+				bo->setStagingOffset(0);
+			}
 		}
 	}
 	REGEN_INFO("Staging arenas updated.");
@@ -305,7 +326,7 @@ void StagingSystem::updateData() {
 			arena->resize();
 			arena->sort();
 		}
-		if (!arena->isDirty) {
+		if (!arena->flags.isReadable() && !arena->isDirty) {
 			// early exit before fence in case of no updates
 			continue;
 		}
@@ -337,6 +358,7 @@ void StagingSystem::updateData() {
 
 		// Advance to next segment in case of multi-buffering and ring buffers.
 		arena->stagingBuffer->swapBuffers();
+		arena->isDirty = false; // reset dirty flag
 
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_STALLS
 		if (useFence) {
@@ -349,7 +371,6 @@ void StagingSystem::updateData() {
 
 bool StagingSystem::Arena::updateRequiredSize() {
 	uint32_t newRequiredSize = 0u;
-	isDirty = false; // reset dirty flag
 	for (const auto &bo: bufferObjects) {
 		newRequiredSize += bo->updateBlockInputs();
 		isDirty = isDirty || bo->hasDirtySegments();
@@ -370,9 +391,8 @@ bool StagingSystem::Arena::updateRequiredSize() {
 		// this will be done in resize() function.
 		uint32_t newNumSegments = std::min(numRingSegments + 1u, stagingBuffer->maxRingSegments());
 		if (newNumSegments != numRingSegments) {
-			REGEN_INFO("Resizing staging arena " << type
-				<< " from " << numRingSegments << " segments to "
-				<< newNumSegments << " segments due to high stall rate.");
+			REGEN_INFO("Increasing staging arena " << type
+				<< " segments to " << newNumSegments << " due to high stall rate.");
 			numRingSegments = newNumSegments;
 			stagingBuffer->resetStallRate();
 			return true; // size changed
@@ -427,8 +447,10 @@ void StagingSystem::Arena::resize() {
 		**/
 
 		// set the offset where this BO starts in each segment of the staging buffer.
-		bo->setStagingOffset(localOffset);
-		localOffset += bo->drawBufferSize();
+		if (flags.useExplicitStaging()) {
+			bo->setStagingOffset(localOffset);
+			localOffset += bo->drawBufferSize();
+		}
 	}
 }
 

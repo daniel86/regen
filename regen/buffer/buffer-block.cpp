@@ -64,6 +64,7 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  stagingFlags_(other.stagingFlags_),
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  shared_(other.shared_) {
+	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 }
 
 BufferBlock::BufferBlock(const BufferObject &other)
@@ -75,7 +76,6 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	if (block != nullptr) {
 		blockQualifier_ = block->blockQualifier_;
 		memoryLayout_ = block->memoryLayout_;
-		shared_ = block->shared_;
 		bindingIndex_ = block->bindingIndex_;
 		hasClientData_ = block->hasClientData_;
 		isBlockValid_ = block->isBlockValid_;
@@ -89,6 +89,8 @@ BufferBlock::BufferBlock(const BufferObject &other)
 		blockInputs_ = block->blockInputs_;
 		stagingFlags_ = block->stagingFlags_;
 		userDefinedBufferingMode_ = block->userDefinedBufferingMode_;
+		shared_ = block->shared_;
+		shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 	} else {
 		shared_ = ref_ptr<Shared>::alloc();
 		shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
@@ -113,7 +115,13 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	}
 }
 
-BufferBlock::~BufferBlock() = default;
+BufferBlock::~BufferBlock() {
+	if (shared_->copyCount_.fetch_sub(1) == 1) {
+		if (shared_->isGloballyStaged_) {
+			StagingSystem::instance().removeBufferBlock(this);
+		}
+	}
+}
 
 void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBlockValid_) return;
@@ -643,6 +651,13 @@ void BufferBlock::markBufferDirty() {
 	dirtySegmentRanges_[0].endIdx = static_cast<uint32_t>(blockInputs_.size() - 1);
 }
 
+void BufferBlock::resetDataStamps() {
+	// reset the last stamps for all inputs and segments.
+	for (auto &input: blockInputs_) {
+		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
+	}
+}
+
 void BufferBlock::updateDrawBuffer() {
 	if (allocatedSize_ == requiredSize_) {
 		// nothing to do, the draw buffer is already up-to-date}
@@ -698,9 +713,7 @@ void BufferBlock::updateDrawBuffer() {
 	// on resize, create one dirty segment that covers the whole buffer.
 	// also reset the last stamps for all inputs and segments.
 	markBufferDirty();
-	for (auto &input: blockInputs_) {
-		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
-	}
+	resetDataStamps();
 
 	REGEN_INFO("Created "
 		<< StagingBuffer::getBufferSizeClass(requiredSize_)
@@ -783,8 +796,8 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		// we reset the stamps causing a re-load of all segments.
 		for (auto &input: blockInputs_) {
 			input->lastStamp.resize(numStagingSegments);
-			std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 		}
+		resetDataStamps();
 		shared_->numBufferSegments_ = numStagingSegments;
 	}
 
