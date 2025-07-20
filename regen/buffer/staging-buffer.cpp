@@ -112,7 +112,6 @@ bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments)
 					   << segmentSize_ / 1024.0 << " KiB per segment, "
 					   << numSegments << " segments, total: "
 					   << (segmentSize_ * numSegments) / 1024.0 << " KiB "
-					   << "flags: " << flags_
 					   << " swap: " << useSwappingOnAccess_
 					   << " clear: " << clearBufferOnResize_
 					   << " max segments: " << maxRingSegments_);

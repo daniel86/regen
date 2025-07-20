@@ -60,14 +60,16 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 
 bool BBoxBuffer::updateBoundingBox() {
 	bool hasChanged = false;
-	// TODO: remove
-	/**
-	if (!shared_->stagingBuffer_->readBuffer(*drawBufferRange_.get())) {
-		REGEN_ERROR("Unable to read bounding box buffer data.");
-		isBlockValid_ = false;
-		return false;
+	if (!shared_->isGloballyStaged_) {
+		if (!shared_->stagingBuffer_->readBuffer(
+				drawBufferRef_,
+				*drawBufferRange_.get(),
+				0u)) {
+			REGEN_ERROR("Unable to read bounding box buffer data.");
+			isBlockValid_ = false;
+			return false;
+		}
 	}
-	**/
 	if (shared_->stagingBuffer_->hasReadData()) {
 		auto &bbox = *((BoundingBoxBlock*)shared_->stagingBuffer_->readData());
         bboxMin_.x = biasedToFloat(bbox.min.x);
@@ -83,6 +85,9 @@ bool BBoxBuffer::updateBoundingBox() {
 			hasChanged = true;
 			bbox_.min = bboxMin_;
 			bbox_.max = bboxMax_;
+			//REGEN_INFO("Updated bounding box: "
+			//	<< bbox_.min << " - " << bbox_.max
+			//	<< " delta: " << d);
 		}
 	}
     return hasChanged;

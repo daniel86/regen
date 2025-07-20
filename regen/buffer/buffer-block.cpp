@@ -706,10 +706,10 @@ void BufferBlock::updateDrawBuffer() {
 					   << stagingFlags_
 					   << " \"" << getBlockName() << "\" with "
 					   << " size: " << requiredSize_ / 1024.0 << " Kib"
-					   << " staging-offset: " << shared_->stagingOffset_
+					   << " offset: " << shared_->stagingOffset_
 					   << " segments: " << shared_->numBufferSegments_
-					   << " global: " << shared_->isGloballyStaged_
-					   << " auto-update: " << shared_->useAutoUpdate_
+					   << " glob: " << shared_->isGloballyStaged_
+					   << " update: " << shared_->useAutoUpdate_
 	);
 }
 
@@ -748,8 +748,8 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			shared_->stagingBuffer_->resizeBuffer(requiredSize_, 2);
 			shared_->isGloballyStaged_ = false;
 			REGEN_INFO("Created local staging buffer for block \""
-							   << getBlockName() << "\" with size " << requiredSize_
-							   << " Bytes and " << shared_->stagingBuffer_->numBufferSegments()
+							   << getBlockName() << "\" with size " << requiredSize_/1024.0 << " Kib"
+							   << " and " << shared_->stagingBuffer_->numBufferSegments()
 							   << " segments.");
 		}
 	} else if (!shared_->isGloballyStaged_ &&
