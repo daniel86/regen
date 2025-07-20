@@ -1,6 +1,8 @@
 #include "staging-system.h"
 #include <regen/gl-types/gl-param.h>
 
+#define REGEN_STAGING_SYSTEM_DEBUG
+
 using namespace regen;
 
 static uint32_t getStagingAlignment() {
@@ -208,10 +210,8 @@ StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, BufferAcce
 		case ARENA_TYPE_LAST:
 			break;
 	}
-	REGEN_INFO("Created staging arena at idx: " << arena->type
-												<< " with flags: " << arena->flags
-												<< " max segments: " << maxRingSegments
-												<< " num segments: " << arena->numRingSegments);
+	REGEN_INFO("Created staging arena \"" << arena->type << "\" with"
+		<< " ring size: " << arena->numRingSegments << " -- " << maxRingSegments);
 
 	// create a staging buffer for this arena
 	arena->stagingBuffer = ref_ptr<StagingBuffer>::alloc(arena->flags);
@@ -228,8 +228,8 @@ StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType
 	targetArena->bufferObjects.push_back(block);
 	// disable swapping for the staging buffer, we do it manually in the staging system
 	targetArena->stagingBuffer->setSwappingOnAccess(false);
-	REGEN_INFO("Added buffer block '" << block->getBlockName()
-									  << "' to staging arena " << targetArena->type);
+	REGEN_INFO("Added buffer block \"" << block->getBlockName()
+		<< "\" to staging arena \"" << targetArena->type << "\"");
 	return targetArena;
 }
 
@@ -267,7 +267,10 @@ void StagingSystem::updateBuffers() {
 
 		// adopt a staging buffer range for this arena covering all BOs potentially
 		//    with multiple segments in case of ring buffers or multi-buffering.
-		arena->resize();
+		arena->updateRequiredSize();
+		if (arena->requiredSize > 0) {
+			arena->resize();
+		}
 		if (!arena->stagingBuffer.get()) {
 			// create a staging buffer for this arena
 			REGEN_WARN("Failed to create staging buffer for arena type " << arena->type
@@ -298,10 +301,7 @@ void StagingSystem::updateData() {
 		// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
 		//       or of BOs were added, removed, or have changed their size.
 		if (arena->updateRequiredSize()) {
-			REGEN_INFO("Resizing staging arena " << arena->type
-												 << " with " << arena->bufferObjects.size() << " BOs "
-												 << " to " << arena->requiredSize / 1024.0f << " KiB per segment "
-												 << " and " << arena->numRingSegments << " segments.");
+			REGEN_INFO("Staging arena size changed.");
 			arena->resize();
 			arena->sort();
 		}
@@ -310,8 +310,6 @@ void StagingSystem::updateData() {
 			continue;
 		}
 
-		REGEN_INFO("Updating staging arena " << arena->type
-											 << " with " << arena->bufferObjects.size() << " buffer objects.");
 		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
 		const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
 		const bool useFence = arena->flags.useSyncFences() && isMapModePersistent(arena->flags.mapMode);
@@ -339,6 +337,13 @@ void StagingSystem::updateData() {
 
 		// Advance to next segment in case of multi-buffering and ring buffers.
 		arena->stagingBuffer->swapBuffers();
+
+#ifdef REGEN_STAGING_SYSTEM_DEBUG
+		if (useFence) {
+			REGEN_INFO("Arena " << arena->type
+				<< " stall rate: " << arena->stagingBuffer->fence(copyIdx).getStallRate());
+		}
+#endif
 	}
 }
 
@@ -363,12 +368,11 @@ bool StagingSystem::Arena::updateRequiredSize() {
 	if (stagingBuffer->fence(copyIdx).getStallRate() > StagingBuffer::MAX_ACCEPTABLE_STALL_RATE) {
 		// if the stall rate is too high, we need to increase the number of segments in the ring buffer.
 		// this will be done in resize() function.
-		uint32_t newNumSegments = std::max(1u,
-										   std::min(numRingSegments + 1u, stagingBuffer->maxRingSegments()));
+		uint32_t newNumSegments = std::min(numRingSegments + 1u, stagingBuffer->maxRingSegments());
 		if (newNumSegments != numRingSegments) {
 			REGEN_INFO("Resizing staging arena " << type
-												 << " from " << numRingSegments << " segments to "
-												 << newNumSegments << " segments due to high stall rate.");
+				<< " from " << numRingSegments << " segments to "
+				<< newNumSegments << " segments due to high stall rate.");
 			numRingSegments = newNumSegments;
 			stagingBuffer->resetStallRate();
 			return true; // size changed
@@ -393,6 +397,14 @@ void StagingSystem::Arena::sort() {
 void StagingSystem::Arena::resize() {
 	// the size of a draw buffer range has changed, or the number of segments in the ring buffer.
 	// in this case we will orphan any adopted staging buffer ranges, and re-adopt one with the new size.
+	if (requiredSize == 0u) {
+		REGEN_WARN("Attempting to resize staging arena " << type
+				<< " to zero Bytes. This is likely a bug.");
+		return; // nothing to resize
+	}
+	REGEN_INFO("Resizing staging arena \"" << type << "\""
+		<< " with " << bufferObjects.size() << " BOs"
+		<< " to " << requiredSize / 1024.0f << " KiB per segment.");
 	stagingBuffer->resizeBuffer(requiredSize, numRingSegments);
 
 	uint32_t localOffset = 0;
@@ -418,4 +430,37 @@ void StagingSystem::Arena::resize() {
 		bo->setStagingOffset(localOffset);
 		localOffset += bo->drawBufferSize();
 	}
+}
+
+std::ostream &regen::operator<<(std::ostream &out, const StagingSystem::ArenaType &v) {
+	switch (v) {
+		case StagingSystem::ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG:
+			out << "w-FUL-FRA-PM-RNG_SML";
+			break;
+		case StagingSystem::ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG:
+			out << "w-PAR-FRA-PM-RNG_SML";
+			break;
+		case StagingSystem::ARENA_WRITE_PER_FRAME_PM_LARGE_RNG:
+			out << "w-ANY-FRA-PM-RNG_LRG";
+			break;
+		case StagingSystem::ARENA_WRITE_PER_FRAME_CP_SB:
+			out << "w-ANY-FRA-CP-SB";
+			break;
+		case StagingSystem::ARENA_READ_PER_FRAME_PM_RNG:
+			out << "r-ANY-FRA-PM-RNG";
+			break;
+		case StagingSystem::ARENA_READ_RARE_TM_SB:
+			out << "r-ANY-RAR-TM-SB";
+			break;
+		case StagingSystem::ARENA_WRITE_RARE_TM_SB:
+			out << "w-ANY-RAR-TM-SB";
+			break;
+		case StagingSystem::ARENA_WRITE_NEVER_CP_NB:
+			out << "w-ANY-NVR-CP-NB";
+			break;
+		case StagingSystem::ARENA_TYPE_LAST:
+			out << "?";
+			break;
+	}
+	return out;
 }

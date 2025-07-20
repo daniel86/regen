@@ -365,8 +365,6 @@ namespace regen {
 		std::list<std::string> optionalExt_;
 		std::vector<ref_ptr<Animation>> glCalls_;
 
-		std::vector<BufferBlock*> perFrameInputUpdates_;
-
 		ref_ptr<ShaderInput2i> windowViewport_;
 		ref_ptr<ShaderInput1i> isMouseEntered_;
 		ref_ptr<ShaderInput2f> mousePosition_;

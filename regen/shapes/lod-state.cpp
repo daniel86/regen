@@ -552,7 +552,6 @@ void LODState::createComputeShader() {
 				REGEN_STRING("IndirectDrawBuffer"<<suffix),
 				BufferUpdateFlags::FULL_PER_FRAME,
 				SSBO::RESTRICT);
-		indirectDrawBuffers_[partIdx]->setAutoUpdate(false); // we update explicitly
 		indirectDrawBuffers_[partIdx]->addBlockInput(ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 				"DrawCommand",
 				REGEN_STRING("drawParams"<<suffix),
@@ -596,6 +595,7 @@ void LODState::createComputeShader() {
 
 	{ // cull
 		// we store the 6 frustum planes in a UBO
+		// TODO: frustum buffer should be provided by camera
 		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer", BufferUpdateFlags::FULL_PER_FRAME);
 		frustumUBO_->setStagingAccessMode(BUFFER_CPU_WRITE);
 		frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size());

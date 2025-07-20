@@ -368,6 +368,10 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const BufferSizeClass &v);
 
 	std::istream &operator>>(std::istream &in, BufferSizeClass &v);
+
+	std::ostream &operator<<(std::ostream &out, const BufferTarget &v);
+
+	std::istream &operator>>(std::istream &in, BufferTarget &v);
 } // namespace
 
 #endif /* REGEN_BUFFER_ENUMS_H_ */

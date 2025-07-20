@@ -7,7 +7,7 @@
 using namespace regen;
 
 //#define REGEN_BUFFER_BLOCK_DEBUG
-#define BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
+//#define BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
 //#define BUFFER_BLOCK_DISABLE_RING_BUFFER
 //#define BUFFER_BLOCK_DISABLE_PERSISTENT
 //#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
@@ -120,7 +120,7 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 	auto *rs = RenderState::get();
 
 	prepareRebind(loc);
-	if (!shared_->isGloballyStaged_ && shared_->useAutoUpdate_) {
+	if (!shared_->isGloballyStaged_) {
 		update();
 	}
 	rs->bufferRange(glTarget_).apply(loc, *drawBufferRange_.get());
@@ -703,14 +703,10 @@ void BufferBlock::updateDrawBuffer() {
 	}
 
 	REGEN_INFO("Created "
-					   << std::setw(6) << std::setfill(' ')
-					   << StagingBuffer::getBufferSizeClass(requiredSize_) << " "
-					   << stagingFlags_
-					   << " \"" << getBlockName() << "\" with "
-					   << " size: " << requiredSize_ / 1024.0 << " Kib"
-					   << " offset: " << shared_->stagingOffset_
-					   << " segments: " << shared_->numBufferSegments_
-					   << " glob: " << shared_->isGloballyStaged_);
+		<< StagingBuffer::getBufferSizeClass(requiredSize_)
+		<< " " << stagingFlags_.target
+		<< " \"" << getBlockName() << "\" with"
+		<< " " << requiredSize_ / 1024.0 << " Kib");
 }
 
 void BufferBlock::copyStagingData(bool forceUpdate) {
@@ -747,10 +743,11 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			}
 			shared_->stagingBuffer_->resizeBuffer(requiredSize_, 2);
 			shared_->isGloballyStaged_ = false;
-			REGEN_INFO("Created local staging buffer for block \""
+			REGEN_INFO("Using local staging for block \""
 							   << getBlockName() << "\" with size " << requiredSize_/1024.0 << " Kib"
 							   << " and " << shared_->stagingBuffer_->numBufferSegments()
 							   << " segments.");
+			REGEN_INFO("Local staging flags: " << stagingFlags_);
 		}
 	} else if (!shared_->isGloballyStaged_ &&
 			   isMapModePersistent(stagingFlags_.mapMode) &&
@@ -789,7 +786,6 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 		}
 		shared_->numBufferSegments_ = numStagingSegments;
-		REGEN_INFO("Resized block \"" << getBlockName() << "\" to " << numStagingSegments << " segments.");
 	}
 
 	if (shared_->stagingBuffer_->stagingFlags().isReadable()) {

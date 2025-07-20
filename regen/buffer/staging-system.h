@@ -15,6 +15,35 @@ namespace regen {
 	 */
 	class StagingSystem {
 	public:
+		enum ArenaType {
+			// Note: keep per-frame modes first!
+			// An arena for per-frame updates using persistent mapping of a small adaptive ring buffer.
+			// Small meaning that the maximum number of ring segments is capped to some rather small value.
+			// The partial update variant (PAR) can be used to update only parts of the data per frame.
+			ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG = 0,
+			ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG,
+			// An arena for per-frame updates using persistent mapping of a large adaptive ring buffer.
+			// Large meaning that the maximum number of ring segments is capped to some rather high value.
+			// Note that for medium and small, we always copy the whole data (no PAR mode).
+			ARENA_WRITE_PER_FRAME_PM_LARGE_RNG,
+			// An arena for per-frame updates where ring buffer is not feasible, e.g. due to excessive size.
+			// In this arena mode, only a single buffer is used in staging, and data is copied directly
+			// into this staging buffer (without any mapping).
+			ARENA_WRITE_PER_FRAME_CP_SB,
+			// An arena for reading small data per frame. The arena uses persistent mapping
+			// with an adaptive ring buffer.
+			ARENA_READ_PER_FRAME_PM_RNG,
+			// An arena for rare updates which are performed via a single buffer in staging which is
+			// temporary mapped with range invalidation.
+			ARENA_WRITE_RARE_TM_SB,
+			// An arena for rare reading of small data. It uses temporary mapping with a single buffer
+			// in staging.
+			ARENA_READ_RARE_TM_SB,
+			// An arena for static data which is only updated very rarely.
+			// This is using implicit staging without multi-buffering.
+			ARENA_WRITE_NEVER_CP_NB,
+			ARENA_TYPE_LAST // keep last
+		};
 		using BlockPtr = BufferBlock *;
 
 		~StagingSystem();
@@ -75,36 +104,6 @@ namespace regen {
 		StagingSystem();
 
 	protected:
-		enum ArenaType {
-			// Note: keep per-frame modes first!
-			// An arena for per-frame updates using persistent mapping of a small adaptive ring buffer.
-			// Small meaning that the maximum number of ring segments is capped to some rather small value.
-			// The partial update variant (PAR) can be used to update only parts of the data per frame.
-			ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG = 0,
-			ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG,
-			// An arena for per-frame updates using persistent mapping of a large adaptive ring buffer.
-			// Large meaning that the maximum number of ring segments is capped to some rather high value.
-			// Note that for medium and small, we always copy the whole data (no PAR mode).
-			ARENA_WRITE_PER_FRAME_PM_LARGE_RNG,
-			// An arena for per-frame updates where ring buffer is not feasible, e.g. due to excessive size.
-			// In this arena mode, only a single buffer is used in staging, and data is copied directly
-			// into this staging buffer (without any mapping).
-			ARENA_WRITE_PER_FRAME_CP_SB,
-			// An arena for reading small data per frame. The arena uses persistent mapping
-			// with an adaptive ring buffer.
-			ARENA_READ_PER_FRAME_PM_RNG,
-			// An arena for rare updates which are performed via a single buffer in staging which is
-			// temporary mapped with range invalidation.
-			ARENA_WRITE_RARE_TM_SB,
-			// An arena for rare reading of small data. It uses temporary mapping with a single buffer
-			// in staging.
-			ARENA_READ_RARE_TM_SB,
-			// An arena for static data which is only updated very rarely.
-			// This is using implicit staging without multi-buffering.
-			ARENA_WRITE_NEVER_CP_NB,
-			ARENA_TYPE_LAST // keep last
-		};
-
 		// a staging arena
 		struct Arena {
 			Arena() = default;
@@ -143,6 +142,9 @@ namespace regen {
 
 		Arena *addToArena(const BlockPtr &block, ArenaType arenaType);
 	};
+
+	// support streaming operators for ArenaType
+	std::ostream &operator<<(std::ostream &out, const StagingSystem::ArenaType &v);
 } // namespace
 
 #endif /* REGEN_STAGING_SYSTEM_H_ */

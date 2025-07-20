@@ -299,7 +299,6 @@ void Scene::setTime() {
 
 void Scene::clear() {
 	renderTree_->clear();
-	perFrameInputUpdates_.clear();
 	StagingSystem::instance().clear();
 	namedToObject_.clear();
 	idToObject_.clear();
@@ -382,9 +381,6 @@ void Scene::updateBOs() {
 			stateQueue.push(anim->animationState().get());
 	}
 
-	perFrameInputUpdates_.clear();
-	perFrameInputUpdates_.reserve(20);
-
 	while (!nodeQueue.empty()) {
 		const StateNode *node = nodeQueue.top();
 		nodeQueue.pop();
@@ -410,12 +406,8 @@ void Scene::updateBOs() {
 			for (const auto &ni: state->inputs()) {
 				auto input = ni.in_;
 				ref_ptr<BufferBlock> bufferBlock = ref_ptr<BufferBlock>::dynamicCast(input);
-				// TODO: consider adding VBO and TBO data to staging arena.
 				if (bufferBlock.get() && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
 					bufferBlock->update();
-					// TODO: remove
-					bufferBlock->setAutoUpdate(false);
-					perFrameInputUpdates_.emplace_back(bufferBlock.get());
 				}
 			}
 
@@ -424,8 +416,6 @@ void Scene::updateBOs() {
 			}
 		}
 	}
-
-	REGEN_INFO("num per-frame input updates: " << perFrameInputUpdates_.size());
 }
 
 void Scene::initializeScene() {
@@ -438,10 +428,6 @@ void Scene::initializeScene() {
 void Scene::drawGL() {
 	// update staging arenas (up to per-frame frequency)
 	StagingSystem::instance().updateData();
-	// TODO: remove
-	for (auto &in : perFrameInputUpdates_) {
-		in->update();
-	}
 	renderTree_->render(timeDelta_->getVertex(0).r);
 }
 

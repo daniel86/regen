@@ -23,6 +23,9 @@ StagingBuffer::StagingBuffer(const BufferFlags &stagingFlags) :
 	stagingBO_ = ref_ptr<BufferObject>::alloc(stagingFlags.target, stagingFlags.updateHints);
 	stagingBO_->setBufferAccessMode(stagingFlags.accessMode);
 	stagingBO_->setBufferMapMode(stagingFlags.mapMode);
+	// initialize to single segment
+	bufferSegments_.resize(1);
+	bufferSegments_[0].offset = 0;
 }
 
 StagingBuffer::~StagingBuffer() {
@@ -48,9 +51,10 @@ BufferSizeClass StagingBuffer::getBufferSizeClass(uint32_t size) {
 }
 
 bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments) {
-	const uint32_t numSegments = (flags_.bufferingMode == RING_BUFFER ?
+	uint32_t numSegments = (flags_.bufferingMode == RING_BUFFER ?
 								  numRingSegments :
 								  (uint32_t) flags_.bufferingMode);
+	numSegments = std::max(numSegments, 1u); // ensure at least one segment
 
 	// initialize the buffer indices
 	if (numSegments > 1) {

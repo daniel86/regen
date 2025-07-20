@@ -243,13 +243,6 @@ namespace regen {
 		void setStagingAccessMode(BufferAccessMode mode);
 
 		/**
-		 * If enabled, the block will be updated automatically each time it is enabled.
-		 * @param v true to enable auto-update, false to disable.
-		 */
-		// TODO: remove
-		void setAutoUpdate(bool v) { shared_->useAutoUpdate_ = v; }
-
-		/**
 		 * Get the update rate, which is the percentage of frames that had an update.
 		 * @return the update rate as a float, where 0.0 means no updates and 1.0 means all frames had updates.
 		 */
@@ -330,7 +323,6 @@ namespace regen {
 			// the number of segments in the staging buffer, used for multi-buffering
 			uint32_t numBufferSegments_ = 1u;
 			bool isGloballyStaged_ = false;
-			bool useAutoUpdate_ = true;
 
 			// Array for update detection, true indicates we had an update in a frame.
 			// We record last n frames for computing the update rate.
