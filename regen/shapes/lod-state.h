@@ -85,13 +85,13 @@ namespace regen {
 
 		void computeLODGroups();
 
-		void traverseCPU(RenderState *rs);
+		void traverseCPU();
 
 		void traverseGPU(RenderState *rs);
 
 		void updateFrustumBuffer();
 
-		void createInstanceBuffer();
+		friend class InstanceUpdater;
 	};
 }
 

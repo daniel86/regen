@@ -57,6 +57,21 @@ namespace regen {
 		ref_ptr<ShaderInput4f> planes_;
 		std::vector<Vec4f> frustumData_;
 	};
+
+	class InstanceUpdater : public Animation {
+	public:
+		explicit InstanceUpdater(LODState *lodState)
+				: Animation(false, true),
+				  lodState_(lodState) {}
+
+		void animate(double dt) override {
+			lodState_->resetVisibility();
+			lodState_->traverseCPU();
+		}
+
+	protected:
+		LODState *lodState_;
+	};
 }
 
 LODState::LODState(
@@ -143,6 +158,9 @@ void LODState::initLODState() {
 		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
 		if (!shapeIndex_.get()) {
 			REGEN_WARN("No indexed shape found for cull shape '" << cullShape_->shapeName() << "'.");
+		} else {
+			lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
+			lodAnim_->startAnimation();
 		}
 	} else {
 		createComputeShader();
@@ -235,12 +253,12 @@ void LODState::enable(RenderState *rs) {
 	using std::chrono::milliseconds;
 	auto t1 = high_resolution_clock::now();
 #endif
-	// FIXME: visibility computation should not be done in draw loop!
-	resetVisibility();
-	if (cullShape_->isIndexShape()) {
-		traverseCPU(rs);
-	} else {
+	if (!cullShape_->isIndexShape()) {
+		resetVisibility();
 		traverseGPU(rs);
+	} else if(cullShape_->hasInstanceBuffer()) {
+		resetVisibility();
+		traverseCPU();
 	}
 #ifdef LOD_DEBUG_GROUPS
 	if (!indirectDrawBuffers_.empty()) {
@@ -331,7 +349,7 @@ void LODState::enable(RenderState *rs) {
 //////////// CPU-based LOD update
 ///////////////////////
 
-void LODState::traverseCPU(RenderState *) {
+void LODState::traverseCPU() {
 	if (!shapeIndex_.get() || !shapeIndex_->isVisible()) {
 		return;
 	}
