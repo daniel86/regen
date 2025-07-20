@@ -710,9 +710,7 @@ void BufferBlock::updateDrawBuffer() {
 					   << " size: " << requiredSize_ / 1024.0 << " Kib"
 					   << " offset: " << shared_->stagingOffset_
 					   << " segments: " << shared_->numBufferSegments_
-					   << " glob: " << shared_->isGloballyStaged_
-					   << " update: " << shared_->useAutoUpdate_
-	);
+					   << " glob: " << shared_->isGloballyStaged_);
 }
 
 void BufferBlock::copyStagingData(bool forceUpdate) {
