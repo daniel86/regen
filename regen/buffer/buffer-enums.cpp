@@ -370,11 +370,10 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &out, const BufferFlags &v) {
 		out << (v.useExplicitStaging() ? "explicit" : "implicit") << " ";
 		out << v.bufferingMode << " ";
-		out << std::setw(20) << std::setfill(' ') << v.mapMode << " ";
-		out << std::setw(20) << std::setfill(' ') <<
-			REGEN_STRING(v.updateHints.scope << "+" << v.updateHints.frequency) << " ";
-		out << std::setw(14) << std::setfill(' ') << v.accessMode << " ";
-		out << std::setw(5) << std::setfill(' ') << v.target;
+		out << v.mapMode << " ";
+		out << REGEN_STRING(v.updateHints.scope << "+" << v.updateHints.frequency) << " ";
+		out << v.accessMode << " ";
+		out << v.target;
 		return out;
 	}
 }
