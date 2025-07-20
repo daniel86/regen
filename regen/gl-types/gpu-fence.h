@@ -15,15 +15,27 @@ namespace regen {
 	public:
 		// Default timeout for waiting on the fence
 		static uint64_t WAIT_TIMEOUT;
+		// Default range for stall detection
+		static uint32_t STALL_RANGE;
 
-		GPUFence() = default;
+		GPUFence();
 
 		~GPUFence();
 
-		// Deleted copy constructor and assignment operator
-		GPUFence(const GPUFence &) = delete;
+		GPUFence(const GPUFence &) = default;
 
-		GPUFence &operator=(const GPUFence &) = delete;
+		GPUFence &operator=(const GPUFence &) = default;
+
+		/**
+		 * Get the stall rate, which is the percentage of frames that had a stall.
+		 * @return the stall rate as a float, where 0.0 means no stalls and 1.0 means all frames had stalls.
+		 */
+		float getStallRate() const;
+
+		/**
+		 * Reset the stall history, clearing the array of stalled frames.
+		 */
+		void resetStallHistory();
 
 		/**
 		 * Set a new fence point, deleting the old one if it exists.
@@ -52,6 +64,17 @@ namespace regen {
 
 	private:
 		GLsync fence_ = nullptr; // OpenGL sync object
+		// Array for stall detection, true indicates we had a stall in a frame.
+		// We record last n frames for computing the stall rate.
+		bool *stalledFrames_;
+		// Range for stall detection
+		uint32_t stallRange_ = STALL_RANGE;
+		// Count of frames that had a stall
+		uint32_t stallCount_ = 0;
+		// Current index in the stall detection array
+		uint32_t stallIdx_ = 0;
+
+		void setStalledFrame(bool isStalled);
 	};
 } // namespace
 

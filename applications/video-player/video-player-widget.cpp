@@ -1,14 +1,7 @@
-/*
- * video-player-widget.cpp
- *
- *  Created on: 01.01.2013
- *      Author: daniel
- */
-
 #include <iostream>
 
 #include "video-player-widget.h"
-#include "regen/gl-types/fbo.h"
+#include "regen/buffer/fbo.h"
 #include <regen/textures/texture-state.h>
 #include <regen/states/shader-state.h>
 #include <regen/states/fbo-state.h>

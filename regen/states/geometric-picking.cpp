@@ -59,7 +59,8 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	mappingFlags.accessMode = BUFFER_CPU_READ;
 	mappingFlags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
 	mappingFlags.bufferingMode = DOUBLE_BUFFER;
-	pickMapping_ = ref_ptr<StagingStructBuffer<PickData>>::alloc(vboRef_, mappingFlags);
+	pickMapping_ = ref_ptr<StagingStructBuffer<PickData>>::alloc(mappingFlags);
+	pickMapping_->resizeBuffer(bufferSize_, 2);
 
 	// setup transform feedback specification, this is needed for shaders to know what to output
 	feedbackState_ = ref_ptr<FeedbackSpecification>::alloc(maxPickedObjects_);
@@ -118,6 +119,8 @@ void GeomPicking::traverse(RenderState *rs) {
 	glDeleteQueries(1, &feedbackQuery);
 
 	if (feedbackCount > 0) {
+		// TODO: remove
+		/**
 		if(!pickMapping_->readBuffer(feedbackRange_)) {
 			REGEN_WARN("Failed to read feedback buffer for picking.");
 			hasPickedObject_ = false;
@@ -125,6 +128,7 @@ void GeomPicking::traverse(RenderState *rs) {
 			state_->disable(rs);
 			return;
 		}
+		**/
 		if (pickMapping_->hasReadData()) {
 			auto &pickData = pickMapping_->stagingReadValue();
 			pickedObject_.depth = pickData.depth;

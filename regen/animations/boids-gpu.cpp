@@ -364,9 +364,9 @@ void BoidsGPU::simulate(RenderState *rs, double boidTimeDelta) {
 
 void BoidsGPU::printOffsets(RenderState *rs) {
 	auto offsetData = (uint32_t *) glMapNamedBufferRange(
-			gridOffsetBuffer_->blockReference()->bufferID(),
-			gridOffsetBuffer_->blockReference()->address(),
-			gridOffsetBuffer_->blockReference()->allocatedSize(),
+			gridOffsetBuffer_->drawBufferRef()->bufferID(),
+			gridOffsetBuffer_->drawBufferRef()->address(),
+			gridOffsetBuffer_->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (offsetData) {
 		std::stringstream sss;
@@ -375,16 +375,16 @@ void BoidsGPU::printOffsets(RenderState *rs) {
 			sss << offsetData[i] << " ";
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapNamedBuffer(gridOffsetBuffer_->blockReference()->bufferID());
+		glUnmapNamedBuffer(gridOffsetBuffer_->drawBufferRef()->bufferID());
 	}
 }
 
 void BoidsGPU::debugVelocity(RenderState *rs) {
 #ifndef BOID_USE_HALF_VELOCITY
 	auto velData = (Vec3f *) glMapNamedBufferRange(
-			velBuffer_->blockReference()->bufferID(),
-			velBuffer_->blockReference()->address(),
-			velBuffer_->blockReference()->allocatedSize(),
+			velBuffer_->drawBufferRef()->bufferID(),
+			velBuffer_->drawBufferRef()->address(),
+			velBuffer_->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (velData) {
 		std::stringstream sss;
@@ -393,7 +393,7 @@ void BoidsGPU::debugVelocity(RenderState *rs) {
 			sss << velData[i] << " ";
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapNamedBuffer(velBuffer_->blockReference()->bufferID());
+		glUnmapNamedBuffer(velBuffer_->drawBufferRef()->bufferID());
 	}
 #endif
 }
@@ -401,11 +401,11 @@ void BoidsGPU::debugVelocity(RenderState *rs) {
 void BoidsGPU::debugGridSorting(RenderState *rs) {
 	// read the key buffer
 	std::vector<uint32_t> sortKeys(numBoids_);
-	uint32_t bufferID = ((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->bufferID();
+	uint32_t bufferID = ((RadixSort*)radixSort_.get())->keyBuffer()->drawBufferRef()->bufferID();
 	auto sortKeysData = (uint32_t *) glMapNamedBufferRange(
 			bufferID,
-			((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->address(),
-			((RadixSort*)radixSort_.get())->keyBuffer()->blockReference()->allocatedSize(),
+			((RadixSort*)radixSort_.get())->keyBuffer()->drawBufferRef()->address(),
+			((RadixSort*)radixSort_.get())->keyBuffer()->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (sortKeysData) {
 		std::set<uint32_t> usedCells;
@@ -418,11 +418,11 @@ void BoidsGPU::debugGridSorting(RenderState *rs) {
 	}
 
 	// second map the index buffer and test if the indices are sorted correctly
-	bufferID = ((RadixSort*)radixSort_.get())->valueBuffer()->blockReference()->bufferID();
+	bufferID = ((RadixSort*)radixSort_.get())->valueBuffer()->drawBufferRef()->bufferID();
 	auto sortedIndexData = (uint32_t *) glMapNamedBufferRange(
 			bufferID,
-			((RadixSort*)radixSort_.get())->valueBuffer()->blockReference()->address(),
-			((RadixSort*)radixSort_.get())->valueBuffer()->blockReference()->allocatedSize(),
+			((RadixSort*)radixSort_.get())->valueBuffer()->drawBufferRef()->address(),
+			((RadixSort*)radixSort_.get())->valueBuffer()->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (sortedIndexData) {
 		uint32_t lastCell = 0;

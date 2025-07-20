@@ -47,6 +47,7 @@ namespace regen {
 	  * (usually by the staging system).
 	  */
 	enum BufferingMode {
+		RING_BUFFER = 0,
 		SINGLE_BUFFER = 1,
 		DOUBLE_BUFFER = 2,
 		TRIPLE_BUFFER = 3
@@ -145,7 +146,7 @@ namespace regen {
 		// Do NOT use explicit staging buffer, i.e. write directly to the draw buffer.
 		// BEWARE: This may introduce synchronization delays in some cases!
 		// In such a case maybe more segments in the staging ring buffer will help.
-		BUFFER_SYNC_IMPLICIT_STAGING  = 1 << 0,
+		BUFFER_SYNC_IMPLICIT_STAGING = 1 << 0,
 		// Allow frame dropping when the GPU is still using the buffer and CPU
 		// tries to read/write to it.
 		// e.g. in case of reading this means that the read data might not be up to date
@@ -217,6 +218,7 @@ namespace regen {
 		BUFFER_MODE_CPU_W_MAP_TEMPORARY,
 		BUFFER_MODE_CPU_W_MAP_PERSISTENT_COHERENT,
 		BUFFER_MODE_CPU_W_MAP_PERSISTENT_FLUSH,
+		// TODO: remove RW modes
 		BUFFER_MODE_CPU_RW_MAP_TEMPORARY,
 		BUFFER_MODE_CPU_RW_MAP_PERSISTENT_COHERENT,
 		BUFFER_MODE_CPU_RW_MAP_PERSISTENT_FLUSH,
@@ -242,17 +244,25 @@ namespace regen {
 		uint32_t syncFlags = 0;
 
 		explicit BufferFlags(BufferTarget target)
-			: target(target),
-			  updateHints(BufferUpdateFlags::NEVER) {}
+				: target(target),
+				  updateHints(BufferUpdateFlags::NEVER) {}
 
 		BufferFlags(BufferTarget target, const BufferUpdateFlags &hints)
-			: target(target), updateHints(hints) {}
+				: target(target), updateHints(hints) {}
 
 		bool areUpdatesVeryFrequent() const {
 			return updateHints.frequency == BUFFER_UPDATE_PER_DRAW;
 		}
 
+		bool areUpdatesPerDraw() const {
+			return updateHints.frequency == BUFFER_UPDATE_PER_DRAW;
+		}
+
 		bool areUpdatesFrequent() const {
+			return updateHints.frequency == BUFFER_UPDATE_PER_FRAME;
+		}
+
+		bool areUpdatesPerFrame() const {
 			return updateHints.frequency == BUFFER_UPDATE_PER_FRAME;
 		}
 

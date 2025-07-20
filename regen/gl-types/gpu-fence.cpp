@@ -4,10 +4,20 @@
 using namespace regen;
 
 uint64_t GPUFence::WAIT_TIMEOUT = 1'000'000; // 1ms timeout
+uint32_t GPUFence::STALL_RANGE = 60; // Default to 60 frames for stall detection
+
+GPUFence::GPUFence() {
+	stalledFrames_ = new bool[STALL_RANGE];
+	std::fill(stalledFrames_, stalledFrames_ + STALL_RANGE, false);
+}
 
 GPUFence::~GPUFence() {
 	if (fence_) {
 		glDeleteSync(fence_);
+	}
+	if (stalledFrames_) {
+		delete[] stalledFrames_;
+		stalledFrames_ = nullptr;
 	}
 }
 
@@ -39,14 +49,18 @@ bool GPUFence::wait(bool allowFrameDropping) {
 	GLenum status = glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 	if (allowFrameDropping) {
 		if (status == GL_TIMEOUT_EXPIRED) {
+			setStalledFrame(true);
 			return false; // Frame dropped
+		} else {
+			setStalledFrame(false);
 		}
 	} else {
 		// keep waiting and polling until the fence is signaled or an error occurs.
 		// Note: we use a wait timeout here to avoid wasting too much time in the loop.
+		setStalledFrame(status == GL_TIMEOUT_EXPIRED);
 		while (status == GL_TIMEOUT_EXPIRED) {
 			status = glClientWaitSync(fence_,
-				GL_SYNC_FLUSH_COMMANDS_BIT, WAIT_TIMEOUT);
+									  GL_SYNC_FLUSH_COMMANDS_BIT, WAIT_TIMEOUT);
 		}
 	}
 
@@ -75,5 +89,28 @@ bool GPUFence::isSignaled() {
 		REGEN_WARN("Unknown fence status: " << status << " (0x" << std::hex << status << std::dec << ")");
 		GL_ERROR_LOG();
 		return false; // Error in checking fence status
+	}
+}
+
+float GPUFence::getStallRate() const {
+	return static_cast<float>(stallCount_) / static_cast<float>(stallRange_);
+}
+
+void GPUFence::resetStallHistory() {
+	stallCount_ = 0;
+	stallIdx_ = 0;
+	std::fill(stalledFrames_, stalledFrames_ + stallRange_, false);
+}
+
+void GPUFence::setStalledFrame(bool isStalled) {
+	bool wasStalled = stalledFrames_[stallIdx_];
+	if (!wasStalled && isStalled) {
+		stallCount_++;
+	} else if (wasStalled && !isStalled) {
+		stallCount_--;
+	}
+	stalledFrames_[stallIdx_++] = isStalled;
+	if (stallIdx_ >= stallRange_) {
+		stallIdx_ = 0; // wrap around the index
 	}
 }

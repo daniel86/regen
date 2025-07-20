@@ -642,7 +642,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCoun
 		set_baseInstance(lod.d->instanceOffset);
 		if (hasIndirectDrawBuffer()) {
 			set_indirectOffset(
-				shared_->indirectDrawBuffer_->blockReference()->address() +
+				shared_->indirectDrawBuffer_->drawBufferRef()->address() +
 				// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
 				(baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
 			set_multiDrawCount(multiDrawCount);
@@ -666,7 +666,7 @@ void Mesh::drawMesh(RenderState *rs) {
 
 	rs->vao().apply(vao_->id());
 	if (hasIndirectDrawBuffer()) {
-		rs->drawIndirectBuffer().apply(indirectDrawBuffer()->blockReference()->bufferID());
+		rs->drawIndirectBuffer().apply(indirectDrawBuffer()->drawBufferRef()->bufferID());
 	}
 	(this->*draw_)(primitive_);
 

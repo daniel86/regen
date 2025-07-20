@@ -340,9 +340,9 @@ void PrefixScan::scan(RenderState *rs) {
 void PrefixScan::printHistogram(RenderState *rs) {
 	// debug histogram
 	auto histogramData = (uint32_t *) glMapNamedBufferRange(
-			globalHistogramBuffer_->blockReference()->bufferID(),
-			globalHistogramBuffer_->blockReference()->address(),
-			globalHistogramBuffer_->blockReference()->allocatedSize(),
+			globalHistogramBuffer_->drawBufferRef()->bufferID(),
+			globalHistogramBuffer_->drawBufferRef()->address(),
+			globalHistogramBuffer_->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (histogramData) {
 		std::stringstream sss;
@@ -351,6 +351,6 @@ void PrefixScan::printHistogram(RenderState *rs) {
 			sss << histogramData[i] << " ";
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapNamedBuffer(globalHistogramBuffer_->blockReference()->bufferID());
+		glUnmapNamedBuffer(globalHistogramBuffer_->drawBufferRef()->bufferID());
 	}
 }

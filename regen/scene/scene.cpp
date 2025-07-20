@@ -300,6 +300,7 @@ void Scene::setTime() {
 void Scene::clear() {
 	renderTree_->clear();
 	perFrameInputUpdates_.clear();
+	StagingSystem::instance().clear();
 	namedToObject_.clear();
 	idToObject_.clear();
 	isTimeInitialized_ = GL_FALSE;
@@ -370,7 +371,7 @@ void Scene::setWorldTime(float timeInSeconds) {
 	worldTime_.p_time = boost::posix_time::from_time_t((time_t) timeInSeconds);
 }
 
-void Scene::initializePerFrameUpdates() {
+void Scene::updateBOs() {
 	std::stack<const StateNode*> nodeQueue;
 	std::stack<const State*> stateQueue;
 	std::set<const ShaderInput*> visited;
@@ -408,11 +409,13 @@ void Scene::initializePerFrameUpdates() {
 
 			for (const auto &ni: state->inputs()) {
 				auto input = ni.in_;
-				BufferBlock *bufferBlock = dynamic_cast<BufferBlock*>(input.get());
-				if (bufferBlock && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
-					perFrameInputUpdates_.emplace_back(bufferBlock);
-					bufferBlock->setAutoUpdate(false);
+				ref_ptr<BufferBlock> bufferBlock = ref_ptr<BufferBlock>::dynamicCast(input);
+				// TODO: consider adding VBO and TBO data to staging arena.
+				if (bufferBlock.get() && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
 					bufferBlock->update();
+					// TODO: remove
+					bufferBlock->setAutoUpdate(false);
+					perFrameInputUpdates_.emplace_back(bufferBlock.get());
 				}
 			}
 
@@ -421,13 +424,21 @@ void Scene::initializePerFrameUpdates() {
 			}
 		}
 	}
+
+	REGEN_INFO("num per-frame input updates: " << perFrameInputUpdates_.size());
 }
 
 void Scene::initializeScene() {
-	initializePerFrameUpdates();
+	// traverse the scene and add buffer objects to staging arenas.
+	updateBOs();
+	// adopt buffer ranges for staging
+	StagingSystem::instance().updateBuffers();
 }
 
 void Scene::drawGL() {
+	// update staging arenas (up to per-frame frequency)
+	StagingSystem::instance().updateData();
+	// TODO: remove
 	for (auto &in : perFrameInputUpdates_) {
 		in->update();
 	}

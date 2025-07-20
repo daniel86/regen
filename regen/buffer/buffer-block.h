@@ -8,13 +8,29 @@
 
 namespace regen {
 	/**
-	 * \brief A BufferBlock is a Buffer Object that is used to store and retrieve data from within the OpenGL Shading Language.
+	 * \brief Manages data in a buffer object that can be bound as buffer blocks in shaders.
 	 *
-	 * This base class is used to create Uniform Buffer Objects (UBO) and Shader Storage Buffer Objects (SSBO).
+	 * Buffer blocks adopts draw buffer ranges used for draw operation and maybe have
+	 * an area in staging for CPU access.
 	 */
 	class BufferBlock : public BufferObject {
 	public:
 		static constexpr const char *TYPE_NAME = "BufferBlock";
+
+		// The minimum number of segments for partial updates in temporary mapped buffers.
+		static uint32_t MIN_SEGMENTS_PARTIAL_TEMPORARY;
+		// The maximum update ratio for partial updates in temporary mapped buffers.
+		static float MAX_UPDATE_RATIO_PARTIAL_TEMPORARY;
+		// Frame range for update detection
+		static uint32_t UPDATE_RATE_RANGE;
+
+		/**
+		 * Load a BufferBlock from a scene input node.
+		 * @param ctx the loading context.
+		 * @param input the scene input node.
+		 * @return a reference to the loaded BufferBlock.
+		 */
+		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		/**
 		 * Buffer block qualifiers for shader storage blocks.
@@ -33,136 +49,29 @@ namespace regen {
 		/**
 		 * Create a buffer block.
 		 * @param target the buffer target.
-		 * @param usage the buffer usage.
+		 * @param hints the buffer update hints.
 		 * @param storageQualifier the storage qualifier.
 		 * @param memoryLayout the memory layout.
 		 */
 		BufferBlock(
-			BufferTarget target,
-			const BufferUpdateFlags &hints,
-			Qualifier storageQualifier,
-			BufferMemoryLayout memoryLayout);
+				BufferTarget target,
+				const BufferUpdateFlags &hints,
+				Qualifier storageQualifier,
+				BufferMemoryLayout memoryLayout);
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer block
-		 * @param name name of the new buffer block
 		 */
 		BufferBlock(const BufferBlock &other);
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer object
-		 * @param name name of the new buffer block
 		 */
 		explicit BufferBlock(const BufferObject &other);
 
-		~BufferBlock() override = default;
-
-		/**
-		 * @return the reference to the buffer object.
-		 */
-		auto& blockReference() const { return ref_; }
-
-		/**
-		 * @return true if the block is a uniform block.
-		 */
-		auto isUBO() const { return blockQualifier_ == UNIFORM; }
-
-		/**
-		 * @return true if the block is a shader storage block.
-		 */
-		auto isSSBO() const { return blockQualifier_ == BUFFER; }
-
-		/**
-		 * @return the storage qualifier of the block.
-		 */
-		Qualifier blockQualifier() const { return blockQualifier_; }
-
-		/**
-		 * @return the memory layout of the block.
-		 */
-		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
-
-		/**
-		 * @return the update hint for the staging buffer.
-		 */
-		BufferUpdateFlags stagingUpdateHint() const { return stagingFlags_.updateHints; }
-
-		/**
-		 * @return the map mode for the staging buffer.
-		 */
-		BufferMapMode stagingMapMode() const { return stagingFlags_.mapMode; }
-
-		/**
-		 * @return the access mode for the staging buffer.
-		 */
-		BufferAccessMode stagingAccessMode() const { return stagingFlags_.accessMode; }
-
-		/**
-		 * @return the buffering mode for the staging buffer.
-		 */
-		BufferingMode stagingBuffering() const { return stagingFlags_.bufferingMode; }
-
-		/**
-		 * Set the update hint for the staging buffer.
-		 * In case no explicit staging buffer is used, this will also set the update hint for the main buffer.
-		 * @param hint the update hint to set.
-		 */
-		void setStagingUpdateHints(const BufferUpdateFlags &hints);
-
-		/**
-		 * Set the map mode for the staging buffer.
-		 * In case no explicit staging buffer is used, this will also set the map mode for the main buffer.
-		 * @param mode the map mode to set.
-		 */
-		void setStagingMapMode(BufferMapMode mode);
-
-		/**
-		 * Set the access mode for the staging buffer.
-		 * In case no explicit staging buffer is used, this will also set the access mode for the main buffer.
-		 * @param mode the access mode to set.
-		 */
-		void setStagingAccessMode(BufferAccessMode mode);
-
-		/**
-		 * Set the buffering mode for the staging buffer.
-		 * In case no explicit staging buffer is used, this will also set the buffering mode for the main buffer.
-		 * @param mode the buffering mode to set.
-		 */
-		void setBufferingMode(BufferingMode mode);
-
-		/**
-		 * Enable a synchronization flag for the buffer object.
-		 * @param flag the synchronization flag to set.
-		 */
-		void setSyncFlag(BufferSyncFlag flag) {
-			stagingFlags_.syncFlags |= flag;
-			flags_.syncFlags |= flag;
-		}
-
-		/**
-		 * Check if a specific synchronization flag is set.
-		 * @param flag the synchronization flag to check.
-		 * @return true if the flag is set, false otherwise.
-		 */
-		bool hasSyncFlag(BufferSyncFlag flag) const { return (stagingFlags_.syncFlags & flag) != 0; }
-
-		/**
-		 * @return true if the block has a binding index.
-		 */
-		bool has_bindingIndex() const { return bindingIndex_ >= 0; }
-
-		/**
-		 * Set the binding index of the block.
-		 * @param index the binding index.
-		 */
-		void set_bindingIndex(int index) { bindingIndex_ = index; }
-
-		/**
-		 * @return the binding index of the block.
-		 */
-		int bindingIndex() const { return bindingIndex_; }
+		~BufferBlock() override;
 
 		/**
 		 * @return get string representation of the block name.
@@ -182,9 +91,81 @@ namespace regen {
 		void removeBlockInput(std::string_view name);
 
 		/**
-		 * @return the list of uniforms.
+		 * @return true if the block is a uniform block.
 		 */
-		auto &blockInputs() const { return inputs_; }
+		bool isUBO() const { return blockQualifier_ == UNIFORM; }
+
+		/**
+		 * @return true if the block is a shader storage block.
+		 */
+		bool isSSBO() const { return blockQualifier_ == BUFFER; }
+
+		/**
+		 * @return a flag indicating if the block is valid.
+		 */
+		bool isBlockValid() const { return isBlockValid_; }
+
+		/**
+		 * @return the storage qualifier of the block.
+		 */
+		Qualifier blockQualifier() const { return blockQualifier_; }
+
+		/**
+		 * @return the memory layout of the block.
+		 */
+		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
+
+		/**
+		 * Set the buffering mode for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the buffering mode for the main buffer.
+		 * @param mode the buffering mode to set.
+		 */
+		void setBufferingMode(BufferingMode mode);
+
+		/**
+		 * Enable a synchronization flag for the buffer object.
+		 * @param flag the synchronization flag to set.
+		 */
+		void setSyncFlag(BufferSyncFlag flag) {
+			stagingFlags_.syncFlags |= flag;
+			flags_.syncFlags |= flag;
+		}
+
+		/**
+		 * Enable this buffer block for drawing, ensuring
+		 * it is bound to the correct shader location.
+		 * @param loc the shader location to bind the block to.
+		 */
+		void enableBufferBlock(GLint loc);
+
+		/**
+		 * Binds the uniform block to the given shader location.
+		 * @param loc the shader location to bind the block to.
+		 */
+		void bind(GLint loc);
+
+		/**
+		 * Set the binding index of the block.
+		 * @param index the binding index.
+		 */
+		void set_bindingIndex(int index) { bindingIndex_ = index; }
+
+		/**
+		 * @return the binding index of the block.
+		 */
+		int bindingIndex() const { return bindingIndex_; }
+
+		/**
+		 * Update the block inputs and their offsets.
+		 * Also compute the required size of the block, and build a list of dirty segments.
+		 * @return the required size of the block in bytes.
+		 */
+		uint32_t updateBlockInputs();
+
+		/**
+		 * @return true if the block has any dirty segments.
+		 */
+		bool hasDirtySegments() const { return numDirtySegments_ > 0; }
 
 		/**
 		 * Update the block buffer.
@@ -194,90 +175,102 @@ namespace regen {
 		void update(bool forceUpdate = false);
 
 		/**
+		 * @return the list of uniforms.
+		 */
+		auto &blockInputs() const { return inputs_; }
+
+		/**
+		 * Update the draw buffer, possibly adopting a new buffer range.
+		 */
+		void updateDrawBuffer();
+
+		/**
+		 * @return the reference to the draw buffer.
+		 */
+		const ref_ptr<BufferReference> &drawBufferRef() const { return drawBufferRef_; }
+
+		/**
+		 * @return the draw buffer name, i.e. the buffer ID.
+		 */
+		uint32_t drawBufferName() const { return drawBufferRef_->bufferID(); }
+
+		/**
+		 * @return the size of the draw buffer in bytes.
+		 */
+		uint32_t drawBufferSize() const { return drawBufferRef_->allocatedSize(); }
+
+		/**
+		 * @return the address of the draw buffer range within larger buffer.
+		 */
+		uint32_t drawBufferAddress() const { return drawBufferRef_->address(); }
+
+		/**
+		 * Copy the data to the draw buffer.
+		 * @param forceUpdate force update, even if no segments are dirty.
+		 */
+		void copyStagingData(bool forceUpdate = false);
+
+		/**
+		 * Assigns an offset relative to segments in multi-buffering where this
+		 * BO starts in each segment of the staging buffer.
+		 * This is needed in case multiple BOs are sharing the same staging buffer.
+		 * @param offset the offset in bytes to set.
+		 */
+		void setStagingOffset(uint32_t offset) { shared_->stagingOffset_ = offset; }
+
+		/**
+		 * @return the flags for the staging buffer.
+		 */
+		const BufferFlags &stagingFlags() const { return stagingFlags_; }
+
+		/**
+		 * @return the update hint for the staging buffer.
+		 */
+		BufferUpdateFlags stagingUpdateHint() const { return stagingFlags_.updateHints; }
+
+		/**
+		 * Set the map mode for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the map mode for the main buffer.
+		 * @param mode the map mode to set.
+		 */
+		void setStagingMapMode(BufferMapMode mode);
+
+		/**
+		 * Set the access mode for the staging buffer.
+		 * In case no explicit staging buffer is used, this will also set the access mode for the main buffer.
+		 * @param mode the access mode to set.
+		 */
+		void setStagingAccessMode(BufferAccessMode mode);
+
+		/**
 		 * If enabled, the block will be updated automatically each time it is enabled.
 		 * @param v true to enable auto-update, false to disable.
 		 */
-		void setAutoUpdate(bool v) { useAutoUpdate_ = v; }
+		// TODO: remove
+		void setAutoUpdate(bool v) { shared_->useAutoUpdate_ = v; }
 
 		/**
-		 * Binds the uniform block to the given shader location.
+		 * Get the update rate, which is the percentage of frames that had an update.
+		 * @return the update rate as a float, where 0.0 means no updates and 1.0 means all frames had updates.
 		 */
-		void enableBufferBlock(GLint loc);
+		float getUpdateRate() const;
 
 		/**
-		 * Binds the uniform block to the given shader location.
+		 * Reset the update history, clearing the array of updated frames.
 		 */
-		void bind(GLint loc);
-
-		/**
-		 * Lock the UBO, preventing updates.
-		 */
-		void lock() { lock_.lock(); }
-
-		/**
-		 * Unlock the UBO, allowing updates.
-		 */
-		void unlock() { lock_.unlock(); }
-
-		/**
-		 * Load a BufferBlock from a scene input node.
-		 * @param ctx the loading context.
-		 * @param input the scene input node.
-		 * @return a reference to the loaded BufferBlock.
-		 */
-		static ref_ptr<BufferBlock> load(LoadingContext &ctx, scene::SceneInputNode &input);
-
-		/**
-		 * Set the minimum size for medium sized buffers.
-		 * @param size the minimum size in bytes.
-		 */
-		static void setMediumBufferMinSize(uint32_t size) { MIN_SIZE_MEDIUM = size; }
-
-		/**
-		 * Set the minimum size for large sized buffers.
-		 * @param size the minimum size in bytes.
-		 */
-		static void setLargeBufferMinSize(uint32_t size) { MIN_SIZE_LARGE = size; }
-
-		/**
-		 * Set the minimum size for very large sized buffers.
-		 * @param size the minimum size in bytes.
-		 */
-		static void setVeryLargeBufferMinSize(uint32_t size) { MIN_SIZE_VERY_LARGE = size; }
-
-		/**
-		 * Set the minimum number of segments for partial updates in temporary mapped buffers.
-		 * @param segments the minimum number of segments.
-		 */
-		static void setTemporaryMappingPartialMinSegments(uint32_t segments) {
-			temporaryMappingPartialMinSegments = segments;
-		}
-
-		/**
-		 * Set the maximum update ratio for partial updates in temporary mapped buffers.
-		 * @param ratio the maximum update ratio.
-		 */
-		static void setTemporaryMappingPartialMaxUpdateRatio(float ratio) {
-			temporaryMappingPartialMaxUpdateRatio = ratio;
-		}
+		void resetUpdateHistory();
 
 	protected:
-		static uint32_t MIN_SIZE_MEDIUM;
-		static uint32_t MIN_SIZE_LARGE;
-		static uint32_t MIN_SIZE_VERY_LARGE;
-		static uint32_t temporaryMappingPartialMinSegments;
-		static float temporaryMappingPartialMaxUpdateRatio;
-
 		Qualifier blockQualifier_;
 		BufferMemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
-		SpinLock lock_;
 
 		bool hasClientData_ = true;
 		bool isBlockValid_ = true;
 
 		std::vector<NamedShaderInput> inputs_;
-		ref_ptr<BufferReference> ref_;
+		ref_ptr<BufferReference> drawBufferRef_;
+		ref_ptr<BufferRange> drawBufferRange_;
 		uint32_t requiredSize_ = 0;
 		uint32_t estimatedSize_ = 0;
 		uint32_t updatedSize_ = 0;
@@ -299,9 +292,7 @@ namespace regen {
 			}
 
 			~BlockInput() {
-				if (alignedData) {
-					delete[] alignedData;
-				}
+				delete[] alignedData;
 			}
 
 			ref_ptr<ShaderInput> input;
@@ -311,6 +302,7 @@ namespace regen {
 			uint32_t inputSize = 0;
 			byte *alignedData = nullptr;
 		};
+
 		std::vector<ref_ptr<BlockInput>> blockInputs_;
 
 		// dirty segments are used to track which parts of the buffer have changed
@@ -324,10 +316,36 @@ namespace regen {
 
 		BufferFlags stagingFlags_;
 		std::optional<BufferingMode> userDefinedBufferingMode_ = std::nullopt;
-		ref_ptr<StagingBuffer> stagingBuffer_;
-		ref_ptr<BufferRange> drawBufferRange_;
 
-		bool useAutoUpdate_ = true;
+		struct Shared {
+			~Shared() {
+				if (updatedFrames_) {
+					delete[] updatedFrames_;
+				}
+			}
+
+			ref_ptr<StagingBuffer> stagingBuffer_;
+			// the offset in each staging buffer segment where the block data starts
+			uint32_t stagingOffset_ = 0u;
+			// the number of segments in the staging buffer, used for multi-buffering
+			uint32_t numBufferSegments_ = 1u;
+			bool isGloballyStaged_ = false;
+			bool useAutoUpdate_ = true;
+
+			// Array for update detection, true indicates we had an update in a frame.
+			// We record last n frames for computing the update rate.
+			bool *updatedFrames_ = nullptr;
+			// Range for update detection
+			uint32_t updateRange_ = UPDATE_RATE_RANGE;
+			// Count of frames that had a stall
+			uint32_t updateCount_ = 0;
+			// Current index in the stall detection array
+			uint32_t updateIdx_ = 0;
+			// Indicates if the update history has rotated, i.e. we have wrapped around the update index.
+			bool hasUpdateRotated_ = false;
+		};
+
+		ref_ptr<Shared> shared_;
 
 		inline void resetDirtySegments();
 
@@ -337,7 +355,7 @@ namespace regen {
 
 		void appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx);
 
-		inline uint32_t& lastInputStamp(BlockInput &blockInput);
+		inline uint32_t &lastInputStamp(BlockInput &blockInput);
 
 		void updateStorageFlags();
 
@@ -348,8 +366,6 @@ namespace regen {
 		void enablePersistentMapping(bool partialWrite);
 
 		void enablePersistentMapping_(bool useFlushExplicit);
-
-		void updateBlockInputs();
 
 		void copyBufferData(byte *bufferData, uint32_t mapOffset, bool partialWrite);
 
@@ -363,11 +379,13 @@ namespace regen {
 
 		void updatePersistentMapped();
 
-		void updateAllBuffers();
+		bool updateReadBuffer();
 
-		void resize();
+		void prepareRebind(GLint loc);
 
-		BufferSizeClass getBufferSizeClass(uint32_t size);
+		void markBufferDirty();
+
+		void setUpdatedFrame(bool isStalled);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BufferBlock::Qualifier &v);

@@ -71,8 +71,8 @@ namespace regen {
 
 	bool isMapModePersistent(BufferMapMode mapMode) {
 		return
-			mapMode == BUFFER_MAP_PERSISTENT_COHERENT
-			|| mapMode == BUFFER_MAP_PERSISTENT_FLUSH;
+				mapMode == BUFFER_MAP_PERSISTENT_COHERENT
+				|| mapMode == BUFFER_MAP_PERSISTENT_FLUSH;
 	}
 
 	BufferStorageMode getBufferStorageMode(
@@ -90,27 +90,21 @@ namespace regen {
 				REGEN_WARN("Buffer access mode is CPU_READ, but map mode is DISABLED. "
 						   "Using CPU_R_MAP_TEMPORARY.");
 				return BUFFER_MODE_CPU_R_MAP_TEMPORARY;
-			}
-			else if (mapMode == BUFFER_MAP_TEMPORARY) {
+			} else if (mapMode == BUFFER_MAP_TEMPORARY) {
 				return BUFFER_MODE_CPU_R_MAP_TEMPORARY;
-			}
-			else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
+			} else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
 				return BUFFER_MODE_CPU_R_MAP_PERSISTENT_COHERENT;
-			}
-			else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			} else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
 				return BUFFER_MODE_CPU_R_MAP_PERSISTENT_FLUSH;
 			}
 		} else if (accessMode == BUFFER_CPU_WRITE) {
 			if (mapMode == BUFFER_MAP_DISABLED) {
 				return BUFFER_MODE_CPU_W_MAP_DISABLED;
-			}
-			else if (mapMode == BUFFER_MAP_TEMPORARY) {
+			} else if (mapMode == BUFFER_MAP_TEMPORARY) {
 				return BUFFER_MODE_CPU_W_MAP_TEMPORARY;
-			}
-			else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
+			} else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
 				return BUFFER_MODE_CPU_W_MAP_PERSISTENT_COHERENT;
-			}
-			else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			} else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
 				return BUFFER_MODE_CPU_W_MAP_PERSISTENT_FLUSH;
 			}
 		} else if (accessMode == BUFFER_CPU_READ_WRITE) {
@@ -118,14 +112,11 @@ namespace regen {
 				REGEN_WARN("Buffer access mode is CPU_READ_WRITE, but map mode is DISABLED. "
 						   "Using CPU_RW_MAP_TEMPORARY.");
 				return BUFFER_MODE_CPU_RW_MAP_TEMPORARY;
-			}
-			else if (mapMode == BUFFER_MAP_TEMPORARY) {
+			} else if (mapMode == BUFFER_MAP_TEMPORARY) {
 				return BUFFER_MODE_CPU_RW_MAP_TEMPORARY;
-			}
-			else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
+			} else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
 				return BUFFER_MODE_CPU_RW_MAP_PERSISTENT_COHERENT;
-			}
-			else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
+			} else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
 				return BUFFER_MODE_CPU_RW_MAP_PERSISTENT_FLUSH;
 			}
 		}
@@ -191,7 +182,8 @@ namespace regen {
 		boost::to_upper(val);
 		if (val == "MAP_DISABLED" || val == "DISABLED") mode = BUFFER_MAP_DISABLED;
 		else if (val == "MAP_TEMPORARY" || val == "TEMPORARY") mode = BUFFER_MAP_TEMPORARY;
-		else if (val == "MAP_PERSISTENT_COHERENT" || val == "PERSISTENT_COHERENT") mode = BUFFER_MAP_PERSISTENT_COHERENT;
+		else if (val == "MAP_PERSISTENT_COHERENT" || val == "PERSISTENT_COHERENT")
+			mode = BUFFER_MAP_PERSISTENT_COHERENT;
 		else if (val == "MAP_PERSISTENT_FLUSH" || val == "PERSISTENT_FLUSH") mode = BUFFER_MAP_PERSISTENT_FLUSH;
 		else {
 			REGEN_WARN("Unknown buffer map mode '" << val << "'. Using default DISABLED.");
@@ -201,32 +193,32 @@ namespace regen {
 	}
 
 	const BufferUpdateFlags BufferUpdateFlags::NEVER = {
-		.frequency = BUFFER_UPDATE_NEVER,
-		.scope = BUFFER_UPDATE_FULLY
+			.frequency = BUFFER_UPDATE_NEVER,
+			.scope = BUFFER_UPDATE_FULLY
 	};
 	const BufferUpdateFlags BufferUpdateFlags::FULL_PER_FRAME = {
-		.frequency = BUFFER_UPDATE_PER_FRAME,
-		.scope = BUFFER_UPDATE_FULLY
+			.frequency = BUFFER_UPDATE_PER_FRAME,
+			.scope = BUFFER_UPDATE_FULLY
 	};
 	const BufferUpdateFlags BufferUpdateFlags::FULL_PER_DRAW = {
-		.frequency = BUFFER_UPDATE_PER_DRAW,
-		.scope = BUFFER_UPDATE_FULLY
+			.frequency = BUFFER_UPDATE_PER_DRAW,
+			.scope = BUFFER_UPDATE_FULLY
 	};
 	const BufferUpdateFlags BufferUpdateFlags::FULL_RARELY = {
-		.frequency = BUFFER_UPDATE_RARE,
-		.scope = BUFFER_UPDATE_FULLY
+			.frequency = BUFFER_UPDATE_RARE,
+			.scope = BUFFER_UPDATE_FULLY
 	};
 	const BufferUpdateFlags BufferUpdateFlags::PARTIAL_PER_FRAME = {
-		.frequency = BUFFER_UPDATE_PER_FRAME,
-		.scope = BUFFER_UPDATE_PARTIALLY
+			.frequency = BUFFER_UPDATE_PER_FRAME,
+			.scope = BUFFER_UPDATE_PARTIALLY
 	};
 	const BufferUpdateFlags BufferUpdateFlags::PARTIAL_PER_DRAW = {
-		.frequency = BUFFER_UPDATE_PER_DRAW,
-		.scope = BUFFER_UPDATE_PARTIALLY
+			.frequency = BUFFER_UPDATE_PER_DRAW,
+			.scope = BUFFER_UPDATE_PARTIALLY
 	};
 	const BufferUpdateFlags BufferUpdateFlags::PARTIAL_RARELY = {
-		.frequency = BUFFER_UPDATE_RARE,
-		.scope = BUFFER_UPDATE_PARTIALLY
+			.frequency = BUFFER_UPDATE_RARE,
+			.scope = BUFFER_UPDATE_PARTIALLY
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BufferUpdateFrequency &hint) {
@@ -422,9 +414,14 @@ std::istream &regen::operator>>(std::istream &in, BufferMemoryLayout &v) {
 
 std::ostream &regen::operator<<(std::ostream &out, const BufferingMode &v) {
 	switch (v) {
-		case SINGLE_BUFFER: return out << "SINGLE_BUFFER";
-		case DOUBLE_BUFFER: return out << "DOUBLE_BUFFER";
-		case TRIPLE_BUFFER: return out << "TRIPLE_BUFFER";
+		case RING_BUFFER:
+			return out << "RING_BUFFER";
+		case SINGLE_BUFFER:
+			return out << "SINGLE_BUFFER";
+		case DOUBLE_BUFFER:
+			return out << "DOUBLE_BUFFER";
+		case TRIPLE_BUFFER:
+			return out << "TRIPLE_BUFFER";
 	}
 	return out;
 }
@@ -436,6 +433,7 @@ std::istream &regen::operator>>(std::istream &in, BufferingMode &v) {
 	if (val == "SINGLE_BUFFER") v = SINGLE_BUFFER;
 	else if (val == "DOUBLE_BUFFER") v = DOUBLE_BUFFER;
 	else if (val == "TRIPLE_BUFFER") v = TRIPLE_BUFFER;
+	else if (val == "RING_BUFFER") v = RING_BUFFER;
 	else {
 		REGEN_WARN("Unknown memory layout '" << val << "'. Using SINGLE_BUFFER.");
 		v = SINGLE_BUFFER;
@@ -445,10 +443,14 @@ std::istream &regen::operator>>(std::istream &in, BufferingMode &v) {
 
 std::ostream &regen::operator<<(std::ostream &out, const BufferSizeClass &v) {
 	switch (v) {
-		case BUFFER_SIZE_SMALL: return out << "SMALL";
-		case BUFFER_SIZE_MEDIUM: return out << "MEDIUM";
-		case BUFFER_SIZE_LARGE: return out << "LARGE";
-		case BUFFER_SIZE_VERY_LARGE: return out << "HUGE";
+		case BUFFER_SIZE_SMALL:
+			return out << "SMALL";
+		case BUFFER_SIZE_MEDIUM:
+			return out << "MEDIUM";
+		case BUFFER_SIZE_LARGE:
+			return out << "LARGE";
+		case BUFFER_SIZE_VERY_LARGE:
+			return out << "HUGE";
 	}
 	return out;
 }

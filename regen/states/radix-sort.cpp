@@ -293,9 +293,9 @@ void RadixSort::printHistogram(RenderState *rs) {
 	// debug histogram
 	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	auto histogramData = (uint32_t *) glMapNamedBufferRange(
-			globalHistogramBuffer_->blockReference()->bufferID(),
-			globalHistogramBuffer_->blockReference()->address(),
-			globalHistogramBuffer_->blockReference()->allocatedSize(),
+			globalHistogramBuffer_->drawBufferRef()->bufferID(),
+			globalHistogramBuffer_->drawBufferRef()->address(),
+			globalHistogramBuffer_->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (histogramData) {
 		std::stringstream sss;
@@ -307,7 +307,7 @@ void RadixSort::printHistogram(RenderState *rs) {
 			}
 		}
 		REGEN_INFO(" " << sss.str());
-		glUnmapNamedBuffer(globalHistogramBuffer_->blockReference()->bufferID());
+		glUnmapNamedBuffer(globalHistogramBuffer_->drawBufferRef()->bufferID());
 	}
 }
 
@@ -315,19 +315,19 @@ void RadixSort::printInstanceMap(RenderState *rs) {
 	// debug sorted output
 	std::vector<double> distances(numKeys_);
 	auto sortKeys = (uint32_t *) glMapNamedBufferRange(
-			keyBuffer_->blockReference()->bufferID(),
-			keyBuffer_->blockReference()->address(),
-			keyBuffer_->blockReference()->allocatedSize(),
+			keyBuffer_->drawBufferRef()->bufferID(),
+			keyBuffer_->drawBufferRef()->address(),
+			keyBuffer_->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (sortKeys) {
 		for (uint32_t i = 0; i < numKeys_; ++i) {
 			distances[i] = conversion::uintToFloat(sortKeys[i]);
 		}
-		glUnmapNamedBuffer(keyBuffer_->blockReference()->bufferID());
+		glUnmapNamedBuffer(keyBuffer_->drawBufferRef()->bufferID());
 	}
 
-	auto idRef = valueBuffer_[outputIdx_]->blockReference();
-	//auto idRef = valueBuffer_->blockReference();
+	auto idRef = valueBuffer_[outputIdx_]->drawBufferRef();
+	//auto idRef = valueBuffer_->drawBufferRef();
 	auto instanceIDs = (uint32_t *) glMapNamedBufferRange(
 			idRef->bufferID(),
 			idRef->address(),

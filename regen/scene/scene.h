@@ -9,6 +9,7 @@
 #include "regen/states/pick-data.h"
 #include "regen/scene/scene-interaction.h"
 #include "regen/animations/animation.h"
+#include "regen/buffer/staging-system.h"
 
 // Defeat evil windows defines...
 #ifdef KEY_EVENT
@@ -352,7 +353,6 @@ namespace regen {
 
 	protected:
 		ref_ptr<RootNode> renderTree_;
-		std::vector<BufferBlock*> perFrameInputUpdates_;
 		std::map<std::string, NamedObject> namedToObject_;
 		std::map<int, ref_ptr<StateNode>> idToObject_;
 		std::map<std::string, ref_ptr<SceneInteraction>> interactions_;
@@ -365,8 +365,9 @@ namespace regen {
 		std::list<std::string> optionalExt_;
 		std::vector<ref_ptr<Animation>> glCalls_;
 
-		ref_ptr<ShaderInput2i> windowViewport_;
+		std::vector<BufferBlock*> perFrameInputUpdates_;
 
+		ref_ptr<ShaderInput2i> windowViewport_;
 		ref_ptr<ShaderInput1i> isMouseEntered_;
 		ref_ptr<ShaderInput2f> mousePosition_;
 		ref_ptr<ShaderInput2f> mouseTexco_;
@@ -389,7 +390,7 @@ namespace regen {
 
 		void updateMousePosition();
 
-		void initializePerFrameUpdates();
+		void updateBOs();
 	};
 
 } // namespace

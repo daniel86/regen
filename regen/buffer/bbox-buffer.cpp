@@ -60,13 +60,16 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 
 bool BBoxBuffer::updateBoundingBox() {
 	bool hasChanged = false;
-	if (!stagingBuffer_->readBuffer(*drawBufferRange_.get())) {
+	// TODO: remove
+	/**
+	if (!shared_->stagingBuffer_->readBuffer(*drawBufferRange_.get())) {
 		REGEN_ERROR("Unable to read bounding box buffer data.");
 		isBlockValid_ = false;
 		return false;
 	}
-	if (stagingBuffer_->hasReadData()) {
-		auto &bbox = *((BoundingBoxBlock*)stagingBuffer_->readData());
+	**/
+	if (shared_->stagingBuffer_->hasReadData()) {
+		auto &bbox = *((BoundingBoxBlock*)shared_->stagingBuffer_->readData());
         bboxMin_.x = biasedToFloat(bbox.min.x);
         bboxMin_.y = biasedToFloat(bbox.min.y);
         bboxMin_.z = biasedToFloat(bbox.min.z);
