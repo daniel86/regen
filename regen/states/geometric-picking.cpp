@@ -119,16 +119,18 @@ void GeomPicking::traverse(RenderState *rs) {
 	glDeleteQueries(1, &feedbackQuery);
 
 	if (feedbackCount > 0) {
-		// TODO: remove
-		/**
-		if(!pickMapping_->readBuffer(feedbackRange_)) {
+		// NOTE: the staging buffer pickMapping_ is currently not wrapped by a BO that adds itself to the
+		//       StagingSystem, so we need to manually update it. reason: currently VBOs are not
+		//       supported in the StagingSystem.
+		//       Later, we might want to add the picking buffer to staging system to gain advantages of
+		//       centralized update and synchronization.
+		if(!pickMapping_->readBuffer(vboRef_, feedbackRange_, 0u)) {
 			REGEN_WARN("Failed to read feedback buffer for picking.");
 			hasPickedObject_ = false;
 			// avoid further processing
 			state_->disable(rs);
 			return;
 		}
-		**/
 		if (pickMapping_->hasReadData()) {
 			auto &pickData = pickMapping_->stagingReadValue();
 			pickedObject_.depth = pickData.depth;
