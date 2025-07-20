@@ -214,8 +214,7 @@ void BufferBlock::enableWriteAccess() {
 		// if the access mode is GPU-only, we need to switch it to CPU_WRITE
 		setStagingAccessMode(BUFFER_CPU_WRITE);
 	} else if (stagingFlags_.accessMode == BUFFER_CPU_READ) {
-		// if the access mode is CPU_READ, we need to switch it to CPU_READ_WRITE
-		setStagingAccessMode(BUFFER_CPU_READ_WRITE);
+		REGEN_WARN("Attempting to enable write access on a buffer that is CPU_READ only.");
 	}
 }
 

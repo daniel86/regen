@@ -35,26 +35,6 @@ void BufferObject::setBufferAccessMode(BufferAccessMode mode) {
 	if (mode == BUFFER_GPU_ONLY) {
 		return; // no need to set anything
 	}
-	else if (mode == BUFFER_CPU_READ) {
-		if (flags_.accessMode == BUFFER_CPU_WRITE) {
-			flags_.accessMode = BUFFER_CPU_READ_WRITE;
-			return;
-		}
-		else if (flags_.accessMode == BUFFER_CPU_READ_WRITE || flags_.accessMode == BUFFER_CPU_READ) {
-			// nothing to do, already set
-			return;
-		}
-	}
-	else if (mode == BUFFER_CPU_WRITE) {
-		if (flags_.accessMode == BUFFER_CPU_READ) {
-			flags_.accessMode = BUFFER_CPU_READ_WRITE;
-			return;
-		}
-		else if (flags_.accessMode == BUFFER_CPU_READ_WRITE || flags_.accessMode == BUFFER_CPU_WRITE) {
-			// nothing to do, already set
-			return;
-		}
-	}
 	flags_.accessMode = mode;
 }
 

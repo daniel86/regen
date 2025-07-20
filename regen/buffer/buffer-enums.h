@@ -130,8 +130,6 @@ namespace regen {
 		BUFFER_CPU_READ,
 		// CPU can write to the buffer, but not read from it.
 		BUFFER_CPU_WRITE,
-		// CPU can read and write the buffer.
-		BUFFER_CPU_READ_WRITE,
 		BUFFER_ACCESS_LAST // must be last
 	};
 
@@ -218,10 +216,6 @@ namespace regen {
 		BUFFER_MODE_CPU_W_MAP_TEMPORARY,
 		BUFFER_MODE_CPU_W_MAP_PERSISTENT_COHERENT,
 		BUFFER_MODE_CPU_W_MAP_PERSISTENT_FLUSH,
-		// TODO: remove RW modes
-		BUFFER_MODE_CPU_RW_MAP_TEMPORARY,
-		BUFFER_MODE_CPU_RW_MAP_PERSISTENT_COHERENT,
-		BUFFER_MODE_CPU_RW_MAP_PERSISTENT_FLUSH,
 		BUFFER_STORAGE_MODE_LAST // must be last
 	};
 
@@ -299,11 +293,11 @@ namespace regen {
 		}
 
 		bool isReadable() const {
-			return accessMode == BUFFER_CPU_READ || accessMode == BUFFER_CPU_READ_WRITE;
+			return accessMode == BUFFER_CPU_READ;
 		}
 
 		bool isWritable() const {
-			return accessMode == BUFFER_CPU_WRITE || accessMode == BUFFER_CPU_READ_WRITE;
+			return accessMode == BUFFER_CPU_WRITE;
 		}
 	};
 

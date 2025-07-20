@@ -800,7 +800,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	if (bufferFlags.accessMode == BUFFER_GPU_ONLY) {
 		meshState->setBufferAccessMode(BUFFER_CPU_WRITE);
 	} else if (bufferFlags.accessMode == BUFFER_CPU_READ) {
-		meshState->setBufferAccessMode(BUFFER_CPU_READ_WRITE);
+		meshState->setBufferAccessMode(BUFFER_CPU_READ);
 	} else {
 		meshState->setBufferAccessMode(bufferFlags.accessMode);
 	}

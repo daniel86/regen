@@ -107,22 +107,10 @@ namespace regen {
 			} else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
 				return BUFFER_MODE_CPU_W_MAP_PERSISTENT_FLUSH;
 			}
-		} else if (accessMode == BUFFER_CPU_READ_WRITE) {
-			if (mapMode == BUFFER_MAP_DISABLED) {
-				REGEN_WARN("Buffer access mode is CPU_READ_WRITE, but map mode is DISABLED. "
-						   "Using CPU_RW_MAP_TEMPORARY.");
-				return BUFFER_MODE_CPU_RW_MAP_TEMPORARY;
-			} else if (mapMode == BUFFER_MAP_TEMPORARY) {
-				return BUFFER_MODE_CPU_RW_MAP_TEMPORARY;
-			} else if (mapMode == BUFFER_MAP_PERSISTENT_COHERENT) {
-				return BUFFER_MODE_CPU_RW_MAP_PERSISTENT_COHERENT;
-			} else if (mapMode == BUFFER_MAP_PERSISTENT_FLUSH) {
-				return BUFFER_MODE_CPU_RW_MAP_PERSISTENT_FLUSH;
-			}
 		}
 		REGEN_WARN("Unknown buffer access mode or map mode. "
-				   "Using CPU_RW_MAP_TEMPORARY.");
-		return BUFFER_MODE_CPU_RW_MAP_TEMPORARY;
+				   "Using BUFFER_MODE_CPU_W_MAP_DISABLED.");
+		return BUFFER_MODE_CPU_W_MAP_DISABLED;
 	}
 
 	BufferStorageMode getBufferStorageMode(const BufferFlags &flags) {
@@ -137,8 +125,6 @@ namespace regen {
 				return out << "CPU_READ";
 			case BUFFER_CPU_WRITE:
 				return out << "CPU_WRITE";
-			case BUFFER_CPU_READ_WRITE:
-				return out << "CPU_READ_WRITE";
 			case BUFFER_ACCESS_LAST:
 				return out << "GPU_ONLY"; // default case
 		}
@@ -152,7 +138,6 @@ namespace regen {
 		if (val == "GPU_ONLY") mode = BUFFER_GPU_ONLY;
 		else if (val == "CPU_READ") mode = BUFFER_CPU_READ;
 		else if (val == "CPU_WRITE") mode = BUFFER_CPU_WRITE;
-		else if (val == "CPU_READ_WRITE") mode = BUFFER_CPU_READ_WRITE;
 		else {
 			REGEN_WARN("Unknown buffer access mode '" << val << "'. Using default GPU_ONLY.");
 			mode = BUFFER_GPU_ONLY;
