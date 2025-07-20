@@ -262,13 +262,15 @@ void BufferBlock::updateStorageFlags() {
 		if (stagingFlags_.areUpdatesFrequent()) {
 			// Use ring-buffer in staging with persistent mapping for frequent updates.
 			// In addition, use explicit flushing in case of partial updates.
+			setStagingMapMode(BUFFER_MAP_TEMPORARY);
 			setStagingBuffering(DOUBLE_BUFFER);
-			enablePersistentMapping_(stagingFlags_.areUpdatesPartial());
+			//setStagingBuffering(DOUBLE_BUFFER);
+			//enablePersistentMapping_(stagingFlags_.areUpdatesPartial());
 		} else if (stagingFlags_.areUpdatesVeryFrequent()) {
 			// The current local fencing would not work well with very frequent updates!
 			// So better use temporary mapping in this case.
 			setStagingMapMode(BUFFER_MAP_TEMPORARY);
-			setStagingBuffering(DOUBLE_BUFFER);
+			setStagingBuffering(TRIPLE_BUFFER);
 		} else {
 			// Use single-buffering in staging with unmapped copy
 			// or temporary mapping for infrequent updates.

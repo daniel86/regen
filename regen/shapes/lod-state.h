@@ -55,6 +55,10 @@ namespace regen {
 		ref_ptr<Mesh> mesh_;
 		bool hasShadowTarget_;
 
+		ref_ptr<ShaderInput1ui> instanceData_;
+		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera
+		ref_ptr<SSBO> instanceBuffer_;
+
 		// GPU LOD update
 		ref_ptr<ComputePass> cullPass_;
 		ref_ptr<ComputePass> copyIndirect_;
@@ -86,6 +90,8 @@ namespace regen {
 		void traverseGPU(RenderState *rs);
 
 		void updateFrustumBuffer();
+
+		void createInstanceBuffer();
 	};
 }
 

@@ -393,6 +393,12 @@ namespace regen {
 		void setCullShape(const ref_ptr<State> &cullShape);
 
 		/**
+		 * Set the instance buffer for this mesh.
+		 * @param instanceBuffer the instance buffer to set.
+		 */
+		void setInstanceBuffer(const ref_ptr<SSBO> &instanceBuffer);
+
+		/**
 		 * @return the cull shape.
 		 */
 		ref_ptr<State> cullShape() const { return cullShape_; }
@@ -627,6 +633,7 @@ namespace regen {
 		std::list<InputLocation> vaoAttributes_;
 		std::map<int32_t, std::list<InputLocation>::iterator> vaoLocations_;
 
+		ref_ptr<SSBO> instanceBuffer_;
 		std::vector<MeshLOD> meshLODs_;
 		ref_ptr<ShaderInput3f> lodThresholds_;
 		Vec3f v_lodThresholds_;

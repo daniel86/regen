@@ -23,14 +23,20 @@ namespace regen {
 		 * @param spatialIndex the spatial index to use for culling.
 		 * @param shapeName the name of the shape.
 		 */
-		CullShape(const ref_ptr<SpatialIndex> &spatialIndex, std::string_view shapeName);
+		CullShape(
+			const ref_ptr<SpatialIndex> &spatialIndex,
+			std::string_view shapeName,
+			bool useSharedInstanceBuffer = false);
 
 		/**
 		 * \brief Create a CullShape with a bounding shape.
 		 * @param boundingShape the bounding shape to use for culling.
 		 * @param shapeName the name of the shape.
 		 */
-		CullShape(const ref_ptr<BoundingShape> &boundingShape, std::string_view shapeName);
+		CullShape(
+			const ref_ptr<BoundingShape> &boundingShape,
+			std::string_view shapeName,
+			bool useSharedInstanceBuffer = false);
 
 		/**
 		 * @return the number of instances of this shape.
@@ -63,26 +69,40 @@ namespace regen {
 		const ref_ptr<ModelTransformation> &tf() const { return tf_; }
 
 		/**
+		 * Note that by default the cull shape is not using a shared instance buffer,
+		 * as it is better for performance to use a per-frame updates for instance data.
+		 * @return true if this shape manages an instance buffer.
+		 */
+		bool hasInstanceBuffer() const { return instanceBuffer_.get() != nullptr; }
+
+		/**
 		 * @return the instance ID map, if any (only used if num instances > 1).
 		 */
-		const ref_ptr<ShaderInput1ui>& instanceIDMap() const { return instanceIDMap_; }
+		const ref_ptr<ShaderInput1ui>& instanceData() const { return instanceData_; }
 
 		/**
 		 * @return the instance ID buffer, if any (only used if num instances > 1).
 		 */
-		const ref_ptr<SSBO>& instanceIDBuffer() const { return instanceIDBuffer_; }
+		const ref_ptr<SSBO>& instanceBuffer() const { return instanceBuffer_; }
 
 	protected:
 		std::string shapeName_;
 		std::vector<ref_ptr<Mesh>> parts_;
 		ref_ptr<ModelTransformation> tf_;
 		uint32_t numInstances_ = 1u;
-		ref_ptr<ShaderInput1ui> instanceIDMap_;
-		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera
-		ref_ptr<SSBO> instanceIDBuffer_;
 		ref_ptr<SpatialIndex> spatialIndex_;
 
-		void initCullShape(const ref_ptr<BoundingShape> &boundingShape, bool isIndexShape);
+		// a "shared" instance buffer.
+		// shared because the same buffer is used in different passes per draw with different
+		// ordering of instance IDs (depending on camera). This is not optimal in terms of memory pressure,
+		// but allows to use the same buffer for different passes in case memory runs low.
+		ref_ptr<ShaderInput1ui> instanceData_;
+		ref_ptr<SSBO> instanceBuffer_;
+
+		void initCullShape(
+				const ref_ptr<BoundingShape> &boundingShape,
+				bool isIndexShape,
+				bool useSharedInstanceBuffer);
 
 		void createBuffers();
 	};

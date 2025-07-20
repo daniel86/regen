@@ -423,8 +423,13 @@ void Mesh::addMeshLOD(const MeshLOD &meshLOD) {
 			indexOffset());
 	}
 	meshLODs_.push_back(meshLOD);
-	if (meshLOD.impostorMesh.get() && cullShape_.get()) {
-		meshLOD.impostorMesh->setCullShape(cullShape_);
+	if (meshLOD.impostorMesh.get()) {
+		if(cullShape_.get()) {
+			meshLOD.impostorMesh->setCullShape(cullShape_);
+		}
+		if(instanceBuffer_.get()) {
+			meshLOD.impostorMesh->setInstanceBuffer(instanceBuffer_);
+		}
 	}
 }
 
@@ -593,11 +598,33 @@ void Mesh::setCullShape(const ref_ptr<State> &cullShape) {
 	cullShape_ = cullShape;
 	if (cullShape_.get()) {
 		auto *cs = dynamic_cast<CullShape *>(cullShape_.get());
-		setInput(cs->instanceIDBuffer());
+		if (cs->hasInstanceBuffer()) {
+			setInstanceBuffer(cs->instanceBuffer());
+		}
 	}
 	for (auto & lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
 			lod.impostorMesh->setCullShape(cullShape_);
+		}
+	}
+}
+
+void Mesh::setInstanceBuffer(const ref_ptr<SSBO> &instanceBuffer) {
+	if (instanceBuffer_.get()) {
+		if (instanceBuffer_.get() == instanceBuffer.get()) {
+			// nothing to do, same buffer
+			return;
+		}
+		removeInput(instanceBuffer_);
+	}
+	instanceBuffer_ = instanceBuffer;
+	if (instanceBuffer_.get()) {
+		// join the instance buffer state
+		setInput(instanceBuffer_);
+	}
+	for (auto & lod : meshLODs_) {
+		if (lod.impostorMesh.get()) {
+			lod.impostorMesh->setInstanceBuffer(instanceBuffer);
 		}
 	}
 }

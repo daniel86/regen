@@ -104,6 +104,40 @@ void LODState::initLODState() {
 		lodNumInstances_[0] = cullShape_->numInstances();
 	}
 	frustumPlanes_.resize(6 * camera_->frustum().size());
+
+	if (cullShape_->hasInstanceBuffer()) {
+		// the cull shape may provide a shared instance buffer which is used for all
+		// LOD states that use this cull shape, e.g. for shadow mapping, reflection passes, etc.
+		// In this case, we cannot update the instance IDs per frame, but only per draw call
+		// as the content might change between different passes.
+		// NOTE: If memory allows, it is better to use a per-frame instance buffer to avoid stalling.
+		instanceData_ = cullShape_->instanceData();
+		instanceBuffer_ = cullShape_->instanceBuffer();
+	} else {
+		// create instance buffer for per-frame updates.
+		auto &tf = cullShape_->tf();
+		auto numIndices = tf->numInstances();
+
+		std::vector<uint32_t> clearData(numIndices);
+		for (uint32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
+
+		instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
+		instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
+		if (cullShape_->isIndexShape()) {
+			instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
+		}
+		instanceBuffer_->addBlockInput(instanceData_);
+		instanceBuffer_->update();
+		if (!cullShape_->isIndexShape()) {
+			// clear segment to [0, 1, 2, ..., numInstances_-1]
+			instanceBuffer_->setBufferSubData(0, numIndices, clearData.data());
+		}
+		// assign instance buffer to meshes
+		for (auto &part: cullShape_->parts()) {
+			part->setInstanceBuffer(instanceBuffer_);
+		}
+	}
+
 	if (cullShape_->isIndexShape()) {
 		auto index = cullShape_->spatialIndex();
 		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
@@ -119,6 +153,7 @@ void LODState::initLODState() {
 					   << cullShape_->shapeName()
 					   << "' with " << cullShape_->numInstances() << " instances, "
 					   << mesh_->numLODs() << " LODs, "
+					   << (cullShape_->hasInstanceBuffer() ? "per-draw" : "per-frame") << " "
 					   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
 }
 
@@ -200,6 +235,7 @@ void LODState::enable(RenderState *rs) {
 	using std::chrono::milliseconds;
 	auto t1 = high_resolution_clock::now();
 #endif
+	// FIXME: visibility computation should not be done in draw loop!
 	resetVisibility();
 	if (cullShape_->isIndexShape()) {
 		traverseCPU(rs);
@@ -468,15 +504,14 @@ void LODState::computeLODGroups() {
 		lodNumInstances_[0] = numVisible;
 	}
 
-	// write lodGroups_ data into instanceIDMap_
-	auto &instanceIDMap = cullShape_->instanceIDMap();
-	auto instance_ids = (uint32_t *) instanceIDMap->clientData();
+	// write lodGroups_ data into instanceData_
+	auto instance_ids = (uint32_t *) instanceData_->clientData();
 	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 		reverse_copy_u32(instance_ids, mappedData, numVisible);
 	} else {
 		std::memcpy(instance_ids, mappedData, numVisible * sizeof(uint32_t));
 	}
-	instanceIDMap->nextStamp();
+	instanceData_->nextStamp();
 }
 
 ///////////////////////
@@ -552,7 +587,7 @@ void LODState::createComputeShader() {
 
 	{ // radix sort
 		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances());
-		radixSort_->setOutputBuffer(cullShape_->instanceIDBuffer(), false);
+		radixSort_->setOutputBuffer(instanceBuffer_, false);
 		radixSort_->setRadixBits(RADIX_BITS_PER_PASS);
 		radixSort_->setSortGroupSize(RADIX_GROUP_SIZE);
 		radixSort_->setScanGroupSize(RADIX_OFFSET_GROUP_SIZE);
@@ -584,7 +619,7 @@ void LODState::createComputeShader() {
 		//       in a separate pass.
 		cullPass_->setInput(indirectDrawBuffers_[0]);
 		cullPass_->setInput(radixSort_->keyBuffer());
-		cullPass_->setInput(cullShape_->instanceIDBuffer());
+		cullPass_->setInput(instanceBuffer_);
 		auto boundingShape = mesh_->boundingShape();
 		if (boundingShape->shapeType() == BoundingShapeType::SPHERE) {
 			auto *sphere = dynamic_cast<BoundingSphere*>(boundingShape.get());
@@ -657,7 +692,7 @@ void LODState::traverseGPU(RenderState *rs) {
 	// copy the clear buffer to the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
 
-	// compute lod, write keys, and initialize values_[0] (instanceIDMap_)
+	// compute lod, write keys, and initialize values_[0] (instanceData_)
 	cullPass_->enable(rs);
 	cullPass_->disable(rs);
 
