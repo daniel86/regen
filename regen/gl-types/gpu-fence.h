@@ -20,11 +20,11 @@ namespace regen {
 
 		GPUFence();
 
+		GPUFence(const GPUFence &);
+
 		~GPUFence();
 
-		GPUFence(const GPUFence &) = default;
-
-		GPUFence &operator=(const GPUFence &) = default;
+		GPUFence &operator=(const GPUFence &);
 
 		/**
 		 * Get the stall rate, which is the percentage of frames that had a stall.
@@ -68,7 +68,8 @@ namespace regen {
 		// We record last n frames for computing the stall rate.
 		bool *stalledFrames_;
 		// Range for stall detection
-		uint32_t stallRange_ = STALL_RANGE;
+		const uint32_t stallRange_;
+		const float f_stallRange_;
 		// Count of frames that had a stall
 		uint32_t stallCount_ = 0;
 		// Current index in the stall detection array

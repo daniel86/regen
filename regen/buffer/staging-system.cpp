@@ -1,7 +1,7 @@
 #include "staging-system.h"
 #include <regen/gl-types/gl-param.h>
 
-#define REGEN_STAGING_SYSTEM_DEBUG
+//#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
 
 using namespace regen;
 
@@ -312,7 +312,7 @@ void StagingSystem::updateData() {
 
 		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
 		const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
-		const bool useFence = arena->flags.useSyncFences() && isMapModePersistent(arena->flags.mapMode);
+		const bool useFence = isMapModePersistent(arena->flags.mapMode);
 
 		// Wait for the fence in case of persistent mapped arenas.
 		// This might block the CPU in case of the last write into this segment
@@ -338,7 +338,7 @@ void StagingSystem::updateData() {
 		// Advance to next segment in case of multi-buffering and ring buffers.
 		arena->stagingBuffer->swapBuffers();
 
-#ifdef REGEN_STAGING_SYSTEM_DEBUG
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STALLS
 		if (useFence) {
 			REGEN_INFO("Arena " << arena->type
 				<< " stall rate: " << arena->stagingBuffer->fence(copyIdx).getStallRate());

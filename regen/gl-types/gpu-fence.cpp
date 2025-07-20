@@ -6,7 +6,18 @@ using namespace regen;
 uint64_t GPUFence::WAIT_TIMEOUT = 1'000'000; // 1ms timeout
 uint32_t GPUFence::STALL_RANGE = 60; // Default to 60 frames for stall detection
 
-GPUFence::GPUFence() {
+GPUFence::GPUFence() :
+	stallRange_(STALL_RANGE),
+	f_stallRange_(static_cast<float>(STALL_RANGE)) {
+	stalledFrames_ = new bool[STALL_RANGE];
+	std::fill(stalledFrames_, stalledFrames_ + STALL_RANGE, false);
+}
+
+GPUFence::GPUFence(const GPUFence &) :
+	stallRange_(STALL_RANGE),
+	f_stallRange_(static_cast<float>(STALL_RANGE)),
+	stallCount_(0),
+	stallIdx_(0) {
 	stalledFrames_ = new bool[STALL_RANGE];
 	std::fill(stalledFrames_, stalledFrames_ + STALL_RANGE, false);
 }
@@ -19,6 +30,10 @@ GPUFence::~GPUFence() {
 		delete[] stalledFrames_;
 		stalledFrames_ = nullptr;
 	}
+}
+
+GPUFence& GPUFence::operator=(const GPUFence &other) {
+	return *this;
 }
 
 void GPUFence::setFencePoint() {
@@ -93,7 +108,7 @@ bool GPUFence::isSignaled() {
 }
 
 float GPUFence::getStallRate() const {
-	return static_cast<float>(stallCount_) / static_cast<float>(stallRange_);
+	return static_cast<float>(stallCount_) / f_stallRange_;
 }
 
 void GPUFence::resetStallHistory() {
@@ -104,12 +119,16 @@ void GPUFence::resetStallHistory() {
 
 void GPUFence::setStalledFrame(bool isStalled) {
 	bool wasStalled = stalledFrames_[stallIdx_];
-	if (!wasStalled && isStalled) {
+	if (wasStalled) {
+		if (!isStalled) {
+			stallCount_--;
+			stalledFrames_[stallIdx_] = isStalled;
+		}
+	} else if (isStalled) {
 		stallCount_++;
-	} else if (wasStalled && !isStalled) {
-		stallCount_--;
+		stalledFrames_[stallIdx_] = isStalled;
 	}
-	stalledFrames_[stallIdx_++] = isStalled;
+	stallIdx_ += 1;
 	if (stallIdx_ >= stallRange_) {
 		stallIdx_ = 0; // wrap around the index
 	}
