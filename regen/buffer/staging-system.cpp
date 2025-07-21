@@ -4,11 +4,10 @@
 //#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
 //#define REGEN_STAGING_EXPLICIT_FLUSH
 
-// TODO: Do the staging buffer to main buffer copy here.
-//		- currently StagingBuffer calls glCopyNamedBufferSubData in end*Write()
-//      - instead of that, we would need to record and coalesce the dirty segments
-//      - would be good as it may reduce the number of copies etc.
-//		- also do the flushing just before doing the stage-to-main copy.
+// NOTE: Currently we do not do the "staging-to-main" buffer copy here.
+//       The main reason is that we do not maintain strictly contiguous main/draw buffer
+//       segments for the BOs, so there would be little use of it as we might not be able to
+//       reduce the number of copies, and still need to do separate copies for the BOs.
 
 using namespace regen;
 
