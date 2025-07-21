@@ -19,9 +19,7 @@ namespace regen {
 			// Note: keep per-frame modes first!
 			// An arena for per-frame updates using persistent mapping of a small adaptive ring buffer.
 			// Small meaning that the maximum number of ring segments is capped to some rather small value.
-			// The partial update variant (PAR) can be used to update only parts of the data per frame.
-			ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG = 0,
-			ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG,
+			ARENA_WRITE_PER_FRAME_PM_SMALL_RNG = 0,
 			// An arena for per-frame updates using persistent mapping of a large adaptive ring buffer.
 			// Large meaning that the maximum number of ring segments is capped to some rather high value.
 			// Note that for medium and small, we always copy the whole data (no PAR mode).

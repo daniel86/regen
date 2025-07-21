@@ -174,6 +174,20 @@ namespace regen {
 		void markDrawAccessed(BufferRange &drawBuffer);
 
 		/**
+		 * Get the current staging buffer reference.
+		 * This is used to access the CPU-accessible storage buffer.
+		 * @return a reference to the staging buffer.
+		 */
+		inline ref_ptr<BufferReference> stagingRef() { return stagingRef_; }
+
+		/**
+		 * Get the offset in the ring buffer for the specified segment index.
+		 * @param segmentIdx the index of the segment to get the offset for.
+		 * @return the offset in bytes for the specified segment index.
+		 */
+		inline uint32_t segmentOffset(uint32_t segmentIdx) const { return bufferSegments_[segmentIdx].offset; }
+
+		/**
 		 * Push the dirty segments to the flush queue.
 		 * This is used to mark the segments that need to be flushed to the GPU.
 		 * It is a no-op if the buffer is not using explicit flushing.
@@ -259,6 +273,16 @@ namespace regen {
 		 */
 		GPUFence &fence(uint32_t segmentIndex) { return bufferSegments_[segmentIndex].fence; }
 
+		/**
+		 * \brief Check if the fence of the specified segment is signaled.
+		 * This is used to check if the GPU has finished processing the segment.
+		 * @param segmentIndex the index of the segment to check.
+		 * @return true if the fence is signaled, false otherwise.
+		 */
+		bool isFenceSignaled(uint32_t segmentIndex) {
+			return bufferSegments_[segmentIndex].fence.isSignaled();
+		}
+
 	protected:
 		const BufferFlags flags_;
 		// buffer references to cpu-accessible storage
@@ -284,7 +308,6 @@ namespace regen {
 		struct RingSegment {
 			// The offset in the ring buffer where this segment starts, in bytes.
 			uint32_t offset = 0;
-			// only used in local staging
 			GPUFence fence;
 			std::vector<BufferRange2ui> dirtySegments;
 			uint32_t numDirtySegments = 0;

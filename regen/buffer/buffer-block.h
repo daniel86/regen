@@ -314,9 +314,7 @@ namespace regen {
 			Shared() : copyCount_(1) {
 			}
 			~Shared() {
-				if (updatedFrames_) {
-					delete[] updatedFrames_;
-				}
+				delete[] updatedFrames_;
 			}
 
 			ref_ptr<StagingBuffer> stagingBuffer_;
@@ -360,13 +358,11 @@ namespace regen {
 
 		void setStagingBuffering(BufferingMode mode);
 
-		void enablePersistentMapping(bool partialWrite);
+		void copyDirtyData(byte *bufferData, uint32_t mapOffset);
 
-		void enablePersistentMapping_(bool useFlushExplicit);
+		void copyFullData(byte *bufferData, uint32_t mapOffset);
 
-		void copyBufferData(byte *bufferData, uint32_t mapOffset, bool partialWrite);
-
-		void copyBufferData1(byte *bufferData, uint32_t mapOffset, BlockInput &uboInput);
+		void copyBlockInput(BlockInput &blockInput, byte *bufferData, uint32_t mapOffset);
 
 		void updateStridedData(BlockInput &uboInput);
 
@@ -385,6 +381,8 @@ namespace regen {
 		void markBufferDirty();
 
 		void setUpdatedFrame(bool isStalled);
+
+		int32_t getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const;
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BufferBlock::Qualifier &v);

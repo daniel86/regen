@@ -2,6 +2,7 @@
 #include <regen/gl-types/gl-param.h>
 
 //#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
+//#define REGEN_STAGING_EXPLICIT_FLUSH
 
 using namespace regen;
 
@@ -113,7 +114,9 @@ StagingSystem::Arena *StagingSystem::addBufferBlock_writeOnly(
 		// - Update: avoid mapping entirely. Rather use glCopyNamedBufferSubData. No fencing is needed.
 	else if (flags.updateHints.frequency == BUFFER_UPDATE_PER_FRAME
 			 && sizeClass == BUFFER_SIZE_VERY_LARGE) {
-		return addToArena(block, ARENA_WRITE_PER_FRAME_CP_SB);
+		// TODO: check what is faster in GPU boids scene
+		//return addToArena(block, ARENA_WRITE_PER_FRAME_CP_SB);
+		return addToArena(block, ARENA_WRITE_NEVER_CP_NB);
 	}
 		// RARELY updated SMALL to LARGE Staging
 		// - Use explicit staging with a single buffer. Multi buffering is not worth it for rare updates
@@ -140,13 +143,7 @@ StagingSystem::Arena *StagingSystem::addBufferBlock_writeOnly(
 		if (sizeClass <= BUFFER_SIZE_MEDIUM) { // MEDIUM/SMALL -> use large ring
 			return addToArena(block, ARENA_WRITE_PER_FRAME_PM_LARGE_RNG);
 		} else { // LARGE -> use small ring
-			// Note: PAR and FUL need to be separated, as the storage flags are different
-			//     (PAR uses FLUSH, FUL uses COHERENT)
-			if (flags.areUpdatesPartial()) {
-				return addToArena(block, ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG);
-			} else {
-				return addToArena(block, ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG);
-			}
+			return addToArena(block, ARENA_WRITE_PER_FRAME_PM_SMALL_RNG);
 		}
 	}
 	return nullptr;
@@ -164,59 +161,51 @@ StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, BufferAcce
 	uint32_t maxRingSegments = 16;
 
 	switch (arenaType) {
-		case ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG:
-			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
-			arena->flags.updateHints.scope = BUFFER_UPDATE_FULLY;
-			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
-			arena->flags.bufferingMode = RING_BUFFER;
-			arena->numRingSegments = 2;
-			maxRingSegments = 4;
-			break;
-		case ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG:
+		case ARENA_WRITE_PER_FRAME_PM_SMALL_RNG:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
+#ifdef REGEN_STAGING_EXPLICIT_FLUSH
 			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_FLUSH;
+#else
+			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
+#endif
 			arena->flags.bufferingMode = RING_BUFFER;
 			arena->numRingSegments = 2;
 			maxRingSegments = 4;
 			break;
 		case ARENA_WRITE_PER_FRAME_PM_LARGE_RNG:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
-			// NOTE: partial updates are upgraded to full upgrades
-			arena->flags.updateHints.scope = BUFFER_UPDATE_FULLY;
+			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
 			arena->flags.bufferingMode = RING_BUFFER;
 			arena->numRingSegments = 3;
 			maxRingSegments = 16;
 			break;
-		case ARENA_WRITE_PER_FRAME_CP_SB:
-			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
-			// NOTE: partial and full updates are ok as no mapping is done!
-			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
-			arena->flags.mapMode = BUFFER_MAP_DISABLED; // copy instead of mapping
-			arena->flags.bufferingMode = SINGLE_BUFFER;
-			break;
 		case ARENA_READ_PER_FRAME_PM_RNG:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
-			arena->flags.updateHints.scope = BUFFER_UPDATE_FULLY;
+			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_PERSISTENT_COHERENT;
 			arena->flags.bufferingMode = RING_BUFFER;
 			arena->numRingSegments = 2;
 			maxRingSegments = 16;
 			break;
+		case ARENA_WRITE_PER_FRAME_CP_SB:
+			arena->flags.updateHints.frequency = BUFFER_UPDATE_PER_FRAME;
+			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
+			arena->flags.mapMode = BUFFER_MAP_DISABLED; // copy instead of mapping
+			arena->flags.bufferingMode = SINGLE_BUFFER;
+			break;
 		case ARENA_READ_RARE_TM_SB:
 		case ARENA_WRITE_RARE_TM_SB:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_RARE;
-			// NOTE: partial and full updates are ok for writing!
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_TEMPORARY;
 			arena->flags.bufferingMode = SINGLE_BUFFER;
 			break;
 		case ARENA_WRITE_NEVER_CP_NB:
-			// no staging buffer -> implicit staging
+			// no explicit staging buffer -> implicit staging
 			arena->flags.syncFlags |= BUFFER_SYNC_IMPLICIT_STAGING;
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_NEVER;
-			// NOTE: partial and full updates are ok for writing!
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_DISABLED;
 			arena->flags.bufferingMode = SINGLE_BUFFER;
@@ -322,7 +311,6 @@ void StagingSystem::updateData() {
 		// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
 		//       or of BOs were added, removed, or have changed their size.
 		if (arena->updateRequiredSize()) {
-			REGEN_INFO("Staging arena size changed.");
 			arena->resize();
 			arena->sort();
 		}
@@ -456,29 +444,26 @@ void StagingSystem::Arena::resize() {
 
 std::ostream &regen::operator<<(std::ostream &out, const StagingSystem::ArenaType &v) {
 	switch (v) {
-		case StagingSystem::ARENA_WRITE_FUL_PER_FRAME_PM_SMALL_RNG:
-			out << "w-FUL-FRA-PM-RNG_SML";
-			break;
-		case StagingSystem::ARENA_WRITE_PAR_PER_FRAME_PM_SMALL_RNG:
-			out << "w-PAR-FRA-PM-RNG_SML";
+		case StagingSystem::ARENA_WRITE_PER_FRAME_PM_SMALL_RNG:
+			out << "w-FRA-PM-RNG_SML";
 			break;
 		case StagingSystem::ARENA_WRITE_PER_FRAME_PM_LARGE_RNG:
-			out << "w-ANY-FRA-PM-RNG_LRG";
+			out << "w-FRA-PM-RNG_LRG";
 			break;
 		case StagingSystem::ARENA_WRITE_PER_FRAME_CP_SB:
-			out << "w-ANY-FRA-CP-SB";
+			out << "w-FRA-CP-SB";
 			break;
 		case StagingSystem::ARENA_READ_PER_FRAME_PM_RNG:
-			out << "r-ANY-FRA-PM-RNG";
+			out << "r-FRA-PM-RNG";
 			break;
 		case StagingSystem::ARENA_READ_RARE_TM_SB:
-			out << "r-ANY-RAR-TM-SB";
+			out << "r-RAR-TM-SB";
 			break;
 		case StagingSystem::ARENA_WRITE_RARE_TM_SB:
-			out << "w-ANY-RAR-TM-SB";
+			out << "w-RAR-TM-SB";
 			break;
 		case StagingSystem::ARENA_WRITE_NEVER_CP_NB:
-			out << "w-ANY-NVR-CP-NB";
+			out << "w-NVR-CP-NB";
 			break;
 		case StagingSystem::ARENA_TYPE_LAST:
 			out << "?";
