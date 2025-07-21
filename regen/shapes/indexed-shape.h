@@ -53,12 +53,40 @@ namespace regen {
 		 */
 		auto &shape() const { return shape_; }
 
+		/**
+		 * @param instanceBuffer The instance buffer to set
+		 */
+		void setInstanceBuffer(const ref_ptr<SSBO> &instanceBuffer) { instanceBuffer_ = instanceBuffer; }
+
+		/**
+		 * @return The instance buffer used for this indexed shape
+		 */
+		const ref_ptr<SSBO> &instanceBuffer() const { return instanceBuffer_; }
+
+		/**
+		 * \brief Check if the indexed shape has an instance buffer
+		 */
+		bool hasInstanceBuffer() const { return instanceBuffer_.get() != nullptr; }
+
+		/**
+		 * @param mode The sort mode to set
+		 */
+		void setSortMode(SortMode mode) { instanceSortMode_ = mode; }
+
+		/**
+		 * @return The sort mode used for this indexed shape
+		 */
+		SortMode instanceSortMode() const { return instanceSortMode_; }
+
 	protected:
 		ref_ptr <Camera> camera_;
 		ref_ptr <BoundingShape> shape_;
 		bool visible_ = true;
 		unsigned int instanceCount_ = 1;
-		ref_ptr <ShaderInput1ui> visibleVec_;
+		ref_ptr<ShaderInput1ui> visibleVec_;
+		ref_ptr<SSBO> instanceBuffer_;
+
+		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 
 		unsigned int u_instanceCount_ = 0;
 		bool u_visible_ = false;

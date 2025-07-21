@@ -136,6 +136,10 @@ void LODState::initLODState() {
 		std::vector<uint32_t> clearData(numIndices);
 		for (uint32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
 
+		REGEN_WARN("Creating instance buffer for cull shape '"
+					   << cullShape_->shapeName()
+					   << "' with " << numIndices << " instances.");
+
 		instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
 		instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
 		if (cullShape_->isIndexShape()) {
@@ -160,6 +164,11 @@ void LODState::initLODState() {
 		} else {
 			lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
 			lodAnim_->startAnimation();
+			if (!cullShape_->hasInstanceBuffer()) {
+				// Make sure that all meshes that share the index shape also have access to the instance buffer.
+				shapeIndex_->setInstanceBuffer(instanceBuffer_);
+				shapeIndex_->setSortMode(instanceSortMode_);
+			}
 		}
 	} else {
 		createComputeShader();

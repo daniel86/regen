@@ -90,17 +90,35 @@ void MeshNodeProvider::processInput(
 		// load LOD state in case mesh has a cull shape + update-visibility="1"
 		if (meshCopy->hasCullShape()) {
 			auto updateVisibility = input.getValue<uint32_t>("update-visibility", 1u);
+			auto cullShape = ref_ptr<CullShape>::dynamicCast(meshCopy->cullShape());
 			if (updateVisibility) {
-				auto cullShape = ref_ptr<CullShape>::dynamicCast(meshCopy->cullShape());
 				if (cullShape.get()) {
 					auto lodState = createCullState(scene, input, parent, cullShape);
 					if (lodState.get()) {
-						meshCopy->joinStates(lodState);
+						meshNode->state()->joinStates(lodState);
+						if (!cullShape->hasInstanceBuffer()) {
+							meshCopy->setInstanceBuffer(lodState->instanceBuffer());
+						}
 						// set sorting mode
 						meshCopy->set_lodSortMode(lodState->instanceSortMode());
 					}
 				} else {
 					REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape.");
+				}
+			} else {
+				// try to get an instance buffer
+				auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
+				auto spatialIndex = cullShape->spatialIndex();
+				if (cam.get()
+						&& spatialIndex.get()
+						&& cullShape.get()
+						&& spatialIndex->hasCamera(*cam.get())) {
+					auto shapeIndex = spatialIndex->getIndexedShape(
+							cam, cullShape->shapeName());
+					if (shapeIndex.get() && shapeIndex->hasInstanceBuffer()) {
+						meshCopy->setInstanceBuffer(shapeIndex->instanceBuffer());
+						meshCopy->set_lodSortMode(shapeIndex->instanceSortMode());
+					}
 				}
 			}
 		} else if (input.hasAttribute("update-visibility")) {

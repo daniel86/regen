@@ -37,6 +37,11 @@ namespace regen {
 		 */
 		SortMode instanceSortMode() const { return instanceSortMode_; }
 
+		/**
+		 * @return The instance buffer used for LOD computation.
+		 */
+		const ref_ptr<SSBO> &instanceBuffer() const { return instanceBuffer_; }
+
 		// override
 		void enable(RenderState *rs) override;
 
