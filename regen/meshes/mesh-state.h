@@ -259,27 +259,27 @@ namespace regen {
 		/**
 		 * @return true if this input container has an index buffer.
 		 */
-		bool hasIndirectDrawBuffer() const;
+		bool hasIndirectDrawBuffer() const { return indirectDrawBuffer_.get() != nullptr; }
 
 		/**
 		 * @return the base draw index in the indirect draw buffer.
 		 */
-		uint32_t baseDrawIndex() const;
+		uint32_t baseDrawIndex() const { return baseDrawIdx_; }
 
 		/**
 		 * @return Offset to the indirect draw call in bytes.
 		 */
-		void set_indirectOffset(uint32_t v);
+		void set_indirectOffset(uint32_t v) { indirectOffset_ = v; }
 
 		/**
 		 * @param v the number of multi draw calls.
 		 */
-		void set_multiDrawCount(int32_t v);
+		void set_multiDrawCount(int32_t v) { multiDrawCount_ = v; }
 
 		/**
 		 * @return the indirect draw buffer.
 		 */
-		const ref_ptr<SSBO> &indirectDrawBuffer() const;
+		const ref_ptr<SSBO> &indirectDrawBuffer() const { return indirectDrawBuffer_; }
 
 		/**
 		 * Create a shader for this mesh.
@@ -646,6 +646,13 @@ namespace regen {
 		ref_ptr<State> cullShape_;
 		ref_ptr<BoundingShape> boundingShape_;
 		int32_t shapeType_ = -1;
+
+		// indirect draw buffer data
+		uint32_t baseDrawIdx_ = 0u;
+		int32_t multiDrawCount_ = 1u;
+		uint32_t indirectOffset_ = 0u;
+		ref_ptr<SSBO> indirectDrawBuffer_;
+		std::vector<int32_t> indirectDrawGroups_;
 
 		ref_ptr<Shader> meshShader_;
 		std::string shaderKey_;

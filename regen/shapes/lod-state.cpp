@@ -578,11 +578,10 @@ void LODState::createComputeShader() {
 				4));
 		indirectDrawBuffers_[partIdx]->update();
 		indirectDrawBuffers_[partIdx]->setBufferData((byte*)(&drawParams[0]));
-		// TODO use a single buffer with offsets
-		uint32_t partDrawIdx = 0;
-		part->setIndirectDrawBuffer(
-				indirectDrawBuffers_[partIdx],
-				partDrawIdx);
+		// TODO Rather use a single buffer with offsets
+		//		- will need to revise the copyIndirect_
+		// part->setIndirectDrawBuffer(indirectDrawBuffers_[partIdx], partIdx);
+		part->setIndirectDrawBuffer(indirectDrawBuffers_[partIdx], 0);
 
 		if(partIdx==0) {
 			// Create a static indirect draw buffer, which is used for clearing the

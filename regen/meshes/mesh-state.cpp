@@ -23,12 +23,6 @@ struct Mesh::SharedData {
 	int32_t numIndices_ = 0u;
 	uint32_t maxIndex_ = 0u;
 	ref_ptr<ShaderInput> indices_;
-	// indirect draw buffer data
-	uint32_t baseDrawIdx_ = 0u;
-	int32_t multiDrawCount_ = 1u;
-	uint32_t indirectOffset_ = 0u;
-	ref_ptr<SSBO> indirectDrawBuffer_;
-	std::vector<int32_t> indirectDrawGroups_;
 };
 
 Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints)
@@ -361,7 +355,7 @@ void Mesh::updateVAO() {
 void Mesh::updateDrawFunction() {
 	if (indexBuffer() > 0) {
 		if (hasIndirectDrawBuffer()) {
-			if (shared_->indirectDrawGroups_.empty()) {
+			if (indirectDrawGroups_.empty()) {
 				draw_ = &Mesh::drawIndirectIndexed;
 			} else {
 				draw_ = &Mesh::drawMultiIndirectIndexed;
@@ -373,7 +367,7 @@ void Mesh::updateDrawFunction() {
 		}
 	} else {
 		if (hasIndirectDrawBuffer()) {
-			if (shared_->indirectDrawGroups_.empty()) {
+			if (indirectDrawGroups_.empty()) {
 				draw_ = &Mesh::drawIndirect;
 			} else {
 				draw_ = &Mesh::drawMultiIndirect;
@@ -505,56 +499,36 @@ void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t i
 	}
 }
 
-bool Mesh::hasIndirectDrawBuffer() const {
-	return shared_->indirectDrawBuffer_.get() != nullptr;
-}
-
-uint32_t Mesh::baseDrawIndex() const {
-	return shared_->baseDrawIdx_;
-}
-
-void Mesh::set_indirectOffset(uint32_t v) {
-	shared_->indirectOffset_ = v;
-}
-
-void Mesh::set_multiDrawCount(int32_t v) {
-	shared_->multiDrawCount_ = v;
-}
-
-const ref_ptr<SSBO> &Mesh::indirectDrawBuffer() const {
-	return shared_->indirectDrawBuffer_;
-}
-
 void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx) {
-	shared_->indirectDrawBuffer_ = indirectDrawBuffer;
-	shared_->baseDrawIdx_ = baseDrawIdx;
-	if (shared_->indirectDrawBuffer_.get()) {
-		shared_->indirectOffset_ = shared_->indirectDrawBuffer_->offset() + shared_->baseDrawIdx_ * sizeof(DrawCommand);
+	indirectDrawBuffer_ = indirectDrawBuffer;
+	baseDrawIdx_ = baseDrawIdx;
+	if (indirectDrawBuffer_.get()) {
+		indirectOffset_ = indirectDrawBuffer_->offset() + baseDrawIdx_ * sizeof(DrawCommand);
 	} else {
-		shared_->indirectOffset_ = 0u;
+		indirectOffset_ = 0u;
 	}
 
 	// group together LODs that can be drawn with multi draw calls,
 	// i.e. those that do not have impostor meshes.
-	shared_->indirectDrawGroups_.clear();
+	indirectDrawGroups_.clear();
 	if (meshLODs_.size()>1) {
 		uint32_t drawGroupIdx = 0;
 		for (auto & lod : meshLODs_) {
-			if (shared_->indirectDrawGroups_.size() <= drawGroupIdx) {
-				shared_->indirectDrawGroups_.emplace_back(0);
+			if (indirectDrawGroups_.size() <= drawGroupIdx) {
+				indirectDrawGroups_.emplace_back(0);
 			}
 			if (lod.impostorMesh.get()) {
-				shared_->indirectDrawGroups_.emplace_back(1);
+				indirectDrawGroups_.emplace_back(1);
 				// note: for now do not use multi draw calls for impostor meshes
 				drawGroupIdx += 2;
 			} else {
-				shared_->indirectDrawGroups_[drawGroupIdx] += 1;
+				indirectDrawGroups_[drawGroupIdx] += 1;
 			}
 		}
 	}
-	if (shared_->indirectDrawGroups_.size() == meshLODs_.size()) {
+	if (indirectDrawGroups_.size() == meshLODs_.size()) {
 		// seems nothing was joined...
-		shared_->indirectDrawGroups_.clear();
+		indirectDrawGroups_.clear();
 	}
 	updateDrawFunction();
 }
@@ -653,7 +627,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCoun
 		// NOTE: assuming here the impostor does not itself have LODs!
 		if (hasIndirectDrawBuffer()) {
 			lod.impostorMesh->setIndirectDrawBuffer(
-					shared_->indirectDrawBuffer_,
+					indirectDrawBuffer_,
 					baseDrawIndex() + lodLevel);
 			lod.impostorMesh->updateDrawFunction();
 		} else {
@@ -669,7 +643,7 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCoun
 		set_baseInstance(lod.d->instanceOffset);
 		if (hasIndirectDrawBuffer()) {
 			set_indirectOffset(
-				shared_->indirectDrawBuffer_->drawBufferRef()->address() +
+				indirectDrawBuffer_->drawBufferRef()->address() +
 				// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
 				(baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
 			set_multiDrawCount(multiDrawCount);
@@ -709,7 +683,7 @@ void Mesh::enable(RenderState *rs) {
 	if (meshLODs_.empty()) {
 		drawMesh(rs);
 	}
-	else if (shared_->indirectDrawGroups_.empty()) {
+	else if (indirectDrawGroups_.empty()) {
 		if (lodSortMode_ == SortMode::BACK_TO_FRONT) {
 			for (uint32_t lodLevel = meshLODs_.size(); lodLevel > 0; --lodLevel) {
 				drawMeshLOD(rs, lodLevel - 1, 1);
@@ -723,7 +697,7 @@ void Mesh::enable(RenderState *rs) {
 		activateLOD_(0);
 	} else {
 		uint32_t lodLevel = 0u;
-		for (int32_t groupSize : shared_->indirectDrawGroups_) {
+		for (int32_t groupSize : indirectDrawGroups_) {
 			drawMeshLOD(rs, lodLevel, groupSize);
 			lodLevel += groupSize;
 		}
@@ -819,21 +793,21 @@ void Mesh::drawBaseInstancesIndexed(GLenum primitive) const {
 void Mesh::drawIndirect(GLenum primitive) const {
 	glDrawArraysIndirect(
 		primitive,
-		BUFFER_OFFSET(shared_->indirectOffset_));
+		BUFFER_OFFSET(indirectOffset_));
 }
 
 void Mesh::drawIndirectIndexed(GLenum primitive) const {
 	glDrawElementsIndirect(
 			primitive,
 			shared_->indices_->baseType(),
-			BUFFER_OFFSET(shared_->indirectOffset_));
+			BUFFER_OFFSET(indirectOffset_));
 }
 
 void Mesh::drawMultiIndirect(GLenum primitive) const {
 	glMultiDrawArraysIndirect(
 		primitive,
-		BUFFER_OFFSET(shared_->indirectOffset_),
-		shared_->multiDrawCount_,
+		BUFFER_OFFSET(indirectOffset_),
+		multiDrawCount_,
 		sizeof(DrawCommand));
 }
 
@@ -841,8 +815,8 @@ void Mesh::drawMultiIndirectIndexed(GLenum primitive) const {
 	glMultiDrawElementsIndirect(
 		primitive,
 		shared_->indices_->baseType(),
-		BUFFER_OFFSET(shared_->indirectOffset_),
-		shared_->multiDrawCount_,
+		BUFFER_OFFSET(indirectOffset_),
+		multiDrawCount_,
 		sizeof(DrawCommand));
 }
 
