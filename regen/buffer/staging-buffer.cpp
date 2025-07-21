@@ -3,9 +3,6 @@
 
 //#define REGEN_STAGING_USE_DIRECT_FLUSHING
 
-// TODO: consider doing the buffer-to-buffer copy in global staging system
-// TODO: consider doing the flushing in global staging system
-
 using namespace regen;
 
 float StagingBuffer::MAX_ACCEPTABLE_STALL_RATE = 0.1f; // 10% of frames can stall
