@@ -45,6 +45,13 @@ namespace regen {
 		}
 
 		/**
+		 * @return The size of the bounds
+		 */
+		inline float sizeSquared() const {
+			return (max - min).lengthSquared();
+		}
+
+		/**
 		 * @return The center of the bounds
 		 */
 		inline T center() const {
