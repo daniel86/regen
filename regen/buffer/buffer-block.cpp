@@ -733,6 +733,14 @@ void BufferBlock::updateDrawBuffer() {
 		<< " " << requiredSize_ / 1024.0 << " Kib");
 }
 
+void BufferBlock::resetStagingBuffer(bool removeFromStagingSystem) {
+	if (removeFromStagingSystem && shared_->isGloballyStaged_) {
+		StagingSystem::instance().removeBufferBlock(this);
+	}
+	shared_->stagingBuffer_ = {};
+	shared_->isGloballyStaged_ = false;
+}
+
 void BufferBlock::copyStagingData(bool forceUpdate) {
 	if (forceUpdate) { markBufferDirty(); }
 	bool needsUpdate = (numDirtySegments_ > 0);

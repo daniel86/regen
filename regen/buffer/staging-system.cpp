@@ -33,6 +33,9 @@ void StagingSystem::clear() {
 	REGEN_INFO("Clearing staging arenas.");
 	for (auto &arena: arenas_) {
 		if (arena) {
+			for (auto &block: arena->bufferObjects) {
+				block->resetStagingBuffer(false);
+			}
 			delete arena;
 			arena = nullptr;
 		}
@@ -74,6 +77,7 @@ void StagingSystem::removeBufferBlock(const BlockPtr &block) {
 		auto it = std::find(arena->bufferObjects.begin(), arena->bufferObjects.end(), block);
 		if (it != arena->bufferObjects.end()) {
 			arena->bufferObjects.erase(it);
+			block->resetStagingBuffer(false);
 			REGEN_INFO("Removed buffer block '" << block->getBlockName() << "'"
 					<< " from staging arena: " << arena->type);
 			break;

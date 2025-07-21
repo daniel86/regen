@@ -236,7 +236,7 @@ void AnimationManager::runUnsynchronized(Animation *animation) const {
 	const auto frameDuration = std::chrono::duration_cast<Clock::duration>(d_frameDuration);
 	auto nextFrame = Clock::now();
 
-	while (animation->isRunning()) {
+	while (!closeFlag_ && animation->isRunning()) {
 		if (pauseFlag_) {
 			usleepRegen(IDLE_SLEEP);  // or sleep_for()
 			nextFrame += std::chrono::microseconds(IDLE_SLEEP);

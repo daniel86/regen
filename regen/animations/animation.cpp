@@ -54,10 +54,10 @@ void Animation::startAnimation() {
 void Animation::stopAnimation() {
 	if (!isRunning_) return;
 
+	isRunning_ = false;
 	unqueueEmit(ANIMATION_STARTED);
 	queueEmit(ANIMATION_STOPPED);
 	AnimationManager::get().removeAnimation(this);
-	isRunning_ = false;
 }
 
 GLboolean Animation::try_lock() { return mutex_.try_lock(); }

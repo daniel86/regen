@@ -43,6 +43,9 @@ Texture::Texture(GLenum textureTarget, GLuint numTextures)
 }
 
 Texture::~Texture() {
+	if (textureChannel_ != -1) {
+		TextureBinder::release(this);
+	}
 	if (isTextureDataOwned_ && textureData_) {
 		delete[]textureData_;
 		textureData_ = nullptr;

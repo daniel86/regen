@@ -299,10 +299,10 @@ void Scene::setTime() {
 
 void Scene::clear() {
 	renderTree_->clear();
-	StagingSystem::instance().clear();
 	namedToObject_.clear();
 	idToObject_.clear();
 	isTimeInitialized_ = GL_FALSE;
+	StagingSystem::instance().clear();
 	RenderState::reset();
 	BindingManager::clear();
 	TextureBinder::reset();

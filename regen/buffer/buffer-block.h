@@ -219,6 +219,12 @@ namespace regen {
 		void setStagingOffset(uint32_t offset) { shared_->stagingOffset_ = offset; }
 
 		/**
+		 * Reset the staging buffer, removing it from the staging system if requested.
+		 * @param removeFromStagingSystem if true, the buffer block will be removed from the staging system.
+		 */
+		void resetStagingBuffer(bool removeFromStagingSystem);
+
+		/**
 		 * @return the flags for the staging buffer.
 		 */
 		const BufferFlags &stagingFlags() const { return stagingFlags_; }
