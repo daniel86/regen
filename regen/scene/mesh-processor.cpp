@@ -95,7 +95,7 @@ void MeshNodeProvider::processInput(
 				if (cullShape.get()) {
 					auto lodState = createCullState(scene, input, parent, cullShape);
 					if (lodState.get()) {
-						meshNode->state()->joinStates(lodState);
+						meshCopy->joinStates(lodState);
 						// set sorting mode
 						meshCopy->set_lodSortMode(lodState->instanceSortMode());
 					}

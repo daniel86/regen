@@ -147,10 +147,9 @@ void LODState::initLODState() {
 			// clear segment to [0, 1, 2, ..., numInstances_-1]
 			instanceBuffer_->setBufferSubData(0, numIndices, clearData.data());
 		}
-		// assign instance buffer to meshes
-		for (auto &part: cullShape_->parts()) {
-			part->setInstanceBuffer(instanceBuffer_);
-		}
+		// Set the instance buffer as input of the LOD state.
+		// This should make it available for the mesh state.
+		setInput(instanceBuffer_);
 	}
 
 	if (cullShape_->isIndexShape()) {
