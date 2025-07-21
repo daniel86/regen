@@ -976,17 +976,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     }
 
     /////////////////////////////
-    //////// Scene Parsing
-    /////////////////////////////
-
-    if (root->getFirstChild("node", "initialize").get() != nullptr) {
-        ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
-        initializeNode->state()->joinStates(app_->renderTree()->state());
-        sceneParser.processNode(initializeNode, "initialize", "node");
-        initializeNode->traverse(RenderState::get());
-    }
-
-    /////////////////////////////
     //////// Configuration Node
     /////////////////////////////
 
@@ -1061,6 +1050,20 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     lightStates_ = sceneParser.getResources()->getLights();
     AnimationManager::get().setSpatialIndices(spatialIndices_);
     AnimationManager::get().resetTime();
+
+    /////////////////////////////
+    //////// Scene Parsing
+    /////////////////////////////
+
+    if (root->getFirstChild("node", "initialize").get() != nullptr) {
+        ref_ptr<StateNode> initializeNode = ref_ptr<StateNode>::alloc();
+        initializeNode->state()->joinStates(app_->renderTree()->state());
+        sceneParser.processNode(initializeNode, "initialize", "node");
+        // ensure the buffer objects of the initialization node are updated.
+		StagingSystem::instance().updateData();
+        initializeNode->traverse(RenderState::get());
+    }
+
     AnimationManager::get().resume();
     REGEN_INFO("XML Scene Loaded.");
 }

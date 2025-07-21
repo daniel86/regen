@@ -952,7 +952,10 @@
 
             <node import="Collision-Update" />
             <view id="Collision Map">
-                <blit src-fbo="collision-fbo" src-attachment="0" dst-fbo="SCREEN"/>
+                <fbo id="SCREEN"/>
+                <texture name="inputTexture1" fbo="collision-fbo" attachment="0"/>
+                <texture name="inputTexture2" fbo="collision-fbo" attachment="1"/>
+                <fullscreen-pass shader="regen.filter.sampling.x2"/>
             </view>
         </node>
 

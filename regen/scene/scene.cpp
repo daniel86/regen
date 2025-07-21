@@ -423,6 +423,7 @@ void Scene::initializeScene() {
 	updateBOs();
 	// adopt buffer ranges for staging
 	StagingSystem::instance().updateBuffers();
+	StagingSystem::instance().updateData();
 }
 
 void Scene::drawGL() {

@@ -451,3 +451,31 @@ void main()
         }
     }
 }
+
+----------------------------
+----------------------------
+-- x2.vs
+#include regen.filter.sampling.vs
+-- x2.fs
+#include regen.states.camera.defines
+
+out vec4 out_color;
+
+uniform vec2 in_inverseViewport;
+uniform sampler2D in_inputTexture1;
+uniform sampler2D in_inputTexture2;
+
+void main()
+{
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+
+    if (texco_2D.y > 0.25 && texco_2D.y < 0.75) {
+        if (texco_2D.x > 0.5) {
+            out_color = texture(in_inputTexture1, (texco_2D-vec2(0.5,0.25))*2.0);
+        } else {
+            out_color = texture(in_inputTexture2, (texco_2D-vec2(0.0,0.25))*2.0);
+        }
+    } else {
+        out_color = vec4(0.0);
+    }
+}
