@@ -291,7 +291,7 @@
             update-frequency="NEVER">
         <transform id="fish-tf"
                 num-instances="{{num-fish}}" is-instanced="1"
-                update-frequency="PER_FRAME">
+                update-frequency="NEVER">
             <scale value="0.001, 0.001, 0.001"/>
             <translate value="0.0, -5.5, 30.0"/>
             <set mode="circle" target="translate" radius="1.0" variance="0.8"
