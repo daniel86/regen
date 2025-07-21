@@ -30,6 +30,10 @@ BufferBlock::BufferBlock(
 		  stagingFlags_(target, hints) {
 	shared_ = ref_ptr<Shared>::alloc();
 	shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
+	std::fill(
+		shared_->updatedFrames_,
+		shared_->updatedFrames_ + UPDATE_RATE_RANGE,
+		false);
 	drawBufferRange_ = ref_ptr<BufferRange>::alloc();
 	// initially assume it is a GPU-only buffer.
 	// the flag will be switched to something else based on the inputs added.
@@ -92,6 +96,10 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	} else {
 		shared_ = ref_ptr<Shared>::alloc();
 		shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
+		std::fill(
+				shared_->updatedFrames_,
+				shared_->updatedFrames_ + UPDATE_RATE_RANGE,
+				false);
 		drawBufferRange_ = ref_ptr<BufferRange>::alloc();
 
 		auto tbo = dynamic_cast<const TBO *>(&other);
@@ -399,7 +407,7 @@ void BufferBlock::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint3
 
 float BufferBlock::getUpdateRate() const {
 	if (shared_->hasUpdateRotated_) {
-		return static_cast<float>(shared_->updateCount_) / static_cast<float>(shared_->updateRange_);
+		return static_cast<float>(shared_->updateCount_) / shared_->f_updateRange_;
 	} else {
 		return -1.0f; // not enough frames to compute the update rate
 	}
@@ -417,11 +425,14 @@ void BufferBlock::resetUpdateHistory() {
 
 void BufferBlock::setUpdatedFrame(bool isUpdated) {
 	bool wasUpdated = shared_->updatedFrames_[shared_->updateIdx_];
-	if (!wasUpdated && isUpdated) {
+	if (wasUpdated) {
+		if (!isUpdated) {
+			shared_->updateCount_--;
+		}
+	} else if (isUpdated) {
 		shared_->updateCount_++;
-	} else if (wasUpdated && !isUpdated) {
-		shared_->updateCount_--;
 	}
+
 	shared_->updatedFrames_[shared_->updateIdx_++] = isUpdated;
 	if (shared_->updateIdx_ >= shared_->updateRange_) {
 		shared_->updateIdx_ = 0; // wrap around the index

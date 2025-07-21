@@ -168,8 +168,6 @@ void StagingBuffer::pushToFlushQueue(const BufferRange2ui *dirtySegments, uint32
 			writeSegment.dirtySegments.resize(totalDirtySegments);
 		}
 		// copy the dirty segments into the vector
-		// TODO: Support merging of dirty segments? This is not really needed internally though.
-		//       BufferObject has read/write interface too though that makes segments dirty.
 		auto *dataStart = writeSegment.dirtySegments.data() + writeSegment.numDirtySegments;
 		std::memcpy(
 				(byte *) dataStart,

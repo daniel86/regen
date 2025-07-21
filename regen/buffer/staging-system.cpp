@@ -336,6 +336,26 @@ void StagingSystem::updateData() {
 			// NOTE: temporary mapping is only used for rare updates,
 			//       so it is not really worth it to consider temporary mapping on arena level.
 			bo->copyStagingData();
+
+			// TODO: Come up with a mechanism to promote or demote BOs to/from staging buffers.
+			//	   - Something along the lines of:
+			/**
+			auto updateRate = bo->getUpdateRate();
+			if (updateRate > -0.5f) {
+				REGEN_INFO("BufferBlock \"" << bo->getBlockName()
+					<< "\" update rate: " << updateRate);
+				if (arena->type != ARENA_WRITE_NEVER_CP_NB && updateRate < 0.001f) {
+					// the BO did not change for N frames, but it is not in the STATIC arena.
+					REGEN_INFO("denote(ARENA_WRITE_NEVER_CP_NB)");
+				} else if (arena->type < ARENA_WRITE_RARE_TM_SB && updateRate < 0.9f) {
+					// the BO is part of a per-frame arena, but it is updated less than 90% of the time.
+					REGEN_INFO("denote(ARENA_READ_RARE_TM_SB)");
+				} else if (arena->type >= ARENA_WRITE_RARE_TM_SB && updateRate > 0.95f) {
+					// the BO is part of a rare or static arena, but it is updated more than 95% of the time.
+					REGEN_INFO("promote(PER_FRAME)");
+				}
+			}
+			**/
 		}
 
 		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
@@ -418,21 +438,6 @@ void StagingSystem::Arena::resize() {
 	uint32_t localOffset = 0;
 	for (auto &bo: bufferObjects) {
 		bo->updateDrawBuffer();
-
-		// TODO: Come up with a mechanism to promote or demote BOs to/from staging buffers.
-		//	   - Something along the lines of:
-		/**
-		auto updateRate = bo->getUpdateRate();
-		if (updateRate > 0.0f) {
-			if (!isNeverArena() && updateRate < 0.001f) {
-				denote(ARENA_WRITE_NEVER_CP_NB);
-			} else if (isPerFrameArena() && updateRate < 0.9f) {
-				denote(ARENA_READ_RARE_TM_SB);
-			} else if (!isPerFrameArena() && updateRate > 0.95f) {
-				promote(XXX_PER_FRAME_XXX);
-			}
-		}
-		**/
 
 		// set the offset where this BO starts in each segment of the staging buffer.
 		if (flags.useExplicitStaging()) {

@@ -311,7 +311,10 @@ namespace regen {
 		std::optional<BufferingMode> userDefinedBufferingMode_ = std::nullopt;
 
 		struct Shared {
-			Shared() : copyCount_(1) {
+			Shared()
+				: copyCount_(1),
+				  updateRange_(UPDATE_RATE_RANGE),
+				  f_updateRange_(static_cast<float>(UPDATE_RATE_RANGE)) {
 			}
 			~Shared() {
 				delete[] updatedFrames_;
@@ -331,7 +334,8 @@ namespace regen {
 			// We record last n frames for computing the update rate.
 			bool *updatedFrames_ = nullptr;
 			// Range for update detection
-			uint32_t updateRange_ = UPDATE_RATE_RANGE;
+			uint32_t updateRange_;
+			float f_updateRange_;
 			// Count of frames that had a stall
 			uint32_t updateCount_ = 0;
 			// Current index in the stall detection array
