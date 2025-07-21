@@ -52,6 +52,7 @@ void CullShape::initCullShape(
 
 void CullShape::createBuffers() {
 	auto numIndices = tf_->numInstances();
+	if (numIndices <= 1) { return; }
 
 	std::vector<uint32_t> clearData(numInstances_);
 	for (uint32_t i = 0; i < numInstances_; ++i) { clearData[i] = i; }
