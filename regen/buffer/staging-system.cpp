@@ -301,12 +301,18 @@ void StagingSystem::updateBuffers() {
 }
 
 void StagingSystem::updateData() {
-	// TODO: It would be ok to occasionally skip updates for rare/never updated arenas.
-	//       It might be good in general to only iterate those every N frames instead of every frame.
-
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		if (!arena) continue; // skip uninitialized arenas
+
+		// TODO: It would be ok to occasionally skip updates for rare/never updated arenas.
+		//       It might be good in general to only iterate those every N frames instead of every frame.
+		//if (isOnHighPressure
+		// 		// never throttle per-frame arenas
+		// 		&& arenaIdx >= ARENA_READ_RARE_TM_SB
+		// 		// let the update rate cool down a bit
+		// 		&& bo->getUpdateRate() > 0.05f) continue;
+
 		// Dynamically resize the arena if needed.
 		// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
 		//       or of BOs were added, removed, or have changed their size.
