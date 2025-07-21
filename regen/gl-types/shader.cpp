@@ -462,7 +462,7 @@ void Shader::setupInputLocations() {
 		}
 		auto bindingPoint = BindingManager::request(
 				BindingManager::UBO,
-				bufferRangeID, blockName,
+				bufferRangeID,
 				bindingPoints);
 		bindingPoints.insert(bindingPoint);
 
@@ -495,7 +495,7 @@ void Shader::setupInputLocations() {
 		}
 		auto bindingPoint = BindingManager::request(
 				BindingManager::SSBO,
-				bufferRangeID, blockName,
+				bufferRangeID,
 				bindingPoints);
 		bindingPoints.insert(bindingPoint);
 

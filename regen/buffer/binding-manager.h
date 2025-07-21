@@ -43,7 +43,6 @@ namespace regen {
 		static int32_t request(
 				BlockType blockType,
 				std::uintptr_t bufferID,
-				const std::string &blockName,
 				const std::set<int32_t> &avoidBindingPoints);
 
 	protected:
@@ -54,7 +53,6 @@ namespace regen {
 		int32_t maxBindings_[LAST_BLOCK_TYPE];
 		int32_t nextBindingPoint_[LAST_BLOCK_TYPE];
 		std::unordered_map<std::uintptr_t, int32_t> bufferBindings_;
-		std::unordered_map<std::string, int32_t> namedBindings_;
 		// counts how often a binding point was used before
 		std::vector<int32_t> bindingPointCounter_[LAST_BLOCK_TYPE];
 
@@ -66,7 +64,6 @@ namespace regen {
 		int32_t request_(
 				BlockType blockType,
 				const std::set<int32_t> &avoidBindingPoints,
-				const std::string &blockName,
 				std::uintptr_t bufferID);
 	};
 } // namespace

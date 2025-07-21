@@ -18,7 +18,6 @@ void BindingManager::clear() {
 	instance.nextBindingPoint_[UBO] = 0;
 	instance.nextBindingPoint_[SSBO] = 0;
 	instance.bufferBindings_.clear();
-	instance.namedBindings_.clear();
 	instance.bindingPointCounter_[UBO].assign(instance.maxBindings_[UBO], 0);
 	instance.bindingPointCounter_[SSBO].assign(instance.maxBindings_[SSBO], 0);
 }
@@ -26,16 +25,14 @@ void BindingManager::clear() {
 int32_t BindingManager::request(
 		BlockType blockType,
 		std::uintptr_t bufferID,
-		const std::string &blockName,
 		const std::set<int32_t> &avoidBindingPoints) {
 	auto &instance = BindingManager::instance();
-	return instance.request_(blockType, avoidBindingPoints, blockName, bufferID);
+	return instance.request_(blockType, avoidBindingPoints, bufferID);
 }
 
 int32_t BindingManager::request_(
 		BlockType blockType,
 		const std::set<int32_t> &avoidBindingPoints,
-		const std::string &blockName,
 		std::uintptr_t bufferID) {
 	auto &maxBindingPoints = maxBindings_[blockType];
 	auto &nextBindingPoint = nextBindingPoint_[blockType];
@@ -45,19 +42,6 @@ int32_t BindingManager::request_(
 		auto it1 = bufferBindings_.find(bufferID);
 		if (it1 != bufferBindings_.end()) {
 			auto &bindingPoint = it1->second;
-			if (avoidBindingPoints.find(bindingPoint) == avoidBindingPoints.end()) {
-				// binding point is not in the list of avoided binding points
-				bindingPointCounter_[blockType][bindingPoint]++;
-				return bindingPoint;
-			}
-		}
-	}
-
-	// check if the same name was used before, and if so try to reuse the binding point.
-	if (bufferID == 0) {
-		auto it2 = namedBindings_.find(blockName);
-		if (it2 != namedBindings_.end()) {
-			auto &bindingPoint = it2->second;
 			if (avoidBindingPoints.find(bindingPoint) == avoidBindingPoints.end()) {
 				// binding point is not in the list of avoided binding points
 				bindingPointCounter_[blockType][bindingPoint]++;
@@ -87,7 +71,6 @@ int32_t BindingManager::request_(
 		}
 	}
 
-	namedBindings_[blockName] = bindingPoint;
 	bindingPointCounter_[blockType][bindingPoint]++;
 	bufferBindings_[bufferID] = bindingPoint;
 	return bindingPoint;
