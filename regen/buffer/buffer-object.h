@@ -111,7 +111,7 @@ namespace regen {
 		static ref_ptr<BufferReference> adoptBufferRange(uint32_t numBytes, BufferPool *memoryPool);
 
 		/**
-		 * Free previously allocated block of GPU memory.
+		 * Orphan previously adopted block of GPU memory.
 		 * Actually this will mark the space as free so that others
 		 * can allocate it again -- but only if you do not keep a reference
 		 * on the Reference instance somewhere. The allocated space is not marked as
@@ -140,6 +140,7 @@ namespace regen {
 		/**
 		 * Copy client data to the buffer object.
 		 * This will replace the existing data in the buffer.
+		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 * @param data pointer to the data to copy.
 		 */
 		void setBufferData(const void *data);
@@ -147,12 +148,14 @@ namespace regen {
 		/**
 		 * Copy client data to the buffer object.
 		 * This will replace the existing data in the buffer.
+		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 * @param other another buffer object to copy from.
 		 */
 		void setBufferData(const BufferObject &other);
 
 		/**
 		 * Copy data from another buffer object to this one.
+		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 * @param readBufferID the ID of the buffer to read from.
 		 * @param readAddress the address in the buffer to read from.
 		 * @param readSize the size of the data to read in bytes.
@@ -171,6 +174,7 @@ namespace regen {
 		/**
 		 * Set all allocated buffers to zero.
 		 * This will replace the existing data in the buffer with zeroes.
+		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 */
 		void setBuffersToZero();
 
@@ -182,8 +186,8 @@ namespace regen {
 		void setBufferToZero(const ref_ptr<BufferReference> &ref);
 
 		/**
-		 * Copy part of the data to the buffer object.
-		 * This will replace only part of the existing data in the buffer.
+		 * Copy part of the data to the adopted buffer range of the *main/draw buffer*.
+		 * Note: This will copy to main even if the buffer has a staging buffer.
 		 * @param data pointer to the data to copy.
 		 * @param relativeOffset relative offset in bytes from the start of the buffer.
 		 * @param dataSize size of the data to copy in bytes.
