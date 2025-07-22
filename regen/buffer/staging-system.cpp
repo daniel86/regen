@@ -123,16 +123,14 @@ StagingSystem::Arena *StagingSystem::addBufferBlock_writeOnly(
 		// - Update: avoid mapping entirely. Rather use glCopyNamedBufferSubData. No fencing is needed.
 	else if (flags.updateHints.frequency == BUFFER_UPDATE_PER_FRAME
 			 && sizeClass == BUFFER_SIZE_VERY_LARGE) {
-		// TODO: check what is faster in GPU boids scene
-		//return addToArena(block, ARENA_WRITE_PER_FRAME_CP_SB);
-		return addToArena(block, ARENA_WRITE_NEVER_CP_NB);
+		return addToArena(block, ARENA_WRITE_PER_FRAME_CP_SB);
 	}
 		// RARELY updated SMALL to LARGE Staging
 		// - Use explicit staging with a single buffer. Multi buffering is not worth it for rare updates
 		// - Update: use temporary mapping, no fencing needed with range invalidation!
 		// - *never* user multi-buffering as only few BOs might change in a frame. that would be very wasteful!
 	else if (flags.areUpdatesRare()) {
-		// note: BUFFER_SIZE_LARGE case already handled above
+		// note: BUFFER_SIZE_VERY_LARGE case already handled above
 		return addToArena(block, ARENA_WRITE_RARE_TM_SB);
 	}
 		// PER-FRAME updated SMALL to MEDIUM Staging + LARGE
@@ -337,12 +335,17 @@ void StagingSystem::updateData() {
 		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
 		const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
 		const bool useFence = isMapModePersistent(arena->flags.mapMode);
+		const bool forceUpdate = arena->flags.isReadable();
+		const bool allowSkipping = false;
+		//const bool allowSkipping = arena->flags.isReadable();
 
 		// Wait for the fence in case of persistent mapped arenas.
 		// This might block the CPU in case of the last write into this segment
 		// has not been consumed by the GPU yet.
-		if (useFence && !arena->stagingBuffer->fence(copyIdx).wait(false)) {
-			continue; // drop frame
+		if (useFence) {
+			if(!arena->stagingBuffer->fence(copyIdx).wait(allowSkipping)) {
+				continue; // skip this arena
+			}
 		}
 
 		// Copy data from CPU to staging to draw buffer,
@@ -350,7 +353,7 @@ void StagingSystem::updateData() {
 		for (auto &bo: arena->bufferObjects) {
 			// NOTE: temporary mapping is only used for rare updates,
 			//       so it is not really worth it to consider temporary mapping on arena level.
-			bo->copyStagingData();
+			bo->copyStagingData(forceUpdate);
 
 			// TODO: Come up with a mechanism to promote or demote BOs to/from staging buffers.
 			//	   - Something along the lines of:
