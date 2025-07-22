@@ -52,7 +52,12 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::string &s
 		REGEN_ERROR("Failed to load shader with key '" << shaderKey << "'");
 		return GL_FALSE;
 	}
-	return createShader(cfg, unprocessedCode);
+	if(createShader(cfg, unprocessedCode)) {
+		REGEN_INFO("Shader [" << shader_->id() << "] successfully loaded from '" << shaderKey << "'.");
+		return true;
+	} else {
+		return false;
+	}
 }
 
 GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<std::string> &shaderKeys) {
@@ -67,7 +72,12 @@ GLboolean ShaderState::createShader(const StateConfig &cfg, const std::vector<st
 		REGEN_ERROR("Failed to load shader with key '" << shaderKeys[0] << "'");
 		return GL_FALSE;
 	}
-	return createShader(cfg, unprocessedCode);
+	if(createShader(cfg, unprocessedCode)) {
+		REGEN_INFO("Shader [" << shader_->id() << "] successfully loaded from '" << shaderKeys[0] << ", ...'");
+		return true;
+	} else {
+		return false;
+	}
 }
 
 GLboolean ShaderState::createShader(const StateConfig &cfg, const std::map<GLenum, std::string> &unprocessedCode) {

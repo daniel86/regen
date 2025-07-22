@@ -460,9 +460,10 @@ void Shader::setupInputLocations() {
 		if (needle != inputNames_.end()) {
 			bufferRangeID = reinterpret_cast<std::uintptr_t>(needle->second->in_.get());
 		}
-		auto bindingPoint = BindingManager::request(
+		int32_t bindingPoint = BindingManager::request(
 				BindingManager::UBO,
 				bufferRangeID,
+				blockName,
 				bindingPoints);
 		bindingPoints.insert(bindingPoint);
 
@@ -493,9 +494,10 @@ void Shader::setupInputLocations() {
 		if (needle != inputNames_.end()) {
 			bufferRangeID = reinterpret_cast<std::uintptr_t>(needle->second->in_.get());
 		}
-		auto bindingPoint = BindingManager::request(
+		int32_t bindingPoint = BindingManager::request(
 				BindingManager::SSBO,
 				bufferRangeID,
+				blockName,
 				bindingPoints);
 		bindingPoints.insert(bindingPoint);
 

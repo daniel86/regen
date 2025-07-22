@@ -43,6 +43,7 @@ namespace regen {
 		static int32_t request(
 				BlockType blockType,
 				std::uintptr_t bufferID,
+				std::string_view bufferName,
 				const std::set<int32_t> &avoidBindingPoints);
 
 	protected:
@@ -63,8 +64,9 @@ namespace regen {
 
 		int32_t request_(
 				BlockType blockType,
-				const std::set<int32_t> &avoidBindingPoints,
-				std::uintptr_t bufferID);
+				std::uintptr_t bufferID,
+				std::string_view bufferName,
+				const std::set<int32_t> &avoidBindingPoints);
 	};
 } // namespace
 

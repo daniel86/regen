@@ -1,6 +1,7 @@
 #include <GL/glew.h>
 #include "binding-manager.h"
 #include <regen/gl-types/gl-param.h>
+#include <regen/utility/logging.h>
 
 using namespace regen;
 
@@ -25,15 +26,17 @@ void BindingManager::clear() {
 int32_t BindingManager::request(
 		BlockType blockType,
 		std::uintptr_t bufferID,
+		std::string_view bufferName,
 		const std::set<int32_t> &avoidBindingPoints) {
 	auto &instance = BindingManager::instance();
-	return instance.request_(blockType, avoidBindingPoints, bufferID);
+	return instance.request_(blockType, bufferID, bufferName, avoidBindingPoints);
 }
 
 int32_t BindingManager::request_(
 		BlockType blockType,
-		const std::set<int32_t> &avoidBindingPoints,
-		std::uintptr_t bufferID) {
+		std::uintptr_t bufferID,
+		std::string_view bufferName,
+		const std::set<int32_t> &avoidBindingPoints) {
 	auto &maxBindingPoints = maxBindings_[blockType];
 	auto &nextBindingPoint = nextBindingPoint_[blockType];
 
@@ -72,7 +75,23 @@ int32_t BindingManager::request_(
 	}
 
 	bindingPointCounter_[blockType][bindingPoint]++;
-	bufferBindings_[bufferID] = bindingPoint;
+	if (bufferID == 0) {
+		// the block input was not added to the scene when the shader was created,
+		// so we cannot ensure that once resolve the BO can be used across different shader programs
+		// with same binding point.
+		// This is usually only the case if there is some ping-ponging of the buffer objects involved,
+		// i.e. if BO used by the program changes e.g. per frame.
+		REGEN_INFO("Binding unresolved "
+			<< (blockType == UBO ? "UBO" : "SSBO") << " \""
+			<< bufferName << "\" to "
+			<< bindingPoint << " (next=" << nextBindingPoint << ").");
+	} else {
+		bufferBindings_[bufferID] = bindingPoint;
+		REGEN_INFO("Binding "
+			<< (blockType == UBO ? "UBO" : "SSBO") << " \""
+			<< bufferName << "\" (" << bufferID << ") to "
+			<< bindingPoint << " (next=" << nextBindingPoint << ").");
+	}
 	return bindingPoint;
 }
 
