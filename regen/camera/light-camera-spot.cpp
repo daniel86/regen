@@ -20,6 +20,7 @@ bool LightCamera_Spot::updateSpotLight() {
 	changed = updateLightView() || changed;
 	if(changed) {
 		updateViewProjection(0, 0);
+		updateFrustumBuffer();
 		// Transforms world space coordinates to homogenous light space
 		lightMatrix_->setVertex(0, viewProj_->getVertex(0).r * Mat4f::bias());
 		camStamp_ += 1;

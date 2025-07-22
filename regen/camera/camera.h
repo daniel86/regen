@@ -192,6 +192,20 @@ namespace regen {
 		virtual bool updateCamera();
 
 		/**
+		 * Get the frustum planes as a UBO.
+		 * @return the UBO containing the frustum planes.
+		 */
+		ref_ptr<UBO> getFrustumBuffer();
+
+		/**
+		 * Update the frustum buffer with the current frustum planes.
+		 * Usually this is called after the frustum has been updated internally,
+		 * but if the camera is updated with a custom mechanism, this method
+		 * must be called manually to update the frustum buffer.
+		 */
+		void updateFrustumBuffer();
+
+		/**
 		 * @return true if the sphere intersects with the frustum of this camera.
 		 */
 		bool hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const;
@@ -286,6 +300,8 @@ namespace regen {
 		LODQuality fixedLODQuality_ = LODQuality::LOW;
 
 		std::vector<Frustum> frustum_;
+		ref_ptr<UBO> frustumBuffer_;
+		ref_ptr<ShaderInput4f> frustumData_;
 
 		ref_ptr<UBO> cameraBlock_;
 		//ref_ptr<ShaderInput1f> fov_;
@@ -314,6 +330,8 @@ namespace regen {
 		virtual bool updateView();
 
 		virtual void updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex);
+
+		void createFrustumBuffer();
 
 	private:
 		unsigned int projectionStamp_ = 0u;

@@ -24,40 +24,6 @@ static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__
 }
 
 namespace regen {
-	class FrustumUpdater : public Animation {
-	public:
-		explicit FrustumUpdater(
-					const ref_ptr<Camera> &camera,
-					const ref_ptr<ShaderInput4f> &planes) :
-				Animation(false, true),
-				camera_(camera),
-				planes_(planes) {
-			auto &frustum = camera_->frustum();
-			frustumData_.resize(frustum.size() * 6);
-		}
-
-		void animate(double dt) override {
-			auto &frustum = camera_->frustum();
-			for (size_t i = 0; i < frustum.size(); ++i) {
-				auto &frustumPlanes = frustum[i].planes;
-				for (int j = 0; j < 6; ++j) {
-					frustumData_[i * 6 + j] = frustumPlanes[j].equation();
-				}
-			}
-
-			auto frustum_cpu =
-				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
-			std::memcpy(
-				(byte*)frustum_cpu.w,
-				frustumData_.data(),
-				frustumData_.size() * sizeof(Vec4f));
-		}
-	protected:
-		ref_ptr<Camera> camera_;
-		ref_ptr<ShaderInput4f> planes_;
-		std::vector<Vec4f> frustumData_;
-	};
-
 	class InstanceUpdater : public Animation {
 	public:
 		explicit InstanceUpdater(LODState *lodState)
@@ -118,7 +84,6 @@ void LODState::initLODState() {
 	} else {
 		lodNumInstances_[0] = cullShape_->numInstances();
 	}
-	frustumPlanes_.resize(6 * camera_->frustum().size());
 
 	if (cullShape_->hasInstanceBuffer()) {
 		// the cull shape may provide a shared instance buffer which is used for all
@@ -166,9 +131,6 @@ void LODState::initLODState() {
 		}
 	} else {
 		createComputeShader();
-		lodAnim_ = ref_ptr<FrustumUpdater>::alloc(camera_, frustumData_);
-		lodAnim_->startAnimation();
-		lodAnim_->animate(0.0); // initialize frustum planes
 	}
 	REGEN_INFO("Created LOD state for cull shape '"
 					   << cullShape_->shapeName()
@@ -614,16 +576,7 @@ void LODState::createComputeShader() {
 	}
 
 	{ // cull
-		// we store the 6 frustum planes in a UBO
-		// TODO: frustum buffer should be provided by camera
-		frustumUBO_ = ref_ptr<UBO>::alloc("FrustumBuffer", BufferUpdateFlags::FULL_PER_FRAME);
-		frustumUBO_->setStagingAccessMode(BUFFER_CPU_WRITE);
-		frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", frustumPlanes_.size());
-		frustumData_->setUniformUntyped();
-		frustumUBO_->addBlockInput(frustumData_);
-		frustumUBO_->update();
-		setInput(frustumUBO_);
-
+		setInput(camera_->getFrustumBuffer());
 		StateConfigurer shaderCfg;
 		if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 			shaderCfg.define("USE_REVERSE_SORT", "TRUE");
@@ -634,7 +587,7 @@ void LODState::createComputeShader() {
 		cullPass_->computeState()->setNumWorkUnits(static_cast<int>(cullShape_->numInstances()), 1, 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 		cullPass_->setInput(mesh_->lodThresholds());
-		cullPass_->setInput(frustumUBO_);
+		cullPass_->setInput(camera_->getFrustumBuffer());
 		// Note: LOD pass only writes into first buffer, we need to copy into the other buffers
 		//       in a separate pass.
 		cullPass_->setInput(indirectDrawBuffers_[0]);
@@ -683,18 +636,6 @@ void LODState::createComputeShader() {
 							 REGEN_STRING(cullShape_->parts()[i + 1]->numLODs()));
 		}
 		copyIndirect_->createShader(shaderCfg.cfg());
-	}
-}
-
-void LODState::updateFrustumBuffer() {
-	auto &frustum = camera_->frustum();
-	auto frustum_cpu =
-		frustumData_->mapClientData<Vec4f>(ShaderData::WRITE);
-	for (size_t i = 0; i < frustum.size(); ++i) {
-		auto &frustumPlanes = frustum[i].planes;
-		for (int j = 0; j < 6; ++j) {
-			frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
-		}
 	}
 }
 

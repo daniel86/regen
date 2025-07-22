@@ -68,13 +68,10 @@ namespace regen {
 		ref_ptr<ComputePass> cullPass_;
 		ref_ptr<ComputePass> copyIndirect_;
 		ref_ptr<RadixSort> radixSort_;
-		ref_ptr<UBO> frustumUBO_;
-		ref_ptr<ShaderInput4f> frustumData_;
 		// buffer for indirect draw calls, one per mesh part
 		// (parts have different index buffers, so we cannot use a single buffer for all parts)
 		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;
 		ref_ptr<SSBO> clearIndirectBuffer_;
-		std::vector<Vec4f> frustumPlanes_;
 
 		ref_ptr<Animation> lodAnim_;
 
@@ -93,8 +90,6 @@ namespace regen {
 		void traverseCPU();
 
 		void traverseGPU(RenderState *rs);
-
-		void updateFrustumBuffer();
 
 		friend class InstanceUpdater;
 	};

@@ -84,6 +84,7 @@ void CubeCamera::updateViewProjection1() {
 			updateViewProjection(0, i);
 		}
 	}
+	updateFrustumBuffer();
 }
 
 namespace regen {

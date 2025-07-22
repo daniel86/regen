@@ -12,6 +12,7 @@ void CameraControllerBase::computeMatrices(const Vec3f &pos, const Vec3f &dir) {
 	viewproj_ = view_ * cam_->projection()->getVertex(0).r;
 	viewprojInv_ = cam_->projectionInverse()->getVertex(0).r * viewInv_;
 	cam_->frustum()[0].update(pos, dir);
+	cam_->updateFrustumBuffer();
 }
 
 void CameraControllerBase::updateCamera(const Vec3f &pos, const Vec3f &dir, GLdouble dt) {

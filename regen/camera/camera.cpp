@@ -10,11 +10,9 @@
 
 using namespace regen;
 
-// FIXME: camera update currently does not ensure the update being atomic for the GL thread!
-//         meaning it can and will happen that GL has partial data from the camera update.
-//         which will be not super noticeable I think, when changes in the camera per frame are small.
-// FIXME: the indexed setVertex is REALLY NOT GOOD! It might cause a lot of copies, need to rewrite
+// TODO: the indexed setVertex is REALLY NOT GOOD! It might cause a lot of copies, need to rewrite
 //         the camera classes!
+// TODO: camera class uses too much virtual, also functions that are called each frame!
 
 namespace regen {
 	class CameraMotion : public Animation {
@@ -185,6 +183,7 @@ void Camera::updateViewProjection1() {
 				numProjLayers > 1 ? i : 0,
 				numViewLayers > 1 ? i : 0);
 	}
+	updateFrustumBuffer();
 }
 
 void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
@@ -232,6 +231,80 @@ void Camera::updatePose() {
 
 	if (updated) {
 		updateCamera();
+	}
+}
+
+/**
+
+	class FrustumUpdater : public Animation {
+	public:
+		explicit FrustumUpdater(
+					const ref_ptr<Camera> &camera,
+					const ref_ptr<ShaderInput4f> &planes) :
+				Animation(false, true),
+				camera_(camera),
+				planes_(planes) {
+			auto &frustum = camera_->frustum();
+			frustumData_.resize(frustum.size() * 6);
+		}
+
+		void animate(double dt) override {
+			auto &frustum = camera_->frustum();
+			for (size_t i = 0; i < frustum.size(); ++i) {
+				auto &frustumPlanes = frustum[i].planes;
+				for (int j = 0; j < 6; ++j) {
+					frustumData_[i * 6 + j] = frustumPlanes[j].equation();
+				}
+			}
+
+			auto frustum_cpu =
+				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
+			std::memcpy(
+				(byte*)frustum_cpu.w,
+				frustumData_.data(),
+				frustumData_.size() * sizeof(Vec4f));
+		}
+	protected:
+		ref_ptr<Camera> camera_;
+		ref_ptr<ShaderInput4f> planes_;
+		std::vector<Vec4f> frustumData_;
+	};
+
+		lodAnim_ = ref_ptr<FrustumUpdater>::alloc(camera_, frustumData_);
+		lodAnim_->startAnimation();
+		lodAnim_->animate(0.0); // initialize frustum planes
+
+	frustumPlanes_.resize(6 * camera_->frustum().size());
+**/
+
+ref_ptr<UBO> Camera::getFrustumBuffer() {
+	if (!frustumBuffer_.get()) {
+		createFrustumBuffer();
+	}
+	return frustumBuffer_;
+}
+
+void Camera::createFrustumBuffer() {
+	frustumBuffer_ = ref_ptr<UBO>::alloc("FrustumBuffer", cameraBlock_->stagingUpdateHint());
+	frustumBuffer_->setStagingAccessMode(BUFFER_CPU_WRITE);
+	// each frustum has 6 planes, so we need 6 * numLayer_ Vec4f
+	frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", 6 * numLayer_);
+	frustumData_->setUniformUntyped();
+	frustumBuffer_->addBlockInput(frustumData_);
+	frustumBuffer_->update();
+	setInput(frustumBuffer_);
+}
+
+void Camera::updateFrustumBuffer() {
+	if (!frustumBuffer_.get()) return;
+
+	auto frustum_cpu =
+		frustumData_->mapClientData<Vec4f>(ShaderData::WRITE);
+	for (size_t i = 0; i < frustum_.size(); ++i) {
+		auto &frustumPlanes = frustum_[i].planes;
+		for (int j = 0; j < 6; ++j) {
+			frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
+		}
 	}
 }
 
