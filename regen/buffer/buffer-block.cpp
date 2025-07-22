@@ -677,7 +677,7 @@ void BufferBlock::updateDrawBuffer() {
 	// enforce rebinding
 	bindingIndex_ = -1;
 	if (drawBufferRef_.get()) {
-		free(drawBufferRef_.get());
+		orphanBufferRange(drawBufferRef_.get());
 	}
 
 	// if neither read nor write access is requested, we can use implicit staging.
@@ -730,7 +730,9 @@ void BufferBlock::updateDrawBuffer() {
 		<< StagingBuffer::getBufferSizeClass(requiredSize_)
 		<< " " << stagingFlags_.target
 		<< " \"" << getBlockName() << "\" with"
-		<< " " << requiredSize_ / 1024.0 << " Kib");
+		<< " " << requiredSize_ / 1024.0 << " Kib"
+		<< " BO: " << drawBufferRef_->bufferID()
+		<< " at: " << drawBufferRef_->address());
 }
 
 void BufferBlock::resetStagingBuffer(bool removeFromStagingSystem) {

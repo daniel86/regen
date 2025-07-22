@@ -90,6 +90,9 @@ bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments)
 	if (flags_.useExplicitStaging()) {
 		// in case of explicit staging, we need obtain separate CPU-accessible storage.
 		// initialize storage for multiple buffers: numSegments*segmentSize_ bytes
+		if (stagingRef_.get()) {
+			BufferObject::orphanBufferRange(stagingRef_.get());
+		}
 		stagingRef_ = stagingBO_->adoptBufferRange(segmentSize_ * numSegments);
 		if (!stagingRef_->mappedData() && (storageFlags_ & MAP_PERSISTENT)) {
 			REGEN_ERROR("Failed to map buffer " <<

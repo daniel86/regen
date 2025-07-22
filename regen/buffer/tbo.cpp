@@ -23,7 +23,7 @@ void TBO::setBufferInput(const ref_ptr<regen::ShaderInput> &input) {
 
 void TBO::resizeTBO() {
 	if (tboRef_.get()) {
-		free(tboRef_.get());
+		orphanBufferRange(tboRef_.get());
 	}
 	tboRef_ = adoptBufferRange(input_->inputSize());
 	if (tboRef_.get()) {
