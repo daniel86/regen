@@ -168,6 +168,7 @@ void LODState::initLODState() {
 		createComputeShader();
 		lodAnim_ = ref_ptr<FrustumUpdater>::alloc(camera_, frustumData_);
 		lodAnim_->startAnimation();
+		lodAnim_->animate(0.0); // initialize frustum planes
 	}
 	REGEN_INFO("Created LOD state for cull shape '"
 					   << cullShape_->shapeName()
