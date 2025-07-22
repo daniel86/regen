@@ -81,15 +81,15 @@ int32_t BindingManager::request_(
 		// with same binding point.
 		// This is usually only the case if there is some ping-ponging of the buffer objects involved,
 		// i.e. if BO used by the program changes e.g. per frame.
-		REGEN_INFO("Binding unresolved "
+		REGEN_INFO("Allocating unresolved "
 			<< (blockType == UBO ? "UBO" : "SSBO") << " \""
-			<< bufferName << "\" to "
+			<< bufferName << "\" to binding point "
 			<< bindingPoint << " (next=" << nextBindingPoint << ").");
 	} else {
 		bufferBindings_[bufferID] = bindingPoint;
-		REGEN_INFO("Binding "
+		REGEN_INFO("Allocating "
 			<< (blockType == UBO ? "UBO" : "SSBO") << " \""
-			<< bufferName << "\" (" << bufferID << ") to "
+			<< bufferName << "\" (" << bufferID << ") to binding point "
 			<< bindingPoint << " (next=" << nextBindingPoint << ").");
 	}
 	return bindingPoint;
