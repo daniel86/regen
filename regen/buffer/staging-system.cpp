@@ -1,6 +1,7 @@
 #include "staging-system.h"
 #include <regen/gl-types/gl-param.h>
 
+//#define REGEN_BUFFER_BLOCK_DEBUG
 //#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
 //#define REGEN_STAGING_EXPLICIT_FLUSH
 
@@ -19,6 +20,12 @@ static uint32_t getStagingAlignment() {
 			glParam<uint32_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT)));
 	return v;
 }
+
+float StagingSystem::COOLDOWN_RARE_READ = 1000.0f; // 1 second cooldown for rare reads
+float StagingSystem::MIN_COOLDOWN_RARE_WRITE = 50; // 50 ms minimum cooldown for rare writes
+float StagingSystem::MAX_COOLDOWN_RARE_READ = 1000.0f; // 1 second maximum cooldown for rare reads
+float StagingSystem::MIN_COOLDOWN_NEVER_WRITE = 200.0f; // 200 ms minimum cooldown for never writes
+float StagingSystem::MAX_COOLDOWN_NEVER_WRITE = 2000.0f; // 2 seconds maximum cooldown for never writes
 
 StagingSystem::StagingSystem()
 		: arenas_() {
@@ -84,7 +91,7 @@ void StagingSystem::removeBufferBlock(const BlockPtr &block) {
 			arena->bufferObjects.erase(it);
 			block->resetStagingBuffer(false);
 			REGEN_INFO("Removed buffer block '" << block->getBlockName() << "'"
-					<< " from staging arena: " << arena->type);
+												<< " from staging arena: " << arena->type);
 			break;
 		}
 	}
@@ -203,11 +210,20 @@ StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, BufferAcce
 			arena->flags.bufferingMode = SINGLE_BUFFER;
 			break;
 		case ARENA_READ_RARE_TM_SB:
+			arena->flags.updateHints.frequency = BUFFER_UPDATE_RARE;
+			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
+			arena->flags.mapMode = BUFFER_MAP_TEMPORARY;
+			arena->flags.bufferingMode = SINGLE_BUFFER;
+			arena->minCooldown = COOLDOWN_RARE_READ;
+			break;
 		case ARENA_WRITE_RARE_TM_SB:
 			arena->flags.updateHints.frequency = BUFFER_UPDATE_RARE;
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_TEMPORARY;
 			arena->flags.bufferingMode = SINGLE_BUFFER;
+			arena->minCooldown = 100.0f;
+			arena->cooldownRange[0] = MIN_COOLDOWN_RARE_WRITE;
+			arena->cooldownRange[1] = MAX_COOLDOWN_RARE_READ;
 			break;
 		case ARENA_WRITE_NEVER_CP_NB:
 			// no explicit staging buffer -> implicit staging
@@ -216,12 +232,18 @@ StagingSystem::Arena *StagingSystem::createArena(ArenaType arenaType, BufferAcce
 			arena->flags.updateHints.scope = BUFFER_UPDATE_PARTIALLY;
 			arena->flags.mapMode = BUFFER_MAP_DISABLED;
 			arena->flags.bufferingMode = SINGLE_BUFFER;
+			arena->minCooldown = 500.0f;
+			arena->cooldownRange[0] = MIN_COOLDOWN_NEVER_WRITE;
+			arena->cooldownRange[1] = MAX_COOLDOWN_NEVER_WRITE;
 			break;
 		case ARENA_TYPE_LAST:
 			break;
 	}
+	// force update on the next frame for rarely updated arenas
+	arena->cooldownTime = arena->minCooldown;
+
 	REGEN_INFO("Created staging arena \"" << arena->type << "\" with"
-		<< " ring size: " << arena->numRingSegments << " -- " << maxRingSegments);
+										  << " ring size: " << arena->numRingSegments << " -- " << maxRingSegments);
 	REGEN_INFO("    " << arena->flags);
 
 	// create a staging buffer for this arena
@@ -240,7 +262,7 @@ StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType
 	// disable swapping for the staging buffer, we do it manually in the staging system
 	targetArena->stagingBuffer->setSwappingOnAccess(false);
 	REGEN_INFO("Added buffer block \"" << block->getBlockName()
-		<< "\" to staging arena \"" << targetArena->type << "\"");
+									   << "\" to staging arena \"" << targetArena->type << "\"");
 	return targetArena;
 }
 
@@ -258,8 +280,8 @@ void StagingSystem::updateBuffers() {
 			if (!bo->isBlockValid()) {
 				// something went wrong when updating the draw buffer.
 				REGEN_WARN("BufferBlock \"" << bo->getBlockName()
-						<< "\" is not valid. Skipping it in staging arena "
-						<< arena->type);
+											<< "\" is not valid. Skipping it in staging arena "
+											<< arena->type);
 				arena->bufferObjects[boIdx] = {};
 				hasInvalidBlocks = true;
 			}
@@ -304,21 +326,13 @@ void StagingSystem::updateBuffers() {
 			}
 		}
 	}
-	REGEN_INFO("Staging arenas updated.");
 }
 
-void StagingSystem::updateData() {
+void StagingSystem::updateData(float dt_ms) {
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
-		if (!arena) continue; // skip uninitialized arenas
-
-		// TODO: It would be ok to occasionally skip updates for rare/never updated arenas.
-		//       It might be good in general to only iterate those every N frames instead of every frame.
-		//if (isOnHighPressure
-		// 		// never throttle per-frame arenas
-		// 		&& arenaIdx >= ARENA_READ_RARE_TM_SB
-		// 		// let the update rate cool down a bit
-		// 		&& bo->getUpdateRate() > 0.05f) continue;
+		// skip inactive arenas: those that are not initialized, and those that are cooling down.
+		if (!arena || arena->cooldown(dt_ms)) continue;
 
 		// Dynamically resize the arena if needed.
 		// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
@@ -343,7 +357,7 @@ void StagingSystem::updateData() {
 		// This might block the CPU in case of the last write into this segment
 		// has not been consumed by the GPU yet.
 		if (useFence) {
-			if(!arena->stagingBuffer->fence(copyIdx).wait(allowSkipping)) {
+			if (!arena->stagingBuffer->fence(copyIdx).wait(allowSkipping)) {
 				continue; // skip this arena
 			}
 		}
@@ -354,26 +368,6 @@ void StagingSystem::updateData() {
 			// NOTE: temporary mapping is only used for rare updates,
 			//       so it is not really worth it to consider temporary mapping on arena level.
 			bo->copyStagingData(forceUpdate);
-
-			// TODO: Come up with a mechanism to promote or demote BOs to/from staging buffers.
-			//	   - Something along the lines of:
-			/**
-			auto updateRate = bo->getUpdateRate();
-			if (updateRate > -0.5f) {
-				REGEN_INFO("BufferBlock \"" << bo->getBlockName()
-					<< "\" update rate: " << updateRate);
-				if (arena->type != ARENA_WRITE_NEVER_CP_NB && updateRate < 0.001f) {
-					// the BO did not change for N frames, but it is not in the STATIC arena.
-					REGEN_INFO("denote(ARENA_WRITE_NEVER_CP_NB)");
-				} else if (arena->type < ARENA_WRITE_RARE_TM_SB && updateRate < 0.9f) {
-					// the BO is part of a per-frame arena, but it is updated less than 90% of the time.
-					REGEN_INFO("denote(ARENA_READ_RARE_TM_SB)");
-				} else if (arena->type >= ARENA_WRITE_RARE_TM_SB && updateRate > 0.95f) {
-					// the BO is part of a rare or static arena, but it is updated more than 95% of the time.
-					REGEN_INFO("promote(PER_FRAME)");
-				}
-			}
-			**/
 		}
 
 		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
@@ -397,10 +391,41 @@ void StagingSystem::updateData() {
 
 bool StagingSystem::Arena::updateRequiredSize() {
 	uint32_t newRequiredSize = 0u;
+
+	updateRate = 0.0f;
 	for (const auto &bo: bufferObjects) {
 		newRequiredSize += bo->updateBlockInputs();
 		isDirty = isDirty || bo->hasDirtySegments();
+		bo->setUpdatedFrame(bo->hasDirtySegments());
+		float boUpdateRate = bo->getUpdateRate();
+		updateRate += boUpdateRate;
+		// TODO: Come up with a mechanism to promote or demote BOs to/from staging buffers.
+		//	   - Something along the lines of:
+		/**
+		if (boUpdateRate > -0.5f) {
+			// - never move around GPU-only BOs, as they are not staged.
+			// - special treatment for reading arenas, same as above
+			// - for rarely updated BOs, we can adjust the cooldown time to get closer to the
+			//       desired update rate
+			//  --> only move around staged write-only BOs.
+			if (arena->type != ARENA_WRITE_NEVER_CP_NB && updateRate < 0.001f) {
+				// the BO did not change for N frames, but it is not in the STATIC arena.
+				//REGEN_INFO("denote to NEVER " << bo->getBlockName());
+			} else if (arena->type < ARENA_WRITE_RARE_TM_SB && updateRate < 0.9f) {
+				// the BO is part of a per-frame arena, but it is updated less than 90% of the time.
+				//REGEN_INFO("denote to RARE " << bo->getBlockName());
+			} else if (arena->type >= ARENA_WRITE_RARE_TM_SB && updateRate > 0.95f) {
+				// the BO is part of a rare or static arena, but it is updated more than 95% of the time.
+				//REGEN_INFO("promote to PER_FRAME " << bo->getBlockName());
+			}
+			//else if() {
+			//	REGEN_INFO("promote to RARE " << bo->getBlockName());
+			//}
+		}
+		**/
 	}
+	updateRate /= static_cast<float>(bufferObjects.size());
+
 	// align up to meet requirements for different buffer types,
 	// and generally to improve performance.
 	newRequiredSize = alignUp(newRequiredSize, getStagingAlignment());
@@ -418,7 +443,7 @@ bool StagingSystem::Arena::updateRequiredSize() {
 		uint32_t newNumSegments = std::min(numRingSegments + 1u, stagingBuffer->maxRingSegments());
 		if (newNumSegments != numRingSegments) {
 			REGEN_INFO("Increasing staging arena " << type
-				<< " segments to " << newNumSegments << " due to high stall rate.");
+												   << " segments to " << newNumSegments << " due to high stall rate.");
 			numRingSegments = newNumSegments;
 			stagingBuffer->resetStallRate();
 			return true; // size changed
@@ -426,6 +451,53 @@ bool StagingSystem::Arena::updateRequiredSize() {
 	}
 
 	return false;
+}
+
+bool StagingSystem::Arena::cooldown(float dt_ms) {
+	if (updateRate < -0.01f) return false; // no updates, no cooldown
+
+	// Avoid updating arenas with RARELY/NEVER updated BOs every frame.
+	if (type > ARENA_READ_RARE_TM_SB) {
+		cooldownTime += dt_ms;
+		// skip this arena if it is not time to update it yet
+		if (cooldownTime < minCooldown) { return true; }
+		// reset cooldown
+		cooldownTime = 0.0f;
+		if (updateRate > 0.75f) {
+			// the update rate is high, so we can reduce the cooldown time
+			setMinCooldown(std::max(minCooldown * 0.75f, cooldownRange[0]));
+		} else if (updateRate < 0.25f && updateRate > -0.5f) {
+			// the update rate is low, so we can increase the cooldown time
+			setMinCooldown(std::min(minCooldown * 1.25f, cooldownRange[1]));
+		}
+	} else if (type == ARENA_READ_PER_FRAME_PM_RNG) {
+		// not adaptive
+		cooldownTime += dt_ms;
+		// skip this arena if it is not time to update it yet
+		if (cooldownTime < minCooldown) { return true; }
+		// reset cooldown
+		cooldownTime = 0.0f;
+	}
+
+	// not cooling down, we can update the arena
+	return false;
+}
+
+void StagingSystem::Arena::setMinCooldown(float v) {
+	if (minCooldown != v) {
+		minCooldown = v;
+		REGEN_INFO("Setting cooldown for arena " << type
+												 << " to " << minCooldown << " ms "
+												 << "(update rate: " << updateRate << ")");
+		resetUpdateHistory();
+	}
+}
+
+void StagingSystem::Arena::resetUpdateHistory() {
+	for (auto &bo: bufferObjects) {
+		bo->resetUpdateHistory();
+	}
+	updateRate = -1.0f; // reset update rate
 }
 
 void StagingSystem::Arena::sort() {
@@ -445,12 +517,12 @@ void StagingSystem::Arena::resize() {
 	// in this case we will orphan any adopted staging buffer ranges, and re-adopt one with the new size.
 	if (requiredSize == 0u) {
 		REGEN_WARN("Attempting to resize staging arena " << type
-				<< " to zero Bytes. This is likely a bug.");
+														 << " to zero Bytes. This is likely a bug.");
 		return; // nothing to resize
 	}
 	REGEN_INFO("Resizing staging arena \"" << type << "\""
-		<< " with " << bufferObjects.size() << " BOs"
-		<< " to " << requiredSize / 1024.0f << " KiB per segment.");
+										   << " with " << bufferObjects.size() << " BOs"
+										   << " to " << requiredSize / 1024.0f << " KiB per segment.");
 	stagingBuffer->resizeBuffer(requiredSize, numRingSegments);
 
 	uint32_t localOffset = 0;

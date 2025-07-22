@@ -6,7 +6,6 @@
 
 using namespace regen;
 
-//#define REGEN_BUFFER_BLOCK_DEBUG
 //#define BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
 //#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
 //#define BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
@@ -29,11 +28,13 @@ BufferBlock::BufferBlock(
 		  memoryLayout_(memoryLayout),
 		  stagingFlags_(target, hints) {
 	shared_ = ref_ptr<Shared>::alloc();
+	shared_->updateRange_ = UPDATE_RATE_RANGE;
+	shared_->f_updateRange_ = static_cast<float>(UPDATE_RATE_RANGE);
 	shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
 	std::fill(
-		shared_->updatedFrames_,
-		shared_->updatedFrames_ + UPDATE_RATE_RANGE,
-		false);
+			shared_->updatedFrames_,
+			shared_->updatedFrames_ + UPDATE_RATE_RANGE,
+			false);
 	drawBufferRange_ = ref_ptr<BufferRange>::alloc();
 	// initially assume it is a GPU-only buffer.
 	// the flag will be switched to something else based on the inputs added.
@@ -96,6 +97,8 @@ BufferBlock::BufferBlock(const BufferObject &other)
 	} else {
 		shared_ = ref_ptr<Shared>::alloc();
 		shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
+		shared_->updateRange_ = UPDATE_RATE_RANGE;
+		shared_->f_updateRange_ = static_cast<float>(UPDATE_RATE_RANGE);
 		std::fill(
 				shared_->updatedFrames_,
 				shared_->updatedFrames_ + UPDATE_RATE_RANGE,
@@ -318,61 +321,13 @@ void BufferBlock::removeBlockInput(std::string_view name) {
 
 void BufferBlock::update(bool forceUpdate) {
 	if (!isBlockValid_) return;
-
-#ifdef REGEN_BUFFER_BLOCK_DEBUG
-	auto t0 = std::chrono::high_resolution_clock::now();
-#endif
 	updateBlockInputs();
-#ifdef REGEN_BUFFER_BLOCK_DEBUG
-	auto t1 = std::chrono::high_resolution_clock::now();
-#endif
 	updateDrawBuffer();
-#ifdef REGEN_BUFFER_BLOCK_DEBUG
-	auto t2 = std::chrono::high_resolution_clock::now();
-#endif
 	if (!shared_->isGloballyStaged_) {
 		// note: don't mess with the staging buffer if it is managed by the staging system.
 		// i.e. in case someone explicitly called update() on the buffer block.
 		copyStagingData(forceUpdate);
 	}
-#ifdef REGEN_BUFFER_BLOCK_DEBUG
-	auto t3 = std::chrono::high_resolution_clock::now();
-#endif
-
-#ifdef REGEN_BUFFER_BLOCK_DEBUG
-	static std::vector<long> resizeTimes;
-	static std::vector<long> copyTimes;
-	static std::vector<long> totalTimes;
-	auto resizeTime = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-	auto copyTime = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count();
-	auto totalTime = std::chrono::duration_cast<std::chrono::microseconds>(t3 - t0).count();
-	resizeTimes.push_back(resizeTime);
-	copyTimes.push_back(copyTime);
-	totalTimes.push_back(totalTime);
-	if (copyTimes.size() > 1000) {
-		// print the average time for the last 100 frames
-		long resizeAvg = 0;
-		long copyAvg = 0;
-		long totalAvg = 0;
-		for (size_t i = 0; i < copyTimes.size(); ++i) {
-			resizeAvg += resizeTimes[i];
-			copyAvg += copyTimes[i];
-			totalAvg += totalTimes[i];
-		}
-		resizeAvg /= static_cast<long>(copyTimes.size());
-		copyAvg /= static_cast<long>(copyTimes.size());
-		totalAvg /= static_cast<long>(copyTimes.size());
-		REGEN_INFO("resize=" << std::fixed << std::setprecision(4)
-				<< static_cast<float>(resizeAvg) / 1000.0f << "ms " <<
-				"copy=" << std::fixed << std::setprecision(4)
-				<< static_cast<float>(copyAvg) / 1000.0f << "ms " <<
-				"total=" << std::fixed << std::setprecision(4)
-				<< static_cast<float>(totalAvg) / 1000.0f << "ms ");
-		resizeTimes.clear();
-		copyTimes.clear();
-		totalTimes.clear();
-	}
-#endif
 }
 
 void BufferBlock::resetDirtySegments() {
@@ -585,9 +540,9 @@ int32_t BufferBlock::getBufferedIndex(uint32_t stamp, const std::vector<uint32_t
 }
 
 void BufferBlock::copyBlockInput(
-			BlockInput &bufferInput,
-			byte *mappedBufferData,
-			uint32_t localMapOffset) {
+		BlockInput &bufferInput,
+		byte *mappedBufferData,
+		uint32_t localMapOffset) {
 	auto &currentStamp = lastInputStamp(bufferInput);
 	currentStamp = bufferInput.input->stamp();
 
@@ -727,12 +682,12 @@ void BufferBlock::updateDrawBuffer() {
 	resetDataStamps();
 
 	REGEN_INFO("Created "
-		<< StagingBuffer::getBufferSizeClass(requiredSize_)
-		<< " " << stagingFlags_.target
-		<< " \"" << getBlockName() << "\" with"
-		<< " " << requiredSize_ / 1024.0 << " Kib"
-		<< " BO: " << drawBufferRef_->bufferID()
-		<< " at: " << drawBufferRef_->address());
+					   << StagingBuffer::getBufferSizeClass(requiredSize_)
+					   << " " << stagingFlags_.target
+					   << " \"" << getBlockName() << "\" with"
+					   << " " << requiredSize_ / 1024.0 << " Kib"
+					   << " BO: " << drawBufferRef_->bufferID()
+					   << " at: " << drawBufferRef_->address());
 }
 
 void BufferBlock::resetStagingBuffer(bool removeFromStagingSystem) {
@@ -776,7 +731,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			shared_->stagingBuffer_->resizeBuffer(requiredSize_, 2);
 			shared_->isGloballyStaged_ = false;
 			REGEN_INFO("Using local staging for block \""
-							   << getBlockName() << "\" with size " << requiredSize_/1024.0 << " Kib"
+							   << getBlockName() << "\" with size " << requiredSize_ / 1024.0 << " Kib"
 							   << " and " << shared_->stagingBuffer_->numBufferSegments()
 							   << " segments.");
 			REGEN_INFO("Local staging flags: " << stagingFlags_);
@@ -824,8 +779,8 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		// Copy from draw buffer to the staging buffer, then read from the staging buffer into CPU memory.
 		if (!updateReadBuffer()) {
 			REGEN_WARN("Failed to update read buffer for block \""
-				<< getBlockName() << "\". This is likely a bug, buffer object will be disabled."
-				<< " Staging flags: " << stagingFlags_ << ".");
+							   << getBlockName() << "\". This is likely a bug, buffer object will be disabled."
+							   << " Staging flags: " << stagingFlags_ << ".");
 			isBlockValid_ = false;
 		}
 	} else if (hasClientData_) {
@@ -841,8 +796,8 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		}
 	} else if (stagingFlags_.useExplicitStaging()) {
 		REGEN_WARN("No client data to update BO \""
-			<< getBlockName() << "\". This is likely a bug, buffer object will be disabled."
-			<< " Staging flags: " << stagingFlags_ << ".");
+						   << getBlockName() << "\". This is likely a bug, buffer object will be disabled."
+						   << " Staging flags: " << stagingFlags_ << ".");
 		isBlockValid_ = false;
 	}
 }
@@ -961,8 +916,8 @@ void BufferBlock::updatePersistentMapped() {
 	if (bufferData) {
 		// only copy the dirty segments to the mapped buffer.
 		copyDirtyData(
-			bufferData,
-			firstSegment.offset);
+				bufferData,
+				firstSegment.offset);
 		// push the dirty segments to the flush queue for just-in-time flushing.
 		if (stagingFlags_.useExplicitFlushing()) {
 			auto dirtySegments = (BufferRange2ui *) (&dirtyBufferRanges_.data()[0].offset);

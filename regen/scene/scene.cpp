@@ -428,8 +428,9 @@ void Scene::initializeScene() {
 
 void Scene::drawGL() {
 	// update staging arenas (up to per-frame frequency)
-	StagingSystem::instance().updateData();
-	renderTree_->render(timeDelta_->getVertex(0).r);
+	float dt_ms = timeDelta_->getVertex(0).r;
+	StagingSystem::instance().updateData(dt_ms);
+	renderTree_->render(dt_ms);
 }
 
 void Scene::updateGL() {

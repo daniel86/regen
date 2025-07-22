@@ -28,21 +28,28 @@ namespace regen {
 			// In this arena mode, only a single buffer is used in staging, and data is copied directly
 			// into this staging buffer (without any mapping).
 			ARENA_WRITE_PER_FRAME_CP_SB,
-			// An arena for reading small data per frame. The arena uses persistent mapping
+			// An arena for reading data per frame. The arena uses persistent mapping
 			// with an adaptive ring buffer.
 			ARENA_READ_PER_FRAME_PM_RNG,
+			// An arena for rare reading of data. It uses temporary mapping with a single buffer
+			// in staging.
+			ARENA_READ_RARE_TM_SB,
 			// An arena for rare updates which are performed via a single buffer in staging which is
 			// temporary mapped with range invalidation.
 			ARENA_WRITE_RARE_TM_SB,
-			// An arena for rare reading of small data. It uses temporary mapping with a single buffer
-			// in staging.
-			ARENA_READ_RARE_TM_SB,
 			// An arena for static data which is only updated very rarely.
 			// This is using implicit staging without multi-buffering.
 			ARENA_WRITE_NEVER_CP_NB,
 			ARENA_TYPE_LAST // keep last
 		};
 		using BlockPtr = BufferBlock *;
+
+		// static constants for cooldown times, in miliseconds
+		static float COOLDOWN_RARE_READ;
+		static float MIN_COOLDOWN_RARE_WRITE;
+		static float MAX_COOLDOWN_RARE_READ;
+		static float MIN_COOLDOWN_NEVER_WRITE;
+		static float MAX_COOLDOWN_NEVER_WRITE;
 
 		~StagingSystem();
 
@@ -86,7 +93,7 @@ namespace regen {
 		 * This method is called each frame to update the data in the staging system.
 		 * It processes all arenas and flushes the data to the GPU as needed.
 		 */
-		void updateData();
+		void updateData(float dt_ms = 0.0f);
 
 		/**
 		 * \brief Clear the staging system.
@@ -124,12 +131,28 @@ namespace regen {
 			uint32_t numRingSegments = 2;
 			// indicates if the arena has new CPU data to flush
 			bool isDirty = false;
+			// for rare updates, we use a cooldown to avoid updating too often.
+			// this is a counter that accumulates the time since the last update, in milliseconds.
+			float cooldownTime = 0.0f;
+			// minimum cooldown time before the arena is updated again.
+			// we initialize this to some reasonable value per arena type,
+			// but also adjust it dynamically based on the actual update frequency.
+			float minCooldown = 0.0f;
+			float cooldownRange[2] = {0.0f, 0.0f}; // [min, max] cooldown range
+			// the average update rate of the arena, in [0.0, 1.0]
+			float updateRate = -1.0f;
 			std::vector<BlockPtr> bufferObjects;
 			ref_ptr<StagingBuffer> stagingBuffer;
 
 			void sort();
 
 			void resize();
+
+			bool cooldown(float dt_ms);
+
+			void resetUpdateHistory();
+
+			void setMinCooldown(float v);
 
 			bool updateRequiredSize();
 		};

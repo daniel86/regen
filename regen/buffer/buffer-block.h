@@ -255,6 +255,12 @@ namespace regen {
 		float getUpdateRate() const;
 
 		/**
+		 * Set status for the current frame, i.e. if the buffer block was updated or not.
+		 * @param isStalled true if the frame was stalled, false otherwise.
+		 */
+		void setUpdatedFrame(bool isStalled);
+
+		/**
 		 * Reset the update history, clearing the array of updated frames.
 		 */
 		void resetUpdateHistory();
@@ -317,11 +323,8 @@ namespace regen {
 		std::optional<BufferingMode> userDefinedBufferingMode_ = std::nullopt;
 
 		struct Shared {
-			Shared()
-				: copyCount_(1),
-				  updateRange_(UPDATE_RATE_RANGE),
-				  f_updateRange_(static_cast<float>(UPDATE_RATE_RANGE)) {
-			}
+			Shared() : copyCount_(1) {}
+
 			~Shared() {
 				delete[] updatedFrames_;
 			}
@@ -340,8 +343,8 @@ namespace regen {
 			// We record last n frames for computing the update rate.
 			bool *updatedFrames_ = nullptr;
 			// Range for update detection
-			uint32_t updateRange_;
-			float f_updateRange_;
+			uint32_t updateRange_ = 60u;
+			float f_updateRange_ = 60.0f;
 			// Count of frames that had a stall
 			uint32_t updateCount_ = 0;
 			// Current index in the stall detection array
@@ -389,8 +392,6 @@ namespace regen {
 		void resetDataStamps();
 
 		void markBufferDirty();
-
-		void setUpdatedFrame(bool isStalled);
 
 		int32_t getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const;
 	};
