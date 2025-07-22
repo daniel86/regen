@@ -21,7 +21,9 @@ namespace regen {
 		 * Default constructor.
 		 * @param name the name of the buffer block in shaders.
 		 */
-		explicit BBoxBuffer(const std::string &name="BoundingBox");
+		explicit BBoxBuffer(
+			const Bounds<Vec3f> &initialBounds,
+			const std::string &name="BoundingBox");
 
 		~BBoxBuffer() override = default;
 

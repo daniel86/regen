@@ -20,9 +20,11 @@ namespace regen {
 	}
 }
 
-BBoxBuffer::BBoxBuffer(const std::string &name) :
+BBoxBuffer::BBoxBuffer(
+		const Bounds<Vec3f> &initialBounds,
+		const std::string &name) :
 	SSBO(name, BufferUpdateFlags::FULL_PER_FRAME),
-	bbox_(Vec3f::zero(), Vec3f::zero())
+	bbox_(initialBounds.min, initialBounds.max)
 {
 	// The parameters of our bounding box buffer or the boundaries encoded as integers.
 	// Integers are used for atomic operations in the compute shader.
@@ -55,7 +57,22 @@ BBoxBuffer::BBoxBuffer(const std::string &name) :
 		clearRef_->allocatedSize(),
 		&zeroBlock);
 
+	// create the draw buffer reference
 	update();
+	// upload the initial bounding box values to avoid having bad values in the buffer
+	// for the first few frames.
+	const BoundingBoxBlock initialValues = {
+		Vec4i(biasedBits(initialBounds.min.x),
+			  biasedBits(initialBounds.min.y),
+			  biasedBits(initialBounds.min.z),
+			  0), // w is unused, so set to 0
+		Vec4i(biasedBits(initialBounds.max.x),
+			  biasedBits(initialBounds.max.y),
+			  biasedBits(initialBounds.max.z),
+			  0) // w is unused, so set to 0
+	};
+	setBufferData(&initialValues);
+	GL_ERROR_LOG();
 }
 
 bool BBoxBuffer::updateBoundingBox() {
@@ -79,15 +96,12 @@ bool BBoxBuffer::updateBoundingBox() {
         bboxMax_.y = biasedToFloat(bbox.max.y);
         bboxMax_.z = biasedToFloat(bbox.max.z);
         auto d =
-        	(bboxMin_ - bbox_.min).length() +
-        	(bboxMax_ - bbox_.max).length();
-		if (d > 0.01f) {
+        	(bboxMin_ - bbox_.min).lengthSquared() +
+        	(bboxMax_ - bbox_.max).lengthSquared();
+		if (d > 0.001f) {
 			hasChanged = true;
 			bbox_.min = bboxMin_;
 			bbox_.max = bboxMax_;
-			//REGEN_INFO("Updated bounding box: "
-			//	<< bbox_.min << " - " << bbox_.max
-			//	<< " delta: " << d);
 		}
 	}
     return hasChanged;
@@ -95,7 +109,10 @@ bool BBoxBuffer::updateBoundingBox() {
 
 void BBoxBuffer::clear() {
 	// clear the draw buffer, staging is just used for reading.
-	setBufferData(clearRef_->bufferID(),
-				  clearRef_->address(),
-				  clearRef_->allocatedSize());
+	glCopyNamedBufferSubData(
+		clearRef_->bufferID(),
+		drawBufferRef_->bufferID(),
+		clearRef_->address(),
+		drawBufferRef_->address(),
+		clearRef_->allocatedSize());
 }

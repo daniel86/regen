@@ -92,6 +92,8 @@ void BoidsGPU::createResource() {
 		gridUBO_->addBlockInput(gridMin_);
 		gridUBO_->addBlockInput(cellSize_);
 		gridUBO_->addBlockInput(gridSize_);
+		// create draw buffer and add to staging system
+		gridUBO_->update();
 	}
 
 	// SSBO for position, one per boid
@@ -121,7 +123,7 @@ void BoidsGPU::createResource() {
 	velBuffer_->setBufferData(initialVelocities.data());
 
 	// bounding box SSBO as we read back bounding box to CPU
-	bboxBuffer_ = ref_ptr<BBoxBuffer>::alloc();
+	bboxBuffer_ = ref_ptr<BBoxBuffer>::alloc(boidBounds_);
 	{
 		bboxPass_ = ref_ptr<ComputePass>::alloc("regen.compute.bbox");
 		bboxPass_->computeState()->setNumWorkUnits(numBoids_, 1, 1);
@@ -139,7 +141,8 @@ void BoidsGPU::createResource() {
 		gridOffsetBuffer_ = ref_ptr<SSBO>::alloc("GridOffsets",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
-		gridOffsetBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("globalHistogram", numCells_ + 1));
+		gridOffsetBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc(
+			"globalHistogram", numCells_ + 1));
 		gridOffsetBuffer_->update();
 	}
 
@@ -150,9 +153,10 @@ void BoidsGPU::createResource() {
 	updateGridState_ = ref_ptr<StateSequence>::alloc();
 	#ifdef BOID_USE_SORTED_DATA
 	{
+		// NOTE: this might be a HUGE buffer. It stores boid
+		// positions and velocities.
 		boidDataBuffer_ = ref_ptr<SSBO>::alloc("BoidDataBuffer",
-			BufferUpdateFlags::FULL_PER_FRAME,
-			SSBO::RESTRICT);
+			BufferUpdateFlags::NEVER, SSBO::RESTRICT);
 		boidDataBuffer_->addBlockInput(ref_ptr<ShaderInputStruct<BoidData>>::alloc("BoidData", "boidData", numBoids_));
 		boidDataBuffer_->update();
 	}
@@ -238,7 +242,6 @@ void BoidsGPU::createResource() {
 	simulationState_->setInput(velBuffer_);
 	simulationState_->setInput(gridOffsetBuffer_);
 	simulationState_->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
-	simulationState_->setInput(bboxBuffer_);
 	if (tf_.get()) {
 		simulationState_->setInput(tfBuffer_);
 	}
@@ -345,6 +348,7 @@ void BoidsGPU::glAnimate(RenderState *rs, GLdouble dt) {
 void BoidsGPU::updateGrid() {
 	auto lastNumCells = numCells_;
 	updateGridSize();
+	numCells_ = std::max(1u, numCells_);
 	gridMin_->setVertex(0, gridBounds_.min);
 	if (lastNumCells != numCells_) {
 		// acquire buffer space of the right size
@@ -352,7 +356,7 @@ void BoidsGPU::updateGrid() {
 		gridOffsetBuffer_->blockInputs().front().in_->set_numArrayElements(static_cast<int>(numCells_ + 1u));
 		gridOffsetBuffer_->update(true);
 		u_numCells_->setVertex(0, numCells_);
-		REGEN_DEBUG("Boid grid size changed to " << numCells_ << " cells.");
+		REGEN_INFO("Boid grid size changed to " << numCells_ << " cells.");
 	}
 }
 

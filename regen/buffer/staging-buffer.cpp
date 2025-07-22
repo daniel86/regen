@@ -429,7 +429,6 @@ bool StagingBuffer::readBuffer(
 				return false; // ERROR: "Failed to map buffer temporary for reading"
 			}
 		}
-		hasReadData_ = true;
 	}
 
 	if (flags_.useExplicitStaging()) {

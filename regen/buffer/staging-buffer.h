@@ -259,7 +259,7 @@ namespace regen {
 		 * It will take 1-3 frames until the data is available.
 		 * @return true if the client data was loaded from storage.
 		 */
-		bool hasReadData() const { return hasReadData_; }
+		bool hasReadData() const { return bufferSegments_[readBufferIndex_].hasData; }
 
 		/**
 		 * @return the current client data, initially all zero.
@@ -295,8 +295,6 @@ namespace regen {
 		const GLbitfield accessFlags_;
 		// the size of each segment in bytes in case of multi-buffering
 		uint32_t segmentSize_ = 0;
-		// true is read data is available
-		bool hasReadData_ = false;
 
 		// if true then each read/write access automatically swaps the buffers.
 		bool useSwappingOnAccess_ = true;
