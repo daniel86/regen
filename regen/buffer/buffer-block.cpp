@@ -431,6 +431,9 @@ uint32_t BufferBlock::updateBlockInputs() {
 			lastChanged = false;
 		}
 	}
+	// remember if we had a dirty segment in this frame for computing the update rate.
+	// this is useful for detecting stalls in the staging system, for adaptive ring buffering.
+	setUpdatedFrame(hasDirtySegments());
 
 	if (hasNewSize) {
 		requiredSize_ = 0;
@@ -624,9 +627,20 @@ void BufferBlock::resetDataStamps() {
 	}
 }
 
+void BufferBlock::queueStagingUpdate() {
+	if (!shared_->isGloballyStaged_) {
+		// reset the local staging buffer, causing it to be reinitialized
+		shared_->stagingBuffer_ = {};
+	}
+	// on resize, create one dirty segment that covers the whole buffer.
+	// also reset the last stamps for all inputs and segments.
+	markBufferDirty();
+	resetDataStamps();
+}
+
 void BufferBlock::updateDrawBuffer() {
 	if (allocatedSize_ == requiredSize_) {
-		// nothing to do, the draw buffer is already up-to-date}
+		// nothing to do, the draw buffer is already up-to-date
 		return;
 	}
 	// enforce rebinding
@@ -670,16 +684,7 @@ void BufferBlock::updateDrawBuffer() {
 	drawBufferRange_->buffer_ = drawBufferRef_->bufferID();
 	drawBufferRange_->size_ = requiredSize_;
 	drawBufferRange_->offset_ = drawBufferRef_->address();
-
-	if (!shared_->isGloballyStaged_) {
-		// reset the local staging buffer, causing it to be reinitialized
-		shared_->stagingBuffer_ = {};
-	}
-
-	// on resize, create one dirty segment that covers the whole buffer.
-	// also reset the last stamps for all inputs and segments.
-	markBufferDirty();
-	resetDataStamps();
+	queueStagingUpdate();
 
 	REGEN_INFO("Created "
 					   << StagingBuffer::getBufferSizeClass(requiredSize_)
@@ -688,6 +693,11 @@ void BufferBlock::updateDrawBuffer() {
 					   << " " << requiredSize_ / 1024.0 << " Kib"
 					   << " BO: " << drawBufferRef_->bufferID()
 					   << " at: " << drawBufferRef_->address());
+}
+
+void BufferBlock::setStagingOffset(uint32_t offset) {
+	shared_->stagingOffset_ = offset;
+	queueStagingUpdate();
 }
 
 void BufferBlock::resetStagingBuffer(bool removeFromStagingSystem) {

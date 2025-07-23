@@ -216,7 +216,7 @@ namespace regen {
 		 * This is needed in case multiple BOs are sharing the same staging buffer.
 		 * @param offset the offset in bytes to set.
 		 */
-		void setStagingOffset(uint32_t offset) { shared_->stagingOffset_ = offset; }
+		void setStagingOffset(uint32_t offset);
 
 		/**
 		 * Reset the staging buffer, removing it from the staging system if requested.
@@ -392,6 +392,8 @@ namespace regen {
 		void resetDataStamps();
 
 		void markBufferDirty();
+
+		void queueStagingUpdate();
 
 		int32_t getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const;
 	};

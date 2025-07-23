@@ -2,6 +2,7 @@
 #define REGEN_STAGING_SYSTEM_H_
 
 #include "buffer-block.h"
+#include "regen/utility/free-list.h"
 
 namespace regen {
 	/**
@@ -19,32 +20,38 @@ namespace regen {
 			// Note: keep per-frame modes first!
 			// An arena for per-frame updates using persistent mapping of a small adaptive ring buffer.
 			// Small meaning that the maximum number of ring segments is capped to some rather small value.
-			ARENA_WRITE_PER_FRAME_PM_SMALL_RNG = 0,
+			WRITE_PER_FRAME_LARGE_DATA = 0,
 			// An arena for per-frame updates using persistent mapping of a large adaptive ring buffer.
 			// Large meaning that the maximum number of ring segments is capped to some rather high value.
-			// Note that for medium and small, we always copy the whole data (no PAR mode).
-			ARENA_WRITE_PER_FRAME_PM_LARGE_RNG,
+			WRITE_PER_FRAME_SMALL_DATA,
 			// An arena for per-frame updates where ring buffer is not feasible, e.g. due to excessive size.
 			// In this arena mode, only a single buffer is used in staging, and data is copied directly
 			// into this staging buffer (without any mapping).
-			ARENA_WRITE_PER_FRAME_CP_SB,
+			WRITE_PER_FRAME_HUGE_DATA,
 			// An arena for reading data per frame. The arena uses persistent mapping
 			// with an adaptive ring buffer.
-			ARENA_READ_PER_FRAME_PM_RNG,
+			READ_PER_FRAME,
 			// An arena for rare reading of data. It uses temporary mapping with a single buffer
-			// in staging.
-			ARENA_READ_RARE_TM_SB,
+			// in staging and polls the main buffer at regular intervals.
+			READ_RARELY,
 			// An arena for rare updates which are performed via a single buffer in staging which is
 			// temporary mapped with range invalidation.
-			ARENA_WRITE_RARE_TM_SB,
+			WRITE_RARELY,
 			// An arena for static data which is only updated very rarely.
-			// This is using implicit staging without multi-buffering.
-			ARENA_WRITE_NEVER_CP_NB,
+			// This is using implicit staging without multi-buffering, the most appropriate
+			// mode of uploading data to the GPU is determined by storage flags of the main buffer.
+			WRITE_ALMOST_NEVER,
 			ARENA_TYPE_LAST // keep last
 		};
 		using BlockPtr = BufferBlock *;
 
-		// static constants for cooldown times, in miliseconds
+		// each staging buffer segment is aligned to this size.
+		// default is page size.
+		static uint32_t STAGING_BUFFER_ALIGNMENT;
+		// the alignment for ranges within the staging buffer.
+		// it won't be possible to reserve any memory range which is not a multiple of this value.
+		static uint32_t STAGING_RANGE_ALIGNMENT;
+		// static constants for cooldown times, in milliseconds
 		static float COOLDOWN_RARE_READ;
 		static float MIN_COOLDOWN_RARE_WRITE;
 		static float MAX_COOLDOWN_RARE_READ;
@@ -119,43 +126,10 @@ namespace regen {
 		StagingSystem();
 
 	protected:
+		// a BO under control of the staging system
+		struct ManagedBO;
 		// a staging arena
-		struct Arena {
-			Arena() = default;
-
-			ArenaType type = ARENA_TYPE_LAST;
-			BufferFlags flags = BufferFlags(COPY_WRITE_BUFFER);
-			// accumulated size of all buffer objects in this arena
-			uint32_t requiredSize = 0;
-			// the current number of segments in the ring buffer
-			uint32_t numRingSegments = 2;
-			// indicates if the arena has new CPU data to flush
-			bool isDirty = false;
-			// for rare updates, we use a cooldown to avoid updating too often.
-			// this is a counter that accumulates the time since the last update, in milliseconds.
-			float cooldownTime = 0.0f;
-			// minimum cooldown time before the arena is updated again.
-			// we initialize this to some reasonable value per arena type,
-			// but also adjust it dynamically based on the actual update frequency.
-			float minCooldown = 0.0f;
-			float cooldownRange[2] = {0.0f, 0.0f}; // [min, max] cooldown range
-			// the average update rate of the arena, in [0.0, 1.0]
-			float updateRate = -1.0f;
-			std::vector<BlockPtr> bufferObjects;
-			ref_ptr<StagingBuffer> stagingBuffer;
-
-			void sort();
-
-			void resize();
-
-			bool cooldown(float dt_ms);
-
-			void resetUpdateHistory();
-
-			void setMinCooldown(float v);
-
-			bool updateRequiredSize();
-		};
+		struct Arena;
 
 		std::array<Arena *, ARENA_TYPE_LAST> arenas_;
 
@@ -169,9 +143,13 @@ namespace regen {
 				const BufferFlags &flags,
 				BufferSizeClass sizeClass);
 
-		static Arena *createArena(ArenaType arenaType, BufferAccessMode accessMode);
-
 		Arena *addToArena(const BlockPtr &block, ArenaType arenaType);
+
+		bool moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate);
+
+		void moveToArena(ManagedBO &managed, ArenaType targetArenaType);
+
+		bool updateArenaSize(Arena *arena);
 	};
 
 	// support streaming operators for ArenaType
