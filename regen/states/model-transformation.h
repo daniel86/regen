@@ -150,9 +150,13 @@ namespace regen {
 	 * from the model matrix and model offset while avoiding a copy.
 	 */
 	struct PositionReader {
+		static ClientBuffer* getClientBuffer(ShaderInput *input) {
+			return input ? &input->clientBuffer() : nullptr;
+		}
+
 		PositionReader(const ModelTransformation *tf, unsigned int vertexIndex)
-				: rawData_mat(getModelMat(tf), ShaderData::READ | ShaderData::INDEX),
-				  rawData_offset(getModelOffset(tf), ShaderData::READ | ShaderData::INDEX),
+				: rawData_mat(getClientBuffer(getModelMat(tf)), ShaderData::READ | ShaderData::INDEX),
+				  rawData_offset(getClientBuffer(getModelOffset(tf)), ShaderData::READ | ShaderData::INDEX),
 				  r(getPositionReference(tf, vertexIndex)) {
 		}
 		PositionReader() :

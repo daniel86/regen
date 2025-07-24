@@ -3,6 +3,8 @@
 #define SHADER_INPUT_DATA_H_
 
 #include <regen/regen.h>
+#include <regen/buffer/client-buffer.h>
+#include <regen/utility/ref-ptr.h>
 
 namespace regen::ShaderData {
 	/**
@@ -17,8 +19,6 @@ namespace regen::ShaderData {
 }
 
 namespace regen {
-	class ShaderInput;
-
 	/**
 	 * A low-level interface for read/write access to client data of shader input.
 	 * The access is thread-safe and will be synchronized with the GL thread.
@@ -29,7 +29,7 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_rw(ShaderInput *input, int mapMode);
+		ShaderDataRaw_rw(ClientBuffer *clientBuffer, int mapMode);
 
 		~ShaderDataRaw_rw();
 
@@ -50,7 +50,7 @@ namespace regen {
 		 */
 		byte *w;
 	private:
-		ShaderInput *input;
+		ClientBuffer *clientBuffer;
 		int r_index;
 		int w_index;
 		const int mapMode;
@@ -68,7 +68,7 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_ro(const ShaderInput *input, int mapMode);
+		ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int mapMode);
 
 		~ShaderDataRaw_ro();
 
@@ -85,7 +85,7 @@ namespace regen {
 		 */
 		const byte *r;
 	private:
-		const ShaderInput *input;
+		const ClientBuffer *clientBuffer;
 		int r_index;
 		const int mapMode;
 
@@ -103,8 +103,8 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderData_rw(ShaderInput *input, int mapMode)
-				: rawData(input, mapMode),
+		ShaderData_rw(ClientBuffer *clientBuffer, int mapMode)
+				: rawData(clientBuffer, mapMode),
 				  r(reinterpret_cast<const T *>(rawData.r)),
 				  w(reinterpret_cast<T *>(rawData.w)) {
 		}
@@ -151,8 +151,8 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderData_ro(const ShaderInput *input, int mapMode)
-				: rawData(input, mapMode),
+		ShaderData_ro(ClientBuffer *clientBuffer, int mapMode)
+				: rawData(clientBuffer, mapMode),
 				  r(reinterpret_cast<const T *>(rawData.r)) {
 		}
 
@@ -187,8 +187,8 @@ namespace regen {
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_rw(ShaderInput *input, int mapMode, unsigned int vertexIndex)
-				: rawData(input, mapMode | ShaderData::INDEX),
+		ShaderVertex_rw(ClientBuffer *clientBuffer, int mapMode, unsigned int vertexIndex)
+				: rawData(clientBuffer, mapMode | ShaderData::INDEX),
 				  r(((const T *) rawData.r)[vertexIndex]),
 				  w(((T *) rawData.w)[vertexIndex]) {
 		}
@@ -228,8 +228,8 @@ namespace regen {
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_ro(const ShaderInput *input, int mapMode, unsigned int vertexIndex)
-				: rawData(input, mapMode | ShaderData::INDEX),
+		ShaderVertex_ro(const ClientBuffer *clientBuffer, int mapMode, unsigned int vertexIndex)
+				: rawData(clientBuffer, mapMode | ShaderData::INDEX),
 				  r(((const T *) rawData.r)[vertexIndex]) {
 		}
 
@@ -250,46 +250,6 @@ namespace regen {
 		const T &r;
 
 		friend class ShaderInput;
-	};
-
-	/**
-	 * A low-level interface for read/write access to client data of shader input.
-	 */
-	struct MappedData {
-		/**
-		 * Default constructor.
-		 * @param r the read data.
-		 * @param r_index the read index.
-		 * @param w the write data.
-		 * @param w_index the write index.
-		 */
-		MappedData(const byte *r, int r_index, byte *w, int w_index)
-				: r(r), w(w), r_index(r_index), w_index(w_index) {}
-
-		/**
-		 * Read-only constructor.
-		 * @param r the read data.
-		 * @param r_index the read index.
-		 */
-		MappedData(const byte *r, int r_index)
-				: r(r), w(nullptr), r_index(r_index), w_index(-1) {}
-
-		/**
-		 * The mapped data for reading.
-		 */
-		const byte *r;
-		/**
-		 * The mapped data for writing.
-		 */
-		byte *w;
-		/**
-		 * The read index.
-		 */
-		int r_index;
-		/**
-		 * The write index.
-		 */
-		int w_index;
 	};
 } // namespace
 

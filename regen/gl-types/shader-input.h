@@ -15,6 +15,7 @@
 #include <regen/math/vector.h>
 #include <condition_variable>
 #include "regen/scene/input-schema.h"
+#include "regen/buffer/client-buffer.h"
 
 namespace regen {
 	// default attribute names
@@ -65,7 +66,7 @@ namespace regen {
 		 * @param copyData copy RAM data if any.
 		 * @return the copy.
 		 */
-		static ref_ptr<ShaderInput> copy(const ref_ptr<ShaderInput> &in, GLboolean copyData = GL_FALSE);
+		static ref_ptr<ShaderInput> copy(const ref_ptr<ShaderInput> &in, bool copyData = false);
 
 		/**
 		 * @param name Name of this attribute used in shader programs.
@@ -115,12 +116,12 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		uint32_t stamp() const;
+		uint32_t stamp() const { return clientBuffer_.stamp(); }
 
 		/**
 		 * Increment the stamp.
 		 */
-		void nextStamp();
+		void nextStamp() { clientBuffer_.nextStamp(); }
 
 		/**
 		 * Specifies the data type of each component in the array.
@@ -341,22 +342,13 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		ShaderDataRaw_rw mapClientDataRaw(int mapMode) { return {this, mapMode}; }
+		ShaderDataRaw_rw mapClientDataRaw(int mapMode) { return {&clientBuffer_, mapMode}; }
 
 		/**
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		ShaderDataRaw_ro mapClientDataRaw(int mapMode) const { return {this, mapMode}; }
-
-		/**
-		 * Map client data for reading/writing.
-		 * @tparam T the data type.
-		 * @param mapMode the map mode.
-		 * @return the mapped data.
-		 */
-		template<typename T>
-		ShaderData_rw<T> mapClientData(int mapMode) { return {this, mapMode}; }
+		ShaderDataRaw_ro mapClientDataRaw(int mapMode) const { return {&clientBuffer_, mapMode}; }
 
 		/**
 		 * Map client data for reading/writing.
@@ -365,7 +357,16 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_ro<T> mapClientData(int mapMode) const { return {this, mapMode}; }
+		ShaderData_rw<T> mapClientData(int mapMode) { return {&clientBuffer_, mapMode}; }
+
+		/**
+		 * Map client data for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @return the mapped data.
+		 */
+		template<typename T>
+		ShaderData_ro<T> mapClientData(int mapMode) const { return {&clientBuffer_, mapMode}; }
 
 		/**
 		 * Map a single vertex for reading/writing.
@@ -376,7 +377,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderVertex_rw<T> mapClientVertex(int mapMode, unsigned int vertexIndex) {
-			return {this, mapMode, vertexIndex};
+			return {&clientBuffer_, mapMode, vertexIndex};
 		}
 
 		/**
@@ -388,7 +389,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderVertex_ro<T> mapClientVertex(int mapMode, unsigned int vertexIndex) const {
-			return {this, mapMode, vertexIndex};
+			return {&clientBuffer_, mapMode, vertexIndex};
 		}
 
 		/**
@@ -430,24 +431,26 @@ namespace regen {
 		 * Returns true if this attribute is allocated in RAM
 		 * or if it was uploaded to GL already.
 		 */
-		GLboolean hasData() const;
+		bool hasData() const { return hasClientData() || hasServerData(); }
 
 		/**
 		 * Returns true if this attribute is allocated in RAM.
 		 */
-		GLboolean hasClientData() const;
+		bool hasClientData() const { return clientBuffer_.hasClientData(); }
 
 		/**
 		 * Obtains the client data without locking.
 		 * Be sure that no other thread is writing to the data at the same time.
 		 * @return the client data.
 		 */
-		byte *clientData() const { return dataSlots_[lastDataSlot()]; }
+		byte *clientData() const { return clientBuffer_.clientData(); }
+
+		ClientBuffer &clientBuffer() { return clientBuffer_; }
 
 		/**
 		 * Returns true if this attribute was uploaded to GL already.
 		 */
-		GLboolean hasServerData() const;
+		bool hasServerData() const { return buffer_ != 0; }
 
 		/**
 		 * Binds vertex attribute for active buffer to the
@@ -522,64 +525,24 @@ namespace regen {
 		bool normalize_;
 		bool isVertexAttribute_;
 		bool transpose_;
+		// TODO remove this, use buffer enums
 		ShaderData::MappingMode gpuUsage_ = ShaderData::READ;
 
-		// Note: marked as mutable because client data mapping must be allowed in const functions
-		//       for reading data, but mapping interacts with locks. Hence, locks must be mutable.
-		mutable std::array<byte *, 2> dataSlots_ = {nullptr, nullptr};
-		// active slot for readers
-		mutable std::atomic<int> lastDataSlot_{0};
-		// per-slot reader/writer count
-		mutable std::atomic<uint32_t> readerCounts_[2] = {0u, 0u};
-		// protects against simultaneous writers
-		mutable std::atomic_flag writerFlags_[2] = {ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT};
-		mutable std::atomic<unsigned int> dataStamp_ = 0;
+		ClientBuffer clientBuffer_;
 
 		bool isConstant_;
 		bool isBufferBlock_;
 		bool isStruct_ = false;
 		bool forceArray_;
 		bool active_;
-		mutable bool requiresReUpload_ = false;
 
 		const InputSchema *schema_ = InputSchema::unknown();
 
 		void (ShaderInput::*enableAttribute_)(GLint loc) const;
 
-		MappedData mapClientData(int mapMode) const;
-
-		void unmapClientData(int mapMode, int slotIndex) const;
-
-		int readLock() const;
-
-		bool readLock_SingleBuffer() const;
-
-		void readUnlock(int slotIndex) const;
-
-		int writeLock() const;
-
-		bool writeLock_SingleBuffer() const;
-
-		void writeUnlock(int slotIndex, bool hasDataChanged) const;
-
-		void writeLockAll() const;
-
-		void writeUnlockAll(bool hasDataChanged) const;
-
-		bool hasTwoSlots() const { return dataSlots_[1] != nullptr; }
-
-		int lastDataSlot() const;
-
-		void allocateSecondSlot() const;
-
-		void reallocateClientData(size_t size);
-
-		bool writeClientData_(const byte *data);
-
 		friend struct ShaderDataRaw_rw;
 		friend struct ShaderDataRaw_ro;
 
-		//void (ShaderInput::*enableUniform_)(GLint loc) const;
 		std::function<void(GLint)> enableInput_;
 
 		ShaderInput(const ShaderInput &);
