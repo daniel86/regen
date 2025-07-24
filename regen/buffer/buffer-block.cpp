@@ -29,7 +29,7 @@ BufferBlock::BufferBlock(
 		  stagingFlags_(target, hints) {
 	shared_ = ref_ptr<Shared>::alloc();
 	shared_->updateRange_ = UPDATE_RATE_RANGE;
-	shared_->f_updateRange_ = static_cast<float>(UPDATE_RATE_RANGE);
+	shared_->f_updateRangeInv_ = 1.0f / static_cast<float>(UPDATE_RATE_RANGE);
 	shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
 	std::fill(
 			shared_->updatedFrames_,
@@ -98,7 +98,7 @@ BufferBlock::BufferBlock(const BufferObject &other)
 		shared_ = ref_ptr<Shared>::alloc();
 		shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
 		shared_->updateRange_ = UPDATE_RATE_RANGE;
-		shared_->f_updateRange_ = static_cast<float>(UPDATE_RATE_RANGE);
+		shared_->f_updateRangeInv_ = 1.0f / static_cast<float>(UPDATE_RATE_RANGE);
 		std::fill(
 				shared_->updatedFrames_,
 				shared_->updatedFrames_ + UPDATE_RATE_RANGE,
@@ -360,22 +360,9 @@ void BufferBlock::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint3
 	dirty_s.endIdx = inputIdx;
 }
 
-float BufferBlock::getUpdateRate() const {
-	if (shared_->hasUpdateRotated_) {
-		return static_cast<float>(shared_->updateCount_) / shared_->f_updateRange_;
-	} else {
-		return -1.0f; // not enough frames to compute the update rate
-	}
-}
-
 void BufferBlock::resetUpdateHistory() {
-	shared_->updateCount_ = 0;
 	shared_->updateIdx_ = 0;
 	shared_->hasUpdateRotated_ = false;
-	std::fill(
-			shared_->updatedFrames_,
-			shared_->updatedFrames_ + shared_->updateRange_,
-			false);
 }
 
 void BufferBlock::setUpdatedFrame(bool isUpdated) {

@@ -787,8 +787,6 @@ bool StagingSystem::Arena::cooldown(float dt_ms) {
 void StagingSystem::Arena::setMinCooldown(float v) {
 	if (minCooldown != v) {
 		minCooldown = v;
-		REGEN_DEBUG("Setting \"" << type << "\" arena cooldown to " << minCooldown << " ms "
-								<< "(update rate: " << updateRate << ")");
 		resetUpdateHistory();
 	}
 }

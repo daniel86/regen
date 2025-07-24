@@ -252,7 +252,13 @@ namespace regen {
 		 * Get the update rate, which is the percentage of frames that had an update.
 		 * @return the update rate as a float, where 0.0 means no updates and 1.0 means all frames had updates.
 		 */
-		float getUpdateRate() const;
+		inline float getUpdateRate() const {
+			if (shared_->hasUpdateRotated_) {
+				return static_cast<float>(shared_->updateCount_) * shared_->f_updateRangeInv_;
+			} else {
+				return -1.0f; // not enough frames to compute the update rate
+			}
+		}
 
 		/**
 		 * Set status for the current frame, i.e. if the buffer block was updated or not.
@@ -344,7 +350,7 @@ namespace regen {
 			bool *updatedFrames_ = nullptr;
 			// Range for update detection
 			uint32_t updateRange_ = 60u;
-			float f_updateRange_ = 60.0f;
+			float f_updateRangeInv_ = 1.0f / 60.0f;
 			// Count of frames that had a stall
 			uint32_t updateCount_ = 0;
 			// Current index in the stall detection array
