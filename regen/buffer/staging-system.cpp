@@ -622,7 +622,9 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 							   [](const ManagedBO &managed) { return !managed.bo; }),
 				arena->bufferObjects.end());
 	}
-	arena->updateRate /= static_cast<float>(arena->bufferObjects.size());
+	if (!arena->bufferObjects.empty()) {
+		arena->updateRate /= static_cast<float>(arena->bufferObjects.size());
+	}
 
 	if (newUnalignedSize != arena->unalignedSize || forceResize) {
 		// Finally compute the new size of the arena, align this to page size, and
@@ -749,16 +751,13 @@ bool StagingSystem::Arena::cooldown(float dt_ms) {
 		cooldownTime += dt_ms;
 		// skip this arena if it is not time to update it yet
 		if (cooldownTime < minCooldown) { return true; }
-		// reset cooldown
-		cooldownTime = 0.0f;
-		// TODO: use better function for cooldown rate adjustment.
-		if (updateRate > 0.75f) {
-			// the update rate is high, so we should reduce the cooldown time
-			setMinCooldown(std::max(minCooldown * 0.75f, cooldownRange[0]));
-		} else if (updateRate < 0.25f && updateRate > -0.5f) {
-			// the update rate is low, so we can increase the cooldown time
-			setMinCooldown(std::min(minCooldown * 1.25f, cooldownRange[1]));
-		}
+
+		// mapping from update rate to cooldown time,
+		// smooth with current value based on time
+		const float targetCooldown = cooldownRange[0] +
+			(1.0f - updateRate) * (cooldownRange[1] - cooldownRange[0]);
+		const float alpha = 1.0f - expf(-dt_ms / 200.0f);
+		setMinCooldown(alpha*targetCooldown + (1.0f-alpha)*minCooldown);
 	} else if (type == READ_RARELY) {
 		// note: cooldown is not adaptive for reading.
 		cooldownTime += dt_ms;
@@ -775,7 +774,7 @@ bool StagingSystem::Arena::cooldown(float dt_ms) {
 void StagingSystem::Arena::setMinCooldown(float v) {
 	if (minCooldown != v) {
 		minCooldown = v;
-		REGEN_INFO("Setting \"" << type << "\" arena cooldown to " << minCooldown << " ms "
+		REGEN_DEBUG("Setting \"" << type << "\" arena cooldown to " << minCooldown << " ms "
 								<< "(update rate: " << updateRate << ")");
 		resetUpdateHistory();
 	}
