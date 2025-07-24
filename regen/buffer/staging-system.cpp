@@ -1,7 +1,8 @@
 #include "staging-system.h"
+#include "regen/gl-types/queries/elapsed-time.h"
 #include <regen/gl-types/gl-param.h>
 
-//#define REGEN_BUFFER_BLOCK_DEBUG
+//#define REGEN_STAGING_SYSTEM_DEBUG_TIME
 //#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
 //#define REGEN_STAGING_EXPLICIT_FLUSH
 
@@ -436,7 +437,10 @@ void StagingSystem::updateBuffers() {
 }
 
 void StagingSystem::updateData(float dt_ms) {
-	//REGEN_INFO("UPDATING STAGING");
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+	static ElapsedTimeDebugger elapsedTime("Staging System Update", 300);
+	elapsedTime.beginFrame();
+#endif
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		// skip inactive arenas: those that are not initialized, and those that are cooling down.
@@ -449,6 +453,9 @@ void StagingSystem::updateData(float dt_ms) {
 			arena->resize();
 			arena->sort();
 		}
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+		elapsedTime.push(REGEN_STRING(arena->type << " resized"));
+#endif
 		if (!arena->flags.isReadable() && !arena->isDirty) {
 			// early exit writing arenas before fencing in case of no updates.
 			continue;
@@ -484,6 +491,9 @@ void StagingSystem::updateData(float dt_ms) {
 		if (useFence) {
 			arena->stagingBuffer->fence(drawIdx).setFencePoint();
 		}
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+		elapsedTime.push(REGEN_STRING(arena->type << " copied"));
+#endif
 
 		// Advance to next segment in case of multi-buffering and ring buffers.
 		arena->stagingBuffer->swapBuffers();
@@ -498,6 +508,9 @@ void StagingSystem::updateData(float dt_ms) {
 			<< arena->freeList->getFragmentationScore());
 #endif
 	}
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+	elapsedTime.endFrame();
+#endif
 }
 
 bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate) {

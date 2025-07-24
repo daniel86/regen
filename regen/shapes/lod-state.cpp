@@ -5,7 +5,7 @@
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
 #include "regen/gl-types/draw-command.h"
-#include "regen/gl-types/queries/time-elapsed-query.h"
+#include "regen/gl-types/queries/elapsed-time.h"
 
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256
