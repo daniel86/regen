@@ -25,7 +25,9 @@ void ElapsedTimeDebugger::pushTime(std::string_view name) {
 		gpuTimes_.resize(pushIdx_ + 1);
 		cpuTimes_.resize(pushIdx_ + 1);
 		pushNames_.resize(pushIdx_ + 1);
+		pushCounts_.resize(pushIdx_ + 1);
 		pushNames_[pushIdx_] = name;
+		pushCounts_[pushIdx_] = 0u;
 		cpuTimes_[pushIdx_] = 0.0f;
 		gpuTimes_[pushIdx_] = 0.0f;
 	}
@@ -33,6 +35,7 @@ void ElapsedTimeDebugger::pushTime(std::string_view name) {
 	auto t2 = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> ms = t2 - cpuLastTime_;
 	cpuTimes_[pushIdx_] += ms.count();
+	pushCounts_[pushIdx_] += 1u;
 	cpuLastTime_ = t2;
 	pushIdx_ += 1u;
 }
@@ -47,6 +50,7 @@ void ElapsedTimeDebugger::beginFrame() {
 			for (uint32_t i = 0; i < cpuTimes_.size(); ++i) {
 				cpuTimes_[i] = 0.0f;
 				gpuTimes_[i] = 0.0f;
+				pushCounts_[i] = 0u;
 			}
 		}
 		pushIdx_ = 0u;
@@ -64,18 +68,18 @@ void ElapsedTimeDebugger::printResults() {
 	float gpuSum = 0.0f;
 	for (uint32_t i = 0; i < pushIdx_; ++i) {
 		// compute the average elapsed time
-		cpuTimes_[i] = cpuTimes_[i] / static_cast<float>(numFrames_);
-		gpuTimes_[i] = gpuTimes_[i] / static_cast<float>(numFrames_);
+		cpuTimes_[i] = cpuTimes_[i] / static_cast<float>(pushCounts_[i]);
+		gpuTimes_[i] = gpuTimes_[i] / static_cast<float>(pushCounts_[i]);
 		gpuSum += gpuTimes_[i];
 		cpuSum += cpuTimes_[i];
 	}
 
 	REGEN_INFO("Elapsed time in " << sessionName_ << ": "
-		<< std::fixed << std::setprecision(4)
+		<< std::fixed << std::setprecision(5)
 		<< cpuSum << " ms (CPU), "
 		<< gpuSum << " ms (GPU)");
 	for (uint32_t i = 0; i < pushIdx_; ++i) {
-		REGEN_INFO("\t" << std::fixed << std::setprecision(4)
+		REGEN_INFO("\t" << std::fixed << std::setprecision(5)
 				<< cpuTimes_[i] << " ms (CPU) + "
 				<< gpuTimes_[i] << " ms (GPU) "
 				<< " in " << pushNames_[i]);

@@ -43,6 +43,8 @@ namespace regen {
 		std::vector<float> gpuTimes_;
 		// Names of the key points
 		std::vector<std::string> pushNames_;
+		// Number of times each key point was pushed
+		std::vector<uint32_t> pushCounts_;
 		uint32_t pushIdx_ = 0;
 		uint32_t frameIdx_ = 0;
 
