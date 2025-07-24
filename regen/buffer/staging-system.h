@@ -48,6 +48,8 @@ namespace regen {
 		// each staging buffer segment is aligned to this size.
 		// default is page size.
 		static uint32_t STAGING_BUFFER_ALIGNMENT;
+		// extra space for staging buffer.
+		static float STAGING_BUFFER_SLACK;
 		// the alignment for ranges within the staging buffer.
 		// it won't be possible to reserve any memory range which is not a multiple of this value.
 		static uint32_t STAGING_RANGE_ALIGNMENT;
@@ -143,7 +145,7 @@ namespace regen {
 				const BufferFlags &flags,
 				BufferSizeClass sizeClass);
 
-		Arena *addToArena(const BlockPtr &block, ArenaType arenaType);
+		Arena *addToArena(const BlockPtr &block, ArenaType arenaType, bool isMoved=false);
 
 		bool moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate);
 

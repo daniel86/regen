@@ -14,6 +14,8 @@ using namespace regen;
 
 // 4KB (page size) default alignment for staging buffers.
 uint32_t StagingSystem::STAGING_BUFFER_ALIGNMENT = 4096u;
+// Extra space adopted by the staging buffer to have some free room for dynamic changes.
+float StagingSystem::STAGING_BUFFER_SLACK = 0.25;
 // 256 bytes default alignment for ranges within the staging buffer
 // these are mostly used in glBindBufferRange() calls.
 // This is also the minimum value of fragments in the FreeList, best to
@@ -219,6 +221,13 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, BufferAc
 	// the maximum number of segments in the ring buffer
 	uint32_t maxRingSegments = 16;
 
+	// FIXME: Special attention is needed for synchronization of different per-frame buffers when they
+	//        have different number of buffer segments!
+	//        - the easiest way would be to use same number of segments for all per-frame buffers.
+	//        - in some cases it could be useful to skip frames of buffers with less segments,
+	//          but then we would get into synchronization issues.
+	//        - but often it might not matter, i.e. in case there are no data dependencies.
+	//          probably this should be modeled and taken into account here!
 	switch (arenaType) {
 		case WRITE_PER_FRAME_SMALL_DATA:
 			// PER-FRAME updated SMALL to MEDIUM Staging + LARGE
@@ -248,13 +257,6 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, BufferAc
 #endif
 			arena->flags.bufferingMode = RING_BUFFER;
 			arena->numRingSegments = 2;
-			// FIXME: Special attention is needed for synchronization of different per-frame buffers when they
-			//        have different number of buffer segments!
-			//        - the easiest way would be to use same number of segments for all per-frame buffers.
-			//        - in some cases it could be useful to skip frames of buffers with less segments,
-			//          but then we would get into synchronization issues.
-			//        - but often it might not matter, i.e. in case there are no data dependencies.
-			//          probably this should be modeled and taken into account here!
 			maxRingSegments = 4;
 			break;
 		case WRITE_PER_FRAME_HUGE_DATA:
@@ -330,7 +332,7 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, BufferAc
 	return arena;
 }
 
-StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType arenaType) {
+StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType arenaType, bool isMoved) {
 	if (!arenas_[arenaType]) {
 		arenas_[arenaType] = Arena::create(arenaType, block->stagingFlags().accessMode);
 	}
@@ -341,13 +343,18 @@ StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType
 	managed.isStaged = false; // not staged yet
 	// disable swapping for the staging buffer, we do it manually in the staging system
 	targetArena->stagingBuffer->setSwappingOnAccess(false);
-	REGEN_INFO("Added buffer block \"" << block->getBlockName()
-									   << "\" to \"" << targetArena->type << "\" arena.");
+	if (isMoved) {
+		REGEN_INFO("Moved \"" << block->getBlockName()
+			<< "\" to \"" << targetArena->type << "\" arena.");
+	} else {
+		REGEN_INFO("Added \"" << block->getBlockName()
+			<< "\" to \"" << targetArena->type << "\" arena.");
+	}
 	return targetArena;
 }
 
 void StagingSystem::moveToArena(ManagedBO &managed, ArenaType targetArenaType) {
-	addToArena(managed.bo, targetArenaType);
+	addToArena(managed.bo, targetArenaType, true);
 	// mark the BO as deleted in old arena
 	managed.bo = nullptr;
 	managed.isStaged = false;
@@ -412,7 +419,7 @@ void StagingSystem::updateBuffers() {
 				if (status) {
 					Arena::setStagingOffset(managed, offset, boAlignedSize);
 				} else {
-					REGEN_WARN("Failed to reserve staging offset for buffer object '"
+					REGEN_WARN("Failed to reserve staging space for buffer object '"
 									   << managed.bo->getBlockName() << "' in \"" << arena->type << "\" arena"
 									   << ". The arena will be disabled.");
 					delete arena; // delete the arena
@@ -498,14 +505,12 @@ bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdat
 
 	if (arena->type < READ_PER_FRAME) { // this is a per-frame writing arena
 		if (managed.maxUpdateRate < 0.25f) {
-			// If the BO was max. updated less than 25% of the frames, we move it to the rare update arena.
+			// If the BO was max updated less than 25% of the frames, we move it to the rare update arena.
 			// NOTE: we rather compare here with the max update rate. The reason being that there can be controller
 			// that don't move an object for multiple seconds which might drain update rate to zero.
 			// However, then the object may start moving again, but if it ended up on a stage with cooldown
 			// it might take a long time until it is moved to PER-FRAME stage again (especially because
-			// it takes 60 samples after moving until the BO computes an update rate again).
-			REGEN_INFO("Move BO '" << managed.bo->getBlockName()
-						<< "' to rare update arena due to low max update rate: " << managed.maxUpdateRate);
+			// it takes n samples after moving until the BO computes an update rate again).
 			moveToArena(managed, WRITE_RARELY);
 			return true;
 		}
@@ -521,23 +526,16 @@ bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdat
 										   WRITE_PER_FRAME_LARGE_DATA : (sizeClass == BUFFER_SIZE_VERY_LARGE ?
 																		 WRITE_PER_FRAME_HUGE_DATA :
 																		 WRITE_PER_FRAME_SMALL_DATA));
-			REGEN_INFO("Move BO '" << managed.bo->getBlockName()
-								   << "' to per-frame arena due to high update rate: " << boUpdateRate
-								   << " -> " << targetArena);
 			moveToArena(managed, targetArena);
 			return true;
-		} else if (boUpdateRate < 0.15f) {
-			// if the BO is updated less than 5% of the time, we can demote it to the never updated arena.
-			REGEN_INFO("Move BO '" << managed.bo->getBlockName()
-								   << "' to never updated arena due to low update rate: " << boUpdateRate);
+		} else if (boUpdateRate < 0.1f) {
+			// if the BO is updated less than 10% of the time, we can demote it to the never updated arena.
 			moveToArena(managed, WRITE_ALMOST_NEVER);
 			return true;
 		}
 	} else if (arena->type == WRITE_ALMOST_NEVER) {
-		if (boUpdateRate > 0.65f) {
+		if (boUpdateRate > 0.75f) {
 			// if the BO is updated more than 5% of the time, we can promote it to the rare update arena.
-			REGEN_INFO("Move BO '" << managed.bo->getBlockName()
-								   << "' to rare update arena due to high update rate: " << boUpdateRate);
 			moveToArena(managed, WRITE_RARELY);
 			return true;
 		}
@@ -607,12 +605,12 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 				// force resize of the arena, as BO could not reserve memory in the staging arena.
 				forceResize = true;
 				REGEN_INFO("BO '" << managed.bo->getBlockName()
-								  << "' resize causes arena-resize in \"" << arena->type << "\" arena");
+									  << "' is too large in \"" << arena->type << "\" arena");
 			} else {
 				// successfully reserved new space, update the unaligned size
 				arena->unalignedSize += boAlignedSize;
-				REGEN_INFO("Moved BO '" << managed.bo->getBlockName()
-										<< "' within \"" << arena->type << "\" arena");
+				REGEN_INFO("Moved '" << managed.bo->getBlockName()
+										<< "' within \"" << arena->type << "\" arena!");
 			}
 		}
 	}
@@ -633,9 +631,8 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 		arena->unalignedSize = newUnalignedSize;
 		// Only align up if we do explicit staging
 		if (arena->flags.useExplicitStaging()) {
-			// TODO: be smarter about the size... remove hardcoded 1.25 factor
 			arena->alignedSize = alignUp(
-					static_cast<uint32_t>(static_cast<float>(arena->unalignedSize) * 1.25),
+					static_cast<uint32_t>(static_cast<float>(arena->unalignedSize) * (1.0 + STAGING_BUFFER_SLACK)),
 					STAGING_BUFFER_ALIGNMENT);
 		} else {
 			// for implicit staging, we do not align up, but just use the unaligned size.
