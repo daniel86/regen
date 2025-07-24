@@ -41,6 +41,8 @@ namespace regen {
 		uint32_t stagedOffset = 0u;
 		// the size reserved in the staging buffer for this BO
 		uint32_t stagedSize = 0u;
+		// Records my value of update rate for adaptive moving.
+		float maxUpdateRate = 0.0f;
 
 		// define equality operator for ManagedBO
 		bool operator==(const ManagedBO &other) const { return bo == other.bo; }
@@ -349,6 +351,7 @@ void StagingSystem::moveToArena(ManagedBO &managed, ArenaType targetArenaType) {
 	// mark the BO as deleted in old arena
 	managed.bo = nullptr;
 	managed.isStaged = false;
+	managed.maxUpdateRate = -1.0f;
 }
 
 void StagingSystem::updateBuffers() {
@@ -436,10 +439,6 @@ void StagingSystem::updateData(float dt_ms) {
 		// NOTE: the arena will also indicate size change in case of adaptive size change in ring buffers,
 		//       or the arena is not large enough to hold all BOs.
 		if (updateArenaSize(arena)) {
-			// FIXME: I think resize might cause black screen for a few frames with ring buffers.
-			//        it should be ensured draw buffer is fine when leaving the staging update.
-			//   - maybe keep track of segment status and delay copies into main buffer for a few frames?
-			//   - or find a good way to copy the data here right away?
 			arena->resize();
 			arena->sort();
 		}
@@ -495,25 +494,21 @@ void StagingSystem::updateData(float dt_ms) {
 }
 
 bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate) {
+	managed.maxUpdateRate = std::max(boUpdateRate, managed.maxUpdateRate);
+
 	if (arena->type < READ_PER_FRAME) { // this is a per-frame writing arena
-		// FIXME: This might not really be sufficient. It could be an object stops moving
-		//       and the controller stops advancing the stamps, then update rate drops, and we move to rare.
-		//       but rare arena is maybe executed every second, so once the object starts moving again,
-		//       there will be some massive delay as it will take long time for the object to collect enough
-		//       samples for update rate computation. It will cause cooldown to be reduced though, but
-		//       could still be quite a few seconds!
-		//       I think in such a case it would need to be moved into per-frame immediately again,
-		//       so we need some kind of pause detector that reacts very quickly and which is not too much delayed
-		//       by the cooldown time.
-		/**
-		if (boUpdateRate < 0.25f) {
-			// if the BO is updated less than 25% of the frames, we can move it to the rare update arena.
+		if (managed.maxUpdateRate < 0.25f) {
+			// If the BO was max. updated less than 25% of the frames, we move it to the rare update arena.
+			// NOTE: we rather compare here with the max update rate. The reason being that there can be controller
+			// that don't move an object for multiple seconds which might drain update rate to zero.
+			// However, then the object may start moving again, but if it ended up on a stage with cooldown
+			// it might take a long time until it is moved to PER-FRAME stage again (especially because
+			// it takes 60 samples after moving until the BO computes an update rate again).
 			REGEN_INFO("Move BO '" << managed.bo->getBlockName()
-						<< "' to rare update arena due to low update rate: " << boUpdateRate);
-			moveToArena(managed, ARENA_WRITE_RARE_TM_SB);
+						<< "' to rare update arena due to low max update rate: " << managed.maxUpdateRate);
+			moveToArena(managed, WRITE_RARELY);
 			return true;
 		}
-		**/
 	} else if (arena->type == WRITE_RARELY) {
 		// NOTE: cooldown rate influences the update rate! That makes it a bit more difficult to
 		//       make this stable. So if 95%, it does not mean 95% of all frames, but rather 95% of the

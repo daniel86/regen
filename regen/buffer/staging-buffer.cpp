@@ -73,7 +73,6 @@ bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments)
 			return true; // no need to resize, just keep the existing segments
 		}
 	}
-	// TODO: Consider allocating slightly larger segments, and then avoid re-allocation for minor size changes.
 	segmentSize_ = segmentSize;
 
 	// allocate data array for reading
@@ -280,7 +279,10 @@ void StagingBuffer::endMappedWrite(
 		const ref_ptr<BufferReference> &drawBufferRef,
 		BufferRange &nextDrawBufferRange,
 		uint32_t localOffset) {
+	RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
 	RingSegment &readSegment = bufferSegments_[readBufferIndex_];
+	writeSegment.hasData = true;
+
 	const ref_ptr<BufferReference> &targetRef = (stagingRef_.get() ? stagingRef_ : drawBufferRef);
 
 	if ((storageFlags_ & MAP_PERSISTENT) == 0) {
@@ -312,17 +314,22 @@ void StagingBuffer::endMappedWrite(
 			readSegment.numDirtySegments = 0; // reset the dirty segments
 		}
 #endif
-		// copy data from staging buffer to the draw buffer
-		glCopyNamedBufferSubData(
-				targetRef->bufferID(),
-				drawBufferRef->bufferID(),
-				targetRef->address() + readSegment.offset + localOffset,
-				drawBufferRef->address(),
-				drawBufferRef->allocatedSize());
-		if (storageFlags_ & MAP_PERSISTENT && flags_.useSyncFences()) {
-			// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
-			// written data of this frame has been consumed by the GPU.
-			readSegment.fence.setFencePoint();
+		// NOTE: We delay copy to draw buffer until we reach a read segment that has been written to.
+		//   This causes some frames of delay until the upload starts. The draw buffer best has some
+		//   meaningful initial value that can be drawn first few frames!
+		if (readSegment.hasData) {
+			// copy data from staging buffer to the draw buffer
+			glCopyNamedBufferSubData(
+					targetRef->bufferID(),
+					drawBufferRef->bufferID(),
+					targetRef->address() + readSegment.offset + localOffset,
+					drawBufferRef->address(),
+					drawBufferRef->allocatedSize());
+			if (storageFlags_ & MAP_PERSISTENT && flags_.useSyncFences()) {
+				// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
+				// written data of this frame has been consumed by the GPU.
+				readSegment.fence.setFencePoint();
+			}
 		}
 		nextDrawBufferRange.offset_ = drawBufferRef->address();
 		nextDrawBufferRange.segment_ = 0;
@@ -349,15 +356,18 @@ void StagingBuffer::endNonMappedWrite(
 	// we just set the next draw buffer to the current segment.
 	RingSegment &writeSegment = bufferSegments_[writeBufferIndex_];
 	RingSegment &readSegment = bufferSegments_[readBufferIndex_];
+	writeSegment.hasData = true;
 
 	if (flags_.useExplicitStaging()) {
 		// copy data from staging buffer to the GPU buffer
-		glCopyNamedBufferSubData(
-				stagingRef_->bufferID(),
-				drawBufferRef->bufferID(),
-				stagingRef_->address() + readSegment.offset + localOffset,
-				drawBufferRef->address(),
-				drawBufferRef->allocatedSize());
+		if (readSegment.hasData) {
+			glCopyNamedBufferSubData(
+					stagingRef_->bufferID(),
+					drawBufferRef->bufferID(),
+					stagingRef_->address() + readSegment.offset + localOffset,
+					drawBufferRef->address(),
+					drawBufferRef->allocatedSize());
+		}
 		nextDrawBufferRange.offset_ = drawBufferRef->address();
 		nextDrawBufferRange.segment_ = 0;
 	} else {

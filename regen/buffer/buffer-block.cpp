@@ -656,6 +656,10 @@ void BufferBlock::updateDrawBuffer() {
 
 	if (flags_.useExplicitStaging()) {
 		drawBufferRef_ = adoptBufferRange(requiredSize_);
+		// TODO: in case of explicit staging with multi buffering it might be best
+		//    to copy initial data to the draw buffer right away to avoid some frames delay
+		//    until the data is copied.
+		//    - will be trivial once we have contiguous client buffer here!
 	} else {
 		// note: in case of implicit staging with multi-buffering, we need to allocate space for each segment.
 		if (flags_.bufferingMode == RING_BUFFER) {
