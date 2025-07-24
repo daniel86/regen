@@ -264,7 +264,7 @@ namespace regen {
 		 * Set status for the current frame, i.e. if the buffer block was updated or not.
 		 * @param isStalled true if the frame was stalled, false otherwise.
 		 */
-		void setUpdatedFrame(bool isStalled);
+		inline void setUpdatedFrame(bool isUpdated) { shared_->setUpdatedFrame(isUpdated); }
 
 		/**
 		 * Reset the update history, clearing the array of updated frames.
@@ -357,6 +357,8 @@ namespace regen {
 			uint32_t updateIdx_ = 0;
 			// Indicates if the update history has rotated, i.e. we have wrapped around the update index.
 			bool hasUpdateRotated_ = false;
+
+			void setUpdatedFrame(bool isUpdated);
 		};
 
 		ref_ptr<Shared> shared_;

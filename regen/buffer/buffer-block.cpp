@@ -365,21 +365,14 @@ void BufferBlock::resetUpdateHistory() {
 	shared_->hasUpdateRotated_ = false;
 }
 
-void BufferBlock::setUpdatedFrame(bool isUpdated) {
-	bool wasUpdated = shared_->updatedFrames_[shared_->updateIdx_];
-	if (wasUpdated) {
-		if (!isUpdated) {
-			shared_->updateCount_--;
-		}
-	} else if (isUpdated) {
-		shared_->updateCount_++;
-	}
-
-	shared_->updatedFrames_[shared_->updateIdx_++] = isUpdated;
-	if (shared_->updateIdx_ >= shared_->updateRange_) {
-		shared_->updateIdx_ = 0; // wrap around the index
-		shared_->hasUpdateRotated_ = true; // we have rotated the update history
-	}
+void BufferBlock::Shared::setUpdatedFrame(bool isUpdated) {
+	bool &wasUpdated = updatedFrames_[updateIdx_++];
+	// count the number of frames that had an update over the last n frames.
+	updateCount_ += (wasUpdated != isUpdated) * (isUpdated*2 - 1);
+	wasUpdated = isUpdated;
+	// wrap around the index
+	updateIdx_ *= (updateIdx_ < updateRange_);
+	hasUpdateRotated_ = hasUpdateRotated_ || (updateIdx_ >= updateRange_);
 }
 
 uint32_t &BufferBlock::lastInputStamp(BlockInput &blockInput) {
