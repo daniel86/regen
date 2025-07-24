@@ -18,6 +18,8 @@ namespace regen {
 		 */
 		bool hasClientData() const { return dataSlots_[0] != nullptr; }
 
+		bool hasTwoSlots() const { return dataSlots_[1] != nullptr; }
+
 		/**
 		 * Obtains the client data without locking.
 		 * Be sure that no other thread is writing to the data at the same time.
@@ -35,32 +37,35 @@ namespace regen {
 		 */
 		void nextStamp();
 
-		/**
-		 * Deallocates data pointer owned by this instance.
-		 */
-		void deallocateClientData();
-
 		MappedData mapClientData(int mapMode) const;
 
 		void unmapClientData(int mapMode, int slotIndex) const;
 
-		void reallocateClientData(
+		void resizeClientBuffer(
 				size_t bufferSize,
 				size_t itemSize,
 				const byte *initialData = nullptr);
 
-		bool writeClientData_(const byte *data);
-
-		bool hasTwoSlots() const { return dataSlots_[1] != nullptr; }
+		bool writeClientData(const byte *newData);
 
 		void writeLockAll() const;
 
 		void writeUnlockAll(bool hasDataChanged) const;
 
+		/**
+		 * Deallocates data pointer owned by this instance.
+		 * This is e.g. used if vertex data is static and only initially uploaded to the GPU.
+		 */
+		// TODO: reconsider
+		void deallocateClientData();
+
+		// TODO: remove
 		bool requiresReUpload() const { return requiresReUpload_; }
 
+		// TODO: remove
 		void setRequiresReUpload(bool v) const { requiresReUpload_ = v; }
 
+		// TODO: remove
 		void setHasServerData(bool v) { hasServerData_ = v; }
 
 	protected:
@@ -81,6 +86,9 @@ namespace regen {
 		// TODO remove these
 		mutable bool requiresReUpload_ = false;
 		bool hasServerData_ = false;
+
+		//ClientBuffer* parentBuffer_ = nullptr;
+		//ClientBuffer& dataOwner();
 
 		int readLock() const;
 

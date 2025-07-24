@@ -32,6 +32,10 @@ inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
     }
 }
 
+//ClientBuffer& ClientBuffer::dataOwner() {
+//	return *dataOwner_;
+//}
+
 unsigned int ClientBuffer::stamp() const {
 	return dataStamp_.load(std::memory_order_relaxed);
 }
@@ -176,7 +180,7 @@ void ClientBuffer::allocateSecondSlot() const {
 	dataSlots_[1] = data_w;
 }
 
-bool ClientBuffer::writeClientData_(const byte *data) {
+bool ClientBuffer::writeClientData(const byte *data) {
 	if (data) {
 		// NOTE: writeLockAll locks slot 0 last, so we know it will be the active slot when we unlock.
 		std::memcpy(dataSlots_[0], data, inputSize_);
@@ -292,7 +296,7 @@ void ClientBuffer::deallocateClientData() {
 	}
 }
 
-void ClientBuffer::reallocateClientData(
+void ClientBuffer::resizeClientBuffer(
 				size_t bufferSize,
 				size_t itemSize,
 				const byte *initialData) {

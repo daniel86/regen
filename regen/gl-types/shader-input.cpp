@@ -87,7 +87,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 	// copy client data, if any
 	if (o.hasClientData()) {
 		auto mapped = o.clientBuffer_.mapClientData(ShaderData::READ);
-		clientBuffer_.reallocateClientData(inputSize_, elementSize_, mapped.r);
+		clientBuffer_.resizeClientBuffer(inputSize_, elementSize_, mapped.r);
 	}
 }
 
@@ -177,7 +177,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 	if (dataSize_bytes != inputSize_ || isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_.writeLockAll();
-		clientBuffer_.reallocateClientData(dataSize_bytes, elementSize_);
+		clientBuffer_.resizeClientBuffer(dataSize_bytes, elementSize_);
 		isVertexAttribute_ = false;
 		numInstances_ = std::max(1u, numInstances);
 		divisor_ = std::max(1u, divisor);
@@ -185,7 +185,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		numElements_ui_ = numArrayElements_ * numInstances_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		inputSize_ = dataSize_bytes;
-		clientBuffer_.writeUnlockAll(clientBuffer_.writeClientData_(data));
+		clientBuffer_.writeUnlockAll(clientBuffer_.writeClientData(data));
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -198,7 +198,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 	if (dataSize_bytes != inputSize_ || !isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_.writeLockAll();
-		clientBuffer_.reallocateClientData(dataSize_bytes, elementSize_);
+		clientBuffer_.resizeClientBuffer(dataSize_bytes, elementSize_);
 		isVertexAttribute_ = true;
 		numInstances_ = 1u;
 		divisor_ = 0u;
@@ -206,7 +206,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		numElements_ui_ = numArrayElements_ * numVertices_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		inputSize_ = dataSize_bytes;
-		clientBuffer_.writeUnlockAll(clientBuffer_.writeClientData_(data));
+		clientBuffer_.writeUnlockAll(clientBuffer_.writeClientData(data));
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -376,9 +376,9 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 		// allocate memory for one slot, copy most recent data
 		if (copyData) {
 			auto mapped = in->clientBuffer_.mapClientData(ShaderData::READ);
-			cp->clientBuffer_.reallocateClientData(in->inputSize_, in->elementSize_, mapped.r);
+			cp->clientBuffer_.resizeClientBuffer(in->inputSize_, in->elementSize_, mapped.r);
 		} else {
-			cp->clientBuffer_.reallocateClientData(in->inputSize_, in->elementSize_);
+			cp->clientBuffer_.resizeClientBuffer(in->inputSize_, in->elementSize_);
 		}
 	}
 	return cp;
