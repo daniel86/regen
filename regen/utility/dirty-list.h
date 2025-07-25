@@ -55,6 +55,13 @@ namespace regen {
 		DirtyList();
 
 		/**
+		 * \brief Get a dirty range by index.
+		 * @param idx The index of the dirty range.
+		 * @return Reference to the dirty range at the specified index.
+		 */
+		inline Range& operator[](uint32_t idx) { return ranges_[idx]; }
+
+		/**
 		 * \brief Get the list of dirty ranges.
 		 * @return Pointer to the array of dirty ranges.
 		 */
