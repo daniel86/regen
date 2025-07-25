@@ -343,6 +343,8 @@ void BufferBlock::removeBlockInput(std::string_view name) {
 			}
 			// remove the block input
 			blockInputs_.erase(it);
+			// TODO
+			//xxx_rm_client_data(input, name);
 			return;
 		}
 	}
@@ -452,17 +454,8 @@ uint32_t BufferBlock::updateBlockInputs() {
 			// note we need to compute the "aligned" offset for std140 layout
 			auto baseSize = in->dataTypeBytes() * in->valsPerElement();
 			// Compute the alignment based on the type
-			auto baseAlignment = baseSize;
-			auto alignmentCount = 1u;
-			if (baseSize == 12u) { // vec3
-				baseAlignment = 16u;
-			} else if (baseSize == 48u) { // mat3
-				baseAlignment = 16;
-				alignmentCount = 3;
-			} else if (baseSize == 64u) { // mat4
-				baseAlignment = 16;
-				alignmentCount = 4;
-			} else if (in->numElements() > 1 && memoryLayout_ == BUFFER_MEMORY_STD140) {
+			auto baseAlignment = in->baseAlignment();
+			if (in->numElements() > 1 && memoryLayout_ == BUFFER_MEMORY_STD140) {
 				// with STD140, each array element must be padded to a multiple of 16 bytes
 				baseAlignment = 16u;
 			}
@@ -473,7 +466,7 @@ uint32_t BufferBlock::updateBlockInputs() {
 			}
 			blockInput->offset = requiredSize_;
 			if (in->numElements() > 1) {
-				blockInput->inputSize = baseAlignment * alignmentCount * in->numElements();
+				blockInput->inputSize = baseAlignment * in->alignmentCount() * in->numElements();
 			} else {
 				blockInput->inputSize = baseSize * in->numElements();
 			}
@@ -490,10 +483,56 @@ uint32_t BufferBlock::updateBlockInputs() {
 																				 << blockInputs_[0]->input->name());
 			}
 		}
+
+		// TODO: pdate the client buffer
+		/**
+		xxx_set_base_alignment;
+		if (clientBuffer_.dataSize() != 0u) {
+			uint32_t numAddedSegments = clientBuffer_->numSegments();
+			for (uint32_t blockIdx=0; blockIdx < blockInputs_.size(); ++blockIdx) {
+				auto &blockInput = *blockInputs_[blockIdx].get();
+				if (blockIdx >= numAddedSegments) {
+					// add the segment to the client buffer
+					clientBuffer_.addSegment(
+						blockInput.input->clientBuffer(),
+						blockInput.offset,
+						blockInput.inputSize);
+				} else {
+					// update the existing segment
+					clientBuffer_.updateSegment(
+						blockIdx,
+						blockInput.offset,
+						blockInput.inputSize);
+				}
+
+			}
+		}
+		**/
 	}
 
 	return requiredSize_;
 }
+
+/**
+void BufferBlock::updateClientBuffer() {
+	if(blockInputs_.empty()) { return; }
+	if(clientBuffer_.dataSize()==requiredSize_) { return; }
+
+	// BufferBlock uses client buffer for contiguous data storage.
+	// Make sure the client buffer has requiredSize_ bytes allocated,
+	// and map the ptrs to the shader inputs.
+	if (clientBuffer_.dataSize()==0u) {
+		// the first time updateClientBuffer has been called with block inputs added.
+		// we need to allocate the client buffer with the required size.
+		clientBuffer_.resize(requiredSize_, requiredSize_);
+		for (auto &blockInput: blockInputs_) {
+			clientBuffer_.addSegment(blockInput->input->clientBuffer());
+		}
+	} else {
+		clientBuffer_.flush();
+	}
+}
+**/
 
 void BufferBlock::updateStridedData(BlockInput &bufferInput) {
 	// Some attributes cannot be stored tightly packed in the buffer,

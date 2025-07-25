@@ -192,17 +192,17 @@ namespace regen {
 		/**
 		 * @return the draw buffer name, i.e. the buffer ID.
 		 */
-		uint32_t drawBufferName() const { return drawBufferRef_->bufferID(); }
+		inline uint32_t drawBufferName() const { return drawBufferRef_->bufferID(); }
 
 		/**
 		 * @return the size of the draw buffer in bytes.
 		 */
-		uint32_t drawBufferSize() const { return drawBufferRef_->allocatedSize(); }
+		inline uint32_t drawBufferSize() const { return drawBufferRef_->allocatedSize(); }
 
 		/**
 		 * @return the address of the draw buffer range within larger buffer.
 		 */
-		uint32_t drawBufferAddress() const { return drawBufferRef_->address(); }
+		inline uint32_t drawBufferAddress() const { return drawBufferRef_->address(); }
 
 		/**
 		 * Copy the data to the draw buffer.
