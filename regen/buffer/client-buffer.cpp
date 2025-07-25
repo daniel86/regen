@@ -5,9 +5,6 @@
 // TODO move enum somewhere else
 #include "regen/gl-types/shader-data.h"
 
-// TODO: could do locking of ranges such that writing into distinct ranges
-//    is possible concurrently.
-
 using namespace regen;
 
 ClientBuffer::ClientBuffer() {
@@ -99,8 +96,8 @@ void ClientBuffer::nextStamp() const {
 	}
 }
 
-MappedData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
-	if ((mapMode & ShaderData::WRITE) != 0) {
+MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
+	if ((mapMode & ClientMappingMode::WRITE) != 0) {
 		if (!hasTwoSlots()) {
 			// ClientBuffer in single-buffered mode.
 			return mapClientData_SingleBuffer(offset, size);
@@ -113,7 +110,7 @@ MappedData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) c
 	}
 }
 
-MappedData ClientBuffer::mapClientData_SingleBuffer(uint32_t offset, uint32_t /*size*/) const {
+MappedClientData ClientBuffer::mapClientData_SingleBuffer(uint32_t offset, uint32_t /*size*/) const {
 	// ClientBuffer initially has only one slot, the second is allocated on demand in case
 	// multiple threads are concurrently reading/writing the data.
 	// here we keep writing to the active slot as long as no one has to wait,
@@ -144,7 +141,7 @@ MappedData ClientBuffer::mapClientData_SingleBuffer(uint32_t offset, uint32_t /*
 	}
 }
 
-MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const {
+MappedClientData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const {
 	// we are in double-buffered mode, i.e. we have two slots.
 	// partial write can be expensive here!
 	// NOTE: no index mapping needed if there is only one vertex/array element
@@ -156,7 +153,7 @@ MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t offset
 		// Note: if we are frame-locked, we skip the copy of read data,
 		//       as this is done only once per frame for the whole client buffer.
 		data_w += offset;
-		if ((mapMode & ShaderData::READ) != 0) {
+		if ((mapMode & ClientMappingMode::READ) != 0) {
 			// TODO: I do not think read lock is needed when having write lock,
 			//       because as long as there is a write lock on one slot it is certain the other slot can be read safely.
 			int r_index = dataOwner_->readLock();
@@ -180,7 +177,7 @@ MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t offset
 	}
 }
 
-MappedData ClientBuffer::mapClientData_ReadOnly(uint32_t offset, uint32_t /*size*/) const {
+MappedClientData ClientBuffer::mapClientData_ReadOnly(uint32_t offset, uint32_t /*size*/) const {
 	// read only. the case of reading at index is not handled differently here.
 	if (!hasTwoSlots()) {
 		// we are still in single-buffered mode.
@@ -205,7 +202,7 @@ MappedData ClientBuffer::mapClientData_ReadOnly(uint32_t offset, uint32_t /*size
 }
 
 void ClientBuffer::unmapRange(int32_t mapMode, uint32_t writeOffset, uint32_t writeSize, int32_t slotIndex) const {
-	if ((mapMode & ShaderData::WRITE) != 0) {
+	if ((mapMode & ClientMappingMode::WRITE) != 0) {
 		writeUnlock(slotIndex, writeOffset, writeSize);
 	} else {
 		dataOwner_->readUnlock(slotIndex);

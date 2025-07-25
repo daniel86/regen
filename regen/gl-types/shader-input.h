@@ -312,7 +312,7 @@ namespace regen {
 		/**
 		 * @param gpuUsage the gpu usage mode.
 		 */
-		void set_gpuUsage(ShaderData::MappingMode gpuUsage) { gpuUsage_ = gpuUsage; }
+		void set_gpuUsage(ClientMappingMode gpuUsage) { gpuUsage_ = gpuUsage; }
 
 		/**
 		 * @return the gpu usage mode.
@@ -572,7 +572,7 @@ namespace regen {
 		bool isVertexAttribute_;
 		bool transpose_;
 		// TODO remove this, use buffer enums
-		ShaderData::MappingMode gpuUsage_ = ShaderData::READ;
+		ClientMappingMode gpuUsage_ = ClientMappingMode::READ;
 
 		ClientBuffer clientBuffer_;
 
@@ -682,7 +682,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const StructType &val) {
-			mapClientVertex<StructType>(ShaderData::WRITE, i).w = val;
+			mapClientVertex<StructType>(ClientMappingMode::WRITE, i).w = val;
 		}
 
 		/**
@@ -690,7 +690,7 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		ShaderVertex_ro<StructType> getVertex(GLuint i) const {
-			return mapClientVertex<StructType>(ShaderData::READ, i);
+			return mapClientVertex<StructType>(ClientMappingMode::READ, i);
 		}
 
 		/**
@@ -752,7 +752,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const ValueType &val) {
-			mapClientVertex<ValueType>(ShaderData::WRITE, i).w = val;
+			mapClientVertex<ValueType>(ClientMappingMode::WRITE, i).w = val;
 		}
 
 		/**
@@ -760,7 +760,7 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		ShaderVertex_ro<ValueType> getVertex(GLuint i) const {
-			return mapClientVertex<ValueType>(ShaderData::READ, i);
+			return mapClientVertex<ValueType>(ClientMappingMode::READ, i);
 		}
 
 		/**
@@ -863,7 +863,7 @@ namespace regen {
 				bool normalize = false);
 
 		void setVertex3(GLuint i, const Vec3f &val) {
-			auto mapped = mapClientVertex<Vec4f>(ShaderData::WRITE, i);
+			auto mapped = mapClientVertex<Vec4f>(ClientMappingMode::WRITE, i);
 			mapped.w.xyz_() = val;
 		}
 	};

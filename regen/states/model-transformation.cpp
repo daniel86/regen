@@ -447,7 +447,7 @@ static GLuint transformMatrixPlane(
 	} else {
 		numInstances = generator.instanceData.size();
 		matrixInput->setInstanceData(numInstances, 1, nullptr);
-		auto matrices = matrixInput->mapClientData<Mat4f>(ShaderData::WRITE);
+		auto matrices = matrixInput->mapClientData<Mat4f>(ClientMappingMode::WRITE);
 		// TODO: apply previous transform instead of overwriting
 		for (GLuint i = 0; i < numInstances; i += 1) {
 			matrices.w[i] = generator.instanceData[i];
@@ -532,7 +532,7 @@ static void transformMatrix(
 			if (mode == "plane") {
 				numInstances = transformMatrixPlane(scene, *child.get(), tf->modelMat(), numInstances);
 			} else {
-				auto matrices = tf->modelMat()->mapClientData<Mat4f>(ShaderData::WRITE);
+				auto matrices = tf->modelMat()->mapClientData<Mat4f>(ClientMappingMode::WRITE);
 				scene::ValueGenerator<Vec3f> generator(child.get(), indices.size(),
 													   child->getValue<Vec3f>("value", Vec3f(0.0f)));
 				const auto target = child->getValue<std::string>("target", "translate");
@@ -546,8 +546,8 @@ static void transformMatrix(
 		} else {
 			auto &modelMat = tf->modelMat();
 			auto &modelOffset = tf->modelOffset();
-			auto v_modelMat = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
-			auto v_modelOffset = modelOffset->mapClientData<Vec4f>(ShaderData::WRITE);
+			auto v_modelMat = modelMat->mapClientData<Mat4f>(ClientMappingMode::WRITE);
+			auto v_modelOffset = modelOffset->mapClientData<Vec4f>(ClientMappingMode::WRITE);
 			for (unsigned int &j: indices) {
 				transformMatrix2(
 						child->getCategory(),
@@ -594,11 +594,11 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 	transform = ref_ptr<ModelTransformation>::alloc(tfMode, updateFlags);
 	// read the gpu-usage flag
 	if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
-		transform->modelMat()->set_gpuUsage(ShaderData::WRITE);
-		transform->modelOffset()->set_gpuUsage(ShaderData::WRITE);
+		transform->modelMat()->set_gpuUsage(ClientMappingMode::WRITE);
+		transform->modelOffset()->set_gpuUsage(ClientMappingMode::WRITE);
 	} else {
-		transform->modelMat()->set_gpuUsage(ShaderData::READ);
-		transform->modelOffset()->set_gpuUsage(ShaderData::READ);
+		transform->modelMat()->set_gpuUsage(ClientMappingMode::READ);
+		transform->modelOffset()->set_gpuUsage(ClientMappingMode::READ);
 	}
 
 	// Handle instanced model matrix
@@ -607,11 +607,11 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 		auto &modelOffset = transform->modelOffset();
 		if (transform->hasModelMat()) {
 			modelMat->setInstanceData(numInstances, 1, nullptr);
-			auto matrices = modelMat->mapClientData<Mat4f>(ShaderData::WRITE);
+			auto matrices = modelMat->mapClientData<Mat4f>(ClientMappingMode::WRITE);
 			for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
 		} else if (transform->hasModelOffset()) {
 			modelOffset->setInstanceData(numInstances, 1, nullptr);
-			auto offsets = modelOffset->mapClientData<Vec4f>(ShaderData::WRITE);
+			auto offsets = modelOffset->mapClientData<Vec4f>(ClientMappingMode::WRITE);
 			for (GLuint i = 0; i < numInstances; i += 1) offsets.w[i] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 		// update numInstances

@@ -37,7 +37,7 @@ namespace regen {
 
 		// Override
 		void animate(GLdouble dt) override {
-			auto mapped = mapClientVertex<float>(ShaderData::READ | ShaderData::WRITE, 0);
+			auto mapped = mapClientVertex<float>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
 			mapped.w = mapped.r + static_cast<float>(dt) * timeScale_;
 		}
 
@@ -59,7 +59,7 @@ namespace regen {
 		public:
 			template<class T>
 			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
-				auto v_values = shaderInput->mapClientData<T>(ShaderData::WRITE | ShaderData::READ);
+				auto v_values = shaderInput->mapClientData<T>(ClientMappingMode::WRITE | ClientMappingMode::READ);
 				auto default_value = input.getValue<T>("value", T(0));
 				for (unsigned int i = 0; i < count; ++i) {
 					v_values.w[i] = default_value;
@@ -327,9 +327,9 @@ namespace regen {
 				GLuint count = 1;
 				// read the gpu-usage flag
 				if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
-					v->set_gpuUsage(ShaderData::WRITE);
+					v->set_gpuUsage(ClientMappingMode::WRITE);
 				} else {
-					v->set_gpuUsage(ShaderData::READ);
+					v->set_gpuUsage(ClientMappingMode::READ);
 				}
 
 				if (isInstanced) {
@@ -344,7 +344,7 @@ namespace regen {
 
 				// Handle Attribute values.
 				if (isInstanced || isAttribute) {
-					auto values = v->mapClientDataRaw(ShaderData::WRITE);
+					auto values = v->mapClientDataRaw(ClientMappingMode::WRITE);
 					auto typedValues = (T *) values.w;
 					for (GLuint i = 0; i < count; i += 1) typedValues[i] = defaultValue;
 					values.unmap();

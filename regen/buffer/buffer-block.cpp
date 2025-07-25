@@ -532,7 +532,7 @@ void BufferBlock::updateStridedData(BlockInput &bufferInput) {
 		bufferInput.alignedSize = dataSizeAligned;
 		bufferInput.alignedData = new byte[bufferInput.alignedSize];
 	}
-	auto clientData = in->mapClientDataRaw(ShaderData::READ);
+	auto clientData = in->mapClientDataRaw(ClientMappingMode::READ);
 	auto *src = clientData.r;
 	auto *dst = bufferInput.alignedData;
 	for (unsigned int i = 0; i < numElements; ++i) {
@@ -590,7 +590,7 @@ void BufferBlock::copyBlockInput(
 		memcpy(mappedBufferData + offset,
 			   bufferInput.alignedData, bufferInput.alignedSize);
 	} else {
-		auto mapped = bufferInput.input->mapClientDataRaw(ShaderData::READ);
+		auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
 		memcpy(mappedBufferData + offset,
 			   mapped.r,
 			   bufferInput.input->inputSize());
@@ -844,7 +844,7 @@ void BufferBlock::updateNonMapped() {
 						bufferInput.alignedSize,
 						bufferInput.alignedData);
 			} else {
-				auto mapped = bufferInput.input->mapClientDataRaw(ShaderData::READ);
+				auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
 				shared_->stagingBuffer_->setSubData(
 						drawBufferRef_,
 						localOffset,

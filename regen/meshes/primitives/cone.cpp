@@ -30,9 +30,9 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 								  GLuint vertexOffset,
 								  GLuint indexOffset) {
 	// map client data for writing
-	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		nor_->mapClientData<Vec3f>(ClientMappingMode::WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 
 	GLfloat phi = acos(cfg.cosAngle);
@@ -179,10 +179,10 @@ void ConeClosed::generateLODLevel(
 		GLuint vertexOffset,
 		GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(ShaderData::WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(ClientMappingMode::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		nor_->mapClientData<Vec3f>(ClientMappingMode::WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 
 	// create cone vertex data

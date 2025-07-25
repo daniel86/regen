@@ -5,9 +5,18 @@
 
 namespace regen {
 	/**
+	 * \brief Mapping mode for client data.
+	 * This is used to specify the access mode when mapping client data.
+	 */
+	enum ClientMappingMode {
+		READ = 1 << 0,
+		WRITE = 1 << 1
+	};
+
+	/**
 	 * A low-level interface for read/write access to client data of shader input.
 	 */
-	struct MappedData {
+	struct MappedClientData {
 		/**
 		 * Default constructor.
 		 * @param r the read data.
@@ -15,7 +24,7 @@ namespace regen {
 		 * @param w the write data.
 		 * @param w_index the write index.
 		 */
-		MappedData(const byte *r, int r_index, byte *w, int w_index)
+		MappedClientData(const byte *r, int r_index, byte *w, int w_index)
 				: r(r), w(w), r_index(r_index), w_index(w_index) {}
 
 		/**
@@ -23,7 +32,7 @@ namespace regen {
 		 * @param r the read data.
 		 * @param r_index the read index.
 		 */
-		MappedData(const byte *r, int r_index)
+		MappedClientData(const byte *r, int r_index)
 				: r(r), w(nullptr), r_index(r_index), w_index(-1) {}
 
 		/**

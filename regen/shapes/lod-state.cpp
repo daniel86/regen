@@ -430,7 +430,7 @@ static inline void countGroupSize_CPU(
 }
 
 void LODState::computeLODGroups() {
-	auto visible_ids = shapeIndex_->mapInstanceIDs(ShaderData::READ);
+	auto visible_ids = shapeIndex_->mapInstanceIDs(ClientMappingMode::READ);
 	auto numVisible = visible_ids.r[0];
 	if (numVisible == 0) { return; }
 
@@ -443,8 +443,8 @@ void LODState::computeLODGroups() {
 		auto &modelOffset = tf->modelOffset();
 		auto &modelMat = tf->modelMat();
 		if (tf->hasModelOffset() && tf->hasModelMat()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ShaderData::READ);
-			auto tfData = modelMat->mapClientData<Mat4f>(ShaderData::READ);
+			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ClientMappingMode::READ);
+			auto tfData = modelMat->mapClientData<Mat4f>(ClientMappingMode::READ);
 			LODSelector_Full selector{
 					.tfData = tfData.r,
 					.modelOffsetData = modelOffsetData.r,
@@ -458,7 +458,7 @@ void LODState::computeLODGroups() {
 							   camPos.r.xyz_(),
 							   selector);
 		} else if (tf->hasModelOffset()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ShaderData::READ);
+			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ClientMappingMode::READ);
 			LODSelector_ModelOffset selector{
 					.modelOffsetData = modelOffsetData.r,
 					.mappedData = mappedData,
@@ -469,7 +469,7 @@ void LODState::computeLODGroups() {
 							   camPos.r.xyz_(),
 							   selector);
 		} else {
-			auto tfData = modelMat->mapClientData<Mat4f>(ShaderData::READ);
+			auto tfData = modelMat->mapClientData<Mat4f>(ClientMappingMode::READ);
 			LODSelector_Transform selector{
 					.tfData = tfData.r,
 					.mappedData = mappedData,

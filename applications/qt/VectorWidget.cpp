@@ -27,7 +27,7 @@ VectorWidget::VectorWidget(const RegenWidgetData &data, QWidget *parent)
 	if (count > 4) {
 		throw std::runtime_error("More than 4 components unsupported.");
 	}
-	auto mapped = input_->mapClientDataRaw(ShaderData::READ);
+	auto mapped = input_->mapClientDataRaw(ClientMappingMode::READ);
 	const byte *value = mapped.r;
 	ignoreValueChanges_ = true;
 
@@ -76,7 +76,7 @@ VectorWidget::VectorWidget(const RegenWidgetData &data, QWidget *parent)
 }
 
 QSlider *VectorWidget::createSlider(int componentIndex, bool isExternal) {
-	auto mapped = input_->mapClientDataRaw(ShaderData::READ);
+	auto mapped = input_->mapClientDataRaw(ClientMappingMode::READ);
 	const byte *value = mapped.r;
 	auto x = readInputValue(input_, value, componentIndex);
 	// create a slider for component with given index, it will be synchronized with the other widgets

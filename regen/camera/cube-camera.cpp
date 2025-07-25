@@ -67,8 +67,8 @@ bool CubeCamera::updateView() {
 	const Vec3f *dir = Mat4f::cubeDirections();
 	const Vec3f *up = Mat4f::cubeUpVectors();
 	auto pos = position_->getVertex(0);
-	auto views = view_->mapClientData<Mat4f>(ShaderData::WRITE);
-	auto viewInv = viewInv_->mapClientData<Mat4f>(ShaderData::WRITE);
+	auto views = view_->mapClientData<Mat4f>(ClientMappingMode::WRITE);
+	auto viewInv = viewInv_->mapClientData<Mat4f>(ClientMappingMode::WRITE);
 	for (int i = 0; i < 6; ++i) {
 		if (isCubeFaceVisible(i)) {
 			views.w[i] = Mat4f::lookAtMatrix(pos.r.xyz_(), dir[i], up[i]);

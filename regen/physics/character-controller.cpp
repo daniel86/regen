@@ -137,7 +137,7 @@ bool CharacterController::initializePhysics() {
 	btQuaternion rotation;
 	rotation.setRotation(btVector3(0, 1, 0), meshHorizontalOrientation_);
 	btTransform initialTransform;
-	auto attachedTFData = attachedToTransform_->mapClientData<btScalar>(ShaderData::READ);
+	auto attachedTFData = attachedToTransform_->mapClientData<btScalar>(ClientMappingMode::READ);
 	initialTransform.setFromOpenGLMatrix(attachedTFData.r);
 	attachedTFData.unmap();
 	initialTransform.setRotation(rotation);

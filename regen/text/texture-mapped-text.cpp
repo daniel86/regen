@@ -70,9 +70,9 @@ void TextureMappedText::updateAttributes(Alignment alignment, GLfloat maxLineWid
 	norAttribute_->setVertexData(numCharacters_ * 6);
 	set_numVertices(numCharacters_ * 6);
 	// map client data for writing
-	auto v_pos = posAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
-	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
-	auto v_nor = norAttribute_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto v_pos = posAttribute_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+	auto v_texco = texcoAttribute_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+	auto v_nor = norAttribute_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
 
 	translation = Vec3f(0.0, 0.0, 0.0);
 	glyphTranslation = Vec3f(0.0, 0.0, 0.0);

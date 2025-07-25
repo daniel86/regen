@@ -109,13 +109,13 @@ void Box::generateLODLevel(
 	GLuint nextIndex = indexOffset;
 
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(ShaderData::WRITE);
-	auto pos = pos_->mapClientData<Vec3f>(ShaderData::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(ClientMappingMode::WRITE);
+	auto pos = pos_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
 	auto nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ShaderData::WRITE) :
+		nor_->mapClientData<Vec3f>(ClientMappingMode::WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ShaderData::WRITE) :
+		tan_->mapClientData<Vec4f>(ClientMappingMode::WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 
 	for (const auto &tessFace: tessellation.outputFaces) {
@@ -146,7 +146,7 @@ void Box::generateLODLevel(
 				nor.w[vertexIndex] = normal;
 			}
 			if (texcoMode_ == TEXCO_MODE_CUBE_MAP) {
-				auto texco = texco_->mapClientData<Vec3f>(ShaderData::WRITE);
+				auto texco = texco_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
 				Vec3f v = faceVertex;
 				v.normalize();
 				texco.w[vertexIndex] = v;
@@ -188,7 +188,7 @@ void Box::generateLODLevel(
 						uv = Vec2f(0.0f);
 				}
 				uv *= cfg.texcoScale;
-				auto texco = texco_->mapClientData<Vec2f>(ShaderData::WRITE);
+				auto texco = texco_->mapClientData<Vec2f>(ClientMappingMode::WRITE);
 				texco.w[vertexIndex] = uv;
 				triTexco[faceVertIndex] = uv;
 			}

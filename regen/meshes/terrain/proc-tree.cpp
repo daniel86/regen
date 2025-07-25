@@ -322,7 +322,7 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 		treeMesh.texco->setVertexData(numVertices,
 									  reinterpret_cast<const unsigned char *>(&lod0.mUV[0].u));
 		treeMesh.tan->setVertexData(numVertices);
-		auto v_tan = treeMesh.tan->mapClientData<float>(ShaderData::WRITE);
+		auto v_tan = treeMesh.tan->mapClientData<float>(ClientMappingMode::WRITE);
 		computeTan(treeMesh, lod0, 0, (Vec4f*)v_tan.w);
 	} else {
 		// allocate memory then copy each LOD into the vertex data array
@@ -332,11 +332,11 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 		treeMesh.texco->setVertexData(numVertices);
 		treeMesh.tan->setVertexData(numVertices);
 		// map client data for writing
-		auto indices = treeMesh.indices->mapClientData<unsigned int>(ShaderData::WRITE);
-		auto v_pos = treeMesh.pos->mapClientData<float>(ShaderData::WRITE);
-		auto v_nor = treeMesh.nor->mapClientData<float>(ShaderData::WRITE);
-		auto v_tan = treeMesh.tan->mapClientData<float>(ShaderData::WRITE);
-		auto v_texco = treeMesh.texco->mapClientData<float>(ShaderData::WRITE);
+		auto indices = treeMesh.indices->mapClientData<unsigned int>(ClientMappingMode::WRITE);
+		auto v_pos = treeMesh.pos->mapClientData<float>(ClientMappingMode::WRITE);
+		auto v_nor = treeMesh.nor->mapClientData<float>(ClientMappingMode::WRITE);
+		auto v_tan = treeMesh.tan->mapClientData<float>(ClientMappingMode::WRITE);
+		auto v_texco = treeMesh.texco->mapClientData<float>(ClientMappingMode::WRITE);
 		// copy data from Proctree to Mesh
 		// also create LOD descriptions on the way.
 		unsigned int vertexOffset = 0u, indexOffset = 0u;

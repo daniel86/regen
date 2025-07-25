@@ -48,7 +48,7 @@ namespace regen {
 		 */
 		void nextStamp() const;
 
-		MappedData mapRange(int32_t mapMode, uint32_t offset, uint32_t size) const;
+		MappedClientData mapRange(int32_t mapMode, uint32_t offset, uint32_t size) const;
 
 		void unmapRange(
 				int32_t mapMode,
@@ -127,11 +127,11 @@ namespace regen {
 
 		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
 
-		MappedData mapClientData_SingleBuffer(uint32_t offset, uint32_t size) const;
+		MappedClientData mapClientData_SingleBuffer(uint32_t offset, uint32_t size) const;
 
-		MappedData mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const;
+		MappedClientData mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const;
 
-		MappedData mapClientData_ReadOnly(uint32_t offset, uint32_t size) const;
+		MappedClientData mapClientData_ReadOnly(uint32_t offset, uint32_t size) const;
 
 		int lastDataSlot() const;
 

@@ -28,7 +28,7 @@ void BulletDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to, con
 	lineVertices_->setVertex(0, Vec3f(from.getX(), from.getY(), from.getZ()));
 	lineVertices_->setVertex(1, Vec3f(to.getX(), to.getY(), to.getZ()));
 	// update gpu-side vertex data
-	auto mappedClientData = lineVertices_->mapClientDataRaw(ShaderData::READ);
+	auto mappedClientData = lineVertices_->mapClientDataRaw(ClientMappingMode::READ);
 	glBufferData(GL_ARRAY_BUFFER, bufferSize_, mappedClientData.r, GL_DYNAMIC_DRAW);
 	mappedClientData.unmap();
 	// draw the line
@@ -55,7 +55,7 @@ BulletDebugDrawer::drawContactPoint(
     lineVertices_->setVertex(1,
     	Vec3f(to.getX(), to.getY(), to.getZ()));
     // Update GPU-side vertex data
-	auto mappedClientData = lineVertices_->mapClientDataRaw(ShaderData::READ);
+	auto mappedClientData = lineVertices_->mapClientDataRaw(ClientMappingMode::READ);
 	glBufferData(GL_ARRAY_BUFFER,
 			bufferSize_,
 			mappedClientData.r,

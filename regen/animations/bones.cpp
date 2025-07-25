@@ -59,7 +59,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 
 void Bones::animate(GLdouble dt) {
 	if (bufferSize_ <= 0) return;
-	auto mapped = boneMatrices_->mapClientData<Mat4f>(ShaderData::WRITE);
+	auto mapped = boneMatrices_->mapClientData<Mat4f>(ClientMappingMode::WRITE);
 	auto *boneMatrixData_ = mapped.w;
 
 	unsigned int i = 0;

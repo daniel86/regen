@@ -6,16 +6,6 @@
 #include <regen/buffer/client-buffer.h>
 #include <regen/utility/ref-ptr.h>
 
-namespace regen::ShaderData {
-	/**
-	 * Flags for client data read/write access.
-	 */
-	enum MappingMode {
-		READ = 1 << 0,
-		WRITE = 1 << 1
-	};
-}
-
 namespace regen {
 	/**
 	 * A low-level interface for read/write access to client data of shader input.
