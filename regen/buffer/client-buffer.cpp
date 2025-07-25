@@ -2,8 +2,6 @@
 #include "regen/utility/threading.h"
 #include "regen/utility/logging.h"
 #include <cstring>
-// TODO move enum somewhere else
-#include "regen/gl-types/shader-data.h"
 
 using namespace regen;
 
@@ -11,17 +9,6 @@ ClientBuffer::ClientBuffer() {
 	// initially any data that will be allocated will be owned by this instance.
 	// this is until it is added as a segment to another ClientBuffer.
 	dataOwner_ = this;
-	// initialize the data slots to nullptr
-	dataSlots_[0] = nullptr;
-	dataSlots_[1] = nullptr;
-	// initialize the reader counts to 0
-	readerCounts_[0].store(0, std::memory_order_relaxed);
-	readerCounts_[1].store(0, std::memory_order_relaxed);
-	// initialize the writer flags to not set
-	writerFlags_[0].clear(std::memory_order_relaxed);
-	writerFlags_[1].clear(std::memory_order_relaxed);
-
-	lastDataSlot_.store(0, std::memory_order_relaxed);
 }
 
 ClientBuffer::~ClientBuffer() {
@@ -33,26 +20,42 @@ ClientBuffer::~ClientBuffer() {
 	}
 }
 
-inline void spinWaitUntil1(std::atomic_flag &flag) {
-    for (int i = 0; flag.test(std::memory_order_acquire) != 0; ++i) {
-        if (i < 20) CPU_PAUSE();
-        else std::this_thread::yield();
-    }
+/**
+void ClientBuffer::addSegment(const ref_ptr<ClientBuffer> &segment) {
+	if (segment->parentBuffer_ != nullptr) {
+		REGEN_WARN("Segment already has a parent buffer, cannot add it again.");
+		return;
+	}
+	// add the segment to the list of segments.
+	bufferSegments_.push_back(segment);
+	// set the parent buffer for the segment.
+	segment->parentBuffer_ = this;
+	// TODO: do a delayed resize here??
 }
 
-inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
-    for (int i = 0; count.load(std::memory_order_acquire) != 0; ++i) {
-        if (i < 20) CPU_PAUSE();
-        else std::this_thread::yield();
-    }
+void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
+	auto it = std::find(bufferSegments_.begin(), bufferSegments_.end(), segment);
+	if (it != bufferSegments_.end()) {
+		// remove the segment from the list of segments.
+		bufferSegments_.erase(it);
+		// clear the parent buffer for the segment.
+		segment->parentBuffer_ = nullptr;
+		// TODO: do a delayed resize here??
+	} else {
+		REGEN_WARN("Segment not found in the list of segments.");
+	}
 }
+**/
 
 void ClientBuffer::flush() {
+	// flushing is only needed if the buffer is frame-locked.
+	if (!isFrameLocked_) return;
+
 	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
 	int32_t lastWriteSlot = (dataSlots_[1] ? 1 - lastReadSlot : lastReadSlot);
-
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
 	auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
+
 	// Merge overlapping segments, and sort along offsets.
 	dirtyThisFrame.coalesce();
 	// Delete all dirty ranges from the last read slot that have been written to this frame.
@@ -100,17 +103,17 @@ MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t s
 	if ((mapMode & ClientMappingMode::WRITE) != 0) {
 		if (!hasTwoSlots()) {
 			// ClientBuffer in single-buffered mode.
-			return mapClientData_SingleBuffer(offset, size);
+			return mapRange_SingleBuffer(offset, size);
 		} else {
 			// ClientBuffer in double-buffered mode.
-			return mapClientData_DoubleBuffer(mapMode, offset, size);
+			return mapRange_DoubleBuffer(mapMode, offset, size);
 		}
 	} else {
-		return mapClientData_ReadOnly(offset, size);
+		return mapRange_ReadOnly(offset, size);
 	}
 }
 
-MappedClientData ClientBuffer::mapClientData_SingleBuffer(uint32_t offset, uint32_t /*size*/) const {
+MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t /*size*/) const {
 	// ClientBuffer initially has only one slot, the second is allocated on demand in case
 	// multiple threads are concurrently reading/writing the data.
 	// here we keep writing to the active slot as long as no one has to wait,
@@ -141,15 +144,14 @@ MappedClientData ClientBuffer::mapClientData_SingleBuffer(uint32_t offset, uint3
 	}
 }
 
-MappedClientData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const {
+MappedClientData ClientBuffer::mapRange_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const {
 	// we are in double-buffered mode, i.e. we have two slots.
 	// partial write can be expensive here!
 	// NOTE: no index mapping needed if there is only one vertex/array element
-	bool isFullWrite = (dataSize_ == size);
 	int w_index = dataOwner_->writeLock_DoubleBuffer();
 	byte *data_w = dataSlots_[w_index];
 
-	if (isFullWrite) {
+	if (dataSize_ == size) { // FULL write
 		// Note: if we are frame-locked, we skip the copy of read data,
 		//       as this is done only once per frame for the whole client buffer.
 		data_w += offset;
@@ -177,7 +179,7 @@ MappedClientData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t 
 	}
 }
 
-MappedClientData ClientBuffer::mapClientData_ReadOnly(uint32_t offset, uint32_t /*size*/) const {
+MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t /*size*/) const {
 	// read only. the case of reading at index is not handled differently here.
 	if (!hasTwoSlots()) {
 		// we are still in single-buffered mode.
@@ -228,6 +230,7 @@ void ClientBuffer::deallocateClientData() {
 		segment->deallocateClientData();
 	}
 	dataOffset_ = 0u;
+	dataOwner_ = this;
 	allocatedSize_ = 0u;
 }
 
@@ -262,37 +265,38 @@ void ClientBuffer::ownerResize() {
 	byte *oldData1 = dataSlots_[1];
 
 	// allocate new data slots.
-	if (dataSlots_[0]) {
-		// TODO: Better avoid reallocation, and mae it faster if possible
-		// 		- using larger buffers
-		//      - using a pool allocator
-		//      - maybe fast re-allocation is possible?
-		REGEN_WARN("Re-allocating ClientBuffer data slots from "
-			<< allocatedSize_/1024.0f << " to " << dataSize_/1024.0f << " KiB.");
-	}
+	// TODO: Better avoid reallocation, and mae it faster if possible
+	// 		- using larger buffers
+	//      - using a pool allocator
+	//      - maybe fast re-allocation is possible?
 	dataSlots_[0] = new byte[dataSize_];
 	if (dataSlots_[1]) {
 		dataSlots_[1] = new byte[dataSize_];
 	}
 	allocatedSize_ = dataSize_;
+	dataOwner_ = this;
 
 	uint32_t segmentOffset = 0;
 	if (dataSlots_[1]) {
 		for (auto &segment : bufferSegments_) {
 			segment->resize_(
+				this,
 				oldData0 + segmentOffset,
 				oldData1 + segmentOffset,
 				dataSlots_[0] + segmentOffset,
 				dataSlots_[1] + segmentOffset);
 			segment->dataOffset_ = segmentOffset;
+			segment->dataOwner_ = this;
 			segmentOffset += segment->dataSize_;
 		}
 	} else {
 		for (auto &segment : bufferSegments_) {
 			segment->resize_(
+				this,
 				oldData0 + segmentOffset,
 				dataSlots_[0] + segmentOffset);
 			segment->dataOffset_ = segmentOffset;
+			segment->dataOwner_ = this;
 			segmentOffset += segment->dataSize_;
 		}
 	}
@@ -302,11 +306,11 @@ void ClientBuffer::ownerResize() {
 	delete[] oldData1;
 }
 
-void ClientBuffer::resize_(const byte *oldDataPtr, byte *newDataPtr) {
+void ClientBuffer::resize_(ClientBuffer *owner, const byte *oldDataPtr, byte *newDataPtr) {
 	if (dataSize_ == allocatedSize_) {
 		// no resize, just copy over the data from old to new slot.
 		std::memcpy(newDataPtr, oldDataPtr, dataSize_);
-		setDataPointer(newDataPtr, 0);
+		setDataPointer(owner, newDataPtr, 0);
 	} else {
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr;
@@ -315,17 +319,21 @@ void ClientBuffer::resize_(const byte *oldDataPtr, byte *newDataPtr) {
 			for (auto &segment : bufferSegments_) {
 				// resize each segment, copying over the data from old to new slot if size did not change.
 				segment->resize_(
+					owner,
 					oldDataPtr + segment->dataOffset_,
 					newDataPtr + offset);
 				segment->dataOffset_ = offset;
+				segment->dataOwner_ = owner;
 				offset += segment->dataSize_;
 			}
 		}
 		allocatedSize_ = dataSize_;
+		dataOwner_ = owner;
 	}
 }
 
 void ClientBuffer::resize_(
+		ClientBuffer *owner,
 		const byte *oldDataPtr0,
 		const byte *oldDataPtr1,
 		byte *newDataPtr0,
@@ -334,9 +342,10 @@ void ClientBuffer::resize_(
 		// no resize, just copy over the data from old to new slot.
 		std::memcpy(newDataPtr0, oldDataPtr0, dataSize_);
 		std::memcpy(newDataPtr1, oldDataPtr1, dataSize_);
-		setDataPointer(newDataPtr0, 0);
-		setDataPointer(newDataPtr1, 1);
+		setDataPointer(owner,newDataPtr0, 0);
+		setDataPointer(owner,newDataPtr1, 1);
 	} else {
+		dataOwner_ = owner;
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr0;
 			dataSlots_[1] = newDataPtr1;
@@ -347,26 +356,43 @@ void ClientBuffer::resize_(
 				// resize each segment, copying over the data from old to new slot if size did not change.
 				// TODO: need to mark dirty each segment that moved in the buffer?
 				segment->resize_(
+					owner,
 					oldDataPtr0 + segment->dataOffset_,
 					oldDataPtr1 + segment->dataOffset_,
 					newDataPtr0 + offset,
 					newDataPtr1 + offset);
 				segment->dataOffset_ = offset;
+				segment->dataOwner_ = owner;
 				offset += segment->dataSize_;
 			}
 		}
 	}
 }
 
-void ClientBuffer::setDataPointer(byte *dataPtr, uint32_t slotIdx) const {
+void ClientBuffer::setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t slotIdx) const {
 	// blindly assign a new data pointer to the slot at slotIdx,
 	// assuming this ClientBuffer and its segments are not the data owner.
 	dataSlots_[slotIdx] = dataPtr;
+	dataOwner_ = owner;
 	// Also set pointer on any sub-segments.
 	// The sub-segment offsets are relative to the parent buffer range.
 	for (auto &segment : bufferSegments_) {
-		segment->setDataPointer(dataPtr + segment->dataOffset_, slotIdx);
+		segment->setDataPointer(owner, dataPtr + segment->dataOffset_, slotIdx);
 	}
+}
+
+inline void spinWaitUntil1(std::atomic_flag &flag) {
+    for (int i = 0; flag.test(std::memory_order_acquire) != 0; ++i) {
+        if (i < 20) CPU_PAUSE();
+        else std::this_thread::yield();
+    }
+}
+
+inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
+    for (int i = 0; count.load(std::memory_order_acquire) != 0; ++i) {
+        if (i < 20) CPU_PAUSE();
+        else std::this_thread::yield();
+    }
 }
 
 void ClientBuffer::writeLockAll() const {
@@ -549,6 +575,6 @@ void ClientBuffer::createSecondSlot() {
 
 	// Assign second slot ptr's and offsets to all segments
 	for (auto &segment : bufferSegments_) {
-		segment->setDataPointer(data_w + segment->dataOffset_, 1);
+		segment->setDataPointer(this, data_w + segment->dataOffset_, 1);
 	}
 }

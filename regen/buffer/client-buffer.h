@@ -7,9 +7,18 @@
 #include <regen/regen.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/buffer/mapped-client-data.h>
-#include "regen/utility/dirty-list.h"
+#include <regen/utility/dirty-list.h>
 
 namespace regen {
+	/**
+	 * \brief A client buffer that can be used to store data on the client side.
+	 * This class is used to manage client-side data for shader inputs.
+	 * It supports double-buffering and provides thread-safe methods for mapping and unmapping data
+	 * for reading and writing. Reading will never block, but only one thread can write to the data at a time.
+	 *
+	 * The buffer can be frame-locked, meaning that the written data is only flushe once per frame,
+	 * i.e. made available for reading in the next frame.
+	 */
 	class ClientBuffer {
 	public:
 		ClientBuffer();
@@ -19,16 +28,30 @@ namespace regen {
 		ClientBuffer(const ClientBuffer &) = delete;
 
 		/**
-		 * Returns true if this attribute is allocated in RAM.
+		 * @return true if client data is available, i.e. the first data slot is not null.
 		 */
 		inline bool hasClientData() const { return dataSlots_[0] != nullptr; }
 
+		/**
+		 * @return true if client data is available in the second slot, i.e. double-buffering is used.
+		 */
 		bool hasTwoSlots() const { return dataSlots_[1] != nullptr; }
 
+		/**
+		 * @return true if the buffer data is owned by this instance.
+		 */
 		inline bool isDataOwner() const { return dataOwner_ == this; }
 
+		/**
+		 * @return the size of the data in bytes (for a single slot).
+		 */
 		uint32_t dataSize() const { return dataSize_; }
 
+		/**
+		 * The item size is used to determine the size of a single vertex or array element
+		 * in the client data.
+		 * @return the size of a single item in bytes.
+		 */
 		uint32_t itemSize() const { return itemSize_; }
 
 		/**
@@ -48,19 +71,47 @@ namespace regen {
 		 */
 		void nextStamp() const;
 
-		MappedClientData mapRange(int32_t mapMode, uint32_t offset, uint32_t size) const;
+		/**
+		 * Maps the client data for reading or writing.
+		 * @param mapMode the mapping mode, i.e. a ClientMappingMode flag.
+		 * @param offset the offset in bytes from the start of the buffer.
+		 * @param size the size in bytes to map.
+		 * @return a MappedClientData object containing the mapped data.
+		 */
+		MappedClientData mapRange(
+				int32_t mapMode,
+				uint32_t offset,
+				uint32_t size) const;
 
+		/**
+		 * Unmaps the client data after it has been mapped for writing.
+		 * @param mapMode the mapping mode, i.e. a ClientMappingMode flag.
+		 * @param offset the offset in bytes from the start of the buffer.
+		 * @param size the size in bytes that was written.
+		 * @param slotIndex the index of the data slot that was written to (0 or 1).
+		 */
 		void unmapRange(
 				int32_t mapMode,
 				uint32_t offset,
 				uint32_t size,
 				int32_t slotIndex) const;
 
+		/**
+		 * Resize the client buffer.
+		 * @param bufferSize the new size of the buffer in bytes.
+		 * @param itemSize the size of a single item in bytes.
+		 * @param initialData optional initial data to fill the buffer with.
+		 */
 		void resize(
 				size_t bufferSize,
 				size_t itemSize,
 				const byte *initialData = nullptr);
 
+		/**
+		 * Flush the client buffer.
+		 * This will first ensure that the current write slot has all the most recent data,
+		 * and secondly, it swaps the read and write slots.
+		 */
 		void flush();
 
 		void writeLockAll() const;
@@ -93,6 +144,8 @@ namespace regen {
 		// Note: marked as mutable because client data mapping must be allowed in const functions
 		//       for reading data, but mapping interacts with locks. Hence, locks must be mutable.
 		mutable std::array<byte *, 2> dataSlots_ = {nullptr, nullptr};
+		// the instance that owns the data slots, i.e. either this instance or a parent buffer.
+		mutable ClientBuffer* dataOwner_;
 
 		// active slot for readers
 		mutable std::atomic<int> lastDataSlot_{0};
@@ -109,7 +162,6 @@ namespace regen {
 		mutable bool requiresReUpload_ = false;
 		bool hasServerData_ = false;
 
-		mutable ClientBuffer* dataOwner_;
 		ClientBuffer* parentBuffer_ = nullptr;
 		std::vector<ref_ptr<ClientBuffer>> bufferSegments_;
 
@@ -127,25 +179,27 @@ namespace regen {
 
 		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
 
-		MappedClientData mapClientData_SingleBuffer(uint32_t offset, uint32_t size) const;
+		MappedClientData mapRange_SingleBuffer(uint32_t offset, uint32_t size) const;
 
-		MappedClientData mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const;
+		MappedClientData mapRange_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const;
 
-		MappedClientData mapClientData_ReadOnly(uint32_t offset, uint32_t size) const;
+		MappedClientData mapRange_ReadOnly(uint32_t offset, uint32_t size) const;
 
 		int lastDataSlot() const;
 
 		void createSecondSlot();
 
-		void setDataPointer(byte *dataPtr, uint32_t slotIdx) const;
+		void setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t slotIdx) const;
 
 		void ownerResize();
 
 		void resize_(
+				ClientBuffer *owner,
 				const byte *oldDataPtr,
 				byte *newDataPtr);
 
 		void resize_(
+				ClientBuffer *owner,
 				const byte *oldDataPtr0,
 				const byte *oldDataPtr1,
 				byte *newDataPtr0,
