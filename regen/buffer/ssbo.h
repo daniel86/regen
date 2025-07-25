@@ -10,7 +10,7 @@ namespace regen {
 	 * SSBOs are a lot like Uniform Buffer Objects. Shader storage blocks are defined by Interface Block (GLSL)s in almost the same way as uniform blocks.
 	 * Buffer objects that store SSBOs are bound to SSBO binding points, just as buffer objects for uniforms are bound to UBO binding points. And so forth.
 	 */
-	class SSBO : public BufferBlock, public ShaderInput {
+	class SSBO : public BufferBlock {
 	public:
 		/**
 		 * Memory qualifiers for shader storage blocks.

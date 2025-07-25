@@ -1,10 +1,7 @@
 #ifndef REGEN_UBO_H_
 #define REGEN_UBO_H_
 
-#include <map>
 #include "buffer-block.h"
-#include "regen/gl-types/shader-input.h"
-#include "regen/scene/scene-input.h"
 
 namespace regen {
 	/**
@@ -12,7 +9,7 @@ namespace regen {
 	 *
 	 * They are OpenGL Objects that allow you to store data in a buffer that can be accessed by shaders.
 	 */
-	class UBO : public BufferBlock, public ShaderInput {
+	class UBO : public BufferBlock {
 	public:
 		UBO(const std::string &name, const BufferUpdateFlags &hints);
 

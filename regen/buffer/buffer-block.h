@@ -13,7 +13,7 @@ namespace regen {
 	 * Buffer blocks adopts draw buffer ranges used for draw operation and maybe have
 	 * an area in staging for CPU access.
 	 */
-	class BufferBlock : public BufferObject {
+	class BufferBlock : public BufferObject, public ShaderInput {
 	public:
 		static constexpr const char *TYPE_NAME = "BufferBlock";
 
@@ -53,7 +53,7 @@ namespace regen {
 		 * @param storageQualifier the storage qualifier.
 		 * @param memoryLayout the memory layout.
 		 */
-		BufferBlock(
+		BufferBlock(const std::string &name,
 				BufferTarget target,
 				const BufferUpdateFlags &hints,
 				Qualifier storageQualifier,
@@ -69,7 +69,7 @@ namespace regen {
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer object
 		 */
-		explicit BufferBlock(const BufferObject &other);
+		explicit BufferBlock(const BufferObject &other, const std::string &name="");
 
 		~BufferBlock() override;
 

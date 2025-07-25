@@ -19,11 +19,13 @@ float BufferBlock::MAX_UPDATE_RATIO_PARTIAL_TEMPORARY = 0.33f;
 uint32_t BufferBlock::UPDATE_RATE_RANGE = 60;
 
 BufferBlock::BufferBlock(
+		const std::string &name,
 		BufferTarget target,
 		const BufferUpdateFlags &hints,
 		Qualifier blockQualifier,
 		BufferMemoryLayout memoryLayout)
 		: BufferObject(target, hints),
+		  ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, false),
 		  blockQualifier_(blockQualifier),
 		  memoryLayout_(memoryLayout),
 		  stagingFlags_(target, hints) {
@@ -51,6 +53,7 @@ BufferBlock::BufferBlock(
 
 BufferBlock::BufferBlock(const BufferBlock &other)
 		: BufferObject(other),
+		  ShaderInput(other.name(), GL_INVALID_ENUM, 0, 0, 0, false),
 		  blockQualifier_(other.blockQualifier_),
 		  memoryLayout_(other.memoryLayout_),
 		  bindingIndex_(other.bindingIndex_),
@@ -70,8 +73,23 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 }
 
-BufferBlock::BufferBlock(const BufferObject &other)
+static std::string getName(const BufferObject &other, const std::string &name) {
+	if (name.empty()) {
+		auto *block = dynamic_cast<const BufferBlock *>(&other);
+		if (block != nullptr) {
+			return block->name();
+		}
+		auto *tbo = dynamic_cast<const TBO *>(&other);
+		if (tbo != nullptr && tbo->input().get()) {
+			return REGEN_STRING("Buffer_" << tbo->input()->name());
+		}
+	}
+	return name;
+}
+
+BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		: BufferObject(other),
+		  ShaderInput(getName(other,name), GL_INVALID_ENUM, 0, 0, 0, GL_FALSE),
 		  blockQualifier_(BufferBlock::BUFFER),
 		  memoryLayout_(BUFFER_MEMORY_STD430),
 		  stagingFlags_(other.bufferTarget(), other.bufferUpdateHints()) {

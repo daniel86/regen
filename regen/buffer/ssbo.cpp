@@ -4,38 +4,16 @@
 
 using namespace regen;
 
-static std::string getName(const BufferObject &other, const std::string &name) {
-	if (name.empty()) {
-		auto *ssbo = dynamic_cast<const SSBO *>(&other);
-		if (ssbo != nullptr) {
-			return ssbo->name();
-		}
-		auto *ubo = dynamic_cast<const UBO *>(&other);
-		if (ubo != nullptr) {
-			return ubo->name();
-		}
-		auto *tbo = dynamic_cast<const TBO *>(&other);
-		if (tbo != nullptr && tbo->input().get()) {
-			return REGEN_STRING("Buffer_" << tbo->input()->name());
-		}
-	}
-	return name;
-}
-
 SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMask) :
-		BufferBlock(SHADER_STORAGE_BUFFER, hints,
+		BufferBlock(name, SHADER_STORAGE_BUFFER, hints,
 		            BufferBlock::BUFFER,
 		            BUFFER_MEMORY_STD430),
-		ShaderInput(name, GL_INVALID_ENUM,
-		            0, 0, 0, GL_FALSE),
 		memoryMask_(memoryMask) {
 	initSSBO();
 }
 
 SSBO::SSBO(const BufferObject &other, const std::string &name) :
-		BufferBlock(other),
-		ShaderInput(getName(other,name), GL_INVALID_ENUM,
-		            0, 0, 0, GL_FALSE) {
+		BufferBlock(other, name) {
 	flags_.target = SHADER_STORAGE_BUFFER;
 	glTarget_ = glBufferTarget(flags_.target);
 	blockQualifier_ = BufferBlock::BUFFER;
