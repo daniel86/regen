@@ -34,12 +34,12 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		inline uint32_t stamp() const { return dataStamp_; }
+		inline uint32_t stamp() const { return dataStamps_[lastDataSlot()]; }
 
 		/**
 		 * Increment the stamp.
 		 */
-		inline void nextStamp() const { dataStamp_ += 1; }
+		void nextStamp() const;
 
 		MappedData map(int mapMode) const;
 
@@ -88,7 +88,7 @@ namespace regen {
 		// protects against simultaneous writers
 		std::atomic_flag writerFlags_[2] = {ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT};
 		// indicator to writes to the data slots
-		mutable uint32_t dataStamp_ = 0;
+		mutable uint32_t dataStamps_[2] = {0u,0u};
 
 		// TODO remove these
 		mutable bool requiresReUpload_ = false;

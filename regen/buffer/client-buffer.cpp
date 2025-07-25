@@ -48,6 +48,17 @@ inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
     }
 }
 
+void ClientBuffer::nextStamp() const {
+	dataStamps_[0] += 1;
+	dataStamps_[1] += 1;
+	auto *parent = parentBuffer_;
+	while (parent != nullptr) {
+		parent->dataStamps_[0] += 1;
+		parent->dataStamps_[1] += 1;
+		parent = parent->parentBuffer_;
+	}
+}
+
 MappedData ClientBuffer::map(int mapMode) const {
 	if ((mapMode & ShaderData::WRITE) != 0) {
 		if (!hasTwoSlots()) {
@@ -102,6 +113,8 @@ MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode) const {
 	byte *data_w = dataSlots_[w_index];
 
 	if (isFullWrite) {
+		// Note: if we are frame-locked, we skip the copy of read data,
+		//       as this is done only once per frame for the whole client buffer.
 		if ((mapMode & ShaderData::READ) != 0) {
 			// TODO: I do not think read lock is needed when having write lock,
 			//       because as long as there is a write lock on one slot it is certain the other slot can be read safely.
@@ -111,7 +124,10 @@ MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode) const {
 			return { data_w, -1, data_w, w_index };
 		}
 	} else {
-		// Individual vertex writing is requested.
+		// we swap after each write operation, and a partial write is required.
+		// make sure to copy the data from the read slot to the write slot before we do the swap.
+		// FIXME: In frame-locked mode this will overwrite data!!
+		//    --> use stamps to ensure that we do not overwrite data? will need to use > then
 		int r_index = dataOwner_->readLock();
 		std::memcpy(data_w, dataSlots_[r_index], dataSize_);
 		dataOwner_->readUnlock(r_index);
@@ -185,15 +201,14 @@ void ClientBuffer::resize(size_t dataSize, size_t itemSize, const byte *initialD
 	// adjust the data size
 	itemSize_ = static_cast<uint32_t>(itemSize);
 	dataSize_ = static_cast<uint32_t>(dataSize);
-	dataStamp_ += 1;
 	auto *parent = parentBuffer_;
 	while (parent) {
 		parent->dataSize_ = parent->dataSize_ + resizeAmount;
-		parent->dataStamp_ += 1;
 	}
 
 	// do the re-allocation of data slots.
 	dataOwner_->ownerResize();
+	nextStamp();
 
 	// copy over initial data if any
 	if (initialData) {
@@ -293,6 +308,7 @@ void ClientBuffer::resize_(
 			uint32_t offset = 0;
 			for (auto &segment : bufferSegments_) {
 				// resize each segment, copying over the data from old to new slot if size did not change.
+				// TODO: need to mark dirty each segment that moved in the buffer?
 				segment->resize_(
 					oldDataPtr0 + segment->dataOffset_,
 					oldDataPtr1 + segment->dataOffset_,
@@ -341,13 +357,23 @@ void ClientBuffer::writeUnlock(int dataSlot, bool hasDataChanged) const {
 		// consecutive reads will be done from this slot, next write will be done to the other slot.
 		// If the write operation did not change the data, the stamp is not incremented,
 		// and the last slot is not updated.
-		// TODO: need to record per-slot data stamp!
-		dataStamp_ += 1;
-		// Increase the stamp for all parent buffer ranges as well.
-		auto *parent = parentBuffer_;
-		while (parent) {
-			parent->dataStamp_ += 1;
-			parent = parent->parentBuffer_;
+		if (dataSlots_[1]) {
+			dataStamps_[dataSlot] = dataStamps_[1-dataSlot] + 1;
+			// Increase the stamp for all parent buffer ranges as well.
+			auto *parent = parentBuffer_;
+			while (parent) {
+				parent->dataStamps_[dataSlot] = parent->dataStamps_[1-dataSlot] + 1;
+				parent = parent->parentBuffer_;
+			}
+		} else {
+			// single-buffered mode, we just increment the stamp for the single slot.
+			dataStamps_[dataSlot] += 1;
+			// Increase the stamp for all parent buffer ranges as well.
+			auto *parent = parentBuffer_;
+			while (parent) {
+				parent->dataStamps_[dataSlot] += 1;
+				parent = parent->parentBuffer_;
+			}
 		}
 
 		if (isFrameLocked_) {
@@ -483,8 +509,8 @@ void ClientBuffer::createSecondSlot() {
 	auto data_w = new byte[dataSize_];
 	std::memcpy(data_w, dataSlots_[0], dataSize_);
 	dataSlots_[1] = data_w;
-	// TODO: Initialize second slot stamp to the same value as the first slot.
-	// dataStamps_[1] = dataStamps_[0];
+	// Initialize second slot stamp to the same value as the first slot.
+	dataStamps_[1] = dataStamps_[0];
 
 	// Assign second slot ptr's and offsets to all segments
 	for (auto &segment : bufferSegments_) {
