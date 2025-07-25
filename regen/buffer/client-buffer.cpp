@@ -97,8 +97,7 @@ MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode) const {
 	// we are in double-buffered mode, i.e. we have two slots.
 	// partial write can be expensive here!
 	// NOTE: no index mapping needed if there is only one vertex/array element
-	bool isFullWrite = (isDataOwner()
-		&& ((mapMode & ShaderData::INDEX) == 0 || (dataSize_ <= itemSize_)));
+	bool isFullWrite = ((mapMode & ShaderData::INDEX) == 0 || (dataSize_ <= itemSize_));
 	int w_index = dataOwner_->writeLock();
 	byte *data_w = dataSlots_[w_index];
 
@@ -112,12 +111,7 @@ MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode) const {
 			return { data_w, -1, data_w, w_index };
 		}
 	} else {
-		// Partial write case. This is kind of the default case for BOs where individual
-		// shader data is written to the buffer.
-		// FIXME: I think this is not feasible anymore because every write will be partial write in BOs,
-		//         we need to collect "clean" segments, and then in the central loop copy over the rest if needed.
-		// TODO: also need to add dirty ranges to avoid unnecessary copies.
-		// FIXME: especially because without after write swap we overwrite previous writes here!!!
+		// Individual vertex writing is requested.
 		int r_index = dataOwner_->readLock();
 		std::memcpy(data_w, dataSlots_[r_index], dataSize_);
 		dataOwner_->readUnlock(r_index);
@@ -216,8 +210,11 @@ void ClientBuffer::ownerResize() {
 	byte *oldData1 = dataSlots_[1];
 
 	// allocate new data slots.
-	// TODO: can be done better with realloc?
 	if (dataSlots_[0]) {
+		// TODO: Better avoid reallocation, and mae it faster if possible
+		// 		- using larger buffers
+		//      - using a pool allocator
+		//      - maybe fast re-allocation is possible?
 		REGEN_WARN("Re-allocating ClientBuffer data slots from "
 			<< allocatedSize_/1024.0f << " to " << dataSize_/1024.0f << " KiB.");
 	}
