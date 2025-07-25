@@ -23,9 +23,8 @@ void ModelMatrixMotion::getWorldTransform(btTransform &worldTrans) const {
 }
 
 void ModelMatrixMotion::setWorldTransform(const btTransform &worldTrans) {
-	auto regenData = modelMatrix_->mapClientData<Mat4f>(ShaderData::WRITE | ShaderData::INDEX);
-	auto &regenMat = regenData.w[index_];
-	worldTrans.getOpenGLMatrix((btScalar*) &regenMat.x);
+	auto regenData = modelMatrix_->mapClientVertex<Mat4f>(ShaderData::WRITE, index_);
+	worldTrans.getOpenGLMatrix((btScalar*) &regenData.w.x);
 }
 
 

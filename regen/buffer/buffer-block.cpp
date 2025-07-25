@@ -29,6 +29,10 @@ BufferBlock::BufferBlock(
 		  blockQualifier_(blockQualifier),
 		  memoryLayout_(memoryLayout),
 		  stagingFlags_(target, hints) {
+	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
+	isBufferBlock_ = true;
+	isVertexAttribute_ = false;
+	isVertexAttribute_ = false;
 	shared_ = ref_ptr<Shared>::alloc();
 	shared_->updateRange_ = UPDATE_RATE_RANGE;
 	shared_->f_updateRangeInv_ = 1.0f / static_cast<float>(UPDATE_RATE_RANGE);
@@ -70,6 +74,10 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  stagingFlags_(other.stagingFlags_),
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  shared_(other.shared_) {
+	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
+	isBufferBlock_ = true;
+	isVertexAttribute_ = false;
+	isVertexAttribute_ = false;
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 }
 
@@ -140,6 +148,10 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 			REGEN_WARN("BufferBlock: Unable to copy buffer object of unknown type.");
 		}
 	}
+	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
+	isBufferBlock_ = true;
+	isVertexAttribute_ = false;
+	isVertexAttribute_ = false;
 }
 
 BufferBlock::~BufferBlock() {

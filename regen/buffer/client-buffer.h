@@ -15,6 +15,8 @@ namespace regen {
 
 		virtual ~ClientBuffer();
 
+		ClientBuffer(const ClientBuffer &) = delete;
+
 		/**
 		 * Returns true if this attribute is allocated in RAM.
 		 */
@@ -23,6 +25,10 @@ namespace regen {
 		bool hasTwoSlots() const { return dataSlots_[1] != nullptr; }
 
 		inline bool isDataOwner() const { return dataOwner_ == this; }
+
+		uint32_t dataSize() const { return dataSize_; }
+
+		uint32_t itemSize() const { return itemSize_; }
 
 		/**
 		 * Obtains the client data without locking.
@@ -41,18 +47,24 @@ namespace regen {
 		 */
 		void nextStamp() const;
 
-		MappedData map(int mapMode) const;
+		MappedData mapRange(int32_t mapMode, uint32_t offset, uint32_t size) const;
 
-		void unmap(int mapMode, int slotIndex) const;
+		void unmapRange(
+				int32_t mapMode,
+				uint32_t offset,
+				uint32_t size,
+				int32_t slotIndex) const;
 
 		void resize(
 				size_t bufferSize,
 				size_t itemSize,
 				const byte *initialData = nullptr);
 
+		void flush();
+
 		void writeLockAll() const;
 
-		void writeUnlockAll(bool hasDataChanged) const;
+		void writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const;
 
 		/**
 		 * Deallocates data pointer owned by this instance.
@@ -104,19 +116,19 @@ namespace regen {
 
 		void readUnlock(int slotIndex);
 
-		int writeLock();
+		int writeLock_DoubleBuffer();
 
 		bool writeLock_SingleBuffer();
 
-		void writeUnlock(int slotIndex, bool hasDataChanged) const;
+		void writeUnlock(int32_t slotIndex, uint32_t writeOffset, uint32_t writeSize) const;
 
 		void markWrittenTo(uint32_t offset, uint32_t size) const;
 
-		MappedData mapClientData_SingleBuffer() const;
+		MappedData mapClientData_SingleBuffer(uint32_t offset, uint32_t size) const;
 
-		MappedData mapClientData_DoubleBuffer(int mapMode) const;
+		MappedData mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const;
 
-		MappedData mapClientData_ReadOnly() const;
+		MappedData mapClientData_ReadOnly(uint32_t offset, uint32_t size) const;
 
 		int lastDataSlot() const;
 

@@ -9,7 +9,6 @@ SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMa
 		            BufferBlock::BUFFER,
 		            BUFFER_MEMORY_STD430),
 		memoryMask_(memoryMask) {
-	initSSBO();
 }
 
 SSBO::SSBO(const BufferObject &other, const std::string &name) :
@@ -23,15 +22,6 @@ SSBO::SSBO(const BufferObject &other, const std::string &name) :
 	} else {
 		memoryMask_ = 0;
 	}
-	initSSBO();
-}
-
-void SSBO::initSSBO() {
-	enableInput_ = [this](GLint loc) {
-		enableBufferBlock(loc);
-	};
-	isBufferBlock_ = GL_TRUE;
-	isVertexAttribute_ = GL_FALSE;
 }
 
 void SSBO::write(std::ostream &out) const {

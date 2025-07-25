@@ -23,6 +23,8 @@ ClientBuffer::ClientBuffer() {
 	// initialize the writer flags to not set
 	writerFlags_[0].clear(std::memory_order_relaxed);
 	writerFlags_[1].clear(std::memory_order_relaxed);
+
+	lastDataSlot_.store(0, std::memory_order_relaxed);
 }
 
 ClientBuffer::~ClientBuffer() {
@@ -48,6 +50,15 @@ inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
     }
 }
 
+void ClientBuffer::flush() {
+	// TODO: IDEA:
+	//  - remember which ranges were written last frame
+	//  - remove all sub-ranges from this list that were written to this frame
+	//  - then for the remainder: copy data from read slot to write slot
+	//  - for each write segment with stamp < read segment stamp: set the stamp to read segment stamp
+	//  - finally swap read and write idx, new read idx should have newest data
+}
+
 void ClientBuffer::nextStamp() const {
 	dataStamps_[0] += 1;
 	dataStamps_[1] += 1;
@@ -59,21 +70,21 @@ void ClientBuffer::nextStamp() const {
 	}
 }
 
-MappedData ClientBuffer::map(int mapMode) const {
+MappedData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
 	if ((mapMode & ShaderData::WRITE) != 0) {
 		if (!hasTwoSlots()) {
 			// ClientBuffer in single-buffered mode.
-			return mapClientData_SingleBuffer();
+			return mapClientData_SingleBuffer(offset, size);
 		} else {
 			// ClientBuffer in double-buffered mode.
-			return mapClientData_DoubleBuffer(mapMode);
+			return mapClientData_DoubleBuffer(mapMode, offset, size);
 		}
 	} else {
-		return mapClientData_ReadOnly();
+		return mapClientData_ReadOnly(offset, size);
 	}
 }
 
-MappedData ClientBuffer::mapClientData_SingleBuffer() const {
+MappedData ClientBuffer::mapClientData_SingleBuffer(uint32_t offset, uint32_t /*size*/) const {
 	// ClientBuffer initially has only one slot, the second is allocated on demand in case
 	// multiple threads are concurrently reading/writing the data.
 	// here we keep writing to the active slot as long as no one has to wait,
@@ -84,7 +95,7 @@ MappedData ClientBuffer::mapClientData_SingleBuffer() const {
 	if (dataOwner_->writeLock_SingleBuffer()) {
 		// got the write lock, return the data.
 		// this means there are currently no readers, nor writers, so we can safely write to the active slot.
-		return { dataSlots_[0], -1, dataSlots_[0], 0 };
+		return { dataSlots_[0]+offset, -1, dataSlots_[0]+offset, 0 };
 	} else {
 		// write lock failed, which means there is another operation in progress.
 		// in this case we allocate the second slot, and copy the data from the first slot to it,
@@ -93,56 +104,61 @@ MappedData ClientBuffer::mapClientData_SingleBuffer() const {
 		if (dataSlots_[1] == nullptr) {
 			// second slot must be allocated by top-level data owner.
 			dataOwner_->createSecondSlot();
-			writeUnlock(0, false);
-			return { dataSlots_[1], -1, dataSlots_[1], 1 };
+			writeUnlock(0, 0, 0);
+			return { dataSlots_[1]+offset, -1, dataSlots_[1]+offset, 1 };
 		} else {
 			// someone else has already allocated the second slot
-			writeUnlockAll(false);
-			int w_index = dataOwner_->writeLock();
-			return { dataSlots_[w_index], -1, dataSlots_[w_index], w_index };
+			writeUnlockAll(0, 0);
+			int w_index = dataOwner_->writeLock_DoubleBuffer();
+			return { dataSlots_[w_index]+offset, -1, dataSlots_[w_index]+offset, w_index };
 		}
 	}
 }
 
-MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode) const {
+MappedData ClientBuffer::mapClientData_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const {
 	// we are in double-buffered mode, i.e. we have two slots.
 	// partial write can be expensive here!
 	// NOTE: no index mapping needed if there is only one vertex/array element
-	bool isFullWrite = ((mapMode & ShaderData::INDEX) == 0 || (dataSize_ <= itemSize_));
-	int w_index = dataOwner_->writeLock();
+	bool isFullWrite = (dataSize_ == size);
+	int w_index = dataOwner_->writeLock_DoubleBuffer();
 	byte *data_w = dataSlots_[w_index];
 
 	if (isFullWrite) {
 		// Note: if we are frame-locked, we skip the copy of read data,
 		//       as this is done only once per frame for the whole client buffer.
+		data_w += offset;
 		if ((mapMode & ShaderData::READ) != 0) {
 			// TODO: I do not think read lock is needed when having write lock,
 			//       because as long as there is a write lock on one slot it is certain the other slot can be read safely.
 			int r_index = dataOwner_->readLock();
-			return { dataSlots_[r_index], r_index, data_w, w_index };
+			return {
+				dataSlots_[r_index] + offset,
+				r_index, data_w, w_index };
 		} else {
 			return { data_w, -1, data_w, w_index };
 		}
 	} else {
 		// we swap after each write operation, and a partial write is required.
 		// make sure to copy the data from the read slot to the write slot before we do the swap.
-		// FIXME: In frame-locked mode this will overwrite data!!
-		//    --> use stamps to ensure that we do not overwrite data? will need to use > then
-		int r_index = dataOwner_->readLock();
-		std::memcpy(data_w, dataSlots_[r_index], dataSize_);
-		dataOwner_->readUnlock(r_index);
+		if (!isFrameLocked_) {
+			// copy the data from the read slot to the write slot.
+			int r_index = dataOwner_->readLock();
+			std::memcpy(data_w, dataSlots_[r_index], dataSize_);
+			dataOwner_->readUnlock(r_index);
+		}
+		data_w += offset;
 		return { data_w, -1, data_w, w_index };
 	}
 }
 
-MappedData ClientBuffer::mapClientData_ReadOnly() const {
+MappedData ClientBuffer::mapClientData_ReadOnly(uint32_t offset, uint32_t /*size*/) const {
 	// read only. the case of reading at index is not handled differently here.
 	if (!hasTwoSlots()) {
 		// we are still in single-buffered mode.
 		// first we try to get a read lock on the single slot.
 		if (dataOwner_->readLock_SingleBuffer()) {
 			// got the read lock, return the data.
-			return { dataSlots_[0], 0 };
+			return { dataSlots_[0] + offset, 0 };
 		} else {
 			// read lock failed, which means there is a write operation in progress.
 			// in this case we allocate the second slot, and copy the data from the first slot to it,
@@ -150,21 +166,18 @@ MappedData ClientBuffer::mapClientData_ReadOnly() const {
 			writeLockAll();
 			if (dataSlots_[1] == nullptr) {
 				dataOwner_->createSecondSlot();
-				writeUnlock(0, false);
-				writeUnlock(1, true);
-			} else {
-				writeUnlockAll(false);
 			}
+			writeUnlockAll(0, 0);
 		}
 	}
 	// read lock in double-buffered mode.
 	int r_index = dataOwner_->readLock();
-	return { dataSlots_[r_index], r_index };
+	return { dataSlots_[r_index] + offset, r_index };
 }
 
-void ClientBuffer::unmap(int mapMode, int slotIndex) const {
+void ClientBuffer::unmapRange(int32_t mapMode, uint32_t writeOffset, uint32_t writeSize, int32_t slotIndex) const {
 	if ((mapMode & ShaderData::WRITE) != 0) {
-		writeUnlock(slotIndex, true);
+		writeUnlock(slotIndex, writeOffset, writeSize);
 	} else {
 		dataOwner_->readUnlock(slotIndex);
 	}
@@ -189,8 +202,6 @@ void ClientBuffer::deallocateClientData() {
 		segment->deallocateClientData();
 	}
 	dataOffset_ = 0u;
-	dataSize_ = 0u;
-	itemSize_ = 0u;
 	allocatedSize_ = 0u;
 }
 
@@ -346,13 +357,13 @@ void ClientBuffer::writeLockAll() const {
 	}
 }
 
-void ClientBuffer::writeUnlockAll(bool hasDataChanged) const {
-	writeUnlock(1, false);
-	writeUnlock(0, hasDataChanged);
+void ClientBuffer::writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const {
+	writeUnlock(1, writeOffset, 0);
+	writeUnlock(0, writeOffset, writeSize);
 }
 
-void ClientBuffer::writeUnlock(int dataSlot, bool hasDataChanged) const {
-	if (hasDataChanged) {
+void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t writeSize) const {
+	if (writeSize > 0u) {
 		// increment the data stamp, and remember the last slot that was written to.
 		// consecutive reads will be done from this slot, next write will be done to the other slot.
 		// If the write operation did not change the data, the stamp is not incremented,
@@ -380,7 +391,7 @@ void ClientBuffer::writeUnlock(int dataSlot, bool hasDataChanged) const {
 			// If frame-locked, the swap to the other slot is done centrally, not on write unlock.
 			// But we still need to remember which data range was written to this frame.
 			// This is done to avoid unnecessary copies.
-			markWrittenTo(0, dataSize_);
+			markWrittenTo(writeOffset, writeSize);
 		} else {
 			// swap to the other slot.
 			lastDataSlot_.store(dataSlot, std::memory_order_release);
@@ -462,7 +473,7 @@ void ClientBuffer::readUnlock(int dataSlot) {
 	readerCounts_[dataSlot].fetch_sub(1, std::memory_order_relaxed);
 }
 
-int ClientBuffer::writeLock() {
+int ClientBuffer::writeLock_DoubleBuffer() {
 	while (true) {
 		// get the current slot index for writing.
 		// note that every writer will flip the slot index, so we need to keep loading

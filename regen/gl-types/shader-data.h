@@ -12,9 +12,7 @@ namespace regen::ShaderData {
 	 */
 	enum MappingMode {
 		READ = 1 << 0,
-		WRITE = 1 << 1,
-		// indicates that only a single vertex is mapped
-		INDEX = 1 << 2
+		WRITE = 1 << 1
 	};
 }
 
@@ -29,7 +27,14 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_rw(ClientBuffer *clientBuffer, int mapMode);
+		ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size);
+
+		/**
+		 * Default constructor.
+		 * @param input the shader input.
+		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
+		 */
+		ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode);
 
 		~ShaderDataRaw_rw();
 
@@ -53,7 +58,9 @@ namespace regen {
 		ClientBuffer *clientBuffer;
 		int r_index;
 		int w_index;
-		const int mapMode;
+		const int32_t mapMode;
+		const uint32_t mapOffset;
+		const uint32_t mapSize;
 
 		friend class ShaderInput;
 	};
@@ -68,7 +75,14 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int mapMode);
+		ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size);
+
+		/**
+		 * Default constructor.
+		 * @param input the shader input.
+		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
+		 */
+		ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode);
 
 		~ShaderDataRaw_ro();
 
@@ -87,7 +101,9 @@ namespace regen {
 	private:
 		const ClientBuffer *clientBuffer;
 		int r_index;
-		const int mapMode;
+		const int32_t mapMode;
+		const uint32_t mapOffset;
+		const uint32_t mapSize;
 
 		friend class ShaderInput;
 	};
@@ -103,8 +119,8 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderData_rw(ClientBuffer *clientBuffer, int mapMode)
-				: rawData(clientBuffer, mapMode),
+		ShaderData_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size)
+				: rawData(clientBuffer, mapMode, offset, size),
 				  r(reinterpret_cast<const T *>(rawData.r)),
 				  w(reinterpret_cast<T *>(rawData.w)) {
 		}
@@ -122,7 +138,7 @@ namespace regen {
 		 * @return a null data object.
 		 */
 		static ShaderData_rw<T> nullData() {
-			return ShaderData_rw<T>(nullptr, 0);
+			return ShaderData_rw<T>(nullptr, 0, 0, 0);
 		}
 
 	private:
@@ -151,8 +167,8 @@ namespace regen {
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderData_ro(ClientBuffer *clientBuffer, int mapMode)
-				: rawData(clientBuffer, mapMode),
+		ShaderData_ro(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size)
+				: rawData(clientBuffer, mapMode, offset, size),
 				  r(reinterpret_cast<const T *>(rawData.r)) {
 		}
 
@@ -187,10 +203,12 @@ namespace regen {
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_rw(ClientBuffer *clientBuffer, int mapMode, unsigned int vertexIndex)
-				: rawData(clientBuffer, mapMode | ShaderData::INDEX),
-				  r(((const T *) rawData.r)[vertexIndex]),
-				  w(((T *) rawData.w)[vertexIndex]) {
+		ShaderVertex_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t vertexIndex)
+				: rawData(clientBuffer, mapMode,
+						clientBuffer->itemSize() * vertexIndex,
+						clientBuffer->itemSize()),
+				  r(((const T *) rawData.r)[0]),
+				  w(((T *) rawData.w)[0]) {
 		}
 
 		// do not allow copying
@@ -228,9 +246,11 @@ namespace regen {
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_ro(const ClientBuffer *clientBuffer, int mapMode, unsigned int vertexIndex)
-				: rawData(clientBuffer, mapMode | ShaderData::INDEX),
-				  r(((const T *) rawData.r)[vertexIndex]) {
+		ShaderVertex_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t vertexIndex)
+				: rawData(clientBuffer, mapMode,
+						clientBuffer->itemSize() * vertexIndex,
+						clientBuffer->itemSize()),
+				  r(((const T *) rawData.r)[0]) {
 		}
 
 		// do not allow copying

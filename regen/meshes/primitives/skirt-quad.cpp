@@ -65,10 +65,10 @@ void SkirtQuad::addSkirt(Tessellation &tessellation) {
 	// Finally, add skirt triangles: for each boundary edge, create two triangles.
     // Iterate over the original faces to avoid winding issues (probably can be improved).
     for (const auto &face : tessellation.outputFaces) {
-        Edge edges[3] = {
-            {face.v1, face.v2},
-            {face.v2, face.v3},
-            {face.v3, face.v1}
+        const Edge edges[3] = {
+            Edge{face.v1, face.v2},
+            Edge{face.v2, face.v3},
+            Edge{face.v3, face.v1}
         };
         for (const auto &edge : edges) {
             if (boundaryEdges.find(makeEdge(edge.first, edge.second)) != boundaryEdges.end()) {

@@ -79,8 +79,6 @@ namespace regen {
 
 	private:
 		int memoryMask_ = 0;
-
-		void initSSBO();
 	};
 } // namespace
 

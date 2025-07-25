@@ -342,13 +342,33 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		ShaderDataRaw_rw mapClientDataRaw(int mapMode) { return {&clientBuffer_, mapMode}; }
+		inline ShaderDataRaw_rw mapClientDataRaw(int32_t mapMode) {
+			return {&clientBuffer_, mapMode, 0, inputSize_};
+		}
 
 		/**
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		ShaderDataRaw_ro mapClientDataRaw(int mapMode) const { return {&clientBuffer_, mapMode}; }
+		inline ShaderDataRaw_rw mapClientDataRaw(int32_t mapMode, uint32_t offset, uint32_t size) {
+			return {&clientBuffer_, mapMode, offset, size};
+		}
+
+		/**
+		 * Map client data for reading/writing.
+		 * @return the mapped data.
+		 */
+		inline ShaderDataRaw_ro mapClientDataRaw(int32_t mapMode) const {
+			return {&clientBuffer_, mapMode, 0, inputSize_};
+		}
+
+		/**
+		 * Map client data for reading/writing.
+		 * @return the mapped data.
+		 */
+		inline ShaderDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t offset, uint32_t size) const {
+			return {&clientBuffer_, mapMode, offset, size};
+		}
 
 		/**
 		 * Map client data for reading/writing.
@@ -357,7 +377,9 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_rw<T> mapClientData(int mapMode) { return {&clientBuffer_, mapMode}; }
+		ShaderData_rw<T> mapClientData(int32_t mapMode) {
+			return { &clientBuffer_, mapMode, 0, inputSize_ };
+		}
 
 		/**
 		 * Map client data for reading/writing.
@@ -366,7 +388,31 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_ro<T> mapClientData(int mapMode) const { return {&clientBuffer_, mapMode}; }
+		ShaderData_rw<T> mapClientData(int32_t mapMode, uint32_t offset, uint32_t size) {
+			return { &clientBuffer_, mapMode, offset, size };
+		}
+
+		/**
+		 * Map client data for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @return the mapped data.
+		 */
+		template<typename T>
+		ShaderData_ro<T> mapClientData(int32_t mapMode) const {
+			return {&clientBuffer_, mapMode, 0, inputSize_};
+		}
+
+		/**
+		 * Map client data for reading/writing.
+		 * @tparam T the data type.
+		 * @param mapMode the map mode.
+		 * @return the mapped data.
+		 */
+		template<typename T>
+		ShaderData_ro<T> mapClientData(int32_t mapMode, uint32_t offset, uint32_t size) const {
+			return {&clientBuffer_, mapMode, offset, size};
+		}
 
 		/**
 		 * Map a single vertex for reading/writing.
@@ -376,7 +422,7 @@ namespace regen {
 		 * @return the mapped vertex.
 		 */
 		template<typename T>
-		ShaderVertex_rw<T> mapClientVertex(int mapMode, unsigned int vertexIndex) {
+		ShaderVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
 			return {&clientBuffer_, mapMode, vertexIndex};
 		}
 
@@ -388,7 +434,7 @@ namespace regen {
 		 * @return the mapped vertex.
 		 */
 		template<typename T>
-		ShaderVertex_ro<T> mapClientVertex(int mapMode, unsigned int vertexIndex) const {
+		ShaderVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
 			return {&clientBuffer_, mapMode, vertexIndex};
 		}
 
@@ -636,8 +682,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const StructType &val) {
-			auto mapped = mapClientData<StructType>(ShaderData::WRITE | ShaderData::INDEX);
-			mapped.w[i] = val;
+			mapClientVertex<StructType>(ShaderData::WRITE, i).w = val;
 		}
 
 		/**
@@ -707,8 +752,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const ValueType &val) {
-			auto mapped = mapClientData<ValueType>(ShaderData::WRITE | ShaderData::INDEX);
-			mapped.w[i] = val;
+			mapClientVertex<ValueType>(ShaderData::WRITE, i).w = val;
 		}
 
 		/**
@@ -819,8 +863,8 @@ namespace regen {
 				bool normalize = false);
 
 		void setVertex3(GLuint i, const Vec3f &val) {
-			auto mapped = mapClientData<Vec4f>(ShaderData::WRITE | ShaderData::INDEX);
-			mapped.w[i].xyz_() = val;
+			auto mapped = mapClientVertex<Vec4f>(ShaderData::WRITE, i);
+			mapped.w.xyz_() = val;
 		}
 	};
 
