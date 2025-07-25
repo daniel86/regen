@@ -86,8 +86,8 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 	enableInput_ = o.enableInput_;
 	// copy client data, if any
 	if (o.hasClientData()) {
-		auto mapped = o.clientBuffer_.mapClientData(ShaderData::READ);
-		clientBuffer_.resizeClientBuffer(inputSize_, elementSize_, mapped.r);
+		auto mapped = o.clientBuffer_.map(ShaderData::READ); // FIXME: unmap must be called
+		clientBuffer_.resize(inputSize_, elementSize_, mapped.r);
 	}
 }
 
@@ -95,7 +95,6 @@ ShaderInput::~ShaderInput() {
 	if (bufferIterator_.get()) {
 		BufferObject::orphanBufferRange(bufferIterator_.get());
 	}
-	deallocateClientData();
 }
 
 GLenum ShaderInput::dataType() const {
@@ -177,7 +176,6 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 	if (dataSize_bytes != inputSize_ || isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_.writeLockAll();
-		clientBuffer_.resizeClientBuffer(dataSize_bytes, elementSize_);
 		isVertexAttribute_ = false;
 		numInstances_ = std::max(1u, numInstances);
 		divisor_ = std::max(1u, divisor);
@@ -185,7 +183,8 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		numElements_ui_ = numArrayElements_ * numInstances_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		inputSize_ = dataSize_bytes;
-		clientBuffer_.writeUnlockAll(clientBuffer_.writeClientData(data));
+		clientBuffer_.resize(dataSize_bytes, elementSize_, data);
+		clientBuffer_.writeUnlockAll(data != nullptr); // TODO: why not always true?
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -198,7 +197,6 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 	if (dataSize_bytes != inputSize_ || !isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_.writeLockAll();
-		clientBuffer_.resizeClientBuffer(dataSize_bytes, elementSize_);
 		isVertexAttribute_ = true;
 		numInstances_ = 1u;
 		divisor_ = 0u;
@@ -206,7 +204,8 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		numElements_ui_ = numArrayElements_ * numVertices_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		inputSize_ = dataSize_bytes;
-		clientBuffer_.writeUnlockAll(clientBuffer_.writeClientData(data));
+		clientBuffer_.resize(dataSize_bytes, elementSize_, data);
+		clientBuffer_.writeUnlockAll(data != nullptr); // TODO: why not always true?
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ShaderData::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -215,7 +214,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 
 void ShaderInput::writeServerData(GLuint index) const {
 	if (!hasClientData() || !hasServerData()) return;
-	auto mappedClientData = clientBuffer_.mapClientData(ShaderData::READ);
+	auto mappedClientData = clientBuffer_.map(ShaderData::READ); // FIXME: unmap must be called
 	auto clientData = mappedClientData.r;
 	auto subDataStart = clientData + elementSize_ * index;
 	glNamedBufferSubData(
@@ -228,7 +227,7 @@ void ShaderInput::writeServerData(GLuint index) const {
 void ShaderInput::writeServerData() const {
 	if (!hasClientData() || !hasServerData()) return;
 	if (bufferStamp_ == stamp()) return;
-	auto mappedClientData = clientBuffer_.mapClientData(ShaderData::READ);
+	auto mappedClientData = clientBuffer_.map(ShaderData::READ); // FIXME: unmap must be called
 	auto clientData = mappedClientData.r;
 	auto count = std::max(numVertices_, numInstances_);
 
@@ -248,7 +247,7 @@ void ShaderInput::writeServerData() const {
 
 void ShaderInput::readServerData() {
 	if (!hasServerData()) return;
-	auto mappedClientData = clientBuffer_.mapClientData(ShaderData::WRITE);
+	auto mappedClientData = clientBuffer_.map(ShaderData::WRITE); // FIXME: unmap must be called
 	auto clientData = mappedClientData.w;
 
 	byte *serverData = (byte *) glMapNamedBufferRange(
@@ -375,10 +374,10 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 	if (in->hasClientData()) {
 		// allocate memory for one slot, copy most recent data
 		if (copyData) {
-			auto mapped = in->clientBuffer_.mapClientData(ShaderData::READ);
-			cp->clientBuffer_.resizeClientBuffer(in->inputSize_, in->elementSize_, mapped.r);
+			auto mapped = in->clientBuffer_.map(ShaderData::READ); // FIXME: unmap must be called
+			cp->clientBuffer_.resize(in->inputSize_, in->elementSize_, mapped.r);
 		} else {
-			cp->clientBuffer_.resizeClientBuffer(in->inputSize_, in->elementSize_);
+			cp->clientBuffer_.resize(in->inputSize_, in->elementSize_);
 		}
 	}
 	return cp;

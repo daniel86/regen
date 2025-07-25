@@ -6,7 +6,7 @@ using namespace regen;
 ShaderDataRaw_rw::ShaderDataRaw_rw(ClientBuffer *clientBuffer, int mapMode) :
 	clientBuffer(clientBuffer), mapMode(mapMode) {
 	if (clientBuffer) {
-		auto mapped = clientBuffer->mapClientData(mapMode);
+		auto mapped = clientBuffer->map(mapMode);
 		r = mapped.r;
 		w = mapped.w;
 		r_index = mapped.r_index;
@@ -21,20 +21,20 @@ ShaderDataRaw_rw::ShaderDataRaw_rw(ClientBuffer *clientBuffer, int mapMode) :
 
 ShaderDataRaw_rw::~ShaderDataRaw_rw() {
 	if (w_index >= 0) {
-		clientBuffer->unmapClientData(ShaderData::WRITE, w_index);
+		clientBuffer->unmap(ShaderData::WRITE, w_index);
 	}
 	if (r_index >= 0 && r_index != w_index) {
-		clientBuffer->unmapClientData(ShaderData::READ, r_index);
+		clientBuffer->unmap(ShaderData::READ, r_index);
 	}
 }
 
 void ShaderDataRaw_rw::unmap() {
 	if (w_index >= 0) {
-		clientBuffer->unmapClientData(ShaderData::WRITE, w_index);
+		clientBuffer->unmap(ShaderData::WRITE, w_index);
 		w_index = -1;
 	}
 	if (r_index >= 0 && r_index != w_index) {
-		clientBuffer->unmapClientData(ShaderData::READ, r_index);
+		clientBuffer->unmap(ShaderData::READ, r_index);
 		r_index = -1;
 	}
 }
@@ -44,7 +44,7 @@ void ShaderDataRaw_rw::unmap() {
 ShaderDataRaw_ro::ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int mapMode) :
 	clientBuffer(clientBuffer), mapMode(mapMode) {
 	if (clientBuffer) {
-		auto mapped = clientBuffer->mapClientData(mapMode);
+		auto mapped = clientBuffer->map(mapMode);
 		r = mapped.r;
 		r_index = mapped.r_index;
 	} else {
@@ -55,13 +55,13 @@ ShaderDataRaw_ro::ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int mapMode
 
 ShaderDataRaw_ro::~ShaderDataRaw_ro() {
 	if (r_index >= 0) {
-		clientBuffer->unmapClientData(ShaderData::READ, r_index);
+		clientBuffer->unmap(ShaderData::READ, r_index);
 	}
 }
 
 void ShaderDataRaw_ro::unmap() {
 	if (r_index >= 0) {
-		clientBuffer->unmapClientData(ShaderData::READ, r_index);
+		clientBuffer->unmap(ShaderData::READ, r_index);
 		r_index = -1;
 	}
 }
