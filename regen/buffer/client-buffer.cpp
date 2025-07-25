@@ -51,12 +51,41 @@ inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
 }
 
 void ClientBuffer::flush() {
-	// TODO: IDEA:
-	//  - remember which ranges were written last frame
-	//  - remove all sub-ranges from this list that were written to this frame
-	//  - then for the remainder: copy data from read slot to write slot
-	//  - for each write segment with stamp < read segment stamp: set the stamp to read segment stamp
-	//  - finally swap read and write idx, new read idx should have newest data
+	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
+	int32_t lastWriteSlot = (dataSlots_[1] ? 1 - lastReadSlot : lastReadSlot);
+
+	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
+	auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
+	// Merge overlapping segments, and sort along offsets.
+	dirtyThisFrame.coalesce();
+	// Delete all dirty ranges from the last read slot that have been written to this frame.
+	// It is certain that both dirty lists are coalesced, so calling subtract is safe.
+	dirtyLastFrame.subtract(dirtyThisFrame);
+
+	// Remaining are the ranges where data in the write slot is not up-to-date with the read slot,
+	// hence we copy it over.
+	for (uint32_t rangeIdx=0; rangeIdx < dirtyLastFrame.count(); ++rangeIdx) {
+		const auto &range = dirtyLastFrame.ranges()[rangeIdx];
+		// Copy the data from the read slot to the write slot.
+		std::memcpy(
+			dataSlots_[lastWriteSlot] + range.offset,
+			dataSlots_[lastReadSlot] + range.offset,
+			range.size);
+	}
+
+	// For each write segment with stamp < read segment stamp: set the stamp to read segment stamp,
+	// as we have synced the data above.
+	for (auto &segment : bufferSegments_) {
+		if (segment->dataStamps_[lastWriteSlot] < dataStamps_[lastReadSlot]) {
+			segment->dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
+		}
+	}
+
+	// clear dirty lists for the last read slot, such that it can be reused
+	// next frame for writing.
+	dirtyLists_[lastReadSlot].clear();
+	// Finally swap read and write idx, new read idx should have new data for reading next frame.
+	lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
 }
 
 void ClientBuffer::nextStamp() const {
@@ -391,7 +420,7 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 			// If frame-locked, the swap to the other slot is done centrally, not on write unlock.
 			// But we still need to remember which data range was written to this frame.
 			// This is done to avoid unnecessary copies.
-			markWrittenTo(writeOffset, writeSize);
+			markWrittenTo(dataSlot, writeOffset, writeSize);
 		} else {
 			// swap to the other slot.
 			lastDataSlot_.store(dataSlot, std::memory_order_release);
@@ -407,16 +436,14 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 	dataOwner_->writerFlags_[dataSlot].clear(std::memory_order_relaxed);
 }
 
-void ClientBuffer::markWrittenTo(uint32_t offset, uint32_t size) const {
+void ClientBuffer::markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const {
 	auto *parent = parentBuffer_;
 	// compute global offset
 	while (parent) {
 		offset += parent->dataOffset_;
 		parent = parent->parentBuffer_;
 	}
-	// TODO: Mark global range as dirty.
-	REGEN_WARN("todo: mark dirty range: " << offset << " size: " << size);
-	//dirtyList.add({offset, size});
+	dataOwner_->dirtyLists_[slotIdx].insert(offset, size);
 }
 
 ////////////////////

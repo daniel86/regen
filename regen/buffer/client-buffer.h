@@ -7,6 +7,7 @@
 #include <regen/regen.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/buffer/mapped-client-data.h>
+#include "regen/utility/dirty-list.h"
 
 namespace regen {
 	class ClientBuffer {
@@ -101,6 +102,8 @@ namespace regen {
 		std::atomic_flag writerFlags_[2] = {ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT};
 		// indicator to writes to the data slots
 		mutable uint32_t dataStamps_[2] = {0u,0u};
+		// stores the ranges written to in the current and last frame if frame-locked
+		DirtyList dirtyLists_[2] = {};
 
 		// TODO remove these
 		mutable bool requiresReUpload_ = false;
@@ -122,7 +125,7 @@ namespace regen {
 
 		void writeUnlock(int32_t slotIndex, uint32_t writeOffset, uint32_t writeSize) const;
 
-		void markWrittenTo(uint32_t offset, uint32_t size) const;
+		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
 
 		MappedData mapClientData_SingleBuffer(uint32_t offset, uint32_t size) const;
 
