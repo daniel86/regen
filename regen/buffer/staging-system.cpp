@@ -703,7 +703,9 @@ void StagingSystem::Arena::remove(const BlockPtr &bo) {
 	// remove the block from the arena
 	auto it = std::find(bufferObjects.begin(), bufferObjects.end(), ManagedBO{bo});
 	if (it != bufferObjects.end()) {
-		freeList->release(it->stagedSize, it->stagedOffset);
+		if (freeList.get()) {
+			freeList->release(it->stagedSize, it->stagedOffset);
+		}
 		bufferObjects.erase(it);
 		bo->resetStagingBuffer(false);
 		REGEN_INFO("Removed buffer block '" << bo->getBlockName() << "'"
