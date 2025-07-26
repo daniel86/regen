@@ -10,8 +10,6 @@ using namespace regen;
 
 // Microseconds to sleep per loop in idle mode.
 #define IDLE_SLEEP 100000
-// Synchronize animation and render thread.
-#define SYNCHRONIZE_THREADS
 
 AnimationManager &AnimationManager::get() {
 	static AnimationManager manager;
@@ -222,9 +220,9 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 }
 
 void AnimationManager::flushGraphics() {
-#ifdef SYNCHRONIZE_THREADS
 	frameBarrier_.arrive_and_wait();
-#endif
+	//StagingSystem::instance().swapClientData();
+	//frameBarrier_.arrive_and_wait();
 }
 
 void AnimationManager::runUnsynchronized(Animation *animation) const {
@@ -270,11 +268,7 @@ void AnimationManager::run() {
 		time_ = boost::posix_time::ptime(
 				boost::posix_time::microsec_clock::local_time());
 
-		if (pauseFlag_ || synchronizedAnimations_.empty()) {
-#ifndef SYNCHRONIZE_THREADS
-			usleepRegen(IDLE_SLEEP);
-#endif // SYNCHRONIZE_THREADS
-		} else {
+		if (!pauseFlag_ && !synchronizedAnimations_.empty()) {
 			double dt = ((GLdouble) (time_ - lastTime_).total_microseconds()) / 1000.0;
 
 			// wait for remove/add to return
@@ -304,15 +298,12 @@ void AnimationManager::run() {
 				index.second->update(static_cast<float>(dt));
 			}
 			animInProgress_ = false;
-#ifndef SYNCHRONIZE_THREADS
-			if(dt<10) usleepRegen((10-dt) * 1000);
-#endif // SYNCHRONIZE_THREADS
 		}
-		lastTime_ = time_;
 
-#ifdef SYNCHRONIZE_THREADS
+		lastTime_ = time_;
 		frameBarrier_.arrive_and_wait();
-#endif // SYNCHRONIZE_THREADS
+		// Wait for staging system to swap.
+		//frameBarrier_.arrive_and_wait();
 	}
 }
 

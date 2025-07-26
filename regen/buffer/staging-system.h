@@ -104,6 +104,8 @@ namespace regen {
 		 */
 		void updateData(float dt_ms = 0.0f);
 
+		void swapClientData();
+
 		/**
 		 * \brief Clear the staging system.
 		 *

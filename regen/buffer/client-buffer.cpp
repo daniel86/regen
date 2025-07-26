@@ -48,7 +48,7 @@ void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 }
 **/
 
-void ClientBuffer::flush() {
+void ClientBuffer::swapData() {
 	// flushing is only needed if the buffer is frame-locked.
 	if (!isFrameLocked_) return;
 

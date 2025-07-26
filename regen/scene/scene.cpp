@@ -439,6 +439,10 @@ void Scene::updateGL() {
 
 void Scene::flushGL() {
 	AnimationManager::get().flushGraphics();
+	// TODO: Consider doing this in animation thread. but we do not want to switch within a frame!
+	//    - could also be that animation thread is mid of frame, and did not update yet.
+	//    - idea: use the same barrier for syncing threads twice. they could even share doing the swaps.
+	StagingSystem::instance().swapClientData();
 }
 
 namespace regen {

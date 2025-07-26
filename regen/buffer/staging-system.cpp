@@ -513,6 +513,17 @@ void StagingSystem::updateData(float dt_ms) {
 #endif
 }
 
+void StagingSystem::swapClientData() {
+	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
+		auto &arena = arenas_[arenaIdx];
+		if (!arena) continue; // skip uninitialized arenas
+
+		for (auto &managed: arena->bufferObjects) {
+			managed.bo->clientBuffer().swapData();
+		}
+	}
+}
+
 bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate) {
 	managed.maxUpdateRate = std::max(boUpdateRate, managed.maxUpdateRate);
 

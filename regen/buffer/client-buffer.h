@@ -101,7 +101,7 @@ namespace regen {
 		 * This will first ensure that the current write slot has all the most recent data,
 		 * and secondly, it swaps the read and write slots.
 		 */
-		void flush();
+		void swapData();
 
 		void writeLockAll() const;
 
