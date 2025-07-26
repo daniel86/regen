@@ -77,7 +77,6 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
-	isVertexAttribute_ = false;
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 }
 
@@ -198,22 +197,11 @@ void BufferBlock::prepareRebind(GLint loc) {
 		if (actual.buffer_ == drawBufferRef_->bufferID() &&
 			actual.offset_ == drawBufferRef_->address() &&
 			actual.size_ == drawBufferRef_->allocatedSize()) {
-			//REGEN_INFO("Rebinding buffer block " << getBlockName()
+			//REGEN_INFO("Rebinding buffer block " << name()
 			//	<< " from binding index " << bindingIndex_ << " to " << loc);
 			rs->bufferRange(glTarget_).apply(bindingIndex_, BufferRange::nullReference());
 			bindingIndex_ = -1;
 		}
-	}
-}
-
-std::string BufferBlock::getBlockName() const {
-	auto *si = dynamic_cast<const ShaderInput *>(this);
-	if (si != nullptr) {
-		return si->name();
-	} else if (!blockInputs_.empty()) {
-		return REGEN_STRING("{" << blockInputs_[0]->input->name() << "}");
-	} else {
-		return "BufferBlock";
 	}
 }
 
@@ -738,7 +726,7 @@ void BufferBlock::updateDrawBuffer() {
 	REGEN_INFO("Created "
 					   << StagingBuffer::getBufferSizeClass(requiredSize_)
 					   << " " << stagingFlags_.target
-					   << " \"" << getBlockName() << "\" with"
+					   << " \"" << name() << "\" with"
 					   << " " << requiredSize_ / 1024.0 << " Kib"
 					   << " BO: " << drawBufferRef_->bufferID()
 					   << " at: " << drawBufferRef_->address());
@@ -790,7 +778,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			shared_->stagingBuffer_->resizeBuffer(requiredSize_, 2);
 			shared_->isGloballyStaged_ = false;
 			REGEN_INFO("Using local staging for block \""
-							   << getBlockName() << "\" with size " << requiredSize_ / 1024.0 << " Kib"
+							   << name() << "\" with size " << requiredSize_ / 1024.0 << " Kib"
 							   << " and " << shared_->stagingBuffer_->numBufferSegments()
 							   << " segments.");
 			REGEN_INFO("Local staging flags: " << stagingFlags_);
@@ -805,7 +793,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 			const uint32_t currentNumSegments = shared_->stagingBuffer_->numBufferSegments();
 			const uint32_t desiredNumSegments = currentNumSegments + 1;
 			REGEN_INFO("Resizing local staging buffer for block \""
-							   << getBlockName() << "\" to " << desiredNumSegments
+							   << name() << "\" to " << desiredNumSegments
 							   << " segments due to high stall rate.");
 			if (desiredNumSegments < shared_->stagingBuffer_->maxRingSegments()) {
 				shared_->stagingBuffer_->resizeBuffer(
@@ -838,7 +826,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		// Copy from draw buffer to the staging buffer, then read from the staging buffer into CPU memory.
 		if (!updateReadBuffer()) {
 			REGEN_WARN("Failed to update read buffer for block \""
-							   << getBlockName() << "\". This is likely a bug, buffer object will be disabled."
+							   << name() << "\". This is likely a bug, buffer object will be disabled."
 							   << " Staging flags: " << stagingFlags_ << ".");
 			isBlockValid_ = false;
 		}
@@ -855,7 +843,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		}
 	} else if (stagingFlags_.useExplicitStaging()) {
 		REGEN_WARN("No client data to update BO \""
-						   << getBlockName() << "\". This is likely a bug, buffer object will be disabled."
+						   << name() << "\". This is likely a bug, buffer object will be disabled."
 						   << " Staging flags: " << stagingFlags_ << ".");
 		isBlockValid_ = false;
 	}

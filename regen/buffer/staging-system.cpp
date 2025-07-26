@@ -163,7 +163,7 @@ ref_ptr<StagingBuffer> StagingSystem::addBufferBlock(const BlockPtr &block) {
 	}
 
 	if (selectedArena == nullptr) {
-		REGEN_INFO("BO '" << block->getBlockName() << "' could not be added to staging arenas. "
+		REGEN_INFO("BO '" << block->name() << "' could not be added to staging arenas. "
 						  << "No suitable arena found for flags: " << flags);
 		return {};
 	} else {
@@ -345,10 +345,10 @@ StagingSystem::Arena *StagingSystem::addToArena(const BlockPtr &block, ArenaType
 	// disable swapping for the staging buffer, we do it manually in the staging system
 	targetArena->stagingBuffer->setSwappingOnAccess(false);
 	if (isMoved) {
-		REGEN_INFO("Moved \"" << block->getBlockName()
+		REGEN_INFO("Moved \"" << block->name()
 			<< "\" to \"" << targetArena->type << "\" arena.");
 	} else {
-		REGEN_INFO("Added \"" << block->getBlockName()
+		REGEN_INFO("Added \"" << block->name()
 			<< "\" to \"" << targetArena->type << "\" arena.");
 	}
 	return targetArena;
@@ -375,7 +375,7 @@ void StagingSystem::updateBuffers() {
 			managed.bo->updateDrawBuffer();
 			if (!managed.bo->isBlockValid()) {
 				// something went wrong when updating the draw buffer.
-				REGEN_WARN("Draw buffer of \"" << managed.bo->getBlockName()
+				REGEN_WARN("Draw buffer of \"" << managed.bo->name()
 											   << "\" is not valid. Skipping it in \"" << arena->type << "\" arena.");
 				managed.bo = nullptr; // mark as invalid
 				managed.isStaged = false;
@@ -421,7 +421,7 @@ void StagingSystem::updateBuffers() {
 					Arena::setStagingOffset(managed, offset, boAlignedSize);
 				} else {
 					REGEN_WARN("Failed to reserve staging space for buffer object '"
-									   << managed.bo->getBlockName() << "' in \"" << arena->type << "\" arena"
+									   << managed.bo->name() << "' in \"" << arena->type << "\" arena"
 									   << ". The arena will be disabled.");
 					delete arena; // delete the arena
 					arenas_[arenaIdx] = nullptr;
@@ -604,7 +604,7 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 				} else if (!arena->reserve(managed, boAlignedSize)) {
 					// force resize of the arena, as BO could not reserve memory in the staging arena.
 					forceResize = true;
-					REGEN_INFO("BO '" << managed.bo->getBlockName()
+					REGEN_INFO("BO '" << managed.bo->name()
 									  << "' is too large in \"" << arena->type << "\" arena");
 				}
 			}
@@ -617,12 +617,12 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 			if (!arena->reserve(managed, boAlignedSize)) {
 				// force resize of the arena, as BO could not reserve memory in the staging arena.
 				forceResize = true;
-				REGEN_INFO("BO '" << managed.bo->getBlockName()
+				REGEN_INFO("BO '" << managed.bo->name()
 									  << "' is too large in \"" << arena->type << "\" arena");
 			} else {
 				// successfully reserved new space, update the unaligned size
 				arena->unalignedSize += boAlignedSize;
-				REGEN_INFO("Moved '" << managed.bo->getBlockName()
+				REGEN_INFO("Moved '" << managed.bo->name()
 										<< "' within \"" << arena->type << "\" arena!");
 			}
 		}
@@ -708,7 +708,7 @@ void StagingSystem::Arena::remove(const BlockPtr &bo) {
 		}
 		bufferObjects.erase(it);
 		bo->resetStagingBuffer(false);
-		REGEN_INFO("Removed buffer block '" << bo->getBlockName() << "'"
+		REGEN_INFO("Removed buffer block '" << bo->name() << "'"
 											<< " from \"" << type << "\" arena");
 	}
 }

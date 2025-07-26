@@ -148,9 +148,7 @@ namespace regen {
 		 */
 		inline uint32_t stride() const { return stride_; }
 
-		// TODO: remove once vertex data can be handled in client buffers
-		void setVertexStride(GLsizei stride) { vertexStride_ = stride; }
-		inline uint32_t vertexStride() const { return vertexStride_; }
+		void set_stride(GLsizei stride) { stride_ = stride; }
 
 		/**
 		 * Specifies the data type of each component in the array.
@@ -594,8 +592,6 @@ namespace regen {
 		uint32_t baseAlignment_;
 		uint32_t dataTypeBytes_;
 		uint32_t stride_;
-		// TODO: remove this
-		uint32_t vertexStride_;
 		uint32_t offset_;
 		uint32_t inputSize_ = 0u;
 		uint32_t unalignedSize_ = 0u;

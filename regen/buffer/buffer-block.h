@@ -74,11 +74,6 @@ namespace regen {
 		~BufferBlock() override;
 
 		/**
-		 * @return get string representation of the block name.
-		 */
-		std::string getBlockName() const;
-
-		/**
 		 * Add a uniform to the UBO.
 		 * @param input the shader input.
 		 */

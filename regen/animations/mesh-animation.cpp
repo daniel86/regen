@@ -73,7 +73,7 @@ MeshAnimation::MeshAnimation(
 		transformFeedback.push_back(in->name());
 
 		// TODO revise vertex memory layout
-		if(in->vertexStride()==0) {
+		if(in->stride()==0) {
 			hasMeshInterleavedAttributes_ = GL_FALSE;
 		} else {
 			hasMeshInterleavedAttributes_ = GL_TRUE;

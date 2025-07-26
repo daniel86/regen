@@ -67,7 +67,6 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  baseSize_(o.baseSize_),
 		  dataTypeBytes_(o.dataTypeBytes_),
 		  stride_(o.stride_),
-		  vertexStride_(o.vertexStride_),
 		  offset_(o.offset_),
 		  inputSize_(o.inputSize_),
 		  unalignedSize_(o.unalignedSize_),
@@ -285,8 +284,7 @@ void ShaderInput::writeServerData(GLuint index) const {
 	auto subDataStart = clientData + elementSize_ * index;
 	glNamedBufferSubData(
 			buffer_,
-			// FIXME: stride foo
-			offset_ + vertexStride_ * index,
+			offset_ + stride_ * index,
 			elementSize_,
 			subDataStart);
 	clientBuffer_.unmapRange(ClientMappingMode::READ, 0, inputSize_, mappedClientData.r_index);
@@ -300,14 +298,13 @@ void ShaderInput::writeServerData() const {
 	auto clientData = mappedClientData.r;
 	auto count = std::max(numVertices_, numInstances_);
 
-	// FIXME: stride foo
-	if (static_cast<uint32_t>(vertexStride_) == elementSize_) {
+	if (static_cast<uint32_t>(stride_) == elementSize_) {
 		glNamedBufferSubData(buffer_, offset_, inputSize_, clientData);
 	} else {
 		GLuint offset = offset_;
 		for (GLuint i = 0; i < count; ++i) {
 			glNamedBufferSubData(buffer_, offset, elementSize_, clientData);
-			offset += vertexStride_;
+			offset += stride_;
 			clientData += elementSize_;
 		}
 	}
@@ -326,15 +323,15 @@ void ShaderInput::readServerData() {
 	byte *serverData = (byte *) glMapNamedBufferRange(
 			buffer(),
 			offset_,
-			numVertices_ * vertexStride_ + elementSize_,
+			numVertices_ * stride_ + elementSize_,
 			GL_MAP_READ_BIT);
 
-	if (static_cast<uint32_t>(vertexStride_) == elementSize_) {
+	if (static_cast<uint32_t>(stride_) == elementSize_) {
 		std::memcpy(clientData, serverData, inputSize_);
 	} else {
 		for (GLuint i = 0; i < numVertices_; ++i) {
 			std::memcpy(clientData, serverData, elementSize_);
-			serverData += vertexStride_;
+			serverData += stride_;
 			clientData += elementSize_;
 		}
 	}
@@ -429,7 +426,6 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copyData) {
 	ref_ptr<ShaderInput> cp = create(in);
 	cp->stride_ = in->stride_;
-	cp->vertexStride_ = in->vertexStride_;
 	cp->offset_ = in->offset_;
 	cp->inputSize_ = in->inputSize_;
 	cp->elementSize_ = in->elementSize_;
@@ -475,7 +471,7 @@ void ShaderInput::enableAttribute_f(GLint location) const {
 				valsPerElement_,
 				baseType_,
 				normalize_,
-				vertexStride_,
+				stride_,
 				BUFFER_OFFSET(offset_));
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc, divisor_);
@@ -493,7 +489,7 @@ void ShaderInput::enableAttribute_i(GLint location) const {
 				loc,
 				valsPerElement_,
 				baseType_,
-				vertexStride_,
+				stride_,
 				BUFFER_OFFSET(offset_));
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc, divisor_);
@@ -514,16 +510,16 @@ void ShaderInput::enableAttributeMat4(GLint location) const {
 		glEnableVertexAttribArray(loc3);
 
 		glVertexAttribPointer(loc0,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 		glVertexAttribPointer(loc2,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 8));
 		glVertexAttribPointer(loc3,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 12));
 
 		if (divisor_ != 0) {
@@ -546,13 +542,13 @@ void ShaderInput::enableAttributeMat3(GLint location) const {
 		glEnableVertexAttribArray(loc2);
 
 		glVertexAttribPointer(loc0,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 		glVertexAttribPointer(loc2,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 8));
 
 		if (divisor_ != 0) {
@@ -572,10 +568,10 @@ void ShaderInput::enableAttributeMat2(GLint location) const {
 		glEnableVertexAttribArray(loc1);
 
 		glVertexAttribPointer(loc0,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
-							  4, baseType_, normalize_, vertexStride_,
+							  4, baseType_, normalize_, stride_,
 							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 
 		if (divisor_ != 0) {
