@@ -43,7 +43,7 @@ namespace regen {
 			/** flag indicating if the quad center should be translated to origin. */
 			GLboolean centerAtOrigin;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 

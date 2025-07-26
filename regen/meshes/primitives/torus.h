@@ -52,7 +52,7 @@ namespace regen {
 			/** radius of the tube. */
 			GLfloat tubeRadius;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHints = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 

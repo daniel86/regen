@@ -34,7 +34,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 
 #ifdef USE_BONE_TBO
 	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BufferUpdateFlags::FULL_PER_FRAME);
-	boneMatrixTBO_->setBufferAccessMode(BUFFER_CPU_WRITE);
+	boneMatrixTBO_->setClientAccessMode(BUFFER_CPU_WRITE);
 	boneMatrixTBO_->setBufferMapMode(BUFFER_MAP_DISABLED);
 	boneMatrixTBO_->setBufferInput(boneMatrices_);
 	bufferSize_ = boneMatrices_->inputSize();
@@ -59,7 +59,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 
 void Bones::animate(GLdouble dt) {
 	if (bufferSize_ <= 0) return;
-	auto mapped = boneMatrices_->mapClientData<Mat4f>(ClientMappingMode::WRITE);
+	auto mapped = boneMatrices_->mapClientData<Mat4f>(ServerAccessMode::WRITE);
 	auto *boneMatrixData_ = mapped.w.data();
 
 	unsigned int i = 0;

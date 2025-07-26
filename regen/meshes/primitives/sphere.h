@@ -51,7 +51,7 @@ namespace regen {
 			/** If true only bottom half sphere is used. */
 			GLboolean isHalfSphere;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
@@ -115,7 +115,7 @@ namespace regen {
 			/** number of spheres. */
 			GLuint sphereCount;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 

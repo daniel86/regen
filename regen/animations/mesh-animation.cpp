@@ -102,9 +102,9 @@ MeshAnimation::MeshAnimation(
 
 	// used to save two frames
 	animationBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, BufferUpdateFlags::NEVER);
-	animationBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
+	animationBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::NEVER);
-	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
+	feedbackBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
 	feedbackRef_ = feedbackBuffer_->adoptBufferRange(bufferSize_);
 	if (!feedbackRef_.get()) {
 		REGEN_WARN("Unable to allocate VBO for animation. Animation will not work.");

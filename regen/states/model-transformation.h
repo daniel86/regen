@@ -155,13 +155,13 @@ namespace regen {
 		}
 
 		PositionReader(const ModelTransformation *tf, unsigned int vertexIndex)
-				: rawData_mat(getClientBuffer(getModelMat(tf)), ClientMappingMode::READ),
-				  rawData_offset(getClientBuffer(getModelOffset(tf)), ClientMappingMode::READ),
+				: rawData_mat(getClientBuffer(getModelMat(tf)), ServerAccessMode::READ),
+				  rawData_offset(getClientBuffer(getModelOffset(tf)), ServerAccessMode::READ),
 				  r(getPositionReference(tf, vertexIndex)) {
 		}
 		PositionReader() :
-				rawData_mat(nullptr, ClientMappingMode::READ),
-				rawData_offset(nullptr, ClientMappingMode::READ),
+				rawData_mat(nullptr, ServerAccessMode::READ),
+				rawData_offset(nullptr, ServerAccessMode::READ),
 				r(Vec3f::zero()) {
 		}
 

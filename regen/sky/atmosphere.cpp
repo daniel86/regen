@@ -88,37 +88,37 @@ void Atmosphere::createUpdateShader() {
 }
 
 void Atmosphere::setRayleighBrightness(float v) {
-	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_rayleigh.w = Vec3f(v / 10.0f, v_rayleigh.r.y, v_rayleigh.r.z);
 }
 
 void Atmosphere::setRayleighStrength(float v) {
-	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v / 1000.0f, v_rayleigh.r.z);
 }
 
 void Atmosphere::setRayleighCollect(float v) {
-	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_rayleigh = rayleigh_->mapClientVertex<Vec3f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_rayleigh.w = Vec3f(v_rayleigh.r.x, v_rayleigh.r.y, v / 100.0f);
 }
 
 void Atmosphere::setMieBrightness(float v) {
-	auto v_mie = mie_->mapClientVertex<Vec4f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_mie.w = Vec4f(v / 1000.0f, v_mie.r.y, v_mie.r.z, v_mie.r.w);
 }
 
 void Atmosphere::setMieStrength(float v) {
-	auto v_mie = mie_->mapClientVertex<Vec4f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_mie.w = Vec4f(v_mie.r.x, v / 10000.0f, v_mie.r.z, v_mie.r.w);
 }
 
 void Atmosphere::setMieCollect(float v) {
-	auto v_mie = mie_->mapClientVertex<Vec4f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v / 100.0f, v_mie.r.w);
 }
 
 void Atmosphere::setMieDistribution(float v) {
-	auto v_mie = mie_->mapClientVertex<Vec4f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_mie = mie_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_mie.w = Vec4f(v_mie.r.x, v_mie.r.y, v_mie.r.z, v / 100.0f);
 }
 

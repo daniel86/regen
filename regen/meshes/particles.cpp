@@ -16,9 +16,9 @@ Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
 	setAnimationName("particles");
-	setBufferAccessMode(BUFFER_CPU_WRITE);
+	setClientAccessMode(BUFFER_CPU_WRITE);
 	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::FULL_PER_FRAME);
-	feedbackBuffer_->setBufferAccessMode(BUFFER_GPU_ONLY);
+	feedbackBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
 	set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
 	numParticles_ = numParticles;

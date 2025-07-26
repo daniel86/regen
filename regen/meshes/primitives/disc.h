@@ -47,7 +47,7 @@ namespace regen {
 			/** radius of the disc. */
 			GLfloat discRadius;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 

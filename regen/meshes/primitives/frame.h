@@ -47,7 +47,7 @@ namespace regen {
 			/** size of the frame border. */
 			GLfloat borderSize;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 

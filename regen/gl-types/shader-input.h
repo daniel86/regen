@@ -338,7 +338,7 @@ namespace regen {
 		/**
 		 * @param gpuUsage the gpu usage mode.
 		 */
-		void set_gpuUsage(ClientMappingMode gpuUsage) { gpuUsage_ = gpuUsage; }
+		void set_gpuUsage(ServerAccessMode gpuUsage) { gpuUsage_ = gpuUsage; }
 
 		/**
 		 * @return the gpu usage mode.
@@ -604,7 +604,7 @@ namespace regen {
 		bool isVertexAttribute_ = false;
 		bool transpose_ = false;
 		// TODO remove this, use buffer enums
-		ClientMappingMode gpuUsage_ = ClientMappingMode::READ;
+		ServerAccessMode gpuUsage_ = ServerAccessMode::READ;
 
 		ClientBuffer clientBuffer_;
 		// stride in bytes for typed client data in the client buffer.
@@ -721,7 +721,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const StructType &val) {
-			mapClientVertex<StructType>(ClientMappingMode::WRITE, i).w = val;
+			mapClientVertex<StructType>(ServerAccessMode::WRITE, i).w = val;
 		}
 
 		/**
@@ -729,7 +729,7 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		ShaderVertex_ro<StructType> getVertex(GLuint i) const {
-			return mapClientVertex<StructType>(ClientMappingMode::READ, i);
+			return mapClientVertex<StructType>(ServerAccessMode::READ, i);
 		}
 
 		/**
@@ -791,7 +791,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const ValueType &val) {
-			mapClientVertex<ValueType>(ClientMappingMode::WRITE, i).w = val;
+			mapClientVertex<ValueType>(ServerAccessMode::WRITE, i).w = val;
 		}
 
 		/**
@@ -799,7 +799,7 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		ShaderVertex_ro<ValueType> getVertex(GLuint i) const {
-			return mapClientVertex<ValueType>(ClientMappingMode::READ, i);
+			return mapClientVertex<ValueType>(ServerAccessMode::READ, i);
 		}
 
 		/**
@@ -902,7 +902,7 @@ namespace regen {
 				bool normalize = false);
 
 		void setVertex3(GLuint i, const Vec3f &val) {
-			auto mapped = mapClientVertex<Vec4f>(ClientMappingMode::WRITE, i);
+			auto mapped = mapClientVertex<Vec4f>(ServerAccessMode::WRITE, i);
 			mapped.w.xyz_() = val;
 		}
 	};

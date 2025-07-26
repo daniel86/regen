@@ -76,13 +76,13 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 
 void Light::set_innerConeAngle(GLfloat deg) {
 	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
-			ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+			ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	data.w = Vec2f(cos(2.0f * M_PIf * deg / 360.0f), data.r.y);
 }
 
 void Light::set_outerConeAngle(GLfloat deg) {
 	auto data = lightConeAngles_->mapClientVertex<Vec2f>(
-			ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+			ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	data.w = Vec2f(data.r.x, cos(2.0f * M_PIf * deg / 360.0f));
 }
 

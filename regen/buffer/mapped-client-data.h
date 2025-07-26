@@ -5,15 +5,6 @@
 
 namespace regen {
 	/**
-	 * \brief Mapping mode for client data.
-	 * This is used to specify the access mode when mapping client data.
-	 */
-	enum ClientMappingMode {
-		READ = 1 << 0,
-		WRITE = 1 << 1
-	};
-
-	/**
 	 * A low-level interface for read/write access to client data of shader input.
 	 */
 	struct MappedClientData {

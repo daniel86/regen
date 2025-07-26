@@ -21,7 +21,7 @@ ColorWidget::ColorWidget(const RegenWidgetData &data, QWidget *parent)
 }
 
 QColor ColorWidget::initializeColor() {
-	auto mapped = input_->mapClientDataRaw(ClientMappingMode::READ);
+	auto mapped = input_->mapClientDataRaw(ServerAccessMode::READ);
 	const byte *value = mapped.r;
 	GLuint count = input_->valsPerElement();
 	QColor color;
@@ -78,7 +78,7 @@ void ColorWidget::pickColor() {
 	}
 
 	// Get the current color from the shader input
-	auto mapped = input_->mapClientDataRaw(ClientMappingMode::READ);
+	auto mapped = input_->mapClientDataRaw(ServerAccessMode::READ);
 	const byte *value = mapped.r;
 	QColor initialColor;
 	if (input_->baseType() == GL_FLOAT) {
@@ -122,7 +122,7 @@ void ColorWidget::alphaChanged() {
 	auto sliderValue = ui_.alphaValue->value();
 
 	// Update the alpha value in the shader input
-	auto mapped = input_->mapClientDataRaw(ClientMappingMode::READ);
+	auto mapped = input_->mapClientDataRaw(ServerAccessMode::READ);
 	const byte *value = mapped.r;
 	if (input_->baseType() == GL_FLOAT) {
 		((GLfloat *) value)[3] = static_cast<GLfloat>(sliderValue) / 1000.0f;

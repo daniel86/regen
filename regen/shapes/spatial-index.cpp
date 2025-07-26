@@ -210,7 +210,7 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	auto is = ref_ptr<IndexedShape>::alloc(ic.camera, shape);
 	is->visibleVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
 	is->visibleVec_->setInstanceData(shape->numInstances() + 1, 1, nullptr);
-	auto mapped = is->visibleVec_->mapClientData<unsigned int>(ClientMappingMode::WRITE);
+	auto mapped = is->visibleVec_->mapClientData<unsigned int>(ServerAccessMode::WRITE);
 	for (unsigned int i = 0; i < shape->numInstances(); ++i) {
 		mapped.w[i + 1] = i;
 	}

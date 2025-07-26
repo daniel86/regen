@@ -7,7 +7,7 @@ using namespace regen;
 BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf) {
 	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
 	if (tf->hasModelMat()) {
-		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ClientMappingMode::READ);
+		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ServerAccessMode::READ);
 		boidsScale_->setUniformData(tfData.r[0].scaling());
 	} else {
 		boidsScale_->setUniformData(Vec3f(1.0f));

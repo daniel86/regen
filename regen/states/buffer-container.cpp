@@ -113,7 +113,7 @@ void BufferContainer::updateBuffer() {
 	for (auto &namedInput: namedInputs_) {
 		auto inputSize = namedInput.in_->inputSize();
 		// FIXME: rather use buffer flags here, then remove the GPU usage flag
-		if (namedInput.in_->gpuUsage() == ClientMappingMode::WRITE || inputSize > maxTBOSize) {
+		if (namedInput.in_->gpuUsage() == ServerAccessMode::WRITE || inputSize > maxTBOSize) {
 			// create SSBO for large inputs, or if usage is WRITE (i.e. the buffer is written to from a shader).
 			nextSSBOInputs.push_back(namedInput);
 		}

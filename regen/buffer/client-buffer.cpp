@@ -1,6 +1,7 @@
 #include "client-buffer.h"
 #include "regen/utility/threading.h"
 #include "regen/utility/logging.h"
+#include "buffer-enums.h"
 #include <cstring>
 
 using namespace regen;
@@ -100,7 +101,7 @@ void ClientBuffer::nextStamp() const {
 }
 
 MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
-	if ((mapMode & ClientMappingMode::WRITE) != 0) {
+	if ((mapMode & ServerAccessMode::WRITE) != 0) {
 		if (!hasTwoSlots()) {
 			// ClientBuffer in single-buffered mode.
 			return mapRange_SingleBuffer(offset, size);
@@ -155,7 +156,7 @@ MappedClientData ClientBuffer::mapRange_DoubleBuffer(int mapMode, uint32_t offse
 		// Note: if we are frame-locked, we skip the copy of read data,
 		//       as this is done only once per frame for the whole client buffer.
 		data_w += offset;
-		if ((mapMode & ClientMappingMode::READ) != 0) {
+		if ((mapMode & ServerAccessMode::READ) != 0) {
 			// TODO: I do not think read lock is needed when having write lock,
 			//       because as long as there is a write lock on one slot it is certain the other slot can be read safely.
 			int r_index = dataOwner_->readLock();
@@ -204,7 +205,7 @@ MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t /*siz
 }
 
 void ClientBuffer::unmapRange(int32_t mapMode, uint32_t writeOffset, uint32_t writeSize, int32_t slotIndex) const {
-	if ((mapMode & ClientMappingMode::WRITE) != 0) {
+	if ((mapMode & ServerAccessMode::WRITE) != 0) {
 		writeUnlock(slotIndex, writeOffset, writeSize);
 	} else {
 		dataOwner_->readUnlock(slotIndex);

@@ -76,7 +76,7 @@ namespace regen {
 	}
 
 	BufferStorageMode getBufferStorageMode(
-			BufferAccessMode accessMode,
+			ClientAccessMode accessMode,
 			BufferMapMode mapMode,
 			BufferUpdateFlags /*updateHints*/) {
 		if (accessMode == BUFFER_GPU_ONLY) {
@@ -117,7 +117,7 @@ namespace regen {
 		return getBufferStorageMode(flags.accessMode, flags.mapMode, flags.updateHints);
 	}
 
-	std::ostream &operator<<(std::ostream &out, const BufferAccessMode &mode) {
+	std::ostream &operator<<(std::ostream &out, const ClientAccessMode &mode) {
 		switch (mode) {
 			case BUFFER_GPU_ONLY:
 				return out << "GPU_ONLY";
@@ -131,7 +131,7 @@ namespace regen {
 		return out;
 	}
 
-	std::istream &operator>>(std::istream &in, BufferAccessMode &mode) {
+	std::istream &operator>>(std::istream &in, ClientAccessMode &mode) {
 		std::string val;
 		in >> val;
 		boost::to_upper(val);

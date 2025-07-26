@@ -123,7 +123,7 @@ namespace regen {
 	 * Note: You might receive an error if you try to access a buffer in a
 	 * way that is not allowed by the access mode!
 	 */
-	enum BufferAccessMode {
+	enum ClientAccessMode {
 		// CPU cannot access the buffer, only GPU can read/write.
 		BUFFER_GPU_ONLY = 0,
 		// CPU can read from the buffer, but not write to it.
@@ -131,6 +131,11 @@ namespace regen {
 		// CPU can write to the buffer, but not read from it.
 		BUFFER_CPU_WRITE,
 		BUFFER_ACCESS_LAST // must be last
+	};
+
+	enum ServerAccessMode {
+		READ = 1 << 0,
+		WRITE = 1 << 1
 	};
 
 	/**
@@ -232,7 +237,7 @@ namespace regen {
 	struct BufferFlags {
 		BufferTarget target;
 		BufferUpdateFlags updateHints;
-		BufferAccessMode accessMode = BUFFER_GPU_ONLY;
+		ClientAccessMode accessMode = BUFFER_GPU_ONLY;
 		BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 		BufferingMode bufferingMode = SINGLE_BUFFER;
 		uint32_t syncFlags = 0;
@@ -327,15 +332,15 @@ namespace regen {
 	 * @return the buffer storage mode.
 	 */
 	BufferStorageMode getBufferStorageMode(
-			BufferAccessMode accessMode,
+			ClientAccessMode accessMode,
 			BufferMapMode mapMode,
 			BufferUpdateFlags updateHints);
 
 	BufferStorageMode getBufferStorageMode(const BufferFlags &flags);
 
-	std::ostream &operator<<(std::ostream &out, const BufferAccessMode &v);
+	std::ostream &operator<<(std::ostream &out, const ClientAccessMode &v);
 
-	std::istream &operator>>(std::istream &in, BufferAccessMode &v);
+	std::istream &operator>>(std::istream &in, ClientAccessMode &v);
 
 	std::ostream &operator<<(std::ostream &out, const BufferMapMode &v);
 

@@ -42,7 +42,7 @@ void ShaderInputWidget::updateInitialValue(ShaderInput *x) {
 		stamp != initialValueStamp_[x]) {
 		// last time value was not changed from widget
 		// update initial data
-		auto clientData = x->mapClientDataRaw(ClientMappingMode::READ);
+		auto clientData = x->mapClientDataRaw(ServerAccessMode::READ);
 		byte *initialValue = new byte[x->elementSize()];
 		memcpy(initialValue, clientData.r, x->elementSize());
 
@@ -344,7 +344,7 @@ bool ShaderInputWidget::addParameter(
 		byte *lastValue = initialValue_[in.get()];
 		delete[]lastValue;
 	}
-	auto clientData = in->mapClientDataRaw(ClientMappingMode::READ);
+	auto clientData = in->mapClientDataRaw(ServerAccessMode::READ);
 	byte *initialValue = new byte[in->elementSize()];
 	memcpy(initialValue, clientData.r, in->elementSize());
 	clientData.unmap();

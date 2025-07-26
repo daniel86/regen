@@ -42,7 +42,7 @@ namespace regen {
 			/** subdivisions = 4*levelOfDetail^2 */
 			std::vector<GLuint> levelOfDetails;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 
@@ -99,7 +99,7 @@ namespace regen {
 			/** level of detail for base circle */
 			std::vector<GLuint> levelOfDetails;
 			/** Buffer usage hints. */
-			BufferAccessMode accessMode = BUFFER_CPU_WRITE;
+			ClientAccessMode accessMode = BUFFER_CPU_WRITE;
 			BufferUpdateFlags updateHint = BufferUpdateFlags::NEVER;
 			BufferMapMode mapMode = BUFFER_MAP_DISABLED;
 

@@ -236,7 +236,7 @@ namespace regen {
 		 * In case no explicit staging buffer is used, this will also set the access mode for the main buffer.
 		 * @param mode the access mode to set.
 		 */
-		void setStagingAccessMode(BufferAccessMode mode);
+		void setStagingAccessMode(ClientAccessMode mode);
 
 		/**
 		 * Get the update rate, which is the percentage of frames that had an update.

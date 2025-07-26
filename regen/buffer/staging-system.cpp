@@ -83,7 +83,7 @@ namespace regen {
 		// the ranges are relative to the buffer segments, i.e. the same offset applies to all.
 		ref_ptr<FreeList> freeList;
 
-		static Arena *create(ArenaType arenaType, BufferAccessMode accessMode);
+		static Arena *create(ArenaType arenaType, ClientAccessMode accessMode);
 
 		static void setStagingOffset(ManagedBO &managed, uint32_t offset, uint32_t size);
 
@@ -211,7 +211,7 @@ StagingSystem::Arena *StagingSystem::addBufferBlock_writeOnly(
 	return nullptr;
 }
 
-StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, BufferAccessMode accessMode) {
+StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAccessMode accessMode) {
 	auto *arena = new Arena();
 	arena->type = arenaType;
 	arena->flags.accessMode = accessMode;

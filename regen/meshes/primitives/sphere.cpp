@@ -37,7 +37,7 @@ Sphere::Sphere(const Config &cfg)
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	radius_ = 0.5f * cfg.posScale.max();
 	setBufferMapMode(cfg.mapMode);
-	setBufferAccessMode(cfg.accessMode);
+	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -103,16 +103,16 @@ void Sphere::generateLODLevel(const Config &cfg,
 							  GLuint vertexOffset,
 							  GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(ClientMappingMode::WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(ServerAccessMode::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ServerAccessMode::WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ClientMappingMode::WRITE) :
+		nor_->mapClientData<Vec3f>(ServerAccessMode::WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ClientMappingMode::WRITE) :
+		tan_->mapClientData<Vec4f>(ServerAccessMode::WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 	auto v_texco = (texco_.get() ?
-		texco_->mapClientData<Vec2f>(ClientMappingMode::WRITE) :
+		texco_->mapClientData<Vec2f>(ServerAccessMode::WRITE) :
 		ShaderData_rw<Vec2f>::nullData());
 
 	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
@@ -230,7 +230,7 @@ SphereSprite::SphereSprite(const Config &cfg)
 		: Mesh(GL_POINTS, cfg.updateHint),
 		  HasShader("regen.models.sprite-sphere") {
 	setBufferMapMode(cfg.mapMode);
-	setBufferAccessMode(cfg.accessMode);
+	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 	joinStates(shaderState());
 }
@@ -238,11 +238,11 @@ SphereSprite::SphereSprite(const Config &cfg)
 void SphereSprite::updateAttributes(const Config &cfg) {
 	ref_ptr<ShaderInput1f> radiusIn = ref_ptr<ShaderInput1f>::alloc("sphereRadius");
 	radiusIn->setVertexData(cfg.sphereCount);
-	auto mappedRadius = radiusIn->mapClientData<float>(ClientMappingMode::WRITE);
+	auto mappedRadius = radiusIn->mapClientData<float>(ServerAccessMode::WRITE);
 
 	ref_ptr<ShaderInput3f> positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	positionIn->setVertexData(cfg.sphereCount);
-	auto mappedPosition = positionIn->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+	auto mappedPosition = positionIn->mapClientData<Vec3f>(ServerAccessMode::WRITE);
 
 	minPosition_ = Vec3f(999999.0f);
 	maxPosition_ = Vec3f(-999999.0f);

@@ -18,7 +18,7 @@ StagingBuffer::StagingBuffer(const BufferFlags &stagingFlags) :
 		accessFlags_(glAccessFlags(storageMode_)),
 		stagingReadData_(nullptr) {
 	stagingBO_ = ref_ptr<BufferObject>::alloc(stagingFlags.target, stagingFlags.updateHints);
-	stagingBO_->setBufferAccessMode(stagingFlags.accessMode);
+	stagingBO_->setClientAccessMode(stagingFlags.accessMode);
 	stagingBO_->setBufferMapMode(stagingFlags.mapMode);
 	// initialize to single segment
 	bufferSegments_.resize(1);

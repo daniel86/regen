@@ -62,7 +62,7 @@ namespace regen {
 		 * Get the access mode for the buffer object.
 		 * @return the access mode.
 		 */
-		BufferAccessMode bufferAccessMode() const { return flags_.accessMode; }
+		ClientAccessMode clientAccessMode() const { return flags_.accessMode; }
 
 		/**
 		 * Set the buffer update hint.
@@ -86,7 +86,7 @@ namespace regen {
 		 * no copying or mapping is possible!
 		 * @param mode the access mode to set.
 		 */
-		void setBufferAccessMode(BufferAccessMode mode);
+		void setClientAccessMode(ClientAccessMode mode);
 
 		/**
 		 * Allocated VRAM in bytes.

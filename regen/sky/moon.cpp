@@ -270,12 +270,12 @@ float Moon::meanRadius() {
 }
 
 void Moon::set_sunShineColor(const Vec3f &color) {
-	auto v_sunShine = sunShine_->mapClientVertex<Vec4f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_sunShine = sunShine_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_sunShine.w = Vec4f(color, v_sunShine.r.w);
 }
 
 void Moon::set_sunShineIntensity(float intensity) {
-	auto v_color = sunShine_->mapClientVertex<Vec4f>(ClientMappingMode::READ | ClientMappingMode::WRITE, 0);
+	auto v_color = sunShine_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
 	v_color.w = Vec4f(v_color.r.xyz_(), intensity);
 }
 

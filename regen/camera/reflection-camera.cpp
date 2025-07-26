@@ -122,12 +122,12 @@ void ReflectionCamera::updateReflection() {
 		if (reflectorChanged) {
 			if (!pos_->hasClientData()) pos_->readServerData();
 			if (!nor_->hasClientData()) nor_->readServerData();
-			posWorld_ = pos_->mapClientData<Vec3f>(ClientMappingMode::READ).r[vertexIndex_];
-			norWorld_ = nor_->mapClientData<Vec3f>(ClientMappingMode::READ).r[vertexIndex_];
+			posWorld_ = pos_->mapClientData<Vec3f>(ServerAccessMode::READ).r[vertexIndex_];
+			norWorld_ = nor_->mapClientData<Vec3f>(ServerAccessMode::READ).r[vertexIndex_];
 
 			if (transform_.get() != nullptr) {
 				if (!transform_->hasClientData()) transform_->readServerData();
-				auto transform = transform_->mapClientData<Mat4f>(ClientMappingMode::READ);
+				auto transform = transform_->mapClientData<Mat4f>(ServerAccessMode::READ);
 				posWorld_ = (transform.r[0] ^ Vec4f(posWorld_, 1.0)).xyz_();
 				norWorld_ = (transform.r[0] ^ Vec4f(norWorld_, 0.0)).xyz_();
 				norWorld_.normalize();

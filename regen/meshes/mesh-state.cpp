@@ -86,8 +86,8 @@ void Mesh::setBufferMapMode(BufferMapMode mode) {
 	meshBuffer_->setBufferMapMode(mode);
 }
 
-void Mesh::setBufferAccessMode(BufferAccessMode mode) {
-	meshBuffer_->setBufferAccessMode(mode);
+void Mesh::setClientAccessMode(ClientAccessMode mode) {
+	meshBuffer_->setClientAccessMode(mode);
 }
 
 void Mesh::begin(DataLayout layout) {

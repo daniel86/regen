@@ -51,7 +51,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	bool useNormal = input.getValue<bool>("use-normal", true);
 	bool useTexco = input.getValue<bool>("use-texco", true);
 	bool useTangent = input.getValue<bool>("use-tangent", false);
-	auto accessMode = input.getValue<BufferAccessMode>("access-mode", BUFFER_CPU_WRITE);
+	auto accessMode = input.getValue<ClientAccessMode>("access-mode", BUFFER_CPU_WRITE);
 	auto mapMode = input.getValue<BufferMapMode>("map-mode", BUFFER_MAP_DISABLED);
 	BufferUpdateFlags updateFlags;
 	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
@@ -426,7 +426,7 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 
 	BufferFlags bufferConfig(ARRAY_BUFFER, updateFlags);
 	if (input.hasAttribute("access-mode")) {
-		bufferConfig.accessMode = input.getValue<BufferAccessMode>("access-mode", BUFFER_CPU_WRITE);
+		bufferConfig.accessMode = input.getValue<ClientAccessMode>("access-mode", BUFFER_CPU_WRITE);
 	}
 	if (input.hasAttribute("map-mode")) {
 		bufferConfig.mapMode = input.getValue<BufferMapMode>("map-mode", BUFFER_MAP_DISABLED);

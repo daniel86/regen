@@ -44,7 +44,7 @@ BufferBlock::BufferBlock(
 	drawBufferRange_ = ref_ptr<BufferRange>::alloc();
 	// initially assume it is a GPU-only buffer.
 	// the flag will be switched to something else based on the inputs added.
-	setBufferAccessMode(BUFFER_GPU_ONLY);
+	setClientAccessMode(BUFFER_GPU_ONLY);
 	setBufferMapMode(BUFFER_MAP_DISABLED);
 	// if the buffer will never be updated, we can use implicit staging.
 	if (hints.frequency == BUFFER_UPDATE_NEVER) {
@@ -221,11 +221,11 @@ void BufferBlock::setStagingMapMode(BufferMapMode mode) {
 	}
 }
 
-void BufferBlock::setStagingAccessMode(BufferAccessMode mode) {
+void BufferBlock::setStagingAccessMode(ClientAccessMode mode) {
 	if (!flags_.useExplicitStaging()) {
 		// if we are not using separate staging buffers, we need to set the same access mode
 		// for the main buffer as well.
-		setBufferAccessMode(mode);
+		setClientAccessMode(mode);
 		stagingFlags_.accessMode = flags_.accessMode;
 	} else {
 		stagingFlags_.accessMode = mode;
@@ -561,7 +561,7 @@ void BufferBlock::copyBlockInput(
 	//       in case starts at first dirt segment. However, the block input offsets are always
 	//       relative to the start of the buffer, so we need to adjust the offset accordingly...
 	const uint32_t offset = bufferInput.offset - localMapOffset;
-	auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
+	auto mapped = bufferInput.input->mapClientDataRaw(ServerAccessMode::READ);
 	memcpy(mappedBufferData + offset,
 		   mapped.r,
 		   bufferInput.input->inputSize());
@@ -806,7 +806,7 @@ void BufferBlock::updateNonMapped() {
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			const uint32_t localOffset = shared_->stagingOffset_ + bufferInput.offset;
-			auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
+			auto mapped = bufferInput.input->mapClientDataRaw(ServerAccessMode::READ);
 			shared_->stagingBuffer_->setSubData(
 					drawBufferRef_,
 					localOffset,
@@ -943,8 +943,8 @@ ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNod
 		block = ref_ptr<UBO>::alloc(input.getName(), updateFlags);
 	}
 	if (input.hasAttribute("access-mode")) {
-		block->setBufferAccessMode(
-				input.getValue<BufferAccessMode>("access-mode", BUFFER_CPU_WRITE));
+		block->setClientAccessMode(
+				input.getValue<ClientAccessMode>("access-mode", BUFFER_CPU_WRITE));
 	}
 	if (input.hasAttribute("map-mode")) {
 		block->setBufferMapMode(

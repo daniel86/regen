@@ -132,7 +132,7 @@ namespace regen {
 		 * no copying or mapping is possible!
 		 * @param mode the access mode to set.
 		 */
-		void setBufferAccessMode(BufferAccessMode mode);
+		void setClientAccessMode(ClientAccessMode mode);
 
 		/**
 		 * @return VBO that manages the vertex array data.

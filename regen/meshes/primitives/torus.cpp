@@ -55,7 +55,7 @@ Torus::Torus(const Config &cfg)
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
-	setBufferAccessMode(cfg.accessMode);
+	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
 }
 
@@ -84,16 +84,16 @@ void Torus::generateLODLevel(const Config &cfg,
 							 GLuint vertexOffset,
 							 GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(ClientMappingMode::WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(ServerAccessMode::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(ServerAccessMode::WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ClientMappingMode::WRITE) :
+		nor_->mapClientData<Vec3f>(ServerAccessMode::WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ClientMappingMode::WRITE) :
+		tan_->mapClientData<Vec4f>(ServerAccessMode::WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 	auto v_texco = (texco_.get() ?
-		texco_->mapClientData<float>(ClientMappingMode::WRITE) :
+		texco_->mapClientData<float>(ServerAccessMode::WRITE) :
 		ShaderData_rw<float>::nullData());
 
 	GLuint vertexIndex = vertexOffset;

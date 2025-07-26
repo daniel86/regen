@@ -4,7 +4,7 @@ using namespace regen;
 
 TBO::TBO(const BufferUpdateFlags &hints) :
 		BufferObject(TEXTURE_BUFFER, hints) {
-	setBufferAccessMode(BUFFER_CPU_WRITE);
+	setClientAccessMode(BUFFER_CPU_WRITE);
 	setBufferMapMode(BUFFER_MAP_DISABLED);
 }
 
@@ -52,7 +52,7 @@ void TBO::updateTBO() {
 	if (!ref.get()) {
 		return;
 	}
-	auto mapped = input_->mapClientDataRaw(ClientMappingMode::READ);
+	auto mapped = input_->mapClientDataRaw(ServerAccessMode::READ);
 	glNamedBufferSubData(
 			ref->bufferID(),
 			ref->address(),

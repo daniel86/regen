@@ -31,7 +31,7 @@ BufferObject::~BufferObject() {
 	}
 }
 
-void BufferObject::setBufferAccessMode(BufferAccessMode mode) {
+void BufferObject::setClientAccessMode(ClientAccessMode mode) {
 	if (mode == BUFFER_GPU_ONLY) {
 		return; // no need to set anything
 	}

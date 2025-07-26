@@ -798,11 +798,11 @@ void AssetImporter::loadMeshes(
 ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &transform, const BufferFlags &bufferFlags) {
 	ref_ptr<Mesh> meshState = ref_ptr<Mesh>::alloc(GL_TRIANGLES, bufferFlags.updateHints);
 	if (bufferFlags.accessMode == BUFFER_GPU_ONLY) {
-		meshState->setBufferAccessMode(BUFFER_CPU_WRITE);
+		meshState->setClientAccessMode(BUFFER_CPU_WRITE);
 	} else if (bufferFlags.accessMode == BUFFER_CPU_READ) {
-		meshState->setBufferAccessMode(BUFFER_CPU_READ);
+		meshState->setClientAccessMode(BUFFER_CPU_READ);
 	} else {
-		meshState->setBufferAccessMode(bufferFlags.accessMode);
+		meshState->setClientAccessMode(bufferFlags.accessMode);
 	}
 	meshState->setBufferMapMode(bufferFlags.mapMode);
 
@@ -839,7 +839,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	{
 		ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
 		indices->setVertexData(numIndices);
-		auto faceIndices = indices->mapClientData<GLuint>(ClientMappingMode::WRITE);
+		auto faceIndices = indices->mapClientData<GLuint>(ServerAccessMode::WRITE);
 		GLuint index = 0, maxIndex = 0;
 		for (GLuint t = 0u; t < mesh.mNumFaces; ++t) {
 			const struct aiFace *face = &mesh.mFaces[t];
@@ -861,7 +861,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	GLuint numVertices = mesh.mNumVertices;
 	{
 		pos->setVertexData(numVertices);
-		auto v_pos = pos->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+		auto v_pos = pos->mapClientData<Vec3f>(ServerAccessMode::WRITE);
 		for (GLuint n = 0; n < numVertices; ++n) {
 			aiVector3D aiv = (*aiTransform) * mesh.mVertices[n];
 			Vec3f &v = *((Vec3f *) &aiv.x);
@@ -877,7 +877,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	// per vertex normals
 	if (mesh.HasNormals()) {
 		nor->setVertexData(numVertices);
-		auto v_nor = nor->mapClientData<Vec3f>(ClientMappingMode::WRITE);
+		auto v_nor = nor->mapClientData<Vec3f>(ServerAccessMode::WRITE);
 		for (GLuint n = 0; n < numVertices; ++n) {
 			Vec3f &v = *((Vec3f *) &mesh.mNormals[n].x);
 			v_nor.w[n] = v;
@@ -892,7 +892,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 
 		ref_ptr<ShaderInput4f> col = ref_ptr<ShaderInput4f>::alloc(REGEN_STRING("col" << t));
 		col->setVertexData(numVertices);
-		auto v_col = col->mapClientData<Vec4f>(ClientMappingMode::WRITE);
+		auto v_col = col->mapClientData<Vec4f>(ServerAccessMode::WRITE);
 		for (GLuint n = 0; n < numVertices; ++n) {
 			v_col.w[n] = Vec4f(
 					mesh.mColors[t][n].r,
@@ -922,7 +922,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			texco = ref_ptr<ShaderInput2f>::alloc(texcoName);
 		}
 		texco->setVertexData(numVertices);
-		auto v_texco = texco->mapClientData<float>(ClientMappingMode::WRITE);
+		auto v_texco = texco->mapClientData<float>(ServerAccessMode::WRITE);
 		auto *ptr_texco = v_texco.w.data();
 		for (GLuint n = 0; n < numVertices; ++n) {
 			GLfloat *aiTexcoData = &(aiTexcos[n].x);
@@ -936,7 +936,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	// load tangents
 	if (mesh.HasTangentsAndBitangents()) {
 		tan->setVertexData(numVertices);
-		auto v_tan = tan->mapClientData<Vec4f>(ClientMappingMode::WRITE);
+		auto v_tan = tan->mapClientData<Vec4f>(ServerAccessMode::WRITE);
 		for (GLuint i = 0; i < numVertices; ++i) {
 			Vec3f &t = *((Vec3f *) &mesh.mTangents[i].x);
 			Vec3f &b = *((Vec3f *) &mesh.mBitangents[i].x);
@@ -984,8 +984,8 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			auto boneIndices = ref_ptr<ShaderInput1ui>::alloc("boneIndices", maxNumWeights);
 			boneWeights->setVertexData(numVertices);
 			boneIndices->setVertexData(numVertices);
-			auto v_weights = boneWeights->mapClientData<GLfloat>(ClientMappingMode::WRITE);
-			auto v_indices = boneIndices->mapClientData<GLuint>(ClientMappingMode::WRITE);
+			auto v_weights = boneWeights->mapClientData<GLfloat>(ServerAccessMode::WRITE);
+			auto v_indices = boneIndices->mapClientData<GLuint>(ServerAccessMode::WRITE);
 			auto *ptr_weights = v_weights.w.data();
 			auto *ptr_indices = v_indices.w.data();
 
