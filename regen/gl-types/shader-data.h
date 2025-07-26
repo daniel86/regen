@@ -269,7 +269,10 @@ namespace regen {
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t vertexIndex)
+		ShaderVertex_rw(ClientBuffer *clientBuffer,
+					uint32_t stride,
+					int32_t mapMode,
+					uint32_t vertexIndex)
 				: rawData(clientBuffer, mapMode,
 						clientBuffer->itemSize() * vertexIndex,
 						clientBuffer->itemSize()),
@@ -312,7 +315,10 @@ namespace regen {
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t vertexIndex)
+		ShaderVertex_ro(const ClientBuffer *clientBuffer,
+					uint32_t stride,
+					int32_t mapMode,
+					uint32_t vertexIndex)
 				: rawData(clientBuffer, mapMode,
 						clientBuffer->itemSize() * vertexIndex,
 						clientBuffer->itemSize()),

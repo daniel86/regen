@@ -518,53 +518,6 @@ void BufferBlock::updateClientBuffer() {
 }
 **/
 
-void BufferBlock::updateStridedData(BlockInput &bufferInput) {
-	// Some attributes cannot be stored tightly packed in the buffer,
-	// especially vec3 arrays or mat3 arrays cannot be stored tightly packed
-	// in STD140 or STD430 layouts, so we need to align them to 16 bytes.
-	// Which means there is a stride between array elements, which unfortunately
-	// means that we need to copy element-by-element to the buffer instead of
-	// copying the whole array at once using memcpy.
-	auto &in = bufferInput.input;
-	auto numElements = in->numArrayElements() * in->numInstances();
-	if (numElements == 1) {
-		return;
-	}
-	auto elementSizeUnaligned = in->valsPerElement() * in->dataTypeBytes();
-	if (memoryLayout_ == BUFFER_MEMORY_STD140) {
-		// the GL specification states that the stride between array elements must be
-		// rounded up to 16 bytes for STD140.
-		if (elementSizeUnaligned % 16 == 0) {
-			return;
-		}
-	} else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
-		// only vec3 and mat3 types need to be aligned to 16 bytes with STD430.
-		if (elementSizeUnaligned != 12 && elementSizeUnaligned != 48) {
-			return;
-		}
-	} else {
-		return;
-	}
-	REGEN_WARN("RE-ALIGN needed for input " << in->name() <<
-											 " with " << numElements << " elements, unaligned size: "
-											 << elementSizeUnaligned);
-	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
-	auto dataSizeAligned = elementSizeAligned * numElements;
-	if (dataSizeAligned != bufferInput.alignedSize) {
-		delete[] bufferInput.alignedData;
-		bufferInput.alignedSize = dataSizeAligned;
-		bufferInput.alignedData = new byte[bufferInput.alignedSize];
-	}
-	auto clientData = in->mapClientDataRaw(ClientMappingMode::READ);
-	auto *src = clientData.r;
-	auto *dst = bufferInput.alignedData;
-	for (unsigned int i = 0; i < numElements; ++i) {
-		memcpy(dst, src, elementSizeUnaligned);
-		src += elementSizeUnaligned;
-		dst += elementSizeAligned;
-	}
-}
-
 int32_t BufferBlock::getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const {
 	static constexpr int32_t NO_BUFFERED_INDEX = -1;
 	for (int32_t i = 0; i < static_cast<int32_t>(bufferedStamps.size()); ++i) {
@@ -608,16 +561,10 @@ void BufferBlock::copyBlockInput(
 	//       in case starts at first dirt segment. However, the block input offsets are always
 	//       relative to the start of the buffer, so we need to adjust the offset accordingly...
 	const uint32_t offset = bufferInput.offset - localMapOffset;
-	//updateStridedData(bufferInput);
-	//if (bufferInput.alignedData) {
-	//	memcpy(mappedBufferData + offset,
-	//		   bufferInput.alignedData, bufferInput.alignedSize);
-	//} else {
-		auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
-		memcpy(mappedBufferData + offset,
-			   mapped.r,
-			   bufferInput.input->inputSize());
-	//}
+	auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
+	memcpy(mappedBufferData + offset,
+		   mapped.r,
+		   bufferInput.input->inputSize());
 }
 
 void BufferBlock::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset) {
@@ -859,21 +806,12 @@ void BufferBlock::updateNonMapped() {
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			const uint32_t localOffset = shared_->stagingOffset_ + bufferInput.offset;
-			//updateStridedData(bufferInput);
-			//if (bufferInput.alignedData) {
-			//	shared_->stagingBuffer_->setSubData(
-			//			drawBufferRef_,
-			//			localOffset,
-			//			bufferInput.alignedSize,
-			//			bufferInput.alignedData);
-			//} else {
-				auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
-				shared_->stagingBuffer_->setSubData(
-						drawBufferRef_,
-						localOffset,
-						bufferInput.inputSize,
-						mapped.r);
-			//}
+			auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
+			shared_->stagingBuffer_->setSubData(
+					drawBufferRef_,
+					localOffset,
+					bufferInput.inputSize,
+					mapped.r);
 			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}

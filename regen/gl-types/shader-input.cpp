@@ -35,26 +35,14 @@ ShaderInput::ShaderInput(
 		: name_(name),
 		  baseType_(baseType),
 		  dataType_(glenum::dataType(baseType, valsPerElement)),
+		  baseSize_(dataTypeBytes * valsPerElement),
 		  dataTypeBytes_(dataTypeBytes),
-		  stride_(0),
-		  offset_(0),
 		  numArrayElements_(numArrayElements),
-		  numVertices_(1u),
-		  numInstances_(1u),
 		  numElements_i_(static_cast<int32_t>(numArrayElements)),
 		  numElements_ui_(numArrayElements),
 		  valsPerElement_(valsPerElement),
-		  divisor_(0),
-		  buffer_(0),
 		  bufferStamp_(0),
-		  normalize_(normalize),
-		  isVertexAttribute_(false),
-		  transpose_(false),
-		  isConstant_(false),
-		  isBufferBlock_(false),
-		  forceArray_(false),
-		  active_(true) {
-	baseSize_ = dataTypeBytes_ * valsPerElement_;
+		  normalize_(normalize) {
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
 	updateAlignment();
@@ -170,6 +158,7 @@ void ShaderInput::set_buffer(GLuint buffer, const ref_ptr<BufferReference> &it) 
 }
 
 void ShaderInput::enableAttribute(GLint loc) const {
+	// TODO: Handle VBO updates rather via staging system.
 	if (clientBuffer_.requiresReUpload()) {
 		writeServerData();
 		clientBuffer_.setRequiresReUpload(false);
@@ -210,17 +199,20 @@ void ShaderInput::setUniformUntyped(const byte *data) {
 
 void ShaderInput::updateAlignedSize() {
 	inputSize_ = unalignedSize_;
-
+	// Check if we need to apply padding per element.
+	// e.g. in case of STD140, each array element must be padded to a multiple of 16 bytes,
+	// so if we have an array of 3 vec3f, the size will be 3 * 16 = 48 bytes,
+	// but the unaligned size will be 3 * 12 = 36 bytes.
 	if (numElements() > 1 && !isVertexAttribute_) {
 		auto stride = baseAlignment_ * alignmentCount_;
 		auto alignedSize = stride * numElements_ui_;
 		if (alignedSize != unalignedSize_) {
+			// allocate space in client buffer for aligned data.
+			// note: this will make it more difficult to update the data on the client side,
+			// but it enables us to form contiguous buffers for the GPU.
 			inputSize_ = alignedSize;
+			// use strided data access in mapClient* functions
 			mapClientStride_ = stride;
-			REGEN_WARN("STRIDED FOO BAR BAZ " << name_ << " with " << numElements_ui_ <<
-					   " elements, unaligned size: "
-					   << unalignedSize_ << ", aligned size: " << alignedSize
-					   << " SETT ING STRIDE TO " << stride);
 		}
 	}
 }

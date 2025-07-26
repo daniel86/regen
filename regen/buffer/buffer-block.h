@@ -293,20 +293,13 @@ namespace regen {
 				input = other.input;
 				offset = other.offset;
 				lastStamp = other.lastStamp;
-				alignedSize = other.alignedSize;
 				inputSize = other.inputSize;
-			}
-
-			~BlockInput() {
-				delete[] alignedData;
 			}
 
 			ref_ptr<ShaderInput> input;
 			uint32_t offset = 0;
 			std::vector<uint32_t> lastStamp;
-			uint32_t alignedSize = 0;
 			uint32_t inputSize = 0;
-			byte *alignedData = nullptr;
 		};
 
 		std::vector<ref_ptr<BlockInput>> blockInputs_;
@@ -379,8 +372,6 @@ namespace regen {
 		void copyFullData(byte *bufferData, uint32_t mapOffset);
 
 		void copyBlockInput(BlockInput &blockInput, byte *bufferData, uint32_t mapOffset);
-
-		void updateStridedData(BlockInput &uboInput);
 
 		void updateNonMapped();
 

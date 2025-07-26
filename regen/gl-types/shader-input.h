@@ -449,9 +449,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
-			// TODO
-			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, vertexIndex };
-			return { &clientBuffer_, mapMode, vertexIndex };
+			return { &clientBuffer_, mapClientStride_, mapMode, vertexIndex };
 		}
 
 		/**
@@ -463,9 +461,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
-			// TODO
-			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, vertexIndex };
-			return { &clientBuffer_, mapMode, vertexIndex };
+			return { &clientBuffer_, mapClientStride_, mapMode, vertexIndex };
 		}
 
 		/**
@@ -578,35 +574,35 @@ namespace regen {
 
 	protected:
 		std::string name_;
-		GLenum baseType_;
+		const GLenum baseType_;
 		const GLenum dataType_;
-		uint32_t baseSize_;
+		const uint32_t baseSize_;
 		uint32_t baseAlignment_;
 		uint32_t dataTypeBytes_;
-		uint32_t stride_;
-		uint32_t offset_;
+		uint32_t stride_ = 0u;
+		uint32_t offset_ = 0u;
 		uint32_t inputSize_ = 0u;
 		uint32_t unalignedSize_ = 0u;
 		// This is the size in bytes of one element in the vertex buffer.
 		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
 		uint32_t elementSize_;
 		uint32_t numArrayElements_;
-		uint32_t numVertices_;
-		uint32_t numInstances_;
+		uint32_t numVertices_ = 1u;
+		uint32_t numInstances_ = 1u;
 		// note: not exactly sure why GL API uses int32_t here,
 		//       well we keep num-elements as both signed and unsigned then :/
 		int32_t numElements_i_;
 		uint32_t numElements_ui_;
-		int32_t valsPerElement_;
-		uint32_t divisor_;
-		uint32_t buffer_;
+		const int32_t valsPerElement_;
+		uint32_t divisor_ = 0;
+		uint32_t buffer_ = 0;
 		uint32_t alignmentCount_;
 		BufferMemoryLayout memoryLayout_ = BUFFER_MEMORY_PACKED;
 		mutable uint32_t bufferStamp_;
 		ref_ptr<BufferReference> bufferIterator_;
 		bool normalize_;
-		bool isVertexAttribute_;
-		bool transpose_;
+		bool isVertexAttribute_ = false;
+		bool transpose_ = false;
 		// TODO remove this, use buffer enums
 		ClientMappingMode gpuUsage_ = ClientMappingMode::READ;
 
@@ -615,11 +611,11 @@ namespace regen {
 		// 0 is interpreted as tightly packed.
 		uint32_t mapClientStride_ = 0;
 
-		bool isConstant_;
-		bool isBufferBlock_;
+		bool isConstant_ = false;
+		bool isBufferBlock_ = false;
 		bool isStruct_ = false;
-		bool forceArray_;
-		bool active_;
+		bool forceArray_ = false;
+		bool active_ = true;
 
 		const InputSchema *schema_ = InputSchema::unknown();
 
