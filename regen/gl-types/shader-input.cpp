@@ -209,22 +209,20 @@ void ShaderInput::setUniformUntyped(const byte *data) {
 }
 
 void ShaderInput::updateAlignedSize() {
-	// TODO: allocate aligned space in client buffer!
-	/**
-	if (numElements() > 1) {
-		inputSize_ = stride_ * alignmentCount_ * numElements_ui_;
-	} else {
-		inputSize_ = baseSize_ * numElements_ui_;
-	}
-	**/
+	inputSize_ = unalignedSize_;
+
 	if (numElements() > 1 && !isVertexAttribute_) {
-		auto alignedSize = baseAlignment_ * alignmentCount_ * numElements_ui_;
+		auto stride = baseAlignment_ * alignmentCount_;
+		auto alignedSize = stride * numElements_ui_;
 		if (alignedSize != unalignedSize_) {
+			//inputSize_ = alignedSize;
+			//mapClientStride_ = stride;
 			REGEN_WARN("STRIDED FOO BAR BAZ " << name_ << " with " << numElements_ui_ <<
-					   " elements, unaligned size: " << unalignedSize_ << ", aligned size: " << alignedSize);
+					   " elements, unaligned size: "
+					   << unalignedSize_ << ", aligned size: " << alignedSize
+					   << " SETT ING STRIDE TO " << stride);
 		}
 	}
-	inputSize_ = unalignedSize_;
 }
 
 void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byte *data) {
@@ -319,7 +317,6 @@ void ShaderInput::readServerData() {
 	auto mappedClientData = clientBuffer_.mapRange(ClientMappingMode::WRITE, 0, inputSize_);
 	auto clientData = mappedClientData.w;
 
-	// FIXME: stride foo
 	byte *serverData = (byte *) glMapNamedBufferRange(
 			buffer(),
 			offset_,
