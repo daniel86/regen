@@ -120,6 +120,28 @@ namespace regen {
 	}
 
 	template<typename T>
+	const T& r_access_vertex(const byte* base, size_t index, size_t stride) {
+		if (stride == 0) {
+			return reinterpret_cast<const T*>(base)[index];
+		} else {
+			return *reinterpret_cast<const T*>(base + index * stride);
+		}
+	}
+
+	template<typename T>
+	T& w_access_vertex(byte* base, size_t index, size_t stride) {
+		if (stride == 0) {
+			return reinterpret_cast<T*>(base)[index];
+		} else {
+			return *reinterpret_cast<T*>(base + index * stride);
+		}
+	}
+
+	/**
+	 * A low-level interface for typed write access to client data of shader input.
+	 * @tparam T the data type.
+	 */
+	template<typename T>
 	class WriteAccessor {
 	public:
 		using AccessFunc = T& (*)(byte*, size_t, size_t);
@@ -140,6 +162,10 @@ namespace regen {
 		AccessFunc accessFunc_;
 	};
 
+	/**
+	 * A low-level interface for typed read access to client data of shader input.
+	 * @tparam T the data type.
+	 */
 	template<typename T>
 	class ReadAccessor {
 	public:
@@ -273,11 +299,9 @@ namespace regen {
 					uint32_t stride,
 					int32_t mapMode,
 					uint32_t vertexIndex)
-				: rawData(clientBuffer, mapMode,
-						clientBuffer->itemSize() * vertexIndex,
-						clientBuffer->itemSize()),
-				  r(((const T *) rawData.r)[0]),
-				  w(((T *) rawData.w)[0]) {
+				: rawData(clientBuffer, mapMode, 0, clientBuffer->dataSize()),
+				  r(r_access_vertex<T>(rawData.r, vertexIndex, stride)),
+				  w(w_access_vertex<T>(rawData.w, vertexIndex, stride)) {
 		}
 
 		// do not allow copying
@@ -319,10 +343,8 @@ namespace regen {
 					uint32_t stride,
 					int32_t mapMode,
 					uint32_t vertexIndex)
-				: rawData(clientBuffer, mapMode,
-						clientBuffer->itemSize() * vertexIndex,
-						clientBuffer->itemSize()),
-				  r(((const T *) rawData.r)[0]) {
+				: rawData(clientBuffer, mapMode, 0, clientBuffer->dataSize()),
+				  r(r_access_vertex<T>(rawData.r, vertexIndex, stride)) {
 		}
 
 		// do not allow copying

@@ -234,12 +234,11 @@ void ClientBuffer::deallocateClientData() {
 	allocatedSize_ = 0u;
 }
 
-void ClientBuffer::resize(size_t dataSize, size_t itemSize, const byte *initialData) {
+void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
 	// NOTE: resize should only be called with both slots being write-locked!
 	int32_t resizeAmount = static_cast<int32_t>(dataSize) - static_cast<int32_t>(dataSize_);
 
 	// adjust the data size
-	itemSize_ = static_cast<uint32_t>(itemSize);
 	dataSize_ = static_cast<uint32_t>(dataSize);
 	auto *parent = parentBuffer_;
 	while (parent) {

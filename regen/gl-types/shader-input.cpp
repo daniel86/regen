@@ -84,7 +84,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 	if (o.hasClientData()) {
 		// TODO use ROI class here
 		auto mapped = o.clientBuffer_.mapRange(ClientMappingMode::READ, 0, o.inputSize_);
-		clientBuffer_.resize(inputSize_, elementSize_, mapped.r);
+		clientBuffer_.resize(inputSize_, mapped.r);
 		o.clientBuffer_.unmapRange(ClientMappingMode::READ, 0, inputSize_, mapped.r_index);
 	}
 }
@@ -233,8 +233,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		updateAlignment();
 		updateAlignedSize();
 
-		auto arrayElementSize = dataTypeBytes_ * valsPerElement_;
-		clientBuffer_.resize(inputSize_, arrayElementSize, data);
+		clientBuffer_.resize(inputSize_, data);
 		clientBuffer_.writeUnlockAll(0u, inputSize_);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ClientMappingMode::WRITE);
@@ -258,7 +257,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		updateAlignment();
 		updateAlignedSize();
 
-		clientBuffer_.resize(inputSize_, elementSize_, data);
+		clientBuffer_.resize(inputSize_, data);
 		clientBuffer_.writeUnlockAll(0u, inputSize_);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ClientMappingMode::WRITE);
@@ -437,10 +436,10 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 		if (copyData) {
 			// TODO use ROI class here
 			auto mapped = in->clientBuffer_.mapRange(ClientMappingMode::READ, 0, in->inputSize_);
-			cp->clientBuffer_.resize(in->inputSize_, in->elementSize_, mapped.r);
+			cp->clientBuffer_.resize(in->inputSize_, mapped.r);
 			in->clientBuffer_.unmapRange(ClientMappingMode::READ, 0, in->inputSize_, mapped.r_index);
 		} else {
-			cp->clientBuffer_.resize(in->inputSize_, in->elementSize_);
+			cp->clientBuffer_.resize(in->inputSize_);
 		}
 	}
 	return cp;

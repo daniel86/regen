@@ -48,13 +48,6 @@ namespace regen {
 		uint32_t dataSize() const { return dataSize_; }
 
 		/**
-		 * The item size is used to determine the size of a single vertex or array element
-		 * in the client data.
-		 * @return the size of a single item in bytes.
-		 */
-		uint32_t itemSize() const { return itemSize_; }
-
-		/**
 		 * Obtains the client data without locking.
 		 * Be sure that no other thread is writing to the data at the same time.
 		 * @return the client data.
@@ -99,13 +92,9 @@ namespace regen {
 		/**
 		 * Resize the client buffer.
 		 * @param bufferSize the new size of the buffer in bytes.
-		 * @param itemSize the size of a single item in bytes.
 		 * @param initialData optional initial data to fill the buffer with.
 		 */
-		void resize(
-				size_t bufferSize,
-				size_t itemSize,
-				const byte *initialData = nullptr);
+		void resize(size_t bufferSize, const byte *initialData = nullptr);
 
 		/**
 		 * Flush the client buffer.
@@ -138,7 +127,6 @@ namespace regen {
 		uint32_t dataSize_ = 0u;
 		uint32_t allocatedSize_ = 0u;
 		uint32_t dataOffset_ = 0u;
-		uint32_t itemSize_ = 0u;
 		bool isFrameLocked_ = false;
 
 		// Note: marked as mutable because client data mapping must be allowed in const functions
