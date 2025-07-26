@@ -107,7 +107,7 @@ MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t s
 			return mapRange_SingleBuffer(offset, size);
 		} else {
 			// ClientBuffer in double-buffered mode.
-			return mapRange_DoubleBuffer(mapMode, offset, size);
+			return mapRange_DoubleBuffer(offset, size);
 		}
 	} else {
 		return mapRange_ReadOnly(offset, size);
@@ -145,7 +145,7 @@ MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t /
 	}
 }
 
-MappedClientData ClientBuffer::mapRange_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const {
+MappedClientData ClientBuffer::mapRange_DoubleBuffer(uint32_t offset, uint32_t size) const {
 	// we are in double-buffered mode, i.e. we have two slots.
 	// partial write can be expensive here!
 	// NOTE: no index mapping needed if there is only one vertex/array element
@@ -153,19 +153,9 @@ MappedClientData ClientBuffer::mapRange_DoubleBuffer(int mapMode, uint32_t offse
 	byte *data_w = dataSlots_[w_index];
 
 	if (dataSize_ == size) { // FULL write
-		// Note: if we are frame-locked, we skip the copy of read data,
-		//       as this is done only once per frame for the whole client buffer.
-		data_w += offset;
-		if ((mapMode & BUFFER_GPU_READ) != 0) {
-			// TODO: I do not think read lock is needed when having write lock,
-			//       because as long as there is a write lock on one slot it is certain the other slot can be read safely.
-			int r_index = dataOwner_->readLock();
-			return {
-				dataSlots_[r_index] + offset,
-				r_index, data_w, w_index };
-		} else {
-			return { data_w, -1, data_w, w_index };
-		}
+		return {
+			dataSlots_[1-w_index] + offset, -1,
+			data_w + offset, w_index };
 	} else {
 		// we swap after each write operation, and a partial write is required.
 		// make sure to copy the data from the read slot to the write slot before we do the swap.
@@ -175,8 +165,9 @@ MappedClientData ClientBuffer::mapRange_DoubleBuffer(int mapMode, uint32_t offse
 			std::memcpy(data_w, dataSlots_[r_index], dataSize_);
 			dataOwner_->readUnlock(r_index);
 		}
-		data_w += offset;
-		return { data_w, -1, data_w, w_index };
+		return {
+			dataSlots_[1-w_index] + offset, -1,
+			data_w + offset, w_index };
 	}
 }
 

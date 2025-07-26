@@ -169,7 +169,7 @@ namespace regen {
 
 		MappedClientData mapRange_SingleBuffer(uint32_t offset, uint32_t size) const;
 
-		MappedClientData mapRange_DoubleBuffer(int mapMode, uint32_t offset, uint32_t size) const;
+		MappedClientData mapRange_DoubleBuffer(uint32_t offset, uint32_t size) const;
 
 		MappedClientData mapRange_ReadOnly(uint32_t offset, uint32_t size) const;
 
