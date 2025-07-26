@@ -156,18 +156,24 @@ namespace regen {
 		 * Specifies the data type of each component in the array.
 		 * Symbolic constants GL_FLOAT,GL_DOUBLE,.. accepted.
 		 */
-		GLenum baseType() const { return baseType_; }
+		inline GLenum baseType() const { return baseType_; }
+
+		/**
+		 * Specifies the number of components per generic vertex attribute.
+		 * Must be 1, 2, 3, or 4.
+		 */
+		inline int32_t valsPerElement() const { return valsPerElement_; }
 
 		/**
 		 * Specified the complex data type, e.g. GL_RGBA32F for Vec4f.
 		 * @return the complex data type.
 		 */
-		GLenum dataType() const;
+		inline GLenum dataType() const { return dataType_; }
 
 		/**
 		 * Size of a single instance of the data type in bytes.
 		 */
-		uint32_t dataTypeBytes() const { return dataTypeBytes_; }
+		inline uint32_t dataTypeBytes() const { return dataTypeBytes_; }
 
 		/**
 		 * Base alignment of the input.
@@ -181,6 +187,53 @@ namespace regen {
 		 * @return the alignment count of the input.
 		 */
 		inline uint32_t alignmentCount() const { return alignmentCount_; }
+
+		/**
+		 * Attribute size for a single vertex.
+		 */
+		inline uint32_t elementSize() const { return elementSize_; }
+
+		/**
+		 * numArrayElements() * numInstances()
+		 */
+		inline uint32_t numElements() const { return numElements_ui_; }
+
+		/**
+		 * Number of array elements.
+		 * returns 1 if this is not an array attribute.
+		 */
+		inline uint32_t numArrayElements() const { return numArrayElements_; }
+
+		/**
+		 * Used for instanced attributes.
+		 */
+		inline uint32_t numInstances() const { return numInstances_; }
+
+		/**
+		 * @return the vertex count.
+		 */
+		inline uint32_t numVertices() const { return numVertices_; }
+
+		/**
+		 * Number of array elements.
+		 * returns 1 if this is not an array attribute.
+		 */
+		void set_numArrayElements(uint32_t v);
+
+		/**
+		 * @param numVertices the vertex count.
+		 */
+		void set_numVertices(GLuint numVertices) { numVertices_ = numVertices; }
+
+		/**
+		 * Attribute size for all vertices.
+		 */
+		inline uint32_t inputSize() const { return inputSize_; }
+
+		/**
+		 * Attribute size for all vertices.
+		 */
+		void set_inputSize(GLuint size) { inputSize_ = size; }
 
 		/**
 		 * VBO that contains this vertex data.
@@ -204,21 +257,6 @@ namespace regen {
 		auto &bufferIterator() const { return bufferIterator_; }
 
 		/**
-		 * Attribute size for all vertices.
-		 */
-		uint32_t inputSize() const { return inputSize_; }
-
-		/**
-		 * Attribute size for all vertices.
-		 */
-		void set_inputSize(GLuint size) { inputSize_ = size; }
-
-		/**
-		 * Attribute size for a single vertex.
-		 */
-		uint32_t elementSize() const { return elementSize_; }
-
-		/**
 		 * Offset in the VBO to the first
 		 * attribute element.
 		 */
@@ -231,43 +269,15 @@ namespace regen {
 		uint32_t offset() const { return offset_; }
 
 		/**
-		 * numArrayElements() * numInstances()
+		 * Specify the number of instances that will pass between updates
+		 * of the generic attribute at slot index.
 		 */
-		uint32_t numElements() const { return numElements_ui_; }
-
-		/**
-		 * Number of array elements.
-		 * returns 1 if this is not an array attribute.
-		 */
-		uint32_t numArrayElements() const { return numArrayElements_; }
-
-		/**
-		 * Number of array elements.
-		 * returns 1 if this is not an array attribute.
-		 */
-		void set_numArrayElements(uint32_t v);
+		uint32_t divisor() const { return divisor_; }
 
 		/**
 		 * Set the flag to true if this input is a vertex attribute.
 		 */
 		void set_isVertexAttribute(bool isVertexAttribute);
-
-		/**
-		 * Specifies the number of components per generic vertex attribute.
-		 * Must be 1, 2, 3, or 4.
-		 */
-		int32_t valsPerElement() const { return valsPerElement_; }
-
-		/**
-		 * Used for instanced attributes.
-		 */
-		uint32_t numInstances() const { return numInstances_; }
-
-		/**
-		 * Specify the number of instances that will pass between updates
-		 * of the generic attribute at slot index.
-		 */
-		uint32_t divisor() const { return divisor_; }
 
 		/**
 		 * Specifies whether fixed-point data values should be normalized (GL_TRUE)
@@ -284,16 +294,6 @@ namespace regen {
 		 * @return transpose the data.
 		 */
 		bool transpose() const { return transpose_; }
-
-		/**
-		 * @return the vertex count.
-		 */
-		uint32_t numVertices() const { return numVertices_; }
-
-		/**
-		 * @param numVertices the vertex count.
-		 */
-		void set_numVertices(GLuint numVertices) { numVertices_ = numVertices; }
 
 		/**
 		 * Returns true if this input is a vertex attribute or
@@ -589,6 +589,7 @@ namespace regen {
 	protected:
 		std::string name_;
 		GLenum baseType_;
+		const GLenum dataType_;
 		uint32_t baseSize_;
 		uint32_t baseAlignment_;
 		uint32_t dataTypeBytes_;

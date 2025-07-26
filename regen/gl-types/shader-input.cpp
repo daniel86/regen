@@ -34,6 +34,7 @@ ShaderInput::ShaderInput(
 		bool normalize)
 		: name_(name),
 		  baseType_(baseType),
+		  dataType_(glenum::dataType(baseType, valsPerElement)),
 		  dataTypeBytes_(dataTypeBytes),
 		  stride_(0),
 		  offset_(0),
@@ -62,6 +63,7 @@ ShaderInput::ShaderInput(
 ShaderInput::ShaderInput(const ShaderInput &o)
 		: name_(o.name_),
 		  baseType_(o.baseType_),
+		  dataType_(o.dataType_),
 		  baseSize_(o.baseSize_),
 		  dataTypeBytes_(o.dataTypeBytes_),
 		  stride_(o.stride_),
@@ -134,10 +136,6 @@ void ShaderInput::updateAlignment() {
 void ShaderInput::setMemoryLayout(BufferMemoryLayout layout) {
 	memoryLayout_ = layout;
 	updateAlignment();
-}
-
-GLenum ShaderInput::dataType() const {
-	return glenum::dataType(baseType_, valsPerElement_);
 }
 
 void ShaderInput::set_numArrayElements(uint32_t v) {
