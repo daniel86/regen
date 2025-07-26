@@ -99,22 +99,22 @@ namespace regen {
 	};
 
 	template<typename T>
-	T& access_packed(byte* base, size_t index, size_t /*stride*/) {
+	T& w_access_packed(byte* base, size_t index, size_t /*stride*/) {
 		return reinterpret_cast<T*>(base)[index];
 	}
 
 	template<typename T>
-	T& access_strided(byte* base, size_t index, size_t stride) {
+	T& w_access_strided(byte* base, size_t index, size_t stride) {
 		return *reinterpret_cast<T*>(base + index * stride);
 	}
 
 	template<typename T>
-	const T& access_packed(const byte* base, size_t index, size_t /*stride*/) {
+	const T& r_access_packed(const byte* base, size_t index, size_t /*stride*/) {
 		return reinterpret_cast<const T*>(base)[index];
 	}
 
 	template<typename T>
-	const T& access_strided(const byte* base, size_t index, size_t stride) {
+	const T& r_access_strided(const byte* base, size_t index, size_t stride) {
 		return *reinterpret_cast<const T*>(base + index * stride);
 	}
 
@@ -169,17 +169,19 @@ namespace regen {
 		/**
 		 * Packed-access constructor.
 		 * @param clientBuffer the client buffer.
+		 * @param stride the stride in bytes between consecutive elements of type T.
 		 * @param mapMode the mapping mode.
 		 * @param mapOffset the offset in bytes from the start of the buffer.
 		 * @param mapSize the size in bytes to map.
 		 */
 		ShaderData_rw(ClientBuffer *clientBuffer,
+					uint32_t stride,
 					int32_t mapMode,
 					uint32_t mapOffset,
 					uint32_t mapSize)
 				: rawData(clientBuffer, mapMode, mapOffset, mapSize),
-				  r(rawData.r, 0u, access_packed<T>),
-				  w(rawData.w, 0u, access_packed<T>) {
+				  r(rawData.r, stride, stride==0u ? r_access_packed<T> : r_access_strided<T>),
+				  w(rawData.w, stride, stride==0u ? w_access_packed<T> : w_access_strided<T>) {
 		}
 
 		// do not allow copying
@@ -195,7 +197,7 @@ namespace regen {
 		 * @return a null data object.
 		 */
 		static ShaderData_rw<T> nullData() {
-			return ShaderData_rw<T>(nullptr, 0, 0, 0);
+			return ShaderData_rw<T>(nullptr, 0, 0, 0, 0);
 		}
 
 	private:
@@ -223,16 +225,18 @@ namespace regen {
 		/**
 		 * Packed-access constructor.
 		 * @param clientBuffer the client buffer.
+		 * @param stride the stride in bytes between consecutive elements of type T.
 		 * @param mapMode the mapping mode.
 		 * @param mapOffset the offset in bytes from the start of the buffer.
 		 * @param mapSize the size in bytes to map.
 		 */
 		ShaderData_ro(ClientBuffer *clientBuffer,
+					uint32_t stride,
 					int32_t mapMode,
 					uint32_t mapOffset,
 					uint32_t mapSize)
 				: rawData(clientBuffer, mapMode, mapOffset, mapSize),
-				  r(rawData.r, 0u, access_packed<T>) {
+				  r(rawData.r, stride, stride==0u ? r_access_packed<T> : r_access_strided<T>) {
 		}
 
 		// do not allow copying

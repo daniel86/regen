@@ -386,8 +386,8 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		inline ShaderDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t offset, uint32_t size) const {
-			return {&clientBuffer_, mapMode, offset, size};
+		inline ShaderDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
+			return { &clientBuffer_, mapMode, mapOffset, mapSize };
 		}
 
 		/**
@@ -398,7 +398,9 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderData_rw<T> mapClientData(int32_t mapMode) {
-			return { &clientBuffer_, mapMode, 0, inputSize_ };
+			// TODO
+			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, 0, inputSize_ };
+			return { &clientBuffer_, 0, mapMode, 0, inputSize_ };
 		}
 
 		/**
@@ -408,8 +410,10 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_rw<T> mapClientData(int32_t mapMode, uint32_t offset, uint32_t size) {
-			return { &clientBuffer_, mapMode, offset, size };
+		ShaderData_rw<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) {
+			// TODO
+			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, mapOffset, mapSize };
+			return { &clientBuffer_, 0, mapMode, mapOffset, mapSize };
 		}
 
 		/**
@@ -420,7 +424,9 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderData_ro<T> mapClientData(int32_t mapMode) const {
-			return {&clientBuffer_, mapMode, 0, inputSize_};
+			// TODO
+			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, 0, inputSize_ };
+			return { &clientBuffer_, 0, mapMode, 0, inputSize_ };
 		}
 
 		/**
@@ -430,8 +436,10 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_ro<T> mapClientData(int32_t mapMode, uint32_t offset, uint32_t size) const {
-			return {&clientBuffer_, mapMode, offset, size};
+		ShaderData_ro<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
+			// TODO
+			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, mapOffset, mapSize };
+			return { &clientBuffer_, 0, mapMode, mapOffset, mapSize };
 		}
 
 		/**
@@ -443,7 +451,9 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
-			return {&clientBuffer_, mapMode, vertexIndex};
+			// TODO
+			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, vertexIndex };
+			return { &clientBuffer_, mapMode, vertexIndex };
 		}
 
 		/**
@@ -455,7 +465,9 @@ namespace regen {
 		 */
 		template<typename T>
 		ShaderVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
-			return {&clientBuffer_, mapMode, vertexIndex};
+			// TODO
+			//return { &clientBuffer_, (1-isClientTightlyPacked())*clientStride_, mapMode, vertexIndex };
+			return { &clientBuffer_, mapMode, vertexIndex };
 		}
 
 		/**
