@@ -608,16 +608,16 @@ void BufferBlock::copyBlockInput(
 	//       in case starts at first dirt segment. However, the block input offsets are always
 	//       relative to the start of the buffer, so we need to adjust the offset accordingly...
 	const uint32_t offset = bufferInput.offset - localMapOffset;
-	updateStridedData(bufferInput);
-	if (bufferInput.alignedData) {
-		memcpy(mappedBufferData + offset,
-			   bufferInput.alignedData, bufferInput.alignedSize);
-	} else {
+	//updateStridedData(bufferInput);
+	//if (bufferInput.alignedData) {
+	//	memcpy(mappedBufferData + offset,
+	//		   bufferInput.alignedData, bufferInput.alignedSize);
+	//} else {
 		auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
 		memcpy(mappedBufferData + offset,
 			   mapped.r,
 			   bufferInput.input->inputSize());
-	}
+	//}
 }
 
 void BufferBlock::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset) {
@@ -859,21 +859,21 @@ void BufferBlock::updateNonMapped() {
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			const uint32_t localOffset = shared_->stagingOffset_ + bufferInput.offset;
-			updateStridedData(bufferInput);
-			if (bufferInput.alignedData) {
-				shared_->stagingBuffer_->setSubData(
-						drawBufferRef_,
-						localOffset,
-						bufferInput.alignedSize,
-						bufferInput.alignedData);
-			} else {
+			//updateStridedData(bufferInput);
+			//if (bufferInput.alignedData) {
+			//	shared_->stagingBuffer_->setSubData(
+			//			drawBufferRef_,
+			//			localOffset,
+			//			bufferInput.alignedSize,
+			//			bufferInput.alignedData);
+			//} else {
 				auto mapped = bufferInput.input->mapClientDataRaw(ClientMappingMode::READ);
 				shared_->stagingBuffer_->setSubData(
 						drawBufferRef_,
 						localOffset,
 						bufferInput.inputSize,
 						mapped.r);
-			}
+			//}
 			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}

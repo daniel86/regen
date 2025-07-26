@@ -215,8 +215,8 @@ void ShaderInput::updateAlignedSize() {
 		auto stride = baseAlignment_ * alignmentCount_;
 		auto alignedSize = stride * numElements_ui_;
 		if (alignedSize != unalignedSize_) {
-			//inputSize_ = alignedSize;
-			//mapClientStride_ = stride;
+			inputSize_ = alignedSize;
+			mapClientStride_ = stride;
 			REGEN_WARN("STRIDED FOO BAR BAZ " << name_ << " with " << numElements_ui_ <<
 					   " elements, unaligned size: "
 					   << unalignedSize_ << ", aligned size: " << alignedSize
@@ -242,8 +242,8 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		updateAlignedSize();
 
 		auto arrayElementSize = dataTypeBytes_ * valsPerElement_;
-		clientBuffer_.resize(dataSize_bytes, arrayElementSize, data);
-		clientBuffer_.writeUnlockAll(0u, dataSize_bytes);
+		clientBuffer_.resize(inputSize_, arrayElementSize, data);
+		clientBuffer_.writeUnlockAll(0u, inputSize_);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ClientMappingMode::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -266,8 +266,8 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		updateAlignment();
 		updateAlignedSize();
 
-		clientBuffer_.resize(dataSize_bytes, elementSize_, data);
-		clientBuffer_.writeUnlockAll(0u, dataSize_bytes);
+		clientBuffer_.resize(inputSize_, elementSize_, data);
+		clientBuffer_.writeUnlockAll(0u, inputSize_);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(ClientMappingMode::WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);

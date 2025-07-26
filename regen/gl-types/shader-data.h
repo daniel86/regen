@@ -5,6 +5,7 @@
 #include <regen/regen.h>
 #include <regen/buffer/client-buffer.h>
 #include <regen/utility/ref-ptr.h>
+#include <regen/utility/logging.h>
 
 namespace regen {
 	/**
