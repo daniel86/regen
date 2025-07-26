@@ -50,7 +50,7 @@ void VBO::uploadSequential(
 	for (const auto &attribute: attributes) {
 		ShaderInput *att = attribute.get();
 		att->set_offset(currOffset + startByte);
-		att->set_stride(att->elementSize());
+		att->setVertexStride(att->elementSize());
 		att->set_buffer(ref->bufferID(), ref);
 		// copy data
 		if (att->hasClientData()) {
@@ -95,10 +95,10 @@ void VBO::uploadInterleaved(
 	for (const auto &attribute: attributes) {
 		ShaderInput *att = attribute.get();
 		if (att->divisor() == 0) {
-			att->set_stride(static_cast<int>(attributeVertexSize));
+			att->setVertexStride(static_cast<int>(attributeVertexSize));
 		} else {
 			// add instanced attributes to the end of the buffer
-			att->set_stride(static_cast<int>(att->elementSize()));
+			att->setVertexStride(static_cast<int>(att->elementSize()));
 			att->set_offset(currOffset + startByte);
 			if (att->hasClientData()) {
 				std::memcpy(

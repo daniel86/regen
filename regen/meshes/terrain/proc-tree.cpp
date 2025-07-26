@@ -323,7 +323,7 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 									  reinterpret_cast<const unsigned char *>(&lod0.mUV[0].u));
 		treeMesh.tan->setVertexData(numVertices);
 		auto v_tan = treeMesh.tan->mapClientData<float>(ClientMappingMode::WRITE);
-		computeTan(treeMesh, lod0, 0, (Vec4f*)v_tan.w);
+		computeTan(treeMesh, lod0, 0, (Vec4f*)v_tan.w.data());
 	} else {
 		// allocate memory then copy each LOD into the vertex data array
 		treeMesh.indices->setVertexData(numIndices);
@@ -337,6 +337,10 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 		auto v_nor = treeMesh.nor->mapClientData<float>(ClientMappingMode::WRITE);
 		auto v_tan = treeMesh.tan->mapClientData<float>(ClientMappingMode::WRITE);
 		auto v_texco = treeMesh.texco->mapClientData<float>(ClientMappingMode::WRITE);
+		auto *ptr_indices = indices.w.data();
+		auto *ptr_pos = v_pos.w.data();
+		auto *ptr_nor = v_nor.w.data();
+		auto *ptr_texco = v_texco.w.data();
 		// copy data from Proctree to Mesh
 		// also create LOD descriptions on the way.
 		unsigned int vertexOffset = 0u, indexOffset = 0u;
@@ -349,22 +353,22 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 			lodLevel.d->indexOffset = indexOffset;
 			// copy data
 			for (int i = 0; i < lod.mFaceCount; i++) {
-				indices.w[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
-				indices.w[i * 3 + 1] = lod.mFace[i].y + vertexOffset;
-				indices.w[i * 3 + 2] = lod.mFace[i].z + vertexOffset;
+				ptr_indices[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
+				ptr_indices[i * 3 + 1] = lod.mFace[i].y + vertexOffset;
+				ptr_indices[i * 3 + 2] = lod.mFace[i].z + vertexOffset;
 			}
-			memcpy(v_pos.w, &lod.mVert[0].x, lod.mVertCount * 3 * sizeof(float));
-			memcpy(v_nor.w, &lod.mNormal[0].x, lod.mVertCount * 3 * sizeof(float));
-			memcpy(v_texco.w, &lod.mUV[0].u, lod.mVertCount * 2 * sizeof(float));
+			memcpy(ptr_pos, &lod.mVert[0].x, lod.mVertCount * 3 * sizeof(float));
+			memcpy(ptr_nor, &lod.mNormal[0].x, lod.mVertCount * 3 * sizeof(float));
+			memcpy(ptr_texco, &lod.mUV[0].u, lod.mVertCount * 2 * sizeof(float));
 			// compute tangents
-			computeTan(treeMesh, lod, vertexOffset, (Vec4f*)v_tan.w);
+			computeTan(treeMesh, lod, vertexOffset, (Vec4f*)v_tan.w.data());
 			// increase offsets
 			vertexOffset += lodLevel.d->numVertices;
 			indexOffset += lodLevel.d->numIndices;
-			indices.w += lodLevel.d->numIndices;
-			v_pos.w += lod.mVertCount * 3;
-			v_nor.w += lod.mVertCount * 3;
-			v_texco.w += lod.mVertCount * 2;
+			ptr_indices += lodLevel.d->numIndices;
+			ptr_pos += lod.mVertCount * 3;
+			ptr_nor += lod.mVertCount * 3;
+			ptr_texco += lod.mVertCount * 2;
 		}
 	}
 

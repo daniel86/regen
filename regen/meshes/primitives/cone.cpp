@@ -187,8 +187,8 @@ void ConeClosed::generateLODLevel(
 
 	// create cone vertex data
 	loadConeData(
-			v_pos.w+vertexOffset,
-			(v_nor.w ? v_nor.w+vertexOffset : v_nor.w),
+			v_pos.w.data()+vertexOffset,
+			(v_nor.w.data() ? v_nor.w.data()+vertexOffset : v_nor.w.data()),
 			minPosition_, maxPosition_,
 			cfg.isBaseRequired, lodLevel,
 			cfg.radius, cfg.height);

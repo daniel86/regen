@@ -90,7 +90,7 @@ void pushVertex(
 		Vec3f t = computeSphereTangent(pos.w[vertexIndex]);
 		tan.w[vertexIndex] = Vec4f(t.x, t.y, t.z, 1.0);
 	}
-	if (texco.w) {
+	if (texco.w.hasData()) {
 		texco.w[vertexIndex] = Vec2f(
 				static_cast<float>(u) * cfg.texcoScale.x,
 				static_cast<float>(v) * cfg.texcoScale.y);

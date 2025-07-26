@@ -138,7 +138,7 @@ bool CharacterController::initializePhysics() {
 	rotation.setRotation(btVector3(0, 1, 0), meshHorizontalOrientation_);
 	btTransform initialTransform;
 	auto attachedTFData = attachedToTransform_->mapClientData<btScalar>(ClientMappingMode::READ);
-	initialTransform.setFromOpenGLMatrix(attachedTFData.r);
+	initialTransform.setFromOpenGLMatrix(attachedTFData.r.data());
 	attachedTFData.unmap();
 	initialTransform.setRotation(rotation);
 	ghostObject->setWorldTransform(initialTransform);

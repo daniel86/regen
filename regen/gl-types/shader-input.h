@@ -148,11 +148,9 @@ namespace regen {
 		 */
 		inline uint32_t stride() const { return stride_; }
 
-		/**
-		 * Set the byte offset between consecutive elements of the shader data.
-		 * @param stride the byte offset between consecutive elements of the shader data.
-		 */
-		void set_stride(GLsizei stride) { stride_ = stride; }
+		// TODO: remove once vertex data can be handled in client buffers
+		void setVertexStride(GLsizei stride) { vertexStride_ = stride; }
+		inline uint32_t vertexStride() const { return vertexStride_; }
 
 		/**
 		 * @return the number of alignment counts.
@@ -574,6 +572,8 @@ namespace regen {
 		uint32_t baseSize_;
 		uint32_t dataTypeBytes_;
 		uint32_t stride_;
+		// TODO: remove this
+		uint32_t vertexStride_;
 		uint32_t offset_;
 		uint32_t inputSize_ = 0u;
 		uint32_t unalignedSize_ = 0u;

@@ -923,11 +923,11 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 		}
 		texco->setVertexData(numVertices);
 		auto v_texco = texco->mapClientData<float>(ClientMappingMode::WRITE);
-
+		auto *ptr_texco = v_texco.w.data();
 		for (GLuint n = 0; n < numVertices; ++n) {
 			GLfloat *aiTexcoData = &(aiTexcos[n].x);
-			for (GLuint x = 0; x < texcoComponents; ++x) v_texco.w[x] = aiTexcoData[x];
-			v_texco.w += texcoComponents;
+			for (GLuint x = 0; x < texcoComponents; ++x) ptr_texco[x] = aiTexcoData[x];
+			ptr_texco += texcoComponents;
 		}
 		v_texco.unmap();
 		meshState->setInput(texco);
@@ -986,23 +986,25 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			boneIndices->setVertexData(numVertices);
 			auto v_weights = boneWeights->mapClientData<GLfloat>(ClientMappingMode::WRITE);
 			auto v_indices = boneIndices->mapClientData<GLuint>(ClientMappingMode::WRITE);
+			auto *ptr_weights = v_weights.w.data();
+			auto *ptr_indices = v_indices.w.data();
 
 			for (GLuint j = 0; j < numVertices; j++) {
 				WeightList &vWeights = vertexToWeights[j];
 
 				GLuint k = 0;
 				for (auto & vWeight : vWeights) {
-					v_weights.w[k] = vWeight.first;
-					v_indices.w[k] = vWeight.second;
+					ptr_weights[k] = vWeight.first;
+					ptr_indices[k] = vWeight.second;
 					++k;
 				}
 				for (; k < maxNumWeights; ++k) {
-					v_weights.w[k] = 0.0f;
-					v_indices.w[k] = 0u;
+					ptr_weights[k] = 0.0f;
+					ptr_indices[k] = 0u;
 				}
 
-				v_weights.w += maxNumWeights;
-				v_indices.w += maxNumWeights;
+				ptr_weights += maxNumWeights;
+				ptr_indices += maxNumWeights;
 			}
 
 			v_weights.unmap();

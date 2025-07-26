@@ -434,7 +434,7 @@ void LODState::computeLODGroups() {
 	auto numVisible = visible_ids.r[0];
 	if (numVisible == 0) { return; }
 
-	const uint32_t *mappedData = visible_ids.r + 1;
+	const uint32_t *mappedData = visible_ids.r.data() + 1;
 	auto &tf = cullShape_->tf();
 	auto camPos = camera_->position()->getVertex(0);
 	bool hasTF = tf.get() && (tf->hasModelOffset() || tf->hasModelMat());
@@ -446,8 +446,8 @@ void LODState::computeLODGroups() {
 			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ClientMappingMode::READ);
 			auto tfData = modelMat->mapClientData<Mat4f>(ClientMappingMode::READ);
 			LODSelector_Full selector{
-					.tfData = tfData.r,
-					.modelOffsetData = modelOffsetData.r,
+					.tfData = tfData.r.data(),
+					.modelOffsetData = modelOffsetData.r.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get(),
 					.tfIdxMultiplier = (modelMat->numInstances() > 1u ? 1u : 0u),
@@ -460,7 +460,7 @@ void LODState::computeLODGroups() {
 		} else if (tf->hasModelOffset()) {
 			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(ClientMappingMode::READ);
 			LODSelector_ModelOffset selector{
-					.modelOffsetData = modelOffsetData.r,
+					.modelOffsetData = modelOffsetData.r.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get()
 			};
@@ -471,7 +471,7 @@ void LODState::computeLODGroups() {
 		} else {
 			auto tfData = modelMat->mapClientData<Mat4f>(ClientMappingMode::READ);
 			LODSelector_Transform selector{
-					.tfData = tfData.r,
+					.tfData = tfData.r.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get()
 			};

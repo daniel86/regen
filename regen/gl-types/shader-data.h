@@ -98,6 +98,41 @@ namespace regen {
 		friend class ShaderInput;
 	};
 
+	template<typename T>
+	class PackedWriteAccessor {
+	public:
+		explicit PackedWriteAccessor(T* data)
+			: data_(data) {}
+
+		T& operator[](size_t index) { return data_[index]; }
+
+		bool operator()() const {
+			return data_ != nullptr;
+		}
+
+		T* data() { return data_; }
+
+		bool hasData() const { return data_ != nullptr; }
+
+	private:
+		T* data_;
+	};
+
+	template<typename T>
+	class PackedReadAccessor {
+	public:
+		explicit PackedReadAccessor(const T* data) : data_(data) {}
+
+		const T& operator[](size_t index) const { return data_[index]; }
+
+		const T* data() const { return data_; }
+
+		bool hasData() const { return data_ != nullptr; }
+
+	private:
+		const T* data_;
+	};
+
 	/**
 	 * A low-level interface for typed read/write access to client data of shader input.
 	 * @tparam T the data type.
@@ -133,15 +168,16 @@ namespace regen {
 
 	private:
 		ShaderDataRaw_rw rawData;
+
 	public:
 		/**
 		 * The mapped data for reading.
 		 */
-		const T *r;
+		const PackedReadAccessor<T> r;
 		/**
 		 * The mapped data for writing.
 		 */
-		T *w;
+		PackedWriteAccessor<T> w;
 
 		friend class ShaderInput;
 	};
@@ -165,6 +201,10 @@ namespace regen {
 		// do not allow copying
 		ShaderData_ro(const ShaderData_ro &) = delete;
 
+		//const T& operator[](size_t i) const {
+        //	return r[i];
+		//}
+
 		/**
 		 * Unmap the data. Do not read after calling this method.
 		 */
@@ -172,11 +212,9 @@ namespace regen {
 
 	private:
 		ShaderDataRaw_ro rawData;
+
 	public:
-		/**
-		 * The mapped data for reading.
-		 */
-		const T *r;
+		const PackedReadAccessor<T> r;
 
 		friend class ShaderInput;
 	};

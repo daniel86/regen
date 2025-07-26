@@ -71,7 +71,7 @@ createConvexHull(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 	//hull->buildHull(margin);
 	//btConvexHullShape* simplifiedConvexShape = new btConvexHullShape(hull->getVertexPointer(),hull->numVertices());
 
-	auto shape = ref_ptr<btConvexHullShape>::alloc(v_pos.r, pos->numVertices());
+	auto shape = ref_ptr<btConvexHullShape>::alloc(v_pos.r.data(), pos->numVertices());
 	if (loadServerData) pos->deallocateClientData();
 	return shape;
 

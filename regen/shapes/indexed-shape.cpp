@@ -33,5 +33,5 @@ void IndexedShape::unmapInstanceIDs_internal() {
 }
 
 unsigned int *IndexedShape::mappedInstanceIDs() {
-	return mappedInstanceIDs_->mapped.w;
+	return mappedInstanceIDs_->mapped.w.data();
 }

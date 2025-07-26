@@ -254,8 +254,8 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 				}
 
 				if (cfg.isTangentRequired) {
-					Vec3f *vertices = v_pos.w + vertexIndex;
-					Vec2f *texcos = v_texco.w + vertexIndex;
+					Vec3f *vertices = v_pos.w.data() + vertexIndex;
+					Vec2f *texcos = v_texco.w.data() + vertexIndex;
 					Vec4f tangent = calculateTangent(vertices, texcos, normal);
 					for (GLuint i = 0; i < 3; ++i) {
 						v_tan.w[vertexIndex + i] = tangent;

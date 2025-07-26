@@ -128,11 +128,11 @@ void Torus::generateLODLevel(const Config &cfg,
 
 			if (cfg.texcoMode == TEXCO_MODE_UV) {
 				Vec2f texco((float) i / lodLevel, (float) j / lodLevel);
-				((Vec2f*)v_texco.w)[vertexIndex] = texco * cfg.texcoScale;
+				((Vec2f*)v_texco.w.data())[vertexIndex] = texco * cfg.texcoScale;
 			} else if (cfg.texcoMode == TEXCO_MODE_CUBE_MAP) {
 				Vec3f texco = pos;
 				texco.normalize();
-				((Vec3f*)v_texco.w)[vertexIndex] = texco;
+				((Vec3f*)v_texco.w.data())[vertexIndex] = texco;
 			}
 
 			if (cfg.isTangentRequired) {
