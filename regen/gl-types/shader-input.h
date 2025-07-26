@@ -576,6 +576,7 @@ namespace regen {
 		uint32_t stride_;
 		uint32_t offset_;
 		uint32_t inputSize_ = 0u;
+		uint32_t unalignedSize_ = 0u;
 		// This is the size in bytes of one element in the vertex buffer.
 		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
 		uint32_t elementSize_;
@@ -621,6 +622,8 @@ namespace regen {
 		ShaderInput &operator=(const ShaderInput &) { return *this; }
 
 		void updateStride();
+
+		void updateAlignedSize();
 	};
 
 	/**

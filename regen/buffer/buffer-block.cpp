@@ -429,6 +429,7 @@ uint32_t BufferBlock::updateBlockInputs() {
 		hasClientData_ = hasClientData_ && blockInput.input->hasClientData();
 
 		// construct contiguous segments of inputs that have changed
+		// FIXME: this should be done AFTER size update! BlockInput stuff is used, but updated later
 		if (blockInput.input->stamp() != lastInputStamp(blockInput)) {
 			updatedSize_ += blockInput.input->inputSize();
 			if (lastChanged) {
@@ -464,6 +465,8 @@ uint32_t BufferBlock::updateBlockInputs() {
 			} else {
 				blockInput->inputSize = in->baseSize() * in->numElements();
 			}
+			// TODO: switch to:
+			//blockInput->inputSize = in->inputSize();
 			requiredSize_ += blockInput->inputSize;
 		}
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)

@@ -67,6 +67,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  stride_(o.stride_),
 		  offset_(o.offset_),
 		  inputSize_(o.inputSize_),
+		  unalignedSize_(o.unalignedSize_),
 		  elementSize_(o.elementSize_),
 		  numArrayElements_(o.numArrayElements_),
 		  numVertices_(o.numVertices_),
@@ -201,10 +202,22 @@ void ShaderInput::setUniformUntyped(const byte *data) {
 	setInstanceData(1, 1, data);
 }
 
+void ShaderInput::updateAlignedSize() {
+	// TODO: allocate aligned space in client buffer!
+	/**
+	if (numElements() > 1) {
+		inputSize_ = stride_ * alignmentCount_ * numElements_ui_;
+	} else {
+		inputSize_ = baseSize_ * numElements_ui_;
+	}
+	**/
+	inputSize_ = unalignedSize_;
+}
+
 void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byte *data) {
 	auto dataSize_bytes = elementSize_ * numInstances / divisor;
 
-	if (dataSize_bytes != inputSize_ || isVertexAttribute_ || !hasClientData()) {
+	if (dataSize_bytes != unalignedSize_ || isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_.writeLockAll();
 		isVertexAttribute_ = false;
@@ -213,8 +226,9 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		numVertices_ = 1u;
 		numElements_ui_ = numArrayElements_ * numInstances_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
-		inputSize_ = dataSize_bytes;
+		unalignedSize_ = dataSize_bytes;
 		updateStride();
+		updateAlignedSize();
 
 		auto arrayElementSize = dataTypeBytes_ * valsPerElement_;
 		clientBuffer_.resize(dataSize_bytes, arrayElementSize, data);
@@ -228,7 +242,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 	auto dataSize_bytes = elementSize_ * numVertices;
 
-	if (dataSize_bytes != inputSize_ || !isVertexAttribute_ || !hasClientData()) {
+	if (dataSize_bytes != unalignedSize_ || !isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
 		clientBuffer_.writeLockAll();
 		isVertexAttribute_ = true;
@@ -237,8 +251,9 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		numVertices_ = numVertices;
 		numElements_ui_ = numArrayElements_ * numVertices_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
-		inputSize_ = dataSize_bytes;
+		unalignedSize_ = dataSize_bytes;
 		updateStride();
+		updateAlignedSize();
 
 		clientBuffer_.resize(dataSize_bytes, elementSize_, data);
 		clientBuffer_.writeUnlockAll(0u, dataSize_bytes);
