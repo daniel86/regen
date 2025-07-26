@@ -327,20 +327,6 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	inputs_.emplace_back(input, name);
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
-
-	if (input->baseAlignment() != 16 && input->numElements() > 1u) {
-		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
-			// with STD140, each array element must be padded to a multiple of 16 bytes
-			//stride_ = 16u;
-			REGEN_WARN("BufferBlock: STD140 for input: " << input->name());
-		} else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
-			// only vec3 and mat3 array types need to be aligned to 16 bytes with STD430.
-			if (baseSize_ == 12u || baseSize_ == 48u) {
-				//stride_ = 16u;
-				REGEN_WARN("BufferBlock: STD430 for input: " << input->name());
-			}
-		}
-	}
 	input->setMemoryLayout(memoryLayout_);
 
 	updateStorageFlags();
@@ -470,18 +456,16 @@ uint32_t BufferBlock::updateBlockInputs() {
 			auto &in = blockInput->input;
 			// Compute the alignment based on the type
 			// Align the offset to the required alignment
-			auto remainder = requiredSize_ % in->stride();
+			auto remainder = requiredSize_ % in->baseAlignment();
 			if (remainder != 0) {
-				requiredSize_ += in->stride() - remainder;
+				requiredSize_ += in->baseAlignment() - remainder;
 			}
 			blockInput->offset = requiredSize_;
 			if (in->numElements() > 1) {
-				blockInput->inputSize = in->stride() * in->alignmentCount() * in->numElements();
+				blockInput->inputSize = in->baseAlignment() * in->alignmentCount() * in->numElements();
 			} else {
 				blockInput->inputSize = in->baseSize() * in->numElements();
 			}
-			// TODO: switch to:
-			//blockInput->inputSize = in->inputSize();
 			requiredSize_ += blockInput->inputSize;
 		}
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)

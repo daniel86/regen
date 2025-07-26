@@ -141,8 +141,6 @@ namespace regen {
 		 */
 		inline uint32_t baseSize() const { return baseSize_; }
 
-		inline uint32_t baseAlignment() const { return baseAlignment_; }
-
 		/**
 		 * Specifies the byte offset between consecutive elements of the shader data.
 		 * This is e.g. the offset between two Vec3f elements in a Vec3f array.
@@ -153,11 +151,6 @@ namespace regen {
 		// TODO: remove once vertex data can be handled in client buffers
 		void setVertexStride(GLsizei stride) { vertexStride_ = stride; }
 		inline uint32_t vertexStride() const { return vertexStride_; }
-
-		/**
-		 * @return the number of alignment counts.
-		 */
-		inline uint32_t alignmentCount() const { return alignmentCount_; }
 
 		/**
 		 * Specifies the data type of each component in the array.
@@ -175,6 +168,19 @@ namespace regen {
 		 * Size of a single instance of the data type in bytes.
 		 */
 		uint32_t dataTypeBytes() const { return dataTypeBytes_; }
+
+		/**
+		 * Base alignment of the input.
+		 * @return the base alignment of the input in bytes.
+		 */
+		inline uint32_t baseAlignment() const { return baseAlignment_; }
+
+		/**
+		 * This is the number of times the base alignment is applied to the input
+		 * per element. i.e. the size of an element is baseAlignment * alignmentCount.
+		 * @return the alignment count of the input.
+		 */
+		inline uint32_t alignmentCount() const { return alignmentCount_; }
 
 		/**
 		 * VBO that contains this vertex data.
@@ -636,7 +642,7 @@ namespace regen {
 
 		ShaderInput &operator=(const ShaderInput &) { return *this; }
 
-		void updateStride();
+		void updateAlignment();
 
 		void updateAlignedSize();
 	};

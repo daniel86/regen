@@ -56,20 +56,7 @@ ShaderInput::ShaderInput(
 	baseSize_ = dataTypeBytes_ * valsPerElement_;
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
-
-	baseAlignment_ = baseSize_; // tightly packed
-	alignmentCount_ = 1u;
-	if (baseSize_ == 12u) { // vec3
-		baseAlignment_ = 16u;
-	} else if (baseSize_ == 48u) { // mat3
-		baseAlignment_ = 16u;
-		alignmentCount_ = 3u;
-	} else if (baseSize_ == 64u) { // mat4
-		baseAlignment_ = 16u;
-		alignmentCount_ = 4u;
-	}
-
-	updateStride();
+	updateAlignment();
 }
 
 ShaderInput::ShaderInput(const ShaderInput &o)
@@ -119,23 +106,26 @@ ShaderInput::~ShaderInput() {
 	}
 }
 
-void ShaderInput::updateStride() {
-	stride_ = baseSize_; // tightly packed
+void ShaderInput::updateAlignment() {
+	baseAlignment_ = baseSize_; // tightly packed
+	alignmentCount_ = 1u;
 
 	if (baseSize_ == 12u) { // vec3
-		stride_ = 16u;
+		baseAlignment_ = 16u;
 	} else if (baseSize_ == 48u) { // mat3
-		stride_ = 16u;
+		baseAlignment_ = 16u;
+		alignmentCount_ = 3u;
 	} else if (baseSize_ == 64u) { // mat4
-		stride_ = 16u;
+		baseAlignment_ = 16u;
+		alignmentCount_ = 4u;
 	} else if (numElements() > 1u) {
 		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
 			// with STD140, each array element must be padded to a multiple of 16 bytes
-			stride_ = 16u;
+			baseAlignment_ = 16u;
 		} else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
 			// only vec3 and mat3 array types need to be aligned to 16 bytes with STD430.
 			if (baseSize_ == 12u || baseSize_ == 48u) {
-				stride_ = 16u;
+				baseAlignment_ = 16u;
 			}
 		}
 	}
@@ -143,7 +133,7 @@ void ShaderInput::updateStride() {
 
 void ShaderInput::setMemoryLayout(BufferMemoryLayout layout) {
 	memoryLayout_ = layout;
-	updateStride();
+	updateAlignment();
 }
 
 GLenum ShaderInput::dataType() const {
@@ -162,7 +152,7 @@ void ShaderInput::set_numArrayElements(uint32_t v) {
 		numElements_ui_ = numArrayElements_ * numInstances_;
 	}
 	numElements_i_ = static_cast<int32_t>(numElements_ui_);
-	updateStride();
+	updateAlignment();
 	nextStamp();
 }
 
@@ -231,7 +221,7 @@ void ShaderInput::updateAlignedSize() {
 	}
 	**/
 	if (numElements() > 1 && !isVertexAttribute_) {
-		auto alignedSize = stride_ * alignmentCount_ * numElements_ui_;
+		auto alignedSize = baseAlignment_ * alignmentCount_ * numElements_ui_;
 		if (alignedSize != unalignedSize_) {
 			REGEN_WARN("STRIDED FOO BAR BAZ " << name_ << " with " << numElements_ui_ <<
 					   " elements, unaligned size: " << unalignedSize_ << ", aligned size: " << alignedSize);
@@ -253,7 +243,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		numElements_ui_ = numArrayElements_ * numInstances_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		unalignedSize_ = dataSize_bytes;
-		updateStride();
+		updateAlignment();
 		updateAlignedSize();
 
 		auto arrayElementSize = dataTypeBytes_ * valsPerElement_;
@@ -278,7 +268,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		numElements_ui_ = numArrayElements_ * numVertices_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		unalignedSize_ = dataSize_bytes;
-		updateStride();
+		updateAlignment();
 		updateAlignedSize();
 
 		clientBuffer_.resize(dataSize_bytes, elementSize_, data);
