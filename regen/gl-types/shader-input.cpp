@@ -35,12 +35,12 @@ ShaderInput::ShaderInput(
 		: name_(name),
 		  baseType_(baseType),
 		  dataType_(glenum::dataType(baseType, valsPerElement)),
-		  baseSize_(dataTypeBytes * valsPerElement),
 		  dataTypeBytes_(dataTypeBytes),
+		  baseSize_(dataTypeBytes * valsPerElement),
+		  valsPerElement_(valsPerElement),
 		  numArrayElements_(numArrayElements),
 		  numElements_i_(static_cast<int32_t>(numArrayElements)),
 		  numElements_ui_(numArrayElements),
-		  valsPerElement_(valsPerElement),
 		  bufferStamp_(0),
 		  normalize_(normalize) {
 	elementSize_ = baseSize_ * numArrayElements_;
@@ -52,23 +52,24 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		: name_(o.name_),
 		  baseType_(o.baseType_),
 		  dataType_(o.dataType_),
-		  baseSize_(o.baseSize_),
 		  dataTypeBytes_(o.dataTypeBytes_),
+		  baseSize_(o.baseSize_),
+		  valsPerElement_(o.valsPerElement_),
+		  baseAlignment_(o.baseAlignment_),
+		  alignmentCount_(o.alignmentCount_),
+		  unalignedSize_(o.unalignedSize_),
 		  stride_(o.stride_),
 		  offset_(o.offset_),
 		  inputSize_(o.inputSize_),
-		  unalignedSize_(o.unalignedSize_),
 		  elementSize_(o.elementSize_),
 		  numArrayElements_(o.numArrayElements_),
 		  numVertices_(o.numVertices_),
 		  numInstances_(o.numInstances_),
 		  numElements_i_(o.numElements_i_),
 		  numElements_ui_(o.numElements_ui_),
-		  valsPerElement_(o.valsPerElement_),
 		  divisor_(o.divisor_),
-		  buffer_(o.buffer_),
-		  alignmentCount_(o.alignmentCount_),
 		  memoryLayout_(o.memoryLayout_),
+		  buffer_(o.buffer_),
 		  bufferStamp_(o.bufferStamp_),
 		  normalize_(o.normalize_),
 		  isVertexAttribute_(o.isVertexAttribute_),
@@ -82,7 +83,6 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 	enableInput_ = o.enableInput_;
 	// copy client data, if any
 	if (o.hasClientData()) {
-		// TODO use ROI class here
 		auto mapped = o.clientBuffer_.mapRange(BUFFER_GPU_READ, 0, o.inputSize_);
 		clientBuffer_.resize(inputSize_, mapped.r);
 		o.clientBuffer_.unmapRange(BUFFER_GPU_READ, 0, inputSize_, mapped.r_index);
@@ -267,7 +267,6 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 
 void ShaderInput::writeServerData(GLuint index) const {
 	if (!hasClientData() || !hasServerData()) return;
-	// TODO use ROI class here
 	auto mappedClientData = clientBuffer_.mapRange(BUFFER_GPU_READ, 0, inputSize_);
 	auto clientData = mappedClientData.r;
 	auto subDataStart = clientData + elementSize_ * index;
@@ -282,7 +281,6 @@ void ShaderInput::writeServerData(GLuint index) const {
 void ShaderInput::writeServerData() const {
 	if (!hasClientData() || !hasServerData()) return;
 	if (bufferStamp_ == stamp()) return;
-	// TODO use ROI class here
 	auto mappedClientData = clientBuffer_.mapRange(BUFFER_GPU_READ, 0, inputSize_);
 	auto clientData = mappedClientData.r;
 	auto count = std::max(numVertices_, numInstances_);
@@ -304,7 +302,6 @@ void ShaderInput::writeServerData() const {
 
 void ShaderInput::readServerData() {
 	if (!hasServerData()) return;
-	// TODO use ROI class here
 	auto mappedClientData = clientBuffer_.mapRange(BUFFER_GPU_WRITE, 0, inputSize_);
 	auto clientData = mappedClientData.w;
 
@@ -434,7 +431,6 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 	if (in->hasClientData()) {
 		// allocate memory for one slot, copy most recent data
 		if (copyData) {
-			// TODO use ROI class here
 			auto mapped = in->clientBuffer_.mapRange(BUFFER_GPU_READ, 0, in->inputSize_);
 			cp->clientBuffer_.resize(in->inputSize_, mapped.r);
 			in->clientBuffer_.unmapRange(BUFFER_GPU_READ, 0, in->inputSize_, mapped.r_index);

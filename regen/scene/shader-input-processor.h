@@ -327,9 +327,9 @@ namespace regen {
 				GLuint count = 1;
 				// read the gpu-usage flag
 				if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
-					v->set_gpuUsage(BUFFER_GPU_WRITE);
+					v->setServerAccessMode(BUFFER_GPU_WRITE);
 				} else {
-					v->set_gpuUsage(BUFFER_GPU_READ);
+					v->setServerAccessMode(BUFFER_GPU_READ);
 				}
 
 				if (isInstanced) {

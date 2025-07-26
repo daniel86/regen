@@ -117,7 +117,7 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		uint32_t stamp() const { return clientBuffer_.stamp(); }
+		inline uint32_t stamp() const { return clientBuffer_.stamp(); }
 
 		/**
 		 * Increment the stamp.
@@ -148,6 +148,11 @@ namespace regen {
 		 */
 		inline uint32_t stride() const { return stride_; }
 
+		/**
+		 * Specifies the byte offset between consecutive elements of the shader data.
+		 * This is e.g. the offset between two Vec3f elements in a Vec3f array.
+		 * @param stride the byte offset between consecutive elements of the shader data.
+		 */
 		void set_stride(GLsizei stride) { stride_ = stride; }
 
 		/**
@@ -336,14 +341,18 @@ namespace regen {
 		bool forceArray() const { return forceArray_; }
 
 		/**
-		 * @param gpuUsage the gpu usage mode.
+		 * Set the server access mode. This is used to determine
+		 * how the data is accessed on the server side.
+		 * @param mode the server access mode.
 		 */
-		void set_gpuUsage(ServerAccessMode gpuUsage) { gpuUsage_ = gpuUsage; }
+		void setServerAccessMode(ServerAccessMode mode) { serverAccessMode_ = mode; }
 
 		/**
-		 * @return the gpu usage mode.
+		 * Get the server access mode. This is used to determine
+		 * how the data is accessed on the server side.
+		 * @return the server access mode.
 		 */
-		auto gpuUsage() const { return gpuUsage_; }
+		ServerAccessMode serverAccessMode() const { return serverAccessMode_; }
 
 		/**
 		 * Allocates RAM for the attribute and does a memcpy
@@ -576,13 +585,17 @@ namespace regen {
 		std::string name_;
 		const GLenum baseType_;
 		const GLenum dataType_;
+		const uint32_t dataTypeBytes_;
 		const uint32_t baseSize_;
+		const int32_t valsPerElement_;
+
 		uint32_t baseAlignment_;
-		uint32_t dataTypeBytes_;
+		uint32_t alignmentCount_;
+		uint32_t unalignedSize_ = 0u;
+
 		uint32_t stride_ = 0u;
 		uint32_t offset_ = 0u;
 		uint32_t inputSize_ = 0u;
-		uint32_t unalignedSize_ = 0u;
 		// This is the size in bytes of one element in the vertex buffer.
 		// e.g. elementSize(vec3f[2]) = 2 * 3 * sizeof(float)
 		uint32_t elementSize_;
@@ -593,24 +606,22 @@ namespace regen {
 		//       well we keep num-elements as both signed and unsigned then :/
 		int32_t numElements_i_;
 		uint32_t numElements_ui_;
-		const int32_t valsPerElement_;
 		uint32_t divisor_ = 0;
-		uint32_t buffer_ = 0;
-		uint32_t alignmentCount_;
+
+		ServerAccessMode serverAccessMode_ = BUFFER_GPU_READ;
 		BufferMemoryLayout memoryLayout_ = BUFFER_MEMORY_PACKED;
+		uint32_t buffer_ = 0;
 		mutable uint32_t bufferStamp_;
 		ref_ptr<BufferReference> bufferIterator_;
-		bool normalize_;
-		bool isVertexAttribute_ = false;
-		bool transpose_ = false;
-		// TODO remove this, use buffer enums
-		ServerAccessMode gpuUsage_ = BUFFER_GPU_READ;
 
 		ClientBuffer clientBuffer_;
 		// stride in bytes for typed client data in the client buffer.
 		// 0 is interpreted as tightly packed.
 		uint32_t mapClientStride_ = 0;
 
+		bool normalize_;
+		bool isVertexAttribute_ = false;
+		bool transpose_ = false;
 		bool isConstant_ = false;
 		bool isBufferBlock_ = false;
 		bool isStruct_ = false;
@@ -621,9 +632,6 @@ namespace regen {
 
 		void (ShaderInput::*enableAttribute_)(GLint loc) const;
 
-		friend struct ShaderDataRaw_rw;
-		friend struct ShaderDataRaw_ro;
-
 		std::function<void(GLint)> enableInput_;
 
 		ShaderInput(const ShaderInput &);
@@ -633,6 +641,9 @@ namespace regen {
 		void updateAlignment();
 
 		void updateAlignedSize();
+
+		friend struct ShaderDataRaw_rw;
+		friend struct ShaderDataRaw_ro;
 	};
 
 	/**

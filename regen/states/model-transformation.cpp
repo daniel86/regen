@@ -594,11 +594,11 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 	transform = ref_ptr<ModelTransformation>::alloc(tfMode, updateFlags);
 	// read the gpu-usage flag
 	if (input.getValue<std::string>("gpu-usage", "READ") == "WRITE") {
-		transform->modelMat()->set_gpuUsage(BUFFER_GPU_WRITE);
-		transform->modelOffset()->set_gpuUsage(BUFFER_GPU_WRITE);
+		transform->modelMat()->setServerAccessMode(BUFFER_GPU_WRITE);
+		transform->modelOffset()->setServerAccessMode(BUFFER_GPU_WRITE);
 	} else {
-		transform->modelMat()->set_gpuUsage(BUFFER_GPU_READ);
-		transform->modelOffset()->set_gpuUsage(BUFFER_GPU_READ);
+		transform->modelMat()->setServerAccessMode(BUFFER_GPU_READ);
+		transform->modelOffset()->setServerAccessMode(BUFFER_GPU_READ);
 	}
 
 	// Handle instanced model matrix

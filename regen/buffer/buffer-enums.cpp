@@ -125,8 +125,6 @@ namespace regen {
 				return out << "CPU_READ";
 			case BUFFER_CPU_WRITE:
 				return out << "CPU_WRITE";
-			case BUFFER_ACCESS_LAST:
-				return out << "GPU_ONLY"; // default case
 		}
 		return out;
 	}

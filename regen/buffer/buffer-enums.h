@@ -116,23 +116,28 @@ namespace regen {
 	};
 
 	/**
-	 * \brief Buffer access modes.
+	 * \brief Client access modes.
 	 *
 	 * Defines how the CPU can access the buffer.
-	 * The GPU can always read/write the buffer.
-	 * Note: You might receive an error if you try to access a buffer in a
-	 * way that is not allowed by the access mode!
+	 * This is mainly used for client-side data management,
+	 * i.e. how CPU accesses the client and staging buffer.
 	 */
 	enum ClientAccessMode {
 		// CPU cannot access the buffer, only GPU can read/write.
 		BUFFER_GPU_ONLY = 0,
 		// CPU can read from the buffer, but not write to it.
-		BUFFER_CPU_READ,
+		BUFFER_CPU_READ = 1 << 0,
 		// CPU can write to the buffer, but not read from it.
-		BUFFER_CPU_WRITE,
-		BUFFER_ACCESS_LAST // must be last
+		BUFFER_CPU_WRITE = 1 << 1
 	};
 
+	/**
+	 * \brief Server access modes.
+	 *
+	 * Defines how the GPU can access the buffer.
+	 * This is mainly used for mechanisms that decide adaptively how data
+	 * is stored on the GPU, e.g. SSBO allows writing while UBO does not.
+	 */
 	enum ServerAccessMode {
 		BUFFER_GPU_READ = 1 << 0,
 		BUFFER_GPU_WRITE = 1 << 1
