@@ -182,6 +182,42 @@ namespace regen {
 	};
 
 	/**
+	template<typename T>
+	class StridedPtr {
+	public:
+		StridedPtr(const void* base, size_t stride)
+			: base_(reinterpret_cast<const uint8_t*>(base)), stride_(stride) {}
+
+		const T& operator[](size_t i) const {
+			return *reinterpret_cast<const T*>(base_ + i * stride_);
+		}
+
+	private:
+		const uint8_t* base_;
+		size_t stride_;
+	};
+
+	template<typename T>
+	struct ShaderData_ro_XXXX {
+		ShaderData_ro_XXXX(ClientBuffer* clientBuffer, int32_t mapMode, uint32_t offset, uint32_t count)
+			: rawData(clientBuffer, mapMode, offset, count * clientBuffer->itemStride()),
+			  r(rawData.r, clientBuffer->itemStride()) {}
+
+		ShaderData_ro_XXXX(const ShaderData_ro&) = delete;
+
+		void unmap() { rawData.unmap(); }
+
+	private:
+		ShaderDataRaw_ro rawData;
+
+	public:
+		StridedPtr<T> r;
+
+		friend class ShaderInput;
+	};
+	**/
+
+	/**
 	 * A low-level interface for read/write access to a single vertex of client data of shader input.
 	 * @tparam T the data type.
 	 */
