@@ -220,6 +220,13 @@ void ShaderInput::updateAlignedSize() {
 		inputSize_ = baseSize_ * numElements_ui_;
 	}
 	**/
+	if (numElements() > 1 && !isVertexAttribute_) {
+		auto alignedSize = stride_ * alignmentCount_ * numElements_ui_;
+		if (alignedSize != unalignedSize_) {
+			REGEN_WARN("STRIDED FOO BAR BAZ " << name_ << " with " << numElements_ui_ <<
+					   " elements, unaligned size: " << unalignedSize_ << ", aligned size: " << alignedSize);
+		}
+	}
 	inputSize_ = unalignedSize_;
 }
 

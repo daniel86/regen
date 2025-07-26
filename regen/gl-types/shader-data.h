@@ -99,38 +99,65 @@ namespace regen {
 	};
 
 	template<typename T>
-	class PackedWriteAccessor {
+	T& access_packed(byte* base, size_t index, size_t /*stride*/) {
+		return reinterpret_cast<T*>(base)[index];
+	}
+
+	template<typename T>
+	T& access_strided(byte* base, size_t index, size_t stride) {
+		return *reinterpret_cast<T*>(base + index * stride);
+	}
+
+	template<typename T>
+	const T& access_packed(const byte* base, size_t index, size_t /*stride*/) {
+		return reinterpret_cast<const T*>(base)[index];
+	}
+
+	template<typename T>
+	const T& access_strided(const byte* base, size_t index, size_t stride) {
+		return *reinterpret_cast<const T*>(base + index * stride);
+	}
+
+	template<typename T>
+	class WriteAccessor {
 	public:
-		explicit PackedWriteAccessor(T* data)
-			: data_(data) {}
+		using AccessFunc = T& (*)(byte*, size_t, size_t);
 
-		T& operator[](size_t index) { return data_[index]; }
+		WriteAccessor(byte* base, size_t stride, AccessFunc func)
+			: base_(base), stride_(stride), accessFunc_(func) {}
 
-		bool operator()() const {
-			return data_ != nullptr;
+		T& operator[](size_t index) {
+			return accessFunc_(base_, index, stride_);
 		}
 
-		T* data() { return data_; }
-
-		bool hasData() const { return data_ != nullptr; }
+		bool hasData() const { return base_ != nullptr; }
+		T* data() { return reinterpret_cast<T *>(base_); }
 
 	private:
-		T* data_;
+		byte* base_;
+		size_t stride_;
+		AccessFunc accessFunc_;
 	};
 
 	template<typename T>
-	class PackedReadAccessor {
+	class ReadAccessor {
 	public:
-		explicit PackedReadAccessor(const T* data) : data_(data) {}
+		using AccessFunc = const T& (*)(const byte*, size_t, size_t);
 
-		const T& operator[](size_t index) const { return data_[index]; }
+		ReadAccessor(const byte* base, size_t stride, AccessFunc func)
+			: base_(base), stride_(stride), accessFunc_(func) {}
 
-		const T* data() const { return data_; }
+		const T& operator[](size_t index) const {
+			return accessFunc_(base_, index, stride_);
+		}
 
-		bool hasData() const { return data_ != nullptr; }
+		const T* data() const { return reinterpret_cast<const T *>(base_); }
+		bool hasData() const { return base_ != nullptr; }
 
 	private:
-		const T* data_;
+		const byte* base_;
+		size_t stride_;
+		AccessFunc accessFunc_;
 	};
 
 	/**
@@ -140,14 +167,19 @@ namespace regen {
 	template<typename T>
 	struct ShaderData_rw {
 		/**
-		 * Default constructor.
-		 * @param input the shader input.
-		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
+		 * Packed-access constructor.
+		 * @param clientBuffer the client buffer.
+		 * @param mapMode the mapping mode.
+		 * @param mapOffset the offset in bytes from the start of the buffer.
+		 * @param mapSize the size in bytes to map.
 		 */
-		ShaderData_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size)
-				: rawData(clientBuffer, mapMode, offset, size),
-				  r(reinterpret_cast<const T *>(rawData.r)),
-				  w(reinterpret_cast<T *>(rawData.w)) {
+		ShaderData_rw(ClientBuffer *clientBuffer,
+					int32_t mapMode,
+					uint32_t mapOffset,
+					uint32_t mapSize)
+				: rawData(clientBuffer, mapMode, mapOffset, mapSize),
+				  r(rawData.r, 0u, access_packed<T>),
+				  w(rawData.w, 0u, access_packed<T>) {
 		}
 
 		// do not allow copying
@@ -173,11 +205,11 @@ namespace regen {
 		/**
 		 * The mapped data for reading.
 		 */
-		const PackedReadAccessor<T> r;
+		const ReadAccessor<T> r;
 		/**
 		 * The mapped data for writing.
 		 */
-		PackedWriteAccessor<T> w;
+		WriteAccessor<T> w;
 
 		friend class ShaderInput;
 	};
@@ -189,21 +221,22 @@ namespace regen {
 	template<typename T>
 	struct ShaderData_ro {
 		/**
-		 * Default constructor.
-		 * @param input the shader input.
-		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
+		 * Packed-access constructor.
+		 * @param clientBuffer the client buffer.
+		 * @param mapMode the mapping mode.
+		 * @param mapOffset the offset in bytes from the start of the buffer.
+		 * @param mapSize the size in bytes to map.
 		 */
-		ShaderData_ro(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size)
-				: rawData(clientBuffer, mapMode, offset, size),
-				  r(reinterpret_cast<const T *>(rawData.r)) {
+		ShaderData_ro(ClientBuffer *clientBuffer,
+					int32_t mapMode,
+					uint32_t mapOffset,
+					uint32_t mapSize)
+				: rawData(clientBuffer, mapMode, mapOffset, mapSize),
+				  r(rawData.r, 0u, access_packed<T>) {
 		}
 
 		// do not allow copying
 		ShaderData_ro(const ShaderData_ro &) = delete;
-
-		//const T& operator[](size_t i) const {
-        //	return r[i];
-		//}
 
 		/**
 		 * Unmap the data. Do not read after calling this method.
@@ -214,46 +247,10 @@ namespace regen {
 		ShaderDataRaw_ro rawData;
 
 	public:
-		const PackedReadAccessor<T> r;
+		const ReadAccessor<T> r;
 
 		friend class ShaderInput;
 	};
-
-	/**
-	template<typename T>
-	class StridedPtr {
-	public:
-		StridedPtr(const void* base, size_t stride)
-			: base_(reinterpret_cast<const uint8_t*>(base)), stride_(stride) {}
-
-		const T& operator[](size_t i) const {
-			return *reinterpret_cast<const T*>(base_ + i * stride_);
-		}
-
-	private:
-		const uint8_t* base_;
-		size_t stride_;
-	};
-
-	template<typename T>
-	struct ShaderData_ro_XXXX {
-		ShaderData_ro_XXXX(ClientBuffer* clientBuffer, int32_t mapMode, uint32_t offset, uint32_t count)
-			: rawData(clientBuffer, mapMode, offset, count * clientBuffer->itemStride()),
-			  r(rawData.r, clientBuffer->itemStride()) {}
-
-		ShaderData_ro_XXXX(const ShaderData_ro&) = delete;
-
-		void unmap() { rawData.unmap(); }
-
-	private:
-		ShaderDataRaw_ro rawData;
-
-	public:
-		StridedPtr<T> r;
-
-		friend class ShaderInput;
-	};
-	**/
 
 	/**
 	 * A low-level interface for read/write access to a single vertex of client data of shader input.
