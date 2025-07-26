@@ -53,13 +53,16 @@ ShaderInput::ShaderInput(
 		  isBufferBlock_(false),
 		  forceArray_(false),
 		  active_(true) {
+	baseSize_ = dataTypeBytes_ * valsPerElement_;
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
+	updateStride();
 }
 
 ShaderInput::ShaderInput(const ShaderInput &o)
 		: name_(o.name_),
 		  baseType_(o.baseType_),
+		  baseSize_(o.baseSize_),
 		  dataTypeBytes_(o.dataTypeBytes_),
 		  stride_(o.stride_),
 		  offset_(o.offset_),
@@ -73,6 +76,8 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  valsPerElement_(o.valsPerElement_),
 		  divisor_(o.divisor_),
 		  buffer_(o.buffer_),
+		  alignmentCount_(o.alignmentCount_),
+		  memoryLayout_(o.memoryLayout_),
 		  bufferStamp_(o.bufferStamp_),
 		  normalize_(o.normalize_),
 		  isVertexAttribute_(o.isVertexAttribute_),
@@ -99,6 +104,28 @@ ShaderInput::~ShaderInput() {
 	}
 }
 
+void ShaderInput::updateStride() {
+	stride_ = baseSize_;
+	alignmentCount_ = 1u;
+	if (baseSize_ == 12u) { // vec3
+		stride_ = 16u;
+	} else if (baseSize_ == 48u) { // mat3
+		stride_ = 16;
+		alignmentCount_ = 3;
+	} else if (baseSize_ == 64u) { // mat4
+		stride_ = 16;
+		alignmentCount_ = 4;
+	} else if (numElements() > 1 && memoryLayout_ == BUFFER_MEMORY_STD140) {
+		// with STD140, each array element must be padded to a multiple of 16 bytes
+		stride_ = 16u;
+	}
+}
+
+void ShaderInput::setMemoryLayout(BufferMemoryLayout layout) {
+	memoryLayout_ = layout;
+	updateStride();
+}
+
 GLenum ShaderInput::dataType() const {
 	return glenum::dataType(baseType_, valsPerElement_);
 }
@@ -115,6 +142,7 @@ void ShaderInput::set_numArrayElements(uint32_t v) {
 		numElements_ui_ = numArrayElements_ * numInstances_;
 	}
 	numElements_i_ = static_cast<int32_t>(numElements_ui_);
+	updateStride();
 	nextStamp();
 }
 
@@ -186,6 +214,8 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		numElements_ui_ = numArrayElements_ * numInstances_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		inputSize_ = dataSize_bytes;
+		updateStride();
+
 		auto arrayElementSize = dataTypeBytes_ * valsPerElement_;
 		clientBuffer_.resize(dataSize_bytes, arrayElementSize, data);
 		clientBuffer_.writeUnlockAll(0u, dataSize_bytes);
@@ -208,6 +238,8 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		numElements_ui_ = numArrayElements_ * numVertices_;
 		numElements_i_ = static_cast<int32_t>(numElements_ui_);
 		inputSize_ = dataSize_bytes;
+		updateStride();
+
 		clientBuffer_.resize(dataSize_bytes, elementSize_, data);
 		clientBuffer_.writeUnlockAll(0u, dataSize_bytes);
 	} else if (data) {
@@ -381,6 +413,7 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 	cp->transpose_ = in->transpose_;
 	cp->forceArray_ = in->forceArray_;
 	cp->schema_ = in->schema_;
+	cp->setMemoryLayout(in->memoryLayout_);
 	if (in->hasClientData()) {
 		// allocate memory for one slot, copy most recent data
 		if (copyData) {

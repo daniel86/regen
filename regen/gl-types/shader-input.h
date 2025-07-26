@@ -16,6 +16,7 @@
 #include <condition_variable>
 #include "regen/scene/input-schema.h"
 #include "regen/buffer/client-buffer.h"
+#include "regen/buffer/buffer-enums.h"
 
 namespace regen {
 	// default attribute names
@@ -124,6 +125,41 @@ namespace regen {
 		void nextStamp() { clientBuffer_.nextStamp(); }
 
 		/**
+		 * Set the memory layout of the input.
+		 * @param layout the memory layout of the input.
+		 */
+		void setMemoryLayout(BufferMemoryLayout layout);
+
+		/**
+		 * @return the memory layout of the input.
+		 */
+		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
+
+		/**
+		 * The base size of the input.
+		 * @return the base size of the input in bytes.
+		 */
+		inline uint32_t baseSize() const { return baseSize_; }
+
+		/**
+		 * Specifies the byte offset between consecutive elements of the shader data.
+		 * This is e.g. the offset between two Vec3f elements in a Vec3f array.
+		 * @return the byte offset between consecutive elements of the shader data.
+		 */
+		inline uint32_t stride() const { return stride_; }
+
+		/**
+		 * Set the byte offset between consecutive elements of the shader data.
+		 * @param stride the byte offset between consecutive elements of the shader data.
+		 */
+		void set_stride(GLsizei stride) { stride_ = stride; }
+
+		/**
+		 * @return the number of alignment counts.
+		 */
+		inline uint32_t alignmentCount() const { return alignmentCount_; }
+
+		/**
 		 * Specifies the data type of each component in the array.
 		 * Symbolic constants GL_FLOAT,GL_DOUBLE,.. accepted.
 		 */
@@ -139,13 +175,6 @@ namespace regen {
 		 * Size of a single instance of the data type in bytes.
 		 */
 		uint32_t dataTypeBytes() const { return dataTypeBytes_; }
-
-		/**
-		 * Specifies the byte offset between consecutive generic vertex attributes.
-		 * If stride is 0, the generic vertex attributes are understood to be tightly
-		 * packed in the array. The initial value is 0.
-		 */
-		void set_stride(GLsizei stride) { stride_ = stride; }
 
 		/**
 		 * VBO that contains this vertex data.
@@ -167,13 +196,6 @@ namespace regen {
 		 * Iterator to allocated VBO block.
 		 */
 		auto &bufferIterator() const { return bufferIterator_; }
-
-		/**
-		 * Specifies the byte offset between consecutive generic vertex attributes.
-		 * If stride is 0, the generic vertex attributes are understood to be tightly
-		 * packed in the array. The initial value is 0.
-		 */
-		int32_t stride() const { return stride_; }
 
 		/**
 		 * Attribute size for all vertices.
@@ -549,8 +571,9 @@ namespace regen {
 	protected:
 		std::string name_;
 		GLenum baseType_;
+		uint32_t baseSize_;
 		uint32_t dataTypeBytes_;
-		int32_t stride_;
+		uint32_t stride_;
 		uint32_t offset_;
 		uint32_t inputSize_ = 0u;
 		// This is the size in bytes of one element in the vertex buffer.
@@ -566,6 +589,8 @@ namespace regen {
 		int32_t valsPerElement_;
 		uint32_t divisor_;
 		uint32_t buffer_;
+		uint32_t alignmentCount_;
+		BufferMemoryLayout memoryLayout_ = BUFFER_MEMORY_PACKED;
 		mutable uint32_t bufferStamp_;
 		ref_ptr<BufferReference> bufferIterator_;
 		bool normalize_;
@@ -594,6 +619,8 @@ namespace regen {
 		ShaderInput(const ShaderInput &);
 
 		ShaderInput &operator=(const ShaderInput &) { return *this; }
+
+		void updateStride();
 	};
 
 	/**

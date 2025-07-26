@@ -327,6 +327,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	inputs_.emplace_back(input, name);
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
+	input->setMemoryLayout(memoryLayout_);
 	updateStorageFlags();
 }
 
@@ -451,24 +452,17 @@ uint32_t BufferBlock::updateBlockInputs() {
 		requiredSize_ = 0;
 		for (auto &blockInput: blockInputs_) {
 			auto &in = blockInput->input;
-			// note we need to compute the "aligned" offset for std140 layout
-			auto baseSize = in->dataTypeBytes() * in->valsPerElement();
 			// Compute the alignment based on the type
-			auto baseAlignment = in->baseAlignment();
-			if (in->numElements() > 1 && memoryLayout_ == BUFFER_MEMORY_STD140) {
-				// with STD140, each array element must be padded to a multiple of 16 bytes
-				baseAlignment = 16u;
-			}
 			// Align the offset to the required alignment
-			auto remainder = requiredSize_ % baseAlignment;
+			auto remainder = requiredSize_ % in->stride();
 			if (remainder != 0) {
-				requiredSize_ += baseAlignment - remainder;
+				requiredSize_ += in->stride() - remainder;
 			}
 			blockInput->offset = requiredSize_;
 			if (in->numElements() > 1) {
-				blockInput->inputSize = baseAlignment * in->alignmentCount() * in->numElements();
+				blockInput->inputSize = in->stride() * in->alignmentCount() * in->numElements();
 			} else {
-				blockInput->inputSize = baseSize * in->numElements();
+				blockInput->inputSize = in->baseSize() * in->numElements();
 			}
 			requiredSize_ += blockInput->inputSize;
 		}
