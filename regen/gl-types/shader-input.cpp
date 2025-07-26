@@ -56,6 +56,19 @@ ShaderInput::ShaderInput(
 	baseSize_ = dataTypeBytes_ * valsPerElement_;
 	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
+
+	baseAlignment_ = baseSize_; // tightly packed
+	alignmentCount_ = 1u;
+	if (baseSize_ == 12u) { // vec3
+		baseAlignment_ = 16u;
+	} else if (baseSize_ == 48u) { // mat3
+		baseAlignment_ = 16u;
+		alignmentCount_ = 3u;
+	} else if (baseSize_ == 64u) { // mat4
+		baseAlignment_ = 16u;
+		alignmentCount_ = 4u;
+	}
+
 	updateStride();
 }
 
@@ -108,16 +121,13 @@ ShaderInput::~ShaderInput() {
 
 void ShaderInput::updateStride() {
 	stride_ = baseSize_; // tightly packed
-	alignmentCount_ = 1u;
 
 	if (baseSize_ == 12u) { // vec3
 		stride_ = 16u;
 	} else if (baseSize_ == 48u) { // mat3
 		stride_ = 16u;
-		alignmentCount_ = 3u;
 	} else if (baseSize_ == 64u) { // mat4
 		stride_ = 16u;
-		alignmentCount_ = 4u;
 	} else if (numElements() > 1u) {
 		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
 			// with STD140, each array element must be padded to a multiple of 16 bytes

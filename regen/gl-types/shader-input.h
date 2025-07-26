@@ -141,6 +141,8 @@ namespace regen {
 		 */
 		inline uint32_t baseSize() const { return baseSize_; }
 
+		inline uint32_t baseAlignment() const { return baseAlignment_; }
+
 		/**
 		 * Specifies the byte offset between consecutive elements of the shader data.
 		 * This is e.g. the offset between two Vec3f elements in a Vec3f array.
@@ -582,6 +584,7 @@ namespace regen {
 		std::string name_;
 		GLenum baseType_;
 		uint32_t baseSize_;
+		uint32_t baseAlignment_;
 		uint32_t dataTypeBytes_;
 		uint32_t stride_;
 		// TODO: remove this
