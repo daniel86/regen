@@ -39,7 +39,7 @@ namespace regen {
 		 * \param mapMode The mapping mode
 		 * \return The mapped data
 		 */
-		ShaderData_rw<unsigned int> mapInstanceIDs(int mapMode);
+		ClientData_rw<unsigned int> mapInstanceIDs(int mapMode);
 
 		/**
 		 * \brief Get the camera
@@ -101,7 +101,7 @@ namespace regen {
 		struct MappedData {
 			explicit MappedData(const ref_ptr <ShaderInput1ui> &visibleVec);
 
-			ShaderData_rw<unsigned int> mapped;
+			ClientData_rw<unsigned int> mapped;
 		};
 		std::optional <MappedData> mappedInstanceIDs_;
 

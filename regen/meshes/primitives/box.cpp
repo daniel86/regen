@@ -112,11 +112,11 @@ void Box::generateLODLevel(
 	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
 	auto pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec3f>::nullData());
+				nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
+				ClientData_rw<Vec3f>::nullData());
 	auto tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec4f>::nullData());
+				tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
+				ClientData_rw<Vec4f>::nullData());
 
 	for (const auto &tessFace: tessellation.outputFaces) {
 		indices.w[nextIndex++] = vertexOffset + tessFace.v1;

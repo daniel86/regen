@@ -65,14 +65,14 @@ void Rectangle::generateLODLevel(const Config &cfg,
 	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
 	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec3f>::nullData());
+				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
+				  ClientData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec4f>::nullData());
+				  tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
+				  ClientData_rw<Vec4f>::nullData());
 	auto v_texco = (cfg.isTexcoRequired ?
-		texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec2f>::nullData());
+					texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
+					ClientData_rw<Vec2f>::nullData());
 
 	GLuint nextIndex = indexOffset;
 	for (auto &tessFace: tessellation.outputFaces) {

@@ -1,5 +1,5 @@
-#ifndef REGEN_MAPPED_CLIENT_DATA_H_
-#define REGEN_MAPPED_CLIENT_DATA_H_
+#ifndef REGEN_CLIENT_DATA_BASE_H_
+#define REGEN_CLIENT_DATA_BASE_H_
 
 #include <regen/regen.h>
 
@@ -45,4 +45,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* REGEN_MAPPED_CLIENT_DATA_H_ */
+#endif /* REGEN_CLIENT_DATA_BASE_H_ */

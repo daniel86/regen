@@ -6,8 +6,8 @@
 #include <atomic>
 
 #include <regen/buffer/buffer-reference.h>
+#include <regen/buffer/client-data.h>
 #include <regen/gl-types/gl-enum.h>
-#include <regen/gl-types/shader-data.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/utility/stack.h>
 #include <regen/utility/string-util.h>
@@ -377,7 +377,7 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		inline ShaderDataRaw_rw mapClientDataRaw(int32_t mapMode) {
+		inline ClientDataRaw_rw mapClientDataRaw(int32_t mapMode) {
 			return {&clientBuffer_, mapMode, 0, inputSize_};
 		}
 
@@ -385,7 +385,7 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		inline ShaderDataRaw_rw mapClientDataRaw(int32_t mapMode, uint32_t offset, uint32_t size) {
+		inline ClientDataRaw_rw mapClientDataRaw(int32_t mapMode, uint32_t offset, uint32_t size) {
 			return {&clientBuffer_, mapMode, offset, size};
 		}
 
@@ -393,7 +393,7 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		inline ShaderDataRaw_ro mapClientDataRaw(int32_t mapMode) const {
+		inline ClientDataRaw_ro mapClientDataRaw(int32_t mapMode) const {
 			return {&clientBuffer_, mapMode, 0, inputSize_};
 		}
 
@@ -401,7 +401,7 @@ namespace regen {
 		 * Map client data for reading/writing.
 		 * @return the mapped data.
 		 */
-		inline ShaderDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
+		inline ClientDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
 			return { &clientBuffer_, mapMode, mapOffset, mapSize };
 		}
 
@@ -412,7 +412,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_rw<T> mapClientData(int32_t mapMode) {
+		ClientData_rw<T> mapClientData(int32_t mapMode) {
 			return { &clientBuffer_, mapClientStride_, mapMode, 0, inputSize_ };
 		}
 
@@ -423,7 +423,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_rw<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) {
+		ClientData_rw<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) {
 			return { &clientBuffer_, mapClientStride_, mapMode, mapOffset, mapSize };
 		}
 
@@ -434,7 +434,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_ro<T> mapClientData(int32_t mapMode) const {
+		ClientData_ro<T> mapClientData(int32_t mapMode) const {
 			return { &clientBuffer_, mapClientStride_, mapMode, 0, inputSize_ };
 		}
 
@@ -445,7 +445,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		template<typename T>
-		ShaderData_ro<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
+		ClientData_ro<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
 			return { &clientBuffer_, mapClientStride_, mapMode, mapOffset, mapSize };
 		}
 
@@ -457,7 +457,7 @@ namespace regen {
 		 * @return the mapped vertex.
 		 */
 		template<typename T>
-		ShaderVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
+		ClientVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
 			return { &clientBuffer_, mapClientStride_, mapMode, vertexIndex };
 		}
 
@@ -469,7 +469,7 @@ namespace regen {
 		 * @return the mapped vertex.
 		 */
 		template<typename T>
-		ShaderVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
+		ClientVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
 			return { &clientBuffer_, mapClientStride_, mapMode, vertexIndex };
 		}
 
@@ -642,8 +642,8 @@ namespace regen {
 
 		void updateAlignedSize();
 
-		friend struct ShaderDataRaw_rw;
-		friend struct ShaderDataRaw_ro;
+		friend struct ClientDataRaw_rw;
+		friend struct ClientDataRaw_ro;
 	};
 
 	/**
@@ -739,7 +739,7 @@ namespace regen {
 		 * @param vertexIndex index in data array.
 		 * @return data value at given index.
 		 */
-		ShaderVertex_ro<StructType> getVertex(GLuint i) const {
+		ClientVertex_ro<StructType> getVertex(GLuint i) const {
 			return mapClientVertex<StructType>(BUFFER_GPU_READ, i);
 		}
 
@@ -809,7 +809,7 @@ namespace regen {
 		 * @param vertexIndex index in data array.
 		 * @return data value at given index.
 		 */
-		ShaderVertex_ro<ValueType> getVertex(GLuint i) const {
+		ClientVertex_ro<ValueType> getVertex(GLuint i) const {
 			return mapClientVertex<ValueType>(BUFFER_GPU_READ, i);
 		}
 

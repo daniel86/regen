@@ -1,36 +1,33 @@
-
-#ifndef SHADER_INPUT_DATA_H_
-#define SHADER_INPUT_DATA_H_
+#ifndef REGEN_MAPPED_CLIENT_DATA_H_
+#define REGEN_MAPPED_CLIENT_DATA_H_
 
 #include <regen/regen.h>
 #include <regen/buffer/client-buffer.h>
-#include <regen/utility/ref-ptr.h>
-#include <regen/utility/logging.h>
 
 namespace regen {
 	/**
 	 * A low-level interface for read/write access to client data of shader input.
 	 * The access is thread-safe and will be synchronized with the GL thread.
 	 */
-	struct ShaderDataRaw_rw {
+	struct ClientDataRaw_rw {
 		/**
 		 * Default constructor.
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size);
+		ClientDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size);
 
 		/**
 		 * Default constructor.
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode);
+		ClientDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode);
 
-		~ShaderDataRaw_rw();
+		~ClientDataRaw_rw();
 
 		// do not allow copying
-		ShaderDataRaw_rw(const ShaderDataRaw_rw &) = delete;
+		ClientDataRaw_rw(const ClientDataRaw_rw &) = delete;
 
 		/**
 		 * Unmap the data. Do not read or write after calling this method.
@@ -60,25 +57,25 @@ namespace regen {
 	 * A low-level interface for read-only access to client data of shader input.
 	 * The access is thread-safe and will be synchronized with the GL thread.
 	 */
-	struct ShaderDataRaw_ro {
+	struct ClientDataRaw_ro {
 		/**
 		 * Default constructor.
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size);
+		ClientDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size);
 
 		/**
 		 * Default constructor.
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 */
-		ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode);
+		ClientDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode);
 
-		~ShaderDataRaw_ro();
+		~ClientDataRaw_ro();
 
 		// do not allow copying
-		ShaderDataRaw_ro(const ShaderDataRaw_ro &) = delete;
+		ClientDataRaw_ro(const ClientDataRaw_ro &) = delete;
 
 		/**
 		 * Unmap the data. Do not read after calling this method.
@@ -192,7 +189,7 @@ namespace regen {
 	 * @tparam T the data type.
 	 */
 	template<typename T>
-	struct ShaderData_rw {
+	struct ClientData_rw {
 		/**
 		 * Packed-access constructor.
 		 * @param clientBuffer the client buffer.
@@ -201,18 +198,18 @@ namespace regen {
 		 * @param mapOffset the offset in bytes from the start of the buffer.
 		 * @param mapSize the size in bytes to map.
 		 */
-		ShaderData_rw(ClientBuffer *clientBuffer,
-					uint32_t stride,
-					int32_t mapMode,
-					uint32_t mapOffset,
-					uint32_t mapSize)
+		ClientData_rw(ClientBuffer *clientBuffer,
+					  uint32_t stride,
+					  int32_t mapMode,
+					  uint32_t mapOffset,
+					  uint32_t mapSize)
 				: rawData(clientBuffer, mapMode, mapOffset, mapSize),
 				  r(rawData.r, stride, stride==0u ? r_access_packed<T> : r_access_strided<T>),
 				  w(rawData.w, stride, stride==0u ? w_access_packed<T> : w_access_strided<T>) {
 		}
 
 		// do not allow copying
-		ShaderData_rw(const ShaderData_rw &) = delete;
+		ClientData_rw(const ClientData_rw &) = delete;
 
 		/**
 		 * Unmap the data. Do not read or write after calling this method.
@@ -223,12 +220,12 @@ namespace regen {
 		 * Create a null data object.
 		 * @return a null data object.
 		 */
-		static ShaderData_rw<T> nullData() {
-			return ShaderData_rw<T>(nullptr, 0, 0, 0, 0);
+		static ClientData_rw<T> nullData() {
+			return ClientData_rw<T>(nullptr, 0, 0, 0, 0);
 		}
 
 	private:
-		ShaderDataRaw_rw rawData;
+		ClientDataRaw_rw rawData;
 
 	public:
 		/**
@@ -248,7 +245,7 @@ namespace regen {
 	 * @tparam T the data type.
 	 */
 	template<typename T>
-	struct ShaderData_ro {
+	struct ClientData_ro {
 		/**
 		 * Packed-access constructor.
 		 * @param clientBuffer the client buffer.
@@ -257,17 +254,17 @@ namespace regen {
 		 * @param mapOffset the offset in bytes from the start of the buffer.
 		 * @param mapSize the size in bytes to map.
 		 */
-		ShaderData_ro(ClientBuffer *clientBuffer,
-					uint32_t stride,
-					int32_t mapMode,
-					uint32_t mapOffset,
-					uint32_t mapSize)
+		ClientData_ro(ClientBuffer *clientBuffer,
+					  uint32_t stride,
+					  int32_t mapMode,
+					  uint32_t mapOffset,
+					  uint32_t mapSize)
 				: rawData(clientBuffer, mapMode, mapOffset, mapSize),
 				  r(rawData.r, stride, stride==0u ? r_access_packed<T> : r_access_strided<T>) {
 		}
 
 		// do not allow copying
-		ShaderData_ro(const ShaderData_ro &) = delete;
+		ClientData_ro(const ClientData_ro &) = delete;
 
 		/**
 		 * Unmap the data. Do not read after calling this method.
@@ -275,7 +272,7 @@ namespace regen {
 		void unmap() { rawData.unmap(); }
 
 	private:
-		ShaderDataRaw_ro rawData;
+		ClientDataRaw_ro rawData;
 
 	public:
 		const ReadAccessor<T> r;
@@ -288,24 +285,24 @@ namespace regen {
 	 * @tparam T the data type.
 	 */
 	template<typename T>
-	struct ShaderVertex_rw {
+	struct ClientVertex_rw {
 		/**
 		 * Default constructor.
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_rw(ClientBuffer *clientBuffer,
-					uint32_t stride,
-					int32_t mapMode,
-					uint32_t vertexIndex)
+		ClientVertex_rw(ClientBuffer *clientBuffer,
+						uint32_t stride,
+						int32_t mapMode,
+						uint32_t vertexIndex)
 				: rawData(clientBuffer, mapMode, 0, clientBuffer->dataSize()),
 				  r(r_access_vertex<T>(rawData.r, vertexIndex, stride)),
 				  w(w_access_vertex<T>(rawData.w, vertexIndex, stride)) {
 		}
 
 		// do not allow copying
-		ShaderVertex_rw(const ShaderVertex_rw &) = delete;
+		ClientVertex_rw(const ClientVertex_rw &) = delete;
 
 		/**
 		 * Unmap the data. Do not read or write after calling this method.
@@ -313,7 +310,7 @@ namespace regen {
 		void unmap() { rawData.unmap(); }
 
 	private:
-		ShaderDataRaw_rw rawData;
+		ClientDataRaw_rw rawData;
 	public:
 		/**
 		 * The mapped data for reading.
@@ -332,23 +329,23 @@ namespace regen {
 	 * @tparam T the data type.
 	 */
 	template<typename T>
-	struct ShaderVertex_ro {
+	struct ClientVertex_ro {
 		/**
 		 * Default constructor.
 		 * @param input the shader input.
 		 * @param mapMode the mapping mode, i.e. a bitwise combination of MappingMode flags.
 		 * @param vertexIndex the vertex index.
 		 */
-		ShaderVertex_ro(const ClientBuffer *clientBuffer,
-					uint32_t stride,
-					int32_t mapMode,
-					uint32_t vertexIndex)
+		ClientVertex_ro(const ClientBuffer *clientBuffer,
+						uint32_t stride,
+						int32_t mapMode,
+						uint32_t vertexIndex)
 				: rawData(clientBuffer, mapMode, 0, clientBuffer->dataSize()),
 				  r(r_access_vertex<T>(rawData.r, vertexIndex, stride)) {
 		}
 
 		// do not allow copying
-		ShaderVertex_ro(const ShaderVertex_ro &) = delete;
+		ClientVertex_ro(const ClientVertex_ro &) = delete;
 
 		/**
 		 * Unmap the data. Do not read after calling this method.
@@ -356,7 +353,7 @@ namespace regen {
 		void unmap() { rawData.unmap(); }
 
 	private:
-		ShaderDataRaw_ro rawData;
+		ClientDataRaw_ro rawData;
 	public:
 		/**
 		 * The mapped data for reading.
@@ -367,4 +364,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* SHADER_INPUT_DATA_H_ */
+#endif /* REGEN_MAPPED_CLIENT_DATA_H_ */

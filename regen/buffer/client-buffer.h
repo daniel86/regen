@@ -6,7 +6,7 @@
 #include <vector>
 #include <regen/regen.h>
 #include <regen/utility/ref-ptr.h>
-#include <regen/buffer/mapped-client-data.h>
+#include <regen/buffer/client-data-base.h>
 #include <regen/utility/dirty-list.h>
 
 namespace regen {

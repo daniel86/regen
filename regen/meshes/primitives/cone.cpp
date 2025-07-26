@@ -32,8 +32,8 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 	// map client data for writing
 	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec3f>::nullData());
+				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
+				  ClientData_rw<Vec3f>::nullData());
 
 	GLfloat phi = acos(cfg.cosAngle);
 	GLfloat radius = tan(phi) * cfg.height;
@@ -182,8 +182,8 @@ void ConeClosed::generateLODLevel(
 	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
 	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec3f>::nullData());
+				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
+				  ClientData_rw<Vec3f>::nullData());
 
 	// create cone vertex data
 	loadConeData(

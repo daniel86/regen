@@ -73,10 +73,10 @@ void pushVertex(
 		GLdouble u,
 		GLdouble v,
 		const Sphere::Config &cfg,
-		ShaderData_rw<Vec3f> &pos,
-		ShaderData_rw<Vec3f> &nor,
-		ShaderData_rw<Vec4f> &tan,
-		ShaderData_rw<Vec2f> &texco) {
+		ClientData_rw<Vec3f> &pos,
+		ClientData_rw<Vec3f> &nor,
+		ClientData_rw<Vec4f> &tan,
+		ClientData_rw<Vec2f> &texco) {
 	GLdouble r = std::sin(M_PI * v);
 	pos.w[vertexIndex] = Vec3f(
 			static_cast<float>(r * std::cos(2.0 * M_PI * u)),
@@ -106,14 +106,14 @@ void Sphere::generateLODLevel(const Config &cfg,
 	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
 	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec3f>::nullData());
+				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
+				  ClientData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec4f>::nullData());
+				  tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
+				  ClientData_rw<Vec4f>::nullData());
 	auto v_texco = (texco_.get() ?
-		texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
-		ShaderData_rw<Vec2f>::nullData());
+					texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
+					ClientData_rw<Vec2f>::nullData());
 
 	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
 	GLuint vertexIndex = vertexOffset, faceIndex = indexOffset / 6;

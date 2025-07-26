@@ -1,9 +1,10 @@
-#include "shader-data.h"
-#include "shader-input.h"
+#include "client-data.h"
+#include "client-buffer.h"
+#include <regen/buffer/buffer-enums.h>
 
 using namespace regen;
 
-ShaderDataRaw_rw::ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size) :
+ClientDataRaw_rw::ClientDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size) :
 	clientBuffer(clientBuffer),
 	mapMode(mapMode),
 	mapOffset(offset),
@@ -22,11 +23,11 @@ ShaderDataRaw_rw::ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode, 
 	}
 }
 
-ShaderDataRaw_rw::ShaderDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode) :
-	ShaderDataRaw_rw(clientBuffer, mapMode, 0, clientBuffer ? clientBuffer->dataSize() : 0) {
+ClientDataRaw_rw::ClientDataRaw_rw(ClientBuffer *clientBuffer, int32_t mapMode) :
+		ClientDataRaw_rw(clientBuffer, mapMode, 0, clientBuffer ? clientBuffer->dataSize() : 0) {
 }
 
-ShaderDataRaw_rw::~ShaderDataRaw_rw() {
+ClientDataRaw_rw::~ClientDataRaw_rw() {
 	if (w_index >= 0) {
 		clientBuffer->unmapRange(BUFFER_GPU_WRITE, mapOffset, mapSize, w_index);
 	}
@@ -35,7 +36,7 @@ ShaderDataRaw_rw::~ShaderDataRaw_rw() {
 	}
 }
 
-void ShaderDataRaw_rw::unmap() {
+void ClientDataRaw_rw::unmap() {
 	if (w_index >= 0) {
 		clientBuffer->unmapRange(BUFFER_GPU_WRITE, mapOffset, mapSize, w_index);
 		w_index = -1;
@@ -48,7 +49,7 @@ void ShaderDataRaw_rw::unmap() {
 
 
 
-ShaderDataRaw_ro::ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size) :
+ClientDataRaw_ro::ClientDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode, uint32_t offset, uint32_t size) :
 	clientBuffer(clientBuffer),
 	mapMode(mapMode),
 	mapOffset(offset),
@@ -63,17 +64,17 @@ ShaderDataRaw_ro::ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t map
 	}
 }
 
-ShaderDataRaw_ro::ShaderDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode) :
-	ShaderDataRaw_ro(clientBuffer, mapMode, 0, clientBuffer ? clientBuffer->dataSize() : 0) {
+ClientDataRaw_ro::ClientDataRaw_ro(const ClientBuffer *clientBuffer, int32_t mapMode) :
+		ClientDataRaw_ro(clientBuffer, mapMode, 0, clientBuffer ? clientBuffer->dataSize() : 0) {
 }
 
-ShaderDataRaw_ro::~ShaderDataRaw_ro() {
+ClientDataRaw_ro::~ClientDataRaw_ro() {
 	if (r_index >= 0) {
 		clientBuffer->unmapRange(BUFFER_GPU_READ, mapOffset, mapSize, r_index);
 	}
 }
 
-void ShaderDataRaw_ro::unmap() {
+void ClientDataRaw_ro::unmap() {
 	if (r_index >= 0) {
 		clientBuffer->unmapRange(BUFFER_GPU_READ, mapOffset, mapSize, r_index);
 		r_index = -1;

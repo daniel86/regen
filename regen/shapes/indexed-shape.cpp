@@ -16,7 +16,7 @@ bool IndexedShape::hasVisibleInstances() const {
 	return instanceCount_ > 0;
 }
 
-ShaderData_rw<unsigned int> IndexedShape::mapInstanceIDs(int mapMode) {
+ClientData_rw<unsigned int> IndexedShape::mapInstanceIDs(int mapMode) {
 	return visibleVec_->mapClientData<unsigned int>(mapMode);
 }
 

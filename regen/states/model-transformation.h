@@ -183,8 +183,8 @@ namespace regen {
 		}
 
 	private:
-		ShaderDataRaw_ro rawData_mat;
-		ShaderDataRaw_ro rawData_offset;
+		ClientDataRaw_ro rawData_mat;
+		ClientDataRaw_ro rawData_offset;
 	public:
 		/**
 		 * The mapped data for reading.
