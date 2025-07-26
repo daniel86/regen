@@ -558,7 +558,7 @@ void BufferBlock::updateStridedData(BlockInput &bufferInput) {
 	} else {
 		return;
 	}
-	REGEN_DEBUG("RE-ALIGN needed for input " << in->name() <<
+	REGEN_WARN("RE-ALIGN needed for input " << in->name() <<
 											 " with " << numElements << " elements, unaligned size: "
 											 << elementSizeUnaligned);
 	auto elementSizeAligned = elementSizeUnaligned + (16 - elementSizeUnaligned % 16);
