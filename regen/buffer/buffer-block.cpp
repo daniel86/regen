@@ -27,8 +27,8 @@ BufferBlock::BufferBlock(
 		: BufferObject(target, hints),
 		  ShaderInput(name, GL_INVALID_ENUM, 0, 0, 0, false),
 		  blockQualifier_(blockQualifier),
-		  memoryLayout_(memoryLayout),
 		  stagingFlags_(target, hints) {
+	memoryLayout_ = memoryLayout;
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
@@ -59,7 +59,6 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		: BufferObject(other),
 		  ShaderInput(other.name(), GL_INVALID_ENUM, 0, 0, 0, false),
 		  blockQualifier_(other.blockQualifier_),
-		  memoryLayout_(other.memoryLayout_),
 		  bindingIndex_(other.bindingIndex_),
 		  hasClientData_(other.hasClientData_),
 		  isBlockValid_(other.isBlockValid_),
@@ -74,6 +73,7 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  stagingFlags_(other.stagingFlags_),
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  shared_(other.shared_) {
+	memoryLayout_ = other.memoryLayout_;
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
@@ -98,8 +98,8 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		: BufferObject(other),
 		  ShaderInput(getName(other,name), GL_INVALID_ENUM, 0, 0, 0, GL_FALSE),
 		  blockQualifier_(BufferBlock::BUFFER),
-		  memoryLayout_(BUFFER_MEMORY_STD430),
 		  stagingFlags_(other.bufferTarget(), other.bufferUpdateHints()) {
+	memoryLayout_ = BUFFER_MEMORY_STD430;
 	auto block = dynamic_cast<const BufferBlock *>(&other);
 	if (block != nullptr) {
 		blockQualifier_ = block->blockQualifier_;

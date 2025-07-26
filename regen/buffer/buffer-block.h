@@ -106,11 +106,6 @@ namespace regen {
 		Qualifier blockQualifier() const { return blockQualifier_; }
 
 		/**
-		 * @return the memory layout of the block.
-		 */
-		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
-
-		/**
 		 * Set the buffering mode for the staging buffer.
 		 * In case no explicit staging buffer is used, this will also set the buffering mode for the main buffer.
 		 * @param mode the buffering mode to set.
@@ -268,7 +263,6 @@ namespace regen {
 
 	protected:
 		Qualifier blockQualifier_;
-		BufferMemoryLayout memoryLayout_;
 		int bindingIndex_ = -1;
 
 		bool hasClientData_ = true;
