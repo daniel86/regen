@@ -43,7 +43,7 @@ ShaderInput::ShaderInput(
 		  valsPerElement_(valsPerElement),
 		  bufferStamp_(0),
 		  normalize_(normalize) {
-	elementSize_ = dataTypeBytes_ * valsPerElement_ * numArrayElements_;
+	elementSize_ = baseSize_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
 	updateAlignment();
 }
