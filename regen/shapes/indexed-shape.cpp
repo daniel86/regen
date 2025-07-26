@@ -21,7 +21,7 @@ ShaderData_rw<unsigned int> IndexedShape::mapInstanceIDs(int mapMode) {
 }
 
 IndexedShape::MappedData::MappedData(const ref_ptr <ShaderInput1ui> &visibleVec) :
-		mapped(visibleVec->mapClientData<unsigned int>(ServerAccessMode::WRITE)) {
+		mapped(visibleVec->mapClientData<unsigned int>(BUFFER_GPU_WRITE)) {
 }
 
 void IndexedShape::mapInstanceIDs_internal() {

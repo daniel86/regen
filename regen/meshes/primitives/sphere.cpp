@@ -103,16 +103,16 @@ void Sphere::generateLODLevel(const Config &cfg,
 							  GLuint vertexOffset,
 							  GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(ServerAccessMode::WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(ServerAccessMode::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ServerAccessMode::WRITE) :
+		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ServerAccessMode::WRITE) :
+		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 	auto v_texco = (texco_.get() ?
-		texco_->mapClientData<Vec2f>(ServerAccessMode::WRITE) :
+		texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec2f>::nullData());
 
 	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
@@ -238,11 +238,11 @@ SphereSprite::SphereSprite(const Config &cfg)
 void SphereSprite::updateAttributes(const Config &cfg) {
 	ref_ptr<ShaderInput1f> radiusIn = ref_ptr<ShaderInput1f>::alloc("sphereRadius");
 	radiusIn->setVertexData(cfg.sphereCount);
-	auto mappedRadius = radiusIn->mapClientData<float>(ServerAccessMode::WRITE);
+	auto mappedRadius = radiusIn->mapClientData<float>(BUFFER_GPU_WRITE);
 
 	ref_ptr<ShaderInput3f> positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	positionIn->setVertexData(cfg.sphereCount);
-	auto mappedPosition = positionIn->mapClientData<Vec3f>(ServerAccessMode::WRITE);
+	auto mappedPosition = positionIn->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 
 	minPosition_ = Vec3f(999999.0f);
 	maxPosition_ = Vec3f(-999999.0f);

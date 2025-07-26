@@ -64,7 +64,7 @@ createConvexHull(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 	bool loadServerData = !pos->hasClientData();
 	if (loadServerData) pos->readServerData();
 
-	auto v_pos = pos->mapClientData<btScalar>(ServerAccessMode::READ);
+	auto v_pos = pos->mapClientData<btScalar>(BUFFER_GPU_READ);
 	//create a hull approximation
 	//btShapeHull* hull = new btShapeHull(originalConvexShape);
 	//btScalar margin = originalConvexShape->getMargin();
@@ -117,8 +117,8 @@ createTriangleMesh(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 
 	if (!pos->hasClientData()) pos->readServerData();
 	if (!indices->hasClientData()) indices->readServerData();
-	auto v_pos = pos->mapClientDataRaw(ServerAccessMode::READ);
-	auto indices_data = indices->mapClientDataRaw(ServerAccessMode::READ);
+	auto v_pos = pos->mapClientDataRaw(BUFFER_GPU_READ);
+	auto indices_data = indices->mapClientDataRaw(BUFFER_GPU_READ);
 	btMesh.m_vertexBase = v_pos.r;
 	btMesh.m_triangleIndexBase = indices_data.r;
 

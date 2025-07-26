@@ -97,12 +97,12 @@ BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 #endif
 
 	if (tf_->hasModelMat()) {
-		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ServerAccessMode::READ);
+		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
 			setBoidPosition(i, tfData.r[i].position());
 		}
 	} else {
-		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec3f>(ServerAccessMode::READ);
+		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec3f>(BUFFER_GPU_READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
 			setBoidPosition(i, initialPositionData.r[i]);
 		}
@@ -298,7 +298,7 @@ void BoidsCPU::updateTransforms() {
 	if (tf_.get()) {
 		if (tf_->hasModelMat()) {
 			auto &tfInput = tf_->modelMat();
-			auto tfData = tfInput->mapClientData<Mat4f>(ServerAccessMode::WRITE);
+			auto tfData = tfInput->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
 
 			for (uint32_t i = 0; i < numBoids_; ++i) {
 				Quaternion orientation(
@@ -314,7 +314,7 @@ void BoidsCPU::updateTransforms() {
 				matrix.x[14] += priv_->boidPositionsZ_[i];
 			}
 		} else if (tf_->hasModelOffset()) {
-			auto positionData = tf_->modelOffset()->mapClientData<Vec4f>(ServerAccessMode::WRITE);
+			auto positionData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 			for (uint32_t i = 0; i < numBoids_; ++i) {
 				auto &pos_w = positionData.w[i];
 				pos_w.x = priv_->boidPositionsX_[i];

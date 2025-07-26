@@ -142,15 +142,15 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 	}
 
 	// map client data for writing
-	auto v_pos = pos_->mapClientData<Vec3f>(ServerAccessMode::WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ServerAccessMode::WRITE) :
+		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ServerAccessMode::WRITE) :
+		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 	auto v_texco = (texcoMode == TEXCO_MODE_UV ?
-		texco_->mapClientData<Vec2f>(ServerAccessMode::WRITE) :
+		texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec2f>::nullData());
 
 	// Define the initial box scale

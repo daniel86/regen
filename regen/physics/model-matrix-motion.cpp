@@ -17,13 +17,13 @@ ModelMatrixMotion::ModelMatrixMotion(
 }
 
 void ModelMatrixMotion::getWorldTransform(btTransform &worldTrans) const {
-	auto regenData = modelMatrix_->mapClientData<Mat4f>(ServerAccessMode::READ);
+	auto regenData = modelMatrix_->mapClientData<Mat4f>(BUFFER_GPU_READ);
 	auto &regenMat = regenData.r[index_];
 	worldTrans.setFromOpenGLMatrix((const btScalar*) &regenMat.x);
 }
 
 void ModelMatrixMotion::setWorldTransform(const btTransform &worldTrans) {
-	auto regenData = modelMatrix_->mapClientVertex<Mat4f>(ServerAccessMode::WRITE, index_);
+	auto regenData = modelMatrix_->mapClientVertex<Mat4f>(BUFFER_GPU_WRITE, index_);
 	worldTrans.getOpenGLMatrix((btScalar*) &regenData.w.x);
 }
 
@@ -32,7 +32,7 @@ ModelMatrixUpdater::ModelMatrixUpdater(const ref_ptr<ShaderInputMat4> &modelMatr
 		: Animation(false, true),
 		  modelMatrix_(modelMatrix) {
 	backBuffer_ = new Mat4f[modelMatrix->numInstances()];
-	auto regenData = modelMatrix_->mapClientDataRaw(ServerAccessMode::READ);
+	auto regenData = modelMatrix_->mapClientDataRaw(BUFFER_GPU_READ);
 	std::memcpy(backBuffer_, regenData.r, modelMatrix_->inputSize());
 }
 
@@ -43,7 +43,7 @@ ModelMatrixUpdater::~ModelMatrixUpdater() {
 void ModelMatrixUpdater::animate(GLdouble dt) {
 	if (stamp_ == modelMatrix_->stamp()) return;
 	stamp_ = modelMatrix_->stamp();
-	auto regenData = modelMatrix_->mapClientDataRaw(ServerAccessMode::WRITE);
+	auto regenData = modelMatrix_->mapClientDataRaw(BUFFER_GPU_WRITE);
 	std::memcpy(regenData.w, backBuffer_, modelMatrix_->inputSize());
 }
 
@@ -61,7 +61,7 @@ Mat4fMotion::Mat4fMotion(Mat4f *glModelMatrix)
 
 void Mat4fMotion::getWorldTransform(btTransform &worldTrans) const {
 	if (modelMatrix_.get()) {
-		auto regenData = modelMatrix_->modelMatrix()->mapClientVertex<Mat4f>(ServerAccessMode::READ, tfIndex_);
+		auto regenData = modelMatrix_->modelMatrix()->mapClientVertex<Mat4f>(BUFFER_GPU_READ, tfIndex_);
 		worldTrans.setFromOpenGLMatrix((const btScalar *) &regenData.r);
 	} else {
 		worldTrans.setFromOpenGLMatrix((const btScalar *) glModelMatrix_);

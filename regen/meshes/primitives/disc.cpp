@@ -82,16 +82,16 @@ void Disc::generateLODLevel(const Config &cfg,
 							GLuint indexOffset) {
 	const float angleStep = 2.0f * M_PI / lodLevel;
 
-	auto indices = indices_->mapClientData<GLuint>(ServerAccessMode::WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(ServerAccessMode::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ServerAccessMode::WRITE) :
+		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ServerAccessMode::WRITE) :
+		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 	auto v_texco = (cfg.texcoMode == TEXCO_MODE_UV ?
-		texco_->mapClientData<Vec2f>(ServerAccessMode::WRITE) :
+		texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec2f>::nullData());
 
 	GLuint vertexIndex = vertexOffset;

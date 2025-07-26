@@ -117,7 +117,7 @@ bool LightCamera_CSM::updateFrustumSplit() {
 		// update frustum splits
 		userCamera_->frustum()[0].split(splitWeight_, userCameraFrustum_);
 		// update near/far values
-		auto nearFarAspectFov = projParams_->mapClientData<Vec4f>(ServerAccessMode::WRITE);
+		auto nearFarAspectFov = projParams_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 		auto *projParams = (ProjectionParams*)nearFarAspectFov.w.data();
 		for (unsigned int i = 0; i < numLayer_; ++i) {
 			auto &u_frustum = userCameraFrustum_[i];

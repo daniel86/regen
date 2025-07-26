@@ -299,7 +299,7 @@ void Camera::updateFrustumBuffer() {
 	if (!frustumBuffer_.get()) return;
 
 	auto frustum_cpu =
-		frustumData_->mapClientData<Vec4f>(ServerAccessMode::WRITE);
+		frustumData_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 	for (size_t i = 0; i < frustum_.size(); ++i) {
 		auto &frustumPlanes = frustum_[i].planes;
 		for (int j = 0; j < 6; ++j) {
@@ -341,7 +341,7 @@ void Camera::attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, GLfloat radius) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(ServerAccessMode::READ, 0);
+	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
 	auto d = Plane(
 			position()->getVertex(0).r.xyz_(),
 			direction()->getVertex(0).r.xyz_()).distance(center);
@@ -350,7 +350,7 @@ bool Camera::hasSphereIntersection(const Vec3f &center, GLfloat radius) const {
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(ServerAccessMode::READ, 0);
+	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
 	Plane p(position()->getVertex(0).r.xyz_(), direction()->getVertex(0).r.xyz_());
 	for (int i = 0; i < 8; ++i) {
 		auto d = p.distance(center + points[i]);
@@ -361,7 +361,7 @@ bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) con
 }
 
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(ServerAccessMode::READ, 0);
+	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
 			position()->getVertex(0).r.xyz_(),
@@ -378,7 +378,7 @@ bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) cons
 }
 
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(ServerAccessMode::READ, 0);
+	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
 			position()->getVertex(0).r.xyz_(),

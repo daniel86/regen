@@ -114,7 +114,7 @@ GLdouble Sky::longitude() const { return astro_->getLongitude(); }
 GLdouble Sky::latitude() const { return astro_->getLatitude(); }
 
 void Sky::set_altitude(const float altitude) {
-	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
+	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
 	v_cmnUniform.w = Vec4f(
 			math::clamp(altitude, 0.001f, Earth::atmosphereThicknessNonUniform()),
 			v_cmnUniform.r.y,
@@ -131,7 +131,7 @@ void Sky::set_latitude(const float latitude) {
 }
 
 void Sky::updateSeed() {
-	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(ServerAccessMode::READ | ServerAccessMode::WRITE, 0);
+	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
 	v_cmnUniform.w = Vec4f(
 			v_cmnUniform.r.x,
 			v_cmnUniform.r.y,

@@ -52,7 +52,7 @@ void TBO::updateTBO() {
 	if (!ref.get()) {
 		return;
 	}
-	auto mapped = input_->mapClientDataRaw(ServerAccessMode::READ);
+	auto mapped = input_->mapClientDataRaw(BUFFER_GPU_READ);
 	glNamedBufferSubData(
 			ref->bufferID(),
 			ref->address(),

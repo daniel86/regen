@@ -561,7 +561,7 @@ void BufferBlock::copyBlockInput(
 	//       in case starts at first dirt segment. However, the block input offsets are always
 	//       relative to the start of the buffer, so we need to adjust the offset accordingly...
 	const uint32_t offset = bufferInput.offset - localMapOffset;
-	auto mapped = bufferInput.input->mapClientDataRaw(ServerAccessMode::READ);
+	auto mapped = bufferInput.input->mapClientDataRaw(BUFFER_GPU_READ);
 	memcpy(mappedBufferData + offset,
 		   mapped.r,
 		   bufferInput.input->inputSize());
@@ -806,7 +806,7 @@ void BufferBlock::updateNonMapped() {
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			const uint32_t localOffset = shared_->stagingOffset_ + bufferInput.offset;
-			auto mapped = bufferInput.input->mapClientDataRaw(ServerAccessMode::READ);
+			auto mapped = bufferInput.input->mapClientDataRaw(BUFFER_GPU_READ);
 			shared_->stagingBuffer_->setSubData(
 					drawBufferRef_,
 					localOffset,

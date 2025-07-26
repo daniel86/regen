@@ -55,7 +55,7 @@ void BoidsGPU::createResource() {
 	std::vector<Vec3f> initialVelocities(numBoids_);
 #endif
 	if(tf_->hasModelMat()) {
-		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(ServerAccessMode::READ);
+		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
 			initialPositions[i] = tfData.r[i].position();
 #ifdef BOID_USE_HALF_VELOCITY
@@ -66,7 +66,7 @@ void BoidsGPU::createResource() {
 		}
 	}
 	else if(tf_->hasModelOffset()) {
-		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec4f>(ServerAccessMode::READ);
+		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
 			initialPositions[i] = initialPositionData.r[i].xyz_();
 #ifdef BOID_USE_HALF_VELOCITY

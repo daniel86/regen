@@ -56,7 +56,7 @@ void VBO::uploadSequential(
 		if (att->hasClientData()) {
 			std::memcpy(
 					data + currOffset,
-					att->mapClientDataRaw(ServerAccessMode::READ).r,
+					att->mapClientDataRaw(BUFFER_GPU_READ).r,
 					att->inputSize()
 			);
 		}
@@ -103,7 +103,7 @@ void VBO::uploadInterleaved(
 			if (att->hasClientData()) {
 				std::memcpy(
 						data + currOffset,
-						att->mapClientDataRaw(ServerAccessMode::READ).r,
+						att->mapClientDataRaw(BUFFER_GPU_READ).r,
 						att->inputSize()
 				);
 			}
@@ -123,7 +123,7 @@ void VBO::uploadInterleaved(
 			if (att->hasClientData()) {
 				std::memcpy(
 						data + count,
-						att->mapClientDataRaw(ServerAccessMode::READ).r + i * valueSize,
+						att->mapClientDataRaw(BUFFER_GPU_READ).r + i * valueSize,
 						valueSize
 				);
 			}

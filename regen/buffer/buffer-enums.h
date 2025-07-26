@@ -134,8 +134,8 @@ namespace regen {
 	};
 
 	enum ServerAccessMode {
-		READ = 1 << 0,
-		WRITE = 1 << 1
+		BUFFER_GPU_READ = 1 << 0,
+		BUFFER_GPU_WRITE = 1 << 1
 	};
 
 	/**

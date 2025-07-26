@@ -593,7 +593,7 @@
             update-frequency="NEVER">
         <shader mesh-index="0" key="regen.models.mesh" />
         <transform id="fish-tf" num-instances="{{num-fish}}" is-instanced="1"
-            update-frequency="PER_FRAME" gpu-usage="WRITE">
+            update-frequency="PER_FRAME" gpu-usage="BUFFER_GPU_WRITE">
             <scale value="0.001, 0.001, 0.001"/>
             <translate value="0.0, -0.5, 3.0"/>
             <set mode="circle" target="translate" radius="1.0" variance="0.8"

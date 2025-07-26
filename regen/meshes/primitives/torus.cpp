@@ -84,16 +84,16 @@ void Torus::generateLODLevel(const Config &cfg,
 							 GLuint vertexOffset,
 							 GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(ServerAccessMode::WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(ServerAccessMode::WRITE);
+	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
+	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 	auto v_nor = (cfg.isNormalRequired ?
-		nor_->mapClientData<Vec3f>(ServerAccessMode::WRITE) :
+		nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec3f>::nullData());
 	auto v_tan = (cfg.isTangentRequired ?
-		tan_->mapClientData<Vec4f>(ServerAccessMode::WRITE) :
+		tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<Vec4f>::nullData());
 	auto v_texco = (texco_.get() ?
-		texco_->mapClientData<float>(ServerAccessMode::WRITE) :
+		texco_->mapClientData<float>(BUFFER_GPU_WRITE) :
 		ShaderData_rw<float>::nullData());
 
 	GLuint vertexIndex = vertexOffset;

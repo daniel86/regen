@@ -604,7 +604,7 @@ namespace regen {
 		bool isVertexAttribute_ = false;
 		bool transpose_ = false;
 		// TODO remove this, use buffer enums
-		ServerAccessMode gpuUsage_ = ServerAccessMode::READ;
+		ServerAccessMode gpuUsage_ = BUFFER_GPU_READ;
 
 		ClientBuffer clientBuffer_;
 		// stride in bytes for typed client data in the client buffer.
@@ -721,7 +721,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const StructType &val) {
-			mapClientVertex<StructType>(ServerAccessMode::WRITE, i).w = val;
+			mapClientVertex<StructType>(BUFFER_GPU_WRITE, i).w = val;
 		}
 
 		/**
@@ -729,7 +729,7 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		ShaderVertex_ro<StructType> getVertex(GLuint i) const {
-			return mapClientVertex<StructType>(ServerAccessMode::READ, i);
+			return mapClientVertex<StructType>(BUFFER_GPU_READ, i);
 		}
 
 		/**
@@ -791,7 +791,7 @@ namespace regen {
 		 * @param val the new value.
 		 */
 		void setVertex(GLuint i, const ValueType &val) {
-			mapClientVertex<ValueType>(ServerAccessMode::WRITE, i).w = val;
+			mapClientVertex<ValueType>(BUFFER_GPU_WRITE, i).w = val;
 		}
 
 		/**
@@ -799,7 +799,7 @@ namespace regen {
 		 * @return data value at given index.
 		 */
 		ShaderVertex_ro<ValueType> getVertex(GLuint i) const {
-			return mapClientVertex<ValueType>(ServerAccessMode::READ, i);
+			return mapClientVertex<ValueType>(BUFFER_GPU_READ, i);
 		}
 
 		/**
@@ -902,7 +902,7 @@ namespace regen {
 				bool normalize = false);
 
 		void setVertex3(GLuint i, const Vec3f &val) {
-			auto mapped = mapClientVertex<Vec4f>(ServerAccessMode::WRITE, i);
+			auto mapped = mapClientVertex<Vec4f>(BUFFER_GPU_WRITE, i);
 			mapped.w.xyz_() = val;
 		}
 	};
