@@ -185,6 +185,13 @@ namespace regen {
 		inline uint32_t baseAlignment() const { return baseAlignment_; }
 
 		/**
+		 * Aligned base size of the input.
+		 * This is the size of a single element with alignment applied.
+		 * @return the aligned base size of the input in bytes.
+		 */
+		inline uint32_t alignedBaseSize() const { return alignedBaseSize_; }
+
+		/**
 		 * This is the number of times the base alignment is applied to the input
 		 * per element. i.e. the size of an element is baseAlignment * alignmentCount.
 		 * @return the alignment count of the input.
@@ -591,6 +598,7 @@ namespace regen {
 
 		uint32_t baseAlignment_;
 		uint32_t alignmentCount_;
+		uint32_t alignedBaseSize_;
 		uint32_t unalignedSize_ = 0u;
 
 		uint32_t stride_ = 0u;

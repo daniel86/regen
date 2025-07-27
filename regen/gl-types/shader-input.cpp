@@ -57,6 +57,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  valsPerElement_(o.valsPerElement_),
 		  baseAlignment_(o.baseAlignment_),
 		  alignmentCount_(o.alignmentCount_),
+		  alignedBaseSize_(o.alignedBaseSize_),
 		  unalignedSize_(o.unalignedSize_),
 		  stride_(o.stride_),
 		  offset_(o.offset_),
@@ -96,9 +97,9 @@ ShaderInput::~ShaderInput() {
 }
 
 void ShaderInput::updateAlignment() {
-	baseAlignment_ = baseSize_; // tightly packed
+	baseAlignment_ = baseSize_;
+	alignedBaseSize_ = baseSize_;
 	alignmentCount_ = 1u;
-
 	if (baseSize_ == 12u) { // vec3
 		baseAlignment_ = 16u;
 	} else if (baseSize_ == 48u) { // mat3
@@ -117,6 +118,9 @@ void ShaderInput::updateAlignment() {
 				baseAlignment_ = 16u;
 			}
 		}
+	}
+	if (numElements() > 1u) {
+		alignedBaseSize_ = baseAlignment_ * alignmentCount_;
 	}
 }
 
@@ -204,15 +208,14 @@ void ShaderInput::updateAlignedSize() {
 	// so if we have an array of 3 vec3f, the size will be 3 * 16 = 48 bytes,
 	// but the unaligned size will be 3 * 12 = 36 bytes.
 	if (numElements() > 1 && !isVertexAttribute_) {
-		auto stride = baseAlignment_ * alignmentCount_;
-		auto alignedSize = stride * numElements_ui_;
+		auto alignedSize = alignedBaseSize_ * numElements_ui_;
 		if (alignedSize != unalignedSize_) {
 			// allocate space in client buffer for aligned data.
 			// note: this will make it more difficult to update the data on the client side,
 			// but it enables us to form contiguous buffers for the GPU.
 			inputSize_ = alignedSize;
 			// use strided data access in mapClient* functions
-			mapClientStride_ = stride;
+			mapClientStride_ = alignedBaseSize_;
 		}
 	}
 }

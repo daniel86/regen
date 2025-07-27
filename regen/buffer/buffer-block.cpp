@@ -404,29 +404,17 @@ uint32_t BufferBlock::updateBlockInputs() {
 		requiredSize_ = 0;
 		for (auto &blockInput: blockInputs_) {
 			auto &in = blockInput->input;
-			// Compute the alignment based on the type
 			// Align the offset to the required alignment
+			// baseAlignment is always a power of two, so we can use bitwise AND
 			requiredSize_ = (requiredSize_ + in->baseAlignment() - 1) & ~(in->baseAlignment() - 1);
 			blockInput->offset = requiredSize_;
-			// TODO: multiplication is cached in client buffer
-			//     - introduce alignedBaseSize() in ShaderInput? avoids branch here
-			if (in->numElements() > 1) {
-				blockInput->inputSize = in->baseAlignment() * in->alignmentCount() * in->numElements();
-			} else {
-				blockInput->inputSize = in->baseSize() * in->numElements();
-			}
+			blockInput->inputSize =  in->alignedBaseSize() * in->numElements();
 			requiredSize_ += blockInput->inputSize;
 		}
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)
 		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
 			static constexpr size_t std140Alignment = 16;
-			size_t remainder = requiredSize_ % std140Alignment;
-			if (remainder != 0) {
-				requiredSize_ += std140Alignment - remainder;
-				REGEN_DEBUG("RE-ALIGN for 16 bytes needed for block with size: " << requiredSize_ << " bytes"
-																				 << " first input: "
-																				 << blockInputs_[0]->input->name());
-			}
+			requiredSize_ = (requiredSize_ + std140Alignment - 1) & ~(std140Alignment - 1);
 		}
 
 		// TODO: pdate the client buffer
@@ -438,8 +426,6 @@ uint32_t BufferBlock::updateBlockInputs() {
 				clientBuffer_.updateSegment(
 					blockIdx,
 					blockInput.input->clientBuffer(),
-					blockInput.inputSize,
-					blockInput.offset,
 					blockInput.input->baseAlignment());
 			}
 		}

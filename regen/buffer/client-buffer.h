@@ -181,12 +181,12 @@ namespace regen {
 
 		void ownerResize();
 
-		void resize_(
+		void resize_SingleBuffer(
 				ClientBuffer *owner,
 				const byte *oldDataPtr,
 				byte *newDataPtr);
 
-		void resize_(
+		void resize_DoubleBuffer(
 				ClientBuffer *owner,
 				const byte *oldDataPtr0,
 				const byte *oldDataPtr1,
