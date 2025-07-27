@@ -313,6 +313,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
 	input->setMemoryLayout(memoryLayout_);
+	// TODO: Add client buffer segment in case client buffer has segments.
 
 	updateStorageFlags();
 }
@@ -330,7 +331,7 @@ void BufferBlock::removeBlockInput(std::string_view name) {
 			}
 			// remove the block input
 			blockInputs_.erase(it);
-			// TODO
+			// TODO: Remove client buffer segment in case client buffer has segments.
 			//xxx_rm_client_data(input, name);
 			return;
 		}
