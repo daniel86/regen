@@ -51,6 +51,7 @@ void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 void ClientBuffer::swapData() {
 	// flushing is only needed if the buffer is frame-locked.
 	if (!isFrameLocked_) return;
+	REGEN_INFO("Swapping client data for frame-locked buffer: " << dataSize_ << " bytes.");
 
 	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
 	int32_t lastWriteSlot = (dataSlots_[1] ? 1 - lastReadSlot : lastReadSlot);
@@ -267,9 +268,15 @@ void ClientBuffer::ownerResize() {
 	allocatedSize_ = dataSize_;
 	dataOwner_ = this;
 
+	// FIXME: this is BUGGY!
+	//   - any way we can avoid redundant alignment computation?
+	//   - for now bloc input does it
+	//   - mabe generally do it in client buffer?
 	uint32_t segmentOffset = 0;
 	if (dataSlots_[1]) {
 		for (auto &segment : bufferSegments_) {
+			//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
+			// 		& ~(segment->baseAlignment() - 1);
 			segment->resize_(
 				this,
 				oldData0 + segmentOffset,
@@ -282,6 +289,8 @@ void ClientBuffer::ownerResize() {
 		}
 	} else {
 		for (auto &segment : bufferSegments_) {
+			//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
+			// 		& ~(segment->baseAlignment() - 1);
 			segment->resize_(
 				this,
 				oldData0 + segmentOffset,
@@ -298,6 +307,8 @@ void ClientBuffer::ownerResize() {
 }
 
 void ClientBuffer::resize_(ClientBuffer *owner, const byte *oldDataPtr, byte *newDataPtr) {
+				//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
+				// 		& ~(segment->baseAlignment() - 1);
 	if (dataSize_ == allocatedSize_) {
 		// no resize, just copy over the data from old to new slot.
 		std::memcpy(newDataPtr, oldDataPtr, dataSize_);
@@ -329,6 +340,8 @@ void ClientBuffer::resize_(
 		const byte *oldDataPtr1,
 		byte *newDataPtr0,
 		byte *newDataPtr1) {
+				//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
+				// 		& ~(segment->baseAlignment() - 1);
 	if (dataSize_ == allocatedSize_) {
 		// no resize, just copy over the data from old to new slot.
 		std::memcpy(newDataPtr0, oldDataPtr0, dataSize_);

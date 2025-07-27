@@ -31,8 +31,6 @@ BufferBlock::BufferBlock(
 	memoryLayout_ = memoryLayout;
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
-	isVertexAttribute_ = false;
-	isVertexAttribute_ = false;
 	shared_ = ref_ptr<Shared>::alloc();
 	shared_->updateRange_ = UPDATE_RATE_RANGE;
 	shared_->f_updateRangeInv_ = 1.0f / static_cast<float>(UPDATE_RATE_RANGE);
@@ -76,7 +74,6 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 	memoryLayout_ = other.memoryLayout_;
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
-	isVertexAttribute_ = false;
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 }
 
@@ -352,41 +349,6 @@ void BufferBlock::update(bool forceUpdate) {
 	}
 }
 
-void BufferBlock::resetDirtySegments() {
-	// note: we never clear the segments_ vector, we just reset the counters
-	numDirtySegments_ = 0;
-}
-
-void BufferBlock::createNextDirtySegment() {
-	if (numDirtySegments_ >= dirtySegmentRanges_.size()) {
-		// allocate a new segment if we have no more space
-		dirtySegmentRanges_.emplace_back();
-		dirtyBufferRanges_.emplace_back();
-	}
-	numDirtySegments_ += 1;
-}
-
-void BufferBlock::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
-	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
-	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
-	dirty_b.offset = input.offset;
-	dirty_b.size = input.inputSize;
-	dirty_s.startIdx = inputIdx;
-	dirty_s.endIdx = inputIdx;
-}
-
-void BufferBlock::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
-	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
-	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
-	dirty_b.size = input.offset - dirty_b.offset + input.inputSize;
-	dirty_s.endIdx = inputIdx;
-}
-
-void BufferBlock::resetUpdateHistory() {
-	shared_->updateIdx_ = 0;
-	shared_->hasUpdateRotated_ = false;
-}
-
 void BufferBlock::Shared::setUpdatedFrame(bool isUpdated) {
 	bool &wasUpdated = updatedFrames_[updateIdx_++];
 	// count the number of frames that had an update over the last n frames.
@@ -444,11 +406,10 @@ uint32_t BufferBlock::updateBlockInputs() {
 			auto &in = blockInput->input;
 			// Compute the alignment based on the type
 			// Align the offset to the required alignment
-			auto remainder = requiredSize_ % in->baseAlignment();
-			if (remainder != 0) {
-				requiredSize_ += in->baseAlignment() - remainder;
-			}
+			requiredSize_ = (requiredSize_ + in->baseAlignment() - 1) & ~(in->baseAlignment() - 1);
 			blockInput->offset = requiredSize_;
+			// TODO: multiplication is cached in client buffer
+			//     - introduce alignedBaseSize() in ShaderInput? avoids branch here
 			if (in->numElements() > 1) {
 				blockInput->inputSize = in->baseAlignment() * in->alignmentCount() * in->numElements();
 			} else {
@@ -470,25 +431,16 @@ uint32_t BufferBlock::updateBlockInputs() {
 
 		// TODO: pdate the client buffer
 		/**
-		xxx_set_base_alignment;
 		if (clientBuffer_.dataSize() != 0u) {
-			uint32_t numAddedSegments = clientBuffer_->numSegments();
+			clientBuffer_.resize(requiredSize_, XXX);
 			for (uint32_t blockIdx=0; blockIdx < blockInputs_.size(); ++blockIdx) {
 				auto &blockInput = *blockInputs_[blockIdx].get();
-				if (blockIdx >= numAddedSegments) {
-					// add the segment to the client buffer
-					clientBuffer_.addSegment(
-						blockInput.input->clientBuffer(),
-						blockInput.offset,
-						blockInput.inputSize);
-				} else {
-					// update the existing segment
-					clientBuffer_.updateSegment(
-						blockIdx,
-						blockInput.offset,
-						blockInput.inputSize);
-				}
-
+				clientBuffer_.updateSegment(
+					blockIdx,
+					blockInput.input->clientBuffer(),
+					blockInput.inputSize,
+					blockInput.offset,
+					blockInput.input->baseAlignment());
 			}
 		}
 		**/
@@ -924,6 +876,41 @@ bool BufferBlock::updateReadBuffer() {
 			drawBufferRef_,
 			*drawBufferRange_.get(),
 			shared_->stagingOffset_);
+}
+
+void BufferBlock::resetDirtySegments() {
+	// note: we never clear the segments_ vector, we just reset the counters
+	numDirtySegments_ = 0;
+}
+
+void BufferBlock::createNextDirtySegment() {
+	if (numDirtySegments_ >= dirtySegmentRanges_.size()) {
+		// allocate a new segment if we have no more space
+		dirtySegmentRanges_.emplace_back();
+		dirtyBufferRanges_.emplace_back();
+	}
+	numDirtySegments_ += 1;
+}
+
+void BufferBlock::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
+	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
+	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
+	dirty_b.offset = input.offset;
+	dirty_b.size = input.inputSize;
+	dirty_s.startIdx = inputIdx;
+	dirty_s.endIdx = inputIdx;
+}
+
+void BufferBlock::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
+	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
+	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
+	dirty_b.size = input.offset - dirty_b.offset + input.inputSize;
+	dirty_s.endIdx = inputIdx;
+}
+
+void BufferBlock::resetUpdateHistory() {
+	shared_->updateIdx_ = 0;
+	shared_->hasUpdateRotated_ = false;
 }
 
 ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNode &input) {
