@@ -441,8 +441,12 @@ bool StagingSystem::isCopyInProgress() const {
 	return copyInProgress_.load(std::memory_order_acquire);
 }
 
-void StagingSystem::updateData(float dt_ms) {
+void StagingSystem::setIsCopyInProgress() {
 	copyInProgress_.store(true, std::memory_order_release);
+}
+
+void StagingSystem::updateData(float dt_ms) {
+	//copyInProgress_.store(true, std::memory_order_release);
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
 	static ElapsedTimeDebugger elapsedTime("Staging System Update", 300);
 	elapsedTime.beginFrame();

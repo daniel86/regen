@@ -113,7 +113,9 @@ namespace regen {
 		boost::thread::id addThreadID_;
 		boost::thread thread_;
 		boost::mutex threadLock_;
-		std::barrier<> frameBarrier_;
+
+		using BarrierCompletionFun = std::function<void()>;
+		std::barrier<BarrierCompletionFun> frameBarrier_;
 		boost::mutex unsynchronizedMut_;
 
 		bool animInProgress_;

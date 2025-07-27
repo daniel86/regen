@@ -16,8 +16,16 @@ AnimationManager &AnimationManager::get() {
 	return manager;
 }
 
+static void setStagingCopyFlag() {
+	// after each frame, we set a flag that indicates a client buffer to staging copy is in progress.
+	// this avoids that client buffers are swapped before staging system had a chance
+	// to enter the copy.
+	// StagingSystem system sets this flag to false each frame before after the copy is done.
+	StagingSystem::instance().setIsCopyInProgress();
+}
+
 AnimationManager::AnimationManager()
-		: frameBarrier_(2),
+		: frameBarrier_(2, setStagingCopyFlag),
 		  animInProgress_(false),
 		  glInProgress_(false),
 		  removeInProgress_(false),

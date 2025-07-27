@@ -115,6 +115,15 @@ namespace regen {
 		bool isCopyInProgress() const;
 
 		/**
+		 * \brief Set the copy in progress flag.
+		 *
+		 * This method sets the copy in progress flag to true, indicating that a copy operation
+		 * is currently being performed. It is used to prevent concurrent modifications of the
+		 * staging buffers during the copy operation.
+		 */
+		void setIsCopyInProgress();
+
+		/**
 		 * This method is called to swap the client data buffers, making the last writes available
 		 * for the next frame.
 		 */
