@@ -104,6 +104,10 @@ namespace regen {
 		 */
 		void updateData(float dt_ms = 0.0f);
 
+		/**
+		 * This method is called to swap the client data buffers, making the last writes available
+		 * for the next frame.
+		 */
 		void swapClientData();
 
 		/**
