@@ -221,8 +221,6 @@ void AnimationManager::updateGraphics(RenderState *_, GLdouble dt) {
 
 void AnimationManager::flushGraphics() {
 	frameBarrier_.arrive_and_wait();
-	//StagingSystem::instance().swapClientData();
-	//frameBarrier_.arrive_and_wait();
 }
 
 void AnimationManager::runUnsynchronized(Animation *animation) const {
@@ -258,6 +256,15 @@ void AnimationManager::runUnsynchronized(Animation *animation) const {
 			nextFrame = now;
 		}
 	}
+}
+
+void AnimationManager::swapClientData() {
+	auto &staging = StagingSystem::instance();
+	// Wait for the staging system to finish copying client data for this frame.
+	while (staging.isCopyInProgress()) {
+		CPU_PAUSE();
+	}
+	staging.swapClientData();
 }
 
 void AnimationManager::run() {
@@ -299,11 +306,11 @@ void AnimationManager::run() {
 			}
 			animInProgress_ = false;
 		}
-
+		// make client buffers we just wrote to available for the next frame
+		// in the staging system.
+		swapClientData();
 		lastTime_ = time_;
 		frameBarrier_.arrive_and_wait();
-		// Wait for staging system to swap.
-		//frameBarrier_.arrive_and_wait();
 	}
 }
 

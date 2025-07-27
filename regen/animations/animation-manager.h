@@ -135,6 +135,8 @@ namespace regen {
 		void run();
 
 		void runUnsynchronized(Animation *animation) const;
+
+		void swapClientData();
 	};
 } // namespace
 

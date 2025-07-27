@@ -49,6 +49,8 @@ void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 **/
 
 void ClientBuffer::swapData() {
+	// NOTE: This function should be very fast as potentially both animation and rendering threads
+	//       are waiting for it to finish.
 	// flushing is only needed if the buffer is frame-locked.
 	if (!isFrameLocked_) return;
 	REGEN_INFO("Swapping client data for frame-locked buffer: " << dataSize_ << " bytes.");

@@ -436,7 +436,13 @@ void StagingSystem::updateBuffers() {
 	}
 }
 
+bool StagingSystem::isCopyInProgress() const {
+	// check if copy is in progress
+	return copyInProgress_.load(std::memory_order_acquire);
+}
+
 void StagingSystem::updateData(float dt_ms) {
+	copyInProgress_.store(true, std::memory_order_release);
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
 	static ElapsedTimeDebugger elapsedTime("Staging System Update", 300);
 	elapsedTime.beginFrame();
@@ -511,6 +517,7 @@ void StagingSystem::updateData(float dt_ms) {
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
 	elapsedTime.endFrame();
 #endif
+	copyInProgress_.store(false, std::memory_order_release);
 }
 
 void StagingSystem::swapClientData() {

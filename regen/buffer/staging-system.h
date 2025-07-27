@@ -105,6 +105,16 @@ namespace regen {
 		void updateData(float dt_ms = 0.0f);
 
 		/**
+		 * \brief Check if a copy operation is in progress.
+		 *
+		 * This method checks if a copy operation is currently in progress in the staging system.
+		 * It is used to avoid concurrent modifications of the staging buffers.
+		 *
+		 * @return true if a copy operation is in progress, false otherwise.
+		 */
+		bool isCopyInProgress() const;
+
+		/**
 		 * This method is called to swap the client data buffers, making the last writes available
 		 * for the next frame.
 		 */
@@ -140,6 +150,7 @@ namespace regen {
 		struct Arena;
 
 		std::array<Arena *, ARENA_TYPE_LAST> arenas_;
+		std::atomic<bool> copyInProgress_ = false;
 
 		Arena *addBufferBlock_readOnly(
 				const BlockPtr &block,
