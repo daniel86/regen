@@ -155,14 +155,14 @@ void ShaderInput::set_isVertexAttribute(bool isVertexAttribute) {
 
 void ShaderInput::set_buffer(GLuint buffer, const ref_ptr<BufferReference> &it) {
 	buffer_ = buffer;
-	// FIXME: remove this
+	// TODO: Handle VBO updates rather via staging system. Then remove this.
 	clientBuffer_.setHasServerData(true);
 	bufferIterator_ = it;
 	bufferStamp_ = stamp();
 }
 
 void ShaderInput::enableAttribute(GLint loc) const {
-	// TODO: Handle VBO updates rather via staging system.
+	// TODO: Handle VBO updates rather via staging system. Then remove this.
 	if (clientBuffer_.requiresReUpload()) {
 		writeServerData();
 		clientBuffer_.setRequiresReUpload(false);
