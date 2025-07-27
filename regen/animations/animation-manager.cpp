@@ -20,7 +20,7 @@ static void setStagingCopyFlag() {
 	// after each frame, we set a flag that indicates a client buffer to staging copy is in progress.
 	// this avoids that client buffers are swapped before staging system had a chance
 	// to enter the copy.
-	// StagingSystem system sets this flag to false each frame before after the copy is done.
+	// StagingSystem system sets this flag to false each frame after the copy is done.
 	StagingSystem::instance().setIsCopyInProgress();
 }
 
@@ -314,9 +314,11 @@ void AnimationManager::run() {
 			}
 			animInProgress_ = false;
 		}
-		// make client buffers we just wrote to available for the next frame
-		// in the staging system.
-		swapClientData();
+		if (!closeFlag_ && !pauseFlag_) {
+			// make client buffers we just wrote to available for the next frame
+			// in the staging system.
+			swapClientData();
+		}
 		lastTime_ = time_;
 		frameBarrier_.arrive_and_wait();
 	}

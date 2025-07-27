@@ -125,6 +125,7 @@ StagingSystem::StagingSystem()
 }
 
 StagingSystem::~StagingSystem() {
+	copyInProgress_.store(false, std::memory_order_relaxed);
 	for (auto &arena: arenas_) {
 		delete arena;
 		arena = nullptr;
@@ -143,6 +144,7 @@ void StagingSystem::clear() {
 		}
 	}
 	arenas_.fill(nullptr);
+	copyInProgress_.store(false, std::memory_order_relaxed);
 }
 
 ref_ptr<StagingBuffer> StagingSystem::addBufferBlock(const BlockPtr &block) {
