@@ -349,16 +349,6 @@ void BufferBlock::update(bool forceUpdate) {
 	}
 }
 
-void BufferBlock::Shared::setUpdatedFrame(bool isUpdated) {
-	bool &wasUpdated = updatedFrames_[updateIdx_++];
-	// count the number of frames that had an update over the last n frames.
-	updateCount_ += (wasUpdated != isUpdated) * (isUpdated*2 - 1);
-	wasUpdated = isUpdated;
-	// wrap around the index
-	updateIdx_ *= (updateIdx_ < updateRange_);
-	hasUpdateRotated_ = hasUpdateRotated_ || (updateIdx_ >= updateRange_);
-}
-
 uint32_t &BufferBlock::lastInputStamp(BlockInput &blockInput) {
 	if (shared_->stagingBuffer_.get()) {
 		return blockInput.lastStamp[shared_->stagingBuffer_->nextWriteIndex()];
@@ -368,37 +358,19 @@ uint32_t &BufferBlock::lastInputStamp(BlockInput &blockInput) {
 }
 
 uint32_t BufferBlock::updateBlockInputs() {
-	bool lastChanged = false; // whether the last input changed or not
 	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
 	hasClientData_ = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
-	resetDirtySegments();
 
-	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(blockInputs_.size()); ++inputIdx) {
-		auto &blockInput = *blockInputs_[inputIdx].get();
-		hasNewSize = hasNewSize || (blockInput.inputSize != blockInput.input->inputSize());
-		hasClientData_ = hasClientData_ && blockInput.input->hasClientData();
+	// TODO: Initialize the client buffer here lazily.
 
-		// construct contiguous segments of inputs that have changed
-		// FIXME: this should be done AFTER size update! BlockInput stuff is used, but updated later
-		if (blockInput.input->stamp() != lastInputStamp(blockInput)) {
-			updatedSize_ += blockInput.input->inputSize();
-			if (lastChanged) {
-				// this input adds to the current segment
-				appendToDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
-			} else {
-				// this input starts a new segment
-				createNextDirtySegment();
-				setDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
-			}
-			lastChanged = true;
-		} else {
-			lastChanged = false;
+	for (auto &blockInput : blockInputs_) {
+		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
+		hasClientData_ = hasClientData_ && blockInput->input->hasClientData();
+		if (blockInput->input->stamp() != lastInputStamp(*blockInput.get())) {
+			updatedSize_ += blockInput->input->inputSize();
 		}
 	}
-	// remember if we had a dirty segment in this frame for computing the update rate.
-	// this is useful for detecting stalls in the staging system, for adaptive ring buffering.
-	setUpdatedFrame(hasDirtySegments());
 
 	if (hasNewSize) {
 		requiredSize_ = 0;
@@ -416,45 +388,34 @@ uint32_t BufferBlock::updateBlockInputs() {
 			static constexpr size_t std140Alignment = 16;
 			requiredSize_ = (requiredSize_ + std140Alignment - 1) & ~(std140Alignment - 1);
 		}
-
-		// TODO: pdate the client buffer
-		/**
-		if (clientBuffer_.dataSize() != 0u) {
-			clientBuffer_.resize(requiredSize_, XXX);
-			for (uint32_t blockIdx=0; blockIdx < blockInputs_.size(); ++blockIdx) {
-				auto &blockInput = *blockInputs_[blockIdx].get();
-				clientBuffer_.updateSegment(
-					blockIdx,
-					blockInput.input->clientBuffer(),
-					blockInput.input->baseAlignment());
-			}
-		}
-		**/
 	}
+
+	// Reset the dirty counter.
+	resetDirtySegments();
+	// Update dirty segments.
+	bool lastChanged = false; // whether the last input changed or not
+	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(blockInputs_.size()); ++inputIdx) {
+		auto &blockInput = *blockInputs_[inputIdx].get();
+		if (blockInput.input->stamp() != lastInputStamp(blockInput)) {
+			if (lastChanged) {
+				// this input adds to the current segment
+				appendToDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
+			} else {
+				// this input starts a new segment
+				createNextDirtySegment();
+				setDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
+			}
+			lastChanged = true;
+		} else {
+			lastChanged = false;
+		}
+	}
+	// Remember if we had a dirty segment in this frame for computing the update rate.
+	// this is useful for detecting stalls in the staging system, for adaptive ring buffering.
+	setUpdatedFrame(hasDirtySegments());
 
 	return requiredSize_;
 }
-
-/**
-void BufferBlock::updateClientBuffer() {
-	if(blockInputs_.empty()) { return; }
-	if(clientBuffer_.dataSize()==requiredSize_) { return; }
-
-	// BufferBlock uses client buffer for contiguous data storage.
-	// Make sure the client buffer has requiredSize_ bytes allocated,
-	// and map the ptrs to the shader inputs.
-	if (clientBuffer_.dataSize()==0u) {
-		// the first time updateClientBuffer has been called with block inputs added.
-		// we need to allocate the client buffer with the required size.
-		clientBuffer_.resize(requiredSize_, requiredSize_);
-		for (auto &blockInput: blockInputs_) {
-			clientBuffer_.addSegment(blockInput->input->clientBuffer());
-		}
-	} else {
-		clientBuffer_.flush();
-	}
-}
-**/
 
 int32_t BufferBlock::getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const {
 	static constexpr int32_t NO_BUFFERED_INDEX = -1;
@@ -876,6 +837,16 @@ void BufferBlock::createNextDirtySegment() {
 		dirtyBufferRanges_.emplace_back();
 	}
 	numDirtySegments_ += 1;
+}
+
+void BufferBlock::Shared::setUpdatedFrame(bool isUpdated) {
+	bool &wasUpdated = updatedFrames_[updateIdx_++];
+	// count the number of frames that had an update over the last n frames.
+	updateCount_ += (wasUpdated != isUpdated) * (isUpdated*2 - 1);
+	wasUpdated = isUpdated;
+	// wrap around the index
+	updateIdx_ *= (updateIdx_ < updateRange_);
+	hasUpdateRotated_ = hasUpdateRotated_ || (updateIdx_ >= updateRange_);
 }
 
 void BufferBlock::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
