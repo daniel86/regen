@@ -48,6 +48,19 @@ namespace regen {
 		uint32_t dataSize() const { return dataSize_; }
 
 		/**
+		 * A block of this client buffer must start at a multiple of this alignment.
+		 * @return the base alignment of the client buffer.
+		 */
+		uint32_t baseAlignment() const { return baseAlignment_; }
+
+		/**
+		 * Sets the base alignment of the client buffer.
+		 * This is used to align the data in the buffer to a specific boundary.
+		 * @param alignment the base alignment in bytes.
+		 */
+		void setBaseAlignment(uint32_t alignment) { baseAlignment_ = alignment; }
+
+		/**
 		 * Obtains the client data without locking.
 		 * Be sure that no other thread is writing to the data at the same time.
 		 * @return the client data.
@@ -127,6 +140,8 @@ namespace regen {
 		uint32_t dataSize_ = 0u;
 		uint32_t allocatedSize_ = 0u;
 		uint32_t dataOffset_ = 0u;
+		uint32_t lastOffset_ = 0u;
+		uint32_t baseAlignment_ = 1u;
 		bool isFrameLocked_ = false;
 
 		// Note: marked as mutable because client data mapping must be allowed in const functions
@@ -180,6 +195,8 @@ namespace regen {
 		void setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t slotIdx) const;
 
 		void ownerResize();
+
+		void updateBufferSize();
 
 		void resize_SingleBuffer(
 				ClientBuffer *owner,

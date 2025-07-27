@@ -22,6 +22,9 @@ ClientBuffer::~ClientBuffer() {
 }
 
 /**
+void ClientBuffer::setSegments() {
+}
+
 void ClientBuffer::addSegment(const ref_ptr<ClientBuffer> &segment) {
 	if (segment->parentBuffer_ != nullptr) {
 		REGEN_WARN("Segment already has a parent buffer, cannot add it again.");
@@ -225,22 +228,14 @@ void ClientBuffer::deallocateClientData() {
 		segment->deallocateClientData();
 	}
 	dataOffset_ = 0u;
+	lastOffset_ = 0u;
 	dataOwner_ = this;
 	allocatedSize_ = 0u;
 }
 
 void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
-	// NOTE: resize should only be called with both slots being write-locked!
-	int32_t resizeAmount = static_cast<int32_t>(dataSize) - static_cast<int32_t>(dataSize_);
-
 	// adjust the data size
-	// FIXME: this is not correct with alignment!
 	dataSize_ = static_cast<uint32_t>(dataSize);
-	auto *parent = parentBuffer_;
-	while (parent) {
-		parent->dataSize_ = parent->dataSize_ + resizeAmount;
-	}
-
 	// do the re-allocation of data slots.
 	dataOwner_->ownerResize();
 	nextStamp();
@@ -254,14 +249,34 @@ void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
 	}
 }
 
+void ClientBuffer::updateBufferSize() {
+	if (!bufferSegments_.empty()) {
+		uint32_t offset = dataOffset_;
+		for (auto &segment : bufferSegments_) {
+			// compute the offset for the segment, aligned to its base alignment.
+			offset = (offset + segment->baseAlignment_ - 1) & ~(segment->baseAlignment_ - 1);
+			// set the data size for the segment.
+			segment->lastOffset_ = segment->dataOffset_;
+			segment->dataOffset_ = offset;
+
+			segment->updateBufferSize();
+			offset += segment->dataSize_;
+		}
+		dataSize_ = offset + bufferSegments_.back()->dataSize_;
+	}
+}
+
 void ClientBuffer::ownerResize() {
 	// keep a reference to the old data slots, for copying data over.
 	byte *oldData0 = dataSlots_[0];
 	byte *oldData1 = dataSlots_[1];
+	// compute the new data size, and update the offsets of the segments.
+	// note: that some segments may need padding to align to their base alignment.
+	//       so the data size of a composed client buffer might be larger than the sum of the segment sizes.
+	updateBufferSize();
 
 	// allocate new data slots.
-	// FIXME: need to compute offsets first
-	// TODO: Better avoid reallocation, and mae it faster if possible
+	// TODO: Better avoid reallocation, and make it faster if possible
 	// 		- using larger buffers
 	//      - using a pool allocator
 	//      - maybe fast re-allocation is possible?
@@ -272,37 +287,18 @@ void ClientBuffer::ownerResize() {
 	allocatedSize_ = dataSize_;
 	dataOwner_ = this;
 
-	// FIXME: this is BUGGY!
-	//   - any way we can avoid redundant alignment computation?
-	//   - for now bloc input does it
-	//   - mabe generally do it in client buffer?
-	uint32_t segmentOffset = 0;
 	if (dataSlots_[1]) {
-		for (auto &segment : bufferSegments_) {
-			//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
-			// 		& ~(segment->baseAlignment() - 1);
-			segment->resize_DoubleBuffer(
+		resize_DoubleBuffer(
 				this,
-				oldData0 + segmentOffset,
-				oldData1 + segmentOffset,
-				dataSlots_[0] + segmentOffset,
-				dataSlots_[1] + segmentOffset);
-			segment->dataOffset_ = segmentOffset;
-			segment->dataOwner_ = this;
-			segmentOffset += segment->dataSize_;
-		}
+				oldData0,
+				oldData1,
+				dataSlots_[0],
+				dataSlots_[1]);
 	} else {
-		for (auto &segment : bufferSegments_) {
-			//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
-			// 		& ~(segment->baseAlignment() - 1);
-			segment->resize_SingleBuffer(
+		resize_SingleBuffer(
 				this,
-				oldData0 + segmentOffset,
-				dataSlots_[0] + segmentOffset);
-			segment->dataOffset_ = segmentOffset;
-			segment->dataOwner_ = this;
-			segmentOffset += segment->dataSize_;
-		}
+				oldData0,
+				dataSlots_[0]);
 	}
 
 	// delete the old data slots.
@@ -313,25 +309,20 @@ void ClientBuffer::ownerResize() {
 void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataPtr, byte *newDataPtr) {
 	if (dataSize_ == allocatedSize_) {
 		// no resize, just copy over the data from old to new slot.
-		std::memcpy(newDataPtr, oldDataPtr, dataSize_);
+		if (oldDataPtr) {
+			std::memcpy(newDataPtr, oldDataPtr, dataSize_);
+		}
 		setDataPointer(owner, newDataPtr, 0);
 	} else {
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr;
 		} else {
-			uint32_t offset = 0;
 			for (auto &segment : bufferSegments_) {
-				// resize each segment, copying over the data from old to new slot if size did not change.
-				// FIXME:
-				//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
-				// 		& ~(segment->baseAlignment() - 1);
 				segment->resize_SingleBuffer(
 					owner,
-					oldDataPtr + segment->dataOffset_, // FIXME: looks strange offset is computed below!
-					newDataPtr + offset);
-				segment->dataOffset_ = offset;
+					oldDataPtr ? oldDataPtr + segment->lastOffset_ : oldDataPtr,
+					newDataPtr + segment->dataOffset_);
 				segment->dataOwner_ = owner;
-				offset += segment->dataSize_;
 			}
 		}
 		allocatedSize_ = dataSize_;
@@ -345,39 +336,31 @@ void ClientBuffer::resize_DoubleBuffer(
 		const byte *oldDataPtr1,
 		byte *newDataPtr0,
 		byte *newDataPtr1) {
-				//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
-				// 		& ~(segment->baseAlignment() - 1);
 	if (dataSize_ == allocatedSize_) {
 		// no resize, just copy over the data from old to new slot.
-		std::memcpy(newDataPtr0, oldDataPtr0, dataSize_);
-		std::memcpy(newDataPtr1, oldDataPtr1, dataSize_);
+		if (oldDataPtr0) {
+			std::memcpy(newDataPtr0, oldDataPtr0, dataSize_);
+			std::memcpy(newDataPtr1, oldDataPtr1, dataSize_);
+		}
 		setDataPointer(owner,newDataPtr0, 0);
 		setDataPointer(owner,newDataPtr1, 1);
 	} else {
-		dataOwner_ = owner;
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr0;
 			dataSlots_[1] = newDataPtr1;
-			allocatedSize_ = dataSize_;
 		} else {
-			uint32_t offset = 0;
 			for (auto &segment : bufferSegments_) {
-				// resize each segment, copying over the data from old to new slot if size did not change.
-				// TODO: need to mark dirty each segment that moved in the buffer?
-				// FIXME:
-				//segmentOffset = (segmentOffset + segment->baseAlignment() - 1)
-				// 		& ~(segment->baseAlignment() - 1);
 				segment->resize_DoubleBuffer(
 					owner,
-					oldDataPtr0 + segment->dataOffset_, // FIXME: looks strange offset is computed below!
-					oldDataPtr1 + segment->dataOffset_,
-					newDataPtr0 + offset,
-					newDataPtr1 + offset);
-				segment->dataOffset_ = offset;
+					oldDataPtr0 ? oldDataPtr0 + segment->lastOffset_ : oldDataPtr0,
+					oldDataPtr1 ? oldDataPtr1 + segment->lastOffset_ : oldDataPtr1,
+					newDataPtr0 + segment->dataOffset_,
+					newDataPtr1 + segment->dataOffset_);
 				segment->dataOwner_ = owner;
-				offset += segment->dataSize_;
 			}
 		}
+		allocatedSize_ = dataSize_;
+		dataOwner_ = owner;
 	}
 }
 

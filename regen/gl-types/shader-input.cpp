@@ -122,6 +122,7 @@ void ShaderInput::updateAlignment() {
 	if (numElements() > 1u) {
 		alignedBaseSize_ = baseAlignment_ * alignmentCount_;
 	}
+	clientBuffer_.setBaseAlignment(baseAlignment_);
 }
 
 void ShaderInput::setMemoryLayout(BufferMemoryLayout layout) {
