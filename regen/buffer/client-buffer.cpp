@@ -21,8 +21,31 @@ ClientBuffer::~ClientBuffer() {
 	}
 }
 
-/**
-void ClientBuffer::setSegments() {
+void ClientBuffer::setFrameLocked(bool frameLocked) {
+	isFrameLocked_ = frameLocked;
+	for (auto &segment : bufferSegments_) {
+		segment->setFrameLocked(frameLocked);
+	}
+}
+
+void ClientBuffer::setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments) {
+	// clear the current segments.
+	for (auto &segment : bufferSegments_) {
+		segment->parentBuffer_ = nullptr;
+	}
+	bufferSegments_ = segments;
+	for (auto &segment : bufferSegments_) {
+		if (segment->parentBuffer_ != nullptr) {
+			REGEN_WARN("Segment already has a parent buffer!");
+		}
+		segment->parentBuffer_ = this;
+		segment->setFrameLocked(isFrameLocked_);
+	}
+	dataSize_ = 0u;
+	allocatedSize_ = 0u;
+	// do the re-allocation of data slots.
+	dataOwner_->ownerResize();
+	nextStamp();
 }
 
 void ClientBuffer::addSegment(const ref_ptr<ClientBuffer> &segment) {
@@ -34,7 +57,10 @@ void ClientBuffer::addSegment(const ref_ptr<ClientBuffer> &segment) {
 	bufferSegments_.push_back(segment);
 	// set the parent buffer for the segment.
 	segment->parentBuffer_ = this;
-	// TODO: do a delayed resize here??
+	segment->setFrameLocked(isFrameLocked_);
+	// do the re-allocation of data slots.
+	dataOwner_->ownerResize();
+	nextStamp();
 }
 
 void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
@@ -44,18 +70,19 @@ void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 		bufferSegments_.erase(it);
 		// clear the parent buffer for the segment.
 		segment->parentBuffer_ = nullptr;
-		// TODO: do a delayed resize here??
+		// do the re-allocation of data slots.
+		dataOwner_->ownerResize();
+		nextStamp();
 	} else {
 		REGEN_WARN("Segment not found in the list of segments.");
 	}
 }
-**/
 
 void ClientBuffer::swapData() {
 	// NOTE: This function should be very fast as potentially both animation and rendering threads
 	//       are waiting for it to finish.
 	// flushing is only needed if the buffer is frame-locked.
-	if (!isFrameLocked_) return;
+	if (!isFrameLocked_ || dataSize_==0u) return;
 	REGEN_INFO("Swapping client data for frame-locked buffer: " << dataSize_ << " bytes.");
 
 	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);

@@ -43,6 +43,21 @@ namespace regen {
 		inline bool isDataOwner() const { return dataOwner_ == this; }
 
 		/**
+		 * Frame-locked buffers will not swap the data slots after a write operation,
+		 * but only once per frame.
+		 * @return true if the buffer is frame-locked.
+		 */
+		inline bool isFrameLocked() const { return isFrameLocked_; }
+
+		/**
+		 * Sets whether the buffer is frame-locked.
+		 * If true, the data will not be swapped after each write operation,
+		 * but only once per frame.
+		 * @param frameLocked true if the buffer is frame-locked.
+		 */
+		void setFrameLocked(bool frameLocked);
+
+		/**
 		 * @return the size of the data in bytes (for a single slot).
 		 */
 		uint32_t dataSize() const { return dataSize_; }
@@ -78,6 +93,30 @@ namespace regen {
 		void nextStamp() const;
 
 		/**
+		 * Assigns a list of segments to this client buffer, replacing any existing segments.
+		 * This makes this client buffer a composed client buffer, that manages multiple segments
+		 * in contiguous memory.
+		 * @param segments the list of segments to assign.
+		 */
+		void setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments);
+
+		/**
+		 * Adds a segment to this client buffer.
+		 * This makes this client buffer a composed client buffer, that manages multiple segments
+		 * in contiguous memory.
+		 * @param segment the segment to add.
+		 */
+		void addSegment(const ref_ptr<ClientBuffer> &segment);
+
+		/**
+		 * Removes a segment from this client buffer.
+		 * This makes this client buffer a composed client buffer, that manages multiple segments
+		 * in contiguous memory.
+		 * @param segment the segment to remove.
+		 */
+		void removeSegment(const ref_ptr<ClientBuffer> &segment);
+
+		/**
 		 * Maps the client data for reading or writing.
 		 * @param mapMode the mapping mode, i.e. a ClientMappingMode flag.
 		 * @param offset the offset in bytes from the start of the buffer.
@@ -110,7 +149,7 @@ namespace regen {
 		void resize(size_t bufferSize, const byte *initialData = nullptr);
 
 		/**
-		 * Flush the client buffer.
+		 * Swaps the data between the two slots.
 		 * This will first ensure that the current write slot has all the most recent data,
 		 * and secondly, it swaps the read and write slots.
 		 */

@@ -48,6 +48,7 @@ BufferBlock::BufferBlock(
 	if (hints.frequency == BUFFER_UPDATE_NEVER) {
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 	}
+	clientBuffer_.setFrameLocked(hints.frequency < BUFFER_UPDATE_PER_DRAW);
 #ifdef BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
 	setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 #endif
@@ -75,6 +76,7 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
+	clientBuffer_.setFrameLocked(other.clientBuffer_.isFrameLocked());
 }
 
 static std::string getName(const BufferObject &other, const std::string &name) {
@@ -116,6 +118,7 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		userDefinedBufferingMode_ = block->userDefinedBufferingMode_;
 		shared_ = block->shared_;
 		shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
+		clientBuffer_.setFrameLocked(block->clientBuffer_.isFrameLocked());
 	} else {
 		shared_ = ref_ptr<Shared>::alloc();
 		shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
@@ -143,6 +146,7 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		} else {
 			REGEN_WARN("BufferBlock: Unable to copy buffer object of unknown type.");
 		}
+		clientBuffer_.setFrameLocked(true);
 	}
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
