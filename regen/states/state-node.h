@@ -196,7 +196,7 @@ namespace regen {
 		 * Tree traversal.
 		 * @param dt time difference to last traversal.
 		 */
-		void render(GLdouble dt);
+		void render(float dt);
 
 		/**
 		 * Do something after render call.

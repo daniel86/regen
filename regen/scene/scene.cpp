@@ -405,6 +405,11 @@ void Scene::updateBOs() {
 
 			for (const auto &ni: state->inputs()) {
 				auto input = ni.in_;
+				if (visited.find(input.get()) != visited.end()) {
+					continue; // already processed
+				}
+				visited.insert(input.get());
+
 				ref_ptr<BufferBlock> bufferBlock = ref_ptr<BufferBlock>::dynamicCast(input);
 				if (bufferBlock.get() && bufferBlock->stagingUpdateHint().frequency <= BUFFER_UPDATE_PER_FRAME) {
 					bufferBlock->update();
@@ -434,7 +439,11 @@ void Scene::drawGL() {
 }
 
 void Scene::updateGL() {
-	renderTree_->postRender(timeDelta_->getVertex(0).r);
+	// Note: make sure to bind to local variable here. When using
+	// `timeDelta_->getVertex(0).r` as argument, then maybe the lock is not lifted
+	// before postRender starts blocking until scene loading is done.
+	float dt_ms = timeDelta_->getVertex(0).r;
+	renderTree_->postRender(static_cast<double>(dt_ms));
 }
 
 void Scene::flushGL() {
