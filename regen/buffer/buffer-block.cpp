@@ -48,7 +48,7 @@ BufferBlock::BufferBlock(
 	if (hints.frequency == BUFFER_UPDATE_NEVER) {
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 	}
-	clientBuffer_.setFrameLocked(hints.frequency < BUFFER_UPDATE_PER_DRAW);
+	clientBuffer_->setFrameLocked(hints.frequency < BUFFER_UPDATE_PER_DRAW);
 #ifdef BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
 	setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 #endif
@@ -72,11 +72,11 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  stagingFlags_(other.stagingFlags_),
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  shared_(other.shared_) {
+	clientBuffer_ = other.clientBuffer_;
 	memoryLayout_ = other.memoryLayout_;
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
-	clientBuffer_.setFrameLocked(other.clientBuffer_.isFrameLocked());
 }
 
 static std::string getName(const BufferObject &other, const std::string &name) {
@@ -118,7 +118,7 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		userDefinedBufferingMode_ = block->userDefinedBufferingMode_;
 		shared_ = block->shared_;
 		shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
-		clientBuffer_.setFrameLocked(block->clientBuffer_.isFrameLocked());
+		clientBuffer_ = block->clientBuffer_;
 	} else {
 		shared_ = ref_ptr<Shared>::alloc();
 		shared_->updatedFrames_ = new bool[UPDATE_RATE_RANGE];
@@ -146,7 +146,8 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		} else {
 			REGEN_WARN("BufferBlock: Unable to copy buffer object of unknown type.");
 		}
-		clientBuffer_.setFrameLocked(true);
+		clientBuffer_ = ref_ptr<ClientBuffer>::alloc();
+		clientBuffer_->setFrameLocked(true);
 	}
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
@@ -317,7 +318,9 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
 	input->setMemoryLayout(memoryLayout_);
-	// TODO: Add client buffer segment in case client buffer has segments.
+	if (clientBuffer_->hasSegments()) {
+		clientBuffer_->addSegment(&input->clientBuffer());
+	}
 
 	updateStorageFlags();
 }
@@ -335,8 +338,10 @@ void BufferBlock::removeBlockInput(std::string_view name) {
 			}
 			// remove the block input
 			blockInputs_.erase(it);
-			// TODO: Remove client buffer segment in case client buffer has segments.
-			//xxx_rm_client_data(input, name);
+			if (clientBuffer_->hasSegments()) {
+				// remove the segment from the client buffer
+				clientBuffer_->removeSegment(&blockInput->input->clientBuffer());
+			}
 			return;
 		}
 	}
@@ -367,7 +372,18 @@ uint32_t BufferBlock::updateBlockInputs() {
 	hasClientData_ = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
 
-	// TODO: Initialize the client buffer here lazily.
+	//  Initialize the client buffer here lazily.
+	if (!blockInputs_.empty() && !clientBuffer_->hasSegments()) {
+		std::vector<ClientBuffer*> segments(blockInputs_.size());
+		REGEN_INFO("Initializing client buffer for block " << name()
+			<< " with " << blockInputs_.size() << " segments"
+			<< " ptr " << clientBuffer_.get());
+		for (size_t i = 0; i < blockInputs_.size(); ++i) {
+			auto &blockInput = blockInputs_[i];
+			segments[i] = &blockInput->input->clientBuffer();
+		}
+		clientBuffer_->setSegments(segments);
+	}
 
 	for (auto &blockInput : blockInputs_) {
 		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
@@ -666,9 +682,6 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		// the number of segments in the staging buffer has changed, so we need to resize the
 		// last stamp vector for each input.
 		// we reset the stamps causing a re-load of all segments.
-		for (auto &input: blockInputs_) {
-			input->lastStamp.resize(numStagingSegments);
-		}
 		resetDataStamps();
 		shared_->numBufferSegments_ = numStagingSegments;
 	}

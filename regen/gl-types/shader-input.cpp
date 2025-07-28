@@ -42,6 +42,7 @@ ShaderInput::ShaderInput(
 		  numElements_i_(static_cast<int32_t>(numArrayElements)),
 		  numElements_ui_(numArrayElements),
 		  bufferStamp_(0),
+		  clientBuffer_(ref_ptr<ClientBuffer>::alloc()),
 		  normalize_(normalize) {
 	elementSize_ = baseSize_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
@@ -72,6 +73,7 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 		  memoryLayout_(o.memoryLayout_),
 		  buffer_(o.buffer_),
 		  bufferStamp_(o.bufferStamp_),
+		  clientBuffer_(o.clientBuffer_),
 		  normalize_(o.normalize_),
 		  isVertexAttribute_(o.isVertexAttribute_),
 		  transpose_(o.transpose_),
@@ -84,9 +86,9 @@ ShaderInput::ShaderInput(const ShaderInput &o)
 	enableInput_ = o.enableInput_;
 	// copy client data, if any
 	if (o.hasClientData()) {
-		auto mapped = o.clientBuffer_.mapRange(BUFFER_GPU_READ, 0, o.inputSize_);
-		clientBuffer_.resize(inputSize_, mapped.r);
-		o.clientBuffer_.unmapRange(BUFFER_GPU_READ, 0, inputSize_, mapped.r_index);
+		auto mapped = o.clientBuffer_->mapRange(BUFFER_GPU_READ, 0, o.inputSize_);
+		clientBuffer_->resize(inputSize_, mapped.r);
+		o.clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, inputSize_, mapped.r_index);
 	}
 }
 
@@ -122,7 +124,7 @@ void ShaderInput::updateAlignment() {
 	if (numElements() > 1u) {
 		alignedBaseSize_ = baseAlignment_ * alignmentCount_;
 	}
-	clientBuffer_.setBaseAlignment(baseAlignment_);
+	clientBuffer_->setBaseAlignment(baseAlignment_);
 }
 
 void ShaderInput::setMemoryLayout(BufferMemoryLayout layout) {
@@ -157,16 +159,16 @@ void ShaderInput::set_isVertexAttribute(bool isVertexAttribute) {
 void ShaderInput::set_buffer(GLuint buffer, const ref_ptr<BufferReference> &it) {
 	buffer_ = buffer;
 	// TODO: Handle VBO updates rather via staging system. Then remove this.
-	clientBuffer_.setHasServerData(true);
+	clientBuffer_->setHasServerData(true);
 	bufferIterator_ = it;
 	bufferStamp_ = stamp();
 }
 
 void ShaderInput::enableAttribute(GLint loc) const {
 	// TODO: Handle VBO updates rather via staging system. Then remove this.
-	if (clientBuffer_.requiresReUpload()) {
+	if (clientBuffer_->requiresReUpload()) {
 		writeServerData();
-		clientBuffer_.setRequiresReUpload(false);
+		clientBuffer_->setRequiresReUpload(false);
 	}
 	(this->*(this->enableAttribute_))(loc);
 }
@@ -195,7 +197,7 @@ void ShaderInput::writeVertex(GLuint index, const byte *data) {
 }
 
 void ShaderInput::deallocateClientData() {
-	clientBuffer_.deallocateClientData();
+	clientBuffer_->deallocateClientData();
 }
 
 void ShaderInput::setUniformUntyped(const byte *data) {
@@ -226,7 +228,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 
 	if (dataSize_bytes != unalignedSize_ || isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
-		clientBuffer_.writeLockAll();
+		clientBuffer_->writeLockAll();
 		isVertexAttribute_ = false;
 		numInstances_ = std::max(1u, numInstances);
 		divisor_ = std::max(1u, divisor);
@@ -237,8 +239,8 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		updateAlignment();
 		updateAlignedSize();
 
-		clientBuffer_.resize(inputSize_, data);
-		clientBuffer_.writeUnlockAll(0u, inputSize_);
+		clientBuffer_->resize(inputSize_, data);
+		clientBuffer_->writeUnlockAll(0u, inputSize_);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -250,7 +252,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 
 	if (dataSize_bytes != unalignedSize_ || !isVertexAttribute_ || !hasClientData()) {
 		// size of the data has changed, need to reallocate the data buffer.
-		clientBuffer_.writeLockAll();
+		clientBuffer_->writeLockAll();
 		isVertexAttribute_ = true;
 		numInstances_ = 1u;
 		divisor_ = 0u;
@@ -261,8 +263,8 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		updateAlignment();
 		updateAlignedSize();
 
-		clientBuffer_.resize(inputSize_, data);
-		clientBuffer_.writeUnlockAll(0u, inputSize_);
+		clientBuffer_->resize(inputSize_, data);
+		clientBuffer_->writeUnlockAll(0u, inputSize_);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -271,7 +273,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 
 void ShaderInput::writeServerData(GLuint index) const {
 	if (!hasClientData() || !hasServerData()) return;
-	auto mappedClientData = clientBuffer_.mapRange(BUFFER_GPU_READ, 0, inputSize_);
+	auto mappedClientData = clientBuffer_->mapRange(BUFFER_GPU_READ, 0, inputSize_);
 	auto clientData = mappedClientData.r;
 	auto subDataStart = clientData + elementSize_ * index;
 	glNamedBufferSubData(
@@ -279,13 +281,13 @@ void ShaderInput::writeServerData(GLuint index) const {
 			offset_ + stride_ * index,
 			elementSize_,
 			subDataStart);
-	clientBuffer_.unmapRange(BUFFER_GPU_READ, 0, inputSize_, mappedClientData.r_index);
+	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, inputSize_, mappedClientData.r_index);
 }
 
 void ShaderInput::writeServerData() const {
 	if (!hasClientData() || !hasServerData()) return;
 	if (bufferStamp_ == stamp()) return;
-	auto mappedClientData = clientBuffer_.mapRange(BUFFER_GPU_READ, 0, inputSize_);
+	auto mappedClientData = clientBuffer_->mapRange(BUFFER_GPU_READ, 0, inputSize_);
 	auto clientData = mappedClientData.r;
 	auto count = std::max(numVertices_, numInstances_);
 
@@ -301,12 +303,12 @@ void ShaderInput::writeServerData() const {
 	}
 
 	bufferStamp_ = stamp();
-	clientBuffer_.unmapRange(BUFFER_GPU_READ, 0, inputSize_, mappedClientData.r_index);
+	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, inputSize_, mappedClientData.r_index);
 }
 
 void ShaderInput::readServerData() {
 	if (!hasServerData()) return;
-	auto mappedClientData = clientBuffer_.mapRange(BUFFER_GPU_WRITE, 0, inputSize_);
+	auto mappedClientData = clientBuffer_->mapRange(BUFFER_GPU_WRITE, 0, inputSize_);
 	auto clientData = mappedClientData.w;
 
 	byte *serverData = (byte *) glMapNamedBufferRange(
@@ -326,7 +328,7 @@ void ShaderInput::readServerData() {
 	}
 
 	glUnmapNamedBuffer(buffer());
-	clientBuffer_.unmapRange(BUFFER_GPU_WRITE, 0, inputSize_, mappedClientData.w_index);
+	clientBuffer_->unmapRange(BUFFER_GPU_WRITE, 0, inputSize_, mappedClientData.w_index);
 }
 
 /////////////
@@ -435,11 +437,11 @@ ref_ptr<ShaderInput> ShaderInput::copy(const ref_ptr<ShaderInput> &in, bool copy
 	if (in->hasClientData()) {
 		// allocate memory for one slot, copy most recent data
 		if (copyData) {
-			auto mapped = in->clientBuffer_.mapRange(BUFFER_GPU_READ, 0, in->inputSize_);
-			cp->clientBuffer_.resize(in->inputSize_, mapped.r);
-			in->clientBuffer_.unmapRange(BUFFER_GPU_READ, 0, in->inputSize_, mapped.r_index);
+			auto mapped = in->clientBuffer_->mapRange(BUFFER_GPU_READ, 0, in->inputSize_);
+			cp->clientBuffer_->resize(in->inputSize_, mapped.r);
+			in->clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, in->inputSize_, mapped.r_index);
 		} else {
-			cp->clientBuffer_.resize(in->inputSize_);
+			cp->clientBuffer_->resize(in->inputSize_);
 		}
 	}
 	return cp;

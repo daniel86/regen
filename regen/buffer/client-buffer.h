@@ -98,7 +98,7 @@ namespace regen {
 		 * in contiguous memory.
 		 * @param segments the list of segments to assign.
 		 */
-		void setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments);
+		void setSegments(const std::vector<ClientBuffer*> &segments);
 
 		/**
 		 * Adds a segment to this client buffer.
@@ -106,7 +106,7 @@ namespace regen {
 		 * in contiguous memory.
 		 * @param segment the segment to add.
 		 */
-		void addSegment(const ref_ptr<ClientBuffer> &segment);
+		void addSegment(ClientBuffer *segment);
 
 		/**
 		 * Removes a segment from this client buffer.
@@ -114,7 +114,19 @@ namespace regen {
 		 * in contiguous memory.
 		 * @param segment the segment to remove.
 		 */
-		void removeSegment(const ref_ptr<ClientBuffer> &segment);
+		void removeSegment(ClientBuffer *segment);
+
+		/**
+		 * Checks if this client buffer has segments.
+		 * @return true if the client buffer has segments, false otherwise.
+		 */
+		inline bool hasSegments() const { return !bufferSegments_.empty(); }
+
+		/**
+		 * Checks if this client buffer has a parent buffer.
+		 * @return true if the client buffer has a parent buffer, false otherwise.
+		 */
+		inline bool hasParentBuffer() const { return parentBuffer_ != nullptr; }
 
 		/**
 		 * Maps the client data for reading or writing.
@@ -205,17 +217,17 @@ namespace regen {
 		bool hasServerData_ = false;
 
 		ClientBuffer* parentBuffer_ = nullptr;
-		std::vector<ref_ptr<ClientBuffer>> bufferSegments_;
+		std::vector<ClientBuffer*> bufferSegments_;
 
-		int readLock();
+		int readLock() const;
 
-		bool readLock_SingleBuffer();
+		bool readLock_SingleBuffer() const;
 
-		void readUnlock(int slotIndex);
+		void readUnlock(int slotIndex) const;
 
-		int writeLock_DoubleBuffer();
+		int writeLock_DoubleBuffer() const;
 
-		bool writeLock_SingleBuffer();
+		bool writeLock_SingleBuffer() const;
 
 		void writeUnlock(int32_t slotIndex, uint32_t writeOffset, uint32_t writeSize) const;
 

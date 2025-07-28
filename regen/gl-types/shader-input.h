@@ -117,12 +117,12 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		inline uint32_t stamp() const { return clientBuffer_.stamp(); }
+		inline uint32_t stamp() const { return clientBuffer_->stamp(); }
 
 		/**
 		 * Increment the stamp.
 		 */
-		void nextStamp() { clientBuffer_.nextStamp(); }
+		void nextStamp() { clientBuffer_->nextStamp(); }
 
 		/**
 		 * Set the memory layout of the input.
@@ -385,7 +385,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		inline ClientDataRaw_rw mapClientDataRaw(int32_t mapMode) {
-			return {&clientBuffer_, mapMode, 0, inputSize_};
+			return {clientBuffer_.get(), mapMode, 0, inputSize_};
 		}
 
 		/**
@@ -393,7 +393,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		inline ClientDataRaw_rw mapClientDataRaw(int32_t mapMode, uint32_t offset, uint32_t size) {
-			return {&clientBuffer_, mapMode, offset, size};
+			return {clientBuffer_.get(), mapMode, offset, size};
 		}
 
 		/**
@@ -401,7 +401,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		inline ClientDataRaw_ro mapClientDataRaw(int32_t mapMode) const {
-			return {&clientBuffer_, mapMode, 0, inputSize_};
+			return {clientBuffer_.get(), mapMode, 0, inputSize_};
 		}
 
 		/**
@@ -409,7 +409,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		inline ClientDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
-			return { &clientBuffer_, mapMode, mapOffset, mapSize };
+			return { clientBuffer_.get(), mapMode, mapOffset, mapSize };
 		}
 
 		/**
@@ -420,7 +420,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_rw<T> mapClientData(int32_t mapMode) {
-			return { &clientBuffer_, mapClientStride_, mapMode, 0, inputSize_ };
+			return { clientBuffer_.get(), mapClientStride_, mapMode, 0, inputSize_ };
 		}
 
 		/**
@@ -431,7 +431,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_rw<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) {
-			return { &clientBuffer_, mapClientStride_, mapMode, mapOffset, mapSize };
+			return { clientBuffer_.get(), mapClientStride_, mapMode, mapOffset, mapSize };
 		}
 
 		/**
@@ -442,7 +442,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_ro<T> mapClientData(int32_t mapMode) const {
-			return { &clientBuffer_, mapClientStride_, mapMode, 0, inputSize_ };
+			return { clientBuffer_.get(), mapClientStride_, mapMode, 0, inputSize_ };
 		}
 
 		/**
@@ -453,7 +453,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_ro<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
-			return { &clientBuffer_, mapClientStride_, mapMode, mapOffset, mapSize };
+			return { clientBuffer_.get(), mapClientStride_, mapMode, mapOffset, mapSize };
 		}
 
 		/**
@@ -465,7 +465,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
-			return { &clientBuffer_, mapClientStride_, mapMode, vertexIndex };
+			return { clientBuffer_.get(), mapClientStride_, mapMode, vertexIndex };
 		}
 
 		/**
@@ -477,7 +477,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
-			return { &clientBuffer_, mapClientStride_, mapMode, vertexIndex };
+			return { clientBuffer_.get(), mapClientStride_, mapMode, vertexIndex };
 		}
 
 		/**
@@ -524,16 +524,16 @@ namespace regen {
 		/**
 		 * Returns true if this attribute is allocated in RAM.
 		 */
-		bool hasClientData() const { return clientBuffer_.hasClientData(); }
+		bool hasClientData() const { return clientBuffer_->hasClientData(); }
 
 		/**
 		 * Obtains the client data without locking.
 		 * Be sure that no other thread is writing to the data at the same time.
 		 * @return the client data.
 		 */
-		byte *clientData() const { return clientBuffer_.clientData(); }
+		byte *clientData() const { return clientBuffer_->clientData(); }
 
-		ClientBuffer &clientBuffer() { return clientBuffer_; }
+		ClientBuffer &clientBuffer() { return *clientBuffer_.get(); }
 
 		/**
 		 * Returns true if this attribute was uploaded to GL already.
@@ -622,7 +622,7 @@ namespace regen {
 		mutable uint32_t bufferStamp_;
 		ref_ptr<BufferReference> bufferIterator_;
 
-		ClientBuffer clientBuffer_;
+		ref_ptr<ClientBuffer> clientBuffer_;
 		// stride in bytes for typed client data in the client buffer.
 		// 0 is interpreted as tightly packed.
 		uint32_t mapClientStride_ = 0;
