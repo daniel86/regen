@@ -279,8 +279,7 @@ namespace regen {
 		// the block inputs are used to store the shader inputs and their offsets in the buffer
 		struct BlockInput {
 			BlockInput() {
-				// initially assume single-buffered, so we need only one last stamp.
-				lastStamp.resize(1, 0);
+				lastStamp.resize(2, 0);
 			}
 
 			BlockInput(const BlockInput &other) {
