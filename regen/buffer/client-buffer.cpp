@@ -61,7 +61,7 @@ void ClientBuffer::setSegments(const std::vector<ClientBuffer*> &segments) {
 	// do the re-allocation of data slots.
 	dataOwner_->ownerResize();
 	nextStamp();
-	writeUnlockAll(0u, dataSize_);
+	writeUnlockAll(0u, 0);
 }
 
 void ClientBuffer::addSegment(ClientBuffer *segment) {
@@ -106,40 +106,44 @@ void ClientBuffer::swapData() {
 	if (!isFrameLocked_ || dataSize_==0u) return;
 
 	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
-	int32_t lastWriteSlot = (dataSlots_[1] ? 1 - lastReadSlot : lastReadSlot);
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
-	auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
 
-	// Merge overlapping segments, and sort along offsets.
-	dirtyThisFrame.coalesce();
-	// Delete all dirty ranges from the last read slot that have been written to this frame.
-	// It is certain that both dirty lists are coalesced, so calling subtract is safe.
-	dirtyLastFrame.subtract(dirtyThisFrame);
+	if (dataSlots_[1]) {
+		int32_t lastWriteSlot = 1 - lastReadSlot;
+		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
 
-	// Remaining are the ranges where data in the write slot is not up-to-date with the read slot,
-	// hence we copy it over.
-	for (uint32_t rangeIdx=0; rangeIdx < dirtyLastFrame.count(); ++rangeIdx) {
-		const auto &range = dirtyLastFrame.ranges()[rangeIdx];
-		// Copy the data from the read slot to the write slot.
-		std::memcpy(
-			dataSlots_[lastWriteSlot] + range.offset,
-			dataSlots_[lastReadSlot] + range.offset,
-			range.size);
-	}
+		// Merge overlapping segments, and sort along offsets.
+		dirtyThisFrame.coalesce();
+		// Delete all dirty ranges from the last read slot that have been written to this frame.
+		// It is certain that both dirty lists are coalesced, so calling subtract is safe.
+		dirtyLastFrame.subtract(dirtyThisFrame);
 
-	// For each write segment with stamp < read segment stamp: set the stamp to read segment stamp,
-	// as we have synced the data above.
-	for (auto &segment : bufferSegments_) {
-		if (segment->dataStamps_[lastWriteSlot] < dataStamps_[lastReadSlot]) {
-			segment->dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
+		// Remaining are the ranges where data in the write slot is not up-to-date with the read slot,
+		// hence we copy it over.
+		for (uint32_t rangeIdx=0; rangeIdx < dirtyLastFrame.count(); ++rangeIdx) {
+			const auto &range = dirtyLastFrame.ranges()[rangeIdx];
+			// Copy the data from the read slot to the write slot.
+			std::memcpy(
+				dataSlots_[lastWriteSlot] + range.offset,
+				dataSlots_[lastReadSlot] + range.offset,
+				range.size);
 		}
+
+		// For each write segment with stamp < read segment stamp: set the stamp to read segment stamp,
+		// as we have synced the data above.
+		for (auto &segment : bufferSegments_) {
+			if (segment->dataStamps_[lastWriteSlot] < dataStamps_[lastReadSlot]) {
+				segment->dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
+			}
+		}
+
+		// Finally swap read and write idx, new read idx should have new data for reading next frame.
+		lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
 	}
 
 	// clear dirty lists for the last read slot, such that it can be reused
 	// next frame for writing.
 	dirtyLists_[lastReadSlot].clear();
-	// Finally swap read and write idx, new read idx should have new data for reading next frame.
-	lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
 }
 
 void ClientBuffer::nextStamp() const {
@@ -198,7 +202,7 @@ MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t s
 					dataOwner_->createSecondSlot();
 					return { dataSlots_[0]+offset, 0, dataSlots_[1]+offset, 1 };
 				}
-				writeUnlock(1, 0, dataSize_);
+				writeUnlock(1, 0, 0);
 			}
 			readUnlock(r_index);
 			return mapRange_DoubleBuffer(offset, size);
@@ -369,6 +373,7 @@ void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataP
 		writeLockAll();
 		localOldDataPtr = dataSlots_[0];
 		oldDataPtr = localOldDataPtr;
+		markWrittenTo(0, 0, dataSize_);
 	}
 
 	if (dataSize_ == allocatedSize_) {
@@ -377,6 +382,7 @@ void ClientBuffer::resize_SingleBuffer(ClientBuffer *owner, const byte *oldDataP
 			std::memcpy(newDataPtr, oldDataPtr, dataSize_);
 		}
 		setDataPointer(owner, newDataPtr, 0);
+		markWrittenTo(0, 0, dataSize_);
 	} else {
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr;
@@ -428,10 +434,14 @@ void ClientBuffer::resize_DoubleBuffer(
 		}
 		setDataPointer(owner,newDataPtr0, 0);
 		setDataPointer(owner,newDataPtr1, 1);
+		markWrittenTo(0, 0, dataSize_);
+		markWrittenTo(1, 0, dataSize_);
 	} else {
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr0;
 			dataSlots_[1] = newDataPtr1;
+			markWrittenTo(0, 0, dataSize_);
+			markWrittenTo(1, 0, dataSize_);
 		} else {
 			for (auto &segment : bufferSegments_) {
 				segment->resize_DoubleBuffer(
@@ -600,23 +610,13 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 		// consecutive reads will be done from this slot, next write will be done to the other slot.
 		// If the write operation did not change the data, the stamp is not incremented,
 		// and the last slot is not updated.
-		if (dataSlots_[1]) {
-			dataStamps_[dataSlot] = dataStamps_[1-dataSlot] + 1;
-			// Increase the stamp for all parent buffer ranges as well.
-			auto *parent = parentBuffer_;
-			while (parent) {
-				parent->dataStamps_[dataSlot] = parent->dataStamps_[1-dataSlot] + 1;
-				parent = parent->parentBuffer_;
-			}
-		} else {
-			// single-buffered mode, we just increment the stamp for the single slot.
-			dataStamps_[dataSlot] += 1;
-			// Increase the stamp for all parent buffer ranges as well.
-			auto *parent = parentBuffer_;
-			while (parent) {
-				parent->dataStamps_[dataSlot] += 1;
-				parent = parent->parentBuffer_;
-			}
+		auto readSlot = (dataSlots_[1] ? (1-dataSlot) : 0);
+		dataStamps_[dataSlot] = dataStamps_[readSlot] + 1;
+		// Increase the stamp for all parent buffer ranges as well.
+		auto *parent = parentBuffer_;
+		while (parent) {
+			parent->dataStamps_[dataSlot] = parent->dataStamps_[readSlot] + 1;
+			parent = parent->parentBuffer_;
 		}
 
 		if (isFrameLocked_) {
@@ -672,4 +672,6 @@ void ClientBuffer::createSecondSlot() {
 	for (auto &segment : bufferSegments_) {
 		segment->setDataPointer(this, data_w + segment->dataOffset_, 1);
 	}
+
+	markWrittenTo(1, 0, dataSize_);
 }

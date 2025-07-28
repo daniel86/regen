@@ -372,8 +372,16 @@ uint32_t BufferBlock::updateBlockInputs() {
 	hasClientData_ = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
 
+	for (auto &blockInput : blockInputs_) {
+		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
+		hasClientData_ = hasClientData_ && blockInput->input->hasClientData();
+		if (blockInput->input->stamp() != lastInputStamp(*blockInput.get())) {
+			updatedSize_ += blockInput->input->inputSize();
+		}
+	}
+
 	//  Initialize the client buffer here lazily.
-	if (!blockInputs_.empty() && !clientBuffer_->hasSegments()) {
+	if (hasClientData_ && !blockInputs_.empty() && !clientBuffer_->hasSegments()) {
 		std::vector<ClientBuffer*> segments(blockInputs_.size());
 		REGEN_INFO("Initializing client buffer for block " << name()
 			<< " with " << blockInputs_.size() << " segments"
@@ -383,14 +391,6 @@ uint32_t BufferBlock::updateBlockInputs() {
 			segments[i] = &blockInput->input->clientBuffer();
 		}
 		clientBuffer_->setSegments(segments);
-	}
-
-	for (auto &blockInput : blockInputs_) {
-		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
-		hasClientData_ = hasClientData_ && blockInput->input->hasClientData();
-		if (blockInput->input->stamp() != lastInputStamp(*blockInput.get())) {
-			updatedSize_ += blockInput->input->inputSize();
-		}
 	}
 
 	if (hasNewSize) {
