@@ -1,10 +1,3 @@
-/*
- * cube-camera.cpp
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
 #include "cube-camera.h"
 
 using namespace regen;
@@ -22,22 +15,30 @@ CubeCamera::CubeCamera(int hiddenFacesMask)
 	// NOTE: the matrices are indexed by layer, so even if some faces are hidden,
 	// the matrices are still allocated for all faces. Could change the shaders to
 	// compute index based on layer and face visibility, instead of using gl_Layer directly.
-	view_->set_numArrayElements(numLayer_);
-	viewInv_->set_numArrayElements(numLayer_);
-	viewProj_->set_numArrayElements(numLayer_);
-	viewProjInv_->set_numArrayElements(numLayer_);
+	view_.resize(numLayer_);
+	viewInv_.resize(numLayer_);
+	viewProj_.resize(numLayer_);
+	viewProjInv_.resize(numLayer_);
+
+	sh_view_->set_numArrayElements(numLayer_);
+	sh_viewInv_->set_numArrayElements(numLayer_);
+	sh_viewProj_->set_numArrayElements(numLayer_);
+	sh_viewProjInv_->set_numArrayElements(numLayer_);
 
 	// Allocate matrices
-	view_->setUniformUntyped();
-	viewInv_->setUniformUntyped();
-	viewProj_->setUniformUntyped();
-	viewProjInv_->setUniformUntyped();
+	sh_view_->setUniformUntyped();
+	sh_viewInv_->setUniformUntyped();
+	sh_viewProj_->setUniformUntyped();
+	sh_viewProjInv_->setUniformUntyped();
 
 	// Initialize directions
-	direction_->set_numArrayElements(numLayer_);
-	direction_->setUniformUntyped();
+	direction_.resize(numLayer_);
+	sh_direction_->set_numArrayElements(numLayer_);
+	sh_direction_->setUniformUntyped();
 	for (auto i = 0; i < 6; ++i) {
-		direction_->setVertex3(i, Mat4f::cubeDirections()[i]);
+		// Set the cube face directions
+		direction_[i] = Vec4f(Mat4f::cubeDirections()[i], 0.0f);
+		sh_direction_->setVertex(i, direction_[i]);
 		if (!isCubeFaceVisible(i)) {
 			shaderDefine(REGEN_STRING("SKIP_LAYER" << i), "1");
 		}
@@ -60,19 +61,16 @@ bool CubeCamera::isCubeFaceVisible(int face) const {
 }
 
 bool CubeCamera::updateView() {
-	auto posStamp = position_->stamp();
+	auto posStamp = positionStamp();
 	if (posStamp == posStamp_) { return false; }
 	posStamp_ = posStamp;
 
 	const Vec3f *dir = Mat4f::cubeDirections();
 	const Vec3f *up = Mat4f::cubeUpVectors();
-	auto pos = position_->getVertex(0);
-	auto views = view_->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
-	auto viewInv = viewInv_->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
 	for (int i = 0; i < 6; ++i) {
 		if (isCubeFaceVisible(i)) {
-			views.w[i] = Mat4f::lookAtMatrix(pos.r.xyz_(), dir[i], up[i]);
-			viewInv.w[i] = views.w[i].lookAtInverse();
+			setView(i, Mat4f::lookAtMatrix(position(0), dir[i], up[i]));
+			setViewInverse(i, view(i).lookAtInverse());
 		}
 	}
 	return true;

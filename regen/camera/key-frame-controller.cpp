@@ -11,8 +11,8 @@ KeyFrameController::KeyFrameController(const ref_ptr<Camera> &cam)
 		  currentPauseDuration_(0.0),
 		  isPaused_(GL_FALSE) {
 	setAnimationName("controller");
-	camPos_ = cam->position()->getVertex(0).r.xyz_();
-	camDir_ = cam->direction()->getVertex(0).r.xyz_();
+	camPos_ = cam->position()[0].xyz_();
+	camDir_ = cam->direction()[0].xyz_();
 	it_ = frames_.end();
 	lastFrame_.anchor = ref_ptr<FixedCameraAnchor>::alloc(camPos_, camDir_);
 	lastFrame_.dt = 0.0;

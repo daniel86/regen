@@ -128,8 +128,8 @@ void SpatialIndex::updateVisibilityWithCamera(IndexCamera &ic, const BoundingSha
 			indexShape->instanceDistances_.clear();
 		}
 
-		auto camPos = ic.camera->position()->getVertex(0);
-		traversalData.camPos = &camPos.r;
+		auto &camPos = ic.camera->position()[0];
+		traversalData.camPos = &camPos;
 
 		foreachIntersection(camera_shape, SpatialIndex::handleIntersection_sorted, &traversalData);
 		for (auto &indexShape: ic.indexShapes_) {
@@ -171,10 +171,8 @@ void SpatialIndex::updateVisibility() {
 
 		if (ic.second.camera->isOmni()) {
 			// omni camera -> intersection test with bounding sphere
-			auto projParams = ic.first->projParams()->getVertex(0);
-			BoundingSphere sphereShape(Vec3f::zero(), projParams.r.y);
-			// FIXME: what happens here? definitely we should not create a new tf here!
-			sphereShape.setTransform(ref_ptr<ModelTransformation>::alloc(ic.first->position()));
+			auto &projParams = ic.first->projParams()[0];
+			BoundingSphere sphereShape(ic.first->position()[0].xyz_(), projParams.far);
 			sphereShape.updateTransform(true);
 			updateVisibilityWithCamera(ic.second, sphereShape, false);
 		}

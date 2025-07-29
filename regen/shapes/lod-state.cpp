@@ -143,9 +143,8 @@ void LODState::initLODState() {
 void LODState::updateMeshLOD() {
 	if (!mesh_.get()) { return; }
 	// set LOD level based on distance
-	auto camPos = camera_->position()->getVertex(0);
-	auto distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos.r.xyz_()).lengthSquared();
-	camPos.unmap();
+	auto &camPos = camera_->position(0);
+	auto distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
 	updateVisibility(
 			mesh_->getLODLevel(distanceSquared),
 			1, 0);
@@ -436,7 +435,7 @@ void LODState::computeLODGroups() {
 
 	const uint32_t *mappedData = visible_ids.r.data() + 1;
 	auto &tf = cullShape_->tf();
-	auto camPos = camera_->position()->getVertex(0);
+	auto &camPos = camera_->position(0);
 	bool hasTF = tf.get() && (tf->hasModelOffset() || tf->hasModelMat());
 
 	if (hasTF) {
@@ -455,7 +454,7 @@ void LODState::computeLODGroups() {
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
-							   camPos.r.xyz_(),
+							   camPos,
 							   selector);
 		} else if (tf->hasModelOffset()) {
 			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
@@ -466,7 +465,7 @@ void LODState::computeLODGroups() {
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
-							   camPos.r.xyz_(),
+							   camPos,
 							   selector);
 		} else {
 			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
@@ -477,7 +476,7 @@ void LODState::computeLODGroups() {
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
-							   camPos.r.xyz_(),
+							   camPos,
 							   selector);
 		}
 	} else {

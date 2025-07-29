@@ -68,7 +68,6 @@ in vec4 in_posWorld;
 in vec4 in_posEye;
 in vec3 in_ray;
 
-uniform vec3 in_sunPosition;
 uniform float in_sqrt_q;
 uniform vec4 in_cmn;
 uniform vec2 in_inverseViewport;

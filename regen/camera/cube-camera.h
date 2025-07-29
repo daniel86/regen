@@ -1,12 +1,5 @@
-/*
- * cube-camera.h
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
-#ifndef CUBE_CAMERA_H_
-#define CUBE_CAMERA_H_
+#ifndef REGEN_CUBE_CAMERA_H_
+#define REGEN_CUBE_CAMERA_H_
 
 #include <regen/camera/camera.h>
 #include "regen/states/blend-state.h"
@@ -54,4 +47,4 @@ namespace regen {
 	std::istream &operator>>(std::istream &in, CubeCamera::Face &v);
 } // namespace
 
-#endif /* CUBE_CAMERA_H_ */
+#endif /* REGEN_CUBE_CAMERA_H_ */

@@ -38,47 +38,60 @@ LightCamera_CSM::LightCamera_CSM(
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
 	shaderDefine("RENDER_TARGET_MODE", "CASCADE");
 
+	// Set vector sizes
+	view_.resize(numLayer, Mat4f::identity());
+	viewInv_.resize(numLayer, Mat4f::identity());
+	proj_.resize(numLayer, Mat4f::identity());
+	projInv_.resize(numLayer, Mat4f::identity());
+	viewProj_.resize(numLayer, Mat4f::identity());
+	viewProjInv_.resize(numLayer, Mat4f::identity());
+	projParams_.resize(numLayer);
+	position_.resize(numLayer, Vec4f::zero());
+
 	// Set matrix array size
 #ifndef CSM_USE_SINGLE_VIEW
-	view_->set_numArrayElements(numLayer_);
-	view_->set_forceArray(true);
-	view_->setUniformUntyped();
-	viewInv_->set_numArrayElements(numLayer_);
-	viewInv_->set_forceArray(true);
-	viewInv_->setUniformUntyped();
+	sh_view_->set_numArrayElements(numLayer_);
+	sh_view_->set_forceArray(true);
+	sh_view_->setUniformUntyped();
+	sh_viewInv_->set_numArrayElements(numLayer_);
+	sh_viewInv_->set_forceArray(true);
+	sh_viewInv_->setUniformUntyped();
 #endif
-	proj_->set_numArrayElements(numLayer_);
-	proj_->set_forceArray(true);
-	proj_->setUniformUntyped();
-	projInv_->set_numArrayElements(numLayer_);
-	projInv_->set_forceArray(true);
-	projInv_->setUniformUntyped();
+	sh_proj_->set_numArrayElements(numLayer_);
+	sh_proj_->set_forceArray(true);
+	sh_proj_->setUniformUntyped();
+	sh_projInv_->set_numArrayElements(numLayer_);
+	sh_projInv_->set_forceArray(true);
+	sh_projInv_->setUniformUntyped();
 
-	viewProj_->set_numArrayElements(numLayer_);
-	viewProj_->set_forceArray(true);
-	viewProj_->setUniformUntyped();
-	viewProjInv_->set_numArrayElements(numLayer_);
-	viewProjInv_->set_forceArray(true);
-	viewProjInv_->setUniformUntyped();
+	sh_viewProj_->set_numArrayElements(numLayer_);
+	sh_viewProj_->set_forceArray(true);
+	sh_viewProj_->setUniformUntyped();
+	sh_viewProjInv_->set_numArrayElements(numLayer_);
+	sh_viewProjInv_->set_forceArray(true);
+	sh_viewProjInv_->setUniformUntyped();
 
-	projParams_->set_numArrayElements(numLayer_);
-	projParams_->set_forceArray(true);
-	projParams_->setUniformUntyped();
+	sh_projParams_->set_numArrayElements(numLayer_);
+	sh_projParams_->set_forceArray(true);
+	sh_projParams_->setUniformUntyped();
 
-	position_->set_numArrayElements(numLayer_);
-	position_->set_forceArray(true);
-	position_->setUniformUntyped();
-	position_->setVertex(0, Vec4f(0.0f));
+	sh_position_->set_numArrayElements(numLayer_);
+	sh_position_->set_forceArray(true);
+	sh_position_->setUniformUntyped();
+	sh_position_->setVertex(0, Vec4f::zero());
 
 	lightMatrix_->set_numArrayElements(numLayer_);
 	lightMatrix_->set_forceArray(true);
 	lightMatrix_->setUniformUntyped();
 	setInput(lightMatrix_);
 	// these are needed to compute the CSM layer given a position
-	setInput(projParams_, "lightProjParams");
-	setInput(userCamera_->position(), "userPosition");
-	setInput(userCamera_->direction(), "userDirection");
-	setInput(userCamera_->projection(), "userProjection");
+	setInput(sh_projParams_, "lightProjParams");
+	setInput(ref_ptr<UBO>::alloc(
+		*userCamera_->cameraBlock().get(),
+		"UserCamera", "user_"));
+	//setInput(userCamera_->position(), "userPosition");
+	//setInput(userCamera_->direction(), "userDirection");
+	//setInput(userCamera_->projection(), "userProjection");
 
 	updateDirectionalLight();
 }
@@ -99,7 +112,7 @@ bool LightCamera_CSM::updateDirectionalLight() {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
 		for (unsigned int i = 0; i < lightMatrix_->numArrayElements(); ++i) {
-			lightMatrix_->setVertex(i, viewProj_->getVertex(i).r * Mat4f::bias());
+			lightMatrix_->setVertex(i, viewProjection(i) * Mat4f::bias());
 		}
 		camStamp_ += 1;
 	}
@@ -110,40 +123,38 @@ bool LightCamera_CSM::updateDirectionalLight() {
 bool LightCamera_CSM::updateFrustumSplit() {
 	bool hasChanged = false;
 	// Update near/far values when user camera projection changed
-	auto userProjStamp = userCamera_->projection()->stamp();
+	auto userProjStamp = userCamera_->projectionStamp();
 	if (userProjectionStamp_ != userProjStamp) {
 		userProjectionStamp_ = userProjStamp;
-		auto proj = userCamera_->projection()->getVertex(0);
+		auto &proj = userCamera_->projection(0);
 		// update frustum splits
 		userCamera_->frustum()[0].split(splitWeight_, userCameraFrustum_);
 		// update near/far values
-		auto nearFarAspectFov = projParams_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
-		auto *projParams = (ProjectionParams*)nearFarAspectFov.w.data();
 		for (unsigned int i = 0; i < numLayer_; ++i) {
 			auto &u_frustum = userCameraFrustum_[i];
 			// frustum_->far() is originally in eye space - tell's us how far we can see.
 			// Here we compute it in camera homogeneous coordinates. Basically, we calculate
 			// proj * (0, 0, far, 1)^t and then normalize to [0; 1]
 			// Note: this is used in shaders for computing z coordinate for shadow map lookup
-			projParams[i].near = 0.5 * (-u_frustum.near * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.near + 0.5;
-			projParams[i].far  = 0.5 * (-u_frustum.far * proj.r(2, 2) + proj.r(3, 2)) / u_frustum.far + 0.5;
-			projParams[i].aspect = proj.r(0, 0) / proj.r(1, 1);
-			projParams[i].fov = 0.0f;
+			projParams_[i].near = 0.5 * (-u_frustum.near * proj(2, 2) + proj(3, 2)) / u_frustum.near + 0.5;
+			projParams_[i].far  = 0.5 * (-u_frustum.far * proj(2, 2) + proj(3, 2)) / u_frustum.far + 0.5;
+			projParams_[i].aspect = proj(0, 0) / proj(1, 1);
+			projParams_[i].fov = 0.0f;
 		}
 		hasChanged = true;
 	}
 
 	// re-compute user frustum points if needed
-	auto userPosStamp = userCamera_->position()->stamp();
-	auto userDirStamp = userCamera_->direction()->stamp();
+	auto userPosStamp = userCamera_->positionStamp();
+	auto userDirStamp = userCamera_->directionStamp();
 	if (hasChanged || userPosStamp != userPositionStamp_ || userDirStamp != userDirectionStamp_) {
 		userPositionStamp_ = userPosStamp;
 		userDirectionStamp_ = userDirStamp;
-		auto userPos = userCamera_->position()->getVertex(0);
-		auto userDir = userCamera_->direction()->getVertex(0);
+		auto &userPos = userCamera_->position(0);
+		auto &userDir = userCamera_->direction(0);
 		for (unsigned int i = 0; i < numLayer_; ++i) {
-			userCameraFrustum_[i].update(userPos.r.xyz_(), userDir.r.xyz_());
-			userFrustumCentroids_[i] = userPos.r.xyz_() + userDir.r.xyz_() *
+			userCameraFrustum_[i].update(userPos, userDir);
+			userFrustumCentroids_[i] = userPos + userDir *
 					((userCameraFrustum_[i].far - userCameraFrustum_[i].near) * 0.5f + userCameraFrustum_[i].near);
 		}
 		hasChanged = true;
@@ -159,7 +170,7 @@ bool LightCamera_CSM::updateLightView() {
 
 	auto f = -light_->direction()->getVertex(0).r;
 	f.normalize();
-	direction_->setVertex3(0, f);
+	setDirection(0, f);
 #ifdef CSM_USE_SINGLE_VIEW
 	// NOTE: The nvidia example uses a single view matrix for all layers with position at (0,0,0).
 	// but for some reason I have some issues with this approach.
@@ -169,15 +180,15 @@ bool LightCamera_CSM::updateLightView() {
 	// Equivalent to getLookAtMatrix(pos=(0,0,0), dir=f, up=(-1,0,0))
 	Vec3f s(0.0f, -f.z, f.y);
 	s.normalize();
-	view_->setVertex(0, Mat4f(
+	setView(0, Mat4f(
 			0.0f, s.y * f.z - s.z * f.y, -f.x, 0.0f,
 			s.y, s.z * f.x, -f.y, 0.0f,
 			s.z, -s.y * f.x, -f.z, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f
 	));
-	viewInv_->setVertex(0, view_->getVertex(0).lookAtInverse());
+	setViewInverse(0, view_[0].lookAtInverse());
 	for (int i = 0; i < numLayer_; ++i) {
-		position_->setVertex3(i, Vec3f::zero());
+		setPosition(i, Vec3f::zero());
 	}
 #else
 	for (unsigned int i = 0; i < numLayer_; ++i) {
@@ -191,13 +202,12 @@ bool LightCamera_CSM::updateLightView() {
 		centroid_z -= zRange.x;
 		// move near plane to 1.0
 		centroid_z += 1.0f;
-		position_->setVertex(i, userFrustumCentroids_[i] - f*centroid_z);
+		setPosition(i, userFrustumCentroids_[i] - f*centroid_z);
 #else
-		position_->setVertex3(i, userFrustumCentroids_[i] - f*userCameraFrustum_[i].far);
+		setPosition(i, userFrustumCentroids_[i] - f*userCameraFrustum_[i].far);
 #endif
-		view_->setVertex(i, Mat4f::lookAtMatrix(
-			position_->getVertex(i).r.xyz_(), f, Vec3f::up()));
-		viewInv_->setVertex(i, view_->getVertex(i).r.lookAtInverse());
+		setView(i, Mat4f::lookAtMatrix(position(i), f, Vec3f::up()));
+		setViewInverse(i, view(i).lookAtInverse());
 	}
 #endif
 	return true;
@@ -205,9 +215,9 @@ bool LightCamera_CSM::updateLightView() {
 
 bool LightCamera_CSM::updateLightProjection() {
 	// finally re-compute projection matrices, and frustum of light camera
-	auto viewStamp = view_->stamp();
-	if (viewStamp == viewStamp_) { return false; }
-	viewStamp_ = viewStamp;
+	auto stamp = viewStamp();
+	if (stamp == viewStamp_) { return false; }
+	viewStamp_ = stamp;
 
 	for (unsigned int layerIndex = 0; layerIndex < numLayer_; ++layerIndex) {
 		auto &u_frustum = userCameraFrustum_[layerIndex];
@@ -216,10 +226,9 @@ bool LightCamera_CSM::updateLightProjection() {
 			std::numeric_limits<float>::lowest());
 		for (int frustumIndex = 0; frustumIndex < 8; ++frustumIndex) {
 #ifdef CSM_USE_SINGLE_VIEW
-			auto point_ls = view_->getVertex(0) ^
-					Vec4f(u_frustum.points[frustumIndex], 1.0f);
+			auto point_ls = view_[0] ^ Vec4f(u_frustum.points[frustumIndex], 1.0f);
 #else
-			auto point_ls = view_->getVertex(layerIndex).r ^
+			auto point_ls = view(layerIndex) ^
 					Vec4f(u_frustum.points[frustumIndex], 1.0f);
 #endif
 			bounds_ls.min.setMin(point_ls.xyz_());
@@ -229,19 +238,18 @@ bool LightCamera_CSM::updateLightProjection() {
 		bounds_ls.max.z = -bounds_ls.min.z;
 		bounds_ls.min.z = -buf.z;
 
-		proj_->setVertex(layerIndex, Mat4f::orthogonalMatrix(
+		setProjection(layerIndex, Mat4f::orthogonalMatrix(
 				bounds_ls.min.x, bounds_ls.max.x,
 				bounds_ls.min.y, bounds_ls.max.y,
 				bounds_ls.min.z, bounds_ls.max.z));
-		projInv_->setVertex(layerIndex,
-				proj_->getVertex(layerIndex).r.orthogonalInverse());
+		setProjectionInverse(layerIndex,
+				projection(layerIndex).orthogonalInverse());
 		frustum_[layerIndex].setOrtho(
 				bounds_ls.min.x, bounds_ls.max.x,
 				bounds_ls.min.y, bounds_ls.max.y,
 				bounds_ls.min.z, bounds_ls.max.z);
 		frustum_[layerIndex].update(
-			position_->getVertex(layerIndex).r.xyz_(),
-			direction_->getVertex(0).r.xyz_());
+			position(layerIndex), direction(0));
 	}
 
 	return true;

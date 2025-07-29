@@ -6,37 +6,44 @@ ArrayCamera::ArrayCamera(unsigned int numLayer, const BufferUpdateFlags &updateF
 		: Camera(numLayer, updateFlags) {
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
 
-	// Set matrix array size
-	view_->set_numArrayElements(numLayer_);
-	view_->set_forceArray(true);
-	view_->setUniformUntyped();
+	view_.resize(numLayer, Mat4f::identity());
+	sh_view_->set_numArrayElements(numLayer_);
+	sh_view_->set_forceArray(true);
+	sh_view_->setUniformUntyped();
 
-	viewInv_->set_numArrayElements(numLayer_);
-	viewInv_->set_forceArray(true);
-	viewInv_->setUniformUntyped();
+	viewInv_.resize(numLayer, Mat4f::identity());
+	sh_viewInv_->set_numArrayElements(numLayer_);
+	sh_viewInv_->set_forceArray(true);
+	sh_viewInv_->setUniformUntyped();
 
-	proj_->set_numArrayElements(numLayer_);
-	proj_->set_forceArray(true);
-	proj_->setUniformUntyped();
+	proj_.resize(numLayer, Mat4f::identity());
+	sh_proj_->set_numArrayElements(numLayer_);
+	sh_proj_->set_forceArray(true);
+	sh_proj_->setUniformUntyped();
 
-	projInv_->set_numArrayElements(numLayer_);
-	projInv_->set_forceArray(true);
-	projInv_->setUniformUntyped();
+	projInv_.resize(numLayer, Mat4f::identity());
+	sh_projInv_->set_numArrayElements(numLayer_);
+	sh_projInv_->set_forceArray(true);
+	sh_projInv_->setUniformUntyped();
 
-	viewProj_->set_numArrayElements(numLayer_);
-	viewProj_->set_forceArray(true);
-	viewProj_->setUniformUntyped();
+	viewProj_.resize(numLayer, Mat4f::identity());
+	sh_viewProj_->set_numArrayElements(numLayer_);
+	sh_viewProj_->set_forceArray(true);
+	sh_viewProj_->setUniformUntyped();
 
-	viewProjInv_->set_numArrayElements(numLayer_);
-	viewProjInv_->set_forceArray(true);
-	viewProjInv_->setUniformUntyped();
+	viewProjInv_.resize(numLayer, Mat4f::identity());
+	sh_viewProjInv_->set_numArrayElements(numLayer_);
+	sh_viewProjInv_->set_forceArray(true);
+	sh_viewProjInv_->setUniformUntyped();
 
-	projParams_->set_numArrayElements(numLayer_);
-	projParams_->set_forceArray(true);
-	projParams_->setUniformUntyped();
+	projParams_.resize(numLayer);
+	sh_projParams_->set_numArrayElements(numLayer_);
+	sh_projParams_->set_forceArray(true);
+	sh_projParams_->setUniformUntyped();
 
-	position_->set_numArrayElements(numLayer_);
-	position_->set_forceArray(true);
-	position_->setUniformUntyped();
-	position_->setVertex(0, Vec4f(0.0f));
+	position_.resize(numLayer, Vec4f::zero());
+	sh_position_->set_numArrayElements(numLayer_);
+	sh_position_->set_forceArray(true);
+	sh_position_->setUniformUntyped();
+	sh_position_->setVertex(0, Vec4f(0.0f));
 }

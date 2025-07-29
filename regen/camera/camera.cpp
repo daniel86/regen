@@ -4,14 +4,11 @@
 #include "light-camera-cube.h"
 #include "light-camera-csm.h"
 #include "reflection-camera.h"
-#include "regen/scene/scene.h"
 #include "regen/meshes/mesh-vector.h"
 #include <regen/shapes/spatial-index.h>
 
 using namespace regen;
 
-// TODO: the indexed setVertex is REALLY NOT GOOD! It might cause a lot of copies, need to rewrite
-//         the camera classes!
 // TODO: camera class uses too much virtual, also functions that are called each frame!
 
 namespace regen {
@@ -28,6 +25,18 @@ namespace regen {
 	};
 }
 
+template <typename T>
+static inline void setClamped(
+		std::vector<T> &vec, unsigned int idx, const T &value) {
+	vec[vec.size() <= idx ? 0u : idx] = value;
+}
+
+template <typename T>
+static inline const T& getClamped(
+		const std::vector<T> &vec, unsigned int idx) {
+	return vec.size() <= idx ? vec[0] : vec[idx];
+}
+
 Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 		: State(),
 		  numLayer_(numLayer),
@@ -35,67 +44,222 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	// add shader constants via defines
 	shaderDefine("RENDER_LAYER", REGEN_STRING(numLayer_));
 
-	projParams_ = ref_ptr<ShaderInput4f>::alloc("cameraProjParams");
-	projParams_->setUniformData(Vec4f(0.1f, 100.0f, 8.0f / 6.0f, 60.0f));
+	projParams_.resize(1);
+	projParams_[0] = ProjectionParams(0.1f, 100.0f, 8.0f / 6.0f, 60.0f);
+	sh_projParams_ = ref_ptr<ShaderInput4f>::alloc("cameraProjParams");
+	sh_projParams_->setUniformData(projParams_[0].asVec4());
 
-	position_ = ref_ptr<ShaderInput4f>::alloc("cameraPosition");
-	position_->setUniformData(Vec4f(0.0, 1.0, 4.0, 0.0));
-	position_->setSchema(InputSchema::position());
+	position_.resize(1);
+	position_[0] = Vec4f(0.0, 1.0, 4.0, 0.0);
+	sh_position_ = ref_ptr<ShaderInput4f>::alloc("cameraPosition");
+	sh_position_->setUniformData(position_[0]);
+	sh_position_->setSchema(InputSchema::position());
 
-	direction_ = ref_ptr<ShaderInput4f>::alloc("cameraDirection");
-	direction_->setUniformData(Vec4f(0, 0, -1, 0));
-	direction_->setSchema(InputSchema::direction());
+	direction_.resize(1);
+	direction_[0] = Vec4f(0, 0, -1, 0);
+	sh_direction_ = ref_ptr<ShaderInput4f>::alloc("cameraDirection");
+	sh_direction_->setUniformData(direction_[0]);
+	sh_direction_->setSchema(InputSchema::direction());
 
-	vel_ = ref_ptr<ShaderInput4f>::alloc("cameraVelocity");
-	vel_->setUniformData(Vec4f(0.0f));
+	vel_.resize(1);
+	vel_[0] = Vec4f(0.0f);
+	sh_vel_ = ref_ptr<ShaderInput4f>::alloc("cameraVelocity");
+	sh_vel_->setUniformData(vel_[0]);
 
-	view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
-	view_->setUniformData(Mat4f::identity());
-	view_->setSchema(InputSchema::transform());
-	viewInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewMatrix");
-	viewInv_->setUniformData(Mat4f::identity());
-	viewInv_->setSchema(InputSchema::transform());
+	view_.resize(1, Mat4f::identity());
+	viewInv_.resize(1, Mat4f::identity());
+	viewProj_.resize(1, Mat4f::identity());
+	viewProjInv_.resize(1, Mat4f::identity());
+	proj_.resize(1, Mat4f::identity());
+	projInv_.resize(1, Mat4f::identity());
 
-	proj_ = ref_ptr<ShaderInputMat4>::alloc("projectionMatrix");
-	proj_->setUniformData(Mat4f::identity());
-	proj_->setSchema(InputSchema::transform());
-	projInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseProjectionMatrix");
-	projInv_->setUniformData(Mat4f::identity());
-	projInv_->setSchema(InputSchema::transform());
+	sh_view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
+	sh_view_->setUniformData(Mat4f::identity());
+	sh_view_->setSchema(InputSchema::transform());
+	sh_viewInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewMatrix");
+	sh_viewInv_->setUniformData(Mat4f::identity());
+	sh_viewInv_->setSchema(InputSchema::transform());
 
-	viewProj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
-	viewProj_->setUniformData(Mat4f::identity());
-	viewProj_->setSchema(InputSchema::transform());
-	viewProjInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
-	viewProjInv_->setUniformData(Mat4f::identity());
-	viewProjInv_->setSchema(InputSchema::transform());
+	sh_proj_ = ref_ptr<ShaderInputMat4>::alloc("projectionMatrix");
+	sh_proj_->setUniformData(Mat4f::identity());
+	sh_proj_->setSchema(InputSchema::transform());
+	sh_projInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseProjectionMatrix");
+	sh_projInv_->setUniformData(Mat4f::identity());
+	sh_projInv_->setSchema(InputSchema::transform());
+
+	sh_viewProj_ = ref_ptr<ShaderInputMat4>::alloc("viewProjectionMatrix");
+	sh_viewProj_->setUniformData(Mat4f::identity());
+	sh_viewProj_->setSchema(InputSchema::transform());
+	sh_viewProjInv_ = ref_ptr<ShaderInputMat4>::alloc("inverseViewProjectionMatrix");
+	sh_viewProjInv_->setUniformData(Mat4f::identity());
+	sh_viewProjInv_->setSchema(InputSchema::transform());
 
 	// TODO: I think we really need t use buffer container here!
 	cameraBlock_ = ref_ptr<UBO>::alloc("Camera", updateFlags);
-	cameraBlock_->addBlockInput(view_);
-	cameraBlock_->addBlockInput(viewInv_);
-	cameraBlock_->addBlockInput(viewProj_);
-	cameraBlock_->addBlockInput(viewProjInv_);
-	cameraBlock_->addBlockInput(position_);
-	cameraBlock_->addBlockInput(direction_);
-	cameraBlock_->addBlockInput(vel_);
+	cameraBlock_->addBlockInput(sh_view_);
+	cameraBlock_->addBlockInput(sh_viewInv_);
+	cameraBlock_->addBlockInput(sh_viewProj_);
+	cameraBlock_->addBlockInput(sh_viewProjInv_);
+	cameraBlock_->addBlockInput(sh_position_);
+	cameraBlock_->addBlockInput(sh_direction_);
+	cameraBlock_->addBlockInput(sh_vel_);
 	// these change less frequent:
-	cameraBlock_->addBlockInput(projParams_);
-	cameraBlock_->addBlockInput(proj_);
-	cameraBlock_->addBlockInput(projInv_);
+	cameraBlock_->addBlockInput(sh_projParams_);
+	cameraBlock_->addBlockInput(sh_proj_);
+	cameraBlock_->addBlockInput(sh_projInv_);
 	setInput(cameraBlock_);
 }
 
-void Camera::setPerspective(const Vec4f &params) {
+void Camera::updateShaderData(float dt) {
+	// Update velocity
+	if (lastPosition_.size() != position_.size()) {
+		lastPosition_.resize(position_.size());
+		for (unsigned int i = 0; i < position_.size(); ++i) {
+			lastPosition_[i] = position_[i].xyz_();
+		}
+	}
+	for (unsigned int i = 0; i < position_.size(); ++i) {
+		auto pos = position_[i].xyz_();
+		if (dt > 0.0f) {
+			vel_[i].xyz_() = (pos - lastPosition_[i]) / dt;
+		}
+		lastPosition_[i] = pos;
+	}
+	if (isAudioListener()) {
+		AudioListener::set3f(AL_POSITION, position(0));
+		AudioListener::set3f(AL_VELOCITY, velocity(0));
+		AudioListener::set6f(AL_ORIENTATION, Vec6f(direction(0), Vec3f::up()));
+	}
+	// TODO: The thread-local to client buffer copy can be improved!
+	//   - map whole buffer at once
+	//   - use contiguous thread-local memory
+	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
+	const bool projChanged = (lastProjStamp1_ != projStamp_);
+
+	if (viewChanged) {
+		lastViewStamp1_ = viewStamp_;
+		auto m_v = sh_view_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_v.w, view_.data(), view_.size() * sizeof(Mat4f));
+		m_v.unmap();
+
+		auto m_v_i = sh_viewInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_v_i.w, viewInv_.data(), viewInv_.size() * sizeof(Mat4f));
+		m_v_i.unmap();
+	}
+
+	if (viewChanged || projChanged) {
+		auto m_vp = sh_viewProj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_vp.w, viewProj_.data(), viewProj_.size() * sizeof(Mat4f));
+		m_vp.unmap();
+
+		auto m_vp_i = sh_viewProjInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_vp_i.w, viewProjInv_.data(), viewProjInv_.size() * sizeof(Mat4f));
+		m_vp_i.unmap();
+	}
+
+	if (lastDirStamp1_ != directionStamp_) {
+		lastDirStamp1_ = directionStamp_;
+		auto m_dir = sh_direction_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_dir.w, direction_.data(), direction_.size() * sizeof(Vec4f));
+		m_dir.unmap();
+	}
+
+	if (lastPosStamp1_ != positionStamp_) {
+		lastPosStamp1_ = positionStamp_;
+		auto m_pos = sh_position_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_pos.w, position_.data(), position_.size() * sizeof(Vec4f));
+		m_pos.unmap();
+
+		auto m_vel = sh_vel_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_vel.w, vel_.data(), vel_.size() * sizeof(Vec4f));
+		m_vel.unmap();
+	}
+
+	if (lastProjParamsStamp1_ != projParamsStamp_) {
+		lastProjParamsStamp1_ = projParamsStamp_;
+		auto m_pp = sh_projParams_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
+		m_pp.unmap();
+	}
+
+	if (projChanged) {
+		lastProjStamp1_ = projStamp_;
+		auto m_p = sh_proj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
+		m_p.unmap();
+
+		auto m_p_i = sh_projInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_p_i.w, projInv_.data(), projInv_.size() * sizeof(Mat4f));
+		m_p_i.unmap();
+	}
+}
+
+bool Camera::updateCamera() {
+	if (updateView() || projStamp_ != lastProjStamp_) {
+		updateViewProjection1();
+		lastProjStamp_ = projStamp_;
+		camStamp_ += 1u;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool Camera::updateView() {
+	if (positionStamp_ == lastPosStamp_ && directionStamp_ == lastDirStamp_) { return false; }
+	lastPosStamp_ = positionStamp_;
+	lastDirStamp_ = directionStamp_;
+
+	auto numViewLayers = view_.size();
+	for (unsigned int i = 0; i < numViewLayers; ++i) {
+		auto &dir = getClamped(direction_, i);
+		if (std::abs(dir.xyz_().dot(Vec3f::up())) > 0.999f) {
+			view_[i] = Mat4f::lookAtMatrix(
+					getClamped(position_, i).xyz_(),
+					dir.xyz_(), Vec3f::right());
+			viewInv_[i] = view_[i].lookAtInverse();
+		} else {
+			view_[i] = Mat4f::lookAtMatrix(
+					getClamped(position_, i).xyz_(),
+					dir.xyz_(), Vec3f::up());
+			viewInv_[i] = view_[i].lookAtInverse();
+		}
+	}
+
+	return true;
+}
+
+void Camera::updateViewProjection1() {
+	auto numViewLayers = view_.size();
+	auto numProjLayers = proj_.size();
+	auto maxIndex = std::max(numViewLayers, numProjLayers);
+	for (unsigned int i = 0; i < maxIndex; ++i) {
+		updateViewProjection(
+				numProjLayers > 1 ? i : 0,
+				numViewLayers > 1 ? i : 0);
+	}
+	updateFrustumBuffer();
+}
+
+void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
+	auto maxIndex = std::max(projectionIndex, viewIndex);
+	viewProj_[maxIndex] = view_[viewIndex] * proj_[projectionIndex];
+	viewProjInv_[maxIndex] = projInv_[projectionIndex] * viewInv_[viewIndex];
+	frustum_[maxIndex].update(
+			getClamped(position_, maxIndex).xyz_(),
+			getClamped(direction_, maxIndex).xyz_());
+}
+
+void Camera::setPerspective(const ProjectionParams &params) {
 	setPerspective(
-			params.z,	// aspect
-			params.w,		// fov
-			params.x,		// near
-			params.y);		// far
+			params.aspect,
+			params.fov,
+			params.near,
+			params.far);
 }
 
 void Camera::setPerspective(float aspect, float fov, float near, float far) {
-	bool hasLayeredProjection = proj_->numArrayElements() > 1;
+	bool hasLayeredProjection = proj_.size() > 1;
 	if (hasLayeredProjection) {
 		for (unsigned int i = 0; i < numLayer_; ++i) {
 			setPerspective(aspect, fov, near, far, i);
@@ -109,12 +273,11 @@ void Camera::setPerspective(float aspect, float fov, float near, float far) {
 }
 
 void Camera::setPerspective(float aspect, float fov, float near, float far, unsigned int layer) {
-	projParams_->setVertexClamped(layer, Vec4f(near, far, aspect, fov));
+	setClamped(projParams_, layer, ProjectionParams(near, far, aspect, fov));
 	frustum_[layer].setPerspective(aspect, fov, near, far);
 
-	auto projectionMatrix = Mat4f::projectionMatrix(fov, aspect, near, far);
-	proj_->setVertexClamped(layer, projectionMatrix);
-	projInv_->setVertexClamped(layer, projectionMatrix.projectionInverse());
+	setClamped(proj_, layer, Mat4f::projectionMatrix(fov, aspect, near, far));
+	setClamped(projInv_, layer, getClamped(proj_, layer).projectionInverse());
 	isOrtho_ = false;
 }
 
@@ -125,85 +288,22 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 }
 
 void Camera::setOrtho(float left, float right, float bottom, float top, float near, float far, unsigned int layer) {
-	projParams_->setVertexClamped(layer, Vec4f(
+	setClamped(projParams_, layer, ProjectionParams{
 			near, far,
-			abs((right - left) / (top - bottom)), 0.0f));
+			abs((right - left) / (top - bottom)), 0.0f});
 	frustum_[layer].setOrtho(left, right, bottom, top, near, far);
-	proj_->setVertex(layer, Mat4f::orthogonalMatrix(left, right, bottom, top, near, far));
-	projInv_->setVertex(layer, proj_->getVertex(layer).r.orthogonalInverse());
+	proj_[layer] = Mat4f::orthogonalMatrix(left, right, bottom, top, near, far);
+	projInv_[layer] = proj_[layer].orthogonalInverse();
 	isOrtho_ = true;
-}
-
-bool Camera::updateCamera() {
-	auto projectionStamp = proj_->stamp();
-	if (updateView() || projectionStamp != projectionStamp_) {
-		updateViewProjection1();
-		projectionStamp_ = projectionStamp;
-		camStamp_ += 1u;
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool Camera::updateView() {
-	auto posStamp = position_->stamp();
-	auto dirStamp = direction_->stamp();
-	if (posStamp == posStamp_ && dirStamp == dirStamp_) { return false; }
-	posStamp_ = posStamp;
-	dirStamp_ = dirStamp;
-
-	auto numViewLayers = view_->numArrayElements();
-	for (unsigned int i = 0; i < numViewLayers; ++i) {
-		auto dir = direction_->getVertexClamped(i);
-		if (std::abs(dir.r.xyz_().dot(Vec3f::up())) > 0.999f) {
-			auto viewMatrix = Mat4f::lookAtMatrix(
-					position_->getVertexClamped(i).r.xyz_(),
-					dir.r.xyz_(), Vec3f::right());
-			view_->setVertex(i, viewMatrix);
-			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
-		} else {
-			auto viewMatrix = Mat4f::lookAtMatrix(
-					position_->getVertexClamped(i).r.xyz_(),
-					dir.r.xyz_(), Vec3f::up());
-			view_->setVertex(i, viewMatrix);
-			viewInv_->setVertex(i, viewMatrix.lookAtInverse());
-		}
-	}
-
-	return true;
-}
-
-void Camera::updateViewProjection1() {
-	auto numViewLayers = view_->numArrayElements();
-	auto numProjLayers = proj_->numArrayElements();
-	auto maxIndex = std::max(numViewLayers, numProjLayers);
-	for (unsigned int i = 0; i < maxIndex; ++i) {
-		updateViewProjection(
-				numProjLayers > 1 ? i : 0,
-				numViewLayers > 1 ? i : 0);
-	}
-	updateFrustumBuffer();
-}
-
-void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex) {
-	auto maxIndex = std::max(projectionIndex, viewIndex);
-	viewProj_->setVertex(maxIndex,
-						 view_->getVertex(viewIndex).r * proj_->getVertex(projectionIndex).r);
-	viewProjInv_->setVertex(maxIndex,
-							projInv_->getVertex(projectionIndex).r * viewInv_->getVertex(viewIndex).r);
-	frustum_[maxIndex].update(
-			position()->getVertexClamped(maxIndex).r.xyz_(),
-			direction()->getVertexClamped(maxIndex).r.xyz_());
 }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	isAudioListener_ = isAudioListener;
 	if (isAudioListener_) {
-		AudioListener::set3f(AL_POSITION, position_->getVertex(0).r.xyz_());
-		AudioListener::set3f(AL_VELOCITY, vel_->getVertex(0).r.xyz_());
+		AudioListener::set3f(AL_POSITION, position_[0].xyz_());
+		AudioListener::set3f(AL_VELOCITY, vel_[0].xyz_());
 		AudioListener::set6f(AL_ORIENTATION, Vec6f(
-				direction_->getVertex(0).r.xyz_(),
+				direction_[0].xyz_(),
 				Vec3f::up()));
 	}
 }
@@ -213,14 +313,14 @@ void Camera::updatePose() {
 	if (attachedPosition_.get()) {
 		if (poseStamp_ != attachedPosition_->stamp()) {
 			poseStamp_ = attachedPosition_->stamp();
-			position_->setVertex3(0, attachedPosition_->getVertex(0).r.xyz_());
+			position_[0].xyz_() = attachedPosition_->getVertex(0).r.xyz_();
 			updated = true;
 		}
 	} else if (attachedTransform_.get()) {
 		if (poseStamp_ != attachedTransform_->stamp()) {
 			poseStamp_ = attachedTransform_->stamp();
 			auto m = attachedTransform_->getVertex(0);
-			position_->setVertex3(0, m.r.position());
+			position_[0].xyz_() = m.r.position();
 			if (!isAttachedToPosition_) {
 				// TODO: change camera orientation based on transform
 				//direction_->setVertex(0, (m ^ Vec4f(Vec3f::front(),0.0)).xyz_());
@@ -233,49 +333,6 @@ void Camera::updatePose() {
 		updateCamera();
 	}
 }
-
-/**
-
-	class FrustumUpdater : public Animation {
-	public:
-		explicit FrustumUpdater(
-					const ref_ptr<Camera> &camera,
-					const ref_ptr<ShaderInput4f> &planes) :
-				Animation(false, true),
-				camera_(camera),
-				planes_(planes) {
-			auto &frustum = camera_->frustum();
-			frustumData_.resize(frustum.size() * 6);
-		}
-
-		void animate(double dt) override {
-			auto &frustum = camera_->frustum();
-			for (size_t i = 0; i < frustum.size(); ++i) {
-				auto &frustumPlanes = frustum[i].planes;
-				for (int j = 0; j < 6; ++j) {
-					frustumData_[i * 6 + j] = frustumPlanes[j].equation();
-				}
-			}
-
-			auto frustum_cpu =
-				planes_->mapClientData<Vec4f>(ShaderData::WRITE);
-			std::memcpy(
-				(byte*)frustum_cpu.w,
-				frustumData_.data(),
-				frustumData_.size() * sizeof(Vec4f));
-		}
-	protected:
-		ref_ptr<Camera> camera_;
-		ref_ptr<ShaderInput4f> planes_;
-		std::vector<Vec4f> frustumData_;
-	};
-
-		lodAnim_ = ref_ptr<FrustumUpdater>::alloc(camera_, frustumData_);
-		lodAnim_->startAnimation();
-		lodAnim_->animate(0.0); // initialize frustum planes
-
-	frustumPlanes_.resize(6 * camera_->frustum().size());
-**/
 
 ref_ptr<UBO> Camera::getFrustumBuffer() {
 	if (!frustumBuffer_.get()) {
@@ -341,57 +398,57 @@ void Camera::attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, GLfloat radius) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
+	// FIXME: projParams_ idx?!? pos/dir idx?
 	auto d = Plane(
-			position()->getVertex(0).r.xyz_(),
-			direction()->getVertex(0).r.xyz_()).distance(center);
-	return d - radius < projParams.r.far &&
-		   d + radius > projParams.r.near;
+			position_[0].xyz_(),
+			direction_[0].xyz_()).distance(center);
+	return d - radius < projParams_[0].far &&
+		   d + radius > projParams_[0].near;
 }
 
 bool Camera::hasSphereIntersection(const Vec3f &center, const Vec3f *points) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
-	Plane p(position()->getVertex(0).r.xyz_(), direction()->getVertex(0).r.xyz_());
+	// FIXME: projParams_ idx?!? pos/dir idx?
+	Plane p(position_[0].xyz_(), direction_[0].xyz_());
 	for (int i = 0; i < 8; ++i) {
 		auto d = p.distance(center + points[i]);
-		if (d > projParams.r.far || d < projParams.r.near)
+		if (d > projParams_[0].far || d < projParams_[0].near)
 			return false;
 	}
 	return true;
 }
 
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
+	// FIXME: projParams_ idx?!? pos/dir idx?
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
-			position()->getVertex(0).r.xyz_(),
-			direction()->getVertex(0).r.xyz_()).distance(center);
+			position_[0].xyz_(),
+			direction_[0].xyz_()).distance(center);
 	// check if the sphere is outside the far plane
-	if (d - radius > projParams.r.far) return false;
+	if (d - radius > projParams_[0].far) return false;
 	// check if the sphere is inside the near plane
-	if (d + radius < projParams.r.near) return false;
+	if (d + radius < projParams_[0].near) return false;
 	// check if the sphere is inside the half sphere
-	auto halfSphereRadius = projParams.r.far;
-	auto halfSphereNormal = direction()->getVertex(0);
-	auto halfSphereCenter = position()->getVertex(0).r.xyz_() + halfSphereNormal.r.xyz_() * halfSphereRadius;
-	return Plane(halfSphereCenter, halfSphereNormal.r.xyz_()).distance(center) < radius;
+	auto halfSphereRadius = projParams_[0].far;
+	auto halfSphereNormal = direction_[0];
+	auto halfSphereCenter = position_[0].xyz_() + halfSphereNormal.xyz_() * halfSphereRadius;
+	return Plane(halfSphereCenter, halfSphereNormal.xyz_()).distance(center) < radius;
 }
 
 bool Camera::hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const {
-	auto projParams = projParams_->mapClientVertex<ProjectionParams>(BUFFER_GPU_READ, 0);
+	// FIXME: projParams_ idx?!? pos/dir idx?
 	// get the distance from the camera to the center of the sphere
 	auto d = Plane(
-			position()->getVertex(0).r.xyz_(),
-			direction()->getVertex(0).r.xyz_()).distance(center);
+			position_[0].xyz_(),
+			direction_[0].xyz_()).distance(center);
 	// check if the sphere is outside the far plane
-	if (d > projParams.r.far) return false;
+	if (d > projParams_[0].far) return false;
 	// check if the sphere is inside the near plane
-	if (d < projParams.r.near) return false;
+	if (d < projParams_[0].near) return false;
 	// check if the sphere is inside the half sphere
-	auto halfSphereRadius = projParams.r.far;
-	auto halfSphereNormal = direction()->getVertex(0);
-	auto halfSphereCenter = position()->getVertex(0).r.xyz_() + halfSphereNormal.r.xyz_() * halfSphereRadius;
-	auto halfSphere = Plane(halfSphereCenter, halfSphereNormal.r.xyz_());
+	auto halfSphereRadius = projParams_[0].far;
+	auto halfSphereNormal = direction_[0];
+	auto halfSphereCenter = position_[0].xyz_() + halfSphereNormal.xyz_() * halfSphereRadius;
+	auto halfSphere = Plane(halfSphereCenter, halfSphereNormal.xyz_());
 	for (int i = 0; i < 8; ++i) {
 		if (halfSphere.distance(center + points[i]) < 0) {
 			return false;
@@ -542,7 +599,7 @@ void ProjectionUpdater::call(EventObject *, EventData *) {
 	auto windowViewport = windowViewport_->getVertex(0);
 	auto windowAspect =
 			(GLfloat) windowViewport.r.x / (GLfloat) windowViewport.r.y;
-	auto lastProjParams = cam_->projParams()->getVertex(0).r;
+	auto &lastProjParams = cam_->projParams()[0];
 	if (cam_->isOrtho()) {
 		// keep the ortho width and adjust height based on aspect ratio
 		auto width = cam_->frustum()[0].nearPlaneHalfSize.x * 2.0f;
@@ -550,14 +607,14 @@ void ProjectionUpdater::call(EventObject *, EventData *) {
 		cam_->setOrtho(
 				-width / 2.0f, width / 2.0f,
 				-height / 2.0f, height / 2.0f,
-				lastProjParams.x,
-				lastProjParams.y);
+				lastProjParams.near,
+				lastProjParams.far);
 	} else {
 		cam_->setPerspective(
 				windowAspect,
-				lastProjParams.w,
-				lastProjParams.x,
-				lastProjParams.y);
+				lastProjParams.fov,
+				lastProjParams.near,
+				lastProjParams.far);
 	}
 }
 
@@ -631,12 +688,11 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
 		cam->set_isAudioListener(
 				input.getValue<bool>("audio-listener", false));
-		cam->position()->setVertex3(0,
-								   input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
+		cam->setPosition(0, input.getValue<Vec3f>("position", Vec3f(0.0f, 2.0f, -2.0f)));
 
 		auto dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
 		dir.normalize();
-		cam->direction()->setVertex3(0, dir);
+		cam->setDirection(0, dir);
 
 		if (camType == "ortho" || camType == "orthographic" || camType == "orthogonal") {
 			auto width = input.getValue<GLfloat>("width", 10.0f);

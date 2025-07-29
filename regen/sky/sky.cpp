@@ -60,7 +60,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	sun_->specular()->setVertex(0, Vec3f(0.0f));
 	sun_->diffuse()->setVertex(0, Vec3f(0.0f));
 	sun_->direction()->setVertex(0, Vec3f(1.0f));
-	uniformBlock->addBlockInput(sun_->direction(), "sunPosition");
+	state()->setInput(ref_ptr<UBO>::alloc(*sun_->lightUBO().get(), "SunLight", "sun_"));
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
 	q_->setUniformData(0.0f);
@@ -76,7 +76,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	moon_->specular()->setVertex(0, Vec3f(0.0f));
 	moon_->diffuse()->setVertex(0, Vec3f(0.0f));
 	moon_->direction()->setVertex(0, Vec3f(1.0f));
-	uniformBlock->addBlockInput(moon_->direction(), "moonPosition");
+	state()->setInput(ref_ptr<UBO>::alloc(*moon_->lightUBO().get(), "MoonLight", "moon_"));
 
 	state()->setInput(uniformBlock);
 
@@ -217,7 +217,7 @@ void Sky::animate(GLdouble dt) {
 	R_->setVertex(0, astro().getEquToHorTransform());
 
 	if (camStamp_ != cam_->stamp() || viewportStamp_ != viewport_->stamp()) {
-		const float fovHalf = camera()->projParams()->getVertex(0).r.x * 0.5f * DEGREE_TO_RAD;
+		const float fovHalf = camera()->projParams()[0].fov * 0.5f * DEGREE_TO_RAD;
 		const float height = static_cast<float>(viewport()->getVertex(0).r.y);
 		const float q = 2.8284271247461903f // = sqrt(2.0f) * 2.0f
 						* tan(fovHalf) / height; // q is the distance from the camera to the sky quad

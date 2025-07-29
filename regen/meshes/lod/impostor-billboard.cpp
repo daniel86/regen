@@ -242,22 +242,16 @@ void ImpostorBillboard::createResources() {
 
 void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, const Vec3f &up) {
 	// map data pointers
-	auto *camView    = (Mat4f*)snapshotCamera_->view()->clientData();
-	auto *camViewInv = (Mat4f*)snapshotCamera_->viewInverse()->clientData();
-	auto *camProj    = (Mat4f*)snapshotCamera_->projection()->clientData();
-	auto *camProjInv = (Mat4f*)snapshotCamera_->projectionInverse()->clientData();
-	auto *projParams = (ProjectionParams*)snapshotCamera_->projParams()->clientData();
-	auto *camPos     = (Vec3f*)snapshotCamera_->position()->clientData();
-	auto *viewDir    = (Vec4f*)snapshotDirs_->clientData();
-	auto *viewBounds = (Vec4f*)snapshotOrthoBounds_->clientData();
-	auto *viewDepth  = (Vec2f*)snapshotDepthRanges_->clientData();
+	Vec4f *viewDir    = (Vec4f*)snapshotDirs_->clientData();
+	Vec4f *viewBounds = (Vec4f*)snapshotOrthoBounds_->clientData();
+	Vec2f *viewDepth  = (Vec2f*)snapshotDepthRanges_->clientData();
 
 	// this is an offset of the mesh that translates it to origin.
 	// in many cases this will be (0,0,0).
 	auto eye = meshCenterPoint_ - dir * meshBoundsRadius_ * 1.5f;
-	camView[viewIdx] = Mat4f::lookAtMatrix(eye, dir, up);
-	camViewInv[viewIdx] = camView[viewIdx].lookAtInverse();
-	auto &view = camView[viewIdx];
+	snapshotCamera_->setView(viewIdx, Mat4f::lookAtMatrix(eye, dir, up));
+	auto &view = snapshotCamera_->view(viewIdx);
+	snapshotCamera_->setViewInverse(viewIdx, view.lookAtInverse());
 
 	float minX = +FLT_MAX, maxX = -FLT_MAX;
 	float minY = +FLT_MAX, maxY = -FLT_MAX;
@@ -289,13 +283,17 @@ void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, cons
 									<< "\n\tdepth=" << viewDepth[viewIdx]);
 #endif
 
-	camProj[viewIdx] = Mat4f::orthogonalMatrix(minX, maxX, minY, maxY, minZ, maxZ);
-	camProjInv[viewIdx] = camProj[viewIdx].orthogonalInverse();
-	projParams[viewIdx].near = minZ;
-	projParams[viewIdx].far = maxZ;
-	projParams[viewIdx].aspect = abs((maxX - minX) / (maxY - minY));
-	projParams[viewIdx].fov = 0.0f; // orthographic projection, no fov
-	camPos[viewIdx] = eye;
+	snapshotCamera_->setProjection(viewIdx,
+			Mat4f::orthogonalMatrix(minX, maxX, minY, maxY, minZ, maxZ));
+	snapshotCamera_->setProjectionInverse(viewIdx,
+			snapshotCamera_->projection(viewIdx).orthogonalInverse());
+	ProjectionParams params = snapshotCamera_->projParams(viewIdx);
+	params.near = minZ;
+	params.far = maxZ;
+	params.aspect = abs((maxX - minX) / (maxY - minY));
+	params.fov = 0.0f; // orthographic projection, no fov
+	snapshotCamera_->setProjParams(viewIdx, params);
+	snapshotCamera_->setPosition(viewIdx, eye);
 }
 
 void ImpostorBillboard::updateSnapshotViews() {
@@ -348,13 +346,8 @@ void ImpostorBillboard::updateSnapshotViews() {
 	snapshotOrthoBounds_->nextStamp();
 	snapshotDepthRanges_->nextStamp();
 	impostorBuffer_->update();
-	snapshotCamera_->view()->nextStamp();
-	snapshotCamera_->viewInverse()->nextStamp();
-	snapshotCamera_->projection()->nextStamp();
-	snapshotCamera_->projectionInverse()->nextStamp();
-	snapshotCamera_->position()->nextStamp();
-	snapshotCamera_->direction()->nextStamp();
 	snapshotCamera_->updateViewProjection1();
+	snapshotCamera_->updateShaderData(0.0f);
 }
 
 void ImpostorBillboard::createSnapshot() {

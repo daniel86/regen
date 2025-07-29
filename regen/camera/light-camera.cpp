@@ -1,12 +1,3 @@
-/*
- * light-camera.cpp
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
-#include <cfloat>
-
 #include "light-camera.h"
 
 using namespace regen;
@@ -17,7 +8,10 @@ namespace regen {
 		explicit LightCameraAnimation(LightCamera *camera)
 				: Animation(false, true),
 				  camera_(camera) {}
-		void animate(double dt) override { camera_->updateLight(); }
+		void animate(double dt) override {
+			camera_->updateLight();
+			camera_->lightCamera()->updateShaderData(static_cast<float>(dt));
+		}
 	private:
 		LightCamera *camera_;
 	};

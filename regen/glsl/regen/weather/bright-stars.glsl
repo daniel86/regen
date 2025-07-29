@@ -16,7 +16,6 @@ in vec4 in_col0;
 out float out_k;
 out vec3 out_col;
 
-uniform vec3 in_sunPosition;
 uniform mat4 in_equToHorMatrix;
 uniform float in_q;
 

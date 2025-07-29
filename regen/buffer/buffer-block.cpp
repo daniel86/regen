@@ -54,9 +54,14 @@ BufferBlock::BufferBlock(
 #endif
 }
 
-BufferBlock::BufferBlock(const BufferBlock &other)
+BufferBlock::BufferBlock(
+			const BufferBlock &other,
+			const std::string &forcedBlockName,
+			const std::string &inputPrefixToAd)
 		: BufferObject(other),
-		  ShaderInput(other.name(), GL_INVALID_ENUM, 0, 0, 0, false),
+		  ShaderInput(
+		  		forcedBlockName.empty() ? other.name() : forcedBlockName,
+		  		GL_INVALID_ENUM, 0, 0, 0, false),
 		  blockQualifier_(other.blockQualifier_),
 		  bindingIndex_(other.bindingIndex_),
 		  hasClientData_(other.hasClientData_),
@@ -72,6 +77,13 @@ BufferBlock::BufferBlock(const BufferBlock &other)
 		  stagingFlags_(other.stagingFlags_),
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  shared_(other.shared_) {
+	// rename the inputs if a prefix is given
+	if (!inputPrefixToAd.empty()) {
+		for (uint32_t inputIdx = 0; inputIdx < inputs_.size(); ++inputIdx) {
+			auto &namedInput = inputs_[inputIdx];
+			namedInput.name_ = inputPrefixToAd + namedInput.name_;
+		}
+	}
 	clientBuffer_ = other.clientBuffer_;
 	memoryLayout_ = other.memoryLayout_;
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };

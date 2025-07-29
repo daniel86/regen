@@ -1,8 +1,3 @@
-/*
- * This file is part of KnowRob, please consult
- * https://github.com/knowrob/knowrob for license details.
- */
-
 #ifndef REGEN_CAMERA_KEY_FRAME_CONTROLLER_H
 #define REGEN_CAMERA_KEY_FRAME_CONTROLLER_H
 

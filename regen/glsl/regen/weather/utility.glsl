@@ -122,7 +122,11 @@ vec4 fakeSun(const vec3 eye,
 #define2 __sunIntensity_INCLUDED
 float sunIntensity() {
     // Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)
+#ifdef HAS_sunPosition
     return 1.0 / sqrt(1 + pow(in_sunPosition.y + 1.14, 32));
+#else
+    return 1.0 / sqrt(1 + pow(in_sun_lightDirection.y + 1.14, 32));
+#endif
 }
 #endif
 

@@ -14,8 +14,6 @@ out mat3 out_tangent;
 out vec3 out_eye;
 out vec2 out_texco;
 
-uniform vec3 in_moonPosition;
-
 const float in_scale = 0.1;
 
 #include regen.states.camera.transformWorldToScreen
@@ -23,7 +21,7 @@ const float in_scale = 0.1;
 #define HANDLE_IO(i)
 
 void main(void) {
-    vec3 m = in_moonPosition.xzy;
+    vec3 m = in_moon_lightDirection.xzy;
     vec3 u = normalize(cross(vec3(0, 1, 0), m));
     vec3 v = normalize(cross(u,m));
     out_eye = m - (in_pos.x*u + in_pos.y*v)*in_scale;
@@ -94,7 +92,6 @@ in vec2 in_texco;
 
 uniform samplerCube in_moonmapCube;
 
-uniform vec3 in_sunPosition;
 uniform float in_q;
 uniform mat4 in_moonOrientationMatrix;
 uniform vec4 in_cmn;
@@ -164,8 +161,8 @@ void main(void)
     // convert normals to horizontal space
     vec3 h_n = mix(hn, in_tangent * s_n, in_surface);
     // brdf
-    float cos_p = dot(-eye, in_sunPosition);
-    float cos_i = dot( in_sunPosition, h_n);
+    float cos_p = dot(-eye, in_sun_lightDirection.xyz);
+    float cos_i = dot( in_sun_lightDirection.xyz, h_n);
     float cos_r = dot(-eye, h_n);
     float f = brdf(cos_r, cos_i, cos_p);
     

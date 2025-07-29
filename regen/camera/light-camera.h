@@ -1,10 +1,3 @@
-/*
- * light-camera.h
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
 #ifndef REGEN_LIGHT_CAMERA_H
 #define REGEN_LIGHT_CAMERA_H
 

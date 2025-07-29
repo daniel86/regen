@@ -22,7 +22,7 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 		// Transforms world space coordinates to homogenous light space
 		for (unsigned int i=0; i<lightMatrix_->numArrayElements(); ++i) {
 			// note: bias is not applied here, as the projection is done in shaders
-			lightMatrix_->setVertex(i, viewProj_->getVertex(i).r);
+			lightMatrix_->setVertex(i, viewProjection(i));
 		}
 		camStamp_ += 1;
 		return true;
@@ -44,10 +44,11 @@ bool LightCamera_Parabolic::updateLightView() {
 	auto dir = light_->direction()->getVertex(0);
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
-	position_->setVertex3(0, light_->position()->getVertex(0).r.xyz_());
-	direction_->setVertex3(0, -dir.r);
+	// Set the position of the light camera
+	setPosition(0, light_->position()->getVertex(0).r.xyz_());
+	setDirection(0, -dir.r);
 	if (hasBackFace_) {
-		direction_->setVertex3(1, dir.r);
+		setDirection(1, dir.r);
 	}
 	dir.unmap();
 	return updateView();

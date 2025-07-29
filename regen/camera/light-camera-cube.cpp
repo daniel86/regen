@@ -24,7 +24,7 @@ bool LightCamera_Cube::updateCubeLight() {
 		// Transforms world space coordinates to homogenous light space
 		for (auto i=0; i<6; ++i) {
 			if (isCubeFaceVisible(i)) {
-				lightMatrix_->setVertex(i, viewProj_->getVertex(i).r * Mat4f::bias());
+				lightMatrix_->setVertex(i, viewProjection(i) * Mat4f::bias());
 			}
 		}
 		camStamp_ += 1;
@@ -45,7 +45,6 @@ bool LightCamera_Cube::updateLightProjection() {
 bool LightCamera_Cube::updateLightView() {
 	if (lightPosStamp_ == light_->position()->stamp()) { return false; }
 	lightPosStamp_ = light_->position()->stamp();
-	position_->setVertex3(0,
-		light_->position()->getVertex(0).r.xyz_());
+	setPosition(0, light_->position()->getVertex(0).r.xyz_());
 	return updateView();
 }

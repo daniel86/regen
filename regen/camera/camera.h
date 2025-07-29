@@ -12,6 +12,23 @@
 
 namespace regen {
 	/**
+	 * \brief Projection parameters for a camera.
+	 * Contains near and far plane distances, aspect ratio, and field of view.
+	 */
+	struct ProjectionParams {
+		float near = 0.1f; // near plane distance
+		float far = 100.0f; // far plane distance
+		float aspect = 1.0f; // aspect ratio
+		float fov = 60.0f; // field of view in degrees
+		ProjectionParams() = default;
+		ProjectionParams(float near, float far, float aspect, float fov)
+			: near(near), far(far), aspect(aspect), fov(fov) {}
+
+		Vec4f& asVec4() { return *reinterpret_cast<Vec4f*>(&near); }
+		const Vec4f& asVec4() const { return *reinterpret_cast<const Vec4f*>(&near); }
+	};
+
+	/**
 	 * \brief Camera with projection and view matrix.
 	 */
 	class Camera : public State {
@@ -32,33 +49,33 @@ namespace regen {
 		/**
 		 * @return the stamp when the camera was last updated.
 		 */
-		auto stamp() const { return camStamp_; }
+		uint32_t stamp() const { return camStamp_; }
 
 		/**
 		 * Increment the camera stamp.
 		 * @return the new stamp.
 		 */
-		auto nextStamp() { return ++camStamp_; }
+		uint32_t nextStamp() { return ++camStamp_; }
 
 		/**
 		 * @return the number of layers.
 		 */
-		auto numLayer() const { return numLayer_; }
+		uint32_t numLayer() const { return numLayer_; }
 
 		/**
 		 * @return true if this camera is an omnidirectional camera.
 		 */
-		auto isOmni() const { return isOmni_; }
+		bool isOmni() const { return isOmni_; }
 
 		/**
 		 * @return true if this camera is an orthographic camera.
 		 */
-		auto isOrtho() const { return isOrtho_; }
+		bool isOrtho() const { return isOrtho_; }
 
 		/**
 		 * @return true if this camera is a perspective camera.
 		 */
-		auto isPerspective() const { return !isOrtho_; }
+		bool isPerspective() const { return !isOrtho_; }
 
 		/**
 		 * Update frustum projection and projection matrix.
@@ -79,7 +96,7 @@ namespace regen {
 		 */
 		void setPerspective(float aspect, float fov, float near, float far, unsigned int layer);
 
-		void setPerspective(const Vec4f &params);
+		void setPerspective(const ProjectionParams &params);
 
 		/**
 		 * Update frustum projection and projection matrix.
@@ -107,73 +124,309 @@ namespace regen {
 		/**
 		 * @return the camera uniform block.
 		 */
-		auto &cameraBlock() const { return cameraBlock_; }
+		const ref_ptr<UBO> &cameraBlock() const { return cameraBlock_; }
 
 		/**
+		 * Get vector of most recent projection parameters.
 		 * @return the projection parameters: near, far, aspect, fov.
 		 */
-		auto &projParams() const { return projParams_; }
+		const std::vector<ProjectionParams> &projParams() const { return projParams_; }
 
 		/**
-		 * @return the camera position.
+		 * Get projection parameters for a specific layer.
+		 * @param idx the layer index.
+		 * @return the projection parameters for the specified layer.
 		 */
-		auto &position() const { return position_; }
+		const ProjectionParams& projParams(uint32_t idx) const { return projParams_[idx]; }
 
 		/**
-		 * @return the camera direction.
+		 * Get the shader data for the projection parameters.
+		 * Note that due to buffering, the shader data may lack behind the most recent
+		 * data in projParams().
+		 * @return the shader data for the projection parameters.
 		 */
-		auto &direction() const { return direction_; }
+		const ref_ptr<ShaderInput4f>& sh_projParams() const { return sh_projParams_; }
 
 		/**
-		 * @return the camera velocity.
+		 * Set the projection parameters for a specific layer, and increment the stamp
+		 * indicating that the projection parameters have changed.
+		 * @param idx the layer index.
+		 * @param params the projection parameters to set.
 		 */
-		auto &velocity() const { return vel_; }
+		void setProjParams(uint32_t idx, const ProjectionParams &params) {
+			setStamped(projParams_, projParamsStamp_, idx, params);
+		}
 
 		/**
-		 * Transforms world-space to view-space.
-		 * @return the view matrix.
+		 * Get a vector of the most recent camera positions.
+		 * @return the camera positions.
 		 */
-		auto &view() const { return view_; }
+		const std::vector<Vec4f> &position() const { return position_; }
 
 		/**
-		 * Transforms view-space to world-space.
-		 * @return the inverse view matrix.
+		 * Get the camera position for a specific layer.
+		 * @param idx the layer index.
+		 * @return the camera position for the specified layer.
 		 */
-		auto &viewInverse() const { return viewInv_; }
+		const Vec3f &position(uint32_t idx) const { return position_[idx].xyz_(); }
 
 		/**
-		 * Transforms view-space to screen-space.
-		 * @return the projection matrix.
+		 * Get the stamp indicating when the camera position was last updated.
+		 * @return the position stamp.
 		 */
-		auto &projection() const { return proj_; }
+		uint32_t positionStamp() const { return positionStamp_; }
 
 		/**
-		 * Transforms screen-space to view-space.
-		 * @return the inverse projection matrix.
+		 * Set the camera position for a specific layer, and increment the stamp
+		 * indicating that the camera position has changed.
+		 * @param idx the layer index.
+		 * @param pos the camera position to set.
 		 */
-		auto &projectionInverse() const { return projInv_; }
+		void setPosition(uint32_t idx, const Vec3f &pos) {
+			setStamped3(position_, positionStamp_, idx, pos);
+		}
 
 		/**
-		 * Transforms world-space to screen-space.
-		 * @return the view-projection matrix.
+		 * Get a vector of the most recent camera directions.
+		 * @return the camera directions.
 		 */
-		auto &viewProjection() const { return viewProj_; }
+		const std::vector<Vec4f> &direction() const { return direction_; }
 
 		/**
-		 * Transforms screen-space to world-space.
-		 * @return the inverse view-projection matrix.
+		 * Get the camera direction for a specific layer.
+		 * @param idx the layer index.
+		 * @return the camera direction for the specified layer.
 		 */
-		auto &viewProjectionInverse() const { return viewProjInv_; }
+		const Vec3f &direction(uint32_t idx) const { return direction_[idx].xyz_(); }
+
+		/**
+		 * Get the stamp indicating when the camera direction was last updated.
+		 * @return the direction stamp.
+		 */
+		uint32_t directionStamp() const { return directionStamp_; }
+
+		/**
+		 * Set the camera direction for a specific layer, and increment the stamp
+		 * indicating that the camera direction has changed.
+		 * @param idx the layer index.
+		 * @param dir the camera direction to set.
+		 */
+		void setDirection(uint32_t idx, const Vec3f &dir) {
+			setStamped3(direction_, directionStamp_, idx, dir);
+		}
+
+		/**
+		 * Get a vector of the most recent camera velocities.
+		 * @return the camera velocities.
+		 */
+		const std::vector<Vec4f> &velocity() const { return vel_; }
+
+		/**
+		 * Get the camera velocity for a specific layer.
+		 * @param idx the layer index.
+		 * @return the camera velocity for the specified layer.
+		 */
+		const Vec3f &velocity(uint32_t idx) const { return vel_[idx].xyz_(); }
+
+		/**
+		 * Get the stamp indicating when the camera velocity was last updated.
+		 * @return the velocity stamp.
+		 */
+		uint32_t velocityStamp() const { return velStamp_; }
+
+		/**
+		 * Set the camera velocity for a specific layer, and increment the stamp
+		 * indicating that the camera velocity has changed.
+		 * @param idx the layer index.
+		 * @param vel the camera velocity to set.
+		 */
+		void setVelocity(uint32_t idx, const Vec3f &vel) {
+			setStamped3(vel_, velStamp_, idx, vel);
+		}
+
+		/**
+		 * Get a vector of view matrices used to transform world-space to view-space.
+		 * @return the view matrices.
+		 */
+		const std::vector<Mat4f> &view() const { return view_; }
+
+		/**
+		 * Get the view matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return the view matrix for the specified layer.
+		 */
+		const Mat4f &view(uint32_t idx) const { return view_[idx]; }
+
+		/**
+		 * Get the stamp indicating when the view matrix was last updated.
+		 * @return the view stamp.
+		 */
+		uint32_t viewStamp() const { return viewStamp_; }
+
+		/**
+		 * Set the view matrix for a specific layer, and increment the stamp
+		 * indicating that the view matrix has changed.
+		 * @param idx the layer index.
+		 * @param view the view matrix to set.
+		 */
+		void setView(uint32_t idx, const Mat4f &view) {
+			setStamped(view_, viewStamp_, idx, view);
+		}
+
+		/**
+		 * Get a vector of inverse view matrices used to transform view-space to world-space.
+		 * @return the inverse view matrices.
+		 */
+		const std::vector<Mat4f> &viewInverse() const { return viewInv_; }
+
+		/**
+		 * Get the inverse view matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return the inverse view matrix for the specified layer.
+		 */
+		const Mat4f &viewInverse(uint32_t idx) const { return viewInv_[idx]; }
+
+		/**
+		 * Get the stamp indicating when the inverse view matrix was last updated.
+		 * @return the inverse view stamp.
+		 */
+		uint32_t viewInverseStamp() const { return viewInvStamp_; }
+
+		/**
+		 * Set the inverse view matrix for a specific layer, and increment the stamp
+		 * indicating that the inverse view matrix has changed.
+		 * @param idx the layer index.
+		 * @param viewInv the inverse view matrix to set.
+		 */
+		void setViewInverse(uint32_t idx, const Mat4f &viewInv) {
+			setStamped(viewInv_, viewInvStamp_, idx, viewInv);
+		}
+
+		/**
+		 * Get a vector of projection matrices used to transform world-space to screen-space.
+		 * @return the projection matrices.
+		 */
+		const std::vector<Mat4f> &projection() const { return proj_; }
+
+		/**
+		 * Get the projection matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return the projection matrix for the specified layer.
+		 */
+		const Mat4f &projection(uint32_t idx) const { return proj_[idx]; }
+
+		/**
+		 * Get the stamp indicating when the projection matrix was last updated.
+		 * @return the projection stamp.
+		 */
+		uint32_t projectionStamp() const { return projStamp_; }
+
+		/**
+		 * Set the projection matrix for a specific layer, and increment the stamp
+		 * indicating that the projection matrix has changed.
+		 * @param idx the layer index.
+		 * @param proj the projection matrix to set.
+		 */
+		void setProjection(uint32_t idx, const Mat4f &proj) {
+			setStamped(proj_, projStamp_, idx, proj);
+		}
+
+		/**
+		 * Get a vector of inverse projection matrices used to transform screen-space to world-space.
+		 * @return the inverse projection matrices.
+		 */
+		const std::vector<Mat4f> &projectionInverse() const { return projInv_; }
+
+		/**
+		 * Get the inverse projection matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return the inverse projection matrix for the specified layer.
+		 */
+		const Mat4f &projectionInverse(uint32_t idx) const { return projInv_[idx]; }
+
+		/**
+		 * Get the stamp indicating when the inverse projection matrix was last updated.
+		 * @return the inverse projection stamp.
+		 */
+		uint32_t projectionInverseStamp() const { return projInvStamp_; }
+
+		/**
+		 * Set the inverse projection matrix for a specific layer, and increment the stamp
+		 * indicating that the inverse projection matrix has changed.
+		 * @param idx the layer index.
+		 * @param projInv the inverse projection matrix to set.
+		 */
+		void setProjectionInverse(uint32_t idx, const Mat4f &projInv) {
+			setStamped(projInv_, projInvStamp_, idx, projInv);
+		}
+
+		/**
+		 * Get a vector of view-projection matrices used to transform world-space to screen-space.
+		 * @return the view-projection matrices.
+		 */
+		const std::vector<Mat4f> &viewProjection() const { return viewProj_; }
+
+		/**
+		 * Get the view-projection matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return the view-projection matrix for the specified layer.
+		 */
+		const Mat4f &viewProjection(uint32_t idx) const { return viewProj_[idx]; }
+
+		/**
+		 * Get the stamp indicating when the view-projection matrix was last updated.
+		 * @return the view-projection stamp.
+		 */
+		uint32_t viewProjectionStamp() const { return viewProjStamp_; }
+
+		/**
+		 * Set the view-projection matrix for a specific layer, and increment the stamp
+		 * indicating that the view-projection matrix has changed.
+		 * @param idx the layer index.
+		 * @param viewProj the view-projection matrix to set.
+		 */
+		void setViewProjection(uint32_t idx, const Mat4f &viewProj) {
+			setStamped(viewProj_, viewProjStamp_, idx, viewProj);
+		}
+
+		/**
+		 * Get a vector of inverse view-projection matrices used to transform screen-space to world-space.
+		 * @return the inverse view-projection matrices.
+		 */
+		const std::vector<Mat4f> &viewProjectionInverse() const { return viewProjInv_; }
+
+		/**
+		 * Get the inverse view-projection matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return the inverse view-projection matrix for the specified layer.
+		 */
+		const Mat4f &viewProjectionInverse(uint32_t idx) const { return viewProjInv_[idx]; }
+
+		/**
+		 * Get the stamp indicating when the inverse view-projection matrix was last updated.
+		 * @return the inverse view-projection stamp.
+		 */
+		uint32_t viewProjectionInverseStamp() const { return viewProjInvStamp_; }
+
+		/**
+		 * Set the inverse view-projection matrix for a specific layer, and increment the stamp
+		 * indicating that the inverse view-projection matrix has changed.
+		 * @param idx the layer index.
+		 * @param viewProjInv the inverse view-projection matrix to set.
+		 */
+		void setViewProjectionInverse(uint32_t idx, const Mat4f &viewProjInv) {
+			setStamped(viewProjInv_, viewProjInvStamp_, idx, viewProjInv);
+		}
 
 		/**
 		 * @return the 8 points forming this Frustum.
 		 */
-		auto &frustum() const { return frustum_; }
+		const std::vector<Frustum> &frustum() const { return frustum_; }
 
 		/**
 		 * @return the 8 points forming this Frustum.
 		 */
-		auto &frustum() { return frustum_; }
+		std::vector<Frustum> &frustum() { return frustum_; }
 
 		/**
 		 * @param useAudio true if this camera is the OpenAL audio listener.
@@ -183,13 +436,7 @@ namespace regen {
 		/**
 		 * @return true if this camera is the OpenAL audio listener.
 		 */
-		auto isAudioListener() const { return isAudioListener_; }
-
-		/**
-		 * Recompute the camera parameters.
-		 * @return true if the camera was updated.
-		 */
-		virtual bool updateCamera();
+		bool isAudioListener() const { return isAudioListener_; }
 
 		/**
 		 * Get the frustum planes as a UBO.
@@ -287,7 +534,15 @@ namespace regen {
 			fixedLODQuality_ = quality;
 		}
 
+		/**
+		 * Recompute the camera parameters.
+		 * @return true if the camera was updated.
+		 */
+		virtual bool updateCamera();
+
 		virtual void updateViewProjection1();
+
+		void updateShaderData(float dt);
 
 	protected:
 		unsigned int numLayer_ = 1;
@@ -304,22 +559,30 @@ namespace regen {
 		ref_ptr<ShaderInput4f> frustumData_;
 
 		ref_ptr<UBO> cameraBlock_;
-		//ref_ptr<ShaderInput1f> fov_;
-		//ref_ptr<ShaderInput1f> aspect_;
-		//ref_ptr<ShaderInput1f> far_;
-		//ref_ptr<ShaderInput1f> near_;
-		ref_ptr<ShaderInput4f> projParams_;
+		ref_ptr<ShaderInputMat4> sh_view_;
+		ref_ptr<ShaderInputMat4> sh_viewInv_;
+		ref_ptr<ShaderInputMat4> sh_viewProj_;
+		ref_ptr<ShaderInputMat4> sh_viewProjInv_;
+		ref_ptr<ShaderInput4f> sh_position_;
+		ref_ptr<ShaderInput4f> sh_direction_;
+		ref_ptr<ShaderInput4f> sh_vel_;
+		ref_ptr<ShaderInput4f> sh_projParams_;
+		ref_ptr<ShaderInputMat4> sh_proj_;
+		ref_ptr<ShaderInputMat4> sh_projInv_;
 
-		ref_ptr<ShaderInput4f> position_;
-		ref_ptr<ShaderInput4f> direction_;
-		ref_ptr<ShaderInput4f> vel_;
-
-		ref_ptr<ShaderInputMat4> view_;
-		ref_ptr<ShaderInputMat4> viewInv_;
-		ref_ptr<ShaderInputMat4> proj_;
-		ref_ptr<ShaderInputMat4> projInv_;
-		ref_ptr<ShaderInputMat4> viewProj_;
-		ref_ptr<ShaderInputMat4> viewProjInv_;
+		// note: in additional to the buffered shader inputs, we have
+		// a local-only copy of the camera data, which is used to
+		// provide most recent camera data to CPU computations.
+		std::vector<Mat4f> view_;
+		std::vector<Mat4f> viewInv_;
+		std::vector<Mat4f> viewProj_;
+		std::vector<Mat4f> viewProjInv_;
+		std::vector<Vec4f> position_;
+		std::vector<Vec4f> direction_;
+		std::vector<Vec4f> vel_;
+		std::vector<ProjectionParams> projParams_;
+		std::vector<Mat4f> proj_;
+		std::vector<Mat4f> projInv_;
 
 		ref_ptr<Animation> attachedMotion_;
 		ref_ptr<ShaderInputMat4> attachedTransform_;
@@ -329,15 +592,47 @@ namespace regen {
 
 		virtual bool updateView();
 
-		virtual void updateViewProjection(unsigned int projectionIndex, unsigned int viewIndex);
+		virtual void updateViewProjection(uint32_t projectionIndex, uint32_t viewIndex);
 
 		void createFrustumBuffer();
 
+		template<typename T>
+		inline void setStamped(
+				std::vector<T> &vec, uint32_t &stamp, uint32_t idx, const T &value) {
+			vec[idx] = value;
+			stamp += 1;
+			camStamp_ += 1;
+		}
+
+		inline void setStamped3(
+				std::vector<Vec4f> &vec, uint32_t &stamp, uint32_t idx, const Vec3f &value) {
+			vec[idx].xyz_() = value;
+			stamp += 1;
+			camStamp_ += 1;
+		}
+
 	private:
-		unsigned int projectionStamp_ = 0u;
-		unsigned int posStamp_ = 0u;
-		unsigned int dirStamp_ = 0u;
-		unsigned int poseStamp_ = 0u;
+		uint32_t viewStamp_ = 1u;
+		uint32_t viewInvStamp_ = 1u;
+		uint32_t viewProjStamp_ = 1u;
+		uint32_t viewProjInvStamp_ = 1u;
+		uint32_t positionStamp_ = 1u;
+		uint32_t directionStamp_ = 1u;
+		uint32_t velStamp_ = 1u;
+		uint32_t projStamp_ = 1u;
+		uint32_t projInvStamp_ = 1u;
+		uint32_t projParamsStamp_ = 1u;
+
+		uint32_t lastViewStamp1_ = 0u;
+		uint32_t lastProjStamp1_ = 0u;
+		uint32_t lastPosStamp1_ = 0u;
+		uint32_t lastDirStamp1_ = 0u;
+		uint32_t lastProjParamsStamp1_ = 0u;
+		uint32_t lastProjStamp_ = 0u;
+		uint32_t lastPosStamp_ = 0u;
+		uint32_t lastDirStamp_ = 0u;
+		uint32_t poseStamp_ = 0u;
+		std::vector<Vec3f> lastPosition_;
 	};
 
 	class ProjectionUpdater : public EventHandler {
@@ -350,13 +645,6 @@ namespace regen {
 	protected:
 		ref_ptr<Camera> cam_;
 		ref_ptr<ShaderInput2i> windowViewport_;
-	};
-
-	struct ProjectionParams {
-		float near = 0.1f; // near plane distance
-		float far = 100.0f; // far plane distance
-		float aspect = 1.0f; // aspect ratio
-		float fov = 60.0f; // field of view in degrees
 	};
 } // namespace
 

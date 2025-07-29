@@ -129,7 +129,7 @@ void DirectShading::addLight(
 	}
 
 	if (camera.get()) {
-		setInput(camera->lightCamera()->projParams(), REGEN_LIGHT_NAME("lightProjParams", lightID));
+		setInput(camera->lightCamera()->sh_projParams(), REGEN_LIGHT_NAME("lightProjParams", lightID));
 		setInput(camera->lightMatrix(), REGEN_LIGHT_NAME("lightMatrix", lightID));
 	}
 	if (shadow.get()) {
@@ -170,7 +170,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 		for (const auto &jt: l->inputs()) { removeInput(jt.in_); }
 	}
 	if (directLight.camera_.get()) {
-		removeInput(directLight.camera_->lightCamera()->projParams());
+		removeInput(directLight.camera_->lightCamera()->sh_projParams());
 		removeInput(directLight.camera_->lightMatrix());
 	}
 	if (directLight.shadow_.get()) {

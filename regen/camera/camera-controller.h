@@ -1,10 +1,3 @@
-/*
- * camera-manipulator.h
- *
- *  Created on: 29.02.2012
- *      Author: daniel
- */
-
 #ifndef CAMERA_MANIPULATOR_H_
 #define CAMERA_MANIPULATOR_H_
 
@@ -248,26 +241,26 @@ namespace regen {
 		Vec3f pos_;
 		Vec3f step_;
 		//Vec3f dir_;
-		GLdouble horizontalOrientation_;
-		GLdouble verticalOrientation_;
-		GLfloat orientThreshold_;
+		double horizontalOrientation_;
+		double verticalOrientation_;
+		float orientThreshold_;
 		Vec3f dirXZ_;
 		Vec3f dirSidestep_;
-		GLfloat moveAmount_;
+		float moveAmount_;
 		Quaternion rot_;
 
-		GLboolean moveForward_;
-		GLboolean moveBackward_;
-		GLboolean moveLeft_;
-		GLboolean moveRight_;
-		GLboolean moveUp_;
-		GLboolean moveDown_;
-		GLboolean isMoving_;
-		GLdouble lastOrientation_;
+		bool moveForward_ = false;
+		bool moveBackward_ = false;
+		bool moveLeft_ = false;
+		bool moveRight_ = false;
+		bool moveUp_ = false;
+		bool moveDown_ = false;
+		bool isMoving_ = false;
+		double lastOrientation_;
 
 		Vec3f meshEyeOffset_;
-		GLdouble meshHorizontalOrientation_;
-		GLboolean hasUpdated_;
+		double meshHorizontalOrientation_;
+		bool hasUpdated_ = false;
 
 		void updateCameraPosition();
 		void updateCameraOrientation();

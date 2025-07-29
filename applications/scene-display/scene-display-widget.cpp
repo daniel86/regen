@@ -249,8 +249,8 @@ void SceneDisplayWidget::toggleOnCameraTransform() {
     if (cameraController_.get()) {
         // update the camera position
         cameraController_->setTransform(
-            mainCamera_->position()->getVertex(0).r.xyz_(),
-            mainCamera_->direction()->getVertex(0).r.xyz_());
+            mainCamera_->position(0),
+            mainCamera_->direction(0));
         cameraController_->startAnimation();
         cameraController_->animate(0.0);
     }
@@ -265,12 +265,10 @@ double SceneDisplayWidget::getAnchorTime(
 
 void SceneDisplayWidget::activateAnchor() {
     auto &anchor = anchors_[anchorIndex_];
-    auto camPos = mainCamera_->position()->getVertex(0);
-    auto camDir = mainCamera_->direction()->getVertex(0);
-    auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos.r.xyz_(), camDir.r.xyz_());
-    double dt = getAnchorTime(anchor->position(), camPos.r.xyz_());
-    camPos.unmap();
-    camDir.unmap();
+    auto &camPos = mainCamera_->position(0);
+    auto &camDir = mainCamera_->direction(0);
+    auto cameraAnchor = ref_ptr<FixedCameraAnchor>::alloc(camPos, camDir);
+    double dt = getAnchorTime(anchor->position(), camPos);
 
     anchorAnim_ = ref_ptr<KeyFrameController>::alloc(mainCamera_);
     anchorAnim_->setRepeat(GL_FALSE);
@@ -318,17 +316,15 @@ void SceneDisplayWidget::playAnchor() {
     //anchorAnim_->setSkipFirstFrameOnLoop(GL_TRUE);
     anchorAnim_->setEaseInOutIntensity(anchorEaseInOutIntensity_);
     anchorAnim_->setPauseBetweenFrames(anchorPauseTime_);
-    auto camPos = mainCamera_->position()->getVertex(0);
-    auto camDir = mainCamera_->direction()->getVertex(0);
-    anchorAnim_->push_back(camPos.r.xyz_(), camDir.r.xyz_(), 0.0);
-    Vec3f lastPos = camPos.r.xyz_();
+    auto camPos = mainCamera_->position(0);
+    auto camDir = mainCamera_->direction(0);
+    anchorAnim_->push_back(camPos, camDir, 0.0);
+    Vec3f lastPos = camPos;
     for (auto &anchor: anchors_) {
         double dt = getAnchorTime(anchor->position(), lastPos);
         anchorAnim_->push_back(anchor, dt * anchorTimeScale_);
         lastPos = anchor->position();
     }
-    camPos.unmap();
-    camDir.unmap();
     anchorAnim_->animate(0.0);
     anchorAnim_->startAnimation();
 }
@@ -442,8 +438,8 @@ void SceneDisplayWidget::toggleCameraPopup() {
         cameraPopup->setLayout(layout);
     }
 
-    Vec3f position = mainCamera_->position()->getVertex(0).r.xyz_();
-    Vec3f direction = mainCamera_->direction()->getVertex(0).r.xyz_();
+    Vec3f position = mainCamera_->position(0);
+    Vec3f direction = mainCamera_->direction(0);
 
     positionLineEdit->setText(QString("%1, %2, %3").arg(position.x).arg(position.y).arg(position.z));
     directionLineEdit->setText(QString("%1, %2, %3").arg(direction.x).arg(direction.y).arg(direction.z));
@@ -939,15 +935,28 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     ref_ptr<SceneInputXML> xmlInput = ref_ptr<SceneInputXML>::alloc(sceneFile);
     scene::SceneLoader sceneParser(app_, xmlInput);
     sceneParser.setNodeProcessor(ref_ptr<ViewNodeProcessor>::alloc(&viewNodes_));
+    ref_ptr<SceneInputNode> root = sceneParser.getRoot();
+    ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
+    if (configurationNode.get() == nullptr) { configurationNode = root; }
+
+    for (const auto &x: configurationNode->getChildren()) {
+        if (x->getCategory() == string("animation")) {
+            if (x->getValue("type") == string("asset")) {
+                handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x, animations_);
+            }
+        } else if (x->getCategory() == string("camera")) {
+            handleCameraConfiguration(sceneParser, x);
+        } else if (x->getCategory() == string("mouse")) {
+            handleMouseConfiguration(app_, sceneParser, eventHandler_, x);
+        }
+    }
+
     sceneParser.processNode(tree, "root", "node");
     physics_ = sceneParser.getPhysics();
     eventHandler_ = sceneParser.getEventHandler();
     spatialIndices_ = sceneParser.getResources()->getIndices();
     app_->initializeScene();
 
-    ref_ptr<SceneInputNode> root = sceneParser.getRoot();
-    ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
-    if (configurationNode.get() == nullptr) { configurationNode = root; }
 
     /////////////////////////////
     //////// Configure World Time
@@ -973,23 +982,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     if (configurationNode->hasAttribute("timestamp")) {
         auto time_d = configurationNode->getValue<double>("timestamp", 0.0);
         app_->setWorldTime(static_cast<time_t>(time_d));
-    }
-
-    /////////////////////////////
-    //////// Configuration Node
-    /////////////////////////////
-
-    // Process node children
-    for (const auto &x: configurationNode->getChildren()) {
-        if (x->getCategory() == string("animation")) {
-            if (x->getValue("type") == string("asset")) {
-                handleAssetAnimationConfiguration(app_, sceneParser, eventHandler_, x, animations_);
-            }
-        } else if (x->getCategory() == string("camera")) {
-            handleCameraConfiguration(sceneParser, x);
-        } else if (x->getCategory() == string("mouse")) {
-            handleMouseConfiguration(app_, sceneParser, eventHandler_, x);
-        }
     }
 
     /////////////////////////////

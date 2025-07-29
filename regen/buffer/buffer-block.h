@@ -63,13 +63,18 @@ namespace regen {
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer block
 		 */
-		BufferBlock(const BufferBlock &other);
+		BufferBlock(
+				const BufferBlock &other,
+				const std::string &forcedBlockName="",
+				const std::string &inputPrefixToAdd="");
 
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer object
 		 */
-		explicit BufferBlock(const BufferObject &other, const std::string &name="");
+		explicit BufferBlock(
+				const BufferObject &other,
+				const std::string &name="");
 
 		~BufferBlock() override;
 

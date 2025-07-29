@@ -22,7 +22,7 @@ bool LightCamera_Spot::updateSpotLight() {
 		updateViewProjection(0, 0);
 		updateFrustumBuffer();
 		// Transforms world space coordinates to homogenous light space
-		lightMatrix_->setVertex(0, viewProj_->getVertex(0).r * Mat4f::bias());
+		lightMatrix_->setVertex(0, viewProjection(0) * Mat4f::bias());
 		camStamp_ += 1;
 		return true;
 	}
@@ -49,7 +49,7 @@ bool LightCamera_Spot::updateLightView() {
 		lightDirStamp_ == light_->direction()->stamp()) { return false; }
 	lightPosStamp_ = light_->position()->stamp();
 	lightDirStamp_ = light_->direction()->stamp();
-	position_->setVertex3(0, light_->position()->getVertex(0).r.xyz_());
-	direction_->setVertex3(0, light_->direction()->getVertex(0).r);
+	setPosition(0, light_->position()->getVertex(0).r.xyz_());
+	setDirection(0, light_->direction()->getVertex(0).r);
 	return updateView();
 }

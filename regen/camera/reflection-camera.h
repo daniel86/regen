@@ -1,12 +1,5 @@
-/*
- * reflection-camera.h
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
-#ifndef REFLECTION_CAMERA_H_
-#define REFLECTION_CAMERA_H_
+#ifndef REGEN_REFLECTION_CAMERA_H_
+#define REGEN_REFLECTION_CAMERA_H_
 
 #include <regen/camera/camera.h>
 #include <regen/meshes/mesh-state.h>
@@ -73,4 +66,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* REFLECTION_CAMERA_H_ */
+#endif /* REGEN_REFLECTION_CAMERA_H_ */

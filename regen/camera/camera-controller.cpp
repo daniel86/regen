@@ -1,10 +1,3 @@
-/*
- * camera-manipulator.cpp
- *
- *  Created on: 29.02.2012
- *      Author: daniel
- */
-
 #include <regen/av/audio.h>
 
 #include "camera-controller.h"
@@ -16,24 +9,16 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 		  CameraControllerBase(cam),
 		  cameraMode_(FIRST_PERSON),
 		  meshDistance_(10.0f),
-		  lastOrientation_(0.0),
-		  hasUpdated_(GL_FALSE) {
+		  lastOrientation_(0.0) {
 	setAnimationName("controller");
 	horizontalOrientation_ = 0.0;
 	verticalOrientation_ = 0.0;
 	meshHorizontalOrientation_ = 0.0;
 	moveAmount_ = 1.0;
-	moveForward_ = GL_FALSE;
-	moveBackward_ = GL_FALSE;
-	moveLeft_ = GL_FALSE;
-	moveRight_ = GL_FALSE;
-	moveUp_ = GL_FALSE;
-	moveDown_ = GL_FALSE;
-	isMoving_ = GL_FALSE;
 	matVal_ = Mat4f::identity();
 	#define REGEN_ORIENT_THRESHOLD_ 0.1
 	orientThreshold_ = 0.5 * M_PI + REGEN_ORIENT_THRESHOLD_;
-	pos_ = cam->position()->getVertex(0).r.xyz_();
+	pos_ = cam->position(0);
 }
 
 void CameraController::setAttachedTo(
@@ -144,7 +129,7 @@ void CameraController::updateCameraOrientation() {
 void CameraController::updateModel() {
 	if (attachedToTransform_.get()) {
 		// Simple rotation matrix around up vector (0,1,0)
-		GLfloat cy = cos(horizontalOrientation_), sy = sin(horizontalOrientation_);
+		float cy = cos(horizontalOrientation_), sy = sin(horizontalOrientation_);
 		matVal_.x[0] = cy;
 		matVal_.x[2] = sy;
 		matVal_.x[8] = -sy;
