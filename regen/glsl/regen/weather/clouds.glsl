@@ -224,11 +224,11 @@ void main() {
     layerIntersection(eye, o, in_altitude, t);
 
 #ifdef USE_SCATTER
-    vec2 sd = scatter(eye, normalize(in_sun_lightDirection.xyz));
+    vec2 sd = scatter(eye, normalize(in_lightDirection_Sun.xyz));
     sd.y *= (1.0 - pow(t, 0.8) * 12e-3);
     out_color = vec4(mix(in_tcolor, in_bcolor, sd.x) * (1 - sd.x), sd.y);
 #else
-    float sunFactor = smoothstep(-0.1, 0.1, in_sun_lightDirection.y);
+    float sunFactor = smoothstep(-0.1, 0.1, in_lightDirection_Sun.y);
     vec3 cloudColor = mix(vec3(0.4,0.3,0.3), in_color, sunFactor);
     out_color = vec4(cloudColor, T(in_cloudTexture, o + t * eye));
 #endif

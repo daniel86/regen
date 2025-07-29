@@ -5,7 +5,7 @@ using namespace regen;
 LightCamera_Spot::LightCamera_Spot(const ref_ptr<Light> &light)
 		: Camera(1, light->lightUBO()->bufferUpdateHints()),
 		  LightCamera(light, this) {
-	setInput(lightMatrix_);
+	setInput(shadowBuffer_);
 	shaderDefine("RENDER_TARGET", "2D");
 	// Update matrices
 	updateSpotLight();
@@ -22,7 +22,7 @@ bool LightCamera_Spot::updateSpotLight() {
 		updateViewProjection(0, 0);
 		updateFrustumBuffer();
 		// Transforms world space coordinates to homogenous light space
-		lightMatrix_->setVertex(0, viewProjection(0) * Mat4f::bias());
+		v_lightMatrix_[0] = viewProjection(0) * Mat4f::bias();
 		camStamp_ += 1;
 		return true;
 	}

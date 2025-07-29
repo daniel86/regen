@@ -21,7 +21,7 @@ const float in_scale = 0.1;
 #define HANDLE_IO(i)
 
 void main(void) {
-    vec3 m = in_moon_lightDirection.xzy;
+    vec3 m = in_lightDirection_Moon.xzy;
     vec3 u = normalize(cross(vec3(0, 1, 0), m));
     vec3 v = normalize(cross(u,m));
     out_eye = m - (in_pos.x*u + in_pos.y*v)*in_scale;
@@ -161,8 +161,8 @@ void main(void)
     // convert normals to horizontal space
     vec3 h_n = mix(hn, in_tangent * s_n, in_surface);
     // brdf
-    float cos_p = dot(-eye, in_sun_lightDirection.xyz);
-    float cos_i = dot( in_sun_lightDirection.xyz, h_n);
+    float cos_p = dot(-eye, in_lightDirection_Sun.xyz);
+    float cos_i = dot( in_lightDirection_Sun.xyz, h_n);
     float cos_r = dot(-eye, h_n);
     float f = brdf(cos_r, cos_i, cos_p);
     

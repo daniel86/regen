@@ -1,7 +1,6 @@
 #include <regen/states/state-configurer.h>
 #include <regen/meshes/primitives/box.h>
 #include <regen/meshes/primitives/rectangle.h>
-#include <regen/textures/texture.h>
 
 #include "light-pass.h"
 #include "regen/scene/shader-input-processor.h"
@@ -117,6 +116,10 @@ void LightPass::createShader(const StateConfig &cfg) {
 				numInstances_ = std::max(numInstances_, in.in_->numInstances());
 			}
 		}
+		if (firstLight.camera.get()) {
+			auto &shadowBuffer = firstLight.camera->shadowBuffer();
+			_cfg.addInput(shadowBuffer->name(), shadowBuffer);
+		}
 	}
 	if (numInstances_ > 1) {
 		_cfg.define("HAS_INSTANCES", "TRUE");
@@ -143,7 +146,7 @@ void LightPass::addLightInput(LightPassLight &light) {
 	// add shadow uniforms
 	if (light.camera.get()) {
 		addInputLocation(light, light.camera->lightCamera()->sh_projParams(), "lightProjParams");
-		addInputLocation(light, light.camera->lightMatrix(), "lightMatrix");
+		addInputLocation(light, light.camera->shadowBuffer(), "Shadow");
 	}
 	if (light.shadow.get()) {
 		auto shadowSizeInv = createUniform<ShaderInput2f>(

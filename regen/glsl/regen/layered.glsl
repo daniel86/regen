@@ -16,10 +16,10 @@ int computeCascadeLayer(vec4 pos) {
     //       However, in this case the depth value is read from the depth buffer, render target
     //       is different etc. Some ideas are precision issues, or problem with linear vs.
     //       non-linear depth values.
-    vec3 dir = in_userPosition - pos.xyz;
+    vec3 dir = in_cameraPosition_User - pos.xyz;
     float d = length(dir);
-    d = abs(dot(dir/d, in_userDirection)) * d;
-    d = 0.5 * (in_userProjection[3][2] / d - in_userProjection[2][2]) + 0.5;
+    d = abs(dot(dir/d, in_cameraDirection_User)) * d;
+    d = 0.5 * (in_cameraProjection_User[3][2] / d - in_cameraProjection_User[2][2]) + 0.5;
     // get the first layer where pos is located before the far plane
     int layer = ${RENDER_LAYER};
     #for LAYER to ${RENDER_LAYER}

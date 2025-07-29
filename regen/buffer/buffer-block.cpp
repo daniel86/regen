@@ -57,7 +57,7 @@ BufferBlock::BufferBlock(
 BufferBlock::BufferBlock(
 			const BufferBlock &other,
 			const std::string &forcedBlockName,
-			const std::string &inputPrefixToAd)
+			const std::string &inputSuffixToAdd)
 		: BufferObject(other),
 		  ShaderInput(
 		  		forcedBlockName.empty() ? other.name() : forcedBlockName,
@@ -78,10 +78,9 @@ BufferBlock::BufferBlock(
 		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
 		  shared_(other.shared_) {
 	// rename the inputs if a prefix is given
-	if (!inputPrefixToAd.empty()) {
+	if (!inputSuffixToAdd.empty()) {
 		for (uint32_t inputIdx = 0; inputIdx < inputs_.size(); ++inputIdx) {
-			auto &namedInput = inputs_[inputIdx];
-			namedInput.name_ = inputPrefixToAd + namedInput.name_;
+			inputs_[inputIdx].name_ += inputSuffixToAdd;
 		}
 	}
 	clientBuffer_ = other.clientBuffer_;

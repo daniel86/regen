@@ -60,7 +60,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	sun_->specular()->setVertex(0, Vec3f(0.0f));
 	sun_->diffuse()->setVertex(0, Vec3f(0.0f));
 	sun_->direction()->setVertex(0, Vec3f(1.0f));
-	state()->setInput(ref_ptr<UBO>::alloc(*sun_->lightUBO().get(), "SunLight", "sun_"));
+	state()->setInput(ref_ptr<UBO>::alloc(*sun_->lightUBO().get(), "SunLight", "_Sun"));
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
 	q_->setUniformData(0.0f);
@@ -76,7 +76,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	moon_->specular()->setVertex(0, Vec3f(0.0f));
 	moon_->diffuse()->setVertex(0, Vec3f(0.0f));
 	moon_->direction()->setVertex(0, Vec3f(1.0f));
-	state()->setInput(ref_ptr<UBO>::alloc(*moon_->lightUBO().get(), "MoonLight", "moon_"));
+	state()->setInput(ref_ptr<UBO>::alloc(*moon_->lightUBO().get(), "MoonLight", "_Moon"));
 
 	state()->setInput(uniformBlock);
 

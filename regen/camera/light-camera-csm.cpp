@@ -80,18 +80,17 @@ LightCamera_CSM::LightCamera_CSM(
 	sh_position_->setUniformUntyped();
 	sh_position_->setVertex(0, Vec4f::zero());
 
-	lightMatrix_->set_numArrayElements(numLayer_);
-	lightMatrix_->set_forceArray(true);
-	lightMatrix_->setUniformUntyped();
-	setInput(lightMatrix_);
+	v_lightMatrix_.resize(numLayer, Mat4f::identity());
+	sh_lightMatrix_->set_numArrayElements(numLayer_);
+	sh_lightMatrix_->set_forceArray(true);
+	sh_lightMatrix_->setUniformUntyped();
+	setInput(shadowBuffer_);
 	// these are needed to compute the CSM layer given a position
+	// TODO: rather use UBO for this?
 	setInput(sh_projParams_, "lightProjParams");
 	setInput(ref_ptr<UBO>::alloc(
 		*userCamera_->cameraBlock().get(),
-		"UserCamera", "user_"));
-	//setInput(userCamera_->position(), "userPosition");
-	//setInput(userCamera_->direction(), "userDirection");
-	//setInput(userCamera_->projection(), "userProjection");
+		"UserCamera", "_User"));
 
 	updateDirectionalLight();
 }
@@ -111,8 +110,8 @@ bool LightCamera_CSM::updateDirectionalLight() {
 	if (changed) {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
-		for (unsigned int i = 0; i < lightMatrix_->numArrayElements(); ++i) {
-			lightMatrix_->setVertex(i, viewProjection(i) * Mat4f::bias());
+		for (unsigned int i = 0; i < v_lightMatrix_.size(); ++i) {
+			v_lightMatrix_[i] = viewProjection(i) * Mat4f::bias();
 		}
 		camStamp_ += 1;
 	}

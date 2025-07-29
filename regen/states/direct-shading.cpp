@@ -3,7 +3,6 @@
 #include "direct-shading.h"
 #include "regen/camera/light-camera-parabolic.h"
 #include "regen/scene/node-processor.h"
-#include <regen/textures/texture.h>
 
 using namespace regen;
 
@@ -113,12 +112,20 @@ void DirectShading::addLight(
 			if (it.in_->isBufferBlock()) {
 				// if the input is a uniform block, we add all uniforms to the shader
 				// to avoid name clash.
-				// TODO: find a way to use UBO without the name clash
 				auto *block = dynamic_cast<BufferBlock *>(it.in_.get());
-				for (auto &blockUniform: block->blockInputs()) {
-					setInput(
-							blockUniform.in_,
-							REGEN_LIGHT_NAME(blockUniform.name_, lightID));
+				auto *ubo = dynamic_cast<UBO *>(block);
+				if (ubo) {
+					setInput(ref_ptr<UBO>::alloc(
+							*ubo, block->name(),
+							REGEN_STRING(lightID)));
+				} else {
+					REGEN_WARN("Unexpected input type for light: "
+							   << it.in_->name() << " (" << block->name() << ")");
+					for (auto &blockUniform: block->blockInputs()) {
+						setInput(
+								blockUniform.in_,
+								REGEN_LIGHT_NAME(blockUniform.name_, lightID));
+					}
 				}
 			} else {
 				setInput(
@@ -130,7 +137,9 @@ void DirectShading::addLight(
 
 	if (camera.get()) {
 		setInput(camera->lightCamera()->sh_projParams(), REGEN_LIGHT_NAME("lightProjParams", lightID));
-		setInput(camera->lightMatrix(), REGEN_LIGHT_NAME("lightMatrix", lightID));
+		setInput(ref_ptr<UBO>::alloc(
+				*camera->shadowBuffer().get(),
+				"Shadow", REGEN_STRING(lightID)));
 	}
 	if (shadow.get()) {
 		directLight.shadowSizeInv_ = createUniform<ShaderInput2f>(
@@ -171,7 +180,7 @@ void DirectShading::removeLight(const ref_ptr<Light> &l) {
 	}
 	if (directLight.camera_.get()) {
 		removeInput(directLight.camera_->lightCamera()->sh_projParams());
-		removeInput(directLight.camera_->lightMatrix());
+		removeInput(directLight.camera_->sh_lightMatrix());
 	}
 	if (directLight.shadow_.get()) {
 		removeInput(directLight.shadowSizeInv_);

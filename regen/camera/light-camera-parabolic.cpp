@@ -5,10 +5,11 @@ using namespace regen;
 LightCamera_Parabolic::LightCamera_Parabolic(const ref_ptr<Light> &light, bool isDualParabolic)
 		: ParabolicCamera(isDualParabolic),
 		  LightCamera(light,this) {
-	lightMatrix_->set_numArrayElements(numLayer_);
-	lightMatrix_->set_forceArray(true);
-	lightMatrix_->setUniformUntyped();
-	setInput(lightMatrix_);
+	v_lightMatrix_.resize(numLayer_, Mat4f::identity());
+	sh_lightMatrix_->set_numArrayElements(numLayer_);
+	sh_lightMatrix_->set_forceArray(true);
+	sh_lightMatrix_->setUniformUntyped();
+	setInput(shadowBuffer_);
 	updateParabolicLight();
 }
 
@@ -20,9 +21,9 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 	if(updateLightProjection() || updateLightView()) {
 		updateViewProjection1();
 		// Transforms world space coordinates to homogenous light space
-		for (unsigned int i=0; i<lightMatrix_->numArrayElements(); ++i) {
+		for (unsigned int i=0; i<v_lightMatrix_.size(); ++i) {
 			// note: bias is not applied here, as the projection is done in shaders
-			lightMatrix_->setVertex(i, viewProjection(i));
+			v_lightMatrix_[i] = viewProjection(i);
 		}
 		camStamp_ += 1;
 		return true;

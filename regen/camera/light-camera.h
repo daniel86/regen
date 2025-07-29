@@ -19,15 +19,34 @@ namespace regen {
 		virtual ~LightCamera() = default;
 
 		/**
-		 * @return A matrix used to transform world space points to
-		 *          texture coordinates for shadow mapping.
+		 * The shadow buffer for the light camera stores the light matrix.
+		 * @return The shadow buffer.
 		 */
-		auto &lightMatrix() const { return lightMatrix_; }
+		const ref_ptr<UBO> &shadowBuffer() const { return shadowBuffer_; }
+
+		/**
+		 * The light matrix transforms world space points to
+		 * texture coordinates for shadow mapping.
+		 * @return The light matrix.
+		 */
+		const std::vector<Mat4f> &lightMatrix() const { return v_lightMatrix_; }
+
+		/**
+		 * Get the light matrix for a specific layer.
+		 * @param idx the layer index.
+		 * @return The light matrix for the layer.
+		 */
+		const Mat4f &lightMatrix(uint32_t idx) const { return v_lightMatrix_[idx]; }
+
+		/**
+		 * @return The light matrix shader input.
+		 */
+		const ref_ptr<ShaderInputMat4> &sh_lightMatrix() const { return sh_lightMatrix_; }
 
 		/**
 		 * @return The light camera.
 		 */
-		auto &lightCamera() const { return camera_; }
+		Camera* lightCamera() { return camera_; }
 
 		/**
 		 * @param near the near plane distance.
@@ -37,7 +56,7 @@ namespace regen {
 		/**
 		 * @return the near plane distance.
 		 */
-		auto lightNear() const { return lightNear_; }
+		float lightNear() const { return lightNear_; }
 
 		/**
 		 * Update the light camera.
@@ -45,11 +64,19 @@ namespace regen {
 		 */
 		virtual bool updateLight() = 0;
 
+		/**
+		 * Update the shadow shader data.
+		 */
+		void updateShadowData();
+
 	protected:
 		ref_ptr<Light> light_;
 		Camera *camera_;
-		ref_ptr<ShaderInputMat4> lightMatrix_;
 		ref_ptr<Animation> lightCameraAnimation_;
+
+		ref_ptr<UBO> shadowBuffer_;
+		ref_ptr<ShaderInputMat4> sh_lightMatrix_;
+		std::vector<Mat4f> v_lightMatrix_;
 
 		float lightNear_ = 0.1f;
 

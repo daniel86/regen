@@ -5,10 +5,11 @@ using namespace regen;
 LightCamera_Cube::LightCamera_Cube(const ref_ptr<Light> &light, int hiddenFacesMask)
 		: CubeCamera(hiddenFacesMask),
 		  LightCamera(light,this) {
-	lightMatrix_->set_numArrayElements(numLayer_);
-	lightMatrix_->set_forceArray(true);
-	lightMatrix_->setUniformUntyped();
-	setInput(lightMatrix_);
+	v_lightMatrix_.resize(numLayer_, Mat4f::identity());
+	sh_lightMatrix_->set_numArrayElements(numLayer_);
+	sh_lightMatrix_->set_forceArray(true);
+	sh_lightMatrix_->setUniformUntyped();
+	setInput(shadowBuffer_);
 	updateCubeLight();
 }
 
@@ -24,7 +25,7 @@ bool LightCamera_Cube::updateCubeLight() {
 		// Transforms world space coordinates to homogenous light space
 		for (auto i=0; i<6; ++i) {
 			if (isCubeFaceVisible(i)) {
-				lightMatrix_->setVertex(i, viewProjection(i) * Mat4f::bias());
+				v_lightMatrix_[i] = viewProjection(i) * Mat4f::bias();
 			}
 		}
 		camStamp_ += 1;

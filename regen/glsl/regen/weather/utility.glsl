@@ -125,7 +125,7 @@ float sunIntensity() {
 #ifdef HAS_sunPosition
     return 1.0 / sqrt(1 + pow(in_sunPosition.y + 1.14, 32));
 #else
-    return 1.0 / sqrt(1 + pow(in_sun_lightDirection.y + 1.14, 32));
+    return 1.0 / sqrt(1 + pow(in_lightDirection_Sun.y + 1.14, 32));
 #endif
 }
 #endif
