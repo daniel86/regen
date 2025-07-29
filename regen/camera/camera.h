@@ -1,6 +1,7 @@
 #ifndef REGEN_CAMERA_H
 #define REGEN_CAMERA_H
 
+#include <span>
 #include <regen/states/state.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/math/matrix.h>
@@ -252,7 +253,7 @@ namespace regen {
 		 * Get a vector of view matrices used to transform world-space to view-space.
 		 * @return the view matrices.
 		 */
-		const std::vector<Mat4f> &view() const { return view_; }
+		const std::span<Mat4f> &view() const { return view_; }
 
 		/**
 		 * Get the view matrix for a specific layer.
@@ -281,7 +282,7 @@ namespace regen {
 		 * Get a vector of inverse view matrices used to transform view-space to world-space.
 		 * @return the inverse view matrices.
 		 */
-		const std::vector<Mat4f> &viewInverse() const { return viewInv_; }
+		const std::span<Mat4f> &viewInverse() const { return viewInv_; }
 
 		/**
 		 * Get the inverse view matrix for a specific layer.
@@ -310,7 +311,7 @@ namespace regen {
 		 * Get a vector of projection matrices used to transform world-space to screen-space.
 		 * @return the projection matrices.
 		 */
-		const std::vector<Mat4f> &projection() const { return proj_; }
+		const std::span<Mat4f> &projection() const { return proj_; }
 
 		/**
 		 * Get the projection matrix for a specific layer.
@@ -339,7 +340,7 @@ namespace regen {
 		 * Get a vector of inverse projection matrices used to transform screen-space to world-space.
 		 * @return the inverse projection matrices.
 		 */
-		const std::vector<Mat4f> &projectionInverse() const { return projInv_; }
+		const std::span<Mat4f> &projectionInverse() const { return projInv_; }
 
 		/**
 		 * Get the inverse projection matrix for a specific layer.
@@ -368,7 +369,7 @@ namespace regen {
 		 * Get a vector of view-projection matrices used to transform world-space to screen-space.
 		 * @return the view-projection matrices.
 		 */
-		const std::vector<Mat4f> &viewProjection() const { return viewProj_; }
+		const std::span<Mat4f> &viewProjection() const { return viewProj_; }
 
 		/**
 		 * Get the view-projection matrix for a specific layer.
@@ -397,7 +398,7 @@ namespace regen {
 		 * Get a vector of inverse view-projection matrices used to transform screen-space to world-space.
 		 * @return the inverse view-projection matrices.
 		 */
-		const std::vector<Mat4f> &viewProjectionInverse() const { return viewProjInv_; }
+		const std::span<Mat4f> &viewProjectionInverse() const { return viewProjInv_; }
 
 		/**
 		 * Get the inverse view-projection matrix for a specific layer.
@@ -577,16 +578,22 @@ namespace regen {
 		// note: in additional to the buffered shader inputs, we have
 		// a local-only copy of the camera data, which is used to
 		// provide most recent camera data to CPU computations.
-		std::vector<Mat4f> view_;
-		std::vector<Mat4f> viewInv_;
-		std::vector<Mat4f> viewProj_;
-		std::vector<Mat4f> viewProjInv_;
+		std::vector<Mat4f> viewData_;
+		std::span<Mat4f> view_;
+		std::span<Mat4f> viewInv_;
+
+		std::vector<Mat4f> viewProjData_;
+		std::span<Mat4f> viewProj_;
+		std::span<Mat4f> viewProjInv_;
+
 		std::vector<Vec4f> direction_;
 		std::vector<Vec4f> position_;
 		std::vector<Vec4f> vel_;
 		std::vector<ProjectionParams> projParams_;
-		std::vector<Mat4f> proj_;
-		std::vector<Mat4f> projInv_;
+
+		std::vector<Mat4f> projData_;
+		std::span<Mat4f> proj_;
+		std::span<Mat4f> projInv_;
 
 		ref_ptr<Animation> attachedMotion_;
 		ref_ptr<ShaderInputMat4> attachedTransform_;
@@ -603,6 +610,14 @@ namespace regen {
 		template<typename T>
 		inline void setStamped(
 				std::vector<T> &vec, uint32_t &stamp, uint32_t idx, const T &value) {
+			vec[idx] = value;
+			stamp += 1;
+			camStamp_ += 1;
+		}
+
+		template<typename T>
+		inline void setStamped(
+				std::span<T> &vec, uint32_t &stamp, uint32_t idx, const T &value) {
 			vec[idx] = value;
 			stamp += 1;
 			camStamp_ += 1;

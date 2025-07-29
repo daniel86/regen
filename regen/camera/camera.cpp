@@ -28,14 +28,22 @@ namespace regen {
 }
 
 template <typename T>
-static inline void setClamped(
-		std::vector<T> &vec, unsigned int idx, const T &value) {
+static inline void setClamped(std::vector<T> &vec, uint32_t idx, const T &value) {
 	vec[vec.size() <= idx ? 0u : idx] = value;
 }
 
 template <typename T>
-static inline const T& getClamped(
-		const std::vector<T> &vec, unsigned int idx) {
+static inline void setClamped(std::span<T> &vec, uint32_t idx, const T &value) {
+	vec[vec.size() <= idx ? 0u : idx] = value;
+}
+
+template <typename T>
+static inline const T& getClamped(const std::vector<T> &vec, uint32_t idx) {
+	return vec.size() <= idx ? vec[0] : vec[idx];
+}
+
+template <typename T>
+static inline const T& getClamped(const std::span<T> &vec, uint32_t idx) {
 	return vec.size() <= idx ? vec[0] : vec[idx];
 }
 
@@ -68,12 +76,17 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	sh_vel_ = ref_ptr<ShaderInput4f>::alloc("cameraVelocity");
 	sh_vel_->setUniformData(vel_[0]);
 
-	view_.resize(1, Mat4f::identity());
-	viewInv_.resize(1, Mat4f::identity());
-	viewProj_.resize(1, Mat4f::identity());
-	viewProjInv_.resize(1, Mat4f::identity());
-	proj_.resize(1, Mat4f::identity());
-	projInv_.resize(1, Mat4f::identity());
+	viewData_.resize(2, Mat4f::identity());
+	view_    = std::span<Mat4f>(viewData_).subspan(0, 1);
+	viewInv_ = std::span<Mat4f>(viewData_).subspan(1, 1);
+
+	viewProjData_.resize(2, Mat4f::identity());
+	viewProj_    = std::span<Mat4f>(viewProjData_).subspan(0, 1);
+	viewProjInv_ = std::span<Mat4f>(viewProjData_).subspan(1, 1);
+
+	projData_.resize(2, Mat4f::identity());
+	proj_    = std::span<Mat4f>(projData_).subspan(0, 1);
+	projInv_ = std::span<Mat4f>(projData_).subspan(1, 1);
 
 	sh_view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
 	sh_view_->setUniformData(Mat4f::identity());
@@ -158,32 +171,28 @@ void Camera::updateShaderData(float dt) {
 		uint32_t offset = 0, dataSize, dataSize2;
 		BufferRange2ui writtenRange;
 
-		dataSize = view_.size() * sizeof(Mat4f);
+		dataSize = view_.size() * sizeof(Mat4f) * 2;
 		if (viewChanged) {
 			lastViewStamp1_ = viewStamp_;
-			std::memcpy(mapped.w + offset, view_.data(), dataSize);
-			offset += dataSize;
-			std::memcpy(mapped.w + offset, viewInv_.data(), dataSize);
-			offset += dataSize;
+			std::memcpy(mapped.w + offset, viewData_.data(), dataSize);
 			sh_view_->clientBuffer().nextStamp(mapped.w_index);
 			sh_viewInv_->clientBuffer().nextStamp(mapped.w_index);
-			writtenRange.size = dataSize * 2;
+			offset += dataSize;
+			writtenRange.size = dataSize;
 		} else {
-			offset = dataSize*2;
+			offset = dataSize;
 			writtenRange.offset = offset;
 		}
 
-		dataSize = viewProj_.size() * sizeof(Mat4f);
+		dataSize = viewProj_.size() * sizeof(Mat4f) * 2;
 		if (viewChanged || projChanged) {
-			std::memcpy(mapped.w + offset, viewProj_.data(), dataSize);
-			offset += dataSize;
-			std::memcpy(mapped.w + offset, viewProjInv_.data(), dataSize);
-			offset += dataSize;
+			std::memcpy(mapped.w + offset, viewProjData_.data(), dataSize);
 			sh_viewProj_->clientBuffer().nextStamp(mapped.w_index);
 			sh_viewProjInv_->clientBuffer().nextStamp(mapped.w_index);
-			writtenRange.size += dataSize * 2;
+			offset += dataSize;
+			writtenRange.size += dataSize;
 		} else {
-			offset += dataSize*2;
+			offset += dataSize;
 			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
@@ -228,16 +237,14 @@ void Camera::updateShaderData(float dt) {
 			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
-		dataSize = proj_.size() * sizeof(Mat4f);
+		dataSize = proj_.size() * sizeof(Mat4f) * 2;
 		if (projChanged) {
 			lastProjStamp1_ = projStamp_;
-			std::memcpy(mapped.w + offset, proj_.data(), dataSize);
-			offset += dataSize;
-			std::memcpy(mapped.w + offset, projInv_.data(), dataSize);
-			//offset += dataSize;
+			std::memcpy(mapped.w + offset, projData_.data(), dataSize);
 			sh_proj_->clientBuffer().nextStamp(mapped.w_index);
 			sh_projInv_->clientBuffer().nextStamp(mapped.w_index);
-			writtenRange.size += dataSize * 2;
+			//offset += dataSize;
+			writtenRange.size += dataSize;
 		}
 
 		flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);

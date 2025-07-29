@@ -9,24 +9,24 @@ ParabolicCamera::ParabolicCamera(bool isDualParabolic)
 	shaderDefine("USE_PARABOLOID_PROJECTION", "TRUE");
 	isOmni_ = true;
 
-	// Set vector size
-	view_.resize(numLayer_, Mat4f::identity());
-	viewInv_.resize(numLayer_, Mat4f::identity());
-	viewProj_.resize(numLayer_, Mat4f::identity());
-	viewProjInv_.resize(numLayer_, Mat4f::identity());
-	direction_.resize(numLayer_);
-
-	// Set matrix array size
-	sh_view_->set_numArrayElements(numLayer_);
-	sh_viewInv_->set_numArrayElements(numLayer_);
-	sh_viewProj_->set_numArrayElements(numLayer_);
-	sh_viewProjInv_->set_numArrayElements(numLayer_);
-
-	// Allocate matrices
-	sh_view_->setUniformUntyped();
-	sh_viewInv_->setUniformUntyped();
-	sh_viewProj_->setUniformUntyped();
-	sh_viewProjInv_->setUniformUntyped();
+	{
+		viewData_.resize(numLayer_ * 2, Mat4f::identity());
+		view_    = std::span<Mat4f>(viewData_).subspan(0, numLayer_);
+		viewInv_ = std::span<Mat4f>(viewData_).subspan(numLayer_, numLayer_);
+		sh_view_->set_numArrayElements(numLayer_);
+		sh_viewInv_->set_numArrayElements(numLayer_);
+		sh_view_->setUniformUntyped();
+		sh_viewInv_->setUniformUntyped();
+	}
+	{
+		viewProjData_.resize(numLayer_ * 2, Mat4f::identity());
+		viewProj_    = std::span<Mat4f>(viewProjData_).subspan(0, numLayer_);
+		viewProjInv_ = std::span<Mat4f>(viewProjData_).subspan(numLayer_, numLayer_);
+		sh_viewProj_->set_numArrayElements(numLayer_);
+		sh_viewProjInv_->set_numArrayElements(numLayer_);
+		sh_viewProj_->setUniformUntyped();
+		sh_viewProjInv_->setUniformUntyped();
+	}
 
 	// Projection is calculated in shaders.
 	proj_[0] = Mat4f::identity();
@@ -42,6 +42,7 @@ ParabolicCamera::ParabolicCamera(bool isDualParabolic)
 	}
 
 	// Initialize directions.
+	direction_.resize(numLayer_);
 	sh_direction_->set_numArrayElements(numLayer_);
 	sh_direction_->setUniformUntyped();
 	direction_[0] = Vec4f(0.0, 0.0, 1.0, 0.0);

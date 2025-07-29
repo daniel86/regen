@@ -11,25 +11,24 @@ CubeCamera::CubeCamera(int hiddenFacesMask)
 	isOmni_ = true;
 	//isOmni_ = (hiddenFacesMask_ == 0);
 
-	// Set matrix array size
-	// NOTE: the matrices are indexed by layer, so even if some faces are hidden,
-	// the matrices are still allocated for all faces. Could change the shaders to
-	// compute index based on layer and face visibility, instead of using gl_Layer directly.
-	view_.resize(numLayer_);
-	viewInv_.resize(numLayer_);
-	viewProj_.resize(numLayer_);
-	viewProjInv_.resize(numLayer_);
-
-	sh_view_->set_numArrayElements(numLayer_);
-	sh_viewInv_->set_numArrayElements(numLayer_);
-	sh_viewProj_->set_numArrayElements(numLayer_);
-	sh_viewProjInv_->set_numArrayElements(numLayer_);
-
-	// Allocate matrices
-	sh_view_->setUniformUntyped();
-	sh_viewInv_->setUniformUntyped();
-	sh_viewProj_->setUniformUntyped();
-	sh_viewProjInv_->setUniformUntyped();
+	{
+		viewData_.resize(numLayer_ * 2, Mat4f::identity());
+		view_    = std::span<Mat4f>(viewData_).subspan(0, numLayer_);
+		viewInv_ = std::span<Mat4f>(viewData_).subspan(numLayer_, numLayer_);
+		sh_view_->set_numArrayElements(numLayer_);
+		sh_viewInv_->set_numArrayElements(numLayer_);
+		sh_view_->setUniformUntyped();
+		sh_viewInv_->setUniformUntyped();
+	}
+	{
+		viewProjData_.resize(numLayer_ * 2, Mat4f::identity());
+		viewProj_    = std::span<Mat4f>(viewProjData_).subspan(0, numLayer_);
+		viewProjInv_ = std::span<Mat4f>(viewProjData_).subspan(numLayer_, numLayer_);
+		sh_viewProj_->set_numArrayElements(numLayer_);
+		sh_viewProjInv_->set_numArrayElements(numLayer_);
+		sh_viewProj_->setUniformUntyped();
+		sh_viewProjInv_->setUniformUntyped();
+	}
 
 	// Initialize directions
 	direction_.resize(numLayer_);
