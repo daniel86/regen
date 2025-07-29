@@ -36,64 +36,163 @@ namespace regen {
 		/**
 		 * @return the light type.
 		 */
-		auto lightType() const { return lightType_; }
+		Type lightType() const { return lightType_; }
 
 		/**
 		 * @return the light uniforms.
 		 */
-		auto &lightUBO() const { return lightUniforms_; }
+		const ref_ptr<UBO> &lightUBO() const { return lightBuffer_; }
 
 		/**
 		 * Sets whether the light is distance attenuated.
 		 */
-		void set_isAttenuated(GLboolean isAttenuated) { isAttenuated_ = isAttenuated; }
+		void set_isAttenuated(bool isAttenuated) { isAttenuated_ = isAttenuated; }
 
 		/**
 		 * @return is the light distance attenuated.
 		 */
-		auto isAttenuated() const { return isAttenuated_; }
+		bool isAttenuated() const { return isAttenuated_; }
 
 		/**
 		 * @return the world space light position.
 		 * @note undefined for directional lights.
 		 */
-		const ref_ptr<ShaderInput4f> &position() const { return lightPosition_; }
+		const std::vector<Vec4f> &position() const { return lightPosition_; }
+
+		/**
+		 * Get the shader input for the light position.
+		 * @return the shader input for the light position.
+		 */
+		const ref_ptr<ShaderInput4f> &sh_position() const { return sh_lightPosition_; }
+
+		/**
+		 * Get the light position for a specific layer.
+		 * @param idx the layer index.
+		 * @return the light position for the specified layer.
+		 */
+		const Vec4f &position(uint32_t idx) const { return lightPosition_[idx]; }
+
+		/**
+		 * @return the stamp indicating when the light position was last updated.
+		 */
+		uint32_t positionStamp() const { return lightPosStamp_; }
+
+		/**
+		 * Sets the light position for a specific layer.
+		 * @param idx the layer index.
+		 * @param v the light position to set.
+		 */
+		void setPosition(uint32_t idx, const Vec3f &v) {
+			setStamped3(lightPosition_, lightPosStamp_, idx, v);
+		}
 
 		/**
 		 * @return the light direction.
 		 * @note undefined for point lights.
 		 */
-		auto &direction() const { return lightDirection_; }
+		const std::vector<Vec3f> &direction() const { return lightDirection_; }
+
+		/**
+		 * Get the light direction for a specific layer.
+		 * @param idx the layer index.
+		 * @return the light direction for the specified layer.
+		 */
+		const Vec3f &direction(uint32_t idx) const { return lightDirection_[idx]; }
+
+		/**
+		 * @return the stamp indicating when the light direction was last updated.
+		 */
+		uint32_t directionStamp() const { return lightDirStamp_; }
+
+		/**
+		 * Sets the light direction for a specific layer.
+		 * @param idx the layer index.
+		 * @param v the light direction to set.
+		 */
+		void setDirection(uint32_t idx, const Vec3f &v) {
+			setStamped(lightDirection_, lightDirStamp_, idx, v);
+		}
 
 		/**
 		 * @return diffuse light color.
 		 */
-		auto &diffuse() const { return lightDiffuse_; }
+		const std::vector<Vec3f> &diffuse() const { return lightDiffuse_; }
+
+		/**
+		 * Get the diffuse light color for a specific layer.
+		 * @param idx the layer index.
+		 * @return the diffuse light color for the specified layer.
+		 */
+		void setDiffuse(uint32_t idx, const Vec3f &v) {
+			setStamped(lightDiffuse_, lightDiffuseStamp_, idx, v);
+		}
 
 		/**
 		 * @return specular light color.
 		 */
-		auto &specular() const { return lightSpecular_; }
+		const std::vector<Vec3f> &specular() const { return lightSpecular_; }
+
+		/**
+		 * Get the specular light color for a specific layer.
+		 * @param idx the layer index.
+		 * @return the specular light color for the specified layer.
+		 */
+		void setSpecular(uint32_t idx, const Vec3f &v) {
+			setStamped(lightSpecular_, lightSpecularStamp_, idx, v);
+		}
 
 		/**
 		 * @return inner and outer light radius.
 		 */
-		auto &radius() const { return lightRadius_; }
+		const std::vector<Vec2f> &radius() const { return lightRadius_; }
+
+		/**
+		 * Get the light radius for a specific layer.
+		 * @param idx the layer index.
+		 * @return the light radius for the specified layer.
+		 */
+		const Vec2f &radius(uint32_t idx) const { return lightRadius_[idx]; }
+
+		/**
+		 * @return the stamp indicating when the light radius was last updated.
+		 */
+		uint32_t radiusStamp() const { return lightRadiusStamp_; }
+
+		/**
+		 * Sets the light radius for a specific layer.
+		 * @param idx the layer index.
+		 * @param v the light radius to set.
+		 */
+		void setRadius(uint32_t idx, const Vec2f &v) {
+			setStamped(lightRadius_, lightRadiusStamp_, idx, v);
+		}
 
 		/**
 		 * @return inner and outer cone angles.
 		 */
-		auto &coneAngle() const { return lightConeAngles_; }
+		const std::vector<Vec2f> &coneAngle() const { return lightConeAngles_; }
+
+		/**
+		 * Get the cone angle for a specific layer.
+		 * @param idx the layer index.
+		 * @return the cone angle for the specified layer.
+		 */
+		const Vec2f &coneAngle(uint32_t idx) const { return lightConeAngles_[idx]; }
+
+		/**
+		 * @return the stamp indicating when the cone angles were last updated.
+		 */
+		uint32_t coneAngleStamp() const { return lightConeAnglesStamp_; }
 
 		/**
 		 * @param deg inner angle in degree.
 		 */
-		void set_innerConeAngle(GLfloat deg);
+		void set_innerConeAngle(float deg);
 
 		/**
 		 * @param deg outer angle in degree.
 		 */
-		void set_outerConeAngle(GLfloat deg);
+		void set_outerConeAngle(float deg);
 
 		/**
 		 * @return cone rotation matrix.
@@ -105,23 +204,62 @@ namespace regen {
 		 */
 		void updateConeMatrix();
 
+		/**
+		 * @brief Update the shader data for this light.
+		 */
+		void updateShaderData();
+
 	protected:
 		const Type lightType_;
-		GLboolean isAttenuated_;
+		bool isAttenuated_;
 
-		ref_ptr<UBO> lightUniforms_;
-		ref_ptr<ShaderInput4f> lightPosition_;
-		ref_ptr<ShaderInput3f> lightDirection_;
-		ref_ptr<ShaderInput3f> lightDiffuse_;
-		ref_ptr<ShaderInput3f> lightSpecular_;
-		ref_ptr<ShaderInput2f> lightConeAngles_;
-		ref_ptr<ShaderInput2f> lightRadius_;
+		ref_ptr<UBO> lightBuffer_;
+		ref_ptr<ShaderInput4f> sh_lightPosition_;
+		ref_ptr<ShaderInput3f> sh_lightDirection_;
+		ref_ptr<ShaderInput3f> sh_lightDiffuse_;
+		ref_ptr<ShaderInput3f> sh_lightSpecular_;
+		ref_ptr<ShaderInput2f> sh_lightConeAngles_;
+		ref_ptr<ShaderInput2f> sh_lightRadius_;
+
+		std::vector<Vec4f> lightPosition_;
+		std::vector<Vec3f> lightDirection_;
+		std::vector<Vec3f> lightDiffuse_;
+		std::vector<Vec3f> lightSpecular_;
+		std::vector<Vec2f> lightConeAngles_;
+		std::vector<Vec2f> lightRadius_;
+
+		uint32_t lightPosStamp_ = 1;
+		uint32_t lightDirStamp_ = 1;
+		uint32_t lightDiffuseStamp_ = 1;
+		uint32_t lightSpecularStamp_ = 1;
+		uint32_t lightConeAnglesStamp_ = 1;
+		uint32_t lightRadiusStamp_ = 1;
+
+		uint32_t lastPosStamp_ = 0;
+		uint32_t lastDirStamp_ = 0;
+		uint32_t lastDiffuseStamp_ = 0;
+		uint32_t lastSpecularStamp_ = 0;
+		uint32_t lastConeAnglesStamp_ = 0;
+		uint32_t lastRadiusStamp_ = 0;
 
 		ref_ptr<Animation> coneAnimation_;
 		ref_ptr<ModelTransformation> coneMatrix_;
-		GLuint coneMatrixStamp_;
+		uint32_t coneMatrixStamp_;
 
 		void updateConeMatrix_();
+
+		template<typename T>
+		static inline void setStamped(
+				std::vector<T> &vec, uint32_t &stamp, uint32_t idx, const T &value) {
+			vec[idx] = value;
+			stamp += 1;
+		}
+
+		static inline void setStamped3(
+				std::vector<Vec4f> &vec, uint32_t &stamp, uint32_t idx, const Vec3f &value) {
+			vec[idx].xyz_() = value;
+			stamp += 1;
+		}
 	};
 
 	std::ostream &operator<<(std::ostream &out, const Light::Type &v);

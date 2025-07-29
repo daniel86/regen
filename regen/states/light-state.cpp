@@ -18,6 +18,11 @@ namespace regen {
 	};
 }
 
+template <typename T>
+static inline const T& getClamped(const std::vector<T> &vec, uint32_t idx) {
+	return vec.size() <= idx ? vec[0] : vec[idx];
+}
+
 Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 		: State(),
 		  lightType_(lightType),
@@ -32,37 +37,44 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 			break;
 	}
 
-	lightUniforms_ = ref_ptr<UBO>::alloc("Light", updateFlags);
-	setInput(lightUniforms_);
+	lightBuffer_ = ref_ptr<UBO>::alloc("Light", updateFlags);
+	setInput(lightBuffer_);
 
-	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
-	lightRadius_->setUniformData(Vec2f(999999.9, 999999.9));
-	lightUniforms_->addBlockInput(lightRadius_);
+	lightRadius_.resize(1, Vec2f(999999.9, 999999.9));
+	sh_lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
+	sh_lightRadius_->setUniformData(lightRadius_[0]);
+	lightBuffer_->addBlockInput(sh_lightRadius_);
 
-	lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
-	lightConeAngles_->setUniformData(Vec2f(0.0f));
-	lightUniforms_->addBlockInput(lightConeAngles_);
+	lightConeAngles_.resize(1, Vec2f(0.0f, 0.0f));
+	sh_lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
+	sh_lightConeAngles_->setUniformData(lightConeAngles_[0]);
+	lightBuffer_->addBlockInput(sh_lightConeAngles_);
 
-	lightPosition_ = ref_ptr<ShaderInput4f>::alloc("lightPosition");
-	lightPosition_->setUniformData(Vec4f(1.0f, 1.0f, 1.0f, 0.0f));
-	lightPosition_->setSchema(InputSchema::position());
-	lightUniforms_->addBlockInput(lightPosition_);
+	lightPosition_.resize(1, Vec4f(1.0f, 1.0f, 1.0f, 0.0f));
+	sh_lightPosition_ = ref_ptr<ShaderInput4f>::alloc("lightPosition");
+	sh_lightPosition_->setUniformData(lightPosition_[0]);
+	sh_lightPosition_->setSchema(InputSchema::position());
+	lightBuffer_->addBlockInput(sh_lightPosition_);
 
-	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
-	lightDirection_->setUniformData(Vec3f(1.0, 1.0, -1.0));
-	lightDirection_->setSchema(InputSchema::direction());
-	lightUniforms_->addBlockInput(lightDirection_);
+	lightDirection_.resize(1, Vec3f(1.0f, 1.0f, -1.0f));
+	sh_lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
+	sh_lightDirection_->setUniformData(lightDirection_[0]);
+	sh_lightDirection_->setSchema(InputSchema::direction());
+	lightBuffer_->addBlockInput(sh_lightDirection_);
 
-	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
-	lightDiffuse_->setUniformData(Vec3f(0.7f));
-	lightDiffuse_->setSchema(InputSchema::color());
-	lightUniforms_->addBlockInput(lightDiffuse_);
+	lightDiffuse_.resize(1, Vec3f(0.7f));
+	sh_lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
+	sh_lightDiffuse_->setUniformData(lightDiffuse_[0]);
+	sh_lightDiffuse_->setSchema(InputSchema::color());
+	lightBuffer_->addBlockInput(sh_lightDiffuse_);
 
-	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
-	lightSpecular_->setUniformData(Vec3f(1.0f));
-	lightSpecular_->setSchema(InputSchema::color());
-	lightUniforms_->addBlockInput(lightSpecular_);
+	lightSpecular_.resize(1, Vec3f(1.0f));
+	sh_lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
+	sh_lightSpecular_->setUniformData(lightSpecular_[0]);
+	sh_lightSpecular_->setSchema(InputSchema::color());
+	lightBuffer_->addBlockInput(sh_lightSpecular_);
 
+	lightConeAngles_.resize(1, Vec2f(0.0f, 0.0f));
 	set_innerConeAngle(50.0f);
 	set_outerConeAngle(55.0f);
 
@@ -74,20 +86,59 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 	}
 }
 
-void Light::set_innerConeAngle(GLfloat deg) {
-	auto data = lightConeAngles_->mapClientVertex<Vec2f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
-	data.w = Vec2f(cos(2.0f * M_PIf * deg / 360.0f), data.r.y);
+void Light::updateShaderData() {
+	if (lastPosStamp_ != lightPosStamp_) {
+		lastPosStamp_ = lightPosStamp_;
+		auto m_dir = sh_lightPosition_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_dir.w, lightPosition_.data(), lightPosition_.size() * sizeof(Vec4f));
+		m_dir.unmap();
+	}
+	if (lastDirStamp_ != lightDirStamp_) {
+		lastDirStamp_ = lightDirStamp_;
+		auto m_dir = sh_lightDirection_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_dir.w, lightDirection_.data(), lightDirection_.size() * sizeof(Vec3f));
+		m_dir.unmap();
+	}
+	if (lastDiffuseStamp_ != lightDiffuseStamp_) {
+		lastDiffuseStamp_ = lightDiffuseStamp_;
+		auto m_diff = sh_lightDiffuse_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_diff.w, lightDiffuse_.data(), lightDiffuse_.size() * sizeof(Vec3f));
+		m_diff.unmap();
+	}
+	if (lastSpecularStamp_ != lightSpecularStamp_) {
+		lastSpecularStamp_ = lightSpecularStamp_;
+		auto m_spec = sh_lightSpecular_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_spec.w, lightSpecular_.data(), lightSpecular_.size() * sizeof(Vec3f));
+		m_spec.unmap();
+	}
+	if (lastConeAnglesStamp_ != lightConeAnglesStamp_) {
+		lastConeAnglesStamp_ = lightConeAnglesStamp_;
+		auto m_cone = sh_lightConeAngles_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_cone.w, lightConeAngles_.data(), lightConeAngles_.size() * sizeof(Vec2f));
+		m_cone.unmap();
+	}
+	if (lastRadiusStamp_ != lightRadiusStamp_) {
+		lastRadiusStamp_ = lightRadiusStamp_;
+		auto m_radius = sh_lightRadius_->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_radius.w, lightRadius_.data(), lightRadius_.size() * sizeof(Vec2f));
+		m_radius.unmap();
+	}
 }
 
-void Light::set_outerConeAngle(GLfloat deg) {
-	auto data = lightConeAngles_->mapClientVertex<Vec2f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
-	data.w = Vec2f(data.r.x, cos(2.0f * M_PIf * deg / 360.0f));
+void Light::set_innerConeAngle(float deg) {
+	lightConeAngles_[0].x = cos(2.0f * M_PIf * deg / 360.0f);
+	lightConeAnglesStamp_ += 1;
+}
+
+void Light::set_outerConeAngle(float deg) {
+	lightConeAngles_[0].y = cos(2.0f * M_PIf * deg / 360.0f);
+	lightConeAnglesStamp_ += 1;
 }
 
 void Light::updateConeMatrix() {
-	GLuint stamp = std::max(lightRadius_->stamp(), std::max(lightDirection_->stamp(),
-															std::max(lightConeAngles_->stamp(),
-																	 lightPosition_->stamp())));
+	GLuint stamp = std::max(lightRadiusStamp_, std::max(lightDirStamp_,
+															std::max(lightConeAnglesStamp_,
+																	 lightPosStamp_)));
 	if (coneMatrixStamp_ != stamp) {
 		coneMatrixStamp_ = stamp;
 		updateConeMatrix_();
@@ -96,22 +147,22 @@ void Light::updateConeMatrix() {
 
 void Light::updateConeMatrix_() {
 	// Note: cone opens in positive z direction.
-	auto numInstances = std::max(lightPosition_->numInstances(), lightDirection_->numInstances());
+	auto numInstances = std::max(lightPosition_.size(), lightDirection_.size());
 	if (coneMatrix_->modelMat()->numInstances() != numInstances) {
 		// ensure cone matrix has numInstances
 		coneMatrix_->modelMat()->setInstanceData(numInstances, 1, nullptr);
 	}
 
 	for (unsigned int i = 0; i < numInstances; ++i) {
-		auto dir = lightDirection_->getVertexClamped(i).r;
+		auto dir = getClamped(lightDirection_, i);
 		dir.normalize();
 		auto angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));
 
 		if (math::isApprox(abs(angleCos), 1.0)) {
 			coneMatrix_->modelMat()->setVertex(i, Mat4f::identity());
 		} else {
-			const auto radius = lightRadius_->getVertexClamped(i).r.y;
-			const auto coneAngle = lightConeAngles_->getVertexClamped(i).r.y;
+			auto radius = getClamped(lightRadius_,i).y;
+			auto coneAngle = getClamped(lightConeAngles_,i).y;
 
 			// Quaternion rotates view to light direction
 			Quaternion q;
@@ -123,7 +174,7 @@ void Light::updateConeMatrix_() {
 			auto x = 2.0f * radius * tan(acos(coneAngle));
 			auto val = q.calculateMatrix();
 			val.scale(Vec3f(x, x, radius));
-			val.translate(lightPosition_->getVertexClamped(i).r.xyz_());
+			val.translate(getClamped(lightPosition_,i).xyz_());
 			coneMatrix_->modelMat()->setVertex(i, val);
 		}
 	}
@@ -201,17 +252,11 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 
 	auto dir = input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f));
 	dir.normalize();
-	light->direction()->setVertex(0, dir);
-	light->position()->setVertex3(0,
-								 input.getValue<Vec3f>("position", Vec3f(0.0f)));
-	light->direction()->setVertex(0,
-								  input.getValue<Vec3f>("direction", Vec3f(0.0f, 0.0f, 1.0f)));
-	light->diffuse()->setVertex(0,
-								input.getValue<Vec3f>("diffuse", Vec3f(1.0f)));
-	light->specular()->setVertex(0,
-								 input.getValue<Vec3f>("specular", Vec3f(1.0f)));
-	light->radius()->setVertex(0,
-							   input.getValue<Vec2f>("radius", Vec2f(50.0f)));
+	light->setDirection(0, dir);
+	light->setPosition(0, input.getValue<Vec3f>("position", Vec3f::zero()));
+	light->setDiffuse(0, input.getValue<Vec3f>("diffuse", Vec3f::one()));
+	light->setSpecular(0, input.getValue<Vec3f>("specular", Vec3f::one()));
+	light->setRadius(0, input.getValue<Vec2f>("radius", Vec2f(50.0f, 50.0f)));
 
 	auto angles = input.getValue<Vec2f>("cone-angles", Vec2f(50.0f, 55.0f));
 	light->set_innerConeAngle(angles.x);
@@ -245,7 +290,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				auto boidsAnimation = BoidsCPU::load(
 							boidsConfig,
 							*child.get(),
-							ref_ptr<ModelTransformation>::alloc(light->position()));
+							ref_ptr<ModelTransformation>::alloc(light->sh_position()));
 				light->attach(boidsAnimation);
 				boidsAnimation->startAnimation();
 			} else {
@@ -266,8 +311,8 @@ LightNode::LightNode(
 		const ref_ptr<AnimationNode> &n)
 		: State(), light_(light), animNode_(n) {}
 
-void LightNode::update(GLdouble dt) {
-	Vec3f v = animNode_->localTransform().transformVector(
-			light_->position()->getVertex(0).r.xyz_());
-	light_->position()->setVertex3(0, v);
+void LightNode::update(GLdouble /*dt*/) {
+	Vec3f v = animNode_->localTransform().transformVector(light_->position(0).xyz_());
+	light_->setPosition(0, v);
+	light_->updateShaderData();
 }

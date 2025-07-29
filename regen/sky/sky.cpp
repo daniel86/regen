@@ -56,10 +56,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 
 	// directional light that approximates the sun
 	sun_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-	sun_->set_isAttenuated(GL_FALSE);
-	sun_->specular()->setVertex(0, Vec3f(0.0f));
-	sun_->diffuse()->setVertex(0, Vec3f(0.0f));
-	sun_->direction()->setVertex(0, Vec3f(1.0f));
+	sun_->set_isAttenuated(false);
+	sun_->setSpecular(0, Vec3f(0.0f));
+	sun_->setDiffuse(0, Vec3f(0.0f));
+	sun_->setDirection(0, Vec3f(1.0f));
+	sun_->updateShaderData();
 	state()->setInput(ref_ptr<UBO>::alloc(*sun_->lightUBO().get(), "SunLight", "_Sun"));
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
@@ -72,10 +73,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 
 	// directional light that approximates the moon
 	moon_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-	moon_->set_isAttenuated(GL_FALSE);
-	moon_->specular()->setVertex(0, Vec3f(0.0f));
-	moon_->diffuse()->setVertex(0, Vec3f(0.0f));
-	moon_->direction()->setVertex(0, Vec3f(1.0f));
+	moon_->set_isAttenuated(false);
+	moon_->setSpecular(0, Vec3f(0.0f));
+	moon_->setDiffuse(0, Vec3f(0.0f));
+	moon_->setDirection(0, Vec3f(1.0f));
+	moon_->updateShaderData();
 	state()->setInput(ref_ptr<UBO>::alloc(*moon_->lightUBO().get(), "MoonLight", "_Moon"));
 
 	state()->setInput(uniformBlock);
@@ -201,19 +203,17 @@ void Sky::animate(GLdouble dt) {
 	// Compute sun/moon directions
 	Vec3f moon = astro_->getMoonPosition(false);
 	Vec3f sun = astro_->getSunPosition(false);
-	sun_->direction()->setVertex(0, sun);
-	moon_->direction()->setVertex(0, moon);
+	sun_->setDirection(0, sun);
+	moon_->setDirection(0, moon);
 	// Compute sun/moon diffuse color
 	GLfloat sunExt = computeEyeExtinction(sun);
 	Vec3f sunColor = math::mix(dawnColor_, noonColor_, abs(sunExt));
-	sun_->diffuse()->setVertex(0, computeColor(
+	sun_->setDiffuse(0, computeColor(
 			sunColor,
-			sunExt)
-	);
-	moon_->diffuse()->setVertex(0, computeColor(
+			sunExt));
+	moon_->setDiffuse(0, computeColor(
 			sunColor * moonSunLightReflectance_,
-			computeEyeExtinction(moon))
-	);
+			computeEyeExtinction(moon)));
 	R_->setVertex(0, astro().getEquToHorTransform());
 
 	if (camStamp_ != cam_->stamp() || viewportStamp_ != viewport_->stamp()) {
@@ -226,6 +226,9 @@ void Sky::animate(GLdouble dt) {
 		camStamp_ = cam_->stamp();
 		viewportStamp_ = viewport_->stamp();
 	}
+
+	sun_->updateShaderData();
+	moon_->updateShaderData();
 	// Update random number in cmn uniform
 	updateSeed();
 }

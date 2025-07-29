@@ -70,7 +70,9 @@ Atmosphere::Atmosphere(
 	///////
 	/// Update State
 	///////
-	updateState_->setInput(sky->sun()->direction(), "sunDir");
+	updateState_->setInput(ref_ptr<UBO>::alloc(
+		*sky->sun()->lightUBO().get(),
+		"SunLight", "_Sun"));
 	updateState_->setInput(mie_);
 	updateState_->setInput(rayleigh_);
 	updateState_->setInput(spotBrightness_);

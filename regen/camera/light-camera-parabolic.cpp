@@ -32,25 +32,24 @@ bool LightCamera_Parabolic::updateParabolicLight() {
 }
 
 bool LightCamera_Parabolic::updateLightProjection() {
-	if (lightRadiusStamp_ == light_->radius()->stamp()) { return false; }
-	auto radius = light_->radius()->getVertex(0);
-	lightRadiusStamp_ = light_->radius()->stamp();
-	setPerspective(1.0f, 180.0f, lightNear_, radius.r.y);
+	if (lightRadiusStamp_ == light_->radiusStamp()) { return false; }
+	auto &radius = light_->radius(0);
+	lightRadiusStamp_ = light_->radiusStamp();
+	setPerspective(1.0f, 180.0f, lightNear_, radius.y);
 	return true;
 }
 
 bool LightCamera_Parabolic::updateLightView() {
-	if (lightPosStamp_ == light_->position()->stamp() &&
-		lightDirStamp_ == light_->direction()->stamp()) { return false; }
-	auto dir = light_->direction()->getVertex(0);
-	lightPosStamp_ = light_->position()->stamp();
-	lightDirStamp_ = light_->direction()->stamp();
+	if (lightPosStamp_ == light_->positionStamp() &&
+		lightDirStamp_ == light_->directionStamp()) { return false; }
+	auto &dir = light_->direction(0);
+	lightPosStamp_ = light_->positionStamp();
+	lightDirStamp_ = light_->directionStamp();
 	// Set the position of the light camera
-	setPosition(0, light_->position()->getVertex(0).r.xyz_());
-	setDirection(0, -dir.r);
+	setPosition(0, light_->position(0).xyz_());
+	setDirection(0, -dir);
 	if (hasBackFace_) {
-		setDirection(1, dir.r);
+		setDirection(1, dir);
 	}
-	dir.unmap();
 	return updateView();
 }

@@ -55,7 +55,7 @@ void main(void) {
 out vec4 out_color;
 in vec3 in_pos;
 
-uniform vec3 in_sunDir;
+uniform vec3 in_lightDirection_Sun;
 // brightness, strength, collection power
 uniform vec3 in_rayleigh;
 // brightness, strength, collection power, distribution
@@ -117,7 +117,7 @@ const float in_cloudTimeFactor = 0.2;
 #include regen.weather.utility.absorb
 #ifdef USE_CLOUDS
 float sunIntensity() {
-    return 1.0 - 1.0 / sqrt(1 + pow(in_sunDir.y + 1.14, 32));
+    return 1.0 - 1.0 / sqrt(1 + pow(in_lightDirection_Sun.y + 1.14, 32));
 }
 #endif
 
@@ -137,8 +137,8 @@ void main(void)
     {
         float sampleDistance = stepLength*float(i);
         vec3 position = eyePosition + eyedir*sampleDistance;
-        float sampleExtinction = computeHorizonExtinction(position, in_sunDir, surfaceHeight-0.35);
-        float sampleDepth = computeAtmosphericDepth(position, in_sunDir);
+        float sampleExtinction = computeHorizonExtinction(position, in_lightDirection_Sun, surfaceHeight-0.35);
+        float sampleDepth = computeAtmosphericDepth(position, in_lightDirection_Sun);
         
         vec3 influx = absorb(sampleDepth, vec3(intensity), in_scatterStrength)*sampleExtinction;
         rayleighCollected += absorb(sampleDistance, in_skyAbsorption*influx, in_rayleigh.y);
@@ -149,7 +149,7 @@ void main(void)
     rayleighCollected *= pow(eyeDepth, in_rayleigh.z)*collectedFactor;
     mieCollected      *= pow(eyeDepth, in_mie.z)*collectedFactor;
 
-    float alpha = dot(eyedir, in_sunDir);
+    float alpha = dot(eyedir, in_lightDirection_Sun);
     out_color.rgb  = smoothstep(0.0, 15.0, phase(alpha, 0.9995))*in_spotBrightness* mieCollected;
     out_color.rgb += phase(alpha, in_mie.w)*in_mie.x* mieCollected;
     out_color.rgb += phase(alpha, -0.01)*in_rayleigh.x * rayleighCollected;

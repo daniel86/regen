@@ -35,17 +35,17 @@ bool LightCamera_Cube::updateCubeLight() {
 }
 
 bool LightCamera_Cube::updateLightProjection() {
-	if (lightRadiusStamp_ == light_->radius()->stamp()) { return false; }
-	lightRadiusStamp_ = light_->radius()->stamp();
+	if (lightRadiusStamp_ == light_->radiusStamp()) { return false; }
+	lightRadiusStamp_ = light_->radiusStamp();
 
-	auto radius = light_->radius()->getVertex(0);
-	setPerspective(1.0f, 90.0f, lightNear_, radius.r.y);
+	auto radius = light_->radius(0);
+	setPerspective(1.0f, 90.0f, lightNear_, radius.y);
 	return true;
 }
 
 bool LightCamera_Cube::updateLightView() {
-	if (lightPosStamp_ == light_->position()->stamp()) { return false; }
-	lightPosStamp_ = light_->position()->stamp();
-	setPosition(0, light_->position()->getVertex(0).r.xyz_());
+	if (lightPosStamp_ == light_->positionStamp()) { return false; }
+	lightPosStamp_ = light_->positionStamp();
+	setPosition(0, light_->position(0).xyz_());
 	return updateView();
 }

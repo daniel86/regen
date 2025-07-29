@@ -131,7 +131,7 @@ static void setLightRadius(aiLight *aiLight, ref_ptr<Light> &light) {
 	GLfloat inner = -z + sqrt(z * z - (ax / start - 1.0f / (start * az)));
 	GLfloat outer = -z + sqrt(z * z - (ax / stop - 1.0f / (stop * az)));
 
-	light->radius()->setVertex(0, Vec2f(inner, outer));
+	light->setRadius(0, Vec2f(inner, outer));
 }
 
 vector<ref_ptr<Light> > AssetImporter::loadLights() {
@@ -147,19 +147,19 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 		switch (assimpLight->mType) {
 			case aiLightSource_DIRECTIONAL: {
 				light = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-				light->direction()->setVertex(0, *((Vec3f *) &lightPos.x));
+				light->setDirection(0, *((Vec3f *) &lightPos.x));
 				break;
 			}
 			case aiLightSource_POINT: {
 				light = ref_ptr<Light>::alloc(Light::POINT);
-				light->position()->setVertex3(0, *((Vec3f *) &lightPos.x));
+				light->setPosition(0, *((Vec3f *) &lightPos.x));
 				setLightRadius(assimpLight, light);
 				break;
 			}
 			case aiLightSource_SPOT: {
 				light = ref_ptr<Light>::alloc(Light::SPOT);
-				light->position()->setVertex3(0, *((Vec3f *) &lightPos.x));
-				light->direction()->setVertex(0, *((Vec3f *) &assimpLight->mDirection.x));
+				light->setPosition(0, *((Vec3f *) &lightPos.x));
+				light->setDirection(0, *((Vec3f *) &assimpLight->mDirection.x));
 				light->set_outerConeAngle(
 						acos(assimpLight->mAngleOuterCone) * 360.0f / (2.0f * M_PI));
 				light->set_innerConeAngle(
@@ -179,8 +179,9 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 
 		lightToAiLight_[light.get()] = assimpLight;
 		//light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
-		light->diffuse()->setVertex(0, aiToOgle(&assimpLight->mColorDiffuse));
-		light->specular()->setVertex(0, aiToOgle(&assimpLight->mColorSpecular));
+		light->setDiffuse(0, aiToOgle(&assimpLight->mColorDiffuse));
+		light->setSpecular(0, aiToOgle(&assimpLight->mColorSpecular));
+		light->updateShaderData();
 
 		ret[i] = light;
 	}
