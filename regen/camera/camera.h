@@ -96,6 +96,10 @@ namespace regen {
 		 */
 		void setPerspective(float aspect, float fov, float near, float far, unsigned int layer);
 
+		/**
+		 * Update frustum projection and projection matrix.
+		 * @param params the projection parameters: near, far, aspect, fov.
+		 */
 		void setPerspective(const ProjectionParams &params);
 
 		/**

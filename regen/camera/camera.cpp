@@ -18,7 +18,9 @@ namespace regen {
 				: Animation(false, true),
 				  camera_(camera) {}
 
-		void animate(double dt) override { camera_->updatePose(); }
+		void animate(double dt) override {
+			camera_->updatePose();
+		}
 
 	private:
 		Camera *camera_;
@@ -110,6 +112,18 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	setInput(cameraBlock_);
 }
 
+static inline void flushWritten(
+		ClientBuffer &clientBuffer,
+		uint32_t mappedIndex,
+		uint32_t endOffset,
+		BufferRange2ui &writtenRange) {
+	if (writtenRange.size > 0) {
+		clientBuffer.markWrittenTo(mappedIndex, writtenRange.offset, writtenRange.size);
+		writtenRange.size = 0; // no more data written
+	}
+	writtenRange.offset = endOffset;
+}
+
 void Camera::updateShaderData(float dt) {
 	// Update velocity
 	if (lastPosition_.size() != position_.size()) {
@@ -142,80 +156,91 @@ void Camera::updateShaderData(float dt) {
 				BUFFER_GPU_WRITE,
 				0u, clientBuffer.dataSize());
 		uint32_t offset = 0, dataSize, dataSize2;
+		BufferRange2ui writtenRange;
 
 		dataSize = view_.size() * sizeof(Mat4f);
 		if (viewChanged) {
 			lastViewStamp1_ = viewStamp_;
-			clientBuffer.markWrittenTo(mapped.w_index, 0, dataSize*2);
 			std::memcpy(mapped.w + offset, view_.data(), dataSize);
 			offset += dataSize;
 			std::memcpy(mapped.w + offset, viewInv_.data(), dataSize);
 			offset += dataSize;
 			sh_view_->clientBuffer().nextStamp(mapped.w_index);
 			sh_viewInv_->clientBuffer().nextStamp(mapped.w_index);
+			writtenRange.size = dataSize * 2;
 		} else {
-			offset += dataSize*2;
+			offset = dataSize*2;
+			writtenRange.offset = offset;
 		}
 
 		dataSize = viewProj_.size() * sizeof(Mat4f);
 		if (viewChanged || projChanged) {
-			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize*2);
 			std::memcpy(mapped.w + offset, viewProj_.data(), dataSize);
 			offset += dataSize;
 			std::memcpy(mapped.w + offset, viewProjInv_.data(), dataSize);
 			offset += dataSize;
 			sh_viewProj_->clientBuffer().nextStamp(mapped.w_index);
 			sh_viewProjInv_->clientBuffer().nextStamp(mapped.w_index);
+			writtenRange.size += dataSize * 2;
 		} else {
 			offset += dataSize*2;
+			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		dataSize = direction_.size() * sizeof(Vec4f);
 		if (lastDirStamp1_ != directionStamp_) {
 			lastDirStamp1_ = directionStamp_;
-			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize);
 			std::memcpy(mapped.w + offset, direction_.data(), dataSize);
 			sh_direction_->clientBuffer().nextStamp(mapped.w_index);
+			offset += dataSize;
+			writtenRange.size += dataSize;
+		} else {
+			offset += dataSize;
+			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
-		offset += dataSize;
 
 		if (lastPosStamp1_ != positionStamp_) {
 			lastPosStamp1_ = positionStamp_;
 			dataSize = position_.size() * sizeof(Vec4f);
 			dataSize2 = vel_.size() * sizeof(Vec4f);
-			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize + dataSize2);
 			std::memcpy(mapped.w + offset, position_.data(), dataSize);
 			offset += dataSize;
 			std::memcpy(mapped.w + offset, vel_.data(), dataSize2);
 			offset += dataSize2;
 			sh_position_->clientBuffer().nextStamp(mapped.w_index);
 			sh_vel_->clientBuffer().nextStamp(mapped.w_index);
+			writtenRange.size += dataSize + dataSize2;
 		} else {
 			offset += position_.size() * sizeof(Vec4f);
 			offset += vel_.size() * sizeof(Vec4f);
+			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
 		dataSize = projParams_.size() * sizeof(ProjectionParams);
 		if (lastProjParamsStamp1_ != projParamsStamp_) {
 			lastProjParamsStamp1_ = projParamsStamp_;
-			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize);
 			std::memcpy(mapped.w + offset, projParams_.data(), dataSize);
 			sh_projParams_->clientBuffer().nextStamp(mapped.w_index);
+			offset += dataSize;
+			writtenRange.size += dataSize;
+		} else {
+			offset += dataSize;
+			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
-		offset += dataSize;
 
 		dataSize = proj_.size() * sizeof(Mat4f);
 		if (projChanged) {
 			lastProjStamp1_ = projStamp_;
-			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize*2);
 			std::memcpy(mapped.w + offset, proj_.data(), dataSize);
 			offset += dataSize;
 			std::memcpy(mapped.w + offset, projInv_.data(), dataSize);
 			//offset += dataSize;
 			sh_proj_->clientBuffer().nextStamp(mapped.w_index);
 			sh_projInv_->clientBuffer().nextStamp(mapped.w_index);
+			writtenRange.size += dataSize * 2;
 		}
 
+		flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		clientBuffer.unmapRange(BUFFER_GPU_WRITE, 0u, 0u, mapped.w_index);
 	} else {
 		// The client buffer of the UBO was not initialized.
