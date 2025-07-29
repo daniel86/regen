@@ -85,7 +85,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 	modelOffset->setInstanceData(numInstances, instanceDivisor, (byte *) instanceData.data());
 	disjoinStates(tf_);
 
-	tf_->bufferContainer()->updateBuffer();
+	tf_->tfBuffer()->updateBuffer();
 	joinStates(tf_);
 }
 

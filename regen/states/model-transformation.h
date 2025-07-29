@@ -1,12 +1,5 @@
-/*
- * model-transformation.h
- *
- *  Created on: 05.08.2012
- *      Author: daniel
- */
-
-#ifndef MODEL_TRANSFORMATION_H_
-#define MODEL_TRANSFORMATION_H_
+#ifndef REGEN_MODEL_TRANSFORMATION_H_
+#define REGEN_MODEL_TRANSFORMATION_H_
 
 #include <regen/av/audio.h>
 #include <regen/math/quaternion.h>
@@ -81,6 +74,11 @@ namespace regen {
 		uint32_t stamp() const;
 
 		/**
+		 * @return The buffer object that contains the model transformation matrix.
+		 */
+		const ref_ptr<BufferContainer>& tfBuffer() const { return bufferContainer_; }
+
+		/**
 		 * @return the model transformation matrix.
 		 */
 		auto &modelMat() const { return modelMat_; }
@@ -94,11 +92,6 @@ namespace regen {
 		 * @return the model velocity.
 		 */
 		auto &velocity() const { return velocity_; }
-
-		/**
-		 * @return The buffer object that contains the model transformation matrix.
-		 */
-		auto& bufferContainer() const { return bufferContainer_; }
 
 		/**
 		 * @param audioSource the audio source attached to the world position
@@ -193,4 +186,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* MODEL_TRANSFORMATION_H_ */
+#endif /* REGEN_MODEL_TRANSFORMATION_H_ */

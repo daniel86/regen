@@ -99,7 +99,7 @@ void BoidsGPU::createResource() {
 	// SSBO for position, one per boid
 	if (tf_.get()) {
 		// bind UBO as SSBO for writing model matrix
-		auto bufferContainer = tf_->bufferContainer();
+		auto bufferContainer = tf_->tfBuffer();
 		bufferContainer->updateBuffer();
 		auto bufferObject = bufferContainer->getBufferObject(tf_->modelMat());
 		auto ssbo = ref_ptr<SSBO>::dynamicCast(bufferObject);

@@ -620,7 +620,7 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 		transformMatrix(scene, input, state, ctx.parent(), transform, 1u);
 	}
 
-	transform->bufferContainer()->updateBuffer();
+	transform->tfBuffer()->updateBuffer();
 	state->joinStates(transform);
 	scene->putResource<ModelTransformation>(input.getName(), transform);
 	return transform;

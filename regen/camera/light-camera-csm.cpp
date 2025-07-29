@@ -75,12 +75,11 @@ LightCamera_CSM::LightCamera_CSM(
 	}
 
 	projParams_.resize(numLayer);
-	position_.resize(numLayer, Vec4f::zero());
-
 	sh_projParams_->set_numArrayElements(numLayer_);
 	sh_projParams_->set_forceArray(true);
 	sh_projParams_->setUniformUntyped();
 
+	position_.resize(numLayer, Vec4f::zero());
 	sh_position_->set_numArrayElements(numLayer_);
 	sh_position_->set_forceArray(true);
 	sh_position_->setUniformUntyped();
@@ -92,7 +91,6 @@ LightCamera_CSM::LightCamera_CSM(
 	sh_lightMatrix_->setUniformUntyped();
 	setInput(shadowBuffer_);
 	// these are needed to compute the CSM layer given a position
-	// TODO: rather use UBO for this?
 	setInput(sh_projParams_, "lightProjParams");
 	setInput(ref_ptr<UBO>::alloc(
 		*userCamera_->cameraBlock().get(),

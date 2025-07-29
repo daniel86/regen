@@ -460,7 +460,7 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 	scene->putResource<ModelTransformation>(tfName, modelTransform);
 	ground->setModelTransform(modelTransform);
 	ground->updateAttributes();
-	modelTransform->bufferContainer()->updateBuffer();
+	modelTransform->tfBuffer()->updateBuffer();
 
 	ground->createResources();
 	ground->updateWeightMaps();
