@@ -596,6 +596,7 @@ void BufferBlock::updateDrawBuffer() {
 	isBlockValid_ = true;
 
 	allocatedSize_ = requiredSize_;
+	inputSize_ = requiredSize_;
 	// set draw buffer range to first segment in the ring buffer
 	drawBufferRange_->buffer_ = drawBufferRef_->bufferID();
 	drawBufferRange_->size_ = requiredSize_;

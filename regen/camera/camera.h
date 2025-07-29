@@ -563,8 +563,8 @@ namespace regen {
 		ref_ptr<ShaderInputMat4> sh_viewInv_;
 		ref_ptr<ShaderInputMat4> sh_viewProj_;
 		ref_ptr<ShaderInputMat4> sh_viewProjInv_;
-		ref_ptr<ShaderInput4f> sh_position_;
 		ref_ptr<ShaderInput4f> sh_direction_;
+		ref_ptr<ShaderInput4f> sh_position_;
 		ref_ptr<ShaderInput4f> sh_vel_;
 		ref_ptr<ShaderInput4f> sh_projParams_;
 		ref_ptr<ShaderInputMat4> sh_proj_;
@@ -577,8 +577,8 @@ namespace regen {
 		std::vector<Mat4f> viewInv_;
 		std::vector<Mat4f> viewProj_;
 		std::vector<Mat4f> viewProjInv_;
-		std::vector<Vec4f> position_;
 		std::vector<Vec4f> direction_;
+		std::vector<Vec4f> position_;
 		std::vector<Vec4f> vel_;
 		std::vector<ProjectionParams> projParams_;
 		std::vector<Mat4f> proj_;
@@ -616,8 +616,8 @@ namespace regen {
 		uint32_t viewInvStamp_ = 1u;
 		uint32_t viewProjStamp_ = 1u;
 		uint32_t viewProjInvStamp_ = 1u;
-		uint32_t positionStamp_ = 1u;
 		uint32_t directionStamp_ = 1u;
+		uint32_t positionStamp_ = 1u;
 		uint32_t velStamp_ = 1u;
 		uint32_t projStamp_ = 1u;
 		uint32_t projInvStamp_ = 1u;
@@ -625,8 +625,8 @@ namespace regen {
 
 		uint32_t lastViewStamp1_ = 0u;
 		uint32_t lastProjStamp1_ = 0u;
-		uint32_t lastPosStamp1_ = 0u;
 		uint32_t lastDirStamp1_ = 0u;
+		uint32_t lastPosStamp1_ = 0u;
 		uint32_t lastProjParamsStamp1_ = 0u;
 		uint32_t lastProjStamp_ = 0u;
 		uint32_t lastPosStamp_ = 0u;

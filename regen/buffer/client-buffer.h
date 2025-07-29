@@ -93,6 +93,11 @@ namespace regen {
 		void nextStamp() const;
 
 		/**
+		 * Increment the stamp.
+		 */
+		void nextStamp(uint32_t slotIdx) const;
+
+		/**
 		 * Assigns a list of segments to this client buffer, replacing any existing segments.
 		 * This makes this client buffer a composed client buffer, that manages multiple segments
 		 * in contiguous memory.
@@ -171,6 +176,8 @@ namespace regen {
 
 		void writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const;
 
+		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
+
 		/**
 		 * Deallocates data pointer owned by this instance.
 		 * This is e.g. used if vertex data is static and only initially uploaded to the GPU.
@@ -230,8 +237,6 @@ namespace regen {
 		bool writeLock_SingleBuffer() const;
 
 		void writeUnlock(int32_t slotIndex, uint32_t writeOffset, uint32_t writeSize) const;
-
-		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
 
 		MappedClientData mapRange_SingleBuffer(uint32_t offset, uint32_t size) const;
 

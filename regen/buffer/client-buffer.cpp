@@ -157,6 +157,17 @@ void ClientBuffer::nextStamp() const {
 	}
 }
 
+void ClientBuffer::nextStamp(uint32_t dataSlot) const {
+	auto readSlot = (dataSlots_[1] ? (1-dataSlot) : 0);
+	dataStamps_[dataSlot] = dataStamps_[readSlot] + 1;
+	// Increase the stamp for all parent buffer ranges as well.
+	auto *parent = parentBuffer_;
+	while (parent) {
+		parent->dataStamps_[dataSlot] = parent->dataStamps_[readSlot] + 1;
+		parent = parent->parentBuffer_;
+	}
+}
+
 MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
 	if ((mapMode & BUFFER_GPU_WRITE) != 0) {
 		if (!hasTwoSlots()) {
@@ -610,14 +621,7 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 		// consecutive reads will be done from this slot, next write will be done to the other slot.
 		// If the write operation did not change the data, the stamp is not incremented,
 		// and the last slot is not updated.
-		auto readSlot = (dataSlots_[1] ? (1-dataSlot) : 0);
-		dataStamps_[dataSlot] = dataStamps_[readSlot] + 1;
-		// Increase the stamp for all parent buffer ranges as well.
-		auto *parent = parentBuffer_;
-		while (parent) {
-			parent->dataStamps_[dataSlot] = parent->dataStamps_[readSlot] + 1;
-			parent = parent->parentBuffer_;
-		}
+		nextStamp(dataSlot);
 
 		if (isFrameLocked_) {
 			// If frame-locked, the swap to the other slot is done centrally, not on write unlock.

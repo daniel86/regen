@@ -49,17 +49,17 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	sh_projParams_ = ref_ptr<ShaderInput4f>::alloc("cameraProjParams");
 	sh_projParams_->setUniformData(projParams_[0].asVec4());
 
-	position_.resize(1);
-	position_[0] = Vec4f(0.0, 1.0, 4.0, 0.0);
-	sh_position_ = ref_ptr<ShaderInput4f>::alloc("cameraPosition");
-	sh_position_->setUniformData(position_[0]);
-	sh_position_->setSchema(InputSchema::position());
-
 	direction_.resize(1);
 	direction_[0] = Vec4f(0, 0, -1, 0);
 	sh_direction_ = ref_ptr<ShaderInput4f>::alloc("cameraDirection");
 	sh_direction_->setUniformData(direction_[0]);
 	sh_direction_->setSchema(InputSchema::direction());
+
+	position_.resize(1);
+	position_[0] = Vec4f(0.0, 1.0, 4.0, 0.0);
+	sh_position_ = ref_ptr<ShaderInput4f>::alloc("cameraPosition");
+	sh_position_->setUniformData(position_[0]);
+	sh_position_->setSchema(InputSchema::position());
 
 	vel_.resize(1);
 	vel_[0] = Vec4f(0.0f);
@@ -100,8 +100,8 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	cameraBlock_->addBlockInput(sh_viewInv_);
 	cameraBlock_->addBlockInput(sh_viewProj_);
 	cameraBlock_->addBlockInput(sh_viewProjInv_);
-	cameraBlock_->addBlockInput(sh_position_);
 	cameraBlock_->addBlockInput(sh_direction_);
+	cameraBlock_->addBlockInput(sh_position_);
 	cameraBlock_->addBlockInput(sh_vel_);
 	// these change less frequent:
 	cameraBlock_->addBlockInput(sh_projParams_);
@@ -130,67 +130,152 @@ void Camera::updateShaderData(float dt) {
 		AudioListener::set3f(AL_VELOCITY, velocity(0));
 		AudioListener::set6f(AL_ORIENTATION, Vec6f(direction(0), Vec3f::up()));
 	}
-	// TODO: The thread-local to client buffer copy can be improved!
-	//   - map whole buffer at once
-	//   - use contiguous thread-local memory
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
+	auto &clientBuffer = cameraBlock_->clientBuffer();
 
-	if (viewChanged) {
-		lastViewStamp1_ = viewStamp_;
-		auto m_v = sh_view_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_v.w, view_.data(), view_.size() * sizeof(Mat4f));
-		m_v.unmap();
+	if(clientBuffer.hasSegments()) {
+		// TODO: The thread-local to client buffer copy can be improved!
+		//   - use contiguous thread-local memory -> reduce the number of std::memcpy calls.
+		//   - maybe at least put e.g. view/view-inv in the same vector?
+		auto mapped = clientBuffer.mapRange(
+				BUFFER_GPU_WRITE,
+				0u, clientBuffer.dataSize());
+		uint32_t offset = 0, dataSize, dataSize2;
 
-		auto m_v_i = sh_viewInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_v_i.w, viewInv_.data(), viewInv_.size() * sizeof(Mat4f));
-		m_v_i.unmap();
-	}
+		dataSize = view_.size() * sizeof(Mat4f);
+		if (viewChanged) {
+			lastViewStamp1_ = viewStamp_;
+			clientBuffer.markWrittenTo(mapped.w_index, 0, dataSize*2);
+			std::memcpy(mapped.w + offset, view_.data(), dataSize);
+			offset += dataSize;
+			std::memcpy(mapped.w + offset, viewInv_.data(), dataSize);
+			offset += dataSize;
+			sh_view_->clientBuffer().nextStamp(mapped.w_index);
+			sh_viewInv_->clientBuffer().nextStamp(mapped.w_index);
+		} else {
+			offset += dataSize*2;
+		}
 
-	if (viewChanged || projChanged) {
-		auto m_vp = sh_viewProj_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_vp.w, viewProj_.data(), viewProj_.size() * sizeof(Mat4f));
-		m_vp.unmap();
+		dataSize = viewProj_.size() * sizeof(Mat4f);
+		if (viewChanged || projChanged) {
+			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize*2);
+			std::memcpy(mapped.w + offset, viewProj_.data(), dataSize);
+			offset += dataSize;
+			std::memcpy(mapped.w + offset, viewProjInv_.data(), dataSize);
+			offset += dataSize;
+			sh_viewProj_->clientBuffer().nextStamp(mapped.w_index);
+			sh_viewProjInv_->clientBuffer().nextStamp(mapped.w_index);
+		} else {
+			offset += dataSize*2;
+		}
 
-		auto m_vp_i = sh_viewProjInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_vp_i.w, viewProjInv_.data(), viewProjInv_.size() * sizeof(Mat4f));
-		m_vp_i.unmap();
-	}
+		dataSize = direction_.size() * sizeof(Vec4f);
+		if (lastDirStamp1_ != directionStamp_) {
+			lastDirStamp1_ = directionStamp_;
+			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize);
+			std::memcpy(mapped.w + offset, direction_.data(), dataSize);
+			sh_direction_->clientBuffer().nextStamp(mapped.w_index);
+		}
+		offset += dataSize;
 
-	if (lastDirStamp1_ != directionStamp_) {
-		lastDirStamp1_ = directionStamp_;
-		auto m_dir = sh_direction_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_dir.w, direction_.data(), direction_.size() * sizeof(Vec4f));
-		m_dir.unmap();
-	}
+		if (lastPosStamp1_ != positionStamp_) {
+			lastPosStamp1_ = positionStamp_;
+			dataSize = position_.size() * sizeof(Vec4f);
+			dataSize2 = vel_.size() * sizeof(Vec4f);
+			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize + dataSize2);
+			std::memcpy(mapped.w + offset, position_.data(), dataSize);
+			offset += dataSize;
+			std::memcpy(mapped.w + offset, vel_.data(), dataSize2);
+			offset += dataSize2;
+			sh_position_->clientBuffer().nextStamp(mapped.w_index);
+			sh_vel_->clientBuffer().nextStamp(mapped.w_index);
+		} else {
+			offset += position_.size() * sizeof(Vec4f);
+			offset += vel_.size() * sizeof(Vec4f);
+		}
 
-	if (lastPosStamp1_ != positionStamp_) {
-		lastPosStamp1_ = positionStamp_;
-		auto m_pos = sh_position_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_pos.w, position_.data(), position_.size() * sizeof(Vec4f));
-		m_pos.unmap();
+		dataSize = projParams_.size() * sizeof(ProjectionParams);
+		if (lastProjParamsStamp1_ != projParamsStamp_) {
+			lastProjParamsStamp1_ = projParamsStamp_;
+			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize);
+			std::memcpy(mapped.w + offset, projParams_.data(), dataSize);
+			sh_projParams_->clientBuffer().nextStamp(mapped.w_index);
+		}
+		offset += dataSize;
 
-		auto m_vel = sh_vel_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_vel.w, vel_.data(), vel_.size() * sizeof(Vec4f));
-		m_vel.unmap();
-	}
+		dataSize = proj_.size() * sizeof(Mat4f);
+		if (projChanged) {
+			lastProjStamp1_ = projStamp_;
+			clientBuffer.markWrittenTo(mapped.w_index, offset, dataSize*2);
+			std::memcpy(mapped.w + offset, proj_.data(), dataSize);
+			offset += dataSize;
+			std::memcpy(mapped.w + offset, projInv_.data(), dataSize);
+			//offset += dataSize;
+			sh_proj_->clientBuffer().nextStamp(mapped.w_index);
+			sh_projInv_->clientBuffer().nextStamp(mapped.w_index);
+		}
 
-	if (lastProjParamsStamp1_ != projParamsStamp_) {
-		lastProjParamsStamp1_ = projParamsStamp_;
-		auto m_pp = sh_projParams_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
-		m_pp.unmap();
-	}
+		clientBuffer.unmapRange(BUFFER_GPU_WRITE, 0u, 0u, mapped.w_index);
+	} else {
+		// The client buffer of the UBO was not initialized.
+		// So we need to write the data to individual shader inputs.
+		if (viewChanged) {
+			lastViewStamp1_ = viewStamp_;
+			auto m_v = sh_view_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_v.w, view_.data(), view_.size() * sizeof(Mat4f));
+			m_v.unmap();
 
-	if (projChanged) {
-		lastProjStamp1_ = projStamp_;
-		auto m_p = sh_proj_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
-		m_p.unmap();
+			auto m_v_i = sh_viewInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_v_i.w, viewInv_.data(), viewInv_.size() * sizeof(Mat4f));
+			m_v_i.unmap();
+		}
 
-		auto m_p_i = sh_projInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_p_i.w, projInv_.data(), projInv_.size() * sizeof(Mat4f));
-		m_p_i.unmap();
+		if (viewChanged || projChanged) {
+			auto m_vp = sh_viewProj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_vp.w, viewProj_.data(), viewProj_.size() * sizeof(Mat4f));
+			m_vp.unmap();
+
+			auto m_vp_i = sh_viewProjInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_vp_i.w, viewProjInv_.data(), viewProjInv_.size() * sizeof(Mat4f));
+			m_vp_i.unmap();
+		}
+
+		if (lastDirStamp1_ != directionStamp_) {
+			lastDirStamp1_ = directionStamp_;
+			auto m_dir = sh_direction_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_dir.w, direction_.data(), direction_.size() * sizeof(Vec4f));
+			m_dir.unmap();
+		}
+
+		if (lastPosStamp1_ != positionStamp_) {
+			lastPosStamp1_ = positionStamp_;
+			auto m_pos = sh_position_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_pos.w, position_.data(), position_.size() * sizeof(Vec4f));
+			m_pos.unmap();
+
+			auto m_vel = sh_vel_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_vel.w, vel_.data(), vel_.size() * sizeof(Vec4f));
+			m_vel.unmap();
+		}
+
+		if (lastProjParamsStamp1_ != projParamsStamp_) {
+			lastProjParamsStamp1_ = projParamsStamp_;
+			auto m_pp = sh_projParams_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
+			m_pp.unmap();
+		}
+
+		if (projChanged) {
+			lastProjStamp1_ = projStamp_;
+			auto m_p = sh_proj_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
+			m_p.unmap();
+
+			auto m_p_i = sh_projInv_->mapClientDataRaw(BUFFER_GPU_WRITE);
+			std::memcpy(m_p_i.w, projInv_.data(), projInv_.size() * sizeof(Mat4f));
+			m_p_i.unmap();
+		}
 	}
 }
 
