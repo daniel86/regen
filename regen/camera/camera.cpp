@@ -162,9 +162,6 @@ void Camera::updateShaderData(float dt) {
 	auto &clientBuffer = cameraBlock_->clientBuffer();
 
 	if(clientBuffer.hasSegments()) {
-		// TODO: The thread-local to client buffer copy can be improved!
-		//   - use contiguous thread-local memory -> reduce the number of std::memcpy calls.
-		//   - maybe at least put e.g. view/view-inv in the same vector?
 		auto mapped = clientBuffer.mapRange(
 				BUFFER_GPU_WRITE,
 				0u, clientBuffer.dataSize());
