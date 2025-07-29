@@ -554,7 +554,7 @@
         <!-- imported inputs -->
         <!-- TODO: rather use existing buffer block! -->
         <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
-        <input name="sunDirection" state="sky-sun" component="lightDirection"/>
+        <input name="lightDirection_Sun" state="sky-sun" component="lightDirection"/>
         <input name="sunColor" state="sky-sun" component="lightDiffuse"/>
 
         <fullscreen-pass shader="regen.terrain.water.fullscreen"/>
@@ -692,7 +692,7 @@
             -->
             <input type="vec2" name="farDistance" value="100.0,200.0"/>
             <!-- TODO: rather use existing buffer block! -->
-            <input type="vec3" name="sunPosition" state="sky-sun" component="lightDirection"/>
+            <input type="vec3" name="lightDirection_Sun" state="sky-sun" component="lightDirection"/>
             <input type="vec3" name="sunColor" state="sky-sun" component="lightDiffuse"/>
             <input type="vec3" name="warmTint" value="0.6, 0.4, 0.3" />
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>

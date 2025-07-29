@@ -68,7 +68,7 @@ const float in_reflectionDisplace = 30.0;
 
 // Sun configuration
 const vec3 in_sunColor = vec3(1.0,1.0,1.0);
-const vec3 in_sunDirection = vec3(0.0,-1.0,0.0);
+const vec3 in_lightDirection_Sun = vec3(0.0,-1.0,0.0);
 const float in_sunScale = 3.0;
 // Color of the water surface
 const vec3 in_waterColor = vec3(0.0078,0.5176,0.7);
@@ -280,8 +280,8 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
 
 #ifdef USE_SPECULAR
     vec3 mirrorEye = 2.0*dot(eyeVecNorm, surfaceNormal)*surfaceNormal - eyeVecNorm;
-    float dotSpec = clamp(dot(mirrorEye.xyz, in_sunDirection) * 0.5 + 0.5, 0.0, 1.0);
-    float spec = (1.0-fresnel)*(in_shininess*1.8 + 0.2)*clamp(in_sunDirection.y,0.0,1.0)*pow(dotSpec,512.0);
+    float dotSpec = clamp(dot(mirrorEye.xyz, in_lightDirection_Sun) * 0.5 + 0.5, 0.0, 1.0);
+    float spec = (1.0-fresnel)*(in_shininess*1.8 + 0.2)*clamp(in_lightDirection_Sun.y,0.0,1.0)*pow(dotSpec,512.0);
     spec += 25.0*spec*clamp(in_shininess - 0.05, 0.0, 1.0);
 #endif
 

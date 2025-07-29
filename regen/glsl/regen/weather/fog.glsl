@@ -20,7 +20,7 @@ float fogIntensity(float d) {
 #ifndef applyFogToColor_DEFINED
 #define2 applyFogToColor_DEFINED
 #include regen.weather.fog.fogIntensity
-#ifdef HAS_sunPosition
+#ifdef HAS_lightDirection_Sun
     #include regen.weather.utility.sunIntensity
 #endif
 
@@ -35,7 +35,7 @@ float fogIntensity(vec3 posWorld, vec3 eyeDir, float d) {
 
 const vec3 in_fogColor = vec3(1.0);
 const float in_fogDensity = 1.0;
-#ifdef HAS_sunPosition
+#ifdef HAS_lightDirection_Sun
 const vec3 in_sunColor = vec3(1.0, 0.9, 0.7);
 const vec3 in_warmTint = vec3(1.0, 0.8, 0.6);
 #endif
@@ -55,11 +55,11 @@ vec3 applyFogToColor(vec3 sceneColor, float sceneDepth, vec3 posWorld) {
     vec3 fogColor = vec3(1.0);
     #endif
 
-    #ifdef HAS_sunPosition
-    float daytimeBlend = smoothstep(-0.1, 0.1, in_sunPosition.y);
+    #ifdef HAS_lightDirection_Sun
+    float daytimeBlend = smoothstep(-0.1, 0.1, in_lightDirection_Sun.y);
         #ifdef USE_DIRECTIONAL_SCATTERING
     // Directional Fog Scattering
-    float scatteringAmount = pow(max(dot(eyeDir, in_sunPosition), 0.0), 2.0);
+    float scatteringAmount = pow(max(dot(eyeDir, in_lightDirection_Sun), 0.0), 2.0);
     scatteringAmount = pow(scatteringAmount, 4.0) * (1.0 - fogFactor);
     // cancel scattering if sun is below horizon
     scatteringAmount *= daytimeBlend;
