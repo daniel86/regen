@@ -531,7 +531,7 @@ out vec3 out_intersection;
 flat out int out_instanceID;
 #endif
 
-uniform mat4 in_modelMatrix;
+uniform mat4 in_lightConeMatrix;
 
 #if RENDER_LAYER == 1
 #include regen.states.camera.input
@@ -539,7 +539,7 @@ uniform mat4 in_modelMatrix;
 #endif
 
 void main() {
-    out_intersection = (in_modelMatrix * vec4(in_pos,1.0)).xyz;
+    out_intersection = (in_lightConeMatrix * vec4(in_pos,1.0)).xyz;
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES

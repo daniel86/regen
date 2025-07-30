@@ -55,9 +55,8 @@ void BoidsGPU::createResource() {
 	std::vector<Vec3f> initialVelocities(numBoids_);
 #endif
 	if(tf_->hasModelMat()) {
-		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
-			initialPositions[i] = tfData.r[i].position();
+			initialPositions[i] = tf_->modelMat(i).position();
 #ifdef BOID_USE_HALF_VELOCITY
 			initialVelocities[i] = Vec2ui::zero();
 #else
@@ -66,9 +65,8 @@ void BoidsGPU::createResource() {
 		}
 	}
 	else if(tf_->hasModelOffset()) {
-		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_READ);
 		for (uint32_t i = 0; i < numBoids_; ++i) {
-			initialPositions[i] = initialPositionData.r[i].xyz_();
+			initialPositions[i] = tf_->modelOffset(i).xyz_();
 #ifdef BOID_USE_HALF_VELOCITY
 			initialVelocities[i] = Vec2ui::zero();
 #else
@@ -101,7 +99,7 @@ void BoidsGPU::createResource() {
 		// bind UBO as SSBO for writing model matrix
 		auto bufferContainer = tf_->tfBuffer();
 		bufferContainer->updateBuffer();
-		auto bufferObject = bufferContainer->getBufferObject(tf_->modelMat());
+		auto bufferObject = bufferContainer->getBufferObject(tf_->sh_modelMat());
 		auto ssbo = ref_ptr<SSBO>::dynamicCast(bufferObject);
 		if (ssbo.get()) {
 			tfBuffer_ = ssbo;

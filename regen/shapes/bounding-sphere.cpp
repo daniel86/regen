@@ -46,7 +46,7 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 void BoundingSphere::updateShapeOrigin() {
 	shapeOrigin_ = basePosition_;
 	if (transform_.get()) {
-		shapeOrigin_ += transform_->position(transformIndex_).r;
+		shapeOrigin_ += transform_->position(transformIndex_);
 	}
 }
 

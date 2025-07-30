@@ -159,9 +159,9 @@ void LightPass::addLightInput(LightPassLight &light) {
 
 	// add light UBO, and special light type uniforms
 	addInputLocation(light, light.light->lightUBO(), "Light");
-	if (lightType_ == Light::SPOT) {
-		addInputLocation(light, light.light->coneMatrix(), "modelMatrix");
-	}
+	//if (lightType_ == Light::SPOT) {
+	//	addInputLocation(light, light.light->coneMatrix(), "modelMatrix");
+	//}
 }
 
 void LightPass::addInputLocation(LightPassLight &l,

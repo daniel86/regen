@@ -498,22 +498,10 @@ namespace regen {
 		bool hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const;
 
 		/**
-		 * Attach the camera to a transform, updating the camera position and direction.
-		 * @param attachedTransform the transform to attach to.
-		 */
-		void attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform);
-
-		/**
 		 * Attach the camera to a position, updating the camera position.
-		 * @param attachedPosition the position to attach to.
+		 * @param attached the position to attach to.
 		 */
-		void attachToPosition(const ref_ptr<ShaderInput4f> &attachedPosition);
-
-		/**
-		 * Attach the camera to a position, updating the camera position.
-		 * @param attachedTransform the transform to attach to.
-		 */
-		void attachToPosition(const ref_ptr<ShaderInputMat4> &attachedTransform);
+		void attachToPosition(const ref_ptr<ModelTransformation> &attached);
 
 		/**
 		 * Update the camera pose based on the attached transform, if any.
@@ -596,9 +584,7 @@ namespace regen {
 		std::span<Mat4f> projInv_;
 
 		ref_ptr<Animation> attachedMotion_;
-		ref_ptr<ShaderInputMat4> attachedTransform_;
-		ref_ptr<ShaderInput4f> attachedPosition_;
-		bool isAttachedToPosition_ = false;
+		ref_ptr<ModelTransformation> attachedTF_;
 		ref_ptr<Animation> cameraMotion_;
 
 		virtual bool updateView();

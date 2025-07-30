@@ -56,6 +56,7 @@ struct BoidsCPU::Private {
 	Vec3i gridSize_ = Vec3i::zero();
 	uint32_t gridStamp_ = 0u;
 	Vec3f boidsScale_ = Vec3f::zero();
+	Mat4f tmpMat_ = Mat4f::identity();
 	Quaternion yawAdjust_;
 	unsigned int maxNumNeighbors_ = 0;
 	Bounds<Vec3f> simBounds_ = Bounds<Vec3f>(-10.0f, 10.0f);
@@ -95,17 +96,8 @@ BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 #ifdef REGEN_BOID_USE_SORTED_GRID
 	priv_->sortedGridIndices_.setToZero();
 #endif
-
-	if (tf_->hasModelMat()) {
-		auto tfData = tf_->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_READ);
-		for (uint32_t i = 0; i < numBoids_; ++i) {
-			setBoidPosition(i, tfData.r[i].position());
-		}
-	} else {
-		auto initialPositionData = tf_->modelOffset()->mapClientData<Vec3f>(BUFFER_GPU_READ);
-		for (uint32_t i = 0; i < numBoids_; ++i) {
-			setBoidPosition(i, initialPositionData.r[i]);
-		}
+	for (uint32_t i = 0; i < numBoids_; ++i) {
+		setBoidPosition(i, tf_->position(i));
 	}
 }
 
@@ -297,31 +289,28 @@ void BoidsCPU::animate(double dt) {
 void BoidsCPU::updateTransforms() {
 	if (tf_.get()) {
 		if (tf_->hasModelMat()) {
-			auto &tfInput = tf_->modelMat();
-			auto tfData = tfInput->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
-
 			for (uint32_t i = 0; i < numBoids_; ++i) {
 				Quaternion orientation(
 					priv_->boidOrientW_[i],
 					priv_->boidOrientX_[i],
 					priv_->boidOrientY_[i],
 					priv_->boidOrientZ_[i]);
-				auto &matrix = tfData.w[i];
-				matrix = (priv_->yawAdjust_ * orientation).calculateMatrix();
-				matrix.scale(priv_->boidsScale_);
-				matrix.x[12] += priv_->boidPositionsX_[i];
-				matrix.x[13] += priv_->boidPositionsY_[i];
-				matrix.x[14] += priv_->boidPositionsZ_[i];
+				priv_->tmpMat_ = (priv_->yawAdjust_ * orientation).calculateMatrix();
+				priv_->tmpMat_.scale(priv_->boidsScale_);
+				priv_->tmpMat_.x[12] += priv_->boidPositionsX_[i];
+				priv_->tmpMat_.x[13] += priv_->boidPositionsY_[i];
+				priv_->tmpMat_.x[14] += priv_->boidPositionsZ_[i];
+				tf_->setModelMat(i, priv_->tmpMat_);
 			}
 		} else if (tf_->hasModelOffset()) {
-			auto positionData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 			for (uint32_t i = 0; i < numBoids_; ++i) {
-				auto &pos_w = positionData.w[i];
-				pos_w.x = priv_->boidPositionsX_[i];
-				pos_w.y = priv_->boidPositionsY_[i];
-				pos_w.z = priv_->boidPositionsZ_[i];
+				tf_->setModelOffset(i, Vec3f(
+					priv_->boidPositionsX_[i],
+					priv_->boidPositionsY_[i],
+					priv_->boidPositionsZ_[i]));
 			}
 		}
+		tf_->updateShaderData();
 	}
 }
 

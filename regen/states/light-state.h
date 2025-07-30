@@ -195,11 +195,6 @@ namespace regen {
 		void set_outerConeAngle(float deg);
 
 		/**
-		 * @return cone rotation matrix.
-		 */
-		const ref_ptr<ShaderInputMat4> &coneMatrix();
-
-		/**
 		 * Updates the cone matrix.
 		 */
 		void updateConeMatrix();
@@ -220,6 +215,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> sh_lightSpecular_;
 		ref_ptr<ShaderInput2f> sh_lightConeAngles_;
 		ref_ptr<ShaderInput2f> sh_lightRadius_;
+		ref_ptr<ShaderInputMat4> sh_coneMatrix_;
 
 		std::vector<Vec4f> lightPosition_;
 		std::vector<Vec3f> lightDirection_;
@@ -227,6 +223,7 @@ namespace regen {
 		std::vector<Vec3f> lightSpecular_;
 		std::vector<Vec2f> lightConeAngles_;
 		std::vector<Vec2f> lightRadius_;
+		std::vector<Mat4f> coneMatrix_;
 
 		uint32_t lightPosStamp_ = 1;
 		uint32_t lightDirStamp_ = 1;
@@ -234,6 +231,7 @@ namespace regen {
 		uint32_t lightSpecularStamp_ = 1;
 		uint32_t lightConeAnglesStamp_ = 1;
 		uint32_t lightRadiusStamp_ = 1;
+		uint32_t lightConeStamp_ = 0;
 
 		uint32_t lastPosStamp_ = 0;
 		uint32_t lastDirStamp_ = 0;
@@ -241,12 +239,9 @@ namespace regen {
 		uint32_t lastSpecularStamp_ = 0;
 		uint32_t lastConeAnglesStamp_ = 0;
 		uint32_t lastRadiusStamp_ = 0;
+		uint32_t lastConeStamp_ = 0;
 
 		ref_ptr<Animation> coneAnimation_;
-		ref_ptr<ModelTransformation> coneMatrix_;
-		uint32_t coneMatrixStamp_;
-
-		void updateConeMatrix_();
 
 		template<typename T>
 		static inline void setStamped(

@@ -43,11 +43,7 @@ bool BoundingShape::updateGeometry() {
 }
 
 GLuint BoundingShape::numInstances() const {
-	GLuint numInstances = 1;
-	if (transform_.get()) {
-		numInstances = std::max(transform_->numInstances(), numInstances);
-	}
-	return numInstances;
+	return transform_.get() ? transform_->numInstances() : 1u;
 }
 
 void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, unsigned int instanceIndex) {
@@ -63,11 +59,11 @@ unsigned int BoundingShape::transformStamp() const {
 	return stamp;
 }
 
-PositionReader BoundingShape::translation() const {
+const Vec3f& BoundingShape::translation() const {
 	if (transform_.get()) {
 		return transform_->position(transformIndex_);
 	}
-	return {};
+	return Vec3f::zero();
 }
 
 bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {

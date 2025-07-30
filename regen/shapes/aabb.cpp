@@ -44,19 +44,19 @@ void AABB::updateAABB() {
 	// apply transform
 	if (transform_.get()) {
 		if (transform_->hasModelOffset()) {
-			auto modelOffset = transform_->modelOffset();
+			auto &modelOffset = transform_->modelOffset();
 			for (int i = 0; i < 8; ++i) {
-				vertices_[i] += modelOffset->getVertexClamped(transformIndex_).r.xyz_();
+				vertices_[i] += getClamped(modelOffset, transformIndex_).xyz_();
 			}
 		}
 		if (transform_->hasModelMat()) {
-			auto tf = transform_->modelMat()->getVertexClamped(transformIndex_);
+			auto &tf = getClamped(transform_->modelMat(), transformIndex_);
 			// compute transformed bounds
 			Vec3f transformed;
 			Vec3f transformedMin = getShapeOrigin();
 			Vec3f transformedMax = transformedMin;
 			for (int i = 0; i < 8; ++i) {
-				transformed = (tf.r ^ vertices_[i]).xyz_();
+				transformed = (tf ^ vertices_[i]).xyz_();
 				transformedMin.setMin(transformed);
 				transformedMax.setMax(transformed);
 			}
@@ -76,21 +76,21 @@ const Vec3f *AABB::boxAxes() const {
 }
 
 bool AABB::hasIntersectionWithAABB(const AABB &other) const {
-	auto a_p = translation();
-	auto b_p = other.translation();
-	Vec3f aMin = a_p.r + bounds().min;
-	Vec3f aMax = a_p.r + bounds().max;
-	Vec3f bMin = b_p.r + other.bounds().min;
-	Vec3f bMax = b_p.r + other.bounds().max;
+	auto &a_p = translation();
+	auto &b_p = other.translation();
+	Vec3f aMin = a_p + bounds().min;
+	Vec3f aMax = a_p + bounds().max;
+	Vec3f bMin = b_p + other.bounds().min;
+	Vec3f bMax = b_p + other.bounds().max;
 	return aMin.x < bMax.x && aMax.x > bMin.x &&
 		   aMin.y < bMax.y && aMax.y > bMin.y &&
 		   aMin.z < bMax.z && aMax.z > bMin.z;
 }
 
 Vec3f AABB::closestPointOnSurface(const Vec3f &point) const {
-	auto a_p = translation();
-	Vec3f aMin = a_p.r + bounds().min;
-	Vec3f aMax = a_p.r + bounds().max;
+	auto &a_p = translation();
+	Vec3f aMin = a_p + bounds().min;
+	Vec3f aMax = a_p + bounds().max;
 	Vec3f closestPoint;
 	closestPoint.x = point.x < aMin.x ? aMin.x : (point.x > aMax.x ? aMax.x : point.x);
 	closestPoint.y = point.y < aMin.y ? aMin.y : (point.y > aMax.y ? aMax.y : point.y);

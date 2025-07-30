@@ -53,8 +53,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	Vec2f maskUV = quadSize_ts * 0.5f;
 
-	auto &modelOffset = tf_->modelOffset();
-	auto baseOffset = modelOffset->getVertex(0).r;
+	auto &baseOffset = tf_->modelOffset(0);
 
 	for (unsigned int y = 0; y < quadCountY; ++y) {
 		for (unsigned int x = 0; x < quadCountX; ++x) {
@@ -80,9 +79,10 @@ void MaskMesh::updateMask(const Config &cfg) {
 	}
 
 	// update the model offset attribute
-	static constexpr uint32_t instanceDivisor = 1u;
 	instanceData.resize(numInstances);
-	modelOffset->setInstanceData(numInstances, instanceDivisor, (byte *) instanceData.data());
+	tf_->resizeModelOffset(numInstances, instanceData.data());
+	tf_->updateShaderData();
+
 	disjoinStates(tf_);
 
 	tf_->tfBuffer()->updateBuffer();

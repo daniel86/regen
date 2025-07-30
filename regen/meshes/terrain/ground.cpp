@@ -121,32 +121,31 @@ void Ground::updatePatchSize() {
 
 void Ground::updateGroundPatches() {
 	auto numPatches = numPatches_.x * numPatches_.y;
-	auto &tf = modelTransform_->modelOffset();
 	float offsetX = mapCenter_.x - (mapSize_.x / 2.0f);
 	float offsetZ = mapCenter_.z - (mapSize_.z / 2.0f);
 	auto patchHalfSize = patchSize_ / 2.0f;
 	uint32_t tfIndex = 0;
 
-	tf->setInstanceData(numPatches, 1, nullptr);
-	auto *tfData = (Vec4f*)tf->clientData();
+	tf_->resizeModelOffset(numPatches);
 	for (uint32_t xIdx=0; xIdx<numPatches_.x; ++xIdx) {
 		for (uint32_t zIdx=0; zIdx<numPatches_.y; ++zIdx) {
 			auto xPos = offsetX + (static_cast<float>(xIdx) * patchSize_) + patchHalfSize;
 			auto zPos = offsetZ + (static_cast<float>(zIdx) * patchSize_) + patchHalfSize;
-			auto &patchTF = tfData[tfIndex++];
-			patchTF.x = xPos;
-			patchTF.y = mapCenter_.y - mapSize_.y * 0.5f;
-			patchTF.z = zPos;
+			tf_->setModelOffset(tfIndex++, Vec3f(
+				xPos,
+				mapCenter_.y - mapSize_.y * 0.5f,
+				zPos));
 		}
 	}
+	tf_->updateShaderData();
 }
 
 void Ground::updateAttributes() {
 	Rectangle::updateAttributes();
 	updateGroundPatches();
 	// update bounding box
-	auto minPos = rectangleConfig_.translation;
-	auto maxPos = rectangleConfig_.translation;
+	Vec3f minPos = rectangleConfig_.translation;
+	Vec3f maxPos = rectangleConfig_.translation;
 	minPos.x -= patchSize_ * 0.5f;
 	minPos.z -= patchSize_ * 0.5f;
 	maxPos.x += patchSize_ * 0.5f;

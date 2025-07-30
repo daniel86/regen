@@ -21,7 +21,7 @@ namespace regen {
 	 */
 	class TransformAnimation : public Animation {
 	public:
-		explicit TransformAnimation(const ref_ptr<ShaderInputMat4> &in);
+		explicit TransformAnimation(const ref_ptr<ModelTransformation> &tf);
 
 		/**
 		 * Push back a key frame.
@@ -51,7 +51,7 @@ namespace regen {
 		virtual void updatePose(const TransformKeyFrame &currentFrame, double t);
 
 	protected:
-		ref_ptr<ShaderInputMat4> in_;
+		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<Mesh> mesh_;
 		std::list<TransformKeyFrame> frames_;
 		typename std::list<TransformKeyFrame>::iterator it_;

@@ -48,14 +48,14 @@ namespace regen {
 		 * @param tf the model transformation to assign.
 		 */
 		void setModelTransform(const ref_ptr<ModelTransformation> &tf) {
-			modelTransform_ = tf;
+			tf_ = tf;
 			joinStates(tf);
 		}
 
 		/**
 		 * @return the model transformation assigned to this ground.
 		 */
-		const ref_ptr<ModelTransformation> &tf() const { return modelTransform_; }
+		const ref_ptr<ModelTransformation> &tf() const { return tf_; }
 
 		/**
 		 * Set LOD configuration parameters.
@@ -123,7 +123,7 @@ namespace regen {
 		static ref_ptr<Ground> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 	protected:
-		ref_ptr<ModelTransformation> modelTransform_;
+		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<State> groundShaderDefines_;
 
 		Vec3f mapCenter_ = Vec3f(0.0f);

@@ -1,39 +1,36 @@
-
 #include "model-matrix-motion.h"
 
 using namespace regen;
 
-#include <regen/utility/logging.h>
-
-ModelMatrixMotion::ModelMatrixMotion(
-		const ref_ptr<ShaderInputMat4> &modelMatrix, GLuint index)
-		: modelMatrix_(modelMatrix),
-		  index_(index) {
+ModelMatrixMotion::ModelMatrixMotion(const ref_ptr<ModelTransformation> &tf, uint32_t index)
+		: tf_(tf), index_(index) {
 	// validate index
-	if (index_ >= modelMatrix_->numInstances()) {
+	if (index_ >= static_cast<uint32_t>(tf_->numInstances())) {
 		REGEN_WARN("Invalid matrix index " << index_ << ". Using 0 instead.");
 		index_ = 0u;
 	}
 }
 
 void ModelMatrixMotion::getWorldTransform(btTransform &worldTrans) const {
-	auto regenData = modelMatrix_->mapClientData<Mat4f>(BUFFER_GPU_READ);
-	auto &regenMat = regenData.r[index_];
+	auto &regenMat = tf_->modelMat(index_);
 	worldTrans.setFromOpenGLMatrix((const btScalar*) &regenMat.x);
 }
 
 void ModelMatrixMotion::setWorldTransform(const btTransform &worldTrans) {
-	auto regenData = modelMatrix_->mapClientVertex<Mat4f>(BUFFER_GPU_WRITE, index_);
-	worldTrans.getOpenGLMatrix((btScalar*) &regenData.w.x);
+	worldTrans.getOpenGLMatrix((btScalar*) &tmpMat_.x);
+	tf_->setModelMat(index_, tmpMat_);
+	tf_->updateShaderData();
 }
 
 
-ModelMatrixUpdater::ModelMatrixUpdater(const ref_ptr<ShaderInputMat4> &modelMatrix)
+ModelMatrixUpdater::ModelMatrixUpdater(const ref_ptr<ModelTransformation> &tf)
 		: Animation(false, true),
-		  modelMatrix_(modelMatrix) {
-	backBuffer_ = new Mat4f[modelMatrix->numInstances()];
-	auto regenData = modelMatrix_->mapClientDataRaw(BUFFER_GPU_READ);
-	std::memcpy(backBuffer_, regenData.r, modelMatrix_->inputSize());
+		  tf_(tf) {
+	backBuffer_ = new Mat4f[tf_->numInstances()];
+	std::memcpy(
+		backBuffer_,
+		tf_->modelMat().data(),
+		tf_->modelMat().size() * sizeof(Mat4f));
 }
 
 ModelMatrixUpdater::~ModelMatrixUpdater() {
@@ -41,10 +38,10 @@ ModelMatrixUpdater::~ModelMatrixUpdater() {
 }
 
 void ModelMatrixUpdater::animate(GLdouble dt) {
-	if (stamp_ == modelMatrix_->stamp()) return;
-	stamp_ = modelMatrix_->stamp();
-	auto regenData = modelMatrix_->mapClientDataRaw(BUFFER_GPU_WRITE);
-	std::memcpy(regenData.w, backBuffer_, modelMatrix_->inputSize());
+	if (stamp_ == tf_->stamp()) return;
+	stamp_ = tf_->stamp();
+	tf_->setModelMat(backBuffer_);
+	tf_->updateShaderData();
 }
 
 
@@ -61,8 +58,8 @@ Mat4fMotion::Mat4fMotion(Mat4f *glModelMatrix)
 
 void Mat4fMotion::getWorldTransform(btTransform &worldTrans) const {
 	if (modelMatrix_.get()) {
-		auto regenData = modelMatrix_->modelMatrix()->mapClientVertex<Mat4f>(BUFFER_GPU_READ, tfIndex_);
-		worldTrans.setFromOpenGLMatrix((const btScalar *) &regenData.r);
+		auto &regenData = modelMatrix_->tf()->modelMat(tfIndex_);
+		worldTrans.setFromOpenGLMatrix((const btScalar *) &regenData.x);
 	} else {
 		worldTrans.setFromOpenGLMatrix((const btScalar *) glModelMatrix_);
 	}
@@ -70,4 +67,7 @@ void Mat4fMotion::getWorldTransform(btTransform &worldTrans) const {
 
 void Mat4fMotion::setWorldTransform(const btTransform &worldTrans) {
 	worldTrans.getOpenGLMatrix((btScalar *) glModelMatrix_);
+	if (modelMatrix_.get()) {
+		modelMatrix_->nextStamp();
+	}
 }

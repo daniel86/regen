@@ -361,11 +361,7 @@ static ref_ptr<SpatialIndex> getSpatialIndex(scene::SceneLoader *scene, SceneInp
 static ref_ptr<ShaderInput4f> getOffset(
 		SceneInputNode &input,
 		const ref_ptr<Mesh> &mesh,
-		const ref_ptr<ModelTransformation> &transform,
 		const std::vector<ref_ptr<Mesh>> &parts) {
-	if (transform.get() && transform->hasModelOffset()) {
-		return transform->modelOffset();
-	}
 	// try to find shader inputs of mesh
 	ref_ptr<Mesh> m = mesh;
 	if (m.get() == nullptr) {
@@ -408,7 +404,7 @@ void ShapeProcessor::processInput(
 
 	auto transform = scene->getResource<ModelTransformation>(transformID);
 	if(!transform.get()) {
-		auto offset = getOffset(input, mesh, transform, parts);
+		auto offset = getOffset(input, mesh, parts);
 		if (offset.get()) {
 			transform = ref_ptr<ModelTransformation>::alloc(offset);
 		}
@@ -423,13 +419,13 @@ void ShapeProcessor::processInput(
 	if (isPhysicalShape) {
 		// add shape to physics engine
 		if (numInstances == 1) {
-			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform->modelMat(), 0);
+			auto motion = ref_ptr<ModelMatrixMotion>::alloc(transform, 0);
 			auto physicalProps = createPhysicalProps(input, mesh, motion);
 			auto physicalObject = ref_ptr<PhysicalObject>::alloc(physicalProps);
 			mesh->addPhysicalObject(physicalObject);
 			scene->getPhysics()->addObject(physicalObject);
 		} else {
-			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform->modelMat());
+			auto motionAnim = ref_ptr<ModelMatrixUpdater>::alloc(transform);
 			for (GLuint i = 0; i < numInstances; ++i) {
 				auto motion = ref_ptr<Mat4fMotion>::alloc(motionAnim, i);
 				auto physicalProps = createPhysicalProps(input, mesh, motion);

@@ -43,16 +43,16 @@ ModelTransformation *NodeEyeDepthComparator::getModelTransformation(StateNode *n
 }
 
 bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNode> &n1) const {
-	auto *modelMat0 = getModelTransformation(n0.get());
-	auto *modelMat1 = getModelTransformation(n1.get());
-	if (modelMat0 != nullptr && modelMat1 != nullptr) {
+	auto *tf0 = getModelTransformation(n0.get());
+	auto *tf1 = getModelTransformation(n1.get());
+	if (tf0 != nullptr && tf1 != nullptr) {
 		auto diff = mode_ * (
-				getEyeDepth(modelMat0->modelMat()->getVertex(0).r.position()) -
-				getEyeDepth(modelMat1->modelMat()->getVertex(0).r.position()));
+				getEyeDepth(tf0->modelMat(0).position()) -
+				getEyeDepth(tf1->modelMat(0).position()));
 		return diff < 0;
-	} else if (modelMat0 != nullptr) {
+	} else if (tf0 != nullptr) {
 		return true;
-	} else if (modelMat1 != nullptr) {
+	} else if (tf1 != nullptr) {
 		return false;
 	} else {
 		return n0 < n1;

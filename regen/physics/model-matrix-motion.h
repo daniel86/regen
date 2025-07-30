@@ -18,7 +18,7 @@ namespace regen {
 		 * @param modelMatrix The model matrix.
 		 * @param index Instance index or 0.
 		 */
-		explicit ModelMatrixMotion(const ref_ptr<ShaderInputMat4> &modelMatrix, GLuint index = 0);
+		explicit ModelMatrixMotion(const ref_ptr<ModelTransformation> &tf, uint32_t index = 0);
 
 		~ModelMatrixMotion() override = default;
 		// Override from btMotionState
@@ -27,8 +27,9 @@ namespace regen {
 		void setWorldTransform(const btTransform &worldTrans) override;
 
 	protected:
-		ref_ptr<ShaderInputMat4> modelMatrix_;
-		GLuint index_;
+		ref_ptr<ModelTransformation> tf_;
+		Mat4f tmpMat_;
+		uint32_t index_;
 	};
 
 	/**
@@ -36,7 +37,7 @@ namespace regen {
 	 */
 	class ModelMatrixUpdater : public Animation {
 	public:
-		explicit ModelMatrixUpdater(const ref_ptr<ShaderInputMat4> &modelMatrix);
+		explicit ModelMatrixUpdater(const ref_ptr<ModelTransformation> &tf);
 
 		~ModelMatrixUpdater() override;
 
@@ -44,13 +45,15 @@ namespace regen {
 
 		auto backBuffer() { return backBuffer_; }
 
-		auto modelMatrix() { return modelMatrix_; }
+		auto tf() { return tf_; }
+
+		void nextStamp() { stamp_++; }
 
 		// Override from Animation
 		void animate(GLdouble dt) override;
 
 	protected:
-		ref_ptr<ShaderInputMat4> modelMatrix_;
+		ref_ptr<ModelTransformation> tf_;
 		Mat4f *backBuffer_;
 		unsigned int stamp_ = 0u;
 	};

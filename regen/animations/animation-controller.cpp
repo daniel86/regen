@@ -6,7 +6,7 @@ AnimationController::AnimationController(
 			const ref_ptr<ModelTransformation> &tf,
 			const ref_ptr<NodeAnimation> &animalAnimation,
 			const std::vector<scene::AnimRange> &ranges) :
-		TransformAnimation(tf->modelMat()),
+		TransformAnimation(tf),
 		animation_(animalAnimation),
 		animationRanges_(ranges),
 		tf_(tf) {

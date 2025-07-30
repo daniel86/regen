@@ -27,26 +27,6 @@ namespace regen {
 	};
 }
 
-template <typename T>
-static inline void setClamped(std::vector<T> &vec, uint32_t idx, const T &value) {
-	vec[vec.size() <= idx ? 0u : idx] = value;
-}
-
-template <typename T>
-static inline void setClamped(std::span<T> &vec, uint32_t idx, const T &value) {
-	vec[vec.size() <= idx ? 0u : idx] = value;
-}
-
-template <typename T>
-static inline const T& getClamped(const std::vector<T> &vec, uint32_t idx) {
-	return vec.size() <= idx ? vec[0] : vec[idx];
-}
-
-template <typename T>
-static inline const T& getClamped(const std::span<T> &vec, uint32_t idx) {
-	return vec.size() <= idx ? vec[0] : vec[idx];
-}
-
 Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 		: State(),
 		  numLayer_(numLayer),
@@ -424,25 +404,13 @@ void Camera::set_isAudioListener(GLboolean isAudioListener) {
 
 void Camera::updatePose() {
 	bool updated = false;
-	if (attachedPosition_.get()) {
-		if (poseStamp_ != attachedPosition_->stamp()) {
-			poseStamp_ = attachedPosition_->stamp();
-			position_[0].xyz_() = attachedPosition_->getVertex(0).r.xyz_();
-			updated = true;
-		}
-	} else if (attachedTransform_.get()) {
-		if (poseStamp_ != attachedTransform_->stamp()) {
-			poseStamp_ = attachedTransform_->stamp();
-			auto m = attachedTransform_->getVertex(0);
-			position_[0].xyz_() = m.r.position();
-			if (!isAttachedToPosition_) {
-				// TODO: change camera orientation based on transform
-				//direction_->setVertex(0, (m ^ Vec4f(Vec3f::front(),0.0)).xyz_());
-			}
+	if (attachedTF_.get()) {
+		if (poseStamp_ != attachedTF_->stamp()) {
+			poseStamp_ = attachedTF_->stamp();
+			setPosition(0, attachedTF_->position(0));
 			updated = true;
 		}
 	}
-
 	if (updated) {
 		updateCamera();
 	}
@@ -479,32 +447,9 @@ void Camera::updateFrustumBuffer() {
 	}
 }
 
-void Camera::attachToPosition(const ref_ptr<ShaderInput4f> &attachedPosition) {
-	attachedPosition_ = attachedPosition;
-	attachedTransform_ = {};
+void Camera::attachToPosition(const ref_ptr<ModelTransformation> &attached) {
+	attachedTF_ = attached;
 	poseStamp_ = 0;
-	if (!attachedMotion_.get()) {
-		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
-		attachedMotion_->startAnimation();
-	}
-}
-
-void Camera::attachToPosition(const ref_ptr<ShaderInputMat4> &attachedTransform) {
-	attachedPosition_ = {};
-	attachedTransform_ = attachedTransform;
-	poseStamp_ = 0;
-	isAttachedToPosition_ = true;
-	if (!attachedMotion_.get()) {
-		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
-		attachedMotion_->startAnimation();
-	}
-}
-
-void Camera::attachToTransform(const ref_ptr<ShaderInputMat4> &attachedTransform) {
-	attachedPosition_ = {};
-	attachedTransform_ = attachedTransform;
-	poseStamp_ = 0;
-	isAttachedToPosition_ = false;
 	if (!attachedMotion_.get()) {
 		attachedMotion_ = ref_ptr<CameraMotion>::alloc(this);
 		attachedMotion_->startAnimation();
@@ -772,11 +717,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		auto tf = ctx.scene()->getResource<ModelTransformation>(input.getValue("tf"));
 		ref_ptr<CubeCamera> cam = ref_ptr<CubeCamera>::alloc(getHiddenFacesMask(input));
 		if (tf.get()) {
-			if (tf->hasModelMat()) {
-				cam->attachToPosition(tf->modelMat());
-			} else if (tf->hasModelOffset()) {
-				cam->attachToPosition(tf->modelOffset());
-			}
+			cam->attachToPosition(tf);
 		}
 		ctx.scene()->putState(input.getName(), cam);
 		return cam;
@@ -789,11 +730,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		}
 
 		if (tf.get()) {
-			if (tf->hasModelMat()) {
-				cam->attachToPosition(tf->modelMat());
-			} else if (tf->hasModelOffset()) {
-				cam->attachToPosition(tf->modelOffset());
-			}
+			cam->attachToPosition(tf);
 		}
 		ctx.scene()->putState(input.getName(), cam);
 

@@ -95,9 +95,9 @@ void LODState::initLODState() {
 		instanceBuffer_ = cullShape_->instanceBuffer();
 	} else if (cullShape_->tf()->numInstances() > 1) {
 		// create instance buffer for per-frame updates.
-		auto numIndices = cullShape_->tf()->numInstances();
+		int32_t numIndices = cullShape_->tf()->numInstances();
 		std::vector<uint32_t> clearData(numIndices);
-		for (uint32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
+		for (int32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
 
 		instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
 		instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
@@ -442,24 +442,21 @@ void LODState::computeLODGroups() {
 		auto &modelOffset = tf->modelOffset();
 		auto &modelMat = tf->modelMat();
 		if (tf->hasModelOffset() && tf->hasModelMat()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
-			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
 			LODSelector_Full selector{
-					.tfData = tfData.r.data(),
-					.modelOffsetData = modelOffsetData.r.data(),
+					.tfData = modelMat.data(),
+					.modelOffsetData = modelOffset.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get(),
-					.tfIdxMultiplier = (modelMat->numInstances() > 1u ? 1u : 0u),
-					.offsetIdxMultiplier = (modelOffset->numInstances() > 1u ? 1u : 0u)
+					.tfIdxMultiplier = (modelMat.size() > 1u ? 1u : 0u),
+					.offsetIdxMultiplier = (modelOffset.size() > 1u ? 1u : 0u)
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
 							   camPos,
 							   selector);
 		} else if (tf->hasModelOffset()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
 			LODSelector_ModelOffset selector{
-					.modelOffsetData = modelOffsetData.r.data(),
+					.modelOffsetData = modelOffset.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get()
 			};
@@ -468,9 +465,8 @@ void LODState::computeLODGroups() {
 							   camPos,
 							   selector);
 		} else {
-			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
 			LODSelector_Transform selector{
-					.tfData = tfData.r.data(),
+					.tfData = modelMat.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get()
 			};

@@ -36,7 +36,7 @@ void BoundingBox::updateBounds(const Vec3f &min, const Vec3f &max) {
 void BoundingBox::updateShapeOrigin() {
 	shapeOrigin_ = basePosition_;
 	if (transform_.get()) {
-		shapeOrigin_ += transform_->position(transformIndex_).r;
+		shapeOrigin_ += transform_->position(transformIndex_);
 	}
 }
 
