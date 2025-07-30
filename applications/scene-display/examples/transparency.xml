@@ -448,7 +448,7 @@
         <input type="float" name="surfaceHeight" value="-6.0"/>
         <input type="float" name="lifetimeDefault" value="4.0"/>
         <input type="float" name="lifetimeVariance" value="4.0"/>
-        <!-- <input name="cameraPosition" state="main-camera" component="cameraPosition" /> -->
+        <!-- <input name="Camera" state="main-camera" component="Camera"/> -->
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>
         <input type="vec3" name="velocity" is-attribute="1"/>

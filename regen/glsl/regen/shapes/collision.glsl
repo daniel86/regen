@@ -5,7 +5,7 @@
 
 vec4 collisionAtPosition(vec3 posWorld)
 {
-    vec3 colliderCenter = (in_colliderModelMat * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    vec3 colliderCenter = (in_modelMatrix_Collider * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     vec3 collisionVector = colliderCenter - posWorld;
     return vec4(collisionVector,
         1.0 - clamp(0.0, 1.0, length(collisionVector) / in_colliderRadius));
@@ -26,8 +26,8 @@ vec4 getCollisionVector(vec3 posWorld)
     vec3 dir = vec3(0.0);
     float collision = 0.0;
     float count = 0.0;
-#ifdef HAS_colliderModelMat
-    vec3 colliderCenter = (in_colliderModelMat * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+#ifdef HAS_modelMatrix_Collider
+    vec3 colliderCenter = (in_modelMatrix_Collider * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
     vec3 collisionVector = colliderCenter - posWorld;
     dir += normalize(collisionVector);
     collision += 1.0 - clamp(0.0, 1.0, length(collisionVector) / in_colliderRadius);

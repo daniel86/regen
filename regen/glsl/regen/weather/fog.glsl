@@ -36,7 +36,7 @@ float fogIntensity(vec3 posWorld, vec3 eyeDir, float d) {
 const vec3 in_fogColor = vec3(1.0);
 const float in_fogDensity = 1.0;
 #ifdef HAS_lightDirection_Sun
-const vec3 in_sunColor = vec3(1.0, 0.9, 0.7);
+const vec3 in_lightDiffuse_Sun = vec3(1.0, 0.9, 0.7);
 const vec3 in_warmTint = vec3(1.0, 0.8, 0.6);
 #endif
 #ifdef HAS_skyColorTexture
@@ -63,7 +63,7 @@ vec3 applyFogToColor(vec3 sceneColor, float sceneDepth, vec3 posWorld) {
     scatteringAmount = pow(scatteringAmount, 4.0) * (1.0 - fogFactor);
     // cancel scattering if sun is below horizon
     scatteringAmount *= daytimeBlend;
-    fogColor = mix(fogColor, in_sunColor, scatteringAmount);
+    fogColor = mix(fogColor, in_lightDiffuse_Sun, scatteringAmount);
         #endif
 
     // Vary Fog Based on Sun Elevation using Day-Twilight-Night-Intensity Mapping (Butterworth-Filter)

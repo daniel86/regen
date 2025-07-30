@@ -353,7 +353,10 @@
             <input name="collisionMapArea" type="vec2" value="90.0,90.0"/>
             <input name="collisionMapCenter" type="vec2" value="0.0,0.0"/>
             <input name="colliderStrength" type="float" value="5.0"/>
-            <!-- TODO: rather use existing buffer block! -->
+            <!-- TODO: Rather use existing buffer block! But the name matching would not really work well
+                       in general with the adaptive buffer container used by TF!
+                       Current mechanism is not sufficient to handle this case... -->
+            <!-- <input name="ColliderTransform" state="dwarf-tf" component="modelMatrix" input-suffix="_Collider"/> -->
             <input name="colliderModelMat" state="dwarf-tf" component="modelMatrix"/>
             <input name="colliderRadius" type="float" value="4.4"/>
             <material
@@ -791,14 +794,25 @@
 
     <mesh id="light-bulb-point" type="point" num-vertices="1" update-frequency="NEVER">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0" update-frequency="NEVER"/>
-        <!-- TODO: rather use existing buffer block! -->
-        <input name="modelOffset" state="room-light0" component="lightPosition"/>
+        <!-- TODO: improve interface for this, maybe:
+            <input name="LightEmission" state="fire-flies-light0" component="Light">
+                <rename key="lightDiffuse" value="matEmission"/>
+            </input>
+        -->
+        <define key="in_modelOffset" value="in_lightPosition_Bulb" />
+        <define key="in_matEmission" value="in_lightDiffuse_Bulb" />
+        <define key="HAS_modelOffset" value="TRUE" />
+        <define key="HAS_matEmission" value="TRUE" />
+        <input name="LightOfBulb" state="room-light0" component="Light" input-suffix="_Bulb"/>
         <shape id="light-bulb-shape" index="1" cull="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
     <mesh id="fire-flies0" type="point" update-frequency="NEVER" num-vertices="1" num-instances="{{num-fire-flies}}">
         <material diffuse="0.0, 0.0, 0.0" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" shininess="256.0" update-frequency="NEVER"/>
-        <!-- TODO: rather use existing buffer block! -->
-        <input name="modelOffset" state="fire-flies-light0" component="lightPosition"/>
+        <define key="in_modelOffset" value="in_lightPosition_FireFly" />
+        <define key="in_matEmission" value="in_lightDiffuse_FireFly" />
+        <define key="HAS_modelOffset" value="TRUE" />
+        <define key="HAS_matEmission" value="TRUE" />
+        <input name="LightOfFireFly" state="fire-flies-light0" component="Light" input-suffix="_FireFly"/>
         <shape id="fire-flies-shape0" index="1" cull="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />
     </mesh>
 
@@ -834,16 +848,12 @@
         </node>
         <node id="Fire-Flies">
             <input name="sphereRadius" type="float" value="0.1"/>
-            <!-- TODO: rather use existing buffer block! -->
-            <input name="matEmission" state="fire-flies-light0" component="lightDiffuse"/>
             <mesh id="fire-flies0" shader="regen.models.sprite-sphere"/>
         </node>
 
         <node id="Light-Bulbs">
             <node id="Light-Bulb0">
                 <input name="sphereRadius" type="float" value="0.5"/>
-                <!-- TODO: rather use existing buffer block! -->
-                <input name="matEmission" state="room-light0" component="lightDiffuse"/>
                 <mesh id="light-bulb-point" shader="regen.models.sprite-sphere"/>
             </node>
         </node>
@@ -861,9 +871,7 @@
             <input type="vec2" name="fogDistance" value="50.0,{{far-plane}}" min="0.0" max="{{far-plane}}"/>
             <input type="vec3" name="fogColor" value="0.2,0.33,0.3" schema="color"/>
             <input type="vec2" name="farDistance" value="75.0,{{far-plane}}"/>
-            <!-- TODO: rather use existing buffer block! -->
-            <input type="vec3" name="lightDirection_Sun" state="sky-sun" component="lightDirection"/>
-            <input type="vec3" name="sunColor" state="sky-sun" component="lightDiffuse"/>
+            <input name="SunLight" state="sky-sun" component="Light" input-suffix="_Sun"/>
             <input type="vec3" name="warmTint" value="0.6, 0.4, 0.3" />
             <texture name="gDepthTexture" fbo="g-buffer" attachment="depth" />
             <texture name="gColorTexture" fbo="g-buffer" attachment="1"/>

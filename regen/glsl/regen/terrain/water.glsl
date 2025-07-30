@@ -67,7 +67,7 @@ const float in_refractionStrength = 0.0;
 const float in_reflectionDisplace = 30.0;
 
 // Sun configuration
-const vec3 in_sunColor = vec3(1.0,1.0,1.0);
+const vec3 in_lightDiffuse_Sun = vec3(1.0,1.0,1.0);
 const vec3 in_lightDirection_Sun = vec3(0.0,-1.0,0.0);
 const float in_sunScale = 3.0;
 // Color of the water surface
@@ -243,7 +243,7 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
     vec3 refraction = texture(in_refractionTexture, computeTexco(texco)).rgb;
 #endif
     // compute the water color based on depth and color extinction
-    float k = clamp(length(in_sunColor) / in_sunScale, 0.0, 1.0);
+    float k = clamp(length(in_lightDiffuse_Sun) / in_sunScale, 0.0, 1.0);
     vec3 c0 = mix(
         refraction,
         k*in_waterColor,
@@ -287,11 +287,11 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
 
     vec3 color = mix(refraction, reflection, fresnel);
 #ifdef USE_FOAM && USE_SPECULAR
-    color += max(spec,foam)*in_sunColor.rgb;
+    color += max(spec,foam)*in_lightDiffuse_Sun.rgb;
 #elif USE_FOAM
-    color += foam*in_sunColor.rgb;
+    color += foam*in_lightDiffuse_Sun.rgb;
 #elif USE_SPECULAR
-    color += spec*in_sunColor.rgb;
+    color += spec*in_lightDiffuse_Sun.rgb;
 #endif
 #ifdef USE_FOAM
     //color = mix(refraction, color, clamp(depth * in_foamHardness, 0.0, 1.0));
