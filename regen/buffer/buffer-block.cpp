@@ -500,7 +500,7 @@ void BufferBlock::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset)
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
 		auto &segment = dirtySegmentRanges_[segmentIdx];
 
-		for (uint32_t inputIdx = segment.startIdx; inputIdx <= segment.endIdx; ++inputIdx) {
+		for (uint32_t inputIdx = segment.startIdx; inputIdx < segment.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			copyBlockInput(bufferInput, mappedBufferData, localMapOffset);
 		}
@@ -513,7 +513,7 @@ void BufferBlock::copyFullData(byte *mappedBufferData, uint32_t localMapOffset) 
 	uint32_t startIdx = dirtySegmentRanges_[0].startIdx;
 	uint32_t endIdx = dirtySegmentRanges_[numDirtySegments_ - 1].endIdx;
 
-	for (uint32_t inputIdx = startIdx; inputIdx <= endIdx; ++inputIdx) {
+	for (uint32_t inputIdx = startIdx; inputIdx < endIdx; ++inputIdx) {
 		auto &bufferInput = *blockInputs_[inputIdx].get();
 		copyBlockInput(bufferInput, mappedBufferData, localMapOffset);
 	}
@@ -525,7 +525,7 @@ void BufferBlock::markBufferDirty() {
 	dirtyBufferRanges_[0].offset = 0;
 	dirtyBufferRanges_[0].size = requiredSize_;
 	dirtySegmentRanges_[0].startIdx = 0;
-	dirtySegmentRanges_[0].endIdx = static_cast<uint32_t>(blockInputs_.size() - 1);
+	dirtySegmentRanges_[0].endIdx = static_cast<uint32_t>(blockInputs_.size());
 }
 
 void BufferBlock::resetDataStamps() {
@@ -691,6 +691,9 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 		// the number of segments in the staging buffer has changed, so we need to resize the
 		// last stamp vector for each input.
 		// we reset the stamps causing a re-load of all segments.
+		for (auto &input: blockInputs_) {
+			input->lastStamp.resize(numStagingSegments);
+		}
 		resetDataStamps();
 		shared_->numBufferSegments_ = numStagingSegments;
 	}
@@ -729,7 +732,7 @@ void BufferBlock::updateNonMapped() {
 	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
 		auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
 
-		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
+		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
 			const uint32_t localOffset = shared_->stagingOffset_ + bufferInput.offset;
 			auto mapped = bufferInput.input->mapClientDataRaw(BUFFER_GPU_READ);
@@ -773,7 +776,7 @@ void BufferBlock::updateTemporaryMapped() {
 					localOffset,
 					dirtyRange_b.size);
 			if (bufferData) {
-				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx <= dirtyRange_s.endIdx; ++inputIdx) {
+				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
 					auto &bufferInput = *blockInputs_[inputIdx].get();
 					copyBlockInput(bufferInput, bufferData, dirtyRange_b.offset);
 				}
@@ -882,14 +885,14 @@ void BufferBlock::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t i
 	dirty_b.offset = input.offset;
 	dirty_b.size = input.inputSize;
 	dirty_s.startIdx = inputIdx;
-	dirty_s.endIdx = inputIdx;
+	dirty_s.endIdx = inputIdx+1;
 }
 
 void BufferBlock::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
 	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
 	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
 	dirty_b.size = input.offset - dirty_b.offset + input.inputSize;
-	dirty_s.endIdx = inputIdx;
+	dirty_s.endIdx = inputIdx+1;
 }
 
 void BufferBlock::resetUpdateHistory() {
