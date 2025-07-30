@@ -9,9 +9,10 @@ namespace regen {
 				: Animation(false, true),
 				  camera_(camera) {}
 		void animate(double dt) override {
-			camera_->updateLight();
-			camera_->lightCamera()->updateShaderData(static_cast<float>(dt));
-			camera_->updateShadowData();
+			if(camera_->updateLight()) {
+				camera_->lightCamera()->updateShaderData(static_cast<float>(dt));
+				camera_->updateShadowData();
+			}
 		}
 	private:
 		LightCamera *camera_;

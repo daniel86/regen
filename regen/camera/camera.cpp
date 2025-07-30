@@ -319,6 +319,9 @@ bool Camera::updateView() {
 			viewInv_[i] = view_[i].lookAtInverse();
 		}
 	}
+	viewStamp_ += 1u;
+	viewInvStamp_ += 1u;
+	camStamp_ += 1u;
 
 	return true;
 }
@@ -342,6 +345,9 @@ void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int vie
 	frustum_[maxIndex].update(
 			getClamped(position_, maxIndex).xyz_(),
 			getClamped(direction_, maxIndex).xyz_());
+	viewProjStamp_ += 1u;
+	viewProjInvStamp_ += 1u;
+	camStamp_ += 1u;
 }
 
 void Camera::setPerspective(const ProjectionParams &params) {
@@ -373,6 +379,9 @@ void Camera::setPerspective(float aspect, float fov, float near, float far, unsi
 	setClamped(proj_, layer, Mat4f::projectionMatrix(fov, aspect, near, far));
 	setClamped(projInv_, layer, getClamped(proj_, layer).projectionInverse());
 	isOrtho_ = false;
+	projStamp_ += 1u;
+	projInvStamp_ += 1u;
+	camStamp_ += 1u;
 }
 
 void Camera::setOrtho(float left, float right, float bottom, float top, float near, float far) {
@@ -389,6 +398,9 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 	proj_[layer] = Mat4f::orthogonalMatrix(left, right, bottom, top, near, far);
 	projInv_[layer] = proj_[layer].orthogonalInverse();
 	isOrtho_ = true;
+	projStamp_ += 1u;
+	projInvStamp_ += 1u;
+	camStamp_ += 1u;
 }
 
 void Camera::set_isAudioListener(GLboolean isAudioListener) {

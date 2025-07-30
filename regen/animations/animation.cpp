@@ -1,10 +1,3 @@
-/*
- * animation.cpp
- *
- *  Created on: 30.01.2011
- *      Author: daniel
- */
-
 #include <regen/animations/animation-manager.h>
 #include <regen/utility/threading.h>
 #include <regen/utility/logging.h>

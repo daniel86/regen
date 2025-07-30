@@ -130,6 +130,7 @@ bool LightCamera_CSM::updateFrustumSplit() {
 	if (userProjectionStamp_ != userProjStamp) {
 		userProjectionStamp_ = userProjStamp;
 		auto &proj = userCamera_->projection(0);
+		ProjectionParams projParams;
 		// update frustum splits
 		userCamera_->frustum()[0].split(splitWeight_, userCameraFrustum_);
 		// update near/far values
@@ -139,10 +140,11 @@ bool LightCamera_CSM::updateFrustumSplit() {
 			// Here we compute it in camera homogeneous coordinates. Basically, we calculate
 			// proj * (0, 0, far, 1)^t and then normalize to [0; 1]
 			// Note: this is used in shaders for computing z coordinate for shadow map lookup
-			projParams_[i].near = 0.5 * (-u_frustum.near * proj(2, 2) + proj(3, 2)) / u_frustum.near + 0.5;
-			projParams_[i].far  = 0.5 * (-u_frustum.far * proj(2, 2) + proj(3, 2)) / u_frustum.far + 0.5;
-			projParams_[i].aspect = proj(0, 0) / proj(1, 1);
-			projParams_[i].fov = 0.0f;
+			projParams.near = 0.5 * (-u_frustum.near * proj(2, 2) + proj(3, 2)) / u_frustum.near + 0.5;
+			projParams.far  = 0.5 * (-u_frustum.far * proj(2, 2) + proj(3, 2)) / u_frustum.far + 0.5;
+			projParams.aspect = proj(0, 0) / proj(1, 1);
+			projParams.fov = 0.0f;
+			setProjParams(i, projParams);
 		}
 		hasChanged = true;
 	}

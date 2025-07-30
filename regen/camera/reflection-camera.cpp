@@ -9,8 +9,9 @@ namespace regen {
 				: Animation(false, true),
 				  camera_(camera) {}
 		void animate(double dt) override {
-			camera_->updateReflection();
-			camera_->updateShaderData(dt);
+			if(camera_->updateReflection()) {
+				camera_->updateShaderData(static_cast<float>(dt));
+			}
 		}
 	private:
 		ReflectionCamera *camera_;
@@ -93,9 +94,9 @@ ReflectionCamera::ReflectionCamera(
 	reflectionUpdater_->startAnimation();
 }
 
-void ReflectionCamera::updateReflection() {
+bool ReflectionCamera::updateReflection() {
 	if (isHidden() || !isReflectorValid_) {
-		return;
+		return false;
 	}
 
 	bool reflectorChanged = false;
@@ -136,7 +137,7 @@ void ReflectionCamera::updateReflection() {
 		reflectorChanged = true;
 	}
 	// Skip back faces
-	if (!isFront && !hasBackFace_) return;
+	if (!isFront && !hasBackFace_) return false;
 
 	// Compute reflection matrix...
 	if (reflectorChanged) {
@@ -189,5 +190,8 @@ void ReflectionCamera::updateReflection() {
 		updateViewProjection(0u,0u);
 		cameraChanged_ = false;
 		camStamp_ += 1u;
+		return true;
+	} else {
+		return false;
 	}
 }

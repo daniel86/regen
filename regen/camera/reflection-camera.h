@@ -38,7 +38,7 @@ namespace regen {
 		/**
 		 * Update reflection camera.
 		 */
-		void updateReflection();
+		bool updateReflection();
 
 	protected:
 		ref_ptr<Camera> userCamera_;
