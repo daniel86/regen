@@ -139,7 +139,7 @@ void Camera::updateShaderData(float dt) {
 	}
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
-	auto &clientBuffer = cameraBlock_->clientBuffer();
+	auto &clientBuffer = *cameraBlock_->clientBuffer().get();
 
 	if(clientBuffer.hasSegments()) {
 		auto mapped = clientBuffer.mapRange(
@@ -152,8 +152,8 @@ void Camera::updateShaderData(float dt) {
 		if (viewChanged) {
 			lastViewStamp1_ = viewStamp_;
 			std::memcpy(mapped.w + offset, viewData_.data(), dataSize);
-			sh_view_->clientBuffer().nextStamp(mapped.w_index);
-			sh_viewInv_->clientBuffer().nextStamp(mapped.w_index);
+			sh_view_->clientBuffer()->nextStamp(mapped.w_index);
+			sh_viewInv_->clientBuffer()->nextStamp(mapped.w_index);
 			offset = dataSize;
 			writtenRange.size = dataSize;
 		} else {
@@ -164,8 +164,8 @@ void Camera::updateShaderData(float dt) {
 		dataSize = viewProj_.size() * sizeof(Mat4f) * 2;
 		if (viewChanged || projChanged) {
 			std::memcpy(mapped.w + offset, viewProjData_.data(), dataSize);
-			sh_viewProj_->clientBuffer().nextStamp(mapped.w_index);
-			sh_viewProjInv_->clientBuffer().nextStamp(mapped.w_index);
+			sh_viewProj_->clientBuffer()->nextStamp(mapped.w_index);
+			sh_viewProjInv_->clientBuffer()->nextStamp(mapped.w_index);
 			offset += dataSize;
 			writtenRange.size += dataSize;
 		} else {
@@ -177,7 +177,7 @@ void Camera::updateShaderData(float dt) {
 		if (lastDirStamp1_ != directionStamp_) {
 			lastDirStamp1_ = directionStamp_;
 			std::memcpy(mapped.w + offset, direction_.data(), dataSize);
-			sh_direction_->clientBuffer().nextStamp(mapped.w_index);
+			sh_direction_->clientBuffer()->nextStamp(mapped.w_index);
 			offset += dataSize;
 			writtenRange.size += dataSize;
 		} else {
@@ -193,8 +193,8 @@ void Camera::updateShaderData(float dt) {
 			offset += dataSize;
 			std::memcpy(mapped.w + offset, vel_.data(), dataSize2);
 			offset += dataSize2;
-			sh_position_->clientBuffer().nextStamp(mapped.w_index);
-			sh_vel_->clientBuffer().nextStamp(mapped.w_index);
+			sh_position_->clientBuffer()->nextStamp(mapped.w_index);
+			sh_vel_->clientBuffer()->nextStamp(mapped.w_index);
 			writtenRange.size += dataSize + dataSize2;
 		} else {
 			offset += position_.size() * sizeof(Vec4f);
@@ -206,7 +206,7 @@ void Camera::updateShaderData(float dt) {
 		if (lastProjParamsStamp1_ != projParamsStamp_) {
 			lastProjParamsStamp1_ = projParamsStamp_;
 			std::memcpy(mapped.w + offset, projParams_.data(), dataSize);
-			sh_projParams_->clientBuffer().nextStamp(mapped.w_index);
+			sh_projParams_->clientBuffer()->nextStamp(mapped.w_index);
 			offset += dataSize;
 			writtenRange.size += dataSize;
 		} else {
@@ -218,8 +218,8 @@ void Camera::updateShaderData(float dt) {
 		if (projChanged) {
 			lastProjStamp1_ = projStamp_;
 			std::memcpy(mapped.w + offset, projData_.data(), dataSize);
-			sh_proj_->clientBuffer().nextStamp(mapped.w_index);
-			sh_projInv_->clientBuffer().nextStamp(mapped.w_index);
+			sh_proj_->clientBuffer()->nextStamp(mapped.w_index);
+			sh_projInv_->clientBuffer()->nextStamp(mapped.w_index);
 			offset += dataSize;
 			writtenRange.size += dataSize;
 		} else {
@@ -232,7 +232,7 @@ void Camera::updateShaderData(float dt) {
 			if (lastClipPlaneStamp1_ != clipPlaneStamp_) {
 				lastClipPlaneStamp1_ = clipPlaneStamp_;
 				std::memcpy(mapped.w + offset, clipPlane_.data(), dataSize);
-				sh_clipPlane_->clientBuffer().nextStamp(mapped.w_index);
+				sh_clipPlane_->clientBuffer()->nextStamp(mapped.w_index);
 				//offset += dataSize;
 				writtenRange.size += dataSize;
 			}

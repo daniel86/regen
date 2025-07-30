@@ -204,6 +204,11 @@ namespace regen {
 		 */
 		void updateShaderData();
 
+		/**
+		 * Make sure local data arrays match size of shader data arrays.
+		 */
+		void resizeLocalData();
+
 	protected:
 		const Type lightType_;
 		bool isAttenuated_;

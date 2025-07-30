@@ -532,7 +532,7 @@ void StagingSystem::swapClientData() {
 		if (!arena) continue; // skip uninitialized arenas
 
 		for (auto &managed: arena->bufferObjects) {
-			managed.bo->clientBuffer().swapData();
+			managed.bo->clientBuffer()->swapData();
 		}
 	}
 }

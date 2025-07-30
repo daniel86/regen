@@ -283,9 +283,7 @@ namespace regen {
 
 		// the block inputs are used to store the shader inputs and their offsets in the buffer
 		struct BlockInput {
-			BlockInput() {
-				lastStamp.resize(2, 0);
-			}
+			BlockInput() = default;
 
 			BlockInput(const BlockInput &other) {
 				input = other.input;
@@ -296,7 +294,7 @@ namespace regen {
 
 			ref_ptr<ShaderInput> input;
 			uint32_t offset = 0;
-			std::vector<uint32_t> lastStamp;
+			std::vector<uint32_t> lastStamp = {0, 0};
 			uint32_t inputSize = 0;
 		};
 

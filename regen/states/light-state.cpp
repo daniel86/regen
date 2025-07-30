@@ -76,48 +76,66 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 	}
 }
 
+template<typename T>
+static inline void resizeLocalData_(const ref_ptr<ShaderInput> &sh, std::vector<T> &local) {
+	if(sh->numInstances() > local.size()) {
+		local.resize(sh->numInstances());
+		auto mapped = sh->mapClientDataRaw(BUFFER_GPU_READ);
+		std::memcpy(
+			(byte *) local.data(),
+			(byte *) mapped.r, local.size() * sizeof(T));
+	}
+}
+
+void Light::resizeLocalData() {
+	resizeLocalData_(sh_lightRadius_, lightRadius_);
+	resizeLocalData_(sh_lightConeAngles_, lightConeAngles_);
+	resizeLocalData_(sh_lightPosition_, lightPosition_);
+	resizeLocalData_(sh_lightDirection_, lightDirection_);
+	resizeLocalData_(sh_lightDiffuse_, lightDiffuse_);
+	resizeLocalData_(sh_lightSpecular_, lightSpecular_);
+	if (lightType_ == SPOT) {
+		resizeLocalData_(sh_coneMatrix_, coneMatrix_);
+	}
+}
+
+template<typename T>
+static inline void updateShaderData_(
+		uint32_t stamp,
+		uint32_t &lastStamp,
+		const ref_ptr<ShaderInput> &sh,
+		const std::vector<T> &data) {
+	if (lastStamp != stamp) {
+		lastStamp = stamp;
+		auto m_data = sh->mapClientDataRaw(BUFFER_GPU_WRITE);
+		std::memcpy(m_data.w, data.data(), data.size() * sizeof(T));
+		m_data.unmap();
+	}
+}
+
 void Light::updateShaderData() {
-	if (lastPosStamp_ != lightPosStamp_) {
-		lastPosStamp_ = lightPosStamp_;
-		auto m_dir = sh_lightPosition_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_dir.w, lightPosition_.data(), lightPosition_.size() * sizeof(Vec4f));
-		m_dir.unmap();
-	}
-	if (lastDirStamp_ != lightDirStamp_) {
-		lastDirStamp_ = lightDirStamp_;
-		auto m_dir = sh_lightDirection_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_dir.w, lightDirection_.data(), lightDirection_.size() * sizeof(Vec3f));
-		m_dir.unmap();
-	}
-	if (lastDiffuseStamp_ != lightDiffuseStamp_) {
-		lastDiffuseStamp_ = lightDiffuseStamp_;
-		auto m_diff = sh_lightDiffuse_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_diff.w, lightDiffuse_.data(), lightDiffuse_.size() * sizeof(Vec3f));
-		m_diff.unmap();
-	}
-	if (lastSpecularStamp_ != lightSpecularStamp_) {
-		lastSpecularStamp_ = lightSpecularStamp_;
-		auto m_spec = sh_lightSpecular_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_spec.w, lightSpecular_.data(), lightSpecular_.size() * sizeof(Vec3f));
-		m_spec.unmap();
-	}
-	if (lastConeAnglesStamp_ != lightConeAnglesStamp_) {
-		lastConeAnglesStamp_ = lightConeAnglesStamp_;
-		auto m_cone = sh_lightConeAngles_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_cone.w, lightConeAngles_.data(), lightConeAngles_.size() * sizeof(Vec2f));
-		m_cone.unmap();
-	}
-	if (lastRadiusStamp_ != lightRadiusStamp_) {
-		lastRadiusStamp_ = lightRadiusStamp_;
-		auto m_radius = sh_lightRadius_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_radius.w, lightRadius_.data(), lightRadius_.size() * sizeof(Vec2f));
-		m_radius.unmap();
-	}
-	if (lightType_ == SPOT && lastConeStamp_ != lightConeStamp_) {
-		lastConeStamp_ = lightConeStamp_;
-		auto m_cone = sh_coneMatrix_->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_cone.w, coneMatrix_.data(), coneMatrix_.size() * sizeof(Mat4f));
-		m_cone.unmap();
+	updateShaderData_(
+		lightPosStamp_, lastPosStamp_,
+		sh_lightPosition_, lightPosition_);
+	updateShaderData_(
+		lightDirStamp_, lastDirStamp_,
+		sh_lightDirection_, lightDirection_);
+	updateShaderData_(
+		lightDiffuseStamp_, lastDiffuseStamp_,
+		sh_lightDiffuse_, lightDiffuse_);
+	updateShaderData_(
+		lightSpecularStamp_, lastSpecularStamp_,
+		sh_lightSpecular_, lightSpecular_);
+	updateShaderData_(
+		lightConeAnglesStamp_, lastConeAnglesStamp_,
+		sh_lightConeAngles_, lightConeAngles_);
+	updateShaderData_(
+		lightRadiusStamp_, lastRadiusStamp_,
+		sh_lightRadius_, lightRadius_);
+	if (lightType_ == SPOT) {
+		updateShaderData_(
+			lightConeStamp_, lastConeStamp_,
+			sh_coneMatrix_, coneMatrix_);
 	}
 }
 
@@ -254,6 +272,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	ctx.scene()->putState(input.getName(), light);
 
 	// process light node children
+	bool isBufferResized = false;
 	for (auto &child: input.getChildren()) {
 		if (child->getCategory() == "set") {
 			// FIXME: this won't work as expected anymore!!
@@ -272,6 +291,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 					setTarget->numInstances());
 			// allocate memory for the shader input
 			setTarget->setInstanceData(numInstances, 1, nullptr);
+			isBufferResized = true;
 			scene::ShaderInputProcessor::setInput(*child.get(), setTarget.get(), numInstances);
 		}
 		if (child->getCategory() == "animation") {
@@ -289,6 +309,9 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				REGEN_WARN("Unknown animation type '" << animationType << "' in node " << child->getDescription());
 			}
 		}
+	}
+	if (isBufferResized) {
+		light->resizeLocalData();
 	}
 
 	return light;

@@ -48,8 +48,11 @@ namespace regen {
 		int32_t nextUnit_ = 0; //!< The next texture unit to bind to.
 
 		static TextureBinder &instance() {
-			static TextureBinder binder;
-			return binder;
+			// Note: intentional shutdown leak, as textures might access this
+			//  in their destructor on system shutdown, after the static memory
+			//  has been cleared!
+			static auto* binder = new TextureBinder();
+			return *binder;
 		}
 
 		void bind(Texture *tex, int32_t unit);

@@ -330,7 +330,7 @@ void BufferBlock::addBlockInput(const ref_ptr<ShaderInput> &input, const std::st
 	hasClientData_ = input->hasClientData() && hasClientData_;
 	input->setMemoryLayout(memoryLayout_);
 	if (clientBuffer_->hasSegments()) {
-		clientBuffer_->addSegment(&input->clientBuffer());
+		clientBuffer_->addSegment(input->clientBuffer());
 	}
 
 	updateStorageFlags();
@@ -351,7 +351,7 @@ void BufferBlock::removeBlockInput(std::string_view name) {
 			blockInputs_.erase(it);
 			if (clientBuffer_->hasSegments()) {
 				// remove the segment from the client buffer
-				clientBuffer_->removeSegment(&blockInput->input->clientBuffer());
+				clientBuffer_->removeSegment(blockInput->input->clientBuffer());
 			}
 			return;
 		}
@@ -371,11 +371,8 @@ void BufferBlock::update(bool forceUpdate) {
 }
 
 uint32_t &BufferBlock::lastInputStamp(BlockInput &blockInput) {
-	if (shared_->stagingBuffer_.get()) {
-		return blockInput.lastStamp[shared_->stagingBuffer_->nextWriteIndex()];
-	} else {
-		return blockInput.lastStamp[0];
-	}
+	const auto &buffer = shared_->stagingBuffer_;
+	return blockInput.lastStamp[(buffer.get() != nullptr) ? buffer->nextWriteIndex() : 0u];
 }
 
 uint32_t BufferBlock::updateBlockInputs() {
@@ -393,13 +390,13 @@ uint32_t BufferBlock::updateBlockInputs() {
 
 	//  Initialize the client buffer here lazily.
 	if (hasClientData_ && !blockInputs_.empty() && !clientBuffer_->hasSegments()) {
-		std::vector<ClientBuffer*> segments(blockInputs_.size());
+		std::vector<ref_ptr<ClientBuffer>> segments(blockInputs_.size());
 		REGEN_INFO("Initializing client buffer for block " << name()
 			<< " with " << blockInputs_.size() << " segments"
 			<< " ptr " << clientBuffer_.get());
 		for (size_t i = 0; i < blockInputs_.size(); ++i) {
 			auto &blockInput = blockInputs_[i];
-			segments[i] = &blockInput->input->clientBuffer();
+			segments[i] = blockInput->input->clientBuffer();
 		}
 		clientBuffer_->setSegments(segments);
 	}

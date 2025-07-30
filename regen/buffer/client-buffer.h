@@ -103,7 +103,7 @@ namespace regen {
 		 * in contiguous memory.
 		 * @param segments the list of segments to assign.
 		 */
-		void setSegments(const std::vector<ClientBuffer*> &segments);
+		void setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments);
 
 		/**
 		 * Adds a segment to this client buffer.
@@ -111,7 +111,7 @@ namespace regen {
 		 * in contiguous memory.
 		 * @param segment the segment to add.
 		 */
-		void addSegment(ClientBuffer *segment);
+		void addSegment(const ref_ptr<ClientBuffer> &segment);
 
 		/**
 		 * Removes a segment from this client buffer.
@@ -119,7 +119,7 @@ namespace regen {
 		 * in contiguous memory.
 		 * @param segment the segment to remove.
 		 */
-		void removeSegment(ClientBuffer *segment);
+		void removeSegment(const ref_ptr<ClientBuffer> &segment);
 
 		/**
 		 * Checks if this client buffer has segments.
@@ -224,7 +224,7 @@ namespace regen {
 		bool hasServerData_ = false;
 
 		ClientBuffer* parentBuffer_ = nullptr;
-		std::vector<ClientBuffer*> bufferSegments_;
+		std::vector<ref_ptr<ClientBuffer>> bufferSegments_;
 
 		int readLock() const;
 

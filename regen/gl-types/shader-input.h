@@ -533,7 +533,12 @@ namespace regen {
 		 */
 		byte *clientData() const { return clientBuffer_->clientData(); }
 
-		ClientBuffer &clientBuffer() { return *clientBuffer_.get(); }
+		/**
+		 * Returns the client buffer.
+		 * This is used to access the client data.
+		 * @return the client buffer.
+		 */
+		const ref_ptr<ClientBuffer> &clientBuffer() { return clientBuffer_; }
 
 		/**
 		 * Returns true if this attribute was uploaded to GL already.

@@ -42,7 +42,7 @@ void ClientBuffer::setFrameLocked(bool frameLocked) {
 	}
 }
 
-void ClientBuffer::setSegments(const std::vector<ClientBuffer*> &segments) {
+void ClientBuffer::setSegments(const std::vector<ref_ptr<ClientBuffer>> &segments) {
 	writeLockAll();
 	// clear the current segments.
 	for (auto &segment : bufferSegments_) {
@@ -64,7 +64,7 @@ void ClientBuffer::setSegments(const std::vector<ClientBuffer*> &segments) {
 	writeUnlockAll(0u, 0);
 }
 
-void ClientBuffer::addSegment(ClientBuffer *segment) {
+void ClientBuffer::addSegment(const ref_ptr<ClientBuffer> &segment) {
 	if (segment->parentBuffer_ != nullptr) {
 		REGEN_WARN("Segment already has a parent buffer, cannot add it again.");
 		return;
@@ -82,7 +82,7 @@ void ClientBuffer::addSegment(ClientBuffer *segment) {
 	writeUnlockAll(0u, 0u);
 }
 
-void ClientBuffer::removeSegment(ClientBuffer *segment) {
+void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 	auto it = std::find(bufferSegments_.begin(), bufferSegments_.end(), segment);
 	if (it != bufferSegments_.end()) {
 		writeLockAll();
