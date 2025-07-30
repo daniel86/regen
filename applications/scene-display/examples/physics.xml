@@ -225,7 +225,7 @@
         <define key="IS_PARABOLOID_DUAL" value="TRUE"/>
         <define key="SHADING" value="NONE"/>
         <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-        <input name="reflectionMatrix" state="paraboloid-camera" component="viewProjectionMatrix"/>
+        <input name="ReflectionCamera" state="reflection-camera" component="Camera" input-suffix="_Reflection"/>
         <texture fbo="paraboloid-reflection-buffer" attachment="1"
                  map-to="COLOR"
                  blend-mode="SRC"
@@ -326,6 +326,7 @@
         <input type="vec3" name="initialVelocity" value="0.5,0.75,0.5" min="-30,-30,-30" max="30,30,30" />
         <input type="vec2" name="initialBrightness" value="3.0,1.0"/>
         <input type="vec2" name="emitterCone" value="60.0,30.0"/>
+        <!-- TODO: rather use existing buffer block! -->
         <input name="cameraPosition" state="main-camera" component="cameraPosition"/>
         <!-- Add particle attributes. -->
         <input type="vec3" name="pos" is-attribute="1"/>

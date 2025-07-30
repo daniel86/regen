@@ -251,8 +251,8 @@
         <texture name="foamTexture" id="water-foam"/>
         <input type="time" name="time" scale="0.003"/>
         <!-- imported inputs -->
+        <input name="ReflectionCamera" state="reflection-camera" component="Camera" input-suffix="_Reflection"/>
         <!-- TODO: rather use existing buffer block! -->
-        <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
         <input name="lightDirection_Sun" state="sky-sun" component="lightDirection"/>
         <input name="sunColor" state="sky-sun" component="lightDiffuse"/>
 

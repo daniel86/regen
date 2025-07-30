@@ -165,6 +165,7 @@
         <input type="vec2" name="initialBrightness" value="5.0,2.0"/>
         <input type="vec2" name="emitterCone" value="60.0,30.0"/>
         <input type="float" name="surfaceHeight" value="{{map-y-min}}"/>
+        <!-- TODO: rather use existing buffer block! -->
         <input name="cameraPosition" state="main-camera" component="cameraPosition"/>
         <input type="float" name="windFactor" value="10.0"/>
         <input name="Wind" ubo="WindUBO"/>

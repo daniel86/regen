@@ -248,7 +248,7 @@
         <define key="SHADING" value="NONE"/>
         <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" update-frequency="NEVER"/>
         <node id="Planar-Reflector">
-            <input name="reflectionMatrix" state="reflection-camera" component="viewProjectionMatrix"/>
+            <input name="ReflectionCamera" state="reflection-camera" component="Camera" input-suffix="_Reflection"/>
             <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
                      map-to="COLOR" mapping="PLANAR_REFLECTION" blend-mode="SRC" ignore-alpha="1"/>
             <mesh id="reflector-mesh" shader="regen.models.mesh"/>

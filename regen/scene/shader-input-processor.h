@@ -1,10 +1,3 @@
-/*
- * input.h
- *
- *  Created on: Nov 3, 2013
- *      Author: daniel
- */
-
 #ifndef REGEN_SCENE_INPUT_H_
 #define REGEN_SCENE_INPUT_H_
 
@@ -193,6 +186,20 @@ namespace regen {
 					if (in->isVertexAttribute()) {
 						in->setVertexData(in->numVertices(), nullptr);
 						setInput(input, in.get(), in->numVertices());
+					} else if (in->isBufferBlock()) {
+						if (input.hasAttribute("input-suffix")) {
+							auto suffix = input.getValue<std::string>("input-suffix", "");
+							auto *ubo = dynamic_cast<UBO *>(in.get());
+							if (ubo) {
+								in = ref_ptr<UBO>::alloc(*ubo, ubo->name(), suffix);
+							} else {
+								REGEN_WARN("Shader date '" << in->name() <<
+										"' is not a UBO, cannot set uniform suffix.");
+							}
+							setInput(input, in.get(), in->numInstances());
+						} else {
+							setInput(input, in.get(), in->numInstances());
+						}
 					} else {
 						in->setInstanceData(in->numInstances(), 1, nullptr);
 						setInput(input, in.get(), in->numInstances());

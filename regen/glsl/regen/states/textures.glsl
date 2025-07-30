@@ -576,11 +576,11 @@ vec3 texco_cube_reflection(vec3 P, vec3 N)
 vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
 {
 #ifdef IS_PARABOLOID_DUAL
-    vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
-    vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
+    vec3 P_ = (in_viewProjectionMatrix_Reflection[0] * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_viewProjectionMatrix_Reflection[0] * vec4(N,0.0)).xyz;
 #else
-    vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
-    vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
+    vec3 P_ = (in_viewProjectionMatrix_Reflection * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_viewProjectionMatrix_Reflection * vec4(N,0.0)).xyz;
 #endif
     vec3 R = normalize( reflect(P_, N_) );
     float layer = float(R.z>0.0);
@@ -601,11 +601,11 @@ vec3 texco_paraboloid_reflection(vec3 P, vec3 N)
 vec3 texco_paraboloid_refraction(vec3 P, vec3 N)
 {
 #ifdef IS_PARABOLOID_DUAL
-    vec3 P_ = (in_reflectionMatrix[0] * vec4(P,1.0)).xyz;
-    vec3 N_ = (in_reflectionMatrix[0] * vec4(N,0.0)).xyz;
+    vec3 P_ = (in_viewProjectionMatrix_Reflection[0] * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_viewProjectionMatrix_Reflection[0] * vec4(N,0.0)).xyz;
 #else
-    vec3 P_ = (in_reflectionMatrix * vec4(P,1.0)).xyz;
-    vec3 N_ = (in_reflectionMatrix * vec4(N,0.0)).xyz;
+    vec3 P_ = (in_viewProjectionMatrix_Reflection * vec4(P,1.0)).xyz;
+    vec3 N_ = (in_viewProjectionMatrix_Reflection * vec4(N,0.0)).xyz;
 #endif
     vec3 R = normalize( refract(P_, N_, in_matRefractionIndex) );
     float layer = float(R.z>0.0);
@@ -625,7 +625,7 @@ vec3 texco_paraboloid_refraction(vec3 P, vec3 N)
 #define2 REGEN_TEXCO_PLANE_REFL_
 vec2 texco_planar_reflection(vec3 P, vec3 N)
 {
-    return transformScreenToTexco(in_reflectionMatrix * vec4(P,1.0)).xy;
+    return transformScreenToTexco(in_viewProjectionMatrix_Reflection * vec4(P,1.0)).xy;
 }
 #endif
 

@@ -37,7 +37,7 @@ uniform sampler2D in_foamTexture;
 uniform vec2 in_inverseViewport;
 // camera input
 #include regen.states.camera.input
-uniform mat4 in_reflectionMatrix;
+uniform mat4 in_viewProjectionMatrix_Reflection;
 
 const float in_heightTextureSize = 256.0;
 const float in_time = 0.0;
@@ -228,7 +228,7 @@ void computeOverWaterColor(vec3 position, float sceneDepth, vecTexco texco, inou
 #endif
 
     // Compute reflection color
-    vec4 proj = in_reflectionMatrix * vec4(surfacePoint.xyz,1.0);
+    vec4 proj = in_viewProjectionMatrix_Reflection * vec4(surfacePoint.xyz,1.0);
     proj.x = proj.x + in_reflectionDisplace * surfaceNormal.x;
     proj.z = proj.z + in_reflectionDisplace * surfaceNormal.z;
     vec2 reflectionTexco = (proj.xy/proj.w + vec2(1.0))*0.5;
