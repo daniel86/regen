@@ -64,9 +64,9 @@ namespace regen {
 		const std::vector<ref_ptr<Mesh>> &parts() const { return parts_; }
 
 		/**
-		 * @return the model transformation of this shape, if any.
+		 * @return the bounding shape of this cull shape.
 		 */
-		const ref_ptr<ModelTransformation> &tf() const { return tf_; }
+		const ref_ptr<BoundingShape> &boundingShape() const { return boundingShape_; }
 
 		/**
 		 * Note that by default the cull shape is not using a shared instance buffer,
@@ -88,9 +88,9 @@ namespace regen {
 	protected:
 		std::string shapeName_;
 		std::vector<ref_ptr<Mesh>> parts_;
-		ref_ptr<ModelTransformation> tf_;
 		uint32_t numInstances_ = 1u;
 		ref_ptr<SpatialIndex> spatialIndex_;
+		ref_ptr<BoundingShape> boundingShape_;
 
 		// a "shared" instance buffer.
 		// shared because the same buffer is used in different passes per draw with different

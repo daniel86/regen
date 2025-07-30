@@ -54,13 +54,13 @@ namespace regen {
 		 * @brief Get the instance ID of this shape
 		 * @return The instance ID
 		 */
-		GLuint instanceID() const { return instanceID_; }
+		uint32_t instanceID() const { return instanceID_; }
 
 		/**
 		 * @brief Get the number of instances
 		 * @return The number of instances
 		 */
-		GLuint numInstances() const;
+		uint32_t numInstances() const;
 
 		/**
 		 * @brief Get the type of this shape
@@ -72,19 +72,19 @@ namespace regen {
 		 * @brief Check if this shape is a box
 		 * @return True if this shape is a box, false otherwise
 		 */
-		auto isBox() const { return shapeType_ == BoundingShapeType::BOX; }
+		bool isBox() const { return shapeType_ == BoundingShapeType::BOX; }
 
 		/**
 		 * @brief Check if this shape is a sphere
 		 * @return True if this shape is a sphere, false otherwise
 		 */
-		auto isSphere() const { return shapeType_ == BoundingShapeType::SPHERE; }
+		bool isSphere() const { return shapeType_ == BoundingShapeType::SPHERE; }
 
 		/**
 		 * @brief Check if this shape is a frustum
 		 * @return True if this shape is a frustum, false otherwise
 		 */
-		auto isFrustum() const { return shapeType_ == BoundingShapeType::FRUSTUM; }
+		bool isFrustum() const { return shapeType_ == BoundingShapeType::FRUSTUM; }
 
 		/**
 		 * @brief Set the transform of this shape
@@ -93,10 +93,17 @@ namespace regen {
 		void setTransform(const ref_ptr<ModelTransformation> &transform, unsigned int instanceIndex = 0);
 
 		/**
-		 * @brief Get the transform of this shape
+		 * @brief Set the local transform of this shape
+		 * This is used when no ModelTransformation is set
+		 * @param localTransform The local transform
+		 */
+		void setTransform(const Mat4f &localTransform);
+
+		/**
+		 * @brief Get the transform of this shape, if any
 		 * @return The transform
 		 */
-		auto &transform() const { return transform_; }
+		const ref_ptr<ModelTransformation> &transform() const { return transform_; }
 
 		/**
 		 * @brief Get the translation of this shape
@@ -115,13 +122,13 @@ namespace regen {
 		 * @brief Get the stamp of the center
 		 * @return The stamp
 		 */
-		unsigned int transformStamp() const;
+		uint32_t transformStamp() const;
 
 		/**
 		 * @brief Get the mesh of this shape
 		 * @return The mesh
 		 */
-		auto &mesh() const { return mesh_; }
+		const ref_ptr<Mesh> &mesh() const { return mesh_; }
 
 		/**
 		 * @brief Get the parts of this shape
@@ -174,14 +181,17 @@ namespace regen {
 		std::vector<ref_ptr<Mesh>> parts_;
 
 		ref_ptr<ModelTransformation> transform_;
+		// only used in case no TF is set
+		Mat4f localTransform_ = Mat4f::identity();
 		Vec3f shapeOrigin_ = Vec3f::zero();
 
-		unsigned int lastTransformStamp_ = 0;
-		unsigned int lastGeometryStamp_;
-		unsigned int nextGeometryStamp_ = 0u;
-		unsigned int transformIndex_ = 0;
+		uint32_t localStamp_ = 1u;
+		uint32_t lastTransformStamp_ = 0;
+		uint32_t lastGeometryStamp_;
+		uint32_t nextGeometryStamp_ = 0u;
+		uint32_t transformIndex_ = 0;
 		std::string name_;
-		unsigned int instanceID_ = 0;
+		uint32_t instanceID_ = 0;
 		// custom data pointer used for spatial index intersection tests
 		void *spatialIndexData_ = nullptr;
 		mutable bool spatialIndexVisible_ = false;

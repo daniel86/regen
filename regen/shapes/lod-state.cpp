@@ -52,6 +52,11 @@ LODState::LODState(
 	} else {
 		REGEN_WARN("No mesh set for shape '" << cullShape_->shapeName() << "'.");
 	}
+	if (!cullShape_->boundingShape()->transform().get()) {
+		REGEN_WARN("No TF for cull shape '"
+			<< cullShape_->shapeName()
+			<< "'. LOD and culling will not work properly!");
+	}
 	if (camera_->hasFixedLOD()) {
 		if (camera_->fixedLODQuality() == LODQuality::HIGH) {
 			fixedLOD_ = 0u; // always use highest quality LOD
@@ -93,9 +98,9 @@ void LODState::initLODState() {
 		// NOTE: If memory allows, it is better to use a per-frame instance buffer to avoid stalling.
 		instanceData_ = cullShape_->instanceData();
 		instanceBuffer_ = cullShape_->instanceBuffer();
-	} else if (cullShape_->tf()->numInstances() > 1) {
+	} else if (cullShape_->numInstances() > 1) {
 		// create instance buffer for per-frame updates.
-		int32_t numIndices = cullShape_->tf()->numInstances();
+		int32_t numIndices = cullShape_->numInstances();
 		std::vector<uint32_t> clearData(numIndices);
 		for (int32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
 
@@ -325,10 +330,10 @@ void LODState::traverseCPU() {
 	} else if (camera_->hasFixedLOD()) {
 		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);
 	} else {
-		if (tfStamp_ != cullShape_->tf()->stamp() || cameraStamp_ != camera_->stamp()) {
+		if (tfStamp_ != cullShape_->boundingShape()->transformStamp() || cameraStamp_ != camera_->stamp()) {
 			// recompute LOD groups if the transform or camera has changed
 			computeLODGroups();
-			tfStamp_ = cullShape_->tf()->stamp();
+			tfStamp_ = cullShape_->boundingShape()->transformStamp();
 			cameraStamp_ = camera_->stamp();
 		}
 		//computeLODGroups();
@@ -434,7 +439,7 @@ void LODState::computeLODGroups() {
 	if (numVisible == 0) { return; }
 
 	const uint32_t *mappedData = visible_ids.r.data() + 1;
-	auto &tf = cullShape_->tf();
+	auto &tf = cullShape_->boundingShape()->transform();
 	auto &camPos = camera_->position(0);
 	bool hasTF = tf.get() && (tf->hasModelOffset() || tf->hasModelMat());
 
@@ -607,7 +612,10 @@ void LODState::createComputeShader() {
 				shaderCfg.define("SHAPE_TYPE", "OBB");
 			}
 		}
-		cullPass_->joinStates(cullShape_->tf());
+		auto &tf = cullShape_->boundingShape()->transform();
+		if (tf.get()) {
+			cullPass_->joinStates(tf);
+		}
 		cullPass_->joinStates(camera_);
 		shaderCfg.define("USE_CULLING", "TRUE");
 		shaderCfg.addState(cullPass_.get());

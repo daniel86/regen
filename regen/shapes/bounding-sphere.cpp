@@ -44,10 +44,7 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 }
 
 void BoundingSphere::updateShapeOrigin() {
-	shapeOrigin_ = basePosition_;
-	if (transform_.get()) {
-		shapeOrigin_ += transform_->position(transformIndex_);
-	}
+	shapeOrigin_ = basePosition_ + translation();
 }
 
 Vec3f BoundingSphere::closestPointOnSurface(const Vec3f &point) const {

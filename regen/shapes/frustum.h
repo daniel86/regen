@@ -1,12 +1,5 @@
-/*
- * frustum.h
- *
- *  Created on: Dec 15, 2013
- *      Author: daniel
- */
-
-#ifndef FRUSTUM_H_
-#define FRUSTUM_H_
+#ifndef REGEN_FRUSTUM_H_
+#define REGEN_FRUSTUM_H_
 
 #include <vector>
 #include <regen/math/vector.h>
@@ -113,4 +106,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* FRUSTUM_H_ */
+#endif /* REGEN_FRUSTUM_H_ */

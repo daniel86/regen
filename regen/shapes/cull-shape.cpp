@@ -42,8 +42,8 @@ void CullShape::initCullShape(
 		// add mesh as part if not already added
 		parts_.push_back(mesh);
 	}
-	tf_ = boundingShape->transform();
-	numInstances_ = tf_->numInstances();
+	boundingShape_ = boundingShape;
+	numInstances_ = boundingShape->numInstances();
 	if (useSharedInstanceBuffer) {
 		// create instanceIDMap_ and instanceIDBuffer_, these are used to store the instance IDs
 		createBuffers();
@@ -51,7 +51,7 @@ void CullShape::initCullShape(
 }
 
 void CullShape::createBuffers() {
-	auto numIndices = tf_->numInstances();
+	auto numIndices = boundingShape_->numInstances();
 	if (numIndices <= 1) { return; }
 
 	std::vector<uint32_t> clearData(numInstances_);

@@ -28,7 +28,7 @@ void OBB::updateOBB() {
 	updateShapeOrigin();
 	Vec3f offset = basePosition_;
 	// compute axes of the OBB based on the model transformation
-	auto scaling = Vec3f::one();
+	const Vec3f &scaling = Vec3f::one();
 	if (transform_.get()) {
 		if (transform_->hasModelOffset()) {
 			offset += getClamped(transform_->modelOffset(), transformIndex_).xyz_();
@@ -42,6 +42,15 @@ void OBB::updateOBB() {
 			offset = (tf ^ Vec4f(offset, 0.0f)).xyz_();
 			offset += tf.position();
 		}
+	} else if (localStamp_ != 1) {
+		// use local transform if no model transformation is set.
+		// note: stamp!=1 indicates we do not have an identity transform.
+		auto &tf = localTransform_;
+		boxAxes_[0] = (tf ^ Vec4f(Vec3f::right(), 0.0f)).xyz_();
+		boxAxes_[1] = (tf ^ Vec4f(Vec3f::up(), 0.0f)).xyz_();
+		boxAxes_[2] = (tf ^ Vec4f(Vec3f::front(), 0.0f)).xyz_();
+		offset = (tf ^ Vec4f(offset, 0.0f)).xyz_();
+		offset += tf.position();
 	} else {
 		boxAxes_[0] = Vec3f::right();
 		boxAxes_[1] = Vec3f::up();

@@ -7,9 +7,6 @@ using namespace regen;
 Frustum::Frustum() :
 		BoundingShape(BoundingShapeType::FRUSTUM),
 		orthoBounds(Vec2f(0), Vec2f(0)) {
-	// TODO: should frustum really have a TF? seems overkill
-	transform_ = ref_ptr<ModelTransformation>::alloc(
-		createUniform<ShaderInput4f>("frustumCenter", Vec4f(0)));
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
 }
@@ -68,7 +65,7 @@ unsigned int Frustum::directionStamp() const {
 void Frustum::update(const Vec3f &pos, const Vec3f &dir) {
 	Vec3f d = dir;
 	d.normalize();
-	transform_->setModelOffset(0, pos);
+	localTransform_.setPosition(pos);
 	direction_->setVertex(0, d);
 	shapeOrigin_ = pos;
 

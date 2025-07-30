@@ -406,6 +406,9 @@ void ShapeProcessor::processInput(
 	if(!transform.get()) {
 		auto offset = getOffset(input, mesh, parts);
 		if (offset.get()) {
+			// TODO: Improve this, we should not create a new ModelTransformation.
+			//   The offset might be part of another BO, so best would be to create a "virtual" TF
+			//   in the range of the offset in its buffer.
 			transform = ref_ptr<ModelTransformation>::alloc(offset);
 		}
 	}
