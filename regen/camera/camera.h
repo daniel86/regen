@@ -406,6 +406,27 @@ namespace regen {
 		}
 
 		/**
+		 * Get the clip plane for this camera.
+		 * @return the clip plane.
+		 */
+		const std::vector<Vec4f> &clipPlane() const { return clipPlane_; }
+
+		/**
+		 * Get the clip plane for a specific index.
+		 * @param idx the index of the clip plane.
+		 * @return the clip plane for the specified index.
+		 */
+		const Vec4f &clipPlane(uint32_t idx) const { return clipPlane_[idx]; }
+
+		/**
+		 * Set the clip plane for this camera.
+		 * @param plane the clip plane to set.
+		 */
+		void setClipPlane(uint32_t idx, const Vec4f &plane) {
+			setStamped(clipPlane_, clipPlaneStamp_, idx, plane);
+		}
+
+		/**
 		 * @return the 8 points forming this Frustum.
 		 */
 		const std::vector<Frustum> &frustum() const { return frustum_; }
@@ -504,6 +525,7 @@ namespace regen {
 		ref_ptr<ShaderInput4f> sh_projParams_;
 		ref_ptr<ShaderInputMat4> sh_proj_;
 		ref_ptr<ShaderInputMat4> sh_projInv_;
+		ref_ptr<ShaderInput4f> sh_clipPlane_;
 
 		// note: in additional to the buffered shader inputs, we have
 		// a local-only copy of the camera data, which is used to
@@ -524,6 +546,8 @@ namespace regen {
 		std::vector<Mat4f> projData_;
 		std::span<Mat4f> proj_;
 		std::span<Mat4f> projInv_;
+
+		std::vector<Vec4f> clipPlane_ = { Vec4f::zero() };
 
 		ref_ptr<Animation> attachedMotion_;
 		ref_ptr<ModelTransformation> attachedTF_;
@@ -566,12 +590,14 @@ namespace regen {
 		uint32_t velStamp_ = 1u;
 		uint32_t projStamp_ = 1u;
 		uint32_t projParamsStamp_ = 1u;
+		uint32_t clipPlaneStamp_ = 1u;
 
 		uint32_t lastViewStamp1_ = 0u;
 		uint32_t lastProjStamp1_ = 0u;
 		uint32_t lastDirStamp1_ = 0u;
 		uint32_t lastPosStamp1_ = 0u;
 		uint32_t lastProjParamsStamp1_ = 0u;
+		uint32_t lastClipPlaneStamp1_ = 0u;
 		uint32_t lastProjStamp_ = 0u;
 		uint32_t lastPosStamp_ = 0u;
 		uint32_t lastDirStamp_ = 0u;

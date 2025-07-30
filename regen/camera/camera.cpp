@@ -154,7 +154,7 @@ void Camera::updateShaderData(float dt) {
 			std::memcpy(mapped.w + offset, viewData_.data(), dataSize);
 			sh_view_->clientBuffer().nextStamp(mapped.w_index);
 			sh_viewInv_->clientBuffer().nextStamp(mapped.w_index);
-			offset += dataSize;
+			offset = dataSize;
 			writtenRange.size = dataSize;
 		} else {
 			offset = dataSize;
@@ -220,8 +220,22 @@ void Camera::updateShaderData(float dt) {
 			std::memcpy(mapped.w + offset, projData_.data(), dataSize);
 			sh_proj_->clientBuffer().nextStamp(mapped.w_index);
 			sh_projInv_->clientBuffer().nextStamp(mapped.w_index);
-			//offset += dataSize;
+			offset += dataSize;
 			writtenRange.size += dataSize;
+		} else {
+			offset += dataSize;
+			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
+		}
+
+		if (sh_clipPlane_.get()) {
+			dataSize = clipPlane_.size() * sizeof(Vec4f);
+			if (lastClipPlaneStamp1_ != clipPlaneStamp_) {
+				lastClipPlaneStamp1_ = clipPlaneStamp_;
+				std::memcpy(mapped.w + offset, clipPlane_.data(), dataSize);
+				sh_clipPlane_->clientBuffer().nextStamp(mapped.w_index);
+				//offset += dataSize;
+				writtenRange.size += dataSize;
+			}
 		}
 
 		flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);

@@ -35,10 +35,6 @@ ReflectionCamera::ReflectionCamera(
 		  hasBackFace_(hasBackFace) {
 	setPerspective(userCamera_->projParams()[0]);
 
-	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
-	clipPlane_->setUniformData(Vec4f(0.0f));
-	setInput(clipPlane_);
-
 	pos_ = mesh->positions();
 	nor_ = mesh->normals();
 	isReflectorValid_ = (pos_.get() != nullptr) && (nor_.get() != nullptr);
@@ -52,6 +48,10 @@ ReflectionCamera::ReflectionCamera(
 	if (transform_.get() != nullptr) {
 		transformStamp_ = transform_->stamp() - 1;
 	}
+
+	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
+	sh_clipPlane_->setUniformData(Vec4f::zero());
+	cameraBlock_->addBlockInput(sh_clipPlane_);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
 	reflectionUpdater_->startAnimation();
@@ -73,10 +73,6 @@ ReflectionCamera::ReflectionCamera(
 		  hasBackFace_(hasBackFace) {
 	setPerspective(userCamera_->projParams()[0]);
 
-	clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
-	clipPlane_->setUniformData(Vec4f(0.0f));
-	setInput(clipPlane_);
-
 	vertexIndex_ = 0;
 	transformStamp_ = 0;
 	posStamp_ = 0;
@@ -85,10 +81,14 @@ ReflectionCamera::ReflectionCamera(
 	norWorld_ = reflectorNormal;
 	isReflectorValid_ = true;
 
-	clipPlane_->setVertex(0, Vec4f(
-			norWorld_.x, norWorld_.y, norWorld_.z,
-			norWorld_.dot(posWorld_)));
 	reflectionMatrix_ = Mat4f::reflectionMatrix(posWorld_, norWorld_);
+
+	clipPlane_[0] = Vec4f(
+			norWorld_.x, norWorld_.y, norWorld_.z,
+			norWorld_.dot(posWorld_));
+	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
+	sh_clipPlane_->setUniformData(clipPlane_[0]);
+	cameraBlock_->addBlockInput(sh_clipPlane_);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
 	reflectionUpdater_->startAnimation();
@@ -142,14 +142,14 @@ bool ReflectionCamera::updateReflection() {
 	// Compute reflection matrix...
 	if (reflectorChanged) {
 		if (isFront_) {
-			clipPlane_->setVertex(0, Vec4f(
+			setClipPlane(0, Vec4f(
 					norWorld_.x, norWorld_.y, norWorld_.z,
 					norWorld_.dot(posWorld_)));
 			reflectionMatrix_ = Mat4f::reflectionMatrix(posWorld_, norWorld_);
 		} else {
 			// flip reflector normal
 			Vec3f n = -norWorld_;
-			clipPlane_->setVertex(0, Vec4f(n.x, n.y, n.z, n.dot(posWorld_)));
+			setClipPlane(0, Vec4f(n.x, n.y, n.z, n.dot(posWorld_)));
 			reflectionMatrix_ = Mat4f::reflectionMatrix(posWorld_, n);
 		}
 	}

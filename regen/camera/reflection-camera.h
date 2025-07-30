@@ -45,7 +45,7 @@ namespace regen {
 		ref_ptr<ShaderInput> pos_;
 		ref_ptr<ShaderInput> nor_;
 		ref_ptr<ShaderInput> transform_;
-		ref_ptr<ShaderInput4f> clipPlane_;
+
 		ref_ptr<State> cullState_;
 		ref_ptr<Animation> reflectionUpdater_;
 		Vec3f posWorld_;
