@@ -33,6 +33,8 @@ State::~State() {
 	while (!inputs_.empty()) {
 		removeInput(inputs_.begin()->name_);
 	}
+	attached_.clear();
+	joined_.clear();
 }
 
 const std::vector<NamedShaderInput> &State::inputs() const {

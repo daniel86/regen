@@ -96,6 +96,11 @@ ShaderInput::~ShaderInput() {
 	if (bufferIterator_.get()) {
 		BufferObject::orphanBufferRange(bufferIterator_.get());
 	}
+	bufferIterator_ = {};
+	if (clientBuffer_->isDataOwner()) {
+		clientBuffer_->deallocateClientData();
+	}
+	clientBuffer_ = {};
 }
 
 void ShaderInput::updateAlignment() {
