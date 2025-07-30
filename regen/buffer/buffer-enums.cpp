@@ -69,12 +69,6 @@ namespace regen {
 		return storageFlags[(int) storageMode];
 	}
 
-	bool isMapModePersistent(BufferMapMode mapMode) {
-		return
-				mapMode == BUFFER_MAP_PERSISTENT_COHERENT
-				|| mapMode == BUFFER_MAP_PERSISTENT_FLUSH;
-	}
-
 	BufferStorageMode getBufferStorageMode(
 			ClientAccessMode accessMode,
 			BufferMapMode mapMode,

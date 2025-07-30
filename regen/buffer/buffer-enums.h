@@ -209,7 +209,9 @@ namespace regen {
 	 * @param mapMode the buffer map mode to check.
 	 * @return true if the map mode is persistent, false otherwise.
 	 */
-	bool isMapModePersistent(BufferMapMode mapMode);
+	inline bool isMapModePersistent(BufferMapMode mapMode) {
+		return mapMode >= BUFFER_MAP_PERSISTENT_COHERENT;
+	}
 
 	/**
 	 * \brief Buffer storage modes.
