@@ -667,7 +667,7 @@ void ClientBuffer::createSecondSlot() {
 	dataSlots_[1] = data_w;
 	// Initialize second slot stamp to the same value as the first slot.
 	dataStamps_[1] = dataStamps_[0];
-	REGEN_WARN("Switch to double-buffered mode"
+	REGEN_INFO("Switch to double-buffered mode"
 		<< " data size: " << dataSize_
 		<< " segments: " << bufferSegments_.size()
 		<< " ptr: " << static_cast<void*>(this));
