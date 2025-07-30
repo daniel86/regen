@@ -62,7 +62,7 @@ ReflectionCamera::ReflectionCamera(
 		const Vec3f &reflectorNormal,
 		const Vec3f &reflectorPoint,
 		bool hasBackFace)
-		: Camera(1),
+		: Camera(1, userCamera->cameraBlock()->stagingUpdateHint()),
 		  userCamera_(userCamera),
 		  projStamp_(userCamera->projectionStamp() - 1),
 		  camPosStamp_(userCamera->positionStamp() - 1),
