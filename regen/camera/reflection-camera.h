@@ -20,7 +20,7 @@ namespace regen {
 		ReflectionCamera(
 				const ref_ptr<Camera> &cam,
 				const ref_ptr<Mesh> &mesh,
-				GLuint vertexIndex = 0,
+				uint32_t vertexIndex = 0,
 				bool hasBackFace = GL_FALSE);
 
 		/**
@@ -50,13 +50,13 @@ namespace regen {
 		ref_ptr<Animation> reflectionUpdater_;
 		Vec3f posWorld_;
 		Vec3f norWorld_;
-		GLuint vertexIndex_;
-		GLuint projStamp_;
-		GLuint posStamp_;
-		GLuint norStamp_;
-		GLuint camPosStamp_;
-		GLuint camDirStamp_;
-		GLuint transformStamp_;
+		uint32_t vertexIndex_;
+		uint32_t projStamp_;
+		uint32_t posStamp_;
+		uint32_t norStamp_;
+		uint32_t camPosStamp_;
+		uint32_t camDirStamp_;
+		uint32_t transformStamp_;
 		bool cameraChanged_;
 		bool isReflectorValid_;
 		bool isFront_;

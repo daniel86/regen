@@ -21,7 +21,7 @@ namespace regen {
 ReflectionCamera::ReflectionCamera(
 		const ref_ptr<Camera> &userCamera,
 		const ref_ptr<Mesh> &mesh,
-		unsigned int vertexIndex,
+		uint32_t vertexIndex,
 		bool hasBackFace)
 		: Camera(1),
 		  userCamera_(userCamera),
