@@ -9,9 +9,6 @@ using namespace regen;
 //#define BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
 //#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
 //#define BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
-// If defined, do buffer-to-buffer copy within ring buffer in case we can fetch needed
-// data from another segment without stalling.
-//#define BLOCK_INPUT_USE_BUFFERED_DATA
 
 uint32_t BufferBlock::MIN_SEGMENTS_PARTIAL_TEMPORARY = 6;
 float BufferBlock::MAX_UPDATE_RATIO_PARTIAL_TEMPORARY = 0.33f;
@@ -456,67 +453,54 @@ int32_t BufferBlock::getBufferedIndex(uint32_t stamp, const std::vector<uint32_t
 	return NO_BUFFERED_INDEX; // not found
 }
 
-void BufferBlock::copyBlockInput(
-		BlockInput &bufferInput,
-		byte *mappedBufferData,
-		uint32_t localMapOffset) {
-	auto &currentStamp = lastInputStamp(bufferInput);
-	currentStamp = bufferInput.input->stamp();
-
-#ifdef BLOCK_INPUT_USE_BUFFERED_DATA
-	auto &sb = shared_->stagingBuffer_;
-	if (sb.get()) {
-		auto ref = shared_->stagingBuffer_->stagingRef();
-		if (!ref.get()) { ref = drawBufferRef_; }
-
-		const int32_t bufferedIdx = getBufferedIndex(
-				bufferInput.input->stamp(), bufferInput.lastStamp);
-		if (bufferedIdx >= 0) {
-			uint32_t readOffset  = sb->segmentOffset(bufferedIdx);
-			uint32_t writeOffset = sb->segmentOffset(sb->nextWriteIndex());
-			glCopyNamedBufferSubData(
-				ref->bufferID(),
-				ref->bufferID(),
-				ref->address() + readOffset + bufferInput.offset,
-				ref->address() + writeOffset + bufferInput.offset,
-				bufferInput.input->inputSize());
-			return;
-		}
-	}
-#endif
-
-	// NOTE: The buffer maybe is not mapped from the start if the adopted buffer range, e.g.
-	//       in case starts at first dirt segment. However, the block input offsets are always
-	//       relative to the start of the buffer, so we need to adjust the offset accordingly...
-	const uint32_t offset = bufferInput.offset - localMapOffset;
-	auto mapped = bufferInput.input->mapClientDataRaw(BUFFER_GPU_READ);
-	memcpy(mappedBufferData + offset,
-		   mapped.r,
-		   bufferInput.input->inputSize());
-}
-
 void BufferBlock::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset) {
-	// iterate over the changed segments and copy only those
-	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
-		auto &segment = dirtySegmentRanges_[segmentIdx];
+	const auto fullSize = clientBuffer_->dataSize();
+	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
 
-		for (uint32_t inputIdx = segment.startIdx; inputIdx < segment.endIdx; ++inputIdx) {
+	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
+		// Copy the whole segment range at once.
+		auto &dirtyRange = dirtyBufferRanges_[segmentIdx];
+		// NOTE: The main buffer maybe is not mapped from the start if the adopted buffer range, e.g.
+		//       in case starts at first dirt segment. However, the block input offsets are always
+		//       relative to the start of the buffer, so we need to adjust the offset accordingly...
+		const uint32_t offset = dirtyRange.offset - localMapOffset;
+		memcpy(mappedBufferData + offset,
+			   mapped.r + dirtyRange.offset,
+			   dirtyRange.size);
+
+		auto &segmentRange = dirtySegmentRanges_[segmentIdx];
+		for (uint32_t inputIdx = segmentRange.startIdx; inputIdx < segmentRange.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
-			copyBlockInput(bufferInput, mappedBufferData, localMapOffset);
+			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}
+
+	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, fullSize, mapped.r_index);
 }
 
 void BufferBlock::copyFullData(byte *mappedBufferData, uint32_t localMapOffset) {
 	// full write of mapped range
 	// get start and end indices from first and last segment
 	uint32_t startIdx = dirtySegmentRanges_[0].startIdx;
-	uint32_t endIdx = dirtySegmentRanges_[numDirtySegments_ - 1].endIdx;
+	uint32_t endIdx   = dirtySegmentRanges_[numDirtySegments_ - 1].endIdx;
+	auto &firstSegment = blockInputs_[startIdx];
+	auto &lastSegment = blockInputs_[endIdx - 1];
 
+	// copy the whole range of block inputs.
+	const auto fullSize = clientBuffer_->dataSize();
+	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, fullSize);
+
+	const uint32_t offset = firstSegment->offset - localMapOffset;
+	memcpy(mappedBufferData + offset,
+		   mapped.r + firstSegment->offset,
+		   lastSegment->offset + lastSegment->inputSize - firstSegment->offset);
+
+	// update the last stamps for all inputs in the dirty range
 	for (uint32_t inputIdx = startIdx; inputIdx < endIdx; ++inputIdx) {
 		auto &bufferInput = *blockInputs_[inputIdx].get();
-		copyBlockInput(bufferInput, mappedBufferData, localMapOffset);
+		lastInputStamp(bufferInput) = bufferInput.input->stamp();
 	}
+	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, fullSize, mapped.r_index);
 }
 
 void BufferBlock::markBufferDirty() {
@@ -729,21 +713,28 @@ void BufferBlock::updateNonMapped() {
 	// iterate over the changed segments and copy only those into the staging buffer.
 	shared_->stagingBuffer_->beginNonMappedWrite();
 
-	for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
-		auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
+	const auto dataSize = clientBuffer_->dataSize();
+	auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
 
+	for (uint32_t dirtyIdx = 0; dirtyIdx < numDirtySegments_; ++dirtyIdx) {
+		auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
+		auto &dirtyRange_b = dirtyBufferRanges_[dirtyIdx];
+		const uint32_t localOffset = shared_->stagingOffset_ + dirtyRange_b.offset;
+
+		shared_->stagingBuffer_->setSubData(
+				drawBufferRef_,
+				localOffset,
+				dirtyRange_b.size,
+				mapped.r + dirtyRange_b.offset);
+
+		// update the last stamps for all inputs in the dirty range
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
-			const uint32_t localOffset = shared_->stagingOffset_ + bufferInput.offset;
-			auto mapped = bufferInput.input->mapClientDataRaw(BUFFER_GPU_READ);
-			shared_->stagingBuffer_->setSubData(
-					drawBufferRef_,
-					localOffset,
-					bufferInput.inputSize,
-					mapped.r);
 			lastInputStamp(bufferInput) = bufferInput.input->stamp();
 		}
 	}
+
+	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, dataSize, mapped.r_index);
 	shared_->stagingBuffer_->endNonMappedWrite(
 			drawBufferRef_,
 			*drawBufferRange_.get(),
@@ -766,9 +757,9 @@ void BufferBlock::updateTemporaryMapped() {
 								 (numDirtySegments_ <= BufferBlock::MIN_SEGMENTS_PARTIAL_TEMPORARY);
 
 	if (doPartialUpdate) {
-		for (uint32_t segmentIdx = 0; segmentIdx < numDirtySegments_; ++segmentIdx) {
-			auto &dirtyRange_s = dirtySegmentRanges_[segmentIdx];
-			auto &dirtyRange_b = dirtyBufferRanges_[segmentIdx];
+		for (uint32_t dirtyIdx = 0; dirtyIdx < numDirtySegments_; ++dirtyIdx) {
+			auto &dirtyRange_s = dirtySegmentRanges_[dirtyIdx];
+			auto &dirtyRange_b = dirtyBufferRanges_[dirtyIdx];
 			const uint32_t localOffset = shared_->stagingOffset_ + dirtyRange_b.offset;
 			byte *bufferData = shared_->stagingBuffer_->beginMappedWrite(
 					drawBufferRef_,
@@ -776,10 +767,21 @@ void BufferBlock::updateTemporaryMapped() {
 					localOffset,
 					dirtyRange_b.size);
 			if (bufferData) {
+				const auto dataSize = clientBuffer_->dataSize();
+				auto mapped = clientBuffer_->mapRange(BUFFER_GPU_READ, 0u, dataSize);
+
+				const uint32_t offset = dirtyRange_b.offset - localOffset;
+				memcpy(bufferData + offset,
+					   mapped.r + dirtyRange_b.offset,
+					   dirtyRange_b.size);
+
 				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
 					auto &bufferInput = *blockInputs_[inputIdx].get();
-					copyBlockInput(bufferInput, bufferData, dirtyRange_b.offset);
+					lastInputStamp(bufferInput) = bufferInput.input->stamp();
 				}
+
+				clientBuffer_->unmapRange(BUFFER_GPU_READ,
+						0u, dataSize, mapped.r_index);
 				shared_->stagingBuffer_->endMappedWrite(
 						drawBufferRef_,
 						*drawBufferRange_.get(),

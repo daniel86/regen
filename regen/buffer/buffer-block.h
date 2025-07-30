@@ -367,8 +367,6 @@ namespace regen {
 
 		void copyFullData(byte *bufferData, uint32_t mapOffset);
 
-		void copyBlockInput(BlockInput &blockInput, byte *bufferData, uint32_t mapOffset);
-
 		void updateNonMapped();
 
 		void updateTemporaryMapped();
