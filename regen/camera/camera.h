@@ -458,46 +458,6 @@ namespace regen {
 		void updateFrustumBuffer();
 
 		/**
-		 * @return true if the sphere intersects with the frustum of this camera.
-		 */
-		bool hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const;
-
-		/**
-		 * @return true if the box intersects with the frustum of this camera.
-		 */
-		bool hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) const;
-
-		/**
-		 * @return true if the sphere intersects with the frustum of this camera.
-		 */
-		bool hasFrustumIntersection(const Vec3f &center, GLfloat radius) const;
-
-		/**
-		 * @return true if the box intersects with the frustum of this camera.
-		 */
-		bool hasFrustumIntersection(const Vec3f &center, const Vec3f *points) const;
-
-		/**
-		 * @return true if the sphere intersects with the bounding sphere of this camera.
-		 */
-		bool hasSphereIntersection(const Vec3f &center, GLfloat radius) const;
-
-		/**
-		 * @return true if the box intersects with the bounding sphere of this camera.
-		 */
-		bool hasSphereIntersection(const Vec3f &center, const Vec3f *points) const;
-
-		/**
-		 * @return true if the sphere intersects with the half bounding sphere of this camera.
-		 */
-		bool hasHalfSphereIntersection(const Vec3f &center, GLfloat radius) const;
-
-		/**
-		 * @return true if the box intersects with the half bounding sphere of this camera.
-		 */
-		bool hasHalfSphereIntersection(const Vec3f &center, const Vec3f *points) const;
-
-		/**
 		 * Attach the camera to a position, updating the camera position.
 		 * @param attached the position to attach to.
 		 */
