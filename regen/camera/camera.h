@@ -292,19 +292,13 @@ namespace regen {
 		const Mat4f &viewInverse(uint32_t idx) const { return viewInv_[idx]; }
 
 		/**
-		 * Get the stamp indicating when the inverse view matrix was last updated.
-		 * @return the inverse view stamp.
-		 */
-		uint32_t viewInverseStamp() const { return viewInvStamp_; }
-
-		/**
 		 * Set the inverse view matrix for a specific layer, and increment the stamp
 		 * indicating that the inverse view matrix has changed.
 		 * @param idx the layer index.
 		 * @param viewInv the inverse view matrix to set.
 		 */
 		void setViewInverse(uint32_t idx, const Mat4f &viewInv) {
-			setStamped(viewInv_, viewInvStamp_, idx, viewInv);
+			setStamped(viewInv_, viewStamp_, idx, viewInv);
 		}
 
 		/**
@@ -350,19 +344,13 @@ namespace regen {
 		const Mat4f &projectionInverse(uint32_t idx) const { return projInv_[idx]; }
 
 		/**
-		 * Get the stamp indicating when the inverse projection matrix was last updated.
-		 * @return the inverse projection stamp.
-		 */
-		uint32_t projectionInverseStamp() const { return projInvStamp_; }
-
-		/**
 		 * Set the inverse projection matrix for a specific layer, and increment the stamp
 		 * indicating that the inverse projection matrix has changed.
 		 * @param idx the layer index.
 		 * @param projInv the inverse projection matrix to set.
 		 */
 		void setProjectionInverse(uint32_t idx, const Mat4f &projInv) {
-			setStamped(projInv_, projInvStamp_, idx, projInv);
+			setStamped(projInv_, projStamp_, idx, projInv);
 		}
 
 		/**
@@ -408,19 +396,13 @@ namespace regen {
 		const Mat4f &viewProjectionInverse(uint32_t idx) const { return viewProjInv_[idx]; }
 
 		/**
-		 * Get the stamp indicating when the inverse view-projection matrix was last updated.
-		 * @return the inverse view-projection stamp.
-		 */
-		uint32_t viewProjectionInverseStamp() const { return viewProjInvStamp_; }
-
-		/**
 		 * Set the inverse view-projection matrix for a specific layer, and increment the stamp
 		 * indicating that the inverse view-projection matrix has changed.
 		 * @param idx the layer index.
 		 * @param viewProjInv the inverse view-projection matrix to set.
 		 */
 		void setViewProjectionInverse(uint32_t idx, const Mat4f &viewProjInv) {
-			setStamped(viewProjInv_, viewProjInvStamp_, idx, viewProjInv);
+			setStamped(viewProjInv_, viewProjStamp_, idx, viewProjInv);
 		}
 
 		/**
@@ -578,14 +560,11 @@ namespace regen {
 
 	private:
 		uint32_t viewStamp_ = 1u;
-		uint32_t viewInvStamp_ = 1u;
 		uint32_t viewProjStamp_ = 1u;
-		uint32_t viewProjInvStamp_ = 1u;
 		uint32_t directionStamp_ = 1u;
 		uint32_t positionStamp_ = 1u;
 		uint32_t velStamp_ = 1u;
 		uint32_t projStamp_ = 1u;
-		uint32_t projInvStamp_ = 1u;
 		uint32_t projParamsStamp_ = 1u;
 
 		uint32_t lastViewStamp1_ = 0u;

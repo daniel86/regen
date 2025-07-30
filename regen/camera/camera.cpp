@@ -320,7 +320,6 @@ bool Camera::updateView() {
 		}
 	}
 	viewStamp_ += 1u;
-	viewInvStamp_ += 1u;
 	camStamp_ += 1u;
 
 	return true;
@@ -346,7 +345,6 @@ void Camera::updateViewProjection(unsigned int projectionIndex, unsigned int vie
 			getClamped(position_, maxIndex).xyz_(),
 			getClamped(direction_, maxIndex).xyz_());
 	viewProjStamp_ += 1u;
-	viewProjInvStamp_ += 1u;
 	camStamp_ += 1u;
 }
 
@@ -380,7 +378,6 @@ void Camera::setPerspective(float aspect, float fov, float near, float far, unsi
 	setClamped(projInv_, layer, getClamped(proj_, layer).projectionInverse());
 	isOrtho_ = false;
 	projStamp_ += 1u;
-	projInvStamp_ += 1u;
 	camStamp_ += 1u;
 }
 
@@ -399,7 +396,6 @@ void Camera::setOrtho(float left, float right, float bottom, float top, float ne
 	projInv_[layer] = proj_[layer].orthogonalInverse();
 	isOrtho_ = true;
 	projStamp_ += 1u;
-	projInvStamp_ += 1u;
 	camStamp_ += 1u;
 }
 
