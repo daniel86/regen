@@ -51,11 +51,6 @@ namespace regen {
 		void setInstanceCount(uint32_t v) { data[1] = v; }
 
 		/**
-		 * @param v the base instance offset.
-		 */
-		void setBaseInstance(uint32_t v) { data[mode==0 ? 3 : 4] = v; }
-
-		/**
 		 * @return the first index (mode=1) or vertex (mode=2) to draw.
 		 */
 		uint32_t firstElement() const { return data[2]; }
@@ -64,6 +59,11 @@ namespace regen {
 		 * @param v the first index (mode=1) or vertex (mode=2) to draw.
 		 */
 		void setFirstElement(uint32_t v) { data[2] = v; }
+
+		/**
+		 * @param v the base instance offset.
+		 */
+		void setBaseInstance(uint32_t v) { data[mode==1 ? 4 : 3] = v; }
 	};
 } // namespace
 
