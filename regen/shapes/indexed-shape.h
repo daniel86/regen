@@ -69,6 +69,21 @@ namespace regen {
 		bool hasInstanceBuffer() const { return instanceBuffer_.get() != nullptr; }
 
 		/**
+		 * @return The indirect draw buffer used for this indexed shape
+		 */
+		const ref_ptr<SSBO> &indirectDrawBuffer() const { return indirectDrawBuffer_; }
+
+		/**
+		 * @param indirectDrawBuffer The indirect draw buffer to set
+		 */
+		void setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer) { indirectDrawBuffer_ = indirectDrawBuffer; }
+
+		/**
+		 * @return True if the indexed shape has an indirect draw buffer
+		 */
+		bool hasIndirectDrawBuffer() const { return indirectDrawBuffer_.get() != nullptr; }
+
+		/**
 		 * @param mode The sort mode to set
 		 */
 		void setSortMode(SortMode mode) { instanceSortMode_ = mode; }
@@ -85,6 +100,7 @@ namespace regen {
 		unsigned int instanceCount_ = 1;
 		ref_ptr<ShaderInput1ui> visibleVec_;
 		ref_ptr<SSBO> instanceBuffer_;
+		ref_ptr<SSBO> indirectDrawBuffer_;
 
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 
