@@ -1,4 +1,4 @@
-#include "draw-indirect-buffer.h"
+#include "dibo.h"
 
 using namespace regen;
 
