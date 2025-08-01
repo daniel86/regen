@@ -389,8 +389,7 @@ uint32_t BufferBlock::updateBlockInputs() {
 	if (hasClientData_ && !blockInputs_.empty() && !clientBuffer_->hasSegments()) {
 		std::vector<ref_ptr<ClientBuffer>> segments(blockInputs_.size());
 		REGEN_INFO("Initializing client buffer for block " << name()
-			<< " with " << blockInputs_.size() << " segments"
-			<< " ptr " << clientBuffer_.get());
+			<< " with " << blockInputs_.size() << " segments");
 		for (size_t i = 0; i < blockInputs_.size(); ++i) {
 			auto &blockInput = blockInputs_[i];
 			segments[i] = blockInput->input->clientBuffer();
@@ -441,16 +440,6 @@ uint32_t BufferBlock::updateBlockInputs() {
 	setUpdatedFrame(hasDirtySegments());
 
 	return requiredSize_;
-}
-
-int32_t BufferBlock::getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const {
-	static constexpr int32_t NO_BUFFERED_INDEX = -1;
-	for (int32_t i = 0; i < static_cast<int32_t>(bufferedStamps.size()); ++i) {
-		if (bufferedStamps[i] == stamp && shared_->stagingBuffer_->isFenceSignaled(i)) {
-			return i; // found the buffered index
-		}
-	}
-	return NO_BUFFERED_INDEX; // not found
 }
 
 void BufferBlock::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset) {
@@ -605,6 +594,38 @@ void BufferBlock::resetStagingBuffer(bool removeFromStagingSystem) {
 	shared_->isGloballyStaged_ = false;
 }
 
+void BufferBlock::createStagingBuffer() {
+#ifdef BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
+	// disable global staging, falling back to local staging buffer.
+	ref_ptr<StagingBuffer> buf;
+#else
+	auto buf = StagingSystem::instance().addBufferBlock(this);
+#endif
+	shared_->stagingOffset_ = 0;
+	if (buf.get() != nullptr) {
+		// the block was added to the staging system.
+		// the system will globally manage updates and resizes of the staging buffer.
+		shared_->stagingBuffer_ = buf;
+		shared_->isGloballyStaged_ = true;
+		stagingFlags_ = shared_->stagingBuffer_->stagingFlags();
+	} else {
+		// create a local staging buffer exclusively for this block.
+		shared_->stagingBuffer_ = ref_ptr<StagingBuffer>::alloc(stagingFlags_);
+		if (StagingBuffer::getBufferSizeClass(requiredSize_) < BUFFER_SIZE_LARGE) {
+			shared_->stagingBuffer_->setMaxRingSegments(16);
+		} else {
+			shared_->stagingBuffer_->setMaxRingSegments(4);
+		}
+		shared_->stagingBuffer_->resizeBuffer(requiredSize_, 2);
+		shared_->isGloballyStaged_ = false;
+		REGEN_INFO("Using local staging for block \""
+			<< name() << "\" with size " << requiredSize_ / 1024.0 << " Kib"
+			<< " and " << shared_->stagingBuffer_->numBufferSegments()
+			<< " segments.");
+		REGEN_INFO("Local staging flags: " << stagingFlags_);
+	}
+}
+
 void BufferBlock::copyStagingData(bool forceUpdate) {
 	if (forceUpdate) { markBufferDirty(); }
 	bool needsUpdate = (numDirtySegments_ > 0);
@@ -614,35 +635,7 @@ void BufferBlock::copyStagingData(bool forceUpdate) {
 
 	// lazy initialization of the staging buffer
 	if (shared_->stagingBuffer_.get() == nullptr) {
-#ifdef BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
-		// disable global staging, falling back to local staging buffer.
-		ref_ptr<StagingBuffer> buf;
-#else
-		auto buf = StagingSystem::instance().addBufferBlock(this);
-#endif
-		shared_->stagingOffset_ = 0;
-		if (buf.get() != nullptr) {
-			// the block was added to the staging system.
-			// the system will globally manage updates and resizes of the staging buffer.
-			shared_->stagingBuffer_ = buf;
-			shared_->isGloballyStaged_ = true;
-			stagingFlags_ = shared_->stagingBuffer_->stagingFlags();
-		} else {
-			// create a local staging buffer exclusively for this block.
-			shared_->stagingBuffer_ = ref_ptr<StagingBuffer>::alloc(stagingFlags_);
-			if (StagingBuffer::getBufferSizeClass(requiredSize_) < BUFFER_SIZE_LARGE) {
-				shared_->stagingBuffer_->setMaxRingSegments(16);
-			} else {
-				shared_->stagingBuffer_->setMaxRingSegments(4);
-			}
-			shared_->stagingBuffer_->resizeBuffer(requiredSize_, 2);
-			shared_->isGloballyStaged_ = false;
-			REGEN_INFO("Using local staging for block \""
-							   << name() << "\" with size " << requiredSize_ / 1024.0 << " Kib"
-							   << " and " << shared_->stagingBuffer_->numBufferSegments()
-							   << " segments.");
-			REGEN_INFO("Local staging flags: " << stagingFlags_);
-		}
+		createStagingBuffer();
 	} else if (!shared_->isGloballyStaged_ &&
 			   isMapModePersistent(stagingFlags_.mapMode) &&
 			   stagingFlags_.bufferingMode == RING_BUFFER) {

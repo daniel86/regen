@@ -386,9 +386,9 @@ namespace regen {
 
 		void markBufferDirty();
 
-		void queueStagingUpdate();
+		void createStagingBuffer();
 
-		int32_t getBufferedIndex(uint32_t stamp, const std::vector<uint32_t> &bufferedStamps) const;
+		void queueStagingUpdate();
 	};
 
 	std::ostream &operator<<(std::ostream &out, const BufferBlock::Qualifier &v);
