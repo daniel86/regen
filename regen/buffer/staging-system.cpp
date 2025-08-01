@@ -110,7 +110,7 @@ StagingSystem::StagingSystem()
 		: arenas_() {
 	if (STAGING_RANGE_ALIGNMENT == 0) {
 		// make sure to meet all alignment requirements
-		STAGING_RANGE_ALIGNMENT = std::max(256u,
+		STAGING_RANGE_ALIGNMENT = std::max(16u,
 										   static_cast<uint32_t>(getGLInteger(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT)));
 		STAGING_RANGE_ALIGNMENT = std::max(STAGING_RANGE_ALIGNMENT,
 										   static_cast<uint32_t>(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT)));
