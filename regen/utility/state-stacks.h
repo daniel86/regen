@@ -49,6 +49,12 @@ namespace regen {
 		void apply(const T &v) { apply_(this, v); }
 
 		/**
+		 * \brief Get the current state value.
+		 * @return the current state value.
+		 */
+		const T &current() const { return stacked_[numStacked_-1]; }
+
+		/**
 		 * \brief Push a value onto the stack.
 		 * @param v the value.
 		 */
