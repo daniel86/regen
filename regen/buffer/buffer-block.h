@@ -163,6 +163,11 @@ namespace regen {
 		bool hasDirtySegments() const { return numDirtySegments_ > 0; }
 
 		/**
+		 * @return the number of dirty segments in the block.
+		 */
+		uint32_t numDirtySegments() const { return numDirtySegments_; }
+
+		/**
 		 * Update the block buffer.
 		 * Should be called each frame, is a no-op if no data has changed.
 		 * @param forceUpdate force update.
