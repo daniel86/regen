@@ -23,6 +23,8 @@ namespace regen {
 
 		virtual void updateSkyLayer(RenderState *rs, GLdouble dt) {}
 
+		bool advanceTime(double dt);
+
 		virtual void createUpdateShader() {}
 
 		ref_ptr<State> updateState() { return updateState_; }

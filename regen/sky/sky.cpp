@@ -100,7 +100,9 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 
 	// mae some parts of the sky configurable from the GUI.
 	setAnimationName("sky");
-	joinAnimationState(state());
+	// Note: disabled because animation manager allways activates this state,
+	//       but we do not need to if sky does not need update.
+	//joinAnimationState(state());
 	GL_ERROR_LOG();
 }
 
@@ -234,9 +236,21 @@ void Sky::animate(GLdouble dt) {
 }
 
 void Sky::glAnimate(RenderState *rs, GLdouble dt) {
+	bool needsUpdate = false;
+	for (auto &layer: layer_) {
+		if (layer->advanceTime(dt)) {
+			needsUpdate = true;
+			break;
+		}
+	}
+	if (!needsUpdate) {
+		return;
+	}
+	state_->enable(rs);
 	for (auto &layer: layer_) {
 		layer->updateSky(rs, dt);
 	}
+	state_->disable(rs);
 }
 
 SkyView::SkyView(const ref_ptr<Sky> &sky)

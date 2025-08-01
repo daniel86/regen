@@ -12,11 +12,12 @@ SkyLayer::SkyLayer(const ref_ptr<Sky> &sky) {
 
 SkyLayer::~SkyLayer() = default;
 
-void SkyLayer::updateSky(RenderState *rs, GLdouble dt) {
+bool SkyLayer::advanceTime(double dt) {
 	dt_ += dt;
-	if (dt_ < updateInterval_) { return; }
+	return (dt_ >= updateInterval_);
+}
 
+void SkyLayer::updateSky(RenderState *rs, GLdouble dt) {
 	updateSkyLayer(rs, dt_);
-
 	dt_ = 0.0;
 }
