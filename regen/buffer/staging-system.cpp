@@ -11,6 +11,12 @@
 //       The main reason is that we do not maintain strictly contiguous main/draw buffer
 //       segments for the BOs, so there would be little use of it as we might not be able to
 //       reduce the number of copies, and still need to do separate copies for the BOs.
+// TODO: By accident it seems reduction is quite high. Probably due to loading order
+//       and how buddy allocator selects next suitable block.
+//       In my test, for one ring-buffer the number of copies could be halved from 10 to 5,
+//       everything was nicely sorted already, so super cheap to build a "to-copy" list,
+//       then do the staging to draw copy here centrally.
+//       NOTE: Make sure to do the copy just before setting the fence point.
 
 using namespace regen;
 
@@ -45,7 +51,7 @@ namespace regen {
 		uint32_t stagedOffset = 0u;
 		// the size reserved in the staging buffer for this BO
 		uint32_t stagedSize = 0u;
-		// Records my value of update rate for adaptive moving.
+		// Records max value of update rate for adaptive moving.
 		float maxUpdateRate = 0.0f;
 
 		// define equality operator for ManagedBO
@@ -92,7 +98,7 @@ namespace regen {
 
 		void resize();
 
-		bool reserve(ManagedBO &managed, uint32_t boRequiredSize);
+		bool reserve(ManagedBO &managed, uint32_t boRequiredSize) const;
 
 		uint32_t getRangeSize(uint32_t requested) const;
 
@@ -144,7 +150,6 @@ void StagingSystem::clear() {
 			arena = nullptr;
 		}
 	}
-	arenas_.fill(nullptr);
 	copyInProgress_.store(false, std::memory_order_relaxed);
 }
 
@@ -506,6 +511,9 @@ void StagingSystem::updateData(float dt_ms) {
 			// NOTE: temporary mapping is only used for rare updates,
 			//       so it is not really worth it to consider temporary mapping on arena level.
 			// NOTE: This will only copy data if the BO is dirty, i.e. has new data to write.
+			//if (managed.bo->hasDirtySegments()) {
+			//	REGEN_INFO("Dirty BO: " << managed.bo->name());
+			//}
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
 			if (managed.bo->hasDirtySegments()) {
 				numDirtyBOs++;
@@ -617,7 +625,7 @@ bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdat
 	return false;
 }
 
-bool StagingSystem::Arena::reserve(ManagedBO &managed, uint32_t boRequiredSize) {
+bool StagingSystem::Arena::reserve(ManagedBO &managed, uint32_t boRequiredSize) const {
 	auto [status, offset] = freeList->reserve(boRequiredSize);
 	if (status) {
 		// found some free space in the arena, nice!
@@ -690,7 +698,6 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 	}
 	if (hasInvalidBlocks) {
 		// remove invalid blocks from the arena if any
-		// TODO: also do it with shifting
 		arena->bufferObjects.erase(
 				std::remove_if(arena->bufferObjects.begin(), arena->bufferObjects.end(),
 							   [](const ManagedBO &managed) { return !managed.bo; }),
