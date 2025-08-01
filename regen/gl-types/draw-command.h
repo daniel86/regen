@@ -61,6 +61,11 @@ namespace regen {
 		void setFirstElement(uint32_t v) { data[2] = v; }
 
 		/**
+		 * @return the base instance offset.
+		 */
+		uint32_t baseInstance() const { return data[mode==1 ? 4 : 3]; }
+
+		/**
 		 * @param v the base instance offset.
 		 */
 		void setBaseInstance(uint32_t v) { data[mode==1 ? 4 : 3] = v; }
