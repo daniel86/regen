@@ -166,6 +166,12 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		RenderState::get()->drawFrameBuffer().pop();
 		app_->flushGL();
 
+		// invoke event handler of queued events
+		// TODO: Reconsider the event handling.
+		//    It should not be done here. Better do not assume
+		//    event handler must be executed with GL context!
+		//    -> add an interface for GL event handler.
+		EventObject::emitQueued();
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();
 #endif
