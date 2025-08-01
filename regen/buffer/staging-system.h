@@ -8,7 +8,7 @@
 //   client buffer into staging. We can either do it directly in the staging
 //   system right after the copy into staging, or we can let the animation thread
 //   perform the swapping, but it has to wait for the copy into staging to complete.
-#define REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
+//#define REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
 
 namespace regen {
 	/**

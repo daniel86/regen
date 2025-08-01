@@ -357,77 +357,77 @@ namespace regen {
 		/**
 		 * Enable or disable server-side GL capabilities.
 		 */
-		inline IndexedValueStack<GLboolean> &toggles() { return toggles_; }
+		inline IndexedStateStack<GLboolean> &toggles() { return toggles_; }
+
+		/**
+		 * bind a buffer to given target.
+		 */
+		KeyedStateStack<GLuint>& buffer(GLenum target);
 
 		/**
 		 * bind a named buffer object to GL_ARRAY_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &arrayBuffer() { return arrayBuffer_; }
-
-		/**
-		 * bind a named buffer object to GL_ELEMENT_ARRAY_BUFFER target.
-		 */
-		inline ParameterStackAtomic<GLuint> &elementArrayBuffer() { return elementArrayBuffer_; }
+		inline KeyedStateStack<GLuint> &arrayBuffer() { return arrayBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_TRANSFORM_FEEDBACK_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &feedbackBuffer() { return feedbackBuffer_; }
+		inline KeyedStateStack<GLuint> &feedbackBuffer() { return feedbackBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &shaderStorageBuffer() { return shaderStorageBuffer_; }
+		inline KeyedStateStack<GLuint> &shaderStorageBuffer() { return shaderStorageBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_UNIFORM_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &uniformBuffer() { return uniformBuffer_; }
+		inline KeyedStateStack<GLuint> &uniformBuffer() { return uniformBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_PIXEL_PACK_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &pixelPackBuffer() { return pixelPackBuffer_; }
+		inline KeyedStateStack<GLuint> &pixelPackBuffer() { return pixelPackBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_PIXEL_UNPACK_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &pixelUnpackBuffer() { return pixelUnpackBuffer_; }
+		inline KeyedStateStack<GLuint> &pixelUnpackBuffer() { return pixelUnpackBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_DISPATCH_INDIRECT_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &dispatchIndirectBuffer() { return dispatchIndirectBuffer_; }
+		inline KeyedStateStack<GLuint> &dispatchIndirectBuffer() { return dispatchIndirectBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_DRAW_INDIRECT_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &drawIndirectBuffer() { return drawIndirectBuffer_; }
+		inline KeyedStateStack<GLuint> &drawIndirectBuffer() { return drawIndirectBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_TEXTURE_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &textureBuffer() { return textureBuffer_; }
+		inline KeyedStateStack<GLuint> &textureBuffer() { return textureBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_COPY_READ_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &copyReadBuffer() { return copyReadBuffer_; }
+		inline KeyedStateStack<GLuint> &copyReadBuffer() { return copyReadBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_COPY_WRITE_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &copyWriteBuffer() { return copyWriteBuffer_; }
+		inline KeyedStateStack<GLuint> &copyWriteBuffer() { return copyWriteBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_RENDERBUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &renderBuffer() { return renderBuffer_; }
+		inline KeyedStateStack<GLuint> &renderBuffer() { return renderBuffer_; }
 
 		/**
 		 * bind a named buffer object to GL_ATOMIC_COUNTER_BUFFER target.
 		 */
-		inline ParameterStackAtomic<GLuint> &atomicCounterBuffer() { return atomicCounterBuffer_; }
+		inline KeyedStateStack<GLuint> &atomicCounterBuffer() { return atomicCounterBuffer_; }
 
 		/**
 		 * bind a buffer object to a target.
@@ -438,62 +438,57 @@ namespace regen {
 		 * Vertex Array Objects (VAO) are OpenGL Objects that store the
 		 * set of bindings between Vertex Attributes and the user's source vertex data.
 		 */
-		inline ValueStackAtomic<GLuint> &vao() { return vao_; }
+		inline ByValueStateStack<GLuint> &vao() { return vao_; }
 
 		/**
 		 * bind a named buffer object to GL_UNIFORM_BUFFER target.
 		 */
-		inline IndexedValueStack<BufferRange> &uniformBufferRange() { return uniformBufferRange_; }
+		inline IndexedStateStack<BufferRange> &uniformBufferRange() { return uniformBufferRange_; }
 
 		/**
 		 * bind a named buffer object to GL_TRANSFORM_FEEDBACK_BUFFER target.
 		 */
-		inline IndexedValueStack<BufferRange> &feedbackBufferRange() { return feedbackBufferRange_; }
+		inline IndexedStateStack<BufferRange> &feedbackBufferRange() { return feedbackBufferRange_; }
 
 		/**
 		 * bind a named buffer object to GL_ATOMIC_COUNTER_BUFFER target.
 		 */
-		inline IndexedValueStack<BufferRange> &atomicCounterBufferRange() { return atomicCounterBufferRange_; }
+		inline IndexedStateStack<BufferRange> &atomicCounterBufferRange() { return atomicCounterBufferRange_; }
 
 		/**
 		 * bind a named buffer object to GL_SHADER_STORAGE_BUFFER target.
 		 */
-		inline IndexedValueStack<BufferRange> &ssboRange() { return ssboRange_; }
+		inline IndexedStateStack<BufferRange> &ssboRange() { return ssboRange_; }
 
 		/**
 		 * bind a buffer range to given target.
 		 */
-		IndexedValueStack<BufferRange> &bufferRange(GLenum target);
-
-		/**
-		 * bind a buffer to given target.
-		 */
-		ParameterStackAtomic<GLuint>& buffer(GLenum target);
+		IndexedStateStack<BufferRange> &bufferRange(GLenum target);
 
 		/**
 		 * Bind a framebuffer to the framebuffer read target.
 		 */
-		inline ParameterStackAtomic<GLuint> &readFrameBuffer() { return readFrameBuffer_; }
+		inline KeyedStateStack<GLuint> &readFrameBuffer() { return readFrameBuffer_; }
 
 		/**
 		 * Bind a framebuffer to the framebuffer draw target.
 		 */
-		inline ParameterStackAtomic<GLuint> &drawFrameBuffer() { return drawFrameBuffer_; }
+		inline KeyedStateStack<GLuint> &drawFrameBuffer() { return drawFrameBuffer_; }
 
 		/**
 		 * Set the framebuffer viewport.
 		 */
-		inline ValueStack<Viewport> &viewport() { return viewport_; }
+		inline ByReferenceStateStack<Viewport> &viewport() { return viewport_; }
 
 		/**
 		 * The texture stack.
 		 */
-		inline IndexedValueStack<TextureBind> &textures() { return textures_; }
+		inline IndexedStateStack<TextureBind> &textures() { return textures_; }
 
 		/**
 		 * Installs a program object as part of current rendering state.
 		 */
-		inline ValueStackAtomic<GLuint> &shader() { return shader_; }
+		inline ByValueStateStack<GLuint> &shader() { return shader_; }
 
 		/**
 		 * Define the scissor box for a specific viewport.
@@ -502,27 +497,27 @@ namespace regen {
 		 * of the scissor box, in pixels.
 		 * 'width', 'height' specifies the dimensions of the scissor box, in pixels.
 		 */
-		inline IndexedValueStack<Scissor> &scissor() { return scissor_; }
+		inline IndexedStateStack<Scissor> &scissor() { return scissor_; }
 
 		/**
 		 * Specifies whether front- or back-facing facets are candidates for culling.
 		 * Symbolic constants GL_FRONT,GL_BACK, GL_FRONT_AND_BACK are accepted.
 		 * The initial value is GL_BACK.
 		 */
-		inline ValueStackAtomic<GLenum> &cullFace() { return cullFace_; }
+		inline ByValueStateStack<GLenum> &cullFace() { return cullFace_; }
 
 		/**
 		 * Specifies the orientation of front-facing polygons.
 		 * GL_CW and GL_CCW are accepted. The initial value is GL_CCW.
 		 */
-		inline ValueStackAtomic<GLenum> &frontFace() { return frontFace_; }
+		inline ByValueStateStack<GLenum> &frontFace() { return frontFace_; }
 
 		/**
 		 * Specifies whether the depth buffer is enabled for writing.
 		 * If flag is GL_FALSE, depth buffer writing is disabled.
 		 * Otherwise, it is enabled. Initially, depth buffer writing is enabled.
 		 */
-		inline ValueStackAtomic<GLboolean> &depthMask() { return depthMask_; }
+		inline ByValueStateStack<GLboolean> &depthMask() { return depthMask_; }
 
 		/**
 		 * Specifies the depth comparison function. Symbolic constants
@@ -530,7 +525,7 @@ namespace regen {
 		 * GL_NOTEQUAL,GL_GEQUAL,GL_ALWAYS are accepted.
 		 * The initial value is GL_LESS.
 		 */
-		inline ValueStackAtomic<GLenum> &depthFunc() { return depthFunc_; }
+		inline ByValueStateStack<GLenum> &depthFunc() { return depthFunc_; }
 
 		/**
 		 * Specify mapping of depth values from normalized device coordinates
@@ -540,13 +535,13 @@ namespace regen {
 		 * 'farVal' specifies the mapping of the far clipping plane to window coordinates.
 		 * The initial value is 1.
 		 */
-		inline IndexedValueStack<DepthRange> &depthRange() { return depthRange_; }
+		inline IndexedStateStack<DepthRange> &depthRange() { return depthRange_; }
 
 		/**
 		 * Set the blend color.
 		 * Initially the GL_BLEND_COLOR is set to (0,0,0,0).
 		 */
-		inline ValueStack<Vec4f> &blendColor() { return blendColor_; }
+		inline ByReferenceStateStack<Vec4f> &blendColor() { return blendColor_; }
 
 		/**
 		 * Specify the equation used for both the RGB blend equation and the
@@ -557,7 +552,7 @@ namespace regen {
 		 * Initially, both the RGB blend equation and the alpha blend equation
 		 * are set to GL_FUNC_ADD.
 		 */
-		inline IndexedValueStack<BlendEquation> &blendEquation() { return blendEquation_; }
+		inline IndexedStateStack<BlendEquation> &blendEquation() { return blendEquation_; }
 
 		/**
 		 * Specify pixel arithmetic.
@@ -573,7 +568,7 @@ namespace regen {
 		 * GL_ONE_MINUS_CONSTANT_COLOR,GL_CONSTANT_ALPHA,
 		 * GL_ONE_MINUS_CONSTANT_ALPHA. The initial value is GL_ZERO.
 		 */
-		inline IndexedValueStack<BlendFunction> &blendFunction() { return blendFunc_; }
+		inline IndexedStateStack<BlendFunction> &blendFunction() { return blendFunc_; }
 
 		/**
 		 * Set front and back function and reference value for stencil testing.
@@ -586,13 +581,13 @@ namespace regen {
 		 * and the stored stencil value when the test is done.
 		 * The initial value is all 1's.
 		 */
-		inline ValueStack<StencilFunc> &stencilFunc() { return stencilFunc_; }
+		inline ByReferenceStateStack<StencilFunc> &stencilFunc() { return stencilFunc_; }
 
 		/**
 		 * Specifies a bit mask to enable and disable writing of individual bits
 		 * in the stencil planes. Initially, the mask is all 1's.
 		 */
-		inline ValueStackAtomic<GLuint> &stencilMask() { return stencilMask_; }
+		inline ByValueStateStack<GLuint> &stencilMask() { return stencilMask_; }
 
 		/**
 		 * Set front and back stencil test actions.
@@ -608,14 +603,14 @@ namespace regen {
 		 * dppass accepts the same symbolic constants as sfail.
 		 * The initial value is GL_KEEP.
 		 */
-		inline ValueStack<StencilOp> &stencilOp() { return stencilOp_; }
+		inline ByReferenceStateStack<StencilOp> &stencilOp() { return stencilOp_; }
 
 		/**
 		 * Specifies how polygons will be rasterized.
 		 * Accepted values are GL_POINT,GL_LINE,GL_FILL.
 		 * The initial value is GL_FILL for both front- and back-facing polygons.
 		 */
-		inline ParameterStackAtomic<GLenum> &polygonMode() { return polygonMode_; }
+		inline KeyedStateStack<GLenum> &polygonMode() { return polygonMode_; }
 
 		/**
 		 * Set the scale and units used to calculate depth values.
@@ -624,54 +619,54 @@ namespace regen {
 		 * v.y-'units' is multiplied by an implementation-specific value to
 		 * create a constant depth offset. The initial value is 0.
 		 */
-		inline ValueStack<Vec2f> &polygonOffset() { return polygonOffset_; }
+		inline ByReferenceStateStack<Vec2f> &polygonOffset() { return polygonOffset_; }
 
 		/**
 		 * Specify the diameter of rasterized points.
 		 * The initial value is 1.
 		 */
-		inline ValueStackAtomic<GLfloat> &pointSize() { return pointSize_; }
+		inline ByValueStateStack<GLfloat> &pointSize() { return pointSize_; }
 
 		/**
 		 * Specifies the threshold value to which point sizes are clamped
 		 * if they exceed the specified value. The default value is 1.0.
 		 */
-		inline ParameterStackAtomic<GLfloat> &pointFadeThreshold() { return pointFadeThreshold_; }
+		inline KeyedStateStack<GLfloat> &pointFadeThreshold() { return pointFadeThreshold_; }
 
 		/**
 		 * Specify the point sprite texture coordinate origin,
 		 * either GL_LOWER_LEFT or GL_UPPER_LEFT.
 		 * The default value is GL_UPPER_LEFT.
 		 */
-		inline ParameterStackAtomic<GLint> &pointSpriteOrigin() { return pointSpriteOrigin_; }
+		inline KeyedStateStack<GLint> &pointSpriteOrigin() { return pointSpriteOrigin_; }
 
 		/**
 		 * Specifies the number of vertices that
 		 * will be used to make up a single patch primitive.
 		 */
-		inline ParameterStackAtomic<GLint> &patchVertices() { return patchVertices_; }
+		inline KeyedStateStack<GLint> &patchVertices() { return patchVertices_; }
 
 		/**
 		 * Specifies the default outer or inner tessellation levels
 		 * to be used when no tessellation control shader is present.
 		 */
-		inline ValueStack<PatchLevels> &patchLevel() { return patchLevel_; }
+		inline ByReferenceStateStack<PatchLevels> &patchLevel() { return patchLevel_; }
 
 		/**
 		 * Enable and disable writing of frame buffer color components.
 		 */
-		inline IndexedValueStack<ColorMask> &colorMask() { return colorMask_; }
+		inline IndexedStateStack<ColorMask> &colorMask() { return colorMask_; }
 
 		/**
 		 * Specify the width of rasterized lines.
 		 * The initial value is 1.
 		 */
-		inline ValueStackAtomic<GLfloat> &lineWidth() { return lineWidth_; }
+		inline ByValueStateStack<GLfloat> &lineWidth() { return lineWidth_; }
 
 		/**
 		 * Specifies minimum rate at which sample shaing takes place.
 		 */
-		inline ValueStackAtomic<GLfloat> &sampleShading() { return minSampleShading_; }
+		inline ByValueStateStack<GLfloat> &sampleShading() { return minSampleShading_; }
 
 		/**
 		 * Specify a logical pixel operation for rendering.
@@ -679,7 +674,7 @@ namespace regen {
 		 * GL_NOOP,GL_INVERT,GL_AND,GL_NAND,GL_OR,GL_NOR,GL_XOR,GL_EQUIV,GL_AND_REVERSE,
 		 * GL_AND_INVERTED,GL_OR_REVERSE,GL_OR_INVERTED. The initial value is GL_COPY.
 		 */
-		inline ValueStackAtomic<GLenum> &logicOp() { return logicOp_; }
+		inline ByValueStateStack<GLenum> &logicOp() { return logicOp_; }
 
 	protected:
 		static RenderState *instance_;
@@ -694,69 +689,68 @@ namespace regen {
 		GLint maxShaderStorageBuffers_;
 		GLint feedbackCount_;
 
-		IndexedValueStack<GLboolean> toggles_;
+		IndexedStateStack<GLboolean> toggles_;
 
 		std::map<GLuint,GLuint> bufferBaseBindings_[4];
-		ParameterStackAtomic<GLuint> arrayBuffer_;
-		ParameterStackAtomic<GLuint> elementArrayBuffer_;
-		ParameterStackAtomic<GLuint> feedbackBuffer_;
-		ParameterStackAtomic<GLuint> uniformBuffer_;
-		ParameterStackAtomic<GLuint> shaderStorageBuffer_;
-		ParameterStackAtomic<GLuint> pixelPackBuffer_;
-		ParameterStackAtomic<GLuint> pixelUnpackBuffer_;
-		ParameterStackAtomic<GLuint> dispatchIndirectBuffer_;
-		ParameterStackAtomic<GLuint> drawIndirectBuffer_;
-		ParameterStackAtomic<GLuint> textureBuffer_;
-		ParameterStackAtomic<GLuint> copyReadBuffer_;
-		ParameterStackAtomic<GLuint> copyWriteBuffer_;
-		ParameterStackAtomic<GLuint> renderBuffer_;
-		ParameterStackAtomic<GLuint> atomicCounterBuffer_;
-		ValueStackAtomic<GLuint> vao_;
+		KeyedStateStack<GLuint> arrayBuffer_;
+		KeyedStateStack<GLuint> feedbackBuffer_;
+		KeyedStateStack<GLuint> uniformBuffer_;
+		KeyedStateStack<GLuint> shaderStorageBuffer_;
+		KeyedStateStack<GLuint> pixelPackBuffer_;
+		KeyedStateStack<GLuint> pixelUnpackBuffer_;
+		KeyedStateStack<GLuint> dispatchIndirectBuffer_;
+		KeyedStateStack<GLuint> drawIndirectBuffer_;
+		KeyedStateStack<GLuint> textureBuffer_;
+		KeyedStateStack<GLuint> copyReadBuffer_;
+		KeyedStateStack<GLuint> copyWriteBuffer_;
+		KeyedStateStack<GLuint> renderBuffer_;
+		KeyedStateStack<GLuint> atomicCounterBuffer_;
+		ByValueStateStack<GLuint> vao_;
 
-		IndexedValueStack<BufferRange> uniformBufferRange_;
-		IndexedValueStack<BufferRange> feedbackBufferRange_;
-		IndexedValueStack<BufferRange> atomicCounterBufferRange_;
-		IndexedValueStack<BufferRange> ssboRange_;
+		IndexedStateStack<BufferRange> uniformBufferRange_;
+		IndexedStateStack<BufferRange> feedbackBufferRange_;
+		IndexedStateStack<BufferRange> atomicCounterBufferRange_;
+		IndexedStateStack<BufferRange> ssboRange_;
 
-		ParameterStackAtomic<GLuint> readFrameBuffer_;
-		ParameterStackAtomic<GLuint> drawFrameBuffer_;
-		ValueStack<Viewport> viewport_;
+		KeyedStateStack<GLuint> readFrameBuffer_;
+		KeyedStateStack<GLuint> drawFrameBuffer_;
+		ByReferenceStateStack<Viewport> viewport_;
 
-		ValueStackAtomic<GLuint> shader_;
+		ByValueStateStack<GLuint> shader_;
 
-		IndexedValueStack<TextureBind> textures_;
+		IndexedStateStack<TextureBind> textures_;
 
-		IndexedValueStack<Scissor> scissor_;
-		ValueStackAtomic<GLenum> cullFace_;
+		IndexedStateStack<Scissor> scissor_;
+		ByValueStateStack<GLenum> cullFace_;
 
-		ValueStackAtomic<GLboolean> depthMask_;
-		ValueStackAtomic<GLenum> depthFunc_;
-		IndexedValueStack<DepthRange> depthRange_;
+		ByValueStateStack<GLboolean> depthMask_;
+		ByValueStateStack<GLenum> depthFunc_;
+		IndexedStateStack<DepthRange> depthRange_;
 
-		ValueStack<Vec4f> blendColor_;
-		IndexedValueStack<BlendEquation> blendEquation_;
-		IndexedValueStack<BlendFunction> blendFunc_;
+		ByReferenceStateStack<Vec4f> blendColor_;
+		IndexedStateStack<BlendEquation> blendEquation_;
+		IndexedStateStack<BlendFunction> blendFunc_;
 
-		ValueStackAtomic<GLuint> stencilMask_;
-		ValueStack<StencilFunc> stencilFunc_;
-		ValueStack<StencilOp> stencilOp_;
+		ByValueStateStack<GLuint> stencilMask_;
+		ByReferenceStateStack<StencilFunc> stencilFunc_;
+		ByReferenceStateStack<StencilOp> stencilOp_;
 
-		ParameterStackAtomic<GLenum> polygonMode_;
-		ValueStack<Vec2f> polygonOffset_;
+		KeyedStateStack<GLenum> polygonMode_;
+		ByReferenceStateStack<Vec2f> polygonOffset_;
 
-		ValueStackAtomic<GLfloat> pointSize_;
-		ParameterStackAtomic<GLfloat> pointFadeThreshold_;
-		ParameterStackAtomic<GLint> pointSpriteOrigin_;
+		ByValueStateStack<GLfloat> pointSize_;
+		KeyedStateStack<GLfloat> pointFadeThreshold_;
+		KeyedStateStack<GLint> pointSpriteOrigin_;
 
-		ParameterStackAtomic<GLint> patchVertices_;
-		ValueStack<PatchLevels> patchLevel_;
+		KeyedStateStack<GLint> patchVertices_;
+		ByReferenceStateStack<PatchLevels> patchLevel_;
 
-		IndexedValueStack<ColorMask> colorMask_;
+		IndexedStateStack<ColorMask> colorMask_;
 
-		ValueStackAtomic<GLfloat> lineWidth_;
-		ValueStackAtomic<GLfloat> minSampleShading_;
-		ValueStackAtomic<GLenum> logicOp_;
-		ValueStackAtomic<GLenum> frontFace_;
+		ByValueStateStack<GLfloat> lineWidth_;
+		ByValueStateStack<GLfloat> minSampleShading_;
+		ByValueStateStack<GLenum> logicOp_;
+		ByValueStateStack<GLenum> frontFace_;
 
 		RenderState();
 	};

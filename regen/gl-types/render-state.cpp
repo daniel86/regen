@@ -1,5 +1,4 @@
 #include <regen/config.h>
-#include <regen/gl-types/gl-util.h>
 
 #include "render-state.h"
 
@@ -193,7 +192,6 @@ RenderState::RenderState()
 		  feedbackCount_(0),
 		  toggles_(TOGGLE_STATE_LAST, regen_noop_arg1, Regen_Toggle),
 		  arrayBuffer_(GL_ARRAY_BUFFER, Regen_BindBuffer),
-		  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER, Regen_BindBuffer),
 		  feedbackBuffer_(GL_TRANSFORM_FEEDBACK_BUFFER, Regen_BindBuffer),
 		  uniformBuffer_(GL_UNIFORM_BUFFER, Regen_BindBuffer),
 		  shaderStorageBuffer_(GL_SHADER_STORAGE_BUFFER, Regen_BindBuffer),
@@ -293,7 +291,7 @@ RenderState::RenderState()
 	GL_ERROR_LOG();
 }
 
-ParameterStackAtomic<GLuint>& RenderState::buffer(GLenum target) {
+KeyedStateStack<GLuint>& RenderState::buffer(GLenum target) {
 	switch (target) {
 		case GL_UNIFORM_BUFFER:
 			return uniformBuffer_;
@@ -319,8 +317,6 @@ ParameterStackAtomic<GLuint>& RenderState::buffer(GLenum target) {
 			return atomicCounterBuffer_;
 		case GL_ARRAY_BUFFER:
 			return arrayBuffer_;
-		case GL_ELEMENT_ARRAY_BUFFER:
-			return elementArrayBuffer_;
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
 			return feedbackBuffer_;
 		default:
@@ -329,7 +325,7 @@ ParameterStackAtomic<GLuint>& RenderState::buffer(GLenum target) {
 	}
 }
 
-IndexedValueStack<BufferRange>& RenderState::bufferRange(GLenum target) {
+IndexedStateStack<BufferRange>& RenderState::bufferRange(GLenum target) {
 	switch (target) {
 		case GL_UNIFORM_BUFFER:
 			return uniformBufferRange_;

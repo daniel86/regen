@@ -319,6 +319,8 @@ void Mesh::updateVAO() {
 		const ref_ptr<ShaderInput> &in = vaoAttribute.input;
 		if (lastArrayBuffer != in->buffer()) {
 			lastArrayBuffer = in->buffer();
+			// NOTE: With VAO bound, ARRAY_BUFFER binding is still handled globally,
+			//       it is not part of VAO state.
 			rs->arrayBuffer().apply(lastArrayBuffer);
 		}
 		in->enableAttribute(vaoAttribute.location);
@@ -326,7 +328,8 @@ void Mesh::updateVAO() {
 	}
 	// bind the index buffer
 	if (indexBuffer() > 0) {
-		rs->elementArrayBuffer().apply(indexBuffer());
+		// NOTE: ELEMENT_ARRAY_BUFFER binding is part of VAO state!
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer());
 	}
 
 	if (meshLODs_.empty()) {

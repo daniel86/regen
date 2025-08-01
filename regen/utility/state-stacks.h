@@ -1,12 +1,5 @@
-/*
- * state-stacks.h
- *
- *  Created on: 26.02.2013
- *      Author: daniel
- */
-
-#ifndef STATE_STACKS_H_
-#define STATE_STACKS_H_
+#ifndef REGEN_STATE_STACKS_H_
+#define REGEN_STATE_STACKS_H_
 
 #include <GL/glew.h>
 
@@ -15,241 +8,158 @@
 #include <regen/math/vector.h>
 
 namespace regen {
-	template<typename StackType, typename ValueType>
-	static void applyFilled(StackType *s, const ValueType &v) {
-		if (v != s->value()) { s->apply(v); }
-	}
-
-	template<typename StackType, typename ValueType>
-	static void applyInit(StackType *s, const ValueType &v) {
-		s->apply(v);
-		s->doApply_ = &applyFilled;
-	}
-
 	/**
-	 * \brief A stack that keeps track of a state value.
+	 * \brief A stack of states that can be applied to a rendering context.
 	 *
-	 * Redundant state switches are avoided.
-	 * ValueType must implement default constructor ValueType() and
-	 * the != operator.
-	 * The stack can be locked. Pushes do not change the state value until
-	 * the stack is locked.
+	 * The stack allows to push and pop states, and applies the current state
+	 * when the top of the stack changes.
+	 *
+	 * @tparam T the type of the state value.
 	 */
-	template<typename StackType, typename ValueType, typename ApplyFunc>
+	template<typename T>
 	class StateStack {
 	public:
 		/**
-		 * @param apply apply a stack value.
-		 * @param lockedApply apply a stack value in locked mode.
+		 * \brief Default constructor.
+		 * @param apply the function to apply the state value.
 		 */
-		StateStack(ApplyFunc apply, ApplyFunc lockedApply)
-				: head_(new Node(zeroValue_)),
-				  isEmpty_(GL_TRUE),
-				  apply_(apply),
-				  applyPtr_(apply),
-				  lockedApplyPtr_(lockedApply),
-				  lockCounter_(0) {
-			self_ = (StackType *) this;
-			doApply_ = &applyInit;
-		}
-
-		~StateStack() {
-			Stack<Node *> s;
-			Node *n = head_;
-			while (n->prev) n = n->prev;
-			for (; n != NULL; n = n->next) { s.push(n); }
-			while (!s.isEmpty()) {
-				Node *x = s.top();
-				delete x;
-				s.pop();
-			}
+		explicit StateStack(void (*apply)(StateStack*, const T&)) : doApply_(apply) {
+			// make room for at least 4 stacked values
+			stacked_.resize(4);
+			// guard apply function by checking if the value is different
+			guardedApply_ = [](StateStack *s, const T &v) {
+				if (v != s->stacked_[s->numStacked_-1]) {
+					s->doApply_(s, v);
+					s->stacked_[s->numStacked_-1] = v;
+				}
+			};
+			// initial apply is unguarded as no value is stacked yet
+			apply_ = [](StateStack *s, const T &v) {
+				s->stacked_[0] = v;
+				s->numStacked_ = 1;
+				s->doApply_(s, v);
+				// switch to guarded apply function
+				s->apply_ = s->guardedApply_;
+			};
 		}
 
 		/**
-		 * @return the current state value or the value created by default constructor.
+		 * @param v the new state value
 		 */
-		const ValueType &value() { return head_->v; }
+		void apply(const T &v) { apply_(this, v); }
 
 		/**
-		 * Push a value onto the stack.
+		 * \brief Push a value onto the stack.
 		 * @param v the value.
 		 */
-		void push(const ValueType &v) {
-			doApply_(self_, v);
-
-			if (isEmpty_) {
-				// initial push to the stack or first push after everything
-				// was popped out.
-				head_->v = v;
-				isEmpty_ = GL_FALSE;
-			} else if (head_->next) {
-				// use node created earlier
-				head_ = head_->next;
-				head_->v = v;
-			} else {
-				head_->next = new Node(v, head_);
-				head_ = head_->next;
+		void push(const T &v) {
+			if (numStacked_+1 >= stacked_.size()) {
+				// resize the stack if it is full
+				stacked_.resize(stacked_.size() * 2);
 			}
+			stacked_[numStacked_] = v;
+			if (numStacked_==0) {
+				doApply_(this, v);
+				apply_ = guardedApply_;
+			} else if (stacked_[numStacked_-1] != stacked_[numStacked_]) {
+				doApply_(this, v);
+			}
+			numStacked_++;
 		}
 
 		/**
-		 * Pop out last value.
+		 * \brief Pop out last value.
 		 */
 		void pop() {
-			if (head_->prev) {
-				if (head_->v != head_->prev->v) {
-					self_->apply(head_->prev->v);
-				}
-				head_ = head_->prev;
-			} else {
-				isEmpty_ = GL_TRUE;
+			if (numStacked_ == 1) {
+				// leave the first value on the stack
+				return;
 			}
-		}
-
-		/**
-		 * Lock this stack. Until locked push/pop is ignored.
-		 */
-		void lock() {
-			++lockCounter_;
-			apply_ = lockedApplyPtr_;
-		}
-
-		/**
-		 * Unlock previously locked stack.
-		 */
-		void unlock() {
-			--lockCounter_;
-			if (lockCounter_ < 1) {
-				apply_ = applyPtr_;
+			numStacked_--;
+			const T &value1 = stacked_[numStacked_];
+			const T &value0 = stacked_[numStacked_-1];
+			if (value1 != value0) {
+				// if the last value is different from the one before it, apply the new head value.
+				doApply_(this, value0);
 			}
-		}
-
-		/**
-		 * @return true if the stack is locked.
-		 */
-		GLboolean isLocked() const {
-			return lockCounter_ > 0;
 		}
 
 	protected:
-		struct Node {
-			explicit Node(const ValueType &_v) : prev(NULL), next(NULL), v(_v) {}
-
-			Node(const ValueType &_v, Node *_prev)
-					: prev(_prev), next(NULL), v(_v) {
-				_prev->next = this;
-			}
-
-			Node *prev;
-			Node *next;
-			ValueType v;
-		};
-
-		// cast to parent class
-		StackType *self_;
-		// just in case nothing was pushed
-		ValueType zeroValue_;
-		// The actual value stack.
-		Node *head_;
-		GLboolean isEmpty_;
-		// Function to apply the value.
-		ApplyFunc apply_;
-		// Points to actual apply function when the stack is locked.
-		ApplyFunc applyPtr_;
-		// Points to locked apply function.
-		ApplyFunc lockedApplyPtr_;
-		// Counts number of locks.
-		GLint lockCounter_;
-
-		// use function pointer to avoid some if statements
-		void (*doApply_)(StackType *s, const ValueType &v);
-
-		friend void applyFilled<StackType, ValueType>(StackType *, const ValueType &);
-
-		friend void applyInit<StackType, ValueType>(StackType *, const ValueType &);
+		std::vector<T> stacked_;
+		uint32_t numStacked_ = 0;
+		void (*doApply_)(StateStack*, const T&);
+		void (*guardedApply_)(StateStack*, const T&);
+		void (*apply_)(StateStack*, const T&);
 	};
 
-	template<typename T>
-	void regen_lockedAtomicValue(T v) {}
-
 	/**
-	 * \brief State stack with single argument apply function.
-	 */
-	template<typename T>
-	class ValueStackAtomic
-			: public StateStack<ValueStackAtomic<T>, T, void (*)(T)> {
-	public:
-		/**
-		 * Apply a state value.
-		 * @param v the value.
-		 */
-		typedef void (*AtomicStateApply)(T v);
-
-		/**
-		 * @param apply apply a stack value.
-		 */
-		explicit ValueStackAtomic(AtomicStateApply apply)
-				: StateStack<ValueStackAtomic, T, AtomicStateApply>(apply, regen_lockedAtomicValue) {}
-
-		/**
-		 * @param v the new state value
-		 */
-		void apply(const T &v) { this->apply_(v); }
-	};
-
-	template<typename T>
-	void regen_lockedValue(const T &v) {}
-
-	/**
-	 * \brief State stack with single argument apply function.
-	 */
-	template<typename T>
-	class ValueStack
-			: public StateStack<ValueStack<T>, T, void (*)(const T &)> {
-	public:
-		/**
-		 * @param apply apply a stack value.
-		 */
-		explicit ValueStack(void (*apply)(const T &v))
-				: StateStack<ValueStack, T, void (*)(const T &)>(apply, regen_lockedValue) {}
-
-		/**
-		 * @param v the new state value
-		 */
-		void apply(const T &v) { this->apply_(v); }
-	};
-
-	template<typename T>
-	void regen_lockedAtomicParameter(GLenum key, T v) {}
-
-	/**
-	 * \brief State stack with key-value apply function.
+	 * \brief A stack of states that can be applied to a rendering context.
 	 *
-	 * key is first function argument value the second.
+	 * The values are passed by reference to the apply function.
+	 *
+	 * @tparam T the type of the state value.
 	 */
 	template<typename T>
-	class ParameterStackAtomic
-			: public StateStack<ParameterStackAtomic<T>, T, void (*)(GLenum, T)> {
+	class ByReferenceStateStack : public StateStack<T> {
 	public:
-		/**
-		 * @param key the parameter key.
-		 * @param apply apply a stack value.
-		 */
-		ParameterStackAtomic(GLenum key, void (*apply)(GLenum, T))
-				: StateStack<ParameterStackAtomic, T, void (*)(GLenum, T)>(
-				apply, regen_lockedAtomicParameter), key_(key) {}
-
-		/**
-		 * @param v the new state value
-		 */
-		void apply(const T &v) { this->apply_(key_, v); }
-
+		explicit ByReferenceStateStack(void (*apply)(const T&))
+				: StateStack<T>([](StateStack<T> *self, const T &v) {
+						((ByReferenceStateStack<T> *)self)->fn_(v);
+				  }),
+				  fn_(apply) {}
 	protected:
+		void (*fn_)(const T&);
+	};
+
+	/**
+	 * \brief A stack of states that can be applied to a rendering context.
+	 *
+	 * The values are passed by value to the apply function.
+	 *
+	 * @tparam T the type of the state value.
+	 */
+	template<typename T>
+	class ByValueStateStack : public StateStack<T> {
+	public:
+		explicit ByValueStateStack(void (*apply)(T))
+				: StateStack<T>([](StateStack<T> *self, const T &v) {
+						((ByValueStateStack<T> *)self)->fn_(v);
+				  }),
+				  fn_(apply) {}
+	protected:
+		void (*fn_)(T);
+	};
+
+	/**
+	 * \brief A stack of states that can be applied to a rendering context.
+	 *
+	 * The values are passed together with a key to the apply function.
+	 * This is useful for OpenGL state changes that require a key to identify the state.
+	 *
+	 * @tparam T the type of the state value.
+	 */
+	template<typename T>
+	class KeyedStateStack : public StateStack<T> {
+	public:
+		KeyedStateStack(GLenum key, void (*apply)(GLenum, T))
+				: StateStack<T>([](StateStack<T> *self, const T &v) {
+						auto *s = (KeyedStateStack<T> *)self;
+						s->fn_(s->key_, v);
+				  }),
+				  fn_(apply),
+				  key_(key) {}
+
+		GLenum key() const { return key_; }
+	protected:
+		void (*fn_)(GLenum, T);
 		GLenum key_;
 	};
 
 	///////////
 	///////////
+
+	template<typename T>
+	void regen_lockedValue(const T &v) {}
 
 	template<typename StackType, typename ValueType>
 	static void applyFilledStamped(StackType *s, const ValueType &v) {
@@ -283,7 +193,7 @@ namespace regen {
 	 * and there is an apply that can apply to an ondividual index.
 	 */
 	template<typename ValueType>
-	class IndexedValueStack {
+	class IndexedStateStack {
 	public:
 		/**
 		 * Function to apply the value to all indices.
@@ -300,7 +210,7 @@ namespace regen {
 		 * @param apply apply a stack value to all indices.
 		 * @param applyi apply a stack value to a single index.
 		 */
-		IndexedValueStack(GLuint numIndices, ApplyValue apply, ApplyValueIndexed applyi)
+		IndexedStateStack(GLuint numIndices, ApplyValue apply, ApplyValueIndexed applyi)
 				: numIndices_(numIndices),
 				  head_(new Node(zeroValue_)),
 				  apply_(apply),
@@ -323,7 +233,7 @@ namespace regen {
 			}
 		}
 
-		~IndexedValueStack() {
+		~IndexedStateStack() {
 			if (head_) {
 				deleteNodes(head_);
 			}
@@ -608,26 +518,26 @@ namespace regen {
 		GLboolean isEmpty_;
 		GLboolean *isEmptyi_;
 
-		typedef void (*DoApplyValue)(IndexedValueStack *, const ValueType &);
+		typedef void (*DoApplyValue)(IndexedStateStack *, const ValueType &);
 
-		typedef void (*DoApplyValueIndexed)(IndexedValueStack *, GLuint, const ValueType &);
+		typedef void (*DoApplyValueIndexed)(IndexedStateStack *, GLuint, const ValueType &);
 
 		// use function pointer to avoid some if statements
 		DoApplyValue doApply_;
 		DoApplyValueIndexed *doApplyi_;
 
-		friend void applyInitStamped<IndexedValueStack, ValueType>
-				(IndexedValueStack *, const ValueType &);
+		friend void applyInitStamped<IndexedStateStack, ValueType>
+				(IndexedStateStack *, const ValueType &);
 
-		friend void applyFilledStamped<IndexedValueStack, ValueType>
-				(IndexedValueStack *, const ValueType &);
+		friend void applyFilledStamped<IndexedStateStack, ValueType>
+				(IndexedStateStack *, const ValueType &);
 
-		friend void applyInitStampedi<IndexedValueStack, ValueType>
-				(IndexedValueStack *, GLuint, const ValueType &);
+		friend void applyInitStampedi<IndexedStateStack, ValueType>
+				(IndexedStateStack *, GLuint, const ValueType &);
 
-		friend void applyFilledStampedi<IndexedValueStack, ValueType>
-				(IndexedValueStack *, GLuint, const ValueType &);
+		friend void applyFilledStampedi<IndexedStateStack, ValueType>
+				(IndexedStateStack *, GLuint, const ValueType &);
 	};
 } // namespace
 
-#endif /* STATE_STACKS_H_ */
+#endif /* REGEN_STATE_STACKS_H_ */
