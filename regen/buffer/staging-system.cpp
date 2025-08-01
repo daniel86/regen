@@ -4,6 +4,7 @@
 
 //#define REGEN_STAGING_SYSTEM_DEBUG_TIME
 //#define REGEN_STAGING_SYSTEM_DEBUG_STALLS
+//#define REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
 //#define REGEN_STAGING_EXPLICIT_FLUSH
 
 // NOTE: Currently we do not do the "staging-to-main" buffer copy here.
@@ -453,6 +454,12 @@ void StagingSystem::updateData(float dt_ms) {
 	static ElapsedTimeDebugger elapsedTime("Staging System Update", 300);
 	elapsedTime.beginFrame();
 #endif
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+	uint32_t numDirtyArenas = 0;
+	uint32_t numDirtyBOs = 0;
+	uint32_t numDirtySegments = 0;
+	uint32_t numTotalBOs = 0;
+#endif
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		// skip inactive arenas: those that are not initialized, and those that are cooling down.
@@ -472,6 +479,9 @@ void StagingSystem::updateData(float dt_ms) {
 			// early exit writing arenas before fencing in case of no updates.
 			continue;
 		}
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+		numDirtyArenas++;
+#endif
 
 		const uint32_t copyIdx = arena->stagingBuffer->nextWriteIndex();
 		const uint32_t drawIdx = arena->stagingBuffer->nextReadIndex();
@@ -491,10 +501,18 @@ void StagingSystem::updateData(float dt_ms) {
 		}
 
 		// Copy data from CPU to staging to draw buffer,
-		// or in case or reading, the other way around.
+		// or in case of reading, the other way around.
 		for (auto &managed: arena->bufferObjects) {
 			// NOTE: temporary mapping is only used for rare updates,
 			//       so it is not really worth it to consider temporary mapping on arena level.
+			// NOTE: This will only copy data if the BO is dirty, i.e. has new data to write.
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+			if (managed.bo->hasDirtySegments()) {
+				numDirtyBOs++;
+				numDirtySegments += managed.bo->numDirtySegments();
+			}
+			numTotalBOs++;
+#endif
 			managed.bo->copyStagingData(forceUpdate);
 		}
 
@@ -527,17 +545,33 @@ void StagingSystem::updateData(float dt_ms) {
 	swapClientData();
 #endif
 	copyInProgress_.store(false, std::memory_order_release);
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+	REGEN_INFO("Copied "
+		<< numDirtyBOs << " (" << numTotalBOs << ") BO(s) with "
+		<< numDirtySegments << " dirty segments in "
+		<< numDirtyArenas << " arenas. ");
+#endif
 }
 
 void StagingSystem::swapClientData() {
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+	uint32_t numSwapCopies = 0;
+#endif
 	for (uint32_t arenaIdx = 0; arenaIdx < ARENA_TYPE_LAST; arenaIdx++) {
 		auto &arena = arenas_[arenaIdx];
 		if (!arena) continue; // skip uninitialized arenas
 
 		for (auto &managed: arena->bufferObjects) {
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+			numSwapCopies += managed.bo->clientBuffer()->swapData();
+#else
 			managed.bo->clientBuffer()->swapData();
+#endif
 		}
 	}
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
+	REGEN_INFO("Client swap required " << numSwapCopies << " copies.");
+#endif
 }
 
 bool StagingSystem::moveAdaptive(Arena *arena, ManagedBO &managed, float boUpdateRate) {
