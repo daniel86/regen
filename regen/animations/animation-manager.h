@@ -138,6 +138,8 @@ namespace regen {
 
 		void runUnsynchronized(Animation *animation) const;
 
+		void updateAnimations_cpu(double dt);
+
 		void swapClientData();
 	};
 } // namespace

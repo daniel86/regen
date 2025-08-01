@@ -523,6 +523,9 @@ void StagingSystem::updateData(float dt_ms) {
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
 	elapsedTime.endFrame();
 #endif
+#ifndef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
+	swapClientData();
+#endif
 	copyInProgress_.store(false, std::memory_order_release);
 }
 

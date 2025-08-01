@@ -267,12 +267,37 @@ void AnimationManager::runUnsynchronized(Animation *animation) const {
 }
 
 void AnimationManager::swapClientData() {
+	if (closeFlag_) return;
 	auto &staging = StagingSystem::instance();
 	// Wait for the staging system to finish copying client data for this frame.
 	while (staging.isCopyInProgress()) {
 		CPU_PAUSE();
+		if (closeFlag_) return;
 	}
 	staging.swapClientData();
+}
+
+void AnimationManager::updateAnimations_cpu(double dt) {
+	if (synchronizedAnimations_.empty()) return;
+
+	bool areAnimationsRemaining = true;
+	std::set<Animation *> processed;
+	while (areAnimationsRemaining) {
+		areAnimationsRemaining = false;
+		for (auto anim: synchronizedAnimations_) {
+			processed.insert(anim);
+			if (anim->isRunning()) {
+				anim->animate(dt);
+				// Animation was removed in animate call.
+				// We have to restart the loop because iterator is invalid.
+				if (animChangedDuringLoop_) {
+					animChangedDuringLoop_ = false;
+					areAnimationsRemaining = true;
+					break;
+				}
+			}
+		}
+	}
 }
 
 void AnimationManager::run() {
@@ -283,41 +308,28 @@ void AnimationManager::run() {
 		time_ = boost::posix_time::ptime(
 				boost::posix_time::microsec_clock::local_time());
 
-		if (!pauseFlag_ && !synchronizedAnimations_.empty()) {
+		if (!pauseFlag_) {
 			double dt = ((GLdouble) (time_ - lastTime_).total_microseconds()) / 1000.0;
-
 			// wait for remove/add to return
 			while (removeInProgress_) usleepRegen(1000);
 			while (addInProgress_) usleepRegen(1000);
-
 			animInProgress_ = true;
-			bool animsRemaining = true;
-			std::set<Animation *> processed;
-			while (animsRemaining) {
-				animsRemaining = false;
-				for (auto anim : synchronizedAnimations_) {
-					processed.insert(anim);
-					if (anim->isRunning()) {
-						anim->animate(dt);
-						// Animation was removed in animate call.
-						// We have to restart the loop because iterator is invalid.
-						if (animChangedDuringLoop_) {
-							animChangedDuringLoop_ = false;
-							animsRemaining = true;
-							break;
-						}
-					}
-				}
-			}
+
+			// Advance each CPU animation.
+			// Main point is writing shader data that will be added to
+			// staging next frame.
+			updateAnimations_cpu(dt);
+			// Update visibility using spatial indices.
+			// Note: this might be computationally heavy!
 			for (auto &index : spatialIndices_) {
 				index.second->update(static_cast<float>(dt));
 			}
-			animInProgress_ = false;
-		}
-		if (!closeFlag_ && !pauseFlag_) {
-			// make client buffers we just wrote to available for the next frame
-			// in the staging system.
+#ifdef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
+			// make client buffers we just wrote available for the next frame in the staging system.
 			swapClientData();
+#endif
+
+			animInProgress_ = false;
 		}
 		lastTime_ = time_;
 		frameBarrier_.arrive_and_wait();
