@@ -176,6 +176,8 @@ template<typename T> void Regen_VAO(T v)
 #define Regen_VAO glBindVertexArray
 #endif
 
+template<typename T> void regen_noop_arg1(const T &v) {}
+
 RenderState::RenderState()
 		: maxDrawBuffers_(getGLInteger(GL_MAX_DRAW_BUFFERS)),
 		  maxTextureUnits_(getGLInteger(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS)),
@@ -189,7 +191,7 @@ RenderState::RenderState()
 		  maxShaderStorageBuffers_(getGLInteger("GL_ARB_shader_storage_buffer_object",
 												GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS, 0)),
 		  feedbackCount_(0),
-		  toggles_(TOGGLE_STATE_LAST, regen_lockedValue, Regen_Toggle),
+		  toggles_(TOGGLE_STATE_LAST, regen_noop_arg1, Regen_Toggle),
 		  arrayBuffer_(GL_ARRAY_BUFFER, Regen_BindBuffer),
 		  elementArrayBuffer_(GL_ELEMENT_ARRAY_BUFFER, Regen_BindBuffer),
 		  feedbackBuffer_(GL_TRANSFORM_FEEDBACK_BUFFER, Regen_BindBuffer),
@@ -205,15 +207,15 @@ RenderState::RenderState()
 		  renderBuffer_(GL_RENDERBUFFER, Regen_BindRenderbuffer),
 		  atomicCounterBuffer_(GL_ATOMIC_COUNTER_BUFFER, Regen_BindBuffer),
 		  vao_(Regen_VAO),
-		  uniformBufferRange_(maxUniformBuffers_, regen_lockedValue, Regen_UniformBufferRange),
-		  feedbackBufferRange_(maxFeedbackBuffers_, regen_lockedValue, Regen_FeedbackBufferRange),
-		  atomicCounterBufferRange_(maxAtomicCounterBuffers_, regen_lockedValue, Regen_AtomicCounterBufferRange),
-		  ssboRange_(maxShaderStorageBuffers_, regen_lockedValue, Regen_ShaderStorageBufferRange),
+		  uniformBufferRange_(maxUniformBuffers_, regen_noop_arg1, Regen_UniformBufferRange),
+		  feedbackBufferRange_(maxFeedbackBuffers_, regen_noop_arg1, Regen_FeedbackBufferRange),
+		  atomicCounterBufferRange_(maxAtomicCounterBuffers_, regen_noop_arg1, Regen_AtomicCounterBufferRange),
+		  ssboRange_(maxShaderStorageBuffers_, regen_noop_arg1, Regen_ShaderStorageBufferRange),
 		  readFrameBuffer_(GL_READ_FRAMEBUFFER, Regen_BindFramebuffer),
 		  drawFrameBuffer_(GL_DRAW_FRAMEBUFFER, Regen_BindFramebuffer),
 		  viewport_(Regen_Viewport),
 		  shader_(Regen_UseProgram),
-		  textures_(maxTextureUnits_, regen_lockedValue, Regen_Texture),
+		  textures_(maxTextureUnits_, regen_noop_arg1, Regen_Texture),
 		  scissor_(maxViewports_, Regen_Scissor, Regen_Scissori),
 		  cullFace_(Regen_CullFace),
 		  depthMask_(Regen_DepthMask),
@@ -337,9 +339,12 @@ IndexedValueStack<BufferRange>& RenderState::bufferRange(GLenum target) {
 			return ssboRange_;
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
 			return feedbackBufferRange_;
+		case GL_DRAW_INDIRECT_BUFFER:
+			return ssboRange_;
 		default: // GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, GL_DRAW_INDIRECT_BUFFER
-			REGEN_WARN("Unknown buffer target " << target << ". Using GL_UNIFORM_BUFFER.");
-			return uniformBufferRange_;
+			REGEN_WARN("Unknown buffer target 0x"
+				<< std::hex << target << ". Using GL_SHADER_STORAGE_BUFFER.");
+			return ssboRange_;
 	}
 }
 
