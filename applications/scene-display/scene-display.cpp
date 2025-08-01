@@ -49,5 +49,6 @@ int main(int argc, char **argv) {
 	REGEN_INFO("Shutting down application");
 	Logging::shutdown();
 	delete widget;
+	_Exit(exitCode);
 	return exitCode;
 }
