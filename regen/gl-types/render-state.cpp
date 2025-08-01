@@ -320,8 +320,9 @@ KeyedStateStack<GLuint>& RenderState::buffer(GLenum target) {
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
 			return feedbackBuffer_;
 		default:
-			REGEN_WARN("Unknown buffer target " << target << ". Using GL_ARRAY_BUFFER.");
-			return arrayBuffer_;
+			REGEN_WARN("Unknown buffer target 0x"
+				<< std::hex << target << ". Using GL_SHADER_STORAGE_BUFFER.");
+			return shaderStorageBuffer_;
 	}
 }
 
@@ -336,9 +337,11 @@ IndexedStateStack<BufferRange>& RenderState::bufferRange(GLenum target) {
 		case GL_TRANSFORM_FEEDBACK_BUFFER:
 			return feedbackBufferRange_;
 		case GL_DRAW_INDIRECT_BUFFER:
+			// Note: Allow binding draw indirect buffer as a shader storage buffer.
+			//       This is useful for compute shaders that update the draw indirect buffer.
 			return ssboRange_;
-		default: // GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, GL_DRAW_INDIRECT_BUFFER
-			REGEN_WARN("Unknown buffer target 0x"
+		default: // GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER
+			REGEN_WARN("Invalid buffer range target 0x"
 				<< std::hex << target << ". Using GL_SHADER_STORAGE_BUFFER.");
 			return ssboRange_;
 	}

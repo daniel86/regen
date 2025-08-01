@@ -168,12 +168,9 @@ void LODState::createInstanceBuffer() {
 }
 
 ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
-	auto buffer = ref_ptr<SSBO>::alloc(
+	auto buffer = ref_ptr<DrawIndirectBuffer>::alloc(
 			"IndirectDrawBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME);
-	//auto buffer = ref_ptr<DrawIndirectBuffer>::alloc(
-	//		"IndirectDrawBuffer",
-	//		BufferUpdateFlags::FULL_PER_FRAME);
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 			"DrawCommand", "drawParams", 4);
 	if (cullShape_->isIndexShape()) {
