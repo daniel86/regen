@@ -99,11 +99,11 @@ void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 	}
 }
 
-void ClientBuffer::swapData() {
+uint32_t ClientBuffer::swapData() {
 	// NOTE: This function should be very fast as potentially both animation and rendering threads
 	//       are waiting for it to finish.
 	// flushing is only needed if the buffer is frame-locked.
-	if (!isFrameLocked_ || dataSize_==0u) return;
+	if (!isFrameLocked_ || dataSize_==0u) return 0u;
 
 	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
@@ -120,7 +120,8 @@ void ClientBuffer::swapData() {
 
 		// Remaining are the ranges where data in the write slot is not up-to-date with the read slot,
 		// hence we copy it over.
-		for (uint32_t rangeIdx=0; rangeIdx < dirtyLastFrame.count(); ++rangeIdx) {
+		const uint32_t numCopiesNeeded = dirtyLastFrame.count();
+		for (uint32_t rangeIdx=0; rangeIdx < numCopiesNeeded; ++rangeIdx) {
 			const auto &range = dirtyLastFrame.ranges()[rangeIdx];
 			// Copy the data from the read slot to the write slot.
 			std::memcpy(
@@ -139,11 +140,18 @@ void ClientBuffer::swapData() {
 
 		// Finally swap read and write idx, new read idx should have new data for reading next frame.
 		lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
-	}
 
-	// clear dirty lists for the last read slot, such that it can be reused
-	// next frame for writing.
-	dirtyLists_[lastReadSlot].clear();
+		// clear dirty lists for the last read slot, such that it can be reused
+		// next frame for writing.
+		dirtyLastFrame.clear();
+
+		return numCopiesNeeded;
+	} else {
+		// Single-buffered mode, no need to copy data.
+		// Just clear the dirty list for the last read slot.
+		dirtyLastFrame.clear();
+		return 0u;
+	}
 }
 
 void ClientBuffer::nextStamp() const {

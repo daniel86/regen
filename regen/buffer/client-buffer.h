@@ -170,7 +170,7 @@ namespace regen {
 		 * This will first ensure that the current write slot has all the most recent data,
 		 * and secondly, it swaps the read and write slots.
 		 */
-		void swapData();
+		uint32_t swapData();
 
 		void writeLockAll() const;
 
