@@ -186,9 +186,9 @@ namespace regen {
 				GLenum srcAlpha, GLenum dstAlpha)
 				: ServerSideState(), func_(BlendFunction(srcRGB, dstRGB, srcAlpha, dstAlpha)) {}
 
-		void enable(RenderState *state) override { state->blendFunction().push(func_); }
-
-		void disable(RenderState *state) override { state->blendFunction().pop(); }
+		void enable(RenderState *state) override {
+			state->blendFunction().apply(func_);
+		}
 
 	protected:
 		BlendFunction func_;
