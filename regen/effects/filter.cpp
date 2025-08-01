@@ -302,19 +302,22 @@ void FilterSequence::enable(RenderState *rs) {
 		Filter *firstFilter = (Filter *) (*filterSequence_.begin()).get();
 		firstFilter->output()->fbo_->clearAllColorAttachments(clearColor_);
 	}
+	auto oldViewport = rs->viewport().current();
+	auto oldDrawFBO = rs->drawFrameBuffer().current();
+
 	for (auto &it: filterSequence_) {
 		auto *f = (Filter *) it.get();
 
 		FBO *fbo = f->output()->fbo_.get();
-		rs->drawFrameBuffer().push(fbo->id());
-		rs->viewport().push(fbo->glViewport());
+		rs->drawFrameBuffer().apply(fbo->id());
+		rs->viewport().apply(fbo->glViewport());
 		viewport_->setVertex(0, fbo->viewport()->getVertex(0).r);
 		inverseViewport_->setVertex(0, fbo->inverseViewport()->getVertex(0).r);
 
 		f->enable(rs);
 		f->disable(rs);
-
-		rs->viewport().pop();
-		rs->drawFrameBuffer().pop();
 	}
+
+	rs->drawFrameBuffer().apply(oldDrawFBO);
+	rs->viewport().apply(oldViewport);
 }
