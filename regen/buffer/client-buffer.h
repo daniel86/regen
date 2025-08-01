@@ -159,11 +159,29 @@ namespace regen {
 				int32_t slotIndex) const;
 
 		/**
+		 * Marks the data as written to in the current frame.
+		 * This is used to track which data ranges were written to in the current frame,
+		 * so that they can be flushed to the staging buffer later.
+		 * It is assumed the data was mapped for writing before this call.
+		 * @param slotIdx the index of the data slot (0 or 1).
+		 * @param offset the offset in bytes from the start of the buffer.
+		 * @param size the size in bytes that was written.
+		 */
+		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
+
+		/**
 		 * Resize the client buffer.
 		 * @param bufferSize the new size of the buffer in bytes.
 		 * @param initialData optional initial data to fill the buffer with.
 		 */
 		void resize(size_t bufferSize, const byte *initialData = nullptr);
+
+		/**
+		 * Deallocates data pointer owned by this instance.
+		 * If no data is owned by this instance, iit will just set the data pointers to nullptr.
+		 * This is e.g. used if vertex data is static and only initially uploaded to the GPU.
+		 */
+		void deallocateClientData();
 
 		/**
 		 * Swaps the data between the two slots.
@@ -172,26 +190,38 @@ namespace regen {
 		 */
 		uint32_t swapData();
 
+		/**
+		 * Locks all data slots, effectively preventing any read or write access
+		 * to the data until the locks are released.
+		 * This is useful for operations that need to ensure no other thread
+		 * is accessing the data while it is being modified, e.g. during a resize operation.
+		 */
 		void writeLockAll() const;
 
+		/**
+		 * This will release the locks on all data slots, allowing other threads
+		 * to access the data again.
+		 * @param writeOffset the offset in bytes from the start of the buffer that was written to.
+		 * @param writeSize the size in bytes that was written.
+		 */
 		void writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const;
 
-		void markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const;
-
 		/**
-		 * Deallocates data pointer owned by this instance.
-		 * This is e.g. used if vertex data is static and only initially uploaded to the GPU.
+		 * TODO: remove this. It is used for dynamic VBO uploads which should be revised.
+		 * @deprecated
 		 */
-		// TODO: reconsider
-		void deallocateClientData();
-
-		// TODO: remove
 		bool requiresReUpload() const { return requiresReUpload_; }
 
-		// TODO: remove
+		/**
+		 * TODO: remove this. It is used for dynamic VBO uploads which should be revised.
+		 * @deprecated
+		 */
 		void setRequiresReUpload(bool v) const { requiresReUpload_ = v; }
 
-		// TODO: remove
+		/**
+		 * TODO: remove this. It is used for dynamic VBO uploads which should be revised.
+		 * @deprecated
+		 */
 		void setHasServerData(bool v) { hasServerData_ = v; }
 
 	protected:
@@ -219,7 +249,7 @@ namespace regen {
 		// stores the ranges written to in the current and last frame if frame-locked
 		DirtyList dirtyLists_[2] = {};
 
-		// TODO remove these
+		// TODO remove this. It is used for dynamic VBO uploads which should be revised.
 		mutable bool requiresReUpload_ = false;
 		bool hasServerData_ = false;
 

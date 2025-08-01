@@ -6,20 +6,6 @@
 
 using namespace regen;
 
-inline void spinWaitUntil1(std::atomic_flag &flag) {
-    for (int i = 0; flag.test(std::memory_order_acquire) != 0; ++i) {
-        if (i < 20) CPU_PAUSE();
-        else std::this_thread::yield();
-    }
-}
-
-inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
-    for (int i = 0; count.load(std::memory_order_acquire) != 0; ++i) {
-        if (i < 20) CPU_PAUSE();
-        else std::this_thread::yield();
-    }
-}
-
 ClientBuffer::ClientBuffer() {
 	// initially any data that will be allocated will be owned by this instance.
 	// this is until it is added as a segment to another ClientBuffer.
@@ -27,12 +13,8 @@ ClientBuffer::ClientBuffer() {
 }
 
 ClientBuffer::~ClientBuffer() {
-	if (isDataOwner()) {
-		deallocateClientData();
-	}
-	for (auto &segment : bufferSegments_) {
-		segment->parentBuffer_ = nullptr;
-	}
+	deallocateClientData();
+	bufferSegments_.clear();
 }
 
 void ClientBuffer::setFrameLocked(bool frameLocked) {
@@ -206,7 +188,6 @@ MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t s
 		// write lock failed, which means there is another operation in progress.
 		// in this case we allocate the second slot, and copy the data from the first slot to it,
 		// i.e. we switch to double-buffered mode.
-
 		// get a read lock on the first slot.
 		int r_index = readLock();
 		if (r_index > 0) {
@@ -220,11 +201,24 @@ MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t s
 				if (dataSlots_[1] == nullptr) {
 					dataOwner_->createSecondSlot();
 					return { dataSlots_[0]+offset, 0, dataSlots_[1]+offset, 1 };
+				} else {
+					writeUnlock(1, 0, 0);
+					readUnlock(r_index);
+					return mapRange_DoubleBuffer(offset, size);
 				}
-				writeUnlock(1, 0, 0);
+			} else {
+				// someone else holds the write lock on the second slot.
+				readUnlock(r_index);
+				if (dataSlots_[1] == nullptr) {
+					// still single-buffered, probably someone does a lock-all on second slot. retry...
+					CPU_PAUSE();
+					REGEN_WARN("write lock on null second slot failed, retrying...");
+					return mapRange(BUFFER_GPU_WRITE, offset, size);
+				} else {
+					// we have the second slot, so we can write to it, once we have the write lock.
+					return mapRange_DoubleBuffer(offset, size);
+				}
 			}
-			readUnlock(r_index);
-			return mapRange_DoubleBuffer(offset, size);
 		}
 	}
 }
@@ -255,7 +249,7 @@ MappedClientData ClientBuffer::mapRange_DoubleBuffer(uint32_t offset, uint32_t s
 	}
 }
 
-MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t /*size*/) const {
+MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t size) const {
 	// read only. the case of reading at index is not handled differently here.
 	if (!hasTwoSlots()) {
 		// we are still in single-buffered mode.
@@ -267,14 +261,20 @@ MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t /*siz
 			// read lock failed, which means there is a write operation in progress.
 			// in this case we allocate the second slot, and copy the data from the first slot to it,
 			// i.e. we switch to double-buffered mode.
-			// FIXME: hazard here see above
-			REGEN_ERROR("DEADLOCK RISK HERE");
-			writeLockAll();
-			REGEN_ERROR("   LUCKY!");
-			if (dataSlots_[1] == nullptr) {
-				dataOwner_->createSecondSlot();
+			// get a write lock on the second slot.
+			if (dataOwner_->writerFlags_[1].test_and_set(std::memory_order_acquire) == 0) {
+				// we got the write lock on the second slot, so we can allocate it.
+				if (dataSlots_[1] == nullptr) {
+					dataOwner_->createSecondSlot();
+				}
+				writeUnlock(1, 0, 0);
+			} else {
+				// someone else holds the write lock on the second slot.
+				// we need to wait for it to finish.
+				CPU_PAUSE();
+				REGEN_WARN("read lock on null second slot failed, retrying...");
 			}
-			writeUnlockAll(0, 0);
+			return mapRange_ReadOnly(offset, size); // retry
 		}
 	}
 	// read lock in double-buffered mode.
@@ -311,6 +311,7 @@ void ClientBuffer::deallocateClientData() {
 	dataOffset_ = 0u;
 	lastOffset_ = 0u;
 	dataOwner_ = this;
+	parentBuffer_ = nullptr;
 	allocatedSize_ = 0u;
 }
 
@@ -499,6 +500,20 @@ void ClientBuffer::setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t s
 	}
 }
 
+inline void spinWaitUntil1(std::atomic_flag &flag) {
+    for (int i = 0; flag.test(std::memory_order_acquire) != 0; ++i) {
+        if (i < 20) CPU_PAUSE();
+        else std::this_thread::yield();
+    }
+}
+
+inline void spinWaitUntil2(std::atomic<uint32_t> &count) {
+    for (int i = 0; count.load(std::memory_order_acquire) != 0; ++i) {
+        if (i < 20) CPU_PAUSE();
+        else std::this_thread::yield();
+    }
+}
+
 void ClientBuffer::writeLockAll() const {
 	auto *currentOwner = dataOwner_;
 
@@ -641,7 +656,6 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 			lastDataSlot_.store(dataSlot, std::memory_order_release);
 		}
 
-		// TODO: remove after adding VBO stuff into staging!
 		if (hasServerData_) {
 			requiresReUpload_ = true;
 		}
@@ -676,9 +690,8 @@ void ClientBuffer::createSecondSlot() {
 	// Initialize second slot stamp to the same value as the first slot.
 	dataStamps_[1] = dataStamps_[0];
 	REGEN_INFO("Switch to double-buffered mode"
-		<< " data size: " << dataSize_
-		<< " segments: " << bufferSegments_.size()
-		<< " ptr: " << static_cast<void*>(this));
+		<< " with " << dataSize_/1024.0f << " KiB "
+		<< " in " << bufferSegments_.size() << " segments.");
 
 	// Assign second slot ptr's and offsets to all segments
 	for (auto &segment : bufferSegments_) {
