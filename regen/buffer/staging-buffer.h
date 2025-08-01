@@ -316,6 +316,8 @@ namespace regen {
 		uint32_t readBufferIndex_ = 0u;
 		uint32_t writeBufferIndex_ = 0u;
 
+		static BufferPool *getStagingAllocator(BufferStorageMode storageMode);
+
 		static byte *getMappedSegment(
 				const ref_ptr<BufferReference> &ref,
 				uint32_t segmentOffset);

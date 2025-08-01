@@ -1,6 +1,8 @@
 #include "staging-buffer.h"
 #include "regen/gl-types/gl-param.h"
+#include "staging-system.h"
 
+#define REGEN_USE_STAGING_ALLOCATOR
 //#define REGEN_STAGING_USE_DIRECT_FLUSHING
 
 using namespace regen;
@@ -45,6 +47,19 @@ BufferSizeClass StagingBuffer::getBufferSizeClass(uint32_t size) {
 	} else {
 		return BUFFER_SIZE_VERY_LARGE;
 	}
+}
+
+BufferPool* StagingBuffer::getStagingAllocator(BufferStorageMode storageMode) {
+	static std::array<BufferPool*,(int)BUFFER_STORAGE_MODE_LAST> bufferPools;
+	BufferPool *stagingAllocator = bufferPools[(int)storageMode];
+	if (stagingAllocator == nullptr) {
+		stagingAllocator = new BufferPool();
+		stagingAllocator->set_index((int)storageMode);
+		stagingAllocator->set_alignment(StagingSystem::STAGING_BUFFER_ALIGNMENT);
+		stagingAllocator->set_minSize(8u * 1024u * 1024u); // 2048 pages = 8 MiB
+		bufferPools[(int)storageMode] = stagingAllocator;
+	}
+	return stagingAllocator;
 }
 
 bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments) {
@@ -92,7 +107,14 @@ bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments)
 		if (stagingRef_.get()) {
 			BufferObject::orphanBufferRange(stagingRef_.get());
 		}
-		stagingRef_ = stagingBO_->adoptBufferRange(segmentSize_ * numSegments);
+#ifdef REGEN_USE_STAGING_ALLOCATOR
+		stagingRef_ = BufferObject::adoptBufferRange(
+				segmentSize_ * numSegments,
+				getStagingAllocator(storageMode_));
+#else
+		stagingRef_ = stagingBO_->adoptBufferRange(
+				segmentSize_ * numSegments);
+#endif
 		if (!stagingRef_->mappedData() && (storageFlags_ & MAP_PERSISTENT)) {
 			REGEN_ERROR("Failed to map buffer " <<
 												" target: " << flags_.target <<
@@ -136,6 +158,8 @@ void StagingBuffer::swapBuffers() {
 
 void StagingBuffer::markDrawAccessed(BufferRange &drawBuffer) {
 	if (!flags_.useExplicitStaging() && (storageFlags_ & MAP_PERSISTENT)) {
+		// When implicit staging is used, the fence point must be set after
+		// the segment was consumed by the GPU in a draw call.
 		RingSegment &segment = bufferSegments_[drawBuffer.segment_];
 		segment.fence.setFencePoint();
 	}
@@ -439,7 +463,9 @@ bool StagingBuffer::readBuffer(
 						drawBufferRef->allocatedSize());
 				glUnmapNamedBuffer(stagingRef->bufferID());
 			} else {
-				return false; // ERROR: "Failed to map buffer temporary for reading"
+				REGEN_ERROR("Failed to map buffer for reading.");
+				GL_ERROR_LOG();
+				return false;
 			}
 		}
 	}
