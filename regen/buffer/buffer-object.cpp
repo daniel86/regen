@@ -89,6 +89,13 @@ void BufferObject::createMemoryPools() {
 		// common: ~4KB
 		poolIndex = (int) ATOMIC_COUNTER_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 		pools[poolIndex]->set_maxSize(getGLInteger(GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE));
+
+		poolIndex = (int) DRAW_INDIRECT_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
+		// The Indirect draw buffers are rather small.
+		// One mesh has maybe 4 DrawCommands, each 32 bytes -> 128 bytes.
+		// Set let's say we allow 100 meshes to be drawn in one indirect draw call,
+		// so 100 * 128 = 12.5 KB.
+		pools[poolIndex]->set_minSize(12800); // 12800 bytes = 12.5 KB
 	}
 }
 
