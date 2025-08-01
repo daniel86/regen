@@ -71,17 +71,20 @@ namespace regen {
 		/**
 		 * @return The indirect draw buffer used for this indexed shape
 		 */
-		const ref_ptr<SSBO> &indirectDrawBuffer() const { return indirectDrawBuffer_; }
+		const ref_ptr<SSBO> &indirectDrawBuffer(uint32_t partIdx) const { return indirectDrawBuffers_[partIdx]; }
 
 		/**
-		 * @param indirectDrawBuffer The indirect draw buffer to set
+		 * Note: Each part of a model has its own indirect draw buffer.
+		 * @param indirectDrawBuffers The indirect draw buffers to set
 		 */
-		void setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer) { indirectDrawBuffer_ = indirectDrawBuffer; }
+		void setIndirectDrawBuffers(const std::vector<ref_ptr<SSBO>> &indirectDrawBuffers) {
+			indirectDrawBuffers_ = indirectDrawBuffers;
+		}
 
 		/**
 		 * @return True if the indexed shape has an indirect draw buffer
 		 */
-		bool hasIndirectDrawBuffer() const { return indirectDrawBuffer_.get() != nullptr; }
+		bool hasIndirectDrawBuffers() const { return !indirectDrawBuffers_.empty(); }
 
 		/**
 		 * @param mode The sort mode to set
@@ -100,7 +103,7 @@ namespace regen {
 		unsigned int instanceCount_ = 1;
 		ref_ptr<ShaderInput1ui> visibleVec_;
 		ref_ptr<SSBO> instanceBuffer_;
-		ref_ptr<SSBO> indirectDrawBuffer_;
+		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;
 
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 

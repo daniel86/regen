@@ -10,6 +10,7 @@
 #include "regen/states/compute-pass.h"
 #include "regen/states/radix-sort.h"
 #include "regen/shapes/cull-shape.h"
+#include "regen/gl-types/draw-command.h"
 
 namespace regen {
 	/**
@@ -42,6 +43,18 @@ namespace regen {
 		 */
 		const ref_ptr<SSBO> &instanceBuffer() const { return instanceBuffer_; }
 
+		/**
+		 * @return true if this state has indirect draw buffers for the mesh parts.
+		 */
+		bool hasIndirectDrawBuffers() const { return !indirectDrawBuffers_.empty(); }
+
+		/**
+		 * Get the indirect draw buffer for a specific mesh part.
+		 * @param partIdx the index of the mesh part
+		 * @return the indirect draw buffer for the mesh part
+		 */
+		ref_ptr<SSBO> indirectDrawBuffer(uint32_t partIdx) const { return indirectDrawBuffers_[partIdx]; }
+
 		// override
 		void enable(RenderState *rs) override;
 
@@ -72,12 +85,27 @@ namespace regen {
 		// (parts have different index buffers, so we cannot use a single buffer for all parts)
 		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;
 		ref_ptr<SSBO> clearIndirectBuffer_;
+		struct IndirectDrawData {
+			// The current draw commands for the mesh part.
+			// Only maintained in case of CPU-based LOD update.
+			std::array<DrawCommand, 4> current;
+			// The draw commands for the mesh part that are used to clear the indirect draw buffer
+			// to zero before the LOD computation.
+			std::array<DrawCommand, 4> clear;
+		};
+		std::vector<IndirectDrawData> indirectDrawData_;
 
 		ref_ptr<Animation> lodAnim_;
 
 		void initLODState();
 
 		void createComputeShader();
+
+		void createInstanceBuffer();
+
+		void createIndirectDrawBuffers();
+
+		ref_ptr<SSBO> createIndirectDrawBuffer(uint32_t partIdx);
 
 		void updateMeshLOD();
 

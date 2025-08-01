@@ -323,11 +323,11 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	// note: the shader is not compiled here, we only store the import keys
 	// for the meshes, such that createShader() can be called later.
 	for (auto &child : input.getChildren("shader")) {
-		std::queue<ref_ptr<Mesh>> meshQueue;
+		std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> meshQueue;
 		MeshVector::loadIndexRange(*child.get(), out_, meshQueue);
 		visited.push_back(child);
 		while (!meshQueue.empty()) {
-			auto mesh = meshQueue.front();
+			auto [mesh,_idx] = meshQueue.front();
 			meshQueue.pop();
 			mesh->loadShaderConfig(ctx, *child.get());
 		}
@@ -363,9 +363,9 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		visited.push_back(lodMeshInput);
 		for (auto &meshChild : lodMeshInput->getChildren("mesh")) {
 			// TODO: also allow to load mesh by id with external declaration
-			std::queue<ref_ptr<Mesh>> baseMeshQueue;
+			std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> baseMeshQueue;
 			MeshVector::loadIndexRange(*meshChild.get(), out_, baseMeshQueue, "base-mesh");
-			auto baseMesh = baseMeshQueue.front();
+			auto [baseMesh,_idx] = baseMeshQueue.front();
 			if (baseMeshQueue.size() > 1) {
 				REGEN_WARN("multiple base mesh indices in lod-mesh in '" << meshChild->getDescription() << "'.");
 			}
@@ -730,17 +730,18 @@ std::vector<uint32_t> MeshVector::loadIndexRange(scene::SceneInputNode &input, c
 void MeshVector::loadIndexRange(
 		scene::SceneInputNode &input,
 		ref_ptr<MeshVector> &meshes,
-		std::queue<ref_ptr<Mesh>> &meshQueue,
+		std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> &meshQueue,
 		const std::string &prefix) {
 	auto indexRange = MeshVector::loadIndexRange(input, prefix);
 	if (indexRange.empty()) {
+		uint32_t idx = 0u;
 		for (auto &it: *meshes.get()) {
-			meshQueue.push(it);
+			meshQueue.push({it, idx++});
 		}
 	} else {
 		for (auto &index: indexRange) {
 			if (index >= 0 && index < static_cast<uint32_t>(meshes->size())) {
-				meshQueue.push((*meshes.get())[index]);
+				meshQueue.push({(*meshes.get())[index], index});
 			} else {
 				REGEN_WARN("Ignoring " << input.getDescription() << ", invalid mesh index '" << index << "'.");
 			}

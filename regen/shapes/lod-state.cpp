@@ -4,8 +4,8 @@
 #include "regen/gl-types/gl-param.h"
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
-#include "regen/gl-types/draw-command.h"
 #include "regen/gl-types/queries/elapsed-time.h"
+#include "regen/buffer/draw-indirect-buffer.h"
 
 #define RADIX_BITS_PER_PASS 4u
 #define RADIX_GROUP_SIZE 256
@@ -48,7 +48,11 @@ LODState::LODState(
 		  cullShape_(cullShape) {
 	hasShadowTarget_ = dynamic_cast<LightCamera *>(camera_.get()) != nullptr;
 	if (!cullShape_->parts().empty()) {
-		mesh_ = cullShape_->parts().front();
+		// FIXME: something is strange here! THere is a performance drop when switching who
+		//        is the base mesh?!?!
+		//		- probably something strange in LOD mapping?
+		//mesh_ = cullShape_->parts().front();
+		mesh_ = cullShape_->parts().back();
 	} else {
 		REGEN_WARN("No mesh set for shape '" << cullShape_->shapeName() << "'.");
 	}
@@ -100,24 +104,16 @@ void LODState::initLODState() {
 		instanceBuffer_ = cullShape_->instanceBuffer();
 	} else if (cullShape_->numInstances() > 1) {
 		// create instance buffer for per-frame updates.
-		int32_t numIndices = cullShape_->numInstances();
-		std::vector<uint32_t> clearData(numIndices);
-		for (int32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
+		createInstanceBuffer();
 
-		instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
-		instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
-		if (cullShape_->isIndexShape()) {
-			instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
-		}
-		instanceBuffer_->addBlockInput(instanceData_);
-		instanceBuffer_->update();
+		// Create indirect draw buffers for each mesh part.
+		// TODO: for now just for the GPU case....
+		//   - I think also for single instance this should be done, reason
+		//        being the synchronization with staging system.
 		if (!cullShape_->isIndexShape()) {
-			// clear segment to [0, 1, 2, ..., numInstances_-1]
-			instanceBuffer_->setBufferSubData(0, numIndices, clearData.data());
+		//if (cullShape_->parts().size()==1u) {
+			createIndirectDrawBuffers();
 		}
-		// Set the instance buffer as input of the LOD state.
-		// This should make it available for the mesh state.
-		setInput(instanceBuffer_);
 	}
 
 	if (cullShape_->isIndexShape()) {
@@ -126,12 +122,17 @@ void LODState::initLODState() {
 		if (!shapeIndex_.get()) {
 			REGEN_WARN("No indexed shape found for cull shape '" << cullShape_->shapeName() << "'.");
 		} else {
-			lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
-			lodAnim_->startAnimation();
 			if (!cullShape_->hasInstanceBuffer() && instanceBuffer_.get()) {
 				// Make sure that all meshes that share the index shape also have access to the instance buffer.
+				// FIXME: what about the GPU case?
 				shapeIndex_->setInstanceBuffer(instanceBuffer_);
 				shapeIndex_->setSortMode(instanceSortMode_);
+				lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
+				lodAnim_->startAnimation();
+			}
+			if (!indirectDrawBuffers_.empty()) {
+				// FIXME: what about the GPU case?
+				shapeIndex_->setIndirectDrawBuffers(indirectDrawBuffers_);
 			}
 		}
 	} else {
@@ -143,6 +144,90 @@ void LODState::initLODState() {
 					   << mesh_->numLODs() << " LODs, "
 					   << (cullShape_->hasInstanceBuffer() ? "per-draw" : "per-frame") << " "
 					   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
+}
+
+void LODState::createInstanceBuffer() {
+	int32_t numIndices = cullShape_->numInstances();
+	std::vector<uint32_t> clearData(numIndices);
+	for (int32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
+
+	instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
+	instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
+	if (cullShape_->isIndexShape()) {
+		instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
+	}
+	instanceBuffer_->addBlockInput(instanceData_);
+	instanceBuffer_->update();
+	if (!cullShape_->isIndexShape()) {
+		// clear segment to [0, 1, 2, ..., numInstances_-1]
+		instanceBuffer_->setBufferSubData(0, numIndices, clearData.data());
+	}
+	// Set the instance buffer as input of the LOD state.
+	// This should make it available for the mesh state.
+	setInput(instanceBuffer_);
+}
+
+ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
+	auto buffer = ref_ptr<SSBO>::alloc(
+			"IndirectDrawBuffer",
+			BufferUpdateFlags::FULL_PER_FRAME);
+	//auto buffer = ref_ptr<DrawIndirectBuffer>::alloc(
+	//		"IndirectDrawBuffer",
+	//		BufferUpdateFlags::FULL_PER_FRAME);
+	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+			"DrawCommand", "drawParams", 4);
+	if (cullShape_->isIndexShape()) {
+		input->setInstanceData(1, 1, (byte*)indirectDrawData_[partIdx].current.data());
+	}
+	buffer->addBlockInput(input);
+	buffer->update();
+	if (!cullShape_->isIndexShape()) {
+		buffer->setBufferData((byte*)indirectDrawData_[partIdx].current.data());
+	}
+	return buffer;
+}
+
+void LODState::createIndirectDrawBuffers() {
+	const uint32_t numParts = cullShape_->parts().size();
+
+	indirectDrawBuffers_.resize(numParts);
+	indirectDrawData_.resize(numParts);
+
+	for (uint32_t partIdx=0; partIdx < numParts; ++partIdx) {
+		auto &part = cullShape_->parts()[partIdx];
+		auto &partLODs = part->meshLODs();
+		auto &drawData = indirectDrawData_[partIdx];
+
+		// create the indirect draw data for this part
+		for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
+			DrawCommand &drawParams = drawData.current[lodIdx];
+			Mesh *m;
+			if (lodIdx < part->numLODs()) {
+				m = partLODs[lodIdx].impostorMesh.get() ? partLODs[lodIdx].impostorMesh.get() : part.get();
+			} else {
+				m = part.get();
+			}
+			if (m->indices().get()) {
+				drawParams.mode = 1u; // 1=elements, 2=arrays
+				drawParams.setCount(m->numIndices());
+				drawParams.setFirstElement(m->indices()->offset() / sizeof(uint32_t));
+				drawParams.data[3] = 0; // base vertex
+			} else {
+				drawParams.mode = 2u; // 1=elements, 2=arrays
+				drawParams.setCount(m->numVertices());
+				drawParams.setFirstElement(m->vertexOffset());
+			}
+			drawParams.setInstanceCount(lodIdx==0 ? m->numInstances() : 0);
+			drawParams.setBaseInstance(0);
+
+			// Set the clear draw command to zero instance count.
+			drawData.clear[lodIdx] = drawParams;
+			drawData.clear[lodIdx].setInstanceCount(0);
+		}
+
+		// finally create the indirect draw buffer for this part
+		indirectDrawBuffers_[partIdx] = createIndirectDrawBuffer(partIdx);
+	}
 }
 
 void LODState::updateMeshLOD() {
@@ -190,25 +275,68 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 		//}
 	}
 	// set the LOD level
-	for (auto &part: cullShape_->parts()) {
+	for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
+		auto &part = cullShape_->parts()[partIdx];
 		// could be part has different number of LODs, need to compute an adjusted
 		// LOD level for each part
 		auto partLODLevel = getPartLOD(lodLevel, part->numLODs(), mesh_->numLODs());
 		auto &partLOD = part->meshLODs()[partLODLevel];
-		if (partLOD.d->numVisibleInstances > 0u) {
-			part->updateVisibility(partLODLevel,
-								   partLOD.d->numVisibleInstances + numInstances,
-								   partLOD.d->instanceOffset);
-		} else {
-			part->updateVisibility(partLODLevel, numInstances, instanceOffset);
+		const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + numInstances;
+		const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
+		part->updateVisibility(partLODLevel, numVisibleInstances, baseInstance);
+
+		if (!indirectDrawBuffers_.empty()) {
+			auto &indirectBuffer = indirectDrawBuffers_[partIdx];
+			auto &indirectData = indirectDrawData_[partIdx];
+			// write into local storage buffer
+			auto &drawParams = indirectData.current[partLODLevel];
+			drawParams.setInstanceCount(numVisibleInstances);
+			drawParams.setBaseInstance(baseInstance);
+
+			if (indirectBuffer->hasClientData()) {
+				// write into client buffer from where it will be copied to staging buffer.
+				/**
+				auto &clientBuffer = indirectBuffer->clientBuffer();
+				auto mapped = clientBuffer->mapRange(
+						BUFFER_GPU_WRITE, 0u, clientBuffer->dataSize());
+				DrawCommand *mappedData = (DrawCommand*) mapped.w;
+				mappedData[partLODLevel] = drawParams;
+				clientBuffer->markWrittenTo(
+						mapped.w_index,
+						sizeof(DrawCommand) * partLODLevel,
+						sizeof(DrawCommand));
+				clientBuffer->unmapRange(
+						BUFFER_GPU_WRITE, 0u, 0u, mapped.w_index);
+				**/
+				auto mapped = indirectBuffer->mapClientVertex<DrawCommand>(
+						BUFFER_GPU_WRITE, partLODLevel);
+				mapped.w = drawParams;
+			}
 		}
 	}
 }
 
 void LODState::resetVisibility() {
-	for (auto &part: cullShape_->parts()) {
+	for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
+		auto &part = cullShape_->parts()[partIdx];
+
 		for (uint32_t lodLevel = 0; lodLevel < part->numLODs(); ++lodLevel) {
 			part->updateVisibility(lodLevel, 0, 0);
+		}
+		if (!indirectDrawBuffers_.empty()) {
+			auto &indirectBuffer = indirectDrawBuffers_[partIdx];
+			// reset the indirect draw buffer for this part
+			indirectDrawData_[partIdx].current = indirectDrawData_[partIdx].clear;
+			if (indirectBuffer->hasClientData()) {
+				// also reset the client data buffer.
+				// This is done in case not all draw buffers are updated this frame using updateVisibility.
+				auto mapped = indirectBuffer->mapClientData<DrawCommand>(
+						BUFFER_GPU_WRITE, 0, indirectBuffer->inputSize());
+				std::memcpy(
+					mapped.w.data(),
+					indirectDrawData_[partIdx].current.data(),
+					indirectBuffer->inputSize());
+			}
 		}
 	}
 }
@@ -320,6 +448,7 @@ void LODState::enable(RenderState *rs) {
 
 void LODState::traverseCPU() {
 	if (!shapeIndex_.get() || !shapeIndex_->isVisible()) {
+		// FIXME: must set indirect draw buffers etc if not visible!
 		return;
 	}
 
@@ -502,68 +631,17 @@ void LODState::computeLODGroups() {
 ///////////////////////
 
 void LODState::createComputeShader() {
-	DrawCommand drawParams[4];
-	indirectDrawBuffers_.resize(cullShape_->parts().size());
-
-	for (uint32_t partIdx=0; partIdx < cullShape_->parts().size(); ++partIdx) {
-    	std::string suffix = (partIdx==0 ? "Base" : REGEN_STRING(partIdx-1));
-		auto &part = cullShape_->parts()[partIdx];
-		// we need to create a drawParams for each part, since they can have different
-		// number of indices and different index buffers.
-		auto &meshLODs = part->meshLODs();
-		for (uint32_t i = 0; i < 4; ++i) {
-			ref_ptr<Mesh> m;
-			if (i < meshLODs.size()) {
-				m = meshLODs[i].impostorMesh.get() ? meshLODs[i].impostorMesh : part;
-			} else {
-				m = part;
-			}
-			auto &indices = m->indices();
-			if (indices.get()) {
-				drawParams[i].mode = 1u; // 1=elements, 2=arrays
-				drawParams[i].setCount(m->numIndices());
-				drawParams[i].setFirstElement(indices->offset() / sizeof(uint32_t));
-			} else {
-				drawParams[i].mode = 2u; // 1=elements, 2=arrays
-				drawParams[i].setCount(m->numVertices());
-				drawParams[i].setFirstElement(m->vertexOffset());
-			}
-			drawParams[i].setInstanceCount(i==0 ? m->numInstances() : 0);
-		}
-		// create an indirect draw buffer, which is computed each frame
-		indirectDrawBuffers_[partIdx] = ref_ptr<SSBO>::alloc(
-				REGEN_STRING("IndirectDrawBuffer"<<suffix),
-				BufferUpdateFlags::FULL_PER_FRAME,
-				SSBO::RESTRICT);
-		indirectDrawBuffers_[partIdx]->addBlockInput(ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-				"DrawCommand",
-				REGEN_STRING("drawParams"<<suffix),
-				4));
-		indirectDrawBuffers_[partIdx]->update();
-		indirectDrawBuffers_[partIdx]->setBufferData((byte*)(&drawParams[0]));
-		// TODO Rather use a single buffer with offsets
-		//		- will need to revise the copyIndirect_
-		// part->setIndirectDrawBuffer(indirectDrawBuffers_[partIdx], partIdx);
-		part->setIndirectDrawBuffer(indirectDrawBuffers_[partIdx], 0);
-
-		if(partIdx==0) {
-			// Create a static indirect draw buffer, which is used for clearing the
-			// indirect draw buffer each frame.
-			for (uint32_t i = 0; i < 4; ++i) {
-				drawParams[i].setInstanceCount(0u);
-			}
-			auto clearData = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-					"DrawCommand",
-					REGEN_STRING("drawParams"<<suffix),
-					4);
-			clearData->setUniformUntyped((byte*)(&drawParams[0]));
-			clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
-				REGEN_STRING("Clear_IndirectDrawBuffer"<<suffix),
-				BufferUpdateFlags::NEVER,
-				SSBO::RESTRICT);
-			clearIndirectBuffer_->addBlockInput(clearData);
-			clearIndirectBuffer_->update();
-		}
+	{	// Create a static indirect draw buffer, which is used for clearing the
+		// first indirect draw buffer each frame.
+		auto clearData = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+					"DrawCommand", "drawParams", 4);
+		clearData->setUniformUntyped((byte*)indirectDrawData_[0].clear.data());
+		clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
+			"Clear_IndirectDrawBuffer",
+			BufferUpdateFlags::NEVER,
+			SSBO::RESTRICT);
+		clearIndirectBuffer_->addBlockInput(clearData);
+		clearIndirectBuffer_->update();
 	}
 
 	{ // radix sort
@@ -623,11 +701,13 @@ void LODState::createComputeShader() {
 	}
 
 	if (cullShape_->parts().size()>1) {
+		REGEN_WARN("NOT UP TO DATE!");
 		// copy indirect draw buffers
 		copyIndirect_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.copy-indirect");
 		copyIndirect_->computeState()->setNumWorkUnits(1, 1, 1);
 		copyIndirect_->computeState()->setGroupSize(1, 1, 1);
 		for (const auto & indirectDrawBuffer : indirectDrawBuffers_) {
+			// FIXME: name clashing
 			copyIndirect_->setInput(indirectDrawBuffer);
 		}
 		StateConfigurer shaderCfg;

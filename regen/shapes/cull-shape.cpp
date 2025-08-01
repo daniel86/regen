@@ -29,18 +29,14 @@ void CullShape::initCullShape(
 		bool isIndexShape,
 		bool useSharedInstanceBuffer) {
 	auto mesh = boundingShape->mesh();
-	bool isMeshPart = false;
-	for (const auto &part : boundingShape->parts()) {
-		if (part.get() != nullptr) {
-			parts_.push_back(part);
-		}
-		if (part.get() == mesh.get()) {
-			isMeshPart = true;
-		}
-	}
-	if (!isMeshPart && mesh.get() != nullptr) {
+	if (mesh.get() != nullptr) {
 		// add mesh as part if not already added
 		parts_.push_back(mesh);
+	}
+	for (const auto &part : boundingShape->parts()) {
+		if (part.get() != nullptr && part.get() != mesh.get()) {
+			parts_.push_back(part);
+		}
 	}
 	boundingShape_ = boundingShape;
 	numInstances_ = boundingShape->numInstances();

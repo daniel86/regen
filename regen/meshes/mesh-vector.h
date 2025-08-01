@@ -34,7 +34,7 @@ namespace regen {
 		static void loadIndexRange(
 				scene::SceneInputNode &input,
 				ref_ptr<MeshVector> &meshes,
-				std::queue<ref_ptr<Mesh>> &meshQueue,
+				std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> &meshQueue,
 				const std::string &prefix = "mesh");
 
 	protected:

@@ -64,7 +64,6 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  shared_(sourceMesh->shared_),
 		  sharedState_(sourceMesh->sharedState_) {
 	vao_ = ref_ptr<VAO>::alloc();
-	draw_ = sourceMesh_->draw_;
 	sourceMesh_->meshViews_.insert(this);
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
 	lodThresholds_->setUniformData(sourceMesh->lodThresholds()->getVertex(0).r);
@@ -74,6 +73,7 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 			lod.impostorMesh = ref_ptr<Mesh>::alloc(lod.impostorMesh);
 		}
 	}
+	updateDrawFunction();
 }
 
 Mesh::~Mesh() {
@@ -510,6 +510,7 @@ void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32
 
 	// group together LODs that can be drawn with multi draw calls,
 	// i.e. those that do not have impostor meshes.
+	// TODO: can be done more centrally and rarely!!!
 	indirectDrawGroups_.clear();
 	if (meshLODs_.size()>1) {
 		uint32_t drawGroupIdx = 0;
@@ -531,6 +532,7 @@ void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32
 		indirectDrawGroups_.clear();
 	}
 	updateDrawFunction();
+	// TODO: why not directly set on impostor meshes?
 }
 
 void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
@@ -629,7 +631,6 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCoun
 			lod.impostorMesh->setIndirectDrawBuffer(
 					indirectDrawBuffer_,
 					baseDrawIndex() + lodLevel);
-			lod.impostorMesh->updateDrawFunction();
 		} else {
 			lod.impostorMesh->resetVisibility(true);
 			lod.impostorMesh->updateVisibility(0,

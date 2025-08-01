@@ -38,7 +38,7 @@ struct DrawCommand {
 // - [write] distance sort keys, computed by culling pass, per instance
 buffer uint in_keys[];
 // - [write] One per LOD group: how many valid instances passed culling, and the base instance offset
-buffer DrawCommand in_drawParamsBase[];
+buffer DrawCommand in_drawParams[];
 // - number of visible instances in each LOD group (per workgroup)
 shared uint sh_lodGroupSize[MAX_NUM_LOD_GROUPS];
 // LOD distance thresholds.
@@ -109,13 +109,13 @@ void main() {
 
     // Write results to global memory
     if (localID < MAX_NUM_LOD_GROUPS) {
-        atomicAdd(INSTANCE_COUNT(in_drawParamsBase[localID]), sh_lodGroupSize[localID]);
+        atomicAdd(INSTANCE_COUNT(in_drawParams[localID]), sh_lodGroupSize[localID]);
         // also compute the offset for each LOD group.
         // Note: this could be done via prefix scan in a separate pass, but it might not be worth it
         //       because we only have a few LOD groups (4 usually).
         for (uint i = localID + 1; i < MAX_NUM_LOD_GROUPS; ++i) {
-            uint baseInstanceIdx = 5u - in_drawParamsBase[i].drawMode;
-            atomicAdd(in_drawParamsBase[i].data[baseInstanceIdx], sh_lodGroupSize[localID]);
+            uint baseInstanceIdx = 5u - in_drawParams[i].drawMode;
+            atomicAdd(in_drawParams[i].data[baseInstanceIdx], sh_lodGroupSize[localID]);
         }
     }
     if (globalID < LOD_NUM_INSTANCES) {

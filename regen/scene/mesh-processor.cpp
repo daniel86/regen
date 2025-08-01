@@ -55,11 +55,11 @@ void MeshNodeProvider::processInput(
 		REGEN_WARN("Unable to load Mesh for '" << input.getDescription() << "'.");
 		return;
 	}
-	std::queue<ref_ptr<Mesh>> meshQueue;
+	std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> meshQueue;
 	MeshVector::loadIndexRange(input, meshes, meshQueue);
 
 	while (!meshQueue.empty()) {
-		auto meshOriginal = meshQueue.front();
+		auto [meshOriginal,partIdx] = meshQueue.front();
 		meshQueue.pop();
 		auto meshCopy = getMeshCopy(meshOriginal);
 		if (input.hasAttribute("primitive")) {
@@ -98,6 +98,10 @@ void MeshNodeProvider::processInput(
 						meshNode->state()->joinStates(lodState);
 						if (!cullShape->hasInstanceBuffer()) {
 							meshCopy->setInstanceBuffer(lodState->instanceBuffer());
+							if (lodState->hasIndirectDrawBuffers()) {
+								meshCopy->setIndirectDrawBuffer(
+									lodState->indirectDrawBuffer(partIdx), 0u);
+							}
 						}
 						// set sorting mode
 						meshCopy->set_lodSortMode(lodState->instanceSortMode());
@@ -107,6 +111,8 @@ void MeshNodeProvider::processInput(
 				}
 			} else {
 				// try to get an instance buffer
+				// FIXME: This will work for GPU-based LODs!
+				//    So it might be that parts of meshes will not work yet on the GPU path!
 				auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
 				auto spatialIndex = cullShape->spatialIndex();
 				if (cam.get()
@@ -115,8 +121,13 @@ void MeshNodeProvider::processInput(
 						&& spatialIndex->hasCamera(*cam.get())) {
 					auto shapeIndex = spatialIndex->getIndexedShape(
 							cam, cullShape->shapeName());
-					if (shapeIndex.get() && shapeIndex->hasInstanceBuffer()) {
-						meshCopy->setInstanceBuffer(shapeIndex->instanceBuffer());
+					if (shapeIndex.get()) {
+						if (shapeIndex->hasInstanceBuffer()) {
+							meshCopy->setInstanceBuffer(shapeIndex->instanceBuffer());
+						}
+						if (shapeIndex->hasIndirectDrawBuffers()) {
+							meshCopy->setIndirectDrawBuffer(shapeIndex->indirectDrawBuffer(partIdx), 0u);
+						}
 						meshCopy->set_lodSortMode(shapeIndex->instanceSortMode());
 					}
 				}
