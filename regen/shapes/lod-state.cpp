@@ -49,11 +49,7 @@ LODState::LODState(
 		  cullShape_(cullShape) {
 	hasShadowTarget_ = dynamic_cast<LightCamera *>(camera_.get()) != nullptr;
 	if (!cullShape_->parts().empty()) {
-		// FIXME: something is strange here! THere is a performance drop when switching who
-		//        is the base mesh?!?!
-		//		- probably something strange in LOD mapping?
-		//mesh_ = cullShape_->parts().front();
-		mesh_ = cullShape_->parts().back();
+		mesh_ = cullShape_->parts().front();
 	} else {
 		REGEN_WARN("No mesh set for shape '" << cullShape_->shapeName() << "'.");
 	}
@@ -264,9 +260,10 @@ static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uin
 void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
 	// increase LOD level by one if we have a shadow target
 	if (!camera_->hasFixedLOD()) {
-		//if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
-		//	lodLevel++;
-		//}
+		// FIXME: Reconsider lower level LOD handling for shadows!
+		if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
+			lodLevel++;
+		}
 	}
 	// set the LOD level
 	for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
