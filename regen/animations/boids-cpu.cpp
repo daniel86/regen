@@ -289,25 +289,27 @@ void BoidsCPU::animate(double dt) {
 void BoidsCPU::updateTransforms() {
 	if (tf_.get()) {
 		if (tf_->hasModelMat()) {
+			Mat4f *matData = tf_->modelMatMapWrite();
 			for (uint32_t i = 0; i < numBoids_; ++i) {
 				Quaternion orientation(
 					priv_->boidOrientW_[i],
 					priv_->boidOrientX_[i],
 					priv_->boidOrientY_[i],
 					priv_->boidOrientZ_[i]);
-				priv_->tmpMat_ = (priv_->yawAdjust_ * orientation).calculateMatrix();
-				priv_->tmpMat_.scale(priv_->boidsScale_);
-				priv_->tmpMat_.x[12] += priv_->boidPositionsX_[i];
-				priv_->tmpMat_.x[13] += priv_->boidPositionsY_[i];
-				priv_->tmpMat_.x[14] += priv_->boidPositionsZ_[i];
-				tf_->setModelMat(i, priv_->tmpMat_);
+				matData[i] = (priv_->yawAdjust_ * orientation).calculateMatrix();
+				matData[i].scale(priv_->boidsScale_);
+				matData[i].x[12] += priv_->boidPositionsX_[i];
+				matData[i].x[13] += priv_->boidPositionsY_[i];
+				matData[i].x[14] += priv_->boidPositionsZ_[i];
 			}
 		} else if (tf_->hasModelOffset()) {
+			Vec4f *offsetData = tf_->modelOffsetMapWrite();
 			for (uint32_t i = 0; i < numBoids_; ++i) {
-				tf_->setModelOffset(i, Vec3f(
+				offsetData[i] = Vec4f(
 					priv_->boidPositionsX_[i],
 					priv_->boidPositionsY_[i],
-					priv_->boidPositionsZ_[i]));
+					priv_->boidPositionsZ_[i],
+					1.0f);
 			}
 		}
 		tf_->updateShaderData();
