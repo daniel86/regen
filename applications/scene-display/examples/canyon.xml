@@ -469,7 +469,6 @@
             <depth test="1" write="1"/>
             <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster-All"/>
-            <node import="Scene-Geometry"/>
         </node>
 
         <node>
@@ -811,7 +810,7 @@
     </node>
 
     <node id="ToneMapping">
-        <define key="USE_RADIAL_BLUR" value="TRUE"/>
+        <define key="USE_RADIAL_BLUR" value="FALSE"/>
         <define key="USE_VIGNETTE" value="TRUE"/>
         <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
         <texture name="blurTexture" id="blurred-scene"/>
