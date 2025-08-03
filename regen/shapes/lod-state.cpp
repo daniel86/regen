@@ -14,6 +14,7 @@
 //#define LOD_DEBUG_CPU_TIME
 //#define LOD_DEBUG_GPU_TIME
 //#define LOD_DEBUG_SHAPE "fish-shape"
+//#define LOD_USE_DIBO_FOR_SINGLE_LOD
 
 using namespace regen;
 
@@ -105,15 +106,8 @@ void LODState::initLODState() {
 	} else if (cullShape_->numInstances() > 1) {
 		// create instance buffer for per-frame updates.
 		createInstanceBuffer();
-
-		// Create indirect draw buffers for each mesh part.
-		// TODO: for now just for the GPU case....
-		//   - I think also for single instance this should be done, reason
-		//        being the synchronization with staging system.
-		if (!cullShape_->isIndexShape()) {
-		//if (cullShape_->parts().size()==1u) {
-			createIndirectDrawBuffers();
-		}
+		// Create indirect draw buffers for each mesh part and LOD.
+		createIndirectDrawBuffers();
 	}
 
 	if (cullShape_->isIndexShape()) {
@@ -198,23 +192,26 @@ void LODState::createIndirectDrawBuffers() {
 		// create the indirect draw data for this part
 		for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
 			DrawCommand &drawParams = drawData.current[lodIdx];
-			Mesh *m;
 			if (lodIdx < part->numLODs()) {
-				m = partLODs[lodIdx].impostorMesh.get() ? partLODs[lodIdx].impostorMesh.get() : part.get();
+				auto &lodData = partLODs[lodIdx];
+				Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : part.get();
+				if (m->indices().get()) {
+					drawParams.mode = 1u; // 1=elements, 2=arrays
+					drawParams.setCount(lodData.d->numIndices);
+					drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
+					drawParams.data[3] = 0; // base vertex
+				} else {
+					drawParams.mode = 2u; // 1=elements, 2=arrays
+					drawParams.setCount(lodData.d->numVertices);
+					drawParams.setFirstElement(lodData.d->vertexOffset);
+				}
 			} else {
-				m = part.get();
+				// no LOD data available, use the base mesh
+				drawParams.mode = part->indices().get() ? 1u : 2u; // 1=elements, 2=arrays
+				drawParams.setCount(0);
+				drawParams.setFirstElement(0);
 			}
-			if (m->indices().get()) {
-				drawParams.mode = 1u; // 1=elements, 2=arrays
-				drawParams.setCount(m->numIndices());
-				drawParams.setFirstElement(m->indices()->offset() / sizeof(uint32_t));
-				drawParams.data[3] = 0; // base vertex
-			} else {
-				drawParams.mode = 2u; // 1=elements, 2=arrays
-				drawParams.setCount(m->numVertices());
-				drawParams.setFirstElement(m->vertexOffset());
-			}
-			drawParams.setInstanceCount(lodIdx==0 ? m->numInstances() : 0);
+			drawParams.setInstanceCount(lodIdx==0 ? part->numInstances() : 0);
 			drawParams.setBaseInstance(0);
 
 			// Set the clear draw command to zero instance count.
@@ -292,19 +289,6 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 
 			if (indirectBuffer->hasClientData()) {
 				// write into client buffer from where it will be copied to staging buffer.
-				/**
-				auto &clientBuffer = indirectBuffer->clientBuffer();
-				auto mapped = clientBuffer->mapRange(
-						BUFFER_GPU_WRITE, 0u, clientBuffer->dataSize());
-				DrawCommand *mappedData = (DrawCommand*) mapped.w;
-				mappedData[partLODLevel] = drawParams;
-				clientBuffer->markWrittenTo(
-						mapped.w_index,
-						sizeof(DrawCommand) * partLODLevel,
-						sizeof(DrawCommand));
-				clientBuffer->unmapRange(
-						BUFFER_GPU_WRITE, 0u, 0u, mapped.w_index);
-				**/
 				auto mapped = indirectBuffer->mapClientVertex<DrawCommand>(
 						BUFFER_GPU_WRITE, partLODLevel);
 				mapped.w = drawParams;
@@ -353,16 +337,39 @@ void LODState::enable(RenderState *rs) {
 	} else if(cullShape_->hasInstanceBuffer()) {
 		resetVisibility();
 		traverseCPU();
+	} else if (indirectDrawBuffers_.empty()) {
+		// TODO: Skip this if we have indirect draw buffers?
+		// Set the mesh state for the net draw call.
+		// Note: we compute the LOD groups only once per frame in an animation
+		//     loop, but we cannot set the mesh state there, because the mesh may be used
+		//     in multiple passes, e.g. shadow mapping, reflection, etc.
+		for (auto &part : cullShape_->parts()) {
+			// reset the visibility for each part
+			for (uint32_t lodIdx = 0; lodIdx < part->numLODs(); ++lodIdx) {
+				part->updateVisibility(lodIdx, 0, 0);
+			}
+			// update the visibility for each part
+			uint32_t instanceOffset = 0;
+			for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
+				auto partLODLevel = getPartLOD(lodIdx, part->numLODs(), mesh_->numLODs());
+				const uint32_t numInstances = lodNumInstances_[lodIdx];
+				auto &partLOD = part->meshLODs()[partLODLevel];
+				const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + numInstances;
+				const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
+				part->updateVisibility(partLODLevel, numVisibleInstances, baseInstance);
+				instanceOffset += lodNumInstances_[lodIdx];
+			}
+		}
 	}
 #ifdef LOD_DEBUG_GROUPS
 	if (!indirectDrawBuffers_.empty()) {
 		// map indirect buffer and print the number of instances per LOD
-		static std::vector<DrawCommand> readVec;
-		auto indirectBuffer = indirectDrawBuffers_[0];
-		readVec.resize(mesh_->numLODs());
-		indirectBuffer->readBufferSubData(
-				0, mesh_->numLODs() * sizeof(DrawCommand), (byte *)readVec.data());
-		{
+		static std::vector<DrawCommand> readVec(4);
+		for (uint32_t partIdx= 0; partIdx < indirectDrawBuffers_.size(); ++partIdx) {
+			auto indirectBuffer = indirectDrawBuffers_[partIdx];
+			auto &part = cullShape_->parts()[partIdx];
+			indirectBuffer->readBufferSubData(
+					0, 4 * sizeof(DrawCommand), (byte *)readVec.data());
 			// print the number of instances per LOD
 			REGEN_INFO("LOD ("
 							   << std::setw(4) << std::setfill(' ') << readVec[0].instanceCount() << " "
@@ -372,11 +379,12 @@ void LODState::enable(RenderState *rs) {
 							   << " numInstances: " <<
 							   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
 							   << " numLODs: " <<
-							   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
+							   std::setw(2) << std::setfill(' ') << part->numLODs()
 							   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
 							   << " shadow: " << (hasShadowTarget_ ? "1" : "0")
+							   << " part: " << partIdx
 							   << " shape: " << cullShape_->shapeName());
-			for (uint32_t i = 0; i < mesh_->numLODs(); ++i) {
+			for (uint32_t i = 0; i < part->numLODs(); ++i) {
 				REGEN_INFO("   Indirect buffer " << i << " -- "
 								<< "mode: " << readVec[i].mode << "; data: ["
 								   << std::setw(8) << readVec[i].data[0] << ", "
@@ -387,32 +395,34 @@ void LODState::enable(RenderState *rs) {
 								   << readVec[i]._pad[0] << ", "
 								   << readVec[i]._pad[1] << "]");
 			}
-			indirectBuffer->unmap();
 		}
-	} else if (mesh_.get()) {
-		if (mesh_->numLODs() > 1) {
-			REGEN_INFO("LOD ("
-						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
-						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
-						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
-						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")"
-						   << " numInstances: " <<
-						   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
-						   << " numLODs: " <<
-						   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
-						   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
-						   << " shadow: " << (hasShadowTarget_ ? "1" : "0")
-						   << " shape: " << cullShape_->shapeName()
-						   );
-		} else {
-			REGEN_INFO("LOD ("
-						   << std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << ")"
-						   << " numInstances: " <<
-						   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
-						   << " numLODs: " <<
-						   std::setw(2) << std::setfill(' ') << mesh_->numLODs()
-						   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
-						   << " shape: " << cullShape_->shapeName());
+	} else if (!cullShape_->parts().empty()) {
+		REGEN_INFO("LOD ("
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")"
+			<< " count: " <<
+			std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
+			<< " levels: " <<
+			std::setw(2) << std::setfill(' ') << mesh_->numLODs()
+			<< " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
+			<< " shadow: " << (hasShadowTarget_ ? "1" : "0")
+			<< " shape: " << cullShape_->shapeName()
+			<< " parts: " << cullShape_->parts().size());
+
+		for (auto &part : cullShape_->parts()) {
+			if (mesh_->numLODs() <= 1) continue;
+			auto &meshLODs = part->meshLODs();
+			uint32_t lod1_count = meshLODs[0].numVisibleInstances();
+			uint32_t lod2_count = meshLODs.size() > 1 ? meshLODs[1].numVisibleInstances() : 0;
+			uint32_t lod3_count = meshLODs.size() > 2 ? meshLODs[2].numVisibleInstances() : 0;
+			uint32_t lod4_count = meshLODs.size() > 3 ? meshLODs[3].numVisibleInstances() : 0;
+			REGEN_INFO("    - PART ("
+				<< std::setw(4) << std::setfill(' ') << lod1_count << " "
+				<< std::setw(4) << std::setfill(' ') << lod2_count << " "
+				<< std::setw(4) << std::setfill(' ') << lod3_count << " "
+				<< std::setw(4) << std::setfill(' ') << lod4_count << ")");
 		}
 	}
 #endif

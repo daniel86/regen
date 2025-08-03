@@ -126,7 +126,8 @@ void MeshNodeProvider::processInput(
 							meshCopy->setInstanceBuffer(shapeIndex->instanceBuffer());
 						}
 						if (shapeIndex->hasIndirectDrawBuffers()) {
-							meshCopy->setIndirectDrawBuffer(shapeIndex->indirectDrawBuffer(partIdx), 0u);
+							auto dibo = shapeIndex->indirectDrawBuffer(partIdx);
+							meshCopy->setIndirectDrawBuffer(dibo, 0u);
 						}
 						meshCopy->set_lodSortMode(shapeIndex->instanceSortMode());
 					}

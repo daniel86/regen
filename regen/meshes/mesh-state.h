@@ -48,6 +48,7 @@ namespace regen {
 				uint32_t numVertices = 0;
 				uint32_t vertexOffset = 0;
 				uint32_t numIndices = 0;
+				// offset into the index buffer for this LOD, in bytes.
 				uint32_t indexOffset = 0;
 				// current number of visible instances for this LOD.
 				uint32_t numVisibleInstances = 0;
