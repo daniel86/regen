@@ -51,6 +51,14 @@ void LightPass::setShadowFiltering(ShadowFilterMode mode) {
 	shaderDefine("SHADOW_MAP_FILTER", shadowFilterMode(mode));
 }
 
+void LightPass::setUseAmbient(bool useAmbient) {
+	if (useAmbient) {
+		shaderDefine("USE_AMBIENT_LIGHT", "TRUE");
+	} else {
+		shaderDefine("USE_AMBIENT_LIGHT", "FALSE");
+	}
+}
+
 void LightPass::addLight(
 		const ref_ptr<Light> &l,
 		const ref_ptr<LightCamera> &lightCamera,
@@ -211,6 +219,7 @@ ref_ptr<LightPass> LightPass::load(LoadingContext &ctx, scene::SceneInputNode &i
 			input.getValue<Light::Type>("type", Light::SPOT),
 			input.getValue("shader"));
 
+	x->setUseAmbient(input.getValue<bool>("ambient", false));
 	x->setShadowFiltering(input.getValue<ShadowFilterMode>(
 			"shadow-filter", SHADOW_FILTERING_NONE));
 	bool useShadows = false, toggle = true;

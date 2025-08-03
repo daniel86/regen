@@ -193,17 +193,13 @@
     <!--**************************-->
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.01,0.01,0.01"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
         <node id="Light-Shading">
             <input type="float" name="toonThreshold1" value="0.3"/>
             <input type="float" name="toonThreshold2" value="0.6"/>
-            <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+            <light-pass type="SPOT" ambient="1" shader="regen.shading.deferred.spot">
                 <light id="spot-light"
                        shadow-buffer="spot-shadow"
                        shadow-attachment="depth"
@@ -218,7 +214,7 @@
         <input type="float" name="shadowSampleThreshold" value="0.075"/>
         <input type="vec2" name="fogDistance" value="0.0,100.0"/>
         <node>
-            <light-pass type="SPOT"
+            <light-pass type="SPOT" ambient="0"
                         shader="regen.weather.fog.volumetric.spot"
                         use-shadows="1"
                         shadow-filter="NONE">
@@ -242,7 +238,7 @@
         <input type="float" name="shadowSampleThreshold" value="0.075"/>
         <input type="vec2" name="fogDistance" value="0.0,100.0"/>
         <node>
-            <light-pass type="SPOT"
+            <light-pass type="SPOT" ambient="0"
                         shader="regen.weather.fog.volumetric.spot"
                         use-shadows="1"
                         shadow-filter="NONE">

@@ -471,17 +471,13 @@
     <!--**************************-->
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
         <resource id="sky"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
         <node id="Light-Shading">
             <!-- <define key="DEBUG_SHADOW_SLICES" value="1" /> -->
-            <light-pass type="DIRECTIONAL"
+            <light-pass type="DIRECTIONAL" ambient="1"
                         shader="regen.shading.deferred.directional"
                         shadow-filter="PCF_GAUSSIAN">
                 <light id="sky-sun"
@@ -490,7 +486,7 @@
                        shadow-camera="sun-camera"/>
             </light-pass>
             <!--
-                    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+                    <light-pass type="SPOT" ambient="0" shader="regen.shading.deferred.spot">
                         <light id="spot-light"
                             shadow-buffer="spot-shadow"
                             shadow-attachment="depth"

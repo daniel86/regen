@@ -176,12 +176,19 @@ void main() {
     vec3 P = transformTexcoToWorld(texco_2D, depth, in_layer);
     vec4 spec = texture(in_gSpecularTexture, texco);
     vec4 diff = texture(in_gDiffuseTexture, texco);
-
+#ifdef USE_AMBIENT_LIGHT
+    vec3 lightColor = in_lightAmbient * diff.rgb;
+#else
+    vec3 lightColor = vec3(0.0);
+#endif
     vec3 L = normalize(in_lightDirection.xyz);
     float nDotL = dot( N, L );
+#ifdef USE_AMBIENT_LIGHT
+    if(nDotL>0.0) {
+#else
     if(nDotL<=0.0) discard;
-    out_color = vec4(0.0);
-    
+#endif
+
 #ifdef USE_SKY_COLOR
     vec3 lightDiffuse = texture(in_skyColorTexture, N ).rgb;
 #else
@@ -219,13 +226,13 @@ void main() {
     spec.rgb *= in_lightSpecular;
     // add diffuse and specular light (ambient is already added)
 #if SHADING_MODEL == PHONG
-    out_color.rgb += attenuation *
+    lightColor.rgb += attenuation *
             phong(diff.rgb, spec.rgb, nDotL, sf, shininess);
 #elif SHADING_MODEL == TOON
-    out_color.rgb += attenuation *
+    lightColor.rgb += attenuation *
             toon(diff.rgb, spec.rgb, nDotL, sf, shininess);
 #endif
-    
+
 #ifdef USE_SHADOW_MAP
 #ifdef DEBUG_SHADOW_SLICES
     vec3 color[8] = vec3[8](
@@ -237,9 +244,15 @@ void main() {
         vec3(0.7, 1.0, 1.0),
         vec3(1.0, 1.0, 1.0),
         vec3(0.7, 0.7, 0.7));
-    out_color.rgb *= color[shadowLayer];
+    lightColor.rgb *= color[shadowLayer];
 #endif
 #endif
+#ifdef USE_AMBIENT_LIGHT
+    }
+#endif
+
+    // set output color
+    out_color = vec4(lightColor, 1.0);
 }
 
 --------------------------------------
@@ -357,6 +370,11 @@ void main() {
     vec4 diff = texture(in_gDiffuseTexture, texco);
     vec3 lightVec = in_lightPosition.xyz - P;
     vec3 L = normalize(lightVec);
+#ifdef USE_AMBIENT_LIGHT
+    vec3 lightColor = in_lightAmbient * diff.rgb;
+#else
+    vec3 lightColor = vec3(0.0);
+#endif
     
     // calculate attenuation
     float attenuation = radiusAttenuation(
@@ -365,10 +383,14 @@ void main() {
     attenuation *= spotConeAttenuation(L,in_lightDirection.xyz,in_lightConeAngles);
 #endif
     float nDotL = dot( N, L );
+
+#ifdef USE_AMBIENT_LIGHT
+    if(attenuation*nDotL >= 0.0) {
+#else
     // discard if facing away
     // TODO: better don't discard and just multiply in the end?
-    if(attenuation*nDotL<0.0) discard;
-    out_color = vec4(0.0);
+    if(attenuation*nDotL < 0.0) discard;
+#endif
 
 #ifdef USE_SHADOW_MAP
     float lightNear = in_lightProjParams.x;
@@ -449,12 +471,18 @@ void main() {
     spec.rgb *= in_lightSpecular;
     // add diffuse and specular light (ambient is already added)
 #if SHADING_MODEL == PHONG
-    out_color.rgb += attenuation *
+    lightColor.rgb += attenuation *
             phong(diff.rgb, spec.rgb, nDotL, sf, shininess);
 #elif SHADING_MODEL == TOON
-    out_color.rgb += attenuation *
+    lightColor.rgb += attenuation *
             toon(diff.rgb, spec.rgb, nDotL, sf, shininess);
 #endif
+#ifdef USE_AMBIENT_LIGHT
+    }
+#endif
+
+    // set output color
+    out_color = vec4(lightColor, 1.0);
 }
 
 --------------------------------------

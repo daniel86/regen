@@ -73,6 +73,12 @@ namespace regen {
 		 */
 		void setShadowFiltering(ShadowFilterMode mode);
 
+		/**
+		 * Enable or disable ambient light computation in this pass.
+		 * @param useAmbient true to use ambient light, false to disable it.
+		 */
+		void setUseAmbient(bool useAmbient);
+
 		// override
 		void enable(RenderState *rs) override;
 

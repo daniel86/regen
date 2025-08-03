@@ -371,15 +371,11 @@
     <!--**************************-->
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.1,0.1,0.1"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
         <node id="Light-Shading">
-            <light-pass type="SPOT"
+            <light-pass type="SPOT" ambient="1"
                         shader="regen.shading.deferred.spot"
                         shadow-filter="PCF_GAUSSIAN">
                 <light id="spot-light"

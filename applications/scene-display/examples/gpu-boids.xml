@@ -404,17 +404,13 @@
     </node>
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.2,0.2,0.2"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
         <node id="Light-Shading">
-            <define key="DEBUG_SHADOW_SLICES" value="0" />
             <node>
-                <light-pass type="DIRECTIONAL"
+                <define key="DEBUG_SHADOW_SLICES" value="0" />
+                <light-pass type="DIRECTIONAL" ambient="1"
                     shader="regen.shading.deferred.directional">
                     <light id="sky-sun" />
                 </light-pass>
@@ -423,16 +419,12 @@
     </node>
 
     <node id="Shading-Pass-No-Shadow">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.2,0.2,0.2"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
         <node id="Light-Shading">
             <node>
-                <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+                <light-pass type="DIRECTIONAL" ambient="1" shader="regen.shading.deferred.directional">
                     <!-- <light id="sky-sun"/> -->
                     <light id="sky-moon"/>
                 </light-pass>

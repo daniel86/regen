@@ -755,35 +755,34 @@
     </node>
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
         <resource id="sky"/>
 
-        <node id="Ambient-Shading">
-            <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-        </node>
         <!-- TODO: seems light-passes must be seperated into different nodes everywhere! I guess because states on
              same level are joined when building a shader? -->
         <node id="Light-Shading">
             <node>
-                <light-pass type="DIRECTIONAL" shader="regen.shading.deferred.directional">
+                <light-pass type="DIRECTIONAL" ambient="1" shader="regen.shading.deferred.directional">
                     <light id="sky-sun"/>
                 </light-pass>
             </node>
             <node>
-                <light-pass type="POINT"
-                            shader="regen.shading.deferred.point.parabolic"
-                            shadow-filter="PCF_GAUSSIAN">
-                    <light id="room-light0"
-                           shadow-buffer="room-light-shadow0" shadow-attachment="depth"
-                           shadow-camera="room-light-camera0"/>
-                </light-pass>
-            </node>
-            <node>
-                <light-pass type="POINT" shader="regen.shading.deferred.point.cube">
-                    <light id="fire-flies-light0"/>
-                </light-pass>
+                <blend mode="add"/>
+                <node>
+                    <light-pass type="POINT" ambient="0"
+                                shader="regen.shading.deferred.point.parabolic"
+                                shadow-filter="PCF_GAUSSIAN">
+                        <light id="room-light0"
+                               shadow-buffer="room-light-shadow0" shadow-attachment="depth"
+                               shadow-camera="room-light-camera0"/>
+                    </light-pass>
+                </node>
+                <node>
+                    <light-pass type="POINT" ambient="1" shader="regen.shading.deferred.point.cube">
+                        <light id="fire-flies-light0"/>
+                    </light-pass>
+                </node>
             </node>
         </node>
     </node>

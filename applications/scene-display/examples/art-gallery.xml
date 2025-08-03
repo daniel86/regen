@@ -809,20 +809,17 @@
         <input type="vec3" name="lightAmbient" value="0.06,0.04,0.04"/>
 
         <node id="Additive-Shading">
-            <blend mode="add"/>
-            <node id="Ambient-Shading">
-                <fullscreen-pass shader="regen.shading.deferred.ambient"/>
-            </node>
             <node id="Light-Shading">
                 <node>
-                    <light-pass type="POINT" shader="regen.shading.deferred.point">
+                    <light-pass type="POINT" ambient="1" shader="regen.shading.deferred.point">
                         <light id="room-light0"
                                shadow-buffer="room-light-shadow0" shadow-attachment="depth"
                                shadow-camera="room-light-camera0"/>
                     </light-pass>
                 </node>
                 <node>
-                    <light-pass type="SPOT" shader="regen.shading.deferred.spot">
+                    <blend mode="add"/>
+                    <light-pass type="SPOT" ambient="0" shader="regen.shading.deferred.spot">
                         <light id="picture-spot-center"/>
                         <light id="picture-spot-right"/>
                         <light id="picture-spot-left"/>
@@ -872,7 +869,7 @@
             <input type="vec2" name="fogRadiusScale" value="0.44,0.76"/>
             <input type="vec2" name="fogConeScale" value="1.0,1.0"/>
             <node>
-                <light-pass type="SPOT" shader="regen.weather.fog.volumetric.spot">
+                <light-pass type="SPOT" ambient="0" shader="regen.weather.fog.volumetric.spot">
                     <light id="picture-spot-center"/>
                     <light id="picture-spot-center-n"/>
                     <light id="picture-spot-right"/>
