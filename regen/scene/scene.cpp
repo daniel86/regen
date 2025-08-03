@@ -137,8 +137,12 @@ void Scene::updateMousePosition() {
 void Scene::mouseMove(const Vec2i &pos) {
 	boost::posix_time::ptime time(
 			boost::posix_time::microsec_clock::local_time());
-	GLint dx = pos.x - mousePosition_->getVertex(0).r.x;
-	GLint dy = pos.y - mousePosition_->getVertex(0).r.y;
+	int dx, dy;
+	{
+		auto mouse_m = mousePosition_->getVertex(0);
+		dx = pos.x - static_cast<int>(mouse_m.r.x);
+		dy = pos.y - static_cast<int>(mouse_m.r.y);
+	}
 	mousePosition_->setVertex(0, Vec2f(pos.x, pos.y));
 	updateMousePosition();
 
