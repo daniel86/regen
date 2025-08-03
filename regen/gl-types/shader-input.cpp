@@ -221,6 +221,8 @@ void ShaderInput::updateAlignedSize() {
 			// allocate space in client buffer for aligned data.
 			// note: this will make it more difficult to update the data on the client side,
 			// but it enables us to form contiguous buffers for the GPU.
+			REGEN_INFO("Re-alignment needed for " << name()
+				<< "(" << unalignedSize_ << " to " << alignedSize << ")");
 			inputSize_ = alignedSize;
 			// use strided data access in mapClient* functions
 			mapClientStride_ = alignedBaseSize_;
