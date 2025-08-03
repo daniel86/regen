@@ -100,6 +100,11 @@ uint32_t ClientBuffer::swapData() {
 		// It is certain that both dirty lists are coalesced, so calling subtract is safe.
 		dirtyLastFrame.subtract(dirtyThisFrame);
 
+		// We need to avoid race conditions of another thread getting a read lock
+		// while we do the switching, then the thread may attempt (while holding read)
+		// to acquire a write lock which will fail because the readers are blocking.
+		writeLockAll();
+
 		// Remaining are the ranges where data in the write slot is not up-to-date with the read slot,
 		// hence we copy it over.
 		const uint32_t numCopiesNeeded = dirtyLastFrame.count();
@@ -122,6 +127,9 @@ uint32_t ClientBuffer::swapData() {
 
 		// Finally swap read and write idx, new read idx should have new data for reading next frame.
 		lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
+
+		// Unlock the write locks on both slots.
+		writeUnlockAll(0u, 0u);
 
 		// clear dirty lists for the last read slot, such that it can be reused
 		// next frame for writing.
