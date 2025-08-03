@@ -435,6 +435,15 @@ void ProcTree::updateTrunkAttributes() {
 				trunkProcMesh(*lodMedium_.get()),
 				trunkProcMesh(*lodLow_.get())
 		});
+
+		// debug the LOD configuration
+		auto &trunkLODs = trunk.mesh->meshLODs();
+		for (size_t i = 0; i < trunkLODs.size(); i++) {
+			REGEN_INFO("Trunk LOD " << i << ": " << trunkLODs[i].d->numVertices << " vertices, "
+									 << trunkLODs[i].d->numIndices << " indices, "
+									 << "vertex offset: " << trunkLODs[i].d->vertexOffset
+									 << ", index offset: " << trunkLODs[i].d->indexOffset);
+		}
 	} else {
 		updateAttributes(trunk, {trunkProcMesh(handle)});
 	}

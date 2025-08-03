@@ -13,6 +13,8 @@
 // TODO: think about making a distinction between mesh resource and state.
 // TODO: think about introducing a notion of model replacing mesh vector.
 
+//#define REGEN_MESH_DISABLE_MULTI_DRAW
+
 using namespace regen;
 
 struct Mesh::SharedData {
@@ -515,6 +517,7 @@ void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32
 	// i.e. those that do not have impostor meshes.
 	// TODO: can be done more centrally and rarely!!!
 	indirectDrawGroups_.clear();
+#ifndef REGEN_MESH_DISABLE_MULTI_DRAW
 	if (meshLODs_.size()>1) {
 		uint32_t drawGroupIdx = 0;
 		for (auto & lod : meshLODs_) {
@@ -534,6 +537,7 @@ void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32
 		// seems nothing was joined...
 		indirectDrawGroups_.clear();
 	}
+#endif
 	updateDrawFunction();
 	// TODO: why not directly set on impostor meshes?
 }
