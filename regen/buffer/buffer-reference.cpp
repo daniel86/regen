@@ -32,3 +32,14 @@ ref_ptr<BufferReference> &BufferReference::nullReference() {
 	}
 	return ref;
 }
+
+std::ostream &regen::operator<<(std::ostream &out, const BufferRange2ui &v) {
+	return out << v.size << "@" << v.offset;
+}
+
+std::ostream &regen::operator<<(std::ostream &out, const BufferCopyRange &v) {
+	return out << v.srcBufferID << " -> " << v.dstBufferID
+		<< " [" << std::setw(7) << std::setprecision(2) << v.size/1024.0 << " KiB]"
+		<< " (" << std::setw(8) << std::setfill(' ') << v.srcOffset << "--" << v.srcOffset + v.size
+		<< " | " << std::setw(8) << std::setfill(' ') << v.dstOffset << "--" << v.dstOffset + v.size << ")";
+}

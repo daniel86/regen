@@ -453,6 +453,26 @@ void StagingSystem::setIsCopyInProgress() {
 	copyInProgress_.store(true, std::memory_order_release);
 }
 
+void StagingSystem::scheduledCopy(const BufferCopyRange &c1) {
+	if (numScheduledCopies_ > 0) {
+		auto &c0 = scheduledCopies_[numScheduledCopies_ - 1];
+		if (c0.srcBufferID == c1.srcBufferID
+			&& c0.dstBufferID == c1.dstBufferID
+			&& c0.srcOffset + c0.size == c1.srcOffset
+			&& c0.dstOffset + c0.size == c1.dstOffset) {
+			// merge the copy ranges
+			c0.size += c1.size;
+			return; // no need to schedule a new copy
+		}
+	}
+	numScheduledCopies_ += 1;
+	if (numScheduledCopies_ > scheduledCopies_.size()) {
+		// resize the scheduled copies vector if needed
+		scheduledCopies_.resize(numScheduledCopies_*2);
+	}
+	scheduledCopies_[numScheduledCopies_ - 1] = c1; // add the copy range to the scheduled copies
+}
+
 void StagingSystem::updateData(float dt_ms) {
 	//copyInProgress_.store(true, std::memory_order_release);
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
@@ -523,6 +543,18 @@ void StagingSystem::updateData(float dt_ms) {
 #endif
 			managed.bo->copyStagingData(forceUpdate);
 		}
+
+		// Do the actual copy from staging to draw buffer.
+		// We do this here as we attempted to coalesce the copy ranges into
+		// larger contiguous ranges for fewer copies.
+		for (uint32_t scheduleIdx = 0; scheduleIdx < numScheduledCopies_; scheduleIdx++) {
+			auto &copy = scheduledCopies_[scheduleIdx];
+			glCopyNamedBufferSubData(
+					copy.srcBufferID, copy.dstBufferID,
+					copy.srcOffset, copy.dstOffset, copy.size);
+			//REGEN_INFO("Scheduled copy " << copy);
+		}
+		numScheduledCopies_ = 0; // reset scheduled copies
 
 		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
 		// written data of this frame has been consumed by the GPU.

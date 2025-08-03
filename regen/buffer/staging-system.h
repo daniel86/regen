@@ -130,6 +130,12 @@ namespace regen {
 		void setIsCopyInProgress();
 
 		/**
+		 * This method schedules a copy operation to be performed at the end of this frame.
+		 * @param copyRange the range of data to copy.
+		 */
+		void scheduledCopy(const BufferCopyRange &copyRange);
+
+		/**
 		 * This method is called to swap the client data buffers, making the last writes available
 		 * for the next frame.
 		 */
@@ -166,6 +172,8 @@ namespace regen {
 
 		std::array<Arena *, ARENA_TYPE_LAST> arenas_;
 		std::atomic<bool> copyInProgress_ = false;
+		std::vector<BufferCopyRange> scheduledCopies_;
+		uint32_t numScheduledCopies_ = 0;
 
 		Arena *addBufferBlock_readOnly(
 				const BlockPtr &block,

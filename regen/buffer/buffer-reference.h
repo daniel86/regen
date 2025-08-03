@@ -73,6 +73,27 @@ namespace regen {
 		uint32_t offset = 0; // offset in the buffer
 		uint32_t size = 0; // size of the range in bytes
 	};
+
+	/**
+	 * \brief A range of data to copy from one buffer to another.
+	 * This is used for scheduling buffer copies in the staging system.
+	 */
+	struct BufferCopyRange {
+		// The buffer name of the source buffer.
+		uint32_t srcBufferID = 0;
+		// The buffer name of the destination buffer.
+		uint32_t dstBufferID = 0;
+		// The offset in the source buffer in bytes.
+		uint32_t srcOffset = 0;
+		// The offset in the destination buffer in bytes.
+		uint32_t dstOffset = 0;
+		// The size of the data to copy in bytes.
+		uint32_t size = 0;
+	};
+
+	std::ostream &operator<<(std::ostream &out, const BufferRange2ui &v);
+
+	std::ostream &operator<<(std::ostream &out, const BufferCopyRange &v);
 } // namespace
 
 #endif /* REGEN_BUFFER_REFERENCE_H_ */

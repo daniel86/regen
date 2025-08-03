@@ -130,6 +130,7 @@ bool StagingBuffer::resizeBuffer(uint32_t segmentSize, uint32_t numRingSegments)
 			// clear the buffer to zero
 			stagingBO_->setBuffersToZero();
 		}
+		stagingCopyRange_.srcBufferID = stagingRef_->bufferID();
 	} else {
 		stagingRef_ = {};
 	}
@@ -307,7 +308,8 @@ void StagingBuffer::endMappedWrite(
 	RingSegment &readSegment = bufferSegments_[readBufferIndex_];
 	writeSegment.hasData = true;
 
-	const ref_ptr<BufferReference> &targetRef = (stagingRef_.get() ? stagingRef_ : drawBufferRef);
+	const bool hasStagingRef = stagingRef_.get() != nullptr;
+	const ref_ptr<BufferReference> &targetRef = (hasStagingRef ? stagingRef_ : drawBufferRef);
 
 	if ((storageFlags_ & MAP_PERSISTENT) == 0) {
 		// non-persistent mapping
@@ -343,16 +345,28 @@ void StagingBuffer::endMappedWrite(
 		//   meaningful initial value that can be drawn first few frames!
 		if (readSegment.hasData) {
 			// copy data from staging buffer to the draw buffer
-			glCopyNamedBufferSubData(
-					targetRef->bufferID(),
-					drawBufferRef->bufferID(),
-					targetRef->address() + readSegment.offset + localOffset,
-					drawBufferRef->address(),
-					drawBufferRef->allocatedSize());
-			if (storageFlags_ & MAP_PERSISTENT && flags_.useSyncFences()) {
-				// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
-				// written data of this frame has been consumed by the GPU.
-				readSegment.fence.setFencePoint();
+			if (hasStagingRef) {
+				// Let the staging system handle the copy, it may be able
+				// to optimize the copy operation, e.g. by coalescing multiple copies
+				// into a single copy operation.
+				auto &staging = StagingSystem::instance();
+				stagingCopyRange_.dstBufferID = drawBufferRef->bufferID();
+				stagingCopyRange_.srcOffset = targetRef->address() + readSegment.offset + localOffset;
+				stagingCopyRange_.dstOffset = drawBufferRef->address();
+				stagingCopyRange_.size = drawBufferRef->allocatedSize();
+				staging.scheduledCopy(stagingCopyRange_);
+			} else {
+				glCopyNamedBufferSubData(
+						targetRef->bufferID(),
+						drawBufferRef->bufferID(),
+						targetRef->address() + readSegment.offset + localOffset,
+						drawBufferRef->address(),
+						drawBufferRef->allocatedSize());
+				if (storageFlags_ & MAP_PERSISTENT && flags_.useSyncFences()) {
+					// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
+					// written data of this frame has been consumed by the GPU.
+					readSegment.fence.setFencePoint();
+				}
 			}
 		}
 		nextDrawBufferRange.offset_ = drawBufferRef->address();
@@ -385,12 +399,13 @@ void StagingBuffer::endNonMappedWrite(
 	if (flags_.useExplicitStaging()) {
 		// copy data from staging buffer to the GPU buffer
 		if (readSegment.hasData) {
-			glCopyNamedBufferSubData(
-					stagingRef_->bufferID(),
-					drawBufferRef->bufferID(),
-					stagingRef_->address() + readSegment.offset + localOffset,
-					drawBufferRef->address(),
-					drawBufferRef->allocatedSize());
+			// Let the staging system handle the copy.
+			auto &staging = StagingSystem::instance();
+			stagingCopyRange_.dstBufferID = drawBufferRef->bufferID();
+			stagingCopyRange_.srcOffset = stagingRef_->address() + readSegment.offset + localOffset;
+			stagingCopyRange_.dstOffset = drawBufferRef->address();
+			stagingCopyRange_.size = drawBufferRef->allocatedSize();
+			staging.scheduledCopy(stagingCopyRange_);
 		}
 		nextDrawBufferRange.offset_ = drawBufferRef->address();
 		nextDrawBufferRange.segment_ = 0;

@@ -287,6 +287,7 @@ namespace regen {
 		const BufferFlags flags_;
 		// buffer references to cpu-accessible storage
 		ref_ptr<BufferReference> stagingRef_;
+		BufferCopyRange stagingCopyRange_;
 		// separate storage buffer for CPU access, if used
 		ref_ptr<BufferObject> stagingBO_;
 		const BufferStorageMode storageMode_;
