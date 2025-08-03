@@ -15,6 +15,7 @@
 //#define LOD_DEBUG_GPU_TIME
 //#define LOD_DEBUG_SHAPE "fish-shape"
 //#define LOD_USE_DIBO_FOR_SINGLE_LOD
+#define LOD_USE_DIBO_FOR_MULTI_LOD
 
 using namespace regen;
 
@@ -103,7 +104,13 @@ void LODState::initLODState() {
 		// create instance buffer for per-frame updates.
 		createInstanceBuffer();
 		// Create indirect draw buffers for each mesh part and LOD.
+#ifdef LOD_USE_DIBO_FOR_MULTI_LOD
 		createIndirectDrawBuffers();
+#else
+		if (!cullShape_->isIndexShape()) {
+			createIndirectDrawBuffers();
+		}
+#endif
 	}
 
 	if (cullShape_->isIndexShape()) {
@@ -277,19 +284,10 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 		part->updateVisibility(partLODLevel, numVisibleInstances, baseInstance);
 
 		if (!indirectDrawBuffers_.empty()) {
-			auto &indirectBuffer = indirectDrawBuffers_[partIdx];
-			auto &indirectData = indirectDrawData_[partIdx];
 			// write into local storage buffer
-			auto &drawParams = indirectData.current[partLODLevel];
+			auto &drawParams = indirectDrawData_[partIdx].current[partLODLevel];
 			drawParams.setInstanceCount(numVisibleInstances);
 			drawParams.setBaseInstance(baseInstance);
-
-			if (indirectBuffer->hasClientData()) {
-				// write into client buffer from where it will be copied to staging buffer.
-				auto mapped = indirectBuffer->mapClientVertex<DrawCommand>(
-						BUFFER_GPU_WRITE, partLODLevel);
-				mapped.w = drawParams;
-			}
 		}
 	}
 }
@@ -302,19 +300,11 @@ void LODState::resetVisibility() {
 			part->updateVisibility(lodLevel, 0, 0);
 		}
 		if (!indirectDrawBuffers_.empty()) {
-			auto &indirectBuffer = indirectDrawBuffers_[partIdx];
 			// reset the indirect draw buffer for this part
-			indirectDrawData_[partIdx].current = indirectDrawData_[partIdx].clear;
-			if (indirectBuffer->hasClientData()) {
-				// also reset the client data buffer.
-				// This is done in case not all draw buffers are updated this frame using updateVisibility.
-				auto mapped = indirectBuffer->mapClientData<DrawCommand>(
-						BUFFER_GPU_WRITE, 0, indirectBuffer->inputSize());
-				std::memcpy(
-					mapped.w.data(),
-					indirectDrawData_[partIdx].current.data(),
-					indirectBuffer->inputSize());
-			}
+			std::memcpy(
+				indirectDrawData_[partIdx].current.data(),
+				indirectDrawData_[partIdx].clear.data(),
+				indirectDrawBuffers_[partIdx]->inputSize());
 		}
 	}
 }
@@ -483,6 +473,24 @@ void LODState::traverseCPU() {
 			}
 		}
 
+		if (!indirectDrawBuffers_.empty()) {
+			for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
+				auto &indirectBuffer = indirectDrawBuffers_[partIdx];
+				auto &indirectData = indirectDrawData_[partIdx];
+
+				if (indirectBuffer->hasClientData()) {
+					// also reset the client data buffer.
+					// This is done in case not all draw buffers are updated this frame using updateVisibility.
+					auto mapped = indirectBuffer->mapClientData<DrawCommand>(
+							BUFFER_GPU_WRITE, 0, indirectBuffer->inputSize());
+					std::memcpy(
+						mapped.w.data(),
+						indirectData.current.data(),
+						indirectBuffer->inputSize());
+				}
+			}
+		}
+
 	}
 }
 
@@ -621,13 +629,13 @@ void LODState::computeLODGroups() {
 	}
 
 	// write lodGroups_ data into instanceData_
-	auto instance_ids = (uint32_t *) instanceData_->clientData();
+	auto mappedClientData = instanceData_->mapClientData<uint32_t>(
+			BUFFER_GPU_WRITE, 0, numVisible * sizeof(uint32_t));
 	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		reverse_copy_u32(instance_ids, mappedData, numVisible);
+		reverse_copy_u32(mappedClientData.w.data(), mappedData, numVisible);
 	} else {
-		std::memcpy(instance_ids, mappedData, numVisible * sizeof(uint32_t));
+		std::memcpy(mappedClientData.w.data(), mappedData, numVisible * sizeof(uint32_t));
 	}
-	instanceData_->nextStamp();
 }
 
 ///////////////////////

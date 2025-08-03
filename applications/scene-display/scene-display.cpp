@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
 
 	auto exitCode = app->mainLoop();
 	REGEN_INFO("Shutting down application");
+	//delete widget;
 	Logging::shutdown();
-	delete widget;
 	_Exit(exitCode);
 	return exitCode;
 }

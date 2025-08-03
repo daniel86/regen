@@ -191,9 +191,9 @@ void SpatialIndex::updateVisibility() {
 		}
 
 		for (auto &indexShape: ic.second.indexShapes_) {
-			indexShape->unmapInstanceIDs_internal();
 			indexShape->visible_ = indexShape->u_visible_;
 			indexShape->instanceCount_ = indexShape->u_instanceCount_;
+			indexShape->unmapInstanceIDs_internal();
 		}
 	}
 }
