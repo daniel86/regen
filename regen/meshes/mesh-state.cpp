@@ -334,6 +334,10 @@ void Mesh::updateVAO() {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer());
 	}
 
+	// group together LODs that can be drawn with multi draw calls,
+	// i.e. those that do not have impostor meshes.
+	indirectDrawGroups_.clear();
+
 	if (meshLODs_.empty()) {
 		meshLODs_.emplace_back(
 			numVertices(),
@@ -341,6 +345,9 @@ void Mesh::updateVAO() {
 			numIndices(),
 			indexOffset());
 	} else {
+#ifndef REGEN_MESH_DISABLE_MULTI_DRAW
+		uint32_t drawGroupIdx = 0;
+#endif
 		for (auto &lodData : meshLODs_) {
 			if (lodData.d->numVertices == lastNumVertices_ && !lodData.impostorMesh.get()) {
 				// update the full LOD data if it is not an impostor mesh
@@ -349,8 +356,26 @@ void Mesh::updateVAO() {
 				lodData.d->numIndices = numIndices();
 				lodData.d->indexOffset = indexOffset();
 			}
+#ifndef REGEN_MESH_DISABLE_MULTI_DRAW
+			if (indirectDrawGroups_.size() <= drawGroupIdx) {
+				indirectDrawGroups_.emplace_back(0);
+			}
+			if (lodData.impostorMesh.get()) {
+				indirectDrawGroups_.emplace_back(1);
+				// note: for now do not use multi draw calls for impostor meshes
+				drawGroupIdx += 2;
+			} else {
+				indirectDrawGroups_[drawGroupIdx] += 1;
+			}
+#endif
 		}
 	}
+#ifndef REGEN_MESH_DISABLE_MULTI_DRAW
+	if (indirectDrawGroups_.size() == meshLODs_.size()) {
+		// seems nothing was joined...
+		indirectDrawGroups_.clear();
+	}
+#endif
 	lastNumVertices_ = numVertices();
 
 	// initialize num visible instances and offsets for all LODs
@@ -512,32 +537,6 @@ void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32
 	} else {
 		indirectOffset_ = 0u;
 	}
-
-	// group together LODs that can be drawn with multi draw calls,
-	// i.e. those that do not have impostor meshes.
-	// TODO: can be done more centrally and rarely!!!
-	indirectDrawGroups_.clear();
-#ifndef REGEN_MESH_DISABLE_MULTI_DRAW
-	if (meshLODs_.size()>1) {
-		uint32_t drawGroupIdx = 0;
-		for (auto & lod : meshLODs_) {
-			if (indirectDrawGroups_.size() <= drawGroupIdx) {
-				indirectDrawGroups_.emplace_back(0);
-			}
-			if (lod.impostorMesh.get()) {
-				indirectDrawGroups_.emplace_back(1);
-				// note: for now do not use multi draw calls for impostor meshes
-				drawGroupIdx += 2;
-			} else {
-				indirectDrawGroups_[drawGroupIdx] += 1;
-			}
-		}
-	}
-	if (indirectDrawGroups_.size() == meshLODs_.size()) {
-		// seems nothing was joined...
-		indirectDrawGroups_.clear();
-	}
-#endif
 	updateDrawFunction();
 	// TODO: why not directly set on impostor meshes?
 }
