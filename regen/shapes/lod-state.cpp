@@ -11,7 +11,7 @@
 #define RADIX_GROUP_SIZE 256
 #define RADIX_OFFSET_GROUP_SIZE 512
 //#define LOD_DEBUG_GROUPS
-//#define LOD_DEBUG_CPU_TIME
+//#define LOD_DEBUG_TIME
 //#define LOD_DEBUG_GPU_TIME
 //#define LOD_DEBUG_SHAPE "fish-shape"
 //#define LOD_USE_DIBO_FOR_SINGLE_LOD
@@ -314,20 +314,39 @@ void LODState::resetVisibility() {
 
 void LODState::enable(RenderState *rs) {
 	State::enable(rs);
-#ifdef LOD_DEBUG_CPU_TIME
-	using std::chrono::high_resolution_clock;
-	using std::chrono::duration_cast;
-	using std::chrono::duration;
-	using std::chrono::milliseconds;
-	auto t1 = high_resolution_clock::now();
-#endif
+
 	if (!cullShape_->isIndexShape()) {
+#ifdef LOD_DEBUG_TIME
+		static ElapsedTimeDebugger elapsedTime("GPU LOD", 300);
+		elapsedTime.beginFrame();
+		elapsedTime.push("frame begin");
+#endif
 		resetVisibility();
+#ifdef LOD_DEBUG_TIME
+		elapsedTime.push("visibility reset");
+#endif
 		traverseGPU(rs);
-	} else if(cullShape_->hasInstanceBuffer()) {
+#ifdef LOD_DEBUG_TIME
+		elapsedTime.push("GPU traverse");
+		elapsedTime.endFrame();
+#endif
+	}
+	else if(cullShape_->hasInstanceBuffer()) {
+#ifdef LOD_DEBUG_TIME
+		static ElapsedTimeDebugger elapsedTime("CPU LOD", 300);
+		elapsedTime.beginFrame();
+#endif
 		resetVisibility();
+#ifdef LOD_DEBUG_TIME
+		elapsedTime.push("visibility reset");
+#endif
 		traverseCPU();
-	} else if (indirectDrawBuffers_.empty()) {
+#ifdef LOD_DEBUG_TIME
+		elapsedTime.push("CPU traverse");
+		elapsedTime.endFrame();
+#endif
+	}
+	else if (indirectDrawBuffers_.empty()) {
 		// TODO: Skip this if we have indirect draw buffers?
 		// Set the mesh state for the net draw call.
 		// Note: we compute the LOD groups only once per frame in an animation
@@ -410,27 +429,6 @@ void LODState::enable(RenderState *rs) {
 				<< std::setw(4) << std::setfill(' ') << lod4_count << ")");
 		}
 	}
-#endif
-#ifdef LOD_DEBUG_CPU_TIME
-	auto t2 = high_resolution_clock::now();
-	duration<double, std::milli> ms_double = t2 - t1;
-	#ifdef LOD_DEBUG_SHAPE
-	static double timeSum = 0.0;
-	static uint32_t numTimes = 0;
-	if (cullShape_->shapeName() == LOD_DEBUG_SHAPE) {
-		timeSum += ms_double.count();
-		numTimes += 1;
-		if (numTimes >= 200) {
-			timeSum /= numTimes;
-			REGEN_INFO("Average CPU time for '" << LOD_DEBUG_SHAPE << "': " << timeSum << " ms");
-			timeSum = 0.0;
-			numTimes = 0;
-		}
-	}
-	#else
-	REGEN_INFO("LOD time: " << ms_double.count() << " ms"
-							<< " shape: " << cullShape_->shapeName());
-	#endif
 #endif
 }
 
@@ -734,49 +732,41 @@ void LODState::createComputeShader() {
 
 void LODState::traverseGPU(RenderState *rs) {
 #ifdef LOD_DEBUG_GPU_TIME
-	static TimeElapsedQuery timeElapsedQuery;
+	static ElapsedTimeDebugger elapsedTime("LOD GPU Travers", 300);
 	#ifdef LOD_DEBUG_SHAPE
 	if (cullShape_->shapeName() == LOD_DEBUG_SHAPE) {
-		timeElapsedQuery.begin();
+		elapsedTime.beginFrame();
 	}
 	#else
-	timeElapsedQuery.begin();
+	elapsedTime.beginFrame();
 	#endif
 #endif
 	// copy the clear buffer to the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
+#ifdef LOD_DEBUG_GPU_TIME
+	elapsedTime.push("clear indirect draw buffer");
+#endif
 
 	// compute lod, write keys, and initialize values_[0] (instanceData_)
 	cullPass_->enable(rs);
 	cullPass_->disable(rs);
+#ifdef LOD_DEBUG_GPU_TIME
+	elapsedTime.push("cull pass");
+#endif
 
 	radixSort_->enable(rs);
 	radixSort_->disable(rs);
+#ifdef LOD_DEBUG_GPU_TIME
+	elapsedTime.push("radix sort");
+#endif
 
 	if (copyIndirect_.get()) {
 		// update the indirect draw buffers for the other parts
 		copyIndirect_->enable(rs);
 		copyIndirect_->disable(rs);
 	}
-
 #ifdef LOD_DEBUG_GPU_TIME
-	#ifdef LOD_DEBUG_SHAPE
-	static float timesSum = 0.0f;
-	static uint32_t numTimes = 0;
-	if (cullShape_->shapeName() == LOD_DEBUG_SHAPE) {
-		timesSum += timeElapsedQuery.end();
-		numTimes += 1;
-		if (numTimes >= 200) {
-			timesSum /= numTimes;
-			REGEN_INFO("Average GPU time for '" << LOD_DEBUG_SHAPE << "': " << timesSum << " ms");
-			timesSum = 0.0f;
-			numTimes = 0;
-		}
-	}
-	#else
-	float duration = timeElapsedQuery.end();
-	REGEN_INFO("LOD time: " << duration << " ms"
-							<< " shape: " << cullShape_->shapeName());
-	#endif
+	elapsedTime.push("copy indirect draw buffers");
+	elapsedTime.endFrame();
 #endif
 }
