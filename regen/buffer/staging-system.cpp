@@ -7,17 +7,6 @@
 //#define REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
 //#define REGEN_STAGING_EXPLICIT_FLUSH
 
-// NOTE: Currently we do not do the "staging-to-main" buffer copy here.
-//       The main reason is that we do not maintain strictly contiguous main/draw buffer
-//       segments for the BOs, so there would be little use of it as we might not be able to
-//       reduce the number of copies, and still need to do separate copies for the BOs.
-// TODO: By accident it seems reduction is quite high. Probably due to loading order
-//       and how buddy allocator selects next suitable block.
-//       In my test, for one ring-buffer the number of copies could be halved from 10 to 5,
-//       everything was nicely sorted already, so super cheap to build a "to-copy" list,
-//       then do the staging to draw copy here centrally.
-//       NOTE: Make sure to do the copy just before setting the fence point.
-
 using namespace regen;
 
 // 4KB (page size) default alignment for staging buffers.
@@ -555,6 +544,9 @@ void StagingSystem::updateData(float dt_ms) {
 			//REGEN_INFO("Scheduled copy " << copy);
 		}
 		numScheduledCopies_ = 0; // reset scheduled copies
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+		elapsedTime.push(REGEN_STRING(arena->type << " copied"));
+#endif
 
 		// Create a fence just after glCopyNamedBufferSubData -- marking the point where the
 		// written data of this frame has been consumed by the GPU.
@@ -562,12 +554,15 @@ void StagingSystem::updateData(float dt_ms) {
 			arena->stagingBuffer->fence(drawIdx).setFencePoint();
 		}
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-		elapsedTime.push(REGEN_STRING(arena->type << " copied"));
+		elapsedTime.push(REGEN_STRING(arena->type << " synced"));
 #endif
 
 		// Advance to next segment in case of multi-buffering and ring buffers.
 		arena->stagingBuffer->swapBuffers();
 		arena->isDirty = false; // reset dirty flag
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+		elapsedTime.push(REGEN_STRING(arena->type << " swapped"));
+#endif
 
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_STALLS
 		if (useFence) {
@@ -578,11 +573,14 @@ void StagingSystem::updateData(float dt_ms) {
 			<< arena->freeList->getFragmentationScore());
 #endif
 	}
-#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
-	elapsedTime.endFrame();
-#endif
 #ifndef REGEN_STAGING_ANIMATION_THREAD_SWAPS_CLIENT
 	swapClientData();
+#endif
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+	elapsedTime.push("client swapped");
+#endif
+#ifdef REGEN_STAGING_SYSTEM_DEBUG_TIME
+	elapsedTime.endFrame();
 #endif
 	copyInProgress_.store(false, std::memory_order_release);
 #ifdef REGEN_STAGING_SYSTEM_DEBUG_STATISTICS
