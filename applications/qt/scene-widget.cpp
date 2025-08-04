@@ -152,6 +152,7 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 #endif
 
 	AnimationManager::get().resetTime();
+	auto *rs = RenderState::get();
 #ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
 	while (isRunning_)
 #else
@@ -178,9 +179,8 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		// Note: Seems screen does not update when other FBO then the
 		//  screen FBO is bound to the current draw framebuffer.
 		//  Not sure why....
-		RenderState::get()->drawFrameBuffer().push(0);
+		rs->drawFrameBuffer().apply(0);
 		glContext->swapBuffers(sceneWindow_.get());
-		RenderState::get()->drawFrameBuffer().pop();
 		app_->flushGL();
 #ifdef REGEN_SCENE_DEBUG_TIME
 		elapsedTime.push("Flush GL");

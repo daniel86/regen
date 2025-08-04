@@ -120,10 +120,9 @@ void BloomPass::traverse(RenderState *rs) {
 	}
 
 	state()->enable(rs);
-	rs->drawFrameBuffer().push(fbo_->id());
+	rs->drawFrameBuffer().apply(fbo_->id());
 	downsample(rs);
 	upsample(rs);
-	rs->drawFrameBuffer().pop();
 	state()->disable(rs);
 }
 

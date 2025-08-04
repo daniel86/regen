@@ -463,11 +463,12 @@
     <node id="Reflection-Pass">
         <!-- need to load the resource before the reflection pass -->
         <camera id="reflection-camera"/>
-        <fbo id="reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
 
         <node id="Reflection-Pass-Deferred">
             <depth test="1" write="1"/>
-            <fbo id="reflection-buffer" draw-buffers="0,1,2,3"/>
+            <fbo id="reflection-buffer"
+                clear-buffers="0,1,2,3" clear-depth="1"
+                draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster-All"/>
         </node>
 
@@ -770,7 +771,9 @@
         </view>
 
         <node import="Fog-Draw"/>
-        <node import="Sky" />
+        <node import="Sky">
+            <fbo id="g-buffer" draw-buffers="1"/>
+        </node>
         <view id="Scene -- Sky">
             <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
         </view>
@@ -853,11 +856,15 @@
         -->
 
         <node id="Render">
-            <fbo id="g-buffer" clear-buffers="0,1,2,3,4" clear-depth="1"/>
+            <!-- Note: best to not having a FBO state in global scope, as this might cause
+                 a lot of unnecessary FBO switches. -->
             <camera id="main-camera" />
 
             <node id="Geometry-Pass">
-                <fbo id="g-buffer" draw-buffers="0,1,2,3,4"/>
+                <fbo id="g-buffer"
+                        clear-buffers="0,1,2,3,4"
+                        clear-depth="1"
+                        draw-buffers="0,1,2,3,4"/>
                 <depth test="1" write="1"/>
                 <node import="Shadow-Caster"/>
                 <node import="Non-Shadow-Caster"/>

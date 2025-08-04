@@ -28,9 +28,10 @@ namespace regen {
 			stacked_.resize(4);
 			// guard apply function by checking if the value is different
 			guardedApply_ = [](StateStack *s, const T &v) {
-				if (v != s->stacked_[s->numStacked_-1]) {
+				auto &stacked = s->stacked_[s->numStacked_-1];
+				if (v != stacked) {
 					s->doApply_(s, v);
-					s->stacked_[s->numStacked_-1] = v;
+					stacked = v;
 				}
 			};
 			// initial apply is unguarded as no value is stacked yet
@@ -67,7 +68,7 @@ namespace regen {
 			if (numStacked_==0) {
 				doApply_(this, v);
 				apply_ = guardedApply_;
-			} else if (stacked_[numStacked_-1] != stacked_[numStacked_]) {
+			} else if (stacked_[numStacked_-1] != v) {
 				doApply_(this, v);
 			}
 			numStacked_++;

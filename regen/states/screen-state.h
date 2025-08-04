@@ -2,6 +2,7 @@
 #define REGEN_SCREEN_STATE_H_
 
 #include <regen/states/state.h>
+#include "fbo-state.h"
 
 namespace regen {
 	/**
@@ -17,6 +18,8 @@ namespace regen {
 				const ref_ptr<ShaderInput2i> &windowViewport,
 				const GLenum drawBuffer = GL_FRONT);
 
+		void setParentBufferState(const ref_ptr<FBOState> &fbo) { parentFBO_ = fbo; }
+
 		// override
 		void enable(RenderState *) override;
 
@@ -26,6 +29,7 @@ namespace regen {
 		ref_ptr<ShaderInput2i> windowViewport_;
 		ref_ptr<ShaderInput2f> viewport_;
 		ref_ptr<ShaderInput2f> inverseViewport_;
+		ref_ptr<FBOState> parentFBO_;
 		GLenum drawBuffer_;
 		Vec4ui glViewport_;
 		unsigned int lastViewportStamp_ = 0;

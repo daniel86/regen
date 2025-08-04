@@ -70,6 +70,8 @@ namespace regen {
 		 */
 		void setPingPongBuffers(const std::vector<GLenum> &attachments);
 
+		void setParentBufferState(const ref_ptr<FBOState> &parentFBO);
+
 		// override
 		void enable(RenderState *) override;
 
@@ -77,6 +79,8 @@ namespace regen {
 
 	protected:
 		ref_ptr<FBO> fbo_;
+		// used for optimization of state management
+		ref_ptr<FBOState> parentFBO_;
 
 		ref_ptr<ClearState> clearCallable_;
 		ref_ptr<ClearColorState> clearColorCallable_;

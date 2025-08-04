@@ -9,6 +9,7 @@
 #include <regen/animations/animation-manager.h>
 
 #include "state-node.h"
+#include "fbo-state.h"
 
 using namespace regen;
 
@@ -87,6 +88,27 @@ ref_ptr<State> StateNode::getParentCamera() {
 		getStateCamera(parent_->state(), &out);
 		if (out.get() == nullptr)
 			return parent_->getParentCamera();
+	}
+	return out;
+}
+
+static void getFrameBufferState(const ref_ptr<State> &state, ref_ptr<FBOState> *out) {
+	if (dynamic_cast<FBOState *>(state.get()))
+		*out = ref_ptr<FBOState>::dynamicCast(state);
+	auto it = state->joined().begin();
+
+	while (out->get() == nullptr && it != state->joined().end()) {
+		getFrameBufferState(*it, out);
+		++it;
+	}
+}
+
+ref_ptr<State> StateNode::getParentFrameBuffer() {
+	ref_ptr<FBOState> out;
+	if (hasParent()) {
+		getFrameBufferState(parent_->state(), &out);
+		if (out.get() == nullptr)
+			return parent_->getParentFrameBuffer();
 	}
 	return out;
 }

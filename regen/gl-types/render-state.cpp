@@ -265,6 +265,7 @@ RenderState::RenderState()
 		}
 		toggles_.push(i, enabled);
 	}
+	toggles_.push(RenderState::BLEND, GL_FALSE);
 	// init value states
 	cullFace_.push(GL_BACK);
 	depthMask_.push(GL_TRUE);

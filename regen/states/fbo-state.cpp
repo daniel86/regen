@@ -101,16 +101,22 @@ void FBOState::setPingPongBuffers(const std::vector<GLenum> &attachments) {
 	joinStates(drawBufferCallable_);
 }
 
-void FBOState::enable(RenderState *state) {
-	state->drawFrameBuffer().push(fbo_->id());
-	state->viewport().push(fbo_->glViewport());
-	State::enable(state);
+void FBOState::setParentBufferState(const ref_ptr<FBOState> &parentFBO) {
+	parentFBO_ = parentFBO;
 }
 
-void FBOState::disable(RenderState *state) {
-	State::disable(state);
-	state->viewport().pop();
-	state->drawFrameBuffer().pop();
+void FBOState::enable(RenderState *rs) {
+	rs->drawFrameBuffer().apply(fbo_->id());
+	rs->viewport().apply(fbo_->glViewport());
+	State::enable(rs);
+}
+
+void FBOState::disable(RenderState *rs) {
+	State::disable(rs);
+	if (parentFBO_.get()) {
+		rs->drawFrameBuffer().apply(parentFBO_->fbo_->id());
+		rs->viewport().apply(parentFBO_->fbo_->glViewport());
+	}
 }
 
 void FBOState::resize(GLuint width, GLuint height) {
@@ -171,6 +177,10 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 				input.getValue<std::string>("draw-buffer", "FRONT"));
 		ref_ptr<ScreenState> screenState =
 				ref_ptr<ScreenState>::alloc(scene->getViewport(), drawBuffer);
+		ref_ptr<State> parent = ctx.parent()->getParentFrameBuffer();
+		if (parent.get() != nullptr) {
+			screenState->setParentBufferState(ref_ptr<FBOState>::dynamicCast(parent));
+		}
 
 		return screenState;
 	} else {
@@ -180,6 +190,10 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 			return {};
 		}
 		ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
+		ref_ptr<State> parent = ctx.parent()->getParentFrameBuffer();
+		if (parent.get() != nullptr) {
+			fboState->setParentBufferState(ref_ptr<FBOState>::dynamicCast(parent));
+		}
 
 		if (input.hasAttribute("clear-depth") &&
 			input.getValue<int>("clear-depth", 1)) {

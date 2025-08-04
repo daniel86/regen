@@ -92,6 +92,8 @@ namespace regen {
 
 		ref_ptr<State> getParentCamera();
 
+		ref_ptr<State> getParentFrameBuffer();
+
 		/**
 		 * Find a node with a given name.
 		 */

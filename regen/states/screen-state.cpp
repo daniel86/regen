@@ -20,7 +20,7 @@ ScreenState::ScreenState(
 	setInput(inverseViewport_);
 }
 
-void ScreenState::enable(RenderState *state) {
+void ScreenState::enable(RenderState *rs) {
 	if (lastViewportStamp_ != windowViewport_->stamp()) {
 		auto winViewport = windowViewport_->getVertex(0);
 		glViewport_.z = winViewport.r.x;
@@ -32,14 +32,16 @@ void ScreenState::enable(RenderState *state) {
 		lastViewportStamp_ = windowViewport_->stamp();
 	}
 
-	state->drawFrameBuffer().push(0);
+	rs->drawFrameBuffer().apply(0);
 	FBO::screen().applyDrawBuffer(drawBuffer_);
-	state->viewport().push(glViewport_);
-	State::enable(state);
+	rs->viewport().apply(glViewport_);
+	State::enable(rs);
 }
 
-void ScreenState::disable(RenderState *state) {
-	State::disable(state);
-	state->viewport().pop();
-	state->drawFrameBuffer().pop();
+void ScreenState::disable(RenderState *rs) {
+	State::disable(rs);
+	if (parentFBO_.get()) {
+		rs->drawFrameBuffer().apply(parentFBO_->fbo()->id());
+		rs->viewport().apply(parentFBO_->fbo()->glViewport());
+	}
 }
