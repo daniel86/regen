@@ -13,10 +13,12 @@
 #include "scene-widget.h"
 #include "qt-application.h"
 #include "regen/animations/animation-manager.h"
+#include "regen/gl-types/queries/elapsed-time.h"
 
 using namespace regen;
 
 #define WAIT_ON_VSYNC
+//#define REGEN_SCENE_DEBUG_TIME
 
 namespace regen {
 	class SceneWindow : public QOpenGLWindow {
@@ -145,6 +147,9 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 #ifdef WAIT_ON_VSYNC
 	GLint dt;
 #endif
+#ifdef REGEN_SCENE_DEBUG_TIME
+	ElapsedTimeDebugger elapsedTime("Scene Drawing", 300);
+#endif
 
 	AnimationManager::get().resetTime();
 #ifndef SINGLE_THREAD_GUI_AND_GRAPHICS
@@ -153,9 +158,21 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		while(app_->isMainloopRunning_)
 #endif
 	{
+#ifdef REGEN_SCENE_DEBUG_TIME
+		elapsedTime.beginFrame();
+#endif
 		app_->updateTime();
+#ifdef REGEN_SCENE_DEBUG_TIME
+		elapsedTime.push("Update Time");
+#endif
 		app_->updateGL();
+#ifdef REGEN_SCENE_DEBUG_TIME
+		elapsedTime.push("Update GL");
+#endif
 		app_->drawGL();
+#ifdef REGEN_SCENE_DEBUG_TIME
+		elapsedTime.push("Draw GL");
+#endif
 
 		// flush GL draw calls
 		// Note: Seems screen does not update when other FBO then the
@@ -165,6 +182,9 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		glContext->swapBuffers(sceneWindow_.get());
 		RenderState::get()->drawFrameBuffer().pop();
 		app_->flushGL();
+#ifdef REGEN_SCENE_DEBUG_TIME
+		elapsedTime.push("Flush GL");
+#endif
 
 		// invoke event handler of queued events
 		// TODO: Reconsider the event handling.
@@ -175,6 +195,10 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();
 #endif
+#ifdef REGEN_SCENE_DEBUG_TIME
+		elapsedTime.push("Event Handler");
+#endif
+
 		if (app_->isVSyncEnabled()) {
 			// adjust interval to hit the desired frame rate if we can
 			boost::posix_time::ptime t(
