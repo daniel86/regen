@@ -515,7 +515,7 @@ void Mesh::resetVisibility(bool resetToInvisible) {
 }
 
 void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
-	auto n = numLODs();
+	const uint32_t n = numLODs();
 	if (n <= lodLevel) {
 		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << n);
 		return;
@@ -624,7 +624,11 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCoun
 	auto &lod = meshLODs_[lodLevel];
 	if (!hasIndirectDrawBuffer() && lod.d->numVisibleInstances == 0) {
 		// no instances to draw, skip
-		// note: we do not know number of visible instances in case of indirect draw buffers.
+		// Note: In case of indirect draw buffers, these could be updated GPU-side
+		//   then we wouldn't know the instance count here.
+		//   Also for the other case we currently skip setting the instance count
+		//   on the LOD object, and only write to the buffer -- but we could skip
+		//   the raw for this case too.
 		return;
 	}
 	// set the LOD level vertex meta data
@@ -645,21 +649,21 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCoun
 		}
 		lod.impostorMesh->draw(rs);
 	}
-	else {
+	else if (hasIndirectDrawBuffer()) {
+		set_indirectOffset(
+			indirectDrawBuffer_->drawBufferRef()->address() +
+			// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
+			(baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
+		set_multiDrawCount(multiDrawCount);
+		drawMesh(rs);
+		set_indirectOffset(0);
+		set_multiDrawCount(1);
+	} else {
 		set_numVisibleInstances(lod.d->numVisibleInstances);
 		set_baseInstance(lod.d->instanceOffset);
-		if (hasIndirectDrawBuffer()) {
-			set_indirectOffset(
-				indirectDrawBuffer_->drawBufferRef()->address() +
-				// each segment in the indirect draw buffer takes sizeof(DrawCommand)=32byte space
-				(baseDrawIndex() + lodLevel) * sizeof(DrawCommand));
-			set_multiDrawCount(multiDrawCount);
-		}
 		drawMesh(rs);
 		set_numVisibleInstances(numInstances());
 		set_baseInstance(0);
-		set_indirectOffset(0);
-		set_multiDrawCount(1);
 	}
 }
 
@@ -745,10 +749,6 @@ void Mesh::set_bounds(const Vec3f &min, const Vec3f &max) {
 	geometryStamp_++;
 }
 
-#ifndef BUFFER_OFFSET
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-#endif
-
 void Mesh::draw(GLenum primitive) const {
 	glDrawArrays(primitive, shared_->vertexOffset_, numVertices());
 }
@@ -758,7 +758,7 @@ void Mesh::drawIndexed(GLenum primitive) const {
 			primitive,
 			shared_->numIndices_,
 			shared_->indices_->baseType(),
-			BUFFER_OFFSET(shared_->indices_->offset()));
+			REGEN_BUFFER_OFFSET(shared_->indices_->offset()));
 }
 
 void Mesh::drawInstances(GLenum primitive) const {
@@ -774,7 +774,7 @@ void Mesh::drawInstancesIndexed(GLenum primitive) const {
 			primitive,
 			shared_->numIndices_,
 			shared_->indices_->baseType(),
-			BUFFER_OFFSET(shared_->indices_->offset()),
+			REGEN_BUFFER_OFFSET(shared_->indices_->offset()),
 			shared_->numVisibleInstances_);
 }
 
@@ -792,7 +792,7 @@ void Mesh::drawBaseInstancesIndexed(GLenum primitive) const {
 			primitive,
 			shared_->numIndices_,
 			shared_->indices_->baseType(),
-			BUFFER_OFFSET(shared_->indices_->offset()),
+			REGEN_BUFFER_OFFSET(shared_->indices_->offset()),
 			shared_->numVisibleInstances_,
 			shared_->baseInstance_);
 }
@@ -800,20 +800,20 @@ void Mesh::drawBaseInstancesIndexed(GLenum primitive) const {
 void Mesh::drawIndirect(GLenum primitive) const {
 	glDrawArraysIndirect(
 		primitive,
-		BUFFER_OFFSET(indirectOffset_));
+		REGEN_BUFFER_OFFSET(indirectOffset_));
 }
 
 void Mesh::drawIndirectIndexed(GLenum primitive) const {
 	glDrawElementsIndirect(
 			primitive,
 			shared_->indices_->baseType(),
-			BUFFER_OFFSET(indirectOffset_));
+			REGEN_BUFFER_OFFSET(indirectOffset_));
 }
 
 void Mesh::drawMultiIndirect(GLenum primitive) const {
 	glMultiDrawArraysIndirect(
 		primitive,
-		BUFFER_OFFSET(indirectOffset_),
+		REGEN_BUFFER_OFFSET(indirectOffset_),
 		multiDrawCount_,
 		sizeof(DrawCommand));
 }
@@ -822,7 +822,7 @@ void Mesh::drawMultiIndirectIndexed(GLenum primitive) const {
 	glMultiDrawElementsIndirect(
 		primitive,
 		shared_->indices_->baseType(),
-		BUFFER_OFFSET(indirectOffset_),
+		REGEN_BUFFER_OFFSET(indirectOffset_),
 		multiDrawCount_,
 		sizeof(DrawCommand));
 }

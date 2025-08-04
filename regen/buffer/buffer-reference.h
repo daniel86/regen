@@ -7,6 +7,10 @@
 #include "regen/utility/ref-ptr.h"
 #include "buffer-pool.h"
 
+#ifndef REGEN_BUFFER_OFFSET
+#define REGEN_BUFFER_OFFSET(i) ((char *)NULL + (i))
+#endif
+
 namespace regen {
 	/**
 	 * \brief Reference to allocated data.

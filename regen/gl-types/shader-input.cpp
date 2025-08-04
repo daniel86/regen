@@ -7,10 +7,6 @@
 #include "shader-input.h"
 #include "regen/scene/mesh-processor.h"
 
-#ifndef BUFFER_OFFSET
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-#endif
-
 using namespace regen;
 
 NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
@@ -119,12 +115,14 @@ void ShaderInput::updateAlignment() {
 		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
 			// with STD140, each array element must be padded to a multiple of 16 bytes
 			baseAlignment_ = 16u;
-		} else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
-			// only vec3 and mat3 array types need to be aligned to 16 bytes with STD430.
-			if (baseSize_ == 12u || baseSize_ == 48u) {
-				baseAlignment_ = 16u;
-			}
 		}
+		// only vec3 and mat3 array types need to be aligned to 16 bytes with STD430.
+		// note: covered above already.
+		//else if (memoryLayout_ == BUFFER_MEMORY_STD430) {
+		//	if (baseSize_ == 12u || baseSize_ == 48u) {
+		//		baseAlignment_ = 16u;
+		//	}
+		//}
 	}
 	if (numElements() > 1u) {
 		alignedBaseSize_ = baseAlignment_ * alignmentCount_;
@@ -469,7 +467,7 @@ void ShaderInput::enableAttribute_f(GLint location) const {
 				baseType_,
 				normalize_,
 				stride_,
-				BUFFER_OFFSET(offset_));
+				REGEN_BUFFER_OFFSET(offset_));
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc, divisor_);
 		}
@@ -487,7 +485,7 @@ void ShaderInput::enableAttribute_i(GLint location) const {
 				valsPerElement_,
 				baseType_,
 				stride_,
-				BUFFER_OFFSET(offset_));
+				REGEN_BUFFER_OFFSET(offset_));
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc, divisor_);
 		}
@@ -508,16 +506,16 @@ void ShaderInput::enableAttributeMat4(GLint location) const {
 
 		glVertexAttribPointer(loc0,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_));
+							  REGEN_BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
+							  REGEN_BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 		glVertexAttribPointer(loc2,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_ + sizeof(float) * 8));
+							  REGEN_BUFFER_OFFSET(offset_ + sizeof(float) * 8));
 		glVertexAttribPointer(loc3,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_ + sizeof(float) * 12));
+							  REGEN_BUFFER_OFFSET(offset_ + sizeof(float) * 12));
 
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc0, divisor_);
@@ -540,13 +538,13 @@ void ShaderInput::enableAttributeMat3(GLint location) const {
 
 		glVertexAttribPointer(loc0,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_));
+							  REGEN_BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
+							  REGEN_BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 		glVertexAttribPointer(loc2,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_ + sizeof(float) * 8));
+							  REGEN_BUFFER_OFFSET(offset_ + sizeof(float) * 8));
 
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc0, divisor_);
@@ -566,10 +564,10 @@ void ShaderInput::enableAttributeMat2(GLint location) const {
 
 		glVertexAttribPointer(loc0,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_));
+							  REGEN_BUFFER_OFFSET(offset_));
 		glVertexAttribPointer(loc1,
 							  4, baseType_, normalize_, stride_,
-							  BUFFER_OFFSET(offset_ + sizeof(float) * 4));
+							  REGEN_BUFFER_OFFSET(offset_ + sizeof(float) * 4));
 
 		if (divisor_ != 0) {
 			glVertexAttribDivisor(loc0, divisor_);
