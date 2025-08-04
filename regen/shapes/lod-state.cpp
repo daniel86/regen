@@ -14,8 +14,11 @@
 //#define LOD_DEBUG_TIME
 //#define LOD_DEBUG_GPU_TIME
 //#define LOD_DEBUG_SHAPE "fish-shape"
+// TODO: Consider using indirect draw buffers for single-LOD shapes as well.
+//      - evades synchronization issues with the staging system which uploads to main with delay.
+//      - might be needed in the long run anyway, when grouping meshes with the same shader
+//      - trivial to implement.
 //#define LOD_USE_DIBO_FOR_SINGLE_LOD
-#define LOD_USE_DIBO_FOR_MULTI_LOD
 
 using namespace regen;
 
@@ -104,13 +107,7 @@ void LODState::initLODState() {
 		// create instance buffer for per-frame updates.
 		createInstanceBuffer();
 		// Create indirect draw buffers for each mesh part and LOD.
-#ifdef LOD_USE_DIBO_FOR_MULTI_LOD
 		createIndirectDrawBuffers();
-#else
-		if (!cullShape_->isIndexShape()) {
-			createIndirectDrawBuffers();
-		}
-#endif
 	}
 
 	if (cullShape_->isIndexShape()) {
@@ -119,16 +116,23 @@ void LODState::initLODState() {
 		if (!shapeIndex_.get()) {
 			REGEN_WARN("No indexed shape found for cull shape '" << cullShape_->shapeName() << "'.");
 		} else {
+			// FIXME: Below we assign the IBO and DIBO to the shape index, which will only be useful
+			//        for the CPU path! the GPU path currently won't work with multiple parts entirely
+			//        due to this. this is required in some cases in the scene loading.
+			//        We would need to attach these buffers to some other common state which is accessible
+			//        from both paths, and where we have individual buffers for each part+camera combination.
 			if (!cullShape_->hasInstanceBuffer() && instanceBuffer_.get()) {
 				// Make sure that all meshes that share the index shape also have access to the instance buffer.
-				// FIXME: what about the GPU case?
 				shapeIndex_->setInstanceBuffer(instanceBuffer_);
 				shapeIndex_->setSortMode(instanceSortMode_);
+				// Note: we do not update in state enable, but rather use a separate animation for this.
+				//   This is done as the animations are dedicated place to write to client buffers,
+				//   and we avoid computations in between draw calls, however would still be ok
+				//   to update in state traverse.
 				lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
 				lodAnim_->startAnimation();
 			}
 			if (!indirectDrawBuffers_.empty()) {
-				// FIXME: what about the GPU case?
 				shapeIndex_->setIndirectDrawBuffers(indirectDrawBuffers_);
 			}
 		}
@@ -233,44 +237,27 @@ void LODState::createIndirectDrawBuffers() {
 void LODState::updateMeshLOD() {
 	if (!mesh_.get()) { return; }
 	// set LOD level based on distance
-	auto &camPos = camera_->position(0);
-	auto distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
+	const Vec3f &camPos = camera_->position(0);
+	const float distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
 	updateVisibility(
 			mesh_->getLODLevel(distanceSquared),
 			1, 0);
 }
 
-static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uint32_t numBaseLevels) {
-	if (numPartLevels == numBaseLevels && lodLevel < numBaseLevels) {
-		// part has same number of LODs as mesh, return the LOD level
-		return lodLevel;
-	} else if (numPartLevels == 1) {
-		return 0;
-	} else if (numPartLevels < numBaseLevels || lodLevel >= numPartLevels) {
-		// adjust the LOD level for parts
-		if (numPartLevels == 2) {
-			if (lodLevel < 2) {
-				return 0;
-			} else {
-				return 1;
-			}
-		} else if (numPartLevels == 3) {
-			if (lodLevel == 0) {
-				return 0;
-			} else if (lodLevel == 3) {
-				return 2;
-			} else {
-				return 1;
-			}
-		}
-	}
-	return lodLevel;
+static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels) {
+	static const uint32_t lodMappings[5][4] = {
+		{0, 0, 0, 0}, // 0 LOD
+		{0, 0, 0, 0}, // 1 LODs
+		{0, 0, 1, 1}, // 2 LODs
+		{0, 1, 1, 2}, // 3 LODs
+		{0, 1, 2, 3}  // 4 LODs
+	};
+	return lodMappings[numPartLevels][lodLevel];
 }
 
 void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
 	// increase LOD level by one if we have a shadow target
 	if (!camera_->hasFixedLOD()) {
-		// FIXME: Reconsider lower level LOD handling for shadows!
 		if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
 			lodLevel++;
 		}
@@ -280,7 +267,7 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 		auto &part = cullShape_->parts()[partIdx];
 		// could be part has different number of LODs, need to compute an adjusted
 		// LOD level for each part
-		auto partLODLevel = getPartLOD(lodLevel, part->numLODs(), mesh_->numLODs());
+		auto partLODLevel = getPartLOD(lodLevel, part->numLODs());
 		auto &partLOD = part->meshLODs()[partLODLevel];
 		const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + numInstances;
 		const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
@@ -363,9 +350,7 @@ void LODState::enable(RenderState *rs) {
 			// update the visibility for each part
 			uint32_t instanceOffset = 0;
 			for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
-				auto partLODLevel = getPartLOD(lodIdx,
-					part->numLODs(),
-					mesh_->numLODs());
+				auto partLODLevel = getPartLOD(lodIdx, part->numLODs());
 				auto &partLOD = part->meshLODs()[partLODLevel];
 				const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + lodNumInstances_[lodIdx];
 				const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
