@@ -7,7 +7,7 @@ using namespace regen;
 
 StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 		: SkyLayer(sky) {
-	state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_SRC));
+	// Note: Assuming star map is first, we do not need blending.
 
 	scattering_ = ref_ptr<ShaderInput1f>::alloc("scattering");
 	scattering_->setUniformData(defaultScattering());

@@ -12,8 +12,9 @@ Atmosphere::Atmosphere(
 		unsigned int levelOfDetail)
 		: SkyLayer(sky) {
 	updateMesh_ = Rectangle::getUnitQuad();
-
-	//state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
+	state()->joinStates(ref_ptr<BlendFuncState>::alloc(
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 	ref_ptr<TextureCube> cubeMap = ref_ptr<TextureCube>::alloc(1);
 	cubeMap->set_format(GL_RGBA);

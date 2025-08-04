@@ -8,7 +8,9 @@ using namespace regen;
 
 BrightStars::BrightStars(const ref_ptr<Sky> &sky)
 		: SkyLayer(sky) {
-	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
+	state()->joinStates(ref_ptr<BlendFuncState>::alloc(
+			GL_SRC_ALPHA, GL_ONE,
+			GL_SRC_ALPHA, GL_ONE));
 
 	color_ = ref_ptr<ShaderInput3f>::alloc("starColor");
 	color_->setUniformData(defaultColor());

@@ -15,6 +15,10 @@ using namespace osgHimmel;
 
 Moon::Moon(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 		: SkyLayer(sky) {
+	state()->joinStates(ref_ptr<BlendFuncState>::alloc(
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
 	setupMoonTextureCube(moonMapFile);
 
 	moonOrientation_ = ref_ptr<ShaderInputMat4>::alloc("moonOrientationMatrix");

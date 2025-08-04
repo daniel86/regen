@@ -25,9 +25,6 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	depth->set_useDepthTest(GL_TRUE);
 	state()->joinStates(depth);
 
-	//state()->joinStates(ref_ptr<ToggleState>::alloc(RenderState::CULL_FACE, GL_FALSE));
-	state()->joinStates(ref_ptr<BlendState>::alloc(BLEND_MODE_ALPHA));
-
 	noonColor_ = Vec3f(0.5, 0.5, 0.5);
 	dawnColor_ = Vec3f(0.2, 0.15, 0.15);
 	moonSunLightReflectance_ = 0.4;
@@ -268,9 +265,27 @@ void SkyView::addLayer(const ref_ptr<SkyLayer> &layer) {
 }
 
 void SkyView::traverse(RenderState *rs) {
-	if (!isHidden_ && !state_->isHidden()) {
+	if (!isHidden_ && !state_->isHidden() && !layer_.empty()) {
 		sky_->state()->enable(rs);
-		StateNode::traverse(rs);
+		state()->enable(rs);
+
+		// render first layer without blending
+		auto &firstLayer = layer_.front();
+		firstLayer->traverse(rs);
+
+		if (layer_.size()>1) {
+			rs->toggles().push(RenderState::BLEND, GL_TRUE);
+			for (size_t i = 1; i < layer_.size(); ++i) {
+				auto &layer = layer_[i];
+				if (layer->isHidden()) {
+					continue;
+				}
+				layer->traverse(rs);
+			}
+			rs->toggles().pop(RenderState::BLEND);
+		}
+
+		state()->disable(rs);
 		sky_->state()->disable(rs);
 	}
 }

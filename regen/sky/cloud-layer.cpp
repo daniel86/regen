@@ -48,7 +48,9 @@ static ref_ptr<Texture3D> createNoiseArray(GLuint texSize, GLuint octave, GLuint
 
 CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 		: SkyLayer(sky) {
-	state()->joinStates(ref_ptr<BlendState>::alloc(GL_SRC_ALPHA, GL_ONE));
+	state()->joinStates(ref_ptr<BlendFuncState>::alloc(
+			GL_SRC_ALPHA, GL_ONE,
+			GL_SRC_ALPHA, GL_ONE));
 
 	cloudTexture_ = ref_ptr<Texture2D>::alloc();
 	cloudTexture_->set_rectangleSize(textureSize, textureSize);

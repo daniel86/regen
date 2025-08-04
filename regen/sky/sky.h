@@ -130,7 +130,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<Sky> sky_;
-		std::list<ref_ptr<SkyLayerView> > layer_;
+		std::vector<ref_ptr<SkyLayerView> > layer_;
 	};
 }
 
