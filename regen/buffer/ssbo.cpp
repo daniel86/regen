@@ -11,6 +11,10 @@ SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMa
 		memoryMask_(memoryMask) {
 }
 
+SSBO::SSBO(const SSBO &other, const std::string &forcedBlockName, const std::string &inputPrefixToAdd) :
+		BufferBlock(other, forcedBlockName, inputPrefixToAdd) {
+}
+
 SSBO::SSBO(const BufferObject &other, const std::string &name) :
 		BufferBlock(other, name) {
 	flags_.target = SHADER_STORAGE_BUFFER;
