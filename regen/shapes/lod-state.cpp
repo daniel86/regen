@@ -485,10 +485,6 @@ void LODState::traverseCPU() {
 						mapped.w.data(),
 						indirectData.current.data(),
 						indirectBuffer->inputSize());
-
-					// FIXME: Seems staging misses updates if we only write to the client data buffer
-					//    directly. probably buffer block should handle this?!?
-					indirectBuffer->blockInputs().front().in_->nextStamp();
 				}
 			}
 		}

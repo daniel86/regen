@@ -166,6 +166,23 @@ void ClientBuffer::nextStamp(uint32_t dataSlot) const {
 	}
 }
 
+void ClientBuffer::nextSegmentStamp(uint32_t dataSlot, uint32_t writeBegin, uint32_t writeSize) const {
+	const uint32_t writeEnd = writeBegin + writeSize;
+
+	// Update the stamp for all segments that overlap with the updated range.
+	for (auto &segment : bufferSegments_) {
+		if (writeBegin < segment->dataOffset_ + segment->dataSize_ && writeEnd > segment->dataOffset_) {
+			// check if the segment overlaps with the updated range.
+			auto readSlot = (segment->dataSlots_[1] ? (1-dataSlot) : 0);
+			segment->dataStamps_[dataSlot] = segment->dataStamps_[readSlot] + 1;
+		}
+		else if (segment->dataOffset_ >= writeEnd) {
+			// drop out if segment is located after the updated range
+			break;
+		}
+	}
+}
+
 MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
 	if ((mapMode & BUFFER_GPU_WRITE) != 0) {
 		if (!hasTwoSlots()) {
@@ -653,6 +670,10 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 		// If the write operation did not change the data, the stamp is not incremented,
 		// and the last slot is not updated.
 		nextStamp(dataSlot);
+		if (!bufferSegments_.empty()) {
+			// Advance the stamp for all overlapping segments.
+			nextSegmentStamp(dataSlot, writeOffset, writeSize);
+		}
 
 		if (isFrameLocked_) {
 			// If frame-locked, the swap to the other slot is done centrally, not on write unlock.

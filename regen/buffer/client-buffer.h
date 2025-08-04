@@ -276,6 +276,8 @@ namespace regen {
 
 		int lastDataSlot() const;
 
+		void nextSegmentStamp(uint32_t dataSlot, uint32_t updatedOffset, uint32_t updateSize) const;
+
 		void createSecondSlot();
 
 		void setDataPointer(ClientBuffer *owner, byte *dataPtr, uint32_t slotIdx) const;
