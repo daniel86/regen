@@ -249,7 +249,7 @@ static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels) {
 		{0, 0, 0, 0}, // 0 LOD
 		{0, 0, 0, 0}, // 1 LODs
 		{0, 0, 1, 1}, // 2 LODs
-		{0, 1, 1, 2}, // 3 LODs
+		{0, 1, 2, 2}, // 3 LODs
 		{0, 1, 2, 3}  // 4 LODs
 	};
 	return lodMappings[numPartLevels][lodLevel];
