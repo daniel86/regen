@@ -13,10 +13,11 @@ AABB::AABB(const Bounds<Vec3f> &bounds)
 }
 
 bool AABB::updateTransform(bool forceUpdate) {
-	if (!forceUpdate && transformStamp() == lastTransformStamp_) {
+	const uint32_t tfStamp = transformStamp();
+	if (!forceUpdate && tfStamp == lastTransformStamp_) {
 		return false;
 	} else {
-		lastTransformStamp_ = transformStamp();
+		lastTransformStamp_ = tfStamp;
 		updateAABB();
 		return true;
 	}
