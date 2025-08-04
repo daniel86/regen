@@ -296,8 +296,10 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 }
 
 void LODState::resetVisibility() {
-	for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
-		auto &part = cullShape_->parts()[partIdx];
+	auto &parts = cullShape_->parts();
+
+	for (uint32_t partIdx = 0; partIdx < parts.size(); ++partIdx) {
+		auto &part = parts[partIdx];
 
 		for (uint32_t lodLevel = 0; lodLevel < part->numLODs(); ++lodLevel) {
 			part->updateVisibility(lodLevel, 0, 0);
@@ -347,11 +349,12 @@ void LODState::enable(RenderState *rs) {
 #endif
 	}
 	else if (indirectDrawBuffers_.empty()) {
-		// TODO: Skip this if we have indirect draw buffers?
 		// Set the mesh state for the net draw call.
 		// Note: we compute the LOD groups only once per frame in an animation
 		//     loop, but we cannot set the mesh state there, because the mesh may be used
 		//     in multiple passes, e.g. shadow mapping, reflection, etc.
+		// Note: in case of indirect draw buffers, we skip this step as at the moment the
+		//     LOD state is only used in case of direct draw calls.
 		for (auto &part : cullShape_->parts()) {
 			// reset the visibility for each part
 			for (uint32_t lodIdx = 0; lodIdx < part->numLODs(); ++lodIdx) {
@@ -360,10 +363,11 @@ void LODState::enable(RenderState *rs) {
 			// update the visibility for each part
 			uint32_t instanceOffset = 0;
 			for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
-				auto partLODLevel = getPartLOD(lodIdx, part->numLODs(), mesh_->numLODs());
-				const uint32_t numInstances = lodNumInstances_[lodIdx];
+				auto partLODLevel = getPartLOD(lodIdx,
+					part->numLODs(),
+					mesh_->numLODs());
 				auto &partLOD = part->meshLODs()[partLODLevel];
-				const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + numInstances;
+				const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + lodNumInstances_[lodIdx];
 				const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
 				part->updateVisibility(partLODLevel, numVisibleInstances, baseInstance);
 				instanceOffset += lodNumInstances_[lodIdx];
