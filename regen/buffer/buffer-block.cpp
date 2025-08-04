@@ -537,10 +537,6 @@ void BufferBlock::updateDrawBuffer() {
 
 	if (flags_.useExplicitStaging()) {
 		drawBufferRef_ = adoptBufferRange(requiredSize_);
-		// TODO: in case of explicit staging with multi buffering it might be best
-		//    to copy initial data to the draw buffer right away to avoid some frames delay
-		//    until the data is copied.
-		//    - will be trivial once we have contiguous client buffer here!
 	} else {
 		// note: in case of implicit staging with multi-buffering, we need to allocate space for each segment.
 		if (flags_.bufferingMode == RING_BUFFER) {
@@ -571,6 +567,22 @@ void BufferBlock::updateDrawBuffer() {
 	drawBufferRange_->size_ = requiredSize_;
 	drawBufferRange_->offset_ = drawBufferRef_->address();
 	queueStagingUpdate();
+
+	// TODO: for some reason, it seems client data is not good at this point.
+	//       when ding the copy first visible frame is not drawn correctly.
+	/**
+	if (flags_.useExplicitStaging()) {
+		// Copy over client data initially into the main buffer.
+		// This is done to ensure that the draw buffer has some initial data
+		// that can be drawn before the staging buffer is filled.
+		auto mappedClientData = clientBuffer_->mapRange(
+				BUFFER_GPU_READ, 0u, requiredSize_);
+		setBufferData(mappedClientData.r);
+		clientBuffer_->unmapRange(
+			BUFFER_GPU_READ, 0u,
+			requiredSize_, mappedClientData.r_index);
+	}
+	**/
 
 	REGEN_INFO("Created "
 					   << StagingBuffer::getBufferSizeClass(requiredSize_)
