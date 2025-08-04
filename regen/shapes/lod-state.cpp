@@ -218,7 +218,10 @@ void LODState::createIndirectDrawBuffers() {
 			drawParams.setBaseInstance(0);
 
 			// Set the clear draw command to zero instance count.
-			drawData.clear[lodIdx] = drawParams;
+			std::memcpy(
+				&drawData.clear[lodIdx],
+				&drawParams,
+				sizeof(DrawCommand));
 			drawData.clear[lodIdx].setInstanceCount(0);
 		}
 
@@ -349,6 +352,20 @@ void LODState::enable(RenderState *rs) {
 		}
 	}
 #ifdef LOD_DEBUG_GROUPS
+	REGEN_INFO("LOD for shape '" << cullShape_->shapeName() << "'"
+		<< " with " << cullShape_->numInstances() << " instances, "
+		<< (cullShape_->hasInstanceBuffer() ? "per-draw" : "per-frame") << " "
+		<< (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode "
+		<< cullShape_->parts().size() << " parts, "
+		<< " and shadow target: " << (hasShadowTarget_ ? "1" : "0")
+		);
+	if (cullShape_->isIndexShape()) {
+		REGEN_INFO("  - CPU ("
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
+			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")");
+	}
 	if (!indirectDrawBuffers_.empty()) {
 		// map indirect buffer and print the number of instances per LOD
 		static std::vector<DrawCommand> readVec(4);
@@ -358,21 +375,16 @@ void LODState::enable(RenderState *rs) {
 			indirectBuffer->readBufferSubData(
 					0, 4 * sizeof(DrawCommand), (byte *)readVec.data());
 			// print the number of instances per LOD
-			REGEN_INFO("LOD ("
+			REGEN_INFO("  - GPU ("
 							   << std::setw(4) << std::setfill(' ') << readVec[0].instanceCount() << " "
 							   << std::setw(4) << std::setfill(' ') << readVec[1].instanceCount() << " "
 							   << std::setw(4) << std::setfill(' ') << readVec[2].instanceCount() << " "
 							   << std::setw(4) << std::setfill(' ') << readVec[3].instanceCount() << ")"
-							   << " numInstances: " <<
-							   std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
 							   << " numLODs: " <<
 							   std::setw(2) << std::setfill(' ') << part->numLODs()
-							   << " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
-							   << " shadow: " << (hasShadowTarget_ ? "1" : "0")
-							   << " part: " << partIdx
-							   << " shape: " << cullShape_->shapeName());
+							   << " part: " << partIdx);
 			for (uint32_t i = 0; i < part->numLODs(); ++i) {
-				REGEN_INFO("   Indirect buffer " << i << " -- "
+				REGEN_INFO("   - DIBO " << i << " -- "
 								<< "mode: " << readVec[i].mode << "; data: ["
 								   << std::setw(8) << readVec[i].data[0] << ", "
 								   << std::setw(8) << readVec[i].data[1] << ", "
@@ -384,20 +396,6 @@ void LODState::enable(RenderState *rs) {
 			}
 		}
 	} else if (!cullShape_->parts().empty()) {
-		REGEN_INFO("LOD ("
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")"
-			<< " count: " <<
-			std::setw(5) << std::setfill(' ') << cullShape_->numInstances()
-			<< " levels: " <<
-			std::setw(2) << std::setfill(' ') << mesh_->numLODs()
-			<< " mode: " << (cullShape_->isIndexShape() ? "CPU" : "GPU")
-			<< " shadow: " << (hasShadowTarget_ ? "1" : "0")
-			<< " shape: " << cullShape_->shapeName()
-			<< " parts: " << cullShape_->parts().size());
-
 		for (auto &part : cullShape_->parts()) {
 			if (mesh_->numLODs() <= 1) continue;
 			auto &meshLODs = part->meshLODs();
@@ -487,6 +485,10 @@ void LODState::traverseCPU() {
 						mapped.w.data(),
 						indirectData.current.data(),
 						indirectBuffer->inputSize());
+
+					// FIXME: Seems staging misses updates if we only write to the client data buffer
+					//    directly. probably buffer block should handle this?!?
+					indirectBuffer->blockInputs().front().in_->nextStamp();
 				}
 			}
 		}
