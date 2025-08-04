@@ -1,10 +1,10 @@
 #ifndef REGEN_SHADER_STATE_H_
 #define REGEN_SHADER_STATE_H_
 
-#include <regen/states/state.h>
-#include <regen/textures/texture-state.h>
-#include <regen/states/light-state.h>
-#include <regen/gl-types/shader.h>
+#include "regen/states/state.h"
+#include "regen/textures/texture-state.h"
+#include "regen/states/light-state.h"
+#include "shader.h"
 
 namespace regen {
 	/**

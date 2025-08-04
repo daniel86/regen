@@ -3,7 +3,7 @@
 
 #include <regen/states/state.h>
 #include <regen/textures/texture-state.h>
-#include <regen/gl-types/shader-input.h>
+#include "regen/glsl/shader-input.h"
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {

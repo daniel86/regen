@@ -11,7 +11,7 @@
 #include <map>
 #include <sstream>
 
-#include "regen/gl-types/shader-input.h"
+#include "shader-input.h"
 #include "regen/utility/logging.h"
 
 namespace regen {

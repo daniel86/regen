@@ -5,7 +5,7 @@
 #include <regen/camera/camera.h>
 #include <regen/textures/texture-state.h>
 #include <regen/states/light-state.h>
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 #include <regen/buffer/fbo.h>
 
 namespace regen {

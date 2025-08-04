@@ -8,7 +8,7 @@
 #include <boost/filesystem/path.hpp>
 #include <assimp/postprocess.h>
 
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 #include <regen/states/fbo-state.h>
 #include <regen/states/blit-state.h>
 #include <regen/states/state-configurer.h>

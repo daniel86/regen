@@ -7,7 +7,7 @@
 #include "regen/gl-types/gl-object.h"
 #include "regen/gl-types/render-state.h"
 #include "regen/textures/texture.h"
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 #include "regen/utility/ref-ptr.h"
 #include "ubo.h"
 #include "regen/scene/loading-context.h"

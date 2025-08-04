@@ -5,7 +5,7 @@
 #include "buffer-reference.h"
 #include "buffer-enums.h"
 #include "buffer-object.h"
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 #include "regen/gl-types/gpu-fence.h"
 
 namespace regen {

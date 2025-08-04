@@ -9,7 +9,7 @@
 #define PARTICLE_STATE_H_
 
 #include <regen/meshes/mesh-state.h>
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 #include "regen/gl-types/atomic-counter.h"
 
 namespace regen {

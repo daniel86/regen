@@ -11,7 +11,7 @@
 #include <regen/states/state.h>
 #include <regen/states/blend-state.h>
 #include <regen/textures/texture.h>
-#include "regen/gl-types/shader-function.h"
+#include "regen/glsl/shader-function.h"
 
 namespace regen {
 	/**

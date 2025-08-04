@@ -8,7 +8,7 @@
 
 #include <regen/gl-types/gl-rectangle.h>
 #include <regen/gl-types/render-state.h>
-#include <regen/gl-types/shader-input.h>
+#include "regen/glsl/shader-input.h"
 #include <regen/buffer/vbo.h>
 #include "regen/shapes/bounds.h"
 #include "regen/scene/scene-input.h"

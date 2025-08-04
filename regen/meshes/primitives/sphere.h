@@ -8,7 +8,7 @@
 #ifndef SPHERE_H_
 #define SPHERE_H_
 
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 #include <regen/meshes/mesh-state.h>
 #include <regen/math/vector.h>
 

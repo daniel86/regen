@@ -39,7 +39,7 @@ namespace regen {
 	};
 } // namespace
 
-#include <regen/gl-types/shader-input.h>
+#include "regen/glsl/shader-input.h"
 #include <stack>
 #include "regen/buffer/ssbo.h"
 

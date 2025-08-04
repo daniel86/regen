@@ -2,7 +2,7 @@
 #define REGEN_COLOR_WIDGET_H
 
 #include <qt/ui_ColorWidget.h>
-#include <regen/gl-types/shader-input.h>
+#include "regen/glsl/shader-input.h"
 #include "qt-application.h"
 #include "RegenWidget.h"
 

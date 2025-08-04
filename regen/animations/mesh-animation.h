@@ -2,8 +2,8 @@
 #define MESH_ANIMATION_GPU_H_
 
 #include <regen/animations/animation.h>
-#include <regen/gl-types/shader-input.h>
-#include <regen/gl-types/shader.h>
+#include "regen/glsl/shader-input.h"
+#include "regen/glsl/shader.h"
 #include <regen/meshes/mesh-state.h>
 
 namespace regen {

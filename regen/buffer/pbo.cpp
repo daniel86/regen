@@ -1,5 +1,5 @@
 #include "regen/gl-types/render-state.h"
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 #include <optional>
 
 #include "pbo.h"

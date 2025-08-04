@@ -3,7 +3,7 @@
 
 #include "buffer-enums.h"
 #include "buffer-reference.h"
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 
 namespace regen {
 	/**

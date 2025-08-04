@@ -5,14 +5,14 @@
 #include <map>
 #include <atomic>
 
-#include <regen/buffer/buffer-reference.h>
-#include <regen/buffer/client-data.h>
-#include <regen/gl-types/gl-enum.h>
-#include <regen/utility/ref-ptr.h>
-#include <regen/utility/stack.h>
-#include <regen/utility/string-util.h>
-#include <regen/math/matrix.h>
-#include <regen/math/vector.h>
+#include "regen/buffer/buffer-reference.h"
+#include "regen/buffer/client-data.h"
+#include "regen/gl-types/gl-enum.h"
+#include "regen/utility/ref-ptr.h"
+#include "regen/utility/stack.h"
+#include "regen/utility/string-util.h"
+#include "regen/math/matrix.h"
+#include "regen/math/vector.h"
 #include <condition_variable>
 #include "regen/scene/input-schema.h"
 #include "regen/buffer/client-buffer.h"

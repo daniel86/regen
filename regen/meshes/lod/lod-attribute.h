@@ -2,7 +2,7 @@
 #define REGEN_LOD_ATTRIBUTE_H
 
 #include <vector>
-#include <regen/gl-types/shader-input.h>
+#include "regen/glsl/shader-input.h"
 #include "attribute-semantic.h"
 
 namespace regen {

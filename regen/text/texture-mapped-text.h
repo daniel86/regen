@@ -8,7 +8,7 @@
 #ifndef TEXT_H_
 #define TEXT_H_
 
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 #include <regen/meshes/mesh-state.h>
 #include <regen/text/font.h>
 

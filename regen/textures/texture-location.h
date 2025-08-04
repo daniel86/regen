@@ -4,7 +4,7 @@
 #include <map>
 #include <set>
 
-#include <regen/gl-types/shader-input.h>
+#include "regen/glsl/shader-input.h"
 #include <regen/textures/texture.h>
 
 namespace regen {

@@ -9,7 +9,7 @@
 #define REGEN_GLSL_IO_PROCESSOR_H
 
 #include <boost/regex.hpp>
-#include "regen/gl-types/shader-input.h"
+#include "shader-input.h"
 #include "glsl-processor.h"
 
 #include <iostream>

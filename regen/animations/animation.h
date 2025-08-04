@@ -13,7 +13,7 @@
 
 #include <regen/utility/event-object.h>
 #include <regen/gl-types/render-state.h>
-#include <regen/gl-types/shader.h>
+#include "regen/glsl/shader.h"
 #include <regen/states/state.h>
 
 namespace regen {

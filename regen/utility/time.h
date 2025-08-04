@@ -2,7 +2,7 @@
 #define REGEN_TIME_H
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 
 namespace regen {
 	struct WorldTime {

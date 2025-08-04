@@ -1,7 +1,7 @@
 #ifndef REGEN_INDEXED_SHAPE_H_
 #define REGEN_INDEXED_SHAPE_H_
 
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 #include "regen/shapes/bounding-shape.h"
 #include "regen/camera/camera.h"
 

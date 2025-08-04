@@ -1,7 +1,7 @@
 #ifndef REGEN_PREPROCESSOR_CONFIG_H_
 #define REGEN_PREPROCESSOR_CONFIG_H_
 
-#include "regen/gl-types/shader-input.h"
+#include "shader-input.h"
 
 namespace regen {
 	/**

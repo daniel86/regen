@@ -1,7 +1,7 @@
 #ifndef REGEN_BOID_SIMULATION_H
 #define REGEN_BOID_SIMULATION_H
 
-#include "regen/gl-types/shader-input.h"
+#include "regen/glsl/shader-input.h"
 #include "regen/shapes/bounds.h"
 #include "regen/textures/texture.h"
 #include "regen/states/model-transformation.h"

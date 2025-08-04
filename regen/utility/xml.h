@@ -14,7 +14,7 @@
 #include <regen/external/rapidxml/rapidxml_utils.hpp>
 #include <regen/external/rapidxml/rapidxml_print.hpp>
 #include <regen/utility/string-util.h>
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 
 
 namespace regen::xml {

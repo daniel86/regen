@@ -4,7 +4,7 @@
 #include <regen/meshes/mesh-state.h>
 #include <regen/states/state.h>
 #include <regen/states/state-node.h>
-#include <regen/states/shader-state.h>
+#include "regen/glsl/shader-state.h"
 
 namespace regen {
 	class Sky;

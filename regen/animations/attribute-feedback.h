@@ -3,7 +3,7 @@
 
 #include <regen/animations/animation.h>
 #include "regen/states/state-node.h"
-#include "regen/states/shader-state.h"
+#include "regen/glsl/shader-state.h"
 
 namespace regen {
 	/**
