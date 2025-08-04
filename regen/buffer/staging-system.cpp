@@ -510,6 +510,9 @@ void StagingSystem::updateData(float dt_ms) {
 		// Wait for the fence in case of persistent mapped arenas.
 		// This might block the CPU in case of the last write into this segment
 		// has not been consumed by the GPU yet.
+		// TODO: The interaction with the fence still consumes a lot of CPU time.
+		//		- Only use one fence in the whole system, i.e. one fence per frame?
+		//      - Only use fences every few frames or adaptively based on stall rate?
 		if (useFence) {
 			arena->stagingBuffer->fence(copyIdx).wait();
 		}

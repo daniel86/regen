@@ -569,7 +569,7 @@ void BufferBlock::updateDrawBuffer() {
 	queueStagingUpdate();
 
 	// TODO: for some reason, it seems client data is not good at this point.
-	//       when ding the copy first visible frame is not drawn correctly.
+	//       when doing the copy first visible frame is not drawn correctly.
 	/**
 	if (flags_.useExplicitStaging()) {
 		// Copy over client data initially into the main buffer.
