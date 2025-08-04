@@ -437,11 +437,11 @@ void LODState::enable(RenderState *rs) {
 ///////////////////////
 
 void LODState::traverseCPU() {
-	if (!shapeIndex_.get() || !shapeIndex_->isVisible()) {
-		// FIXME: must set indirect draw buffers etc if not visible!
+	if (!shapeIndex_->isVisible()) {
+		// No instance is visible, early exit.
+		// Note: the LOD state has been reset before, so nothing to do here.
 		return;
 	}
-
 	if (cullShape_->numInstances() == 1) {
 		if (shapeIndex_->isVisible()) {
 			updateMeshLOD();
@@ -572,15 +572,14 @@ static inline void countGroupSize_CPU(
 
 void LODState::computeLODGroups() {
 	auto visible_ids = shapeIndex_->mapInstanceIDs(BUFFER_GPU_READ);
-	auto numVisible = visible_ids.r[0];
+	const uint32_t numVisible = visible_ids.r[0];
 	if (numVisible == 0) { return; }
 
 	const uint32_t *mappedData = visible_ids.r.data() + 1;
 	auto &tf = cullShape_->boundingShape()->transform();
-	auto &camPos = camera_->position(0);
-	bool hasTF = tf.get() && (tf->hasModelOffset() || tf->hasModelMat());
+	const Vec3f &camPos = camera_->position(0);
 
-	if (hasTF) {
+	if (tf.get() && (tf->hasModelOffset() || tf->hasModelMat())) {
 		auto &modelOffset = tf->modelOffset();
 		auto &modelMat = tf->modelMat();
 		if (tf->hasModelOffset() && tf->hasModelMat()) {
