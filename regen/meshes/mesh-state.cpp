@@ -538,7 +538,6 @@ void Mesh::setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32
 		indirectOffset_ = 0u;
 	}
 	updateDrawFunction();
-	// TODO: why not directly set on impostor meshes?
 }
 
 void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
