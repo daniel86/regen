@@ -6,10 +6,8 @@
 #ifndef ground_uv_included
 #define2 ground_uv_included
 vec2 groundUV(vec3 posWorld) {
-    // comput uv given in_mapSize, in_mapCenter and a world position
-    vec2 mapCorner = in_mapCenter.xz - in_mapSize.xz*0.5;
-    vec2 uv = (posWorld.xz - mapCorner) / in_mapSize.xz;
-    return uv;
+    // compute uv given in_mapSize, in_mapCenter and a world position
+    return (posWorld.xz - in_mapCenter.xz) / in_mapSize.xz + vec2(0.5);
 }
 vec2 groundUV(vec3 posWorld, vec3 normal) {
     return groundUV(posWorld);
@@ -25,6 +23,11 @@ void groundHeightBlend(in vec3 offset, inout vec3 P, float one) {
     // next do some special treatment for skirt vertices, we detect them by y position...
     float zeroLevel = in_mapCenter.y - in_mapSize.y * 0.5f;
     if (P.y < zeroLevel - 1e-6) {
+        // TODO: Reconsider the skirt handling.
+        //      - maybe we can avoid sampling the normal map here? we could just push downwards
+        //        which would be less expensive.
+        //      - avoiding the conditional would also be good.
+        //      - also I had the feeling that this still looks wrong in some cases, better to investigate again.
         // sample the normal map
         vec3 nor = normalize((texture(in_normalMap, groundUV(P)).xzy * 2.0) - 1.0);
         // translate back to original vertex, and
@@ -196,40 +199,26 @@ vec3 materialNormal(uint matIndex, vec3 blending, vec2 xz, vec2 yz, vec2 xy) {
     vec3 nx = texture(in_groundMaterialNormal, vec3(yz, matIndex)).xyz * 2.0 - 1.0;
     vec3 ny = texture(in_groundMaterialNormal, vec3(xz, matIndex)).xyz * 2.0 - 1.0;
     vec3 nz = texture(in_groundMaterialNormal, vec3(xy, matIndex)).xyz * 2.0 - 1.0;
-    return normalize(nx * blending.x + ny * blending.y + nz * blending.z);
+    // note: we normalize once globally
+    return nx * blending.x + ny * blending.y + nz * blending.z;
 }
 
-mat3 materialTBN(vec3 baseNor) {
+mat3 materialTBN(vec3 n) {
     // Build TBN from baseNor (world-space normal) and construct tangent + bitangent
-    vec3 up = abs(baseNor.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-    vec3 tangent   = normalize(cross(up, baseNor));
-    vec3 bitangent = normalize(cross(baseNor, tangent));
-    return mat3(tangent, bitangent, baseNor);
-}
-
-float[NUM_MATERIALS] readWeights(vec2 uv) {
-    // Read material weights from the texture
-#if NUM_MATERIALS > 4
-    vec4 weights1 = texture(in_groundMaterialWeights0, uv);
-    vec4 weights2 = texture(in_groundMaterialWeights1, uv);
-    return float[](
-        weights1.r, weights1.g, weights1.b, weights1.a,
-        weights2.r, weights2.g, weights2.b, weights2.a);
-#else
-    vec4 weights = texture(in_groundMaterialWeights0, uv);
-    return float[](
-        weights.r, weights.g, weights.b, weights.a);
-#endif
-}
-
-void normalizeWeights(inout float[NUM_MATERIALS] weights) {
-    float weightSum = 0.0;
-#for MAT_I to NUM_MATERIALS
-    weightSum += weights[${MAT_I}];
-#endfor
-#for MAT_I to NUM_MATERIALS
-    weights[${MAT_I}] /= max(weightSum, 0.001);
-#endfor
+    // Decide whether to use (0,1,0) or (1,0,0)
+    // Note: we compute both cases below to avoid branches.
+    float useY = step(abs(n.x), abs(n.y)); // 1 if |y| > |x|
+    // Cross with up=(0,1,0) -> ( n.z, 0, -n.x )
+    vec3 tY = vec3(n.z, 0.0, -n.x);
+    // Cross with up=(1,0,0) -> ( 0, -n.z, n.y )
+    vec3 tX = vec3(0.0, -n.z, n.y);
+    // Blend based on which axis we choose
+    vec3 t = mix(tX, tY, useY);
+    // Normalize tangent
+    t *= inversesqrt(dot(t, t));
+    // Bitangent is cross(n, t)
+    // Note: cross(n, t) is already normalized as n/t are normalized and orthogonal.
+    return mat3(t, cross(n, t), n);
 }
 
 void customFragmentMapping(in vec3 worldPos, inout vec4 outColor, inout vec3 outNormal) {
@@ -242,15 +231,43 @@ void customFragmentMapping(in vec3 worldPos, inout vec4 outColor, inout vec3 out
     mat3 TBN = materialTBN(baseNor);
 
     // read material weights
-    float[NUM_MATERIALS] weights = readWeights(uv);
-    normalizeWeights(weights);
+    vec4 weights1 = texture(in_groundMaterialWeights0, uv);
+    #define weights_0 weights1.r
+    #define weights_1 weights1.g
+    #define weights_2 weights1.b
+    #define weights_3 weights1.a
+#if NUM_MATERIALS > 4
+    vec4 weights2 = texture(in_groundMaterialWeights1, uv);
+    #define weights_4 weights2.r
+    #define weights_5 weights2.g
+    #define weights_6 weights2.b
+    #define weights_7 weights2.a
+#endif
+    // Compute sum of weights
+    float weightSum = 0.0;
+#for MAT_I to NUM_MATERIALS
+    weightSum += weights_${MAT_I};
+#endfor
+    // normalize weights
+#for MAT_I to NUM_MATERIALS
+    weights_${MAT_I} /= max(weightSum, 0.001);
+#endfor
 
     // compute factors for triplanar blending
-    vec3 blending = abs(baseNor);
-    blending  = pow(blending, vec3(2.0)); // sharper transitions
-    blending /= dot(blending, vec3(1.0));
+    vec3 blending = abs(baseNor * baseNor); // sharper transitions
+    blending /= (blending.x + blending.y + blending.z);
 
     // accumulate color and normal from all materials
+    // TODO: Optimization: Experiment with thresholds and conditional computation
+    //        to avoid texture lookups.
+    //       - maybe best to use dynamic loop with continue?
+    //         Or branching in the unrolled code?
+    //       - another idea: compute n-best first, maybe with fixed n
+    //         then accumulate only these.
+    // TODO: Optimization: Pack normals into alpha component of albedo.
+    //       - reduces texture lookups 50%
+    //       - A = normal.x*0.5+0.5  // store only X, reconstruct Z in shader
+    //         vec2 normalXY = decodeNormal(sample.a); // e.g., reconstruct Z as sqrt(1-x²-y²)
     vec2 xz, yz, xy;
 #ifdef HAS_noiseTexture
     float noiseVal = texture(in_noiseTexture, worldPos.xz * in_noiseScale).r;
@@ -264,8 +281,8 @@ void customFragmentMapping(in vec3 worldPos, inout vec4 outColor, inout vec3 out
     xz = (worldPos.xz + noiseVal * noiseOffset) * ${UV_SCALE};
     yz = (worldPos.yz + noiseVal * noiseOffset) * ${UV_SCALE};
     xy = (worldPos.xy + noiseVal * noiseOffset) * ${UV_SCALE};
-    color      += weights[${MAT_I}] * materialAlbedo(${MAT_I}, blending, xz, yz, xy);
-    blendedNor += weights[${MAT_I}] * materialNormal(${MAT_I}, blending, xz, yz, xy);
+    color      += weights_${MAT_I} * materialAlbedo(${MAT_I}, blending, xz, yz, xy);
+    blendedNor += weights_${MAT_I} * materialNormal(${MAT_I}, blending, xz, yz, xy);
     #endfor
 #else
     #for MAT_I to NUM_MATERIALS
@@ -274,14 +291,17 @@ void customFragmentMapping(in vec3 worldPos, inout vec4 outColor, inout vec3 out
     xz = worldPos.xz * ${UV_SCALE};
     yz = worldPos.yz * ${UV_SCALE};
     xy = worldPos.xy * ${UV_SCALE};
-    color      += weights[${MAT_I}] * materialAlbedo(${MAT_I}, blending, xz, yz, xy);
-    blendedNor += weights[${MAT_I}] * materialNormal(${MAT_I}, blending, xz, yz, xy);
+    color      += weights_${MAT_I} * materialAlbedo(${MAT_I}, blending, xz, yz, xy);
+    blendedNor += weights_${MAT_I} * materialNormal(${MAT_I}, blending, xz, yz, xy);
     #endfor
 #endif
+
     // apply bumped normal, or fallback to base normal
     float blendedNorLength = length(blendedNor);
     blendedNor /= max(blendedNorLength, 0.001);
-    blendedNor  = mix(baseNor, normalize(TBN * blendedNor), step(0.001, blendedNorLength));
+    blendedNor  = mix(baseNor,
+            normalize(TBN * blendedNor),
+            step(0.001, blendedNorLength));
 #ifdef HAS_noiseTexture
     // adjust color based on noise
     color *= mix(vec3(1.0), vec3(0.5), noiseVal * 0.4);
