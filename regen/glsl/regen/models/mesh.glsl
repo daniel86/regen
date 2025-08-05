@@ -20,6 +20,11 @@
 
 -- vs
 #include regen.models.mesh.defines
+#ifdef ARB_shader_viewport_layer_array
+    #ifndef USE_GS_LAYERED_RENDERING
+#extension GL_ARB_shader_viewport_layer_array : require
+    #endif
+#endif
 
 in vec3 in_pos;
 #ifdef HAS_nor
@@ -39,9 +44,17 @@ out vec3 out_posEye;
 #ifdef HAS_nor
 out vec3 out_norWorld;
 #endif
+
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
 #endif
+#if RENDER_LAYER > 1
+    #ifndef USE_GS_LAYERED_RENDERING
+flat out int out_layer;
+#define in_layer regen_RenderLayer()
+    #endif
+#endif
+
 #ifndef HAS_TESSELATION
     #ifdef HAS_VERTEX_MASK_MAP
 out float out_mask;
@@ -79,6 +92,7 @@ out float out_mask;
 #endif
 
 void main() {
+    int layer = regen_RenderLayer();
     vec3 posModel = in_pos.xyz;
 #ifdef HAS_nor
     vec3 norModel = in_nor.xyz;
@@ -101,7 +115,7 @@ void main() {
 #endif
 #ifndef HAS_TESSELATION
     // allow textures to modify position/normal
-    textureMappingVertex(posWorld.xyz,norWorld,0);
+    textureMappingVertex(posWorld.xyz,norWorld,layer);
 #endif // HAS_TESSELATION
 
     // let custom functions modify position/normal in world space
@@ -116,8 +130,8 @@ void main() {
     out_norWorld = norWorld;
 #endif
 #ifdef VS_CAMERA_TRANSFORM
-    vec4 posEye  = transformWorldToEye(posWorld,0);
-    gl_Position  = transformEyeToScreen(posEye,0);
+    vec4 posEye  = transformWorldToEye(posWorld,layer);
+    gl_Position  = transformEyeToScreen(posEye,layer);
     out_posWorld = posWorld.xyz;
     out_posEye   = posEye.xyz;
 #else
@@ -132,6 +146,14 @@ void main() {
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
+#if RENDER_LAYER > 1
+    #ifndef USE_GS_LAYERED_RENDERING
+    out_layer = layer;
+        #ifdef ARB_shader_viewport_layer_array
+    gl_Layer = layer;
+        #endif // ARB_shader_viewport_layer_array
+    #endif // USE_GS_LAYERED_RENDERING
+#endif // RENDER_LAYER > 1
 
     HANDLE_IO(gl_VertexID);
 }
@@ -222,41 +244,55 @@ void main() {
 #include regen.states.camera.defines
 #include regen.defines.all
 #if RENDER_LAYER > 1
+    // toggle on GS for layered rendering if requested
+    // (better use indirect rendering with gl_DrawID!)
+    #ifdef USE_GS_LAYERED_RENDERING
+        #ifndef USE_GEOMETRY_SHADER
 #define USE_GEOMETRY_SHADER
+        #endif
+    #endif
+    // toggle on GS for writing to gl_Layer
+    #ifndef ARB_shader_viewport_layer_array
+        #ifndef USE_GEOMETRY_SHADER
+#define USE_GEOMETRY_SHADER
+        #endif
+    #endif
 #endif
 
 #ifdef USE_GEOMETRY_SHADER
-#define2 GS_MAX_VERTICES ${${RENDER_LAYER}*3}
 layout(triangles) in;
+#ifdef USE_GS_LAYERED_RENDERING
+#define2 GS_MAX_VERTICES ${${RENDER_LAYER}*3}
 layout(triangle_strip, max_vertices=${GS_MAX_VERTICES}) out;
+#else
+layout(triangle_strip, max_vertices=3) out;
+#endif
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
 #if RENDER_LAYER > 1
+#ifdef USE_GS_LAYERED_RENDERING
 flat out int out_layer;
+#endif
 #endif
 
 #include regen.states.camera.input
+#ifdef HAS_GS_TRANSFORM
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
+#endif
 
 #define HANDLE_IO(i)
 
-#ifndef COMPUTE_LAYER_VISIBILITY
-    #if RENDER_TARGET == INSTANCE_SELF || RENDER_TARGET == INSTANCE_OTHER
-#define COMPUTE_LAYER_VISIBILITY
-    #endif
-    #if RENDER_TARGET == INSTANCE_SELF || RENDER_TARGET == INSTANCE_OTHER
-#define COMPUTE_LAYER_VISIBILITY
-    #endif
-#endif
-#include regen.layered.gs.computeVisibleLayers
-
 void emitVertex(vec4 posWorld, int index, int layer) {
+#ifdef HAS_GS_TRANSFORM
     vec4 posEye = transformWorldToEye(posWorld,layer);
     out_posWorld = posWorld.xyz;
     out_posEye = posEye.xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
+#else
+    gl_Position = posWorld;
+#endif
     HANDLE_IO(index);
     EmitVertex();
 }
@@ -264,7 +300,9 @@ void emitVertex(vec4 posWorld, int index, int layer) {
 void emit(int layer) {
     #if RENDER_LAYER > 1
     gl_Layer = layer;
+#ifdef USE_GS_LAYERED_RENDERING
     out_layer = layer;
+#endif
     #endif
     emitVertex(gl_in[0].gl_Position, 0, layer);
     emitVertex(gl_in[1].gl_Position, 1, layer);
@@ -273,22 +311,19 @@ void emit(int layer) {
 }
 
 void main() {
-#ifdef COMPUTE_LAYER_VISIBILITY
-    bool visibleLayers[RENDER_LAYER];
-    computeVisibleLayers(visibleLayers);
-#endif
-#for LAYER to ${RENDER_LAYER}
+#ifdef USE_GS_LAYERED_RENDERING
+    #for LAYER to ${RENDER_LAYER}
     #ifndef SKIP_LAYER${LAYER}
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    if (visibleLayers[${LAYER}]) {
-        #endif // COMPUTE_LAYER_VISIBILITY
-        // select framebuffer layer
-        emit(${LAYER});
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    }
-        #endif // COMPUTE_LAYER_VISIBILITY
+    emit(${LAYER});
     #endif // SKIP_LAYER
-#endfor
+    #endfor
+#else
+    #if RENDER_LAYER > 1
+    emit(in_layer[0]);
+    #else
+    emit(0);
+    #endif
+#endif
 }
 #endif
 

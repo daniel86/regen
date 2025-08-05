@@ -28,6 +28,8 @@ StateConfigurer::StateConfigurer(const StateConfig &cfg)
 
 StateConfigurer::StateConfigurer()
 		: numLights_(0) {
+	static const bool has_ARB_shader_viewport_layer_array =
+		glewIsSupported("GL_ARB_shader_viewport_layer_array");
 	// default is using separate attributes.
 	cfg_.feedbackMode_ = GL_SEPARATE_ATTRIBS;
 	cfg_.feedbackStage_ = GL_VERTEX_SHADER;
@@ -35,6 +37,10 @@ StateConfigurer::StateConfigurer()
 	cfg_.setVersion(460);
 	// initially no lights added
 	define("NUM_LIGHTS", "0");
+	if (has_ARB_shader_viewport_layer_array) {
+		// enable layer rendering in vertex shader
+		define("ARB_shader_viewport_layer_array", "TRUE");
+	}
 }
 
 StateConfig &StateConfigurer::cfg() { return cfg_; }

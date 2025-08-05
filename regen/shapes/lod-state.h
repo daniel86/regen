@@ -27,6 +27,12 @@ namespace regen {
 		~LODState() override = default;
 
 		/**
+		 * @brief Get the number of render layers from the camera.
+		 * @return The number of render layers
+		 */
+		uint32_t numDrawLayers() const { return camera_->numLayer(); }
+
+		/**
 		 * @brief Set the instance sorting
 		 * @param instanceSorting The instance sorting
 		 */
@@ -88,10 +94,10 @@ namespace regen {
 		struct IndirectDrawData {
 			// The current draw commands for the mesh part.
 			// Only maintained in case of CPU-based LOD update.
-			std::array<DrawCommand, 4> current;
+			std::vector<DrawCommand> current; // size: 4 * numIndirectLayers()
 			// The draw commands for the mesh part that are used to clear the indirect draw buffer
 			// to zero before the LOD computation.
-			std::array<DrawCommand, 4> clear;
+			std::vector<DrawCommand> clear; // size: 4 * numIndirectLayers()
 		};
 		std::vector<IndirectDrawData> indirectDrawData_;
 
@@ -106,8 +112,6 @@ namespace regen {
 		void createIndirectDrawBuffers();
 
 		ref_ptr<SSBO> createIndirectDrawBuffer(uint32_t partIdx);
-
-		void updateMeshLOD();
 
 		void updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset);
 

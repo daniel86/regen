@@ -254,8 +254,12 @@ namespace regen {
 		 * Sets the indirect draw buffer.
 		 * @param indirectDrawBuffer the indirect draw buffer.
 		 * @param baseDrawIdx base draw index.
+		 * @param numDrawLayers number of draw layers for each LOD level.
 		 */
-		void setIndirectDrawBuffer(const ref_ptr<SSBO> &indirectDrawBuffer, uint32_t baseDrawIdx = 0u);
+		void setIndirectDrawBuffer(
+					const ref_ptr<SSBO> &indirectDrawBuffer,
+					uint32_t baseDrawIdx,
+					uint32_t numDrawLayers);
 
 		/**
 		 * @return true if this input container has an index buffer.
@@ -323,6 +327,11 @@ namespace regen {
 		 * Activate given LOD level.
 		 */
 		void activateLOD(uint32_t lodLevel);
+
+		/**
+		 * Ensure the mesh has at least one LOD level.
+		 */
+		void ensureLOD();
 
 		/**
 		 * Update the visibility of instances for the given LOD level.
@@ -650,6 +659,7 @@ namespace regen {
 
 		// indirect draw buffer data
 		uint32_t baseDrawIdx_ = 0u;
+		uint32_t numDrawLayers_ = 1u;
 		int32_t multiDrawCount_ = 1u;
 		uint32_t indirectOffset_ = 0u;
 		ref_ptr<SSBO> indirectDrawBuffer_;
@@ -686,7 +696,7 @@ namespace regen {
 
 		void drawMesh(RenderState *rs);
 
-		void drawMeshLOD(RenderState *rs, uint32_t lodLevel, int32_t multiDrawCount);
+		void drawMeshLOD(RenderState *rs, uint32_t lodLevel, uint32_t drawIdx, int32_t multiDrawCount);
 
 		void activateLOD_(uint32_t lodLevel);
 

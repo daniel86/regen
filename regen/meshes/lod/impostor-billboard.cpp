@@ -206,6 +206,7 @@ void ImpostorBillboard::createResources() {
 		meshConfigurer.addState(viewMesh.meshOrig.get());
 		meshConfigurer.addState(viewMesh.meshCopy.get());
 		meshConfigurer.define("NUM_IMPOSTOR_VIEWS", REGEN_STRING(numSnapshotViews_));
+		meshConfigurer.define("USE_GS_LAYERED_RENDERING", "TRUE");
 		viewMesh.shaderState->createShader(meshConfigurer.cfg(), snapshotShaderKey_);
 
 		viewMesh.meshCopy->joinStates(viewMesh.shaderState);

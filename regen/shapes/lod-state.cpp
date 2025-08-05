@@ -108,6 +108,11 @@ void LODState::initLODState() {
 		createInstanceBuffer();
 		// Create indirect draw buffers for each mesh part and LOD.
 		createIndirectDrawBuffers();
+	} else if (camera_->numLayer()>1) {
+		// we also need indirect draw buffers for multi-layer rendering
+		REGEN_INFO("Switching to indirect draw for shape '" << cullShape_->shapeName()
+					   << "' with " << camera_->numLayer() << " layers.");
+		createIndirectDrawBuffers();
 	}
 
 	if (cullShape_->isIndexShape()) {
@@ -169,13 +174,15 @@ void LODState::createInstanceBuffer() {
 }
 
 ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
+	const uint32_t numLayers = camera_->numLayer();
 	auto buffer = ref_ptr<DrawIndirectBuffer>::alloc(
 			"IndirectDrawBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME);
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-			"DrawCommand", "drawParams", 4);
+			"DrawCommand", "drawParams", 4 * numLayers);
 	if (cullShape_->isIndexShape()) {
-		input->setInstanceData(1, 1, (byte*)indirectDrawData_[partIdx].current.data());
+		input->setInstanceData(1, 1,
+			(byte*)indirectDrawData_[partIdx].current.data());
 	}
 	buffer->addBlockInput(input);
 	buffer->update();
@@ -187,6 +194,7 @@ ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
 
 void LODState::createIndirectDrawBuffers() {
 	const uint32_t numParts = cullShape_->parts().size();
+	const uint32_t numLayers = camera_->numLayer();
 
 	indirectDrawBuffers_.resize(numParts);
 	indirectDrawData_.resize(numParts);
@@ -196,9 +204,15 @@ void LODState::createIndirectDrawBuffers() {
 		auto &partLODs = part->meshLODs();
 		auto &drawData = indirectDrawData_[partIdx];
 
-		// create the indirect draw data for this part
+		drawData.current.resize(4 * numLayers);
+		drawData.clear.resize(4 * numLayers);
+
+		// Create the indirect draw data for this part and the first layer.
+		// DrawID order: LOD0_layer0, LOD0_layer1, LOD0_layer2
+		// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
 		for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
-			DrawCommand &drawParams = drawData.current[lodIdx];
+			const uint32_t lodStartIdx = lodIdx * numLayers;
+			DrawCommand &drawParams = drawData.current[lodStartIdx];
 			if (lodIdx < part->numLODs()) {
 				auto &lodData = partLODs[lodIdx];
 				Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : part.get();
@@ -223,25 +237,28 @@ void LODState::createIndirectDrawBuffers() {
 
 			// Set the clear draw command to zero instance count.
 			std::memcpy(
-				&drawData.clear[lodIdx],
+				&drawData.clear[lodIdx * numLayers],
 				&drawParams,
 				sizeof(DrawCommand));
 			drawData.clear[lodIdx].setInstanceCount(0);
+
+			// Copy over the data for the remaining layers.
+			for (uint32_t layerIdx = 1; layerIdx < numLayers; ++layerIdx) {
+				const uint32_t lodLayerIdx = lodStartIdx + layerIdx;
+				std::memcpy(
+					&drawData.current[lodLayerIdx],
+					&drawData.current[lodStartIdx],
+					sizeof(DrawCommand));
+				std::memcpy(
+					&drawData.clear[lodLayerIdx],
+					&drawData.clear[lodStartIdx],
+					sizeof(DrawCommand));
+			}
 		}
 
 		// finally create the indirect draw buffer for this part
 		indirectDrawBuffers_[partIdx] = createIndirectDrawBuffer(partIdx);
 	}
-}
-
-void LODState::updateMeshLOD() {
-	if (!mesh_.get()) { return; }
-	// set LOD level based on distance
-	const Vec3f &camPos = camera_->position(0);
-	const float distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
-	updateVisibility(
-			mesh_->getLODLevel(distanceSquared),
-			1, 0);
 }
 
 static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels) {
@@ -275,9 +292,17 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 
 		if (!indirectDrawBuffers_.empty()) {
 			// write into local storage buffer
-			auto &drawParams = indirectDrawData_[partIdx].current[partLODLevel];
+			const uint32_t lodStartIdx = partLODLevel * camera_->numLayer();
+			auto &current = indirectDrawData_[partIdx].current;
+			auto &drawParams = current[lodStartIdx];
 			drawParams.setInstanceCount(numVisibleInstances);
 			drawParams.setBaseInstance(baseInstance);
+			// Update draw commands for the other layers too.
+			for (uint32_t layerIdx = 1; layerIdx < camera_->numLayer(); ++layerIdx) {
+				auto &drawParamsLayer = current[lodStartIdx + layerIdx];
+				drawParamsLayer.setInstanceCount(numVisibleInstances);
+				drawParamsLayer.setBaseInstance(baseInstance);
+			}
 		}
 	}
 }
@@ -432,8 +457,12 @@ void LODState::traverseCPU() {
 		return;
 	}
 	if (cullShape_->numInstances() == 1) {
-		if (shapeIndex_->isVisible()) {
-			updateMeshLOD();
+		if (shapeIndex_->isVisible() && mesh_.get()) {
+			// set LOD level based on distance
+			const Vec3f &camPos = camera_->position(0);
+			const float distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
+			const uint32_t activeLOD = mesh_->getLODLevel(distanceSquared);
+			updateVisibility(activeLOD, 1, 0);
 		}
 	} else if (camera_->hasFixedLOD()) {
 		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);
@@ -457,25 +486,24 @@ void LODState::traverseCPU() {
 				}
 			}
 		}
+	}
 
-		if (!indirectDrawBuffers_.empty()) {
-			for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
-				auto &indirectBuffer = indirectDrawBuffers_[partIdx];
-				auto &indirectData = indirectDrawData_[partIdx];
+	if (!indirectDrawBuffers_.empty()) {
+		for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
+			auto &indirectBuffer = indirectDrawBuffers_[partIdx];
+			auto &indirectData = indirectDrawData_[partIdx];
 
-				if (indirectBuffer->hasClientData()) {
-					// also reset the client data buffer.
-					// This is done in case not all draw buffers are updated this frame using updateVisibility.
-					auto mapped = indirectBuffer->mapClientData<DrawCommand>(
-							BUFFER_GPU_WRITE, 0, indirectBuffer->inputSize());
-					std::memcpy(
-						mapped.w.data(),
-						indirectData.current.data(),
-						indirectBuffer->inputSize());
-				}
+			if (indirectBuffer->hasClientData()) {
+				// also reset the client data buffer.
+				// This is done in case not all draw buffers are updated this frame using updateVisibility.
+				auto mapped = indirectBuffer->mapClientData<DrawCommand>(
+						BUFFER_GPU_WRITE, 0, indirectBuffer->inputSize());
+				std::memcpy(
+					mapped.w.data(),
+					indirectData.current.data(),
+					indirectBuffer->inputSize());
 			}
 		}
-
 	}
 }
 
@@ -631,7 +659,7 @@ void LODState::createComputeShader() {
 		// first indirect draw buffer each frame.
 		auto clearData = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 					"DrawCommand", "drawParams", 4);
-		clearData->setUniformUntyped((byte*)indirectDrawData_[0].clear.data());
+		clearData->setUniformUntyped((byte*)indirectDrawData_[0].clear.data()); // FIXME: data idx
 		clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
 			"Clear_IndirectDrawBuffer",
 			BufferUpdateFlags::NEVER,

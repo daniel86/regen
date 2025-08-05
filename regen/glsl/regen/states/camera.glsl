@@ -1,20 +1,35 @@
 
 -- defines
+#ifndef CAMERA_defines_defined_
+#define2 CAMERA_defines_defined_
 #ifndef RENDER_LAYER
 #define RENDER_LAYER 1
 #endif
 #ifndef RENDER_TARGET
 #define RENDER_TARGET 2D
 #endif
-#if RENDER_LAYER == 1
 #ifndef HAS_TESSELATION
     #ifndef HAS_GS_TRANSFORM
+        #ifdef USE_GS_LAYERED_RENDERING
+            #if RENDER_LAYER == 1
 #define VS_CAMERA_TRANSFORM
+            #endif
+        #else
+#define VS_CAMERA_TRANSFORM
+        #endif
+    #endif
+#endif
+#ifdef USE_GS_LAYERED_RENDERING
+    #ifndef HAS_GS_TRANSFORM
+        #if RENDER_LAYER > 1
+#define HAS_GS_TRANSFORM
+        #endif
     #endif
 #endif
 #if SHADER_STAGE == tes
 #define TES_CAMERA_TRANSFORM
 #endif
+#if RENDER_LAYER == 1
 #define in_layer 0
 #endif // RENDER_LAYER == 1
 // Macros for Layered Camera access
@@ -73,6 +88,7 @@
 // ignoring view rotation or translation, or using a view-aligned ground quad
 #define SEPERATE_VIEW_PROJ
 #endif
+#endif // CAMERA_defines_defined_
 
 -- input
 #ifndef REGEN_camera_input_INCLUDED

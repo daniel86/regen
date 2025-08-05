@@ -66,6 +66,7 @@ void MeshNodeProvider::processInput(
 			meshCopy->set_primitive(glenum::primitive(input.getValue("primitive")));
 		}
 		meshCopy->set_lodSortMode(SortMode::FRONT_TO_BACK);
+		meshCopy->ensureLOD();
 		StateConfigurer meshConfigurer;
 		auto meshNode = ref_ptr<StateNode>::alloc();
 		meshNode->set_name("base-mesh");
@@ -100,7 +101,9 @@ void MeshNodeProvider::processInput(
 							meshCopy->setInstanceBuffer(lodState->instanceBuffer());
 							if (lodState->hasIndirectDrawBuffers()) {
 								meshCopy->setIndirectDrawBuffer(
-									lodState->indirectDrawBuffer(partIdx), 0u);
+									lodState->indirectDrawBuffer(partIdx),
+									0u,
+									lodState->numDrawLayers());
 							}
 						}
 						// set sorting mode
@@ -127,7 +130,9 @@ void MeshNodeProvider::processInput(
 						}
 						if (shapeIndex->hasIndirectDrawBuffers()) {
 							auto dibo = shapeIndex->indirectDrawBuffer(partIdx);
-							meshCopy->setIndirectDrawBuffer(dibo, 0u);
+							meshCopy->setIndirectDrawBuffer(
+									dibo, 0u,
+									cam->numLayer());
 						}
 						meshCopy->set_lodSortMode(shapeIndex->instanceSortMode());
 					}

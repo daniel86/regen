@@ -61,15 +61,23 @@ uint selectViewIdx(vec3 viewDirLocal) {
  **/
 -- vs
 #include regen.models.mesh.defines
+#ifdef USE_GS_LAYERED_RENDERING
+#error "GS layered rendering not supported for impostors. Use indirect rendering instead."
+#endif
 
 in vec3 in_pos;
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
 #endif
+#if RENDER_LAYER > 1
+flat out int out_layer;
+#define in_layer regen_RenderLayer()
+#endif
 
 #define HANDLE_IO(i)
 
 void main() {
+    int layer = regen_RenderLayer();
     vec4 pos = vec4(in_pos,1.0);
 #ifdef HAS_modelOrigin
     // Translate the center of the quad to the center of the original mesh,
@@ -86,21 +94,23 @@ void main() {
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
+#if RENDER_LAYER > 1
+    out_layer = layer;
+#endif
     HANDLE_IO(gl_VertexID);
 }
 
 -- gs
 #include regen.models.mesh.defines
-#define2 REGEN_MAX_VERTICES ${${RENDER_LAYER}*6}
 
 layout(points) in;
-layout(triangle_strip, max_vertices=${REGEN_MAX_VERTICES}) out;
+layout(triangle_strip, max_vertices=6) out;
 
 #include regen.states.camera.input
-
-#if RENDER_LAYER > 1
-flat out int out_layer;
+#ifdef USE_GS_LAYERED_RENDERING
+#error "GS layered rendering not supported for impostors. Use indirect rendering instead."
 #endif
+
 flat out uint out_impostorIdx;
 
 out vec3 out_texco0;
@@ -117,7 +127,6 @@ const float in_depthOffset = 0.5f;
 #include regen.states.camera.transformEyeToWorld
 #include regen.states.camera.transformWorldToEye
 #include regen.math.computeSpritePoints
-#include regen.layered.gs.computeVisibleLayers
 #include regen.models.impostor.selectViewIdx
 
 #ifdef HAS_windFlow
@@ -179,9 +188,6 @@ void emitLayer(int layer, float scale) {
 #endif
 
     // Emit the quad as two triangles.
-#if RENDER_LAYER > 1
-    out_layer = layer;
-#endif
     out_impostorIdx = viewIdx;
     // bottom-left, top-left, bottom-right
     emitVertex(vec4(quadPos[2],1.0), vec3(1.0,0.0,viewCoord), layer);
@@ -195,6 +201,9 @@ void emitLayer(int layer, float scale) {
     EndPrimitive();
 }
 
+// TODO: Consider not using a geometry shader.
+//    - either only set gl_Layer, or do that in VS
+//    - move the impostor computation to the vertex shader
 void main() {
 #ifdef HAS_modelMatrix
     // the original mesh might be scaled on per-instance basis
@@ -202,24 +211,13 @@ void main() {
 #else
     float scale = 1.0;
 #endif
-#ifdef COMPUTE_LAYER_VISIBILITY
-    bool visibleLayers[RENDER_LAYER];
-    computeVisibleLayers(visibleLayers);
+#if RENDER_LAYER > 1
+    int layer = in_layer[0];
+    gl_Layer = layer;
+#else
+    int layer = 0;
 #endif
-#for LAYER to ${RENDER_LAYER}
-    #ifndef SKIP_LAYER${LAYER}
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    if (visibleLayers[${LAYER}]) {
-        #endif // COMPUTE_LAYER_VISIBILITY
-        #if RENDER_LAYER > 1
-        gl_Layer = ${LAYER};
-        #endif
-        emitLayer(${LAYER}, scale);
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    }
-        #endif // COMPUTE_LAYER_VISIBILITY
-    #endif
-#endfor
+    emitLayer(layer, scale);
 }
 
 -- fs

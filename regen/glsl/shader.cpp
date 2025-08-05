@@ -64,6 +64,7 @@ void Shader::preProcess(
 		}
 	}
 	header << "#include regen.defines.regen_InstanceID" << std::endl;
+	header << "#include regen.defines.regen_RenderLayer" << std::endl;
 	for (const auto &path: cfg.includes) {
 		header << "#include " << path << std::endl;
 	}

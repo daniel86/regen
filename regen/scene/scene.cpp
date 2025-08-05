@@ -69,6 +69,7 @@ Scene::Scene(const int &argc, const char **argv)
 	optionalExt_.emplace_back("GL_ARB_seamless_cube_map");
 	optionalExt_.emplace_back("GL_ARB_tessellation_shader");
 	optionalExt_.emplace_back("GL_ARB_texture_buffer_range");
+	optionalExt_.emplace_back("GL_ARB_shader_viewport_layer_array");
 }
 
 void Scene::addShaderPath(const std::string &path) {
