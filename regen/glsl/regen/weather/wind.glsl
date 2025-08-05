@@ -49,13 +49,18 @@ vec2 windAtPosition(vec3 posWorld)
 -- wavingQuad.gs
 #include regen.states.camera.defines
 #include regen.defines.all
-#define2 GS_MAX_VERTICES ${${RENDER_LAYER}*3}
 layout(triangles) in;
-layout(triangle_strip, max_vertices=${GS_MAX_VERTICES}) out;
+layout(triangle_strip, max_vertices=3) out;
+#ifdef USE_GS_LAYERED_RENDERING
+#error "Using geometry shader layered rendering is not supported for waving quads."
+#endif
 
 in vec2 in_texco0[ ];
 out vec3 out_posWorld;
 out vec3 out_posEye;
+#if RENDER_LAYER > 1
+flat in int in_layer[ ];
+#endif
 flat out int out_layer;
 
 #include regen.states.camera.input
@@ -64,7 +69,6 @@ flat out int out_layer;
 
 #include regen.models.sprite.applyForce
 #include regen.weather.wind.windAtPosition
-#include regen.layered.gs.computeVisibleLayers
 
 #define HANDLE_IO(i)
 
@@ -73,6 +77,10 @@ void emitVertex(vec3 posWorld, int index, int layer) {
     out_posWorld = posWorld.xyz;
     out_posEye = posEye.xyz;
     gl_Position = transformEyeToScreen(posEye,layer);
+    #if RENDER_LAYER > 1
+    gl_Layer = layer;
+    #endif
+    out_layer = layer;
     HANDLE_IO(index);
     // TODO: also rotate the normal
     EmitVertex();
@@ -123,22 +131,9 @@ void wavingQuad(int layer) {
 }
 
 void main() {
-#ifdef COMPUTE_LAYER_VISIBILITY
-    bool visibleLayers[RENDER_LAYER];
-    computeVisibleLayers(visibleLayers);
-#endif
-#for LAYER to ${RENDER_LAYER}
-    #ifndef SKIP_LAYER${LAYER}
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    if (visibleLayers[${LAYER}]) {
-        #endif // COMPUTE_LAYER_VISIBILITY
-        // select framebuffer layer
-        gl_Layer = ${LAYER};
-        out_layer = ${LAYER};
-        wavingQuad(${LAYER});
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    }
-        #endif // COMPUTE_LAYER_VISIBILITY
-    #endif // SKIP_LAYER
-#endfor
+    #if RENDER_LAYER > 1
+    wavingQuad(in_layer[0]);
+    #else
+    wavingQuad(0);
+    #endif
 }
