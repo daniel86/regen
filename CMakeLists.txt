@@ -2,11 +2,22 @@ cmake_minimum_required(VERSION 3.5)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
+    add_definitions( -O2 )
 endif()
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(REGEN_DEBUG_BUILD 1)
+elseif(${CMAKE_BUILD_TYPE} STREQUAL "Profile")
+    # Address and UndefinedBehavior sanitizer
+    set(SANITIZE_FLAGS "-fsanitize=address,undefined -fno-omit-frame-pointer -g -O1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SANITIZE_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SANITIZE_FLAGS}")
+    if(ENABLE_TSAN)
+        set(SANITIZE_FLAGS "-fsanitize=thread -fno-omit-frame-pointer -g -O1")
+    endif()
+    add_link_options(-fsanitize=address,undefined)
 else()
 	set(REGEN_DEBUG_BUILD 0)
+    add_definitions( -O2 )
 endif()
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}.")
 
@@ -48,9 +59,6 @@ endif()
 # warns about C++ code which breaks some of the programming guidelines
 # given in the books "Effective C++" and "More Effective C++"
 # add_definitions( -Weffc++ )
-
-# optimization level
-add_definitions( -O2 )
 
 if(UNIX) # gcc options
     add_definitions( -mfpmath=sse -march=native )
