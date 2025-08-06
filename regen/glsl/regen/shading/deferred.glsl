@@ -550,3 +550,35 @@ void main() {
 -- spot.fs
 #define IS_SPOT_LIGHT
 #include regen.shading.deferred.local.fs
+
+--------------------------------------
+--------------------------------------
+---- Ambient Light Shading. Input mesh should be a unit-quad.
+--------------------------------------
+--------------------------------------
+-- ambient.vs
+#include regen.filter.sampling.vs
+-- ambient.gs
+#include regen.filter.sampling.gs
+-- ambient.fs
+#include regen.states.camera.defines
+
+out vec4 out_color;
+
+uniform sampler2D in_gDepthTexture;
+uniform sampler2D in_gNorWorldTexture;
+uniform sampler2D in_gDiffuseTexture;
+
+uniform vec3 in_lightAmbient;
+
+#include regen.filter.sampling.computeTexco
+#include regen.shading.deferred.fetchNormal
+
+void main() {
+    vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
+    vecTexco texco = computeTexco(texco_2D);
+
+    vec3 N = fetchNormal(in_gNorWorldTexture,texco);
+    vec4 diff = texture(in_gDiffuseTexture,texco);
+    out_color.rgb = diff.rgb*in_lightAmbient + diff.rgb;
+}
