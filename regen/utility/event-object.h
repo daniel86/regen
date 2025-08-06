@@ -25,10 +25,11 @@ namespace regen {
 	 */
 	class EventData {
 	public:
+		virtual ~EventData() = default;
 		/**
 		 * The event identification number.
 		 */
-		unsigned int eventID;
+		unsigned int eventID = 0u;
 	};
 } // namespace
 

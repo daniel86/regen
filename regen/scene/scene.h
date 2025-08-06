@@ -48,6 +48,7 @@ namespace regen {
 		/** keyboard event data. */
 		class KeyEvent : public EventData {
 		public:
+			~KeyEvent() override = default;
 			/** key up or down ?. */
 			GLboolean isUp;
 			/** mouse x position. */
@@ -64,6 +65,7 @@ namespace regen {
 		/** mouse button event data. */
 		class ButtonEvent : public EventData {
 		public:
+			~ButtonEvent() override = default;
 			/** pressed or released? */
 			GLboolean pressed;
 			/** is it a double click event? */
@@ -82,6 +84,7 @@ namespace regen {
 		/** mouse motion event data. */
 		class MouseMotionEvent : public EventData {
 		public:
+			~MouseMotionEvent() override = default;
 			/** time difference to last motion event. */
 			GLdouble dt;
 			/** mouse x position difference */
@@ -96,6 +99,7 @@ namespace regen {
 		/** mouse left/entered the window. */
 		class MouseLeaveEvent : public EventData {
 		public:
+			~MouseLeaveEvent() override = default;
 			/** mouse left/entered the window. */
 			GLboolean entered;
 		};
