@@ -133,10 +133,16 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 	if (dynamic_cast<TextureCube *>(input_.get())) {
 		shaderDefine("RENDER_LAYER", "6");
 		shaderDefine("RENDER_TARGET", "CUBE");
+		// TODO: Support layered rendering in filter sequences without geometry shader.
+		//		- Best option: Use indirect draw buffer. Then do not define USE_GS_LAYERED_RENDERING.
+		REGEN_WARN("Filter sequence with non-2D texture still uses GS and might be slow.");
+		shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 	} else if (dynamic_cast<Texture3D *>(input_.get())) {
 		auto *tex3D = (Texture3D *) input_.get();
 		shaderDefine("RENDER_LAYER", REGEN_STRING(tex3D->depth()));
 		shaderDefine("RENDER_TARGET", "2D_ARRAY");
+		REGEN_WARN("Filter sequence with non-2D texture still uses GS and might be slow.");
+		shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 	} else {
 		shaderDefine("RENDER_LAYER", "1");
 		shaderDefine("RENDER_TARGET", "2D");
