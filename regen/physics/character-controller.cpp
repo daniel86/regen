@@ -102,7 +102,7 @@ void CharacterController::setMaxSlope(GLfloat maxSlope) {
 }
 
 bool CharacterController::initializePhysics() {
-	if (!attachedToTransform_.get()) {
+	if (!attachedToTransform_.get() || !bt_.get()) {
 		return false;
 	}
 
