@@ -225,7 +225,7 @@
         <define key="IS_PARABOLOID_DUAL" value="TRUE"/>
         <define key="SHADING" value="NONE"/>
         <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-        <input name="ReflectionCamera" state="reflection-camera" component="Camera" input-suffix="_Reflection"/>
+        <input name="ReflectionCamera" state="paraboloid-camera" component="Camera" input-suffix="_Reflection"/>
         <texture fbo="paraboloid-reflection-buffer" attachment="1"
                  map-to="COLOR"
                  blend-mode="SRC"
@@ -235,10 +235,11 @@
 
     <node id="Paraboloid-Reflection-Update">
         <camera id="paraboloid-camera"/>
-        <fbo id="paraboloid-reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
         <node>
             <depth test="1" write="1"/>
-            <fbo id="paraboloid-reflection-buffer" draw-buffers="0,1,2,3"/>
+            <fbo id="paraboloid-reflection-buffer"
+                    clear-buffers="0,1,2,3" clear-depth="1"
+                    draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster"/>
             <node import="Scene-Geometry"/>
         </node>
