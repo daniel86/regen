@@ -51,8 +51,10 @@ vec2 windAtPosition(vec3 posWorld)
 #include regen.defines.all
 layout(triangles) in;
 layout(triangle_strip, max_vertices=3) out;
-#ifdef USE_GS_LAYERED_RENDERING
+#if RENDER_LAYER > 1
+    #ifdef USE_GS_LAYERED_RENDERING
 #error "Using geometry shader layered rendering is not supported for waving quads."
+    #endif
 #endif
 
 in vec2 in_texco0[ ];
