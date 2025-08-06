@@ -40,6 +40,8 @@ SkyBox::SkyBox(GLuint levelOfDetail, const std::string &shaderKey)
 	joinStates(shaderState());
 
 	shaderDefine("IGNORE_VIEW_TRANSLATION", "TRUE");
+	// FIXME: support this better
+	shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 }
 
 void SkyBox::setCubeMap(const ref_ptr<TextureCube> &cubeMap) {

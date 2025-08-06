@@ -9,10 +9,14 @@
 #define HANDLE_IO(i)
 void emitVertex(vec3 pos, int index, int layer) {
     vec4 posWorld = vec4(normalize(pos),1.0);
-    out_posWorld = posWorld;
-    out_posEye = transformWorldToEye(posWorld,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
-    gl_Position.z = gl_Position.w;
+#ifdef VS_CAMERA_TRANSFORM
+    out_posWorld = posWorld.xyz;
+    vec4 posEye = transformWorldToEye(posWorld,layer);
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
+#else
+    gl_Position = posWorld;
+#endif
     VS_SelectLayer(layer);
     HANDLE_IO(index);
 }
@@ -28,11 +32,12 @@ flat out int out_layer;
 #endif
 #include regen.layered.VS_SelectLayer
 
-out vec4 out_posWorld;
-out vec4 out_posEye;
-
+#ifdef VS_CAMERA_TRANSFORM
+out vec3 out_posWorld;
+out vec3 out_posEye;
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen
+#endif
 
 -- vs
 #include regen.models.sky-box.vs_include

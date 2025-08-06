@@ -20,6 +20,8 @@ StarMap::StarMap(const ref_ptr<Sky> &sky, GLint levelOfDetail)
 	set_apparentMagnitude(6.5);
 
 	meshState_ = ref_ptr<SkyBox>::alloc(levelOfDetail, "regen.weather.star-map");
+	// FIXME: support this better
+	meshState_->shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 }
 
 float StarMap::defaultScattering() {

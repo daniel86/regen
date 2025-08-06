@@ -97,8 +97,8 @@ layout(triangle_strip, max_vertices=4) out;
 in vec3 in_pos[1];
 in vec3 in_velocity[1];
 
-out vec4 out_posEye;
-out vec4 out_posWorld;
+out vec3 out_posEye;
+out vec3 out_posWorld;
 out vec2 out_spriteTexco;
 flat out int out_layer;
 
@@ -117,9 +117,10 @@ void emitVertex(vec2 texco, vec3 posWorld, int layer, int vertexID)
 {
     out_layer = 0;
     out_spriteTexco = texco;
-    out_posWorld = vec4(posWorld,1.0);
-    out_posEye = transformWorldToEye(out_posWorld,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
+    out_posWorld = posWorld;
+    vec4 posEye = transformWorldToEye(out_posWorld,layer);
+    out_posEye = posEye.xyz;
+    gl_Position = transformEyeToScreen(posEye,layer);
     HANDLE_IO(vertexID);
     EmitVertex();
 }

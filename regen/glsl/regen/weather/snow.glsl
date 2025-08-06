@@ -11,7 +11,7 @@
 
 layout(location = 0) out vec4 out_color;
 in float in_brightness;
-in vec4 in_posWorld;
+in vec3 in_posWorld;
 in vec2 in_spriteTexco;
 
 #include regen.shading.direct.diffuse

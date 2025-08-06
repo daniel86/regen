@@ -285,12 +285,6 @@ void emitVertex(vec4 posWorld, int index, int layer) {
 }
 
 void emit(int layer) {
-    #if RENDER_LAYER > 1
-    gl_Layer = layer;
-#ifdef USE_GS_LAYERED_RENDERING
-    out_layer = layer;
-#endif
-    #endif
     emitVertex(gl_in[0].gl_Position, 0, layer);
     emitVertex(gl_in[1].gl_Position, 1, layer);
     emitVertex(gl_in[2].gl_Position, 2, layer);
@@ -301,13 +295,26 @@ void main() {
 #ifdef USE_GS_LAYERED_RENDERING
     #for LAYER to ${RENDER_LAYER}
     #ifndef SKIP_LAYER${LAYER}
+    #if RENDER_LAYER > 1
+    gl_Layer = ${LAYER};
+    #endif
+    #ifdef USE_GS_LAYERED_RENDERING
+    out_layer = ${LAYER};
+    #endif
     emit(${LAYER});
     #endif // SKIP_LAYER
     #endfor
 #else
     #if RENDER_LAYER > 1
+    gl_Layer = in_layer[0];
+    #ifdef USE_GS_LAYERED_RENDERING
+    out_layer = in_layer[0];
+    #endif
     emit(in_layer[0]);
     #else
+    #ifdef USE_GS_LAYERED_RENDERING
+    out_layer = 0;
+    #endif
     emit(0);
     #endif
 #endif

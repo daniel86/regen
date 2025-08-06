@@ -36,8 +36,8 @@ void main() {
 
 out vec4 out_color;
 
-in vec4 in_posWorld;
-in vec4 in_posEye;
+in vec3 in_posWorld;
+in vec3 in_posEye;
 in vec3 in_ray;
 
 uniform float in_sqrt_q;

@@ -101,6 +101,8 @@ CloudLayer::CloudLayer(const ref_ptr<Sky> &sky, GLuint textureSize)
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.clouds.cloud-layer");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
+	// FIXME: support this better
+	meshState_->shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 
 	///////
 	/// Update Uniforms

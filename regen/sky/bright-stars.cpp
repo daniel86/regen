@@ -53,6 +53,8 @@ BrightStars::BrightStars(const ref_ptr<Sky> &sky)
 	meshState_ = ref_ptr<Mesh>::alloc(GL_POINTS, BufferUpdateFlags::NEVER);
 	pos_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_POS);
 	col_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_COL0);
+	// FIXME: support this better
+	meshState_->shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 }
 
 

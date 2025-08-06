@@ -116,20 +116,29 @@ void emitBrightStar(int layer) {
     EndPrimitive();
 }
 
+void emit(int layer) {
+#if RENDER_LAYER > 1
+    gl_Layer = layer;
+#endif
+    out_layer = layer;
+    emitBrightStar(layer);
+}
+
 void main() {
-#if RENDER_LAYER > 1
-    int layer = in_layer[0];
+    if(in_k[0] <= 0) { return; }
+#ifdef USE_GS_LAYERED_RENDERING
+    #for LAYER to ${RENDER_LAYER}
+    #ifndef SKIP_LAYER${LAYER}
+    emit(${LAYER});
+    #endif // SKIP_LAYER
+    #endfor
 #else
-    int layer = 0;
+    #if RENDER_LAYER > 1
+    emit(in_layer[0]);
+    #else
+    emit(0);
+    #endif
 #endif
-    //if(in_k[0] > 0 && in_col[0].r > 0.001) {
-    if(in_k[0] > 0) {
-#if RENDER_LAYER > 1
-        gl_Layer = layer;
-#endif
-        out_layer = layer;
-        emitBrightStar(layer);
-    }
 }
 
 -- fs
