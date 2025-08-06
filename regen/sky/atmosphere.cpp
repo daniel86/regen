@@ -211,6 +211,10 @@ void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().apply(fbo_->id());
 	rs->viewport().apply(fbo_->glViewport());
 
+	// TODO: Avoid using GS for update!
+	//      - Alternative: Create indirect draw buffer, one for each layer
+	//        then select layer in vertex shader.
+	//      - Other alternative: make a loop with CPU, might still be better compared to GS.
 	updateState_->enable(rs);
 	updateMesh_->draw(rs);
 	updateState_->disable(rs);
