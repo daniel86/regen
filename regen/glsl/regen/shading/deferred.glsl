@@ -261,42 +261,8 @@ void main() {
 --------------------------------------
 
 -- local.gs
-#include regen.states.camera.defines
-#if RENDER_LAYER > 1
-#define2 REGEN_MAX_VERTICES_ ${${RENDER_LAYER}*3}
-
-layout(triangles) in;
-layout(triangle_strip, max_vertices=${REGEN_MAX_VERTICES_}) out;
-
-flat out int out_layer;
-out vec4 out_posEye;
-
-#include regen.states.camera.input
-#include regen.states.camera.transformWorldToEye
-#include regen.states.camera.transformEyeToScreen
-
-#define HANDLE_IO(i)
-
-void emitVertex(vec4 posWorld, int index, int layer) {
-    out_posEye = transformWorldToEye(posWorld,layer);
-    gl_Position = transformEyeToScreen(out_posEye,layer);
-    HANDLE_IO(index);
-    EmitVertex();
-}
-
-void main() {
-#for LAYER to ${RENDER_LAYER}
-#ifndef SKIP_LAYER${LAYER}
-    gl_Layer = ${LAYER};
-    out_layer = ${LAYER};
-    emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-    emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-    emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-    EndPrimitive();
-#endif
-#endfor
-}
-#endif
+// pass-through geometry shader if needed (e.g. for layer selection)
+#include regen.models.mesh.gs
 
 -- local.fs
 #include regen.shading.light.defines
@@ -493,29 +459,30 @@ void main() {
 -- point.vs
 #define IS_POINT_LIGHT
 #include regen.states.camera.defines
+#include regen.defines.all
+
 in vec3 in_pos;
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
+#endif
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
 #endif
 
 uniform vec2 in_lightRadius;
 uniform vec4 in_lightPosition;
 
-#if RENDER_LAYER == 1
+#include regen.layered.VS_SelectLayer
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToScreen
-#endif
 
 void main() {
     vec3 posWorld = in_lightPosition.xyz + in_pos*in_lightRadius.y;
-#if RENDER_LAYER > 1
-    gl_Position = vec4(posWorld,1.0);
-#else
     gl_Position = transformWorldToScreen(vec4(posWorld,1.0),0);
-#endif
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
+    VS_SelectLayer(regen_RenderLayer());
 }
 
 -- point.gs
@@ -552,31 +519,32 @@ void main() {
 --------------------------------------
 -- spot.vs
 #include regen.states.camera.defines
+#include regen.defines.all
 
 in vec3 in_pos;
 out vec3 out_intersection;
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
 #endif
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
+#endif
 
 uniform mat4 in_lightConeMatrix;
 
-#if RENDER_LAYER == 1
+#include regen.layered.VS_SelectLayer
 #include regen.states.camera.input
 #include regen.states.camera.transformWorldToScreen
-#endif
 
 void main() {
     out_intersection = (in_lightConeMatrix * vec4(in_pos,1.0)).xyz;
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
-#if RENDER_LAYER > 1
-    gl_Position = vec4(out_intersection,1.0);
-#else
+    VS_SelectLayer(regen_RenderLayer());
     gl_Position = transformWorldToScreen(vec4(out_intersection,1.0),0);
-#endif
 }
+
 -- spot.gs
 #include regen.shading.deferred.local.gs
 -- spot.fs

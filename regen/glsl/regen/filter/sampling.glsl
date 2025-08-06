@@ -67,42 +67,22 @@ vec3 computeTexco(vec2 texco_2D) {
 #endif // sampling_computeTexco_Included
 
 -- vs
+#include regen.defines.all
 in vec3 in_pos;
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
+#endif
+#include regen.layered.VS_SelectLayer
 
 void main() {
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+    VS_SelectLayer(regen_RenderLayer());
 }
 
 -- gs
-#include regen.states.camera.defines
-#if RENDER_LAYER > 1
-#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
-
-layout(triangles) in;
-layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
-flat out int out_layer;
-
-#define HANDLE_IO(i)
-
-void emitVertex(vec4 pos, int index, int layer) {
-    gl_Position = pos;
-    HANDLE_IO(index);
-    EmitVertex();
-}
-
-void main() {
-    #for LAYER to ${RENDER_LAYER}
-        #ifndef SKIP_LAYER${LAYER}
-    gl_Layer = ${LAYER};
-    out_layer = ${LAYER};
-    emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-    emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-    emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-    EndPrimitive();
-        #endif
-    #endfor
-}
-#endif
+// pass-through geometry shader, e.g. in case it is needed
+// for layer selection.
+#include regen.models.mesh.gs
 
 -- fs
 #include regen.states.camera.defines

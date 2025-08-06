@@ -21,101 +21,73 @@ void incrementalGaussian() {
 --------------------------------------
 --------------------------------------
 -- vs
+#include regen.defines.all
 #include regen.states.camera.defines
 
 in vec3 in_pos;
-#if RENDER_TARGET == 2D
-flat out vec2 out_blurStep;
-flat out vec3 out_incrementalGaussian;
-
-#include regen.filter.blur.incrementalGaussian
-#endif
-
-uniform vec2 in_inverseViewport;
-
-void main() {
 #ifdef RENDER_TARGET == 2D
-    incrementalGaussian();
-#ifdef BLUR_HORIZONTAL
-    out_blurStep = vec2(in_inverseViewport.x, 0.0);
+flat out vec2 out_blurStep;
 #else
-    out_blurStep = vec2(0.0, in_inverseViewport.y);
+flat out vec3 out_blurStep;
 #endif
-#endif
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- gs
-#include regen.states.camera.defines
-#if RENDER_LAYER > 1
-#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*3}
-
-layout(triangles) in;
-layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
-
+flat out vec3 out_incrementalGaussian;
+#ifdef VS_LAYER_SELECTION
 flat out int out_layer;
+#endif
+
+#include regen.layered.VS_SelectLayer
+#include regen.filter.blur.incrementalGaussian
 
 uniform vec2 in_inverseViewport;
 
-flat out vec3 out_incrementalGaussian;
-flat out vec3 out_blurStep;
-
-#include regen.filter.blur.incrementalGaussian
-
-#define HANDLE_IO(i)
-
-void emitVertex(vec4 posWorld, int index, int layer) {
-  gl_Position = posWorld;
-  HANDLE_IO(index);
-  EmitVertex();
-}
-
 void main() {
-#for LAYER to ${RENDER_LAYER}
-#ifndef SKIP_LAYER${LAYER}
-  gl_Layer = ${LAYER};
-  out_layer = ${LAYER};
+    incrementalGaussian();
 
-  incrementalGaussian();
 #if RENDER_TARGET == CUBE
-#ifdef BLUR_HORIZONTAL
-  float dx = in_inverseViewport.x;
-  vec3 blurStepArray[6] = vec3[](
+    #ifdef BLUR_HORIZONTAL
+    float dx = in_inverseViewport.x;
+    vec3 blurStepArray[6] = vec3[](
         vec3(0.0, 0.0, -dx), // +X
         vec3(0.0, 0.0,  dx), // -X
         vec3( dx, 0.0, 0.0), // +Y
         vec3( dx, 0.0, 0.0), // -Y
         vec3( dx, 0.0, 0.0), // +Z
         vec3(-dx, 0.0, 0.0)  // -Z
-  );
-#else
-  float dy = in_inverseViewport.y;
-  vec3 blurStepArray[6] = vec3[](
+    );
+    #else
+    float dy = in_inverseViewport.y;
+    vec3 blurStepArray[6] = vec3[](
         vec3(0.0,  dy, 0.0), // +X
         vec3(0.0,  dy, 0.0), // -X
         vec3(0.0, 0.0, -dy), // +Y
         vec3(0.0, 0.0,  dy), // -Y
         vec3(0.0,  dy, 0.0), // +Z
         vec3(0.0,  dy, 0.0)  // -Z
-  );
-#endif
-  out_blurStep = blurStepArray[layer];
-#else // RENDER_TARGET != CUBE
-#ifdef BLUR_HORIZONTAL
-  out_blurStep = vec3(in_inverseViewport.x, 0.0, 0.0);
-#else
-  out_blurStep = vec3(0.0, in_inverseViewport.y, 0.0);
-#endif
+    );
+    #endif
+    out_blurStep = blurStepArray[layer];
+#elif  RENDER_TARGET == 2D
+    #ifdef BLUR_HORIZONTAL
+    out_blurStep = vec2(in_inverseViewport.x, 0.0);
+    #else
+    out_blurStep = vec2(0.0, in_inverseViewport.y);
+    #endif
+#else // RENDER_TARGET != CUBE && RENDER_TARGET != 2D
+    #ifdef BLUR_HORIZONTAL
+    out_blurStep = vec3(in_inverseViewport.x, 0.0, 0.0);
+    #else
+    out_blurStep = vec3(0.0, in_inverseViewport.y, 0.0);
+    #endif
 #endif // RENDER_TARGET != CUBE
 
-  emitVertex(gl_in[0].gl_Position, 0, ${LAYER});
-  emitVertex(gl_in[1].gl_Position, 1, ${LAYER});
-  emitVertex(gl_in[2].gl_Position, 2, ${LAYER});
-  EndPrimitive();
-  
-#endif
-#endfor
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+    VS_SelectLayer(regen_RenderLayer());
 }
+
+-- gs
+// pass-through geometry shader, e.g. in case it is needed
+// for layer selection.
+#include regen.models.mesh.gs
 
 -- fs
 #include regen.states.camera.defines

@@ -57,3 +57,18 @@ void computeVisibleLayers(out bool visibilityFlags[RENDER_LAYER])
     #define computeVisibleLayers(layers)
 #endif
 #endif
+
+-- VS_SelectLayer
+#ifndef regen_VS_SelectLayer_defined_
+#define2 regen_VS_SelectLayer_defined_
+#ifdef VS_LAYER_SELECTION
+void VS_SelectLayer(int layer) {
+    out_layer = layer;
+#ifdef ARB_shader_viewport_layer_array
+    gl_Layer = layer;
+#endif // ARB_shader_viewport_layer_array
+}
+#else // !defined(VS_LAYER_SELECTION)
+#define VS_SelectLayer(x)
+#endif // VS_LAYER_SELECTION
+#endif

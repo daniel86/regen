@@ -15,6 +15,9 @@ in vec4 in_col0;
 
 out float out_k;
 out vec3 out_col;
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
+#endif
 
 uniform mat4 in_equToHorMatrix;
 uniform float in_q;
@@ -34,10 +37,13 @@ const float in_scattering = 4.0;
 #include regen.weather.utility.scatter
 #endif
 #include regen.weather.utility.sunIntensity
+#include regen.layered.VS_SelectLayer
 
 void main(void) {
     vec4 v = in_equToHorMatrix * vec4(in_pos.xyz,0.0);
+
     gl_Position = v;
+    VS_SelectLayer(regen_RenderLayer());
 
     out_k = 0.0;
 
@@ -66,10 +72,9 @@ void main(void) {
 -- gs
 #include regen.states.camera.defines
 #include regen.defines.all
-#define2 __MAX_VERTICES__ ${${RENDER_LAYER}*4}
 
 layout (points) in;
-layout(triangle_strip, max_vertices=${__MAX_VERTICES__}) out;
+layout(triangle_strip, max_vertices=4) out;
 
 in float in_k[ ];
 in vec3 in_col[ ];
@@ -112,17 +117,18 @@ void emitBrightStar(int layer) {
 }
 
 void main() {
+#if RENDER_LAYER > 1
+    int layer = in_layer[0];
+#else
+    int layer = 0;
+#endif
     //if(in_k[0] > 0 && in_col[0].r > 0.001) {
     if(in_k[0] > 0) {
-#for LAYER to ${RENDER_LAYER}
-#ifndef SKIP_LAYER${LAYER}
 #if RENDER_LAYER > 1
-        gl_Layer = ${LAYER};
-        out_layer = ${LAYER};
+        gl_Layer = layer;
 #endif
-        emitBrightStar(${LAYER});
-#endif
-#endfor
+        out_layer = layer;
+        emitBrightStar(layer);
     }
 }
 

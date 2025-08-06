@@ -7,15 +7,20 @@
 --------------------------------
 -- vs
 #include regen.models.mesh.defines
-#include regen.models.tf.transformModel
 
 in vec3 in_pos;
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
 #endif
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
+#endif
 
 in float in_sphereRadius;
 out float out_sphereRadius;
+
+#include regen.models.tf.transformModel
+#include regen.layered.VS_SelectLayer
 
 #define HANDLE_IO(i)
 
@@ -26,6 +31,7 @@ void main() {
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
+    VS_SelectLayer(regen_RenderLayer());
     HANDLE_IO(gl_VertexID);
 }
 -- tcs
@@ -34,10 +40,9 @@ void main() {
 #include regen.models.mesh.tes
 -- gs
 #include regen.models.mesh.defines
-#define2 REGEN_MAX_VERTICES ${${RENDER_LAYER}*4}
 
 layout(points) in;
-layout(triangle_strip, max_vertices=${REGEN_MAX_VERTICES}) out;
+layout(triangle_strip, max_vertices=4) out;
 
 #include regen.states.camera.input
 
@@ -50,6 +55,7 @@ in float in_sphereRadius[1];
 out float out_sphereRadius;
 #endif
 #if RENDER_LAYER > 1
+flat in int in_layer[ ];
 flat out int out_layer;
 #endif
 
@@ -57,7 +63,6 @@ flat out int out_layer;
 #include regen.states.camera.transformEyeToWorld
 #include regen.states.camera.transformWorldToEye
 #include regen.math.computeSpritePoints
-#include regen.layered.gs.computeVisibleLayers
 
 #define HANDLE_IO(i)
 
@@ -68,6 +73,10 @@ void emitVertex(vec4 posEye, int layer) {
     out_sphereRadius = in_sphereRadius[0];
 #endif
     gl_Position = transformEyeToScreen(posEye,layer);
+#if RENDER_LAYER > 1
+    out_layer = layer;
+    gl_Layer = layer;
+#endif
     HANDLE_IO(0);
     EmitVertex();
 }
@@ -94,25 +103,11 @@ void emitSpriteSphere(int layer) {
 }
 
 void main() {
-#ifdef COMPUTE_LAYER_VISIBILITY
-    bool visibleLayers[RENDER_LAYER];
-    computeVisibleLayers(visibleLayers);
-#endif
-#for LAYER to ${RENDER_LAYER}
-    #ifndef SKIP_LAYER${LAYER}
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    if (visibleLayers[${LAYER}]) {
-        #endif // COMPUTE_LAYER_VISIBILITY
-        #if RENDER_LAYER > 1
-        gl_Layer = ${LAYER};
-        out_layer = ${LAYER};
-        #endif
-        emitSpriteSphere(${LAYER});
-        #ifdef COMPUTE_LAYER_VISIBILITY
-    }
-        #endif // COMPUTE_LAYER_VISIBILITY
+    #if RENDER_LAYER > 1
+    emitSpriteSphere(in_layer[0]);
+    #else
+    emitSpriteSphere(0);
     #endif
-#endfor
 }
 
 -- fs

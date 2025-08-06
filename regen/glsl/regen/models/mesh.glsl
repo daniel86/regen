@@ -20,11 +20,6 @@
 
 -- vs
 #include regen.models.mesh.defines
-#ifdef ARB_shader_viewport_layer_array
-    #ifndef USE_GS_LAYERED_RENDERING
-#extension GL_ARB_shader_viewport_layer_array : require
-    #endif
-#endif
 
 in vec3 in_pos;
 #ifdef HAS_nor
@@ -48,12 +43,11 @@ out vec3 out_norWorld;
 #ifdef HAS_INSTANCES
 flat out int out_instanceID;
 #endif
-#if RENDER_LAYER > 1
-    #ifndef USE_GS_LAYERED_RENDERING
+#ifdef VS_LAYER_SELECTION
 flat out int out_layer;
 #define in_layer regen_RenderLayer()
-    #endif
 #endif
+#include regen.layered.VS_SelectLayer
 
 #ifndef HAS_TESSELATION
     #ifdef HAS_VERTEX_MASK_MAP
@@ -146,14 +140,7 @@ void main() {
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
 #endif // HAS_INSTANCES
-#if RENDER_LAYER > 1
-    #ifndef USE_GS_LAYERED_RENDERING
-    out_layer = layer;
-        #ifdef ARB_shader_viewport_layer_array
-    gl_Layer = layer;
-        #endif // ARB_shader_viewport_layer_array
-    #endif // USE_GS_LAYERED_RENDERING
-#endif // RENDER_LAYER > 1
+    VS_SelectLayer(layer);
 
     HANDLE_IO(gl_VertexID);
 }

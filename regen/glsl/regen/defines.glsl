@@ -48,6 +48,22 @@
 #endif // regen_InstanceID_defined_
 
 -- all
+// enable GL_ARB_shader_viewport_layer_array if we do layered rendering.
+// this allows us to select the render layer in the vertex shader.
+#if SHADER_STAGE == vs && RENDER_LAYER > 1
+    #ifdef ARB_shader_viewport_layer_array
+        #ifndef USE_GS_LAYERED_RENDERING
+            #ifndef USE_GEOMETRY_SHADER
+#extension GL_ARB_shader_viewport_layer_array : require
+            #endif
+        #endif
+    #endif
+#endif
+#if RENDER_LAYER > 1
+    #ifndef USE_GS_LAYERED_RENDERING
+#define VS_LAYER_SELECTION
+    #endif
+#endif
 #ifdef HAS_nor && HAS_tan
 #define HAS_TANGENT_SPACE
 #endif
