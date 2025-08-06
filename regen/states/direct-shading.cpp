@@ -116,7 +116,8 @@ void DirectShading::addLight(
 				auto *ubo = dynamic_cast<UBO *>(block);
 				if (ubo) {
 					setInput(ref_ptr<UBO>::alloc(
-							*ubo, block->name(),
+							*ubo,
+							REGEN_LIGHT_NAME(block->name(), lightID),
 							REGEN_STRING(lightID)));
 				} else {
 					REGEN_WARN("Unexpected input type for light: "
