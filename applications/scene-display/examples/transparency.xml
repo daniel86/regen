@@ -151,6 +151,7 @@
             <stencil test="0"/>
             <depth test="0" write="0"/>
             <define key="RENDER_LAYER" value="3"/>
+            <define key="USE_GS_LAYERED_RENDERING" value="TRUE" />
             <texture name="inputTexture" fbo="platform-refraction" attachment="1"/>
                 <fullscreen-pass shader="regen.filter.sampling"/>
         </node>
@@ -512,12 +513,13 @@
         </node>
 
         <node id="Render">
-            <fbo id="g-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
             <camera id="main-camera"/>
 
             <node id="Geometry-Pass">
                 <depth test="1" write="1"/>
-                <fbo id="g-buffer" draw-buffers="0,1,2,3"/>
+                <fbo id="g-buffer"
+                        clear-buffers="0,1,2,3" clear-depth="1"
+                        draw-buffers="0,1,2,3"/>
 
                 <node import="Shadow-Caster"/>
                 <node import="Scene-Geometry"/>
