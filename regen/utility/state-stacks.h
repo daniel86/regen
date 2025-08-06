@@ -27,21 +27,24 @@ namespace regen {
 			// make room for at least 4 stacked values
 			stacked_.resize(4);
 			// guard apply function by checking if the value is different
-			guardedApply_ = [](StateStack *s, const T &v) {
-				auto &stacked = s->stacked_[s->numStacked_-1];
-				if (v != stacked) {
-					s->doApply_(s, v);
-					stacked = v;
-				}
-			};
+			guardedApply_ = guardedApply;
 			// initial apply is unguarded as no value is stacked yet
-			apply_ = [](StateStack *s, const T &v) {
-				s->stacked_[0] = v;
-				s->numStacked_ = 1;
+			apply_ = initialApply;
+		}
+
+		static void initialApply(StateStack *s, const T &v) {
+			s->stacked_[0] = v;
+			s->numStacked_ = 1;
+			s->doApply_(s, v);
+			s->apply_ = s->guardedApply_;
+		}
+
+		static void guardedApply(StateStack *s, const T &v) {
+			auto &stacked = s->stacked_[s->numStacked_ - 1];
+			if (v != stacked) {
 				s->doApply_(s, v);
-				// switch to guarded apply function
-				s->apply_ = s->guardedApply_;
-			};
+				stacked = v;
+			}
 		}
 
 		/**
