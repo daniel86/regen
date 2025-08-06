@@ -24,6 +24,10 @@ namespace regen {
 					const QSurfaceFormat &glFormat = defaultFormat(),
 					QWidget *parent = nullptr);
 
+		~SceneWidget() override;
+
+		SceneWidget(const SceneWidget&) = delete;
+
 		void startRendering();
 
 		void stopRendering();
