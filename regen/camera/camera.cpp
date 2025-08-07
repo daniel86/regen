@@ -585,6 +585,8 @@ void ProjectionUpdater::call(EventObject *, EventData *) {
 	auto windowViewport = windowViewport_->getVertex(0);
 	auto windowAspect =
 			(GLfloat) windowViewport.r.x / (GLfloat) windowViewport.r.y;
+	windowViewport.unmap();
+
 	auto &lastProjParams = cam_->projParams()[0];
 	if (cam_->isOrtho()) {
 		// keep the ortho width and adjust height based on aspect ratio
@@ -601,6 +603,9 @@ void ProjectionUpdater::call(EventObject *, EventData *) {
 				lastProjParams.fov,
 				lastProjParams.near,
 				lastProjParams.far);
+	}
+	if(cam_->updateCamera()) {
+		cam_->updateShaderData(0.0f);
 	}
 }
 
