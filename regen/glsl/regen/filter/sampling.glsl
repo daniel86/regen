@@ -82,6 +82,7 @@ void main() {
 -- gs
 // pass-through geometry shader, e.g. in case it is needed
 // for layer selection.
+#define SKIP_GS_TRANSFORM
 #include regen.models.mesh.gs
 
 -- fs

@@ -29,6 +29,10 @@ LightPass::LightPass(Light::Type type, const std::string &shaderKey)
 	shadowFiltering_ = SHADOW_FILTERING_NONE;
 	numShadowLayer_ = 1;
 
+	// TODO: Support indirect multi-layer rendering.
+	//    For now we disable it....
+	shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
+
 	shader_ = ref_ptr<ShaderState>::alloc();
 	joinStates(shader_);
 	setShadowFiltering(SHADOW_FILTERING_NONE);

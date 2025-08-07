@@ -91,7 +91,6 @@ void main() {
     out_color.a = 0.0;
 }
 
-
 --------------------------------------
 --------------------------------------
 ---- Material Emission Light. Input mesh should be a unit-quad.

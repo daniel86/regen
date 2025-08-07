@@ -42,10 +42,8 @@ ref_ptr<Box> Box::getUnitCube() {
 		cfg.isTangentRequired = GL_FALSE;
 		cfg.levelOfDetails = {0};
 		mesh = ref_ptr<Box>::alloc(cfg);
-		return mesh;
-	} else {
-		return ref_ptr<Box>::alloc(mesh);
 	}
+	return ref_ptr<Box>::alloc(mesh);
 }
 
 Box::Box(const Config &cfg)

@@ -119,10 +119,8 @@ ref_ptr<Mesh> ConeClosed::getBaseCone() {
 		cfg.isNormalRequired = GL_FALSE;
 		cfg.isBaseRequired = GL_TRUE;
 		mesh = ref_ptr<ConeClosed>::alloc(cfg);
-		return mesh;
-	} else {
-		return ref_ptr<Mesh>::alloc(mesh);
 	}
+	return ref_ptr<Mesh>::alloc(mesh);
 }
 
 ConeClosed::ConeClosed(const Config &cfg)

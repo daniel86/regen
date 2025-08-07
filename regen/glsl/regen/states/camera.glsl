@@ -21,8 +21,10 @@
 #endif
 #ifdef USE_GS_LAYERED_RENDERING
     #ifndef HAS_GS_TRANSFORM
-        #if RENDER_LAYER > 1
+        #ifndef SKIP_GS_TRANSFORM
+            #if RENDER_LAYER > 1
 #define HAS_GS_TRANSFORM
+            #endif
         #endif
     #endif
 #endif

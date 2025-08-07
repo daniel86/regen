@@ -1,12 +1,5 @@
-/*
- * light-pass.h
- *
- *  Created on: 13.03.2013
- *      Author: daniel
- */
-
-#ifndef __LIGHT_PASS_H_
-#define __LIGHT_PASS_H_
+#ifndef REGEN_LIGHT_PASS_H_
+#define REGEN_LIGHT_PASS_H_
 
 #include <regen/states/state.h>
 #include "regen/glsl/shader-state.h"
@@ -114,4 +107,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* __LIGHT_PASS_H_ */
+#endif /* REGEN_LIGHT_PASS_H_ */
