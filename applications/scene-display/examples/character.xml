@@ -779,7 +779,7 @@
                     </light-pass>
                 </node>
                 <node>
-                    <light-pass type="POINT" ambient="1" shader="regen.shading.deferred.point.cube">
+                    <light-pass type="POINT" ambient="0" shader="regen.shading.deferred.point.cube">
                         <light id="fire-flies-light0"/>
                     </light-pass>
                 </node>
@@ -803,6 +803,12 @@
         <define key="HAS_modelOffset" value="TRUE" />
         <define key="HAS_matEmission" value="TRUE" />
         <input name="LightOfBulb" state="room-light0" component="Light" input-suffix="_Bulb"/>
+        <!-- FIXME: Shape and LOD State won't be able to find the TF/model-offset of the mesh!
+                - There is code that searches for inputs named "modelOffset", that won't work with the
+                  defines above. -->
+        <!--
+        <input name="modelOffset" state="room-light0" component="lightPosition"/>
+        -->
         <shape id="light-bulb-shape" index="1" cull="1" type="sphere" radius="0.5" mesh-id="light-bulb-point" />
     </mesh>
     <mesh id="fire-flies0" type="point" update-frequency="NEVER" num-vertices="1" num-instances="{{num-fire-flies}}">
@@ -812,7 +818,13 @@
         <define key="HAS_modelOffset" value="TRUE" />
         <define key="HAS_matEmission" value="TRUE" />
         <input name="LightOfFireFly" state="fire-flies-light0" component="Light" input-suffix="_FireFly"/>
+        <!-- TODO: Add to spatial index.
+                - will need to find a way to make light position available in LOD state (see above)
+                - best would probably be in this case to use bounding sphere around all fire-flies
+                  and use that for spatial index. -->
+        <!--
         <shape id="fire-flies-shape0" index="1" cull="1" type="sphere" radius="0.1" mesh-id="fire-flies0" />
+        -->
     </mesh>
 
     <node id="Static-Ground-Items">
