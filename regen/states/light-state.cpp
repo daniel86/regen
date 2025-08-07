@@ -304,12 +304,15 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			if (animationType == "boids") {
 				// let a boid simulation change the light positions
 				LoadingContext boidsConfig(ctx.scene(), ctx.parent());
-				auto boidsAnimation = BoidsCPU::load(
-							boidsConfig,
-							*child.get(),
-							ref_ptr<ModelTransformation>::alloc(light->sh_position()));
-				light->attach(boidsAnimation);
-				boidsAnimation->startAnimation();
+				// TODO: this will update position, without updating the light!
+				//   Which is fine in most cases, but eg. in case of spot light,
+				//   the cone matrix may need to be updated.
+				// TODO: also attach orientation for spot cameras.
+				auto boids = ref_ptr<BoidsCPU>::alloc(light->sh_position());
+				boids->loadSettings(ctx, input);
+
+				light->attach(boids);
+				boids->startAnimation();
 			} else {
 				REGEN_WARN("Unknown animation type '" << animationType << "' in node " << child->getDescription());
 			}

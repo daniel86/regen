@@ -24,7 +24,7 @@ namespace regen {
 		 */
 		explicit AlignedArray(size_t maxElements)
 			: capacity_(maxElements) {
-			data_ = static_cast<T*>(std::aligned_alloc(32, maxElements * sizeof(T)));
+			allocate(maxElements);
 		}
 
 		AlignedArray()
@@ -35,12 +35,13 @@ namespace regen {
 		~AlignedArray() { std::free(data_); }
 
 		AlignedArray(const AlignedArray&) = delete;
+		AlignedArray& operator=(const AlignedArray&) = delete;
 
 		/**
 		 * Sets all elements in the array to zero.
 		 */
 		void setToZero() {
-			memset(data_, 0, capacity_ * sizeof(T));
+			memset(data_, 0, allocatedSize_);
 		}
 
 		/**
@@ -50,19 +51,8 @@ namespace regen {
 		 */
 		void resize(size_t newSize) {
 			std::free(data_);
-
-			size_t newAllocSize = newSize * sizeof(T);
-			size_t alignment = 32;
-			if (newAllocSize % alignment != 0) {
-				newAllocSize += alignment - (newAllocSize % alignment);
-			}
-
-			data_ = static_cast<T*>(std::aligned_alloc(alignment, newAllocSize));
-			if (!data_) {
-				throw std::bad_alloc();
-			}
-
-			capacity_ = static_cast<uint32_t>(newSize);
+			capacity_ = newSize;
+			allocate(newSize);
 		}
 
 		/**
@@ -88,6 +78,24 @@ namespace regen {
 	private:
 		T* data_;
 		uint32_t capacity_;
+		uint32_t allocatedSize_ = 0;
+
+		static constexpr size_t Alignment = 32;
+
+		void allocate(size_t count) {
+			const size_t totalSize = count * sizeof(T);
+
+			// Ensure totalSize is a multiple of Alignment
+			allocatedSize_ = totalSize;
+			if (allocatedSize_ % Alignment != 0) {
+				allocatedSize_ += Alignment - (allocatedSize_ % Alignment);
+			}
+
+			data_ = static_cast<T*>(std::aligned_alloc(Alignment, allocatedSize_));
+			if (!data_) {
+				throw std::bad_alloc();
+			}
+		}
 	};
 } // namespace
 

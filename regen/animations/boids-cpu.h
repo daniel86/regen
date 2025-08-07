@@ -20,6 +20,12 @@ namespace regen {
 		 */
 		explicit BoidsCPU(const ref_ptr<ModelTransformation> &tf);
 
+		/**
+		 * Model offset constructor.
+		 * @param modelOffset A shader input with model offsets, each instance of the model will be a boid.
+		 */
+		explicit BoidsCPU(const ref_ptr<ShaderInput4f> &modelOffset);
+
 		~BoidsCPU() override;
 
 		BoidsCPU(const BoidsCPU &) = delete;

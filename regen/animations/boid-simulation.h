@@ -20,6 +20,8 @@ namespace regen {
 
 		explicit BoidSimulation(const ref_ptr<ModelTransformation> &tf);
 
+		explicit BoidSimulation(const ref_ptr<ShaderInput4f> &modelOffset);
+
 		/**
 		 * Load the boids settings from a scene input node.
 		 * @param parser the scene parser.
@@ -149,6 +151,7 @@ namespace regen {
 	protected:
 		uint32_t numBoids_;
 		ref_ptr<ModelTransformation> tf_;
+		ref_ptr<ShaderInput4f> modelOffset_;
 		// The bounding box of the boids.
 		Bounds<Vec3f> boidBounds_ = Bounds<Vec3f>(0.0f, 1.0f);
 		Bounds<Vec3f> newBounds_ = Bounds<Vec3f>(0.0f, 0.0f);

@@ -15,6 +15,13 @@ BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf)
 	initBoidSimulation0();
 }
 
+BoidSimulation::BoidSimulation(const ref_ptr<ShaderInput4f> &modelOffset) : modelOffset_(modelOffset) {
+	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
+	boidsScale_->setUniformData(Vec3f(1.0f));
+	numBoids_ = modelOffset->numInstances();
+	initBoidSimulation0();
+}
+
 void BoidSimulation::initBoidSimulation0() {
 	baseOrientation_ = createUniform<ShaderInput1f,float>("baseOrientation", 0.0f);
 	coherenceWeight_ = createUniform<ShaderInput1f,float>("coherenceWeight", 1.0f);
@@ -29,7 +36,7 @@ void BoidSimulation::initBoidSimulation0() {
 	maxBoidSpeed_ = createUniform<ShaderInput1f,float>("maxBoidSpeed", 1.0f);
 	maxAngularSpeed_ = createUniform<ShaderInput1f,float>("maxAngularSpeed", 0.05f);
 	gridSize_ = createUniform<ShaderInput3ui,Vec3ui>("gridSize", Vec3ui(0));
-	cellSize_ = createUniform<ShaderInput1f,float>("cellSize", 0.0f);
+	cellSize_ = createUniform<ShaderInput1f,float>("cellSize", 3.2f);
 	simulationBoundsMin_ = createUniform<ShaderInput3f,Vec3f>("simulationBoundsMin", Vec3f(-10.0f));
 	simulationBoundsMax_ = createUniform<ShaderInput3f,Vec3f>("simulationBoundsMax", Vec3f(10.0f));
 }
