@@ -610,7 +610,10 @@ void SceneDisplayWidget::handleCameraConfiguration(
             REGEN_WARN("Physical character controller requires a transform.");
             return;
         }
-        auto characterController = ref_ptr<CharacterController>::alloc(cam, physics_);
+        if (sceneParser.getPhysics().get() == nullptr) {
+            REGEN_WARN("No BulletPhysics instance set for CharacterController.");
+        }
+        auto characterController = ref_ptr<CharacterController>::alloc(cam, sceneParser.getPhysics());
         characterController->setCollisionHeight(
             cameraNode->getValue<GLfloat>("collision-height", 0.8));
         characterController->setCollisionRadius(

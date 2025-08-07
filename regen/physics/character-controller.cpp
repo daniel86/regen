@@ -69,6 +69,9 @@ CharacterController::CharacterController(
 		btMaxSlope_(0.8f),
 		btIsMoving_(GL_FALSE),
 		btPlatform_(nullptr) {
+	if (!physics.get()) {
+		REGEN_ERROR("No BulletPhysics instance set for CharacterController.");
+	}
 }
 
 CharacterController::~CharacterController() {
