@@ -566,6 +566,12 @@ ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &in
 		REGEN_WARN("Unable to create camera for '" << input.getDescription() << "'.");
 		return {};
 	}
+
+	// make sure initial data is good.
+	lightCamera->updateCamera();
+	lightCamera->updateShaderData(0.0f);
+	dynamic_cast<LightCamera*>(lightCamera.get())->updateShadowData();
+
 	ctx.scene()->putState(input.getName(), lightCamera);
 
 	return lightCamera;
