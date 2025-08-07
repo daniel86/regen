@@ -69,7 +69,7 @@ namespace regen {
 		 * @param target the transformation matrix.
 		 * @param mesh the optional mesh to attach to.
 		 */
-		void setAttachedTo(const ref_ptr<ShaderInputMat4> &target, const ref_ptr<Mesh> &mesh);
+		void setAttachedTo(const ref_ptr<ModelTransformation> &target, const ref_ptr<Mesh> &mesh);
 
 		/**
 		 * @return true if the camera is in first person mode.
@@ -233,7 +233,7 @@ namespace regen {
 		Vec3f camPos_;
 		Vec3f camDir_;
 
-		ref_ptr<ShaderInputMat4> attachedToTransform_;
+		ref_ptr<ModelTransformation> attachedToTransform_;
 		ref_ptr<Mesh> attachedToMesh_;
 		Vec3f meshPos_;
 		GLfloat meshDistance_;

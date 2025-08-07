@@ -22,11 +22,11 @@ CameraController::CameraController(const ref_ptr<Camera> &cam)
 }
 
 void CameraController::setAttachedTo(
-		const ref_ptr<ShaderInputMat4> &target,
+		const ref_ptr<ModelTransformation> &target,
 		const ref_ptr<Mesh> &mesh) {
 	attachedToTransform_ = target;
 	attachedToMesh_ = mesh;
-	pos_ = target->getVertex(0).r.position();
+	pos_ = target->position(0);
 }
 
 void CameraController::stepUp(const GLfloat &v) {
@@ -195,7 +195,12 @@ void CameraController::animate(GLdouble dt) {
 		updateCameraOrientation();
 		computeMatrices(camPos_, camDir_);
 		if (attachedToTransform_.get()) {
-			attachedToTransform_->setVertex(0, matVal_);
+			if(attachedToTransform_->hasModelMat()) {
+				attachedToTransform_->setModelMat(0, matVal_);
+			} else {
+				attachedToTransform_->setModelOffset(0, matVal_.position());
+			}
+			attachedToTransform_->updateShaderData();
 		}
 		updateCamera(camPos_, camDir_, dt);
 	}

@@ -137,9 +137,10 @@ bool CharacterController::initializePhysics() {
 	btQuaternion rotation;
 	rotation.setRotation(btVector3(0, 1, 0), meshHorizontalOrientation_);
 	btTransform initialTransform;
-	auto attachedTFData = attachedToTransform_->mapClientData<btScalar>(BUFFER_GPU_READ);
-	initialTransform.setFromOpenGLMatrix(attachedTFData.r.data());
-	attachedTFData.unmap();
+	if (attachedToTransform_->hasModelMat()) {
+		initialTransform.setFromOpenGLMatrix(
+				(const btScalar *) &attachedToTransform_->modelMat(0).x);
+	}
 	initialTransform.setRotation(rotation);
 	ghostObject->setWorldTransform(initialTransform);
 

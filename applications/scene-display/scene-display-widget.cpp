@@ -666,7 +666,7 @@ void SceneDisplayWidget::handleCameraConfiguration(
         }
         // attach the camera to a transform
         if (transform.get()) {
-            cameraController_->setAttachedTo(transform->sh_modelMat(), mesh);
+            cameraController_->setAttachedTo(transform, mesh);
         }
 
         std::vector<CameraCommandMapping> keyMappings;
