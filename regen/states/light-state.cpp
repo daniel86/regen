@@ -309,7 +309,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				//   the cone matrix may need to be updated.
 				// TODO: also attach orientation for spot cameras.
 				auto boids = ref_ptr<BoidsCPU>::alloc(light->sh_position());
-				boids->loadSettings(ctx, input);
+				boids->loadSettings(ctx, *child.get());
 
 				light->attach(boids);
 				boids->startAnimation();
