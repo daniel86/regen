@@ -86,8 +86,8 @@
     <!--**************************-->
 
     <mesh id="platform" type="box" use-normal="1" use-tangent="0" lod="0"
-            scaling="1.0,60.0,1.0"
-            update-frequency="NEVER">
+          scaling="1.0,60.0,1.0"
+          update-frequency="NEVER">
         <material preset="copper" ambient="0.0, 0.0, 0.0" specular="0.0, 0.0, 0.0" update-frequency="NEVER"/>
     </mesh>
 
@@ -100,7 +100,8 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="0.0,-0.1,2.25"/>
         </transform>
-        <animation type="deformation" id="teapot-deformation" mesh-id="mesh-teapot" friction="7.9" frequency="5.0" repeat="true">
+        <animation type="deformation" id="teapot-deformation" mesh-id="mesh-teapot" friction="7.9" frequency="5.0"
+                   repeat="true">
             <interpolations>
                 <interpolation target="pos" function="elastic"/>
                 <interpolation target="nor" function="elastic"/>
@@ -134,7 +135,8 @@
             <rotate value="3.14,0.0,0.0"/>
             <translate value="-1.5,-0.6,0.0"/>
         </transform>
-        <animation type="deformation" id="dragon-deformation" mesh-id="mesh-dragon" friction="7.9" frequency="1.0" repeat="true">
+        <animation type="deformation" id="dragon-deformation" mesh-id="mesh-dragon" friction="7.9" frequency="1.0"
+                   repeat="true">
             <interpolations>
                 <interpolation target="pos" function="elastic"/>
                 <interpolation target="nor" function="elastic"/>
@@ -193,9 +195,9 @@
     <!--**************************-->
 
     <node id="Shading-Pass">
-        <blend mode="add"/>
         <depth test="0" write="0"/>
         <input type="vec3" name="lightAmbient" value="0.01,0.01,0.01"/>
+        <blend mode="add"/>
 
         <node id="Ambient-Shading">
             <fullscreen-pass shader="regen.shading.deferred.ambient"/>
@@ -203,7 +205,7 @@
         <node id="Light-Shading">
             <input type="float" name="toonThreshold1" value="0.3"/>
             <input type="float" name="toonThreshold2" value="0.6"/>
-            <light-pass type="SPOT" ambient="1" shader="regen.shading.deferred.spot">
+            <light-pass type="SPOT" ambient="0" shader="regen.shading.deferred.spot">
                 <light id="spot-light"
                        shadow-buffer="spot-shadow"
                        shadow-attachment="depth"
@@ -331,63 +333,63 @@
         <define key="SHADING_MODEL" value="TOON"/>
         <node id="Pre-Render">
             <node import="Shadow-Pass"/>
+            <view id="Spot Shadow">
+                <fbo id="SCREEN"/>
+                <texture name="inputTexture" fbo="spot-shadow" attachment="depth"/>
+                <fullscreen-pass shader="regen.filter.sampling.shadow"/>
+            </view>
         </node>
 
         <node id="Render">
-            <fbo id="g-buffer"/>
             <camera id="main-camera"/>
 
-            <node id="Default-Pipeline">
-                <camera id="main-camera"/>
+            <node id="Geometry-Pass">
+                <depth test="1" write="1"/>
+                <fbo id="g-buffer"
+                     clear-buffers="0,1,2,3"
+                     clear-depth="1"
+                     draw-buffers="0,1,2,3"/>
 
-                <node id="Geometry-Pass">
-                    <depth test="1" write="1"/>
-                    <fbo id="g-buffer"
-                         clear-buffers="0,1,2,3"
-                         clear-depth="1"
-                         draw-buffers="0,1,2,3"/>
-
-                    <node import="Shadow-Caster"/>
-                    <node import="Scene-Geometry"/>
-                    <view id="Scene -- Diffuse">
-                        <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
-                    </view>
-                    <view id="Scene -- Ambient">
-                        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
-                    </view>
-                    <view id="Scene -- Specular">
-                        <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
-                    </view>
-                    <view id="Scene -- Normal">
-                        <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN"/>
-                    </view>
-                </node>
-
-                <node id="Shading">
-                    <node id="Light-Pass">
-                        <fbo id="g-buffer" draw-buffers="1"/>
-                        <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
-                        <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
-                        <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
-                        <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
-
-                        <node import="Shading-Pass"/>
-                    </node>
-
-                    <view id="Scene -- Shading">
-                        <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
-                    </view>
-
-                    <node import="Post-Pass"/>
-                </node>
-            </node>
-            <node import="GUI-Pass">
-                <fbo id="g-buffer" draw-buffers="0"/>
+                <node import="Shadow-Caster"/>
+                <node import="Scene-Geometry"/>
+                <view id="Scene  Diffuse">
+                    <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Scene Ambient">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Scene Specular">
+                    <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
+                </view>
+                <view id="Scene Normal">
+                    <blit src-fbo="g-buffer" src-attachment="3" dst-fbo="SCREEN"/>
+                </view>
             </node>
 
-            <view id="Scene -- Result">
-                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
-            </view>
+            <node id="Shading">
+                <node id="Light-Pass">
+                    <fbo id="g-buffer" draw-buffers="1"/>
+                    <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
+                    <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>
+                    <texture name="gSpecularTexture" fbo="g-buffer" attachment="2"/>
+                    <texture name="gNorWorldTexture" fbo="g-buffer" attachment="3"/>
+
+                    <node import="Shading-Pass"/>
+                </node>
+
+                <view id="Scene Shading">
+                    <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
+                </view>
+
+                <node import="Post-Pass"/>
+            </node>
         </node>
+        <node import="GUI-Pass">
+            <fbo id="g-buffer" draw-buffers="0"/>
+        </node>
+
+        <view id="Scene Result">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
     </node>
 </node>
