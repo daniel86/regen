@@ -58,15 +58,15 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	sh_vel_->setUniformData(vel_[0]);
 
 	viewData_.resize(2, Mat4f::identity());
-	view_    = std::span<Mat4f>(viewData_).subspan(0, 1);
+	view_ = std::span<Mat4f>(viewData_).subspan(0, 1);
 	viewInv_ = std::span<Mat4f>(viewData_).subspan(1, 1);
 
 	viewProjData_.resize(2, Mat4f::identity());
-	viewProj_    = std::span<Mat4f>(viewProjData_).subspan(0, 1);
+	viewProj_ = std::span<Mat4f>(viewProjData_).subspan(0, 1);
 	viewProjInv_ = std::span<Mat4f>(viewProjData_).subspan(1, 1);
 
 	projData_.resize(2, Mat4f::identity());
-	proj_    = std::span<Mat4f>(projData_).subspan(0, 1);
+	proj_ = std::span<Mat4f>(projData_).subspan(0, 1);
 	projInv_ = std::span<Mat4f>(projData_).subspan(1, 1);
 
 	sh_view_ = ref_ptr<ShaderInputMat4>::alloc("viewMatrix");
@@ -142,7 +142,7 @@ void Camera::updateShaderData(float dt) {
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
 	auto &clientBuffer = *cameraBlock_->clientBuffer().get();
 
-	if(clientBuffer.hasSegments()) {
+	if (clientBuffer.hasSegments()) {
 		auto mapped = clientBuffer.mapRange(
 				BUFFER_GPU_WRITE,
 				0u, clientBuffer.dataSize());
@@ -461,11 +461,11 @@ void Camera::updateFrustumBuffer() {
 	if (!frustumBuffer_.get()) return;
 
 	auto frustum_cpu =
-		frustumData_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
+			frustumData_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 	for (size_t i = 0; i < frustum_.size(); ++i) {
 		auto &frustumPlanes = frustum_[i].planes;
 		for (int j = 0; j < 6; ++j) {
-			frustum_cpu.w[i*6 + j] = frustumPlanes[j].equation();
+			frustum_cpu.w[i * 6 + j] = frustumPlanes[j].equation();
 		}
 	}
 }
@@ -570,7 +570,7 @@ ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &in
 	// make sure initial data is good.
 	lightCamera->updateCamera();
 	lightCamera->updateShaderData(0.0f);
-	dynamic_cast<LightCamera*>(lightCamera.get())->updateShadowData();
+	dynamic_cast<LightCamera *>(lightCamera.get())->updateShadowData();
 
 	ctx.scene()->putState(input.getName(), lightCamera);
 
@@ -655,14 +655,12 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		if (input.hasAttribute("normal")) {
 			cam->setNormal(input.getValue<Vec3f>("normal", Vec3f::down()));
 		}
-
 		if (tf.get()) {
 			cam->attachToPosition(tf);
 		} else if (input.hasAttribute("tf")) {
 			REGEN_WARN("Unable to find ModelTransformation for '" << input.getDescription() << "'.");
 		}
 		ctx.scene()->putState(input.getName(), cam);
-
 		return cam;
 	} else {
 		ref_ptr<Camera> cam = ref_ptr<Camera>::alloc(1);
@@ -694,6 +692,7 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 										 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->getViewport()));
 		}
 		cam->updateCamera();
+		cam->updateShaderData(0.0f);
 		ctx.scene()->putState(input.getName(), cam);
 
 		return cam;
