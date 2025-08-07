@@ -197,7 +197,7 @@ namespace regen {
 		/**
 		 * Updates the cone matrix.
 		 */
-		void updateConeMatrix();
+		bool updateConeMatrix();
 
 		/**
 		 * @brief Update the shader data for this light.

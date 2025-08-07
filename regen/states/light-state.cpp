@@ -11,8 +11,9 @@ namespace regen {
 				: Animation(false, true), light_(light) {}
 
 		void animate(GLdouble dt) override {
-			light_->updateConeMatrix();
-			light_->updateShaderData();
+			if(light_->updateConeMatrix()) {
+				light_->updateShaderData();
+			}
 		}
 
 		Light *light_;
@@ -66,6 +67,8 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 
 	if (lightType_ == SPOT) {
 		coneMatrix_.resize(1, Mat4f::identity());
+		updateConeMatrix();
+
 		sh_coneMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightConeMatrix");
 		sh_coneMatrix_->setUniformData(coneMatrix_[0]);
 		lightBuffer_->addBlockInput(sh_coneMatrix_);
@@ -149,11 +152,10 @@ void Light::set_outerConeAngle(float deg) {
 	lightConeAnglesStamp_ += 1;
 }
 
-void Light::updateConeMatrix() {
+bool Light::updateConeMatrix() {
 	uint32_t stamp = std::max(lightRadiusStamp_, std::max(lightDirStamp_,
 			std::max(lightConeAnglesStamp_, lightPosStamp_)));
-	if (lightConeStamp_ == stamp) return; // no update needed
-	lightConeStamp_ = stamp;
+	if (lightConeStamp_ == stamp) return false; // no update needed
 
 	// Note: cone opens in positive z direction.
 	// FIXME: where are num instances set for light? probably best to hook resize there!
@@ -190,6 +192,9 @@ void Light::updateConeMatrix() {
 			coneMatrix_[i] = val;
 		}
 	}
+
+	lightConeStamp_ = stamp;
+	return true;
 }
 
 namespace regen {
@@ -313,6 +318,10 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	if (isBufferResized) {
 		light->resizeLocalData();
 	}
+	if (lightType == Light::SPOT) {
+		light->updateConeMatrix();
+	}
+	light->updateShaderData();
 
 	return light;
 }
