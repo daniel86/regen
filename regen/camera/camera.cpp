@@ -20,6 +20,7 @@ namespace regen {
 
 		void animate(double dt) override {
 			camera_->updatePose();
+			camera_->updateShaderData(dt);
 		}
 
 	private:
@@ -651,6 +652,8 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 
 		if (tf.get()) {
 			cam->attachToPosition(tf);
+		} else if (input.hasAttribute("tf")) {
+			REGEN_WARN("Unable to find ModelTransformation for '" << input.getDescription() << "'.");
 		}
 		ctx.scene()->putState(input.getName(), cam);
 

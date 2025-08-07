@@ -505,7 +505,7 @@ namespace regen {
 		bool isOmni_ = false;
 		bool isOrtho_ = false;
 		bool isAudioListener_ = false;
-		unsigned int camStamp_ = 0u;
+		unsigned int camStamp_ = 1u;
 
 		bool hasFixedLOD_ = false;
 		LODQuality fixedLODQuality_ = LODQuality::LOW;
