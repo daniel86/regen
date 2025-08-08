@@ -204,8 +204,8 @@ void Camera::updateShaderData(float dt) {
 		}
 
 		dataSize = projParams_.size() * sizeof(ProjectionParams);
-		if (lastProjParamsStamp1_ != projParamsStamp_) {
-			lastProjParamsStamp1_ = projParamsStamp_;
+		// TODO: Put params together with mat data, avoid the memcpy here.
+		if (projChanged) {
 			std::memcpy(mapped.w + offset, projParams_.data(), dataSize);
 			sh_projParams_->clientBuffer()->nextStamp(mapped.w_index);
 			offset += dataSize;
@@ -283,15 +283,12 @@ void Camera::updateShaderData(float dt) {
 			m_vel.unmap();
 		}
 
-		if (lastProjParamsStamp1_ != projParamsStamp_) {
-			lastProjParamsStamp1_ = projParamsStamp_;
+		if (projChanged) {
+			lastProjStamp1_ = projStamp_;
 			auto m_pp = sh_projParams_->mapClientDataRaw(BUFFER_GPU_WRITE);
 			std::memcpy(m_pp.w, projParams_.data(), projParams_.size() * sizeof(ProjectionParams));
 			m_pp.unmap();
-		}
 
-		if (projChanged) {
-			lastProjStamp1_ = projStamp_;
 			auto m_p = sh_proj_->mapClientDataRaw(BUFFER_GPU_WRITE);
 			std::memcpy(m_p.w, proj_.data(), proj_.size() * sizeof(Mat4f));
 			m_p.unmap();

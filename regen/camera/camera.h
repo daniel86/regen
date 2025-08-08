@@ -159,7 +159,7 @@ namespace regen {
 		 * @param params the projection parameters to set.
 		 */
 		void setProjParams(uint32_t idx, const ProjectionParams &params) {
-			setStamped(projParams_, projParamsStamp_, idx, params);
+			setStamped(projParams_, projStamp_, idx, params);
 		}
 
 		/**
@@ -589,14 +589,12 @@ namespace regen {
 		uint32_t positionStamp_ = 1u;
 		uint32_t velStamp_ = 1u;
 		uint32_t projStamp_ = 1u;
-		uint32_t projParamsStamp_ = 1u;
 		uint32_t clipPlaneStamp_ = 1u;
 
 		uint32_t lastViewStamp1_ = 0u;
 		uint32_t lastProjStamp1_ = 0u;
 		uint32_t lastDirStamp1_ = 0u;
 		uint32_t lastPosStamp1_ = 0u;
-		uint32_t lastProjParamsStamp1_ = 0u;
 		uint32_t lastClipPlaneStamp1_ = 0u;
 		uint32_t lastProjStamp_ = 0u;
 		uint32_t lastPosStamp_ = 0u;

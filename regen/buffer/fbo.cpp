@@ -445,10 +445,10 @@ void FBO::resize(GLuint w, GLuint h, GLuint depth) {
 	set_rectangleSize(w, h);
 	depth_ = depth;
 
-	viewport_->setUniformData(
-			Vec2f((GLfloat) w, (GLfloat) h));
-	inverseViewport_->setUniformData(
-			Vec2f(1.0f / (GLfloat) w, 1.0f / (GLfloat) h));
+	viewport_->setVertex(0,
+		Vec2f((GLfloat) w, (GLfloat) h));
+	inverseViewport_->setVertex(0,
+		Vec2f(1.0f / (GLfloat) w, 1.0f / (GLfloat) h));
 	glViewport_ = Vec4ui(0, 0, w, h);
 
 	// resize depth attachment
