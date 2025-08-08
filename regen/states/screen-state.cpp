@@ -1,5 +1,4 @@
 #include "screen-state.h"
-#include "regen/buffer/fbo.h"
 
 using namespace regen;
 
@@ -25,9 +24,12 @@ void ScreenState::enable(RenderState *rs) {
 		auto winViewport = windowViewport_->getVertex(0);
 		glViewport_.z = winViewport.r.x;
 		glViewport_.w = winViewport.r.y;
-		viewport_->setVertex(0, Vec2f(winViewport.r.x, winViewport.r.y));
-		inverseViewport_->setUniformData(
-				Vec2f(1.0f / (GLfloat) winViewport.r.x, 1.0f / (GLfloat) winViewport.r.y));
+		viewport_->setVertex(0, Vec2f(
+			static_cast<float>(winViewport.r.x),
+			static_cast<float>(winViewport.r.y)));
+		inverseViewport_->setVertex(0, Vec2f(
+			1.0f / static_cast<float>(winViewport.r.x),
+			1.0f / static_cast<float>(winViewport.r.y)));
 		winViewport.unmap();
 		lastViewportStamp_ = windowViewport_->stamp();
 	}

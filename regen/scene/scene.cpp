@@ -23,7 +23,7 @@ uint32_t Scene::MOUSE_LEAVE_EVENT =
 uint32_t Scene::RESIZE_EVENT =
 		EventObject::registerEvent("resize-event");
 
-Scene::Scene(const int &argc, const char **argv)
+Scene::Scene(const int& /*argc*/, const char** /*argv*/)
 		: EventObject(),
 		  renderTree_(ref_ptr<RootNode>::alloc()),
 		  renderState_(nullptr),
@@ -284,7 +284,6 @@ void Scene::initGL() {
 	REGEN_INFO("GL initialized.");
 
 	globalUniforms_ = ref_ptr<UBO>::alloc("GlobalUniforms", BufferUpdateFlags::FULL_PER_FRAME);
-	globalUniforms_->addBlockInput(windowViewport_);
 	globalUniforms_->addBlockInput(mousePosition_);
 	globalUniforms_->addBlockInput(mouseTexco_);
 	globalUniforms_->addBlockInput(mouseDepth_);
@@ -293,6 +292,9 @@ void Scene::initGL() {
 	globalUniforms_->addBlockInput(worldTime_.in);
 	globalUniforms_->addBlockInput(isMouseEntered_);
 	renderTree_->state()->setInput(globalUniforms_);
+	// Note: don't add to the UBO as it might use ring buffer causing
+	// the viewport values to change with a delay of a few frames.
+	renderTree_->state()->setInput(windowViewport_);
 }
 
 void Scene::setTime() {

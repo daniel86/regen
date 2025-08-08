@@ -117,10 +117,10 @@ uint32_t ClientBuffer::swapData() {
 				range.size);
 		}
 
-		// For each write segment with stamp < read segment stamp: set the stamp to read segment stamp,
+		// For each write segment with stamp != read segment stamp: set the stamp to read segment stamp,
 		// as we have synced the data above.
 		for (auto &segment : bufferSegments_) {
-			if (segment->dataStamps_[lastWriteSlot] < dataStamps_[lastReadSlot]) {
+			if (segment->dataStamps_[lastWriteSlot] != dataStamps_[lastReadSlot]) {
 				segment->dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
 			}
 		}
@@ -695,7 +695,7 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 }
 
 void ClientBuffer::markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const {
-	auto *parent = parentBuffer_;
+	auto *parent = this;
 	// compute global offset
 	while (parent) {
 		offset += parent->dataOffset_;

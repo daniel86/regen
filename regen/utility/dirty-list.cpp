@@ -19,7 +19,8 @@ void DirtyList::insert(uint32_t offset, uint32_t size) {
 	// first check if we can merge with another range
 	// assuming we do not have too many dirt ranges, it should be fine to do a linear search here.
 	// Note that there still can be some fragmentation, as the new range may overlap with another range.
-	for (auto &range : ranges_) {
+    for (uint32_t rangeIdx = 0; rangeIdx < count_; ++rangeIdx) {
+		auto &range = ranges_[rangeIdx];
 		if (range.overlaps(newRange)) {
 			range.merge(newRange);
 			return;  // merged, no need to add

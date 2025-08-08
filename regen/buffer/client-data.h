@@ -296,9 +296,10 @@ namespace regen {
 						uint32_t stride,
 						int32_t mapMode,
 						uint32_t vertexIndex)
-				: rawData(clientBuffer, mapMode, 0, clientBuffer->dataSize()),
-				  r(r_access_vertex<T>(rawData.r, vertexIndex, stride)),
-				  w(w_access_vertex<T>(rawData.w, vertexIndex, stride)) {
+				: vertexSize(stride > 0 ? stride : sizeof(T)),
+				  rawData(clientBuffer, mapMode, vertexIndex*vertexSize, vertexSize),
+				  r(((const T*)rawData.r)[0]),
+				  w(((T*)rawData.r)[0]) {
 		}
 
 		// do not allow copying
@@ -310,6 +311,7 @@ namespace regen {
 		void unmap() { rawData.unmap(); }
 
 	private:
+		const uint32_t vertexSize;
 		ClientDataRaw_rw rawData;
 	public:
 		/**
@@ -340,8 +342,9 @@ namespace regen {
 						uint32_t stride,
 						int32_t mapMode,
 						uint32_t vertexIndex)
-				: rawData(clientBuffer, mapMode, 0, clientBuffer->dataSize()),
-				  r(r_access_vertex<T>(rawData.r, vertexIndex, stride)) {
+				: vertexSize(stride > 0 ? stride : sizeof(T)),
+				  rawData(clientBuffer, mapMode, vertexIndex*vertexSize, vertexSize),
+				  r(((const T*)rawData.r)[0]) {
 		}
 
 		// do not allow copying
@@ -353,6 +356,7 @@ namespace regen {
 		void unmap() { rawData.unmap(); }
 
 	private:
+		const uint32_t vertexSize;
 		ClientDataRaw_ro rawData;
 	public:
 		/**
