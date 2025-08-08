@@ -8,6 +8,7 @@
 #include <regen/utility/ref-ptr.h>
 #include <regen/buffer/client-data-base.h>
 #include <regen/utility/dirty-list.h>
+#include "buffer-enums.h"
 
 namespace regen {
 	/**
@@ -26,6 +27,10 @@ namespace regen {
 		virtual ~ClientBuffer();
 
 		ClientBuffer(const ClientBuffer &) = delete;
+
+		void setMemoryLayout(BufferMemoryLayout layout) { memoryLayout_ = layout; }
+
+		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
 
 		/**
 		 * @return true if client data is available, i.e. the first data slot is not null.
@@ -231,6 +236,7 @@ namespace regen {
 		uint32_t lastOffset_ = 0u;
 		uint32_t baseAlignment_ = 1u;
 		bool isFrameLocked_ = false;
+		BufferMemoryLayout memoryLayout_ = BUFFER_MEMORY_PACKED;
 
 		// Note: marked as mutable because client data mapping must be allowed in const functions
 		//       for reading data, but mapping interacts with locks. Hence, locks must be mutable.

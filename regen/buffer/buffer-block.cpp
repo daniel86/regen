@@ -26,6 +26,8 @@ BufferBlock::BufferBlock(
 		  blockQualifier_(blockQualifier),
 		  stagingFlags_(target, hints) {
 	memoryLayout_ = memoryLayout;
+	clientBuffer_->setMemoryLayout(memoryLayout_);
+
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	shared_ = ref_ptr<Shared>::alloc();
@@ -157,6 +159,7 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 		clientBuffer_ = ref_ptr<ClientBuffer>::alloc();
 		clientBuffer_->setFrameLocked(true);
 	}
+	clientBuffer_->setMemoryLayout(memoryLayout_);
 	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;

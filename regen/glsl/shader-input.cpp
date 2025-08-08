@@ -132,6 +132,7 @@ void ShaderInput::updateAlignment() {
 
 void ShaderInput::setMemoryLayout(BufferMemoryLayout layout) {
 	memoryLayout_ = layout;
+	clientBuffer_->setMemoryLayout(layout);
 	updateAlignment();
 }
 

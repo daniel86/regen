@@ -95,6 +95,9 @@ uint32_t ClientBuffer::swapData() {
 		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
 
 		// Merge overlapping segments, and sort along offsets.
+		// TODO: Merging of dirty frames could safely be done across padded regions,
+		//       i.e. the regions that are not used to store actual data.
+		//       that would reduce the number of copies needed in some cases.
 		dirtyThisFrame.coalesce();
 		// Delete all dirty ranges from the last read slot that have been written to this frame.
 		// It is certain that both dirty lists are coalesced, so calling subtract is safe.
@@ -370,6 +373,11 @@ void ClientBuffer::updateBufferSize() {
 			offset += segment->dataSize_;
 		}
 		dataSize_ = offset + bufferSegments_.back()->dataSize_;
+		// Round total size up to next multiple of 16 (vec4 alignment for std140)
+		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
+			static constexpr size_t std140Alignment = 16;
+			dataSize_ = (dataSize_ + std140Alignment - 1) & ~(std140Alignment - 1);
+		}
 	}
 }
 
