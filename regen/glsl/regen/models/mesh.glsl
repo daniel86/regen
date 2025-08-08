@@ -257,10 +257,8 @@ layout(triangle_strip, max_vertices=3) out;
 
 out vec3 out_posWorld;
 out vec3 out_posEye;
-#if RENDER_LAYER > 1
-#ifdef USE_GS_LAYERED_RENDERING
+#if RENDER_LAYER > 1 && USE_GS_LAYERED_RENDERING
 flat out int out_layer;
-#endif
 #endif
 
 #include regen.states.camera.input

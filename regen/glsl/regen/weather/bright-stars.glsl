@@ -81,6 +81,9 @@ in vec3 in_col[ ];
 out vec3 out_col;
 out vec3 out_texco;
 flat out int out_layer;
+#if RENDER_LAYER > 1 && VS_LAYER_SELECTION
+flat in int in_layer[ ];
+#endif
 
 uniform float in_q;
 

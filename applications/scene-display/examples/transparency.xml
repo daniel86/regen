@@ -151,7 +151,6 @@
             <stencil test="0"/>
             <depth test="0" write="0"/>
             <define key="RENDER_LAYER" value="3"/>
-            <define key="USE_GS_LAYERED_RENDERING" value="TRUE" />
             <texture name="inputTexture" fbo="platform-refraction" attachment="1"/>
             <fullscreen-pass shader="regen.filter.sampling"/>
         </node>

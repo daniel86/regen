@@ -99,6 +99,8 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
 	setAnimationName("sky");
 	// Note: disabled because animation manager allways activates this state,
 	//       but we do not need to if sky does not need update.
+	// TODO: Make the "idle" state part of animation, then animation manager can
+	//       skip activation of this state.
 	//joinAnimationState(state());
 	GL_ERROR_LOG();
 }
@@ -295,8 +297,18 @@ void SkyView::createShader(RenderState *, const StateConfig &stateCfg) {
 		StateConfigurer cfg(stateCfg);
 		cfg.addNode(layer.get());
 
-		layer->getShaderState()->createShader(cfg.cfg());
-		layer->getMeshState()->updateVAO(cfg.cfg(), layer->getShaderState()->shaderState()->shader());
+		auto hasShader = layer->getShaderState();
+		auto mesh = layer->getMeshState();
+
+		// replicate each mesh LOD numLayer times for indirect multi-layer rendering
+		const uint32_t numRenderLayer = cfg.cfg().numRenderLayer();
+		if (numRenderLayer > 1) {
+			REGEN_WARN("Using indirect multi-layer sky-pass with " << numRenderLayer << " layers.");
+			mesh->createIndirectDrawBuffer(numRenderLayer);
+		}
+
+		hasShader->createShader(cfg.cfg());
+		mesh->updateVAO(cfg.cfg(), hasShader->shaderState()->shader());
 	}
 }
 

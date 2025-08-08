@@ -45,8 +45,6 @@ Moon::Moon(const ref_ptr<Sky> &sky, const std::string &moonMapFile)
 
 	shaderState_ = ref_ptr<HasShader>::alloc("regen.weather.moon");
 	meshState_ = ref_ptr<Rectangle>::alloc(sky->skyQuad());
-	// FIXME: support this better
-	meshState_->shaderDefine("USE_GS_LAYERED_RENDERING", "TRUE");
 }
 
 void Moon::setupMoonTextureCube(const std::string &moonMapFile) {

@@ -561,6 +561,7 @@ void Mesh::setIndirectDrawBuffer(
 void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
 	auto &partLODs = meshLODs();
 	std::vector<DrawCommand> drawData(4 * numDrawLayers);
+	ensureLOD();
 
 	// Create the indirect draw data for this part and the first layer.
 	// DrawID order: LOD0_layer0, LOD0_layer1, LOD0_layer2, ...
