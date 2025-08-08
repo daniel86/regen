@@ -711,7 +711,7 @@ void Mesh::enable(RenderState *rs) {
 		drawMesh(rs);
 		set_multiDrawCount(1);
 	}
-	else if (indirectDrawGroups_.empty()) {
+	else if (!indirectDrawBuffer_.get() || indirectDrawGroups_.empty()) {
 		uint32_t drawIdx = baseDrawIdx_;
 		if (lodSortMode_ == SortMode::BACK_TO_FRONT) {
 			for (uint32_t lodLevel = meshLODs_.size(); lodLevel > 0; --lodLevel) {
