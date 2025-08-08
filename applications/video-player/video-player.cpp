@@ -1,10 +1,3 @@
-/*
- * video-player.cpp
- *
- *  Created on: 01.01.2013
- *      Author: daniel
- */
-
 #include <applications/qt/qt-application.h>
 #include <regen/config.h>
 
