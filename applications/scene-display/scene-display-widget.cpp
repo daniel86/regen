@@ -75,6 +75,8 @@ public:
         : EventHandler(), Animation(true, false), app_(app) {
     }
 
+    ~SceneDisplayMouseHandler() override = default;
+
     void call(EventObject *evObject, EventData *data) override {
         if (data->eventID == Scene::BUTTON_EVENT) {
             auto *ev = (Scene::ButtonEvent *) data;
@@ -870,7 +872,6 @@ static void handleAssetAnimationConfiguration(
 static void handleMouseConfiguration(
     QtApplication *app_,
     scene::SceneLoader &sceneParser,
-    list<ref_ptr<EventHandler> > &eventHandler,
     const ref_ptr<SceneInputNode> &mouseNode) {
     for (auto &child: mouseNode->getChildren()) {
         if (child->getCategory() == string("click")) {
@@ -927,11 +928,8 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     anchorAnim_ = {};
     timeWidgetAnimation_ = {};
     anchorIndex_ = 0;
-
-    for (auto &it: eventHandler_) {
-        app_->disconnect(it);
-    }
     app_->clear();
+    eventHandler_.clear();
 
     ref_ptr<RootNode> tree = app_->renderTree();
 
@@ -950,13 +948,15 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
         } else if (x->getCategory() == string("camera")) {
             handleCameraConfiguration(sceneParser, x);
         } else if (x->getCategory() == string("mouse")) {
-            handleMouseConfiguration(app_, sceneParser, eventHandler_, x);
+            handleMouseConfiguration(app_, sceneParser, x);
         }
     }
 
     sceneParser.processNode(tree, "root", "node");
     physics_ = sceneParser.getPhysics();
-    eventHandler_ = sceneParser.getEventHandler();
+    eventHandler_.insert(eventHandler_.end(),
+						  sceneParser.getEventHandler().begin(),
+						  sceneParser.getEventHandler().end());
     spatialIndices_ = sceneParser.getResources()->getIndices();
     app_->initializeScene();
 
