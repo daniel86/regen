@@ -303,7 +303,7 @@ void SkyView::createShader(RenderState *, const StateConfig &stateCfg) {
 		// replicate each mesh LOD numLayer times for indirect multi-layer rendering
 		const uint32_t numRenderLayer = cfg.cfg().numRenderLayer();
 		if (numRenderLayer > 1) {
-			REGEN_WARN("Using indirect multi-layer sky-pass with " << numRenderLayer << " layers.");
+			REGEN_INFO("Using indirect multi-layer sky-pass with " << numRenderLayer << " layers.");
 			mesh->createIndirectDrawBuffer(numRenderLayer);
 		}
 
