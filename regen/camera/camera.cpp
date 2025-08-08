@@ -19,8 +19,9 @@ namespace regen {
 				  camera_(camera) {}
 
 		void animate(double dt) override {
-			camera_->updatePose();
-			camera_->updateShaderData(dt);
+			if(camera_->updatePose()) {
+				camera_->updateShaderData(dt);
+			}
 		}
 
 	private:
@@ -119,6 +120,13 @@ static inline void flushWritten(
 }
 
 void Camera::updateShaderData(float dt) {
+	// Ensure this function is not called while another update is in progress.
+	// Wait until the update flag is set to false.
+	while (isUpdating_.load(std::memory_order_acquire)) {
+		CPU_PAUSE(); // busy wait, we expect very short duration of wait here.
+	}
+	isUpdating_.store(true, std::memory_order_release);
+
 	// Update velocity
 	if (lastPosition_.size() != position_.size()) {
 		lastPosition_.resize(position_.size());
@@ -141,6 +149,11 @@ void Camera::updateShaderData(float dt) {
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
 	auto &clientBuffer = *cameraBlock_->clientBuffer().get();
+	if (!clientBuffer.hasClientData()) {
+		REGEN_WARN("Update shader data called on camera without client data.");
+		isUpdating_.store(false, std::memory_order_release);
+		return;
+	}
 
 	if (clientBuffer.hasSegments()) {
 		auto mapped = clientBuffer.mapRange(
@@ -298,6 +311,8 @@ void Camera::updateShaderData(float dt) {
 			m_p_i.unmap();
 		}
 	}
+
+	isUpdating_.store(false, std::memory_order_release);
 }
 
 bool Camera::updateCamera() {
@@ -422,7 +437,7 @@ void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	}
 }
 
-void Camera::updatePose() {
+bool Camera::updatePose() {
 	bool updated = false;
 	if (attachedTF_.get()) {
 		if (poseStamp_ != attachedTF_->stamp()) {
@@ -434,6 +449,7 @@ void Camera::updatePose() {
 	if (updated) {
 		updateCamera();
 	}
+	return updated;
 }
 
 ref_ptr<UBO> Camera::getFrustumBuffer() {

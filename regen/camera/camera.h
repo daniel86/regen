@@ -469,7 +469,7 @@ namespace regen {
 		/**
 		 * Update the camera pose based on the attached transform, if any.
 		 */
-		void updatePose();
+		bool updatePose();
 
 		/**
 		 * @return true is the camera has a fixed LOD quality.
@@ -506,6 +506,10 @@ namespace regen {
 		bool isOrtho_ = false;
 		bool isAudioListener_ = false;
 		unsigned int camStamp_ = 1u;
+		// flag is used to avoid multiple updates of the camera
+		// from multiple threads, e.g. window resize and usual
+		// camera updates from controller could interfere.
+		std::atomic<bool> isUpdating_{false};
 
 		bool hasFixedLOD_ = false;
 		LODQuality fixedLODQuality_ = LODQuality::LOW;

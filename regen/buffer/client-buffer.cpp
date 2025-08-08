@@ -227,6 +227,9 @@ MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t s
 			// get a write lock on the second slot.
 			if (dataOwner_->writerFlags_[1].test_and_set(std::memory_order_acquire) == 0) {
 				if (dataSlots_[1] == nullptr) {
+					// TODO: I do not think this is best. It could be slot 0 is locked by another writer.
+					//        At least for the frame-locked case I think we should enforce that there can only
+					//        be one writer at a time.
 					dataOwner_->createSecondSlot();
 					return { dataSlots_[0]+offset, 0, dataSlots_[1]+offset, 1 };
 				} else {
