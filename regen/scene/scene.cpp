@@ -287,10 +287,10 @@ void Scene::initGL() {
 	globalUniforms_->addBlockInput(mousePosition_);
 	globalUniforms_->addBlockInput(mouseTexco_);
 	globalUniforms_->addBlockInput(mouseDepth_);
+	globalUniforms_->addBlockInput(isMouseEntered_);
+	globalUniforms_->addBlockInput(worldTime_.in);
 	globalUniforms_->addBlockInput(timeSeconds_);
 	globalUniforms_->addBlockInput(timeDelta_);
-	globalUniforms_->addBlockInput(worldTime_.in);
-	globalUniforms_->addBlockInput(isMouseEntered_);
 	renderTree_->state()->setInput(globalUniforms_);
 	// Note: don't add to the UBO as it might use ring buffer causing
 	// the viewport values to change with a delay of a few frames.
