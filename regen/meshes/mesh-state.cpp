@@ -602,7 +602,7 @@ void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
 
 	// finally create the indirect draw buffer for this part
 	indirectDrawBuffer_ = ref_ptr<DrawIndirectBuffer>::alloc(
-			"IndirectDrawBuffer", BufferUpdateFlags::FULL_PER_FRAME);
+			"IndirectDrawBuffer", BufferUpdateFlags::FULL_RARELY);
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 			"DrawCommand", "drawParams", 4 * numDrawLayers);
 	input->setInstanceData(1, 1, (byte*)drawData.data());

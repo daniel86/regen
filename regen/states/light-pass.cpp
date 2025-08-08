@@ -134,22 +134,16 @@ void LightPass::createShader(const StateConfig &cfg) {
 		_cfg.cfg().numInstances_ = std::max(_cfg.cfg().numInstances_, numInstances_);
 	}
 	_cfg.define("NUM_SHADOW_LAYER", REGEN_STRING(numShadowLayer_));
+
+	// replicate each mesh LOD numLayer times for indirect multi-layer rendering
+	const uint32_t numRenderLayer = _cfg.cfg().numRenderLayer();
+	if (numRenderLayer > 1) {
+		REGEN_INFO("Using indirect multi-layer light-pass with " << numRenderLayer << " layers.");
+		mesh_->createIndirectDrawBuffer(numRenderLayer);
+	}
+
 	shader_->createShader(_cfg.cfg(), shaderKey_);
 	mesh_->updateVAO(_cfg.cfg(), shader_->shader());
-
-	auto numLayerDef = _cfg.cfg().defines_.find("RENDER_LAYER");
-	if (numLayerDef != _cfg.cfg().defines_.end()) {
-		auto &numLayerStr = numLayerDef->second;
-		// read integer value from string
-		std::stringstream is(numLayerStr);
-		uint32_t numLayer = 1;
-		is >> numLayer;
-		// replicate each mesh LOD numLayer times for indirect multi-layer rendering
-		if (numLayer > 1) {
-			REGEN_INFO("Using indirect multi-layer light-pass with " << numLayer << " layers.");
-			mesh_->createIndirectDrawBuffer(numLayer);
-		}
-	}
 
 	for (auto &light: lights_) { addLightInput(light); }
 	shadowMapLoc_ = shader_->shader()->uniformLocation("shadowTexture");
