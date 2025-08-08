@@ -6,6 +6,7 @@ endif()
 message(STATUS "Build type is ${CMAKE_BUILD_TYPE}.")
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(REGEN_DEBUG_BUILD 1)
+    add_definitions( -O2 )
 elseif(${CMAKE_BUILD_TYPE} STREQUAL "Profile")
     # Address and UndefinedBehavior sanitizer
 	set(REGEN_DEBUG_BUILD 1)
