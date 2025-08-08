@@ -612,6 +612,12 @@ namespace regen {
 		ProjectionUpdater(const ref_ptr<Camera> &cam,
 						  const ref_ptr<ShaderInput2i> &windowViewport);
 
+		~ProjectionUpdater() override = default;
+
+		ProjectionUpdater(const ProjectionUpdater &) = delete;
+
+		ProjectionUpdater &operator=(const ProjectionUpdater &) = delete;
+
 		void call(EventObject *, EventData *) override;
 
 	protected:

@@ -10,6 +10,8 @@ public:
 	AnimationRepeater(const ref_ptr<MeshAnimation> &anim, const Vec2d &tickRange)
 			: EventHandler(), anim_(anim), tickRange_(tickRange) {}
 
+	~AnimationRepeater() override = default;
+
 	void call(EventObject *ev, EventData *data) override {
 		anim_->setTickRange(tickRange_);
 		anim_->startAnimation();

@@ -408,6 +408,8 @@ namespace regen {
 				  windowViewport_(windowViewport),
 				  wScale_(wScale), hScale_(hScale) {}
 
+		~TextureResizer() override = default;
+
 		void call(EventObject *, EventData *) override {
 			auto winSize = windowViewport_->getVertex(0).r;
 			winSize.x = static_cast<int32_t>(static_cast<float>(winSize.x) * wScale_);

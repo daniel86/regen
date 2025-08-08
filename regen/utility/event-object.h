@@ -85,6 +85,12 @@ namespace regen {
 		void disconnect(const ref_ptr<EventHandler> &c);
 
 		/**
+		 * Disconnect all event handlers.
+		 * This will disconnect all handlers registered on this object.
+		 */
+		void disconnectAll();
+
+		/**
 		 * Emit an event, call all handlers.
 		 */
 		void emitEvent(unsigned int eventID,
@@ -195,6 +201,8 @@ namespace regen {
 		 * @param f the lambda function to call.
 		 */
 		explicit LambdaEventHandler(std::function<void(EventObject *, EventData *)> f) : f_(std::move(f)) {}
+
+		~LambdaEventHandler() override = default;
 
 		void call(EventObject *emitter, EventData *data) override {
 			f_(emitter, data);

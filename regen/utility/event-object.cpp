@@ -39,7 +39,7 @@ EventObject::EventObject()
 EventObject::~EventObject() {
 	eventLock_.lock();
 	{
-		std::list<QueuedEvent>::iterator i = queued_->begin();
+		auto i = queued_->begin();
 		while (i != queued_->end()) {
 			if (i->emitter == this) queued_->erase(i++);
 			else ++i;
@@ -47,10 +47,8 @@ EventObject::~EventObject() {
 	}
 	eventLock_.unlock();
 
-	for (EventHandlers::iterator
-				 it = eventHandlers_.begin(); it != eventHandlers_.end(); ++it) {
-		for (EventHandlerList::iterator
-					 jt = it->second.begin(); jt != it->second.end(); ++jt) {
+	for (auto it = eventHandlers_.begin(); it != eventHandlers_.end(); ++it) {
+		for (auto jt = it->second.begin(); jt != it->second.end(); ++jt) {
 			jt->first->set_handlerID(-1);
 		}
 	}
@@ -63,7 +61,7 @@ unsigned int EventObject::registerEvent(const std::string &eventName) {
 }
 
 unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventHandler> &callable) {
-	EventHandlers::iterator it = eventHandlers_.find(eventId);
+	auto it = eventHandlers_.find(eventId);
 
 	++handlerCounter_;
 	eventHandlerIds_[handlerCounter_] = eventId;
@@ -88,7 +86,7 @@ unsigned int EventObject::connect(const std::string &eventName, const ref_ptr<Ev
 }
 
 void EventObject::disconnect(unsigned int connectionID) {
-	EventHandlerIds::iterator idNeedle =
+	auto idNeedle =
 			eventHandlerIds_.find(connectionID);
 	if (idNeedle == eventHandlerIds_.end()) {
 		REGEN_WARN("Signal with id=" << connectionID << " no known.");
@@ -96,15 +94,14 @@ void EventObject::disconnect(unsigned int connectionID) {
 	}
 
 	unsigned int eventId = idNeedle->second;
-	EventHandlers::iterator signalHandlers =
-			eventHandlers_.find(eventId);
+	auto signalHandlers = eventHandlers_.find(eventId);
 	if (signalHandlers == eventHandlers_.end()) {
 		REGEN_WARN("Signal with id=" << connectionID << " has no connected handlers.");
 		return; // no handlers not found!
 	}
 
 	EventHandlerList &l = signalHandlers->second;
-	for (EventHandlerList::iterator it = l.begin(); it != l.end(); ++it) {
+	for (auto it = l.begin(); it != l.end(); ++it) {
 		if (it->second != connectionID) continue;
 		it->first->set_handlerID(-1);
 		l.erase(it);
@@ -118,13 +115,30 @@ void EventObject::disconnect(const ref_ptr<EventHandler> &c) {
 	disconnect(c->handlerID());
 }
 
+void EventObject::disconnectAll() {
+	eventLock_.lock();
+	{
+		for (auto & eventHandler : eventHandlers_) {
+			EventHandlerList &l = eventHandler.second;
+			for (auto & jt : l) {
+				jt.first->set_handlerID(-1);
+			}
+			l.clear();
+		}
+		eventHandlers_.clear();
+		eventHandlerIds_.clear();
+		handlerCounter_ = 0;
+	}
+	eventLock_.unlock();
+}
+
 void EventObject::emitEvent(unsigned int eventID, const ref_ptr<EventData> &data) {
 	// make sure event data specifies at least event ID
 	ref_ptr<EventData> d = data;
 	if (!d.get()) { d = ref_ptr<EventData>::alloc(); }
 	d->eventID = eventID;
 
-	EventHandlers::iterator it = eventHandlers_.find(eventID);
+	auto it = eventHandlers_.find(eventID);
 	if (it != eventHandlers_.end()) {
 		EventHandlerList::iterator jt;
 		for (jt = it->second.begin(); jt != it->second.end(); ++jt) {
@@ -160,7 +174,7 @@ void EventObject::emitQueued() {
 void EventObject::unqueueEmit(unsigned int eventID) {
 	eventLock_.lock();
 	{
-		for (std::list<QueuedEvent>::iterator it = queued_->begin(); it != queued_->end(); ++it) {
+		for (auto it = queued_->begin(); it != queued_->end(); ++it) {
 			const QueuedEvent &ev = *it;
 			if (ev.emitter == this && ev.eventID == eventID) {
 				queued_->erase(it);

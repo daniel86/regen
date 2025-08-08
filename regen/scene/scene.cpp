@@ -305,6 +305,7 @@ void Scene::setTime() {
 }
 
 void Scene::clear() {
+	disconnectAll();
 	renderTree_->clear();
 	namedToObject_.clear();
 	idToObject_.clear();

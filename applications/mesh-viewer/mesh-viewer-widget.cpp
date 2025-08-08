@@ -27,6 +27,9 @@ using namespace std;
 class FBOResizer : public EventHandler {
 public:
 	explicit FBOResizer(const ref_ptr<FBOState> &fbo) : EventHandler(), fboState_(fbo) {}
+
+	~FBOResizer() override = default;
+
 	void call(EventObject *evObject, EventData *) override {
 		auto *app = (Scene *) evObject;
 		auto winSize = app->windowViewport()->getVertex(0);
@@ -40,6 +43,9 @@ class RotateAnimation : public Animation {
 public:
 	explicit RotateAnimation(MeshViewerWidget *widget)
 			: Animation(false, true), widget_(widget) {}
+
+	~RotateAnimation() override = default;
+
 	void animate(GLdouble dt) override { widget_->transformMesh(dt); }
 	MeshViewerWidget *widget_;
 };

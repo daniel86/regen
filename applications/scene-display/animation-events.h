@@ -1,10 +1,3 @@
-/*
- * animation.h
- *
- *  Created on: Oct 19, 2014
- *      Author: daniel
- */
-
 #ifndef SCENE_DISPLAY_ANIMATION_H_
 #define SCENE_DISPLAY_ANIMATION_H_
 
@@ -30,7 +23,9 @@ public:
 			  anim_(anim),
 			  animRanges_(animRanges) {}
 
-	void call(EventObject *ev, EventData *data) {
+	~RandomAnimationRangeUpdater() override = default;
+
+	void call(EventObject *ev, EventData *data) override {
 		int index = rand() % animRanges_.size();
 		setAnimationRangeActive(anim_, animRanges_[index]);
 	}
@@ -46,6 +41,8 @@ public:
 			const ref_ptr<NodeAnimation> &anim)
 			: EventHandler(),
 			  anim_(anim) {}
+
+	~RandomAnimationRangeUpdater2() override = default;
 
 	void call(EventObject *ev, EventData *data) override {
 		static const Vec2d fullRange(-1.0, -1.0);
@@ -90,6 +87,8 @@ public:
 		idleAnimation_ = idleAnimation;
 		startIdleAnimation();
 	}
+
+	~KeyAnimationRangeUpdater() override = default;
 
 	void startIdleAnimation() {
 		active_ = "";
@@ -142,7 +141,7 @@ public:
 		}
 	}
 
-	void call(EventObject *evObject, EventData *data) {
+	void call(EventObject *evObject, EventData *data) override {
 		if (data->eventID == Animation::ANIMATION_STOPPED) {
 			nextAnimation();
 			return;

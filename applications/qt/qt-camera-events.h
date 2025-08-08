@@ -20,6 +20,8 @@ namespace regen {
 				const ref_ptr<CameraController> &m,
 				const std::vector<CameraCommandMapping> &keyMappings);
 
+		~QtFirstPersonEventHandler() override = default;
+
 		/**
 		 * @param val the camera sensitivity
 		 */

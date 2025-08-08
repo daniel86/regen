@@ -534,6 +534,8 @@ namespace regen {
 				  windowViewport_(windowViewport),
 				  wScale_(wScale), hScale_(hScale) {}
 
+		~FBOResizer() override = default;
+
 		void call(EventObject *, EventData *) {
 			auto winSize = windowViewport_->getVertex(0);
 			Vec2i fboSize(winSize.r.x * wScale_, winSize.r.y * hScale_);

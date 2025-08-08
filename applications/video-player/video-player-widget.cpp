@@ -137,6 +137,8 @@ public:
 	FBOResizer(const ref_ptr<FBOState> &fbo, GLfloat wScale, GLfloat hScale)
 			: EventHandler(), fboState_(fbo), wScale_(wScale), hScale_(hScale) {}
 
+	~FBOResizer() override = default;
+
 	void call(EventObject *evObject, EventData *) {
 		Scene *app = (Scene *) evObject;
 		auto winSize = app->windowViewport()->getVertex(0);

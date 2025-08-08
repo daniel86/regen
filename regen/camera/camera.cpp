@@ -149,13 +149,8 @@ void Camera::updateShaderData(float dt) {
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
 	const bool projChanged = (lastProjStamp1_ != projStamp_);
 	auto &clientBuffer = *cameraBlock_->clientBuffer().get();
-	if (!clientBuffer.hasClientData()) {
-		REGEN_WARN("Update shader data called on camera without client data.");
-		isUpdating_.store(false, std::memory_order_release);
-		return;
-	}
 
-	if (clientBuffer.hasSegments()) {
+	if (clientBuffer.hasSegments() && clientBuffer.hasClientData()) {
 		auto mapped = clientBuffer.mapRange(
 				BUFFER_GPU_WRITE,
 				0u, clientBuffer.dataSize());
@@ -592,7 +587,10 @@ ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &in
 
 ProjectionUpdater::ProjectionUpdater(const ref_ptr<Camera> &cam,
 									 const ref_ptr<ShaderInput2i> &windowViewport)
-		: EventHandler(), cam_(cam), windowViewport_(windowViewport) {}
+	: EventHandler(),
+	  cam_(cam),
+	  windowViewport_(windowViewport) {
+}
 
 void ProjectionUpdater::call(EventObject *, EventData *) {
 	auto windowViewport = windowViewport_->getVertex(0);
