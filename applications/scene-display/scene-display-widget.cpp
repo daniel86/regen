@@ -141,6 +141,7 @@ SceneDisplayWidget::SceneDisplayWidget(QtApplication *app)
     // load window width/height from Qt settings
     int width = settings_.value("width", 1280).toInt();
     int height = settings_.value("height", 960).toInt();
+	REGEN_INFO("Initial window size: " << width << "x" << height);
 
     ui_.setupUi(this);
     ui_.glWidgetLayout->addWidget(app_->glWidgetContainer(), 0, 0, 1, 1);

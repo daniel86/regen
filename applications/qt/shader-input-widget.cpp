@@ -124,6 +124,10 @@ bool ShaderInputWidget::handleNode(
 		const ref_ptr<StateNode> &node,
 		QTreeWidgetItem *parent) {
 	bool isEmpty = !isValidState(node->state().get());
+	if (node->isHidden()) {
+		// do not show hidden nodes
+		return false;
+	}
 
 	QTreeWidgetItem *x = parent;
 	GLuint level = 0u;
@@ -311,6 +315,7 @@ bool ShaderInputWidget::isValidParameter(const ShaderInput *input) {
 	// TODO: maybe rather use "editable" flag?
 	if (input->name() == "viewport") return false;
 	if (input->name() == "inverseViewport") return false;
+	if (input->name() == "windowViewport") return false;
 
 	return true;
 }
@@ -339,6 +344,7 @@ bool ShaderInputWidget::addParameter(
 	// TODO: maybe rather use "editable" flag?
 	if (in->name() == "viewport") return false;
 	if (in->name() == "inverseViewport") return false;
+	if (in->name() == "windowViewport") return false;
 
 	if (initialValue_.count(in.get()) > 0) {
 		byte *lastValue = initialValue_[in.get()];
