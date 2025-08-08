@@ -262,6 +262,17 @@ namespace regen {
 					uint32_t numDrawLayers);
 
 		/**
+		 * Create an indirect draw buffer for this mesh.
+		 * This will create a draw command for each LOD level and layer.
+		 * Note that this will switch the draw command such that each mesh draw
+		 * is done numDrawLayers times for each LOD level.
+		 * Usually the LOD system is used to create the indirect draw buffer,
+		 * but for some cases it is convenient to create it manually.
+		 * @param numDrawLayers the number of draw layers for each LOD level.
+		 */
+		void createIndirectDrawBuffer(uint32_t numDrawLayers);
+
+		/**
 		 * @return true if this input container has an index buffer.
 		 */
 		bool hasIndirectDrawBuffer() const { return indirectDrawBuffer_.get() != nullptr; }

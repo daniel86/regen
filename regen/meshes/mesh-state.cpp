@@ -9,6 +9,7 @@
 #include "regen/states/state-configurer.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl-types/draw-command.h"
+#include "regen/buffer/dibo.h"
 
 // TODO: think about making a distinction between mesh resource and state.
 // TODO: think about introducing a notion of model replacing mesh vector.
@@ -554,6 +555,60 @@ void Mesh::setIndirectDrawBuffer(
 	} else {
 		indirectOffset_ = 0u;
 	}
+	updateDrawFunction();
+}
+
+void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
+	auto &partLODs = meshLODs();
+	std::vector<DrawCommand> drawData(4 * numDrawLayers);
+
+	// Create the indirect draw data for this part and the first layer.
+	// DrawID order: LOD0_layer0, LOD0_layer1, LOD0_layer2, ...
+	// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
+	for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
+		const uint32_t lodStartIdx = lodIdx * numDrawLayers;
+		DrawCommand &drawParams = drawData[lodStartIdx];
+		if (lodIdx < numLODs()) {
+			auto &lodData = partLODs[lodIdx];
+			Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : this;
+			if (m->indices().get()) {
+				drawParams.mode = 1u; // 1=elements, 2=arrays
+				drawParams.setCount(lodData.d->numIndices);
+				drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
+				drawParams.data[3] = 0; // base vertex
+			} else {
+				drawParams.mode = 2u; // 1=elements, 2=arrays
+				drawParams.setCount(lodData.d->numVertices);
+				drawParams.setFirstElement(lodData.d->vertexOffset);
+			}
+		} else {
+			// no LOD data available, use the base mesh
+			drawParams.mode = indices().get() ? 1u : 2u; // 1=elements, 2=arrays
+			drawParams.setCount(0);
+			drawParams.setFirstElement(0);
+		}
+		drawParams.setInstanceCount(lodIdx==0 ? numInstances() : 0);
+		drawParams.setBaseInstance(0);
+
+		// Copy over the data for the remaining layers.
+		for (uint32_t layerIdx = 1; layerIdx < numDrawLayers; ++layerIdx) {
+			const uint32_t lodLayerIdx = lodStartIdx + layerIdx;
+			std::memcpy(
+				&drawData[lodLayerIdx],
+				&drawData[lodStartIdx],
+				sizeof(DrawCommand));
+		}
+	}
+
+	// finally create the indirect draw buffer for this part
+	indirectDrawBuffer_ = ref_ptr<DrawIndirectBuffer>::alloc(
+			"IndirectDrawBuffer", BufferUpdateFlags::FULL_PER_FRAME);
+	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+			"DrawCommand", "drawParams", 4 * numDrawLayers);
+	input->setInstanceData(1, 1, (byte*)drawData.data());
+	indirectDrawBuffer_->addBlockInput(input);
+	indirectDrawBuffer_->update();
+	numDrawLayers_ = numDrawLayers;
 	updateDrawFunction();
 }
 
