@@ -213,6 +213,7 @@ void VideoPlayerWidget::gl_loadScene() {
 	setBlitToScreen(app_, fbo, GL_COLOR_ATTACHMENT0);
 	GL_ERROR_LOG();
 
+	vid_->startAnimation();
 	initAnim_ = ref_ptr<Animation>();
 	AnimationManager::get().resume();
 	REGEN_INFO("Video Scene Loaded.");
