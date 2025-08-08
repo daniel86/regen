@@ -347,22 +347,22 @@
             <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" update-frequency="NEVER"/>
             <node id="video-picture-canvas">
                 <define key="TEXCO_FLIP_X" value="1"/>
-                <texture name="colorTexture" id="video-texture" map-to="AMBIENT" texco-flipping="x"/>
+                <texture name="colorTexture" id="video-texture" map-to="DIFFUSE" texco-flipping="x"/>
                 <transform id="video-picture-tf"/>
                 <mesh id="picture-canvas" shader="regen.models.mesh"/>
             </node>
             <node id="smoke-picture-canvas">
-                <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="AMBIENT"/>
+                <texture name="colorTexture" fbo="fluid-smoke-output" attachment="0" map-to="DIFFUSE"/>
                 <transform id="smoke-picture-tf"/>
                 <mesh id="picture-canvas" shader="regen.models.mesh"/>
             </node>
             <node id="velocity-picture-canvas">
-                <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="AMBIENT"/>
+                <texture name="colorTexture" fbo="fluid-vel-output" attachment="0" map-to="DIFFUSE"/>
                 <transform id="velocity-picture-tf"/>
                 <mesh id="picture-canvas" shader="regen.models.mesh"/>
             </node>
             <node id="mandelbrot-picture-canvas">
-                <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="AMBIENT"/>
+                <texture name="colorTexture" fbo="mandelbrot-buffer" attachment="0" map-to="DIFFUSE"/>
                 <transform id="mandelbrot-picture-tf"/>
                 <mesh id="picture-canvas" shader="regen.models.mesh"/>
             </node>
@@ -809,16 +809,19 @@
         <input type="vec3" name="lightAmbient" value="0.06,0.04,0.04"/>
 
         <node id="Additive-Shading">
+            <node id="Ambient-Shading">
+                <fullscreen-pass shader="regen.shading.deferred.ambient"/>
+            </node>
             <node id="Light-Shading">
+                <blend mode="add"/>
                 <node>
-                    <light-pass type="POINT" ambient="1" shader="regen.shading.deferred.point">
+                    <light-pass type="POINT" ambient="0" shader="regen.shading.deferred.point">
                         <light id="room-light0"
                                shadow-buffer="room-light-shadow0" shadow-attachment="depth"
                                shadow-camera="room-light-camera0"/>
                     </light-pass>
                 </node>
                 <node>
-                    <blend mode="add"/>
                     <light-pass type="SPOT" ambient="0" shader="regen.shading.deferred.spot">
                         <light id="picture-spot-center"/>
                         <light id="picture-spot-right"/>
@@ -897,8 +900,8 @@
         <node id="Tonemapping">
             <fbo id="g-buffer" draw-buffers="0"/>
             <texture name="inputTexture" fbo="g-buffer" attachment="1"/>
-            <input type="float" name="exposure" value="0.6"/>
-            <input type="float" name="gamma" value="1.5"/>
+            <input type="float" name="exposure" value="0.45"/>
+            <input type="float" name="gamma" value="0.85"/>
             <!-- mix scene with blur texture -->
             <input type="float" name="blurAmount" value="0.34"/>
             <texture name="blurTexture" id="bloom-texture"/>

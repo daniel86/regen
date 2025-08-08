@@ -937,9 +937,19 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
     scene::SceneLoader sceneParser(app_, xmlInput);
     sceneParser.setNodeProcessor(ref_ptr<ViewNodeProcessor>::alloc(&viewNodes_));
     ref_ptr<SceneInputNode> root = sceneParser.getRoot();
+
+    // Process the root node
+    sceneParser.processNode(tree, "root", "node");
+    physics_ = sceneParser.getPhysics();
+    eventHandler_.insert(eventHandler_.end(),
+						  sceneParser.getEventHandler().begin(),
+						  sceneParser.getEventHandler().end());
+    spatialIndices_ = sceneParser.getResources()->getIndices();
+
+    // Process the configuration node
+    // Note: configurations may refer to resources, so better to load them after the root node.
     ref_ptr<SceneInputNode> configurationNode = root->getFirstChild("node", "configuration");
     if (configurationNode.get() == nullptr) { configurationNode = root; }
-
     for (const auto &x: configurationNode->getChildren()) {
         if (x->getCategory() == string("animation")) {
             if (x->getValue("type") == string("asset")) {
@@ -952,12 +962,6 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
         }
     }
 
-    sceneParser.processNode(tree, "root", "node");
-    physics_ = sceneParser.getPhysics();
-    eventHandler_.insert(eventHandler_.end(),
-						  sceneParser.getEventHandler().begin(),
-						  sceneParser.getEventHandler().end());
-    spatialIndices_ = sceneParser.getResources()->getIndices();
     app_->initializeScene();
 
 
