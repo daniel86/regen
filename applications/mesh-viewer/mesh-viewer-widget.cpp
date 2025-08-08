@@ -11,7 +11,6 @@
 #include "regen/glsl/shader-state.h"
 #include <regen/states/fbo-state.h>
 #include <regen/states/blit-state.h>
-#include <regen/states/state-configurer.h>
 #include <regen/utility/filesystem.h>
 #include <regen/animations/animation-manager.h>
 #include <regen/meshes/lod/mesh-simplifier.h>
@@ -383,10 +382,11 @@ static ref_ptr<Camera> createUserCamera(const Vec2i &viewport) {
 	auto cam = ref_ptr<Camera>::alloc(1);
 	float aspect = (GLfloat) viewport.x / (GLfloat) viewport.y;
 	cam->set_isAudioListener(false);
-	cam->position()->setVertex3(0, Vec3f(0.0f, 0.0f, -3.0f));
-	cam->direction()->setVertex3(0, Vec3f(0.0f, 0.0f, 1.0f));
+	cam->setPosition(0, Vec3f(0.0f, 0.0f, -3.0f));
+	cam->setDirection(0, Vec3f(0.0f, 0.0f, 1.0f));
 	cam->setPerspective(aspect, 45.0f, 0.1f, 100.0f);
 	cam->updateCamera();
+	cam->updateShaderData(0.0f);
 	return cam;
 }
 
@@ -458,18 +458,25 @@ void MeshViewerWidget::gl_loadScene() {
 	// TODO: better use deferred shading, and also allow to display the normals
 	auto shadingState = ref_ptr<DirectShading>::alloc();
 	shadingState->ambientLight()->setVertex(0, Vec3f(0.3f));
+
 	sceneLight_[0] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-	sceneLight_[0]->direction()->setVertex(0, Vec3f(0.0f, 1.0f, 0.0f).normalize());
-	sceneLight_[0]->diffuse()->setVertex(0, Vec3f(0.3f, 0.3f, 0.3f));
-	sceneLight_[0]->specular()->setVertex(0, Vec3f(0.0f));
+	sceneLight_[0]->setDirection(0, Vec3f(0.0f, 1.0f, 0.0f).normalize());
+	sceneLight_[0]->setDiffuse(0, Vec3f(0.3f, 0.3f, 0.3f));
+	sceneLight_[0]->setSpecular(0, Vec3f(0.0f));
+	sceneLight_[0]->updateShaderData();
+
 	sceneLight_[1] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-	sceneLight_[1]->direction()->setVertex(0, Vec3f(-1.0f, 0.0f, 0.0f).normalize());
-	sceneLight_[1]->diffuse()->setVertex(0, Vec3f(0.4f, 0.4f, 0.4f));
-	sceneLight_[1]->specular()->setVertex(0, Vec3f(0.0f));
+	sceneLight_[1]->setDirection(0, Vec3f(-1.0f, 0.0f, 0.0f).normalize());
+	sceneLight_[1]->setDiffuse(0, Vec3f(0.4f, 0.4f, 0.4f));
+	sceneLight_[1]->setSpecular(0, Vec3f(0.0f));
+	sceneLight_[1]->updateShaderData();
+
 	sceneLight_[2] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
-	sceneLight_[2]->direction()->setVertex(0, Vec3f(1.0f, 1.0f, 0.0f).normalize());
-	sceneLight_[2]->diffuse()->setVertex(0, Vec3f(0.4f, 0.4f, 0.4f));
-	sceneLight_[2]->specular()->setVertex(0, Vec3f(0.0f));
+	sceneLight_[2]->setDirection(0, Vec3f(1.0f, 1.0f, 0.0f).normalize());
+	sceneLight_[2]->setDiffuse(0, Vec3f(0.4f, 0.4f, 0.4f));
+	sceneLight_[2]->setSpecular(0, Vec3f(0.0f));
+	sceneLight_[2]->updateShaderData();
+
 	shadingState->addLight(sceneLight_[0]);
 	shadingState->addLight(sceneLight_[1]);
 	shadingState->addLight(sceneLight_[2]);
@@ -495,7 +502,6 @@ void MeshViewerWidget::gl_loadScene() {
 }
 
 void MeshViewerWidget::transformMesh(GLdouble dt) {
-	auto &tf = modelTransform_->modelMat();
 	// rotate the mesh around the Y axis
 	meshOrientation_ += dt * 0.001f;
 	if (meshOrientation_ > M_PI * 2.0f) {
@@ -505,7 +511,8 @@ void MeshViewerWidget::transformMesh(GLdouble dt) {
 	auto mat = meshQuaternion_.calculateMatrix();
 	mat.translate(meshOrigin_);
 	mat.scale(Vec3f(meshScale_));
-	tf->setVertex(0, mat);
+	modelTransform_->setModelMat(0, mat);
+	modelTransform_->updateShaderData();
 }
 
 void MeshViewerWidget::toggleInputsDialog() {
