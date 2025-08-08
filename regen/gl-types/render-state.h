@@ -329,7 +329,7 @@ namespace regen {
 		/**
 		 * Reset to initial states.
 		 */
-		static void reset();
+		static RenderState* reset();
 
 		/**
 		 * Returns true if a transform feedback operation was started.
@@ -677,8 +677,6 @@ namespace regen {
 		inline ByValueStateStack<GLenum> &logicOp() { return logicOp_; }
 
 	protected:
-		static RenderState *instance_;
-
 		GLint maxDrawBuffers_;
 		GLint maxTextureUnits_;
 		GLint maxViewports_;
@@ -753,6 +751,8 @@ namespace regen {
 		ByValueStateStack<GLenum> frontFace_;
 
 		RenderState();
+
+		static RenderState *get(bool reset);
 	};
 
 	std::ostream &operator<<(std::ostream &out, const RenderState::Toggle &v);

@@ -51,7 +51,7 @@ namespace regen {
 			// Note: intentional shutdown leak, as textures might access this
 			//  in their destructor on system shutdown, after the static memory
 			//  has been cleared!
-			static auto* binder = new TextureBinder();
+			thread_local static auto* binder = new TextureBinder();
 			return *binder;
 		}
 

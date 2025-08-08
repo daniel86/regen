@@ -99,20 +99,23 @@ inline void Regen_Toggle(GLuint index, const GLboolean &v) {
 	toggleFunctions[v](toggleID);
 }
 
-RenderState *RenderState::instance_ = nullptr;
-
-RenderState *RenderState::get() {
+RenderState *RenderState::get(bool reset) {
+	thread_local static RenderState *instance_ = nullptr;
 	if (instance_ == nullptr) {
+		instance_ = new RenderState();
+	} else if (reset) {
+		delete instance_;
 		instance_ = new RenderState();
 	}
 	return instance_;
 }
 
-void RenderState::reset() {
-	if (instance_ != nullptr) {
-		delete instance_;
-		instance_ = new RenderState();
-	}
+RenderState *RenderState::get() {
+	return RenderState::get(false);
+}
+
+RenderState* RenderState::reset() {
+	return RenderState::get(true);
 }
 
 #ifdef WIN32

@@ -58,7 +58,7 @@ namespace regen {
 		std::vector<int32_t> bindingPointCounter_[LAST_BLOCK_TYPE];
 
 		static BindingManager &instance() {
-			static BindingManager instance;
+			thread_local static BindingManager instance;
 			return instance;
 		}
 
