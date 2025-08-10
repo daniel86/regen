@@ -130,7 +130,6 @@ void BufferContainer::updateBuffer() {
 			}
 			nextUBOInputs.push_back(namedInput);
 			uboSize += inputSize;
-			setInput(namedInput.in_);
 		}
 	}
 	if (!nextUBOInputs.empty()) {
