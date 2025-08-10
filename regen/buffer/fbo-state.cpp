@@ -1,8 +1,8 @@
-#include <regen/utility/string-util.h>
-#include <regen/states/atomic-states.h>
+#include "regen/utility/string-util.h"
+#include "regen/states/atomic-states.h"
 
 #include "fbo-state.h"
-#include "screen-state.h"
+#include "regen/states/screen-state.h"
 
 using namespace regen;
 

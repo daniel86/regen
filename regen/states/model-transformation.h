@@ -4,7 +4,7 @@
 #include <regen/av/audio.h>
 #include <regen/math/quaternion.h>
 #include <regen/states/state.h>
-#include "buffer-container.h"
+#include "regen/buffer/buffer-container.h"
 
 namespace regen {
 	/**

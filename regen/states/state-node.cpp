@@ -9,7 +9,7 @@
 #include <regen/animations/animation-manager.h>
 
 #include "state-node.h"
-#include "fbo-state.h"
+#include "regen/buffer/fbo-state.h"
 
 using namespace regen;
 

@@ -1,10 +1,10 @@
 #ifndef REGEN_BUFFER_CONTAINER_H_
 #define REGEN_BUFFER_CONTAINER_H_
 
-#include <regen/states/state.h>
-#include <regen/buffer/ubo.h>
-#include <regen/buffer/tbo.h>
-#include <regen/textures/texture-buffer.h>
+#include "regen/states/state.h"
+#include "ubo.h"
+#include "tbo.h"
+#include "regen/textures/texture-buffer.h"
 #include "regen/buffer/ssbo.h"
 
 namespace regen {

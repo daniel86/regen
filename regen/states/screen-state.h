@@ -2,7 +2,7 @@
 #define REGEN_SCREEN_STATE_H_
 
 #include <regen/states/state.h>
-#include "fbo-state.h"
+#include "regen/buffer/fbo-state.h"
 
 namespace regen {
 	/**

@@ -4,7 +4,7 @@
 #include <regen/meshes/primitives/skirt-quad.h>
 #include "regen/states/material-state.h"
 #include "regen/textures/texture.h"
-#include "regen/states/fbo-state.h"
+#include "regen/buffer/fbo-state.h"
 #include "regen/states/fullscreen-pass.h"
 
 namespace regen {
