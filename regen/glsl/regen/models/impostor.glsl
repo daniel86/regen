@@ -202,7 +202,6 @@ void emitLayer(int layer, float scale) {
 }
 
 // TODO: Consider not using a geometry shader.
-//    - either only set gl_Layer, or do that in VS
 //    - move the impostor computation to the vertex shader
 void main() {
 #ifdef HAS_modelMatrix
