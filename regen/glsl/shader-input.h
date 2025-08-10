@@ -225,6 +225,13 @@ namespace regen {
 		inline uint32_t numVertices() const { return numVertices_; }
 
 		/**
+		 * Stride used for client data mapping.
+		 * This is the size of a single element with alignment applied.
+		 * @return the stride used for client data mapping in bytes.
+		 */
+		inline uint32_t mapClientStride() const { return mapClientStride_; }
+
+		/**
 		 * Number of array elements.
 		 * returns 1 if this is not an array attribute.
 		 */

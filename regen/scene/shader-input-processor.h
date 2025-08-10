@@ -52,10 +52,14 @@ namespace regen {
 		public:
 			template<class T>
 			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
-				auto v_values = shaderInput->mapClientData<T>(BUFFER_GPU_WRITE | BUFFER_GPU_READ);
+				auto readIdx = shaderInput->clientBuffer()->currentReadSlot();
+				byte* rawData = shaderInput->clientBuffer()->clientData(readIdx);
+				WriteAccessor<T> v_values(rawData,
+						shaderInput->mapClientStride(),
+						shaderInput->mapClientStride()==0u ? w_access_packed<T> : w_access_strided<T>);
 				auto default_value = input.getValue<T>("value", T(0));
 				for (unsigned int i = 0; i < count; ++i) {
-					v_values.w[i] = default_value;
+					v_values[i] = default_value;
 				}
 				for (auto &child: input.getChildren()) {
 					if (child->getCategory() == "set") {
@@ -63,16 +67,16 @@ namespace regen {
 						auto blendMode = child->getValue<BlendMode>("blend-mode", BLEND_MODE_SRC);
 						ValueGenerator<T> generator(child.get(), indices.size(),
 													child->getValue<T>("value", T(1)));
-						for (unsigned int & indice : indices) {
+						for (unsigned int & index : indices) {
 							switch (blendMode) {
 								case BLEND_MODE_ADD:
-									v_values.w[indice] = v_values.r[indice] + generator.next();
+									v_values[index] = v_values[index] + generator.next();
 									break;
 								case BLEND_MODE_MULTIPLY:
-									v_values.w[indice] = v_values.r[indice] * generator.next();
+									v_values[index] = v_values[index] * generator.next();
 									break;
 								default:
-									v_values.w[indice] = generator.next();
+									v_values[index] = generator.next();
 									break;
 							}
 						}
