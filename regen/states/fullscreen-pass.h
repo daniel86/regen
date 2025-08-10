@@ -22,15 +22,19 @@ namespace regen {
 			joinStates(fullscreenMesh_);
 		}
 
+		void setUseIndirectDraw(bool v) { useIndirectDraw_ = v; }
+
 		/**
 		 * @param cfg the shader configuration.
 		 */
 		void createShader(const StateConfig &cfg) override {
 			// replicate each mesh LOD numLayer times for indirect multi-layer rendering
-			const uint32_t numRenderLayer = cfg.numRenderLayer();
-			if (numRenderLayer > 1) {
-				REGEN_INFO("Using indirect multi-layer fullscreen-pass with " << numRenderLayer << " layers.");
-				fullscreenMesh_->createIndirectDrawBuffer(numRenderLayer);
+			if (useIndirectDraw_) {
+				const uint32_t numRenderLayer = cfg.numRenderLayer();
+				if (numRenderLayer > 1) {
+					REGEN_INFO("Using indirect multi-layer fullscreen-pass with " << numRenderLayer << " layers.");
+					fullscreenMesh_->createIndirectDrawBuffer(numRenderLayer);
+				}
 			}
 			shaderState_->createShader(cfg, shaderKey_);
 			fullscreenMesh_->updateVAO(cfg, shaderState_->shader());
@@ -49,8 +53,13 @@ namespace regen {
 			return fs;
 		}
 
+		const ref_ptr<Mesh>& fullscreenMesh() const {
+			return fullscreenMesh_;
+		}
+
 	protected:
 		ref_ptr<Mesh> fullscreenMesh_;
+		bool useIndirectDraw_ = true;
 	};
 } // namespace
 #endif /* REGEN_FULLSCREEN_PASS_H_ */
