@@ -4,6 +4,10 @@
 #include "buffer-enums.h"
 #include <cstring>
 
+// Toggle for adaptive buffering: start with single
+// buffer and switch to double buffer if needed.
+//#define REGEN_CLIENT_ADAPTIVE_BUFFERING
+
 using namespace regen;
 
 ClientBuffer::ClientBuffer() {
@@ -93,6 +97,10 @@ uint32_t ClientBuffer::swapData() {
 	if (dataSlots_[1]) {
 		int32_t lastWriteSlot = 1 - lastReadSlot;
 		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
+		if (dirtyThisFrame.count() == 0) {
+			// No dirty ranges, nothing to do.
+			return 0u;
+		}
 
 		// Merge overlapping segments, and sort along offsets.
 		// TODO: Merging of dirty frames could safely be done across padded regions,
@@ -187,31 +195,25 @@ void ClientBuffer::nextSegmentStamp(uint32_t dataSlot, uint32_t writeBegin, uint
 
 MappedClientData ClientBuffer::mapRange(int mapMode, uint32_t offset, uint32_t size) const {
 	if ((mapMode & BUFFER_GPU_WRITE) != 0) {
+#ifdef REGEN_CLIENT_ADAPTIVE_BUFFERING
 		if (!hasTwoSlots()) {
-			// ClientBuffer in single-buffered mode.
-			return mapRange_SingleBuffer(offset, size);
+			return writeMap_SingleBuffer(offset, size);
 		} else {
-			// ClientBuffer in double-buffered mode.
 			return mapRange_DoubleBuffer(offset, size);
 		}
+#else
+		return mapRange_DoubleBuffer(offset, size);
+#endif
 	} else {
 		return mapRange_ReadOnly(offset, size);
 	}
 }
 
 MappedClientData ClientBuffer::mapRange_SingleBuffer(uint32_t offset, uint32_t size) const {
-	// ClientBuffer initially has only one slot, the second is allocated on demand in case
-	// multiple threads are concurrently reading/writing the data.
-	// here we keep writing to the active slot as long as no one has to wait,
-	// but as soon as there is waiting time we allocate the second slot and copy the data
-	// to avoid waiting in the future.
-	// partial writing is ok here, as we update the most recent data slot.
-	// NOTE: r_index -1 indicates that there is no read lock, i.e. no need to call readUnlock in unmap.
 	if (writeLock_SingleBuffer()) {
-		// got the write lock, return the data.
-		// this means there are currently no readers, nor writers, so we can safely write to the active slot.
 		return {dataSlots_[0] + offset, -1, dataSlots_[0] + offset, 0};
-	} else if (writerFlags_[0].test(std::memory_order_acquire) != 0) {
+	}
+	else if (writerFlags_[0].test(std::memory_order_acquire) != 0) {
 		// if the first slot is write-locked, then we need to wait for it to be unlocked.
 		do {
 			// busy wait, we expect very short duration of wait here.
@@ -285,7 +287,7 @@ MappedClientData ClientBuffer::mapRange_DoubleBuffer(uint32_t offset, uint32_t s
 }
 
 MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t size) const {
-	// read only. the case of reading at index is not handled differently here.
+#ifdef REGEN_CLIENT_ADAPTIVE_BUFFERING
 	if (!hasTwoSlots()) {
 		// we are still in single-buffered mode.
 		// first we try to get a read lock on the single slot.
@@ -312,6 +314,7 @@ MappedClientData ClientBuffer::mapRange_ReadOnly(uint32_t offset, uint32_t size)
 			return mapRange_ReadOnly(offset, size); // retry
 		}
 	}
+#endif
 	// read lock in double-buffered mode.
 	int r_index = readLock();
 	return {dataSlots_[r_index] + offset, r_index};
@@ -355,7 +358,6 @@ void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
 	dataSize_ = static_cast<uint32_t>(dataSize);
 	// do the re-allocation of data slots.
 	dataOwner_->ownerResize();
-	nextStamp();
 
 	// copy over initial data if any
 	if (initialData) {
@@ -364,6 +366,8 @@ void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
 			std::memcpy(dataSlots_[1], initialData, dataSize);
 		}
 	}
+
+	nextStamp();
 }
 
 void ClientBuffer::updateBufferSize() {
@@ -403,9 +407,14 @@ void ClientBuffer::ownerResize() {
 	//      - using a pool allocator
 	//      - maybe fast re-allocation is possible?
 	dataSlots_[0] = new byte[dataSize_];
+#ifdef REGEN_CLIENT_ADAPTIVE_BUFFERING
 	if (dataSlots_[1]) {
 		dataSlots_[1] = new byte[dataSize_];
 	}
+#else
+	dataSlots_[1] = new byte[dataSize_];
+#endif
+
 
 	if (dataSlots_[1]) {
 		resize_DoubleBuffer(
@@ -485,6 +494,9 @@ void ClientBuffer::resize_DoubleBuffer(
 		oldDataPtr0 = localOldDataPtr0;
 		oldDataPtr1 = localOldDataPtr1;
 	}
+	if (!oldDataPtr1) {
+		oldDataPtr1 = oldDataPtr0;
+	}
 
 	if (dataSize_ == allocatedSize_) {
 		// no resize, just copy over the data from old to new slot.
@@ -524,7 +536,9 @@ void ClientBuffer::resize_DoubleBuffer(
 		writerFlags_[0].clear(std::memory_order_release);
 		writerFlags_[1].clear(std::memory_order_release);
 		delete[] localOldDataPtr0;
-		delete[] localOldDataPtr1;
+		if (localOldDataPtr1 != localOldDataPtr0) {
+			delete[] localOldDataPtr1;
+		}
 	}
 }
 
