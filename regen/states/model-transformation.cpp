@@ -109,6 +109,7 @@ void ModelTransformation::updateShaderData() {
 		std::memcpy(m_vel.w, velocity_.data(), velocity_.size() * sizeof(Vec3f));
 		m_vel.unmap();
 	}
+	lastTFStamp_ = tfStamp_;
 }
 
 void ModelTransformation::resizeModelMat(uint32_t numInstances, const Mat4f *initialData) {

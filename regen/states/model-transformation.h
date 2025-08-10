@@ -58,7 +58,7 @@ namespace regen {
 		/**
 		 * @return The stamp of the model transformation.
 		 */
-		inline uint32_t stamp() const { return tfStamp_; }
+		inline uint32_t stamp() const { return lastTFStamp_; }
 
 		/**
 		 * @return The buffer object that contains the model transformation matrix.
@@ -121,7 +121,7 @@ namespace regen {
 		/**
 		 * @return the stamp indicating when the model matrix was last updated.
 		 */
-		uint32_t modelMatStamp() const { return modelMatStamp_; }
+		uint32_t modelMatStamp() const { return lastModelMatStamp_; }
 
 		/**
 		 * @return true if the model transformation has a model offset.
@@ -173,7 +173,7 @@ namespace regen {
 		/**
 		 * @return the stamp indicating when the model offset was last updated.
 		 */
-		uint32_t modelOffsetStamp() const { return modelOffsetStamp_; }
+		uint32_t modelOffsetStamp() const { return lastModelOffsetStamp_; }
 
 		const Vec3f &position(uint32_t idx) const;
 
@@ -245,6 +245,7 @@ namespace regen {
 		uint32_t lastModelMatStamp_ = 0;
 		uint32_t lastModelOffsetStamp_ = 0;
 		uint32_t lastVelocityStamp_ = 0;
+		uint32_t lastTFStamp_ = 0;
 
 		ref_ptr<AudioSource> audioSource_;
 		boost::posix_time::ptime lastTime_ = boost::posix_time::microsec_clock::local_time();
