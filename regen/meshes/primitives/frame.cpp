@@ -142,16 +142,13 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 	}
 
 	// map client data for writing
-	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
-				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec3f>::nullData());
+				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 	auto v_tan = (cfg.isTangentRequired ?
-				  tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec4f>::nullData());
+				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (texcoMode == TEXCO_MODE_UV ?
-					texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
-					ClientData_rw<Vec2f>::nullData());
+					(Vec2f*) texco_->clientBuffer()->clientData(0) : nullptr);
 
 	// Define the initial box scale
 	Vec3f initialBoxScale(0.5f * cfg.posScale.x, 0.5f * cfg.posScale.y, 0.5f * cfg.borderSize);
@@ -218,12 +215,12 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 					auto transformedVertex = (transformations[boxIndex] * (initialBoxScale * f[i].p));
 					minPosition_.setMin(transformedVertex.xyz_());
 					maxPosition_.setMax(transformedVertex.xyz_());
-					v_pos.w[vertexIndex + i] = transformedVertex.xyz_();
+					v_pos[vertexIndex + i] = transformedVertex.xyz_();
 				}
 				if (cfg.isNormalRequired) {
 					auto nor = transformations[boxIndex].rotateVector(normal);
 					for (GLuint i = 0; i < 3; ++i) {
-						v_nor.w[vertexIndex + i] = nor;
+						v_nor[vertexIndex + i] = nor;
 					}
 				}
 
@@ -249,32 +246,21 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 							default:
 								uv = Vec2f(0.0f);
 						}
-						v_texco.w[vertexIndex + i] = uv * cfg.texcoScale;
+						v_texco[vertexIndex + i] = uv * cfg.texcoScale;
 					}
 				}
 
 				if (cfg.isTangentRequired) {
-					Vec3f *vertices = v_pos.w.data() + vertexIndex;
-					Vec2f *texcos = v_texco.w.data() + vertexIndex;
+					Vec3f *vertices = v_pos + vertexIndex;
+					Vec2f *texcos = v_texco + vertexIndex;
 					Vec4f tangent = calculateTangent(vertices, texcos, normal);
 					for (GLuint i = 0; i < 3; ++i) {
-						v_tan.w[vertexIndex + i] = tangent;
+						v_tan[vertexIndex + i] = tangent;
 					}
 				}
 			}
 			vertexBase += faces.size() * 3;
 		}
-	}
-
-	v_pos.unmap();
-	if (cfg.isNormalRequired) {
-		v_nor.unmap();
-	}
-	if (cfg.isTangentRequired) {
-		v_tan.unmap();
-	}
-	if (texcoMode == TEXCO_MODE_UV) {
-		v_texco.unmap();
 	}
 
 	begin(INTERLEAVED);

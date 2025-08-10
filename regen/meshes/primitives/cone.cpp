@@ -30,10 +30,9 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 								  GLuint vertexOffset,
 								  GLuint indexOffset) {
 	// map client data for writing
-	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
-				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec3f>::nullData());
+				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 
 	GLfloat phi = acos(cfg.cosAngle);
 	GLfloat radius = tan(phi) * cfg.height;
@@ -41,9 +40,9 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 	GLfloat angleStep = 2.0f * M_PI / (GLfloat) lodLevel;
 	GLuint i = vertexOffset;
 
-	v_pos.w[i] = Vec3f(0.0f);
+	v_pos[i] = Vec3f(0.0f);
 	if (cfg.isNormalRequired) {
-		v_nor.w[i] = Vec3f(0.0f, -1.0f, 0.0f);
+		v_nor[i] = Vec3f(0.0f, -1.0f, 0.0f);
 	}
 
 	for (; i < lodLevel + 1; ++i) {
@@ -51,13 +50,13 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 		GLfloat s = sin(angle) * radius;
 		GLfloat c = cos(angle) * radius;
 		Vec3f pos(c, s, cfg.height);
-		v_pos.w[i + 1] = pos;
+		v_pos[i + 1] = pos;
 		minPosition_.setMin(pos);
 		maxPosition_.setMax(pos);
 		if (cfg.isNormalRequired) {
 			Vec3f n(c, 0.0, s);
 			n.normalize();
-			v_nor.w[i + 1] = n;
+			v_nor[i + 1] = n;
 		}
 	}
 }
@@ -177,16 +176,15 @@ void ConeClosed::generateLODLevel(
 		GLuint vertexOffset,
 		GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
+	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
-				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec3f>::nullData());
+				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 
 	// create cone vertex data
 	loadConeData(
-			v_pos.w.data()+vertexOffset,
-			(v_nor.w.data() ? v_nor.w.data()+vertexOffset : v_nor.w.data()),
+			v_pos+vertexOffset,
+			(v_nor ? v_nor+vertexOffset : v_nor),
 			minPosition_, maxPosition_,
 			cfg.isBaseRequired, lodLevel,
 			cfg.radius, cfg.height);
@@ -198,16 +196,16 @@ void ConeClosed::generateLODLevel(
 	GLint vIndex = vertexOffset + cfg.isBaseRequired ? 2 : 1;
 	// cone
 	for (GLuint i = 0; i < lodLevel; ++i) {
-		indices.w[faceIndex++] = apexIndex;
-		indices.w[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
-		indices.w[faceIndex++] = vIndex + i;
+		indices[faceIndex++] = apexIndex;
+		indices[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
+		indices[faceIndex++] = vIndex + i;
 	}
 	// base
 	if (cfg.isBaseRequired) {
 		for (GLuint i = 0; i < lodLevel; ++i) {
-			indices.w[faceIndex++] = baseCenterIndex;
-			indices.w[faceIndex++] = vIndex + i;
-			indices.w[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
+			indices[faceIndex++] = baseCenterIndex;
+			indices[faceIndex++] = vIndex + i;
+			indices[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
 		}
 	}
 }

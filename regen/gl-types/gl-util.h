@@ -20,7 +20,7 @@ namespace regen {
 	 * Log the GL error state.
 	 */
 #ifdef REGEN_DEBUG_BUILD
-#define GL_ERROR_LOG() REGEN_ERROR( getGLError() )
+#define GL_ERROR_LOG() glHandleError(__FILE__, __LINE__)
 #else
 #define GL_ERROR_LOG()
 #endif
@@ -39,6 +39,8 @@ namespace regen {
 #ifdef REGEN_DEBUG_BUILD
 
 	std::string getGLError();
+
+	void glHandleError(const char *file, int line);
 
 #else
 #define getGLError()

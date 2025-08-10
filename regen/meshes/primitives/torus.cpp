@@ -84,17 +84,14 @@ void Torus::generateLODLevel(const Config &cfg,
 							 GLuint vertexOffset,
 							 GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
+	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
-				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec3f>::nullData());
+				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 	auto v_tan = (cfg.isTangentRequired ?
-				  tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec4f>::nullData());
+				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (texco_.get() ?
-					texco_->mapClientData<float>(BUFFER_GPU_WRITE) :
-					ClientData_rw<float>::nullData());
+					(float*) texco_->clientBuffer()->clientData(0) : nullptr);
 
 	GLuint vertexIndex = vertexOffset;
 	const float ringStep = 2.0f * M_PI / lodLevel;
@@ -117,10 +114,10 @@ void Torus::generateLODLevel(const Config &cfg,
 			);
 
 			pos = cfg.posScale * pos;
-			v_pos.w[vertexIndex] = pos;
+			v_pos[vertexIndex] = pos;
 
 			if (cfg.isNormalRequired) {
-				v_nor.w[vertexIndex] = Vec3f(
+				v_nor[vertexIndex] = Vec3f(
 						cosPhi * cosTheta,
 						sinPhi,
 						cosPhi * sinTheta);
@@ -128,15 +125,15 @@ void Torus::generateLODLevel(const Config &cfg,
 
 			if (cfg.texcoMode == TEXCO_MODE_UV) {
 				Vec2f texco((float) i / lodLevel, (float) j / lodLevel);
-				((Vec2f*)v_texco.w.data())[vertexIndex] = texco * cfg.texcoScale;
+				((Vec2f*)v_texco)[vertexIndex] = texco * cfg.texcoScale;
 			} else if (cfg.texcoMode == TEXCO_MODE_CUBE_MAP) {
 				Vec3f texco = pos;
 				texco.normalize();
-				((Vec3f*)v_texco.w.data())[vertexIndex] = texco;
+				((Vec3f*)v_texco)[vertexIndex] = texco;
 			}
 
 			if (cfg.isTangentRequired) {
-				v_tan.w[vertexIndex] = Vec4f(
+				v_tan[vertexIndex] = Vec4f(
 						-sinTheta,
 						0.0f,
 						cosTheta, 1.0f);
@@ -153,13 +150,13 @@ void Torus::generateLODLevel(const Config &cfg,
 			GLuint second = vertexOffset + first + lodLevel + 1;
 			first += vertexOffset;
 
-			indices.w[iOffset++] = first;
-			indices.w[iOffset++] = first + 1;
-			indices.w[iOffset++] = second;
+			indices[iOffset++] = first;
+			indices[iOffset++] = first + 1;
+			indices[iOffset++] = second;
 
-			indices.w[iOffset++] = second;
-			indices.w[iOffset++] = first + 1;
-			indices.w[iOffset++] = second + 1;
+			indices[iOffset++] = second;
+			indices[iOffset++] = first + 1;
+			indices[iOffset++] = second + 1;
 		}
 	}
 }

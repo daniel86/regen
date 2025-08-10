@@ -82,17 +82,14 @@ void Disc::generateLODLevel(const Config &cfg,
 							GLuint indexOffset) {
 	const float angleStep = 2.0f * M_PI / lodLevel;
 
-	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
+	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
-				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec3f>::nullData());
+				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 	auto v_tan = (cfg.isTangentRequired ?
-				  tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec4f>::nullData());
+				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (cfg.texcoMode == TEXCO_MODE_UV ?
-					texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
-					ClientData_rw<Vec2f>::nullData());
+					(Vec2f*) texco_->clientBuffer()->clientData(0) : nullptr);
 
 	GLuint vertexIndex = vertexOffset;
 	for (GLuint i = 0; i <= lodLevel; ++i) {
@@ -102,19 +99,19 @@ void Disc::generateLODLevel(const Config &cfg,
 
 		Vec3f pos(cfg.discRadius * cosAngle, 0.0f, cfg.discRadius * sinAngle);
 		pos = cfg.posScale * pos;
-		v_pos.w[vertexIndex] = pos;
+		v_pos[vertexIndex] = pos;
 
 		if (cfg.isNormalRequired) {
-			v_nor.w[vertexIndex] = Vec3f(0.0f, 1.0f, 0.0f);
+			v_nor[vertexIndex] = Vec3f(0.0f, 1.0f, 0.0f);
 		}
 
 		if (cfg.texcoMode == TEXCO_MODE_UV) {
 			Vec2f texco(pos.x / cfg.discRadius + 0.5f, pos.z / cfg.discRadius + 0.5f);
-			v_texco.w[vertexIndex] = texco * cfg.texcoScale;
+			v_texco[vertexIndex] = texco * cfg.texcoScale;
 		}
 
 		if (cfg.isTangentRequired) {
-			v_tan.w[vertexIndex] = Vec4f(-sinAngle, 0.0f, cosAngle, 1.0f);
+			v_tan[vertexIndex] = Vec4f(-sinAngle, 0.0f, cosAngle, 1.0f);
 		}
 
 		++vertexIndex;
@@ -123,9 +120,9 @@ void Disc::generateLODLevel(const Config &cfg,
 	// Generate indices
 	GLuint index = indexOffset;
 	for (GLuint i = 0; i < lodLevel; ++i) {
-		indices.w[index++] = vertexOffset + lodLevel;
-		indices.w[index++] = vertexOffset + i + 1;
-		indices.w[index++] = vertexOffset + i;
+		indices[index++] = vertexOffset + lodLevel;
+		indices[index++] = vertexOffset + i + 1;
+		indices[index++] = vertexOffset + i;
 	}
 }
 

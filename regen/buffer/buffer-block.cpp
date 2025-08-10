@@ -377,16 +377,17 @@ uint32_t &BufferBlock::lastInputStamp(BlockInput &blockInput) {
 
 uint32_t BufferBlock::updateBlockInputs() {
 	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
-	hasClientData_ = true;
+	bool hasClientData = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
 
 	for (auto &blockInput : blockInputs_) {
 		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
-		hasClientData_ = hasClientData_ && blockInput->input->hasClientData();
+		hasClientData = hasClientData && blockInput->input->hasClientData();
 		if (blockInput->input->stamp() != lastInputStamp(*blockInput.get())) {
 			updatedSize_ += blockInput->input->inputSize();
 		}
 	}
+	hasClientData_ = hasClientData;
 
 	//  Initialize the client buffer here lazily.
 	if (hasClientData_ && !blockInputs_.empty() && !clientBuffer_->hasSegments()) {
@@ -398,6 +399,7 @@ uint32_t BufferBlock::updateBlockInputs() {
 			segments[i] = blockInput->input->clientBuffer();
 		}
 		clientBuffer_->setSegments(segments);
+		clientBuffer_->swapData();
 	}
 
 	if (hasNewSize) {

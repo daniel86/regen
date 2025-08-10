@@ -69,13 +69,13 @@ ClientDataRaw_ro::ClientDataRaw_ro(const ClientBuffer *clientBuffer, int32_t map
 }
 
 ClientDataRaw_ro::~ClientDataRaw_ro() {
-	if (r_index >= 0) {
+	if (r_index != -1) {
 		clientBuffer->unmapRange(BUFFER_GPU_READ, mapOffset, mapSize, r_index);
 	}
 }
 
 void ClientDataRaw_ro::unmap() {
-	if (r_index >= 0) {
+	if (r_index != -1) {
 		clientBuffer->unmapRange(BUFFER_GPU_READ, mapOffset, mapSize, r_index);
 		r_index = -1;
 	}

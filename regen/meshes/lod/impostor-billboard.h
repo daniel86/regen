@@ -221,6 +221,10 @@ namespace regen {
 		ref_ptr<Texture2DArrayDepth> snapshotDepth_;
 		bool useAlbedoMips_ = true;
 
+		Vec4f *m_viewDir_ = nullptr;
+		Vec4f *m_viewBounds_ = nullptr;
+		Vec2f *m_viewDepth_ = nullptr;
+
 		void updateAttributes();
 
 		void createResources();

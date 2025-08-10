@@ -29,10 +29,24 @@ namespace regen {
 		// do not allow copying
 		ClientDataRaw_rw(const ClientDataRaw_rw &) = delete;
 
+		ClientDataRaw_rw &operator=(const ClientDataRaw_rw &) = delete;
+
 		/**
 		 * Unmap the data. Do not read or write after calling this method.
 		 */
 		void unmap();
+
+		/**
+		 * Get the read index of the mapped data.
+		 * @return the read index.
+		 */
+		inline int readIndex() const { return r_index; }
+
+		/**
+		 * Get the write index of the mapped data.
+		 * @return the write index.
+		 */
+		inline int writeIndex() const { return w_index; }
 
 		/**
 		 * The mapped data for reading.
@@ -76,6 +90,14 @@ namespace regen {
 
 		// do not allow copying
 		ClientDataRaw_ro(const ClientDataRaw_ro &) = delete;
+
+		ClientDataRaw_ro &operator=(const ClientDataRaw_ro &) = delete;
+
+		/**
+		 * Get the read index of the mapped data.
+		 * @return the read index.
+		 */
+		inline int readIndex() const { return r_index; }
 
 		/**
 		 * Unmap the data. Do not read after calling this method.
@@ -212,6 +234,18 @@ namespace regen {
 		ClientData_rw(const ClientData_rw &) = delete;
 
 		/**
+		 * Get the read index of the mapped data.
+		 * @return the read index.
+		 */
+		int readIndex() const { return rawData.readIndex(); }
+
+		/**
+		 * Get the write index of the mapped data.
+		 * @return the write index.
+		 */
+		int writeIndex() const { return rawData.writeIndex(); }
+
+		/**
 		 * Unmap the data. Do not read or write after calling this method.
 		 */
 		void unmap() { rawData.unmap(); }
@@ -267,6 +301,12 @@ namespace regen {
 		ClientData_ro(const ClientData_ro &) = delete;
 
 		/**
+		 * Get the read index of the mapped data.
+		 * @return the read index.
+		 */
+		int readIndex() const { return rawData.readIndex(); }
+
+		/**
 		 * Unmap the data. Do not read after calling this method.
 		 */
 		void unmap() { rawData.unmap(); }
@@ -299,11 +339,23 @@ namespace regen {
 				: vertexSize(stride > 0 ? stride : sizeof(T)),
 				  rawData(clientBuffer, mapMode, vertexIndex*vertexSize, vertexSize),
 				  r(((const T*)rawData.r)[0]),
-				  w(((T*)rawData.r)[0]) {
+				  w(((T*)rawData.w)[0]) {
 		}
 
 		// do not allow copying
 		ClientVertex_rw(const ClientVertex_rw &) = delete;
+
+		/**
+		 * Get the read index of the mapped data.
+		 * @return the read index.
+		 */
+		int readIndex() const { return rawData.readIndex(); }
+
+		/**
+		 * Get the write index of the mapped data.
+		 * @return the write index.
+		 */
+		int writeIndex() const { return rawData.writeIndex(); }
 
 		/**
 		 * Unmap the data. Do not read or write after calling this method.
@@ -349,6 +401,12 @@ namespace regen {
 
 		// do not allow copying
 		ClientVertex_ro(const ClientVertex_ro &) = delete;
+
+		/**
+		 * Get the read index of the mapped data.
+		 * @return the read index.
+		 */
+		int readIndex() const { return rawData.readIndex(); }
 
 		/**
 		 * Unmap the data. Do not read after calling this method.

@@ -62,23 +62,20 @@ void Rectangle::generateLODLevel(const Config &cfg,
 								 GLuint vertexOffset,
 								 GLuint indexOffset) {
 	// map client data for writing
-	auto indices = indices_->mapClientData<GLuint>(BUFFER_GPU_WRITE);
-	auto v_pos = pos_->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
+	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
+	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
-				  nor_->mapClientData<Vec3f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec3f>::nullData());
+				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 	auto v_tan = (cfg.isTangentRequired ?
-				  tan_->mapClientData<Vec4f>(BUFFER_GPU_WRITE) :
-				  ClientData_rw<Vec4f>::nullData());
+				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (cfg.isTexcoRequired ?
-					texco_->mapClientData<Vec2f>(BUFFER_GPU_WRITE) :
-					ClientData_rw<Vec2f>::nullData());
+					(Vec2f*) texco_->clientBuffer()->clientData(0) : nullptr);
 
 	GLuint nextIndex = indexOffset;
 	for (auto &tessFace: tessellation.outputFaces) {
-		indices.w[nextIndex++] = vertexOffset + tessFace.v1;
-		indices.w[nextIndex++] = vertexOffset + tessFace.v2;
-		indices.w[nextIndex++] = vertexOffset + tessFace.v3;
+		indices[nextIndex++] = vertexOffset + tessFace.v1;
+		indices[nextIndex++] = vertexOffset + tessFace.v2;
+		indices[nextIndex++] = vertexOffset + tessFace.v3;
 	}
 
 	GLuint triIndices[3];
@@ -103,18 +100,18 @@ void Rectangle::generateLODLevel(const Config &cfg,
 
 			Vec3f pos = rotMat.transformVector(
 					cfg.posScale * vertex + startPos) + cfg.translation;
-			v_pos.w[vertexIndex] = pos;
+			v_pos[vertexIndex] = pos;
 			minPosition_.setMin(pos);
 			maxPosition_.setMax(pos);
 			if (cfg.isNormalRequired) {
-				v_nor.w[vertexIndex] = normal;
+				v_nor[vertexIndex] = normal;
 			}
 			if (cfg.isTexcoRequired) {
-				v_texco.w[vertexIndex] = cfg.texcoScale - (cfg.texcoScale * Vec2f(vertex.x, vertex.z));
+				v_texco[vertexIndex] = cfg.texcoScale - (cfg.texcoScale * Vec2f(vertex.x, vertex.z));
 			}
 			if (cfg.isTangentRequired) {
-				triVertices[faceVertIndex] = v_pos.w[vertexIndex];
-				triTexco[faceVertIndex] = v_texco.w[vertexIndex];
+				triVertices[faceVertIndex] = v_pos[vertexIndex];
+				triTexco[faceVertIndex] = v_texco[vertexIndex];
 			}
 			faceVertIndex += 1;
 		}
@@ -122,7 +119,7 @@ void Rectangle::generateLODLevel(const Config &cfg,
 		if (cfg.isTangentRequired) {
 			Vec4f tangent = calculateTangent(triVertices, triTexco, normal);
 			for (GLuint i = 0; i < 3; ++i) {
-				v_tan.w[triIndices[i]] = tangent;
+				v_tan[triIndices[i]] = tangent;
 			}
 		}
 	}

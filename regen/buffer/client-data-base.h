@@ -16,7 +16,7 @@ namespace regen {
 		 * @param w_index the write index.
 		 */
 		MappedClientData(const byte *r, int r_index, byte *w, int w_index)
-				: r(r), w(w), r_index(r_index), w_index(w_index) {}
+				: r(r), r_index(r_index), w(w), w_index(w_index) {}
 
 		/**
 		 * Read-only constructor.
@@ -24,20 +24,20 @@ namespace regen {
 		 * @param r_index the read index.
 		 */
 		MappedClientData(const byte *r, int r_index)
-				: r(r), w(nullptr), r_index(r_index), w_index(-1) {}
+				: r(r), r_index(r_index), w(nullptr), w_index(-1) {}
 
 		/**
 		 * The mapped data for reading.
 		 */
 		const byte *r;
 		/**
-		 * The mapped data for writing.
-		 */
-		byte *w;
-		/**
 		 * The read index.
 		 */
 		int r_index;
+		/**
+		 * The mapped data for writing.
+		 */
+		byte *w;
 		/**
 		 * The write index.
 		 */

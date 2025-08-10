@@ -242,11 +242,6 @@ void ImpostorBillboard::createResources() {
 }
 
 void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, const Vec3f &up) {
-	// map data pointers
-	Vec4f *viewDir    = (Vec4f*)snapshotDirs_->clientData();
-	Vec4f *viewBounds = (Vec4f*)snapshotOrthoBounds_->clientData();
-	Vec2f *viewDepth  = (Vec2f*)snapshotDepthRanges_->clientData();
-
 	// this is an offset of the mesh that translates it to origin.
 	// in many cases this will be (0,0,0).
 	auto eye = meshCenterPoint_ - dir * meshBoundsRadius_ * 1.5f;
@@ -271,10 +266,10 @@ void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, cons
 	minZ -= zPadding;
 	maxZ += zPadding;
 
-	viewDir[viewIdx].xyz_() = -dir;
-	viewDir[viewIdx].w = 0.0f; // no w-component, this is a direction vector
-	viewBounds[viewIdx] = Vec4f(minX, maxX, minY, maxY);
-	viewDepth[viewIdx] = Vec2f(minZ, maxZ);
+	m_viewDir_[viewIdx].xyz_() = -dir;
+	m_viewDir_[viewIdx].w = 0.0f; // no w-component, this is a direction vector
+	m_viewBounds_[viewIdx] = Vec4f(minX, maxX, minY, maxY);
+	m_viewDepth_[viewIdx] = Vec2f(minZ, maxZ);
 #ifdef DEBUG_SNAPSHOT_VIEWS
 	REGEN_INFO("Snapshot view " << viewIdx << ":"
 									<< "\n\tmesh-origin=" << meshCenterPoint_
@@ -316,6 +311,14 @@ void ImpostorBillboard::updateSnapshotViews() {
 		}
 	}
 
+	// map data pointers
+	auto mappedBuffer1 = snapshotDirs_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
+	auto mappedBuffer2 = snapshotOrthoBounds_->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
+	auto mappedBuffer3 = snapshotDepthRanges_->mapClientData<Vec2f>(BUFFER_GPU_WRITE);
+	m_viewDir_ = mappedBuffer1.w.data();
+	m_viewBounds_ = mappedBuffer2.w.data();
+	m_viewDepth_ = mappedBuffer3.w.data();
+
 	for (float lat: latAngles) {
 		float y = sin(lat);
 		float horizontalRadius = cos(lat); // radius on equator ring
@@ -342,6 +345,11 @@ void ImpostorBillboard::updateSnapshotViews() {
 	if (hasBottomView_ && !isHemispherical_) {
 		addSnapshotView(viewIdx++, Vec3f::down(), Vec3f::right());
 	}
+
+	mappedBuffer1.unmap();
+	mappedBuffer2.unmap();
+	mappedBuffer3.unmap();
+	impostorBuffer_->clientBuffer()->swapData();
 
 	snapshotDirs_->nextStamp();
 	snapshotOrthoBounds_->nextStamp();

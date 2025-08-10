@@ -39,6 +39,13 @@ namespace regen {
 		}
 	}
 
+	void glHandleError(const char *file, int line) {
+		std::string err = getGLError();
+		if (!err.empty()) {
+			Logging::log(Logging::ERROR, err, file, line);
+		}
+	}
+
 #endif
 
 #ifdef REGEN_DEBUG_BUILD
