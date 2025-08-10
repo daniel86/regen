@@ -88,9 +88,35 @@ namespace regen {
 		byte *clientData() const { return dataSlots_[lastDataSlot()]; }
 
 		/**
+		 * Obtains the client data for a specific slot without locking.
+		 * Be sure that no other thread is writing to the data at the same time.
+		 * If you intend to write initial data at construction, use the first slot (0).
+		 * @param slot the slot index (0 or 1).
+		 * @return the client data for the specified slot.
+		 */
+		byte *clientData(int slot) const { return dataSlots_[slot]; }
+
+		/**
 		 * Compare stamps to check if the input data changed.
 		 */
 		inline uint32_t stamp() const { return dataStamps_[lastDataSlot()]; }
+
+		/**
+		 * Returns the current read slot index.
+		 * @return the current read slot index (0 or 1).
+		 */
+		inline uint32_t currentReadSlot() const {
+			return lastDataSlot_.load(std::memory_order_acquire);
+		}
+
+		/**
+		 * Returns the current write slot index.
+		 * This is the slot that will be written to next.
+		 * @return the current write slot index (0 or 1).
+		 */
+		inline uint32_t currentWriteSlot() const {
+			return 1 - currentReadSlot();
+		}
 
 		/**
 		 * Increment the stamp.
