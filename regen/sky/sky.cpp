@@ -13,11 +13,11 @@
 
 using namespace regen;
 
-Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<ShaderInput2i> &viewport)
+Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 		: StateNode(),
 		  Animation(true, true),
 		  cam_(cam),
-		  viewport_(viewport) {
+		  screen_(screen) {
 	ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
 	depth->set_depthFunc(GL_LEQUAL);
 	depth->set_depthRange(1.0, 1.0);
@@ -217,15 +217,15 @@ void Sky::animate(GLdouble dt) {
 			computeEyeExtinction(moon)));
 	R_->setVertex(0, astro().getEquToHorTransform());
 
-	if (camStamp_ != cam_->stamp() || viewportStamp_ != viewport_->stamp()) {
+	if (camStamp_ != cam_->stamp() || viewportStamp_ != screen_->stamp()) {
 		const float fovHalf = camera()->projParams()[0].fov * 0.5f * DEGREE_TO_RAD;
-		const float height = static_cast<float>(viewport()->getVertex(0).r.y);
+		const float height = static_cast<float>(screen_->viewport().y);
 		const float q = 2.8284271247461903f // = sqrt(2.0f) * 2.0f
 						* tan(fovHalf) / height; // q is the distance from the camera to the sky quad
 		q_->setVertex(0, q);
 		sqrt_q_->setVertex(0, sqrt(q));
 		camStamp_ = cam_->stamp();
-		viewportStamp_ = viewport_->stamp();
+		viewportStamp_ = screen_->stamp();
 	}
 
 	sun_->updateShaderData();
@@ -537,7 +537,7 @@ ref_ptr<Sky> Sky::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 		return {};
 	}
 
-	ref_ptr<Sky> sky = ref_ptr<Sky>::alloc(cam, scene->getViewport());
+	ref_ptr<Sky> sky = ref_ptr<Sky>::alloc(cam, scene->screen());
 
 	sky->setWorldTime(&scene->application()->worldTime());
 

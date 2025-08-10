@@ -586,17 +586,15 @@ ref_ptr<Camera> createLightCamera(LoadingContext &ctx, scene::SceneInputNode &in
 }
 
 ProjectionUpdater::ProjectionUpdater(const ref_ptr<Camera> &cam,
-									 const ref_ptr<ShaderInput2i> &windowViewport)
+									 const ref_ptr<Screen> &screen)
 	: EventHandler(),
 	  cam_(cam),
-	  windowViewport_(windowViewport) {
+	  screen_(screen) {
 }
 
 void ProjectionUpdater::call(EventObject *, EventData *) {
-	auto windowViewport = windowViewport_->getVertex(0);
-	auto windowAspect =
-			(GLfloat) windowViewport.r.x / (GLfloat) windowViewport.r.y;
-	windowViewport.unmap();
+	auto &windowViewport = screen_->viewport();
+	auto windowAspect = (GLfloat) windowViewport.x / (GLfloat) windowViewport.y;
 
 	auto &lastProjParams = cam_->projParams()[0];
 	if (cam_->isOrtho()) {
@@ -697,15 +695,15 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));
 		} else {
-			auto viewport = ctx.scene()->getViewport()->getVertex(0);
+			auto &viewport = ctx.scene()->screen()->viewport();
 			cam->setPerspective(
-					(GLfloat) viewport.r.x / (GLfloat) viewport.r.y,
+					(GLfloat) viewport.x / (GLfloat) viewport.y,
 					input.getValue<GLfloat>("fov", 45.0f),
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));
 			// Update frustum when window size changes
 			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT,
-										 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->getViewport()));
+										 ref_ptr<ProjectionUpdater>::alloc(cam, ctx.scene()->screen()));
 		}
 		cam->updateCamera();
 		cam->updateShaderData(0.0f);

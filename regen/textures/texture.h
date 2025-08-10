@@ -418,7 +418,7 @@ namespace regen {
 
 		static void configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input);
 
-		static Vec3i getSize(const ref_ptr<ShaderInput2i> &viewport,
+		static Vec3i getSize(const Vec2i &viewport,
 							 const std::string &sizeMode, const Vec3f &size);
 
 	protected:

@@ -14,6 +14,7 @@
 #include "scene-processors.h"
 #include "regen/physics/bullet-physics.h"
 #include "regen/scene/scene.h"
+#include "screen.h"
 
 namespace regen::scene {
 	// forward declaration due to circular dependency.
@@ -104,7 +105,7 @@ namespace regen::scene {
 		/**
 		 * @return The window viewport.
 		 */
-		const ref_ptr<ShaderInput2i> &getViewport() const;
+		const ref_ptr<Screen> &screen() const;
 
 		/**
 		 * @return The mouse position.

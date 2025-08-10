@@ -19,7 +19,7 @@ namespace regen {
 		static constexpr const char *TYPE_NAME = "Sky";
 
 		Sky(const ref_ptr<Camera> &cam,
-			const ref_ptr<ShaderInput2i> &viewport);
+			const ref_ptr<Screen> &screen);
 
 		static ref_ptr<Sky> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
@@ -45,7 +45,7 @@ namespace regen {
 
 		ref_ptr<Camera> &camera() { return cam_; }
 
-		ref_ptr<ShaderInput2i> &viewport() { return viewport_; }
+		ref_ptr<Screen> &screen() { return screen_; }
 
 		const Vec3f &noonColor() const { return noonColor_; }
 
@@ -88,7 +88,7 @@ namespace regen {
 		friend class SkyView;
 
 		ref_ptr<Camera> cam_;
-		ref_ptr<ShaderInput2i> viewport_;
+		ref_ptr<Screen> screen_;
 		uint32_t camStamp_ = 0;
 		uint32_t viewportStamp_ = 0;
 

@@ -10,6 +10,7 @@
 #include "regen/scene/scene-interaction.h"
 #include "regen/animations/animation.h"
 #include "regen/buffer/staging-system.h"
+#include "screen.h"
 
 // Defeat evil windows defines...
 #ifdef KEY_EVENT
@@ -169,7 +170,7 @@ namespace regen {
 		/**
 		 * @return the window size.
 		 */
-		auto &windowViewport() const { return windowViewport_; }
+		const ref_ptr<Screen> &screen() const { return screen_; }
 
 		/**
 		 * @return the current mouse position relative to GL window.
@@ -369,7 +370,7 @@ namespace regen {
 		std::list<std::string> optionalExt_;
 		std::vector<ref_ptr<Animation>> glCalls_;
 
-		ref_ptr<ShaderInput2i> windowViewport_;
+		ref_ptr<Screen> screen_;
 		ref_ptr<ShaderInput1i> isMouseEntered_;
 		ref_ptr<ShaderInput2f> mousePosition_;
 		ref_ptr<ShaderInput2f> mouseTexco_;

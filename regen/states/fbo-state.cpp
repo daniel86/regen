@@ -176,7 +176,7 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 		GLenum drawBuffer = glenum::drawBuffer(
 				input.getValue<std::string>("draw-buffer", "FRONT"));
 		ref_ptr<ScreenState> screenState =
-				ref_ptr<ScreenState>::alloc(scene->getViewport(), drawBuffer);
+				ref_ptr<ScreenState>::alloc(scene->screen(), drawBuffer);
 		ref_ptr<State> parent = ctx.parent()->getParentFrameBuffer();
 		if (parent.get() != nullptr) {
 			screenState->setParentBufferState(ref_ptr<FBOState>::dynamicCast(parent));

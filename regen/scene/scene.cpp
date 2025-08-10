@@ -30,8 +30,7 @@ Scene::Scene(const int& /*argc*/, const char** /*argv*/)
 		  isGLInitialized_(GL_FALSE),
 		  isTimeInitialized_(GL_FALSE),
 		  isVSyncEnabled_(GL_TRUE) {
-	windowViewport_ = ref_ptr<ShaderInput2i>::alloc("windowViewport");
-	windowViewport_->setUniformData(Vec2i(2, 2));
+	screen_ = ref_ptr<Screen>::alloc(Vec2i(2, 2));
 
 	mousePosition_ = ref_ptr<ShaderInput2f>::alloc("mousePosition");
 	mousePosition_->setUniformData(Vec2f(0.0f));
@@ -128,11 +127,11 @@ ref_ptr<ShaderInput1i> Scene::isMouseEntered() const {
 
 void Scene::updateMousePosition() {
 	auto mousePosition = mousePosition_->getVertex(0);
-	auto viewport = windowViewport_->getVertex(0);
+	auto &viewport = screen_->viewport();
 	// mouse position in range [0,1] within viewport
 	mouseTexco_->setVertex(0, Vec2f(
-			mousePosition.r.x / (GLfloat) viewport.r.x,
-			1.0f - mousePosition.r.y / (GLfloat) viewport.r.y));
+			mousePosition.r.x / (GLfloat) viewport.x,
+			1.0f - mousePosition.r.y / (GLfloat) viewport.y));
 }
 
 void Scene::mouseMove(const Vec2i &pos) {
@@ -186,7 +185,7 @@ void Scene::keyDown(const KeyEvent &ev) {
 }
 
 void Scene::resizeGL(const Vec2i &size) {
-	windowViewport_->setVertex(0, size);
+	screen_->setViewport(size);
 	queueEmit(RESIZE_EVENT);
 	updateMousePosition();
 }
@@ -294,7 +293,7 @@ void Scene::initGL() {
 	renderTree_->state()->setInput(globalUniforms_);
 	// Note: don't add to the UBO as it might use ring buffer causing
 	// the viewport values to change with a delay of a few frames.
-	renderTree_->state()->setInput(windowViewport_);
+	renderTree_->state()->setInput(screen_->sh_viewport());
 }
 
 void Scene::setTime() {

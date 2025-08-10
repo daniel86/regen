@@ -401,44 +401,40 @@ namespace regen {
 	class TextureResizer : public EventHandler {
 	public:
 		TextureResizer(const ref_ptr<Texture> &tex,
-					   const ref_ptr<ShaderInput2i> &windowViewport,
+					   const ref_ptr<Screen> &screen,
 					   GLfloat wScale, GLfloat hScale)
 				: EventHandler(),
 				  tex_(tex),
-				  windowViewport_(windowViewport),
+				  screen_(screen),
 				  wScale_(wScale), hScale_(hScale) {}
 
 		~TextureResizer() override = default;
 
 		void call(EventObject *, EventData *) override {
-			auto winSize = windowViewport_->getVertex(0).r;
+			Vec2i winSize = screen_->viewport();
 			winSize.x = static_cast<int32_t>(static_cast<float>(winSize.x) * wScale_);
 			winSize.y = static_cast<int32_t>(static_cast<float>(winSize.y) * hScale_);
-			// FIXME: I think we should enforce GL thread here! But initially the resize needs to be done
-			//        right away as withGLContext causes some fbo errors. possible fix: check if
-			//        we have a GL context, and only use withGLContext if not. Could also do this in withGLContext.
 			tex_->set_rectangleSize(winSize.x, winSize.y);
 			tex_->allocTexture();
 		}
 
 	protected:
 		ref_ptr<Texture> tex_;
-		ref_ptr<ShaderInput2i> windowViewport_;
+		ref_ptr<Screen> screen_;
 		GLfloat wScale_, hScale_;
 	};
 }
 
 Vec3i Texture::getSize(
-		const ref_ptr<ShaderInput2i> &viewport,
+		const Vec2i &viewport,
 		const std::string &sizeMode,
 		const Vec3f &size) {
 	if (sizeMode == "abs") {
 		return size.asVec3i();
 	} else if (sizeMode == "rel") {
-		auto v = viewport->getVertex(0);
 		return {
-			static_cast<int>(size.x * static_cast<float>(v.r.x)),
-			static_cast<int>(size.y * static_cast<float>(v.r.y)),
+			static_cast<int>(size.x * static_cast<float>(viewport.x)),
+			static_cast<int>(size.y * static_cast<float>(viewport.y)),
 			1 };
 	} else {
 		REGEN_WARN("Unknown size mode '" << sizeMode << "'.");
@@ -448,7 +444,7 @@ Vec3i Texture::getSize(
 
 ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	ref_ptr<Texture> tex;
-	auto &viewport = ctx.scene()->getViewport();
+	auto &screen = ctx.scene()->screen();
 	const std::string typeName = input.getValue("type");
 
 	if (input.hasAttribute("file")) {
@@ -518,7 +514,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 	} else if (typeName == "noise") {
 		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-		auto sizeAbs = getSize(viewport, sizeMode, sizeRel);
+		auto sizeAbs = getSize(screen->viewport(), sizeMode, sizeRel);
 		auto isSeamless = input.getValue<bool>("is-seamless", false);
 		auto generator = NoiseGenerator::load(ctx, input);
 		if (generator.get()) {
@@ -575,7 +571,8 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		if (inputFBO.get() == nullptr) {
 			REGEN_WARN("Unable to find FBO for '" << input.getDescription() << "'.");
 		} else {
-			auto resizer = ref_ptr<TextureResizer>::alloc(bloomTexture, viewport, 1.0, 1.0);
+			auto resizer = ref_ptr<TextureResizer>::alloc(
+					bloomTexture, screen, 1.0, 1.0);
 			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT, resizer);
 			tex = bloomTexture;
 			bloomTexture->resize(inputFBO->width(), inputFBO->height());
@@ -583,7 +580,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 	} else {
 		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-		Vec3i sizeAbs = getSize(viewport, sizeMode, sizeRel);
+		Vec3i sizeAbs = getSize(screen->viewport(), sizeMode, sizeRel);
 
 		auto texCount = input.getValue<GLuint>("count", 1);
 		auto pixelComponents = input.getValue<GLuint>("pixel-components", 4);
@@ -622,7 +619,9 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 				numSamples);
 
 		if (input.hasAttribute("size-mode") && sizeMode == "rel") {
-			auto resizer = ref_ptr<TextureResizer>::alloc(tex, viewport, sizeRel.x, sizeRel.y);
+			auto resizer = ref_ptr<TextureResizer>::alloc(
+					tex, screen,
+					sizeRel.x, sizeRel.y);
 			ctx.scene()->addEventHandler(Scene::RESIZE_EVENT, resizer);
 		}
 	}

@@ -112,8 +112,8 @@ void SceneLoader::addEventHandler(GLuint eventID,
 	application_->connect(eventID, eventHandler);
 }
 
-const ref_ptr<ShaderInput2i> &SceneLoader::getViewport() const {
-	return application_->windowViewport();
+const ref_ptr<Screen> &SceneLoader::screen() const {
+	return application_->screen();
 }
 
 const ref_ptr<ShaderInput2f> &SceneLoader::getMouseTexco() const {

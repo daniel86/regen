@@ -1,10 +1,3 @@
-/*
- * blit-to-screen.cpp
- *
- *  Created on: 04.08.2012
- *      Author: daniel
- */
-
 #include "blit-state.h"
 
 using namespace regen;
@@ -45,12 +38,12 @@ void BlitToFBO::disable(RenderState *rs) {
 
 BlitToScreen::BlitToScreen(
 		const ref_ptr<FBO> &fbo,
-		const ref_ptr<ShaderInput2i> &viewport,
+		const ref_ptr<Screen> &screen,
 		GLenum attachment,
 		GLboolean keepRatio)
 		: BlitState(),
 		  fbo_(fbo),
-		  viewport_(viewport),
+		  screen_(screen),
 		  attachment_(attachment),
 		  filterMode_(GL_LINEAR),
 		  sourceBuffer_(GL_COLOR_BUFFER_BIT),
@@ -63,10 +56,10 @@ void BlitToScreen::set_sourceBuffer(GLenum sourceBuffer) { sourceBuffer_ = sourc
 
 void BlitToScreen::disable(RenderState *rs) {
 	State::enable(rs);
-	auto viewport = viewport_->getVertex(0);
+	auto &viewport = screen_->viewport();
 	fbo_->blitCopyToScreen(
-			viewport.r.x,
-			viewport.r.y,
+			viewport.x,
+			viewport.y,
 			attachment_,
 			sourceBuffer_,
 			filterMode_,
@@ -78,9 +71,9 @@ void BlitToScreen::disable(RenderState *rs) {
 BlitTexToScreen::BlitTexToScreen(
 		const ref_ptr<FBO> &fbo,
 		const ref_ptr<Texture> &texture,
-		const ref_ptr<ShaderInput2i> &viewport,
+		const ref_ptr<Screen> &screen,
 		GLenum attachment)
-		: BlitToScreen(fbo, viewport, attachment),
+		: BlitToScreen(fbo, screen, attachment),
 		  texture_(texture),
 		  baseAttachment_(attachment) {
 }
@@ -151,7 +144,7 @@ ref_ptr<BlitState> BlitState::load(LoadingContext &ctx, scene::SceneInputNode &i
 		// Blit Texture to Screen
 		auto srcAttachment = input.getValue<GLuint>("src-attachment", 0u);
 		return ref_ptr<BlitToScreen>::alloc(src,
-											scene->getViewport(),
+											scene->screen(),
 											GL_COLOR_ATTACHMENT0 + srcAttachment,
 											keepAspect);
 	} else if (dst.get() != nullptr) {

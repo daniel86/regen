@@ -69,7 +69,7 @@ namespace regen {
 		 */
 		BlitToScreen(
 				const ref_ptr<FBO> &fbo,
-				const ref_ptr<ShaderInput2i> &viewport,
+				const ref_ptr<Screen> &screen,
 				GLenum attachment = GL_COLOR_ATTACHMENT0,
 				GLboolean keepRatio = GL_FALSE);
 
@@ -93,7 +93,7 @@ namespace regen {
 		/**
 		 * @return the viewport.
 		 */
-		auto &viewport() { return viewport_; }
+		auto &screen() { return screen_; }
 
 		/**
 		 * @return the attachment of the FBO.
@@ -105,7 +105,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<FBO> fbo_;
-		ref_ptr<ShaderInput2i> viewport_;
+		ref_ptr<Screen> screen_;
 		GLenum attachment_;
 		GLenum filterMode_;
 		GLenum sourceBuffer_;
@@ -128,7 +128,7 @@ namespace regen {
 		BlitTexToScreen(
 				const ref_ptr<FBO> &fbo,
 				const ref_ptr<Texture> &texture,
-				const ref_ptr<ShaderInput2i> &viewport,
+				const ref_ptr<Screen> &screen,
 				GLenum attachment = GL_COLOR_ATTACHMENT0);
 
 		// override

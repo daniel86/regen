@@ -526,29 +526,28 @@ namespace regen {
 	public:
 		FBOResizer(Scene *scene,
 			const ref_ptr<FBO> &fbo,
-			const ref_ptr<ShaderInput2i> &windowViewport,
+			const ref_ptr<Screen> &screen,
 			GLfloat wScale, GLfloat hScale)
 				: EventHandler(),
 				  scene_(scene),
 				  fbo_(fbo),
-				  windowViewport_(windowViewport),
+				  screen_(screen),
 				  wScale_(wScale), hScale_(hScale) {}
 
 		~FBOResizer() override = default;
 
-		void call(EventObject *, EventData *) {
-			auto winSize = windowViewport_->getVertex(0);
-			Vec2i fboSize(winSize.r.x * wScale_, winSize.r.y * hScale_);
+		void call(EventObject *, EventData *) override {
+			auto &winSize = screen_->viewport();
+			Vec2i fboSize(winSize.x * wScale_, winSize.y * hScale_);
 			if (fboSize.x % 2 != 0) fboSize.x += 1;
 			if (fboSize.y % 2 != 0) fboSize.y += 1;
-			winSize.unmap();
 			fbo_->resize(fboSize.x, fboSize.y, 1);
 		}
 
 	protected:
 		Scene *scene_;
 		ref_ptr<FBO> fbo_;
-		ref_ptr<ShaderInput2i> windowViewport_;
+		ref_ptr<Screen> screen_;
 		GLfloat wScale_, hScale_;
 	};
 }
@@ -556,14 +555,14 @@ namespace regen {
 ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 	auto relSize = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-	auto absSize = Texture::getSize(ctx.scene()->getViewport(), sizeMode, relSize);
+	auto absSize = Texture::getSize(ctx.scene()->screen()->viewport(), sizeMode, relSize);
 
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x, absSize.y, absSize.z);
 	if (sizeMode == "rel") {
 		ref_ptr<FBOResizer> resizer = ref_ptr<FBOResizer>::alloc(
 				ctx.scene()->application(),
 				fbo,
-				ctx.scene()->getViewport(),
+				ctx.scene()->screen(),
 				relSize.x,
 				relSize.y);
 		ctx.scene()->addEventHandler(Scene::RESIZE_EVENT, resizer);

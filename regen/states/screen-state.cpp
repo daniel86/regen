@@ -3,10 +3,10 @@
 using namespace regen;
 
 ScreenState::ScreenState(
-		const ref_ptr<ShaderInput2i> &windowViewport,
+		const ref_ptr<Screen> &screen,
 		GLenum screenBuffer)
 		: State(),
-		  windowViewport_(windowViewport),
+		  screen_(screen),
 		  drawBuffer_(screenBuffer) {
 	glViewport_ = Vec4ui(0u);
 
@@ -20,18 +20,17 @@ ScreenState::ScreenState(
 }
 
 void ScreenState::enable(RenderState *rs) {
-	if (lastViewportStamp_ != windowViewport_->stamp()) {
-		auto winViewport = windowViewport_->getVertex(0);
-		glViewport_.z = winViewport.r.x;
-		glViewport_.w = winViewport.r.y;
+	if (lastViewportStamp_ != screen_->stamp()) {
+		auto &winViewport = screen_->viewport();
+		glViewport_.z = winViewport.x;
+		glViewport_.w = winViewport.y;
 		viewport_->setVertex(0, Vec2f(
-			static_cast<float>(winViewport.r.x),
-			static_cast<float>(winViewport.r.y)));
+			static_cast<float>(winViewport.x),
+			static_cast<float>(winViewport.y)));
 		inverseViewport_->setVertex(0, Vec2f(
-			1.0f / static_cast<float>(winViewport.r.x),
-			1.0f / static_cast<float>(winViewport.r.y)));
-		winViewport.unmap();
-		lastViewportStamp_ = windowViewport_->stamp();
+			1.0f / static_cast<float>(winViewport.x),
+			1.0f / static_cast<float>(winViewport.y)));
+		lastViewportStamp_ = screen_->stamp();
 	}
 
 	rs->drawFrameBuffer().apply(0);

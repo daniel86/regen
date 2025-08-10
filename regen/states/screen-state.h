@@ -15,7 +15,7 @@ namespace regen {
 		 * @param drawBuffer GL_FRONT, GL_BACK or GL_FRONT_AND_BACK.
 		 */
 		explicit ScreenState(
-				const ref_ptr<ShaderInput2i> &windowViewport,
+				const ref_ptr<Screen> &screen,
 				const GLenum drawBuffer = GL_FRONT);
 
 		void setParentBufferState(const ref_ptr<FBOState> &fbo) { parentFBO_ = fbo; }
@@ -26,7 +26,7 @@ namespace regen {
 		void disable(RenderState *) override;
 
 	protected:
-		ref_ptr<ShaderInput2i> windowViewport_;
+		ref_ptr<Screen> screen_;
 		ref_ptr<ShaderInput2f> viewport_;
 		ref_ptr<ShaderInput2f> inverseViewport_;
 		ref_ptr<FBOState> parentFBO_;

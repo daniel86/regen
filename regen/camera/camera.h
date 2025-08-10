@@ -10,6 +10,7 @@
 #include <regen/states/model-transformation.h>
 #include "regen/buffer/ubo.h"
 #include "regen/meshes/lod/lod-level.h"
+#include "regen/scene/screen.h"
 
 namespace regen {
 	/**
@@ -610,7 +611,7 @@ namespace regen {
 	class ProjectionUpdater : public EventHandler {
 	public:
 		ProjectionUpdater(const ref_ptr<Camera> &cam,
-						  const ref_ptr<ShaderInput2i> &windowViewport);
+						  const ref_ptr<Screen> &screen);
 
 		~ProjectionUpdater() override = default;
 
@@ -622,7 +623,7 @@ namespace regen {
 
 	protected:
 		ref_ptr<Camera> cam_;
-		ref_ptr<ShaderInput2i> windowViewport_;
+		ref_ptr<Screen> screen_;
 	};
 } // namespace
 
