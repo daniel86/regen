@@ -232,6 +232,7 @@ namespace regen {
 	protected:
 		uint32_t dataSize_ = 0u;
 		uint32_t allocatedSize_ = 0u;
+		// absolute offset wrt. the data owner.
 		uint32_t dataOffset_ = 0u;
 		uint32_t lastOffset_ = 0u;
 		uint32_t baseAlignment_ = 1u;

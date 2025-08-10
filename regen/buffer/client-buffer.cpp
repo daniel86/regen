@@ -368,13 +368,13 @@ void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
 
 void ClientBuffer::updateBufferSize() {
 	if (!bufferSegments_.empty()) {
-		uint32_t offset = dataOffset_;
+		uint32_t offset = 0u;
 		for (auto &segment: bufferSegments_) {
 			// compute the offset for the segment, aligned to its base alignment.
 			offset = (offset + segment->baseAlignment_ - 1) & ~(segment->baseAlignment_ - 1);
 			// set the data size for the segment.
 			segment->lastOffset_ = segment->dataOffset_;
-			segment->dataOffset_ = offset;
+			segment->dataOffset_ = dataOffset_ + offset;
 
 			segment->updateBufferSize();
 			offset += segment->dataSize_;
@@ -709,13 +709,7 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 }
 
 void ClientBuffer::markWrittenTo(uint32_t slotIdx, uint32_t offset, uint32_t size) const {
-	auto *parent = this;
-	// compute global offset
-	while (parent) {
-		offset += parent->dataOffset_;
-		parent = parent->parentBuffer_;
-	}
-	dataOwner_->dirtyLists_[slotIdx].insert(offset, size);
+	dataOwner_->dirtyLists_[slotIdx].insert(dataOffset_+offset, size);
 }
 
 ////////////////////
