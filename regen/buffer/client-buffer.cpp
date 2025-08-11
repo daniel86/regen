@@ -255,51 +255,59 @@ MappedClientData ClientBuffer::readRange_SingleBuffer(uint32_t offset, uint32_t 
 	if (readLock_SingleBuffer()) {
 		// got the read lock, return the data.
 		return {dataSlots_[0] + offset, 0};
-	} else {
-		// Read lock failed, which means there is a write operation in progress.
-		// At this point we would like to switch to double-buffered mode...
-		// But we need to be careful, there are two cases:
-		if (isCurrentThreadOwnerOfWriteLock(0)) {
-			// (1) This thread holds the write lock on slot 0. If we wait here, then
-			//     we would deadlock. But it is actually fine in this case to also
-			//     read-lock the very same slot! That allows us to switch on double-buffered mode.
-			dataOwner_->readerCounts_[0].fetch_add(1, std::memory_order_relaxed);
+	}
+	// Read lock failed, which means there is a write operation in progress.
+	// At this point we would like to switch to double-buffered mode...
 
-			// Next, allocate the second slot, and copy the data from the first slot to it,
-			// i.e. we switch to double-buffered mode. Get a write lock on the second slot:
+	// But we need to be careful, there are two cases:
+	if (isCurrentThreadOwnerOfWriteLock(0)) {
+		// (1) This thread holds the write lock on slot 0. If we wait here, then
+		//     we would deadlock. But it is actually fine in this case to also
+		//     read-lock the very same slot! That allows us to switch to double-buffered mode.
+		dataOwner_->readerCounts_[0].fetch_add(1, std::memory_order_relaxed);
+
+		// Verify that we are still the last owner of the write lock on slot 0.
+		if (!isCurrentThreadOwnerOfWriteLock(0)) {
+			dataOwner_->readerCounts_[0].fetch_sub(1, std::memory_order_relaxed);
+			return mapRange(BUFFER_GPU_READ, offset, size); // retry the read operation
+		}
+
+		// Next, allocate the second slot, and copy the data from the first slot to it,
+		// i.e. we switch to double-buffered mode. Get a temporary write lock on the second slot:
+		if (dataOwner_->writerFlags_[1].test_and_set(std::memory_order_acquire) == 0) {
+			setOwnerOfWriteLock(1);
+			if (dataSlots_[1] == nullptr) {
+				dataOwner_->createSecondSlot();
+			}
+			writeUnlock(1, 0, 0);
+		}
+
+		// Got the read lock, return the data.
+		return {dataSlots_[0] + offset, 0};
+	} else {
+		// (2) Another thread holds the lock. Hence, it is not safe to copy data from
+		//     slot 0 into slot 1 -> We need to wait until the other thread is done, then retry.
+		while (dataOwner_->writerFlags_[0].test(std::memory_order_acquire) != 0 &&
+			!isCurrentThreadOwnerOfWriteLock(0)) {
+			// busy wait, we expect very short duration of wait here.
+			CPU_PAUSE();
+		}
+
+		// The concurrent write has finished, we can give it another try.
+		if (readLock_SingleBuffer()) {
+			// Attempt to switch to double-buffered mode.
 			if (dataOwner_->writerFlags_[1].test_and_set(std::memory_order_acquire) == 0) {
-				// We have write-locked slot 1, and the current thread is the owner of the write lock on slot 0.
-				// In addition, we own a read lock on slot 0 that we sneaked in above.
-				// Hence, we can safely copy the data from slot 0 to slot 1, then switch to double-buffered mode.
 				setOwnerOfWriteLock(1);
 				if (dataSlots_[1] == nullptr) {
-					// FIXME: What should be the next read/write idx after switching to double-buffered mode?
 					dataOwner_->createSecondSlot();
 				}
 				writeUnlock(1, 0, 0);
-				return readRange_DoubleBuffer(offset, size); // retry
-			} else {
-				// someone else holds the write lock on the second slot.
-				// we need to wait for it to finish.
-				CPU_PAUSE();
-				REGEN_WARN("read lock on null second slot failed, retrying...");
-				if (dataSlots_[1] == nullptr) {
-					return readRange_SingleBuffer(offset, size);
-				} else {
-					return readRange_DoubleBuffer(offset, size);
-				}
 			}
+			// got the read lock, return the data.
+			return {dataSlots_[0] + offset, 0};
 		} else {
-			// (2) Another thread holds the lock. Hence, it is not safe to copy data from
-			//     slot 0 into second slot -> We need to wait until the other thread is done, then retry.
-			while (dataOwner_->writerFlags_[0].test(std::memory_order_acquire) != 0 &&
-					!isCurrentThreadOwnerOfWriteLock(0)) {
-				// busy wait, we expect very short duration of wait here.
-				CPU_PAUSE();
-			}
-			// The concurrent write has finished, we can give it another try.
-			// TODO: Switch to double-buffered mode here. Could be next read attempt succeeds, then
-			//       below call would not activate double-buffered mode.
+			// Failed again, retry.
+			CPU_PAUSE();
 			return mapRange(BUFFER_GPU_READ, offset, size);
 		}
 	}
@@ -347,8 +355,9 @@ MappedClientData ClientBuffer::writeRange_SingleBuffer(uint32_t offset, uint32_t
 			if (dataOwner_->writerFlags_[1].test_and_set(std::memory_order_acquire) == 0) {
 				setOwnerOfWriteLock(1);
 				if (dataSlots_[1] == nullptr) {
-					// still single-buffered, we can finally create the second slot.
-					// FIXME: What should be the next read/write idx after switching to double-buffered mode?
+					// Still single-buffered, we can finally create the second slot.
+					// Note: In case of frame-locked mode, readers will continue using slot 0 for this frame.
+					//       else switch to slot 1 after this write has finished.
 					dataOwner_->createSecondSlot();
 					return {dataSlots_[0] + offset, 0, dataSlots_[1] + offset, 1};
 				} else {
