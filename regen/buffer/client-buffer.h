@@ -4,6 +4,7 @@
 #include <atomic>
 #include <array>
 #include <vector>
+#include <thread>
 #include <regen/regen.h>
 #include <regen/utility/ref-ptr.h>
 #include <regen/buffer/client-data-base.h>
@@ -277,6 +278,7 @@ namespace regen {
 		std::atomic<uint32_t> readerCounts_[2] = {0u, 0u};
 		// protects against simultaneous writers
 		std::atomic_flag writerFlags_[2] = {ATOMIC_FLAG_INIT, ATOMIC_FLAG_INIT};
+		std::thread::id writerThreads_[2] = {std::thread::id(), std::thread::id()};
 		// indicator to writes to the data slots
 		mutable uint32_t dataStamps_[2] = {0u,0u};
 		// stores the ranges written to in the current and last frame if frame-locked
@@ -301,13 +303,19 @@ namespace regen {
 
 		void writeUnlock(int32_t slotIndex, uint32_t writeOffset, uint32_t writeSize) const;
 
-		MappedClientData mapRange_SingleBuffer(uint32_t offset, uint32_t size) const;
+		MappedClientData writeRange_SingleBuffer(uint32_t offset, uint32_t size) const;
 
-		MappedClientData mapRange_DoubleBuffer(uint32_t offset, uint32_t size) const;
+		MappedClientData writeRange_DoubleBuffer(uint32_t offset, uint32_t size) const;
 
-		MappedClientData mapRange_ReadOnly(uint32_t offset, uint32_t size) const;
+		MappedClientData readRange_SingleBuffer(uint32_t offset, uint32_t size) const;
+
+		MappedClientData readRange_DoubleBuffer(uint32_t offset, uint32_t size) const;
 
 		int lastDataSlot() const;
+
+		bool isCurrentThreadOwnerOfWriteLock(int dataSlot) const;
+
+		void setOwnerOfWriteLock(int dataSlot) const;
 
 		void nextSegmentStamp(uint32_t dataSlot, uint32_t updatedOffset, uint32_t updateSize) const;
 
