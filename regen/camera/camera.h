@@ -44,6 +44,8 @@ namespace regen {
 		explicit Camera(unsigned int numLayer,
 				const BufferUpdateFlags &updateFlags = BufferUpdateFlags::PARTIAL_PER_FRAME);
 
+		~Camera() override = default;
+
 		static ref_ptr<Camera> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
 		static ref_ptr<Camera> createCamera(LoadingContext &ctx, scene::SceneInputNode &input);

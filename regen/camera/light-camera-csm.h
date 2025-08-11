@@ -22,6 +22,8 @@ namespace regen {
 				const ref_ptr<Camera> &userCamera,
 				unsigned int numLayer);
 
+		~LightCamera_CSM() override = default;
+
 		/**
 		 * @param splitWeight the weight of the split between frustums.
 		 */
