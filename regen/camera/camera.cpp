@@ -53,10 +53,9 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	sh_position_->setUniformData(position_[0]);
 	sh_position_->setSchema(InputSchema::position());
 
-	vel_.resize(1);
-	vel_[0] = Vec4f(0.0f);
+	vel_ = Vec4f(0.0f);
 	sh_vel_ = ref_ptr<ShaderInput4f>::alloc("cameraVelocity");
-	sh_vel_->setUniformData(vel_[0]);
+	sh_vel_->setUniformData(vel_);
 
 	viewData_.resize(2, Mat4f::identity());
 	view_ = std::span<Mat4f>(viewData_).subspan(0, 1);
@@ -128,22 +127,14 @@ void Camera::updateShaderData(float dt) {
 	isUpdating_.store(true, std::memory_order_release);
 
 	// Update velocity
-	if (lastPosition_.size() != position_.size()) {
-		lastPosition_.resize(position_.size());
-		for (unsigned int i = 0; i < position_.size(); ++i) {
-			lastPosition_[i] = position_[i].xyz_();
-		}
+	if (dt > 0.0f) {
+		vel_.xyz_() = (position_[0].xyz_() - lastPosition_) / dt;
 	}
-	for (unsigned int i = 0; i < position_.size(); ++i) {
-		auto pos = position_[i].xyz_();
-		if (dt > 0.0f) {
-			vel_[i].xyz_() = (pos - lastPosition_[i]) / dt;
-		}
-		lastPosition_[i] = pos;
-	}
+	lastPosition_ = position_[0].xyz_();
+
 	if (isAudioListener()) {
 		AudioListener::set3f(AL_POSITION, position(0));
-		AudioListener::set3f(AL_VELOCITY, velocity(0));
+		AudioListener::set3f(AL_VELOCITY, velocity());
 		AudioListener::set6f(AL_ORIENTATION, Vec6f(direction(0), Vec3f::up()));
 	}
 	const bool viewChanged = (lastViewStamp1_ != viewStamp_);
@@ -199,15 +190,15 @@ void Camera::updateShaderData(float dt) {
 			dataSize = position_.size() * sizeof(Vec4f);
 			std::memcpy(mapped.w + offset, position_.data(), dataSize);
 			offset += dataSize;
-			dataSize2 = vel_.size() * sizeof(Vec4f);
-			std::memcpy(mapped.w + offset, vel_.data(), dataSize2);
+			dataSize2 = sizeof(Vec4f);
+			std::memcpy(mapped.w + offset, &vel_.x, dataSize2);
 			offset += dataSize2;
 			sh_position_->clientBuffer()->nextStamp(mapped.w_index);
 			sh_vel_->clientBuffer()->nextStamp(mapped.w_index);
 			writtenRange.size += dataSize + dataSize2;
 		} else {
 			offset += position_.size() * sizeof(Vec4f);
-			offset += vel_.size() * sizeof(Vec4f);
+			offset += sizeof(Vec4f);
 			flushWritten(clientBuffer, mapped.w_index, offset, writtenRange);
 		}
 
@@ -286,7 +277,7 @@ void Camera::updateShaderData(float dt) {
 			m_pos.unmap();
 
 			auto m_vel = sh_vel_->mapClientDataRaw(BUFFER_GPU_WRITE);
-			std::memcpy(m_vel.w, vel_.data(), vel_.size() * sizeof(Vec4f));
+			std::memcpy(m_vel.w, &vel_.x, sizeof(Vec4f));
 			m_vel.unmap();
 		}
 
@@ -424,7 +415,7 @@ void Camera::set_isAudioListener(GLboolean isAudioListener) {
 	isAudioListener_ = isAudioListener;
 	if (isAudioListener_) {
 		AudioListener::set3f(AL_POSITION, position_[0].xyz_());
-		AudioListener::set3f(AL_VELOCITY, vel_[0].xyz_());
+		AudioListener::set3f(AL_VELOCITY, vel_.xyz_());
 		AudioListener::set6f(AL_ORIENTATION, Vec6f(
 				direction_[0].xyz_(),
 				Vec3f::up()));

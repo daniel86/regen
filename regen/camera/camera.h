@@ -230,35 +230,18 @@ namespace regen {
 		}
 
 		/**
-		 * Get a vector of the most recent camera velocities.
-		 * This returns the latest value. Only safe to call in animation thread.
-		 * @return the camera velocities.
-		 */
-		const std::vector<Vec4f> &velocity() const { return vel_; }
-
-		/**
-		 * Get the camera velocity for a specific layer.
+		 * Get the camera velocity.
 		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the camera velocity for the specified layer.
 		 */
-		const Vec3f &velocity(uint32_t idx) const { return vel_[idx].xyz_(); }
+		const Vec3f &velocity() const { return vel_.xyz_(); }
 
 		/**
 		 * Get the stamp indicating when the camera velocity was last updated.
 		 * @return the velocity stamp.
 		 */
 		uint32_t velocityStamp() const { return velStamp_; }
-
-		/**
-		 * Set the camera velocity for a specific layer, and increment the stamp
-		 * indicating that the camera velocity has changed.
-		 * @param idx the layer index.
-		 * @param vel the camera velocity to set.
-		 */
-		void setVelocity(uint32_t idx, const Vec3f &vel) {
-			setStamped3(vel_, velStamp_, idx, vel);
-		}
 
 		/**
 		 * Get a vector of view matrices used to transform world-space to view-space.
@@ -570,7 +553,7 @@ namespace regen {
 
 		std::vector<Vec4f> direction_;
 		std::vector<Vec4f> position_;
-		std::vector<Vec4f> vel_;
+		Vec4f vel_;
 		std::vector<ProjectionParams> projParams_;
 
 		std::vector<Mat4f> projData_;
@@ -639,7 +622,7 @@ namespace regen {
 		uint32_t lastPosStamp_ = 0u;
 		uint32_t lastDirStamp_ = 0u;
 		uint32_t poseStamp_ = 0u;
-		std::vector<Vec3f> lastPosition_;
+		Vec3f lastPosition_ = Vec3f::zero();
 	};
 
 	class ProjectionUpdater : public EventHandler {
