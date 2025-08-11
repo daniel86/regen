@@ -767,10 +767,6 @@ void ClientBuffer::writeUnlock(int32_t dataSlot, uint32_t writeOffset, uint32_t 
 			// swap to the other slot.
 			lastDataSlot_.store(dataSlot, std::memory_order_release);
 		}
-
-		if (hasServerData_) {
-			requiresReUpload_ = true;
-		}
 	}
 	// clear the exclusive write lock for this slot, allowing any waiting writer to proceed.
 	// NOTE: reader will only proceed once all writing is done.

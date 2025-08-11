@@ -238,24 +238,6 @@ namespace regen {
 		 */
 		void writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const;
 
-		/**
-		 * TODO: remove this. It is used for dynamic VBO uploads which should be revised.
-		 * @deprecated
-		 */
-		bool requiresReUpload() const { return requiresReUpload_; }
-
-		/**
-		 * TODO: remove this. It is used for dynamic VBO uploads which should be revised.
-		 * @deprecated
-		 */
-		void setRequiresReUpload(bool v) const { requiresReUpload_ = v; }
-
-		/**
-		 * TODO: remove this. It is used for dynamic VBO uploads which should be revised.
-		 * @deprecated
-		 */
-		void setHasServerData(bool v) { hasServerData_ = v; }
-
 	protected:
 		uint32_t dataSize_ = 0u;
 		uint32_t allocatedSize_ = 0u;
@@ -283,10 +265,6 @@ namespace regen {
 		mutable uint32_t dataStamps_[2] = {0u,0u};
 		// stores the ranges written to in the current and last frame if frame-locked
 		DirtyList dirtyLists_[2] = {};
-
-		// TODO remove this. It is used for dynamic VBO uploads which should be revised.
-		mutable bool requiresReUpload_ = false;
-		bool hasServerData_ = false;
 
 		ClientBuffer* parentBuffer_ = nullptr;
 		std::vector<ref_ptr<ClientBuffer>> bufferSegments_;
