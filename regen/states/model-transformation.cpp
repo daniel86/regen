@@ -600,7 +600,6 @@ static void transformMatrix(
 				for (unsigned int &idx: indices) {
 					transformMatrix(target, matrixData[idx], generator.next());
 				}
-				tf->updateShaderData();
 			}
 		} else if (child->getCategory() == "animation") {
 			transformAnimation(scene, child, state, parent, tf);
@@ -616,9 +615,9 @@ static void transformMatrix(
 						(modelOffset.size() > 1 ? offset_data[j] : offset_data[0]),
 						child->getValue<Vec3f>("value", Vec3f(0.0f)));
 			}
-			tf->updateShaderData();
 		}
 	}
+	tf->updateShaderData();
 }
 
 ref_ptr<ModelTransformation>
