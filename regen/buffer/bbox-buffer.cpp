@@ -39,8 +39,6 @@ BBoxBuffer::BBoxBuffer(
 	// - use double-buffering for the staging buffer, i.e. use a ring buffer with 2 segments.
 	//   so we will always be one frame behind the GPU.
 	setBufferingMode(DOUBLE_BUFFER);
-	//setStagingSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
-	//setStagingSyncFlag(BUFFER_SYNC_FRAME_DROPPING);
 
 	// Adopt a static storage for clearing the draw buffer from which we read the bounding box.
 	// This might be non-mappable storage, so to clear the buffer we will use dedicated static write buffer.

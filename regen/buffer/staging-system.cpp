@@ -219,8 +219,8 @@ StagingSystem::Arena *StagingSystem::Arena::create(ArenaType arenaType, ClientAc
 	// the maximum number of segments in the ring buffer
 	uint32_t maxRingSegments = 16;
 
-	// FIXME: Special attention is needed for synchronization of different per-frame buffers when they
-	//        have different number of buffer segments!
+	// TODO: Special attention is needed for synchronization of different per-frame buffers when they
+	//       have different number of buffer segments! Though it does not seem to be a problem so far...
 	//        - the easiest way would be to use same number of segments for all per-frame buffers.
 	//        - in some cases it could be useful to skip frames of buffers with less segments,
 	//          but then we would get into synchronization issues.

@@ -5,7 +5,7 @@
 #include "regen/regen.h"
 #include "regen/scene/resource.h"
 #include "regen/utility/ref-ptr.h"
-#include "buffer-pool.h"
+#include "buffer-allocator.h"
 
 #ifndef REGEN_BUFFER_OFFSET
 #define REGEN_BUFFER_OFFSET(i) ((char *)NULL + (i))

@@ -1,4 +1,4 @@
-#include "buffer-pool.h"
+#include "buffer-allocator.h"
 #include "buffer-enums.h"
 
 using namespace regen;

@@ -4,6 +4,10 @@
 #include "ssbo.h"
 
 namespace regen {
+	/**
+	 * \brief A buffer for storing draw indirect commands.
+	 * This buffer is used to store draw commands that can be executed by the GPU.
+	 */
 	class DrawIndirectBuffer : public SSBO {
 	public:
 		DrawIndirectBuffer(const std::string &name, const BufferUpdateFlags &hints);

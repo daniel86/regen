@@ -149,8 +149,6 @@ void BufferContainer::enable(RenderState *rs) {
 	for (auto &tbo: tbos_) {
 		// update TBO in case client data changed
 		// TODO: UBO uses ShaderInput interface for update, would be good to unify!
-		//         one option would be to only do it here, as probably UBO/TBO won't be
-		//         used much without this container.
 		tbo->updateTBO();
 	}
 	State::enable(rs);
