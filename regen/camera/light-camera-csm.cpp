@@ -169,11 +169,12 @@ bool LightCamera_CSM::updateFrustumSplit() {
 }
 
 bool LightCamera_CSM::updateLightView() {
-	if (lightDirStamp_ == light_->directionStamp() && lightPosStamp_ == userPositionStamp_) { return false; }
-	lightDirStamp_ = light_->directionStamp();
+	if (lightDirStamp_ == light_->direction()->stampOfReadData() &&
+		lightPosStamp_ == userPositionStamp_) { return false; }
+	lightDirStamp_ = light_->direction()->stampOfReadData();
 	lightPosStamp_ = userPositionStamp_;
 
-	auto f = -light_->direction(0);
+	auto f = -light_->directionStaged(0).r;
 	f.normalize();
 	setDirection(0, f);
 #ifdef CSM_USE_SINGLE_VIEW

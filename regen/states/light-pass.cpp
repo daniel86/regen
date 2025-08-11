@@ -205,9 +205,9 @@ void LightPass::enable(RenderState *rs) {
 		}
 		// enable light pass uniforms
 		for (auto &inputLocation: l.inputLocations) {
-			if (lights_.size() > 1 || inputLocation.uploadStamp != inputLocation.input->stamp()) {
+			if (lights_.size() > 1 || inputLocation.uploadStamp != inputLocation.input->stampOfReadData()) {
 				inputLocation.input->enableUniform(inputLocation.location);
-				inputLocation.uploadStamp = inputLocation.input->stamp();
+				inputLocation.uploadStamp = inputLocation.input->stampOfReadData();
 			}
 		}
 

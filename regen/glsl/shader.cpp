@@ -647,10 +647,10 @@ void Shader::enable(RenderState *) {
 		if (uniform.input->isBufferBlock()) {
 			// enable buffer block
 			uniform.input->enableUniform(uniform.location);
-		} else if (uniform.input->stamp() != uniform.uploadStamp) {
+		} else if (uniform.input->stampOfReadData() != uniform.uploadStamp) {
 			// enable uniform
 			uniform.input->enableUniform(uniform.location);
-			uniform.uploadStamp = uniform.input->stamp();
+			uniform.uploadStamp = uniform.input->stampOfReadData();
 		}
 	}
 }

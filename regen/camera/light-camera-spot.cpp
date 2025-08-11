@@ -30,26 +30,26 @@ bool LightCamera_Spot::updateSpotLight() {
 }
 
 bool LightCamera_Spot::updateLightProjection() {
-	if (lightRadiusStamp_ == light_->radiusStamp() &&
-		lightConeStamp_ == light_->coneAngleStamp()) { return false; }
-	auto &radius = light_->radius(0);
-	auto &coneAngle = light_->coneAngle(0);
+	if (lightRadiusStamp_ == light_->radius()->stampOfReadData() &&
+		lightConeStamp_ == light_->coneAngle()->stampOfReadData()) { return false; }
+	auto radius = light_->radiusStaged(0);
+	auto coneAngle = light_->coneAngleStaged(0);
 	setPerspective(
 			1.0f,
-			2.0 * acos(coneAngle.y) * RAD_TO_DEGREE,
+			2.0 * acos(coneAngle.r.y) * RAD_TO_DEGREE,
 			lightNear_,
-			radius.y);
-	lightRadiusStamp_ = light_->radiusStamp();
-	lightConeStamp_ = light_->coneAngleStamp();
+			radius.r.y);
+	lightRadiusStamp_ = light_->radius()->stampOfReadData();
+	lightConeStamp_ = light_->coneAngle()->stampOfReadData();
 	return true;
 }
 
 bool LightCamera_Spot::updateLightView() {
-	if (lightPosStamp_ == light_->positionStamp() &&
-		lightDirStamp_ == light_->directionStamp()) { return false; }
-	lightPosStamp_ = light_->positionStamp();
-	lightDirStamp_ = light_->directionStamp();
-	setPosition(0, light_->position(0).xyz_());
-	setDirection(0, light_->direction(0));
+	if (lightPosStamp_ == light_->position()->stampOfReadData() &&
+		lightDirStamp_ == light_->direction()->stampOfReadData()) { return false; }
+	lightPosStamp_ = light_->position()->stampOfReadData();
+	lightDirStamp_ = light_->direction()->stampOfReadData();
+	setPosition(0, light_->positionStaged(0).r.xyz_());
+	setDirection(0, light_->directionStaged(0).r);
 	return updateView();
 }

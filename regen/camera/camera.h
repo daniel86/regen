@@ -136,12 +136,14 @@ namespace regen {
 
 		/**
 		 * Get vector of most recent projection parameters.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the projection parameters: near, far, aspect, fov.
 		 */
 		const std::vector<ProjectionParams> &projParams() const { return projParams_; }
 
 		/**
 		 * Get projection parameters for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the projection parameters for the specified layer.
 		 */
@@ -167,12 +169,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of the most recent camera positions.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the camera positions.
 		 */
 		const std::vector<Vec4f> &position() const { return position_; }
 
 		/**
 		 * Get the camera position for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the camera position for the specified layer.
 		 */
@@ -196,12 +200,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of the most recent camera directions.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the camera directions.
 		 */
 		const std::vector<Vec4f> &direction() const { return direction_; }
 
 		/**
 		 * Get the camera direction for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the camera direction for the specified layer.
 		 */
@@ -225,12 +231,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of the most recent camera velocities.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the camera velocities.
 		 */
 		const std::vector<Vec4f> &velocity() const { return vel_; }
 
 		/**
 		 * Get the camera velocity for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the camera velocity for the specified layer.
 		 */
@@ -254,12 +262,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of view matrices used to transform world-space to view-space.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the view matrices.
 		 */
 		const std::span<Mat4f> &view() const { return view_; }
 
 		/**
 		 * Get the view matrix for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the view matrix for the specified layer.
 		 */
@@ -283,12 +293,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of inverse view matrices used to transform view-space to world-space.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the inverse view matrices.
 		 */
 		const std::span<Mat4f> &viewInverse() const { return viewInv_; }
 
 		/**
 		 * Get the inverse view matrix for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the inverse view matrix for the specified layer.
 		 */
@@ -306,12 +318,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of projection matrices used to transform world-space to screen-space.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the projection matrices.
 		 */
 		const std::span<Mat4f> &projection() const { return proj_; }
 
 		/**
 		 * Get the projection matrix for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the projection matrix for the specified layer.
 		 */
@@ -335,12 +349,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of inverse projection matrices used to transform screen-space to world-space.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the inverse projection matrices.
 		 */
 		const std::span<Mat4f> &projectionInverse() const { return projInv_; }
 
 		/**
 		 * Get the inverse projection matrix for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the inverse projection matrix for the specified layer.
 		 */
@@ -349,6 +365,7 @@ namespace regen {
 		/**
 		 * Set the inverse projection matrix for a specific layer, and increment the stamp
 		 * indicating that the inverse projection matrix has changed.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @param projInv the inverse projection matrix to set.
 		 */
@@ -358,12 +375,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of view-projection matrices used to transform world-space to screen-space.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the view-projection matrices.
 		 */
 		const std::span<Mat4f> &viewProjection() const { return viewProj_; }
 
 		/**
 		 * Get the view-projection matrix for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the view-projection matrix for the specified layer.
 		 */
@@ -387,12 +406,14 @@ namespace regen {
 
 		/**
 		 * Get a vector of inverse view-projection matrices used to transform screen-space to world-space.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the inverse view-projection matrices.
 		 */
 		const std::span<Mat4f> &viewProjectionInverse() const { return viewProjInv_; }
 
 		/**
 		 * Get the inverse view-projection matrix for a specific layer.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the layer index.
 		 * @return the inverse view-projection matrix for the specified layer.
 		 */
@@ -410,12 +431,14 @@ namespace regen {
 
 		/**
 		 * Get the clip plane for this camera.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @return the clip plane.
 		 */
 		const std::vector<Vec4f> &clipPlane() const { return clipPlane_; }
 
 		/**
 		 * Get the clip plane for a specific index.
+		 * This returns the latest value. Only safe to call in animation thread.
 		 * @param idx the index of the clip plane.
 		 * @return the clip plane for the specified index.
 		 */
@@ -568,7 +591,10 @@ namespace regen {
 
 		template<typename T>
 		inline void setStamped(
-				std::vector<T> &vec, uint32_t &stamp, uint32_t idx, const T &value) {
+				std::vector<T> &vec,
+				uint32_t &stamp,
+				uint32_t idx,
+				const T &value) {
 			vec[idx] = value;
 			stamp += 1;
 			camStamp_ += 1;
@@ -576,14 +602,20 @@ namespace regen {
 
 		template<typename T>
 		inline void setStamped(
-				std::span<T> &vec, uint32_t &stamp, uint32_t idx, const T &value) {
+				std::span<T> &vec,
+				uint32_t &stamp,
+				uint32_t idx,
+				const T &value) {
 			vec[idx] = value;
 			stamp += 1;
 			camStamp_ += 1;
 		}
 
 		inline void setStamped3(
-				std::vector<Vec4f> &vec, uint32_t &stamp, uint32_t idx, const Vec3f &value) {
+				std::vector<Vec4f> &vec,
+				uint32_t &stamp,
+				uint32_t idx,
+				const Vec3f &value) {
 			vec[idx].xyz_() = value;
 			stamp += 1;
 			camStamp_ += 1;

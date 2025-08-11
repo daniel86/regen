@@ -56,7 +56,7 @@ Vec3f Frustum::direction() const {
 
 unsigned int Frustum::directionStamp() const {
 	if (direction_.get()) {
-		return direction_->stamp();
+		return direction_->stampOfReadData();
 	} else {
 		return 0;
 	}

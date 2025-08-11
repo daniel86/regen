@@ -160,9 +160,8 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 				light = ref_ptr<Light>::alloc(Light::SPOT);
 				light->setPosition(0, *((Vec3f *) &lightPos.x));
 				light->setDirection(0, *((Vec3f *) &assimpLight->mDirection.x));
-				light->set_outerConeAngle(
-						acos(assimpLight->mAngleOuterCone) * 360.0f / (2.0f * M_PI));
-				light->set_innerConeAngle(
+				light->setConeAngles(
+						acos(assimpLight->mAngleOuterCone) * 360.0f / (2.0f * M_PI),
 						acos(assimpLight->mAngleInnerCone) * 360.0f / (2.0f * M_PI));
 				setLightRadius(assimpLight, light);
 				break;
@@ -181,7 +180,6 @@ vector<ref_ptr<Light> > AssetImporter::loadLights() {
 		//light->set_ambient( aiToOgle(&assimpLight->mColorAmbient) );
 		light->setDiffuse(0, aiToOgle(&assimpLight->mColorDiffuse));
 		light->setSpecular(0, aiToOgle(&assimpLight->mColorSpecular));
-		light->updateShaderData();
 
 		ret[i] = light;
 	}

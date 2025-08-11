@@ -11,9 +11,7 @@ namespace regen {
 				: Animation(false, true), light_(light) {}
 
 		void animate(GLdouble dt) override {
-			if(light_->updateConeMatrix()) {
-				light_->updateShaderData();
-			}
+			light_->updateConeMatrix();
 		}
 
 		Light *light_;
@@ -29,49 +27,40 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 	lightBuffer_ = ref_ptr<UBO>::alloc("Light", updateFlags);
 	setInput(lightBuffer_);
 
-	lightRadius_.resize(1, Vec2f(999999.9, 999999.9));
-	sh_lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
-	sh_lightRadius_->setUniformData(lightRadius_[0]);
-	lightBuffer_->addBlockInput(sh_lightRadius_);
+	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
+	lightRadius_->setUniformData(Vec2f(999999.9, 999999.9));
+	lightBuffer_->addBlockInput(lightRadius_);
 
-	lightConeAngles_.resize(1, Vec2f(0.0f, 0.0f));
-	set_innerConeAngle(50.0f);
-	set_outerConeAngle(55.0f);
-	sh_lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
-	sh_lightConeAngles_->setUniformData(lightConeAngles_[0]);
-	lightBuffer_->addBlockInput(sh_lightConeAngles_);
+	lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
+	lightConeAngles_->setUniformData(Vec2f(
+			cos(2.0f * M_PIf * 50.0f / 360.0f),
+			cos(2.0f * M_PIf * 55.0f / 360.0f)));
+	lightBuffer_->addBlockInput(lightConeAngles_);
 
-	lightPosition_.resize(1, Vec4f(1.0f, 1.0f, 1.0f, 0.0f));
-	sh_lightPosition_ = ref_ptr<ShaderInput4f>::alloc("lightPosition");
-	sh_lightPosition_->setUniformData(lightPosition_[0]);
-	sh_lightPosition_->setSchema(InputSchema::position());
-	lightBuffer_->addBlockInput(sh_lightPosition_);
+	lightPosition_ = ref_ptr<ShaderInput4f>::alloc("lightPosition");
+	lightPosition_->setUniformData(Vec4f(1.0f, 1.0f, 1.0f, 0.0f));
+	lightPosition_->setSchema(InputSchema::position());
+	lightBuffer_->addBlockInput(lightPosition_);
 
-	lightDirection_.resize(1, Vec3f(1.0f, 1.0f, -1.0f));
-	sh_lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
-	sh_lightDirection_->setUniformData(lightDirection_[0]);
-	sh_lightDirection_->setSchema(InputSchema::direction());
-	lightBuffer_->addBlockInput(sh_lightDirection_);
+	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
+	lightDirection_->setUniformData(Vec3f(1.0f, 1.0f, -1.0f));
+	lightDirection_->setSchema(InputSchema::direction());
+	lightBuffer_->addBlockInput(lightDirection_);
 
-	lightDiffuse_.resize(1, Vec3f(0.7f));
-	sh_lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
-	sh_lightDiffuse_->setUniformData(lightDiffuse_[0]);
-	sh_lightDiffuse_->setSchema(InputSchema::color());
-	lightBuffer_->addBlockInput(sh_lightDiffuse_);
+	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
+	lightDiffuse_->setUniformData(Vec3f(0.7f));
+	lightDiffuse_->setSchema(InputSchema::color());
+	lightBuffer_->addBlockInput(lightDiffuse_);
 
-	lightSpecular_.resize(1, Vec3f(1.0f));
-	sh_lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
-	sh_lightSpecular_->setUniformData(lightSpecular_[0]);
-	sh_lightSpecular_->setSchema(InputSchema::color());
-	lightBuffer_->addBlockInput(sh_lightSpecular_);
+	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
+	lightSpecular_->setUniformData(Vec3f(1.0f));
+	lightSpecular_->setSchema(InputSchema::color());
+	lightBuffer_->addBlockInput(lightSpecular_);
 
 	if (lightType_ == SPOT) {
-		coneMatrix_.resize(1, Mat4f::identity());
-		updateConeMatrix();
-
-		sh_coneMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightConeMatrix");
-		sh_coneMatrix_->setUniformData(coneMatrix_[0]);
-		lightBuffer_->addBlockInput(sh_coneMatrix_);
+		coneMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightConeMatrix");
+		coneMatrix_->setUniformData(Mat4f::identity());
+		lightBuffer_->addBlockInput(coneMatrix_);
 
 		coneAnimation_ = ref_ptr<SpotConeAnimation>::alloc(this);
 		coneAnimation_->setAnimationName("SpotCone");
@@ -79,104 +68,39 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 	}
 }
 
-template<typename T>
-static inline void resizeLocalData_(const ref_ptr<ShaderInput> &sh, std::vector<T> &local) {
-	if(sh->numInstances() > local.size()) {
-		local.resize(sh->numInstances());
-		auto mapped = sh->mapClientDataRaw(BUFFER_GPU_READ);
-		std::memcpy(
-			(byte *) local.data(),
-			(byte *) mapped.r, local.size() * sizeof(T));
-	}
-}
-
-void Light::resizeLocalData() {
-	resizeLocalData_(sh_lightRadius_, lightRadius_);
-	resizeLocalData_(sh_lightConeAngles_, lightConeAngles_);
-	resizeLocalData_(sh_lightPosition_, lightPosition_);
-	resizeLocalData_(sh_lightDirection_, lightDirection_);
-	resizeLocalData_(sh_lightDiffuse_, lightDiffuse_);
-	resizeLocalData_(sh_lightSpecular_, lightSpecular_);
-	if (lightType_ == SPOT) {
-		resizeLocalData_(sh_coneMatrix_, coneMatrix_);
-	}
-}
-
-template<typename T>
-static inline void updateShaderData_(
-		uint32_t stamp,
-		uint32_t &lastStamp,
-		const ref_ptr<ShaderInput> &sh,
-		const std::vector<T> &data) {
-	if (lastStamp != stamp) {
-		lastStamp = stamp;
-		auto m_data = sh->mapClientDataRaw(BUFFER_GPU_WRITE);
-		std::memcpy(m_data.w, data.data(), data.size() * sizeof(T));
-		m_data.unmap();
-	}
-}
-
-void Light::updateShaderData() {
-	updateShaderData_(
-		lightPosStamp_, lastPosStamp_,
-		sh_lightPosition_, lightPosition_);
-	updateShaderData_(
-		lightDirStamp_, lastDirStamp_,
-		sh_lightDirection_, lightDirection_);
-	updateShaderData_(
-		lightDiffuseStamp_, lastDiffuseStamp_,
-		sh_lightDiffuse_, lightDiffuse_);
-	updateShaderData_(
-		lightSpecularStamp_, lastSpecularStamp_,
-		sh_lightSpecular_, lightSpecular_);
-	updateShaderData_(
-		lightConeAnglesStamp_, lastConeAnglesStamp_,
-		sh_lightConeAngles_, lightConeAngles_);
-	updateShaderData_(
-		lightRadiusStamp_, lastRadiusStamp_,
-		sh_lightRadius_, lightRadius_);
-	if (lightType_ == SPOT) {
-		updateShaderData_(
-			lightConeStamp_, lastConeStamp_,
-			sh_coneMatrix_, coneMatrix_);
-	}
-}
-
-void Light::set_innerConeAngle(float deg) {
-	lightConeAngles_[0].x = cos(2.0f * M_PIf * deg / 360.0f);
-	lightConeAnglesStamp_ += 1;
-}
-
-void Light::set_outerConeAngle(float deg) {
-	lightConeAngles_[0].y = cos(2.0f * M_PIf * deg / 360.0f);
-	lightConeAnglesStamp_ += 1;
+void Light::setConeAngles(float inner, float outer) {
+	lightConeAngles_->setVertex(0, Vec2f(
+			cos(2.0f * M_PIf * inner / 360.0f),
+			cos(2.0f * M_PIf * outer / 360.0f)));
 }
 
 bool Light::updateConeMatrix() {
-	uint32_t stamp = std::max(lightRadiusStamp_, std::max(lightDirStamp_,
-			std::max(lightConeAnglesStamp_, lightPosStamp_)));
+	uint32_t stamp = std::max(lightRadius_->stampOfReadData(),
+			std::max(lightDirection_->stampOfReadData(),
+			std::max(lightConeAngles_->stampOfReadData(), lightPosition_->stampOfReadData())));
 	if (lightConeStamp_ == stamp) return false; // no update needed
+	REGEN_INFO("Update cone matrix");
 
 	// Note: cone opens in positive z direction.
 	// FIXME: where are num instances set for light? probably best to hook resize there!
 	//         here is too late!
-	auto numInstances = std::max(lightPosition_.size(), lightDirection_.size());
-	if (coneMatrix_.size() != numInstances) {
+	auto numInstances = std::max(lightPosition_->numInstances(), lightDirection_->numInstances());
+	if (coneMatrix_->numInstances() != numInstances) {
 		// ensure cone matrix has numInstances
-		coneMatrix_.resize(numInstances, Mat4f::identity());
-		sh_coneMatrix_->setInstanceData(numInstances, 1, (byte *) coneMatrix_.data());
+		coneMatrix_->setInstanceData(numInstances, 1, nullptr);
 	}
+	auto m_coneMatrix = coneMatrix_->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
 
 	for (unsigned int i = 0; i < numInstances; ++i) {
-		auto dir = getClamped(lightDirection_, i);
+		auto dir = lightDirection_->getVertexClamped(i).r;
 		dir.normalize();
 		auto angleCos = dir.dot(Vec3f(0.0, 0.0, 1.0));
 
 		if (math::isApprox(abs(angleCos), 1.0)) {
-			coneMatrix_[i] = Mat4f::identity();
+			m_coneMatrix.w[i] = Mat4f::identity();
 		} else {
-			auto radius = getClamped(lightRadius_,i).y;
-			auto coneAngle = getClamped(lightConeAngles_,i).y;
+			auto radius = lightRadius_->getVertexClamped(i).r.y;
+			auto coneAngle = lightConeAngles_->getVertexClamped(i).r.y;
 
 			// Quaternion rotates view to light direction
 			Quaternion q;
@@ -188,8 +112,8 @@ bool Light::updateConeMatrix() {
 			auto x = 2.0f * radius * tan(acos(coneAngle));
 			auto val = q.calculateMatrix();
 			val.scale(Vec3f(x, x, radius));
-			val.translate(getClamped(lightPosition_,i).xyz_());
-			coneMatrix_[i] = val;
+			val.translate(lightPosition_->getVertexClamped(i).r.xyz_());
+			m_coneMatrix.w[i] = val;
 		}
 	}
 
@@ -272,16 +196,12 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	light->setRadius(0, input.getValue<Vec2f>("radius", Vec2f(50.0f, 50.0f)));
 
 	auto angles = input.getValue<Vec2f>("cone-angles", Vec2f(50.0f, 55.0f));
-	light->set_innerConeAngle(angles.x);
-	light->set_outerConeAngle(angles.y);
+	light->setConeAngles(angles.x, angles.y);
 	ctx.scene()->putState(input.getName(), light);
 
 	// process light node children
-	bool isBufferResized = false;
 	for (auto &child: input.getChildren()) {
 		if (child->getCategory() == "set") {
-			// FIXME: this won't work as expected anymore!!
-			//      - same in shader input widget!
 			// set a given light input. The input key is given by the "target" attribute.
 			auto targetName = child->getValue("target");
 			// find the shader input in the light state
@@ -296,7 +216,6 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 					setTarget->numInstances());
 			// allocate memory for the shader input
 			setTarget->setInstanceData(numInstances, 1, nullptr);
-			isBufferResized = true;
 			scene::ShaderInputProcessor::setInput(*child.get(), setTarget.get(), numInstances);
 		}
 		if (child->getCategory() == "animation") {
@@ -308,7 +227,7 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				//   Which is fine in most cases, but eg. in case of spot light,
 				//   the cone matrix may need to be updated.
 				// TODO: also attach orientation for spot cameras.
-				auto boids = ref_ptr<BoidsCPU>::alloc(light->sh_position());
+				auto boids = ref_ptr<BoidsCPU>::alloc(light->position());
 				boids->loadSettings(ctx, *child.get());
 
 				light->attach(boids);
@@ -318,13 +237,9 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 			}
 		}
 	}
-	if (isBufferResized) {
-		light->resizeLocalData();
-	}
 	if (lightType == Light::SPOT) {
 		light->updateConeMatrix();
 	}
-	light->updateShaderData();
 
 	return light;
 }
@@ -336,10 +251,11 @@ ref_ptr<Light> Light::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 LightNode::LightNode(
 		const ref_ptr<Light> &light,
 		const ref_ptr<AnimationNode> &n)
-		: State(), light_(light), animNode_(n) {}
+		: State(), light_(light), animNode_(n) {
+	lightPosition_ = light->positionStaged(0).r.xyz_();
+}
 
 void LightNode::update(GLdouble /*dt*/) {
-	Vec3f v = animNode_->localTransform().transformVector(light_->position(0).xyz_());
+	Vec3f v = animNode_->localTransform().transformVector(lightPosition_);
 	light_->setPosition(0, v);
-	light_->updateShaderData();
 }

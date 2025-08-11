@@ -115,9 +115,12 @@ namespace regen {
 		void set_active(bool v) { active_ = v; }
 
 		/**
-		 * Compare stamps to check if the input data changed.
+		 * The data stamp of the data which is currently read.
+		 * @return the data stamp.
 		 */
-		inline uint32_t stamp() const { return clientBuffer_->stamp(); }
+		inline uint32_t stampOfReadData() const { return clientBuffer_->stampOfReadData(); }
+
+		inline uint32_t stampOfWriteData() const { return clientBuffer_->stampOfWriteData(); }
 
 		/**
 		 * Increment the stamp.

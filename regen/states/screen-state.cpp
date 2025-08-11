@@ -20,7 +20,7 @@ ScreenState::ScreenState(
 }
 
 void ScreenState::enable(RenderState *rs) {
-	if (lastViewportStamp_ != screen_->stamp()) {
+	if (lastViewportStamp_ != screen_->stampOfWriteData()) {
 		auto &winViewport = screen_->viewport();
 		glViewport_.z = winViewport.x;
 		glViewport_.w = winViewport.y;
@@ -30,7 +30,7 @@ void ScreenState::enable(RenderState *rs) {
 		inverseViewport_->setVertex(0, Vec2f(
 			1.0f / static_cast<float>(winViewport.x),
 			1.0f / static_cast<float>(winViewport.y)));
-		lastViewportStamp_ = screen_->stamp();
+		lastViewportStamp_ = screen_->stampOfWriteData();
 	}
 
 	rs->drawFrameBuffer().apply(0);

@@ -85,7 +85,7 @@ void ClientBuffer::removeSegment(const ref_ptr<ClientBuffer> &segment) {
 	}
 }
 
-uint32_t ClientBuffer::swapData() {
+uint32_t ClientBuffer::swapData(bool force) {
 	// NOTE: This function should be very fast as potentially both animation and rendering threads
 	//       are waiting for it to finish.
 	// flushing is only needed if the buffer is frame-locked.
@@ -97,7 +97,7 @@ uint32_t ClientBuffer::swapData() {
 	if (dataSlots_[1]) {
 		int32_t lastWriteSlot = 1 - lastReadSlot;
 		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
-		if (dirtyThisFrame.count() == 0) {
+		if (dirtyThisFrame.count() == 0 && !force) {
 			// No dirty ranges, nothing to do.
 			return 0u;
 		}
@@ -128,10 +128,10 @@ uint32_t ClientBuffer::swapData() {
 					range.size);
 		}
 
-		// For each write segment with stamp != read segment stamp: set the stamp to read segment stamp,
+		// For each write segment with stamp < read segment stamp: set the stamp to read segment stamp,
 		// as we have synced the data above.
 		for (auto &segment: bufferSegments_) {
-			if (segment->dataStamps_[lastWriteSlot] != dataStamps_[lastReadSlot]) {
+			if (segment->dataStamps_[lastWriteSlot] < dataStamps_[lastReadSlot]) {
 				segment->dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
 			}
 		}

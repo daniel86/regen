@@ -100,7 +100,9 @@ namespace regen {
 		/**
 		 * Compare stamps to check if the input data changed.
 		 */
-		inline uint32_t stamp() const { return dataStamps_[lastDataSlot()]; }
+		inline uint32_t stampOfReadData() const { return dataStamps_[lastDataSlot()]; }
+
+		inline uint32_t stampOfWriteData() const { return dataStamps_[1 - lastDataSlot_]; }
 
 		/**
 		 * Returns the current read slot index.
@@ -220,7 +222,7 @@ namespace regen {
 		 * This will first ensure that the current write slot has all the most recent data,
 		 * and secondly, it swaps the read and write slots.
 		 */
-		uint32_t swapData();
+		uint32_t swapData(bool force=false);
 
 		/**
 		 * Locks all data slots, effectively preventing any read or write access

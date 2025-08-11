@@ -37,7 +37,7 @@ ShaderInputWidget::~ShaderInputWidget() {
 }
 
 void ShaderInputWidget::updateInitialValue(ShaderInput *x) {
-	GLuint stamp = x->stamp();
+	GLuint stamp = x->stampOfReadData();
 	if (stamp != valueStamp_[x] &&
 		stamp != initialValueStamp_[x]) {
 		// last time value was not changed from widget
@@ -355,7 +355,7 @@ bool ShaderInputWidget::addParameter(
 	memcpy(initialValue, clientData.r, in->elementSize());
 	clientData.unmap();
 	initialValue_[in.get()] = initialValue;
-	initialValueStamp_[in.get()] = in->stamp();
+	initialValueStamp_[in.get()] = in->stampOfReadData();
 	valueStamp_[in.get()] = 0;
 
     QWidget *parameterWidget = nullptr;

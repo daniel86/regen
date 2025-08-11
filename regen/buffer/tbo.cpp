@@ -41,10 +41,10 @@ ref_ptr<BufferReference>& TBO::tboRef() {
 }
 
 void TBO::updateTBO() {
-	if (!input_.get() || lastStamp_ == input_->stamp()) {
+	if (!input_.get() || lastStamp_ == input_->stampOfReadData()) {
 		return;
 	}
-	lastStamp_ = input_->stamp();
+	lastStamp_ = input_->stampOfReadData();
 	if (allocatedSize_ < input_->inputSize()) {
 		resizeTBO();
 	}

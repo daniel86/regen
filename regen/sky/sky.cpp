@@ -57,7 +57,6 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	sun_->setSpecular(0, Vec3f(0.0f));
 	sun_->setDiffuse(0, Vec3f(0.0f));
 	sun_->setDirection(0, Vec3f(1.0f));
-	sun_->updateShaderData();
 	state()->setInput(ref_ptr<UBO>::alloc(*sun_->lightUBO().get(), "SunLight", "_Sun"));
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
@@ -74,7 +73,6 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	moon_->setSpecular(0, Vec3f(0.0f));
 	moon_->setDiffuse(0, Vec3f(0.0f));
 	moon_->setDirection(0, Vec3f(1.0f));
-	moon_->updateShaderData();
 	state()->setInput(ref_ptr<UBO>::alloc(*moon_->lightUBO().get(), "MoonLight", "_Moon"));
 
 	state()->setInput(uniformBlock);
@@ -217,7 +215,7 @@ void Sky::animate(GLdouble dt) {
 			computeEyeExtinction(moon)));
 	R_->setVertex(0, astro().getEquToHorTransform());
 
-	if (camStamp_ != cam_->stamp() || viewportStamp_ != screen_->stamp()) {
+	if (camStamp_ != cam_->stamp() || viewportStamp_ != screen_->stampOfWriteData()) {
 		const float fovHalf = camera()->projParams()[0].fov * 0.5f * DEGREE_TO_RAD;
 		const float height = static_cast<float>(screen_->viewport().y);
 		const float q = 2.8284271247461903f // = sqrt(2.0f) * 2.0f
@@ -225,11 +223,9 @@ void Sky::animate(GLdouble dt) {
 		q_->setVertex(0, q);
 		sqrt_q_->setVertex(0, sqrt(q));
 		camStamp_ = cam_->stamp();
-		viewportStamp_ = screen_->stamp();
+		viewportStamp_ = screen_->stampOfWriteData();
 	}
 
-	sun_->updateShaderData();
-	moon_->updateShaderData();
 	// Update random number in cmn uniform
 	updateSeed();
 }

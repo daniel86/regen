@@ -39,14 +39,14 @@ ReflectionCamera::ReflectionCamera(
 	nor_ = mesh->normals();
 	isReflectorValid_ = (pos_.get() != nullptr) && (nor_.get() != nullptr);
 	if (isReflectorValid_) {
-		posStamp_ = pos_->stamp() - 1;
-		norStamp_ = nor_->stamp() - 1;
+		posStamp_ = pos_->stampOfReadData() - 1;
+		norStamp_ = nor_->stampOfReadData() - 1;
 	}
 
 	auto modelMat = mesh->findShaderInput("modelMatrix");
 	transform_ = modelMat.value().in;
 	if (transform_.get() != nullptr) {
-		transformStamp_ = transform_->stamp() - 1;
+		transformStamp_ = transform_->stampOfReadData() - 1;
 	}
 
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
@@ -101,17 +101,17 @@ bool ReflectionCamera::updateReflection() {
 
 	bool reflectorChanged = false;
 	if (hasMesh_) {
-		if (transform_.get() != nullptr && transform_->stamp() != transformStamp_) {
+		if (transform_.get() != nullptr && transform_->stampOfReadData() != transformStamp_) {
 			reflectorChanged = true;
-			transformStamp_ = transform_->stamp();
+			transformStamp_ = transform_->stampOfReadData();
 		}
-		if (nor_->stamp() != norStamp_) {
+		if (nor_->stampOfReadData() != norStamp_) {
 			reflectorChanged = true;
-			norStamp_ = nor_->stamp();
+			norStamp_ = nor_->stampOfReadData();
 		}
-		if (pos_->stamp() != posStamp_) {
+		if (pos_->stampOfReadData() != posStamp_) {
 			reflectorChanged = true;
-			posStamp_ = pos_->stamp();
+			posStamp_ = pos_->stampOfReadData();
 		}
 		// Compute plane parameters...
 		if (reflectorChanged) {

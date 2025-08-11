@@ -101,11 +101,8 @@ void VBO::uploadInterleaved(
 			att->set_stride(static_cast<int>(att->elementSize()));
 			att->set_offset(currOffset + startByte);
 			if (att->hasClientData()) {
-				std::memcpy(
-						data + currOffset,
-						att->mapClientDataRaw(BUFFER_GPU_READ).r,
-						att->inputSize()
-				);
+				auto m = att->mapClientDataRaw(BUFFER_GPU_READ);
+				std::memcpy(data + currOffset, m.r, att->inputSize());
 			}
 			currOffset += att->inputSize();
 		}
@@ -121,11 +118,8 @@ void VBO::uploadInterleaved(
 			GLuint valueSize = att->valsPerElement() * att->dataTypeBytes() * att->numArrayElements();
 			// copy data
 			if (att->hasClientData()) {
-				std::memcpy(
-						data + count,
-						att->mapClientDataRaw(BUFFER_GPU_READ).r + i * valueSize,
-						valueSize
-				);
+				auto m = att->mapClientDataRaw(BUFFER_GPU_READ);
+				std::memcpy(data + count, m.r + i * valueSize, valueSize);
 			}
 			count += valueSize;
 		}

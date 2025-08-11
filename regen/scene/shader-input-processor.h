@@ -52,14 +52,10 @@ namespace regen {
 		public:
 			template<class T>
 			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
-				auto readIdx = shaderInput->clientBuffer()->currentReadSlot();
-				byte* rawData = shaderInput->clientBuffer()->clientData(readIdx);
-				WriteAccessor<T> v_values(rawData,
-						shaderInput->mapClientStride(),
-						shaderInput->mapClientStride()==0u ? w_access_packed<T> : w_access_strided<T>);
+				auto v_values =  shaderInput->mapClientData<T>(BUFFER_GPU_WRITE);
 				auto default_value = input.getValue<T>("value", T(0));
 				for (unsigned int i = 0; i < count; ++i) {
-					v_values[i] = default_value;
+					v_values.w[i] = default_value;
 				}
 				for (auto &child: input.getChildren()) {
 					if (child->getCategory() == "set") {
@@ -70,13 +66,13 @@ namespace regen {
 						for (unsigned int & index : indices) {
 							switch (blendMode) {
 								case BLEND_MODE_ADD:
-									v_values[index] = v_values[index] + generator.next();
+									v_values.w[index] = v_values.r[index] + generator.next();
 									break;
 								case BLEND_MODE_MULTIPLY:
-									v_values[index] = v_values[index] * generator.next();
+									v_values.w[index] = v_values.r[index] * generator.next();
 									break;
 								default:
-									v_values[index] = generator.next();
+									v_values.w[index] = generator.next();
 									break;
 							}
 						}

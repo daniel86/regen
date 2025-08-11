@@ -197,9 +197,9 @@ void Camera::updateShaderData(float dt) {
 		if (lastPosStamp1_ != positionStamp_) {
 			lastPosStamp1_ = positionStamp_;
 			dataSize = position_.size() * sizeof(Vec4f);
-			dataSize2 = vel_.size() * sizeof(Vec4f);
 			std::memcpy(mapped.w + offset, position_.data(), dataSize);
 			offset += dataSize;
+			dataSize2 = vel_.size() * sizeof(Vec4f);
 			std::memcpy(mapped.w + offset, vel_.data(), dataSize2);
 			offset += dataSize2;
 			sh_position_->clientBuffer()->nextStamp(mapped.w_index);
@@ -212,7 +212,6 @@ void Camera::updateShaderData(float dt) {
 		}
 
 		dataSize = projParams_.size() * sizeof(ProjectionParams);
-		// TODO: Put params together with mat data, avoid the memcpy here.
 		if (projChanged) {
 			std::memcpy(mapped.w + offset, projParams_.data(), dataSize);
 			sh_projParams_->clientBuffer()->nextStamp(mapped.w_index);

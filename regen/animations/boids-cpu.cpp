@@ -348,8 +348,8 @@ void BoidsCPU::clearGrid() {
 	// update the grid based on gridBounds_, creating a cell every `2.0*(visual range)` in all directions.
 	BoidSimulation::updateGridSize();
 
-	if (priv_->gridStamp_ != gridSize_->stamp()) {
-		priv_->gridStamp_ = gridSize_->stamp();
+	if (priv_->gridStamp_ != gridSize_->stampOfReadData()) {
+		priv_->gridStamp_ = gridSize_->stampOfReadData();
 		auto gridSize = gridSize_->getVertex(0).r;
 		priv_->gridSize_.x = static_cast<int>(gridSize.x);
 		priv_->gridSize_.y = static_cast<int>(gridSize.y);

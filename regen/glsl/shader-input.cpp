@@ -163,12 +163,12 @@ void ShaderInput::set_isVertexAttribute(bool isVertexAttribute) {
 void ShaderInput::set_buffer(GLuint buffer, const ref_ptr<BufferReference> &it) {
 	buffer_ = buffer;
 	bufferIterator_ = it;
-	bufferStamp_ = stamp();
+	bufferStamp_ = stampOfReadData();
 }
 
 void ShaderInput::enableAttribute(GLint loc) const {
 	// TODO: Handle VBO updates rather via staging system. Then remove this.
-	if (clientBuffer_->stamp() != bufferStamp_) {
+	if (clientBuffer_->stampOfReadData() != bufferStamp_) {
 		// the client buffer has changed, so we need to re-upload the data.
 		writeServerData();
 	}
@@ -290,7 +290,7 @@ void ShaderInput::writeServerData(GLuint index) const {
 
 void ShaderInput::writeServerData() const {
 	if (!hasClientData() || !hasServerData()) return;
-	if (bufferStamp_ == stamp()) return;
+	if (bufferStamp_ == stampOfReadData()) return;
 	auto mappedClientData = clientBuffer_->mapRange(BUFFER_GPU_READ, 0, inputSize_);
 	auto clientData = mappedClientData.r;
 	auto count = std::max(numVertices_, numInstances_);
@@ -306,7 +306,7 @@ void ShaderInput::writeServerData() const {
 		}
 	}
 
-	bufferStamp_ = stamp();
+	bufferStamp_ = stampOfReadData();
 	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0, inputSize_, mappedClientData.r_index);
 }
 

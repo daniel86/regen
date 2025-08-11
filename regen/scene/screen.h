@@ -29,7 +29,9 @@ namespace regen {
 		/**
 		 * @return the current stamp of the viewport shader input.
 		 */
-		uint32_t stamp() const { return sh_viewport_->stamp(); }
+		uint32_t stampOfReadData() const { return sh_viewport_->stampOfReadData(); }
+
+		uint32_t stampOfWriteData() const { return sh_viewport_->stampOfWriteData(); }
 
 		/**
 		 * @brief Sets the viewport size and updates the shader input.

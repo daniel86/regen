@@ -147,7 +147,7 @@ BufferBlock::BufferBlock(const BufferObject &other, const std::string &name)
 			auto bufferInput = ref_ptr<BlockInput>::alloc();
 			bufferInput->input = tbo->input();
 			bufferInput->offset = 0;
-			bufferInput->lastStamp[0] = tbo->input()->stamp();
+			bufferInput->lastStamp[0] = tbo->input()->stampOfReadData();
 			blockInputs_.emplace_back(bufferInput);
 
 			if (!tbo->allocations().empty()) {
@@ -383,7 +383,7 @@ uint32_t BufferBlock::updateBlockInputs() {
 	for (auto &blockInput : blockInputs_) {
 		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
 		hasClientData = hasClientData && blockInput->input->hasClientData();
-		if (blockInput->input->stamp() != lastInputStamp(*blockInput.get())) {
+		if (blockInput->input->stampOfWriteData() != lastInputStamp(*blockInput.get())) {
 			updatedSize_ += blockInput->input->inputSize();
 		}
 	}
@@ -426,7 +426,11 @@ uint32_t BufferBlock::updateBlockInputs() {
 	bool lastChanged = false; // whether the last input changed or not
 	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(blockInputs_.size()); ++inputIdx) {
 		auto &blockInput = *blockInputs_[inputIdx].get();
-		if (blockInput.input->stamp() != lastInputStamp(blockInput)) {
+		// FIXME: Why is stampOfWriteData needed here? Well it causes I guess that we copy at least two times
+		//         and that does the trick? But it should be best to check for read stamp instead I think!
+		//         E.g. the diffuse material color of instanced trees is affected.
+		//         Something must be wrong here....
+		if (blockInput.input->stampOfWriteData() != lastInputStamp(blockInput)) {
 			if (lastChanged) {
 				// this input adds to the current segment
 				appendToDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);
@@ -465,7 +469,7 @@ void BufferBlock::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset)
 		auto &segmentRange = dirtySegmentRanges_[segmentIdx];
 		for (uint32_t inputIdx = segmentRange.startIdx; inputIdx < segmentRange.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
-			lastInputStamp(bufferInput) = bufferInput.input->stamp();
+			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 		}
 	}
 
@@ -492,7 +496,7 @@ void BufferBlock::copyFullData(byte *mappedBufferData, uint32_t localMapOffset) 
 	// update the last stamps for all inputs in the dirty range
 	for (uint32_t inputIdx = startIdx; inputIdx < endIdx; ++inputIdx) {
 		auto &bufferInput = *blockInputs_[inputIdx].get();
-		lastInputStamp(bufferInput) = bufferInput.input->stamp();
+		lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 	}
 	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, fullSize, mapped.r_index);
 }
@@ -740,7 +744,7 @@ void BufferBlock::updateNonMapped() {
 		// update the last stamps for all inputs in the dirty range
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
 			auto &bufferInput = *blockInputs_[inputIdx].get();
-			lastInputStamp(bufferInput) = bufferInput.input->stamp();
+			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 		}
 	}
 
@@ -787,7 +791,7 @@ void BufferBlock::updateTemporaryMapped() {
 
 				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
 					auto &bufferInput = *blockInputs_[inputIdx].get();
-					lastInputStamp(bufferInput) = bufferInput.input->stamp();
+					lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 				}
 
 				clientBuffer_->unmapRange(BUFFER_GPU_READ,
