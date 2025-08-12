@@ -68,7 +68,7 @@ void BoundingShape::setTransform(const Mat4f &localTransform) {
 
 const Vec3f& BoundingShape::translation() const {
 	if (transform_.get()) {
-		return transform_->position(transformIndex_);
+		return transform_->position(transformIndex_).r;
 	} else {
 		return localTransform_.position();
 	}

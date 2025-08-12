@@ -47,8 +47,8 @@ bool NodeEyeDepthComparator::operator()(ref_ptr<StateNode> &n0, ref_ptr<StateNod
 	auto *tf1 = getModelTransformation(n1.get());
 	if (tf0 != nullptr && tf1 != nullptr) {
 		auto diff = mode_ * (
-				getEyeDepth(tf0->modelMat(0).position()) -
-				getEyeDepth(tf1->modelMat(0).position()));
+				getEyeDepth(tf0->modelMat()->getVertex(0).r.position()) -
+				getEyeDepth(tf1->modelMat()->getVertex(0).r.position()));
 		return diff < 0;
 	} else if (tf0 != nullptr) {
 		return true;

@@ -7,7 +7,7 @@ using namespace regen;
 BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf) {
 	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
 	if (tf->hasModelMat()) {
-		boidsScale_->setUniformData(tf_->modelMat(0).scaling());
+		boidsScale_->setUniformData(tf_->modelMat()->getVertex(0).r.scaling());
 	} else {
 		boidsScale_->setUniformData(Vec3f(1.0f));
 	}
@@ -260,7 +260,7 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 			auto transform = ctx.scene()->getResource<ModelTransformation>(transformID);
 			if (transform.get() != nullptr) {
 				// TODO: Use ModelTransformation instead of ShaderInputMat4 below.
-				entityTF = transform->sh_modelMat();
+				entityTF = transform->modelMat();
 			}
 		} else if (objectNode->hasAttribute("point")) {
 			entityTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");

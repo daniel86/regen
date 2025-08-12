@@ -126,7 +126,7 @@ void Ground::updateGroundPatches() {
 	auto patchHalfSize = patchSize_ / 2.0f;
 	uint32_t tfIndex = 0;
 
-	tf_->resizeModelOffset(numPatches);
+	tf_->modelOffset()->setInstanceData(numPatches, 1, nullptr);
 	for (uint32_t xIdx=0; xIdx<numPatches_.x; ++xIdx) {
 		for (uint32_t zIdx=0; zIdx<numPatches_.y; ++zIdx) {
 			auto xPos = offsetX + (static_cast<float>(xIdx) * patchSize_) + patchHalfSize;
@@ -137,7 +137,6 @@ void Ground::updateGroundPatches() {
 				zPos));
 		}
 	}
-	tf_->updateShaderData();
 }
 
 void Ground::updateAttributes() {

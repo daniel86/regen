@@ -600,21 +600,24 @@ void LODState::computeLODGroups() {
 		auto &modelOffset = tf->modelOffset();
 		auto &modelMat = tf->modelMat();
 		if (tf->hasModelOffset() && tf->hasModelMat()) {
+			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
+			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
 			LODSelector_Full selector{
-					.tfData = modelMat.data(),
-					.modelOffsetData = modelOffset.data(),
+					.tfData = tfData.r.data(),
+					.modelOffsetData = modelOffsetData.r.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get(),
-					.tfIdxMultiplier = (modelMat.size() > 1u ? 1u : 0u),
-					.offsetIdxMultiplier = (modelOffset.size() > 1u ? 1u : 0u)
+					.tfIdxMultiplier = (modelMat->numInstances() > 1u ? 1u : 0u),
+					.offsetIdxMultiplier = (modelOffset->numInstances() > 1u ? 1u : 0u)
 			};
 			countGroupSize_CPU(numVisible,
 							   lodNumInstances_, lodBoundaries_,
 							   camPos,
 							   selector);
 		} else if (tf->hasModelOffset()) {
+			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
 			LODSelector_ModelOffset selector{
-					.modelOffsetData = modelOffset.data(),
+					.modelOffsetData = modelOffsetData.r.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get()
 			};
@@ -623,8 +626,9 @@ void LODState::computeLODGroups() {
 							   camPos,
 							   selector);
 		} else {
+			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
 			LODSelector_Transform selector{
-					.tfData = modelMat.data(),
+					.tfData = tfData.r.data(),
 					.mappedData = mappedData,
 					.mesh = mesh_.get()
 			};

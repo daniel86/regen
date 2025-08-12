@@ -141,8 +141,9 @@ bool CharacterController::initializePhysics() {
 	rotation.setRotation(btVector3(0, 1, 0), meshHorizontalOrientation_);
 	btTransform initialTransform;
 	if (attachedToTransform_->hasModelMat()) {
+		auto m = attachedToTransform_->modelMat()->getVertex(0);
 		initialTransform.setFromOpenGLMatrix(
-				(const btScalar *) &attachedToTransform_->modelMat(0).x);
+				(const btScalar *) &m.r.x);
 	}
 	initialTransform.setRotation(rotation);
 	ghostObject->setWorldTransform(initialTransform);

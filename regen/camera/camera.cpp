@@ -427,7 +427,7 @@ bool Camera::updatePose() {
 	if (attachedTF_.get()) {
 		if (poseStamp_ != attachedTF_->stamp()) {
 			poseStamp_ = attachedTF_->stamp();
-			setPosition(0, attachedTF_->position(0));
+			setPosition(0, attachedTF_->position(0).r);
 			updated = true;
 		}
 	}

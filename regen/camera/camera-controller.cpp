@@ -26,7 +26,7 @@ void CameraController::setAttachedTo(
 		const ref_ptr<Mesh> &mesh) {
 	attachedToTransform_ = target;
 	attachedToMesh_ = mesh;
-	pos_ = target->position(0);
+	pos_ = target->position(0).r;
 }
 
 void CameraController::stepUp(const GLfloat &v) {
@@ -200,7 +200,6 @@ void CameraController::animate(GLdouble dt) {
 			} else {
 				attachedToTransform_->setModelOffset(0, matVal_.position());
 			}
-			attachedToTransform_->updateShaderData();
 		}
 		updateCamera(camPos_, camDir_, dt);
 	}

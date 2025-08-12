@@ -47,17 +47,17 @@ void AABB::updateAABB() {
 		if (transform_->hasModelOffset()) {
 			auto &modelOffset = transform_->modelOffset();
 			for (int i = 0; i < 8; ++i) {
-				vertices_[i] += getClamped(modelOffset, transformIndex_).xyz_();
+				vertices_[i] += modelOffset->getVertexClamped(transformIndex_).r.xyz_();
 			}
 		}
 		if (transform_->hasModelMat()) {
-			auto &tf = getClamped(transform_->modelMat(), transformIndex_);
+			auto tf = transform_->modelMat()->getVertexClamped(transformIndex_);
 			// compute transformed bounds
 			Vec3f transformed;
 			Vec3f transformedMin = getShapeOrigin();
 			Vec3f transformedMax = transformedMin;
 			for (int i = 0; i < 8; ++i) {
-				transformed = (tf ^ vertices_[i]).xyz_();
+				transformed = (tf.r ^ vertices_[i]).xyz_();
 				transformedMin.setMin(transformed);
 				transformedMax.setMax(transformed);
 			}

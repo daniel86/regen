@@ -97,7 +97,7 @@ BoidsCPU::BoidsCPU(const ref_ptr<ModelTransformation> &tf)
 	priv_->sortedGridIndices_.setToZero();
 #endif
 	for (uint32_t i = 0; i < numBoids_; ++i) {
-		setBoidPosition(i, tf_->position(i));
+		setBoidPosition(i, tf_->position(i).r);
 	}
 }
 
@@ -306,30 +306,29 @@ void BoidsCPU::animate(double dt) {
 void BoidsCPU::updateTransforms() {
 	if (tf_.get()) {
 		if (tf_->hasModelMat()) {
-			Mat4f *matData = tf_->modelMatMapWrite();
+			auto m_matData = tf_->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
 			for (uint32_t i = 0; i < numBoids_; ++i) {
 				Quaternion orientation(
 					priv_->boidOrientW_[i],
 					priv_->boidOrientX_[i],
 					priv_->boidOrientY_[i],
 					priv_->boidOrientZ_[i]);
-				matData[i] = (priv_->yawAdjust_ * orientation).calculateMatrix();
-				matData[i].scale(priv_->boidsScale_);
-				matData[i].x[12] += priv_->boidPositionsX_[i];
-				matData[i].x[13] += priv_->boidPositionsY_[i];
-				matData[i].x[14] += priv_->boidPositionsZ_[i];
+				m_matData.w[i] = (priv_->yawAdjust_ * orientation).calculateMatrix();
+				m_matData.w[i].scale(priv_->boidsScale_);
+				m_matData.w[i].x[12] += priv_->boidPositionsX_[i];
+				m_matData.w[i].x[13] += priv_->boidPositionsY_[i];
+				m_matData.w[i].x[14] += priv_->boidPositionsZ_[i];
 			}
 		} else if (tf_->hasModelOffset()) {
-			Vec4f *offsetData = tf_->modelOffsetMapWrite();
+			auto m_offsetData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 			for (uint32_t i = 0; i < numBoids_; ++i) {
-				offsetData[i] = Vec4f(
+				m_offsetData.w[i] = Vec4f(
 					priv_->boidPositionsX_[i],
 					priv_->boidPositionsY_[i],
 					priv_->boidPositionsZ_[i],
 					1.0f);
 			}
 		}
-		tf_->updateShaderData();
 	} else if (modelOffset_.get()) {
 		// update the model offset data
 		auto offsetData = modelOffset_->mapClientData<Vec4f>(

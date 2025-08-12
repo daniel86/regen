@@ -5,16 +5,16 @@ using namespace regen;
 TransformAnimation::TransformAnimation(const ref_ptr<ModelTransformation> &tf)
 		: Animation(false, true),
 		  tf_(tf) {
-	auto &currentTransform = tf_->modelMat(0);
+	auto currentTransform = tf_->modelMat()->getVertex(0);
 	it_ = frames_.end();
 	dt_ = 0.0;
-	setAnimationName(REGEN_STRING("animation-"<<tf->sh_modelMat()->name()));
+	setAnimationName(REGEN_STRING("animation-"<<tf->modelMat()->name()));
 	// initialize transform data
-	currentPos_ = currentTransform.position();
-	currentVal_ = currentTransform;
-	initialScale_ = currentTransform.scaling();
+	currentPos_ = currentTransform.r.position();
+	currentVal_ = currentTransform.r;
+	initialScale_ = currentTransform.r.scaling();
 	// remove scaling before computing rotation, else we get faulty results
-	auto tmp = currentTransform;
+	auto tmp = currentTransform.r;
 	tmp.scale(Vec3f(
 			1.0f / initialScale_.x,
 			1.0f / initialScale_.y,
@@ -89,6 +89,5 @@ void TransformAnimation::animate(GLdouble dt) {
 			currentVal_.translate(currentPos_);
 		}
 		tf_->setModelMat(0, currentVal_);
-		tf_->updateShaderData();
 	}
 }

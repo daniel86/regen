@@ -31,16 +31,16 @@ void OBB::updateOBB() {
 	const Vec3f &scaling = Vec3f::one();
 	if (transform_.get()) {
 		if (transform_->hasModelOffset()) {
-			offset += getClamped(transform_->modelOffset(), transformIndex_).xyz_();
+			offset += transform_->modelOffset()->getVertexClamped(transformIndex_).r.xyz_();
 		}
 		if (transform_->hasModelMat()) {
-			auto &tf = transform_->modelMat(transformIndex_);
-			boxAxes_[0] = (tf ^ Vec4f(Vec3f::right(), 0.0f)).xyz_();
-			boxAxes_[1] = (tf ^ Vec4f(Vec3f::up(), 0.0f)).xyz_();
-			boxAxes_[2] = (tf ^ Vec4f(Vec3f::front(), 0.0f)).xyz_();
+			auto tf = transform_->modelMat()->getVertex(transformIndex_);
+			boxAxes_[0] = (tf.r ^ Vec4f(Vec3f::right(), 0.0f)).xyz_();
+			boxAxes_[1] = (tf.r ^ Vec4f(Vec3f::up(), 0.0f)).xyz_();
+			boxAxes_[2] = (tf.r ^ Vec4f(Vec3f::front(), 0.0f)).xyz_();
 			// transform base position offset
-			offset = (tf ^ Vec4f(offset, 0.0f)).xyz_();
-			offset += tf.position();
+			offset = (tf.r ^ Vec4f(offset, 0.0f)).xyz_();
+			offset += tf.r.position();
 		}
 	} else if (localStamp_ != 1) {
 		// use local transform if no model transformation is set.
