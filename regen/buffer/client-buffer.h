@@ -95,7 +95,7 @@ namespace regen {
 		 * @param slot the slot index (0 or 1).
 		 * @return the client data for the specified slot.
 		 */
-		byte *clientData(int slot) const { return dataSlots_[slot]; }
+		byte *clientData(uint32_t slot) const { return dataSlots_[slot]; }
 
 		/**
 		 * Compare stamps to check if the input data changed.

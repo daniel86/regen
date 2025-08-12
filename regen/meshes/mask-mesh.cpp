@@ -53,7 +53,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	Vec2f maskUV = quadSize_ts * 0.5f;
 
-	auto baseOffset = tf_->modelOffset()->getVertex(0);
+	auto baseOffset = tf_->modelOffset()->getVertex(0).r;
 
 	for (unsigned int y = 0; y < quadCountY; ++y) {
 		for (unsigned int x = 0; x < quadCountX; ++x) {
@@ -67,7 +67,7 @@ void MaskMesh::updateMask(const Config &cfg) {
 				//          could use scaling instead though to make instances smaller. This might be fine for some cases.
 				//auto corrected_x = static_cast<float>(masked.second.min.x + masked.second.max.x) * 0.5f;
 				//auto corrected_y = static_cast<float>(masked.second.min.y + masked.second.max.y) * 0.5f;
-				instanceData[numInstances++] = baseOffset.r + Vec4f(
+				instanceData[numInstances++] = baseOffset + Vec4f(
 						static_cast<float>( x ) * cfg.quad.posScale.x + quadHalfSize.x - cfg.meshSize.x * 0.5f,
 						cfg.height,
 						static_cast<float>( y ) * cfg.quad.posScale.z + quadHalfSize.y - cfg.meshSize.y * 0.5f,
@@ -80,9 +80,9 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	// update the model offset attribute
 	instanceData.resize(numInstances);
+	tf_->set_numInstances(numInstances);
 	tf_->modelOffset()->setInstanceData(numInstances, 1,
 		(byte*)instanceData.data());
-	tf_->set_numInstances(numInstances);
 
 	disjoinStates(tf_);
 

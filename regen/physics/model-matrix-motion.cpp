@@ -5,7 +5,7 @@ using namespace regen;
 ModelMatrixMotion::ModelMatrixMotion(const ref_ptr<ModelTransformation> &tf, uint32_t index)
 		: tf_(tf), index_(index) {
 	// validate index
-	if (index_ >= static_cast<uint32_t>(tf_->numInstances())) {
+	if (index_ >= static_cast<uint32_t>(tf_->modelMat()->numInstances())) {
 		REGEN_WARN("Invalid matrix index " << index_ << ". Using 0 instead.");
 		index_ = 0u;
 	}
@@ -26,7 +26,7 @@ void ModelMatrixMotion::setWorldTransform(const btTransform &worldTrans) {
 ModelMatrixUpdater::ModelMatrixUpdater(const ref_ptr<ModelTransformation> &tf)
 		: Animation(false, true),
 		  tf_(tf) {
-	backBuffer_ = new Mat4f[tf_->numInstances()];
+	backBuffer_ = new Mat4f[tf_->modelMat()->numInstances()];
 	auto regenData = tf_->modelMat()->mapClientDataRaw(BUFFER_GPU_READ);
 	std::memcpy(backBuffer_, regenData.r, tf_->modelMat()->inputSize());
 }
@@ -65,4 +65,7 @@ void Mat4fMotion::getWorldTransform(btTransform &worldTrans) const {
 
 void Mat4fMotion::setWorldTransform(const btTransform &worldTrans) {
 	worldTrans.getOpenGLMatrix((btScalar *) glModelMatrix_);
+	if (modelMatrix_.get()) {
+		modelMatrix_->nextStamp();
+	}
 }

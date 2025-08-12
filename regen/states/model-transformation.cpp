@@ -90,32 +90,11 @@ void ModelTransformation::setModelOffset(uint32_t idx, const Vec3f &offset) {
 	modelOffset_->setVertex3(idx, offset);
 }
 
-ShaderInput *PositionReader::getModelMat(const ModelTransformation *tf) {
-	return tf->hasModelMat() ? tf->modelMat().get() : nullptr;
-}
-
-ShaderInput *PositionReader::getModelOffset(const ModelTransformation *tf) {
-	return tf->hasModelOffset() ? tf->modelOffset().get() : nullptr;
-}
-
-const Vec3f &PositionReader::getPositionReference(const ModelTransformation *tf, unsigned int vertexIndex) const {
-	if (tf->hasModelOffset() && tf->hasModelMat()) {
-		tf->tmpPos_ =
-			((const Mat4f *) rawData_mat.r)[vertexIndex].position() +
-			((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
-		return tf->tmpPos_;
-	}
-	if (tf->hasModelOffset()) {
-		return ((const Vec4f *) rawData_offset.r)[vertexIndex].xyz_();
-	}
-	if (tf->hasModelMat()) {
-		return ((const Mat4f *) rawData_mat.r)[vertexIndex].position();
-	}
-	return Vec3f::zero();
-}
-
 PositionReader ModelTransformation::position(uint32_t idx) const {
-	return {this, idx};
+	return {
+		hasModelMat() ? modelMat().get() : nullptr,
+		hasModelOffset() ? modelOffset().get() : nullptr,
+		idx};
 }
 
 void ModelTransformation::enable(RenderState *rs) {
@@ -139,7 +118,9 @@ void ModelTransformation::enable(RenderState *rs) {
 }
 
 static void transformMatrix(
-		const std::string &target, Mat4f &mat, const Vec3f &value) {
+		const std::string &target,
+		Mat4f &mat,
+		const Vec3f &value) {
 	if (target == "translate") {
 		mat.x[12] += value.x;
 		mat.x[13] += value.y;
@@ -155,22 +136,18 @@ static void transformMatrix(
 	}
 }
 
-static void transformMatrix2(
-		const std::string &target, Mat4f &mat, Vec4f &offset, const Vec3f &value) {
+static void transformOffset(
+		const std::string &target, Vec4f &offset, const Vec3f &value) {
 	if (target == "translate") {
-		mat.x[12] += value.x;
-		mat.x[13] += value.y;
-		mat.x[14] += value.z;
-	} else if (target == "scale") {
-		mat.scale(value);
-	} else if (target == "rotate") {
-		Quaternion q(0.0, 0.0, 0.0, 1.0);
-		q.setEuler(value.x, value.y, value.z);
-		mat *= q.calculateMatrix();
-	} else if (target == "offset") {
 		offset.x += value.x;
 		offset.y += value.y;
 		offset.z += value.z;
+	} else if (target == "scale") {
+		offset.x *= value.x;
+		offset.y *= value.y;
+		offset.z *= value.z;
+	} else if (target == "rotate") {
+		REGEN_WARN("Cannot rotate offset '" << target << "'.");
 	} else {
 		REGEN_WARN("Unknown distribute target '" << target << "'.");
 	}
@@ -533,6 +510,11 @@ static void transformMatrix(
 				numInstances = transformMatrixPlane(scene, *child.get(), tf, numInstances);
 			} else {
 				auto matrices = tf->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
+				if (matrices.w.data() != matrices.r.data()) {
+					// Make sure we can read most recent data from matrices.w
+					std::memcpy((byte*)matrices.w.data(), (const byte*)matrices.r.data(),
+							sizeof(Mat4f) * tf->modelMat()->numInstances());
+				}
 				scene::ValueGenerator<Vec3f> generator(child.get(), indices.size(),
 													   child->getValue<Vec3f>("value", Vec3f(0.0f)));
 				const auto target = child->getValue<std::string>("target", "translate");
@@ -544,16 +526,31 @@ static void transformMatrix(
 		} else if (child->getCategory() == "animation") {
 			transformAnimation(scene, child, state, parent, tf);
 		} else {
-			auto &modelMat = tf->modelMat();
-			auto &modelOffset = tf->modelOffset();
-			auto v_modelMat = modelMat->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
-			auto v_modelOffset = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
-			for (unsigned int &j: indices) {
-				transformMatrix2(
-						child->getCategory(),
-						(modelMat->numInstances() > 1 ? v_modelMat.w[j] : v_modelMat.w[0]),
-						(modelOffset->numInstances() > 1 ? v_modelOffset.w[j] : v_modelOffset.w[0]),
-						child->getValue<Vec3f>("value", Vec3f(0.0f)));
+			if (tf->hasModelMat()) {
+				auto matrices = tf->modelMat()->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
+				if (matrices.w.data() != matrices.r.data()) {
+					// Make sure we can read most recent data from matrices.w
+					std::memcpy((byte*)matrices.w.data(), (const byte*)matrices.r.data(),
+							sizeof(Mat4f) * tf->modelMat()->numInstances());
+				}
+				for (unsigned int &j: indices) {
+					transformMatrix(
+							child->getCategory(), matrices.w[j],
+							child->getValue<Vec3f>("value", Vec3f(0.0f)));
+				}
+			} else if (tf->hasModelOffset()) {
+				auto &modelOffset = tf->modelOffset();
+				auto offsets = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
+				if (offsets.w.data() != offsets.r.data()) {
+					// Make sure we can read most recent data from offsets.w
+					std::memcpy((byte*)offsets.w.data(), (const byte*)offsets.r.data(),
+							sizeof(Vec4f) * modelOffset->numInstances());
+				}
+				for (unsigned int &j: indices) {
+					transformOffset(
+							child->getCategory(), offsets.w[j],
+							child->getValue<Vec3f>("value", Vec3f(0.0f)));
+				}
 			}
 		}
 	}
@@ -603,22 +600,31 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 
 	// Handle instanced model matrix
 	if (isInstanced && numInstances > 1) {
-		auto &modelMat = transform->modelMat();
-		auto &modelOffset = transform->modelOffset();
+		transform->set_numInstances(numInstances);
 		if (transform->hasModelMat()) {
-			modelMat->setInstanceData(numInstances, 1, nullptr);
-			auto matrices = modelMat->mapClientData<Mat4f>(BUFFER_GPU_WRITE);
-			for (GLuint i = 0; i < numInstances; i += 1) matrices.w[i] = Mat4f::identity();
+			// allocate client memory for model matrix
+			transform->modelMat()->setInstanceData(numInstances, 1, nullptr);
 		} else if (transform->hasModelOffset()) {
-			modelOffset->setInstanceData(numInstances, 1, nullptr);
-			auto offsets = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
-			for (GLuint i = 0; i < numInstances; i += 1) offsets.w[i] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
+			// allocate client memory for model offset
+			transform->modelOffset()->setInstanceData(numInstances, 1, nullptr);
 		}
-		// update numInstances
-		transformMatrix(scene, input, state, ctx.parent(), transform, numInstances);
-	} else {
-		transformMatrix(scene, input, state, ctx.parent(), transform, 1u);
 	}
+	// set identity matrices on both slots
+	for (GLuint i = 0; i < numInstances; i += 1) {
+		Mat4f *mat0 = (Mat4f*) transform->modelMat()->clientData(0);
+		Mat4f *mat1 = (Mat4f*) transform->modelMat()->clientData(1);
+		for (GLuint j = 0; j < transform->modelMat()->numInstances(); j += 1) {
+			mat0[j] = Mat4f::identity();
+			if(mat1) mat1[j] = Mat4f::identity();
+		}
+		Vec4f *offset0 = (Vec4f*) transform->modelOffset()->clientData(0);
+		Vec4f *offset1 = (Vec4f*) transform->modelOffset()->clientData(1);
+		for (GLuint j = 0; j < transform->modelOffset()->numInstances(); j += 1) {
+			offset0[j] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
+			if (offset1) offset1[j] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+	}
+	transformMatrix(scene, input, state, ctx.parent(), transform, numInstances);
 
 	transform->tfBuffer()->updateBuffer();
 	state->joinStates(transform);

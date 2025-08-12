@@ -553,8 +553,9 @@ void ClientBuffer::resize_DoubleBuffer(
 		writeLockAll();
 		localOldDataPtr0 = dataSlots_[0];
 		localOldDataPtr1 = dataSlots_[1];
-		oldDataPtr0 = localOldDataPtr0;
-		oldDataPtr1 = localOldDataPtr1;
+		// Make sure we only use the last data slot, i.e. newest data.
+		oldDataPtr0 = dataSlots_[lastDataSlot_.load(std::memory_order_acquire)];
+		oldDataPtr1 = oldDataPtr0;
 	}
 	if (!oldDataPtr1) {
 		oldDataPtr1 = oldDataPtr0;

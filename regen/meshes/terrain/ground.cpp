@@ -126,15 +126,17 @@ void Ground::updateGroundPatches() {
 	auto patchHalfSize = patchSize_ / 2.0f;
 	uint32_t tfIndex = 0;
 
+	tf_->set_numInstances(numPatches);
 	tf_->modelOffset()->setInstanceData(numPatches, 1, nullptr);
+	auto tfData = tf_->modelOffset()->mapClientData<Vec4f>(BUFFER_GPU_WRITE);
 	for (uint32_t xIdx=0; xIdx<numPatches_.x; ++xIdx) {
 		for (uint32_t zIdx=0; zIdx<numPatches_.y; ++zIdx) {
 			auto xPos = offsetX + (static_cast<float>(xIdx) * patchSize_) + patchHalfSize;
 			auto zPos = offsetZ + (static_cast<float>(zIdx) * patchSize_) + patchHalfSize;
-			tf_->setModelOffset(tfIndex++, Vec3f(
-				xPos,
-				mapCenter_.y - mapSize_.y * 0.5f,
-				zPos));
+			auto &patchTF = tfData.w[tfIndex++];
+			patchTF.x = xPos;
+			patchTF.y = mapCenter_.y - mapSize_.y * 0.5f;
+			patchTF.z = zPos;
 		}
 	}
 }

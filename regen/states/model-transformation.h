@@ -5,9 +5,9 @@
 #include <regen/math/quaternion.h>
 #include <regen/states/state.h>
 #include "regen/buffer/buffer-container.h"
+#include "regen/buffer/position-reader.h"
 
 namespace regen {
-	struct PositionReader;
 	/**
 	 * \brief matrix that transforms for model space to world space.
 	 *
@@ -153,55 +153,6 @@ namespace regen {
 
 		friend struct PositionReader;
 		mutable Vec3f tmpPos_ = Vec3f::zero();
-	};
-
-	/**
-	 * \brief A helper class to read positions from a ModelTransformation.
-	 *
-	 * This class provides a way to read the position of a vertex
-	 * from the model matrix and model offset while avoiding a copy.
-	 */
-	struct PositionReader {
-		static ClientBuffer* getClientBuffer(ShaderInput *input) {
-			return input ? input->clientBuffer().get() : nullptr;
-		}
-
-		PositionReader(const ModelTransformation *tf, unsigned int vertexIndex)
-				: rawData_mat(getClientBuffer(getModelMat(tf)), BUFFER_GPU_READ),
-				  rawData_offset(getClientBuffer(getModelOffset(tf)), BUFFER_GPU_READ),
-				  r(getPositionReference(tf, vertexIndex)) {
-		}
-		PositionReader() :
-				rawData_mat(nullptr, BUFFER_GPU_READ),
-				rawData_offset(nullptr, BUFFER_GPU_READ),
-				r(Vec3f::zero()) {
-		}
-
-		// do not allow copying
-		PositionReader(const PositionReader &) = delete;
-
-		static ShaderInput* getModelMat(const ModelTransformation *tf);
-
-		static ShaderInput* getModelOffset(const ModelTransformation *tf);
-
-		const Vec3f& getPositionReference(const ModelTransformation *tf, unsigned int vertexIndex) const;
-
-		/**
-		 * Unmap the data. Do not read after calling this method.
-		 */
-		void unmap() {
-			rawData_mat.unmap();
-			rawData_offset.unmap();
-		}
-
-	private:
-		ClientDataRaw_ro rawData_mat;
-		ClientDataRaw_ro rawData_offset;
-	public:
-		/**
-		 * The mapped data for reading.
-		 */
-		const Vec3f &r;
 	};
 } // namespace
 

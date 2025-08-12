@@ -88,11 +88,6 @@ namespace regen {
 		virtual ~ShaderInput();
 
 		/**
-		 * Write ShaderInput.
-		 */
-		virtual void write(std::ostream &out) const = 0;
-
-		/**
 		 * Name of this attribute used in shader programs.
 		 */
 		auto &name() const { return name_; }
@@ -120,6 +115,11 @@ namespace regen {
 		 */
 		inline uint32_t stampOfReadData() const { return clientBuffer_->stampOfReadData(); }
 
+		/**
+		 * The data stamp of the data which is currently written.
+		 * This is the data that will be read in the next frame.
+		 * @return the data stamp.
+		 */
 		inline uint32_t stampOfWriteData() const { return clientBuffer_->stampOfWriteData(); }
 
 		/**
@@ -537,11 +537,19 @@ namespace regen {
 		bool hasClientData() const { return clientBuffer_->hasClientData(); }
 
 		/**
-		 * Obtains the client data without locking.
+		 * Obtains the client data of the read slot without locking.
 		 * Be sure that no other thread is writing to the data at the same time.
 		 * @return the client data.
 		 */
-		byte *clientData() const { return clientBuffer_->clientData(); }
+		byte *clientData() const { return clientBuffer_->clientData(clientBuffer_->currentReadSlot()); }
+
+		/**
+		 * Obtains the client data for a specific slot without locking.
+		 * Be sure that no other thread is writing to the data at the same time.
+		 * @param slot the slot index (0 or 1).
+		 * @return the client data for the given slot.
+		 */
+		byte *clientData(uint32_t slot) const { return clientBuffer_->clientData(slot); }
 
 		/**
 		 * Returns the client buffer.
@@ -602,6 +610,11 @@ namespace regen {
 		 * Set the input schema.
 		 */
 		void setSchema(const InputSchema *schema) { schema_ = schema; }
+
+		/**
+		 * Write ShaderInput.
+		 */
+		virtual void write(std::ostream &out) const = 0;
 
 	protected:
 		std::string name_;

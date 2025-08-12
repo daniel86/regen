@@ -28,7 +28,6 @@ namespace regen {
 
 	protected:
 		ref_ptr<ModelTransformation> tf_;
-		Mat4f tmpMat_;
 		uint32_t index_;
 	};
 
