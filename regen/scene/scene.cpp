@@ -127,11 +127,11 @@ ref_ptr<ShaderInput1i> Scene::isMouseEntered() const {
 
 void Scene::updateMousePosition() {
 	auto mousePosition = mousePosition_->getVertex(0);
-	auto &viewport = screen_->viewport();
+	auto viewport = screen_->viewport();
 	// mouse position in range [0,1] within viewport
 	mouseTexco_->setVertex(0, Vec2f(
-			mousePosition.r.x / (GLfloat) viewport.x,
-			1.0f - mousePosition.r.y / (GLfloat) viewport.y));
+			mousePosition.r.x / (GLfloat) viewport.r.x,
+			1.0f - mousePosition.r.y / (GLfloat) viewport.r.y));
 }
 
 void Scene::mouseMove(const Vec2i &pos) {

@@ -537,7 +537,7 @@ namespace regen {
 		~FBOResizer() override = default;
 
 		void call(EventObject *, EventData *) override {
-			auto &winSize = screen_->viewport();
+			auto winSize = screen_->viewport().r;
 			Vec2i fboSize(winSize.x * wScale_, winSize.y * hScale_);
 			if (fboSize.x % 2 != 0) fboSize.x += 1;
 			if (fboSize.y % 2 != 0) fboSize.y += 1;
@@ -555,7 +555,7 @@ namespace regen {
 ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 	auto relSize = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-	auto absSize = Texture::getSize(ctx.scene()->screen()->viewport(), sizeMode, relSize);
+	auto absSize = Texture::getSize(ctx.scene()->screen()->viewport().r, sizeMode, relSize);
 
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(absSize.x, absSize.y, absSize.z);
 	if (sizeMode == "rel") {

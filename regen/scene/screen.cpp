@@ -2,13 +2,11 @@
 
 using namespace regen;
 
-Screen::Screen(const Vec2i &viewport)
-		: v_viewport_(viewport) {
+Screen::Screen(const Vec2i &viewport) {
 	sh_viewport_ = ref_ptr<ShaderInput2i>::alloc("viewport");
-	sh_viewport_->setUniformData(v_viewport_);
+	sh_viewport_->setUniformData(viewport);
 }
 
 void Screen::setViewport(const Vec2i &viewport) {
-	v_viewport_ = viewport;
-	sh_viewport_->setVertex(0, v_viewport_);
+	sh_viewport_->setVertex(0, viewport);
 }

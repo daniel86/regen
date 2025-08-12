@@ -583,7 +583,7 @@ ProjectionUpdater::ProjectionUpdater(const ref_ptr<Camera> &cam,
 }
 
 void ProjectionUpdater::call(EventObject *, EventData *) {
-	auto &windowViewport = screen_->viewport();
+	auto windowViewport = screen_->viewport().r;
 	auto windowAspect = (GLfloat) windowViewport.x / (GLfloat) windowViewport.y;
 
 	auto &lastProjParams = cam_->projParams()[0];
@@ -685,9 +685,9 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));
 		} else {
-			auto &viewport = ctx.scene()->screen()->viewport();
+			auto viewport = ctx.scene()->screen()->viewport();
 			cam->setPerspective(
-					(GLfloat) viewport.x / (GLfloat) viewport.y,
+					(GLfloat) viewport.r.x / (GLfloat) viewport.r.y,
 					input.getValue<GLfloat>("fov", 45.0f),
 					input.getValue<GLfloat>("near", 0.1f),
 					input.getValue<GLfloat>("far", 200.0f));

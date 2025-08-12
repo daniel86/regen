@@ -19,7 +19,7 @@ namespace regen {
 		/**
 		 * @return the viewport size.
 		 */
-		const Vec2i &viewport() const { return v_viewport_; }
+		auto viewport() const { return sh_viewport_->getVertex(0); }
 
 		/**
 		 * @return the viewport shader input.
@@ -41,7 +41,6 @@ namespace regen {
 
 	protected:
 		ref_ptr<ShaderInput2i> sh_viewport_;
-		Vec2i v_viewport_;
 	};
 
 } // namespace

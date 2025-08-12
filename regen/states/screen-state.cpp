@@ -21,15 +21,15 @@ ScreenState::ScreenState(
 
 void ScreenState::enable(RenderState *rs) {
 	if (lastViewportStamp_ != screen_->stampOfWriteData()) {
-		auto &winViewport = screen_->viewport();
-		glViewport_.z = winViewport.x;
-		glViewport_.w = winViewport.y;
+		auto winViewport = screen_->viewport();
+		glViewport_.z = winViewport.r.x;
+		glViewport_.w = winViewport.r.y;
 		viewport_->setVertex(0, Vec2f(
-			static_cast<float>(winViewport.x),
-			static_cast<float>(winViewport.y)));
+			static_cast<float>(winViewport.r.x),
+			static_cast<float>(winViewport.r.y)));
 		inverseViewport_->setVertex(0, Vec2f(
-			1.0f / static_cast<float>(winViewport.x),
-			1.0f / static_cast<float>(winViewport.y)));
+			1.0f / static_cast<float>(winViewport.r.x),
+			1.0f / static_cast<float>(winViewport.r.y)));
 		lastViewportStamp_ = screen_->stampOfWriteData();
 	}
 

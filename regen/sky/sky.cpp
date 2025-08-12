@@ -217,7 +217,7 @@ void Sky::animate(GLdouble dt) {
 
 	if (camStamp_ != cam_->stamp() || viewportStamp_ != screen_->stampOfWriteData()) {
 		const float fovHalf = camera()->projParams()[0].fov * 0.5f * DEGREE_TO_RAD;
-		const float height = static_cast<float>(screen_->viewport().y);
+		const float height = static_cast<float>(screen_->viewport().r.y);
 		const float q = 2.8284271247461903f // = sqrt(2.0f) * 2.0f
 						* tan(fovHalf) / height; // q is the distance from the camera to the sky quad
 		q_->setVertex(0, q);

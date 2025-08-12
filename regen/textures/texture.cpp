@@ -411,7 +411,7 @@ namespace regen {
 		~TextureResizer() override = default;
 
 		void call(EventObject *, EventData *) override {
-			Vec2i winSize = screen_->viewport();
+			Vec2i winSize = screen_->viewport().r;
 			winSize.x = static_cast<int32_t>(static_cast<float>(winSize.x) * wScale_);
 			winSize.y = static_cast<int32_t>(static_cast<float>(winSize.y) * hScale_);
 			tex_->set_rectangleSize(winSize.x, winSize.y);
@@ -514,7 +514,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 	} else if (typeName == "noise") {
 		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-		auto sizeAbs = getSize(screen->viewport(), sizeMode, sizeRel);
+		auto sizeAbs = getSize(screen->viewport().r, sizeMode, sizeRel);
 		auto isSeamless = input.getValue<bool>("is-seamless", false);
 		auto generator = NoiseGenerator::load(ctx, input);
 		if (generator.get()) {
@@ -580,7 +580,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 	} else {
 		auto sizeMode = input.getValue<std::string>("size-mode", "abs");
 		auto sizeRel = input.getValue<Vec3f>("size", Vec3f(256.0, 256.0, 1.0));
-		Vec3i sizeAbs = getSize(screen->viewport(), sizeMode, sizeRel);
+		Vec3i sizeAbs = getSize(screen->viewport().r, sizeMode, sizeRel);
 
 		auto texCount = input.getValue<GLuint>("count", 1);
 		auto pixelComponents = input.getValue<GLuint>("pixel-components", 4);
