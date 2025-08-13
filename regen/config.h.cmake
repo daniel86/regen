@@ -1,5 +1,5 @@
-#ifndef __REGEN_CONFIG_H
-#define __REGEN_CONFIG_H
+#ifndef REGEN_CONFIG_H_
+#define REGEN_CONFIG_H_
 
 /* OS define. */
 #cmakedefine UNIX
@@ -45,6 +45,6 @@
 namespace regen {
     class LoadingContext;
 };
-#endif // __REGEN_CONFIG_H
+#endif // REGEN_CONFIG_H_
 
 #include <regen/gl-types/gl-util.h>
