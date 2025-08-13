@@ -1,5 +1,4 @@
 #include <regen/textures/texture-state.h>
-#include <regen/gl-types/gl-util.h>
 
 #include "bones.h"
 
@@ -9,7 +8,7 @@ using namespace regen;
 
 Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 		: State(),
-		  Animation(true, true) {
+		  Animation(false, true) {
 	bufferSize_ = 0u;
 	setAnimationName("bones");
 
@@ -23,7 +22,6 @@ Bones::Bones(GLuint numBoneWeights, GLuint numBones)
 }
 
 void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
-	RenderState *rs = RenderState::get();
 	bones_ = bones;
 	shaderDefine("NUM_BONES", REGEN_STRING(bones_.size()));
 
@@ -33,11 +31,14 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	boneMatrices_->setUniformUntyped();
 
 #ifdef USE_BONE_TBO
-	boneMatrixTBO_ = ref_ptr<TBO>::alloc(BufferUpdateFlags::FULL_PER_FRAME);
+	boneMatrixTBO_ = ref_ptr<TBO>::alloc("Bones",
+			boneMatrices_->dataType(),
+			BufferUpdateFlags::FULL_PER_FRAME);
 	boneMatrixTBO_->setClientAccessMode(BUFFER_CPU_WRITE);
 	boneMatrixTBO_->setBufferMapMode(BUFFER_MAP_DISABLED);
-	boneMatrixTBO_->setBufferInput(boneMatrices_);
+	boneMatrixTBO_->addStagedInput(boneMatrices_);
 	bufferSize_ = boneMatrices_->inputSize();
+	boneMatrixTBO_->update();
 
 	// and make the tbo available
 	if (texState_.get()) disjoinStates(texState_);
@@ -50,11 +51,7 @@ void Bones::setBones(const std::list<ref_ptr<AnimationNode> > &bones) {
 	setInput(boneMatrices_);
 	shaderDefine("USE_BONE_TBO", "FALSE");
 #endif
-
 	GL_ERROR_LOG();
-
-	// initially calculate the bone matrices
-	glAnimate(rs, 0.0f);
 }
 
 void Bones::animate(GLdouble dt) {
@@ -69,11 +66,4 @@ void Bones::animate(GLdouble dt) {
 		boneMatrixData_[i] = bone->boneTransformationMatrix();
 		i += 1;
 	}
-}
-
-void Bones::glAnimate(RenderState *rs, GLdouble dt) {
-	if (bufferSize_ <= 0) return;
-#ifdef USE_BONE_TBO
-	boneMatrixTBO_->updateTBO();
-#endif
 }

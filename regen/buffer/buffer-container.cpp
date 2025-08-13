@@ -74,12 +74,14 @@ void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInput
 
 void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	// create a TBO for the input
-	auto tbo = ref_ptr<TBO>::alloc(bufferUpdateHints_);
-	tbo->setBufferInput(namedInput.in_);
+	auto tbo = ref_ptr<TBO>::alloc(
+			getNextBufferName(),
+			namedInput.in_->dataType(),
+			bufferUpdateHints_);
 	tbos_.push_back(tbo);
 	textureBuffers_.push_back(tbo->tboTexture());
-	// initially upload the data to the TBO
-	tbo->updateTBO();
+	tbo->addStagedInput(namedInput.in_, namedInput.name_);
+	tbo->update();
 
 	// and make the TBO available as a texture to the shader
 	auto texState = ref_ptr<TextureState>::alloc(tbo->tboTexture(), namedInput.name_);
@@ -97,8 +99,7 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	texState->shaderDefine(
 			 REGEN_STRING("fetch_" << namedInput.name_ << "(i)"),
 			 REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(i))"));
-	// FIXME: xxxx
-	//bufferObjectOfInput_[namedInput.in_.get()] = tbo;
+	bufferObjectOfInput_[namedInput.in_.get()] = tbo;
 }
 
 void BufferContainer::updateBuffer() {
@@ -147,11 +148,6 @@ ref_ptr<StagedBuffer> BufferContainer::getBufferObject(const ref_ptr<ShaderInput
 
 void BufferContainer::enable(RenderState *rs) {
 	updateBuffer();
-	for (auto &tbo: tbos_) {
-		// update TBO in case client data changed
-		// TODO: UBO uses ShaderInput interface for update, would be good to unify!
-		tbo->updateTBO();
-	}
 	State::enable(rs);
 }
 

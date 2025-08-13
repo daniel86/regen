@@ -34,9 +34,6 @@ namespace regen {
 		// override
 		void animate(GLdouble dt) override;
 
-		// override
-		void glAnimate(RenderState *rs, GLdouble dt) override;
-
 	protected:
 		std::list<ref_ptr<AnimationNode> > bones_;
 		ref_ptr<ShaderInput1i> numBoneWeights_;
