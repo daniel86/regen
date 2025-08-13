@@ -9,7 +9,7 @@
 #include <assimp/postprocess.h>
 
 #include "regen/glsl/shader-state.h"
-#include "regen/buffer/fbo-state.h"
+#include "regen/textures/fbo-state.h"
 #include <regen/states/blit-state.h>
 #include <regen/utility/filesystem.h>
 #include <regen/animations/animation-manager.h>

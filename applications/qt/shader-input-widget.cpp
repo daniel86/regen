@@ -3,7 +3,7 @@
 
 #include <regen/utility/string-util.h>
 #include <regen/utility/logging.h>
-#include "regen/buffer/fbo-state.h"
+#include "regen/textures/fbo-state.h"
 #include "regen/glsl/shader-state.h"
 #include <regen/states/light-pass.h>
 #include <stack>

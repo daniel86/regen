@@ -16,7 +16,7 @@ using namespace regen;
 #include "regen/effects/bloom-texture.h"
 #include "regen/scene/scene.h"
 #include "regen/scene/loading-context.h"
-#include "regen/buffer/fbo.h"
+#include "fbo.h"
 #include "texture-binder.h"
 
 Texture::Texture(GLenum textureTarget, GLuint numTextures)

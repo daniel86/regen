@@ -6,7 +6,7 @@
 #include <regen/textures/texture-state.h>
 #include <regen/states/light-state.h>
 #include "regen/glsl/shader-state.h"
-#include <regen/buffer/fbo.h>
+#include "regen/textures/fbo.h"
 
 namespace regen {
 	/**

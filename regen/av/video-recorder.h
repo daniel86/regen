@@ -8,7 +8,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-#include <regen/buffer/fbo.h>
+#include "regen/textures/fbo.h"
 #include <regen/animations/animation.h>
 #include "video-encoder.h"
 #include "regen/buffer/pbo.h"

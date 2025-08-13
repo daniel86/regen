@@ -1,10 +1,10 @@
 #include <iostream>
 
 #include "video-player-widget.h"
-#include "regen/buffer/fbo.h"
+#include "regen/textures/fbo.h"
 #include <regen/textures/texture-state.h>
 #include "regen/glsl/shader-state.h"
-#include "regen/buffer/fbo-state.h"
+#include "regen/textures/fbo-state.h"
 #include <regen/states/blit-state.h>
 #include <regen/meshes/primitives/rectangle.h>
 #include <regen/states/state-configurer.h>

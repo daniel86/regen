@@ -9,9 +9,9 @@
 #include "regen/textures/texture.h"
 #include "regen/glsl/shader-input.h"
 #include "regen/utility/ref-ptr.h"
-#include "ubo.h"
+#include "regen/buffer/ubo.h"
 #include "regen/scene/loading-context.h"
-#include "render-buffer.h"
+#include "regen/textures/render-buffer.h"
 
 namespace regen {
 	/**

@@ -2,7 +2,7 @@
 #define REGEN_BLOOM_PASS_H
 
 #include <regen/states/fullscreen-pass.h>
-#include "regen/buffer/fbo-state.h"
+#include "regen/textures/fbo-state.h"
 #include "bloom-texture.h"
 
 namespace regen {

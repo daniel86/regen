@@ -5,7 +5,7 @@
 #include <regen/shapes/bounds.h>
 #include <regen/meshes/mesh-vector.h>
 #include <regen/textures/texture.h>
-#include "regen/buffer/fbo-state.h"
+#include "regen/textures/fbo-state.h"
 #include "regen/camera/array-camera.h"
 
 namespace regen {

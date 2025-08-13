@@ -3,7 +3,7 @@
 #include <regen/utility/string-util.h>
 
 #include "state-configurer.h"
-#include "regen/buffer/fbo-state.h"
+#include "regen/textures/fbo-state.h"
 
 using namespace regen;
 

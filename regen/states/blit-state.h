@@ -2,7 +2,7 @@
 #define BLIT_TO_SCREEN_H_
 
 #include <regen/states/state.h>
-#include <regen/buffer/fbo.h>
+#include "regen/textures/fbo.h"
 
 namespace regen {
 	class BlitState : public State {
