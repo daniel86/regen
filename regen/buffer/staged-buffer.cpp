@@ -286,8 +286,8 @@ uint32_t StagedBuffer::updateStagedInputs() {
 		}
 		// Round total size up to next multiple of 16 (vec4 alignment for std140)
 		if (memoryLayout_ == BUFFER_MEMORY_STD140) {
-			static constexpr size_t std140Alignment = 16;
-			requiredSize_ = (requiredSize_ + std140Alignment - 1) & ~(std140Alignment - 1);
+			static constexpr size_t std140AlignmentMinOne = 15; // 16 - 1
+			requiredSize_ = (requiredSize_ + std140AlignmentMinOne) & ~(std140AlignmentMinOne);
 		}
 	}
 
