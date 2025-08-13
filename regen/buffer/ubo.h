@@ -13,10 +13,6 @@ namespace regen {
 	public:
 		UBO(const std::string &name, const BufferUpdateFlags &hints);
 
-		UBO(const UBO &other,
-				const std::string &forcedBlockName="",
-				const std::string &inputPrefixToAdd="");
-
 		~UBO() override = default;
 
 		UBO(const UBO &) = delete;

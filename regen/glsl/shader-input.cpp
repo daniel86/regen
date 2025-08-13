@@ -9,10 +9,12 @@
 
 using namespace regen;
 
-NamedShaderInput::NamedShaderInput(const ref_ptr<ShaderInput> &in,
-								   const std::string &name,
-								   const std::string &type)
-		: in_(in), name_(name), type_(type) {
+NamedShaderInput::NamedShaderInput(
+		const ref_ptr<ShaderInput> &in,
+		const std::string &name,
+		const std::string &type,
+		const std::string &memberSuffix)
+		: in_(in), name_(name), type_(type), memberSuffix_(memberSuffix) {
 	if (name_.empty()) {
 		name_ = in->name();
 	}

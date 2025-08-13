@@ -1,5 +1,4 @@
 #include "ssbo.h"
-#include "ubo.h"
 #include "tbo.h"
 
 using namespace regen;
@@ -9,10 +8,6 @@ SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMa
 		            BufferBlock::BUFFER,
 		            BUFFER_MEMORY_STD430),
 		memoryMask_(memoryMask) {
-}
-
-SSBO::SSBO(const SSBO &other, const std::string &forcedBlockName, const std::string &inputPrefixToAdd) :
-		BufferBlock(other, forcedBlockName, inputPrefixToAdd) {
 }
 
 SSBO::SSBO(const BufferObject &other, const std::string &name) :

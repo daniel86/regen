@@ -734,11 +734,9 @@ void LODState::createComputeShader() {
 		copyIndirect_->computeState()->setNumWorkUnits(1, 1, 1);
 		copyIndirect_->computeState()->setGroupSize(1, 1, 1);
 		for (uint32_t indirectIdx = 0; indirectIdx < indirectDrawBuffers_.size(); ++indirectIdx) {
-			auto renamed = ref_ptr<SSBO>::alloc(
-					*indirectDrawBuffers_[indirectIdx].get(),
+			copyIndirect_->setInput(indirectDrawBuffers_[indirectIdx],
 					REGEN_STRING("IndirectDrawBuffer" << indirectIdx),
 					REGEN_STRING(indirectIdx));
-			copyIndirect_->setInput(renamed);
 		}
 		StateConfigurer shaderCfg;
 		shaderCfg.addState(copyIndirect_.get());

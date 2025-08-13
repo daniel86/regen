@@ -228,17 +228,18 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 
 	// move all uniform blocks to the begin in specifiedInput
 	std::vector<NamedShaderInput> uniformBlocks;
-	auto it = specifiedInput.begin();
-	while (it != specifiedInput.end()) {
-		if (it->in_->isBufferBlock()) {
-			uniformBlocks.push_back(*it);
-			specifiedInput.erase(it++);
-		} else {
-			++it;
+	{
+		auto it = specifiedInput.begin();
+		while (it != specifiedInput.end()) {
+			if (it->in_->isBufferBlock()) {
+				uniformBlocks.push_back(*it);
+				specifiedInput.erase(it++);
+			} else {
+				++it;
+			}
 		}
 	}
 	specifiedInput.insert(specifiedInput.begin(), uniformBlocks.begin(), uniformBlocks.end());
-
 
 	for (auto & it : specifiedInput) {
 		ref_ptr<ShaderInput> in = it.in_;
@@ -317,7 +318,17 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.value = "";
 			io.dataType = "";
 			for (uint64_t i=0; i<block->blockInputs().size(); i++) {
-				auto &blockUniform = block->blockInputs()[i];
+				auto blockUniform = block->blockInputs()[i];
+				// insert suffix for block member. This is useful e.g. to bind multiple
+				// Light UBOs with the same shader without getting name conflicts as at the moment
+				// the member names are globally exposed.
+				if (!it.memberSuffix_.empty()) {
+					if (blockUniform.name_.empty()) {
+						blockUniform.name_ = REGEN_STRING(blockUniform.in_->name() << it.memberSuffix_);
+					} else {
+						blockUniform.name_ = REGEN_STRING(blockUniform.name_ << it.memberSuffix_);
+					}
+				}
 				auto memberIO = getUniformIO(blockUniform);
 				auto blockNameWithoutPrefix = getNameWithoutPrefix(blockUniform.name_.empty() ?
 						blockUniform.in_->name() : blockUniform.name_);

@@ -187,19 +187,7 @@ namespace regen {
 						in->setVertexData(in->numVertices(), nullptr);
 						setInput(input, in.get(), in->numVertices());
 					} else if (in->isBufferBlock()) {
-						if (input.hasAttribute("input-suffix")) {
-							auto suffix = input.getValue<std::string>("input-suffix", "");
-							auto *ubo = dynamic_cast<UBO *>(in.get());
-							if (ubo) {
-								in = ref_ptr<UBO>::alloc(*ubo, ubo->name(), suffix);
-							} else {
-								REGEN_WARN("Shader date '" << in->name() <<
-										"' is not a UBO, cannot set uniform suffix.");
-							}
-							setInput(input, in.get(), in->numInstances());
-						} else {
-							setInput(input, in.get(), in->numInstances());
-						}
+						setInput(input, in.get(), in->numInstances());
 					} else {
 						in->setInstanceData(in->numInstances(), 1, nullptr);
 						setInput(input, in.get(), in->numInstances());
@@ -311,7 +299,9 @@ namespace regen {
 				}
 
 				if (input.getValue<bool>("join", true)) {
-					s->setInput(in, input.getValue("name"));
+					s->setInput(in,
+						input.getValue("name"),
+						input.getValue<std::string>("member-suffix", ""));
 				}
 			}
 

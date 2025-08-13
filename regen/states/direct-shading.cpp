@@ -115,10 +115,9 @@ void DirectShading::addLight(
 				auto *block = dynamic_cast<BufferBlock *>(it.in_.get());
 				auto *ubo = dynamic_cast<UBO *>(block);
 				if (ubo) {
-					setInput(ref_ptr<UBO>::alloc(
-							*ubo,
-							REGEN_LIGHT_NAME(block->name(), lightID),
-							REGEN_STRING(lightID)));
+					setInput(it.in_,
+						REGEN_LIGHT_NAME(block->name(), lightID),
+						REGEN_STRING(lightID));
 				} else {
 					REGEN_WARN("Unexpected input type for light: "
 							   << it.in_->name() << " (" << block->name() << ")");
@@ -138,9 +137,7 @@ void DirectShading::addLight(
 
 	if (camera.get()) {
 		setInput(camera->lightCamera()->sh_projParams(), REGEN_LIGHT_NAME("lightProjParams", lightID));
-		setInput(ref_ptr<UBO>::alloc(
-				*camera->shadowBuffer().get(),
-				"Shadow", REGEN_STRING(lightID)));
+		setInput(camera->shadowBuffer(), "Shadow", REGEN_STRING(lightID));
 	}
 	if (shadow.get()) {
 		directLight.shadowSizeInv_ = createUniform<ShaderInput2f>(

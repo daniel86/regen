@@ -88,7 +88,9 @@ namespace regen {
 		 * @param name the shader input name.
 		 * @return iterator of data container
 		 */
-		void setInput(const ref_ptr<ShaderInput> &in, const std::string &name = "");
+		void setInput(const ref_ptr<ShaderInput> &in,
+				const std::string &name = "",
+				const std::string &memberSuffix = "");
 
 		/**
 		 * Remove previously added shader input.

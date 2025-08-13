@@ -691,8 +691,11 @@ namespace regen {
 		 * @param name the name overwrite.
 		 * @param type the type overwrite.
 		 */
-		explicit NamedShaderInput(const ref_ptr<ShaderInput> &in, const std::string &name = "",
-								  const std::string &type = "");
+		explicit NamedShaderInput(
+			const ref_ptr<ShaderInput> &in,
+			const std::string &name = "",
+			const std::string &type = "",
+			const std::string &memberSuffix = "");
 
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
@@ -701,6 +704,8 @@ namespace regen {
 		std::string name_;
 		/** the type overwrite. */
 		std::string type_;
+		/** for buffer blocks: a suffix appended for each member. */
+		std::string memberSuffix_;
 	};
 
 	/**

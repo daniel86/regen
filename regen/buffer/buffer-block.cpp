@@ -529,7 +529,7 @@ void BufferBlock::queueStagingUpdate() {
 }
 
 void BufferBlock::updateDrawBuffer() {
-	if (allocatedSize_ == requiredSize_) {
+	if (adoptedSize_ == requiredSize_) {
 		// nothing to do, the draw buffer is already up-to-date
 		return;
 	}
@@ -569,7 +569,7 @@ void BufferBlock::updateDrawBuffer() {
 	}
 	isBlockValid_ = true;
 
-	allocatedSize_ = requiredSize_;
+	adoptedSize_ = requiredSize_;
 	inputSize_ = requiredSize_;
 	// set draw buffer range to first segment in the ring buffer
 	drawBufferRange_->buffer_ = drawBufferRef_->bufferID();
@@ -577,21 +577,13 @@ void BufferBlock::updateDrawBuffer() {
 	drawBufferRange_->offset_ = drawBufferRef_->address();
 	queueStagingUpdate();
 
-	// TODO: for some reason, it seems client data is not good at this point.
-	//       when doing the copy first visible frame is not drawn correctly.
-	/**
-	if (flags_.useExplicitStaging()) {
+	if (flags_.useExplicitStaging() && hasClientData()) {
 		// Copy over client data initially into the main buffer.
 		// This is done to ensure that the draw buffer has some initial data
 		// that can be drawn before the staging buffer is filled.
-		auto mappedClientData = clientBuffer_->mapRange(
-				BUFFER_GPU_READ, 0u, requiredSize_);
-		setBufferData(mappedClientData.r);
-		clientBuffer_->unmapRange(
-			BUFFER_GPU_READ, 0u,
-			requiredSize_, mappedClientData.r_index);
+		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
+		setBufferData(mapped.r);
 	}
-	**/
 
 	REGEN_INFO("Created "
 					   << StagingBuffer::getBufferSizeClass(requiredSize_)

@@ -59,15 +59,28 @@ void StateConfigurer::addNode(const StateNode *node) {
 	hasFBO_ = hasFBO;
 }
 
-void StateConfigurer::addInput(const std::string &name, const ref_ptr<ShaderInput> &in, const std::string &type) {
+void StateConfigurer::addInput(const std::string &name,
+		const ref_ptr<ShaderInput> &in,
+		const std::string &type,
+		const std::string &memberSuffix) {
 	auto needle = inputNames_.find(name);
 	if (needle == inputNames_.end()) {
-		cfg_.inputs_.emplace_back(in, name, type);
+		cfg_.inputs_.emplace_back(in, name, type, memberSuffix);
 		auto it = cfg_.inputs_.end();
 		--it;
 		inputNames_[name] = it;
 	} else {
-		*needle->second = NamedShaderInput(in, name, type);
+		*needle->second = NamedShaderInput(in, name, type, memberSuffix);
+	}
+	if (in->isBufferBlock()) {
+		auto block = dynamic_cast<BufferBlock*>(in.get());
+		for (auto& blockUniform : block->blockInputs()) {
+			std::string memberName = (blockUniform.name_.empty() ? blockUniform.in_->name() : blockUniform.name_);
+			if (!memberSuffix.empty()) {
+				memberName += memberSuffix;
+			}
+			define(REGEN_STRING("HAS_" << memberName), "TRUE");
+		}
 	}
 }
 
@@ -97,7 +110,7 @@ void StateConfigurer::addState(const State *s) {
 		// remember inputs, they will be enabled automatically
 		// when the shader is enabled.
 		for (const auto & it : s->inputs()) {
-			addInput(it.name_, it.in_);
+			addInput(it.name_, it.in_, it.type_, it.memberSuffix_);
 
 			std::queue<std::pair<const std::string&,ShaderInput*>> queue;
 			queue.emplace(it.in_->name(), it.in_.get());
@@ -122,7 +135,19 @@ void StateConfigurer::addState(const State *s) {
 				if (in->isBufferBlock()) {
 					auto block = dynamic_cast<BufferBlock*>(in);
 					for (auto& blockUniform : block->blockInputs()) {
-						queue.emplace(blockUniform.name_, blockUniform.in_.get());
+						if (!it.memberSuffix_.empty()) {
+							if (blockUniform.name_.empty()) {
+								queue.emplace(
+									REGEN_STRING(blockUniform.in_->name() << it.memberSuffix_),
+									blockUniform.in_.get());
+							} else {
+								queue.emplace(
+									REGEN_STRING(blockUniform.name_ << it.memberSuffix_),
+									blockUniform.in_.get());
+							}
+						} else {
+							queue.emplace(blockUniform.name_, blockUniform.in_.get());
+						}
 					}
 				}
 			}

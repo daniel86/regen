@@ -225,7 +225,7 @@
         <define key="IS_PARABOLOID_DUAL" value="TRUE"/>
         <define key="SHADING" value="NONE"/>
         <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0"/>
-        <input name="ReflectionCamera" state="paraboloid-camera" component="Camera" input-suffix="_Reflection"/>
+        <input name="ReflectionCamera" state="paraboloid-camera" component="Camera" member-suffix="_Reflection"/>
         <texture fbo="paraboloid-reflection-buffer" attachment="1"
                  map-to="COLOR"
                  blend-mode="SRC"

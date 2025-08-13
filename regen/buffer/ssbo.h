@@ -49,10 +49,6 @@ namespace regen {
 
 		SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMask = 0);
 
-		SSBO(const SSBO &other,
-				const std::string &forcedBlockName="",
-				const std::string &inputPrefixToAdd="");
-
 		/**
 		 * Copy constructor. Does not copy GPU data, both objects will share the same buffer.
 		 * @param other another buffer object

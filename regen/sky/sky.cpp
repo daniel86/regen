@@ -57,7 +57,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	sun_->setSpecular(0, Vec3f(0.0f));
 	sun_->setDiffuse(0, Vec3f(0.0f));
 	sun_->setDirection(0, Vec3f(1.0f));
-	state()->setInput(ref_ptr<UBO>::alloc(*sun_->lightUBO().get(), "SunLight", "_Sun"));
+	state()->setInput(sun_->lightUBO(), "SunLight", "_Sun");
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
 	q_->setUniformData(0.0f);
@@ -73,7 +73,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	moon_->setSpecular(0, Vec3f(0.0f));
 	moon_->setDiffuse(0, Vec3f(0.0f));
 	moon_->setDirection(0, Vec3f(1.0f));
-	state()->setInput(ref_ptr<UBO>::alloc(*moon_->lightUBO().get(), "MoonLight", "_Moon"));
+	state()->setInput(moon_->lightUBO(), "MoonLight", "_Moon");
 
 	state()->setInput(uniformBlock);
 
@@ -95,6 +95,8 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 
 	// mae some parts of the sky configurable from the GUI.
 	setAnimationName("sky");
+	// make sure the client buffer data is initialized
+	animate(0.0f);
 	// Note: disabled because animation manager allways activates this state,
 	//       but we do not need to if sky does not need update.
 	// TODO: Make the "idle" state part of animation, then animation manager can

@@ -282,6 +282,7 @@ namespace regen {
 		ref_ptr<BufferReference> drawBufferRef_;
 		ref_ptr<BufferRange> drawBufferRange_;
 		uint32_t requiredSize_ = 0;
+		uint32_t adoptedSize_ = 0;
 		uint32_t estimatedSize_ = 0;
 		uint32_t updatedSize_ = 0;
 		uint32_t stamp_ = 0;

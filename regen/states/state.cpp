@@ -110,7 +110,7 @@ ref_ptr<ShaderInput> State::getInput(const std::string &name) const {
 	return {};
 }
 
-void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
+void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, const std::string &memberSuffix) {
 	const std::string &inputName = (name.empty() ? in->name() : name);
 
 	if (in->isVertexAttribute() && in->numVertices() > static_cast<uint32_t>(shared_->numVertices_)) {
@@ -141,7 +141,7 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 
 	// TODO: Rather push back here. But it seems some code relies on the order of inputs.
 	//       This should be fixed in the future.
-	inputs_.insert(inputs_.begin(), NamedShaderInput{in, inputName});
+	inputs_.insert(inputs_.begin(), NamedShaderInput{in, inputName, "", memberSuffix});
 }
 
 void State::removeInput(const ref_ptr<ShaderInput> &in) {
