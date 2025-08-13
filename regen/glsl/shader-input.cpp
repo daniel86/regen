@@ -346,15 +346,15 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 		auto oldBlock = dynamic_cast<BufferBlock *>(in.get());
 		if (oldBlock->isUBO()) {
 			auto newBlock = ref_ptr<UBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
-			for (auto &namedInput: oldBlock->blockInputs()) {
-				newBlock->addBlockInput(create(namedInput.in_), namedInput.name_);
+			for (auto &namedInput: oldBlock->stagedInputs()) {
+				newBlock->addStagedInput(create(namedInput.in_), namedInput.name_);
 			}
 			return newBlock;
 		}
 		if (oldBlock->isSSBO()) {
 			auto newBlock = ref_ptr<SSBO>::alloc(in->name(), oldBlock->bufferUpdateHints());
-			for (auto &namedInput: oldBlock->blockInputs()) {
-				newBlock->addBlockInput(create(namedInput.in_), namedInput.name_);
+			for (auto &namedInput: oldBlock->stagedInputs()) {
+				newBlock->addStagedInput(create(namedInput.in_), namedInput.name_);
 			}
 			return newBlock;
 		}

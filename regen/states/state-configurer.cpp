@@ -74,7 +74,7 @@ void StateConfigurer::addInput(const std::string &name,
 	}
 	if (in->isBufferBlock()) {
 		auto block = dynamic_cast<BufferBlock*>(in.get());
-		for (auto& blockUniform : block->blockInputs()) {
+		for (auto& blockUniform : block->stagedInputs()) {
 			std::string memberName = (blockUniform.name_.empty() ? blockUniform.in_->name() : blockUniform.name_);
 			if (!memberSuffix.empty()) {
 				memberName += memberSuffix;
@@ -134,7 +134,7 @@ void StateConfigurer::addState(const State *s) {
 
 				if (in->isBufferBlock()) {
 					auto block = dynamic_cast<BufferBlock*>(in);
-					for (auto& blockUniform : block->blockInputs()) {
+					for (auto& blockUniform : block->stagedInputs()) {
 						if (!it.memberSuffix_.empty()) {
 							if (blockUniform.name_.empty()) {
 								queue.emplace(

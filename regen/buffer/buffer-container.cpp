@@ -31,7 +31,7 @@ BufferContainer::BufferContainer(const std::string &bufferName, const BufferUpda
 void BufferContainer::addInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
 	if (input->isBufferBlock()) {
 		auto block = ref_ptr<BufferBlock>::dynamicCast(input);
-		for (auto &blockUniform: block->blockInputs()) {
+		for (auto &blockUniform: block->stagedInputs()) {
 			namedInputs_.emplace_back(blockUniform.in_, blockUniform.name_);
 		}
 	} else {
@@ -50,7 +50,7 @@ void BufferContainer::createUBO(const std::vector<NamedShaderInput> &namedInputs
 		ubo->setBufferingMode(bufferingMode_.value());
 	}
 	for (auto &namedInput: namedInputs) {
-		ubo->addBlockInput(namedInput.in_, namedInput.name_);
+		ubo->addStagedInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ubo;
 	}
 	ubo->update();
@@ -64,7 +64,7 @@ void BufferContainer::createSSBO(const std::vector<NamedShaderInput> &namedInput
 		ssbo->setBufferingMode(bufferingMode_.value());
 	}
 	for (auto &namedInput: namedInputs) {
-		ssbo->addBlockInput(namedInput.in_, namedInput.name_);
+		ssbo->addStagedInput(namedInput.in_, namedInput.name_);
 		bufferObjectOfInput_[namedInput.in_.get()] = ssbo;
 	}
 	ssbo->update();
@@ -160,7 +160,7 @@ void BufferContainer::printLayout() {
 	for (auto &ubo: ubos_) {
 		std::stringstream stream;
 		stream << "  [ubo] " << ubo->name() << ":";
-		for (auto &input: ubo->blockInputs()) {
+		for (auto &input: ubo->stagedInputs()) {
 			stream << " " << input.name_ << ": " << input.in_->inputSize() / 1024.0 << "kB";
 		}
 		REGEN_INFO(stream.str());
@@ -168,7 +168,7 @@ void BufferContainer::printLayout() {
 	for (auto &ssbo: ssbos_) {
 		std::stringstream stream;
 		stream << "  [ssbo] " << ssbo->name() << ":";
-		for (auto &input: ssbo->blockInputs()) {
+		for (auto &input: ssbo->stagedInputs()) {
 			stream << " " << input.name_ << ": " << input.in_->inputSize() / 1024.0 << "kB";
 		}
 		REGEN_INFO(stream.str());

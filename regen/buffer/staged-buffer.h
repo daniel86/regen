@@ -7,6 +7,13 @@
 #include "staging-buffer.h"
 
 namespace regen {
+	/**
+	 * \brief A buffer object that can be used for staging data in a staging system.
+	 *
+	 * StagedBuffer is a base class for buffer objects that can be used in a staging system.
+	 * It provides functionality to manage staged inputs, update dirty segments, and copy data
+	 * to the GPU.
+	 */
 	class StagedBuffer : public BufferObject, public ShaderInput {
 	public:
 		// The minimum number of segments for partial updates in temporary mapped buffers.
@@ -17,7 +24,8 @@ namespace regen {
 		static uint32_t UPDATE_RATE_RANGE;
 
 		/**
-		 * Create a buffer block.
+		 * Create a staged buffer.
+		 * @param name the name of the buffer.
 		 * @param target the buffer target.
 		 * @param hints the buffer update hints.
 		 * @param memoryLayout the memory layout.
@@ -35,21 +43,21 @@ namespace regen {
 		~StagedBuffer() override;
 
 		/**
-		 * Add a uniform to the UBO.
+		 * Add a uniform to the staged buffer.
 		 * @param input the shader input.
 		 */
-		void addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
+		void addStagedInput(const ref_ptr<ShaderInput> &input, const std::string &name = "");
 
 		/**
-		 * Remove a block input by name.
+		 * Remove an input by name.
 		 * @param name the name of the block input to remove.
 		 */
-		void removeBlockInput(std::string_view name);
+		void removeStagedInput(std::string_view name);
 
 		/**
-		 * @return a flag indicating if the block is valid.
+		 * @return a flag indicating if the buffer is valid.
 		 */
-		bool isBlockValid() const { return isBlockValid_; }
+		inline bool isBufferValid() const { return isBufferValid_; }
 
 		/**
 		 * Set the buffering mode for the staging buffer.
@@ -68,24 +76,24 @@ namespace regen {
 		}
 
 		/**
-		 * Update the block inputs and their offsets.
+		 * Update the buffer inputs and their offsets.
 		 * Also compute the required size of the block, and build a list of dirty segments.
 		 * @return the required size of the block in bytes.
 		 */
-		uint32_t updateBlockInputs();
+		uint32_t updateStagedInputs();
 
 		/**
-		 * @return true if the block has any dirty segments.
+		 * @return true if the buffer has any dirty segments.
 		 */
 		bool hasDirtySegments() const { return numDirtySegments_ > 0; }
 
 		/**
-		 * @return the number of dirty segments in the block.
+		 * @return the number of dirty segments in the buffer.
 		 */
 		uint32_t numDirtySegments() const { return numDirtySegments_; }
 
 		/**
-		 * Update the block buffer.
+		 * Update the buffer.
 		 * Should be called each frame, is a no-op if no data has changed.
 		 * @param forceUpdate force update.
 		 */
@@ -94,7 +102,7 @@ namespace regen {
 		/**
 		 * @return the list of uniforms.
 		 */
-		auto &blockInputs() const { return inputs_; }
+		auto &stagedInputs() const { return inputs_; }
 
 		/**
 		 * Update the draw buffer, possibly adopting a new buffer range.
@@ -190,7 +198,7 @@ namespace regen {
 
 	protected:
 		bool hasClientData_ = true;
-		bool isBlockValid_ = true;
+		bool isBufferValid_ = true;
 
 		std::vector<NamedShaderInput> inputs_;
 		ref_ptr<BufferReference> drawBufferRef_;
@@ -205,10 +213,10 @@ namespace regen {
 		std::function<ref_ptr<BufferReference>(uint32_t)> adoptBufferRange_;
 
 		// the block inputs are used to store the shader inputs and their offsets in the buffer
-		struct BlockInput {
-			BlockInput() = default;
+		struct StagedInput {
+			StagedInput() = default;
 
-			BlockInput(const BlockInput &other) {
+			StagedInput(const StagedInput &other) {
 				input = other.input;
 				offset = other.offset;
 				lastStamp = other.lastStamp;
@@ -221,7 +229,7 @@ namespace regen {
 			uint32_t inputSize = 0;
 		};
 
-		std::vector<ref_ptr<BlockInput>> blockInputs_;
+		std::vector<ref_ptr<StagedInput>> stagedInputs_;
 
 		// dirty segments are used to track which parts of the buffer have changed
 		struct SegmentRange {
@@ -274,11 +282,11 @@ namespace regen {
 
 		inline void createNextDirtySegment();
 
-		void setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx);
+		void setDirtyRange(uint32_t dirtyIdx, StagedInput &input, uint32_t inputIdx);
 
-		void appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx);
+		void appendToDirtyRange(uint32_t dirtyIdx, StagedInput &input, uint32_t inputIdx);
 
-		inline uint32_t &lastInputStamp(BlockInput &blockInput);
+		inline uint32_t &lastInputStamp(StagedInput &blockInput);
 
 		void updateStorageFlags();
 

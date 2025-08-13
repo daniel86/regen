@@ -122,7 +122,7 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, co
 	// check for instances of attributes within UBO
 	if (in->isBufferBlock()) {
 		auto *block = dynamic_cast<BufferBlock *>(in.get());
-		for (auto &namedInput: block->blockInputs()) {
+		for (auto &namedInput: block->stagedInputs()) {
 			if (namedInput.in_->isVertexAttribute() &&
 			    namedInput.in_->numVertices() > static_cast<uint32_t>(shared_->numVertices_)) {
 				shared_->numVertices_ = static_cast<int>(namedInput.in_->numVertices());
@@ -176,7 +176,7 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 		}
 		if (inNamed.in_->isBufferBlock()) {
 			auto block = ref_ptr<BufferBlock>::dynamicCast(inNamed.in_);
-			for (auto &blockUniform: block->blockInputs()) {
+			for (auto &blockUniform: block->stagedInputs()) {
 				if (name == blockUniform.name_ || name == blockUniform.in_->name()) {
 					ret.block = block;
 					ret.in = blockUniform.in_;

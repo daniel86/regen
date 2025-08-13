@@ -191,7 +191,7 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 			REGEN_ERROR("Shader input '" << name << "' is not a BufferBlock.");
 			return;
 		}
-		for (auto &blockUniform: block->blockInputs()) {
+		for (auto &blockUniform: block->stagedInputs()) {
 			if (blockUniform.in_->numInstances() > 1) {
 				set_numInstances(blockUniform.in_->numInstances());
 				set_numVisibleInstances(blockUniform.in_->numInstances());
@@ -607,7 +607,7 @@ void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 			"DrawCommand", "drawParams", 4 * numDrawLayers);
 	input->setInstanceData(1, 1, (byte*)drawData.data());
-	indirectDrawBuffer_->addBlockInput(input);
+	indirectDrawBuffer_->addStagedInput(input);
 	indirectDrawBuffer_->update();
 	numDrawLayers_ = numDrawLayers;
 	updateDrawFunction();

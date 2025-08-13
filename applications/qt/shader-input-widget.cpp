@@ -305,7 +305,7 @@ bool ShaderInputWidget::isValidParameter(const ShaderInput *input) {
 		}
 		bool hasInputs = false;
 		if (block) {
-			for (auto &uniform: block->blockInputs()) {
+			for (auto &uniform: block->stagedInputs()) {
 				hasInputs = isValidParameter(uniform.in_.get()) || hasInputs;
 			}
 		}
@@ -334,7 +334,7 @@ bool ShaderInputWidget::addParameter(
 		}
 		bool hasInputs = false;
 		if (block) {
-			for (auto &uniform: block->blockInputs()) {
+			for (auto &uniform: block->stagedInputs()) {
 				hasInputs = addParameter(node, uniform, parent) || hasInputs;
 			}
 		}

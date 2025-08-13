@@ -144,7 +144,7 @@ void StagingSystem::clear() {
 
 ref_ptr<StagingBuffer> StagingSystem::addBufferBlock(const BlockPtr &block) {
 	auto &flags = block->stagingFlags();
-	const auto sizeClass = StagingBuffer::getBufferSizeClass(block->updateBlockInputs());
+	const auto sizeClass = StagingBuffer::getBufferSizeClass(block->updateStagedInputs());
 	Arena *selectedArena = nullptr;
 
 	if (flags.useExplicitStaging()) {
@@ -370,7 +370,7 @@ void StagingSystem::updateBuffers() {
 		for (uint32_t boIdx = 0; boIdx < arena->bufferObjects.size(); boIdx++) {
 			auto &managed = arena->bufferObjects[boIdx];
 			managed.bo->updateDrawBuffer();
-			if (!managed.bo->isBlockValid()) {
+			if (!managed.bo->isBufferValid()) {
 				// something went wrong when updating the draw buffer.
 				REGEN_WARN("Draw buffer of \"" << managed.bo->name()
 											   << "\" is not valid. Skipping it in \"" << arena->type << "\" arena.");
@@ -412,7 +412,7 @@ void StagingSystem::updateBuffers() {
 			for (uint32_t boIdx = 0; boIdx < arena->bufferObjects.size(); boIdx++) {
 				auto &managed = arena->bufferObjects[boIdx];
 
-				uint32_t boAlignedSize = arena->getRangeSize(managed.bo->updateBlockInputs());
+				uint32_t boAlignedSize = arena->getRangeSize(managed.bo->updateStagedInputs());
 				auto [status, offset] = arena->freeList->reserve(boAlignedSize);
 				if (status) {
 					Arena::setStagingOffset(managed, offset, boAlignedSize);
@@ -692,7 +692,7 @@ bool StagingSystem::updateArenaSize(Arena *arena) {
 		}
 
 		// update dirty segments + size of the BO
-		boAlignedSize = arena->getRangeSize(managed.bo->updateBlockInputs());
+		boAlignedSize = arena->getRangeSize(managed.bo->updateStagedInputs());
 		newUnalignedSize += boAlignedSize;
 		arena->isDirty = arena->isDirty || managed.bo->hasDirtySegments();
 
@@ -836,7 +836,7 @@ void StagingSystem::Arena::resize() {
 		for (auto &managed: bufferObjects) {
 			managed.bo->updateDrawBuffer();
 
-			boAlignedSize = getRangeSize(managed.bo->updateBlockInputs());
+			boAlignedSize = getRangeSize(managed.bo->updateStagedInputs());
 			auto [_, offset] = freeList->reserve(boAlignedSize);
 			setStagingOffset(managed, offset, boAlignedSize);
 		}

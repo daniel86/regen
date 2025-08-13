@@ -62,7 +62,7 @@ StagedBuffer::StagedBuffer(const StagedBuffer &other, const std::string &name)
 		  stagingFlags_(other.bufferTarget(), other.bufferUpdateHints()) {
 	memoryLayout_ = other.memoryLayout_;
 	hasClientData_ = other.hasClientData_;
-	isBlockValid_ = other.isBlockValid_;
+	isBufferValid_ = other.isBufferValid_;
 	inputs_ = other.inputs_;
 	drawBufferRef_ = other.drawBufferRef_;
 	drawBufferRange_ = other.drawBufferRange_;
@@ -70,7 +70,7 @@ StagedBuffer::StagedBuffer(const StagedBuffer &other, const std::string &name)
 	estimatedSize_ = other.estimatedSize_;
 	updatedSize_ = other.updatedSize_;
 	stamp_ = other.stamp_;
-	blockInputs_ = other.blockInputs_;
+	stagedInputs_ = other.stagedInputs_;
 	stagingFlags_ = other.stagingFlags_;
 	userDefinedBufferingMode_ = other.userDefinedBufferingMode_;
 	shared_ = other.shared_;
@@ -192,10 +192,10 @@ void StagedBuffer::updateStorageFlags() {
 	}
 }
 
-void StagedBuffer::addBlockInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
-	auto bufferInput = ref_ptr<BlockInput>::alloc();
+void StagedBuffer::addStagedInput(const ref_ptr<ShaderInput> &input, const std::string &name) {
+	auto bufferInput = ref_ptr<StagedInput>::alloc();
 	bufferInput->input = input;
-	blockInputs_.emplace_back(bufferInput);
+	stagedInputs_.emplace_back(bufferInput);
 	inputs_.emplace_back(input, name);
 	estimatedSize_ += input->elementSize();
 	hasClientData_ = input->hasClientData() && hasClientData_;
@@ -207,8 +207,8 @@ void StagedBuffer::addBlockInput(const ref_ptr<ShaderInput> &input, const std::s
 	updateStorageFlags();
 }
 
-void StagedBuffer::removeBlockInput(std::string_view name) {
-	for (auto it = blockInputs_.begin(); it != blockInputs_.end(); ++it) {
+void StagedBuffer::removeStagedInput(std::string_view name) {
+	for (auto it = stagedInputs_.begin(); it != stagedInputs_.end(); ++it) {
 		auto &blockInput = *it;
 		if (blockInput->input->name() == name) {
 			// remove the input from the inputs_ vector
@@ -219,7 +219,7 @@ void StagedBuffer::removeBlockInput(std::string_view name) {
 				}
 			}
 			// remove the block input
-			blockInputs_.erase(it);
+			stagedInputs_.erase(it);
 			if (clientBuffer_->hasSegments()) {
 				// remove the segment from the client buffer
 				clientBuffer_->removeSegment(blockInput->input->clientBuffer());
@@ -231,8 +231,8 @@ void StagedBuffer::removeBlockInput(std::string_view name) {
 }
 
 void StagedBuffer::update(bool forceUpdate) {
-	if (!isBlockValid_) return;
-	updateBlockInputs();
+	if (!isBufferValid_) return;
+	updateStagedInputs();
 	updateDrawBuffer();
 	if (!shared_->isGloballyStaged_) {
 		// note: don't mess with the staging buffer if it is managed by the staging system.
@@ -241,17 +241,17 @@ void StagedBuffer::update(bool forceUpdate) {
 	}
 }
 
-uint32_t &StagedBuffer::lastInputStamp(BlockInput &blockInput) {
+uint32_t &StagedBuffer::lastInputStamp(StagedInput &blockInput) {
 	const auto &buffer = shared_->stagingBuffer_;
 	return blockInput.lastStamp[(buffer.get() != nullptr) ? buffer->nextWriteIndex() : 0u];
 }
 
-uint32_t StagedBuffer::updateBlockInputs() {
+uint32_t StagedBuffer::updateStagedInputs() {
 	bool hasNewSize = (requiredSize_ == 0); // whether the size of the block has changed
 	bool hasClientData = true;
 	updatedSize_ = 0u; // total size of the inputs that have changed
 
-	for (auto &blockInput : blockInputs_) {
+	for (auto &blockInput : stagedInputs_) {
 		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
 		hasClientData = hasClientData && blockInput->input->hasClientData();
 		if (blockInput->input->stampOfWriteData() != lastInputStamp(*blockInput.get())) {
@@ -261,12 +261,12 @@ uint32_t StagedBuffer::updateBlockInputs() {
 	hasClientData_ = hasClientData;
 
 	//  Initialize the client buffer here lazily.
-	if (hasClientData_ && !blockInputs_.empty() && !clientBuffer_->hasSegments()) {
-		std::vector<ref_ptr<ClientBuffer>> segments(blockInputs_.size());
+	if (hasClientData_ && !stagedInputs_.empty() && !clientBuffer_->hasSegments()) {
+		std::vector<ref_ptr<ClientBuffer>> segments(stagedInputs_.size());
 		REGEN_INFO("Initializing client buffer for block " << name()
-			<< " with " << blockInputs_.size() << " segments");
-		for (size_t i = 0; i < blockInputs_.size(); ++i) {
-			auto &blockInput = blockInputs_[i];
+														   << " with " << stagedInputs_.size() << " segments");
+		for (size_t i = 0; i < stagedInputs_.size(); ++i) {
+			auto &blockInput = stagedInputs_[i];
 			segments[i] = blockInput->input->clientBuffer();
 		}
 		clientBuffer_->setSegments(segments);
@@ -275,7 +275,7 @@ uint32_t StagedBuffer::updateBlockInputs() {
 
 	if (hasNewSize) {
 		requiredSize_ = 0;
-		for (auto &blockInput: blockInputs_) {
+		for (auto &blockInput: stagedInputs_) {
 			auto &in = blockInput->input;
 			// Align the offset to the required alignment
 			// baseAlignment is always a power of two, so we can use bitwise AND
@@ -295,8 +295,8 @@ uint32_t StagedBuffer::updateBlockInputs() {
 	resetDirtySegments();
 	// Update dirty segments.
 	bool lastChanged = false; // whether the last input changed or not
-	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(blockInputs_.size()); ++inputIdx) {
-		auto &blockInput = *blockInputs_[inputIdx].get();
+	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(stagedInputs_.size()); ++inputIdx) {
+		auto &blockInput = *stagedInputs_[inputIdx].get();
 		// FIXME: Why is stampOfWriteData needed here? Well it causes I guess that we copy at least two times
 		//         and that does the trick? But it should be best to check for read stamp instead I think!
 		//         E.g. the diffuse material color of instanced trees is affected.
@@ -339,7 +339,7 @@ void StagedBuffer::copyDirtyData(byte *mappedBufferData, uint32_t localMapOffset
 
 		auto &segmentRange = dirtySegmentRanges_[segmentIdx];
 		for (uint32_t inputIdx = segmentRange.startIdx; inputIdx < segmentRange.endIdx; ++inputIdx) {
-			auto &bufferInput = *blockInputs_[inputIdx].get();
+			auto &bufferInput = *stagedInputs_[inputIdx].get();
 			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 		}
 	}
@@ -352,8 +352,8 @@ void StagedBuffer::copyFullData(byte *mappedBufferData, uint32_t localMapOffset)
 	// get start and end indices from first and last segment
 	uint32_t startIdx = dirtySegmentRanges_[0].startIdx;
 	uint32_t endIdx   = dirtySegmentRanges_[numDirtySegments_ - 1].endIdx;
-	auto &firstSegment = blockInputs_[startIdx];
-	auto &lastSegment = blockInputs_[endIdx - 1];
+	auto &firstSegment = stagedInputs_[startIdx];
+	auto &lastSegment = stagedInputs_[endIdx - 1];
 
 	// copy the whole range of block inputs.
 	const auto fullSize = clientBuffer_->dataSize();
@@ -366,7 +366,7 @@ void StagedBuffer::copyFullData(byte *mappedBufferData, uint32_t localMapOffset)
 
 	// update the last stamps for all inputs in the dirty range
 	for (uint32_t inputIdx = startIdx; inputIdx < endIdx; ++inputIdx) {
-		auto &bufferInput = *blockInputs_[inputIdx].get();
+		auto &bufferInput = *stagedInputs_[inputIdx].get();
 		lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 	}
 	clientBuffer_->unmapRange(BUFFER_GPU_READ, 0u, fullSize, mapped.r_index);
@@ -378,12 +378,12 @@ void StagedBuffer::markBufferDirty() {
 	dirtyBufferRanges_[0].offset = 0;
 	dirtyBufferRanges_[0].size = requiredSize_;
 	dirtySegmentRanges_[0].startIdx = 0;
-	dirtySegmentRanges_[0].endIdx = static_cast<uint32_t>(blockInputs_.size());
+	dirtySegmentRanges_[0].endIdx = static_cast<uint32_t>(stagedInputs_.size());
 }
 
 void StagedBuffer::resetDataStamps() {
 	// reset the last stamps for all inputs and segments.
-	for (auto &input: blockInputs_) {
+	for (auto &input: stagedInputs_) {
 		std::memset(input->lastStamp.data(), 0, input->lastStamp.size() * sizeof(uint32_t));
 	}
 }
@@ -428,15 +428,15 @@ void StagedBuffer::updateDrawBuffer() {
 	// validate the allocation
 	if (!drawBufferRef_.get()) {
 		REGEN_ERROR("failed to allocate buffer for buffer flags " << flags_);
-		isBlockValid_ = false;
+		isBufferValid_ = false;
 		return;
 	}
 	if (isMapModePersistent(flags_.mapMode) && !drawBufferRef_->mappedData()) {
 		REGEN_WARN("something went wrong with persistent mapping for buffer flags " << flags_);
-		isBlockValid_ = false;
+		isBufferValid_ = false;
 		return;
 	}
-	isBlockValid_ = true;
+	isBufferValid_ = true;
 
 	adoptedSize_ = requiredSize_;
 	inputSize_ = requiredSize_;
@@ -550,7 +550,7 @@ void StagedBuffer::copyStagingData(bool forceUpdate) {
 		// the number of segments in the staging buffer has changed, so we need to resize the
 		// last stamp vector for each input.
 		// we reset the stamps causing a re-load of all segments.
-		for (auto &input: blockInputs_) {
+		for (auto &input: stagedInputs_) {
 			input->lastStamp.resize(numStagingSegments);
 		}
 		resetDataStamps();
@@ -563,7 +563,7 @@ void StagedBuffer::copyStagingData(bool forceUpdate) {
 			REGEN_WARN("Failed to update read buffer for block \""
 							   << name() << "\". This is likely a bug, buffer object will be disabled."
 							   << " Staging flags: " << stagingFlags_ << ".");
-			isBlockValid_ = false;
+			isBufferValid_ = false;
 		}
 	} else if (hasClientData_) {
 		// Write from CPU memory to the staging buffer, and then copy to the draw buffer.
@@ -580,7 +580,7 @@ void StagedBuffer::copyStagingData(bool forceUpdate) {
 		REGEN_WARN("No client data to update BO \""
 						   << name() << "\". This is likely a bug, buffer object will be disabled."
 						   << " Staging flags: " << stagingFlags_ << ".");
-		isBlockValid_ = false;
+		isBufferValid_ = false;
 	}
 }
 
@@ -604,7 +604,7 @@ void StagedBuffer::updateNonMapped() {
 
 		// update the last stamps for all inputs in the dirty range
 		for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
-			auto &bufferInput = *blockInputs_[inputIdx].get();
+			auto &bufferInput = *stagedInputs_[inputIdx].get();
 			lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 		}
 	}
@@ -651,7 +651,7 @@ void StagedBuffer::updateTemporaryMapped() {
 					   dirtyRange_b.size);
 
 				for (uint32_t inputIdx = dirtyRange_s.startIdx; inputIdx < dirtyRange_s.endIdx; ++inputIdx) {
-					auto &bufferInput = *blockInputs_[inputIdx].get();
+					auto &bufferInput = *stagedInputs_[inputIdx].get();
 					lastInputStamp(bufferInput) = bufferInput.input->stampOfReadData();
 				}
 
@@ -756,7 +756,7 @@ void StagedBuffer::Shared::setUpdatedFrame(bool isUpdated) {
 	hasUpdateRotated_ = hasUpdateRotated_ || (updateIdx_ >= updateRange_);
 }
 
-void StagedBuffer::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
+void StagedBuffer::setDirtyRange(uint32_t dirtyIdx, StagedInput &input, uint32_t inputIdx) {
 	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
 	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
 	dirty_b.offset = input.offset;
@@ -765,7 +765,7 @@ void StagedBuffer::setDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t 
 	dirty_s.endIdx = inputIdx+1;
 }
 
-void StagedBuffer::appendToDirtyRange(uint32_t dirtyIdx, BlockInput &input, uint32_t inputIdx) {
+void StagedBuffer::appendToDirtyRange(uint32_t dirtyIdx, StagedInput &input, uint32_t inputIdx) {
 	auto &dirty_s = dirtySegmentRanges_[dirtyIdx];
 	auto &dirty_b = dirtyBufferRanges_[dirtyIdx];
 	dirty_b.size = input.offset - dirty_b.offset + input.inputSize;

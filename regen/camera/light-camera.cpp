@@ -27,7 +27,7 @@ LightCamera::LightCamera(const ref_ptr<Light> &light, Camera *camera)
 
 	shadowBuffer_ = ref_ptr<UBO>::alloc("Shadow", light_->lightUBO()->bufferUpdateHints());
 	shadowBuffer_->setStagingAccessMode(BUFFER_CPU_WRITE);
-	shadowBuffer_->addBlockInput(sh_lightMatrix_);
+	shadowBuffer_->addStagedInput(sh_lightMatrix_);
 
 	lightCameraAnimation_ = ref_ptr<LightCameraAnimation>::alloc(this);
 	lightCameraAnimation_->setAnimationName("light-camera");

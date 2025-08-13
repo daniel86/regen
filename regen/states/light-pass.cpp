@@ -116,7 +116,7 @@ void LightPass::createShader(const StateConfig &cfg) {
 			if (in.in_->isBufferBlock()) {
 				auto *block = dynamic_cast<BufferBlock *>(in.in_.get());
 				_cfg.addInput(in.in_->name(), in.in_);
-				for (auto &blockUniform: block->blockInputs()) {
+				for (auto &blockUniform: block->stagedInputs()) {
 					numInstances_ = std::max(numInstances_, blockUniform.in_->numInstances());
 				}
 			} else {

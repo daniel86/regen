@@ -87,9 +87,9 @@ void BoidsGPU::createResource() {
 		gridUBO_ = ref_ptr<UBO>::alloc("BoidGrid", BufferUpdateFlags::PARTIAL_RARELY);
 		gridMin_ = ref_ptr<ShaderInput3f>::alloc("gridMin");
 		gridMin_->setUniformData(gridBounds_.min);
-		gridUBO_->addBlockInput(gridMin_);
-		gridUBO_->addBlockInput(cellSize_);
-		gridUBO_->addBlockInput(gridSize_);
+		gridUBO_->addStagedInput(gridMin_);
+		gridUBO_->addStagedInput(cellSize_);
+		gridUBO_->addStagedInput(gridSize_);
 		// create draw buffer and add to staging system
 		gridUBO_->update();
 	}
@@ -113,7 +113,7 @@ void BoidsGPU::createResource() {
 		BufferUpdateFlags::FULL_PER_FRAME,
 		SSBO::RESTRICT);
 #ifdef BOID_USE_HALF_VELOCITY
-	velBuffer_->addBlockInput(ref_ptr<ShaderInput2ui>::alloc("vel", numBoids_));
+	velBuffer_->addStagedInput(ref_ptr<ShaderInput2ui>::alloc("vel", numBoids_));
 #else
 	velBuffer_->addBlockInput(ref_ptr<ShaderInput1f>::alloc("vel", numBoids_ * 3));
 #endif
@@ -139,8 +139,8 @@ void BoidsGPU::createResource() {
 		gridOffsetBuffer_ = ref_ptr<SSBO>::alloc("GridOffsets",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
-		gridOffsetBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc(
-			"globalHistogram", numCells_ + 1));
+		gridOffsetBuffer_->addStagedInput(ref_ptr<ShaderInput1ui>::alloc(
+				"globalHistogram", numCells_ + 1));
 		gridOffsetBuffer_->update();
 	}
 
@@ -155,7 +155,7 @@ void BoidsGPU::createResource() {
 		// positions and velocities.
 		boidDataBuffer_ = ref_ptr<SSBO>::alloc("BoidDataBuffer",
 			BufferUpdateFlags::NEVER, SSBO::RESTRICT);
-		boidDataBuffer_->addBlockInput(ref_ptr<ShaderInputStruct<BoidData>>::alloc("BoidData", "boidData", numBoids_));
+		boidDataBuffer_->addStagedInput(ref_ptr<ShaderInputStruct<BoidData>>::alloc("BoidData", "boidData", numBoids_));
 		boidDataBuffer_->update();
 	}
 	#endif
@@ -351,7 +351,7 @@ void BoidsGPU::updateGrid() {
 	if (lastNumCells != numCells_) {
 		// acquire buffer space of the right size
 		gridResetPass_->computeState()->setNumWorkUnits(std::max(numBoids_, numCells_ + 1), 1, 1);
-		gridOffsetBuffer_->blockInputs().front().in_->set_numArrayElements(static_cast<int>(numCells_ + 1u));
+		gridOffsetBuffer_->stagedInputs().front().in_->set_numArrayElements(static_cast<int>(numCells_ + 1u));
 		gridOffsetBuffer_->update(true);
 		u_numCells_->setVertex(0, numCells_);
 		REGEN_INFO("Boid grid size changed to " << numCells_ << " cells.");

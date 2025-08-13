@@ -162,7 +162,7 @@ void LODState::createInstanceBuffer() {
 	if (cullShape_->isIndexShape()) {
 		instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
 	}
-	instanceBuffer_->addBlockInput(instanceData_);
+	instanceBuffer_->addStagedInput(instanceData_);
 	instanceBuffer_->update();
 	if (!cullShape_->isIndexShape()) {
 		// clear segment to [0, 1, 2, ..., numInstances_-1]
@@ -184,7 +184,7 @@ ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
 		input->setInstanceData(1, 1,
 			(byte*)indirectDrawData_[partIdx].current.data());
 	}
-	buffer->addBlockInput(input);
+	buffer->addStagedInput(input);
 	buffer->update();
 	if (!cullShape_->isIndexShape()) {
 		buffer->setBufferData((byte*)indirectDrawData_[partIdx].current.data());
@@ -668,7 +668,7 @@ void LODState::createComputeShader() {
 			"Clear_IndirectDrawBuffer",
 			BufferUpdateFlags::NEVER,
 			SSBO::RESTRICT);
-		clearIndirectBuffer_->addBlockInput(clearData);
+		clearIndirectBuffer_->addStagedInput(clearData);
 		clearIndirectBuffer_->update();
 	}
 

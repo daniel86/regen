@@ -62,7 +62,7 @@ void CullShape::createBuffers() {
 		// Note: do not set CPU-side data in case of GPU shape (we rather use setBufferData below).
 		instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
 	}
-	instanceBuffer_->addBlockInput(instanceData_);
+	instanceBuffer_->addStagedInput(instanceData_);
 	instanceBuffer_->update();
 	if (!isIndexShape()) {
 		// clear segment to [0, 1, 2, ..., numInstances_-1]

@@ -40,7 +40,7 @@ BufferBlock::~BufferBlock() {
 }
 
 void BufferBlock::enableBufferBlock(GLint loc) {
-	if (!isBlockValid_) return;
+	if (!isBufferValid_) return;
 	auto *rs = RenderState::get();
 
 	prepareRebind(loc);
@@ -118,7 +118,7 @@ ref_ptr<BufferBlock> BufferBlock::load(LoadingContext &ctx, scene::SceneInputNod
 				continue;
 			}
 			auto name = n->getValue("name");
-			block->addBlockInput(uniform, name);
+			block->addStagedInput(uniform, name);
 		} else {
 			REGEN_WARN("Unknown UBO child category '" << n->getCategory() << "'.");
 		}

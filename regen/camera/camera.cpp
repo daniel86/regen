@@ -92,17 +92,17 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 
 	// TODO: I think we really need t use buffer container here!
 	cameraBlock_ = ref_ptr<UBO>::alloc("Camera", updateFlags);
-	cameraBlock_->addBlockInput(sh_view_);
-	cameraBlock_->addBlockInput(sh_viewInv_);
-	cameraBlock_->addBlockInput(sh_viewProj_);
-	cameraBlock_->addBlockInput(sh_viewProjInv_);
-	cameraBlock_->addBlockInput(sh_direction_);
-	cameraBlock_->addBlockInput(sh_position_);
-	cameraBlock_->addBlockInput(sh_vel_);
+	cameraBlock_->addStagedInput(sh_view_);
+	cameraBlock_->addStagedInput(sh_viewInv_);
+	cameraBlock_->addStagedInput(sh_viewProj_);
+	cameraBlock_->addStagedInput(sh_viewProjInv_);
+	cameraBlock_->addStagedInput(sh_direction_);
+	cameraBlock_->addStagedInput(sh_position_);
+	cameraBlock_->addStagedInput(sh_vel_);
 	// these change less frequent:
-	cameraBlock_->addBlockInput(sh_projParams_);
-	cameraBlock_->addBlockInput(sh_proj_);
-	cameraBlock_->addBlockInput(sh_projInv_);
+	cameraBlock_->addStagedInput(sh_projParams_);
+	cameraBlock_->addStagedInput(sh_proj_);
+	cameraBlock_->addStagedInput(sh_projInv_);
 	setInput(cameraBlock_);
 }
 
@@ -450,7 +450,7 @@ void Camera::createFrustumBuffer() {
 	// each frustum has 6 planes, so we need 6 * numLayer_ Vec4f
 	frustumData_ = ref_ptr<ShaderInput4f>::alloc("frustumPlanes", 6 * numLayer_);
 	frustumData_->setUniformUntyped();
-	frustumBuffer_->addBlockInput(frustumData_);
+	frustumBuffer_->addStagedInput(frustumData_);
 	frustumBuffer_->update();
 	setInput(frustumBuffer_);
 }

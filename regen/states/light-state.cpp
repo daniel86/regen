@@ -29,38 +29,38 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 
 	lightRadius_ = ref_ptr<ShaderInput2f>::alloc("lightRadius");
 	lightRadius_->setUniformData(Vec2f(999999.9, 999999.9));
-	lightBuffer_->addBlockInput(lightRadius_);
+	lightBuffer_->addStagedInput(lightRadius_);
 
 	lightConeAngles_ = ref_ptr<ShaderInput2f>::alloc("lightConeAngles");
 	lightConeAngles_->setUniformData(Vec2f(
 			cos(2.0f * M_PIf * 50.0f / 360.0f),
 			cos(2.0f * M_PIf * 55.0f / 360.0f)));
-	lightBuffer_->addBlockInput(lightConeAngles_);
+	lightBuffer_->addStagedInput(lightConeAngles_);
 
 	lightPosition_ = ref_ptr<ShaderInput4f>::alloc("lightPosition");
 	lightPosition_->setUniformData(Vec4f(1.0f, 1.0f, 1.0f, 0.0f));
 	lightPosition_->setSchema(InputSchema::position());
-	lightBuffer_->addBlockInput(lightPosition_);
+	lightBuffer_->addStagedInput(lightPosition_);
 
 	lightDirection_ = ref_ptr<ShaderInput3f>::alloc("lightDirection");
 	lightDirection_->setUniformData(Vec3f(1.0f, 1.0f, -1.0f));
 	lightDirection_->setSchema(InputSchema::direction());
-	lightBuffer_->addBlockInput(lightDirection_);
+	lightBuffer_->addStagedInput(lightDirection_);
 
 	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
 	lightDiffuse_->setUniformData(Vec3f(0.7f));
 	lightDiffuse_->setSchema(InputSchema::color());
-	lightBuffer_->addBlockInput(lightDiffuse_);
+	lightBuffer_->addStagedInput(lightDiffuse_);
 
 	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
 	lightSpecular_->setUniformData(Vec3f(1.0f));
 	lightSpecular_->setSchema(InputSchema::color());
-	lightBuffer_->addBlockInput(lightSpecular_);
+	lightBuffer_->addStagedInput(lightSpecular_);
 
 	if (lightType_ == SPOT) {
 		coneMatrix_ = ref_ptr<ShaderInputMat4>::alloc("lightConeMatrix");
 		coneMatrix_->setUniformData(Mat4f::identity());
-		lightBuffer_->addBlockInput(coneMatrix_);
+		lightBuffer_->addStagedInput(coneMatrix_);
 
 		coneAnimation_ = ref_ptr<SpotConeAnimation>::alloc(this);
 		coneAnimation_->setAnimationName("SpotCone");

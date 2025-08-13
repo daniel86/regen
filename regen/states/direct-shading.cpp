@@ -121,7 +121,7 @@ void DirectShading::addLight(
 				} else {
 					REGEN_WARN("Unexpected input type for light: "
 							   << it.in_->name() << " (" << block->name() << ")");
-					for (auto &blockUniform: block->blockInputs()) {
+					for (auto &blockUniform: block->stagedInputs()) {
 						setInput(
 								blockUniform.in_,
 								REGEN_LIGHT_NAME(blockUniform.name_, lightID));

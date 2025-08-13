@@ -317,8 +317,8 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 			io.ioType = REGEN_STRING(block->blockQualifier());
 			io.value = "";
 			io.dataType = "";
-			for (uint64_t i=0; i<block->blockInputs().size(); i++) {
-				auto blockUniform = block->blockInputs()[i];
+			for (uint64_t i=0; i< block->stagedInputs().size(); i++) {
+				auto blockUniform = block->stagedInputs()[i];
 				// insert suffix for block member. This is useful e.g. to bind multiple
 				// Light UBOs with the same shader without getting name conflicts as at the moment
 				// the member names are globally exposed.
@@ -377,7 +377,7 @@ void IOProcessor::declareSpecifiedInput(PreProcessorState &state) {
 #endif
 
 				// last element in SSBO can omit the array size
-				if (isSSBO && i == block->blockInputs().size() - 1) {
+				if (isSSBO && i == block->stagedInputs().size() - 1) {
 					memberIO.requiresArrayElements = false;
 				}
 				io.block.push_back(memberIO.declaration());

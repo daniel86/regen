@@ -45,11 +45,11 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 			Earth::meanRadius(),
 			Earth::meanRadius() + Earth::atmosphereThicknessNonUniform(),
 			math::random<float>()));
-	uniformBlock->addBlockInput(cmnUniform_);
+	uniformBlock->addStagedInput(cmnUniform_);
 
 	R_ = ref_ptr<ShaderInputMat4>::alloc("equToHorMatrix");
 	R_->setUniformData(Mat4f::identity());
-	uniformBlock->addBlockInput(R_);
+	uniformBlock->addStagedInput(R_);
 
 	// directional light that approximates the sun
 	sun_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);

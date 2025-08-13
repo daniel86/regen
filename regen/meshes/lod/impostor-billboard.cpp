@@ -143,15 +143,15 @@ void ImpostorBillboard::createResources() {
 		// TODO: could use GPU-only storage here, but then need to use setBufferData() instead of setUniformData()
 		snapshotDirs_ = ref_ptr<ShaderInput4f>::alloc("snapshotDirs", numSnapshotViews_);
 		snapshotDirs_->setUniformUntyped();
-		impostorBuffer_->addBlockInput(snapshotDirs_);
+		impostorBuffer_->addStagedInput(snapshotDirs_);
 
 		snapshotOrthoBounds_ = ref_ptr<ShaderInput4f>::alloc("snapshotOrthoBounds", numSnapshotViews_);
 		snapshotOrthoBounds_->setUniformUntyped();
-		impostorBuffer_->addBlockInput(snapshotOrthoBounds_);
+		impostorBuffer_->addStagedInput(snapshotOrthoBounds_);
 
 		snapshotDepthRanges_ = ref_ptr<ShaderInput2f>::alloc("snapshotDepthRanges", numSnapshotViews_);
 		snapshotDepthRanges_->setUniformUntyped();
-		impostorBuffer_->addBlockInput(snapshotDepthRanges_);
+		impostorBuffer_->addStagedInput(snapshotDepthRanges_);
 
 		snapshotState_->setInput(impostorBuffer_);
 		setInput(impostorBuffer_);

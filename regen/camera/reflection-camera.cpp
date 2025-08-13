@@ -51,7 +51,7 @@ ReflectionCamera::ReflectionCamera(
 
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	sh_clipPlane_->setUniformData(Vec4f::zero());
-	cameraBlock_->addBlockInput(sh_clipPlane_);
+	cameraBlock_->addStagedInput(sh_clipPlane_);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
 	reflectionUpdater_->startAnimation();
@@ -88,7 +88,7 @@ ReflectionCamera::ReflectionCamera(
 			norWorld_.dot(posWorld_));
 	sh_clipPlane_ = ref_ptr<ShaderInput4f>::alloc("clipPlane");
 	sh_clipPlane_->setUniformData(clipPlane_[0]);
-	cameraBlock_->addBlockInput(sh_clipPlane_);
+	cameraBlock_->addStagedInput(sh_clipPlane_);
 
 	reflectionUpdater_ = ref_ptr<ReflectionUpdater>::alloc(this);
 	reflectionUpdater_->startAnimation();

@@ -28,8 +28,8 @@ BBoxBuffer::BBoxBuffer(
 {
 	// The parameters of our bounding box buffer or the boundaries encoded as integers.
 	// Integers are used for atomic operations in the compute shader.
-	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMin"));
-	addBlockInput(ref_ptr<ShaderInput4i>::alloc("bboxMax"));
+	addStagedInput(ref_ptr<ShaderInput4i>::alloc("bboxMin"));
+	addStagedInput(ref_ptr<ShaderInput4i>::alloc("bboxMax"));
 
 	// configure storage access:
 	// - use persistent coherent mapping for the staging buffer, i.e. keep read buffer mapped
@@ -81,7 +81,7 @@ bool BBoxBuffer::updateBoundingBox() {
 				*drawBufferRange_.get(),
 				0u)) {
 			REGEN_ERROR("Unable to read bounding box buffer data.");
-			isBlockValid_ = false;
+			isBufferValid_ = false;
 			return false;
 		}
 	}

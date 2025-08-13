@@ -110,8 +110,8 @@ void PrefixScan::createHierarchicalPass() {
 			"BlockOffsetsBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
-		blockOffsetsBuffer_->addBlockInput(ref_ptr<ShaderInput1ui>::alloc("blockOffsets", numBlocks));
-		blockOffsetsBuffer_->blockInputs()[0].in_->set_forceArray(true);
+		blockOffsetsBuffer_->addStagedInput(ref_ptr<ShaderInput1ui>::alloc("blockOffsets", numBlocks));
+		blockOffsetsBuffer_->stagedInputs()[0].in_->set_forceArray(true);
 		blockOffsetsBuffer_->update();
 	}
 	{ // pass 1: local offsets
@@ -185,7 +185,7 @@ void PrefixScan::updateHierarchicalPass() {
 	// need to enforce power of two below
 	auto numBlocks2 = math::nextPow2(numBlocks);
 	{ // global memory for the offsets -> resize to numBlocks
-		auto &offsets = blockOffsetsBuffer_->blockInputs()[0].in_;
+		auto &offsets = blockOffsetsBuffer_->stagedInputs()[0].in_;
 		auto oldNumBlocks = offsets->numArrayElements();
 		if (oldNumBlocks != numBlocks) {
 			offsets->set_numArrayElements(numBlocks);
