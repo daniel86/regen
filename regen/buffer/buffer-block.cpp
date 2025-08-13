@@ -53,42 +53,6 @@ BufferBlock::BufferBlock(
 #endif
 }
 
-BufferBlock::BufferBlock(
-			const BufferBlock &other,
-			const std::string &forcedBlockName,
-			const std::string &inputSuffixToAdd)
-		: BufferObject(other),
-		  ShaderInput(
-		  		forcedBlockName.empty() ? other.name() : forcedBlockName,
-		  		GL_INVALID_ENUM, 0, 0, 0, false),
-		  blockQualifier_(other.blockQualifier_),
-		  bindingIndex_(other.bindingIndex_),
-		  hasClientData_(other.hasClientData_),
-		  isBlockValid_(other.isBlockValid_),
-		  inputs_(other.inputs_),
-		  drawBufferRef_(other.drawBufferRef_),
-		  drawBufferRange_(other.drawBufferRange_),
-		  requiredSize_(other.requiredSize_),
-		  estimatedSize_(other.estimatedSize_),
-		  updatedSize_(other.updatedSize_),
-		  stamp_(other.stamp_),
-		  blockInputs_(other.blockInputs_),
-		  stagingFlags_(other.stagingFlags_),
-		  userDefinedBufferingMode_(other.userDefinedBufferingMode_),
-		  shared_(other.shared_) {
-	// rename the inputs if a prefix is given
-	if (!inputSuffixToAdd.empty()) {
-		for (uint32_t inputIdx = 0; inputIdx < inputs_.size(); ++inputIdx) {
-			inputs_[inputIdx].name_ += inputSuffixToAdd;
-		}
-	}
-	clientBuffer_ = other.clientBuffer_;
-	memoryLayout_ = other.memoryLayout_;
-	enableInput_ = [this](GLint loc) { enableBufferBlock(loc); };
-	isBufferBlock_ = true;
-	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
-}
-
 static std::string getName(const BufferObject &other, const std::string &name) {
 	if (name.empty()) {
 		auto *block = dynamic_cast<const BufferBlock *>(&other);
