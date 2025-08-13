@@ -31,7 +31,7 @@ public:
 
 	void call(EventObject *evObject, EventData *) override {
 		auto *app = (Scene *) evObject;
-		auto winSize = app->windowViewport()->getVertex(0);
+		auto winSize = app->screen()->viewport();
 		fboState_->resize(winSize.r.x, winSize.r.y);
 	}
 protected:
@@ -438,7 +438,7 @@ void MeshViewerWidget::gl_loadScene() {
 	app_->renderTree()->addChild(sceneRoot_);
 
 	// enable user camera
-	userCamera_ = createUserCamera(app_->windowViewport()->getVertex(0).r);
+	userCamera_ = createUserCamera(app_->screen()->viewport().r);
 	sceneRoot_->state()->joinStates(userCamera_);
 
 	// enable model transformation
@@ -463,19 +463,16 @@ void MeshViewerWidget::gl_loadScene() {
 	sceneLight_[0]->setDirection(0, Vec3f(0.0f, 1.0f, 0.0f).normalize());
 	sceneLight_[0]->setDiffuse(0, Vec3f(0.3f, 0.3f, 0.3f));
 	sceneLight_[0]->setSpecular(0, Vec3f(0.0f));
-	sceneLight_[0]->updateShaderData();
 
 	sceneLight_[1] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	sceneLight_[1]->setDirection(0, Vec3f(-1.0f, 0.0f, 0.0f).normalize());
 	sceneLight_[1]->setDiffuse(0, Vec3f(0.4f, 0.4f, 0.4f));
 	sceneLight_[1]->setSpecular(0, Vec3f(0.0f));
-	sceneLight_[1]->updateShaderData();
 
 	sceneLight_[2] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	sceneLight_[2]->setDirection(0, Vec3f(1.0f, 1.0f, 0.0f).normalize());
 	sceneLight_[2]->setDiffuse(0, Vec3f(0.4f, 0.4f, 0.4f));
 	sceneLight_[2]->setSpecular(0, Vec3f(0.0f));
-	sceneLight_[2]->updateShaderData();
 
 	shadingState->addLight(sceneLight_[0]);
 	shadingState->addLight(sceneLight_[1]);
@@ -484,7 +481,7 @@ void MeshViewerWidget::gl_loadScene() {
 
 	// finally, enable a blit state to copy the framebuffer to the screen
 	auto blit = ref_ptr<BlitToScreen>::alloc(
-			fbo, app_->windowViewport(), GL_COLOR_ATTACHMENT0);
+			fbo, app_->screen(), GL_COLOR_ATTACHMENT0);
 	// NOTE: must use nearest with MSAA
 	blit->set_filterMode(GL_NEAREST);
 	sceneRoot_->state()->joinStates(blit);
@@ -494,7 +491,7 @@ void MeshViewerWidget::gl_loadScene() {
 	app_->connect(Scene::RESIZE_EVENT, ref_ptr<FBOResizer>::alloc(fboState));
 	// Update frustum when window size changes
 	app_->connect(Scene::RESIZE_EVENT,
-				  ref_ptr<ProjectionUpdater>::alloc(userCamera_, app_->windowViewport()));
+				  ref_ptr<ProjectionUpdater>::alloc(userCamera_, app_->screen()));
 
 	AnimationManager::get().resume();
 	REGEN_INFO("Scene Loaded.");
@@ -512,7 +509,6 @@ void MeshViewerWidget::transformMesh(GLdouble dt) {
 	mat.translate(meshOrigin_);
 	mat.scale(Vec3f(meshScale_));
 	modelTransform_->setModelMat(0, mat);
-	modelTransform_->updateShaderData();
 }
 
 void MeshViewerWidget::toggleInputsDialog() {

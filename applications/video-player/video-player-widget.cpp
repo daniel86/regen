@@ -137,7 +137,7 @@ public:
 
 	void call(EventObject *evObject, EventData *) override {
 		auto *app = (Scene *) evObject;
-		auto winSize = app->windowViewport()->getVertex(0);
+		auto winSize = app->screen()->viewport();
 		fboState_->resize(winSize.r.x * wScale_, winSize.r.y * hScale_);
 	}
 
@@ -147,7 +147,7 @@ protected:
 };
 
 void setBlitToScreen(Scene *app, const ref_ptr<FBO> &fbo, GLenum attachment) {
-	ref_ptr<State> blitState = ref_ptr<BlitToScreen>::alloc(fbo, app->windowViewport(), attachment);
+	ref_ptr<State> blitState = ref_ptr<BlitToScreen>::alloc(fbo, app->screen(), attachment);
 	app->renderTree()->addChild(ref_ptr<StateNode>::alloc(blitState));
 }
 
@@ -196,7 +196,7 @@ void VideoPlayerWidget::gl_loadScene() {
 	demuxer_ = vid_->demuxer();
 
 	// create render target
-	auto winSize = app_->windowViewport()->getVertex(0);
+	auto winSize = app_->screen()->viewport();
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.r.x, winSize.r.y);
 	ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB8, GL_UNSIGNED_BYTE);
 	ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);

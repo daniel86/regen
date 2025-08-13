@@ -46,7 +46,7 @@ public:
 
 	void call(EventObject *evObject, EventData *) {
 		auto *app = (Scene *) evObject;
-		auto winSize = app->windowViewport()->getVertex(0);
+		auto winSize = app->screen()->viewport();
 		fboState_->resize(winSize.r.x, winSize.r.y);
 	}
 
@@ -60,7 +60,7 @@ void NoiseWidget::gl_loadScene() {
 	AnimationManager::get().setRootState(app_->renderTree()->state());
 
 	// create render target
-	auto winSize = app_->windowViewport()->getVertex(0).r;
+	auto winSize = app_->screen()->viewport().r;
 	ref_ptr<FBO> fbo = ref_ptr<FBO>::alloc(winSize.x, winSize.y);
 	ref_ptr<Texture> target = fbo->addTexture(1, GL_TEXTURE_2D, GL_RGB, GL_RGB8, GL_UNSIGNED_BYTE);
 	ref_ptr<FBOState> fboState = ref_ptr<FBOState>::alloc(fbo);
@@ -90,7 +90,7 @@ void NoiseWidget::gl_loadScene() {
 
 	//createTextureWidget(app_, texture_, sceneRoot);
 	sceneRoot->state()->joinStates(ref_ptr<BlitToScreen>::alloc(
-			fbo, app_->windowViewport(),
+			fbo, app_->screen(),
 			GL_COLOR_ATTACHMENT0,
 			GL_TRUE));
 	GL_ERROR_LOG();
