@@ -23,15 +23,42 @@ namespace regen {
 	 */
 	class ClientBuffer {
 	public:
+		/**
+		 * @brief The mode of buffering for the client buffer.
+		 */
+		enum Mode { SingleBuffer, DoubleBuffer, AdaptiveBuffer };
+
+		/**
+		 * @brief Constructs a client buffer with the specified mode.
+		 * @param clientBufferMode the mode of buffering to use.
+		 */
 		ClientBuffer();
 
 		virtual ~ClientBuffer();
 
 		ClientBuffer(const ClientBuffer &) = delete;
 
+		/**
+		 * @brief Sets the memory layout of the client buffer.
+		 * @param layout the memory layout to use.
+		 */
 		void setMemoryLayout(BufferMemoryLayout layout) { memoryLayout_ = layout; }
 
+		/**
+		 * @return the memory layout of the client buffer.
+		 */
 		BufferMemoryLayout memoryLayout() const { return memoryLayout_; }
+
+		/**
+		 * @return the mode of buffering for the client buffer.
+		 */
+		Mode clientBufferMode() const { return clientBufferMode_; }
+
+		/**
+		 * Sets the mode of buffering for the client buffer.
+		 * @param mode the mode of buffering to use.
+		 */
+		void setClientBufferMode(Mode mode) { clientBufferMode_ = mode; }
 
 		/**
 		 * @return true if client data is available, i.e. the first data slot is not null.
@@ -239,6 +266,7 @@ namespace regen {
 		void writeUnlockAll(uint32_t writeOffset, uint32_t writeSize) const;
 
 	protected:
+		Mode clientBufferMode_ = AdaptiveBuffer;
 		uint32_t dataSize_ = 0u;
 		uint32_t allocatedSize_ = 0u;
 		// absolute offset wrt. the data owner.
