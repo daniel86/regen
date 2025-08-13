@@ -10,7 +10,6 @@ TBO::TBO(const std::string &name, GLenum texelFormat, const BufferUpdateFlags &h
 	};
 	adoptBufferRange_ = [this](uint32_t requiredSize) {
 		auto ref = adoptBufferRange(requiredSize);
-		REGEN_WARN("Attaching TBO to a buffer range " << this->name());
 		tboTexture_->attach(ref);
 		return ref;
 	};
