@@ -351,9 +351,6 @@ void ImpostorBillboard::updateSnapshotViews() {
 	mappedBuffer3.unmap();
 	impostorBuffer_->clientBuffer()->swapData();
 
-	snapshotDirs_->nextStamp();
-	snapshotOrthoBounds_->nextStamp();
-	snapshotDepthRanges_->nextStamp();
 	impostorBuffer_->update();
 	snapshotCamera_->updateViewProjection1();
 	snapshotCamera_->updateShaderData(0.0f);
