@@ -189,7 +189,6 @@ void PrefixScan::updateHierarchicalPass() {
 		auto oldNumBlocks = offsets->numArrayElements();
 		if (oldNumBlocks != numBlocks) {
 			offsets->set_numArrayElements(numBlocks);
-			offsets->nextStamp();
 			blockOffsetsBuffer_->update();
 		}
 	}

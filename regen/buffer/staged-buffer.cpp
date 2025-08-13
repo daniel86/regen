@@ -254,7 +254,7 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	for (auto &blockInput : stagedInputs_) {
 		hasNewSize = hasNewSize || (blockInput->inputSize != blockInput->input->inputSize());
 		hasClientData = hasClientData && blockInput->input->hasClientData();
-		if (blockInput->input->stampOfWriteData() != lastInputStamp(*blockInput.get())) {
+		if (blockInput->input->stampOfReadData() != lastInputStamp(*blockInput.get())) {
 			updatedSize_ += blockInput->input->inputSize();
 		}
 	}
@@ -297,11 +297,7 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	bool lastChanged = false; // whether the last input changed or not
 	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(stagedInputs_.size()); ++inputIdx) {
 		auto &blockInput = *stagedInputs_[inputIdx].get();
-		// FIXME: Why is stampOfWriteData needed here? Well it causes I guess that we copy at least two times
-		//         and that does the trick? But it should be best to check for read stamp instead I think!
-		//         E.g. the diffuse material color of instanced trees is affected.
-		//         Something must be wrong here....
-		if (blockInput.input->stampOfWriteData() != lastInputStamp(blockInput)) {
+		if (blockInput.input->stampOfReadData() != lastInputStamp(blockInput)) {
 			if (lastChanged) {
 				// this input adds to the current segment
 				appendToDirtyRange(numDirtySegments_ - 1, blockInput, inputIdx);

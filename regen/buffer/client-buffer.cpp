@@ -94,13 +94,28 @@ uint32_t ClientBuffer::swapData(bool force) {
 	int32_t lastReadSlot = lastDataSlot_.load(std::memory_order_relaxed);
 	auto &dirtyLastFrame = dirtyLists_[lastReadSlot];
 
-	if (dataSlots_[1]) {
+	if (!dataSlots_[1]) {
+		// Single-buffered mode, no need to copy data.
+		// Just clear the dirty list for the last read slot.
+		dirtyLastFrame.clear();
+		return 0u;
+	} else if (dirtyLastFrame.empty()) {
 		int32_t lastWriteSlot = 1 - lastReadSlot;
 		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
-		if (dirtyThisFrame.count() == 0 && !force) {
-			// No dirty ranges, nothing to do.
-			return 0u;
+
+		if(!dirtyThisFrame.empty()) {
+			// there was a write this frame -> need to do a swap
+			writeLockAll();
+			lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
+			writeUnlockAll(0u, 0u);
 		}
+
+		return 0u;
+	} else {
+		// There were some dirty ranges in the last frame, we may need to copy the updated data
+		// over to have the full data in place for reading in the next frame.
+		int32_t lastWriteSlot = 1 - lastReadSlot;
+		auto &dirtyThisFrame = dirtyLists_[lastWriteSlot];
 
 		// Merge overlapping segments, and sort along offsets.
 		// TODO: Merging of dirty frames could safely be done across padded regions,
@@ -131,10 +146,11 @@ uint32_t ClientBuffer::swapData(bool force) {
 		// For each write segment with stamp < read segment stamp: set the stamp to read segment stamp,
 		// as we have synced the data above.
 		for (auto &segment: bufferSegments_) {
-			if (segment->dataStamps_[lastWriteSlot] < dataStamps_[lastReadSlot]) {
-				segment->dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
+			if (segment->dataStamps_[lastWriteSlot] < segment->dataStamps_[lastReadSlot]) {
+				segment->dataStamps_[lastWriteSlot] = segment->dataStamps_[lastReadSlot];
 			}
 		}
+		dataStamps_[lastWriteSlot] = dataStamps_[lastReadSlot];
 
 		// Finally swap read and write idx, new read idx should have new data for reading next frame.
 		lastDataSlot_.store(lastWriteSlot, std::memory_order_relaxed);
@@ -147,21 +163,18 @@ uint32_t ClientBuffer::swapData(bool force) {
 		dirtyLastFrame.clear();
 
 		return numCopiesNeeded;
-	} else {
-		// Single-buffered mode, no need to copy data.
-		// Just clear the dirty list for the last read slot.
-		dirtyLastFrame.clear();
-		return 0u;
 	}
 }
 
 void ClientBuffer::nextStamp() const {
-	dataStamps_[0] += 1;
-	dataStamps_[1] += 1;
+	uint32_t stamp0 = std::max(dataStamps_[0], dataStamps_[1])+1;
+	dataStamps_[0] = stamp0;
+	dataStamps_[1] = stamp0;
 	auto *parent = parentBuffer_;
 	while (parent != nullptr) {
-		parent->dataStamps_[0] += 1;
-		parent->dataStamps_[1] += 1;
+		uint32_t stamp1 = std::max(parent->dataStamps_[0], parent->dataStamps_[1])+1;
+		parent->dataStamps_[0] = stamp1;
+		parent->dataStamps_[1] = stamp1;
 		parent = parent->parentBuffer_;
 	}
 }
@@ -569,14 +582,12 @@ void ClientBuffer::resize_DoubleBuffer(
 		}
 		setDataPointer(owner, newDataPtr0, 0);
 		setDataPointer(owner, newDataPtr1, 1);
-		markWrittenTo(0, 0, dataSize_);
-		markWrittenTo(1, 0, dataSize_);
+		markWrittenTo(currentWriteSlot(), 0, dataSize_);
 	} else {
 		if (bufferSegments_.empty()) {
 			dataSlots_[0] = newDataPtr0;
 			dataSlots_[1] = newDataPtr1;
-			markWrittenTo(0, 0, dataSize_);
-			markWrittenTo(1, 0, dataSize_);
+			markWrittenTo(currentWriteSlot(), 0, dataSize_);
 		} else {
 			for (auto &segment: bufferSegments_) {
 				segment->resize_DoubleBuffer(
@@ -812,7 +823,8 @@ void ClientBuffer::createSecondSlot() {
 	// Assign second slot ptr's and offsets to all segments
 	for (auto &segment: bufferSegments_) {
 		segment->setDataPointer(this, data_w + segment->dataOffset_, 1);
+		segment->dataStamps_[1] = segment->dataStamps_[0];
 	}
 
-	markWrittenTo(1, 0, dataSize_);
+	markWrittenTo(currentWriteSlot(), 0, dataSize_);
 }

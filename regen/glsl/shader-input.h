@@ -123,11 +123,6 @@ namespace regen {
 		inline uint32_t stampOfWriteData() const { return clientBuffer_->stampOfWriteData(); }
 
 		/**
-		 * Increment the stamp.
-		 */
-		void nextStamp() { clientBuffer_->nextStamp(); }
-
-		/**
 		 * Set the memory layout of the input.
 		 * @param layout the memory layout of the input.
 		 */

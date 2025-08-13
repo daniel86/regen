@@ -98,18 +98,21 @@ namespace regen {
 		byte *clientData(uint32_t slot) const { return dataSlots_[slot]; }
 
 		/**
-		 * Compare stamps to check if the input data changed.
+		 * @return the stamp of the data that is currently being written to.
+		 */
+		inline uint32_t stampOfWriteData() const { return dataStamps_[1 - lastDataSlot()]; }
+
+		/**
+		 * @return the stamp of the data that is currently being read.
 		 */
 		inline uint32_t stampOfReadData() const { return dataStamps_[lastDataSlot()]; }
-
-		inline uint32_t stampOfWriteData() const { return dataStamps_[1 - lastDataSlot_]; }
 
 		/**
 		 * Returns the current read slot index.
 		 * @return the current read slot index (0 or 1).
 		 */
 		inline uint32_t currentReadSlot() const {
-			return lastDataSlot_.load(std::memory_order_acquire);
+			return dataOwner_->lastDataSlot_.load(std::memory_order_acquire);
 		}
 
 		/**
@@ -120,11 +123,6 @@ namespace regen {
 		inline uint32_t currentWriteSlot() const {
 			return 1 - currentReadSlot();
 		}
-
-		/**
-		 * Increment the stamp.
-		 */
-		void nextStamp() const;
 
 		/**
 		 * Increment the stamp.
@@ -292,6 +290,8 @@ namespace regen {
 		MappedClientData readRange_DoubleBuffer(uint32_t offset, uint32_t size) const;
 
 		int lastDataSlot() const;
+
+		void nextStamp() const;
 
 		bool isCurrentThreadOwnerOfWriteLock(int dataSlot) const;
 

@@ -151,7 +151,6 @@ void ShaderInput::set_numArrayElements(uint32_t v) {
 	}
 	numElements_i_ = static_cast<int32_t>(numElements_ui_);
 	updateAlignment();
-	nextStamp();
 }
 
 void ShaderInput::set_isVertexAttribute(bool isVertexAttribute) {
@@ -246,7 +245,7 @@ void ShaderInput::setInstanceData(GLuint numInstances, GLuint divisor, const byt
 		updateAlignedSize();
 
 		clientBuffer_->resize(inputSize_, data);
-		clientBuffer_->writeUnlockAll(0u, inputSize_);
+		clientBuffer_->writeUnlockAll(0u, 0u);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
@@ -270,7 +269,7 @@ void ShaderInput::setVertexData(GLuint numVertices, const byte *data) {
 		updateAlignedSize();
 
 		clientBuffer_->resize(inputSize_, data);
-		clientBuffer_->writeUnlockAll(0u, inputSize_);
+		clientBuffer_->writeUnlockAll(0u, 0u);
 	} else if (data) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_WRITE);
 		std::memcpy(mapped.w, data, dataSize_bytes);
