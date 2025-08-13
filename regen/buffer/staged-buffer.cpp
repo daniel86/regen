@@ -6,9 +6,10 @@
 
 using namespace regen;
 
-//#define BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
-//#define BUFFER_BLOCK_DISABLE_EXPLICIT_FLUSHING
-//#define BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
+//#define REGEN_DISABLE_GLOBAL_STAGING
+//#define REGEN_DISABLE_EXPLICIT_FLUSHING
+//#define REGEN_FORCE_IMPLICIT_STAGING
+#define REGEN_FORCE_CLIENT_DOUBLE_BUFFER
 
 uint32_t StagedBuffer::MIN_SEGMENTS_PARTIAL_TEMPORARY = 6;
 float StagedBuffer::MAX_UPDATE_RATIO_PARTIAL_TEMPORARY = 0.33f;
@@ -25,6 +26,9 @@ StagedBuffer::StagedBuffer(
 		  stagingFlags_(target, hints) {
 	memoryLayout_ = memoryLayout;
 	clientBuffer_->setMemoryLayout(memoryLayout_);
+#ifdef REGEN_FORCE_CLIENT_DOUBLE_BUFFER
+	clientBuffer_->setClientBufferMode(ClientBuffer::DoubleBuffer);
+#endif
 
 	shared_ = ref_ptr<Shared>::alloc();
 	shared_->updateRange_ = UPDATE_RATE_RANGE;
@@ -44,7 +48,7 @@ StagedBuffer::StagedBuffer(
 		setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 	}
 	clientBuffer_->setFrameLocked(hints.frequency < BUFFER_UPDATE_PER_DRAW);
-#ifdef BUFFER_BLOCK_FORCE_IMPLICIT_STAGING
+#ifdef REGEN_FORCE_IMPLICIT_STAGING
 	setSyncFlag(BUFFER_SYNC_IMPLICIT_STAGING);
 #endif
 	adoptBufferRange_ = [this](uint32_t requiredSize) {
@@ -473,7 +477,7 @@ void StagedBuffer::resetStagingBuffer(bool removeFromStagingSystem) {
 }
 
 void StagedBuffer::createStagingBuffer() {
-#ifdef BUFFER_BLOCK_DISABLE_GLOBAL_STAGING
+#ifdef REGEN_DISABLE_GLOBAL_STAGING
 	// disable global staging, falling back to local staging buffer.
 	ref_ptr<StagingBuffer> buf;
 #else

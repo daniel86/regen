@@ -42,6 +42,8 @@ ShaderInput::ShaderInput(
 		  bufferStamp_(0),
 		  clientBuffer_(ref_ptr<ClientBuffer>::alloc()),
 		  normalize_(normalize) {
+	// TODO: do not use double buffering by default. remove this line:
+	clientBuffer_->setClientBufferMode(ClientBuffer::DoubleBuffer);
 	elementSize_ = baseSize_ * numArrayElements_;
 	enableAttribute_ = &ShaderInput::enableAttribute_f;
 	updateAlignment();
