@@ -97,7 +97,8 @@ void BufferContainer::createTBO(const NamedShaderInput &namedInput) {
 	texState->shaderDefine(
 			 REGEN_STRING("fetch_" << namedInput.name_ << "(i)"),
 			 REGEN_STRING("tboRead_" << shaderType << "(tbo_" << namedInput.name_ << ", int(i))"));
-	bufferObjectOfInput_[namedInput.in_.get()] = tbo;
+	// FIXME: xxxx
+	//bufferObjectOfInput_[namedInput.in_.get()] = tbo;
 }
 
 void BufferContainer::updateBuffer() {
@@ -140,7 +141,7 @@ void BufferContainer::updateBuffer() {
 	}
 }
 
-ref_ptr<BufferObject> BufferContainer::getBufferObject(const ref_ptr<ShaderInput> &input) {
+ref_ptr<StagedBuffer> BufferContainer::getBufferObject(const ref_ptr<ShaderInput> &input) {
 	return bufferObjectOfInput_[input.get()];
 }
 

@@ -66,7 +66,7 @@ namespace regen {
 		 * @param input the shader input object.
 		 * @return the buffer object.
 		 */
-		ref_ptr<BufferObject> getBufferObject(const ref_ptr<ShaderInput> &input);
+		ref_ptr<StagedBuffer> getBufferObject(const ref_ptr<ShaderInput> &input);
 
 		// Override from State
 		void enable(RenderState *rs) override;
@@ -83,7 +83,7 @@ namespace regen {
 		std::vector<ref_ptr<SSBO>> ssbos_;
 		std::vector<ref_ptr<TBO>> tbos_;
 		std::vector<ref_ptr<TextureBuffer>> textureBuffers_;
-		std::map<ShaderInput*, ref_ptr<BufferObject>> bufferObjectOfInput_;
+		std::map<ShaderInput*, ref_ptr<StagedBuffer>> bufferObjectOfInput_;
 		bool isAllocated_ = true;
 		BufferUpdateFlags bufferUpdateHints_;
 		std::optional<BufferingMode> bufferingMode_;

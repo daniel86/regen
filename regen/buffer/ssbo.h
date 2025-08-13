@@ -54,7 +54,7 @@ namespace regen {
 		 * @param other another buffer object
 		 * @param name name of the new buffer block
 		 */
-		explicit SSBO(const BufferObject &other, const std::string &name="");
+		explicit SSBO(const StagedBuffer &other, const std::string &name="");
 
 		/**
 		 * Sets the memory mask.

@@ -1,7 +1,7 @@
 #ifndef REGEN_STAGING_SYSTEM_H_
 #define REGEN_STAGING_SYSTEM_H_
 
-#include "buffer-block.h"
+#include "staged-buffer.h"
 #include "regen/utility/free-list.h"
 
 // Note: We need to swap client buffers after each copy from
@@ -49,7 +49,7 @@ namespace regen {
 			WRITE_ALMOST_NEVER,
 			ARENA_TYPE_LAST // keep last
 		};
-		using BlockPtr = BufferBlock *;
+		using BlockPtr = StagedBuffer *;
 
 		// each staging buffer segment is aligned to this size.
 		// default is page size.

@@ -268,7 +268,7 @@ namespace regen {
 		// sum of allocated bytes
 		uint32_t allocatedSize_;
 
-		ref_ptr<BufferReference> &adoptBufferRange_(uint32_t numBytes, BufferPool *memoryPool);
+		ref_ptr<BufferReference> &adoptBufferRangeInPool(uint32_t numBytes, BufferPool *memoryPool);
 
 		static BufferPool **bufferPools();
 

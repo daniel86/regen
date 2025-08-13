@@ -10,7 +10,7 @@ SSBO::SSBO(const std::string &name, const BufferUpdateFlags &hints, int memoryMa
 		memoryMask_(memoryMask) {
 }
 
-SSBO::SSBO(const BufferObject &other, const std::string &name) :
+SSBO::SSBO(const StagedBuffer &other, const std::string &name) :
 		BufferBlock(other, name) {
 	flags_.target = SHADER_STORAGE_BUFFER;
 	glTarget_ = glBufferTarget(flags_.target);

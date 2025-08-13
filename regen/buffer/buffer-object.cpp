@@ -107,7 +107,7 @@ void BufferObject::destroyMemoryPools() {
 	}
 }
 
-ref_ptr<BufferReference> &BufferObject::adoptBufferRange_(uint32_t numBytes, BufferPool *memoryPool) {
+ref_ptr<BufferReference> &BufferObject::adoptBufferRangeInPool(uint32_t numBytes, BufferPool *memoryPool) {
 	if (numBytes == 0) {
 		REGEN_WARN("Attempting to allocate buffer of 0 bytes.");
 		return BufferReference::nullReference();
@@ -145,7 +145,7 @@ ref_ptr<BufferReference> &BufferObject::adoptBufferRange_(uint32_t numBytes, Buf
 ref_ptr<BufferReference> &BufferObject::adoptBufferRange(uint32_t numBytes) {
 	BufferStorageMode storageMode = getBufferStorageMode(flags_);
 	BufferPool *memoryPool = bufferPool(flags_.target, storageMode);
-	return adoptBufferRange_(numBytes, memoryPool);
+	return adoptBufferRangeInPool(numBytes, memoryPool);
 }
 
 ref_ptr<BufferReference> BufferObject::adoptBufferRange(uint32_t numBytes, BufferPool *memoryPool) {
