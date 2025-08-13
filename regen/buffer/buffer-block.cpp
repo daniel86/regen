@@ -48,12 +48,14 @@ void BufferBlock::enableBufferBlock(GLint loc) {
 		update();
 	}
 	rs->bufferRange(glTarget_).apply(loc, *drawBufferRange_.get());
-	// mark the point of accessing a mapped buffer segment for draw operation,
-	// which is needed to avoid writing to the buffer while it is being read.
-	// only used in implicit staging mode, as the fence point is set after the
-	// staging-to-main copy in explicit staging mode.
-	// note: this is used in global and local staging modes.
-	shared_->stagingBuffer_->markDrawAccessed(*drawBufferRange_.get());
+	if (shared_->stagingBuffer_.get()) {
+		// mark the point of accessing a mapped buffer segment for draw operation,
+		// which is needed to avoid writing to the buffer while it is being read.
+		// only used in implicit staging mode, as the fence point is set after the
+		// staging-to-main copy in explicit staging mode.
+		// note: this is used in global and local staging modes.
+		shared_->stagingBuffer_->markDrawAccessed(*drawBufferRange_.get());
+	}
 	bindingIndex_ = loc;
 }
 
