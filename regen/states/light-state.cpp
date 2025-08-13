@@ -79,7 +79,6 @@ bool Light::updateConeMatrix() {
 			std::max(lightDirection_->stampOfReadData(),
 			std::max(lightConeAngles_->stampOfReadData(), lightPosition_->stampOfReadData())));
 	if (lightConeStamp_ == stamp) return false; // no update needed
-	REGEN_INFO("Update cone matrix");
 
 	// Note: cone opens in positive z direction.
 	// FIXME: where are num instances set for light? probably best to hook resize there!
