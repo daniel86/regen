@@ -261,11 +261,9 @@ ref_ptr<Proctree::Tree> ProcTree::computeMediumDetailTree() {
 	medTree->mProperties = handle.mProperties;
 	auto &medProps = medTree->mProperties;
 	auto &highProps = handle.mProperties;
-	//medProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.9f;
-	//medProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.9f;
 	medProps.mTwigScale = highProps.mTwigScale * 1.25f;
 	// reduce number of small branches
-	medProps.mLevels = std::max(2, highProps.mLevels - 1);
+	medProps.mLevels = std::max(2, highProps.mLevels - 2);
 	return medTree;
 }
 
@@ -274,11 +272,9 @@ ref_ptr<Proctree::Tree> ProcTree::computeLowDetailTree() {
 	lowTree->mProperties = handle.mProperties;
 	auto &lowProps = lowTree->mProperties;
 	auto &highProps = handle.mProperties;
-	//lowProps.mLengthFalloffFactor = highProps.mLengthFalloffFactor * 0.8f;
-	//lowProps.mLengthFalloffPower = highProps.mLengthFalloffPower * 0.8f;
 	lowProps.mTwigScale = highProps.mTwigScale * 1.75f;
 	// reduce number of small branches
-	lowProps.mLevels = std::max(1, highProps.mLevels - 3);
+	lowProps.mLevels = std::max(1, highProps.mLevels - 5);
 	return lowTree;
 }
 

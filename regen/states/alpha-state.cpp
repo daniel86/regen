@@ -58,8 +58,8 @@ ref_ptr<AlphaState> AlphaState::load(LoadingContext &ctx, scene::SceneInputNode 
 		alpha->setClipThreshold(input.getValue<float>("clip-min", 0.0f),
 				input.getValue<float>("clip-max", 1.0f));
 	}
-	if (input.hasAttribute("force-early-depth-test")) {
-		alpha->setForceEarlyDepthTest(input.getValue<bool>("force-early-depth-test", false));
+	if (input.hasAttribute("early-depth-test")) {
+		alpha->setForceEarlyDepthTest(input.getValue<bool>("early-depth-test", false));
 	}
 	return alpha;
 }

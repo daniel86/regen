@@ -13,8 +13,7 @@ const vec2 in_wind = vec2(1.0, 0.0);
 
 uniform sampler2D in_windFlow;
 
-vec2 windAtPosition(vec3 posWorld)
-{
+vec2 windAtPosition(vec3 posWorld) {
 #ifdef HAS_windFlow
     vec2 windFlow_uv =
         // map position to "wind flow space"

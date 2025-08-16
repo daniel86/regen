@@ -124,7 +124,13 @@ bool ShaderInputWidget::handleNode(
 		const ref_ptr<StateNode> &node,
 		QTreeWidgetItem *parent) {
 	bool isEmpty = !isValidState(node->state().get());
-	if (node->isHidden()) {
+
+	bool forceShow = false;
+	if (node->name() == "lod-impostor") {
+		// always show impostor nodes
+		forceShow = true;
+	}
+	if (!forceShow && node->isHidden()) {
 		// do not show hidden nodes
 		return false;
 	}
