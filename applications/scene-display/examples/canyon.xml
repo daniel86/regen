@@ -308,9 +308,9 @@
             lods="3,2,1"
             lod-thresholds="10.0, 50.0, 100.0"
             preset="fir">
-        <shader mesh-index="0" key="regen.models.mesh" />
-        <shader mesh-index="1" key="regen.models.mesh" gs="regen.weather.wind.wavingQuad">
-            <define key="HAS_GS_TRANSFORM" value="TRUE"/>
+        <shader mesh-index="0" key="regen.models.mesh"/>
+        <shader mesh-index="1" key="regen.models.mesh">
+            <define key="POS_WORLD_TRANSFER_KEY" value="regen.weather.wind.wavingBaseTransfer"/>
         </shader>
         <transform id="tree-tf" update-frequency="NEVER">
             <set mode="plane"

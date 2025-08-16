@@ -46,96 +46,14 @@ vec2 windAtPosition(vec3 posWorld)
 }
 #endif // REGEN_windAtPosition_Included_
 
--- wavingQuad.gs
-#include regen.states.camera.defines
-#include regen.defines.all
-layout(triangles) in;
-layout(triangle_strip, max_vertices=3) out;
-#if RENDER_LAYER > 1
-    #ifdef USE_GS_LAYERED_RENDERING
-#error "Using geometry shader layered rendering is not supported for waving quads."
-    #endif
-#endif
-
-in vec2 in_texco0[ ];
-out vec3 out_posWorld;
-out vec3 out_posEye;
-#if RENDER_LAYER > 1
-flat in int in_layer[ ];
-#endif
-flat out int out_layer;
-
-#include regen.states.camera.input
-#include regen.states.camera.transformWorldToEye
-#include regen.states.camera.transformEyeToScreen
-
-#include regen.models.sprite.applyForce
+-- wavingBaseTransfer
+#ifndef REGEN_wavingBaseTransfer_Included_
+#define REGEN_wavingBaseTransfer_Included_
+#define POS_MODEL_TRANSFER_NAME wavingBaseTransfer
+#include regen.models.sprite.applyForceBase
 #include regen.weather.wind.windAtPosition
-
-#define HANDLE_IO(i)
-
-void emitVertex(vec3 posWorld, int index, int layer) {
-    vec4 posEye = transformWorldToEye(vec4(posWorld,1.0),layer);
-    out_posWorld = posWorld.xyz;
-    out_posEye = posEye.xyz;
-    gl_Position = transformEyeToScreen(posEye,layer);
-    #if RENDER_LAYER > 1
-    gl_Layer = layer;
-    #endif
-    out_layer = layer;
-    HANDLE_IO(index);
-    // TODO: also rotate the normal
-    EmitVertex();
+void wavingBaseTransfer(inout vec3 posWorld) {
+    vec2 wind = windAtPosition(posWorld);
+    applyForceBase(posWorld, in_basePos, wind);
 }
-
-int addPoint(inout vec3 quadPos[4], int vIndex) {
-    int quadIndex;
-    if (in_texco0[vIndex].y > 0.5 && in_texco0[vIndex].x < 0.5) {
-        quadIndex = 0;
-    } else if (in_texco0[vIndex].y > 0.5 && in_texco0[vIndex].x > 0.5) {
-        quadIndex = 2;
-    } else if (in_texco0[vIndex].x < 0.5) {
-        quadIndex = 1;
-    } else {
-        quadIndex = 3;
-    }
-    quadPos[quadIndex] = gl_in[vIndex].gl_Position.xyz;
-    return quadIndex;
-}
-
-void wavingQuad(int layer) {
-    // A list of quad points. We assume here that the "bottom" points
-    // of the quad are indicated by a uv coordinate of (_,0).
-    // Below we need to figure out if v1,..,v3 are the bottom points
-    // or at the top, and compute the remaining point.
-    vec3 quadPos[4] = vec3[4](vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));
-    int vIndex0 = addPoint(quadPos, 0);
-    int vIndex1 = addPoint(quadPos, 1);
-    int vIndex2 = addPoint(quadPos, 2);
-    int missingIndex = 6 - vIndex0 - vIndex1 - vIndex2;
-    if (missingIndex == 0) {
-        quadPos[0] = quadPos[1] + quadPos[2] - quadPos[3];
-    } else if (missingIndex == 1) {
-        quadPos[1] = quadPos[0] + quadPos[3] - quadPos[2];
-    } else if (missingIndex == 2) {
-        quadPos[2] = quadPos[3] + quadPos[0] - quadPos[1];
-    } else {
-        quadPos[3] = quadPos[2] + quadPos[1] - quadPos[0];
-    }
-    vec3 bottomCenter = 0.5*(quadPos[0] + quadPos[2]);
-    vec2 wind = windAtPosition(bottomCenter);
-    applyForce(quadPos, wind);
-
-    emitVertex(quadPos[vIndex0], 0, layer);
-    emitVertex(quadPos[vIndex1], 1, layer);
-    emitVertex(quadPos[vIndex2], 2, layer);
-    EndPrimitive();
-}
-
-void main() {
-    #if RENDER_LAYER > 1
-    wavingQuad(in_layer[0]);
-    #else
-    wavingQuad(0);
-    #endif
-}
+#endif

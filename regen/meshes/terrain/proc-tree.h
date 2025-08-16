@@ -65,6 +65,7 @@ namespace regen {
 		struct TreeMesh {
 			ref_ptr<Mesh> mesh;
 			ref_ptr<ShaderInput3f> pos;
+			ref_ptr<ShaderInput3f> basePos;
 			ref_ptr<ShaderInput3f> nor;
 			ref_ptr<ShaderInput4f> tan;
 			ref_ptr<ShaderInput2f> texco;
@@ -99,6 +100,8 @@ namespace regen {
 		void updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const;
 
 		static void computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset, Vec4f *tanData);
+
+		static void computeBasePos(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset, Vec3f *basePosData);
 
 		static ProcTree::ProcMesh trunkProcMesh(Proctree::Tree &x);
 

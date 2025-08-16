@@ -9,7 +9,6 @@ void applyForce(inout vec3 quadPos[4], vec2 force) {
     // Calculate the rotation axis and angle
     vec3 axis = normalize(vec3(force.y, 0.0, -force.x)); // = normalize(cross(UP, vec3(force.x, 0.0, force.y)));
     float angle = min(1.0, length(force)) * 1.5707963267948966 * in_stiffness;
-
     // Calculate the rotation matrix
     float sa = sin(angle);
     float ca = cos(angle);
@@ -18,10 +17,30 @@ void applyForce(inout vec3 quadPos[4], vec2 force) {
         axis.z * sa,                            ca,                 -axis.x * sa,
         axis.z * axis.x * (1.0 - ca),           axis.x * sa,        ca + axis.z * axis.z * (1.0 - ca)
     );
-
     // Apply the rotation to the top points using the bottom points as the pivot
     quadPos[1] = quadPos[0] + rotationMatrix * (quadPos[1] - quadPos[0]);
     quadPos[3] = quadPos[2] + rotationMatrix * (quadPos[3] - quadPos[2]);
+}
+#endif
+
+-- applyForceBase
+#ifndef REGEN_applyForceBase_defined_
+#define2 REGEN_applyForceBase_defined_
+const float in_stiffness = 1.0;
+void applyForceBase(inout vec3 quadPos, vec3 basePos, vec2 force) {
+    // Calculate the rotation axis and angle
+    vec3 axis = normalize(vec3(force.y, 0.0, -force.x)); // = normalize(cross(UP, vec3(force.x, 0.0, force.y)));
+    float angle = min(1.0, length(force)) * 1.5707963267948966 * in_stiffness;
+    // Calculate the rotation matrix
+    float sa = sin(angle);
+    float ca = cos(angle);
+    mat3 rotationMatrix = mat3(
+        ca + axis.x * axis.x * (1.0 - ca),      -axis.z * sa,       axis.x * axis.z * (1.0 - ca),
+        axis.z * sa,                            ca,                 -axis.x * sa,
+        axis.z * axis.x * (1.0 - ca),           axis.x * sa,        ca + axis.z * axis.z * (1.0 - ca)
+    );
+    // Apply the rotation to the top points using the bottom points as the pivot
+    quadPos = basePos + rotationMatrix * (quadPos - basePos);
 }
 #endif
 

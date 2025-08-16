@@ -283,14 +283,11 @@
             <node id="tree1-twig">
                 <alpha discard-threshold="0.25" early-depth-test="1" />
                 <input name="matEmission" type="vec3" value="0.0,0.02,0.0"/>
-                <!-- transform mesh in geometry shader -->
-                <define key="HAS_GS_TRANSFORM" value="TRUE"/>
+                <define key="POS_WORLD_TRANSFER_KEY" value="regen.weather.wind.wavingBaseTransfer"/>
                 <texture name="windFlow" id="wind-flowmap"/>
                 <input name="stiffness" type="float" value="0.5"/>
                 <!-- draw the mesh -->
-                <mesh id="tree-mesh" mesh-index="1"
-                        shader="regen.models.mesh" gs="regen.weather.wind.wavingQuad"
-                        update-visibility="0"/>
+                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" update-visibility="0"/>
             </node>
         </node>
         <node id="tree1-pot">

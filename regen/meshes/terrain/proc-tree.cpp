@@ -50,6 +50,7 @@ ProcTree::ProcTree() {
 	twig.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BufferUpdateFlags::NEVER);
 	twig.indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	twig.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
+	twig.basePos = ref_ptr<ShaderInput3f>::alloc("basePos");
 	twig.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	twig.tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	twig.texco = ref_ptr<ShaderInput2f>::alloc("texco0");
@@ -302,6 +303,74 @@ void ProcTree::computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vert
 	}
 }
 
+static int addQuadPoint(Vec3f *quadPos, const Vec3f &pos, const Vec2f &uv) {
+    int quadIndex;
+    if (uv.y > 0.5 && uv.x < 0.5) {
+        quadIndex = 0;
+    } else if (uv.y > 0.5 && uv.x > 0.5) {
+        quadIndex = 2;
+    } else if (uv.x < 0.5) {
+        quadIndex = 1;
+    } else {
+        quadIndex = 3;
+    }
+    quadPos[quadIndex] = pos;
+    return quadIndex;
+}
+
+void ProcTree::computeBasePos(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset, Vec3f *basePosData) {
+	for (int i = 0; i < procMesh.mFaceCount; i++) {
+		auto &v0 = *((Vec3f *) &procMesh.mVert[procMesh.mFace[i].x]);
+		auto &v1 = *((Vec3f *) &procMesh.mVert[procMesh.mFace[i].y]);
+		auto &v2 = *((Vec3f *) &procMesh.mVert[procMesh.mFace[i].z]);
+		auto &uv0 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].x]);
+		auto &uv1 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].y]);
+		auto &uv2 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].z]);
+
+		Vec3f quadPos[4] = { Vec3f::zero(), Vec3f::zero(),
+							 Vec3f::zero(), Vec3f::zero() };
+		int vIndex0 = addQuadPoint(quadPos, v0, uv0);
+		int vIndex1 = addQuadPoint(quadPos, v1, uv1);
+		int vIndex2 = addQuadPoint(quadPos, v2, uv2);
+		int missingIndex = 6 - vIndex0 - vIndex1 - vIndex2;
+		if (missingIndex == 0) {
+			quadPos[0] = quadPos[1] + quadPos[2] - quadPos[3];
+		} else if (missingIndex == 1) {
+			quadPos[1] = quadPos[0] + quadPos[3] - quadPos[2];
+		} else if (missingIndex == 2) {
+			quadPos[2] = quadPos[3] + quadPos[0] - quadPos[1];
+		} else {
+			quadPos[3] = quadPos[2] + quadPos[1] - quadPos[0];
+		}
+		// TODO: why not use the bottom center as base point for everybody?
+		// Vec3f bottomCenter = (quadPos[0] + quadPos[2])*0.5f;
+		// first base point
+		if (vIndex0 == 0 || vIndex0 == 2) {
+			basePosData[vertexOffset + procMesh.mFace[i].x] = v0;
+		} else if (vIndex0 == 1) { // quadPos[0] is base point
+			basePosData[vertexOffset + procMesh.mFace[i].x] = quadPos[0];
+		} else { // quadPos[2] is base point
+			basePosData[vertexOffset + procMesh.mFace[i].x] = quadPos[2];
+		}
+		// second base point
+		if (vIndex1 == 0 || vIndex1 == 2) {
+			basePosData[vertexOffset + procMesh.mFace[i].y] = v1;
+		} else if (vIndex1 == 1) { // quadPos[0] is base point
+			basePosData[vertexOffset + procMesh.mFace[i].y] = quadPos[0];
+		} else { // quadPos[2] is base point
+			basePosData[vertexOffset + procMesh.mFace[i].y] = quadPos[2];
+		}
+		// third base point
+		if (vIndex2 == 0 || vIndex2 == 2) {
+			basePosData[vertexOffset + procMesh.mFace[i].z] = v2;
+		} else if (vIndex2 == 1) { // quadPos[0] is base point
+			basePosData[vertexOffset + procMesh.mFace[i].z] = quadPos[0];
+		} else { // quadPos[2] is base point
+			basePosData[vertexOffset + procMesh.mFace[i].z] = quadPos[2];
+		}
+	}
+}
+
 void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const {
 	std::vector<Mesh::MeshLOD> lodLevels;
 	auto &lod0 = procLODs[0];
@@ -311,7 +380,7 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 		numIndices += lod.mFaceCount * 3;
 	}
 
-	if (!useLODs_) {
+	if (procLODs.size() == 1) {
 		// use proc tree data directly
 		treeMesh.indices->setVertexData(numIndices,
 										reinterpret_cast<const unsigned char *>(&lod0.mFace[0].x));
@@ -321,9 +390,18 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 									reinterpret_cast<const unsigned char *>(&lod0.mNormal[0].x));
 		treeMesh.texco->setVertexData(numVertices,
 									  reinterpret_cast<const unsigned char *>(&lod0.mUV[0].u));
+
 		treeMesh.tan->setVertexData(numVertices);
 		auto v_tan = treeMesh.tan->mapClientData<float>(BUFFER_GPU_WRITE);
 		computeTan(treeMesh, lod0, 0, (Vec4f*)v_tan.w.data());
+		v_tan.unmap();
+
+		if (treeMesh.basePos.get()) {
+			treeMesh.basePos->setVertexData(numVertices);
+			auto v_basePos = treeMesh.basePos->mapClientData<float>(BUFFER_GPU_WRITE);
+			computeBasePos(treeMesh, lod0, 0, (Vec3f*)v_basePos.w.data());
+			v_basePos.unmap();
+		}
 	} else {
 		// allocate memory then copy each LOD into the vertex data array
 		treeMesh.indices->setVertexData(numIndices);
@@ -375,6 +453,9 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 	treeMesh.mesh->begin(Mesh::INTERLEAVED);
 	auto indexRef = treeMesh.mesh->setIndices(treeMesh.indices, numVertices);
 	treeMesh.mesh->setInput(treeMesh.pos);
+	if (treeMesh.basePos.get()) {
+		treeMesh.mesh->setInput(treeMesh.basePos);
+	}
 	treeMesh.mesh->setInput(treeMesh.nor);
 	treeMesh.mesh->setInput(treeMesh.tan);
 	treeMesh.mesh->setInput(treeMesh.texco);
