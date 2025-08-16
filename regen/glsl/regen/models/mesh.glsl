@@ -404,6 +404,7 @@ in float in_brightness;
 #define FS_NO_OUTPUT
 #include regen.models.mesh.fs-shading
     #else
+layout(early_fragment_tests) in;
 void main() {
     // enforce depth writing. This seems redundant, but is necessary
     // for some drivers (i.e. NVIDIA) that may prune the fragment shader entirely

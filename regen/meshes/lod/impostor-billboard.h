@@ -225,7 +225,7 @@ namespace regen {
 		Vec4f *m_viewBounds_ = nullptr;
 		Vec2f *m_viewDepth_ = nullptr;
 
-		void updateAttributes();
+		void updateExtrudeAttributes();
 
 		void createResources();
 

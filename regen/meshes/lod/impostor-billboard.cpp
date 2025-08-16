@@ -5,13 +5,42 @@
 using namespace regen;
 
 #undef DEBUG_SNAPSHOT_VIEWS
+#define USE_POINT_EXTRUSION
+
+#ifndef USE_POINT_EXTRUSION
+static ref_ptr<Rectangle> getImpostorQuad() {
+	static ref_ptr<Rectangle> mesh;
+	if (mesh.get() == nullptr) {
+		Rectangle::Config cfg;
+		cfg.centerAtOrigin = GL_FALSE;
+		cfg.isNormalRequired = GL_FALSE;
+		cfg.isTangentRequired = GL_FALSE;
+		cfg.isTexcoRequired = GL_FALSE;
+		cfg.levelOfDetails = {0};
+		cfg.posScale = Vec3f(1.0f);
+		cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
+		cfg.texcoScale = Vec2f(1.0);
+		cfg.translation = Vec3f(-0.5f, -0.5f, 0.0f);
+		mesh = ref_ptr<Rectangle>::alloc(cfg);
+		mesh->updateAttributes();
+	}
+	return mesh;
+}
+#endif
 
 ImpostorBillboard::ImpostorBillboard()
+#ifdef USE_POINT_EXTRUSION
 		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER),
+#else
+		: Mesh(getImpostorQuad()),
+#endif
 		  snapshotState_(ref_ptr<State>::alloc()) {
 	depthOffset_ = createUniform<ShaderInput1f>("depthOffset", 0.5f);
 	modelOrigin_ = createUniform<ShaderInput3f>("modelOrigin", Vec3f::zero());
-	updateAttributes();
+#ifdef USE_POINT_EXTRUSION
+	shaderDefine("USE_POINT_EXTRUSION", "TRUE");
+	updateExtrudeAttributes();
+#endif
 	// note: we generally do not need culling when rendering impostor billboards
 	//       as they only have a two front face.
 	//       this is also important for the billboards to be rendered into shadow maps.
@@ -64,7 +93,8 @@ void ImpostorBillboard::createShader(const ref_ptr<StateNode> &parentNode) {
 	Mesh::createShader(parentNode, shaderConfigurer.cfg());
 }
 
-void ImpostorBillboard::updateAttributes() {
+void ImpostorBillboard::updateExtrudeAttributes() {
+#ifdef USE_POINT_EXTRUSION
 	if (hasAttributes_) return;
 	auto positionIn = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	Vec3f posData[1] = {Vec3f(0.0f, 0.0f, 0.0f)};
@@ -74,6 +104,7 @@ void ImpostorBillboard::updateAttributes() {
 	setInput(positionIn);
 	end();
 	hasAttributes_ = true;
+#endif
 }
 
 void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> &drawState) {
