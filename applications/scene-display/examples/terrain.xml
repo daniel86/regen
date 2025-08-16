@@ -204,6 +204,18 @@
     <texture id="water-foam" file="res/textures/water/foam2.jpg" wrapping="REPEAT"
              swizzle-g="RED" swizzle-b="RED"/>
 
+    <!-- water surface mesh used for depth rendering and post-processing effects -->
+    <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
+    <mesh id="water-mesh" type="rectangle" lod="0" center="1"
+          use-normal="0" use-texco="0" use-tangent="0"
+          rotation="0.0,0.0,3.1415"
+          scaling="{{far-plane}},1.0,{{far-plane}}"
+          update-frequency="NEVER">
+        <transform update-frequency="NEVER">
+            <translate value="0.0,{{water-level}},-{{far-plane*0.5}}"/>
+        </transform>
+    </mesh>
+
     <block type="ubo" id="WaterUBO" update-frequency="NEVER">
         <input type="vec4" name="normalModifier" value="1.0,2.0,4.0,8.0"/>
         <input type="vec3" name="waterColor" value="0.0078,0.4,0.55"/>
@@ -228,20 +240,13 @@
         <input type="float" name="foamHardness" value="1.0"/>
     </block>
 
-    <!-- water surface mesh used for depth rendering and post-processing effects -->
-    <!-- FIXME: this does not work well when camera is facing downwards, effectively looking behind its position in xz plane. -->
-    <mesh id="water-mesh" type="rectangle" lod="0" center="1"
-          use-normal="0" use-texco="0" use-tangent="0"
-          rotation="0.0,0.0,3.1415"
-          scaling="{{far-plane}},1.0,{{far-plane}}"
-          update-frequency="NEVER">
-        <transform update-frequency="NEVER">
-            <translate value="0.0,{{water-level}},-{{far-plane*0.5}}"/>
-        </transform>
-    </mesh>
-
     <node id="Water-Rendering">
-        <depth test="0" write="0"/>
+        <depth test="1" write="0"/>
+        <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
+        <toggle key="CLIP_DISTANCE0" value="1"/>
+        <toggle key="CLIP_DISTANCE1" value="1"/>
+        <toggle key="CLIP_DISTANCE2" value="1"/>
+        <toggle key="CLIP_DISTANCE3" value="1"/>
 
         <define key="USE_REFRACTION" value="TRUE"/>
         <define key="USE_FOAM" value="TRUE"/>
@@ -260,7 +265,7 @@
         <input name="ReflectionCamera" state="reflection-camera" component="Camera" member-suffix="_Reflection"/>
         <input name="SunLight" state="sky-sun" component="Light" member-suffix="_Sun"/>
 
-        <fullscreen-pass shader="regen.terrain.water.fullscreen"/>
+        <mesh id="water-mesh" shader="regen.terrain.water.plane" />
     </node>
 
     <!-- Render surface plane into depth buffer
@@ -346,9 +351,24 @@
 
     <node id="Post-Pass">
         <depth test="0" write="0"/>
+
+        <!-- Copy G-buffer albedo into the first attachment such that we can run water shader
+             only locally where water is visible. -->
+        <!-- TODO: The blit below is a bit expensive, and not needed where water is visible!
+                   However, the depth pass below cannot be moved before the water rendering,
+                   as it needs to sample the depth buffer.
+                   It could be that doing a stencil only pass first, then doing
+                   a "stencil-blit" would be cheaper... -->
+        <node id="Water-Blit-Albedo">
+            <blit filter-mode="NEAREST"
+                src-fbo="g-buffer" src-attachment="1"
+                dst-fbo="g-buffer" dst-attachment="0"/>
+        </node>
         <node import="Water-Rendering">
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>
+        <!-- Render water surface depth into G-buffer depth. -->
+        <!-- Note: Water depth pass is needed for depth-based effects like fog rendering. -->
         <node import="Water-Depth">
             <fbo id="g-buffer" draw-buffers="0"/>
         </node>

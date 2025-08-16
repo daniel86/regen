@@ -137,7 +137,7 @@ void main() {
     out_binormal = normalize( cross(norWorld.xyz, out_tangent.xyz) * in_tan.w );
 #endif
 #ifdef HAS_CUSTOM_HANDLE_IO
-    customHandleIO(posWorld.xyz, norWorld.xyz);
+    customHandleIO(posWorld.xyz, posEye.xyz, norWorld.xyz);
 #endif
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;

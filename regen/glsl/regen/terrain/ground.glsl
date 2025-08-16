@@ -248,7 +248,7 @@ out float out_noiseVal;
 
 #include regen.terrain.ground.groundUV
 
-void customHandleIO(vec3 posWorld, vec3 norWorld) {
+void customHandleIO(vec3 posWorld, vec3 posEye, vec3 norWorld) {
     out_groundUV = groundUV(posWorld.xyz, norWorld);
 #ifdef HAS_noiseTexture
     #ifdef USE_VERTEX_NOISE

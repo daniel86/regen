@@ -438,6 +438,10 @@ GLenum RenderState::toggleToID(Toggle t) {
 			return GL_CLIP_DISTANCE2;
 		case CLIP_DISTANCE3:
 			return GL_CLIP_DISTANCE3;
+		case CLIP_DISTANCE4:
+			return GL_CLIP_DISTANCE4;
+		case CLIP_DISTANCE5:
+			return GL_CLIP_DISTANCE5;
 		case TOGGLE_STATE_LAST:
 			return GL_NONE;
 	}
@@ -507,6 +511,10 @@ namespace regen {
 				return out << "CLIP_DISTANCE2";
 			case RenderState::CLIP_DISTANCE3:
 				return out << "CLIP_DISTANCE3";
+			case RenderState::CLIP_DISTANCE4:
+				return out << "CLIP_DISTANCE4";
+			case RenderState::CLIP_DISTANCE5:
+				return out << "CLIP_DISTANCE5";
 			case RenderState::TOGGLE_STATE_LAST:
 				return out << "TOGGLE_STATE_LAST";
 		}
