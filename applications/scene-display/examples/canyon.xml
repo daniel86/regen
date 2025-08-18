@@ -69,7 +69,7 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-components="4"
          num-samples="4">
-        <texture id="diffuse" pixel-size="8"/>
+        <texture id="diffuse" pixel-size="16"/>
         <depth pixel-size="24"/>
     </fbo>
     <fbo id="reflection-buffer"
@@ -103,7 +103,7 @@
     </texture>
     <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass.png"/>
     <texture id="tree-mask" file="res/textures/terrain/canyon/mask-trees.png"/>
-    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="REPEAT" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" type="noise" preset="cloud"
             size="128.0,128.0,1.0" noise-scale="1.0"
@@ -252,15 +252,21 @@
     <!--**************************-->
 
     <mesh id="grass-patches"
-          type="mask-patch"
+          type="grass-patch"
+          silhouette-texture="grass-color"
           material-weights="ground-mesh-weight-map"
           material-index="0"
-          lod-levels="4,3,2,1"
           lod-thresholds="20.0,60.0,120.0"
+          lod-levels="3,3,2,1"
+          tile-counts="8,8,4,4"
+          max-quads-per-sprite="64"
+          alpha-cut="0.1"
+          coverage-threshold="0.05"
+          pad-tiles="0"
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
           update-frequency="NEVER">
-        <shader mesh-index="0" key="regen.terrain.grass.patch" />
+        <shader mesh-index="0" key="regen.terrain.grass" />
         <transform id="grass-tf" mode="offset" update-frequency="NEVER">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
@@ -273,35 +279,22 @@
     </mesh>
 
     <node id="Grass">
-        <alpha discard-threshold="0.25"/>
-        <material diffuse="0.1, 0.1, 0.1" ambient="0.1, 0.1, 0.1"
+        <material diffuse="1.0, 1.0, 1.0" ambient="0.1, 0.1, 0.1"
                 specular="0.0, 0.0, 0.0" shininess="256.0"
                 update-frequency="NEVER"/>
-        <!-- use more complex geometry in close range. -->
-        <define key="USE_SPRITE_LOD" value="TRUE"/>
-        <input name="lodGeomLevel0" type="float" value="60.0"/>
-        <input name="lodGeomLevel1" type="float" value="160.0"/>
-        <input name="lodGeomBrightness0" type="float" value="1.7"/>
-        <input name="lodGeomVariance" type="float" value="6.0"/>
         <!-- size and position -->
-        <input name="quadSize" type="vec2" value="0.5, 0.15"/>
+        <input name="quadSize" type="vec2" value="0.5, 0.3"/>
         <input name="posVariation" type="float" value="0.4"/>
         <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
         <!-- color -->
-        <texture id="grass-color" map-to="color" blend-mode="mul"/>
+        <texture id="grass-color" map-to="color" blend-mode="src"/>
         <input name="uvDarken" type="float" value="0.25"/>
-        <!-- wind -->
-        <texture name="windFlow" id="wind-flowmap" />
-        <input name="stiffness" type="float" value="1.0"/>
-        <!-- small-scale wind details -->
-        <texture name="windNoise" id="wind-noise" />
-        <input name="windNoiseScale" type="float" value="100.0"/>
-        <input name="windNoiseSpeed" type="float" value="1.0"/>
-        <input name="windNoiseStrength" type="float" value="0.1"/>
         <!-- height -->
         <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
                      blend-mode="ADD" blend-factor="{{map-height}}"/>
-        <!-- <mesh id="grass-patches" primitive="patches" /> -->
+        <!-- wind -->
+        <texture name="windFlow" id="wind-flowmap" />
+        <input name="stiffness" type="float" value="1.0"/>
         <mesh id="grass-patches" />
     </node>
 
@@ -421,17 +414,22 @@
                         <light id="sky-sun" />
                     </direct-lights>
                     <direct-pass>
+                                <!--
                         <node>
                             <node id="tree-twig">
-                                <!--
-                                <alpha discard-threshold="0.25"/>
-                                -->
                                 <texture name="windFlow" id="wind-flowmap" mapping="custom" />
                                 <input name="stiffness" type="float" value="0.5"/>
                                 <input name="brightness" type="float" value="2.8"/>
                                 <input name="alphaClipMin" type="float" value="0.3"/>
                                 <input name="alphaClipMax" type="float" value="0.5"/>
                                 <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
+                            </node>
+                        </node>
+                                -->
+                        <node>
+                            <node import="Grass" >
+                                <input name="alphaClipMin" type="float" value="0.3"/>
+                                <input name="alphaClipMax" type="float" value="0.5"/>
                             </node>
                         </node>
                         <!--

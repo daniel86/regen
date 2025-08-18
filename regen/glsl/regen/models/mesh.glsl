@@ -89,6 +89,9 @@ out float out_mask;
 #ifndef HAS_TESSELATION
     #include regen.states.textures.mapToVertex
 #endif
+#ifdef HAS_VERTEX_MASK_MAP
+    const float in_maskThreshold = 0.1; // threshold for the mask texture
+#endif
 
 void main() {
     int layer = regen_RenderLayer();
@@ -141,13 +144,11 @@ void main() {
     out_tangent = normalize( tanw.xyz );
     out_binormal = normalize( cross(norWorld.xyz, out_tangent.xyz) * in_tan.w );
 #endif
-/**
 #ifndef HAS_TESSELATION
     #ifdef HAS_VERTEX_MASK_MAP
-    gl_ClipDistance[0] = out_mask - 0.2;
+    gl_ClipDistance[0] = out_mask - in_maskThreshold;
     #endif
 #endif // HAS_TESSELATION
-**/
 #ifdef HAS_CUSTOM_HANDLE_IO
     customHandleIO(posWorld.xyz, posEye.xyz, norWorld.xyz);
 #endif

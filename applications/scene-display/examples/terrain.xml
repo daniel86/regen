@@ -63,7 +63,7 @@
         -->
     </texture>
     <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass.png"/>
-    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE" />
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="REPEAT" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" type="noise" preset="cloud"
             size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>

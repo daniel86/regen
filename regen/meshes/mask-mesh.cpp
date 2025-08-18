@@ -9,33 +9,16 @@ MaskMesh::MaskMesh(
 			uint32_t maskIndex,
 			const Config &cfg)
 		: Rectangle(cfg.quad),
+		  maskMeshCfg_(cfg),
 		  tf_(tf),
 		  maskTexture_(maskTexture),
 		  maskIndex_(maskIndex),
 		  meshSize_(cfg.meshSize) {
 	shaderDefine("VERTEX_MASK_INDEX", REGEN_STRING(maskIndex_));
-	auto ts = ref_ptr<TextureState>::alloc(maskTexture_, "maskTexture");
-	ts->set_mapTo(TextureState::MAP_TO_VERTEX_MASK);
-	ts->set_mapping(TextureState::MAPPING_XZ_PLANE);
-	joinStates(ts);
-	updateAttributes();
-	updateMask(cfg);
-}
-
-MaskMesh::MaskMesh(const ref_ptr<MaskMesh> &other)
-		: Rectangle(other) {
-	maskTexture_ = other->maskTexture_;
-	tf_ = other->tf_;
-	meshSize_ = other->meshSize_;
-
-	auto ts = ref_ptr<TextureState>::alloc(maskTexture_, "maskTexture");
-	ts->set_mapTo(TextureState::MAP_TO_VERTEX_MASK);
-	ts->set_mapping(TextureState::MAPPING_XZ_PLANE);
-	joinStates(ts);
-	joinStates(other->tf_);
-	// mask value is used to write clip distance, avoiding fragment shader
-	// execution for masked fragments.
-	//joinStates(ref_ptr<ToggleState>::alloc(RenderState::CLIP_DISTANCE0, true));
+	maskTextureState_ = ref_ptr<TextureState>::alloc(maskTexture_, "maskTexture");
+	maskTextureState_->set_mapTo(TextureState::MAP_TO_VERTEX_MASK);
+	maskTextureState_->set_mapping(TextureState::MAPPING_XZ_PLANE);
+	joinStates(maskTextureState_);
 }
 
 MaskMesh::Config::Config()
@@ -43,13 +26,13 @@ MaskMesh::Config::Config()
 		  height(0.0f) {
 }
 
-void MaskMesh::updateMask(const Config &cfg) {
-	unsigned int quadCountX = std::ceil(cfg.meshSize.x / cfg.quad.posScale.x);
-	unsigned int quadCountY = std::ceil(cfg.meshSize.y / cfg.quad.posScale.z);
+void MaskMesh::updateMask() {
+	unsigned int quadCountX = std::ceil(maskMeshCfg_.meshSize.x / rectangleConfig_.posScale.x);
+	unsigned int quadCountY = std::ceil(maskMeshCfg_.meshSize.y / rectangleConfig_.posScale.z);
 	Vec2f quadSize_ts = Vec2f(
-			cfg.quad.posScale.x / cfg.meshSize.x,
-			cfg.quad.posScale.z / cfg.meshSize.y);
-	Vec2f quadHalfSize = Vec2f(cfg.quad.posScale.x, cfg.quad.posScale.z) * 0.5f;
+			rectangleConfig_.posScale.x / maskMeshCfg_.meshSize.x,
+			rectangleConfig_.posScale.z / maskMeshCfg_.meshSize.y);
+	Vec2f quadHalfSize = Vec2f(rectangleConfig_.posScale.x, rectangleConfig_.posScale.z) * 0.5f;
 	std::vector<Vec4f> instanceData(quadCountX * quadCountY);
 
 	unsigned int numInstances = 0;
@@ -63,10 +46,20 @@ void MaskMesh::updateMask(const Config &cfg) {
 
 	for (unsigned int y = 0; y < quadCountY; ++y) {
 		for (unsigned int x = 0; x < quadCountX; ++x) {
-			auto maskDensity = maskTexture_->sampleMax<float>(
-					maskUV,
-					quadSize_ts,
-					maskTextureData);
+			float maskDensity = 0.0f;
+			if (maskTexture_->format()==GL_RGBA) {
+				maskDensity = maskTexture_->sampleMax<Vec4f>(maskUV,
+					quadSize_ts, maskTextureData, maskIndex_);
+			} else if (maskTexture_->format()==GL_RGB) {
+				maskDensity = maskTexture_->sampleMax<Vec3f>(maskUV,
+					quadSize_ts, maskTextureData, maskIndex_);
+			} else if (maskTexture_->format()==GL_RG) {
+				maskDensity = maskTexture_->sampleMax<Vec2f>(maskUV,
+					quadSize_ts, maskTextureData, maskIndex_);
+			} else {
+				maskDensity = maskTexture_->sampleMax<float>(maskUV,
+					quadSize_ts, maskTextureData);
+			}
 			maskUV.x += quadSize_ts.x;
 			if (maskDensity > 0.1) {
 				// TODO: generate better fitting quads, but geometry cannot be changed as instancing is used
@@ -74,9 +67,9 @@ void MaskMesh::updateMask(const Config &cfg) {
 				//auto corrected_x = static_cast<float>(masked.second.min.x + masked.second.max.x) * 0.5f;
 				//auto corrected_y = static_cast<float>(masked.second.min.y + masked.second.max.y) * 0.5f;
 				instanceData[numInstances++] = baseOffset + Vec4f(
-						static_cast<float>( x ) * cfg.quad.posScale.x + quadHalfSize.x - cfg.meshSize.x * 0.5f,
-						cfg.height,
-						static_cast<float>( y ) * cfg.quad.posScale.z + quadHalfSize.y - cfg.meshSize.y * 0.5f,
+						static_cast<float>( x ) * rectangleConfig_.posScale.x + quadHalfSize.x - maskMeshCfg_.meshSize.x * 0.5f,
+						maskMeshCfg_.height,
+						static_cast<float>( y ) * rectangleConfig_.posScale.z + quadHalfSize.y - maskMeshCfg_.meshSize.y * 0.5f,
 						0.0f);
 			}
 		}
@@ -143,5 +136,8 @@ ref_ptr<MaskMesh> MaskMesh::load(LoadingContext &ctx, scene::SceneInputNode &inp
 		return {};
 	}
 
-	return ref_ptr<MaskMesh>::alloc(tf, maskTexture, maskIndex, meshCfg);
+	auto maskMesh = ref_ptr<MaskMesh>::alloc(tf, maskTexture, maskIndex, meshCfg);
+	maskMesh->updateAttributes();
+	maskMesh->updateMask();
+	return maskMesh;
 }

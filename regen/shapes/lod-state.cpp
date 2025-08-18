@@ -13,7 +13,7 @@
 //#define LOD_DEBUG_GROUPS
 //#define LOD_DEBUG_TIME
 //#define LOD_DEBUG_GPU_TIME
-//#define LOD_DEBUG_SHAPE "fish-shape"
+//#define LOD_DEBUG_SHAPE "silhouette-shape"
 // TODO: Consider using indirect draw buffers for single-LOD shapes as well.
 //      - evades synchronization issues with the staging system which uploads to main with delay.
 //      - might be needed in the long run anyway, when grouping meshes with the same shader
@@ -130,16 +130,16 @@ void LODState::initLODState() {
 				// Make sure that all meshes that share the index shape also have access to the instance buffer.
 				shapeIndex_->setInstanceBuffer(instanceBuffer_);
 				shapeIndex_->setSortMode(instanceSortMode_);
-				// Note: we do not update in state enable, but rather use a separate animation for this.
-				//   This is done as the animations are dedicated place to write to client buffers,
-				//   and we avoid computations in between draw calls, however would still be ok
-				//   to update in state traverse.
-				lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
-				lodAnim_->startAnimation();
 			}
 			if (!indirectDrawBuffers_.empty()) {
 				shapeIndex_->setIndirectDrawBuffers(indirectDrawBuffers_);
 			}
+			// Note: we do not update in state enable, but rather use a separate animation for this.
+			//   This is done as the animations are dedicated place to write to client buffers,
+			//   and we avoid computations in between draw calls, however would still be ok
+			//   to update in state traverse.
+			lodAnim_ = ref_ptr<InstanceUpdater>::alloc(this);
+			lodAnim_->startAnimation();
 		}
 	} else {
 		createComputeShader();
@@ -456,13 +456,15 @@ void LODState::traverseCPU() {
 		// Note: the LOD state has been reset before, so nothing to do here.
 		return;
 	}
-	if (cullShape_->numInstances() == 1) {
+	if (cullShape_->numInstances() <= 1) {
+		for (size_t i = 1; i < lodNumInstances_.size(); ++i) { lodNumInstances_[i] = 0; }
 		if (shapeIndex_->isVisible() && mesh_.get()) {
 			// set LOD level based on distance
 			const Vec3f &camPos = camera_->position(0);
 			const float distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
 			const uint32_t activeLOD = mesh_->getLODLevel(distanceSquared);
 			updateVisibility(activeLOD, 1, 0);
+			lodNumInstances_[activeLOD] = 1;
 		}
 	} else if (camera_->hasFixedLOD()) {
 		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);

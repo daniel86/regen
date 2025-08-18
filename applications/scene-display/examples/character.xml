@@ -92,7 +92,7 @@
     <texture id="ground-color" file="res/textures/materials/grass/0/ground.png"/>
     <texture id="glow-map" file="res/textures/glow-map.tga" wrapping="CLAMP_TO_EDGE"/>
     <texture id="sand" file="res/textures/materials/sand.jpg"/>
-    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="CLAMP_TO_EDGE"/>
+    <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="REPEAT"/>
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" type="noise" preset="cloud"
             size="128.0,128.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
