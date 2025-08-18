@@ -17,6 +17,7 @@
 #include "lod/mesh-simplifier.h"
 #include "regen/meshes/terrain/ground.h"
 #include "regen/meshes/lod/impostor-billboard.h"
+#include "regen/meshes/terrain/grass-patch.h"
 
 using namespace regen;
 
@@ -267,7 +268,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 			(*out) = MeshVector(1);
 			(*out)[0] = impostor;
 		}
-	} else if (meshType == "mask-patch") {
+	} else if (meshType == "mask-patch" || meshType == "grass-patch") {
 		Rectangle::Config meshCfg;
 		meshCfg.centerAtOrigin = true;
 		meshCfg.levelOfDetails = lodLevels;
@@ -280,7 +281,13 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
-		auto m = MaskMesh::load(ctx, input, meshCfg);
+
+		ref_ptr<Mesh> m;
+		if (meshType == "grass-patch") {
+			m = GrassPatch::load(ctx, input, meshCfg);
+		} else {
+			m = MaskMesh::load(ctx, input, meshCfg);
+		}
 		if (m.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load ground mesh.");
 		} else {

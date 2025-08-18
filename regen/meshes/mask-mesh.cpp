@@ -22,22 +22,6 @@ MaskMesh::MaskMesh(
 	updateMask(cfg);
 }
 
-MaskMesh::MaskMesh(const ref_ptr<MaskMesh> &other)
-		: Rectangle(other) {
-	maskTexture_ = other->maskTexture_;
-	tf_ = other->tf_;
-	meshSize_ = other->meshSize_;
-
-	auto ts = ref_ptr<TextureState>::alloc(maskTexture_, "maskTexture");
-	ts->set_mapTo(TextureState::MAP_TO_VERTEX_MASK);
-	ts->set_mapping(TextureState::MAPPING_XZ_PLANE);
-	joinStates(ts);
-	joinStates(other->tf_);
-	// mask value is used to write clip distance, avoiding fragment shader
-	// execution for masked fragments.
-	//joinStates(ref_ptr<ToggleState>::alloc(RenderState::CLIP_DISTANCE0, true));
-}
-
 MaskMesh::Config::Config()
 		: meshSize(Vec2f(10.0f)),
 		  height(0.0f) {

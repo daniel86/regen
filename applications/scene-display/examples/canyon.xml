@@ -252,7 +252,7 @@
     <!--**************************-->
 
     <mesh id="grass-patches"
-          type="mask-patch"
+          type="grass-patch"
           material-weights="ground-mesh-weight-map"
           material-index="0"
           lod-levels="4,3,2,1"

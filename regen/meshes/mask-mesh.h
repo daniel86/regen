@@ -6,6 +6,7 @@
 #include "lod/tessellation.h"
 #include "regen/meshes/primitives/rectangle.h"
 #include <regen/textures/texture.h>
+#include <regen/states/model-transformation.h>
 
 namespace regen {
 	/**
@@ -31,16 +32,11 @@ namespace regen {
 		/**
 		 * @param cfg the mesh configuration.
 		 */
-		explicit MaskMesh(
+		MaskMesh(
 				const ref_ptr<ModelTransformation> &tf,
 				const ref_ptr<Texture2D> &maskTexture,
 				uint32_t maskIndex,
 				const Config &cfg = Config());
-
-		/**
-		 * @param other Another Rectangle.
-		 */
-		explicit MaskMesh(const ref_ptr<MaskMesh> &other);
 
 		/**
 		 * @return the model transformation assigned to this ground.
