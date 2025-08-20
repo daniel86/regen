@@ -114,7 +114,7 @@ void MeshNodeProvider::processInput(
 				}
 			} else {
 				// try to get an instance buffer
-				// FIXME: This will work for GPU-based LODs!
+				// FIXME: This will not work for GPU-based LODs!
 				//    So it might be that parts of meshes will not work yet on the GPU path!
 				auto cam = ref_ptr<Camera>::dynamicCast(parent->getParentCamera());
 				auto spatialIndex = cullShape->spatialIndex();

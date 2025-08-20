@@ -184,20 +184,160 @@ in vec4 in_col;
  * Grass Shader
  * Input: Quads that are placed on vertices of flat terrain, with their bottom centered at the vertex position.
  **/
-// TODO: Use clip distance with mask value to discard quads that are not visible.
-//              Use the base position of the quad to compute the distance.
-// TODO: Support wind
-// TODO: Support collision
-// TODO: Add random variations
-//      - size
-//      - orientation
-//      - color
-//      - position
 -- vs
-#include regen.models.mesh.vs
+#include regen.models.mesh.defines
+#ifdef HAS_windFlow || HAS_colliderRadius
+    #define USE_FORCE
+#endif
+
+in vec3 in_pos;
+in vec3 in_nor;
+out vec3 out_posWorld;
+out vec3 out_posEye;
+out vec2 out_texco0;
+out vec4 out_col;
+
+#ifdef HAS_INSTANCES
+flat out int out_instanceID;
+#endif
+#ifdef VS_LAYER_SELECTION
+flat out int out_layer;
+#define in_layer regen_RenderLayer()
+#endif
+#include regen.layered.VS_SelectLayer
+out float out_mask;
+
+#include regen.states.textures.input
+#include regen.states.textures.texco_xz_plane
+
+#define HANDLE_IO(i)
+
+#include regen.states.camera.input
+
+#include regen.models.tf.transformModel
+#include regen.states.camera.transformWorldToEye
+#include regen.states.camera.transformEyeToScreen
+#include regen.noise.random2D
+#ifdef USE_FORCE
+    #include regen.models.sprite.applyForceBase
+#endif
+#ifdef HAS_wind || HAS_windFlow
+    #include regen.weather.wind.windAtPosition
+#endif
+
+const float in_maskThreshold = 0.1; // threshold for the mask texture
+const float in_uvDarken = 0.5;
+const float in_collisionThreshold = 0.75;
+
+void main() {
+    int layer = regen_RenderLayer();
+
+    vec4 baseWorld = transformModel(vec4(in_basePos,1.0));
+    vec2 uv_xz = texco_xz_plane(baseWorld.xyz);
+    // Compute a mask value for the vertex
+    float mask = texture(in_maskTexture, uv_xz)[VERTEX_MASK_INDEX];
+    // use xz position as seed to get smooth transition over the plane.
+    // note that we need to have a constant seed for each sprite as we vary its properties
+    // based on the seed, e.g. size, orientation, color. these should be constant for each sprite.
+    vec2 seed = baseWorld.xz*0.01;
+
+    // randomized size
+    float size = clamp(mask + 0.5, 0.0, 1.0) * (
+        in_quadSize.x + (random(seed)-0.5) * in_quadSize.y);
+    float halfSize = 0.5 * size;
+
+    vec3 centerWorld = baseWorld.xyz;
+    centerWorld.y += halfSize;
+    // Build this corner in world space around the center
+    vec3 posWorld = centerWorld;
+    vec3 posModel = in_pos.xyz - in_basePos;
+    // camera +Y in world
+    vec3 d_up = normalize(vec3(REGEN_VIEW_INV_(layer)[1].xyz)) * (posModel.y * size);
+    posWorld += d_up;
+    // camera +X in world
+    posWorld += normalize(vec3(REGEN_VIEW_INV_(layer)[0].xyz)) * (posModel.x * size);
+    // camera +Z in world
+    posWorld += normalize(vec3(REGEN_VIEW_INV_(layer)[2].xyz)) * (posModel.z * size);
+    // Apply height texture
+    posWorld.y += texture(in_heightTexture, uv_xz).x * TEX_BLEND_FACTOR${TEX_ID_heightTexture};
+#ifdef HAS_posVariation
+    // Randomize position
+    posWorld.x += (random(seed) - 0.5) * in_posVariation;
+    posWorld.z += (random(seed) - 0.5) * in_posVariation;
+#endif
+#ifdef HAS_offset
+    // Apply contant offset
+    posWorld += in_offset;
+#endif
+
+#ifdef USE_FORCE
+    vec3 fixedPoint = posWorld;
+    fixedPoint -= d_up;
+    vec2 force = vec2(0.0, 0.0);
+#ifdef HAS_wind || HAS_windFlow
+    force += windAtPosition(fixedPoint.xyz);
+#endif
+#ifdef USE_COLLISION
+    vec4 collision = getCollisionVector(center);
+    mask *= clamp(collision.w / in_collisionThreshold, 0.0, 1.0);
+    force = mix(force,
+        collision.xz * in_colliderStrength,
+        collision.w / collisionThreshold);
+#endif
+    applyForceBase(posWorld, fixedPoint.xyz, force);
+#endif
+
+    vec4 posEye = transformWorldToEye(posWorld.xyz,layer);
+    gl_Position = transformEyeToScreen(posEye,layer);
+    out_posWorld = posWorld.xyz;
+    out_posEye = posEye.xyz;
+    out_texco0 = vec2(posModel.x + 0.5, 1.0 - posModel.y);
+    out_mask = mask;
+    // Randomized color
+    //out_col = vec4(vec3(random(seed)*0.3 + 0.7), 1.0) * in_uvDarken;
+    out_col = vec4(vec3(1.0), 1.0) * in_uvDarken;
+    gl_ClipDistance[0] = out_mask - in_maskThreshold;
+#ifdef HAS_INSTANCES
+    out_instanceID = gl_InstanceID + gl_BaseInstance;
+#endif // HAS_INSTANCES
+    VS_SelectLayer(layer);
+    HANDLE_IO(gl_VertexID);
+}
+
 -- gs
+#define HAS_nor
+#define HAS_texco0
 //#define HAS_PRIMITIVE_POINTS
 //#include regen.terrain.grass.sprite.gs
 #include regen.models.mesh.gs
 -- fs
-#include regen.models.mesh.fs
+#define HAS_nor
+#define HAS_texco0
+//#define HAS_col
+//#include regen.models.mesh.fs
+
+#include regen.models.mesh.defines
+#include regen.models.mesh.fs-outputs
+
+in vec3 in_posWorld;
+in vec3 in_posEye;
+
+#include regen.states.camera.input
+#include regen.states.material.input
+#include regen.states.textures.input
+
+#include regen.states.textures.mapToFragment
+
+void main() {
+    vec3 norWorld = vec3(0.0, 1.0, 0.0);
+    vec4 color = vec4(1.0);
+
+    textureMappingFragment(in_posWorld, color, norWorld);
+    //if (color.a < in_alphaDiscardThreshold) discard;
+    if (color.a < 0.25) discard;
+
+    out_normal = vec4(0.5, 1.0, 0.5, 1.0);
+    out_color = color;
+    out_ambient = vec4(in_matAmbient,0.0);
+    out_specular = vec4(0.0, 0.0, 0.0, 0.0);
+}

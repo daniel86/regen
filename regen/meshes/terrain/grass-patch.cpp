@@ -1,9 +1,10 @@
 #include "grass-patch.h"
 #include "regen/textures/texture-loader.h"
-#include "regen/states/depth-state.h"
 #include "regen/meshes/mesh-vector.h"
 
 using namespace regen;
+
+//#define USE_HIGH_LOD_CROSS_MESH
 
 GrassPatch::GrassPatch(
 				const ref_ptr<ModelTransformation> &tf,
@@ -11,13 +12,16 @@ GrassPatch::GrassPatch(
 				uint32_t maskIndex,
 				const MaskMesh::Config &patchCfg) :
 		Mesh(GL_TRIANGLES, patchCfg.quad.updateHint) {
+	shaderDefine("VERTEX_MASK_INDEX", REGEN_STRING(maskIndex));
+
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
-	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
-	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
+	basePos_ = ref_ptr<ShaderInput3f>::alloc("basePos");
 	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(patchCfg.quad.mapMode);
 	setClientAccessMode(patchCfg.quad.accessMode);
 	maskMesh_ = ref_ptr<MaskMesh>::alloc(tf, maskTexture, maskIndex, patchCfg);
+	joinStates(tf);
+	joinStates(maskMesh_->maskTextureState());
 }
 
 void GrassPatch::updateTransforms() {
@@ -25,7 +29,8 @@ void GrassPatch::updateTransforms() {
 }
 
 void GrassPatch::generateLODLevel(uint32_t lodLevel) {
-	const Vec2f grassQuadSize = Vec2f(0.1f);
+	// TODO: in later LODs, rather add rows of grass quads
+	const Vec2f grassQuadSize = Vec2f(1.0f);
 	auto &maskLOD = maskMesh_->meshLODs()[lodLevel];
 	auto &grassLOD = meshLODs_[lodLevel];
 	// map client data for reading
@@ -33,20 +38,20 @@ void GrassPatch::generateLODLevel(uint32_t lodLevel) {
 	// map client data for writing
 	auto grass_i  = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto grass_p  = (Vec3f*) pos_->clientBuffer()->clientData(0);
-	auto grass_n  = (Vec3f*) nor_->clientBuffer()->clientData(0);
-	auto grass_uv = (Vec2f*) texco_->clientBuffer()->clientData(0);
+	auto grass_base = (Vec3f*) basePos_->clientBuffer()->clientData(0);
 	// offsets into data arrays
 	grass_p += grassLOD.vertexOffset();
-	grass_n += grassLOD.vertexOffset();
-	grass_uv += grassLOD.vertexOffset();
+	grass_base += grassLOD.vertexOffset();
 	grass_i += grassLOD.indexOffset();
 	uint32_t maskOffset = maskLOD.vertexOffset();
-	uint32_t vBaseOffset = maskLOD.vertexOffset();
+	uint32_t vBaseOffset = grassLOD.vertexOffset();
+#ifdef USE_HIGH_LOD_CROSS_MESH
 	uint32_t numQuadsPerVertex = (lodLevel > 0 ? 1 : 3);
+#else
+	uint32_t numQuadsPerVertex = 1;
+#endif
 
 	Vec3f quadNormal;
-	// TODO: Apply some random variations here? Or only in the shader?
-	//		- definitely double check the performance for pseudo-random number generation in the shader.
 	const Mat4f quadRotation[3] = {
 		Mat4f::rotationMatrix(0.0f, 0.0f, 0.0f), // No rotation
 		Mat4f::rotationMatrix(0.0f, M_PI/3.0, 0.0f), // 60 degrees rotation
@@ -62,7 +67,6 @@ void GrassPatch::generateLODLevel(uint32_t lodLevel) {
 		for (uint32_t quadIdx = 0; quadIdx < numQuadsPerVertex; ++quadIdx) {
 			const Mat4f &rot = quadRotation[quadIdx];
 			// Start with the 4 vertices of the quad.
-			// TODO: need to set bounds here?
 			grass_p[vOffset + 0] = basePos + rot.transformVector(
 				Vec3f(-0.5f*grassQuadSize.x, 1.0f*grassQuadSize.y, 0.0f));
 			grass_p[vOffset + 1] = basePos + rot.transformVector(
@@ -75,24 +79,18 @@ void GrassPatch::generateLODLevel(uint32_t lodLevel) {
 				minPosition_.setMin(grass_p[vOffset + i]);
 				maxPosition_.setMax(grass_p[vOffset + i]);
 			}
-			// Set the normal to point in negative z direction.
-			quadNormal = rot.transformVector(Vec3f(0.0f, 0.0f, -1.0f));
-			grass_n[vOffset + 0] = quadNormal;
-			grass_n[vOffset + 1] = quadNormal;
-			grass_n[vOffset + 2] = quadNormal;
-			grass_n[vOffset + 3] = quadNormal;
-			// Set the UV coordinates for the quad.
-			grass_uv[vOffset + 0] = Vec2f(0.0f, 1.0f);
-			grass_uv[vOffset + 1] = Vec2f(1.0f, 1.0f);
-			grass_uv[vOffset + 2] = Vec2f(1.0f, 0.0f);
-			grass_uv[vOffset + 3] = Vec2f(0.0f, 0.0f);
+			// Also set the base position for the grass quad.
+			grass_base[vOffset + 0] = basePos;
+			grass_base[vOffset + 1] = basePos;
+			grass_base[vOffset + 2] = basePos;
+			grass_base[vOffset + 3] = basePos;
 			// Finally, set the indices for the quad.
-			grass_i[iOffset + 0] = vBaseOffset + vOffset + 0;
+			grass_i[iOffset + 0] = vBaseOffset + vOffset + 3;
 			grass_i[iOffset + 1] = vBaseOffset + vOffset + 1;
-			grass_i[iOffset + 2] = vBaseOffset + vOffset + 3;
-			grass_i[iOffset + 3] = vBaseOffset + vOffset + 1;
+			grass_i[iOffset + 2] = vBaseOffset + vOffset + 0;
+			grass_i[iOffset + 3] = vBaseOffset + vOffset + 3;
 			grass_i[iOffset + 4] = vBaseOffset + vOffset + 2;
-			grass_i[iOffset + 5] = vBaseOffset + vOffset + 3;
+			grass_i[iOffset + 5] = vBaseOffset + vOffset + 1;
 			// Move to the next quad's vertices
 			vOffset += 4;
 			iOffset += 6;
@@ -105,13 +103,16 @@ void GrassPatch::updateAttributes() {
 	// Idea: only use cross for lod=0, else use a single quad.
 	maskMesh_->updateAttributes();
 
-	REGEN_WARN("Creating grass mesh with " << maskMesh_->meshLODs().size() << " LODs");
 	// count vertices and indices, and create LOD descriptions
 	uint32_t numVertices = 0u;
 	uint32_t numIndices = 0u;
 	for (uint32_t lodIdx = 0u; lodIdx < maskMesh_->meshLODs().size(); ++lodIdx) {
 		auto &maskLOD = maskMesh_->meshLODs()[lodIdx];
+#ifdef USE_HIGH_LOD_CROSS_MESH
 		uint32_t numQuadsPerVertex = (lodIdx > 0 ? 1 : 3);
+#else
+		uint32_t numQuadsPerVertex = 1;
+#endif
 		auto &x = meshLODs_.emplace_back();
 		x.d->numVertices = maskLOD.d->numVertices * numQuadsPerVertex * 4;
 		x.d->numIndices = maskLOD.d->numVertices * numQuadsPerVertex * 6;
@@ -119,10 +120,10 @@ void GrassPatch::updateAttributes() {
 		x.d->indexOffset = numIndices;
 		numVertices += x.d->numVertices;
 		numIndices += x.d->numIndices;
-		REGEN_WARN("    num-verts: " << x.d->numVertices << " indices: " << x.d->numIndices);
 	}
 	/**
-	{ // create a LOD with zero vertices as we fallback to not showing grass as mesh
+	if (maskMesh_->meshLODs().size() < 4){
+		// create a LOD with zero vertices as fallback to not showing grass as mesh
 		auto &x = meshLODs_.emplace_back();
 		x.d->numVertices = 0;
 		x.d->numIndices = 0;
@@ -133,8 +134,7 @@ void GrassPatch::updateAttributes() {
 
 	// allocate attributes
 	pos_->setVertexData(numVertices);
-	nor_->setVertexData(numVertices);
-	texco_->setVertexData(numVertices);
+	basePos_->setVertexData(numVertices);
 	indices_->setVertexData(numIndices);
 	minPosition_ = Vec3f(0.0);
 	maxPosition_ = Vec3f(0.0);
@@ -146,8 +146,7 @@ void GrassPatch::updateAttributes() {
 	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
-	setInput(nor_);
-	setInput(texco_);
+	setInput(basePos_);
 	end();
 
 	for (auto &x: meshLODs_) {

@@ -15,10 +15,10 @@ MaskMesh::MaskMesh(
 		  maskIndex_(maskIndex),
 		  meshSize_(cfg.meshSize) {
 	shaderDefine("VERTEX_MASK_INDEX", REGEN_STRING(maskIndex_));
-	auto ts = ref_ptr<TextureState>::alloc(maskTexture_, "maskTexture");
-	ts->set_mapTo(TextureState::MAP_TO_VERTEX_MASK);
-	ts->set_mapping(TextureState::MAPPING_XZ_PLANE);
-	joinStates(ts);
+	maskTextureState_ = ref_ptr<TextureState>::alloc(maskTexture_, "maskTexture");
+	maskTextureState_->set_mapTo(TextureState::MAP_TO_VERTEX_MASK);
+	maskTextureState_->set_mapping(TextureState::MAPPING_XZ_PLANE);
+	joinStates(maskTextureState_);
 }
 
 MaskMesh::Config::Config()
@@ -46,10 +46,20 @@ void MaskMesh::updateMask() {
 
 	for (unsigned int y = 0; y < quadCountY; ++y) {
 		for (unsigned int x = 0; x < quadCountX; ++x) {
-			auto maskDensity = maskTexture_->sampleMax<float>(
-					maskUV,
-					quadSize_ts,
-					maskTextureData);
+			float maskDensity = 0.0f;
+			if (maskTexture_->format()==GL_RGBA) {
+				maskDensity = maskTexture_->sampleMax<Vec4f>(maskUV,
+					quadSize_ts, maskTextureData, maskIndex_);
+			} else if (maskTexture_->format()==GL_RGB) {
+				maskDensity = maskTexture_->sampleMax<Vec3f>(maskUV,
+					quadSize_ts, maskTextureData, maskIndex_);
+			} else if (maskTexture_->format()==GL_RG) {
+				maskDensity = maskTexture_->sampleMax<Vec2f>(maskUV,
+					quadSize_ts, maskTextureData, maskIndex_);
+			} else {
+				maskDensity = maskTexture_->sampleMax<float>(maskUV,
+					quadSize_ts, maskTextureData);
+			}
 			maskUV.x += quadSize_ts.x;
 			if (maskDensity > 0.1) {
 				// TODO: generate better fitting quads, but geometry cannot be changed as instancing is used

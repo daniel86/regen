@@ -69,7 +69,7 @@
          pixel-type="UNSIGNED_BYTE"
          pixel-components="4"
          num-samples="4">
-        <texture id="diffuse" pixel-size="8"/>
+        <texture id="diffuse" pixel-size="16"/>
         <depth pixel-size="24"/>
     </fbo>
     <fbo id="reflection-buffer"
@@ -273,7 +273,9 @@
     </mesh>
 
     <node id="Grass">
+        <!-- TODO: move some stuff into grass class -->
         <alpha discard-threshold="0.25"/>
+        <toggle key="CLIP_DISTANCE0" value="1"/>
         <material diffuse="0.1, 0.1, 0.1" ambient="0.1, 0.1, 0.1"
                 specular="0.0, 0.0, 0.0" shininess="256.0"
                 update-frequency="NEVER"/>
@@ -286,7 +288,7 @@
         <input name="lodGeomVariance" type="float" value="6.0"/>
         -->
         <!-- size and position -->
-        <input name="quadSize" type="vec2" value="0.5, 0.15"/>
+        <input name="quadSize" type="vec2" value="0.5, 0.3"/>
         <input name="posVariation" type="float" value="0.4"/>
         <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
         <!-- color -->
@@ -422,17 +424,22 @@
                         <light id="sky-sun" />
                     </direct-lights>
                     <direct-pass>
+                                <!--
                         <node>
                             <node id="tree-twig">
-                                <!--
-                                <alpha discard-threshold="0.25"/>
-                                -->
                                 <texture name="windFlow" id="wind-flowmap" mapping="custom" />
                                 <input name="stiffness" type="float" value="0.5"/>
                                 <input name="brightness" type="float" value="2.8"/>
                                 <input name="alphaClipMin" type="float" value="0.3"/>
                                 <input name="alphaClipMax" type="float" value="0.5"/>
                                 <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
+                            </node>
+                        </node>
+                                -->
+                        <node>
+                            <node import="Grass" >
+                                <input name="alphaClipMin" type="float" value="0.3"/>
+                                <input name="alphaClipMax" type="float" value="0.5"/>
                             </node>
                         </node>
                         <!--

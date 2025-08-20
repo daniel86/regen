@@ -6,6 +6,7 @@
 #include "lod/tessellation.h"
 #include "regen/meshes/primitives/rectangle.h"
 #include <regen/textures/texture.h>
+#include <regen/textures/texture-state.h>
 #include <regen/states/model-transformation.h>
 
 namespace regen {
@@ -44,6 +45,21 @@ namespace regen {
 		const ref_ptr<ModelTransformation> &tf() const { return tf_; }
 
 		/**
+		 * @return the mask texture.
+		 */
+		const ref_ptr<Texture2D> &maskTexture() const { return maskTexture_; }
+
+		/**
+		 * @return the mask texture state.
+		 */
+		const ref_ptr<TextureState> &maskTextureState() const { return maskTextureState_; }
+
+		/**
+		 * @return the mask index.
+		 */
+		uint32_t maskIndex() const { return maskIndex_; }
+
+		/**
 		 * Updates vertex data based on given configuration.
 		 * @param cfg vertex data configuration.
 		 */
@@ -63,6 +79,7 @@ namespace regen {
 		Config maskMeshCfg_;
 		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<Texture2D> maskTexture_;
+		ref_ptr<TextureState> maskTextureState_;
 		uint32_t maskIndex_;
 		Vec2f meshSize_;
 	};

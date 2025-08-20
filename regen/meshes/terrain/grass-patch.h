@@ -35,8 +35,7 @@ namespace regen {
 	protected:
 		ref_ptr<MaskMesh> maskMesh_;
 		ref_ptr<ShaderInput3f> pos_;
-		ref_ptr<ShaderInput3f> nor_;
-		ref_ptr<ShaderInput2f> texco_;
+		ref_ptr<ShaderInput3f> basePos_;
 		ref_ptr<ShaderInput1ui> indices_;
 
 		void generateLODLevel(uint32_t lodLevel);
