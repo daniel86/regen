@@ -13,5 +13,6 @@ install(
         filesystem.h
         threading.h
         memory-allocator.h
+        name-registry.h
     DESTINATION ${HEADER_INSTALL_PATH}/utility
 )

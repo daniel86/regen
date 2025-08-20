@@ -2,6 +2,7 @@
 #define SHADER_INPUT_H_
 
 #include <string>
+#include <string_view>
 #include <map>
 #include <atomic>
 
@@ -11,6 +12,7 @@
 #include "regen/utility/ref-ptr.h"
 #include "regen/utility/stack.h"
 #include "regen/utility/string-util.h"
+#include "regen/utility/name-registry.h"
 #include "regen/math/matrix.h"
 #include "regen/math/vector.h"
 #include <condition_variable>
@@ -78,7 +80,7 @@ namespace regen {
 		 * @param normalize Specifies whether fixed-point data values should be normalized.
 		 */
 		ShaderInput(
-				const std::string &name,
+				std::string_view name,
 				GLenum baseType,
 				uint32_t dataTypeBytes,
 				int32_t valsPerElement,
@@ -90,12 +92,12 @@ namespace regen {
 		/**
 		 * Name of this attribute used in shader programs.
 		 */
-		auto &name() const { return name_; }
+		std::string_view name() const { return name_; }
 
 		/**
 		 * Name of this attribute used in shader programs.
 		 */
-		void set_name(const std::string &s) { name_ = s; }
+		void set_name(std::string_view s) { name_ = NameRegistry::instance().registerName(s); }
 
 		/**
 		 * no call to glUniform when inactive.
@@ -612,7 +614,7 @@ namespace regen {
 		virtual void write(std::ostream &out) const = 0;
 
 	protected:
-		std::string name_;
+		std::string_view name_;
 		const GLenum baseType_;
 		const GLenum dataType_;
 		const uint32_t dataTypeBytes_;
@@ -688,19 +690,19 @@ namespace regen {
 		 */
 		explicit NamedShaderInput(
 			const ref_ptr<ShaderInput> &in,
-			const std::string &name = "",
-			const std::string &type = "",
-			const std::string &memberSuffix = "");
+			std::string_view name = "",
+			std::string_view type = "",
+			std::string_view memberSuffix = "");
 
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
 		/** the name overwrite. */
-		// TODO: could use global atom table for shader input names
-		std::string name_;
+		// Names are stored in global atom table for efficient string_view usage
+		std::string_view name_;
 		/** the type overwrite. */
-		std::string type_;
+		std::string_view type_;
 		/** for buffer blocks: a suffix appended for each member. */
-		std::string memberSuffix_;
+		std::string_view memberSuffix_;
 	};
 
 	/**
@@ -712,23 +714,23 @@ namespace regen {
 	class ShaderStructBase : public ShaderInput {
 	public:
 		ShaderStructBase(
-				const std::string &structTypeName,
-				const std::string &name,
+				std::string_view structTypeName,
+				std::string_view name,
 				GLuint structSize,
 				GLuint numArrayElements,
 				GLboolean normalize)
 				: ShaderInput(name, GL_NONE, structSize, 1, numArrayElements, normalize),
-				  structTypeName_(structTypeName) {
+				  structTypeName_(NameRegistry::instance().registerName(structTypeName)) {
 			isStruct_ = true;
 		}
 
 		/**
 		 * @return The type name for the struct type.
 		 */
-		auto &structTypeName() const { return structTypeName_; }
+		std::string_view structTypeName() const { return structTypeName_; }
 
 	protected:
-		std::string structTypeName_;
+		std::string_view structTypeName_;
 	};
 
 	/**
@@ -744,8 +746,8 @@ namespace regen {
 		 * @param normalize Specifies whether fixed-point data values should be normalized.
 		 */
 		ShaderInputStruct(
-				const std::string &typeName,
-				const std::string &name,
+				std::string_view typeName,
+				std::string_view name,
 				GLuint numArrayElements,
 				GLboolean normalize = GL_FALSE)
 				: ShaderStructBase(typeName, name, sizeof(StructType), numArrayElements, normalize) {}
@@ -1182,7 +1184,7 @@ namespace regen {
 	 * Utility function to create a uniform input.
 	 */
 	template<class T, class U>
-	ref_ptr<T> createUniform(const std::string &name, const U &value) {
+	ref_ptr<T> createUniform(std::string_view name, const U &value) {
 		auto uniform = ref_ptr<T>::alloc(name);
 		uniform->setUniformData(value);
 		return uniform;

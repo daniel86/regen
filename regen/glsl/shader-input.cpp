@@ -11,26 +11,23 @@ using namespace regen;
 
 NamedShaderInput::NamedShaderInput(
 		const ref_ptr<ShaderInput> &in,
-		const std::string &name,
-		const std::string &type,
-		const std::string &memberSuffix)
-		: in_(in), name_(name), type_(type), memberSuffix_(memberSuffix) {
-	if (name_.empty()) {
-		name_ = in->name();
-	}
-	if (type_.empty()) {
-		type_ = glenum::glslDataType(in->baseType(), in->valsPerElement());
-	}
+		std::string_view name,
+		std::string_view type,
+		std::string_view memberSuffix)
+		: in_(in), 
+		  name_(name.empty() ? in->name() : NameRegistry::instance().registerName(name)), 
+		  type_(type.empty() ? NameRegistry::instance().registerName(glenum::glslDataType(in->baseType(), in->valsPerElement())) : NameRegistry::instance().registerName(type)),
+		  memberSuffix_(NameRegistry::instance().registerName(memberSuffix)) {
 }
 
 ShaderInput::ShaderInput(
-		const std::string &name,
+		std::string_view name,
 		GLenum baseType,
 		uint32_t dataTypeBytes,
 		int32_t valsPerElement,
 		uint32_t numArrayElements,
 		bool normalize)
-		: name_(name),
+		: name_(NameRegistry::instance().registerName(name)),
 		  baseType_(baseType),
 		  dataType_(glenum::dataType(baseType, valsPerElement)),
 		  dataTypeBytes_(dataTypeBytes),

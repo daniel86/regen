@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <string_view>
 
 #include "regen/gl-types/render-state.h"
 #include "regen/gl-types/input-location.h"
@@ -106,40 +107,40 @@ namespace regen {
 		/**
 		 * Returns true if the given name is a valid vertex attribute name.
 		 */
-		bool isAttribute(const std::string &name) const;
+		bool isAttribute(std::string_view name) const;
 
 		/**
 		 * Returns the locations for a given vertex attribute name or -1 if the name is not known.
 		 */
-		int attributeLocation(const std::string &name);
+		int attributeLocation(std::string_view name);
 
 		/**
 		 * Returns true if the given name is a valid uniform name
 		 * and the uniform was added to the shader using setInput().
 		 */
-		bool hasUniform(const std::string &name) const;
+		bool hasUniform(std::string_view name) const;
 
 		/**
 		 * Returns the location for a given uniform name or -1 if the name is not known.
 		 */
-		int uniformLocation(const std::string &name);
+		int uniformLocation(std::string_view name);
 
 		/**
 		 * Returns true if the given name is a valid uniform name and
 		 * the uniform has some data set (no null pointer data).
 		 */
-		bool hasUniformData(const std::string &name) const;
+		bool hasUniformData(std::string_view name) const;
 
 		/**
 		 * Returns true if the given name is a valid sampler name.
 		 * and the texture was added to the shader using setTexture().
 		 */
-		bool hasSampler(const std::string &name) const;
+		bool hasSampler(std::string_view name) const;
 
 		/**
 		 * Returns the location for a given sampler name or -1 if the name is not known.
 		 */
-		int samplerLocation(const std::string &name);
+		int samplerLocation(std::string_view name);
 
 		/**
 		 * Returns inputs for this shader.
@@ -168,13 +169,13 @@ namespace regen {
 		/**
 		 * Returns input with given name.
 		 */
-		ref_ptr<ShaderInput> input(const std::string &name);
+		ref_ptr<ShaderInput> input(std::string_view name);
 
 		/**
 		 * Set a single shader input. Inputs are automatically
 		 * setup when the shader is enabled.
 		 */
-		void setInput(const ref_ptr<ShaderInput> &in, const std::string &name = "");
+		void setInput(const ref_ptr<ShaderInput> &in, std::string_view name = "");
 
 		/**
 		 * Set a set of shader inputs for this program.
@@ -185,7 +186,7 @@ namespace regen {
 		 * Set a single texture for this program.
 		 * channel must point to the channel the texture is bound to.
 		 */
-		bool setTexture(const ref_ptr<Texture> &tex, const std::string &name);
+		bool setTexture(const ref_ptr<Texture> &tex, std::string_view name);
 
 		/**
 		 * Returns shader stage GL handle from enumeration.
@@ -223,7 +224,7 @@ namespace regen {
 		 * @param name the uniform name
 		 * @return new ShaderInput instance
 		 */
-		ref_ptr<ShaderInput> createUniform(const std::string &name);
+		ref_ptr<ShaderInput> createUniform(std::string_view name);
 
 		/**
 		 * Enables states attached to shader.

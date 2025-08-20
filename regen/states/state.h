@@ -2,6 +2,7 @@
 #define REGEN_STATE_H_
 
 #include <set>
+#include <string_view>
 
 #include <regen/utility/event-object.h>
 #include <regen/utility/ref-ptr.h>
@@ -75,13 +76,13 @@ namespace regen {
 		 * @param name the shader input name.
 		 * @return true if an input data with given name was added before.
 		 */
-		bool hasInput(const std::string &name) const;
+		bool hasInput(std::string_view name) const;
 
 		/**
 		 * @param name the shader input name.
 		 * @return input data with specified name.
 		 */
-		ref_ptr<ShaderInput> getInput(const std::string &name) const;
+		ref_ptr<ShaderInput> getInput(std::string_view name) const;
 
 		/**
 		 * @param in the shader input data.
@@ -89,8 +90,8 @@ namespace regen {
 		 * @return iterator of data container
 		 */
 		void setInput(const ref_ptr<ShaderInput> &in,
-				const std::string &name = "",
-				const std::string &memberSuffix = "");
+				std::string_view name = "",
+				std::string_view memberSuffix = "");
 
 		/**
 		 * Remove previously added shader input.
@@ -102,7 +103,7 @@ namespace regen {
 		 * Remove previously added shader input.
 		 * @param name the shader input name.
 		 */
-		void removeInput(const std::string &name);
+		void removeInput(std::string_view name);
 
 		/**
 		 * Fins ShaderInput attached to this State and joined states.
@@ -115,7 +116,7 @@ namespace regen {
 		 * @param name ShaderInput name.
 		 * @return The ShaderInput if any or a null reference if not found.
 		 */
-		std::optional<StateInput> findShaderInput(const std::string &name);
+		std::optional<StateInput> findShaderInput(std::string_view name);
 
 		/**
 		 * @return Specifies the number of vertices to be rendered.
@@ -142,13 +143,13 @@ namespace regen {
 		 * @param name the macro key.
 		 * @param value the macro value.
 		 */
-		void shaderDefine(const std::string &name, const std::string &value);
+		void shaderDefine(std::string_view name, std::string_view value);
 
 		/**
 		 * Undefine a GLSL macro, i.e. removing it from the shader.
 		 * @param name the macro key.
 		 */
-		void shaderUndefine(const std::string &name);
+		void shaderUndefine(std::string_view name);
 
 		/**
 		 * @return GLSL macros.
@@ -159,7 +160,7 @@ namespace regen {
 		 * Adds a GLSL include to generated shaders.
 		 * @param name the include name.
 		 */
-		void shaderInclude(const std::string &name);
+		void shaderInclude(std::string_view name);
 
 		/**
 		 * @return GLSL includes.
@@ -171,7 +172,7 @@ namespace regen {
 		 * @param name the function name.
 		 * @param value the GLSL code.
 		 */
-		void shaderFunction(const std::string &name, const std::string &value);
+		void shaderFunction(std::string_view name, std::string_view value);
 
 		/**
 		 * @return GLSL functions.

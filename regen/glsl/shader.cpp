@@ -1,4 +1,5 @@
 #include <boost/algorithm/string.hpp>
+#include <string_view>
 
 #include "regen/utility/logging.h"
 #include "regen/gl-types/gl-enum.h"
@@ -212,18 +213,18 @@ ref_ptr<GLuint> Shader::stage(GLenum s) const {
 	}
 }
 
-bool Shader::hasUniform(const std::string &name) const {
-	return inputNames_.count(name) > 0;
+bool Shader::hasUniform(std::string_view name) const {
+	return inputNames_.count(std::string(name)) > 0;
 }
 
-bool Shader::hasSampler(const std::string &name) const {
-	auto it = samplerLocations_.find(name);
+bool Shader::hasSampler(std::string_view name) const {
+	auto it = samplerLocations_.find(std::string(name));
 	if (it == samplerLocations_.end()) return false;
 	return textures_.count(it->second) > 0;
 }
 
-bool Shader::hasUniformData(const std::string &name) const {
-	auto it = inputNames_.find(name);
+bool Shader::hasUniformData(std::string_view name) const {
+	auto it = inputNames_.find(std::string(name));
 	if (it == inputNames_.end()) {
 		return false;
 	} else {
@@ -231,8 +232,8 @@ bool Shader::hasUniformData(const std::string &name) const {
 	}
 }
 
-ref_ptr<ShaderInput> Shader::input(const std::string &name) {
-	auto it = inputNames_.find(name);
+ref_ptr<ShaderInput> Shader::input(std::string_view name) {
+	auto it = inputNames_.find(std::string(name));
 	if (it == inputNames_.end()) {
 		return {};
 	} else {
@@ -240,18 +241,18 @@ ref_ptr<ShaderInput> Shader::input(const std::string &name) {
 	}
 }
 
-GLint Shader::samplerLocation(const std::string &name) {
-	auto it = samplerLocations_.find(name);
+GLint Shader::samplerLocation(std::string_view name) {
+	auto it = samplerLocations_.find(std::string(name));
 	return (it != samplerLocations_.end()) ? it->second : -1;
 }
 
-GLint Shader::attributeLocation(const std::string &name) {
-	auto it = attributeLocations_.find(name);
+GLint Shader::attributeLocation(std::string_view name) {
+	auto it = attributeLocations_.find(std::string(name));
 	return (it != attributeLocations_.end()) ? it->second : -1;
 }
 
-GLint Shader::uniformLocation(const std::string &name) {
-	auto it = uniformLocations_.find(name);
+GLint Shader::uniformLocation(std::string_view name) {
+	auto it = uniformLocations_.find(std::string(name));
 	return (it != uniformLocations_.end()) ? it->second : -1;
 }
 
@@ -542,7 +543,7 @@ void Shader::setupInputLocations() {
 	}
 }
 
-ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
+ref_ptr<ShaderInput> Shader::createUniform(std::string_view name) {
 	int32_t loc = uniformLocation(name);
 	if (loc == -1) {
 		REGEN_WARN("Is not an active uniform '" << name << "' shader=" << id());
@@ -588,8 +589,8 @@ ref_ptr<ShaderInput> Shader::createUniform(const std::string &name) {
 	return {};
 }
 
-void Shader::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
-	std::string inputName = (name.empty() ? in->name() : name);
+void Shader::setInput(const ref_ptr<ShaderInput> &in, std::string_view name) {
+	std::string inputName = std::string(name.empty() ? in->name() : name);
 	{
 		auto needle = inputNames_.find(inputName);
 		if (needle == inputNames_.end()) {
@@ -615,8 +616,8 @@ void Shader::setInput(const ref_ptr<ShaderInput> &in, const std::string &name) {
 	}
 }
 
-bool Shader::setTexture(const ref_ptr<Texture> &tex, const std::string &name) {
-	auto needle = samplerLocations_.find(name);
+bool Shader::setTexture(const ref_ptr<Texture> &tex, std::string_view name) {
+	auto needle = samplerLocations_.find(std::string(name));
 	if (needle == samplerLocations_.end()) return false;
 	if (tex.get()) {
 		textures_[needle->second] = TextureLocation(name, tex, needle->second);

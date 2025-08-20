@@ -1,4 +1,5 @@
 #include <regen/scene/loading-context.h>
+#include <string_view>
 
 #include "state.h"
 
@@ -99,19 +100,19 @@ void State::disjoinStates(const ref_ptr<State> &state) {
 	}
 }
 
-bool State::hasInput(const std::string &name) const {
-	return inputMap_.count(name) > 0;
+bool State::hasInput(std::string_view name) const {
+	return inputMap_.count(std::string(name)) > 0;
 }
 
-ref_ptr<ShaderInput> State::getInput(const std::string &name) const {
+ref_ptr<ShaderInput> State::getInput(std::string_view name) const {
 	for (const auto &input: inputs_) {
 		if (name == input.name_) return input.in_;
 	}
 	return {};
 }
 
-void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, const std::string &memberSuffix) {
-	const std::string &inputName = (name.empty() ? in->name() : name);
+void State::setInput(const ref_ptr<ShaderInput> &in, std::string_view name, std::string_view memberSuffix) {
+	std::string inputName = std::string(name.empty() ? in->name() : name);
 
 	if (in->isVertexAttribute() && in->numVertices() > static_cast<uint32_t>(shared_->numVertices_)) {
 		shared_->numVertices_ = static_cast<int>(in->numVertices());
@@ -145,11 +146,11 @@ void State::setInput(const ref_ptr<ShaderInput> &in, const std::string &name, co
 }
 
 void State::removeInput(const ref_ptr<ShaderInput> &in) {
-	inputMap_.erase(in->name());
+	inputMap_.erase(std::string(in->name()));
 	removeInput(in->name());
 }
 
-void State::removeInput(const std::string &name) {
+void State::removeInput(std::string_view name) {
 	std::vector<NamedShaderInput>::iterator it;
 	for (it = inputs_.begin(); it != inputs_.end(); ++it) {
 		if (it->name_ == name) { break; }
@@ -164,7 +165,7 @@ void State::collectShaderInput(ShaderInputList &out) {
 	for (auto &buddy : joined_) { buddy->collectShaderInput(out); }
 }
 
-std::optional<StateInput> State::findShaderInput(const std::string &name) {
+std::optional<StateInput> State::findShaderInput(std::string_view name) {
 	StateInput ret;
 
 	auto &l = inputs();
@@ -196,23 +197,23 @@ std::optional<StateInput> State::findShaderInput(const std::string &name) {
 	return std::nullopt;
 }
 
-void State::shaderDefine(const std::string &name, const std::string &value) {
-	shaderDefines_[name] = value;
+void State::shaderDefine(std::string_view name, std::string_view value) {
+	shaderDefines_[std::string(name)] = std::string(value);
 }
 
-void State::shaderUndefine(const std::string &name) {
-	auto it = shaderDefines_.find(name);
+void State::shaderUndefine(std::string_view name) {
+	auto it = shaderDefines_.find(std::string(name));
 	if (it != shaderDefines_.end()) {
 		shaderDefines_.erase(it);
 	}
 }
 
-void State::shaderInclude(const std::string &path) {
-	shaderIncludes_.push_back(path);
+void State::shaderInclude(std::string_view path) {
+	shaderIncludes_.push_back(std::string(path));
 }
 
-void State::shaderFunction(const std::string &name, const std::string &value) {
-	shaderFunctions_[name] = value;
+void State::shaderFunction(std::string_view name, std::string_view value) {
+	shaderFunctions_[std::string(name)] = std::string(value);
 }
 
 //////////
