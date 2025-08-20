@@ -60,7 +60,8 @@ void Rectangle::generateLODLevel(const Config &cfg,
 								 const Tessellation &tessellation,
 								 const Mat4f &rotMat,
 								 GLuint vertexOffset,
-								 GLuint indexOffset) {
+								 GLuint indexOffset,
+								 GLuint /*lodLevel*/) {
 	// map client data for writing
 	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
@@ -189,7 +190,8 @@ void Rectangle::updateAttributes() {
 						 tessellations[i],
 						 rotMat,
 						 meshLODs_[i].d->vertexOffset,
-						 meshLODs_[i].d->indexOffset);
+						 meshLODs_[i].d->indexOffset,
+						 i);
 	}
 
 	begin(INTERLEAVED);

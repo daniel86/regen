@@ -47,7 +47,7 @@ namespace regen {
 		 * Updates vertex data based on given configuration.
 		 * @param cfg vertex data configuration.
 		 */
-		void updateMask(const Config &cfg);
+		void updateMask();
 
 		/**
 		 * Load a mask mesh from a property tree.
@@ -60,6 +60,7 @@ namespace regen {
 				const Rectangle::Config &quadCfg);
 
 	protected:
+		Config maskMeshCfg_;
 		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<Texture2D> maskTexture_;
 		uint32_t maskIndex_;

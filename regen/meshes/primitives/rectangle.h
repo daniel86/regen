@@ -85,6 +85,8 @@ namespace regen {
 		 */
 		virtual void updateAttributes();
 
+		const ref_ptr<ShaderInput3f>& pos() const { return pos_; }
+
 	protected:
 		Config rectangleConfig_;
 		ref_ptr<ShaderInput3f> pos_;
@@ -93,11 +95,12 @@ namespace regen {
 		ref_ptr<ShaderInput2f> texco_;
 		ref_ptr<ShaderInput1ui> indices_;
 
-		void generateLODLevel(const Config &cfg,
+		virtual void generateLODLevel(const Config &cfg,
 				const Tessellation &tessellation,
 				const Mat4f &rotMat,
 				GLuint vertexOffset,
-				GLuint indexOffset);
+				GLuint indexOffset,
+				GLuint lodLevel);
 
 		virtual void tessellateRectangle(uint32_t lod, Tessellation &t);
 	};

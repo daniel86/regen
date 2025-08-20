@@ -5,13 +5,21 @@
 #include <regen/states/model-transformation.h>
 
 namespace regen {
-	class GrassPatch : public MaskMesh {
+	class GrassPatch : public Mesh {
 	public:
 		GrassPatch(
 				const ref_ptr<ModelTransformation> &tf,
 				const ref_ptr<Texture2D> &maskTexture,
 				uint32_t maskIndex,
-				const Config &cfg = Config());
+				const MaskMesh::Config &patchConfig = MaskMesh::Config());
+
+		/**
+		 * Updates vertex data based on given configuration.
+		 * @param cfg vertex data configuration.
+		 */
+		virtual void updateAttributes();
+
+		void updateTransforms();
 
 		/**
 		 * Load a grass mesh from a property tree.
@@ -25,7 +33,13 @@ namespace regen {
 				const Rectangle::Config &quadCfg);
 
 	protected:
+		ref_ptr<MaskMesh> maskMesh_;
+		ref_ptr<ShaderInput3f> pos_;
+		ref_ptr<ShaderInput3f> nor_;
+		ref_ptr<ShaderInput2f> texco_;
+		ref_ptr<ShaderInput1ui> indices_;
 
+		void generateLODLevel(uint32_t lodLevel);
 	};
 
 } // namespace

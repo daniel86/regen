@@ -260,7 +260,7 @@
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
           update-frequency="NEVER">
-        <shader mesh-index="0" key="regen.terrain.grass.patch" />
+        <shader mesh-index="0" key="regen.terrain.grass" />
         <transform id="grass-tf" mode="offset" update-frequency="NEVER">
             <translate value="0.0,{{map-y-min}},0.0"/>
         </transform>
@@ -278,11 +278,13 @@
                 specular="0.0, 0.0, 0.0" shininess="256.0"
                 update-frequency="NEVER"/>
         <!-- use more complex geometry in close range. -->
+        <!--
         <define key="USE_SPRITE_LOD" value="TRUE"/>
         <input name="lodGeomLevel0" type="float" value="60.0"/>
         <input name="lodGeomLevel1" type="float" value="160.0"/>
         <input name="lodGeomBrightness0" type="float" value="1.7"/>
         <input name="lodGeomVariance" type="float" value="6.0"/>
+        -->
         <!-- size and position -->
         <input name="quadSize" type="vec2" value="0.5, 0.15"/>
         <input name="posVariation" type="float" value="0.4"/>
@@ -301,7 +303,6 @@
         <!-- height -->
         <texture name="heightTexture" id="ground-height" map-to="HEIGHT" mapping="xz_plane"
                      blend-mode="ADD" blend-factor="{{map-height}}"/>
-        <!-- <mesh id="grass-patches" primitive="patches" /> -->
         <mesh id="grass-patches" />
     </node>
 

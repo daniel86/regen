@@ -80,7 +80,6 @@ void main() {
     vec3 base = in_posWorld[0];
 #else
     // we can center the sprite at the triangle center
-    // FIXME: I think this can cause artifacts at edges of tesselation patches.
     vec3 base = (in_posWorld[0] + in_posWorld[1] + in_posWorld[2]) / 3.0;
 #endif
     // use xz position as seed to get smooth transition over the plane.
@@ -181,23 +180,24 @@ void main() {
 in vec4 in_col;
 #include regen.models.mesh.fs
 
--------------------
------- Grass where individual sprites are represented as points in the vertex buffer.
--------------------
+/**
+ * Grass Shader
+ * Input: Quads that are placed on vertices of flat terrain, with their bottom centered at the vertex position.
+ **/
+// TODO: Use clip distance with mask value to discard quads that are not visible.
+//              Use the base position of the quad to compute the distance.
+// TODO: Support wind
+// TODO: Support collision
+// TODO: Add random variations
+//      - size
+//      - orientation
+//      - color
+//      - position
 -- vs
-#include regen.models.sprite.vs
--- tcs
-// no culling needed as grass comes in small patches
-#define NO_TESS_CULL
-#include regen.models.mesh.tcs
--- tes
-#include regen.models.mesh.tes
+#include regen.models.mesh.vs
 -- gs
-#define HAS_PRIMITIVE_POINTS
-#include regen.terrain.grass.sprite.gs
+//#define HAS_PRIMITIVE_POINTS
+//#include regen.terrain.grass.sprite.gs
+#include regen.models.mesh.gs
 -- fs
-#define HAS_nor
-#define HAS_col
-//#define DISCARD_ALPHA_THRESHOLD 0.25
-in vec4 in_col;
-#include regen.models.sprite.fs
+#include regen.models.mesh.fs
