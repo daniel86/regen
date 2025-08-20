@@ -294,8 +294,8 @@ void main() {
     out_texco0 = vec2(posModel.x + 0.5, 1.0 - posModel.y);
     out_mask = mask;
     // Randomized color
-    //out_col = vec4(vec3(random(seed)*0.3 + 0.7), 1.0) * in_uvDarken;
-    out_col = vec4(vec3(1.0), 1.0) * in_uvDarken;
+    out_col = vec4(vec3(random(seed)*0.3 + 0.7), 1.0) * in_uvDarken;
+    //out_col = vec4(vec3(1.0), 1.0) * in_uvDarken;
     gl_ClipDistance[0] = out_mask - in_maskThreshold;
 #ifdef HAS_INSTANCES
     out_instanceID = gl_InstanceID + gl_BaseInstance;
@@ -331,10 +331,8 @@ in vec3 in_posEye;
 void main() {
     vec3 norWorld = vec3(0.0, 1.0, 0.0);
     vec4 color = vec4(1.0);
-
     textureMappingFragment(in_posWorld, color, norWorld);
-    //if (color.a < in_alphaDiscardThreshold) discard;
-    if (color.a < 0.25) discard;
+    if (color.a < in_alphaDiscardThreshold) discard;
 
     out_normal = vec4(0.5, 1.0, 0.5, 1.0);
     out_color = color;

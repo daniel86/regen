@@ -292,7 +292,7 @@
         <input name="posVariation" type="float" value="0.4"/>
         <input name="offset" type="vec3" value="0.0, -0.2, 0.0"/>
         <!-- color -->
-        <texture id="grass-color" map-to="color" blend-mode="mul"/>
+        <texture id="grass-color" map-to="color" blend-mode="src"/>
         <input name="uvDarken" type="float" value="0.25"/>
         <!-- wind -->
         <texture name="windFlow" id="wind-flowmap" />
