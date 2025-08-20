@@ -27,12 +27,6 @@ namespace regen {
 		 */
 		std::string_view registerName(std::string_view name);
 
-		/**
-		 * Register a name and return a string_view to the stored copy.
-		 * Convenience overload for std::string.
-		 */
-		std::string_view registerName(const std::string& name);
-
 	private:
 		NameRegistry() = default;
 		~NameRegistry() = default;

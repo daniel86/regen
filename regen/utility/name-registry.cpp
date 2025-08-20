@@ -12,7 +12,3 @@ std::string_view NameRegistry::registerName(std::string_view name) {
 	auto [it, inserted] = names_.emplace(name);
 	return *it;
 }
-
-std::string_view NameRegistry::registerName(const std::string& name) {
-	return registerName(std::string_view(name));
-}
