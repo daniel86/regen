@@ -358,7 +358,7 @@ ref_ptr<ShaderInput> ShaderInput::create(const ref_ptr<ShaderInput> &in) {
 		}
 	}
 
-	const std::string &name = in->name();
+	std::string_view name = in->name();
 	GLenum baseType = in->baseType();
 	GLuint valsPerElement = in->valsPerElement();
 
@@ -580,7 +580,7 @@ void ShaderInput::enableAttributeMat2(GLint location) const {
 /////////////
 
 ShaderInput1f::ShaderInput1f(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -591,7 +591,7 @@ ShaderInput1f::ShaderInput1f(
 }
 
 ShaderInput2f::ShaderInput2f(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -602,7 +602,7 @@ ShaderInput2f::ShaderInput2f(
 }
 
 ShaderInput3f::ShaderInput3f(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -613,7 +613,7 @@ ShaderInput3f::ShaderInput3f(
 }
 
 ShaderInput4f::ShaderInput4f(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -624,7 +624,7 @@ ShaderInput4f::ShaderInput4f(
 }
 
 ShaderInputMat3::ShaderInputMat3(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -637,7 +637,7 @@ ShaderInputMat3::ShaderInputMat3(
 }
 
 ShaderInputMat4::ShaderInputMat4(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -650,7 +650,7 @@ ShaderInputMat4::ShaderInputMat4(
 }
 
 ShaderInput1d::ShaderInput1d(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -661,7 +661,7 @@ ShaderInput1d::ShaderInput1d(
 }
 
 ShaderInput2d::ShaderInput2d(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -672,7 +672,7 @@ ShaderInput2d::ShaderInput2d(
 }
 
 ShaderInput3d::ShaderInput3d(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -683,7 +683,7 @@ ShaderInput3d::ShaderInput3d(
 }
 
 ShaderInput4d::ShaderInput4d(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -694,7 +694,7 @@ ShaderInput4d::ShaderInput4d(
 }
 
 ShaderInput1i::ShaderInput1i(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -706,7 +706,7 @@ ShaderInput1i::ShaderInput1i(
 }
 
 ShaderInput2i::ShaderInput2i(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -718,7 +718,7 @@ ShaderInput2i::ShaderInput2i(
 }
 
 ShaderInput3i::ShaderInput3i(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -730,7 +730,7 @@ ShaderInput3i::ShaderInput3i(
 }
 
 ShaderInput4i::ShaderInput4i(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -742,7 +742,7 @@ ShaderInput4i::ShaderInput4i(
 }
 
 ShaderInput1ui::ShaderInput1ui(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -754,7 +754,7 @@ ShaderInput1ui::ShaderInput1ui(
 }
 
 ShaderInput2ui::ShaderInput2ui(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -766,7 +766,7 @@ ShaderInput2ui::ShaderInput2ui(
 }
 
 ShaderInput3ui::ShaderInput3ui(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {
@@ -778,7 +778,7 @@ ShaderInput3ui::ShaderInput3ui(
 }
 
 ShaderInput4ui::ShaderInput4ui(
-		const std::string &name,
+		std::string_view name,
 		uint32_t numArrayElements,
 		bool normalize)
 		: ShaderInputTyped(name, numArrayElements, normalize) {

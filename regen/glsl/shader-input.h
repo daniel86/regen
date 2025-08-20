@@ -805,7 +805,7 @@ namespace regen {
 		 * @param normalize Specifies whether fixed-point data values should be normalized.
 		 */
 		ShaderInputTyped(
-				const std::string &name,
+				std::string_view name,
 				GLuint numArrayElements,
 				GLboolean normalize)
 				: ShaderInput(name,
@@ -898,7 +898,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1f(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -914,7 +914,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2f(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -930,7 +930,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3f(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -946,7 +946,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4f(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 
@@ -967,7 +967,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInputMat3(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -983,7 +983,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInputMat4(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -999,7 +999,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1d(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1015,7 +1015,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2d(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1031,7 +1031,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3d(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1047,7 +1047,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4d(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1063,7 +1063,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1i(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1079,7 +1079,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2i(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1095,7 +1095,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3i(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1111,7 +1111,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4i(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1127,7 +1127,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput1ui(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1143,7 +1143,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput2ui(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1159,7 +1159,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput3ui(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
@@ -1175,7 +1175,7 @@ namespace regen {
 		 * @param normalize should the input be normalized ?
 		 */
 		explicit ShaderInput4ui(
-				const std::string &name,
+				std::string_view name,
 				uint32_t numArrayElements = 1,
 				bool normalize = false);
 	};
