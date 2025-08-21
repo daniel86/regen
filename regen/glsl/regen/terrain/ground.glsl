@@ -82,6 +82,9 @@ void main() {
 #for W_I to NUM_WEIGHT_MAPS
 layout(location = ${W_I}) out vec4 out_weights_${W_I};
 #endfor
+#for W_I to NUM_BIOME_MAPS
+out vec4 out_biomes_${W_I};
+#endfor
 in vec2 in_groundUV;
 
 float material_weight0(float minVal, float maxVal, float smoothStep, float val) {
@@ -95,12 +98,7 @@ float material_weight2(float minVal, float maxVal, float smoothStep, float val) 
         (1.0 - smoothstep(maxVal-smoothStep, maxVal, val));
 }
 
-void main() {
-    float heightNorm = texture(in_heightMap, in_groundUV).r;
-    // compute slope from normal map
-    vec3 nor = normalize((texture(in_normalMap, in_groundUV).xzy * 2.0) - 1.0);
-    float slope = acos(nor.y); // = acos(dot(normal, up))
-
+void computeMaterialWeights(float heightNorm, vec3 nor, float slope) {
 #for MAT_I to NUM_MATERIALS
     #define2 MAT_K ${GROUND_MATERIAL_${MAT_I}}
     #define2 SLOPE_MODE ${${MAT_K}_MATERIAL_SLOPE_MODE}
@@ -168,6 +166,134 @@ void main() {
     #elif NUM_MATERIALS > 4
     out_weights_1 = vec4(weight_4, 0.0, 0.0, 0.0);
     #endif
+}
+
+#ifdef HAS_BIOMES
+void computeBiomeWeights(float heightNorm, vec3 nor, float slope) {
+    // Concavity via 4-neighbor Laplacian (cheap proxy for valley-ness)
+    vec2 texel = 1.0 / vec2(textureSize(in_heightMap, 0));
+    float hC  = heightNorm;
+    float hN  = texture(in_heightMap, in_groundUV + vec2(0, -texel.y)).r;
+    float hS  = texture(in_heightMap, in_groundUV + vec2(0,  texel.y)).r;
+    float hE  = texture(in_heightMap, in_groundUV + vec2( texel.x, 0)).r;
+    float hW  = texture(in_heightMap, in_groundUV + vec2(-texel.x, 0)).r;
+    float lap = (hN + hS + hE + hW - 4.0*hC);
+    float concavity = clamp(0.5 + lap * 4.0, 0.0, 1.0); // tune “4.0” per dataset
+    // Temperature & moisture from simple heuristics (tweakable constants)
+    float aspect = atan(nor.x, nor.z);             // [-pi, pi]
+    float northness = -cos(aspect) * sin(slope); // [-1,1] (+ north-facing)
+    float temperature = clamp(
+        1.0 - 0.8*heightNorm - 0.25*northness - 0.15*sin(slope), 0.0, 1.0);
+    float moisture = clamp(
+        0.35*(1.0 - heightNorm) + 0.50*concavity - 0.15*(slope/1.5707963), 0.0, 1.0);
+    // Rockiness: slope + convexity bias
+    float rockiness = clamp(
+        smoothstep(radians(25.0), radians(50.0), slope) + clamp(0.5 - concavity, 0.0, 0.5), 0.0, 1.0);
+
+#for BIOME_I to NUM_BIOMES
+    #define2 BIOME_K ${GROUND_BIOME_${BIOME_I}}
+    #ifdef ${BIOME_K}_BIOME_HAS_HEIGHT_RANGE
+    #define2 HEIGHT_MODE ${${BIOME_K}_BIOME_HEIGHT_MODE}
+    float biome_${BIOME_I} = material_weight${HEIGHT_MODE}(
+            ${BIOME_K}_BIOME_HEIGHT_MIN,
+            ${BIOME_K}_BIOME_HEIGHT_MAX,
+            ${BIOME_K}_BIOME_HEIGHT_SMOOTH,
+            heightNorm);
+    #else
+    float biome_${BIOME_I} = 1.0f;
+    #endif
+    #ifdef ${BIOME_K}_BIOME_HAS_SLOPE_RANGE
+    #define2 SLOPE_MODE ${${BIOME_K}_BIOME_SLOPE_MODE}
+    biome_${BIOME_I} *= material_weight${SLOPE_MODE}(
+            ${BIOME_K}_BIOME_SLOPE_MIN,
+            ${BIOME_K}_BIOME_SLOPE_MAX,
+            ${BIOME_K}_BIOME_SLOPE_SMOOTH,
+            slope);
+    #endif
+    #ifdef ${BIOME_K}_BIOME_HAS_TEMPERATURE_RANGE
+    #define2 TEMPERATURE_MODE ${${BIOME_K}_BIOME_TEMPERATURE_MODE}
+    biome_${BIOME_I} *= material_weight${TEMPERATURE_MODE}(
+            ${BIOME_K}_BIOME_TEMPERATURE_MIN,
+            ${BIOME_K}_BIOME_TEMPERATURE_MAX,
+            ${BIOME_K}_BIOME_TEMPERATURE_SMOOTH,
+            temperature);
+    #endif
+    #ifdef ${BIOME_K}_BIOME_HAS_MOISTURE_RANGE
+    #define2 MOISTURE_MODE ${${BIOME_K}_BIOME_MOISTURE_MODE}
+    biome_${BIOME_I} *= material_weight${MOISTURE_MODE}(
+            ${BIOME_K}_BIOME_MOISTURE_MIN,
+            ${BIOME_K}_BIOME_MOISTURE_MAX,
+            ${BIOME_K}_BIOME_MOISTURE_SMOOTH,
+            moisture);
+    #endif
+    #ifdef ${BIOME_K}_BIOME_HAS_ROCKINESS_RANGE
+    #define2 ROCKINESS_MODE ${${BIOME_K}_BIOME_ROCKINESS_MODE}
+    biome_${BIOME_I} *= material_weight${ROCKINESS_MODE}(
+            ${BIOME_K}_BIOME_ROCKINESS_MIN,
+            ${BIOME_K}_BIOME_ROCKINESS_MAX,
+            ${BIOME_K}_BIOME_ROCKINESS_SMOOTH,
+            rockiness);
+    #endif
+    #ifdef ${BIOME_K}_BIOME_HAS_CONCAVITY_RANGE
+    #define2 CONCAVITY_MODE ${${BIOME_K}_BIOME_CONCAVITY_MODE}
+    biome_${BIOME_I} *= material_weight${CONCAVITY_MODE}(
+            ${BIOME_K}_BIOME_CONCAVITY_MIN,
+            ${BIOME_K}_BIOME_CONCAVITY_MAX,
+            ${BIOME_K}_BIOME_CONCAVITY_SMOOTH,
+            concavity);
+    #endif
+    #ifdef ${BIOME_K}_BIOME_HAS_MASK
+    #define2 MASK_I ${${BIOME_K}_BIOME_MASK_IDX}
+    // multiply by a mask value
+    biome_${BIOME_I} *= texture(in_groundMaterialMask, vec3(in_groundUV, ${MASK_I}).r;
+    #endif
+#endfor
+
+    // normalize weights
+    float biomeSum = 0.0;
+#for BIOME_I to NUM_BIOMES
+    biomeSum += biome_${BIOME_I};
+#endfor
+    biomeSum = max(biomeSum, 0.001);
+#for BIOME_I to NUM_BIOMES
+    biome_${BIOME_I} /= biomeSum;
+#endfor
+
+#ifdef HAS_fallback_BIOME
+    #define2 FALLBACK_I ${fallback_BIOME_IDX}
+    biome_${FALLBACK_I} += 0.66 * step(biomeSum, 0.001);
+#endif
+
+    #if NUM_BIOMES > 3
+    out_biomes_0 = vec4(biome_0, biome_1, biome_2, biome_3);
+    #elif NUM_BIOMES > 2
+    out_biomes_0 = vec4(biome_0, biome_1, biome_2, 0.0);
+    #elif NUM_BIOMES > 1
+    out_biomes_0 = vec4(biome_0, biome_1, 0.0, 0.0);
+    #else
+    out_biomes_0 = vec4(biome_0, 0.0, 0.0, 0.0);
+    #endif
+    #if NUM_BIOMES > 7
+    out_biomes_1 = vec4(biome_4, biome_5, biome_6, biome_7);
+    #elif NUM_BIOMES > 6
+    out_biomes_1 = vec4(biome_4, biome_5, biome_6, 0.0);
+    #elif NUM_BIOMES > 5
+    out_biomes_1 = vec4(biome_4, biome_5, 0.0, 0.0);
+    #elif NUM_BIOMES > 4
+    out_biomes_1 = vec4(biome_4, 0.0, 0.0, 0.0);
+    #endif
+}
+#endif
+
+void main() {
+    float heightNorm = texture(in_heightMap, in_groundUV).r;
+    // compute slope from normal map
+    vec3 nor = normalize((texture(in_normalMap, in_groundUV).xzy * 2.0) - 1.0);
+    float slope = acos(nor.y); // = acos(dot(normal, up))
+    computeMaterialWeights(heightNorm, nor, slope);
+#ifdef HAS_BIOMES
+    computeBiomeWeights(heightNorm, nor, slope);
+#endif
 }
 
 -- skirt.vs

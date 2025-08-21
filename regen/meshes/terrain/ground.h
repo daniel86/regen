@@ -41,6 +41,22 @@ namespace regen {
 			bool isFallback = false;
 		};
 
+		struct BiomeDescription {
+			std::string name;
+			Vec2f heightRange = Vec2f(0.0f, 1.0f);
+			Vec2f slopeRange = Vec2f(0.0f, 180.0f);
+			Vec2f temperatureRange = Vec2f(0.0f, 1.0f);
+			Vec2f humidityRange = Vec2f(0.0f, 1.0f);
+			Vec2f rockinessRange = Vec2f(0.0f, 1.0f);
+			Vec2f concavityRange = Vec2f(0.0f, 1.0f);
+			float heightSmoothStep = 0.1f;
+			float slopeSmoothStep = 10.0f;
+			float temperatureSmoothStep = 0.1f;
+			float humiditySmoothStep = 0.1f;
+			float rockinessSmoothStep = 0.1f;
+			float concavitySmoothStep = 0.1f;
+		};
+
 		Ground();
 
 		/**
@@ -113,6 +129,17 @@ namespace regen {
 		 */
 		uint32_t numMaterials() const { return materialConfigs_.size(); }
 
+		/**
+		 * Add a biome description for this ground.
+		 * @param biome the biome description to add.
+		 */
+		void setBiome(const BiomeDescription &biome);
+
+		/**
+		 * @return the number of biomes used by this ground.
+		 */
+		uint32_t numBiomes() const { return biomeConfigs_.size(); }
+
 		// override
 		void updateAttributes() override;
 
@@ -148,6 +175,7 @@ namespace regen {
 
 		ref_ptr<Material> groundMaterial_;
 		std::vector<MaterialConfig> materialConfigs_;
+		std::vector<BiomeDescription> biomeConfigs_;
 		// Each material type has a color and normal texture, part
 		// of a texture array.
 		ref_ptr<Texture2DArray> materialAlbedoTex_;
@@ -164,6 +192,7 @@ namespace regen {
 		// first weight map y coordinate maps to the second element in the texture array.
 		ref_ptr<FBOState> weightFBO_;
 		std::vector<ref_ptr<Texture2D>> weightMaps_;
+		std::vector<ref_ptr<Texture2D>> biomeMaps_;
 		ref_ptr<FullscreenPass> weightUpdatePass_;
 		ref_ptr<State> weightUpdateState_;
 		uint32_t weightMapSize_ = 2048;

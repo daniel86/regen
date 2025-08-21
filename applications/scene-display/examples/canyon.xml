@@ -229,6 +229,40 @@
                     height-range="0.0, 0.75" height-smooth="0.2"
                     slope-range="10.0, 180.0" slope-smooth="20.0"/>
         </materials>
+        <biomes>
+            <!-- Boreal/temperate conifer forest -->
+            <biome name="conifer" density-hint="0.60"
+                height-range="0.20,0.80" height-smooth="0.20"
+                slope-range="0.0,30.0" slope-smooth="8.0"
+                concavity-range="0.0,0.8" concavity-smooth="0.10"
+                temperature-range="0.10,0.45" temperature-smooth="0.15"
+                moisture-range="0.15,0.55" moisture-smooth="0.15"
+                rockiness-range="0.0,0.6" rockiness-smooth="0.15"/>
+            <!-- Rocky outcrops (few big formations, low slope ok) -->
+            <biome name="rocky" density-hint="0.10"
+                height-range="0.1,1.0" height-smooth="0.15"
+                slope-range="18.0,90.0" slope-smooth="10.0"
+                concavity-range="0.2,8.0" concavity-smooth="0.10"
+                temperature-range="0.05,0.8" temperature-smooth="0.20"
+                moisture-range="0.0,0.6" moisture-smooth="0.20"
+                rockiness-range="0.4,1.0" rockiness-smooth="0.15" />
+            <!-- Scree / boulder fields (steep, many medium rocks) -->
+            <biome name="scree" density-hint="0.25"
+                height-range="0.5,1.0" height-smooth="0.20"
+                slope-range="70.0,120.0" slope-smooth="10.0"
+                concavity-range="0.0,1.0"
+                temperature-range="0.0,1.0"
+                moisture-range="0.0,0.7" moisture-smooth="0.20"
+                rockiness-range="0.4,1.0" rockiness-smooth="0.15"/>
+            <!-- Dry dunes / barren (rare small rocks or driftwood; still one-to-one) -->
+            <biome name="sand" density-hint="0.05"
+                height-range="0.0,0.4" height-smooth="0.20"
+                slope-range="0.0,12.0" slope-smooth="6.0"
+                concavity-range="0.3,0.7" concavity-smooth="0.10"
+                temperature-range="0.4,1.0" temperature-smooth="0.20"
+                moisture-range="0.0,0.6" moisture-smooth="0.10"
+                rockiness-range="0.0,0.5" rockiness-smooth="0.10" />
+        </biomes>
         <shape id="ground-shape" cull="1" index="1" type="obb" mesh-index="0"
             mesh-id="ground-mesh" transform-id="ground-tf">
             <has-part mesh-id="ground-mesh" mesh-index="1" />
@@ -315,7 +349,8 @@
         </shader>
         <transform id="tree-tf" update-frequency="NEVER">
             <set mode="plane"
-                area-mask-texture="tree-mask"
+                area-mask-texture="ground-mesh-biome-map-0"
+                area-mask-index="0"
                 area-height-texture="ground-height"
                 area-max-height="{{map-height}}"
                 area-size="{{map-size}},{{map-size}}"
@@ -898,6 +933,17 @@
                 <node import="Scene-Geometry"/>
                 <node import="G-Buffer-Views"/>
             </node>
+
+            <view id="Material Weights">
+                <fbo id="SCREEN"/>
+                <texture name="inputTexture" id="ground-mesh-weight-map-0" />
+                <fullscreen-pass shader="regen.filter.sampling"/>
+            </view>
+            <view id="Biomes">
+                <fbo id="SCREEN"/>
+                <texture name="inputTexture" id="ground-mesh-biome-map-0" />
+                <fullscreen-pass shader="regen.filter.sampling"/>
+            </view>
 
             <node id="Shading">
                 <fbo id="g-buffer" draw-buffers="1"/>

@@ -109,6 +109,10 @@ void Ground::setMaterial(const MaterialConfig &newConfig) {
 	ptr_cfg->uvScale = newConfig.uvScale;
 }
 
+void Ground::setBiome(const BiomeDescription &biome) {
+	biomeConfigs_.push_back(biome);
+}
+
 void Ground::updatePatchSize() {
 	// compute number of patches in x/z direction based on map size
 	// and number of patches per row (this is used for direction with less extent)
@@ -213,6 +217,16 @@ void Ground::createResources() {
 	createWeightPass();
 }
 
+static int getMode(const Vec2f &range, float maxValue) {
+	if (range.x > 0.0001f) {
+		if (range.y < maxValue) return 2;
+		else return 1;
+	} else if (range.y < maxValue) {
+		return 0;
+	}
+	return -1;
+}
+
 void Ground::updateMaterialMaps() {
 	if (materialAlbedoState_.get()) {
 		disjoinStates(materialAlbedoState_);
@@ -226,15 +240,147 @@ void Ground::updateMaterialMaps() {
 	std::vector<TextureDescription> normalFiles;
 	std::vector<TextureDescription> maskFiles;
 	uint32_t materialIdx = 0;
+	uint32_t biomeIdx = 0;
 	MaterialConfig *fallbackCfg = nullptr;
 	uint32_t fallbackIdx = 0;
 
 	groundShaderDefines_->shaderDefine(
 		"NUM_MATERIALS", REGEN_STRING(materialConfigs_.size()));
 	groundShaderDefines_->shaderDefine(
+		"NUM_BIOMES", REGEN_STRING(biomeConfigs_.size()));
+	groundShaderDefines_->shaderDefine(
 		"MAX_NUM_BLENDED_MATERIALS", REGEN_STRING(MAX_BLENDED_MATERIALS));
 	groundShaderDefines_->shaderDefine(
 		"MIN_MATERIAL_WEIGHT", REGEN_STRING(MIN_MATERIAL_WEIGHT));
+	if (biomeConfigs_.size() > 0) {
+		groundShaderDefines_->shaderDefine("HAS_BIOMES", "TRUE");
+	}
+	for (auto &cfg: biomeConfigs_) {
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING("HAS_" << cfg.name << "_BIOME"), "TRUE");
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING("GROUND_BIOME_" << biomeIdx++),
+			cfg.name);
+
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_SLOPE_MIN"),
+			REGEN_STRING(cfg.slopeRange.x * DEGREE_TO_RAD));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_SLOPE_MAX"),
+			REGEN_STRING(cfg.slopeRange.y * DEGREE_TO_RAD));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_SLOPE_SMOOTH"),
+			REGEN_STRING(cfg.slopeSmoothStep * DEGREE_TO_RAD));
+		int slopeMode = getMode(cfg.slopeRange, 179.9999f);
+		if (slopeMode != -1) {
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_SLOPE_MODE"), REGEN_STRING(slopeMode));
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HAS_SLOPE_RANGE"), "TRUE");
+		}
+		else {
+			groundShaderDefines_->shaderDefine(REGEN_STRING(cfg.name << "_BIOME_SLOPE_MODE"), "0");
+		}
+
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_HEIGHT_MIN"),
+			REGEN_STRING(cfg.heightRange.x));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_HEIGHT_MAX"),
+			REGEN_STRING(cfg.heightRange.y));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_HEIGHT_SMOOTH"),
+			REGEN_STRING(cfg.heightSmoothStep));
+		int heightMode = getMode(cfg.heightRange, 0.9999f);
+		if (heightMode != -1) {
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HEIGHT_MODE"), REGEN_STRING(heightMode));
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HAS_HEIGHT_RANGE"), "TRUE");
+		}
+		else {
+			groundShaderDefines_->shaderDefine(REGEN_STRING(cfg.name << "_BIOME_HEIGHT_MODE"), "0");
+		}
+
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_TEMPERATURE_MIN"),
+			REGEN_STRING(cfg.temperatureRange.x));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_TEMPERATURE_MAX"),
+			REGEN_STRING(cfg.temperatureRange.y));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_TEMPERATURE_SMOOTH"),
+			REGEN_STRING(cfg.temperatureSmoothStep));
+		int tempMode = getMode(cfg.temperatureRange, 0.9999f);
+		if (tempMode != -1) {
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_TEMPERATURE_MODE"), REGEN_STRING(tempMode));
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HAS_TEMPERATURE_RANGE"), "TRUE");
+		}
+		else {
+			groundShaderDefines_->shaderDefine(REGEN_STRING(cfg.name << "_BIOME_TEMPERATURE_MODE"), "0");
+		}
+
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_MOISTURE_MIN"),
+			REGEN_STRING(cfg.humidityRange.x));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_MOISTURE_MAX"),
+			REGEN_STRING(cfg.humidityRange.y));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_MOISTURE_SMOOTH"),
+			REGEN_STRING(cfg.humiditySmoothStep));
+		int humidMode = getMode(cfg.humidityRange, 0.9999f);
+		if (humidMode != -1) {
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_MOISTURE_MODE"), REGEN_STRING(humidMode));
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HAS_MOISTURE_RANGE"), "TRUE");
+		}
+		else {
+			groundShaderDefines_->shaderDefine(REGEN_STRING(cfg.name << "_BIOME_MOISTURE_MODE"), "0");
+		}
+
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_ROCKINESS_MIN"),
+			REGEN_STRING(cfg.rockinessRange.x));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_ROCKINESS_MAX"),
+			REGEN_STRING(cfg.rockinessRange.y));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_ROCKINESS_SMOOTH"),
+			REGEN_STRING(cfg.rockinessSmoothStep));
+		int rockMode = getMode(cfg.rockinessRange, 0.9999f);
+		if (rockMode != -1) {
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_ROCKINESS_MODE"), REGEN_STRING(rockMode));
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HAS_ROCKINESS_RANGE"), "TRUE");
+		}
+		else {
+			groundShaderDefines_->shaderDefine(REGEN_STRING(cfg.name << "_BIOME_ROCKINESS_MODE"), "0");
+		}
+
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_CONCAVITY_MIN"),
+			REGEN_STRING(cfg.concavityRange.x));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_CONCAVITY_MAX"),
+			REGEN_STRING(cfg.concavityRange.y));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(cfg.name << "_BIOME_CONCAVITY_SMOOTH"),
+			REGEN_STRING(cfg.concavitySmoothStep));
+		int concMode = getMode(cfg.concavityRange, 0.9999f);
+		if (concMode != -1) {
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_CONCAVITY_MODE"), REGEN_STRING(concMode));
+			groundShaderDefines_->shaderDefine(
+				REGEN_STRING(cfg.name << "_BIOME_HAS_CONCAVITY_RANGE"), "TRUE");
+		} else {
+			groundShaderDefines_->shaderDefine(REGEN_STRING(cfg.name << "_BIOME_CONCAVITY_MODE"), "0");
+		}
+	}
 	for (auto &cfg: materialConfigs_) {
 		std::string materialType = REGEN_STRING(cfg.type);
 		if (cfg.isFallback) {
@@ -280,23 +426,7 @@ void Ground::updateMaterialMaps() {
 		groundShaderDefines_->shaderDefine(
 			REGEN_STRING(materialType << "_MATERIAL_SLOPE_SMOOTH"),
 			REGEN_STRING(cfg.slopeSmoothStep * DEGREE_TO_RAD));
-		groundShaderDefines_->shaderDefine(
-			REGEN_STRING(materialType << "_MATERIAL_HEIGHT_MIN"),
-			REGEN_STRING(cfg.heightRange.x));
-		groundShaderDefines_->shaderDefine(
-			REGEN_STRING(materialType << "_MATERIAL_HEIGHT_MAX"),
-			REGEN_STRING(cfg.heightRange.y));
-		groundShaderDefines_->shaderDefine(
-			REGEN_STRING(materialType << "_MATERIAL_HEIGHT_SMOOTH"),
-			REGEN_STRING(cfg.heightSmoothStep));
-
-		int slopeMode = -1;
-		if (cfg.slopeRange.x > 0.0001f) {
-			if (cfg.slopeRange.y < 179.9999f) slopeMode = 2;
-			else slopeMode = 1;
-		} else if (cfg.slopeRange.y < 179.9999f) {
-			slopeMode = 0;
-		}
+		int slopeMode = getMode(cfg.slopeRange, 179.9999f);
 		if (slopeMode != -1) {
 			groundShaderDefines_->shaderDefine(
 				REGEN_STRING(materialType << "_MATERIAL_SLOPE_MODE"), REGEN_STRING(slopeMode));
@@ -308,13 +438,16 @@ void Ground::updateMaterialMaps() {
 				REGEN_STRING(materialType << "_MATERIAL_SLOPE_MODE"), "0");
 		}
 
-		int heightMode = -1;
-		if (cfg.heightRange.x > 0.0001f) {
-			if (cfg.heightRange.y < 0.9999f) heightMode = 2;
-			else heightMode = 1;
-		} else if (cfg.heightRange.y < 0.9999f) {
-			heightMode = 0;
-		}
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(materialType << "_MATERIAL_HEIGHT_MIN"),
+			REGEN_STRING(cfg.heightRange.x));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(materialType << "_MATERIAL_HEIGHT_MAX"),
+			REGEN_STRING(cfg.heightRange.y));
+		groundShaderDefines_->shaderDefine(
+			REGEN_STRING(materialType << "_MATERIAL_HEIGHT_SMOOTH"),
+			REGEN_STRING(cfg.heightSmoothStep));
+		int heightMode = getMode(cfg.heightRange, 0.9999f);
 		if (heightMode != -1) {
 			groundShaderDefines_->shaderDefine(
 				REGEN_STRING(materialType << "_MATERIAL_HEIGHT_MODE"), REGEN_STRING(heightMode));
@@ -378,10 +511,14 @@ void Ground::createWeightPass() {
 	// we create weight maps that store weights for 4 materials each.
 	auto numWeightMaps = static_cast<uint32_t>(std::ceil(
 			static_cast<float>(materialConfigs_.size()) / 4.0f));
+	auto numBiomeMaps = static_cast<uint32_t>(std::ceil(
+			static_cast<float>(biomeConfigs_.size()) / 4.0f));
 	attachments.resize(numWeightMaps);
 	weightMaps_.resize(numWeightMaps);
 	groundShaderDefines_->shaderDefine(
 		"NUM_WEIGHT_MAPS", REGEN_STRING(numWeightMaps));
+	groundShaderDefines_->shaderDefine(
+		"NUM_BIOME_MAPS", REGEN_STRING(numBiomeMaps));
 
 	for (uint32_t i=0; i<numWeightMaps; ++i) {
 		auto tex = fbo->addTexture(1,
@@ -396,6 +533,16 @@ void Ground::createWeightPass() {
 		}
 		joinSkirtStates(ref_ptr<TextureState>::alloc(
 			weightMaps_[i], "groundMaterialWeights" + REGEN_STRING(i)));
+	}
+
+	for (uint32_t i=0; i<numBiomeMaps; ++i) {
+		auto tex = fbo->addTexture(1,
+				GL_TEXTURE_2D,
+				GL_RGBA,
+				GL_RGBA8,
+				GL_UNSIGNED_BYTE);
+		biomeMaps_.push_back(ref_ptr<Texture2D>::dynamicCast(tex));
+		attachments.push_back(GL_COLOR_ATTACHMENT0 + numWeightMaps + i);
 	}
 
 	weightFBO_ = ref_ptr<FBOState>::alloc(fbo);
@@ -494,7 +641,28 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 				ground->setMaterial(materialCfg);
 			}
 			handledChildren.push_back(n);
-		} else if (n->getCategory() == "transform") {
+		}
+		else if (n->getCategory() == "biomes") {
+			for (auto &m: n->getChildren()) {
+				auto biomeName = m->getValue<std::string>("name", "");
+				BiomeDescription biome(biomeName);
+				biome.heightRange = m->getValue<Vec2f>("height-range", Vec2f(0.0f,1.0f));
+				biome.heightSmoothStep = m->getValue<float>("height-smooth", 0.1f);
+				biome.slopeRange = m->getValue<Vec2f>("slope-range", Vec2f(0.0f,180.0f));
+				biome.slopeSmoothStep = m->getValue<float>("slope-smooth", 10.0f);
+				biome.temperatureRange = m->getValue<Vec2f>("temperature-range", Vec2f(0.0f,1.0f));
+				biome.temperatureSmoothStep = m->getValue<float>("temperature-smooth", 0.1f);
+				biome.humidityRange = m->getValue<Vec2f>("moisture-range", Vec2f(0.0f,1.0f));
+				biome.humiditySmoothStep = m->getValue<float>("moisture-smooth", 0.1f);
+				biome.rockinessRange = m->getValue<Vec2f>("rockiness-range", Vec2f(0.0f,1.0f));
+				biome.rockinessSmoothStep = m->getValue<float>("rockiness-smooth", 0.1f);
+				biome.concavityRange = m->getValue<Vec2f>("concavity-range", Vec2f(0.0f,1.0f));
+				biome.concavitySmoothStep = m->getValue<float>("concavity-smooth", 0.1f);
+				ground->setBiome(biome);
+			}
+			handledChildren.push_back(n);
+		}
+		else if (n->getCategory() == "transform") {
 			// note: skip transform, we create one below
 			handledChildren.push_back(n);
 		}
@@ -539,6 +707,11 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 		scene->putResource<Texture>(
 			REGEN_STRING(input.getName() << "-weight-map-" << mapIdx),
 			ground->weightMaps_[mapIdx]);
+	}
+	for (uint32_t mapIdx = 0; mapIdx < ground->biomeMaps_.size(); ++mapIdx) {
+		scene->putResource<Texture>(
+			REGEN_STRING(input.getName() << "-biome-map-" << mapIdx),
+			ground->biomeMaps_[mapIdx]);
 	}
 
 	return ground;

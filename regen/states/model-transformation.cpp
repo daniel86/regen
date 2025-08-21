@@ -186,6 +186,7 @@ struct InstancePlaneGenerator {
 	const GLubyte *maskData = nullptr;
 	const GLubyte *heightData = nullptr;
 	const GLubyte *matWeightData = nullptr;
+	uint32_t maskIndex = 0u;
 	//
 	PlaneCell *cells = nullptr;
 	unsigned int cellCountX = 0;
@@ -199,14 +200,27 @@ struct InstancePlaneGenerator {
 };
 
 static void makeInstance(InstancePlaneGenerator &generator, PlaneCell &cell) {
+	float density;
+	ref_ptr<Texture> tex;
 	if (generator.hasGroundMaterial()) {
-		auto density = generator.matWeightMap->sampleLinear<Vec4f>(
-				cell.uv, generator.matWeightData)[generator.materialIdx];
-		if (density < 0.5f) return;
+		tex = generator.matWeightMap;
+	} else if (generator.maskData) {
+		tex = generator.maskTexture;
+	} else {
+		return; // no mask or material map, nothing to do
 	}
-	else if (generator.maskData) {
-		auto density = generator.maskTexture->sampleLinear<float>(
-				cell.uv, generator.maskData);
+	if (tex->format() == GL_RGBA) {
+		density = tex->sampleLinear<Vec4f>(cell.uv, generator.maskData)[generator.maskIndex];
+	} else if (tex->format() == GL_RGB) {
+		density = tex->sampleLinear<Vec3f>(cell.uv, generator.maskData)[generator.maskIndex];
+	} else if (tex->format() == GL_RG) {
+		density = tex->sampleLinear<Vec2f>(cell.uv, generator.maskData)[generator.maskIndex];
+	} else {
+		density = tex->sampleLinear<float>(cell.uv, generator.maskData);
+	}
+	if (generator.hasGroundMaterial()) {
+		if (density < 0.5f) return;
+	} else if (generator.maskData) {
 		if (density < 0.1f) return;
 	}
 
@@ -373,6 +387,7 @@ static GLuint transformMatrixPlane(
 	generator.cellHalfSize = Vec2f(generator.ws_cellSize.x, generator.ws_cellSize.y) * 0.5f;
 	generator.cellWorldOffset = input.getValue<Vec3f>("cell-offset", Vec3f(0.0f));
 	if (input.hasAttribute("area-mask-texture")) {
+		generator.maskIndex = input.getValue<uint32_t>("area-mask-index", 0);
 		generator.maskTexture = scene->getResource<Texture2D>(input.getValue("area-mask-texture"));
 		if (generator.maskTexture.get()) {
 			generator.maskTexture->ensureTextureData();
@@ -463,10 +478,20 @@ static GLuint transformMatrixPlane(
 		// Compute cell density based on mask texture.
 		for (unsigned int i = 0; i < generator.numCells; i++) {
 			auto &cell = generator.cells[i];
-			cell.density = generator.maskTexture->sampleMax<float>(
-					cell.uv,
-					generator.ts_cellSize,
-					generator.maskData);
+			if (generator.maskTexture->format() == GL_RGBA) {
+				cell.density = generator.maskTexture->sampleMax<Vec4f>(cell.uv,
+					generator.ts_cellSize, generator.maskData, generator.maskIndex);
+			} else if (generator.maskTexture->format() == GL_RGB) {
+				cell.density = generator.maskTexture->sampleMax<Vec3f>(cell.uv,
+					generator.ts_cellSize, generator.maskData, generator.maskIndex);
+			} else if (generator.maskTexture->format() == GL_RG) {
+				cell.density = generator.maskTexture->sampleMax<Vec2f>(cell.uv,
+					generator.ts_cellSize, generator.maskData, generator.maskIndex);
+			} else {
+				// assume single channel texture
+				cell.density = generator.maskTexture->sampleMax<float>(cell.uv,
+					generator.ts_cellSize, generator.maskData);
+			}
 		}
 	}
 
