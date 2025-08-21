@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define M_PI 3.1415926535897932384626433832795f
 #endif
 
+#define USE_TWIGS_UP_NORMAL
+
 namespace Proctree {
 	float length(fvec3 a) {
 		return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
@@ -811,6 +813,16 @@ namespace Proctree {
 			mTwigFace[mTwigFaceCount++] = {vert6, vert7, vert8};
 			mTwigFace[mTwigFaceCount++] = {vert6, vert8, vert5};
 
+#ifdef USE_TWIGS_UP_NORMAL
+			mTwigNormal[vert1] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert2] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert3] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert4] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert8] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert7] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert6] = fvec3{0.0f, 1.0f, 0.0f};
+			mTwigNormal[vert5] = fvec3{0.0f, 1.0f, 0.0f};
+#else
 			fvec3 normal = normalize(
 					cross(sub(mTwigVert[vert1], mTwigVert[vert3]), sub(mTwigVert[vert2], mTwigVert[vert3])));
 			fvec3 normal2 = normalize(
@@ -825,6 +837,7 @@ namespace Proctree {
 			mTwigNormal[vert7] = (normal2);
 			mTwigNormal[vert6] = (normal2);
 			mTwigNormal[vert5] = (normal2);
+#endif
 
 			mTwigUV[vert1] = {0, 0};
 			mTwigUV[vert2] = {1, 0};

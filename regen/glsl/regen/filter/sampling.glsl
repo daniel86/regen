@@ -102,7 +102,10 @@ void main() {
 
 #ifdef HAS_INPUT_MULTISAMPLE
 vec4 coverageAverage_MS(vec2 uv) {
-    ivec2 msaaCoord = ivec2(uv * in_viewport);
+    ivec2 msaaCoord = ivec2(uv * vec2(
+        ${TEX_WIDTH${TEX_ID_inputTexture}},
+        ${TEX_HEIGHT${TEX_ID_inputTexture}}
+    ));
     vec3 color = vec3(0.0);
     float coverageSum = 0.0, coverage;
     vec4 x;

@@ -217,51 +217,21 @@
         <transform id="ground-tf" update-frequency="NEVER"/>
         <materials>
             <material type="grass" name="ground/grass" variant="1" uv-scale="0.25"
-                    height-range="0.25, 0.75" height-smooth="0.25"
-                    slope-range="0.0, 25.0" slope-smooth="10.0"/>
-            <material type="rock" name="ground/stone" variant="8" uv-scale="0.1"
-                    height-range="0.0, 1.0"
-                    slope-range="30.0, 180.0" slope-smooth="30.0"/>
+                    height="0.25,0.75,0.25" slope="0.0,25.0,10.0"/>
+            <material type="rock" name="ground/stone" variant="8" uv-scale="2.0"
+                    slope="30.0,180.0,30.0"/>
             <material type="sand" name="ground/sand" variant="3" uv-scale="0.05"
-                    height-range="0.0, 0.3" height-smooth="0.2"
-                    slope-range="0.0, 15.0" slope-smooth="15.0"/>
+                    height="0.0,0.3,0.2" slope="0.0,15.0,15.0"/>
             <material type="dirt" name="ground/dirt" variant="1" uv-scale="0.5" is-fallback="1"
-                    height-range="0.0, 0.75" height-smooth="0.2"
-                    slope-range="10.0, 180.0" slope-smooth="20.0"/>
+                    height="0.0,0.75,0.2" slope="10.0,180.0,20.0"/>
         </materials>
         <biomes>
-            <!-- Boreal/temperate conifer forest -->
-            <biome name="conifer" density-hint="0.60"
-                height-range="0.20,0.80" height-smooth="0.20"
-                slope-range="0.0,30.0" slope-smooth="8.0"
-                concavity-range="0.0,0.8" concavity-smooth="0.10"
-                temperature-range="0.10,0.45" temperature-smooth="0.15"
-                moisture-range="0.15,0.55" moisture-smooth="0.15"
-                rockiness-range="0.0,0.6" rockiness-smooth="0.15"/>
-            <!-- Rocky outcrops (few big formations, low slope ok) -->
-            <biome name="rocky" density-hint="0.10"
-                height-range="0.1,1.0" height-smooth="0.15"
-                slope-range="18.0,90.0" slope-smooth="10.0"
-                concavity-range="0.2,8.0" concavity-smooth="0.10"
-                temperature-range="0.05,0.8" temperature-smooth="0.20"
-                moisture-range="0.0,0.6" moisture-smooth="0.20"
-                rockiness-range="0.4,1.0" rockiness-smooth="0.15" />
-            <!-- Scree / boulder fields (steep, many medium rocks) -->
-            <biome name="scree" density-hint="0.25"
-                height-range="0.5,1.0" height-smooth="0.20"
-                slope-range="70.0,120.0" slope-smooth="10.0"
-                concavity-range="0.0,1.0"
-                temperature-range="0.0,1.0"
-                moisture-range="0.0,0.7" moisture-smooth="0.20"
-                rockiness-range="0.4,1.0" rockiness-smooth="0.15"/>
-            <!-- Dry dunes / barren (rare small rocks or driftwood; still one-to-one) -->
-            <biome name="sand" density-hint="0.05"
-                height-range="0.0,0.4" height-smooth="0.20"
-                slope-range="0.0,12.0" slope-smooth="6.0"
-                concavity-range="0.3,0.7" concavity-smooth="0.10"
-                temperature-range="0.4,1.0" temperature-smooth="0.20"
-                moisture-range="0.0,0.6" moisture-smooth="0.10"
-                rockiness-range="0.0,0.5" rockiness-smooth="0.10" />
+            <biome type="conifer" height="0.55,0.8,0.2" slope="0.0,25.0,6.0" rockiness="0.0,0.4,0.15"/>
+            <biome type="rocky" height="0.7,1.0,0.15" slope="35.0,90.0,10.0" rockiness="0.6,1.0,0.15"/>
+            <biome type="scree" height="0.0,0.6,0.2" slope="70.0,120.0,10.0" rockiness="0.4,1.0,0.15"
+                moisture="0.0,0.7,0.2" />
+            <biome type="sand" height="0.0,0.4,0.20" slope="0.0,12.0,6.0" concavity="0.3,0.7,0.10"
+                rockiness="0.0,0.5,0.10" temperature="0.4,1.0,0.20" moisture="0.0,0.6,0.10" />
         </biomes>
         <shape id="ground-shape" cull="1" index="1" type="obb" mesh-index="0"
             mesh-id="ground-mesh" transform-id="ground-tf">
@@ -333,6 +303,47 @@
     </node>
 
     <!--**************************-->
+    <!--********* Stones **********-->
+    <!--**************************-->
+
+    <mesh id="big-stones" type="sphere" use-normal="1" use-texco="1" use-tangent="1"
+          lod-levels="4, 3, 2"
+          lod-thresholds="20.0, 50.0, 0.0"
+          scaling="0.7,0.3,0.7"
+          update-frequency="NEVER">
+        <shader mesh-index="0" key="regen.models.mesh" />
+        <!--
+        <transform id="big-stones-tf" num-instances="20" is-instanced="1">
+            <rotate value="0.0, 1.57079632, 0.0"/>
+            <translate value="0.0, 10.6, 0.0"/>
+            <set mode="circle" target="translate" radius="42.0" variance="0.8"
+                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
+        </transform>
+        -->
+        <transform id="big-stones-tf" update-frequency="NEVER">
+            <set mode="plane"
+                area-mask-texture="ground-mesh-biome-map-0"
+                area-mask-index="1"
+                area-mask-threshold="0.8"
+                area-height-texture="ground-height"
+                area-max-height="{{map-height}}"
+                area-size="{{map-size}},{{map-size}}"
+                cell-size="5.0,5.0"
+                cell-offset="0.0,{{map-y-min}},0.0"
+                obj-min-scale="0.1"
+                obj-max-scale="0.6"
+                obj-pos-variation="0.2"
+                obj-density="3.0"
+                obj-mesh="big-stones"
+              />
+        </transform>
+        <material preset="stone" variant="0" max-offset="0.2" update-frequency="NEVER"
+                color-blend-mode="mul" diffuse="0.646662, 0.555062, 0.42034" />
+        <shape id="big-stones-shape" index="1" cull="1" type="sphere"
+               mesh-id="big-stones" transform-id="big-stones-tf" radius="1.6"/>
+    </mesh>
+
+    <!--**************************-->
     <!--********* Trees **********-->
     <!--**************************-->
 
@@ -395,14 +406,14 @@
     </mesh>
 
     <node id="Trees">
-        <node id="tree-trunk">
-            <mesh id="tree-mesh" mesh-index="0" update-visibility="1" />
-        </node>
         <node id="tree-twig">
             <alpha discard-threshold="0.25"/>
             <texture name="windFlow" id="wind-flowmap" mapping="custom" />
             <input name="stiffness" type="float" value="0.5"/>
-            <mesh id="tree-mesh" mesh-index="1" update-visibility="0" />
+            <mesh id="tree-mesh" mesh-index="1" update-visibility="1" />
+        </node>
+        <node id="tree-trunk">
+            <mesh id="tree-mesh" mesh-index="0" update-visibility="0" />
         </node>
     </node>
 
@@ -754,6 +765,9 @@
     <node id="Shadow-Caster">
         <node import="Mammals"/>
         <node import="Trees"/>
+        <node id="Stones">
+            <mesh id="big-stones" mesh-index="0" update-visibility="1"/>
+        </node>
     </node>
 
     <node id="Shadow-Caster-All">

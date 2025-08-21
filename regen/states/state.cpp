@@ -90,13 +90,14 @@ void State::joinStatesFront(const ref_ptr<State> &state) {
 	joined_.insert(joined_.begin(), state);
 }
 
-void State::disjoinStates(const ref_ptr<State> &state) {
+bool State::disjoinStates(const ref_ptr<State> &state) {
 	for (auto it = joined_.begin(); it != joined_.end(); ++it) {
 		if (it->get() == state.get()) {
 			joined_.erase(it);
-			return;
+			return true;
 		}
 	}
+	return false;
 }
 
 bool State::hasInput(const std::string &name) const {

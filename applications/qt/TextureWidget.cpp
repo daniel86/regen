@@ -34,7 +34,6 @@ namespace regen {
 
 		void initializeGL_() {
 			if(isInitialized_) return;
-			isInitialized_ = true;
 
 			auto colorBuffer = ref_ptr<Texture2D>::alloc();
 			colorBuffer->set_rectangleSize(width_, height_);
@@ -73,6 +72,9 @@ namespace regen {
 
 			auto fullscreenMesh = Rectangle::getUnitQuad();
 
+			auto rs = RenderState::get();
+			auto oldVAO = rs->vao().current();
+
 			StateConfigurer shaderConfigurer;
 			shaderConfigurer.addState(updateState_.get());
 			shaderConfigurer.addState(textureState.get());
@@ -81,6 +83,9 @@ namespace regen {
 			fullscreenMesh->updateVAO(shaderConfigurer.cfg(), shaderState_->shader());
 			updateState_->joinStates(shaderState_);
 			updateState_->joinStates(fullscreenMesh);
+			isInitialized_ = true;
+
+			rs->vao().apply(oldVAO);
 		}
 
 		static std::string getShaderKey(const ref_ptr<Texture> &texture) {
@@ -184,6 +189,20 @@ TextureWidget::~TextureWidget() {
 		node_->state()->disjoinStates(widgetState_);
 		widgetState_ = {};
 	}
+}
+
+void TextureWidget::hideEvent(QHideEvent *event) {
+	if (widgetState_.get()) {
+		widgetState_->set_isHidden(true);
+	}
+	RegenWidget::hideEvent(event);
+}
+
+void TextureWidget::showEvent(QShowEvent *event) {
+	if (widgetState_.get()) {
+		widgetState_->set_isHidden(false);
+	}
+	RegenWidget::showEvent(event);
 }
 
 bool TextureWidget::hasTextureFile() const {

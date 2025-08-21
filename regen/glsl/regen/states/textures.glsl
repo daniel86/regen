@@ -2,8 +2,7 @@
 -- eyeVectorTan
 #ifndef REGEN_eyeVectorTan_included_
 #define2 REGEN_eyeVectorTan_included_
-vec3 eyeVectorTan()
-{
+vec3 eyeVectorTan() {
     mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);
     return normalize( tbn * (in_cameraPosition.xyz-in_posWorld) );
 }
@@ -642,7 +641,6 @@ void texel_norTan(inout vec4 normal) {
     // Input: normal in tangent space
     // Output: normal in world space
     #if SHADER_STAGE == fs
-    // FIXME: function declaration may cause problems, in TES etc where tangent might be array
     mat3 tbn = mat3(in_tangent,in_binormal,in_norWorld);
     normal.xyz = normal.xyz*2.0 - vec3(1.0);
     normal.xyz = normalize( tbn * normal.xyz );

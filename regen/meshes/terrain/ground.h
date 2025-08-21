@@ -25,6 +25,12 @@ namespace regen {
 		// Minimum weight for a material to be considered.
 		static float MIN_MATERIAL_WEIGHT;
 
+		struct SmoothRange {
+			Vec2f range;
+			float smooth;
+			explicit SmoothRange(const Vec3f &v) : range(v.x, v.y), smooth(v.z) {}
+		};
+
 		/**
 		 * Defines the material types.
 		 */
@@ -33,28 +39,20 @@ namespace regen {
 			std::string colorFile;
 			std::string normalFile;
 			std::string maskFile;
-			Vec2f heightRange = Vec2f(0.0f, 1.0f);
-			float heightSmoothStep = 0.1f;
-			Vec2f slopeRange = Vec2f(0.0f, 180.0f);
-			float slopeSmoothStep = 10.0f;
 			float uvScale = 1.0f;
 			bool isFallback = false;
+			SmoothRange height = SmoothRange(Vec3f(0.0f, 1.0f, 0.1f));
+			SmoothRange slope  = SmoothRange(Vec3f(0.0f, 180.0f, 10.0f));
 		};
 
 		struct BiomeDescription {
 			std::string name;
-			Vec2f heightRange = Vec2f(0.0f, 1.0f);
-			Vec2f slopeRange = Vec2f(0.0f, 180.0f);
-			Vec2f temperatureRange = Vec2f(0.0f, 1.0f);
-			Vec2f humidityRange = Vec2f(0.0f, 1.0f);
-			Vec2f rockinessRange = Vec2f(0.0f, 1.0f);
-			Vec2f concavityRange = Vec2f(0.0f, 1.0f);
-			float heightSmoothStep = 0.1f;
-			float slopeSmoothStep = 10.0f;
-			float temperatureSmoothStep = 0.1f;
-			float humiditySmoothStep = 0.1f;
-			float rockinessSmoothStep = 0.1f;
-			float concavitySmoothStep = 0.1f;
+			SmoothRange height      = SmoothRange(Vec3f(0.0f, 1.0f, 0.1f));
+			SmoothRange slope       = SmoothRange(Vec3f(0.0f, 180.0f, 10.0f));
+			SmoothRange temperature = SmoothRange(Vec3f(0.0f, 1.0f, 0.1f));
+			SmoothRange rockiness   = SmoothRange(Vec3f(0.0f, 1.0f, 0.1f));
+			SmoothRange humidity    = SmoothRange(Vec3f(0.0f, 1.0f, 0.1f));
+			SmoothRange concavity   = SmoothRange(Vec3f(0.0f, 1.0f, 0.1f));
 		};
 
 		Ground();

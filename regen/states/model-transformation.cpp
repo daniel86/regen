@@ -187,6 +187,7 @@ struct InstancePlaneGenerator {
 	const GLubyte *heightData = nullptr;
 	const GLubyte *matWeightData = nullptr;
 	uint32_t maskIndex = 0u;
+	float maskThreshold = 0.1f; // threshold for mask texture
 	//
 	PlaneCell *cells = nullptr;
 	unsigned int cellCountX = 0;
@@ -220,8 +221,8 @@ static void makeInstance(InstancePlaneGenerator &generator, PlaneCell &cell) {
 	}
 	if (generator.hasGroundMaterial()) {
 		if (density < 0.5f) return;
-	} else if (generator.maskData) {
-		if (density < 0.1f) return;
+	} else {
+		if (density < generator.maskThreshold) return;
 	}
 
 	auto &instanceMat = generator.instanceData.emplace_back(Mat4f::identity());
@@ -348,7 +349,7 @@ static void makeInstances(InstancePlaneGenerator &generator,
 
 static void makeInstances(InstancePlaneGenerator &generator, unsigned int i, unsigned int j) {
 	auto &cell = generator.cells[j * generator.cellCountX + i];
-	if (cell.density < 0.1f) {
+	if (cell.density < generator.maskThreshold) {
 		return;
 	}
 	// read weights of adjacent cells
@@ -388,6 +389,7 @@ static GLuint transformMatrixPlane(
 	generator.cellWorldOffset = input.getValue<Vec3f>("cell-offset", Vec3f(0.0f));
 	if (input.hasAttribute("area-mask-texture")) {
 		generator.maskIndex = input.getValue<uint32_t>("area-mask-index", 0);
+		generator.maskThreshold = input.getValue<float>("area-mask-threshold", 0.1f);
 		generator.maskTexture = scene->getResource<Texture2D>(input.getValue("area-mask-texture"));
 		if (generator.maskTexture.get()) {
 			generator.maskTexture->ensureTextureData();

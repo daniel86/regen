@@ -64,7 +64,7 @@ namespace regen {
 		 * Remove a state from the list of joined states.
 		 * @param state a previously joined state.
 		 */
-		void disjoinStates(const ref_ptr<State> &state);
+		bool disjoinStates(const ref_ptr<State> &state);
 
 		/**
 		 * @return Previously added shader inputs.

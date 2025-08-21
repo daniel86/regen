@@ -24,6 +24,10 @@ namespace regen {
 	protected:
 		ref_ptr<State> widgetState_;
 		QWidget *textureWidget_;
+
+		void hideEvent(QHideEvent *event) override;
+
+		void showEvent(QShowEvent *event) override;
 	};
 
 } // knowrob

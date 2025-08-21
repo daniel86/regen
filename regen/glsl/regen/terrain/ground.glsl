@@ -87,6 +87,8 @@ out vec4 out_biomes_${W_I};
 #endfor
 in vec2 in_groundUV;
 
+const float in_concavityFactor = 0.4;
+
 float material_weight0(float minVal, float maxVal, float smoothStep, float val) {
     return (1.0 - smoothstep(maxVal-smoothStep, maxVal, val));
 }
@@ -178,8 +180,8 @@ void computeBiomeWeights(float heightNorm, vec3 nor, float slope) {
     float hE  = texture(in_heightMap, in_groundUV + vec2( texel.x, 0)).r;
     float hW  = texture(in_heightMap, in_groundUV + vec2(-texel.x, 0)).r;
     float lap = (hN + hS + hE + hW - 4.0*hC);
-    float concavity = clamp(0.5 + lap * 4.0, 0.0, 1.0); // tune “4.0” per dataset
-    // Temperature & moisture from simple heuristics (tweakable constants)
+    float concavity = clamp(0.5 + lap * in_concavityFactor, 0.0, 1.0);
+    // Temperature & moisture from simple heuristics
     float aspect = atan(nor.x, nor.z);             // [-pi, pi]
     float northness = -cos(aspect) * sin(slope); // [-1,1] (+ north-facing)
     float temperature = clamp(
@@ -256,7 +258,7 @@ void computeBiomeWeights(float heightNorm, vec3 nor, float slope) {
 #endfor
     biomeSum = max(biomeSum, 0.001);
 #for BIOME_I to NUM_BIOMES
-    biome_${BIOME_I} /= biomeSum;
+    biome_${BIOME_I} = clamp(biome_${BIOME_I}, 0.0, 1.0);
 #endfor
 
 #ifdef HAS_fallback_BIOME
