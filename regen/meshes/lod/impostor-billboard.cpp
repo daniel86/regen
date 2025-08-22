@@ -163,6 +163,7 @@ void ImpostorBillboard::createResources() {
 	updateNumberOfViews();
 	// create camera for the update pass
 	snapshotCamera_ = ref_ptr<ArrayCamera>::alloc(numSnapshotViews_, BufferUpdateFlags::NEVER);
+	defaultNormals_.resize(numSnapshotViews_);
 
 	{ // create parameters for the shader
 		setInput(depthOffset_);
@@ -279,6 +280,8 @@ void ImpostorBillboard::addSnapshotView(uint32_t viewIdx, const Vec3f &dir, cons
 	snapshotCamera_->setView(viewIdx, Mat4f::lookAtMatrix(eye, dir, up));
 	auto &view = snapshotCamera_->view(viewIdx);
 	snapshotCamera_->setViewInverse(viewIdx, view.lookAtInverse());
+	Vec4f defaultNormal = view ^ Vec4f(up, 0.0f);
+	defaultNormals_[viewIdx] = defaultNormal.xyz_() * 0.5f + Vec3f(0.5f);
 
 	float minX = +FLT_MAX, maxX = -FLT_MAX;
 	float minY = +FLT_MAX, maxY = -FLT_MAX;
@@ -392,6 +395,21 @@ void ImpostorBillboard::createSnapshot() {
 	// make sure resources were created
 	ensureResourcesExist();
 	snapshotFBO_->enable(rs);
+
+	if(snapshotNormal_.get()) {
+		// Clear the normal textures individually, as each of them may have a different
+		// background color it requires for interpolation.
+		for (uint32_t arrayIndex = 0; arrayIndex < numSnapshotViews_; ++arrayIndex) {
+			Vec3f &f_clearNormal = defaultNormals_[arrayIndex];
+			glClearTexSubImage(snapshotNormal_->textureBind().id_,
+				0, 0, 0, arrayIndex, // level, x, y, z offset
+				snapshotNormal_->width(),
+				snapshotNormal_->height(), 1, // width, height, depth
+				GL_RGB, GL_FLOAT,
+				&f_clearNormal.x);
+		}
+	}
+
 	// render all meshes into the snapshot FBO
 	for (auto &view: meshes_) {
 		auto oldNumInstances = view.meshCopy->numVisibleInstances();

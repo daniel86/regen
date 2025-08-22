@@ -224,6 +224,7 @@ namespace regen {
 		Vec4f *m_viewDir_ = nullptr;
 		Vec4f *m_viewBounds_ = nullptr;
 		Vec2f *m_viewDepth_ = nullptr;
+		std::vector<Vec3f> defaultNormals_;
 
 		void updateExtrudeAttributes();
 
