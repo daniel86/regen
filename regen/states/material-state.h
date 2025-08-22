@@ -71,7 +71,7 @@ namespace regen {
 			HEIGHT_MAP_PARALLAX_OCCLUSION
 		};
 
-		Material(const BufferUpdateFlags &updateFlags = { BUFFER_UPDATE_NEVER, BUFFER_UPDATE_PARTIALLY });
+		Material(const BufferUpdateFlags &updateFlags = {BUFFER_UPDATE_NEVER, BUFFER_UPDATE_PARTIALLY});
 
 		static ref_ptr<Material> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
@@ -240,6 +240,50 @@ namespace regen {
 		 * Sets default material colors for marble.
 		 */
 		void set_marble(std::string_view variant = "");
+
+		/**
+		 * Checks if the material has a texture for the given map type.
+		 * @param mapTo the map type to check.
+		 * @return true if the material has a texture for the given map type, false otherwise.
+		 */
+		bool hasTextureType(TextureState::MapTo mapTo) const;
+
+		/**
+		 * Gets the texture for the given map type.
+		 * @param mapTo the map type to get the texture for.
+		 * @return the texture for the given map type, or nullptr if no texture is set.
+		 */
+		ref_ptr<Texture> getTexture(TextureState::MapTo mapTo) const;
+
+		/**
+		 * Gets the color texture.
+		 * @return the color texture, or nullptr if no texture is set.
+		 */
+		ref_ptr<Texture> getColorTexture() const;
+
+		/**
+		 * Gets the diffuse texture.
+		 * @return the diffuse texture, or nullptr if no texture is set.
+		 */
+		ref_ptr<Texture> getDiffuseTexture() const;
+
+		/**
+		 * Gets the specular texture.
+		 * @return the specular texture, or nullptr if no texture is set.
+		 */
+		ref_ptr<Texture> getSpecularTexture() const;
+
+		/**
+		 * Gets the normal texture.
+		 * @return the normal texture, or nullptr if no texture is set.
+		 */
+		ref_ptr<Texture> getNormalTexture() const;
+
+		/**
+		 * Gets the height texture.
+		 * @return the height texture, or nullptr if no texture is set.
+		 */
+		ref_ptr<Texture> getHeightTexture() const;
 
 		/**
 		 * Loads textures for the given material name and variant.

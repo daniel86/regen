@@ -124,17 +124,13 @@
         <transform id="ground-tf" update-frequency="NEVER" />
         <materials>
             <material type="grass" name="ground/grass" variant="1" uv-scale="0.25"
-                    height-range="0.25, 0.75" height-smooth="0.25"
-                    slope-range="0.0, 25.0" slope-smooth="10.0"/>
+                    height="0.25, 0.75, 0.25" slope="0.0, 25.0, 10.0"/>
             <material type="rock" name="ground/stone" variant="8" uv-scale="0.1"
-                    height-range="0.0, 1.0"
-                    slope-range="30.0, 180.0" slope-smooth="30.0"/>
+                    slope="30.0, 180.0, 30.0"/>
             <material type="sand" name="ground/sand" variant="3" uv-scale="0.05"
-                    height-range="0.0, 0.3" height-smooth="0.2"
-                    slope-range="0.0, 15.0" slope-smooth="15.0"/>
+                    height="0.0, 0.3, 0.2" slope="0.0, 15.0, 15.0"/>
             <material type="dirt" name="ground/dirt" variant="1" uv-scale="0.5" is-fallback="1"
-                    height-range="0.0, 0.75" height-smooth="0.2"
-                    slope-range="10.0, 180.0" slope-smooth="20.0"/>
+                    height="0.0, 0.75, 0.2" slope="10.0, 180.0, 20.0"/>
         </materials>
         <shape id="ground-shape" cull="1" index="1" type="obb" mesh-index="0"
             mesh-id="ground-mesh" transform-id="ground-tf">

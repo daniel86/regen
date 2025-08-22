@@ -155,7 +155,7 @@ namespace regen {
 		/**
 		 * @return the associates texture.
 		 */
-		auto &texture() const { return texture_; }
+		const ref_ptr<Texture> &texture() const { return texture_; }
 
 		/**
 		 * @param name the name of this texture in shader programs.
@@ -165,7 +165,7 @@ namespace regen {
 		/**
 		 * @return the name of this texture in shader programs.
 		 */
-		auto &name() const { return name_; }
+		const std::string &name() const { return name_; }
 
 		/**
 		 * @param samplerType the sampler name of this texture in shader programs.
@@ -175,7 +175,7 @@ namespace regen {
 		/**
 		 * @return the name of this texture in shader programs.
 		 */
-		auto &samplerType() const { return samplerType_; }
+		const std::string &samplerType() const { return samplerType_; }
 
 		/**
 		 * @param channel  the texture coordinate channel.
@@ -185,7 +185,7 @@ namespace regen {
 		/**
 		 * @return the texture coordinate channel.
 		 */
-		auto texcoChannel() const { return texcoChannel_; }
+		uint32_t texcoChannel() const { return texcoChannel_; }
 
 		/**
 		 * @param blendMode Specifies how this texture should be mixed with existing

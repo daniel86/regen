@@ -104,6 +104,7 @@
     <texture id="grass-mask" file="res/textures/terrain/canyon/mask-grass.png"/>
     <texture id="tree-mask" file="res/textures/terrain/canyon/mask-trees.png"/>
     <texture id="grass-color" file="res/textures/materials/grass/0/color.png" wrapping="REPEAT" />
+    <texture id="fir-color" file="res/textures/materials/tree-twig/fir/color.png" wrapping="REPEAT" />
     <texture id="wind-flowmap" file="res/textures/wind/flowmap0.png" wrapping="REPEAT"/>
     <texture id="wind-noise" type="noise" preset="cloud"
             size="128.0,128.0,1.0" noise-scale="1.0"
@@ -349,10 +350,15 @@
 
     <!-- NOTE: trunk uses mesh index 0, twigs use index 1 -->
     <!-- TODO: idea use lower level LOD for trees surrounded by other trees. -->
-    <mesh id="tree-mesh"
-            type="proctree"
+    <mesh id="tree-mesh" type="proctree"
             lods="3,2,1"
             lod-thresholds="10.0, 50.0, 100.0"
+            use-silhouette="true"
+            tile-counts="8,8,4,4"
+            max-quads-per-sprite="64"
+            alpha-cut="0.1"
+            coverage-threshold="0.05"
+            pad-tiles="0"
             preset="fir">
         <shader mesh-index="0" key="regen.models.mesh"/>
         <shader mesh-index="1" key="regen.models.mesh">
@@ -410,10 +416,44 @@
             <alpha discard-threshold="0.25"/>
             <texture name="windFlow" id="wind-flowmap" mapping="custom" />
             <input name="stiffness" type="float" value="0.5"/>
+            <!--
+            -->
             <mesh id="tree-mesh" mesh-index="1" update-visibility="1" />
         </node>
         <node id="tree-trunk">
             <mesh id="tree-mesh" mesh-index="0" update-visibility="0" />
+        </node>
+    </node>
+
+    <!--**************************-->
+    <!--****** xxxx *****-->
+    <!--**************************-->
+
+    <mesh id="silhouette-test"
+            type="silhouette"
+            silhouette-texture="fir-color"
+            tile-counts="32,16,8,4"
+            max-quads-per-sprite="64"
+            alpha-cut="0.01"
+            coverage-threshold="0.05"
+            pad-tiles="1"
+            lod-thresholds="20.0,60.0,120.0"
+            pos-scale="2.0,2.0,1.0"
+            update-frequency="NEVER">
+        <shader mesh-index="0" key="regen.models.mesh" />
+        <transform id="silhouette-tf" update-frequency="NEVER">
+            <translate value="0.0,10.0,0.0"/>
+        </transform>
+        <shape id="silhouette-shape" index="1" cull="1" type="aabb"
+                mesh-id="silhouette-test"
+                transform-id="silhouette-tf">
+        </shape>
+    </mesh>
+
+    <node id="Silhouette-Test">
+        <node id="Silhouette-Mesh">
+            <texture id="fir-color" map-to="color" blend-mode="src"/>
+            <mesh id="silhouette-test" />
         </node>
     </node>
 
@@ -781,6 +821,9 @@
     <node id="Scene-Geometry">
         <node import="Grass"/>
         <node import="Ground"/>
+        <!--
+        <node import="Silhouette-Test"/>
+        -->
     </node>
 
     <node id="Shading-Pass">

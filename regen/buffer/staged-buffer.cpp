@@ -80,6 +80,7 @@ StagedBuffer::StagedBuffer(const StagedBuffer &other, const std::string &name)
 	shared_ = other.shared_;
 	shared_->copyCount_.fetch_add(1, std::memory_order_relaxed);
 	clientBuffer_ = other.clientBuffer_;
+	adoptBufferRange_ = other.adoptBufferRange_;
 	isBufferBlock_ = true;
 	isVertexAttribute_ = false;
 	isVertexAttribute_ = false;

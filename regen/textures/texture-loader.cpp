@@ -50,6 +50,10 @@ GLenum regenImageFormat() {
 			return GL_RG;
 		case GL_COLOR_INDEX:
 			return GL_RGBA;
+		case GL_BGR:
+			return GL_RGB;
+		case GL_BGRA:
+			return GL_RGBA;
 		default:
 			return format;
 	}

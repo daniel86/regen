@@ -5,6 +5,7 @@
 #include "regen/meshes/mesh-state.h"
 #include "regen/states/material-state.h"
 #include "regen/scene/scene-input.h"
+#include "regen/meshes/silhouette-mesh.h"
 
 namespace regen {
 	/**
@@ -26,6 +27,12 @@ namespace regen {
 		explicit ProcTree(Preset preset);
 
 		explicit ProcTree(scene::SceneInputNode &input);
+
+		/**
+		 * Set whether to use silhouette mesh for the twigs.
+		 * @param useSilhouetteMesh True to use silhouette mesh, false otherwise.
+		 */
+		void setUseSilhouetteMesh(bool useSilhouetteMesh) { useSilhouetteMesh_ = useSilhouetteMesh; }
 
 		/**
 		 * Set whether to use LODs.
@@ -85,6 +92,10 @@ namespace regen {
 		ref_ptr<Material> trunkMaterial_;
 		ref_ptr<Material> twigMaterial_;
 
+		bool useSilhouetteMesh_ = false;
+		ref_ptr<SilhouetteMesh> twigSilhouette_;
+		SilhouetteMesh::Config silhouetteCfg_;
+
 		bool useLODs_ = true;
 		ref_ptr<Proctree::Tree> lodMedium_;
 		ref_ptr<Proctree::Tree> lodLow_;
@@ -97,7 +108,7 @@ namespace regen {
 
 		ref_ptr<Proctree::Tree> computeLowDetailTree();
 
-		void updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const;
+		void updateTrunkAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const;
 
 		static void computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset, Vec4f *tanData);
 
@@ -106,6 +117,12 @@ namespace regen {
 		static ProcTree::ProcMesh trunkProcMesh(Proctree::Tree &x);
 
 		static ProcTree::ProcMesh twigProcMesh(Proctree::Tree &x);
+
+		static void updateAttributes_(
+				TreeMesh &treeMesh,
+				const ProcMesh &lod0,
+				const std::vector<Mesh::MeshLOD> &lodLevels,
+				uint32_t maxVIndex) ;
 	};
 }
 

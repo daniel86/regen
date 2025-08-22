@@ -61,6 +61,33 @@ ProcTree::ProcTree(Preset preset) : ProcTree() {
 }
 
 ProcTree::ProcTree(scene::SceneInputNode &input) : ProcTree() {
+	if (input.hasAttribute("tile-counts")) {
+		auto lodVec = input.getValue<Vec4ui>(
+				"tile-counts", Vec4ui(8, 8, 8, 8));
+		silhouetteCfg_.silhouette.tileCounts.resize(4);
+		silhouetteCfg_.silhouette.tileCounts[0] = lodVec.x;
+		silhouetteCfg_.silhouette.tileCounts[1] = lodVec.y;
+		silhouetteCfg_.silhouette.tileCounts[2] = lodVec.z;
+		silhouetteCfg_.silhouette.tileCounts[3] = lodVec.w;
+	} else {
+		silhouetteCfg_.silhouette.tileCounts.push_back(input.getValue<GLuint>("lod", 8));
+	}
+	if (input.hasAttribute("alpha-cut")) {
+		silhouetteCfg_.silhouette.alphaCut = input.getValue<float>("alpha-cut", 0.01f);
+	}
+	if (input.hasAttribute("coverage-threshold")) {
+		silhouetteCfg_.silhouette.coverageThreshold = input.getValue<float>("coverage-threshold", 0.05f);
+	}
+	if (input.hasAttribute("pad-tiles")) {
+		silhouetteCfg_.silhouette.padTiles = input.getValue<uint32_t>("pad-tiles", 1u);
+	}
+	if (input.hasAttribute("max-quads-per-sprite")) {
+		silhouetteCfg_.silhouette.maxQuadsPerSprite = input.getValue<uint32_t>("max-quads-per-sprite", 64u);
+	}
+	if (input.hasAttribute("texco-scale")) {
+		silhouetteCfg_.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f(1.0f));
+	}
+
 	if (input.hasAttribute("preset")) {
 		loadPreset(input.getValue<Preset>("preset", PRESET_NONE));
 	}
@@ -254,6 +281,22 @@ void ProcTree::loadPreset(Preset preset) {
 			twigMaterial_->set_textures("materials/tree-twig", "pine");
 			break;
 	}
+
+	if (useSilhouetteMesh_) {
+		// obtain twig diffuse texture, we want to compute silhouette mesh from that
+		auto twigTex = twigMaterial_->getColorTexture();
+		if (twigTex.get()) {
+			auto twigTex2D = ref_ptr<Texture2D>::dynamicCast(twigTex);
+			if (twigTex2D.get()) {
+				twigSilhouette_ = ref_ptr<SilhouetteMesh>::alloc(twigTex2D, silhouetteCfg_);
+				twigSilhouette_->updateSilhouette();
+			} else {
+				REGEN_WARN("Cannot create silhouette mesh for twig texture.");
+			}
+		}
+	} else {
+		twigSilhouette_ = {};
+	}
 }
 
 ref_ptr<Proctree::Tree> ProcTree::computeMediumDetailTree() {
@@ -300,18 +343,18 @@ void ProcTree::computeTan(TreeMesh &treeMesh, const ProcMesh &procMesh, int vert
 }
 
 static int addQuadPoint(Vec3f *quadPos, const Vec3f &pos, const Vec2f &uv) {
-    int quadIndex;
-    if (uv.y > 0.5 && uv.x < 0.5) {
-        quadIndex = 0;
-    } else if (uv.y > 0.5 && uv.x > 0.5) {
-        quadIndex = 2;
-    } else if (uv.x < 0.5) {
-        quadIndex = 1;
-    } else {
-        quadIndex = 3;
-    }
-    quadPos[quadIndex] = pos;
-    return quadIndex;
+	int quadIndex;
+	if (uv.y > 0.5 && uv.x < 0.5) {
+		quadIndex = 0;
+	} else if (uv.y > 0.5 && uv.x > 0.5) {
+		quadIndex = 2;
+	} else if (uv.x < 0.5) {
+		quadIndex = 1;
+	} else {
+		quadIndex = 3;
+	}
+	quadPos[quadIndex] = pos;
+	return quadIndex;
 }
 
 void ProcTree::computeBasePos(TreeMesh &treeMesh, const ProcMesh &procMesh, int vertexOffset, Vec3f *basePosData) {
@@ -323,8 +366,8 @@ void ProcTree::computeBasePos(TreeMesh &treeMesh, const ProcMesh &procMesh, int 
 		auto &uv1 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].y]);
 		auto &uv2 = *((Vec2f *) &procMesh.mUV[procMesh.mFace[i].z]);
 
-		Vec3f quadPos[4] = { Vec3f::zero(), Vec3f::zero(),
-							 Vec3f::zero(), Vec3f::zero() };
+		Vec3f quadPos[4] = {Vec3f::zero(), Vec3f::zero(),
+							Vec3f::zero(), Vec3f::zero()};
 		int vIndex0 = addQuadPoint(quadPos, v0, uv0);
 		int vIndex1 = addQuadPoint(quadPos, v1, uv1);
 		int vIndex2 = addQuadPoint(quadPos, v2, uv2);
@@ -367,87 +410,13 @@ void ProcTree::computeBasePos(TreeMesh &treeMesh, const ProcMesh &procMesh, int 
 	}
 }
 
-void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const {
-	std::vector<Mesh::MeshLOD> lodLevels;
-	auto &lod0 = procLODs[0];
-	int numVertices = 0, numIndices = 0;
-	for (auto &lod: procLODs) {
-		numVertices += lod.mVertCount;
-		numIndices += lod.mFaceCount * 3;
-	}
-
-	if (procLODs.size() == 1) {
-		// use proc tree data directly
-		treeMesh.indices->setVertexData(numIndices,
-										reinterpret_cast<const unsigned char *>(&lod0.mFace[0].x));
-		treeMesh.pos->setVertexData(numVertices,
-									reinterpret_cast<const unsigned char *>(&lod0.mVert[0].x));
-		treeMesh.nor->setVertexData(numVertices,
-									reinterpret_cast<const unsigned char *>(&lod0.mNormal[0].x));
-		treeMesh.texco->setVertexData(numVertices,
-									  reinterpret_cast<const unsigned char *>(&lod0.mUV[0].u));
-
-		treeMesh.tan->setVertexData(numVertices);
-		auto v_tan = treeMesh.tan->mapClientData<float>(BUFFER_GPU_WRITE);
-		computeTan(treeMesh, lod0, 0, (Vec4f*)v_tan.w.data());
-		v_tan.unmap();
-
-		if (treeMesh.basePos.get()) {
-			treeMesh.basePos->setVertexData(numVertices);
-			auto v_basePos = treeMesh.basePos->mapClientData<float>(BUFFER_GPU_WRITE);
-			computeBasePos(treeMesh, lod0, 0, (Vec3f*)v_basePos.w.data());
-			v_basePos.unmap();
-		}
-	} else {
-		// allocate memory then copy each LOD into the vertex data array
-		treeMesh.indices->setVertexData(numIndices);
-		treeMesh.pos->setVertexData(numVertices);
-		treeMesh.nor->setVertexData(numVertices);
-		treeMesh.texco->setVertexData(numVertices);
-		treeMesh.tan->setVertexData(numVertices);
-		// map client data for writing
-		auto indices = treeMesh.indices->mapClientData<unsigned int>(BUFFER_GPU_WRITE);
-		auto v_pos = treeMesh.pos->mapClientData<float>(BUFFER_GPU_WRITE);
-		auto v_nor = treeMesh.nor->mapClientData<float>(BUFFER_GPU_WRITE);
-		auto v_tan = treeMesh.tan->mapClientData<float>(BUFFER_GPU_WRITE);
-		auto v_texco = treeMesh.texco->mapClientData<float>(BUFFER_GPU_WRITE);
-		auto *ptr_indices = indices.w.data();
-		auto *ptr_pos = v_pos.w.data();
-		auto *ptr_nor = v_nor.w.data();
-		auto *ptr_texco = v_texco.w.data();
-		// copy data from Proctree to Mesh
-		// also create LOD descriptions on the way.
-		unsigned int vertexOffset = 0u, indexOffset = 0u;
-		for (auto &lod: procLODs) {
-			// create LOD description
-			auto &lodLevel = lodLevels.emplace_back();
-			lodLevel.d->numVertices = lod.mVertCount;
-			lodLevel.d->numIndices = lod.mFaceCount * 3;
-			lodLevel.d->vertexOffset = vertexOffset;
-			lodLevel.d->indexOffset = indexOffset;
-			// copy data
-			for (int i = 0; i < lod.mFaceCount; i++) {
-				ptr_indices[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
-				ptr_indices[i * 3 + 1] = lod.mFace[i].y + vertexOffset;
-				ptr_indices[i * 3 + 2] = lod.mFace[i].z + vertexOffset;
-			}
-			memcpy(ptr_pos, &lod.mVert[0].x, lod.mVertCount * 3 * sizeof(float));
-			memcpy(ptr_nor, &lod.mNormal[0].x, lod.mVertCount * 3 * sizeof(float));
-			memcpy(ptr_texco, &lod.mUV[0].u, lod.mVertCount * 2 * sizeof(float));
-			// compute tangents
-			computeTan(treeMesh, lod, vertexOffset, (Vec4f*)v_tan.w.data());
-			// increase offsets
-			vertexOffset += lodLevel.d->numVertices;
-			indexOffset += lodLevel.d->numIndices;
-			ptr_indices += lodLevel.d->numIndices;
-			ptr_pos += lod.mVertCount * 3;
-			ptr_nor += lod.mVertCount * 3;
-			ptr_texco += lod.mVertCount * 2;
-		}
-	}
-
+void ProcTree::updateAttributes_(
+		TreeMesh &treeMesh,
+		const ProcMesh &lod0,
+		const std::vector<Mesh::MeshLOD> &lodLevels,
+		uint32_t maxVIndex) {
 	treeMesh.mesh->begin(Mesh::INTERLEAVED);
-	auto indexRef = treeMesh.mesh->setIndices(treeMesh.indices, numVertices);
+	auto indexRef = treeMesh.mesh->setIndices(treeMesh.indices, maxVIndex);
 	treeMesh.mesh->setInput(treeMesh.pos);
 	if (treeMesh.basePos.get()) {
 		treeMesh.mesh->setInput(treeMesh.basePos);
@@ -481,6 +450,64 @@ void ProcTree::updateAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> 
 	}
 }
 
+void ProcTree::updateTrunkAttributes(TreeMesh &treeMesh, const std::vector<ProcMesh> &procLODs) const {
+	std::vector<Mesh::MeshLOD> lodLevels;
+	auto &lod0 = procLODs[0];
+	int numVertices = 0, numIndices = 0;
+	for (auto &lod: procLODs) {
+		numVertices += lod.mVertCount;
+		numIndices += lod.mFaceCount * 3;
+	}
+
+	// allocate memory then copy each LOD into the vertex data array
+	treeMesh.indices->setVertexData(numIndices);
+	treeMesh.pos->setVertexData(numVertices);
+	treeMesh.nor->setVertexData(numVertices);
+	treeMesh.texco->setVertexData(numVertices);
+	treeMesh.tan->setVertexData(numVertices);
+	// map client data for writing
+	auto indices = treeMesh.indices->mapClientData<unsigned int>(BUFFER_GPU_WRITE);
+	auto v_pos = treeMesh.pos->mapClientData<float>(BUFFER_GPU_WRITE);
+	auto v_nor = treeMesh.nor->mapClientData<float>(BUFFER_GPU_WRITE);
+	auto v_tan = treeMesh.tan->mapClientData<float>(BUFFER_GPU_WRITE);
+	auto v_texco = treeMesh.texco->mapClientData<float>(BUFFER_GPU_WRITE);
+	auto *ptr_indices = indices.w.data();
+	auto *ptr_pos = v_pos.w.data();
+	auto *ptr_nor = v_nor.w.data();
+	auto *ptr_texco = v_texco.w.data();
+	// copy data from Proctree to Mesh
+	// also create LOD descriptions on the way.
+	unsigned int vertexOffset = 0u, indexOffset = 0u;
+	for (auto &lod: procLODs) {
+		// create LOD description
+		auto &lodLevel = lodLevels.emplace_back();
+		lodLevel.d->numVertices = lod.mVertCount;
+		lodLevel.d->numIndices = lod.mFaceCount * 3;
+		lodLevel.d->vertexOffset = vertexOffset;
+		lodLevel.d->indexOffset = indexOffset;
+		// copy data
+		for (int i = 0; i < lod.mFaceCount; i++) {
+			ptr_indices[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
+			ptr_indices[i * 3 + 1] = lod.mFace[i].y + vertexOffset;
+			ptr_indices[i * 3 + 2] = lod.mFace[i].z + vertexOffset;
+		}
+		memcpy(ptr_pos, &lod.mVert[0].x, lod.mVertCount * 3 * sizeof(float));
+		memcpy(ptr_nor, &lod.mNormal[0].x, lod.mVertCount * 3 * sizeof(float));
+		memcpy(ptr_texco, &lod.mUV[0].u, lod.mVertCount * 2 * sizeof(float));
+		// compute tangents
+		computeTan(treeMesh, lod, vertexOffset, (Vec4f *) v_tan.w.data());
+		// increase offsets
+		vertexOffset += lodLevel.d->numVertices;
+		indexOffset += lodLevel.d->numIndices;
+		ptr_indices += lodLevel.d->numIndices;
+		ptr_pos += lod.mVertCount * 3;
+		ptr_nor += lod.mVertCount * 3;
+		ptr_texco += lod.mVertCount * 2;
+	}
+
+	updateAttributes_(treeMesh, lod0, lodLevels, numVertices);
+}
+
 ProcTree::ProcMesh ProcTree::trunkProcMesh(Proctree::Tree &x) {
 	return {
 			x.mVertCount,
@@ -505,44 +532,164 @@ ProcTree::ProcMesh ProcTree::twigProcMesh(Proctree::Tree &x) {
 
 void ProcTree::updateTrunkAttributes() {
 	if (useLODs_) {
-		// TODO: might be this can be done more efficiently without creating three trees,
-		//       for this it would be needed to iterate over branch hierarchy.
-		updateAttributes(trunk, {
+		updateTrunkAttributes(trunk, {
 				trunkProcMesh(handle),
 				trunkProcMesh(*lodMedium_.get()),
 				trunkProcMesh(*lodLow_.get())
 		});
-
-		// debug the LOD configuration
-		auto &trunkLODs = trunk.mesh->meshLODs();
-		for (size_t i = 0; i < trunkLODs.size(); i++) {
-			REGEN_INFO("Trunk LOD " << i << ": " << trunkLODs[i].d->numVertices << " vertices, "
-									 << trunkLODs[i].d->numIndices << " indices, "
-									 << "vertex offset: " << trunkLODs[i].d->vertexOffset
-									 << ", index offset: " << trunkLODs[i].d->indexOffset);
-		}
 	} else {
-		updateAttributes(trunk, {trunkProcMesh(handle)});
+		updateTrunkAttributes(trunk, {trunkProcMesh(handle)});
 	}
 }
 
 void ProcTree::updateTwigAttributes() {
-	if (useLODs_) {
-		// NOTE: current LOD approach of reducing branching in the trunk of the tree is fine
-		//       for the look of the tree, but removing the twigs changes shape too much,
-		//       so twig LOD is disabled for now.
-		//       Probably best would be to identify twigs close to the trunk, then remove
-		//       them in LODs starting from the closest to the trunk.
-		//       Best to do this with the LOD 0 vertex data, and only generate an additional
-		//       index buffer per LOD leaving out some of the twigs.
-		//updateAttributes(twig, {
-		//		twigProcMesh(handle),
-		//		twigProcMesh(*lodMedium_.get()),
-		//		twigProcMesh(*lodLow_.get())
-		//});
-		updateAttributes(twig, {twigProcMesh(handle)});
+	const ProcMesh lod0 = twigProcMesh(handle);
+	std::vector<Mesh::MeshLOD> lodLevels;
+
+	if (twigSilhouette_.get()) {
+		// FIXME: There are some bugs in this block of code that needs to be fixed!
+		auto &uvRects = twigSilhouette_->silhouetteUVRects()[0];
+		uint32_t nq_in = lod0.mFaceCount / 2;
+		uint32_t nv_in = lod0.mVertCount;
+		uint32_t ni_in = lod0.mFaceCount * 3;
+		uint32_t nq_out = nq_in * uvRects.size();
+		uint32_t nv_out = nq_out * 4; // 4 vertices per quad
+		uint32_t ni_out = nq_out * 6; // 6 indices per quad
+
+		// Allocate client memory
+		twig.indices->setVertexData(ni_out);
+		twig.pos->setVertexData(nv_out);
+		twig.pos->setVertexData(nv_out);
+		twig.nor->setVertexData(nv_out);
+		twig.texco->setVertexData(nv_out);
+		twig.tan->setVertexData(nv_out);
+		if (twig.basePos.get()) {
+			twig.basePos->setVertexData(nv_out);
+		}
+		// map client data for writing
+		auto twig_i = (GLuint*)twig.indices->clientBuffer()->clientData(0);
+		auto twig_p = (Vec3f*) twig.pos->clientBuffer()->clientData(0);
+		auto twig_n = (Vec3f*) twig.nor->clientBuffer()->clientData(0);
+		auto twig_t = (Vec4f*) twig.tan->clientBuffer()->clientData(0);
+		auto twig_uv = (Vec2f*) twig.texco->clientBuffer()->clientData(0);
+		auto twig_bp = (twig.basePos.get() ?
+			(Vec3f*) twig.basePos->clientBuffer()->clientData(0) : nullptr);
+
+		uint32_t qOffset = 0u;
+		uint32_t vOffset = 0u;
+		uint32_t iOffset = 0u;
+
+		for (uint32_t quadIdx_in=0u; quadIdx_in < nq_in; quadIdx_in++) {
+			// For each input quad, we create uvRects.size() output quads.
+			// For this we need to compute tangents along u/v directions.
+			auto &face_in = lod0.mFace[quadIdx_in * 2];
+			auto &v0_in = *((Vec3f*)&lod0.mVert[face_in.x].x);
+			auto &v1_in = *((Vec3f*)&lod0.mVert[face_in.y].x);
+			auto &v2_in = *((Vec3f*)&lod0.mVert[face_in.z].x);
+			// base position for the quad
+			// TODO: UNSURE ABOUT IT
+			auto basePos = (v1_in + v2_in) * 0.5f;
+			// compute direction vectors along face plane
+			// TODO: UNSURE ABOUT IT
+			// length of the vectors should be width/height of the quad.
+			Vec3f e2 = v0_in - v1_in; // "v" axis
+			Vec3f e1 = v2_in - v1_in; // "u" axis
+			// Orthonormal-ish data for TBN (you can keep e1/e2 scaled for positioning)
+			Vec3f n = e1.cross(e2); n.normalize();
+			// tangent = u-axis
+			Vec3f t = e1; t.normalize();
+			// Handedness: sign = +1 if (t x b)·n > 0; here we approximate with e2
+			Vec3f e2_norm = e2; e2_norm.normalize();
+			float handedness = t.cross(e2_norm).dot(n) < 0.0f ? -1.0f : 1.0f;
+
+			for (uint32_t uvRectIdx = 0u; uvRectIdx < uvRects.size(); uvRectIdx++) {
+				// For each output quad, we need to compute the position and UVs.
+				auto &uvRect = uvRects[uvRectIdx];
+				// uvRect = (u0, v0, u1, v1) in normalized 0..1 space
+				float u0 = uvRect.x, v0 = uvRect.y, u1 = uvRect.z, v1 = uvRect.w;
+				// use (0..1) local coords around center:
+				Vec2f local0( (u0+u1)*0.5f, (v0+v1)*0.5f );
+				Vec2f localSize( u1 - u0, v1 - v0 );
+				float hw = localSize.x * 0.5f;
+				float hh = localSize.y * 0.5f;
+				// We'll create geometry in UV-space [0..1]
+				Vec2f q0(local0.x - hw, local0.y - hh);
+				Vec2f q1(local0.x + hw, local0.y - hh);
+				Vec2f q2(local0.x + hw, local0.y + hh);
+				Vec2f q3(local0.x - hw, local0.y + hh);
+
+				// compute positions in world space
+				twig_p[vOffset + 0] = v1_in + e1 * q0.x + e2 * q0.y;
+				twig_p[vOffset + 1] = v1_in + e1 * q1.x + e2 * q1.y;
+				twig_p[vOffset + 2] = v1_in + e1 * q2.x + e2 * q2.y;
+				twig_p[vOffset + 3] = v1_in + e1 * q3.x + e2 * q3.y;
+
+				// compute UVs in [0..1] space
+				twig_uv[vOffset + 0] = Vec2f(u0, v0);
+				twig_uv[vOffset + 1] = Vec2f(u1, v0);
+				twig_uv[vOffset + 2] = Vec2f(u1, v1);
+				twig_uv[vOffset + 3] = Vec2f(u0, v1);
+
+				// compute normals
+				twig_n[vOffset + 0] = n;
+				twig_n[vOffset + 1] = n;
+				twig_n[vOffset + 2] = n;
+				twig_n[vOffset + 3] = n;
+
+				// compute tangents
+				twig_t[vOffset + 0] = Vec4f(t, handedness);
+				twig_t[vOffset + 1] = Vec4f(t, handedness);
+				twig_t[vOffset + 2] = Vec4f(t, handedness);
+				twig_t[vOffset + 3] = Vec4f(t, handedness);
+
+				// set the base position for the quad.
+				if (twig.basePos.get()) {
+					twig_bp[vOffset + 0] = basePos;
+					twig_bp[vOffset + 1] = basePos;
+					twig_bp[vOffset + 2] = basePos;
+					twig_bp[vOffset + 3] = basePos;
+				}
+
+				// Finally, set the indices for the quad.
+				twig_i[iOffset + 0] = vOffset + 0;
+				twig_i[iOffset + 1] = vOffset + 1;
+				twig_i[iOffset + 2] = vOffset + 2;
+				twig_i[iOffset + 3] = vOffset + 2;
+				twig_i[iOffset + 4] = vOffset + 3;
+				twig_i[iOffset + 5] = vOffset + 0;
+				// increment offsets
+				vOffset += 4u;
+				iOffset += 6u;
+				qOffset += 1u;
+			}
+		}
+
+		updateAttributes_(twig, lod0, lodLevels, nv_out);
 	} else {
-		updateAttributes(twig, {twigProcMesh(handle)});
+		uint32_t nv = lod0.mVertCount;
+		uint32_t ni = lod0.mFaceCount * 3;
+		// use proc tree data directly
+#define PROC_DATA_PTR_(arg) reinterpret_cast<const unsigned char *>(&(arg))
+		twig.indices->setVertexData(ni, PROC_DATA_PTR_(lod0.mFace[0].x));
+		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mFace[0].x));
+		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mVert[0].x));
+		twig.nor->setVertexData(nv, PROC_DATA_PTR_(lod0.mNormal[0].x));
+		twig.texco->setVertexData(nv, PROC_DATA_PTR_(lod0.mUV[0].u));
+#undef PROC_DATA_PTR_
+
+		twig.tan->setVertexData(nv);
+		auto v_tan = twig.tan->mapClientData<float>(BUFFER_GPU_WRITE);
+		computeTan(twig, lod0, 0, (Vec4f *) v_tan.w.data());
+		v_tan.unmap();
+
+		if (twig.basePos.get()) {
+			twig.basePos->setVertexData(nv);
+			auto v_basePos = twig.basePos->mapClientData<float>(BUFFER_GPU_WRITE);
+			computeBasePos(twig, lod0, 0, (Vec3f *) v_basePos.w.data());
+			v_basePos.unmap();
+		}
+
+		updateAttributes_(twig, lod0, lodLevels, nv);
 	}
 }
 

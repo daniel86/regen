@@ -16,6 +16,7 @@ uniform sampler2D in_windFlow;
 vec2 windAtPosition(vec3 posWorld) {
 #ifdef HAS_windFlow
     float windStrength = length(in_wind);
+    windStrength = max(windStrength, 0.01); // avoid division by zero
     vec2 windFlow_uv =
         // map position to "wind flow space"
         posWorld.xz/in_windFlowScale +

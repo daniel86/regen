@@ -200,7 +200,7 @@ namespace regen {
 		/**
 		 * @param f the lambda function to call.
 		 */
-		explicit LambdaEventHandler(std::function<void(EventObject *, EventData *)> f) : f_(std::move(f)) {}
+		explicit LambdaEventHandler(std::function<void(EventObject *, EventData *)> f) : f_(f) {}
 
 		~LambdaEventHandler() override = default;
 

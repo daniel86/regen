@@ -36,8 +36,8 @@ namespace regen {
 		 */
 		explicit SilhouetteGenerator(
 				const ref_ptr<Texture2D> &tex,
-				SilhouetteConfig cfg = SilhouetteConfig())
-				: cfg_(std::move(cfg)), tex_(tex) {}
+				const SilhouetteConfig &cfg = SilhouetteConfig())
+				: cfg_(cfg), tex_(tex) {}
 
 		virtual ~SilhouetteGenerator() = default;
 

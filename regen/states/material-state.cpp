@@ -220,7 +220,7 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 	// remove any non-alphanumeric characters from material name
 	std::string materialNameStr(materialName);
 	materialNameStr.erase(std::remove_if(materialNameStr.begin(), materialNameStr.end(),
-			[](char c) { return !std::isalnum(c); }), materialNameStr.end());
+										 [](char c) { return !std::isalnum(c); }), materialNameStr.end());
 
 	// iterate over the texture files in the directory
 	for (auto &entry: materialDescr.textureFiles) {
@@ -231,7 +231,7 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 				auto fileName = boost::filesystem::path(filePath).stem().string();
 				// remove any non-alphanumeric characters
 				fileName.erase(std::remove_if(fileName.begin(), fileName.end(),
-						[](char c) { return !std::isalnum(c); }), fileName.end());
+											  [](char c) { return !std::isalnum(c); }), fileName.end());
 				auto texName = REGEN_STRING("tex_" << materialNameStr << "_" << fileName << textures_.size());
 				auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 				textures_[entry.first].push_back(texState);
@@ -251,6 +251,37 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 		}
 	}
 	return true;
+}
+
+bool Material::hasTextureType(TextureState::MapTo mapTo) const {
+	return textures_.find(mapTo) != textures_.end() && !textures_.at(mapTo).empty();
+}
+
+ref_ptr<Texture> Material::getTexture(TextureState::MapTo mapTo) const {
+	if (hasTextureType(mapTo)) {
+		return textures_.at(mapTo).front()->texture();
+	}
+	return {};
+}
+
+ref_ptr<Texture> Material::getColorTexture() const {
+	return getTexture(TextureState::MapTo::MAP_TO_COLOR);
+}
+
+ref_ptr<Texture> Material::getDiffuseTexture() const {
+	return getTexture(TextureState::MapTo::MAP_TO_DIFFUSE);
+}
+
+ref_ptr<Texture> Material::getSpecularTexture() const {
+	return getTexture(TextureState::MapTo::MAP_TO_SPECULAR);
+}
+
+ref_ptr<Texture> Material::getNormalTexture() const {
+	return getTexture(TextureState::MapTo::MAP_TO_NORMAL);
+}
+
+ref_ptr<Texture> Material::getHeightTexture() const {
+	return getTexture(TextureState::MapTo::MAP_TO_HEIGHT);
 }
 
 ref_ptr<TextureState> Material::set_texture(const ref_ptr<Texture> &tex,
@@ -416,9 +447,9 @@ namespace regen {
 ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	BufferUpdateFlags updateFlags;
 	updateFlags.frequency = input.getValue<BufferUpdateFrequency>(
-		"update-frequency", BUFFER_UPDATE_PER_FRAME);
+			"update-frequency", BUFFER_UPDATE_PER_FRAME);
 	updateFlags.scope = input.getValue<BufferUpdateScope>(
-		"update-scope", BUFFER_UPDATE_FULLY);
+			"update-scope", BUFFER_UPDATE_FULLY);
 	ref_ptr<Material> mat = ref_ptr<Material>::alloc(updateFlags);
 
 	if (input.hasAttribute("max-offset")) {

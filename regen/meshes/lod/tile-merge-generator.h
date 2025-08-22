@@ -10,8 +10,8 @@ namespace regen {
 	 */
 	class TileMergeGenerator : public SilhouetteGenerator {
 	public:
-		explicit TileMergeGenerator(const ref_ptr<Texture2D> &tex, SilhouetteConfig cfg = SilhouetteConfig())
-				: SilhouetteGenerator(tex, std::move(cfg)) {
+		explicit TileMergeGenerator(const ref_ptr<Texture2D> &tex, const SilhouetteConfig &cfg = SilhouetteConfig())
+				: SilhouetteGenerator(tex, cfg) {
 		}
 
 		~TileMergeGenerator() override = default;

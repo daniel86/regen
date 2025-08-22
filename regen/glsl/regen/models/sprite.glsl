@@ -1,23 +1,38 @@
 
+-- getForceMatrix
+#ifndef REGEN_getForceMatrix_defined_
+#define2 REGEN_getForceMatrix_defined_
+const float in_stiffness = 1.0;
+mat3 getForceMatrix(vec2 force) {
+    vec2 xz = force;
+    float alpha = length(xz);
+    // compute force axis
+    xz /= max(alpha, 0.001);
+    // bend up to 90 degrees
+    alpha = min(1.0, alpha) * 1.5707963267948966 * in_stiffness;
+    // Calculate the rotation matrix
+    float ca = cos(alpha);
+    vec2 xz_ka = xz * (1.0 - ca);
+    vec2 xz_sa = xz * sin(alpha);
+    float xzka = xz.y * xz_ka.x;
+    return mat3(
+        // first row
+        ca + xz.x * xz_ka.x, -xz_sa.y, xzka,
+        // second row
+        xz_sa.y, ca, -xz_sa.x,
+        // third row
+        xzka, xz_sa.x, ca + xz.y * xz_ka.y
+    );
+}
+#endif
+
 -- applyForce
 #ifndef REGEN_applyForce_defined_
 #define2 REGEN_applyForce_defined_
-
-const float in_stiffness = 1.0;
-
+#include regen.models.sprite.getForceMatrix
 void applyForce(inout vec3 quadPos[4], vec2 force) {
-    // Calculate the rotation axis and angle
-    vec3 axis = normalize(vec3(force.y, 0.0, -force.x)); // = normalize(cross(UP, vec3(force.x, 0.0, force.y)));
-    float angle = min(1.0, length(force)) * 1.5707963267948966 * in_stiffness;
-    // Calculate the rotation matrix
-    float sa = sin(angle);
-    float ca = cos(angle);
-    mat3 rotationMatrix = mat3(
-        ca + axis.x * axis.x * (1.0 - ca),      -axis.z * sa,       axis.x * axis.z * (1.0 - ca),
-        axis.z * sa,                            ca,                 -axis.x * sa,
-        axis.z * axis.x * (1.0 - ca),           axis.x * sa,        ca + axis.z * axis.z * (1.0 - ca)
-    );
     // Apply the rotation to the top points using the bottom points as the pivot
+    mat3 rotationMatrix = getForceMatrix(force);
     quadPos[1] = quadPos[0] + rotationMatrix * (quadPos[1] - quadPos[0]);
     quadPos[3] = quadPos[2] + rotationMatrix * (quadPos[3] - quadPos[2]);
 }
@@ -26,20 +41,10 @@ void applyForce(inout vec3 quadPos[4], vec2 force) {
 -- applyForceBase
 #ifndef REGEN_applyForceBase_defined_
 #define2 REGEN_applyForceBase_defined_
-const float in_stiffness = 1.0;
+#include regen.models.sprite.getForceMatrix
 void applyForceBase(inout vec3 quadPos, vec3 basePos, vec2 force) {
-    // Calculate the rotation axis and angle
-    vec3 axis = normalize(vec3(force.y, 0.0, -force.x)); // = normalize(cross(UP, vec3(force.x, 0.0, force.y)));
-    float angle = min(1.0, length(force)) * 1.5707963267948966 * in_stiffness;
-    // Calculate the rotation matrix
-    float sa = sin(angle);
-    float ca = cos(angle);
-    mat3 rotationMatrix = mat3(
-        ca + axis.x * axis.x * (1.0 - ca),      -axis.z * sa,       axis.x * axis.z * (1.0 - ca),
-        axis.z * sa,                            ca,                 -axis.x * sa,
-        axis.z * axis.x * (1.0 - ca),           axis.x * sa,        ca + axis.z * axis.z * (1.0 - ca)
-    );
-    // Apply the rotation to the top points using the bottom points as the pivot
+    // Apply the rotation to the top points using the base point as the pivot
+    mat3 rotationMatrix = getForceMatrix(force);
     quadPos = basePos + rotationMatrix * (quadPos - basePos);
 }
 #endif

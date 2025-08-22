@@ -135,7 +135,10 @@ void SpatialIndex::updateVisibilityWithCamera(IndexCamera &ic, const BoundingSha
 		for (auto &indexShape: ic.indexShapes_) {
 			auto &distances = indexShape->instanceDistances_;
 			if (distances.empty()) { continue; }
-			std::ranges::sort(distances, {}, &IndexedShape::ShapeDistance::distance);
+			std::ranges::sort(distances,
+				// small distances first
+				std::ranges::less(),
+				&IndexedShape::ShapeDistance::distance);
 
 			uint32_t startIdx = indexShape->u_instanceCount_;
 			indexShape->u_instanceCount_ = startIdx + static_cast<unsigned int>(distances.size());

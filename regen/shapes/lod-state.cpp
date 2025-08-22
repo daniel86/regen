@@ -276,7 +276,8 @@ void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32
 	// increase LOD level by one if we have a shadow target
 	if (!camera_->hasFixedLOD()) {
 		if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
-			lodLevel++;
+			// FIXME: Impostor in close range is not a good idea, too much jumping
+			//lodLevel++;
 		}
 	}
 	// set the LOD level
