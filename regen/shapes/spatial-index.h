@@ -34,7 +34,11 @@ namespace regen {
 		 * @brief Add a camera to the index
 		 * @param camera The camera
 		 */
-		void addCamera(const ref_ptr<Camera> &camera, bool sortInstances = true);
+		void addCamera(
+				const ref_ptr<Camera> &cullCamera,
+				const ref_ptr<Camera> &sortCamera,
+				SortMode sortMode,
+				Vec4i lodShift);
 
 		/**
 		 * @brief Check if the index has a camera
@@ -47,10 +51,11 @@ namespace regen {
 		 * @brief Check if a shape is visible
 		 * Note: update must be called before this function
 		 * @param camera The camera
+		 * @param layerIdx The layer index
 		 * @param shapeID The shape ID
 		 * @return True if the shape is visible, false otherwise
 		 */
-		bool isVisible(const Camera &camera, std::string_view shapeID);
+		bool isVisible(const Camera &camera, uint32_t layerIdx, std::string_view shapeID);
 
 		/**
 		 * @brief Get the number of instances of a shape
@@ -128,19 +133,21 @@ namespace regen {
 
 	protected:
 		struct IndexCamera {
-			ref_ptr<Camera> camera;
+			ref_ptr<Camera> cullCamera;
+			ref_ptr<Camera> sortCamera;
 			std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
 			// flattened list of shapes for faster access
 			std::vector<IndexedShape*> indexShapes_;
 			// whether to sort instances by distance to camera
-			bool sortInstances = true;
+			SortMode sortMode = SortMode::FRONT_TO_BACK;
+			Vec4i lodShift = Vec4i(0);
 		};
 		std::unordered_map<std::string_view, std::vector<ref_ptr<BoundingShape>>> nameToShape_;
 		std::unordered_map<const Camera *, IndexCamera> cameras_;
 
 		void updateVisibility();
 
-		void updateVisibilityWithCamera(IndexCamera &camera, const BoundingShape &shape, bool isMultiShape);
+		void updateLayerVisibility(IndexCamera &camera, uint32_t layerIdx, const BoundingShape &shape);
 
 		/**
 		 * @brief Add a shape to the index
@@ -159,13 +166,13 @@ namespace regen {
 		// used internally when handling intersections
 		struct TraversalData {
 			SpatialIndex *index;
-			const Vec4f *camPos;
-			bool isMultiShape;
+			const Vec3f *camPos;
+			uint32_t layerIdx;
 		};
 
-		static void handleIntersection_sorted(const BoundingShape &b_shape, void *userData);
+		static void handleIntersection(const BoundingShape &b_shape, void *userData);
 
-		static void handleIntersection_unsorted(const BoundingShape &b_shape, void *userData);
+		static void updateLOD_Major(IndexCamera &indexCamera, IndexedShape *indexShape);
 	};
 } // namespace
 

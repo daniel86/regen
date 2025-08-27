@@ -22,12 +22,6 @@
 
 using namespace regen;
 
-static inline void reverse_copy_u32(uint32_t *__restrict dst, const uint32_t *__restrict src, size_t count) {
-	for (size_t i = 0; i < count; ++i) {
-		dst[i] = src[count - 1 - i];
-	}
-}
-
 namespace regen {
 	class InstanceUpdater : public Animation {
 	public:
@@ -82,36 +76,25 @@ LODState::LODState(
 }
 
 void LODState::initLODState() {
-	lodNumInstances_.resize(4);
-	lodBoundaries_.resize(5);
-	lodBoundaries_[0] = 0;
-	// initially all instances are added to first LOD group
-	for (uint32_t i = 0u; i < 4; ++i) {
-		lodNumInstances_[i] = 0;
-	}
-	if (camera_->hasFixedLOD()) {
-		lodNumInstances_[fixedLOD_] = cullShape_->numInstances();
-	} else {
-		lodNumInstances_[0] = cullShape_->numInstances();
+	numLODs_ = 1;
+	if (shapeIndex_.get()) {
+		if (shapeIndex_->shape()->mesh().get()) {
+			numLODs_ = std::max(shapeIndex_->shape()->mesh()->numLODs(), numLODs_);
+		}
+		for (auto &part : cullShape_->parts()) {
+			numLODs_ = std::max(part->numLODs(), numLODs_);
+		}
+	} else if (mesh_.get()) {
+		numLODs_ = std::max(mesh_->numLODs(), numLODs_);
 	}
 
-	if (cullShape_->hasInstanceBuffer()) {
-		// the cull shape may provide a shared instance buffer which is used for all
-		// LOD states that use this cull shape, e.g. for shadow mapping, reflection passes, etc.
-		// In this case, we cannot update the instance IDs per frame, but only per draw call
-		// as the content might change between different passes.
-		// NOTE: If memory allows, it is better to use a per-frame instance buffer to avoid stalling.
-		instanceData_ = cullShape_->instanceData();
-		instanceBuffer_ = cullShape_->instanceBuffer();
-	} else if (cullShape_->numInstances() > 1) {
+	if (cullShape_->numInstances() > 1) {
 		// create instance buffer for per-frame updates.
 		createInstanceBuffer();
 		// Create indirect draw buffers for each mesh part and LOD.
 		createIndirectDrawBuffers();
 	} else if (camera_->numLayer()>1) {
 		// we also need indirect draw buffers for multi-layer rendering
-		REGEN_INFO("Switching to indirect draw for shape '" << cullShape_->shapeName()
-					   << "' with " << camera_->numLayer() << " layers.");
 		createIndirectDrawBuffers();
 	}
 
@@ -126,7 +109,7 @@ void LODState::initLODState() {
 			//        due to this. this is required in some cases in the scene loading.
 			//        We would need to attach these buffers to some other common state which is accessible
 			//        from both paths, and where we have individual buffers for each part+camera combination.
-			if (!cullShape_->hasInstanceBuffer() && instanceBuffer_.get()) {
+			if (instanceBuffer_.get()) {
 				// Make sure that all meshes that share the index shape also have access to the instance buffer.
 				shapeIndex_->setInstanceBuffer(instanceBuffer_);
 				shapeIndex_->setSortMode(instanceSortMode_);
@@ -148,14 +131,14 @@ void LODState::initLODState() {
 					   << cullShape_->shapeName()
 					   << "' with " << cullShape_->numInstances() << " instances, "
 					   << mesh_->numLODs() << " LODs, "
-					   << (cullShape_->hasInstanceBuffer() ? "per-draw" : "per-frame") << " "
 					   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
 }
 
 void LODState::createInstanceBuffer() {
-	int32_t numIndices = cullShape_->numInstances();
-	std::vector<uint32_t> clearData(numIndices);
-	for (int32_t i = 0; i < numIndices; ++i) { clearData[i] = i; }
+	// Note: make enough space for case where all instances are visible in all layers.
+	//       but usually we will write far less data.
+	const int32_t numIndices = cullShape_->numInstances() * camera_->numLayer();
+	std::vector<uint32_t> clearData(numIndices, 0);
 
 	instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
 	instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
@@ -165,7 +148,6 @@ void LODState::createInstanceBuffer() {
 	instanceBuffer_->addStagedInput(instanceData_);
 	instanceBuffer_->update();
 	if (!cullShape_->isIndexShape()) {
-		// clear segment to [0, 1, 2, ..., numInstances_-1]
 		instanceBuffer_->setBufferSubData(0, numIndices, clearData.data());
 	}
 	// Set the instance buffer as input of the LOD state.
@@ -174,12 +156,12 @@ void LODState::createInstanceBuffer() {
 }
 
 ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
-	const uint32_t numLayers = camera_->numLayer();
+	const uint32_t numLayer = camera_->numLayer();
 	auto buffer = ref_ptr<DrawIndirectBuffer>::alloc(
 			"IndirectDrawBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME);
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-			"DrawCommand", "drawParams", 4 * numLayers);
+			"DrawCommand", "drawParams", numLODs_ * numLayer);
 	if (cullShape_->isIndexShape()) {
 		input->setInstanceData(1, 1,
 			(byte*)indirectDrawData_[partIdx].current.data());
@@ -190,6 +172,17 @@ ref_ptr<SSBO> LODState::createIndirectDrawBuffer(uint32_t partIdx) {
 		buffer->setBufferData((byte*)indirectDrawData_[partIdx].current.data());
 	}
 	return buffer;
+}
+
+static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels, uint32_t numBaseLevels) {
+	static const uint32_t lodMappings[5][4] = {
+		{0, 0, 0, 0}, // 0 LOD
+		{0, 0, 0, 0}, // 1 LODs
+		{0, 0, 1, 1}, // 2 LODs
+		{0, 1, 2, 2}, // 3 LODs
+		{0, 1, 2, 3}  // 4 LODs
+	};
+	return lodMappings[numPartLevels][lodLevel];
 }
 
 void LODState::createIndirectDrawBuffers() {
@@ -204,54 +197,49 @@ void LODState::createIndirectDrawBuffers() {
 		auto &partLODs = part->meshLODs();
 		auto &drawData = indirectDrawData_[partIdx];
 
-		drawData.current.resize(4 * numLayers);
-		drawData.clear.resize(4 * numLayers);
+		drawData.current.resize(numLODs_ * numLayers);
+		drawData.clear.resize(numLODs_ * numLayers);
 
 		// Create the indirect draw data for this part and the first layer.
 		// DrawID order: LOD0_layer0, LOD0_layer1, LOD0_layer2
 		// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
-		for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
-			const uint32_t lodStartIdx = lodIdx * numLayers;
-			DrawCommand &drawParams = drawData.current[lodStartIdx];
-			if (lodIdx < part->numLODs()) {
-				auto &lodData = partLODs[lodIdx];
-				Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : part.get();
-				if (m->indices().get()) {
-					drawParams.mode = 1u; // 1=elements, 2=arrays
-					drawParams.setCount(lodData.d->numIndices);
-					drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
-					drawParams.data[3] = 0; // base vertex
-				} else {
-					drawParams.mode = 2u; // 1=elements, 2=arrays
-					drawParams.setCount(lodData.d->numVertices);
-					drawParams.setFirstElement(lodData.d->vertexOffset);
-				}
+		for (uint32_t lodIdx = 0; lodIdx < numLODs_; ++lodIdx) {
+			const uint32_t layer0_idx = lodIdx * numLayers;
+			const uint32_t partLOD_idx = std::min(lodIdx, part->numLODs()-1);
+			const auto &lodData = partLODs[partLOD_idx];
+			DrawCommand &drawParams = drawData.current[layer0_idx];
+
+			Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : part.get();
+			if (m->indices().get()) {
+				drawParams.mode = 1u; // 1=elements, 2=arrays
+				drawParams.setCount(lodData.d->numIndices);
+				drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
+				drawParams.data[3] = 0; // base vertex
 			} else {
-				// no LOD data available, use the base mesh
-				drawParams.mode = part->indices().get() ? 1u : 2u; // 1=elements, 2=arrays
-				drawParams.setCount(0);
-				drawParams.setFirstElement(0);
+				drawParams.mode = 2u; // 1=elements, 2=arrays
+				drawParams.setCount(lodData.d->numVertices);
+				drawParams.setFirstElement(lodData.d->vertexOffset);
 			}
 			drawParams.setInstanceCount(lodIdx==0 ? part->numInstances() : 0);
 			drawParams.setBaseInstance(0);
 
 			// Set the clear draw command to zero instance count.
 			std::memcpy(
-				&drawData.clear[lodIdx * numLayers],
+				&drawData.clear[layer0_idx],
 				&drawParams,
 				sizeof(DrawCommand));
-			drawData.clear[lodIdx].setInstanceCount(0);
+			drawData.clear[layer0_idx].setInstanceCount(0);
 
 			// Copy over the data for the remaining layers.
 			for (uint32_t layerIdx = 1; layerIdx < numLayers; ++layerIdx) {
-				const uint32_t lodLayerIdx = lodStartIdx + layerIdx;
+				const uint32_t lodLayerIdx = layer0_idx + layerIdx;
 				std::memcpy(
 					&drawData.current[lodLayerIdx],
-					&drawData.current[lodStartIdx],
+					&drawData.current[layer0_idx],
 					sizeof(DrawCommand));
 				std::memcpy(
 					&drawData.clear[lodLayerIdx],
-					&drawData.clear[lodStartIdx],
+					&drawData.clear[layer0_idx],
 					sizeof(DrawCommand));
 			}
 		}
@@ -261,49 +249,29 @@ void LODState::createIndirectDrawBuffers() {
 	}
 }
 
-static inline uint32_t getPartLOD(uint32_t lodLevel, uint32_t numPartLevels) {
-	static const uint32_t lodMappings[5][4] = {
-		{0, 0, 0, 0}, // 0 LOD
-		{0, 0, 0, 0}, // 1 LODs
-		{0, 0, 1, 1}, // 2 LODs
-		{0, 1, 2, 2}, // 3 LODs
-		{0, 1, 2, 3}  // 4 LODs
-	};
-	return lodMappings[numPartLevels][lodLevel];
+static const Vec3f* getCameraPosition(const ref_ptr<Camera> &camera, uint32_t layerIdx) {
+	if (camera->position().size() == 1) {
+		return (Vec3f*)&camera->position(0);
+	} else {
+		return (Vec3f*)&camera->position(layerIdx);
+	}
 }
 
-void LODState::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
-	// increase LOD level by one if we have a shadow target
-	if (!camera_->hasFixedLOD()) {
-		if (hasShadowTarget_ && lodLevel < mesh_->numLODs() - 1) {
-			// FIXME: Impostor in close range is not a good idea, too much jumping
-			//lodLevel++;
-		}
-	}
+void LODState::updateVisibility(uint32_t layerIdx, uint32_t lodLevel, uint32_t numInstances, uint32_t baseInstance) {
+	const uint32_t numLayer = camera_->numLayer();
+
 	// set the LOD level
 	for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
-		auto &part = cullShape_->parts()[partIdx];
-		// could be part has different number of LODs, need to compute an adjusted
-		// LOD level for each part
-		auto partLODLevel = getPartLOD(lodLevel, part->numLODs());
-		auto &partLOD = part->meshLODs()[partLODLevel];
-		const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + numInstances;
-		const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
-		part->updateVisibility(partLODLevel, numVisibleInstances, baseInstance);
-
-		if (!indirectDrawBuffers_.empty()) {
-			// write into local storage buffer
-			const uint32_t lodStartIdx = partLODLevel * camera_->numLayer();
+		if (indirectDrawBuffers_.empty()) {
+			auto &part = cullShape_->parts()[partIdx];
+			part->updateVisibility(
+					getPartLOD(lodLevel, part->numLODs(), numLODs_),
+					numInstances, baseInstance);
+		} else {
 			auto &current = indirectDrawData_[partIdx].current;
-			auto &drawParams = current[lodStartIdx];
-			drawParams.setInstanceCount(numVisibleInstances);
+			auto &drawParams = current[numLayer * lodLevel + layerIdx];
+			drawParams.setInstanceCount(numInstances);
 			drawParams.setBaseInstance(baseInstance);
-			// Update draw commands for the other layers too.
-			for (uint32_t layerIdx = 1; layerIdx < camera_->numLayer(); ++layerIdx) {
-				auto &drawParamsLayer = current[lodStartIdx + layerIdx];
-				drawParamsLayer.setInstanceCount(numVisibleInstances);
-				drawParamsLayer.setBaseInstance(baseInstance);
-			}
 		}
 	}
 }
@@ -318,7 +286,6 @@ void LODState::resetVisibility() {
 			part->updateVisibility(lodLevel, 0, 0);
 		}
 		if (!indirectDrawBuffers_.empty()) {
-			// reset the indirect draw buffer for this part
 			std::memcpy(
 				indirectDrawData_[partIdx].current.data(),
 				indirectDrawData_[partIdx].clear.data(),
@@ -346,68 +313,43 @@ void LODState::enable(RenderState *rs) {
 		elapsedTime.endFrame();
 #endif
 	}
-	else if(cullShape_->hasInstanceBuffer()) {
-#ifdef LOD_DEBUG_TIME
-		static ElapsedTimeDebugger elapsedTime("CPU LOD", 300);
-		elapsedTime.beginFrame();
-#endif
-		resetVisibility();
-#ifdef LOD_DEBUG_TIME
-		elapsedTime.push("visibility reset");
-#endif
-		traverseCPU();
-#ifdef LOD_DEBUG_TIME
-		elapsedTime.push("CPU traverse");
-		elapsedTime.endFrame();
-#endif
-	}
 	else if (indirectDrawBuffers_.empty()) {
-		// Set the mesh state for the net draw call.
-		// Note: we compute the LOD groups only once per frame in an animation
-		//     loop, but we cannot set the mesh state there, because the mesh may be used
-		//     in multiple passes, e.g. shadow mapping, reflection, etc.
-		// Note: in case of indirect draw buffers, we skip this step as at the moment the
-		//     LOD state is only used in case of direct draw calls.
-		for (auto &part : cullShape_->parts()) {
-			// reset the visibility for each part
-			for (uint32_t lodIdx = 0; lodIdx < part->numLODs(); ++lodIdx) {
-				part->updateVisibility(lodIdx, 0, 0);
+		// This means that we have only a single layer and a single instance.
+		// Because in all other cases, an indirect draw buffer is created.
+		// -> here we can safely adjust the LOD state of the mesh for its next traversal.
+
+		auto counts = shapeIndex_->mapInstanceCounts(BUFFER_GPU_READ);
+		int32_t lodLevelWithInstance = -1;
+		for (uint32_t lodIdx = 0; lodIdx < numLODs_; ++lodIdx) {
+			const uint32_t binIdx = lodIdx * camera_->numLayer(); // layerIdx=0
+			if (counts.r[binIdx] != 0) {
+				lodLevelWithInstance = lodIdx;
+				break;
 			}
-			// update the visibility for each part
-			uint32_t instanceOffset = 0;
-			for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
-				auto partLODLevel = getPartLOD(lodIdx, part->numLODs());
-				auto &partLOD = part->meshLODs()[partLODLevel];
-				const uint32_t numVisibleInstances = partLOD.d->numVisibleInstances + lodNumInstances_[lodIdx];
-				const uint32_t baseInstance = (partLOD.d->numVisibleInstances > 0u ? partLOD.d->instanceOffset : instanceOffset);
-				part->updateVisibility(partLODLevel, numVisibleInstances, baseInstance);
-				instanceOffset += lodNumInstances_[lodIdx];
+		}
+		if (lodLevelWithInstance != -1) {
+			// set the LOD level for the mesh
+			for (auto &part : cullShape_->parts()) {
+				auto partLODLevel = getPartLOD(lodLevelWithInstance, part->numLODs(), numLODs_);
+				part->updateVisibility(partLODLevel, part->numInstances(), 0);
 			}
 		}
 	}
 #ifdef LOD_DEBUG_GROUPS
 	REGEN_INFO("LOD for shape '" << cullShape_->shapeName() << "'"
 		<< " with " << cullShape_->numInstances() << " instances, "
-		<< (cullShape_->hasInstanceBuffer() ? "per-draw" : "per-frame") << " "
 		<< (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode "
 		<< cullShape_->parts().size() << " parts, "
 		<< " and shadow target: " << (hasShadowTarget_ ? "1" : "0")
 		);
-	if (cullShape_->isIndexShape()) {
-		REGEN_INFO("  - CPU ("
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[0] << " "
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[1] << " "
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[2] << " "
-			<< std::setw(4) << std::setfill(' ') << lodNumInstances_[3] << ")");
-	}
 	if (!indirectDrawBuffers_.empty()) {
 		// map indirect buffer and print the number of instances per LOD
-		static std::vector<DrawCommand> readVec(4);
+		static std::vector<DrawCommand> readVec(4 * 8); // max 4 LODs, max 8 layers
 		for (uint32_t partIdx= 0; partIdx < indirectDrawBuffers_.size(); ++partIdx) {
 			auto indirectBuffer = indirectDrawBuffers_[partIdx];
 			auto &part = cullShape_->parts()[partIdx];
 			indirectBuffer->readBufferSubData(
-					0, 4 * sizeof(DrawCommand), (byte *)readVec.data());
+					0, numLODs_ * camera_->numLayer() * sizeof(DrawCommand), (byte *)readVec.data());
 			// print the number of instances per LOD
 			REGEN_INFO("  - GPU ("
 							   << std::setw(4) << std::setfill(' ') << readVec[0].instanceCount() << " "
@@ -417,17 +359,19 @@ void LODState::enable(RenderState *rs) {
 							   << " numLODs: " <<
 							   std::setw(2) << std::setfill(' ') << part->numLODs()
 							   << " part: " << partIdx);
-			for (uint32_t i = 0; i < part->numLODs(); ++i) {
-				REGEN_INFO("   - DIBO " << i << " -- "
+			for (uint32_t i = 0; i < numLODs_; ++i) {
+			for (uint32_t j = 0; j < camera_->numLayer(); ++j) {
+				auto binIdx = i * camera_->numLayer() + j;
+				REGEN_INFO("   - DIBO " << i << "." << j << " -- "
 								<< "mode: " << readVec[i].mode << "; data: ["
-								   << std::setw(8) << readVec[i].data[0] << ", "
-								   << std::setw(8) << readVec[i].data[1] << ", "
-								   << std::setw(8) << readVec[i].data[2] << ", "
-								   << std::setw(8) << readVec[i].data[3] << ", "
-								   << std::setw(4) << readVec[i].data[4] << ", "
-								   << readVec[i]._pad[0] << ", "
-								   << readVec[i]._pad[1] << "]");
-			}
+								   << std::setw(8) << readVec[binIdx].data[0] << ", "
+								   << std::setw(8) << readVec[binIdx].data[1] << ", "
+								   << std::setw(8) << readVec[binIdx].data[2] << ", "
+								   << std::setw(8) << readVec[binIdx].data[3] << ", "
+								   << std::setw(4) << readVec[binIdx].data[4] << ", "
+								   << readVec[binIdx]._pad[0] << ", "
+								   << readVec[binIdx]._pad[1] << "]");
+			}}
 		}
 	} else if (!cullShape_->parts().empty()) {
 		for (auto &part : cullShape_->parts()) {
@@ -452,45 +396,69 @@ void LODState::enable(RenderState *rs) {
 ///////////////////////
 
 void LODState::traverseCPU() {
-	if (!shapeIndex_->isVisible()) {
+	const uint32_t numLayer = camera_->numLayer();
+	bool hasVisibleInstance = shapeIndex_->isVisibleInAnyLayer();
+	if (!hasVisibleInstance_ && !hasVisibleInstance) {
 		// No instance is visible, early exit.
 		// Note: the LOD state has been reset before, so nothing to do here.
 		return;
 	}
-	if (cullShape_->numInstances() <= 1) {
-		for (size_t i = 1; i < lodNumInstances_.size(); ++i) { lodNumInstances_[i] = 0; }
-		if (shapeIndex_->isVisible() && mesh_.get()) {
-			// set LOD level based on distance
-			const Vec3f &camPos = camera_->position(0);
-			const float distanceSquared = (shapeIndex_->shape()->getShapeOrigin() - camPos).lengthSquared();
-			const uint32_t activeLOD = mesh_->getLODLevel(distanceSquared);
-			updateVisibility(activeLOD, 1, 0);
-			lodNumInstances_[activeLOD] = 1;
-		}
-	} else if (camera_->hasFixedLOD()) {
-		updateVisibility(fixedLOD_, shapeIndex_->numVisibleInstances(), 0);
-	} else {
-		if (tfStamp_ != cullShape_->boundingShape()->transformStamp() || cameraStamp_ != camera_->stamp()) {
-			// recompute LOD groups if the transform or camera has changed
-			computeLODGroups();
-			tfStamp_ = cullShape_->boundingShape()->transformStamp();
-			cameraStamp_ = camera_->stamp();
-		}
-		//computeLODGroups();
-		if (mesh_->numLODs() <= 1) {
-			updateVisibility(0, shapeIndex_->numVisibleInstances(), 0);
-		} else {
-			int32_t instanceIDOffset = 0;
-			for (uint32_t lodLevel = 0; lodLevel < lodNumInstances_.size(); ++lodLevel) {
-				auto lodGroupSize = lodNumInstances_[lodLevel];
-				if (lodGroupSize > 0) {
-					updateVisibility(lodLevel, lodGroupSize, instanceIDOffset);
-					instanceIDOffset += static_cast<int32_t>(lodGroupSize);
+	hasVisibleInstance_ = hasVisibleInstance;
+
+	if (hasVisibleInstance_) {
+		if (cullShape_->numInstances() <= 1) {
+			if (mesh_.get()) {
+				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
+					if (!shapeIndex_->isVisibleInLayer(layerIdx)) continue;
+					const Vec3f *camPos = getCameraPosition(shapeIndex_->sortCamera(), layerIdx);
+					const float distance = (shapeIndex_->shape()->getShapeOrigin() - *camPos).lengthSquared();
+					const uint32_t activeLOD = mesh_->getLODLevel(distance, shapeIndex_->lodShift());
+
+					updateVisibility(layerIdx, activeLOD, 1, 0);
 				}
+			}
+		} else if (camera_->hasFixedLOD()) {
+			auto count = shapeIndex_->mapInstanceCounts(BUFFER_CPU_READ);
+			auto base = shapeIndex_->mapBaseInstances(BUFFER_CPU_READ);
+
+			for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
+			for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
+				const uint32_t binIdx =  IndexedShape::binIdx(lodLevel, layerIdx, numLayer);
+				if (count.r[binIdx] != 0) {
+					updateVisibility(layerIdx, fixedLOD_, count.r[binIdx], base.r[binIdx]);
+				}
+			}}
+		} else {
+			auto count = shapeIndex_->mapInstanceCounts(BUFFER_CPU_READ);
+			auto base = shapeIndex_->mapBaseInstances(BUFFER_CPU_READ);
+			auto ids = shapeIndex_->mapInstanceIDs(BUFFER_CPU_READ);
+
+			// update local data of indirect draw buffers
+			for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
+				for (uint32_t layer=0; layer<numLayer; ++layer) {
+					const uint32_t binIdx = IndexedShape::binIdx(lodLevel, layer, numLayer);
+					if (count.r[binIdx] != 0) {
+						updateVisibility(layer, lodLevel, count.r[binIdx], base.r[binIdx]);
+					}
+				}
+			}
+
+			if (tfStamp_ != cullShape_->boundingShape()->transformStamp() || cameraStamp_ != camera_->stamp()) {
+				tfStamp_ = cullShape_->boundingShape()->transformStamp();
+				cameraStamp_ = camera_->stamp();
+
+				const uint32_t lastBinIdx = (numLODs_ * numLayer) - 1;
+				const uint32_t numVisible = base.r[lastBinIdx] + count.r[lastBinIdx];
+				const uint32_t dataSize = numVisible * sizeof(uint32_t);
+
+				auto mappedClientData = instanceData_->mapClientData<uint32_t>(
+						BUFFER_GPU_WRITE, 0, dataSize);
+				std::memcpy(mappedClientData.w.data(), ids.r.data(), dataSize);
 			}
 		}
 	}
 
+	// update client buffer of indirect draw buffers
 	if (!indirectDrawBuffers_.empty()) {
 		for (uint32_t partIdx = 0; partIdx < cullShape_->parts().size(); ++partIdx) {
 			auto &indirectBuffer = indirectDrawBuffers_[partIdx];
@@ -510,163 +478,22 @@ void LODState::traverseCPU() {
 	}
 }
 
-struct LODSelector_Full {
-	const Mat4f *tfData;
-	const Vec4f *modelOffsetData;
-	const uint32_t *mappedData;
-	const Mesh *mesh;
-	const uint32_t tfIdxMultiplier;
-	const uint32_t offsetIdxMultiplier;
-
-	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
-		auto idx = mappedData[i];
-		return mesh->getLODLevel((
-										 tfData[tfIdxMultiplier * idx].position() +
-										 modelOffsetData[offsetIdxMultiplier * idx].xyz_() - camPos).lengthSquared());
-	}
-};
-
-struct LODSelector_ModelOffset {
-	const Vec4f *modelOffsetData;
-	const uint32_t *mappedData;
-	const Mesh *mesh;
-
-	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
-		return mesh->getLODLevel((
-										 modelOffsetData[mappedData[i]].xyz_() - camPos).lengthSquared());
-	}
-};
-
-struct LODSelector_Transform {
-	const Mat4f *tfData;
-	const uint32_t *mappedData;
-	const Mesh *mesh;
-
-	inline uint32_t operator()(uint32_t i, const Vec3f &camPos) const {
-		return mesh->getLODLevel((
-										 tfData[mappedData[i]].position() - camPos).lengthSquared());
-	}
-};
-
-template<typename Selector>
-static inline void countGroupSize_CPU(
-		uint32_t numInstances,
-		std::vector<uint32_t> &lodNumInstances,
-		std::vector<uint32_t> &lodBoundaries,
-		const Vec3f &camPos,
-		const Selector &getLODLevel) {
-	const auto numLODs = static_cast<uint32_t>(lodNumInstances.size());
-	// Adjust boundaries incrementally
-	for (uint32_t i = 1u; i < numLODs; ++i) {
-		auto &boundary = lodBoundaries[i];
-		boundary = lodBoundaries[i - 1] + lodNumInstances[i - 1];
-		// Shrink boundary to num instances
-		if (boundary >= numInstances) {
-			boundary = numInstances;
-		}
-		// Move boundary backward if previous level leaks into current
-		while (boundary > 0) {
-			if (getLODLevel(boundary - 1, camPos) < i) break;
-			--boundary;
-		}
-		// Move boundary forward if current level leaks into next
-		while (boundary < numInstances) {
-			if (getLODLevel(boundary, camPos) >= i) break;
-			++boundary;
-		}
-		lodNumInstances[i - 1] = boundary - lodBoundaries[i - 1];
-
-		// Fill in remaining LODs with zero instances
-		if (boundary == numInstances) {
-			for (uint32_t j = i; j < numLODs - 1; ++j) {
-				lodNumInstances[j] = 0;
-				lodBoundaries[j + 1] = numInstances;
-			}
-			lodNumInstances[numLODs - 1] = 0;
-			return;
-		}
-	}
-	lodBoundaries[numLODs] = numInstances;
-	lodNumInstances[numLODs - 1] = numInstances - lodBoundaries[numLODs - 1];
-}
-
-void LODState::computeLODGroups() {
-	auto visible_ids = shapeIndex_->mapInstanceIDs(BUFFER_GPU_READ);
-	const uint32_t numVisible = visible_ids.r[0];
-	if (numVisible == 0) { return; }
-
-	const uint32_t *mappedData = visible_ids.r.data() + 1;
-	auto &tf = cullShape_->boundingShape()->transform();
-	const Vec3f &camPos = camera_->position(0);
-
-	if (tf.get() && (tf->hasModelOffset() || tf->hasModelMat())) {
-		auto &modelOffset = tf->modelOffset();
-		auto &modelMat = tf->modelMat();
-		if (tf->hasModelOffset() && tf->hasModelMat()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
-			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
-			LODSelector_Full selector{
-					.tfData = tfData.r.data(),
-					.modelOffsetData = modelOffsetData.r.data(),
-					.mappedData = mappedData,
-					.mesh = mesh_.get(),
-					.tfIdxMultiplier = (modelMat->numInstances() > 1u ? 1u : 0u),
-					.offsetIdxMultiplier = (modelOffset->numInstances() > 1u ? 1u : 0u)
-			};
-			countGroupSize_CPU(numVisible,
-							   lodNumInstances_, lodBoundaries_,
-							   camPos,
-							   selector);
-		} else if (tf->hasModelOffset()) {
-			auto modelOffsetData = modelOffset->mapClientData<Vec4f>(BUFFER_GPU_READ);
-			LODSelector_ModelOffset selector{
-					.modelOffsetData = modelOffsetData.r.data(),
-					.mappedData = mappedData,
-					.mesh = mesh_.get()
-			};
-			countGroupSize_CPU(numVisible,
-							   lodNumInstances_, lodBoundaries_,
-							   camPos,
-							   selector);
-		} else {
-			auto tfData = modelMat->mapClientData<Mat4f>(BUFFER_GPU_READ);
-			LODSelector_Transform selector{
-					.tfData = tfData.r.data(),
-					.mappedData = mappedData,
-					.mesh = mesh_.get()
-			};
-			countGroupSize_CPU(numVisible,
-							   lodNumInstances_, lodBoundaries_,
-							   camPos,
-							   selector);
-		}
-	} else {
-		for (size_t i = 1; i < lodNumInstances_.size(); ++i) {
-			lodNumInstances_[i] = 0;
-		}
-		lodNumInstances_[0] = numVisible;
-	}
-
-	// write lodGroups_ data into instanceData_
-	auto mappedClientData = instanceData_->mapClientData<uint32_t>(
-			BUFFER_GPU_WRITE, 0, numVisible * sizeof(uint32_t));
-	if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
-		reverse_copy_u32(mappedClientData.w.data(), mappedData, numVisible);
-	} else {
-		std::memcpy(mappedClientData.w.data(), mappedData, numVisible * sizeof(uint32_t));
-	}
-}
-
 ///////////////////////
 //////////// GPU-based LOD update
 ///////////////////////
 
 void LODState::createComputeShader() {
+	// TODO: support multi-layer rendering
+	//    - create draw commands for each layer
+	//    - support per-layer culling, and writing to per-layer instance buffers
+	//    - I guess run radix for each layer separately, or maybe let the same stage of different layers
+	//      run in parallel, and only barrier between the stages.
+
 	{	// Create a static indirect draw buffer, which is used for clearing the
 		// first indirect draw buffer each frame.
 		auto clearData = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
 					"DrawCommand", "drawParams", 4);
-		clearData->setUniformUntyped((byte*)indirectDrawData_[0].clear.data()); // FIXME: data idx
+		clearData->setUniformUntyped((byte*)indirectDrawData_[0].clear.data());
 		clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
 			"Clear_IndirectDrawBuffer",
 			BufferUpdateFlags::NEVER,

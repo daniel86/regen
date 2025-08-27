@@ -72,14 +72,13 @@ namespace regen {
 		uint32_t cameraStamp_ = 0;
 		uint32_t tfStamp_ = 0;
 
-		// stores how many instances are currently visible for each LOD level
-		std::vector<uint32_t> lodNumInstances_;
-		std::vector<uint32_t> lodBoundaries_;
+		uint32_t numLODs_ = 1;
 		uint32_t fixedLOD_;
 		ref_ptr<Mesh> mesh_;
 		bool hasShadowTarget_;
+		bool hasVisibleInstance_ = false;
 
-		ref_ptr<ShaderInput1ui> instanceData_;
+		ref_ptr<ShaderInput> instanceData_;
 		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera
 		ref_ptr<SSBO> instanceBuffer_;
 
@@ -113,11 +112,13 @@ namespace regen {
 
 		ref_ptr<SSBO> createIndirectDrawBuffer(uint32_t partIdx);
 
-		void updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset);
+		void updateVisibility(
+				uint32_t layerIdx,
+				uint32_t lodLevel,
+				uint32_t numInstances,
+				uint32_t instanceOffset);
 
 		void resetVisibility();
-
-		void computeLODGroups();
 
 		void traverseCPU();
 

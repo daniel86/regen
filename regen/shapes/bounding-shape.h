@@ -131,10 +131,17 @@ namespace regen {
 		const ref_ptr<Mesh> &mesh() const { return mesh_; }
 
 		/**
+		 * @brief Get the head mesh of this shape
+		 * This is the main mesh if set, otherwise the first part
+		 * @return The head mesh
+		 */
+		const ref_ptr<Mesh> &baseMesh() const { return baseMesh_; }
+
+		/**
 		 * @brief Get the parts of this shape
 		 * @return The parts
 		 */
-		auto &parts() const { return parts_; }
+		const std::vector<ref_ptr<Mesh>> &parts() const { return parts_; }
 
 		/**
 		 * Add a part to this shape
@@ -143,6 +150,9 @@ namespace regen {
 		void addPart(const ref_ptr<Mesh> &part) {
 			if (part.get() != nullptr) {
 				parts_.push_back(part);
+			}
+			if (!baseMesh_.get()) {
+				baseMesh_ = part;
 			}
 		}
 
@@ -178,6 +188,7 @@ namespace regen {
 	protected:
 		const BoundingShapeType shapeType_;
 		ref_ptr<Mesh> mesh_;
+		ref_ptr<Mesh> baseMesh_;
 		std::vector<ref_ptr<Mesh>> parts_;
 
 		ref_ptr<ModelTransformation> transform_;
@@ -194,7 +205,6 @@ namespace regen {
 		uint32_t instanceID_ = 0;
 		// custom data pointer used for spatial index intersection tests
 		void *spatialIndexData_ = nullptr;
-		mutable bool spatialIndexVisible_ = false;
 		friend class SpatialIndex;
 
 	};

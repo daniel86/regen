@@ -332,7 +332,7 @@ namespace regen {
 		 * @param distanceSquared squared distance to camera.
 		 * @return the level of detail.
 		 */
-		uint32_t getLODLevel(float distanceSquared) const;
+		uint32_t getLODLevel(float distanceSquared, const Vec4i &lodShift) const;
 
 		/**
 		 * Activate given LOD level.
@@ -671,6 +671,7 @@ namespace regen {
 		// indirect draw buffer data
 		uint32_t baseDrawIdx_ = 0u;
 		uint32_t numDrawLayers_ = 1u;
+		uint32_t numDrawLODs_ = 0u;
 		int32_t multiDrawCount_ = 1u;
 		uint32_t indirectOffset_ = 0u;
 		ref_ptr<SSBO> indirectDrawBuffer_;

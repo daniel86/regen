@@ -282,11 +282,14 @@ void Mesh::createShader(const ref_ptr<StateNode> &parentNode, StateConfig &shade
 
 	updateVAO(shaderConfig, shaderState->shader());
 	// create shader of lod meshes
+	bool hasImpostor = false;
 	for (auto &lod : meshLODs_) {
-		if (lod.impostorMesh.get()) {
+		if (!hasImpostor && lod.impostorMesh.get()) {
 			lod.impostorMesh->setIndirectDrawBuffer(
 				indirectDrawBuffer_, baseDrawIdx_, numDrawLayers_);
+			lod.impostorMesh->numDrawLODs_ = 1;
 			lod.impostorMesh->createShader(parentNode);
+			hasImpostor = true;
 		}
 	}
 }
@@ -351,6 +354,7 @@ void Mesh::updateVAO() {
 	} else {
 #ifndef REGEN_MESH_DISABLE_MULTI_DRAW
 		uint32_t drawGroupIdx = 0;
+		bool isLastImpostor = false;
 #endif
 		for (auto &lodData : meshLODs_) {
 			if (lodData.d->numVertices == lastNumVertices_ && !lodData.impostorMesh.get()) {
@@ -365,15 +369,63 @@ void Mesh::updateVAO() {
 				indirectDrawGroups_.emplace_back(0);
 			}
 			if (lodData.impostorMesh.get()) {
-				indirectDrawGroups_.emplace_back(1);
-				// note: for now do not use multi draw calls for impostor meshes
-				drawGroupIdx += 2;
+				if (isLastImpostor) {
+					// NOTE assume we can join two impostor LODs into one draw group.
+					if(indirectDrawGroups_.back()==0) {
+						indirectDrawGroups_[drawGroupIdx-1] += 1;
+					} else {
+						indirectDrawGroups_.back() += 1;
+					}
+				} else if(indirectDrawGroups_.back()==0) {
+					indirectDrawGroups_.back() = 1;
+					drawGroupIdx += 1;
+				} else {
+					indirectDrawGroups_.emplace_back(1);
+					drawGroupIdx += 2;
+				}
+				isLastImpostor = true;
 			} else {
 				indirectDrawGroups_[drawGroupIdx] += 1;
+				isLastImpostor = false;
 			}
 #endif
 		}
+		if(!indirectDrawGroups_.empty() && indirectDrawGroups_.back()==0) {
+			indirectDrawGroups_.pop_back();
+		}
+		if (numDrawLODs_ < meshLODs_.size()) {
+			numDrawLODs_ = static_cast<uint32_t>(meshLODs_.size());
+		} else if (numDrawLODs_ > meshLODs_.size()) {
+			const uint32_t numAdditionalLODs = numDrawLODs_ - static_cast<uint32_t>(meshLODs_.size());
+			const auto lastLOD = meshLODs_.back();
+#ifndef REGEN_MESH_DISABLE_MULTI_DRAW
+			if(indirectDrawGroups_.empty()) {
+				indirectDrawGroups_.emplace_back(0);
+			}
+			// enlarge last draw group. This is fine as additional LODs are copies of the last LOD.
+			indirectDrawGroups_.back() += numAdditionalLODs;
+#endif
+			for (uint32_t i = 0; i < numAdditionalLODs; ++i) {
+				meshLODs_.emplace_back(
+					lastLOD.d->numVertices,
+					lastLOD.d->vertexOffset,
+					lastLOD.d->numIndices,
+					lastLOD.d->indexOffset);
+				if (lastLOD.impostorMesh.get()) {
+					meshLODs_.back().impostorMesh = ref_ptr<Mesh>::alloc(lastLOD.impostorMesh);
+				}
+			}
+		}
 	}
+#ifdef REGEN_MESH_DEBUG_DRAW_GROUPS
+	std::stringstream drawGroupsStr;
+	for (size_t i = 0; i < indirectDrawGroups_.size(); ++i) {
+		if (i > 0) drawGroupsStr << ", ";
+		drawGroupsStr << indirectDrawGroups_[i];
+	}
+	REGEN_INFO("Mesh has " << meshLODs_.size() << " LODs, grouped into "
+		<< indirectDrawGroups_.size() << " draw groups: [" << drawGroupsStr.str() << "]");
+#endif
 #ifndef REGEN_MESH_DISABLE_MULTI_DRAW
 	if (indirectDrawGroups_.size() == meshLODs_.size()) {
 		// seems nothing was joined...
@@ -418,11 +470,26 @@ uint32_t Mesh::numLODs() const {
 	return meshLODs_.empty() ? 1u : meshLODs_.size();
 }
 
-unsigned int Mesh::getLODLevel(float distanceSquared) const {
-    // Returns the LOD group for a given depth.
-    return (distanceSquared >= v_lodThresholds_.x)
-         + (distanceSquared >= v_lodThresholds_.y)
-         + (distanceSquared >= v_lodThresholds_.z);
+uint32_t Mesh::getLODLevel(float distanceSquared, const Vec4i &lodShift) const {
+	int32_t lod = (distanceSquared >= v_lodThresholds_.x)
+		+ (distanceSquared >= v_lodThresholds_.y)
+		+ (distanceSquared >= v_lodThresholds_.z);
+#if 0
+		do {
+			partLODLevel = getPartLOD(u_shiftedLOD, part->numLODs());
+			partLOD = &part->meshLODs()[partLODLevel];
+			if (u_shiftedLOD == lodLevel || u_shiftedLOD == 0u || partLODLevel == 0) { break; }
+			if (partLOD->impostorMesh.get() && u_shiftedLOD != lodLevel) {
+				// avoid shifting to impostor mesh LODs
+				u_shiftedLOD--;
+			} else {
+				break;
+			}
+		} while(1);
+#endif
+	return std::min(
+		static_cast<uint32_t>(std::max(lod+lodShift[lod], 0)),
+		numLODs() - 1);
 }
 
 void Mesh::setLODThresholds(const Vec3f &thresholds) {
@@ -472,7 +539,7 @@ void Mesh::ensureLOD() {
 }
 
 void Mesh::updateLOD(float cameraDistance) {
-	activateLOD(getLODLevel(cameraDistance));
+	activateLOD(getLODLevel(cameraDistance, Vec4i::zero()));
 }
 
 void Mesh::activateLOD(uint32_t lodLevel) {
@@ -550,6 +617,10 @@ void Mesh::setIndirectDrawBuffer(
 	indirectDrawBuffer_ = indirectDrawBuffer;
 	baseDrawIdx_ = baseDrawIdx;
 	numDrawLayers_ = numDrawLayers;
+
+	const uint32_t numDrawCommands = indirectDrawBuffer->inputSize() / sizeof(DrawCommand);
+	numDrawLODs_ = numDrawCommands / numDrawLayers;
+
 	if (indirectDrawBuffer_.get()) {
 		indirectOffset_ = indirectDrawBuffer_->offset() + baseDrawIdx_ * sizeof(DrawCommand);
 	} else {
@@ -559,34 +630,29 @@ void Mesh::setIndirectDrawBuffer(
 }
 
 void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
+	const uint32_t numLODs = this->numLODs();
 	auto &partLODs = meshLODs();
-	std::vector<DrawCommand> drawData(4 * numDrawLayers);
+	std::vector<DrawCommand> drawData(numLODs * numDrawLayers);
 	ensureLOD();
 
 	// Create the indirect draw data for this part and the first layer.
 	// DrawID order: LOD0_layer0, LOD0_layer1, LOD0_layer2, ...
 	// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
-	for (uint32_t lodIdx = 0; lodIdx < 4; ++lodIdx) {
+	for (uint32_t lodIdx = 0; lodIdx < numLODs; ++lodIdx) {
 		const uint32_t lodStartIdx = lodIdx * numDrawLayers;
 		DrawCommand &drawParams = drawData[lodStartIdx];
-		if (lodIdx < numLODs()) {
-			auto &lodData = partLODs[lodIdx];
-			Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : this;
-			if (m->indices().get()) {
-				drawParams.mode = 1u; // 1=elements, 2=arrays
-				drawParams.setCount(lodData.d->numIndices);
-				drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
-				drawParams.data[3] = 0; // base vertex
-			} else {
-				drawParams.mode = 2u; // 1=elements, 2=arrays
-				drawParams.setCount(lodData.d->numVertices);
-				drawParams.setFirstElement(lodData.d->vertexOffset);
-			}
+		auto &lodData = partLODs[lodIdx];
+
+		Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : this;
+		if (m->indices().get()) {
+			drawParams.mode = 1u; // 1=elements, 2=arrays
+			drawParams.setCount(lodData.d->numIndices);
+			drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
+			drawParams.data[3] = 0; // base vertex
 		} else {
-			// no LOD data available, use the base mesh
-			drawParams.mode = indices().get() ? 1u : 2u; // 1=elements, 2=arrays
-			drawParams.setCount(0);
-			drawParams.setFirstElement(0);
+			drawParams.mode = 2u; // 1=elements, 2=arrays
+			drawParams.setCount(lodData.d->numVertices);
+			drawParams.setFirstElement(lodData.d->vertexOffset);
 		}
 		drawParams.setInstanceCount(lodIdx==0 ? numInstances() : 0);
 		drawParams.setBaseInstance(0);
@@ -605,7 +671,7 @@ void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
 	indirectDrawBuffer_ = ref_ptr<DrawIndirectBuffer>::alloc(
 			"IndirectDrawBuffer", BufferUpdateFlags::FULL_RARELY);
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-			"DrawCommand", "drawParams", 4 * numDrawLayers);
+			"DrawCommand", "drawParams", numLODs * numDrawLayers);
 	input->setInstanceData(1, 1, (byte*)drawData.data());
 	indirectDrawBuffer_->addStagedInput(input);
 	indirectDrawBuffer_->update();
@@ -650,12 +716,6 @@ void Mesh::createBoundingBox(bool isOBB) {
 
 void Mesh::setCullShape(const ref_ptr<State> &cullShape) {
 	cullShape_ = cullShape;
-	if (cullShape_.get()) {
-		auto *cs = dynamic_cast<CullShape *>(cullShape_.get());
-		if (cs->hasInstanceBuffer()) {
-			setInstanceBuffer(cs->instanceBuffer());
-		}
-	}
 	for (auto & lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
 			lod.impostorMesh->setCullShape(cullShape_);
@@ -708,18 +768,23 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, uint32_t drawIdx, int
 
 	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
-		// NOTE: assuming here the impostor does not itself have LODs!
 		if (hasIndirectDrawBuffer()) {
 			lod.impostorMesh->setIndirectDrawBuffer(
 					indirectDrawBuffer_,
 					drawIdx, numDrawLayers_);
+			// TODO: improve this
+			lod.impostorMesh->numDrawLayers_ = multiDrawCount;
+			lod.impostorMesh->numDrawLODs_ = 1;
+			lod.impostorMesh->updateDrawFunction();
+			lod.impostorMesh->draw(rs);
+			lod.impostorMesh->numDrawLayers_ = numDrawLayers_;
 		} else {
 			lod.impostorMesh->resetVisibility(true);
 			lod.impostorMesh->updateVisibility(0,
 					lod.d->numVisibleInstances,
 					lod.d->instanceOffset);
+			lod.impostorMesh->draw(rs);
 		}
-		lod.impostorMesh->draw(rs);
 	}
 	else if (hasIndirectDrawBuffer()) {
 		set_indirectOffset(

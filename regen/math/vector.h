@@ -58,6 +58,13 @@ namespace regen {
 		}
 
 		/**
+		 * Subscript operator.
+		 */
+		inline const T &operator[](int i) const {
+			return ((T *) this)[i];
+		}
+
+		/**
 		 * @return vector with each component negated.
 		 */
 		inline Vec2 operator-() const { return Vec2(-x, -y); }
@@ -285,6 +292,13 @@ namespace regen {
 		 * Subscript operator.
 		 */
 		inline T &operator[](int i) {
+			return ((T *) this)[i];
+		}
+
+		/**
+		 * Subscript operator.
+		 */
+		inline const T &operator[](int i) const {
 			return ((T *) this)[i];
 		}
 
@@ -712,6 +726,13 @@ namespace regen {
 		}
 
 		/**
+		 * Subscript operator.
+		 */
+		inline const T &operator[](int i) const {
+			return ((T *) this)[i];
+		}
+
+		/**
 		 * @return vector with each component negated.
 		 */
 		inline Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
@@ -950,6 +971,13 @@ namespace regen {
 		 * Subscript operator.
 		 */
 		inline T &operator[](int i) {
+			return ((T *) this)[i];
+		}
+
+		/**
+		 * Subscript operator.
+		 */
+		inline const T &operator[](int i) const {
 			return ((T *) this)[i];
 		}
 	};

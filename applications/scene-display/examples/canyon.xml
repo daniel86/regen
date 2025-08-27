@@ -121,8 +121,10 @@
             position="-40.0, 14.0, 0.0"/>
     <camera id="sun-camera"
             culling-index="main-index"
-            light="sky-sun"
+            lod-shift="1,1,1,0"
+            lod-camera="main-camera"
             camera="main-camera"
+            light="sky-sun"
             num-layer="{{num-cascades}}"
             split-weight="0.7" />
     <camera id="reflection-camera"
@@ -416,8 +418,6 @@
             <alpha discard-threshold="0.25"/>
             <texture name="windFlow" id="wind-flowmap" mapping="custom" />
             <input name="stiffness" type="float" value="0.5"/>
-            <!--
-            -->
             <mesh id="tree-mesh" mesh-index="1" update-visibility="1" />
         </node>
         <node id="tree-trunk">
@@ -429,6 +429,7 @@
     <!--****** xxxx *****-->
     <!--**************************-->
 
+    <!--
     <mesh id="silhouette-test"
             type="silhouette"
             silhouette-texture="fir-color"
@@ -449,12 +450,15 @@
                 transform-id="silhouette-tf">
         </shape>
     </mesh>
+    -->
 
     <node id="Silhouette-Test">
+        <!--
         <node id="Silhouette-Mesh">
             <texture id="fir-color" map-to="color" blend-mode="src"/>
             <mesh id="silhouette-test" />
         </node>
+        -->
     </node>
 
     <!--**************************-->
@@ -717,8 +721,6 @@
                 <home-point value="-38.87, -2.0, 2.44" />
                 <home-point value="-22.31, -2.0, -2.03" />
                 <home-point value="7.35, -2.0, 2.15" />
-                <!-- <object type="danger" tf="hyena-tf" /> -->
-                <!-- <object type="attractor" tf="hyena-tf" /> -->
             </animation>
         </transform>
         <lod-meshes>
@@ -745,7 +747,6 @@
             </mesh>
         </lod-meshes>
         <shape id="fish-shape" cull="1" gpu="1" type="sphere" mesh-id="fish-mesh" transform-id="fish-tf" />
-        <!-- <shape id="fish-shape" index="1" type="obb" mesh-id="fish-mesh" transform-id="fish-tf" /> -->
     </mesh>
 
     <mesh id="hyena-mesh" type="asset"

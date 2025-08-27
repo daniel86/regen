@@ -19,6 +19,11 @@ BoundingShape::BoundingShape(BoundingShapeType shapeType,
 		  mesh_(mesh),
 		  parts_(parts),
 		  lastGeometryStamp_(mesh_->geometryStamp()) {
+	if (mesh_.get()) {
+		baseMesh_ = mesh_;
+	} else if (!parts_.empty()) {
+		baseMesh_ = parts_.front();
+	}
 }
 
 bool BoundingShape::updateGeometry() {

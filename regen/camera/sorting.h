@@ -4,7 +4,8 @@
 namespace regen {
 	typedef enum {
 		FRONT_TO_BACK,
-		BACK_TO_FRONT
+		BACK_TO_FRONT,
+		NO_SORTING
 	} SortMode;
 
 	std::ostream &operator<<(std::ostream &out, const SortMode &mode);

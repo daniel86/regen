@@ -97,14 +97,12 @@ void MeshNodeProvider::processInput(
 					auto lodState = createCullState(scene, input, parent, cullShape);
 					if (lodState.get()) {
 						meshNode->state()->joinStates(lodState);
-						if (!cullShape->hasInstanceBuffer()) {
-							meshCopy->setInstanceBuffer(lodState->instanceBuffer());
-							if (lodState->hasIndirectDrawBuffers()) {
-								meshCopy->setIndirectDrawBuffer(
-									lodState->indirectDrawBuffer(partIdx),
-									0u,
-									lodState->numDrawLayers());
-							}
+						meshCopy->setInstanceBuffer(lodState->instanceBuffer());
+						if (lodState->hasIndirectDrawBuffers()) {
+							meshCopy->setIndirectDrawBuffer(
+								lodState->indirectDrawBuffer(partIdx),
+								0u,
+								lodState->numDrawLayers());
 						}
 						// set sorting mode
 						meshCopy->set_lodSortMode(lodState->instanceSortMode());

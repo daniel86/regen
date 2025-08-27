@@ -25,8 +25,7 @@ namespace regen {
 		 */
 		CullShape(
 			const ref_ptr<SpatialIndex> &spatialIndex,
-			std::string_view shapeName,
-			bool useSharedInstanceBuffer = false);
+			std::string_view shapeName);
 
 		/**
 		 * \brief Create a CullShape with a bounding shape.
@@ -35,8 +34,7 @@ namespace regen {
 		 */
 		CullShape(
 			const ref_ptr<BoundingShape> &boundingShape,
-			std::string_view shapeName,
-			bool useSharedInstanceBuffer = false);
+			std::string_view shapeName);
 
 		/**
 		 * @return the number of instances of this shape.
@@ -68,23 +66,6 @@ namespace regen {
 		 */
 		const ref_ptr<BoundingShape> &boundingShape() const { return boundingShape_; }
 
-		/**
-		 * Note that by default the cull shape is not using a shared instance buffer,
-		 * as it is better for performance to use a per-frame updates for instance data.
-		 * @return true if this shape manages an instance buffer.
-		 */
-		bool hasInstanceBuffer() const { return instanceBuffer_.get() != nullptr; }
-
-		/**
-		 * @return the instance ID map, if any (only used if num instances > 1).
-		 */
-		const ref_ptr<ShaderInput1ui>& instanceData() const { return instanceData_; }
-
-		/**
-		 * @return the instance ID buffer, if any (only used if num instances > 1).
-		 */
-		const ref_ptr<SSBO>& instanceBuffer() const { return instanceBuffer_; }
-
 	protected:
 		std::string shapeName_;
 		std::vector<ref_ptr<Mesh>> parts_;
@@ -92,19 +73,9 @@ namespace regen {
 		ref_ptr<SpatialIndex> spatialIndex_;
 		ref_ptr<BoundingShape> boundingShape_;
 
-		// a "shared" instance buffer.
-		// shared because the same buffer is used in different passes per draw with different
-		// ordering of instance IDs (depending on camera). This is not optimal in terms of memory pressure,
-		// but allows to use the same buffer for different passes in case memory runs low.
-		ref_ptr<ShaderInput1ui> instanceData_;
-		ref_ptr<SSBO> instanceBuffer_;
-
 		void initCullShape(
 				const ref_ptr<BoundingShape> &boundingShape,
-				bool isIndexShape,
-				bool useSharedInstanceBuffer);
-
-		void createBuffers();
+				bool isIndexShape);
 	};
 } // namespace
 

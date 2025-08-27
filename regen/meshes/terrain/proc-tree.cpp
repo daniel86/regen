@@ -671,7 +671,6 @@ void ProcTree::updateTwigAttributes() {
 		// use proc tree data directly
 #define PROC_DATA_PTR_(arg) reinterpret_cast<const unsigned char *>(&(arg))
 		twig.indices->setVertexData(ni, PROC_DATA_PTR_(lod0.mFace[0].x));
-		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mFace[0].x));
 		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mVert[0].x));
 		twig.nor->setVertexData(nv, PROC_DATA_PTR_(lod0.mNormal[0].x));
 		twig.texco->setVertexData(nv, PROC_DATA_PTR_(lod0.mUV[0].u));
