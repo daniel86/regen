@@ -76,7 +76,7 @@ namespace regen {
 			ref_ptr<ShaderInput3f> nor;
 			ref_ptr<ShaderInput4f> tan;
 			ref_ptr<ShaderInput2f> texco;
-			ref_ptr<ShaderInput1ui> indices;
+			ref_ptr<ShaderInput> indices;
 		};
 		struct ProcMesh {
 			int mVertCount;

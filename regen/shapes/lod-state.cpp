@@ -213,7 +213,7 @@ void LODState::createIndirectDrawBuffers() {
 			if (m->indices().get()) {
 				drawParams.mode = 1u; // 1=elements, 2=arrays
 				drawParams.setCount(lodData.d->numIndices);
-				drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
+				drawParams.setFirstElement(lodData.d->indexOffset / m->indices()->dataTypeBytes());
 				drawParams.data[3] = 0; // base vertex
 			} else {
 				drawParams.mode = 2u; // 1=elements, 2=arrays

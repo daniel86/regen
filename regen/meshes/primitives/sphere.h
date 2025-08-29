@@ -79,7 +79,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> nor_;
 		ref_ptr<ShaderInput2f> texco_;
 		ref_ptr<ShaderInput4f> tan_;
-		ref_ptr<ShaderInput1ui> indices_;
+		ref_ptr<ShaderInput> indices_;
 		GLfloat radius_;
 
 		void generateLODLevel(const Config &cfg,

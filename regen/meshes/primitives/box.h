@@ -80,7 +80,7 @@ namespace regen {
 		void updateAttributes(const Config &cfg = Config());
 
 	protected:
-		ref_ptr<ShaderInput1ui> indices_;
+		ref_ptr<ShaderInput> indices_;
 		ref_ptr<ShaderInput3f> pos_;
 		ref_ptr<ShaderInput3f> nor_;
 		ref_ptr<ShaderInput4f> tan_;

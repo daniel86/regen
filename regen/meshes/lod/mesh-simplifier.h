@@ -91,14 +91,14 @@ namespace regen {
 		float thresholds_[4] = { 1.0f, 0.75f, 0.25f, 1.0f };
 
 		ref_ptr<Mesh> mesh_;
-		ref_ptr<ShaderInput1ui> inputIndices_;
+		ref_ptr<ShaderInput> inputIndices_;
 		ref_ptr<ShaderInput3f> inputPos_;
 		ref_ptr<ShaderInput3f> inputNor_;
 		ref_ptr<ShaderInput1f> inputBoneWeights_;
 		ref_ptr<ShaderInput1ui> inputBoneIndices_;
 		std::vector<std::pair<AttributeSemantic,ref_ptr<ShaderInput>>> inputAttributes_;
 
-		ref_ptr<ShaderInput1ui> outputIndices_;
+		ref_ptr<ShaderInput> outputIndices_;
 		ref_ptr<ShaderInput3f> outputPos_;
 		std::vector<std::pair<AttributeSemantic,ref_ptr<ShaderInput>>> outputAttributes_;
 

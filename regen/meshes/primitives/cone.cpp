@@ -124,7 +124,6 @@ ref_ptr<Mesh> ConeClosed::getBaseCone() {
 
 ConeClosed::ConeClosed(const Config &cfg)
 		: Cone(GL_TRIANGLES, cfg.updateHint) {
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
@@ -176,10 +175,11 @@ void ConeClosed::generateLODLevel(
 		GLuint vertexOffset,
 		GLuint indexOffset) {
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	// create cone vertex data
 	loadConeData(
@@ -196,16 +196,16 @@ void ConeClosed::generateLODLevel(
 	GLint vIndex = vertexOffset + cfg.isBaseRequired ? 2 : 1;
 	// cone
 	for (GLuint i = 0; i < lodLevel; ++i) {
-		indices[faceIndex++] = apexIndex;
-		indices[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
-		indices[faceIndex++] = vIndex + i;
+		setIndexValue(indices, indexType, faceIndex++, apexIndex);
+		setIndexValue(indices, indexType, faceIndex++, (i + 1 == lodLevel ? vIndex : vIndex + i + 1));
+		setIndexValue(indices, indexType, faceIndex++, vIndex + i);
 	}
 	// base
 	if (cfg.isBaseRequired) {
 		for (GLuint i = 0; i < lodLevel; ++i) {
-			indices[faceIndex++] = baseCenterIndex;
-			indices[faceIndex++] = vIndex + i;
-			indices[faceIndex++] = (i + 1 == lodLevel ? vIndex : vIndex + i + 1);
+			setIndexValue(indices, indexType, faceIndex++, baseCenterIndex);
+			setIndexValue(indices, indexType, faceIndex++, vIndex + i);
+			setIndexValue(indices, indexType, faceIndex++, (i + 1 == lodLevel ? vIndex : vIndex + i + 1));
 		}
 	}
 }
@@ -238,7 +238,7 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 	if (cfg.isNormalRequired) {
 		nor_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
@@ -256,7 +256,7 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 }

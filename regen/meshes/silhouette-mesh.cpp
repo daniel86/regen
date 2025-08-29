@@ -13,7 +13,6 @@ SilhouetteMesh::SilhouetteMesh(const ref_ptr<Texture2D> &silhouetteTex, const Co
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	uv_ = ref_ptr<ShaderInput2f>::alloc("texco0");
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
 }
@@ -50,7 +49,7 @@ void SilhouetteMesh::updateAttributes() {
 	if (silhouetteCfg_.hasUV) {
 		uv_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	for (auto i = 0u; i < meshLODs_.size(); ++i) {
 		generateLODLevel(i, meshLODs_[i].d->vertexOffset, meshLODs_[i].d->indexOffset);
@@ -73,7 +72,7 @@ void SilhouetteMesh::updateAttributes() {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 
@@ -84,11 +83,12 @@ void SilhouetteMesh::updateAttributes() {
 void SilhouetteMesh::generateLODLevel(
 		uint32_t lodLevel, uint32_t vertexOffset, uint32_t indexOffset) {
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (silhouetteCfg_.hasNormal ? (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 	auto v_tan = (silhouetteCfg_.hasTangent ? (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_uv = (silhouetteCfg_.hasUV ? (Vec2f*) uv_->clientBuffer()->clientData(0) : nullptr);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 	// get a handle on the silhouette data for this LOD
 	const auto &uv_rects = silhouetteUVRects_[lodLevel];
 	// current offset into vertex and index arrays
@@ -149,12 +149,12 @@ void SilhouetteMesh::generateLODLevel(
 			v_tan[vi+3] = Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
 		}
         // indices (two triangles)
-        indices[ii++] = vi + 0;
-        indices[ii++] = vi + 1;
-        indices[ii++] = vi + 2;
-        indices[ii++] = vi + 2;
-        indices[ii++] = vi + 3;
-        indices[ii++] = vi + 0;
+        setIndexValue(indices, indexType, ii++, vi + 0);
+        setIndexValue(indices, indexType, ii++, vi + 1);
+        setIndexValue(indices, indexType, ii++, vi + 2);
+        setIndexValue(indices, indexType, ii++, vi + 2);
+        setIndexValue(indices, indexType, ii++, vi + 3);
+        setIndexValue(indices, indexType, ii++, vi + 0);
 
         vi += 4;
 	}

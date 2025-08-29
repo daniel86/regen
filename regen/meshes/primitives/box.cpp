@@ -52,7 +52,6 @@ Box::Box(const Config &cfg)
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
@@ -64,7 +63,7 @@ Box::Box(const ref_ptr<Box> &other)
 	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
 	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
 	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
+	indices_ = getInput("i");
 }
 
 Box::Config::Config()
@@ -107,17 +106,18 @@ void Box::generateLODLevel(
 	GLuint nextIndex = indexOffset;
 
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
 	auto tan = (cfg.isTangentRequired ?
 				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	for (const auto &tessFace: tessellation.outputFaces) {
-		indices[nextIndex++] = vertexOffset + tessFace.v1;
-		indices[nextIndex++] = vertexOffset + tessFace.v2;
-		indices[nextIndex++] = vertexOffset + tessFace.v3;
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v1);
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v2);
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v3);
 	}
 
 	GLuint triIndices[3];
@@ -256,7 +256,7 @@ void Box::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	minPosition_ = Vec3f(999999.9);
 	maxPosition_ = Vec3f(-999999.9);
@@ -279,7 +279,7 @@ void Box::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 }

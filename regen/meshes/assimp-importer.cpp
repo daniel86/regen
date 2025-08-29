@@ -836,20 +836,21 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	meshState->begin(Mesh::INTERLEAVED);
 
 	{
-		ref_ptr<ShaderInput1ui> indices = ref_ptr<ShaderInput1ui>::alloc("i");
-		indices->setVertexData(numIndices);
-		auto faceIndices = (GLuint*)indices->clientBuffer()->clientData(0);
-		GLuint index = 0, maxIndex = 0;
-		for (GLuint t = 0u; t < mesh.mNumFaces; ++t) {
+		ref_ptr<ShaderInput> indices = createIndexInput(numIndices, mesh.mNumVertices);
+		auto faceIndices = (byte*)indices->clientBuffer()->clientData(0);
+		auto indexType = indices->baseType();
+		uint32_t index = 0, maxIndex = 0;
+		for (uint32_t t = 0u; t < mesh.mNumFaces; ++t) {
 			const struct aiFace *face = &mesh.mFaces[t];
 			if (face->mNumIndices != numFaceIndices) { continue; }
-			for (GLuint n = 0; n < face->mNumIndices; ++n) {
-				faceIndices[index] = face->mIndices[n];
+			for (uint32_t n = 0; n < face->mNumIndices; ++n) {
+				setIndexValue(faceIndices, indexType, index, face->mIndices[n]);
 				if (face->mIndices[n] > maxIndex) { maxIndex = face->mIndices[n]; }
 				index += 1;
 			}
 		}
-		meshState->setIndices(indices, maxIndex);
+		auto ref = meshState->setIndices(indices, maxIndex);
+		indices->set_offset(ref->address());
 	}
 
 	const auto *aiTransform = (const aiMatrix4x4 *) &transform.x;
@@ -1006,6 +1007,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	GL_ERROR_LOG();
 
 	meshState->end();
+	meshState->ensureLOD();
 
 	return meshState;
 }

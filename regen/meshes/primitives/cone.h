@@ -118,7 +118,7 @@ namespace regen {
 		void updateAttributes(const Config &cfg = Config());
 
 	protected:
-		ref_ptr<ShaderInput1ui> indices_;
+		ref_ptr<ShaderInput> indices_;
 
 		void generateLODLevel(const Config &cfg,
 				GLuint lodLevel,

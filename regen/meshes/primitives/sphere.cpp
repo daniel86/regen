@@ -34,7 +34,6 @@ Sphere::Sphere(const Config &cfg)
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	radius_ = 0.5f * cfg.posScale.max();
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
@@ -103,7 +102,6 @@ void Sphere::generateLODLevel(const Config &cfg,
 							  GLuint vertexOffset,
 							  GLuint indexOffset) {
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
@@ -111,6 +109,9 @@ void Sphere::generateLODLevel(const Config &cfg,
 				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (texco_.get() ?
 					(Vec2f*) texco_->clientBuffer()->clientData(0) : nullptr);
+	// map untyped index data (we switch type depending on the number of vertices)
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	GLdouble stepSizeInv = 1.0 / (GLdouble) lodLevel;
 	GLuint vertexIndex = vertexOffset, faceIndex = indexOffset / 6;
@@ -126,12 +127,12 @@ void Sphere::generateLODLevel(const Config &cfg,
 
 			// create two triangles for each quad
 			GLuint index = (faceIndex++) * 6;
-			indices[index + 0] = vertexIndex + 0;
-			indices[index + 1] = vertexIndex + 1;
-			indices[index + 2] = vertexIndex + 2;
-			indices[index + 3] = vertexIndex + 2;
-			indices[index + 4] = vertexIndex + 1;
-			indices[index + 5] = vertexIndex + 3;
+			setIndexValue(indices, indexType, index + 0, vertexIndex + 0);
+			setIndexValue(indices, indexType, index + 1, vertexIndex + 1);
+			setIndexValue(indices, indexType, index + 2, vertexIndex + 2);
+			setIndexValue(indices, indexType, index + 3, vertexIndex + 2);
+			setIndexValue(indices, indexType, index + 4, vertexIndex + 1);
+			setIndexValue(indices, indexType, index + 5, vertexIndex + 3);
 
 			// they are made of 4 vertices
 			pushVertex(vertexIndex++, u1, v1, cfg, v_pos, v_nor, v_tan, v_texco);
@@ -182,7 +183,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
@@ -207,7 +208,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 	minPosition_ = -cfg.posScale * 0.5f;

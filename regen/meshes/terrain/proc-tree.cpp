@@ -43,14 +43,12 @@ ProcTree::ProcTree() {
 	useSilhouetteMesh_ = true;
 
 	trunk.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BufferUpdateFlags::NEVER);
-	trunk.indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	trunk.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	trunk.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	trunk.tan = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
 	trunk.texco = ref_ptr<ShaderInput2f>::alloc("texco0");
 
 	twig.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BufferUpdateFlags::NEVER);
-	twig.indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	twig.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	twig.basePos = ref_ptr<ShaderInput3f>::alloc("basePos");
 	twig.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
@@ -442,7 +440,7 @@ void ProcTree::updateAttributes_(
 	if (!lodLevels.empty()) {
 		for (auto &x: lodLevels) {
 			// add the index buffer offset (in number of bytes)
-			x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+			x.d->indexOffset = indexRef->address() + x.d->indexOffset * treeMesh.indices->dataTypeBytes();
 		}
 		treeMesh.mesh->setMeshLODs(lodLevels);
 		treeMesh.mesh->activateLOD(0);
@@ -459,21 +457,22 @@ void ProcTree::updateTrunkAttributes(TreeMesh &treeMesh, const std::vector<ProcM
 	}
 
 	// allocate memory then copy each LOD into the vertex data array
-	treeMesh.indices->setVertexData(numIndices);
+	treeMesh.indices = createIndexInput(numIndices, numVertices);
 	treeMesh.pos->setVertexData(numVertices);
 	treeMesh.nor->setVertexData(numVertices);
 	treeMesh.texco->setVertexData(numVertices);
 	treeMesh.tan->setVertexData(numVertices);
 	// map client data for writing
-	auto indices = treeMesh.indices->mapClientData<unsigned int>(BUFFER_GPU_WRITE);
+	auto indices = treeMesh.indices->mapClientDataRaw(BUFFER_GPU_WRITE);
 	auto v_pos = treeMesh.pos->mapClientData<float>(BUFFER_GPU_WRITE);
 	auto v_nor = treeMesh.nor->mapClientData<float>(BUFFER_GPU_WRITE);
 	auto v_tan = treeMesh.tan->mapClientData<float>(BUFFER_GPU_WRITE);
 	auto v_texco = treeMesh.texco->mapClientData<float>(BUFFER_GPU_WRITE);
-	auto *ptr_indices = indices.w.data();
+	auto *ptr_indices = indices.w;
 	auto *ptr_pos = v_pos.w.data();
 	auto *ptr_nor = v_nor.w.data();
 	auto *ptr_texco = v_texco.w.data();
+	auto indexType = treeMesh.indices->baseType();
 	// copy data from Proctree to Mesh
 	// also create LOD descriptions on the way.
 	unsigned int vertexOffset = 0u, indexOffset = 0u;
@@ -486,9 +485,9 @@ void ProcTree::updateTrunkAttributes(TreeMesh &treeMesh, const std::vector<ProcM
 		lodLevel.d->indexOffset = indexOffset;
 		// copy data
 		for (int i = 0; i < lod.mFaceCount; i++) {
-			ptr_indices[i * 3 + 0] = lod.mFace[i].x + vertexOffset;
-			ptr_indices[i * 3 + 1] = lod.mFace[i].y + vertexOffset;
-			ptr_indices[i * 3 + 2] = lod.mFace[i].z + vertexOffset;
+			setIndexValue(ptr_indices, indexType, i * 3 + 0, lod.mFace[i].x + vertexOffset);
+			setIndexValue(ptr_indices, indexType, i * 3 + 1, lod.mFace[i].y + vertexOffset);
+			setIndexValue(ptr_indices, indexType, i * 3 + 2, lod.mFace[i].z + vertexOffset);
 		}
 		memcpy(ptr_pos, &lod.mVert[0].x, lod.mVertCount * 3 * sizeof(float));
 		memcpy(ptr_nor, &lod.mNormal[0].x, lod.mVertCount * 3 * sizeof(float));
@@ -498,7 +497,7 @@ void ProcTree::updateTrunkAttributes(TreeMesh &treeMesh, const std::vector<ProcM
 		// increase offsets
 		vertexOffset += lodLevel.d->numVertices;
 		indexOffset += lodLevel.d->numIndices;
-		ptr_indices += lodLevel.d->numIndices;
+		ptr_indices += lodLevel.d->numIndices * treeMesh.indices->dataTypeBytes();
 		ptr_pos += lod.mVertCount * 3;
 		ptr_nor += lod.mVertCount * 3;
 		ptr_texco += lod.mVertCount * 2;
@@ -559,7 +558,7 @@ void ProcTree::updateTwigAttributes() {
 		}
 
 		// Allocate client memory
-		twig.indices->setVertexData(ni_out);
+		twig.indices = createIndexInput(ni_out, nv_out);
 		twig.pos->setVertexData(nv_out);
 		twig.nor->setVertexData(nv_out);
 		twig.texco->setVertexData(nv_out);
@@ -568,11 +567,12 @@ void ProcTree::updateTwigAttributes() {
 			twig.basePos->setVertexData(nv_out);
 		}
 		// map client data for writing
-		auto twig_i = (GLuint*)twig.indices->clientBuffer()->clientData(0);
 		auto twig_p = (Vec3f*) twig.pos->clientBuffer()->clientData(0);
 		auto twig_uv = (Vec2f*) twig.texco->clientBuffer()->clientData(0);
 		auto twig_bp = (twig.basePos.get() ?
 			(Vec3f*) twig.basePos->clientBuffer()->clientData(0) : nullptr);
+		auto twig_i = (byte*)twig.indices->clientBuffer()->clientData(0);
+		auto indexType = twig.indices->baseType();
 
 		uint32_t vOffset = 0u;
 		uint32_t iOffset = 0u;
@@ -648,12 +648,12 @@ void ProcTree::updateTwigAttributes() {
 					}
 
 					// Finally, set the indices for the quad.
-					twig_i[iOffset + 0] = vOffset + 0;
-					twig_i[iOffset + 1] = vOffset + 1;
-					twig_i[iOffset + 2] = vOffset + 2;
-					twig_i[iOffset + 3] = vOffset + 2;
-					twig_i[iOffset + 4] = vOffset + 3;
-					twig_i[iOffset + 5] = vOffset + 0;
+					setIndexValue(twig_i, indexType, iOffset + 0, vOffset + 0);
+					setIndexValue(twig_i, indexType, iOffset + 1, vOffset + 1);
+					setIndexValue(twig_i, indexType, iOffset + 2, vOffset + 2);
+					setIndexValue(twig_i, indexType, iOffset + 3, vOffset + 2);
+					setIndexValue(twig_i, indexType, iOffset + 4, vOffset + 3);
+					setIndexValue(twig_i, indexType, iOffset + 5, vOffset + 0);
 					// increment offsets
 					vOffset += 4u;
 					iOffset += 6u;
@@ -685,7 +685,12 @@ void ProcTree::updateTwigAttributes() {
 		uint32_t ni = lod0.mFaceCount * 3;
 		// use proc tree data directly
 #define PROC_DATA_PTR_(arg) reinterpret_cast<const unsigned char *>(&(arg))
-		twig.indices->setVertexData(ni, PROC_DATA_PTR_(lod0.mFace[0].x));
+		auto indices = PROC_DATA_PTR_(lod0.mFace[0].x);
+		auto m_indices = twig.indices->clientData();
+		auto indexType = twig.indices->baseType();
+		for (uint32_t idx=0; idx < ni; idx++) {
+			setIndexValue(m_indices, indexType, idx, indices[idx]);
+		}
 		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mVert[0].x));
 		twig.texco->setVertexData(nv, PROC_DATA_PTR_(lod0.mUV[0].u));
 		//twig.nor->setVertexData(nv, PROC_DATA_PTR_(lod0.mNormal[0].x));

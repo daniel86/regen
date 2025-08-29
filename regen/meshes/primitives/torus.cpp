@@ -53,7 +53,6 @@ Torus::Torus(const Config &cfg)
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
@@ -64,7 +63,7 @@ Torus::Torus(const ref_ptr<Torus> &other)
 	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
 	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
 	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
+	indices_ = getInput("i");
 }
 
 Torus::Config::Config()
@@ -84,7 +83,6 @@ void Torus::generateLODLevel(const Config &cfg,
 							 GLuint vertexOffset,
 							 GLuint indexOffset) {
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
@@ -92,6 +90,8 @@ void Torus::generateLODLevel(const Config &cfg,
 				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (texco_.get() ?
 					(float*) texco_->clientBuffer()->clientData(0) : nullptr);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	GLuint vertexIndex = vertexOffset;
 	const float ringStep = 2.0f * M_PI / lodLevel;
@@ -150,13 +150,13 @@ void Torus::generateLODLevel(const Config &cfg,
 			GLuint second = vertexOffset + first + lodLevel + 1;
 			first += vertexOffset;
 
-			indices[iOffset++] = first;
-			indices[iOffset++] = first + 1;
-			indices[iOffset++] = second;
+			setIndexValue(indices, indexType, iOffset++, first);
+			setIndexValue(indices, indexType, iOffset++, first + 1);
+			setIndexValue(indices, indexType, iOffset++, second);
 
-			indices[iOffset++] = second;
-			indices[iOffset++] = first + 1;
-			indices[iOffset++] = second + 1;
+			setIndexValue(indices, indexType, iOffset++, second);
+			setIndexValue(indices, indexType, iOffset++, first + 1);
+			setIndexValue(indices, indexType, iOffset++, second + 1);
 		}
 	}
 }
@@ -194,7 +194,7 @@ void Torus::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput3f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
@@ -220,7 +220,7 @@ void Torus::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 

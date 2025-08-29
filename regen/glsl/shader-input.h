@@ -414,7 +414,7 @@ namespace regen {
 		 * @return the mapped data.
 		 */
 		inline ClientDataRaw_ro mapClientDataRaw(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
-			return { clientBuffer_.get(), mapMode, mapOffset, mapSize };
+			return {clientBuffer_.get(), mapMode, mapOffset, mapSize};
 		}
 
 		/**
@@ -425,7 +425,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_rw<T> mapClientData(int32_t mapMode) {
-			return { clientBuffer_.get(), mapClientStride_, mapMode, 0, inputSize_ };
+			return {clientBuffer_.get(), mapClientStride_, mapMode, 0, inputSize_};
 		}
 
 		/**
@@ -436,7 +436,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_rw<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) {
-			return { clientBuffer_.get(), mapClientStride_, mapMode, mapOffset, mapSize };
+			return {clientBuffer_.get(), mapClientStride_, mapMode, mapOffset, mapSize};
 		}
 
 		/**
@@ -447,7 +447,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_ro<T> mapClientData(int32_t mapMode) const {
-			return { clientBuffer_.get(), mapClientStride_, mapMode, 0, inputSize_ };
+			return {clientBuffer_.get(), mapClientStride_, mapMode, 0, inputSize_};
 		}
 
 		/**
@@ -458,7 +458,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientData_ro<T> mapClientData(int32_t mapMode, uint32_t mapOffset, uint32_t mapSize) const {
-			return { clientBuffer_.get(), mapClientStride_, mapMode, mapOffset, mapSize };
+			return {clientBuffer_.get(), mapClientStride_, mapMode, mapOffset, mapSize};
 		}
 
 		/**
@@ -470,7 +470,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientVertex_rw<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) {
-			return { clientBuffer_.get(), mapClientStride_, mapMode, vertexIndex };
+			return {clientBuffer_.get(), mapClientStride_, mapMode, vertexIndex};
 		}
 
 		/**
@@ -482,7 +482,7 @@ namespace regen {
 		 */
 		template<typename T>
 		ClientVertex_ro<T> mapClientVertex(int32_t mapMode, uint32_t vertexIndex) const {
-			return { clientBuffer_.get(), mapClientStride_, mapMode, vertexIndex };
+			return {clientBuffer_.get(), mapClientStride_, mapMode, vertexIndex};
 		}
 
 		/**
@@ -599,7 +599,7 @@ namespace regen {
 		/**
 		 * @return the input schema.
 		 */
-		const InputSchema& schema() const { return *schema_; }
+		const InputSchema &schema() const { return *schema_; }
 
 		/**
 		 * Set the input schema.
@@ -687,10 +687,10 @@ namespace regen {
 		 * @param type the type overwrite.
 		 */
 		explicit NamedShaderInput(
-			const ref_ptr<ShaderInput> &in,
-			const std::string &name = "",
-			const std::string &type = "",
-			const std::string &memberSuffix = "");
+				const ref_ptr<ShaderInput> &in,
+				const std::string &name = "",
+				const std::string &type = "",
+				const std::string &memberSuffix = "");
 
 		/** the shader input data. */
 		ref_ptr<ShaderInput> in_;
@@ -1130,6 +1130,40 @@ namespace regen {
 				bool normalize = false);
 	};
 
+	using ShaderInput1ui_32 = ShaderInput1ui;
+
+	/**
+	 * \brief Provides 1D unsigned short input to shader programs.
+	 */
+	class ShaderInput1ui_16 : public ShaderInputTyped<uint16_t, uint16_t, GL_UNSIGNED_SHORT> {
+	public:
+		/**
+		 * @param name the input name.
+		 * @param numArrayElements number of input elements.
+		 * @param normalize should the input be normalized ?
+		 */
+		explicit ShaderInput1ui_16(
+				const std::string &name,
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
+	};
+
+	/**
+	 * \brief Provides 1D unsigned byte input to shader programs.
+	 */
+	class ShaderInput1ui_8 : public ShaderInputTyped<uint8_t, uint8_t, GL_UNSIGNED_BYTE> {
+	public:
+		/**
+		 * @param name the input name.
+		 * @param numArrayElements number of input elements.
+		 * @param normalize should the input be normalized ?
+		 */
+		explicit ShaderInput1ui_8(
+				const std::string &name,
+				uint32_t numArrayElements = 1,
+				bool normalize = false);
+	};
+
 	/**
 	 * \brief Provides 2D unsigned int input to shader programs.
 	 */
@@ -1187,6 +1221,20 @@ namespace regen {
 		uniform->setUniformData(value);
 		return uniform;
 	}
+
+	/**
+	 * Utility function to create an input for index data.
+	 */
+	ref_ptr<ShaderInput> createIndexInput(uint32_t numIndices, uint32_t maxVertexIdx);
+
+	/**
+	 * Set index value in index buffer.
+	 * @param data the index buffer data.
+	 * @param t the index type.
+	 * @param i the index to set.
+	 * @param v the value to set as uint32_t.
+	 */
+	void setIndexValue(byte *data, GLenum t, uint32_t i, uint32_t v);
 } // namespace
 
 #endif /* SHADER_INPUT_H_ */

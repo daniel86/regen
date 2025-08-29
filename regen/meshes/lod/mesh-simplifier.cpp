@@ -33,7 +33,7 @@ MeshSimplifier::MeshSimplifier(const ref_ptr<Mesh> &mesh) : mesh_(mesh) {
 			}
 		}
 	}
-	inputIndices_ = ref_ptr<ShaderInput1ui>::dynamicCast(mesh_->indices());
+	inputIndices_ = mesh_->indices();
 	quadrics_.resize(inputPos_->numVertices());
 	neighbors_.resize(inputPos_->numVertices());
 	// Validate attributes
@@ -767,14 +767,33 @@ void MeshSimplifier::simplifyMesh() {
 		auto numOriginalFaces = mesh_->numIndices() / 3;
 		auto &lodLevel0 = lodLevels_.emplace_back();
 		lodLevel0.reserve(numOriginalFaces);
-		auto m_inputIndices = (uint32_t *) inputIndices_->clientData();
-		for (int i = 0; i < numOriginalFaces; ++i) {
-			// create triangle faces of the original mesh
-			auto j = i * 3;
-			lodLevel0.emplace_back(
-					m_inputIndices[j],
-					m_inputIndices[j + 1],
-					m_inputIndices[j + 2]);
+		if (inputIndices_->baseType() == GL_UNSIGNED_BYTE) {
+			auto m_inIdx = (uint8_t *) inputIndices_->clientData();
+			for (int i = 0; i < numOriginalFaces; ++i) {
+				auto j = i * 3;
+				lodLevel0.emplace_back(
+					(uint32_t)m_inIdx[j],
+					(uint32_t)m_inIdx[j + 1],
+					(uint32_t)m_inIdx[j + 2]);
+			}
+		} else if (inputIndices_->baseType() == GL_UNSIGNED_SHORT) {
+			auto m_inIdx = (uint16_t *) inputIndices_->clientData();
+			for (int i = 0; i < numOriginalFaces; ++i) {
+				auto j = i * 3;
+				lodLevel0.emplace_back(
+					(uint32_t)m_inIdx[j],
+					(uint32_t)m_inIdx[j + 1],
+					(uint32_t)m_inIdx[j + 2]);
+			}
+		} else {
+			auto m_inIdx = (uint32_t *) inputIndices_->clientData();
+			for (int i = 0; i < numOriginalFaces; ++i) {
+				auto j = i * 3;
+				lodLevel0.emplace_back(
+					(uint32_t)m_inIdx[j],
+					(uint32_t)m_inIdx[j + 1],
+					(uint32_t)m_inIdx[j + 2]);
+			}
 		}
 	}
 
@@ -899,17 +918,18 @@ uint32_t MeshSimplifier::createOutputAttributes() {
 					   << " #indices=" << numIndices);
 
 	// create a new index buffer
-	outputIndices_ = ref_ptr<ShaderInput1ui>::alloc("indices");
-	outputIndices_->setVertexData(numIndices);
-	auto v_indices = (uint32_t *) outputIndices_->clientData();
+	outputIndices_ = createIndexInput(numIndices, numVertices);
+	auto v_indices = (byte*) outputIndices_->clientData();
+	auto indexType = outputIndices_->baseType();
+	uint32_t v_idx = 0;
 	for (uint32_t lod_i = (useOriginal ? 0 : 1); lod_i < lodLevels_.size(); ++lod_i) {
 		auto &faces = lodLevels_[lod_i];
 		auto vertexOffset = (lod_i == 0 ? 0u : lodData_[lod_i - 1].offset);
 		for (auto &face: faces) {
 			// faces count from 0 to numVertices, so we need to add the vertexOffset
-			*v_indices++ = vertexOffset + face.v0;
-			*v_indices++ = vertexOffset + face.v1;
-			*v_indices++ = vertexOffset + face.v2;
+			setIndexValue(v_indices, indexType, v_idx++, vertexOffset + face.v0);
+			setIndexValue(v_indices, indexType, v_idx++, vertexOffset + face.v1);
+			setIndexValue(v_indices, indexType, v_idx++, vertexOffset + face.v2);
 		}
 	}
 
@@ -976,7 +996,7 @@ void MeshSimplifier::applyAttributes() {
 	for (size_t i = (useOriginalData() ? 0 : 1); i < lodLevels_.size(); ++i) {
 		auto &faces = lodLevels_[i];
 		meshLODs[lodIndex].d->numIndices = faces.size() * 3;
-		meshLODs[lodIndex].d->indexOffset = indexRef->address() + indexOffset * sizeof(uint32_t);
+		meshLODs[lodIndex].d->indexOffset = indexRef->address() + indexOffset * outputIndices_->dataTypeBytes();
 		meshLODs[lodIndex].d->vertexOffset = vertexOffset;
 		if (i == 0) {
 			meshLODs[lodIndex].d->numVertices = inputPos_->numVertices();

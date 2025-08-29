@@ -16,6 +16,22 @@ ref_ptr<BufferReference> &VBO::alloc(const ref_ptr<ShaderInput> &att) {
 	return allocSequential(atts);
 }
 
+ref_ptr<BufferReference> &VBO::allocElementArray(const ref_ptr<ShaderInput> &att) {
+	std::list<ref_ptr<ShaderInput> > attributes;
+	attributes.push_back(att);
+	GLuint numBytes = attributeSize(attributes);
+
+	BufferStorageMode storageMode = getBufferStorageMode(flags_);
+	BufferPool *memoryPool = bufferPool(ELEMENT_ARRAY_BUFFER, storageMode);
+	ref_ptr<BufferReference> &ref = adoptBufferRangeInPool(numBytes, memoryPool);
+
+	if (ref->allocatedSize() < numBytes) return ref;
+	GLuint offset = ref->address();
+	// set buffer sub data
+	uploadSequential(offset, offset + numBytes, attributes, ref);
+	return ref;
+}
+
 ref_ptr<BufferReference> &VBO::allocInterleaved(
 		const std::list<ref_ptr<ShaderInput> > &attributes) {
 	GLuint numBytes = attributeSize(attributes);

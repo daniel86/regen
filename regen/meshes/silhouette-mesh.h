@@ -67,7 +67,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> nor_;
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput> uv_;
-		ref_ptr<ShaderInput1ui> indices_;
+		ref_ptr<ShaderInput> indices_;
 
 		void generateLODLevel(uint32_t lodLevel, uint32_t vertexOffset, uint32_t indexOffset);
 	};

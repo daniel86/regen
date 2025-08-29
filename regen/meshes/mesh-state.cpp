@@ -122,7 +122,7 @@ ref_ptr<BufferReference> Mesh::setIndices(const ref_ptr<ShaderInput> &indices, G
 	shared_->indices_ = indices;
 	shared_->numIndices_ = static_cast<int32_t>(shared_->indices_->numVertices());
 	shared_->maxIndex_ = maxIndex;
-	return meshBuffer_->alloc(shared_->indices_);
+	return meshBuffer_->allocElementArray(shared_->indices_);
 }
 
 void Mesh::set_vertexOffset(int32_t v) {
@@ -652,7 +652,7 @@ void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
 		if (m->indices().get()) {
 			drawParams.mode = 1u; // 1=elements, 2=arrays
 			drawParams.setCount(lodData.d->numIndices);
-			drawParams.setFirstElement(lodData.d->indexOffset / sizeof(uint32_t));
+			drawParams.setFirstElement(lodData.d->indexOffset / m->indices()->dataTypeBytes());
 			drawParams.data[3] = 0; // base vertex
 		} else {
 			drawParams.mode = 2u; // 1=elements, 2=arrays

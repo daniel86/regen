@@ -51,7 +51,6 @@ Disc::Disc(const Config &cfg)
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
 	updateAttributes(cfg);
@@ -62,7 +61,7 @@ Disc::Disc(const ref_ptr<Disc> &other)
 	pos_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_POS));
 	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
 	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
+	indices_ = getInput("i");
 }
 
 Disc::Config::Config()
@@ -82,7 +81,6 @@ void Disc::generateLODLevel(const Config &cfg,
 							GLuint indexOffset) {
 	const float angleStep = 2.0f * M_PI / lodLevel;
 
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
@@ -90,6 +88,8 @@ void Disc::generateLODLevel(const Config &cfg,
 				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (cfg.texcoMode == TEXCO_MODE_UV ?
 					(Vec2f*) texco_->clientBuffer()->clientData(0) : nullptr);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	GLuint vertexIndex = vertexOffset;
 	for (GLuint i = 0; i <= lodLevel; ++i) {
@@ -120,9 +120,9 @@ void Disc::generateLODLevel(const Config &cfg,
 	// Generate indices
 	GLuint index = indexOffset;
 	for (GLuint i = 0; i < lodLevel; ++i) {
-		indices[index++] = vertexOffset + lodLevel;
-		indices[index++] = vertexOffset + i + 1;
-		indices[index++] = vertexOffset + i;
+		setIndexValue(indices, indexType, index++, vertexOffset + lodLevel);
+		setIndexValue(indices, indexType, index++, vertexOffset + i + 1);
+		setIndexValue(indices, indexType, index++, vertexOffset + i);
 	}
 }
 
@@ -155,7 +155,7 @@ void Disc::updateAttributes(const Config &cfg) {
 		texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 		texco_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	for (auto i = 0u; i < LODs.size(); ++i) {
 		generateLODLevel(cfg,
@@ -181,7 +181,7 @@ void Disc::updateAttributes(const Config &cfg) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 

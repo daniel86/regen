@@ -29,7 +29,6 @@ Rectangle::Rectangle(const Config &cfg)
 	nor_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
 	texco_ = ref_ptr<ShaderInput2f>::alloc("texco0");
 	tan_ = ref_ptr<ShaderInput4f>::alloc(ATTRIBUTE_NAME_TAN);
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	setBufferMapMode(cfg.mapMode);
 	setClientAccessMode(cfg.accessMode);
 }
@@ -41,7 +40,7 @@ Rectangle::Rectangle(const ref_ptr<Rectangle> &other)
 	nor_ = ref_ptr<ShaderInput3f>::dynamicCast(getInput(ATTRIBUTE_NAME_NOR));
 	texco_ = ref_ptr<ShaderInput2f>::dynamicCast(getInput("texco0"));
 	tan_ = ref_ptr<ShaderInput4f>::dynamicCast(getInput(ATTRIBUTE_NAME_TAN));
-	indices_ = ref_ptr<ShaderInput1ui>::dynamicCast(getInput("i"));
+	indices_ = getInput("i");
 }
 
 Rectangle::Config::Config()
@@ -63,7 +62,6 @@ void Rectangle::generateLODLevel(const Config &cfg,
 								 GLuint indexOffset,
 								 GLuint /*lodLevel*/) {
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto v_nor = (cfg.isNormalRequired ?
 				  (Vec3f*) nor_->clientBuffer()->clientData(0) : nullptr);
@@ -71,12 +69,14 @@ void Rectangle::generateLODLevel(const Config &cfg,
 				  (Vec4f*) tan_->clientBuffer()->clientData(0) : nullptr);
 	auto v_texco = (cfg.isTexcoRequired ?
 					(Vec2f*) texco_->clientBuffer()->clientData(0) : nullptr);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	GLuint nextIndex = indexOffset;
 	for (auto &tessFace: tessellation.outputFaces) {
-		indices[nextIndex++] = vertexOffset + tessFace.v1;
-		indices[nextIndex++] = vertexOffset + tessFace.v2;
-		indices[nextIndex++] = vertexOffset + tessFace.v3;
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v1);
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v2);
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v3);
 	}
 
 	GLuint triIndices[3];
@@ -176,7 +176,7 @@ void Rectangle::updateAttributes() {
 	if (rectangleConfig_.isTangentRequired) {
 		tan_->setVertexData(numVertices);
 	}
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	minPosition_ = Vec3f(0.0);
 	maxPosition_ = Vec3f(0.0);
@@ -207,7 +207,7 @@ void Rectangle::updateAttributes() {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 }

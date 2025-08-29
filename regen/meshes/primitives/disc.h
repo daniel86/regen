@@ -75,7 +75,7 @@ namespace regen {
 		ref_ptr<ShaderInput3f> nor_;
 		ref_ptr<ShaderInput4f> tan_;
 		ref_ptr<ShaderInput> texco_;
-		ref_ptr<ShaderInput1ui> indices_;
+		ref_ptr<ShaderInput> indices_;
 
 		void generateLODLevel(const Config &cfg,
 				GLuint lodLevel,

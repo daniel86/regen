@@ -26,6 +26,14 @@ namespace regen {
 		ref_ptr<BufferReference> &alloc(const ref_ptr<ShaderInput> &att);
 
 		/**
+		 * Allocate GPU memory for the given index attribute.
+		 * And copy the data from RAM to GPU.
+		 * Note that as long as you keep a reference the allocated storage
+		 * is marked as used.
+		 */
+		ref_ptr<BufferReference> &allocElementArray(const ref_ptr<ShaderInput> &att);
+
+		/**
 		 * Allocate GPU memory for the given attributes.
 		 * And copy the data from RAM to GPU.
 		 * Note that as long as you keep a reference the allocated storage

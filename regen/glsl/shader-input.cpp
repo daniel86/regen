@@ -220,7 +220,7 @@ void ShaderInput::updateAlignedSize() {
 			// note: this will make it more difficult to update the data on the client side,
 			// but it enables us to form contiguous buffers for the GPU.
 			REGEN_INFO("Re-alignment needed for " << name()
-				<< "(" << unalignedSize_ << " to " << alignedSize << ")");
+												  << "(" << unalignedSize_ << " to " << alignedSize << ")");
 			inputSize_ = alignedSize;
 			// use strided data access in mapClient* functions
 			mapClientStride_ = alignedBaseSize_;
@@ -587,7 +587,7 @@ ShaderInput1f::ShaderInput1f(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform1fv(loc, numElements_i_, (float*)mapped.r);
+		glUniform1fv(loc, numElements_i_, (float *) mapped.r);
 	};
 }
 
@@ -598,7 +598,7 @@ ShaderInput2f::ShaderInput2f(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform2fv(loc, numElements_i_, (float*)mapped.r);
+		glUniform2fv(loc, numElements_i_, (float *) mapped.r);
 	};
 }
 
@@ -609,7 +609,7 @@ ShaderInput3f::ShaderInput3f(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform3fv(loc, numElements_i_, (float*)mapped.r);
+		glUniform3fv(loc, numElements_i_, (float *) mapped.r);
 	};
 }
 
@@ -620,7 +620,7 @@ ShaderInput4f::ShaderInput4f(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform4fv(loc, numElements_i_, (float*)mapped.r);
+		glUniform4fv(loc, numElements_i_, (float *) mapped.r);
 	};
 }
 
@@ -633,7 +633,7 @@ ShaderInputMat3::ShaderInputMat3(
 	enableAttribute_ = &ShaderInput::enableAttributeMat3;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniformMatrix3fv(loc, numElements_i_, transpose_, (float*)mapped.r);
+		glUniformMatrix3fv(loc, numElements_i_, transpose_, (float *) mapped.r);
 	};
 }
 
@@ -646,7 +646,7 @@ ShaderInputMat4::ShaderInputMat4(
 	enableAttribute_ = &ShaderInput::enableAttributeMat4;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniformMatrix4fv(loc, numElements_i_, transpose_, (float*)mapped.r);
+		glUniformMatrix4fv(loc, numElements_i_, transpose_, (float *) mapped.r);
 	};
 }
 
@@ -657,7 +657,7 @@ ShaderInput1d::ShaderInput1d(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform1dv(loc, numElements_i_, (double*)mapped.r);
+		glUniform1dv(loc, numElements_i_, (double *) mapped.r);
 	};
 }
 
@@ -668,7 +668,7 @@ ShaderInput2d::ShaderInput2d(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform2dv(loc, numElements_i_, (double*)mapped.r);
+		glUniform2dv(loc, numElements_i_, (double *) mapped.r);
 	};
 }
 
@@ -679,7 +679,7 @@ ShaderInput3d::ShaderInput3d(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform3dv(loc, numElements_i_, (double*)mapped.r);
+		glUniform3dv(loc, numElements_i_, (double *) mapped.r);
 	};
 }
 
@@ -690,7 +690,7 @@ ShaderInput4d::ShaderInput4d(
 		: ShaderInputTyped(name, numArrayElements, normalize) {
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform4dv(loc, numElements_i_, (double*)mapped.r);
+		glUniform4dv(loc, numElements_i_, (double *) mapped.r);
 	};
 }
 
@@ -702,7 +702,7 @@ ShaderInput1i::ShaderInput1i(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform1iv(loc, numElements_i_, (int*)mapped.r);
+		glUniform1iv(loc, numElements_i_, (int *) mapped.r);
 	};
 }
 
@@ -714,7 +714,7 @@ ShaderInput2i::ShaderInput2i(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform2iv(loc, numElements_i_, (int*)mapped.r);
+		glUniform2iv(loc, numElements_i_, (int *) mapped.r);
 	};
 }
 
@@ -726,7 +726,7 @@ ShaderInput3i::ShaderInput3i(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform3iv(loc, numElements_i_, (int*)mapped.r);
+		glUniform3iv(loc, numElements_i_, (int *) mapped.r);
 	};
 }
 
@@ -738,7 +738,7 @@ ShaderInput4i::ShaderInput4i(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform4iv(loc, numElements_i_, (int*)mapped.r);
+		glUniform4iv(loc, numElements_i_, (int *) mapped.r);
 	};
 }
 
@@ -750,7 +750,31 @@ ShaderInput1ui::ShaderInput1ui(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform1uiv(loc, numElements_i_, (unsigned int*)mapped.r);
+		glUniform1uiv(loc, numElements_i_, (unsigned int *) mapped.r);
+	};
+}
+
+ShaderInput1ui_16::ShaderInput1ui_16(
+		const std::string &name,
+		uint32_t numArrayElements,
+		bool normalize)
+		: ShaderInputTyped(name, numArrayElements, normalize) {
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
+	enableInput_ = [this](GLint loc) {
+		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
+		glUniform1uiv(loc, numElements_i_, (unsigned int *) mapped.r);
+	};
+}
+
+ShaderInput1ui_8::ShaderInput1ui_8(
+		const std::string &name,
+		uint32_t numArrayElements,
+		bool normalize)
+		: ShaderInputTyped(name, numArrayElements, normalize) {
+	enableAttribute_ = &ShaderInput::enableAttribute_i;
+	enableInput_ = [this](GLint loc) {
+		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
+		glUniform1uiv(loc, numElements_i_, (unsigned int *) mapped.r);
 	};
 }
 
@@ -762,7 +786,7 @@ ShaderInput2ui::ShaderInput2ui(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform2uiv(loc, numElements_i_, (unsigned int*)mapped.r);
+		glUniform2uiv(loc, numElements_i_, (unsigned int *) mapped.r);
 	};
 }
 
@@ -774,7 +798,7 @@ ShaderInput3ui::ShaderInput3ui(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform3uiv(loc, numElements_i_, (unsigned int*)mapped.r);
+		glUniform3uiv(loc, numElements_i_, (unsigned int *) mapped.r);
 	};
 }
 
@@ -786,6 +810,29 @@ ShaderInput4ui::ShaderInput4ui(
 	enableAttribute_ = &ShaderInput::enableAttribute_i;
 	enableInput_ = [this](GLint loc) {
 		auto mapped = mapClientDataRaw(BUFFER_GPU_READ);
-		glUniform4uiv(loc, numElements_i_, (unsigned int*)mapped.r);
+		glUniform4uiv(loc, numElements_i_, (unsigned int *) mapped.r);
 	};
+}
+
+ref_ptr<ShaderInput> regen::createIndexInput(uint32_t numIndices, uint32_t maxVertexIdx) {
+	ref_ptr<ShaderInput> indices;
+	if (maxVertexIdx < 256) {
+		indices = ref_ptr<ShaderInput1ui_8>::alloc("i");
+	} else if (maxVertexIdx < 65536) {
+		indices = ref_ptr<ShaderInput1ui_16>::alloc("i");
+	} else {
+		indices = ref_ptr<ShaderInput1ui_32>::alloc("i");
+	}
+	indices->setVertexData(numIndices);
+	return indices;
+}
+
+void regen::setIndexValue(byte *data, GLenum t, uint32_t i, uint32_t v) {
+	if (t == GL_UNSIGNED_BYTE) {
+		((uint8_t *) data)[i] = (uint8_t) v;
+	} else if (t == GL_UNSIGNED_SHORT) {
+		((uint16_t *) data)[i] = (uint16_t) v;
+	} else {
+		((uint32_t *) data)[i] = (uint32_t) v;
+	}
 }

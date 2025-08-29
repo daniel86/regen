@@ -62,6 +62,16 @@ void BufferObject::createMemoryPools() {
 	// allocations need to be aligned to the size of the buffer.
 	for (int i = 0;  i < BUFFER_STORAGE_MODE_LAST; ++i) {
 		int poolIndex;
+
+		poolIndex = (int) ARRAY_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
+		pools[poolIndex]->set_alignment(4);
+
+		// Element array buffers need to be aligned to 4 bytes such that binding offsets
+		// are multiple of 4 bytes (which is needed for u_32 data)
+		poolIndex = (int) ELEMENT_ARRAY_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
+		pools[poolIndex]->set_alignment(4);
+
+
 		poolIndex = (int) TEXTURE_BUFFER * (int) BUFFER_STORAGE_MODE_LAST + i;
 #ifdef USE_SHARED_TBO_BUFFER
 		pools[poolIndex]->set_alignment(getGLInteger(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT));

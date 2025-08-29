@@ -16,7 +16,7 @@ namespace regen {
 	protected:
 		std::vector<Tessellation> skirtTess_;
 		ref_ptr<ShaderInput3f> pos_;
-		ref_ptr<ShaderInput1ui> indices_;
+		ref_ptr<ShaderInput> indices_;
 		float skirtSize_ = 0.05f;
 
 		void generateLODLevel(
@@ -60,7 +60,6 @@ void SkirtQuad::updateAttributes() {
 SkirtMesh::SkirtMesh(const BufferUpdateFlags &updateHint)
 		: Mesh(GL_TRIANGLES, updateHint) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 }
 
 void SkirtMesh::updateAttributes(const Rectangle::Config &rectangleConfig) {
@@ -78,7 +77,7 @@ void SkirtMesh::updateAttributes(const Rectangle::Config &rectangleConfig) {
 
 	// allocate attributes
 	pos_->setVertexData(numVertices);
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 
 	minPosition_ = Vec3f(0.0);
 	maxPosition_ = Vec3f(0.0);
@@ -103,7 +102,7 @@ void SkirtMesh::updateAttributes(const Rectangle::Config &rectangleConfig) {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 	shaderDefine("SKIRT_PATCH_SIZE_HALF", REGEN_STRING(rectangleConfig.posScale.x*0.5f));
@@ -185,14 +184,15 @@ void SkirtMesh::generateLODLevel(const Rectangle::Config &cfg,
 								 GLuint vertexOffset,
 								 GLuint indexOffset) {
 	// map client data for writing
-	auto indices = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto v_pos = (Vec3f*) pos_->clientBuffer()->clientData(0);
+	auto indices = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 
 	GLuint nextIndex = indexOffset;
 	for (auto &tessFace: skirtTess.outputFaces) {
-		indices[nextIndex++] = vertexOffset + tessFace.v1;
-		indices[nextIndex++] = vertexOffset + tessFace.v2;
-		indices[nextIndex++] = vertexOffset + tessFace.v3;
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v1);
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v2);
+		setIndexValue(indices, indexType, nextIndex++, vertexOffset + tessFace.v3);
 	}
 
 	Vec3f startPos;

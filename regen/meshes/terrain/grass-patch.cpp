@@ -11,7 +11,6 @@ GrassPatch::GrassPatch(const ref_ptr<ModelTransformation> &tf, const BufferUpdat
 	shaderDefine("VERTEX_MASK_INDEX", "0");
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	basePos_ = ref_ptr<ShaderInput3f>::alloc("basePos");
-	indices_ = ref_ptr<ShaderInput1ui>::alloc("i");
 	joinStates(tf);
 
 	auto alpha = ref_ptr<AlphaState>::alloc();
@@ -52,13 +51,14 @@ void GrassPatch::generateLODLevel(uint32_t lodLevel) {
 	// map client data for reading
 	auto mask_p = maskMesh_->pos()->mapClientData<Vec3f>(BUFFER_GPU_READ);
 	// map client data for writing
-	auto grass_i  = (GLuint*)indices_->clientBuffer()->clientData(0);
 	auto grass_p  = (Vec3f*) pos_->clientBuffer()->clientData(0);
 	auto grass_base = (Vec3f*) basePos_->clientBuffer()->clientData(0);
+	auto grass_i = (byte*)indices_->clientBuffer()->clientData(0);
+	auto indexType = indices_->baseType();
 	// offsets into data arrays
 	grass_p += grassLOD.vertexOffset();
 	grass_base += grassLOD.vertexOffset();
-	grass_i += grassLOD.indexOffset();
+	grass_i += grassLOD.indexOffset() * indices_->dataTypeBytes();
 	const uint32_t maskOffset = maskLOD.vertexOffset();
 	const uint32_t vBaseOffset = grassLOD.vertexOffset();
 	const auto &uvRects = silhouetteMesh_->silhouetteUVRects()[lodLevel];
@@ -111,12 +111,12 @@ void GrassPatch::generateLODLevel(uint32_t lodLevel) {
 			grass_base[vOffset + 2] = basePos;
 			grass_base[vOffset + 3] = basePos;
 			// Finally, set the indices for the quad.
-			grass_i[iOffset + 0] = vBaseOffset + vOffset + 0;
-			grass_i[iOffset + 1] = vBaseOffset + vOffset + 1;
-			grass_i[iOffset + 2] = vBaseOffset + vOffset + 2;
-			grass_i[iOffset + 3] = vBaseOffset + vOffset + 2;
-			grass_i[iOffset + 4] = vBaseOffset + vOffset + 3;
-			grass_i[iOffset + 5] = vBaseOffset + vOffset + 0;
+			setIndexValue(grass_i, indexType, iOffset + 0, vBaseOffset + vOffset + 0);
+			setIndexValue(grass_i, indexType, iOffset + 1, vBaseOffset + vOffset + 1);
+			setIndexValue(grass_i, indexType, iOffset + 2, vBaseOffset + vOffset + 2);
+			setIndexValue(grass_i, indexType, iOffset + 3, vBaseOffset + vOffset + 2);
+			setIndexValue(grass_i, indexType, iOffset + 4, vBaseOffset + vOffset + 3);
+			setIndexValue(grass_i, indexType, iOffset + 5, vBaseOffset + vOffset + 0);
 			// Move to the next quad's vertices
 			vOffset += 4;
 			iOffset += 6;
@@ -158,7 +158,7 @@ void GrassPatch::updateAttributes() {
 	// allocate attributes
 	pos_->setVertexData(numVertices);
 	basePos_->setVertexData(numVertices);
-	indices_->setVertexData(numIndices);
+	indices_ = createIndexInput(numIndices, numVertices);
 	minPosition_ = Vec3f(0.0);
 	maxPosition_ = Vec3f(0.0);
 
@@ -174,7 +174,7 @@ void GrassPatch::updateAttributes() {
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
-		x.d->indexOffset = indexRef->address() + x.d->indexOffset * sizeof(GLuint);
+		x.d->indexOffset = indexRef->address() + x.d->indexOffset * indices_->dataTypeBytes();
 	}
 	activateLOD(0);
 }
