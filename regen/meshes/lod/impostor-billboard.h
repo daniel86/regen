@@ -53,7 +53,7 @@ namespace regen {
 		 * e.g. 8 steps (default) means that the snapshot is taken every 45° around the globe.
 		 * @param numSteps the number of longitude steps
 		 */
-		void setLongitudeSteps(uint32_t numSteps) { longitudeSteps_ = numSteps; }
+		void setLongitudeSteps(uint32_t numSteps) { numLongitudeSteps_ = numSteps; }
 
 		/**
 		 * Sets the number of latitude steps for the snapshot pass.
@@ -61,7 +61,7 @@ namespace regen {
 		 * e.g. 1 step means that the snapshot is taken at the equator and at the poles.
 		 * @param numSteps the number of latitude steps
 		 */
-		void setLatitudeSteps(uint32_t numSteps) { latitudeSteps_ = numSteps; }
+		void setLatitudeSteps(uint32_t numSteps) { numLatitudeSteps_ = numSteps; }
 
 		/**
 		 * Sets whether the snapshot pass should only sample the upper hemisphere.
@@ -169,11 +169,13 @@ namespace regen {
 		Vec3f meshCenterPoint_ = Vec3f(0.0f);
 
 		// 8 -> sample every 45° around the globe
-		uint32_t longitudeSteps_ = 8u;
+		uint32_t numLongitudeSteps_ = 8u;
 		// 0 -> only sample with 0° latitude (equator)
 		// 1 -> also sample top/bottom if requested
 		// 2 -> sample with 0°, 45° and 90° latitude
-		uint32_t latitudeSteps_ = 0u;
+		uint32_t numLatitudeSteps_ = 0u;
+		float longitudeStepSize_ = 0.0f;
+		float latitudeStepSize_ = 0.0f;
 		// include a sample with 90° north latitude
 		bool hasTopView_ = false;
 		// include a sample with 90° south latitude
@@ -235,6 +237,8 @@ namespace regen {
 		void updateNumberOfViews();
 
 		void addSnapshotView(uint32_t viewIdx, const Vec3f &dir, const Vec3f &up=Vec3f::up());
+
+		int getViewIdx(const Vec3f &dir);
 	};
 } // namespace
 

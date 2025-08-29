@@ -68,22 +68,22 @@ void CameraController::lookRight(GLdouble amount) {
 #define REGEN_ORIENT_THRESHOLD_ 0.1
 
 void CameraController::lookUp(GLdouble amount) {
-	verticalOrientation_ = math::clamp(verticalOrientation_ + amount, -orientThreshold_, orientThreshold_);
+	verticalOrientation_ = math::clamp<float>(verticalOrientation_ + amount, -orientThreshold_, orientThreshold_);
 }
 
 void CameraController::lookDown(GLdouble amount) {
-	verticalOrientation_ = math::clamp(verticalOrientation_ - amount, -orientThreshold_, orientThreshold_);
+	verticalOrientation_ = math::clamp<float>(verticalOrientation_ - amount, -orientThreshold_, orientThreshold_);
 }
 
 void CameraController::zoomIn(GLdouble amount) {
 	if(isThirdPerson()) {
-		meshDistance_ = math::clamp(meshDistance_ - amount, 0.0, 100.0);
+		meshDistance_ = math::clamp<float>(meshDistance_ - amount, 0.0, 100.0);
 	}
 }
 
 void CameraController::zoomOut(GLdouble amount) {
 	if(isThirdPerson()) {
-		meshDistance_ = math::clamp(meshDistance_ + amount, 0.0, 100.0);
+		meshDistance_ = math::clamp<float>(meshDistance_ + amount, 0.0, 100.0);
 	}
 }
 

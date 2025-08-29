@@ -60,7 +60,6 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	const uint32_t numInstances = shape->numInstances();
 	const uint32_t numIndices = numInstances * numLayer;
 
-	// TODO: data type can be improved here. is this used in shaders at all?
 	auto is = ref_ptr<IndexedShape>::alloc(ic.cullCamera, ic.sortCamera, shape);
 	const uint32_t numLOD = is->numLODs();
 	is->idVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);

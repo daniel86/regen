@@ -1,19 +1,10 @@
 
--- selectViewIdx
+-- selectViewIdx.maxDot
 #ifndef REGEN_selectViewIdx_defined_
 #define2 REGEN_selectViewIdx_defined_
 uint selectViewIdx(vec3 viewDirLocal) {
     float maxDot = 0, d;
     uint bestIndex = 0;
-    /**
-    #for VIEW_I to NUM_IMPOSTOR_VIEWS
-    d = dot(viewDirLocal, in_snapshotDirs[${VIEW_I}].xyz);
-    if (d > maxDot) {
-        maxDot = d;
-        bestIndex = ${VIEW_I};
-    }
-    #endfor
-    **/
     for (uint i = 0; i < NUM_IMPOSTOR_VIEWS; ++i) {
         d = dot(viewDirLocal, in_snapshotDirs[i].xyz);
         if (d > maxDot) {
@@ -25,10 +16,39 @@ uint selectViewIdx(vec3 viewDirLocal) {
 }
 #endif
 
+-- selectViewIdx.bin
+#ifndef REGEN_selectViewIdx_defined_
+#define2 REGEN_selectViewIdx_defined_
+uint selectViewIdx(vec3 dir) {
+    const float TWO_PI = 6.2831853;
+
+    // Longitude in [0, 2π)
+    float lonAngle = atan(-dir.z, -dir.x); // returns [-π, π]
+    lonAngle = mod(lonAngle + TWO_PI, TWO_PI);
+    // Compute the longitude segment index
+    int lonIdx = int((lonAngle + in_longitudeHalfStep) / in_longitudeStep);
+    lonIdx = (max(lonIdx, 0) % in_numLongitudeSteps);
+
+    // Latitude in [-π/2, π/2]
+    float angle_y = atan(dir.y, length(dir.xz));
+#ifdef IS_HEMISPHERICAL
+    int latIdx = int((angle_y + in_latitudeHalfStep) / in_latitudeStep);
+    latIdx = clamp(latIdx, 0, in_numLatitudeSteps - 1);
+#else
+    float f_latIdx = ((angle_y + in_latitudeHalfStep) / in_latitudeStep);
+    int neg = int(step(f_latIdx, 0.0)); // 1 if latIdx < 0
+    int mapped = (in_numLatitudeSteps - 1) + min(int(-f_latIdx)+1, in_numLatitudeSteps - 1);
+    int latIdx = int(f_latIdx) * (1 - neg) + mapped * neg;
+#endif
+
+    return uint(latIdx * in_numLongitudeSteps + lonIdx);
+}
+#endif
+
 -- getViewIdx
 #ifndef REGEN_getViewIdx_defined_
 #define2 REGEN_getViewIdx_defined_
-#include regen.models.impostor.selectViewIdx
+#include regen.models.impostor.selectViewIdx.bin
 uint getViewIdx(int layer, vec3 centerWorld) {
     // Find the best impostor view index based on the view direction.
 #ifdef HAS_modelMatrix

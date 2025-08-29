@@ -618,10 +618,9 @@ void Mesh::setIndirectDrawBuffer(
 	baseDrawIdx_ = baseDrawIdx;
 	numDrawLayers_ = numDrawLayers;
 
-	const uint32_t numDrawCommands = indirectDrawBuffer->inputSize() / sizeof(DrawCommand);
-	numDrawLODs_ = numDrawCommands / numDrawLayers;
-
 	if (indirectDrawBuffer_.get()) {
+		const uint32_t numDrawCommands = indirectDrawBuffer->inputSize() / sizeof(DrawCommand);
+		numDrawLODs_ = numDrawCommands / numDrawLayers;
 		indirectOffset_ = indirectDrawBuffer_->offset() + baseDrawIdx_ * sizeof(DrawCommand);
 	} else {
 		indirectOffset_ = 0u;

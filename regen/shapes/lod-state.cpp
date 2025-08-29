@@ -406,7 +406,7 @@ void LODState::traverseCPU() {
 	hasVisibleInstance_ = hasVisibleInstance;
 
 	if (hasVisibleInstance_) {
-		if (cullShape_->numInstances() <= 1) {
+		if (cullShape_->numInstances() == 1) {
 			if (mesh_.get()) {
 				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 					if (!shapeIndex_->isVisibleInLayer(layerIdx)) continue;
