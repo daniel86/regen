@@ -68,6 +68,7 @@
             position="-40.0, 14.0, 0.0"/>
     <camera id="reflection-camera"
             culling-index="main-index"
+            lod-shift="1,1,1,0"
             camera="main-camera"
             reflector-normal="0,1,0"
             reflector-point="0,{{water-level}},0"/>

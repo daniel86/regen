@@ -129,6 +129,7 @@
             split-weight="0.7" />
     <camera id="reflection-camera"
             culling-index="main-index"
+            lod-shift="1,1,1,0"
             camera="main-camera"
             reflector-normal="0,1,0"
             reflector-point="0,{{water-level}},0"/>
@@ -266,10 +267,9 @@
           lod-thresholds="20.0,60.0,120.0"
           lod-levels="3,3,2,1"
           tile-counts="8,8,4,4"
-          max-quads-per-sprite="64"
           alpha-cut="0.1"
-          coverage-threshold="0.05"
-          pad-tiles="0"
+          coverage-threshold="0.01"
+          silhouette-padding="1"
           scaling="2.0,1.0,2.0"
           ground-size="{{map-size}},{{map-size}}"
           update-frequency="NEVER">
@@ -356,11 +356,10 @@
             lods="3,2,1"
             lod-thresholds="10.0, 50.0, 100.0"
             use-silhouette="true"
-            tile-counts="8,8,4,4"
-            max-quads-per-sprite="64"
+            tile-counts="4,2,2,2"
             alpha-cut="0.1"
-            coverage-threshold="0.05"
-            pad-tiles="0"
+            coverage-threshold="0.01"
+            silhouette-padding="1"
             preset="fir">
         <shader mesh-index="0" key="regen.models.mesh"/>
         <shader mesh-index="1" key="regen.models.mesh">
@@ -433,11 +432,10 @@
     <mesh id="silhouette-test"
             type="silhouette"
             silhouette-texture="fir-color"
-            tile-counts="32,16,8,4"
-            max-quads-per-sprite="64"
+            tile-counts="8,8,4,2"
             alpha-cut="0.01"
-            coverage-threshold="0.05"
-            pad-tiles="1"
+            coverage-threshold="0.01"
+            silhouette-padding="1"
             lod-thresholds="20.0,60.0,120.0"
             pos-scale="2.0,2.0,1.0"
             update-frequency="NEVER">
@@ -450,16 +448,14 @@
                 transform-id="silhouette-tf">
         </shape>
     </mesh>
-    -->
 
     <node id="Silhouette-Test">
-        <!--
         <node id="Silhouette-Mesh">
             <texture id="fir-color" map-to="color" blend-mode="src"/>
             <mesh id="silhouette-test" />
         </node>
-        -->
     </node>
+    -->
 
     <!--**************************-->
     <!--** Silhouette Rendering **-->

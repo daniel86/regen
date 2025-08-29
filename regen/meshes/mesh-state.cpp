@@ -356,6 +356,12 @@ void Mesh::updateVAO() {
 		uint32_t drawGroupIdx = 0;
 		bool isLastImpostor = false;
 #endif
+
+		if (numDrawLODs_ > meshLODs_.size() && meshLODs_.size() == 2) {
+			// duplicate the first LOD once and insert it as a new second LOD
+			meshLODs_.insert(meshLODs_.begin() + 1, meshLODs_.front());
+		}
+
 		for (auto &lodData : meshLODs_) {
 			if (lodData.d->numVertices == lastNumVertices_ && !lodData.impostorMesh.get()) {
 				// update the full LOD data if it is not an impostor mesh

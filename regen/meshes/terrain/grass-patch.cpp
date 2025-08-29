@@ -230,11 +230,8 @@ ref_ptr<GrassPatch> GrassPatch::load(
 	if (input.hasAttribute("coverage-threshold")) {
 		silhouetteCfg.silhouette.coverageThreshold = input.getValue<float>("coverage-threshold", 0.05f);
 	}
-	if (input.hasAttribute("pad-tiles")) {
-		silhouetteCfg.silhouette.padTiles = input.getValue<uint32_t>("pad-tiles", 1u);
-	}
-	if (input.hasAttribute("max-quads-per-sprite")) {
-		silhouetteCfg.silhouette.maxQuadsPerSprite = input.getValue<uint32_t>("max-quads-per-sprite", 64u);
+	if (input.hasAttribute("silhouette-padding")) {
+		silhouetteCfg.silhouette.padPixels = input.getValue<uint32_t>("silhouette-padding", 1u);
 	}
 	if (input.hasAttribute("texco-scale")) {
 		silhouetteCfg.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f(1.0f));

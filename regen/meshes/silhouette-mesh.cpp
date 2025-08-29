@@ -98,11 +98,8 @@ void SilhouetteMesh::generateLODLevel(
 		silhouetteCfg_.rotation.x,
 		silhouetteCfg_.rotation.y,
 		silhouetteCfg_.rotation.z);
-	REGEN_INFO("Silhouette LOD " << lodLevel
-			  << " with " << uv_rects.size() << " UV rectangles, "
-			  << "vertexOffset=" << vertexOffset
-			  << ", indexOffset=" << indexOffset << " num vertices=" << uv_rects.size() * 4
-			  << ", num indices=" << uv_rects.size() * 6);
+
+	float areaSum = 0.0f;
 
 	for (const auto &uvRect : uv_rects) {
         // uvRect = (u0, v0, u1, v1) in normalized 0..1 space
@@ -121,6 +118,11 @@ void SilhouetteMesh::generateLODLevel(
         Vec3f p1(local0.x + localSize.x*0.5f, local0.y - localSize.y*0.5f, 0.0f);
         Vec3f p2(local0.x + localSize.x*0.5f, local0.y + localSize.y*0.5f, 0.0f);
         Vec3f p3(local0.x - localSize.x*0.5f, local0.y + localSize.y*0.5f, 0.0f);
+
+        // compute the area of the quad in world space
+        float l1 = (p1 - p0).length();
+        float l2 = (p3 - p0).length();
+        areaSum += l1 * l2;
 
         v_pos[vi+0] = rotMat.transformVector(silhouetteCfg_.posScale * p0);
         v_pos[vi+1] = rotMat.transformVector(silhouetteCfg_.posScale * p1);
@@ -156,6 +158,13 @@ void SilhouetteMesh::generateLODLevel(
 
         vi += 4;
 	}
+
+	REGEN_INFO("Silhouette LOD " << lodLevel
+			  << " with " << uv_rects.size() << " UV rectangles,"
+			  << " area=" << areaSum
+			  << " vertexOffset=" << vertexOffset
+			  << ", indexOffset=" << indexOffset << " num vertices=" << uv_rects.size() * 4
+			  << ", num indices=" << uv_rects.size() * 6);
 }
 
 void SilhouetteMesh::updateSilhouette() {
@@ -202,11 +211,8 @@ ref_ptr<SilhouetteMesh> SilhouetteMesh::load(LoadingContext &ctx, scene::SceneIn
 	if (input.hasAttribute("coverage-threshold")) {
 		cfg.silhouette.coverageThreshold = input.getValue<float>("coverage-threshold", 0.05f);
 	}
-	if (input.hasAttribute("pad-tiles")) {
-		cfg.silhouette.padTiles = input.getValue<uint32_t>("pad-tiles", 1u);
-	}
-	if (input.hasAttribute("max-quads-per-sprite")) {
-		cfg.silhouette.maxQuadsPerSprite = input.getValue<uint32_t>("max-quads-per-sprite", 64u);
+	if (input.hasAttribute("silhouette-padding")) {
+		cfg.silhouette.padPixels = input.getValue<uint32_t>("silhouette-padding", 1u);
 	}
 	cfg.posScale = input.getValue<Vec3f>("pos-scale", Vec3f(1.0f));
 	cfg.rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));

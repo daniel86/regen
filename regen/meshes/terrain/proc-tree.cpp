@@ -40,6 +40,8 @@ namespace regen {
 }
 
 ProcTree::ProcTree() {
+	useSilhouetteMesh_ = true;
+
 	trunk.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BufferUpdateFlags::NEVER);
 	trunk.indices = ref_ptr<ShaderInput1ui>::alloc("i");
 	trunk.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
@@ -78,11 +80,8 @@ ProcTree::ProcTree(scene::SceneInputNode &input) : ProcTree() {
 	if (input.hasAttribute("coverage-threshold")) {
 		silhouetteCfg_.silhouette.coverageThreshold = input.getValue<float>("coverage-threshold", 0.05f);
 	}
-	if (input.hasAttribute("pad-tiles")) {
-		silhouetteCfg_.silhouette.padTiles = input.getValue<uint32_t>("pad-tiles", 1u);
-	}
-	if (input.hasAttribute("max-quads-per-sprite")) {
-		silhouetteCfg_.silhouette.maxQuadsPerSprite = input.getValue<uint32_t>("max-quads-per-sprite", 64u);
+	if (input.hasAttribute("silhouette-padding")) {
+		silhouetteCfg_.silhouette.padPixels = input.getValue<uint32_t>("silhouette-padding", 1u);
 	}
 	if (input.hasAttribute("texco-scale")) {
 		silhouetteCfg_.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f(1.0f));
@@ -548,17 +547,19 @@ void ProcTree::updateTwigAttributes() {
 
 	if (twigSilhouette_.get()) {
 		// FIXME: There are some bugs in this block of code that needs to be fixed!
-		auto &uvRects = twigSilhouette_->silhouetteUVRects()[0];
-		uint32_t nq_in = lod0.mFaceCount / 2;
-		uint32_t nv_in = lod0.mVertCount;
-		uint32_t ni_in = lod0.mFaceCount * 3;
-		uint32_t nq_out = nq_in * uvRects.size();
-		uint32_t nv_out = nq_out * 4; // 4 vertices per quad
-		uint32_t ni_out = nq_out * 6; // 6 indices per quad
+		const uint32_t nq_in = lod0.mFaceCount / 2;
+		uint32_t nq_out = 0u;
+		uint32_t nv_out = 0u;
+		uint32_t ni_out = 0u;
+		for (uint32_t lodIdx=0; lodIdx < 2; lodIdx++) {
+			auto &uvRects = twigSilhouette_->silhouetteUVRects()[lodIdx];
+			nq_out += nq_in * uvRects.size();
+			nv_out += nq_in * uvRects.size() * 4; // 4 vertices per quad
+			ni_out += nq_in * uvRects.size() * 6; // 6
+		}
 
 		// Allocate client memory
 		twig.indices->setVertexData(ni_out);
-		twig.pos->setVertexData(nv_out);
 		twig.pos->setVertexData(nv_out);
 		twig.nor->setVertexData(nv_out);
 		twig.texco->setVertexData(nv_out);
@@ -569,100 +570,114 @@ void ProcTree::updateTwigAttributes() {
 		// map client data for writing
 		auto twig_i = (GLuint*)twig.indices->clientBuffer()->clientData(0);
 		auto twig_p = (Vec3f*) twig.pos->clientBuffer()->clientData(0);
-		auto twig_n = (Vec3f*) twig.nor->clientBuffer()->clientData(0);
-		auto twig_t = (Vec4f*) twig.tan->clientBuffer()->clientData(0);
 		auto twig_uv = (Vec2f*) twig.texco->clientBuffer()->clientData(0);
 		auto twig_bp = (twig.basePos.get() ?
 			(Vec3f*) twig.basePos->clientBuffer()->clientData(0) : nullptr);
 
-		uint32_t qOffset = 0u;
 		uint32_t vOffset = 0u;
 		uint32_t iOffset = 0u;
 
-		for (uint32_t quadIdx_in=0u; quadIdx_in < nq_in; quadIdx_in++) {
-			// For each input quad, we create uvRects.size() output quads.
-			// For this we need to compute tangents along u/v directions.
-			auto &face_in = lod0.mFace[quadIdx_in * 2];
-			auto &v0_in = *((Vec3f*)&lod0.mVert[face_in.x].x);
-			auto &v1_in = *((Vec3f*)&lod0.mVert[face_in.y].x);
-			auto &v2_in = *((Vec3f*)&lod0.mVert[face_in.z].x);
-			// base position for the quad
-			// TODO: UNSURE ABOUT IT
-			auto basePos = (v1_in + v2_in) * 0.5f;
-			// compute direction vectors along face plane
-			// TODO: UNSURE ABOUT IT
-			// length of the vectors should be width/height of the quad.
-			Vec3f e2 = v0_in - v1_in; // "v" axis
-			Vec3f e1 = v2_in - v1_in; // "u" axis
-			// Orthonormal-ish data for TBN (you can keep e1/e2 scaled for positioning)
-			Vec3f n = e1.cross(e2); n.normalize();
-			// tangent = u-axis
-			Vec3f t = e1; t.normalize();
-			// Handedness: sign = +1 if (t x b)·n > 0; here we approximate with e2
-			Vec3f e2_norm = e2; e2_norm.normalize();
-			float handedness = t.cross(e2_norm).dot(n) < 0.0f ? -1.0f : 1.0f;
+		for (uint32_t lodIdx=0; lodIdx < 2; lodIdx++) {
+			auto &uvRects = twigSilhouette_->silhouetteUVRects()[lodIdx];
 
-			for (uint32_t uvRectIdx = 0u; uvRectIdx < uvRects.size(); uvRectIdx++) {
-				// For each output quad, we need to compute the position and UVs.
-				auto &uvRect = uvRects[uvRectIdx];
-				// uvRect = (u0, v0, u1, v1) in normalized 0..1 space
-				float u0 = uvRect.x, v0 = uvRect.y, u1 = uvRect.z, v1 = uvRect.w;
-				// use (0..1) local coords around center:
-				Vec2f local0( (u0+u1)*0.5f, (v0+v1)*0.5f );
-				Vec2f localSize( u1 - u0, v1 - v0 );
-				float hw = localSize.x * 0.5f;
-				float hh = localSize.y * 0.5f;
-				// We'll create geometry in UV-space [0..1]
-				Vec2f q0(local0.x - hw, local0.y - hh);
-				Vec2f q1(local0.x + hw, local0.y - hh);
-				Vec2f q2(local0.x + hw, local0.y + hh);
-				Vec2f q3(local0.x - hw, local0.y + hh);
-
-				// compute positions in world space
-				twig_p[vOffset + 0] = v1_in + e1 * q0.x + e2 * q0.y;
-				twig_p[vOffset + 1] = v1_in + e1 * q1.x + e2 * q1.y;
-				twig_p[vOffset + 2] = v1_in + e1 * q2.x + e2 * q2.y;
-				twig_p[vOffset + 3] = v1_in + e1 * q3.x + e2 * q3.y;
-
-				// compute UVs in [0..1] space
-				twig_uv[vOffset + 0] = Vec2f(u0, v0);
-				twig_uv[vOffset + 1] = Vec2f(u1, v0);
-				twig_uv[vOffset + 2] = Vec2f(u1, v1);
-				twig_uv[vOffset + 3] = Vec2f(u0, v1);
-
-				// compute normals
-				twig_n[vOffset + 0] = n;
-				twig_n[vOffset + 1] = n;
-				twig_n[vOffset + 2] = n;
-				twig_n[vOffset + 3] = n;
-
-				// compute tangents
-				twig_t[vOffset + 0] = Vec4f(t, handedness);
-				twig_t[vOffset + 1] = Vec4f(t, handedness);
-				twig_t[vOffset + 2] = Vec4f(t, handedness);
-				twig_t[vOffset + 3] = Vec4f(t, handedness);
-
-				// set the base position for the quad.
-				if (twig.basePos.get()) {
-					twig_bp[vOffset + 0] = basePos;
-					twig_bp[vOffset + 1] = basePos;
-					twig_bp[vOffset + 2] = basePos;
-					twig_bp[vOffset + 3] = basePos;
+			for (uint32_t quadIdx_in=0u; quadIdx_in < nq_in; quadIdx_in++) {
+				// For each input quad, we create uvRects.size() output quads.
+				// For this we need to compute tangents along u/v directions.
+				auto &face_in = lod0.mFace[quadIdx_in * 2];
+				auto &v0_in = *((Vec3f*)&lod0.mVert[face_in.x].x);
+				auto &v1_in = *((Vec3f*)&lod0.mVert[face_in.y].x);
+				auto &v2_in = *((Vec3f*)&lod0.mVert[face_in.z].x);
+				// base position for the quad
+				// TODO: UNSURE ABOUT IT
+				//auto basePos = (v1_in + v2_in) * 0.5f;
+				Vec3f basePos;
+				if ((quadIdx_in % 2) != 0) {
+					// first quad: base edge is (vert1, vert2)
+					basePos = (v0_in + v1_in) * 0.5f;
+				} else {
+					// second quad: base edge is (vert8, vert7)
+					// those correspond to v2,v1 in this tri ordering (6,7,8)
+					basePos = (v1_in + v2_in) * 0.5f;
 				}
+				// compute direction vectors along face plane
+				// TODO: UNSURE ABOUT IT
+				// length of the vectors should be width/height of the quad.
+				Vec3f e2 = v0_in - v1_in; // "v" axis
+				Vec3f e1 = v2_in - v1_in; // "u" axis
+				// Orthonormal-ish data for TBN (you can keep e1/e2 scaled for positioning)
+				Vec3f n = e1.cross(e2); n.normalize();
+				// tangent = u-axis
+				Vec3f t = e1; t.normalize();
+				// Handedness: sign = +1 if (t x b)·n > 0; here we approximate with e2
+				Vec3f e2_norm = e2; e2_norm.normalize();
 
-				// Finally, set the indices for the quad.
-				twig_i[iOffset + 0] = vOffset + 0;
-				twig_i[iOffset + 1] = vOffset + 1;
-				twig_i[iOffset + 2] = vOffset + 2;
-				twig_i[iOffset + 3] = vOffset + 2;
-				twig_i[iOffset + 4] = vOffset + 3;
-				twig_i[iOffset + 5] = vOffset + 0;
-				// increment offsets
-				vOffset += 4u;
-				iOffset += 6u;
-				qOffset += 1u;
+				for (uint32_t uvRectIdx = 0u; uvRectIdx < uvRects.size(); uvRectIdx++) {
+					// For each output quad, we need to compute the position and UVs.
+					auto &uvRect = uvRects[uvRectIdx];
+					// uvRect = (u0, v0, u1, v1) in normalized 0..1 space
+					float u0 = uvRect.x, v0 = uvRect.y, u1 = uvRect.z, v1 = uvRect.w;
+					// use (0..1) local coords around center:
+					Vec2f local0( (u0+u1)*0.5f, (v0+v1)*0.5f );
+					Vec2f localSize( u1 - u0, v1 - v0 );
+					float hw = localSize.x * 0.5f;
+					float hh = localSize.y * 0.5f;
+					// We'll create geometry in UV-space [0..1]
+					Vec2f q0(local0.x - hw, local0.y - hh);
+					Vec2f q1(local0.x + hw, local0.y - hh);
+					Vec2f q2(local0.x + hw, local0.y + hh);
+					Vec2f q3(local0.x - hw, local0.y + hh);
+
+					// compute positions in world space
+					twig_p[vOffset + 0] = v1_in + e1 * q0.x + e2 * q0.y;
+					twig_p[vOffset + 1] = v1_in + e1 * q1.x + e2 * q1.y;
+					twig_p[vOffset + 2] = v1_in + e1 * q2.x + e2 * q2.y;
+					twig_p[vOffset + 3] = v1_in + e1 * q3.x + e2 * q3.y;
+
+					// compute UVs in [0..1] space
+					twig_uv[vOffset + 0] = Vec2f(u0, v0);
+					twig_uv[vOffset + 1] = Vec2f(u1, v0);
+					twig_uv[vOffset + 2] = Vec2f(u1, v1);
+					twig_uv[vOffset + 3] = Vec2f(u0, v1);
+
+					// set the base position for the quad.
+					if (twig.basePos.get()) {
+						twig_bp[vOffset + 0] = basePos;
+						twig_bp[vOffset + 1] = basePos;
+						twig_bp[vOffset + 2] = basePos;
+						twig_bp[vOffset + 3] = basePos;
+					}
+
+					// Finally, set the indices for the quad.
+					twig_i[iOffset + 0] = vOffset + 0;
+					twig_i[iOffset + 1] = vOffset + 1;
+					twig_i[iOffset + 2] = vOffset + 2;
+					twig_i[iOffset + 3] = vOffset + 2;
+					twig_i[iOffset + 4] = vOffset + 3;
+					twig_i[iOffset + 5] = vOffset + 0;
+					// increment offsets
+					vOffset += 4u;
+					iOffset += 6u;
+				}
 			}
 		}
+
+		twig.nor->setUniformData(Vec3f::up());
+		twig.tan->setUniformData(Vec4f(Vec3f::right(), 1.0f));
+
+		// create 2 LOD levels, one for each silhouette map
+		lodLevels.resize(2);
+		const auto &rects0 = twigSilhouette_->silhouetteUVRects()[0];
+		const auto &rects1 = twigSilhouette_->silhouetteUVRects()[1];
+		// LOD 0
+		lodLevels[0].d->numVertices = nq_in * rects0.size() * 4;
+		lodLevels[0].d->numIndices = nq_in * rects0.size() * 6;
+		lodLevels[0].d->vertexOffset = 0;
+		lodLevels[0].d->indexOffset = 0;
+		// LOD 1
+		lodLevels[1].d->numVertices = nq_in * rects1.size() * 4;
+		lodLevels[1].d->numIndices = nq_in * rects1.size() * 6;
+		lodLevels[1].d->vertexOffset = lodLevels[0].d->numVertices;
+		lodLevels[1].d->indexOffset = lodLevels[0].d->numIndices;
 
 		updateAttributes_(twig, lod0, lodLevels, nv_out);
 	} else {
@@ -672,14 +687,19 @@ void ProcTree::updateTwigAttributes() {
 #define PROC_DATA_PTR_(arg) reinterpret_cast<const unsigned char *>(&(arg))
 		twig.indices->setVertexData(ni, PROC_DATA_PTR_(lod0.mFace[0].x));
 		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mVert[0].x));
-		twig.nor->setVertexData(nv, PROC_DATA_PTR_(lod0.mNormal[0].x));
 		twig.texco->setVertexData(nv, PROC_DATA_PTR_(lod0.mUV[0].u));
+		//twig.nor->setVertexData(nv, PROC_DATA_PTR_(lod0.mNormal[0].x));
 #undef PROC_DATA_PTR_
 
+		twig.nor->setUniformData(Vec3f::up());
+#if 1
+		twig.tan->setUniformData(Vec4f(Vec3f::right(), 1.0f));
+#else
 		twig.tan->setVertexData(nv);
 		auto v_tan = twig.tan->mapClientData<float>(BUFFER_GPU_WRITE);
 		computeTan(twig, lod0, 0, (Vec4f *) v_tan.w.data());
 		v_tan.unmap();
+#endif
 
 		if (twig.basePos.get()) {
 			twig.basePos->setVertexData(nv);

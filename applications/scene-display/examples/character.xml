@@ -230,7 +230,17 @@
     <!--********* Trees *********-->
     <!--**************************-->
 
-    <mesh id="tree-mesh" type="proctree" preset="fir">
+    <mesh id="tree-mesh" type="proctree"
+            use-silhouette="true"
+            tile-counts="4,2,2,2"
+            alpha-cut="0.1"
+            coverage-threshold="0.01"
+            silhouette-padding="1"
+            preset="fir">
+        <shader mesh-index="0" key="regen.models.mesh"/>
+        <shader mesh-index="1" key="regen.models.mesh">
+            <define key="POS_WORLD_TRANSFER_KEY" value="regen.weather.wind.wavingBaseTransfer"/>
+        </shader>
         <transform id="tree-tf">
             <scale value="4.0, 4.0, 4.0"/>
             <rotate value="1.5707963,0.0,0.0"/>
@@ -278,7 +288,7 @@
         <node id="tree1">
             <node id="tree1-trunk">
                 <input name="matEmission" type="vec3" value="0.01,0.01,0.01"/>
-                <mesh id="tree-mesh" mesh-index="0" shader="regen.models.mesh"/>
+                <mesh id="tree-mesh" mesh-index="0"/>
             </node>
             <node id="tree1-twig">
                 <alpha discard-threshold="0.25" />
@@ -287,7 +297,7 @@
                 <texture name="windFlow" id="wind-flowmap"/>
                 <input name="stiffness" type="float" value="0.5"/>
                 <!-- draw the mesh -->
-                <mesh id="tree-mesh" mesh-index="1" shader="regen.models.mesh" update-visibility="0"/>
+                <mesh id="tree-mesh" mesh-index="1" update-visibility="0"/>
             </node>
         </node>
         <node id="tree1-pot">

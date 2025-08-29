@@ -18,9 +18,7 @@ namespace regen {
         // tile coverage threshold to mark tile filled
         float coverageThreshold = 0.05f;
         // inflate rects by this many tiles
-        uint32_t padTiles = 1u;
-        // clamp to avoid explosion
-        uint32_t maxQuadsPerSprite = 32u;
+        uint32_t padPixels = 1u;
 	};
 
 	/**

@@ -182,6 +182,7 @@
 
     <camera id="reflection-camera"
             camera="main-camera"
+            lod-shift="1,1,1,0"
             reflector="reflector-mesh"
             has-back-face="1"/>
 

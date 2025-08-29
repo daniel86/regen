@@ -48,6 +48,7 @@
             position="1.0,6.0,-50.0"
             direction="0.0,0.0,1.0"/>
     <camera id="sun-camera" light="sky-sun" camera="main-camera"
+            lod-shift="1,1,1,0"
             num-layer="{{num-cascades}}" split-weight="0.6"/>
     <!-- Assets -->
     <asset id="dwarf-asset-instanced"
