@@ -124,17 +124,15 @@ createTriangleMesh(SceneInputNode &input, const ref_ptr<Mesh> &mesh) {
 
 	PHY_ScalarType indexType;
 	switch (indices->baseType()) {
-		case GL_FLOAT:
-			indexType = PHY_FLOAT;
-			break;
-		case GL_DOUBLE:
-			indexType = PHY_DOUBLE;
-			break;
-		case GL_SHORT:
+		case GL_UNSIGNED_SHORT:
 			indexType = PHY_SHORT;
 			break;
-		case GL_INT:
+		case GL_UNSIGNED_BYTE:
+			indexType = PHY_UCHAR;
+			break;
 		case GL_UNSIGNED_INT:
+			indexType = PHY_INTEGER;
+			break;
 		default:
 			indexType = PHY_INTEGER;
 			break;
