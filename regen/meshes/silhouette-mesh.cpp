@@ -105,11 +105,7 @@ void SilhouetteMesh::generateLODLevel(
         // uvRect = (u0, v0, u1, v1) in normalized 0..1 space
 		float u0 = uvRect.x, v0 = uvRect.y, u1 = uvRect.z, v1 = uvRect.w;
 
-        // positions in local sprite plane, choose origin at center, Y up if you prefer.
-        // Here we map UV rectangle into -0.5..+0.5 local quad (in X,Y) keeping aspect ratio
-        //float px0 = (u0 + u1) * 0.5f - u1;
-		// simpler: compute width/height from uv in pixels if you prefer
-        // Simpler approach: use (0..1) local coords around center:
+        // positions in local sprite plane.
         Vec2f local0( (u0+u1)*0.5f - 0.5f, (v0+v1)*0.5f - 0.5f );
         Vec2f localSize( u1 - u0, v1 - v0 );
 
@@ -119,7 +115,7 @@ void SilhouetteMesh::generateLODLevel(
         Vec3f p2(local0.x + localSize.x*0.5f, local0.y + localSize.y*0.5f, 0.0f);
         Vec3f p3(local0.x - localSize.x*0.5f, local0.y + localSize.y*0.5f, 0.0f);
 
-        // compute the area of the quad in world space
+        // compute the area of the quad
         float l1 = (p1 - p0).length();
         float l2 = (p3 - p0).length();
         areaSum += l1 * l2;

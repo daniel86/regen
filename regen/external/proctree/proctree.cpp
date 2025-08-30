@@ -780,7 +780,6 @@ namespace Proctree {
 			fvec3 tangent = normalize(cross(sub(aBranch->mParent->mChild0->mHead, aBranch->mParent->mHead),
 											sub(aBranch->mParent->mChild1->mHead, aBranch->mParent->mHead)));
 			fvec3 binormal = normalize(sub(aBranch->mHead, aBranch->mParent->mHead));
-			//fvec3 normal = cross(tangent, binormal); //never used
 
 			int vert1 = mTwigVertCount;
 			mTwigVert[mTwigVertCount++] = (add(add(aBranch->mHead, scaleVec(tangent, mProperties.mTwigScale)),

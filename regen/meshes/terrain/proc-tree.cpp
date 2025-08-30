@@ -40,8 +40,6 @@ namespace regen {
 }
 
 ProcTree::ProcTree() {
-	useSilhouetteMesh_ = true;
-
 	trunk.mesh = ref_ptr<Mesh>::alloc(GL_TRIANGLES, BufferUpdateFlags::NEVER);
 	trunk.pos = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	trunk.nor = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_NOR);
@@ -69,20 +67,27 @@ ProcTree::ProcTree(scene::SceneInputNode &input) : ProcTree() {
 		silhouetteCfg_.silhouette.tileCounts[1] = lodVec.y;
 		silhouetteCfg_.silhouette.tileCounts[2] = lodVec.z;
 		silhouetteCfg_.silhouette.tileCounts[3] = lodVec.w;
+		useSilhouetteMesh_ = true;
 	} else {
 		silhouetteCfg_.silhouette.tileCounts.push_back(input.getValue<GLuint>("lod", 8));
 	}
 	if (input.hasAttribute("alpha-cut")) {
 		silhouetteCfg_.silhouette.alphaCut = input.getValue<float>("alpha-cut", 0.01f);
+		useSilhouetteMesh_ = true;
 	}
 	if (input.hasAttribute("coverage-threshold")) {
 		silhouetteCfg_.silhouette.coverageThreshold = input.getValue<float>("coverage-threshold", 0.05f);
+		useSilhouetteMesh_ = true;
 	}
 	if (input.hasAttribute("silhouette-padding")) {
 		silhouetteCfg_.silhouette.padPixels = input.getValue<uint32_t>("silhouette-padding", 1u);
+		useSilhouetteMesh_ = true;
 	}
 	if (input.hasAttribute("texco-scale")) {
 		silhouetteCfg_.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f(1.0f));
+	}
+	if (input.hasAttribute("use-silhouette")) {
+		useSilhouetteMesh_ = input.getValue<bool>("use-silhouette-mesh", true);
 	}
 
 	if (input.hasAttribute("preset")) {
@@ -545,35 +550,32 @@ void ProcTree::updateTwigAttributes() {
 	std::vector<Mesh::MeshLOD> lodLevels;
 
 	if (twigSilhouette_.get()) {
-		// FIXME: There are some bugs in this block of code that needs to be fixed!
 		const uint32_t nq_in = lod0.mFaceCount / 2;
-		uint32_t nq_out = 0u;
-		uint32_t nv_out = 0u;
-		uint32_t ni_out = 0u;
+		uint32_t numVertices = 0u; // Total number of vertices over all LODs
+		uint32_t numIndices = 0u; // Total number of indices over all LODs
 		for (uint32_t lodIdx=0; lodIdx < 2; lodIdx++) {
 			auto &uvRects = twigSilhouette_->silhouetteUVRects()[lodIdx];
-			nq_out += nq_in * uvRects.size();
-			nv_out += nq_in * uvRects.size() * 4; // 4 vertices per quad
-			ni_out += nq_in * uvRects.size() * 6; // 6
+			numVertices += nq_in * uvRects.size() * 4; // 4 vertices per quad
+			numIndices += nq_in * uvRects.size() * 6; // 6 indices per quad
 		}
 
 		// Allocate client memory
-		twig.indices = createIndexInput(ni_out, nv_out);
-		twig.pos->setVertexData(nv_out);
-		twig.nor->setVertexData(nv_out);
-		twig.texco->setVertexData(nv_out);
-		twig.tan->setVertexData(nv_out);
+		twig.indices = createIndexInput(numIndices, numVertices);
+		twig.pos->setVertexData(numVertices);
+		twig.texco->setVertexData(numVertices);
 		if (twig.basePos.get()) {
-			twig.basePos->setVertexData(nv_out);
+			twig.basePos->setVertexData(numVertices);
 		}
+
 		// map client data for writing
 		auto twig_p = (Vec3f*) twig.pos->clientBuffer()->clientData(0);
 		auto twig_uv = (Vec2f*) twig.texco->clientBuffer()->clientData(0);
 		auto twig_bp = (twig.basePos.get() ?
 			(Vec3f*) twig.basePos->clientBuffer()->clientData(0) : nullptr);
 		auto twig_i = (byte*)twig.indices->clientBuffer()->clientData(0);
-		auto indexType = twig.indices->baseType();
+		const auto indexType = twig.indices->baseType();
 
+		// Running offsets for vertices and indices
 		uint32_t vOffset = 0u;
 		uint32_t iOffset = 0u;
 
@@ -583,68 +585,50 @@ void ProcTree::updateTwigAttributes() {
 			for (uint32_t quadIdx_in=0u; quadIdx_in < nq_in; quadIdx_in++) {
 				// For each input quad, we create uvRects.size() output quads.
 				// For this we need to compute tangents along u/v directions.
+
 				auto &face_in = lod0.mFace[quadIdx_in * 2];
-				auto &v0_in = *((Vec3f*)&lod0.mVert[face_in.x].x);
-				auto &v1_in = *((Vec3f*)&lod0.mVert[face_in.y].x);
-				auto &v2_in = *((Vec3f*)&lod0.mVert[face_in.z].x);
-				// base position for the quad
-				// TODO: UNSURE ABOUT IT
-				//auto basePos = (v1_in + v2_in) * 0.5f;
-				Vec3f basePos;
-				if ((quadIdx_in % 2) != 0) {
-					// first quad: base edge is (vert1, vert2)
-					basePos = (v0_in + v1_in) * 0.5f;
+				const Vec3f *bottomLeft, *bottomRight, *topRight;
+				if (quadIdx_in % 2 == 0) {
+					// input ordering: (0,0), (1,0), (1,1)
+					bottomLeft = (Vec3f*)&lod0.mVert[face_in.x];
+					bottomRight = (Vec3f*)&lod0.mVert[face_in.y];
+					topRight = (Vec3f*)&lod0.mVert[face_in.z];
 				} else {
-					// second quad: base edge is (vert8, vert7)
-					// those correspond to v2,v1 in this tri ordering (6,7,8)
-					basePos = (v1_in + v2_in) * 0.5f;
+					// input ordering: (1,1), (1,0), (0,0)
+					topRight = (Vec3f*)&lod0.mVert[face_in.x];
+					bottomRight = (Vec3f*)&lod0.mVert[face_in.y];
+					bottomLeft = (Vec3f*)&lod0.mVert[face_in.z];
 				}
+				Vec3f origin = *bottomLeft;
+
+				// base position for the quad
+				Vec3f basePos = ((*bottomLeft) + (*bottomRight)) * 0.5f;
 				// compute direction vectors along face plane
-				// TODO: UNSURE ABOUT IT
 				// length of the vectors should be width/height of the quad.
-				Vec3f e2 = v0_in - v1_in; // "v" axis
-				Vec3f e1 = v2_in - v1_in; // "u" axis
-				// Orthonormal-ish data for TBN (you can keep e1/e2 scaled for positioning)
-				Vec3f n = e1.cross(e2); n.normalize();
-				// tangent = u-axis
-				Vec3f t = e1; t.normalize();
-				// Handedness: sign = +1 if (t x b)·n > 0; here we approximate with e2
-				Vec3f e2_norm = e2; e2_norm.normalize();
+				Vec3f u_axis = (*bottomRight) - (*bottomLeft);
+				Vec3f v_axis = (*topRight) - (*bottomRight);
+				if (quadIdx_in % 2 != 0) {
+					// for odd numbered quads, flip the u axis to maintain winding order
+					u_axis = -u_axis;
+					origin = *bottomRight;
+				}
 
 				for (uint32_t uvRectIdx = 0u; uvRectIdx < uvRects.size(); uvRectIdx++) {
 					// For each output quad, we need to compute the position and UVs.
 					auto &uvRect = uvRects[uvRectIdx];
 					// uvRect = (u0, v0, u1, v1) in normalized 0..1 space
 					float u0 = uvRect.x, v0 = uvRect.y, u1 = uvRect.z, v1 = uvRect.w;
-					// use (0..1) local coords around center:
-					Vec2f local0( (u0+u1)*0.5f, (v0+v1)*0.5f );
-					Vec2f localSize( u1 - u0, v1 - v0 );
-					float hw = localSize.x * 0.5f;
-					float hh = localSize.y * 0.5f;
-					// We'll create geometry in UV-space [0..1]
-					Vec2f q0(local0.x - hw, local0.y - hh);
-					Vec2f q1(local0.x + hw, local0.y - hh);
-					Vec2f q2(local0.x + hw, local0.y + hh);
-					Vec2f q3(local0.x - hw, local0.y + hh);
+					// corners in UV space (BL, BR, TR, TL)
+					float us[4] = { u0, u1, u1, u0 };
+					float vs[4] = { v0, v0, v1, v1 };
 
-					// compute positions in world space
-					twig_p[vOffset + 0] = v1_in + e1 * q0.x + e2 * q0.y;
-					twig_p[vOffset + 1] = v1_in + e1 * q1.x + e2 * q1.y;
-					twig_p[vOffset + 2] = v1_in + e1 * q2.x + e2 * q2.y;
-					twig_p[vOffset + 3] = v1_in + e1 * q3.x + e2 * q3.y;
-
-					// compute UVs in [0..1] space
-					twig_uv[vOffset + 0] = Vec2f(u0, v0);
-					twig_uv[vOffset + 1] = Vec2f(u1, v0);
-					twig_uv[vOffset + 2] = Vec2f(u1, v1);
-					twig_uv[vOffset + 3] = Vec2f(u0, v1);
-
-					// set the base position for the quad.
-					if (twig.basePos.get()) {
-						twig_bp[vOffset + 0] = basePos;
-						twig_bp[vOffset + 1] = basePos;
-						twig_bp[vOffset + 2] = basePos;
-						twig_bp[vOffset + 3] = basePos;
+					for (int c = 0; c < 4; ++c) {
+						// world position = origin + u_axis * uq + v_axis * vq
+						twig_p[vOffset + c] = origin + (u_axis * us[c]) + (v_axis * vs[c]);
+						// UVs unchanged (still 0..1)
+						twig_uv[vOffset + c] = Vec2f(us[c], vs[c]);
+						// basePos per-vertex
+						if (twig_bp) twig_bp[vOffset + c] = basePos;
 					}
 
 					// Finally, set the indices for the quad.
@@ -679,32 +663,24 @@ void ProcTree::updateTwigAttributes() {
 		lodLevels[1].d->vertexOffset = lodLevels[0].d->numVertices;
 		lodLevels[1].d->indexOffset = lodLevels[0].d->numIndices;
 
-		updateAttributes_(twig, lod0, lodLevels, nv_out);
+		updateAttributes_(twig, lod0, lodLevels, numVertices);
 	} else {
 		uint32_t nv = lod0.mVertCount;
 		uint32_t ni = lod0.mFaceCount * 3;
 		// use proc tree data directly
 #define PROC_DATA_PTR_(arg) reinterpret_cast<const unsigned char *>(&(arg))
-		auto indices = PROC_DATA_PTR_(lod0.mFace[0].x);
+		auto indices = (int32_t*)PROC_DATA_PTR_(lod0.mFace[0].x);
+		twig.indices = createIndexInput(ni, nv);
 		auto m_indices = twig.indices->clientData();
-		auto indexType = twig.indices->baseType();
 		for (uint32_t idx=0; idx < ni; idx++) {
-			setIndexValue(m_indices, indexType, idx, indices[idx]);
+			setIndexValue(m_indices, twig.indices->baseType(), idx, indices[idx]);
 		}
 		twig.pos->setVertexData(nv, PROC_DATA_PTR_(lod0.mVert[0].x));
 		twig.texco->setVertexData(nv, PROC_DATA_PTR_(lod0.mUV[0].u));
-		//twig.nor->setVertexData(nv, PROC_DATA_PTR_(lod0.mNormal[0].x));
 #undef PROC_DATA_PTR_
 
 		twig.nor->setUniformData(Vec3f::up());
-#if 1
 		twig.tan->setUniformData(Vec4f(Vec3f::right(), 1.0f));
-#else
-		twig.tan->setVertexData(nv);
-		auto v_tan = twig.tan->mapClientData<float>(BUFFER_GPU_WRITE);
-		computeTan(twig, lod0, 0, (Vec4f *) v_tan.w.data());
-		v_tan.unmap();
-#endif
 
 		if (twig.basePos.get()) {
 			twig.basePos->setVertexData(nv);

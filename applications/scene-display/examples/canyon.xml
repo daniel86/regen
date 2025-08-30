@@ -13,7 +13,7 @@
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
-            date="01-09-2014 06:00:00"
+            date="01-09-2014 10:00:00"
             time-scale="60.0">
         <camera id="main-camera"
                 mode="first-person"
