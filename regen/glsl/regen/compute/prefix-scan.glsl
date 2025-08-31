@@ -18,13 +18,14 @@ uniform uint histogramSize;
 buffer uint in_globalHistogram[];
 
 void main() {
-    uint globalID = gl_GlobalInvocationID.x;
-    if (globalID == 0) {
+    uint gid = gl_GlobalInvocationID.x;
+    if (gid == 0) {
+        uint ho = regen_computeLayer * NUM_SCAN_ELEMENTS; // 0..NUM_LAYERS-1
         uint sum = 0;
         for (uint i = 0; i < NUM_SCAN_ELEMENTS; ++i) {
-            uint h_i = in_globalHistogram[i];
-            in_globalHistogram[i] = sum;
-            sum += h_i;
+            uint s = in_globalHistogram[ho + i];
+            in_globalHistogram[ho + i] = sum;
+            sum += s;
         }
     }
 }
@@ -51,10 +52,11 @@ shared uint sh_offsets[NUM_SCAN_THREADS];
 
 void main() {
     uint tid = gl_LocalInvocationID.x;
+    uint globalIdx = regen_computeLayer * NUM_SCAN_ELEMENTS + tid;
 
     // Load input into shared memory
     if (tid < NUM_SCAN_ELEMENTS) {
-        sh_offsets[tid] = in_globalHistogram[tid];
+        sh_offsets[tid] = in_globalHistogram[globalIdx];
     } else {
         sh_offsets[tid] = 0; // pad with 0s if over histogram size
     }
@@ -88,7 +90,7 @@ void main() {
 
     // Write result back
     if (tid < NUM_SCAN_ELEMENTS) {
-        in_globalHistogram[tid] = sh_offsets[tid];
+        in_globalHistogram[globalIdx] = sh_offsets[tid];
     }
 }
 
@@ -104,6 +106,12 @@ void main() {
 #include regen.stages.compute.defines
 #include regen.compute.prefix-scan.NUM_SCAN_ELEMENTS
 
+#ifdef SCAN_DYNAMIC_HISTOGRAM_SIZE
+#define NUM_SCAN_BLOCKS numBlocks
+#else
+#define NUM_SCAN_BLOCKS SCAN_NUM_BLOCKS
+#endif
+
 // The global histogram, it reflects global offsets for each bucket and workgroup.
 buffer uint in_globalHistogram[];
 buffer uint in_blockOffsets[];
@@ -112,9 +120,10 @@ shared uint sh_temp[CS_LOCAL_SIZE_X];
 void main() {
     uint tid = gl_LocalInvocationID.x;
     uint gid = gl_GlobalInvocationID.x;
+    uint globalIdx = regen_computeLayer * NUM_SCAN_ELEMENTS + gid; // 0..NUM_LAYERS-1
 
     // Load to shared memory
-    sh_temp[tid] = (gid < NUM_SCAN_ELEMENTS) ? in_globalHistogram[gid] : 0;
+    sh_temp[tid] = (gid < NUM_SCAN_ELEMENTS) ? in_globalHistogram[globalIdx] : 0;
     barrier();
 
     // Upsweep (reduce)
@@ -127,8 +136,8 @@ void main() {
 
     if (tid == 0) {
         // Save total sum
-        uint blockID = gl_WorkGroupID.x;
-        in_blockOffsets[blockID] = sh_temp[CS_LOCAL_SIZE_X - 1];
+        uint blockIdx = regen_computeLayer * NUM_SCAN_BLOCKS + gl_WorkGroupID.x;
+        in_blockOffsets[blockIdx] = sh_temp[CS_LOCAL_SIZE_X - 1];
         sh_temp[CS_LOCAL_SIZE_X - 1] = 0;
     }
     barrier();
@@ -146,7 +155,7 @@ void main() {
 
     // Store back result
     if (gid < NUM_SCAN_ELEMENTS)
-        in_globalHistogram[gid] = sh_temp[tid];
+        in_globalHistogram[globalIdx] = sh_temp[tid];
 }
 
 -- global.cs
@@ -168,8 +177,9 @@ shared uint sh_temp[CS_LOCAL_SIZE_X];
 void main() {
     uint tid = gl_LocalInvocationID.x;
     if (tid >= NUM_SCAN_BLOCKS) return;
+    uint blockIdx = regen_computeLayer * NUM_SCAN_BLOCKS + tid;
 
-    sh_temp[tid] = in_blockOffsets[tid];
+    sh_temp[tid] = in_blockOffsets[blockIdx];
     barrier();
 
     for (uint offset = 1; offset < CS_LOCAL_SIZE_X; offset <<= 1) {
@@ -193,7 +203,7 @@ void main() {
         barrier();
     }
 
-    in_blockOffsets[tid] = sh_temp[tid];
+    in_blockOffsets[blockIdx] = sh_temp[tid];
 }
 
 -- distribute.cs
@@ -208,7 +218,9 @@ buffer uint in_blockOffsets[];
 
 void main() {
     uint gid = gl_GlobalInvocationID.x;
-    uint blockID = gl_WorkGroupID.x;
+    uint bid = gl_WorkGroupID.x;
     if (gid >= NUM_SCAN_ELEMENTS) return;
-    in_globalHistogram[gid] += in_blockOffsets[blockID];
+    uint bo = regen_computeLayer * SCAN_NUM_BLOCKS;
+    uint ho = regen_computeLayer * NUM_SCAN_ELEMENTS;
+    in_globalHistogram[ho + gid] += in_blockOffsets[bo + bid];
 }

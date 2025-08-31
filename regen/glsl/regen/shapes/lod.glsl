@@ -33,10 +33,13 @@ struct DrawCommand {
 #include regen.shapes.lod.DrawCommand
 #include regen.stages.compute.defines
 #include regen.shapes.lod.defines
+#include regen.states.camera.defines
 
 // - [write] distance sort keys, computed by culling pass, per instance
+// - size = NUM_LAYERS * LOD_NUM_INSTANCES
 buffer uint in_keys[];
 // - [write] One per LOD group: how many valid instances passed culling, and the base instance offset
+// - size = NUM_LAYERS * MAX_NUM_LOD_GROUPS
 buffer DrawCommand in_drawParams[];
 // - number of visible instances in each LOD group (per workgroup)
 shared uint sh_lodGroupSize[MAX_NUM_LOD_GROUPS];
@@ -63,12 +66,8 @@ int getLODGroup(float squaredDistance) {
 #include regen.shapes.culling.isShapeVisible
 #endif
 
-float countLOD(vec3 pos) {
-#ifdef IS_ARRAY_cameraPosition
-    vec3 diff = pos - in_cameraPosition[0].xyz;
-#else
-    vec3 diff = pos - in_cameraPosition.xyz;
-#endif
+float countLOD(uint layer, vec3 pos) {
+    vec3 diff = pos - REGEN_CAM_POS_(layer);
     float depthSquared = dot(diff, diff);
 #ifdef USE_REVERSE_SORT
     // Reverse sort: smaller depth = higher LOD.
@@ -80,10 +79,18 @@ float countLOD(vec3 pos) {
     return depthSquared;
 }
 
+uint getDrawBin(uint lod, uint layer) {
+    return lod * NUM_LAYERS + layer;
+}
+uint getGlobalOffset(uint instance, uint layer) {
+    return layer * LOD_NUM_INSTANCES + instance;
+}
+
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
     uint localID  = gl_LocalInvocationID.x;
     uint groupID  = gl_WorkGroupID.x;
+    uint layer = regen_computeLayer; // 0..NUM_LAYERS-1
     float depth = 0.0;
 #ifdef USE_CULLING
     bool l_visible = false;
@@ -98,9 +105,17 @@ void main() {
     if (globalID < LOD_NUM_INSTANCES) {
         vec3 pos = readPosition(globalID);
 #ifdef USE_CULLING
-        l_visible = isShapeVisible(globalID, pos);
+        l_visible = isShapeVisible(layer, globalID, pos);
         if (l_visible) {
-            depth = countLOD(pos);
+            depth = countLOD(layer, pos);
+        } else {
+            // NOTE: For culled instances we use FLT_MAX as depth value for the sort key,
+            //       effectively putting them at the end of the list.
+    #ifdef USE_REVERSE_SORT
+            depth = 0.0f;
+    #else
+            depth = FLT_MAX;
+    #endif
         }
 #else
         depth = countLOD(pos);
@@ -110,33 +125,28 @@ void main() {
 
     // Write results to global memory
     if (localID < MAX_NUM_LOD_GROUPS) {
-        atomicAdd(INSTANCE_COUNT(in_drawParams[localID]), sh_lodGroupSize[localID]);
-        // also compute the offset for each LOD group.
+        uint baseInstanceIdx;
+        uint drawBin = getDrawBin(localID, layer);
+        atomicAdd(INSTANCE_COUNT(in_drawParams[drawBin]), sh_lodGroupSize[localID]);
+
+        // also compute the offset for each higher LOD.
         // Note: this could be done via prefix scan in a separate pass, but it might not be worth it
         //       because we only have a few LOD groups (4 usually).
-        for (uint i = localID + 1; i < MAX_NUM_LOD_GROUPS; ++i) {
-            uint baseInstanceIdx = 5u - in_drawParams[i].drawMode;
-            atomicAdd(in_drawParams[i].data[baseInstanceIdx], sh_lodGroupSize[localID]);
+        for (uint higherLOD = localID + 1; higherLOD < MAX_NUM_LOD_GROUPS; ++higherLOD) {
+            drawBin = getDrawBin(higherLOD, layer);
+            baseInstanceIdx = 5u - in_drawParams[drawBin].drawMode;
+            atomicAdd(in_drawParams[drawBin].data[baseInstanceIdx], sh_lodGroupSize[localID]);
         }
     }
     if (globalID < LOD_NUM_INSTANCES) {
-        // NOTE: For culled instances we use FLT_MAX as depth value for the sort key,
-        //       effectively putting them at the end of the list.
         // TODO: Consider doing a compaction pass to remove culled instances, then use
         //       the compacted buffer as input for sort. But currently num instances is baked into shader,
         //       would need to be replaced by uniform. Compaction would be a kind of rough sort, so we
         //       could use existing global memory for doing this trivially (i.e. adding instance IDs to the
         //       output buffer only if they are visible, then mapping the count to CPU memory, etc.)
-#ifdef USE_CULLING
-    #ifdef USE_REVERSE_SORT
-        in_keys[globalID] = (l_visible ? floatBitsToUint(depth) : floatBitsToUint(0.0f));
-    #else
-        in_keys[globalID] = (l_visible ? floatBitsToUint(depth) : floatBitsToUint(FLT_MAX));
-    #endif
-#else // No culling, so we can use the depth directly.
-        in_keys[globalID] = floatBitsToUint(depth);
-#endif
-        in_instanceIDMap[globalID] = globalID;
+        uint globalWriteIdx = getGlobalOffset(globalID, layer);
+        in_keys[globalWriteIdx] = floatBitsToUint(depth);
+        in_instanceIDMap[globalWriteIdx] = globalID;
     }
 }
 
@@ -152,29 +162,6 @@ void main() {
 -- copy-indirect.cs
 #input regen.shapes.lod.DrawCommand
 #include regen.stages.compute.defines
-
-uint getPartLevel(uint lodLevel, uint numPartLevels, uint numBaseLevels) {
-    // Check conditions
-    bool sameLevels = (numPartLevels == numBaseLevels);
-    bool lodInRange = (lodLevel < numBaseLevels);
-    bool case1 = sameLevels && lodInRange;
-    bool case2 = (numPartLevels == 1u);
-    bool case3 = (numPartLevels < numBaseLevels) || (lodLevel >= numPartLevels);
-
-    // Compute result for 2-level parts
-    uint res2 = (lodLevel < 2u) ? 0u : 1u;
-    // Compute result for 3-level parts
-    uint res3 = (lodLevel == 0u) ? 0u : ((lodLevel == 3u) ? 2u : 1u);
-
-    // Compose final result using ternaries and mix
-    uint result = case1 ? lodLevel :
-                  case2 ? 0u :
-                  case3 ? ((numPartLevels == 2u) ? res2 :
-                           (numPartLevels == 3u) ? res3 : lodLevel)
-                        : lodLevel;
-
-    return result;
-}
 
 void resetDrawParams(inout DrawCommand drawParams[4]) {
 #for LOD_IDX to 4
@@ -193,16 +180,11 @@ void computeBaseInstance(inout DrawCommand drawParams[4]) {
 void main() {
     if (globalID != 0) return;
 
-    uint partLevel = 0u;
 #for PART_IDX to ${NUM_ATTACHED_PARTS}
     resetDrawParams(in_drawParams${PART_IDX});
     // compute number of visible instances + baseInstance for each LOD level
     #for LOD_IDX to ${NUM_BASE_LODS}
-    partLevel = getPartLevel(
-        ${LOD_IDX},
-        ${NUM_PART_LOD_${PART_IDX}},
-        ${NUM_BASE_LODS});
-    INSTANCE_COUNT(in_drawParams${PART_IDX}[partLevel]) +=
+    INSTANCE_COUNT(in_drawParams${PART_IDX}[${LOD_IDX}]) +=
         INSTANCE_COUNT(in_drawParamsBase[${LOD_IDX}]);
     #endfor // LOD_IDX
     computeBaseInstance(in_drawParams${PART_IDX});

@@ -17,8 +17,9 @@ uint radixBucket(uint key) {
 -- radix.histogram
 #ifndef RADIX_HISTOGRAM_included
 #define2 RADIX_HISTOGRAM_included
-uint radixHistogramIndex(uint bucket, uint workGroup) {
-    return bucket * CS_NUM_WORK_GROUPS_X + workGroup;
+uint radixHistogramIndex(uint layer, uint bucket, uint workGroup) {
+    return layer * HISTOGRAM_SIZE +
+        bucket * CS_NUM_WORK_GROUPS_X + workGroup;
 }
 #endif
 
@@ -34,17 +35,19 @@ uint radixHistogramIndex(uint bucket, uint workGroup) {
 #include regen.stages.compute.defines
 
 // - [write] the global histogram, output will reflect the number of elements in each bucket and workgroup.
-//           size: NUM_RADIX_BUCKETS * RADIX_NUM_WORK_GROUPS
+//           size: NUM_LAYERS * HISTOGRAM_SIZE
 buffer uint in_globalHistogram[];
-// - [read] the sort keys, computed by culling pass, one per instance.
-buffer uint in_keys[NUM_SORT_KEYS];
+// - [read] the sort keys, computed by culling pass, one per instance and layer.
+//           size: NUM_LAYERS * NUM_SORT_KEYS
+buffer uint in_keys[];
 // - [read] The value input buffer, either [0...(NUM_SORT_KEYS-1)] or output from the previous pass.
+//           size: NUM_LAYERS * NUM_SORT_KEYS
 #ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
-buffer uint in_values[NUM_SORT_KEYS];
+buffer uint in_values[];
 uniform uint in_readOffset;
 #else
 layout(std430) readonly buffer ValueBuffer {
-    uint in_values[NUM_SORT_KEYS];
+    uint in_values[];
 };
 #endif
 // The local histogram. Counts bucket sizes in each workgroup.
@@ -59,33 +62,40 @@ void main() {
     uint globalID = gl_GlobalInvocationID.x;
     uint localID = gl_LocalInvocationID.x;
     uint groupID = gl_WorkGroupID.x;
+    uint layer = regen_computeLayer; // 0..NUM_LAYERS-1
+    uint idx;
+
     // Initialize memory
     if (localID < NUM_RADIX_BUCKETS) {
         // Note: here we use localID as bucket index
         sh_bucketSize[localID] = 0;
         // also clear the global histogram. note that each work groups clears its own slots.
         // and should not interfere with other work group slots.
-        in_globalHistogram[radixHistogramIndex(localID, groupID)] = 0;
+        idx = radixHistogramIndex(layer, localID, groupID);
+        in_globalHistogram[idx] = 0;
     }
     barrier();
+
     // Compute local histogram
     if (globalID < NUM_SORT_KEYS) {
+        uint layerOffset = layer * NUM_SORT_KEYS;
 #ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
-        uint value = in_values[globalID + in_readOffset];
+        uint value = in_values[layerOffset + globalID + in_readOffset];
 #else
-        uint value = in_values[globalID];
+        uint value = in_values[layerOffset + globalID];
 #endif
-        uint key = in_keys[value];
+        uint key = in_keys[layerOffset + value];
         // Atomically increment bin count
         atomicAdd(sh_bucketSize[radixBucket(key)], 1);
     }
     barrier();
+
     // Write histogram data to global memory. Only write into slots that belong to this workgroup.
     if (localID < NUM_RADIX_BUCKETS) {
         // Note: here we use localID as bucket index
-        uint h_i = radixHistogramIndex(localID, groupID);
+        idx = radixHistogramIndex(layer, localID, groupID);
         // Atomically accumulate across all workgroups
-        atomicAdd(in_globalHistogram[h_i], sh_bucketSize[localID]);
+        atomicAdd(in_globalHistogram[idx], sh_bucketSize[localID]);
     }
 }
 
@@ -99,19 +109,24 @@ void main() {
 // The global histogram, it reflects global offsets for each bucket and workgroup.
 buffer uint in_globalHistogram[];
 // The sort keys, computed by culling pass, one per instance.
-buffer uint in_keys[NUM_SORT_KEYS];
+//         size: NUM_LAYERS * NUM_SORT_KEYS
+buffer uint in_keys[];
 #ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
-buffer uint in_values[NUM_SORT_KEYS];
+// The value input buffer, either [0...(LOD_NUM_INSTANCES-1)] or output from the previous pass.
+//          size: NUM_LAYERS * NUM_SORT_KEYS
+buffer uint in_values[];
 uniform uint in_readOffset;
 uniform uint in_writeOffset;
 #else
 // The value input buffer, either [0...(LOD_NUM_INSTANCES-1)] or output from the previous pass.
+//          size: NUM_LAYERS * NUM_SORT_KEYS
 layout(std430) readonly buffer ReadBuffer {
-    uint in_lastValues[NUM_SORT_KEYS];
+    uint in_lastValues[];
 };
 // The output buffer, where the sorted values will be written to.
+//          size: NUM_LAYERS * NUM_SORT_KEYS
 layout(std430) writeonly buffer WriteBuffer {
-    uint in_nextValues[NUM_SORT_KEYS];
+    uint in_nextValues[];
 };
 #endif
 // The bit offset of the current radix pass.
@@ -122,7 +137,9 @@ shared uint sh_scan[CS_LOCAL_SIZE_X];
 #include regen.compute.sort.radix.bucket
 #include regen.compute.sort.radix.histogram
 
-void scatterBucket(uint b, uint t_value, uint t_bucket) {
+void scatterBucket(
+        uint layer, uint layerOffset,
+        uint b, uint t_value, uint t_bucket) {
     uint localID = gl_LocalInvocationID.x;
     uint groupID = gl_WorkGroupID.x;
 
@@ -140,12 +157,12 @@ void scatterBucket(uint b, uint t_value, uint t_bucket) {
     // - Scatter if in this bucket
     if (t_bucket == b) {
         uint localOffset = sh_scan[localID] - 1;
-        uint histogramIndex = radixHistogramIndex(b, groupID);
-        uint scatterIndex = in_globalHistogram[histogramIndex] + localOffset;
+        uint idx = radixHistogramIndex(layer, b, groupID);
+        idx = layerOffset + in_globalHistogram[idx] + localOffset;
 #ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
-        in_values[scatterIndex + in_writeOffset] = t_value;
+        in_values[idx + in_writeOffset] = t_value;
 #else
-        in_nextValues[scatterIndex] = t_value;
+        in_nextValues[idx] = t_value;
 #endif
     }
 }
@@ -153,19 +170,22 @@ void scatterBucket(uint b, uint t_value, uint t_bucket) {
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
     if (globalID >= NUM_SORT_KEYS) return;
+    uint layer = regen_computeLayer; // 0..NUM_LAYERS-1
+    uint layerOffset = layer * NUM_SORT_KEYS;
 
     // Read key/value input
 #ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
-    uint value = in_values[globalID + in_readOffset];
+    uint value = in_values[layerOffset + globalID + in_readOffset];
 #else
-    uint value = in_lastValues[globalID];
+    uint value = in_lastValues[layerOffset + globalID];
 #endif
-    uint key = in_keys[value];
+    uint key = in_keys[layerOffset + value];
     // Compute the bucket for this thread
     uint bucket = radixBucket(key);
+
     // Process each bucket individually
 #for BUCKET_I to NUM_RADIX_BUCKETS
-    scatterBucket(${BUCKET_I}, value, bucket);
+    scatterBucket(layer, layerOffset, ${BUCKET_I}, value, bucket);
     barrier();
 #endfor
 }

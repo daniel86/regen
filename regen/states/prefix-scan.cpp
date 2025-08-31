@@ -3,8 +3,9 @@
 
 using namespace regen;
 
-PrefixScan::PrefixScan(const ref_ptr<SSBO> &histogram)
+PrefixScan::PrefixScan(const ref_ptr<SSBO> &histogram, uint32_t numLayers)
 		: State(),
+		  numLayers_(numLayers),
 		  globalHistogramBuffer_(histogram) {
 }
 
@@ -37,7 +38,7 @@ PrefixScan::Mode PrefixScan::getScanMode(uint32_t numDesiredInvocations) {
 void PrefixScan::createSerialPass() {
 	StateConfigurer shaderCfg;
 	computeGlobalOffsets_s_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.serial");
-	computeGlobalOffsets_s_->computeState()->setNumWorkUnits(1, 1, 1);
+	computeGlobalOffsets_s_->computeState()->setNumWorkUnits(1, numLayers_, 1);
 	computeGlobalOffsets_s_->computeState()->setGroupSize(1, 1, 1);
 	computeGlobalOffsets_s_->setInput(globalHistogramBuffer_);
 	if (hasHistogramConstantSize_) {
@@ -61,7 +62,7 @@ void PrefixScan::updateSerialPass() {
 
 void PrefixScan::createParallelPass(uint32_t parallelScanInvocations) {
 	computeGlobalOffsets_p_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.parallel");
-	computeGlobalOffsets_p_->computeState()->setNumWorkUnits(parallelScanInvocations, 1, 1);
+	computeGlobalOffsets_p_->computeState()->setNumWorkUnits(parallelScanInvocations, numLayers_, 1);
 	computeGlobalOffsets_p_->computeState()->setGroupSize(parallelScanInvocations, 1, 1);
 	computeGlobalOffsets_p_->setInput(globalHistogramBuffer_);
 	computeGlobalOffsets_p_cfg_.addState(computeGlobalOffsets_p_.get());
@@ -88,7 +89,7 @@ void PrefixScan::updateParallelPass(uint32_t parallelScanInvocations) {
 	if (currentNumInvocations != parallelScanInvocations) {
 		// The number of required invocations changed, this means we need to recompile the shader
 		// as the shared memory uses an array of size parallelScanInvocations.
-		computeGlobalOffsets_p_->computeState()->setNumWorkUnits(parallelScanInvocations, 1, 1);
+		computeGlobalOffsets_p_->computeState()->setNumWorkUnits(parallelScanInvocations, numLayers_, 1);
 		computeGlobalOffsets_p_->computeState()->setGroupSize(parallelScanInvocations, 1, 1);
 		computeGlobalOffsets_p_cfg_.define("NUM_SCAN_THREADS", REGEN_STRING(parallelScanInvocations));
 		computeGlobalOffsets_p_cfg_.define("CS_LOCAL_SIZE_X", REGEN_STRING(parallelScanInvocations));
@@ -110,14 +111,15 @@ void PrefixScan::createHierarchicalPass() {
 			"BlockOffsetsBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
-		blockOffsetsBuffer_->addStagedInput(ref_ptr<ShaderInput1ui>::alloc("blockOffsets", numBlocks));
+		blockOffsetsBuffer_->addStagedInput(ref_ptr<ShaderInput1ui>::alloc(
+			"blockOffsets", numBlocks * numLayers_));
 		blockOffsetsBuffer_->stagedInputs()[0].in_->set_forceArray(true);
 		blockOffsetsBuffer_->update();
 	}
 	{ // pass 1: local offsets
 		computeLocalOffsets_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.local");
 		computeLocalOffsets_->computeState()->setGroupSize(scanGroupSize_, 1, 1);
-		computeLocalOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, 1, 1);
+		computeLocalOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, numLayers_, 1);
 		computeLocalOffsets_->setInput(globalHistogramBuffer_);
 		computeLocalOffsets_->setInput(blockOffsetsBuffer_);
 
@@ -136,7 +138,7 @@ void PrefixScan::createHierarchicalPass() {
 	{ // pass 2: global offsets
 		computeGlobalOffsets_h_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.global");
 		computeGlobalOffsets_h_->computeState()->setGroupSize(numBlocks2, 1, 1);
-		computeGlobalOffsets_h_->computeState()->setNumWorkUnits(numBlocks2, 1, 1);
+		computeGlobalOffsets_h_->computeState()->setNumWorkUnits(numBlocks2, numLayers_, 1);
 		computeGlobalOffsets_h_->setInput(blockOffsetsBuffer_);
 		if (hasHistogramConstantSize_) {
 			computeGlobalOffsets_h_cfg_.define("SCAN_NUM_BLOCKS", REGEN_STRING(numBlocks));
@@ -152,7 +154,7 @@ void PrefixScan::createHierarchicalPass() {
 	{ // pass 3: distribute offsets
 		distributeOffsets_ = ref_ptr<ComputePass>::alloc("regen.compute.prefix-scan.distribute");
 		distributeOffsets_->computeState()->setGroupSize(scanGroupSize_, 1, 1);
-		distributeOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, 1, 1);
+		distributeOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, numLayers_, 1);
 		distributeOffsets_->setInput(globalHistogramBuffer_);
 		distributeOffsets_->setInput(blockOffsetsBuffer_);
 
@@ -184,25 +186,25 @@ void PrefixScan::updateHierarchicalPass() {
 	uint32_t numBlocks = ceil(static_cast<float>(currentHistogramSize_) / static_cast<float>(scanGroupSize_));
 	// need to enforce power of two below
 	auto numBlocks2 = math::nextPow2(numBlocks);
-	{ // global memory for the offsets -> resize to numBlocks
+	{ // global memory for the offsets -> resize to numBlocks * numLayers_
 		auto &offsets = blockOffsetsBuffer_->stagedInputs()[0].in_;
 		auto oldNumBlocks = offsets->numArrayElements();
-		if (oldNumBlocks != numBlocks) {
-			offsets->set_numArrayElements(numBlocks);
+		if (oldNumBlocks != numBlocks * numLayers_) {
+			offsets->set_numArrayElements(numBlocks * numLayers_);
 			blockOffsetsBuffer_->update();
 		}
 	}
 	{ // pass 1: local offsets -> change numWorkUnits
-		computeLocalOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, 1, 1);
+		computeLocalOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, numLayers_, 1);
 	}
 	{ // pass 3: distribute offsets
-		distributeOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, 1, 1);
+		distributeOffsets_->computeState()->setNumWorkUnits(currentHistogramSize_, numLayers_, 1);
 	}
 	{ // pass 2: global offsets
 		auto oldNumBlocks2 = computeGlobalOffsets_h_->computeState()->workGroupSize().x;
 		if (oldNumBlocks2 != numBlocks2) {
 			computeGlobalOffsets_h_->computeState()->setGroupSize(numBlocks2, 1, 1);
-			computeGlobalOffsets_h_->computeState()->setNumWorkUnits(numBlocks2, 1, 1);
+			computeGlobalOffsets_h_->computeState()->setNumWorkUnits(numBlocks2, numLayers_, 1);
 			computeGlobalOffsets_h_cfg_.define("CS_LOCAL_SIZE_X", REGEN_STRING(numBlocks2));
 			computeGlobalOffsets_h_->createShader(computeGlobalOffsets_h_cfg_.cfg());
 			REGEN_DEBUG("PrefixScan: Number of global scan invocations changed from "
@@ -213,7 +215,7 @@ void PrefixScan::updateHierarchicalPass() {
 }
 
 void PrefixScan::createResources() {
-	currentHistogramSize_ = globalHistogramBuffer_->allocatedSize() / sizeof(uint32_t);
+	currentHistogramSize_ = globalHistogramBuffer_->allocatedSize() / (sizeof(uint32_t) * numLayers_);
 	// compute offsets by scanning. We prefer here to do a single-pass parallel scan, if possible.
 	// But we need to check if the histogram fits into shared memory and if the number of
 	// work group invocations is not too high. Else we need to do a hierarchical scan.
@@ -316,7 +318,7 @@ void PrefixScan::scan(RenderState *rs) {
 	if (hasHistogramConstantSize_) {
 		scan1(rs);
 	} else {
-		auto newHistogramSize = globalHistogramBuffer_->allocatedSize() / sizeof(uint32_t);
+		auto newHistogramSize = globalHistogramBuffer_->allocatedSize() / (sizeof(uint32_t) * numLayers_);
 		auto hasHistogramSizeChanged = (newHistogramSize != currentHistogramSize_);
 		if (hasHistogramSizeChanged) {
 			updateHistogramSize(newHistogramSize);

@@ -81,10 +81,13 @@ void LODState::initLODState() {
 		if (shapeIndex_->shape()->mesh().get()) {
 			numLODs_ = std::max(shapeIndex_->shape()->mesh()->numLODs(), numLODs_);
 		}
+	}
+	if (cullShape_.get()) {
 		for (auto &part : cullShape_->parts()) {
 			numLODs_ = std::max(part->numLODs(), numLODs_);
 		}
-	} else if (mesh_.get()) {
+	}
+	if (mesh_.get()) {
 		numLODs_ = std::max(mesh_->numLODs(), numLODs_);
 	}
 
@@ -98,7 +101,7 @@ void LODState::initLODState() {
 		createIndirectDrawBuffers();
 	}
 
-	if (cullShape_->isIndexShape()) {
+	if (useCPUPath()) {
 		auto index = cullShape_->spatialIndex();
 		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
 		if (!shapeIndex_.get()) {
@@ -297,7 +300,7 @@ void LODState::resetVisibility() {
 void LODState::enable(RenderState *rs) {
 	State::enable(rs);
 
-	if (!cullShape_->isIndexShape()) {
+	if (useGPUPath()) {
 #ifdef LOD_DEBUG_TIME
 		static ElapsedTimeDebugger elapsedTime("GPU LOD", 300);
 		elapsedTime.beginFrame();
@@ -483,16 +486,10 @@ void LODState::traverseCPU() {
 ///////////////////////
 
 void LODState::createComputeShader() {
-	// TODO: support multi-layer rendering
-	//    - create draw commands for each layer
-	//    - support per-layer culling, and writing to per-layer instance buffers
-	//    - I guess run radix for each layer separately, or maybe let the same stage of different layers
-	//      run in parallel, and only barrier between the stages.
-
 	{	// Create a static indirect draw buffer, which is used for clearing the
 		// first indirect draw buffer each frame.
 		auto clearData = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-					"DrawCommand", "drawParams", 4);
+					"DrawCommand", "drawParams", numLODs_ * camera_->numLayer());
 		clearData->setUniformUntyped((byte*)indirectDrawData_[0].clear.data());
 		clearIndirectBuffer_ = ref_ptr<SSBO>::alloc(
 			"Clear_IndirectDrawBuffer",
@@ -503,7 +500,7 @@ void LODState::createComputeShader() {
 	}
 
 	{ // radix sort
-		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances());
+		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances(), camera_->numLayer());
 		radixSort_->setOutputBuffer(instanceBuffer_, false);
 		radixSort_->setRadixBits(RADIX_BITS_PER_PASS);
 		radixSort_->setSortGroupSize(RADIX_GROUP_SIZE);
@@ -519,8 +516,12 @@ void LODState::createComputeShader() {
 		}
 		cullPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.cull");
 		cullPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(cullShape_->numInstances()));
-		cullPass_->computeState()->shaderDefine("NUM_CAMERA_LAYERS", REGEN_STRING(camera_->frustum().size()));
-		cullPass_->computeState()->setNumWorkUnits(static_cast<int>(cullShape_->numInstances()), 1, 1);
+		cullPass_->computeState()->shaderDefine("NUM_LAYERS", REGEN_STRING(camera_->frustum().size()));
+		// X-direction: one work unit per instance
+		// Y-direction: one work unit per layer
+		cullPass_->computeState()->setNumWorkUnits(
+			static_cast<int>(cullShape_->numInstances()),
+			static_cast<int>(camera_->frustum().size()), 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
 		cullPass_->setInput(mesh_->lodThresholds());
 		cullPass_->setInput(camera_->getFrustumBuffer());
@@ -563,10 +564,12 @@ void LODState::createComputeShader() {
 		copyIndirect_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.copy-indirect");
 		copyIndirect_->computeState()->setNumWorkUnits(1, 1, 1);
 		copyIndirect_->computeState()->setGroupSize(1, 1, 1);
-		for (uint32_t indirectIdx = 0; indirectIdx < indirectDrawBuffers_.size(); ++indirectIdx) {
+		copyIndirect_->setInput(indirectDrawBuffers_[0],
+					"IndirectDrawBuffer0", "Base");
+		for (uint32_t indirectIdx = 1; indirectIdx < indirectDrawBuffers_.size(); ++indirectIdx) {
 			copyIndirect_->setInput(indirectDrawBuffers_[indirectIdx],
 					REGEN_STRING("IndirectDrawBuffer" << indirectIdx),
-					REGEN_STRING(indirectIdx));
+					REGEN_STRING(indirectIdx-1));
 		}
 		StateConfigurer shaderCfg;
 		shaderCfg.addState(copyIndirect_.get());

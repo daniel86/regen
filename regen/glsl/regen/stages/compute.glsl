@@ -5,6 +5,7 @@
 #version 450
 #define FLT_MAX 3.40282e+38
 #define FLT_MIN -3.40282e+38
+#define regen_computeLayer gl_WorkGroupID.y
 layout(
     local_size_x = ${CS_LOCAL_SIZE_X},
     local_size_y = ${CS_LOCAL_SIZE_Y},

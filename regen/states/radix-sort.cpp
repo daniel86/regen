@@ -9,9 +9,10 @@
 
 using namespace regen;
 
-RadixSort::RadixSort(uint32_t numKeys)
+RadixSort::RadixSort(uint32_t numKeys, uint32_t numLayers)
 		: State(),
-		  numKeys_(numKeys) {
+		  numKeys_(numKeys),
+		  numLayers_(numLayers) {
 }
 
 void RadixSort::setOutputBuffer(const ref_ptr<SSBO> &values, bool isDoubleBuffered) {
@@ -59,9 +60,13 @@ void RadixSort::createResources() {
 	{
 		radixHistogramPass_ = ref_ptr<ComputePass>::alloc("regen.compute.sort.radix.histogram");
 		radixHistogramPass_->computeState()->shaderDefine("NUM_SORT_KEYS", REGEN_STRING(numKeys_));
-		radixHistogramPass_->computeState()->setNumWorkUnits(static_cast<int>(numKeys_), 1, 1);
+		radixHistogramPass_->computeState()->setNumWorkUnits(
+				static_cast<int>(numKeys_),
+				static_cast<int>(numLayers_),
+				1);
 		radixHistogramPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
 	}
+	const uint32_t numKeysTotal = numKeys_ * numLayers_;
 	const uint32_t numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	REGEN_INFO("GPU radix sort with " << numKeys_ << " keys, "
 			<< numWorkGroups << " work groups, radix bits: " << radixBits_
@@ -72,13 +77,13 @@ void RadixSort::createResources() {
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
-	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeys_);
+	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeysTotal);
 	keys->set_forceArray(true);
 	keyBuffer_->addStagedInput(keys);
 	keyBuffer_->update();
 
 	if (useSingleValueBuffer_) {
-		auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_ * 2);
+		auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeysTotal * 2);
 		values1->set_forceArray(true);
 		if (userValueBuffer_.get()) {
 			valueBuffer_[0] = ref_ptr<SSBO>::alloc(*userValueBuffer_.get(), "ValueBuffer");
@@ -101,29 +106,32 @@ void RadixSort::createResources() {
 		} else {
 			valueBuffer_[0] = ref_ptr<SSBO>::alloc("ValueBuffer1",
 					BufferUpdateFlags::FULL_PER_FRAME, SSBO::RESTRICT);
-			auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_);
+			auto values1 = ref_ptr<ShaderInput1ui>::alloc("values", numKeysTotal);
 			values1->set_forceArray(true);
 			valueBuffer_[0]->addStagedInput(values1);
 			valueBuffer_[0]->update();
 		}
 		valueBuffer_[1] = ref_ptr<SSBO>::alloc("ValueBuffer2",
 				BufferUpdateFlags::FULL_PER_FRAME, SSBO::RESTRICT);
-		auto values2 = ref_ptr<ShaderInput1ui>::alloc("values", numKeys_);
+		auto values2 = ref_ptr<ShaderInput1ui>::alloc("values", numKeysTotal);
 		values2->set_forceArray(true);
 		valueBuffer_[1]->addStagedInput(values2);
 		valueBuffer_[1]->update();
 	}
 
+	const uint32_t histogramSize = numBuckets_ * numWorkGroups;
 	globalHistogramBuffer_ = ref_ptr<SSBO>::alloc("HistogramBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
 	globalHistogramBuffer_->addStagedInput(ref_ptr<ShaderInput1ui>::alloc(
-			"globalHistogram", numBuckets_ * numWorkGroups));
+			"globalHistogram", histogramSize * numLayers_));
 	globalHistogramBuffer_->update();
 
 	{ // radix histogram
 		radixHistogramPass_->setInput(globalHistogramBuffer_);
 		radixHistogramPass_->setInput(keyBuffer_);
+		radixHistogramPass_->computeState()->shaderDefine("NUM_LAYERS", REGEN_STRING(numLayers_));
+		radixHistogramPass_->computeState()->shaderDefine("HISTOGRAM_SIZE", REGEN_STRING(histogramSize));
 		StateConfigurer shaderCfg;
 		shaderCfg.define("NUM_RADIX_BUCKETS", REGEN_STRING(numBuckets_));
 		shaderCfg.define("ONE_LESS_NUM_RADIX_BUCKETS", REGEN_STRING(numBuckets_ - 1));
@@ -148,7 +156,7 @@ void RadixSort::createResources() {
 		}
 	}
 	{
-		auto prefixScan = ref_ptr<PrefixScan>::alloc(globalHistogramBuffer_);
+		auto prefixScan = ref_ptr<PrefixScan>::alloc(globalHistogramBuffer_, numLayers_);
 		prefixScan->setScanGroupSize(scanGroupSize_);
 		// assuming the number of elements to sort does not change, so does the histogram size
 		prefixScan->setHasHistogramConstantSize(true);
@@ -159,7 +167,12 @@ void RadixSort::createResources() {
 	{ // radix sort
 		radixScatterPass_ = ref_ptr<ComputePass>::alloc("regen.compute.sort.radix.scatter");
 		radixScatterPass_->computeState()->shaderDefine("NUM_SORT_KEYS", REGEN_STRING(numKeys_));
-		radixScatterPass_->computeState()->setNumWorkUnits(static_cast<int>(numKeys_), 1, 1);
+		radixScatterPass_->computeState()->shaderDefine("NUM_LAYERS", REGEN_STRING(numLayers_));
+		radixScatterPass_->computeState()->shaderDefine("HISTOGRAM_SIZE", REGEN_STRING(histogramSize));
+		radixScatterPass_->computeState()->setNumWorkUnits(
+				static_cast<int>(numKeys_),
+				static_cast<int>(numLayers_),
+				1);
 		radixScatterPass_->computeState()->setGroupSize(sortGroupSize_, 1, 1);
 		radixScatterPass_->setInput(globalHistogramBuffer_);
 		radixScatterPass_->setInput(keyBuffer_);

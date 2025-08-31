@@ -27,7 +27,7 @@ namespace regen {
 		 * @brief Constructor for PrefixScan
 		 * @param histogram The histogram buffer
 		 */
-		explicit PrefixScan(const ref_ptr<SSBO> &histogram);
+		explicit PrefixScan(const ref_ptr<SSBO> &histogram, uint32_t numLayers = 1);
 
 		~PrefixScan() override = default;
 
@@ -59,6 +59,7 @@ namespace regen {
 		void printHistogram(RenderState *rs);
 
 	protected:
+		const uint32_t numLayers_;
 		uint32_t scanGroupSize_ = 512;
 		Mode scanMode_ = Mode::PARALLEL;
 

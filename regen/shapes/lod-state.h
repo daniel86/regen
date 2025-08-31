@@ -27,6 +27,18 @@ namespace regen {
 		~LODState() override = default;
 
 		/**
+		 * @brief Check if the GPU-based LOD path is used.
+		 * @return True if the GPU-based LOD path is used, false otherwise
+		 */
+		inline bool useGPUPath() const { return !cullShape_->isIndexShape(); }
+
+		/**
+		 * @brief Check if the CPU-based LOD path is used.
+		 * @return True if the CPU-based LOD path is used, false otherwise
+		 */
+		inline bool useCPUPath() const { return cullShape_->isIndexShape(); }
+
+		/**
 		 * @brief Get the number of render layers from the camera.
 		 * @return The number of render layers
 		 */
