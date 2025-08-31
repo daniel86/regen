@@ -41,6 +41,10 @@ static ref_ptr<LODState> createCullState(
 	if (input.hasAttribute("sort-mode")) {
 		lodState->setInstanceSortMode(input.getValue<SortMode>("sort-mode", SortMode::FRONT_TO_BACK));
 	}
+	if (input.hasAttribute("use-compaction")) {
+		lodState->setUseCompaction(input.getValue<bool>("use-compaction", true));
+	}
+
 	parser->putState(input.getName(), lodState);
 
 	return lodState;

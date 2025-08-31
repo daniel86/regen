@@ -498,9 +498,22 @@ void LODState::createComputeShader() {
 		clearIndirectBuffer_->addStagedInput(clearData);
 		clearIndirectBuffer_->update();
 	}
+	{	// Create a static buffer with zeroes for resetting the number of visible instances.
+		std::vector<uint32_t> clearData(camera_->numLayer(), 0);
+		clearNumVisibleBuffer_ = ref_ptr<SSBO>::alloc(
+			"Clear_NumVisibleBuffer",
+			BufferUpdateFlags::NEVER,
+			SSBO::RESTRICT);
+		auto clearInput = ref_ptr<ShaderInput1ui>::alloc(
+			"numVisibleKeys", camera_->numLayer());
+		clearInput->setUniformUntyped((byte*)clearData.data());
+		clearNumVisibleBuffer_->addStagedInput(clearInput);
+		clearNumVisibleBuffer_->update();
+	}
 
 	{ // radix sort
 		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances(), camera_->numLayer());
+		radixSort_->setUseCompaction(useCompaction_);
 		radixSort_->setOutputBuffer(instanceBuffer_, false);
 		radixSort_->setRadixBits(RADIX_BITS_PER_PASS);
 		radixSort_->setSortGroupSize(RADIX_GROUP_SIZE);
@@ -513,6 +526,9 @@ void LODState::createComputeShader() {
 		StateConfigurer shaderCfg;
 		if (instanceSortMode_ == SortMode::BACK_TO_FRONT) {
 			shaderCfg.define("USE_REVERSE_SORT", "TRUE");
+		}
+		if (useCompaction_) {
+			shaderCfg.define("USE_COMPACTION", "TRUE");
 		}
 		cullPass_ = ref_ptr<ComputePass>::alloc("regen.shapes.lod.radix.cull");
 		cullPass_->computeState()->shaderDefine("LOD_NUM_INSTANCES", REGEN_STRING(cullShape_->numInstances()));
@@ -596,6 +612,17 @@ void LODState::traverseGPU(RenderState *rs) {
 #endif
 	// copy the clear buffer to the indirect draw buffer
 	indirectDrawBuffers_[0]->setBufferData(*clearIndirectBuffer_.get());
+	if (useCompaction_) {
+		// clear the visibility count to zero
+		auto &keys = radixSort_->keyBuffer()->allocations()[0];
+		auto &clear = clearNumVisibleBuffer_->allocations()[0];
+		glCopyNamedBufferSubData(
+			clear->bufferID(),
+			keys->bufferID(),
+			clear->address(),
+			keys->address(),
+			clear->allocatedSize());
+	}
 #ifdef LOD_DEBUG_GPU_TIME
 	elapsedTime.push("clear indirect draw buffer");
 #endif

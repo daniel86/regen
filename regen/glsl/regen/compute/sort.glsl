@@ -10,7 +10,7 @@
 uint radixBucket(uint key) {
     // Get the bucket for the given key and bit offset.
     // e.g. in case of 4-bit sort, this will be 0-15.
-    return (key >> radixBitOffset) & ONE_LESS_NUM_RADIX_BUCKETS;
+    return (key >> radixBitOffset) & ${ONE_LESS_NUM_RADIX_BUCKETS}u;
 }
 #endif
 
@@ -62,7 +62,12 @@ void main() {
     uint globalID = gl_GlobalInvocationID.x;
     uint localID = gl_LocalInvocationID.x;
     uint groupID = gl_WorkGroupID.x;
-    uint layer = regen_computeLayer; // 0..NUM_LAYERS-1
+    uint layer = regen_computeLayer;
+#ifdef HAS_numVisibleKeys
+    uint numSortKeys = in_numVisibleKeys[layer];
+#else
+    uint numSortKeys = NUM_SORT_KEYS;
+#endif
     uint idx;
 
     // Initialize memory
@@ -77,7 +82,7 @@ void main() {
     barrier();
 
     // Compute local histogram
-    if (globalID < NUM_SORT_KEYS) {
+    if (globalID < numSortKeys) {
         uint layerOffset = layer * NUM_SORT_KEYS;
 #ifdef RADIX_CONTIGUOUS_VALUE_BUFFERS
         uint value = in_values[layerOffset + globalID + in_readOffset];
@@ -169,8 +174,12 @@ void scatterBucket(
 
 void main() {
     uint globalID = gl_GlobalInvocationID.x;
-    if (globalID >= NUM_SORT_KEYS) return;
     uint layer = regen_computeLayer; // 0..NUM_LAYERS-1
+#ifdef HAS_numVisibleKeys
+    if (globalID >= in_numVisibleKeys[layer]) return;
+#else
+    if (globalID >= NUM_SORT_KEYS) return;
+#endif
     uint layerOffset = layer * NUM_SORT_KEYS;
 
     // Read key/value input

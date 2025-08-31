@@ -133,6 +133,13 @@ namespace regen {
 		 */
 		const Vec4i &lodShift() const { return lodShift_; }
 
+		/**
+		 * \brief Compute the index into the flattened (lod, layer) arrays
+		 * \param lodLevel The LOD level
+		 * \param layerIdx The layer index
+		 * \param numLayers The number of layers
+		 * \return The index into the flattened array
+		 */
 		static inline uint32_t binIdx(uint32_t lodLevel, uint32_t layerIdx, uint32_t numLayers) {
 			return lodLevel * numLayers + layerIdx;
 		}

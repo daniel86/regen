@@ -77,6 +77,11 @@ void RadixSort::createResources() {
 	keyBuffer_ = ref_ptr<SSBO>::alloc("KeyBuffer",
 			BufferUpdateFlags::FULL_PER_FRAME,
 			SSBO::RESTRICT);
+	if (useCompaction_) {
+		auto numVisibleKeys = ref_ptr<ShaderInput1ui>::alloc("numVisibleKeys", numLayers_);
+		numVisibleKeys->set_forceArray(true);
+		keyBuffer_->addStagedInput(numVisibleKeys);
+	}
 	auto keys = ref_ptr<ShaderInput1ui>::alloc("keys", numKeysTotal);
 	keys->set_forceArray(true);
 	keyBuffer_->addStagedInput(keys);

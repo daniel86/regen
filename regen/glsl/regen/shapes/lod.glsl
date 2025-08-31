@@ -35,6 +35,11 @@ struct DrawCommand {
 #include regen.shapes.lod.defines
 #include regen.states.camera.defines
 
+#ifdef USE_COMPACTION
+// - [write] the number of instances per layer, after culling.
+// - size = NUM_LAYERS
+buffer uint in_numVisibleKeys[];
+#endif
 // - [write] distance sort keys, computed by culling pass, per instance
 // - size = NUM_LAYERS * LOD_NUM_INSTANCES
 buffer uint in_keys[];
@@ -139,14 +144,18 @@ void main() {
         }
     }
     if (globalID < LOD_NUM_INSTANCES) {
-        // TODO: Consider doing a compaction pass to remove culled instances, then use
-        //       the compacted buffer as input for sort. But currently num instances is baked into shader,
-        //       would need to be replaced by uniform. Compaction would be a kind of rough sort, so we
-        //       could use existing global memory for doing this trivially (i.e. adding instance IDs to the
-        //       output buffer only if they are visible, then mapping the count to CPU memory, etc.)
         uint globalWriteIdx = getGlobalOffset(globalID, layer);
+#ifdef USE_COMPACTION
+        if (l_visible) {
+            uint idx = atomicAdd(in_numVisibleKeys[layer], 1);
+            uint compactedWriteIdx = getGlobalOffset(idx, layer);
+            in_keys[globalWriteIdx] = floatBitsToUint(depth);
+            in_instanceIDMap[compactedWriteIdx] = globalID;
+        }
+#else
         in_keys[globalWriteIdx] = floatBitsToUint(depth);
         in_instanceIDMap[globalWriteIdx] = globalID;
+#endif
     }
 }
 

@@ -22,6 +22,12 @@ namespace regen {
 		~RadixSort() override = default;
 
 		/**
+		 * Set whether visible instances are compacted before sorting.
+		 * @param useCompaction True to use compaction, false otherwise.
+		 */
+		void setUseCompaction(bool useCompaction) { useCompaction_ = useCompaction; }
+
+		/**
 		 * Set the output buffer.
 		 * This is optional, if not done before createResources(), the output buffer will be created.
 		 * The buffer must be a uint array with numKey elements.
@@ -90,6 +96,7 @@ namespace regen {
 		ref_ptr<SSBO> valueBuffer_[2];
 		ref_ptr<SSBO> userValueBuffer_;
 		bool useSingleValueBuffer_ = false;
+		bool useCompaction_ = true;
 
 		ref_ptr<ComputePass> radixHistogramPass_;
 		ref_ptr<ComputePass> radixScatterPass_;

@@ -57,6 +57,16 @@ namespace regen {
 		SortMode instanceSortMode() const { return instanceSortMode_; }
 
 		/**
+		 * @return True if visible instance are compacted before sort.
+		 */
+		bool useCompaction() const { return useCompaction_; }
+
+		/**
+		 * @param useCompaction True to enable compaction of visible instances before sort.
+		 */
+		void setUseCompaction(bool useCompaction) { useCompaction_ = useCompaction; }
+
+		/**
 		 * @return The instance buffer used for LOD computation.
 		 */
 		const ref_ptr<SSBO> &instanceBuffer() const { return instanceBuffer_; }
@@ -89,6 +99,7 @@ namespace regen {
 		ref_ptr<Mesh> mesh_;
 		bool hasShadowTarget_;
 		bool hasVisibleInstance_ = false;
+		bool useCompaction_ = true;
 
 		ref_ptr<ShaderInput> instanceData_;
 		// stores sorted instanceIDs, first sort criteria is the LOD group, second distance to camera
@@ -102,6 +113,7 @@ namespace regen {
 		// (parts have different index buffers, so we cannot use a single buffer for all parts)
 		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;
 		ref_ptr<SSBO> clearIndirectBuffer_;
+		ref_ptr<SSBO> clearNumVisibleBuffer_;
 		struct IndirectDrawData {
 			// The current draw commands for the mesh part.
 			// Only maintained in case of CPU-based LOD update.
