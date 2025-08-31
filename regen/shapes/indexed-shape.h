@@ -79,42 +79,9 @@ namespace regen {
 		auto &shape() const { return shape_; }
 
 		/**
-		 * @param instanceBuffer The instance buffer to set
-		 */
-		void setInstanceBuffer(const ref_ptr<SSBO> &instanceBuffer) { instanceBuffer_ = instanceBuffer; }
-
-		/**
-		 * @return The instance buffer used for this indexed shape
-		 */
-		const ref_ptr<SSBO> &instanceBuffer() const { return instanceBuffer_; }
-
-		/**
-		 * \brief Check if the indexed shape has an instance buffer
-		 */
-		bool hasInstanceBuffer() const { return instanceBuffer_.get() != nullptr; }
-
-		/**
-		 * @return The indirect draw buffer used for this indexed shape
-		 */
-		const ref_ptr<SSBO> &indirectDrawBuffer(uint32_t partIdx) const { return indirectDrawBuffers_[partIdx]; }
-
-		/**
-		 * Note: Each part of a model has its own indirect draw buffer.
-		 * @param indirectDrawBuffers The indirect draw buffers to set
-		 */
-		void setIndirectDrawBuffers(const std::vector<ref_ptr<SSBO>> &indirectDrawBuffers) {
-			indirectDrawBuffers_ = indirectDrawBuffers;
-		}
-
-		/**
-		 * @return True if the indexed shape has an indirect draw buffer
-		 */
-		bool hasIndirectDrawBuffers() const { return !indirectDrawBuffers_.empty(); }
-
-		/**
 		 * @param mode The sort mode to set
 		 */
-		void setSortMode(SortMode mode) { instanceSortMode_ = mode; }
+		void setInstanceSortMode(SortMode mode) { instanceSortMode_ = mode; }
 
 		/**
 		 * @return The sort mode used for this indexed shape
@@ -132,17 +99,6 @@ namespace regen {
 		 * @return The LOD shift vector
 		 */
 		const Vec4i &lodShift() const { return lodShift_; }
-
-		/**
-		 * \brief Compute the index into the flattened (lod, layer) arrays
-		 * \param lodLevel The LOD level
-		 * \param layerIdx The layer index
-		 * \param numLayers The number of layers
-		 * \return The index into the flattened array
-		 */
-		static inline uint32_t binIdx(uint32_t lodLevel, uint32_t layerIdx, uint32_t numLayers) {
-			return lodLevel * numLayers + layerIdx;
-		}
 
 	protected:
 		ref_ptr<Camera> camera_;
@@ -166,9 +122,6 @@ namespace regen {
 		// per (lod, layer) data flattened as lod * numLayers + layer
 		std::vector<uint32_t> tmp_binCounts_;   // size = numLODs * numLayers
 		std::vector<uint32_t> tmp_binBase_;     // size = numLODs * numLayers
-
-		ref_ptr<SSBO> instanceBuffer_;
-		std::vector<ref_ptr<SSBO>> indirectDrawBuffers_;
 
 		struct ShapeDistance {
 			uint32_t instanceID;

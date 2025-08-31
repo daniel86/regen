@@ -3,6 +3,7 @@
 
 #include "spatial-index.h"
 #include "quad-tree.h"
+#include "cull-shape.h"
 
 // NOTE: this piece of code is performance critical! For many execution paths:
 // - avoid the use of std::set, std::unordered_set, std::map, std::unordered_map, etc. here
@@ -171,7 +172,7 @@ void SpatialIndex::handleIntersection(const BoundingShape& b_shape, void* userDa
 	const uint32_t k = getLODLevel(b_shape, i_shape, lodDistance);
 
 	// Finally bin the shape into the (lod, layer) bin
-	const uint32_t b = IndexedShape::binIdx(k, l, L);
+	const uint32_t b = CullShape::binIdx(k, l, L);
 	i_shape->tmp_layerShapes_[l].push_back({
 		b_shape.instanceID(),
 		lodDistance });
@@ -265,7 +266,7 @@ void SpatialIndex::updateLOD_Major(IndexCamera &indexCamera, IndexedShape *index
 		}
 		uint32_t layerBase = 0;
 		for (uint32_t k = 0; k < K; ++k) {
-			const uint32_t b = IndexedShape::binIdx(k, l, L);
+			const uint32_t b = CullShape::binIdx(k, l, L);
 			const uint32_t base = indexShape->tmp_binBase_[b];
 			const uint32_t cnt = indexShape->tmp_binCounts_[b];
 			if (cnt == 0) continue;
