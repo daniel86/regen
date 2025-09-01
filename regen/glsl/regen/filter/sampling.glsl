@@ -376,7 +376,7 @@ uniform sampler2D in_inputTexture;
 
 void main()
 {
-    vec2 texCoord = computeTexco(gl_FragCoord.xy*in_inverseViewport);
+    vecTexco texCoord = computeTexco(gl_FragCoord.xy*in_inverseViewport);
     gl_FragDepth = downsample(texCoord, in_inputTexture, in_inverseViewport);
 }
 
@@ -392,6 +392,22 @@ float downsample(vec2 texCoord, sampler2D depthTexture, vec2 texelSize) {
         }
     }
     return depth / 4.0;
+}
+
+float downsample(vec3 texCoord, sampler2DArray depthTexture, vec2 texelSize) {
+    float depth = 0.0;
+    for (int x = 0; x < 2; ++x) {
+        for (int y = 0; y < 2; ++y) {
+            vec2 offset = vec2(x, y) * texelSize;
+            depth += texture(depthTexture, texCoord + vec3(offset, 0)).r;
+        }
+    }
+    return depth / 4.0;
+}
+
+float downsample(vec3 texCoord, samplerCube depthTexture, vec2 texelSize) {
+    // TODO: add filtering for cube textures
+    return texture(depthTexture, texCoord).r;
 }
 #endif
 

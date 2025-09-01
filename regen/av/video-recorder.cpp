@@ -131,6 +131,8 @@ void VideoRecorder::initialize() {
 		GL_RGB,
 		GL_RGB8,
 		GL_UNSIGNED_BYTE);
+	encoderFBO_->checkStatus();
+	GL_ERROR_LOG();
 }
 
 void VideoRecorder::setFrameBuffer(const ref_ptr<FBO> &fbo, GLenum attachment) {
@@ -144,6 +146,7 @@ void VideoRecorder::updateFrameBuffer() {
 	auto texHeight = static_cast<int>(tex->height());
 	int nextIndex = (pboIndex_ + 1) % 2;
 	GLenum filerMode = (texWidth == codecCtx_->width && texHeight == codecCtx_->height) ?  GL_NEAREST : GL_LINEAR;
+	auto *rs = RenderState::get();
 
 	// blit the input FBO to the encoder FBO
 	fbo_->applyReadBuffer(attachment_);
@@ -154,27 +157,29 @@ void VideoRecorder::updateFrameBuffer() {
 					  GL_COLOR_BUFFER_BIT, filerMode);
 
 	// set the target framebuffer to read
-	RenderState::get()->readFrameBuffer().push(encoderFBO_->id());
-	encoderFBO_->applyReadBuffer(GL_COLOR_ATTACHMENT0);
+	rs->readFrameBuffer().push(encoderFBO_->id());
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	// read pixels from framebuffer to PBO glReadPixels() should return immediately.
-	RenderState::get()->pixelPackBuffer().push(pbo_->ids()[pboIndex_]);
+	rs->pixelPackBuffer().push(pbo_->ids()[pboIndex_]);
 	glReadPixels(0, 0,
 				 codecCtx_->width, codecCtx_->height,
 				 GL_RGB, GL_UNSIGNED_BYTE,
 				 nullptr);
-	RenderState::get()->pixelPackBuffer().pop();
+	rs->pixelPackBuffer().pop();
+	rs->readFrameBuffer().pop();
 
 	// map the other PBO to process its data
-	auto *ptr = (GLubyte *) glMapNamedBuffer(pbo_->ids()[nextIndex], GL_READ_ONLY);
+	rs->pixelPackBuffer().push(pbo_->ids()[nextIndex]);
+	auto *ptr = (GLubyte *) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 	if (ptr) {
 		auto nextFrame = encoder_->reserveFrame();
 		std::memcpy(nextFrame, ptr, frameSize_);
-		glUnmapNamedBuffer(pbo_->ids()[nextIndex]);
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		encoder_->pushFrame(nextFrame, elapsedTime_);
 	}
-
-	RenderState::get()->readFrameBuffer().pop();
+	rs->pixelPackBuffer().pop();
 
 	pboIndex_ = nextIndex;
 }

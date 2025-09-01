@@ -6,60 +6,27 @@
 
 namespace regen {
 	/**
-	 * \brief A lightning bolt.
+	 * \brief A single lightning strike.
 	 */
-	class LightningBolt : public Mesh, public Animation {
+	class LightningStrike {
 	public:
-		/**
-		 * Vertex data configuration.
-		 */
-		struct Config {
-			/** maximum number of segments in a branch of the bolt. */
-			unsigned int maxSubDivisions_ = 100;
-			/** maximum number of branches in the bolt. */
-			unsigned int maxBranches_ = 10;
-
-			Config();
+		struct StrikePoint {
+			ref_ptr<ModelTransformation> tf;
+			ref_ptr<ShaderInput3f> pos;
+			uint32_t instance = 0u;
+			uint32_t numInstances = 1u;
+			bool randomizeInstance = false;
 		};
 
-		/**
-		 * @param cfg the mesh configuration.
-		 */
-		explicit LightningBolt(const Config &cfg);
+		LightningStrike(
+				uint32_t strikeIdx,
+				const StrikePoint &source,
+				const StrikePoint &target,
+				const ref_ptr<ShaderInput1f> &alpha);
 
-		/**
-		 * @param other Another Rectangle.
-		 */
-		explicit LightningBolt(const ref_ptr<LightningBolt> &other);
+		LightningStrike(const LightningStrike &) = default;
 
-		/**
-		 * @return true if there is an active bolt instance.
-		 */
-		bool isBoltActive() const;
-
-		/**
-		 * Sets the source position of the lightning bolt.
-		 * @param from the source position.
-		 */
-		void setSourcePosition(const ref_ptr<ShaderInput3f> &from);
-
-		/**
-		 * Sets the target position of the lightning bolt.
-		 * @param to the target position.
-		 */
-		void setTargetPosition(const ref_ptr<ShaderInput3f> &to);
-
-		/**
-		 * Sets the source position of the lightning bolt.
-		 * @param from the source position.
-		 */
-		void setSourcePosition(const Vec3f &from);
-
-		/**
-		 * Sets the target position of the lightning bolt.
-		 * @param to the target position.
-		 */
-		void setTargetPosition(const Vec3f &to);
+		LightningStrike &operator=(const LightningStrike &) = default;
 
 		/**
 		 * Sets the frequency of lightning strikes.
@@ -67,121 +34,143 @@ namespace regen {
 		 * Otherwise, the bolt will strike randomly with the given frequency.
 		 * @param frequency The frequency of lightning strikes in Hz.
 		 */
-		void setFrequency(float base, float variance);
+		void setFrequency(float base, float variance) {
+			frequencyConfig_ = Vec2f(base, variance);
+			hasFrequency_ = (base > 0.0f);
+		}
 
 		/**
 		 * Sets the lifetime of the lightning bolt.
 		 * @param base the base lifetime.
 		 * @param variance the variance of the lifetime, will be added to the base lifetime.
 		 */
-		void setLifetime(float base, float variance);
+		void setLifetime(float base, float variance) { lifetimeConfig_ = Vec2f(base, variance); }
 
 		/**
 		 * Sets the maximum jitter offset of the bolt.
 		 * @param maxOffset the maximum offset of the bolt.
 		 */
-		void setJitterOffset(float maxOffset);
+		void setJitterOffset(float maxOffset) { jitterOffset_ = maxOffset; }
 
 		/**
 		 * Sets the probability of a branch to be created.
 		 * @param probability the probability of a branch to be created.
 		 */
-		void setBranchProbability(float probability);
+		void setBranchProbability(float probability) { branchProbability_ = probability; }
 
 		/**
 		 * Sets the offset factor of a branch.
 		 * @param offset the offset factor of a branch.
 		 */
-		void setBranchOffset(float offset);
+		void setBranchOffset(float offset) { branchOffset_ = offset; }
 
 		/**
 		 * Sets the length of a branch relative to its parent segment.
 		 * @param length the length of a branch [0,1]
 		 */
-		void setBranchLength(float length);
+		void setBranchLength(float length) { branchLength_ = length; }
 
 		/**
 		 * Sets the darkening factor of a branch relative to their parent segment.
 		 * @param darkening the darkening factor of a branch [0,1]
 		 */
-		void setBranchDarkening(float darkening);
-
-		/**
-		 * Strike the lightning bolt at this moment.
-		 * This will update the vertex data to a new random bolt.
-		 * The bolt will be visible for a short time, if it is not already.
-		 * It will use its last source and target position.
-		 */
-		void strike();
-
-		/**
-		 * Strike the lightning bolt at this moment.
-		 * This will update the vertex data to a new random bolt.
-		 * The bolt will be visible for a short time, if it is not already.
-		 */
-		void strike(const Vec3f &source, const Vec3f &target);
-
-		// override
-		void glAnimate(RenderState *, GLdouble dt) override;
+		void setBranchDarkening(float darkening) { branchDarkening_ = darkening; }
 
 	protected:
+		uint32_t strikeIdx_;
+		StrikePoint source_;
+		StrikePoint target_;
 		// configuration for the frequency of the bolt.
 		// if>0 then the bolt automatically strikes at the given frequency.
-		ref_ptr<ShaderInput2f> frequencyConfig_;
-		// configuration for the lifetime of the bolt.
-		ref_ptr<ShaderInput2f> lifetimeConfig_;
-		ref_ptr<ShaderInput1f> jitterOffset_;
-		ref_ptr<ShaderInput1f> branchProbability_;
-		ref_ptr<ShaderInput1f> branchOffset_;
-		ref_ptr<ShaderInput1f> branchLength_;
-		ref_ptr<ShaderInput1f> branchDarkening_;
-		ref_ptr<ShaderInput1f> matAlpha_;
-		// vertex positions
-		ref_ptr<ShaderInput3f> pos_;
-		ref_ptr<ShaderInput1f> brightness_;
-		// source and target position for the bolt.
-		ref_ptr<ShaderInput3f> source_;
-		ref_ptr<ShaderInput3f> target_;
-		double u_lifetime_ = 0.0f;
-		double u_lifetimeBegin_ = 0.0f;
-		float u_nextStrike_ = 0.0f;
+		Vec2f frequencyConfig_ = Vec2f(0.0f, 0.0f);
 		bool hasFrequency_ = false;
-		bool isActive_ = true;
+		// configuration for the lifetime of the bolt.
+		Vec2f lifetimeConfig_ = Vec2f(2.0f, 0.5f);
+		float jitterOffset_ = 2.0f;
+		float branchProbability_ = 0.5f;
+		float branchOffset_ = 2.0f;
+		float branchLength_ = 0.7f;
+		float branchDarkening_ = 0.5f;
+		float widthFactor_ = 1.0f;
 		// the maximum number of segments in the main branch of the bolt.
-		const unsigned int maxSubDivisions_;
+		unsigned int maxSubDivisions_ = 7;
 		// the maximum number of sub-branches of the main branch.
-		const unsigned int maxBranches_;
+		unsigned int maxBranches_ = 10;
 
-		unsigned int bufferOffset_ = 0;
-		unsigned int bufferSize_ = 0;
-		unsigned int elementSize_ = 0;
+		// per-strike alpha parameter
+		ref_ptr<ShaderInput1f> alpha_;
 
 		struct Vertex {
-			float brightness;
 			Vec3f pos;
+			float brightness;
+			uint32_t strikeIdx;
 
-			explicit Vertex(const Vec3f &pos, float brightness = 1.0f)
-					: brightness(brightness), pos(pos) {}
+			explicit Vertex(const Vec3f &pos, uint32_t strikeIdx, float brightness = 1.0f)
+					: pos(pos), brightness(brightness), strikeIdx(strikeIdx) {}
 		};
 
 		struct Segment {
 			Vertex start;
 			Vertex end;
 
-			Segment(const Vec3f &start, const Vec3f &end, float brightness = 1.0f)
-					: start(start, brightness), end(end, brightness) {}
+			Segment(const Vec3f &start, const Vec3f &end, uint32_t strikeIdx, float brightness = 1.0f)
+					: start(start, strikeIdx, brightness), end(end, strikeIdx, brightness) {}
 		};
 
 		std::vector<Segment> segments_[2];
 		int segmentIndex_ = 0;
-
-		void setNextStrike();
-
-		void updateBolt(double dt_s);
-
-		void updateVertexData();
+		double u_time_ = 0.0f;
+		double u_maxLifetime_ = 0.0f;
+		float u_nextStrike_ = 0.0f;
+		bool active_ = false;
 
 		void updateSegmentData();
+
+		void updateSegmentData(const Vec3f &source, const Vec3f &target);
+
+		bool updateStrike(double dt_s);
+
+		friend class LightningBolt;
+	};
+
+	/**
+	 * \brief A lightning bolt.
+	 */
+	class LightningBolt : public Mesh, public Animation {
+	public:
+		/**
+		 * @param cfg the mesh configuration.
+		 */
+		LightningBolt();
+
+		void load(LoadingContext &ctx, scene::SceneInputNode &input);
+
+		void addLightningStrike(const ref_ptr<LightningStrike> &strike);
+
+		void createResources();
+
+		// override
+		void glAnimate(RenderState *, GLdouble dt) override;
+
+	protected:
+		ref_ptr<ShaderInput3f> pos_;
+		ref_ptr<ShaderInput1f> brightness_;
+		ref_ptr<ShaderInput1ui> strikeIdx_;
+
+		ref_ptr<SSBO> strikeSSBO_;
+		// per-strike parameters
+		ref_ptr<ShaderInput1f> strikeAlpha_;
+		ref_ptr<ShaderInput1f> strikeWidth_;
+
+		bool isActive_ = true;
+
+		unsigned int bufferOffset_ = 0;
+		unsigned int bufferSize_ = 0;
+		unsigned int elementSize_ = 0;
+
+		std::vector<ref_ptr<LightningStrike>> strikes_;
+
+		void updateVertexData();
 	};
 } // namespace
 

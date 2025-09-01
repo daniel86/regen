@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <node>
-    <constant name="num-cascades" value="3"/>
+    <constant name="num-cascades" value="4"/>
 
     <include xml-file="scene-display/examples/templates/default.xml"/>
     <node id="configuration"
@@ -11,7 +11,7 @@
                 mode="third-person"
                 type="impulse"
                 mesh="sphere-mesh0"
-                mesh-distance="10.0"
+                mesh-distance="26.0"
                 vertical-orientation="0.4"
                 transform="sphere0-tf"
                 eye-offset="0.0,0.0,0.0"
@@ -30,6 +30,11 @@
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
+    </fbo>
+    <fbo id="emission-fbo" size-mode="rel" size="0.25, 0.25"
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="color" pixel-components="4"/>
+        <depth id="depth"/>
     </fbo>
     <fbo id="sun-shadow" size-mode="abs" size="2048,2048,{{num-cascades}}">
         <depth id="depth" pixel-size="24" pixel-type="FLOAT"
@@ -55,6 +60,14 @@
         <texture id="normal"/>
         <depth pixel-size="24"/>
     </fbo>
+    <fbo id="cube-emission-fbo"
+         size-mode="abs" size="256,256,6"
+         target="TEXTURE_CUBE_MAP"
+         sampler-type="samplerCube"
+         pixel-type="FLOAT" pixel-size="24">
+        <texture id="color" pixel-components="4"/>
+        <depth id="depth"/>
+    </fbo>
     <fbo id="paraboloid-reflection-buffer"
          size-mode="abs" size="512,512,2"
          wrapping="CLAMP_TO_EDGE"
@@ -69,11 +82,6 @@
         <texture id="normal"/>
         <depth pixel-size="24"/>
     </fbo>
-    <fbo id="emission-fbo" size-mode="rel" size="0.25, 0.25"
-         pixel-type="FLOAT" pixel-size="24">
-        <texture id="color" pixel-components="4"/>
-        <depth id="depth"/>
-    </fbo>
     <!--
     <fbo id="spot-shadow" size-mode="abs" size="1024,1024,1" >
       <depth pixel-size="24" pixel-type="FLOAT"
@@ -85,22 +93,31 @@
     </fbo>
     -->
     <!-- Textures -->
-    <texture id="reflector-noise" type="noise" preset="perlin" noise-scale="2.0"
-            size="512.0,512.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
+    <texture id="reflector-noise" type="noise" preset="perlin" noise-scale="4.0"
+            size="2048.0,2048.0,1.0" swizzle-g="RED" swizzle-b="RED"/>
+    <!-- Spatial Index -->
+    <index id="main-index" type="quadtree"
+            max-objects-per-node="4"
+            test-mode-3d="closest"
+            close-distance="20.0"/>
     <!-- Cameras -->
     <camera id="main-camera"
+            culling-index="main-index"
             fov="45.0" near="0.1" far="200.0"
             position="0.0,1.5,-8.0"
             direction="0.0,-0.25,1.0"/>
     <camera id="sun-camera" light="sky-sun"
+            culling-index="main-index"
             camera="main-camera"
             lod-shift="1,1,1,0"
             num-layer="{{num-cascades}}"
             split-weight="0.9"/>
     <camera id="paraboloid-camera"
+            culling-index="main-index"
             type="paraboloid"
             tf="sphere0-tf"/>
     <camera id="cube-camera"
+            culling-index="main-index"
             type="cube"
             tf="sphere1-tf"/>
     <!--
@@ -146,13 +163,13 @@
     <mesh id="bowl"
           type="half-sphere"
           lod="6"
-          scaling="10.0,1.5,7.5"
+          scaling="10.0,1.5,10.0"
           texco-scaling="5.0,5.0"
           use-normal="1"
           use-tangent="0"
           update-frequency="NEVER">
         <define key="HAS_TWO_SIDES" value="TRUE"/>
-        <material preset="copper"/>
+        <material preset="iron"/>
         <transform id="bowl-tf"/>
         <shape id="bowl-physics" physics="1" shape="triangle-mesh" mass="0.0"
                mesh-id="bowl" transform-id="bowl-tf"/>
@@ -211,7 +228,7 @@
           use-tangent="0"
           update-frequency="NEVER"
           num-instances="40">
-        <material preset="ruby" update-frequency="NEVER"/>
+        <material preset="copper" update-frequency="NEVER"/>
         <transform id="sphere2-tf"/>
         <shape id="sphere2-physics" physics="1" shape="sphere"
                radius="0.5" mass="0.4" inertia="0.0,0.0,0.0" friction="0.0"
@@ -253,7 +270,7 @@
                 <texture name="gNorWorldTexture" fbo="paraboloid-reflection-buffer" attachment="3"/>
                 <node import="Shading-Pass"/>
             </node>
-            <node import="Background-Pass0"/>
+            <node import="Paraboloid-Background-Pass"/>
             <node import="Cube-Reflector"/>
         </node>
         <view id="Paraboloid Reflection -- Result">
@@ -281,13 +298,13 @@
     <node id="Cube-Reflection-Update">
         <camera id="cube-camera"/>
         <fbo id="cube-reflection-buffer" clear-buffers="0,1,2,3" clear-depth="1"/>
-        <node>
+        <node id="Cube-Geometry-Pass">
             <depth test="1" write="1"/>
             <fbo id="cube-reflection-buffer" draw-buffers="0,1,2,3"/>
             <node import="Shadow-Caster"/>
             <node import="Scene-Geometry"/>
         </node>
-        <node>
+        <node id="Cube-Shading-Pass">
             <fbo id="cube-reflection-buffer" draw-buffers="1"/>
             <node>
                 <texture name="gDepthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
@@ -296,7 +313,7 @@
                 <texture name="gNorWorldTexture" fbo="cube-reflection-buffer" attachment="3"/>
                 <node import="Shading-Pass"/>
             </node>
-            <node import="Background-Pass0"/>
+            <node import="Cube-Background-Pass"/>
             <node import="Paraboloid-Reflector"/>
         </node>
         <view id="Cube Reflection -- Result">
@@ -347,7 +364,6 @@
                     <blend mode="add"/>
                     <depth test="1" write="0"/>
                     <define key="USE_RAIN_DB" value="TRUE"/>
-                    <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
                     <texture name="rainDB" id="rain-database"/>
                     <input type="vec2" name="particleSize" value="0.1,5.0"/>
                     <mesh id="rain-particles" shader="regen.weather.rain.draw"/>
@@ -357,39 +373,81 @@
     </node>
 
     <!--**************************-->
+    <!--******* Flying spheres ********-->
+    <!--**************************-->
+    <transform id="stone-ring-tf" num-instances="20" is-instanced="1">
+        <rotate value="0.0, 0.0, 0.0"/>
+        <translate value="0.0, 5.6, 0.0"/>
+        <set mode="circle" target="translate" radius="6.0" variance="0.1"
+                 dir-x="1.0, 0.0, 0.0" dir-z="0.0, 0.0, 1.0"/>
+    </transform>
+
+    <mesh id="stone-ring" type="sphere"
+            use-normal="1" use-texco="1" use-tangent="1"
+            lod-levels="5, 4, 3, 2"
+            lod-thresholds="20.0, 50.0, 80.0"
+            scaling="0.2,0.2,0.2"
+            update-frequency="NEVER">
+        <shader mesh-index="0" key="regen.models.mesh" />
+        <transform id="stone-ring-tf" />
+        <material preset="stone" variant="0" max-offset="0.2" update-frequency="NEVER"
+                color-blend-mode="mul" diffuse="0.646662, 0.555062, 0.42034" />
+        <shape id="stone-ring-shape" index="1" cull="1" type="sphere"
+               mesh-id="stone-ring" transform-id="stone-ring-tf" radius="1.6"/>
+    </mesh>
+
+    <!--**************************-->
     <!--******* Lightning ********-->
     <!--**************************-->
 
-    <mesh id="lightning-mesh" type="lightning" num-subdivisions="7" max-branches="12"
-          jitter-offset="12.0" frequency="1.1f, 1.0f" lifetime="0.35f, 0.15f"
-          branch-probability="0.9"
-          branch-offset="16.0"
-          source-pos="10.0, 60.0, 30.0"
-          target-pos="0.0, -40.0, 30.0"
-          update-frequency="PER_FRAME"
-          update-scope="FULL">
+    <mesh id="lightning-mesh" type="lightning"
+          update-frequency="PER_FRAME" update-scope="FULL">
+          <strike num-subdivisions="7" jitter-offset="12.0"
+                max-branches="12" branch-probability="0.9" branch-offset="16.0"
+                frequency="1.1f, 1.0f" lifetime="0.35f, 0.15f"
+                source-constant="10.0, 60.0, 30.0"
+                target-constant="0.0, -40.0, 30.0"/>
+          <strike num-subdivisions="7" jitter-offset="12.0"
+                max-branches="12" branch-probability="0.9" branch-offset="16.0"
+                frequency="1.1f, 1.0f" lifetime="0.35f, 0.15f"
+                source-constant="-10.0, 60.0, -30.0"
+                target-constant="0.0, -40.0, -30.0"/>
+          <strike num-subdivisions="5" jitter-offset="2.0" width-factor="0.15"
+                max-branches="6" branch-probability="0.6" branch-offset="1.0"
+                frequency="0.0f, 0.0f" lifetime="0.7f, 0.3f"
+                ring-strength="4" ring-tf="stone-ring-tf"/>
+          <strike num-subdivisions="4" jitter-offset="1.0" width-factor="0.1"
+                max-branches="4" branch-probability="0.4" branch-offset="1.0"
+                frequency="0.0f, 0.0f" lifetime="0.2f, 0.1f"
+                ring-strength="2" ring-tf="sphere2-tf"/>
+          <strike num-subdivisions="6" jitter-offset="3.0" width-factor="0.2"
+                max-branches="11" branch-probability="0.7" branch-offset="4.0"
+                frequency="10.1f, 5.0f" lifetime="0.95f, 0.3f"
+                source-tf="stone-ring-tf"
+                target-tf="sphere2-tf" target-randomize="1"/>
     </mesh>
 
-    <node id="Emission-Update">
-        <!-- copy scene depth to emission-fbo -->
-        <node id="Depth">
+    <node id="Emission-Draw">
+        <depth test="1" write="0"/>
+        <blend mode="lighten"/>
+        <node id="Lightning-Bolt0">
+            <input type="float" name="lightningWidth" value="0.6"/>
+            <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
+            <mesh id="lightning-mesh" shader="regen.weather.lightning"/>
+        </node>
+    </node>
+
+    <node id="G-Buffer-Emission-Update">
+        <node id="Copy-Depth">
             <depth test="1" write="1"/>
             <fbo id="emission-fbo" clear-depth="1"/>
             <texture name="inputTexture" fbo="g-buffer" attachment="depth"/>
             <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
         </node>
-        <!-- update emission-fbo -->
-        <node id="Emission-Draw">
+        <node id="G-Buffer-Emission-Draw">
             <fbo id="emission-fbo" clear-buffers="0" draw-buffers="0"/>
-            <depth test="1" write="0"/>
-            <blend mode="lighten"/>
-            <node id="Lightning-Bolt0">
-                <input type="float" name="lightningWidth" value="0.6"/>
-                <input type="vec3" name="matDiffuse" value="0.8, 1.5, 20.0"/>
-                <mesh id="lightning-mesh" shader="regen.weather.lightning"/>
-            </node>
+            <node import="Emission-Draw" />
         </node>
-        <!-- Create a blurred version. -->
         <node id="Emission-Blur">
             <input type="int" name="numBlurPixels" value="9"/>
             <input type="float" name="blurSigma" value="5.0"/>
@@ -398,30 +456,54 @@
                 <filter shader="regen.filter.blur.vertical"/>
             </filter-sequence>
         </node>
-
-        <view id="Emission-Color">
-            <blit src-fbo="emission-fbo" src-attachment="0" dst-fbo="SCREEN"/>
-        </view>
-        <view id="Emission-Blur">
-            <fbo id="SCREEN"/>
-            <texture name="inputTexture" id="emission-color"/>
-            <fullscreen-pass shader="regen.filter.sampling"/>
-        </view>
     </node>
 
-    <node id="Emission-Draw">
-        <blend mode="alpha"/>
-        <node id="Lightning-Bolt0">
-            <depth test="1" write="0"/>
-            <input type="float" name="lightningWidth" value="0.15"/>
-            <input type="vec3" name="matDiffuse" value="1.0, 1.0, 1.0"/>
-            <mesh id="lightning-mesh" shader="regen.weather.lightning"/>
+    <node id="Cube-Emission-Update">
+        <node id="Cube-Emission-Depth">
+            <depth test="1" write="1"/>
+            <fbo id="cube-emission-fbo" clear-depth="1"/>
+            <texture name="inputTexture" fbo="cube-reflection-buffer" attachment="depth"/>
+            <fullscreen-pass shader="regen.filter.sampling.downsample.depth"/>
         </node>
-        <node id="Glow">
-            <depth test="0" write="0"/>
+        <node id="Cube-Emission-Draw">
+            <fbo id="cube-emission-fbo" clear-buffers="0" draw-buffers="0"/>
+            <node import="Emission-Draw" />
+        </node>
+        <node id="Cube-Emission-Blur">
+            <input type="int" name="numBlurPixels" value="9"/>
+            <input type="float" name="blurSigma" value="5.0"/>
+            <filter-sequence id="cube-emission-color" fbo="cube-emission-fbo" attachment="0">
+                <filter shader="regen.filter.blur.horizontal"/>
+                <filter shader="regen.filter.blur.vertical"/>
+            </filter-sequence>
+        </node>
+    </node>
+
+    <node id="Emission-Draw-Lightning-Bolt">
+        <depth test="1" write="0"/>
+        <input type="float" name="lightningWidth" value="0.15"/>
+        <input type="vec3" name="matDiffuse" value="1.0, 1.0, 1.0"/>
+        <mesh id="lightning-mesh" shader="regen.weather.lightning"/>
+    </node>
+
+    <node id="Emission-Draw-Glow">
+        <depth test="0" write="0"/>
+        <fullscreen-pass shader="regen.filter.sampling"/>
+    </node>
+
+    <node id="G-Buffer-Emission-Draw">
+        <blend mode="alpha"/>
+        <node import="Emission-Draw-Lightning-Bolt" />
+        <node import="Emission-Draw-Glow">
             <texture name="inputTexture" id="emission-color"/>
-            <define key="IS_2D_TEXTURE" value="TRUE"/>
-            <fullscreen-pass shader="regen.filter.sampling"/>
+        </node>
+    </node>
+
+    <node id="Cube-Emission-Draw">
+        <blend mode="alpha"/>
+        <node import="Emission-Draw-Lightning-Bolt" />
+        <node import="Emission-Draw-Glow">
+            <texture name="inputTexture" id="cube-emission-color"/>
         </node>
     </node>
 
@@ -431,7 +513,7 @@
     <node id="Scene-Geometry">
         <node id="Bowl">
             <toggle key="CULL_FACE" value="0"/>
-            <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="MUL"/>
+            <texture name="noiseTexture" id="reflector-noise" map-to="COLOR" blend-mode="ADD" />
             <mesh id="bowl" shader="regen.models.mesh"/>
         </node>
     </node>
@@ -444,6 +526,9 @@
         <mesh id="sphere-mesh0" shader="regen.models.mesh" />
         <mesh id="sphere-mesh1" shader="regen.models.mesh" />
         -->
+        <node id="Stones">
+            <mesh id="stone-ring" mesh-index="0" update-visibility="1"/>
+        </node>
     </node>
 
     <!--**************************-->
@@ -504,22 +589,77 @@
             <sky id="sky"/>
         </node>
         <node import="Reflectors"/>
-        <node import="Rain"/>
-        <node import="Emission-Update"/>
+        <node import="Rain">
+            <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+        </node>
+
+        <node import="G-Buffer-Emission-Update"/>
+        <view id="Emission-Color">
+            <blit src-fbo="emission-fbo" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
+        <view id="Emission-Blur">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="emission-color"/>
+            <fullscreen-pass shader="regen.filter.sampling"/>
+        </view>
+
         <node id="Transparent-Pass">
             <blend mode="add"/>
             <depth test="1" write="0"/>
-            <node import="Emission-Draw" />
+            <node import="G-Buffer-Emission-Draw" />
         </node>
     </node>
-    <node id="Background-Pass0">
+
+    <node id="Cube-Background-Pass">
         <node id="Sky">
             <depth test="1" write="0"/>
             <sky id="sky"/>
         </node>
-        <!-- TODO: Add lightning to the reflection buffer. But each of them would need their own emission-fbo!
-                   Alternatively, only use emission component of g-buffer with float format, then use very high
-                   emission color.  -->
+        <!--
+        <node import="Rain">
+            <texture name="depthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
+        </node>
+        -->
+        <!-- TODO: Add lightning to the reflection buffer.  -->
+        <!--
+        <node import="Cube-Emission-Update"/>
+        <view id="Cube-Emission-Color">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" fbo="cube-emission-fbo" attachment="0"/>
+            <fullscreen-pass shader="regen.filter.sampling.cube"/>
+        </view>
+        <view id="Cube-Emission-Blurred">
+            <fbo id="SCREEN"/>
+            <texture name="inputTexture" id="cube-emission-color"/>
+            <fullscreen-pass shader="regen.filter.sampling.cube"/>
+        </view>
+        <node id="Cube-Transparent-Pass">
+            <blend mode="add"/>
+            <depth test="1" write="0"/>
+            <node import="Cube-Emission-Draw" />
+        </node>
+        -->
+    </node>
+
+    <node id="Paraboloid-Background-Pass">
+        <node id="Sky">
+            <depth test="1" write="0"/>
+            <sky id="sky"/>
+        </node>
+        <!--
+        <node import="Rain">
+            <texture name="depthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
+        </node>
+        -->
+        <!-- TODO: Add lightning to the reflection buffer.  -->
+        <!--
+        <node import="Paraboloid-Emission-Update"/>
+        <node id="Paraboloid-Transparent-Pass">
+            <blend mode="add"/>
+            <depth test="1" write="0"/>
+            <node import="Paraboloid-Emission-Draw" />
+        </node>
+        -->
     </node>
 
     <node id="Post-Pass">

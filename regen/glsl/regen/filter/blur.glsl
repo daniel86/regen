@@ -41,6 +41,7 @@ flat out int out_layer;
 uniform vec2 in_inverseViewport;
 
 void main() {
+    int layer = regen_RenderLayer();
     incrementalGaussian();
 
 #if RENDER_TARGET == CUBE
@@ -81,7 +82,7 @@ void main() {
 #endif // RENDER_TARGET != CUBE
 
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-    VS_SelectLayer(regen_RenderLayer());
+    VS_SelectLayer(layer);
 }
 
 -- gs

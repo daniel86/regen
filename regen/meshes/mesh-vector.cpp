@@ -207,41 +207,8 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 			return out_;
 		}
 	} else if (meshType == "lightning") {
-		LightningBolt::Config meshCfg;
-		meshCfg.maxBranches_ = input.getValue<GLuint>("max-branches", 10u);
-		meshCfg.maxSubDivisions_ = input.getValue<GLuint>("max-subdivisions", 8u);
-		auto mesh = ref_ptr<LightningBolt>::alloc(meshCfg);
-
-		if (input.hasAttribute("source-pos")) {
-			mesh->setSourcePosition(input.getValue<Vec3f>("source-pos", Vec3f::zero()));
-		}
-		if (input.hasAttribute("target-pos")) {
-			mesh->setTargetPosition(input.getValue<Vec3f>("target-pos", Vec3f::zero()));
-		}
-		// TODO: support moving targets here
-		if (input.hasAttribute("lifetime")) {
-			auto lifetime = input.getValue<Vec2f>("lifetime", Vec2f(2.0f, 0.5f));
-			mesh->setLifetime(lifetime.x, lifetime.y);
-		}
-		if (input.hasAttribute("jitter-offset")) {
-			mesh->setJitterOffset(input.getValue<GLfloat>("jitter-offset", 8.0f));
-		}
-		if (input.hasAttribute("frequency")) {
-			auto frequency = input.getValue<Vec2f>("frequency", Vec2f(0.0f));
-			mesh->setFrequency(frequency.x, frequency.y);
-		}
-		if (input.hasAttribute("branch-probability")) {
-			mesh->setBranchProbability(input.getValue<GLfloat>("branch-probability", 0.5f));
-		}
-		if (input.hasAttribute("branch-offset")) {
-			mesh->setBranchOffset(input.getValue<GLfloat>("branch-offset", 0.5f));
-		}
-		if (input.hasAttribute("branch-length")) {
-			mesh->setBranchLength(input.getValue<GLfloat>("branch-length", 0.5f));
-		}
-		if (input.hasAttribute("branch-darkening")) {
-			mesh->setBranchDarkening(input.getValue<GLfloat>("branch-darkening", 0.5f));
-		}
+		auto mesh = ref_ptr<LightningBolt>::alloc();
+		mesh->load(ctx, input);
 		mesh->startAnimation();
 
 		(*out) = MeshVector(1);

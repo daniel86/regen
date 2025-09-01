@@ -34,7 +34,7 @@ layout(triangle_strip, max_vertices=12) out;
 uniform vec2 in_inverseViewport;
 const float outlineOffset = 2.0;
 
-#define HANDLE_IO
+#define HANDLE_IO(i)
 
 void main() {
     int i;
