@@ -26,9 +26,6 @@ StagedBuffer::StagedBuffer(
 		  stagingFlags_(target, hints) {
 	memoryLayout_ = memoryLayout;
 	clientBuffer_->setMemoryLayout(memoryLayout_);
-#ifdef REGEN_FORCE_CLIENT_DOUBLE_BUFFER
-	clientBuffer_->setClientBufferMode(ClientBuffer::DoubleBuffer);
-#endif
 
 	shared_ = ref_ptr<Shared>::alloc();
 	shared_->updateRange_ = UPDATE_RATE_RANGE;
@@ -145,6 +142,9 @@ void StagedBuffer::updateStorageFlags() {
 	// input has client data, so we need to set the access mode such that the CPU can write to it.
 	enableWriteAccess();
 	setStagingBuffering(SINGLE_BUFFER);
+#ifdef REGEN_FORCE_CLIENT_DOUBLE_BUFFER
+	clientBuffer_->setClientBufferMode(ClientBuffer::DoubleBuffer);
+#endif
 
 	// NOTE: in local staging we avoid persistent mapping the buffer to CPU memory to avoid performance issues
 	//       with fencing, as currently local staging uses per-BO and per-segment fences which is overkill
