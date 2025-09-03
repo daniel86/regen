@@ -369,6 +369,9 @@ std::ostream &regen::operator<<(std::ostream &out, const BufferMemoryLayout &v) 
 		case BUFFER_MEMORY_SHARED:
 			out << "shared";
 			break;
+		case BUFFER_MEMORY_INTERLEAVED:
+			out << "interleaved";
+			break;
 	}
 	return out;
 }

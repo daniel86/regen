@@ -449,6 +449,7 @@ void ClientBuffer::resize(size_t dataSize, const byte *initialData) {
 }
 
 void ClientBuffer::updateBufferSize() {
+	// TODO: Support interleaved layouts here?
 	if (!bufferSegments_.empty()) {
 		uint32_t offset = 0u;
 		for (auto &segment: bufferSegments_) {

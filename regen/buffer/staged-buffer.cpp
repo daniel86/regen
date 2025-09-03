@@ -285,6 +285,7 @@ uint32_t StagedBuffer::updateStagedInputs() {
 			// Align the offset to the required alignment
 			// baseAlignment is always a power of two, so we can use bitwise AND
 			requiredSize_ = (requiredSize_ + in->baseAlignment() - 1) & ~(in->baseAlignment() - 1);
+			// TODO: Support interleaved layouts here?
 			blockInput->offset = requiredSize_;
 			blockInput->inputSize =  in->alignedBaseSize() * in->numElements();
 			requiredSize_ += blockInput->inputSize;
@@ -302,6 +303,8 @@ uint32_t StagedBuffer::updateStagedInputs() {
 	bool lastChanged = false; // whether the last input changed or not
 	for (int32_t inputIdx = 0; inputIdx < static_cast<int32_t>(stagedInputs_.size()); ++inputIdx) {
 		auto &blockInput = *stagedInputs_[inputIdx].get();
+		// TODO: Support interleaved layouts here?
+		//         probably need to invalidate all in this case?
 		if (blockInput.input->stampOfReadData() != lastInputStamp(blockInput)) {
 			if (lastChanged) {
 				// this input adds to the current segment
