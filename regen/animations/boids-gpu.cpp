@@ -161,6 +161,9 @@ void BoidsGPU::createResource() {
 	#endif
 	{
 		auto radixSort = ref_ptr<RadixSort>::alloc(numBoids_);
+		// note: with compaction enabled, there will be an additional "numVisibleKeys" field in the Key buffer,
+		//       that needs to be filled externally (one value per layer).
+		radixSort->setUseCompaction(false);
 		radixSort->setRadixBits(radixBits_);
 		radixSort->setSortGroupSize(sortGroupSize_);
 		radixSort->setScanGroupSize(scanGroupSize_);

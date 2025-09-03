@@ -96,7 +96,7 @@ namespace regen {
 		ref_ptr<SSBO> valueBuffer_[2];
 		ref_ptr<SSBO> userValueBuffer_;
 		bool useSingleValueBuffer_ = false;
-		bool useCompaction_ = true;
+		bool useCompaction_ = false;
 
 		ref_ptr<ComputePass> radixHistogramPass_;
 		ref_ptr<ComputePass> radixScatterPass_;
