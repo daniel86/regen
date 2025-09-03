@@ -6,6 +6,13 @@ uniform uint histogramSize;
 #else
 #define NUM_SCAN_ELEMENTS SCAN_HISTOGRAM_SIZE
 #endif
+-- NUM_SCAN_BLOCKS
+#ifdef SCAN_DYNAMIC_HISTOGRAM_SIZE
+uniform uint numBlocks;
+#define NUM_SCAN_BLOCKS numBlocks
+#else
+#define NUM_SCAN_BLOCKS SCAN_NUM_BLOCKS
+#endif
 
 --------------
 --- Serial scan: Use a single thread to compute the prefix sum of the histogram.
@@ -105,12 +112,7 @@ void main() {
 // Note: the number of blocks is computed as: ceil(HISTOGRAM_SIZE / WG_SIZE)
 #include regen.stages.compute.defines
 #include regen.compute.prefix-scan.NUM_SCAN_ELEMENTS
-
-#ifdef SCAN_DYNAMIC_HISTOGRAM_SIZE
-#define NUM_SCAN_BLOCKS numBlocks
-#else
-#define NUM_SCAN_BLOCKS SCAN_NUM_BLOCKS
-#endif
+#include regen.compute.prefix-scan.NUM_SCAN_BLOCKS
 
 // The global histogram, it reflects global offsets for each bucket and workgroup.
 buffer uint in_globalHistogram[];
@@ -164,15 +166,10 @@ void main() {
 // num_work_units(NUM_BLOCKS2)
 // layout(local_size_x = NUM_BLOCKS2) in;
 #include regen.stages.compute.defines
+#include regen.compute.prefix-scan.NUM_SCAN_BLOCKS
 
 buffer uint in_blockOffsets[];
 shared uint sh_temp[CS_LOCAL_SIZE_X];
-
-#ifdef SCAN_DYNAMIC_HISTOGRAM_SIZE
-#define NUM_SCAN_BLOCKS numBlocks
-#else
-#define NUM_SCAN_BLOCKS SCAN_NUM_BLOCKS
-#endif
 
 void main() {
     uint tid = gl_LocalInvocationID.x;
@@ -212,6 +209,7 @@ void main() {
 // Note: the number of blocks is computed as: ceil(HISTOGRAM_SIZE / WG_SIZE)
 #include regen.stages.compute.defines
 #include regen.compute.prefix-scan.NUM_SCAN_ELEMENTS
+#include regen.compute.prefix-scan.NUM_SCAN_BLOCKS
 // The global histogram, it reflects global offsets for each bucket and workgroup.
 buffer uint in_globalHistogram[];
 buffer uint in_blockOffsets[];
@@ -220,7 +218,7 @@ void main() {
     uint gid = gl_GlobalInvocationID.x;
     uint bid = gl_WorkGroupID.x;
     if (gid >= NUM_SCAN_ELEMENTS) return;
-    uint bo = regen_computeLayer * SCAN_NUM_BLOCKS;
+    uint bo = regen_computeLayer * NUM_SCAN_BLOCKS;
     uint ho = regen_computeLayer * NUM_SCAN_ELEMENTS;
     in_globalHistogram[ho + gid] += in_blockOffsets[bo + bid];
 }

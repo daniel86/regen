@@ -83,7 +83,9 @@ namespace regen {
 		int32_t histogramSizeLoc_p_ = 0u;
 		int32_t histogramSizeLoc_h_l_ = 0u;
 		int32_t histogramSizeLoc_h_d_ = 0u;
-		int32_t numBlocksLoc_h_ = 0u;
+		int32_t numBlocksLoc_h_g_ = 0u;
+		int32_t numBlocksLoc_h_l_ = 0u;
+		int32_t numBlocksLoc_h_d_ = 0u;
 
 		uint32_t getNumDesiredInvocations() const;
 

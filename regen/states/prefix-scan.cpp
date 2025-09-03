@@ -126,6 +126,7 @@ void PrefixScan::createHierarchicalPass() {
 		StateConfigurer shaderCfg;
 		if (hasHistogramConstantSize_) {
 			shaderCfg.define("SCAN_HISTOGRAM_SIZE", REGEN_STRING(currentHistogramSize_));
+			shaderCfg.define("SCAN_NUM_BLOCKS", REGEN_STRING(numBlocks));
 		} else {
 			shaderCfg.define("SCAN_DYNAMIC_HISTOGRAM_SIZE", "TRUE");
 		}
@@ -133,6 +134,7 @@ void PrefixScan::createHierarchicalPass() {
 		computeLocalOffsets_->createShader(shaderCfg.cfg());
 		if (!hasHistogramConstantSize_) {
 			histogramSizeLoc_h_l_ = computeLocalOffsets_->shaderState()->shader()->uniformLocation("histogramSize");
+			numBlocksLoc_h_l_ = computeLocalOffsets_->shaderState()->shader()->uniformLocation("numBlocks");
 		}
 	}
 	{ // pass 2: global offsets
@@ -148,7 +150,7 @@ void PrefixScan::createHierarchicalPass() {
 		computeGlobalOffsets_h_cfg_.addState(computeGlobalOffsets_h_.get());
 		computeGlobalOffsets_h_->createShader(computeGlobalOffsets_h_cfg_.cfg());
 		if (!hasHistogramConstantSize_) {
-			numBlocksLoc_h_ = distributeOffsets_->shaderState()->shader()->uniformLocation("numBlocks");
+			numBlocksLoc_h_g_ = distributeOffsets_->shaderState()->shader()->uniformLocation("numBlocks");
 		}
 	}
 	{ // pass 3: distribute offsets
@@ -161,6 +163,7 @@ void PrefixScan::createHierarchicalPass() {
 		StateConfigurer shaderCfg;
 		if (hasHistogramConstantSize_) {
 			shaderCfg.define("SCAN_HISTOGRAM_SIZE", REGEN_STRING(currentHistogramSize_));
+			shaderCfg.define("SCAN_NUM_BLOCKS", REGEN_STRING(numBlocks));
 		} else {
 			shaderCfg.define("SCAN_DYNAMIC_HISTOGRAM_SIZE", "TRUE");
 		}
@@ -168,6 +171,7 @@ void PrefixScan::createHierarchicalPass() {
 		distributeOffsets_->createShader(shaderCfg.cfg());
 		if (!hasHistogramConstantSize_) {
 			histogramSizeLoc_h_d_ = distributeOffsets_->shaderState()->shader()->uniformLocation("histogramSize");
+			numBlocksLoc_h_d_ = distributeOffsets_->shaderState()->shader()->uniformLocation("numBlocks");
 		}
 	}
 	currentNumBlocks_ = numBlocks;
@@ -206,6 +210,7 @@ void PrefixScan::updateHierarchicalPass() {
 			computeGlobalOffsets_h_->computeState()->setGroupSize(numBlocks2, 1, 1);
 			computeGlobalOffsets_h_->computeState()->setNumWorkUnits(numBlocks2, numLayers_, 1);
 			computeGlobalOffsets_h_cfg_.define("CS_LOCAL_SIZE_X", REGEN_STRING(numBlocks2));
+			computeGlobalOffsets_h_cfg_.define("SCAN_NUM_BLOCKS", REGEN_STRING(numBlocks));
 			computeGlobalOffsets_h_->createShader(computeGlobalOffsets_h_cfg_.cfg());
 			REGEN_DEBUG("PrefixScan: Number of global scan invocations changed from "
 					   << oldNumBlocks2 << " to " << numBlocks2);
@@ -288,14 +293,16 @@ void PrefixScan::scan2(RenderState *rs) {
 	switch (scanMode_) {
 		case Mode::HIERARCHICAL:
 			computeLocalOffsets_->enable(rs);
+			glUniform1ui(numBlocksLoc_h_l_, currentNumBlocks_);
 			glUniform1ui(histogramSizeLoc_h_l_, currentHistogramSize_);
 			computeLocalOffsets_->disable(rs);
 
 			computeGlobalOffsets_h_->enable(rs);
-			glUniform1ui(numBlocksLoc_h_, currentNumBlocks_);
+			glUniform1ui(numBlocksLoc_h_g_, currentNumBlocks_);
 			computeGlobalOffsets_h_->disable(rs);
 
 			distributeOffsets_->enable(rs);
+			glUniform1ui(numBlocksLoc_h_d_, currentNumBlocks_);
 			glUniform1ui(histogramSizeLoc_h_d_, currentHistogramSize_);
 			distributeOffsets_->disable(rs);
 			break;
