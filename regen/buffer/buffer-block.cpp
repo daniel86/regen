@@ -31,13 +31,7 @@ BufferBlock::BufferBlock(const StagedBuffer &other, const std::string &name)
 	isVertexAttribute_ = false;
 }
 
-BufferBlock::~BufferBlock() {
-	if (shared_->copyCount_.fetch_sub(1) == 1) {
-		if (shared_->isGloballyStaged_) {
-			StagingSystem::instance().removeBufferBlock(this);
-		}
-	}
-}
+BufferBlock::~BufferBlock() = default;
 
 void BufferBlock::enableBufferBlock(GLint loc) {
 	if (!isBufferValid_) return;
