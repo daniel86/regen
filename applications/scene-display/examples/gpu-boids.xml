@@ -291,7 +291,7 @@
     <mesh id="fish-mesh" type="asset"
             asset="fish-asset" asset-indices="*" asset-animation="0"
             lod-simplification="0.6, 0.4, 0.2"
-            lod-thresholds="6.0, 40.0"
+            lod-thresholds="5.0, 15.0, 40.0"
             num-instances="{{num-fish}}"
             update-frequency="NEVER">
         <transform id="fish-tf"
@@ -339,7 +339,7 @@
                     hemispherical="1"
                     top-view="0"
                     bottom-view="0"
-                    longitude-steps="8"
+                    longitude-steps="16"
                     latitude-steps="2"
                     texture-size="64,64"
                     update-frequency="NEVER">
