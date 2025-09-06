@@ -122,7 +122,8 @@ ref_ptr<BufferReference> Mesh::setIndices(const ref_ptr<ShaderInput> &indices, G
 	shared_->indices_ = indices;
 	shared_->numIndices_ = static_cast<int32_t>(shared_->indices_->numVertices());
 	shared_->maxIndex_ = maxIndex;
-	return meshBuffer_->allocElementArray(shared_->indices_);
+	elementBuffer_ = ref_ptr<ElementBuffer>::alloc(BufferUpdateFlags::NEVER);
+	return elementBuffer_->alloc(shared_->indices_);
 }
 
 void Mesh::set_vertexOffset(int32_t v) {
@@ -323,27 +324,27 @@ void Mesh::updateVAO(const StateConfig &cfg, const ref_ptr<Shader> &meshShader) 
 	updateDrawFunction();
 }
 
-void Mesh::updateVAO() {
+void Mesh::updateVAO(uint32_t bufferName) {
 	auto rs = RenderState::get();
-	auto lastArrayBuffer = 0u;
 	rs->vao().apply(vao_->id());
+	// NOTE: With VAO bound, ARRAY_BUFFER binding is still handled globally,
+	//       it is not part of VAO state.
+	rs->arrayBuffer().apply(bufferName);
 	// Setup attributes
 	for (auto & vaoAttribute : vaoAttributes_) {
-		const ref_ptr<ShaderInput> &in = vaoAttribute.input;
-		if (lastArrayBuffer != in->buffer()) {
-			lastArrayBuffer = in->buffer();
-			// NOTE: With VAO bound, ARRAY_BUFFER binding is still handled globally,
-			//       it is not part of VAO state.
-			rs->arrayBuffer().apply(lastArrayBuffer);
-		}
-		in->enableAttribute(vaoAttribute.location);
-		if (in->numInstances() > 1) hasInstances_ = true;
+		vaoAttribute.input->enableAttribute(vaoAttribute.location);
+		if (vaoAttribute.input->numInstances() > 1) hasInstances_ = true;
 	}
 	// bind the index buffer
 	if (indexBuffer() > 0) {
 		// NOTE: ELEMENT_ARRAY_BUFFER binding is part of VAO state!
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer());
 	}
+}
+
+void Mesh::updateVAO() {
+	if (vaoAttributes_.empty()) return;
+	updateVAO(vaoAttributes_.front().input->buffer());
 
 	// group together LODs that can be drawn with multi draw calls,
 	// i.e. those that do not have impostor meshes.

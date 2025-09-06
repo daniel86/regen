@@ -14,6 +14,7 @@
 #include "regen/physics/physical-object.h"
 #include "regen/states/state-node.h"
 #include "regen/camera/sorting.h"
+#include "regen/buffer/element-buffer.h"
 
 namespace regen {
 	// forward declaration
@@ -320,6 +321,8 @@ namespace regen {
 		 * Update VAO using last StateConfig.enable.
 		 */
 		void updateVAO();
+
+		void updateVAO(uint32_t bufferName);
 
 		/**
 		 * Update the level of detail based on camera distance.
@@ -648,6 +651,7 @@ namespace regen {
 	protected:
 		GLenum primitive_;
 		ref_ptr<VBO> meshBuffer_;
+		ref_ptr<ElementBuffer> elementBuffer_;
 		DataLayout uploadLayout_ = INTERLEAVED;
 
 		ref_ptr<VAO> vao_;

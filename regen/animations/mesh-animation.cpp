@@ -1,11 +1,3 @@
-/*
- * mesh-animation-gpu.cpp
- *
- *  Created on: 29.10.2012
- *      Author: daniel
- */
-
-#include <limits.h>
 #include <regen/utility/string-util.h>
 #include <regen/gl-types/gl-util.h>
 #include <regen/gl-types/gl-enum.h>
@@ -237,38 +229,13 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	// in the constructor data may not be set or data moved in vbo
 	// so we lookup the offset here.
 	const auto &inputs = mesh_->inputs();
-	std::list<ContiguousBlock> blocks;
 
-	if (hasMeshInterleavedAttributes_) {
-		meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
-		for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
-			const ref_ptr<ShaderInput> &in = it->in_;
-			if (!in->isVertexAttribute()) continue;
-			if (in->offset() < meshBufferOffset_) {
-				meshBufferOffset_ = in->offset();
-			}
-		}
-	} else {
-		// find contiguous blocks of memory in the mesh buffers.
-		auto it = inputs.begin();
-		blocks.emplace_back(it->in_);
-
-		for (++it; it != inputs.end(); ++it) {
-			const ref_ptr<ShaderInput> &in = it->in_;
-			if (!in->isVertexAttribute()) continue;
-			ContiguousBlock &activeBlock = *blocks.rbegin();
-			if (activeBlock.buffer != in->buffer()) {
-				blocks.emplace_back(in);
-			} else if (in->offset() + in->inputSize() == activeBlock.offset) {
-				// join left
-				activeBlock.offset = in->offset();
-				activeBlock.size += in->inputSize();
-			} else if (activeBlock.offset + activeBlock.size == in->offset()) {
-				// join right
-				activeBlock.size += in->inputSize();
-			} else {
-				blocks.emplace_back(in);
-			}
+	meshBufferOffset_ = (inputs.empty() ? 0 : (inputs.begin()->in_)->offset());
+	for (auto it = inputs.rbegin(); it != inputs.rend(); ++it) {
+		const ref_ptr<ShaderInput> &in = it->in_;
+		if (!in->isVertexAttribute()) continue;
+		if (in->offset() < meshBufferOffset_) {
+			meshBufferOffset_ = in->offset();
 		}
 	}
 
@@ -386,25 +353,12 @@ void MeshAnimation::glAnimate(RenderState *rs, GLdouble dt) {
 	}
 
 	// copy transform feedback buffer content to mesh buffer
-	if (hasMeshInterleavedAttributes_) {
-		BufferObject::copy(
-				feedbackRef_->bufferID(),
-				inputs.begin()->in_->buffer(),
-				bufferSize_,
-				0, // feedback buffer offset
-				meshBufferOffset_);
-	} else {
-		GLuint feedbackBufferOffset = 0;
-		for (auto & block : blocks) {
-			BufferObject::copy(
-					feedbackRef_->bufferID(),
-					block.buffer,
-					block.size,
-					feedbackBufferOffset,
-					block.offset);
-			feedbackBufferOffset += block.size;
-		}
-	}
+	BufferObject::copy(
+		feedbackRef_->bufferID(),
+		inputs.begin()->in_->buffer(),
+		bufferSize_,
+		0, // feedback buffer offset
+		meshBufferOffset_);
 
 	lastTime_ = tickRange_.x + timeInTicks;
 }

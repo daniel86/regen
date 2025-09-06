@@ -129,15 +129,6 @@ namespace regen {
 			ref_ptr<BufferReference> ref;
 		};
 
-		struct ContiguousBlock {
-			explicit ContiguousBlock(const ref_ptr<ShaderInput> &in)
-					: buffer(in->buffer()), offset(in->offset()), size(in->inputSize()) {}
-
-			GLuint buffer;
-			GLuint offset;
-			GLuint size;
-		};
-
 		ref_ptr<Shader> interpolationShader_;
 		ref_ptr<VAO> vao_;
 		ShaderInput1f *frameTimeUniform_;

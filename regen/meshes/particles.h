@@ -169,8 +169,8 @@ namespace regen {
 	protected:
 		const std::string updateShaderKey_;
 		ref_ptr<VBO> feedbackBuffer_;
-		ref_ptr<BufferReference> feedbackRef_;
-		ref_ptr<BufferReference> particleRef_;
+		ref_ptr<BufferReference> vboRef_[2];
+		uint32_t updateIdx_ = 0;
 		BufferRange bufferRange_;
 		//ref_ptr<BoundingBoxCounter> boundingBoxCounter_;
 		std::list<InputLocation> particleAttributes_;

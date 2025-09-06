@@ -59,13 +59,13 @@ void Particles::begin(DataLayout layout) {
 }
 
 ref_ptr<BufferReference> Particles::end() {
-	particleRef_ = Mesh::end();
-	feedbackRef_ = feedbackBuffer_->adoptBufferRange(particleRef_->allocatedSize());
-	if (feedbackRef_.get() == nullptr) {
+	vboRef_[0] = Mesh::end();
+	vboRef_[1] = feedbackBuffer_->adoptBufferRange(vboRef_[0]->allocatedSize());
+	if (vboRef_[1].get() == nullptr) {
 		REGEN_WARN("Unable to allocate VBO for particles. Particles will not work.");
-		return particleRef_;
+		return vboRef_[0];
 	}
-	bufferRange_.size_ = particleRef_->allocatedSize();
+	bufferRange_.size_ = vboRef_[0]->allocatedSize();
 
 	// Create shader defines.
 	GLuint counter = 0;
@@ -96,7 +96,7 @@ ref_ptr<BufferReference> Particles::end() {
 	// start with zero emitted particles
 	//set_numVertices(0);
 
-	return particleRef_;
+	return vboRef_[0];
 }
 
 void Particles::setAdvanceFunction(const std::string &attributeName, const std::string &shaderFunction) {
@@ -257,21 +257,19 @@ void Particles::createUpdateShader() {
 }
 
 void Particles::glAnimate(RenderState *rs, GLdouble dt) {
-	if (!feedbackRef_.get()) {
-		return;
-	}
+	const uint32_t nextIdx = (updateIdx_ == 0) ? 1 : 0;
 
 	rs->toggles().push(RenderState::RASTERIZER_DISCARD, GL_TRUE);
 	updateState_->enable(rs);
 
 	rs->vao().apply(particleVAO_.id());
-	rs->arrayBuffer().apply(particleRef_->bufferID());
+	rs->arrayBuffer().apply(vboRef_[updateIdx_]->bufferID());
 	for (auto &particleAttribute: particleAttributes_) {
 		particleAttribute.input->enableAttribute(particleAttribute.location);
 	}
 
-	bufferRange_.buffer_ = feedbackRef_->bufferID();
-	bufferRange_.offset_ = feedbackRef_->address();
+	bufferRange_.buffer_ = vboRef_[nextIdx]->bufferID();
+	bufferRange_.offset_ = vboRef_[nextIdx]->address();
 	rs->feedbackBufferRange().push(0, bufferRange_);
 	rs->beginTransformFeedback(GL_POINTS);
 	// bind the atomic counter for computing the bounding box to fixed location 0
@@ -299,19 +297,18 @@ void Particles::glAnimate(RenderState *rs, GLdouble dt) {
 	// Update particle attribute layout.
 	GLuint currOffset = bufferRange_.offset_;
 	for (auto &particleAttribute: particleAttributes_) {
-		particleAttribute.input->set_buffer(bufferRange_.buffer_, feedbackRef_);
+		particleAttribute.input->set_buffer(bufferRange_.buffer_, vboRef_[nextIdx]);
 		particleAttribute.input->set_offset(currOffset);
 		currOffset += particleAttribute.input->elementSize();
 	}
 	// And update the VAO so that next drawing uses last feedback result.
-	std::set<Mesh *> particleMeshes;
-	getMeshViews(particleMeshes);
-	for (auto particleMesh: particleMeshes) { particleMesh->updateVAO(); }
+	updateVAO(bufferRange_.buffer_);
+	for (auto particleMesh: meshViews_) {
+		particleMesh->updateVAO(bufferRange_.buffer_);
+	}
 
 	// Ping-Pong VBO references so that next feedback goes to other buffer.
-	ref_ptr<BufferReference> buf = particleRef_;
-	particleRef_ = feedbackRef_;
-	feedbackRef_ = buf;
+	updateIdx_ = nextIdx;
 
 	// Read atomic counter to get the bounding box of the particles
 	//auto bounds = boundingBoxCounter_->updateBounds();
