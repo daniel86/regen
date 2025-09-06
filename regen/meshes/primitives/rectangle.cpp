@@ -194,7 +194,6 @@ void Rectangle::updateAttributes() {
 						 i);
 	}
 
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (rectangleConfig_.isNormalRequired)
@@ -203,7 +202,7 @@ void Rectangle::updateAttributes() {
 		setInput(texco_);
 	if (rectangleConfig_.isTangentRequired)
 		setInput(tan_);
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)

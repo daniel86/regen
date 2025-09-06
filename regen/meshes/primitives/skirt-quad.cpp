@@ -95,10 +95,9 @@ void SkirtMesh::updateAttributes(const Rectangle::Config &rectangleConfig) {
 	}
 	skirtTess_.clear();
 
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)

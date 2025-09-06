@@ -44,6 +44,14 @@ namespace regen {
 	};
 
 	/**
+	 * The vertex layout, i.e. how vertex attributes are arranged in the buffer.
+	 */
+	enum VertexLayout {
+		VERTEX_LAYOUT_INTERLEAVED = 0,
+		VERTEX_LAYOUT_SEQUENTIAL = 1
+	};
+
+	/**
 	  * The buffering mode, i.e. how many buffers are used
 	  * (usually by the staging system).
 	  */

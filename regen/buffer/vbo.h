@@ -13,7 +13,7 @@ namespace regen {
 		 * Default-Constructor.
 		 * @param usage usage hint.
 		 */
-		VBO(BufferTarget target, const BufferUpdateFlags &hints);
+		VBO(BufferTarget target, const BufferUpdateFlags &hints, VertexLayout vertexLayout);
 
 		~VBO() override = default;
 
@@ -26,33 +26,19 @@ namespace regen {
 		ref_ptr<BufferReference> &alloc(const ref_ptr<ShaderInput> &att);
 
 		/**
-		 * Allocate GPU memory for the given attributes.
+		 * Allocate a block in the VBO memory.
 		 * And copy the data from RAM to GPU.
 		 * Note that as long as you keep a reference the allocated storage
 		 * is marked as used.
 		 */
-		ref_ptr<BufferReference> &allocInterleaved(const std::list<ref_ptr<ShaderInput> > &attributes);
-
-		/**
-		 * Allocate GPU memory for the given attributes.
-		 * And copy the data from RAM to GPU.
-		 * Note that as long as you keep a reference the allocated storage
-		 * is marked as used.
-		 */
-		ref_ptr<BufferReference> &allocSequential(const std::list<ref_ptr<ShaderInput> > &attributes);
+		ref_ptr<BufferReference> &alloc(const std::list<ref_ptr<ShaderInput>> &attributes);
 
 	protected:
-		void uploadInterleaved(
-				GLuint startByte,
-				GLuint endByte,
-				const std::list<ref_ptr<ShaderInput> > &attributes,
-				ref_ptr<BufferReference> &ref);
+		const VertexLayout vertexLayout_;
 
-		void uploadSequential(
-				GLuint startByte,
-				GLuint endByte,
-				const std::list<ref_ptr<ShaderInput> > &attributes,
-				ref_ptr<BufferReference> &ref);
+		ref_ptr<BufferReference> &allocInterleaved(const std::list<ref_ptr<ShaderInput> > &attributes);
+
+		ref_ptr<BufferReference> &allocSequential(const std::list<ref_ptr<ShaderInput> > &attributes);
 	};
 } // namespace
 

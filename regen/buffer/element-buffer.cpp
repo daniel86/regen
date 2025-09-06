@@ -15,19 +15,20 @@ ref_ptr<BufferReference> &ElementBuffer::alloc(const ref_ptr<ShaderInput> &att) 
 	elementRef_ = adoptBufferRange(numBytes);
 	if (elementRef_->allocatedSize() < numBytes) return elementRef_;
 	const uint32_t startByte = elementRef_->address();
-	byte *data = new byte[numBytes];
 
 	att->set_offset(startByte);
 	att->set_stride(att->elementSize());
 	att->set_buffer(elementRef_->bufferID(), elementRef_);
 	// copy data
 	if (att->hasClientData()) {
-		std::memcpy(data,
-			att->mapClientDataRaw(BUFFER_GPU_READ).r,
-			att->inputSize());
+		auto mapped = att->mapClientDataRaw(BUFFER_GPU_READ);
+		glNamedBufferSubData(
+			elementRef_->bufferID(),
+			startByte,
+			numBytes,
+			mapped.r);
 	}
 
-	glNamedBufferSubData(elementRef_->bufferID(), startByte, numBytes, data);
-	delete[]data;
+	elements_ = att;
 	return elementRef_;
 }

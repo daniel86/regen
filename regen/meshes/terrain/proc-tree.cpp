@@ -417,7 +417,6 @@ void ProcTree::updateAttributes_(
 		const ProcMesh &lod0,
 		const std::vector<Mesh::MeshLOD> &lodLevels,
 		uint32_t maxVIndex) {
-	treeMesh.mesh->begin(Mesh::INTERLEAVED);
 	auto indexRef = treeMesh.mesh->setIndices(treeMesh.indices, maxVIndex);
 	treeMesh.mesh->setInput(treeMesh.pos);
 	if (treeMesh.basePos.get()) {
@@ -426,7 +425,7 @@ void ProcTree::updateAttributes_(
 	treeMesh.mesh->setInput(treeMesh.nor);
 	treeMesh.mesh->setInput(treeMesh.tan);
 	treeMesh.mesh->setInput(treeMesh.texco);
-	treeMesh.mesh->end();
+	treeMesh.mesh->updateVertexData();
 
 	Vec3f min = *((Vec3f *) &lod0.mVert[0]);
 	Vec3f max = *((Vec3f *) &lod0.mVert[0]);

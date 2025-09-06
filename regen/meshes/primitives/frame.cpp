@@ -263,7 +263,6 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 		}
 	}
 
-	begin(INTERLEAVED);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
 		setInput(nor_);
@@ -271,5 +270,5 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 		setInput(texco_);
 	if (cfg.isTangentRequired)
 		setInput(tan_);
-	end();
+	updateVertexData();
 }

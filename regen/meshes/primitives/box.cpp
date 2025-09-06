@@ -266,7 +266,6 @@ void Box::updateAttributes(const Config &cfg) {
 		}
 	}
 
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
@@ -275,7 +274,7 @@ void Box::updateAttributes(const Config &cfg) {
 		setInput(texco_);
 	if (cfg.isTangentRequired)
 		setInput(tan_);
-	auto vertexRef = end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)

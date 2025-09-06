@@ -13,9 +13,8 @@ Point::Point(GLuint numVertices)
 
 	if (numVertices == 1) {
 		pos_->setVertex(0, Vec3f(0.0, 0.0, 0.0));
-		begin(INTERLEAVED);
 		setInput(pos_);
-		end();
+		updateVertexData();
 	}
 
 	// note: use a small epsilon to avoid division by zero

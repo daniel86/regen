@@ -982,13 +982,12 @@ void MeshSimplifier::applyAttributes() {
 
 	// add the output attributes to the mesh
 	mesh_->set_numVertices(numVertices);
-	mesh_->begin(Mesh::INTERLEAVED);
 	auto indexRef = mesh_->setIndices(outputIndices_, numVertices);
 	mesh_->setInput(outputPos_);
 	for (auto &pair: outputAttributes_) {
 		mesh_->setInput(pair.second);
 	}
-	mesh_->end();
+	mesh_->updateVertexData();
 
 	// create the mesh LODs
 	std::vector<Mesh::MeshLOD> meshLODs(useOriginalData() ? lodLevels_.size() : lodLevels_.size() - 1);

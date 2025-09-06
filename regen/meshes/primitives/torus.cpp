@@ -204,7 +204,6 @@ void Torus::updateAttributes(const Config &cfg) {
 	}
 
 	// Set up the vertex attributes
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired) {
@@ -216,7 +215,7 @@ void Torus::updateAttributes(const Config &cfg) {
 	if (cfg.isTangentRequired) {
 		setInput(tan_);
 	}
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)

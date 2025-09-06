@@ -28,7 +28,7 @@ struct Mesh::SharedData {
 	ref_ptr<ShaderInput> indices_;
 };
 
-Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints)
+Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints, VertexLayout vertexLayout)
 		: State(),
 		  primitive_(primitive),
 		  vao_(ref_ptr<VAO>::alloc()),
@@ -41,14 +41,14 @@ Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints)
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
 	lodThresholds_->setUniformData(Vec3f::zero());
 	sharedState_ = ref_ptr<State>::alloc();
-	meshBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, hints);
+	vertexBuffer_ = ref_ptr<VBO>::alloc(ARRAY_BUFFER, hints, vertexLayout);
 }
 
 Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		: State(sourceMesh),
 		  primitive_(sourceMesh->primitive_),
-		  meshBuffer_(sourceMesh->meshBuffer_),
-		  uploadLayout_(sourceMesh->uploadLayout_),
+		  vertexBuffer_(sourceMesh->vertexBuffer_),
+		  elementBuffer_(sourceMesh->elementBuffer_),
 		  meshLODs_(sourceMesh->meshLODs_),
 		  v_lodThresholds_(sourceMesh->v_lodThresholds_),
 		  lodLevel_(sourceMesh->lodLevel_),
@@ -86,18 +86,14 @@ Mesh::~Mesh() {
 }
 
 void Mesh::setBufferMapMode(BufferMapMode mode) {
-	meshBuffer_->setBufferMapMode(mode);
+	vertexBuffer_->setBufferMapMode(mode);
 }
 
 void Mesh::setClientAccessMode(ClientAccessMode mode) {
-	meshBuffer_->setClientAccessMode(mode);
+	vertexBuffer_->setClientAccessMode(mode);
 }
 
-void Mesh::begin(DataLayout layout) {
-	uploadLayout_ = layout;
-}
-
-ref_ptr<BufferReference> Mesh::end() {
+ref_ptr<BufferReference> Mesh::updateVertexData() {
 	ref_ptr<BufferReference> ref;
 	std::list<ref_ptr<ShaderInput>> attributes;
 
@@ -109,16 +105,12 @@ ref_ptr<BufferReference> Mesh::end() {
 	}
 	// adopt a buffer range to store the vertex data
 	if (!attributes.empty()) {
-		if (uploadLayout_ == SEQUENTIAL) {
-			ref = meshBuffer_->allocSequential(attributes);
-		} else if (uploadLayout_ == INTERLEAVED) {
-			ref = meshBuffer_->allocInterleaved(attributes);
-		}
+		ref = vertexBuffer_->alloc(attributes);
 	}
 	return ref;
 }
 
-ref_ptr<BufferReference> Mesh::setIndices(const ref_ptr<ShaderInput> &indices, GLuint maxIndex) {
+ref_ptr<BufferReference> Mesh::setIndices(const ref_ptr<ShaderInput> &indices, uint32_t maxIndex) {
 	shared_->indices_ = indices;
 	shared_->numIndices_ = static_cast<int32_t>(shared_->indices_->numVertices());
 	shared_->maxIndex_ = maxIndex;
@@ -175,12 +167,7 @@ void Mesh::set_indexOffset(uint32_t v) {
 }
 
 GLuint Mesh::indexBuffer() const {
-	return shared_->indices_.get() ? shared_->indices_->buffer() : 0;
-}
-
-void Mesh::getMeshViews(std::set<Mesh *> &out) {
-	out.insert(this);
-	for (auto meshView : meshViews_) { meshView->getMeshViews(out); }
+	return elementBuffer_.get() ? elementBuffer_->bufferID() : 0;
 }
 
 void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &in) {
@@ -214,7 +201,7 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 		}
 		if (!in->bufferIterator().get()) {
 			// allocate VBO memory if not already allocated
-			meshBuffer_->alloc(in);
+			vertexBuffer_->alloc(in);
 		}
 
 		auto needle = vaoLocations_.find(loc);

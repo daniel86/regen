@@ -11,13 +11,16 @@ using namespace regen;
 ///////////
 
 Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
-		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER),
+		: Mesh(GL_POINTS, BufferUpdateFlags::NEVER, VERTEX_LAYOUT_INTERLEAVED),
 		  Animation(true, false),
 		  updateShaderKey_(updateShaderKey),
 		  maxEmits_(100u) {
 	setAnimationName("particles");
 	setClientAccessMode(BUFFER_CPU_WRITE);
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::FULL_PER_FRAME);
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(
+			TRANSFORM_FEEDBACK_BUFFER,
+			BufferUpdateFlags::FULL_PER_FRAME,
+			VERTEX_LAYOUT_INTERLEAVED);
 	feedbackBuffer_->setClientAccessMode(BUFFER_GPU_ONLY);
 	set_numVertices(numParticles);
 	updateState_ = ref_ptr<ShaderState>::alloc();
@@ -27,12 +30,6 @@ Particles::Particles(GLuint numParticles, const std::string &updateShaderKey)
 }
 
 void Particles::begin() {
-	Particles::begin(INTERLEAVED);
-}
-
-void Particles::begin(DataLayout layout) {
-	Mesh::begin(layout);
-
 	GLuint numParticles = numVertices();
 
 	// Initialize the random number generator and distribution
@@ -59,7 +56,7 @@ void Particles::begin(DataLayout layout) {
 }
 
 ref_ptr<BufferReference> Particles::end() {
-	vboRef_[0] = Mesh::end();
+	vboRef_[0] = Mesh::updateVertexData();
 	vboRef_[1] = feedbackBuffer_->adoptBufferRange(vboRef_[0]->allocatedSize());
 	if (vboRef_[1].get() == nullptr) {
 		REGEN_WARN("Unable to allocate VBO for particles. Particles will not work.");

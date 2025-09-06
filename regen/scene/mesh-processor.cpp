@@ -69,7 +69,7 @@ void MeshNodeProvider::processInput(
 		if (input.hasAttribute("primitive")) {
 			meshCopy->set_primitive(glenum::primitive(input.getValue("primitive")));
 		}
-		meshCopy->set_lodSortMode(SortMode::FRONT_TO_BACK);
+		meshCopy->setSortMode(SortMode::FRONT_TO_BACK);
 		meshCopy->ensureLOD();
 		StateConfigurer meshConfigurer;
 		auto meshNode = ref_ptr<StateNode>::alloc();
@@ -109,7 +109,7 @@ void MeshNodeProvider::processInput(
 								lodState->numDrawLayers());
 						}
 						// set sorting mode
-						meshCopy->set_lodSortMode(lodState->instanceSortMode());
+						meshCopy->setSortMode(lodState->instanceSortMode());
 					}
 				} else {
 					REGEN_WARN("Mesh '" << input.getDescription() << "' has no cull shape.");
@@ -125,7 +125,7 @@ void MeshNodeProvider::processInput(
 					if (cullShape->hasInstanceBuffer()) {
 						meshCopy->setInstanceBuffer(cullShape->instanceBuffer());
 					}
-					meshCopy->set_lodSortMode(cullShape->instanceSortMode());
+					meshCopy->setSortMode(cullShape->instanceSortMode());
 				}
 			}
 		} else if (input.hasAttribute("update-visibility")) {

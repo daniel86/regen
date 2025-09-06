@@ -159,9 +159,6 @@ namespace regen {
 		// override
 		void glAnimate(RenderState *rs, GLdouble dt) override;
 
-		/**
-		 * Begin recording ShaderInput's using interleaved layout.
-		 */
 		void begin();
 
 		ref_ptr<BufferReference> end();
@@ -189,9 +186,6 @@ namespace regen {
 		};
 		std::map<std::string, Ramp> ramps_;
 		std::map<std::string, std::string> rampFunctions_;
-
-		// override
-		void begin(DataLayout layout);
 
 		void createUpdateShader();
 

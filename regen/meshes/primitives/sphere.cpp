@@ -192,7 +192,6 @@ void Sphere::updateAttributes(const Config &cfg) {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired) {
@@ -204,7 +203,7 @@ void Sphere::updateAttributes(const Config &cfg) {
 	if (texcoMode != TEXCO_MODE_NONE) {
 		setInput(texco_);
 	}
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
@@ -258,8 +257,7 @@ void SphereSprite::updateAttributes(const Config &cfg) {
 	mappedRadius.unmap();
 	mappedPosition.unmap();
 
-	begin(INTERLEAVED);
 	setInput(radiusIn);
 	setInput(positionIn);
-	end();
+	updateVertexData();
 }

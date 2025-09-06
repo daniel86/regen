@@ -123,10 +123,9 @@ void BrightStars::set_brightStarsFile(const std::string &brightStars) {
 		));
 	}
 
-	meshState_->begin(Mesh::INTERLEAVED);
 	meshState_->setInput(pos_);
 	meshState_->setInput(col_);
-	meshState_->end();
+	meshState_->updateVertexData();
 }
 
 void BrightStars::updateNoiseTexture() {

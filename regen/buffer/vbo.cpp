@@ -2,8 +2,9 @@
 
 using namespace regen;
 
-VBO::VBO(BufferTarget target, const BufferUpdateFlags &hints)
-		: BufferObject(target, hints) {
+VBO::VBO(BufferTarget target, const BufferUpdateFlags &hints, VertexLayout vertexLayout)
+		: BufferObject(target, hints),
+		  vertexLayout_(vertexLayout) {
 	// set default storage flags
 	flags_.mapMode = BUFFER_MAP_DISABLED;
 	// default case: mesh data is loaded from CPU and written to GPU
@@ -16,69 +17,53 @@ ref_ptr<BufferReference> &VBO::alloc(const ref_ptr<ShaderInput> &att) {
 	return allocSequential(atts);
 }
 
-ref_ptr<BufferReference> &VBO::allocInterleaved(
-		const std::list<ref_ptr<ShaderInput> > &attributes) {
-	GLuint numBytes = attributeSize(attributes);
-	ref_ptr<BufferReference> &ref = adoptBufferRange(numBytes);
-	if (ref->allocatedSize() < numBytes) return ref;
-	GLuint offset = ref->address();
-	// set buffer sub data
-	uploadInterleaved(offset, offset + numBytes, attributes, ref);
-	return ref;
+ref_ptr<BufferReference> &VBO::alloc(const std::list<ref_ptr<ShaderInput>> &attributes) {
+	if (vertexLayout_ == VERTEX_LAYOUT_INTERLEAVED) {
+		return allocInterleaved(attributes);
+	} else {
+		return allocSequential(attributes);
+	}
 }
 
 ref_ptr<BufferReference> &VBO::allocSequential(
 		const std::list<ref_ptr<ShaderInput> > &attributes) {
-	GLuint numBytes = attributeSize(attributes);
+	const uint32_t numBytes = attributeSize(attributes);
 	ref_ptr<BufferReference> &ref = adoptBufferRange(numBytes);
 	if (ref->allocatedSize() < numBytes) return ref;
-	GLuint offset = ref->address();
-	// set buffer sub data
-	uploadSequential(offset, offset + numBytes, attributes, ref);
-	return ref;
-}
+	const uint32_t startByte = ref->address();
+	uint32_t currOffset = 0;
 
-void VBO::uploadSequential(
-		GLuint startByte,
-		GLuint endByte,
-		const std::list<ref_ptr<ShaderInput> > &attributes,
-		ref_ptr<BufferReference> &ref) {
-	GLuint bufferSize = endByte - startByte;
-	GLuint currOffset = 0;
-	byte *data = new byte[bufferSize];
-
-	for (const auto &attribute: attributes) {
-		ShaderInput *att = attribute.get();
+	for (const auto &att: attributes) {
 		att->set_offset(currOffset + startByte);
 		att->set_stride(att->elementSize());
 		att->set_buffer(ref->bufferID(), ref);
 		// copy data
 		if (att->hasClientData()) {
-			std::memcpy(
-					data + currOffset,
-					att->mapClientDataRaw(BUFFER_GPU_READ).r,
-					att->inputSize()
-			);
+			auto mapped = att->mapClientDataRaw(BUFFER_GPU_READ);
+			glNamedBufferSubData(
+					ref->bufferID(),
+					currOffset + startByte,
+					att->inputSize(),
+					mapped.r);
 		}
 		currOffset += att->inputSize();
 	}
 
-	glNamedBufferSubData(ref->bufferID(), startByte, bufferSize, data);
-	delete[]data;
+	return ref;
 }
 
-void VBO::uploadInterleaved(
-		GLuint startByte,
-		GLuint endByte,
-		const std::list<ref_ptr<ShaderInput> > &attributes,
-		ref_ptr<BufferReference> &ref) {
-	GLuint bufferSize = endByte - startByte;
-	GLuint currOffset = startByte;
+ref_ptr<BufferReference> &VBO::allocInterleaved(
+		const std::list<ref_ptr<ShaderInput> > &attributes) {
+	const uint32_t numBytes = attributeSize(attributes);
+	ref_ptr<BufferReference> &ref = adoptBufferRange(numBytes);
+	if (ref->allocatedSize() < numBytes) return ref;
+	const uint32_t startByte = ref->address();
 	// get the attribute struct size
-	GLuint attributeVertexSize = 0;
-	GLuint numVertices = attributes.front()->numVertices();
-	byte *data = new byte[bufferSize];
+	uint32_t attributeVertexSize = 0;
+	uint32_t numVertices = attributes.front()->numVertices();
+	byte *data = new byte[numBytes];
 
+	uint32_t currOffset = startByte;
 	for (const auto &attribute: attributes) {
 		ShaderInput *att = attribute.get();
 
@@ -108,14 +93,14 @@ void VBO::uploadInterleaved(
 		}
 	}
 
-	GLuint count = 0;
-	for (GLuint i = 0; i < numVertices; ++i) {
+	uint32_t count = 0;
+	for (uint32_t i = 0; i < numVertices; ++i) {
 		for (const auto &attribute: attributes) {
 			ShaderInput *att = attribute.get();
 			if (att->divisor() != 0) { continue; }
 
 			// size of a value for a single vertex in bytes
-			GLuint valueSize = att->valsPerElement() * att->dataTypeBytes() * att->numArrayElements();
+			uint32_t valueSize = att->valsPerElement() * att->dataTypeBytes() * att->numArrayElements();
 			// copy data
 			if (att->hasClientData()) {
 				auto m = att->mapClientDataRaw(BUFFER_GPU_READ);
@@ -125,6 +110,7 @@ void VBO::uploadInterleaved(
 		}
 	}
 
-	glNamedBufferSubData(ref->bufferID(), startByte, bufferSize, data);
+	glNamedBufferSubData(ref->bufferID(), startByte, numBytes, data);
 	delete[]data;
+	return ref;
 }

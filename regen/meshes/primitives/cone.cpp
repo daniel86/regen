@@ -88,11 +88,10 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(INTERLEAVED);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
 		setInput(nor_);
-	end();
+	updateVertexData();
 
 	activateLOD(0);
 }
@@ -247,12 +246,11 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 						 meshLODs_[i].d->indexOffset);
 	}
 
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (cfg.isNormalRequired)
 		setInput(nor_);
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)

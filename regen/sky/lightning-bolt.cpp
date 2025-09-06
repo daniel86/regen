@@ -371,11 +371,10 @@ void LightningBolt::createResources() {
 		brightness_->setVertexData(numVertices);
 		strikeIdx_->setVertexData(numVertices);
 
-		begin(INTERLEAVED);
 		setInput(strikeIdx_);
 		setInput(brightness_);
 		setInput(pos_);
-		end();
+		updateVertexData();
 
 		// create single LOD level
 		auto &lod = meshLODs_.emplace_back();
@@ -420,11 +419,11 @@ void LightningBolt::glAnimate(RenderState *rs, GLdouble dt) {
 		set_isHidden(!isActive_);
 	}
 	if (active) {
-		updateVertexData();
+		updateLightningBolt();
 	}
 }
 
-void LightningBolt::updateVertexData() {
+void LightningBolt::updateLightningBolt() {
 	const uint32_t maxVertices = pos_->numVertices();
 	uint32_t numVertices = 0u, strikeVertices, strikeBytes;
 	uint32_t offset = bufferOffset_;
@@ -444,5 +443,7 @@ void LightningBolt::updateVertexData() {
 	}
 	// update the number of vertices
 	set_numVertices(numVertices);
-	meshLODs_.front().d->numVertices = numVertices;
+	if (!meshLODs_.empty()) {
+		meshLODs_.front().d->numVertices = numVertices;
+	}
 }

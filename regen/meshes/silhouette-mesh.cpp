@@ -56,7 +56,6 @@ void SilhouetteMesh::updateAttributes() {
 	}
 
 	// Set up the vertex attributes
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	if (silhouetteCfg_.hasNormal) {
@@ -68,7 +67,7 @@ void SilhouetteMesh::updateAttributes() {
 	if (silhouetteCfg_.hasTangent) {
 		setInput(tan_);
 	}
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)

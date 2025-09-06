@@ -100,9 +100,8 @@ void ImpostorBillboard::updateExtrudeAttributes() {
 	Vec3f posData[1] = {Vec3f(0.0f, 0.0f, 0.0f)};
 	positionIn->setVertexData(1, (byte *) posData);
 
-	begin(INTERLEAVED);
 	setInput(positionIn);
-	end();
+	updateVertexData();
 	hasAttributes_ = true;
 #endif
 }

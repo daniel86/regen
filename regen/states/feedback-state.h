@@ -90,7 +90,10 @@ namespace regen {
 		 * @param feedbackPrimitive face primitive type.
 		 * @param feedbackCount number of captured vertices. With 0 each vertex is captured.
 		 */
-		FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount);
+		FeedbackState(
+				GLenum feedbackPrimitive,
+				GLuint feedbackCount,
+				VertexLayout vertexLayout = VERTEX_LAYOUT_INTERLEAVED);
 
 		/**
 		 * Initialize the transform feedback buffer.

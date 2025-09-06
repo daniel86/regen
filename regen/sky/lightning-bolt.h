@@ -170,7 +170,7 @@ namespace regen {
 
 		std::vector<ref_ptr<LightningStrike>> strikes_;
 
-		void updateVertexData();
+		void updateLightningBolt();
 	};
 } // namespace
 

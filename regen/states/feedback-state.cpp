@@ -53,10 +53,18 @@ GLboolean FeedbackSpecification::hasFeedback(const std::string &name) const {
 
 
 
-FeedbackState::FeedbackState(GLenum feedbackPrimitive, GLuint feedbackCount)
+FeedbackState::FeedbackState(
+			GLenum feedbackPrimitive,
+			GLuint feedbackCount,
+			VertexLayout vertexLayout)
 		: FeedbackSpecification(feedbackCount),
 		  feedbackPrimitive_(feedbackPrimitive) {
-	feedbackBuffer_ = ref_ptr<VBO>::alloc(TRANSFORM_FEEDBACK_BUFFER, BufferUpdateFlags::NEVER);
+	feedbackMode_ = vertexLayout == VERTEX_LAYOUT_INTERLEAVED ?
+					GL_INTERLEAVED_ATTRIBS : GL_SEPARATE_ATTRIBS;
+	feedbackBuffer_ = ref_ptr<VBO>::alloc(
+			TRANSFORM_FEEDBACK_BUFFER,
+			BufferUpdateFlags::NEVER,
+			vertexLayout);
 	allocatedBufferSize_ = 0;
 
 	bufferRange_.buffer_ = 0;
@@ -69,11 +77,7 @@ void FeedbackState::initializeResources() {
 		// free previously allocated data
 		if (feedbackRef_.get()) { BufferObject::orphanBufferRange(feedbackRef_.get()); }
 		// allocate memory and upload to GL
-		if (feedbackMode_ == GL_INTERLEAVED_ATTRIBS) {
-			feedbackRef_ = feedbackBuffer_->allocInterleaved(feedbackAttributes_);
-		} else {
-			feedbackRef_ = feedbackBuffer_->allocSequential(feedbackAttributes_);
-		}
+		feedbackRef_ = feedbackBuffer_->alloc(feedbackAttributes_);
 		bufferRange_.buffer_ = feedbackRef_->bufferID();
 		bufferRange_.offset_ = feedbackRef_->address();
 		bufferRange_.size_ = requiredBufferSize_;

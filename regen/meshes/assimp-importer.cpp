@@ -833,8 +833,6 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 			break;
 	}
 
-	meshState->begin(Mesh::INTERLEAVED);
-
 	{
 		ref_ptr<ShaderInput> indices = createIndexInput(numIndices, mesh.mNumVertices);
 		auto faceIndices = (byte*)indices->clientBuffer()->clientData(0);
@@ -1006,7 +1004,7 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 	}
 	GL_ERROR_LOG();
 
-	meshState->end();
+	meshState->updateVertexData();
 	meshState->ensureLOD();
 
 	return meshState;

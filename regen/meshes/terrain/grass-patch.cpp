@@ -162,11 +162,10 @@ void GrassPatch::updateAttributes() {
 		generateLODLevel(lodIdx);
 	}
 
-	begin(INTERLEAVED);
 	auto indexRef = setIndices(indices_, numVertices);
 	setInput(pos_);
 	setInput(basePos_);
-	end();
+	updateVertexData();
 
 	for (auto &x: meshLODs_) {
 		// add the index buffer offset (in number of bytes)
