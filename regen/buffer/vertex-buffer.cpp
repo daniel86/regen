@@ -5,9 +5,9 @@ using namespace regen;
 
 static BufferMemoryLayout getMemoryLayout(VertexLayout layout) {
 	switch (layout) {
-		case VertexLayout::INTERLEAVED:
+		case regen::VERTEX_LAYOUT_INTERLEAVED:
 			return BUFFER_MEMORY_INTERLEAVED;
-		case VertexLayout::SEQUENTIAL:
+		case regen::VERTEX_LAYOUT_SEQUENTIAL:
 			return BUFFER_MEMORY_PACKED;
 	}
 	return BUFFER_MEMORY_PACKED;

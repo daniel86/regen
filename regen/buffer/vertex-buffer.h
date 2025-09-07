@@ -4,14 +4,8 @@
 #include "staged-buffer.h"
 
 namespace regen {
-	enum class VertexLayout {
-		INTERLEAVED,
-		SEQUENTIAL
-	};
-
 	class VertexBuffer : public StagedBuffer {
 	public:
-
 		VertexBuffer(const std::string &name,
 				const BufferUpdateFlags &hints,
 				VertexLayout layoutQualifier);
