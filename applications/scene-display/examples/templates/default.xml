@@ -205,9 +205,6 @@
         <view id="G-Buffer: Diffuse">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
-        <view id="G-Buffer: Ambient">
-            <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
-        </view>
         <view id="G-Buffer: Specular">
             <blit src-fbo="g-buffer" src-attachment="2" dst-fbo="SCREEN"/>
         </view>
