@@ -56,7 +56,7 @@
          pixel-size="16"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <texture id="emission" pixel-components="3"/>
@@ -306,7 +306,7 @@
             </node>
             <node id="tree1-pot-disc">
                 <texture id="sand" map-to="color" blend-mode="SRC"/>
-                <material ambient="0.1, 0.1, 0.1" specular="0.0, 0.0, 0.0" update-frequency="NEVER"/>
+                <material specular="0.0, 0.0, 0.0" update-frequency="NEVER"/>
                 <mesh id="tree-disc" shader="regen.models.mesh" update-visibility="0" />
             </node>
         </node>
@@ -368,7 +368,6 @@
             <input name="colliderRadius" type="float" value="4.4"/>
             <material
                     diffuse="1.5, 1.5, 1.5"
-                    ambient="0.1, 0.1, 0.1"
                     specular="0.0, 0.0, 0.0"
                     shininess="256.0"
                     emission="0.0, 0.0, 0.0"

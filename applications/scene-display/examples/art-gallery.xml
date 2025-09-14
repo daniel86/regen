@@ -55,7 +55,7 @@
          pixel-components="4"
          pixel-type="FLOAT" pixel-size="16">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
@@ -174,7 +174,7 @@
          pixel-size="16"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth pixel-size="24"/>
@@ -247,7 +247,7 @@
     <node id="Reflectors">
         <depth test="1" write="1"/>
         <define key="SHADING" value="NONE"/>
-        <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" update-frequency="NEVER"/>
+        <material diffuse="0.0,0.0,0.0" update-frequency="NEVER"/>
         <node id="Planar-Reflector">
             <input name="ReflectionCamera" state="reflection-camera" component="Camera" member-suffix="_Reflection"/>
             <texture name="colorTexture" fbo="reflection-buffer" attachment="1"
@@ -345,7 +345,7 @@
 
     <node id="Pictures">
         <node id="Picture-Canvas">
-            <material ambient="1.0,1.0,1.0" diffuse="0.0,0.0,0.0" update-frequency="NEVER"/>
+            <material diffuse="0.0,0.0,0.0" update-frequency="NEVER"/>
             <node id="video-picture-canvas">
                 <define key="TEXCO_FLIP_X" value="1"/>
                 <texture name="colorTexture" id="video-texture" map-to="DIFFUSE" texco-flipping="x"/>
@@ -371,7 +371,6 @@
 
         <node id="Picture-Frames">
             <material preset="wood" variant="0" color-blend-mode="MUL"
-                      ambient="0.2, 0.2, 0.2"
                       diffuse="0.45, 0.45, 0.45"
                       update-frequency="NEVER"/>
             <mesh id="picture-frame" shader="regen.models.mesh"/>
@@ -380,7 +379,7 @@
         <node id="Picture-Titles">
             <depth test="1" write="0"/>
             <alpha discard-threshold="0.25"/>
-            <material ambient="0.0,0.0,0.0" diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0" update-frequency="NEVER"/>
+            <material diffuse="0.0,0.0,0.0" specular="0.0,0.0,0.0" update-frequency="NEVER"/>
             <blend mode="alpha"/>
             <node id="video-picture-text">
                 <transform update-frequency="NEVER">
@@ -673,7 +672,7 @@
         <node id="Ground">
             <material preset="ground/stone" variant="0"
                       color-blend-mode="MUL"
-                      ambient="0.2,0.2,0.2" diffuse="0.7,0.7,0.7"
+                      diffuse="0.7,0.7,0.7"
                       update-frequency="NEVER"/>
             <mesh id="ground-mesh" shader="regen.models.mesh"/>
         </node>

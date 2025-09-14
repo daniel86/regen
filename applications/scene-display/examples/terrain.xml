@@ -32,7 +32,7 @@
          pixel-size="16"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <texture id="emission" pixel-components="3"/>
@@ -44,7 +44,7 @@
          pixel-size="16"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>

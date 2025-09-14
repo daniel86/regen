@@ -626,7 +626,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		}
 		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
 											 AI_MATKEY_COLOR_AMBIENT, &aiCol)) {
-			mat->ambient()->setVertex(0, aiToOgle3f(&aiCol));
+			//mat->ambient()->setVertex(0, aiToOgle3f(&aiCol));
 		}
 
 		float emissionStrength = emissionStrength_;

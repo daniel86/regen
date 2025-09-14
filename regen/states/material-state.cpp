@@ -37,10 +37,6 @@ Material::Material(const BufferUpdateFlags &updateFlags)
 	materialAlpha_->setUniformData(1.0f);
 	materialAlpha_->setSchema(InputSchema::alpha());
 
-	materialAmbient_ = ref_ptr<ShaderInput3f>::alloc("matAmbient");
-	materialAmbient_->setUniformData(Vec3f(0.0f));
-	materialAmbient_->setSchema(InputSchema::color());
-
 	materialRefractionIndex_ = ref_ptr<ShaderInput1f>::alloc("matRefractionIndex");
 	materialRefractionIndex_->setUniformData(0.95f);
 
@@ -51,7 +47,6 @@ Material::Material(const BufferUpdateFlags &updateFlags)
 	materialUniforms_->addStagedInput(materialShininess_);
 	materialUniforms_->addStagedInput(materialDiffuse_);
 	materialUniforms_->addStagedInput(materialAlpha_);
-	materialUniforms_->addStagedInput(materialAmbient_);
 	materialUniforms_->addStagedInput(materialRefractionIndex_);
 	setInput(materialUniforms_);
 }
@@ -302,7 +297,6 @@ ref_ptr<TextureState> Material::set_texture(const ref_ptr<Texture> &tex, Texture
 
 void Material::set_iron(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.1843137, 0.168627, 0.15686) * 3.0f);
-	materialAmbient_->setUniformData(Vec3f(0.19, 0.19, 0.19));
 	materialSpecular_->setUniformData(Vec3f(0.11, 0.11, 0.11));
 	materialShininess_->setUniformData(9.8);
 	if (!variant.empty()) set_textures("iron", variant);
@@ -310,14 +304,12 @@ void Material::set_iron(std::string_view variant) {
 
 void Material::set_steel(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.423529, 0.439216, 0.450980));
-	materialAmbient_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialSpecular_->setUniformData(Vec3f(0.21, 0.21, 0.21));
 	materialShininess_->setUniformData(21.2);
 	if (!variant.empty()) set_textures("steel", variant);
 }
 
 void Material::set_silver(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.19, 0.19, 0.19));
 	materialDiffuse_->setUniformData(Vec3f(0.51, 0.51, 0.51));
 	materialSpecular_->setUniformData(Vec3f(0.51, 0.51, 0.51));
 	materialShininess_->setUniformData(51.2);
@@ -325,7 +317,6 @@ void Material::set_silver(std::string_view variant) {
 }
 
 void Material::set_pewter(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.11, 0.06, 0.11));
 	materialDiffuse_->setUniformData(Vec3f(0.43, 0.47, 0.54));
 	materialSpecular_->setUniformData(Vec3f(0.33, 0.33, 0.52));
 	materialShininess_->setUniformData(9.8);
@@ -333,7 +324,6 @@ void Material::set_pewter(std::string_view variant) {
 }
 
 void Material::set_gold(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.25, 0.20, 0.07));
 	materialDiffuse_->setUniformData(Vec3f(0.75, 0.61, 0.23));
 	materialSpecular_->setUniformData(Vec3f(0.63, 0.65, 0.37));
 	materialShininess_->setUniformData(51.2);
@@ -341,7 +331,6 @@ void Material::set_gold(std::string_view variant) {
 }
 
 void Material::set_copper(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.19, 0.07, 0.02));
 	materialDiffuse_->setUniformData(Vec3f(0.70, 0.27, 0.08));
 	materialSpecular_->setUniformData(Vec3f(0.26, 0.14, 0.09));
 	materialShininess_->setUniformData(12.8);
@@ -350,7 +339,6 @@ void Material::set_copper(std::string_view variant) {
 
 void Material::set_metal(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.423529, 0.439216, 0.450980));
-	materialAmbient_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialSpecular_->setUniformData(Vec3f(0.21, 0.21, 0.21));
 	materialShininess_->setUniformData(21.2);
 	if (!variant.empty()) set_textures("metal", variant);
@@ -358,7 +346,6 @@ void Material::set_metal(std::string_view variant) {
 
 void Material::set_leather(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.37647, 0.3098, 0.23529));
-	materialAmbient_->setUniformData(Vec3f(0.1647, 0.1216, 0.0745));
 	materialSpecular_->setUniformData(Vec3f(0.21, 0.21, 0.21));
 	materialShininess_->setUniformData(21.2);
 	if (!variant.empty()) set_textures("leather", variant);
@@ -366,14 +353,12 @@ void Material::set_leather(std::string_view variant) {
 
 void Material::set_stone(std::string_view variant) {
 	materialDiffuse_->setUniformData(Vec3f(0.57647, 0.572549, 0.592157));
-	materialAmbient_->setUniformData(Vec3f(0.0647, 0.0647, 0.0647));
 	materialSpecular_->setUniformData(Vec3f(0.14, 0.14, 0.14));
 	materialShininess_->setUniformData(52.2);
 	if (!variant.empty()) set_textures("stone", variant);
 }
 
 void Material::set_marble(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
 	materialDiffuse_->setUniformData(Vec3f(0.8f, 0.8f, 0.8f));
 	materialSpecular_->setUniformData(Vec3f(0.9f, 0.9f, 0.9f));
 	materialShininess_->setUniformData(80.0f);
@@ -381,7 +366,6 @@ void Material::set_marble(std::string_view variant) {
 }
 
 void Material::set_wood(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.2f, 0.1f, 0.05f)); // Dark brown ambient color
 	materialDiffuse_->setUniformData(Vec3f(0.6f, 0.3f, 0.1f));  // Brown diffuse color
 	materialSpecular_->setUniformData(Vec3f(0.2f, 0.2f, 0.2f));
 	materialShininess_->setUniformData(25.0f);
@@ -389,7 +373,6 @@ void Material::set_wood(std::string_view variant) {
 }
 
 void Material::set_jade(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.14, 0.22, 0.16));
 	materialDiffuse_->setUniformData(Vec3f(0.54, 0.89, 0.63));
 	materialSpecular_->setUniformData(Vec3f(0.32, 0.32, 0.32));
 	materialShininess_->setUniformData(12.8);
@@ -397,7 +380,6 @@ void Material::set_jade(std::string_view variant) {
 }
 
 void Material::set_ruby(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.17, 0.01, 0.01));
 	materialDiffuse_->setUniformData(Vec3f(0.61, 0.04, 0.04));
 	materialSpecular_->setUniformData(Vec3f(0.73, 0.63, 0.63));
 	materialShininess_->setUniformData(76.8);
@@ -405,7 +387,6 @@ void Material::set_ruby(std::string_view variant) {
 }
 
 void Material::set_chrome(std::string_view variant) {
-	materialAmbient_->setUniformData(Vec3f(0.25, 0.25, 0.25));
 	materialDiffuse_->setUniformData(Vec3f(0.40, 0.40, 0.40));
 	materialSpecular_->setUniformData(Vec3f(0.77, 0.77, 0.77));
 	materialShininess_->setUniformData(76.8);
@@ -502,9 +483,6 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 			mat->set_textures(presetVal, variant);
 		}
 	}
-	if (input.hasAttribute("ambient"))
-		mat->ambient()->setVertex(0,
-								  input.getValue<Vec3f>("ambient", Vec3f(0.0f)));
 	if (input.hasAttribute("diffuse"))
 		mat->diffuse()->setVertex(0,
 								  input.getValue<Vec3f>("diffuse", Vec3f(1.0f)));

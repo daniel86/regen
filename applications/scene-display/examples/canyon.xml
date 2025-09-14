@@ -58,7 +58,7 @@
          pixel-size="16"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth pixel-size="24"/>
@@ -69,7 +69,7 @@
          pixel-size="16"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <depth id="depth" pixel-size="24"/>
@@ -277,7 +277,7 @@
     </mesh>
 
     <node id="Grass">
-        <material diffuse="1.0, 1.0, 1.0" ambient="0.1, 0.1, 0.1"
+        <material diffuse="1.0, 1.0, 1.0"
                 specular="0.0, 0.0, 0.0" shininess="256.0"
                 update-frequency="NEVER"/>
         <!-- size and position -->

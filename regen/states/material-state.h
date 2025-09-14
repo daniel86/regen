@@ -25,7 +25,6 @@ namespace regen {
 		 */
 		MaterialDescription(std::string_view materialName, std::string_view variant);
 
-		Vec3f ambient = Vec3f(0.0f);
 		Vec3f diffuse = Vec3f(1.0f);
 		Vec3f specular = Vec3f(0.0f);
 		Vec3f emission = Vec3f(0.0f);
@@ -74,11 +73,6 @@ namespace regen {
 		Material(const BufferUpdateFlags &updateFlags = {BUFFER_UPDATE_NEVER, BUFFER_UPDATE_PARTIALLY});
 
 		static ref_ptr<Material> load(LoadingContext &ctx, scene::SceneInputNode &input);
-
-		/**
-		 * @return Ambient material color.
-		 */
-		auto &ambient() const { return materialAmbient_; }
 
 		/**
 		 * @return Diffuse material color.
@@ -304,7 +298,6 @@ namespace regen {
 
 		std::map<TextureState::MapTo, std::vector<ref_ptr<TextureState>>> textures_;
 		ref_ptr<ShaderInput3f> materialDiffuse_;
-		ref_ptr<ShaderInput3f> materialAmbient_;
 		ref_ptr<ShaderInput3f> materialSpecular_;
 		ref_ptr<ShaderInput1f> materialShininess_;
 		ref_ptr<ShaderInput3f> materialEmission_;

@@ -87,7 +87,6 @@ uniform vec4 in_cameraPosition;
 const float in_rayStep=0.02;
 const float in_densityThreshold=0.125;
 const float in_densityScale=2.0;
-const vec3 in_matAmbient = vec3(1.0);
 const vec3 in_halfVolumeSize = vec3(1.0);
 
 #ifndef FS_NO_OUTPUT

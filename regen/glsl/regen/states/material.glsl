@@ -17,7 +17,6 @@
 #ifndef material_input_DEFINED
 #define2 material_input_DEFINED
 #ifdef HAS_MATERIAL
-uniform vec3 in_matAmbient;
 uniform vec3 in_matDiffuse;
 uniform vec3 in_matSpecular;
 //uniform vec3 in_matEmission;
@@ -32,7 +31,6 @@ uniform float in_matAlpha;
 #define2 Material_STRUCT_DEFINED
 #include regen.states.material.defines
 struct Material {
-    vec3 ambient;
     vec3 diffuse;
     vec3 specular;
     float shininess;

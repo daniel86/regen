@@ -44,7 +44,7 @@
          pixel-size="24"
          pixel-components="4">
         <texture id="diffuse"/>
-        <texture id="ambient"/>
+        <texture id="tmp"/>
         <texture id="specular"/>
         <texture id="normal"/>
         <texture id="emission" pixel-components="3"/>
@@ -108,7 +108,7 @@
            radius="30.0,54.0"
            direction="0.0,-1.0,0.0"
            diffuse="0.4,0.45,0.435"
-           ambient="0.1,0.1,0.1"
+           ambient="0.3,0.3,0.3"
            update-frequency="NEVER"/>
     <light id="cauldron-light0"
            type="POINT"
@@ -538,7 +538,7 @@
 
     <node id="Shading-Pass">
         <depth test="0" write="0"/>
-        <input type="vec3" name="lightAmbient" value="0.3,0.3,0.3"/>
+        <input type="vec3" name="lightAmbient" value="0.4,0.4,0.4"/>
         <resource id="sky"/>
 
         <node id="Light-Shading">
@@ -768,7 +768,7 @@
             </node>
 
             <node id="Shading">
-                <fbo id="g-buffer" draw-buffers="1" clear-buffers="1"/>
+                <fbo id="g-buffer" draw-buffers="1"/>
                 <node id="Light-Pass">
                     <texture name="gDepthTexture" fbo="g-buffer" attachment="depth"/>
                     <texture name="gDiffuseTexture" fbo="g-buffer" attachment="0"/>

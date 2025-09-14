@@ -333,7 +333,6 @@ void main() {
     color.rgb *= in_col * in_matDiffuse.rgb;
     out_normal = vec4(0.5, 1.0, 0.5, 1.0);
     out_color = color;
-    out_ambient = vec4(in_matAmbient,0.0);
     out_specular = vec4(0.0, 0.0, 0.0, 0.0);
 #endif // OUTPUT_TYPE != DEPTH
 }

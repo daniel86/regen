@@ -342,9 +342,6 @@ layout(early_fragment_tests) in;
 layout(location = 0) out vec4 out_color;
 #endif
 #if OUTPUT_TYPE != DEPTH && OUTPUT_TYPE != BLACK && OUTPUT_TYPE != WHITE
-    #ifdef HAS_ATTACHMENT_ambient
-layout(location = ATTACHMENT_IDX_ambient) out vec4 out_ambient;
-    #endif
     #ifdef HAS_ATTACHMENT_specular
 layout(location = ATTACHMENT_IDX_specular) out vec4 out_specular;
     #endif
@@ -582,7 +579,6 @@ void main() {
 #endif
 void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
-    mat.ambient = vec3(0.0);
     mat.diffuse = color.rgb;
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
@@ -611,12 +607,10 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     Material mat;
     mat.occlusion = 0.0;
 #ifdef USE_MATERIAL
-    mat.ambient = in_matAmbient;
     mat.diffuse = color.rgb;
     mat.specular = in_matSpecular;
     mat.shininess = in_matShininess;
 #else
-    mat.ambient = vec3(0.0);
     mat.diffuse = color.rgb;
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
@@ -628,7 +622,7 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     vec3 shadedColor =
         mat.diffuse*shading.diffuse.rgb +
         mat.specular*shading.specular.rgb +
-        mat.ambient*in_ambientLight;
+        in_ambientLight;
 #endif
 #ifdef HAS_fogDistance
     shadedColor = applyFogToColor(shadedColor, gl_FragCoord.z, posWorld);
@@ -677,7 +671,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     mat.occlusion = 0.0;
     mat.diffuse = color.rgb;
 #ifdef USE_MATERIAL
-    mat.ambient = in_matAmbient;
     mat.specular = in_matSpecular;
     mat.shininess = in_matShininess;
     #ifdef HAS_MATERIAL_EMISSION
@@ -688,7 +681,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     #endif
     #endif
 #else
-    mat.ambient = vec3(0.0);
     mat.specular = vec3(0.0);
     mat.shininess = 0.0;
     #ifdef HAS_MATERIAL_EMISSION
@@ -703,9 +695,6 @@ void writeOutput(vec3 posWorld, vec3 norWorld, vec4 color) {
     clipAlpha(color);
 #endif
     out_color.a = color.a;
-#ifdef HAS_ATTACHMENT_ambient
-    out_ambient = vec4(mat.ambient,0.0);
-#endif
 #ifdef HAS_ATTACHMENT_specular
     out_specular.rgb = mat.specular;
     // normalize shininess to [0,1]
