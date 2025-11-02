@@ -590,13 +590,6 @@
     </mesh>
 
     <node id="Water-Rendering">
-        <depth test="1" write="0"/>
-        <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
-        <toggle key="CLIP_DISTANCE0" value="1"/>
-        <toggle key="CLIP_DISTANCE1" value="1"/>
-        <toggle key="CLIP_DISTANCE2" value="1"/>
-        <toggle key="CLIP_DISTANCE3" value="1"/>
-
         <define key="USE_REFRACTION" value="TRUE"/>
         <define key="USE_FOAM" value="FALSE"/>
         <define key="USE_RIPPLES" value="TRUE"/>
@@ -634,7 +627,22 @@
         <input name="ReflectionCamera" state="reflection-camera" component="Camera" member-suffix="_Reflection"/>
         <input name="SunLight" state="sky-sun" component="Light" member-suffix="_Sun"/>
 
-        <mesh id="water-mesh" shader="regen.terrain.water.plane"/>
+        <horizon camera="main-camera" level="{{water-level}}">
+            <below>
+                <depth test="0" write="0"/>
+                <define key="IS_UNDER_WATER" value="TRUE"/>
+                <fullscreen-pass shader="regen.terrain.water.fullscreen"/>
+            </below>
+            <above>
+                <depth test="1" write="0"/>
+                <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
+                <toggle key="CLIP_DISTANCE0" value="1"/>
+                <toggle key="CLIP_DISTANCE1" value="1"/>
+                <toggle key="CLIP_DISTANCE2" value="1"/>
+                <toggle key="CLIP_DISTANCE3" value="1"/>
+                <mesh id="water-mesh" shader="regen.terrain.water.plane" />
+            </above>
+        </horizon>
     </node>
 
     <!-- Render surface plane into depth buffer to be used for post-processing effects -->
