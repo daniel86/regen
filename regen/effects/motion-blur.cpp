@@ -11,8 +11,8 @@ MotionBlur::MotionBlur(const ref_ptr<Camera> &camera)
 		: FullscreenPass("regen.filter.motion-blur"),
 		  camera_(camera) {
 	ref_ptr<DepthState> depthState = ref_ptr<DepthState>::alloc();
-	depthState->set_useDepthTest(GL_FALSE);
-	depthState->set_useDepthWrite(GL_FALSE);
+	depthState->set_useDepthTest(false);
+	depthState->set_useDepthWrite(false);
 	joinStates(depthState);
 
 	lastViewProjectionMat_ = ref_ptr<ShaderInputMat4>::alloc("lastViewProjectionMatrix");

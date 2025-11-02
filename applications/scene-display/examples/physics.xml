@@ -686,6 +686,8 @@
 
     <node id="root">
         <resource id="sky"/>
+        <input type="float" name="surfaceHeight" value="0.0"/>
+
         <node id="Pre-Render">
             <node import="Shadow-Pass"/>
             <node import="Paraboloid-Reflection-Update"/>

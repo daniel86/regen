@@ -16,24 +16,13 @@ out vec4 out_color;
 uniform sampler2D in_inputTexture;
 uniform sampler2D in_depthTexture;
 
-uniform float in_timeDeltaMS;
-
-#ifdef USE_VELOCITY_TEXTURE
-// Per-Pixel-Motion-Blur input
-uniform sampler2D in_velocityTexture;
-#else
-// Fullscreen-Motion-Blur input
-uniform mat4 in_lastViewProjectionMatrix;
-uniform mat4 in_inverseViewProjectionMatrix;
-#endif
 const int in_numMotionBlurSamples = 10;
 const float in_velocityScale = 0.25;
 
 #include regen.filter.sampling.computeTexco
 
 #ifndef USE_VELOCITY_TEXTURE
-void worldPosFromDepth(float depth, vec2 texco, out vec4 pos0, out vec4 posWorld)
-{
+void worldPosFromDepth(float depth, vec2 texco, out vec4 pos0, out vec4 posWorld) {
     pos0 = vec4(texco.x*2 - 1, (1-texco.y)*2 - 1, depth, 1);
     // Transform viewport position by the view-projection inverse.
     vec4 D = in_inverseViewProjectionMatrix*pos0;
@@ -42,8 +31,7 @@ void worldPosFromDepth(float depth, vec2 texco, out vec4 pos0, out vec4 posWorld
 }
 #endif
 
-void main()
-{
+void main() {
     vec2 texco_2D = gl_FragCoord.xy*in_inverseViewport;
     vecTexco texco = computeTexco(texco_2D);
     

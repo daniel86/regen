@@ -439,6 +439,18 @@
         <view id="Scene -- ToneMapping">
             <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
         </view>
+
+        <node id="MotionBlur-Screen">
+            <fbo id="g-buffer" draw-buffers="1"/>
+            <texture name="inputTexture" fbo="g-buffer" attachment="0"/>
+            <texture name="depthTexture" fbo="g-buffer" attachment="depth"/>
+            <input type="float" name="velocityScale" value="0.25"/>
+            <input type="int" name="numMotionBlurSamples" value="12"/>
+            <motion-blur camera="main-camera"/>
+        </node>
+        <view id="MotionBlur Scene">
+            <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+        </view>
     </node>
 
     <node id="Scene-Blur">
@@ -564,15 +576,13 @@
             </node>
 
             <node import="Post-Pass"/>
-
             <node import="Debug-Views"/>
-
             <node import="GUI-Pass">
-                <fbo id="g-buffer" draw-buffers="0"/>
+                <fbo id="g-buffer" draw-buffers="1"/>
             </node>
 
             <view id="Scene -- Result">
-                <blit src-fbo="g-buffer" src-attachment="0" dst-fbo="SCREEN"/>
+                <blit src-fbo="g-buffer" src-attachment="1" dst-fbo="SCREEN"/>
             </view>
         </node>
     </node>
