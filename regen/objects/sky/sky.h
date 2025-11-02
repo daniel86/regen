@@ -29,15 +29,15 @@ namespace regen {
 
 		void set_altitude(float altitude);
 
-		GLdouble altitude() const;
+		double altitude() const;
 
 		void set_longitude(float longitude);
 
-		GLdouble longitude() const;
+		double longitude() const;
 
 		void set_latitude(float latitude);
 
-		GLdouble latitude() const;
+		double latitude() const;
 
 		ref_ptr<Light> &sun() { return sun_; }
 
@@ -55,13 +55,13 @@ namespace regen {
 
 		void set_dawnColor(const Vec3f &dawnColor) { dawnColor_ = dawnColor; }
 
-		GLfloat moonSunLightReflectance() const { return moonSunLightReflectance_; }
+		float moonSunLightReflectance() const { return moonSunLightReflectance_; }
 
-		void set_moonSunLightReflectance(GLfloat moonSunLightReflectance);
+		void set_moonSunLightReflectance(float moonSunLightReflectance);
 
-		static GLfloat computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, GLfloat radius);
+		static float computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float radius);
 
-		static GLfloat computeEyeExtinction(const Vec3f &eyedir);
+		static float computeEyeExtinction(const Vec3f &eyedir);
 
 		const ref_ptr<Rectangle> &skyQuad() const { return skyQuad_; }
 
@@ -76,9 +76,9 @@ namespace regen {
 		void createShader();
 
 		// override
-		void animate(GLdouble dt) override;
+		void animate(double dt) override;
 
-		void glAnimate(RenderState *rs, GLdouble dt) override;
+		void glAnimate(RenderState *rs, double dt) override;
 
 		void startAnimation() override;
 
@@ -108,7 +108,7 @@ namespace regen {
 
 		Vec3f noonColor_;
 		Vec3f dawnColor_;
-		GLfloat moonSunLightReflectance_;
+		float moonSunLightReflectance_;
 
 
 		void updateSeed();

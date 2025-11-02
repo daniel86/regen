@@ -87,8 +87,6 @@ flat in int in_layer[ ];
 
 uniform float in_q;
 
-const float surfaceHeight = 0.99;
-
 #include regen.states.camera.transformWorldToScreen
 #include regen.states.camera.transformWorldToEye
 #include regen.states.camera.transformEyeToScreen

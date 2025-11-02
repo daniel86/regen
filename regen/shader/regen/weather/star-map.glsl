@@ -46,7 +46,6 @@ uniform vec2 in_inverseViewport;
 
 const float in_deltaM = 1.0;
 const float in_scattering = 1.0;
-const float surfaceHeight = 0.99; // TODO: shouldn't this be a uniform?
 
 uniform samplerCube in_starmapCube;
 

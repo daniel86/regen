@@ -206,6 +206,15 @@
     <node id="Sky">
         <sky id="sky"/>
     </node>
+    <!-- Uniform Buffer Objects -->
+    <block type="ubo" id="SceneUBO" update-frequency="NEVER">
+        <uniform name="surfaceHeight" type="float" value="{{map-y-min}}"/>
+        <uniform name="planeSize" type="vec2" value="{{map-size}}, {{map-size}}"/>
+        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
+        <uniform name="windFlowScale" type="float" value="150.0"/>
+        <uniform name="windFlowTime" type="float" value="0.2"/>
+        <uniform name="windStrength" type="float" value="1.0"/>
+    </block>
 
     <!--**************************-->
     <!--********* Ground *********-->
@@ -485,13 +494,6 @@
         <mesh id="fire-sprite" shader="regen.models.sprite"/>
     </node>
 
-    <block type="ubo" id="WindUBO" update-frequency="NEVER">
-        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
-        <uniform name="windFlowScale" type="float" value="150.0"/>
-        <uniform name="windFlowTime" type="float" value="0.2"/>
-        <uniform name="windStrength" type="float" value="1.0"/>
-    </block>
-
     <!--**************************-->
     <!--******* Collisions *******-->
     <!--**************************-->
@@ -734,7 +736,7 @@
     </node>
 
     <node id="root">
-        <input name="Wind" ubo="WindUBO"/>
+        <input name="Scene" ubo="SceneUBO"/>
         <resource id="sky"/>
 
         <node id="Pre-Render">

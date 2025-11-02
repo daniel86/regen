@@ -21,8 +21,8 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	ref_ptr<DepthState> depth = ref_ptr<DepthState>::alloc();
 	depth->set_depthFunc(GL_LEQUAL);
 	depth->set_depthRange(1.0, 1.0);
-	depth->set_useDepthWrite(GL_FALSE);
-	depth->set_useDepthTest(GL_TRUE);
+	depth->set_useDepthWrite(false);
+	depth->set_useDepthTest(true);
 	state()->joinStates(depth);
 
 	noonColor_ = Vec3f(0.5, 0.5, 0.5);
@@ -78,10 +78,10 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	state()->setInput(uniformBlock);
 
 	Rectangle::Config cfg;
-	cfg.centerAtOrigin = GL_FALSE;
-	cfg.isNormalRequired = GL_FALSE;
-	cfg.isTangentRequired = GL_FALSE;
-	cfg.isTexcoRequired = GL_FALSE;
+	cfg.centerAtOrigin = false;
+	cfg.isNormalRequired = false;
+	cfg.isTangentRequired = false;
+	cfg.isTexcoRequired = false;
 	cfg.levelOfDetails = {4};
 	cfg.posScale = Vec3f(2.0f);
 	cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
@@ -108,13 +108,13 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 Astronomy &Sky::astro() { return *astro_.get(); }
 
 void Sky::set_moonSunLightReflectance(
-		GLfloat moonSunLightReflectance) { moonSunLightReflectance_ = moonSunLightReflectance; }
+		float moonSunLightReflectance) { moonSunLightReflectance_ = moonSunLightReflectance; }
 
-GLdouble Sky::altitude() const { return cmnUniform_->getVertex(0).r.x; }
+double Sky::altitude() const { return cmnUniform_->getVertex(0).r.x; }
 
-GLdouble Sky::longitude() const { return astro_->getLongitude(); }
+double Sky::longitude() const { return astro_->getLongitude(); }
 
-GLdouble Sky::latitude() const { return astro_->getLatitude(); }
+double Sky::latitude() const { return astro_->getLatitude(); }
 
 void Sky::set_altitude(const float altitude) {
 	auto v_cmnUniform = cmnUniform_->mapClientVertex<Vec4f>(BUFFER_GPU_READ | BUFFER_GPU_WRITE, 0);
@@ -163,8 +163,8 @@ void Sky::stopAnimation() {
 	Animation::stopAnimation();
 }
 
-GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float radius) {
-	GLfloat u = dir.dot(-position);
+float Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, float radius) {
+	float u = dir.dot(-position);
 	if (u < 0.0) {
 		return 1.0;
 	}
@@ -175,18 +175,19 @@ GLfloat Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, f
 		near.normalize();
 		Vec3f v2 = near * radius - position;
 		v2.normalize();
-		GLfloat diff = acos(v2.dot(dir));
+		float diff = acos(v2.dot(dir));
 		return math::smoothstep(0.0f, 1.0f, powf(diff * 2.0f, 3.0f));
 	}
 }
 
-GLfloat Sky::computeEyeExtinction(const Vec3f &eyeDir) {
-	static const float surfaceHeight = 0.99f; // TODO: should be configurable
+float Sky::computeEyeExtinction(const Vec3f &eyeDir) {
+	// TODO: Read surface height from scene file. But it is currently not well accessible...
+	static const float surfaceHeight = 0.99f;
 	static const Vec3f eyePosition(0.0, surfaceHeight, 0.0);
 	return computeHorizonExtinction(eyePosition, eyeDir, surfaceHeight - 0.15f);
 }
 
-static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
+static Vec3f computeColor(const Vec3f &color, float ext) {
 	if (ext >= 0.0) {
 		return color;
 	} else {
@@ -194,7 +195,7 @@ static Vec3f computeColor(const Vec3f &color, GLfloat ext) {
 	}
 }
 
-void Sky::animate(GLdouble dt) {
+void Sky::animate(double dt) {
 	if (worldTime_) {
 		time_osg_.sett(boost::posix_time::to_time_t(worldTime_->p_time));
 		time_osg_.setUtcOffset(14400); // UTC+4, Berlin time
@@ -207,7 +208,7 @@ void Sky::animate(GLdouble dt) {
 	sun_->setDirection(0, sun);
 	moon_->setDirection(0, moon);
 	// Compute sun/moon diffuse color
-	GLfloat sunExt = computeEyeExtinction(sun);
+	float sunExt = computeEyeExtinction(sun);
 	Vec3f sunColor = math::mix(dawnColor_, noonColor_, abs(sunExt));
 	sun_->setDiffuse(0, computeColor(
 			sunColor,
@@ -232,7 +233,7 @@ void Sky::animate(GLdouble dt) {
 	updateSeed();
 }
 
-void Sky::glAnimate(RenderState *rs, GLdouble dt) {
+void Sky::glAnimate(RenderState *rs, double dt) {
 	bool needsUpdate = false;
 	for (auto &layer: layer_) {
 		if (layer->advanceTime(dt)) {
@@ -274,7 +275,7 @@ void SkyView::traverse(RenderState *rs) {
 		firstLayer->traverse(rs);
 
 		if (layer_.size()>1) {
-			rs->toggles().push(RenderState::BLEND, GL_TRUE);
+			rs->toggles().push(RenderState::BLEND, true);
 			for (size_t i = 1; i < layer_.size(); ++i) {
 				auto &layer = layer_[i];
 				if (layer->isHidden()) {
@@ -329,10 +330,10 @@ ref_ptr<SkyView> SkyView::load(LoadingContext &ctx, scene::SceneInputNode &input
 
 static ref_ptr<Darkness> createDarknessLayer(const ref_ptr<Sky> &sky,
 											 scene::SceneInputNode &input) {
-	auto darkness = ref_ptr<Darkness>::alloc(sky, input.getValue<GLuint>("lod", 0));
+	auto darkness = ref_ptr<Darkness>::alloc(sky, input.getValue<uint32_t>("lod", 0));
 
 	darkness->set_updateInterval(
-			input.getValue<GLdouble>("update-interval", 4000.0));
+			input.getValue<double>("update-interval", 4000.0));
 	sky->addLayer(darkness);
 
 	return darkness;
@@ -340,7 +341,7 @@ static ref_ptr<Darkness> createDarknessLayer(const ref_ptr<Sky> &sky,
 
 static ref_ptr<StarMap> createStarMapLayer(const ref_ptr<Sky> &sky,
 										   scene::SceneInputNode &input) {
-	ref_ptr<StarMap> starMap = ref_ptr<StarMap>::alloc(sky, input.getValue<GLuint>("lod", 0));
+	ref_ptr<StarMap> starMap = ref_ptr<StarMap>::alloc(sky, input.getValue<uint32_t>("lod", 0));
 
 	if (input.hasAttribute("texture"))
 		starMap->set_texture(input.getValue("texture"));
@@ -355,7 +356,7 @@ static ref_ptr<StarMap> createStarMapLayer(const ref_ptr<Sky> &sky,
 		starMap->set_deltaMagnitude(input.getValue<float>("delta-magnitude", 0.5));
 
 	starMap->set_updateInterval(
-			input.getValue<GLdouble>("update-interval", 4000.0));
+			input.getValue<double>("update-interval", 4000.0));
 	sky->addLayer(starMap);
 
 	return starMap;
@@ -395,7 +396,7 @@ static ref_ptr<BrightStars> createStarsLayer(
 		stars->set_scale(input.getValue<float>("scale", 1.0f));
 
 	stars->set_updateInterval(
-			input.getValue<GLdouble>("update-interval", 4000.0));
+			input.getValue<double>("update-interval", 4000.0));
 	sky->addLayer(stars);
 
 	return stars;
@@ -427,7 +428,7 @@ static ref_ptr<Moon> createMoonLayer(const ref_ptr<Sky> &sky,
 				input.getValue<float>("earth-shine-intensity", Moon::defaultEarthShineIntensity()));
 
 	moon->set_updateInterval(
-			input.getValue<GLdouble>("update-interval", 4000.0));
+			input.getValue<double>("update-interval", 4000.0));
 	sky->addLayer(moon);
 
 	return moon;
@@ -437,9 +438,9 @@ static ref_ptr<Atmosphere> createAtmosphereLayer(const ref_ptr<Sky> &sky,
 												 scene::SceneLoader *parser, scene::SceneInputNode &input,
 												 const std::string &skyName) {
 	ref_ptr<Atmosphere> atmosphere = ref_ptr<Atmosphere>::alloc(sky,
-																input.getValue<GLuint>("size", 512),
-																input.getValue<GLuint>("use-float", false),
-																input.getValue<GLuint>("lod", 0));
+																input.getValue<uint32_t>("size", 512),
+																input.getValue<uint32_t>("use-float", false),
+																input.getValue<uint32_t>("lod", 0));
 
 	const auto preset = input.getValue<std::string>("preset", "earth");
 	if (preset == "earth") atmosphere->setEarth();
@@ -454,8 +455,8 @@ static ref_ptr<Atmosphere> createAtmosphereLayer(const ref_ptr<Sky> &sky,
 				0.6616065586417131));
 		auto rayleigh = input.getValue<Vec3f>("rayleigh", Vec3f(19.0, 359.0, 81.0));
 		auto mie = input.getValue<Vec4f>("mie", Vec4f(44.0, 308.0, 39.0, 74.0));
-		auto spot = input.getValue<GLfloat>("spot", 373.0);
-		auto strength = input.getValue<GLfloat>("strength", 54.0);
+		auto spot = input.getValue<float>("spot", 373.0);
+		auto strength = input.getValue<float>("strength", 54.0);
 
 		atmosphere->setRayleighBrightness(rayleigh.x);
 		atmosphere->setRayleighStrength(rayleigh.y);
@@ -472,7 +473,7 @@ static ref_ptr<Atmosphere> createAtmosphereLayer(const ref_ptr<Sky> &sky,
 												   "' for node " << input.getDescription() << ".");
 
 	atmosphere->set_updateInterval(
-			input.getValue<GLdouble>("update-interval", 4000.0));
+			input.getValue<double>("update-interval", 4000.0));
 
 	parser->putResource<Texture>(skyName, atmosphere->cubeMap());
 
@@ -484,7 +485,7 @@ static ref_ptr<Atmosphere> createAtmosphereLayer(const ref_ptr<Sky> &sky,
 static ref_ptr<CloudLayer>
 createCloudLayer(const ref_ptr<Sky> &sky, scene::SceneLoader *parser, scene::SceneInputNode &input) {
 	ref_ptr<CloudLayer> cloudLayer = ref_ptr<CloudLayer>::alloc(sky,
-																input.getValue<GLuint>("texture-size", 2048));
+																input.getValue<uint32_t>("texture-size", 2048));
 
 	if (input.hasAttribute("use-scatter") && std::string("TRUE") == (input.getValue("use-scatter")))
 		cloudLayer->state()->shaderDefine("USE_SCATTER", "TRUE");
@@ -513,7 +514,7 @@ createCloudLayer(const ref_ptr<Sky> &sky, scene::SceneLoader *parser, scene::Sce
 		cloudLayer->set_thickness(input.getValue<float>("thickness", 3.0f));
 
 	cloudLayer->set_updateInterval(
-			input.getValue<GLdouble>("update-interval", 4000.0));
+			input.getValue<double>("update-interval", 4000.0));
 	sky->addLayer(cloudLayer);
 
 	parser->putResource<FBO>(input.getName(), cloudLayer->cloudTextureFBO());

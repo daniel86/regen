@@ -160,18 +160,16 @@ float computeHorizonExtinction(vec3 position, vec3 dir, float radius)
 #ifndef __computeEyeExtinction_vec3_INCLUDED
 #define2 __computeEyeExtinction_vec3_INCLUDED
 #include regen.weather.utility.computeHorizonExtinction
-float computeEyeExtinction(vec3 eyedir)
-{
-    vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
-    return computeHorizonExtinction(eyePosition, eyedir, surfaceHeight-0.15);
+float computeEyeExtinction(vec3 eyedir) {
+    vec3 eyePosition = vec3(0.0, in_surfaceHeight, 0.0);
+    return computeHorizonExtinction(eyePosition, eyedir, in_surfaceHeight-0.15);
 }
 #endif
 
 -- computeAtmosphericDepth
 #ifndef __computeAtmosphericDepth_vec3_vec3__INCLUDED
 #define2 __computeAtmosphericDepth_vec3_vec3__INCLUDED
-float computeAtmosphericDepth(vec3 position, vec3 dir)
-{
+float computeAtmosphericDepth(vec3 position, vec3 dir) {
     float a = dot(dir, dir);
     float b = 2.0*dot(dir, position);
     float c = dot(position, position)-1.0;
@@ -184,12 +182,11 @@ float computeAtmosphericDepth(vec3 position, vec3 dir)
 #endif
 
 -- computeEyeDepth
-#ifndef __computeEyeDepth_vec3__INCLUDED
-#define2 __computeEyeDepth_vec3__INCLUDED
+#ifndef computeEyeDepth_vec3__INCLUDED
+#define2 computeEyeDepth_vec3__INCLUDED
 #include regen.weather.utility.computeAtmosphericDepth
-float computeEyeDepth(vec3 eyedir)
-{
-    vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
+float computeEyeDepth(vec3 eyedir) {
+    vec3 eyePosition = vec3(0.0, in_surfaceHeight, 0.0);
     return computeAtmosphericDepth(eyePosition, eyedir);
 }
 #endif
@@ -197,8 +194,7 @@ float computeEyeDepth(vec3 eyedir)
 -- phase
 #ifndef __phase_float_float__INCLUDED
 #define2 __phase_float_float__INCLUDED
-float phase(float alpha, float g)
-{
+float phase(float alpha, float g) {
     float gg = g*g;
     float a = 3.0*(1.0-gg);
     float b = 2.0*(2.0+gg);

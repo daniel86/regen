@@ -61,7 +61,6 @@ const vec4 in_sunShine = vec4(0.923,0.786,0.636,56.0);
 const vec3 in_earthShine = vec3(0.88,0.96,1.00);
 const float in_surface = 1.0;
 const float in_scale = 0.1;
-const float surfaceHeight = 0.99;
 
 #include regen.weather.utility.computeEyeExtinction
 #include regen.weather.utility.sunIntensity

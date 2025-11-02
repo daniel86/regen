@@ -219,6 +219,15 @@
             <clip motion="revive" range="get-up" />
         </bone-animation>
     </asset>
+    <!-- UBOs -->
+    <block type="ubo" id="SceneUBO" update-frequency="NEVER">
+        <uniform name="surfaceHeight" type="float" value="-1.0"/>
+        <uniform name="planeSize" type="vec2" value="{{map-size}}, {{map-size}}"/>
+        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
+        <uniform name="windFlowScale" type="float" value="150.0"/>
+        <uniform name="windFlowTime" type="float" value="0.2"/>
+        <uniform name="windStrength" type="float" value="1.0"/>
+    </block>
     <!-- Sky -->
     <sky id="sky" camera="main-camera" update-interval="200.0" >
         <star-map texture="res/sky/milkyway.png" scattering="0.8" delta-magnitude="0.05" lod="0" />
@@ -625,16 +634,8 @@
         <uniform type="float" name="emitterSize" value="9.0"/>
         <uniform type="vec2" name="velocityFactorMinMax" value="5.0, 10.0"/>
         <uniform type="float" name="emitterOpening" value="0.5"/>
-        <uniform type="float" name="surfaceHeight" value="-1.0"/>
         <uniform type="float" name="lifetimeDefault" value="0.8"/>
         <uniform type="float" name="lifetimeVariance" value="0.5"/>
-    </block>
-
-    <block type="ubo" id="WindUBO" update-frequency="NEVER">
-        <uniform name="wind" type="vec2" value="0.6, 0.6"/>
-        <uniform name="windFlowScale" type="float" value="150.0"/>
-        <uniform name="windFlowTime" type="float" value="0.2"/>
-        <uniform name="windStrength" type="float" value="1.0"/>
     </block>
 
     <node id="Particle-Config">
@@ -642,7 +643,7 @@
         <define key="PARTICLE_EMITTER_SHAPE" value="DISC"/>
         <define key="OPACITY_WEIGHTED_COLOR" value="TRUE"/>
         <input name="Particles" ubo="ParticlesUBO"/>
-        <input name="Wind" ubo="WindUBO"/>
+        <input name="Scene" ubo="SceneUBO"/>
         <texture name="windFlow" id="wind-flowmap"/>
     </node>
 
@@ -1007,7 +1008,7 @@
     </node>
 
     <node id="root">
-        <input name="Wind" ubo="WindUBO"/>
+        <input name="Scene" ubo="SceneUBO"/>
         <resource id="sky"/>
 
         <node id="Pre-Render">

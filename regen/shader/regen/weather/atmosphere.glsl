@@ -66,7 +66,7 @@ uniform float in_scatterStrength;
 const int stepCount = 16;
 
 uniform vec3 in_skyAbsorption;
-const float surfaceHeight = 0.99;
+const float in_surfaceHeight = 0.99;
 const float intensity = 1.8;
 
 #ifdef HAS_cirrus || HAS_cumulus
@@ -124,7 +124,7 @@ float sunIntensity() {
 void main(void)
 {
     vec3 eyedir = normalize(in_pos);
-    vec3 eyePosition = vec3(0.0, surfaceHeight, 0.0);
+    vec3 eyePosition = vec3(0.0, in_surfaceHeight, 0.0);
     float eyeExtinction = computeEyeExtinction(eyedir);
     float eyeDepth = computeEyeDepth(eyedir);
 
@@ -137,7 +137,7 @@ void main(void)
     {
         float sampleDistance = stepLength*float(i);
         vec3 position = eyePosition + eyedir*sampleDistance;
-        float sampleExtinction = computeHorizonExtinction(position, in_lightDirection_Sun, surfaceHeight-0.35);
+        float sampleExtinction = computeHorizonExtinction(position, in_lightDirection_Sun, in_surfaceHeight-0.35);
         float sampleDepth = computeAtmosphericDepth(position, in_lightDirection_Sun);
         
         vec3 influx = absorb(sampleDepth, vec3(intensity), in_scatterStrength)*sampleExtinction;
