@@ -165,8 +165,14 @@ static void loadChildren(LoadingContext &ctx, scene::SceneInputNode &n, const re
 		auto childObj = WorldObject::load(ctx, *childNode.get());
 		switch (wo->objectType()) {
 			case ObjectType::LOCATION:
-				// FIXME: must be added to place! else affordance won't be listed there.
 				childObj->setCurrentLocation(ref_ptr<Location>::dynamicCast(wo));
+				if (wo->placeOfObject().get()) {
+					ref_ptr<Place> place = ref_ptr<Place>::dynamicCast(wo->placeOfObject());
+					if (place.get()) {
+						place->addWorldObject(childObj);
+						childObj->setPlaceOfObject(place);
+					}
+				}
 				break;
 			case ObjectType::PLACE:
 				childObj->setPlaceOfObject(wo);
