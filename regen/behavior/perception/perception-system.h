@@ -72,8 +72,6 @@ namespace regen {
 		std::vector<DetectionMonitor*> detectionMonitors_;
 
 		void updateCollisions();
-
-		void updateDetections();
 	};
 } // namespace
 

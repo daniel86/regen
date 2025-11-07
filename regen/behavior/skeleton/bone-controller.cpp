@@ -29,9 +29,6 @@ using namespace regen;
 #define BONE_CTRL_DEBUG(act, ...)
 #endif
 
-// FIXME: I think there might be a rare edge case bug when multiple actions that map
-//         to the same motion type are active at the same time.
-
 BoneController::BoneController(uint32_t instanceIdx, const ref_ptr<BoneAnimationItem> &animItem)
 		: instanceIdx_(instanceIdx), animItem_(animItem) {
 	// Fill in the motion clips for each motion type.
@@ -64,30 +61,10 @@ BoneController::BoneController(uint32_t instanceIdx, const ref_ptr<BoneAnimation
 	// initialize the action-to-motion mapping.
 	// note: behavior tree selects actions, we map here to motions, and have
 	//       a set of animation clips for each motion type.
-	// TODO: this could be done in the scene file maybe, but somewhere else or?
 	actionToMotion_.resize(static_cast<size_t>(ActionType::LAST_ACTION));
-	actionToMotion_[static_cast<size_t>(ActionType::IDLE)] = { MotionType::IDLE };
-	actionToMotion_[static_cast<size_t>(ActionType::OBSERVING)] = { MotionType::IDLE };
-	actionToMotion_[static_cast<size_t>(ActionType::INSPECTING)] = { MotionType::INSPECT };
-	actionToMotion_[static_cast<size_t>(ActionType::SITTING)] = { MotionType::SIT };
-	actionToMotion_[static_cast<size_t>(ActionType::PRAYING)] = { MotionType::CROUCH };
-	actionToMotion_[static_cast<size_t>(ActionType::ATTACKING)] = { MotionType::ATTACK };
-	actionToMotion_[static_cast<size_t>(ActionType::BLOCKING)] = { MotionType::BLOCK };
-	actionToMotion_[static_cast<size_t>(ActionType::SLEEPING)] = { MotionType::SLEEP };
-	actionToMotion_[static_cast<size_t>(ActionType::NAVIGATING)] = { MotionType::WALK };
-	actionToMotion_[static_cast<size_t>(ActionType::WALKING)] = { MotionType::WALK };
-	actionToMotion_[static_cast<size_t>(ActionType::INTIMIDATING)] = { MotionType::INTIMIDATE };
-	actionToMotion_[static_cast<size_t>(ActionType::PATROLLING)] = { MotionType::WALK };
-	actionToMotion_[static_cast<size_t>(ActionType::STROLLING)] = { MotionType::WALK };
-	actionToMotion_[static_cast<size_t>(ActionType::FLEEING)] = { MotionType::RUN };
-	actionToMotion_[static_cast<size_t>(ActionType::CONVERSING)] = {
-		MotionType::IDLE,
-		MotionType::AGREE,
-		MotionType::DISAGREE,
-		MotionType::VOCALIZE
-	};
-	// by default no motion for these actions.
-	actionToMotion_[static_cast<size_t>(ActionType::FLOCKING)] = { MotionType::MOTION_LAST };
+	for (size_t i = 0; i < actionToMotion_.size(); ++i) {
+		actionToMotion_[i] = getMotionTypesForAction(static_cast<ActionType>(i));
+	}
 }
 
 BodyPart BoneController::getBodyPartType(const std::string &startNodeName) const {
@@ -190,17 +167,17 @@ void BoneController::updateDesiredMotions(const ActionType *desiredActions, uint
 				// For some action types, allow rapid changing of motion types.
 				// For now just allow that for ATTACK actions.
 				// Later, this should be defined in an ontology!
-				bool stickToCurrent = (desiredAction != ActionType::ATTACKING ||
+				bool stickToCurrent = ((
+					desiredAction != ActionType::ATTACKING &&
+					desiredAction != ActionType::CONVERSING) ||
 					anim->isBoneAnimationActive(instanceIdx_, motionData.handle));
 				if (stickToCurrent) {
 					// The current animation clip segment is still active, or should be
 					// repeated.
 					desiredMotion = currentMotion;
 				} else {
-					// TODO: Interact with clips here?
-					//     - If clip was starting or looping, and there is an end segment, then
-					//       start the end segment, and set desiredMotion = currentMotion
-					//       before activating another motion.
+					// Allow selecting a new motion clip for this action.
+					// The last clip has already finished as !isBoneAnimationActive.
 					selectNewClip = true;
 					break;
 				}
@@ -442,7 +419,8 @@ void BoneController::updateBoneController(float dt_s, const Blackboard &kb) {
 }
 
 void BoneController::updateBoneController(float dt_s, const MotionType *desiredMotions, uint32_t numDesiredMotions) {
-	// TODO: Delay setting IDLE as desired when a motion is active.
+	// TODO: Delay setting IDLE as desired when a motion is active
+	//         to avoid blending before the motion completed.
 	// Unset all desired flags.
 	for (uint32_t activeIdx = 0; activeIdx < numActiveMotions_; ++activeIdx) {
 		auto &motion = motionToData_[static_cast<int>(activeMotions_[activeIdx])];

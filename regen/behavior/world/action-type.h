@@ -2,6 +2,8 @@
 #define REGEN_MODEL_ACTION_TYPE_H_
 
 #include <iostream>
+#include <vector>
+#include "regen/behavior/skeleton/motion-type.h"
 
 namespace regen {
 	/**
@@ -29,6 +31,13 @@ namespace regen {
 		FLOCKING,
 		LAST_ACTION
 	};
+
+	/**
+	 * Get the possible motion types for a given action type.
+	 * @param action The action type.
+	 * @return A vector of motion types that can be used to perform the action.
+	 */
+	std::vector<MotionType> getMotionTypesForAction(ActionType action);
 
 	std::ostream &operator<<(std::ostream &out, const ActionType &v);
 

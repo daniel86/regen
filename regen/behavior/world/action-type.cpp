@@ -4,6 +4,56 @@
 
 using namespace regen;
 
+std::vector<MotionType> regen::getMotionTypesForAction(ActionType action) {
+	std::vector<MotionType> motions;
+	switch (action) {
+		case ActionType::IDLE:
+		case ActionType::OBSERVING:
+			motions.push_back(MotionType::IDLE);
+			break;
+		case ActionType::SITTING:
+			motions.push_back(MotionType::SIT);
+			break;
+		case ActionType::INSPECTING:
+			motions.push_back(MotionType::INSPECT);
+			break;
+		case ActionType::PRAYING:
+			motions.push_back(MotionType::CROUCH);
+			break;
+		case ActionType::ATTACKING:
+			motions.push_back(MotionType::ATTACK);
+			break;
+		case ActionType::BLOCKING:
+			motions.push_back(MotionType::BLOCK);
+			break;
+		case ActionType::SLEEPING:
+			motions.push_back(MotionType::SLEEP);
+			break;
+		case ActionType::INTIMIDATING:
+			motions.push_back(MotionType::INTIMIDATE);
+			break;
+		case ActionType::NAVIGATING:
+		case ActionType::WALKING:
+		case ActionType::PATROLLING:
+		case ActionType::STROLLING:
+			motions.push_back(MotionType::WALK);
+			break;
+		case ActionType::FLEEING:
+			motions.push_back(MotionType::RUN);
+			break;
+		case ActionType::CONVERSING:
+			motions.push_back(MotionType::IDLE);
+			motions.push_back(MotionType::VOCALIZE);
+			motions.push_back(MotionType::AGREE);
+			motions.push_back(MotionType::DISAGREE);
+			break;
+		default:
+			// no default motion
+			break;
+	}
+	return motions;
+}
+
 std::ostream &regen::operator<<(std::ostream &out, const ActionType &v) {
 	switch (v) {
 		case ActionType::IDLE:

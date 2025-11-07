@@ -15,7 +15,7 @@ PerceptionSystem::PerceptionSystem(
 	collisionEvt_.data.self = indexedShape_.get();
 
 	// create the initial collision shape
-	// TODO: Reconsider form of shape for perception.
+	// TODO: Experiment with form of shape for collision detection.
 	//     - best: frustum, but we might get away with a box or sphere.
 	float lookAheadDistance = 15.0f;
 	Bounds<Vec3f> collisionBounds(mesh->minPosition(), mesh->maxPosition());
@@ -68,7 +68,6 @@ void PerceptionSystem::handleIntersection(const BoundingShape &other) {
 	collisionData.distance = collisionData.delta.length();
 	collisionData.dir = collisionData.delta / (collisionData.distance + 1e-6f);
 	collisionData.isBehind = (Vec3f::front().dot(collisionData.delta) < 0.0f);
-	// TODO: Also make a quick distance check for perception range to avoid false positives.
 	if (collisionData.distance < 0.01f) return;
 
 	// Notify all monitors.
@@ -93,10 +92,6 @@ void PerceptionSystem::updateCollisions() {
 	for (auto &monitor : collisionMonitors_) {
 		monitor->finalizeCollisionFrame();
 	}
-}
-
-void PerceptionSystem::updateDetections() {
-	// TODO: Implement detection update
 }
 
 void PerceptionSystem::update(const Blackboard &kb, double dt_s) {
