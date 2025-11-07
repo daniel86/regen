@@ -9,9 +9,6 @@ Blackboard::Blackboard(uint32_t instanceId, const Vec3f *currentPos, const Vec3f
 	for (int i = 0; i < static_cast<int>(Trait::LAST_TRAIT); i++) {
 		traits_[i] = 0.5f;
 	}
-	// TODO: could be shared by all instances. But currently there is
-	//       no such mechanism.
-	//       - there might be more state that can be shared...
 	actionCapabilities_.resize(static_cast<int>(ActionType::LAST_ACTION), false);
 	setAttribute(CharacterAttribute::HEALTH, 1.0f);
 	setAttribute(CharacterAttribute::HUNGER, 0.0f);
