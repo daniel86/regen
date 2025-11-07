@@ -229,7 +229,11 @@ static BehaviorTree::Node* loadNode(LoadingContext &ctx, scene::SceneInputNode &
 			actNode = new UnsetPatient();
 		}
 		else if (actionType == "MoveToTargetPoint") {
-			actNode = new MoveToTargetPoint();
+			auto *n = new MoveToTargetPoint();
+			actNode = n;
+			if (xmlNode.hasAttribute("reach-radius")) {
+				n->setReachRadius(xmlNode.getValue<float>("reach-radius", 0.5f));
+			}
 		}
 		else if (actionType == "MoveToTargetPlace") {
 			actNode = new MoveToTargetPlace();

@@ -461,7 +461,6 @@ BehaviorStatus UnsetPatient::tick(Blackboard &kb, float /*dt_s*/) {
 }
 
 BehaviorStatus MoveToTargetPoint::tick(Blackboard &kb, float /*dt_s*/) {
-	const float reachRadius_ = 0.5f; // TODO: parameter
 	if (kb.distanceToTarget() < reachRadius_) {
 		// Reached target place.
 		kb.unsetNavigationTarget();

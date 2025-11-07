@@ -47,6 +47,9 @@ std::vector<MotionType> regen::getMotionTypesForAction(ActionType action) {
 			motions.push_back(MotionType::AGREE);
 			motions.push_back(MotionType::DISAGREE);
 			break;
+		case ActionType::FLOCKING:
+			motions.push_back(MotionType::MOTION_LAST);
+			break;
 		default:
 			// no default motion
 			break;

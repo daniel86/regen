@@ -192,10 +192,14 @@ namespace regen {
 	 * An action node that moves the NPC to its target point.
 	 */
 	class MoveToTargetPoint : public BehaviorActionNode {
+		float reachRadius_ = 0.5f;
 	public:
 		MoveToTargetPoint() : BehaviorActionNode() {}
 
 		~MoveToTargetPoint() override = default;
+
+		/** Set the radius within which the target point is considered reached. */
+		void setReachRadius(float r) { reachRadius_ = r; }
 
 		BehaviorStatus tick(Blackboard& bb, float dt_s) override;
 	};
