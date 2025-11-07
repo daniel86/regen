@@ -12,6 +12,7 @@ LightningStrike::LightningStrike(uint32_t strikeIdx,
 	  source_(source),
 	  target_(target),
 	  alpha_(alpha) {
+	drawIndex_.store(0u, std::memory_order_release);
 }
 
 static Vec3f getPerpendicular1(const Vec3f &v) {
@@ -79,11 +80,23 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 	// reallocation of memory after the first iteration.
 	// the memory in the vector is further aligned with the GL buffer such that we can
 	// directly copy the data to the buffer.
-	segments_[1].clear();
-	segments_[0].clear();
-	segments_[0].emplace_back(source, target, strikeIdx_);
-	segmentIndex_ = 0;
-	unsigned int nextIndex = 1;
+	const uint32_t currentDrawIdx = drawIndex_.load(std::memory_order_acquire);
+	// Obtain the two update indices, which are not the current draw index
+	// as we should not modify the segment being drawn.
+	// NOTE: this logic will break if the number of segment buffers is changed from 3 to something else.
+	const uint32_t updateIdx[2] = {
+		(currentDrawIdx == 0u) ? 1u : 0u,
+		(currentDrawIdx == 2u) ? 1u : 2u
+	};
+	std::vector<Segment> *updateSegments[2] = {
+		&segments_[updateIdx[0]],
+		&segments_[updateIdx[1]]
+	};
+
+	updateSegments[1]->clear();
+	updateSegments[0]->clear();
+	updateSegments[0]->emplace_back(source, target, strikeIdx_);
+	uint32_t lastIndex = 0, nextIndex = 1;
 	float offsetAmount = jitterOffset_;
 	float heightRange = source.y - target.y;
 
@@ -95,16 +108,16 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 	for (unsigned int i = 0u; i < maxSubDivisions_; ++i) {
 		numSubBranchVertices /= 2;
 
-		for (auto &segment: segments_[segmentIndex_]) {
+		for (auto &segment: *updateSegments[lastIndex]) {
 			midPoint = (segment.start.pos + segment.end.pos) * 0.5f;
 			direction = segment.end.pos - segment.start.pos;
 			direction.normalize();
 			midPoint += getPerpendicular(direction) * (offsetAmount * (math::random<float>() * 2.0f - 1.0f));
-			segments_[nextIndex].emplace_back(
+			updateSegments[nextIndex]->emplace_back(
 				segment.start.pos, midPoint,
 				segment.start.strikeIdx,
 				segment.start.brightness);
-			segments_[nextIndex].emplace_back(
+			updateSegments[nextIndex]->emplace_back(
 				midPoint, segment.end.pos,
 				segment.end.strikeIdx,
 				segment.end.brightness);
@@ -117,7 +130,7 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 										std::min(1.0f, segment.start.brightness + 0.25f) *
 										// decrease the probability further away from the target
 										std::min(1.0f, (1.0f - (midPoint.y - target.y) / heightRange) + 0.25f)) {
-				segments_[nextIndex].emplace_back(
+				updateSegments[nextIndex]->emplace_back(
 						midPoint,
 						branch(midPoint, direction, segment.end.pos,
 							   offsetAmount * branchOffset_,
@@ -128,11 +141,14 @@ void LightningStrike::updateSegmentData(const Vec3f &source, const Vec3f &target
 				numRemainingVertices -= numSubBranchVertices;
 			}
 		}
-		segments_[segmentIndex_].clear();
-		nextIndex = segmentIndex_;
-		segmentIndex_ = 1 - segmentIndex_;
+		updateSegments[lastIndex]->clear();
+		nextIndex = lastIndex;
+		lastIndex = 1 - lastIndex;
 		offsetAmount *= 0.5f;
 	}
+
+	const uint32_t nextDrawIdx = updateIdx[lastIndex];
+	drawIndex_.store(nextDrawIdx, std::memory_order_release);
 }
 
 bool LightningStrike::updateStrike(double dt_s) {
@@ -173,7 +189,7 @@ bool LightningStrike::updateStrike(double dt_s) {
 
 LightningBolt::LightningBolt()
 		: Mesh(GL_LINES, BufferUpdateFlags::FULL_PER_FRAME),
-		  Animation(true, false) {
+		  Animation(true, true) {
 	pos_ = ref_ptr<ShaderInput3f>::alloc(ATTRIBUTE_NAME_POS);
 	brightness_ = ref_ptr<ShaderInput1f>::alloc(ATTRIBUTE_NAME_BRIGHTNESS);
 	strikeIdx_ = ref_ptr<ShaderInput1ui>::alloc("strikeIdx");
@@ -407,38 +423,43 @@ void LightningBolt::createResources() {
 	}
 }
 
-void LightningBolt::glAnimate(RenderState *rs, GLdouble dt) {
-	// TODO: this computation is blocking the GPU thread! it could be done in a separate thread,
-	//       but then a ping-pong buffer should be used to avoid synchronization issues.
+void LightningBolt::animate(GLdouble dt) {
 	bool active = false;
+	double dt_s = dt * 0.001;
 	for (auto &strike : strikes_) {
-		active = strike->updateStrike(dt * 0.001) || active;
+		active = strike->updateStrike(dt_s) || active;
 	}
 	if (active != isActive_) {
 		isActive_ = !isActive_;
 		set_isHidden(!isActive_);
 	}
-	if (active) {
-		updateLightningBolt();
-	}
 }
 
-void LightningBolt::updateLightningBolt() {
+void LightningBolt::glAnimate(RenderState *rs, GLdouble dt) {
+	if (!isActive_) return;
+
 	const uint32_t maxVertices = pos_->numVertices();
 	uint32_t numVertices = 0u, strikeVertices, strikeBytes;
 	uint32_t offset = bufferOffset_;
 	for (auto &strike : strikes_) {
-		auto &segment = strike->segments_[strike->segmentIndex_];
+		// Load the index of last updated segment.
+		// NOTE: This is safe because draw and update thread are frame-synced, i.e. update will swap
+		// the draw idx only after writing, and won't write again until draw is definitely done.
+		// Draw will either use update data of last frame, or if it is slower it may also pick
+		// up the data just written, which is also fine.
+		auto drawIdx = strike->drawIndex_.load(std::memory_order_acquire);
+		auto &segment = strike->segments_[drawIdx];
 		strikeVertices = segment.size() * 2;
-		if (strikeVertices == 0) { continue; }
-		if (numVertices + strikeVertices > maxVertices) { continue; }
-		numVertices += strikeVertices;
+		if (strikeVertices == 0 || numVertices + strikeVertices > maxVertices) { continue; }
 		strikeBytes = strikeVertices * elementSize_;
+
+		// Copy segment data to GPU buffer.
 		glNamedBufferSubData(
 			pos_->buffer(),
 			offset,
 			strikeBytes,
 			segment.data());
+		numVertices += strikeVertices;
 		offset += strikeBytes;
 	}
 	// update the number of vertices

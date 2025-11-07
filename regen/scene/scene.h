@@ -52,13 +52,13 @@ namespace regen {
 		public:
 			~KeyEvent() override = default;
 			/** key up or down ?. */
-			GLboolean isUp;
+			bool isUp;
 			/** mouse x position. */
-			GLint x;
+			int x;
 			/** mouse y position. */
-			GLint y;
+			int y;
 			/** the pressed key. */
-			GLint key;
+			int key;
 		};
 
 		/** mouse button event id. */
@@ -69,15 +69,15 @@ namespace regen {
 		public:
 			~ButtonEvent() override = default;
 			/** pressed or released? */
-			GLboolean pressed;
+			bool pressed;
 			/** is it a double click event? */
-			GLboolean isDoubleClick;
+			bool isDoubleClick;
 			/** the mouse button. */
-			GLint button;
+			int button;
 			/** mouse x position. */
-			GLint x;
+			int x;
 			/** mouse y position. */
-			GLint y;
+			int y;
 		};
 
 		/** mouse motion event id. */
@@ -88,11 +88,11 @@ namespace regen {
 		public:
 			~MouseMotionEvent() override = default;
 			/** time difference to last motion event. */
-			GLdouble dt;
+			double dt;
 			/** mouse x position difference */
-			GLint dx;
+			int dx;
 			/** mouse y position difference */
-			GLint dy;
+			int dy;
 		};
 
 		/** Resize event. */
@@ -103,7 +103,7 @@ namespace regen {
 		public:
 			~MouseLeaveEvent() override = default;
 			/** mouse left/entered the window. */
-			GLboolean entered;
+			bool entered;
 		};
 
 		/** mouse left/entered the window. */
@@ -397,9 +397,9 @@ namespace regen {
 		boost::posix_time::ptime lastTime_;
 		WorldTime worldTime_;
 
-		GLboolean isGLInitialized_;
-		GLboolean isTimeInitialized_;
-		GLboolean isVSyncEnabled_;
+		bool isGLInitialized_;
+		bool isTimeInitialized_;
+		bool isVSyncEnabled_;
 
 		void setupShaderLoading();
 

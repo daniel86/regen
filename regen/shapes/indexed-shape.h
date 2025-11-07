@@ -121,7 +121,8 @@ namespace regen {
 		ref_ptr<ShaderInput> idVec_;
 		ref_ptr<ShaderInput> countVec_;
 		ref_ptr<ShaderInput> baseVec_;
-		// TODO: make atomic?
+		// note: this flag is currently only used by LODState CPU path, and the spatial index traversal
+		//       both are currently bound to the same thread, so we do not need atomic updates here.
 		std::vector<bool> visible_;
 		bool isVisibleInAnyLayer_ = false;
 
@@ -131,13 +132,11 @@ namespace regen {
 		// per (lod, layer) data flattened as lod * numLayers + layer
 		std::vector<uint32_t> tmp_binCounts_;   // size = numLODs * numLayers
 		std::vector<uint32_t> tmp_binBase_;     // size = numLODs * numLayers
-
-		// These vectors are filled up during traversal and sorted
-		// according to the instance distance to the camera.
-		std::vector<uint32_t> tmp_layerShapes_; // size = numLayers * numInstances
-		std::vector<uint32_t> tmp_layerInstances_; // size = numLayers * numInstances
-		std::vector<uint32_t> tmp_layerIndices_; // size = numLayers * numInstances
-		std::vector<float> tmp_layerDistances_; // size = numLayers * numInstances
+		uint32_t tmp_totalCount_ = 0;
+		// The index of this shape in the camera's shape list.
+		// Here we limit to max 65536 shapes per camera for sorting key packing,
+		// however instances are not counted as individual shapes.
+		uint16_t shapeIdx_ = 0;
 
 		struct MappedData {
 			explicit MappedData(

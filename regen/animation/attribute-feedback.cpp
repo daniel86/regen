@@ -1,5 +1,5 @@
 #include "attribute-feedback.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "regen/states/state-configurer.h"
 
 using namespace regen;
@@ -66,16 +66,16 @@ ref_ptr<AttributeFeedbackAnimation> AttributeFeedbackAnimation::load(scene::Scen
 	// Try to find the mesh
 	auto meshID = input.getValue("mesh-id");
 	auto meshIndex = input.getValue<uint32_t>("mesh-index", 0u);
-	auto meshVec = scene->getResource<MeshVector>(meshID);
-	if (meshVec.get() == nullptr || meshVec->empty()) {
+	auto compositeMesh = scene->getResource<CompositeMesh>(meshID);
+	if (compositeMesh.get() == nullptr || compositeMesh->meshes().empty()) {
 		REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
 		return {};
 	}
-	if (meshVec->size() <= meshIndex) {
+	if (compositeMesh->meshes().size() <= meshIndex) {
 		REGEN_WARN("Mesh index " << meshIndex << " is out of range for '" << input.getDescription() << "'.");
 		meshIndex = 0u;
 	}
-	auto &mesh = (*meshVec.get())[meshIndex];
+	auto &mesh = compositeMesh->meshes()[meshIndex];
 	auto shaderKey = input.getValue("shader");
 	auto animation = ref_ptr<AttributeFeedbackAnimation>::alloc(mesh, shaderKey);
 	// create a state using children of the input node

@@ -19,7 +19,6 @@
     <font id="ubuntu" file="res/fonts/ubuntu.ttf" size="16" dpi="96"/>
 
     <!-- Assets -->
-    <asset id="venus-asset" type="asset" file="res/models/venus.obj" use-animation="0"/>
     <asset id="teapot-asset" type="asset" file="res/models/teapot.obj" use-animation="0"/>
     <asset id="dragon-asset" type="asset" file="res/models/dragon.obj" use-animation="0"/>
     <asset id="bunny-asset" type="asset" file="res/models/bunny.obj" use-animation="0"/>

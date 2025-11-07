@@ -116,11 +116,6 @@ namespace regen {
 		PositionReader position(uint32_t idx) const;
 
 		/**
-		 * @return the model velocity.
-		 */
-		const ref_ptr<ShaderInput3f> &velocity() const { return velocity_; }
-
-		/**
 		 * @param audioSource the audio source attached to the world position
 		 * of the model.
 		 */
@@ -142,12 +137,10 @@ namespace regen {
 		BufferUpdateFlags tfUpdateFlags_;
 		ref_ptr<ShaderInputMat4> modelMat_;
 		ref_ptr<ShaderInput4f> modelOffset_;
-		ref_ptr<ShaderInput3f> velocity_;
 		ref_ptr<BufferContainer> tfBuffer_;
 
 		ref_ptr<AudioSource> audioSource_;
 		boost::posix_time::ptime lastTime_ = boost::posix_time::microsec_clock::local_time();
-		Vec3f lastPosition_ = Vec3f(0.0f, 0.0f, 0.0f);
 
 		void initBufferContainer();
 

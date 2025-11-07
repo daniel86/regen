@@ -110,12 +110,12 @@ ref_ptr<Texture2D> ResourceManager::getTexture2D(SceneLoader *parser, const std:
 	return ref_ptr<Texture2D>::dynamicCast(getTexture(parser, id));
 }
 
-ref_ptr<MeshVector> ResourceManager::getMesh(SceneLoader *parser, const std::string &id) {
+ref_ptr<CompositeMesh> ResourceManager::getMesh(SceneLoader *parser, const std::string &id) {
 	loadResources(parser, id);
 	return meshes_.getResource(parser, id);
 }
 
-ref_ptr<MeshVector> ResourceManager::createMesh(SceneLoader *parser, scene::SceneInputNode &input) {
+ref_ptr<CompositeMesh> ResourceManager::createMesh(SceneLoader *parser, scene::SceneInputNode &input) {
 	auto id = input.getName();
 	auto mesh = meshes_.createResource(parser, input);
 	meshes_.putResource(id, mesh);
@@ -169,7 +169,7 @@ void ResourceManager::putTexture(const std::string &id, const ref_ptr<Texture> &
 	textures_.putResource(id, texture);
 }
 
-void ResourceManager::putMesh(const std::string &id, const ref_ptr<MeshVector> &meshes) {
+void ResourceManager::putMesh(const std::string &id, const ref_ptr<CompositeMesh> &meshes) {
 	meshes_.putResource(id, meshes);
 }
 

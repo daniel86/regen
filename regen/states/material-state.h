@@ -113,6 +113,18 @@ namespace regen {
 		void set_emission(const Vec3f &emission);
 
 		/**
+		 * Sets a multiplier for the specular color.
+		 * @param factor The specular multiplier.
+		 */
+		void setSpecularMultiplier(float factor);
+
+		/**
+		 * Sets a multiplier for the emission color.
+		 * @param factor The emission multiplier.
+		 */
+		void setEmissionMultiplier(float factor);
+
+		/**
 		 * Defines how faces are shaded (FILL/LINE/POINT).
 		 */
 		void set_fillMode(GLenum mode);
@@ -303,13 +315,16 @@ namespace regen {
 		ref_ptr<ShaderInput3f> materialEmission_;
 		ref_ptr<ShaderInput1f> materialRefractionIndex_;
 		ref_ptr<ShaderInput1f> materialAlpha_;
+		ref_ptr<ShaderInput1f> materialSpecularMultiplier_;
+		ref_ptr<ShaderInput1f> materialEmissionMultiplier_;
+		ref_ptr<ShaderInput4f> materialTransparentColor_;
 		ref_ptr<UBO> materialUniforms_;
 
 		TextureConfig texConfig_;
-		GLfloat maxOffset_;
+		float maxOffset_;
 		HeightMapMode heightMapMode_;
 		BlendMode colorBlendMode_;
-		GLfloat colorBlendFactor_;
+		float colorBlendFactor_;
 		std::optional<GLenum> wrapping_;
 
 		ref_ptr<State> twoSidedState_;

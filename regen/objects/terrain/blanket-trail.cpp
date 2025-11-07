@@ -1,6 +1,6 @@
 #include "blanket-trail.h"
 
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "regen/shapes/indexed-shape.h"
 
 using namespace regen;
@@ -105,9 +105,9 @@ ref_ptr<BlanketTrail> BlanketTrail::load(LoadingContext &ctx,
 	ref_ptr<State> dummy = ref_ptr<State>::alloc();
 
 	ref_ptr<Ground> groundMesh;
-	auto meshVec = ctx.scene()->getResource<MeshVector>(input.getValue("ground-mesh"));
-	if (meshVec.get() != nullptr && meshVec->size() > 0) {
-		auto mesh = (*meshVec.get())[0];
+	auto compositeMesh = ctx.scene()->getResource<CompositeMesh>(input.getValue("ground-mesh"));
+	if (compositeMesh.get() != nullptr && compositeMesh->meshes().size() > 0) {
+		auto mesh = compositeMesh->meshes()[0];
 		groundMesh = ref_ptr<Ground>::dynamicCast(mesh);
 	}
 	if (!groundMesh) {
@@ -132,9 +132,9 @@ ref_ptr<BlanketTrail> BlanketTrail::load(LoadingContext &ctx,
 	auto blanket = ref_ptr<BlanketTrail>::alloc(groundMesh, meshCfg);
 
 	// early add mesh vector to scene for children handling below
-	auto out_ = ref_ptr<MeshVector>::alloc();
-	out_->push_back(blanket);
-	ctx.scene()->putResource<MeshVector>(input.getName(), out_);
+	auto out_ = ref_ptr<CompositeMesh>::alloc();
+	out_->addMesh(blanket);
+	ctx.scene()->putResource<CompositeMesh>(input.getName(), out_);
 
 	auto tfChild = input.getFirstChild("transform");
 	if (tfChild.get()) {

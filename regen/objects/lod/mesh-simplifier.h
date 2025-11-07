@@ -1,7 +1,7 @@
 #ifndef REGEN_MESH_SIMPLIFIER_H
 #define REGEN_MESH_SIMPLIFIER_H
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <queue>
 #include <utility>
 #include <unordered_set>

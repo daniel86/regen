@@ -163,6 +163,8 @@ namespace regen {
 
 	protected:
 		ref_ptr<FBO> fbo_;
+		// A buffer for draw commands.
+		ref_ptr<SSBO> indirectDrawBuffer_;
 
 		ref_ptr<SkyBox> drawState_;
 		ref_ptr<ShaderState> updateShader_;
@@ -173,6 +175,8 @@ namespace regen {
 		ref_ptr<ShaderInput1f> spotBrightness_;
 		ref_ptr<ShaderInput1f> scatterStrength_;
 		ref_ptr<ShaderInput3f> skyAbsorption_;
+
+		ref_ptr<SSBO> createIndirectDrawBuffer();
 	};
 }
 

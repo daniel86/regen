@@ -2,7 +2,7 @@
 #define REGEN_REFLECTION_CAMERA_H_
 
 #include <regen/camera/camera.h>
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 namespace regen {
 	/**

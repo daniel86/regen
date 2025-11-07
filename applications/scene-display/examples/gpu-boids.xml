@@ -267,13 +267,6 @@
     </block>
 
     <node id="Water-Rendering">
-        <depth test="1" write="0"/>
-        <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
-        <toggle key="CLIP_DISTANCE0" value="1"/>
-        <toggle key="CLIP_DISTANCE1" value="1"/>
-        <toggle key="CLIP_DISTANCE2" value="1"/>
-        <toggle key="CLIP_DISTANCE3" value="1"/>
-
         <define key="USE_REFRACTION" value="TRUE"/>
         <define key="USE_FOAM" value="FALSE"/>
         <define key="USE_RIPPLES" value="TRUE"/>
@@ -291,7 +284,22 @@
         <input name="ReflectionCamera" state="reflection-camera" component="Camera" member-suffix="_Reflection"/>
         <input name="SunLight" state="sky-sun" component="Light" member-suffix="_Sun"/>
 
-        <mesh id="water-mesh" shader="regen.terrain.water.plane" />
+        <horizon camera="main-camera" level="{{water-level}}">
+            <below>
+                <depth test="0" write="0"/>
+                <define key="IS_UNDER_WATER" value="TRUE"/>
+                <fullscreen-pass shader="regen.terrain.water.fullscreen"/>
+            </below>
+            <above>
+                <depth test="1" write="0"/>
+                <define key="IS_VIEW_ALIGNED_GROUND_QUAD" value="TRUE"/>
+                <toggle key="CLIP_DISTANCE0" value="1"/>
+                <toggle key="CLIP_DISTANCE1" value="1"/>
+                <toggle key="CLIP_DISTANCE2" value="1"/>
+                <toggle key="CLIP_DISTANCE3" value="1"/>
+                <mesh id="water-mesh" shader="regen.terrain.water.plane" />
+            </above>
+        </horizon>
     </node>
 
     <!-- Render surface plane into depth buffer
@@ -466,11 +474,6 @@
 
         <!-- Copy G-buffer albedo into the first attachment such that we can run water shader
              only locally where water is visible. -->
-        <!-- TODO: The blit below is a bit expensive, and not needed where water is visible!
-                   However, the depth pass below cannot be moved before the water rendering,
-                   as it needs to sample the depth buffer.
-                   It could be that doing a stencil only pass first, then doing
-                   a "stencil-blit" would be cheaper... -->
         <node id="Water-Blit-Albedo">
             <blit filter-mode="NEAREST"
                 src-fbo="g-buffer" src-attachment="1"

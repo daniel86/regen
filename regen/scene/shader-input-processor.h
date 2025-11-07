@@ -202,15 +202,15 @@ namespace regen {
 						setInput(input, in.get(), in->numInstances());
 					}
 				} else if (input.hasAttribute("mesh")) {
-					auto meshVec = scene->getResource<MeshVector>(input.getValue("mesh"));
-					if (meshVec.get() == nullptr || meshVec->empty()) {
+					auto compositeMesh = scene->getResource<CompositeMesh>(input.getValue("mesh"));
+					if (compositeMesh.get() == nullptr || compositeMesh->meshes().empty()) {
 						REGEN_WARN("No Mesh found for '" << input.getDescription() << "'.");
 						return {};
 					}
 					auto meshIndex = input.getValue<GLuint>("mesh-index", 0);
-					ref_ptr<Mesh> mesh = meshVec->at(0);
-					if (meshVec->size() > meshIndex) {
-						mesh = meshVec->at(meshIndex);
+					ref_ptr<Mesh> mesh = compositeMesh->meshes().front();
+					if (compositeMesh->meshes().size() > meshIndex) {
+						mesh = compositeMesh->meshes().at(meshIndex);
 					}
 					auto in_opt = mesh->findShaderInput(input.getValue("component"));
 					if (!in_opt.has_value() || !in_opt.value().in.get()) {

@@ -1,63 +1,51 @@
-/*
- * event-object.cpp
- *
- *  Created on: 29.01.2011
- *      Author: daniel
- */
-
 #include "logging.h"
 #include "event-object.h"
+#include "threading.h"
+#include <ranges>
 
 using namespace regen;
 
-std::list<EventObject::QueuedEvent> EventObject::pingQueue_ = std::list<EventObject::QueuedEvent>();
-std::list<EventObject::QueuedEvent> EventObject::pongQueue_ = std::list<EventObject::QueuedEvent>();
-std::list<EventObject::QueuedEvent> *EventObject::queued_ = &EventObject::pingQueue_;
-std::list<EventObject::QueuedEvent> *EventObject::processing_ = &EventObject::pongQueue_;
-
-boost::mutex EventObject::eventLock_;
-
 //// static
+
+EventObject::StaticData EventObject::staticData_;
 
 unsigned int &EventObject::numEvents() {
 	static unsigned int numEvents_ = 0;
 	return numEvents_;
 }
 
-std::map<std::string, unsigned int> &EventObject::eventIds() {
-	static std::map<std::string, unsigned int> eventIds_ = std::map<std::string, unsigned int>();
+std::unordered_map<std::string, unsigned int> &EventObject::eventIds() {
+	static auto eventIds_ = std::unordered_map<std::string, unsigned int>();
 	return eventIds_;
 }
 
 ///// none static
 
-EventObject::EventObject()
-		: handlerCounter_(0),
-		  eventHandlers_() {
+EventObject::EventObject() {
+	fallbackEventData_ = ref_ptr<EventData>::alloc();
 }
 
 EventObject::~EventObject() {
-	eventLock_.lock();
-	{
-		auto i = queued_->begin();
-		while (i != queued_->end()) {
-			if (i->emitter == this) queued_->erase(i++);
-			else ++i;
+	for (;;) {
+		// load the current push index
+		int insertIdx = pushLock();
+		if (insertIdx == -1) continue;
+		// mark event as removed
+		for (auto & ev : staticData_.eventQueue_[0]) {
+			if (ev.emitter == this) {
+				ev.emitter = nullptr;
+			}
 		}
-	}
-	eventLock_.unlock();
-
-	for (auto it = eventHandlers_.begin(); it != eventHandlers_.end(); ++it) {
-		for (auto jt = it->second.begin(); jt != it->second.end(); ++jt) {
-			jt->first->set_handlerID(-1);
-		}
+		// and decrement pusher count
+		pushUnlock(insertIdx);
+		break;
 	}
 }
 
 unsigned int EventObject::registerEvent(const std::string &eventName) {
-	++EventObject::numEvents();
-	EventObject::eventIds().insert(make_pair(eventName, EventObject::numEvents()));
-	return EventObject::numEvents();
+	++numEvents();
+	eventIds().insert(make_pair(eventName, numEvents()));
+	return numEvents();
 }
 
 unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventHandler> &callable) {
@@ -75,35 +63,35 @@ unsigned int EventObject::connect(unsigned int eventId, const ref_ptr<EventHandl
 		eventHandlers_[eventId] = newList;
 	}
 
-	// XXX: problems for handlers that are connected multiple times
-	callable->set_handlerID(handlerCounter_);
-
 	return handlerCounter_;
 }
 
 unsigned int EventObject::connect(const std::string &eventName, const ref_ptr<EventHandler> &callable) {
-	return connect(EventObject::eventIds()[eventName], callable);
+	auto it = eventIds().find(eventName);
+	if (it == eventIds().end()) {
+		REGEN_WARN("Event name '" << eventName << "' not registered.");
+		return 0;
+	}
+	return connect(it->second, callable);
 }
 
 void EventObject::disconnect(unsigned int connectionID) {
-	auto idNeedle =
-			eventHandlerIds_.find(connectionID);
+	const auto idNeedle = eventHandlerIds_.find(connectionID);
 	if (idNeedle == eventHandlerIds_.end()) {
 		REGEN_WARN("Signal with id=" << connectionID << " no known.");
 		return; // handler id not found!
 	}
 
-	unsigned int eventId = idNeedle->second;
-	auto signalHandlers = eventHandlers_.find(eventId);
+	const unsigned int eventId = idNeedle->second;
+	const auto signalHandlers = eventHandlers_.find(eventId);
 	if (signalHandlers == eventHandlers_.end()) {
 		REGEN_WARN("Signal with id=" << connectionID << " has no connected handlers.");
 		return; // no handlers not found!
 	}
 
-	EventHandlerList &l = signalHandlers->second;
+	auto &l = signalHandlers->second;
 	for (auto it = l.begin(); it != l.end(); ++it) {
 		if (it->second != connectionID) continue;
-		it->first->set_handlerID(-1);
 		l.erase(it);
 		break;
 	}
@@ -111,88 +99,100 @@ void EventObject::disconnect(unsigned int connectionID) {
 	eventHandlerIds_.erase(idNeedle);
 }
 
-void EventObject::disconnect(const ref_ptr<EventHandler> &c) {
-	disconnect(c->handlerID());
-}
-
 void EventObject::disconnectAll() {
-	eventLock_.lock();
-	{
-		for (auto & eventHandler : eventHandlers_) {
-			EventHandlerList &l = eventHandler.second;
-			for (auto & jt : l) {
-				jt.first->set_handlerID(-1);
-			}
-			l.clear();
-		}
-		eventHandlers_.clear();
-		eventHandlerIds_.clear();
-		handlerCounter_ = 0;
-	}
-	eventLock_.unlock();
+	eventHandlers_.clear();
+	eventHandlerIds_.clear();
+	handlerCounter_ = 0;
 }
 
 void EventObject::emitEvent(unsigned int eventID, const ref_ptr<EventData> &data) {
 	// make sure event data specifies at least event ID
-	ref_ptr<EventData> d = data;
-	if (!d.get()) { d = ref_ptr<EventData>::alloc(); }
+	const ref_ptr<EventData> &d = data.get() ? data : fallbackEventData_;
 	d->eventID = eventID;
 
-	auto it = eventHandlers_.find(eventID);
-	if (it != eventHandlers_.end()) {
-		EventHandlerList::iterator jt;
-		for (jt = it->second.begin(); jt != it->second.end(); ++jt) {
-			jt->first->call(this, d.get());
+	if (auto handlers = eventHandlers_.find(eventID); handlers != eventHandlers_.end()) {
+		for (const auto &handler: handlers->second | std::views::keys) {
+			handler->call(this, d.get());
 		}
 	}
 }
 
 void EventObject::emitEvent(const std::string &eventName, const ref_ptr<EventData> &data) {
-	emitEvent(EventObject::eventIds()[eventName], data);
+	emitEvent(eventIds()[eventName], data);
 }
 
-void EventObject::emitQueued() {
-	// ping-pong event queue to avoid copy and long locks
-	eventLock_.lock();
-	{
-		std::list<QueuedEvent> *buf = queued_;
-		queued_ = processing_;
-		processing_ = buf;
-	}
-	eventLock_.unlock();
+void EventObject::dispatchEvents() {
+	// Swap queues
+	int dispatchIdx = staticData_.eventPushIndex_.load(std::memory_order_acquire);
+	int nextPushIdx = (dispatchIdx == 0) ? 1 : 0;
+	staticData_.eventPushIndex_.store(nextPushIdx, std::memory_order_release);
 
-	// process queued events
-	while (!processing_->empty()) {
-		QueuedEvent &ev = processing_->front();
-		// emit event and delete data
-		ev.emitter->emitEvent(ev.eventID, ev.data);
-		// pop out processed event
-		processing_->pop_front();
+	// Wait for any concurrent pushers on dispatchIdx to finish
+	while (staticData_.eventPusherCount_[dispatchIdx].load(std::memory_order_acquire) > 0) {
+		CPU_PAUSE();
 	}
-}
 
-void EventObject::unqueueEmit(unsigned int eventID) {
-	eventLock_.lock();
-	{
-		for (auto it = queued_->begin(); it != queued_->end(); ++it) {
-			const QueuedEvent &ev = *it;
-			if (ev.emitter == this && ev.eventID == eventID) {
-				queued_->erase(it);
-				break;
-			}
+	// Process events
+	auto &queue = staticData_.eventQueue_[dispatchIdx];
+	for (const auto &ev : queue) {
+		if (ev.emitter) {
+			ev.emitter->emitEvent(ev.eventID, ev.data);
 		}
 	}
-	eventLock_.unlock();
+	queue.clear();
+}
+
+int EventObject::pushLock() {
+	// load the current push index
+	int insertIdx = staticData_.eventPushIndex_.load(std::memory_order_acquire);
+	// increment pusher count
+	auto &count = staticData_.eventPusherCount_[insertIdx];
+	count.fetch_add(1, std::memory_order_acquire);
+	// make sure insertIdx is still valid, as it could be that dispatch has swapped the queues
+	// in the meantime. If not, we are protected by the counter and can proceed.
+	if (insertIdx != staticData_.eventPushIndex_.load(std::memory_order_acquire)) {
+		count.fetch_sub(1, std::memory_order_release);
+		return -1;
+	}
+	return insertIdx;
+}
+
+void EventObject::pushUnlock(int insertIdx) {
+	// and decrement pusher count
+	staticData_.eventPusherCount_[insertIdx].fetch_sub(1, std::memory_order_release);
 }
 
 void EventObject::queueEmit(unsigned int eventID, const ref_ptr<EventData> &data) {
-	eventLock_.lock();
-	{
-		queued_->emplace_back(this, data, eventID);
+	for (;;) {
+		// load the current push index
+		int insertIdx = pushLock();
+		if (insertIdx == -1) continue;
+		// Push the event to the queue
+		staticData_.eventQueue_[insertIdx].emplace_back(this, data, eventID);
+		// and decrement pusher count
+		pushUnlock(insertIdx);
+		break;
 	}
-	eventLock_.unlock();
+}
+
+void EventObject::unQueueEmit(unsigned int eventID) const {
+	for (;;) {
+		// load the current push index
+		int insertIdx = pushLock();
+		if (insertIdx == -1) continue;
+		// mark event as removed
+		for (auto & ev : staticData_.eventQueue_[insertIdx]) {
+			if (ev.emitter == this && ev.eventID == eventID) {
+				ev.emitter = nullptr;
+				break;
+			}
+		}
+		// and decrement pusher count
+		pushUnlock(insertIdx);
+		break;
+	}
 }
 
 void EventObject::queueEmit(const std::string &eventName, const ref_ptr<EventData> &data) {
-	queueEmit(EventObject::eventIds()[eventName], data);
+	queueEmit(eventIds()[eventName], data);
 }

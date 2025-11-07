@@ -1,5 +1,5 @@
-#ifndef REGEN_RADIX_SORT_H
-#define REGEN_RADIX_SORT_H
+#ifndef REGEN_RADIX_SORT_GPU_H
+#define REGEN_RADIX_SORT_GPU_H
 
 #include <regen/states/state.h>
 #include "compute-pass.h"
@@ -11,15 +11,15 @@ namespace regen {
 	 * as unsigned integers (for floats use a bit representation).
 	 * The output will be an index buffer (the value array) with the keys sorted in ascending order.
 	 */
-	class RadixSort : public State {
+	class RadixSort_GPU : public State {
 	public:
 		/**
 		 * @brief Constructor for RadixSort
 		 * @param numKeys
 		 */
-		explicit RadixSort(uint32_t numKeys, uint32_t numLayers = 1);
+		explicit RadixSort_GPU(uint32_t numKeys, uint32_t numLayers = 1);
 
-		~RadixSort() override = default;
+		~RadixSort_GPU() override = default;
 
 		/**
 		 * Set whether visible instances are compacted before sorting.
@@ -117,4 +117,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* REGEN_RADIX_SORT_H */
+#endif /* REGEN_RADIX_SORT_GPU_H */

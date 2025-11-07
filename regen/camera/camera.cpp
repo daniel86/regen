@@ -4,7 +4,7 @@
 #include "light-camera-cube.h"
 #include "light-camera-csm.h"
 #include "reflection-camera.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include <regen/shapes/spatial-index.h>
 
 using namespace regen;
@@ -652,13 +652,13 @@ ref_ptr<Camera> Camera::createCamera(LoadingContext &ctx, scene::SceneInputNode 
 		bool hasBackFace = input.getValue<bool>("has-back-face", false);
 
 		if (input.hasAttribute("reflector")) {
-			ref_ptr<MeshVector> mesh =
-					ctx.scene()->getResource<MeshVector>(input.getValue("reflector"));
-			if (mesh.get() == nullptr || mesh->empty()) {
+			ref_ptr<CompositeMesh> compositeMesh =
+					ctx.scene()->getResource<CompositeMesh>(input.getValue("reflector"));
+			if (compositeMesh.get() == nullptr || compositeMesh->meshes().empty()) {
 				REGEN_WARN("Unable to find Mesh for '" << input.getDescription() << "'.");
 				return {};
 			}
-			const std::vector<ref_ptr<Mesh> > &vec = *mesh.get();
+			const std::vector<ref_ptr<Mesh> > &vec = compositeMesh->meshes();
 			cam = ref_ptr<ReflectionCamera>::alloc(
 					userCamera, vec[0], input.getValue<GLuint>("vertex-index", 0u), hasBackFace);
 		} else if (input.hasAttribute("reflector-normal")) {

@@ -508,8 +508,6 @@ the shader configuration generated above.
 
 @section tut_xml XML Scene
 
-@todo Write XML Scene tutorial.
-
 For now take a look at examples provided at 'applications/scene-display/examples'.
 */
 

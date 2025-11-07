@@ -3,26 +3,21 @@
 --------------------------------
 ----- Computes atmosphere cube map.
 ----- Code based on: http://codeflow.org/entries/2011/apr/13/advanced-webgl-part-2-sky-rendering/
+----- Note: We do draw indirection in VS -- one draw call per layer -- to avoid
+-----       the need for a geometry shader. This improves performance on some hardware.
 --------------------------------
 --------------------------------
 -- vs
+#include regen.models.mesh.defines
+
 in vec3 in_pos;
-out vec2 out_pos;
-
-void main(void) {
-    out_pos = vec2(in_pos.x, -in_pos.y);
-    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
-}
-
--- gs
-layout(triangles) in;
-layout(triangle_strip, max_vertices=15) out;
-
 out vec3 out_pos;
-in vec2 in_pos[3];
 
-vec3 getCubePoint(vec2 p, int i)
-{
+flat out int out_layer;
+#define in_layer regen_RenderLayer()
+#include regen.layered.VS_SelectLayer
+
+vec3 getCubePoint(vec2 p, int i) {
     vec3 cubePoints[5] = vec3[](
         vec3( 1.0, p.y,-p.x), // +X
         vec3(-1.0, p.y, p.x), // -X
@@ -34,21 +29,11 @@ vec3 getCubePoint(vec2 p, int i)
 }
 
 void main(void) {
-    for(int i=0; i<5; ++i) {
-        // select framebuffer layer
-        gl_Layer = i + int(i>2);
-        
-        out_pos = getCubePoint(in_pos[0],i);
-        gl_Position = gl_in[0].gl_Position;
-        EmitVertex();
-        out_pos = getCubePoint(in_pos[1],i);
-        gl_Position = gl_in[1].gl_Position;
-        EmitVertex();
-        out_pos = getCubePoint(in_pos[2],i);
-        gl_Position = gl_in[2].gl_Position;
-        EmitVertex();
-        EndPrimitive();
-    }
+    int layer = regen_RenderLayer();
+    out_pos = getCubePoint(vec2(in_pos.x, -in_pos.y), layer);
+    gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+    // We skip the bottom layer (bottom is full black, no update needed)
+    VS_SelectLayer(layer + int(layer > 2));
 }
 
 -- fs

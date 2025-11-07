@@ -1434,7 +1434,6 @@
             <mesh id="market-place"/>
         </node>
         -->
-        <!-- TODO: render axe when fighting etc -->
     </node>
 
     <node id="Dwarf">

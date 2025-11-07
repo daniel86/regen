@@ -32,23 +32,23 @@ Animation::~Animation() {
 	} else {
 		unlock_gl();
 	}
-	stopAnimation();
+	doStopAnimation();
 }
 
 void Animation::startAnimation() {
 	if (isRunning_) return;
 	isRunning_ = true;
 
-	unqueueEmit(ANIMATION_STOPPED);
+	unQueueEmit(ANIMATION_STOPPED);
 	queueEmit(ANIMATION_STARTED);
 	AnimationManager::get().addAnimation(this);
 }
 
-void Animation::stopAnimation() {
+void Animation::doStopAnimation() {
 	if (!isRunning_) return;
 
 	isRunning_ = false;
-	unqueueEmit(ANIMATION_STARTED);
+	unQueueEmit(ANIMATION_STARTED);
 	queueEmit(ANIMATION_STOPPED);
 	AnimationManager::get().removeAnimation(this);
 }

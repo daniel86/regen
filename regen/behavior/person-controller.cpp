@@ -128,14 +128,14 @@ std::vector<ref_ptr<PersonController>> PersonController::load(
 	auto *scene = ctx.scene();
 
 	ref_ptr<Mesh> mesh;
-	auto meshes = scene->getResources()->getMesh(scene, node.getValue("mesh"));
-	if (meshes.get() != nullptr && !meshes->empty()) {
-		auto meshIndex = node.getValue<GLuint>("mesh-index", 0u);
-		if (meshIndex >= meshes->size()) {
+	auto compositeMesh = scene->getResources()->getMesh(scene, node.getValue("mesh"));
+	if (compositeMesh.get() != nullptr && !compositeMesh->meshes().empty()) {
+		auto meshIndex = node.getValue<uint32_t>("mesh-index", 0u);
+		if (meshIndex >= compositeMesh->meshes().size()) {
 			REGEN_WARN("Invalid mesh index for '" << node.getDescription() << "'.");
 			meshIndex = 0;
 		}
-		mesh = (*meshes.get())[meshIndex];
+		mesh = compositeMesh->meshes()[meshIndex];
 	}
 	if (mesh.get() == nullptr) {
 		REGEN_WARN("Unable to find mesh for NPC controller in '" << node.getDescription() << "'.");
@@ -171,8 +171,8 @@ std::vector<ref_ptr<PersonController>> PersonController::load(
 	auto footstepVec = scene->getResources()->getMesh(
 		scene, node.getValue("footstep-mesh"));
 	ref_ptr<BlanketTrail> footstepTrail;
-	if (footstepVec.get() && !footstepVec->empty()) {
-		auto footstepMesh = (*footstepVec.get())[0];
+	if (footstepVec.get() && !footstepVec->meshes().empty()) {
+		auto footstepMesh = footstepVec->meshes()[0];
 		footstepTrail = ref_ptr<BlanketTrail>::dynamicCast(footstepMesh);
 		if (!footstepTrail) {
 			REGEN_WARN("Footstep mesh is not a BlanketTrail in '" << node.getDescription() << "'.");
@@ -275,13 +275,13 @@ std::vector<ref_ptr<PersonController>> PersonController::load(
 
 		// Set the weapon mesh is any.
 		auto weaponMeshVec = scene->getResources()->getMesh(scene, node.getValue("weapon-mesh"));
-		if (weaponMeshVec.get() != nullptr && !weaponMeshVec->empty()) {
+		if (weaponMeshVec.get() != nullptr && !weaponMeshVec->meshes().empty()) {
 			uint32_t weaponMeshIdx = node.getValue<uint32_t>("weapon-mesh-index", 0u);
-			if (weaponMeshIdx >= weaponMeshVec->size()) {
+			if (weaponMeshIdx >= weaponMeshVec->meshes().size()) {
 				REGEN_WARN("Invalid weapon mesh index for '" << node.getDescription() << "'.");
 				weaponMeshIdx = 0;
 			}
-			auto weaponMesh = (*weaponMeshVec.get())[weaponMeshIdx];
+			auto weaponMesh = weaponMeshVec->meshes()[weaponMeshIdx];
 			if (weaponMesh.get()) {
 				controller->setWeaponMesh(weaponMesh);
 			} else {

@@ -1,5 +1,5 @@
 #include <regen/utility/logging.h>
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 #include "bounding-box.h"
 #include "aabb.h"

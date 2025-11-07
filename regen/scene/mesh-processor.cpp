@@ -60,13 +60,13 @@ void MeshNodeProvider::processInput(
 		scene::SceneLoader *scene,
 		SceneInputNode &input,
 		const ref_ptr<StateNode> &parent) {
-	ref_ptr<MeshVector> meshes = scene->getResource<MeshVector>(input.getName());
+	ref_ptr<CompositeMesh> meshes = scene->getResource<CompositeMesh>(input.getName());
 	if (meshes.get() == nullptr) {
 		REGEN_WARN("Unable to load Mesh for '" << input.getDescription() << "'.");
 		return;
 	}
 	std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> meshQueue;
-	MeshVector::loadIndexRange(input, meshes, meshQueue);
+	CompositeMesh::loadIndexRange(input, meshes, meshQueue);
 
 	while (!meshQueue.empty()) {
 		auto [meshOriginal,partIdx] = meshQueue.front();

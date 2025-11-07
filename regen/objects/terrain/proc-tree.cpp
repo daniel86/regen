@@ -381,8 +381,6 @@ void ProcTree::computeBasePos(TreeMesh &treeMesh, const ProcMesh &procMesh, int 
 		} else {
 			quadPos[3] = quadPos[2] + quadPos[1] - quadPos[0];
 		}
-		// TODO: why not use the bottom center as base point for everybody?
-		// Vec3f bottomCenter = (quadPos[0] + quadPos[2])*0.5f;
 		// first base point
 		if (vIndex0 == 0 || vIndex0 == 2) {
 			basePosData[vertexOffset + procMesh.mFace[i].x] = v0;

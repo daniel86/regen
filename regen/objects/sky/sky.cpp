@@ -96,7 +96,7 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	// mae some parts of the sky configurable from the GUI.
 	setAnimationName("sky");
 	// make sure the client buffer data is initialized
-	animate(0.0f);
+	Sky::animate(0.0f);
 	// Note: disabled because animation manager allways activates this state,
 	//       but we do not need to if sky does not need update.
 	// TODO: Make the "idle" state part of animation, then animation manager can
@@ -182,7 +182,7 @@ float Sky::computeHorizonExtinction(const Vec3f &position, const Vec3f &dir, flo
 
 float Sky::computeEyeExtinction(const Vec3f &eyeDir) {
 	// TODO: Read surface height from scene file. But it is currently not well accessible...
-	static const float surfaceHeight = 0.99f;
+	static constexpr float surfaceHeight = 0.99f;
 	static const Vec3f eyePosition(0.0, surfaceHeight, 0.0);
 	return computeHorizonExtinction(eyePosition, eyeDir, surfaceHeight - 0.15f);
 }

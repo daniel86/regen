@@ -47,9 +47,11 @@ FBO::FBO(GLuint width, GLuint height, GLuint depth)
 	depth_ = depth;
 
 	viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
+	viewport_->setEditable(false);
 	viewport_->setUniformData(
 			Vec2f((GLfloat) width, (GLfloat) height));
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
+	inverseViewport_->setEditable(false);
 	inverseViewport_->setUniformData(
 			Vec2f(1.0 / (GLfloat) width, 1.0 / (GLfloat) height));
 	glViewport_ = Vec4ui(0, 0, width, height);

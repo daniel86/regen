@@ -2,11 +2,14 @@
 
 using namespace regen;
 
-ElapsedTimeDebugger::ElapsedTimeDebugger(std::string_view sessionName, uint32_t numFrames)
+ElapsedTimeDebugger::ElapsedTimeDebugger(std::string_view sessionName, uint32_t numFrames, Mode mode)
 		: sessionName_(sessionName),
-		  numFrames_(numFrames) {
+		  numFrames_(numFrames),
+		  mode_(mode) {
 	cpuLastTime_ = std::chrono::high_resolution_clock::now();
-	query_ = ref_ptr<TimeElapsedQuery>::alloc();
+	if (mode_ == CPU_AND_GPU) {
+		query_ = ref_ptr<TimeElapsedQuery>::alloc();
+	}
 }
 
 ElapsedTimeDebugger::~ElapsedTimeDebugger() {
@@ -17,7 +20,9 @@ ElapsedTimeDebugger::~ElapsedTimeDebugger() {
 void ElapsedTimeDebugger::push(std::string_view name) {
 	pushTime(name);
 	cpuLastTime_ = std::chrono::high_resolution_clock::now();
-	query_->begin();
+	if (mode_ == CPU_AND_GPU) {
+		query_->begin();
+	}
 }
 
 void ElapsedTimeDebugger::pushTime(std::string_view name) {
@@ -31,7 +36,9 @@ void ElapsedTimeDebugger::pushTime(std::string_view name) {
 		cpuTimes_[pushIdx_] = 0.0f;
 		gpuTimes_[pushIdx_] = 0.0f;
 	}
-	gpuTimes_[pushIdx_] += query_->end();
+	if (mode_ == CPU_AND_GPU) {
+		gpuTimes_[pushIdx_] += query_->end();
+	}
 	auto t2 = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<float, std::milli> ms = t2 - cpuLastTime_;
 	cpuTimes_[pushIdx_] += ms.count();
@@ -55,12 +62,16 @@ void ElapsedTimeDebugger::beginFrame() {
 		}
 		pushIdx_ = 0u;
 	}
-	query_->begin();
+	if (mode_ == CPU_AND_GPU) {
+		query_->begin();
+	}
 	cpuLastTime_ = std::chrono::high_resolution_clock::now();
 }
 
 void ElapsedTimeDebugger::endFrame() {
-	query_->end();
+	if (mode_ == CPU_AND_GPU) {
+		query_->end();
+	}
 }
 
 void ElapsedTimeDebugger::printResults() {
@@ -74,14 +85,25 @@ void ElapsedTimeDebugger::printResults() {
 		cpuSum += cpuTimes_[i];
 	}
 
-	REGEN_INFO("Elapsed time in " << sessionName_ << ": "
-		<< std::fixed << std::setprecision(5)
-		<< cpuSum << " ms (CPU), "
-		<< gpuSum << " ms (GPU)");
-	for (uint32_t i = 0; i < pushIdx_; ++i) {
-		REGEN_INFO("\t" << std::fixed << std::setprecision(5)
-				<< cpuTimes_[i] << " ms (CPU) + "
-				<< gpuTimes_[i] << " ms (GPU) "
-				<< " in " << pushNames_[i]);
+	if (mode_ == CPU_AND_GPU) {
+		REGEN_INFO("Elapsed time in " << sessionName_ << ": "
+			<< std::fixed << std::setprecision(5)
+			<< cpuSum << " ms (CPU), "
+			<< gpuSum << " ms (GPU)");
+		for (uint32_t i = 0; i < pushIdx_; ++i) {
+			REGEN_INFO("\t" << std::fixed << std::setprecision(5)
+					<< cpuTimes_[i] << " ms (CPU) + "
+					<< gpuTimes_[i] << " ms (GPU) "
+					<< " in " << pushNames_[i]);
+		}
+	} else {
+		REGEN_INFO("Elapsed time in " << sessionName_ << ": "
+			<< std::fixed << std::setprecision(5)
+			<< cpuSum << " ms (CPU)");
+		for (uint32_t i = 0; i < pushIdx_; ++i) {
+			REGEN_INFO("\t" << std::fixed << std::setprecision(5)
+					<< cpuTimes_[i] << " ms (CPU) "
+					<< " in " << pushNames_[i]);
+		}
 	}
 }

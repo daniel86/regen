@@ -30,9 +30,9 @@ Scene::Scene(const int& /*argc*/, const char** /*argv*/)
 		: EventObject(),
 		  renderTree_(ref_ptr<RootNode>::alloc()),
 		  renderState_(nullptr),
-		  isGLInitialized_(GL_FALSE),
-		  isTimeInitialized_(GL_FALSE),
-		  isVSyncEnabled_(GL_TRUE) {
+		  isGLInitialized_(false),
+		  isTimeInitialized_(false),
+		  isVSyncEnabled_(true) {
 	screen_ = ref_ptr<Screen>::alloc(Vec2i(2, 2));
 
 	mousePosition_ = ref_ptr<ShaderInput2f>::alloc("mousePosition");
@@ -125,7 +125,7 @@ void Scene::mouseEnter() {
 void Scene::mouseLeave() {
 	isMouseEntered_->setVertex(0, 0);
 	ref_ptr<MouseLeaveEvent> event = ref_ptr<MouseLeaveEvent>::alloc();
-	event->entered = GL_FALSE;
+	event->entered = false;
 	queueEmit(MOUSE_LEAVE_EVENT, event);
 }
 
@@ -176,7 +176,7 @@ void Scene::mouseButton(const ButtonEvent &ev) {
 
 void Scene::keyUp(const KeyEvent &ev) {
 	ref_ptr<KeyEvent> event = ref_ptr<KeyEvent>::alloc();
-	event->isUp = GL_TRUE;
+	event->isUp = true;
 	event->key = ev.key;
 	event->x = ev.x;
 	event->y = ev.y;
@@ -185,7 +185,7 @@ void Scene::keyUp(const KeyEvent &ev) {
 
 void Scene::keyDown(const KeyEvent &ev) {
 	ref_ptr<KeyEvent> event = ref_ptr<KeyEvent>::alloc();
-	event->isUp = GL_FALSE;
+	event->isUp = false;
 	event->key = ev.key;
 	event->x = ev.x;
 	event->y = ev.y;

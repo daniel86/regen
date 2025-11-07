@@ -98,6 +98,22 @@ namespace regen {
 		void set_name(const std::string &s) { name_ = s; }
 
 		/**
+		 * Editable inputs can be changed by the user.
+		 * Non-editable inputs are e.g. system generated
+		 * inputs that should not be changed by the user.
+		 * @return true if the input is editable.
+		 */
+		bool isEditable() const { return editable_; }
+
+		/**
+		 * Editable inputs can be changed by the user.
+		 * Non-editable inputs are e.g. system generated
+		 * inputs that should not be changed by the user.
+		 * @param v true if the input is editable.
+		 */
+		void setEditable(bool v) { editable_ = v; }
+
+		/**
 		 * no call to glUniform when inactive.
 		 * @return the active toggle value
 		 */
@@ -658,6 +674,7 @@ namespace regen {
 		bool isStruct_ = false;
 		bool forceArray_ = false;
 		bool active_ = true;
+		bool editable_ = true;
 
 		const InputSchema *schema_ = InputSchema::unknown();
 

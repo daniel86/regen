@@ -1,7 +1,7 @@
 #ifndef REGEN_MASK_MESH_H
 #define REGEN_MASK_MESH_H
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/shapes/bounds.h>
 #include "lod/tessellation.h"
 #include "regen/objects/primitives/rectangle.h"

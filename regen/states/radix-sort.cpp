@@ -9,18 +9,18 @@
 
 using namespace regen;
 
-RadixSort::RadixSort(uint32_t numKeys, uint32_t numLayers)
+RadixSort_GPU::RadixSort_GPU(uint32_t numKeys, uint32_t numLayers)
 		: State(),
 		  numKeys_(numKeys),
 		  numLayers_(numLayers) {
 }
 
-void RadixSort::setOutputBuffer(const ref_ptr<SSBO> &values, bool isDoubleBuffered) {
+void RadixSort_GPU::setOutputBuffer(const ref_ptr<SSBO> &values, bool isDoubleBuffered) {
 	userValueBuffer_ = values;
 	useSingleValueBuffer_ = isDoubleBuffered;
 }
 
-void RadixSort::setRadixBits(uint32_t bits) {
+void RadixSort_GPU::setRadixBits(uint32_t bits) {
 	if (bits > 0u && bits <= 32u) {
 		radixBits_ = bits;
 		numBuckets_ = 1u << bits;
@@ -30,7 +30,7 @@ void RadixSort::setRadixBits(uint32_t bits) {
 	}
 }
 
-void RadixSort::setSortGroupSize(uint32_t size) {
+void RadixSort_GPU::setSortGroupSize(uint32_t size) {
 	if (size > 0u && math::isPowerOfTwo(size)) {
 		sortGroupSize_ = size;
 		if (radixHistogramPass_.get()) {
@@ -41,7 +41,7 @@ void RadixSort::setSortGroupSize(uint32_t size) {
 	}
 }
 
-void RadixSort::setScanGroupSize(uint32_t size) {
+void RadixSort_GPU::setScanGroupSize(uint32_t size) {
 	if (size > 0u && math::isPowerOfTwo(size)) {
 		scanGroupSize_ = size;
 		if (prefixScan_.get()) {
@@ -52,11 +52,11 @@ void RadixSort::setScanGroupSize(uint32_t size) {
 	}
 }
 
-ref_ptr<SSBO>& RadixSort::valueBuffer() {
+ref_ptr<SSBO>& RadixSort_GPU::valueBuffer() {
 	return valueBuffer_[outputIdx_];
 }
 
-void RadixSort::createResources() {
+void RadixSort_GPU::createResources() {
 	{
 		radixHistogramPass_ = ref_ptr<ComputePass>::alloc("regen.compute.sort.radix.histogram");
 		radixHistogramPass_->computeState()->shaderDefine("NUM_SORT_KEYS", REGEN_STRING(numKeys_));
@@ -211,7 +211,7 @@ void RadixSort::createResources() {
 	}
 }
 
-void RadixSort::enable(RenderState *rs) {
+void RadixSort_GPU::enable(RenderState *rs) {
 	State::enable(rs);
 	if (useSingleValueBuffer_) {
 		sortContiguous(rs);
@@ -225,7 +225,7 @@ void RadixSort::enable(RenderState *rs) {
 #endif
 }
 
-void RadixSort::sortContiguous(RenderState *rs) {
+void RadixSort_GPU::sortContiguous(RenderState *rs) {
 	// now we can make the radix passes starting with values_[0] as input
 	// and writing to values_[1]. Then we swap the buffers each pass.
 	// In the end, we will have the sorted instanceIDs in values_[0].
@@ -263,7 +263,7 @@ void RadixSort::sortContiguous(RenderState *rs) {
 	}
 }
 
-void RadixSort::sort(RenderState *rs) {
+void RadixSort_GPU::sort(RenderState *rs) {
 	// now we can make the radix passes starting with values_[0] as input
 	// and writing to values_[1]. Then we swap the buffers each pass.
 	// In the end, we will have the sorted instanceIDs in values_[0].
@@ -301,7 +301,7 @@ void RadixSort::sort(RenderState *rs) {
 	}
 }
 
-void RadixSort::printHistogram(RenderState *rs) {
+void RadixSort_GPU::printHistogram(RenderState *rs) {
 	// debug histogram
 	auto numWorkGroups = radixHistogramPass_->computeState()->numWorkGroups().x;
 	auto histogramData = (uint32_t *) glMapNamedBufferRange(
@@ -323,7 +323,7 @@ void RadixSort::printHistogram(RenderState *rs) {
 	}
 }
 
-void RadixSort::printInstanceMap(RenderState *rs) {
+void RadixSort_GPU::printInstanceMap(RenderState *rs) {
 	// debug sorted output
 	std::vector<double> distances(numKeys_);
 	auto sortKeys = (uint32_t *) glMapNamedBufferRange(

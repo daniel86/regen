@@ -1,7 +1,7 @@
 #ifndef REGEN_Torus_H
 #define REGEN_Torus_H
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/math/vector.h>
 
 namespace regen {

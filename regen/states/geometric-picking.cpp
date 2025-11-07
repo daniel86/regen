@@ -104,12 +104,12 @@ void GeomPicking::traverse(RenderState *rs) {
 			REGEN_WARN("No mesh found in pickable node.");
 			continue;
 		}
+		glBeginQuery(GL_PRIMITIVES_GENERATED, feedbackQuery);
 		// update buffer range of pickable
 		bufferRange_->offset_ = feedbackCount * sizeof(PickData);
 		bufferRange_->size_ = bufferSize_ - bufferRange_->offset_;
 		bufferRange_->offset_ += feedbackRange_.offset_;
-		pickableMesh->setFeedbackRange(bufferRange_);
-		glBeginQuery(GL_PRIMITIVES_GENERATED, feedbackQuery);
+		pickableMesh->setFeedbackRange(bufferRange_.get());
 		// render pickable
 		pickableNode->traverse(rs);
 

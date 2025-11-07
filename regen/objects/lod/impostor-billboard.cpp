@@ -191,7 +191,6 @@ void ImpostorBillboard::createResources() {
 
 	{ // create view data arrays
 		impostorBuffer_ = ref_ptr<SSBO>::alloc("ImpostorBuffer", BufferUpdateFlags::NEVER);
-		// TODO: could use GPU-only storage here, but then need to use setBufferData() instead of setUniformData()
 		snapshotDirs_ = ref_ptr<ShaderInput4f>::alloc("snapshotDirs", numSnapshotViews_);
 		snapshotDirs_->setUniformUntyped();
 		impostorBuffer_->addStagedInput(snapshotDirs_);
@@ -209,8 +208,7 @@ void ImpostorBillboard::createResources() {
 	}
 
 	{ // create the snapshot FBO
-		// TODO: support specular maps, but only if input mesh uses them!
-		// TODO: support depth correction
+		// TODO: Add support for depth correction.
 		auto fbo = ref_ptr<FBO>::alloc(snapshotWidth_, snapshotHeight_, numSnapshotViews_);
 		std::vector<GLenum> drawAttachments;
 
@@ -484,7 +482,7 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 	auto originalMeshVec = parser->getResources()->getMesh(
 			parser,
 			input.getValue("base-mesh"));
-	if (originalMeshVec.get() == nullptr || originalMeshVec->empty()) {
+	if (originalMeshVec.get() == nullptr || originalMeshVec->meshes().empty()) {
 		REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load base mesh.");
 		return {};
 	}
@@ -535,13 +533,13 @@ ref_ptr<ImpostorBillboard> ImpostorBillboard::load(LoadingContext &ctx, scene::S
 	}
 
 	// Add meshes to the impostor
-	auto indexRange = MeshVector::loadIndexRange(input, "base-mesh");
+	auto indexRange = CompositeMesh::loadIndexRange(input, "base-mesh");
 	if (indexRange.empty()) { indexRange.push_back(0); }
 	for (auto &index: indexRange) {
-		if (index >= originalMeshVec->size()) {
+		if (index >= originalMeshVec->meshes().size()) {
 			REGEN_WARN("Invalid mesh index '" << index << "' for '" << input.getDescription() << "'.");
 		} else {
-			auto originalMesh = (*originalMeshVec.get())[index];
+			auto originalMesh = originalMeshVec->meshes()[index];
 			impostor->addMesh(originalMesh);
 		}
 	}

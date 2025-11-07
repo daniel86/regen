@@ -319,10 +319,8 @@ bool ShaderInputWidget::isValidParameter(const ShaderInput *input) {
 		return hasInputs;
 	}
 
-	// TODO: maybe rather use "editable" flag?
-	if (input->name() == "viewport") return false;
-	if (input->name() == "inverseViewport") return false;
-	if (input->name() == "windowViewport") return false;
+	// Skip non-editable inputs
+	if (!input->isEditable()) return false;
 
 	return true;
 }
@@ -348,10 +346,8 @@ bool ShaderInputWidget::addParameter(
 		return hasInputs;
 	}
 
-	// TODO: maybe rather use "editable" flag?
-	if (in->name() == "viewport") return false;
-	if (in->name() == "inverseViewport") return false;
-	if (in->name() == "windowViewport") return false;
+	// Skip non-editable inputs
+	if (!in->isEditable()) return false;
 
 	if (initialValue_.count(in.get()) > 0) {
 		byte *lastValue = initialValue_[in.get()];

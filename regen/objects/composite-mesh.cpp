@@ -1,4 +1,4 @@
-#include "mesh-vector.h"
+#include "composite-mesh.h"
 #include "regen/objects/primitives/sphere.h"
 #include "regen/objects/primitives/rectangle.h"
 #include "regen/objects/primitives/box.h"
@@ -25,7 +25,7 @@
 
 using namespace regen;
 
-static void processMeshChildren(LoadingContext &ctx, scene::SceneInputNode &input, MeshVector &x) {
+static void processMeshChildren(LoadingContext &ctx, scene::SceneInputNode &input, CompositeMesh &x) {
 	auto parser = ctx.scene();
 
 	for (auto &child: input.getChildren()) {
@@ -37,19 +37,19 @@ static void processMeshChildren(LoadingContext &ctx, scene::SceneInputNode &inpu
 			}
 			continue;
 		}
-		if (x.size() > 1) {
+		if (x.meshes().size() > 1) {
 			auto state = ref_ptr<State>::alloc();
 			processor->processInput(parser, *child.get(), ctx.parent(), state);
-			for (auto &mesh: x) {
+			for (auto &mesh: x.meshes()) {
 				mesh->joinStates(state);
 			}
 		} else {
-			processor->processInput(parser, *child.get(), ctx.parent(), x[0]);
+			processor->processInput(parser, *child.get(), ctx.parent(), x.meshes()[0]);
 		}
 	}
 }
 
-ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode &input) {
+ref_ptr<CompositeMesh> CompositeMesh::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	auto parser = ctx.scene();
 
 	const std::string meshType = input.getValue("type");
@@ -65,10 +65,10 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	updateFlags.frequency = input.getValue<BufferUpdateFrequency>("update-frequency", BUFFER_UPDATE_NEVER);
 	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
 
-	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
-	MeshVector *out = out_.get();
+	ref_ptr<CompositeMesh> out_ = ref_ptr<CompositeMesh>::alloc();
+	CompositeMesh *out = out_.get();
 
-	std::vector<GLuint> lodLevels;
+	std::vector<uint32_t> lodLevels;
 	if (input.hasAttribute("lod-levels")) {
 		auto lodVec = input.getValue<Vec4ui>("lod-levels", Vec4ui(0));
 		lodLevels.resize(4);
@@ -77,7 +77,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		lodLevels[2] = lodVec.z;
 		lodLevels[3] = lodVec.w;
 	} else {
-		lodLevels.push_back(input.getValue<GLuint>("lod", 0));
+		lodLevels.push_back(input.getValue<uint32_t>("lod", 0));
 	}
 
 	// Primitives
@@ -94,8 +94,8 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Sphere>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<Sphere>::alloc(meshCfg));
 	} else if (meshType == "rectangle") {
 		Rectangle::Config meshCfg;
 		meshCfg.centerAtOrigin = input.getValue<bool>("center", true);
@@ -110,27 +110,27 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
-		(*out) = MeshVector(1);
-		(*out)[0] = Rectangle::create(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(Rectangle::create(meshCfg));
 	} else if (meshType == "blanket") {
 		Blanket::BlanketConfig meshCfg;
 		meshCfg.levelOfDetails = lodLevels;
 		meshCfg.texcoScale = texcoScaling;
 		meshCfg.blanketSize = input.getValue<Vec2f>("blanket-size", Vec2f(1.0f, 1.0f));
 		meshCfg.isInitiallyDead = input.getValue<bool>("initially-dead", false);
-		meshCfg.blanketLifetime = input.getValue<GLfloat>("blanket-lifetime", 0.0f);
+		meshCfg.blanketLifetime = input.getValue<float>("blanket-lifetime", 0.0f);
 		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
-		GLuint numInstances = input.getValue<GLuint>("num-instances", 1u);
+		uint32_t numInstances = input.getValue<uint32_t>("num-instances", 1u);
 		auto blanket = ref_ptr<Blanket>::alloc(meshCfg, numInstances);
 		blanket->updateAttributes();
-		(*out) = MeshVector(1);
-		(*out)[0] = blanket;
+		(*out) = CompositeMesh();
+		out->addMesh(blanket);
 	} else if (meshType == "blanket-trail") {
 		auto blanket = BlanketTrail::load(ctx, input, lodLevels);
-		(*out) = MeshVector(1);
-		(*out)[0] = blanket;
+		(*out) = CompositeMesh();
+		out->addMesh(blanket);
 	} else if (meshType == "box") {
 		Box::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<Box::TexcoMode>("texco-mode", Box::TEXCO_MODE_UV);
@@ -144,12 +144,12 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetails = lodLevels;
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Box>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<Box>::alloc(meshCfg));
 	} else if (meshType == "frame") {
 		FrameMesh::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<FrameMesh::TexcoMode>("texco-mode", FrameMesh::TEXCO_MODE_NONE);
-		meshCfg.borderSize = input.getValue<GLfloat>("border-size", 0.1f);
+		meshCfg.borderSize = input.getValue<float>("border-size", 0.1f);
 		meshCfg.posScale = scaling;
 		meshCfg.rotation = rotation;
 		meshCfg.texcoScale = texcoScaling;
@@ -160,8 +160,8 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetail = lodLevels[0];
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<FrameMesh>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<FrameMesh>::alloc(meshCfg));
 	} else if (meshType == "torus") {
 		Torus::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<Torus::TexcoMode>("texco-mode", Torus::TEXCO_MODE_UV);
@@ -174,11 +174,11 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetails = lodLevels;
-		meshCfg.ringRadius = input.getValue<GLfloat>("ring-radius", 1.0f);
-		meshCfg.tubeRadius = input.getValue<GLfloat>("tube-radius", 0.5f);
+		meshCfg.ringRadius = input.getValue<float>("ring-radius", 1.0f);
+		meshCfg.tubeRadius = input.getValue<float>("tube-radius", 0.5f);
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Torus>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<Torus>::alloc(meshCfg));
 	} else if (meshType == "disc") {
 		Disc::Config meshCfg;
 		meshCfg.texcoMode = input.getValue<Disc::TexcoMode>("texco-mode", Disc::TEXCO_MODE_UV);
@@ -191,44 +191,44 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 		meshCfg.levelOfDetails = lodLevels;
-		meshCfg.discRadius = input.getValue<GLfloat>("radius", 1.0f);
+		meshCfg.discRadius = input.getValue<float>("radius", 1.0f);
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Disc>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<Disc>::alloc(meshCfg));
 	} else if (meshType == "cone" || meshType == "cone-closed") {
 		ConeClosed::Config meshCfg;
 		meshCfg.levelOfDetails = lodLevels;
-		meshCfg.radius = input.getValue<GLfloat>("radius", 1.0f);
-		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
+		meshCfg.radius = input.getValue<float>("radius", 1.0f);
+		meshCfg.height = input.getValue<float>("height", 1.0f);
 		meshCfg.isBaseRequired = input.getValue<bool>("use-base", true);
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<ConeClosed>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<ConeClosed>::alloc(meshCfg));
 	} else if (meshType == "cone-opened") {
 		ConeOpened::Config meshCfg;
 		meshCfg.levelOfDetails = lodLevels;
-		meshCfg.cosAngle = input.getValue<GLfloat>("angle", 0.5f);
-		meshCfg.height = input.getValue<GLfloat>("height", 1.0f);
+		meshCfg.cosAngle = input.getValue<float>("angle", 0.5f);
+		meshCfg.height = input.getValue<float>("height", 1.0f);
 		meshCfg.isNormalRequired = useNormal;
 		meshCfg.updateHint = updateFlags;
 		meshCfg.mapMode = mapMode;
 		meshCfg.accessMode = accessMode;
 
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<ConeOpened>::alloc(meshCfg);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<ConeOpened>::alloc(meshCfg));
 	}
-		// Special meshes
+	// Special meshes
 	else if (meshType == "particles") {
-		const auto numParticles = input.getValue<GLuint>("num-vertices", 0u);
+		const auto numParticles = input.getValue<uint32_t>("num-vertices", 0u);
 		if (numParticles == 0u) {
 			REGEN_WARN("Ignoring " << input.getDescription() << " with num-vertices=0.");
 		} else {
-			(*out) = MeshVector(1);
-			(*out)[0] = createParticleMesh(ctx, input, numParticles);
+			(*out) = CompositeMesh();
+			out->addMesh(createParticleMesh(ctx, input, numParticles));
 			return out_;
 		}
 	} else if (meshType == "lightning") {
@@ -236,38 +236,51 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		mesh->load(ctx, input);
 		mesh->startAnimation();
 
-		(*out) = MeshVector(1);
-		(*out)[0] = mesh;
+		(*out) = CompositeMesh();
+		out->addMesh(mesh);
 	} else if (meshType == "point") {
-		const auto numVertices = input.getValue<GLuint>("num-vertices", 1u);
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Point>::alloc(numVertices);
+		const auto numVertices = input.getValue<uint32_t>("num-vertices", 1u);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<Point>::alloc(numVertices));
 	} else if (meshType == "asset") {
 		ref_ptr<AssetImporter> importer = parser->getResource<AssetImporter>(input.getValue("asset"));
 		if (importer.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << " with unknown Asset.");
 		} else {
-			out_ = createAssetMeshes(ctx, input, importer);
+			out_ = createCompositeMesh(ctx, input, importer);
 			out = out_.get();
 		}
-		for (GLuint i = 0u; i < out->size(); ++i) {
-			parser->putState(REGEN_STRING(input.getName() << i), (*out)[i]);
+		for (uint32_t i = 0u; i < out->meshes().size(); ++i) {
+			parser->putState(REGEN_STRING(input.getName() << i), out->meshes()[i]);
 		}
 	} else if (meshType == "impostor-billboard") {
 		auto impostor = ImpostorBillboard::load(ctx, input);
 		if (impostor.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load impostor billboard.");
 		} else {
-			(*out) = MeshVector(1);
-			(*out)[0] = impostor;
+			(*out) = CompositeMesh();
+			out->addMesh(impostor);
+
+			ref_ptr<CompositeMesh> baseMeshComposite = ctx.scene()->getResource<CompositeMesh>(input.getValue("base-mesh"));
+			if (baseMeshComposite.get()) {
+				std::queue<std::pair<ref_ptr<Mesh>, uint32_t> > baseMeshQueue;
+				loadIndexRange(input, baseMeshComposite, baseMeshQueue, "base-mesh");
+				auto [baseMesh,_idx] = baseMeshQueue.front();
+				if (baseMeshQueue.size() > 1) {
+					REGEN_WARN("multiple base mesh indices in lod-mesh in '" << input.getDescription() << "'.");
+				}
+				baseMesh->addMeshLOD(Mesh::MeshLOD(impostor));
+			} else {
+				REGEN_WARN("Ignoring base-mesh in '" << input.getDescription() << "', failed to load base mesh.");
+			}
 		}
 	} else if (meshType == "silhouette") {
 		auto silhouette = SilhouetteMesh::load(ctx, input);
 		if (silhouette.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load silhouette.");
 		} else {
-			(*out) = MeshVector(1);
-			(*out)[0] = silhouette;
+			(*out) = CompositeMesh();
+			out->addMesh(silhouette);
 		}
 	} else if (meshType == "mask-patch" || meshType == "grass-patch") {
 		Rectangle::Config meshCfg;
@@ -292,59 +305,58 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 		if (m.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load ground mesh.");
 		} else {
-			(*out) = MeshVector(1);
-			(*out)[0] = m;
+			(*out) = CompositeMesh();
+			out->addMesh(m);
 		}
 	} else if (meshType == "ground") {
 		auto groundMesh = Ground::load(ctx, input);
 		if (groundMesh.get() == nullptr) {
 			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load ground mesh.");
 		} else if (groundMesh->skirtMesh().get()) {
-			(*out) = MeshVector(2);
-			(*out)[0] = groundMesh;
-			(*out)[1] = groundMesh->skirtMesh();
+			(*out) = CompositeMesh();
+			out->addMesh(groundMesh);
+			out->addMesh(groundMesh->skirtMesh());
 		} else {
-			(*out) = MeshVector(1);
-			(*out)[0] = groundMesh;
+			(*out) = CompositeMesh();
+			out->addMesh(groundMesh);
 		}
 	} else if (meshType == "ground-path") {
 		auto pathMesh = GroundPath::load(ctx, input);
-		(*out) = MeshVector(1);
-		(*out)[0] = pathMesh;
+		(*out) = CompositeMesh();
+		out->addMesh(pathMesh);
 	} else if (meshType == "proctree") {
 		auto procTree = ref_ptr<ProcTree>::alloc(input);
 		procTree->update();
-		(*out) = MeshVector(2);
-		(*out)[0] = procTree->trunkMesh();
-		(*out)[1] = procTree->twigMesh();
+		(*out) = CompositeMesh();
+		out->addMesh(procTree->trunkMesh());
+		out->addMesh(procTree->twigMesh());
 	} else if (meshType == "text") {
-		(*out) = MeshVector(1);
-		(*out)[0] = createTextMesh(ctx, input);
+		(*out) = CompositeMesh();
+		out->addMesh(createTextMesh(ctx, input));
 	} else if (meshType == "mesh") {
 		GLenum primitive = glenum::primitive(input.getValue<std::string>("primitive", "TRIANGLES"));
-		(*out) = MeshVector(1);
-		(*out)[0] = ref_ptr<Mesh>::alloc(primitive, updateFlags);
+		(*out) = CompositeMesh();
+		out->addMesh(ref_ptr<Mesh>::alloc(primitive, updateFlags));
 	} else {
 		REGEN_WARN("Ignoring " << input.getDescription() << ", unknown Mesh type.");
 	}
-	if (out->size() == 0) {
+	if (out->meshes().size() == 0) {
 		REGEN_WARN("Ignoring " << input.getDescription() << ", no Mesh created.");
 		return {};
 	}
 	// put resources early such that children can refer to it
-	if (out->size() == 1) {
-		ref_ptr<Mesh> mesh = (*out)[0];
-		parser->putState(input.getName(), mesh);
+	if (out->meshes().size() == 1) {
+		parser->putState(input.getName(), out->meshes().front());
 	}
-	parser->putResource<MeshVector>(input.getName(), out_);
+	parser->putResource<CompositeMesh>(input.getName(), out_);
 
-	std::vector<ref_ptr<scene::SceneInputNode>> visited;
+	std::vector<ref_ptr<scene::SceneInputNode> > visited;
 	// configure shader of meshes.
 	// note: the shader is not compiled here, we only store the import keys
 	// for the meshes, such that createShader() can be called later.
-	for (auto &child : input.getChildren("shader")) {
-		std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> meshQueue;
-		MeshVector::loadIndexRange(*child.get(), out_, meshQueue);
+	for (auto &child: input.getChildren("shader")) {
+		std::queue<std::pair<ref_ptr<Mesh>, uint32_t> > meshQueue;
+		CompositeMesh::loadIndexRange(*child.get(), out_, meshQueue);
 		visited.push_back(child);
 		while (!meshQueue.empty()) {
 			auto [mesh,_idx] = meshQueue.front();
@@ -356,9 +368,9 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	// generate LOD levels if requested
 	if (input.hasAttribute("lod-simplification")) {
 		auto thresholds = input.getValue<Vec4f>(
-				"lod-simplification",
-				Vec4f(1.0f, 0.75f, 0.25f, 1.0f));
-		for (auto & mesh : *out) {
+			"lod-simplification",
+			Vec4f(1.0f, 0.75f, 0.25f, 1.0f));
+		for (auto &mesh: out->meshes()) {
 			MeshSimplifier simplifier(mesh);
 			simplifier.setThresholds(thresholds);
 			if (input.hasAttribute("nor-max-angle")) {
@@ -384,30 +396,27 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	auto lodMeshInput = input.getFirstChild("lod-meshes");
 	if (lodMeshInput.get() != nullptr) {
 		visited.push_back(lodMeshInput);
-		for (auto &meshChild : lodMeshInput->getChildren("mesh")) {
-			// TODO: also allow to load mesh by id with external declaration
-			std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> baseMeshQueue;
-			MeshVector::loadIndexRange(*meshChild.get(), out_, baseMeshQueue, "base-mesh");
-			auto [baseMesh,_idx] = baseMeshQueue.front();
-			if (baseMeshQueue.size() > 1) {
-				REGEN_WARN("multiple base mesh indices in lod-mesh in '" << meshChild->getDescription() << "'.");
+		for (auto &meshChild: lodMeshInput->getChildren("mesh")) {
+			// First try to find existing CompositeMesh resource
+			ref_ptr<CompositeMesh> lodMeshVec = parser->getResources()->getMesh(parser, meshChild->getValue("id"));
+			if (lodMeshVec.get() == nullptr || lodMeshVec->meshes().empty()) {
+				// Else try to create new one from child node
+				lodMeshVec = parser->getResources()->createMesh(parser, *meshChild.get());
 			}
-			auto lodMeshVec = parser->getResources()->createMesh(parser, *meshChild.get());
-			if (lodMeshVec.get() == nullptr || lodMeshVec->empty()) {
+			if (lodMeshVec.get() == nullptr || lodMeshVec->meshes().empty()) {
 				REGEN_WARN("Ignoring " << meshChild->getDescription() << ", failed to load lod mesh.");
 				continue;
 			}
-			auto lodMesh = (*lodMeshVec.get())[0];
-			if (lodMeshVec->size() > 1) {
+			auto lodMesh = lodMeshVec->meshes()[0];
+			if (lodMeshVec->meshes().size() > 1) {
 				REGEN_WARN("multiple lod mesh indices in '" << meshChild->getDescription() << "'.");
 			}
 			lodMesh->shaderDefine("HAS_LOD", "TRUE");
 			REGEN_DEBUG("Adding LOD mesh '" << meshChild->getName() << "' to base mesh.");
-			baseMesh->addMeshLOD(Mesh::MeshLOD(lodMesh));
 		}
 	}
 	// remove visited children
-	for (auto &child : visited) {
+	for (auto &child: visited) {
 		input.removeChild(child);
 	}
 
@@ -415,7 +424,7 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 	{
 		auto thresholds = input.getValue<Vec3f>(
 			"lod-thresholds", Vec3f(10.0, 50.0, 100.0));
-		for (const auto &mesh : *out) {
+		for (const auto &mesh: out->meshes()) {
 			auto numLODs = mesh->numLODs();
 			if (numLODs == 0) {
 				continue;
@@ -426,18 +435,21 @@ ref_ptr<MeshVector> MeshVector::load(LoadingContext &ctx, scene::SceneInputNode 
 
 	if (input.hasAttribute("primitive")) {
 		GLenum primitive = glenum::primitive(input.getValue("primitive"));
-		for (GLuint i = 0u; i < out->size(); ++i) {
-			(*out)[i]->set_primitive(primitive);
+		for (auto &mesh : out->meshes()) {
+			mesh->set_primitive(primitive);
 		}
 	}
 
 	// Mesh resources can have State children
-	if (!out->empty()) processMeshChildren(ctx, input, *out);
+	if (!out->meshes().empty()) processMeshChildren(ctx, input, *out);
 
 	return out_;
 }
 
-ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::SceneInputNode &input, const ref_ptr<AssetImporter> &importer) {
+ref_ptr<CompositeMesh> CompositeMesh::createCompositeMesh(
+	LoadingContext &ctx,
+	scene::SceneInputNode &input,
+	const ref_ptr<AssetImporter> &importer) {
 	const auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
 	const auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
 	const auto translation = input.getValue<Vec3f>("translation", Vec3f(0.0f));
@@ -455,13 +467,13 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 		bufferConfig.mapMode = input.getValue<BufferMapMode>("map-mode", BUFFER_MAP_DISABLED);
 	}
 
-	ref_ptr<MeshVector> out_ = ref_ptr<MeshVector>::alloc();
-	MeshVector &out = *out_.get();
+	ref_ptr<CompositeMesh> out_ = ref_ptr<CompositeMesh>::alloc();
+	CompositeMesh &out = *out_.get();
 
 	ref_ptr<BoneTree> nodeAnim = importer->getNodeAnimation();
 	if (useAnimation && !nodeAnim) {
 		REGEN_WARN(input.getDescription() << " has use-animation=1 but Asset '" <<
-										  input.getValue("asset") << "' has not.");
+			input.getValue("asset") << "' has not.");
 		useAnimation = false;
 	}
 
@@ -476,9 +488,9 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 	// Parse user specified indices ...
 	std::vector<std::string> indicesStr;
 	boost::split(indicesStr, assetIndices, boost::is_any_of(","));
-	vector <GLuint> indices(indicesStr.size());
+	std::vector<uint32_t> indices(indicesStr.size());
 	bool useAllIndices = false;
-	for (GLuint i = 0u; i < indices.size(); ++i) {
+	for (uint32_t i = 0u; i < indices.size(); ++i) {
 		if (indicesStr[i] == "*") {
 			useAllIndices = true;
 			break;
@@ -489,12 +501,16 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 	}
 
 	if (useAllIndices) {
-		out = importer->loadAllMeshes(transform, bufferConfig);
+		for (auto &mesh : importer->loadAllMeshes(transform, bufferConfig)) {
+			out.addMesh(mesh);
+		}
 	} else {
-		out = importer->loadMeshes(transform, bufferConfig, indices);
+		for (auto &mesh : importer->loadMeshes(transform, bufferConfig, indices)) {
+			out.addMesh(mesh);
+		}
 	}
-	for (GLuint i = 0u; i < out.size(); ++i) {
-		ref_ptr<Mesh> mesh = out[i];
+	for (uint32_t i = 0u; i < out.meshes().size(); ++i) {
+		ref_ptr<Mesh> mesh = out.meshes()[i];
 		if (mesh.get() == nullptr) continue;
 
 		// Join in material state.
@@ -508,9 +524,9 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 		}
 
 		if (useAnimation) {
-			std::list<ref_ptr<BoneNode>> meshBones;
-			GLuint numBoneWeights = importer->numBoneWeights(mesh.get());
-			GLuint numBones = 0u;
+			std::list<ref_ptr<BoneNode> > meshBones;
+			uint32_t numBoneWeights = importer->numBoneWeights(mesh.get());
+			uint32_t numBones = 0u;
 
 			// Find bones influencing this mesh
 			if (nodeAnim.get()) {
@@ -536,9 +552,9 @@ ref_ptr<MeshVector> MeshVector::createAssetMeshes(LoadingContext &ctx, scene::Sc
 
 template<class InputType, class ValueType>
 static void configureParticleAttribute(
-		scene::SceneLoader *parser,
-		const ref_ptr<Particles> &particles,
-		scene::SceneInputNode &input) {
+	scene::SceneLoader *parser,
+	const ref_ptr<Particles> &particles,
+	scene::SceneInputNode &input) {
 	const std::string name = input.getValue("name");
 	if (input.hasAttribute("default")) {
 		auto optional = input.getValue<ValueType>("default");
@@ -573,7 +589,7 @@ static void configureParticleAttribute(
 		}
 	}
 	if (input.hasAttribute("advance-factor")) {
-		auto optional = input.getValue<GLfloat>("advance-factor");
+		auto optional = input.getValue<float>("advance-factor");
 		if (optional.has_value()) {
 			particles->setAdvanceFactor(name, optional.value());
 		} else {
@@ -599,7 +615,8 @@ static void configureParticleAttribute(
 	}
 }
 
-ref_ptr<Particles> MeshVector::createParticleMesh(LoadingContext &ctx, scene::SceneInputNode &input, const GLuint numParticles) {
+ref_ptr<Particles> CompositeMesh::createParticleMesh(LoadingContext &ctx, scene::SceneInputNode &input,
+                                                     const uint32_t numParticles) {
 	ref_ptr<Particles> particles;
 	auto parser = ctx.scene();
 	if (input.hasAttribute("update-shader")) {
@@ -612,7 +629,7 @@ ref_ptr<Particles> MeshVector::createParticleMesh(LoadingContext &ctx, scene::Sc
 	particles->startAnimation();
 
 	if (input.hasAttribute("max-emits")) {
-		particles->setMaxEmits(input.getValue<GLuint>("max-emits", 100u));
+		particles->setMaxEmits(input.getValue<uint32_t>("max-emits", 100u));
 	}
 	if (input.hasAttribute("animation-state")) {
 		auto animNodeName = input.getValue("animation-state");
@@ -645,7 +662,7 @@ ref_ptr<Particles> MeshVector::createParticleMesh(LoadingContext &ctx, scene::Sc
 		if (child->getCategory() == "input" && child->getValue<bool>("is-attribute", false)) {
 			const std::string type = child->getValue("type");
 			if (type == "float") {
-				configureParticleAttribute<ShaderInput1f, GLfloat>(parser, particles, *child.get());
+				configureParticleAttribute<ShaderInput1f, float>(parser, particles, *child.get());
 			} else if (type == "vec2") {
 				configureParticleAttribute<ShaderInput2f, Vec2f>(parser, particles, *child.get());
 			} else if (type == "vec3") {
@@ -668,16 +685,17 @@ ref_ptr<Particles> MeshVector::createParticleMesh(LoadingContext &ctx, scene::Sc
 
 	particles->begin();
 	// Mesh resources can have State children
-	auto x = ref_ptr<MeshVector>::alloc(1);
-	(*x.get())[0] = particles;
-	parser->putResource<MeshVector>(input.getName(), x); // TODO check if this is needed
+	auto x = ref_ptr<CompositeMesh>::alloc();
+	x->addMesh(particles);
+	// Make the mesh available for child nodes.
+	parser->putResource<CompositeMesh>(input.getName(), x);
 	processMeshChildren(ctx, input, *x.get());
 	particles->end();
 
 	return particles;
 }
 
-ref_ptr<TextureMappedText> MeshVector::createTextMesh(LoadingContext &ctx, scene::SceneInputNode &input) {
+ref_ptr<TextureMappedText> CompositeMesh::createTextMesh(LoadingContext &ctx, scene::SceneInputNode &input) {
 	ref_ptr<regen::Font> font =
 			ctx.scene()->getResource<Font>(input.getValue("font"));
 	if (font.get() == nullptr) {
@@ -685,7 +703,7 @@ ref_ptr<TextureMappedText> MeshVector::createTextMesh(LoadingContext &ctx, scene
 		return {};
 	}
 
-	auto textHeight = input.getValue<GLfloat>("height", 16.0f);
+	auto textHeight = input.getValue<float>("height", 16.0f);
 	auto textColor = input.getValue<Vec4f>("text-color", Vec4f(0.97f, 0.86f, 0.77f, 0.95f));
 
 	auto widget = ref_ptr<TextureMappedText>::alloc(font, textHeight);
@@ -693,7 +711,7 @@ ref_ptr<TextureMappedText> MeshVector::createTextMesh(LoadingContext &ctx, scene
 	widget->set_centerAtOrigin(input.getValue<bool>("center", true));
 
 	if (input.hasAttribute("text")) {
-		auto maxLineWidth = input.getValue<GLfloat>("max-line-width", 0.0f);
+		auto maxLineWidth = input.getValue<float>("max-line-width", 0.0f);
 		TextureMappedText::Alignment alignment = TextureMappedText::ALIGNMENT_LEFT;
 		if (input.hasAttribute("alignment")) {
 			std::string align = input.getValue("alignment");
@@ -710,13 +728,12 @@ ref_ptr<TextureMappedText> MeshVector::createTextMesh(LoadingContext &ctx, scene
 	return widget;
 }
 
-std::vector<uint32_t> MeshVector::loadIndexRange(scene::SceneInputNode &input, const std::string &prefix) {
+std::vector<uint32_t> CompositeMesh::loadIndexRange(scene::SceneInputNode &input, const std::string &prefix) {
 	std::vector<uint32_t> out;
 	auto meshIndex = input.getValue<int>(REGEN_STRING(prefix << "-index"), -1);
 	if (meshIndex >= 0) {
 		out.push_back(meshIndex);
-	}
-	else if (input.hasAttribute(REGEN_STRING(prefix << "-indices"))) {
+	} else if (input.hasAttribute(REGEN_STRING(prefix << "-indices"))) {
 		auto meshIndices = input.getValue(REGEN_STRING(prefix << "-indices"));
 		std::vector<std::string> indexStrings;
 		boost::split(indexStrings, meshIndices, boost::is_any_of(","));
@@ -728,8 +745,7 @@ std::vector<uint32_t> MeshVector::loadIndexRange(scene::SceneInputNode &input, c
 				REGEN_WARN("Ignoring " << input.getDescription() << ", invalid mesh index '" << index << "'.");
 			}
 		}
-	}
-	else if (input.hasAttribute(REGEN_STRING(prefix << "-index-range"))) {
+	} else if (input.hasAttribute(REGEN_STRING(prefix << "-index-range"))) {
 		auto meshIndexRange = input.getValue(REGEN_STRING(prefix << "-index-range"));
 		std::vector<std::string> range;
 		boost::split(range, meshIndexRange, boost::is_any_of("-"));
@@ -749,21 +765,21 @@ std::vector<uint32_t> MeshVector::loadIndexRange(scene::SceneInputNode &input, c
 	return out;
 }
 
-void MeshVector::loadIndexRange(
-		scene::SceneInputNode &input,
-		ref_ptr<MeshVector> &meshes,
-		std::queue<std::pair<ref_ptr<Mesh>,uint32_t>> &meshQueue,
-		const std::string &prefix) {
-	auto indexRange = MeshVector::loadIndexRange(input, prefix);
+void CompositeMesh::loadIndexRange(
+	scene::SceneInputNode &input,
+	const ref_ptr<CompositeMesh> &compositeMesh,
+	std::queue<std::pair<ref_ptr<Mesh>, uint32_t> > &meshQueue,
+	const std::string &prefix) {
+	auto indexRange = CompositeMesh::loadIndexRange(input, prefix);
 	if (indexRange.empty()) {
 		uint32_t idx = 0u;
-		for (auto &it: *meshes.get()) {
+		for (auto &it: compositeMesh->meshes()) {
 			meshQueue.push({it, idx++});
 		}
 	} else {
 		for (auto &index: indexRange) {
-			if (index >= 0 && index < static_cast<uint32_t>(meshes->size())) {
-				meshQueue.push({(*meshes.get())[index], index});
+			if (index >= 0 && index < static_cast<uint32_t>(compositeMesh->meshes().size())) {
+				meshQueue.push({compositeMesh->meshes()[index], index});
 			} else {
 				REGEN_WARN("Ignoring " << input.getDescription() << ", invalid mesh index '" << index << "'.");
 			}

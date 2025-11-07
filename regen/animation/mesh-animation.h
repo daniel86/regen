@@ -4,7 +4,7 @@
 #include <regen/animation/animation.h>
 #include "regen/shader/shader-input.h"
 #include "regen/shader/shader.h"
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 namespace regen {
 	/**

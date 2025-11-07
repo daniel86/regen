@@ -21,6 +21,7 @@
 
 #include "regen/behavior/skeleton/bone-controller.h"
 #include "regen/behavior/world/body-part.h"
+#include "regen/states/horizon-divider.h"
 
 using namespace regen::scene;
 using namespace regen;
@@ -58,6 +59,7 @@ void SceneLoader::init() {
 	setNodeProcessor(ref_ptr<LoadableNode<GeomPicking> >::alloc("picking"));
 	setNodeProcessor(ref_ptr<LoadableNode<DirectShading> >::alloc("direct-shading"));
 	setNodeProcessor(ref_ptr<LoadableNode<SkyView> >::alloc("sky"));
+	setNodeProcessor(ref_ptr<LoadableNode<HorizonDividerNode>>::alloc("horizon"));
 	// add some default state processors
 	setStateProcessor(ref_ptr<ShaderInputProcessor>::alloc());
 	setStateProcessor(ref_ptr<ShaderDefineProcessor>::alloc());
@@ -236,7 +238,7 @@ void SceneLoader::putResource(const std::string &category, const std::string &na
 	} else if (category == "SpatialIndex") {
 		resources_->putIndex(name, ref_ptr<SpatialIndex>::dynamicCast(v));
 	} else if (category == "Mesh") {
-		resources_->putMesh(name, ref_ptr<MeshVector>::dynamicCast(v));
+		resources_->putMesh(name, ref_ptr<CompositeMesh>::dynamicCast(v));
 	} else if (category == "State") {
 		putState(name, ref_ptr<State>::dynamicCast(v));
 	} else if (category == "WorldObject") {

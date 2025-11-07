@@ -9,7 +9,7 @@
 #define SPHERE_H_
 
 #include "regen/shader/shader-state.h"
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/math/vector.h>
 
 namespace regen {

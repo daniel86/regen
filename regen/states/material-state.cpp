@@ -63,6 +63,28 @@ void Material::set_emission(const Vec3f &emission) {
 	}
 }
 
+void Material::setSpecularMultiplier(float factor) {
+	if (materialSpecularMultiplier_.get() == nullptr) {
+		materialSpecularMultiplier_ = ref_ptr<ShaderInput1f>::alloc("matSpecularMultiplier");
+		materialSpecularMultiplier_->setUniformData(factor);
+		materialSpecularMultiplier_->setSchema(InputSchema::scalar(0.0f, 100.0f));
+		materialUniforms_->addStagedInput(materialSpecularMultiplier_);
+	} else {
+		materialSpecularMultiplier_->setUniformData(factor);
+	}
+}
+
+void Material::setEmissionMultiplier(float factor) {
+	if (materialEmissionMultiplier_.get() == nullptr) {
+		materialEmissionMultiplier_ = ref_ptr<ShaderInput1f>::alloc("matEmissionMultiplier");
+		materialEmissionMultiplier_->setUniformData(factor);
+		materialEmissionMultiplier_->setSchema(InputSchema::scalar(0.0f, 100.0f));
+		materialUniforms_->addStagedInput(materialEmissionMultiplier_);
+	} else {
+		materialEmissionMultiplier_->setUniformData(factor);
+	}
+}
+
 void Material::set_fillMode(GLenum fillMode) {
 	if (fillMode == fillMode_) return;
 	disjoinStates(fillModeState_);

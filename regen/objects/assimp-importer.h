@@ -10,7 +10,7 @@
 
 #include <stdexcept>
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/states/light-state.h>
 #include <regen/states/material-state.h>
 #include <regen/animation/animation.h>

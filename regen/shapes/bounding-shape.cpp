@@ -1,10 +1,8 @@
-#include <regen/utility/logging.h>
-
 #include "bounding-shape.h"
 #include "bounding-sphere.h"
 #include "bounding-box.h"
 #include "frustum.h"
-#include "regen/objects/mesh-state.h"
+#include "regen/objects/mesh.h"
 
 using namespace regen;
 
@@ -12,6 +10,7 @@ BoundingShape::BoundingShape(BoundingShapeType shapeType)
 		: shapeType_(shapeType),
 		  useLocalStamp_(false),
 		  lastGeometryStamp_(0u) {
+	localStamp_.store(0u);
 	updateStampFunction();
 }
 
@@ -76,6 +75,15 @@ bool BoundingShape::updateGeometry() {
 	}
 }
 
+const OrthogonalProjection& BoundingShape::getOrthogonalProjection() const {
+	if (!orthoProjection_.get()) {
+		orthoProjection_ = ref_ptr<OrthogonalProjection>::alloc(*this);
+	} else {
+		orthoProjection_->update(*this);
+	}
+	return *orthoProjection_.get();
+}
+
 void BoundingShape::setBaseOffset(const Vec3f &offset) {
 	baseOffset_ = offset;
 	if (mesh_.get()) {
@@ -103,11 +111,12 @@ void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, 
 void BoundingShape::setTransform(const Mat4f &localTransform) {
 	localTransform_ = localTransform;
 	if (transform_.get()) {
-		localStamp_ = transform_->stamp();
+		localStamp_.store(transform_->stamp() + 1u, std::memory_order_relaxed);
+		transform_ = {};
+		transformIndex_ = 0;
+	} else {
+		localStamp_.fetch_add(1u, std::memory_order_relaxed);
 	}
-	localStamp_ += 1u;
-	transform_ = {};
-	transformIndex_ = 0;
 }
 
 const Vec3f& BoundingShape::translation() const {
@@ -127,7 +136,7 @@ bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {
 				case BoundingShapeType::BOX:
 					return ((const BoundingSphere &) *this).hasIntersectionWithShape((const BoundingBox &) other);
 				case BoundingShapeType::FRUSTUM:
-					return ((const Frustum &) other).hasIntersectionWithFrustum((const BoundingSphere &) *this);
+					return ((const Frustum &) other).hasIntersectionWithSphere((const BoundingSphere &) *this);
 			}
 
 		case BoundingShapeType::BOX:
@@ -137,15 +146,15 @@ bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {
 				case BoundingShapeType::BOX:
 					return ((const BoundingBox &) *this).hasIntersectionWithBox((const BoundingBox &) other);
 				case BoundingShapeType::FRUSTUM:
-					return ((const Frustum &) other).hasIntersectionWithFrustum((const BoundingBox &) *this);
+					return ((const Frustum &) other).hasIntersectionWithBox((const BoundingBox &) *this);
 			}
 
 		case BoundingShapeType::FRUSTUM:
 			switch (other.shapeType()) {
 				case BoundingShapeType::SPHERE:
-					return ((const Frustum *) this)->hasIntersectionWithFrustum((const BoundingSphere &) other);
+					return ((const Frustum *) this)->hasIntersectionWithSphere((const BoundingSphere &) other);
 				case BoundingShapeType::BOX:
-					return ((const Frustum *) this)->hasIntersectionWithFrustum((const BoundingBox &) other);
+					return ((const Frustum *) this)->hasIntersectionWithBox((const BoundingBox &) other);
 				case BoundingShapeType::FRUSTUM:
 					return ((const Frustum *) this)->hasIntersectionWithFrustum((const Frustum &) other);
 			}

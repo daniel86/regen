@@ -1,6 +1,6 @@
 #include <stack>
 #include "model-transformation.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "../simulation/boids-cpu.h"
 #include "../simulation/boids-gpu.h"
 #include "regen/animation/transform-animation.h"
@@ -15,11 +15,9 @@ ModelTransformation::ModelTransformation(int tfMode, const BufferUpdateFlags &tf
 		  tfUpdateFlags_(tfUpdateFlags) {
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
 	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
-	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
 
 	modelMat_->setUniformData(Mat4f::identity());
 	modelOffset_->setUniformData(Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
-	velocity_->setUniformData(Vec3f(0.0f));
 
 	modelMat_->setSchema(InputSchema::transform());
 	modelOffset_->setSchema(InputSchema::position());
@@ -33,9 +31,7 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInput4f> &offset, c
 		  tfUpdateFlags_(tfUpdateFlags) {
 	modelOffset_ = offset;
 	modelMat_ = ref_ptr<ShaderInputMat4>::alloc("modelMatrix");
-	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
 	modelMat_->setUniformData(Mat4f::identity());
-	velocity_->setUniformData(Vec3f(0.0f));
 	modelMat_->setSchema(InputSchema::transform());
 	initBufferContainer();
 }
@@ -50,9 +46,6 @@ ModelTransformation::ModelTransformation(const ref_ptr<ShaderInputMat4> &mat, co
 	modelOffset_ = ref_ptr<ShaderInput4f>::alloc("modelOffset");
 	modelOffset_->setUniformData(Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
 
-	velocity_ = ref_ptr<ShaderInput3f>::alloc("meshVelocity");
-	velocity_->setUniformData(Vec3f(0.0f));
-
 	initBufferContainer();
 }
 
@@ -64,7 +57,6 @@ void ModelTransformation::initBufferContainer() {
 	if (tfMode_ & TF_OFFSET) {
 		tfBuffer_->addInput(modelOffset_);
 	}
-	tfBuffer_->addInput(velocity_);
 	joinStates(tfBuffer_);
 }
 
@@ -102,16 +94,11 @@ void ModelTransformation::enable(RenderState *rs) {
 	if (isAudioSource()) {
 		boost::posix_time::ptime time(
 				boost::posix_time::microsec_clock::local_time());
-		GLdouble dt = ((GLdouble) (time - lastTime_).total_microseconds()) / 1000.0;
+		double dt = ((double) (time - lastTime_).total_microseconds()) / 1000.0;
 		lastTime_ = time;
 
 		if (dt > 1e-6) {
 			auto val = modelMat_->getVertex(0);
-			velocity_->setVertex(0, (val.r.position() - lastPosition_) / dt);
-			lastPosition_ = val.r.position();
-			if (isAudioSource()) {
-				audioSource_->set3f(AL_VELOCITY, velocity_->getVertex(0).r);
-			}
 			audioSource_->set3f(AL_POSITION, val.r.position());
 		}
 	}
@@ -397,11 +384,11 @@ static GLuint transformMatrixPlane(
 
 	InstancePlaneGenerator generator;
 	generator.areaSize = areaSize;
-	generator.areaMaxHeight = input.getValue<GLfloat>("area-max-height", 0.0f);
-	generator.objMinScale = input.getValue<GLfloat>("obj-min-scale", 0.6f);
-	generator.objMaxScale = input.getValue<GLfloat>("obj-max-scale", 1.0f);
-	generator.objPosVariation = input.getValue<GLfloat>("obj-pos-variation", 0.0f);
-	generator.objDensity = input.getValue<GLfloat>("obj-density", 1.0f);
+	generator.areaMaxHeight = input.getValue<float>("area-max-height", 0.0f);
+	generator.objMinScale = input.getValue<float>("obj-min-scale", 0.6f);
+	generator.objMaxScale = input.getValue<float>("obj-max-scale", 1.0f);
+	generator.objPosVariation = input.getValue<float>("obj-pos-variation", 0.0f);
+	generator.objDensity = input.getValue<float>("obj-density", 1.0f);
 	generator.ws_cellSize = input.getValue<Vec2f>("cell-size", Vec2f(1.0f));
 	generator.cellHalfSize = Vec2f(generator.ws_cellSize.x, generator.ws_cellSize.y) * 0.5f;
 	generator.cellWorldOffset = input.getValue<Vec3f>("cell-offset", Vec3f(0.0f));
@@ -441,9 +428,9 @@ static GLuint transformMatrixPlane(
 		}
 	}
 	// get object bounds
-	auto meshes = scene->getResource<MeshVector>(input.getValue("obj-mesh"));
-	if (meshes.get() && !meshes.get()->empty()) {
-		auto &meshVec = *meshes.get();
+	auto compositeMesh = scene->getResource<CompositeMesh>(input.getValue("obj-mesh"));
+	if (compositeMesh.get() && !compositeMesh.get()->meshes().empty()) {
+		auto &meshVec = compositeMesh->meshes();
 		auto firstMesh = meshVec[0];
 		Bounds<Vec3f> bounds(firstMesh->minPosition(), firstMesh->maxPosition());
 		for (size_t i = 1; i < meshVec.size(); i++) {
@@ -566,10 +553,10 @@ static void transformAnimation(
 
 		if (child->hasAttribute("mesh-id")) {
 			auto meshID = child->getValue("mesh-id");
-			auto meshIndex = child->getValue<GLuint>("mesh-index", 0u);
-			auto meshVec = scene->getResource<MeshVector>(meshID);
-			if (meshVec.get() != nullptr && meshVec->size() > meshIndex) {
-				auto mesh = (*meshVec.get())[meshIndex];
+			auto meshIndex = child->getValue<uint32_t>("mesh-index", 0u);
+			auto compositeMesh = scene->getResource<CompositeMesh>(meshID);
+			if (compositeMesh.get() != nullptr && compositeMesh->meshes().size() > meshIndex) {
+				auto mesh = compositeMesh->meshes()[meshIndex];
 				transformAnimation->setMesh(mesh);
 			}
 		}
@@ -583,7 +570,7 @@ static void transformAnimation(
 			if (keyFrameNode->hasAttribute("rotation")) {
 				frameDir = keyFrameNode->getValue<Vec3f>("rotation", Vec3f(0.0f));
 			}
-			auto dt = keyFrameNode->getValue<GLdouble>("dt", 1.0);
+			auto dt = keyFrameNode->getValue<double>("dt", 1.0);
 			transformAnimation->addTransformKeyframe(framePos, frameDir, dt);
 		}
 
@@ -600,7 +587,7 @@ static void transformMatrix(
 		const ref_ptr<State> &state,
 		const ref_ptr<StateNode> &parent,
 		const ref_ptr<ModelTransformation> &tf,
-		GLuint numInstances) {
+		uint32_t numInstances) {
 	for (auto &child: input.getChildren()) {
 		std::list<scene::IndexRange> indices = child->getIndexSequence(numInstances);
 
@@ -687,7 +674,7 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 	}
 
 	bool isInstanced = input.getValue<bool>("is-instanced", false);
-	auto numInstances = input.getValue<GLuint>("num-instances", 1u);
+	auto numInstances = input.getValue<uint32_t>("num-instances", 1u);
 	int tfMode = ModelTransformation::TF_MATRIX;
 	if (input.hasAttribute("mode")) {
 		auto tfMode_str = input.getValue<std::string>("mode", "matrix");
@@ -725,16 +712,16 @@ ModelTransformation::load(LoadingContext &ctx, scene::SceneInputNode &input, con
 		}
 	}
 	// set identity matrices on both slots
-	for (GLuint i = 0; i < numInstances; i += 1) {
+	for (uint32_t i = 0; i < numInstances; i += 1) {
 		Mat4f *mat0 = (Mat4f*) transform->modelMat()->clientData(0);
 		Mat4f *mat1 = (Mat4f*) transform->modelMat()->clientData(1);
-		for (GLuint j = 0; j < transform->modelMat()->numInstances(); j += 1) {
+		for (uint32_t j = 0; j < transform->modelMat()->numInstances(); j += 1) {
 			mat0[j] = Mat4f::identity();
 			if(mat1) mat1[j] = Mat4f::identity();
 		}
 		Vec4f *offset0 = (Vec4f*) transform->modelOffset()->clientData(0);
 		Vec4f *offset1 = (Vec4f*) transform->modelOffset()->clientData(1);
-		for (GLuint j = 0; j < transform->modelOffset()->numInstances(); j += 1) {
+		for (uint32_t j = 0; j < transform->modelOffset()->numInstances(); j += 1) {
 			offset0[j] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
 			if (offset1) offset1[j] = Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
 		}

@@ -2,7 +2,7 @@
 #define REGEN_BOUNDING_SHAPE_H_
 
 #include "regen/states/model-transformation.h"
-#include "bounds.h"
+#include "orthogonal-projection.h"
 
 namespace regen {
 	enum class BoundingShapeType {
@@ -229,6 +229,13 @@ namespace regen {
 		virtual Vec3f closestPointOnSurface(const Vec3f &point) const = 0;
 
 		/**
+		 * @brief Get the orthogonal projection of this shape.
+		 * If needed the projection is recomputed, ie. when the geometry or transform has changed.
+		 * @return The orthogonal projection
+		 */
+		const OrthogonalProjection& getOrthogonalProjection() const;
+
+		/**
 		 * Assign a world object to this shape.
 		 * This is used to link the shape to a world object.
 		 * @param obj The world object
@@ -249,7 +256,6 @@ namespace regen {
 		/**
 		 * Unset the world object from this shape.
 		 * This is used to unlink the shape from a world object.
-		 * @param obj The world object
 		 */
 		Resource *worldObject() const { return worldObject_; }
 
@@ -265,6 +271,9 @@ namespace regen {
 		std::vector<ref_ptr<Mesh>> parts_;
 		Resource *worldObject_ = nullptr;
 
+		// Projection of the shape onto the xz-plane.
+		// This is computed in a lazy manner when requested.
+		mutable ref_ptr<OrthogonalProjection> orthoProjection_;
 		ref_ptr<ModelTransformation> transform_;
 		// only used in case no TF is set
 		Mat4f localTransform_ = Mat4f::identity();
@@ -272,8 +281,7 @@ namespace regen {
 		Vec3f baseOffset_ = Vec3f::zero();
 
 		bool useLocalStamp_ = false;
-		// TODO: Check if we need to make this an atomic. I think we might.
-		uint32_t localStamp_ = 1u;
+		std::atomic<uint32_t> localStamp_;
 		uint32_t lastTransformStamp_ = 0;
 		uint32_t lastGeometryStamp_;
 		uint32_t nextGeometryStamp_ = 0u;
@@ -292,7 +300,7 @@ namespace regen {
 		}
 
 		uint32_t getLocalStamp() const {
-			return localStamp_;
+			return localStamp_.load(std::memory_order_acquire);
 		}
 
 		void updateStampFunction();

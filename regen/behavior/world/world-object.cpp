@@ -1,5 +1,5 @@
 #include "world-object.h"
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 #include "character-object.h"
 #include "regen/scene/resource-manager.h"
@@ -257,13 +257,13 @@ ref_ptr<WorldObjectVec> WorldObjectVec::load(LoadingContext &ctx, scene::SceneIn
 
 	if (n.hasAttribute("mesh")) {
 		uint32_t meshIdx = n.getValue<uint32_t>("mesh-index", 0u);
-		auto meshes = ctx.scene()->getResources()->getMesh(ctx.scene(), n.getValue("mesh"));
-		if (!meshes || meshes->empty()) {
+		auto compositeMesh = ctx.scene()->getResources()->getMesh(ctx.scene(), n.getValue("mesh"));
+		if (!compositeMesh || compositeMesh->meshes().empty()) {
 			REGEN_WARN("Cannot find mesh in `" << n.getDescription() << "`.");
-		} else if (meshIdx >= meshes->size()) {
+		} else if (meshIdx >= compositeMesh->meshes().size()) {
 			REGEN_WARN("Invalid mesh index in `" << n.getDescription() << "`.");
 		} else {
-			auto mesh = (*meshes.get())[meshIdx];
+			auto mesh = compositeMesh->meshes()[meshIdx];
 			auto shape = mesh->indexedShape(0);
 			uint32_t numInstances = shape->transform()->numInstances();
 			// load range of instances

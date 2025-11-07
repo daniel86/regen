@@ -66,14 +66,14 @@ namespace regen {
 		bool hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) const;
 
 		/**
-		 * @return true if the sphere intersects with this frustum.
-		 */
-		bool hasIntersectionWithFrustum(const BoundingSphere &sphere) const;
-
-		/**
 		 * @return true if the box intersects with this frustum.
 		 */
-		bool hasIntersectionWithFrustum(const BoundingBox &box) const;
+		bool hasIntersectionWithBox(const BoundingBox &box) const;
+
+		/**
+		 * @return true if the sphere intersects with this frustum.
+		 */
+		bool hasIntersectionWithSphere(const BoundingSphere &sphere) const;
 
 		/**
 		 * @return true if the frustum intersects with this frustum.

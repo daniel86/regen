@@ -41,7 +41,9 @@ flat out int out_layer;
 
 void main() {
     gl_Position = vec4(in_pos.xy, 0.0, 1.0);
+    #ifndef IS_UNDER_WATER
     handleWaterIO();
+    #endif
     VS_SelectLayer(regen_RenderLayer());
 }
 -- fullscreen.gs
@@ -217,10 +219,43 @@ bool inBounds(vec2 p) {
 #endif
 
 #ifdef IS_UNDER_WATER
-void computeUnderWaterColor(vec3 position, float sceneDepth, vecTexco texco, inout vec4 outColor) {
-    // TODO: Handle the under water case.
-    float isAtFarPlane = step(0.99998, sceneDepth);
-    outColor.rgb = mix(outColor.rgb, in_deepWaterColor, 0.5*(1.0 - isAtFarPlane));
+vec3 computeUnderWaterColor(vec3 position, float sceneDepth, vecTexco texco, vec3 outColor) {
+    // Distance from camera to fragment (sceneDepth is 0..1)
+    float viewDepth = sceneDepth / in_visibility;
+
+    // Base attenuation (light absorption by water)
+    vec3 absorption = exp(-in_colorExtinction * viewDepth * in_fadeSpeed);
+    vec3 attenuated = outColor * absorption;
+
+    // Depth-based fog (scattering and turbidity) ---
+    float depthBelowSurface = in_surfaceHeight - position.y;
+    float fogFactor = clamp(depthBelowSurface * 0.25 + viewDepth * 0.8, 0.0, 1.0);
+    vec3 fogged = mix(attenuated, in_deepWaterColor, fogFactor);
+
+    // Caustic shimmer (optional, if height or normal texture available)
+    #ifdef USE_RIPPLES
+    vec2 causticUV = texco + in_time * in_windDirection * 0.1;
+    vec3 ripple = texture(in_normalTexture, causticUV * 2.0).rgb;
+    float caustic = pow(ripple.g, 5.0) * 0.5; // bright specks
+    fogged += in_lightDiffuse_Sun * caustic * 0.2;
+    #endif
+
+    // Simulate refractive distortion of the view
+    #ifdef USE_RIPPLES
+    vec2 distortion = (ripple.rg - 0.5) * 0.03;
+    fogged = texture(in_refractionTexture, texco + distortion).rgb * absorption;
+    fogged = mix(fogged, in_deepWaterColor, fogFactor * 0.3);
+    #endif
+
+    // Fade to darker tone near far plane
+    float isAtFarPlane = step(0.9998, sceneDepth);
+    fogged = mix(fogged, in_deepWaterColor * 0.5, 0.6 * isAtFarPlane);
+
+    // Add subtle directional light falloff
+    float sunFactor = clamp(dot(normalize(in_lightDirection_Sun), vec3(0.0, -1.0, 0.0)) * 0.5 + 0.5, 0.0, 1.0);
+    fogged += in_lightDiffuse_Sun * sunFactor * 0.05;
+
+    return fogged;
 }
 #endif
 
@@ -412,9 +447,7 @@ void main() {
     // initialize output color to scene color
     vec3 outColor = texture(in_refractionTexture, texco).rgb;
 #ifdef IS_UNDER_WATER
-    if(REGEN_CAM_POS_(in_layer).y < in_surfaceHeight) {
-        outColor = computeUnderWaterColor(posWorldSpace, depth, outColor, texco);
-    }
+    outColor = computeUnderWaterColor(posWorldSpace, depth, texco, outColor);
 #else
     #ifdef IS_WATER_PLANE
     outColor = computeOverWaterColor(posWorldSpace, depth, outColor, texco);

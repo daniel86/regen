@@ -5,6 +5,7 @@
 #include "quad-tree.h"
 #include "cull-shape.h"
 #include "spatial-index-debug.h"
+#include "regen/utility/conversion.h"
 
 // NOTE: this piece of code is performance critical! For many execution paths:
 // - avoid the use of std::set, std::unordered_set, std::map, std::unordered_map, etc. here
@@ -104,9 +105,13 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	mapped_count.unmap();
 	mapped_ids.unmap();
 
+	is->shapeIdx_ = static_cast<uint16_t>(ic.indexShapes_.size());
 	ic.nameToShape_[shape->name()] = is;
 	ic.indexShapes_.push_back(is.get());
 	is->boundingShapes_.push_back(shape);
+	// mark camera as dirty as the camera buffers must be resized.
+	// We do this lazy to avoid multiple resizes when adding many shapes.
+	ic.isDirty = true;
 }
 
 bool SpatialIndex::hasCamera(const Camera &camera) const {
@@ -184,11 +189,37 @@ static inline uint32_t getLODLevel(
 	return b_shape.baseMesh()->getLODLevel(lodDistance, i_shape->lodShift());
 }
 
+inline uint16_t floatToHalf(float distance, SortMode sortMode) {
+	uint32_t x = std::bit_cast<uint32_t>(distance);
+	uint16_t q = ((x>>16)&0x8000) |                     // sign bit
+		   ((((x&0x7f800000)-0x38000000)>>13)&0x7c00) | // exponent bits
+		   	((x>>13)&0x03ff);                           // mantissa bits
+	// Flip if back-to-front sorting
+	if (sortMode == BACK_TO_FRONT) {
+		q = 0xFFFF - q;
+	}
+	return q;
+}
+
+inline uint64_t packKey_64bit(uint16_t shapeIdx, uint32_t layerIdx, float distance, SortMode sortMode) {
+	// Clamp layerIdx to 16 bits
+	const uint16_t layer16 = static_cast<uint16_t>(std::min(layerIdx, 0xFFFFu));
+	// Convert distance to uint32_t. For FRONT_TO_BACK, `floatBitsToUint(distance)` is used.
+	// In case of BACK_TO_FRONT, we use `0xFFFFFFFFu - floatBitsToUint(distance)` to invert the order.
+	int backToFront = int(sortMode == BACK_TO_FRONT);
+	const uint32_t distance_ui = (0xFFFFFFFFu * backToFront) +
+		conversion::floatBitsToUint(distance) * (1 - 2*backToFront);
+	// Pack: upper 16 bits = shapeIdx, next 16 bits = layerIdx, lower 32 bits = distance
+	return static_cast<uint64_t>(shapeIdx) << 48 | static_cast<uint64_t>(layer16) << 32 | static_cast<uint64_t>(distance_ui);
+}
+
 void SpatialIndex::handleIntersection(const BoundingShape& b_shape, void* userData) {
     auto* data = (SpatialIndex::TraversalData*)(userData);
     auto* i_shape = (IndexedShape*) b_shape.spatialIndexData_;
+	auto* i_cam = data->indexCamera;
     const uint32_t L = i_shape->camera()->numLayer();
 	const uint32_t l = data->layerIdx;
+	const SortMode sortMode = i_shape->instanceSortMode();
 
     // toggle visibility for this layer
     i_shape->tmp_layerVisibility_[l] = true;
@@ -201,47 +232,63 @@ void SpatialIndex::handleIntersection(const BoundingShape& b_shape, void* userDa
 
 	// Finally bin the shape into the (lod, layer) bin
 	const uint32_t b = CullShape::binIdx(k, l, L);
-	i_shape->tmp_layerShapes_.push_back(i_shape->tmp_layerShapes_.size());
-	i_shape->tmp_layerInstances_.push_back(b_shape.instanceID());
-	i_shape->tmp_layerIndices_.push_back(l);
-	i_shape->tmp_layerDistances_.push_back(lodDistance);
 	i_shape->tmp_binCounts_[b] += 1;
+	i_shape->tmp_totalCount_ += 1;
+
+	i_cam->tmp_layerInstances_.push_back(b_shape.instanceID());
+	i_cam->tmp_layerShapes_.push_back(i_cam->tmp_layerShapes_.size());
+	i_cam->tmp_sortKeys_.push_back(packKey_64bit(i_shape->shapeIdx_, l, lodDistance, sortMode));
 }
 
 void SpatialIndex::updateLayerVisibility(
 		IndexCamera &ic, uint32_t layerIdx,
-		const BoundingShape &camera_shape) {
+		const BoundingShape &camera_shape,
+		uint32_t traversalMask) {
 	// Collect all intersections for this layer into (lod,layer) bins
-	TraversalData traversalData{ this, nullptr, layerIdx };
+	TraversalData traversalData{ this, &ic, nullptr, layerIdx };
 	if (ic.sortCamera->position().size()>1) {
 		traversalData.camPos = &ic.sortCamera->position(layerIdx);
 	} else {
 		traversalData.camPos = &ic.sortCamera->position(0);
 	}
-	// TODO: support another traversal bit here?
 	foreachIntersection(camera_shape,
 		handleIntersection,
 		&traversalData,
-		BoundingShape::TRAVERSAL_BIT_DRAW);
+		traversalMask);
 }
 
-void SpatialIndex::updateVisibility() {
+void SpatialIndex::updateVisibility(uint32_t traversalMask) {
 	for (auto &ic: cameras_) {
-		auto &indexCamera = ic.second;
-		const uint32_t L = indexCamera.cullCamera->numLayer();
+		IndexCamera *indexCamera = &ic.second;
+		const uint32_t L = indexCamera->cullCamera->numLayer();
+
+		if (indexCamera->isDirty) {
+			// Compute the number of keys which is the sum of L * I for all shapes
+			// assigned to this camera.
+			const uint32_t numLayer = indexCamera->cullCamera->numLayer();
+			indexCamera->numKeys = 0;
+			for (auto &indexShape: indexCamera->indexShapes_) {
+				indexCamera->numKeys += indexShape->shape()->numInstances() * numLayer;
+			}
+			indexCamera->tmp_layerInstances_.reserve(indexCamera->numKeys);
+			indexCamera->tmp_layerShapes_.reserve(indexCamera->numKeys);
+			indexCamera->tmp_sortKeys_.reserve(indexCamera->numKeys);
+			indexCamera->radixSort.resize(indexCamera->numKeys);
+			indexCamera->isDirty = false;
+		} else {
+			indexCamera->tmp_layerInstances_.clear();
+			indexCamera->tmp_layerShapes_.clear();
+			indexCamera->tmp_sortKeys_.clear();
+		}
 
 		for (auto &indexShape: ic.second.indexShapes_) {
-			const uint32_t K = indexShape->numLODs();
-			const uint32_t B = K * L;
 			indexShape->tmp_layerVisibility_.assign(L, false);
 			// Reset the per-bin counts, we accumulate them during traversal, so they
 			// need to be reset first.
-			std::memset(indexShape->tmp_binCounts_.data(), 0, sizeof(uint32_t) * B);
-			// Clear the per-layer bins.
-			indexShape->tmp_layerShapes_.clear();
-			indexShape->tmp_layerInstances_.clear();
-			indexShape->tmp_layerIndices_.clear();
-			indexShape->tmp_layerDistances_.clear();
+			std::memset(indexShape->tmp_binCounts_.data(), 0,
+				sizeof(uint32_t) * indexShape->tmp_binCounts_.size());
+			// Reset total count
+			indexShape->tmp_totalCount_ = 0;
 			// Remember the index shape to bounding shape mapping such that we can
 			// obtain index shape from bounding shape directly (else a hash lookup would be required).
 			for (auto &bs: indexShape->boundingShapes_) {
@@ -249,47 +296,36 @@ void SpatialIndex::updateVisibility() {
 			}
 		}
 
+		// Finally process all layers
 		auto &frustumShapes = ic.first->frustum();
 		for (uint32_t layerIdx = 0; layerIdx < frustumShapes.size(); ++layerIdx) {
-			updateLayerVisibility(ic.second, layerIdx, frustumShapes[layerIdx]);
+			updateLayerVisibility(ic.second, layerIdx, frustumShapes[layerIdx], traversalMask);
 		}
+
+		std::vector<uint32_t>& vec = indexCamera->tmp_layerShapes_;
+		if (vec.size() < SMALL_ARRAY_SIZE) {
+			std::ranges::sort(vec, [indexCamera](uint32_t shapeIdx1, uint32_t shapeIdx2) {
+				return indexCamera->tmp_sortKeys_[shapeIdx1] < indexCamera->tmp_sortKeys_[shapeIdx2];
+			});
+		} else {
+			indexCamera->radixSort.sort(vec, indexCamera->tmp_sortKeys_);
+		}
+
+		uint32_t shapeBase = 0;
 		for (auto &indexShape: ic.second.indexShapes_) {
-			// TODO: We could move tmp_layerShapes_ into indexCamera maybe, and only sort once all shapes?
-			auto& vec = indexShape->tmp_layerShapes_;
-			if (indexCamera.sortMode == SortMode::FRONT_TO_BACK) {
-				std::ranges::sort(vec, [&](uint32_t shapeIdx1, uint32_t shapeIdx2) {
-					// sort b two kes: (1) layerIdx, (2) distance
-					const uint32_t l1 = indexShape->tmp_layerIndices_[shapeIdx1];
-					const uint32_t l2 = indexShape->tmp_layerIndices_[shapeIdx2];
-					const float d1 = indexShape->tmp_layerDistances_[shapeIdx1];
-					const float d2 = indexShape->tmp_layerDistances_[shapeIdx2];
-					return l1 != l2 ? (l1 < l2) : (d1 < d2);
-				});
-			} else if (indexCamera.sortMode == SortMode::BACK_TO_FRONT) {
-				std::ranges::sort(vec, [&](uint32_t shapeIdx1, uint32_t shapeIdx2) {
-					// sort b two kes: (1) layerIdx, (2) distance
-					const uint32_t l1 = indexShape->tmp_layerIndices_[shapeIdx1];
-					const uint32_t l2 = indexShape->tmp_layerIndices_[shapeIdx2];
-					const float d1 = indexShape->tmp_layerDistances_[shapeIdx1];
-					const float d2 = indexShape->tmp_layerDistances_[shapeIdx2];
-					// sort b two kes: (1) layerIdx, (2) distance
-					return l1 != l2 ? (l1 < l2) :  (d1 > d2);
-				});
-			}
-			// Update LOD-major arrays
-			updateLOD_Major(indexCamera, indexShape);
+			updateLOD_Major(ic.second, indexShape, shapeBase);
+			shapeBase += indexShape->tmp_totalCount_;
 		}
 	}
 }
 
-void SpatialIndex::updateLOD_Major(IndexCamera &indexCamera, IndexedShape *indexShape) {
+void SpatialIndex::updateLOD_Major(IndexCamera &indexCamera, IndexedShape *indexShape, uint32_t shapeBase) {
     const uint32_t L = indexCamera.cullCamera->numLayer();
     const uint32_t K = indexShape->numLODs();
-    const uint32_t B = K * L;
 
     // Compute base offsets for all bins in LOD-major order
     uint32_t runningBase = 0;
-    for (uint32_t b = 0; b < B; ++b) {
+    for (uint32_t b = 0; b < indexShape->tmp_binBase_.size(); ++b) {
 		indexShape->tmp_binBase_[b] = runningBase;
 		runningBase += indexShape->tmp_binCounts_[b];
 	}
@@ -302,30 +338,33 @@ void SpatialIndex::updateLOD_Major(IndexCamera &indexCamera, IndexedShape *index
 	// Copy over the visibility flags from tmp_layerVisibility_ into visible_
     bool isVisible = false;
 	for (uint32_t layer = 0; layer < L; ++layer) {
-		indexShape->visible_[layer] = indexShape->tmp_layerVisibility_[layer];
-		if (indexShape->visible_[layer]) { isVisible = true; }
+		bool visibleInLayer = indexShape->tmp_layerVisibility_[layer];
+		indexShape->visible_[layer] = visibleInLayer;
+		if (!isVisible && visibleInLayer) { isVisible = true; }
 	}
 	indexShape->isVisibleInAnyLayer_ = isVisible;
 
 	// Copy over the counts and base offsets from tmp_ arrays into the mapped arrays
-	std::memcpy(mapped_counts, indexShape->tmp_binCounts_.data(), sizeof(uint32_t) * B);
-	std::memcpy(mapped_base, indexShape->tmp_binBase_.data(), sizeof(uint32_t) * B);
+	const uint32_t numBytes = sizeof(uint32_t) * indexShape->tmp_binCounts_.size();
+	std::memcpy(mapped_counts, indexShape->tmp_binCounts_.data(), numBytes);
+	std::memcpy(mapped_base, indexShape->tmp_binBase_.data(), numBytes);
 
     // Write IDs to mapped buffer
-	uint32_t layerBase = 0;
-	auto& vec = indexShape->tmp_layerShapes_;
-    for (uint32_t l = 0; l < L; ++l) {
+	// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.
+	uint32_t layerBase = shapeBase;
+	auto& vec = indexCamera.tmp_layerShapes_;
+	for (uint32_t l = 0; l < L; ++l) {
 		for (uint32_t k = 0; k < K; ++k) {
 			const uint32_t b = CullShape::binIdx(k, l, L);
 			const uint32_t base = indexShape->tmp_binBase_[b];
 			const uint32_t cnt = indexShape->tmp_binCounts_[b];
 			if (cnt == 0) continue;
 
-			std::transform(
-				vec.begin() + layerBase,
-				vec.begin() + layerBase + cnt,
-				mapped_ids + base,
-				[&](uint32_t shapeIdx) { return indexShape->tmp_layerInstances_[shapeIdx]; });
+    		std::transform(
+    			vec.begin() + layerBase,
+    			vec.begin() + layerBase + cnt,
+    			mapped_ids + base,
+    			[&](uint32_t shapeIdx) { return indexCamera.tmp_layerInstances_[shapeIdx]; });
 			layerBase += cnt;
 		}
 	}

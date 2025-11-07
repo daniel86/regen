@@ -16,17 +16,10 @@ IndexedShape::IndexedShape(
 	}
 
 	const uint32_t L = camera_->numLayer();
-	const uint32_t K = numLODs_;
-	const uint32_t I = shape->numInstances();
-	const uint32_t B = L * K;
+	const uint32_t B = L * numLODs_;
 	tmp_binCounts_.resize(B, 0);
 	tmp_binBase_.resize(B, 0);
 	tmp_layerVisibility_.resize(L, false);
-	tmp_layerShapes_.reserve(L * I);
-	tmp_layerInstances_.reserve(L * I);
-	tmp_layerIndices_.reserve(L * I);
-	tmp_layerDistances_.reserve(L * I);
-
 	visible_.resize(L, true);
 }
 

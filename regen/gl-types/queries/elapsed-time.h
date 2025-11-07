@@ -22,7 +22,12 @@ namespace regen {
 	 */
 	class ElapsedTimeDebugger {
 	public:
-		ElapsedTimeDebugger(std::string_view sessionName, uint32_t numFrames);
+		enum Mode {
+			CPU_ONLY,
+			CPU_AND_GPU
+		};
+
+		ElapsedTimeDebugger(std::string_view sessionName, uint32_t numFrames, Mode mode = CPU_AND_GPU);
 
 		~ElapsedTimeDebugger();
 
@@ -35,6 +40,7 @@ namespace regen {
 	protected:
 		const std::string sessionName_;
 		const uint32_t numFrames_;
+		const Mode mode_;
 		ref_ptr<TimeElapsedQuery> query_;
 		std::chrono::time_point<std::chrono::system_clock> cpuLastTime_;
 		// CPU time in milliseconds

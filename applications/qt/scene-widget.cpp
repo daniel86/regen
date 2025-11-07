@@ -75,7 +75,7 @@ SceneWidget::SceneWidget(
 		: QWidget(parent),
 		  app_(app),
 		  updateInterval_(16000),
-		  isRunning_(GL_FALSE),
+		  isRunning_(false),
 		  surfaceFormat_(surfaceFormat) {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -138,7 +138,7 @@ void SceneWidget::startRendering() {
 }
 
 void SceneWidget::stopRendering() {
-	isRunning_ = GL_FALSE;
+	isRunning_ = false;
 	renderThread_->wait();
 }
 
@@ -147,9 +147,9 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		REGEN_WARN("Render thread already running.");
 		return;
 	}
-	isRunning_ = GL_TRUE;
+	isRunning_ = true;
 #ifdef WAIT_ON_VSYNC
-	GLint dt;
+	int dt;
 #endif
 #ifdef REGEN_SCENE_DEBUG_TIME
 	ElapsedTimeDebugger elapsedTime("Scene Drawing", 300);
@@ -191,12 +191,8 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 		elapsedTime.push("Flush GL");
 #endif
 
-		// invoke event handler of queued events
-		// TODO: Reconsider the event handling.
-		//    It should not be done here. Better do not assume
-		//    event handler must be executed with GL context!
-		//    -> add an interface for GL event handler.
-		EventObject::emitQueued();
+		// invoke event handler of queued events that require GL context
+		EventObject::dispatchEvents();
 #ifdef SINGLE_THREAD_GUI_AND_GRAPHICS
 		app_->app_->processEvents();
 #endif
@@ -208,8 +204,7 @@ void SceneWidget::run(QOpenGLContext *glContext) {
 			// adjust interval to hit the desired frame rate if we can
 			boost::posix_time::ptime t(
 					boost::posix_time::microsec_clock::local_time());
-			dt = std::max(0, updateInterval_ - (GLint)
-					(t - app_->lastTime()).total_microseconds());
+			dt = std::max(0, updateInterval_ - static_cast<int>((t - app_->lastTime()).total_microseconds()));
 			// sleep desired interval
 			usleepRegen(dt);
 		}
@@ -240,7 +235,7 @@ void SceneWidget::GLThread::run() {
 	delete sharedContext;
 }
 
-void SceneWidget::do_mouseClick(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick) {
+void SceneWidget::do_mouseClick(QMouseEvent *event, bool isPressed, bool isDoubleClick) {
 	GLint x = event->x(), y = event->y();
 	GLint button = qtToOgleButton(event->button());
 	if (button == -1) { return; }
@@ -255,19 +250,19 @@ void SceneWidget::do_mouseClick(QMouseEvent *event, GLboolean isPressed, GLboole
 }
 
 void SceneWidget::mousePressEvent(QMouseEvent *event) {
-	do_mouseClick(event, GL_TRUE, GL_FALSE);
+	do_mouseClick(event, true, false);
 	setFocus();
 	event->accept();
 }
 
 void SceneWidget::mouseDoubleClickEvent(QMouseEvent *event) {
-	do_mouseClick(event, GL_TRUE, GL_TRUE);
+	do_mouseClick(event, true, true);
 	setFocus();
 	event->accept();
 }
 
 void SceneWidget::mouseReleaseEvent(QMouseEvent *event) {
-	do_mouseClick(event, GL_FALSE, GL_FALSE);
+	do_mouseClick(event, false, false);
 	event->accept();
 }
 
@@ -284,7 +279,7 @@ void SceneWidget::leaveEvent(QEvent *event) {
 void SceneWidget::wheelEvent(QWheelEvent *event) {
 	QPointF pos = event->position();
 	auto x = pos.x(), y = pos.y();
-	GLint button = event->angleDelta().y() > 0 ? Scene::MOUSE_WHEEL_UP : Scene::MOUSE_WHEEL_DOWN;
+	int button = event->angleDelta().y() > 0 ? Scene::MOUSE_WHEEL_UP : Scene::MOUSE_WHEEL_DOWN;
 	Scene::ButtonEvent ev{};
 	ev.button = button;
 	ev.isDoubleClick = GL_FALSE;
@@ -330,8 +325,8 @@ void SceneWidget::keyReleaseEvent(QKeyEvent *event) {
 			auto mousePos = app_->mousePosition()->getVertex(0);
 			Scene::KeyEvent ev{};
 			ev.key = event->key();
-			ev.x = (GLint) mousePos.r.x;
-			ev.y = (GLint) mousePos.r.y;
+			ev.x = static_cast<int>(mousePos.r.x);
+			ev.y = static_cast<int>(mousePos.r.y);
 			app_->keyUp(ev);
 			break;
 		}

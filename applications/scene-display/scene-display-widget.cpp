@@ -1047,11 +1047,11 @@ void SceneDisplayWidget::loadSceneGraphicsThread(const string &sceneFile) {
 	}
 
 	// Update text of FPS widget
-	ref_ptr<MeshVector> fpsWidget =
+	ref_ptr<CompositeMesh> fpsWidget =
 			sceneParser.getResources()->getMesh(&sceneParser, "fps-widget");
-	if (fpsWidget.get() != nullptr && !fpsWidget->empty()) {
+	if (fpsWidget.get() != nullptr && !fpsWidget->meshes().empty()) {
 		ref_ptr<TextureMappedText> text =
-				ref_ptr<TextureMappedText>::dynamicCast(*fpsWidget->begin());
+				ref_ptr<TextureMappedText>::dynamicCast(*fpsWidget->meshes().begin());
 		if (text.get() != nullptr) {
 			fbsWidgetUpdater_ = ref_ptr<UpdateFPS>::alloc(text);
 			fbsWidgetUpdater_->startAnimation();

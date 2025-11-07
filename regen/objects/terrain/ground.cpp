@@ -1,7 +1,7 @@
 #include "ground.h"
 #include "regen/textures/texture-loader.h"
 #include "regen/states/depth-state.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "regen/objects/primitives/blanket.h"
 
 using namespace regen;
@@ -75,9 +75,7 @@ void Ground::setMapTextures(
 			heightMap_, TextureState::MAP_TO_HEIGHT, "heightMap");
 	heightMapState->set_mapping(ShaderFunction::createImport("regen.terrain.ground.groundUV"));
 	heightMapState->set_blendMode(ShaderFunction::createImport("regen.terrain.ground.groundHeightBlend"));
-	groundMaterial_->set_texture(
-			normalMap_, TextureState::MAP_TO_CUSTOM, "normalMap");
-	// TODO: consider using: glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -bias) to force sharper detail
+	groundMaterial_->set_texture(normalMap_, TextureState::MAP_TO_CUSTOM, "normalMap");
 }
 
 void Ground::setMaterial(const MaterialConfig &newConfig) {
@@ -662,9 +660,9 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 		ground->setSkirtSize(input.getValue<float>("skirt-size", 0.05f));
 	}
 	// early add mesh vector to scene for children handling below
-	auto out_ = ref_ptr<MeshVector>::alloc();
-	out_->push_back(ground);
-	ctx.scene()->putResource<MeshVector>(input.getName(), out_);
+	auto out_ = ref_ptr<CompositeMesh>::alloc();
+	out_->addMesh(ground);
+	ctx.scene()->putResource<CompositeMesh>(input.getName(), out_);
 
 	std::vector<ref_ptr<scene::SceneInputNode>> handledChildren;
 	for (auto &n: input.getChildren()) {

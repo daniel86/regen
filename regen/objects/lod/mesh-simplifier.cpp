@@ -19,7 +19,7 @@ MeshSimplifier::MeshSimplifier(const ref_ptr<Mesh> &mesh) : mesh_(mesh) {
 		case GL_LINE_LOOP:
 		case GL_LINE_STRIP:
 		default:
-			// TODO: support other primitive types than triangles
+			// TODO: Support other primitive types than triangles.
 			REGEN_ERROR("Mesh simplifier only supports triangle meshes.");
 			hasValidAttributes_ = false;
 			break;
@@ -827,8 +827,6 @@ void MeshSimplifier::simplifyMesh() {
 	// Iteratively collapse the cheapest edge, updating affected geometry and edge costs.
 	//	- Stop once your desired number of triangles is reached (or vertices),
 	//    and record the current mesh as LOD level.
-	// TODO: Possible optimization: Use reserve to avoid reallocating the vector buffers in LODLevel.
-	//       Required space depends on how many collapses we do, so we can only guess beforehand.
 	uint32_t collapseCount = 0;
 	for (size_t lodLevel = 1; lodLevel < numLodLevels; ++lodLevel) {
 		// temporary level data

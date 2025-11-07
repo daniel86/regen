@@ -27,7 +27,7 @@ std::vector<ref_ptr<Animation>> AnimationProcessor::createDeformation(scene::Sce
 	auto meshID = input.getValue("mesh-id");
 	auto friction = input.getValue<float>("friction", 8.0f);
 	auto frequency = input.getValue<float>("frequency", 5.0f);
-	auto meshVector = scene->getResource<MeshVector>(meshID);
+	auto compositeMesh = scene->getResource<CompositeMesh>(meshID);
 
 	// configure per-attribute interpolation functions, default is linear
 	auto interpolationsCfg = input.getFirstChild("interpolations");
@@ -43,7 +43,7 @@ std::vector<ref_ptr<Animation>> AnimationProcessor::createDeformation(scene::Sce
 	}
 
 	std::vector<ref_ptr<Animation>> animations;
-	for (const auto &mesh: *meshVector.get()) {
+	for (const auto &mesh: compositeMesh->meshes()) {
 		// create the animation
 		auto animation = ref_ptr<MeshAnimation>::alloc(mesh, interpolations);
 		animation->setFriction(friction);

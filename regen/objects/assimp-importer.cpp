@@ -210,21 +210,20 @@ static void loadTexture(
 		uint32_t l, uint32_t k,
 		const string &texturePath) {
 	ref_ptr<Texture> tex;
-	string filePath;
-	uint32_t maxElements;
-	GLint intVal;
-	GLfloat floatVal;
+	std::string filePath;
+	int intVal;
+	float floatVal;
 
 	if (aiTexture == nullptr) {
 		if (boost::filesystem::exists(stringVal.data)) {
 			filePath = stringVal.data;
 		} else {
-			vector<string> names;
+			std::vector<string> names;
 			filePath = stringVal.data;
 			boost::split(names, filePath, boost::is_any_of("/\\"));
 			filePath = names[names.size() - 1];
 
-			string buf = REGEN_STRING(texturePath << "/" << filePath);
+			std::string buf = REGEN_STRING(texturePath << "/" << filePath);
 			if (boost::filesystem::exists(buf)) {
 				filePath = buf;
 			} else {
@@ -254,7 +253,7 @@ static void loadTexture(
 		// The texture is stored in a "compressed" format such as DDS or PNG
 
 		uint32_t numBytes = aiTexture->mWidth;
-		string ext(aiTexture->achFormatHint);
+		std::string ext(aiTexture->achFormatHint);
 
 		ILenum type;
 		if (ext == "jpg" || ext == ".j")
@@ -299,9 +298,7 @@ static void loadTexture(
 
 	// Defines miscellaneous flag for the n'th texture on the stack 't'.
 	// This is a bitwise combination of the aiTextureFlags enumerated values.
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-												AI_MATKEY_TEXFLAGS(textureTypes[l], k - 1), &intVal, &maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_TEXFLAGS(textureTypes[l], k - 1), intVal)) {
 		if (intVal & aiTextureFlags_Invert) {
 			texState->set_texelTransfer(TextureState::TEXEL_TRANSFER_INVERT);
 		}
@@ -314,17 +311,13 @@ static void loadTexture(
 	}
 
 	// Defines the height scaling of a bump map (for stuff like Parallax Occlusion Mapping)
-	maxElements = 1;
-	if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_BUMPSCALING,
-								&floatVal, &maxElements) == AI_SUCCESS) {
+	if (aiMat->Get(AI_MATKEY_BUMPSCALING, floatVal) == AI_SUCCESS) {
 		texState->set_blendFactor(floatVal);
 	}
 
 	// Defines the strength the n'th texture on the stack 't'.
 	// All color components (rgb) are multipled with this factor *before* any further processing is done.      -
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialFloatArray(aiMat,
-											  AI_MATKEY_TEXBLEND(textureTypes[l], k - 1), &floatVal, &maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_TEXBLEND(textureTypes[l], k - 1), floatVal)) {
 		texState->set_blendFactor(floatVal);
 	}
 
@@ -332,9 +325,7 @@ static void loadTexture(
 	// to combine the n'th texture on the stack 't' with the n-1'th.
 	// TEXOP(t,0) refers to the blend operation between the base color
 	// for this stack (e.g. COLOR_DIFFUSE for the diffuse stack) and the first texture.
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-												AI_MATKEY_TEXOP(textureTypes[l], k - 1), &intVal, &maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_TEXOP(textureTypes[l], k - 1), intVal)) {
 		switch (intVal) {
 			case aiTextureOp_Multiply:
 				texState->set_blendMode(BLEND_MODE_MULTIPLY);
@@ -368,9 +359,7 @@ static void loadTexture(
 	// Defines how the input mapping coordinates for sampling the n'th texture on the stack 't'
 	// are computed. Usually explicit UV coordinates are provided, but some model file formats
 	// might also be using basic shapes, such as spheres or cylinders, to project textures onto meshes.
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-												AI_MATKEY_MAPPING(textureTypes[l], k - 1), &intVal, &maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_MAPPING(textureTypes[l], k - 1), intVal)) {
 		switch (intVal) {
 			case aiTextureMapping_UV:
 				// The mapping coordinates are taken from an UV channel.
@@ -400,9 +389,7 @@ static void loadTexture(
 	// n'th texture on the stack 't'. All meshes assigned to this material share
 	// the same UV channel setup     Presence of this key implies MAPPING(t,n) to be
 	// aiTextureMapping_UV. See How to map UV channels to textures (MATKEY_UVWSRC) for more details.
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-												AI_MATKEY_UVWSRC(textureTypes[l], k - 1), &intVal, &maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_UVWSRC(textureTypes[l], k - 1), intVal)) {
 		texState->set_texcoChannel(intVal);
 	}
 
@@ -410,10 +397,7 @@ static void loadTexture(
 	// Any of the aiTextureMapMode enumerated values. Defines the texture wrapping mode on the
 	// x axis for sampling the n'th texture on the stack 't'.
 	// 'Wrapping' occurs whenever UVs lie outside the 0..1 range.
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-												AI_MATKEY_MAPPINGMODE_U(textureTypes[l], k - 1), &intVal,
-												&maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_MAPPINGMODE_U(textureTypes[l], k - 1), intVal)) {
 		switch (intVal) {
 			case aiTextureMapMode_Wrap:
 				wrapping_.x = GL_REPEAT;
@@ -433,10 +417,7 @@ static void loadTexture(
 		}
 	}
 	// Wrap mode on the v axis. See MAPPINGMODE_U.
-	maxElements = 1;
-	if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-												AI_MATKEY_MAPPINGMODE_V(textureTypes[l], k - 1), &intVal,
-												&maxElements)) {
+	if (AI_SUCCESS == aiMat->Get(AI_MATKEY_MAPPINGMODE_V(textureTypes[l], k - 1), intVal)) {
 		switch (intVal) {
 			case aiTextureMapMode_Wrap:
 				wrapping_.y = GL_REPEAT;
@@ -457,10 +438,7 @@ static void loadTexture(
 	}
 #ifdef AI_MATKEY_MAPPINGMODE_W
 	// Wrap mode on the v axis. See MAPPINGMODE_U.
-	maxElements = 1;
-	if(AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-		AI_MATKEY_MAPPINGMODE_W(textureTypes[l],k-1), &intVal, &maxElements))
-	{
+	if(AI_SUCCESS == aiMat->Get(AI_MATKEY_MAPPINGMODE_W(textureTypes[l],k-1), intVal)) {
 	  switch(intVal) {
 	  case aiTextureMapMode_Wrap:
 		wrapping_.z = GL_REPEAT;
@@ -569,13 +547,12 @@ static void loadTexture(
 
 ///////////// MATERIAL
 
-vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
-	vector<ref_ptr<Material> > materials(scene_->mNumMaterials);
+std::vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
+	std::vector<ref_ptr<Material> > materials(scene_->mNumMaterials);
 	aiColor4D aiCol;
-	GLfloat floatVal;
-	GLint intVal;
+	float floatVal;
+	int intVal;
 	aiString stringVal;
-	uint32_t maxElements;
 	uint32_t l, k;
 
 	for (uint32_t n = 0; n < scene_->mNumMaterials; ++n) {
@@ -586,8 +563,7 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 		// load textures
 		for (l = 0; l < numTextureTyps; ++l) {
 			k = 0;
-			while (AI_SUCCESS == aiGetMaterialString(aiMat,
-													 AI_MATKEY_TEXTURE(textureTypes[l], k), &stringVal)) {
+			while (AI_SUCCESS == aiMat->Get(AI_MATKEY_TEXTURE(textureTypes[l], k), stringVal)) {
 				k += 1;
 				if (stringVal.length < 1) continue;
 
@@ -617,115 +593,91 @@ vector<ref_ptr<Material> > AssetImporter::loadMaterials() {
 			}
 		}
 
-		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
-											 AI_MATKEY_COLOR_DIFFUSE, &aiCol)) {
-			mat->diffuse()->setVertex(0, aiToOgle3f(&aiCol));
+		float opacity = mat->alpha()->getVertex(0).r;
+		Vec3f diffuseColor = Vec3f::one();
+		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, aiCol)) {
+			diffuseColor = aiToOgle3f(&aiCol);
 		}
-		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
-											 AI_MATKEY_COLOR_SPECULAR, &aiCol)) {
+		// AI_MATKEY_COLOR_TRANSPARENT is a bit confusing, it is meant as the color that
+		// should be fully transparent. e.g. if it is (1,0,0,1) then red parts should
+		// be fully transparent. However, AFAIK this is not supposed to be applied per-pixel,
+		// but rather as an overall material property.
+		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_TRANSPARENT, aiCol)) {
+			// Apply color-key transparency
+			if (fabs(diffuseColor.x - aiCol.r) < 0.01f &&
+				fabs(diffuseColor.y - aiCol.g) < 0.01f &&
+				fabs(diffuseColor.z - aiCol.b) < 0.01f) {
+				opacity = 0.0f;
+			}
+		}
+		mat->diffuse()->setVertex(0, diffuseColor);
+
+		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_SPECULAR, aiCol)) {
 			mat->specular()->setVertex(0, aiToOgle3f(&aiCol));
-		}
-		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
-											 AI_MATKEY_COLOR_AMBIENT, &aiCol)) {
-			//mat->ambient()->setVertex(0, aiToOgle3f(&aiCol));
 		}
 
 		float emissionStrength = emissionStrength_;
-		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_EMISSIVE_INTENSITY,
-									&floatVal, &maxElements) == AI_SUCCESS) {
-			// TODO: add support for AI_MATKEY_EMISSIVE_INTENSITY
-			//mat->set_colorBlendFactor(floatVal);
-			emissionStrength *= floatVal;
+		if (aiMat->Get(AI_MATKEY_EMISSIVE_INTENSITY, floatVal) == AI_SUCCESS) {
+			if (floatVal > 0.0f && floatVal < 1.0f - 1e-5f) {
+				mat->setEmissionMultiplier(floatVal);
+			}
 		}
-		if (AI_SUCCESS == aiGetMaterialColor(aiMat,
-											 AI_MATKEY_COLOR_EMISSIVE, &aiCol)) {
+		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_COLOR_EMISSIVE, aiCol)) {
 			mat->set_emission(aiToOgle3f(&aiCol) * emissionStrength);
 		}
 
-		// Defines the transparent color of the material,
-		// this is the color to be multiplied with the color of translucent light to
-		// construct the final 'destination color' for a particular position in the screen buffer.
-		if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_TRANSPARENT, &aiCol)) {
-			// TODO: add support for AI_MATKEY_COLOR_TRANSPARENT
-		}
-
-		maxElements = 1;
 		// Defines the base shininess of the material
 		// This is the exponent of the phong shading equation.
-		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_SHININESS,
-									&floatVal, &maxElements) == AI_SUCCESS) {
+		if (aiMat->Get(AI_MATKEY_SHININESS, floatVal) == AI_SUCCESS) {
 			mat->shininess()->setVertex(0, floatVal);
 		}
-		maxElements = 1;
 		// Defines the strength of the specular highlight.
 		// This is simply a multiplier to the specular color of a material
-		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_SHININESS_STRENGTH,
-									&floatVal, &maxElements) == AI_SUCCESS) {
-			// TODO: add support for AI_MATKEY_SHININESS_STRENGTH
-			//mat->set_shininessStrength( floatVal );
+		if (aiMat->Get(AI_MATKEY_SHININESS_STRENGTH, floatVal) == AI_SUCCESS) {
+			mat->setSpecularMultiplier(floatVal);
 		}
 
-		maxElements = 1;
 		// Defines the base opacity of the material
-		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_OPACITY,
-									&floatVal, &maxElements) == AI_SUCCESS) {
-			auto alpha = mat->alpha()->getVertex(0).r;
-			mat->alpha()->setVertex(0, alpha * floatVal);
+		if (aiMat->Get(AI_MATKEY_OPACITY, floatVal) == AI_SUCCESS) {
+			opacity *= floatVal;
 		}
+		mat->alpha()->setVertex(0, opacity);
 
 		// Index of refraction of the material. This is used by some shading models,
 		// e.g. Cook-Torrance. The value is the ratio of the speed of light in a
 		// vacuum to the speed of light in the material (always >= 1.0 in the real world).
 		// Might be of interest for raytracing.
-		maxElements = 1;
-		if (aiGetMaterialFloatArray(aiMat, AI_MATKEY_REFRACTI,
-									&floatVal, &maxElements) == AI_SUCCESS) {
+		if (aiMat->Get(AI_MATKEY_REFRACTI, floatVal) == AI_SUCCESS) {
 			mat->refractionIndex()->setVertex(0, floatVal);
 		}
 
 #ifdef AI_MATKEY_COOK_TORRANCE_PARAM
-		maxElements = 1;
-		if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_COOK_TORRANCE_PARAM,
-			&floatVal, &maxElements) == AI_SUCCESS)
-		{
+		if(aiMat->Get(AI_MATKEY_COOK_TORRANCE_PARAM, floatVal) == AI_SUCCESS) {
 		  mat->set_cookTorranceParam( floatVal );
 		}
 #endif
 
 #ifdef AI_MATKEY_ORENNAYAR_ROUGHNESS
-		maxElements = 1;
-		if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_ORENNAYAR_ROUGHNESS,
-			&floatVal, &maxElements) == AI_SUCCESS)
-		{
+		if(aiMat->Get(aiMat, AI_MATKEY_ORENNAYAR_ROUGHNESS, floatVal) == AI_SUCCESS) {
 		  mat->set_roughness( floatVal );
 		}
 #endif
 
 #ifdef AI_MATKEY_MINNAERT_DARKNESS
-		maxElements = 1;
-		if(aiGetMaterialFloatArray(aiMat, AI_MATKEY_MINNAERT_DARKNESS,
-			&floatVal, &maxElements) == AI_SUCCESS)
-		{
+		if(aiMat->Get(AI_MATKEY_MINNAERT_DARKNESS, floatVal) == AI_SUCCESS) {
 		  mat->set_darkness( floatVal );
 		}
 #endif
 
-		maxElements = 1;
-		if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-													AI_MATKEY_ENABLE_WIREFRAME, &intVal, &maxElements)) {
+		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_ENABLE_WIREFRAME, intVal)) {
 			mat->set_fillMode(intVal ? GL_LINE : GL_FILL);
 		} else {
 			mat->set_fillMode(GL_FILL);
 		}
-		maxElements = 1;
-		if (AI_SUCCESS == aiGetMaterialIntegerArray(aiMat,
-													AI_MATKEY_TWOSIDED, &intVal, &maxElements)) {
+		if (AI_SUCCESS == aiMat->Get(AI_MATKEY_TWOSIDED, intVal)) {
 			mat->set_twoSided(intVal ? GL_TRUE : GL_FALSE);
 		}
-
-		maxElements = 1;
 	}
-	GL_ERROR_LOG();
 
 	return materials;
 }

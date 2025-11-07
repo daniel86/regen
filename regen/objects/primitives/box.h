@@ -8,7 +8,7 @@
 #ifndef REGEN_BOX_H_
 #define REGEN_BOX_H_
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/math/vector.h>
 #include <regen/objects/lod/tessellation.h>
 

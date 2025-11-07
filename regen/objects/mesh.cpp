@@ -1,7 +1,7 @@
 #include <regen/utility/string-util.h>
 #include <regen/states/feedback-state.h>
 
-#include "mesh-state.h"
+#include "mesh.h"
 #include "regen/shapes/bounding-sphere.h"
 #include "regen/shapes/frustum.h"
 #include "regen/shapes/aabb.h"
@@ -10,9 +10,6 @@
 #include "regen/shapes/cull-shape.h"
 #include "regen/gl-types/draw-command.h"
 #include "regen/buffer/dibo.h"
-
-// TODO: think about making a distinction between mesh resource and state.
-// TODO: think about introducing a notion of model replacing mesh vector.
 
 //#define REGEN_MESH_DISABLE_MULTI_DRAW
 
@@ -58,7 +55,6 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  shapeType_(sourceMesh->shapeType_),
 		  shaderKey_(sourceMesh->shaderKey_),
 		  shaderStageKeys_(sourceMesh->shaderStageKeys_),
-		  feedbackCount_(0),
 		  hasInstances_(sourceMesh->hasInstances_),
 		  sourceMesh_(sourceMesh),
 		  isMeshView_(true),
@@ -96,17 +92,7 @@ void Mesh::setClientAccessMode(ClientAccessMode mode) {
 
 void Mesh::setMaterial(const ref_ptr<Material> &material) {
 	if (material_ == material) return;
-	if (material_.get()) {
-		// TODO: reconsider this, it is done to influence ordering
-		//      such that XML can add textures that blend ontop.
-		//disjoinStates(material_);
-	}
 	material_ = material;
-	if (material_.get()) {
-		// TODO: reconsider this, it is done to influence ordering
-		//      such that XML can add textures that blend ontop.
-		//joinStates(material_);
-	}
 	for (auto &lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
 			lod.impostorMesh->setMaterial(material_);
@@ -240,12 +226,13 @@ void Mesh::addShaderInput(const std::string &name, const ref_ptr<ShaderInput> &i
 void Mesh::createShader(const ref_ptr<StateNode> &parentNode) {
 	StateConfigurer shaderConfigurer;
 	if (material_.get()) {
-		// TODO: reconsider this, it is done to influence ordering
-		//      such that XML can add textures that blend ontop.
-		// add material first, this is needed to add textures before the parent node
+		// Add material first, this is needed to add textures before the parent node
 		// such that parent node textures are applied after material textures.
+		// This is done such that the material textures act as base textures.
+		// Note: we need to disjoin to avoid that material state overwrites again
+		// the parent node state.
 		shaderConfigurer.addState(material_.get());
-		//disjoinStates(material_); // HACK
+		disjoinStates(material_);
 	}
 	shaderConfigurer.addNode(parentNode.get());
 	shaderConfigurer.addState(sharedState_.get());
@@ -263,9 +250,7 @@ void Mesh::createShader(const ref_ptr<StateNode> &parentNode) {
 	}
 	createShader(parentNode, shaderConfigurer.cfg());
 	if (material_.get()) {
-		// re-join material
-		// TODO: reconsider this, it is done to influence ordering
-		//      such that XML can add textures that blend ontop.
+		// re-join material state
 		joinStates(material_);
 	}
 }
@@ -819,10 +804,6 @@ void Mesh::setInstanceBuffer(const ref_ptr<SSBO> &instanceBuffer) {
 	}
 }
 
-void Mesh::setFeedbackRange(const ref_ptr<BufferRange> &range) {
-	feedbackRange_ = range;
-}
-
 void Mesh::draw(RenderState *rs) {
 	enable(rs);
 	disable(rs);
@@ -845,20 +826,13 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, uint32_t drawIdx, int
 	if (lod.impostorMesh.get()) {
 		// let the LOD mesh do the draw call.
 		if (hasIndirectDrawBuffer()) {
-			lod.impostorMesh->setIndirectDrawBuffer(
-					indirectDrawBuffer_,
-					drawIdx, numDrawLayers_);
-			// TODO: improve this
-			lod.impostorMesh->numDrawLayers_ = multiDrawCount;
+			lod.impostorMesh->setIndirectDrawBuffer(indirectDrawBuffer_, drawIdx, multiDrawCount);
 			lod.impostorMesh->numDrawLODs_ = 1;
-			lod.impostorMesh->updateDrawFunction();
 			lod.impostorMesh->draw(rs);
-			lod.impostorMesh->numDrawLayers_ = numDrawLayers_;
 		} else {
 			lod.impostorMesh->resetVisibility(true);
 			lod.impostorMesh->updateVisibility(0,
-					lod.d->numVisibleInstances,
-					lod.d->instanceOffset);
+					lod.d->numVisibleInstances, lod.d->instanceOffset);
 			lod.impostorMesh->draw(rs);
 		}
 	}
@@ -880,11 +854,9 @@ void Mesh::drawMeshLOD(RenderState *rs, uint32_t lodLevel, uint32_t drawIdx, int
 }
 
 void Mesh::drawMesh(RenderState *rs) {
-	if (feedbackRange_.get()) {
-		// TODO: Reconsider transform feedback integration, especially how it should be used
-		//    with LODs! e.g. some impostor meshes might cause unwanted behavior!
-		feedbackCount_ = 0;
-		rs->feedbackBufferRange().push(0, *feedbackRange_.get());
+	const bool useTransformFeedback = (feedbackRange_ != nullptr);
+	if (useTransformFeedback) {
+		rs->feedbackBufferRange().push(0, *feedbackRange_);
 		rs->beginTransformFeedback(GL_POINTS);
 	}
 
@@ -894,7 +866,7 @@ void Mesh::drawMesh(RenderState *rs) {
 	}
 	(this->*draw_)(primitive_);
 
-	if (feedbackRange_.get()) {
+	if (useTransformFeedback) {
 		rs->endTransformFeedback();
 		rs->feedbackBufferRange().pop(0);
 	}
@@ -933,10 +905,6 @@ void Mesh::enable(RenderState *rs) {
 			drawIdx += numDraws;
 		}
 	}
-}
-
-void Mesh::disable(RenderState *rs) {
-	State::disable(rs);
 }
 
 ref_ptr<ShaderInput> Mesh::positions() const {

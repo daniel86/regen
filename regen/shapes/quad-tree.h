@@ -26,6 +26,8 @@ namespace regen {
 			ref_ptr<BoundingShape> shape;
 			OrthogonalProjection projection;
 			Node *node = nullptr;
+			// the position in the shape array of the node if any
+			uint32_t idxInNode = 0;
 
 			explicit Item(const ref_ptr<BoundingShape> &shape);
 		};
@@ -40,8 +42,8 @@ namespace regen {
 			int32_t parentIdx = -1;
 			int32_t childrenIdx[4];
 			uint32_t nodeIdx = 0;
-			std::vector<Item *> shapes;
-			std::vector<Item *> shapesTmp;
+			std::vector<uint32_t> shapes;
+			std::vector<uint32_t> shapesTmp;
 
 			Node(const Vec2f &min, const Vec2f &max);
 
@@ -112,9 +114,15 @@ namespace regen {
 
 		/**
 		 * Set the distance threshold for close distance tests.
-		 * @param distance The distance threshold to set
+		 * @param d The distance threshold to set
 		 */
 		void setCloseDistanceSquared(float d) { closeDistanceSquared_ = d * d; }
+
+		/**
+		 * Set the traversal bit used for intersection tests.
+		 * @param bit The traversal bit to set
+		 */
+		void setTraversalBit(uint32_t bit) { traversalBit_ = bit; }
 
 		// override SpatialIndex::insert
 		void insert(const ref_ptr<BoundingShape> &shape) override;
@@ -146,6 +154,7 @@ namespace regen {
 		Private *priv_;
 
 		uint32_t subdivisionThreshold_ = 4;
+		uint32_t traversalBit_ = BoundingShape::TRAVERSAL_BIT_DRAW;
 
 		std::vector<Node*> nodes_;
 		std::vector<Item *> items_;
@@ -154,7 +163,7 @@ namespace regen {
 		std::stack<Item *> itemPool_;
 		Node *root_ = nullptr;
 
-		std::unordered_map<const BoundingShape*, Item*> shapeToItem_;
+		std::unordered_map<const BoundingShape*, uint32_t> shapeToItem_;
 		float minNodeSize_ = 0.1f;
 		uint32_t numNodes_ = 0;
 		uint32_t numLeaves_ = 0;
@@ -163,9 +172,7 @@ namespace regen {
 		float closeDistanceSquared_ = 20.0f * 20.0f; // heuristic threshold for distance to camera position
 
 		Bounds<Vec2f> newBounds_;
-		std::vector<Item *> changedItems_;
-
-		Item* getItem(const ref_ptr<BoundingShape> &shape);
+		std::vector<uint32_t> changedItems_;
 
 		Node *createNode(const Vec2f &min, const Vec2f &max);
 
@@ -175,13 +182,13 @@ namespace regen {
 
 		void freeItem(Item *item);
 
-		bool reinsert(Item *shape, bool allowSubdivision);
+		bool reinsert(uint32_t itemIdx, bool allowSubdivision);
 
-		bool insert(Node *node, Item *shape, bool allowSubdivision);
+		bool insert(Node *node, uint32_t shapeIdx, bool allowSubdivision);
 
-		bool insert1(Node *node, Item *shape, bool allowSubdivision);
+		bool insert1(Node *node, uint32_t newShapeIdx, bool allowSubdivision);
 
-		Node* removeFromNode(Node *node, Item *shape, bool allowCollapse = true);
+		void removeFromNode(Node *node, uint32_t itemIdx);
 
 		Node* collapse(Node *node);
 

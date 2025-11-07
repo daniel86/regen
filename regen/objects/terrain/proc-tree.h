@@ -2,7 +2,7 @@
 #define REGEN_PROC_TREE_H
 
 #include "regen/external/proctree/proctree.h"
-#include "regen/objects/mesh-state.h"
+#include "regen/objects/mesh.h"
 #include "regen/states/material-state.h"
 #include "regen/scene/scene-input.h"
 #include "regen/objects/silhouette-mesh.h"

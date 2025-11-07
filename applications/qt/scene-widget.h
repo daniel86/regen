@@ -89,14 +89,14 @@ namespace regen {
 		};
 
 		QtApplication *app_;
-		GLint updateInterval_;
-		GLboolean isRunning_;
+		int updateInterval_;
+		bool isRunning_;
 		QSurfaceFormat surfaceFormat_;
 		QWidget *winContainer_;
 		ref_ptr<QOpenGLWindow> sceneWindow_;
 		ref_ptr<GLThread> renderThread_;
 
-		void do_mouseClick(QMouseEvent *event, GLboolean isPressed, GLboolean isDoubleClick);
+		void do_mouseClick(QMouseEvent *event, bool isPressed, bool isDoubleClick);
 	};
 
 }

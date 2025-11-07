@@ -1,7 +1,7 @@
 #ifndef REGEN_ATTRIBUTE_LESS_MESH_STATE_H_
 #define REGEN_ATTRIBUTE_LESS_MESH_STATE_H_
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 namespace regen {
 	/**

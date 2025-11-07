@@ -160,7 +160,7 @@ void BoidsGPU::createResource() {
 	}
 	#endif
 	{
-		auto radixSort = ref_ptr<RadixSort>::alloc(numBoids_);
+		auto radixSort = ref_ptr<RadixSort_GPU>::alloc(numBoids_);
 		// note: with compaction enabled, there will be an additional "numVisibleKeys" field in the Key buffer,
 		//       that needs to be filled externally (one value per layer).
 		radixSort->setUseCompaction(false);
@@ -175,8 +175,8 @@ void BoidsGPU::createResource() {
 	{
 		auto updateState = ref_ptr<State>::alloc();
 		updateState->setInput(gridUBO_);
-		updateState->setInput(((RadixSort*)radixSort_.get())->keyBuffer());
-		updateState->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
+		updateState->setInput(((RadixSort_GPU*)radixSort_.get())->keyBuffer());
+		updateState->setInput(((RadixSort_GPU*)radixSort_.get())->valueBuffer());
 		updateState->setInput(gridOffsetBuffer_);
 		updateState->setInput(u_numCells_);
 		gridResetPass_ = ref_ptr<ComputePass>::alloc("regen.animation.boid.grid.reset");
@@ -195,8 +195,8 @@ void BoidsGPU::createResource() {
 	{
 		auto updateState = ref_ptr<State>::alloc();
 		updateState->setInput(gridUBO_);
-		updateState->setInput(((RadixSort*)radixSort_.get())->keyBuffer());
-		updateState->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
+		updateState->setInput(((RadixSort_GPU*)radixSort_.get())->keyBuffer());
+		updateState->setInput(((RadixSort_GPU*)radixSort_.get())->valueBuffer());
 		updateState->setInput(gridOffsetBuffer_);
 		#ifdef BOID_USE_SORTED_DATA
 		updateState->setInput(velBuffer_);
@@ -242,7 +242,7 @@ void BoidsGPU::createResource() {
 	simulationState_->setInput(gridUBO_);
 	simulationState_->setInput(velBuffer_);
 	simulationState_->setInput(gridOffsetBuffer_);
-	simulationState_->setInput(((RadixSort*)radixSort_.get())->valueBuffer());
+	simulationState_->setInput(((RadixSort_GPU*)radixSort_.get())->valueBuffer());
 	if (tf_.get()) {
 		simulationState_->setInput(tfBuffer_);
 	}
@@ -406,11 +406,11 @@ void BoidsGPU::debugVelocity(RenderState *rs) {
 void BoidsGPU::debugGridSorting(RenderState *rs) {
 	// read the key buffer
 	std::vector<uint32_t> sortKeys(numBoids_);
-	uint32_t bufferID = ((RadixSort*)radixSort_.get())->keyBuffer()->drawBufferRef()->bufferID();
+	uint32_t bufferID = ((RadixSort_GPU*)radixSort_.get())->keyBuffer()->drawBufferRef()->bufferID();
 	auto sortKeysData = (uint32_t *) glMapNamedBufferRange(
 			bufferID,
-			((RadixSort*)radixSort_.get())->keyBuffer()->drawBufferRef()->address(),
-			((RadixSort*)radixSort_.get())->keyBuffer()->drawBufferRef()->allocatedSize(),
+			((RadixSort_GPU*)radixSort_.get())->keyBuffer()->drawBufferRef()->address(),
+			((RadixSort_GPU*)radixSort_.get())->keyBuffer()->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (sortKeysData) {
 		std::set<uint32_t> usedCells;
@@ -423,11 +423,11 @@ void BoidsGPU::debugGridSorting(RenderState *rs) {
 	}
 
 	// second map the index buffer and test if the indices are sorted correctly
-	bufferID = ((RadixSort*)radixSort_.get())->valueBuffer()->drawBufferRef()->bufferID();
+	bufferID = ((RadixSort_GPU*)radixSort_.get())->valueBuffer()->drawBufferRef()->bufferID();
 	auto sortedIndexData = (uint32_t *) glMapNamedBufferRange(
 			bufferID,
-			((RadixSort*)radixSort_.get())->valueBuffer()->drawBufferRef()->address(),
-			((RadixSort*)radixSort_.get())->valueBuffer()->drawBufferRef()->allocatedSize(),
+			((RadixSort_GPU*)radixSort_.get())->valueBuffer()->drawBufferRef()->address(),
+			((RadixSort_GPU*)radixSort_.get())->valueBuffer()->drawBufferRef()->allocatedSize(),
 			GL_MAP_READ_BIT);
 	if (sortedIndexData) {
 		uint32_t lastCell = 0;

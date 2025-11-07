@@ -2,10 +2,11 @@
 #define REGEN_ORTHOGONAL_PROJECTION_H
 
 #include <regen/shapes/bounds.h>
-#include <regen/shapes/bounding-shape.h>
-#include "frustum.h"
 
 namespace regen {
+	// forward declaration
+	class BoundingShape;
+
 	/**
 	 * Orthogonal projection of a bounding shape.
 	 * The projection is a 2D shape that represents the bounding shape in 2D space on yz-plane.
@@ -42,5 +43,7 @@ namespace regen {
 		void createConvexHull(const Vec3f *inputPoints, uint32_t numPoints);
 	};
 }
+
+#include <regen/shapes/bounding-shape.h>
 
 #endif //REGEN_ORTHOGONAL_PROJECTION_H

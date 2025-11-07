@@ -1,7 +1,7 @@
 #ifndef POINT_STATE_H_
 #define POINT_STATE_H_
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 namespace regen {
 	class Point : public Mesh {

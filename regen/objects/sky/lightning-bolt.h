@@ -1,7 +1,7 @@
 #ifndef REGEN_LIGHTNING_BOLT_H
 #define REGEN_LIGHTNING_BOLT_H
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/shapes/bounds.h>
 
 namespace regen {
@@ -117,8 +117,16 @@ namespace regen {
 					: start(start, strikeIdx, brightness), end(end, strikeIdx, brightness) {}
 		};
 
-		std::vector<Segment> segments_[2];
-		int segmentIndex_ = 0;
+		// We use triple buffering for the segment data to avoid synchronization issues.
+		// Two segments are used for building the L-system, while the third segment is used for rendering.
+		// The rendering picks the last updated segment, leaving the other two segments for building the next frame
+		// while rendering can use the last completed frame in parallel.
+		std::vector<Segment> segments_[3];
+		// The index of the segment currently being used for drawing.
+		// It is atomically updated when a new segment is ready for drawing,
+		// however it is not safe to update the draw index while a draw is in progress
+		// as maybe the next update would start writing to the same segment before the draw is finished.
+		std::atomic<uint32_t> drawIndex_;
 		double u_time_ = 0.0f;
 		double u_maxLifetime_ = 0.0f;
 		float u_nextStrike_ = 0.0f;
@@ -150,6 +158,9 @@ namespace regen {
 		void createResources();
 
 		// override
+		void animate(GLdouble dt) override;
+
+		// override
 		void glAnimate(RenderState *, GLdouble dt) override;
 
 	protected:
@@ -162,15 +173,13 @@ namespace regen {
 		ref_ptr<ShaderInput1f> strikeAlpha_;
 		ref_ptr<ShaderInput1f> strikeWidth_;
 
-		bool isActive_ = true;
+		bool isActive_ = false;
 
 		unsigned int bufferOffset_ = 0;
 		unsigned int bufferSize_ = 0;
 		unsigned int elementSize_ = 0;
 
 		std::vector<ref_ptr<LightningStrike>> strikes_;
-
-		void updateLightningBolt();
 	};
 } // namespace
 

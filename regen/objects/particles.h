@@ -8,7 +8,7 @@
 #ifndef PARTICLE_STATE_H_
 #define PARTICLE_STATE_H_
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include "regen/shader/shader-state.h"
 #include "regen/gl-types/atomic-counter.h"
 

@@ -1,9 +1,9 @@
 #ifndef REGEN_IMPOSTOR_BILLBOARD_H
 #define REGEN_IMPOSTOR_BILLBOARD_H
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/shapes/bounds.h>
-#include <regen/objects/mesh-vector.h>
+#include <regen/objects/composite-mesh.h>
 #include <regen/textures/texture.h>
 #include "regen/textures/fbo-state.h"
 #include "regen/camera/array-camera.h"

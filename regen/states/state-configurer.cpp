@@ -1,5 +1,5 @@
 #include <regen/states/light-state.h>
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/utility/string-util.h>
 
 #include "state-configurer.h"

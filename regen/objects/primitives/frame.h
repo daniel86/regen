@@ -1,7 +1,7 @@
 #ifndef REGEN_FrameMesh_H__
 #define REGEN_FrameMesh_H__
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/math/vector.h>
 
 namespace regen {

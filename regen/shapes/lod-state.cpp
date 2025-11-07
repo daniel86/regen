@@ -1,6 +1,6 @@
 #include <regen/states/state-node.h>
 #include "lod-state.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "regen/gl-types/gl-param.h"
 #include "regen/utility/conversion.h"
 #include "regen/camera/light-camera.h"
@@ -511,7 +511,7 @@ void LODState::createComputeShader() {
 	}
 
 	{ // radix sort
-		radixSort_ = ref_ptr<RadixSort>::alloc(cullShape_->numInstances(), camera_->numLayer());
+		radixSort_ = ref_ptr<RadixSort_GPU>::alloc(cullShape_->numInstances(), camera_->numLayer());
 		radixSort_->setUseCompaction(useCompaction_);
 		radixSort_->setOutputBuffer(instanceBuffer_, false);
 		radixSort_->setRadixBits(RADIX_BITS_PER_PASS);

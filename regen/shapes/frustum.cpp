@@ -226,16 +226,16 @@ bool Frustum::hasIntersectionWithBox(const Vec3f &center, const Vec3f *point) co
 	return hasIntersection_OBB_(planes, center, point);
 }
 
-bool Frustum::hasIntersectionWithFrustum(const BoundingSphere &sphere) const {
-	return hasIntersectionWithSphere(sphere.translation(), sphere.radius());
-}
-
-bool Frustum::hasIntersectionWithFrustum(const BoundingBox &box) const {
+bool Frustum::hasIntersectionWithBox(const BoundingBox &box) const {
 	if (box.isAABB()) {
 		return hasIntersection_AABB_(planes, box);
 	} else {
 		return hasIntersection_OBB_(planes, box);
 	}
+}
+
+bool Frustum::hasIntersectionWithSphere(const BoundingSphere &sphere) const {
+	return hasIntersectionWithSphere(sphere.translation(), sphere.radius());
 }
 
 bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {

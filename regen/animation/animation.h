@@ -84,7 +84,7 @@ namespace regen {
 		/**
 		 * Deactivate this animation.
 		 */
-		virtual void stopAnimation();
+		virtual void stopAnimation() { doStopAnimation(); }
 
 		/**
 		 * Mutex lock for data access.
@@ -183,6 +183,8 @@ namespace regen {
 		ref_ptr<State> animationState_;
 
 		void operator=(const Animation &) = delete;
+
+		void doStopAnimation();
 
 		friend class AnimationManager;
 	};

@@ -1,7 +1,7 @@
 #ifndef REGEN_SilhouetteMesh_H
 #define REGEN_SilhouetteMesh_H
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include "regen/objects/lod/silhouette-generator.h"
 
 namespace regen {

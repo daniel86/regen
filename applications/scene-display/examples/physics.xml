@@ -622,7 +622,7 @@
             <texture name="depthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
         </node>
         -->
-        <!-- FIXME: Add lightning to the reflection buffer.
+        <!-- TODO: Add lightning to the reflection buffer.
                 - For some reason the bolt does not render into cube map.
                 - Seems not the shader.
                 - Maybe something regarding the vertex data update? the vertex data is not really in place initially
@@ -658,7 +658,6 @@
             <texture name="depthTexture" fbo="cube-reflection-buffer" attachment="depth"/>
         </node>
         -->
-        <!-- TODO: Add lightning to the reflection buffer.  -->
         <!--
         <node import="Paraboloid-Emission-Update"/>
         <node id="Paraboloid-Transparent-Pass">
@@ -686,6 +685,8 @@
 
     <node id="root">
         <resource id="sky"/>
+        <input type="float" name="surfaceHeight" value="0.0"/>
+
         <node id="Pre-Render">
             <node import="Shadow-Pass"/>
             <node import="Paraboloid-Reflection-Update"/>

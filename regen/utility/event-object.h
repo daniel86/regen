@@ -1,22 +1,12 @@
-/*
- * event-object.h
- *
- *  Created on: 29.01.2011
- *      Author: daniel
- */
-
-#ifndef EVENT_OBJECT_H_
-#define EVENT_OBJECT_H_
+#ifndef REGEN_EVENT_OBJECT_H_
+#define REGEN_EVENT_OBJECT_H_
 
 #include <string>
-#include <map>
-#include <set>
 #include <utility>
 #include <vector>
-
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
-
+#include <unordered_map>
+#include <atomic>
+#include <functional>
 #include <regen/utility/ref-ptr.h>
 
 namespace regen {
@@ -29,11 +19,9 @@ namespace regen {
 		/**
 		 * The event identification number.
 		 */
-		unsigned int eventID = 0u;
+		uint32_t eventID = 0u;
 	};
-} // namespace
 
-namespace regen {
 	class EventHandler; // forward declaration
 	/**
 	 * \brief Allows to integrate events into subclasses.
@@ -44,14 +32,13 @@ namespace regen {
 	 */
 	class EventObject {
 	public:
-		/**
-		 * Emit previously queued events.
-		 */
-		static void emitQueued();
-
 		EventObject();
 
 		virtual ~EventObject();
+
+		EventObject(const EventObject &) = delete;
+
+		EventObject &operator=(const EventObject &other) = delete;
 
 		/**
 		 * Register a single event on this object.
@@ -60,29 +47,24 @@ namespace regen {
 		 * @param eventName name of the event, must be unique on the object
 		 * @return the event id
 		 */
-		static unsigned int registerEvent(const std::string &eventName);
+		static uint32_t registerEvent(const std::string &eventName);
 
 		/**
 		 * Connect an event handler.
 		 * You must save the returned id somewhere to be able to disconnect
 		 * the handler.
 		 */
-		unsigned int connect(unsigned int eventId, const ref_ptr<EventHandler> &callable);
+		uint32_t connect(uint32_t eventId, const ref_ptr<EventHandler> &callable);
 
 		/**
 		 * Connect an event handler.
 		 */
-		unsigned int connect(const std::string &eventName, const ref_ptr<EventHandler> &callable);
+		uint32_t connect(const std::string &eventName, const ref_ptr<EventHandler> &callable);
 
 		/**
 		 * Disconnect an event handler.
 		 */
-		void disconnect(unsigned int connectionID);
-
-		/**
-		 * Disconnect an event handler.
-		 */
-		void disconnect(const ref_ptr<EventHandler> &c);
+		void disconnect(uint32_t connectionID);
 
 		/**
 		 * Disconnect all event handlers.
@@ -93,81 +75,78 @@ namespace regen {
 		/**
 		 * Emit an event, call all handlers.
 		 */
-		void emitEvent(unsigned int eventID,
-					   const ref_ptr<EventData> &data = ref_ptr<EventData>());
+		void emitEvent(uint32_t eventID, const ref_ptr<EventData> &data = {});
 
 		/**
 		 * Emit an event, call all handlers.
 		 */
-		void emitEvent(const std::string &eventName,
-					   const ref_ptr<EventData> &data = ref_ptr<EventData>());
+		void emitEvent(const std::string &eventName, const ref_ptr<EventData> &data = {});
 
 		/**
 		 * Queue this event for emitting.
 		 * It will be emitted next time emitQueue() called.
 		 */
-		void queueEmit(unsigned int eventID,
-					   const ref_ptr<EventData> &data = ref_ptr<EventData>());
+		void queueEmit(uint32_t eventID, const ref_ptr<EventData> &data = {});
 
 		/**
-		 * Unqueue previously queued event.
+		 * Un-queue previously queued event.
 		 */
-		void unqueueEmit(unsigned int eventID);
+		void unQueueEmit(uint32_t eventID) const;
 
 		/**
 		 * Queue this event for emitting.
 		 * It will be emitted next time emitQueue() called.
 		 */
-		void queueEmit(const std::string &eventName,
-					   const ref_ptr<EventData> &data = ref_ptr<EventData>());
+		void queueEmit(const std::string &eventName, const ref_ptr<EventData> &data = {});
+
+		/**
+		 * Emit previously queued events.
+		 */
+		static void dispatchEvents();
 
 	protected:
 		struct QueuedEvent {
-			QueuedEvent(EventObject *_emitter,
-						const ref_ptr<EventData> &_data,
-						unsigned int _eventID)
-					: emitter(_emitter), data(_data), eventID(_eventID) {}
-
 			EventObject *emitter;
 			ref_ptr<EventData> data;
-			unsigned int eventID;
+			uint32_t eventID;
 		};
+		ref_ptr<EventData> fallbackEventData_;
 
-		typedef std::pair<ref_ptr<EventHandler>, unsigned int> EventHandlerData;
-		typedef std::vector<EventHandlerData> EventHandlerList;
-		typedef std::map<unsigned int, EventHandlerList> EventHandlers;
-		typedef std::map<unsigned int, unsigned int> EventHandlerIds;
-
-		static std::list<QueuedEvent> pingQueue_;
-		static std::list<QueuedEvent> pongQueue_;
-		static std::list<QueuedEvent> *queued_;
-		static std::list<QueuedEvent> *processing_;
-		static boost::mutex eventLock_;
+		struct StaticData {;
+			std::vector<QueuedEvent> eventQueue_[2];
+			// index of the queue being written to by emitters
+			std::atomic<int> eventPushIndex_{0};
+			// the number of emitters currently writing to each queue
+			std::atomic<int> eventPusherCount_[2];
+		};
+		static StaticData staticData_;
 
 	private:
-		unsigned int handlerCounter_;
+		uint32_t handlerCounter_ = 0;
+
+		typedef std::pair<ref_ptr<EventHandler>, uint32_t> EventHandlerData;
+		typedef std::vector<EventHandlerData> EventHandlerList;
+		typedef std::unordered_map<uint32_t, EventHandlerList> EventHandlers;
+		typedef std::unordered_map<uint32_t, uint32_t> EventHandlerIds;
 
 		EventHandlers eventHandlers_;
 		EventHandlerIds eventHandlerIds_;
 
-		EventObject(const EventObject &);
+		static std::unordered_map<std::string, uint32_t> &eventIds();
 
-		EventObject &operator=(const EventObject &other);
+		static uint32_t &numEvents();
 
-		static std::map<std::string, unsigned int> &eventIds();
+		static int pushLock();
 
-		static unsigned int &numEvents();
-
+		static void pushUnlock(int insertIdx);
 	};
-} // namespace
 
-namespace regen {
 	/**
 	 * \brief Baseclass for event handler.
 	 */
 	class EventHandler {
 	public:
-		EventHandler() : handlerID_(-1) {}
+		EventHandler() = default;
 
 		virtual ~EventHandler() = default;
 
@@ -177,19 +156,6 @@ namespace regen {
 		 * @param data event data.
 		 */
 		virtual void call(EventObject *emitter, EventData *data) = 0;
-
-		/**
-		 * @return the handler id.
-		 */
-		unsigned int handlerID() const { return handlerID_; }
-
-		/**
-		 * @param handlerID the handler id.
-		 */
-		void set_handlerID(unsigned int handlerID) { handlerID_ = handlerID; }
-
-	private:
-		int handlerID_;
 	};
 
 	/**
@@ -213,4 +179,4 @@ namespace regen {
 	};
 } // namespace
 
-#endif /* EVENT_OBJECT_H_ */
+#endif /* REGEN_EVENT_OBJECT_H_ */

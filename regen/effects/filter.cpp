@@ -117,10 +117,12 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 	pixelType_ = GL_NONE;
 
 	viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
+	viewport_->setEditable(false);
 	viewport_->setUniformData(Vec2f(
 			(GLfloat) input->width(), (GLfloat) input->height()));
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
+	inverseViewport_->setEditable(false);
 	inverseViewport_->setUniformData(Vec2f(
 			1.0f / (GLfloat) input->width(), 1.0f / (GLfloat) input->height()));
 

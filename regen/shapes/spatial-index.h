@@ -6,6 +6,7 @@
 #include <regen/shapes/indexed-shape.h>
 #include <regen/camera/camera.h>
 #include "regen/utility/debug-interface.h"
+#include "regen/utility/radix-sort-cpu.h"
 #include <regen/scene/loading-context.h>
 
 namespace regen {
@@ -15,6 +16,8 @@ namespace regen {
 	class SpatialIndex : public Resource {
 	public:
 		static constexpr const char *TYPE_NAME = "SpatialIndex";
+		// Threshold for using standard sort (small arrays) vs radix sort (large arrays)
+		static constexpr uint32_t SMALL_ARRAY_SIZE = 256;
 
 		SpatialIndex();
 
@@ -162,8 +165,19 @@ namespace regen {
 			std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
 			// flattened list of shapes for faster access
 			std::vector<IndexedShape*> indexShapes_;
+			// These vectors are filled up during traversal and sorted
+			// according to the instance distance to the camera.
+			std::vector<uint32_t> tmp_layerInstances_; // size = sum_{shape} numLayers * numInstances_{shape}
+			std::vector<uint32_t> tmp_layerShapes_; // size = sum_{shape} numLayers * numInstances_{shape}
+			std::vector<uint64_t> tmp_sortKeys_; // size = sum_{shape} numLayers * numInstances_{shape}
+			// total number of keys = sum_{shape} numLayers * numInstances_{shape}
+			uint32_t numKeys = 0;
+			// mark camera as dirty when shapes are added/removed
+			bool isDirty = false;
 			// how to sort instances by distance to camera
 			SortMode sortMode = SortMode::FRONT_TO_BACK;
+			// radix sort for sorting the instances
+			RadixSort_CPU_seq<uint32_t, uint64_t, 8> radixSort;
 			Vec4i lodShift = Vec4i(0);
 		};
 		std::unordered_map<std::string_view, ref_ptr<std::vector<ref_ptr<BoundingShape>>>> nameToShape_;
@@ -171,9 +185,9 @@ namespace regen {
 		// additional shapes for debugging only
 		std::vector<ref_ptr<BoundingShape>> debugShapes_;
 
-		void updateVisibility();
+		void updateVisibility(uint32_t traversalMask);
 
-		void updateLayerVisibility(IndexCamera &camera, uint32_t layerIdx, const BoundingShape &shape);
+		void updateLayerVisibility(IndexCamera &camera, uint32_t layerIdx, const BoundingShape &shape, uint32_t traversalMask);
 
 		/**
 		 * @brief Add a shape to the index
@@ -194,13 +208,14 @@ namespace regen {
 		// used internally when handling intersections
 		struct TraversalData {
 			SpatialIndex *index;
+			IndexCamera *indexCamera;
 			const Vec3f *camPos;
 			uint32_t layerIdx;
 		};
 
 		static void handleIntersection(const BoundingShape &b_shape, void *userData);
 
-		static void updateLOD_Major(IndexCamera &indexCamera, IndexedShape *indexShape);
+		static void updateLOD_Major(IndexCamera &indexCamera, IndexedShape *indexShape, uint32_t shapeBase);
 	};
 } // namespace
 

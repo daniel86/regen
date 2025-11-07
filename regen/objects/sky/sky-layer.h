@@ -1,7 +1,7 @@
 #ifndef SKY_LAYER_H_
 #define SKY_LAYER_H_
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/states/state.h>
 #include <regen/states/state-node.h>
 #include "regen/shader/shader-state.h"

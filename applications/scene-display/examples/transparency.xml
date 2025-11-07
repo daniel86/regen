@@ -194,9 +194,7 @@
           scaling="0.0006,0.0006,0.0006"
           rotation="0.0,0.0,0.0"
           translation="0.0,0.0,0.0">
-        <material preset="ruby" alpha="0.85"/>
-        <!-- TODO: tangent is missing for venus, should allow to generate it. -->
-        <!-- <material preset="steel" alpha="0.85"/> -->
+        <material preset="steel" alpha="0.85"/>
         <transform update-frequency="NEVER">
             <rotate value="3.14,0.0,0.0"/>
             <translate value="0.0,-0.1,2.25"/>

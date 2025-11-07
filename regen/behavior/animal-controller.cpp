@@ -93,14 +93,14 @@ std::vector<ref_ptr<AnimalController>> AnimalController::load(
 	auto *scene = ctx.scene();
 
 	ref_ptr<Mesh> mesh;
-	auto meshes = scene->getResources()->getMesh(scene, node.getValue("mesh"));
-	if (meshes.get() != nullptr && !meshes->empty()) {
+	auto compositeMesh = scene->getResources()->getMesh(scene, node.getValue("mesh"));
+	if (compositeMesh.get() != nullptr && !compositeMesh->meshes().empty()) {
 		auto meshIndex = node.getValue<GLuint>("mesh-index", 0u);
-		if (meshIndex >= meshes->size()) {
+		if (meshIndex >= compositeMesh->meshes().size()) {
 			REGEN_WARN("Invalid mesh index for '" << node.getDescription() << "'.");
 			meshIndex = 0;
 		}
-		mesh = (*meshes.get())[meshIndex];
+		mesh = compositeMesh->meshes()[meshIndex];
 	}
 	if (mesh.get() == nullptr) {
 		REGEN_WARN("Unable to find mesh for NPC controller in '" << node.getDescription() << "'.");

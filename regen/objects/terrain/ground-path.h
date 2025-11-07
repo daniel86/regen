@@ -1,7 +1,7 @@
 #ifndef REGEN_GROUND_PATH_H__
 #define REGEN_GROUND_PATH_H__
 
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 #include <regen/math/vector.h>
 #include "regen/math/bezier.h"
 

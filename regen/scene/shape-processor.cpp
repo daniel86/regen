@@ -3,7 +3,7 @@
 #include "resource-manager.h"
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "regen/shapes/spatial-index.h"
 #include "regen/shapes/cull-shape.h"
 #include "regen/textures/height-map.h"
@@ -307,20 +307,20 @@ static std::vector<ref_ptr<Mesh>> getParts(scene::SceneLoader *scene, SceneInput
 	std::vector<ref_ptr<Mesh>> parts;
 	for (auto &child: input.getChildren("has-part")) {
 		auto meshID = child->getValue("mesh-id");
-		auto meshVector = scene->getResource<MeshVector>(meshID);
-		if (meshVector.get() == nullptr) {
+		auto compositeMesh = scene->getResource<CompositeMesh>(meshID);
+		if (compositeMesh.get() == nullptr) {
 			continue;
 		}
 		if (child->hasAttribute("mesh-index")) {
 			auto meshIndex = child->getValue<unsigned int>("mesh-index", 0);
-			if (meshIndex < meshVector->size()) {
-				auto &part = (*meshVector.get())[meshIndex];
+			if (meshIndex < compositeMesh->meshes().size()) {
+				auto &part = compositeMesh->meshes()[meshIndex];
 				parts.push_back(part);
 			} else {
 				REGEN_WARN("Ignoring part mesh with invalid index in node " << input.getDescription() << ".");
 			}
 		} else {
-			for (auto &part: *meshVector.get()) {
+			for (auto &part: compositeMesh->meshes()) {
 				parts.push_back(part);
 			}
 		}
@@ -330,17 +330,17 @@ static std::vector<ref_ptr<Mesh>> getParts(scene::SceneLoader *scene, SceneInput
 
 static ref_ptr<Mesh> getMesh(scene::SceneLoader *scene, SceneInputNode &input) {
 	auto meshID = input.getValue("mesh-id");
-	auto meshVector = scene->getResource<MeshVector>(meshID);
-	if (meshVector.get() == nullptr) {
+	auto compositeMesh = scene->getResource<CompositeMesh>(meshID);
+	if (compositeMesh.get() == nullptr) {
 		if (!meshID.empty()) {
 			REGEN_WARN("Unable to find MeshVector with ID '" << meshID << "' for input node " << input.getDescription() << ".");
 		}
 		return {};
 	}
 	auto meshIndex = input.getValue<unsigned int>("mesh-index", 0);
-	auto mesh = (*meshVector->begin());
-	if (meshIndex > 0 && meshIndex < meshVector->size()) {
-		mesh = (*meshVector.get())[meshIndex];
+	auto mesh = (*compositeMesh->meshes().begin());
+	if (meshIndex > 0 && meshIndex < compositeMesh->meshes().size()) {
+		mesh = compositeMesh->meshes()[meshIndex];
 	}
 	return mesh;
 }

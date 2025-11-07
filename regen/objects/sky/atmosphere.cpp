@@ -1,7 +1,8 @@
+#include "atmosphere.h"
 #include <regen/objects/primitives/rectangle.h>
 #include <regen/states/state-configurer.h>
-
-#include "atmosphere.h"
+#include "regen/buffer/dibo.h"
+#include "regen/gl-types/draw-command.h"
 
 using namespace regen;
 
@@ -12,6 +13,8 @@ Atmosphere::Atmosphere(
 		unsigned int levelOfDetail)
 		: SkyLayer(sky) {
 	updateMesh_ = Rectangle::getUnitQuad();
+	updateMesh_->setIndirectDrawBuffer(createIndirectDrawBuffer(), 0, 5);
+
 	state()->joinStates(ref_ptr<BlendFuncState>::alloc(
 			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
 			GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
@@ -71,6 +74,7 @@ Atmosphere::Atmosphere(
 	///////
 	/// Update State
 	///////
+	updateState_->shaderDefine("RENDER_LAYER", "5");
 	updateState_->setInput(sky->sun()->lightUBO(), "SunLight", "_Sun");
 	updateState_->setInput(mie_);
 	updateState_->setInput(rayleigh_);
@@ -208,12 +212,41 @@ const ref_ptr<TextureCube> &Atmosphere::cubeMap() const {
 void Atmosphere::updateSkyLayer(RenderState *rs, GLdouble dt) {
 	rs->drawFrameBuffer().apply(fbo_->id());
 	rs->viewport().apply(fbo_->glViewport());
-
-	// TODO: Avoid using GS for update!
-	//      - Alternative: Create indirect draw buffer, one for each layer
-	//        then select layer in vertex shader.
-	//      - Other alternative: make a loop with CPU, might still be better compared to GS.
 	updateState_->enable(rs);
 	updateMesh_->draw(rs);
 	updateState_->disable(rs);
+}
+
+ref_ptr<SSBO> Atmosphere::createIndirectDrawBuffer() {
+	constexpr uint32_t numLayer = 5;
+	constexpr uint32_t numLODs = 1;
+	auto &lodData = updateMesh_->meshLODs()[0];
+
+	// One draw command per cube map face (except bottom face).
+	std::array<DrawCommand,5> drawCommands;
+	DrawCommand &drawParams = drawCommands[0];
+	drawParams.mode = 1u; // 1=elements, 2=arrays
+	drawParams.setCount(lodData.d->numIndices);
+	drawParams.setFirstElement(lodData.d->indexOffset / updateMesh_->indices()->dataTypeBytes());
+	drawParams.data[3] = 0; // base vertex
+	drawParams.setInstanceCount(1);
+	drawParams.setBaseInstance(0);
+	// Copy over the data for the remaining layers.
+	// Actually, we currently use the same mesh for each face, so the draw commands
+	// are identical, however the vertex shader selects render layer based on gl_DrawID,
+	// and maps the vertex positions accordingly.
+	for (uint32_t layerIdx = 1; layerIdx < numLayer; ++layerIdx) {
+		const uint32_t lodLayerIdx = layerIdx;;
+		std::memcpy(&drawCommands[lodLayerIdx], &drawCommands[0], sizeof(DrawCommand));
+	}
+
+	indirectDrawBuffer_ = ref_ptr<DrawIndirectBuffer>::alloc(
+			"IndirectDrawBuffer", BufferUpdateFlags::NEVER);
+	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
+			"DrawCommand", "drawParams", numLODs * numLayer);
+	input->setInstanceData(1, 1, (byte*)drawCommands.data());
+	indirectDrawBuffer_->addStagedInput(input);
+	indirectDrawBuffer_->update();
+	//indirectDrawBuffer_->setBufferData((byte*)initialData.data());
+	return indirectDrawBuffer_;
 }

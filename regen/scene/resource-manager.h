@@ -2,7 +2,7 @@
 #define REGEN_RESOURCE_MANAGER_H_
 
 #include "regen/shapes/spatial-index.h"
-#include "regen/objects/mesh-vector.h"
+#include "regen/objects/composite-mesh.h"
 #include "scene-loader.h"
 #include "regen/textures/texture.h"
 #include "regen/objects/sky/sky.h"
@@ -63,7 +63,7 @@ namespace regen {
 			 * @param id the resource id.
 			 * @return A MeshVector resource or null reference.
 			 */
-			ref_ptr<MeshVector> getMesh(SceneLoader *parser, const std::string &id);
+			ref_ptr<CompositeMesh> getMesh(SceneLoader *parser, const std::string &id);
 
 			/**
 			 * Create a MeshVector from the given SceneInputNode.
@@ -71,7 +71,7 @@ namespace regen {
 			 * @param input the SceneInputNode to create the MeshVector from.
 			 * @return A MeshVector resource or null reference.
 			 */
-			ref_ptr<MeshVector> createMesh(SceneLoader *parser, scene::SceneInputNode &input);
+			ref_ptr<CompositeMesh> createMesh(SceneLoader *parser, scene::SceneInputNode &input);
 
 			ref_ptr<ModelTransformation> getTransform(SceneLoader *parser, const std::string &id);
 
@@ -151,7 +151,7 @@ namespace regen {
 			 * @param id the resource id.
 			 * @param meshes A MeshVector instance.
 			 */
-			void putMesh(const std::string &id, const ref_ptr<MeshVector> &meshes);
+			void putMesh(const std::string &id, const ref_ptr<CompositeMesh> &meshes);
 
 			void putTransform(const std::string &id, const ref_ptr<ModelTransformation> &transform);
 
@@ -187,7 +187,7 @@ namespace regen {
 			LoadableResource<Texture> textures_ = LoadableResource<Texture>("texture");
 			LoadableResource<Light> lights_ = LoadableResource<Light>("light");
 			LoadableResource<Camera> cameras_ = LoadableResource<Camera>("camera");
-			LoadableResource<MeshVector> meshes_ = LoadableResource<MeshVector>("mesh");
+			LoadableResource<CompositeMesh> meshes_ = LoadableResource<CompositeMesh>("mesh");
 			LoadableResource<Sky> skies_ = LoadableResource<Sky>("sky");
 			LoadableResource<WorldObjectVec> worldObjects_ = LoadableResource<WorldObjectVec>("object");
 			std::map<std::string, ref_ptr<ModelTransformation> > transforms_;

@@ -2,7 +2,7 @@
 #define REGEN_PARABOLOID_CAMERA_H
 
 #include <regen/camera/camera.h>
-#include <regen/objects/mesh-state.h>
+#include <regen/objects/mesh.h>
 
 namespace regen {
 	/**
