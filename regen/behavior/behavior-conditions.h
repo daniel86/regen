@@ -321,12 +321,108 @@ namespace regen {
 		}
 	};
 
+	/**
+	 * A condition that checks the current time of day.
+	 */
+	class IsTimeOfDay : public BehaviorTree::Condition {
+	public:
+		enum class TimeOfDay {
+			MORNING,
+			AFTERNOON,
+			EVENING,
+			NIGHT
+		};
+		constexpr explicit IsTimeOfDay(TimeOfDay tod) noexcept : timeOfDay(tod) {}
+		~IsTimeOfDay() override = default;
+	protected:
+		const TimeOfDay timeOfDay;
+		// Evaluate to true if the time is in the specified time of day.
+		bool doEvaluate(const Blackboard& kb) const override {
+			const boost::posix_time::ptime &p_time = kb.worldTime()->p_time;
+			auto hour = p_time.time_of_day().hours();
+			switch (timeOfDay) {
+				case TimeOfDay::MORNING:
+					return (hour >= 6 && hour < 12);
+				case TimeOfDay::AFTERNOON:
+					return (hour >= 12 && hour < 18);
+				case TimeOfDay::EVENING:
+					return (hour >= 18 && hour < 24);
+				case TimeOfDay::NIGHT:
+					return (hour >= 0 && hour < 6);
+				default:
+					return false;
+			}
+		}
+	};
+
+	/**
+	 * A condition that checks if the current time is between two specified hours.
+	 */
+	class IsTimeBetween : public BehaviorTree::Condition {
+		const int startHour;
+		const int endHour;
+	public:
+		constexpr IsTimeBetween(int start, int end) noexcept
+			: startHour(start), endHour(end) {}
+		~IsTimeBetween() override = default;
+	protected:
+		// Evaluate to true if the time is between startHour and endHour.
+		bool doEvaluate(const Blackboard& kb) const override {
+			const boost::posix_time::ptime &p_time = kb.worldTime()->p_time;
+			int currentHour = p_time.time_of_day().hours();
+			if (startHour < endHour) {
+				return (currentHour >= startHour && currentHour < endHour);
+			} else {
+				return (currentHour >= startHour || currentHour < endHour);
+			}
+		}
+	};
+
+	/**
+	 * A condition that checks the current time of the year.
+	 */
+	class IsSeason : public BehaviorTree::Condition {
+	public:
+		enum class Season {
+			SPRING,
+			SUMMER,
+			FALL,
+			WINTER
+		};
+		constexpr explicit IsSeason(Season s) noexcept : season(s) {}
+		~IsSeason() override = default;
+	protected:
+		const Season season;
+		// Evaluate to true if the date is in the specified season.
+		bool doEvaluate(const Blackboard& kb) const override {
+			const boost::posix_time::ptime &p_time = kb.worldTime()->p_time;
+			auto month = p_time.date().month();
+			auto day = p_time.date().day();
+			switch (season) {
+				case Season::SPRING:
+					return ( (month == 3 && day >= 20) ||
+						(month > 3 && month < 6) ||
+						(month == 6 && day <= 20) );
+				case Season::SUMMER:
+					return ( (month == 6 && day >= 21) ||
+						(month > 6 && month < 9) ||
+						(month == 9 && day <= 22) );
+				case Season::FALL:
+					return ( (month == 9 && day >= 23) ||
+						(month > 9 && month < 12) ||
+						(month == 12 && day <= 20) );
+				case Season::WINTER:
+					return ( (month == 12 && day >= 21) ||
+						(month < 3) ||
+						(month == 3 && day <= 19) );
+				default:
+					return false;
+			}
+		}
+	};
+
 	// TODO: Support more conditions
-	//	- IsEnemyVisible, IsDangerVisible, IsPlayerVisible
 	//  - HasFaction, IsEnemy, IsAlly, IsNeutral
-	//  - IsMorning, IsAfternoon, IsEvening, IsNight, IsTimeBetween
-	//  - IsSunny, IsRainy, IsSnowy, etc
-	//  - IsSpring, IsSummer, IsFall, IsWinter
 } // namespace
 
 #endif /* REGEN_BEHAVIOR_CONDITIONS_H_ */
