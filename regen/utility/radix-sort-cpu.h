@@ -47,25 +47,29 @@ namespace regen {
 		/**
 		 * @brief Sort the indices based on the keys
 		 * @param indices The indices to sort
-		 * @param v_keys The keys to sort by
+		 * @param keys The keys corresponding to the indices
 		 */
-		void sort(std::vector<IndexType> &indices, const std::vector<KeyType> &v_keys) {
+		void sort(std::vector<IndexType> &indices, const std::vector<KeyType> &keys) {
+			// The actual number of keys to sort for this sort.
+			// This can be less than the reserved maximum number of keys.
+			// NOTE: The size of keys and indices must not match, only requirement
+			//       is that values in indices are valid indices into keys.
 			const uint32_t numKeys = indices.size();
-			const KeyType *keys = v_keys.data();
 			tmp_indices_.resize(numKeys);
 
 			IndexType *src, *dst;
+			// Make sure the last pass writes to `indices` buffer
 			if constexpr (START_WITH_TMP) {
+				// swap data within the std::vector to avoid an extra copy
+				indices.swap(tmp_indices_);
 				src = tmp_indices_.data();
 				dst = indices.data();
-				// Initialize the src buffer
-				std::memcpy(src, dst, numKeys * sizeof(IndexType));
 			} else {
 				src = indices.data();
 				dst = tmp_indices_.data();
 			}
 			// Perform the radix passes
-			unrolledRadix<0,PASSES>(numKeys, src, dst, keys);
+			unrolledRadix<0,PASSES>(numKeys, src, dst, keys.data());
 		}
 
 		private:
@@ -134,7 +138,7 @@ namespace regen {
 
 					if constexpr (KEY_TYPE_BITS == 16) {
 						// Gather 8 keys manually, and promote to 32-bit
-						for (int k = 0; k < 8; ++k) tmpKeys32[k] = static_cast<int32_t>(keys[keyIdx+k]);
+						for (int k = 0; k < 8; ++k) tmpKeys32[k] = static_cast<int32_t>(keys[src[keyIdx+k]]);
 						r0 = _mm256_load_si256(reinterpret_cast<const __m256i*>(tmpKeys32));
 						r0 = _mm256_and_si256(_mm256_srli_epi32(r0, SHIFT), mask);
 						keyIdx += 8; // processed 8 keys, not 16!

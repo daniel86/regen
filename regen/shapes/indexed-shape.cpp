@@ -14,11 +14,7 @@ IndexedShape::IndexedShape(
 	for (const auto &part : shape->parts()) {
 		numLODs_ = std::max(numLODs_, part->numLODs());
 	}
-
 	const uint32_t L = camera_->numLayer();
-	const uint32_t B = L * numLODs_;
-	tmp_binCounts_.resize(B, 0);
-	tmp_binBase_.resize(B, 0);
 	tmp_layerVisibility_.resize(L, false);
 	visible_.resize(L, true);
 }

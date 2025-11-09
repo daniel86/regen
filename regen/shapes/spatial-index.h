@@ -190,6 +190,9 @@ namespace regen {
 				[](void* ptr) { delete static_cast<RadixType*>(ptr); });
 		}
 
+		enum SortFunType { SORT_FUN_LARGE = 0, SORT_FUN_SMALL = 1 };
+		using SortFun = void (*)(void*, void*, std::vector<uint32_t>&);
+
 		// data for each camera
 		struct IndexCamera {
 			SpatialIndex *index;
@@ -198,12 +201,13 @@ namespace regen {
 			std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
 			// flattened list of shapes for faster access
 			std::vector<IndexedShape*> indexShapes_;
-			// These vectors are filled up during traversal and sorted
-			// according to the instance distance to the camera.
-			std::vector<uint32_t> tmp_layerInstances_; // size = sum_{shape} numLayers * numInstances_{shape}
-			std::vector<uint32_t> tmp_layerShapes_; // size = sum_{shape} numLayers * numInstances_{shape}
-			std::vector<uint64_t> tmp_sortKeys64_; // size = sum_{shape} numLayers * numInstances_{shape}
-			std::vector<uint32_t> tmp_sortKeys32_; // size = sum_{shape} numLayers * numInstances_{shape}
+			// These vectors are filled up during traversal and sorted according to the instance distance to the camera.
+			// Global instance idx used to access the key arrays
+			std::vector<uint32_t> tmp_globalInstanceIDs_; // size = sum_{shape} numLayers * numInstances_{shape}
+			// Local instance idx used to generate the output instance IDs
+			std::vector<uint32_t> tmp_localInstanceIDs_;  // size = sum_{shape} numLayers * numInstances_{shape}
+			std::vector<uint64_t> tmp_sortKeys64_;  // size = sum_{shape} numLayers * numInstances_{shape}
+			std::vector<uint32_t> tmp_sortKeys32_;  // size = sum_{shape} numLayers * numInstances_{shape}
 			// total number of keys = sum_{shape} numLayers * numInstances_{shape}
 			uint32_t numKeys = 0;
 			// the bitmask to filter shapes during traversal
@@ -218,16 +222,16 @@ namespace regen {
 			std::unique_ptr<void, void(*)(void*)> radixSort =
 				createRadix<RadixSort_CPU_seq<uint32_t, uint32_t, 8, 32>>(10);
 			void *sortKeys; // erased type
-			void (*radixFun)(void*, void*, std::vector<uint32_t>&) = nullptr;
-			void (*smallSortFun)(void*, std::vector<uint32_t>&) = nullptr;
+			// sorting functions, one for large arrays, one for small arrays
+			SortFun sortFun[2] = { nullptr, nullptr };
 			uint8_t layerBits = 0u;
 			uint8_t shapeBits = 0u;
 			uint8_t keyBits = 0u;
 			Vec4i lodShift = Vec4i(0);
 			// a function to push sort keys
-			void (*pushKeyFun)(IndexCamera*, uint16_t, uint32_t, float, SortMode) = nullptr;
-			static void pushKey32(IndexCamera*, uint16_t, uint32_t, float, SortMode);
-			static void pushKey64(IndexCamera*, uint16_t, uint32_t, float, SortMode);
+			void (*pushKeyFun)(IndexCamera*, uint32_t, uint16_t, uint32_t, float, SortMode) = nullptr;
+			static void pushKey32(IndexCamera*, uint32_t, uint16_t, uint32_t, float, SortMode);
+			static void pushKey64(IndexCamera*, uint32_t, uint16_t, uint32_t, float, SortMode);
 			// a function to create a distance key
 			uint32_t (*setDistance32)(float, SortMode) = nullptr;
 			uint64_t (*setDistance64)(float, SortMode) = nullptr;

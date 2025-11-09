@@ -5,7 +5,6 @@
 #include "quad-tree.h"
 #include "cull-shape.h"
 #include "spatial-index-debug.h"
-#include "regen/utility/conversion.h"
 
 // NOTE: this piece of code is performance critical! For many execution paths:
 // - avoid the use of std::set, std::unordered_set, std::map, std::unordered_map, etc. here
@@ -235,7 +234,7 @@ static void packKey(KeyType &key, ValueType value, uint8_t bitOffset, uint8_t nu
 	key |= (static_cast<KeyType>(value) & mask) << bitOffset;
 }
 
-void SpatialIndex::IndexCamera::pushKey64(IndexCamera *ic, uint16_t s, uint32_t l, float d, SortMode m) {
+void SpatialIndex::IndexCamera::pushKey64(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
 	uint8_t bitOffset = ic->index->distanceBits_;
 	// lower distance bits
 	uint64_t key = ic->setDistance64(d, m);
@@ -245,10 +244,10 @@ void SpatialIndex::IndexCamera::pushKey64(IndexCamera *ic, uint16_t s, uint32_t 
 	// pack shape (upper bits)
 	packKey<uint64_t, uint16_t>(key, s, bitOffset, ic->shapeBits);
 	// finally add the key
-	ic->tmp_sortKeys64_.push_back(key);
+	ic->tmp_sortKeys64_[idx] = key;
 }
 
-void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint16_t s, uint32_t l, float d, SortMode m) {
+void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
 	uint8_t bitOffset = ic->index->distanceBits_;
 	// lower distance bits
 	uint32_t key = ic->setDistance32(d, m);
@@ -258,19 +257,15 @@ void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint16_t s, uint32_t 
 	// pack shape (upper bits)
 	packKey<uint32_t, uint16_t>(key, s, bitOffset, ic->shapeBits);
 	// finally add the key
-	ic->tmp_sortKeys32_.push_back(key);
+	ic->tmp_sortKeys32_[idx] = key;
 }
 
 void SpatialIndex::handleIntersection(const BoundingShape& b_shape, void* userData) {
-    auto* data = (SpatialIndex::TraversalData*)(userData);
+    auto* data = (TraversalData*)userData;
 	auto* i_cam = data->indexCamera;
     auto* i_shape = (IndexedShape*) b_shape.spatialIndexData_[i_cam->camIdx];
     const uint32_t L = i_shape->camera()->numLayer();
 	const uint32_t l = data->layerIdx;
-	const SortMode sortMode = i_shape->instanceSortMode();
-
-    // toggle visibility for this layer
-    i_shape->tmp_layerVisibility_[l] = true;
 
     // compute LOD level for this shape by distance to camera.
     // each mesh may have its own thresholds for switching LOD levels, so we need
@@ -278,14 +273,18 @@ void SpatialIndex::handleIntersection(const BoundingShape& b_shape, void* userDa
 	const float lodDistance = (b_shape.tfOrigin() - *data->camPos).lengthSquared();
 	const uint32_t k = getLODLevel(b_shape, i_shape, lodDistance);
 
-	// Finally bin the shape into the (lod, layer) bin
-	const uint32_t b = CullShape::binIdx(k, l, L);
-	i_shape->tmp_binCounts_[b] += 1;
 	// Total visibility count of the shape across all layers
 	i_shape->tmp_totalCount_ += 1;
-	i_cam->tmp_layerInstances_.push_back(b_shape.instanceID());
-	i_cam->tmp_layerShapes_.push_back(i_cam->tmp_layerShapes_.size());
-	i_cam->pushKeyFun(i_cam, i_shape->shapeIdx_, l, lodDistance, sortMode);
+	// toggle visibility for this layer
+	i_shape->tmp_layerVisibility_[l] = true;
+	// Finally bin the shape into the (lod, layer) bin
+	uint32_t idx = CullShape::binIdx(k, l, L);
+	i_shape->tmp_binCounts_[idx] += 1;
+	// Add sort key for this instance
+	idx = i_shape->globalBase_ + l * b_shape.numInstances() + b_shape.instanceID();
+	i_cam->tmp_globalInstanceIDs_.push_back(idx);
+	i_cam->tmp_localInstanceIDs_[idx] = b_shape.instanceID();
+	i_cam->pushKeyFun(i_cam, idx, i_shape->shapeIdx_, l, lodDistance, i_shape->instanceSortMode());
 }
 
 void SpatialIndex::updateLayerVisibility(
@@ -321,11 +320,10 @@ static void radixSortFun(void *radixSort, void *sortKeys, std::vector<uint32_t> 
 }
 
 template <typename KeyType>
-static void smallSortFun(void *sortKeys, std::vector<uint32_t> &values) {
+static void smallSortFun(void*, void *sortKeys, std::vector<uint32_t> &values) {
 	auto &keys = *static_cast<std::vector<KeyType>*>(sortKeys);
-	std::ranges::sort(values, [keys](uint32_t itemIdx1, uint32_t itemIdx2) {
-		return keys[itemIdx1] < keys[itemIdx2];
-	});
+	std::sort(values.begin(), values.end(),
+		[&keys](uint32_t a, uint32_t b) { return keys[a] < keys[b]; });
 }
 
 void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanceBits, uint32_t traversalMask) {
@@ -337,8 +335,8 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 		for (auto &indexShape: indexCamera->indexShapes_) {
 			indexCamera->numKeys += indexShape->shape()->numInstances() * numLayer;
 		}
-		indexCamera->tmp_layerInstances_.reserve(indexCamera->numKeys);
-		indexCamera->tmp_layerShapes_.reserve(indexCamera->numKeys);
+		indexCamera->tmp_globalInstanceIDs_.reserve(indexCamera->numKeys);
+		indexCamera->tmp_localInstanceIDs_.resize(indexCamera->numKeys, 0);
 
 		indexCamera->layerBits = getMinBits(numLayer);
 		indexCamera->shapeBits = getMinBits(indexCamera->indexShapes_.size());
@@ -356,50 +354,47 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 
 		if (indexCamera->keyBits <= 32) {
 			using KeyType = uint32_t;
-			indexCamera->tmp_sortKeys32_.reserve(indexCamera->numKeys);
+			indexCamera->tmp_sortKeys32_.resize(indexCamera->numKeys);
 			indexCamera->sortKeys = static_cast<void*>(&indexCamera->tmp_sortKeys32_);
 			indexCamera->pushKeyFun = &IndexCamera::pushKey32;
-			indexCamera->smallSortFun = smallSortFun<KeyType>;
+			indexCamera->sortFun[SORT_FUN_SMALL] = smallSortFun<KeyType>;
 			if (indexCamera->keyBits <= 24) {
 				// use 24-bit radix sort (uint32_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 24>;
 				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->radixFun = radixSortFun<RadixType,KeyType>;
+				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			} else {
 				// use 32-bit radix sort (uint32_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 32>;
 				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->radixFun = radixSortFun<RadixType,KeyType>;
+				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			}
 		} else {
 			using KeyType = uint64_t;
-			indexCamera->tmp_sortKeys64_.reserve(indexCamera->numKeys);
+			indexCamera->tmp_sortKeys64_.resize(indexCamera->numKeys);
 			indexCamera->sortKeys = static_cast<void*>(&indexCamera->tmp_sortKeys64_);
 			indexCamera->pushKeyFun = &IndexCamera::pushKey64;
-			indexCamera->smallSortFun = smallSortFun<KeyType>;
+			indexCamera->sortFun[SORT_FUN_SMALL] = smallSortFun<KeyType>;
 			if (indexCamera->keyBits <= 40) {
 				// use 40-bit radix sort (uint64_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 40>;
 				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->radixFun = radixSortFun<RadixType,KeyType>;
+				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			} else if (indexCamera->keyBits <= 48) {
 				// use 48-bit radix sort (uint64_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 48>;
 				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->radixFun = radixSortFun<RadixType,KeyType>;
+				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			} else {
 				// use 64-bit radix sort (uint64_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 64>;
 				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->radixFun = radixSortFun<RadixType,KeyType>;
+				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			}
 		}
 		indexCamera->isDirty = false;
 	}
-	indexCamera->tmp_layerInstances_.clear();
-	indexCamera->tmp_layerShapes_.clear();
-	indexCamera->tmp_sortKeys64_.clear();
-	indexCamera->tmp_sortKeys32_.clear();
+	indexCamera->tmp_globalInstanceIDs_.clear();
 	indexCamera->traversalMask = traversalMask;
 	auto &frustumShapes = indexCamera->cullCamera->frustum();
 	for (auto &shape: frustumShapes) {
@@ -440,14 +435,14 @@ void SpatialIndex::updateVisibility(uint32_t traversalMask) {
 void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	const uint32_t L = indexCamera->cullCamera->numLayer();
 
+	uint32_t shapeBase = 0;
 	for (auto &indexShape: indexCamera->indexShapes_) {
+		// Reset visibility + total count
 		indexShape->tmp_layerVisibility_.assign(L, false);
-		// Reset the per-bin counts, we accumulate them during traversal, so they
-		// need to be reset first.
-		std::memset(indexShape->tmp_binCounts_.data(), 0,
-			sizeof(uint32_t) * indexShape->tmp_binCounts_.size());
-		// Reset total count
 		indexShape->tmp_totalCount_ = 0;
+		// Set the base offset for this shape's instances in the global ID array.
+		indexShape->globalBase_ = shapeBase;
+		shapeBase += indexShape->shape()->numInstances() * L;
 		// Remember the index shape to bounding shape mapping such that we can
 		// obtain index shape from bounding shape directly (else a hash lookup would be required).
 		for (auto &bs: indexShape->boundingShapes_) {
@@ -456,6 +451,13 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 			//        Would need something like thread_local member variable.
 			bs->spatialIndexData_[indexCamera->camIdx] = indexShape;
 		}
+		// Map instance data for this shape, and reset the bin counts
+		indexShape->mapInstanceData_internal();
+		indexShape->tmp_binBase_ = indexShape->mappedBaseInstance();
+		indexShape->tmp_binCounts_ = indexShape->mappedInstanceCounts();
+		// Reset the per-bin counts. We accumulate them during traversal, so they need to be reset first.
+		std::memset(indexShape->tmp_binCounts_, 0,
+			sizeof(uint32_t) * indexShape->numLODs() * L);
 	}
 
 	// Process each layer
@@ -464,37 +466,29 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 		updateLayerVisibility(*indexCamera, layerIdx, frustumShapes[layerIdx]);
 	}
 
-	// TODO: With some changes it should be possible to sort instance IDs directly, and to remove tmp_layerShapes_.
-	//       Basically we need to store the keys in a way such that we can access them by instance ID.
-	std::vector<uint32_t>& vec = indexCamera->tmp_layerShapes_;
-	if (vec.size() < SMALL_ARRAY_SIZE) {
-		indexCamera->smallSortFun(indexCamera->sortKeys, vec);
-	} else {
-		indexCamera->radixFun(indexCamera->radixSort.get(), indexCamera->sortKeys, vec);
-	}
+	// Sort the visible instances according to their sort keys
+	std::vector<uint32_t>& globalIDs = indexCamera->tmp_globalInstanceIDs_;
+	indexCamera->sortFun[static_cast<int>(globalIDs.size()<SMALL_ARRAY_SIZE)]
+		(indexCamera->radixSort.get(), indexCamera->sortKeys, globalIDs);
 
-	uint32_t shapeBase = 0;
+	shapeBase = 0;
 	for (auto &indexShape: indexCamera->indexShapes_) {
 		if (indexShape->tmp_totalCount_ == 0) {
 			// No visible instances for this shape
 			// Mark all layers as invisible
 			indexShape->visible_.assign(L, false);
 			indexShape->isVisibleInAnyLayer_ = false;
+			indexShape->unmapInstanceData_internal();
 			continue;
 		}
-	    const uint32_t K = indexShape->numLODs();
 
 	    // Compute base offsets for all bins in LOD-major order
+		const uint32_t numBins = indexShape->numLODs() * L;
 	    uint32_t runningBase = 0;
-	    for (uint32_t b = 0; b < indexShape->tmp_binBase_.size(); ++b) {
+	    for (uint32_t b = 0; b < numBins; ++b) {
 			indexShape->tmp_binBase_[b] = runningBase;
 			runningBase += indexShape->tmp_binCounts_[b];
 		}
-
-		indexShape->mapInstanceData_internal();
-	    auto mapped_ids = indexShape->mappedInstanceIDs();
-	    auto mapped_counts = indexShape->mappedInstanceCounts();
-	    auto mapped_base = indexShape->mappedBaseInstance();
 
 		// Copy over the visibility flags from tmp_layerVisibility_ into visible_
 	    bool isVisible = false;
@@ -505,33 +499,20 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 		}
 		indexShape->isVisibleInAnyLayer_ = isVisible;
 
-		// Copy over the counts and base offsets from tmp_ arrays into the mapped arrays
-		// TODO: Rather directly write into mapped arrays during traversal to avoid this copy.
-		//       With frame-locking and double buffer this should not be slower.
-		const uint32_t numBytes = sizeof(uint32_t) * indexShape->tmp_binCounts_.size();
-		std::memcpy(mapped_counts, indexShape->tmp_binCounts_.data(), numBytes);
-		std::memcpy(mapped_base, indexShape->tmp_binBase_.data(), numBytes);
-
 	    // Write IDs to mapped buffer
 		// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.
-		runningBase = shapeBase;
-		for (uint32_t l = 0; l < L; ++l) {
-			for (uint32_t k = 0; k < K; ++k) {
-				const uint32_t b = CullShape::binIdx(k, l, L);
-				const uint32_t base = indexShape->tmp_binBase_[b];
-				const uint32_t cnt = indexShape->tmp_binCounts_[b];
-				if (cnt == 0) continue;
-
-    			std::transform(
-    				vec.begin() + runningBase,
-    				vec.begin() + runningBase + cnt,
-    				mapped_ids + base,
-    				[&](uint32_t shapeIdx) { return indexCamera->tmp_layerInstances_[shapeIdx]; });
-				runningBase += cnt;
-			}
-		}
+		auto mapped_ids = indexShape->mappedInstanceIDs();
+		std::vector<uint32_t>::iterator vecBegin = globalIDs.begin() + shapeBase;
+		std::vector<uint32_t>::iterator vecEnd = vecBegin + indexShape->tmp_totalCount_;
+		const auto &globalToLocalID = indexCamera->tmp_localInstanceIDs_;
+		std::transform(vecBegin, vecEnd, mapped_ids,
+			[&globalToLocalID](uint32_t globalInstanceID) {
+				return globalToLocalID[globalInstanceID];
+			});
 
 		indexShape->unmapInstanceData_internal();
+		indexShape->tmp_binBase_ = nullptr;
+		indexShape->tmp_binCounts_ = nullptr;
 		shapeBase += indexShape->tmp_totalCount_;
 	}
 }
