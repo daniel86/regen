@@ -50,9 +50,9 @@ namespace regen {
 		uint32_t currIdx_ = 0;
 		uint32_t nextIdx_ = 1;
 
-		void (*callback)(const BoundingShape &, void *);
-		void *userData;
-		uint32_t traversalBit = 0;
+		IntersectionCallback callback;
+		uint32_t traversalMask;
+		ref_ptr<BatchedIntersectionTest> batchTest3D;
 
 #ifndef QUAD_TREE_DISABLE_SIMD
 		BatchOf_float batchBoundsMinX; // NOLINT(cppcoreguidelines-pro-type-member-init)
@@ -460,13 +460,17 @@ static void countIntersections(const BoundingShape &, void *userData) {
 
 bool QuadTree::hasIntersection(const BoundingShape &shape, uint32_t traversalBit) {
 	int count = 0;
-	foreachIntersection(shape, countIntersections, &count, traversalBit);
+	foreachIntersection(shape,
+		IntersectionCallback{countIntersections, &count},
+		traversalBit);
 	return count > 0;
 }
 
 int QuadTree::numIntersections(const BoundingShape &shape, uint32_t traversalBit) {
 	int count = 0;
-	foreachIntersection(shape, countIntersections, &count, traversalBit);
+	foreachIntersection(shape,
+		IntersectionCallback{countIntersections, &count},
+		traversalBit);
 	return count;
 }
 
@@ -516,7 +520,7 @@ void QuadTree::Private::processSphere_SIMD(
 	Register sep = cmp_lt(sqDist, set1_ps(radiusSqr));
 
 	// Convert mask to bits
-	uint8_t sepMask = movemask_ps(sep); // 1 = separated
+	int sepMask = movemask_ps(sep); // 1 = separated
 	intersectMask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
 }
 
@@ -556,7 +560,7 @@ void QuadTree::Private::processAxis_SIMD(
 			cmp_lt(axisMax.c, min));
 
 	// Convert mask to bits
-	uint8_t sepMask = movemask_ps(sep); // 1 = separated
+	int sepMask = movemask_ps(sep); // 1 = separated
 	intersectMask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
 }
 
@@ -598,8 +602,7 @@ void QuadTree::Private::processQueuedNodes(QuadTreeTraversal &td) {
 #else
 			// add nodeIdx to successorIdx_ for each bit set in intersectMask
 			while (mask) {
-				int bitIndex = __builtin_ctz(mask);
-				mask &= (mask - 1);
+				int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 				td.successorIdx_[td.numSucceedingItems_++] = nodeIdx + bitIndex;
 			}
 #endif
@@ -610,8 +613,7 @@ void QuadTree::Private::processQueuedNodes(QuadTreeTraversal &td) {
 			uint8_t mask = batchResults_[batchIdx];
 			int32_t startIdx = batchIdx * regen::simd::RegisterWidth;
 			while (mask) {
-				int bitIndex = __builtin_ctz(mask);
-				mask &= (mask - 1);
+				int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 				successorIdx_[td.numSucceedingItems_++] = startIdx + bitIndex;
 			}
 		}
@@ -653,8 +655,7 @@ void QuadTree::Private::processQueuedNodes_sphere(QuadTreeTraversal &td) {
 #else
 			// add nodeIdx to successorIdx_ for each bit set in intersectMask
 			while (mask) {
-				int bitIndex = __builtin_ctz(mask);
-				mask &= (mask - 1);
+				int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 				td.successorIdx_[td.numSucceedingItems_++] = nodeIdx + bitIndex;
 			}
 #endif
@@ -787,34 +788,36 @@ void QuadTree::Private::processSuccessors(QuadTreeTraversal &td) {
 
 static bool isMasked(QuadTreeTraversal &td, const ref_ptr<BoundingShape> &shape) {
 	// only include the item if the traversal bit is set
-	if (td.traversalBit != 0 &&
-		(shape->traversalMask() & td.traversalBit) == 0) {
+	if (td.traversalMask != 0 &&
+		(shape->traversalMask() & td.traversalMask) == 0) {
 		return true;
 	}
 	return false;
 }
 
 void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
-	// 3D intersection test with the shapes in the node
-	// TODO: Use SIMD for processing quad tree leaf node batches.
-	//       One difficulty is that different shape types must be supported,
-	//       which also would use different code paths. With current set of
-	//       shape types, I think we would have 7 different code paths.
+	// 3D intersection test with the shapes in the node.
+	// However, we do not always perform the intersection test, depending
+	// on the test mode configured for the quad tree.
+	// Also we submit each shape to a batched intersection tester,
+	// which will perform the actual intersection tests later in a batch
+	// (latest when endFrame is called on the quad tree).
+	// TODO: Defer the callback? We could fill index array with shape indices
+	//       and call the callback after the all tests are done? Or we call in batches too?
 
 	if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_NONE) {
 		// no intersection test, just call the callback
 		for (uint32_t itemIdx: leaf->shapes) {
 			auto &quadShape = td.tree->itemShapes_[itemIdx];
 			if (isMasked(td, quadShape)) continue;
-			td.callback(*quadShape.get(), td.userData);
+			td.callback.fun(*quadShape.get(), td.callback.userData);
 		}
 	} else if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_ALL) {
 		// test all shapes, even if they are not close to the shape's projection origin
 		for (uint32_t itemIdx: leaf->shapes) {
 			auto &quadShape = td.tree->itemShapes_[itemIdx];
-			if (quadShape->hasIntersectionWith(*td.shape)) {
-				td.callback(*quadShape.get(), td.userData);
-			}
+			if (isMasked(td, quadShape)) continue;
+			td.batchTest3D->push(itemIdx);
 #ifdef QUAD_TREE_DEBUG_TESTS
 			num3DTests_ += 1;
 #endif
@@ -829,15 +832,13 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 			for (uint32_t itemIdx: leaf->shapes) {
 				auto &quadShape = td.tree->itemShapes_[itemIdx];
 				if (isMasked(td, quadShape)) continue;
-				td.callback(*quadShape.get(), td.userData);
+				td.callback.fun(*quadShape.get(), td.callback.userData);
 			}
 		} else {
 			for (uint32_t itemIdx: leaf->shapes) {
 				auto &quadShape = td.tree->itemShapes_[itemIdx];
-				if (quadShape->hasIntersectionWith(*td.shape)) {
-					if (isMasked(td, quadShape)) continue;
-					td.callback(*quadShape.get(), td.userData);
-				}
+				if (isMasked(td, quadShape)) continue;
+				td.batchTest3D->push(itemIdx);
 #ifdef QUAD_TREE_DEBUG_TESTS
 				num3DTests_ += 1;
 #endif
@@ -853,12 +854,14 @@ QuadTreeTraversal* QuadTree::createTraversalData() {
 		traversalDataLock_.unlock();
 		td = new QuadTreeTraversal();
 		td->tree = this;
+		td->batchTest3D = ref_ptr<BatchedIntersectionTest>::alloc();
+		td->batchTest3D->setIndexedShapes(&itemShapes_);
 	} else {
 		td = traversalData_.top();
 		traversalData_.pop();
 		traversalDataLock_.unlock();
 	}
-
+	td->batchTest3D->setBatchCapacity(batchSize3D_);
 	td->numQueuedItems_ = 0;
 	td->numSucceedingItems_ = 0;
 #ifdef QUAD_TREE_DEBUG_TESTS
@@ -888,9 +891,8 @@ void QuadTree::freeTraversalData(QuadTreeTraversal *td) {
 
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
-		void (*callback)(const BoundingShape &, void *),
-		void *userData,
-		uint32_t traversalBit) {
+		const IntersectionCallback &callback,
+		uint32_t traversalMask) {
 	if (!root_) return;
 	if (root_->isLeaf() && root_->shapes.empty()) return;
 
@@ -905,8 +907,8 @@ void QuadTree::foreachIntersection(
 	td.projection = &projection;
 	td.basePoint = Vec2f(origin.x, origin.z);
 	td.callback = callback;
-	td.userData = userData;
-	td.traversalBit = traversalBit;
+	td.traversalMask = traversalMask;
+	td.batchTest3D->beginFrame(shape, callback);
 	priv_->addNodeToQueue(td, root_);
 
 	if (projection.type == OrthogonalProjection::Type::CIRCLE) {
@@ -934,6 +936,7 @@ void QuadTree::foreachIntersection(
 				break;
 		}
 	}
+	td.batchTest3D->endFrame();
 	freeTraversalData(td_ptr);
 
 #ifdef QUAD_TREE_DEBUG_TESTS

@@ -87,8 +87,7 @@ void PerceptionSystem::updateCollisions() {
 	collisionShape_->updateOrthogonalProjection();
 	spatialIndex_->foreachIntersection(
 		*collisionShape_.get(),
-		handleIntersectionStatic,
-		this,
+		IntersectionCallback{handleIntersectionStatic,this},
 		collisionMask_);
 	// Cleanup monitors
 	for (auto &monitor : collisionMonitors_) {

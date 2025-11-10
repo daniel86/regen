@@ -38,7 +38,7 @@ namespace regen {
 		 * @brief Get the type of this box
 		 * @return The type
 		 */
-		auto boxType() const { return type_; }
+		BoundingBoxType boxType() const { return type_; }
 
 		/**
 		 * @brief Check if this box is an AABB

@@ -114,7 +114,7 @@ namespace regen {
 		 * @brief Get the type of this shape
 		 * @return The type
 		 */
-		auto shapeType() const { return shapeType_; }
+		BoundingShapeType shapeType() const { return shapeType_; }
 
 		/**
 		 * @brief Check if this shape is a box

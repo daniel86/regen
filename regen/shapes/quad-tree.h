@@ -6,6 +6,8 @@
 #include <regen/shapes/spatial-index.h>
 #include <regen/shapes/bounds.h>
 #include <regen/shapes/orthogonal-projection.h>
+
+#include "intersections/batched-intersection.h"
 #include "regen/utility/aligned-array.h"
 
 namespace regen {
@@ -88,6 +90,12 @@ namespace regen {
 		void setMinNodeSize(float size) { minNodeSize_ = size; }
 
 		/**
+		 * @brief Set the batch size for 3D intersection tests
+		 * @param size The batch size
+		 */
+		void setBatchSize3D(uint32_t size) { batchSize3D_ = size; }
+
+		/**
 		 * @brief Set the subdivision threshold, i.e. the maximum number of shapes
 		 * a node can contain before it is subdivided.
 		 * @param threshold The subdivision threshold
@@ -132,9 +140,8 @@ namespace regen {
 		// override SpatialIndex::foreachIntersection
 		void foreachIntersection(
 				const BoundingShape &shape,
-				void (*callback)(const BoundingShape&, void*),
-				void *userData,
-				uint32_t traversalBit) override;
+				const IntersectionCallback &callback,
+				uint32_t traversalMask) override;
 
 		// override SpatialIndex
 		void debugDraw(DebugInterface &debug) const override;
@@ -150,7 +157,6 @@ namespace regen {
 		uint32_t traversalBit_ = BoundingShape::TRAVERSAL_BIT_DRAW;
 
 		std::vector<Node*> nodes_;
-		std::vector<ref_ptr<BoundingShape>> itemShapes_;
 		std::vector<int32_t> itemNodeIdx_;
 		std::vector<uint32_t> itemIdxInNode_;
 		std::stack<Node *> nodePool_;
@@ -172,6 +178,7 @@ namespace regen {
 		uint32_t nextBufferSize_ = 0;
 
 		TestMode_3D testMode3D_ = QUAD_TREE_3D_TEST_CLOSEST;
+		uint32_t batchSize3D_ = 2048u;
 		float closeDistanceSquared_ = 20.0f * 20.0f; // heuristic threshold for distance to camera position
 
 		Bounds<Vec2f> newBounds_;

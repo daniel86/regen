@@ -10,6 +10,16 @@
 
 namespace regen {
 	/**
+	 * Callback structure for intersection tests.
+	 */
+	struct IntersectionCallback {
+		// Function pointer for the callback
+		void (*fun)(const BoundingShape &, void *) = nullptr;
+		// User data pointer passed to the callback
+		void *userData = nullptr;
+	};
+
+	/**
 	 * @brief Spatial index
 	 */
 	class SpatialIndex : public Resource {
@@ -59,7 +69,10 @@ namespace regen {
 
 		/**
 		 * @brief Add a camera to the index
-		 * @param camera The camera
+		 * @param cullCamera The culling camera
+		 * @param sortCamera The sorting camera
+		 * @param sortMode The sort mode
+		 * @param lodShift The LOD shift
 		 */
 		void addCamera(
 				const ref_ptr<Camera> &cullCamera,
@@ -155,14 +168,12 @@ namespace regen {
 		/**
 		 * @brief Iterate over all intersections with a shape
 		 * @param shape The shape
-		 * @param callback The callback function
-		 * @param userData User data passed to the callback
+		 * @param callback The intersection callback
 		 * @param traversalMask The traversal mask
 		 */
 		virtual void foreachIntersection(
 				const BoundingShape &shape,
-				void (*callback)(const BoundingShape&, void*),
-				void *userData,
+				const IntersectionCallback &callback,
 				uint32_t traversalMask) = 0;
 
 		/**
@@ -195,7 +206,7 @@ namespace regen {
 
 		// data for each camera
 		struct IndexCamera {
-			SpatialIndex *index;
+			SpatialIndex *index = nullptr;
 			ref_ptr<Camera> cullCamera;
 			ref_ptr<Camera> sortCamera;
 			std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
@@ -221,7 +232,7 @@ namespace regen {
 			// radix sort for sorting the instances
 			std::unique_ptr<void, void(*)(void*)> radixSort =
 				createRadix<RadixSort_CPU_seq<uint32_t, uint32_t, 8, 32>>(10);
-			void *sortKeys; // erased type
+			void *sortKeys = nullptr; // erased type
 			// sorting functions, one for large arrays, one for small arrays
 			SortFun sortFun[2] = { nullptr, nullptr };
 			uint8_t layerBits = 0u;
@@ -239,6 +250,7 @@ namespace regen {
 		std::unordered_map<std::string_view, ref_ptr<std::vector<ref_ptr<BoundingShape>>>> nameToShape_;
 		std::unordered_map<const Camera *, uint32_t> cameraToIndexCamera_;
 		std::vector<IndexCamera> indexCameras_;
+		std::vector<ref_ptr<BoundingShape>> itemShapes_;
 		// additional shapes for debugging only
 		std::vector<ref_ptr<BoundingShape>> debugShapes_;
 

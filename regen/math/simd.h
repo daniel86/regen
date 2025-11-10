@@ -24,6 +24,14 @@
 
 namespace regen::simd {
 	static constexpr int32_t RegisterWidth = REGEN_SIMD_WIDTH;
+
+	template<typename MaskType>
+	static int nextBitIndex(MaskType &mask) {
+		int bitIndex = __builtin_ctz(mask);
+		mask &= (mask - 1);
+		return bitIndex;
+	}
+
 #if REGEN_SIMD_MODE == AVX
 	static constexpr int8_t RegisterMask = 0xFF; // 8 bits for AVX
 	using Register = __m256; // 8 floats
@@ -104,6 +112,9 @@ namespace regen::simd {
 	}
 	inline __m256 cmp_and(const __m256 &a, const __m256 &b) {
 		return _mm256_and_ps(a, b);
+	}
+	inline __m256 cmp_and_not(const __m256 &a, const __m256 &b) {
+		return _mm256_andnot_ps(a, b);
 	}
 
 	inline __m256i cvttps_epi32(const __m256 &a) { return _mm256_cvttps_epi32(a); }
@@ -217,6 +228,13 @@ namespace regen {
 	struct BatchOf_float {
 		simd::Register c;
 
+		/**
+		 * @return A batch where all elements are set to 1.0f.
+		 */
+		static BatchOf_float all_ones() {
+			return BatchOf_float{_mm256_setzero_ps()}.cmp_lt(1.0f);
+		}
+
 		BatchOf_float() = default;
 
 		explicit BatchOf_float(float v) {
@@ -263,6 +281,9 @@ namespace regen {
 		BatchOf_float operator*(const BatchOf_float &other) const {
 			return BatchOf_float{regen::simd::mul_ps(c, other.c)};
 		}
+		BatchOf_float operator*(float scalar) const {
+			return BatchOf_float{regen::simd::mul_ps(c, regen::simd::set1_ps(scalar))};
+		}
 
 		void operator+=(const BatchOf_float &other) {
 			c = regen::simd::add_ps(c, other.c);
@@ -275,13 +296,48 @@ namespace regen {
 		void operator*=(const BatchOf_float &other) {
 			c = regen::simd::mul_ps(c, other.c);
 		}
+		void operator*=(float scalar) {
+			c = simd::mul_ps(c, simd::set1_ps(scalar));
+		}
 
 		void operator/=(const BatchOf_float &other) {
 			c = regen::simd::div_ps(c, other.c);
 		}
 
 		BatchOf_float cmp_lt(const BatchOf_float &other) const {
-			return BatchOf_float{regen::simd::cmp_lt(c, other.c)};
+			return BatchOf_float{simd::cmp_lt(c, other.c)};
+		}
+		BatchOf_float cmp_lt(float other) const {
+			return BatchOf_float{simd::cmp_lt(c, simd::set1_ps(other))};
+		}
+		template <typename T>
+		BatchOf_float operator<(const T &other) const { return cmp_lt(other); }
+
+		BatchOf_float cmp_gt(const BatchOf_float &other) const {
+			return BatchOf_float{simd::cmp_gt(c, other.c)};
+		}
+		BatchOf_float cmp_gt(float other) const {
+			return BatchOf_float{simd::cmp_gt(c, simd::set1_ps(other))};
+		}
+		template <typename T>
+		BatchOf_float operator>(const T &other) const { return cmp_gt(other); }
+
+		BatchOf_float cmp_and(const BatchOf_float &other) const {
+			return BatchOf_float{simd::cmp_and(c, other.c)};
+		}
+		BatchOf_float cmp_and(float other) const {
+			return BatchOf_float{simd::cmp_and(c, simd::set1_ps(other))};
+		}
+		template <typename T>
+		BatchOf_float operator&&(const T &other) const { return cmp_and(other); }
+
+		bool isZeroMask() const {
+			int mask = simd::movemask_ps(c);
+			return (mask == 0);
+		}
+
+		uint8_t toBitmask8() const {
+			return static_cast<uint8_t>(simd::movemask_ps(c) & 0xFF);
 		}
 	};
 

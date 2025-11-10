@@ -45,6 +45,11 @@ namespace regen {
 		}
 
 		/**
+		 * @return The capacity of the array.
+		 */
+		uint32_t capacity() const { return capacity_; }
+
+		/**
 		 * @brief Resizes the array to a new size.
 		 * @param newSize The new size of the array.
 		 * @throws std::bad_alloc if memory allocation fails.

@@ -156,17 +156,8 @@ bool Frustum::hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) con
 }
 
 static inline bool hasIntersection_AABB_(const Plane *planes, const BoundingBox &box) {
-	const auto &points = box.boxVertices();
-	Vec3f p_min = points[0];
-	Vec3f p_max = points[0];
-	for (unsigned int i = 1u; i < 8u; ++i) {
-		p_min.x = std::min(p_min.x, points[i].x);
-		p_min.y = std::min(p_min.y, points[i].y);
-		p_min.z = std::min(p_min.z, points[i].z);
-		p_max.x = std::max(p_max.x, points[i].x);
-		p_max.y = std::max(p_max.y, points[i].y);
-		p_max.z = std::max(p_max.z, points[i].z);
-	}
+	auto &p_min = box.tfBounds().min;
+	auto &p_max = box.tfBounds().max;
 	for (unsigned int i = 0u; i < 6u; ++i) {
 		// Select vertex farthest from the plane in direction of the plane normal.
 		// If this point is behind the plane, the AABB must be outside of the frustum.

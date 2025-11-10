@@ -298,8 +298,7 @@ void SpatialIndex::updateLayerVisibility(
 		traversalData.camPos = &ic.sortCamera->position(0);
 	}
 	foreachIntersection(camera_shape,
-		handleIntersection,
-		&traversalData,
+		IntersectionCallback{handleIntersection, &traversalData},
 		ic.traversalMask);
 }
 
@@ -408,7 +407,6 @@ void SpatialIndex::updateVisibility(uint32_t traversalMask) {
 		uint32_t numThreads = numIndexedCameras - 1; // leave one for the local thread
 		numThreads = std::max(1u, std::min(numThreads, maxNumThreads_));
 		jobPool_ = std::make_unique<JobPool>(numThreads);
-		REGEN_DEBUG("Created job pool with " << numThreads << " threads.");
 	}
 
 	// Schedule jobs for all index cameras, but keep the one with the most keys for the local thread.
