@@ -21,18 +21,6 @@ namespace regen {
 	public:
 		// forward declaration of Node
 		struct Node;
-		/**
-		 * An item in the quad tree, i.e. a shape with its orthogonal projection.
-		 * Each item appears in the smallest node that fully contains it.
-		 */
-		struct Item {
-			ref_ptr<BoundingShape> shape;
-			Node *node = nullptr;
-			// the position in the shape array of the node if any
-			uint32_t idxInNode = 0;
-
-			explicit Item(const ref_ptr<BoundingShape> &shape);
-		};
 
 		/**
 		 * A node in the quad tree.
@@ -162,11 +150,20 @@ namespace regen {
 		uint32_t traversalBit_ = BoundingShape::TRAVERSAL_BIT_DRAW;
 
 		std::vector<Node*> nodes_;
-		std::vector<Item *> items_;
-		std::vector<Item *> newItems_;
+		std::vector<ref_ptr<BoundingShape>> itemShapes_;
+		std::vector<int32_t> itemNodeIdx_;
+		std::vector<uint32_t> itemIdxInNode_;
 		std::stack<Node *> nodePool_;
-		std::stack<Item *> itemPool_;
 		Node *root_ = nullptr;
+
+		struct Item {
+			ref_ptr<BoundingShape> shape;
+			Node *node = nullptr;
+			uint32_t idxInNode = 0;
+			explicit Item(const ref_ptr<BoundingShape> &shape);
+		};
+		std::vector<Item *> newItems_;
+		std::stack<Item *> itemPool_;
 
 		std::unordered_map<const BoundingShape*, uint32_t> shapeToItem_;
 		float minNodeSize_ = 0.1f;
