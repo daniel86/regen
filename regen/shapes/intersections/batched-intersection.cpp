@@ -150,6 +150,6 @@ void BatchedIntersectionCase::init(
 
 void BatchedIntersectionCase::push(const ref_ptr<BoundingShape> &shape, uint32_t shapeIdx) {
 	queuedIndices[numQueued] = shapeIdx;
-	batchData->push(*shape.get(), shapeIdx);
+	batchData->push(*shape.get(), numQueued);
 	++numQueued;
 }

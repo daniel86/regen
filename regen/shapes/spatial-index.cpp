@@ -6,13 +6,11 @@
 #include "cull-shape.h"
 #include "spatial-index-debug.h"
 
-// NOTE: this piece of code is performance critical! For many execution paths:
-// - avoid the use of std::set, std::unordered_set, std::map, std::unordered_map, etc. here
-// 		- also iteration over these containers is expensive!
-// - avoid lambda functions
-// - avoid alloc/free
-
 using namespace regen;
+
+namespace regen {
+	static constexpr bool SPATIAL_INDEX_USE_MULTITHREADING = true;
+}
 
 SpatialIndex::SpatialIndex() {
 }
@@ -402,32 +400,39 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 }
 
 void SpatialIndex::updateVisibility(uint32_t traversalMask) {
-	uint32_t numIndexedCameras = indexCameras_.size();
-	if (!jobPool_) {
-		uint32_t numThreads = numIndexedCameras - 1; // leave one for the local thread
-		numThreads = std::max(1u, std::min(numThreads, maxNumThreads_));
-		jobPool_ = std::make_unique<JobPool>(numThreads);
-	}
-
-	// Schedule jobs for all index cameras, but keep the one with the most keys for the local thread.
-	IndexCamera *localIndexCamera = &indexCameras_.front();
-	resetCamera(localIndexCamera, distanceBits_, traversalMask);
-	for (uint32_t i = 1; i < numIndexedCameras; ++i) {
-		IndexCamera *nextIndexCamera = &indexCameras_[i];
-		resetCamera(nextIndexCamera, distanceBits_, traversalMask);
-		if (nextIndexCamera->numKeys > localIndexCamera->numKeys) {
-			std::swap(localIndexCamera, nextIndexCamera);
+	if constexpr (SPATIAL_INDEX_USE_MULTITHREADING) {
+		uint32_t numIndexedCameras = indexCameras_.size();
+		if (!jobPool_) {
+			uint32_t numThreads = numIndexedCameras - 1; // leave one for the local thread
+			numThreads = std::max(1u, std::min(numThreads, maxNumThreads_));
+			jobPool_ = std::make_unique<JobPool>(numThreads);
 		}
-		jobPool_->addJobPreFrame(Job{ .fn = visibilityJobFunc, .arg = nextIndexCamera });
-	}
 
-	// Execute jobs
-	jobPool_->beginFrame(1u); // one local job
-	Job localJob { .fn = visibilityJobFunc, .arg = localIndexCamera };
-	do {
-		jobPool_->performJob(localJob);
-	} while (jobPool_->stealJob(localJob));
-	jobPool_->endFrame();
+		// Schedule jobs for all index cameras, but keep the one with the most keys for the local thread.
+		IndexCamera *localIndexCamera = &indexCameras_.front();
+		resetCamera(localIndexCamera, distanceBits_, traversalMask);
+		for (uint32_t i = 1; i < numIndexedCameras; ++i) {
+			IndexCamera *nextIndexCamera = &indexCameras_[i];
+			resetCamera(nextIndexCamera, distanceBits_, traversalMask);
+			if (nextIndexCamera->numKeys > localIndexCamera->numKeys) {
+				std::swap(localIndexCamera, nextIndexCamera);
+			}
+			jobPool_->addJobPreFrame(Job{ .fn = visibilityJobFunc, .arg = nextIndexCamera });
+		}
+
+		// Execute jobs
+		jobPool_->beginFrame(1u); // one local job
+		Job localJob { .fn = visibilityJobFunc, .arg = localIndexCamera };
+		do {
+			jobPool_->performJob(localJob);
+		} while (jobPool_->stealJob(localJob));
+		jobPool_->endFrame();
+	} else { // no multithreading
+		for (auto &indexCamera: indexCameras_) {
+			resetCamera(&indexCamera, distanceBits_, traversalMask);
+			updateVisibility(&indexCamera);
+		}
+	}
 }
 
 void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
