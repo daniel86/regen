@@ -150,9 +150,6 @@ namespace regen {
 		struct Private;
 		Private *priv_;
 
-		std::stack<QuadTreeTraversal*> traversalData_;
-		SpinLock traversalDataLock_;
-
 		uint32_t subdivisionThreshold_ = 4;
 		uint32_t traversalBit_ = BoundingShape::TRAVERSAL_BIT_DRAW;
 
@@ -183,10 +180,6 @@ namespace regen {
 
 		Bounds<Vec2f> newBounds_;
 		std::vector<uint32_t> changedItems_;
-
-		QuadTreeTraversal* createTraversalData();
-
-		void freeTraversalData(QuadTreeTraversal *td);
 
 		Node *createNode(const Vec2f &min, const Vec2f &max);
 

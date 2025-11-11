@@ -96,10 +96,6 @@ QuadTree::QuadTree()
 }
 
 QuadTree::~QuadTree() {
-	while (!traversalData_.empty()) {
-		delete traversalData_.top();
-		traversalData_.pop();
-	}
 	shapeToItem_.clear();
 	for (auto item: newItems_) {
 		delete item;
@@ -173,7 +169,7 @@ QuadTree::Item *QuadTree::createItem(const ref_ptr<BoundingShape> &shape) {
 		auto *item = itemPool_.top();
 		itemPool_.pop();
 		item->shape = shape;
-		shape->updateOrthogonalProjection(); // TODO: needed here?
+		shape->updateOrthogonalProjection();
 		return item;
 	}
 }
@@ -778,11 +774,8 @@ void QuadTree::Private::processSuccessors(QuadTreeTraversal &td) {
 
 static bool isMasked(QuadTreeTraversal &td, const ref_ptr<BoundingShape> &shape) {
 	// only include the item if the traversal bit is set
-	if (td.traversalMask != 0 &&
-		(shape->traversalMask() & td.traversalMask) == 0) {
-		return true;
-	}
-	return false;
+	return (td.traversalMask != 0 &&
+		(shape->traversalMask() & td.traversalMask) == 0);
 }
 
 void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
@@ -792,7 +785,7 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 	// Also we submit each shape to a batched intersection tester,
 	// which will perform the actual intersection tests later in a batch
 	// (latest when endFrame is called on the quad tree).
-	// TODO: Defer the callback? We could fill index array with shape indices
+	// TODO: Defer the callback. We could fill index array with shape indices
 	//       and call the callback after the all tests are done? Or we call in batches too?
 
 	if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_NONE) {
@@ -849,52 +842,6 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 	}
 }
 
-QuadTreeTraversal* QuadTree::createTraversalData() {
-	QuadTreeTraversal *td;
-	traversalDataLock_.lock();
-	if (traversalData_.empty()) {
-		traversalDataLock_.unlock();
-		td = new QuadTreeTraversal();
-		td->tree = this;
-		if constexpr (QUAD_TREE_3D_BATCHING) {
-			td->batchTest3D = ref_ptr<BatchedIntersectionTest>::alloc();
-			td->batchTest3D->setIndexedShapes(&itemShapes_);
-		}
-	} else {
-		td = traversalData_.top();
-		traversalData_.pop();
-		traversalDataLock_.unlock();
-	}
-	if constexpr (QUAD_TREE_3D_BATCHING) {
-		td->batchTest3D->setBatchCapacity(batchSize3D_);
-	}
-	td->numQueuedItems_ = 0;
-	td->numSucceedingItems_ = 0;
-	if constexpr(QUAD_TREE_DEBUG_TESTS) {
-		td->num2DTests_ = 0;
-		td->num3DTests_ = 0;
-	}
-	if (nextBufferSize_ > td->queuedMinX_.size()) {
-		td->queuedNodes_[0].resize(nextBufferSize_);
-		td->queuedNodes_[1].resize(nextBufferSize_);
-		td->queuedMinX_.resize(nextBufferSize_);
-		td->queuedMinY_.resize(nextBufferSize_);
-		td->queuedMaxX_.resize(nextBufferSize_);
-		td->queuedMaxY_.resize(nextBufferSize_);
-		td->successorIdx_.resize(nextBufferSize_);
-		#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
-		td->batchResults_.resize(nextBufferSize_ / regen::simd::RegisterWidth + 1);
-		#endif
-	}
-	return td;
-}
-
-void QuadTree::freeTraversalData(QuadTreeTraversal *td) {
-	traversalDataLock_.lock();
-	traversalData_.push(td);
-	traversalDataLock_.unlock();
-}
-
 void QuadTree::foreachIntersection(
 		const BoundingShape &shape,
 		const IntersectionCallback &callback,
@@ -907,13 +854,45 @@ void QuadTree::foreachIntersection(
 	// with the quad tree nodes.
 	const OrthogonalProjection &projection = shape.orthoProjection();
 
-	QuadTreeTraversal *td_ptr = createTraversalData();
-	QuadTreeTraversal &td = *td_ptr;
+	// use thread-local traversal data to avoid reallocations,
+	// and synchronization between threads.
+	thread_local QuadTreeTraversal td;
+	if (td.tree != this) {
+		// make sure the traversal data belongs to this quad tree
+		// (in case of multiple quad trees in the application).
+		// This also handles the very first initialization of td.
+		td.tree = this;
+		if constexpr (QUAD_TREE_3D_BATCHING) {
+			td.batchTest3D = ref_ptr<BatchedIntersectionTest>::alloc();
+			td.batchTest3D->setIndexedShapes(&itemShapes_);
+		}
+	}
+	if constexpr (QUAD_TREE_3D_BATCHING) {
+		td.batchTest3D->setBatchCapacity(batchSize3D_);
+	}
+	td.numQueuedItems_ = 0;
+	td.numSucceedingItems_ = 0;
 	td.shape = &shape;
 	td.projection = &projection;
 	td.basePoint = Vec2f(origin.x, origin.z);
 	td.callback = callback;
 	td.traversalMask = traversalMask;
+	if (nextBufferSize_ > td.queuedMinX_.size()) {
+		td.queuedNodes_[0].resize(nextBufferSize_);
+		td.queuedNodes_[1].resize(nextBufferSize_);
+		td.queuedMinX_.resize(nextBufferSize_);
+		td.queuedMinY_.resize(nextBufferSize_);
+		td.queuedMaxX_.resize(nextBufferSize_);
+		td.queuedMaxY_.resize(nextBufferSize_);
+		td.successorIdx_.resize(nextBufferSize_);
+#ifdef QUAD_TREE_DEFERRED_BATCH_STORE
+		td->batchResults_.resize(nextBufferSize_ / regen::simd::RegisterWidth + 1);
+#endif
+	}
+	if constexpr(QUAD_TREE_DEBUG_TESTS) {
+		td.num2DTests_ = 0;
+		td.num3DTests_ = 0;
+	}
 	if constexpr (QUAD_TREE_3D_BATCHING) {
 		td.batchTest3D->beginFrame(shape, callback);
 	}
@@ -947,7 +926,6 @@ void QuadTree::foreachIntersection(
 	if constexpr (QUAD_TREE_3D_BATCHING) {
 		td.batchTest3D->endFrame();
 	}
-	freeTraversalData(td_ptr);
 
 	if constexpr(QUAD_TREE_DEBUG_TESTS) {
 		static uint32_t numFrames = 0;

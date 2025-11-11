@@ -3,12 +3,13 @@
 #include "regen/shapes/frustum.h"
 #include "regen/utility/logging.h"
 
-//#define BATCHED_INTERSECTION_NO_SIMD
+namespace regen {
+	static constexpr int NUM_FRUSTUM_PLANES = 6;
+}
 
 void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 	// Process numQueuedItems_ nodes from the queue, performing an intersection test with the shape's projection;
 	// and also writing nodeIdx to successor array if the test succeeds.
-	static constexpr int NUM_PLANES = 6;
 	auto &td = *static_cast<BatchIntersection_Frustum_Spheres *>(&tid);
 	auto *testShape = static_cast<const Frustum *>(td.testShape);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
@@ -20,7 +21,6 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 	auto *d_spherePosZ = batchData->posZ.data();
 	auto *d_sphereRadius = batchData->radius.data();
 
-#ifndef BATCHED_INTERSECTION_NO_SIMD
 	auto *shapeData = static_cast<IntersectionData_Frustum *>(tid.shapeData);
 	for (; queuedIdx + simd::RegisterWidth <= numQueued;
 		   queuedIdx += simd::RegisterWidth) {
@@ -32,7 +32,7 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 		// We'll accumulate a boolean vector "survived" as mask; init to true
 		BatchOf_float survived = BatchOf_float::all_ones();
 
-		for (int p = 0; p < NUM_PLANES; ++p) {
+		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// tmp = n(dot)p + r
 			BatchOf_float tmp =
 				(td.batch_spherePosX * shapeData->planes[p].x) +
@@ -56,7 +56,6 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 			td.callback.fun(sphere, td.callback.userData);
 		}
 	}
-#endif
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		const BoundingSphere &sphere = *static_cast<BoundingSphere *>(
 			(*td.indexedShapes)[td.queuedIndices[queuedIdx]].get());
