@@ -18,6 +18,12 @@ namespace regen {
 	struct BatchIntersection_Frustum_AABBs : BatchedIntersectionCase {
 		BatchIntersection_Frustum_AABBs() = default;
 		~BatchIntersection_Frustum_AABBs() override = default;
+		BatchOf_float batch_aabbMinX;;
+		BatchOf_float batch_aabbMinY;
+		BatchOf_float batch_aabbMinZ;
+		BatchOf_float batch_aabbMaxX;;
+		BatchOf_float batch_aabbMaxY;
+		BatchOf_float batch_aabbMaxZ;
 	};
 
 	struct BatchIntersection_Frustum_OBBs : BatchedIntersectionCase {

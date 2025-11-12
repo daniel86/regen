@@ -28,7 +28,13 @@ namespace regen {
 		 * @brief Get the radius of this sphere
 		 * @return The radius
 		 */
-		auto radius() const { return radius_; }
+		float radius() const { return radius_; }
+
+		/**
+		 * @brief Get the squared radius of this sphere
+		 * @return The squared radius
+		 */
+		float radiusSquared() const { return radiusSquared_; }
 
 		/**
 		 * @brief Set the radius of this sphere

@@ -73,6 +73,13 @@ namespace regen::simd {
 	inline __m256 mul_ps(const __m256 &a, const __m256 &b) { return _mm256_mul_ps(a, b); }
 	inline __m256 div_ps(const __m256 &a, const __m256 &b) { return _mm256_div_ps(a, b); }
 
+	/**
+	 * Fused multiply-add: (a * b) + c
+	 */
+	inline __m256 mul_add_ps(const __m256 &a, const __m256 &b, const __m256 &c) {
+		return _mm256_fmadd_ps(a, b, c);
+	}
+
 	inline __m256i add_epi32(const __m256i &a, const __m256i &b) { return _mm256_add_epi32(a, b); }
 	inline __m256i sub_epi32(const __m256i &a, const __m256i &b) { return _mm256_sub_epi32(a, b); }
 	inline __m256i mul_epi32(const __m256i &a, const __m256i &b) { return _mm256_mullo_epi32(a, b); }
@@ -84,6 +91,9 @@ namespace regen::simd {
 	inline __m256i min_epi32(const __m256i &a, const __m256i &b) { return _mm256_min_epi32(a, b); }
 	inline __m256i max_epi32(const __m256i &a, const __m256i &b) { return _mm256_max_epi32(a, b); }
 
+	/**
+	 * Horizontal sum of all elements in an __m256
+	 */
 	inline float hsum_ps(__m256 v) {
 		__m128 vlow  = _mm256_castps256_ps128(v);        // low 128
 		__m128 vhigh = _mm256_extractf128_ps(v, 1);   // high 128
@@ -288,9 +298,15 @@ namespace regen {
 		void operator+=(const BatchOf_float &other) {
 			c = regen::simd::add_ps(c, other.c);
 		}
+		void operator+=(float scalar) {
+			c = regen::simd::add_ps(c, regen::simd::set1_ps(scalar));
+		}
 
 		void operator-=(const BatchOf_float &other) {
 			c = regen::simd::sub_ps(c, other.c);
+		}
+		void operator-=(float scalar) {
+			c = regen::simd::sub_ps(c, regen::simd::set1_ps(scalar));
 		}
 
 		void operator*=(const BatchOf_float &other) {
@@ -330,6 +346,15 @@ namespace regen {
 		}
 		template <typename T>
 		BatchOf_float operator&&(const T &other) const { return cmp_and(other); }
+
+		BatchOf_float cmp_or(const BatchOf_float &other) const {
+			return BatchOf_float{simd::cmp_or(c, other.c)};
+		}
+		BatchOf_float cmp_or(float other) const {
+			return BatchOf_float{simd::cmp_or(c, simd::set1_ps(other))};
+		}
+		template <typename T>
+		BatchOf_float operator||(const T &other) const { return cmp_or(other); }
 
 		bool isZeroMask() const {
 			int mask = simd::movemask_ps(c);

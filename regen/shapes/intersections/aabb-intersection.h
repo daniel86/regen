@@ -10,11 +10,21 @@ namespace regen {
 	struct BatchIntersection_AABB_Spheres : BatchedIntersectionCase {
 		BatchIntersection_AABB_Spheres() = default;
 		~BatchIntersection_AABB_Spheres() override = default;
+		BatchOf_float batch_spherePosX;
+		BatchOf_float batch_spherePosY;
+		BatchOf_float batch_spherePosZ;
+		BatchOf_float batch_sphereRadius;
 	};
 
 	struct BatchIntersection_AABB_AABBs : BatchedIntersectionCase {
 		BatchIntersection_AABB_AABBs() = default;
 		~BatchIntersection_AABB_AABBs() override = default;
+		BatchOf_float batch_aabbMinX;;
+		BatchOf_float batch_aabbMinY;
+		BatchOf_float batch_aabbMinZ;
+		BatchOf_float batch_aabbMaxX;;
+		BatchOf_float batch_aabbMaxY;
+		BatchOf_float batch_aabbMaxZ;
 	};
 
 	struct BatchIntersection_AABB_OBBs : BatchedIntersectionCase {
