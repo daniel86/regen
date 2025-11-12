@@ -51,8 +51,7 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 		while (mask) {
 			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 			// Run callback with the sphere that survived
-			const uint32_t itemIdx = td.queuedIndices[queuedIdx + bitIndex];
-			td.hits->push(itemIdx);
+			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
 		}
 	}
 	for (; queuedIdx < numQueued; queuedIdx++) {

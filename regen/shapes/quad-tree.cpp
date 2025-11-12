@@ -47,7 +47,6 @@ namespace regen {
 		uint32_t num2DTests_ = 0;
 		uint32_t num3DTests_ = 0;
 
-		IntersectionCallback callback;
 		uint32_t traversalMask;
 		ref_ptr<BatchedIntersectionTest> batchTest3D;
 
@@ -441,25 +440,14 @@ bool QuadTree::Node::intersects(const OrthogonalProjection &projection) const {
 	return false;
 }
 
-static void countIntersections(const BoundingShape &, void *userData) {
-	int &counter = *static_cast<int *>(userData);
-	counter++;
-}
-
 bool QuadTree::hasIntersection(const BoundingShape &shape, uint32_t traversalBit) {
-	int count = 0;
-	foreachIntersection(shape,
-		IntersectionCallback{countIntersections, &count},
-		traversalBit);
-	return count > 0;
+	auto &hits = foreachIntersection(shape, traversalBit);
+	return hits.count > 0;
 }
 
 int QuadTree::numIntersections(const BoundingShape &shape, uint32_t traversalBit) {
-	int count = 0;
-	foreachIntersection(shape,
-		IntersectionCallback{countIntersections, &count},
-		traversalBit);
-	return count;
+	auto &hits = foreachIntersection(shape, traversalBit);
+	return hits.count;
 }
 
 void QuadTree::Private::addNodeToQueue(QuadTreeTraversal &td, Node *node) {
@@ -835,18 +823,7 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 	}
 }
 
-void QuadTree::foreachIntersection(
-		const BoundingShape &shape,
-		const IntersectionCallback &callback,
-		uint32_t traversalMask) {
-	if (!root_) return;
-	if (root_->isLeaf() && root_->shapes.empty()) return;
-
-	auto &origin = shape.tfOrigin();
-	// project the shape onto the xz-plane for faster intersection tests
-	// with the quad tree nodes.
-	const OrthogonalProjection &projection = shape.orthoProjection();
-
+HitBuffer& QuadTree::foreachIntersection(const BoundingShape &shape, uint32_t mask) {
 	// use thread-local traversal data to avoid reallocations,
 	// and synchronization between threads.
 	thread_local QuadTreeTraversal td;
@@ -861,6 +838,16 @@ void QuadTree::foreachIntersection(
 			td.batchTest3D->setHitBuffer(&td.hits);
 		}
 	}
+	td.hits.reset();
+
+	if (!root_) return td.hits;
+	if (root_->isLeaf() && root_->shapes.empty()) return td.hits;
+
+	auto &origin = shape.tfOrigin();
+	// project the shape onto the xz-plane for faster intersection tests
+	// with the quad tree nodes.
+	const OrthogonalProjection &projection = shape.orthoProjection();
+
 	if constexpr (QUAD_TREE_3D_BATCHING) {
 		td.batchTest3D->setBatchCapacity(batchSize3D_);
 	}
@@ -869,8 +856,7 @@ void QuadTree::foreachIntersection(
 	td.shape = &shape;
 	td.projection = &projection;
 	td.basePoint = Vec2f(origin.x, origin.z);
-	td.callback = callback;
-	td.traversalMask = traversalMask;
+	td.traversalMask = mask;
 
 	if (nextBufferSize_ > td.queuedMinX_.size()) {
 		td.queuedNodes_[0].resize(nextBufferSize_);
@@ -889,8 +875,6 @@ void QuadTree::foreachIntersection(
 		td.num3DTests_ = 0;
 	}
 
-	// reset hits
-	td.hits.reset();
 	if (td.hits.data.capacity() < itemNodeIdx_.size()) {
 		td.hits.resize(itemNodeIdx_.size());
 	}
@@ -929,13 +913,6 @@ void QuadTree::foreachIntersection(
 		td.batchTest3D->endFrame();
 	}
 
-	// Process all hits by calling the callback
-	for (uint32_t i = 0; i < td.hits.count; i++) {
-		auto itemIdx = td.hits.data[i];
-		auto &quadShape = td.tree->itemShapes_[itemIdx];
-		td.callback.fun(*quadShape.get(), td.callback.userData);
-	}
-
 	if constexpr(QUAD_TREE_DEBUG_TESTS) {
 		static uint32_t numFrames = 0;
 		static std::vector<uint32_t> numTests_2d;
@@ -962,6 +939,8 @@ void QuadTree::foreachIntersection(
 			numTests_3d.clear();
 		}
 	}
+
+	return td.hits;
 }
 
 void QuadTree::update(float dt) {

@@ -138,10 +138,7 @@ namespace regen {
 		int numIntersections(const BoundingShape &shape, uint32_t traversalBit) override;
 
 		// override SpatialIndex::foreachIntersection
-		void foreachIntersection(
-				const BoundingShape &shape,
-				const IntersectionCallback &callback,
-				uint32_t traversalMask) override;
+		HitBuffer& foreachIntersection(const BoundingShape &shape, uint32_t mask) override;
 
 		// override SpatialIndex
 		void debugDraw(DebugInterface &debug) const override;

@@ -258,46 +258,41 @@ void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint32_t idx, uint16_
 	ic->tmp_sortKeys32_[idx] = key;
 }
 
-void SpatialIndex::handleIntersection(const BoundingShape& b_shape, void* userData) {
-    auto* data = (TraversalData*)userData;
-	auto* i_cam = data->indexCamera;
-    auto* i_shape = (IndexedShape*) b_shape.spatialIndexData_[i_cam->camIdx];
-    const uint32_t L = i_shape->camera()->numLayer();
-	const uint32_t l = data->layerIdx;
-
-    // compute LOD level for this shape by distance to camera.
-    // each mesh may have its own thresholds for switching LOD levels, so we need
-    // to let the (base) mesh decide which LOD level to use.
-	const float lodDistance = (b_shape.tfOrigin() - *data->camPos).lengthSquared();
-	const uint32_t k = getLODLevel(b_shape, i_shape, lodDistance);
-
-	// Total visibility count of the shape across all layers
-	i_shape->tmp_totalCount_ += 1;
-	// toggle visibility for this layer
-	i_shape->tmp_layerVisibility_[l] = true;
-	// Finally bin the shape into the (lod, layer) bin
-	uint32_t idx = CullShape::binIdx(k, l, L);
-	i_shape->tmp_binCounts_[idx] += 1;
-	// Add sort key for this instance
-	idx = i_shape->globalBase_ + l * b_shape.numInstances() + b_shape.instanceID();
-	i_cam->tmp_globalInstanceIDs_.push_back(idx);
-	i_cam->tmp_localInstanceIDs_[idx] = b_shape.instanceID();
-	i_cam->pushKeyFun(i_cam, idx, i_shape->shapeIdx_, l, lodDistance, i_shape->instanceSortMode());
-}
-
 void SpatialIndex::updateLayerVisibility(
 		IndexCamera &ic, uint32_t layerIdx,
 		const BoundingShape &camera_shape) {
 	// Collect all intersections for this layer into (lod,layer) bins
-	TraversalData traversalData{ this, &ic, nullptr, layerIdx };
+	const Vec3f *camPos;
 	if (ic.sortCamera->position().size()>1) {
-		traversalData.camPos = &ic.sortCamera->position(layerIdx);
+		camPos = &ic.sortCamera->position(layerIdx);
 	} else {
-		traversalData.camPos = &ic.sortCamera->position(0);
+		camPos = &ic.sortCamera->position(0);
 	}
-	foreachIntersection(camera_shape,
-		IntersectionCallback{handleIntersection, &traversalData},
-		ic.traversalMask);
+	auto &hitBuffer = foreachIntersection(camera_shape, ic.traversalMask);
+	for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
+		auto &b_shape = *itemShapes_[hitBuffer.data[hitIdx]].get();
+		auto *i_shape = (IndexedShape*) b_shape.spatialIndexData_[ic.camIdx];
+		const uint32_t L = i_shape->camera()->numLayer();
+
+		// compute LOD level for this shape by distance to camera.
+		// each mesh may have its own thresholds for switching LOD levels, so we need
+		// to let the (base) mesh decide which LOD level to use.
+		const float lodDistance = (b_shape.tfOrigin() - *camPos).lengthSquared();
+		const uint32_t k = getLODLevel(b_shape, i_shape, lodDistance);
+
+		// Total visibility count of the shape across all layers
+		i_shape->tmp_totalCount_ += 1;
+		// toggle visibility for this layer
+		i_shape->tmp_layerVisibility_[layerIdx] = true;
+		// Finally bin the shape into the (lod, layer) bin
+		uint32_t idx = CullShape::binIdx(k, layerIdx, L);
+		i_shape->tmp_binCounts_[idx] += 1;
+		// Add sort key for this instance
+		idx = i_shape->globalBase_ + layerIdx * b_shape.numInstances() + b_shape.instanceID();
+		ic.tmp_globalInstanceIDs_.push_back(idx);
+		ic.tmp_localInstanceIDs_[idx] = b_shape.instanceID();
+		ic.pushKeyFun(&ic, idx, i_shape->shapeIdx_, layerIdx, lodDistance, i_shape->instanceSortMode());
+	}
 }
 
 static void visibilityJobFunc(void *arg) {

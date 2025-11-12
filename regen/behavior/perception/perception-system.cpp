@@ -52,10 +52,6 @@ void PerceptionSystem::removeMonitor(PerceptionMonitor *monitor) {
 	}
 }
 
-static void handleIntersectionStatic(const BoundingShape &other, void *data) {
-	static_cast<PerceptionSystem*>(data)->handleIntersection(other);
-}
-
 void PerceptionSystem::handleIntersection(const BoundingShape &other) {
 	if (indexedShape_.get() == &other) return; // skip self
 	const Vec3f &thisCenter = indexedShape_->tfOrigin();
@@ -85,10 +81,11 @@ void PerceptionSystem::updateCollisions() {
 	// Update the collision shape transform
 	collisionShape_->updateTransform(false);
 	collisionShape_->updateOrthogonalProjection();
-	spatialIndex_->foreachIntersection(
-		*collisionShape_.get(),
-		IntersectionCallback{handleIntersectionStatic,this},
-		collisionMask_);
+	auto &hits = spatialIndex_->foreachIntersection(*collisionShape_.get(), collisionMask_);
+	for (uint32_t hitIdx = 0; hitIdx < hits.count; ++hitIdx) {
+		auto &b_shape = spatialIndex_->itemShape(hits.data[hitIdx]);
+		handleIntersection(*b_shape.get());
+	}
 	// Cleanup monitors
 	for (auto &monitor : collisionMonitors_) {
 		monitor->finalizeCollisionFrame();

@@ -141,6 +141,13 @@ namespace regen {
 		auto &shapes() const { return nameToShape_; }
 
 		/**
+		 * @brief Get the shape at the given index
+		 * @param itemIdx The item index
+		 * @return The shape
+		 */
+		const ref_ptr<BoundingShape>& itemShape(uint32_t itemIdx) const { return itemShapes_[itemIdx]; }
+
+		/**
 		 * @brief Get the cameras in the index
 		 * @return The cameras
 		 */
@@ -181,15 +188,14 @@ namespace regen {
 		virtual int numIntersections(const BoundingShape &shape, uint32_t traversalMask) = 0;
 
 		/**
-		 * @brief Iterate over all intersections with a shape
+		 * @brief Run intersection tests and fill the hit buffer.
+		 * The hit buffer is packed with shape indices, these point to the shapes array
+		 * in this index.
 		 * @param shape The shape
-		 * @param callback The intersection callback
-		 * @param traversalMask The traversal mask
+		 * @param mask The traversal mask
+		 * @return The hit buffer
 		 */
-		virtual void foreachIntersection(
-				const BoundingShape &shape,
-				const IntersectionCallback &callback,
-				uint32_t traversalMask) = 0;
+		virtual HitBuffer& foreachIntersection(const BoundingShape &shape, uint32_t mask) = 0;
 
 		/**
 		 * @brief Draw debug information
@@ -290,14 +296,6 @@ namespace regen {
 		void debugBoundingShape(DebugInterface &debug, const BoundingShape &shape) const;
 
 		static void createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape> &shape);
-
-		// used internally when handling intersections
-		struct TraversalData {
-			SpatialIndex *index;
-			IndexCamera *indexCamera;
-			const Vec3f *camPos;
-			uint32_t layerIdx;
-		};
 
 		friend struct VisibilityJob;
 
