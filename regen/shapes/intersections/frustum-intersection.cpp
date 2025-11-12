@@ -51,14 +51,12 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 		while (mask) {
 			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 			// Run callback with the sphere that survived
-			const uint32_t sphereIdx = td.queuedIndices[queuedIdx + bitIndex];
-			const BoundingSphere &sphere = *static_cast<BoundingSphere *>((*td.indexedShapes)[sphereIdx].get());
-			td.callback.fun(sphere, td.callback.userData);
+			const uint32_t itemIdx = td.queuedIndices[queuedIdx + bitIndex];
+			td.hits->push(itemIdx);
 		}
 	}
 	for (; queuedIdx < numQueued; queuedIdx++) {
-		const BoundingSphere &sphere = *static_cast<BoundingSphere *>(
-			(*td.indexedShapes)[td.queuedIndices[queuedIdx]].get());
+		auto itemIdx = td.queuedIndices[queuedIdx];
 		Vec3f center(
 			d_spherePosX[queuedIdx],
 			d_spherePosY[queuedIdx],
@@ -72,7 +70,7 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 			}
 		}
 		if (inside) {
-			td.callback.fun(sphere, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -101,9 +99,10 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const Frustum *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithBox(box)) {
-			td.callback.fun(box, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -115,9 +114,10 @@ void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const Frustum *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithBox(box)) {
-			td.callback.fun(box, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -127,9 +127,10 @@ void regen::shapes::flush_Frustum_Frustums(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const Frustum *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const Frustum &frustum = *static_cast<Frustum *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const Frustum &frustum = *static_cast<Frustum *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithFrustum(frustum)) {
-			td.callback.fun(frustum, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }

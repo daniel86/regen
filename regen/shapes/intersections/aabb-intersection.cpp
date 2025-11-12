@@ -9,9 +9,10 @@ void regen::shapes::flush_AABB_Spheres(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingBox *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingSphere &sphere = *static_cast<BoundingSphere *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingSphere &sphere = *static_cast<BoundingSphere *>(shapes[itemIdx].get());
 		if (sphere.hasIntersectionWithShape(*testShape)) {
-			td.callback.fun(sphere, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -28,9 +29,10 @@ void regen::shapes::flush_AABB_AABBs(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingBox *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithBox(box)) {
-			td.callback.fun(box, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -39,9 +41,10 @@ void regen::shapes::flush_AABB_OBBs(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingBox *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithBox(box)) {
-			td.callback.fun(box, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -51,9 +54,10 @@ void regen::shapes::flush_AABB_Frustums(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingBox *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const Frustum &frustum = *static_cast<Frustum *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const Frustum &frustum = *static_cast<Frustum *>(shapes[itemIdx].get());
 		if (frustum.hasIntersectionWithBox(*testShape)) {
-			td.callback.fun(frustum, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }

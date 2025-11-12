@@ -10,9 +10,10 @@ void regen::shapes::flush_Sphere_Spheres(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingSphere &sphere = *static_cast<BoundingSphere *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingSphere &sphere = *static_cast<BoundingSphere *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithSphere(sphere)) {
-			td.callback.fun(sphere, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -22,9 +23,10 @@ void regen::shapes::flush_Sphere_Boxes(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithShape(box)) {
-			td.callback.fun(box, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }
@@ -34,9 +36,10 @@ void regen::shapes::flush_Sphere_Frustums(BatchedIntersectionCase &td) {
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		const Frustum &frustum = *static_cast<Frustum *>(shapes[td.queuedIndices[i]].get());
+		auto itemIdx = td.queuedIndices[i];
+		const Frustum &frustum = *static_cast<Frustum *>(shapes[itemIdx].get());
 		if (frustum.hasIntersectionWithSphere(*testShape)) {
-			td.callback.fun(frustum, td.callback.userData);
+			td.hits->push(itemIdx);
 		}
 	}
 }

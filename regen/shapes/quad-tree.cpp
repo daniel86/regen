@@ -67,6 +67,7 @@ namespace regen {
 		#if defined(QUAD_TREE_DEFERRED_BATCH_STORE) && !defined(QUAD_TREE_DISABLE_SIMD)
 		AlignedArray<uint8_t> batchResults_;
 		#endif
+		HitBuffer hits;
 	};
 
 	struct QuadTree::Private {
@@ -785,15 +786,12 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 	// Also we submit each shape to a batched intersection tester,
 	// which will perform the actual intersection tests later in a batch
 	// (latest when endFrame is called on the quad tree).
-	// TODO: Defer the callback. We could fill index array with shape indices
-	//       and call the callback after the all tests are done? Or we call in batches too?
 
 	if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_NONE) {
-		// no intersection test, just call the callback
+		// no intersection test, just record the hit
 		for (uint32_t itemIdx: leaf->shapes) {
-			auto &quadShape = td.tree->itemShapes_[itemIdx];
-			if (isMasked(td, quadShape)) continue;
-			td.callback.fun(*quadShape.get(), td.callback.userData);
+			if (isMasked(td, td.tree->itemShapes_[itemIdx])) continue;
+			td.hits.push(itemIdx);
 		}
 	} else if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_ALL) {
 		// test all shapes, even if they are not close to the shape's projection origin
@@ -802,16 +800,14 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 			if (isMasked(td, quadShape)) continue;
 			if constexpr (QUAD_TREE_3D_BATCHING) {
 				td.batchTest3D->push(itemIdx);
-			} else {
-				if (td.shape->hasIntersectionWith(*quadShape.get())) {
-					td.callback.fun(*quadShape.get(), td.callback.userData);
-				}
+			} else if (td.shape->hasIntersectionWith(*quadShape.get())) {
+				td.hits.push(itemIdx);
 			}
 			if constexpr(QUAD_TREE_DEBUG_TESTS) {
 				td.num3DTests_ += 1;
 			}
 		}
-	} else if (td.tree->testMode3D_ == QUAD_TREE_3D_TEST_CLOSEST) {
+	} else { // QUAD_TREE_3D_TEST_CLOSEST
 		// heuristic: only test shapes that are close to the shape's projection origin (e.g. camera position)
 		// This is a good approach because:
 		//     (1) shapes that are close use higher level of detail -> more expensive to draw false positives
@@ -819,9 +815,8 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 		float distSq = (td.basePoint - leaf->bounds.center()).lengthSquared();
 		if (distSq > td.tree->closeDistanceSquared_) {
 			for (uint32_t itemIdx: leaf->shapes) {
-				auto &quadShape = td.tree->itemShapes_[itemIdx];
-				if (isMasked(td, quadShape)) continue;
-				td.callback.fun(*quadShape.get(), td.callback.userData);
+				if (isMasked(td, td.tree->itemShapes_[itemIdx])) continue;
+				td.hits.push(itemIdx);
 			}
 		} else {
 			for (uint32_t itemIdx: leaf->shapes) {
@@ -829,10 +824,8 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 				if (isMasked(td, quadShape)) continue;
 				if constexpr (QUAD_TREE_3D_BATCHING) {
 					td.batchTest3D->push(itemIdx);
-				} else {
-					if (td.shape->hasIntersectionWith(*quadShape.get())) {
-						td.callback.fun(*quadShape.get(), td.callback.userData);
-					}
+				} else if (td.shape->hasIntersectionWith(*quadShape.get())) {
+					td.hits.push(itemIdx);
 				}
 				if constexpr(QUAD_TREE_DEBUG_TESTS) {
 					td.num3DTests_ += 1;
@@ -865,6 +858,7 @@ void QuadTree::foreachIntersection(
 		if constexpr (QUAD_TREE_3D_BATCHING) {
 			td.batchTest3D = ref_ptr<BatchedIntersectionTest>::alloc();
 			td.batchTest3D->setIndexedShapes(&itemShapes_);
+			td.batchTest3D->setHitBuffer(&td.hits);
 		}
 	}
 	if constexpr (QUAD_TREE_3D_BATCHING) {
@@ -877,6 +871,7 @@ void QuadTree::foreachIntersection(
 	td.basePoint = Vec2f(origin.x, origin.z);
 	td.callback = callback;
 	td.traversalMask = traversalMask;
+
 	if (nextBufferSize_ > td.queuedMinX_.size()) {
 		td.queuedNodes_[0].resize(nextBufferSize_);
 		td.queuedNodes_[1].resize(nextBufferSize_);
@@ -893,8 +888,15 @@ void QuadTree::foreachIntersection(
 		td.num2DTests_ = 0;
 		td.num3DTests_ = 0;
 	}
+
+	// reset hits
+	td.hits.reset();
+	if (td.hits.data.capacity() < itemNodeIdx_.size()) {
+		td.hits.resize(itemNodeIdx_.size());
+	}
+
 	if constexpr (QUAD_TREE_3D_BATCHING) {
-		td.batchTest3D->beginFrame(shape, callback);
+		td.batchTest3D->beginFrame(shape);
 	}
 	priv_->addNodeToQueue(td, root_);
 
@@ -925,6 +927,13 @@ void QuadTree::foreachIntersection(
 	}
 	if constexpr (QUAD_TREE_3D_BATCHING) {
 		td.batchTest3D->endFrame();
+	}
+
+	// Process all hits by calling the callback
+	for (uint32_t i = 0; i < td.hits.count; i++) {
+		auto itemIdx = td.hits.data[i];
+		auto &quadShape = td.tree->itemShapes_[itemIdx];
+		td.callback.fun(*quadShape.get(), td.callback.userData);
 	}
 
 	if constexpr(QUAD_TREE_DEBUG_TESTS) {

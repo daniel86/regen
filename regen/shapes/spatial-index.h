@@ -8,6 +8,8 @@
 #include "regen/utility/radix-sort-cpu.h"
 #include <regen/scene/loading-context.h>
 
+#include "regen/utility/aligned-array.h"
+
 namespace regen {
 	/**
 	 * Callback structure for intersection tests.
@@ -17,6 +19,19 @@ namespace regen {
 		void (*fun)(const BoundingShape &, void *) = nullptr;
 		// User data pointer passed to the callback
 		void *userData = nullptr;
+	};
+
+	/**
+	 * @brief Buffer for storing hit shape indices.
+	 */
+	struct HitBuffer {
+		// Aligned array of shape indices
+		AlignedArray<uint32_t> data;
+		// Current count of hits
+		uint32_t count = 0;
+		void resize(uint32_t newSize) { data.resize(newSize); }
+		void reset() { count = 0; }
+		void push(uint32_t v) { data[count++] = v; }
 	};
 
 	/**

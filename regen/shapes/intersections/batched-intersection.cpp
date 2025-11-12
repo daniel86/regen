@@ -38,6 +38,13 @@ void BatchedIntersectionTest::setIndexedShapes(const std::vector<ref_ptr<Boundin
 	}
 }
 
+void BatchedIntersectionTest::setHitBuffer(HitBuffer *hits) {
+	for (auto &caseBuffer : cases_) {
+		caseBuffer->hits = hits;
+	}
+}
+
+
 void BatchedIntersectionTest::setBatchCapacity(uint32_t capacity) {
 	if (batchOfCapacity_ != capacity) {
 		batchOfCapacity_ = capacity;
@@ -47,7 +54,7 @@ void BatchedIntersectionTest::setBatchCapacity(uint32_t capacity) {
 	}
 }
 
-void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape, IntersectionCallback callback) {
+void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape) {
 	BoundingShapeType shapeType = testShape.shapeType();
 #define _idx(x) static_cast<int8_t>(x)
 	using IST = IntersectionShapeType;
@@ -90,10 +97,10 @@ void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape, Interse
 		}
 	}
 #undef _idx
-	cases_[frameCases_[0]]->init(testShape, callback, batchOfCapacity_);
-	cases_[frameCases_[1]]->init(testShape, callback, batchOfCapacity_);
-	cases_[frameCases_[2]]->init(testShape, callback, batchOfCapacity_);
-	cases_[frameCases_[3]]->init(testShape, callback, batchOfCapacity_);
+	cases_[frameCases_[0]]->init(testShape, batchOfCapacity_);
+	cases_[frameCases_[1]]->init(testShape, batchOfCapacity_);
+	cases_[frameCases_[2]]->init(testShape, batchOfCapacity_);
+	cases_[frameCases_[3]]->init(testShape, batchOfCapacity_);
 }
 
 inline IntersectionShapeType getShapeType(const ref_ptr<BoundingShape> &shape) {
@@ -132,12 +139,8 @@ void BatchedIntersectionTest::flush() {
 	numQueuedShapes_ = 0u;
 }
 
-void BatchedIntersectionCase::init(
-			const BoundingShape &shape,
-			IntersectionCallback cb,
-			uint32_t capacity) {
+void BatchedIntersectionCase::init(const BoundingShape &shape, uint32_t capacity) {
 	this->testShape = &shape;
-	this->callback = cb;
 	numQueued = 0;
 	if (batchData->capacity < capacity) {
 		batchData->resize(capacity);

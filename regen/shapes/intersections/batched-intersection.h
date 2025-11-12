@@ -57,8 +57,6 @@ namespace regen {
 	struct BatchedIntersectionCase {
 		BatchedIntersectionCase() = default;
 		virtual ~BatchedIntersectionCase() = default;
-		// Callback to run on each intersecting sphere
-		IntersectionCallback callback;
 		// Test shape
 		const BoundingShape *testShape = nullptr;
 		// Number of queued shapes
@@ -70,6 +68,8 @@ namespace regen {
 		// Memory for the test/indexed shapes
 		IntersectionShapeData *shapeData = nullptr;
 		BatchOfShapes *batchData = nullptr;
+		// Hit buffer for storing successful intersections by index
+		HitBuffer *hits = nullptr;
 
 		/**
 		 * @brief Initialize the intersection case with a test shape and callback.
@@ -77,7 +77,7 @@ namespace regen {
 		 * @param cb The callback to invoke for each intersecting shape.
 		 * @param capacity The maximum number of shapes to queue before flushing.
 		 */
-		void init(const BoundingShape &shape, IntersectionCallback cb, uint32_t capacity);
+		void init(const BoundingShape &shape, uint32_t capacity);
 
 		/**
 		 * @brief Insert a shape into the intersection case for testing.
@@ -135,6 +135,12 @@ namespace regen {
 		void setIndexedShapes(const std::vector<ref_ptr<BoundingShape>> *shapes);
 
 		/**
+		 * @brief Set the hit buffer to store intersecting shape indices.
+		 * @param hits A pointer to the hit buffer.
+		 */
+		void setHitBuffer(HitBuffer *hits);
+
+		/**
 		 * @brief Set the batch capacity for queued shapes.
 		 * @param capacity The maximum number of shapes to queue before flushing.
 		 */
@@ -144,9 +150,8 @@ namespace regen {
 		 * @brief Begin a new frame for intersection testing with a specified test shape and callback.
 		 * Only one frame may be active at a given time, this is not thread-safe.
 		 * @param testShape The test shape to use for intersection tests.
-		 * @param callback The callback to invoke for each intersecting shape.
 		 */
-		void beginFrame(const BoundingShape &testShape, IntersectionCallback callback);
+		void beginFrame(const BoundingShape &testShape);
 
 		/**
 		 * @brief Insert a shape into the current frame for intersection testing.
