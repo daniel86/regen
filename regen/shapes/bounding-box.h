@@ -6,14 +6,6 @@
 
 namespace regen {
 	/**
-	 * @brief Bounding box type
-	 */
-	enum class BoundingBoxType {
-		AABB = 0,
-		OBB
-	};
-
-	/**
 	 * @brief Bounding box
 	 */
 	class BoundingBox : public BoundingShape {
@@ -23,34 +15,16 @@ namespace regen {
 		 * @param type The type of the box
 		 * @param mesh The mesh
 		 */
-		BoundingBox(BoundingBoxType type, const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts);
+		BoundingBox(BoundingShapeType type, const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts);
 
 		/**
 		 * @brief Construct a new Bounding Box object
 		 * @param type The type of the box
 		 * @param bounds The min/max bounds of the box's vertices (without transformation)
 		 */
-		BoundingBox(BoundingBoxType type, const Bounds<Vec3f> &bounds);
+		BoundingBox(BoundingShapeType type, const Bounds<Vec3f> &bounds);
 
 		~BoundingBox() override = default;
-
-		/**
-		 * @brief Get the type of this box
-		 * @return The type
-		 */
-		BoundingBoxType boxType() const { return type_; }
-
-		/**
-		 * @brief Check if this box is an AABB
-		 * @return True if this box is an AABB, false otherwise
-		 */
-		auto isAABB() const { return type_ == BoundingBoxType::AABB; }
-
-		/**
-		 * @brief Check if this box is an OBB
-		 * @return True if this box is an OBB, false otherwise
-		 */
-		auto isOBB() const { return type_ == BoundingBoxType::OBB; }
 
 		/**
 		 * @brief Get the min/max bounds of the box's vertices (without transformation)
@@ -94,7 +68,6 @@ namespace regen {
 		void updateBaseBounds(const Vec3f &min, const Vec3f &max) override;
 
 	protected:
-		BoundingBoxType type_;
 		// min/max bounds of the box's vertices (without transformation)
 		Bounds<Vec3f> baseBounds_;
 		// min/max bounds of the box's vertices after transformation

@@ -43,7 +43,7 @@ namespace regen {
 		void update(const BoundingShape &shape) {
 			const auto &frustum = static_cast<const Frustum &>(shape);
 			for (size_t i = 0; i < 6; ++i) {
-				planes[i] = frustum.planes[i].equation();
+				planes[i] = frustum.planes[i].coefficients;
 			}
 		}
 	};

@@ -7,16 +7,14 @@
 
 using namespace regen;
 
-BoundingBox::BoundingBox(BoundingBoxType type, const Bounds<Vec3f> &bounds)
-		: BoundingShape(BoundingShapeType::BOX),
-		  type_(type),
+BoundingBox::BoundingBox(BoundingShapeType type, const Bounds<Vec3f> &bounds)
+		: BoundingShape(type),
 		  baseBounds_(bounds),
 		  tfBounds_(bounds),
 		  basePosition_((bounds.max + bounds.min) * 0.5f) {}
 
-BoundingBox::BoundingBox(BoundingBoxType type, const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
-		: BoundingShape(BoundingShapeType::BOX, mesh, parts),
-		  type_(type),
+BoundingBox::BoundingBox(BoundingShapeType type, const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
+		: BoundingShape(type, mesh, parts),
 		  baseBounds_(mesh->minPosition(), mesh->maxPosition()),
 		  tfBounds_(mesh->minPosition(), mesh->maxPosition()) {
 	for (const auto &part : parts) {
@@ -57,16 +55,13 @@ std::pair<float, float> BoundingBox::project(const Vec3f &axis) const {
 }
 
 bool BoundingBox::hasIntersectionWithBox(const BoundingBox &other) const {
-	switch (type_) {
-		case BoundingBoxType::AABB:
-			switch (other.type_) {
-				case BoundingBoxType::AABB:
-					return ((AABB &) *this).hasIntersectionWithAABB((const AABB &) other);
-				case BoundingBoxType::OBB:
-					return ((OBB &) other).hasIntersectionWithOBB(*this);
-			}
-		case BoundingBoxType::OBB:
-			return ((OBB &) *this).hasIntersectionWithOBB(other);
+	if (shapeType_ == BoundingShapeType::AABB) {
+		if (other.shapeType_ == BoundingShapeType::AABB) {
+			return ((AABB &) *this).hasIntersectionWithAABB((const AABB &) other);
+		} else {
+			return ((OBB &) other).hasIntersectionWithOBB(*this);
+		}
+	} else {
+		return ((OBB &) *this).hasIntersectionWithOBB(other);
 	}
-	return false;
 }

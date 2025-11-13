@@ -529,19 +529,23 @@ void SpatialIndex::removeDebugShape(const ref_ptr<BoundingShape> &shape) {
 void SpatialIndex::debugBoundingShape(DebugInterface &debug, const BoundingShape &shape) const {
 	SpatialIndexDebug &sid = static_cast<SpatialIndexDebug &>(debug);
 	switch (shape.shapeType()) {
-		case BoundingShapeType::BOX: {
-			auto box = static_cast<const BoundingBox *>(&shape);
-			sid.drawBox(*box);
-			break;
-		}
 		case BoundingShapeType::SPHERE: {
 			auto sphere = static_cast<const BoundingSphere *>(&shape);
 			sid.drawSphere(*sphere);
 			break;
 		}
-		case BoundingShapeType::FRUSTUM:
+		case BoundingShapeType::AABB:
+		case BoundingShapeType::OBB: {
+			auto box = static_cast<const BoundingBox *>(&shape);
+			sid.drawBox(*box);
+			break;
+		}
+		case BoundingShapeType::FRUSTUM: {
 			auto frustum = static_cast<const Frustum *>(&shape);
 			sid.drawFrustum(*frustum);
+			break;
+		}
+		case BoundingShapeType::LAST:
 			break;
 	}
 }

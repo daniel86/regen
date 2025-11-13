@@ -5,12 +5,12 @@
 using namespace regen;
 
 OBB::OBB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
-		: BoundingBox(BoundingBoxType::OBB, mesh, parts) {
+		: BoundingBox(BoundingShapeType::OBB, mesh, parts) {
 	updateOBB();
 }
 
 OBB::OBB(const Bounds<Vec3f> &bounds)
-		: BoundingBox(BoundingBoxType::OBB, bounds) {
+		: BoundingBox(BoundingShapeType::OBB, bounds) {
 	updateOBB();
 }
 

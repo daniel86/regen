@@ -30,7 +30,8 @@ OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
 	switch (shape.shapeType()) {
 		case BoundingShapeType::SPHERE:
 			points.resize(2);
-		case BoundingShapeType::BOX:
+		case BoundingShapeType::AABB:
+		case BoundingShapeType::OBB:
 			axes.resize(4, Axis(Vec2f(0,0)));
 			axes[0].dir = Vec2f(1, 0);
 			axes[1].dir = Vec2f(0, 1);
@@ -52,7 +53,8 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 			points[1] = Vec2f(sphere->radius() * sphere->radius(), 0);
 			break;
 		}
-		case BoundingShapeType::BOX: {
+		case BoundingShapeType::AABB:
+		case BoundingShapeType::OBB: {
 			// box projection is a rectangle
 			type = OrthogonalProjection::Type::RECTANGLE;
 			auto *box = static_cast<const BoundingBox *>(&shape);
@@ -91,6 +93,9 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 			// use the convex hull of the frustum points as projection
 			createConvexHull(frustum->points, 8);
 			break;
+		}
+		case BoundingShapeType::LAST: {
+			return;
 		}
 	}
 

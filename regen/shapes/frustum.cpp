@@ -162,12 +162,12 @@ static inline bool hasIntersection_AABB_(const Plane *planes, const BoundingBox 
 		// Select vertex farthest from the plane in direction of the plane normal.
 		// If this point is behind the plane, the AABB must be outside of the frustum.
 		auto &plane = planes[i];
-		auto &n = plane.normal;
+		auto &n = plane.normal();
 		Vec3f p(
 			n.x > 0.0 ? p_min.x : p_max.x,
 			n.y > 0.0 ? p_min.y : p_max.y,
 			n.z > 0.0 ? p_min.z : p_max.z);
-		if (n.dot(plane.point) - n.dot(p) < 0.0) {
+		if (n.dot(p) - plane.coefficients.w < 0.0) {
 			// AABB is outside of the frustum
 			return false;
 		}
@@ -230,8 +230,7 @@ bool Frustum::hasIntersectionWithSphere(const BoundingSphere &sphere) const {
 }
 
 bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {
-	for (int i = 0; i < 6; ++i) {
-		auto &plane = other.planes[i];
+	for (const auto & plane : other.planes) {
 		if (plane.distance(points[0]) < 0 &&
 			plane.distance(points[1]) < 0 &&
 			plane.distance(points[2]) < 0 &&
@@ -254,8 +253,8 @@ void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) cons
 	double si, lastn, currf, currn;
 
 	lastn = n;
-	for (GLuint i = 1; i < count; ++i) {
-		si = i / (GLdouble) count;
+	for (uint32_t i = 1; i < count; ++i) {
+		si = i / (double) count;
 
 		// C_i = \lambda * C_i^{log} + (1-\lambda) * C_i^{uni}
 		currn = splitWeight * (n * (pow(ratio, si))) +

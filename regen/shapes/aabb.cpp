@@ -3,12 +3,12 @@
 using namespace regen;
 
 AABB::AABB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
-		: BoundingBox(BoundingBoxType::AABB, mesh, parts) {
+		: BoundingBox(BoundingShapeType::AABB, mesh, parts) {
 	updateAABB();
 }
 
 AABB::AABB(const Bounds<Vec3f> &bounds)
-		: BoundingBox(BoundingBoxType::AABB, bounds) {
+		: BoundingBox(BoundingShapeType::AABB, bounds) {
 	updateAABB();
 }
 

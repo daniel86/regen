@@ -552,7 +552,8 @@ void LODState::createComputeShader() {
 					"shapeRadius", sphere->radius()));
 			shaderCfg.define("SHAPE_TYPE", "SPHERE");
 		}
-		else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
+		else if (boundingShape->shapeType() == BoundingShapeType::AABB ||
+				 boundingShape->shapeType() == BoundingShapeType::OBB) {
 			auto *box = static_cast<BoundingBox*>(boundingShape.get());
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));

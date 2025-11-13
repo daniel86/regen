@@ -11,20 +11,9 @@
 
 namespace regen {
 	/**
-	 * Enumeration of different intersection shape types.
-	 */
-	enum class IntersectionShapeType {
-		SPHERE = 0,
-		AABB,
-		OBB,
-		FRUSTUM,
-		LAST // keep last
-	};
-
-	/**
 	 * Traits structure for intersection tests between different shape types.
 	 */
-	template<IntersectionShapeType Test, IntersectionShapeType Indexed> struct IntersectionTraits;
+	template<BoundingShapeType Test, BoundingShapeType Indexed> struct IntersectionTraits;
 
 	/**
 	 * Different cases of intersection tests handled by BatchedIntersection.
@@ -120,7 +109,7 @@ namespace regen {
 	 */
 	class BatchedIntersectionTest {
 	public:
-		static constexpr int NUM_SHAPE_TYPES = static_cast<int>(IntersectionShapeType::LAST);
+		static constexpr int NUM_SHAPE_TYPES = static_cast<int>(BoundingShapeType::LAST);
 		static constexpr int NUM_TEST_CASES = static_cast<int>(IntersectionCaseType::LAST);
 
 		/**
@@ -198,7 +187,7 @@ namespace regen {
 		std::array<std::unique_ptr<BatchOfShapes>, NUM_SHAPE_TYPES> batchesOfShapes_;
 
 		// Helper function to register a case buffer for a given test and indexed shape type.
-		template<IntersectionShapeType TestShapeType, IntersectionShapeType IndexShapeType> void registerCase() {
+		template<BoundingShapeType TestShapeType, BoundingShapeType IndexShapeType> void registerCase() {
 			using Traits = IntersectionTraits<TestShapeType, IndexShapeType>;
 			constexpr auto id = static_cast<int>(Traits::Case);
 			cases_[id] = std::make_unique<BatchedIntersectionCase>();
@@ -210,11 +199,11 @@ namespace regen {
 		}
 
 		// Helper function to register all indexed shape cases for a given test shape type.
-		template<IntersectionShapeType Test> void registerAllCases() {
-			registerCase<Test, IntersectionShapeType::SPHERE>();
-			registerCase<Test, IntersectionShapeType::AABB>();
-			registerCase<Test, IntersectionShapeType::OBB>();
-			registerCase<Test, IntersectionShapeType::FRUSTUM>();
+		template<BoundingShapeType Test> void registerAllCases() {
+			registerCase<Test, BoundingShapeType::SPHERE>();
+			registerCase<Test, BoundingShapeType::AABB>();
+			registerCase<Test, BoundingShapeType::OBB>();
+			registerCase<Test, BoundingShapeType::FRUSTUM>();
 		}
 	};
 } // namespace

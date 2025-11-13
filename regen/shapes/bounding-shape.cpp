@@ -132,31 +132,44 @@ bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {
 			switch (other.shapeType()) {
 				case BoundingShapeType::SPHERE:
 					return ((const BoundingSphere &) *this).hasIntersectionWithSphere((const BoundingSphere &) other);
-				case BoundingShapeType::BOX:
+				case BoundingShapeType::AABB:
+				case BoundingShapeType::OBB:
 					return ((const BoundingSphere &) *this).hasIntersectionWithShape((const BoundingBox &) other);
 				case BoundingShapeType::FRUSTUM:
 					return ((const Frustum &) other).hasIntersectionWithSphere((const BoundingSphere &) *this);
+				case BoundingShapeType::LAST:
+					return false;
 			}
 
-		case BoundingShapeType::BOX:
+		case BoundingShapeType::OBB:
+		case BoundingShapeType::AABB:
 			switch (other.shapeType()) {
 				case BoundingShapeType::SPHERE:
 					return ((const BoundingSphere &) other).hasIntersectionWithShape(*this);
-				case BoundingShapeType::BOX:
+				case BoundingShapeType::AABB:
+				case BoundingShapeType::OBB:
 					return ((const BoundingBox &) *this).hasIntersectionWithBox((const BoundingBox &) other);
 				case BoundingShapeType::FRUSTUM:
 					return ((const Frustum &) other).hasIntersectionWithBox((const BoundingBox &) *this);
+				case BoundingShapeType::LAST:
+						return false;
 			}
 
 		case BoundingShapeType::FRUSTUM:
 			switch (other.shapeType()) {
 				case BoundingShapeType::SPHERE:
 					return ((const Frustum *) this)->hasIntersectionWithSphere((const BoundingSphere &) other);
-				case BoundingShapeType::BOX:
+				case BoundingShapeType::AABB:
+				case BoundingShapeType::OBB:
 					return ((const Frustum *) this)->hasIntersectionWithBox((const BoundingBox &) other);
 				case BoundingShapeType::FRUSTUM:
 					return ((const Frustum *) this)->hasIntersectionWithFrustum((const Frustum &) other);
+				case BoundingShapeType::LAST:
+						return false;
 			}
+
+		case BoundingShapeType::LAST:
+			return false;
 	}
 	return false;
 }

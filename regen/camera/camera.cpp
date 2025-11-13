@@ -461,7 +461,7 @@ void Camera::updateFrustumBuffer() {
 	for (size_t i = 0; i < frustum_.size(); ++i) {
 		auto &frustumPlanes = frustum_[i].planes;
 		for (int j = 0; j < 6; ++j) {
-			frustum_cpu.w[i * 6 + j] = frustumPlanes[j].equation();
+			frustum_cpu.w[i * 6 + j] = frustumPlanes[j].coefficients;
 		}
 	}
 }

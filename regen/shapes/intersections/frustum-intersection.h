@@ -12,25 +12,25 @@ namespace regen {
 		void flush_Frustum_Frustums(BatchedIntersectionCase&);
 	}
 
-	template<> struct IntersectionTraits<IntersectionShapeType::FRUSTUM, IntersectionShapeType::SPHERE> {
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::SPHERE> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_SPHERES;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
 		static constexpr auto Flush = shapes::flush_Frustum_Spheres;
 	};
 
-	template<> struct IntersectionTraits<IntersectionShapeType::FRUSTUM, IntersectionShapeType::AABB> {
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::AABB> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_AABBs;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
 		static constexpr auto Flush = shapes::flush_Frustum_AABBs;
 	};
 
-	template<> struct IntersectionTraits<IntersectionShapeType::FRUSTUM, IntersectionShapeType::OBB> {
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::OBB> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_OBBs;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
 		static constexpr auto Flush = shapes::flush_Frustum_OBBs;
 	};
 
-	template<> struct IntersectionTraits<IntersectionShapeType::FRUSTUM, IntersectionShapeType::FRUSTUM> {
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::FRUSTUM> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_FRUSTUMS;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
 		static constexpr auto Flush = shapes::flush_Frustum_Frustums;

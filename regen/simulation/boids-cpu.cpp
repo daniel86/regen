@@ -404,42 +404,41 @@ void BoidsCPU::updateGrid() {
 
 #ifdef REGEN_BOID_USE_GRID_SIMD
 	{
-		BatchOf_Vec3f boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-		BatchOf_Vec3f simd_gridMin = BatchOf_Vec3f::fromScalar(gridBounds_.min);
-		BatchOf_Vec3i simd_gridSize = BatchOf_Vec3i::fromScalar(
-			priv_->gridSize_ - Vec3i::one());
-		BatchOf_Vec3i simd_gridSize_1_X_XY = BatchOf_Vec3i::fromScalar(
-			Vec3i(1, priv_->gridSize_.x, priv_->gridSize_.x * priv_->gridSize_.y));
-		BatchOf_float simd_cellSize = BatchOf_float::fromScalar(priv_->cellSize_);
-		BatchOf_float simd_zero = BatchOf_float::fromScalar(0.0f);
+		const BatchOf_Vec3f gridMin = BatchOf_Vec3f::fromScalar(gridBounds_.min);
+		const BatchOf_Vec3i gridSize = BatchOf_Vec3i::fromScalar(priv_->gridSize_);
+		const BatchOf_int32 allOne = BatchOf_int32::fromScalar(1);
+		const BatchOf_float simd_cellSize = BatchOf_float::fromScalar(priv_->cellSize_);
 
+		BatchOf_Vec3f boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 		// we compute the grid index in batches
 		for (; startIdx +  simd::RegisterWidth <= static_cast<int32_t>(numBoids_); startIdx += simd::RegisterWidth) {
 			// load the boid positions into a SIMD register
-			boidBatch.load_aligned(
+			boidBatch.setAligned(
 					priv_->boidPositionsX_.data() + startIdx,
 					priv_->boidPositionsY_.data() + startIdx,
 					priv_->boidPositionsZ_.data() + startIdx);
 			// x = (x - gridBounds_.min) / cellSize
-			boidBatch = (boidBatch - simd_gridMin) / simd_cellSize;
+			boidBatch = (boidBatch - gridMin) / simd_cellSize;
 			// clamp to 0+
-			boidBatch = boidBatch.max(simd_zero);
+			boidBatch.x = simd::max_ps(boidBatch.x, _mm256_setzero_ps());
+			boidBatch.y = simd::max_ps(boidBatch.y, _mm256_setzero_ps());
+			boidBatch.z = simd::max_ps(boidBatch.z, _mm256_setzero_ps());
 
 			// floor to integer grid indices
 			BatchOf_Vec3i gridIndices = boidBatch.floor();
 			// clamp to max grid bounds
-			gridIndices = gridIndices.min(simd_gridSize);
-			// iy_f = iy * gridSize.x
-			simd::Register_i iy_f = simd::mul_epi32(gridIndices.y, simd_gridSize_1_X_XY.y);
-			// iz_f = iz * gridSize.x * gridSize.y;
-			simd::Register_i iz_f = simd::mul_epi32(gridIndices.z, simd_gridSize_1_X_XY.z);
+			gridIndices = gridIndices.min(gridSize - allOne);
 			// i_f = ix + iy_f + iz_f;
-			simd::Register_i i_f = simd::add_epi32(simd::add_epi32(gridIndices.x, iy_f), iz_f);
+			//    - iy_f = iy * gridSize.x
+			//    - iz_f = iz * gridSize.x * gridSize.y;
+			const BatchOf_int32 i_f = (gridIndices.x +
+				(gridIndices.y * gridSize.x) +
+				(gridIndices.z * gridSize.x * gridSize.y));
 			// store results in local array
 			//simd::storeu_epi32(boidGridIndicesX_.data() + startIdx, gridIndices.x);
 			//simd::storeu_epi32(boidGridIndicesY_.data() + startIdx, gridIndices.y);
 			//simd::storeu_epi32(boidGridIndicesZ_.data() + startIdx, gridIndices.z);
-			simd::storeu_epi32(priv_->boidGridIndex_.data() + startIdx, i_f);
+			simd::storeu_epi32(priv_->boidGridIndex_.data() + startIdx, i_f.c);
 		}
 	}
 #endif // REGEN_USE_SIMD_GRID_UPDATE
@@ -532,9 +531,9 @@ void BoidsCPU::updateNeighbours(
 
 		for (; startIdx + simd::RegisterWidth <= neighborCount; startIdx += simd::RegisterWidth) {
 			// load the indices of the neighbors into a SIMD register
-			auto idx = simd::loadu_si256(neighborIndices + startIdx);
+			simd::Register_i idx = simd::loadu_si256(neighborIndices + startIdx);
 			// load the positions of the neighbors into a SIMD register
-			neighborBatch.load(
+			neighborBatch.setGathered(
 					priv_->boidPositionsX_.data(),
 					priv_->boidPositionsY_.data(),
 					priv_->boidPositionsZ_.data(),
@@ -618,14 +617,14 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 			BatchOf_Vec3f neighborPos_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			for (; startIdx + simd::RegisterWidth <= boid.numNeighbors; startIdx += simd::RegisterWidth) {
 				// load the neighbor indices into a SIMD register
-				auto idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
+				simd::Register_i idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
 				// load the positions of the neighbors into a SIMD register
-				neighborPos_SIMD.load(
+				neighborPos_SIMD.setGathered(
 						priv_->boidPositionsX_.data(),
 						priv_->boidPositionsY_.data(),
 						priv_->boidPositionsZ_.data(),
 						idx);
-				neighborVel_SIMD.load(
+				neighborVel_SIMD.setGathered(
 						priv_->boidVelocityX_.data(),
 						priv_->boidVelocityY_.data(),
 						priv_->boidVelocityZ_.data(),
@@ -653,7 +652,7 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 				// load the neighbor indices into a SIMD register
 				simd::Register_i idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
 				// load the positions of the neighbors into a SIMD register
-				dir.load(
+				dir.setGathered(
 						priv_->boidPositionsX_.data(),
 						priv_->boidPositionsY_.data(),
 						priv_->boidPositionsZ_.data(),

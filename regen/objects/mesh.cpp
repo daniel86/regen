@@ -732,7 +732,7 @@ void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
 	if (shape->shapeType() == BoundingShapeType::SPHERE) {
 		shapeType_ = 0;
 		shaderDefine("SHAPE_TYPE", "SPHERE");
-	} else if (shape->shapeType() == BoundingShapeType::BOX) {
+	} else if (shape->shapeType() == BoundingShapeType::AABB || shape->shapeType() == BoundingShapeType::OBB) {
 		auto box = (BoundingBox *) (shape.get());
 		shapeType_ = box->isAABB() ? 1 : 2;
 		shaderDefine("SHAPE_TYPE", box->isAABB() ? "AABB" : "OBB");

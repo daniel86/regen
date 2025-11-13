@@ -6,9 +6,11 @@
 
 namespace regen {
 	enum class BoundingShapeType {
-		BOX,
-		SPHERE,
-		FRUSTUM
+		SPHERE = 0,
+		AABB,
+		OBB,
+		FRUSTUM,
+		LAST // keep last
 	};
 
 	class Mesh;
@@ -117,10 +119,22 @@ namespace regen {
 		BoundingShapeType shapeType() const { return shapeType_; }
 
 		/**
+		 * @brief Check if this box is an AABB
+		 * @return True if this box is an AABB, false otherwise
+		 */
+		auto isAABB() const { return shapeType_ == BoundingShapeType::AABB; }
+
+		/**
+		 * @brief Check if this box is an OBB
+		 * @return True if this box is an OBB, false otherwise
+		 */
+		auto isOBB() const { return shapeType_ == BoundingShapeType::OBB; }
+
+		/**
 		 * @brief Check if this shape is a box
 		 * @return True if this shape is a box, false otherwise
 		 */
-		bool isBox() const { return shapeType_ == BoundingShapeType::BOX; }
+		bool isBox() const { return shapeType_ == BoundingShapeType::AABB || shapeType_ == BoundingShapeType::OBB; }
 
 		/**
 		 * @brief Check if this shape is a sphere

@@ -169,6 +169,7 @@ void regen::shapes::flush_OBB_AABBs(BatchedIntersectionCase &td) {
 void regen::shapes::flush_OBB_OBBs(BatchedIntersectionCase &td) {
 	// note: This case cannot be handled well with AVX and its limited number
 	// of registers, so we do a scalar implementation here.
+	// TODO: Consider adding an early-out by bounding sphere
 	auto *testShape = static_cast<const BoundingBox *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
