@@ -79,10 +79,11 @@ void regen::shapes::flush_Sphere_AABBs(BatchedIntersectionCase &tid) {
 
 	{
 		// Load sphere data into SIMD registers, we need 4 registers.
-		BatchOf_float pX(spherePos.x);
-		BatchOf_float pY(spherePos.y);
-		BatchOf_float pZ(spherePos.z);
-		BatchOf_float r(sphereRadius);
+		const BatchOf_float pX(spherePos.x);
+		const BatchOf_float pY(spherePos.y);
+		const BatchOf_float pZ(spherePos.z);
+		const BatchOf_float r(sphereRadius);
+
 		for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 			// Load the AABB data into SIMD registers, 6 registers.
 			td.batch_aabbMinX.load_aligned(d_aabbMinX + queuedIdx);
@@ -94,7 +95,7 @@ void regen::shapes::flush_Sphere_AABBs(BatchedIntersectionCase &tid) {
 			// Intersection test:
 			//		((spherePos + sphereRadius) > aabbMin) &&
 			//		((spherePos - sphereRadius) < aabbMax)
-			BatchOf_float isInside = (
+			const BatchOf_float isInside = (
 				// x axis
 				((pX + r) > td.batch_aabbMinX) &&
 				((pX - r) < td.batch_aabbMaxX) &&

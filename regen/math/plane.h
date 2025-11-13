@@ -1,12 +1,5 @@
-/*
- * plane.h
- *
- *  Created on: Oct 16, 2014
- *      Author: daniel
- */
-
-#ifndef PLANE_H_
-#define PLANE_H_
+#ifndef REGEN_PLANE_H_
+#define REGEN_PLANE_H_
 
 #include <regen/math/vector.h>
 
@@ -49,5 +42,4 @@ namespace regen {
 	};
 }
 
-
-#endif /* PLANE_H_ */
+#endif /* REGEN_PLANE_H_ */

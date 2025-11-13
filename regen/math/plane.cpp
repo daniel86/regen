@@ -10,7 +10,8 @@ Plane::Plane(const Vec3f &p, const Vec3f &n) {
 }
 
 Vec4f Plane::equation() const {
-	return { -normal.x, -normal.y, -normal.z, normal.dot(point) };
+	// FIXME: see note below, we flip the normal here for now.
+	return { -normal.x, -normal.y, -normal.z, -normal.dot(point) };
 }
 
 void Plane::set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) {

@@ -111,6 +111,7 @@ namespace regen {
 			AlignedArray<float> z;
 		};
 		std::array<AxisBatch, 3> axes;
+
 	protected:
 		static void doResize(BatchOfShapes&, uint32_t);
 		static void doPush(BatchOfShapes&, const BoundingShape&, uint32_t);

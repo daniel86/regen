@@ -347,6 +347,10 @@ namespace regen {
 		template <typename T>
 		BatchOf_float operator&&(const T &other) const { return cmp_and(other); }
 
+		void operator&=(const BatchOf_float &other) {
+			c = simd::cmp_and(c, other.c);
+		}
+
 		BatchOf_float cmp_or(const BatchOf_float &other) const {
 			return BatchOf_float{simd::cmp_or(c, other.c)};
 		}

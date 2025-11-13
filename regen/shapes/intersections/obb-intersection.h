@@ -16,9 +16,20 @@ namespace regen {
 		BatchOf_float batch_sphereRadius;
 	};
 
-	struct BatchIntersection_OBB_Boxes : BatchedIntersectionCase {
-		BatchIntersection_OBB_Boxes() = default;
-		~BatchIntersection_OBB_Boxes() override = default;
+	struct BatchIntersection_OBB_AABBs : BatchedIntersectionCase {
+		BatchIntersection_OBB_AABBs() = default;
+		~BatchIntersection_OBB_AABBs() override = default;
+		BatchOf_float batch_aabbMinX;;
+		BatchOf_float batch_aabbMinY;
+		BatchOf_float batch_aabbMinZ;
+		BatchOf_float batch_aabbMaxX;;
+		BatchOf_float batch_aabbMaxY;
+		BatchOf_float batch_aabbMaxZ;
+	};
+
+	struct BatchIntersection_OBB_OBBs : BatchedIntersectionCase {
+		BatchIntersection_OBB_OBBs() = default;
+		~BatchIntersection_OBB_OBBs() override = default;
 	};
 
 	struct BatchIntersection_OBB_Frustums : BatchedIntersectionCase {
@@ -28,7 +39,8 @@ namespace regen {
 
 	namespace shapes {
 		void flush_OBB_Spheres(BatchedIntersectionCase&);
-		void flush_OBB_Boxes(BatchedIntersectionCase&);
+		void flush_OBB_AABBs(BatchedIntersectionCase&);
+		void flush_OBB_OBBs(BatchedIntersectionCase&);
 		void flush_OBB_Frustums(BatchedIntersectionCase&);
 	}
 
@@ -40,17 +52,17 @@ namespace regen {
 	};
 
 	template<> struct IntersectionTraits<IntersectionShapeType::OBB, IntersectionShapeType::AABB> {
-		using CaseType = BatchIntersection_OBB_Boxes;
-		static constexpr auto Case = IntersectionCaseType::OBB_BOXES;
+		using CaseType = BatchIntersection_OBB_AABBs;
+		static constexpr auto Case = IntersectionCaseType::OBB_AABBs;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_OBB_Boxes;
+		static constexpr auto Flush = shapes::flush_OBB_AABBs;
 	};
 
 	template<> struct IntersectionTraits<IntersectionShapeType::OBB, IntersectionShapeType::OBB> {
-		using CaseType = BatchIntersection_OBB_Boxes;
-		static constexpr auto Case = IntersectionCaseType::OBB_BOXES;
+		using CaseType = BatchIntersection_OBB_OBBs;
+		static constexpr auto Case = IntersectionCaseType::OBB_OBBs;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_OBB_Boxes;
+		static constexpr auto Flush = shapes::flush_OBB_OBBs;
 	};
 
 	template<> struct IntersectionTraits<IntersectionShapeType::OBB, IntersectionShapeType::FRUSTUM> {

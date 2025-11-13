@@ -410,6 +410,13 @@ namespace regen {
 		}
 
 		/**
+		 * @return vector with each component as absolute value.
+		 */
+		inline Vec3 abs() const {
+			return Vec3(std::abs(x), std::abs(y), std::abs(z));
+		}
+
+		/**
 		 * @return vector length.
 		 */
 		inline GLfloat length() const { return sqrt(x * x + y * y + z * z); }
@@ -524,11 +531,20 @@ namespace regen {
 		}
 
 		/**
+		 * Sets each component to its absolute value.
+		 */
+		inline void setAbs() {
+			x = std::abs(x);
+			y = std::abs(y);
+			z = std::abs(z);
+		}
+
+		/**
 		 * Compares vectors components.
 		 * @return true if all components are nearly equal.
 		 */
-		inline GLboolean isApprox(const Vec3 &b, T delta) const {
-			return abs(x - b.x) < delta && abs(y - b.y) < delta && abs(z - b.z) < delta;
+		inline bool isApprox(const Vec3 &b, T delta) const {
+			return std::abs(x - b.x) < delta && std::abs(y - b.y) < delta && std::abs(z - b.z) < delta;
 		}
 
 		/**

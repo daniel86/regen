@@ -57,14 +57,14 @@ namespace regen {
 
 	template<> struct IntersectionTraits<IntersectionShapeType::SPHERE, IntersectionShapeType::AABB> {
 		using CaseType = BatchIntersection_Sphere_AABBs;
-		static constexpr auto Case = IntersectionCaseType::SPHERE_BOXES;
+		static constexpr auto Case = IntersectionCaseType::SPHERE_AABBs;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
 		static constexpr auto Flush = shapes::flush_Sphere_AABBs;
 	};
 
 	template<> struct IntersectionTraits<IntersectionShapeType::SPHERE, IntersectionShapeType::OBB> {
 		using CaseType = BatchIntersection_Sphere_OBBs;
-		static constexpr auto Case = IntersectionCaseType::SPHERE_BOXES;
+		static constexpr auto Case = IntersectionCaseType::SPHERE_OBBs;
 		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
 		static constexpr auto Flush = shapes::flush_Sphere_OBBs;
 	};

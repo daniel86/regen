@@ -5,9 +5,7 @@ bool isSphereVisible3(vec3 center, float radius, uint frustumOffset) {
     uint idx;
     #for PLANE_I to 6
     idx = frustumOffset + ${PLANE_I};
-    if (in_frustumPlanes[idx].w +
-        dot(in_frustumPlanes[idx].xyz, center) +
-        radius < 0) return false;
+    if (dot(in_frustumPlanes[idx].xyz, center) - in_frustumPlanes[idx].w + radius < 0) return false;
     #endfor
     return true;
 }
@@ -35,7 +33,7 @@ bool isAABBBehindPlane(vec3 aabbMin, vec3 aabbMax, uint i) {
         plane.y < 0.0 ? aabbMin.y : aabbMax.y,
         plane.z < 0.0 ? aabbMin.z : aabbMax.z);
     // Compute distance to plane
-    return (plane.w + dot(plane.xyz, p) < 0.0);
+    return (dot(plane.xyz, p) - plane.w < 0.0);
 }
 
 bool isAABBVisible3(vec3 aabbMin, vec3 aabbMax, uint frustumOffset) {
@@ -66,7 +64,7 @@ bool isOBBVisible_i(vec3 center, vec3 halfExtents, mat3 basis, uint i) {
         halfExtents.x * abs(dot(plane.xyz, basis[0])) +
         halfExtents.y * abs(dot(plane.xyz, basis[1])) +
         halfExtents.z * abs(dot(plane.xyz, basis[2]));
-    float s = dot(plane.xyz, center) + plane.w;
+    float s = dot(plane.xyz, center) - plane.w;
     return (s + r < 0.0);
 }
 

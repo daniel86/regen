@@ -1,7 +1,5 @@
 #include "frustum-intersection.h"
-#include "regen/shapes/bounding-sphere.h"
 #include "regen/shapes/frustum.h"
-#include "regen/utility/logging.h"
 
 namespace regen {
 	static constexpr int NUM_FRUSTUM_PLANES = 6;
@@ -27,46 +25,47 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 		td.batch_spherePosY.load_aligned(d_spherePosY + queuedIdx);
 		td.batch_spherePosZ.load_aligned(d_spherePosZ + queuedIdx);
 		td.batch_sphereRadius.load_aligned(d_sphereRadius + queuedIdx);
-		// We'll accumulate a boolean vector "survived" as mask; init to true
-		BatchOf_float survived = BatchOf_float::all_ones();
+		// We'll accumulate a boolean vector as mask; init to true
+		BatchOf_float hasIntersection = BatchOf_float::all_ones();
 
 		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// tmp = n(dot)p + r
-			BatchOf_float tmp =
+			const BatchOf_float n_dot_p =
 				(td.batch_spherePosX * shapeData->planes[p].x) +
 				(td.batch_spherePosY * shapeData->planes[p].y) +
 				(td.batch_spherePosZ * shapeData->planes[p].z) +
 				td.batch_sphereRadius;
-			// survived if: (n(dot)p - d) >= -r  -> (n(dot)p + r) >= d
-			survived = survived && (tmp > shapeData->planes[p].w);
+			// (partially) inside if: (n_dot_p + r - w) > 0
+			hasIntersection &= (n_dot_p > shapeData->planes[p].w);
 			// early break if all lanes are dead
-			if (survived.isZeroMask()) break;
+			if (hasIntersection.isZeroMask()) break;
 		}
 
 		// Convert survived lanes to bitmask value
-		uint8_t mask = survived.toBitmask8();
+		uint8_t mask = hasIntersection.toBitmask8();
 		while (mask) {
 			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
 		}
 	}
+
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
-		bool inside = true;
+		bool isOutside = false;
 		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// tmp = n(dot)p + r
-			float tmp =
+			float n_dot_p =
 				(d_spherePosX[queuedIdx] * shapeData->planes[p].x) +
 				(d_spherePosY[queuedIdx] * shapeData->planes[p].y) +
 				(d_spherePosZ[queuedIdx] * shapeData->planes[p].z) +
 				d_sphereRadius[queuedIdx];
-			// survived if: (n(dot)p - d) >= -r  -> (n(dot)p + r) >= d
-			if (tmp < shapeData->planes[p].w) {
-				inside = false;
+			// fully outside if: (n_dot_p + r - w) < 0
+			if (n_dot_p < shapeData->planes[p].w) {
+				isOutside = true; // Completely outside
 				break;
 			}
 		}
-		if (inside) {
+		if (!isOutside) {
 			td.hits->push(itemIdx);
 		}
 	}
@@ -94,27 +93,27 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 		td.batch_aabbMaxX.load_aligned(d_aabbMaxX + queuedIdx);
 		td.batch_aabbMaxY.load_aligned(d_aabbMaxY + queuedIdx);
 		td.batch_aabbMaxZ.load_aligned(d_aabbMaxZ + queuedIdx);
-		// We'll accumulate a boolean vector "survived" as mask; init to true
-		BatchOf_float survived = BatchOf_float::all_ones();
+		// We'll accumulate a boolean vector as mask; init to true
+		BatchOf_float hasIntersection = BatchOf_float::all_ones();
 
 		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
 			// If this point is behind the plane, the AABB must be outside the frustum.
-			BatchOf_float px = shapeData->planes[p].x < 0.0f ? td.batch_aabbMinX : td.batch_aabbMaxX;
-			BatchOf_float py = shapeData->planes[p].y < 0.0f ? td.batch_aabbMinY : td.batch_aabbMaxY;
-			BatchOf_float pz = shapeData->planes[p].z < 0.0f ? td.batch_aabbMinZ : td.batch_aabbMaxZ;
+			const BatchOf_float px = shapeData->planes[p].x < 0.0f ? td.batch_aabbMinX : td.batch_aabbMaxX;
+			const BatchOf_float py = shapeData->planes[p].y < 0.0f ? td.batch_aabbMinY : td.batch_aabbMaxY;
+			const BatchOf_float pz = shapeData->planes[p].z < 0.0f ? td.batch_aabbMinZ : td.batch_aabbMaxZ;
 			// tmp = n(dot)p
-			BatchOf_float tmp =
+			const BatchOf_float n_dot_p =
 				(px * shapeData->planes[p].x) +
 				(py * shapeData->planes[p].y) +
 				(pz * shapeData->planes[p].z);
-			survived = survived && (tmp > -shapeData->planes[p].w);
+			hasIntersection &= (n_dot_p > shapeData->planes[p].w);
 			// early break if all lanes are dead
-			if (survived.isZeroMask()) break;
+			if (hasIntersection.isZeroMask()) break;
 		}
 
 		// Convert survived lanes to bitmask value
-		uint8_t mask = survived.toBitmask8();
+		uint8_t mask = hasIntersection.toBitmask8();
 		while (mask) {
 			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
@@ -124,25 +123,24 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 	// Scalar fallback for remaining items
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
-		bool inside = true;
+		bool isOutside = false;
 		for (unsigned int p = 0u; p < NUM_FRUSTUM_PLANES; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
 			// If this point is behind the plane, the AABB must be outside of the frustum.
-			Vec3f farthest(
+			const Vec3f farthest(
 				shapeData->planes[p].x < 0.0 ? d_aabbMinX[queuedIdx] : d_aabbMaxX[queuedIdx],
 				shapeData->planes[p].y < 0.0 ? d_aabbMinY[queuedIdx] : d_aabbMaxY[queuedIdx],
 				shapeData->planes[p].z < 0.0 ? d_aabbMinZ[queuedIdx] : d_aabbMaxZ[queuedIdx]);
-			float nDotFarthest = (
+			const float n_dot_p = (
 				shapeData->planes[p].x * farthest.x +
 				shapeData->planes[p].y * farthest.y +
 				shapeData->planes[p].z * farthest.z);
-			if (nDotFarthest < -shapeData->planes[p].w) {
-				// AABB is outside the frustum
-				inside = false;
+			if (n_dot_p < shapeData->planes[p].w) {
+				isOutside = true; // Completely outside
 				break;
 			}
 		}
-		if (inside) {
+		if (!isOutside) {
 			td.hits->push(itemIdx);
 		}
 	}
@@ -173,8 +171,8 @@ void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &tid) {
 		td.batch_obbHalfSize[0].load_aligned(d_obbHalfSizeX + queuedIdx);
 		td.batch_obbHalfSize[1].load_aligned(d_obbHalfSizeY + queuedIdx);
 		td.batch_obbHalfSize[2].load_aligned(d_obbHalfSizeZ + queuedIdx);
-		// We'll accumulate a boolean vector "survived" as mask; init to true
-		BatchOf_float survived = BatchOf_float::all_ones();
+		// We'll accumulate a boolean vector as mask; init to true
+		BatchOf_float hasIntersection = BatchOf_float::all_ones();
 
 		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES; ++planeIdx) {
 			const auto &plane = frustum->planes[planeIdx];
@@ -191,18 +189,18 @@ void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &tid) {
 				BatchOf_float axisY; axisY.load_aligned(axisBatch.y.data() + queuedIdx);
 				BatchOf_float axisZ; axisZ.load_aligned(axisBatch.z.data() + queuedIdx);
 				// Projected radius
-				dr += td.batch_obbHalfSize[axisIdx] * (
-					(axisX * BatchOf_float(plane.x)).abs() +
-					(axisY * BatchOf_float(plane.y)).abs() +
-					(axisZ * BatchOf_float(plane.z)).abs());
+				dr += td.batch_obbHalfSize[axisIdx] * ((
+					(axisX * BatchOf_float(plane.x)) +
+					(axisY * BatchOf_float(plane.y)) +
+					(axisZ * BatchOf_float(plane.z))).abs());
 			}
-			survived = survived && dr.isPositive();
+			hasIntersection &= dr.isPositive();
 			// early break if all lanes are dead
-			if (survived.isZeroMask()) break;
+			if (hasIntersection.isZeroMask()) break;
 		}
 
 		// Convert survived lanes to bitmask value
-		uint8_t mask = survived.toBitmask8();
+		uint8_t mask = hasIntersection.toBitmask8();
 		while (mask) {
 			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
 			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
@@ -224,18 +222,18 @@ void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &tid) {
 		bool isOutside = false;
 		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES; ++planeIdx) {
 			const auto &plane = frustum->planes[planeIdx];
+			const Vec3f &n = plane.xyz_();
 			// center-to-plane distance + projected radius
-			float dr = obbCenter.dot(plane.xyz_()) - plane.w +
-				obbHalfSize.x * std::abs(obbAxes[0].dot(plane.xyz_())) +
-				obbHalfSize.y * std::abs(obbAxes[1].dot(plane.xyz_())) +
-				obbHalfSize.z * std::abs(obbAxes[2].dot(plane.xyz_()));
+			float dr = n.dot(obbCenter) - plane.w +
+				obbHalfSize.x * std::abs(obbAxes[0].dot(n)) +
+				obbHalfSize.y * std::abs(obbAxes[1].dot(n)) +
+				obbHalfSize.z * std::abs(obbAxes[2].dot(n));
 			if (dr < 0.0f) { // completely outside
 				isOutside = true;
 				break;
 			}
 		}
-
-		if (isOutside) {
+		if (!isOutside) {
 			td.hits->push(itemIdx);
 		}
 	}

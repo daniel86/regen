@@ -18,12 +18,12 @@ void regen::shapes::flush_AABB_Spheres(BatchedIntersectionCase &tid) {
 
 	{
 		// load min/max aabb into SIMD registers, we need 6 registers.
-		BatchOf_float aabbMinX(aabbMin.x);
-		BatchOf_float aabbMinY(aabbMin.y);
-		BatchOf_float aabbMinZ(aabbMin.z);
-		BatchOf_float aabbMaxX(aabbMax.x);
-		BatchOf_float aabbMaxY(aabbMax.y);
-		BatchOf_float aabbMaxZ(aabbMax.z);
+		const BatchOf_float aabbMinX(aabbMin.x);
+		const BatchOf_float aabbMinY(aabbMin.y);
+		const BatchOf_float aabbMinZ(aabbMin.z);
+		const BatchOf_float aabbMaxX(aabbMax.x);
+		const BatchOf_float aabbMaxY(aabbMax.y);
+		const BatchOf_float aabbMaxZ(aabbMax.z);
 
 		for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 			// Load the sphere data into SIMD registers, we need 4 registers.
@@ -34,7 +34,7 @@ void regen::shapes::flush_AABB_Spheres(BatchedIntersectionCase &tid) {
 			// Intersection test:
 			//		((spherePos + sphereRadius) > aabbMin) &&
 			//		((spherePos - sphereRadius) < aabbMax)
-			BatchOf_float isInside = (
+			const BatchOf_float isInside = (
 				// x axis
 				((td.batch_spherePosX + td.batch_sphereRadius) > aabbMinX) &&
 				((td.batch_spherePosX - td.batch_sphereRadius) < aabbMaxX) &&
@@ -88,12 +88,12 @@ void regen::shapes::flush_AABB_AABBs(BatchedIntersectionCase &tid) {
 
 	{	// SIMD scope
 		// load min/max aabb into SIMD registers, we need 6 registers.
-		BatchOf_float t_aabbMinX(v_test_aabbMin.x);
-		BatchOf_float t_aabbMinY(v_test_aabbMin.y);
-		BatchOf_float t_aabbMinZ(v_test_aabbMin.z);
-		BatchOf_float t_aabbMaxX(v_test_aabbMax.x);
-		BatchOf_float t_aabbMaxY(v_test_aabbMax.y);
-		BatchOf_float t_aabbMaxZ(v_test_aabbMax.z);
+		const BatchOf_float t_aabbMinX(v_test_aabbMin.x);
+		const BatchOf_float t_aabbMinY(v_test_aabbMin.y);
+		const BatchOf_float t_aabbMinZ(v_test_aabbMin.z);
+		const BatchOf_float t_aabbMaxX(v_test_aabbMax.x);
+		const BatchOf_float t_aabbMaxY(v_test_aabbMax.y);
+		const BatchOf_float t_aabbMaxZ(v_test_aabbMax.z);
 
 		for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 			// Load the AABB data into SIMD registers, 6 registers.
@@ -106,7 +106,7 @@ void regen::shapes::flush_AABB_AABBs(BatchedIntersectionCase &tid) {
 			// Intersection test:
 			//		(aabbA.min < aabbB.max) &&
 			//		(aabbA.max > aabbB.min)
-			BatchOf_float hasIntersection =
+			const BatchOf_float hasIntersection =
 				(t_aabbMinX < td.batch_aabbMaxX) &&
 				(t_aabbMaxX > td.batch_aabbMinX) &&
 				(t_aabbMinY < td.batch_aabbMaxY) &&

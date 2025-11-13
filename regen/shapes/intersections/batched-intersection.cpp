@@ -19,7 +19,7 @@ BatchedIntersectionTest::BatchedIntersectionTest() {
 	shapeData_[_idx(IntersectionShapeType::FRUSTUM)] = std::make_unique<IntersectionData_Frustum>();
 	batchesOfShapes_[_idx(IntersectionShapeType::SPHERE)]  = std::make_unique<BatchOfSpheres>();
 	batchesOfShapes_[_idx(IntersectionShapeType::AABB)]    = std::make_unique<BatchOfAABBs>();
-	batchesOfShapes_[_idx(IntersectionShapeType::OBB)]     = std::make_unique<BatchOfAABBs>();
+	batchesOfShapes_[_idx(IntersectionShapeType::OBB)]     = std::make_unique<BatchOfOBBs>();
 	batchesOfShapes_[_idx(IntersectionShapeType::FRUSTUM)] = std::make_unique<BatchOfFrustums>();
 	for (auto &batch : batchesOfShapes_) {
 		batch->resize(batchOfCapacity_);
@@ -70,8 +70,8 @@ void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape) {
 		mem.update(testShape);
 	} else if (shapeType == BoundingShapeType::SPHERE) {
 		frameCases_[_idx(IST::SPHERE)]  = _idx(ICT::SPHERE_SPHERES);
-		frameCases_[_idx(IST::AABB)]    = _idx(ICT::SPHERE_BOXES);
-		frameCases_[_idx(IST::OBB)]     = _idx(ICT::SPHERE_BOXES);
+		frameCases_[_idx(IST::AABB)]    = _idx(ICT::SPHERE_AABBs);
+		frameCases_[_idx(IST::OBB)]     = _idx(ICT::SPHERE_OBBs);
 		frameCases_[_idx(IST::FRUSTUM)] = _idx(ICT::SPHERE_FRUSTUMS);
 		// Update sphere test shape memory
 		auto &mem = static_cast<IntersectionData_Sphere &>(*shapeData_[_idx(IntersectionShapeType::SPHERE)]);
@@ -88,8 +88,8 @@ void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape) {
 			mem.update(testShape);
 		} else { // OBB
 			frameCases_[_idx(IST::SPHERE)]  = _idx(ICT::OBB_SPHERES);
-			frameCases_[_idx(IST::AABB)]    = _idx(ICT::OBB_BOXES);
-			frameCases_[_idx(IST::OBB)]     = _idx(ICT::OBB_BOXES);
+			frameCases_[_idx(IST::AABB)]    = _idx(ICT::OBB_AABBs);
+			frameCases_[_idx(IST::OBB)]     = _idx(ICT::OBB_OBBs);
 			frameCases_[_idx(IST::FRUSTUM)] = _idx(ICT::OBB_FRUSTUMS);
 			// Update OBB test shape memory
 			auto &mem = static_cast<IntersectionData_OBB &>(*shapeData_[_idx(IntersectionShapeType::OBB)]);
