@@ -508,7 +508,8 @@ void QuadTree::Private::processAxis_SIMD(
 	Register min, max;
 	{
 		// d_i = corners[i].dot(axis.dir);
-		BatchOf_Vec2f axisDir(td.projection->axes[axisIdx].dir);
+		const BatchOf_Vec2f axisDir =
+			BatchOf_Vec2f::fromScalar(td.projection->axes[axisIdx].dir);
 		auto d0 = add_ps(
 				mul_ps(td.batchBoundsMinX.c, axisDir.x),
 				mul_ps(td.batchBoundsMinY.c, axisDir.y));
@@ -529,8 +530,8 @@ void QuadTree::Private::processAxis_SIMD(
 	}
 
 	// Compute `(max_n < axis.min) || (axis.max < min_n)`
-	BatchOf_float axisMin(td.projection->axes[axisIdx].min);
-	BatchOf_float axisMax(td.projection->axes[axisIdx].max);
+	BatchOf_float axisMin = BatchOf_float::fromScalar(td.projection->axes[axisIdx].min);
+	BatchOf_float axisMax = BatchOf_float::fromScalar(td.projection->axes[axisIdx].max);
 	auto sep = cmp_or(
 			cmp_lt(max, axisMin.c),
 			cmp_lt(axisMax.c, min));
@@ -566,10 +567,10 @@ void QuadTree::Private::processQueuedNodes(QuadTreeTraversal &td) {
 		for (; nodeIdx + regen::simd::RegisterWidth <= static_cast<int32_t>(td.numQueuedItems_);
 			   nodeIdx += regen::simd::RegisterWidth) {
 			// Load the bounds of the node at nodeIdx into the SIMD registers
-			td.batchBoundsMinX.load_aligned(td.queuedMinX_.data() + nodeIdx);
-			td.batchBoundsMinY.load_aligned(td.queuedMinY_.data() + nodeIdx);
-			td.batchBoundsMaxX.load_aligned(td.queuedMaxX_.data() + nodeIdx);
-			td.batchBoundsMaxY.load_aligned(td.queuedMaxY_.data() + nodeIdx);
+			td.batchBoundsMinX = BatchOf_float::loadAligned(td.queuedMinX_.data() + nodeIdx);
+			td.batchBoundsMinY = BatchOf_float::loadAligned(td.queuedMinY_.data() + nodeIdx);
+			td.batchBoundsMaxX = BatchOf_float::loadAligned(td.queuedMaxX_.data() + nodeIdx);
+			td.batchBoundsMaxY = BatchOf_float::loadAligned(td.queuedMaxY_.data() + nodeIdx);
 
 			uint8_t mask = regen::simd::RegisterMask;
 			processAxes_SIMD<NumAxes>(td, mask);
@@ -618,10 +619,10 @@ void QuadTree::Private::processQueuedNodes_sphere(QuadTreeTraversal &td) {
 		for (; nodeIdx + regen::simd::RegisterWidth <= static_cast<int32_t>(td.numQueuedItems_);
 			   nodeIdx += regen::simd::RegisterWidth) {
 			// Load the bounds of the node at nodeIdx into the SIMD registers
-			td.batchBoundsMinX.load_aligned(td.queuedMinX_.data() + nodeIdx);
-			td.batchBoundsMinY.load_aligned(td.queuedMinY_.data() + nodeIdx);
-			td.batchBoundsMaxX.load_aligned(td.queuedMaxX_.data() + nodeIdx);
-			td.batchBoundsMaxY.load_aligned(td.queuedMaxY_.data() + nodeIdx);
+			td.batchBoundsMinX = BatchOf_float::loadAligned(td.queuedMinX_.data() + nodeIdx);
+			td.batchBoundsMinY = BatchOf_float::loadAligned(td.queuedMinY_.data() + nodeIdx);
+			td.batchBoundsMaxX = BatchOf_float::loadAligned(td.queuedMaxX_.data() + nodeIdx);
+			td.batchBoundsMaxY = BatchOf_float::loadAligned(td.queuedMaxY_.data() + nodeIdx);
 
 			uint8_t mask = regen::simd::RegisterMask;
 			processSphere_SIMD(td, mask);

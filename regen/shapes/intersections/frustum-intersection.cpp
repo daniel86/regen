@@ -5,40 +5,39 @@ namespace regen {
 	static constexpr int NUM_FRUSTUM_PLANES = 6;
 }
 
-void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
+void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &td) {
 	// Process numQueuedItems_ nodes from the queue, performing an intersection test with the shape's projection;
 	// and also writing nodeIdx to successor array if the test succeeds.
-	auto &td = *static_cast<BatchIntersection_Frustum_Spheres *>(&tid);
-	auto *shapeData = static_cast<IntersectionData_Frustum *>(tid.shapeData);
+	auto *shapeData = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
+
+	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
+	const float *d_spherePosX = batchData->posX.data();
+	const float *d_spherePosY = batchData->posY.data();
+	const float *d_spherePosZ = batchData->posZ.data();
+	const float *d_sphereRadius = batchData->radius.data();
+
 	int32_t queuedIdx = 0;
-
-	auto *batchData = static_cast<BatchOfSpheres *>(tid.batchData);
-	auto *d_spherePosX = batchData->posX.data();
-	auto *d_spherePosY = batchData->posY.data();
-	auto *d_spherePosZ = batchData->posZ.data();
-	auto *d_sphereRadius = batchData->radius.data();
-
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 		// Load the sphere data into SIMD registers
-		td.batch_spherePosX.load_aligned(d_spherePosX + queuedIdx);
-		td.batch_spherePosY.load_aligned(d_spherePosY + queuedIdx);
-		td.batch_spherePosZ.load_aligned(d_spherePosZ + queuedIdx);
-		td.batch_sphereRadius.load_aligned(d_sphereRadius + queuedIdx);
+		const BatchOf_float spherePosX   = BatchOf_float::loadAligned(d_spherePosX + queuedIdx);
+		const BatchOf_float spherePosY   = BatchOf_float::loadAligned(d_spherePosY + queuedIdx);
+		const BatchOf_float spherePosZ   = BatchOf_float::loadAligned(d_spherePosZ + queuedIdx);
+		const BatchOf_float sphereRadius = BatchOf_float::loadAligned(d_sphereRadius + queuedIdx);
 		// We'll accumulate a boolean vector as mask; init to true
-		BatchOf_float hasIntersection = BatchOf_float::all_ones();
+		BatchOf_float hasIntersection = BatchOf_float::allOnes();
 
 		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// tmp = n(dot)p + r
 			const BatchOf_float n_dot_p =
-				(td.batch_spherePosX * shapeData->planes[p].x) +
-				(td.batch_spherePosY * shapeData->planes[p].y) +
-				(td.batch_spherePosZ * shapeData->planes[p].z) +
-				td.batch_sphereRadius;
+				(spherePosX * shapeData->planes[p].x) +
+				(spherePosY * shapeData->planes[p].y) +
+				(spherePosZ * shapeData->planes[p].z) +
+				sphereRadius;
 			// (partially) inside if: (n_dot_p + r - w) > 0
 			hasIntersection &= (n_dot_p > shapeData->planes[p].w);
 			// early break if all lanes are dead
-			if (hasIntersection.isZeroMask()) break;
+			if (hasIntersection.isAllZero()) break;
 		}
 
 		// Convert survived lanes to bitmask value
@@ -49,6 +48,7 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 		}
 	}
 
+	// Scalar fallback for remaining items
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
 		bool isOutside = false;
@@ -71,37 +71,36 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 	}
 }
 
-void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
-	auto &td = *static_cast<BatchIntersection_Frustum_AABBs *>(&tid);
-	auto *shapeData = static_cast<IntersectionData_Frustum *>(tid.shapeData);
+void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &td) {
+	auto *shapeData = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
+
+	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
+	const float *d_aabbMinX = batchData->minX.data();
+	const float *d_aabbMinY = batchData->minY.data();
+	const float *d_aabbMinZ = batchData->minZ.data();
+	const float *d_aabbMaxX = batchData->maxX.data();
+	const float *d_aabbMaxY = batchData->maxY.data();
+	const float *d_aabbMaxZ = batchData->maxZ.data();
+
 	int32_t queuedIdx = 0;
-
-	auto *batchData = static_cast<BatchOfAABBs *>(tid.batchData);
-	auto *d_aabbMinX = batchData->minX.data();
-	auto *d_aabbMinY = batchData->minY.data();
-	auto *d_aabbMinZ = batchData->minZ.data();
-	auto *d_aabbMaxX = batchData->maxX.data();
-	auto *d_aabbMaxY = batchData->maxY.data();
-	auto *d_aabbMaxZ = batchData->maxZ.data();
-
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 		// Load the AABB data into SIMD registers
-		td.batch_aabbMinX.load_aligned(d_aabbMinX + queuedIdx);
-		td.batch_aabbMinY.load_aligned(d_aabbMinY + queuedIdx);
-		td.batch_aabbMinZ.load_aligned(d_aabbMinZ + queuedIdx);
-		td.batch_aabbMaxX.load_aligned(d_aabbMaxX + queuedIdx);
-		td.batch_aabbMaxY.load_aligned(d_aabbMaxY + queuedIdx);
-		td.batch_aabbMaxZ.load_aligned(d_aabbMaxZ + queuedIdx);
+		const BatchOf_float aabbMinX = BatchOf_float::loadAligned(d_aabbMinX + queuedIdx);
+		const BatchOf_float aabbMinY = BatchOf_float::loadAligned(d_aabbMinY + queuedIdx);
+		const BatchOf_float aabbMinZ = BatchOf_float::loadAligned(d_aabbMinZ + queuedIdx);
+		const BatchOf_float aabbMaxX = BatchOf_float::loadAligned(d_aabbMaxX + queuedIdx);
+		const BatchOf_float aabbMaxY = BatchOf_float::loadAligned(d_aabbMaxY + queuedIdx);
+		const BatchOf_float aabbMaxZ = BatchOf_float::loadAligned(d_aabbMaxZ + queuedIdx);
 		// We'll accumulate a boolean vector as mask; init to true
-		BatchOf_float hasIntersection = BatchOf_float::all_ones();
+		BatchOf_float hasIntersection = BatchOf_float::allOnes();
 
 		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
 			// If this point is behind the plane, the AABB must be outside the frustum.
-			const BatchOf_float px = shapeData->planes[p].x < 0.0f ? td.batch_aabbMinX : td.batch_aabbMaxX;
-			const BatchOf_float py = shapeData->planes[p].y < 0.0f ? td.batch_aabbMinY : td.batch_aabbMaxY;
-			const BatchOf_float pz = shapeData->planes[p].z < 0.0f ? td.batch_aabbMinZ : td.batch_aabbMaxZ;
+			const BatchOf_float px = shapeData->planes[p].x < 0.0f ? aabbMinX : aabbMaxX;
+			const BatchOf_float py = shapeData->planes[p].y < 0.0f ? aabbMinY : aabbMaxY;
+			const BatchOf_float pz = shapeData->planes[p].z < 0.0f ? aabbMinZ : aabbMaxZ;
 			// tmp = n(dot)p
 			const BatchOf_float n_dot_p =
 				(px * shapeData->planes[p].x) +
@@ -109,7 +108,7 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 				(pz * shapeData->planes[p].z);
 			hasIntersection &= (n_dot_p > shapeData->planes[p].w);
 			// early break if all lanes are dead
-			if (hasIntersection.isZeroMask()) break;
+			if (hasIntersection.isAllZero()) break;
 		}
 
 		// Convert survived lanes to bitmask value
@@ -146,57 +145,56 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 	}
 }
 
-void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &tid) {
-	auto &td = *static_cast<BatchIntersection_Frustum_OBBs *>(&tid);
+void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &td) {
 	auto *shapes = td.indexedShapes->data();
-	auto *frustum = static_cast<IntersectionData_Frustum *>(tid.shapeData);
+	auto *frustum = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
-	int32_t queuedIdx = 0;
 
-	auto *batchData = static_cast<BatchOfOBBs *>(tid.batchData);
-	auto *d_obbCenterX = batchData->centerX.data();
-	auto *d_obbCenterY = batchData->centerY.data();
-	auto *d_obbCenterZ = batchData->centerZ.data();
-	auto *d_obbHalfSizeX = batchData->halfSizeX.data();
-	auto *d_obbHalfSizeY = batchData->halfSizeY.data();
-	auto *d_obbHalfSizeZ = batchData->halfSizeZ.data();
+	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
+	const float *d_obbCenterX = batchData->centerX.data();
+	const float *d_obbCenterY = batchData->centerY.data();
+	const float *d_obbCenterZ = batchData->centerZ.data();
+	const float *d_obbHalfSizeX = batchData->halfSizeX.data();
+	const float *d_obbHalfSizeY = batchData->halfSizeY.data();
+	const float *d_obbHalfSizeZ = batchData->halfSizeZ.data();
 	auto *d_axes = batchData->axes.data();
 
+	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 		// Load some of the ABB data into SIMD registers, too many registers are needed so
 		// we leave out the axes and rather load them in a loop below.
-		td.batch_obbCenterX.load_aligned(d_obbCenterX + queuedIdx);
-		td.batch_obbCenterY.load_aligned(d_obbCenterY + queuedIdx);
-		td.batch_obbCenterZ.load_aligned(d_obbCenterZ + queuedIdx);
-		td.batch_obbHalfSize[0].load_aligned(d_obbHalfSizeX + queuedIdx);
-		td.batch_obbHalfSize[1].load_aligned(d_obbHalfSizeY + queuedIdx);
-		td.batch_obbHalfSize[2].load_aligned(d_obbHalfSizeZ + queuedIdx);
+		const BatchOf_float obbCenterX = BatchOf_float::loadAligned(d_obbCenterX + queuedIdx);
+		const BatchOf_float obbCenterY = BatchOf_float::loadAligned(d_obbCenterY + queuedIdx);
+		const BatchOf_float obbCenterZ = BatchOf_float::loadAligned(d_obbCenterZ + queuedIdx);
+		const BatchOf_float obbHalfSize[3] = {
+			BatchOf_float::loadAligned(d_obbHalfSizeX + queuedIdx),
+			BatchOf_float::loadAligned(d_obbHalfSizeY + queuedIdx),
+			BatchOf_float::loadAligned(d_obbHalfSizeZ + queuedIdx)};
 		// We'll accumulate a boolean vector as mask; init to true
-		BatchOf_float hasIntersection = BatchOf_float::all_ones();
+		BatchOf_float hasIntersection = BatchOf_float::allOnes();
 
 		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES; ++planeIdx) {
 			const auto &plane = frustum->planes[planeIdx];
 			// center-to-plane distance + projected radius, radius is initially 0
 			BatchOf_float dr =
-				(td.batch_obbCenterX * plane.x) +
-				(td.batch_obbCenterY * plane.y) +
-				(td.batch_obbCenterZ * plane.z) - BatchOf_float(plane.w);
+				(obbCenterX * plane.x) +
+				(obbCenterY * plane.y) +
+				(obbCenterZ * plane.z) -
+				BatchOf_float::fromScalar(plane.w);
 			// Accumulate projected radius from each OBB axis
 			for (uint32_t axisIdx=0u; axisIdx < 3u; ++axisIdx) {
 				// Load axis into SIMD registers
-				BatchOfOBBs::AxisBatch &axisBatch = d_axes[axisIdx];
-				BatchOf_float axisX; axisX.load_aligned(axisBatch.x.data() + queuedIdx);
-				BatchOf_float axisY; axisY.load_aligned(axisBatch.y.data() + queuedIdx);
-				BatchOf_float axisZ; axisZ.load_aligned(axisBatch.z.data() + queuedIdx);
+				const BatchOfOBBs::AxisBatch &axisBatch = d_axes[axisIdx];
+				const BatchOf_float axisX = BatchOf_float::loadAligned(axisBatch.x.data() + queuedIdx);
+				const BatchOf_float axisY = BatchOf_float::loadAligned(axisBatch.y.data() + queuedIdx);
+				const BatchOf_float axisZ = BatchOf_float::loadAligned(axisBatch.z.data() + queuedIdx);
 				// Projected radius
-				dr += td.batch_obbHalfSize[axisIdx] * ((
-					(axisX * BatchOf_float(plane.x)) +
-					(axisY * BatchOf_float(plane.y)) +
-					(axisZ * BatchOf_float(plane.z))).abs());
+				dr += obbHalfSize[axisIdx] *
+					(axisX*plane.x + axisY*plane.y + axisZ*plane.z).abs();
 			}
 			hasIntersection &= dr.isPositive();
 			// early break if all lanes are dead
-			if (hasIntersection.isZeroMask()) break;
+			if (hasIntersection.isAllZero()) break;
 		}
 
 		// Convert survived lanes to bitmask value
@@ -212,9 +210,9 @@ void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &tid) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
 
 		const BoundingBox &obb = *static_cast<OBB *>(shapes[itemIdx].get());
-		auto *obbAxes = obb.boxAxes();
-		auto &obbCenter = obb.tfOrigin();
-		Vec3f obbHalfSize = {
+		const Vec3f *obbAxes = obb.boxAxes();
+		const Vec3f &obbCenter = obb.tfOrigin();
+		const Vec3f obbHalfSize = {
 			d_obbHalfSizeX[queuedIdx],
 			d_obbHalfSizeY[queuedIdx],
 			d_obbHalfSizeZ[queuedIdx]};

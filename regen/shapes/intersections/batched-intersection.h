@@ -201,7 +201,7 @@ namespace regen {
 		template<IntersectionShapeType TestShapeType, IntersectionShapeType IndexShapeType> void registerCase() {
 			using Traits = IntersectionTraits<TestShapeType, IndexShapeType>;
 			constexpr auto id = static_cast<int>(Traits::Case);
-			cases_[id] = std::make_unique<typename Traits::CaseType>();
+			cases_[id] = std::make_unique<BatchedIntersectionCase>();
 			cases_[id]->doInit = Traits::Init;
 			cases_[id]->doFlush = Traits::Flush;
 			cases_[id]->indexedShapes = indexedShapes_;

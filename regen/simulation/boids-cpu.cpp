@@ -405,18 +405,16 @@ void BoidsCPU::updateGrid() {
 #ifdef REGEN_BOID_USE_GRID_SIMD
 	{
 		BatchOf_Vec3f boidBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-		BatchOf_Vec3f simd_gridMin(gridBounds_.min);
-		BatchOf_Vec3i simd_gridSize(priv_->gridSize_ - Vec3i::one());
-		BatchOf_Vec3i simd_gridSize_1_X_XY(Vec3i(
-			1,
-			priv_->gridSize_.x,
-			priv_->gridSize_.x * priv_->gridSize_.y));
-		BatchOf_float simd_cellSize(priv_->cellSize_);
-		BatchOf_float simd_zero(0.0f);
+		BatchOf_Vec3f simd_gridMin = BatchOf_Vec3f::fromScalar(gridBounds_.min);
+		BatchOf_Vec3i simd_gridSize = BatchOf_Vec3i::fromScalar(
+			priv_->gridSize_ - Vec3i::one());
+		BatchOf_Vec3i simd_gridSize_1_X_XY = BatchOf_Vec3i::fromScalar(
+			Vec3i(1, priv_->gridSize_.x, priv_->gridSize_.x * priv_->gridSize_.y));
+		BatchOf_float simd_cellSize = BatchOf_float::fromScalar(priv_->cellSize_);
+		BatchOf_float simd_zero = BatchOf_float::fromScalar(0.0f);
 
 		// we compute the grid index in batches
-		for (; startIdx +  regen::simd::RegisterWidth <= static_cast<int32_t>(numBoids_);
-			   startIdx += regen::simd::RegisterWidth) {
+		for (; startIdx +  simd::RegisterWidth <= static_cast<int32_t>(numBoids_); startIdx += simd::RegisterWidth) {
 			// load the boid positions into a SIMD register
 			boidBatch.load_aligned(
 					priv_->boidPositionsX_.data() + startIdx,
@@ -432,16 +430,16 @@ void BoidsCPU::updateGrid() {
 			// clamp to max grid bounds
 			gridIndices = gridIndices.min(simd_gridSize);
 			// iy_f = iy * gridSize.x
-			regen::simd::Register_i iy_f = regen::simd::mul_epi32(gridIndices.y, simd_gridSize_1_X_XY.y);
+			simd::Register_i iy_f = simd::mul_epi32(gridIndices.y, simd_gridSize_1_X_XY.y);
 			// iz_f = iz * gridSize.x * gridSize.y;
-			regen::simd::Register_i iz_f = regen::simd::mul_epi32(gridIndices.z, simd_gridSize_1_X_XY.z);
+			simd::Register_i iz_f = simd::mul_epi32(gridIndices.z, simd_gridSize_1_X_XY.z);
 			// i_f = ix + iy_f + iz_f;
-			regen::simd::Register_i i_f = regen::simd::add_epi32(regen::simd::add_epi32(gridIndices.x, iy_f), iz_f);
+			simd::Register_i i_f = simd::add_epi32(simd::add_epi32(gridIndices.x, iy_f), iz_f);
 			// store results in local array
-			//regen::simd::storeu_epi32(boidGridIndicesX_.data() + startIdx, gridIndices.x);
-			//regen::simd::storeu_epi32(boidGridIndicesY_.data() + startIdx, gridIndices.y);
-			//regen::simd::storeu_epi32(boidGridIndicesZ_.data() + startIdx, gridIndices.z);
-			regen::simd::storeu_epi32(priv_->boidGridIndex_.data() + startIdx, i_f);
+			//simd::storeu_epi32(boidGridIndicesX_.data() + startIdx, gridIndices.x);
+			//simd::storeu_epi32(boidGridIndicesY_.data() + startIdx, gridIndices.y);
+			//simd::storeu_epi32(boidGridIndicesZ_.data() + startIdx, gridIndices.z);
+			simd::storeu_epi32(priv_->boidGridIndex_.data() + startIdx, i_f);
 		}
 	}
 #endif // REGEN_USE_SIMD_GRID_UPDATE
@@ -509,7 +507,7 @@ void BoidsCPU::updateGrid() {
 		// Note: this is not entirely accurate. Better would be to also check the
 		//       adjacent cells, but this would cost more performance and results are ok in my opinion.
 		cell.elements[cell.numElements] = boidIdx;
-		cell.numElements += uint32_t(cell.numElements < priv_->maxNumNeighbors_);
+		cell.numElements += static_cast<uint32_t>(cell.numElements < priv_->maxNumNeighbors_);
 	}
 #endif
 }
@@ -523,17 +521,18 @@ void BoidsCPU::updateNeighbours(
 	size_t startIdx = 0;
 
 #ifdef REGEN_BOID_USE_NEIGHBOR_SIMD
-	if (neighborCount >= regen::simd::RegisterWidth) {
+	if (neighborCount >= simd::RegisterWidth) {
 		// NOTE: unfortunately, this does not buy us much as num neighbors is usually capped
 		//       to rather small values, e.g. 100.
 		BatchOf_Vec3f neighborBatch; // NOLINT(cppcoreguidelines-pro-type-member-init)
-		BatchOf_Vec3f boidPos_SIMD(boidPos);
-		BatchOf_float visualRangeSq_SIMD(priv_->visualRangeSq_);
+		BatchOf_Vec3f boidPos_SIMD =
+			BatchOf_Vec3f::fromScalar(boidPos);
+		BatchOf_float visualRangeSq_SIMD =
+			BatchOf_float::fromScalar(priv_->visualRangeSq_);
 
-		for (; startIdx + regen::simd::RegisterWidth <= neighborCount;
-			   startIdx += regen::simd::RegisterWidth) {
+		for (; startIdx + simd::RegisterWidth <= neighborCount; startIdx += simd::RegisterWidth) {
 			// load the indices of the neighbors into a SIMD register
-			auto idx = regen::simd::loadu_si256(neighborIndices + startIdx);
+			auto idx = simd::loadu_si256(neighborIndices + startIdx);
 			// load the positions of the neighbors into a SIMD register
 			neighborBatch.load(
 					priv_->boidPositionsX_.data(),
@@ -543,10 +542,10 @@ void BoidsCPU::updateNeighbours(
 
 			// finally compute the distance to the boid position for a batch of neighbors
 			neighborBatch -= boidPos_SIMD;
-			auto lengthSq = neighborBatch.lengthSquared();
-			auto mask = regen::simd::cmp_lt(lengthSq.c, visualRangeSq_SIMD.c);
+			const BatchOf_float lengthSq = neighborBatch.lengthSquared();
+			const BatchOf_float mask = (lengthSq < visualRangeSq_SIMD);
 			// use the result as a bit mask to filter neighbors
-			int maskBits = regen::simd::movemask_ps(mask);
+			int maskBits = simd::movemask_ps(mask.c);
 
 			while (maskBits) {
 				// find the first bit set in the mask, which indicates a neighbor in range
@@ -558,9 +557,9 @@ void BoidsCPU::updateNeighbours(
 
 				// define reflexive neighbor relation
 				boid.neighbors[boid.numNeighbors] = neighborIndex;
-				boid.numNeighbors += uint32_t(boid.numNeighbors < priv_->maxNumNeighbors_);
+				boid.numNeighbors += static_cast<uint32_t>(boid.numNeighbors < priv_->maxNumNeighbors_);
 				neighbor.neighbors[neighbor.numNeighbors] = boidIndex;
-				neighbor.numNeighbors += uint32_t(neighbor.numNeighbors < priv_->maxNumNeighbors_);
+				neighbor.numNeighbors += static_cast<uint32_t>(neighbor.numNeighbors < priv_->maxNumNeighbors_);
 			}
 		}
 	}
@@ -574,7 +573,7 @@ void BoidsCPU::updateNeighbours(
 		auto &neighbor = boidData_[neighborIndex];
 
 		// make distance check
-		Vec3f dx = boidPos - getBoidPosition(neighborIndex);
+		const Vec3f dx = boidPos - getBoidPosition(neighborIndex);
 		uint32_t isNeighbor(dx.lengthSquared() <= priv_->visualRangeSq_);
 
 		// define reflexive neighbor relation
@@ -609,18 +608,17 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 	boid.sumSep = Vec3f::zero();
 
 #ifdef REGEN_BOID_USE_FORCE_SIMD
-	if (boid.numNeighbors >= regen::simd::RegisterWidth) {
+	if (boid.numNeighbors >= simd::RegisterWidth) {
 		// NOTE: unfortunately, this does not buy us much as num neighbors is usually capped
 		//       to rather small values, e.g. 100.
 		{ // pass 1: compute average position and velocity
-			BatchOf_Vec3f avgPosition_SIMD(Vec3f::zero());
-			BatchOf_Vec3f avgVelocity_SIMD(Vec3f::zero());
+			BatchOf_Vec3f avgPosition_SIMD = BatchOf_Vec3f::fromScalar(Vec3f::zero());
+			BatchOf_Vec3f avgVelocity_SIMD = BatchOf_Vec3f::fromScalar(Vec3f::zero());
 			BatchOf_Vec3f neighborVel_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			BatchOf_Vec3f neighborPos_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			for (; startIdx + regen::simd::RegisterWidth <= boid.numNeighbors;
-				   startIdx += regen::simd::RegisterWidth) {
+			for (; startIdx + simd::RegisterWidth <= boid.numNeighbors; startIdx += simd::RegisterWidth) {
 				// load the neighbor indices into a SIMD register
-				auto idx = regen::simd::loadu_si256(boid.neighbors.data() + startIdx);
+				auto idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
 				// load the positions of the neighbors into a SIMD register
 				neighborPos_SIMD.load(
 						priv_->boidPositionsX_.data(),
@@ -641,29 +639,33 @@ Vec3f BoidsCPU::accumulateForce(BoidData &boid, const Vec3f &boidPos, const Vec3
 
 		{ // pass 2: compute separation term
 			startIdx = 0;
-			const BatchOf_Vec3f boidPos_SIMD(boidPos);
-			BatchOf_Vec3f neighborPos_SIMD; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			BatchOf_Vec3f separation_SIMD(Vec3f::zero());
-			const BatchOf_float avoidanceDistanceSq_SIMD(priv_->avoidanceDistance_ * priv_->avoidanceDistance_);
-			const BatchOf_float zero_SIMD(0.0f);
-			const BatchOf_float one_SIMD(1.0f);
+			const BatchOf_Vec3f boidPos_SIMD =
+				BatchOf_Vec3f::fromScalar(boidPos);
+			BatchOf_Vec3f separation_SIMD =
+				BatchOf_Vec3f::fromScalar(Vec3f::zero());
+			const BatchOf_float avoidanceDistanceSq_SIMD =
+				BatchOf_float::fromScalar(priv_->avoidanceDistance_ * priv_->avoidanceDistance_);
+			const BatchOf_float one_SIMD =
+				BatchOf_float::fromScalar(1.0f);
+			BatchOf_Vec3f dir; // NOLINT(cppcoreguidelines-pro-type-member-init)
 
-			for (; startIdx + regen::simd::RegisterWidth <= boid.numNeighbors;
-				   startIdx += regen::simd::RegisterWidth) {
+			for (; startIdx + simd::RegisterWidth <= boid.numNeighbors; startIdx += simd::RegisterWidth) {
 				// load the neighbor indices into a SIMD register
-				auto idx = regen::simd::loadu_si256(boid.neighbors.data() + startIdx);
+				simd::Register_i idx = simd::loadu_si256(boid.neighbors.data() + startIdx);
 				// load the positions of the neighbors into a SIMD register
-				neighborPos_SIMD.load(
+				dir.load(
 						priv_->boidPositionsX_.data(),
 						priv_->boidPositionsY_.data(),
 						priv_->boidPositionsZ_.data(),
 						idx);
+				dir = boidPos_SIMD - dir;
 
-				auto dir = boidPos_SIMD - neighborPos_SIMD;
-				auto distSq = dir.lengthSquared();
-				auto invDistSq = one_SIMD / distSq;
-				auto mask = regen::simd::cmp_lt(distSq.c, avoidanceDistanceSq_SIMD.c);
-				invDistSq.c = _mm256_blendv_ps(zero_SIMD.c, invDistSq.c, mask);
+				const BatchOf_float distSq = dir.lengthSquared();
+				BatchOf_float invDistSq = one_SIMD / distSq;
+				invDistSq.c = _mm256_blendv_ps(
+					_mm256_setzero_ps(),
+					invDistSq.c,
+					(distSq < avoidanceDistanceSq_SIMD).c);
 				// TODO: push into random direction if distance below threshold?
 				separation_SIMD += dir * invDistSq;
 			}

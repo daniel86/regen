@@ -3,50 +3,47 @@
 
 using namespace regen;
 
-void regen::shapes::flush_OBB_Spheres(BatchedIntersectionCase &tid) {
-	auto &td = *static_cast<BatchIntersection_OBB_Spheres *>(&tid);
+void regen::shapes::flush_OBB_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto &testShape = *static_cast<const OBB *>(td.testShape);
-	int32_t queuedIdx = 0;
 
 	// bounding box in base pose
-	auto &obbBaseMin = testShape.baseBounds().min;
-	auto &obbBaseMax = testShape.baseBounds().max;
-	auto &obbCenter = testShape.tfOrigin();
-	auto halfSize = (obbBaseMax - obbBaseMin) * 0.5f;
+	const Vec3f &obbCenter = testShape.tfOrigin();
+	const Vec3f halfSize = (testShape.baseBounds().max - testShape.baseBounds().min) * 0.5f;
 	// transformed axes of the OBB
-	auto *obbAxes = testShape.boxAxes();
+	const Vec3f *obbAxes = testShape.boxAxes();
 
-	auto *batchData = static_cast<BatchOfSpheres *>(tid.batchData);
-	auto *d_spherePosX = batchData->posX.data();
-	auto *d_spherePosY = batchData->posY.data();
-	auto *d_spherePosZ = batchData->posZ.data();
-	auto *d_sphereRadius = batchData->radius.data();
+	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
+	const float *d_spherePosX = batchData->posX.data();
+	const float *d_spherePosY = batchData->posY.data();
+	const float *d_spherePosZ = batchData->posZ.data();
+	const float *d_sphereRadius = batchData->radius.data();
 
+	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
 		// Load the sphere data into SIMD registers, we need 4 registers.
-		td.batch_spherePosX.load_aligned(d_spherePosX + queuedIdx);
-		td.batch_spherePosY.load_aligned(d_spherePosY + queuedIdx);
-		td.batch_spherePosZ.load_aligned(d_spherePosZ + queuedIdx);
-		td.batch_sphereRadius.load_aligned(d_sphereRadius + queuedIdx);
+		const BatchOf_float spherePosX = BatchOf_float::loadAligned(d_spherePosX + queuedIdx);
+		const BatchOf_float spherePosY = BatchOf_float::loadAligned(d_spherePosY + queuedIdx);
+		const BatchOf_float spherePosZ = BatchOf_float::loadAligned(d_spherePosZ + queuedIdx);
+		BatchOf_float sphereRadius = BatchOf_float::loadAligned(d_sphereRadius + queuedIdx);
 		// r = r * r
-		td.batch_sphereRadius *= td.batch_sphereRadius;
+		sphereRadius *= sphereRadius;
 
 		// Find closest point on OBB to sphere center, start with:
 		// closest = obbCenter
-		BatchOf_float closestX(obbCenter.x);
-		BatchOf_float closestY(obbCenter.y);
-		BatchOf_float closestZ(obbCenter.z);
+		BatchOf_float closestX = BatchOf_float::fromScalar(obbCenter.x);
+		BatchOf_float closestY = BatchOf_float::fromScalar(obbCenter.y);
+		BatchOf_float closestZ = BatchOf_float::fromScalar(obbCenter.z);
 		// delta = p1 - obbCenter
-		BatchOf_float deltaX = td.batch_spherePosX - closestX;
-		BatchOf_float deltaY = td.batch_spherePosY - closestY;
-		BatchOf_float deltaZ = td.batch_spherePosZ - closestZ;
+		BatchOf_float deltaX = spherePosX - closestX;
+		BatchOf_float deltaY = spherePosY - closestY;
+		BatchOf_float deltaZ = spherePosZ - closestZ;
 
 		// We need to project delta onto each OBB axis, clamp to halfSize, and accumulate
 		for (int i = 0; i < 3; ++i) {
 			// axis = obbAxes[i]
 			const Vec3f &axis = obbAxes[i];
-			BatchOf_float halfSizeOnAxis(halfSize[i]);
+			BatchOf_float halfSizeOnAxis = BatchOf_float::fromScalar(halfSize[i]);
 			// dist = delta.dot(axis)
 			BatchOf_float dist =
 				(deltaX * axis.x) +
@@ -60,12 +57,12 @@ void regen::shapes::flush_OBB_Spheres(BatchedIntersectionCase &tid) {
 			closestZ.c = simd::mul_add_ps(dist.c, simd::set1_ps(axis.z), closestZ.c);
 		}
 		// delta = closest - p1
-		deltaX = closestX - td.batch_spherePosX;
-		deltaY = closestY - td.batch_spherePosY;
-		deltaZ = closestZ - td.batch_spherePosZ;
+		deltaX = closestX - spherePosX;
+		deltaY = closestY - spherePosY;
+		deltaZ = closestZ - spherePosZ;
 		BatchOf_float tmp = (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
 		// tmp = (delta(dot)delta) < r_sum*r_sum
-		tmp = (tmp < td.batch_sphereRadius);
+		tmp = (tmp < sphereRadius);
 
 		// Convert lanes (1/0) to bitmask value
 		uint8_t mask = tmp.toBitmask8();
@@ -78,7 +75,7 @@ void regen::shapes::flush_OBB_Spheres(BatchedIntersectionCase &tid) {
 	// Scalar fallback for remaining items
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
-		Vec3f p1(
+		const Vec3f p1(
 			d_spherePosX[queuedIdx],
 			d_spherePosY[queuedIdx],
 			d_spherePosZ[queuedIdx]);
@@ -91,11 +88,9 @@ void regen::shapes::flush_OBB_Spheres(BatchedIntersectionCase &tid) {
 	}
 }
 
-void regen::shapes::flush_OBB_AABBs(BatchedIntersectionCase &tid) {
-	auto &td = *static_cast<BatchIntersection_OBB_AABBs *>(&tid);
+void regen::shapes::flush_OBB_AABBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto &testShape = *static_cast<const OBB *>(td.testShape);
-	int32_t queuedIdx = 0;
 
 	// bounding box in base pose
 	auto &obbCenter = testShape.tfOrigin();
@@ -109,51 +104,50 @@ void regen::shapes::flush_OBB_AABBs(BatchedIntersectionCase &tid) {
 		obbHalfSize.x * obbAbsAxes[0][1] + obbHalfSize.y * obbAbsAxes[1][1] + obbHalfSize.z * obbAbsAxes[2][1],
 		obbHalfSize.x * obbAbsAxes[0][2] + obbHalfSize.y * obbAbsAxes[1][2] + obbHalfSize.z * obbAbsAxes[2][2]};
 
-	auto *batchData = static_cast<BatchOfAABBs *>(tid.batchData);
-	auto *d_aabbMinX = batchData->minX.data();
-	auto *d_aabbMinY = batchData->minY.data();
-	auto *d_aabbMinZ = batchData->minZ.data();
-	auto *d_aabbMaxX = batchData->maxX.data();
-	auto *d_aabbMaxY = batchData->maxY.data();
-	auto *d_aabbMaxZ = batchData->maxZ.data();
+	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
+	const float *d_aabbMinX = batchData->minX.data();
+	const float *d_aabbMinY = batchData->minY.data();
+	const float *d_aabbMinZ = batchData->minZ.data();
+	const float *d_aabbMaxX = batchData->maxX.data();
+	const float *d_aabbMaxY = batchData->maxY.data();
+	const float *d_aabbMaxZ = batchData->maxZ.data();
 
-	{
-		const BatchOf_float obbCenterX(obbCenter.x);
-		const BatchOf_float obbCenterY(obbCenter.y);
-		const BatchOf_float obbCenterZ(obbCenter.z);
-		const BatchOf_float obbRadiusX(obbRadius[0]);
-		const BatchOf_float obbRadiusY(obbRadius[1]);
-		const BatchOf_float obbRadiusZ(obbRadius[2]);
+	const BatchOf_float obbCenterX = BatchOf_float::fromScalar(obbCenter.x);
+	const BatchOf_float obbCenterY = BatchOf_float::fromScalar(obbCenter.y);
+	const BatchOf_float obbCenterZ = BatchOf_float::fromScalar(obbCenter.z);
+	const BatchOf_float obbRadiusX = BatchOf_float::fromScalar(obbRadius[0]);
+	const BatchOf_float obbRadiusY = BatchOf_float::fromScalar(obbRadius[1]);
+	const BatchOf_float obbRadiusZ = BatchOf_float::fromScalar(obbRadius[2]);
 
-		for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
-			// Load the AABB data into SIMD registers, 6 registers.
-			td.batch_aabbMinX.load_aligned(d_aabbMinX + queuedIdx);
-			td.batch_aabbMinY.load_aligned(d_aabbMinY + queuedIdx);
-			td.batch_aabbMinZ.load_aligned(d_aabbMinZ + queuedIdx);
-			td.batch_aabbMaxX.load_aligned(d_aabbMaxX + queuedIdx);
-			td.batch_aabbMaxY.load_aligned(d_aabbMaxY + queuedIdx);
-			td.batch_aabbMaxZ.load_aligned(d_aabbMaxZ + queuedIdx);
+	int32_t queuedIdx = 0;
+	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
+		// Load the AABB data into SIMD registers, 6 registers.
+		const BatchOf_float aabbMinX = BatchOf_float::loadAligned(d_aabbMinX + queuedIdx);
+		const BatchOf_float aabbMinY = BatchOf_float::loadAligned(d_aabbMinY + queuedIdx);
+		const BatchOf_float aabbMinZ = BatchOf_float::loadAligned(d_aabbMinZ + queuedIdx);
+		const BatchOf_float aabbMaxX = BatchOf_float::loadAligned(d_aabbMaxX + queuedIdx);
+		const BatchOf_float aabbMaxY = BatchOf_float::loadAligned(d_aabbMaxY + queuedIdx);
+		const BatchOf_float aabbMaxZ = BatchOf_float::loadAligned(d_aabbMaxZ + queuedIdx);
 
-			// Intersection test:
-			//		((obbCenter - r) < aabbMax) &&
-			//		((obbCenter + r) > aabbMin)
-			const BatchOf_float hasOverlap =
-					// X axis overlap test
-				(obbCenterX - obbRadiusX < td.batch_aabbMaxX) &&
-				(obbCenterX + obbRadiusX > td.batch_aabbMinX) &&
-					// Y axis overlap test
-				(obbCenterY - obbRadiusY < td.batch_aabbMaxY) &&
-				(obbCenterY + obbRadiusY > td.batch_aabbMinY) &&
-					// Z axis overlap test
-				(obbCenterZ - obbRadiusZ < td.batch_aabbMaxZ) &&
-				(obbCenterZ + obbRadiusZ > td.batch_aabbMinZ);
+		// Intersection test:
+		//		((obbCenter - r) < aabbMax) &&
+		//		((obbCenter + r) > aabbMin)
+		const BatchOf_float hasOverlap =
+				// X axis overlap test
+			(obbCenterX - obbRadiusX < aabbMaxX) &&
+			(obbCenterX + obbRadiusX > aabbMinX) &&
+				// Y axis overlap test
+			(obbCenterY - obbRadiusY < aabbMaxY) &&
+			(obbCenterY + obbRadiusY > aabbMinY) &&
+				// Z axis overlap test
+			(obbCenterZ - obbRadiusZ < aabbMaxZ) &&
+			(obbCenterZ + obbRadiusZ > aabbMinZ);
 
-			// Convert lanes (1/0) to bitmask value
-			uint8_t mask = hasOverlap.toBitmask8();
-			while (mask) {
-				int bitIndex = simd::nextBitIndex<uint8_t>(mask);
-				td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
-			}
+		// Convert lanes (1/0) to bitmask value
+		uint8_t mask = hasOverlap.toBitmask8();
+		while (mask) {
+			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
+			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
 		}
 	}
 
