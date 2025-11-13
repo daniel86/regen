@@ -11,7 +11,6 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 	// Process numQueuedItems_ nodes from the queue, performing an intersection test with the shape's projection;
 	// and also writing nodeIdx to successor array if the test succeeds.
 	auto &td = *static_cast<BatchIntersection_Frustum_Spheres *>(&tid);
-	auto *testShape = static_cast<const Frustum *>(td.testShape);
 	auto *shapeData = static_cast<IntersectionData_Frustum *>(tid.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	int32_t queuedIdx = 0;
@@ -38,8 +37,7 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 				(td.batch_spherePosY * shapeData->planes[p].y) +
 				(td.batch_spherePosZ * shapeData->planes[p].z) +
 				td.batch_sphereRadius;
-			// condition for *outside*: plane.distance(p) = (n(dot)p) - d < -r
-			//     *survived* if: (n(dot)p - d) >= -r  -> (n(dot)p + r) >= d
+			// survived if: (n(dot)p - d) >= -r  -> (n(dot)p + r) >= d
 			survived = survived && (tmp > shapeData->planes[p].w);
 			// early break if all lanes are dead
 			if (survived.isZeroMask()) break;
@@ -54,14 +52,16 @@ void regen::shapes::flush_Frustum_Spheres(BatchedIntersectionCase &tid) {
 	}
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
-		Vec3f center(
-			d_spherePosX[queuedIdx],
-			d_spherePosY[queuedIdx],
-			d_spherePosZ[queuedIdx]);
-		float radius = d_sphereRadius[queuedIdx];
 		bool inside = true;
-		for (const auto &plane: testShape->planes) {
-			if (plane.distance(center) < -radius) {
+		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
+			// tmp = n(dot)p + r
+			float tmp =
+				(d_spherePosX[queuedIdx] * shapeData->planes[p].x) +
+				(d_spherePosY[queuedIdx] * shapeData->planes[p].y) +
+				(d_spherePosZ[queuedIdx] * shapeData->planes[p].z) +
+				d_sphereRadius[queuedIdx];
+			// survived if: (n(dot)p - d) >= -r  -> (n(dot)p + r) >= d
+			if (tmp < shapeData->planes[p].w) {
 				inside = false;
 				break;
 			}
@@ -100,9 +100,9 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
 			// If this point is behind the plane, the AABB must be outside the frustum.
-			BatchOf_float &px = shapeData->planes[p].x < 0.0f ? td.batch_aabbMinX : td.batch_aabbMaxX;
-			BatchOf_float &py = shapeData->planes[p].y < 0.0f ? td.batch_aabbMinY : td.batch_aabbMaxY;
-			BatchOf_float &pz = shapeData->planes[p].z < 0.0f ? td.batch_aabbMinZ : td.batch_aabbMaxZ;
+			BatchOf_float px = shapeData->planes[p].x < 0.0f ? td.batch_aabbMinX : td.batch_aabbMaxX;
+			BatchOf_float py = shapeData->planes[p].y < 0.0f ? td.batch_aabbMinY : td.batch_aabbMaxY;
+			BatchOf_float pz = shapeData->planes[p].z < 0.0f ? td.batch_aabbMinZ : td.batch_aabbMaxZ;
 			// tmp = n(dot)p
 			BatchOf_float tmp =
 				(px * shapeData->planes[p].x) +
@@ -128,15 +128,15 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 		for (unsigned int p = 0u; p < NUM_FRUSTUM_PLANES; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
 			// If this point is behind the plane, the AABB must be outside of the frustum.
-			Vec3f n(
-				shapeData->planes[p].x,
-				shapeData->planes[p].y,
-				shapeData->planes[p].z);
 			Vec3f farthest(
-				n.x < 0.0 ? d_aabbMinX[queuedIdx] : d_aabbMaxX[queuedIdx],
-				n.y < 0.0 ? d_aabbMinY[queuedIdx] : d_aabbMaxY[queuedIdx],
-				n.z < 0.0 ? d_aabbMinZ[queuedIdx] : d_aabbMaxZ[queuedIdx]);
-			if (n.dot(farthest) < -shapeData->planes[p].w) {
+				shapeData->planes[p].x < 0.0 ? d_aabbMinX[queuedIdx] : d_aabbMaxX[queuedIdx],
+				shapeData->planes[p].y < 0.0 ? d_aabbMinY[queuedIdx] : d_aabbMaxY[queuedIdx],
+				shapeData->planes[p].z < 0.0 ? d_aabbMinZ[queuedIdx] : d_aabbMaxZ[queuedIdx]);
+			float nDotFarthest = (
+				shapeData->planes[p].x * farthest.x +
+				shapeData->planes[p].y * farthest.y +
+				shapeData->planes[p].z * farthest.z);
+			if (nDotFarthest < -shapeData->planes[p].w) {
 				// AABB is outside the frustum
 				inside = false;
 				break;
@@ -148,16 +148,94 @@ void regen::shapes::flush_Frustum_AABBs(BatchedIntersectionCase &tid) {
 	}
 }
 
-void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &td) {
-	// TODO: Support SIMD on this path.
-	//       It uses `if (planes[i].distance(points[j]) >= 0.0) then inside`
-	//       So would "only" need point data (8 verts per shape)
-	auto *testShape = static_cast<const Frustum *>(td.testShape);
+void regen::shapes::flush_Frustum_OBBs(BatchedIntersectionCase &tid) {
+	auto &td = *static_cast<BatchIntersection_Frustum_OBBs *>(&tid);
 	auto *shapes = td.indexedShapes->data();
-	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		auto itemIdx = td.queuedIndices[i];
-		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
-		if (testShape->hasIntersectionWithBox(box)) {
+	auto *frustum = static_cast<IntersectionData_Frustum *>(tid.shapeData);
+	const auto numQueued = static_cast<int32_t>(td.numQueued);
+	int32_t queuedIdx = 0;
+
+	auto *batchData = static_cast<BatchOfOBBs *>(tid.batchData);
+	auto *d_obbCenterX = batchData->centerX.data();
+	auto *d_obbCenterY = batchData->centerY.data();
+	auto *d_obbCenterZ = batchData->centerZ.data();
+	auto *d_obbHalfSizeX = batchData->halfSizeX.data();
+	auto *d_obbHalfSizeY = batchData->halfSizeY.data();
+	auto *d_obbHalfSizeZ = batchData->halfSizeZ.data();
+	auto *d_axes = batchData->axes.data();
+
+	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
+		// Load some of the ABB data into SIMD registers, too many registers are needed so
+		// we leave out the axes and rather load them in a loop below.
+		td.batch_obbCenterX.load_aligned(d_obbCenterX + queuedIdx);
+		td.batch_obbCenterY.load_aligned(d_obbCenterY + queuedIdx);
+		td.batch_obbCenterZ.load_aligned(d_obbCenterZ + queuedIdx);
+		td.batch_obbHalfSize[0].load_aligned(d_obbHalfSizeX + queuedIdx);
+		td.batch_obbHalfSize[1].load_aligned(d_obbHalfSizeY + queuedIdx);
+		td.batch_obbHalfSize[2].load_aligned(d_obbHalfSizeZ + queuedIdx);
+		// We'll accumulate a boolean vector "survived" as mask; init to true
+		BatchOf_float survived = BatchOf_float::all_ones();
+
+		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES; ++planeIdx) {
+			const auto &plane = frustum->planes[planeIdx];
+			// center-to-plane distance + projected radius, radius is initially 0
+			BatchOf_float dr =
+				(td.batch_obbCenterX * plane.x) +
+				(td.batch_obbCenterY * plane.y) +
+				(td.batch_obbCenterZ * plane.z) - BatchOf_float(plane.w);
+			// Accumulate projected radius from each OBB axis
+			for (uint32_t axisIdx=0u; axisIdx < 3u; ++axisIdx) {
+				// Load axis into SIMD registers
+				BatchOfOBBs::AxisBatch &axisBatch = d_axes[axisIdx];
+				BatchOf_float axisX; axisX.load_aligned(axisBatch.x.data() + queuedIdx);
+				BatchOf_float axisY; axisY.load_aligned(axisBatch.y.data() + queuedIdx);
+				BatchOf_float axisZ; axisZ.load_aligned(axisBatch.z.data() + queuedIdx);
+				// Projected radius
+				dr += td.batch_obbHalfSize[axisIdx] * (
+					(axisX * BatchOf_float(plane.x)).abs() +
+					(axisY * BatchOf_float(plane.y)).abs() +
+					(axisZ * BatchOf_float(plane.z)).abs());
+			}
+			survived = survived && dr.isPositive();
+			// early break if all lanes are dead
+			if (survived.isZeroMask()) break;
+		}
+
+		// Convert survived lanes to bitmask value
+		uint8_t mask = survived.toBitmask8();
+		while (mask) {
+			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
+			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
+		}
+	}
+
+	// Scalar fallback for remaining items
+	for (; queuedIdx < numQueued; queuedIdx++) {
+		auto itemIdx = td.queuedIndices[queuedIdx];
+
+		const BoundingBox &obb = *static_cast<OBB *>(shapes[itemIdx].get());
+		auto *obbAxes = obb.boxAxes();
+		auto &obbCenter = obb.tfOrigin();
+		Vec3f obbHalfSize = {
+			d_obbHalfSizeX[queuedIdx],
+			d_obbHalfSizeY[queuedIdx],
+			d_obbHalfSizeZ[queuedIdx]};
+
+		bool isOutside = false;
+		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES; ++planeIdx) {
+			const auto &plane = frustum->planes[planeIdx];
+			// center-to-plane distance + projected radius
+			float dr = obbCenter.dot(plane.xyz_()) - plane.w +
+				obbHalfSize.x * std::abs(obbAxes[0].dot(plane.xyz_())) +
+				obbHalfSize.y * std::abs(obbAxes[1].dot(plane.xyz_())) +
+				obbHalfSize.z * std::abs(obbAxes[2].dot(plane.xyz_()));
+			if (dr < 0.0f) { // completely outside
+				isOutside = true;
+				break;
+			}
+		}
+
+		if (isOutside) {
 			td.hits->push(itemIdx);
 		}
 	}

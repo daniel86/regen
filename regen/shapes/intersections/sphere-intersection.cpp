@@ -62,9 +62,12 @@ void regen::shapes::flush_Sphere_Spheres(BatchedIntersectionCase &tid) {
 
 void regen::shapes::flush_Sphere_AABBs(BatchedIntersectionCase &tid) {
 	auto &td = *static_cast<BatchIntersection_Sphere_AABBs *>(&tid);
-	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	int32_t queuedIdx = 0;
+
+	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
+	auto &spherePos = testShape->tfOrigin();
+	const float sphereRadius = testShape->radius();
 
 	auto *batchData = static_cast<BatchOfAABBs *>(tid.batchData);
 	auto *d_aabbMinX = batchData->minX.data();
@@ -73,9 +76,6 @@ void regen::shapes::flush_Sphere_AABBs(BatchedIntersectionCase &tid) {
 	auto *d_aabbMaxX = batchData->maxX.data();
 	auto *d_aabbMaxY = batchData->maxY.data();
 	auto *d_aabbMaxZ = batchData->maxZ.data();
-
-	auto &spherePos = testShape->tfOrigin();
-	const float sphereRadius = testShape->radius();
 
 	{
 		// Load sphere data into SIMD registers, we need 4 registers.
@@ -129,12 +129,84 @@ void regen::shapes::flush_Sphere_AABBs(BatchedIntersectionCase &tid) {
 	}
 }
 
-void regen::shapes::flush_Sphere_OBBs(BatchedIntersectionCase &td) {
-	// TODO: Support SIMD on this path.
-	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
+void regen::shapes::flush_Sphere_OBBs(BatchedIntersectionCase &tid) {
+	auto &td = *static_cast<BatchIntersection_Sphere_OBBs *>(&tid);
 	auto *shapes = td.indexedShapes->data();
-	for (uint32_t i = 0; i < td.numQueued; ++i) {
-		auto itemIdx = td.queuedIndices[i];
+	const auto numQueued = static_cast<int32_t>(td.numQueued);
+	int32_t queuedIdx = 0;
+
+	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
+	auto &spherePos = testShape->tfOrigin();
+	const float sphereRadiusSq = testShape->radiusSquared();
+
+	auto *batchData = static_cast<BatchOfOBBs *>(tid.batchData);
+	auto *d_obbCenterX = batchData->centerX.data();
+	auto *d_obbCenterY = batchData->centerY.data();
+	auto *d_obbCenterZ = batchData->centerZ.data();
+	auto *d_obbHalfSizeX = batchData->halfSizeX.data();
+	auto *d_obbHalfSizeY = batchData->halfSizeY.data();
+	auto *d_obbHalfSizeZ = batchData->halfSizeZ.data();
+	auto *d_axes = batchData->axes.data();
+
+	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
+		// Load some of the ABB data into SIMD registers, too many registers are needed so
+		// we leave out the axes and rather load them in a loop below.
+		td.batch_obbCenterX.load_aligned(d_obbCenterX + queuedIdx);
+		td.batch_obbCenterY.load_aligned(d_obbCenterY + queuedIdx);
+		td.batch_obbCenterZ.load_aligned(d_obbCenterZ + queuedIdx);
+		td.batch_obbHalfSize[0].load_aligned(d_obbHalfSizeX + queuedIdx);
+		td.batch_obbHalfSize[1].load_aligned(d_obbHalfSizeY + queuedIdx);
+		td.batch_obbHalfSize[2].load_aligned(d_obbHalfSizeZ + queuedIdx);
+
+		// Find closest point on OBB to sphere center, start with:
+		// closest = obbCenter (we will just accumulate in td.batch_obbCenterX)
+#define _closestX td.batch_obbCenterX
+#define _closestY td.batch_obbCenterY
+#define _closestZ td.batch_obbCenterZ
+		// delta = p1 - obbCenter
+		BatchOf_float deltaX(spherePos.x); deltaX -= _closestX;
+		BatchOf_float deltaY(spherePos.y); deltaY -= _closestY;
+		BatchOf_float deltaZ(spherePos.z); deltaZ -= _closestZ;
+
+		// We need to project delta onto each OBB axis, clamp to halfSize, and accumulate
+		for (int i = 0; i < 3; ++i) {
+			// axis = obbAxes[i]
+			BatchOfOBBs::AxisBatch &axisBatch = d_axes[i];
+			BatchOf_float axisX; axisX.load_aligned(axisBatch.x.data() + queuedIdx);
+			BatchOf_float axisY; axisY.load_aligned(axisBatch.y.data() + queuedIdx);
+			BatchOf_float axisZ; axisZ.load_aligned(axisBatch.z.data() + queuedIdx);
+			// dist = delta.dot(axis)
+			BatchOf_float dist = (deltaX * axisX) + (deltaY * axisY) + (deltaZ * axisZ);
+			// dist = clamp(dist, -halfSize, halfSize)
+			BatchOf_float halfSizeOnAxis(td.batch_obbHalfSize[i]);
+			dist.c = simd::min_ps(simd::max_ps(dist.c, -halfSizeOnAxis.c), halfSizeOnAxis.c);
+			// closest += axis * clamped, use fused-multiply-add
+			_closestX.c = simd::mul_add_ps(dist.c, axisX.c, _closestX.c);
+			_closestY.c = simd::mul_add_ps(dist.c, axisY.c, _closestY.c);
+			_closestZ.c = simd::mul_add_ps(dist.c, axisZ.c, _closestZ.c);
+		}
+		// delta = closest - p1
+		deltaX = _closestX - BatchOf_float(spherePos.x);
+		deltaY = _closestY - BatchOf_float(spherePos.y);
+		deltaZ = _closestZ - BatchOf_float(spherePos.z);
+#undef _closestX
+#undef _closestY
+#undef _closestZ
+		BatchOf_float tmp = (deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+		// tmp = (delta(dot)delta) < r_sum*r_sum
+		tmp = (tmp < BatchOf_float(sphereRadiusSq));
+
+		// Convert lanes (1/0) to bitmask value
+		uint8_t mask = tmp.toBitmask8();
+		while (mask) {
+			int bitIndex = simd::nextBitIndex<uint8_t>(mask);
+			td.hits->push(td.queuedIndices[queuedIdx + bitIndex]);
+		}
+	}
+
+	// Scalar fallback for remaining items
+	for (; queuedIdx < numQueued; queuedIdx++) {
+		auto itemIdx = td.queuedIndices[queuedIdx];
 		const BoundingBox &box = *static_cast<BoundingBox *>(shapes[itemIdx].get());
 		if (testShape->hasIntersectionWithShape(box)) {
 			td.hits->push(itemIdx);

@@ -30,6 +30,10 @@ namespace regen {
 	struct BatchIntersection_Sphere_OBBs : BatchedIntersectionCase {
 		BatchIntersection_Sphere_OBBs() = default;
 		~BatchIntersection_Sphere_OBBs() override = default;
+		BatchOf_float batch_obbCenterX;
+		BatchOf_float batch_obbCenterY;
+		BatchOf_float batch_obbCenterZ;
+		BatchOf_float batch_obbHalfSize[3];
 	};
 
 	struct BatchIntersection_Sphere_Frustums : BatchedIntersectionCase {

@@ -356,6 +356,21 @@ namespace regen {
 		template <typename T>
 		BatchOf_float operator||(const T &other) const { return cmp_or(other); }
 
+		BatchOf_float abs() const {
+			// 32-bit integer with all bits 1 except the sign bit,
+			// then reinterpret the integer bits as floats
+			__m256 mask = _mm256_castsi256_ps(_mm256_set1_epi32(0x7FFFFFFF));
+			// AND the mask with the float values to clear the sign bits
+			return BatchOf_float{_mm256_and_ps(this->c, mask)};
+		}
+
+		inline BatchOf_float isPositive() const {
+			return BatchOf_float{simd::cmp_gt(c, _mm256_setzero_ps())};
+		}
+		inline BatchOf_float isNegative() const {
+			return BatchOf_float{simd::cmp_lt(c, _mm256_setzero_ps())};
+		}
+
 		bool isZeroMask() const {
 			int mask = simd::movemask_ps(c);
 			return (mask == 0);

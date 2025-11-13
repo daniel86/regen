@@ -29,6 +29,10 @@ namespace regen {
 	struct BatchIntersection_Frustum_OBBs : BatchedIntersectionCase {
 		BatchIntersection_Frustum_OBBs() = default;
 		~BatchIntersection_Frustum_OBBs() override = default;
+		BatchOf_float batch_obbCenterX;
+		BatchOf_float batch_obbCenterY;
+		BatchOf_float batch_obbCenterZ;
+		BatchOf_float batch_obbHalfSize[3];
 	};
 
 	struct BatchIntersection_Frustum_Frustums : BatchedIntersectionCase {

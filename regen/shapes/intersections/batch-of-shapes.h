@@ -99,24 +99,21 @@ namespace regen {
 			pushFun = &BatchOfOBBs::doPush;
 		}
 		~BatchOfOBBs() override = default;
-		AlignedArray<float> upX;
-		AlignedArray<float> upY;
-		AlignedArray<float> upZ;
-		AlignedArray<float> rightX;
-		AlignedArray<float> rightY;
-		AlignedArray<float> rightZ;
-		AlignedArray<float> forwardX;
-		AlignedArray<float> forwardY;
-		AlignedArray<float> forwardZ;
 		AlignedArray<float> centerX;
 		AlignedArray<float> centerY;
 		AlignedArray<float> centerZ;
 		AlignedArray<float> halfSizeX;
 		AlignedArray<float> halfSizeY;
 		AlignedArray<float> halfSizeZ;
+		struct AxisBatch {
+			AlignedArray<float> x;
+			AlignedArray<float> y;
+			AlignedArray<float> z;
+		};
+		std::array<AxisBatch, 3> axes;
 	protected:
-		static void doResize(BatchOfShapes&, uint32_t) {}
-		static void doPush(BatchOfShapes&, const BoundingShape&, uint32_t) {}
+		static void doResize(BatchOfShapes&, uint32_t);
+		static void doPush(BatchOfShapes&, const BoundingShape&, uint32_t);
 	};
 
 	/**

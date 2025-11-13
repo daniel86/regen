@@ -299,8 +299,6 @@ namespace regen {
 
 		friend struct VisibilityJob;
 
-		static void handleIntersection(const BoundingShape &b_shape, void *userData);
-
 		static void resetCamera(IndexCamera *indexCamera, DistanceKeySize distanceBits, uint32_t traversalMask);
 	};
 
