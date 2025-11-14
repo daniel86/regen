@@ -834,9 +834,11 @@ HitBuffer& QuadTree::foreachIntersection(const BoundingShape &shape, uint32_t ma
 		// This also handles the very first initialization of td.
 		td.tree = this;
 		if constexpr (QUAD_TREE_3D_BATCHING) {
-			td.batchTest3D = ref_ptr<BatchedIntersectionTest>::alloc();
+			if (!td.batchTest3D) {
+				td.batchTest3D = ref_ptr<BatchedIntersectionTest>::alloc();
+				td.batchTest3D->setHitBuffer(&td.hits);
+			}
 			td.batchTest3D->setIndexedShapes(&itemShapes_);
-			td.batchTest3D->setHitBuffer(&td.hits);
 		}
 	}
 	td.hits.reset();
