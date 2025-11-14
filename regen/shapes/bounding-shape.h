@@ -5,6 +5,9 @@
 #include "orthogonal-projection.h"
 
 namespace regen {
+	/**
+	 * @brief Types of bounding shapes
+	 */
 	enum class BoundingShapeType {
 		SPHERE = 0,
 		AABB,
@@ -20,8 +23,11 @@ namespace regen {
 	 */
 	class BoundingShape {
 	public:
+		// If the SKIP bit is set, the shape is skipped during traversal.
 		static constexpr uint32_t TRAVERSAL_BIT_SKIP = 0;
+		// If the DRAW bit is set, the shape is considered during draw traversal.
 		static constexpr uint32_t TRAVERSAL_BIT_DRAW = 1;
+		// If the COLLISION bit is set, the shape is considered during collision traversal.
 		static constexpr uint32_t TRAVERSAL_BIT_COLLISION = 2;
 
 		/**
@@ -110,7 +116,7 @@ namespace regen {
 		 * @brief Get the number of instances
 		 * @return The number of instances
 		 */
-		uint32_t numInstances() const;
+		uint32_t numInstances() const { return numInstances_; }
 
 		/**
 		 * @brief Get the type of this shape
@@ -319,6 +325,7 @@ namespace regen {
 		// this is either from the ModelTransformation or the local stamp
 		uint32_t (BoundingShape::*stampFun_)() const = &BoundingShape::getLocalStamp;
 		std::string name_;
+		uint32_t numInstances_ = 1;
 		uint32_t instanceID_ = 0;
 		uint32_t traversalMask_ = (1 << TRAVERSAL_BIT_DRAW); // default: draw
 		// custom data pointer used for spatial index intersection tests

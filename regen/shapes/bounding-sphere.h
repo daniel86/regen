@@ -2,7 +2,6 @@
 #define REGEN_BOUNDING_SPHERE_H_
 
 #include <regen/shapes/bounding-shape.h>
-#include "bounding-box.h"
 
 namespace regen {
 	/**
@@ -13,11 +12,14 @@ namespace regen {
 		/**
 		 * @brief Construct a new Bounding Sphere object
 		 * @param mesh The mesh
+		 * @param parts The parts of the mesh
+		 * @param radius The radius of the sphere (if 0, it will be computed from the mesh)
 		 */
 		BoundingSphere(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts, float radius = 0.0f);
 
 		/**
 		 * @brief Construct a new Bounding Sphere object
+		 * @param basePosition The base position of the sphere (without transformation)
 		 * @param radius The radius of the sphere
 		 */
 		BoundingSphere(const Vec3f &basePosition, GLfloat radius);
@@ -40,7 +42,7 @@ namespace regen {
 		 * @brief Set the radius of this sphere
 		 * @param radius The radius
 		 */
-		void setRadius(GLfloat radius) { radius_ = radius; }
+		void setRadius(float radius) { radius_ = radius; }
 
 		/**
 		 * @brief Check if this sphere has intersection with another shape

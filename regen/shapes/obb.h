@@ -17,7 +17,7 @@ namespace regen {
 
 		/**
 		 * @brief Construct a new OBB object
-		 * @param halfSize The half size of the OBB
+		 * @param bounds The min/max of the OBB
 		 */
 		explicit OBB(const Bounds<Vec3f> &bounds);
 

@@ -92,10 +92,6 @@ void BoundingShape::setBaseOffset(const Vec3f &offset) {
 	}
 }
 
-uint32_t BoundingShape::numInstances() const {
-	return transform_.get() ? transform_->numInstances() : 1u;
-}
-
 uint32_t BoundingShape::tfStamp() const {
 	return (this->*stampFun_)();
 }
@@ -104,6 +100,7 @@ void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, 
 	transform_ = transform;
 	localTransform_ = Mat4f::identity();
 	transformIndex_ = instanceIndex;
+	numInstances_ = transform_->numInstances();
 	updateStampFunction();
 }
 
@@ -113,6 +110,7 @@ void BoundingShape::setTransform(const Mat4f &localTransform) {
 		localStamp_.store(transform_->stamp() + 1u, std::memory_order_relaxed);
 		transform_ = {};
 		transformIndex_ = 0;
+		numInstances_ = 1u;
 	} else {
 		localStamp_.fetch_add(1u, std::memory_order_relaxed);
 	}

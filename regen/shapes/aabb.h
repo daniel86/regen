@@ -19,7 +19,7 @@ namespace regen {
 		 * @brief Construct a new AABB object
 		 * @param bounds The min/max of the AABB
 		 */
-		AABB(const Bounds<Vec3f> &bounds);
+		explicit AABB(const Bounds<Vec3f> &bounds);
 
 		~AABB() override = default;
 
