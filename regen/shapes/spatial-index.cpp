@@ -77,7 +77,7 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	const uint32_t numIndices = numInstances * numLayer;
 
 	auto is = ref_ptr<IndexedShape>::alloc(ic.cullCamera, ic.sortCamera, shape);
-	const uint32_t numLOD = is->numLODs();
+	const uint32_t numLOD = std::max(1u, is->numLODs());
 	is->idVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
 	is->idVec_->setInstanceData(numIndices, 1, nullptr);
 	is->countVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceCounts", numLayer * numLOD);
@@ -197,6 +197,7 @@ inline uint32_t getLODLevel(
 }
 
 inline uint16_t floatTo16(float f, SortMode m) {
+	// TODO: could be faster actually
 	uint32_t x = std::bit_cast<uint32_t>(f);
 	uint16_t q = ((x>>16)&0x8000) |                     // sign bit
 		   ((((x&0x7f800000)-0x38000000)>>13)&0x7c00) | // exponent bits
@@ -205,6 +206,7 @@ inline uint16_t floatTo16(float f, SortMode m) {
 }
 
 inline uint32_t floatTo24(float f, SortMode m) {
+	// TODO: could be faster actually
 	uint32_t x = std::bit_cast<uint32_t>(f);
 	uint32_t q = ((x >> 8) & 0x800000)                         // sign bit
 		| ((((x & 0x7f800000) - 0x3f800000) >> 7) & 0x7f0000)  // exponent bits
@@ -246,6 +248,7 @@ void SpatialIndex::IndexCamera::pushKey64(IndexCamera *ic, uint32_t idx, uint16_
 }
 
 void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
+	// TODO: could be faster actually
 	uint8_t bitOffset = ic->index->distanceBits_;
 	// lower distance bits
 	uint32_t key = ic->setDistance32(d, m);

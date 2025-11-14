@@ -60,7 +60,7 @@ LODState::LODState(
 		if (camera_->fixedLODQuality() == LODQuality::HIGH) {
 			fixedLOD_ = 0u; // always use highest quality LOD
 		} else if (camera_->fixedLODQuality() == LODQuality::LOW) {
-			fixedLOD_ = mesh_->numLODs() - 1u; // always use lowest quality LOD
+			fixedLOD_ = std::max(1u,mesh_->numLODs()) - 1u; // always use lowest quality LOD
 		} else {
 			fixedLOD_ = 0u;
 			if (mesh_->numLODs() == 2) {
@@ -129,7 +129,7 @@ void LODState::initLODState() {
 	REGEN_INFO("Created LOD state for cull shape '"
 					   << cullShape_->shapeName()
 					   << "' with " << cullShape_->numInstances() << " instances, "
-					   << mesh_->numLODs() << " LODs, "
+					   << numLODs_ << " LODs, "
 					   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
 }
 
@@ -203,7 +203,7 @@ void LODState::createIndirectDrawBuffers() {
 		// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
 		for (uint32_t lodIdx = 0; lodIdx < numLODs_; ++lodIdx) {
 			const uint32_t layer0_idx = lodIdx * numLayers;
-			const uint32_t partLOD_idx = std::min(lodIdx, part->numLODs()-1);
+			const uint32_t partLOD_idx = std::min(lodIdx, std::max(1u,part->numLODs())-1);
 			const auto &lodData = partLODs[partLOD_idx];
 			DrawCommand &drawParams = drawData.current[layer0_idx];
 

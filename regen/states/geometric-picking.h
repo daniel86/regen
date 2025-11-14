@@ -2,6 +2,8 @@
 #define GEOM_PICKING_STATE_H_
 
 #include <regen/states/state.h>
+
+#include "feedback-state.h"
 #include "regen/textures/fbo.h"
 #include "regen/camera/camera.h"
 #include "state-node.h"
