@@ -5,8 +5,11 @@
 #include "quad-tree.h"
 #include "cull-shape.h"
 #include "spatial-index-debug.h"
+#include "regen/utility/conversion.h"
 
 using namespace regen;
+
+#define REGEN_FORCE_INLINE __attribute__((always_inline)) inline
 
 namespace regen {
 	static constexpr bool SPATIAL_INDEX_USE_MULTITHREADING = true;
@@ -189,34 +192,35 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID, uint32_t
 	return {};
 }
 
-inline uint32_t getLODLevel(
+REGEN_FORCE_INLINE uint32_t getLODLevel(
 			const BoundingShape &b_shape,
 			const IndexedShape *i_shape,
 			float lodDistance) {
 	return b_shape.baseMesh()->getLODLevel(lodDistance, i_shape->lodShift());
 }
 
-inline uint16_t floatTo16(float f, SortMode m) {
-	// TODO: could be faster actually
-	uint32_t x = std::bit_cast<uint32_t>(f);
-	uint16_t q = ((x>>16)&0x8000) |                     // sign bit
+REGEN_FORCE_INLINE uint16_t floatTo16(float f, SortMode m) {
+	const uint32_t x = conversion::floatBitsToUint(f);
+	const uint16_t q = ((x>>16)&0x8000) |                     // sign bit
 		   ((((x&0x7f800000)-0x38000000)>>13)&0x7c00) | // exponent bits
 		   	((x>>13)&0x03ff);                           // mantissa bits
-	return m == BACK_TO_FRONT ? ~q : q;
+	const uint32_t flip = -(m == BACK_TO_FRONT);
+	return q ^ (flip & 0xFFFF);
 }
 
-inline uint32_t floatTo24(float f, SortMode m) {
-	// TODO: could be faster actually
-	uint32_t x = std::bit_cast<uint32_t>(f);
-	uint32_t q = ((x >> 8) & 0x800000)                         // sign bit
+REGEN_FORCE_INLINE uint32_t floatTo24(float f, SortMode m) {
+	const uint32_t x = conversion::floatBitsToUint(f);
+	const uint32_t q = ((x >> 8) & 0x800000)                         // sign bit
 		| ((((x & 0x7f800000) - 0x3f800000) >> 7) & 0x7f0000)  // exponent bits
 		| ((x >> 8) & 0x00ffff);                               // mantissa bits
-	return m == BACK_TO_FRONT ? ~q : q;
+	const uint32_t flip = -(m == BACK_TO_FRONT);
+	return q ^ (flip & 0xFFFFFF);
 }
 
-inline uint32_t floatTo32(float f, SortMode m) {
-	uint32_t q = std::bit_cast<uint32_t>(f);
-	return m == BACK_TO_FRONT ? ~q : q;
+REGEN_FORCE_INLINE uint32_t floatTo32(float f, SortMode m) {
+	const uint32_t q = conversion::floatBitsToUint(f);
+	const uint32_t flip = -(m == BACK_TO_FRONT);
+	return q ^ flip;
 }
 
 static uint32_t setDistance32_16(float d, SortMode m) { return floatTo16(d,m); }
@@ -227,36 +231,28 @@ static uint64_t setDistance64_16(float d, SortMode m) { return floatTo16(d,m); }
 static uint64_t setDistance64_24(float d, SortMode m) { return floatTo24(d,m); }
 static uint64_t setDistance64_32(float d, SortMode m) { return floatTo32(d,m); }
 
-// Pack a value into a key at the given bit offset and number of bits
-template <typename KeyType, typename ValueType>
-static void packKey(KeyType &key, ValueType value, uint8_t bitOffset, uint8_t numBits) {
-	const uint32_t mask = (1u << numBits) - 1u;
-	key |= (static_cast<KeyType>(value) & mask) << bitOffset;
-}
-
 void SpatialIndex::IndexCamera::pushKey64(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
 	uint8_t bitOffset = ic->index->distanceBits_;
 	// lower distance bits
 	uint64_t key = ic->setDistance64(d, m);
 	// pack layer
-	packKey<uint64_t, uint32_t>(key, l, bitOffset, ic->layerBits);
+	key |= (static_cast<uint64_t>(l) & ic->layerMask) << bitOffset;
 	bitOffset += ic->layerBits;
 	// pack shape (upper bits)
-	packKey<uint64_t, uint16_t>(key, s, bitOffset, ic->shapeBits);
+	key |= (static_cast<uint64_t>(s) & ic->shapeMask) << bitOffset;
 	// finally add the key
 	ic->tmp_sortKeys64_[idx] = key;
 }
 
 void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
-	// TODO: could be faster actually
 	uint8_t bitOffset = ic->index->distanceBits_;
 	// lower distance bits
 	uint32_t key = ic->setDistance32(d, m);
 	// pack layer
-	packKey<uint32_t, uint32_t>(key, l, bitOffset, ic->layerBits);
+	key |= (static_cast<uint32_t>(l) & ic->layerMask) << bitOffset;
 	bitOffset += ic->layerBits;
 	// pack shape (upper bits)
-	packKey<uint32_t, uint16_t>(key, s, bitOffset, ic->shapeBits);
+	key |= (static_cast<uint32_t>(s) & ic->shapeMask) << bitOffset;
 	// finally add the key
 	ic->tmp_sortKeys32_[idx] = key;
 }
@@ -334,8 +330,11 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 		indexCamera->tmp_localInstanceIDs_.resize(indexCamera->numKeys, 0);
 
 		indexCamera->layerBits = getMinBits(numLayer);
+		indexCamera->layerMask = (1u << indexCamera->layerBits) - 1u;
 		indexCamera->shapeBits = getMinBits(indexCamera->indexShapes_.size());
+		indexCamera->shapeMask = (1u << indexCamera->shapeBits) - 1u;
 		indexCamera->keyBits = indexCamera->layerBits + indexCamera->shapeBits + static_cast<uint8_t>(distanceBits);
+
 		if (distanceBits == DISTANCE_KEY_32) {
 			indexCamera->setDistance32 = &setDistance32_32;
 			indexCamera->setDistance64 = &setDistance64_32;

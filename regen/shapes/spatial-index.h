@@ -259,6 +259,9 @@ namespace regen {
 			uint8_t layerBits = 0u;
 			uint8_t shapeBits = 0u;
 			uint8_t keyBits = 0u;
+			uint32_t layerMask = 0u;
+			uint32_t shapeMask = 0u;
+			// LOD shift for each layer
 			Vec4i lodShift = Vec4i(0);
 			// a function to push sort keys
 			void (*pushKeyFun)(IndexCamera*, uint32_t, uint16_t, uint32_t, float, SortMode) = nullptr;
