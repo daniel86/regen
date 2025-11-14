@@ -192,13 +192,6 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID, uint32_t
 	return {};
 }
 
-REGEN_FORCE_INLINE uint32_t getLODLevel(
-			const BoundingShape &b_shape,
-			const IndexedShape *i_shape,
-			float lodDistance) {
-	return b_shape.baseMesh()->getLODLevel(lodDistance, i_shape->lodShift());
-}
-
 REGEN_FORCE_INLINE uint16_t floatTo16(float f, SortMode m) {
 	const uint32_t x = conversion::floatBitsToUint(f);
 	const uint16_t q = ((x>>16)&0x8000) |                     // sign bit
@@ -223,38 +216,78 @@ REGEN_FORCE_INLINE uint32_t floatTo32(float f, SortMode m) {
 	return q ^ flip;
 }
 
-static uint32_t setDistance32_16(float d, SortMode m) { return floatTo16(d,m); }
-static uint32_t setDistance32_24(float d, SortMode m) { return floatTo24(d,m); }
-static uint32_t setDistance32_32(float d, SortMode m) { return floatTo32(d,m); }
+template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType> KeyType distanceKey(float d, SortMode m);
 
-static uint64_t setDistance64_16(float d, SortMode m) { return floatTo16(d,m); }
-static uint64_t setDistance64_24(float d, SortMode m) { return floatTo24(d,m); }
-static uint64_t setDistance64_32(float d, SortMode m) { return floatTo32(d,m); }
+#define REGEN_KEY_FUN template<> REGEN_FORCE_INLINE
+REGEN_KEY_FUN uint32_t distanceKey<uint32_t, SpatialIndex::DISTANCE_KEY_16>(float d, SortMode m) { return floatTo16(d, m); }
+REGEN_KEY_FUN uint32_t distanceKey<uint32_t, SpatialIndex::DISTANCE_KEY_24>(float d, SortMode m) { return floatTo24(d, m); }
+REGEN_KEY_FUN uint32_t distanceKey<uint32_t, SpatialIndex::DISTANCE_KEY_32>(float d, SortMode m) { return floatTo32(d, m); }
 
-void SpatialIndex::IndexCamera::pushKey64(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
-	uint8_t bitOffset = ic->index->distanceBits_;
-	// lower distance bits
-	uint64_t key = ic->setDistance64(d, m);
-	// pack layer
-	key |= (static_cast<uint64_t>(l) & ic->layerMask) << bitOffset;
-	bitOffset += ic->layerBits;
-	// pack shape (upper bits)
-	key |= (static_cast<uint64_t>(s) & ic->shapeMask) << bitOffset;
-	// finally add the key
-	ic->tmp_sortKeys64_[idx] = key;
+REGEN_KEY_FUN uint64_t distanceKey<uint64_t, SpatialIndex::DISTANCE_KEY_16>(float d, SortMode m) { return floatTo16(d, m); }
+REGEN_KEY_FUN uint64_t distanceKey<uint64_t, SpatialIndex::DISTANCE_KEY_24>(float d, SortMode m) { return floatTo24(d, m); }
+REGEN_KEY_FUN uint64_t distanceKey<uint64_t, SpatialIndex::DISTANCE_KEY_32>(float d, SortMode m) { return floatTo32(d, m); }
+#undef REGEN_KEY_FUN
+
+REGEN_FORCE_INLINE uint32_t getLODLevel(
+			const Vec3f &lodThresholds,
+			const Vec4i &lodShift,
+			uint32_t numLODs,
+			float lodDistance) {
+	const int32_t lod = (lodDistance >= lodThresholds.x)
+		+ (lodDistance >= lodThresholds.y)
+		+ (lodDistance >= lodThresholds.z);
+	return std::min(
+		static_cast<uint32_t>(std::max(lod+lodShift[lod], 0)), numLODs - 1);
 }
 
-void SpatialIndex::IndexCamera::pushKey32(IndexCamera *ic, uint32_t idx, uint16_t s, uint32_t l, float d, SortMode m) {
-	uint8_t bitOffset = ic->index->distanceBits_;
-	// lower distance bits
-	uint32_t key = ic->setDistance32(d, m);
-	// pack layer
-	key |= (static_cast<uint32_t>(l) & ic->layerMask) << bitOffset;
-	bitOffset += ic->layerBits;
-	// pack shape (upper bits)
-	key |= (static_cast<uint32_t>(s) & ic->shapeMask) << bitOffset;
-	// finally add the key
-	ic->tmp_sortKeys32_[idx] = key;
+template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType>
+void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx,
+			HitBuffer &hitBuffer,
+			const Vec3f &camPos,
+			const std::vector<ref_ptr<BoundingShape>> &itemShapes,
+			std::vector<KeyType> &sortKeys) {
+	// Note: This loop currently cannot be well vectorized, as we gather from
+	//       various locations in memory for each hit.
+	//       However, we could use HitSoA struct with origins, layerIdx, etc. and then
+	//       a SIMD path below might be beneficial.
+	const uint8_t distanceBits = ic.index->distanceBits();
+
+	for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
+		BoundingShape &b_shape = *itemShapes[hitBuffer.data[hitIdx]].get();
+		const ref_ptr<Mesh> &mesh = b_shape.baseMesh();
+		auto &i_shape = *static_cast<IndexedShape *>(b_shape.spatialIndexData(ic.camIdx));
+
+		// compute LOD level for this shape by distance to camera.
+		// each mesh may have its own thresholds for switching LOD levels, so we need
+		// to let the (base) mesh decide which LOD level to use.
+		const float lodDistance = (b_shape.tfOrigin() - camPos).lengthSquared();
+		const uint32_t lodLevel = getLODLevel(
+			mesh->lodThresholds(), i_shape.lodShift(),
+			mesh->numLODs(), lodDistance);
+		// compute bin and item indices
+		const uint32_t binIdx = lodLevel * i_shape.camera()->numLayer() + layerIdx;
+		const uint32_t itemIdx = i_shape.globalBase() +
+			layerIdx * b_shape.numInstances() + b_shape.instanceID();
+
+		// Compute sort key for this test.
+		// lowest bits: distance
+		uint8_t bitOffset = distanceBits;
+		KeyType sortKey = distanceKey<KeyType,DistanceType>(
+			lodDistance, i_shape.instanceSortMode());
+		// pack layer
+		sortKey |= (static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset;
+		bitOffset += ic.layerBits;
+		// pack shape (upper bits)
+		sortKey |= (static_cast<KeyType>(i_shape.shapeIdx()) & ic.shapeMask) << bitOffset;
+
+		// Bin the instance as visible
+		i_shape.addVisibleInstance(layerIdx, binIdx);
+		// Store instance ID for this instance
+		ic.tmp_globalInstanceIDs_.push_back(itemIdx);
+		ic.tmp_localInstanceIDs_[itemIdx] = b_shape.instanceID();
+		// Add sort key for this instance
+		sortKeys[itemIdx] = sortKey;
+	}
 }
 
 void SpatialIndex::updateLayerVisibility(
@@ -268,37 +301,35 @@ void SpatialIndex::updateLayerVisibility(
 		camPos = &ic.sortCamera->position(0);
 	}
 	auto &hitBuffer = foreachIntersection(camera_shape, ic.traversalMask);
-	for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
-		auto &b_shape = *itemShapes_[hitBuffer.data[hitIdx]].get();
-		auto *i_shape = (IndexedShape*) b_shape.spatialIndexData_[ic.camIdx];
-		const uint32_t L = i_shape->camera()->numLayer();
 
-		// compute LOD level for this shape by distance to camera.
-		// each mesh may have its own thresholds for switching LOD levels, so we need
-		// to let the (base) mesh decide which LOD level to use.
-		const float lodDistance = (b_shape.tfOrigin() - *camPos).lengthSquared();
-		const uint32_t k = getLODLevel(b_shape, i_shape, lodDistance);
-
-		// Total visibility count of the shape across all layers
-		i_shape->tmp_totalCount_ += 1;
-		// toggle visibility for this layer
-		i_shape->tmp_layerVisibility_[layerIdx] = true;
-		// Finally bin the shape into the (lod, layer) bin
-		uint32_t idx = CullShape::binIdx(k, layerIdx, L);
-		i_shape->tmp_binCounts_[idx] += 1;
-		// Add sort key for this instance
-		idx = i_shape->globalBase_ + layerIdx * b_shape.numInstances() + b_shape.instanceID();
-		ic.tmp_globalInstanceIDs_.push_back(idx);
-		ic.tmp_localInstanceIDs_[idx] = b_shape.instanceID();
-		ic.pushKeyFun(&ic, idx, i_shape->shapeIdx_, layerIdx, lodDistance, i_shape->instanceSortMode());
+	#define _push(KT,DT,SK) pushVisibleShapes<KT,DT>(ic, layerIdx, hitBuffer, *camPos, itemShapes_, SK)
+	if (ic.keyBits <= 32) {
+		using KeyType = uint32_t;
+		if (ic.index->distanceBits_ == DISTANCE_KEY_16) {
+			_push(KeyType, DISTANCE_KEY_16, ic.tmp_sortKeys32_);
+		} else if (ic.index->distanceBits_ == DISTANCE_KEY_24) {
+			_push(KeyType, DISTANCE_KEY_24, ic.tmp_sortKeys32_);
+		} else {
+			_push(KeyType, DISTANCE_KEY_32, ic.tmp_sortKeys32_);
+		}
+	} else {
+		using KeyType = uint64_t;
+		if (ic.index->distanceBits_ == DISTANCE_KEY_16) {
+			_push(KeyType, DISTANCE_KEY_16, ic.tmp_sortKeys64_);
+		} else if (ic.index->distanceBits_ == DISTANCE_KEY_24) {
+			_push(KeyType, DISTANCE_KEY_24, ic.tmp_sortKeys64_);
+		} else {
+			_push(KeyType, DISTANCE_KEY_32, ic.tmp_sortKeys64_);
+		}
 	}
+	#undef _push
 }
 
 static void visibilityJobFunc(void *arg) {
 	VisibilityJob::run(arg);
 }
 
-inline uint8_t getMinBits(uint32_t numValues) {
+REGEN_FORCE_INLINE uint8_t getMinBits(uint32_t numValues) {
 	if (numValues <= 1) return 1;
 	// ceil(log2(numValues))
 	return 32 - __builtin_clz(numValues - 1);
@@ -335,55 +366,42 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 		indexCamera->shapeMask = (1u << indexCamera->shapeBits) - 1u;
 		indexCamera->keyBits = indexCamera->layerBits + indexCamera->shapeBits + static_cast<uint8_t>(distanceBits);
 
-		if (distanceBits == DISTANCE_KEY_32) {
-			indexCamera->setDistance32 = &setDistance32_32;
-			indexCamera->setDistance64 = &setDistance64_32;
-		} else if (distanceBits == DISTANCE_KEY_24) {
-			indexCamera->setDistance32 = &setDistance32_24;
-			indexCamera->setDistance64 = &setDistance64_24;
-		} else {
-			indexCamera->setDistance32 = &setDistance32_16;
-			indexCamera->setDistance64 = &setDistance64_16;
-		}
-
 		if (indexCamera->keyBits <= 32) {
 			using KeyType = uint32_t;
 			indexCamera->tmp_sortKeys32_.resize(indexCamera->numKeys);
 			indexCamera->sortKeys = static_cast<void*>(&indexCamera->tmp_sortKeys32_);
-			indexCamera->pushKeyFun = &IndexCamera::pushKey32;
-			indexCamera->sortFun[SORT_FUN_SMALL] = smallSortFun<KeyType>;
+			indexCamera->sortFun[IndexCamera::SORT_FUN_SMALL] = smallSortFun<KeyType>;
 			if (indexCamera->keyBits <= 24) {
 				// use 24-bit radix sort (uint32_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 24>;
-				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
+				indexCamera->radixSort = IndexCamera::createRadix<RadixType>(indexCamera->numKeys);
+				indexCamera->sortFun[IndexCamera::SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			} else {
 				// use 32-bit radix sort (uint32_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 32>;
-				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
+				indexCamera->radixSort = IndexCamera::createRadix<RadixType>(indexCamera->numKeys);
+				indexCamera->sortFun[IndexCamera::SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			}
 		} else {
 			using KeyType = uint64_t;
 			indexCamera->tmp_sortKeys64_.resize(indexCamera->numKeys);
 			indexCamera->sortKeys = static_cast<void*>(&indexCamera->tmp_sortKeys64_);
-			indexCamera->pushKeyFun = &IndexCamera::pushKey64;
-			indexCamera->sortFun[SORT_FUN_SMALL] = smallSortFun<KeyType>;
+			indexCamera->sortFun[IndexCamera::SORT_FUN_SMALL] = smallSortFun<KeyType>;
 			if (indexCamera->keyBits <= 40) {
 				// use 40-bit radix sort (uint64_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 40>;
-				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
+				indexCamera->radixSort = IndexCamera::createRadix<RadixType>(indexCamera->numKeys);
+				indexCamera->sortFun[IndexCamera::SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			} else if (indexCamera->keyBits <= 48) {
 				// use 48-bit radix sort (uint64_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 48>;
-				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
+				indexCamera->radixSort = IndexCamera::createRadix<RadixType>(indexCamera->numKeys);
+				indexCamera->sortFun[IndexCamera::SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			} else {
 				// use 64-bit radix sort (uint64_t keys)
 				using RadixType = RadixSort_CPU_seq<uint32_t, KeyType, 8, 64>;
-				indexCamera->radixSort = createRadix<RadixType>(indexCamera->numKeys);
-				indexCamera->sortFun[SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
+				indexCamera->radixSort = IndexCamera::createRadix<RadixType>(indexCamera->numKeys);
+				indexCamera->sortFun[IndexCamera::SORT_FUN_LARGE] = radixSortFun<RadixType,KeyType>;
 			}
 		}
 		indexCamera->isDirty = false;

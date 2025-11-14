@@ -67,7 +67,7 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 	vao_ = ref_ptr<VAO>::alloc();
 	sourceMesh_->meshViews_.insert(this);
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
-	lodThresholds_->setUniformData(sourceMesh->lodThresholds()->getVertex(0).r);
+	lodThresholds_->setUniformData(sourceMesh->u_lodThresholds()->getVertex(0).r);
 	// create copies of LOD meshes
 	for (auto & lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
@@ -502,19 +502,6 @@ uint32_t Mesh::getLODLevel(float distanceSquared, const Vec4i &lodShift) const {
 	int32_t lod = (distanceSquared >= v_lodThresholds_.x)
 		+ (distanceSquared >= v_lodThresholds_.y)
 		+ (distanceSquared >= v_lodThresholds_.z);
-#if 0
-		do {
-			partLODLevel = getPartLOD(u_shiftedLOD, part->numLODs());
-			partLOD = &part->meshLODs()[partLODLevel];
-			if (u_shiftedLOD == lodLevel || u_shiftedLOD == 0u || partLODLevel == 0) { break; }
-			if (partLOD->impostorMesh.get() && u_shiftedLOD != lodLevel) {
-				// avoid shifting to impostor mesh LODs
-				u_shiftedLOD--;
-			} else {
-				break;
-			}
-		} while(1);
-#endif
 	return std::min(
 		static_cast<uint32_t>(std::max(lod+lodShift[lod], 0)),
 		numLODs() - 1);

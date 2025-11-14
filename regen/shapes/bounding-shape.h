@@ -299,6 +299,13 @@ namespace regen {
 		 */
 		bool hasWorldObject() const { return worldObject_ != nullptr; }
 
+		/**
+		 * Retrieve data pointer associated with this shape for spatial index use.
+		 * @param index The index of the data pointer
+		 * @return The data pointer
+		 */
+		void* spatialIndexData(uint32_t index) const { return spatialIndexData_[index]; }
+
 	protected:
 		const BoundingShapeType shapeType_;
 		ref_ptr<Mesh> mesh_;

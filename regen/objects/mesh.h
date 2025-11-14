@@ -381,7 +381,12 @@ namespace regen {
 		/**
 		 * @return thresholds for LOD levels.
 		 */
-		const ref_ptr<ShaderInput3f>& lodThresholds() const { return lodThresholds_; }
+		const ref_ptr<ShaderInput3f>& u_lodThresholds() const { return lodThresholds_; }
+
+		/**
+		 * @return thresholds for LOD levels.
+		 */
+		const Vec3f& lodThresholds() const { return v_lodThresholds_; }
 
 		/**
 		 * Set the thresholds for LOD levels.

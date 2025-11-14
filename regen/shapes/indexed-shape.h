@@ -25,19 +25,45 @@ namespace regen {
 		 * of all parts is returned.
 		 * \return The number of LODs
 		 */
-		inline uint32_t numLODs() const { return numLODs_; }
+		uint32_t numLODs() const { return numLODs_; }
+
+		/**
+		 * \brief Get the shape index
+		 * \return The shape index
+		 */
+		uint32_t shapeIdx() const { return shapeIdx_; }
+
+		/**
+		 * \bried Get the global base instance index for this shape
+		 * @return The global base instance index
+		 */
+		uint32_t globalBase() const { return globalBase_; }
 
 		/**
 		 * \brief Check if the shape is visible
 		 * \return True if the shape is visible, false otherwise
 		 */
-		inline bool isVisibleInLayer(uint32_t layerIdx) const { return visible_[layerIdx]; }
+		bool isVisibleInLayer(uint32_t layerIdx) const { return visible_[layerIdx]; }
 
 		/**
 		 * \brief Check if the shape is visible in any layer
 		 * \return True if the shape is visible in any layer, false otherwise
 		 */
-		inline bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_; }
+		bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_; }
+
+		/**
+		 * \brief Add a visible instance for the shape
+		 * \param layerIdx The layer index
+		 * \param binIdx The bin index (lod * numLayers + layer)
+		 */
+		void addVisibleInstance(uint32_t layerIdx, uint32_t binIdx) {
+			// Total visibility count of the shape across all layers
+			tmp_totalCount_ += 1;
+			// toggle visibility for this layer
+			tmp_layerVisibility_[layerIdx] = true;
+			// Finally bin the shape into the (lod, layer) bin
+			tmp_binCounts_[binIdx] += 1;
+		}
 
 		/**
 		 * \brief Map the instance IDs for the shape

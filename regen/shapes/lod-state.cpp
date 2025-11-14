@@ -538,7 +538,7 @@ void LODState::createComputeShader() {
 			static_cast<int>(cullShape_->numInstances()),
 			static_cast<int>(camera_->frustum().size()), 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
-		cullPass_->setInput(mesh_->lodThresholds());
+		cullPass_->setInput(mesh_->u_lodThresholds());
 		cullPass_->setInput(camera_->getFrustumBuffer());
 		// Note: LOD pass only writes into first buffer, we need to copy into the other buffers
 		//       in a separate pass.
