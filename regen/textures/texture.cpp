@@ -380,9 +380,9 @@ Bounds<Vec2ui> Texture::getRegion(const Vec2f &texco, const Vec2f &regionTS) con
 	auto endY = static_cast<unsigned int>(std::ceil((texco.y + regionTS.y) * h));
 	if (endX >= width()) endX = width() - 1;
 	if (endY >= height()) endY = height() - 1;
-	return {
+	return Bounds<Vec2ui>::create(
 			Vec2ui(startX, startY),
-			Vec2ui(endX, endY)};
+			Vec2ui(endX, endY));
 }
 
 unsigned int Texture::texelIndex(const Vec2f &texco) const {

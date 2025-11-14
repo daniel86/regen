@@ -126,7 +126,7 @@ void ImpostorBillboard::addMesh(const ref_ptr<Mesh> &mesh, const ref_ptr<State> 
 		minPosition_.setMin(mesh->minPosition());
 		maxPosition_.setMax(mesh->maxPosition());
 	}
-	Bounds<Vec3f> meshBounds(minPosition_, maxPosition_);
+	Bounds<Vec3f> meshBounds = Bounds<Vec3f>::create(minPosition_, maxPosition_);
 	meshCenterPoint_ = meshBounds.center();
 	modelOrigin_->setVertex(0, meshCenterPoint_);
 	meshBoundsRadius_ = meshBounds.radius();

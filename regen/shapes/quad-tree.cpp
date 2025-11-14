@@ -92,7 +92,7 @@ QuadTree::QuadTree()
 		: SpatialIndex(),
 		  priv_(new Private()),
 		  root_(nullptr),
-		  newBounds_(0, 0) {
+		  newBounds_(Bounds<Vec2f>::create(0, 0)) {
 }
 
 QuadTree::~QuadTree() {
@@ -377,7 +377,9 @@ QuadTree::Item::Item(const ref_ptr<BoundingShape> &shape) :
 	shape->updateOrthogonalProjection();
 }
 
-QuadTree::Node::Node(const Vec2f &min, const Vec2f &max) : bounds(min, max), parentIdx(-1) {
+QuadTree::Node::Node(const Vec2f &min, const Vec2f &max) : parentIdx(-1) {
+	bounds.min = min;
+	bounds.max = max;
 	for (int i = 0; i < 4; i++) {
 		childrenIdx[i] = -1;
 	}

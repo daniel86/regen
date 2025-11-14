@@ -15,8 +15,8 @@ BoundingBox::BoundingBox(BoundingShapeType type, const Bounds<Vec3f> &bounds)
 
 BoundingBox::BoundingBox(BoundingShapeType type, const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
 		: BoundingShape(type, mesh, parts),
-		  baseBounds_(mesh->minPosition(), mesh->maxPosition()),
-		  tfBounds_(mesh->minPosition(), mesh->maxPosition()) {
+		  baseBounds_(Bounds<Vec3f>::create(mesh->minPosition(), mesh->maxPosition())),
+		  tfBounds_(Bounds<Vec3f>::create(mesh->minPosition(), mesh->maxPosition())) {
 	for (const auto &part : parts) {
 		baseBounds_.min.setMin(part->minPosition());
 		baseBounds_.max.setMax(part->maxPosition());

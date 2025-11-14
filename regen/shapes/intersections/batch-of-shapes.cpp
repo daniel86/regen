@@ -81,6 +81,7 @@ void BatchOfOBBs::doPush(BatchOfShapes &batch, const BoundingShape &shape, uint3
 	const auto &obb = static_cast<const OBB&>(shape);
 	const auto &center = obb.tfOrigin();
 	const auto *axes = obb.boxAxes();
+	// TODO: Add half size as a member of OBB to avoid recomputing it here
 	auto halfSize = (obb.baseBounds().max - obb.baseBounds().min) * 0.5f;
 
 	self.centerX[index] = center.x;

@@ -59,7 +59,7 @@ struct BoidsCPU::Private {
 	Mat4f tmpMat_ = Mat4f::identity();
 	Quaternion yawAdjust_;
 	unsigned int maxNumNeighbors_ = 0;
-	Bounds<Vec3f> simBounds_ = Bounds<Vec3f>(-10.0f, 10.0f);
+	Bounds<Vec3f> simBounds_ = Bounds<Vec3f>::create(-10.0f, 10.0f);
 
 	// some per-boid parameters used in simulation.
 	// note: this is only ok in case of single-threaded simulation.

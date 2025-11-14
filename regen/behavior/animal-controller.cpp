@@ -11,7 +11,7 @@ AnimalController::AnimalController(
 		const ref_ptr<BoneAnimationItem> &animItem,
 		const ref_ptr<WorldModel> &world)
 		: NonPlayerCharacterController(mesh, tfIndexed, animItem, world),
-		  territoryBounds_(Vec2f::zero(), Vec2f::zero()) {
+		  territoryBounds_(Bounds<Vec2f>::create(Vec2f::zero(), Vec2f::zero())) {
 	// Try to get the world object representing this character.
 	if (mesh->hasIndexedShapes()) {
 		auto i_shape = mesh->indexedShape(tfIndexed.index);

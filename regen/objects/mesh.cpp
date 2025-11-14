@@ -746,7 +746,7 @@ void Mesh::createBoundingSphere() {
 
 void Mesh::createBoundingBox(bool isOBB) {
 	// create a box shape, compute radius from bounding box
-	Bounds<Vec3f> bounds(minPosition_, maxPosition_);
+	Bounds<Vec3f> bounds = Bounds<Vec3f>::create(minPosition_, maxPosition_);
 	if (isOBB) {
 		auto box = ref_ptr<OBB>::alloc(bounds);
 		setBoundingShape(box);

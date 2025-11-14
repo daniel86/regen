@@ -432,7 +432,9 @@ static GLuint transformMatrixPlane(
 	if (compositeMesh.get() && !compositeMesh.get()->meshes().empty()) {
 		auto &meshVec = compositeMesh->meshes();
 		auto firstMesh = meshVec[0];
-		Bounds<Vec3f> bounds(firstMesh->minPosition(), firstMesh->maxPosition());
+		Bounds<Vec3f> bounds;
+		bounds.min = firstMesh->minPosition();
+		bounds.max = firstMesh->maxPosition();
 		for (size_t i = 1; i < meshVec.size(); i++) {
 			auto mesh = meshVec[i];
 			bounds.min.setMin(mesh->minPosition());

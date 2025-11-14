@@ -7,7 +7,7 @@ ObjectGroup::ObjectGroup(ActionType groupActivity, int32_t maxGroupSize)
 		: WorldObject(REGEN_STRING(groupActivity<<"-group")),
           groupActivity_(groupActivity),
 		  maxGroupSize_(maxGroupSize),
-		  groupBounds_(Vec3f::zero(), Vec3f::zero()) {
+		  groupBounds_(Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::zero())) {
 	members_.resize(maxGroupSize_, {});
 	objectType_ = ObjectType::COLLECTION;
 	// position of the group is the center of its members.

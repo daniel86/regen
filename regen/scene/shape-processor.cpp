@@ -239,7 +239,7 @@ static std::optional<Bounds<Vec3f>> getBoxBounds(SceneInputNode &input) {
 	if (input.hasAttribute("box-size")) {
 		auto size = input.getValue<Vec3f>("box-size", Vec3f(0.0));
 		auto halfSize = size * 0.5;
-		auto bounds = Bounds<Vec3f>{-halfSize, halfSize};
+		auto bounds = Bounds<Vec3f>::create(-halfSize, halfSize);
 		if (input.hasAttribute("box-center")) {
 			auto center = input.getValue<Vec3f>("box-center", Vec3f(0.0));
 			bounds.min += center;

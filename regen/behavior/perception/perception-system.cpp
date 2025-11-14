@@ -18,7 +18,7 @@ PerceptionSystem::PerceptionSystem(
 	// TODO: Reconsider form of shape for perception.
 	//     - best: frustum, but we might get away with a box or sphere.
 	float lookAheadDistance = 15.0f;
-	Bounds<Vec3f> collisionBounds(mesh->minPosition(), mesh->maxPosition());
+	Bounds<Vec3f> collisionBounds = Bounds<Vec3f>::create(mesh->minPosition(), mesh->maxPosition());
 	collisionBounds.min.z -= lookAheadDistance;
 	collisionBounds.min.x -= 0.0f;
 	collisionBounds.max.x += 0.0f;

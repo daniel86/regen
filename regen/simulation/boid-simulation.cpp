@@ -203,10 +203,10 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 	if (input.hasAttribute("boids-area") && input.hasAttribute("boids-center")) {
 		auto boidsArea = input.getValue<Vec3f>("boids-area", Vec3f(10.0f));
 		auto boidsCenter = input.getValue<Vec3f>("boids-center", Vec3f(0.0f));
-		Bounds<Vec3f> bounds(boidsCenter - boidsArea * 0.5f, boidsCenter + boidsArea * 0.5f);
+		Bounds<Vec3f> bounds = Bounds<Vec3f>::create(boidsCenter - boidsArea * 0.5f, boidsCenter + boidsArea * 0.5f);
 		setSimulationBounds(bounds);
 	} else {
-		auto boidBounds = Bounds<Vec3f>(
+		auto boidBounds = Bounds<Vec3f>::create(
 				input.getValue<Vec3f>("bounds-min", Vec3f(-5.0f)),
 				input.getValue<Vec3f>("bounds-max", Vec3f(5.0f))
 		);

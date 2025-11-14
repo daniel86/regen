@@ -26,7 +26,7 @@ static inline Vec2f perpendicular(const Vec2f &v) {
 }
 
 OrthogonalProjection::OrthogonalProjection(const BoundingShape &shape)
-		: bounds(0.0f,0.0f) {
+		: bounds(Bounds<Vec2f>::create(0.0f,0.0f)) {
 	switch (shape.shapeType()) {
 		case BoundingShapeType::SPHERE:
 			points.resize(2);
