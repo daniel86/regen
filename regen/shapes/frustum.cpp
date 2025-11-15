@@ -238,7 +238,7 @@ void Frustum::batchTest_Spheres(BatchedIntersectionCase &td) {
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
 		bool isOutside = false;
-		for (int p = 0; p < NUM_FRUSTUM_PLANES; ++p) {
+		for (int p = 0; p < NUM_FRUSTUM_PLANES && !isOutside; ++p) {
 			// tmp = n(dot)p + r
 			float n_dot_p =
 				(d_spherePosX[queuedIdx] * shapeData->planes[p].x) +
@@ -246,10 +246,7 @@ void Frustum::batchTest_Spheres(BatchedIntersectionCase &td) {
 				(d_spherePosZ[queuedIdx] * shapeData->planes[p].z) +
 				d_sphereRadius[queuedIdx];
 			// fully outside if: (n_dot_p + r - w) < 0
-			if (n_dot_p < shapeData->planes[p].w) {
-				isOutside = true; // Completely outside
-				break;
-			}
+			isOutside = (n_dot_p < shapeData->planes[p].w);
 		}
 		if (!isOutside) {
 			td.hits->push(itemIdx);
@@ -336,7 +333,7 @@ void Frustum::batchTest_AABBs(BatchedIntersectionCase &td) {
 	for (; queuedIdx < numQueued; queuedIdx++) {
 		auto itemIdx = td.queuedIndices[queuedIdx];
 		bool isOutside = false;
-		for (unsigned int p = 0u; p < NUM_FRUSTUM_PLANES; ++p) {
+		for (unsigned int p = 0u; p < NUM_FRUSTUM_PLANES && !isOutside; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
 			// If this point is behind the plane, the AABB must be outside of the frustum.
 			const Vec3f farthest(
@@ -347,10 +344,8 @@ void Frustum::batchTest_AABBs(BatchedIntersectionCase &td) {
 				shapeData->planes[p].x * farthest.x +
 				shapeData->planes[p].y * farthest.y +
 				shapeData->planes[p].z * farthest.z);
-			if (n_dot_p < shapeData->planes[p].w) {
-				isOutside = true; // Completely outside
-				break;
-			}
+			// Completely outside
+			isOutside = (n_dot_p < shapeData->planes[p].w);
 		}
 		if (!isOutside) {
 			td.hits->push(itemIdx);
@@ -453,7 +448,7 @@ void Frustum::batchTest_OBBs(BatchedIntersectionCase &td) {
 		const Vec3f &obbCenter = obb.tfOrigin();
 
 		bool isOutside = false;
-		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES; ++planeIdx) {
+		for (unsigned int planeIdx = 0u; planeIdx < NUM_FRUSTUM_PLANES && !isOutside; ++planeIdx) {
 			const auto &plane = frustum->planes[planeIdx];
 			const Vec3f &n = plane.xyz_();
 			// center-to-plane distance + projected radius
@@ -461,10 +456,8 @@ void Frustum::batchTest_OBBs(BatchedIntersectionCase &td) {
 				d_obbHalfSizeX[queuedIdx] * std::abs(n.dot(axis0X, axis0Y, axis0Z)) +
 				d_obbHalfSizeY[queuedIdx] * std::abs(n.dot(axis1X, axis1Y, axis1Z)) +
 				d_obbHalfSizeZ[queuedIdx] * std::abs(n.dot(axis2X, axis2Y, axis2Z));
-			if (dr < 0.0f) { // completely outside
-				isOutside = true;
-				break;
-			}
+			// completely outside
+			isOutside = (dr < 0.0f);
 		}
 		if (!isOutside) {
 			td.hits->push(itemIdx);

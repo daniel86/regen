@@ -18,6 +18,7 @@ namespace regen {
 
 	class Mesh;
 	struct BatchOfShapes;
+	class IndexedShape;
 
 	/**
 	 * @brief Bounding shape
@@ -309,7 +310,7 @@ namespace regen {
 		 * @param index The index of the data pointer
 		 * @return The data pointer
 		 */
-		void* spatialIndexData(uint32_t index) const { return spatialIndexData_[index]; }
+		IndexedShape* spatialIndexData(uint32_t index) const { return spatialIndexData_[index]; }
 
 		/**
 		 * @brief Get the global index of this shape instance in the batch data buffer
@@ -359,7 +360,7 @@ namespace regen {
 		uint32_t instanceID_ = 0;
 		uint32_t traversalMask_ = (1 << TRAVERSAL_BIT_DRAW); // default: draw
 		// custom data pointer used for spatial index intersection tests
-		std::vector<void*> spatialIndexData_;
+		std::vector<IndexedShape*> spatialIndexData_;
 
 		uint32_t globalIndex_ = 0;
 		BatchOfShapes *globalShapeData_untyped_ = nullptr;

@@ -228,18 +228,6 @@ REGEN_KEY_FUN uint64_t distanceKey<uint64_t, SpatialIndex::DISTANCE_KEY_24>(floa
 REGEN_KEY_FUN uint64_t distanceKey<uint64_t, SpatialIndex::DISTANCE_KEY_32>(float d, SortMode m) { return floatTo32(d, m); }
 #undef REGEN_KEY_FUN
 
-REGEN_FORCE_INLINE uint32_t getLODLevel(
-			const Vec3f &lodThresholds,
-			const Vec4i &lodShift,
-			uint32_t numLODs,
-			float lodDistance) {
-	const int32_t lod = (lodDistance >= lodThresholds.x)
-		+ (lodDistance >= lodThresholds.y)
-		+ (lodDistance >= lodThresholds.z);
-	return std::min(
-		static_cast<uint32_t>(std::max(lod+lodShift[lod], 0)), numLODs - 1);
-}
-
 template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType>
 void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx,
 			HitBuffer &hitBuffer,
@@ -251,21 +239,28 @@ void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx,
 	//       However, we could use HitSoA struct with origins, layerIdx, etc. and then
 	//       a SIMD path below might be beneficial.
 	const uint8_t distanceBits = ic.index->distanceBits();
+	const uint32_t numLayer = ic.cullCamera->numLayer();
 
 	for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
 		BoundingShape &b_shape = *itemShapes[hitBuffer.data[hitIdx]].get();
+		IndexedShape  &i_shape = *b_shape.spatialIndexData(ic.camIdx);
+		const Vec4i &lodShift = i_shape.lodShift();
+
 		const ref_ptr<Mesh> &mesh = b_shape.baseMesh();
-		auto &i_shape = *static_cast<IndexedShape *>(b_shape.spatialIndexData(ic.camIdx));
+		const Vec3f &lodThresholds = mesh->lodThresholds();
+		const uint32_t numLODs = mesh->numLODs();
 
 		// compute LOD level for this shape by distance to camera.
 		// each mesh may have its own thresholds for switching LOD levels, so we need
 		// to let the (base) mesh decide which LOD level to use.
 		const float lodDistance = (b_shape.tfOrigin() - camPos).lengthSquared();
-		const uint32_t lodLevel = getLODLevel(
-			mesh->lodThresholds(), i_shape.lodShift(),
-			mesh->numLODs(), lodDistance);
+		uint32_t lodLevel = (lodDistance >= lodThresholds.x)
+			+ (lodDistance >= lodThresholds.y)
+			+ (lodDistance >= lodThresholds.z);
+		lodLevel = std::min(static_cast<uint32_t>(
+			std::max(lodLevel+lodShift[lodLevel], 0u)), numLODs - 1u);
 		// compute bin and item indices
-		const uint32_t binIdx = lodLevel * i_shape.camera()->numLayer() + layerIdx;
+		const uint32_t binIdx = lodLevel * numLayer + layerIdx;
 		const uint32_t itemIdx = i_shape.globalBase() +
 			layerIdx * b_shape.numInstances() + b_shape.instanceID();
 
@@ -279,14 +274,14 @@ void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx,
 		bitOffset += ic.layerBits;
 		// pack shape (upper bits)
 		sortKey |= (static_cast<KeyType>(i_shape.shapeIdx()) & ic.shapeMask) << bitOffset;
+		// Add sort key for this instance
+		sortKeys[itemIdx] = sortKey;
 
 		// Bin the instance as visible
 		i_shape.addVisibleInstance(layerIdx, binIdx);
 		// Store instance ID for this instance
 		ic.tmp_globalInstanceIDs_.push_back(itemIdx);
 		ic.tmp_localInstanceIDs_[itemIdx] = b_shape.instanceID();
-		// Add sort key for this instance
-		sortKeys[itemIdx] = sortKey;
 	}
 }
 

@@ -51,10 +51,6 @@ void AABB::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 void AABB::updateAABB() {
 	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
 	REGEN_AABB_BATCH_DATA(g, globalBatchData_);
-	// initialize vertices with base bounds (= without transform)
-	// we will apply the transform below on each vertex
-	// to compute the transformed bounds.
-	tfOrigin_ = basePosition_;
 
 #define _set_min(v) g_minX[globalIndex_] = v.x; g_minY[globalIndex_] = v.y; g_minZ[globalIndex_] = v.z
 #define _set_max(v) g_maxX[globalIndex_] = v.x; g_maxY[globalIndex_] = v.y; g_maxZ[globalIndex_] = v.z
@@ -66,6 +62,7 @@ void AABB::updateAABB() {
 	g_maxX[globalIndex_] = std::max(g_maxX[globalIndex_], transformed.x); \
 	g_maxY[globalIndex_] = std::max(g_maxY[globalIndex_], transformed.y); \
 	g_maxZ[globalIndex_] = std::max(g_maxZ[globalIndex_], transformed.z)
+
 	// apply transform
 	if (transform_.get()) {
 		if (transform_->hasModelMat()) {
@@ -91,6 +88,7 @@ void AABB::updateAABB() {
 		} else {
 			_set_min(baseBounds_.min);
 			_set_max(baseBounds_.max);
+			tfOrigin_ = basePosition_;
 		}
 
 		// apply model offset if available
@@ -110,6 +108,7 @@ void AABB::updateAABB() {
 	} else {
 		_set_min(baseBounds_.min);
 		_set_max(baseBounds_.max);
+		tfOrigin_ = basePosition_;
 	}
 #undef _set_minmax
 #undef _set_min

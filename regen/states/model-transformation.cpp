@@ -53,21 +53,14 @@ void ModelTransformation::initBufferContainer() {
 	tfBuffer_ = ref_ptr<BufferContainer>::alloc("ModelTransformation", tfUpdateFlags_);
 	if (tfMode_ & TF_MATRIX) {
 		tfBuffer_->addInput(modelMat_);
+		tfClientBuffer_ = modelMat_->clientBuffer();
+	} else {
+		tfClientBuffer_ = modelOffset_->clientBuffer();
 	}
 	if (tfMode_ & TF_OFFSET) {
 		tfBuffer_->addInput(modelOffset_);
 	}
 	joinStates(tfBuffer_);
-}
-
-uint32_t ModelTransformation::stamp() const {
-	if (tfMode_ == TF_OFFSET) {
-		return modelOffset_->stampOfReadData();
-	} else if (tfMode_ == TF_MATRIX) {
-		return modelMat_->stampOfReadData();
-	} else {
-		return modelOffset_->stampOfReadData() + modelMat_->stampOfReadData();
-	}
 }
 
 void ModelTransformation::setModelMat(const Mat4f *mat) {

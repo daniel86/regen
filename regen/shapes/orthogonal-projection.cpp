@@ -53,7 +53,7 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 			auto &sphereCenter = sphere->tfOrigin();
 			points[0] = Vec2f(sphereCenter.x, sphereCenter.z);
 			// note: second point stores the squared radius
-			points[1] = Vec2f(sphere->radius() * sphere->radius(), 0);
+			points[1] = Vec2f(sphere->radiusSquared(), 0);
 			break;
 		}
 		case BoundingShapeType::AABB: {
