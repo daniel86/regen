@@ -6,12 +6,12 @@
 using namespace regen;
 
 #define REGEN_AABB_BATCH_DATA(name, batch) \
-	auto* __restrict name##_minX = static_cast<float*>(__builtin_assume_aligned(batch.minX.data(), 32)); \
-	auto* __restrict name##_minY = static_cast<float*>(__builtin_assume_aligned(batch.minY.data(), 32)); \
-	auto* __restrict name##_minZ = static_cast<float*>(__builtin_assume_aligned(batch.minZ.data(), 32)); \
-	auto* __restrict name##_maxX = static_cast<float*>(__builtin_assume_aligned(batch.maxX.data(), 32)); \
-	auto* __restrict name##_maxY = static_cast<float*>(__builtin_assume_aligned(batch.maxY.data(), 32)); \
-	auto* __restrict name##_maxZ = static_cast<float*>(__builtin_assume_aligned(batch.maxZ.data(), 32))
+	auto* __restrict name##_minX = static_cast<float*>(__builtin_assume_aligned(batch.soaData_[0].data(), 32)); \
+	auto* __restrict name##_minY = static_cast<float*>(__builtin_assume_aligned(batch.soaData_[1].data(), 32)); \
+	auto* __restrict name##_minZ = static_cast<float*>(__builtin_assume_aligned(batch.soaData_[2].data(), 32)); \
+	auto* __restrict name##_maxX = static_cast<float*>(__builtin_assume_aligned(batch.soaData_[3].data(), 32)); \
+	auto* __restrict name##_maxY = static_cast<float*>(__builtin_assume_aligned(batch.soaData_[4].data(), 32)); \
+	auto* __restrict name##_maxZ = static_cast<float*>(__builtin_assume_aligned(batch.soaData_[5].data(), 32))
 
 AABB::AABB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
 		: BoundingBox(BoundingShapeType::AABB, mesh, parts) {
@@ -155,38 +155,6 @@ Vec3f AABB::closestPointOnSurface(const Vec3f &point) const {
 	return closestPoint;
 }
 
-void BatchOfAABBs::doResize(BatchOfShapes &batch, uint32_t newCapacity, bool preserveData) {
-	auto &self = static_cast<BatchOfAABBs&>(batch);
-	if (newCapacity != self.capacity) {
-		self.capacity = newCapacity;
-
-		self.minX.resize(newCapacity, preserveData);
-		self.minY.resize(newCapacity, preserveData);
-		self.minZ.resize(newCapacity, preserveData);
-
-		self.maxX.resize(newCapacity, preserveData);
-		self.maxY.resize(newCapacity, preserveData);
-		self.maxZ.resize(newCapacity, preserveData);
-	}
-}
-
-void BatchOfAABBs::doPush(BatchOfShapes &batch, const BoundingShape &shape, uint32_t localIdx) {
-	const auto &aabb = static_cast<const AABB&>(shape);
-	auto &local = static_cast<BatchOfAABBs&>(batch);
-	const BatchOfAABBs &global = aabb.globalBatchData();
-	const uint32_t globalIdx = aabb.globalIndex();
-	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
-	REGEN_AABB_BATCH_DATA(local, local);
-	REGEN_AABB_BATCH_DATA(global, global);
-	// Copy scalar data
-	local_minX[localIdx] = global_minX[globalIdx];
-	local_minY[localIdx] = global_minY[globalIdx];
-	local_minZ[localIdx] = global_minZ[globalIdx];
-	local_maxX[localIdx] = global_maxX[globalIdx];
-	local_maxY[localIdx] = global_maxY[globalIdx];
-	local_maxZ[localIdx] = global_maxZ[globalIdx];
-}
-
 void shapes::flush_AABB_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const AABB *>(td.testShape);
@@ -195,10 +163,10 @@ void shapes::flush_AABB_Spheres(BatchedIntersectionCase &td) {
 	const uint32_t globalIdx = testShape->globalIndex();
 
 	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
-	const float *d_spherePosX = batchData->posX.data();
-	const float *d_spherePosY = batchData->posY.data();
-	const float *d_spherePosZ = batchData->posZ.data();
-	const float *d_sphereRadius = batchData->radius.data();
+	const float *d_spherePosX = batchData->posX().data();
+	const float *d_spherePosY = batchData->posY().data();
+	const float *d_spherePosZ = batchData->posZ().data();
+	const float *d_sphereRadius = batchData->radius().data();
 
 	// load min/max aabb into SIMD registers, we need 6 registers.
 	const BatchOf_float aabbMinX = BatchOf_float::fromScalar(global_minX[globalIdx]);
@@ -262,12 +230,12 @@ void shapes::flush_AABB_AABBs(BatchedIntersectionCase &td) {
 	const uint32_t globalIdx = testShape->globalIndex();
 
 	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
-	const float *aabbMinX_1 = batchData->minX.data();
-	const float *aabbMinY_1 = batchData->minY.data();
-	const float *aabbMinZ_1 = batchData->minZ.data();
-	const float *aabbMaxX_1 = batchData->maxX.data();
-	const float *aabbMaxY_1 = batchData->maxY.data();
-	const float *aabbMaxZ_1 = batchData->maxZ.data();
+	const float *aabbMinX_1 = batchData->minX().data();
+	const float *aabbMinY_1 = batchData->minY().data();
+	const float *aabbMinZ_1 = batchData->minZ().data();
+	const float *aabbMaxX_1 = batchData->maxX().data();
+	const float *aabbMaxY_1 = batchData->maxY().data();
+	const float *aabbMaxZ_1 = batchData->maxZ().data();
 
 	// load min/max aabb into SIMD registers, we need 6 registers.
 	const BatchOf_float t_aabbMinX = BatchOf_float::fromScalar(global_minX[globalIdx]);
@@ -326,13 +294,13 @@ void shapes::flush_AABB_OBBs(BatchedIntersectionCase &td) {
 	const uint32_t globalIdx = testShape->globalIndex();
 
 	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
-	const float *d_obbCenterX = batchData->centerX.data();
-	const float *d_obbCenterY = batchData->centerY.data();
-	const float *d_obbCenterZ = batchData->centerZ.data();
-	const float *d_obbHalfSizeX = batchData->halfSizeX.data();
-	const float *d_obbHalfSizeY = batchData->halfSizeY.data();
-	const float *d_obbHalfSizeZ = batchData->halfSizeZ.data();
-	auto *d_axes = batchData->axes.data();
+	const float *d_obbCenterX = batchData->centerX().data();
+	const float *d_obbCenterY = batchData->centerY().data();
+	const float *d_obbCenterZ = batchData->centerZ().data();
+	const float *d_obbHalfSizeX = batchData->halfSizeX().data();
+	const float *d_obbHalfSizeY = batchData->halfSizeY().data();
+	const float *d_obbHalfSizeZ = batchData->halfSizeZ().data();
+	std::array<BatchOfOBBs::AxisBatch, 3> d_axes = batchData->axes();
 
 	const BatchOf_float aabbMinX = BatchOf_float::fromScalar(global_minX[globalIdx]);
 	const BatchOf_float aabbMinY = BatchOf_float::fromScalar(global_minY[globalIdx]);

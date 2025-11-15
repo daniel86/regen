@@ -187,9 +187,6 @@ namespace regen {
 		template<BoundingShapeType TestShapeType, BoundingShapeType IndexShapeType> void registerCase() {
 			using Traits = IntersectionTraits<TestShapeType, IndexShapeType>;
 			constexpr auto id = static_cast<int>(Traits::Case);
-			// TODO: add template arguments to BatchedIntersectionCase
-			//   - avoid function pointer for flush
-			//   - have a type batch data object at hand
 			cases_[id] = std::make_unique<BatchedIntersectionCase>();
 			cases_[id]->doInit = Traits::Init;
 			cases_[id]->doFlush = Traits::Flush;

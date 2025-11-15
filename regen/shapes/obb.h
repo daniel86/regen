@@ -14,27 +14,68 @@ namespace regen {
 	 */
 	struct BatchOfOBBs : BatchOfShapes {
 		// NOTE: Frustum shapes do not support batched intersection tests yet.
-		BatchOfOBBs() : BatchOfShapes() {
-			resizeFun = &BatchOfOBBs::doResize;
-			pushFun = &BatchOfOBBs::doPush;
-		}
+		BatchOfOBBs() : BatchOfShapes(15) {}
 		~BatchOfOBBs() override = default;
-		AlignedArray<float> centerX;
-		AlignedArray<float> centerY;
-		AlignedArray<float> centerZ;
-		AlignedArray<float> halfSizeX;
-		AlignedArray<float> halfSizeY;
-		AlignedArray<float> halfSizeZ;
-		struct AxisBatch {
-			AlignedArray<float> x;
-			AlignedArray<float> y;
-			AlignedArray<float> z;
-		};
-		std::array<AxisBatch, 3> axes;
 
-	protected:
-		static void doResize(BatchOfShapes&, uint32_t, bool);
-		static void doPush(BatchOfShapes&, const BoundingShape&, uint32_t);
+		struct AxisBatch {
+			AlignedArray<float> &x;
+			AlignedArray<float> &y;
+			AlignedArray<float> &z;
+		};
+
+		struct AxisBatch_const {
+			const AlignedArray<float> &x;
+			const AlignedArray<float> &y;
+			const AlignedArray<float> &z;
+		};
+
+		AlignedArray<float>& centerX() noexcept { return soaData_[0]; }
+		AlignedArray<float>& centerY() noexcept { return soaData_[1]; }
+		AlignedArray<float>& centerZ() noexcept { return soaData_[2]; }
+
+		const AlignedArray<float>& centerX() const noexcept { return soaData_[0]; }
+		const AlignedArray<float>& centerY() const noexcept { return soaData_[1]; }
+		const AlignedArray<float>& centerZ() const noexcept { return soaData_[2]; }
+
+		AlignedArray<float>& halfSizeX() noexcept { return soaData_[3]; }
+		AlignedArray<float>& halfSizeY() noexcept { return soaData_[4]; }
+		AlignedArray<float>& halfSizeZ() noexcept { return soaData_[5]; }
+
+		const AlignedArray<float>& halfSizeX() const noexcept { return soaData_[3]; }
+		const AlignedArray<float>& halfSizeY() const noexcept { return soaData_[4]; }
+		const AlignedArray<float>& halfSizeZ() const noexcept { return soaData_[5]; }
+
+		AlignedArray<float>& axis0X() noexcept { return soaData_[6]; }
+		AlignedArray<float>& axis0Y() noexcept { return soaData_[7]; }
+		AlignedArray<float>& axis0Z() noexcept { return soaData_[8]; }
+
+		AlignedArray<float>& axis1X() noexcept { return soaData_[9]; }
+		AlignedArray<float>& axis1Y() noexcept { return soaData_[10]; }
+		AlignedArray<float>& axis1Z() noexcept { return soaData_[11]; }
+
+		AlignedArray<float>& axis2X() noexcept { return soaData_[12]; }
+		AlignedArray<float>& axis2Y() noexcept { return soaData_[13]; }
+		AlignedArray<float>& axis2Z() noexcept { return soaData_[14]; }
+
+		const AlignedArray<float>& axis0X() const noexcept { return soaData_[6]; }
+		const AlignedArray<float>& axis0Y() const noexcept { return soaData_[7]; }
+		const AlignedArray<float>& axis0Z() const noexcept { return soaData_[8]; }
+
+		const AlignedArray<float>& axis1X() const noexcept { return soaData_[9]; }
+		const AlignedArray<float>& axis1Y() const noexcept { return soaData_[10]; }
+		const AlignedArray<float>& axis1Z() const noexcept { return soaData_[11]; }
+
+		const AlignedArray<float>& axis2X() const noexcept { return soaData_[12]; }
+		const AlignedArray<float>& axis2Y() const noexcept { return soaData_[13]; }
+		const AlignedArray<float>& axis2Z() const noexcept { return soaData_[14]; }
+
+		std::array<AxisBatch, 3> axes() {
+			return {
+				AxisBatch{soaData_[6],  soaData_[7],  soaData_[8]},
+				AxisBatch{soaData_[9],  soaData_[10], soaData_[11]},
+				AxisBatch{soaData_[12], soaData_[13], soaData_[14]}
+			};
+		}
 	};
 
 	/**

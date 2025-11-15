@@ -5,10 +5,10 @@
 using namespace regen;
 
 #define REGEN_SPHERE_BATCH_DATA(name, batch) \
-	auto* __restrict name##_posX = static_cast<float*>(__builtin_assume_aligned(batch.posX.data(), 32)); \
-	auto* __restrict name##_posY = static_cast<float*>(__builtin_assume_aligned(batch.posY.data(), 32)); \
-	auto* __restrict name##_posZ = static_cast<float*>(__builtin_assume_aligned(batch.posZ.data(), 32)); \
-	auto* __restrict name##_radius = static_cast<float*>(__builtin_assume_aligned(batch.radius.data(), 32))
+	auto* __restrict name##_posX = static_cast<float*>(__builtin_assume_aligned(batch.posX().data(), 32)); \
+	auto* __restrict name##_posY = static_cast<float*>(__builtin_assume_aligned(batch.posY().data(), 32)); \
+	auto* __restrict name##_posZ = static_cast<float*>(__builtin_assume_aligned(batch.posZ().data(), 32)); \
+	auto* __restrict name##_radius = static_cast<float*>(__builtin_assume_aligned(batch.radius().data(), 32))
 
 static Vec3f computeBasePosition(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts) {
 	if (mesh.get() && parts.empty()) {
@@ -32,7 +32,7 @@ BoundingSphere::BoundingSphere(const Vec3f &basePosition, float radius)
 		: BatchedBoundingShape(BoundingShapeType::SPHERE),
 		  basePosition_(basePosition) {
 	radiusSquared_ = radius * radius;
-	globalBatchData_.radius[globalIndex_] = radius;
+	globalBatchData_.radius()[globalIndex_] = radius;
 }
 
 BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts, float radius)
@@ -43,7 +43,7 @@ BoundingSphere::BoundingSphere(const ref_ptr<Mesh> &mesh, const std::vector<ref_
 		radius = sphereMesh->radius();
 	}
 	radiusSquared_ = radius * radius;
-	globalBatchData_.radius[globalIndex_] = radius;
+	globalBatchData_.radius()[globalIndex_] = radius;
 }
 
 void BoundingSphere::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
@@ -55,7 +55,7 @@ void BoundingSphere::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 		radius = (max - basePosition_).length();
 	}
 	radiusSquared_ = radius * radius;
-	globalBatchData_.radius[globalIndex_] = radius;
+	globalBatchData_.radius()[globalIndex_] = radius;
 }
 
 float BoundingSphere::computeRadius(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts) const {
@@ -90,9 +90,9 @@ bool BoundingSphere::updateTransform(bool forceUpdate) {
 
 void BoundingSphere::updateShapeOrigin() {
 	tfOrigin_ = basePosition_ + translation();
-	globalBatchData_.posX[globalIndex_] = tfOrigin_.x;
-	globalBatchData_.posY[globalIndex_] = tfOrigin_.y;
-	globalBatchData_.posZ[globalIndex_] = tfOrigin_.z;
+	globalBatchData_.posX()[globalIndex_] = tfOrigin_.x;
+	globalBatchData_.posY()[globalIndex_] = tfOrigin_.y;
+	globalBatchData_.posZ()[globalIndex_] = tfOrigin_.z;
 }
 
 Vec3f BoundingSphere::closestPointOnSurface(const Vec3f &point) const {
@@ -133,48 +133,18 @@ bool BoundingSphere::hasIntersectionWithSphere(const BoundingSphere &other) cons
 	return (p_this - p_other).lengthSquared() <= (r_sum * r_sum);
 }
 
-void BatchOfSpheres::doResize(BatchOfShapes &batch, uint32_t newCapacity, bool preserveData) {
-	auto &self = static_cast<BatchOfSpheres&>(batch);
-	if (newCapacity != self.capacity) {
-		self.capacity = newCapacity;
-
-		self.posX.resize(newCapacity, preserveData);
-		self.posY.resize(newCapacity, preserveData);
-		self.posZ.resize(newCapacity, preserveData);
-
-		self.radius.resize(newCapacity, preserveData);
-	}
-}
-
-void BatchOfSpheres::doPush(BatchOfShapes &batch, const BoundingShape &shape, uint32_t localIdx) {
-	auto &self = static_cast<BatchOfSpheres&>(batch);
-	const auto &sphere = static_cast<const BoundingSphere&>(shape);
-	const BatchOfSpheres &globalBatch = sphere.globalBatchData();
-	const uint32_t globalIdx = sphere.globalIndex();
-
-	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
-	REGEN_SPHERE_BATCH_DATA(local, self);
-	REGEN_SPHERE_BATCH_DATA(global, globalBatch);
-
-	// Copy scalar data
-	local_posX[localIdx] = global_posX[globalIdx];
-	local_posY[localIdx] = global_posY[globalIdx];
-	local_posZ[localIdx] = global_posZ[globalIdx];
-	local_radius[localIdx] = global_radius[globalIdx];
-}
-
 void shapes::flush_Sphere_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 
-	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData());
+	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData_t());
 	const uint32_t t_idx = testShape->globalIndex();
 
 	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
-	const float *d_spherePosX = batchData->posX.data();
-	const float *d_spherePosY = batchData->posY.data();
-	const float *d_spherePosZ = batchData->posZ.data();
-	const float *d_sphereRadius = batchData->radius.data();
+	const float *d_spherePosX = batchData->posX().data();
+	const float *d_spherePosY = batchData->posY().data();
+	const float *d_spherePosZ = batchData->posZ().data();
+	const float *d_sphereRadius = batchData->radius().data();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
@@ -226,16 +196,16 @@ void shapes::flush_Sphere_AABBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 
-	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData());
+	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData_t());
 	const uint32_t t_idx = testShape->globalIndex();
 
 	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
-	const float *d_aabbMinX = batchData->minX.data();
-	const float *d_aabbMinY = batchData->minY.data();
-	const float *d_aabbMinZ = batchData->minZ.data();
-	const float *d_aabbMaxX = batchData->maxX.data();
-	const float *d_aabbMaxY = batchData->maxY.data();
-	const float *d_aabbMaxZ = batchData->maxZ.data();
+	const float *d_aabbMinX = batchData->minX().data();
+	const float *d_aabbMinY = batchData->minY().data();
+	const float *d_aabbMinZ = batchData->minZ().data();
+	const float *d_aabbMaxX = batchData->maxX().data();
+	const float *d_aabbMaxY = batchData->maxY().data();
+	const float *d_aabbMaxZ = batchData->maxZ().data();
 
 	// Load sphere data into SIMD registers, we need 4 registers.
 	const BatchOf_float pX = BatchOf_float::fromScalar(t_posX[t_idx]);
@@ -291,18 +261,18 @@ void shapes::flush_Sphere_OBBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 
-	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData());
+	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData_t());
 	const uint32_t t_idx = testShape->globalIndex();
 	const float sphereRadiusSq = t_radius[t_idx] * t_radius[t_idx];
 
 	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
-	const float *d_obbCenterX = batchData->centerX.data();
-	const float *d_obbCenterY = batchData->centerY.data();
-	const float *d_obbCenterZ = batchData->centerZ.data();
-	const float *d_obbHalfSizeX = batchData->halfSizeX.data();
-	const float *d_obbHalfSizeY = batchData->halfSizeY.data();
-	const float *d_obbHalfSizeZ = batchData->halfSizeZ.data();
-	auto *d_axes = batchData->axes.data();
+	const float *d_obbCenterX = batchData->centerX().data();
+	const float *d_obbCenterY = batchData->centerY().data();
+	const float *d_obbCenterZ = batchData->centerZ().data();
+	const float *d_obbHalfSizeX = batchData->halfSizeX().data();
+	const float *d_obbHalfSizeY = batchData->halfSizeY().data();
+	const float *d_obbHalfSizeZ = batchData->halfSizeZ().data();
+	std::array<BatchOfOBBs::AxisBatch, 3> d_axes = batchData->axes();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {

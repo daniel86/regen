@@ -14,20 +14,18 @@ namespace regen {
 	 * intersection tests with multiple spheres in a batched manner.
 	 */
 	struct BatchOfSpheres : BatchOfShapes {
-		BatchOfSpheres() : BatchOfShapes() {
-			resizeFun = &BatchOfSpheres::doResize;
-			pushFun = &BatchOfSpheres::doPush;
-		}
+		BatchOfSpheres() : BatchOfShapes(4) {}
 		~BatchOfSpheres() override = default;
 		// Queued sphere center position + radius
-		AlignedArray<float> posX;
-		AlignedArray<float> posY;
-		AlignedArray<float> posZ;
-		AlignedArray<float> radius;
+		AlignedArray<float>& posX() { return soaData_[0]; }
+		AlignedArray<float>& posY() { return soaData_[1]; }
+		AlignedArray<float>& posZ() { return soaData_[2]; }
+		AlignedArray<float>& radius() { return soaData_[3]; }
 
-	protected:
-		static void doResize(BatchOfShapes &batch, uint32_t newCapacity, bool preserveData);
-		static void doPush(BatchOfShapes &self, const BoundingShape &shape, uint32_t index);
+		const AlignedArray<float>& posX() const { return soaData_[0]; }
+		const AlignedArray<float>& posY() const { return soaData_[1]; }
+		const AlignedArray<float>& posZ() const { return soaData_[2]; }
+		const AlignedArray<float>& radius() const { return soaData_[3]; }
 	};
 
 	/**
@@ -56,7 +54,7 @@ namespace regen {
 		 * @brief Get the radius of this sphere
 		 * @return The radius
 		 */
-		float radius() const { return globalBatchData_.radius[globalIndex_]; }
+		float radius() const { return globalBatchData_.radius()[globalIndex_]; }
 
 		/**
 		 * @brief Get the squared radius of this sphere
@@ -68,7 +66,7 @@ namespace regen {
 		 * @brief Set the radius of this sphere
 		 * @param radius The radius
 		 */
-		void setRadius(float radius) { globalBatchData_.radius[globalIndex_] = radius; }
+		void setRadius(float radius) { globalBatchData_.radius()[globalIndex_] = radius; }
 
 		/**
 		 * @brief Check if this sphere has intersection with an AABB

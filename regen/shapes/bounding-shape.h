@@ -2,6 +2,7 @@
 #define REGEN_BOUNDING_SHAPE_H_
 
 #include "regen/states/model-transformation.h"
+#include "regen/shapes/batch-of-shapes.h"
 #include "orthogonal-projection.h"
 
 namespace regen {
@@ -310,6 +311,24 @@ namespace regen {
 		 */
 		void* spatialIndexData(uint32_t index) const { return spatialIndexData_[index]; }
 
+		/**
+		 * @brief Get the global index of this shape instance in the batch data buffer
+		 * @return The global index
+		 */
+		uint32_t globalIndex() const { return globalIndex_; }
+
+		/**
+		 * @brief Get the global batch data buffer
+		 * @return The global batch data buffer
+		 */
+		BatchOfShapes &globalBatchData() { return *globalShapeData_untyped_; }
+
+		/**
+		 * @brief Get the global batch data buffer
+		 * @return The global batch data buffer
+		 */
+		const BatchOfShapes &globalBatchData() const { return *globalShapeData_untyped_; }
+
 	protected:
 		const BoundingShapeType shapeType_;
 		ref_ptr<Mesh> mesh_;
@@ -342,6 +361,9 @@ namespace regen {
 		// custom data pointer used for spatial index intersection tests
 		std::vector<void*> spatialIndexData_;
 
+		uint32_t globalIndex_ = 0;
+		BatchOfShapes *globalShapeData_untyped_ = nullptr;
+
 		uint32_t getTransformStamp() const {
 			return transform_->stamp();
 		}
@@ -372,8 +394,9 @@ namespace regen {
 		 * @param shapeType The type of the shape
 		 */
 		explicit BatchedBoundingShape(BoundingShapeType shapeType)
-			: BoundingShape(shapeType),
-			  globalIndex_(reserveGlobalIndex()) {
+			: BoundingShape(shapeType) {
+			this->globalIndex_ = reserveGlobalIndex();
+			this->globalShapeData_untyped_ = &globalBatchData_;
 		}
 
 		/**
@@ -385,8 +408,9 @@ namespace regen {
 		BatchedBoundingShape(BoundingShapeType shapeType,
 					const ref_ptr<Mesh> &mesh,
 					const std::vector<ref_ptr<Mesh>> &parts)
-			: BoundingShape(shapeType, mesh, parts),
-			  globalIndex_(reserveGlobalIndex()) {
+			: BoundingShape(shapeType, mesh, parts) {
+			this->globalIndex_ = reserveGlobalIndex();
+			this->globalShapeData_untyped_ = &globalBatchData_;
 		}
 
 		/**
@@ -400,16 +424,10 @@ namespace regen {
 		}
 
 		/**
-		 * @brief Get the global index of this shape instance in the batch data buffer
-		 * @return The global index
-		 */
-		uint32_t globalIndex() const { return globalIndex_; }
-
-		/**
 		 * @brief Get the global batch data buffer
 		 * @return The global batch data buffer
 		 */
-		static BatchType &globalBatchData() { return globalBatchData_; }
+		const BatchType &globalBatchData_t() const { return globalBatchData_; }
 
 	protected:
 		// A global contiguous buffer holding batched shape data for all instances in SOA layout.
@@ -421,8 +439,6 @@ namespace regen {
 		inline static uint32_t numFreeGlobalIndices_ = 0u;
 		// The index into the global batch data buffer for the next new shape instance.
 		inline static uint32_t nextGlobalIndex_ = 0u;
-
-		uint32_t globalIndex_;
 
 	private:
 		// we use this only for counting how many copies are made, such that we can

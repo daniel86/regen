@@ -8,15 +8,15 @@
 using namespace regen;
 
 #define REGEN_OBB_BATCH_DATA_AXES_flat(name, batch) \
-	auto* __restrict name##_ax0 = static_cast<float*>(__builtin_assume_aligned(batch.axes[0].x.data(), 32)); \
-	auto* __restrict name##_ay0 = static_cast<float*>(__builtin_assume_aligned(batch.axes[0].y.data(), 32)); \
-	auto* __restrict name##_az0 = static_cast<float*>(__builtin_assume_aligned(batch.axes[0].z.data(), 32)); \
-	auto* __restrict name##_ax1 = static_cast<float*>(__builtin_assume_aligned(batch.axes[1].x.data(), 32)); \
-	auto* __restrict name##_ay1 = static_cast<float*>(__builtin_assume_aligned(batch.axes[1].y.data(), 32)); \
-	auto* __restrict name##_az1 = static_cast<float*>(__builtin_assume_aligned(batch.axes[1].z.data(), 32)); \
-	auto* __restrict name##_ax2 = static_cast<float*>(__builtin_assume_aligned(batch.axes[2].x.data(), 32)); \
-	auto* __restrict name##_ay2 = static_cast<float*>(__builtin_assume_aligned(batch.axes[2].y.data(), 32)); \
-	auto* __restrict name##_az2 = static_cast<float*>(__builtin_assume_aligned(batch.axes[2].z.data(), 32))
+	auto* __restrict name##_ax0 = static_cast<float*>(__builtin_assume_aligned(batch.axis0X().data(), 32)); \
+	auto* __restrict name##_ay0 = static_cast<float*>(__builtin_assume_aligned(batch.axis0Y().data(), 32)); \
+	auto* __restrict name##_az0 = static_cast<float*>(__builtin_assume_aligned(batch.axis0Z().data(), 32)); \
+	auto* __restrict name##_ax1 = static_cast<float*>(__builtin_assume_aligned(batch.axis1X().data(), 32)); \
+	auto* __restrict name##_ay1 = static_cast<float*>(__builtin_assume_aligned(batch.axis1Y().data(), 32)); \
+	auto* __restrict name##_az1 = static_cast<float*>(__builtin_assume_aligned(batch.axis1Z().data(), 32)); \
+	auto* __restrict name##_ax2 = static_cast<float*>(__builtin_assume_aligned(batch.axis2X().data(), 32)); \
+	auto* __restrict name##_ay2 = static_cast<float*>(__builtin_assume_aligned(batch.axis2Y().data(), 32)); \
+	auto* __restrict name##_az2 = static_cast<float*>(__builtin_assume_aligned(batch.axis2Z().data(), 32))
 
 #define REGEN_OBB_BATCH_DATA_AXES_array(name, batch) \
 	REGEN_OBB_BATCH_DATA_AXES_flat(name, batch); \
@@ -25,18 +25,18 @@ using namespace regen;
 	float* __restrict name##_az[3] = {name##_az0, name##_az1, name##_az2}
 
 #define REGEN_OBB_BATCH_DATA_SIZE_flat(name, batch) \
-	auto* __restrict name##_hx = static_cast<float*>(__builtin_assume_aligned(batch.halfSizeX.data(), 32)); \
-	auto* __restrict name##_hy = static_cast<float*>(__builtin_assume_aligned(batch.halfSizeY.data(), 32)); \
-	auto* __restrict name##_hz = static_cast<float*>(__builtin_assume_aligned(batch.halfSizeZ.data(), 32))
+	auto* __restrict name##_hx = static_cast<float*>(__builtin_assume_aligned(batch.halfSizeX().data(), 32)); \
+	auto* __restrict name##_hy = static_cast<float*>(__builtin_assume_aligned(batch.halfSizeY().data(), 32)); \
+	auto* __restrict name##_hz = static_cast<float*>(__builtin_assume_aligned(batch.halfSizeZ().data(), 32))
 
 #define REGEN_OBB_BATCH_DATA_SIZE_array(name, batch) \
 	REGEN_OBB_BATCH_DATA_SIZE_flat(name, batch); \
 	float* __restrict name##_halfSize[3] = {name##_hx, name##_hy, name##_hz}
 
 #define REGEN_OBB_BATCH_DATA_CENTER(name, batch) \
-	auto* __restrict name##_cx = static_cast<float*>(__builtin_assume_aligned(batch.centerX.data(), 32)); \
-	auto* __restrict name##_cy = static_cast<float*>(__builtin_assume_aligned(batch.centerY.data(), 32)); \
-	auto* __restrict name##_cz = static_cast<float*>(__builtin_assume_aligned(batch.centerZ.data(), 32))
+	auto* __restrict name##_cx = static_cast<float*>(__builtin_assume_aligned(batch.centerX().data(), 32)); \
+	auto* __restrict name##_cy = static_cast<float*>(__builtin_assume_aligned(batch.centerY().data(), 32)); \
+	auto* __restrict name##_cz = static_cast<float*>(__builtin_assume_aligned(batch.centerZ().data(), 32))
 
 OBB::OBB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
 		: BoundingBox(BoundingShapeType::OBB, mesh, parts) {
@@ -72,9 +72,9 @@ void OBB::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 	// reset TF stamp to force update
 	lastTransformStamp_ = 0;
 	// update half size in global SOA arrays
-	globalBatchData_.halfSizeX[globalIndex_] = (baseBounds_.max.x - baseBounds_.min.x) * 0.5f;
-	globalBatchData_.halfSizeY[globalIndex_] = (baseBounds_.max.y - baseBounds_.min.y) * 0.5f;
-	globalBatchData_.halfSizeZ[globalIndex_] = (baseBounds_.max.z - baseBounds_.min.z) * 0.5f;
+	globalBatchData_.halfSizeX()[globalIndex_] = (baseBounds_.max.x - baseBounds_.min.x) * 0.5f;
+	globalBatchData_.halfSizeY()[globalIndex_] = (baseBounds_.max.y - baseBounds_.min.y) * 0.5f;
+	globalBatchData_.halfSizeZ()[globalIndex_] = (baseBounds_.max.z - baseBounds_.min.z) * 0.5f;
 }
 
 #define _set_axis(i, v) \
@@ -230,9 +230,9 @@ inline bool hasIntersectionWithBox(const OBB &a, const T &b, const Vec3f *axes_a
 
 #define _axis_struct(box, i) \
 	Vec3f( \
-		(box).globalBatchData_.axes[i].x[(box).globalIndex_], \
-		(box).globalBatchData_.axes[i].y[(box).globalIndex_], \
-		(box).globalBatchData_.axes[i].z[(box).globalIndex_])
+		(box).globalBatchData_.axes()[i].x[(box).globalIndex_], \
+		(box).globalBatchData_.axes()[i].y[(box).globalIndex_], \
+		(box).globalBatchData_.axes()[i].z[(box).globalIndex_])
 
 bool OBB::hasIntersectionWithOBB(const OBB &other) const {
 	const Vec3f selfAxes[3] = {
@@ -254,63 +254,6 @@ bool OBB::hasIntersectionWithAABB(const AABB &other) const {
 	return hasIntersectionWithBox(*this, other, selfAxes,  other.boxAxes());
 }
 
-void BatchOfOBBs::doResize(BatchOfShapes &batch, uint32_t newCapacity, bool preserveData) {
-	auto &self = static_cast<BatchOfOBBs&>(batch);
-	if (newCapacity != self.capacity) {
-		self.capacity = newCapacity;
-
-		self.centerX.resize(newCapacity, preserveData);
-		self.centerY.resize(newCapacity, preserveData);
-		self.centerZ.resize(newCapacity, preserveData);
-
-		self.halfSizeX.resize(newCapacity, preserveData);
-		self.halfSizeY.resize(newCapacity, preserveData);
-		self.halfSizeZ.resize(newCapacity, preserveData);
-
-		for (uint32_t i=0; i < 3; ++i) {
-			self.axes[i].x.resize(newCapacity, preserveData);
-			self.axes[i].y.resize(newCapacity, preserveData);
-			self.axes[i].z.resize(newCapacity, preserveData);
-		}
-	}
-}
-
-void BatchOfOBBs::doPush(BatchOfShapes &batch, const BoundingShape &shape, uint32_t localIdx) {
-	auto &self = static_cast<BatchOfOBBs&>(batch);
-	const auto &obb = static_cast<const OBB&>(shape);
-	const BatchOfOBBs &globalBatch = obb.globalBatchData();
-	const uint32_t globalIdx = obb.globalIndex();
-
-	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
-	REGEN_OBB_BATCH_DATA_CENTER(l, self);
-	REGEN_OBB_BATCH_DATA_CENTER(g, globalBatch);
-	REGEN_OBB_BATCH_DATA_SIZE_flat(l, self);
-	REGEN_OBB_BATCH_DATA_SIZE_flat(g, globalBatch);
-	REGEN_OBB_BATCH_DATA_AXES_flat(l, self);
-	REGEN_OBB_BATCH_DATA_AXES_flat(g, globalBatch);
-
-	// Copy scalar data
-	l_cx[localIdx] = g_cx[globalIdx];
-	l_cy[localIdx] = g_cy[globalIdx];
-	l_cz[localIdx] = g_cz[globalIdx];
-
-	l_hx[localIdx] = g_hx[globalIdx];
-	l_hy[localIdx] = g_hy[globalIdx];
-	l_hz[localIdx] = g_hz[globalIdx];
-
-	l_ax0[localIdx] = g_ax0[globalIdx];
-	l_ay0[localIdx] = g_ay0[globalIdx];
-	l_az0[localIdx] = g_az0[globalIdx];
-
-	l_ax1[localIdx] = g_ax1[globalIdx];
-	l_ay1[localIdx] = g_ay1[globalIdx];
-	l_az1[localIdx] = g_az1[globalIdx];
-
-	l_ax2[localIdx] = g_ax2[globalIdx];
-	l_ay2[localIdx] = g_ay2[globalIdx];
-	l_az2[localIdx] = g_az2[globalIdx];
-}
-
 void shapes::flush_OBB_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto &testShape = *static_cast<const OBB *>(td.testShape);
@@ -319,14 +262,14 @@ void shapes::flush_OBB_Spheres(BatchedIntersectionCase &td) {
 	const Vec3f &obbCenter = testShape.tfOrigin();
 	const uint32_t g_idx = testShape.globalIndex();
 	// transformed axes of the OBB
-	REGEN_OBB_BATCH_DATA_SIZE_array(g, testShape.globalBatchData());
-	REGEN_OBB_BATCH_DATA_AXES_array(g, testShape.globalBatchData());
+	REGEN_OBB_BATCH_DATA_SIZE_array(g, testShape.globalBatchData_t());
+	REGEN_OBB_BATCH_DATA_AXES_array(g, testShape.globalBatchData_t());
 
 	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
-	const float *d_spherePosX = batchData->posX.data();
-	const float *d_spherePosY = batchData->posY.data();
-	const float *d_spherePosZ = batchData->posZ.data();
-	const float *d_sphereRadius = batchData->radius.data();
+	const float *d_spherePosX = batchData->posX().data();
+	const float *d_spherePosY = batchData->posY().data();
+	const float *d_spherePosZ = batchData->posZ().data();
+	const float *d_sphereRadius = batchData->radius().data();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
@@ -403,8 +346,8 @@ void shapes::flush_OBB_AABBs(BatchedIntersectionCase &td) {
 	// bounding box in base pose
 	auto &obbCenter = testShape.tfOrigin();
 	const uint32_t g_idx = testShape.globalIndex();
-	REGEN_OBB_BATCH_DATA_SIZE_flat(g, testShape.globalBatchData());
-	REGEN_OBB_BATCH_DATA_AXES_flat(g, testShape.globalBatchData());
+	REGEN_OBB_BATCH_DATA_SIZE_flat(g, testShape.globalBatchData_t());
+	REGEN_OBB_BATCH_DATA_AXES_flat(g, testShape.globalBatchData_t());
 	// The OBB's projected radius
 	const std::array<float,3> obbRadius = {
 		// R = hx*|ax0| + hy*|ax1| + hz*|ax2|
@@ -421,12 +364,12 @@ void shapes::flush_OBB_AABBs(BatchedIntersectionCase &td) {
 		g_hz[g_idx] * std::abs(g_az2[g_idx])};
 
 	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
-	const float *d_aabbMinX = batchData->minX.data();
-	const float *d_aabbMinY = batchData->minY.data();
-	const float *d_aabbMinZ = batchData->minZ.data();
-	const float *d_aabbMaxX = batchData->maxX.data();
-	const float *d_aabbMaxY = batchData->maxY.data();
-	const float *d_aabbMaxZ = batchData->maxZ.data();
+	const float *d_aabbMinX = batchData->minX().data();
+	const float *d_aabbMinY = batchData->minY().data();
+	const float *d_aabbMinZ = batchData->minZ().data();
+	const float *d_aabbMaxX = batchData->maxX().data();
+	const float *d_aabbMaxY = batchData->maxY().data();
+	const float *d_aabbMaxZ = batchData->maxZ().data();
 
 	const BatchOf_float obbCenterX = BatchOf_float::fromScalar(obbCenter.x);
 	const BatchOf_float obbCenterY = BatchOf_float::fromScalar(obbCenter.y);

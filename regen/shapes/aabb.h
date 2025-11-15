@@ -12,22 +12,22 @@ namespace regen {
 	 * intersection tests with multiple AABBs in a batched manner.
 	 */
 	struct BatchOfAABBs : BatchOfShapes {
-		BatchOfAABBs() : BatchOfShapes() {
-			resizeFun = &BatchOfAABBs::doResize;
-			pushFun = &BatchOfAABBs::doPush;
-		}
+		BatchOfAABBs() : BatchOfShapes(6) {}
 		~BatchOfAABBs() override = default;
 		// Queued AABB min/max points
-		AlignedArray<float> minX;
-		AlignedArray<float> minY;
-		AlignedArray<float> minZ;
-		AlignedArray<float> maxX;
-		AlignedArray<float> maxY;
-		AlignedArray<float> maxZ;
+		AlignedArray<float>& minX() { return soaData_[0]; }
+		AlignedArray<float>& minY() { return soaData_[1]; }
+		AlignedArray<float>& minZ() { return soaData_[2]; }
+		AlignedArray<float>& maxX() { return soaData_[3]; }
+		AlignedArray<float>& maxY() { return soaData_[4]; }
+		AlignedArray<float>& maxZ() { return soaData_[5]; }
 
-	protected:
-		static void doResize(BatchOfShapes &self, uint32_t newCapacity, bool preserveData);
-		static void doPush(BatchOfShapes &self, const BoundingShape &shape, uint32_t index);
+		const AlignedArray<float>& minX() const { return soaData_[0]; }
+		const AlignedArray<float>& minY() const { return soaData_[1]; }
+		const AlignedArray<float>& minZ() const { return soaData_[2]; }
+		const AlignedArray<float>& maxX() const { return soaData_[3]; }
+		const AlignedArray<float>& maxY() const { return soaData_[4]; }
+		const AlignedArray<float>& maxZ() const { return soaData_[5]; }
 	};
 
 	/**
@@ -54,18 +54,18 @@ namespace regen {
 		 * @return The transformed minimum bounds
 		 */
 		Vec3f tfMinBounds() const { return Vec3f(
-			globalBatchData_.minX[globalIndex_],
-			globalBatchData_.minY[globalIndex_],
-			globalBatchData_.minZ[globalIndex_]); }
+			globalBatchData_.minX()[globalIndex_],
+			globalBatchData_.minY()[globalIndex_],
+			globalBatchData_.minZ()[globalIndex_]); }
 
 		/**
 		 * @brief Get the transformed maximum bounds of the AABB
 		 * @return The transformed maximum bounds
 		 */
 		Vec3f tfMaxBounds() const { return Vec3f(
-			globalBatchData_.maxX[globalIndex_],
-			globalBatchData_.maxY[globalIndex_],
-			globalBatchData_.maxZ[globalIndex_]); }
+			globalBatchData_.maxX()[globalIndex_],
+			globalBatchData_.maxY()[globalIndex_],
+			globalBatchData_.maxZ()[globalIndex_]); }
 
 		/**
 		 * @brief Get the box axes (constant for AABB)

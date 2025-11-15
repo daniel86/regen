@@ -18,14 +18,8 @@ namespace regen {
 	 */
 	struct BatchOfFrustums : BatchOfShapes {
 		// NOTE: Frustum shapes do not support batched intersection tests yet.
-		BatchOfFrustums() : BatchOfShapes() {
-			resizeFun = &BatchOfFrustums::doResize;
-			pushFun = &BatchOfFrustums::doPush;
-		}
+		BatchOfFrustums() : BatchOfShapes(0) {}
 		~BatchOfFrustums() override = default;
-	protected:
-		static void doResize(BatchOfShapes&, uint32_t, bool) {}
-		static void doPush(BatchOfShapes&, const BoundingShape&, uint32_t) {}
 	};
 
 	/**

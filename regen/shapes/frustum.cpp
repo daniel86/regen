@@ -150,14 +150,14 @@ void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
 }
 
 bool Frustum::hasIntersectionWithAABB(const AABB &box) const {
-	auto &boxBatchData = box.globalBatchData();
+	auto &boxBatchData = box.globalBatchData_t();
 	auto boxIdx = box.globalIndex();
-	const float *boxMinX = boxBatchData.minX.data() + boxIdx;
-	const float *boxMinY = boxBatchData.minY.data() + boxIdx;
-	const float *boxMinZ = boxBatchData.minZ.data() + boxIdx;
-	const float *boxMaxX = boxBatchData.maxX.data() + boxIdx;
-	const float *boxMaxY = boxBatchData.maxY.data() + boxIdx;
-	const float *boxMaxZ = boxBatchData.maxZ.data() + boxIdx;
+	const float *boxMinX = boxBatchData.minX().data() + boxIdx;
+	const float *boxMinY = boxBatchData.minY().data() + boxIdx;
+	const float *boxMinZ = boxBatchData.minZ().data() + boxIdx;
+	const float *boxMaxX = boxBatchData.maxX().data() + boxIdx;
+	const float *boxMaxY = boxBatchData.maxY().data() + boxIdx;
+	const float *boxMaxZ = boxBatchData.maxZ().data() + boxIdx;
 
 	for (unsigned int i = 0u; i < 6u; ++i) {
 		// Select vertex farthest from the plane in direction of the plane normal.
@@ -266,10 +266,10 @@ void shapes::flush_Frustum_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
 	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
-	const float *d_spherePosX = batchData->posX.data();
-	const float *d_spherePosY = batchData->posY.data();
-	const float *d_spherePosZ = batchData->posZ.data();
-	const float *d_sphereRadius = batchData->radius.data();
+	const float *d_spherePosX = batchData->posX().data();
+	const float *d_spherePosY = batchData->posY().data();
+	const float *d_spherePosZ = batchData->posZ().data();
+	const float *d_sphereRadius = batchData->radius().data();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
@@ -330,12 +330,12 @@ void shapes::flush_Frustum_AABBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
 	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
-	const float *d_aabbMinX = batchData->minX.data();
-	const float *d_aabbMinY = batchData->minY.data();
-	const float *d_aabbMinZ = batchData->minZ.data();
-	const float *d_aabbMaxX = batchData->maxX.data();
-	const float *d_aabbMaxY = batchData->maxY.data();
-	const float *d_aabbMaxZ = batchData->maxZ.data();
+	const float *d_aabbMinX = batchData->minX().data();
+	const float *d_aabbMinY = batchData->minY().data();
+	const float *d_aabbMinZ = batchData->minZ().data();
+	const float *d_aabbMaxX = batchData->maxX().data();
+	const float *d_aabbMaxY = batchData->maxY().data();
+	const float *d_aabbMaxZ = batchData->maxZ().data();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
@@ -405,13 +405,13 @@ void shapes::flush_Frustum_OBBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
 	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
-	const float *d_obbCenterX = batchData->centerX.data();
-	const float *d_obbCenterY = batchData->centerY.data();
-	const float *d_obbCenterZ = batchData->centerZ.data();
-	const float *d_obbHalfSizeX = batchData->halfSizeX.data();
-	const float *d_obbHalfSizeY = batchData->halfSizeY.data();
-	const float *d_obbHalfSizeZ = batchData->halfSizeZ.data();
-	auto *d_axes = batchData->axes.data();
+	const float *d_obbCenterX = batchData->centerX().data();
+	const float *d_obbCenterY = batchData->centerY().data();
+	const float *d_obbCenterZ = batchData->centerZ().data();
+	const float *d_obbHalfSizeX = batchData->halfSizeX().data();
+	const float *d_obbHalfSizeY = batchData->halfSizeY().data();
+	const float *d_obbHalfSizeZ = batchData->halfSizeZ().data();
+	std::array<BatchOfOBBs::AxisBatch, 3> d_axes = batchData->axes();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
