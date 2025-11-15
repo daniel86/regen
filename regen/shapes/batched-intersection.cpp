@@ -121,7 +121,9 @@ static void addToBatchTest(BatchedIntersectionCase &ic, const BoundingShape &sha
 	// Note: copy could be avoided by gathering over global data directly, but that might kill
 	//       performance due to unaligned loads in most cases.
 	for (size_t i = 0; i < NUM_ARRAYS; ++i) {
-		localSoAData[i][localIdx] = globalSoAData[i][globalIdx];
+		float* __restrict ld = static_cast<float*>(__builtin_assume_aligned(localSoAData[i].data(), 32));
+		float* __restrict gl = static_cast<float*>(__builtin_assume_aligned(globalSoAData[i].data(), 32));
+		ld[localIdx] = gl[globalIdx];
 	}
 
 	++ic.numQueued;

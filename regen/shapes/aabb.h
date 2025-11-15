@@ -115,8 +115,6 @@ namespace regen {
 
 	protected:
 		void updateAABB();
-
-		void setVertices();
 	};
 
 	/**

@@ -57,13 +57,11 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 			break;
 		}
 		case BoundingShapeType::AABB: {
-			auto *box = static_cast<const AABB *>(&shape);
-			createBoxRectangle(box->boxVertices());
+			createRectangle_AABB(shape);
 			break;
 		}
 		case BoundingShapeType::OBB: {
-			auto *box = static_cast<const OBB *>(&shape);
-			createBoxRectangle(box->boxVertices());
+			createRectangle_OBB(shape);
 			break;
 		}
 		case BoundingShapeType::FRUSTUM: {
@@ -102,8 +100,37 @@ static inline float cross(const Vec2f& O, const Vec2f& A, const Vec2f& B) {
 	return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
 }
 
-void OrthogonalProjection::createBoxRectangle(const Vec3f *vertices_3D) {
-	type = OrthogonalProjection::Type::RECTANGLE;
+void OrthogonalProjection::createRectangle_AABB(const BoundingShape &box) {
+	auto &aabb = static_cast<const AABB&>(box);
+	auto &batchData = aabb.globalBatchData_t();
+	const uint32_t batchIdx = aabb.globalIndex();
+	type = RECTANGLE;
+	// generate the 4 corners of the box in the xz-plane.
+	points.resize(4);
+	// bottom-left
+	points[0].x = batchData.minX()[batchIdx];
+	points[0].y = batchData.minZ()[batchIdx];
+	// bottom-right
+	points[1].x = batchData.maxX()[batchIdx];
+	points[1].y = batchData.minZ()[batchIdx];
+	// top-right
+	points[2].x = batchData.maxX()[batchIdx];
+	points[2].y = batchData.maxZ()[batchIdx];
+	// top-left
+	points[3].x = batchData.minX()[batchIdx];
+	points[3].y = batchData.maxZ()[batchIdx];
+	// axes of the rectangle (and quad)
+	axes[2].dir = perpendicular(points[1] - points[0]);
+	axes[3].dir = perpendicular(points[3] - points[0]);
+	// project along each axis
+	for (auto &axis: axes) {
+		project(points, axis);
+	}
+}
+
+void OrthogonalProjection::createRectangle_OBB(const BoundingShape &obb) {
+	auto *vertices_3D = static_cast<const OBB&>(obb).boxVertices();
+	type = RECTANGLE;
 	// generate the 4 corners of the box in the xz-plane.
 	// for this just take min/max of the box vertices as bounds,
 	// this is not a perfect fit but fast.

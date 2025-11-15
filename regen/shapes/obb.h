@@ -98,10 +98,10 @@ namespace regen {
 		~OBB() override = default;
 
 		/**
-		 * @brief Get the box axes
-		 * @return The box axes
+		 * @brief Get the vertices of this box
+		 * @return The vertices
 		 */
-		//const Vec3f *boxAxes() const { return boxAxes_; }
+		auto *boxVertices() const { return vertices_; }
 
 		/**
 		 * @brief Check if this OBB has intersection with an AABB
@@ -147,6 +147,9 @@ namespace regen {
 		static void batchTest_Frustums(BatchedIntersectionCase&);
 
 	protected:
+		// transformed vertices
+		Vec3f vertices_[8];
+
 		void updateOBB();
 		void applyTransform(const Mat4f &tf);
 	};

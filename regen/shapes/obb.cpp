@@ -195,15 +195,22 @@ inline std::pair<float, float> project(const T &a, const Vec3f &axis) {
 	return std::make_pair(min, max);
 }
 
-template <typename T>
-inline bool overlapOnAxis(const OBB &a, const T &b, const Vec3f &axis) {
-	auto [minA, maxA] = project(a, axis);
-	auto [minB, maxB] = project(b, axis);
-	return maxA >= minB && maxB >= minA;
-}
+#define _axis_struct(box, i) \
+	Vec3f( \
+		(box).globalBatchData_.axes()[i].x[(box).globalIndex_], \
+		(box).globalBatchData_.axes()[i].y[(box).globalIndex_], \
+		(box).globalBatchData_.axes()[i].z[(box).globalIndex_])
 
-template <typename T>
-inline bool hasIntersectionWithBox(const OBB &a, const T &b, const Vec3f *axes_a, const Vec3f *axes_b) {
+bool OBB::hasIntersectionWithOBB(const OBB &other) const {
+	const Vec3f axes_a[3] = {
+		_axis_struct(*this, 0),
+		_axis_struct(*this, 1),
+		_axis_struct(*this, 2)};
+	const Vec3f axes_b[3] = {
+		_axis_struct(other, 0),
+		_axis_struct(other, 1),
+		_axis_struct(other, 2)};
+
 	std::array<Vec3f, 15> axes = {
 		axes_a[0], axes_a[1], axes_a[2],
 		axes_b[0], axes_b[1], axes_b[2],
@@ -222,36 +229,44 @@ inline bool hasIntersectionWithBox(const OBB &a, const T &b, const Vec3f *axes_a
 
 	for (const Vec3f &axis: axes) {
 		if (axis.x == 0 && axis.y == 0 && axis.z == 0) continue; // Skip zero-length axes
-		if (!overlapOnAxis(a, b, axis)) return false;
+
+		auto [minA, maxA] = project(*this, axis);
+		auto [minB, maxB] = project(other, axis);
+
+		if (maxA < minB || maxB < minA) return false;
 	}
 
 	return true;
 }
 
-#define _axis_struct(box, i) \
-	Vec3f( \
-		(box).globalBatchData_.axes()[i].x[(box).globalIndex_], \
-		(box).globalBatchData_.axes()[i].y[(box).globalIndex_], \
-		(box).globalBatchData_.axes()[i].z[(box).globalIndex_])
-
-bool OBB::hasIntersectionWithOBB(const OBB &other) const {
-	const Vec3f selfAxes[3] = {
-		_axis_struct(*this, 0),
-		_axis_struct(*this, 1),
-		_axis_struct(*this, 2)};
-	const Vec3f otherAxes[3] = {
-		_axis_struct(other, 0),
-		_axis_struct(other, 1),
-		_axis_struct(other, 2)};
-	return hasIntersectionWithBox(*this, other, selfAxes,  otherAxes);
-}
+#undef _axis_struct
 
 bool OBB::hasIntersectionWithAABB(const AABB &other) const {
-	const Vec3f selfAxes[3] = {
-		_axis_struct(*this, 0),
-		_axis_struct(*this, 1),
-		_axis_struct(*this, 2)};
-	return hasIntersectionWithBox(*this, other, selfAxes,  other.boxAxes());
+	auto &c = tfOrigin();
+	const uint32_t g_idx =globalIndex();
+	REGEN_OBB_BATCH_DATA_SIZE_flat(g, globalBatchData_t());
+	REGEN_OBB_BATCH_DATA_AXES_flat(g, globalBatchData_t());
+
+	auto &aabbBatch = other.globalBatchData_t();
+	const uint32_t aabbIdx = other.globalIndex();
+
+	float r;
+	r = g_hx[g_idx] * std::abs(g_ax0[g_idx]) +
+		g_hy[g_idx] * std::abs(g_ax1[g_idx]) +
+		g_hz[g_idx] * std::abs(g_ax2[g_idx]);
+	if (c.x - r > aabbBatch.maxX()[aabbIdx] || c.x + r < aabbBatch.minX()[aabbIdx]) return false;
+
+	r = g_hx[g_idx] * std::abs(g_ay0[g_idx]) +
+		g_hy[g_idx] * std::abs(g_ay1[g_idx]) +
+		g_hz[g_idx] * std::abs(g_ay2[g_idx]);
+	if (c.y - r > aabbBatch.maxY()[aabbIdx] || c.y + r < aabbBatch.minY()[aabbIdx]) return false;
+
+	r = g_hx[g_idx] * std::abs(g_az0[g_idx]) +
+		g_hy[g_idx] * std::abs(g_az1[g_idx]) +
+		g_hz[g_idx] * std::abs(g_az2[g_idx]);
+	if (c.z - r > aabbBatch.maxZ()[aabbIdx] || c.z + r < aabbBatch.minZ()[aabbIdx]) return false;
+
+	return true;
 }
 
 void OBB::batchTest_Spheres(BatchedIntersectionCase &td) {

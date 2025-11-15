@@ -42,7 +42,9 @@ namespace regen {
 
 		void createConvexHull(const Vec3f *inputPoints, uint32_t numPoints);
 
-		void createBoxRectangle(const Vec3f *vertices_3D);
+		void createRectangle_OBB(const BoundingShape &obb);
+
+		void createRectangle_AABB(const BoundingShape &obb);
 	};
 }
 

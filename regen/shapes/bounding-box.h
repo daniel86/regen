@@ -45,19 +45,11 @@ namespace regen {
 		 */
 		const Bounds<Vec3f> &baseBounds() const { return baseBounds_; }
 
-		/**
-		 * @brief Get the vertices of this box
-		 * @return The vertices
-		 */
-		auto *boxVertices() const { return vertices_; }
-
 	protected:
 		// min/max bounds of the box's vertices (without transformation)
 		Bounds<Vec3f> baseBounds_;
 		// The center of the box before transformation
 		Vec3f basePosition_;
-		// transformed vertices
-		Vec3f vertices_[8];
 	};
 } // namespace
 

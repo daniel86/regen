@@ -18,6 +18,9 @@ namespace regen {
 
 		virtual ~BatchOfShapes() = default;
 
+		BatchOfShapes(const BatchOfShapes&) = delete;
+		BatchOfShapes& operator=(const BatchOfShapes&) = delete;
+
 		std::vector<AlignedArray<float>> soaData_{}; // Structure of Arrays data for the batch
 		// The current capacity of the batch.
 		// Note that resizing is expensive and should be minimized.
@@ -40,7 +43,7 @@ namespace regen {
 		 * @brief Push a shape into the batch at the specified index.
 		 * Make sure the batch has enough capacity before pushing.
 		 * @param shape The shape to push into the batch.
-		 * @param index The index at which to push the shape.
+		 * @param localIdx The index at which to push the shape.
 		 */
 		void push(const BoundingShape &shape, uint32_t localIdx) {
 			const auto &global = shape.globalBatchData();

@@ -48,21 +48,6 @@ void AABB::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 	lastTransformStamp_ = 0;
 }
 
-void AABB::setVertices() {
-	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
-	REGEN_AABB_BATCH_DATA(g, globalBatchData_);
-	// vertices based on bounds
-	// TODO: Remove the vertices from AABB
-	vertices_[0] = Vec3f(g_minX[globalIndex_], g_minY[globalIndex_], g_minZ[globalIndex_]);
-	vertices_[1] = Vec3f(g_minX[globalIndex_], g_minY[globalIndex_], g_maxZ[globalIndex_]);
-	vertices_[2] = Vec3f(g_minX[globalIndex_], g_maxY[globalIndex_], g_minZ[globalIndex_]);
-	vertices_[3] = Vec3f(g_minX[globalIndex_], g_maxY[globalIndex_], g_maxZ[globalIndex_]);
-	vertices_[4] = Vec3f(g_maxX[globalIndex_], g_minY[globalIndex_], g_minZ[globalIndex_]);
-	vertices_[5] = Vec3f(g_maxX[globalIndex_], g_minY[globalIndex_], g_maxZ[globalIndex_]);
-	vertices_[6] = Vec3f(g_maxX[globalIndex_], g_maxY[globalIndex_], g_minZ[globalIndex_]);
-	vertices_[7] = Vec3f(g_maxX[globalIndex_], g_maxY[globalIndex_], g_maxZ[globalIndex_]);
-}
-
 void AABB::updateAABB() {
 	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
 	REGEN_AABB_BATCH_DATA(g, globalBatchData_);
@@ -73,6 +58,14 @@ void AABB::updateAABB() {
 
 #define _set_min(v) g_minX[globalIndex_] = v.x; g_minY[globalIndex_] = v.y; g_minZ[globalIndex_] = v.z
 #define _set_max(v) g_maxX[globalIndex_] = v.x; g_maxY[globalIndex_] = v.y; g_maxZ[globalIndex_] = v.z
+#define _set_minmax(v) \
+	transformed = (tf.r ^ v).xyz_(); \
+	g_minX[globalIndex_] = std::min(g_minX[globalIndex_], transformed.x); \
+	g_minY[globalIndex_] = std::min(g_minY[globalIndex_], transformed.y); \
+	g_minZ[globalIndex_] = std::min(g_minZ[globalIndex_], transformed.z); \
+	g_maxX[globalIndex_] = std::max(g_maxX[globalIndex_], transformed.x); \
+	g_maxY[globalIndex_] = std::max(g_maxY[globalIndex_], transformed.y); \
+	g_maxZ[globalIndex_] = std::max(g_maxZ[globalIndex_], transformed.z)
 	// apply transform
 	if (transform_.get()) {
 		if (transform_->hasModelMat()) {
@@ -81,18 +74,16 @@ void AABB::updateAABB() {
 			Vec3f transformed = (tf.r ^ baseBounds_.min).xyz_();
 			_set_min(transformed);
 			_set_max(transformed);
-
-			for (int i = 1; i < 8; ++i) {
-				transformed = (tf.r ^ vertices_[i]).xyz_();
-				// tfBounds.min = min(tfBounds.min, transformed);
-				g_minX[globalIndex_] = std::min(g_minX[globalIndex_], transformed.x);
-				g_minY[globalIndex_] = std::min(g_minY[globalIndex_], transformed.y);
-				g_minZ[globalIndex_] = std::min(g_minZ[globalIndex_], transformed.z);
-				// tfBounds.max = max(tfBounds.max, transformed);
-				g_maxX[globalIndex_] = std::max(g_maxX[globalIndex_], transformed.x);
-				g_maxY[globalIndex_] = std::max(g_maxY[globalIndex_], transformed.y);
-				g_maxZ[globalIndex_] = std::max(g_maxZ[globalIndex_], transformed.z);
-			}
+			// min = min(all 8 transformed vertices)
+			// max = max(all 8 transformed vertices)
+			_set_minmax(Vec3f(g_minX[globalIndex_], g_minY[globalIndex_], g_minZ[globalIndex_]));
+			_set_minmax(Vec3f(g_minX[globalIndex_], g_minY[globalIndex_], g_maxZ[globalIndex_]));
+			_set_minmax(Vec3f(g_minX[globalIndex_], g_maxY[globalIndex_], g_minZ[globalIndex_]));
+			_set_minmax(Vec3f(g_minX[globalIndex_], g_maxY[globalIndex_], g_maxZ[globalIndex_]));
+			_set_minmax(Vec3f(g_maxX[globalIndex_], g_minY[globalIndex_], g_minZ[globalIndex_]));
+			_set_minmax(Vec3f(g_maxX[globalIndex_], g_minY[globalIndex_], g_maxZ[globalIndex_]));
+			_set_minmax(Vec3f(g_maxX[globalIndex_], g_maxY[globalIndex_], g_minZ[globalIndex_]));
+			_set_minmax(Vec3f(g_maxX[globalIndex_], g_maxY[globalIndex_], g_maxZ[globalIndex_]));
 			// tfOrigin = (tfBounds.min + tfBounds.max) * 0.5f;
 			tfOrigin_.x = (g_minX[globalIndex_] + g_maxX[globalIndex_]) * 0.5f;
 			tfOrigin_.y = (g_minY[globalIndex_] + g_maxY[globalIndex_]) * 0.5f;
@@ -101,8 +92,6 @@ void AABB::updateAABB() {
 			_set_min(baseBounds_.min);
 			_set_max(baseBounds_.max);
 		}
-		// set vertices based on transformed bounds
-		setVertices();
 
 		// apply model offset if available
 		if (transform_->hasModelOffset()) {
@@ -117,16 +106,12 @@ void AABB::updateAABB() {
 			g_maxY[globalIndex_] += o.y;
 			g_maxZ[globalIndex_] += o.z;
 			tfOrigin_ += offset.r.xyz_();
-			for (int i = 0; i < 8; ++i) {
-				vertices_[i] += offset.r.xyz_();
-			}
 		}
 	} else {
 		_set_min(baseBounds_.min);
 		_set_max(baseBounds_.max);
-		// set vertices based on base bounds
-		setVertices();
 	}
+#undef _set_minmax
 #undef _set_min
 #undef _set_max
 }
