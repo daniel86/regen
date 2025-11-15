@@ -52,12 +52,18 @@ namespace regen {
 		/**
 		 * @brief Resizes the array to a new size.
 		 * @param newSize The new size of the array.
+		 * @param preserveData If true, preserves existing data up to the new size.
 		 * @throws std::bad_alloc if memory allocation fails.
 		 */
-		void resize(size_t newSize) {
-			std::free(data_);
+		void resize(size_t newSize, bool preserveData = false) {
+			T *oldData = data_;
+			uint32_t oldAllocatedSize = allocatedSize_;
 			capacity_ = newSize;
 			allocate(newSize);
+			if (preserveData) {
+				std::memcpy(data_, oldData, std::min(allocatedSize_, oldAllocatedSize));
+			}
+			std::free(oldData);
 		}
 
 		/**
@@ -65,7 +71,7 @@ namespace regen {
 		 * @param index The index of the element to access.
 		 * @return A reference to the element at the specified index.
 		 */
-		inline T& operator[](size_t index) {
+		inline T& operator[](size_t index) const {
 			return data_[index];
 		}
 

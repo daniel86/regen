@@ -7,7 +7,7 @@
 #include <regen/shapes/bounds.h>
 #include <regen/shapes/orthogonal-projection.h>
 
-#include "intersections/batched-intersection.h"
+#include "batched-intersection.h"
 #include "regen/utility/aligned-array.h"
 
 namespace regen {

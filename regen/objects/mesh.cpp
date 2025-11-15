@@ -713,12 +713,14 @@ void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
 	if (shape->shapeType() == BoundingShapeType::SPHERE) {
 		shapeType_ = 0;
 		shaderDefine("SHAPE_TYPE", "SPHERE");
-	} else if (shape->shapeType() == BoundingShapeType::AABB || shape->shapeType() == BoundingShapeType::OBB) {
-		auto box = (BoundingBox *) (shape.get());
-		shapeType_ = box->isAABB() ? 1 : 2;
-		shaderDefine("SHAPE_TYPE", box->isAABB() ? "AABB" : "OBB");
+	} else if (shape->shapeType() == BoundingShapeType::AABB) {
+		shapeType_ = 1;
+		shaderDefine("SHAPE_TYPE", "AABB");
+	} else if (shape->shapeType() == BoundingShapeType::OBB) {
+		shapeType_ = 2;
+		shaderDefine("SHAPE_TYPE", "OBB");
 	} else {
-		REGEN_WARN("Unsupported shape type for mesh: " << (int)shape->shapeType());
+		REGEN_WARN("Unsupported shape type for mesh: " << static_cast<int>(shape->shapeType()));
 		if(!boundingShape_.get()) createBoundingSphere();
 		return;
 	}

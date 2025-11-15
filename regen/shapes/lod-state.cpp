@@ -1,5 +1,8 @@
 #include <regen/states/state-node.h>
 #include "lod-state.h"
+
+#include "aabb.h"
+#include "obb.h"
 #include "regen/objects/composite-mesh.h"
 #include "regen/gl-types/gl-param.h"
 #include "regen/utility/conversion.h"
@@ -552,18 +555,21 @@ void LODState::createComputeShader() {
 					"shapeRadius", sphere->radius()));
 			shaderCfg.define("SHAPE_TYPE", "SPHERE");
 		}
-		else if (boundingShape->shapeType() == BoundingShapeType::AABB ||
-				 boundingShape->shapeType() == BoundingShapeType::OBB) {
-			auto *box = static_cast<BoundingBox*>(boundingShape.get());
+		else if (boundingShape->shapeType() == BoundingShapeType::AABB) {
+			auto *box = static_cast<AABB*>(boundingShape.get());
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMax", Vec4f(box->baseBounds().max,0.0f)));
-			if (box->isAABB()) {
-				shaderCfg.define("SHAPE_TYPE", "AABB");
-			} else {
-				shaderCfg.define("SHAPE_TYPE", "OBB");
-			}
+			shaderCfg.define("SHAPE_TYPE", "AABB");
+		}
+		else if (boundingShape->shapeType() == BoundingShapeType::OBB) {
+			auto *box = static_cast<OBB*>(boundingShape.get());
+			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
+					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));
+			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
+					"shapeAABBMax", Vec4f(box->baseBounds().max,0.0f)));
+			shaderCfg.define("SHAPE_TYPE", "OBB");
 		}
 		auto &tf = cullShape_->boundingShape()->transform();
 		if (tf.get()) {

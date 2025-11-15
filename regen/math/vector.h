@@ -454,6 +454,18 @@ namespace regen {
 		}
 
 		/**
+		 * Computes the dot product between this vector and the vector
+		 * defined by the three pointer components.
+		 * @param ox x component pointer.
+		 * @param oy y component pointer.
+		 * @param oz z component pointer.
+		 * @return the dot product.
+		 */
+		inline T dot(const T *ox, const T *oy, const T *oz) const {
+			return x * (*ox) + y * (*oy) + z * (*oz);
+		}
+
+		/**
 		 * Rotates this vector around x/y/z axis.
 		 * @param angle
 		 * @param x_

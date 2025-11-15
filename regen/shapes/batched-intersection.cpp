@@ -1,8 +1,4 @@
 #include "batched-intersection.h"
-#include "frustum-intersection.h"
-#include "aabb-intersection.h"
-#include "obb-intersection.h"
-#include "sphere-intersection.h"
 #include "regen/shapes/frustum.h"
 #include "regen/shapes/aabb.h"
 #include "regen/shapes/obb.h"

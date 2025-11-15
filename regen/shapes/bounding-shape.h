@@ -128,13 +128,13 @@ namespace regen {
 		 * @brief Check if this box is an AABB
 		 * @return True if this box is an AABB, false otherwise
 		 */
-		auto isAABB() const { return shapeType_ == BoundingShapeType::AABB; }
+		bool isAABB() const { return shapeType_ == BoundingShapeType::AABB; }
 
 		/**
 		 * @brief Check if this box is an OBB
 		 * @return True if this box is an OBB, false otherwise
 		 */
-		auto isOBB() const { return shapeType_ == BoundingShapeType::OBB; }
+		bool isOBB() const { return shapeType_ == BoundingShapeType::OBB; }
 
 		/**
 		 * @brief Check if this shape is a box
@@ -232,6 +232,10 @@ namespace regen {
 		 */
 		virtual void updateBaseBounds(const Vec3f &min, const Vec3f &max) = 0;
 
+		/**
+		 * Set the base offset of this shape which is added to the base bounds.
+		 * @param offset The offset
+		 */
 		void setBaseOffset(const Vec3f &offset);
 
 		/**
@@ -350,6 +354,106 @@ namespace regen {
 
 		friend class SpatialIndex;
 
+	};
+
+	/**
+	 * @brief Batched bounding shape
+	 * @tparam BatchType The type of the batch data
+	 * Batched shape data is drawn from a shared global buffer, and each shape instance
+	 * has an index into that buffer. This allows efficient storage and retrieval of
+	 * shape data for operations like collision detection and spatial queries.
+	 * This is not thread-safe, so make sure to create/destroy shapes in a single thread.
+	 */
+	template <typename BatchType>
+	class BatchedBoundingShape : public BoundingShape {
+	public:
+		/**
+		 * @brief Construct a new Batched Bounding Shape object
+		 * @param shapeType The type of the shape
+		 */
+		explicit BatchedBoundingShape(BoundingShapeType shapeType)
+			: BoundingShape(shapeType),
+			  globalIndex_(reserveGlobalIndex()) {
+		}
+
+		/**
+		 * @brief Construct a new Batched Bounding Shape object
+		 * @param shapeType The type of the shape
+		 * @param mesh The mesh
+		 * @param parts The parts of the mesh
+		 */
+		BatchedBoundingShape(BoundingShapeType shapeType,
+					const ref_ptr<Mesh> &mesh,
+					const std::vector<ref_ptr<Mesh>> &parts)
+			: BoundingShape(shapeType, mesh, parts),
+			  globalIndex_(reserveGlobalIndex()) {
+		}
+
+		/**
+		 * @brief Destroy the Batched Bounding Shape object
+		 */
+		~BatchedBoundingShape() override {
+			const uint32_t numCopies = copyCounter_.refCount();
+			if (numCopies == 1) {
+				releaseGlobalIndex(globalIndex_);
+			}
+		}
+
+		/**
+		 * @brief Get the global index of this shape instance in the batch data buffer
+		 * @return The global index
+		 */
+		uint32_t globalIndex() const { return globalIndex_; }
+
+		/**
+		 * @brief Get the global batch data buffer
+		 * @return The global batch data buffer
+		 */
+		static BatchType &globalBatchData() { return globalBatchData_; }
+
+	protected:
+		// A global contiguous buffer holding batched shape data for all instances in SOA layout.
+		inline static BatchType globalBatchData_ = BatchType();
+		// A pool of free indices into the global batch data buffer, only indices < nextGlobalIndex_ are added,
+		// initially this pool is empty.
+		inline static std::vector<uint32_t> freeGlobalIndices_ = std::vector<uint32_t>();
+		// The number of free global indices available in the pool (size() could be larger)
+		inline static uint32_t numFreeGlobalIndices_ = 0u;
+		// The index into the global batch data buffer for the next new shape instance.
+		inline static uint32_t nextGlobalIndex_ = 0u;
+
+		uint32_t globalIndex_;
+
+	private:
+		// we use this only for counting how many copies are made, such that we can
+		// safely release the global index on destruction of the last copy.
+		ref_ptr<bool> copyCounter_ = ref_ptr<bool>::alloc(true);
+
+		static uint32_t reserveGlobalIndex() {
+			if (numFreeGlobalIndices_ > 0) {
+				// reuse an index from the free pool
+				return freeGlobalIndices_[--numFreeGlobalIndices_];
+			} else {
+				// assign a new index
+				uint32_t globalIndex = nextGlobalIndex_++;
+				// ensure global batch data has enough capacity
+				if (globalBatchData_.capacity < nextGlobalIndex_) {
+					static constexpr bool preserveData = true;
+					globalBatchData_.resize(nextGlobalIndex_ * 2, preserveData);
+				}
+				return globalIndex;
+			}
+		}
+
+		static void releaseGlobalIndex(uint32_t globalIndex) {
+			// add the index to the free pool
+			if (numFreeGlobalIndices_ < freeGlobalIndices_.size()) {
+				freeGlobalIndices_[numFreeGlobalIndices_++] = globalIndex;
+			} else {
+				freeGlobalIndices_.push_back(globalIndex);
+				numFreeGlobalIndices_++;
+			}
+		}
 	};
 } // namespace
 

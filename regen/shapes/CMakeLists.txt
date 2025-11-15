@@ -7,9 +7,3 @@ install(
     FILES ${HEADER_FILES}
     DESTINATION ${HEADER_INSTALL_PATH}/spatial
 )
-
-foreach(DIR intersections)
-    add_subdirectory(${DIR})
-    get_directory_property(BUFFER DIRECTORY ${DIR} DEFINITION SOURCES)
-    list(APPEND SOURCES ${BUFFER})
-endforeach(DIR)

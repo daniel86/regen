@@ -3,11 +3,8 @@
 
 #include "batch-of-shapes.h"
 #include "shape-data.h"
-#include "regen/shapes/aabb.h"
-#include "regen/shapes/bounding-sphere.h"
-#include "regen/shapes/frustum.h"
-#include "regen/shapes/obb.h"
-#include "regen/shapes/spatial-index.h"
+#include "regen/shapes/bounding-shape.h"
+#include "regen/shapes/hit-buffer.h"
 
 namespace regen {
 	/**
@@ -190,6 +187,9 @@ namespace regen {
 		template<BoundingShapeType TestShapeType, BoundingShapeType IndexShapeType> void registerCase() {
 			using Traits = IntersectionTraits<TestShapeType, IndexShapeType>;
 			constexpr auto id = static_cast<int>(Traits::Case);
+			// TODO: add template arguments to BatchedIntersectionCase
+			//   - avoid function pointer for flush
+			//   - have a type batch data object at hand
 			cases_[id] = std::make_unique<BatchedIntersectionCase>();
 			cases_[id]->doInit = Traits::Init;
 			cases_[id]->doFlush = Traits::Flush;

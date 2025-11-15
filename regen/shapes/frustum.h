@@ -7,8 +7,27 @@
 #include <regen/shapes/bounding-shape.h>
 #include <regen/shapes/bounding-box.h>
 #include <regen/shapes/bounding-sphere.h>
+#include <regen/shapes/aabb.h>
+#include <regen/shapes/obb.h>
 
 namespace regen {
+	/**
+	 * @brief Batch structure for frustum shapes.
+	 * This structure holds the necessary data for performing
+	 * intersection tests with multiple frustums in a batched manner.
+	 */
+	struct BatchOfFrustums : BatchOfShapes {
+		// NOTE: Frustum shapes do not support batched intersection tests yet.
+		BatchOfFrustums() : BatchOfShapes() {
+			resizeFun = &BatchOfFrustums::doResize;
+			pushFun = &BatchOfFrustums::doPush;
+		}
+		~BatchOfFrustums() override = default;
+	protected:
+		static void doResize(BatchOfShapes&, uint32_t, bool) {}
+		static void doPush(BatchOfShapes&, const BoundingShape&, uint32_t) {}
+	};
+
 	/**
 	 * A portion of a solid pyramid that lies between two parallel planes cutting it.
 	 */
@@ -58,22 +77,17 @@ namespace regen {
 		/**
 		 * @return true if the sphere intersects with this frustum.
 		 */
-		bool hasIntersectionWithSphere(const Vec3f &center, GLfloat radius) const;
-
-		/**
-		 * @return true if the box intersects with this frustum.
-		 */
-		bool hasIntersectionWithBox(const Vec3f &center, const Vec3f *points) const;
-
-		/**
-		 * @return true if the box intersects with this frustum.
-		 */
-		bool hasIntersectionWithBox(const BoundingBox &box) const;
-
-		/**
-		 * @return true if the sphere intersects with this frustum.
-		 */
 		bool hasIntersectionWithSphere(const BoundingSphere &sphere) const;
+
+		/**
+		 * @return true if the box intersects with this frustum.
+		 */
+		bool hasIntersectionWithAABB(const AABB &box) const;
+
+		/**
+		 * @return true if the box intersects with this frustum.
+		 */
+		bool hasIntersectionWithOBB(const OBB &box) const;
 
 		/**
 		 * @return true if the frustum intersects with this frustum.
@@ -103,6 +117,54 @@ namespace regen {
 
 		void updatePointsPerspective(const Vec3f &pos, const Vec3f &dir);
 		void updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir);
+	};
+} // namespace
+
+#include "batched-intersection.h"
+
+namespace regen {
+	namespace shapes {
+		void flush_Frustum_Spheres(BatchedIntersectionCase&);
+		void flush_Frustum_AABBs(BatchedIntersectionCase&);
+		void flush_Frustum_OBBs(BatchedIntersectionCase&);
+		void flush_Frustum_Frustums(BatchedIntersectionCase&);
+	}
+
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::SPHERE> {
+		static constexpr auto Case = IntersectionCaseType::FRUSTUM_SPHERES;
+		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
+		static constexpr auto Flush = shapes::flush_Frustum_Spheres;
+	};
+
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::AABB> {
+		static constexpr auto Case = IntersectionCaseType::FRUSTUM_AABBs;
+		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
+		static constexpr auto Flush = shapes::flush_Frustum_AABBs;
+	};
+
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::OBB> {
+		static constexpr auto Case = IntersectionCaseType::FRUSTUM_OBBs;
+		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
+		static constexpr auto Flush = shapes::flush_Frustum_OBBs;
+	};
+
+	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::FRUSTUM> {
+		static constexpr auto Case = IntersectionCaseType::FRUSTUM_FRUSTUMS;
+		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
+		static constexpr auto Flush = shapes::flush_Frustum_Frustums;
+	};
+
+	/**
+	 * @brief Intersection shape data for frustum shapes.
+	 */
+	struct IntersectionData_Frustum : IntersectionShapeData {
+		std::array<Vec4f,6> planes;
+		void update(const BoundingShape &shape) {
+			const auto &frustum = static_cast<const Frustum &>(shape);
+			for (size_t i = 0; i < 6; ++i) {
+				planes[i] = frustum.planes[i].coefficients;
+			}
+		}
 	};
 } // namespace
 

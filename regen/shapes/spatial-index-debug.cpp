@@ -57,8 +57,15 @@ void SpatialIndexDebug::drawCircle(const Vec3f &center, float radius, const Vec3
 	}
 }
 
-void SpatialIndexDebug::drawBox(const BoundingBox &box) {
-	auto *boxVertices = box.boxVertices();
+void SpatialIndexDebug::drawBox(const AABB &box) {
+	drawBox(box.boxVertices());
+}
+
+void SpatialIndexDebug::drawBox(const OBB &box) {
+	drawBox(box.boxVertices());
+}
+
+void SpatialIndexDebug::drawBox(const Vec3f *boxVertices) {
 	Vec3f lineColor = Vec3f(1.0f, 1.0f, 0.0f);
 	// draw the 12 lines of the box
 	drawLine(boxVertices[0], boxVertices[1], lineColor);

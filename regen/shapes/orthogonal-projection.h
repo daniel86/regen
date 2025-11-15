@@ -41,6 +41,8 @@ namespace regen {
 		std::vector<Vec2f> tmpPoints;
 
 		void createConvexHull(const Vec3f *inputPoints, uint32_t numPoints);
+
+		void createBoxRectangle(const Vec3f *vertices_3D);
 	};
 }
 

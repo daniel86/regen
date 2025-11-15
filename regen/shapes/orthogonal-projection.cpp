@@ -1,6 +1,9 @@
 #include "orthogonal-projection.h"
+
+#include "aabb.h"
 #include "bounding-sphere.h"
 #include "frustum.h"
+#include "obb.h"
 
 #define FRUSTUM_TRIANGLE_TOLERANCE 0.75
 #define FRUSTUM_USE_CONVEX_HULL
@@ -53,39 +56,14 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 			points[1] = Vec2f(sphere->radius() * sphere->radius(), 0);
 			break;
 		}
-		case BoundingShapeType::AABB:
+		case BoundingShapeType::AABB: {
+			auto *box = static_cast<const AABB *>(&shape);
+			createBoxRectangle(box->boxVertices());
+			break;
+		}
 		case BoundingShapeType::OBB: {
-			// box projection is a rectangle
-			type = OrthogonalProjection::Type::RECTANGLE;
-			auto *box = static_cast<const BoundingBox *>(&shape);
-			// generate the 4 corners of the box in the xz-plane.
-			// for this just take min/max of the box vertices as bounds,
-			// this is not a perfect fit but fast.
-			auto *vertices_3D = box->boxVertices();
-			Vec2f min(vertices_3D[0].x, vertices_3D[0].z);
-			Vec2f max(vertices_3D[0].x, vertices_3D[0].z);
-			for (int i = 1; i < 8; i++) {
-				min.x = std::min(min.x, vertices_3D[i].x);
-				min.y = std::min(min.y, vertices_3D[i].z);
-				max.x = std::max(max.x, vertices_3D[i].x);
-				max.y = std::max(max.y, vertices_3D[i].z);
-			}
-			points.resize(4);
-			// bottom-left
-			points[0] = min;
-			// bottom-right
-			points[1] = Vec2f(max.x, min.y);
-			// top-right
-			points[2] = max;
-			// top-left
-			points[3] = Vec2f(min.x, max.y);
-			// axes of the rectangle (and quad)
-			axes[2].dir = perpendicular(points[1] - points[0]);
-			axes[3].dir = perpendicular(points[3] - points[0]);
-			// project along each axis
-			for (auto &axis: axes) {
-				project(points, axis);
-			}
+			auto *box = static_cast<const OBB *>(&shape);
+			createBoxRectangle(box->boxVertices());
 			break;
 		}
 		case BoundingShapeType::FRUSTUM: {
@@ -122,6 +100,37 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 // Helper for cross product (2D, z-component)
 static inline float cross(const Vec2f& O, const Vec2f& A, const Vec2f& B) {
 	return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+
+void OrthogonalProjection::createBoxRectangle(const Vec3f *vertices_3D) {
+	type = OrthogonalProjection::Type::RECTANGLE;
+	// generate the 4 corners of the box in the xz-plane.
+	// for this just take min/max of the box vertices as bounds,
+	// this is not a perfect fit but fast.
+	Vec2f min(vertices_3D[0].x, vertices_3D[0].z);
+	Vec2f max(vertices_3D[0].x, vertices_3D[0].z);
+	for (int i = 1; i < 8; i++) {
+		min.x = std::min(min.x, vertices_3D[i].x);
+		min.y = std::min(min.y, vertices_3D[i].z);
+		max.x = std::max(max.x, vertices_3D[i].x);
+		max.y = std::max(max.y, vertices_3D[i].z);
+	}
+	points.resize(4);
+	// bottom-left
+	points[0] = min;
+	// bottom-right
+	points[1] = Vec2f(max.x, min.y);
+	// top-right
+	points[2] = max;
+	// top-left
+	points[3] = Vec2f(min.x, max.y);
+	// axes of the rectangle (and quad)
+	axes[2].dir = perpendicular(points[1] - points[0]);
+	axes[3].dir = perpendicular(points[3] - points[0]);
+	// project along each axis
+	for (auto &axis: axes) {
+		project(points, axis);
+	}
 }
 
 void OrthogonalProjection::createConvexHull(const Vec3f *inputPoints, uint32_t numPoints) {

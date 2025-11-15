@@ -554,9 +554,13 @@ void SpatialIndex::debugBoundingShape(DebugInterface &debug, const BoundingShape
 			sid.drawSphere(*sphere);
 			break;
 		}
-		case BoundingShapeType::AABB:
+		case BoundingShapeType::AABB: {
+			auto box = static_cast<const AABB *>(&shape);
+			sid.drawBox(*box);
+			break;
+		}
 		case BoundingShapeType::OBB: {
-			auto box = static_cast<const BoundingBox *>(&shape);
+			auto box = static_cast<const OBB *>(&shape);
 			sid.drawBox(*box);
 			break;
 		}

@@ -1,7 +1,10 @@
 #include "bounding-shape.h"
+
+#include "aabb.h"
 #include "bounding-sphere.h"
 #include "bounding-box.h"
 #include "frustum.h"
+#include "obb.h"
 #include "regen/objects/mesh.h"
 
 using namespace regen;
@@ -128,42 +131,58 @@ bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {
 	switch (shapeType()) {
 		case BoundingShapeType::SPHERE:
 			switch (other.shapeType()) {
-				case BoundingShapeType::SPHERE:
+			case BoundingShapeType::SPHERE:
 					return ((const BoundingSphere &) *this).hasIntersectionWithSphere((const BoundingSphere &) other);
-				case BoundingShapeType::AABB:
-				case BoundingShapeType::OBB:
-					return ((const BoundingSphere &) *this).hasIntersectionWithShape((const BoundingBox &) other);
-				case BoundingShapeType::FRUSTUM:
+			case BoundingShapeType::AABB:
+					return ((const BoundingSphere &) *this).hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const BoundingSphere &) *this).hasIntersectionWithOBB((const OBB &) other);
+			case BoundingShapeType::FRUSTUM:
 					return ((const Frustum &) other).hasIntersectionWithSphere((const BoundingSphere &) *this);
-				case BoundingShapeType::LAST:
+			case BoundingShapeType::LAST:
+					return false;
+			}
+
+		case BoundingShapeType::AABB:
+			switch (other.shapeType()) {
+			case BoundingShapeType::SPHERE:
+					return ((const BoundingSphere &) other).hasIntersectionWithAABB((const AABB &) *this);
+			case BoundingShapeType::AABB:
+					return ((const AABB &) *this).hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const OBB &) other).hasIntersectionWithAABB((const AABB &) *this);
+			case BoundingShapeType::FRUSTUM:
+					return ((const Frustum &) other).hasIntersectionWithAABB((const AABB &) *this);
+			case BoundingShapeType::LAST:
 					return false;
 			}
 
 		case BoundingShapeType::OBB:
-		case BoundingShapeType::AABB:
 			switch (other.shapeType()) {
-				case BoundingShapeType::SPHERE:
-					return ((const BoundingSphere &) other).hasIntersectionWithShape(*this);
-				case BoundingShapeType::AABB:
-				case BoundingShapeType::OBB:
-					return ((const BoundingBox &) *this).hasIntersectionWithBox((const BoundingBox &) other);
-				case BoundingShapeType::FRUSTUM:
-					return ((const Frustum &) other).hasIntersectionWithBox((const BoundingBox &) *this);
-				case BoundingShapeType::LAST:
-						return false;
+			case BoundingShapeType::SPHERE:
+					return ((const BoundingSphere &) other).hasIntersectionWithOBB((const OBB &) *this);
+			case BoundingShapeType::AABB:
+					return ((const OBB &) *this).hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const OBB &) *this).hasIntersectionWithOBB((const OBB &) other);
+			case BoundingShapeType::FRUSTUM:
+					return ((const Frustum &) other).hasIntersectionWithOBB((const OBB &) *this);
+			case BoundingShapeType::LAST:
+					return false;
 			}
 
 		case BoundingShapeType::FRUSTUM:
 			switch (other.shapeType()) {
-				case BoundingShapeType::SPHERE:
+			case BoundingShapeType::SPHERE:
 					return ((const Frustum *) this)->hasIntersectionWithSphere((const BoundingSphere &) other);
-				case BoundingShapeType::AABB:
-				case BoundingShapeType::OBB:
-					return ((const Frustum *) this)->hasIntersectionWithBox((const BoundingBox &) other);
-				case BoundingShapeType::FRUSTUM:
+			case BoundingShapeType::AABB:
+					return ((const Frustum *) this)->hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const Frustum *) this)->hasIntersectionWithOBB((const OBB &) other);
+			case BoundingShapeType::FRUSTUM:
 					return ((const Frustum *) this)->hasIntersectionWithFrustum((const Frustum &) other);
-				case BoundingShapeType::LAST:
-						return false;
+			case BoundingShapeType::LAST:
+					return false;
 			}
 
 		case BoundingShapeType::LAST:

@@ -257,7 +257,9 @@ void MeshViewerWidget::loadMeshes_GL(const std::string &assetPath) {
 	} else {
 		// compute mesh scale based on its bounding box. scale such that it is 1 unit in y direction.
 		auto &firstMesh = meshes_[0];
-		Bounds<Vec3f> bounds(firstMesh->minPosition(), firstMesh->maxPosition());
+		Bounds<Vec3f> bounds;
+		bounds.min = firstMesh->minPosition();
+		bounds.max = firstMesh->maxPosition();
 		for (uint32_t i = 1; i < meshes_.size(); ++i) {
 			auto &mesh = meshes_[i];
 			bounds.min.setMin(mesh->minPosition());
