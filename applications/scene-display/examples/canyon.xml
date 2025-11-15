@@ -127,12 +127,14 @@
             min-node-size="0.1"
             subdivision-threshold="4"
             test-mode-3d="closest"
+            batch-size-3d="2048"
             close-distance="10.0"/>
     <index id="terrain-index" type="quadtree"
             distance-bits="24"
             min-node-size="5.0"
             subdivision-threshold="8"
             test-mode-3d="closest"
+            batch-size-3d="2048"
             close-distance="10.0"/>
     <!-- Cameras -->
     <camera id="main-camera"

@@ -106,26 +106,6 @@ Vec3f BoundingSphere::closestPointOnSurface(const Vec3f &point) const {
 	}
 }
 
-bool BoundingSphere::hasIntersectionWithAABB(const AABB &box) const {
-	const Vec3f &p_this = tfOrigin();
-	const Vec3f &p_other = box.tfOrigin();
-	if ((p_this - p_other).lengthSquared() <= radiusSquared_) {
-		return true;
-	}
-	Vec3f closestPoint = box.closestPointOnSurface(p_this);
-	return (closestPoint - p_this).lengthSquared() <= radiusSquared_;
-}
-
-bool BoundingSphere::hasIntersectionWithOBB(const OBB &box) const {
-	const Vec3f &p_this = tfOrigin();
-	const Vec3f &p_other = box.tfOrigin();
-	if ((p_this - p_other).lengthSquared() <= radiusSquared_) {
-		return true;
-	}
-	Vec3f closestPoint = box.closestPointOnSurface(p_this);
-	return (closestPoint - p_this).lengthSquared() <= radiusSquared_;
-}
-
 bool BoundingSphere::hasIntersectionWithSphere(const BoundingSphere &other) const {
 	const Vec3f &p_this = tfOrigin();
 	const Vec3f &p_other = other.tfOrigin();
@@ -133,7 +113,7 @@ bool BoundingSphere::hasIntersectionWithSphere(const BoundingSphere &other) cons
 	return (p_this - p_other).lengthSquared() <= (r_sum * r_sum);
 }
 
-void shapes::flush_Sphere_Spheres(BatchedIntersectionCase &td) {
+void BoundingSphere::batchTest_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 
@@ -192,7 +172,17 @@ void shapes::flush_Sphere_Spheres(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_Sphere_AABBs(BatchedIntersectionCase &td) {
+bool BoundingSphere::hasIntersectionWithAABB(const AABB &box) const {
+	const Vec3f &p_this = tfOrigin();
+	const Vec3f &p_other = box.tfOrigin();
+	if ((p_this - p_other).lengthSquared() <= radiusSquared_) {
+		return true;
+	}
+	Vec3f closestPoint = box.closestPointOnSurface(p_this);
+	return (closestPoint - p_this).lengthSquared() <= radiusSquared_;
+}
+
+void BoundingSphere::batchTest_AABBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 
@@ -256,7 +246,17 @@ void shapes::flush_Sphere_AABBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_Sphere_OBBs(BatchedIntersectionCase &td) {
+bool BoundingSphere::hasIntersectionWithOBB(const OBB &box) const {
+	const Vec3f &p_this = tfOrigin();
+	const Vec3f &p_other = box.tfOrigin();
+	if ((p_this - p_other).lengthSquared() <= radiusSquared_) {
+		return true;
+	}
+	Vec3f closestPoint = box.closestPointOnSurface(p_this);
+	return (closestPoint - p_this).lengthSquared() <= radiusSquared_;
+}
+
+void BoundingSphere::batchTest_OBBs(BatchedIntersectionCase &td) {
 	auto *shapes = td.indexedShapes->data();
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
@@ -336,7 +336,7 @@ void shapes::flush_Sphere_OBBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_Sphere_Frustums(BatchedIntersectionCase &td) {
+void BoundingSphere::batchTest_Frustums(BatchedIntersectionCase &td) {
 	// note: index shapes are rarely frustum, so no SIMD optimization here.
 	auto *testShape = static_cast<const BoundingSphere *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();

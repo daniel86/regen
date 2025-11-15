@@ -51,14 +51,6 @@ bool Frustum::updateTransform(bool forceUpdate) {
 	return true;
 }
 
-Vec3f Frustum::direction() const {
-	if (direction_.get()) {
-		return direction_->getVertex(0).r;
-	} else {
-		return Vec3f::front();
-	}
-}
-
 unsigned int Frustum::directionStamp() const {
 	if (direction_.get()) {
 		return direction_->stampOfReadData();
@@ -149,77 +141,6 @@ void Frustum::updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir) {
 	points[7] = fc + vl + ub; // bottom left
 }
 
-bool Frustum::hasIntersectionWithAABB(const AABB &box) const {
-	auto &boxBatchData = box.globalBatchData_t();
-	auto boxIdx = box.globalIndex();
-	const float *boxMinX = boxBatchData.minX().data() + boxIdx;
-	const float *boxMinY = boxBatchData.minY().data() + boxIdx;
-	const float *boxMinZ = boxBatchData.minZ().data() + boxIdx;
-	const float *boxMaxX = boxBatchData.maxX().data() + boxIdx;
-	const float *boxMaxY = boxBatchData.maxY().data() + boxIdx;
-	const float *boxMaxZ = boxBatchData.maxZ().data() + boxIdx;
-
-	for (unsigned int i = 0u; i < 6u; ++i) {
-		// Select vertex farthest from the plane in direction of the plane normal.
-		// If this point is behind the plane, the AABB must be outside of the frustum.
-		auto &plane = planes[i];
-		auto &n = plane.normal();
-		const Vec3f p(
-			n.x > 0.0 ? *boxMinX : *boxMaxX,
-			n.y > 0.0 ? *boxMinY : *boxMaxY,
-			n.z > 0.0 ? *boxMinZ : *boxMaxZ);
-		if (n.dot(p) - plane.coefficients.w < 0.0) {
-			// AABB is outside the frustum
-			return false;
-		}
-	}
-	return true;
-}
-
-bool Frustum::hasIntersectionWithOBB(const OBB &box) const {
-	auto *boxPoints = box.boxVertices();
-	for (unsigned int i = 0u; i < 6u; ++i) {
-		bool allOutside = true;
-		for (unsigned int j = 0u; j < 8; ++j) {
-			if (planes[i].distance(boxPoints[j]) >= 0.0) {
-				allOutside = false;
-				break;
-			}
-		}
-		if (allOutside) {
-			return false;
-		}
-	}
-	return true;
-}
-
-bool Frustum::hasIntersectionWithSphere(const BoundingSphere &sphere) const {
-	auto &center = sphere.tfOrigin();
-	auto radius = sphere.radius();
-	for (const auto &plane: planes) {
-		if (plane.distance(center) < -radius) {
-			return false;
-		}
-	}
-	return true;
-}
-
-bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {
-	for (const auto & plane : other.planes) {
-		if (plane.distance(points[0]) < 0 &&
-			plane.distance(points[1]) < 0 &&
-			plane.distance(points[2]) < 0 &&
-			plane.distance(points[3]) < 0 &&
-			plane.distance(points[4]) < 0 &&
-			plane.distance(points[5]) < 0 &&
-			plane.distance(points[6]) < 0 &&
-			plane.distance(points[7]) < 0) {
-			return false;
-		}
-	}
-	return true;
-}
-
 void Frustum::split(double splitWeight, std::vector<Frustum> &frustumSplit) const {
 	const auto &n = near;
 	const auto &f = far;
@@ -259,7 +180,18 @@ Vec3f Frustum::closestPointOnSurface(const Vec3f &point) const {
 	return closestPoint;
 }
 
-void shapes::flush_Frustum_Spheres(BatchedIntersectionCase &td) {
+bool Frustum::hasIntersectionWithSphere(const BoundingSphere &sphere) const {
+	auto &center = sphere.tfOrigin();
+	auto radius = sphere.radius();
+	for (const auto &plane: planes) {
+		if (plane.distance(center) < -radius) {
+			return false;
+		}
+	}
+	return true;
+}
+
+void Frustum::batchTest_Spheres(BatchedIntersectionCase &td) {
 	// Process numQueuedItems_ nodes from the queue, performing an intersection test with the shape's projection;
 	// and also writing nodeIdx to successor array if the test succeeds.
 	auto *shapeData = static_cast<IntersectionData_Frustum *>(td.shapeData);
@@ -325,7 +257,34 @@ void shapes::flush_Frustum_Spheres(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_Frustum_AABBs(BatchedIntersectionCase &td) {
+bool Frustum::hasIntersectionWithAABB(const AABB &box) const {
+	auto &boxBatchData = box.globalBatchData_t();
+	auto boxIdx = box.globalIndex();
+	const float *boxMinX = boxBatchData.minX().data() + boxIdx;
+	const float *boxMinY = boxBatchData.minY().data() + boxIdx;
+	const float *boxMinZ = boxBatchData.minZ().data() + boxIdx;
+	const float *boxMaxX = boxBatchData.maxX().data() + boxIdx;
+	const float *boxMaxY = boxBatchData.maxY().data() + boxIdx;
+	const float *boxMaxZ = boxBatchData.maxZ().data() + boxIdx;
+
+	for (unsigned int i = 0u; i < 6u; ++i) {
+		// Select vertex farthest from the plane in direction of the plane normal.
+		// If this point is behind the plane, the AABB must be outside of the frustum.
+		auto &plane = planes[i];
+		auto &n = plane.normal();
+		const Vec3f p(
+			n.x > 0.0 ? *boxMinX : *boxMaxX,
+			n.y > 0.0 ? *boxMinY : *boxMaxY,
+			n.z > 0.0 ? *boxMinZ : *boxMaxZ);
+		if (n.dot(p) - plane.coefficients.w < 0.0) {
+			// AABB is outside the frustum
+			return false;
+		}
+	}
+	return true;
+}
+
+void Frustum::batchTest_AABBs(BatchedIntersectionCase &td) {
 	auto *shapeData = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
@@ -399,7 +358,24 @@ void shapes::flush_Frustum_AABBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_Frustum_OBBs(BatchedIntersectionCase &td) {
+bool Frustum::hasIntersectionWithOBB(const OBB &box) const {
+	auto *boxPoints = box.boxVertices();
+	for (unsigned int i = 0u; i < 6u; ++i) {
+		bool allOutside = true;
+		for (unsigned int j = 0u; j < 8; ++j) {
+			if (planes[i].distance(boxPoints[j]) >= 0.0) {
+				allOutside = false;
+				break;
+			}
+		}
+		if (allOutside) {
+			return false;
+		}
+	}
+	return true;
+}
+
+void Frustum::batchTest_OBBs(BatchedIntersectionCase &td) {
 	auto *shapes = td.indexedShapes->data();
 	auto *frustum = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
@@ -496,7 +472,23 @@ void shapes::flush_Frustum_OBBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_Frustum_Frustums(BatchedIntersectionCase &td) {
+bool Frustum::hasIntersectionWithFrustum(const Frustum &other) const {
+	for (const auto & plane : other.planes) {
+		if (plane.distance(points[0]) < 0 &&
+			plane.distance(points[1]) < 0 &&
+			plane.distance(points[2]) < 0 &&
+			plane.distance(points[3]) < 0 &&
+			plane.distance(points[4]) < 0 &&
+			plane.distance(points[5]) < 0 &&
+			plane.distance(points[6]) < 0 &&
+			plane.distance(points[7]) < 0) {
+			return false;
+			}
+	}
+	return true;
+}
+
+void Frustum::batchTest_Frustums(BatchedIntersectionCase &td) {
 	// note: index shapes are rarely frustum, so no SIMD optimization here.
 	auto *testShape = static_cast<const Frustum *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();

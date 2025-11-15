@@ -131,17 +131,6 @@ void AABB::updateAABB() {
 #undef _set_max
 }
 
-bool AABB::hasIntersectionWithAABB(const AABB &other) const {
-	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
-	REGEN_AABB_BATCH_DATA(g, globalBatchData_);
-	return g_minX[globalIndex_] < g_maxX[other.globalIndex()] &&
-		   g_maxX[globalIndex_] > g_minX[other.globalIndex()] &&
-		   g_minY[globalIndex_] < g_maxY[other.globalIndex()] &&
-		   g_maxY[globalIndex_] > g_minY[other.globalIndex()] &&
-		   g_minZ[globalIndex_] < g_maxZ[other.globalIndex()] &&
-		   g_maxZ[globalIndex_] > g_minZ[other.globalIndex()];
-}
-
 Vec3f AABB::closestPointOnSurface(const Vec3f &point) const {
 	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
 	REGEN_AABB_BATCH_DATA(g, globalBatchData_);
@@ -155,7 +144,7 @@ Vec3f AABB::closestPointOnSurface(const Vec3f &point) const {
 	return closestPoint;
 }
 
-void shapes::flush_AABB_Spheres(BatchedIntersectionCase &td) {
+void AABB::batchTest_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const AABB *>(td.testShape);
 
@@ -222,7 +211,18 @@ void shapes::flush_AABB_Spheres(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_AABB_AABBs(BatchedIntersectionCase &td) {
+bool AABB::hasIntersectionWithAABB(const AABB &other) const {
+	// Compiler hints: assume arrays do not alias, aligned to 32 bytes
+	REGEN_AABB_BATCH_DATA(g, globalBatchData_);
+	return g_minX[globalIndex_] < g_maxX[other.globalIndex()] &&
+		   g_maxX[globalIndex_] > g_minX[other.globalIndex()] &&
+		   g_minY[globalIndex_] < g_maxY[other.globalIndex()] &&
+		   g_maxY[globalIndex_] > g_minY[other.globalIndex()] &&
+		   g_minZ[globalIndex_] < g_maxZ[other.globalIndex()] &&
+		   g_maxZ[globalIndex_] > g_minZ[other.globalIndex()];
+}
+
+void AABB::batchTest_AABBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const AABB *>(td.testShape);
 
@@ -286,7 +286,7 @@ void shapes::flush_AABB_AABBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_AABB_OBBs(BatchedIntersectionCase &td) {
+void AABB::batchTest_OBBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto *testShape = static_cast<const AABB *>(td.testShape);
 
@@ -393,7 +393,7 @@ void shapes::flush_AABB_OBBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_AABB_Frustums(BatchedIntersectionCase &td) {
+void AABB::batchTest_Frustums(BatchedIntersectionCase &td) {
 	// note: index shapes are rarely frustum, so no SIMD optimization here.
 	auto *testShape = static_cast<const AABB *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();

@@ -2,7 +2,6 @@
 #define REGEN_BOUNDING_SHAPE_H_
 
 #include "regen/states/model-transformation.h"
-#include "regen/shapes/batch-of-shapes.h"
 #include "orthogonal-projection.h"
 
 namespace regen {
@@ -18,6 +17,7 @@ namespace regen {
 	};
 
 	class Mesh;
+	struct BatchOfShapes;
 
 	/**
 	 * @brief Bounding shape
@@ -471,6 +471,14 @@ namespace regen {
 			}
 		}
 	};
+
+	/**
+	 * @brief Shape traits for bounding shape types
+	 * @tparam ShapeType The type of the bounding shape
+	 */
+	template<BoundingShapeType ShapeType> struct ShapeTraits;
 } // namespace
+
+#include <regen/shapes/batch-of-shapes.h>
 
 #endif /* REGEN_BOUNDING_SHAPE_H_ */

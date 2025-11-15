@@ -88,12 +88,6 @@ namespace regen {
 		 */
 		bool hasIntersectionWithFrustum(const Frustum &other) const;
 
-		/**
-		 * @brief Get the direction of this frustum
-		 * @return The direction
-		 */
-		Vec3f direction() const;
-
 		// override BoundingShape::closestPointOnSurface
 		Vec3f closestPointOnSurface(const Vec3f &point) const final;
 
@@ -102,6 +96,26 @@ namespace regen {
 
 		// BoundingShape interface
 		void updateBaseBounds(const Vec3f &min, const Vec3f &max) override { }
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of spheres.
+		 */
+		static void batchTest_Spheres(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of AABBs.
+		 */
+		static void batchTest_AABBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of OBBs.
+		 */
+		static void batchTest_OBBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of frustums.
+		 */
+		static void batchTest_Frustums(BatchedIntersectionCase&);
 
 	protected:
 		ref_ptr<ShaderInput3f> direction_;
@@ -112,41 +126,82 @@ namespace regen {
 		void updatePointsPerspective(const Vec3f &pos, const Vec3f &dir);
 		void updatePointsOrthogonal(const Vec3f &pos, const Vec3f &dir);
 	};
-} // namespace
 
-#include "batched-intersection.h"
+	/**
+	 * @brief Shape traits for frustum shapes.
+	 */
+	template<> struct ShapeTraits<BoundingShapeType::FRUSTUM> {
+		using BatchType = BatchOfFrustums;
+		static constexpr auto NumSoAArrays = 0; // Not supported yet
+	};
 
-namespace regen {
-	namespace shapes {
-		void flush_Frustum_Spheres(BatchedIntersectionCase&);
-		void flush_Frustum_AABBs(BatchedIntersectionCase&);
-		void flush_Frustum_OBBs(BatchedIntersectionCase&);
-		void flush_Frustum_Frustums(BatchedIntersectionCase&);
-	}
-
+	/**
+	 * @brief Intersection traits for frustum shapes vs. sphere shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::SPHERE> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_SPHERES;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Frustum_Spheres;
+		static constexpr auto Test = Frustum::batchTest_Spheres;
 	};
 
+	/**
+	 * @brief Intersection traits for frustum shapes vs. AABB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::AABB> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_AABBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Frustum_AABBs;
+		static constexpr auto Test = Frustum::batchTest_AABBs;
 	};
 
+	/**
+	 * @brief Intersection traits for frustum shapes vs. OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::OBB> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_OBBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Frustum_OBBs;
+		static constexpr auto Test = Frustum::batchTest_OBBs;
 	};
 
+	/**
+	 * @brief Intersection traits for frustum shapes vs. frustum shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::FRUSTUM, BoundingShapeType::FRUSTUM> {
 		static constexpr auto Case = IntersectionCaseType::FRUSTUM_FRUSTUMS;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Frustum_Frustums;
+		static constexpr auto Test = Frustum::batchTest_Frustums;
 	};
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. sphere shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::FRUSTUM,
+			BoundingShapeType::SPHERE>(BatchedIntersectionCase &td) {
+		Frustum::batchTest_Spheres(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. AABB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::FRUSTUM,
+			BoundingShapeType::AABB>(BatchedIntersectionCase &td) {
+		Frustum::batchTest_AABBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. OBB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::FRUSTUM,
+			BoundingShapeType::OBB>(BatchedIntersectionCase &td) {
+		Frustum::batchTest_OBBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. frustum shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::FRUSTUM,
+			BoundingShapeType::FRUSTUM>(BatchedIntersectionCase &td) {
+		Frustum::batchTest_Frustums(td);
+	}
 
 	/**
 	 * @brief Intersection shape data for frustum shapes.

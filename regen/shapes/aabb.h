@@ -4,6 +4,7 @@
 #include <regen/shapes/bounding-box.h>
 #include <regen/utility/aligned-array.h>
 #include "batch-of-shapes.h"
+#include "batched-intersection.h"
 
 namespace regen {
 	/**
@@ -92,46 +93,107 @@ namespace regen {
 		// BoundingShape interface
 		void updateBaseBounds(const Vec3f &min, const Vec3f &max) override;
 
+		/**
+		 * @brief Batch intersection test of this shape against a batch of spheres.
+		 */
+		static void batchTest_Spheres(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of AABBs.
+		 */
+		static void batchTest_AABBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of OBBs.
+		 */
+		static void batchTest_OBBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of frustums.
+		 */
+		static void batchTest_Frustums(BatchedIntersectionCase&);
+
 	protected:
 		void updateAABB();
 
 		void setVertices();
 	};
-} // namespace
 
-#include "batched-intersection.h"
+	/**
+	 * @brief Shape traits for AABB shapes.
+	 */
+	template<> struct ShapeTraits<BoundingShapeType::AABB> {
+		using BatchType = BatchOfAABBs;
+		static constexpr auto NumSoAArrays = 6; // minX, minY, minZ, maxX, maxY, maxZ
+	};
 
-namespace regen {
-	namespace shapes {
-		void flush_AABB_Spheres(BatchedIntersectionCase&);
-		void flush_AABB_AABBs(BatchedIntersectionCase&);
-		void flush_AABB_OBBs(BatchedIntersectionCase&);
-		void flush_AABB_Frustums(BatchedIntersectionCase&);
-	}
-
+	/**
+	 * @brief Intersection traits for AABB shapes vs. frustum shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::AABB, BoundingShapeType::SPHERE> {
 		static constexpr auto Case = IntersectionCaseType::AABB_SPHERES;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_AABB_Spheres;
+		static constexpr auto Test = AABB::batchTest_Spheres;
 	};
 
+	/**
+	 * @brief Intersection traits for AABB shapes vs. AABB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::AABB, BoundingShapeType::AABB> {
 		static constexpr auto Case = IntersectionCaseType::AABB_AABBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_AABB_AABBs;
+		static constexpr auto Test = AABB::batchTest_AABBs;
 	};
 
+	/**
+	 * @brief Intersection traits for AABB shapes vs. OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::AABB, BoundingShapeType::OBB> {
 		static constexpr auto Case = IntersectionCaseType::AABB_OBBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_AABB_OBBs;
+		static constexpr auto Test = AABB::batchTest_OBBs;
 	};
 
+	/**
+	 * @brief Intersection traits for AABB shapes vs. frustum shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::AABB, BoundingShapeType::FRUSTUM> {
 		static constexpr auto Case = IntersectionCaseType::AABB_FRUSTUMS;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_AABB_Frustums;
+		static constexpr auto Test = AABB::batchTest_Frustums;
 	};
+
+	/**
+	 * @brief Batch intersection test of AABB shapes vs. sphere shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::AABB,
+			BoundingShapeType::SPHERE>(BatchedIntersectionCase &td) {
+		AABB::batchTest_Spheres(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of AABB shapes vs. AABB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::AABB,
+			BoundingShapeType::AABB>(BatchedIntersectionCase &td) {
+		AABB::batchTest_AABBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of AABB shapes vs. OBB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::AABB,
+			BoundingShapeType::OBB>(BatchedIntersectionCase &td) {
+		AABB::batchTest_OBBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of AABB shapes vs. frustum shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::AABB,
+			BoundingShapeType::FRUSTUM>(BatchedIntersectionCase &td) {
+		AABB::batchTest_Frustums(td);
+	}
 
 	/**
 	 * @brief Intersection shape data for axis-aligned bounding box (AABB) shapes.
@@ -139,6 +201,6 @@ namespace regen {
 	struct IntersectionData_AABB : IntersectionShapeData {
 		void update(const BoundingShape&) {}
 	};
-} // namespace
+} // namespace regen
 
 #endif /* REGEN_AABB_H_ */

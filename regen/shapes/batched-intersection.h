@@ -68,35 +68,30 @@ namespace regen {
 		void init(const BoundingShape &shape, uint32_t capacity);
 
 		/**
-		 * @brief Insert a shape into the intersection case for testing.
-		 * @param shape The shape to insert.
-		 * @param shapeIdx The index of the shape in the indexed shapes vector.
-		 */
-		void push(const ref_ptr<BoundingShape> &shape, uint32_t shapeIdx);
-
-		/**
 		 * @brief Flush the queued shapes, processing all queued intersection tests.
 		 */
-		inline void flush() {
+		void flush() {
 			if (numQueued != 0) {
-				doFlush(*this);
+				runBatchedTests(*this);
 				numQueued = 0;
 			}
 		}
 
-		/**
-		 * @brief No-operation insert function.
-		 */
-		static void case_NOOP(BatchedIntersectionCase&, const BoundingShape&) {}
-
 	protected:
 		// Function pointers for flush and insert operations
-		void (*doInit)(BatchedIntersectionCase&, const BoundingShape&) = &case_NOOP;
-		void (*doFlush)(BatchedIntersectionCase &td) = nullptr;
+		void (*runBatchedTests)(BatchedIntersectionCase &td) = nullptr;
 
 	private:
 		friend class BatchedIntersectionTest;
 	};
+
+	/**
+	 * @brief Template function for performing batched intersection tests between two shape types.
+	 * @tparam A The type of the test shape.
+	 * @tparam B The type of the indexed shape.
+	 * @param caseData The batched intersection case data.
+	 */
+	template<BoundingShapeType A, BoundingShapeType B> void batchIntersectionTest(BatchedIntersectionCase &caseData);
 
 	/**
 	 * @brief Class for batched intersection tests between a test shape and multiple indexed shapes.
@@ -151,7 +146,13 @@ namespace regen {
 		/**
 		 * @brief Flush the queued shapes, processing all queued intersection tests.
 		 */
-		void flush();
+		void flush() {
+			currentSpheresCase_->flush();
+			currentAABBsCase_->flush();
+			currentOBBsCase_->flush();
+			currentFrustumsCase_->flush();
+			numQueuedShapes_ = 0u;
+		}
 
 		/**
 		 * @brief End the current frame, flushing any remaining queued shapes.
@@ -178,6 +179,10 @@ namespace regen {
 		// E.g., frustum-sphere, frustum-AABB, sphere-sphere, frustum-frustum.
 		std::array<uint32_t, NUM_SHAPE_TYPES> frameCases_ = { 0u };
 		// Local buffers for each case, size: IntersectionCase::LAST
+		BatchedIntersectionCase *currentSpheresCase_ = nullptr;
+		BatchedIntersectionCase *currentAABBsCase_ = nullptr;
+		BatchedIntersectionCase *currentOBBsCase_ = nullptr;
+		BatchedIntersectionCase *currentFrustumsCase_ = nullptr;
 		std::array<std::unique_ptr<BatchedIntersectionCase>, NUM_TEST_CASES> cases_;
 		// Local memory for each shape type, size: NUM_SHAPE_TYPES
 		std::array<std::unique_ptr<IntersectionShapeData>, NUM_SHAPE_TYPES> shapeData_;
@@ -188,8 +193,7 @@ namespace regen {
 			using Traits = IntersectionTraits<TestShapeType, IndexShapeType>;
 			constexpr auto id = static_cast<int>(Traits::Case);
 			cases_[id] = std::make_unique<BatchedIntersectionCase>();
-			cases_[id]->doInit = Traits::Init;
-			cases_[id]->doFlush = Traits::Flush;
+			cases_[id]->runBatchedTests = Traits::Test;
 			cases_[id]->indexedShapes = indexedShapes_;
 			cases_[id]->shapeData = shapeData_[static_cast<uint32_t>(TestShapeType)].get();
 			cases_[id]->batchData = batchesOfShapes_[static_cast<uint32_t>(IndexShapeType)].get();

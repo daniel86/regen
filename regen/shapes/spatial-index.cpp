@@ -612,6 +612,9 @@ ref_ptr<SpatialIndex> SpatialIndex::load(LoadingContext &ctx, scene::SceneInputN
 				quadTree->setTestMode3D(QuadTree::QUAD_TREE_3D_TEST_NONE);
 			}
 		}
+		if (input.hasAttribute("batch-size-3d")) {
+			quadTree->setBatchSize3D(input.getValue<GLuint>("batch-size-3d", 2048u));
+		}
 		if (input.hasAttribute("close-distance")) {
 			auto dst = input.getValue<float>("close-distance", 20.0f);
 			dst = std::max(0.0f, dst);

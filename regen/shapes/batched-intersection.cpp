@@ -89,29 +89,70 @@ void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape) {
 		auto &mem = static_cast<IntersectionData_OBB &>(*shapeData_[_idx(BoundingShapeType::OBB)]);
 		mem.update(testShape);
 	}
+	currentSpheresCase_  = cases_[frameCases_[_idx(IST::SPHERE)]].get();
+	currentAABBsCase_    = cases_[frameCases_[_idx(IST::AABB)]].get();
+	currentOBBsCase_     = cases_[frameCases_[_idx(IST::OBB)]].get();
+	currentFrustumsCase_ = cases_[frameCases_[_idx(IST::FRUSTUM)]].get();
 #undef _idx
-	cases_[frameCases_[0]]->init(testShape, batchOfCapacity_);
-	cases_[frameCases_[1]]->init(testShape, batchOfCapacity_);
-	cases_[frameCases_[2]]->init(testShape, batchOfCapacity_);
-	cases_[frameCases_[3]]->init(testShape, batchOfCapacity_);
+
+	currentSpheresCase_->init(testShape, batchOfCapacity_);
+	currentAABBsCase_->init(testShape, batchOfCapacity_);
+	currentOBBsCase_->init(testShape, batchOfCapacity_);
+	currentFrustumsCase_->init(testShape, batchOfCapacity_);
+}
+
+template <BoundingShapeType BatchType>
+static void addToBatchTest(BatchedIntersectionCase &ic, const BoundingShape &shape, uint32_t shapeIdx) {
+	static constexpr int NUM_ARRAYS = ShapeTraits<BatchType>::NumSoAArrays;
+
+	auto &localSoAData = ic.batchData->soaData_;
+	const auto &globalSoAData = shape.globalBatchData().soaData_;
+	const uint32_t localIdx = ic.numQueued;
+	const uint32_t globalIdx = shape.globalIndex();
+
+	// Record the shape index at this local position.
+	ic.queuedIndices[localIdx] = shapeIdx;
+
+	// Copy SoA data from global to local batch.
+	// We do this such that we can do aligned loading in the vectorized code.
+	// This is all the data needed for the intersection tests.
+	// The reason we need to do this is that our local batch may be smaller than the global batch,
+	// and with different ordering.
+	// Note: copy could be avoided by gathering over global data directly, but that might kill
+	//       performance due to unaligned loads in most cases.
+	for (size_t i = 0; i < NUM_ARRAYS; ++i) {
+		localSoAData[i][localIdx] = globalSoAData[i][globalIdx];
+	}
+
+	++ic.numQueued;
 }
 
 void BatchedIntersectionTest::push(uint32_t shapeIdx) {
 	auto &shape = (*indexedShapes_)[shapeIdx];
-	const BoundingShapeType shapeType = shape->shapeType();
-	auto &caseBuffer = cases_[frameCases_[static_cast<uint32_t>(shapeType)]];
-	caseBuffer->push(shape, shapeIdx);
-	numQueuedShapes_ += 1u;
-	// Flush if we reached capacity
-	if (numQueuedShapes_ >= batchOfCapacity_) flush();
-}
 
-void BatchedIntersectionTest::flush() {
-	static constexpr int NUM_CASES = static_cast<int>(BoundingShapeType::LAST);
-	for (uint32_t i=0; i<NUM_CASES; i++) {
-		cases_[frameCases_[i]]->flush();
+	// Dispatch to the correct test case
+	switch (shape->shapeType()) {
+		case BoundingShapeType::SPHERE:
+			addToBatchTest<BoundingShapeType::SPHERE>(*currentSpheresCase_, *shape.get(), shapeIdx);
+			break;
+		case BoundingShapeType::AABB:
+			addToBatchTest<BoundingShapeType::AABB>(*currentAABBsCase_, *shape.get(), shapeIdx);
+			break;
+		case BoundingShapeType::OBB:
+			addToBatchTest<BoundingShapeType::OBB>(*currentOBBsCase_, *shape.get(), shapeIdx);
+			break;
+		case BoundingShapeType::FRUSTUM:
+			addToBatchTest<BoundingShapeType::FRUSTUM>(*currentFrustumsCase_, *shape.get(), shapeIdx);
+			break;
+		default:
+			// Unsupported shape type
+			return;
 	}
-	numQueuedShapes_ = 0u;
+
+	// Increment and flush if we reached capacity
+	if (++numQueuedShapes_ >= batchOfCapacity_) {
+		flush();
+	}
 }
 
 void BatchedIntersectionCase::init(const BoundingShape &shape, uint32_t capacity) {
@@ -123,11 +164,4 @@ void BatchedIntersectionCase::init(const BoundingShape &shape, uint32_t capacity
 	if (queuedIndices.size() < capacity) {
 		queuedIndices.resize(capacity);
 	}
-	doInit(*this, shape);
-}
-
-void BatchedIntersectionCase::push(const ref_ptr<BoundingShape> &shape, uint32_t shapeIdx) {
-	queuedIndices[numQueued] = shapeIdx;
-	batchData->push(*shape.get(), numQueued);
-	++numQueued;
 }

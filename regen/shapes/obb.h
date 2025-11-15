@@ -126,45 +126,106 @@ namespace regen {
 		// BoundingShape interface
 		bool updateTransform(bool forceUpdate) final;
 
+		/**
+		 * @brief Batch intersection test of this shape against a batch of spheres.
+		 */
+		static void batchTest_Spheres(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of AABBs.
+		 */
+		static void batchTest_AABBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of OBBs.
+		 */
+		static void batchTest_OBBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of frustums.
+		 */
+		static void batchTest_Frustums(BatchedIntersectionCase&);
+
 	protected:
 		void updateOBB();
 		void applyTransform(const Mat4f &tf);
 	};
-} // namespace
 
-#include "batched-intersection.h"
+	/**
+	 * @brief Shape traits for OBB shapes.
+	 */
+	template<> struct ShapeTraits<BoundingShapeType::OBB> {
+		using BatchType = BatchOfOBBs;
+		static constexpr auto NumSoAArrays = 15; // center, halfSize, axis0, axis1, axis2
+	};
 
-namespace regen {
-	namespace shapes {
-		void flush_OBB_Spheres(BatchedIntersectionCase&);
-		void flush_OBB_AABBs(BatchedIntersectionCase&);
-		void flush_OBB_OBBs(BatchedIntersectionCase&);
-		void flush_OBB_Frustums(BatchedIntersectionCase&);
-	}
-
+	/**
+	 * @brief Intersection traits specialization for OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::OBB, BoundingShapeType::SPHERE> {
 		static constexpr auto Case = IntersectionCaseType::OBB_SPHERES;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_OBB_Spheres;
+		static constexpr auto Test = OBB::batchTest_Spheres;
 	};
 
+	/**
+	 * @brief Intersection traits specialization for OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::OBB, BoundingShapeType::AABB> {
 		static constexpr auto Case = IntersectionCaseType::OBB_AABBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_OBB_AABBs;
+		static constexpr auto Test = OBB::batchTest_AABBs;
 	};
 
+	/**
+	 * @brief Intersection traits specialization for OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::OBB, BoundingShapeType::OBB> {
 		static constexpr auto Case = IntersectionCaseType::OBB_OBBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_OBB_OBBs;
+		static constexpr auto Test = OBB::batchTest_OBBs;
 	};
 
+	/**
+	 * @brief Intersection traits specialization for OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::OBB, BoundingShapeType::FRUSTUM> {
 		static constexpr auto Case = IntersectionCaseType::OBB_FRUSTUMS;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_OBB_Frustums;
+		static constexpr auto Test = OBB::batchTest_Frustums;
 	};
+
+	/**
+	 * @brief Batch intersection test of OBB shapes vs. sphere shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::OBB,
+			BoundingShapeType::SPHERE>(BatchedIntersectionCase &td) {
+		OBB::batchTest_Spheres(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of OBB shapes vs. AABB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::OBB,
+			BoundingShapeType::AABB>(BatchedIntersectionCase &td) {
+		OBB::batchTest_AABBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of OBB shapes vs. OBB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::OBB,
+			BoundingShapeType::OBB>(BatchedIntersectionCase &td) {
+		OBB::batchTest_OBBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of OBB shapes vs. frustum shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::OBB,
+			BoundingShapeType::FRUSTUM>(BatchedIntersectionCase &td) {
+		OBB::batchTest_Frustums(td);
+	}
 
 	/**
 	 * @brief Intersection shape data for oriented bounding box (OBB) shapes.
@@ -172,6 +233,6 @@ namespace regen {
 	struct IntersectionData_OBB : IntersectionShapeData {
 		void update(const BoundingShape&) {}
 	};
-} // namespace
+} // namespace regen
 
 #endif /* REGEN_OBB_H_ */

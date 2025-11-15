@@ -98,6 +98,26 @@ namespace regen {
 		// BoundingShape interface
 		void updateBaseBounds(const Vec3f &min, const Vec3f &max) override;
 
+		/**
+		 * @brief Batch intersection test of this shape against a batch of spheres.
+		 */
+		static void batchTest_Spheres(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of AABBs.
+		 */
+		static void batchTest_AABBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of OBBs.
+		 */
+		static void batchTest_OBBs(BatchedIntersectionCase&);
+
+		/**
+		 * @brief Batch intersection test of this shape against a batch of frustums.
+		 */
+		static void batchTest_Frustums(BatchedIntersectionCase&);
+
 	protected:
 		Vec3f basePosition_;
 		float radiusSquared_;
@@ -106,41 +126,82 @@ namespace regen {
 
 		void updateShapeOrigin();
 	};
-} // namespace
 
-#include "batched-intersection.h"
+	/**
+	 * @brief Shape traits for sphere shapes.
+	 */
+	template<> struct ShapeTraits<BoundingShapeType::SPHERE> {
+		using BatchType = BatchOfSpheres;
+		static constexpr auto NumSoAArrays = 4u; // posX, posY, posZ, radius
+	};
 
-namespace regen {
-	namespace shapes {
-		void flush_Sphere_Spheres(BatchedIntersectionCase&);
-		void flush_Sphere_AABBs(BatchedIntersectionCase&);
-		void flush_Sphere_OBBs(BatchedIntersectionCase&);
-		void flush_Sphere_Frustums(BatchedIntersectionCase&);
-	}
-
+	/**
+	 * @brief Intersection traits for sphere shapes vs. frustum shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::SPHERE, BoundingShapeType::SPHERE> {
 		static constexpr auto Case = IntersectionCaseType::SPHERE_SPHERES;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Sphere_Spheres;
+		static constexpr auto Test = BoundingSphere::batchTest_Spheres;
 	};
 
+	/**
+	 * @brief Intersection traits for sphere shapes vs. AABB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::SPHERE, BoundingShapeType::AABB> {
 		static constexpr auto Case = IntersectionCaseType::SPHERE_AABBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Sphere_AABBs;
+		static constexpr auto Test = BoundingSphere::batchTest_AABBs;
 	};
 
+	/**
+	 * @brief Intersection traits for sphere shapes vs. OBB shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::SPHERE, BoundingShapeType::OBB> {
 		static constexpr auto Case = IntersectionCaseType::SPHERE_OBBs;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Sphere_OBBs;
+		static constexpr auto Test = BoundingSphere::batchTest_OBBs;
 	};
 
+	/**
+	 * @brief Intersection traits for sphere shapes vs. frustum shapes.
+	 */
 	template<> struct IntersectionTraits<BoundingShapeType::SPHERE, BoundingShapeType::FRUSTUM> {
 		static constexpr auto Case = IntersectionCaseType::SPHERE_FRUSTUMS;
-		static constexpr auto Init = BatchedIntersectionCase::case_NOOP;
-		static constexpr auto Flush = shapes::flush_Sphere_Frustums;
+		static constexpr auto Test = BoundingSphere::batchTest_Frustums;
 	};
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. sphere shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::SPHERE,
+			BoundingShapeType::SPHERE>(BatchedIntersectionCase &td) {
+		BoundingSphere::batchTest_Spheres(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. AABB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::SPHERE,
+			BoundingShapeType::AABB>(BatchedIntersectionCase &td) {
+		BoundingSphere::batchTest_AABBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. OBB shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::SPHERE,
+			BoundingShapeType::OBB>(BatchedIntersectionCase &td) {
+		BoundingSphere::batchTest_OBBs(td);
+	}
+
+	/**
+	 * @brief Batch intersection test of SPHERE shapes vs. frustum shapes.
+	 */
+	template<> inline void batchIntersectionTest<
+			BoundingShapeType::SPHERE,
+			BoundingShapeType::FRUSTUM>(BatchedIntersectionCase &td) {
+		BoundingSphere::batchTest_Frustums(td);
+	}
 
 	/**
 	 * @brief Intersection shape data for sphere shapes.
@@ -148,6 +209,6 @@ namespace regen {
 	struct IntersectionData_Sphere : IntersectionShapeData {
 		void update(const BoundingShape&) {}
 	};
-} // namespace
+} // namespace regen
 
 #endif /* REGEN_BOUNDING_SPHERE_H_ */

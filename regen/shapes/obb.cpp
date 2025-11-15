@@ -254,7 +254,7 @@ bool OBB::hasIntersectionWithAABB(const AABB &other) const {
 	return hasIntersectionWithBox(*this, other, selfAxes,  other.boxAxes());
 }
 
-void shapes::flush_OBB_Spheres(BatchedIntersectionCase &td) {
+void OBB::batchTest_Spheres(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto &testShape = *static_cast<const OBB *>(td.testShape);
 
@@ -339,7 +339,7 @@ void shapes::flush_OBB_Spheres(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_OBB_AABBs(BatchedIntersectionCase &td) {
+void OBB::batchTest_AABBs(BatchedIntersectionCase &td) {
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 	auto &testShape = *static_cast<const OBB *>(td.testShape);
 
@@ -425,7 +425,7 @@ void shapes::flush_OBB_AABBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_OBB_OBBs(BatchedIntersectionCase &td) {
+void OBB::batchTest_OBBs(BatchedIntersectionCase &td) {
 	// note: This case cannot be handled well with AVX and its limited number
 	// of registers, so we do a scalar implementation here.
 	// TODO: Consider adding an early-out by bounding sphere
@@ -440,7 +440,7 @@ void shapes::flush_OBB_OBBs(BatchedIntersectionCase &td) {
 	}
 }
 
-void shapes::flush_OBB_Frustums(BatchedIntersectionCase &td) {
+void OBB::batchTest_Frustums(BatchedIntersectionCase &td) {
 	// note: index shapes are rarely frustum, so no SIMD optimization here.
 	auto *testShape = static_cast<const OBB *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();

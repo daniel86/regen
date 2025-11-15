@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <regen/utility/aligned-array.h>
+#include <regen/shapes/bounding-shape.h>
 
 namespace regen {
 	class BoundingShape;
@@ -26,7 +27,14 @@ namespace regen {
 		 * @brief Resize the batch to a new capacity.
 		 * @param newCapacity The new capacity for the batch.
 		 */
-		void resize(uint32_t newCapacity, bool preserveData = false);
+		void resize(uint32_t newCapacity, bool preserveData = false) {
+			if (newCapacity != capacity) {
+				capacity = newCapacity;
+				for (auto &array : soaData_) {
+					array.resize(newCapacity, preserveData);
+				}
+			}
+		}
 
 		/**
 		 * @brief Push a shape into the batch at the specified index.
@@ -34,10 +42,14 @@ namespace regen {
 		 * @param shape The shape to push into the batch.
 		 * @param index The index at which to push the shape.
 		 */
-		void push(const BoundingShape &shape, uint32_t localIdx);
+		void push(const BoundingShape &shape, uint32_t localIdx) {
+			const auto &global = shape.globalBatchData();
+			const uint32_t globalIdx = shape.globalIndex();
+			for (size_t i = 0; i < soaData_.size(); ++i) {
+				soaData_[i][localIdx] = global.soaData_[i][globalIdx];
+			}
+		}
 	};
 } // namespace
-
-#include "regen/shapes/bounding-shape.h"
 
 #endif /* REGEN_BATCH_OF_SHAPES_H_ */
