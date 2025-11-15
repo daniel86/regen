@@ -69,11 +69,11 @@ namespace regen {
 		const AlignedArray<float>& axis2Y() const noexcept { return soaData_[13]; }
 		const AlignedArray<float>& axis2Z() const noexcept { return soaData_[14]; }
 
-		std::array<AxisBatch, 3> axes() {
+		std::array<AxisBatch_const, 3> axes() const {
 			return {
-				AxisBatch{soaData_[6],  soaData_[7],  soaData_[8]},
-				AxisBatch{soaData_[9],  soaData_[10], soaData_[11]},
-				AxisBatch{soaData_[12], soaData_[13], soaData_[14]}
+				AxisBatch_const{soaData_[6],  soaData_[7],  soaData_[8]},
+				AxisBatch_const{soaData_[9],  soaData_[10], soaData_[11]},
+				AxisBatch_const{soaData_[12], soaData_[13], soaData_[14]}
 			};
 		}
 	};

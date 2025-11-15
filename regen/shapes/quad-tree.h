@@ -31,6 +31,7 @@ namespace regen {
 		 */
 		struct Node {
 			Bounds<Vec2f> bounds;
+			Vec2f center;
 			int32_t parentIdx = -1;
 			int32_t childrenIdx[4];
 			uint32_t nodeIdx = 0;

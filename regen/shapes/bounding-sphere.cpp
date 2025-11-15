@@ -120,7 +120,7 @@ void BoundingSphere::batchTest_Spheres(BatchedIntersectionCase &td) {
 	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData_t());
 	const uint32_t t_idx = testShape->globalIndex();
 
-	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfSpheres *>(td.batchData);
 	const float *d_spherePosX = batchData->posX().data();
 	const float *d_spherePosY = batchData->posY().data();
 	const float *d_spherePosZ = batchData->posZ().data();
@@ -189,7 +189,7 @@ void BoundingSphere::batchTest_AABBs(BatchedIntersectionCase &td) {
 	REGEN_SPHERE_BATCH_DATA(t, testShape->globalBatchData_t());
 	const uint32_t t_idx = testShape->globalIndex();
 
-	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfAABBs *>(td.batchData);
 	const float *d_aabbMinX = batchData->minX().data();
 	const float *d_aabbMinY = batchData->minY().data();
 	const float *d_aabbMinZ = batchData->minZ().data();
@@ -265,14 +265,14 @@ void BoundingSphere::batchTest_OBBs(BatchedIntersectionCase &td) {
 	const uint32_t t_idx = testShape->globalIndex();
 	const float sphereRadiusSq = t_radius[t_idx] * t_radius[t_idx];
 
-	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfOBBs *>(td.batchData);
 	const float *d_obbCenterX = batchData->centerX().data();
 	const float *d_obbCenterY = batchData->centerY().data();
 	const float *d_obbCenterZ = batchData->centerZ().data();
 	const float *d_obbHalfSizeX = batchData->halfSizeX().data();
 	const float *d_obbHalfSizeY = batchData->halfSizeY().data();
 	const float *d_obbHalfSizeZ = batchData->halfSizeZ().data();
-	std::array<BatchOfOBBs::AxisBatch, 3> d_axes = batchData->axes();
+	auto d_axes = batchData->axes();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
@@ -296,7 +296,7 @@ void BoundingSphere::batchTest_OBBs(BatchedIntersectionCase &td) {
 		// We need to project delta onto each OBB axis, clamp to halfSize, and accumulate
 		for (int i = 0; i < 3; ++i) {
 			// axis = obbAxes[i]
-			const BatchOfOBBs::AxisBatch &axisBatch = d_axes[i];
+			const auto &axisBatch = d_axes[i];
 			const BatchOf_float axisX = BatchOf_float::loadAligned(axisBatch.x.data() + queuedIdx);
 			const BatchOf_float axisY = BatchOf_float::loadAligned(axisBatch.y.data() + queuedIdx);
 			const BatchOf_float axisZ = BatchOf_float::loadAligned(axisBatch.z.data() + queuedIdx);

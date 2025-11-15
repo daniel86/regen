@@ -50,22 +50,25 @@ namespace regen {
 		// Number of queued shapes
 		uint32_t numQueued = 0;
 		// Indices of queued shapes
-		std::vector<uint32_t> queuedIndices;
+		AlignedArray<uint32_t> queuedIndices;
+		// Global indices of queued shapes
+		AlignedArray<uint32_t> globalIndices;
 		// Vector over all shapes in the index
 		std::vector<ref_ptr<BoundingShape>> const *indexedShapes = nullptr;
 		// Memory for the test/indexed shapes
 		IntersectionShapeData *shapeData = nullptr;
 		BatchOfShapes *batchData = nullptr;
+		const BatchOfShapes *globalBatchData = nullptr;
 		// Hit buffer for storing successful intersections by index
 		HitBuffer *hits = nullptr;
 
 		/**
 		 * @brief Initialize the intersection case with a test shape and callback.
 		 * @param shape The test shape to use for intersection tests.
-		 * @param cb The callback to invoke for each intersecting shape.
 		 * @param capacity The maximum number of shapes to queue before flushing.
+		 * @param globalBatchData The global batch data for the indexed shapes.
 		 */
-		void init(const BoundingShape &shape, uint32_t capacity);
+		void init(const BoundingShape &shape, uint32_t capacity, const BatchOfShapes *globalBatchData);
 
 		/**
 		 * @brief Flush the queued shapes, processing all queued intersection tests.
@@ -104,6 +107,11 @@ namespace regen {
 		static constexpr int NUM_SHAPE_TYPES = static_cast<int>(BoundingShapeType::LAST);
 		static constexpr int NUM_TEST_CASES = static_cast<int>(IntersectionCaseType::LAST);
 
+		static constexpr int SPHERE_IDX  = static_cast<int>(BoundingShapeType::SPHERE);
+		static constexpr int AABB_IDX    = static_cast<int>(BoundingShapeType::AABB);
+		static constexpr int OBB_IDX     = static_cast<int>(BoundingShapeType::OBB);
+		static constexpr int FRUSTUM_IDX = static_cast<int>(BoundingShapeType::FRUSTUM);
+
 		/**
 		 * @brief Construct a new BatchedIntersectionTest object.
 		 */
@@ -139,31 +147,20 @@ namespace regen {
 		/**
 		 * @brief Insert a shape into the current frame for intersection testing.
 		 * If the number of queued shapes exceeds the flush threshold, the queued shapes are processed.
+		 * @param shape The shape to insert for intersection testing.
 		 * @param shapeIdx The index of the shape to insert from the indexed shapes vector.
 		 */
-		void push(uint32_t shapeIdx);
+		void push(const BoundingShape &shape, uint32_t shapeIdx);
 
 		/**
 		 * @brief Flush the queued shapes, processing all queued intersection tests.
 		 */
-		void flush() {
-			currentSpheresCase_->flush();
-			currentAABBsCase_->flush();
-			currentOBBsCase_->flush();
-			currentFrustumsCase_->flush();
-			numQueuedShapes_ = 0u;
-		}
+		void flushAllBuffers();
 
 		/**
 		 * @brief End the current frame, flushing any remaining queued shapes.
 		 */
-		void endFrame() { flush(); }
-
-		/**
-		 * @brief Get the number of currently queued (and unflushed) shapes.
-		 * @return The number of queued shapes.
-		 */
-		uint32_t numQueuedShapes() const { return numQueuedShapes_; }
+		void endFrame() { flushAllBuffers(); }
 
 	protected:
 
@@ -172,18 +169,13 @@ namespace regen {
 
 		// The number of queued shapes where the system automatically flushes
 		uint32_t batchOfCapacity_ = 2048u;
-		// The number of currently queued shapes
-		uint32_t numQueuedShapes_ = 0u;
 
 		// One item for each combination of (fixed) test shape type, and (variable) inde{}xed shape type.
 		// E.g., frustum-sphere, frustum-AABB, sphere-sphere, frustum-frustum.
-		std::array<uint32_t, NUM_SHAPE_TYPES> frameCases_ = { 0u };
+		//std::array<uint32_t, NUM_SHAPE_TYPES> frameCases_ = { 0u };
 		// Local buffers for each case, size: IntersectionCase::LAST
-		BatchedIntersectionCase *currentSpheresCase_ = nullptr;
-		BatchedIntersectionCase *currentAABBsCase_ = nullptr;
-		BatchedIntersectionCase *currentOBBsCase_ = nullptr;
-		BatchedIntersectionCase *currentFrustumsCase_ = nullptr;
 		std::array<std::unique_ptr<BatchedIntersectionCase>, NUM_TEST_CASES> cases_;
+		std::array<BatchedIntersectionCase*, NUM_SHAPE_TYPES> activeCases_{ nullptr, nullptr, nullptr, nullptr };
 		// Local memory for each shape type, size: NUM_SHAPE_TYPES
 		std::array<std::unique_ptr<IntersectionShapeData>, NUM_SHAPE_TYPES> shapeData_;
 		std::array<std::unique_ptr<BatchOfShapes>, NUM_SHAPE_TYPES> batchesOfShapes_;

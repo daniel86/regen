@@ -135,7 +135,7 @@ void AABB::batchTest_Spheres(BatchedIntersectionCase &td) {
 	REGEN_AABB_BATCH_DATA(global, testShape->globalBatchData());
 	const uint32_t globalIdx = testShape->globalIndex();
 
-	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfSpheres *>(td.batchData);
 	const float *d_spherePosX = batchData->posX().data();
 	const float *d_spherePosY = batchData->posY().data();
 	const float *d_spherePosZ = batchData->posZ().data();
@@ -213,7 +213,7 @@ void AABB::batchTest_AABBs(BatchedIntersectionCase &td) {
 	REGEN_AABB_BATCH_DATA(global, testShape->globalBatchData());
 	const uint32_t globalIdx = testShape->globalIndex();
 
-	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfAABBs *>(td.batchData);
 	const float *aabbMinX_1 = batchData->minX().data();
 	const float *aabbMinY_1 = batchData->minY().data();
 	const float *aabbMinZ_1 = batchData->minZ().data();
@@ -277,14 +277,14 @@ void AABB::batchTest_OBBs(BatchedIntersectionCase &td) {
 	REGEN_AABB_BATCH_DATA(global, testShape->globalBatchData());
 	const uint32_t globalIdx = testShape->globalIndex();
 
-	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfOBBs *>(td.batchData);
 	const float *d_obbCenterX = batchData->centerX().data();
 	const float *d_obbCenterY = batchData->centerY().data();
 	const float *d_obbCenterZ = batchData->centerZ().data();
 	const float *d_obbHalfSizeX = batchData->halfSizeX().data();
 	const float *d_obbHalfSizeY = batchData->halfSizeY().data();
 	const float *d_obbHalfSizeZ = batchData->halfSizeZ().data();
-	std::array<BatchOfOBBs::AxisBatch, 3> d_axes = batchData->axes();
+	auto d_axes = batchData->axes();
 
 	const BatchOf_float aabbMinX = BatchOf_float::fromScalar(global_minX[globalIdx]);
 	const BatchOf_float aabbMinY = BatchOf_float::fromScalar(global_minY[globalIdx]);
@@ -307,7 +307,7 @@ void AABB::batchTest_OBBs(BatchedIntersectionCase &td) {
 
 			for (uint32_t axisIdx=0u; axisIdx < 3u; ++axisIdx) {
 				// Load axis into SIMD registers
-				BatchOfOBBs::AxisBatch &axisBatch = d_axes[axisIdx];
+				auto &axisBatch = d_axes[axisIdx];
 				BatchOf_float axis;
 				// X axis
 				axis = BatchOf_float::loadAligned(axisBatch.x.data() + queuedIdx);

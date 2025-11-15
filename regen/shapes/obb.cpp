@@ -280,7 +280,7 @@ void OBB::batchTest_Spheres(BatchedIntersectionCase &td) {
 	REGEN_OBB_BATCH_DATA_SIZE_array(g, testShape.globalBatchData_t());
 	REGEN_OBB_BATCH_DATA_AXES_array(g, testShape.globalBatchData_t());
 
-	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfSpheres *>(td.batchData);
 	const float *d_spherePosX = batchData->posX().data();
 	const float *d_spherePosY = batchData->posY().data();
 	const float *d_spherePosZ = batchData->posZ().data();
@@ -378,7 +378,7 @@ void OBB::batchTest_AABBs(BatchedIntersectionCase &td) {
 		g_hy[g_idx] * std::abs(g_az1[g_idx]) +
 		g_hz[g_idx] * std::abs(g_az2[g_idx])};
 
-	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfAABBs *>(td.batchData);
 	const float *d_aabbMinX = batchData->minX().data();
 	const float *d_aabbMinY = batchData->minY().data();
 	const float *d_aabbMinZ = batchData->minZ().data();

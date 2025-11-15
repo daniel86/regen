@@ -8,19 +8,17 @@ using namespace regen;
 BatchedIntersectionTest::BatchedIntersectionTest() {
 	// Create some structs for each indexed shape type.
 	// These are shared across all cases. However, each case only uses a pair of them.
-#define _idx(x) static_cast<int8_t>(x)
-	shapeData_[_idx(BoundingShapeType::SPHERE)]  = std::make_unique<IntersectionData_Sphere>();
-	shapeData_[_idx(BoundingShapeType::AABB)]    = std::make_unique<IntersectionData_AABB>();
-	shapeData_[_idx(BoundingShapeType::OBB)]     = std::make_unique<IntersectionData_OBB>();
-	shapeData_[_idx(BoundingShapeType::FRUSTUM)] = std::make_unique<IntersectionData_Frustum>();
-	batchesOfShapes_[_idx(BoundingShapeType::SPHERE)]  = std::make_unique<BatchOfSpheres>();
-	batchesOfShapes_[_idx(BoundingShapeType::AABB)]    = std::make_unique<BatchOfAABBs>();
-	batchesOfShapes_[_idx(BoundingShapeType::OBB)]     = std::make_unique<BatchOfOBBs>();
-	batchesOfShapes_[_idx(BoundingShapeType::FRUSTUM)] = std::make_unique<BatchOfFrustums>();
+	shapeData_[SPHERE_IDX]  = std::make_unique<IntersectionData_Sphere>();
+	shapeData_[AABB_IDX]    = std::make_unique<IntersectionData_AABB>();
+	shapeData_[OBB_IDX]     = std::make_unique<IntersectionData_OBB>();
+	shapeData_[FRUSTUM_IDX] = std::make_unique<IntersectionData_Frustum>();
+	batchesOfShapes_[SPHERE_IDX]  = std::make_unique<BatchOfSpheres>();
+	batchesOfShapes_[AABB_IDX]    = std::make_unique<BatchOfAABBs>();
+	batchesOfShapes_[OBB_IDX]     = std::make_unique<BatchOfOBBs>();
+	batchesOfShapes_[FRUSTUM_IDX] = std::make_unique<BatchOfFrustums>();
 	for (auto &batch : batchesOfShapes_) {
 		batch->resize(batchOfCapacity_);
 	}
-#undef _idx
 	registerAllCases<BoundingShapeType::SPHERE>();
 	registerAllCases<BoundingShapeType::AABB>();
 	registerAllCases<BoundingShapeType::OBB>();
@@ -53,117 +51,153 @@ void BatchedIntersectionTest::setBatchCapacity(uint32_t capacity) {
 void BatchedIntersectionTest::beginFrame(const BoundingShape &testShape) {
 	BoundingShapeType shapeType = testShape.shapeType();
 #define _idx(x) static_cast<int8_t>(x)
-	using IST = BoundingShapeType;
 	using ICT = IntersectionCaseType;
 	// Assign the corresponding case buffers based on the test shape type.
 	if (shapeType == BoundingShapeType::FRUSTUM) {
-		frameCases_[_idx(IST::SPHERE)]  = _idx(ICT::FRUSTUM_SPHERES);
-		frameCases_[_idx(IST::AABB)]    = _idx(ICT::FRUSTUM_AABBs);
-		frameCases_[_idx(IST::OBB)]     = _idx(ICT::FRUSTUM_OBBs);
-		frameCases_[_idx(IST::FRUSTUM)] = _idx(ICT::FRUSTUM_FRUSTUMS);
+		activeCases_[SPHERE_IDX]  = cases_[_idx(ICT::FRUSTUM_SPHERES)].get();
+		activeCases_[AABB_IDX]    = cases_[_idx(ICT::FRUSTUM_AABBs)].get();
+		activeCases_[OBB_IDX]     = cases_[_idx(ICT::FRUSTUM_OBBs)].get();
+		activeCases_[FRUSTUM_IDX] = cases_[_idx(ICT::FRUSTUM_FRUSTUMS)].get();
 		// Update frustum test shape memory
-		auto &mem = static_cast<IntersectionData_Frustum &>(*shapeData_[_idx(BoundingShapeType::FRUSTUM)]);
-		mem.update(testShape);
+		static_cast<IntersectionData_Frustum &>(*shapeData_[FRUSTUM_IDX]).update(testShape);
 	} else if (shapeType == BoundingShapeType::SPHERE) {
-		frameCases_[_idx(IST::SPHERE)]  = _idx(ICT::SPHERE_SPHERES);
-		frameCases_[_idx(IST::AABB)]    = _idx(ICT::SPHERE_AABBs);
-		frameCases_[_idx(IST::OBB)]     = _idx(ICT::SPHERE_OBBs);
-		frameCases_[_idx(IST::FRUSTUM)] = _idx(ICT::SPHERE_FRUSTUMS);
+		activeCases_[SPHERE_IDX]  = cases_[_idx(ICT::SPHERE_SPHERES)].get();
+		activeCases_[AABB_IDX]    = cases_[_idx(ICT::SPHERE_AABBs)].get();
+		activeCases_[OBB_IDX]     = cases_[_idx(ICT::SPHERE_OBBs)].get();
+		activeCases_[FRUSTUM_IDX] = cases_[_idx(ICT::SPHERE_FRUSTUMS)].get();
 		// Update sphere test shape memory
-		auto &mem = static_cast<IntersectionData_Sphere &>(*shapeData_[_idx(BoundingShapeType::SPHERE)]);
-		mem.update(testShape);
+		static_cast<IntersectionData_Sphere &>(*shapeData_[SPHERE_IDX]).update(testShape);
 	} else if (shapeType == BoundingShapeType::AABB) {
-		frameCases_[_idx(IST::SPHERE)]  = _idx(ICT::AABB_SPHERES);
-		frameCases_[_idx(IST::AABB)]    = _idx(ICT::AABB_AABBs);
-		frameCases_[_idx(IST::OBB)]     = _idx(ICT::AABB_OBBs);
-		frameCases_[_idx(IST::FRUSTUM)] = _idx(ICT::AABB_FRUSTUMS);
+		activeCases_[SPHERE_IDX]  = cases_[_idx(ICT::AABB_SPHERES)].get();
+		activeCases_[AABB_IDX]    = cases_[_idx(ICT::AABB_AABBs)].get();
+		activeCases_[OBB_IDX]     = cases_[_idx(ICT::AABB_OBBs)].get();
+		activeCases_[FRUSTUM_IDX] = cases_[_idx(ICT::AABB_FRUSTUMS)].get();
 		// Update AABB test shape memory
-		auto &mem = static_cast<IntersectionData_AABB &>(*shapeData_[_idx(BoundingShapeType::AABB)]);
-		mem.update(testShape);
+		static_cast<IntersectionData_AABB &>(*shapeData_[AABB_IDX]).update(testShape);
 	} else { // OBB
-		frameCases_[_idx(IST::SPHERE)]  = _idx(ICT::OBB_SPHERES);
-		frameCases_[_idx(IST::AABB)]    = _idx(ICT::OBB_AABBs);
-		frameCases_[_idx(IST::OBB)]     = _idx(ICT::OBB_OBBs);
-		frameCases_[_idx(IST::FRUSTUM)] = _idx(ICT::OBB_FRUSTUMS);
+		activeCases_[SPHERE_IDX]  = cases_[_idx(ICT::OBB_SPHERES)].get();
+		activeCases_[AABB_IDX]    = cases_[_idx(ICT::OBB_AABBs)].get();
+		activeCases_[OBB_IDX]     = cases_[_idx(ICT::OBB_OBBs)].get();
+		activeCases_[FRUSTUM_IDX] = cases_[_idx(ICT::OBB_FRUSTUMS)].get();
 		// Update OBB test shape memory
-		auto &mem = static_cast<IntersectionData_OBB &>(*shapeData_[_idx(BoundingShapeType::OBB)]);
-		mem.update(testShape);
+		static_cast<IntersectionData_OBB &>(*shapeData_[OBB_IDX]).update(testShape);
 	}
-	currentSpheresCase_  = cases_[frameCases_[_idx(IST::SPHERE)]].get();
-	currentAABBsCase_    = cases_[frameCases_[_idx(IST::AABB)]].get();
-	currentOBBsCase_     = cases_[frameCases_[_idx(IST::OBB)]].get();
-	currentFrustumsCase_ = cases_[frameCases_[_idx(IST::FRUSTUM)]].get();
 #undef _idx
 
-	currentSpheresCase_->init(testShape, batchOfCapacity_);
-	currentAABBsCase_->init(testShape, batchOfCapacity_);
-	currentOBBsCase_->init(testShape, batchOfCapacity_);
-	currentFrustumsCase_->init(testShape, batchOfCapacity_);
+	activeCases_[SPHERE_IDX]->init(testShape, batchOfCapacity_,
+		&BoundingSphere::globalBatchData_t());
+	activeCases_[AABB_IDX]->init(testShape, batchOfCapacity_,
+		&AABB::globalBatchData_t());
+	activeCases_[OBB_IDX]->init(testShape, batchOfCapacity_,
+		&OBB::globalBatchData_t());
+	activeCases_[FRUSTUM_IDX]->init(testShape, batchOfCapacity_,
+		nullptr);
 }
 
-template <BoundingShapeType BatchType>
-static void addToBatchTest(BatchedIntersectionCase &ic, const BoundingShape &shape, uint32_t shapeIdx) {
-	static constexpr int NUM_ARRAYS = ShapeTraits<BatchType>::NumSoAArrays;
-
-	auto &localSoAData = ic.batchData->soaData_;
-	const auto &globalSoAData = shape.globalBatchData().soaData_;
-	const uint32_t localIdx = ic.numQueued;
-	const uint32_t globalIdx = shape.globalIndex();
-
-	// Record the shape index at this local position.
-	ic.queuedIndices[localIdx] = shapeIdx;
-
-	// Copy SoA data from global to local batch.
-	// We do this such that we can do aligned loading in the vectorized code.
-	// This is all the data needed for the intersection tests.
-	// The reason we need to do this is that our local batch may be smaller than the global batch,
-	// and with different ordering.
-	// Note: copy could be avoided by gathering over global data directly, but that might kill
-	//       performance due to unaligned loads in most cases.
-	for (size_t i = 0; i < NUM_ARRAYS; ++i) {
-		float* __restrict ld = static_cast<float*>(__builtin_assume_aligned(localSoAData[i].data(), 32));
-		float* __restrict gl = static_cast<float*>(__builtin_assume_aligned(globalSoAData[i].data(), 32));
-		ld[localIdx] = gl[globalIdx];
-	}
-
-	++ic.numQueued;
-}
-
-void BatchedIntersectionTest::push(uint32_t shapeIdx) {
-	auto &shape = (*indexedShapes_)[shapeIdx];
-
-	// Dispatch to the correct test case
-	switch (shape->shapeType()) {
-		case BoundingShapeType::SPHERE:
-			addToBatchTest<BoundingShapeType::SPHERE>(*currentSpheresCase_, *shape.get(), shapeIdx);
-			break;
-		case BoundingShapeType::AABB:
-			addToBatchTest<BoundingShapeType::AABB>(*currentAABBsCase_, *shape.get(), shapeIdx);
-			break;
-		case BoundingShapeType::OBB:
-			addToBatchTest<BoundingShapeType::OBB>(*currentOBBsCase_, *shape.get(), shapeIdx);
-			break;
-		case BoundingShapeType::FRUSTUM:
-			addToBatchTest<BoundingShapeType::FRUSTUM>(*currentFrustumsCase_, *shape.get(), shapeIdx);
-			break;
-		default:
-			// Unsupported shape type
-			return;
-	}
-
-	// Increment and flush if we reached capacity
-	if (++numQueuedShapes_ >= batchOfCapacity_) {
-		flush();
-	}
-}
-
-void BatchedIntersectionCase::init(const BoundingShape &shape, uint32_t capacity) {
+void BatchedIntersectionCase::init(
+			const BoundingShape &shape,
+			uint32_t capacity,
+			const BatchOfShapes *globalBatchData_) {
 	this->testShape = &shape;
+	this->globalBatchData = globalBatchData_;
 	numQueued = 0;
 	if (batchData->capacity < capacity) {
 		batchData->resize(capacity);
 	}
 	if (queuedIndices.size() < capacity) {
 		queuedIndices.resize(capacity);
+		globalIndices.resize(capacity);
 	}
+}
+
+template <BoundingShapeType BatchType> void copyBatchData(BatchedIntersectionCase &buffer) {
+	static constexpr int NUM = ShapeTraits<BatchType>::NumSoAArrays;
+	static constexpr int PREFETCH_WIDTH = 16;
+	static constexpr int PREFETCH_READ = 0;
+
+	auto& local = buffer.batchData->soaData_;
+	auto& global = buffer.globalBatchData->soaData_;
+
+	// Preload base pointers once
+	float* __restrict ld[NUM];
+	float* __restrict gl[NUM];
+	for (int i=0; i<NUM; ++i) {
+		ld[i] = static_cast<float*>(__builtin_assume_aligned(local[i].data(), 32));
+		gl[i] = static_cast<float*>(__builtin_assume_aligned(global[i].data(), 32));
+	}
+
+	// Preload global indices
+	uint32_t* __restrict gl_i = static_cast<uint32_t*>(
+		__builtin_assume_aligned(buffer.globalIndices.data(), 32));
+
+	const uint32_t numItems = buffer.numQueued;
+
+	for (uint32_t localIdx = 0; localIdx < numItems; ++localIdx) {
+		const uint32_t globalIdx = gl_i[localIdx];
+
+		// Prefetch next element (if in bounds)
+		if (localIdx + PREFETCH_WIDTH < numItems) {
+			// index prefetch: fetch global index PREFETCH_WIDTH ahead
+			__builtin_prefetch(gl_i + localIdx + PREFETCH_WIDTH, PREFETCH_READ, 1);
+			// read data prefetches: fetch all shape data arrays PREFETCH_WIDTH ahead
+			const uint32_t g2 = gl_i[localIdx + PREFETCH_WIDTH];
+			for (int i=0; i<NUM; ++i) {
+				__builtin_prefetch(gl[i] + g2, PREFETCH_READ, 1);
+			}
+		}
+
+		for (int i = 0; i < NUM; ++i) {
+			ld[i][localIdx] = gl[i][globalIdx];
+		}
+	}
+}
+
+template <BoundingShapeType BatchType>
+inline void flushBuffer(BatchedIntersectionCase &buffer) {
+	if (buffer.numQueued != 0) {
+		copyBatchData<BatchType>(buffer);
+		buffer.flush();
+	}
+}
+
+template <BoundingShapeType BatchType>
+inline void pushBatchData(BatchedIntersectionCase &buffer, uint32_t globalIdx, uint32_t shapeIdx) {
+	// Increment per-shape-type counter and push into the correct case buffer
+	buffer.queuedIndices[buffer.numQueued] = shapeIdx;
+	buffer.globalIndices[buffer.numQueued] = globalIdx;
+	if (++buffer.numQueued >= buffer.batchData->capacity) {
+		copyBatchData<BatchType>(buffer);
+		buffer.flush();
+	}
+}
+
+void BatchedIntersectionTest::push(const BoundingShape &shape, uint32_t shapeIdx) {
+	// Increment per-shape-type counter and push into the correct case buffer
+	switch (shape.shapeType()) {
+		case BoundingShapeType::SPHERE:
+			pushBatchData<BoundingShapeType::SPHERE>(
+				*activeCases_[SPHERE_IDX], shape.globalIndex(), shapeIdx);
+			break;
+		case BoundingShapeType::AABB:
+			pushBatchData<BoundingShapeType::AABB>(
+				*activeCases_[AABB_IDX], shape.globalIndex(), shapeIdx);
+			break;
+		case BoundingShapeType::OBB:
+			pushBatchData<BoundingShapeType::OBB>(
+				*activeCases_[OBB_IDX], shape.globalIndex(), shapeIdx);
+			break;
+		case BoundingShapeType::FRUSTUM: [[unlikely]]
+			pushBatchData<BoundingShapeType::FRUSTUM>(
+				*activeCases_[FRUSTUM_IDX], shape.globalIndex(), shapeIdx);
+			break;
+		case BoundingShapeType::LAST: [[unlikely]]
+			break;
+	}
+}
+
+void BatchedIntersectionTest::flushAllBuffers() {
+	flushBuffer<BoundingShapeType::SPHERE>(*activeCases_[SPHERE_IDX]);
+	flushBuffer<BoundingShapeType::AABB>(*activeCases_[AABB_IDX]);
+	flushBuffer<BoundingShapeType::OBB>(*activeCases_[OBB_IDX]);
+	flushBuffer<BoundingShapeType::FRUSTUM>(*activeCases_[FRUSTUM_IDX]);
 }

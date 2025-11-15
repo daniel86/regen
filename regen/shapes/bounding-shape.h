@@ -428,7 +428,7 @@ namespace regen {
 		 * @brief Get the global batch data buffer
 		 * @return The global batch data buffer
 		 */
-		const BatchType &globalBatchData_t() const { return globalBatchData_; }
+		static const BatchType &globalBatchData_t() { return globalBatchData_; }
 
 	protected:
 		// A global contiguous buffer holding batched shape data for all instances in SOA layout.

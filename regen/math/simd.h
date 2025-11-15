@@ -46,6 +46,19 @@ namespace regen::simd {
 	inline __m256 load_ps(const float *p) { return _mm256_load_ps(p); }
 	inline __m256 loadu_ps(const float *p) { return _mm256_loadu_ps(p); }
 
+	inline __m256i load_si256(const uint16_t *p) {
+		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	}
+	inline __m256i load_si256(const uint32_t *p) {
+		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	}
+	inline __m256i load_si256(const uint64_t *p) {
+		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	}
+	inline __m256i load_si256(const int32_t *p) {
+		return _mm256_load_si256(reinterpret_cast<const __m256i*>(p));
+	}
+
 	inline __m256i loadu_si256(const uint16_t *p) {
 		return _mm256_loadu_si256(reinterpret_cast<const __m256i*>(p));
 	}
@@ -271,6 +284,18 @@ namespace regen {
 		static BatchOf_float loadUnaligned(const float *src) {
 			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			batch.c = simd::loadu_ps(src);
+			return batch;
+		}
+
+		/**
+		 * Gather load from an array of floats using SIMD indices.
+		 * @param basePtr Pointer to the base of the float array.
+		 * @param indices SIMD register containing indices to gather.
+		 * @return A BatchOf_float loaded from the gathered indices.
+		 */
+		static BatchOf_float loadGather(const float *basePtr, simd::Register_i indices) {
+			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			batch.c = simd::i32gather_ps(basePtr, indices);
 			return batch;
 		}
 
@@ -544,7 +569,7 @@ namespace regen {
 	 * SIMD batch of vec2 values.
 	 */
 	struct BatchOf_Vec2f {
-		simd::Register x, y;
+		BatchOf_float x, y;
 
 		BatchOf_Vec2f() = default;
 
@@ -554,8 +579,8 @@ namespace regen {
 		 */
 		static BatchOf_Vec2f fromScalar(const Vec2f &v) {
 			BatchOf_Vec2f b; // NOLINT(cppcoreguidelines-pro-type-member-init)
-			b.x = simd::set1_ps(v.x);
-			b.y = simd::set1_ps(v.y);
+			b.x.c = simd::set1_ps(v.x);
+			b.y.c = simd::set1_ps(v.y);
 			return b;
 		}
 
@@ -563,8 +588,8 @@ namespace regen {
 		 * Load a single Vec2f value into the batch.
 		 */
 		void loadScalar(const Vec2f &v) {
-			x = simd::set1_ps(v.x);
-			y = simd::set1_ps(v.y);
+			x.c = simd::set1_ps(v.x);
+			y.c = simd::set1_ps(v.y);
 		}
 	};
 

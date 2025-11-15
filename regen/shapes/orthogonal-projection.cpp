@@ -50,10 +50,13 @@ void OrthogonalProjection::update(const BoundingShape &shape) {
 			// sphere projection is a circle
 			type = OrthogonalProjection::Type::CIRCLE;
 			auto *sphere = static_cast<const BoundingSphere *>(&shape);
-			auto &sphereCenter = sphere->tfOrigin();
-			points[0] = Vec2f(sphereCenter.x, sphereCenter.z);
+			auto &batchData = sphere->globalBatchData_t();
+			const uint32_t batchIdx = sphere->globalIndex();
+			const float radius = batchData.radius()[batchIdx];
+			points[0].x = batchData.posX()[batchIdx];;
+			points[0].y = batchData.posZ()[batchIdx];
 			// note: second point stores the squared radius
-			points[1] = Vec2f(sphere->radiusSquared(), 0);
+			points[1].x = radius*radius;
 			break;
 		}
 		case BoundingShapeType::AABB: {

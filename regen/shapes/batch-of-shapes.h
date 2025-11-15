@@ -38,20 +38,6 @@ namespace regen {
 				}
 			}
 		}
-
-		/**
-		 * @brief Push a shape into the batch at the specified index.
-		 * Make sure the batch has enough capacity before pushing.
-		 * @param shape The shape to push into the batch.
-		 * @param localIdx The index at which to push the shape.
-		 */
-		void push(const BoundingShape &shape, uint32_t localIdx) {
-			const auto &global = shape.globalBatchData();
-			const uint32_t globalIdx = shape.globalIndex();
-			for (size_t i = 0; i < soaData_.size(); ++i) {
-				soaData_[i][localIdx] = global.soaData_[i][globalIdx];
-			}
-		}
 	};
 } // namespace
 

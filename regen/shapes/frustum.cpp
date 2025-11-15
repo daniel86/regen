@@ -197,7 +197,7 @@ void Frustum::batchTest_Spheres(BatchedIntersectionCase &td) {
 	auto *shapeData = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
-	auto *batchData = static_cast<BatchOfSpheres *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfSpheres *>(td.batchData);
 	const float *d_spherePosX = batchData->posX().data();
 	const float *d_spherePosY = batchData->posY().data();
 	const float *d_spherePosZ = batchData->posZ().data();
@@ -236,7 +236,6 @@ void Frustum::batchTest_Spheres(BatchedIntersectionCase &td) {
 
 	// Scalar fallback for remaining items
 	for (; queuedIdx < numQueued; queuedIdx++) {
-		auto itemIdx = td.queuedIndices[queuedIdx];
 		bool isOutside = false;
 		for (int p = 0; p < NUM_FRUSTUM_PLANES && !isOutside; ++p) {
 			// tmp = n(dot)p + r
@@ -249,7 +248,7 @@ void Frustum::batchTest_Spheres(BatchedIntersectionCase &td) {
 			isOutside = (n_dot_p < shapeData->planes[p].w);
 		}
 		if (!isOutside) {
-			td.hits->push(itemIdx);
+			td.hits->push(td.queuedIndices[queuedIdx]);
 		}
 	}
 }
@@ -285,7 +284,7 @@ void Frustum::batchTest_AABBs(BatchedIntersectionCase &td) {
 	auto *shapeData = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
-	auto *batchData = static_cast<BatchOfAABBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfAABBs *>(td.batchData);
 	const float *d_aabbMinX = batchData->minX().data();
 	const float *d_aabbMinY = batchData->minY().data();
 	const float *d_aabbMinZ = batchData->minZ().data();
@@ -331,7 +330,6 @@ void Frustum::batchTest_AABBs(BatchedIntersectionCase &td) {
 
 	// Scalar fallback for remaining items
 	for (; queuedIdx < numQueued; queuedIdx++) {
-		auto itemIdx = td.queuedIndices[queuedIdx];
 		bool isOutside = false;
 		for (unsigned int p = 0u; p < NUM_FRUSTUM_PLANES && !isOutside; ++p) {
 			// Select vertex farthest from the plane in direction of the plane normal.
@@ -348,7 +346,7 @@ void Frustum::batchTest_AABBs(BatchedIntersectionCase &td) {
 			isOutside = (n_dot_p < shapeData->planes[p].w);
 		}
 		if (!isOutside) {
-			td.hits->push(itemIdx);
+			td.hits->push(td.queuedIndices[queuedIdx]);
 		}
 	}
 }
@@ -375,14 +373,14 @@ void Frustum::batchTest_OBBs(BatchedIntersectionCase &td) {
 	auto *frustum = static_cast<IntersectionData_Frustum *>(td.shapeData);
 	const auto numQueued = static_cast<int32_t>(td.numQueued);
 
-	auto *batchData = static_cast<BatchOfOBBs *>(td.batchData);
+	auto *batchData = static_cast<const BatchOfOBBs *>(td.batchData);
 	const float *d_obbCenterX = batchData->centerX().data();
 	const float *d_obbCenterY = batchData->centerY().data();
 	const float *d_obbCenterZ = batchData->centerZ().data();
 	const float *d_obbHalfSizeX = batchData->halfSizeX().data();
 	const float *d_obbHalfSizeY = batchData->halfSizeY().data();
 	const float *d_obbHalfSizeZ = batchData->halfSizeZ().data();
-	std::array<BatchOfOBBs::AxisBatch, 3> d_axes = batchData->axes();
+	auto d_axes = batchData->axes();
 
 	int32_t queuedIdx = 0;
 	for (; queuedIdx + simd::RegisterWidth <= numQueued; queuedIdx += simd::RegisterWidth) {
@@ -409,7 +407,7 @@ void Frustum::batchTest_OBBs(BatchedIntersectionCase &td) {
 			// Accumulate projected radius from each OBB axis
 			for (uint32_t axisIdx=0u; axisIdx < 3u; ++axisIdx) {
 				// Load axis into SIMD registers
-				const BatchOfOBBs::AxisBatch &axisBatch = d_axes[axisIdx];
+				const auto &axisBatch = d_axes[axisIdx];
 				const BatchOf_float axisX = BatchOf_float::loadAligned(axisBatch.x.data() + queuedIdx);
 				const BatchOf_float axisY = BatchOf_float::loadAligned(axisBatch.y.data() + queuedIdx);
 				const BatchOf_float axisZ = BatchOf_float::loadAligned(axisBatch.z.data() + queuedIdx);
