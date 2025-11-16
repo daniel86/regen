@@ -17,6 +17,9 @@ IndexedShape::IndexedShape(
 	const uint32_t L = camera_->numLayer();
 	tmp_layerVisibility_.resize(L, false);
 	visible_.resize(L, true);
+	// remember LOD thresholds
+	const ref_ptr<Mesh> &mesh = shape->baseMesh();
+	lodThresholds_ = mesh->lodThresholds();
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapInstanceIDs(int mapMode) {

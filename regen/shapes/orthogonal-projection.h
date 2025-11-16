@@ -18,7 +18,6 @@ namespace regen {
 		enum Type {
 			CIRCLE = 0,
 			RECTANGLE,
-			TRIANGLE,
 			CONVEX_HULL
 		};
 

@@ -145,9 +145,6 @@ namespace regen {
 		void debugDraw(DebugInterface &debug) const override;
 
 	protected:
-		struct Private;
-		Private *priv_;
-
 		uint32_t subdivisionThreshold_ = 4;
 		uint32_t traversalBit_ = BoundingShape::TRAVERSAL_BIT_DRAW;
 
@@ -202,6 +199,10 @@ namespace regen {
 		unsigned int numShapes() const;
 
 		friend class QuadTreeTest;
+
+	private:
+		struct Private;
+		Private *priv_;
 	};
 } // namespace
 

@@ -81,9 +81,7 @@ LODState::LODState(
 void LODState::initLODState() {
 	numLODs_ = 1;
 	if (shapeIndex_.get()) {
-		if (shapeIndex_->shape()->mesh().get()) {
-			numLODs_ = std::max(shapeIndex_->shape()->mesh()->numLODs(), numLODs_);
-		}
+		numLODs_ = std::max(shapeIndex_->numLODs(), numLODs_);
 	}
 	if (cullShape_.get()) {
 		for (auto &part : cullShape_->parts()) {
@@ -413,10 +411,11 @@ void LODState::traverseCPU() {
 	if (hasVisibleInstance_) {
 		if (cullShape_->numInstances() == 1) {
 			if (mesh_.get()) {
+				auto &tfOrigin = shapeIndex_->shape().tfOrigin();
 				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 					if (!shapeIndex_->isVisibleInLayer(layerIdx)) continue;
 					const Vec3f *camPos = getCameraPosition(shapeIndex_->sortCamera(), layerIdx);
-					const float distance = (shapeIndex_->shape()->tfOrigin() - *camPos).lengthSquared();
+					const float distance = (tfOrigin - *camPos).lengthSquared();
 					const uint32_t activeLOD = mesh_->getLODLevel(distance, shapeIndex_->lodShift());
 
 					updateVisibility(layerIdx, activeLOD, 1, 0);

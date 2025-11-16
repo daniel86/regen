@@ -97,8 +97,8 @@ namespace regen {
 }
 
 QuadTree::QuadTree()
-		: priv_(new Private()),
-		  newBounds_(Bounds<Vec2f>::create(0, 0)) {
+		: newBounds_(Bounds<Vec2f>::create(0, 0)),
+		  priv_(new Private()) {
 }
 
 QuadTree::~QuadTree() {
@@ -801,23 +801,27 @@ void QuadTree::Private::processLeafNode(QuadTreeTraversal &td, Node *leaf) {
 
 template <QuadTree::TestMode_3D TestMode3D>
 void QuadTree::Private::updateIntersections(QuadTreeTraversal &td, const OrthogonalProjection &projection) {
-	if (projection.type == OrthogonalProjection::Type::CIRCLE) {
-		intersectionLoop_sphere<TestMode3D>(td);
-	} else {
-		// call the templated intersection loop function with the number of axes
-		// as template parameter.
-		switch (const size_t numAxes = projection.axes.size()) {
-			case 4: intersectionLoop<4,TestMode3D>(td); break;
-			case 5: intersectionLoop<5,TestMode3D>(td); break;
+	switch (projection.type) {
+		case OrthogonalProjection::Type::CIRCLE: [[unlikely]]
+			intersectionLoop_sphere<TestMode3D>(td);
+			break;
+		case OrthogonalProjection::Type::RECTANGLE:
+			intersectionLoop<4,TestMode3D>(td);
+			break;
+		case OrthogonalProjection::Type::CONVEX_HULL: [[likely]]
+			switch (projection.axes.size()) {
+			case 4: [[unlikely]] intersectionLoop<4,TestMode3D>(td); break;
+			case 5: [[unlikely]] intersectionLoop<5,TestMode3D>(td); break;
 			case 6: intersectionLoop<6,TestMode3D>(td); break;
-			case 7: intersectionLoop<7,TestMode3D>(td); break;
-			case 8: intersectionLoop<8,TestMode3D>(td); break;
-			case 9: intersectionLoop<9,TestMode3D>(td); break;
+			case 7: [[likely]] intersectionLoop<7,TestMode3D>(td); break;
+			case 8: [[likely]] intersectionLoop<8,TestMode3D>(td); break;
+			case 9: [[likely]] intersectionLoop<9,TestMode3D>(td); break;
 			case 10: intersectionLoop<10,TestMode3D>(td); break;
 			default:
-				REGEN_ERROR("unsupported number of axes for intersection test: " << numAxes);
-				break;
-		}
+					REGEN_ERROR("unsupported number of axes for intersection test: " << projection.axes.size());
+					break;
+			}
+			break;
 	}
 }
 
@@ -885,17 +889,14 @@ HitBuffer& QuadTree::foreachIntersection(const BoundingShape &shape, uint32_t ma
 	priv_->addNodeToQueue(td, td.queuedNodes_[td.nextIdx_], root_, td.numQueuedItems_++);
 
 	switch (testMode3D_) {
-		case QUAD_TREE_3D_TEST_NONE:
+		case QUAD_TREE_3D_TEST_NONE: [[unlikely]]
 			priv_->updateIntersections<QUAD_TREE_3D_TEST_NONE>(td, projection);
 			break;
 		case QUAD_TREE_3D_TEST_ALL:
 			priv_->updateIntersections<QUAD_TREE_3D_TEST_ALL>(td, projection);
 			break;
-		case QUAD_TREE_3D_TEST_CLOSEST:
+		case QUAD_TREE_3D_TEST_CLOSEST: [[likely]]
 			priv_->updateIntersections<QUAD_TREE_3D_TEST_CLOSEST>(td, projection);
-			break;
-		default:
-			REGEN_ERROR("invalid 3D test mode");
 			break;
 	}
 	if constexpr (QUAD_TREE_3D_BATCHING) {

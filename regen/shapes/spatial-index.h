@@ -142,7 +142,7 @@ namespace regen {
 				const ref_ptr<Camera> &cullCamera,
 				const ref_ptr<Camera> &sortCamera,
 				SortMode sortMode,
-				Vec4i lodShift);
+				const Vec4i &lodShift);
 
 		/**
 		 * @brief Check if the index has a camera
@@ -166,7 +166,7 @@ namespace regen {
 		 * @param shapeID The shape ID
 		 * @return The number of instances
 		 */
-		GLuint numInstances(std::string_view shapeID) const;
+		uint32_t numInstances(std::string_view shapeID) const;
 
 		/**
 		 * @brief Get the shape with a given ID

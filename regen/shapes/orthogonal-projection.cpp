@@ -5,7 +5,6 @@
 #include "frustum.h"
 #include "obb.h"
 
-#define FRUSTUM_TRIANGLE_TOLERANCE 0.75
 #define FRUSTUM_USE_CONVEX_HULL
 
 using namespace regen;

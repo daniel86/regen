@@ -146,6 +146,7 @@ template <BoundingShapeType BatchType> void copyBatchData(BatchedIntersectionCas
 			}
 		}
 
+		// Copy all shape data arrays
 		for (int i = 0; i < NUM; ++i) {
 			ld[i][localIdx] = gl[i][globalIdx];
 		}

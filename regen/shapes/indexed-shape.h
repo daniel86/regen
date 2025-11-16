@@ -102,7 +102,7 @@ namespace regen {
 		 * \brief Get the shape
 		 * \return The shape
 		 */
-		auto &shape() const { return shape_; }
+		BoundingShape &shape() const { return *shape_.get(); }
 
 		/**
 		 * \brief Get the bounding shape for a given instance
@@ -135,6 +135,11 @@ namespace regen {
 		 */
 		const Vec4i &lodShift() const { return lodShift_; }
 
+		/**
+		 * @return The LOD thresholds for this indexed shape
+		 */
+		const Vec3f &lodThresholds() const { return lodThresholds_; }
+
 	protected:
 		ref_ptr<Camera> camera_;
 		ref_ptr<Camera> sortCamera_;
@@ -142,6 +147,7 @@ namespace regen {
 		std::vector<ref_ptr<BoundingShape>> boundingShapes_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 		Vec4i lodShift_ = Vec4i::zero();
+		Vec3f lodThresholds_ = Vec3f(40.0f, 80.0f, 160.0f);
 		uint32_t numLODs_;
 
 		ref_ptr<ShaderInput> idVec_;
