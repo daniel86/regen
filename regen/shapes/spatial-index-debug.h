@@ -2,6 +2,9 @@
 #define REGEN_SPATIAL_INDEX_DEBUG_H
 
 #include <regen/states/state-node.h>
+
+#include "aabb.h"
+#include "obb.h"
 #include "regen/shader/shader-state.h"
 #include "regen/states/state-configurer.h"
 #include "spatial-index.h"
@@ -18,7 +21,11 @@ namespace regen {
 		// DebugInterface interface
 		void drawCircle(const Vec3f &center, float radius, const Vec3f &color) override;
 
-		void drawBox(const BoundingBox &box);
+		void drawBox(const AABB &box);
+
+		void drawBox(const OBB &box);
+
+		void drawBox(const Vec3f *boxVertices);
 
 		void drawSphere(const BoundingSphere &sphere);
 

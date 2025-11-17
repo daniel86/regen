@@ -15,6 +15,7 @@ namespace regen {
 		IndexedShape(
 			const ref_ptr <Camera> &camera,
 			const ref_ptr <Camera> &sortCamera,
+			const Vec4i &lodShift,
 			const ref_ptr <BoundingShape> &shape);
 
 		~IndexedShape() = default;
@@ -25,19 +26,45 @@ namespace regen {
 		 * of all parts is returned.
 		 * \return The number of LODs
 		 */
-		inline uint32_t numLODs() const { return numLODs_; }
+		uint32_t numLODs() const { return numLODs_; }
+
+		/**
+		 * \brief Get the shape index
+		 * \return The shape index
+		 */
+		uint32_t shapeIdx() const { return shapeIdx_; }
+
+		/**
+		 * \bried Get the global base instance index for this shape
+		 * @return The global base instance index
+		 */
+		uint32_t globalBase() const { return globalBase_; }
 
 		/**
 		 * \brief Check if the shape is visible
 		 * \return True if the shape is visible, false otherwise
 		 */
-		inline bool isVisibleInLayer(uint32_t layerIdx) const { return visible_[layerIdx]; }
+		bool isVisibleInLayer(uint32_t layerIdx) const { return visible_[layerIdx]; }
 
 		/**
 		 * \brief Check if the shape is visible in any layer
 		 * \return True if the shape is visible in any layer, false otherwise
 		 */
-		inline bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_; }
+		bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_; }
+
+		/**
+		 * \brief Add a visible instance for the shape
+		 * \param layerIdx The layer index
+		 * \param binIdx The bin index (lod * numLayers + layer)
+		 */
+		void addVisibleInstance(uint32_t layerIdx, uint32_t binIdx) {
+			// Total visibility count of the shape across all layers
+			tmp_totalCount_ += 1;
+			// toggle visibility for this layer
+			tmp_layerVisibility_[layerIdx] = true;
+			// Finally bin the shape into the (lod, layer) bin
+			tmp_binCounts_[binIdx] += 1;
+		}
 
 		/**
 		 * \brief Map the instance IDs for the shape
@@ -76,7 +103,7 @@ namespace regen {
 		 * \brief Get the shape
 		 * \return The shape
 		 */
-		auto &shape() const { return shape_; }
+		BoundingShape &shape() const { return *shape_.get(); }
 
 		/**
 		 * \brief Get the bounding shape for a given instance
@@ -98,16 +125,9 @@ namespace regen {
 		SortMode instanceSortMode() const { return instanceSortMode_; }
 
 		/**
-		 * Get the LOD shift vector, will be added to the computed LOD levels.
-		 * @param shift The LOD shift vector to set
+		 * @return The LOD thresholds for this indexed shape
 		 */
-		void setLODShift(const Vec4i &shift) { lodShift_ = shift; }
-
-		/**
-		 * Get the LOD shift for this indexed shape
-		 * @return The LOD shift vector
-		 */
-		const Vec4i &lodShift() const { return lodShift_; }
+		const Vec3f &lodThresholds() const { return lodThresholds_; }
 
 	protected:
 		ref_ptr<Camera> camera_;
@@ -116,6 +136,7 @@ namespace regen {
 		std::vector<ref_ptr<BoundingShape>> boundingShapes_;
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 		Vec4i lodShift_ = Vec4i::zero();
+		Vec3f lodThresholds_ = Vec3f(40.0f, 80.0f, 160.0f);
 		uint32_t numLODs_;
 
 		ref_ptr<ShaderInput> idVec_;
@@ -130,13 +151,15 @@ namespace regen {
 		// used during traversal only.
 		std::vector<bool> tmp_layerVisibility_;
 		// per (lod, layer) data flattened as lod * numLayers + layer
-		std::vector<uint32_t> tmp_binCounts_;   // size = numLODs * numLayers
-		std::vector<uint32_t> tmp_binBase_;     // size = numLODs * numLayers
+		uint32_t *tmp_binCounts_ = nullptr;   // size = numLODs * numLayers
+		uint32_t *tmp_binBase_ = nullptr;;    // size = numLODs * numLayers
 		uint32_t tmp_totalCount_ = 0;
 		// The index of this shape in the camera's shape list.
 		// Here we limit to max 65536 shapes per camera for sorting key packing,
 		// however instances are not counted as individual shapes.
 		uint16_t shapeIdx_ = 0;
+		// The base index for this shape's instances in the camera's instance list.
+		uint32_t globalBase_ = 0;
 
 		struct MappedData {
 			explicit MappedData(

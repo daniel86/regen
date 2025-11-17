@@ -73,7 +73,7 @@ namespace regen {
 		Vec2f mapCenter_ = Vec2f(0.0f);
 		Vec2f mapSize_ = Vec2f(10.0f);
 		float mapFactor_ = 8.0f;
-		Bounds<Vec2f> mapBounds_ = Bounds<Vec2f>(Vec2f(-1.0f), Vec2f(1.0f));
+		Bounds<Vec2f> mapBounds_ = Bounds<Vec2f>::create(Vec2f(-1.0f), Vec2f(1.0f));
 	};
 } // namespace
 

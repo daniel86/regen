@@ -1,7 +1,10 @@
 #include "bounding-shape.h"
+
+#include "aabb.h"
 #include "bounding-sphere.h"
 #include "bounding-box.h"
 #include "frustum.h"
+#include "obb.h"
 #include "regen/objects/mesh.h"
 
 using namespace regen;
@@ -75,13 +78,12 @@ bool BoundingShape::updateGeometry() {
 	}
 }
 
-const OrthogonalProjection& BoundingShape::getOrthogonalProjection() const {
-	if (!orthoProjection_.get()) {
+void BoundingShape::updateOrthogonalProjection() {
+	if (!orthoProjection_) {
 		orthoProjection_ = ref_ptr<OrthogonalProjection>::alloc(*this);
 	} else {
 		orthoProjection_->update(*this);
 	}
-	return *orthoProjection_.get();
 }
 
 void BoundingShape::setBaseOffset(const Vec3f &offset) {
@@ -93,10 +95,6 @@ void BoundingShape::setBaseOffset(const Vec3f &offset) {
 	}
 }
 
-uint32_t BoundingShape::numInstances() const {
-	return transform_.get() ? transform_->numInstances() : 1u;
-}
-
 uint32_t BoundingShape::tfStamp() const {
 	return (this->*stampFun_)();
 }
@@ -105,6 +103,7 @@ void BoundingShape::setTransform(const ref_ptr<ModelTransformation> &transform, 
 	transform_ = transform;
 	localTransform_ = Mat4f::identity();
 	transformIndex_ = instanceIndex;
+	numInstances_ = transform_->numInstances();
 	updateStampFunction();
 }
 
@@ -114,6 +113,7 @@ void BoundingShape::setTransform(const Mat4f &localTransform) {
 		localStamp_.store(transform_->stamp() + 1u, std::memory_order_relaxed);
 		transform_ = {};
 		transformIndex_ = 0;
+		numInstances_ = 1u;
 	} else {
 		localStamp_.fetch_add(1u, std::memory_order_relaxed);
 	}
@@ -131,33 +131,62 @@ bool BoundingShape::hasIntersectionWith(const BoundingShape &other) const {
 	switch (shapeType()) {
 		case BoundingShapeType::SPHERE:
 			switch (other.shapeType()) {
-				case BoundingShapeType::SPHERE:
+			case BoundingShapeType::SPHERE:
 					return ((const BoundingSphere &) *this).hasIntersectionWithSphere((const BoundingSphere &) other);
-				case BoundingShapeType::BOX:
-					return ((const BoundingSphere &) *this).hasIntersectionWithShape((const BoundingBox &) other);
-				case BoundingShapeType::FRUSTUM:
+			case BoundingShapeType::AABB:
+					return ((const BoundingSphere &) *this).hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const BoundingSphere &) *this).hasIntersectionWithOBB((const OBB &) other);
+			case BoundingShapeType::FRUSTUM:
 					return ((const Frustum &) other).hasIntersectionWithSphere((const BoundingSphere &) *this);
+			case BoundingShapeType::LAST:
+					return false;
 			}
 
-		case BoundingShapeType::BOX:
+		case BoundingShapeType::AABB:
 			switch (other.shapeType()) {
-				case BoundingShapeType::SPHERE:
-					return ((const BoundingSphere &) other).hasIntersectionWithShape(*this);
-				case BoundingShapeType::BOX:
-					return ((const BoundingBox &) *this).hasIntersectionWithBox((const BoundingBox &) other);
-				case BoundingShapeType::FRUSTUM:
-					return ((const Frustum &) other).hasIntersectionWithBox((const BoundingBox &) *this);
+			case BoundingShapeType::SPHERE:
+					return ((const BoundingSphere &) other).hasIntersectionWithAABB((const AABB &) *this);
+			case BoundingShapeType::AABB:
+					return ((const AABB &) *this).hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const OBB &) other).hasIntersectionWithAABB((const AABB &) *this);
+			case BoundingShapeType::FRUSTUM:
+					return ((const Frustum &) other).hasIntersectionWithAABB((const AABB &) *this);
+			case BoundingShapeType::LAST:
+					return false;
+			}
+
+		case BoundingShapeType::OBB:
+			switch (other.shapeType()) {
+			case BoundingShapeType::SPHERE:
+					return ((const BoundingSphere &) other).hasIntersectionWithOBB((const OBB &) *this);
+			case BoundingShapeType::AABB:
+					return ((const OBB &) *this).hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const OBB &) *this).hasIntersectionWithOBB((const OBB &) other);
+			case BoundingShapeType::FRUSTUM:
+					return ((const Frustum &) other).hasIntersectionWithOBB((const OBB &) *this);
+			case BoundingShapeType::LAST:
+					return false;
 			}
 
 		case BoundingShapeType::FRUSTUM:
 			switch (other.shapeType()) {
-				case BoundingShapeType::SPHERE:
+			case BoundingShapeType::SPHERE:
 					return ((const Frustum *) this)->hasIntersectionWithSphere((const BoundingSphere &) other);
-				case BoundingShapeType::BOX:
-					return ((const Frustum *) this)->hasIntersectionWithBox((const BoundingBox &) other);
-				case BoundingShapeType::FRUSTUM:
+			case BoundingShapeType::AABB:
+					return ((const Frustum *) this)->hasIntersectionWithAABB((const AABB &) other);
+			case BoundingShapeType::OBB:
+					return ((const Frustum *) this)->hasIntersectionWithOBB((const OBB &) other);
+			case BoundingShapeType::FRUSTUM:
 					return ((const Frustum *) this)->hasIntersectionWithFrustum((const Frustum &) other);
+			case BoundingShapeType::LAST:
+					return false;
 			}
+
+		case BoundingShapeType::LAST:
+			return false;
 	}
 	return false;
 }

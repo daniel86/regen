@@ -50,6 +50,7 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 		  meshLODs_(sourceMesh->meshLODs_),
 		  v_lodThresholds_(sourceMesh->v_lodThresholds_),
 		  lodLevel_(sourceMesh->lodLevel_),
+		  numLODs_(sourceMesh->numLODs_),
 		  cullShape_(sourceMesh->cullShape_),
 		  boundingShape_(sourceMesh->boundingShape_),
 		  shapeType_(sourceMesh->shapeType_),
@@ -66,7 +67,7 @@ Mesh::Mesh(const ref_ptr<Mesh> &sourceMesh)
 	vao_ = ref_ptr<VAO>::alloc();
 	sourceMesh_->meshViews_.insert(this);
 	lodThresholds_ = ref_ptr<ShaderInput3f>::alloc("lodThresholds");
-	lodThresholds_->setUniformData(sourceMesh->lodThresholds()->getVertex(0).r);
+	lodThresholds_->setUniformData(sourceMesh->u_lodThresholds()->getVertex(0).r);
 	// create copies of LOD meshes
 	for (auto & lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
@@ -114,6 +115,8 @@ ref_ptr<BufferReference> Mesh::updateVertexData() {
 	if (!attributes.empty()) {
 		ref = vertexBuffer_->alloc(attributes);
 	}
+	// update number of LODs
+	numLODs_ = static_cast<uint32_t>(meshLODs_.size());
 	return ref;
 }
 
@@ -461,6 +464,7 @@ void Mesh::updateVAO_() {
 	}
 #endif
 	lastNumVertices_ = numVertices();
+	numLODs_ = static_cast<uint32_t>(meshLODs_.size());
 
 	// initialize num visible instances and offsets for all LODs
 	resetVisibility();
@@ -494,27 +498,10 @@ void Mesh::updateDrawFunction() {
 	}
 }
 
-uint32_t Mesh::numLODs() const {
-	return meshLODs_.empty() ? 1u : meshLODs_.size();
-}
-
 uint32_t Mesh::getLODLevel(float distanceSquared, const Vec4i &lodShift) const {
 	int32_t lod = (distanceSquared >= v_lodThresholds_.x)
 		+ (distanceSquared >= v_lodThresholds_.y)
 		+ (distanceSquared >= v_lodThresholds_.z);
-#if 0
-		do {
-			partLODLevel = getPartLOD(u_shiftedLOD, part->numLODs());
-			partLOD = &part->meshLODs()[partLODLevel];
-			if (u_shiftedLOD == lodLevel || u_shiftedLOD == 0u || partLODLevel == 0) { break; }
-			if (partLOD->impostorMesh.get() && u_shiftedLOD != lodLevel) {
-				// avoid shifting to impostor mesh LODs
-				u_shiftedLOD--;
-			} else {
-				break;
-			}
-		} while(1);
-#endif
 	return std::min(
 		static_cast<uint32_t>(std::max(lod+lodShift[lod], 0)),
 		numLODs() - 1);
@@ -535,6 +522,7 @@ void Mesh::setLODThresholds(const Vec3f &thresholds) {
 
 void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
 	meshLODs_ = meshLODs;
+	numLODs_ = static_cast<uint32_t>(meshLODs_.size());
 	for (auto &lod : meshLODs_) {
 		if (lod.impostorMesh.get()) {
 			if (material_.get()) {
@@ -559,6 +547,7 @@ void Mesh::setMeshLODs(const std::vector<MeshLOD> &meshLODs) {
 void Mesh::addMeshLOD(const MeshLOD &meshLOD) {
 	ensureLOD();
 	meshLODs_.push_back(meshLOD);
+	numLODs_ = static_cast<uint32_t>(meshLODs_.size());
 	if (meshLOD.impostorMesh.get()) {
 		if (material_.get()) {
 			meshLOD.impostorMesh->setMaterial(material_);
@@ -585,6 +574,7 @@ void Mesh::ensureLOD() {
 			vertexOffset(),
 			numIndices(),
 			indexOffset());
+		numLODs_ = 1;
 	}
 }
 
@@ -598,12 +588,8 @@ void Mesh::activateLOD(uint32_t lodLevel) {
 }
 
 void Mesh::activateLOD_(uint32_t lodLevel) {
-	auto n = numLODs();
-	if (n <= lodLevel) {
-		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << n);
-		return;
-	}
-	if (meshLODs_.empty()) { return; }
+	// assert(numLODs() <= lodLevel);
+	// assert(!meshLODs_.empty());
 	auto &lod = meshLODs_[lodLevel];
 	// set the LOD level
 	*lodLevel_.get() = lodLevel;
@@ -626,7 +612,7 @@ void Mesh::activateLOD_(uint32_t lodLevel) {
 }
 
 void Mesh::resetVisibility(bool resetToInvisible) {
-	if (meshLODs_.empty()) return;
+	// assert(!meshLODs_.empty());
 	// reset visibility for all LODs
 	for (auto &lod : meshLODs_) {
 		lod.d->numVisibleInstances = 0;
@@ -646,12 +632,8 @@ void Mesh::resetVisibility(bool resetToInvisible) {
 }
 
 void Mesh::updateVisibility(uint32_t lodLevel, uint32_t numInstances, uint32_t instanceOffset) {
-	const uint32_t n = numLODs();
-	if (n <= lodLevel) {
-		REGEN_WARN("LOD level " << lodLevel << " not available num LODs: " << n);
-		return;
-	}
-	if (meshLODs_.empty()) { return; }
+	// assert(numLODs() <= lodLevel);
+	// assert(!meshLODs_.empty());
 	auto &lod = meshLODs_[lodLevel];
 	lod.d->numVisibleInstances = numInstances;
 	lod.d->instanceOffset = instanceOffset;
@@ -679,18 +661,17 @@ void Mesh::setIndirectDrawBuffer(
 }
 
 void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
-	const uint32_t numLODs = this->numLODs();
-	auto &partLODs = meshLODs();
-	std::vector<DrawCommand> drawData(numLODs * numDrawLayers);
 	ensureLOD();
+	numLODs_ = meshLODs_.size();
+	std::vector<DrawCommand> drawData(numLODs_ * numDrawLayers);
 
 	// Create the indirect draw data for this part and the first layer.
 	// DrawID order: LOD0_layer0, LOD0_layer1, LOD0_layer2, ...
 	// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
-	for (uint32_t lodIdx = 0; lodIdx < numLODs; ++lodIdx) {
+	for (uint32_t lodIdx = 0; lodIdx < numLODs_; ++lodIdx) {
 		const uint32_t lodStartIdx = lodIdx * numDrawLayers;
 		DrawCommand &drawParams = drawData[lodStartIdx];
-		auto &lodData = partLODs[lodIdx];
+		auto &lodData = meshLODs_[lodIdx];
 
 		Mesh *m = lodData.impostorMesh.get() ? lodData.impostorMesh.get() : this;
 		if (m->indices().get()) {
@@ -720,7 +701,7 @@ void Mesh::createIndirectDrawBuffer(uint32_t numDrawLayers) {
 	indirectDrawBuffer_ = ref_ptr<DrawIndirectBuffer>::alloc(
 			"IndirectDrawBuffer", BufferUpdateFlags::FULL_RARELY);
 	auto input = ref_ptr<ShaderInputStruct<DrawCommand>>::alloc(
-			"DrawCommand", "drawParams", numLODs * numDrawLayers);
+			"DrawCommand", "drawParams", numLODs_ * numDrawLayers);
 	input->setInstanceData(1, 1, (byte*)drawData.data());
 	indirectDrawBuffer_->addStagedInput(input);
 	indirectDrawBuffer_->update();
@@ -732,12 +713,14 @@ void Mesh::setBoundingShape(const ref_ptr<BoundingShape> &shape) {
 	if (shape->shapeType() == BoundingShapeType::SPHERE) {
 		shapeType_ = 0;
 		shaderDefine("SHAPE_TYPE", "SPHERE");
-	} else if (shape->shapeType() == BoundingShapeType::BOX) {
-		auto box = (BoundingBox *) (shape.get());
-		shapeType_ = box->isAABB() ? 1 : 2;
-		shaderDefine("SHAPE_TYPE", box->isAABB() ? "AABB" : "OBB");
+	} else if (shape->shapeType() == BoundingShapeType::AABB) {
+		shapeType_ = 1;
+		shaderDefine("SHAPE_TYPE", "AABB");
+	} else if (shape->shapeType() == BoundingShapeType::OBB) {
+		shapeType_ = 2;
+		shaderDefine("SHAPE_TYPE", "OBB");
 	} else {
-		REGEN_WARN("Unsupported shape type for mesh: " << (int)shape->shapeType());
+		REGEN_WARN("Unsupported shape type for mesh: " << static_cast<int>(shape->shapeType()));
 		if(!boundingShape_.get()) createBoundingSphere();
 		return;
 	}
@@ -765,7 +748,7 @@ void Mesh::createBoundingSphere() {
 
 void Mesh::createBoundingBox(bool isOBB) {
 	// create a box shape, compute radius from bounding box
-	Bounds<Vec3f> bounds(minPosition_, maxPosition_);
+	Bounds<Vec3f> bounds = Bounds<Vec3f>::create(minPosition_, maxPosition_);
 	if (isOBB) {
 		auto box = ref_ptr<OBB>::alloc(bounds);
 		setBoundingShape(box);
@@ -875,12 +858,7 @@ void Mesh::drawMesh(RenderState *rs) {
 void Mesh::enable(RenderState *rs) {
 	State::enable(rs);
 
-	if (meshLODs_.empty()) {
-		set_multiDrawCount(numDrawLayers_);
-		drawMesh(rs);
-		set_multiDrawCount(1);
-	}
-	else if (!indirectDrawBuffer_.get() || indirectDrawGroups_.empty()) {
+	if (!indirectDrawBuffer_.get() || indirectDrawGroups_.empty()) {
 		uint32_t drawIdx = baseDrawIdx_;
 		if (lodSortMode_ == SortMode::BACK_TO_FRONT) {
 			for (uint32_t lodLevel = meshLODs_.size(); lodLevel > 0; --lodLevel) {

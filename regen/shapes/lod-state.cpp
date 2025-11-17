@@ -1,5 +1,8 @@
 #include <regen/states/state-node.h>
 #include "lod-state.h"
+
+#include "aabb.h"
+#include "obb.h"
 #include "regen/objects/composite-mesh.h"
 #include "regen/gl-types/gl-param.h"
 #include "regen/utility/conversion.h"
@@ -60,7 +63,7 @@ LODState::LODState(
 		if (camera_->fixedLODQuality() == LODQuality::HIGH) {
 			fixedLOD_ = 0u; // always use highest quality LOD
 		} else if (camera_->fixedLODQuality() == LODQuality::LOW) {
-			fixedLOD_ = mesh_->numLODs() - 1u; // always use lowest quality LOD
+			fixedLOD_ = std::max(1u,mesh_->numLODs()) - 1u; // always use lowest quality LOD
 		} else {
 			fixedLOD_ = 0u;
 			if (mesh_->numLODs() == 2) {
@@ -78,9 +81,7 @@ LODState::LODState(
 void LODState::initLODState() {
 	numLODs_ = 1;
 	if (shapeIndex_.get()) {
-		if (shapeIndex_->shape()->mesh().get()) {
-			numLODs_ = std::max(shapeIndex_->shape()->mesh()->numLODs(), numLODs_);
-		}
+		numLODs_ = std::max(shapeIndex_->numLODs(), numLODs_);
 	}
 	if (cullShape_.get()) {
 		for (auto &part : cullShape_->parts()) {
@@ -129,7 +130,7 @@ void LODState::initLODState() {
 	REGEN_INFO("Created LOD state for cull shape '"
 					   << cullShape_->shapeName()
 					   << "' with " << cullShape_->numInstances() << " instances, "
-					   << mesh_->numLODs() << " LODs, "
+					   << numLODs_ << " LODs, "
 					   << (cullShape_->isIndexShape() ? "CPU" : "GPU") << " mode.");
 }
 
@@ -203,7 +204,7 @@ void LODState::createIndirectDrawBuffers() {
 		// 				 LOD1_layer0, LOD1_layer1, LOD1_layer2, ...
 		for (uint32_t lodIdx = 0; lodIdx < numLODs_; ++lodIdx) {
 			const uint32_t layer0_idx = lodIdx * numLayers;
-			const uint32_t partLOD_idx = std::min(lodIdx, part->numLODs()-1);
+			const uint32_t partLOD_idx = std::min(lodIdx, std::max(1u,part->numLODs())-1);
 			const auto &lodData = partLODs[partLOD_idx];
 			DrawCommand &drawParams = drawData.current[layer0_idx];
 
@@ -410,12 +411,16 @@ void LODState::traverseCPU() {
 	if (hasVisibleInstance_) {
 		if (cullShape_->numInstances() == 1) {
 			if (mesh_.get()) {
+				auto &tfOrigin = shapeIndex_->shape().tfOrigin();
+				const Vec3f &lodThresholds = shapeIndex_->lodThresholds();
+
 				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 					if (!shapeIndex_->isVisibleInLayer(layerIdx)) continue;
 					const Vec3f *camPos = getCameraPosition(shapeIndex_->sortCamera(), layerIdx);
-					const float distance = (shapeIndex_->shape()->tfOrigin() - *camPos).lengthSquared();
-					const uint32_t activeLOD = mesh_->getLODLevel(distance, shapeIndex_->lodShift());
-
+					const float distance = (tfOrigin - *camPos).lengthSquared();
+					const int32_t activeLOD = (distance >= lodThresholds.x)
+						+ (distance >= lodThresholds.y)
+						+ (distance >= lodThresholds.z);
 					updateVisibility(layerIdx, activeLOD, 1, 0);
 				}
 			}
@@ -538,7 +543,7 @@ void LODState::createComputeShader() {
 			static_cast<int>(cullShape_->numInstances()),
 			static_cast<int>(camera_->frustum().size()), 1);
 		cullPass_->computeState()->setGroupSize(RADIX_GROUP_SIZE, 1, 1);
-		cullPass_->setInput(mesh_->lodThresholds());
+		cullPass_->setInput(mesh_->u_lodThresholds());
 		cullPass_->setInput(camera_->getFrustumBuffer());
 		// Note: LOD pass only writes into first buffer, we need to copy into the other buffers
 		//       in a separate pass.
@@ -552,17 +557,21 @@ void LODState::createComputeShader() {
 					"shapeRadius", sphere->radius()));
 			shaderCfg.define("SHAPE_TYPE", "SPHERE");
 		}
-		else if (boundingShape->shapeType() == BoundingShapeType::BOX) {
-			auto *box = static_cast<BoundingBox*>(boundingShape.get());
+		else if (boundingShape->shapeType() == BoundingShapeType::AABB) {
+			auto *box = static_cast<AABB*>(boundingShape.get());
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));
 			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
 					"shapeAABBMax", Vec4f(box->baseBounds().max,0.0f)));
-			if (box->isAABB()) {
-				shaderCfg.define("SHAPE_TYPE", "AABB");
-			} else {
-				shaderCfg.define("SHAPE_TYPE", "OBB");
-			}
+			shaderCfg.define("SHAPE_TYPE", "AABB");
+		}
+		else if (boundingShape->shapeType() == BoundingShapeType::OBB) {
+			auto *box = static_cast<OBB*>(boundingShape.get());
+			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
+					"shapeAABBMin", Vec4f(box->baseBounds().min,0.0f)));
+			cullPass_->setInput(createUniform<ShaderInput4f, Vec4f>(
+					"shapeAABBMax", Vec4f(box->baseBounds().max,0.0f)));
+			shaderCfg.define("SHAPE_TYPE", "OBB");
 		}
 		auto &tf = cullShape_->boundingShape()->transform();
 		if (tf.get()) {

@@ -6,9 +6,14 @@
 #include <regen/shapes/spatial-index.h>
 #include <regen/shapes/bounds.h>
 #include <regen/shapes/orthogonal-projection.h>
+
+#include "batched-intersection.h"
 #include "regen/utility/aligned-array.h"
 
 namespace regen {
+	// forward declaration of QuadTreeTraversal
+	struct QuadTreeTraversal;
+
 	/**
 	 * A quad tree data structure for spatial indexing.
 	 * It fits the scene into a quad which it subdivides at places where
@@ -18,19 +23,6 @@ namespace regen {
 	public:
 		// forward declaration of Node
 		struct Node;
-		/**
-		 * An item in the quad tree, i.e. a shape with its orthogonal projection.
-		 * Each item appears in the smallest node that fully contains it.
-		 */
-		struct Item {
-			ref_ptr<BoundingShape> shape;
-			OrthogonalProjection projection;
-			Node *node = nullptr;
-			// the position in the shape array of the node if any
-			uint32_t idxInNode = 0;
-
-			explicit Item(const ref_ptr<BoundingShape> &shape);
-		};
 
 		/**
 		 * A node in the quad tree.
@@ -39,6 +31,7 @@ namespace regen {
 		 */
 		struct Node {
 			Bounds<Vec2f> bounds;
+			Vec2f center;
 			int32_t parentIdx = -1;
 			int32_t childrenIdx[4];
 			uint32_t nodeIdx = 0;
@@ -98,6 +91,12 @@ namespace regen {
 		void setMinNodeSize(float size) { minNodeSize_ = size; }
 
 		/**
+		 * @brief Set the batch size for 3D intersection tests
+		 * @param size The batch size
+		 */
+		void setBatchSize3D(uint32_t size) { batchSize3D_ = size; }
+
+		/**
 		 * @brief Set the subdivision threshold, i.e. the maximum number of shapes
 		 * a node can contain before it is subdivided.
 		 * @param threshold The subdivision threshold
@@ -140,35 +139,38 @@ namespace regen {
 		int numIntersections(const BoundingShape &shape, uint32_t traversalBit) override;
 
 		// override SpatialIndex::foreachIntersection
-		void foreachIntersection(
-				const BoundingShape &shape,
-				void (*callback)(const BoundingShape&, void*),
-				void *userData,
-				uint32_t traversalBit) override;
+		HitBuffer& foreachIntersection(const BoundingShape &shape, uint32_t mask) override;
 
 		// override SpatialIndex
 		void debugDraw(DebugInterface &debug) const override;
 
 	protected:
-		struct Private;
-		Private *priv_;
-
 		uint32_t subdivisionThreshold_ = 4;
 		uint32_t traversalBit_ = BoundingShape::TRAVERSAL_BIT_DRAW;
 
 		std::vector<Node*> nodes_;
-		std::vector<Item *> items_;
-		std::vector<Item *> newItems_;
+		std::vector<int32_t> itemNodeIdx_;
+		std::vector<uint32_t> itemIdxInNode_;
 		std::stack<Node *> nodePool_;
-		std::stack<Item *> itemPool_;
 		Node *root_ = nullptr;
+
+		struct Item {
+			ref_ptr<BoundingShape> shape;
+			Node *node = nullptr;
+			uint32_t idxInNode = 0;
+			explicit Item(const ref_ptr<BoundingShape> &shape);
+		};
+		std::vector<Item *> newItems_;
+		std::stack<Item *> itemPool_;
 
 		std::unordered_map<const BoundingShape*, uint32_t> shapeToItem_;
 		float minNodeSize_ = 0.1f;
 		uint32_t numNodes_ = 0;
 		uint32_t numLeaves_ = 0;
+		uint32_t nextBufferSize_ = 0;
 
 		TestMode_3D testMode3D_ = QUAD_TREE_3D_TEST_CLOSEST;
+		uint32_t batchSize3D_ = 2048u;
 		float closeDistanceSquared_ = 20.0f * 20.0f; // heuristic threshold for distance to camera position
 
 		Bounds<Vec2f> newBounds_;
@@ -197,6 +199,10 @@ namespace regen {
 		unsigned int numShapes() const;
 
 		friend class QuadTreeTest;
+
+	private:
+		struct Private;
+		Private *priv_;
 	};
 } // namespace
 

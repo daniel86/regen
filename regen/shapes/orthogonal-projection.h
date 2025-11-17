@@ -18,7 +18,6 @@ namespace regen {
 		enum Type {
 			CIRCLE = 0,
 			RECTANGLE,
-			TRIANGLE,
 			CONVEX_HULL
 		};
 
@@ -41,6 +40,10 @@ namespace regen {
 		std::vector<Vec2f> tmpPoints;
 
 		void createConvexHull(const Vec3f *inputPoints, uint32_t numPoints);
+
+		void createRectangle_OBB(const BoundingShape &obb);
+
+		void createRectangle_AABB(const BoundingShape &obb);
 	};
 }
 

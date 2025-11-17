@@ -24,7 +24,7 @@ BBoxBuffer::BBoxBuffer(
 		const Bounds<Vec3f> &initialBounds,
 		const std::string &name) :
 	SSBO(name, BufferUpdateFlags::FULL_PER_FRAME),
-	bbox_(initialBounds.min, initialBounds.max)
+	bbox_(Bounds<Vec3f>::create(initialBounds.min, initialBounds.max))
 {
 	// The parameters of our bounding box buffer or the boundaries encoded as integers.
 	// Integers are used for atomic operations in the compute shader.

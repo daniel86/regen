@@ -1,12 +1,5 @@
-/*
- * plane.h
- *
- *  Created on: Oct 16, 2014
- *      Author: daniel
- */
-
-#ifndef PLANE_H_
-#define PLANE_H_
+#ifndef REGEN_PLANE_H_
+#define REGEN_PLANE_H_
 
 #include <regen/math/vector.h>
 
@@ -16,38 +9,39 @@ namespace regen {
 	 */
 	class Plane {
 	public:
-		Vec3f point;
-		Vec3f normal;
+		// the coefficients (a, b, c, d) of the plane equation ax + by + cz + d = 0.
+		Vec4f coefficients;
 
-		Plane();
-
-		Plane(const Vec3f &p, const Vec3f &n);
-
-		/**
-		 * @return the coefficients (a, b, c, d) of the plane equation ax + by + cz + d = 0.
-		 */
-		Vec4f equation() const;
+		Plane() = default;
 
 		/**
 		 * Set plane coefficients based on 3 arbitrary points on the plane.
 		 */
-		void set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2);
+		void set(const Vec3f &p0, const Vec3f &p1, const Vec3f &p2) {
+			coefficients.xyz_() = (p1 - p0).cross(p2 - p0);
+			coefficients.xyz_().normalize();
+			coefficients.w = coefficients.xyz_().dot(p0);
+		}
+
+		/**
+		 * @return Normal vector of the plane.
+		 */
+		const Vec3f& normal() const { return coefficients.xyz_(); }
 
 		/**
 		 * @return Minimum distance between this plane and a point.
 		 */
-		inline float distance(const Vec3f &p) const {
-			return normal.dot(point - p);
+		float distance(const Vec3f &p) const {
+			return normal().dot(p) - coefficients.w;
 		}
 
 		/**
 		 * @return Closest point on this plane to a point.
 		 */
-		inline Vec3f closestPoint(const Vec3f &p) const {
-			return p - normal * distance(p);
+		Vec3f closestPoint(const Vec3f &p) const {
+			return p + normal() * distance(p);
 		}
 	};
 }
 
-
-#endif /* PLANE_H_ */
+#endif /* REGEN_PLANE_H_ */

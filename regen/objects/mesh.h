@@ -5,7 +5,6 @@
 
 #include <regen/states/state.h>
 #include <regen/states/state-config.h>
-#include <regen/states/feedback-state.h>
 #include <regen/buffer/vbo.h>
 #include <regen/gl-types/vao.h>
 #include <regen/buffer/ssbo.h>
@@ -103,8 +102,10 @@ namespace regen {
 		explicit Mesh(const ref_ptr<Mesh> &meshResource);
 
 		/**
-		 * @param primitive Specifies what kind of primitives to render.
-		 * @param usage VBO usage.
+		 * Constructor.
+		 * @param primitive the GL primitive type.
+		 * @param hints buffer update hints for the vertex buffer.
+		 * @param vertexLayout layout of the vertex buffer.
 		 */
 		Mesh(GLenum primitive,
 				const BufferUpdateFlags &hints,
@@ -380,7 +381,12 @@ namespace regen {
 		/**
 		 * @return thresholds for LOD levels.
 		 */
-		const ref_ptr<ShaderInput3f>& lodThresholds() const { return lodThresholds_; }
+		const ref_ptr<ShaderInput3f>& u_lodThresholds() const { return lodThresholds_; }
+
+		/**
+		 * @return thresholds for LOD levels.
+		 */
+		const Vec3f& lodThresholds() const { return v_lodThresholds_; }
 
 		/**
 		 * Set the thresholds for LOD levels.
@@ -402,7 +408,7 @@ namespace regen {
 		/**
 		 * @return number of LODs.
 		 */
-		uint32_t numLODs() const;
+		uint32_t numLODs() const { return numLODs_; }
 
 		/**
 		 * Sets the sort mode for LOD levels, if back-to-front
@@ -438,13 +444,12 @@ namespace regen {
 		 * Assign a bounding shape to this mesh.
 		 * Optionally create a GBU buffer and attach it to the mesh.
 		 * @param shape the bounding shape.
-		 * @param uploadToGPU true if the shape should be uploaded to GPU.
 		 */
 		void setBoundingShape(const ref_ptr<BoundingShape> &shape);
 
 		/**
-		 * Set the indexed shape for this mesh.
-		 * @param shape the indexed shape.
+		 * Set the indexed shapes for this mesh.
+		 * @param shapes the indexed shapes.
 		 */
 		void setIndexedShapes(const ref_ptr<std::vector<ref_ptr<BoundingShape>>> &shapes);
 
@@ -461,7 +466,6 @@ namespace regen {
 		/**
 		 * Create a bounding sphere or box for this mesh based on the
 		 * min and max positions of vertices.
-		 * @param uploadToGPU true if the shape should be uploaded to GPU.
 		 */
 		void createBoundingSphere();
 
@@ -469,7 +473,6 @@ namespace regen {
 		 * Create a bounding box for this mesh based on the
 		 * min and max positions of vertices.
 		 * @param isOBB true if the bounding box should be an oriented bounding box.
-		 * @param uploadToGPU true if the shape should be uploaded to GPU.
 		 */
 		void createBoundingBox(bool isOBB);
 
@@ -676,6 +679,7 @@ namespace regen {
 		//       as the lod state only changes lod level of the original mesh.
 		ref_ptr<uint32_t> lodLevel_;
 		uint32_t lastNumVertices_ = 0u;
+		uint32_t numLODs_ = 1u;
 		SortMode lodSortMode_ = SortMode::FRONT_TO_BACK;
 
 		ref_ptr<State> cullShape_;

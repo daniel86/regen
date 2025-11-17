@@ -59,12 +59,17 @@ namespace regen {
 		/**
 		 * @return The stamp of the model transformation.
 		 */
-		uint32_t stamp() const;
+		uint32_t stamp() const { return tfClientBuffer_->stampOfReadData(); }
 
 		/**
-		 * @return The buffer object that contains the model transformation matrix.
+		 * @return The buffer object that contains the model transformation data.
 		 */
 		const ref_ptr<BufferContainer>& tfBuffer() const { return tfBuffer_; }
+
+		/**
+		 * @return The client buffer that contains the model transformation data.
+		 */
+		const ref_ptr<ClientBuffer>& tfClientBuffer() const { return tfClientBuffer_; }
 
 		/**
 		 * @return true if the model transformation has a model matrix.
@@ -138,6 +143,7 @@ namespace regen {
 		ref_ptr<ShaderInputMat4> modelMat_;
 		ref_ptr<ShaderInput4f> modelOffset_;
 		ref_ptr<BufferContainer> tfBuffer_;
+		ref_ptr<ClientBuffer> tfClientBuffer_;
 
 		ref_ptr<AudioSource> audioSource_;
 		boost::posix_time::ptime lastTime_ = boost::posix_time::microsec_clock::local_time();

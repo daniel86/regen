@@ -57,8 +57,30 @@ void SpatialIndexDebug::drawCircle(const Vec3f &center, float radius, const Vec3
 	}
 }
 
-void SpatialIndexDebug::drawBox(const BoundingBox &box) {
-	auto *boxVertices = box.boxVertices();
+void SpatialIndexDebug::drawBox(const AABB &box) {
+	Vec3f lineColor = Vec3f(1.0f, 1.0f, 0.0f);
+	auto min = box.tfMinBounds();
+	auto max = box.tfMaxBounds();
+	// draw the 12 lines of the box
+	drawLine(Vec3f(min.x, min.y, min.z), Vec3f(min.x, min.y, max.z), lineColor);
+	drawLine(Vec3f(min.x, min.y, max.z), Vec3f(min.x, max.y, max.z), lineColor);
+	drawLine(Vec3f(min.x, max.y, max.z), Vec3f(min.x, max.y, min.z), lineColor);
+	drawLine(Vec3f(min.x, max.y, min.z), Vec3f(min.x, min.y, min.z), lineColor);
+	drawLine(Vec3f(max.x, min.y, min.z), Vec3f(max.x, min.y, max.z), lineColor);
+	drawLine(Vec3f(max.x, min.y, max.z), Vec3f(max.x, max.y, max.z), lineColor);
+	drawLine(Vec3f(max.x, max.y, max.z), Vec3f(max.x, max.y, min.z), lineColor);
+	drawLine(Vec3f(max.x, max.y, min.z), Vec3f(max.x, min.y, min.z), lineColor);
+	drawLine(Vec3f(min.x, min.y, min.z), Vec3f(max.x, min.y, min.z), lineColor);
+	drawLine(Vec3f(min.x, min.y, max.z), Vec3f(max.x, min.y, max.z), lineColor);
+	drawLine(Vec3f(min.x, max.y, max.z), Vec3f(max.x, max.y, max.z), lineColor);
+	drawLine(Vec3f(min.x, max.y, min.z), Vec3f(max.x, max.y, min.z), lineColor);
+}
+
+void SpatialIndexDebug::drawBox(const OBB &box) {
+	drawBox(box.boxVertices());
+}
+
+void SpatialIndexDebug::drawBox(const Vec3f *boxVertices) {
 	Vec3f lineColor = Vec3f(1.0f, 1.0f, 0.0f);
 	// draw the 12 lines of the box
 	drawLine(boxVertices[0], boxVertices[1], lineColor);

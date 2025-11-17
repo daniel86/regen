@@ -260,6 +260,7 @@ ref_ptr<CompositeMesh> CompositeMesh::load(LoadingContext &ctx, scene::SceneInpu
 		} else {
 			(*out) = CompositeMesh();
 			out->addMesh(impostor);
+			impostor->ensureLOD();
 
 			ref_ptr<CompositeMesh> baseMeshComposite = ctx.scene()->getResource<CompositeMesh>(input.getValue("base-mesh"));
 			if (baseMeshComposite.get()) {

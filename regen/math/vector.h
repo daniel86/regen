@@ -180,12 +180,12 @@ namespace regen {
 		/**
 		 * @return vector length.
 		 */
-		inline GLfloat length() const { return sqrt(pow(x, 2) + pow(y, 2)); }
+		inline float length() const { return sqrt(x * x + y * y); }
 
 		/**
 		 * @return squared vector length.
 		 */
-		inline GLfloat lengthSquared() const { return pow(x, 2) + pow(y, 2); }
+		inline float lengthSquared() const { return x * x + y * y; }
 
 		/**
 		 * Normalize this vector.
@@ -229,11 +229,11 @@ namespace regen {
 		return in;
 	}
 
-	typedef Vec2<GLfloat> Vec2f;
-	typedef Vec2<GLdouble> Vec2d;
-	typedef Vec2<GLint> Vec2i;
-	typedef Vec2<GLuint> Vec2ui;
-	typedef Vec2<GLboolean> Vec2b;
+	typedef Vec2<float> Vec2f;
+	typedef Vec2<double> Vec2d;
+	typedef Vec2<int> Vec2i;
+	typedef Vec2<uint32_t> Vec2ui;
+	typedef Vec2<bool> Vec2b;
 
 	/**
 	 * \brief A 3D vector.
@@ -410,14 +410,21 @@ namespace regen {
 		}
 
 		/**
+		 * @return vector with each component as absolute value.
+		 */
+		inline Vec3 abs() const {
+			return Vec3(std::abs(x), std::abs(y), std::abs(z));
+		}
+
+		/**
 		 * @return vector length.
 		 */
-		inline GLfloat length() const { return sqrt(x * x + y * y + z * z); }
+		inline float length() const { return sqrt(x * x + y * y + z * z); }
 
 		/**
 		 * @return squared vector length.
 		 */
-		inline GLfloat lengthSquared() const { return x * x + y * y + z * z; }
+		inline float lengthSquared() const { return x * x + y * y + z * z; }
 
 		/**
 		 * Normalize this vector.
@@ -444,6 +451,18 @@ namespace regen {
 		 */
 		inline T dot(const Vec3 &b) const {
 			return x * b.x + y * b.y + z * b.z;
+		}
+
+		/**
+		 * Computes the dot product between this vector and the vector
+		 * defined by the three pointer components.
+		 * @param ox x component pointer.
+		 * @param oy y component pointer.
+		 * @param oz z component pointer.
+		 * @return the dot product.
+		 */
+		inline T dot(const T *ox, const T *oy, const T *oz) const {
+			return x * (*ox) + y * (*oy) + z * (*oz);
 		}
 
 		/**
@@ -524,11 +543,20 @@ namespace regen {
 		}
 
 		/**
+		 * Sets each component to its absolute value.
+		 */
+		inline void setAbs() {
+			x = std::abs(x);
+			y = std::abs(y);
+			z = std::abs(z);
+		}
+
+		/**
 		 * Compares vectors components.
 		 * @return true if all components are nearly equal.
 		 */
-		inline GLboolean isApprox(const Vec3 &b, T delta) const {
-			return abs(x - b.x) < delta && abs(y - b.y) < delta && abs(z - b.z) < delta;
+		inline bool isApprox(const Vec3 &b, T delta) const {
+			return std::abs(x - b.x) < delta && std::abs(y - b.y) < delta && std::abs(z - b.z) < delta;
 		}
 
 		/**
@@ -652,11 +680,11 @@ namespace regen {
 		return in;
 	}
 
-	typedef Vec3<GLfloat> Vec3f;
-	typedef Vec3<GLdouble> Vec3d;
-	typedef Vec3<GLint> Vec3i;
-	typedef Vec3<GLuint> Vec3ui;
-	typedef Vec3<GLboolean> Vec3b;
+	typedef Vec3<float> Vec3f;
+	typedef Vec3<double> Vec3d;
+	typedef Vec3<int> Vec3i;
+	typedef Vec3<uint32_t> Vec3ui;
+	typedef Vec3<bool> Vec3b;
 
 	/**
 	 * \brief A 4D vector.
@@ -928,11 +956,11 @@ namespace regen {
 		return in;
 	}
 
-	typedef Vec4<GLfloat> Vec4f;
-	typedef Vec4<GLdouble> Vec4d;
-	typedef Vec4<GLint> Vec4i;
-	typedef Vec4<GLuint> Vec4ui;
-	typedef Vec4<GLboolean> Vec4b;
+	typedef Vec4<float> Vec4f;
+	typedef Vec4<double> Vec4d;
+	typedef Vec4<int> Vec4i;
+	typedef Vec4<uint32_t> Vec4ui;
+	typedef Vec4<bool> Vec4b;
 
 	/**
 	 * \brief A 1D vector.
@@ -982,11 +1010,11 @@ namespace regen {
 		}
 	};
 
-	typedef Vec1<GLfloat> Vec1f;
-	typedef Vec1<GLdouble> Vec1d;
-	typedef Vec1<GLint> Vec1i;
-	typedef Vec1<GLuint> Vec1ui;
-	typedef Vec1<GLboolean> Vec1b;
+	typedef Vec1<float> Vec1f;
+	typedef Vec1<double> Vec1d;
+	typedef Vec1<int> Vec1i;
+	typedef Vec1<uint32_t> Vec1ui;
+	typedef Vec1<bool> Vec1b;
 
 	/**
 	 * \brief A 6D vector.
@@ -1007,11 +1035,11 @@ namespace regen {
 				: x0(v1.x), x1(v1.y), x2(v1.z), x3(v2.x), x4(v2.y), x5(v2.z) {}
 	};
 
-	typedef Vec6<GLfloat> Vec6f;
-	typedef Vec6<GLdouble> Vec6d;
-	typedef Vec6<GLint> Vec6i;
-	typedef Vec6<GLuint> Vec6ui;
-	typedef Vec6<GLboolean> Vec6b;
+	typedef Vec6<float> Vec6f;
+	typedef Vec6<double> Vec6d;
+	typedef Vec6<int> Vec6i;
+	typedef Vec6<uint32_t> Vec6ui;
+	typedef Vec6<bool> Vec6b;
 
 	Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal);
 } // namespace

@@ -18,7 +18,7 @@ PerceptionSystem::PerceptionSystem(
 	// TODO: Experiment with form of shape for collision detection.
 	//     - best: frustum, but we might get away with a box or sphere.
 	float lookAheadDistance = 15.0f;
-	Bounds<Vec3f> collisionBounds(mesh->minPosition(), mesh->maxPosition());
+	Bounds<Vec3f> collisionBounds = Bounds<Vec3f>::create(mesh->minPosition(), mesh->maxPosition());
 	collisionBounds.min.z -= lookAheadDistance;
 	collisionBounds.min.x -= 0.0f;
 	collisionBounds.max.x += 0.0f;
@@ -52,10 +52,6 @@ void PerceptionSystem::removeMonitor(PerceptionMonitor *monitor) {
 	}
 }
 
-static void handleIntersectionStatic(const BoundingShape &other, void *data) {
-	static_cast<PerceptionSystem*>(data)->handleIntersection(other);
-}
-
 void PerceptionSystem::handleIntersection(const BoundingShape &other) {
 	if (indexedShape_.get() == &other) return; // skip self
 	const Vec3f &thisCenter = indexedShape_->tfOrigin();
@@ -83,11 +79,12 @@ void PerceptionSystem::updateCollisions() {
 	}
 	// Update the collision shape transform
 	collisionShape_->updateTransform(false);
-	spatialIndex_->foreachIntersection(
-		*collisionShape_.get(),
-		handleIntersectionStatic,
-		this,
-		collisionMask_);
+	collisionShape_->updateOrthogonalProjection();
+	auto &hits = spatialIndex_->foreachIntersection(*collisionShape_.get(), collisionMask_);
+	for (uint32_t hitIdx = 0; hitIdx < hits.count; ++hitIdx) {
+		auto &b_shape = spatialIndex_->itemShape(hits.data[hitIdx]);
+		handleIntersection(*b_shape.get());
+	}
 	// Cleanup monitors
 	for (auto &monitor : collisionMonitors_) {
 		monitor->finalizeCollisionFrame();

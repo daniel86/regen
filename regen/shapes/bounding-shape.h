@@ -5,21 +5,31 @@
 #include "orthogonal-projection.h"
 
 namespace regen {
+	/**
+	 * @brief Types of bounding shapes
+	 */
 	enum class BoundingShapeType {
-		BOX,
-		SPHERE,
-		FRUSTUM
+		SPHERE = 0,
+		AABB,
+		OBB,
+		FRUSTUM,
+		LAST // keep last
 	};
 
 	class Mesh;
+	struct BatchOfShapes;
+	class IndexedShape;
 
 	/**
 	 * @brief Bounding shape
 	 */
 	class BoundingShape {
 	public:
+		// If the SKIP bit is set, the shape is skipped during traversal.
 		static constexpr uint32_t TRAVERSAL_BIT_SKIP = 0;
+		// If the DRAW bit is set, the shape is considered during draw traversal.
 		static constexpr uint32_t TRAVERSAL_BIT_DRAW = 1;
+		// If the COLLISION bit is set, the shape is considered during collision traversal.
 		static constexpr uint32_t TRAVERSAL_BIT_COLLISION = 2;
 
 		/**
@@ -108,19 +118,31 @@ namespace regen {
 		 * @brief Get the number of instances
 		 * @return The number of instances
 		 */
-		uint32_t numInstances() const;
+		uint32_t numInstances() const { return numInstances_; }
 
 		/**
 		 * @brief Get the type of this shape
 		 * @return The type
 		 */
-		auto shapeType() const { return shapeType_; }
+		BoundingShapeType shapeType() const { return shapeType_; }
+
+		/**
+		 * @brief Check if this box is an AABB
+		 * @return True if this box is an AABB, false otherwise
+		 */
+		bool isAABB() const { return shapeType_ == BoundingShapeType::AABB; }
+
+		/**
+		 * @brief Check if this box is an OBB
+		 * @return True if this box is an OBB, false otherwise
+		 */
+		bool isOBB() const { return shapeType_ == BoundingShapeType::OBB; }
 
 		/**
 		 * @brief Check if this shape is a box
 		 * @return True if this shape is a box, false otherwise
 		 */
-		bool isBox() const { return shapeType_ == BoundingShapeType::BOX; }
+		bool isBox() const { return shapeType_ == BoundingShapeType::AABB || shapeType_ == BoundingShapeType::OBB; }
 
 		/**
 		 * @brief Check if this shape is a sphere
@@ -212,6 +234,10 @@ namespace regen {
 		 */
 		virtual void updateBaseBounds(const Vec3f &min, const Vec3f &max) = 0;
 
+		/**
+		 * Set the base offset of this shape which is added to the base bounds.
+		 * @param offset The offset
+		 */
 		void setBaseOffset(const Vec3f &offset);
 
 		/**
@@ -233,7 +259,22 @@ namespace regen {
 		 * If needed the projection is recomputed, ie. when the geometry or transform has changed.
 		 * @return The orthogonal projection
 		 */
-		const OrthogonalProjection& getOrthogonalProjection() const;
+		void updateOrthogonalProjection();
+
+		/**
+		 * @brief Get the orthogonal projection of this shape.
+		 * If needed the projection is recomputed, ie. when the geometry or transform has changed.
+		 * @return The orthogonal projection
+		 */
+		const OrthogonalProjection &orthoProjection() const { return *orthoProjection_.get(); }
+
+		/**
+		 * @brief Get the orthogonal projection of this shape.
+		 * If needed the projection is recomputed, ie. when the geometry or transform has changed.
+		 * @return The orthogonal projection
+		 */
+		OrthogonalProjection &orthoProjection() { return *orthoProjection_.get(); }
+
 
 		/**
 		 * Assign a world object to this shape.
@@ -264,6 +305,24 @@ namespace regen {
 		 */
 		bool hasWorldObject() const { return worldObject_ != nullptr; }
 
+		/**
+		 * @brief Get the global index of this shape instance in the batch data buffer
+		 * @return The global index
+		 */
+		uint32_t globalIndex() const { return globalIndex_; }
+
+		/**
+		 * @brief Get the global batch data buffer
+		 * @return The global batch data buffer
+		 */
+		BatchOfShapes &globalBatchData() { return *globalShapeData_untyped_; }
+
+		/**
+		 * @brief Get the global batch data buffer
+		 * @return The global batch data buffer
+		 */
+		const BatchOfShapes &globalBatchData() const { return *globalShapeData_untyped_; }
+
 	protected:
 		const BoundingShapeType shapeType_;
 		ref_ptr<Mesh> mesh_;
@@ -273,7 +332,7 @@ namespace regen {
 
 		// Projection of the shape onto the xz-plane.
 		// This is computed in a lazy manner when requested.
-		mutable ref_ptr<OrthogonalProjection> orthoProjection_;
+		ref_ptr<OrthogonalProjection> orthoProjection_;
 		ref_ptr<ModelTransformation> transform_;
 		// only used in case no TF is set
 		Mat4f localTransform_ = Mat4f::identity();
@@ -290,10 +349,12 @@ namespace regen {
 		// this is either from the ModelTransformation or the local stamp
 		uint32_t (BoundingShape::*stampFun_)() const = &BoundingShape::getLocalStamp;
 		std::string name_;
+		uint32_t numInstances_ = 1;
 		uint32_t instanceID_ = 0;
 		uint32_t traversalMask_ = (1 << TRAVERSAL_BIT_DRAW); // default: draw
-		// custom data pointer used for spatial index intersection tests
-		void *spatialIndexData_ = nullptr;
+
+		uint32_t globalIndex_ = 0;
+		BatchOfShapes *globalShapeData_untyped_ = nullptr;
 
 		uint32_t getTransformStamp() const {
 			return transform_->stamp();
@@ -308,6 +369,108 @@ namespace regen {
 		friend class SpatialIndex;
 
 	};
+
+	/**
+	 * @brief Batched bounding shape
+	 * @tparam BatchType The type of the batch data
+	 * Batched shape data is drawn from a shared global buffer, and each shape instance
+	 * has an index into that buffer. This allows efficient storage and retrieval of
+	 * shape data for operations like collision detection and spatial queries.
+	 * This is not thread-safe, so make sure to create/destroy shapes in a single thread.
+	 */
+	template <typename BatchType>
+	class BatchedBoundingShape : public BoundingShape {
+	public:
+		/**
+		 * @brief Construct a new Batched Bounding Shape object
+		 * @param shapeType The type of the shape
+		 */
+		explicit BatchedBoundingShape(BoundingShapeType shapeType)
+			: BoundingShape(shapeType) {
+			this->globalIndex_ = reserveGlobalIndex();
+			this->globalShapeData_untyped_ = &globalBatchData_;
+		}
+
+		/**
+		 * @brief Construct a new Batched Bounding Shape object
+		 * @param shapeType The type of the shape
+		 * @param mesh The mesh
+		 * @param parts The parts of the mesh
+		 */
+		BatchedBoundingShape(BoundingShapeType shapeType,
+					const ref_ptr<Mesh> &mesh,
+					const std::vector<ref_ptr<Mesh>> &parts)
+			: BoundingShape(shapeType, mesh, parts) {
+			this->globalIndex_ = reserveGlobalIndex();
+			this->globalShapeData_untyped_ = &globalBatchData_;
+		}
+
+		/**
+		 * @brief Destroy the Batched Bounding Shape object
+		 */
+		~BatchedBoundingShape() override {
+			const uint32_t numCopies = copyCounter_.refCount();
+			if (numCopies == 1) {
+				releaseGlobalIndex(globalIndex_);
+			}
+		}
+
+		/**
+		 * @brief Get the global batch data buffer
+		 * @return The global batch data buffer
+		 */
+		static const BatchType &globalBatchData_t() { return globalBatchData_; }
+
+	protected:
+		// A global contiguous buffer holding batched shape data for all instances in SOA layout.
+		inline static BatchType globalBatchData_ = BatchType();
+		// A pool of free indices into the global batch data buffer, only indices < nextGlobalIndex_ are added,
+		// initially this pool is empty.
+		inline static std::vector<uint32_t> freeGlobalIndices_ = std::vector<uint32_t>();
+		// The number of free global indices available in the pool (size() could be larger)
+		inline static uint32_t numFreeGlobalIndices_ = 0u;
+		// The index into the global batch data buffer for the next new shape instance.
+		inline static uint32_t nextGlobalIndex_ = 0u;
+
+	private:
+		// we use this only for counting how many copies are made, such that we can
+		// safely release the global index on destruction of the last copy.
+		ref_ptr<bool> copyCounter_ = ref_ptr<bool>::alloc(true);
+
+		static uint32_t reserveGlobalIndex() {
+			if (numFreeGlobalIndices_ > 0) {
+				// reuse an index from the free pool
+				return freeGlobalIndices_[--numFreeGlobalIndices_];
+			} else {
+				// assign a new index
+				uint32_t globalIndex = nextGlobalIndex_++;
+				// ensure global batch data has enough capacity
+				if (globalBatchData_.capacity < nextGlobalIndex_) {
+					static constexpr bool preserveData = true;
+					globalBatchData_.resize(nextGlobalIndex_ * 2, preserveData);
+				}
+				return globalIndex;
+			}
+		}
+
+		static void releaseGlobalIndex(uint32_t globalIndex) {
+			// add the index to the free pool
+			if (numFreeGlobalIndices_ < freeGlobalIndices_.size()) {
+				freeGlobalIndices_[numFreeGlobalIndices_++] = globalIndex;
+			} else {
+				freeGlobalIndices_.push_back(globalIndex);
+				numFreeGlobalIndices_++;
+			}
+		}
+	};
+
+	/**
+	 * @brief Shape traits for bounding shape types
+	 * @tparam ShapeType The type of the bounding shape
+	 */
+	template<BoundingShapeType ShapeType> struct ShapeTraits;
 } // namespace
+
+#include <regen/shapes/batch-of-shapes.h>
 
 #endif /* REGEN_BOUNDING_SHAPE_H_ */

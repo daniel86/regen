@@ -13,7 +13,7 @@ LightCamera_CSM::LightCamera_CSM(
 		  userCamera_(userCamera),
 		  userCameraFrustum_(numLayer),
 		  userFrustumCentroids_(numLayer),
-		  lightSpaceBounds_(numLayer, Bounds<Vec3f>(
+		  lightSpaceBounds_(numLayer, Bounds<Vec3f>::create(
 			std::numeric_limits<float>::max(),
 			std::numeric_limits<float>::lowest())) {
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
