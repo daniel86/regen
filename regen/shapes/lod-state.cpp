@@ -412,12 +412,15 @@ void LODState::traverseCPU() {
 		if (cullShape_->numInstances() == 1) {
 			if (mesh_.get()) {
 				auto &tfOrigin = shapeIndex_->shape().tfOrigin();
+				const Vec3f &lodThresholds = shapeIndex_->lodThresholds();
+
 				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 					if (!shapeIndex_->isVisibleInLayer(layerIdx)) continue;
 					const Vec3f *camPos = getCameraPosition(shapeIndex_->sortCamera(), layerIdx);
 					const float distance = (tfOrigin - *camPos).lengthSquared();
-					const uint32_t activeLOD = mesh_->getLODLevel(distance, shapeIndex_->lodShift());
-
+					const int32_t activeLOD = (distance >= lodThresholds.x)
+						+ (distance >= lodThresholds.y)
+						+ (distance >= lodThresholds.z);
 					updateVisibility(layerIdx, activeLOD, 1, 0);
 				}
 			}

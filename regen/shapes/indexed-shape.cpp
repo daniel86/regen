@@ -5,6 +5,7 @@ using namespace regen;
 IndexedShape::IndexedShape(
 		const ref_ptr <Camera> &camera,
 		const ref_ptr <Camera> &sortCamera,
+		const Vec4i &lodShift,
 		const ref_ptr <BoundingShape> &shape) :
 		camera_(camera), sortCamera_(sortCamera), shape_(shape) {
 	numLODs_ = 1;
@@ -19,7 +20,22 @@ IndexedShape::IndexedShape(
 	visible_.resize(L, true);
 	// remember LOD thresholds
 	const ref_ptr<Mesh> &mesh = shape->baseMesh();
-	lodThresholds_ = mesh->lodThresholds();
+	const Vec3f &lodThresholds = mesh->lodThresholds();
+	lodThresholds_ = lodThresholds;
+	// move the thresholds around based on LOD shift
+	for (int32_t i = 0; i < 3; ++i) {
+		int shift = lodShift[i];
+		if (shift > 0) {
+			for (int32_t j = 0; j < shift && (i+j) < 3; ++j) {
+				lodThresholds_[i+j] = (i==0 ? 0.0f : lodThresholds[i-1]);
+			}
+		}
+		else if (shift < 0) {
+			for (int32_t j = -shift; j>0 && (i-j) > 0; --j) {
+				lodThresholds_[i-j] = (i==2 ? std::numeric_limits<float>::max() : lodThresholds[i+1]);
+			}
+		}
+	}
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapInstanceIDs(int mapMode) {

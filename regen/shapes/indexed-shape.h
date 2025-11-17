@@ -15,6 +15,7 @@ namespace regen {
 		IndexedShape(
 			const ref_ptr <Camera> &camera,
 			const ref_ptr <Camera> &sortCamera,
+			const Vec4i &lodShift,
 			const ref_ptr <BoundingShape> &shape);
 
 		~IndexedShape() = default;
@@ -122,18 +123,6 @@ namespace regen {
 		 * @return The sort mode used for this indexed shape
 		 */
 		SortMode instanceSortMode() const { return instanceSortMode_; }
-
-		/**
-		 * Get the LOD shift vector, will be added to the computed LOD levels.
-		 * @param shift The LOD shift vector to set
-		 */
-		void setLODShift(const Vec4i &shift) { lodShift_ = shift; }
-
-		/**
-		 * Get the LOD shift for this indexed shape
-		 * @return The LOD shift vector
-		 */
-		const Vec4i &lodShift() const { return lodShift_; }
 
 		/**
 		 * @return The LOD thresholds for this indexed shape

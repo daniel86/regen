@@ -79,7 +79,7 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	const uint32_t numInstances = shape->numInstances();
 	const uint32_t numIndices = numInstances * numLayer;
 
-	auto is = ref_ptr<IndexedShape>::alloc(ic.cullCamera, ic.sortCamera, shape);
+	auto is = ref_ptr<IndexedShape>::alloc(ic.cullCamera, ic.sortCamera, ic.lodShift, shape);
 	const uint32_t numLOD = std::max(1u, is->numLODs());
 	is->idVec_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
 	is->idVec_->setInstanceData(numIndices, 1, nullptr);
@@ -87,7 +87,6 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	is->countVec_->setInstanceData(1, 1, nullptr);
 	is->baseVec_ = ref_ptr<ShaderInput1ui>::alloc("baseInstances", numLayer * numLOD);
 	is->baseVec_->setInstanceData(1, 1, nullptr);
-	is->setLODShift(ic.lodShift);
 
 	auto mapped_ids = is->idVec_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
 	auto mapped_count = is->countVec_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
@@ -202,7 +201,6 @@ void pushVisibleShapes(
 	const uint8_t distanceBits = ic.index->distanceBits();
 	const uint32_t numLayer = ic.cullCamera->numLayer();
 	// LOD shift for this index camera, e.g. allows lower LOD for reflection cameras
-	const Vec4i &lodShift = ic.lodShift;
 	const uint32_t flip = -(ic.sortMode == BACK_TO_FRONT);
 	const uint8_t bitOffset_layer = distanceBits;
 	const uint8_t bitOffset_shape = bitOffset_layer + ic.layerBits;
@@ -240,9 +238,25 @@ void pushVisibleShapes(
 		const uint32_t instanceID = b_shape.instanceID();
 		const uint32_t shapeIdx = i_shape.shapeIdx();
 		const uint32_t globalBase = i_shape.globalBase();
-		const uint32_t numLODs = i_shape.numLODs() - 1u;
 		const Vec3f &shapeOrigin = b_shape.tfOrigin();
 		const Vec3f &lodThresholds = i_shape.lodThresholds();
+
+		// Compute squared distance from shape to camera
+		const float lodDistance = (shapeOrigin - camPos).lengthSquared();
+
+		// Compute LOD level for this shape by distance to camera.
+		// Each shape has up to 4 LOD thresholds defined in the mesh.
+		// The LOD level is determined by counting how many thresholds
+		// are below the distance to the camera.
+		const uint32_t lodLevel = (lodDistance >= lodThresholds.x)
+			+ (lodDistance >= lodThresholds.y)
+			+ (lodDistance >= lodThresholds.z);
+		// compute bin and item indices
+		const uint32_t binIdx = lodLevel * numLayer + layerIdx;
+		const uint32_t globalIdx =
+			globalBase +
+			layerIdx * numInstances + // layer base
+			instanceID;
 
 		// Compute sort key for this shape, the key is composed of:
 		// [ shapeIdx | layerIdx | distance ]
@@ -250,8 +264,6 @@ void pushVisibleShapes(
 		// shapeIdx: determined by number of shapes in the camera (shapeBits)
 		// layerIdx: determined by number of layers in the camera (layerBits)
 		// distance: remaining bits (distanceBits)
-		const float lodDistance = (shapeOrigin - camPos).lengthSquared();
-
 		KeyType sortKey;
 		const uint32_t xf = conversion::floatBitsToUint(lodDistance);
 		if constexpr (DistanceType == SpatialIndex::DISTANCE_KEY_16) {
@@ -271,21 +283,6 @@ void pushVisibleShapes(
 		sortKey |= ((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer);
 		// pack shape (upper bits)
 		sortKey |= ((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
-
-		// Compute LOD level for this shape by distance to camera.
-		// Each shape has up to 4 LOD thresholds defined in the mesh.
-		// The LOD level is determined by counting how many thresholds
-		// are below the distance to the camera.
-		uint32_t lodLevel = (lodDistance >= lodThresholds.x)
-			+ (lodDistance >= lodThresholds.y)
-			+ (lodDistance >= lodThresholds.z);
-		lodLevel = std::min(std::max(lodLevel+lodShift[lodLevel], 0u), numLODs);
-		// compute bin and item indices
-		const uint32_t binIdx = lodLevel * numLayer + layerIdx;
-		const uint32_t globalIdx =
-			globalBase +
-			layerIdx * numInstances + // layer base
-			instanceID;
 
 		// Add sort key for this instance
 		sortKeys[globalIdx] = sortKey;
