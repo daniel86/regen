@@ -200,6 +200,9 @@ namespace regen {
 		AlignedArray<float> t0, t1, t2;   // lod thresholds
 		AlignedArray<uint32_t> globalID;
 		AlignedArray<uint32_t> shapeIdx;
+		// output arrays
+		AlignedArray<float> lodDistance;
+		AlignedArray<uint32_t> binIdx;
 
 		void resize(uint32_t size) {
 			if (ox.size() < size) {
@@ -212,6 +215,8 @@ namespace regen {
 				t2.resize(nextSize);
 				globalID.resize(nextSize);
 				shapeIdx.resize(nextSize);
+				lodDistance.resize(nextSize);
+				binIdx.resize(nextSize);
 			}
 		}
 	};
@@ -224,7 +229,6 @@ static void gatherVisibleHitSOA(
 			const ref_ptr<BoundingShape> *itemShapes) {
 	const std::vector<uint32_t> &globalInstanceIds = ic.globalInstanceIDs_[layerIdx];
 	const HitBuffer &hits = *hitSoA.hits;
-	hitSoA.resize(hits.count);
 
 	for (uint32_t hitIdx=0; hitIdx < hits.count; ++hitIdx) {
 		// Gather data for this shape
@@ -263,17 +267,15 @@ static uint32_t computeDistanceKey(float lodDistance, const uint32_t flip) {
 	}
 }
 
-template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType>
-static void pushVisibleShapes_SoA(
-		IndexCamera &ic,
-		uint32_t layerIdx,
-		HitBuffer &hitBuffer,
+template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType, bool UseSoA>
+static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hitBuffer,
 		const ref_ptr<BoundingShape> *itemShapes) {
 	static constexpr int SortKeyBits = (sizeof(KeyType) * 8);
-	const uint8_t distanceBits = ic.index->distanceBits();
+	static constexpr uint8_t bitOffset_layer = static_cast<uint8_t>(DistanceType);
+
 	const uint32_t numLayer = ic.cullCamera->numLayer();
+	const uint32_t numHits = hitBuffer.count;
 	const uint32_t flip = -(ic.sortMode == BACK_TO_FRONT);
-	const uint8_t bitOffset_layer = distanceBits;
 	const uint8_t bitOffset_shape = bitOffset_layer + ic.layerBits;
 
 	const Vec3f *camPosPtr;
@@ -284,6 +286,12 @@ static void pushVisibleShapes_SoA(
 	}
 	const Vec3f &camPos = *camPosPtr;
 
+	// Compute sort keys, a key is composed of:
+	//		[ shapeIdx | layerIdx | distance ]
+	// where the number of bits for each field is determined by:
+	//		shapeIdx: determined by number of shapes in the camera (shapeBits)
+	//		layerIdx: determined by number of layers in the camera (layerBits)
+	//		distance: remaining bits (distanceBits)
 	KeyType *sortKeys;
 	if constexpr (SortKeyBits == 32) {
 		sortKeys = ic.tmp_sortKeys32_.data();
@@ -291,154 +299,161 @@ static void pushVisibleShapes_SoA(
 		sortKeys = ic.tmp_sortKeys64_.data();
 	}
 
-	// TODO: Consider storing the data in a more vector-friendly way to allow better SIMD processing.
-	//     - Introduce a HitSoA struct with arrays of origins, layerIdx, shapeIdx, globalBase, numInstances,
-	//       numLODs, lodThresholds.
-	//     - Maybe gather first, then do vectorized loop?
-	//     - Or gather on the fly when filling hit buffer?
-	//     - Or could rather use simd gather, but need SOA arrays for all of these then.
-	thread_local VisibleHitSOA hitSoA;
-	hitSoA.hits = &hitBuffer;
-	gatherVisibleHitSOA(ic, hitSoA, layerIdx, itemShapes);
+	if constexpr (UseSoA) {
+		thread_local VisibleHitSOA hitSoA;
+		uint32_t hitIdx = 0;
+		hitSoA.hits = &hitBuffer;
+		hitSoA.resize(hitBuffer.count);
 
-	for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
-		const uint32_t globalID = hitSoA.globalID[hitIdx];
-		const uint32_t shapeIdx = hitSoA.shapeIdx[hitIdx];
-		const float ox = hitSoA.ox[hitIdx];
-		const float oy = hitSoA.oy[hitIdx];
-		const float oz = hitSoA.oz[hitIdx];
-		const float t0 = hitSoA.t0[hitIdx];
-		const float t1 = hitSoA.t1[hitIdx];
-		const float t2 = hitSoA.t2[hitIdx];
+		const float *d_ox = hitSoA.ox.data();
+		const float *d_oy = hitSoA.oy.data();
+		const float *d_oz = hitSoA.oz.data();
+		const float *d_t0 = hitSoA.t0.data();
+		const float *d_t1 = hitSoA.t1.data();
+		const float *d_t2 = hitSoA.t2.data();
 
-		// Compute squared distance from shape to camera
-		const float lodDistance = (Vec3f(ox, oy, oz) - camPos).lengthSquared();
+		float *d_lodDistance = hitSoA.lodDistance.data();
+		uint32_t *d_binIdx = hitSoA.binIdx.data();
 
-		// Compute LOD level for this shape by distance to camera.
-		// Each shape has up to 4 LOD thresholds defined in the mesh.
-		// The LOD level is determined by counting how many thresholds
-		// are below the distance to the camera.
-		const uint32_t lodLevel = (lodDistance >= t0) + (lodDistance >= t1) + (lodDistance >= t2);
-		// compute bin and item indices
-		const uint32_t binIdx = lodLevel * numLayer + layerIdx;
+		// First pass: gather all data into SOA arrays
+		gatherVisibleHitSOA(ic, hitSoA, layerIdx, itemShapes);
 
-		// Compute sort key for this shape, the key is composed of:
-		// [ shapeIdx | layerIdx | distance ]
-		// where the number of bits for each field is determined by:
-		// shapeIdx: determined by number of shapes in the camera (shapeBits)
-		// layerIdx: determined by number of layers in the camera (layerBits)
-		// distance: remaining bits (distanceBits)
-		KeyType sortKey =
-			// pack distance (lower bits)
-			computeDistanceKey<DistanceType>(lodDistance, flip) |
-			// pack layer
-			((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer) |
-			// pack shape (upper bits)
-			((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
+		// Second pass: process all hits, write output: lodDistance & binIdx
+		{
+			const BatchOf_float cx = BatchOf_float::fromScalar(camPos.x);
+			const BatchOf_float cy = BatchOf_float::fromScalar(camPos.y);
+			const BatchOf_float cz = BatchOf_float::fromScalar(camPos.z);
+			const BatchOf_int32 nl = BatchOf_int32::fromScalar(static_cast<int32_t>(numLayer));
+			const BatchOf_int32 layer = BatchOf_int32::fromScalar(static_cast<int32_t>(layerIdx));
+			const BatchOf_int32 one = BatchOf_int32::fromScalar(1);
 
-		// Add sort key for this instance
-		sortKeys[globalID] = sortKey;
-		// Store instance ID for this instance
-		ic.tmp_globalIDQueue_.push_back(globalID);
-		// Bin the instance as visible
-		IndexedShape &i_shape = *ic.indexShapes_[shapeIdx];
-		i_shape.addVisibleInstance(layerIdx, binIdx);
-	}
-}
+			for (; hitIdx + simd::RegisterWidth <= numHits; hitIdx += simd::RegisterWidth) {
+				// delta = shape-pos - cam-pos
+				const BatchOf_float dx = BatchOf_float::loadAligned(d_ox + hitIdx) - cx;
+				const BatchOf_float dy = BatchOf_float::loadAligned(d_oy + hitIdx) - cy;
+				const BatchOf_float dz = BatchOf_float::loadAligned(d_oz + hitIdx) - cz;
+				const BatchOf_float lodDistance = (dx*dx) + (dy*dy) + (dz*dz);
 
-template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType>
-static void pushVisibleShapes_AoS(
-		IndexCamera &ic,
-		uint32_t layerIdx,
-		HitBuffer &hitBuffer,
-		const ref_ptr<BoundingShape> *itemShapes) {
-	static constexpr int SortKeyBits = (sizeof(KeyType) * 8);
+				// comparisons -> mask (true -> 0xFFFFFFFF)
+				const BatchOf_float c0 = (lodDistance >= BatchOf_float::loadAligned(d_t0 + hitIdx));
+				const BatchOf_float c1 = (lodDistance >= BatchOf_float::loadAligned(d_t1 + hitIdx));
+				const BatchOf_float c2 = (lodDistance >= BatchOf_float::loadAligned(d_t2 + hitIdx));
 
-	const uint32_t* globalInstanceIDs = ic.globalInstanceIDs_[layerIdx].data();
-	const uint8_t distanceBits = ic.index->distanceBits();
-	const uint32_t numLayer = ic.cullCamera->numLayer();
-	const uint32_t flip = -(ic.sortMode == BACK_TO_FRONT);
-	const uint8_t bitOffset_layer = distanceBits;
-	const uint8_t bitOffset_shape = bitOffset_layer + ic.layerBits;
+				// convert masks to integer 0/1 per lane, and sum to get LOD level
+				const BatchOf_int32 lodLevel =
+					(BatchOf_int32::castFloatBatch(c0) & one) +
+					(BatchOf_int32::castFloatBatch(c1) & one) +
+					(BatchOf_int32::castFloatBatch(c2) & one);
 
-	const Vec3f *camPosPtr;
-	if (ic.sortCamera->position().size()>1) {
-		camPosPtr = &ic.sortCamera->position(layerIdx);
+				// compute binIdx = lodLevel * numLayer + layerIdx
+				const BatchOf_int32 binIdx = (lodLevel * nl) + layer;
+
+				// Finally store results
+				binIdx.storeAligned(d_binIdx + hitIdx);
+				lodDistance.storeAligned(d_lodDistance + hitIdx);
+			}
+
+			// process remaining hits scalar-wise
+			for (; hitIdx < numHits; ++hitIdx) {
+				const float dx = d_ox[hitIdx] - camPos.x;
+				const float dy = d_oy[hitIdx] - camPos.y;
+				const float dz = d_oz[hitIdx] - camPos.z;
+				// Compute squared distance from shape to camera
+				const float lodDistance = (dx * dx) + (dy * dy) + (dz * dz);
+				// Compute LOD level for this shape by distance to camera.
+				const uint32_t lodLevel =
+					(lodDistance >= d_t0[hitIdx]) +
+					(lodDistance >= d_t1[hitIdx]) +
+					(lodDistance >= d_t2[hitIdx]);
+				// compute bin and item indices
+				d_lodDistance[hitIdx] = lodDistance;
+				d_binIdx[hitIdx] = lodLevel * numLayer + layerIdx;
+			}
+		}
+
+		// Third pass: compute sort keys and scatter
+		for (hitIdx=0; hitIdx < numHits; ++hitIdx) {
+			const uint32_t globalID = hitSoA.globalID[hitIdx];
+			const uint32_t shapeIdx = hitSoA.shapeIdx[hitIdx];
+			const float lodDistance = d_lodDistance[hitIdx];
+			const uint32_t binIdx = d_binIdx[hitIdx];
+
+			// Compute sort key for this shape.
+			const KeyType sortKey =
+				// pack distance (lower bits)
+				computeDistanceKey<DistanceType>(lodDistance, flip) |
+				// pack layer
+				((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer) |
+				// pack shape (upper bits)
+				((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
+
+			// Add sort key for this instance
+			sortKeys[globalID] = sortKey;
+			// Store instance ID for this instance
+			ic.tmp_globalIDQueue_.push_back(globalID);
+			// Scatter into per indexed shape arrays
+			IndexedShape &is = *ic.indexShapes_[shapeIdx];
+			is.addVisibleInstance(layerIdx, binIdx);
+		}
 	} else {
-		camPosPtr = &ic.sortCamera->position(0);
-	}
-	const Vec3f &camPos = *camPosPtr;
+		const uint32_t* globalInstanceIDs = ic.globalInstanceIDs_[layerIdx].data();
 
-	KeyType *sortKeys;
-	if constexpr (SortKeyBits == 32) {
-		sortKeys = ic.tmp_sortKeys32_.data();
-	} else {
-		sortKeys = ic.tmp_sortKeys64_.data();
-	}
+		for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
+			// Gather shape data for this hit.
+			const uint32_t itemIdx = hitBuffer.data[hitIdx];
+			const uint32_t globalID = globalInstanceIDs[itemIdx];
+			const uint32_t shapeIdx = ic.itemToIndexedShape_[itemIdx];
 
-	for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
-		// Gather shape data for this hit.
-		const uint32_t itemIdx = hitBuffer.data[hitIdx];
-		const uint32_t globalID = globalInstanceIDs[itemIdx];
-		const uint32_t shapeIdx = ic.itemToIndexedShape_[itemIdx];
+			BoundingShape &bs = *itemShapes[itemIdx].get();
+			IndexedShape &is = *ic.indexShapes_[shapeIdx];
+			const Vec3f &shapeOrigin = bs.tfOrigin();
+			const Vec3f &lodThresholds = is.lodThresholds();
 
-		BoundingShape &bs = *itemShapes[itemIdx].get();
-		IndexedShape &is = *ic.indexShapes_[shapeIdx];
-		const Vec3f &shapeOrigin = bs.tfOrigin();
-		const Vec3f &lodThresholds = is.lodThresholds();
+			// Compute squared distance from shape to camera
+			const float lodDistance = (shapeOrigin - camPos).lengthSquared();
 
-		// Compute squared distance from shape to camera
-		const float lodDistance = (shapeOrigin - camPos).lengthSquared();
+			// Compute LOD level for this shape by distance to camera.
+			const uint32_t lodLevel =
+				(lodDistance >= lodThresholds.x) +
+				(lodDistance >= lodThresholds.y) +
+				(lodDistance >= lodThresholds.z);
+			// compute bin and item indices
+			const uint32_t binIdx = lodLevel * numLayer + layerIdx;
 
-		// Compute LOD level for this shape by distance to camera.
-		// Each shape has up to 4 LOD thresholds defined in the mesh.
-		// The LOD level is determined by counting how many thresholds
-		// are below the distance to the camera.
-		const uint32_t lodLevel = (lodDistance >= lodThresholds.x)
-			+ (lodDistance >= lodThresholds.y)
-			+ (lodDistance >= lodThresholds.z);
-		// compute bin and item indices
-		const uint32_t binIdx = lodLevel * numLayer + layerIdx;
+			// Compute sort key for this shape.
+			KeyType sortKey =
+				// pack distance (lower bits)
+				computeDistanceKey<DistanceType>(lodDistance, flip) |
+				// pack layer
+				((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer) |
+				// pack shape (upper bits)
+				((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
 
-		// Compute sort key for this shape, the key is composed of:
-		// [ shapeIdx | layerIdx | distance ]
-		// where the number of bits for each field is determined by:
-		// shapeIdx: determined by number of shapes in the camera (shapeBits)
-		// layerIdx: determined by number of layers in the camera (layerBits)
-		// distance: remaining bits (distanceBits)
-		KeyType sortKey =
-			// pack distance (lower bits)
-			computeDistanceKey<DistanceType>(lodDistance, flip) |
-			// pack layer
-			((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer) |
-			// pack shape (upper bits)
-			((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
-
-		// Add sort key for this instance
-		sortKeys[globalID] = sortKey;
-		// Bin the instance as visible
-		is.addVisibleInstance(layerIdx, binIdx);
-		// Store instance ID for this instance
-		ic.tmp_globalIDQueue_.push_back(globalID);
+			// Add sort key for this instance
+			sortKeys[globalID] = sortKey;
+			// Store instance ID for this instance
+			ic.tmp_globalIDQueue_.push_back(globalID);
+			// Scatter into per indexed shape arrays
+			is.addVisibleInstance(layerIdx, binIdx);
+		}
 	}
 }
 
 void SpatialIndex::updateLayerVisibility(
 		IndexCamera &ic, uint32_t layerIdx,
 		const BoundingShape &camera_shape) {
+	static constexpr bool UseSoA = true;
 	// Collect all intersections for this layer into (lod,layer) bins
 	auto &hitBuffer = foreachIntersection(camera_shape, ic.traversalMask);
 
-	#define _push(KT,DT) pushVisibleShapes_AoS<KT,DT>(ic, layerIdx, hitBuffer, itemBoundingShapes_.data())
-	//#define _push(KT,DT) pushVisibleShapes_SoA<KT,DT>(ic, layerIdx, hitBuffer, itemBoundingShapes_.data())
+	#define _push(KT,DT) pushVisibleShapes<KT,DT,UseSoA>(ic, layerIdx, hitBuffer, itemBoundingShapes_.data())
 	if (ic.keyBits <= 32) {
 		using KeyType = uint32_t;
 		if (ic.index->distanceBits_ == DISTANCE_KEY_16) {
 			_push(KeyType, DISTANCE_KEY_16);
-		} else if (ic.index->distanceBits_ == DISTANCE_KEY_24) {
-			_push(KeyType, DISTANCE_KEY_24);
 		} else {
-			_push(KeyType, DISTANCE_KEY_32);
+			// note: for 32-bit keys we can only have 24-bit distance
+			_push(KeyType, DISTANCE_KEY_24);
 		}
 	} else {
 		using KeyType = uint64_t;

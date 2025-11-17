@@ -77,8 +77,19 @@ namespace regen::simd {
 	}
 
 	inline void storeu_ps(float *p, const __m256 &v) { _mm256_storeu_ps(p, v); }
+	inline void store_ps(float *p, const __m256 &v) { _mm256_store_ps(p, v); }
+
 	inline void storeu_epi32(int32_t *p, const __m256i &v) {
 		_mm256_storeu_si256(reinterpret_cast<__m256i*>(p), v);
+	}
+	inline void storeu_epi32(uint32_t *p, const __m256i &v) {
+		_mm256_storeu_si256(reinterpret_cast<__m256i*>(p), v);
+	}
+	inline void store_epi32(int32_t *p, const __m256i &v) {
+		_mm256_store_si256(reinterpret_cast<__m256i*>(p), v);
+	}
+	inline void store_epi32(uint32_t *p, const __m256i &v) {
+		_mm256_store_si256(reinterpret_cast<__m256i*>(p), v);
 	}
 
 	inline __m256 add_ps(const __m256 &a, const __m256 &b) { return _mm256_add_ps(a, b); }
@@ -317,6 +328,22 @@ namespace regen {
 			return batch;
 		}
 
+		/**
+		 * Store the batch to an array of aligned floats.
+		 * @param dst Pointer to destination array.
+		 */
+		void storeAligned(float *dst) const {
+			simd::store_ps(dst, c);
+		}
+
+		/**
+		 * Store the batch to an array of unaligned floats.
+		 * @param dst Pointer to destination array.
+		 */
+		void storeUnaligned(float *dst) const {
+			simd::storeu_ps(dst, c);
+		}
+
 		BatchOf_float operator+(const BatchOf_float &other) const {
 			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			batch.c = simd::add_ps(c, other.c);
@@ -379,6 +406,8 @@ namespace regen {
 		BatchOf_float operator<(const T &other) const { return cmp_lt(other); }
 		template <typename T>
 		BatchOf_float operator>(const T &other) const { return cmp_gt(other); }
+		template <typename T>
+		BatchOf_float operator>=(const T &other) const { return other.cmp_lt(*this); }
 
 		template <typename T>
 		BatchOf_float operator&&(const T &other) const { return cmp_and(other); }
@@ -528,6 +557,44 @@ namespace regen {
 			return x;
 		}
 
+		static BatchOf_int32 castFloatBatch(const BatchOf_float &v) {
+			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			x.c = _mm256_castps_si256(v.c);
+			return x;
+		}
+
+		/**
+		 * Store the batch to an array of aligned int32_t.
+		 * @param v Pointer to destination array.
+		 */
+		void storeAligned(int32_t *v) const {
+			simd::store_epi32(v, c);
+		}
+
+		/**
+		 * Store the batch to an array of aligned int32_t.
+		 * @param v Pointer to destination array.
+		 */
+		void storeAligned(uint32_t *v) const {
+			simd::store_epi32(v, c);
+		}
+
+		/**
+		 * Store the batch to an array of unaligned int32_t.
+		 * @param v Pointer to destination array.
+		 */
+		void storeUnaligned(int32_t *v) const {
+			simd::storeu_epi32(v, c);
+		}
+
+		/**
+		 * Store the batch to an array of unaligned uint32_t.
+		 * @param v Pointer to destination array.
+		 */
+		void storeUnaligned(uint32_t *v) const {
+			simd::storeu_epi32(v, c);
+		}
+
 		BatchOf_int32 operator*(const BatchOf_int32 &other) const {
 			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			batch.c = simd::mul_epi32(c, other.c);
@@ -561,6 +628,12 @@ namespace regen {
 		BatchOf_int32 operator-(int32_t scalar) const {
 			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			batch.c = simd::sub_epi32(c, simd::set1_epi32(scalar));
+			return batch;
+		}
+
+		BatchOf_int32 operator&(const BatchOf_int32 &other) const {
+			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			batch.c = _mm256_and_si256(c, other.c);
 			return batch;
 		}
 	};
@@ -643,7 +716,7 @@ namespace regen {
 			return batch;
 		}
 
-		BatchOf_Vec3i operator-(Vec3i other) const {
+		BatchOf_Vec3i operator-(const Vec3i& other) const {
 			BatchOf_Vec3i batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			batch.x.c = simd::sub_epi32(x.c, simd::set1_epi32(other.x));
 			batch.y.c = simd::sub_epi32(y.c, simd::set1_epi32(other.y));
