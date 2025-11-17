@@ -39,9 +39,13 @@ namespace regen {
 		std::vector<IndexedShape*> indexShapes_;
 		// These vectors are filled up during traversal and sorted according to the instance distance to the camera.
 		// Global instance idx used to access the key arrays
-		std::vector<uint32_t> tmp_globalInstanceIDs_; // size = sum_{shape} numLayers * numInstances_{shape}
+		std::vector<uint32_t> tmp_globalIDQueue_; // size = sum_{shape} numLayers * numInstances_{shape}
 		// Local instance idx used to generate the output instance IDs
-		std::vector<uint32_t> tmp_localInstanceIDs_;  // size = sum_{shape} numLayers * numInstances_{shape}
+		std::vector<uint32_t> globalToInstanceIdx_;  // size = sum_{shape} numLayers * numInstances_{shape}
+		std::vector<uint32_t> itemToIndexedShape_; // size = numItems
+		// Global instance IDs for each layer and shape,
+		// layers have their own array for faster access during traversal.
+		std::vector<std::vector<uint32_t>> globalInstanceIDs_;  // size = sum_{shape} numLayers * numInstances_{shape}
 		std::vector<uint64_t> tmp_sortKeys64_;  // size = sum_{shape} numLayers * numInstances_{shape}
 		std::vector<uint32_t> tmp_sortKeys32_;  // size = sum_{shape} numLayers * numInstances_{shape}
 		// total number of keys = sum_{shape} numLayers * numInstances_{shape}
@@ -194,7 +198,7 @@ namespace regen {
 		 * @param itemIdx The item index
 		 * @return The shape
 		 */
-		const ref_ptr<BoundingShape>& itemShape(uint32_t itemIdx) const { return itemShapes_[itemIdx]; }
+		const ref_ptr<BoundingShape>& itemShape(uint32_t itemIdx) const { return itemBoundingShapes_[itemIdx]; }
 
 		/**
 		 * @brief Get the cameras in the index
@@ -267,7 +271,7 @@ namespace regen {
 		std::unordered_map<std::string_view, ref_ptr<std::vector<ref_ptr<BoundingShape>>>> nameToShape_;
 		std::unordered_map<const Camera *, uint32_t> cameraToIndexCamera_;
 		std::vector<IndexCamera> indexCameras_;
-		std::vector<ref_ptr<BoundingShape>> itemShapes_;
+		std::vector<ref_ptr<BoundingShape>> itemBoundingShapes_;
 		// additional shapes for debugging only
 		std::vector<ref_ptr<BoundingShape>> debugShapes_;
 
@@ -289,13 +293,13 @@ namespace regen {
 		 */
 		void removeFromIndex(const ref_ptr<BoundingShape> &shape);
 
-		void debugBoundingShape(DebugInterface &debug, const BoundingShape &shape) const;
+		static void debugBoundingShape(DebugInterface &debug, const BoundingShape &shape);
 
 		static void createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape> &shape);
 
 		friend struct VisibilityJob;
 
-		static void resetCamera(IndexCamera *indexCamera, DistanceKeySize distanceBits, uint32_t traversalMask);
+		void resetCamera(IndexCamera *indexCamera, DistanceKeySize distanceBits, uint32_t traversalMask);
 	};
 
 	/**

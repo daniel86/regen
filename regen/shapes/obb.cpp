@@ -202,6 +202,8 @@ inline std::pair<float, float> project(const T &a, const Vec3f &axis) {
 		(box).globalBatchData_.axes()[i].z[(box).globalIndex_])
 
 bool OBB::hasIntersectionWithOBB(const OBB &other) const {
+	static constexpr int NUM_OBB_TEST_AXES = 15;
+	// get the axes of both OBBs
 	const Vec3f axes_a[3] = {
 		_axis_struct(*this, 0),
 		_axis_struct(*this, 1),
@@ -211,7 +213,7 @@ bool OBB::hasIntersectionWithOBB(const OBB &other) const {
 		_axis_struct(other, 1),
 		_axis_struct(other, 2)};
 
-	std::array<Vec3f, 15> axes = {
+	std::array<Vec3f, NUM_OBB_TEST_AXES> axes = {
 		axes_a[0], axes_a[1], axes_a[2],
 		axes_b[0], axes_b[1], axes_b[2],
 		//
@@ -227,16 +229,19 @@ bool OBB::hasIntersectionWithOBB(const OBB &other) const {
 		axes_a[2].cross(axes_b[1]),
 		axes_a[2].cross(axes_b[2]) };
 
-	for (const Vec3f &axis: axes) {
+	bool isOutside = false;
+
+	for (uint32_t i = 0; i < NUM_OBB_TEST_AXES && !isOutside; ++i) {
+		auto &axis = axes[i];
 		if (axis.x == 0 && axis.y == 0 && axis.z == 0) continue; // Skip zero-length axes
 
 		auto [minA, maxA] = project(*this, axis);
 		auto [minB, maxB] = project(other, axis);
 
-		if (maxA < minB || maxB < minA) return false;
+		isOutside = (maxA < minB || maxB < minA);
 	}
 
-	return true;
+	return !isOutside;
 }
 
 #undef _axis_struct
@@ -443,13 +448,13 @@ void OBB::batchTest_AABBs(BatchedIntersectionCase &td) {
 void OBB::batchTest_OBBs(BatchedIntersectionCase &td) {
 	// note: This case cannot be handled well with AVX and its limited number
 	// of registers, so we do a scalar implementation here.
-	// TODO: Consider adding an early-out by bounding sphere
-	auto *testShape = static_cast<const OBB *>(td.testShape);
+	auto &testShape = *static_cast<const OBB *>(td.testShape);
 	auto *shapes = td.indexedShapes->data();
+
 	for (uint32_t i = 0; i < td.numQueued; ++i) {
 		auto itemIdx = td.queuedIndices[i];
 		const OBB &box = *static_cast<OBB *>(shapes[itemIdx].get());
-		if (testShape->hasIntersectionWithOBB(box)) {
+		if (testShape.hasIntersectionWithOBB(box)) {
 			td.hits->push(itemIdx);
 		}
 	}
