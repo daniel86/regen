@@ -170,7 +170,7 @@ namespace regen {
 		// The number of queued shapes where the system automatically flushes
 		uint32_t batchOfCapacity_ = 2048u;
 
-		// One item for each combination of (fixed) test shape type, and (variable) inde{}xed shape type.
+		// One item for each combination of (fixed) test shape type, and (variable) indexed shape type.
 		// E.g., frustum-sphere, frustum-AABB, sphere-sphere, frustum-frustum.
 		//std::array<uint32_t, NUM_SHAPE_TYPES> frameCases_ = { 0u };
 		// Local buffers for each case, size: IntersectionCase::LAST
@@ -199,6 +199,6 @@ namespace regen {
 			registerCase<Test, BoundingShapeType::FRUSTUM>();
 		}
 	};
-} // namespace
+} // namespace regen
 
 #endif /* REGEN_BATCHED_INTERSECTION_H_ */

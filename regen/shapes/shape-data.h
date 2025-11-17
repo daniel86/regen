@@ -11,6 +11,6 @@ namespace regen {
 		IntersectionShapeData() = default;
 		virtual ~IntersectionShapeData() = default;
 	};
-} // namespace
+} // namespace regen
 
 #endif /* REGEN_INTERSECTION_SHAPE_DATA_H_ */

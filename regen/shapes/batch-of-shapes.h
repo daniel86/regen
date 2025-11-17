@@ -39,6 +39,6 @@ namespace regen {
 			}
 		}
 	};
-} // namespace
+} // namespace regen
 
 #endif /* REGEN_BATCH_OF_SHAPES_H_ */
