@@ -28,49 +28,72 @@ namespace regen {
 	 * @brief Index camera data
 	 */
 	struct IndexCamera {
+		// We toggle between different sort modes depending on array size:
 		enum SortFunType { SORT_FUN_LARGE = 0, SORT_FUN_SMALL = 1 };
+		// Key arrays are passed as void* as we do support different types of key data.
+		// The signature of sort functions is:
 		using SortFun = void (*)(void*, void*, std::vector<uint32_t>&);
 
+		// Back-reference to the spatial index
 		SpatialIndex *index = nullptr;
+		// The culling and sorting cameras
 		ref_ptr<Camera> cullCamera;
 		ref_ptr<Camera> sortCamera;
-		std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
-		// flattened list of shapes for faster access
-		std::vector<IndexedShape*> indexShapes_;
-		// These vectors are filled up during traversal and sorted according to the instance distance to the camera.
-		// Global instance idx used to access the key arrays
-		std::vector<uint32_t> tmp_globalIDQueue_; // size = sum_{shape} numLayers * numInstances_{shape}
-		// Local instance idx used to generate the output instance IDs
-		std::vector<uint32_t> globalToInstanceIdx_;  // size = sum_{shape} numLayers * numInstances_{shape}
-		std::vector<uint32_t> itemToIndexedShape_; // size = numItems
-		// Global instance IDs for each layer and shape,
-		// layers have their own array for faster access during traversal.
-		std::vector<std::vector<uint32_t>> globalInstanceIDs_;  // size = sum_{shape} numLayers * numInstances_{shape}
-		std::vector<uint64_t> tmp_sortKeys64_;  // size = sum_{shape} numLayers * numInstances_{shape}
-		std::vector<uint32_t> tmp_sortKeys32_;  // size = sum_{shape} numLayers * numInstances_{shape}
-		// total number of keys = sum_{shape} numLayers * numInstances_{shape}
-		uint32_t numKeys = 0;
+
+		// LOD shift for each layer
+		Vec4i lodShift = Vec4i(0);
+		// How to sort instances by distance to camera
+		SortMode sortMode = SortMode::FRONT_TO_BACK;
 		// the bitmask to filter shapes during traversal
 		uint32_t traversalMask = 0;
-		// index of this camera in the index's camera list
-		uint32_t camIdx = 0;
-		// mark camera as dirty when shapes are added/removed
+
+		// The indexed shapes assigned to this camera.
+		// Note: these are unique shapes, instances are not counted here.
+		std::vector<IndexedShape*> indexShapes_; // size = numShapes
+		std::unordered_map<std::string_view, ref_ptr<IndexedShape>> nameToShape_;
+		// Mark camera as dirty when shapes are added/removed
 		bool isDirty = false;
-		// how to sort instances by distance to camera
-		SortMode sortMode = SortMode::FRONT_TO_BACK;
-		// radix sort for sorting the instances
-		std::unique_ptr<void, void(*)(void*)> radixSort =
-			createRadix<RadixSort_CPU_seq<uint32_t, uint32_t, 8, 32>>(10);
-		void *sortKeys = nullptr; // erased type
-		// sorting functions, one for large arrays, one for small arrays
-		SortFun sortFun[2] = { nullptr, nullptr };
+		// Index of this camera in the camera list of the spatial index,
+		// i.e. index->indexCameras_[camIdx] == this
+		uint32_t camIdx = 0;
+		// Total number of keys = sum_{shape} numLayer * numInstances_{shape}
+		uint32_t numKeys = 0;
+
+		// Sort keys here are composed of:
+		//		[ shapeIdx | layerIdx | distance ]
+		// Below we have some attributes defining the bit sizes and masks for each field.
 		uint8_t layerBits = 0u;
 		uint8_t shapeBits = 0u;
 		uint8_t keyBits = 0u;
 		uint32_t layerMask = 0u;
 		uint32_t shapeMask = 0u;
-		// LOD shift for each layer
-		Vec4i lodShift = Vec4i(0);
+
+		// This is a stable vector mapping item indices to indexed shape indices,
+		// i.e. itemToIndexedShape_[itemIdx] -> indexedShapeIdx
+		std::vector<uint32_t> itemToIndexedShape_; // size = numItems
+
+		// Temporary array filled up each frame with "global IDs" during traversal
+		// The notion of global IDs is used to identify instances across layers and shapes.
+		// Each shape instance gets a unique global ID in the range [0, numKeys) for each layer.
+		std::vector<uint32_t> globalQueue_; // size = numKeys
+		// When writing to the instance output arrays, we need to map from global ID to instance ID.
+		std::vector<uint32_t> globalToInstance_;  // size = numKeys
+		// Maps from item index to global IDs for each layer individually.
+		std::vector<std::vector<uint32_t>> itemToGlobalID_;  // size = numKeys
+
+		// Key arrays for sorting, only one is used at a time depending on key size:
+		// 64-bit keys
+		std::vector<uint64_t> sortKeys64_; // size = numKeys
+		// 32-bit keys
+		std::vector<uint32_t> sortKeys32_; // size = numKeys
+		// Pointer to the current key array in use, which is either tmp_sortKeys32_ or tmp_sortKeys64_.
+		void *sortKeys = nullptr; // note: erased type
+
+		// radix sort for sorting the instances
+		std::unique_ptr<void, void(*)(void*)> radixSort =
+			createRadix<RadixSort_CPU_seq<uint32_t, uint32_t, 8, 32>>(10);
+		// sorting functions, one for large arrays, one for small arrays
+		SortFun sortFun[2] = { nullptr, nullptr };
 
 		// Helper function to create radix sorters
 		template <typename RadixType>

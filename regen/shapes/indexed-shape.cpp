@@ -36,18 +36,22 @@ IndexedShape::IndexedShape(
 			}
 		}
 	}
+	// set LOD thresholds for out-of-rand LOD levels to max
+	for (uint32_t unusedIdx = numLODs_; unusedIdx < 4; ++unusedIdx) {
+		lodThresholds_[unusedIdx-1] = std::numeric_limits<float>::max();
+	}
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapInstanceIDs(int mapMode) {
-	return idVec_->mapClientData<uint32_t>(mapMode);
+	return instanceIDs_->mapClientData<uint32_t>(mapMode);
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapInstanceCounts(int mapMode) {
-	return countVec_->mapClientData<uint32_t>(mapMode);
+	return binCount_->mapClientData<uint32_t>(mapMode);
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapBaseInstances(int mapMode) {
-	return baseVec_->mapClientData<uint32_t>(mapMode);
+	return binBase_->mapClientData<uint32_t>(mapMode);
 }
 
 IndexedShape::MappedData::MappedData(
@@ -66,7 +70,7 @@ IndexedShape::MappedData::~MappedData() {
 }
 
 void IndexedShape::mapInstanceData_internal() {
-	mappedInstanceIDs_.emplace(idVec_, countVec_, baseVec_);
+	mappedInstanceIDs_.emplace(instanceIDs_, binCount_, binBase_);
 }
 
 void IndexedShape::unmapInstanceData_internal() {
