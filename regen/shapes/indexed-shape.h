@@ -41,12 +41,6 @@ namespace regen {
 		uint32_t shapeBase() const { return shapeBase_; }
 
 		/**
-		 * \brief Check if the shape is visible
-		 * \return True if the shape is visible, false otherwise
-		 */
-		bool isVisibleInLayer(uint32_t layerIdx) const { return visible_[layerIdx]; }
-
-		/**
 		 * \brief Check if the shape is visible in any layer
 		 * \return True if the shape is visible in any layer, false otherwise
 		 */
@@ -54,14 +48,11 @@ namespace regen {
 
 		/**
 		 * \brief Add a visible instance for the shape
-		 * \param layerIdx The layer index
 		 * \param binIdx The bin index (lod * numLayers + layer)
 		 */
-		void addVisibleInstance(uint32_t layerIdx, uint32_t binIdx) {
+		void addVisibleInstance(uint32_t binIdx) {
 			// Total visibility count of the shape across all layers and LODs
 			numVisibleInstances_ += 1;
-			// toggle visibility for this layer
-			tmp_layerVisibility_[layerIdx] = true;
 			// Finally bin the shape into the (lod, layer) bin
 			mapped_binCount_[binIdx] += 1;
 		}
@@ -165,14 +156,6 @@ namespace regen {
 		// True if the shape is visible in any layer.
 		// TODO: reconsider, if for thread safety use atomic
 		bool isVisibleInAnyLayer_ = false;
-		// note: this flag is currently only used by LODState CPU path, and the spatial index traversal
-		//       both are currently bound to the same thread, so we do not need atomic updates here.
-		// TODO: Reconsider this
-		std::vector<bool> visible_;
-		// per-layer visibility flag, instance count, and base instance
-		// used during traversal only.
-		// TODO: REMOVE THIS
-		std::vector<bool> tmp_layerVisibility_;
 
 		struct MappedData {
 			explicit MappedData(

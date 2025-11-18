@@ -248,14 +248,6 @@ void LODState::createIndirectDrawBuffers() {
 	}
 }
 
-static const Vec3f* getCameraPosition(const ref_ptr<Camera> &camera, uint32_t layerIdx) {
-	if (camera->position().size() == 1) {
-		return (Vec3f*)&camera->position(0);
-	} else {
-		return (Vec3f*)&camera->position(layerIdx);
-	}
-}
-
 void LODState::updateVisibility(uint32_t layerIdx, uint32_t lodLevel, uint32_t numInstances, uint32_t baseInstance) {
 	const uint32_t numLayer = camera_->numLayer();
 
@@ -410,18 +402,15 @@ void LODState::traverseCPU() {
 
 	if (hasVisibleInstance_) {
 		if (cullShape_->numInstances() == 1) {
-			if (mesh_.get()) {
-				auto &tfOrigin = shapeIndex_->shape().tfOrigin();
-				const Vec3f &lodThresholds = shapeIndex_->lodThresholds();
+			auto count = shapeIndex_->mapInstanceCounts(BUFFER_CPU_READ);
+			auto base = shapeIndex_->mapBaseInstances(BUFFER_CPU_READ);
 
-				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
-					if (!shapeIndex_->isVisibleInLayer(layerIdx)) continue;
-					const Vec3f *camPos = getCameraPosition(shapeIndex_->sortCamera(), layerIdx);
-					const float distance = (tfOrigin - *camPos).lengthSquared();
-					const int32_t activeLOD = (distance >= lodThresholds.x)
-						+ (distance >= lodThresholds.y)
-						+ (distance >= lodThresholds.z);
-					updateVisibility(layerIdx, activeLOD, 1, 0);
+			for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
+				for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
+					const uint32_t binIdx =  CullShape::binIdx(lodLevel, layerIdx, numLayer);
+					if (count.r[binIdx] != 0) {
+						updateVisibility(layerIdx, lodLevel, 1, 0);
+					}
 				}
 			}
 		} else if (camera_->hasFixedLOD()) {

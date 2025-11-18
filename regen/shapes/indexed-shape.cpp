@@ -15,9 +15,6 @@ IndexedShape::IndexedShape(
 	for (const auto &part : shape->parts()) {
 		numLODs_ = std::max(numLODs_, part->numLODs());
 	}
-	const uint32_t L = camera_->numLayer();
-	tmp_layerVisibility_.resize(L, false);
-	visible_.resize(L, true);
 	// remember LOD thresholds
 	const ref_ptr<Mesh> &mesh = shape->baseMesh();
 	const Vec3f &lodThresholds = mesh->lodThresholds();

@@ -546,12 +546,37 @@ namespace regen {
 		BatchOf_int32() = default;
 
 		/**
+		 * Load batch from an array of unaligned int32_t.
+		 * @param v Pointer to array of int32_t.
+		 * @return A BatchOf_int32 loaded from the unaligned array.
+		 */
+		template <typename IntType>
+		static BatchOf_int32 loadAligned(const IntType *v) {
+			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			x.c = simd::load_si256(v);
+			return x;
+		}
+
+		/**
+		 * Load batch from an array of unaligned int32_t.
+		 * @param v Pointer to array of int32_t.
+		 * @return A BatchOf_int32 loaded from the unaligned array.
+		 */
+		template <typename IntType>
+		static BatchOf_int32 loadUnaligned(const IntType *v) {
+			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			x.c = simd::loadu_si256(v);
+			return x;
+		}
+
+		/**
 		 * Constructor that initializes the batch with a single scalar int32_t value.
 		 * All elements in the batch will be set to this value.
 		 * @param v The scalar int32_t value to set.
 		 * @return A BatchOf_int32 with all elements set to v.
 		 */
-		static BatchOf_int32 fromScalar(int32_t v) {
+		template <typename IntType>
+		static BatchOf_int32 fromScalar(IntType v) {
 			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			x.c = simd::set1_epi32(v);
 			return x;
@@ -561,6 +586,30 @@ namespace regen {
 			BatchOf_int32 x; // NOLINT(cppcoreguidelines-pro-type-member-init)
 			x.c = _mm256_castps_si256(v.c);
 			return x;
+		}
+
+		/**
+		 * Compute the element-wise minimum of two batches.
+		 * @param a The first batch.
+		 * @param b The second batch.
+		 * @return A BatchOf_int32 containing the element-wise minimums.
+		 */
+		static BatchOf_int32 min(const BatchOf_int32 &a, const BatchOf_int32 &b) {
+			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			batch.c = simd::min_epi32(a.c, b.c);
+			return batch;
+		}
+
+		/**
+		 * Compute the element-wise maximum of two batches.
+		 * @param a The first batch.
+		 * @param b The second batch.
+		 * @return A BatchOf_int32 containing the element-wise maximums.
+		 */
+		static BatchOf_int32 max(const BatchOf_int32 &a, const BatchOf_int32 &b) {
+			BatchOf_int32 batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			batch.c = simd::max_epi32(a.c, b.c);
+			return batch;
 		}
 
 		/**

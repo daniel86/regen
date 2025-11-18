@@ -179,16 +179,6 @@ namespace regen {
 		bool hasCamera(const Camera &camera) const;
 
 		/**
-		 * @brief Check if a shape is visible
-		 * Note: update must be called before this function
-		 * @param camera The camera
-		 * @param layerIdx The layer index
-		 * @param shapeID The shape ID
-		 * @return True if the shape is visible, false otherwise
-		 */
-		bool isVisible(const Camera &camera, uint32_t layerIdx, std::string_view shapeID);
-
-		/**
 		 * @brief Get the number of instances of a shape
 		 * @param shapeID The shape ID
 		 * @return The number of instances

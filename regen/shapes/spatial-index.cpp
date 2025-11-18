@@ -147,19 +147,6 @@ ref_ptr<std::vector<ref_ptr<BoundingShape>>> SpatialIndex::getShapes(std::string
 	return {};
 }
 
-bool SpatialIndex::isVisible(const Camera &camera, uint32_t layerIdx, std::string_view shapeID) {
-	auto it = cameraToIndexCamera_.find(&camera);
-	if (it == cameraToIndexCamera_.end()) {
-		return true;
-	}
-	const IndexCamera &ic = indexCameras_[it->second];
-	auto it2 = ic.nameToShape_.find(shapeID);
-	if (it2 == ic.nameToShape_.end()) {
-		return true;
-	}
-	return it2->second->isVisibleInLayer(layerIdx);
-}
-
 uint32_t SpatialIndex::numInstances(std::string_view shapeID) const {
 	auto shape = getShape(shapeID);
 	if (!shape.get()) {
@@ -362,9 +349,9 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 				const float lodDistance = (dx * dx) + (dy * dy) + (dz * dz);
 				// Compute LOD level for this shape by distance to camera.
 				const uint32_t lodLevel =
-					(lodDistance >= d_t0[hitIdx]) +
-					(lodDistance >= d_t1[hitIdx]) +
-					(lodDistance >= d_t2[hitIdx]);
+					static_cast<uint32_t>(lodDistance >= d_t0[hitIdx]) +
+					static_cast<uint32_t>(lodDistance >= d_t1[hitIdx]) +
+					static_cast<uint32_t>(lodDistance >= d_t2[hitIdx]);
 				// compute bin and item indices
 				d_lodDistance[hitIdx] = lodDistance;
 				d_binIdx[hitIdx] = lodLevel * numLayer + layerIdx;
@@ -390,7 +377,7 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 			sortKeys[globalID] = sortKey;
 			ic.globalQueue_.push_back(globalID);
 			IndexedShape &is = *ic.indexShapes_[shapeIdx];
-			is.addVisibleInstance(layerIdx, binIdx);
+			is.addVisibleInstance(binIdx);
 		}
 	} else {
 		const uint32_t* itemToGlobalID = ic.itemToGlobalID_[layerIdx].data();
@@ -411,9 +398,9 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 
 			// Compute LOD level for this shape by distance to camera.
 			const uint32_t lodLevel =
-				(lodDistance >= lodThresholds.x) +
-				(lodDistance >= lodThresholds.y) +
-				(lodDistance >= lodThresholds.z);
+				static_cast<uint32_t>(lodDistance >= lodThresholds.x) +
+				static_cast<uint32_t>(lodDistance >= lodThresholds.y) +
+				static_cast<uint32_t>(lodDistance >= lodThresholds.z);
 			// compute bin and item indices
 			const uint32_t binIdx = lodLevel * numLayer + layerIdx;
 
@@ -428,7 +415,7 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 
 			sortKeys[globalID] = sortKey;
 			ic.globalQueue_.push_back(globalID);
-			is.addVisibleInstance(layerIdx, binIdx);
+			is.addVisibleInstance(binIdx);
 		}
 	}
 }
@@ -623,8 +610,7 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	const uint32_t L = indexCamera->cullCamera->numLayer();
 
 	for (auto &indexShape: indexCamera->indexShapes_) {
-		// Reset visibility + total count
-		indexShape->tmp_layerVisibility_.assign(L, false);
+		// Reset total count
 		indexShape->numVisibleInstances_ = 0;
 		// Map instance data for this shape, and reset the bin counts
 		indexShape->mapInstanceData_internal();
@@ -649,9 +635,6 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	uint32_t shapeBase = 0;
 	for (auto &indexShape: indexCamera->indexShapes_) {
 		if (indexShape->numVisibleInstances_ == 0) {
-			// No visible instances for this shape across all layers and LODs
-			// -> mark all layers as invisible
-			indexShape->visible_.assign(L, false);
 			indexShape->isVisibleInAnyLayer_ = false;
 			indexShape->unmapInstanceData_internal();
 			continue;
@@ -661,18 +644,11 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 		const uint32_t numBins = indexShape->numLODs() * L;
 	    uint32_t runningBase = 0;
 	    for (uint32_t b = 0; b < numBins; ++b) {
+	    	const uint32_t count = indexShape->mapped_binCount_[b];
 			indexShape->mapped_binBase_[b] = runningBase;
-			runningBase += indexShape->mapped_binCount_[b];
+			runningBase += count;
 		}
-
-		// Copy over the visibility flags from tmp_layerVisibility_ into visible_
-	    bool isVisible = false;
-		for (uint32_t layer = 0; layer < L; ++layer) {
-			bool visibleInLayer = indexShape->tmp_layerVisibility_[layer];
-			indexShape->visible_[layer] = visibleInLayer;
-			if (!isVisible && visibleInLayer) { isVisible = true; }
-		}
-		indexShape->isVisibleInAnyLayer_ = isVisible;
+		indexShape->isVisibleInAnyLayer_ = runningBase > 0;
 
 	    // Write IDs to mapped buffer
 		// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.

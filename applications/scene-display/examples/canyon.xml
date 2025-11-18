@@ -385,7 +385,7 @@
 
     <mesh id="big-stones" type="sphere" use-normal="1" use-texco="1" use-tangent="1"
           lod-levels="4, 3, 2"
-          lod-thresholds="20.0, 50.0, 0.0"
+          lod-thresholds="20.0, 50.0, 80.0"
           scaling="0.7,0.3,0.7"
           update-frequency="NEVER">
         <shader mesh-index="0" key="regen.models.mesh"/>
