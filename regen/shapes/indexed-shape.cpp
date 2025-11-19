@@ -3,11 +3,13 @@
 using namespace regen;
 
 IndexedShape::IndexedShape(
-		const ref_ptr <Camera> &camera,
 		const ref_ptr <Camera> &sortCamera,
+		const ref_ptr <Camera> &lodCamera,
 		const Vec4i &lodShift,
-		const ref_ptr <BoundingShape> &shape) :
-		camera_(camera), sortCamera_(sortCamera), shape_(shape) {
+		const ref_ptr <BoundingShape> &shape)
+		: sortCamera_(sortCamera),
+		  lodCamera_(lodCamera),
+		  shape_(shape) {
 	numLODs_ = 1;
 	if (shape->mesh().get()) {
 		numLODs_ = std::max(numLODs_, shape->mesh()->numLODs());

@@ -2,6 +2,9 @@
 #include <algorithm>
 
 #include "spatial-index.h"
+
+#include <boost/tuple/detail/tuple_basic.hpp>
+
 #include "quad-tree.h"
 #include "cull-shape.h"
 #include "spatial-index-debug.h"
@@ -13,9 +16,65 @@ using namespace regen;
 
 namespace regen {
 	static constexpr bool SPATIAL_INDEX_USE_MULTITHREADING = true;
+	static constexpr bool SPATIAL_INDEX_USE_SIMD_BINNING = true;
+
+	static constexpr uint32_t LOD_LEVEL_BITS = 2; // 4 LOD levels
+
+	/**
+	 * @brief Structure of arrays for visible hits
+	 */
+	struct VisibleHitSOA {
+		VisibleHitSOA() = default;
+		~VisibleHitSOA() = default;
+		VisibleHitSOA(const VisibleHitSOA&) = delete;
+		VisibleHitSOA& operator=(const VisibleHitSOA&) = delete;
+
+		HitBuffer *hits = nullptr;
+		AlignedArray<float> ox, oy, oz;   // origins
+		AlignedArray<float> t0, t1, t2;   // lod thresholds
+		AlignedArray<uint32_t> globalID;
+		AlignedArray<uint32_t> shapeIdx;
+		// output arrays
+		AlignedArray<float> sortDistance;
+		AlignedArray<uint32_t> lodLevel;
+		AlignedArray<uint32_t> binIdx;
+
+		void resize(uint32_t size) {
+			if (ox.size() < size) {
+				uint32_t nextSize = size + (size / 2u) + 256u; // grow by 50% + 256
+				ox.resize(nextSize);
+				oy.resize(nextSize);
+				oz.resize(nextSize);
+				t0.resize(nextSize);
+				t1.resize(nextSize);
+				t2.resize(nextSize);
+				globalID.resize(nextSize);
+				shapeIdx.resize(nextSize);
+				sortDistance.resize(nextSize);
+				lodLevel.resize(nextSize);
+				binIdx.resize(nextSize);
+			}
+		}
+	};
+
+	struct SpatialIndex::Private {
+		Private() {}
+
+		template <typename KeyType, DistanceKeySize DistanceType>
+		static void pushVisibleShapes(IndexCamera&, uint32_t, HitBuffer&);
+
+		static void gatherVisibleHitSOA(IndexCamera &ic, VisibleHitSOA &hitSoA, uint32_t layerIdx);
+
+		static void updateLayerVisibility(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hitBuffer);
+	};
 }
 
-SpatialIndex::SpatialIndex() {
+SpatialIndex::SpatialIndex()
+		: priv_(new Private()) {
+}
+
+SpatialIndex::~SpatialIndex() {
+	delete priv_;
 }
 
 void SpatialIndex::addToIndex(const ref_ptr<BoundingShape> &shape) {
@@ -47,14 +106,15 @@ void SpatialIndex::removeFromIndex(const ref_ptr<BoundingShape> &shape) {
 
 void SpatialIndex::addCamera(
 		const ref_ptr<Camera> &cullCamera,
-		const ref_ptr<Camera> &sortCamera,
+		const ref_ptr<Camera> &lodCamera,
 		SortMode sortMode,
 		const Vec4i &lodShift) {
 	cameraToIndexCamera_[cullCamera.get()] = indexCameras_.size();
 	auto &data = indexCameras_.emplace_back();
 	data.cullCamera = cullCamera;
-	data.sortCamera = sortCamera;
+	data.lodCamera = lodCamera;
 	data.sortMode = sortMode;
+	data.hasLODCam = (lodCamera.get() != cullCamera.get());
 	data.lodShift = lodShift;
 	data.index = this;
 	data.camIdx = static_cast<uint32_t>(indexCameras_.size() - 1);
@@ -76,7 +136,7 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	const uint32_t numInstances = shape->numInstances();
 	const uint32_t numIndices = numInstances * numLayer;
 
-	auto is = ref_ptr<IndexedShape>::alloc(ic.cullCamera, ic.sortCamera, ic.lodShift, shape);
+	auto is = ref_ptr<IndexedShape>::alloc(ic.cullCamera, ic.lodCamera, ic.lodShift, shape);
 	const uint32_t numLOD = std::max(1u, is->numLODs());
 	is->instanceIDs_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
 	is->instanceIDs_->setInstanceData(numIndices, 1, nullptr);
@@ -175,45 +235,8 @@ ref_ptr<BoundingShape> SpatialIndex::getShape(std::string_view shapeID, uint32_t
 	return {};
 }
 
-namespace regen {
-	struct VisibleHitSOA {
-		VisibleHitSOA() = default;
-		~VisibleHitSOA() = default;
-		VisibleHitSOA(const VisibleHitSOA&) = delete;
-		VisibleHitSOA& operator=(const VisibleHitSOA&) = delete;
-
-		HitBuffer *hits = nullptr;
-		AlignedArray<float> ox, oy, oz;   // origins
-		AlignedArray<float> t0, t1, t2;   // lod thresholds
-		AlignedArray<uint32_t> globalID;
-		AlignedArray<uint32_t> shapeIdx;
-		// output arrays
-		AlignedArray<float> lodDistance;
-		AlignedArray<uint32_t> binIdx;
-
-		void resize(uint32_t size) {
-			if (ox.size() < size) {
-				uint32_t nextSize = size + (size / 2u) + 256u; // grow by 50% + 256
-				ox.resize(nextSize);
-				oy.resize(nextSize);
-				oz.resize(nextSize);
-				t0.resize(nextSize);
-				t1.resize(nextSize);
-				t2.resize(nextSize);
-				globalID.resize(nextSize);
-				shapeIdx.resize(nextSize);
-				lodDistance.resize(nextSize);
-				binIdx.resize(nextSize);
-			}
-		}
-	};
-}
-
-static void gatherVisibleHitSOA(
-			IndexCamera &ic,
-			VisibleHitSOA &hitSoA,
-			uint32_t layerIdx,
-			const ref_ptr<BoundingShape> *itemShapes) {
+void SpatialIndex::Private::gatherVisibleHitSOA(IndexCamera &ic, VisibleHitSOA &hitSoA, uint32_t layerIdx) {
+	const auto &itemShapes = ic.index->itemBoundingShapes_;
 	const std::vector<uint32_t> &itemToGlobalID = ic.itemToGlobalID_[layerIdx];
 	const HitBuffer &hits = *hitSoA.hits;
 
@@ -254,31 +277,38 @@ static uint32_t computeDistanceKey(float lodDistance, const uint32_t flip) {
 	}
 }
 
-template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType, bool UseSoA>
-static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hitBuffer,
-		const ref_ptr<BoundingShape> *itemShapes) {
+static const Vec3f& getCameraPosition(const IndexCamera &ic, uint32_t layerIdx) {
+	if (ic.lodCamera->position().size()>1) {
+		return ic.lodCamera->position(layerIdx);
+	} else {
+		return ic.lodCamera->position(0);
+	}
+}
+
+template <typename KeyType, SpatialIndex::DistanceKeySize DistanceType>
+void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hitBuffer) {
+	static constexpr bool UseSoA = SPATIAL_INDEX_USE_SIMD_BINNING;
 	static constexpr int SortKeyBits = (sizeof(KeyType) * 8);
 	static constexpr uint8_t bitOffset_layer = static_cast<uint8_t>(DistanceType);
+	static constexpr uint32_t lodLevelMask = (1u << LOD_LEVEL_BITS) - 1u;
 
 	const uint32_t numLayer = ic.cullCamera->numLayer();
 	const uint32_t numHits = hitBuffer.count;
 	const uint32_t flip = -(ic.sortMode == BACK_TO_FRONT);
-	const uint8_t bitOffset_shape = bitOffset_layer + ic.layerBits;
-
-	const Vec3f *camPosPtr;
-	if (ic.sortCamera->position().size()>1) {
-		camPosPtr = &ic.sortCamera->position(layerIdx);
-	} else {
-		camPosPtr = &ic.sortCamera->position(0);
-	}
-	const Vec3f &camPos = *camPosPtr;
+	const uint8_t bitOffset_lodLevel = bitOffset_layer + ic.layerBits;
+	const uint8_t bitOffset_shape    = bitOffset_lodLevel + LOD_LEVEL_BITS;
+	const Vec3f &camPos = getCameraPosition(ic, layerIdx);
 
 	// Compute sort keys, a key is composed of:
-	//		[ shapeIdx | layerIdx | distance ]
+	//		[ shapeIdx | lodLevel | layerIdx | distance ]
 	// where the number of bits for each field is determined by:
 	//		shapeIdx: determined by number of shapes in the camera (shapeBits)
+	// 		lodLevel: fixed number of bits (LOD_LEVEL_BITS)
 	//		layerIdx: determined by number of layers in the camera (layerBits)
-	//		distance: remaining bits (distanceBits)
+	//		distance: user defined either 16, 24 or 32 bits
+	// Note: It seems a bit redundant having lodLevel + distance as distance establishes
+	//       LOD-ordering. However, we need to creat LOD-major layout across layers,
+	//       as all meshes of one LOD-level are drawn in one draw call.
 	KeyType *sortKeys;
 	if constexpr (SortKeyBits == 32) {
 		sortKeys = ic.sortKeys32_.data();
@@ -299,11 +329,12 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 		const float *d_t1 = hitSoA.t1.data();
 		const float *d_t2 = hitSoA.t2.data();
 
-		float *d_lodDistance = hitSoA.lodDistance.data();
+		float *d_sortDistance = hitSoA.sortDistance.data();
+		uint32_t *d_lodLevel = hitSoA.lodLevel.data();
 		uint32_t *d_binIdx = hitSoA.binIdx.data();
 
 		// First pass: gather all data into SOA arrays
-		gatherVisibleHitSOA(ic, hitSoA, layerIdx, itemShapes);
+		gatherVisibleHitSOA(ic, hitSoA, layerIdx);
 
 		// Second pass: process all hits, write output: lodDistance & binIdx
 		{
@@ -337,7 +368,8 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 
 				// Finally store results
 				binIdx.storeAligned(d_binIdx + hitIdx);
-				lodDistance.storeAligned(d_lodDistance + hitIdx);
+				lodDistance.storeAligned(d_sortDistance + hitIdx);
+				lodLevel.storeAligned(d_lodLevel + hitIdx);
 			}
 
 			// process remaining hits scalar-wise
@@ -353,7 +385,8 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 					static_cast<uint32_t>(lodDistance >= d_t1[hitIdx]) +
 					static_cast<uint32_t>(lodDistance >= d_t2[hitIdx]);
 				// compute bin and item indices
-				d_lodDistance[hitIdx] = lodDistance;
+				d_sortDistance[hitIdx] = lodDistance;
+				d_lodLevel[hitIdx] = lodLevel;
 				d_binIdx[hitIdx] = lodLevel * numLayer + layerIdx;
 			}
 		}
@@ -362,24 +395,32 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 		for (hitIdx=0; hitIdx < numHits; ++hitIdx) {
 			const uint32_t globalID = hitSoA.globalID[hitIdx];
 			const uint32_t shapeIdx = hitSoA.shapeIdx[hitIdx];
-			const float lodDistance = d_lodDistance[hitIdx];
+			const float sortDistance = d_sortDistance[hitIdx];
+			const uint32_t lodLevel = d_lodLevel[hitIdx];
 			const uint32_t binIdx = d_binIdx[hitIdx];
 
 			// Compute sort key for this shape.
 			const KeyType sortKey =
-				// pack distance (lower bits)
-				computeDistanceKey<DistanceType>(lodDistance, flip) |
+				// pack distance (lower bits; sort within LOD level + layer)
+				computeDistanceKey<DistanceType>(sortDistance, flip) |
 				// pack layer
 				((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer) |
+				// pack LOD level (lod-major ordering per shape)
+				((static_cast<KeyType>(lodLevel) & lodLevelMask) << bitOffset_lodLevel) |
 				// pack shape (upper bits)
 				((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
 
+			// Build a mapping from global ID to sort key
 			sortKeys[globalID] = sortKey;
+			// Push global ID in hit-ordering, this will be used for sorting.
 			ic.globalQueue_.push_back(globalID);
+			// Bin the shape into the (lod, layer) bin.
+			// This is used to fill the indirect draw buffer.
 			IndexedShape &is = *ic.indexShapes_[shapeIdx];
-			is.addVisibleInstance(binIdx);
+			is.mapped_binCount_[binIdx] += 1;
 		}
 	} else {
+		const auto &itemShapes = ic.index->itemBoundingShapes_;
 		const uint32_t* itemToGlobalID = ic.itemToGlobalID_[layerIdx].data();
 
 		for (uint32_t hitIdx=0; hitIdx < hitBuffer.count; ++hitIdx) {
@@ -406,28 +447,29 @@ static void pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx, HitBuffer &hit
 
 			// Compute sort key for this shape.
 			KeyType sortKey =
-				// pack distance (lower bits)
+				// pack distance (lower bits; sort within LOD level + layer)
 				computeDistanceKey<DistanceType>(lodDistance, flip) |
 				// pack layer
 				((static_cast<KeyType>(layerIdx) & ic.layerMask) << bitOffset_layer) |
+				// pack LOD level (lod-major ordering per shape)
+				((static_cast<KeyType>(lodLevel) & lodLevelMask) << bitOffset_lodLevel) |
 				// pack shape (upper bits)
 				((static_cast<KeyType>(shapeIdx) & ic.shapeMask) << bitOffset_shape);
 
+			// Build a mapping from global ID to sort key
 			sortKeys[globalID] = sortKey;
+			// Push global ID in hit-ordering, this will be used for sorting.
 			ic.globalQueue_.push_back(globalID);
-			is.addVisibleInstance(binIdx);
+			// Bin the shape into the (lod, layer) bin.
+			// This is used to fill the indirect draw buffer.
+			is.mapped_binCount_[binIdx] += 1;
 		}
 	}
 }
 
-void SpatialIndex::updateLayerVisibility(
-		IndexCamera &ic, uint32_t layerIdx,
-		const BoundingShape &camera_shape) {
-	static constexpr bool UseSoA = true;
-	// Collect all intersections for this layer into (lod,layer) bins
-	auto &hitBuffer = foreachIntersection(camera_shape, ic.traversalMask);
-
-	#define _push(KT,DT) pushVisibleShapes<KT,DT,UseSoA>(ic, layerIdx, hitBuffer, itemBoundingShapes_.data())
+void SpatialIndex::Private::updateLayerVisibility(
+		IndexCamera &ic, uint32_t layerIdx, HitBuffer &hitBuffer) {
+#define _push(KT,DT) pushVisibleShapes<KT,DT>(ic, layerIdx, hitBuffer)
 	if (ic.keyBits <= 32) {
 		using KeyType = uint32_t;
 		if (ic.index->distanceBits_ == DISTANCE_KEY_16) {
@@ -446,7 +488,15 @@ void SpatialIndex::updateLayerVisibility(
 			_push(KeyType, DISTANCE_KEY_32);
 		}
 	}
-	#undef _push
+#undef _push
+}
+
+void SpatialIndex::updateLayerVisibility(
+		IndexCamera &ic, uint32_t layerIdx,
+		const BoundingShape &camera_shape) {
+	// Collect all intersections for this layer into (lod,layer) bins
+	auto &hitBuffer = foreachIntersection(camera_shape, ic.traversalMask);
+	Private::updateLayerVisibility(ic, layerIdx, hitBuffer);
 }
 
 static void visibilityJobFunc(void *arg) {
@@ -520,7 +570,10 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 		indexCamera->layerMask = (1u << indexCamera->layerBits) - 1u;
 		indexCamera->shapeBits = getMinBits(indexCamera->indexShapes_.size());
 		indexCamera->shapeMask = (1u << indexCamera->shapeBits) - 1u;
-		indexCamera->keyBits = indexCamera->layerBits + indexCamera->shapeBits + static_cast<uint8_t>(distanceBits);
+		// Note: We need to add lod level bits, plus distance bits. Distance
+		//       Is only used for sorting within a LOD level in a layer.
+		indexCamera->keyBits = indexCamera->shapeBits + LOD_LEVEL_BITS +
+			indexCamera->layerBits + static_cast<uint8_t>(distanceBits);
 
 		if (indexCamera->keyBits <= 32) {
 			using KeyType = uint32_t;
@@ -562,12 +615,7 @@ void SpatialIndex::resetCamera(IndexCamera *indexCamera, DistanceKeySize distanc
 		}
 		indexCamera->isDirty = false;
 	}
-	indexCamera->globalQueue_.clear();
 	indexCamera->traversalMask = traversalMask;
-	auto &frustumShapes = indexCamera->cullCamera->frustum();
-	for (auto &shape: frustumShapes) {
-		shape.updateOrthogonalProjection();
-	}
 }
 
 void SpatialIndex::updateVisibility(uint32_t traversalMask) {
@@ -609,6 +657,9 @@ void SpatialIndex::updateVisibility(uint32_t traversalMask) {
 void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	const uint32_t L = indexCamera->cullCamera->numLayer();
 
+	// Clear the global queue
+	indexCamera->globalQueue_.clear();
+
 	for (auto &indexShape: indexCamera->indexShapes_) {
 		// Map instance data for this shape, and reset the bin counts
 		indexShape->mapInstanceData_internal();
@@ -622,7 +673,9 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	// Process each layer
 	auto &frustumShapes = indexCamera->cullCamera->frustum();
 	for (uint32_t layerIdx = 0; layerIdx < frustumShapes.size(); ++layerIdx) {
-		updateLayerVisibility(*indexCamera, layerIdx, frustumShapes[layerIdx]);
+		auto &shape = frustumShapes[layerIdx];
+		shape.updateOrthogonalProjection();
+		updateLayerVisibility(*indexCamera, layerIdx, shape);
 	}
 
 	// Sort the visible instances according to their sort keys
@@ -646,9 +699,9 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 			// Write IDs to mapped buffer
 			// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.
 			auto mapped_ids = indexShape->mappedInstanceIDs();
+			const auto &globalToInstance = indexCamera->globalToInstance_;
 			std::vector<uint32_t>::iterator vecBegin = queuedGlobalIDs.begin() + shapeBase;
 			std::vector<uint32_t>::iterator vecEnd = vecBegin + numVisibleInstances;
-			const auto &globalToInstance = indexCamera->globalToInstance_;
 			std::transform(vecBegin, vecEnd, mapped_ids,
 				[&globalToInstance](uint32_t globalID) {
 					return globalToInstance[globalID];
@@ -704,10 +757,8 @@ void SpatialIndex::debugBoundingShape(DebugInterface &debug, const BoundingShape
 void SpatialIndex::debugDraw(DebugInterface &debug) const {
 	SpatialIndexDebug &sid = static_cast<SpatialIndexDebug &>(debug);
 	for (auto &shape: shapes()) {
-		for (auto &instance: *shape.second.get()) {
-			if (instance->traversalMask() == 0) continue;
-			debugBoundingShape(debug, *instance.get());
-		}
+		if (shape->traversalMask() == 0) continue;
+		debugBoundingShape(debug, *shape.get());
 	}
 	for (auto &shape : debugShapes_) {
 		if (shape->traversalMask() == 0) continue;

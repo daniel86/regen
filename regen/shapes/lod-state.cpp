@@ -405,8 +405,8 @@ void LODState::traverseCPU() {
 			auto count = shapeIndex_->mapInstanceCounts(BUFFER_CPU_READ);
 			auto base = shapeIndex_->mapBaseInstances(BUFFER_CPU_READ);
 
-			for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
-				for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
+			for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
+				for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 					const uint32_t binIdx =  CullShape::binIdx(lodLevel, layerIdx, numLayer);
 					if (count.r[binIdx] != 0) {
 						updateVisibility(layerIdx, lodLevel, 1, 0);
@@ -417,8 +417,8 @@ void LODState::traverseCPU() {
 			auto count = shapeIndex_->mapInstanceCounts(BUFFER_CPU_READ);
 			auto base = shapeIndex_->mapBaseInstances(BUFFER_CPU_READ);
 
-			for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 			for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
+			for (uint32_t layerIdx=0; layerIdx<numLayer; ++layerIdx) {
 				const uint32_t binIdx =  CullShape::binIdx(lodLevel, layerIdx, numLayer);
 				if (count.r[binIdx] != 0) {
 					updateVisibility(layerIdx, fixedLOD_, count.r[binIdx], base.r[binIdx]);

@@ -143,6 +143,17 @@
         <culling index="main-index"/>
         <culling index="terrain-index" />
     </camera>
+    <!--
+    <camera id="sun-camera"
+            lod-shift="0,0,0,0"
+            camera="main-camera"
+            light="sky-sun"
+            num-layer="{{num-cascades}}"
+            split-weight="0.7">
+        <culling index="main-index"/>
+        <culling index="terrain-index" />
+    </camera>
+    -->
     <camera id="sun-camera"
             lod-shift="0,0,0,0"
             lod-camera="main-camera"

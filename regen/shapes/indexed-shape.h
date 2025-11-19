@@ -13,8 +13,8 @@ namespace regen {
 	class IndexedShape {
 	public:
 		IndexedShape(
-			const ref_ptr <Camera> &camera,
 			const ref_ptr <Camera> &sortCamera,
+			const ref_ptr <Camera> &lodCamera,
 			const Vec4i &lodShift,
 			const ref_ptr <BoundingShape> &shape);
 
@@ -47,15 +47,6 @@ namespace regen {
 		bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_; }
 
 		/**
-		 * \brief Add a visible instance for the shape
-		 * \param binIdx The bin index (lod * numLayers + layer)
-		 */
-		void addVisibleInstance(uint32_t binIdx) {
-			// Finally bin the shape into the (lod, layer) bin
-			mapped_binCount_[binIdx] += 1;
-		}
-
-		/**
 		 * \brief Map the instance IDs for the shape
 		 * \param mapMode The mapping mode
 		 * \return The mapped data
@@ -77,16 +68,16 @@ namespace regen {
 		ClientData_rw<uint32_t> mapBaseInstances(int mapMode);
 
 		/**
-		 * \brief Get the camera
-		 * \return The camera
-		 */
-		auto &camera() const { return camera_; }
-
-		/**
-		 * \brief Get the sorting camera
-		 * \return The sorting camera
+		 * \brief Get the sort camera
+		 * \return The sort camera
 		 */
 		auto &sortCamera() const { return sortCamera_; }
+
+		/**
+		 * \brief Get the LOD camera
+		 * \return The LOD camera
+		 */
+		auto &lodCamera() const { return lodCamera_; }
 
 		/**
 		 * \brief Get the shape
@@ -110,9 +101,10 @@ namespace regen {
 		const Vec3f &lodThresholds() const { return lodThresholds_; }
 
 	protected:
-		ref_ptr<Camera> camera_;
 		ref_ptr<Camera> sortCamera_;
+		ref_ptr<Camera> lodCamera_;
 		ref_ptr<BoundingShape> shape_;
+
 		SortMode instanceSortMode_ = SortMode::FRONT_TO_BACK;
 		Vec4i lodShift_ = Vec4i::zero();
 		Vec3f lodThresholds_ = Vec3f(40.0f, 80.0f, 160.0f);

@@ -119,28 +119,6 @@ QuadTree::~QuadTree() {
 	delete priv_;
 }
 
-unsigned int QuadTree::numShapes() const {
-	if (!root_) {
-		return 0;
-	}
-	std::stack<const Node *> stack;
-	std::unordered_set<uint32_t> shapes;
-	stack.push(root_);
-	while (!stack.empty()) {
-		auto *node = stack.top();
-		stack.pop();
-		for (uint32_t itemIdx: node->items) {
-			shapes.insert(itemIdx);
-		}
-		if (!node->isLeaf()) {
-			for (int i = 0; i < 4; i++) {
-				stack.push(nodes_[node->childrenIdx[i]]);
-			}
-		}
-	}
-	return shapes.size();
-}
-
 QuadTree::Node *QuadTree::createNode(const Vec2f &min, const Vec2f &max) {
 	if (nodePool_.empty()) {
 		Node *node = new Node(min, max);
@@ -870,9 +848,11 @@ HitBuffer& QuadTree::foreachIntersection(const BoundingShape &shape, uint32_t ma
 		td.queuedMaxX_.resize(nextBufferSize_);
 		td.queuedMaxY_.resize(nextBufferSize_);
 		td.successorIdx_.resize(nextBufferSize_);
+#ifndef QUAD_TREE_DISABLE_SIMD
 		if constexpr (QUAD_TREE_DEFERRED_BATCH_STORE) {
 			td.batchResults_.resize(nextBufferSize_ / simd::RegisterWidth + 1);
 		}
+#endif
 	}
 	if constexpr(QUAD_TREE_DEBUG_TESTS) {
 		td.num2DTests_ = 0;
@@ -934,8 +914,8 @@ HitBuffer& QuadTree::foreachIntersection(const BoundingShape &shape, uint32_t ma
 }
 
 void QuadTree::update(float dt) {
-	static constexpr float maxFloat = std::numeric_limits<float>::lowest();
-	static constexpr float minFloat = std::numeric_limits<float>::max();
+	static constexpr float minFloat = std::numeric_limits<float>::lowest();
+	static constexpr float maxFloat = std::numeric_limits<float>::max();
 
 	if (itemNodeIdx_.empty() && newItems_.empty()) {
 		// nothing to do
@@ -950,10 +930,10 @@ void QuadTree::update(float dt) {
 #endif
 
 	changedItems_.clear();
-	newBounds_.min.x = minFloat;
-	newBounds_.min.y = minFloat;
-	newBounds_.max.x = maxFloat;
-	newBounds_.max.y = maxFloat;
+	newBounds_.min.x = maxFloat;
+	newBounds_.min.y = maxFloat;
+	newBounds_.max.x = minFloat;
+	newBounds_.max.y = minFloat;
 	if constexpr(QUAD_TREE_EVER_GROWING) {
 		if (root_ != nullptr) {
 			// never shrink the root node

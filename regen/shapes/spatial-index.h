@@ -38,7 +38,8 @@ namespace regen {
 		SpatialIndex *index = nullptr;
 		// The culling and sorting cameras
 		ref_ptr<Camera> cullCamera;
-		ref_ptr<Camera> sortCamera;
+		ref_ptr<Camera> lodCamera;
+		bool hasLODCam = false;
 
 		// LOD shift for each layer
 		Vec4i lodShift = Vec4i(0);
@@ -121,7 +122,7 @@ namespace regen {
 
 		SpatialIndex();
 
-		~SpatialIndex() override = default;
+		~SpatialIndex() override;
 
 		static ref_ptr<SpatialIndex> load(LoadingContext &ctx, scene::SceneInputNode &input);
 
@@ -161,13 +162,13 @@ namespace regen {
 		/**
 		 * @brief Add a camera to the index
 		 * @param cullCamera The culling camera
-		 * @param sortCamera The sorting camera
+		 * @param lodCamera The camera used to compute LOD level
 		 * @param sortMode The sort mode
 		 * @param lodShift The LOD shift
 		 */
 		void addCamera(
 				const ref_ptr<Camera> &cullCamera,
-				const ref_ptr<Camera> &sortCamera,
+				const ref_ptr<Camera> &lodCamera,
 				SortMode sortMode,
 				const Vec4i &lodShift);
 
@@ -204,7 +205,13 @@ namespace regen {
 		 * @brief Get the shapes in the index
 		 * @return The shapes
 		 */
-		auto &shapes() const { return nameToShape_; }
+		auto &shapes() const { return itemBoundingShapes_; }
+
+		/**
+		 * @brief Get the number of shapes in the index
+		 * @return The number of shapes
+		 */
+		unsigned int numShapes() const { return itemBoundingShapes_.size(); }
 
 		/**
 		 * @brief Get the shape at the given index
@@ -313,6 +320,10 @@ namespace regen {
 		friend struct VisibilityJob;
 
 		void resetCamera(IndexCamera *indexCamera, DistanceKeySize distanceBits, uint32_t traversalMask);
+
+	private:
+		struct Private;
+		Private *priv_;
 	};
 
 	/**

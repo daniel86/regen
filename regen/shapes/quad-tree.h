@@ -196,8 +196,6 @@ namespace regen {
 
 		void subdivide(Node *node);
 
-		unsigned int numShapes() const;
-
 		friend class QuadTreeTest;
 
 	private:
