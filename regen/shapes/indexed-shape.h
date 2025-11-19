@@ -51,8 +51,6 @@ namespace regen {
 		 * \param binIdx The bin index (lod * numLayers + layer)
 		 */
 		void addVisibleInstance(uint32_t binIdx) {
-			// Total visibility count of the shape across all layers and LODs
-			numVisibleInstances_ += 1;
 			// Finally bin the shape into the (lod, layer) bin
 			mapped_binCount_[binIdx] += 1;
 		}
@@ -150,9 +148,6 @@ namespace regen {
 		uint32_t *mapped_binCount_ = nullptr; // size = numLODs * numLayers
 		uint32_t *mapped_binBase_ = nullptr;  // size = numLODs * numLayers
 
-		// The total number of visible instances for this shape across all layers and LODs.
-		// Recomputed each frame during traversal.
-		uint32_t numVisibleInstances_ = 0;
 		// True if the shape is visible in any layer.
 		// TODO: reconsider, if for thread safety use atomic
 		bool isVisibleInAnyLayer_ = false;

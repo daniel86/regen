@@ -610,8 +610,6 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	const uint32_t L = indexCamera->cullCamera->numLayer();
 
 	for (auto &indexShape: indexCamera->indexShapes_) {
-		// Reset total count
-		indexShape->numVisibleInstances_ = 0;
 		// Map instance data for this shape, and reset the bin counts
 		indexShape->mapInstanceData_internal();
 		indexShape->mapped_binBase_ = indexShape->mappedBaseInstance();
@@ -634,37 +632,33 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 
 	uint32_t shapeBase = 0;
 	for (auto &indexShape: indexCamera->indexShapes_) {
-		if (indexShape->numVisibleInstances_ == 0) {
-			indexShape->isVisibleInAnyLayer_ = false;
-			indexShape->unmapInstanceData_internal();
-			continue;
-		}
-
 	    // Compute base offsets for all bins in LOD-major order.
 		const uint32_t numBins = indexShape->numLODs() * L;
-	    uint32_t runningBase = 0;
+	    uint32_t numVisibleInstances = 0;
 	    for (uint32_t b = 0; b < numBins; ++b) {
 	    	const uint32_t count = indexShape->mapped_binCount_[b];
-			indexShape->mapped_binBase_[b] = runningBase;
-			runningBase += count;
+			indexShape->mapped_binBase_[b] = numVisibleInstances;
+			numVisibleInstances += count;
 		}
-		indexShape->isVisibleInAnyLayer_ = runningBase > 0;
+		indexShape->isVisibleInAnyLayer_ = numVisibleInstances > 0;
 
-	    // Write IDs to mapped buffer
-		// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.
-		auto mapped_ids = indexShape->mappedInstanceIDs();
-		std::vector<uint32_t>::iterator vecBegin = queuedGlobalIDs.begin() + shapeBase;
-		std::vector<uint32_t>::iterator vecEnd = vecBegin + indexShape->numVisibleInstances_;
-		const auto &globalToInstance = indexCamera->globalToInstance_;
-		std::transform(vecBegin, vecEnd, mapped_ids,
-			[&globalToInstance](uint32_t globalID) {
-				return globalToInstance[globalID];
-			});
+		if (indexShape->isVisibleInAnyLayer_) {
+			// Write IDs to mapped buffer
+			// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.
+			auto mapped_ids = indexShape->mappedInstanceIDs();
+			std::vector<uint32_t>::iterator vecBegin = queuedGlobalIDs.begin() + shapeBase;
+			std::vector<uint32_t>::iterator vecEnd = vecBegin + numVisibleInstances;
+			const auto &globalToInstance = indexCamera->globalToInstance_;
+			std::transform(vecBegin, vecEnd, mapped_ids,
+				[&globalToInstance](uint32_t globalID) {
+					return globalToInstance[globalID];
+				});
+		}
 
 		indexShape->unmapInstanceData_internal();
 		indexShape->mapped_binBase_ = nullptr;
 		indexShape->mapped_binCount_ = nullptr;
-		shapeBase += indexShape->numVisibleInstances_;
+		shapeBase += numVisibleInstances;
 	}
 }
 
