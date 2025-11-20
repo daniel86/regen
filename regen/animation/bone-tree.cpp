@@ -266,9 +266,9 @@ void BoneTree::setTickRange(ActiveRange &ar, const Vec2d &forcedTickRange) {
 
 	// Ensure that startFramePosition and lastFramePosition are allocated.
 	if (ar.startFramePosition_.size() != numChannels) {
-		ar.startFramePosition_.resize(numChannels, Vec3ui(0u));
-		ar.lastFramePosition_.resize(numChannels, Vec3ui(0u));
-		ar.lastInterpolation_.resize(numChannels, Vec3f(0.0f));
+		ar.startFramePosition_.resize(numChannels, Vec3ui::zero());
+		ar.lastFramePosition_.resize(numChannels, Vec3ui::zero());
+		ar.lastInterpolation_.resize(numChannels, Vec3f::zero());
 	}
 
 	// get first and last tick of animation
@@ -292,7 +292,7 @@ void BoneTree::setTickRange(ActiveRange &ar, const Vec2d &forcedTickRange) {
 	} else {
 		for (uint32_t a = 0; a < numChannels; a++) {
 			AnimationChannel &channel = anim.staticData_->channels[a];
-			Vec3ui framePos(0u);
+			Vec3ui framePos = Vec3ui::zero();
 			if (channel.isAnimated) {
 				findFrameBeforeTick(ar.tickRange_.x, framePos.x, channel.positionKeys_);
 				findFrameBeforeTick(ar.tickRange_.x, framePos.y, channel.rotationKeys_);

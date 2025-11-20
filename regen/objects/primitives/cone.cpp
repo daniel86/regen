@@ -40,7 +40,7 @@ void ConeOpened::generateLODLevel(const Config &cfg,
 	GLfloat angleStep = 2.0f * M_PI / (GLfloat) lodLevel;
 	GLuint i = vertexOffset;
 
-	v_pos[i] = Vec3f(0.0f);
+	v_pos[i] = Vec3f::zero();
 	if (cfg.isNormalRequired) {
 		v_nor[i] = Vec3f(0.0f, -1.0f, 0.0f);
 	}
@@ -74,8 +74,8 @@ void ConeOpened::updateAttributes(const Config &cfg) {
 	}
 	GLuint numVertices = vertexOffset;
 
-	minPosition_ = Vec3f(0.0);
-	maxPosition_ = Vec3f(0.0);
+	minPosition_ = Vec3f::zero();
+	maxPosition_ = Vec3f::zero();
 	pos_->setVertexData(numVertices);
 	if (cfg.isNormalRequired) {
 		nor_->setVertexData(numVertices);
@@ -141,7 +141,7 @@ static void loadConeData(
 	GLint i = 0;
 
 	// apex
-	pos[i] = Vec3f(0.0f);
+	pos[i] = Vec3f::zero();
 	if (nor) nor[i] = Vec3f(0.0f, 0.0f, -1.0f);
 	++i;
 	// base center
@@ -231,8 +231,8 @@ void ConeClosed::updateAttributes(const Config &cfg) {
 	GLuint numVertices = vertexOffset;
 	GLuint numIndices = indexOffset;
 
-	minPosition_ = Vec3f(0.0);
-	maxPosition_ = Vec3f(0.0);
+	minPosition_ = Vec3f::zero();
+	maxPosition_ = Vec3f::zero();
 	pos_->setVertexData(numVertices);
 	if (cfg.isNormalRequired) {
 		nor_->setVertexData(numVertices);

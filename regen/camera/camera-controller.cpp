@@ -138,7 +138,7 @@ void CameraController::updateModel() {
 		matVal_.x[12] -= pos_.x;
 		matVal_.x[13] -= pos_.y;
 		matVal_.x[14] -= pos_.z;
-		pos_ = Vec3f(0.0f);
+		pos_ = Vec3f::zero();
 	}
 }
 
@@ -151,7 +151,7 @@ void CameraController::jump() {
 }
 
 void CameraController::animate(GLdouble dt) {
-	step_ = Vec3f(0.0f);
+	step_ = Vec3f::zero();
 	isMoving_ = moveForward_ || moveBackward_ || moveLeft_ || moveRight_;
 	auto orientation = horizontalOrientation_ + meshHorizontalOrientation_;
 	auto hasOrientationChanged = orientation != lastOrientation_;

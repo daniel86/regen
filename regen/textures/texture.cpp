@@ -442,16 +442,16 @@ static std::vector<GLubyte> readTextureData_cfg(LoadingContext&, scene::SceneInp
 			if (numPixelComponents == 1) {
 				data.push_back(child->getValue<GLuint>("v", 0u));
 			} else if (numPixelComponents == 2) {
-				auto v = child->getValue<Vec2ui>("v", Vec2ui(0u));
+				auto v = child->getValue<Vec2ui>("v", Vec2ui::zero());
 				data.push_back(v.x);
 				data.push_back(v.y);
 			} else if (numPixelComponents == 3) {
-				auto v = child->getValue<Vec3ui>("v", Vec3ui(0u));
+				auto v = child->getValue<Vec3ui>("v", Vec3ui::zero());
 				data.push_back(v.x);
 				data.push_back(v.y);
 				data.push_back(v.z);
 			} else {
-				auto v = child->getValue<Vec4ui>("v", Vec4ui(0u));
+				auto v = child->getValue<Vec4ui>("v", Vec4ui::zero());
 				data.push_back(v.x);
 				data.push_back(v.y);
 				data.push_back(v.z);
@@ -519,7 +519,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		texConfig.forcedFormat = glenum::textureFormat(
 				input.getValue<std::string>("forced-format", "NONE"));
 		texConfig.forcedSize =
-				input.getValue<Vec3ui>("forced-size", Vec3ui(0u));
+				input.getValue<Vec3ui>("forced-size", Vec3ui::zero());
 		texConfig.keepData = input.getValue<bool>("keep-data", false);
 		texConfig.useMipmaps = input.getValue<bool>("mipmap", false);
 		const std::string filePath =
@@ -546,7 +546,7 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 			} else if (input.getValue<bool>("is-raw", false)) {
 				tex = textures::loadRAW(
 						filePath,
-						input.getValue<Vec3ui>("raw-size", Vec3ui(256u)),
+						input.getValue<Vec3ui>("raw-size", Vec3ui::create(256u)),
 						input.getValue<GLuint>("raw-components", 3u),
 						input.getValue<GLuint>("raw-bytes", 4u));
 			} else {
@@ -699,11 +699,11 @@ ref_ptr<Texture> Texture::load(LoadingContext &ctx, scene::SceneInputNode &input
 		if (tex2d) {
 			auto heightMap = ref_ptr<HeightMap>::alloc(*tex2d);
 			heightMap->setMapCenter(input.getValue<Vec2f>(
-				"map-center", Vec2f(0.0)));
+				"map-center", Vec2f::zero()));
 			heightMap->setMapFactor(input.getValue<float>(
 				"map-factor", 8.0f));
 			heightMap->setMapSize(input.getValue<Vec2f>(
-				"map-size", Vec2f(10.0)));
+				"map-size", Vec2f::create(10.0)));
 			tex = heightMap;
 		}
 	}
@@ -720,14 +720,14 @@ void Texture::configure(ref_ptr<Texture> &tex, scene::SceneInputNode &input) {
 		return;
 	}
 	if (!input.getValue("wrapping").empty()) {
-		tex->set_wrapping(glenum::wrappingMode(
-				input.getValue<std::string>("wrapping", "CLAMP_TO_EDGE")));
+		tex->set_wrapping(TextureWrapping::create(glenum::wrappingMode(
+				input.getValue<std::string>("wrapping", "CLAMP_TO_EDGE"))));
 	}
 	if (!input.getValue("aniso").empty()) {
 		tex->set_aniso(input.getValue<float>("aniso", 2.0f));
 	}
 	if (!input.getValue("lod").empty()) {
-		tex->set_lod(input.getValue<Vec2f>("lod", Vec2f(1.0f)));
+		tex->set_lod(input.getValue<Vec2f>("lod", Vec2f::create(1.0f)));
 	}
 	if (!input.getValue("swizzle-r").empty() ||
 		!input.getValue("swizzle-g").empty() ||

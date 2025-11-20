@@ -25,9 +25,9 @@ namespace regen {
 		 */
 		MaterialDescription(std::string_view materialName, std::string_view variant);
 
-		Vec3f diffuse = Vec3f(1.0f);
-		Vec3f specular = Vec3f(0.0f);
-		Vec3f emission = Vec3f(0.0f);
+		Vec3f diffuse = Vec3f::one();
+		Vec3f specular = Vec3f::zero();
+		Vec3f emission = Vec3f::zero();
 		float shininess = 128.0f;
 		std::map<TextureState::MapTo, std::vector<std::string>> textureFiles;
 

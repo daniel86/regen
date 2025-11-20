@@ -54,9 +54,9 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	// directional light that approximates the sun
 	sun_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	sun_->set_isAttenuated(false);
-	sun_->setSpecular(0, Vec3f(0.0f));
-	sun_->setDiffuse(0, Vec3f(0.0f));
-	sun_->setDirection(0, Vec3f(1.0f));
+	sun_->setSpecular(0, Vec3f::zero());
+	sun_->setDiffuse(0, Vec3f::zero());
+	sun_->setDirection(0, Vec3f::one());
 	state()->setInput(sun_->lightUBO(), "SunLight", "_Sun");
 
 	q_ = ref_ptr<ShaderInput1f>::alloc("q");
@@ -70,9 +70,9 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	// directional light that approximates the moon
 	moon_ = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	moon_->set_isAttenuated(false);
-	moon_->setSpecular(0, Vec3f(0.0f));
-	moon_->setDiffuse(0, Vec3f(0.0f));
-	moon_->setDirection(0, Vec3f(1.0f));
+	moon_->setSpecular(0, Vec3f::zero());
+	moon_->setDiffuse(0, Vec3f::zero());
+	moon_->setDirection(0, Vec3f::one());
 	state()->setInput(moon_->lightUBO(), "MoonLight", "_Moon");
 
 	state()->setInput(uniformBlock);
@@ -83,9 +83,9 @@ Sky::Sky(const ref_ptr<Camera> &cam, const ref_ptr<Screen> &screen)
 	cfg.isTangentRequired = false;
 	cfg.isTexcoRequired = false;
 	cfg.levelOfDetails = {4};
-	cfg.posScale = Vec3f(2.0f);
+	cfg.posScale = Vec3f::create(2.0f);
 	cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
-	cfg.texcoScale = Vec2f(1.0);
+	cfg.texcoScale = Vec2f::one();
 	cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
 	cfg.updateHint.frequency = BUFFER_UPDATE_NEVER;
 	cfg.updateHint.scope = BUFFER_UPDATE_FULLY;
@@ -541,7 +541,7 @@ ref_ptr<Sky> Sky::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	sky->setWorldTime(&scene->application()->worldTime());
 
 	if (input.hasAttribute("noon-color"))
-		sky->set_noonColor(input.getValue<Vec3f>("noon-color", Vec3f(0.5)));
+		sky->set_noonColor(input.getValue<Vec3f>("noon-color", Vec3f::create(0.5)));
 	if (input.hasAttribute("dawn-color"))
 		sky->set_dawnColor(input.getValue<Vec3f>("dawn-color", Vec3f(0.2, 0.15, 0.15)));
 

@@ -35,7 +35,7 @@ ref_ptr<Box> Box::getUnitCube() {
 	static ref_ptr<Box> mesh;
 	if (mesh.get() == nullptr) {
 		Config cfg;
-		cfg.posScale = Vec3f(1.0f);
+		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
@@ -68,9 +68,9 @@ Box::Box(const ref_ptr<Box> &other)
 
 Box::Config::Config()
 		: levelOfDetails({0}),
-		  posScale(Vec3f(1.0f)),
-		  rotation(Vec3f(0.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		  posScale(Vec3f::one()),
+		  rotation(Vec3f::zero()),
+		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE) {
@@ -146,7 +146,7 @@ void Box::generateLODLevel(
 				Vec3f v = faceVertex;
 				v.normalize();
 				texco[vertexIndex] = v;
-				triTexco[faceVertIndex] = Vec2f(vertex.x, vertex.y) * 0.5f + Vec2f(0.5f);
+				triTexco[faceVertIndex] = Vec2f(vertex.x, vertex.y) * 0.5f + Vec2f::create(0.5f);
 			} else if (texcoMode_ == TEXCO_MODE_UV) {
 				Vec2f uv;
 				switch (sideIndex) {
@@ -181,7 +181,7 @@ void Box::generateLODLevel(
 						uv.y *= cfg.posScale.y;
 						break;
 					default:
-						uv = Vec2f(0.0f);
+						uv = Vec2f::zero();
 				}
 				uv *= cfg.texcoScale;
 				auto texco = (Vec2f*) texco_->clientBuffer()->clientData(0);
@@ -258,8 +258,8 @@ void Box::updateAttributes(const Config &cfg) {
 	}
 	indices_ = createIndexInput(numIndices, numVertices);
 
-	minPosition_ = Vec3f(999999.9);
-	maxPosition_ = Vec3f(-999999.9);
+	minPosition_ = Vec3f::create(999999.9);
+	maxPosition_ = Vec3f::create(-999999.9);
 	for (auto lodLevel = 0u; lodLevel < tessellations.size(); ++lodLevel) {
 		for (GLuint sideIndex = 0; sideIndex < 6; ++sideIndex) {
 			generateLODLevel(cfg, sideIndex, lodLevel, tessellations);

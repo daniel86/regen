@@ -19,10 +19,10 @@ Material::Material(const BufferUpdateFlags &updateFlags)
 	texConfig_.useMipmaps = true;
 	texConfig_.forcedInternalFormat = GL_NONE;
 	texConfig_.forcedFormat = GL_NONE;
-	texConfig_.forcedSize = Vec3ui(0u);
+	texConfig_.forcedSize = Vec3ui::zero();
 
 	materialSpecular_ = ref_ptr<ShaderInput3f>::alloc("matSpecular");
-	materialSpecular_->setUniformData(Vec3f(0.0f));
+	materialSpecular_->setUniformData(Vec3f::zero());
 	materialSpecular_->setSchema(InputSchema::color());
 
 	materialShininess_ = ref_ptr<ShaderInput1f>::alloc("matShininess");
@@ -30,7 +30,7 @@ Material::Material(const BufferUpdateFlags &updateFlags)
 	materialShininess_->setSchema(InputSchema::scalar(0.0f, 128.0f));
 
 	materialDiffuse_ = ref_ptr<ShaderInput3f>::alloc("matDiffuse");
-	materialDiffuse_->setUniformData(Vec3f(1.0f));
+	materialDiffuse_->setUniformData(Vec3f::create(1.0f));
 	materialDiffuse_->setSchema(InputSchema::color());
 
 	materialAlpha_ = ref_ptr<ShaderInput1f>::alloc("matAlpha");
@@ -254,7 +254,7 @@ bool Material::set_textures(std::string_view materialName, std::string_view vari
 				textures_[entry.first].push_back(texState);
 
 				if (wrapping_.has_value()) {
-					tex->set_wrapping(wrapping_.value());
+					tex->set_wrapping(TextureWrapping::create(wrapping_.value()));
 				}
 			} else {
 				REGEN_WARN("Failed to load texture '" << filePath << "'.");
@@ -306,7 +306,7 @@ ref_ptr<TextureState> Material::set_texture(const ref_ptr<Texture> &tex,
 	auto texState = ref_ptr<TextureState>::alloc(tex, texName);
 	textures_[mapTo].push_back(texState);
 	if (wrapping_.has_value()) {
-		tex->set_wrapping(GL_CLAMP_TO_EDGE);
+		tex->set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
 	}
 	set_textureState(texState, mapTo);
 	return texState;
@@ -507,15 +507,15 @@ ref_ptr<Material> Material::load(LoadingContext &ctx, scene::SceneInputNode &inp
 	}
 	if (input.hasAttribute("diffuse"))
 		mat->diffuse()->setVertex(0,
-								  input.getValue<Vec3f>("diffuse", Vec3f(1.0f)));
+								  input.getValue<Vec3f>("diffuse", Vec3f::one()));
 	if (input.hasAttribute("specular"))
 		mat->specular()->setVertex(0,
-								   input.getValue<Vec3f>("specular", Vec3f(0.0f)));
+								   input.getValue<Vec3f>("specular", Vec3f::zero()));
 	if (input.hasAttribute("shininess"))
 		mat->shininess()->setVertex(0,
 									input.getValue<GLfloat>("shininess", 1.0f));
 	if (input.hasAttribute("emission"))
-		mat->set_emission(input.getValue<Vec3f>("emission", Vec3f(0.0f)));
+		mat->set_emission(input.getValue<Vec3f>("emission", Vec3f::zero()));
 	if (input.hasAttribute("textures")) {
 		mat->set_textures(
 				input.getValue("textures"),

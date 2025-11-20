@@ -79,8 +79,8 @@ void SkirtMesh::updateAttributes(const Rectangle::Config &rectangleConfig) {
 	pos_->setVertexData(numVertices);
 	indices_ = createIndexInput(numIndices, numVertices);
 
-	minPosition_ = Vec3f(0.0);
-	maxPosition_ = Vec3f(0.0);
+	minPosition_ = Vec3f::zero();
+	maxPosition_ = Vec3f::zero();
 
 	Mat4f rotMat = Mat4f::rotationMatrix(
 		rectangleConfig.rotation.x,

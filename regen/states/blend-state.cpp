@@ -135,7 +135,7 @@ namespace regen {
 				setBlendFuncSeparate(
 						GL_CONSTANT_ALPHA, GL_CONSTANT_ALPHA,
 						GL_ONE, GL_ONE);
-				setBlendColor(Vec4f(0.5f));
+				setBlendColor(Vec4f::create(0.5f));
 				break;
 			case BLEND_MODE_SUBTRACT:
 				// c = c0-c1, a=a0-a1
@@ -230,7 +230,7 @@ namespace regen {
 		ref_ptr<BlendState> blend = ref_ptr<BlendState>::alloc(
 				input.getValue<BlendMode>("mode", BLEND_MODE_SRC));
 		if (input.hasAttribute("color")) {
-			blend->setBlendColor(input.getValue<Vec4f>("color", Vec4f(0.0f)));
+			blend->setBlendColor(input.getValue<Vec4f>("color", Vec4f::zero()));
 		}
 		if (input.hasAttribute("equation")) {
 			blend->setBlendEquation(glenum::blendFunction(

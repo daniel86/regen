@@ -41,8 +41,8 @@ Sphere::Sphere(const Config &cfg)
 }
 
 Sphere::Config::Config()
-		: posScale(Vec3f(1.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		: posScale(Vec3f::one()),
+		  texcoScale(Vec2f::one()),
 		  levelOfDetails({4}),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
@@ -241,16 +241,16 @@ void SphereSprite::updateAttributes(const Config &cfg) {
 	positionIn->setVertexData(cfg.sphereCount);
 	auto mappedPosition = positionIn->mapClientData<Vec3f>(BUFFER_GPU_WRITE);
 
-	minPosition_ = Vec3f(999999.0f);
-	maxPosition_ = Vec3f(-999999.0f);
+	minPosition_ = Vec3f::create(999999.0f);
+	maxPosition_ = Vec3f::create(-999999.0f);
 	Vec3f v;
 	for (GLuint i = 0; i < cfg.sphereCount; ++i) {
 		mappedRadius.w[i] = cfg.radius[i];
 		mappedPosition.w[i] = cfg.position[i];
 
-		v = cfg.position[i] - Vec3f(cfg.radius[i]);
+		v = cfg.position[i] - Vec3f::create(cfg.radius[i]);
 		minPosition_.setMin(v);
-		v = cfg.position[i] + Vec3f(cfg.radius[i]);
+		v = cfg.position[i] + Vec3f::create(cfg.radius[i]);
 		maxPosition_.setMax(v);
 	}
 

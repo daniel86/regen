@@ -167,16 +167,16 @@ struct PlaneCellWeights {
 
 struct InstancePlaneGenerator {
 	float areaMaxHeight = 0.0f;
-	Vec2f areaSize = Vec2f(10.0f);
+	Vec2f areaSize = Vec2f::create(10.0f);
 	float objMinScale = 0.6f;
 	float objMaxScale = 1.0f;
 	float objPosVariation = 0.0f;
 	float objDensity = 1.0f;
-	Vec2f objSize = Vec2f(1.0f);
-	Vec2f ws_cellSize = Vec2f(1.0f);
-	Vec2f ts_cellSize = Vec2f(0.1f);
-	Vec2f cellHalfSize = Vec2f(0.5f);
-	Vec3f cellWorldOffset = Vec3f(0.0f);
+	Vec2f objSize = Vec2f::one();
+	Vec2f ws_cellSize = Vec2f::one();
+	Vec2f ts_cellSize = Vec2f::create(0.1f);
+	Vec2f cellHalfSize = Vec2f::create(0.5f);
+	Vec3f cellWorldOffset = Vec3f::zero();
 	std::vector<Mat4f> instanceData;
 	ref_ptr<Texture2D> maskTexture;
 	ref_ptr<Texture2D> heightMap;
@@ -228,7 +228,7 @@ static void makeInstance(InstancePlaneGenerator &generator, PlaneCell &cell) {
 	// apply scaling, randomize between min and max scale
 	auto sizeFactor = math::random<float>() * cell.density;
 	auto scale = generator.objMinScale + sizeFactor * (generator.objMaxScale - generator.objMinScale);
-	instanceMat.scale(scale);
+	instanceMat.scale(Vec3f::create(scale));
 
 	// apply random rotation around y axis
 	auto angle = math::random<float>() * 2.0f * M_PI;
@@ -372,7 +372,7 @@ static GLuint transformMatrixPlane(
 		scene::SceneInputNode &input,
 		const ref_ptr<ModelTransformation> &tf,
 		GLuint numInstances) {
-	auto areaSize = input.getValue<Vec2f>("area-size", Vec2f(10.0f));
+	auto areaSize = input.getValue<Vec2f>("area-size", Vec2f::create(10.0f));
 	auto areaHalfSize = areaSize * 0.5f;
 
 	InstancePlaneGenerator generator;
@@ -382,9 +382,9 @@ static GLuint transformMatrixPlane(
 	generator.objMaxScale = input.getValue<float>("obj-max-scale", 1.0f);
 	generator.objPosVariation = input.getValue<float>("obj-pos-variation", 0.0f);
 	generator.objDensity = input.getValue<float>("obj-density", 1.0f);
-	generator.ws_cellSize = input.getValue<Vec2f>("cell-size", Vec2f(1.0f));
+	generator.ws_cellSize = input.getValue<Vec2f>("cell-size", Vec2f::one());
 	generator.cellHalfSize = Vec2f(generator.ws_cellSize.x, generator.ws_cellSize.y) * 0.5f;
-	generator.cellWorldOffset = input.getValue<Vec3f>("cell-offset", Vec3f(0.0f));
+	generator.cellWorldOffset = input.getValue<Vec3f>("cell-offset", Vec3f::zero());
 	if (input.hasAttribute("area-mask-texture")) {
 		generator.maskIndex = input.getValue<uint32_t>("area-mask-index", 0);
 		generator.maskThreshold = input.getValue<float>("area-mask-threshold", 0.1f);
@@ -560,10 +560,10 @@ static void transformAnimation(
 			std::optional<Vec3f> framePos = std::nullopt;
 			std::optional<Vec3f> frameDir = std::nullopt;
 			if (keyFrameNode->hasAttribute("position")) {
-				framePos = keyFrameNode->getValue<Vec3f>("position", Vec3f(0.0f));
+				framePos = keyFrameNode->getValue<Vec3f>("position", Vec3f::zero());
 			}
 			if (keyFrameNode->hasAttribute("rotation")) {
-				frameDir = keyFrameNode->getValue<Vec3f>("rotation", Vec3f(0.0f));
+				frameDir = keyFrameNode->getValue<Vec3f>("rotation", Vec3f::zero());
 			}
 			auto dt = keyFrameNode->getValue<double>("dt", 1.0);
 			transformAnimation->addTransformKeyframe(framePos, frameDir, dt);
@@ -607,7 +607,7 @@ static void transformMatrix(
 					numIndices += (range.to - range.from + range.step - 1) / range.step;
 				}
 				scene::ValueGenerator<Vec3f> generator(child.get(), numIndices,
-													   child->getValue<Vec3f>("value", Vec3f(0.0f)));
+													   child->getValue<Vec3f>("value", Vec3f::zero()));
 				const auto target = child->getValue<std::string>("target", "translate");
 
 				for (auto &range : indices) {
@@ -630,7 +630,7 @@ static void transformMatrix(
 					for (unsigned int j = range.from; j <= range.to; j = j + range.step) {
 						transformMatrix(scene, child,
 								child->getCategory(), matrices.w[j],
-								child->getValue<Vec3f>("value", Vec3f(0.0f)));
+								child->getValue<Vec3f>("value", Vec3f::zero()));
 					}
 				}
 			} else if (tf->hasModelOffset()) {
@@ -645,7 +645,7 @@ static void transformMatrix(
 					for (unsigned int j = range.from; j <= range.to; j = j + range.step) {
 						transformOffset(
 								child->getCategory(), offsets.w[j],
-								child->getValue<Vec3f>("value", Vec3f(0.0f)));
+								child->getValue<Vec3f>("value", Vec3f::zero()));
 					}
 				}
 			}

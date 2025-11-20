@@ -11,7 +11,7 @@ WorldModelDebug::WorldModelDebug(const ref_ptr<WorldModel> &world)
 		  lineLocation_(-1),
 		  vbo_(0) {
 	lineColor_ = ref_ptr<ShaderInput3f>::alloc("lineColor");
-	lineColor_->setUniformData(Vec3f(1.0f));
+	lineColor_->setUniformData(Vec3f::one());
 	state()->setInput(lineColor_);
 	state()->joinStates(shaderState_);
 	lineVertices_ = ref_ptr<ShaderInput3f>::alloc("lineVertices");

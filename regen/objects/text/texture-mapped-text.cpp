@@ -15,7 +15,7 @@ TextureMappedText::TextureMappedText(const ref_ptr<Font> &font, const GLfloat &h
 		  centerAtOrigin_(true),
 		  numCharacters_(0) {
 	textColor_ = ref_ptr<ShaderInput4f>::alloc("textColor");
-	textColor_->setUniformData(Vec4f(1.0));
+	textColor_->setUniformData(Vec4f::one());
 	textColor_->setSchema(InputSchema::color());
 	setInput(textColor_);
 

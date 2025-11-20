@@ -55,7 +55,7 @@ ref_ptr<DepthState> DepthState::load(LoadingContext &ctx, scene::SceneInputNode 
 	depth->set_useDepthWrite(input.getValue<bool>("write", true));
 
 	if (input.hasAttribute("range")) {
-		auto range = input.getValue<Vec2f>("range", Vec2f(0.0f));
+		auto range = input.getValue<Vec2f>("range", Vec2f::zero());
 		depth->set_depthRange(range.x, range.y);
 	}
 

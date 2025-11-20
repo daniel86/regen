@@ -57,6 +57,14 @@ namespace regen {
 			x[8] = x8;
 		}
 
+		static Mat3f create(float v) {
+			return Mat3f(
+					v, v, v,
+					v, v, v,
+					v, v, v
+			);
+		}
+
 		/**
 		 * Access a single coefficient.
 		 * @param i row index.
@@ -265,6 +273,15 @@ namespace regen {
 			x[13] = x13;
 			x[14] = x14;
 			x[15] = x15;
+		}
+
+		static Mat4f create(float v) {
+			return Mat4f(
+					v, v, v, v,
+					v, v, v, v,
+					v, v, v, v,
+					v, v, v, v
+			);
 		}
 
 		/**
@@ -1262,7 +1279,7 @@ namespace regen {
 		static inline const Mat4f *cubeLookAtMatrices() {
 			static Mat4f *views = NULL;
 			if (views == NULL) {
-				views = Mat4f::cubeLookAtMatrices(Vec3f(0.0f));
+				views = Mat4f::cubeLookAtMatrices(Vec3f::zero());
 			}
 			return views;
 		}
@@ -1275,6 +1292,9 @@ namespace regen {
 	std::ostream &operator<<(std::ostream &os, const Mat3f &m);
 
 	std::ostream &operator<<(std::ostream &os, const Mat4f &m);
+
+	template<> struct VecTraits<Mat3f> { using BaseType = float; };
+	template<> struct VecTraits<Mat4f> { using BaseType = float; };
 } // namespace
 
 #endif /* _MATRIX_H_ */

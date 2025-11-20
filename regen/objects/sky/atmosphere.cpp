@@ -28,8 +28,8 @@ Atmosphere::Atmosphere(
 	}
 	cubeMap->set_rectangleSize(cubeMapSize, cubeMapSize);
 	cubeMap->allocTexture();
-	cubeMap->set_wrapping(GL_CLAMP_TO_EDGE);
-	cubeMap->set_filter(GL_LINEAR);
+	cubeMap->set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
+	cubeMap->set_filter(TextureFilter::create(GL_LINEAR));
 
 	// create render target for updating the sky cube map
 	fbo_ = ref_ptr<FBO>::alloc(cubeMapSize, cubeMapSize);
@@ -62,15 +62,15 @@ Atmosphere::Atmosphere(
 	/// Update Uniforms
 	///////
 	rayleigh_ = ref_ptr<ShaderInput3f>::alloc("rayleigh");
-	rayleigh_->setUniformData(Vec3f(0.0f));
+	rayleigh_->setUniformData(Vec3f::zero());
 	mie_ = ref_ptr<ShaderInput4f>::alloc("mie");
-	mie_->setUniformData(Vec4f(0.0f));
+	mie_->setUniformData(Vec4f::zero());
 	spotBrightness_ = ref_ptr<ShaderInput1f>::alloc("spotBrightness");
 	spotBrightness_->setUniformData(0.0f);
 	scatterStrength_ = ref_ptr<ShaderInput1f>::alloc("scatterStrength");
 	scatterStrength_->setUniformData(0.0f);
 	skyAbsorption_ = ref_ptr<ShaderInput3f>::alloc("skyAbsorption");
-	skyAbsorption_->setUniformData(Vec3f(0.0f));
+	skyAbsorption_->setUniformData(Vec3f::zero());
 	///////
 	/// Update State
 	///////

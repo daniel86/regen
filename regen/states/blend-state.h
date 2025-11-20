@@ -91,7 +91,7 @@ namespace regen {
 		 * before being stored. See glBlendFunc for a complete description of the
 		 * blending operations. Initially the GL_BLEND_COLOR is set to (0, 0, 0, 0).
 		 */
-		void setBlendColor(const Vec4f &col = Vec4f(0.0f));
+		void setBlendColor(const Vec4f &col = Vec4f::zero());
 
 		/**
 		 * Specifies how source and destination colors are combined.

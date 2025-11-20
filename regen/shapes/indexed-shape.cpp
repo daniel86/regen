@@ -46,11 +46,11 @@ ClientData_rw<uint32_t> IndexedShape::mapInstanceIDs(int mapMode) {
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapInstanceCounts(int mapMode) {
-	return binCount_->mapClientData<uint32_t>(mapMode);
+	return drawBinCount_->mapClientData<uint32_t>(mapMode);
 }
 
 ClientData_rw<uint32_t> IndexedShape::mapBaseInstances(int mapMode) {
-	return binBase_->mapClientData<uint32_t>(mapMode);
+	return drawBinBase_->mapClientData<uint32_t>(mapMode);
 }
 
 IndexedShape::MappedData::MappedData(
@@ -69,7 +69,7 @@ IndexedShape::MappedData::~MappedData() {
 }
 
 void IndexedShape::mapInstanceData_internal() {
-	mappedInstanceIDs_.emplace(instanceIDs_, binCount_, binBase_);
+	mappedInstanceIDs_.emplace(instanceIDs_, drawBinCount_, drawBinBase_);
 }
 
 void IndexedShape::unmapInstanceData_internal() {

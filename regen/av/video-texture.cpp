@@ -189,8 +189,8 @@ void VideoTexture::animate(GLdouble animateDT) {
 void VideoTexture::glAnimate(RenderState *rs, GLdouble dt) {
 	if (fileToLoaded_) { // setup the texture target
 		allocTexture();
-		set_filter(GL_LINEAR);
-		set_wrapping(GL_REPEAT);
+		set_filter(TextureFilter::create(GL_LINEAR));
+		set_wrapping(TextureWrapping::create(GL_REPEAT));
 		fileToLoaded_ = GL_FALSE;
 	}
 	// upload texture data to GL

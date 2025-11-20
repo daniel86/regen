@@ -166,24 +166,24 @@ namespace regen {
 		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<ShaderInput4f> modelOffset_;
 		// The bounding box of the boids.
-		Bounds<Vec3f> boidBounds_ = Bounds<Vec3f>::create(0.0f, 1.0f);
-		Bounds<Vec3f> newBounds_ = Bounds<Vec3f>::create(0.0f, 0.0f);
+		Bounds<Vec3f> boidBounds_ = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::one());
+		Bounds<Vec3f> newBounds_ = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::zero());
 
 		// height map
 		ref_ptr<Texture2D> heightMap_;
 		float heightMapFactor_ = 1.0f;
 		Vec3f mapCenter_ = Vec3f::zero();
-		Vec2f mapSize_ = Vec2f(10.0f);
+		Vec2f mapSize_ = Vec2f::create(10.0f);
 
 		// collision map
 		ref_ptr<Texture2D> collisionMap_;
 		Vec3f collisionMapCenter_ = Vec3f::zero();
-		Vec2f collisionMapSize_ = Vec2f(10.0f);
+		Vec2f collisionMapSize_ = Vec2f::create(10.0f);
 		CollisionMapType collisionMapType_ = COLLISION_SCALAR;
 
 		ref_ptr<ShaderInput3ui> gridSize_;
 		ref_ptr<ShaderInput1f> cellSize_;
-		Bounds<Vec3f> gridBounds_ = Bounds<Vec3f>::create(0.0f, 0.0f);
+		Bounds<Vec3f> gridBounds_ = Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::zero());
 		unsigned int numCells_ = 0;
 
 		ref_ptr<ShaderInput1ui> maxNumNeighbors_;

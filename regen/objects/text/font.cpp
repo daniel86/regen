@@ -108,9 +108,9 @@ Font::Font(const std::string &fontPath, GLuint size, GLuint dpi)
 	}
 	// reset to default
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	arrayTexture_->set_wrapping(GL_CLAMP_TO_BORDER);
-	arrayTexture_->set_filter(GL_LINEAR);
-	arrayTexture_->set_swizzle(GL_RED);
+	arrayTexture_->set_wrapping(TextureWrapping::create(GL_CLAMP_TO_BORDER));
+	arrayTexture_->set_filter(TextureFilter::create(GL_LINEAR));
+	arrayTexture_->set_swizzle(TextureSwizzle::create(GL_RED));
 
 	FT_Done_Face(face);
 }

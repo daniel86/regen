@@ -63,7 +63,7 @@ namespace regen {
 				: inner_(inner), outer_(outer) {}
 
 		PatchLevels()
-				: inner_(Vec4f(0.0)), outer_(Vec4f(0.0)) {}
+				: inner_(Vec4f::zero()), outer_(Vec4f::zero()) {}
 
 		/** inner level */
 		Vec4f inner_;

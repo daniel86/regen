@@ -24,7 +24,7 @@ MaskMesh::MaskMesh(
 }
 
 MaskMesh::Config::Config()
-		: meshSize(Vec2f(10.0f)),
+		: meshSize(Vec2f::create(10.0f)),
 		  height(0.0f) {
 }
 
@@ -122,7 +122,7 @@ ref_ptr<MaskMesh> MaskMesh::load(LoadingContext &ctx, scene::SceneInputNode &inp
 		meshCfg.heightMap = scene->getResource<Texture2D>(input.getValue("height-map"));
 	}
 	meshCfg.height = input.getValue<float>("height", 0.0f);
-	meshCfg.meshSize = input.getValue<Vec2f>("ground-size", Vec2f(10.0f));
+	meshCfg.meshSize = input.getValue<Vec2f>("ground-size", Vec2f::create(10.0f));
 
 	ref_ptr<Texture2D> maskTexture;
 	uint32_t maskIndex = input.getValue<uint32_t >("mask-index", 0u);

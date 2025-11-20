@@ -120,7 +120,7 @@ ref_ptr<BlanketTrail> BlanketTrail::load(LoadingContext &ctx,
 	updateFlags.scope = input.getValue<BufferUpdateScope>("update-scope", BUFFER_UPDATE_FULLY);
 	BlanketTrail::TrailConfig meshCfg;
 	meshCfg.levelOfDetails = lodLevels;
-	meshCfg.texcoScale = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
+	meshCfg.texcoScale = input.getValue<Vec2f>("texco-scaling", Vec2f::one());
 	meshCfg.blanketSize = input.getValue<Vec2f>("blanket-size", Vec2f(1.0f, 1.0f));
 	meshCfg.isInitiallyDead = input.getValue<bool>("initially-dead", false);
 	meshCfg.blanketLifetime = input.getValue<GLfloat>("blanket-lifetime", 0.0f);

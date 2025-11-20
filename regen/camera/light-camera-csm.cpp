@@ -14,8 +14,8 @@ LightCamera_CSM::LightCamera_CSM(
 		  userCameraFrustum_(numLayer),
 		  userFrustumCentroids_(numLayer),
 		  lightSpaceBounds_(numLayer, Bounds<Vec3f>::create(
-			std::numeric_limits<float>::max(),
-			std::numeric_limits<float>::lowest())) {
+			Vec3f::create(std::numeric_limits<float>::max()),
+			Vec3f::create(std::numeric_limits<float>::lowest()))) {
 	shaderDefine("RENDER_TARGET", "2D_ARRAY");
 	shaderDefine("RENDER_TARGET_MODE", "CASCADE");
 
@@ -193,8 +193,8 @@ bool LightCamera_CSM::updateLightProjection() {
 	for (unsigned int layerIndex = 0; layerIndex < numLayer_; ++layerIndex) {
 		auto &u_frustum = userCameraFrustum_[layerIndex];
 		auto &bounds = lightSpaceBounds_[layerIndex];
-		bounds.min = Vec3f(std::numeric_limits<float>::max());
-		bounds.max = Vec3f(std::numeric_limits<float>::lowest());
+		bounds.min = Vec3f::create(std::numeric_limits<float>::max());
+		bounds.max = Vec3f::create(std::numeric_limits<float>::lowest());
 		for (int frustumIndex = 0; frustumIndex < 8; ++frustumIndex) {
 			// TODO: matrix multiplication can probably be avoided here.
 #ifdef CSM_USE_SINGLE_VIEW

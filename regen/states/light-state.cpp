@@ -48,12 +48,12 @@ Light::Light(Light::Type lightType, const BufferUpdateFlags &updateFlags)
 	lightBuffer_->addStagedInput(lightDirection_);
 
 	lightDiffuse_ = ref_ptr<ShaderInput3f>::alloc("lightDiffuse");
-	lightDiffuse_->setUniformData(Vec3f(0.7f));
+	lightDiffuse_->setUniformData(Vec3f::create(0.7f));
 	lightDiffuse_->setSchema(InputSchema::color());
 	lightBuffer_->addStagedInput(lightDiffuse_);
 
 	lightSpecular_ = ref_ptr<ShaderInput3f>::alloc("lightSpecular");
-	lightSpecular_->setUniformData(Vec3f(1.0f));
+	lightSpecular_->setUniformData(Vec3f::one());
 	lightSpecular_->setSchema(InputSchema::color());
 	lightBuffer_->addStagedInput(lightSpecular_);
 

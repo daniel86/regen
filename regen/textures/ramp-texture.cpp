@@ -11,8 +11,8 @@ RampTexture::RampTexture(
 	set_pixelType(GL_UNSIGNED_BYTE);
 	set_format(format);
 	set_internalFormat(internalFormat);
-	set_filter(GL_LINEAR);
-	set_wrapping(GL_CLAMP_TO_EDGE);
+	set_filter(TextureFilter::create(GL_LINEAR));
+	set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
 }
 
 RampTexture::RampTexture(GLenum format, const std::vector<GLubyte> &data)
@@ -30,8 +30,8 @@ RampTexture::RampTexture(
 	set_format(format);
 	set_internalFormat(internalFormat);
 	Texture1D::allocTexture();
-	set_filter(GL_LINEAR);
-	set_wrapping(GL_CLAMP_TO_EDGE);
+	set_filter(TextureFilter::create(GL_LINEAR));
+	set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
 	Texture1D::updateImage((GLubyte *) data.data());
 }
 

@@ -618,7 +618,7 @@ void SceneDisplayWidget::handleControllerConfiguration(
 		if (controllerType == "default") {
 			userController_ = ref_ptr<CameraController>::alloc(userCamera_);
 			userController_->setMeshEyeOffset(
-				node->getValue<Vec3f>("eye-offset", Vec3f(0.0)));
+				node->getValue<Vec3f>("eye-offset", Vec3f::zero()));
 			userController_->set_moveAmount(
 				node->getValue<float>("speed", 0.01f));
 			userController_->setHorizontalOrientation(
@@ -661,7 +661,7 @@ void SceneDisplayWidget::handleControllerConfiguration(
 					continue;
 				}
 				auto anchor = ref_ptr<TransformCameraAnchor>::alloc(transform);
-				auto anchorOffset = x->getValue<Vec3f>("offset", Vec3f(1.0f));
+				auto anchorOffset = x->getValue<Vec3f>("offset", Vec3f::one());
 				anchor->setOffset(anchorOffset);
 				anchor->setFollowing(x->getValue<bool>("follow", false));
 				auto anchorMode = x->getValue("look-at");
@@ -672,9 +672,9 @@ void SceneDisplayWidget::handleControllerConfiguration(
 				}
 				anchors_.emplace_back(anchor);
 			} else {
-				auto pos = x->getValue<Vec3f>("pos", Vec3f(0.0));
-				auto dir = x->getValue<Vec3f>("dir", Vec3f(0.0));
-				pos += x->getValue<Vec3f>("offset", Vec3f(0.0));
+				auto pos = x->getValue<Vec3f>("pos", Vec3f::zero());
+				auto dir = x->getValue<Vec3f>("dir", Vec3f::zero());
+				pos += x->getValue<Vec3f>("offset", Vec3f::zero());
 				auto anchor = ref_ptr<FixedCameraAnchor>::alloc(pos, dir);
 				anchors_.emplace_back(anchor);
 			}
@@ -763,7 +763,7 @@ static ref_ptr<WorldModel> loadWorldModel(
 		// Add place of interest to the controller.
 		// Here we distinguish between "HOME", "SPIRITUAL" and "GATHERING" places.
 		auto placeType = placeNode->getValue<PlaceType>("type", PlaceType::HOME);
-		auto placePos = placeNode->getValue<Vec2f>("point", Vec2f(0.0f));
+		auto placePos = placeNode->getValue<Vec2f>("point", Vec2f::zero());
 		auto placeRadius = placeNode->getValue<float>("radius", 1.0f);
 		float placeRadiusSq = placeRadius * placeRadius;
 		auto placeHeight = getHeight(placePos, heightMap);
@@ -792,7 +792,7 @@ static ref_ptr<WorldModel> loadWorldModel(
 		for (const auto &s: placeNode->getChildren("object")) {
 			auto objVec = WorldObjectVec::load(ctx, *s.get());
 			if (!objVec || objVec->empty()) {
-				auto relPoint = s->getValue<Vec2f>("point", Vec2f(0.0f));
+				auto relPoint = s->getValue<Vec2f>("point", Vec2f::zero());
 				auto absObjPos = relPoint + placePos;
 				auto objHeight = getHeight(absObjPos, heightMap);
 				auto wo = WorldObject::load(ctx, *s.get());
@@ -809,7 +809,7 @@ static ref_ptr<WorldModel> loadWorldModel(
 		for (const auto &s: placeNode->getChildren("path")) {
 			std::vector<ref_ptr<WayPoint> > pathPoints;
 			for (const auto &t: s->getChildren("point")) {
-				auto relPoint = t->getValue<Vec2f>("value", Vec2f(0.0f));
+				auto relPoint = t->getValue<Vec2f>("value", Vec2f::zero());
 				auto absPoint = relPoint + placePos;
 				auto pointHeight = getHeight(absPoint, heightMap);
 				// place way points slightly above the ground to avoid z-fighting
@@ -831,7 +831,7 @@ static ref_ptr<WorldModel> loadWorldModel(
 	for (const auto &x: worldNode->getChildren("object")) {
 		auto objType = x->getValue("type");
 		if (objType == "waypoint") {
-			auto wpPos = x->getValue<Vec2f>("point", Vec2f(0.0f));
+			auto wpPos = x->getValue<Vec2f>("point", Vec2f::zero());
 			auto wpHeight = getHeight(wpPos, heightMap);
 			// place way points slightly above the ground to avoid z-fighting
 			ref_ptr<WayPoint> wp = ref_ptr<WayPoint>::alloc(

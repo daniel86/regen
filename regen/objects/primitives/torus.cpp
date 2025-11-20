@@ -36,7 +36,7 @@ ref_ptr<Torus> Torus::getUnitTorus() {
 	static ref_ptr<Torus> mesh;
 	if (mesh.get() == nullptr) {
 		Config cfg;
-		cfg.posScale = Vec3f(1.0f);
+		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
@@ -68,9 +68,9 @@ Torus::Torus(const ref_ptr<Torus> &other)
 
 Torus::Config::Config()
 		: levelOfDetails({0}),
-		  posScale(Vec3f(1.0f)),
-		  rotation(Vec3f(0.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		  posScale(Vec3f::one()),
+		  rotation(Vec3f::zero()),
+		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
@@ -223,12 +223,12 @@ void Torus::updateAttributes(const Config &cfg) {
 	}
 	activateLOD(0);
 
-	minPosition_ = Vec3f(-cfg.tubeRadius);
+	minPosition_ = Vec3f::create(-cfg.tubeRadius);
 	minPosition_.x -= cfg.ringRadius;
 	minPosition_.z -= cfg.ringRadius;
 	minPosition_ *= cfg.posScale;
 
-	maxPosition_ = Vec3f(cfg.tubeRadius);
+	maxPosition_ = Vec3f::create(cfg.tubeRadius);
 	maxPosition_.x += cfg.ringRadius;
 	maxPosition_.z += cfg.ringRadius;
 	maxPosition_ *= cfg.posScale;

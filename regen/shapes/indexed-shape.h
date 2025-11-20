@@ -44,7 +44,13 @@ namespace regen {
 		 * \brief Check if the shape is visible in any layer
 		 * \return True if the shape is visible in any layer, false otherwise
 		 */
-		bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_; }
+		bool isVisibleInAnyLayer() const { return isVisibleInAnyLayer_.load(std::memory_order_relaxed); }
+
+		/**
+		 * \brief Get the instance IDs shader input
+		 * \return The instance IDs shader input
+		 */
+		const ref_ptr<ShaderInput>& instanceIDs() const { return instanceIDs_; }
 
 		/**
 		 * \brief Map the instance IDs for the shape
@@ -127,22 +133,22 @@ namespace regen {
 		// Size = numInstances * numLayers
 		ref_ptr<ShaderInput> instanceIDs_;
 
-		// Per bin (lod, layer) data flattened as binIdx = lod * numLayers + layer.
+		// Draw command data used to build indirect draw buffers.
+		// The number of draw command for a shape is numLODs * numLayers:
 		// Each bin represents a combination of LOD level and layer index, the counter
 		// indicates how many instances of this shape are visible in that bin.
-		ref_ptr<ShaderInput> binCount_; // size = numLODs * numLayers
-		ref_ptr<ShaderInput> binBase_;  // size = numLODs * numLayers
+		ref_ptr<ShaderInput> drawBinCount_; // size = numLODs * numLayers
+		ref_ptr<ShaderInput> drawBinBase_;  // size = numLODs * numLayers
 		// Below are mapped data pointers that are only accessible during traversal,
 		// i.e. we do not hold the memory here and write directly into output buffers during traversal.
 		// binBase is the prefix sum of binCounts, i.e. the starting offset for each bin
 		// which is recomputed each frame. Each shape takes a contiguous region in the
 		// output instance buffer in the range [binBase, binBase + binCount).
-		uint32_t *mapped_binCount_ = nullptr; // size = numLODs * numLayers
-		uint32_t *mapped_binBase_ = nullptr;  // size = numLODs * numLayers
+		uint32_t *mapped_drawBinCount_ = nullptr; // size = numLODs * numLayers
+		uint32_t *mapped_drawBinBase_ = nullptr;  // size = numLODs * numLayers
 
 		// True if the shape is visible in any layer.
-		// TODO: reconsider, if for thread safety use atomic
-		bool isVisibleInAnyLayer_ = false;
+		std::atomic<uint8_t> isVisibleInAnyLayer_ = {0};
 
 		struct MappedData {
 			explicit MappedData(

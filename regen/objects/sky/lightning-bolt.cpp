@@ -205,7 +205,7 @@ LightningBolt::LightningBolt()
 static LightningStrike::StrikePoint getStrikeSource(LoadingContext &ctx, const ref_ptr<scene::SceneInputNode> &input) {
 	LightningStrike::StrikePoint source;
 	if (input->hasAttribute("source-constant")) {
-		Vec3f pos = input->getValue<Vec3f>("source-constant", Vec3f(0.0f));
+		Vec3f pos = input->getValue<Vec3f>("source-constant", Vec3f::zero());
 		source.pos = ref_ptr<ShaderInput3f>::alloc("sourcePos");
 		source.pos->setUniformData(pos);
 	} else if (input->hasAttribute("source-tf")) {
@@ -226,7 +226,7 @@ static LightningStrike::StrikePoint getStrikeSource(LoadingContext &ctx, const r
 static LightningStrike::StrikePoint getStrikeTarget(LoadingContext &ctx, const ref_ptr<scene::SceneInputNode> &input) {
 	LightningStrike::StrikePoint target;
 	if (input->hasAttribute("target-constant")) {
-		Vec3f pos = input->getValue<Vec3f>("target-constant", Vec3f(0.0f));
+		Vec3f pos = input->getValue<Vec3f>("target-constant", Vec3f::zero());
 		target.pos = ref_ptr<ShaderInput3f>::alloc("targetPos");
 		target.pos->setUniformData(pos);
 	} else if (input->hasAttribute("target-tf")) {
@@ -337,7 +337,7 @@ void LightningBolt::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 				strike->jitterOffset_ = child->getValue<GLfloat>("jitter-offset", 8.0f);
 			}
 			if (child->hasAttribute("frequency")) {
-				auto frequency = child->getValue<Vec2f>("frequency", Vec2f(0.0f));
+				auto frequency = child->getValue<Vec2f>("frequency", Vec2f::zero());
 				strike->frequencyConfig_ = frequency;
 				strike->hasFrequency_ = (frequency.x != 0.0f || frequency.y != 0.0f);
 			}

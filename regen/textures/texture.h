@@ -428,7 +428,12 @@ namespace regen {
 				i_y0 * i_w + i_x1,
 				i_y1 * i_w + i_x1 };
 
-			T vals[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			T vals[4] = {
+				Vec::create<T>(0.0f),
+				Vec::create<T>(0.0f),
+				Vec::create<T>(0.0f),
+				Vec::create<T>(0.0f)
+			};
 			auto *vals_f = reinterpret_cast<float *>(&vals[0]);
 			for (uint32_t valIdx=0; valIdx < 4; ++valIdx) {
 				float *vals_ff = vals_f + valIdx * NumComponents;
@@ -453,7 +458,7 @@ namespace regen {
 		 */
 		template<class T>
 		T sample(unsigned int texelIndex, const ref_ptr<ImageData> &textureData) const {
-			T v(0.0f);
+			T v = Vec::create<T>(0.0f);
 			auto *typedData = (float *) &v;
 			auto *floatData = textureData->floatPixels + texelIndex * numComponents_;
 			for (unsigned int i = 0; i < numComponents_; ++i) {
@@ -490,7 +495,7 @@ namespace regen {
 
 		// texture state
 		TextureFilter texFilter_ = Vec2i(GL_LINEAR, GL_LINEAR);
-		TextureWrapping wrappingMode_ = Vec3i(GL_CLAMP_TO_EDGE);
+		TextureWrapping wrappingMode_ = Vec3i(GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
 		std::optional<TextureLoD> texLoD_ = std::nullopt;
 		std::optional<TextureSwizzle> texSwizzle_ = std::nullopt;
 		std::optional<TextureCompare> texCompare_ = std::nullopt;
@@ -504,7 +509,7 @@ namespace regen {
 		void (Texture::*allocTexture_)();
 		void (Texture::*updateImage_)(GLubyte *subData);
 		void (Texture::*updateSubImage_)(GLint layer, GLubyte *subData);
-		Vec3ui allocatedSize_ = Vec3ui(0u);
+		Vec3ui allocatedSize_ = Vec3ui::zero();
 
 		void allocTexture1D();
 

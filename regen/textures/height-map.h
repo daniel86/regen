@@ -70,10 +70,10 @@ namespace regen {
 		float sampleHeight(const Vec2f &pos);
 
 	protected:
-		Vec2f mapCenter_ = Vec2f(0.0f);
-		Vec2f mapSize_ = Vec2f(10.0f);
+		Vec2f mapCenter_ = Vec2f::zero();
+		Vec2f mapSize_ = Vec2f::create(10.0f);
 		float mapFactor_ = 8.0f;
-		Bounds<Vec2f> mapBounds_ = Bounds<Vec2f>::create(Vec2f(-1.0f), Vec2f(1.0f));
+		Bounds<Vec2f> mapBounds_ = Bounds<Vec2f>::create(Vec2f::create(-1.0f), Vec2f::create(1.0f));
 	};
 } // namespace
 

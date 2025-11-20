@@ -10,7 +10,7 @@ BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf)
 	if (tf->hasModelMat()) {
 		boidsScale_->setUniformData(tf_->modelMat()->getVertex(0).r.scaling());
 	} else {
-		boidsScale_->setUniformData(Vec3f(1.0f));
+		boidsScale_->setUniformData(Vec3f::one());
 	}
 	numBoids_ = tf->numInstances();
 	initBoidSimulation0();
@@ -18,7 +18,7 @@ BoidSimulation::BoidSimulation(const ref_ptr<ModelTransformation> &tf) : tf_(tf)
 
 BoidSimulation::BoidSimulation(const ref_ptr<ShaderInput4f> &modelOffset) : modelOffset_(modelOffset) {
 	boidsScale_ = ref_ptr<ShaderInput3f>::alloc("scaleFactor");
-	boidsScale_->setUniformData(Vec3f(1.0f));
+	boidsScale_->setUniformData(Vec3f::one());
 	numBoids_ = modelOffset->numInstances();
 	initBoidSimulation0();
 }
@@ -36,10 +36,10 @@ void BoidSimulation::initBoidSimulation0() {
 	maxNumNeighbors_ = createUniform<ShaderInput1ui,unsigned int>("maxNumNeighbors", 20);
 	maxBoidSpeed_ = createUniform<ShaderInput1f,float>("maxBoidSpeed", 1.0f);
 	maxAngularSpeed_ = createUniform<ShaderInput1f,float>("maxAngularSpeed", 0.05f);
-	gridSize_ = createUniform<ShaderInput3ui,Vec3ui>("gridSize", Vec3ui(0));
+	gridSize_ = createUniform<ShaderInput3ui,Vec3ui>("gridSize", Vec3ui::create(0));
 	cellSize_ = createUniform<ShaderInput1f,float>("cellSize", 3.2f);
-	simulationBoundsMin_ = createUniform<ShaderInput3f,Vec3f>("simulationBoundsMin", Vec3f(-10.0f));
-	simulationBoundsMax_ = createUniform<ShaderInput3f,Vec3f>("simulationBoundsMax", Vec3f(10.0f));
+	simulationBoundsMin_ = createUniform<ShaderInput3f,Vec3f>("simulationBoundsMin", Vec3f::create(-10.0f));
+	simulationBoundsMax_ = createUniform<ShaderInput3f,Vec3f>("simulationBoundsMax", Vec3f::create(10.0f));
 }
 
 void BoidSimulation::setVisualRange(float range) {
@@ -107,7 +107,7 @@ Vec3f BoidSimulation::getCellCenter(const Vec3i &gridIndex) const {
 		static_cast<float>(gridIndex.z));
 	return gridBounds_.min +
 		v * cellSize_->getVertex(0).r +
-		Vec3f(visualRange_->getVertex(0).r);
+		Vec3f::create(visualRange_->getVertex(0).r);
 }
 
 Vec3f BoidSimulation::getCellCenter(const Vec3ui &gridIndex) const {
@@ -117,14 +117,14 @@ Vec3f BoidSimulation::getCellCenter(const Vec3ui &gridIndex) const {
 		static_cast<float>(gridIndex.z));
 	return gridBounds_.min +
 		v * cellSize_->getVertex(0).r +
-		Vec3f(visualRange_->getVertex(0).r);
+		Vec3f::create(visualRange_->getVertex(0).r);
 }
 
 Vec2f BoidSimulation::computeUV(const Vec3f &boidPosition, const Vec3f &mapCenter, const Vec2f &mapSize) {
 	Vec2f boidCoord(
 			boidPosition.x - mapCenter.x,
 			boidPosition.z - mapCenter.z);
-	return boidCoord / mapSize + Vec2f(0.5f);
+	return boidCoord / mapSize + Vec2f::create(0.5f);
 }
 
 void BoidSimulation::updateGridSize() {
@@ -157,8 +157,8 @@ void BoidSimulation::updateGridSize() {
 		v_gridSize.x = 1;
 		v_gridSize.y = 1;
 		v_gridSize.z = 1;
-		gridBounds_.min -= Vec3f(cs) * 0.5f;
-		gridBounds_.max += Vec3f(cs) * 0.5f;
+		gridBounds_.min -= Vec3f::create(cs) * 0.5f;
+		gridBounds_.max += Vec3f::create(cs) * 0.5f;
 	}
 	if (newNumCells != numCells_) {
 		numCells_ = newNumCells;
@@ -201,14 +201,14 @@ namespace regen {
 void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &input) {
 	// set the bounds of the boids simulation
 	if (input.hasAttribute("boids-area") && input.hasAttribute("boids-center")) {
-		auto boidsArea = input.getValue<Vec3f>("boids-area", Vec3f(10.0f));
-		auto boidsCenter = input.getValue<Vec3f>("boids-center", Vec3f(0.0f));
+		auto boidsArea = input.getValue<Vec3f>("boids-area", Vec3f::create(10.0f));
+		auto boidsCenter = input.getValue<Vec3f>("boids-center", Vec3f::create(0.0f));
 		Bounds<Vec3f> bounds = Bounds<Vec3f>::create(boidsCenter - boidsArea * 0.5f, boidsCenter + boidsArea * 0.5f);
 		setSimulationBounds(bounds);
 	} else {
 		auto boidBounds = Bounds<Vec3f>::create(
-				input.getValue<Vec3f>("bounds-min", Vec3f(-5.0f)),
-				input.getValue<Vec3f>("bounds-max", Vec3f(5.0f))
+				input.getValue<Vec3f>("bounds-min", Vec3f::create(-5.0f)),
+				input.getValue<Vec3f>("bounds-max", Vec3f::create(5.0f))
 		);
 		setSimulationBounds(boidBounds);
 	}
@@ -252,8 +252,8 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 		if (heightMap.get() != nullptr) {
 			heightMap->ensureTextureData();
 			auto heightScale = input.getValue<float>("height-map-factor", 1.0f);
-			auto mapCenter = input.getValue<Vec3f>("map-center", Vec3f(0.0f));
-			auto mapSize = input.getValue<Vec2f>("map-size", Vec2f(10.0f));
+			auto mapCenter = input.getValue<Vec3f>("map-center", Vec3f::create(0.0f));
+			auto mapSize = input.getValue<Vec2f>("map-size", Vec2f::create(10.0f));
 			setMap(mapCenter, mapSize, heightMap, heightScale);
 		} else {
 			REGEN_WARN("Ignoring " << input.getDescription() << ", failed to load height map textures.");
@@ -264,8 +264,8 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 		auto collisionMap = ctx.scene()->getResource<Texture2D>(input.getValue("collision-map"));
 		if (collisionMap.get() != nullptr) {
 			collisionMap->ensureTextureData();
-			auto mapCenter = input.getValue<Vec3f>("collision-map-center", Vec3f(0.0f));
-			auto mapSize = input.getValue<Vec2f>("collision-map-size", Vec2f(10.0f));
+			auto mapCenter = input.getValue<Vec3f>("collision-map-center", Vec3f::create(0.0f));
+			auto mapSize = input.getValue<Vec2f>("collision-map-size", Vec2f::create(10.0f));
 			auto mapType = input.getValue<CollisionMapType>("collision-map-mode", COLLISION_SCALAR);
 			setCollisionMap(mapCenter, mapSize, collisionMap, mapType);
 		} else {
@@ -278,8 +278,8 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 		auto collisionMap = ref_ptr<Texture2D>::dynamicCast(fbo->colorTextures()[attachmentIdx]);
 		if (collisionMap.get() != nullptr) {
 			collisionMap->ensureTextureData();
-			auto mapCenter = input.getValue<Vec3f>("collision-map-center", Vec3f(0.0f));
-			auto mapSize = input.getValue<Vec2f>("collision-map-size", Vec2f(10.0f));
+			auto mapCenter = input.getValue<Vec3f>("collision-map-center", Vec3f::create(0.0f));
+			auto mapSize = input.getValue<Vec2f>("collision-map-size", Vec2f::create(10.0f));
 			auto mapType = input.getValue<CollisionMapType>("collision-map-mode", COLLISION_SCALAR);
 			setCollisionMap(mapCenter, mapSize, collisionMap, mapType);
 		} else {
@@ -288,7 +288,7 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 	}
 
 	for (auto &homePointNode: input.getChildren("home-point")) {
-		addHomePoint(homePointNode->getValue<Vec3f>("value", Vec3f(0.0f)));
+		addHomePoint(homePointNode->getValue<Vec3f>("value", Vec3f::create(0.0f)));
 	}
 	for (auto &objectNode: input.getChildren("object")) {
 		auto objectType = objectNode->getValue<ObjectType>("type", ObjectType::ATTRACTOR);
@@ -304,9 +304,9 @@ void BoidSimulation::loadSettings(LoadingContext &ctx, scene::SceneInputNode &in
 		} else if (objectNode->hasAttribute("point")) {
 			entityTF = ref_ptr<ShaderInputMat4>::alloc("attractorPoint");
 			entityTF->setUniformData(Mat4f::translationMatrix(
-					objectNode->getValue<Vec3f>("point", Vec3f(0.0f))));
+					objectNode->getValue<Vec3f>("point", Vec3f::zero())));
 		} else if (objectNode->hasAttribute("value")) {
-			auto attractorPosValue = objectNode->getValue<Vec3f>("value", Vec3f(0.0f));
+			auto attractorPosValue = objectNode->getValue<Vec3f>("value", Vec3f::zero());
 			entityPos = ref_ptr<ShaderInput3f>::alloc("attractorPos");
 			entityPos->setUniformData(attractorPosValue);
 		} else {

@@ -37,7 +37,7 @@ namespace regen {
 		// output arrays
 		AlignedArray<float> sortDistance;
 		AlignedArray<uint32_t> lodLevel;
-		AlignedArray<uint32_t> binIdx;
+		AlignedArray<uint32_t> drawBin;
 
 		void resize(uint32_t size) {
 			if (ox.size() < size) {
@@ -52,7 +52,7 @@ namespace regen {
 				shapeIdx.resize(nextSize);
 				sortDistance.resize(nextSize);
 				lodLevel.resize(nextSize);
-				binIdx.resize(nextSize);
+				drawBin.resize(nextSize);
 			}
 		}
 	};
@@ -140,14 +140,14 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	const uint32_t numLOD = std::max(1u, is->numLODs());
 	is->instanceIDs_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDs", 1);
 	is->instanceIDs_->setInstanceData(numIndices, 1, nullptr);
-	is->binCount_ = ref_ptr<ShaderInput1ui>::alloc("instanceCounts", numLayer * numLOD);
-	is->binCount_->setInstanceData(1, 1, nullptr);
-	is->binBase_ = ref_ptr<ShaderInput1ui>::alloc("baseInstances", numLayer * numLOD);
-	is->binBase_->setInstanceData(1, 1, nullptr);
+	is->drawBinCount_ = ref_ptr<ShaderInput1ui>::alloc("instanceCounts", numLayer * numLOD);
+	is->drawBinCount_->setInstanceData(1, 1, nullptr);
+	is->drawBinBase_ = ref_ptr<ShaderInput1ui>::alloc("baseInstances", numLayer * numLOD);
+	is->drawBinBase_->setInstanceData(1, 1, nullptr);
 
 	auto mapped_ids = is->instanceIDs_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
-	auto mapped_count = is->binCount_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
-	auto mapped_base = is->binBase_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
+	auto mapped_count = is->drawBinCount_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
+	auto mapped_base = is->drawBinBase_->mapClientData<uint32_t>(BUFFER_GPU_WRITE);
 	for (unsigned int instanceIdx = 0; instanceIdx < numInstances; ++instanceIdx) {
 		// write instance data for every layer
 		for (unsigned int layerIdx = 0; layerIdx < numLayer; ++layerIdx) {
@@ -156,13 +156,13 @@ void SpatialIndex::createIndexShape(IndexCamera &ic, const ref_ptr<BoundingShape
 	}
 	for (unsigned int layerIdx = 0; layerIdx < numLayer; ++layerIdx) {
 		for (unsigned int lodLevel = 0; lodLevel < numLOD; ++lodLevel) {
-			uint32_t binIdx = lodLevel * numLayer + layerIdx;
+			uint32_t drawBin = lodLevel * numLayer + layerIdx;
 			if (lodLevel==0) {
-				mapped_count.w[binIdx] = numInstances;
-				mapped_base.w[binIdx] = layerIdx * numInstances;
+				mapped_count.w[drawBin] = numInstances;
+				mapped_base.w[drawBin] = layerIdx * numInstances;
 			} else {
-				mapped_count.w[binIdx] = 0;
-				mapped_base.w[binIdx] = (layerIdx+1) * numInstances;
+				mapped_count.w[drawBin] = 0;
+				mapped_base.w[drawBin] = (layerIdx+1) * numInstances;
 			}
 		}
 	}
@@ -331,12 +331,12 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 
 		float *d_sortDistance = hitSoA.sortDistance.data();
 		uint32_t *d_lodLevel = hitSoA.lodLevel.data();
-		uint32_t *d_binIdx = hitSoA.binIdx.data();
+		uint32_t *d_drawBin = hitSoA.drawBin.data();
 
 		// First pass: gather all data into SOA arrays
 		gatherVisibleHitSOA(ic, hitSoA, layerIdx);
 
-		// Second pass: process all hits, write output: lodDistance & binIdx
+		// Second pass: process all hits, write output: lodDistance & drawBin
 		{
 			const BatchOf_float cx = BatchOf_float::fromScalar(camPos.x);
 			const BatchOf_float cy = BatchOf_float::fromScalar(camPos.y);
@@ -363,11 +363,11 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 					(BatchOf_int32::castFloatBatch(c1) & one) +
 					(BatchOf_int32::castFloatBatch(c2) & one);
 
-				// compute binIdx = lodLevel * numLayer + layerIdx
-				const BatchOf_int32 binIdx = (lodLevel * nl) + layer;
+				// compute drawBin = lodLevel * numLayer + layerIdx
+				const BatchOf_int32 drawBin = (lodLevel * nl) + layer;
 
 				// Finally store results
-				binIdx.storeAligned(d_binIdx + hitIdx);
+				drawBin.storeAligned(d_drawBin + hitIdx);
 				lodDistance.storeAligned(d_sortDistance + hitIdx);
 				lodLevel.storeAligned(d_lodLevel + hitIdx);
 			}
@@ -387,7 +387,7 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 				// compute bin and item indices
 				d_sortDistance[hitIdx] = lodDistance;
 				d_lodLevel[hitIdx] = lodLevel;
-				d_binIdx[hitIdx] = lodLevel * numLayer + layerIdx;
+				d_drawBin[hitIdx] = lodLevel * numLayer + layerIdx;
 			}
 		}
 
@@ -397,7 +397,7 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 			const uint32_t shapeIdx = hitSoA.shapeIdx[hitIdx];
 			const float sortDistance = d_sortDistance[hitIdx];
 			const uint32_t lodLevel = d_lodLevel[hitIdx];
-			const uint32_t binIdx = d_binIdx[hitIdx];
+			const uint32_t drawBin = d_drawBin[hitIdx];
 
 			// Compute sort key for this shape.
 			const KeyType sortKey =
@@ -417,7 +417,7 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 			// Bin the shape into the (lod, layer) bin.
 			// This is used to fill the indirect draw buffer.
 			IndexedShape &is = *ic.indexShapes_[shapeIdx];
-			is.mapped_binCount_[binIdx] += 1;
+			is.mapped_drawBinCount_[drawBin] += 1;
 		}
 	} else {
 		const auto &itemShapes = ic.index->itemBoundingShapes_;
@@ -442,8 +442,8 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 				static_cast<uint32_t>(lodDistance >= lodThresholds.x) +
 				static_cast<uint32_t>(lodDistance >= lodThresholds.y) +
 				static_cast<uint32_t>(lodDistance >= lodThresholds.z);
-			// compute bin and item indices
-			const uint32_t binIdx = lodLevel * numLayer + layerIdx;
+			// compute draw bin and item indices
+			const uint32_t drawBin = lodLevel * numLayer + layerIdx;
 
 			// Compute sort key for this shape.
 			KeyType sortKey =
@@ -462,7 +462,7 @@ void SpatialIndex::Private::pushVisibleShapes(IndexCamera &ic, uint32_t layerIdx
 			ic.globalQueue_.push_back(globalID);
 			// Bin the shape into the (lod, layer) bin.
 			// This is used to fill the indirect draw buffer.
-			is.mapped_binCount_[binIdx] += 1;
+			is.mapped_drawBinCount_[drawBin] += 1;
 		}
 	}
 }
@@ -663,10 +663,10 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 	for (auto &indexShape: indexCamera->indexShapes_) {
 		// Map instance data for this shape, and reset the bin counts
 		indexShape->mapInstanceData_internal();
-		indexShape->mapped_binBase_ = indexShape->mappedBaseInstance();
-		indexShape->mapped_binCount_ = indexShape->mappedInstanceCounts();
+		indexShape->mapped_drawBinBase_ = indexShape->mappedBaseInstance();
+		indexShape->mapped_drawBinCount_ = indexShape->mappedInstanceCounts();
 		// Reset the per-bin counts. We accumulate them during traversal, so they need to be reset first.
-		std::memset(indexShape->mapped_binCount_, 0,
+		std::memset(indexShape->mapped_drawBinCount_, 0,
 			sizeof(uint32_t) * indexShape->numLODs() * L);
 	}
 
@@ -689,13 +689,14 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 		const uint32_t numBins = indexShape->numLODs() * L;
 	    uint32_t numVisibleInstances = 0;
 	    for (uint32_t b = 0; b < numBins; ++b) {
-	    	const uint32_t count = indexShape->mapped_binCount_[b];
-			indexShape->mapped_binBase_[b] = numVisibleInstances;
+	    	const uint32_t count = indexShape->mapped_drawBinCount_[b];
+			indexShape->mapped_drawBinBase_[b] = numVisibleInstances;
 			numVisibleInstances += count;
 		}
-		indexShape->isVisibleInAnyLayer_ = numVisibleInstances > 0;
+		const uint8_t isVisible = static_cast<uint8_t>(numVisibleInstances > 0);
+		indexShape->isVisibleInAnyLayer_.store(isVisible, std::memory_order_relaxed);
 
-		if (indexShape->isVisibleInAnyLayer_) {
+		if (isVisible) {
 			// Write IDs to mapped buffer
 			// Each shape has a fixed contiguous region in tmp_layerShapes_ starting at some offset.
 			auto mapped_ids = indexShape->mappedInstanceIDs();
@@ -709,8 +710,8 @@ void SpatialIndex::updateVisibility(IndexCamera *indexCamera) {
 		}
 
 		indexShape->unmapInstanceData_internal();
-		indexShape->mapped_binBase_ = nullptr;
-		indexShape->mapped_binCount_ = nullptr;
+		indexShape->mapped_drawBinBase_ = nullptr;
+		indexShape->mapped_drawBinCount_ = nullptr;
 		shapeBase += numVisibleInstances;
 	}
 }

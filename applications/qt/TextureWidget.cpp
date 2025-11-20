@@ -41,8 +41,8 @@ namespace regen {
 			colorBuffer->set_format(GL_RGB);
 			colorBuffer->set_internalFormat(GL_RGB8);
 			colorBuffer->allocTexture();
-			colorBuffer->set_filter(GL_LINEAR);
-			colorBuffer->set_wrapping(GL_REPEAT);
+			colorBuffer->set_filter(TextureFilter::create(GL_LINEAR));
+			colorBuffer->set_wrapping(TextureWrapping::create(GL_REPEAT));
 
 			// create a framebuffer object for the texture
 			auto fbo = ref_ptr<FBO>::alloc(width_, height_);

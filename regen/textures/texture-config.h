@@ -17,7 +17,7 @@ namespace regen {
 		bool keepData = false;
 		GLenum forcedInternalFormat = GL_NONE;
 		GLenum forcedFormat = GL_NONE;
-		Vec3ui forcedSize = Vec3ui(0u);
+		Vec3ui forcedSize = Vec3ui::zero();
 
 		static TextureConfig& getDefault() {
 			static TextureConfig defaultConfig;

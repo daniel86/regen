@@ -469,17 +469,17 @@ void MeshViewerWidget::gl_loadScene() {
 	sceneLight_[0] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	sceneLight_[0]->setDirection(0, Vec3f(0.0f, 1.0f, 0.0f).normalize());
 	sceneLight_[0]->setDiffuse(0, Vec3f(0.3f, 0.3f, 0.3f));
-	sceneLight_[0]->setSpecular(0, Vec3f(0.0f));
+	sceneLight_[0]->setSpecular(0, Vec3f::zero());
 
 	sceneLight_[1] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	sceneLight_[1]->setDirection(0, Vec3f(-1.0f, 0.0f, 0.0f).normalize());
 	sceneLight_[1]->setDiffuse(0, Vec3f(0.4f, 0.4f, 0.4f));
-	sceneLight_[1]->setSpecular(0, Vec3f(0.0f));
+	sceneLight_[1]->setSpecular(0, Vec3f::zero());
 
 	sceneLight_[2] = ref_ptr<Light>::alloc(Light::DIRECTIONAL);
 	sceneLight_[2]->setDirection(0, Vec3f(1.0f, 1.0f, 0.0f).normalize());
 	sceneLight_[2]->setDiffuse(0, Vec3f(0.4f, 0.4f, 0.4f));
-	sceneLight_[2]->setSpecular(0, Vec3f(0.0f));
+	sceneLight_[2]->setSpecular(0, Vec3f::zero());
 
 	shadingState->addLight(sceneLight_[0]);
 	shadingState->addLight(sceneLight_[1]);

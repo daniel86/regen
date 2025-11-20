@@ -30,7 +30,7 @@ Moon::Moon(const ref_ptr<Sky> &sky, std::string_view moonMapFile)
 	state()->setInput(sunShine_);
 
 	earthShine_ = ref_ptr<ShaderInput3f>::alloc("earthShine");
-	earthShine_->setUniformData(Vec3f(0.0));
+	earthShine_->setUniformData(Vec3f::zero());
 	state()->setInput(earthShine_);
 	earthShineColor_ = defaultEarthShineColor();
 	earthShineIntensity_ = defaultEarthShineIntensity();

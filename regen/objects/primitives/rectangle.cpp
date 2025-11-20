@@ -12,9 +12,9 @@ ref_ptr<Rectangle> Rectangle::getUnitQuad() {
 		cfg.isTangentRequired = GL_FALSE;
 		cfg.isTexcoRequired = GL_FALSE;
 		cfg.levelOfDetails = {0};
-		cfg.posScale = Vec3f(2.0f);
+		cfg.posScale = Vec3f::create(2.0f);
 		cfg.rotation = Vec3f(0.5 * M_PI, 0.0f, 0.0f);
-		cfg.texcoScale = Vec2f(1.0);
+		cfg.texcoScale = Vec2f::create(1.0);
 		cfg.translation = Vec3f(-1.0f, -1.0f, 0.0f);
 		mesh = ref_ptr<Rectangle>::alloc(cfg);
 		mesh->updateAttributes();
@@ -45,10 +45,10 @@ Rectangle::Rectangle(const ref_ptr<Rectangle> &other)
 
 Rectangle::Config::Config()
 		: levelOfDetails({0}),
-		  posScale(Vec3f(1.0f)),
-		  rotation(Vec3f(0.0f)),
-		  translation(Vec3f(0.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		  posScale(Vec3f::one()),
+		  rotation(Vec3f::zero()),
+		  translation(Vec3f::zero()),
+		  texcoScale(Vec2f::one()),
 		  isNormalRequired(GL_TRUE),
 		  isTexcoRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
@@ -178,8 +178,8 @@ void Rectangle::updateAttributes() {
 	}
 	indices_ = createIndexInput(numIndices, numVertices);
 
-	minPosition_ = Vec3f(0.0);
-	maxPosition_ = Vec3f(0.0);
+	minPosition_ = Vec3f::zero();
+	maxPosition_ = Vec3f::zero();
 
 	Mat4f rotMat = Mat4f::rotationMatrix(
 		rectangleConfig_.rotation.x,

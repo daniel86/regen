@@ -11,7 +11,7 @@ AtomicCounter::AtomicCounter() :
 
 BoundingBoxCounter::BoundingBoxCounter() :
 		AtomicCounter(),
-		bounds_(Bounds<Vec3f>::create(Vec3f(0.0f), Vec3f(0.0f))) {
+		bounds_(Bounds<Vec3f>::create(Vec3f::zero(), Vec3f::zero())) {
 	auto max_float = conversion::floatBitsToUint(std::numeric_limits<float>::max());
 	auto min_float = conversion::floatBitsToUint(std::numeric_limits<float>::lowest());
 	initialData_[0] = max_float;

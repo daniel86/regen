@@ -80,8 +80,8 @@ void NoiseTexture2D::updateNoise() {
 	delete[]data;
 
 	set_swizzle(Vec4i(GL_RED, GL_RED, GL_RED, GL_ONE));
-	set_filter(GL_LINEAR);
-	set_wrapping(GL_MIRRORED_REPEAT);
+	set_filter(TextureFilter::create(GL_LINEAR));
+	set_wrapping(TextureWrapping::create(GL_MIRRORED_REPEAT));
 }
 
 NoiseTexture3D::NoiseTexture3D(GLuint width, GLuint height, GLuint depth, GLboolean isSeamless)
@@ -117,8 +117,8 @@ void NoiseTexture3D::updateNoise() {
 	updateImage(data);
 	delete[]data;
 	set_swizzle(Vec4i(GL_RED, GL_RED, GL_RED, GL_ONE));
-	set_filter(GL_LINEAR);
-	set_wrapping(GL_MIRRORED_REPEAT);
+	set_filter(TextureFilter::create(GL_LINEAR));
+	set_wrapping(TextureWrapping::create(GL_MIRRORED_REPEAT));
 }
 
 /////////

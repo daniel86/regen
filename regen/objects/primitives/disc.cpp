@@ -33,7 +33,7 @@ ref_ptr<Disc> Disc::getUnitDisc() {
 	static ref_ptr<Disc> mesh;
 	if (mesh.get() == nullptr) {
 		Config cfg;
-		cfg.posScale = Vec3f(1.0f);
+		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
@@ -66,9 +66,9 @@ Disc::Disc(const ref_ptr<Disc> &other)
 
 Disc::Config::Config()
 		: levelOfDetails({0}),
-		  posScale(Vec3f(1.0f)),
-		  rotation(Vec3f(0.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		  posScale(Vec3f::one()),
+		  rotation(Vec3f::zero()),
+		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
@@ -184,12 +184,12 @@ void Disc::updateAttributes(const Config &cfg) {
 	}
 	activateLOD(0);
 
-	maxPosition_ = Vec3f(0.0);
+	maxPosition_ = Vec3f::zero();
 	maxPosition_.x += cfg.discRadius;
 	maxPosition_.z += cfg.discRadius;
 	maxPosition_ *= cfg.posScale;
 
-	minPosition_ = Vec3f(0.0);
+	minPosition_ = Vec3f::zero();
 	minPosition_.x -= cfg.discRadius;
 	minPosition_.z -= cfg.discRadius;
 	minPosition_ *= cfg.posScale;

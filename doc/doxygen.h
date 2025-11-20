@@ -438,7 +438,7 @@ Call glDrawBuffer when the regen::FBOState is traversed.
 Clear depth and color attachments when the tree is traversed.
 @code
   ClearColorState::Data clearData;
-  clearData.clearColor = Vec4f(0.0f);
+  clearData.clearColor = Vec4f::zero();
   clearData.colorBuffers.push_back(GL_COLOR_ATTACHMENT0);
   fboState->setClearColor(clearData);
   fboState->setClearDepth();
@@ -462,7 +462,7 @@ Display the color attachment by adding a regen::BlitToScreen state to the render
 Instantiate the regen::Box mesh, the box is centered at origin.
 @code
     Box::Config boxConfig;
-    boxConfig = Vec3f(1.0f);
+    boxConfig = Vec3f::one();
     ref_ptr<Mesh> cube = ref_ptr<Box>::alloc(boxConfig);
 @endcode
 

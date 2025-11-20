@@ -99,8 +99,8 @@ ref_ptr<Texture> textures::load(std::string_view file, const TextureConfig &texC
 		tex->set_internalFormat(texCfg.forcedInternalFormat);
 	}
 	tex->allocTexture();
-	tex->set_wrapping(GL_REPEAT);
-	tex->set_filter(GL_LINEAR);
+	tex->set_wrapping(TextureWrapping::create(GL_REPEAT));
+	tex->set_filter(TextureFilter::create(GL_LINEAR));
 	if (numImages > 1) {
 		auto *tex3d = dynamic_cast<Texture3D *>(tex.get());
 		for (uint32_t i = 0u; i < numImages; ++i) {
@@ -149,8 +149,8 @@ ref_ptr<Texture> textures::load(
 		glenum::textureInternalFormat(tex->format()) :
 		texCfg.forcedInternalFormat);
 	tex->allocTexture();
-	tex->set_wrapping(GL_REPEAT);
-	tex->set_filter(GL_LINEAR);
+	tex->set_wrapping(TextureWrapping::create(GL_REPEAT));
+	tex->set_filter(TextureFilter::create(GL_LINEAR));
 	tex->updateImage((GLubyte *) ilGetData());
 	if (texCfg.useMipmaps) {
 		tex->updateMipmaps();
@@ -273,8 +273,8 @@ ref_ptr<Texture2DArray> textures::loadArray(
 		}
 		arrayIndex += 1;
 	}
-	tex->set_wrapping(GL_REPEAT);
-	tex->set_filter(GL_LINEAR);
+	tex->set_wrapping(TextureWrapping::create(GL_REPEAT));
+	tex->set_filter(TextureFilter::create(GL_LINEAR));
 	if (arrayTexCfg.useMipmaps) {
 		tex->updateMipmaps();
 	}
@@ -331,7 +331,7 @@ ref_ptr<TextureCube> textures::loadCube(
 		glenum::textureInternalFormat(tex->format()) :
 		texCfg.forcedInternalFormat);
 	tex->allocTexture();
-	tex->set_filter(GL_LINEAR);
+	tex->set_filter(TextureFilter::create(GL_LINEAR));
 
 	std::vector<byte> tmpFace(faceBytes);
 	int index = 0;
@@ -416,8 +416,8 @@ ref_ptr<Texture> textures::loadRAW(
 	tex->set_format(format_);
 	tex->set_internalFormat(internalFormat_);
 	tex->allocTexture();
-	tex->set_filter(GL_LINEAR);
-	tex->set_wrapping(GL_REPEAT);
+	tex->set_filter(TextureFilter::create(GL_LINEAR));
+	tex->set_wrapping(TextureWrapping::create(GL_REPEAT));
 	tex->updateImage((GLubyte *) pixels);
 	delete[] pixels;
 
@@ -438,8 +438,8 @@ ref_ptr<Texture> textures::loadSpectrum(
 	tex->set_format(GL_RGBA);
 	tex->set_internalFormat(GL_RGBA8);
 	tex->allocTexture();
-	tex->set_wrapping(GL_CLAMP_TO_EDGE);
-	tex->set_filter(GL_LINEAR);
+	tex->set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
+	tex->set_filter(TextureFilter::create(GL_LINEAR));
 	tex->updateImage((GLubyte *) data);
 	if (useMipmaps) {
 		tex->updateMipmaps();

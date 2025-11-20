@@ -162,7 +162,7 @@ ref_ptr<Mesh> createVideoWidget(
 	quadConfig.isTangentRequired = GL_FALSE;
 	quadConfig.centerAtOrigin = GL_TRUE;
 	quadConfig.rotation = Vec3f(0.5 * M_PI, 0.0 * M_PI, 0.0 * M_PI);
-	quadConfig.posScale = Vec3f(1.0f);
+	quadConfig.posScale = Vec3f::one();
 	quadConfig.texcoScale = Vec2f(-1.0f, 1.0f);
 	quadConfig.levelOfDetails = {0};
 	quadConfig.isTexcoRequired = GL_TRUE;

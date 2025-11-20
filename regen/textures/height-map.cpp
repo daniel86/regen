@@ -26,7 +26,7 @@ void HeightMap::setMapFactor(float factor) {
 
 float HeightMap::sampleHeight(const Vec2f &pos) {
 	// compute UV for height map sampling
-	auto uv = (pos - mapCenter_) / mapSize_ + Vec2f(0.5f);
+	auto uv = (pos - mapCenter_) / mapSize_ + Vec2f::create(0.5f);
 	auto mapValue = sampleLinear<float,1>(uv, textureData());
 	mapValue *= mapFactor_;
 	// increase by small bias to avoid intersection with the floor

@@ -7,6 +7,7 @@
 
 #ifndef REGEN_SCENE_VALUE_GENERATOR_H_
 #define REGEN_SCENE_VALUE_GENERATOR_H_
+#include "regen/math/vector.h"
 
 namespace regen {
 	namespace scene {
@@ -29,7 +30,7 @@ namespace regen {
 						   const T &defaultValue = T(0))
 					: n_(n),
 					  numValues_(numValues),
-					  counter_(Vec4ui(0u)),
+					  counter_(Vec4ui::zero()),
 					  value_(defaultValue) {
 				mode_ = n_->getValue<std::string>("mode", "constant");
 			}
@@ -57,15 +58,15 @@ namespace regen {
 			std::string mode_;
 
 			T nextIndex() {
-				value_ = T(counter_.x);
+				value_ = Vec::create<T>(counter_.x);
 				counter_.x += 1;
 				return value_;
 			}
 
 			T nextRow() {
-				const T stepX = n_->getValue<T>("x-step", T(1));
-				const T stepY = n_->getValue<T>("y-step", T(1));
-				const T stepZ = n_->getValue<T>("z-step", T(1));
+				const T stepX = n_->getValue<T>("x-step", Vec::create<T>(1));
+				const T stepY = n_->getValue<T>("y-step", Vec::create<T>(1));
+				const T stepZ = n_->getValue<T>("z-step", Vec::create<T>(1));
 				const auto varianceX = n_->getValue<float>("x-variance", 0.0f);
 				const auto varianceY = n_->getValue<float>("y-variance", 0.0f);
 				const auto varianceZ = n_->getValue<float>("z-variance", 0.0f);
@@ -89,8 +90,8 @@ namespace regen {
 			}
 
 			T nextCircle() {
-				const T dirX = n_->getValue<T>("dir-x", T(1));
-				const T dirY = n_->getValue<T>("dir-z", T(1));
+				const T dirX = n_->getValue<T>("dir-x", Vec::create<T>(1));
+				const T dirY = n_->getValue<T>("dir-z", Vec::create<T>(1));
 				const auto radius = n_->getValue<float>("radius", 1.0f);
 				const auto variance = n_->getValue<float>("variance", 0.0f);
 				// evenly distribute points on a circle
@@ -107,16 +108,16 @@ namespace regen {
 			}
 
 			T nextRandom() {
-				const T min = n_->getValue<T>("min", T(0));
-				const T max = n_->getValue<T>("max", T(1));
+				const T min = n_->getValue<T>("min", Vec::create<T>(0));
+				const T max = n_->getValue<T>("max", Vec::create<T>(1));
 				value_ = min + (max - min) * math::random<float>();
 				counter_.x += 1;
 				return value_;
 			}
 
 			T nextFade() {
-				const T start = n_->getValue<T>("start", T(1.0f));
-				const T stop = n_->getValue<T>("stop", T(2.0f));
+				const T start = n_->getValue<T>("start", Vec::create<T>(1.0f));
+				const T stop = n_->getValue<T>("stop", Vec::create<T>(2.0f));
 				const GLfloat progress = ((GLfloat) counter_.x) / ((GLfloat) numValues_);
 				value_ = start + (stop - start) * progress;
 				counter_.x += 1;

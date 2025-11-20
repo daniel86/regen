@@ -97,7 +97,7 @@ namespace regen {
 }
 
 QuadTree::QuadTree()
-		: newBounds_(Bounds<Vec2f>::create(0, 0)),
+		: newBounds_(Bounds<Vec2f>::create(Vec2f::zero(), Vec2f::zero())),
 		  priv_(new Private()) {
 }
 

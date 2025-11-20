@@ -166,7 +166,7 @@ namespace regen {
 		std::vector<ImitatedMesh> meshes_;
 		float meshBoundsRadius_ = 0.0f;
 		std::array<Vec3f,8> meshCornerPoints_;
-		Vec3f meshCenterPoint_ = Vec3f(0.0f);
+		Vec3f meshCenterPoint_ = Vec3f::zero();
 
 		// 8 -> sample every 45° around the globe
 		uint32_t numLongitudeSteps_ = 8u;

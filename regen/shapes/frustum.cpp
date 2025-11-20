@@ -9,7 +9,7 @@ namespace regen {
 
 Frustum::Frustum() :
 		BoundingShape(BoundingShapeType::FRUSTUM),
-		orthoBounds(Bounds<Vec2f>::create(Vec2f(0), Vec2f(0))) {
+		orthoBounds(Bounds<Vec2f>::create(Vec2f::zero(), Vec2f::zero())) {
 	direction_ = ref_ptr<ShaderInput3f>::alloc("frustumDirection");
 	direction_->setUniformData(Vec3f::front());
 }

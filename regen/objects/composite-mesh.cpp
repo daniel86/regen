@@ -53,9 +53,9 @@ ref_ptr<CompositeMesh> CompositeMesh::load(LoadingContext &ctx, scene::SceneInpu
 	auto parser = ctx.scene();
 
 	const std::string meshType = input.getValue("type");
-	auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
-	auto texcoScaling = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
-	auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
+	auto scaling = input.getValue<Vec3f>("scaling", Vec3f::one());
+	auto texcoScaling = input.getValue<Vec2f>("texco-scaling", Vec2f::one());
+	auto rotation = input.getValue<Vec3f>("rotation", Vec3f::zero());
 	bool useNormal = input.getValue<bool>("use-normal", true);
 	bool useTexco = input.getValue<bool>("use-texco", true);
 	bool useTangent = input.getValue<bool>("use-tangent", false);
@@ -70,7 +70,7 @@ ref_ptr<CompositeMesh> CompositeMesh::load(LoadingContext &ctx, scene::SceneInpu
 
 	std::vector<uint32_t> lodLevels;
 	if (input.hasAttribute("lod-levels")) {
-		auto lodVec = input.getValue<Vec4ui>("lod-levels", Vec4ui(0));
+		auto lodVec = input.getValue<Vec4ui>("lod-levels", Vec4ui::zero());
 		lodLevels.resize(4);
 		lodLevels[0] = lodVec.x;
 		lodLevels[1] = lodVec.y;
@@ -451,9 +451,9 @@ ref_ptr<CompositeMesh> CompositeMesh::createCompositeMesh(
 	LoadingContext &ctx,
 	scene::SceneInputNode &input,
 	const ref_ptr<AssetImporter> &importer) {
-	const auto scaling = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
-	const auto rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
-	const auto translation = input.getValue<Vec3f>("translation", Vec3f(0.0f));
+	const auto scaling = input.getValue<Vec3f>("scaling", Vec3f::one());
+	const auto rotation = input.getValue<Vec3f>("rotation", Vec3f::zero());
+	const auto translation = input.getValue<Vec3f>("translation", Vec3f::zero());
 	const auto assetIndices = input.getValue<std::string>("asset-indices", "*");
 	bool useAnimation = input.getValue<bool>("asset-animation", false);
 	BufferUpdateFlags updateFlags;

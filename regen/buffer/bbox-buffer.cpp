@@ -43,8 +43,8 @@ BBoxBuffer::BBoxBuffer(
 	// Adopt a static storage for clearing the draw buffer from which we read the bounding box.
 	// This might be non-mappable storage, so to clear the buffer we will use dedicated static write buffer.
 	static const BoundingBoxBlock zeroBlock = {
-		Vec4i(biasedBits(FLT_MAX)),
-		Vec4i(biasedBits(-FLT_MAX))
+		Vec4i::create(biasedBits(FLT_MAX)),
+		Vec4i::create(biasedBits(-FLT_MAX))
 	};
 	clearRef_ = BufferObject::adoptBufferRange(
 		sizeof(BoundingBoxBlock),

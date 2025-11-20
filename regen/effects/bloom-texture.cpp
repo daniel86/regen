@@ -26,8 +26,8 @@ void BloomTexture::resize(GLuint width, GLuint height) {
 
 		mip.texture->set_rectangleSize(i_mipSize.x, i_mipSize.y);
 		mip.texture->allocTexture();
-		mip.texture->set_filter(GL_LINEAR);
-		mip.texture->set_wrapping(GL_CLAMP_TO_EDGE);
+		mip.texture->set_filter(TextureFilter::create(GL_LINEAR));
+		mip.texture->set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
 		// next mip is half the size of the previous mip
         f_mipSize *= 0.5f;
         i_mipSize /= 2;

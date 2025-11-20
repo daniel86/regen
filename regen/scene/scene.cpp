@@ -36,9 +36,9 @@ Scene::Scene(const int& /*argc*/, const char** /*argv*/)
 	screen_ = ref_ptr<Screen>::alloc(Vec2i(2, 2));
 
 	mousePosition_ = ref_ptr<ShaderInput2f>::alloc("mousePosition");
-	mousePosition_->setUniformData(Vec2f(0.0f));
+	mousePosition_->setUniformData(Vec2f::zero());
 	mouseTexco_ = ref_ptr<ShaderInput2f>::alloc("mouseTexco");
-	mouseTexco_->setUniformData(Vec2f(0.0f));
+	mouseTexco_->setUniformData(Vec2f::zero());
 	mouseDepth_ = ref_ptr<ShaderInput1f>::alloc("mouseDepthVS");
 	mouseDepth_->setUniformData(0.0f);
 

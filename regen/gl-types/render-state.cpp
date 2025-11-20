@@ -274,13 +274,13 @@ RenderState::RenderState()
 	depthMask_.push(GL_TRUE);
 	depthFunc_.push(GL_LEQUAL);
 	depthRange_.push(DepthRange(0.0, 1.0));
-	blendEquation_.push(BlendEquation(GL_FUNC_ADD));
+	blendEquation_.push(BlendEquation::create(GL_FUNC_ADD));
 	blendFunc_.push(BlendFunction(GL_ONE, GL_ONE, GL_ZERO, GL_ZERO));
 	polygonMode_.push(GL_FILL);
-	polygonOffset_.push(Vec2f(0.0f));
+	polygonOffset_.push(Vec2f::zero());
 	pointSize_.push(1.0);
 	lineWidth_.push(1.0);
-	colorMask_.push(ColorMask(GL_TRUE));
+	colorMask_.push(ColorMask::create(GL_TRUE));
 	logicOp_.push(GL_COPY);
 	frontFace_.push(GL_CCW);
 	pointFadeThreshold_.push(1.0);

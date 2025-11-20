@@ -10,7 +10,7 @@ BulletDebugDrawer::BulletDebugDrawer(const ref_ptr<BulletPhysics> &physics)
 		  vbo_(0),
 		  m_debugMode(DBG_DrawContactPoints | DBG_DrawWireframe){
 	lineColor_ = ref_ptr<ShaderInput3f>::alloc("lineColor");
-	lineColor_->setUniformData(Vec3f(1.0f));
+	lineColor_->setUniformData(Vec3f::one());
 	state()->setInput(lineColor_);
 	state()->joinStates(shaderState_);
 	lineVertices_ = ref_ptr<ShaderInput3f>::alloc("lineVertices");

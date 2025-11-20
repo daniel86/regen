@@ -50,10 +50,10 @@ namespace regen {
 		 */
 		class ShaderInputProcessor : public StateProcessor {
 		public:
-			template<class T>
+			template<typename T, typename BaseType>
 			static void setInput(SceneInputNode &input, ShaderInput *shaderInput, unsigned int count) {
 				auto v_values =  shaderInput->mapClientData<T>(BUFFER_GPU_WRITE);
-				auto default_value = input.getValue<T>("value", T(0));
+				auto default_value = input.getValue<T>("value", Vec::create<T>(0));
 				for (unsigned int i = 0; i < count; ++i) {
 					v_values.w[i] = default_value;
 				}
@@ -67,7 +67,7 @@ namespace regen {
 							numInstances += (range.to - range.from) / range.step + 1;
 						}
 						ValueGenerator<T> generator(child.get(), numInstances,
-													child->getValue<T>("value", T(1)));
+													child->getValue<T>("value", Vec::create<T>(1)));
 						for (auto &range : indices) {
 							for (unsigned int j = range.from; j <= range.to; j = j + range.step) {
 								switch (blendMode) {
@@ -97,48 +97,48 @@ namespace regen {
 					case GL_FLOAT:
 						switch (in->valsPerElement()) {
 							case 1:
-								setInput<float>(input, in, count);
+								setInput<float,float>(input, in, count);
 								break;
 							case 2:
-								setInput<Vec2f>(input, in, count);
+								setInput<Vec2f,float>(input, in, count);
 								break;
 							case 3:
-								setInput<Vec3f>(input, in, count);
+								setInput<Vec3f,float>(input, in, count);
 								break;
 							case 4:
-								setInput<Vec4f>(input, in, count);
+								setInput<Vec4f,float>(input, in, count);
 								break;
 						}
 						break;
 					case GL_INT:
 						switch (in->valsPerElement()) {
 							case 1:
-								setInput<int>(input, in, count);
+								setInput<int,int>(input, in, count);
 								break;
 							case 2:
-								setInput<Vec2i>(input, in, count);
+								setInput<Vec2i,int>(input, in, count);
 								break;
 							case 3:
-								setInput<Vec3i>(input, in, count);
+								setInput<Vec3i,int>(input, in, count);
 								break;
 							case 4:
-								setInput<Vec4i>(input, in, count);
+								setInput<Vec4i,int>(input, in, count);
 								break;
 						}
 						break;
 					case GL_UNSIGNED_INT:
 						switch (in->valsPerElement()) {
 							case 1:
-								setInput<unsigned int>(input, in, count);
+								setInput<uint32_t,uint32_t>(input, in, count);
 								break;
 							case 2:
-								setInput<Vec2ui>(input, in, count);
+								setInput<Vec2ui,uint32_t>(input, in, count);
 								break;
 							case 3:
-								setInput<Vec3ui>(input, in, count);
+								setInput<Vec3ui,uint32_t>(input, in, count);
 								break;
 							case 4:
-								setInput<Vec4ui>(input, in, count);
+								setInput<Vec4ui,uint32_t>(input, in, count);
 								break;
 						}
 						break;
@@ -246,29 +246,29 @@ namespace regen {
 						in = timer;
 						timer->startAnimation();
 					} else if (type == "int") {
-						in = createShaderInputTyped<ShaderInput1i, GLint, int>(input, state, GLint(0));
+						in = createShaderInputTyped<ShaderInput1i, int, int>(input, state, 0);
 					} else if (type == "ivec2") {
-						in = createShaderInputTyped<ShaderInput2i, Vec2i, int>(input, state, Vec2i(0));
+						in = createShaderInputTyped<ShaderInput2i, Vec2i, int>(input, state, Vec2i::zero());
 					} else if (type == "ivec3") {
-						in = createShaderInputTyped<ShaderInput3i, Vec3i, int>(input, state, Vec3i(0));
+						in = createShaderInputTyped<ShaderInput3i, Vec3i, int>(input, state, Vec3i::zero());
 					} else if (type == "ivec4") {
-						in = createShaderInputTyped<ShaderInput4i, Vec4i, int>(input, state, Vec4i(0));
+						in = createShaderInputTyped<ShaderInput4i, Vec4i, int>(input, state, Vec4i::zero());
 					} else if (type == "uint") {
-						in = createShaderInputTyped<ShaderInput1ui, GLuint, unsigned int>(input, state, GLuint(0));
+						in = createShaderInputTyped<ShaderInput1ui, uint32_t, uint32_t>(input, state, 0u);
 					} else if (type == "uvec2") {
-						in = createShaderInputTyped<ShaderInput2ui, Vec2ui, unsigned int>(input, state, Vec2ui(0));
+						in = createShaderInputTyped<ShaderInput2ui, Vec2ui, uint32_t>(input, state, Vec2ui::zero());
 					} else if (type == "uvec3") {
-						in = createShaderInputTyped<ShaderInput3ui, Vec3ui, unsigned int>(input, state, Vec3ui(0));
+						in = createShaderInputTyped<ShaderInput3ui, Vec3ui, uint32_t>(input, state, Vec3ui::zero());
 					} else if (type == "uvec4") {
-						in = createShaderInputTyped<ShaderInput4ui, Vec4ui, unsigned int>(input, state, Vec4ui(0));
+						in = createShaderInputTyped<ShaderInput4ui, Vec4ui, uint32_t>(input, state, Vec4ui::zero());
 					} else if (type == "float") {
-						in = createShaderInputTyped<ShaderInput1f, GLfloat, float>(input, state, GLfloat(0));
+						in = createShaderInputTyped<ShaderInput1f, float, float>(input, state, 0.0f);
 					} else if (type == "vec2") {
-						in = createShaderInputTyped<ShaderInput2f, Vec2f, float>(input, state, Vec2f(0));
+						in = createShaderInputTyped<ShaderInput2f, Vec2f, float>(input, state, Vec2f::zero());
 					} else if (type == "vec3") {
-						in = createShaderInputTyped<ShaderInput3f, Vec3f, float>(input, state, Vec3f(0));
+						in = createShaderInputTyped<ShaderInput3f, Vec3f, float>(input, state, Vec3f::zero());
 					} else if (type == "vec4") {
-						in = createShaderInputTyped<ShaderInput4f, Vec4f, float>(input, state, Vec4f(0));
+						in = createShaderInputTyped<ShaderInput4f, Vec4f, float>(input, state, Vec4f::zero());
 					} else if (type == "mat3") {
 						in = createShaderInputTyped<ShaderInputMat3, Mat3f, float>(input, state, Mat3f::identity());
 					} else if (type == "mat4") {
@@ -308,12 +308,12 @@ namespace regen {
 					else if (numComponents == 3) processTyped<ShaderInput3i,Vec3i,int>(input, s, in);
 					else if (numComponents == 4) processTyped<ShaderInput4i,Vec4i,int>(input, s, in);
 				} else if (dataType == GL_UNSIGNED_INT) {
-					if (numComponents == 1) processTyped<ShaderInput1ui,GLuint,unsigned int>(input, s, in);
+					if (numComponents == 1) processTyped<ShaderInput1ui,uint32_t,uint32_t>(input, s, in);
 					else if (numComponents == 2) processTyped<ShaderInput2ui,Vec2ui,unsigned int>(input, s, in);
 					else if (numComponents == 3) processTyped<ShaderInput3ui,Vec3ui,unsigned int>(input, s, in);
 					else if (numComponents == 4) processTyped<ShaderInput4ui,Vec4ui,unsigned int>(input, s, in);
 				} else if (dataType == GL_FLOAT) {
-					if (numComponents == 1) processTyped<ShaderInput1f,GLfloat,float>(input, s, in);
+					if (numComponents == 1) processTyped<ShaderInput1f,float,float>(input, s, in);
 					else if (numComponents == 2) processTyped<ShaderInput2f,Vec2f,float>(input, s, in);
 					else if (numComponents == 3) processTyped<ShaderInput3f,Vec3f,float>(input, s, in);
 					else if (numComponents == 4) processTyped<ShaderInput4f,Vec4f,float>(input, s, in);
@@ -403,8 +403,8 @@ namespace regen {
 				auto semantics = input.getValue<InputSchema::Semantics>(
 						"schema", InputSchema::Semantics::UNKNOWN);
 				if (hasMinMax) {
-					auto min = input.getValue<T>("min", T(0));
-					auto max = input.getValue<T>("max", T(1));
+					auto min = input.getValue<T>("min", Vec::create<T>(0));
+					auto max = input.getValue<T>("max", Vec::create<T>(1));
 					auto schema = InputSchema::alloc(semantics);
 					for (int i = 0; i < v->valsPerElement(); i += 1) {
 						schema->setLimits(i,

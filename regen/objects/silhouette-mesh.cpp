@@ -75,8 +75,8 @@ void SilhouetteMesh::updateAttributes() {
 	}
 	activateLOD(0);
 
-	minPosition_ = Vec3f(-0.5f) * silhouetteCfg_.posScale;
-	maxPosition_ = Vec3f(0.5f) * silhouetteCfg_.posScale;
+	minPosition_ = Vec3f::create(-0.5f) * silhouetteCfg_.posScale;
+	maxPosition_ = Vec3f::create(0.5f) * silhouetteCfg_.posScale;
 }
 
 void SilhouetteMesh::generateLODLevel(
@@ -209,9 +209,9 @@ ref_ptr<SilhouetteMesh> SilhouetteMesh::load(LoadingContext &ctx, scene::SceneIn
 	if (input.hasAttribute("silhouette-padding")) {
 		cfg.silhouette.padPixels = input.getValue<uint32_t>("silhouette-padding", 1u);
 	}
-	cfg.posScale = input.getValue<Vec3f>("pos-scale", Vec3f(1.0f));
-	cfg.rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
-	cfg.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f(1.0f));
+	cfg.posScale = input.getValue<Vec3f>("pos-scale", Vec3f::one());
+	cfg.rotation = input.getValue<Vec3f>("rotation", Vec3f::zero());
+	cfg.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f::one());
 	cfg.hasUV = input.getValue<bool>("has-uv", true);
 	cfg.hasNormal = input.getValue<bool>("has-normal", false);
 	cfg.hasTangent = input.getValue<bool>("has-tangent", false);

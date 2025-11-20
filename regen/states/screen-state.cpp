@@ -8,16 +8,16 @@ ScreenState::ScreenState(
 		: State(),
 		  screen_(screen),
 		  drawBuffer_(screenBuffer) {
-	glViewport_ = Vec4ui(0u);
+	glViewport_ = Vec4ui::zero();
 
 	viewport_ = ref_ptr<ShaderInput2f>::alloc("viewport");
 	viewport_->setEditable(false);
-	viewport_->setUniformData(Vec2f(0.0f));
+	viewport_->setUniformData(Vec2f::zero());
 	setInput(viewport_);
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
 	inverseViewport_->setEditable(false);
-	inverseViewport_->setUniformData(Vec2f(0.0f));
+	inverseViewport_->setUniformData(Vec2f::zero());
 	setInput(inverseViewport_);
 }
 

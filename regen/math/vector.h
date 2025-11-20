@@ -12,6 +12,24 @@
 #include <regen/math/math.h>
 
 namespace regen {
+    template<typename T> struct VecTraits;
+
+	template<> struct VecTraits<float> { using BaseType = float; };
+	template<> struct VecTraits<double> { using BaseType = double; };
+	template<> struct VecTraits<int> { using BaseType = int; };
+	template<> struct VecTraits<uint32_t> { using BaseType = uint32_t; };
+	template<> struct VecTraits<bool> { using BaseType = bool; };
+
+	struct Vec {
+		template <typename VecType> static VecType create(VecTraits<VecType>::BaseType v) {
+			static constexpr int NumComponents = sizeof(VecType) / sizeof(typename VecTraits<VecType>::BaseType);
+			if constexpr (NumComponents == 1) {
+				return v;
+			} else {
+				return VecType::create(v);
+			}
+		}
+	};
 	/**
 	 * \brief A 2D vector.
 	 */
@@ -27,10 +45,16 @@ namespace regen {
 		Vec2(T _x, T _y) : x(_x), y(_y) {}
 
 		/** @param _x value that is applied to all components. */
-		Vec2(T _x) : x(_x), y(_x) {}
+		//Vec2(T _x) : x(_x), y(_x) {}
+
+		explicit Vec2(T) = delete;
 
 		/** copy constructor. */
 		Vec2(const Vec2 &b) : x(b.x), y(b.y) {}
+
+		static Vec2 create(T v) {
+			return Vec2(v, v);
+		}
 
 		/** copy operator. */
 		inline void operator=(const Vec2 &b) {
@@ -212,8 +236,16 @@ namespace regen {
 		 * @return static zero vector.
 		 */
 		static const Vec2 &zero() {
-			static Vec2 zero_(0);
+			static Vec2 zero_(0,0);
 			return zero_;
+		}
+
+		/**
+		 * @return static one vector.
+		 */
+		static const Vec2 &one() {
+			static Vec2 one_(1,1);
+			return one_;
 		}
 	};
 
@@ -235,6 +267,12 @@ namespace regen {
 	typedef Vec2<uint32_t> Vec2ui;
 	typedef Vec2<bool> Vec2b;
 
+	template<> struct VecTraits<Vec2f> { using BaseType = float; };
+	template<> struct VecTraits<Vec2d> { using BaseType = double; };
+	template<> struct VecTraits<Vec2i> { using BaseType = int; };
+	template<> struct VecTraits<Vec2ui> { using BaseType = uint32_t; };
+	template<> struct VecTraits<Vec2b> { using BaseType = bool; };
+
 	/**
 	 * \brief A 3D vector.
 	 */
@@ -251,7 +289,9 @@ namespace regen {
 		Vec3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
 
 		/** @param _x value that is applied to all components. */
-		Vec3(T _x) : x(_x), y(_x), z(_x) {}
+		//Vec3(T _x) : x(_x), y(_x), z(_x) {}
+
+		explicit Vec3(T) = delete;
 
 		/** copy constructor. */
 		Vec3(const Vec3 &b) : x(b.x), y(b.y), z(b.z) {}
@@ -268,6 +308,10 @@ namespace regen {
 
 		/** Construct from Vec2 and scalar. */
 		Vec3(T _x, const Vec2<T> &b) : x(_x), y(b.x), z(b.y) {}
+
+		static Vec3 create(T v) {
+			return Vec3(v, v, v);
+		}
 
 		/** copy operator. */
 		inline void operator=(const Vec3 &b) {
@@ -563,7 +607,7 @@ namespace regen {
 		 * @return static zero vector.
 		 */
 		static const Vec3 &zero() {
-			static Vec3 zero_(0);
+			static Vec3 zero_(0,0,0);
 			return zero_;
 		}
 
@@ -571,7 +615,7 @@ namespace regen {
 		 * @return static one vector.
 		 */
 		static const Vec3 &one() {
-			static Vec3 one_(1);
+			static Vec3 one_(1,1,1);
 			return one_;
 		}
 
@@ -579,7 +623,8 @@ namespace regen {
 		 * @return static positive max vector.
 		 */
 		static const Vec3& posMax() {
-			static Vec3 posMax_(std::numeric_limits<T>::max());
+			static constexpr float maxFloat = std::numeric_limits<T>::max();
+			static Vec3 posMax_(maxFloat,maxFloat,maxFloat);
 			return posMax_;
 		}
 
@@ -587,7 +632,8 @@ namespace regen {
 		 * @return static negative max vector.
 		 */
 		static const Vec3& negMax() {
-			static Vec3 negMax_(std::numeric_limits<T>::lowest());
+			static constexpr float minFloat = std::numeric_limits<T>::lowest();
+			static Vec3 negMax_(minFloat, minFloat, minFloat);
 			return negMax_;
 		}
 
@@ -686,6 +732,12 @@ namespace regen {
 	typedef Vec3<uint32_t> Vec3ui;
 	typedef Vec3<bool> Vec3b;
 
+	template<> struct VecTraits<Vec3f> { using BaseType = float; };
+	template<> struct VecTraits<Vec3d> { using BaseType = double; };
+	template<> struct VecTraits<Vec3i> { using BaseType = int; };
+	template<> struct VecTraits<Vec3ui> { using BaseType = uint32_t; };
+	template<> struct VecTraits<Vec3b> { using BaseType = bool; };
+
 	/**
 	 * \brief A 4D vector.
 	 */
@@ -703,7 +755,9 @@ namespace regen {
 		Vec4(T _x, T _y, T _z, T _w) : x(_x), y(_y), z(_z), w(_w) {}
 
 		/** @param _x value that is applied to all components. */
-		Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
+		//Vec4(T _x) : x(_x), y(_x), z(_x), w(_x) {}
+
+		explicit Vec4(T) = delete;
 
 		/** copy constructor. */
 		Vec4(const Vec4 &b) : x(b.x), y(b.y), z(b.z), w(b.w) {}
@@ -725,6 +779,10 @@ namespace regen {
 
 		/** Construct from Vec3 and scalar. */
 		Vec4(T _x, const Vec3<T> &b) : x(_x), y(b.x), z(b.y), w(b.z) {}
+
+		static Vec4 create(T v) {
+			return Vec4(v, v, v, v);
+		}
 
 		/** copy operator. */
 		inline void operator=(const Vec4 &b) {
@@ -927,7 +985,7 @@ namespace regen {
 		 * @return static zero vector.
 		 */
 		static const Vec4 &zero() {
-			static Vec4 zero_(0);
+			static Vec4 zero_(0,0,0,0);
 			return zero_;
 		}
 
@@ -935,7 +993,7 @@ namespace regen {
 		 * @return static one vector.
 		 */
 		static const Vec4 &one() {
-			static Vec4 one_(1);
+			static Vec4 one_(1,1,1,1);
 			return one_;
 		}
 	};
@@ -962,59 +1020,11 @@ namespace regen {
 	typedef Vec4<uint32_t> Vec4ui;
 	typedef Vec4<bool> Vec4b;
 
-	/**
-	 * \brief A 1D vector.
-	 */
-	template<typename T>
-	class Vec1 {
-	public:
-		T x; /**< the x component. **/
-
-		Vec1() : x(0) {}
-
-		/** @param _x value that is applied to all components. */
-		explicit Vec1(T _x) : x(_x) {}
-
-		/** copy constructor. */
-		Vec1(const Vec1 &b) : x(b.x) {}
-
-		/** copy operator. */
-		inline void operator=(const Vec1 &b) {
-			x = b.x;
-		}
-
-		/**
-		 * @param b another vector
-		 * @return true if all values are equal
-		 */
-		inline bool operator==(const Vec1 &b) const { return x == b.x; }
-
-		/**
-		 * @param b another vector
-		 * @return false if all values are equal
-		 */
-		inline bool operator!=(const Vec1 &b) const { return !operator==(b); }
-
-		/**
-		 * Subscript operator.
-		 */
-		inline T &operator[](int i) {
-			return ((T *) this)[i];
-		}
-
-		/**
-		 * Subscript operator.
-		 */
-		inline const T &operator[](int i) const {
-			return ((T *) this)[i];
-		}
-	};
-
-	typedef Vec1<float> Vec1f;
-	typedef Vec1<double> Vec1d;
-	typedef Vec1<int> Vec1i;
-	typedef Vec1<uint32_t> Vec1ui;
-	typedef Vec1<bool> Vec1b;
+	template<> struct VecTraits<Vec4f> { using BaseType = float; };
+	template<> struct VecTraits<Vec4d> { using BaseType = double; };
+	template<> struct VecTraits<Vec4i> { using BaseType = int; };
+	template<> struct VecTraits<Vec4ui> { using BaseType = uint32_t; };
+	template<> struct VecTraits<Vec4b> { using BaseType = bool; };
 
 	/**
 	 * \brief A 6D vector.
@@ -1040,6 +1050,12 @@ namespace regen {
 	typedef Vec6<int> Vec6i;
 	typedef Vec6<uint32_t> Vec6ui;
 	typedef Vec6<bool> Vec6b;
+
+	template<> struct VecTraits<Vec6f> { using BaseType = float; };
+	template<> struct VecTraits<Vec6d> { using BaseType = double; };
+	template<> struct VecTraits<Vec6i> { using BaseType = int; };
+	template<> struct VecTraits<Vec6ui> { using BaseType = uint32_t; };
+	template<> struct VecTraits<Vec6b> { using BaseType = bool; };
 
 	Vec4f calculateTangent(Vec3f *vertices, Vec2f *texco, const Vec3f &normal);
 } // namespace

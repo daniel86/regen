@@ -141,8 +141,8 @@ void FBO::createDepthTexture(GLenum target, GLenum format, GLenum type, bool isS
 	depth->set_pixelType(type);
 	depth->allocTexture();
 	if (numSamples == 1) {
-		depth->set_wrapping(GL_REPEAT);
-		depth->set_filter(GL_NEAREST);
+		depth->set_wrapping(TextureWrapping::create(GL_REPEAT));
+		depth->set_filter(TextureFilter::create(GL_NEAREST));
 		depth->set_compare(TextureCompare(GL_NONE, GL_EQUAL));
 	}
 	if (isStencil) {
@@ -255,8 +255,8 @@ ref_ptr<Texture> FBO::createTexture(
 
 	for (GLuint j = 0; j < count; ++j) {
 		if (numSamples == 1) {
-			tex->set_wrapping(GL_CLAMP_TO_EDGE);
-			tex->set_filter(GL_LINEAR);
+			tex->set_wrapping(TextureWrapping::create(GL_CLAMP_TO_EDGE));
+			tex->set_filter(TextureFilter::create(GL_LINEAR));
 		}
 		tex->nextObject();
 	}
@@ -673,7 +673,7 @@ ref_ptr<FBO> FBO::load(LoadingContext &ctx, scene::SceneInputNode &input) {
 	}
 
 	if (input.hasAttribute("clear-color")) {
-		auto c = input.getValue<Vec4f>("clear-color", Vec4f(0.0f));
+		auto c = input.getValue<Vec4f>("clear-color", Vec4f::zero());
 		fbo->clearAllColorAttachments(c);
 	}
 	GL_ERROR_LOG();

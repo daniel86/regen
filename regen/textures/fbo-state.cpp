@@ -208,7 +208,7 @@ ref_ptr<State> FBOState::load(LoadingContext &ctx, scene::SceneInputNode &input)
 		if (input.hasAttribute("clear-buffers")) {
 			const auto buffers = getFBOAttachments_(input, "clear-buffers");
 			ClearColorState::Data data;
-			data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f(0.0));
+			data.clearColor = input.getValue<Vec4f>("clear-color", Vec4f::zero());
 			data.colorBuffers = DrawBuffers(buffers);
 			fboState->setClearColor(data);
 		}

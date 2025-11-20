@@ -315,7 +315,7 @@ ref_ptr<BoneAnimationItem> SceneLoader::getAnimationRanges(const std::string &as
 	for (auto &rangeNode: rangesXML) {
 		auto &range = item->ranges[rangeIdx];
 		range.name = rangeNode->getValue("name");
-		range.range = rangeNode->getValue<Vec2d>("range", Vec2d(0.0));
+		range.range = rangeNode->getValue<Vec2d>("range", Vec2d::zero());
 		range.trackName = rangeNode->getValue("track");
 		range.trackIndex = rangeNode->getValue<GLuint>("track-index", 0u);
 		rangeNameMap[range.name] = &range;

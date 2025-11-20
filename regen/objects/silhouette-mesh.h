@@ -16,11 +16,11 @@ namespace regen {
 			/** Configuration for the silhouette generator. */
 			SilhouetteConfig silhouette;
 			/** scaling for the position attribute. */
-			Vec3f posScale = Vec3f(1.0f);
+			Vec3f posScale = Vec3f::one();
 			/** cube xyz rotation. */
-			Vec3f rotation = Vec3f(0.0f);
+			Vec3f rotation = Vec3f::zero();
 			/** scaling vector for TEXCO_MODE_UV. */
-			Vec2f texcoScale = Vec2f(1.0f);
+			Vec2f texcoScale = Vec2f::one();
 			/** texture coordinate mode. */
 			bool hasUV = true;
 			/** generate normal attribute ?. */

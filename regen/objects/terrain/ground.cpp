@@ -17,16 +17,16 @@ Ground::Ground() : SkirtQuad() {
 	rectangleConfig_.isNormalRequired = false;
 	rectangleConfig_.isTexcoRequired = false;
 	rectangleConfig_.isTangentRequired = false;
-	rectangleConfig_.posScale = Vec3f(1.0f);
+	rectangleConfig_.posScale = Vec3f::one();
 	rectangleConfig_.rotation = Vec3f(0.0f, 0.0f, M_PI);
 	rectangleConfig_.centerAtOrigin = true;
 
 	u_mapCenter_ = ref_ptr<ShaderInput3f>::alloc("mapCenter");
-	u_mapCenter_->setUniformData(Vec3f(0.0f));
+	u_mapCenter_->setUniformData(Vec3f::zero());
 	u_mapCenter_->setSchema(InputSchema::position());
 
 	u_mapSize_ = ref_ptr<ShaderInput3f>::alloc("mapSize");
-	u_mapSize_->setUniformData(Vec3f(1.0f));
+	u_mapSize_->setUniformData(Vec3f::one());
 	u_mapSize_->setSchema(InputSchema::scale());
 
 	u_skirtSize_ = ref_ptr<ShaderInput1f>::alloc("skirtSize");
@@ -777,8 +777,8 @@ ref_ptr<Ground> Ground::load(LoadingContext &ctx, scene::SceneInputNode &input) 
 	auto patchDensity = input.getValue<uint32_t>("patch-density", 9);
 	ground->setLODConfig(patchDensity, {lodVec.x, lodVec.y, lodVec.z, lodVec.w});
 	ground->setMapGeometry(
-			input.getValue<Vec3f>("map-center", Vec3f(0.0f)),
-			input.getValue<Vec3f>("map-size", Vec3f(1.0f)));
+			input.getValue<Vec3f>("map-center", Vec3f::zero()),
+			input.getValue<Vec3f>("map-size", Vec3f::one()));
 
 	auto heightMap = scene->getResource<Texture2D>(input.getValue("height-map"));
 	auto normalMap = scene->getResource<Texture2D>(input.getValue("normal-map"));

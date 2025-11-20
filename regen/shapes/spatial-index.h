@@ -42,7 +42,7 @@ namespace regen {
 		bool hasLODCam = false;
 
 		// LOD shift for each layer
-		Vec4i lodShift = Vec4i(0);
+		Vec4i lodShift = Vec4i::zero();
 		// How to sort instances by distance to camera
 		SortMode sortMode = SortMode::FRONT_TO_BACK;
 		// the bitmask to filter shapes during traversal

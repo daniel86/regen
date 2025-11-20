@@ -84,7 +84,7 @@ ProcTree::ProcTree(scene::SceneInputNode &input) : ProcTree() {
 		useSilhouetteMesh_ = true;
 	}
 	if (input.hasAttribute("texco-scale")) {
-		silhouetteCfg_.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f(1.0f));
+		silhouetteCfg_.texcoScale = input.getValue<Vec2f>("texco-scale", Vec2f::one());
 	}
 	if (input.hasAttribute("use-silhouette")) {
 		useSilhouetteMesh_ = input.getValue<bool>("use-silhouette", true);

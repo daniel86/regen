@@ -199,8 +199,8 @@ std::vector<ref_ptr<AnimalController>> AnimalController::load(
 		controller->setVelOrientationWeight(node.getValue<float>("velocity-orientation-weight", 0.5f));
 		controller->setFloorHeight(node.getValue<float>("floor-height", 0.0f));
 		controller->setTerritoryBounds(
-			node.getValue<Vec2f>("territory-center", Vec2f(0.0)),
-			node.getValue<Vec2f>("territory-size", Vec2f(10.0)));
+			node.getValue<Vec2f>("territory-center", Vec2f::zero()),
+			node.getValue<Vec2f>("territory-size", Vec2f::create(10.0)));
 		if (node.hasAttribute("base-orientation")) {
 			controller->setBaseOrientation(node.getValue<float>("base-orientation", 0.0f));
 		}

@@ -282,15 +282,16 @@ static void loadTexture(
 			REGEN_ERROR("Failed to load texture '" << stringVal.data << "'.");
 			return;
 		}
-	} else { // The texture is NOT compressed
+	} else {
+		// The texture is NOT compressed
 		tex = ref_ptr<Texture2D>::alloc();
 		tex->set_rectangleSize(aiTexture->mWidth, aiTexture->mHeight);
 		tex->set_pixelType(GL_UNSIGNED_BYTE);
 		tex->set_format(GL_RGBA);
 		tex->set_internalFormat(GL_RGBA8);
 		tex->allocTexture();
-		tex->set_filter(GL_LINEAR);
-		tex->set_wrapping(GL_REPEAT);
+		tex->set_filter(TextureFilter::create(GL_LINEAR));
+		tex->set_wrapping(TextureWrapping::create(GL_REPEAT));
 		tex->updateImage((GLubyte *) aiTexture->pcData);
 	}
 
@@ -393,7 +394,7 @@ static void loadTexture(
 		texState->set_texcoChannel(intVal);
 	}
 
-	TextureWrapping wrapping_(GL_REPEAT);
+	TextureWrapping wrapping_(TextureWrapping::create(GL_REPEAT));
 	// Any of the aiTextureMapMode enumerated values. Defines the texture wrapping mode on the
 	// x axis for sampling the n'th texture on the stack 't'.
 	// 'Wrapping' occurs whenever UVs lie outside the 0..1 range.
@@ -811,8 +812,8 @@ ref_ptr<Mesh> AssetImporter::loadMesh(const struct aiMesh &mesh, const Mat4f &tr
 
 	const auto *aiTransform = (const aiMatrix4x4 *) &transform.x;
 	// vertex positions
-	Vec3f min_(999999.9);
-	Vec3f max_(-999999.9);
+	Vec3f min_ = Vec3f::create(999999.9);
+	Vec3f max_ = Vec3f::create(-999999.9);
 	uint32_t numVertices = mesh.mNumVertices;
 	{
 		pos->setVertexData(numVertices);

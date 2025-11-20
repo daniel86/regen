@@ -12,7 +12,7 @@ DirectShading::DirectShading() : State(), idCounter_(0) {
 	shaderDefine("NUM_LIGHTS", "0");
 
 	ambientLight_ = ref_ptr<ShaderInput3f>::alloc("ambientLight");
-	ambientLight_->setUniformData(Vec3f(0.2f));
+	ambientLight_->setUniformData(Vec3f::create(0.2f));
 	ambientLight_->setSchema(InputSchema::color());
 	setInput(ambientLight_);
 }
@@ -221,7 +221,7 @@ ref_ptr<DirectShading> DirectShading::load(LoadingContext &ctx, scene::SceneInpu
 
 	if (input.hasAttribute("ambient")) {
 		shadingState->ambientLight()->setVertex(0,
-												input.getValue<Vec3f>("ambient", Vec3f(0.1f)));
+												input.getValue<Vec3f>("ambient", Vec3f::create(0.1f)));
 	}
 
 	// load lights

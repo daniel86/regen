@@ -130,7 +130,7 @@ ref_ptr<UserController> UserController::load(
 		return controller;
 	}
 
-	controller->setMeshEyeOffset(node.getValue<Vec3f>("eye-offset", Vec3f(0.0)));
+	controller->setMeshEyeOffset(node.getValue<Vec3f>("eye-offset", Vec3f::zero()));
 	controller->set_moveAmount(node.getValue<GLfloat>("speed", 0.01f));
 	controller->setMeshDistance(node.getValue<GLfloat>("mesh-distance", 10.0f));
 	controller->setHorizontalOrientation(node.getValue<GLfloat>("horizontal-orientation", 0.0));

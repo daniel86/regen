@@ -18,6 +18,6 @@ Point::Point(GLuint numVertices)
 	}
 
 	// note: use a small epsilon to avoid division by zero
-	minPosition_ = Vec3f(-1.0e-8f);
-	maxPosition_ = Vec3f(1.0e-8f);
+	minPosition_ = Vec3f::create(-1.0e-8f);
+	maxPosition_ = Vec3f::create(1.0e-8f);
 }

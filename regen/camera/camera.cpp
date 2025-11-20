@@ -51,7 +51,7 @@ Camera::Camera(unsigned int numLayer, const BufferUpdateFlags &updateFlags)
 	sh_position_->setUniformData(position_[0]);
 	sh_position_->setSchema(InputSchema::position());
 
-	vel_ = Vec4f(0.0f);
+	vel_ = Vec4f::zero();
 	sh_vel_ = ref_ptr<ShaderInput4f>::alloc("cameraVelocity");
 	sh_vel_->setUniformData(vel_);
 

@@ -17,7 +17,7 @@ static ref_ptr<btCollisionShape> createSphere(SceneInputNode &input) {
 }
 
 static ref_ptr<btCollisionShape> createWall(SceneInputNode &input) {
-	auto size = input.getValue<Vec2f>("size", Vec2f(1.0f));
+	auto size = input.getValue<Vec2f>("size", Vec2f::one());
 	// TODO: allow configuration of orientation and position
 	btVector3 halfExtend(size.x * 0.5f, 0.001f, size.y * 0.5f);
 	return ref_ptr<btBoxShape>::alloc(halfExtend);
@@ -32,13 +32,13 @@ static ref_ptr<btCollisionShape> createInfiniteWall(SceneInputNode &input) {
 }
 
 static ref_ptr<btCollisionShape> createBox(SceneInputNode &input) {
-	auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
+	auto size = input.getValue<Vec3f>("size", Vec3f::one());
 	btVector3 halfExtend(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
 	return ref_ptr<btBoxShape>::alloc(halfExtend);
 }
 
 static ref_ptr<btCollisionShape> createCylinder(SceneInputNode &input) {
-	auto size = input.getValue<Vec3f>("size", Vec3f(1.0f));
+	auto size = input.getValue<Vec3f>("size", Vec3f::one());
 	btVector3 halfExtend(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
 	return ref_ptr<btCylinderShape>::alloc(halfExtend);
 }
@@ -187,7 +187,7 @@ static ref_ptr<PhysicalProps> createPhysicalProps(
 	}
 
 	auto props = ref_ptr<PhysicalProps>::alloc(motion, shape);
-	auto inertia = input.getValue<Vec3f>("inertia", Vec3f(0.0f));
+	auto inertia = input.getValue<Vec3f>("inertia", Vec3f::zero());
 	props->setMassProps(mass, btVector3(inertia.x, inertia.x, inertia.z));
 	auto gravity = input.getValue<Vec3f>("gravity", Vec3f(0.0f, -9.8f, 0.0f));
 	props->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
@@ -237,11 +237,11 @@ static std::optional<float> getRadius(SceneInputNode &input) {
 
 static std::optional<Bounds<Vec3f>> getBoxBounds(SceneInputNode &input) {
 	if (input.hasAttribute("box-size")) {
-		auto size = input.getValue<Vec3f>("box-size", Vec3f(0.0));
+		auto size = input.getValue<Vec3f>("box-size", Vec3f::zero());
 		auto halfSize = size * 0.5;
 		auto bounds = Bounds<Vec3f>::create(-halfSize, halfSize);
 		if (input.hasAttribute("box-center")) {
-			auto center = input.getValue<Vec3f>("box-center", Vec3f(0.0));
+			auto center = input.getValue<Vec3f>("box-center", Vec3f::zero());
 			bounds.min += center;
 			bounds.max += center;
 		}
@@ -269,7 +269,7 @@ static ref_ptr<BoundingShape> createShape(
 		} else if (input.hasAttribute("radius")) {
 			auto radius_opt = getRadius(input);
 			if (radius_opt.has_value()) {
-				auto center = input.getValue<Vec3f>("center", Vec3f(0.0f));
+				auto center = input.getValue<Vec3f>("center", Vec3f::zero());
 				shape = ref_ptr<BoundingSphere>::alloc(center, radius_opt.value());
 				for (auto &part: parts) { shape->addPart(part); }
 			}

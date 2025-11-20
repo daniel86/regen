@@ -16,7 +16,7 @@ GeomPicking::GeomPicking(const ref_ptr<Camera> &camera, const ref_ptr<ShaderInpu
 	// create uniforms encoding the mouse position
 	mouseTexco_ = mouseTexco;
 	mousePosVS_ = ref_ptr<ShaderInput3f>::alloc("mousePosVS");
-	mousePosVS_->setUniformData(Vec3f(0.0f));
+	mousePosVS_->setUniformData(Vec3f::zero());
 	state_->setInput(mousePosVS_);
 
 	mouseDirVS_ = ref_ptr<ShaderInput3f>::alloc("mouseDirVS");
@@ -81,7 +81,7 @@ void GeomPicking::updateMouse() {
 	auto &inverseProjectionMatrix = camera_->projectionInverse(0);
 	auto mouse = mouseTexco_->getVertex(0);
 	// find view space mouse ray intersecting the frustum
-	Vec2f mouseNDC = mouse.r * 2.0 - Vec2f(1.0);
+	Vec2f mouseNDC = mouse.r * 2.0 - Vec2f::one();
 	// in NDC space the ray starts at (mx,my,0) and ends at (mx,my,1)
 	Vec4f mouseRayNear = inverseProjectionMatrix ^ Vec4f(mouseNDC, 0.0, 1.0);
 	Vec4f mouseRayFar = inverseProjectionMatrix ^ Vec4f(mouseNDC, 1.0, 1.0);

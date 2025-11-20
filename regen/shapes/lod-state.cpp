@@ -26,6 +26,11 @@
 using namespace regen;
 
 namespace regen {
+	// Note: I think for this to work we also need to write into indirect draw buffers directly
+	//       in spatial index traversal.
+	//       So for now we stick to having a duplication instance buffer.
+	static constexpr bool LOD_SEPARATE_INSTANCE_BUFFERS = true;
+
 	class InstanceUpdater : public Animation {
 	public:
 		explicit InstanceUpdater(LODState *lodState)
@@ -91,6 +96,10 @@ void LODState::initLODState() {
 	if (mesh_.get()) {
 		numLODs_ = std::max(mesh_->numLODs(), numLODs_);
 	}
+	if (useCPUPath()) {
+		auto index = cullShape_->spatialIndex();
+		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
+	}
 
 	if (cullShape_->numInstances() > 1) {
 		// create instance buffer for per-frame updates.
@@ -111,8 +120,6 @@ void LODState::initLODState() {
 	}
 
 	if (useCPUPath()) {
-		auto index = cullShape_->spatialIndex();
-		shapeIndex_ = index->getIndexedShape(camera_, cullShape_->shapeName());
 		if (!shapeIndex_.get()) {
 			REGEN_WARN("No indexed shape found for cull shape '" << cullShape_->shapeName() << "'.");
 		} else {
@@ -140,11 +147,19 @@ void LODState::createInstanceBuffer() {
 	const int32_t numIndices = cullShape_->numInstances() * camera_->numLayer();
 	std::vector<uint32_t> clearData(numIndices, 0);
 
-	instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
-	instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
-	if (cullShape_->isIndexShape()) {
-		instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
+	if constexpr (LOD_SEPARATE_INSTANCE_BUFFERS) {
+		instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
+		if (cullShape_->isIndexShape()) {
+			instanceData_->setInstanceData(1, 1, (byte*)clearData.data());
+		}
+	} else {
+		if (shapeIndex_.get()) {
+			instanceData_ = shapeIndex_->instanceIDs();
+		} else {
+			instanceData_ = ref_ptr<ShaderInput1ui>::alloc("instanceIDMap", numIndices);
+		}
 	}
+	instanceBuffer_ = ref_ptr<SSBO>::alloc("InstanceIDs", BufferUpdateFlags::FULL_PER_FRAME);
 	instanceBuffer_->addStagedInput(instanceData_);
 	instanceBuffer_->update();
 	if (!cullShape_->isIndexShape()) {
@@ -427,7 +442,6 @@ void LODState::traverseCPU() {
 		} else {
 			auto count = shapeIndex_->mapInstanceCounts(BUFFER_CPU_READ);
 			auto base = shapeIndex_->mapBaseInstances(BUFFER_CPU_READ);
-			auto ids = shapeIndex_->mapInstanceIDs(BUFFER_CPU_READ);
 
 			// update local data of indirect draw buffers
 			for (uint32_t lodLevel=0; lodLevel<numLODs_; ++lodLevel) {
@@ -439,17 +453,20 @@ void LODState::traverseCPU() {
 				}
 			}
 
-			if (tfStamp_ != cullShape_->boundingShape()->tfStamp() || cameraStamp_ != camera_->stamp()) {
-				tfStamp_ = cullShape_->boundingShape()->tfStamp();
-				cameraStamp_ = camera_->stamp();
+			if constexpr (LOD_SEPARATE_INSTANCE_BUFFERS) {
+				auto ids = shapeIndex_->mapInstanceIDs(BUFFER_CPU_READ);
+				if (tfStamp_ != cullShape_->boundingShape()->tfStamp() || cameraStamp_ != camera_->stamp()) {
+					tfStamp_ = cullShape_->boundingShape()->tfStamp();
+					cameraStamp_ = camera_->stamp();
 
-				const uint32_t lastBinIdx = (numLODs_ * numLayer) - 1;
-				const uint32_t numVisible = base.r[lastBinIdx] + count.r[lastBinIdx];
-				const uint32_t dataSize = numVisible * sizeof(uint32_t);
+					const uint32_t lastBinIdx = (numLODs_ * numLayer) - 1;
+					const uint32_t numVisible = base.r[lastBinIdx] + count.r[lastBinIdx];
+					const uint32_t dataSize = numVisible * sizeof(uint32_t);
 
-				auto mappedClientData = instanceData_->mapClientData<uint32_t>(
-						BUFFER_GPU_WRITE, 0, dataSize);
-				std::memcpy(mappedClientData.w.data(), ids.r.data(), dataSize);
+					auto mappedClientData = instanceData_->mapClientData<uint32_t>(
+							BUFFER_GPU_WRITE, 0, dataSize);
+					std::memcpy(mappedClientData.w.data(), ids.r.data(), dataSize);
+				}
 			}
 		}
 	}

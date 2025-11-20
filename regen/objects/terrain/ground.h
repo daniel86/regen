@@ -266,8 +266,8 @@ namespace regen {
 		ref_ptr<ModelTransformation> tf_;
 		ref_ptr<State> groundShaderDefines_;
 
-		Vec3f mapCenter_ = Vec3f(0.0f);
-		Vec3f mapSize_ = Vec3f(1.0f);
+		Vec3f mapCenter_ = Vec3f::zero();
+		Vec3f mapSize_ = Vec3f::one();
 		ref_ptr<Texture2D> heightMap_;
 		ref_ptr<Texture2D> normalMap_;
 
@@ -277,7 +277,7 @@ namespace regen {
 		ref_ptr<ShaderInput1f> u_uvScale_;
 		ref_ptr<ShaderInput1i> u_normalIdx_;
 
-		Vec2ui numPatches_ = Vec2ui(1);
+		Vec2ui numPatches_ = Vec2ui::one();
 		uint32_t numPatchesPerRow_ = 1;
 		float patchSize_ = 0.0f;
 

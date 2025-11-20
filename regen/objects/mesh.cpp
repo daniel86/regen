@@ -30,8 +30,8 @@ Mesh::Mesh(GLenum primitive, const BufferUpdateFlags &hints, VertexLayout vertex
 		  primitive_(primitive),
 		  vao_(ref_ptr<VAO>::alloc()),
 		  lodLevel_(ref_ptr<uint32_t>::alloc(0u)),
-		  minPosition_(-1.0f),
-		  maxPosition_(1.0f),
+		  minPosition_(Vec3f::create(-1.0f)),
+		  maxPosition_(Vec3f::create(1.0f)),
 		  shared_(ref_ptr<SharedData>::alloc()) {
 	draw_ = &Mesh::draw;
 	set_primitive(primitive);

@@ -108,7 +108,7 @@ FilterSequence::FilterSequence(const ref_ptr<Texture> &input, GLboolean bindInpu
 		: State(),
 		  input_(input),
 		  clearFirstFilter_(GL_FALSE),
-		  clearColor_(Vec4f(0.0f)),
+		  clearColor_(Vec4f::zero()),
 		  lastWidth_(0u),
 		  lastHeight_(0u),
 		  bindInput_(bindInput) {
@@ -186,7 +186,7 @@ ref_ptr<FilterSequence> FilterSequence::load(LoadingContext &ctx, scene::SceneIn
 			input.getValue<std::string>("pixel-type", "NONE")));
 	if (input.hasAttribute("clear-color")) {
 		filterSeq->setClearColor(
-				input.getValue<Vec4f>("clear-color", Vec4f(0.0f)));
+				input.getValue<Vec4f>("clear-color", Vec4f::zero()));
 	}
 
 	const std::list<ref_ptr<scene::SceneInputNode> > &childs = input.getChildren();

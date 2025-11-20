@@ -52,5 +52,5 @@ ArrayCamera::ArrayCamera(unsigned int numLayer, const BufferUpdateFlags &updateF
 	sh_position_->set_numArrayElements(numLayer_);
 	sh_position_->set_forceArray(true);
 	sh_position_->setUniformUntyped();
-	sh_position_->setVertex(0, Vec4f(0.0f));
+	sh_position_->setVertex(0, Vec4f::create(0.0f));
 }

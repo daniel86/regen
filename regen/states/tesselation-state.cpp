@@ -57,10 +57,10 @@ TesselationState::TesselationState(GLuint numPatchVertices)
 #endif
 
 	innerLevel_ = ref_ptr<ShaderInput4f>::alloc("tessInnerLevel");
-	innerLevel_->setUniformData(Vec4f(8.0f));
+	innerLevel_->setUniformData(Vec4f::create(8.0f));
 
 	outerLevel_ = ref_ptr<ShaderInput4f>::alloc("tessOuterLevel");
-	outerLevel_->setUniformData(Vec4f(8.0f));
+	outerLevel_->setUniformData(Vec4f::create(8.0f));
 
 	lodFactor_ = ref_ptr<ShaderInput1f>::alloc("lodFactor");
 	lodFactor_->setUniformData(4.0f);
@@ -110,9 +110,9 @@ ref_ptr<TesselationState> TesselationState::load(LoadingContext &ctx, scene::Sce
 			input.getValue<GLuint>("num-patch-vertices", 3u));
 
 	tess->innerLevel()->setVertex(0,
-								  input.getValue<Vec4f>("inner-level", Vec4f(8.0f)));
+								  input.getValue<Vec4f>("inner-level", Vec4f::create(8.0f)));
 	tess->outerLevel()->setVertex(0,
-								  input.getValue<Vec4f>("outer-level", Vec4f(8.0f)));
+								  input.getValue<Vec4f>("outer-level", Vec4f::create(8.0f)));
 	tess->lodFactor()->setVertex(0,
 								 input.getValue<GLfloat>("lod-factor", 4.0f));
 	tess->set_lodMetric(input.getValue<TesselationState::LoDMetric>(

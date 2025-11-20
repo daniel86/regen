@@ -35,7 +35,7 @@ ref_ptr<FrameMesh> FrameMesh::getUnitFrame() {
 	static ref_ptr<FrameMesh> mesh;
 	if (mesh.get() == nullptr) {
 		Config cfg;
-		cfg.posScale = Vec3f(1.0f);
+		cfg.posScale = Vec3f::one();
 		cfg.rotation = Vec3f(0.0, 0.0f, 0.0f);
 		cfg.texcoMode = TEXCO_MODE_NONE;
 		cfg.isNormalRequired = GL_FALSE;
@@ -69,9 +69,9 @@ FrameMesh::FrameMesh(const ref_ptr<FrameMesh> &other)
 
 FrameMesh::Config::Config()
 		: levelOfDetail(0),
-		  posScale(Vec3f(1.0f)),
-		  rotation(Vec3f(0.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		  posScale(Vec3f::one()),
+		  rotation(Vec3f::zero()),
+		  texcoScale(Vec2f::one()),
 		  texcoMode(TEXCO_MODE_UV),
 		  isNormalRequired(GL_TRUE),
 		  isTangentRequired(GL_FALSE),
@@ -185,8 +185,8 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 			Mat4f::translationMatrix_transposed(Vec3f(0.0f, 0.0f, -0.5f * cfg.posScale.x + 0.5f * cfg.borderSize));
 	transformations.push_back(transform4);
 
-	minPosition_ = Vec3f(999999.0f);
-	maxPosition_ = Vec3f(-999999.0f);
+	minPosition_ = Vec3f::create(999999.0f);
+	maxPosition_ = Vec3f::create(-999999.0f);
 
 	GLuint vertexBase = 0;
 	for (GLuint boxIndex = 0; boxIndex < numBoxes; ++boxIndex) {
@@ -244,7 +244,7 @@ void FrameMesh::updateAttributes(const Config &cfg) {
 								uv = Vec2f((pos.z + 1.0f) * 0.5f, (pos.y + 1.0f) * 0.5f);
 								break;
 							default:
-								uv = Vec2f(0.0f);
+								uv = Vec2f::zero();
 						}
 						v_texco[vertexIndex + i] = uv * cfg.texcoScale;
 					}

@@ -20,9 +20,9 @@ GroundPath::GroundPath(const Config &cfg)
 
 GroundPath::Config::Config()
 		: levelOfDetails({0}),
-		  posScale(Vec3f(1.0f)),
-		  rotation(Vec3f(0.0f)),
-		  texcoScale(Vec2f(1.0f)),
+		  posScale(Vec3f::one()),
+		  rotation(Vec3f::zero()),
+		  texcoScale(Vec2f::one()),
 		  isTexCoordRequired(false),
 		  isNormalRequired(false),
 		  isTangentRequired(false),
@@ -153,8 +153,8 @@ void GroundPath::updateAttributes(const Config &cfg) {
 	}
 	indices_ = createIndexInput(numIndices, numVertices);
 
-	minPosition_ = Vec3f(std::numeric_limits<float>::max());
-	maxPosition_ = Vec3f(std::numeric_limits<float>::lowest());
+	minPosition_ = Vec3f::create(std::numeric_limits<float>::max());
+	maxPosition_ = Vec3f::create(std::numeric_limits<float>::lowest());
 	for (auto i = 0u; i < numSamplesPerLOD.size(); ++i) {
 		generateLODLevel(cfg, numSamplesPerLOD[i],
 						 meshLODs_[i].d->vertexOffset,
@@ -262,7 +262,7 @@ ref_ptr<GroundPath> GroundPath::load(LoadingContext &ctx, scene::SceneInputNode 
 
 	GroundPath::Config cfg;
 	if (input.hasAttribute("lod-levels")) {
-		auto lodVec = input.getValue<Vec4ui>("lod-levels", Vec4ui(0));
+		auto lodVec = input.getValue<Vec4ui>("lod-levels", Vec4ui::create(0));
 		cfg.levelOfDetails.resize(4);
 		cfg.levelOfDetails[0] = lodVec.x;
 		cfg.levelOfDetails[1] = lodVec.y;
@@ -274,9 +274,9 @@ ref_ptr<GroundPath> GroundPath::load(LoadingContext &ctx, scene::SceneInputNode 
 	cfg.isTexCoordRequired = input.getValue<bool>("use-texco", false);
 	cfg.isNormalRequired = input.getValue<bool>("use-normal", false);
 	cfg.isTangentRequired = input.getValue<bool>("use-tangent", false);
-	cfg.posScale = input.getValue<Vec3f>("scaling", Vec3f(1.0f));
-	cfg.rotation = input.getValue<Vec3f>("rotation", Vec3f(0.0f));
-	cfg.texcoScale = input.getValue<Vec2f>("texco-scaling", Vec2f(1.0f));
+	cfg.posScale = input.getValue<Vec3f>("scaling", Vec3f::one());
+	cfg.rotation = input.getValue<Vec3f>("rotation", Vec3f::zero());
+	cfg.texcoScale = input.getValue<Vec2f>("texco-scaling", Vec2f::one());
 	cfg.baseHeight = input.getValue<float>("base-height", 0.0f);
 	cfg.pathWidth = input.getValue<float>("path-width", 4.0f);
 	cfg.updateHint.frequency = input.getValue<BufferUpdateFrequency>(

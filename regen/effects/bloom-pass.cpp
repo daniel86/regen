@@ -11,11 +11,11 @@ BloomPass::BloomPass(
 	fullscreenMesh_u_ = Rectangle::getUnitQuad();
 
 	inverseInputSize_ = ref_ptr<ShaderInput2f>::alloc("inverseInputSize");
-	inverseInputSize_->setUniformData(Vec2f(0.0f));
+	inverseInputSize_->setUniformData(Vec2f::zero());
 	state()->setInput(inverseInputSize_);
 
 	inverseViewport_ = ref_ptr<ShaderInput2f>::alloc("inverseViewport");
-	inverseViewport_->setUniformData(Vec2f(0.0f));
+	inverseViewport_->setUniformData(Vec2f::zero());
 	state()->setInput(inverseViewport_);
 
 	// create downsample state
