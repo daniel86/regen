@@ -76,7 +76,7 @@ namespace regen {
 		// Temporary array filled up each frame with "global IDs" during traversal
 		// The notion of global IDs is used to identify instances across layers and shapes.
 		// Each shape instance gets a unique global ID in the range [0, numKeys) for each layer.
-		std::vector<uint32_t> globalQueue_; // size = numKeys
+		std::vector<uint32_t> globalQueue_; // dynamic
 		// When writing to the instance output arrays, we need to map from global ID to instance ID.
 		std::vector<uint32_t> globalToInstance_;  // size = numKeys
 		// Maps from item index to global IDs for each layer individually.

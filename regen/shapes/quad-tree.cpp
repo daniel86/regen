@@ -478,16 +478,20 @@ void QuadTree::Private::testNodesAndAxes(QuadTreeTraversal &td) {
 				(td.batchBoundsMaxY * axisDir.y);
 
 			// mm = min{d0, d1, d2, d3}
-			Register min = min_ps(min_ps(d0.c, d1.c), min_ps(d2.c, d3.c));
+			BatchOf_float min = BatchOf_float::min(
+				BatchOf_float::min(d0,d1),
+				BatchOf_float::min(d2,d3));
 			// mm = max{d0, d1, d2, d3}
-			Register max = max_ps(max_ps(d0.c, d1.c), max_ps(d2.c, d3.c));
+			BatchOf_float max = BatchOf_float::max(
+				BatchOf_float::max(d0,d1),
+				BatchOf_float::max(d2,d3));
 			// Compute `(max_n < axis.min) || (axis.max < min_n)`
-			Register sep = cmp_or(
-				cmp_lt(set1_ps(td.projection->axes[axisIdx].max), min),
-				cmp_lt(max, set1_ps(td.projection->axes[axisIdx].min)));
+			BatchOf_float sep =
+				(BatchOf_float::fromScalar(axes[axisIdx].max) < min) ||
+				(max < BatchOf_float::fromScalar(axes[axisIdx].min));
 
 			// Convert mask to bits
-			int sepMask = movemask_ps(sep); // 1 = separated
+			int sepMask = movemask_ps(sep.c); // 1 = separated
 			mask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
 			if constexpr (QUAD_TREE_MASK_EARLY_EXIT) {
 				if (mask == 0) return;
@@ -583,26 +587,26 @@ void QuadTree::Private::testNodesAndSphere(QuadTreeTraversal &td) {
 
 		uint8_t mask = RegisterMask;
 		// Compute distance along X
-		Register distL = sub_ps(td.batchBoundsMinX.c, r_centerX.c);
-		Register distR = sub_ps(r_centerX.c, td.batchBoundsMaxX.c);
-		Register distX = cmp_or(
-			cmp_and(cmp_lt(r_centerX.c, td.batchBoundsMinX.c), distL),
-			cmp_and(cmp_gt(r_centerX.c, td.batchBoundsMaxX.c), distR));
+		BatchOf_float distL = (td.batchBoundsMinX - r_centerX);
+		BatchOf_float distR = (r_centerX - td.batchBoundsMaxX);
+		BatchOf_float distX =
+			((r_centerX < td.batchBoundsMinX) && distL) ||
+			((r_centerX > td.batchBoundsMaxX) && distR);
 
 		// Compute distance along Y
-		distL = sub_ps(td.batchBoundsMinY.c, r_centerY.c);
-		distR = sub_ps(r_centerY.c, td.batchBoundsMaxY.c);
-		Register distY = cmp_or(
-			cmp_and(cmp_lt(r_centerY.c, td.batchBoundsMinY.c), distL),
-			cmp_and(cmp_gt(r_centerY.c, td.batchBoundsMaxY.c), distR));
+		distL = (td.batchBoundsMinY - r_centerY);
+		distR = (r_centerY - td.batchBoundsMaxY);
+		BatchOf_float distY =
+			((r_centerY < td.batchBoundsMinY) && distL) ||
+			((r_centerY > td.batchBoundsMaxY) && distR);
 
 		// Compute total squared distance
-		Register sqDist = add_ps(mul_ps(distX, distX), mul_ps(distY, distY));
+		BatchOf_float sqDist = (distX*distX + distY*distY);
 		// Finally, compare against radius², and push nodes that intersect
-		Register sep = cmp_lt(sqDist, r_radius.c);
+		BatchOf_float sep = (sqDist < r_radius);
 
 		// Convert mask to bits
-		int sepMask = movemask_ps(sep); // 1 = separated
+		int sepMask = movemask_ps(sep.c); // 1 = separated
 		mask &= ~sepMask; // Clear bits in intersectMask where sepMask is 1
 		if constexpr (QUAD_TREE_DEFERRED_BATCH_STORE) {
 			td.batchResults_[td.batchCounter_++] = mask;

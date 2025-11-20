@@ -415,6 +415,30 @@ namespace regen {
 		BatchOf_float operator||(const T &other) const { return cmp_or(other); }
 
 		/**
+		 * Compute the minimum of two batches element-wise.
+		 * @param a The first batch.
+		 * @param b The second batch.
+		 * @return A BatchOf_float containing the minimum values.
+		 */
+		static BatchOf_float min(const BatchOf_float &a, const BatchOf_float &b) {
+			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			batch.c = simd::min_ps(a.c, b.c);
+			return batch;
+		}
+
+		/**
+		 * Compute the maximum of two batches element-wise.
+		 * @param a The first batch.
+		 * @param b The second batch.
+		 * @return A BatchOf_float containing the maximum values.
+		 */
+		static BatchOf_float max(const BatchOf_float &a, const BatchOf_float &b) {
+			BatchOf_float batch; // NOLINT(cppcoreguidelines-pro-type-member-init)
+			batch.c = simd::max_ps(a.c, b.c);
+			return batch;
+		}
+
+		/**
 		 * Load a single float value into the batch.
 		 */
 		void setScalar(float v) {
