@@ -68,19 +68,19 @@ void AABB::updateAABB() {
 		if (transform_->hasModelMat()) {
 			auto tf = transform_->modelMat()->getVertexClamped(transformIndex_);
 			// compute transformed bounds
-			Vec3f transformed = (tf.r ^ baseBounds_.min).xyz();
-			_set_min(transformed);
-			_set_max(transformed);
+			Vec3f transformed;
+			_set_min(Vec3f::posMax());
+			_set_max(Vec3f::negMax());
 			// min = min(all 8 transformed vertices)
 			// max = max(all 8 transformed vertices)
-			_set_minmax(Vec3f(g_minX[globalIndex_], g_minY[globalIndex_], g_minZ[globalIndex_]));
-			_set_minmax(Vec3f(g_minX[globalIndex_], g_minY[globalIndex_], g_maxZ[globalIndex_]));
-			_set_minmax(Vec3f(g_minX[globalIndex_], g_maxY[globalIndex_], g_minZ[globalIndex_]));
-			_set_minmax(Vec3f(g_minX[globalIndex_], g_maxY[globalIndex_], g_maxZ[globalIndex_]));
-			_set_minmax(Vec3f(g_maxX[globalIndex_], g_minY[globalIndex_], g_minZ[globalIndex_]));
-			_set_minmax(Vec3f(g_maxX[globalIndex_], g_minY[globalIndex_], g_maxZ[globalIndex_]));
-			_set_minmax(Vec3f(g_maxX[globalIndex_], g_maxY[globalIndex_], g_minZ[globalIndex_]));
-			_set_minmax(Vec3f(g_maxX[globalIndex_], g_maxY[globalIndex_], g_maxZ[globalIndex_]));
+			_set_minmax(Vec3f(baseBounds_.min.x, baseBounds_.min.y, baseBounds_.min.z));
+			_set_minmax(Vec3f(baseBounds_.min.x, baseBounds_.min.y, baseBounds_.max.z));
+			_set_minmax(Vec3f(baseBounds_.min.x, baseBounds_.max.y, baseBounds_.min.z));
+			_set_minmax(Vec3f(baseBounds_.min.x, baseBounds_.max.y, baseBounds_.max.z));
+			_set_minmax(Vec3f(baseBounds_.max.x, baseBounds_.min.y, baseBounds_.min.z));
+			_set_minmax(Vec3f(baseBounds_.max.x, baseBounds_.min.y, baseBounds_.max.z));
+			_set_minmax(Vec3f(baseBounds_.max.x, baseBounds_.max.y, baseBounds_.min.z));
+			_set_minmax(Vec3f(baseBounds_.max.x, baseBounds_.max.y, baseBounds_.max.z));
 			// tfOrigin = (tfBounds.min + tfBounds.max) * 0.5f;
 			tfOrigin_.x = (g_minX[globalIndex_] + g_maxX[globalIndex_]) * 0.5f;
 			tfOrigin_.y = (g_minY[globalIndex_] + g_maxY[globalIndex_]) * 0.5f;
@@ -103,7 +103,7 @@ void AABB::updateAABB() {
 			g_maxX[globalIndex_] += o.x;
 			g_maxY[globalIndex_] += o.y;
 			g_maxZ[globalIndex_] += o.z;
-			tfOrigin_ += offset.r.xyz();
+			tfOrigin_ += o;
 		}
 	} else {
 		_set_min(baseBounds_.min);
