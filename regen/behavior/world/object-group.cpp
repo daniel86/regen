@@ -37,7 +37,6 @@ void ObjectGroup::updateGroupPosition() {
 	dir.normalize();
 	groupCenter_ += dir * currentLocation()->radius() * (0.5f + math::random<float>() * 0.35f);
 	groupCenter_.y = members_[0]->position3D().y;
-	// TODO: ensure some distance from other groups in the location.
 	groupCenter2D_ = Vec2f(groupCenter_.x, groupCenter_.z);
 	pos_->setVertex(0, groupCenter_);
 	setRadius(currentLocation()->radius() * 0.5f);

@@ -589,10 +589,9 @@ BehaviorStatus MoveToGroup::tick(Blackboard& kb, float /*dt_s*/) {
 	return BehaviorStatus::RUNNING;
 }
 
-static float getReachRadius(const Blackboard &kb, const Patient &patient) {
-	// TODO: Get rid of hardcoded parameter.
+static float getReachRadius(const Patient &patient) {
 	return patient.affordance.get() ?
-		0.75 :
+		0.75 * Affordance::reachDistance :
 		0.75 * patient.object->radius();
 }
 
@@ -611,7 +610,7 @@ BehaviorStatus MoveToPatient::tick(Blackboard& kb, float /*dt_s*/) {
 		return BehaviorStatus::SUCCESS;
 	}
 	auto &it = kb.interactionTarget();
-	if (kb.distanceToPatient() <= getReachRadius(kb,it)) {
+	if (kb.distanceToPatient() <= getReachRadius(it)) {
 		// Reached patient/affordance
 #ifdef NPC_ACTIONS_DEBUG
 		REGEN_INFO("["<<kb.instanceId()<<"] Reached patient '" << it.object->name() << "'.");
@@ -676,7 +675,7 @@ BehaviorStatus PerformAffordedAction::tick(Blackboard& kb, float /*dt_s*/) {
 		kb.unsetInteractionTarget();
 		return BehaviorStatus::SUCCESS;
 	}
-	if (kb.distanceToPatient() > getReachRadius(kb, patient)) {
+	if (kb.distanceToPatient() > getReachRadius(patient)) {
 		// Not in reach of the affordance -> failure.
 		// Usually you want to have PerformAffordedAction in a selection followed by MoveToPatient
 		// which will become active in this case.
@@ -691,7 +690,7 @@ BehaviorStatus FormLocationGroup::tick(Blackboard &kb, float /*dt_s*/) {
 	auto &location = kb.currentLocation();
 	if (!location) {
 		// Invalid state when entering this action
-		REGEN_WARN("["<<kb.instanceId()<<"] No curent location.");
+		REGEN_WARN("["<<kb.instanceId()<<"] No current location.");
 		return BehaviorStatus::FAILURE;
 	}
 	if (location->numVisitors() < 2) {
@@ -726,8 +725,6 @@ BehaviorStatus FormLocationGroup::tick(Blackboard &kb, float /*dt_s*/) {
 	for (uint32_t i = 0; i < candidateIdx; i++) {
 		WorldObject *character = location->visitor(candidates[i].first);
 		if (character == kb.characterObject()) continue;
-		// TODO: Check friendliness
-		//if (!kb.isFriendly(character)) continue;
 		if (character->isPartOfGroup()) {
 			if (character->currentGroup()->isFull()) {
 				// Try next character

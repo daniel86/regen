@@ -17,6 +17,7 @@ PerceptionSystem::PerceptionSystem(
 	// create the initial collision shape
 	// TODO: Experiment with form of shape for collision detection.
 	//     - best: frustum, but we might get away with a box or sphere.
+	//     - frustum actually better for testing
 	float lookAheadDistance = 15.0f;
 	Bounds<Vec3f> collisionBounds = Bounds<Vec3f>::create(mesh->minPosition(), mesh->maxPosition());
 	collisionBounds.min.z -= lookAheadDistance;

@@ -177,9 +177,13 @@ static void loadChildren(LoadingContext &ctx, scene::SceneInputNode &n, const re
 			case ObjectType::PLACE:
 				childObj->setPlaceOfObject(wo);
 				break;
-			case ObjectType::COLLECTION:
-				// TODO: add to collection?
+			case ObjectType::COLLECTION: {
+				auto group = ref_ptr<ObjectGroup>::dynamicCast(wo);
+				if (group.get()) {
+					childObj->joinGroup(group);
+				}
 				break;
+			}
 			default:
 				break;
 		}

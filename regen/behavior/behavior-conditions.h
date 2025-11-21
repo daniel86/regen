@@ -420,9 +420,6 @@ namespace regen {
 			}
 		}
 	};
-
-	// TODO: Support more conditions
-	//  - HasFaction, IsEnemy, IsAlly, IsNeutral
 } // namespace
 
 #endif /* REGEN_BEHAVIOR_CONDITIONS_H_ */

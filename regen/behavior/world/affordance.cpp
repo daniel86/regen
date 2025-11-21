@@ -2,6 +2,8 @@
 
 using namespace regen;
 
+float Affordance::reachDistance = 1.0f;
+
 Affordance::Affordance(const ref_ptr<WorldObject> &owner) : owner(owner) {
 	// TODO: Also support dynamic world objects here, e.g. chairs that can be moved.
 	//         Then it makes sense to compute affordance slot in local space instead.

@@ -22,6 +22,7 @@ namespace regen {
 	 * should position themselves when using it.
 	 */
 	struct Affordance {
+		static float reachDistance;
 		// The type of action that is afforded
 		ActionType type = ActionType::IDLE;
 		// Layout of slots around the affordance
