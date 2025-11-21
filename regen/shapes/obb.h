@@ -151,6 +151,9 @@ namespace regen {
 		Vec3f vertices_[8];
 
 		void updateOBB();
+
+		void updateBaseSize();
+
 		void applyTransform(const Mat4f &tf);
 	};
 

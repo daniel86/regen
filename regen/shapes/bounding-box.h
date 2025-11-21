@@ -49,7 +49,7 @@ namespace regen {
 		// min/max bounds of the box's vertices (without transformation)
 		Bounds<Vec3f> baseBounds_;
 		// The center of the box before transformation
-		Vec3f basePosition_;
+		Vec3f basePosition_ = Vec3f::zero();
 	};
 } // namespace
 

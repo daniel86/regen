@@ -40,12 +40,29 @@ using namespace regen;
 
 OBB::OBB(const ref_ptr<Mesh> &mesh, const std::vector<ref_ptr<Mesh>> &parts)
 		: BoundingBox(BoundingShapeType::OBB, mesh, parts) {
+	updateBaseSize();
 	updateOBB();
 }
 
 OBB::OBB(const Bounds<Vec3f> &bounds)
 		: BoundingBox(BoundingShapeType::OBB, bounds) {
+	updateBaseSize();
 	updateOBB();
+}
+
+void OBB::updateBaseSize() {
+	Vec3f halfBaseSize = (baseBounds_.max - baseBounds_.min) * 0.5f;
+	if (transform_.get()) {
+		if (transform_->hasModelMat()) {
+			auto tf = transform_->modelMat()->getVertex(transformIndex_);
+			halfBaseSize *= tf.r.scaling();
+		}
+	} else if (localStamp_ != 1) {
+		halfBaseSize *= localTransform_.scaling();
+	}
+	globalBatchData_.halfSizeX()[globalIndex_] = halfBaseSize.x;
+	globalBatchData_.halfSizeY()[globalIndex_] = halfBaseSize.y;
+	globalBatchData_.halfSizeZ()[globalIndex_] = halfBaseSize.z;
 }
 
 bool OBB::updateTransform(bool forceUpdate) {
@@ -69,12 +86,9 @@ void OBB::updateBaseBounds(const Vec3f &min, const Vec3f &max) {
 	baseBounds_.min += baseOffset_;
 	baseBounds_.max += baseOffset_;
 	basePosition_ = (baseBounds_.max + baseBounds_.min) * 0.5f;
+	updateBaseSize();
 	// reset TF stamp to force update
 	lastTransformStamp_ = 0;
-	// update half size in global SOA arrays
-	globalBatchData_.halfSizeX()[globalIndex_] = (baseBounds_.max.x - baseBounds_.min.x) * 0.5f;
-	globalBatchData_.halfSizeY()[globalIndex_] = (baseBounds_.max.y - baseBounds_.min.y) * 0.5f;
-	globalBatchData_.halfSizeZ()[globalIndex_] = (baseBounds_.max.z - baseBounds_.min.z) * 0.5f;
 }
 
 #define _set_axis(i, v) \
